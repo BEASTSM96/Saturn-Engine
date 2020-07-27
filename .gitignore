@@ -43,3 +43,10 @@ Sparky.VC.db
 Bin
 Bin-int
 
+# Directories
+.vs/
+/bin/
+bin-int/
+
+# Files
+*.user
