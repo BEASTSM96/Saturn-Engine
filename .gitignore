@@ -34,4 +34,12 @@
 #VS 2015 STUFF
 Sparky.VC
 Sparky.VC.VC.opendb
+Sparky.VC.db
+**.VC
+**.VC.db
+**.VC.VC.opendb
+
+#bin stuff
+Bin
+Bin-int
 
