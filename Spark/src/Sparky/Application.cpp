@@ -165,7 +165,7 @@ namespace Sparky {
 	{
 		while (m_Running)
 		{
-			/*1, 1, 0, 0 // yellow */
+			/* 1, 1, 0, 0 // yellow */
 			glClearColor(0.1f, 0.1f, 0.1f, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
 
