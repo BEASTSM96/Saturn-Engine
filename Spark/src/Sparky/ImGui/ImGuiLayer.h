@@ -24,4 +24,36 @@ namespace Sparky {
 	private:
 		float m_Time = 0.0f;
 	};
+
+	class SPARKY_API ImGuiFPS : public Layer
+	{
+	public:
+		ImGuiFPS();
+		~ImGuiFPS();
+
+		virtual void OnAttach() override;
+		virtual void OnDetach() override;
+		virtual void OnImGuiRender() override;
+
+		void Begin();
+		void End();
+	private:
+		float m_Time = 0.0f;
+	};
+
+	class SPARKY_API ImGuiRenderStats : public Layer
+	{
+	public:
+		ImGuiRenderStats();
+		~ImGuiRenderStats();
+
+		virtual void OnAttach() override;
+		virtual void OnDetach() override;
+		virtual void OnImGuiRender() override;
+
+		void Begin();
+		void End();
+	private:
+		float m_Time = 0.0f;
+	};
 }

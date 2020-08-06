@@ -10,6 +10,8 @@
 #include "imgui_internal.h"
 #include "imconfig.h"
 
+#include "Sparky/Core/Timestep.h"
+
 // TEMPORARY
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -37,9 +39,7 @@ namespace Sparky {
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-
-																	// Setup Dear ImGui style
+																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;																	// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
 		//ImGui::StyleColorsClassic();
 
@@ -96,6 +96,166 @@ namespace Sparky {
 	{
 		static bool show = true;
 		ImGui::ShowDemoWindow(&show);
+	}
+
+
+	////////////////////////////////////////////////
+	////////////////IMGUIFPS///////////////////////
+	//////////////////////////////////////////////
+	//#define SP_FPS
+	ImGuiFPS::ImGuiFPS() : Layer("ImguiFPS")
+	{
+	}
+
+	ImGuiFPS::~ImGuiFPS()
+	{
+	}
+
+	void ImGuiFPS::OnAttach()
+	{
+		// Setup Dear ImGui context
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+		// Setup Platform/Renderer bindings
+		ImGui_ImplOpenGL3_Init("#version 410");
+	}
+
+	void ImGuiFPS::OnDetach()
+	{
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+	}
+
+	void ImGuiFPS::Begin()
+	{
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+	}
+
+	void ImGuiFPS::End()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		Application& app = Application::Get();
+		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
+
+		// Rendering
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
+	}
+
+	void ImGuiFPS::OnImGuiRender()
+	{
+
+		static bool show = true;
+
+		float LastFrameTime = 0.0f;
+
+		float time = (float)glfwGetTime(); //Platform::GetTime();
+
+		Timestep timestep = time - LastFrameTime;
+
+		LastFrameTime = time;
+
+		if (show)
+		{
+			ImGui::Begin("test");
+			//SP_CORE_INFO("FPS {0}", timestep);
+			ImGui::Text("yes fps is here ", timestep);
+			ImGui::End();
+		}
+	}
+
+	////////////////////////////////////////////////////////
+	////////////////imguirenderstats////////////////////////
+	///////////////////////////////////////////////////////
+
+	//TEMP
+	#include <GLFW\glfw3.h>
+
+	#include <glad\glad.h>
+	#include <gl\GL.h>
+
+
+	ImGuiRenderStats::ImGuiRenderStats() : Layer("ImguiRenderStats")
+	{
+	}
+
+	ImGuiRenderStats::~ImGuiRenderStats()
+	{
+	}
+
+	void ImGuiRenderStats::OnAttach()
+	{
+		// Setup Dear ImGui context
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+		// Setup Platform/Renderer bindings
+		ImGui_ImplOpenGL3_Init("#version 410");
+	}
+
+	void ImGuiRenderStats::OnDetach()
+	{
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+	}
+
+	void ImGuiRenderStats::Begin()
+	{
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+	}
+
+	void ImGuiRenderStats::End()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		Application& app = Application::Get();
+		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
+
+		// Rendering
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
+	}
+
+	void ImGuiRenderStats::OnImGuiRender()
+	{
+		static bool show = true;
+		if (show)
+		{
+
+			const char* ver = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+			const char* vender = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+			const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+
+			ImGui::Begin("RendererStats");
+			ImGui::Text(ver);
+			ImGui::Text(vender);
+			ImGui::Text(renderer);
+			ImGui::End();
+		}
 	}
 
 }

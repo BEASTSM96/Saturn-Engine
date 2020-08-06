@@ -11,8 +11,8 @@ namespace Sparky {
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::None: SP_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
-		case RendererAPI::OpenGL: return new OpenGLVertexArray();
+		case RendererAPI::API::None: SP_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
+		case RendererAPI::API::OpenGL: return new OpenGLVertexArray();
 		}
 
 		SP_CORE_ASSERT(false, "Unknown RendererAPI");

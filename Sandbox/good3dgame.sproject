@@ -1,0 +1,22 @@
+{
+	"FileVersion": 0,
+	"EngineAssociation": "0.01",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	],
+	"TargetPlatforms": [
+		"Windows"
+	]
+
+	testReader
+}
+

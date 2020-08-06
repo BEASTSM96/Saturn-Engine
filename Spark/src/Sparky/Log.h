@@ -30,8 +30,8 @@ namespace Sparky {
 #define SP_CORE_FATAL(...)    ::Sparky::Log::GetCoreLogger()->critical(__VA_ARGS__)
 
 // Client log macros
-#define SP_TRACE(...)	      ::Sparky::Log::GetClientLogger()->trace(__VA_ARGS__)
-#define SP_INFO(...)	      ::Sparky::Log::GetClientLogger()->info(__VA_ARGS__)
-#define SP_WARN(...)	      ::Sparky::Log::GetClientLogger()->warn(__VA_ARGS__)
-#define SP_ERROR(...)	      ::Sparky::Log::GetClientLogger()->error(__VA_ARGS__)
-#define SP_FATAL(...)	      ::Sparky::Log::GetClientLogger()->critical(__VA_ARGS__) 
+#define SP_CL_TRACE(...)	      ::Sparky::Log::GetClientLogger()->trace(__VA_ARGS__)
+#define SP_CL_INFO(...)	      ::Sparky::Log::GetClientLogger()->info(__VA_ARGS__)
+#define SP_CL_WARN(...)	      ::Sparky::Log::GetClientLogger()->warn(__VA_ARGS__)
+#define SP_CL_ERROR(...)	      ::Sparky::Log::GetClientLogger()->error(__VA_ARGS__)
+#define SP_CL_FATAL(...)	      ::Sparky::Log::GetClientLogger()->critical(__VA_ARGS__) 

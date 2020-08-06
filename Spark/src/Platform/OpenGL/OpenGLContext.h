@@ -7,7 +7,7 @@ struct GLFWwindow;
 namespace Sparky {
 
 
-	class OpenGLContext : public GraphicsContext 
+	class OpenGLContext : public GraphicsContext
 	{
 	public:
 		OpenGLContext(GLFWwindow* windowHandle);

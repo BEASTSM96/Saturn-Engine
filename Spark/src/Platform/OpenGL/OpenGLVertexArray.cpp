@@ -9,17 +9,17 @@ namespace Sparky {
 	{
 		switch (type)
 		{
-		case Sparky::ShaderDataType::Float:    return GL_FLOAT;
-		case Sparky::ShaderDataType::Float2:   return GL_FLOAT;
-		case Sparky::ShaderDataType::Float3:   return GL_FLOAT;
-		case Sparky::ShaderDataType::Float4:   return GL_FLOAT;
-		case Sparky::ShaderDataType::Mat3:     return GL_FLOAT;
-		case Sparky::ShaderDataType::Mat4:     return GL_FLOAT;
-		case Sparky::ShaderDataType::Int:      return GL_INT;
-		case Sparky::ShaderDataType::Int2:     return GL_INT;
-		case Sparky::ShaderDataType::Int3:     return GL_INT;
-		case Sparky::ShaderDataType::Int4:     return GL_INT;
-		case Sparky::ShaderDataType::Bool:     return GL_BOOL;
+			case Sparky::ShaderDataType::Float:    return GL_FLOAT;
+			case Sparky::ShaderDataType::Float2:   return GL_FLOAT;
+			case Sparky::ShaderDataType::Float3:   return GL_FLOAT;
+			case Sparky::ShaderDataType::Float4:   return GL_FLOAT;
+			case Sparky::ShaderDataType::Mat3:     return GL_FLOAT;
+			case Sparky::ShaderDataType::Mat4:     return GL_FLOAT;
+			case Sparky::ShaderDataType::Int:      return GL_INT;
+			case Sparky::ShaderDataType::Int2:     return GL_INT;
+			case Sparky::ShaderDataType::Int3:     return GL_INT;
+			case Sparky::ShaderDataType::Int4:     return GL_INT;
+			case Sparky::ShaderDataType::Bool:     return GL_BOOL;
 		}
 
 		SP_CORE_ASSERT(false, "Unknown ShaderDataType!");

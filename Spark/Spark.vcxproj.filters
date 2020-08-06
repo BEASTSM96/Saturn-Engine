@@ -1331,6 +1331,12 @@
     <ClInclude Include="src\Sparky\Renderer\Renderer.h" />
     <ClInclude Include="src\Sparky\Renderer\VertexArray.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
+    <ClInclude Include="src\Sparky\Renderer\RenderCommand.h" />
+    <ClInclude Include="src\Sparky\Renderer\OrthographicCamera.h" />
+    <ClInclude Include="src\Sparky\Renderer\RendererAPI.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
+    <ClInclude Include="src\Sparky\Core\Timestep.h" />
+    <ClInclude Include="src\Sparky\Core\File\SparkyFile.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
@@ -1367,5 +1373,10 @@
     <ClCompile Include="src\Sparky\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Sparky\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
+    <ClCompile Include="src\Sparky\Renderer\OrthographicCamera.cpp" />
+    <ClCompile Include="src\Sparky\Renderer\RenderCommand.cpp" />
+    <ClCompile Include="src\Sparky\Renderer\RendererAPI.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
+    <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp" />
   </ItemGroup>
 </Project>

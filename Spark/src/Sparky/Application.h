@@ -8,11 +8,8 @@
 #include "Sparky/Events/ApplicationEvent.h"
 
 #include "Sparky/ImGui/ImGuiLayer.h"
+#include "Sparky/Core/Timestep.h"
 
-#include "Sparky/Renderer/Shader.h"
-#include "Sparky/Renderer/Buffer.h"
-
-#include "Sparky\Renderer\VertexArray.h"
 
 namespace Sparky {
 
@@ -21,6 +18,8 @@ namespace Sparky {
 	public:
 		Application();
 		virtual ~Application();
+
+		float frames;
 
 		void Run();
 
@@ -32,19 +31,27 @@ namespace Sparky {
 		inline Window& GetWindow() { return *m_Window; }
 
 		inline static Application& Get() { return *s_Instance; }
+
+		void SetCrashState(bool state);
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
-
+	private:
 		std::unique_ptr<Window> m_Window;
+
 		ImGuiLayer* m_ImGuiLayer;
+		
+		ImGuiFPS* m_FPSLayer;
+
+		ImGuiRenderStats* m_RenderStats;
+
 		bool m_Running = true;
+
 		LayerStack m_LayerStack;
 
-		std::shared_ptr<Shader> m_Shader;
-		std::shared_ptr<VertexArray> m_VertexArray;
+		bool m_Crashed = false;
 
-		std::shared_ptr<Shader> m_BlueShader;
-		std::shared_ptr<VertexArray> m_SquareVA;
+		float LastFrameTime = 0.0f;
+
 	private:
 		static Application* s_Instance;
 	};
