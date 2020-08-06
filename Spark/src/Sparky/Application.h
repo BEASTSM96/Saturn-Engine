@@ -33,6 +33,7 @@ namespace Sparky {
 		inline static Application& Get() { return *s_Instance; }
 
 		void SetCrashState(bool state);
+		bool SetRunningState(bool state);
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 	private:
@@ -43,6 +44,8 @@ namespace Sparky {
 		ImGuiFPS* m_FPSLayer;
 
 		ImGuiRenderStats* m_RenderStats;
+
+		ImguiTopBar* m_ImguiTopBar;
 
 		bool m_Running = true;
 

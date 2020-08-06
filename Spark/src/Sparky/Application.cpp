@@ -50,11 +50,11 @@ namespace Sparky {
 		m_ImGuiLayer = new ImGuiLayer();
 		m_FPSLayer = new ImGuiFPS();
 		m_RenderStats = new ImGuiRenderStats();
-
+		m_ImguiTopBar = new ImguiTopBar();
 
 		PushOverlay(m_ImGuiLayer);
-		//PushOverlay(m_FPSLayer);
 		PushOverlay(m_RenderStats);
+		PushOverlay(m_ImguiTopBar);
 	}
 
 	Application::~Application()
@@ -141,19 +141,29 @@ namespace Sparky {
 		{
 			glClearColor(0, 0, 0, 0);
 			glClear(GL_COLOR_BUFFER_BIT);
+
+
+			float time = (float)glfwGetTime(); //Platform::GetTime();
+
+			Timestep timestep = time - LastFrameTime;
+
+			LastFrameTime = time;
+
 			m_Window->OnUpdate();
 		}
 	}
 
 	void Application::SetCrashState(bool state)
 	{
-		//m_Window = nullptr;
-
-		//m_Window = std::unique_ptr<Window>(Window::Create());
-		//m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
-
 		m_Crashed = state;
 		m_Running = !state;
+	}
+
+	bool Application::SetRunningState(bool state)
+	{
+		m_Running = state;
+
+		return state;
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)

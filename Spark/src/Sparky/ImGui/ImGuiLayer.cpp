@@ -18,16 +18,16 @@
 
 namespace Sparky {
 
-	
+
 	ImGuiLayer::ImGuiLayer()
 		: Layer("ImGuiLayer")
 	{
 	}
-	
+
 	ImGuiLayer::~ImGuiLayer()
 	{
 	}
-	
+
 	void ImGuiLayer::OnAttach()
 	{
 		// Setup Dear ImGui context
@@ -182,10 +182,10 @@ namespace Sparky {
 	///////////////////////////////////////////////////////
 
 	//TEMP
-	#include <GLFW\glfw3.h>
+#include <GLFW\glfw3.h>
 
-	#include <glad\glad.h>
-	#include <gl\GL.h>
+#include <glad\glad.h>
+#include <gl\GL.h>
 
 
 	ImGuiRenderStats::ImGuiRenderStats() : Layer("ImguiRenderStats")
@@ -254,9 +254,169 @@ namespace Sparky {
 			ImGui::Text(ver);
 			ImGui::Text(vender);
 			ImGui::Text(renderer);
+
 			ImGui::End();
 		}
 	}
 
+
+	///////////////////////////////////////////
+	///////////////IMGUITOPBAR////////////////
+	/////////////////////////////////////////
+
+
+	ImguiTopBar::ImguiTopBar() : Layer("TopBar")
+	{
+	}
+
+	ImguiTopBar::~ImguiTopBar()
+	{
+	}
+
+	void ImguiTopBar::OnAttach()
+	{
+		// Setup Dear ImGui context
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+		// Setup Platform/Renderer bindings
+		ImGui_ImplOpenGL3_Init("#version 410");
+	}
+
+	void ImguiTopBar::OnDetach()
+	{
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+	}
+
+	void ImguiTopBar::Begin()
+	{
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+	}
+
+	void ImguiTopBar::End()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		Application& app = Application::Get();
+		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
+
+		// Rendering
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
+	}
+
+
+	static void ShowAboutSparkyWindow()
+	{
+		ImGui::MenuItem("(About menu)", NULL, false, false);
+		if (ImGui::MenuItem("About")) {}
+		if (ImGui::MenuItem("ver :", "v 0.21")) {}
+		if (ImGui::MenuItem("Bulid :", "dev")) {}
+		if (ImGui::MenuItem("GitHub branch :", "master")) {}
+	}
+
+	void ImguiTopBar::OnImGuiRender()
+	{
+		static bool show = true;
+
+		// Demonstrate the various window flags. Typically you would just use the default!
+		static bool no_titlebar = false;
+		static bool no_scrollbar = false;
+		static bool no_menu = false;
+		static bool no_move = false;
+		static bool no_resize = false;
+		static bool no_collapse = false;
+		static bool no_close = false;
+		static bool no_nav = false;
+		static bool no_background = false;
+		static bool no_bring_to_front = false;
+		static bool no_docking = false;
+
+		ImGuiWindowFlags window_flags = 0;
+		if (no_titlebar)        window_flags |= ImGuiWindowFlags_NoTitleBar;
+		if (no_scrollbar)       window_flags |= ImGuiWindowFlags_NoScrollbar;
+		if (!no_menu)           window_flags |= ImGuiWindowFlags_MenuBar;
+		if (no_move)            window_flags |= ImGuiWindowFlags_NoMove;
+		if (no_resize)          window_flags |= ImGuiWindowFlags_NoResize;
+		if (no_collapse)        window_flags |= ImGuiWindowFlags_NoCollapse;
+		if (no_nav)             window_flags |= ImGuiWindowFlags_NoNav;
+		if (no_background)      window_flags |= ImGuiWindowFlags_NoBackground;
+		if (no_bring_to_front)  window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+		if (no_docking)         window_flags |= ImGuiWindowFlags_NoDocking;
+		if (no_close)           show = NULL; // Don't pass our bool* to Begin
+
+		if (show)
+		{
+			// We specify a default position/size in case there's no data in the .ini file. Typically this isn't required! We only do it to make the Demo applications a little more welcoming.
+			ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(ImVec2(main_viewport->GetWorkPos().x + 650, main_viewport->GetWorkPos().y + 20), ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
+
+			if (!ImGui::Begin("Sparky topbar", &show, window_flags))
+			{
+				//	// Early out if the window is collapsed, as an optimization.
+				ImGui::End();
+				return;
+			}
+
+			ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
+
+			if (ImGui::BeginMainMenuBar()) {
+
+				if (ImGui::BeginMenu("File"))
+				{
+					if (ImGui::Button("Save"))
+					{
+						//ShowFileExp();
+					}
+					if (ImGui::Button("SaveAs..."))
+					{
+						//ShowFileExp();
+					}
+					if (ImGui::Button("SaveAll"))
+					{
+						//ShowFileExp();
+					}
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Edit")) {
+					ImGui::EndMenu();
+				}
+				
+				if (ImGui::BeginMenu("Sparky"))
+				{
+					if (ImGui::Button("Quit"))
+					{
+						Application::Get().SetRunningState(false);
+					}
+					if (ImGui::BeginMenu("About"))
+					{
+						ShowAboutSparkyWindow();
+						ImGui::EndMenu();
+					}
+					ImGui::EndMenu();
+				}
+				
+				ImGui::EndMainMenuBar();
+			}
+
+			ImGui::End();
+
+		}
+		
+	}
 }
 

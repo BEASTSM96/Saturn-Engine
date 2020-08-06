@@ -56,4 +56,20 @@ namespace Sparky {
 	private:
 		float m_Time = 0.0f;
 	};
+
+	class SPARKY_API ImguiTopBar : public Layer
+	{
+	public:
+		ImguiTopBar();
+		~ImguiTopBar();
+
+		virtual void OnAttach() override;
+		virtual void OnDetach() override;
+		virtual void OnImGuiRender() override;
+
+		void Begin();
+		void End();
+	private:
+		float m_Time = 0.0f;
+	};
 }
