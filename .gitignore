@@ -35,11 +35,32 @@
 Sparky.VC
 Sparky.VC.VC.opendb
 Sparky.VC.db
-**.VC
-**.VC.db
-**.VC.VC.opendb
+*.VC
+*.VC.db
+*.VC.VC.opendb
+
+#vs stuff cuz git yeah
+/.vs
+*.sln
+
+*.ipch
 
 #bin stuff
 Bin
 Bin-int
+
+# Binaries
+**/bin/
+!vendor/bin/premake/
+bin-int/
+
+# log files
+*.log
+
+# Visual Studio files and folder
+.vs/
+**.sln
+**.vcxproj
+**.vcxproj.filters
+**.vcxproj.user
 
