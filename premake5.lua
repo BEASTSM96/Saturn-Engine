@@ -32,7 +32,7 @@ project "Spark"
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	pchheader "sppch.h"
-	pchsource "spphc.cpp"
+	pchsource "sppch.cpp"
 
 	files
 	{
