@@ -92,19 +92,6 @@ namespace Sparky {
 	{
 		while (m_Running)
 		{
-			/*
-			//1, 1, 0, 0 // yellow
-			glClearColor(1, 1, 0, 0);
-			glClear(GL_COLOR_BUFFER_BIT);
-
-			m_BlueShader->Bind();
-			m_SquareVA->Bind();
-			glDrawElements(GL_TRIANGLES, m_SquareVA->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
-
-			m_Shader->Bind();
-			m_VertexArray->Bind();
-			glDrawElements(GL_TRIANGLES, m_VertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
-			*/
 
 			float time = (float)glfwGetTime(); //Platform::GetTime();
 

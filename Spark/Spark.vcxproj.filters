@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="src">
@@ -7,17 +7,29 @@
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Platform\OpenGL">
+      <UniqueIdentifier>{35A49437-A105-7245-2A73-B8F796D3A804}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Platform\Windows">
       <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Sparky">
       <UniqueIdentifier>{96E6FB2E-829E-3D7C-EBA5-16D8D77CD86C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Sparky\Core">
+      <UniqueIdentifier>{AE98BAA7-1A24-286C-2335-AB608F3F846C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Sparky\Core\File">
+      <UniqueIdentifier>{9DE475B5-8973-FF7E-3292-137A1E001025}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Sparky\Events">
       <UniqueIdentifier>{BA8DE585-26A4-E31B-6F1B-6F3DDB70B4A3}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Sparky\ImGui">
       <UniqueIdentifier>{4074789F-2C6D-97F1-559F-7C7641F776FD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Sparky\Renderer">
+      <UniqueIdentifier>{FCF27A8C-6854-589A-F1C1-9E4C5D228F59}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
@@ -42,6 +54,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
@@ -56,6 +80,12 @@
     </ClInclude>
     <ClInclude Include="src\Sparky\Core.h">
       <Filter>src\Sparky</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Core\File\SparkyFile.h">
+      <Filter>src\Sparky\Core\File</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Core\Timestep.h">
+      <Filter>src\Sparky\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Sparky\EntryPoint.h">
       <Filter>src\Sparky</Filter>
@@ -92,6 +122,30 @@
     </ClInclude>
     <ClInclude Include="src\Sparky\MouseButtons.h">
       <Filter>src\Sparky</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Renderer\Buffer.h">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Renderer\GraphicsContext.h">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Renderer\OrthographicCamera.h">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Renderer\RenderCommand.h">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Renderer\Renderer.h">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Renderer\RendererAPI.h">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Renderer\Shader.h">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Renderer\VertexArray.h">
+      <Filter>src\Sparky\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Sparky\Window.h">
       <Filter>src\Sparky</Filter>
@@ -1323,22 +1377,20 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
-    <ClInclude Include="src\Sparky\Renderer\GraphicsContext.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
-    <ClInclude Include="src\Sparky\Renderer\Shader.h" />
-    <ClInclude Include="src\Sparky\Renderer\Buffer.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
-    <ClInclude Include="src\Sparky\Renderer\Renderer.h" />
-    <ClInclude Include="src\Sparky\Renderer\VertexArray.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
-    <ClInclude Include="src\Sparky\Renderer\RenderCommand.h" />
-    <ClInclude Include="src\Sparky\Renderer\OrthographicCamera.h" />
-    <ClInclude Include="src\Sparky\Renderer\RendererAPI.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
-    <ClInclude Include="src\Sparky\Core\Timestep.h" />
-    <ClInclude Include="src\Sparky\Core\File\SparkyFile.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
@@ -1347,6 +1399,9 @@
     </ClCompile>
     <ClCompile Include="src\Sparky\Application.cpp">
       <Filter>src\Sparky</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp">
+      <Filter>src\Sparky\Core\File</Filter>
     </ClCompile>
     <ClCompile Include="src\Sparky\ImGui\ImGuiLayer.cpp">
       <Filter>src\Sparky\ImGui</Filter>
@@ -1363,20 +1418,29 @@
     <ClCompile Include="src\Sparky\Log.cpp">
       <Filter>src\Sparky</Filter>
     </ClCompile>
+    <ClCompile Include="src\Sparky\Renderer\Buffer.cpp">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Renderer\OrthographicCamera.cpp">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Renderer\RenderCommand.cpp">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Renderer\Renderer.cpp">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Renderer\RendererAPI.cpp">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Renderer\Shader.cpp">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Renderer\VertexArray.cpp">
+      <Filter>src\Sparky\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\sppch.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
-    <ClCompile Include="src\Sparky\Renderer\Shader.cpp" />
-    <ClCompile Include="src\Sparky\Renderer\Buffer.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
-    <ClCompile Include="src\Sparky\Renderer\Renderer.cpp" />
-    <ClCompile Include="src\Sparky\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
-    <ClCompile Include="src\Sparky\Renderer\OrthographicCamera.cpp" />
-    <ClCompile Include="src\Sparky\Renderer\RenderCommand.cpp" />
-    <ClCompile Include="src\Sparky\Renderer\RendererAPI.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
-    <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp" />
   </ItemGroup>
 </Project>
