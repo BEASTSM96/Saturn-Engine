@@ -51,10 +51,12 @@ namespace Sparky {
 		m_FPSLayer = new ImGuiFPS();
 		m_RenderStats = new ImGuiRenderStats();
 		m_ImguiTopBar = new ImguiTopBar();
+		m_EditorLayer = new EditorLayer();
 
 		PushOverlay(m_ImGuiLayer);
 		PushOverlay(m_RenderStats);
 		PushOverlay(m_ImguiTopBar);
+		PushOverlay(m_EditorLayer);
 	}
 
 	Application::~Application()

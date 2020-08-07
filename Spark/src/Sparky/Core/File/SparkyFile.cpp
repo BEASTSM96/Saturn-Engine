@@ -45,6 +45,7 @@ namespace Sparky {
 			if (file.is_open())
 			{
 				SP_CORE_INFO("File Opened");
+
 			}
 			file.close();
 		}

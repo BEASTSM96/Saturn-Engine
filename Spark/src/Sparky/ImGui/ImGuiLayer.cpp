@@ -19,6 +19,11 @@
 namespace Sparky {
 
 
+
+	///////////////////////////////////////
+	////////////FORALLPLATFORMS///////////
+	/////////////////////////////////////
+
 	ImGuiLayer::ImGuiLayer()
 		: Layer("ImGuiLayer")
 	{
@@ -102,6 +107,12 @@ namespace Sparky {
 	////////////////////////////////////////////////
 	////////////////IMGUIFPS///////////////////////
 	//////////////////////////////////////////////
+
+
+	//////////////////////////////////////////
+	////////////NOTFORALLPLATFORMS///////////
+	////////////////////////////////////////
+
 	//#define SP_FPS
 	ImGuiFPS::ImGuiFPS() : Layer("ImguiFPS")
 	{
@@ -180,6 +191,12 @@ namespace Sparky {
 	////////////////////////////////////////////////////////
 	////////////////imguirenderstats////////////////////////
 	///////////////////////////////////////////////////////
+
+	//////////////////////////////////////////
+	////////////NOTFORALLPLATFORMS///////////
+	////////////////////////////////////////
+
+
 
 	//TEMP
 #include <GLFW\glfw3.h>
@@ -323,100 +340,178 @@ namespace Sparky {
 		ImGui::MenuItem("(About menu)", NULL, false, false);
 		if (ImGui::MenuItem("About")) {}
 		if (ImGui::MenuItem("ver :", "v 0.21")) {}
-		if (ImGui::MenuItem("Bulid :", "dev")) {}
+		if (ImGui::MenuItem("Build :", "dev")) {}
 		if (ImGui::MenuItem("GitHub branch :", "master")) {}
+	}
+
+	static void ShowFileExp()
+	{
+		
 	}
 
 	void ImguiTopBar::OnImGuiRender()
 	{
-		static bool show = true;
+	
+		// Note: Switch this to true to enable dockspace
+		static bool dockspaceOpen = true;
+		static bool opt_fullscreen_persistant = true;
+		bool opt_fullscreen = opt_fullscreen_persistant;
+		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-		// Demonstrate the various window flags. Typically you would just use the default!
-		static bool no_titlebar = false;
-		static bool no_scrollbar = false;
-		static bool no_menu = false;
-		static bool no_move = false;
-		static bool no_resize = false;
-		static bool no_collapse = false;
-		static bool no_close = false;
-		static bool no_nav = false;
-		static bool no_background = false;
-		static bool no_bring_to_front = false;
-		static bool no_docking = false;
-
-		ImGuiWindowFlags window_flags = 0;
-		if (no_titlebar)        window_flags |= ImGuiWindowFlags_NoTitleBar;
-		if (no_scrollbar)       window_flags |= ImGuiWindowFlags_NoScrollbar;
-		if (!no_menu)           window_flags |= ImGuiWindowFlags_MenuBar;
-		if (no_move)            window_flags |= ImGuiWindowFlags_NoMove;
-		if (no_resize)          window_flags |= ImGuiWindowFlags_NoResize;
-		if (no_collapse)        window_flags |= ImGuiWindowFlags_NoCollapse;
-		if (no_nav)             window_flags |= ImGuiWindowFlags_NoNav;
-		if (no_background)      window_flags |= ImGuiWindowFlags_NoBackground;
-		if (no_bring_to_front)  window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-		if (no_docking)         window_flags |= ImGuiWindowFlags_NoDocking;
-		if (no_close)           show = NULL; // Don't pass our bool* to Begin
-
-		if (show)
+		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+		// because it would be confusing to have two docking targets within each others.
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+		if (opt_fullscreen)
 		{
-			// We specify a default position/size in case there's no data in the .ini file. Typically this isn't required! We only do it to make the Demo applications a little more welcoming.
-			ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(ImVec2(main_viewport->GetWorkPos().x + 650, main_viewport->GetWorkPos().y + 20), ImGuiCond_FirstUseEver);
-			ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->Pos);
+			ImGui::SetNextWindowSize(viewport->Size);
+			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+		}
 
-			if (!ImGui::Begin("Sparky topbar", &show, window_flags))
+
+		// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and handle the pass - thru hole, so we ask Begin() to not render a background.
+		//if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+			//window_flags |= ImGuiWindowFlags_NoBackground;
+
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
+		ImGui::PopStyleVar();
+
+		if (opt_fullscreen)
+			ImGui::PopStyleVar(2);
+
+		// DockSpace
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		{
+			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+		}
+
+		if (ImGui::BeginMenuBar()) {
+
+			if (ImGui::BeginMenu("Scene"))
 			{
-				//	// Early out if the window is collapsed, as an optimization.
-				ImGui::End();
-				return;
+
+				if (ImGui::Button("Open"))
+				{
+					ShowFileExp();
+				}
+				ImGui::EndMenu();
 			}
 
-			ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
+			if (ImGui::BeginMenu("File"))
+			{
 
-			if (ImGui::BeginMainMenuBar()) {
-
-				if (ImGui::BeginMenu("File"))
+				if (ImGui::Button("Save"))
 				{
-					if (ImGui::Button("Save"))
-					{
-						//ShowFileExp();
-					}
-					if (ImGui::Button("SaveAs..."))
-					{
-						//ShowFileExp();
-					}
-					if (ImGui::Button("SaveAll"))
-					{
-						//ShowFileExp();
-					}
-					ImGui::EndMenu();
+					//ShowFileExp();
 				}
-
-				if (ImGui::BeginMenu("Edit")) {
-					ImGui::EndMenu();
-				}
-				
-				if (ImGui::BeginMenu("Sparky"))
+				if (ImGui::Button("SaveAs..."))
 				{
-					if (ImGui::Button("Quit"))
-					{
+						//ShowFileExp();
+				}
+				if (ImGui::Button("SaveAll"))
+				{
+					//ShowFileExp();
+				}
+				ImGui::EndMenu();
+			}				
+			if (ImGui::BeginMenu("Sparky"))
+			{
+				if (ImGui::Button("Quit"))
+				{
 						Application::Get().SetRunningState(false);
-					}
-					if (ImGui::BeginMenu("About"))
-					{
+				}
+				if (ImGui::BeginMenu("About"))
+				{
 						ShowAboutSparkyWindow();
 						ImGui::EndMenu();
-					}
-					ImGui::EndMenu();
 				}
-				
-				ImGui::EndMainMenuBar();
+				ImGui::EndMenu();
 			}
-
-			ImGui::End();
-
+				
+			ImGui::EndMenuBar();
 		}
-		
+
+		ImGui::End();
+	}
+
+
+	///////////////////////////////////////////
+	//////////////EditorLayer/////////////////
+	/////////////////////////////////////////
+
+	///////////////////////////////////////
+	////////////FORALLPLATFORMS///////////
+	/////////////////////////////////////
+
+	///////////////////////////////////////////////////////////
+	////////////////SHOULD-MORE-TO-EDITOR-PROJECT/////////////
+	/////////////////////////////////////////////////////////
+
+	EditorLayer::EditorLayer() : Layer("EditorLayer")
+	{
+	}
+
+	EditorLayer::~EditorLayer()
+	{
+	}
+
+	void EditorLayer::OnAttach()
+	{
+		// Setup Dear ImGui context
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+		// Setup Platform/Renderer bindings
+		ImGui_ImplOpenGL3_Init("#version 410");
+	}
+
+	void EditorLayer::OnDetach()
+	{
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+	}
+
+	void EditorLayer::Begin()
+	{
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+	}
+
+	void EditorLayer::End()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		Application& app = Application::Get();
+		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
+
+		// Rendering
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
+	}
+
+
+	void EditorLayer::OnImGuiRender()
+	{
 	}
 }
 

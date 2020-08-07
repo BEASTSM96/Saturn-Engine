@@ -47,6 +47,8 @@ namespace Sparky {
 
 		ImguiTopBar* m_ImguiTopBar;
 
+		EditorLayer* m_EditorLayer;
+
 		bool m_Running = true;
 
 		LayerStack m_LayerStack;
