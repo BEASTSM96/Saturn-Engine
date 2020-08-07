@@ -10,6 +10,6 @@
 [submodule "Spark/vendor/glm"]
 	path = Spark/vendor/glm
 	url = https://github.com/g-truc/glm
-[submodule "Spark\vendor\FileDialog"]
-	path = Spark\vendor\FileDialog
+[submodule "Spark\\vendor\\FileDialog"]
+	path = Spark\\vendor\\FileDialog
 	url = https://github.com/mlabbe/nativefiledialog
