@@ -8,6 +8,8 @@
 
 #include "Layer.h"
 
+#include "Audio/SparkyAudio.h"
+
 #include "Sparky/Input.h"
 
 #include <glad/glad.h>
@@ -28,6 +30,10 @@
 
 #include "Sparky/ImGui/ImGuiLayer.h"
 
+#include <thread>
+#include <chrono>
+
+
 //TEMP
 
 #include "imgui.h"
@@ -40,24 +46,30 @@ namespace Sparky {
 
 	Application::Application()
 	{
-
-
 		SP_CORE_ASSERT(!s_Instance, "Application already exists!");
-		s_Instance = this;
-		m_Window = std::unique_ptr<Window>(Window::Create());
-		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
-		m_Window->SetVSync(false);
 
-		m_ImGuiLayer = new ImGuiLayer();
-		m_FPSLayer = new ImGuiFPS();
-		m_RenderStats = new ImGuiRenderStats();
-		m_ImguiTopBar = new ImguiTopBar();
-		m_EditorLayer = new EditorLayer();
+		{
+			s_Instance = this;
+			m_Window = std::unique_ptr<Window>(Window::Create());
+			m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+			m_Window->SetVSync(false);
+		}
 
-		PushOverlay(m_ImGuiLayer);
-		PushOverlay(m_RenderStats);
-		PushOverlay(m_ImguiTopBar);
-		PushOverlay(m_EditorLayer);
+		{
+			m_ImGuiLayer = new ImGuiLayer();
+			m_FPSLayer = new ImGuiFPS();
+			m_RenderStats = new ImGuiRenderStats();
+			m_ImguiTopBar = new ImguiTopBar();
+			m_EditorLayer = new EditorLayer();
+		}
+
+		{
+			PushOverlay(m_ImGuiLayer);
+			PushOverlay(m_RenderStats);
+			PushOverlay(m_ImguiTopBar);
+			PushOverlay(m_EditorLayer);
+		}
+
 	}
 
 	Application::~Application()
@@ -110,7 +122,7 @@ namespace Sparky {
 
 			m_Window->OnUpdate();
 
-
+			/*
 			bool bIsFileOpened = false;
 			bool bWasFileOpened = false;
 			if (!bIsFileOpened && !bWasFileOpened)
@@ -125,7 +137,7 @@ namespace Sparky {
 
 				//FileReader::ReadFile("good3dgame.sproject", "testReader");
 
-			}
+			}*/
 		}
 		while (m_Crashed)
 		{

@@ -16,6 +16,9 @@
     <Filter Include="src\Sparky">
       <UniqueIdentifier>{96E6FB2E-829E-3D7C-EBA5-16D8D77CD86C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Sparky\Audio">
+      <UniqueIdentifier>{178DEC9E-0386-0BF1-2CB8-F0751810EBFC}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Sparky\Core">
       <UniqueIdentifier>{AE98BAA7-1A24-286C-2335-AB608F3F846C}</UniqueIdentifier>
     </Filter>
@@ -77,6 +80,12 @@
     </ClInclude>
     <ClInclude Include="src\Sparky\Application.h">
       <Filter>src\Sparky</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Audio\SparkyAudio.h">
+      <Filter>src\Sparky\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Audio\alhelpers.h">
+      <Filter>src\Sparky\Audio</Filter>
     </ClInclude>
     <ClInclude Include="src\Sparky\Core.h">
       <Filter>src\Sparky</Filter>
@@ -1399,6 +1408,9 @@
     </ClCompile>
     <ClCompile Include="src\Sparky\Application.cpp">
       <Filter>src\Sparky</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Audio\SparkyAudio.cpp">
+      <Filter>src\Sparky\Audio</Filter>
     </ClCompile>
     <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp">
       <Filter>src\Sparky\Core\File</Filter>

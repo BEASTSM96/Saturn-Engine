@@ -22,6 +22,10 @@ group "Dependencies"
 	include "Spark/vendor/GLFW"
 	include "Spark/vendor/Glad"
 	include "Spark/vendor/imgui"
+group "Dependencies/Audio"
+	include "Spark/vendor/Audio/OpenAL-Soft"
+	include "Spark/vendor/Audio/libogg"
+	include "Spark/vendor/Audio/Vorbis"
 
 group ""
 
@@ -43,7 +47,7 @@ project "Spark"
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
-		"%{prj.name}/vendor/glm/glm/**.inl",
+		"%{prj.name}/vendor/glm/glm/**.inl"
 	}
 
 	defines
@@ -59,6 +63,15 @@ project "Spark"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
+		"%{prj.name}/vendor/ImguiFileDialog/ImguiFileDialog",
+		"%{prj.name}/vendor/dirent/include",
+		"%{prj.name}/vendor/Audio/OpenAL-Soft/include",
+		"%{prj.name}/vendor/Audio/OpenAL-Soft/src",
+		"%{prj.name}/vendor/Audio/OpenAL-Soft/src/common",
+		"%{prj.name}/vendor/Audio/libogg/include",
+		"%{prj.name}/vendor/Audio/Vorbis/include",
+		"%{prj.name}/vendor/Audio/minimp3"
+		
 	}
 
 	links 
@@ -66,7 +79,9 @@ project "Spark"
 		"GLFW",
 		"Glad",
 		"ImGui",
-		"opengl32.lib"
+		"opengl32.lib",
+		"OpenAL-Soft",
+		"Vorbis"
 	}
 
 	filter "system:windows"
@@ -103,6 +118,12 @@ project "Sandbox"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS"
+	}
+
 
 	files
 	{
@@ -162,6 +183,12 @@ project "SparkyEditor"
 	{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp"
+	}
+	
+	
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS"
 	}
 
 	includedirs

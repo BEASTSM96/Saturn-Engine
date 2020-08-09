@@ -23,7 +23,8 @@
 
 namespace Sparky {
 
-
+	#define IMGUI_CLASSES_SPARKY -0
+	#define IMGUI_OBJECTS_SPARKY nullptr
 
 	///////////////////////////////////////
 	////////////FORALLPLATFORMS///////////
@@ -37,6 +38,7 @@ namespace Sparky {
 
 	ImGuiLayer::~ImGuiLayer()
 	{
+		#undef 	IMGUI_CLASSES_SPARKY 0
 	}
 
 	void ImGuiLayer::OnAttach()
@@ -45,6 +47,9 @@ namespace Sparky {
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+		#define IMGUI_OBJECTS_SPARKY 0
+
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 																	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
@@ -101,6 +106,8 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
+
+		#undef IMGUI_OBJECTS_SPARKY 0
 	}
 
 	void ImGuiLayer::OnImGuiRender()
@@ -127,6 +134,7 @@ namespace Sparky {
 
 	ImGuiFPS::~ImGuiFPS()
 	{
+		#undef IMGUI_CLASSES_SPARKY 1
 	}
 
 	void ImGuiFPS::OnAttach()
@@ -134,6 +142,8 @@ namespace Sparky {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
+		#define  IMGUI_OBJECTS_SPARKY 1
+
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 		// Setup Platform/Renderer bindings
@@ -171,6 +181,7 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
+		#undef IMGUI_OBJECTS_SPARKY 1
 	}
 
 	void ImGuiFPS::OnImGuiRender()
@@ -219,6 +230,7 @@ namespace Sparky {
 
 	ImGuiRenderStats::~ImGuiRenderStats()
 	{
+		#undef IMGUI_CLASSES_SPARKY 2
 	}
 
 	void ImGuiRenderStats::OnAttach()
@@ -226,6 +238,7 @@ namespace Sparky {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
+		#define IMGUI_OBJECTS_SPARKY 2
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 		// Setup Platform/Renderer bindings
@@ -263,6 +276,7 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
+		#undef IMGUI_OBJECTS_SPARKY 2
 	}
 
 	void ImGuiRenderStats::OnImGuiRender()
@@ -292,12 +306,14 @@ namespace Sparky {
 
 	ImguiTopBar::ImguiTopBar() : Layer("TopBar")
 	{
-		#define IMGUI_CLASSES_SPARKY 5
-		#define IMGUI_CLASSES_SPARKY 9
+		#define IMGUI_CLASSES_SPARKY 5 //TopBar
+		#define IMGUI_CLASSES_SPARKY 9 //EdLayer
 	}
 
 	ImguiTopBar::~ImguiTopBar()
 	{
+		#undef IMGUI_CLASSES_SPARKY 5 //TopBar
+		#undef IMGUI_CLASSES_SPARKY 9 //EdLayer
 	}
 
 	void ImguiTopBar::OnAttach()
@@ -305,6 +321,8 @@ namespace Sparky {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
+		#define IMGUI_OBJECTS_SPARKY 5 
+		#define IMGUI_OBJECTS_SPARKY 9
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 		// Setup Platform/Renderer bindings
@@ -315,6 +333,8 @@ namespace Sparky {
 	{
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
+		#undef  IMGUI_OBJECTS_SPARKY 5 
+		#undef IMGUI_OBJECTS_SPARKY 9
 		ImGui::DestroyContext();
 	}
 
@@ -342,6 +362,8 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
+		#undef  IMGUI_OBJECTS_SPARKY 5 
+		#undef IMGUI_OBJECTS_SPARKY 9
 	}
 
 
@@ -375,8 +397,6 @@ namespace Sparky {
 		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".cpp", ImVec4((float)1.0f, 1.0f, 0.0f, 0.9f));
 
 		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".h", ImVec4((float)0.0f, 1.0f, 0.0f, 0.9f));
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".hpp", ImVec4((float)0.0f, 0.0f, 1.0f, 0.9f));
 
 		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".sproject", ImVec4((float)0.0f, 1.0f, 0.0f, 0.9f), "[SPARKY PROJECT FILE]");
 
@@ -457,8 +477,6 @@ namespace Sparky {
 	void ImguiTopBar::OnImGuiRender()
 	{
 		
-		SP_CORE_ASSERT(!ImGui::GetCurrentContext(), "Missing imgui context!. did you call the ``On Attach()`` func?");
-	
 		static bool showScene = false;
 		static bool showFile = false;
 		static bool showCodeFile = false;
@@ -508,6 +526,7 @@ namespace Sparky {
 
 		// DockSpace
 		ImGuiIO& io = ImGui::GetIO();
+
 		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
 			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
@@ -533,11 +552,11 @@ namespace Sparky {
 
 				if (ImGui::Button("Save"))
 				{
-					showDirectoryChooser = true;
+					//showDirectoryChooser = true;
 				}
 				if (ImGui::Button("SaveAs..."))
 				{
-						//ShowFileExp();
+					showDirectoryChooser = true;
 				}
 				if (ImGui::Button("SaveAll"))
 				{
