@@ -1,5 +1,6 @@
 #include "sppch.h"
 #include "ImGuiLayer.h"
+#include "Sparky/Log.h"
 
 #include "imgui.h"
 #include "examples/imgui_impl_glfw.h"
@@ -11,6 +12,10 @@
 #include "imconfig.h"
 
 #include "Sparky/Core/Timestep.h"
+
+#include "ImGuiFileDialog.h"
+#include "ImGuiFileDialog.cpp"
+#include "ImGuiFileDialogConfig.h"
 
 // TEMPORARY
 #include <GLFW/glfw3.h>
@@ -27,6 +32,7 @@ namespace Sparky {
 	ImGuiLayer::ImGuiLayer()
 		: Layer("ImGuiLayer")
 	{
+		#define IMGUI_CLASSES_SPARKY 0
 	}
 
 	ImGuiLayer::~ImGuiLayer()
@@ -116,6 +122,7 @@ namespace Sparky {
 	//#define SP_FPS
 	ImGuiFPS::ImGuiFPS() : Layer("ImguiFPS")
 	{
+		#define IMGUI_CLASSES_SPARKY 1
 	}
 
 	ImGuiFPS::~ImGuiFPS()
@@ -207,6 +214,7 @@ namespace Sparky {
 
 	ImGuiRenderStats::ImGuiRenderStats() : Layer("ImguiRenderStats")
 	{
+		#define IMGUI_CLASSES_SPARKY 2
 	}
 
 	ImGuiRenderStats::~ImGuiRenderStats()
@@ -284,6 +292,8 @@ namespace Sparky {
 
 	ImguiTopBar::ImguiTopBar() : Layer("TopBar")
 	{
+		#define IMGUI_CLASSES_SPARKY 5
+		#define IMGUI_CLASSES_SPARKY 9
 	}
 
 	ImguiTopBar::~ImguiTopBar()
@@ -344,14 +354,124 @@ namespace Sparky {
 		if (ImGui::MenuItem("GitHub branch :", "master")) {}
 	}
 
-	static void ShowFileExp()
+	static bool canValidateDialog = false;
+	inline void InfosPane(std::string vFilter, igfd::UserDatas vUserDatas, bool* vCantContinue) // if vCantContinue is false, the user cant validate the dialog
 	{
-		
+		ImGui::TextColored(ImVec4(0, 1, 1, 1), "Infos Pane");
+		ImGui::Text("Selected Filter : %s", vFilter.c_str());
+		if (vUserDatas)
+			ImGui::Text("UserDatas : %s", vUserDatas);
+		ImGui::Checkbox("if not checked you cant validate the dialog", &canValidateDialog);
+		if (vCantContinue)
+			*vCantContinue = canValidateDialog;
+	}
+
+	static void ShowSceneStuff(bool* p_open)
+	{
+		const char* filters = "Sparky Project files (*.sproject){.sproject}";
+
+		igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose Project File", filters, ".");
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".cpp", ImVec4((float)1.0f, 1.0f, 0.0f, 0.9f));
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".h", ImVec4((float)0.0f, 1.0f, 0.0f, 0.9f));
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".hpp", ImVec4((float)0.0f, 0.0f, 1.0f, 0.9f));
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".sproject", ImVec4((float)0.0f, 1.0f, 0.0f, 0.9f), "[SPARKY PROJECT FILE]");
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".SPARKYFILEC", ImVec4((float)1.0f, 0.0f, 1.0f, 0.9f));
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".EDFILE", ImVec4((float)0.0f, 0.0f, 8.0f, 0.9f));
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".sparkyfilec", ImVec4((float)1.0f, 0.0f, 1.0f, 0.9f));
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".edfile", ImVec4((float)0.0f, 0.0f, 8.0f, 0.9f));
+
+			// display
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey"))
+		{
+			// action if OK
+			if (igfd::ImGuiFileDialog::Instance()->IsOk == true)
+			{
+				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+					// action
+			}
+			// close
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+		}
+	}
+
+	static void ShowCodeFiles(bool* p_open)
+	{
+
+		const char* filters = "Source files (*.cpp, *.h){*.cpp, *.h}";
+
+		igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose 5 File", filters, ".", 0);
+
+		//igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose Code File", filters, ".");
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".cpp", ImVec4(1.f, 1.f, 0.f, 0.9f), "[C++ FILE]");
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".h", ImVec4(0.f, 1.f, 0.f, 0.9f), "[HEADER FILE]");
+
+		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".sproject", ImVec4(0.f, 1.f, 0.f, 0.9f), "[SPARKY PROJECT FILE]");
+
+		// display
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey"))
+		{
+			// action if OK
+			if (igfd::ImGuiFileDialog::Instance()->IsOk == true)
+			{
+				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+				// action
+			}
+			// close
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+		}
+	}
+
+	static void ShowDirectoryChooser(bool* p_open)
+	{
+
+		igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose a Directory", ".*", ".");
+		//igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", "Choose a Directory", 0, ".");
+
+		// display
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey"))
+		{
+			// action if OK
+			if (igfd::ImGuiFileDialog::Instance()->IsOk == true)
+			{
+				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+				// action
+			}
+			// close
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+		}
 	}
 
 	void ImguiTopBar::OnImGuiRender()
 	{
+		
+		SP_CORE_ASSERT(!ImGui::GetCurrentContext(), "Missing imgui context!. did you call the ``On Attach()`` func?");
 	
+		static bool showScene = false;
+		static bool showFile = false;
+		static bool showCodeFile = false;
+		static bool showSparky = false;
+		static bool showDirectoryChooser = false;
+
+		if (showScene)           ShowSceneStuff(&showScene);
+		if (showCodeFile)           ShowCodeFiles(&showCodeFile);
+		if (showDirectoryChooser)           ShowDirectoryChooser(&showDirectoryChooser);
+		//if (showFile)           ShowExampleAppDocuments(&show_app_documents); 
+		//if (showSparky)       ShowExampleAppMainMenuBar();
+
+
 		// Note: Switch this to true to enable dockspace
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -398,20 +518,22 @@ namespace Sparky {
 
 			if (ImGui::BeginMenu("Scene"))
 			{
-
-				if (ImGui::Button("Open"))
-				{
-					ShowFileExp();
+				if(ImGui::Button("Open")) {
+					showScene = true;
 				}
 				ImGui::EndMenu();
 			}
 
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::Button("Open code files..."))
+				{
+					showCodeFile = true;
+				}
 
 				if (ImGui::Button("Save"))
 				{
-					//ShowFileExp();
+					showDirectoryChooser = true;
 				}
 				if (ImGui::Button("SaveAs..."))
 				{
@@ -435,8 +557,7 @@ namespace Sparky {
 						ImGui::EndMenu();
 				}
 				ImGui::EndMenu();
-			}
-				
+			}				
 			ImGui::EndMenuBar();
 		}
 
@@ -453,8 +574,11 @@ namespace Sparky {
 	/////////////////////////////////////
 
 	///////////////////////////////////////////////////////////
-	////////////////SHOULD-MORE-TO-EDITOR-PROJECT/////////////
+	////////////////SHOULD-MOVE-TO-EDITOR-PROJECT/////////////
 	/////////////////////////////////////////////////////////
+
+
+
 
 	EditorLayer::EditorLayer() : Layer("EditorLayer")
 	{
@@ -508,10 +632,9 @@ namespace Sparky {
 			glfwMakeContextCurrent(backup_current_context);
 		}
 	}
-
-
 	void EditorLayer::OnImGuiRender()
 	{
+
 	}
 }
 

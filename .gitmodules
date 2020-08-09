@@ -10,3 +10,9 @@
 [submodule "Spark\\vendor\\spdlog"]
 	path = Spark\\vendor\\spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "Spark\\vendor\\dirent"]
+	path = Spark\\vendor\\dirent
+	url = https://github.com/tronkko/dirent/
+[submodule "Spark\\vendor\\ImguiFileDialog"]
+	path = Spark\\vendor\\ImguiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #ifdef SP_PLATFORM_WINDOWS
 #if SP_DYNAMIC_LINK
 #ifdef SP_BUILD_DLL
@@ -16,13 +18,29 @@
 
 #define BIT(x) (1 << x)
 
+#define SP_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 
+
+#ifdef SP_DEBUG
+#if defined(SP_PLATFORM_WINDOWS)
+#define SP_DEBUGBREAK() __debugbreak()
+#elif defined(HZ_PLATFORM_LINUX)
+#include <signal.h>
+#define SP_DEBUGBREAK() raise(SIGTRAP)
+#else
+#error "Platform doesn't support debugbreak yet!"
+#endif
+#define SP_ENABLE_ASSERTS
+#else
+#define SP_DEBUGBREAK()
+#endif
+
+
+// TODO: Make this macro able to take in no arguments except condition
 #ifdef SP_ENABLE_ASSERTS
-#define SP_ASSERT(x, ...) { if(!(x)) { SP_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
-#define SP_CORE_ASSERT(x, ...) { if(!(x)) { SP_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
+#define SSP_CL_ASSERT(x, ...) { if(!(x)) { SP_CL_ERROR("Assertion Failed: {0}", __VA_ARGS__); SP_DEBUGBREAK(); } }
+#define SP_CORE_ASSERT(x, ...) { if(!(x)) { SP_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); SP_DEBUGBREAK(); } }
 #else
 #define SP_ASSERT(x, ...)
 #define SP_CORE_ASSERT(x, ...)
 #endif
-
-#define SP_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)

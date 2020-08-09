@@ -86,6 +86,9 @@ namespace Sparky {
 		void Begin();
 		void End();
 	private:
+		OPENFILENAME ofn;       // common dialog box structure
+		TCHAR szFile[260] = { 0 };       // if using TCHAR macros
+
 		float m_Time = 0.0f;
 	};
 }

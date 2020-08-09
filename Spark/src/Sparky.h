@@ -10,7 +10,6 @@
 
 #include "Sparky/MouseButtons.h"
 
-
 #include "Sparky/Core/Timestep.h"
 
 #include "Sparky/Layer.h"

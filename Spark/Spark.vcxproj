@@ -73,11 +73,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>sppch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>SP_PLATFORM_WINDOWS;SP_BUILD_DLL;_SCL_SECURE_NO_WARNINGS;GLFW_INCLUDE_NONE;SP_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;%(AdditionalIncludeDirectories);vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -87,17 +87,17 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <PostBuildEvent>
-      <Command>IF EXIST ..\bin\Debug-windows-x86_64\Spark\Spark.lib\ (xcopy /Q /E /Y /I ..\bin\Debug-windows-x86_64\Spark\Spark.lib ..\bin\Debug-windows-x86_64\Sandbox &gt; nul) ELSE (xcopy /Q /Y /I ..\bin\Debug-windows-x86_64\Spark\Spark.lib ..\bin\Debug-windows-x86_64\Sandbox &gt; nul)</Command>
-    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>sppch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>SP_PLATFORM_WINDOWS;SP_BUILD_DLL;_SCL_SECURE_NO_WARNINGS;GLFW_INCLUDE_NONE;SP_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -111,17 +111,17 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <PostBuildEvent>
-      <Command>IF EXIST ..\bin\Release-windows-x86_64\Spark\Spark.lib\ (xcopy /Q /E /Y /I ..\bin\Release-windows-x86_64\Spark\Spark.lib ..\bin\Release-windows-x86_64\Sandbox &gt; nul) ELSE (xcopy /Q /Y /I ..\bin\Release-windows-x86_64\Spark\Spark.lib ..\bin\Release-windows-x86_64\Sandbox &gt; nul)</Command>
-    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>sppch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>SP_PLATFORM_WINDOWS;SP_BUILD_DLL;_SCL_SECURE_NO_WARNINGS;GLFW_INCLUDE_NONE;SP_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -135,9 +135,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <PostBuildEvent>
-      <Command>IF EXIST ..\bin\Dist-windows-x86_64\Spark\Spark.lib\ (xcopy /Q /E /Y /I ..\bin\Dist-windows-x86_64\Spark\Spark.lib ..\bin\Dist-windows-x86_64\Sandbox &gt; nul) ELSE (xcopy /Q /Y /I ..\bin\Dist-windows-x86_64\Spark\Spark.lib ..\bin\Dist-windows-x86_64\Sandbox &gt; nul)</Command>
-    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
@@ -603,7 +603,9 @@
     <ClCompile Include="src\Sparky\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\Sparky\Renderer\Shader.cpp" />
     <ClCompile Include="src\Sparky\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\sppch.cpp" />
+    <ClCompile Include="src\sppch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">
