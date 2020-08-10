@@ -1,5 +1,7 @@
 #pragma once
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <iostream>
 #include <memory>
 #include <utility>
@@ -12,6 +14,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "Sparky\Log.h"
+#include "Sparky/Core/string/String.h"
 
 #ifdef SP_PLATFORM_WINDOWS
 	#include <Windows.h>

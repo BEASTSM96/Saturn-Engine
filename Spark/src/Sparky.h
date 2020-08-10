@@ -34,6 +34,8 @@
 
 #include "Sparky/Core/File/SparkyFile.h"
 
+#include "Sparky/Core/string/String.h"
+
 // ---Entry Point---------------------
 #include "Sparky/EntryPoint.h"
 // ----------------------------------- 

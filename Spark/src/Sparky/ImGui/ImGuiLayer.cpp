@@ -38,7 +38,7 @@ namespace Sparky {
 
 	ImGuiLayer::~ImGuiLayer()
 	{
-		#undef 	IMGUI_CLASSES_SPARKY 0
+		#undef IMGUI_CLASSES_SPARKY 0
 	}
 
 	void ImGuiLayer::OnAttach()
@@ -482,14 +482,14 @@ namespace Sparky {
 		static bool showCodeFile = false;
 		static bool showSparky = false;
 		static bool showDirectoryChooser = false;
+		
 
 		if (showScene)           ShowSceneStuff(&showScene);
 		if (showCodeFile)           ShowCodeFiles(&showCodeFile);
 		if (showDirectoryChooser)           ShowDirectoryChooser(&showDirectoryChooser);
-		//if (showFile)           ShowExampleAppDocuments(&show_app_documents); 
-		//if (showSparky)       ShowExampleAppMainMenuBar();
-
-
+			//if (showFile)           ShowExampleAppDocuments(&show_app_documents); 
+			//if (showSparky)       ShowExampleAppMainMenuBar();
+		
 		// Note: Switch this to true to enable dockspace
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
@@ -537,8 +537,8 @@ namespace Sparky {
 
 			if (ImGui::BeginMenu("Scene"))
 			{
-				if(ImGui::Button("Open")) {
-					showScene = true;
+				if (ImGui::Button("Open")) {
+					std::string filename = Application::Get().OpenProjectFile();
 				}
 				ImGui::EndMenu();
 			}
@@ -552,31 +552,96 @@ namespace Sparky {
 
 				if (ImGui::Button("Save"))
 				{
-					//showDirectoryChooser = true;
+
 				}
 				if (ImGui::Button("SaveAs..."))
 				{
-					showDirectoryChooser = true;
+					std::string filename = Application::Get().SaveFile();
 				}
 				if (ImGui::Button("SaveAll"))
 				{
 					//ShowFileExp();
 				}
 				ImGui::EndMenu();
-			}				
+			}
 			if (ImGui::BeginMenu("Sparky"))
 			{
 				if (ImGui::Button("Quit"))
 				{
-						Application::Get().SetRunningState(false);
+					Application::Get().SetRunningState(false);
 				}
 				if (ImGui::BeginMenu("About"))
 				{
-						ShowAboutSparkyWindow();
-						ImGui::EndMenu();
+					ShowAboutSparkyWindow();
+					ImGui::EndMenu();
 				}
 				ImGui::EndMenu();
-			}				
+			}
+			{
+				#ifdef SP_RELEASE
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+
+								ImGui::Text("Release Mode");
+
+				#endif // SP_RELEASE
+
+				#ifdef SP_DEBUG
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+								ImGui::Spacing();
+
+
+									if (ImGui::Button("RELEASE Mode"))
+									{
+										#if !SP_RELEASE
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+
+											ImGui::Text("Release Mode");
+										#endif
+										#if SP_RELEASE
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+											ImGui::Spacing();
+
+											ImGui::Text("Debug Mode");
+										#endif // SP_RELEASE
+
+									}
+				#endif // SP_DEBUG
+
+			}
 			ImGui::EndMenuBar();
 		}
 

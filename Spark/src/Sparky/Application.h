@@ -34,6 +34,11 @@ namespace Sparky {
 
 		void SetCrashState(bool state);
 		bool SetRunningState(bool state);
+
+		std::string OpenFile(const char* filter) const;
+
+		std::string OpenProjectFile() const;
+		std::string SaveFile() const;
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 	private:

@@ -1,5 +1,4 @@
 #include "sppch.h"
-
 #include "Application.h"
 
 #include "Events/ApplicationEvent.h"
@@ -8,13 +7,9 @@
 
 #include "Layer.h"
 
-#include "Audio/SparkyAudio.h"
-
 #include "Sparky/Input.h"
 
 #include <glad/glad.h>
-
-#include <glm/glm.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -30,13 +25,12 @@
 
 #include "Sparky/ImGui/ImGuiLayer.h"
 
-#include <thread>
-#include <chrono>
+#include <imgui.h>
 
 
-//TEMP
-
-#include "imgui.h"
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#include <Windows.h>
 
 namespace Sparky {
 
@@ -173,5 +167,75 @@ namespace Sparky {
 		m_Running = false;
 		return true;
 	}
+
+	std::string Application::OpenFile(const char* filter) const
+	{
+
+		OPENFILENAMEA ofn;
+		CHAR szFile[260] = { 0 };
+		ZeroMemory(&ofn, sizeof(OPENFILENAME));
+
+		ofn.lStructSize = sizeof(OPENFILENAME);
+		ofn.lpstrFilter = filter;
+		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
+		ofn.lpstrFile = szFile;
+		ofn.nMaxFile = sizeof(szFile);
+		ofn.lpstrTitle = filter;
+		ofn.nFilterIndex = 1;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+		if (GetOpenFileNameA(&ofn) == TRUE)
+		{
+			return ofn.lpstrFile;
+		}
+		return std::string();
+	}
+
+	std::string Application::SaveFile() const
+	{
+
+		OPENFILENAMEA ofn;
+		CHAR szFile[260] = { 0 };
+
+		ZeroMemory(&ofn, sizeof(OPENFILENAME));
+		ofn.lStructSize = sizeof(OPENFILENAME);
+		ofn.lpstrFilter = "SparkySaveFile\0 * .sasset; \0\0";
+		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
+		ofn.lpstrFile = szFile;
+		ofn.nMaxFile = sizeof(szFile);
+		ofn.lpstrTitle = "Save file";
+		ofn.nFilterIndex = 1;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+		if (GetSaveFileNameA(&ofn) == TRUE)
+		{
+			return ofn.lpstrFile;
+		}
+		return std::string();
+	}
+
+	std::string Application::OpenProjectFile() const
+	{
+
+		OPENFILENAMEA ofn;
+		CHAR szFile[260] = { 0 };
+		ZeroMemory(&ofn, sizeof(OPENFILENAMEA));
+
+		ofn.lStructSize = sizeof(OPENFILENAMEA);
+		ofn.lpstrFilter = "ProjectFile\0*.sproject;\0\0";
+		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
+		ofn.lpstrFile = szFile;
+		ofn.nMaxFile = sizeof(szFile);
+		ofn.lpstrTitle = "Open Project file";
+		ofn.nFilterIndex = 1;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+		if (GetOpenFileNameA(&ofn) == TRUE)
+		{
+			return ofn.lpstrFile;
+		}
+		return std::string();
+	}
+
 
 }

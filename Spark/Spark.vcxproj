@@ -152,6 +152,7 @@
     <ClInclude Include="src\Sparky\Audio\alhelpers.h" />
     <ClInclude Include="src\Sparky\Core.h" />
     <ClInclude Include="src\Sparky\Core\File\SparkyFile.h" />
+    <ClInclude Include="src\Sparky\Core\string\String.h" />
     <ClInclude Include="src\Sparky\Core\Timestep.h" />
     <ClInclude Include="src\Sparky\EntryPoint.h" />
     <ClInclude Include="src\Sparky\Events\ApplicationEvent.h" />
@@ -619,12 +620,6 @@
     </ProjectReference>
     <ProjectReference Include="vendor\imgui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
-    </ProjectReference>
-    <ProjectReference Include="vendor\Audio\OpenAL-Soft\OpenAL-Soft.vcxproj">
-      <Project>{2D783691-992D-AF86-2222-A95D8ED6A58A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="vendor\Audio\Vorbis\Vorbis.vcxproj">
-      <Project>{DA7C93D8-C61E-BEAE-AFD9-D1029B1A45FF}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

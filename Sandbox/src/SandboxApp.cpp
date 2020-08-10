@@ -124,9 +124,6 @@ public:
 
 	void OnUpdate(Sparky::Timestep ts) override
 	{
-		SP_CL_TRACE("Delta time : {0}s ({1}ms)", ts, ts.GetMillseconds());
-
-
 		if (Sparky::Input::IsKeyPressed(SP_KEY_LEFT))
 		{
 			m_CameraPosition.x += m_CameraMoveSpeed * ts;

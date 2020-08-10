@@ -7,18 +7,40 @@
 
 namespace Sparky {
 
+
+
 	struct WindowProps
 	{
 		std::string Title;
 		unsigned int Width;
 		unsigned int Height;
 
+#ifdef SP_DEBUG
+		WindowProps(const std::string& title = "Sparky Engine Mode : Debug",
+			unsigned int width = 2560,
+			unsigned int height = 1440)
+			: Title(title), Width(width), Height(height)
+		{
+		}
+#endif // SP_DEBUG
+
+#ifdef SP_DIST
 		WindowProps(const std::string& title = "Sparky Engine",
 			unsigned int width = 1280,
 			unsigned int height = 720)
 			: Title(title), Width(width), Height(height)
 		{
 		}
+#endif // SP_DIST
+
+#ifdef SP_RELEASE
+		WindowProps(const std::string& title = "Sparky Engine Mode : Release",
+			unsigned int width = 1280,
+			unsigned int height = 720)
+			: Title(title), Width(width), Height(height)
+		{
+		}
+#endif // SP_RELEASE
 	};
 
 	// Interface representing a desktop system based Window
@@ -30,6 +52,8 @@ namespace Sparky {
 		virtual ~Window() {}
 
 		virtual void OnUpdate() = 0;
+
+		std::string title = "Sparky Engine"; 
 
 		virtual unsigned int GetWidth() const = 0;
 		virtual unsigned int GetHeight() const = 0;
