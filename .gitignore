@@ -41,8 +41,8 @@ Sparky.VC.db
 
 #vs stuff cuz git yeah
 /.vs
-*.sln
-
+**.sln
+/**.sln
 *.ipch
 
 #bin stuff
@@ -63,6 +63,10 @@ bin-int/
 **.vcxproj
 **.vcxproj.filters
 **.vcxproj.user
+/**.vcxproj
+/**.vcxproj.filters
+/**.vcxproj.user
+
 
 
 #.sproject stuff for dev ver
