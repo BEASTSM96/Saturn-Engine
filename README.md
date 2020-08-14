@@ -23,5 +23,5 @@ If the repository was cloned non-recursively previously, use `git submodule upda
 
 
 
-[![Twitter](https://img.shields.io/badge/%40beastsm96--blue.svg?style=social&logo=Twitter)](https://twitter.com/thecherno)
-[![Youtube](https://img.shields.io/badge/BEAST--red.svg?style=social&logo=youtube)](https://www.youtube.com/user/TheChernoProject)
+[![Twitter](https://img.shields.io/badge/%40beastsm96--blue.svg?style=social&logo=Twitter)](https://twitter.com/beastsm96)
+[![Youtube](https://img.shields.io/badge/BEAST--red.svg?style=social&logo=youtube)](https://www.youtube.com/channel/UC4kS5P7Jsq3eacveJiFuQbg)
