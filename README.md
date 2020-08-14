@@ -14,7 +14,7 @@ If the repository was cloned non-recursively previously, use `git submodule upda
 
 ### Main features to come:
 - Fast 2D rendering (UI, particles, sprites, etc.)
-- High-fidelity Physically-Based 3D rendering (this will be expanded later, 2D to come first)
+- High-fidelity Physically-Based 3D rendering 
 - Support for Mac, Linux, Android and iOS
     - Native rendering API support (DirectX, Vulkan, Metal)
 - Fully featured viewer and editor applications
