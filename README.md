@@ -1,3 +1,6 @@
+[![Twitter](https://img.shields.io/badge/%40beastsm96--blue.svg?style=social&logo=Twitter)](https://twitter.com/beastsm96)
+[![Youtube](https://img.shields.io/badge/BEAST--red.svg?style=social&logo=youtube)](https://www.youtube.com/channel/UC4kS5P7Jsq3eacveJiFuQbg)
+
 # Sparky [![License](https://img.shields.io/github/license/BEASTSM96/Sparky-Engine.svg)](https://github.com/BEASTSM96/Sparky-Engine/blob/master/LICENSE)
 
 Sparky is primarily an early-stage interactive application and rendering engine for Windows. Currently not much is implemented.
@@ -20,8 +23,3 @@ If the repository was cloned non-recursively previously, use `git submodule upda
 - Procedural terrain and world generation
 - Artificial Intelligence
 - Audio system
-
-
-
-[![Twitter](https://img.shields.io/badge/%40beastsm96--blue.svg?style=social&logo=Twitter)](https://twitter.com/beastsm96)
-[![Youtube](https://img.shields.io/badge/BEAST--red.svg?style=social&logo=youtube)](https://www.youtube.com/channel/UC4kS5P7Jsq3eacveJiFuQbg)
