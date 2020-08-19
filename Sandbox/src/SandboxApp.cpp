@@ -1,17 +1,12 @@
 #include <Sparky.h>
 
-#include "Sparky\ImGui\ImGuiLayer.h"
-
-#include <glm/glm.hpp>
-
-#include "Sparky/Core/Timestep.h"
+#include "Platform/OpenGL/OpenGLShader.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <fstream>
+#include <glm/gtc/type_ptr.hpp>
 
-#include <vector>
-
+#include "imgui/imgui.h"
 
 class ExampleLayer : public Sparky::Layer
 {
@@ -27,7 +22,7 @@ public:
 			 0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
 		};
 
-		std::shared_ptr<Sparky::VertexBuffer> vertexBuffer;
+		Sparky::Ref<Sparky::VertexBuffer> vertexBuffer;
 		vertexBuffer.reset(Sparky::VertexBuffer::Create(vertices, sizeof(vertices)));
 		Sparky::BufferLayout layout = {
 			{ Sparky::ShaderDataType::Float3, "a_Position" },
@@ -37,7 +32,7 @@ public:
 		m_VertexArray->AddVertexBuffer(vertexBuffer);
 
 		uint32_t indices[3] = { 0, 1, 2 };
-		std::shared_ptr<Sparky::IndexBuffer> indexBuffer;
+		Sparky::Ref<Sparky::IndexBuffer> indexBuffer;
 		indexBuffer.reset(Sparky::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 		m_VertexArray->SetIndexBuffer(indexBuffer);
 
@@ -50,7 +45,7 @@ public:
 			-0.5f,  0.5f, 0.0f
 		};
 
-		std::shared_ptr<Sparky::VertexBuffer> squareVB;
+		Sparky::Ref<Sparky::VertexBuffer> squareVB;
 		squareVB.reset(Sparky::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
 		squareVB->SetLayout({
 			{ Sparky::ShaderDataType::Float3, "a_Position" }
@@ -58,7 +53,7 @@ public:
 		m_SquareVA->AddVertexBuffer(squareVB);
 
 		uint32_t squareIndices[6] = { 0, 1, 2, 2, 3, 0 };
-		std::shared_ptr<Sparky::IndexBuffer> squareIB;
+		Sparky::Ref<Sparky::IndexBuffer> squareIB;
 		squareIB.reset(Sparky::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
 		m_SquareVA->SetIndexBuffer(squareIB);
 
@@ -92,9 +87,9 @@ public:
 			}
 		)";
 
-		m_Shader.reset(new Sparky::Shader(vertexSrc, fragmentSrc));
+		m_Shader.reset(Sparky::Shader::Create(vertexSrc, fragmentSrc));
 
-		std::string blueShaderVertexSrc = R"(
+		std::string flatShaderVertexSrc = R"(
 			#version 330 core
 			
 			layout(location = 0) in vec3 a_Position;
@@ -108,18 +103,22 @@ public:
 			}
 		)";
 
-		std::string blueShaderFragmentSrc = R"(
+		std::string flastShaderFragmentSrc = R"(
 			#version 330 core
 			
 			layout(location = 0) out vec4 color;
+
 			in vec3 v_Position;
+
+			uniform vec3 u_Color;
+
 			void main()
 			{
-				color = vec4(0.2, 0.3, 0.8, 1.0);
+				color = vec4(u_Color, 1.0);
 			}
 		)";
 
-		m_BlueShader.reset(new Sparky::Shader(blueShaderVertexSrc, blueShaderFragmentSrc));
+		m_flatShader.reset(Sparky::Shader::Create(flatShaderVertexSrc, flastShaderFragmentSrc));
 	}
 
 	void OnUpdate(Sparky::Timestep ts) override
@@ -164,13 +163,16 @@ public:
 
 		glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
+		std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_flatShader)->Bind();
+		std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_flatShader)->UploadUniformFloat3("u_Color", m_SquareColor);
+
 		for (int y = 0; y < 20; y++)
 		{
 			for (int x = 0; x < 20; x++)
 			{
 				glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
 				glm::mat4 trasform = glm::translate(glm::mat4(1.0f), pos) * scale;
-				Sparky::Renderer::Submit(m_BlueShader, m_SquareVA, trasform);
+				Sparky::Renderer::Submit(m_flatShader, m_SquareVA, trasform);
 			}
 
 		}
@@ -183,6 +185,12 @@ public:
 
 	void OnImGuiRender() override
 	{
+		ImGui::Begin("Settings");
+
+		ImGui::ColorEdit3("Square Color", glm::value_ptr(m_SquareColor));
+
+		ImGui::End();
+
 	}
 
 	void OnEvent(Sparky::Event& event) override
@@ -201,11 +209,11 @@ public:
 
 private:
 
-	std::shared_ptr<Sparky::Shader> m_Shader;
-	std::shared_ptr<Sparky::VertexArray> m_VertexArray;
+	Sparky::Ref<Sparky::Shader> m_Shader;
+	Sparky::Ref<Sparky::VertexArray> m_VertexArray;
 
-	std::shared_ptr<Sparky::Shader> m_BlueShader;
-	std::shared_ptr<Sparky::VertexArray> m_SquareVA;
+	Sparky::Ref<Sparky::Shader> m_flatShader;
+	Sparky::Ref<Sparky::VertexArray> m_SquareVA;
 
 	Sparky::OrthographicCamera m_Camera;
 
@@ -217,6 +225,8 @@ private:
 	float m_CameraRotationSpeed = 180.0f;
 
 	glm::vec3 m_SquarePosition;
+public:
+	glm::vec3 m_SquareColor = {0.2f, 0.3f, 0.8f};
 };
 
 

@@ -1,21 +1,18 @@
 #include "sppch.h"
 #include "ImGuiLayer.h"
-#include "Sparky/Log.h"
+
 
 #include "imgui.h"
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
 
 #include "Sparky/Application.h"
-#include "imgui_draw.cpp"
-#include "imgui_internal.h"
-#include "imconfig.h"
 
 #include "Sparky/Core/Timestep.h"
 
-#include "ImGuiFileDialog.h"
+#include "Sparky/Log.h"
+
 #include "ImGuiFileDialog.cpp"
-#include "ImGuiFileDialogConfig.h"
 
 // TEMPORARY
 #include <GLFW/glfw3.h>
@@ -23,8 +20,8 @@
 
 namespace Sparky {
 
-	#define IMGUI_CLASSES_SPARKY -0
-	#define IMGUI_OBJECTS_SPARKY nullptr
+#define IMGUI_CLASSES_SPARKY -0
+#define IMGUI_OBJECTS_SPARKY nullptr
 
 	///////////////////////////////////////
 	////////////FORALLPLATFORMS///////////
@@ -33,12 +30,7 @@ namespace Sparky {
 	ImGuiLayer::ImGuiLayer()
 		: Layer("ImGuiLayer")
 	{
-		#define IMGUI_CLASSES_SPARKY 0
-	}
-
-	ImGuiLayer::~ImGuiLayer()
-	{
-		#undef IMGUI_CLASSES_SPARKY 0
+#define IMGUI_CLASSES_SPARKY 0
 	}
 
 	void ImGuiLayer::OnAttach()
@@ -48,7 +40,7 @@ namespace Sparky {
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-		#define IMGUI_OBJECTS_SPARKY 0
+#define IMGUI_OBJECTS_SPARKY 0
 
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 																	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -107,13 +99,11 @@ namespace Sparky {
 			glfwMakeContextCurrent(backup_current_context);
 		}
 
-		#undef IMGUI_OBJECTS_SPARKY 0
+#undef IMGUI_OBJECTS_SPARKY 0
 	}
 
 	void ImGuiLayer::OnImGuiRender()
 	{
-		static bool show = true;
-		ImGui::ShowDemoWindow(&show);
 	}
 
 
@@ -129,12 +119,12 @@ namespace Sparky {
 	//#define SP_FPS
 	ImGuiFPS::ImGuiFPS() : Layer("ImguiFPS")
 	{
-		#define IMGUI_CLASSES_SPARKY 1
+#define IMGUI_CLASSES_SPARKY 1
 	}
 
 	ImGuiFPS::~ImGuiFPS()
 	{
-		#undef IMGUI_CLASSES_SPARKY 1
+#undef IMGUI_CLASSES_SPARKY 1
 	}
 
 	void ImGuiFPS::OnAttach()
@@ -142,7 +132,7 @@ namespace Sparky {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		#define  IMGUI_OBJECTS_SPARKY 1
+#define  IMGUI_OBJECTS_SPARKY 1
 
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
@@ -181,7 +171,7 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
-		#undef IMGUI_OBJECTS_SPARKY 1
+#undef IMGUI_OBJECTS_SPARKY 1
 	}
 
 	void ImGuiFPS::OnImGuiRender()
@@ -225,12 +215,12 @@ namespace Sparky {
 
 	ImGuiRenderStats::ImGuiRenderStats() : Layer("ImguiRenderStats")
 	{
-		#define IMGUI_CLASSES_SPARKY 2
+#define IMGUI_CLASSES_SPARKY 2
 	}
 
 	ImGuiRenderStats::~ImGuiRenderStats()
 	{
-		#undef IMGUI_CLASSES_SPARKY 2
+#undef IMGUI_CLASSES_SPARKY 2
 	}
 
 	void ImGuiRenderStats::OnAttach()
@@ -238,7 +228,7 @@ namespace Sparky {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		#define IMGUI_OBJECTS_SPARKY 2
+#define IMGUI_OBJECTS_SPARKY 2
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 		// Setup Platform/Renderer bindings
@@ -276,7 +266,7 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
-		#undef IMGUI_OBJECTS_SPARKY 2
+#undef IMGUI_OBJECTS_SPARKY 2
 	}
 
 	void ImGuiRenderStats::OnImGuiRender()
@@ -306,14 +296,14 @@ namespace Sparky {
 
 	ImguiTopBar::ImguiTopBar() : Layer("TopBar")
 	{
-		#define IMGUI_CLASSES_SPARKY 5 //TopBar
-		#define IMGUI_CLASSES_SPARKY 9 //EdLayer
+#define IMGUI_CLASSES_SPARKY 5 //TopBar
+#define IMGUI_CLASSES_SPARKY 9 //EdLayer
 	}
 
 	ImguiTopBar::~ImguiTopBar()
 	{
-		#undef IMGUI_CLASSES_SPARKY 5 //TopBar
-		#undef IMGUI_CLASSES_SPARKY 9 //EdLayer
+#undef IMGUI_CLASSES_SPARKY 5 //TopBar
+#undef IMGUI_CLASSES_SPARKY 9 //EdLayer
 	}
 
 	void ImguiTopBar::OnAttach()
@@ -321,8 +311,8 @@ namespace Sparky {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		#define IMGUI_OBJECTS_SPARKY 5 
-		#define IMGUI_OBJECTS_SPARKY 9
+#define IMGUI_OBJECTS_SPARKY 5 
+#define IMGUI_OBJECTS_SPARKY 9
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 		// Setup Platform/Renderer bindings
@@ -333,8 +323,8 @@ namespace Sparky {
 	{
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
-		#undef  IMGUI_OBJECTS_SPARKY 5 
-		#undef IMGUI_OBJECTS_SPARKY 9
+#undef  IMGUI_OBJECTS_SPARKY 5 
+#undef IMGUI_OBJECTS_SPARKY 9
 		ImGui::DestroyContext();
 	}
 
@@ -362,8 +352,8 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
-		#undef  IMGUI_OBJECTS_SPARKY 5 
-		#undef IMGUI_OBJECTS_SPARKY 9
+#undef  IMGUI_OBJECTS_SPARKY 5 
+#undef IMGUI_OBJECTS_SPARKY 9
 	}
 
 
@@ -408,7 +398,7 @@ namespace Sparky {
 
 		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".edfile", ImVec4((float)0.0f, 0.0f, 8.0f, 0.9f));
 
-			// display
+		// display
 		if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey"))
 		{
 			// action if OK
@@ -416,7 +406,7 @@ namespace Sparky {
 			{
 				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
 				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-					// action
+				// action
 			}
 			// close
 			igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
@@ -476,21 +466,21 @@ namespace Sparky {
 
 	void ImguiTopBar::OnImGuiRender()
 	{
-		
+
 		static bool showScene = false;
 		static bool showFile = false;
 		static bool showCodeFile = false;
 		static bool showSparky = false;
 		static bool showDirectoryChooser = false;
-		
+
 
 		if (showScene)           ShowSceneStuff(&showScene);
 		if (showCodeFile)           ShowCodeFiles(&showCodeFile);
 		if (showDirectoryChooser)           ShowDirectoryChooser(&showDirectoryChooser);
-			//if (showFile)           ShowExampleAppDocuments(&show_app_documents); 
-			//if (showSparky)       ShowExampleAppMainMenuBar();
-		
-		// Note: Switch this to true to enable dockspace
+		//if (showFile)           ShowExampleAppDocuments(&show_app_documents); 
+		//if (showSparky)       ShowExampleAppMainMenuBar();
+
+	// Note: Switch this to true to enable dockspace
 		static bool dockspaceOpen = true;
 		static bool opt_fullscreen_persistant = true;
 		bool opt_fullscreen = opt_fullscreen_persistant;
@@ -547,7 +537,7 @@ namespace Sparky {
 			{
 				if (ImGui::Button("Open code files..."))
 				{
-					showCodeFile = true;
+					std::string filename = Application::Get().OpenFile("CodeFiles\0* .cpp; * .h;\0\0");
 				}
 
 				if (ImGui::Button("Save"))
@@ -578,68 +568,68 @@ namespace Sparky {
 				ImGui::EndMenu();
 			}
 			{
-				#ifdef SP_RELEASE
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
+#ifdef SP_RELEASE
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
 
-								ImGui::Text("Release Mode");
+				ImGui::Text("Release Mode");
 
-				#endif // SP_RELEASE
+#endif // SP_RELEASE
 
-				#ifdef SP_DEBUG
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
-								ImGui::Spacing();
+#ifdef SP_DEBUG
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
 
 
-									if (ImGui::Button("RELEASE Mode"))
-									{
-										#if !SP_RELEASE
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
+				if (ImGui::Button("RELEASE Mode"))
+				{
+#if !SP_RELEASE
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
 
-											ImGui::Text("Release Mode");
-										#endif
-										#if SP_RELEASE
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
-											ImGui::Spacing();
+					ImGui::Text("Release Mode");
+#endif
+#if SP_RELEASE
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
+					ImGui::Spacing();
 
-											ImGui::Text("Debug Mode");
-										#endif // SP_RELEASE
+					ImGui::Text("Debug Mode");
+#endif // SP_RELEASE
 
-									}
-				#endif // SP_DEBUG
+				}
+#endif // SP_DEBUG
 
 			}
 			ImGui::EndMenuBar();
@@ -653,9 +643,9 @@ namespace Sparky {
 	//////////////EditorLayer/////////////////
 	/////////////////////////////////////////
 
-	///////////////////////////////////////
-	////////////FORALLPLATFORMS///////////
-	/////////////////////////////////////
+	///////////////////////////////////////////
+	////////////FORALLPLATFORMS--NOT///////////
+	//////////////////////////////////////////
 
 	///////////////////////////////////////////////////////////
 	////////////////SHOULD-MOVE-TO-EDITOR-PROJECT/////////////
@@ -716,9 +706,344 @@ namespace Sparky {
 			glfwMakeContextCurrent(backup_current_context);
 		}
 	}
+
+	static void ShowGameCode()
+	{
+		if (ImGui::MenuItem("GameCode")) {
+			if (ImGui::Button("C++ Classes")) {
+
+			}
+		}
+	}
+
+	static void CreateToolbar() {
+
+		if (ImGui::Begin("Toolbar"))
+		{
+			if (ImGui::Button("Save", ImVec2(100, 100)))
+			{
+				std::string filename = Application::Get().SaveFile();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Play", ImVec2(100, 100)))
+			{
+
+			}
+
+
+#ifdef SP_DEBUG
+			ImGui::SameLine();
+
+			if (ImGui::Button("Debug"))
+			{
+
+			}
+
+
+#endif
+		}
+
+	}
+
+	static void CreateModels() {
+		static bool showBasic = false;
+
+		if (ImGui::Begin("Models"))
+		{
+			if (ImGui::Button("Basic", ImVec2(50, 50)))
+			{
+				showBasic = true;
+			}
+
+			if (showBasic)
+			{
+				ImGui::Separator();
+
+				if (ImGui::Button("Cube"))
+				{
+				}
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("Sphere"))
+				{
+				}
+
+
+#ifdef SP_DEBUG
+				ImGui::SameLine();
+
+				if (ImGui::Button("Debug"))
+				{
+
+				}
+#endif
+			}
+			else
+			{
+				return;
+			}
+		}
+	}
+
+
+	static void CreateDetails() {
+		ImGui::Begin("Details");
+
+
+	#ifdef SP_DIST
+			ImGui::SameLine(); ImGui::Text("Diffuse");
+	#endif // !SP_DIST
+	#ifdef SP_DEBUG
+			ImGui::SameLine(); ImGui::Text("Diff");
+	#endif // !SP_DEBUG
+
+
+			// The example OpenGL back-end uses integers to identify textures. 
+		   // You can safely store an integer into a void* by casting it. e.g. (void*)(intptr_t)MY_GL_UINT to cast to void*.
+			GLuint my_opengl_texture;
+			glGenTextures(1, &my_opengl_texture);
+			// [...] load image, render to texture, etc.
+			ImGui::Image((void*)(intptr_t)my_opengl_texture, ImVec2(125, 125));
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+	#ifdef SP_DEBUG
+				SP_CORE_INFO("DEBUG-DIFF-Hovered");
+				ImGui::Text("Diff Image file");
+	#endif // !SP_DEBUG
+
+	#ifdef SP_DIST
+				ImGui::Text("Diffuse Image file");
+	#endif // !SP_DIST
+
+				ImGui::End();
+			}
+			if (ImGui::IsItemClicked())
+			{
+				Application::Get().OpenFile("PNGFILE\0 * .png; *.PNG; \0\0");
+			}
+
+			ImGui::Separator();
+
+	#ifdef SP_DIST
+			ImGui::SameLine(); ImGui::Text("Specular");
+	#endif // !SP_DIST
+	#ifdef SP_DEBUG
+			ImGui::SameLine(); ImGui::Text("Spec");
+	#endif // !SP_DEBUG
+
+			// The example OpenGL back-end uses integers to identify textures. 
+		   // You can safely store an integer into a void* by casting it. e.g. (void*)(intptr_t)MY_GL_UINT to cast to void*.
+			GLuint my_opengl_texture2;
+			glGenTextures(1, &my_opengl_texture2);
+			// [...] load image, render to texture, etc.
+			ImGui::Image((void*)(intptr_t)my_opengl_texture2, ImVec2(125, 125));
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+#ifdef SP_DEBUG
+				SP_CORE_INFO("DEBUG-SPEC-Hovered");
+				ImGui::Text("Spec Image file");
+#endif // !SP_DEBUG
+
+#ifdef SP_DIST
+				ImGui::Text("Specular Image file");
+#endif // !SP_DIST
+
+				ImGui::End();
+			}
+			if (ImGui::IsItemClicked())
+			{
+				Application::Get().OpenFile("PNGFILE\0 * .png; *.PNG; \0\0");
+			}
+			ImGui::Separator();
+
+	#ifdef SP_DIST
+			ImGui::SameLine(); ImGui::Text("Normal");
+	#endif // !SP_DIST
+
+	#ifdef SP_DEBUG
+			ImGui::SameLine(); ImGui::Text("Norm");
+	#endif // !SP_DEBUG
+
+			// The example OpenGL back-end uses integers to identify textures. 
+		   // You can safely store an integer into a void* by casting it. e.g. (void*)(intptr_t)MY_GL_UINT to cast to void*.
+			GLuint my_opengl_texture3;
+			glGenTextures(1, &my_opengl_texture3);
+			// [...] load image, render to texture, etc.
+			ImGui::Image((void*)(intptr_t)my_opengl_texture3, ImVec2(125, 125));
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+#ifdef SP_DEBUG
+				SP_CORE_INFO("DEBUG-NORM-Hovered");
+				ImGui::Text("Norm Image file");
+#endif // !SP_DEBUG
+
+#ifdef SP_DIST
+				ImGui::Text("Normal Image file");
+#endif // !SP_DIST
+
+				ImGui::End();
+			}
+			if (ImGui::IsItemClicked())
+			{
+				Application::Get().OpenFile("PNGFILE\0 * .png; *.PNG; \0\0");
+			}
+
+
+			ImGui::Separator();
+
+	#ifdef SP_DIST
+			ImGui::SameLine(); ImGui::Text("Metallic");
+	#endif // !SP_DIST
+
+	#ifdef SP_DEBUG
+			ImGui::SameLine(); ImGui::Text("Met");
+	#endif // !SP_DEBUG
+
+
+			// The example OpenGL back-end uses integers to identify textures. 
+		   // You can safely store an integer into a void* by casting it. e.g. (void*)(intptr_t)MY_GL_UINT to cast to void*.
+			GLuint my_opengl_texture4;
+			glGenTextures(1, &my_opengl_texture4);
+			// [...] load image, render to texture, etc.
+			ImGui::Image((void*)(intptr_t)my_opengl_texture4, ImVec2(125, 125));
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+#ifdef SP_DEBUG
+				SP_CORE_INFO("DEBUG-MET-Hovered");
+				ImGui::Text("Met Image file");
+#endif // !SP_DEBUG
+
+#ifdef SP_DIST
+				ImGui::Text("Metallic Image file");
+#endif // !SP_DIST
+
+				ImGui::End();
+			}
+			if (ImGui::IsItemClicked())
+			{
+				Application::Get().OpenFile("PNGFILE\0 * .png; *.PNG; \0\0");
+			}
+
+
+	#ifdef SP_DEBUG
+			ImGui::Separator();
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Debug"))
+			{
+			}
+
+
+	#endif //SP_BEDUG
+	}
+
+	static void CreateOutliner()
+	{
+		ImGui::Begin("Scene Outliner");
+
+#ifdef SP_DEBUG
+		ImGui::SameLine();
+
+		if (ImGui::Button("Debug"))
+		{
+		}
+
+
+#endif
+	}
+
+	static void SetCBExport(bool dExport)
+	{
+			#define CB_EXPORT = dExport;
+			#define EXPORT_ENGINE_SYMBOLS_CB = CB_EXPORT;
+		Application::Get().SaveJSONFile();
+
+	}
+
+	static void CreateCB(bool debugExport)
+	{
+		static bool dock = true;
+
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar;
+		window_flags |= ImGuiWindowFlags_NoTitleBar;
+
+		ImGui::Begin("Content Browser", &dock, window_flags);
+
+		if (ImGui::Button("Export"))
+		{
+			debugExport = true;
+
+			SetCBExport(debugExport);
+		}
+
+#ifdef SP_DEBUG
+		ImGui::SameLine();
+
+		if (ImGui::Button("Debug"))
+		{
+		}
+
+
+#endif
+	}
+
+
 	void EditorLayer::OnImGuiRender()
 	{
+		static bool dock = true;
+		{
+			static bool ShowGameCodeInCB = false;
+
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar;
+			window_flags |= ImGuiWindowFlags_NoTitleBar;
+			{
+#if defined ( SP_DEBUG )	
+	#if defined ( CB_EXPORT )
+					#define EXPORT_CB = CB_EXPORT
+					#if defined ( EXPORT_CB )
+							#define EXPORT_CODE_CB
+							#define EXPORT_GAME_CB
+							#define EXPORT_GAME_CONTENT_CB
+							#define EXPORT_GAME_SYMBOLS_CB
+							#define EXPORT_CPP_CB
+							#define EXPORT_SYMBOLS_CB
+						#endif // EXPORT_CB
+	#endif // CB_EXPORT
+#endif // SP_DEBUG
+				CreateCB( true );
+			}
+			{
+				CreateModels();
+			}
+			{
+
+				CreateDetails();
+			}
+			{
+
+				CreateToolbar();
+			}
+			{
+				CreateOutliner();
+			}
+
+
+			ImGui::End();
+			ImGui::End();
+			ImGui::End();
+			ImGui::End();
+			ImGui::End();
+
+
+		}
 
 	}
 }
-

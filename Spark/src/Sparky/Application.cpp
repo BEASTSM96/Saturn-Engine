@@ -51,17 +51,23 @@ namespace Sparky {
 
 		{
 			m_ImGuiLayer = new ImGuiLayer();
+
 			m_FPSLayer = new ImGuiFPS();
 			m_RenderStats = new ImGuiRenderStats();
 			m_ImguiTopBar = new ImguiTopBar();
+#ifdef SP_DEBUG
 			m_EditorLayer = new EditorLayer();
+#endif
 		}
 
 		{
 			PushOverlay(m_ImGuiLayer);
 			PushOverlay(m_RenderStats);
+
+#ifdef SP_DEBUG
 			PushOverlay(m_ImguiTopBar);
 			PushOverlay(m_EditorLayer);
+#endif // SP_DEBUG
 		}
 
 	}
@@ -122,15 +128,9 @@ namespace Sparky {
 			if (!bIsFileOpened && !bWasFileOpened)
 			{
 				bWasFileOpened = true;
-
-
 				FileCreation::NewProjectFile();
-
 				bIsFileOpened = true;
-
-
 				//FileReader::ReadFile("good3dgame.sproject", "testReader");
-
 			}*/
 		}
 		while (m_Crashed)
@@ -168,9 +168,11 @@ namespace Sparky {
 		return true;
 	}
 
+
 	std::string Application::OpenFile(const char* filter) const
 	{
 
+#ifdef  SP_PLATFORM_WINDOWS
 		OPENFILENAMEA ofn;
 		CHAR szFile[260] = { 0 };
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
@@ -189,11 +191,25 @@ namespace Sparky {
 			return ofn.lpstrFile;
 		}
 		return std::string();
+#endif
+
+#ifdef  SP_PLATFORM_LINUX
+		m_Running = false;
+		m_Crashed = false;
+
+		return std::string();
+#endif
+
+		return std::string();
 	}
 
 	std::string Application::SaveFile() const
 	{
-
+		#ifdef  SP_PLATFORM_LINUX
+				m_Running = false;
+				m_Crashed = false;
+		#endif
+#ifdef  SP_PLATFORM_WINDOWS
 		OPENFILENAMEA ofn;
 		CHAR szFile[260] = { 0 };
 
@@ -212,11 +228,50 @@ namespace Sparky {
 			return ofn.lpstrFile;
 		}
 		return std::string();
+#endif
+		return std::string();
+
+	}
+
+	std::string Application::SaveJSONFile() const
+	{
+#ifdef  SP_PLATFORM_LINUX
+		m_Running = false;
+		m_Crashed = false;
+#endif
+#ifdef  SP_PLATFORM_WINDOWS
+		OPENFILENAMEA ofn;
+		CHAR szFile[260] = { 0 };
+
+		ZeroMemory(&ofn, sizeof(OPENFILENAME));
+		ofn.lStructSize = sizeof(OPENFILENAME);
+		ofn.lpstrFilter = "SaveJSONFile (.json / .JSON) \0 * .json; * .JSON; \0\0";
+		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
+		ofn.lpstrFile = szFile;
+		ofn.nMaxFile = sizeof(szFile);
+		ofn.lpstrTitle = "Save file";
+		ofn.nFilterIndex = 1;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+		if (GetSaveFileNameA(&ofn) == TRUE)
+		{
+			return ofn.lpstrFile;
+		}
+		return std::string();
+#endif
+		return std::string();
+
 	}
 
 	std::string Application::OpenProjectFile() const
 	{
+		#ifdef  SP_PLATFORM_LINUX
+				m_Running = false;
+				m_Crashed = false;
 
+				return nullptr;
+		#endif
+#ifdef  SP_PLATFORM_WINDOWS
 		OPENFILENAMEA ofn;
 		CHAR szFile[260] = { 0 };
 		ZeroMemory(&ofn, sizeof(OPENFILENAMEA));
@@ -234,6 +289,9 @@ namespace Sparky {
 		{
 			return ofn.lpstrFile;
 		}
+		return std::string();
+
+#endif
 		return std::string();
 	}
 

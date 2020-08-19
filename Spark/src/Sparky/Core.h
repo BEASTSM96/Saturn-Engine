@@ -18,13 +18,10 @@
 
 #define BIT(x) (1 << x)
 
-#define SP_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
-
-
 #ifdef SP_DEBUG
 #if defined(SP_PLATFORM_WINDOWS)
 #define SP_DEBUGBREAK() __debugbreak()
-#elif defined(HZ_PLATFORM_LINUX)
+#elif defined(SP_PLATFORM_LINUX)
 #include <signal.h>
 #define SP_DEBUGBREAK() raise(SIGTRAP)
 #else
@@ -44,3 +41,15 @@
 #define SP_ASSERT(x, ...)
 #define SP_CORE_ASSERT(x, ...)
 #endif
+
+#define SP_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+
+namespace Sparky {
+
+	template<typename T>
+	using Scope = std::unique_ptr<T>;
+
+	template<typename T>
+	using Ref = std::shared_ptr<T>;
+
+}

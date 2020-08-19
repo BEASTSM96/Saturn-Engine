@@ -25,6 +25,12 @@
     <Filter Include="src\Sparky\Core\File">
       <UniqueIdentifier>{9DE475B5-8973-FF7E-3292-137A1E001025}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Sparky\Core\Serialization">
+      <UniqueIdentifier>{BB896F86-27A2-56B0-F04E-E6495C26EB49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Sparky\Core\string">
+      <UniqueIdentifier>{941B4454-8015-6DA6-6982-03B7551BD312}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Sparky\Events">
       <UniqueIdentifier>{BA8DE585-26A4-E31B-6F1B-6F3DDB70B4A3}</UniqueIdentifier>
     </Filter>
@@ -66,6 +72,9 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
@@ -93,8 +102,20 @@
     <ClInclude Include="src\Sparky\Core\File\SparkyFile.h">
       <Filter>src\Sparky\Core\File</Filter>
     </ClInclude>
+    <ClInclude Include="src\Sparky\Core\Serialization\BaseSerializer.h">
+      <Filter>src\Sparky\Core\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Core\Serialization\DeSerializer.h">
+      <Filter>src\Sparky\Core\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Core\Serialization\Serializer.h">
+      <Filter>src\Sparky\Core\Serialization</Filter>
+    </ClInclude>
     <ClInclude Include="src\Sparky\Core\Timestep.h">
       <Filter>src\Sparky\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Core\string\String.h">
+      <Filter>src\Sparky\Core\string</Filter>
     </ClInclude>
     <ClInclude Include="src\Sparky\EntryPoint.h">
       <Filter>src\Sparky</Filter>
@@ -1386,7 +1407,6 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
-    <ClInclude Include="src\Sparky\Core\string\String.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
@@ -1396,6 +1416,9 @@
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp">
@@ -1415,6 +1438,12 @@
     </ClCompile>
     <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp">
       <Filter>src\Sparky\Core\File</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Core\Serialization\DeSerializer.cpp">
+      <Filter>src\Sparky\Core\Serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Core\Serialization\Serializer.cpp">
+      <Filter>src\Sparky\Core\Serialization</Filter>
     </ClCompile>
     <ClCompile Include="src\Sparky\ImGui\ImGuiLayer.cpp">
       <Filter>src\Sparky\ImGui</Filter>

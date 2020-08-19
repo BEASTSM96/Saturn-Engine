@@ -39,6 +39,7 @@ namespace Sparky {
 
 		std::string OpenProjectFile() const;
 		std::string SaveFile() const;
+		std::string SaveJSONFile() const;
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 	private:

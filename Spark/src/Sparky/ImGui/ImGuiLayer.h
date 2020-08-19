@@ -6,14 +6,16 @@
 #include "Sparky/Events/KeyEvent.h"
 #include "Sparky/Events/MouseEvent.h"
 
-
 namespace Sparky {
 
+
+#define IM_STATIC_FUNC static void
+#define IM_STATIC_BOOL static bool
 	class SPARKY_API ImGuiLayer : public Layer
 	{
 	public:
 		ImGuiLayer();
-		~ImGuiLayer();
+		~ImGuiLayer() = default;
 
 		virtual void OnAttach() override;
 		virtual void OnDetach() override;

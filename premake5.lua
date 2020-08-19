@@ -8,6 +8,11 @@ workspace "Sparky"
 		"Release",
 		"Dist"
 	}
+	
+	flags
+	{
+		"MultiProcessorCompile"
+	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
@@ -18,17 +23,16 @@ IncludeDir["Glad"] = "Spark/vendor/Glad/include"
 IncludeDir["ImGui"] = "Spark/vendor/imgui"
 IncludeDir["glm"] = "Spark/vendor/glm"
 
-group "Dependencies"
+group "sp/Dependencies"
 	include "Spark/vendor/GLFW"
 	include "Spark/vendor/Glad"
 	include "Spark/vendor/imgui"
-group "Dependencies/Audio"
+group "sp/Dependencies/Audio"
 	include "Spark/vendor/Audio/OpenAL-Soft"
 	include "Spark/vendor/Audio/libogg"
 	include "Spark/vendor/Audio/Vorbis"
 
-group ""
-
+group "sp/Core"
 project "Spark"
 	location "Spark"
 	kind "StaticLib"
@@ -108,7 +112,7 @@ project "Spark"
 		defines "SP_DIST"
 		runtime "Release"
 		optimize "on"
-
+group "sp/Core"
 project "Sandbox"
 	location "Sandbox"
 	kind "ConsoleApp"
@@ -144,6 +148,19 @@ project "Sandbox"
 		"Spark"
 	}
 
+
+	filter "system:Unix"
+		defines
+		{
+			"SP_PLATFORM_LINUX"
+		}
+
+	filter "system:Mac"
+		defines
+		{
+			"SP_PLATFORM_MACOSX"
+		}
+
 	filter "system:windows"
 		systemversion "latest"
 
@@ -167,8 +184,7 @@ project "Sandbox"
 		runtime "Release"
 		optimize "on"
 		
-		
-		
+group "sp/Core/Editor"		
 project "SparkyEditor"
 	location "SparkyEditor"
 	kind "StaticLib"
@@ -202,6 +218,12 @@ project "SparkyEditor"
 		"Spark"
 	}
 
+	filter "system:Unix"
+		defines
+		{
+			"SP_PLATFORM_LINUX"
+		}
+
 	filter "system:windows"
 		systemversion "latest"
 
@@ -225,6 +247,73 @@ project "SparkyEditor"
 		runtime "Release"
 		optimize "on"
 		
+group "sp/Core/Editor/Base"		
+project "SparkyEdBase"
+	location "SparkyEditor/SparkyEdBase"
+	kind "StaticLib"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp"
+	}
+	
+	
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS"
+	}
+
+	includedirs
+	{
+		
+		"Spark/src"
+	}
+
+	links
+	{
+		"Spark"
+	}
+
+	filter "system:Unix"
+		defines
+		{
+			"SP_PLATFORM_LINUX"
+		}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"SP_PLATFORM_WINDOWS"
+		}
+
+	filter "configurations:Debug"
+		defines "SP_DEBUG"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "SP_RELEASE"
+		runtime "Release"
+		optimize "on"
+
+	filter "configurations:Dist"
+		defines "SP_DIST"
+		runtime "Release"
+		optimize "on"	
+
+
+
+
+	
 --project "SparkyEdTools"
 	--location "SparkyEdTools"
 	--kind "SharedLib"

@@ -70,5 +70,6 @@ bin-int/
 **.mp3
 **.ogg
 **.sasset
+test.JSON
 imgui.ini
 [dD]esktop.ini

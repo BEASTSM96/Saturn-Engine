@@ -80,7 +80,9 @@
       <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;vendor\Audio\OpenAL-Soft\include;vendor\Audio\OpenAL-Soft\src;vendor\Audio\OpenAL-Soft\src\common;vendor\Audio\libogg\include;vendor\Audio\Vorbis\include;vendor\Audio\minimp3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
+      <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -104,6 +106,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -128,6 +131,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -143,6 +147,7 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
@@ -152,8 +157,11 @@
     <ClInclude Include="src\Sparky\Audio\alhelpers.h" />
     <ClInclude Include="src\Sparky\Core.h" />
     <ClInclude Include="src\Sparky\Core\File\SparkyFile.h" />
-    <ClInclude Include="src\Sparky\Core\string\String.h" />
+    <ClInclude Include="src\Sparky\Core\Serialization\BaseSerializer.h" />
+    <ClInclude Include="src\Sparky\Core\Serialization\DeSerializer.h" />
+    <ClInclude Include="src\Sparky\Core\Serialization\Serializer.h" />
     <ClInclude Include="src\Sparky\Core\Timestep.h" />
+    <ClInclude Include="src\Sparky\Core\string\String.h" />
     <ClInclude Include="src\Sparky\EntryPoint.h" />
     <ClInclude Include="src\Sparky\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Sparky\Events\Event.h" />
@@ -589,12 +597,15 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\Sparky\Application.cpp" />
     <ClCompile Include="src\Sparky\Audio\SparkyAudio.cpp" />
     <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp" />
+    <ClCompile Include="src\Sparky\Core\Serialization\DeSerializer.cpp" />
+    <ClCompile Include="src\Sparky\Core\Serialization\Serializer.cpp" />
     <ClCompile Include="src\Sparky\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Sparky\ImGui\ImguiBuild.cpp" />
     <ClCompile Include="src\Sparky\Layer.cpp" />
@@ -620,6 +631,12 @@
     </ProjectReference>
     <ProjectReference Include="vendor\imgui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\Audio\OpenAL-Soft\OpenAL-Soft.vcxproj">
+      <Project>{2D783691-992D-AF86-2222-A95D8ED6A58A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\Audio\Vorbis\Vorbis.vcxproj">
+      <Project>{DA7C93D8-C61E-BEAE-AFD9-D1029B1A45FF}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
