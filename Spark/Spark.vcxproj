@@ -160,6 +160,7 @@
     <ClInclude Include="src\Sparky\Core\File\SparkyFile.h" />
     <ClInclude Include="src\Sparky\Core\Serialisation\Object.h" />
     <ClInclude Include="src\Sparky\Core\Serialisation\Serialiser.h" />
+    <ClInclude Include="src\Sparky\Core\Serialisation\Types.h" />
     <ClInclude Include="src\Sparky\Core\Timestep.h" />
     <ClInclude Include="src\Sparky\Core\string\String.h" />
     <ClInclude Include="src\Sparky\EntryPoint.h" />

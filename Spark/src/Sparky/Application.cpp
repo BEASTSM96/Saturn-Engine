@@ -132,6 +132,8 @@ namespace Sparky {
 
 	void Application::Run()
 	{
+		Audio::Init();
+
 
 		struct SaveData
 		{
@@ -139,7 +141,7 @@ namespace Sparky {
 
 			std::string name;
 			int something;
-		}; 
+		};
 
 		std::vector<SaveData> saveObjs{
 			SaveData("Object1", 6389236),
@@ -151,33 +153,64 @@ namespace Sparky {
 			SaveData("Object7", 632)
 		};
 
-	
-		Audio::Init();
 
-		Json::Value test;
+		unsigned int count = 0;
+
+
+		/*Object* ao = new Object();
+			ao->m_ObjectName = "Gjenstand";
+		Object* ao1 = new Object();
+			ao1->m_ObjectName = "Gjenstand1";
+		Object* ao2 = new Object();
+			ao2->m_ObjectName = "Gjenstand2";
+		Object* ao3 = new Object();
+			ao3->m_ObjectName = "Gjenstand3";
+
+		Json::Value serialiser;
+		serialiser["Debug"]["ImGui"] = "yes";
+		ao->Serialise(serialiser["Debug"][ao->m_ObjectName]);
+		ao1->Serialise(serialiser["Debug"][ao1->m_ObjectName]);
+		ao2->Serialise(serialiser["Debug"][ao2->m_ObjectName]);
+		ao3->Serialise(serialiser["Debug"][ao3->m_ObjectName]);
 
 		for (SaveData i : saveObjs)
 		{
-			test["Objects"][i.name]["something"] = i.something;
+			serialiser["Objects"][i.name]["something"] = i.something;
 		}
 
 		{
-			std::ofstream file("test.json");
+			std::ofstream Savefile("assets/test1.json");
+			Savefile << serialiser;
+		}*/
 
-			file << test;
-		}
+		Json::Value deserialiser;
 
 
-		//Deserialise
-		std::vector<SaveData*> deserialiseObjects;
-		uint32_t count = 0;
-		for (const Json::Value& object : test["Objects"])
+		std::vector<Object> deserialiseObjects;
+
 		{
-			deserialiseObjects.push_back(new SaveData(test["Objects"].getMemberNames()[count], object.get("something", 0).asInt()));
-			count++;
-		}
+			std::ifstream file("assets/test1.json");
+			file >> deserialiser;
 
-		deserialiseObjects;
+			Object* ao = new Object();
+			ao->Deserialise(deserialiser["Debug"]);
+
+
+		}
+		deserialiser;
+
+
+		//for (const Json::Value& s : serialiser["Objects"])
+		//{
+
+	
+		//	//deserialiser["Object"].getMemberNames()[count];
+		//	//s[""].asString();
+		//	//count++;
+		//	//deserialiser;
+		//
+		//	//SP_CORE_ERROR(s);
+		//}
 
 		while (m_Running && !m_Crashed)
 		{
@@ -199,32 +232,6 @@ namespace Sparky {
 			m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
-#ifndef SP_DEBUG
-			
-			std::string appd = SparkyAppData() / "enginedebug.ses";
-
-			std::ofstream os("enginedebug.ses", std::ios::binary);
-			cereal::BinaryOutputArchive archive(os);
-
-			
-
-			if (m_ImGuiLayer)
-			{
-				for (Layer* layer : m_LayerStack)
-				{
-					os << "All layers in the engine : " << layer << std::endl;
-					os << "All layers names in the engine : " << layer->GetName() << std::endl;
-				}
-				os << "Window " << m_Window << std::endl;
-				os << "IsVSync " << Application::GetWindow().IsVSync() << std::endl;
-				os << "Window Title " << Application::GetWindow().title << std::endl;
-				os << "Window Width " << Application::GetWindow().GetWidth() << std::endl;
-				os << "Window Height " << Application::GetWindow().GetHeight() << std::endl;
-				os << "Window NativeWindow " << Application::GetWindow().GetNativeWindow() << std::endl;
-				os << "--------------------------------------------------------------------------------";
-			}
-
-#endif // SP_DEBUG
 		}
 		while (m_Crashed && !m_Running)
 		{

@@ -8,9 +8,21 @@
 
 #include "imgui/imgui.h"
 
+#include <jsoncpp/json/json.h>
+
 class ExampleLayer : public Sparky::Layer
 {
 public:
+
+	struct STexture
+	{
+		STexture(std::string name, std::string path) : name(name), path(path) {  }
+
+		std::string name;
+		std::string path;
+	};
+
+
 	ExampleLayer()
 		: Layer("Example"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), m_CameraPosition(0.0f), m_SquarePosition(0.0f)
 	{
@@ -151,15 +163,39 @@ public:
 
 		m_TextureShader.reset(Sparky::Shader::Create(textureShaderVertexSrc, textureShaderFragmentSrc));
 
-		 //TEMP
-#ifndef SP_DEBUG
-		m_beastlogo = Sparky::Texture2D::Create("assets/tex/beastpic_pfp_1.png");
-		m_Texture = Sparky::Texture2D::Create("assets/tex/Checkerboard.png");
+		std::vector<STexture> textures {
+				STexture("Beastpic", "assets/tex/beastpic_pfp_1.png"),
+				STexture("Checkerboard", "assets/tex/Checkerboard.png")
+		};
+	
+		Json::Value serialiser;
+		for (STexture i : textures)
+		{
+			serialiser["Textures"][i.name]["Path"] = i.path;
+		}
+
+		{
+			std::ofstream texFile("assets/tex/json/test1.json");
+			texFile << serialiser;
+		}
+
+		//Deserialise
+		std::vector<STexture*> deserialiseObjects;
+		uint32_t count = 0;
+		for (const Json::Value& object : serialiser["Textures"])
+		{
+			deserialiseObjects.push_back(new STexture(serialiser["Textures"].getMemberNames()[count], object.get("Path", 0).asString()));
+			count++;
+		}
+
+		deserialiseObjects;
+
+		m_beastlogo = Sparky::Texture2D::Create(deserialiseObjects.at(0)->path);
+		m_Texture = Sparky::Texture2D::Create(deserialiseObjects.at(1)->path);
 
 
 		std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_TextureShader)->Bind();
 		std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
-#endif // !SP_DEBUG
 
 	}
 

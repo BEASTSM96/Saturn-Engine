@@ -1,0 +1,41 @@
+{
+	"Debug" : 
+	{
+		"Gjenstand" : 192,
+		"Gjenstand1" : 192,
+		"Gjenstand2" : 192,
+		"Gjenstand3" : 192,
+		"ImGui" : "yes"
+	},
+	"Objects" : 
+	{
+		"Object1" : 
+		{
+			"something" : 6389236
+		},
+		"Object2" : 
+		{
+			"something" : 2086266940
+		},
+		"Object3" : 
+		{
+			"something" : 420420
+		},
+		"Object4" : 
+		{
+			"something" : 6389236
+		},
+		"Object5" : 
+		{
+			"something" : 69236
+		},
+		"Object6" : 
+		{
+			"something" : 66
+		},
+		"Object7" : 
+		{
+			"something" : 632
+		}
+	}
+}
