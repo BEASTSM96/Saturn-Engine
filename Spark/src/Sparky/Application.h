@@ -11,6 +11,14 @@
 #include "Sparky/Core/Timestep.h"
 
 
+#include <variant>
+#include <vector>
+
+
+#include <filesystem>
+#include <string>
+#include <vector>
+
 namespace Sparky {
 
 	class SPARKY_API Application
@@ -40,6 +48,7 @@ namespace Sparky {
 		std::string OpenProjectFile() const;
 		std::string SaveFile() const;
 		std::string SaveJSONFile() const;
+
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 	private:
@@ -62,7 +71,6 @@ namespace Sparky {
 		bool m_Crashed = false;
 
 		float LastFrameTime = 0.0f;
-
 	private:
 		static Application* s_Instance;
 	};

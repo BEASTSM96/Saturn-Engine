@@ -36,6 +36,10 @@
 
 #include "Sparky/Core/string/String.h"
 
+#include "Sparky/Core/File/SparkyFile.h"
+
+#include "Sparky/Renderer/Texture.h"
+
 // ---Entry Point---------------------
 #include "Sparky/EntryPoint.h"
 // ----------------------------------- 

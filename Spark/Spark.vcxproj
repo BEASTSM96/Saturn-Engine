@@ -76,8 +76,8 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>sppch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;vendor\Audio\OpenAL-Soft\include;vendor\Audio\OpenAL-Soft\src;vendor\Audio\OpenAL-Soft\src\common;vendor\Audio\libogg\include;vendor\Audio\Vorbis\include;vendor\Audio\minimp3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\cereal\include;vendor\stb;vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;vendor\Audio\OpenAL-Soft\include;vendor\Audio\OpenAL-Soft\src;vendor\Audio\OpenAL-Soft\src\common;vendor\Audio\libogg\include;vendor\Audio\Vorbis\include;vendor\Audio\minimp3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -98,8 +98,8 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>sppch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;vendor\Audio\OpenAL-Soft\include;vendor\Audio\OpenAL-Soft\src;vendor\Audio\OpenAL-Soft\src\common;vendor\Audio\libogg\include;vendor\Audio\Vorbis\include;vendor\Audio\minimp3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\cereal\include;vendor\stb;vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;vendor\Audio\OpenAL-Soft\include;vendor\Audio\OpenAL-Soft\src;vendor\Audio\OpenAL-Soft\src\common;vendor\Audio\libogg\include;vendor\Audio\Vorbis\include;vendor\Audio\minimp3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -123,8 +123,8 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>sppch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;vendor\Audio\OpenAL-Soft\include;vendor\Audio\OpenAL-Soft\src;vendor\Audio\OpenAL-Soft\src\common;vendor\Audio\libogg\include;vendor\Audio\Vorbis\include;vendor\Audio\minimp3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\cereal\include;vendor\stb;vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;vendor\Audio\OpenAL-Soft\include;vendor\Audio\OpenAL-Soft\src;vendor\Audio\OpenAL-Soft\src\common;vendor\Audio\libogg\include;vendor\Audio\Vorbis\include;vendor\Audio\minimp3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -148,6 +148,7 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
@@ -156,10 +157,10 @@
     <ClInclude Include="src\Sparky\Audio\SparkyAudio.h" />
     <ClInclude Include="src\Sparky\Audio\alhelpers.h" />
     <ClInclude Include="src\Sparky\Core.h" />
+    <ClInclude Include="src\Sparky\Core\AppData\SparkyAppData.h" />
     <ClInclude Include="src\Sparky\Core\File\SparkyFile.h" />
-    <ClInclude Include="src\Sparky\Core\Serialization\BaseSerializer.h" />
-    <ClInclude Include="src\Sparky\Core\Serialization\DeSerializer.h" />
-    <ClInclude Include="src\Sparky\Core\Serialization\Serializer.h" />
+    <ClInclude Include="src\Sparky\Core\Serialisation\Object.h" />
+    <ClInclude Include="src\Sparky\Core\Serialisation\Serialiser.h" />
     <ClInclude Include="src\Sparky\Core\Timestep.h" />
     <ClInclude Include="src\Sparky\Core\string\String.h" />
     <ClInclude Include="src\Sparky\EntryPoint.h" />
@@ -181,6 +182,7 @@
     <ClInclude Include="src\Sparky\Renderer\Renderer.h" />
     <ClInclude Include="src\Sparky\Renderer\RendererAPI.h" />
     <ClInclude Include="src\Sparky\Renderer\Shader.h" />
+    <ClInclude Include="src\Sparky\Renderer\Texture.h" />
     <ClInclude Include="src\Sparky\Renderer\VertexArray.h" />
     <ClInclude Include="src\Sparky\Window.h" />
     <ClInclude Include="src\sppch.h" />
@@ -592,20 +594,24 @@
     <ClInclude Include="vendor\glm\glm\vec3.hpp" />
     <ClInclude Include="vendor\glm\glm\vec4.hpp" />
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
+    <ClInclude Include="vendor\stb\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\Sparky\Application.cpp" />
     <ClCompile Include="src\Sparky\Audio\SparkyAudio.cpp" />
+    <ClCompile Include="src\Sparky\Audio\alhelpers.cpp" />
+    <ClCompile Include="src\Sparky\Core\AppData\SparkyAppData.cpp" />
     <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp" />
-    <ClCompile Include="src\Sparky\Core\Serialization\DeSerializer.cpp" />
-    <ClCompile Include="src\Sparky\Core\Serialization\Serializer.cpp" />
+    <ClCompile Include="src\Sparky\Core\Serialisation\Object.cpp" />
+    <ClCompile Include="src\Sparky\Core\Serialisation\Serialiser.cpp" />
     <ClCompile Include="src\Sparky\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Sparky\ImGui\ImguiBuild.cpp" />
     <ClCompile Include="src\Sparky\Layer.cpp" />
@@ -617,10 +623,12 @@
     <ClCompile Include="src\Sparky\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Sparky\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\Sparky\Renderer\Shader.cpp" />
+    <ClCompile Include="src\Sparky\Renderer\Texture.cpp" />
     <ClCompile Include="src\Sparky\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\sppch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="vendor\stb\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">

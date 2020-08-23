@@ -16,3 +16,6 @@
 [submodule "Spark\\vendor\\ImguiFileDialog"]
 	path = Spark\\vendor\\ImguiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog
+[submodule "Spark\\vendor\\cereal"]
+	path = Spark\\vendor\\cereal
+	url = https://github.com/USCiLab/cereal

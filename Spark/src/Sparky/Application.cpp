@@ -25,6 +25,10 @@
 
 #include "Sparky/ImGui/ImGuiLayer.h"
 
+#include "Sparky/Audio/SparkyAudio.h"
+
+#include "Sparky/Core.h"
+
 #include <imgui.h>
 
 
@@ -32,7 +36,62 @@
 #include <GLFW/glfw3native.h>
 #include <Windows.h>
 
+#ifndef CEREAL_EXPOSE
+#define CEREAL_EXPOSE
+	#include <cereal/types/unordered_map.hpp>
+	#include <cereal/types/memory.hpp>
+	#include <cereal/archives/binary.hpp>
+	#include <fstream>
+	#include <cereal/archives/portable_binary.hpp>
+	#include <cereal/archives/xml.hpp>
+	#include <cereal/archives/json.hpp>
+#endif // !CEREAL_EXPOSE
+
+#ifndef SPARKY_EXPOSE_APPDATA
+#define SPARKY_EXPOSE_APPDATA
+#include "Core/AppData/SparkyAppData.h"
+#endif // !SPARKY_EXPOSE_APPDATA
+
+#ifndef SPARKY_EXPOSE_SERIALISER
+#define SPARKY_EXPOSE_SERIALISER
+#include "Sparky/Core/Serialisation/Serialiser.h"
+#include "Sparky/Core/Serialisation/Object.h"
+#endif // !SPARKY_EXPOSE_SERIALISER
+
+
 namespace Sparky {
+	struct MyRecord
+	{
+		uint8_t x, y;
+		float z;
+
+		template <class Archive>
+		void serialize(Archive& ar)
+		{
+			ar(x, y, z);
+		}
+	};
+
+	struct SomeData
+	{
+		int32_t id;
+		std::shared_ptr<std::unordered_map<uint32_t, MyRecord>> data;
+
+		template <class Archive>
+		void save(Archive& ar) const
+		{
+			ar(data);
+		}
+
+		template <class Archive>
+		void load(Archive& ar)
+		{
+			static int32_t idGen = 0;
+			id = idGen++;
+			ar(data);
+		}
+	};
+
 
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
@@ -47,6 +106,8 @@ namespace Sparky {
 			m_Window = std::unique_ptr<Window>(Window::Create());
 			m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 			m_Window->SetVSync(false);
+
+			Renderer::Init();
 		}
 
 		{
@@ -64,11 +125,16 @@ namespace Sparky {
 			PushOverlay(m_ImGuiLayer);
 			PushOverlay(m_RenderStats);
 
-#ifdef SP_DEBUG
-			PushOverlay(m_ImguiTopBar);
-			PushOverlay(m_EditorLayer);
-#endif // SP_DEBUG
+			#ifndef APP_CORE_UI
+			#define APP_CORE_UI
+					#ifdef SP_DEBUG
+								PushOverlay(m_ImguiTopBar);
+								PushOverlay(m_EditorLayer);
+					#endif // SP_DEBUG
+			#endif // !APP_CORE_UI
 		}
+
+
 
 	}
 
@@ -103,9 +169,10 @@ namespace Sparky {
 
 	void Application::Run()
 	{
-		while (m_Running)
-		{
+		Audio::Init();
 
+		while (m_Running && !m_Crashed)
+		{
 			float time = (float)glfwGetTime(); //Platform::GetTime();
 
 			Timestep timestep = time - LastFrameTime;
@@ -113,7 +180,10 @@ namespace Sparky {
 			LastFrameTime = time;
 
 			for (Layer* layer : m_LayerStack)
+			{
+				SP_CORE_ASSERT(layer, "layer in 'm_LayerStack' array null, 0 or not vaild.");
 				layer->OnUpdate(timestep);
+			}
 
 			m_ImGuiLayer->Begin();
 			for (Layer* layer : m_LayerStack)
@@ -122,23 +192,35 @@ namespace Sparky {
 
 			m_Window->OnUpdate();
 
-			/*
-			bool bIsFileOpened = false;
-			bool bWasFileOpened = false;
-			if (!bIsFileOpened && !bWasFileOpened)
+#ifndef SP_DEBUG
+			
+			std::string appd = SparkyAppData() / "enginedebug.ses";
+
+			std::ofstream os("enginedebug.ses", std::ios::binary);
+			cereal::BinaryOutputArchive archive(os);
+
+			
+
+			if (m_ImGuiLayer)
 			{
-				bWasFileOpened = true;
-				FileCreation::NewProjectFile();
-				bIsFileOpened = true;
-				//FileReader::ReadFile("good3dgame.sproject", "testReader");
-			}*/
+				for (Layer* layer : m_LayerStack)
+				{
+					os << "All layers in the engine : " << layer << std::endl;
+					os << "All layers names in the engine : " << layer->GetName() << std::endl;
+				}
+				os << "Window " << m_Window << std::endl;
+				os << "IsVSync " << Application::GetWindow().IsVSync() << std::endl;
+				os << "Window Title " << Application::GetWindow().title << std::endl;
+				os << "Window Width " << Application::GetWindow().GetWidth() << std::endl;
+				os << "Window Height " << Application::GetWindow().GetHeight() << std::endl;
+				os << "Window NativeWindow " << Application::GetWindow().GetNativeWindow() << std::endl;
+				os << "--------------------------------------------------------------------------------";
+			}
+
+#endif // SP_DEBUG
 		}
-		while (m_Crashed)
+		while (m_Crashed && !m_Running)
 		{
-			glClearColor(0, 0, 0, 0);
-			glClear(GL_COLOR_BUFFER_BIT);
-
-
 			float time = (float)glfwGetTime(); //Platform::GetTime();
 
 			Timestep timestep = time - LastFrameTime;

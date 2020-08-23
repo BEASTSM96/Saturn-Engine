@@ -38,17 +38,18 @@ public:
 
 		m_SquareVA.reset(Sparky::VertexArray::Create());
 
-		float squareVertices[3 * 4] = {
-			-0.5f, -0.5f, 0.0f,
-			 0.5f, -0.5f, 0.0f,
-			 0.5f,  0.5f, 0.0f,
-			-0.5f,  0.5f, 0.0f
+		float squareVertices[5 * 4] = {
+			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+			 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+			 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+			-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
 		};
 
 		Sparky::Ref<Sparky::VertexBuffer> squareVB;
 		squareVB.reset(Sparky::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
 		squareVB->SetLayout({
-			{ Sparky::ShaderDataType::Float3, "a_Position" }
+			{ Sparky::ShaderDataType::Float3, "a_Position" },
+			{ Sparky::ShaderDataType::Float2, "a_TexCoord" }
 			});
 		m_SquareVA->AddVertexBuffer(squareVB);
 
@@ -119,6 +120,47 @@ public:
 		)";
 
 		m_flatShader.reset(Sparky::Shader::Create(flatShaderVertexSrc, flastShaderFragmentSrc));
+
+		std::string textureShaderVertexSrc = R"(
+			#version 330 core
+			
+			layout(location = 0) in vec3 a_Position;
+			layout(location = 1) in vec2 a_TexCoord;
+			uniform mat4 u_ViewProjection;
+			uniform mat4 u_Transform;
+			out vec2 v_TexCoord;
+			void main()
+			{
+				v_TexCoord = a_TexCoord;
+				gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);	
+			}
+		)";
+
+		std::string textureShaderFragmentSrc = R"(
+			#version 330 core
+			
+			layout(location = 0) out vec4 color;
+			in vec2 v_TexCoord;
+			
+			uniform sampler2D u_Texture;
+			void main()
+			{
+				color = texture(u_Texture, v_TexCoord);
+			}
+		)";
+
+		m_TextureShader.reset(Sparky::Shader::Create(textureShaderVertexSrc, textureShaderFragmentSrc));
+
+		 //TEMP
+#ifndef SP_DEBUG
+		m_beastlogo = Sparky::Texture2D::Create("assets/tex/beastpic_pfp_1.png");
+		m_Texture = Sparky::Texture2D::Create("assets/tex/Checkerboard.png");
+
+
+		std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_TextureShader)->Bind();
+		std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
+#endif // !SP_DEBUG
+
 	}
 
 	void OnUpdate(Sparky::Timestep ts) override
@@ -176,8 +218,19 @@ public:
 			}
 
 		}
-		
-		Sparky::Renderer::Submit(m_Shader, m_VertexArray);
+
+		//TEMP
+#ifndef SP_DEBUG
+
+		m_Texture->Bind();
+
+		Sparky::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+
+		m_beastlogo->Bind();
+		Sparky::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+
+		//Sparky::Renderer::Submit(m_Shader, m_VertexArray);
+#endif
 
 		Sparky::Renderer::EndScene();
 
@@ -212,8 +265,10 @@ private:
 	Sparky::Ref<Sparky::Shader> m_Shader;
 	Sparky::Ref<Sparky::VertexArray> m_VertexArray;
 
-	Sparky::Ref<Sparky::Shader> m_flatShader;
+	Sparky::Ref<Sparky::Shader> m_flatShader, m_TextureShader;
 	Sparky::Ref<Sparky::VertexArray> m_SquareVA;
+
+	Sparky::Ref<Sparky::Texture2D> m_Texture, m_beastlogo;
 
 	Sparky::OrthographicCamera m_Camera;
 

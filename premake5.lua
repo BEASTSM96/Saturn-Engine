@@ -22,6 +22,9 @@ IncludeDir["GLFW"] = "Spark/vendor/GLFW/include"
 IncludeDir["Glad"] = "Spark/vendor/Glad/include"
 IncludeDir["ImGui"] = "Spark/vendor/imgui"
 IncludeDir["glm"] = "Spark/vendor/glm"
+IncludeDir["cereal"] = "Spark/vendor/cereal/include/"
+IncludeDir["stb_image"] = "Spark/vendor/stb/"
+
 
 group "sp/Dependencies"
 	include "Spark/vendor/GLFW"
@@ -50,13 +53,16 @@ project "Spark"
 	{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/vendor/stb/**.cpp",
+		"%{prj.name}/vendor/stb/**.h",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
-		"%{prj.name}/vendor/glm/glm/**.inl"
+		"%{prj.name}/vendor/glm/glm/**.inl",
 	}
 
 	defines
 	{
-		"_CRT_SECURE_NO_WARNINGS"
+		"_CRT_SECURE_NO_WARNINGS",
+		"AL_LIBTYPE_STATIC"
 	}
 
 	includedirs
@@ -67,6 +73,8 @@ project "Spark"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.cereal}",
+		"%{IncludeDir.stb_image}",
 		"%{prj.name}/vendor/ImguiFileDialog/ImguiFileDialog",
 		"%{prj.name}/vendor/dirent/include",
 		"%{prj.name}/vendor/Audio/OpenAL-Soft/include",
@@ -75,7 +83,6 @@ project "Spark"
 		"%{prj.name}/vendor/Audio/libogg/include",
 		"%{prj.name}/vendor/Audio/Vorbis/include",
 		"%{prj.name}/vendor/Audio/minimp3"
-		
 	}
 
 	links 
@@ -112,6 +119,132 @@ project "Spark"
 		defines "SP_DIST"
 		runtime "Release"
 		optimize "on"
+
+group "sp/Core/Editor/Base"		
+project "SparkyEdBase"
+	location "SparkyEditor/SparkyEdBase"
+	kind "StaticLib"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp"
+	}
+	
+	
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS"
+	}
+
+	includedirs
+	{
+		
+		"Spark/src"
+	}
+
+	filter "system:Unix"
+		defines
+		{
+			"SP_PLATFORM_LINUX"
+		}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"SP_PLATFORM_WINDOWS"
+		}
+
+	filter "configurations:Debug"
+		defines "SP_DEBUG"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "SP_RELEASE"
+		runtime "Release"
+		optimize "on"
+
+	filter "configurations:Dist"
+		defines "SP_DIST"
+		runtime "Release"
+		optimize "on"	
+
+
+
+group "sp/Core/Editor"		
+project "SparkyEditor"
+	location "SparkyEditor"
+	kind "StaticLib"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp"
+	}
+	
+	
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS"
+	}
+
+	includedirs
+	{
+		
+		"Spark/src",
+		"SparkyEdBase/src"
+	}
+
+	links
+	{
+		"SparkyEdBase"
+	}
+
+	filter "system:Unix"
+		defines
+		{
+			"SP_PLATFORM_LINUX"
+		}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"SP_PLATFORM_WINDOWS"
+		}
+
+	filter "configurations:Debug"
+		defines "SP_DEBUG"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "SP_RELEASE"
+		runtime "Release"
+		optimize "on"
+
+	filter "configurations:Dist"
+		defines "SP_DIST"
+		runtime "Release"
+		optimize "on"
+
+
 group "sp/Core"
 project "Sandbox"
 	location "Sandbox"
@@ -183,137 +316,7 @@ project "Sandbox"
 		defines "SP_DIST"
 		runtime "Release"
 		optimize "on"
-		
-group "sp/Core/Editor"		
-project "SparkyEditor"
-	location "SparkyEditor"
-	kind "StaticLib"
-	language "C++"
-	cppdialect "C++17"
-	staticruntime "on"
-
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-	files
-	{
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
-	}
-	
-	
-	defines
-	{
-		"_CRT_SECURE_NO_WARNINGS"
-	}
-
-	includedirs
-	{
-		
-		"Spark/src"
-	}
-
-	links
-	{
-		"Spark"
-	}
-
-	filter "system:Unix"
-		defines
-		{
-			"SP_PLATFORM_LINUX"
-		}
-
-	filter "system:windows"
-		systemversion "latest"
-
-		defines
-		{
-			"SP_PLATFORM_WINDOWS"
-		}
-
-	filter "configurations:Debug"
-		defines "SP_DEBUG"
-		runtime "Debug"
-		symbols "on"
-
-	filter "configurations:Release"
-		defines "SP_RELEASE"
-		runtime "Release"
-		optimize "on"
-
-	filter "configurations:Dist"
-		defines "SP_DIST"
-		runtime "Release"
-		optimize "on"
-		
-group "sp/Core/Editor/Base"		
-project "SparkyEdBase"
-	location "SparkyEditor/SparkyEdBase"
-	kind "StaticLib"
-	language "C++"
-	cppdialect "C++17"
-	staticruntime "on"
-
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-	files
-	{
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
-	}
-	
-	
-	defines
-	{
-		"_CRT_SECURE_NO_WARNINGS"
-	}
-
-	includedirs
-	{
-		
-		"Spark/src"
-	}
-
-	links
-	{
-		"Spark"
-	}
-
-	filter "system:Unix"
-		defines
-		{
-			"SP_PLATFORM_LINUX"
-		}
-
-	filter "system:windows"
-		systemversion "latest"
-
-		defines
-		{
-			"SP_PLATFORM_WINDOWS"
-		}
-
-	filter "configurations:Debug"
-		defines "SP_DEBUG"
-		runtime "Debug"
-		symbols "on"
-
-	filter "configurations:Release"
-		defines "SP_RELEASE"
-		runtime "Release"
-		optimize "on"
-
-	filter "configurations:Dist"
-		defines "SP_DIST"
-		runtime "Release"
-		optimize "on"	
-
-
-
-
-	
+			
 --project "SparkyEdTools"
 	--location "SparkyEdTools"
 	--kind "SharedLib"

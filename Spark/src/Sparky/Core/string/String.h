@@ -2,6 +2,4 @@
 
 #include <string>
 
-class String : public std::string
-{
-};
+

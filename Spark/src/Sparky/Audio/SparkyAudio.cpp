@@ -141,7 +141,7 @@ namespace Sparky {
 		alSourcei(result.m_SourceHandle, AL_BUFFER, buffer);
 
 		if (alGetError() != AL_NO_ERROR)
-			SP_CORE_INFO("Failed to setup sound source");
+			SP_CORE_ERROR("Failed to setup sound source");
 
 		return result;
 	}
@@ -177,7 +177,7 @@ namespace Sparky {
 		}
 
 		if (alGetError() != AL_NO_ERROR)
-			std::cout << "Failed to setup sound source" << std::endl;
+			SP_CORE_ERROR("Failed to setup sound source");
 
 		return result;
 	}

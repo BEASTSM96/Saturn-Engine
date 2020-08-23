@@ -53,3 +53,9 @@ namespace Sparky {
 	using Ref = std::shared_ptr<T>;
 
 }
+
+
+/* def's core stuff*/
+#if defined (SP_PLATFORM_WINDOWS)
+#define SP_CORE_DELAY(...) ::std::this_thread::sleep_for(__VA_ARGS__)
+#endif
