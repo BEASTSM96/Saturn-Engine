@@ -22,9 +22,6 @@
     <Filter Include="src\Sparky\Core">
       <UniqueIdentifier>{AE98BAA7-1A24-286C-2335-AB608F3F846C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Sparky\Core\AppData">
-      <UniqueIdentifier>{985D5ACA-0495-A261-0D9F-06857955C95A}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Sparky\Core\File">
       <UniqueIdentifier>{9DE475B5-8973-FF7E-3292-137A1E001025}</UniqueIdentifier>
     </Filter>
@@ -63,6 +60,12 @@
     </Filter>
     <Filter Include="vendor\glm\glm\gtx">
       <UniqueIdentifier>{B3A6A76B-9F8A-68C1-08EB-6214F4ED5243}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\jsoncpp">
+      <UniqueIdentifier>{DF9952C1-CB67-46C7-B4FB-B6EDA068222C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\jsoncpp\json">
+      <UniqueIdentifier>{08359755-7496-7463-FD03-BB156964AB22}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\stb">
       <UniqueIdentifier>{8BD3C5A8-778B-07F6-E092-E051CC69A2E6}</UniqueIdentifier>
@@ -110,6 +113,12 @@
     </ClInclude>
     <ClInclude Include="src\Sparky\Core\File\SparkyFile.h">
       <Filter>src\Sparky\Core\File</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Core\Serialisation\Object.h">
+      <Filter>src\Sparky\Core\Serialisation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\Core\Serialisation\Serialiser.h">
+      <Filter>src\Sparky\Core\Serialisation</Filter>
     </ClInclude>
     <ClInclude Include="src\Sparky\Core\Timestep.h">
       <Filter>src\Sparky\Core</Filter>
@@ -1410,11 +1419,15 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\jsoncpp\json\json-forwards.h">
+      <Filter>vendor\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\jsoncpp\json\json.h">
+      <Filter>vendor\jsoncpp\json</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\stb\stb_image.h">
       <Filter>vendor\stb</Filter>
     </ClInclude>
-    <ClInclude Include="src\Sparky\Core\Serialisation\Serialiser.h" />
-    <ClInclude Include="src\Sparky\Core\Serialisation\Object.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
@@ -1452,6 +1465,12 @@
     </ClCompile>
     <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp">
       <Filter>src\Sparky\Core\File</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Core\Serialisation\Object.cpp">
+      <Filter>src\Sparky\Core\Serialisation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\Core\Serialisation\Serialiser.cpp">
+      <Filter>src\Sparky\Core\Serialisation</Filter>
     </ClCompile>
     <ClCompile Include="src\Sparky\ImGui\ImGuiLayer.cpp">
       <Filter>src\Sparky\ImGui</Filter>
@@ -1495,10 +1514,11 @@
     <ClCompile Include="src\sppch.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="vendor\jsoncpp\jsoncpp.cpp">
+      <Filter>vendor\jsoncpp</Filter>
+    </ClCompile>
     <ClCompile Include="vendor\stb\stb_image.cpp">
       <Filter>vendor\stb</Filter>
     </ClCompile>
-    <ClCompile Include="src\Sparky\Core\Serialisation\Serialiser.cpp" />
-    <ClCompile Include="src\Sparky\Core\Serialisation\Object.cpp" />
   </ItemGroup>
 </Project>

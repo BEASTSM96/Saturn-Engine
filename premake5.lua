@@ -24,6 +24,8 @@ IncludeDir["ImGui"] = "Spark/vendor/imgui"
 IncludeDir["glm"] = "Spark/vendor/glm"
 IncludeDir["cereal"] = "Spark/vendor/cereal/include/"
 IncludeDir["stb_image"] = "Spark/vendor/stb/"
+IncludeDir["json_cpp"] = "Spark/vendor/jsoncpp/"
+
 
 
 group "sp/Dependencies"
@@ -55,6 +57,8 @@ project "Spark"
 		"%{prj.name}/src/**.cpp",
 		"%{prj.name}/vendor/stb/**.cpp",
 		"%{prj.name}/vendor/stb/**.h",
+		"%{prj.name}/vendor/jsoncpp/**.cpp",
+		"%{prj.name}/vendor/jsoncpp/json/**.h",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl",
 	}
@@ -75,6 +79,7 @@ project "Spark"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.cereal}",
 		"%{IncludeDir.stb_image}",
+		"%{IncludeDir.json_cpp}",
 		"%{prj.name}/vendor/ImguiFileDialog/ImguiFileDialog",
 		"%{prj.name}/vendor/dirent/include",
 		"%{prj.name}/vendor/Audio/OpenAL-Soft/include",
@@ -212,7 +217,6 @@ project "SparkyEditor"
 
 	links
 	{
-		"SparkyEdBase"
 	}
 
 	filter "system:Unix"

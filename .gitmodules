@@ -19,3 +19,6 @@
 [submodule "Spark\\vendor\\cereal"]
 	path = Spark\\vendor\\cereal
 	url = https://github.com/USCiLab/cereal
+[submodule "Spark/vendor/jsoncpp"]
+	path = Spark/vendor/jsoncpp
+	url = https://github.com/open-source-parsers/jsoncpp

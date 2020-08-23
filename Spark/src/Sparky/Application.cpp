@@ -31,6 +31,8 @@
 
 #include <imgui.h>
 
+#include <json/json.h>
+
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
@@ -47,53 +49,14 @@
 	#include <cereal/archives/json.hpp>
 #endif // !CEREAL_EXPOSE
 
-#ifndef SPARKY_EXPOSE_APPDATA
-#define SPARKY_EXPOSE_APPDATA
-#include "Core/AppData/SparkyAppData.h"
-#endif // !SPARKY_EXPOSE_APPDATA
-
 #ifndef SPARKY_EXPOSE_SERIALISER
 #define SPARKY_EXPOSE_SERIALISER
 #include "Sparky/Core/Serialisation/Serialiser.h"
 #include "Sparky/Core/Serialisation/Object.h"
 #endif // !SPARKY_EXPOSE_SERIALISER
 
-
 namespace Sparky {
-	struct MyRecord
-	{
-		uint8_t x, y;
-		float z;
-
-		template <class Archive>
-		void serialize(Archive& ar)
-		{
-			ar(x, y, z);
-		}
-	};
-
-	struct SomeData
-	{
-		int32_t id;
-		std::shared_ptr<std::unordered_map<uint32_t, MyRecord>> data;
-
-		template <class Archive>
-		void save(Archive& ar) const
-		{
-			ar(data);
-		}
-
-		template <class Archive>
-		void load(Archive& ar)
-		{
-			static int32_t idGen = 0;
-			id = idGen++;
-			ar(data);
-		}
-	};
-
-
-#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
+	#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
 	Application* Application::s_Instance = nullptr;
 
@@ -169,7 +132,52 @@ namespace Sparky {
 
 	void Application::Run()
 	{
+
+		struct SaveData
+		{
+			SaveData(std::string name, int something) : name(name), something(something) {  }
+
+			std::string name;
+			int something;
+		}; 
+
+		std::vector<SaveData> saveObjs{
+			SaveData("Object1", 6389236),
+			SaveData("Object2", 6381234236),
+			SaveData("Object3", 420420),
+			SaveData("Object4", 6389236),
+			SaveData("Object5", 69236),
+			SaveData("Object6", 66),
+			SaveData("Object7", 632)
+		};
+
+	
 		Audio::Init();
+
+		Json::Value test;
+
+		for (SaveData i : saveObjs)
+		{
+			test["Objects"][i.name]["something"] = i.something;
+		}
+
+		{
+			std::ofstream file("test.json");
+
+			file << test;
+		}
+
+
+		//Deserialise
+		std::vector<SaveData*> deserialiseObjects;
+		uint32_t count = 0;
+		for (const Json::Value& object : test["Objects"])
+		{
+			deserialiseObjects.push_back(new SaveData(test["Objects"].getMemberNames()[count], object.get("something", 0).asInt()));
+			count++;
+		}
+
+		deserialiseObjects;
 
 		while (m_Running && !m_Crashed)
 		{
@@ -191,7 +199,6 @@ namespace Sparky {
 			m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
-
 #ifndef SP_DEBUG
 			
 			std::string appd = SparkyAppData() / "enginedebug.ses";
@@ -376,6 +383,4 @@ namespace Sparky {
 #endif
 		return std::string();
 	}
-
-
 }
