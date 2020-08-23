@@ -157,7 +157,6 @@
     <ClInclude Include="src\Sparky\Audio\SparkyAudio.h" />
     <ClInclude Include="src\Sparky\Audio\alhelpers.h" />
     <ClInclude Include="src\Sparky\Core.h" />
-    <ClInclude Include="src\Sparky\Core\AppData\SparkyAppData.h" />
     <ClInclude Include="src\Sparky\Core\File\SparkyFile.h" />
     <ClInclude Include="src\Sparky\Core\Serialisation\Object.h" />
     <ClInclude Include="src\Sparky\Core\Serialisation\Serialiser.h" />
@@ -608,7 +607,6 @@
     <ClCompile Include="src\Sparky\Application.cpp" />
     <ClCompile Include="src\Sparky\Audio\SparkyAudio.cpp" />
     <ClCompile Include="src\Sparky\Audio\alhelpers.cpp" />
-    <ClCompile Include="src\Sparky\Core\AppData\SparkyAppData.cpp" />
     <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp" />
     <ClCompile Include="src\Sparky\Core\Serialisation\Object.cpp" />
     <ClCompile Include="src\Sparky\Core\Serialisation\Serialiser.cpp" />

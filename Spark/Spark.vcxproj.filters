@@ -108,9 +108,6 @@
     <ClInclude Include="src\Sparky\Core.h">
       <Filter>src\Sparky</Filter>
     </ClInclude>
-    <ClInclude Include="src\Sparky\Core\AppData\SparkyAppData.h">
-      <Filter>src\Sparky\Core\AppData</Filter>
-    </ClInclude>
     <ClInclude Include="src\Sparky\Core\File\SparkyFile.h">
       <Filter>src\Sparky\Core\File</Filter>
     </ClInclude>
@@ -1452,9 +1449,6 @@
     </ClCompile>
     <ClCompile Include="src\Sparky\Audio\alhelpers.cpp">
       <Filter>src\Sparky\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Sparky\Core\AppData\SparkyAppData.cpp">
-      <Filter>src\Sparky\Core\AppData</Filter>
     </ClCompile>
     <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp">
       <Filter>src\Sparky\Core\File</Filter>
