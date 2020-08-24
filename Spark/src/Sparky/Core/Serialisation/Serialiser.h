@@ -16,6 +16,9 @@ namespace Sparky {
 	public:
 		Serialiser(const std::string& objectname, bool shouldSerialise = true);
 		Serialiser(const std::string& objectname, Json::Value& reconstructionValue);
+
+		static void Init();
+
 		virtual ~Serialiser();
 		virtual void Serialise(Json::Value& members);
 		virtual void Deserialise(Json::Value& members);

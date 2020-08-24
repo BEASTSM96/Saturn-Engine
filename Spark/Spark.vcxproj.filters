@@ -61,12 +61,6 @@
     <Filter Include="vendor\glm\glm\gtx">
       <UniqueIdentifier>{B3A6A76B-9F8A-68C1-08EB-6214F4ED5243}</UniqueIdentifier>
     </Filter>
-    <Filter Include="vendor\jsoncpp">
-      <UniqueIdentifier>{DF9952C1-CB67-46C7-B4FB-B6EDA068222C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="vendor\jsoncpp\json">
-      <UniqueIdentifier>{08359755-7496-7463-FD03-BB156964AB22}</UniqueIdentifier>
-    </Filter>
     <Filter Include="vendor\stb">
       <UniqueIdentifier>{8BD3C5A8-778B-07F6-E092-E051CC69A2E6}</UniqueIdentifier>
     </Filter>
@@ -1422,15 +1416,10 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
-    <ClInclude Include="vendor\jsoncpp\json\json-forwards.h">
-      <Filter>vendor\jsoncpp\json</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\jsoncpp\json\json.h">
-      <Filter>vendor\jsoncpp\json</Filter>
-    </ClInclude>
     <ClInclude Include="vendor\stb\stb_image.h">
       <Filter>vendor\stb</Filter>
     </ClInclude>
+    <ClInclude Include="src\Sparky\GameBase\Player.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
@@ -1517,11 +1506,9 @@
     <ClCompile Include="src\sppch.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="vendor\jsoncpp\jsoncpp.cpp">
-      <Filter>vendor\jsoncpp</Filter>
-    </ClCompile>
     <ClCompile Include="vendor\stb\stb_image.cpp">
       <Filter>vendor\stb</Filter>
     </ClCompile>
+    <ClCompile Include="src\Sparky\GameBase\Player.cpp" />
   </ItemGroup>
 </Project>

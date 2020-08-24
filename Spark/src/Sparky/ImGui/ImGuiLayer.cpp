@@ -30,6 +30,8 @@ namespace Sparky {
 	ImGuiLayer::ImGuiLayer()
 		: Layer("ImGuiLayer")
 	{
+
+		archive();
 #define IMGUI_CLASSES_SPARKY 0
 	}
 
@@ -104,6 +106,7 @@ namespace Sparky {
 
 	void ImGuiLayer::OnImGuiRender()
 	{
+		archive();
 	}
 
 
@@ -119,6 +122,8 @@ namespace Sparky {
 	//#define SP_FPS
 	ImGuiFPS::ImGuiFPS() : Layer("ImguiFPS")
 	{
+		archive();
+
 #define IMGUI_CLASSES_SPARKY 1
 	}
 
@@ -215,6 +220,8 @@ namespace Sparky {
 
 	ImGuiRenderStats::ImGuiRenderStats() : Layer("ImguiRenderStats")
 	{
+		archive();
+
 #define IMGUI_CLASSES_SPARKY 2
 	}
 
@@ -296,6 +303,9 @@ namespace Sparky {
 
 	ImguiTopBar::ImguiTopBar() : Layer("TopBar")
 	{
+
+		archive();
+
 #define IMGUI_CLASSES_SPARKY 5 //TopBar
 #define IMGUI_CLASSES_SPARKY 9 //EdLayer
 	}
@@ -656,6 +666,7 @@ namespace Sparky {
 
 	EditorLayer::EditorLayer() : Layer("EditorLayer")
 	{
+		archive();
 	}
 
 	EditorLayer::~EditorLayer()

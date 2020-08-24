@@ -22,7 +22,6 @@ IncludeDir["GLFW"] = "Spark/vendor/GLFW/include"
 IncludeDir["Glad"] = "Spark/vendor/Glad/include"
 IncludeDir["ImGui"] = "Spark/vendor/imgui"
 IncludeDir["glm"] = "Spark/vendor/glm"
-IncludeDir["cereal"] = "Spark/vendor/cereal/include/"
 IncludeDir["stb_image"] = "Spark/vendor/stb/"
 IncludeDir["json_cpp"] = "Spark/vendor/jsoncpp/"
 
@@ -32,6 +31,7 @@ group "sp/Dependencies"
 	include "Spark/vendor/GLFW"
 	include "Spark/vendor/Glad"
 	include "Spark/vendor/imgui"
+	include "Spark/vendor/jsoncpp"
 group "sp/Dependencies/Audio"
 	include "Spark/vendor/Audio/OpenAL-Soft"
 	include "Spark/vendor/Audio/libogg"
@@ -57,8 +57,6 @@ project "Spark"
 		"%{prj.name}/src/**.cpp",
 		"%{prj.name}/vendor/stb/**.cpp",
 		"%{prj.name}/vendor/stb/**.h",
-		"%{prj.name}/vendor/jsoncpp/**.cpp",
-		"%{prj.name}/vendor/jsoncpp/json/**.h",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl",
 	}
@@ -77,7 +75,6 @@ project "Spark"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.cereal}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.json_cpp}",
 		"%{prj.name}/vendor/ImguiFileDialog/ImguiFileDialog",
@@ -97,6 +94,7 @@ project "Spark"
 		"ImGui",
 		"opengl32.lib",
 		"OpenAL-Soft",
+		"Jsoncpp",
 		"Vorbis"
 	}
 
@@ -152,6 +150,7 @@ project "Sandbox"
 	{
 		"Spark/vendor/spdlog/include",
 		"Spark/src",
+		"%{IncludeDir.json_cpp}",
 		"Spark/vendor",
 		"%{IncludeDir.glm}"
 	}

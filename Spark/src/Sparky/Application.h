@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 
+#include "GameBase/Player.h"
+
 namespace Sparky {
 
 	class SPARKY_API Application

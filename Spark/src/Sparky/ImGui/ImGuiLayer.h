@@ -25,6 +25,11 @@ namespace Sparky {
 		void End();
 	private:
 		float m_Time = 0.0f;
+		virtual void archive() override {
+
+			SerialisationData(new Serialisable<int>("m_Time", &m_Time));
+		}
+
 	};
 
 	class SPARKY_API ImGuiFPS : public Layer
@@ -41,6 +46,11 @@ namespace Sparky {
 		void End();
 	private:
 		float m_Time = 0.0f;
+
+		virtual void archive() override {
+
+			SerialisationData(new Serialisable<int>("m_Time", &m_Time));
+		}
 	};
 
 	class SPARKY_API ImGuiRenderStats : public Layer
@@ -57,6 +67,11 @@ namespace Sparky {
 		void End();
 	private:
 		float m_Time = 0.0f;
+
+		virtual void archive() override {
+
+			SerialisationData(new Serialisable<int>("m_Time", &m_Time));
+		}
 	};
 
 	class SPARKY_API ImguiTopBar : public Layer
@@ -73,6 +88,11 @@ namespace Sparky {
 		void End();
 	private:
 		float m_Time = 0.0f;
+
+		virtual void archive() override {
+
+			SerialisationData(new Serialisable<int>("m_Time", &m_Time));
+		}
 	};
 
 	class SPARKY_API EditorLayer : public Layer
@@ -92,5 +112,11 @@ namespace Sparky {
 		TCHAR szFile[260] = { 0 };       // if using TCHAR macros
 
 		float m_Time = 0.0f;
+
+
+		virtual void archive() override {
+
+			SerialisationData(new Serialisable<int>("m_Time", &m_Time));
+		}
 	};
 }

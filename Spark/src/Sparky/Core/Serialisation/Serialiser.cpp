@@ -20,6 +20,12 @@ namespace Sparky
 
 	}
 
+	void Serialiser::Init()
+	{
+		SP_CORE_WARN("Serialiser inited! ");
+
+	}
+
 	Serialiser::~Serialiser()
 	{
 		for (uint32_t i = 0; i < m_Serialisables.size(); i++)

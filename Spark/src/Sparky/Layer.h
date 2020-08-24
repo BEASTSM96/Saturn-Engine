@@ -1,13 +1,15 @@
 #pragma once
 
-#include "Sparky\Core.h"
-#include "Sparky\Events\Event.h"
+#include "Sparky/Core.h"
+#include "Sparky/Events/Event.h"
 
 #include "Core/Timestep.h"
 
+#include "Core/Serialisation/Serialiser.h"
+
 namespace Sparky {
 
-	class SPARKY_API Layer
+	class SPARKY_API Layer : public Serialiser
 	{
 	public:
 		Layer(const std::string& name = "Layer");
@@ -22,6 +24,12 @@ namespace Sparky {
 		inline const std::string& GetName() const { return m_DebugName; }
 	protected:
 		std::string m_DebugName;
+
+		virtual void archive() override {
+
+			SerialisationData(new Serialisable<std::string>("Layer Debug Name : ", &m_DebugName));
+		}
+
 	};
 }
 

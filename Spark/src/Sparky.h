@@ -40,6 +40,8 @@
 
 #include "Sparky/Renderer/Texture.h"
 
+#include "Sparky/Core/Serialisation/Serialiser.h"
+
 // ---Entry Point---------------------
 #include "Sparky/EntryPoint.h"
 // ----------------------------------- 

@@ -33,25 +33,17 @@
 
 #include <json/json.h>
 
+#include "GameBase/Player.h"
+
+#include "Sparky/Core/Serialisation/Serialiser.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #include <Windows.h>
 
-#ifndef CEREAL_EXPOSE
-#define CEREAL_EXPOSE
-	#include <cereal/types/unordered_map.hpp>
-	#include <cereal/types/memory.hpp>
-	#include <cereal/archives/binary.hpp>
-	#include <fstream>
-	#include <cereal/archives/portable_binary.hpp>
-	#include <cereal/archives/xml.hpp>
-	#include <cereal/archives/json.hpp>
-#endif // !CEREAL_EXPOSE
-
 #ifndef SPARKY_EXPOSE_SERIALISER
 #define SPARKY_EXPOSE_SERIALISER
-#include "Sparky/Core/Serialisation/Serialiser.h"
+
 #include "Sparky/Core/Serialisation/Object.h"
 #endif // !SPARKY_EXPOSE_SERIALISER
 
@@ -87,6 +79,9 @@ namespace Sparky {
 		{
 			PushOverlay(m_ImGuiLayer);
 			PushOverlay(m_RenderStats);
+
+			PushOverlay(new Player());
+
 
 			#ifndef APP_CORE_UI
 			#define APP_CORE_UI
@@ -134,84 +129,9 @@ namespace Sparky {
 	{
 		Audio::Init();
 
-
-		struct SaveData
-		{
-			SaveData(std::string name, int something) : name(name), something(something) {  }
-
-			std::string name;
-			int something;
-		};
-
-		std::vector<SaveData> saveObjs{
-			SaveData("Object1", 6389236),
-			SaveData("Object2", 6381234236),
-			SaveData("Object3", 420420),
-			SaveData("Object4", 6389236),
-			SaveData("Object5", 69236),
-			SaveData("Object6", 66),
-			SaveData("Object7", 632)
-		};
-
-
-		unsigned int count = 0;
-
-
-		/*Object* ao = new Object();
-			ao->m_ObjectName = "Gjenstand";
-		Object* ao1 = new Object();
-			ao1->m_ObjectName = "Gjenstand1";
-		Object* ao2 = new Object();
-			ao2->m_ObjectName = "Gjenstand2";
-		Object* ao3 = new Object();
-			ao3->m_ObjectName = "Gjenstand3";
-
-		Json::Value serialiser;
-		serialiser["Debug"]["ImGui"] = "yes";
-		ao->Serialise(serialiser["Debug"][ao->m_ObjectName]);
-		ao1->Serialise(serialiser["Debug"][ao1->m_ObjectName]);
-		ao2->Serialise(serialiser["Debug"][ao2->m_ObjectName]);
-		ao3->Serialise(serialiser["Debug"][ao3->m_ObjectName]);
-
-		for (SaveData i : saveObjs)
-		{
-			serialiser["Objects"][i.name]["something"] = i.something;
-		}
-
-		{
-			std::ofstream Savefile("assets/test1.json");
-			Savefile << serialiser;
-		}*/
-
-		Json::Value deserialiser;
-
-
-		std::vector<Object> deserialiseObjects;
-
-		{
-			std::ifstream file("assets/test1.json");
-			file >> deserialiser;
-
-			Object* ao = new Object();
-			ao->Deserialise(deserialiser["Debug"]);
-
-
-		}
-		deserialiser;
-
-
-		//for (const Json::Value& s : serialiser["Objects"])
-		//{
+		Serialiser::Init();
 
 	
-		//	//deserialiser["Object"].getMemberNames()[count];
-		//	//s[""].asString();
-		//	//count++;
-		//	//deserialiser;
-		//
-		//	//SP_CORE_ERROR(s);
-		//}
-
 		while (m_Running && !m_Crashed)
 		{
 			float time = (float)glfwGetTime(); //Platform::GetTime();
