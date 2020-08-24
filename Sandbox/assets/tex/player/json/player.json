@@ -1,0 +1,13 @@
+{
+	"Textures" : 
+	{
+		"Beastpic" : 
+		{
+			"Path" : "assets/tex/beastpic_pfp_1.png"
+		},
+		"Checkerboard" : 
+		{
+			"Path" : "assets/tex/Checkerboard.png"
+		}
+	}
+}
