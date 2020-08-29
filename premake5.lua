@@ -195,16 +195,3 @@ project "Sandbox"
 		defines "SP_DIST"
 		runtime "Release"
 		optimize "on"
-
---
---project "SparkyEdTools"
-	--location "SparkyEdTools"
-	--kind "SharedLib"
-	--language "C#"
-
-	--files
-	--{
-		--"%{prj.name}/src/**.cs"
-	--}
-	--links { "System","System.Core","Microsoft.CSharp","System.Runtime.Serialization","System.ComponentModel.DataAnnotations", "SparkyEditor", "System.Windows.Forms" }
-	
