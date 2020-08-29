@@ -75,3 +75,5 @@ imgui.ini
 [dD]esktop.ini
 **.ses
 Sanbox/assets
+**/assets/tex/
+**/assets/tex/
