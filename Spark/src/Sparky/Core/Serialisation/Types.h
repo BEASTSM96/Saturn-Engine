@@ -1,8 +1,6 @@
 #pragma once
 
 #include <string>
-
-
 #include <json/json.h>
 
 #define CONSTRUCT Serialisable(const std::string& keyName, void* dataAddress) : GenericSerialisable(keyName, dataAddress) {  }

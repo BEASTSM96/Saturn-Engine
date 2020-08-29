@@ -1,5 +1,12 @@
 #pragma once
 
+
+/*
+* Sparky App
+*/
+
+
+
 #include "Core.h"
 
 #include "Window.h"
@@ -10,19 +17,15 @@
 #include "Sparky/ImGui/ImGuiLayer.h"
 #include "Sparky/Core/Timestep.h"
 
+#include "GameBase/GameLayer.h"
+#include "Sparky/GameBase/GameLayer.h"
 
-#include <variant>
-#include <vector>
-
-
-#include <filesystem>
 #include <string>
 #include <vector>
 
-#include "GameBase/Player.h"
+class GameLayer;
 
 namespace Sparky {
-
 	class SPARKY_API Application
 	{
 	public:
@@ -50,9 +53,13 @@ namespace Sparky {
 		std::string OpenProjectFile() const;
 		std::string SaveFile() const;
 		std::string SaveJSONFile() const;
+
+		GameLayer* m_gameLayer;
+
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 	private:
+
 		std::unique_ptr<Window> m_Window;
 
 		ImGuiLayer* m_ImGuiLayer;

@@ -35,7 +35,7 @@
 
 // TODO: Make this macro able to take in no arguments except condition
 #ifdef SP_ENABLE_ASSERTS
-#define SSP_CL_ASSERT(x, ...) { if(!(x)) { SP_CL_ERROR("Assertion Failed: {0}", __VA_ARGS__); SP_DEBUGBREAK(); } }
+#define SP_CL_ASSERT(x, ...) { if(!(x)) { SP_CL_ERROR("Assertion Failed: {0}", __VA_ARGS__); SP_DEBUGBREAK(); } }
 #define SP_CORE_ASSERT(x, ...) { if(!(x)) { SP_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); SP_DEBUGBREAK(); } }
 #else
 #define SP_ASSERT(x, ...)
@@ -51,6 +51,10 @@ namespace Sparky {
 
 	template<typename T>
 	using Ref = std::shared_ptr<T>;
+
+
+	template<typename T>
+	using Refprt = T*;
 
 }
 

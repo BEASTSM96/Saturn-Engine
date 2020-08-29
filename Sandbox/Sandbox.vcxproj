@@ -142,6 +142,16 @@
       <Project>{26081C0E-921C-44BF-5B9E-E71EC77140F0}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="assets\Core\resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="assets\Core\logo.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\Core\icon3.ico" />
+    <Image Include="assets\tex\AppLogo.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -1,5 +1,7 @@
 #include <Sparky.h>
 
+#include <Sparky/GameBase/GameObject.h>
+
 #include "Platform/OpenGL/OpenGLShader.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -332,8 +334,9 @@ class Sandbox : public Sparky::Application
 public:
 	Sandbox()
 	{
-		PushLayer(new ExampleLayer());
+		//GameLayer* gl = new GameLayer();
 
+		//PushLayer(gl);
 	}
 
 	~Sandbox()

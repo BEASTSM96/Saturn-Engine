@@ -76,7 +76,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>sppch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_DEBUG;%(PreprocessorDefinitions);SPARKY_GAME_BASE</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\stb;vendor\jsoncpp;vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;vendor\Audio\OpenAL-Soft\include;vendor\Audio\OpenAL-Soft\src;vendor\Audio\OpenAL-Soft\src\common;vendor\Audio\libogg\include;vendor\Audio\Vorbis\include;vendor\Audio\minimp3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
@@ -98,7 +98,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>sppch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_RELEASE;%(PreprocessorDefinitions);SPARKY_GAME_BASE</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\stb;vendor\jsoncpp;vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;vendor\Audio\OpenAL-Soft\include;vendor\Audio\OpenAL-Soft\src;vendor\Audio\OpenAL-Soft\src\common;vendor\Audio\libogg\include;vendor\Audio\Vorbis\include;vendor\Audio\minimp3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -123,7 +123,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>sppch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;SP_PLATFORM_WINDOWS;SP_BUILD_DLL;GLFW_INCLUDE_NONE;SP_DIST;%(PreprocessorDefinitions);SPARKY_GAME_BASE</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\stb;vendor\jsoncpp;vendor\ImguiFileDialog\ImguiFileDialog;vendor\dirent\include;vendor\Audio\OpenAL-Soft\include;vendor\Audio\OpenAL-Soft\src;vendor\Audio\OpenAL-Soft\src\common;vendor\Audio\libogg\include;vendor\Audio\Vorbis\include;vendor\Audio\minimp3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -168,7 +168,8 @@
     <ClInclude Include="src\Sparky\Events\Event.h" />
     <ClInclude Include="src\Sparky\Events\KeyEvent.h" />
     <ClInclude Include="src\Sparky\Events\MouseEvent.h" />
-    <ClInclude Include="src\Sparky\GameBase\Player.h" />
+    <ClInclude Include="src\Sparky\GameBase\GameLayer.h" />
+    <ClInclude Include="src\Sparky\GameBase\GameObject.h" />
     <ClInclude Include="src\Sparky\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\Sparky\Input.h" />
     <ClInclude Include="src\Sparky\KeyCodes.h" />
@@ -612,7 +613,8 @@
     <ClCompile Include="src\Sparky\Core\File\SparkyFile.cpp" />
     <ClCompile Include="src\Sparky\Core\Serialisation\Object.cpp" />
     <ClCompile Include="src\Sparky\Core\Serialisation\Serialiser.cpp" />
-    <ClCompile Include="src\Sparky\GameBase\Player.cpp" />
+    <ClCompile Include="src\Sparky\GameBase\GameLayer.cpp" />
+    <ClCompile Include="src\Sparky\GameBase\GameObject.cpp" />
     <ClCompile Include="src\Sparky\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Sparky\ImGui\ImguiBuild.cpp" />
     <ClCompile Include="src\Sparky\Layer.cpp" />

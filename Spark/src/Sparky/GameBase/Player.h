@@ -1,6 +1,15 @@
 #pragma once
 
 
+/*
+* Sparky BasePlayer
+*/
+
+
+#include "Sparky/GameBase/GameObject.h"
+#include "Sparky/GameBase/GameLayer.h"
+
+
 #include "Sparky/Core/Serialisation/Object.h"
 #include "Sparky/Core/Serialisation/Serialiser.h"
 
@@ -19,9 +28,18 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Sparky/Application.h"
+
+#include "Sparky/Core.h"
+
 #include<fstream>
 #include<string>
 #include<iterator>
+
+#ifdef PLAYER_INCLUDE
+
+
+
 
 namespace Sparky { 
 
@@ -31,8 +49,6 @@ namespace Sparky {
 		std::string name;
 		std::string path;
 	};
-
-
 
 	class Player : public Layer
 	{
@@ -49,6 +65,9 @@ namespace Sparky {
 		bool OnKeyPressed(KeyPressedEvent& event);
 
 	private:
+
+		bool m_HasBeenSerialised = false;
+
 		Sparky::Ref<Sparky::Shader> m_playerShader;
 		Sparky::Ref<Sparky::VertexArray> m_playerVA;
 
@@ -61,7 +80,6 @@ namespace Sparky {
 		Sparky::Ref<Sparky::VertexArray> m_SquareVA;
 
 		Sparky::Ref<Sparky::Texture2D> m_Texture, m_beastlogo;
-
 
 		OrthographicCamera m_Camera;
 
@@ -81,12 +99,25 @@ namespace Sparky {
 
 		std::vector<STexture> textures{
 			STexture("Beastpic", "assets/tex/beastpic_pfp_1.png"),
+						STexture("Beastpic2", "assets/tex/sunilde.png"),
 			STexture("Checkerboard", "assets/tex/Checkerboard.png")
 		};
+
+	protected:
+		virtual void archive() override {
+
+			SerialisationData(new Serialisable<int>("PlayerPos", &m_PlayerPosition));
+		}
 
 	public:
 		glm::vec3 m_SquareColor = { 0.2f, 0.3f, 0.8f };
 
+	private:
+		static Player* s_Instance;
+
+		Json::Value serialiser;
+
 	};
 	
 }
+#endif // PLAYER_INCLUDE

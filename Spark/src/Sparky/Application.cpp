@@ -33,19 +33,16 @@
 
 #include <json/json.h>
 
-#include "GameBase/Player.h"
-
 #include "Sparky/Core/Serialisation/Serialiser.h"
+
+#include "Sparky/Core/Serialisation/Object.h"
+
+#include "GameBase/GameLayer.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #include <Windows.h>
 
-#ifndef SPARKY_EXPOSE_SERIALISER
-#define SPARKY_EXPOSE_SERIALISER
-
-#include "Sparky/Core/Serialisation/Object.h"
-#endif // !SPARKY_EXPOSE_SERIALISER
 
 namespace Sparky {
 	#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -71,6 +68,7 @@ namespace Sparky {
 			m_FPSLayer = new ImGuiFPS();
 			m_RenderStats = new ImGuiRenderStats();
 			m_ImguiTopBar = new ImguiTopBar();
+
 #ifdef SP_DEBUG
 			m_EditorLayer = new EditorLayer();
 #endif
@@ -80,7 +78,10 @@ namespace Sparky {
 			PushOverlay(m_ImGuiLayer);
 			PushOverlay(m_RenderStats);
 
-			PushOverlay(new Player());
+
+			
+
+			#define SPARKY_GAME_BASE
 
 
 			#ifndef APP_CORE_UI
@@ -131,7 +132,16 @@ namespace Sparky {
 
 		Serialiser::Init();
 
-	
+
+		GameObject* m_GameObject = new GameObject();
+
+		m_gameLayer = new GameLayer();
+
+		m_GameObject->Init();
+
+		PushLayer(m_gameLayer);
+
+
 		while (m_Running && !m_Crashed)
 		{
 			float time = (float)glfwGetTime(); //Platform::GetTime();
@@ -147,11 +157,20 @@ namespace Sparky {
 			}
 
 			m_ImGuiLayer->Begin();
-			for (Layer* layer : m_LayerStack)
-				layer->OnImGuiRender();
+			#if defined(SP_DEBUG)
+						for (Layer* layer : m_LayerStack) {
+							layer->OnImGuiRender();
+							SP_CORE_INFO("layer = {0}", layer->GetName());
+						}
+
+			#else
+				for (Layer* layer : m_LayerStack)
+					layer->OnImGuiRender();
+			#endif 			
 			m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
+
 		}
 		while (m_Crashed && !m_Running)
 		{

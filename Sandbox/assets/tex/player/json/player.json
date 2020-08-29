@@ -1,9 +1,26 @@
 {
+	"Extras" : 
+	{
+		"Has Been serialised" : true
+	},
+	"Player" : 
+	{
+		"Speed" : 5.0,
+		"Transform" : 
+		{
+			"Location" : 0.0,
+			"Rotation" : 0.0
+		}
+	},
 	"Textures" : 
 	{
 		"Beastpic" : 
 		{
 			"Path" : "assets/tex/beastpic_pfp_1.png"
+		},
+		"Beastpic2" : 
+		{
+			"Path" : "assets/tex/sunilde.png"
 		},
 		"Checkerboard" : 
 		{

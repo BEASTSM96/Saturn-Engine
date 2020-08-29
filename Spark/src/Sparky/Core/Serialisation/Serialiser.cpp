@@ -28,8 +28,8 @@ namespace Sparky
 
 	Serialiser::~Serialiser()
 	{
-		for (uint32_t i = 0; i < m_Serialisables.size(); i++)
-			delete m_Serialisables[i];
+		//for (uint32_t i = 0; i < m_Serialisables.size(); i++)
+		//	delete m_Serialisables[i];
 	}
 
 	void Serialiser::Serialise(Json::Value& members)

@@ -22,9 +22,9 @@ namespace Sparky {
 		virtual void OnEvent(Event& event) {}
 
 		inline const std::string& GetName() const { return m_DebugName; }
-	protected:
-		std::string m_DebugName;
 
+		std::string m_DebugName;
+	protected:
 		virtual void archive() override {
 
 			SerialisationData(new Serialisable<std::string>("Layer Debug Name : ", &m_DebugName));

@@ -42,6 +42,8 @@
 
 #include "Sparky/Core/Serialisation/Serialiser.h"
 
+#include "Sparky/GameBase/GameLayer.h"
+
 // ---Entry Point---------------------
 #include "Sparky/EntryPoint.h"
 // ----------------------------------- 

@@ -34,6 +34,9 @@
     <Filter Include="src\Sparky\Events">
       <UniqueIdentifier>{BA8DE585-26A4-E31B-6F1B-6F3DDB70B4A3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Sparky\GameBase">
+      <UniqueIdentifier>{5A52672F-C6B3-443D-4F21-8BEFBB817BFC}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Sparky\ImGui">
       <UniqueIdentifier>{4074789F-2C6D-97F1-559F-7C7641F776FD}</UniqueIdentifier>
     </Filter>
@@ -137,6 +140,12 @@
     </ClInclude>
     <ClInclude Include="src\Sparky\Events\MouseEvent.h">
       <Filter>src\Sparky\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\GameBase\GameLayer.h">
+      <Filter>src\Sparky\GameBase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sparky\GameBase\GameObject.h">
+      <Filter>src\Sparky\GameBase</Filter>
     </ClInclude>
     <ClInclude Include="src\Sparky\ImGui\ImGuiLayer.h">
       <Filter>src\Sparky\ImGui</Filter>
@@ -1419,7 +1428,6 @@
     <ClInclude Include="vendor\stb\stb_image.h">
       <Filter>vendor\stb</Filter>
     </ClInclude>
-    <ClInclude Include="src\Sparky\GameBase\Player.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
@@ -1463,6 +1471,12 @@
     </ClCompile>
     <ClCompile Include="src\Sparky\Core\Serialisation\Serialiser.cpp">
       <Filter>src\Sparky\Core\Serialisation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\GameBase\GameLayer.cpp">
+      <Filter>src\Sparky\GameBase</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sparky\GameBase\GameObject.cpp">
+      <Filter>src\Sparky\GameBase</Filter>
     </ClCompile>
     <ClCompile Include="src\Sparky\ImGui\ImGuiLayer.cpp">
       <Filter>src\Sparky\ImGui</Filter>
@@ -1509,6 +1523,5 @@
     <ClCompile Include="vendor\stb\stb_image.cpp">
       <Filter>vendor\stb</Filter>
     </ClCompile>
-    <ClCompile Include="src\Sparky\GameBase\Player.cpp" />
   </ItemGroup>
 </Project>

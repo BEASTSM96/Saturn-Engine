@@ -1,8 +1,6 @@
 #include "sppch.h"
 #include "Player.h"
 
-
-
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -21,10 +19,20 @@
 
 #include "Sparky/KeyCodes.h"
 
+#ifdef PLAYER_INCLUDE
+
 namespace Sparky {
 	
-	Player::Player(  ): m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), Layer("Player")
+
+	Player* Player::s_Instance = nullptr;
+
+	Player::Player(): m_Camera(-1.6f, 1.6f, -0.9f, 0.9f)
 	{
+
+		SP_CORE_ASSERT(!s_Instance, "Player already exists!");
+
+		s_Instance = this;
+
 		m_SquareVA.reset(Sparky::VertexArray::Create());
 
 		float squareVertices[5 * 4] = {
@@ -79,54 +87,28 @@ namespace Sparky {
 		m_playerShader.reset(Sparky::Shader::Create(textureShaderVertexSrc, textureShaderFragmentSrc));
 
 		
-		Json::Value serialiser;
-		for (STexture i : textures)
+
+
+		if (!m_HasBeenSerialised)
 		{
-			serialiser["Textures"][i.name]["Path"] = i.path;
-		}
-
-		{
-			std::ofstream texFile("assets/tex/player/json/player.json");
-
-			texFile << serialiser;
-		}
-
-		//Deserialise
-		std::vector<STexture*> deserialiseObjects;
-		uint32_t count = 0;
-		for (const Json::Value& object : serialiser["Textures"])
-		{
-			deserialiseObjects.push_back(new STexture(serialiser["Textures"].getMemberNames()[count], object.get("Path", 0).asString()));
-			count++;
-		}
-
-		deserialiseObjects;
-
-		m_playerTexture = Sparky::Texture2D::Create(deserialiseObjects.at(0)->path);
-
-		std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_playerShader)->Bind();
-		std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_playerShader)->UploadUniformInt("u_Texture", 0);
-
-	}
-
-
-	Player::~Player()
-	{
-	}
-
-	void Player::OnUpdate(Timestep ts)
-	{
-
-		if (Input::IsKeyPressed(SP_KEY_LEFT))
-		{
-			m_CameraPosition.x += m_CameraMoveSpeed * ts;
-
-			Json::Value serialiser;
 
 			for (STexture i : textures)
 			{
 				serialiser["Textures"][i.name]["Path"] = i.path;
 			}
+
+			{
+				std::ofstream texFile("assets/tex/player/json/player.json");
+
+				m_HasBeenSerialised = true;
+
+				serialiser["Extras"]["Has Been serialised"] = m_HasBeenSerialised;
+
+				texFile << serialiser;
+
+			}
+
+
 
 			//Deserialise
 			std::vector<STexture*> deserialiseObjects;
@@ -137,41 +119,116 @@ namespace Sparky {
 				count++;
 			}
 
+			deserialiseObjects;
 
-			m_playerTexture = Sparky::Texture2D::Create(deserialiseObjects.at(1)->path);
+			m_playerTexture = Sparky::Texture2D::Create(deserialiseObjects.at(0)->path);
+		}
+		else
+		{
 
+			//Deserialise
+			std::vector<STexture*> deserialiseObjects;
+			uint32_t count = 0;
+			for (const Json::Value& object : serialiser["Textures"])
+			{
+				deserialiseObjects.push_back(new STexture(serialiser["Textures"].getMemberNames()[count], object.get("Path", 0).asString()));
+				count++;
+			}
+
+			deserialiseObjects;
+
+			m_playerTexture = Sparky::Texture2D::Create(deserialiseObjects.at(0)->path);
+		}
+
+		std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_playerShader)->Bind();
+		std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_playerShader)->UploadUniformInt("u_Texture", 0);
+
+	}
+
+
+	Player::~Player()
+	{
+
+		if (m_HasBeenSerialised)
+		{
+			archive();
+
+			Json::Value sdata;
+
+
+			for (STexture i : textures)
+			{
+				sdata["Textures"][i.name]["Path"] = i.path;
+			}
+
+			sdata["Player"]["Transform"]["Location"] = glm::length(m_PlayerPosition);
+			sdata["Player"]["Transform"]["Rotation"] = glm::length(m_PlayerRotation);
+			sdata["Player"]["Speed"] = m_PlayerMoveSpeed;
+
+			{
+				std::ofstream texFile("assets/tex/player/json/player.json");
+
+				sdata["Extras"]["Has Been serialised"] = m_HasBeenSerialised;
+
+				texFile << sdata;
+			}
+		}
+
+		//m_HasBeenSerialised = true;
+
+		//
+	}
+
+	void Player::OnUpdate(Timestep ts)
+	{
+
+		if (Input::IsKeyPressed(SP_KEY_LEFT))
+		{
+			m_PlayerPosition.x += m_CameraMoveSpeed * ts;
 		}
 
 		else if (Input::IsKeyPressed(SP_KEY_RIGHT))
 		{
-			m_CameraPosition.x -= m_CameraMoveSpeed * ts;
+			m_PlayerPosition.x -= m_CameraMoveSpeed * ts;
 		}
+
 
 		if (Input::IsKeyPressed(SP_KEY_DOWN))
 		{
-			m_CameraPosition.y += m_CameraMoveSpeed * ts;
+			m_PlayerPosition.y += m_CameraMoveSpeed * ts;
 		}
 
 		else if (Input::IsKeyPressed(SP_KEY_UP))
 		{
-			m_CameraPosition.y -= m_CameraMoveSpeed * ts;
+			m_PlayerPosition.y -= m_CameraMoveSpeed * ts;
 		}
 
 		RenderCommand::SetClearColor({ 1, 1, 0, 0 });
 		RenderCommand::Clear();
 
-		m_Camera.SetPosition(m_CameraPosition);
-		m_Camera.SetRotation(m_CameraRotation);
+		m_Camera.SetPosition(m_PlayerPosition);
+		//m_Camera.SetRotation(m_PlayerRotation);
 
 		Renderer::BeginScene(m_Camera);
 
-		glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+		glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.1f));
+
+
+		//Deserialise
+		std::vector<FTransform*> deserialiseObjects;
+		uint32_t count = 0;
+		for (const Json::Value& object : serialiser["Player"]["Transform"])
+		{
+			//deserialiseObjects.push_back(new FTransform(serialiser["Player"]["Transform"].getMemberNames()[count], object.get("Location", 0), glm::length(m_PlayerPosition), serialiser["Player"]["Transform"]["Scale"].getMemberNames()[count]));
+			count++;
+		}
 
 		m_playerTexture->Bind();
-		Renderer::Submit(m_playerShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+		FTransform tras = FTransform(m_PlayerPosition, scale, 0.0f);
+
+		Renderer::Submit(m_playerShader, m_SquareVA, tras);
 
 		Renderer::EndScene();
-
 	}
 
 	void Player::OnImGuiRender()
@@ -192,3 +249,64 @@ namespace Sparky {
 	}
 
 }
+//"Trasform" :
+//{
+//	"Location" :
+//	{
+//
+//		"2D" :
+//		{
+//
+//			"X" : "assets/tex/beastpic_pfp_1.png",
+//				"Y" : "assets/tex/beastpic_pfp_1.png"
+//
+//
+//		},
+//
+//			"3D" :
+//			{
+//
+//				"X" : "assets/tex/beastpic_pfp_1.png",
+//					"Y" : "assets/tex/beastpic_pfp_1.png",
+//					"Z" : "assets/tex/beastpic_pfp_1.png"
+//
+//
+//			}
+//	},
+//		"Rotation" :
+//	{
+//
+//		"2D" :
+//		{
+//
+//			"X" : "assets/tex/beastpic_pfp_1.png",
+//				"Y" : "assets/tex/beastpic_pfp_1.png"
+//
+//		},
+//
+//			"3D" :
+//			{
+//
+//				"X" : "assets/tex/beastpic_pfp_1.png",
+//					"Y" : "assets/tex/beastpic_pfp_1.png",
+//					"Z" : "assets/tex/beastpic_pfp_1.png"
+//			}
+//	},
+//		"Scale" :
+//	{
+//		"2D" :
+//		{
+//			"X" : "assets/tex/beastpic_pfp_1.png",
+//				"Y" : "assets/tex/beastpic_pfp_1.png"
+//		},
+//
+//			"3D" :
+//			{
+//				"X" : "assets/tex/beastpic_pfp_1.png",
+//					"Y" : "assets/tex/beastpic_pfp_1.png",
+//					"Z" : "assets/tex/beastpic_pfp_1.png"
+//			}
+//	}
+//}
+
+#endif
