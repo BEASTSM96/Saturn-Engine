@@ -1,6 +1,3 @@
-[![Twitter](https://img.shields.io/badge/%40beastsm96--blue.svg?style=social&logo=Twitter)](https://twitter.com/beastsm96)
-[![Youtube](https://img.shields.io/badge/BEAST--red.svg?style=social&logo=youtube)](https://www.youtube.com/channel/UC4kS5P7Jsq3eacveJiFuQbg)
-
 # Sparky [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/Sparky-Engine/blob/master/LICENSE)
 
 Sparky is primarily an early-stage interactive application and rendering engine for Windows. Currently not much is implemented.
@@ -11,6 +8,11 @@ Visual Studio 2019 is recommended, Sparky is officially untested on other develo
 Start by cloning the repository with `git clone https://github.com/BEASTSM96/Sparky-Engine`.
 
 If the repository was cloned non-recursively previously, use `git submodule update --init` to clone the necessary submodules.
+
+## How to Install:
+
+It's Just [here](https://github.com/BEASTSM96/Sparky-Engine/blob/master/INSTALL.md)
+
 
 ### Main features to come:
 - Fast 2D rendering (UI, particles, sprites, etc.)
@@ -23,3 +25,7 @@ If the repository was cloned non-recursively previously, use `git submodule upda
 - Procedural terrain and world generation
 - Artificial Intelligence
 - Audio system
+
+
+[![Twitter](https://img.shields.io/badge/%40beastsm96--blue.svg?style=social&logo=Twitter)](https://twitter.com/beastsm96)
+[![Youtube](https://img.shields.io/badge/BEAST--red.svg?style=social&logo=youtube)](https://www.youtube.com/channel/UC4kS5P7Jsq3eacveJiFuQbg)
