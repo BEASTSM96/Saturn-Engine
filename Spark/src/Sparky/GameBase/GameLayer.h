@@ -16,11 +16,16 @@
 
 #include "Sparky/Renderer/Renderer.h"
 
-#include<string>
-
 #include "Sparky/GameBase/GameObject.h"
 
 #include "Sparky/Application.h"
+
+#include "Sparky/Events/KeyEvent.h"
+#include "Sparky/Events/Event.h"
+#include "Sparky/Events/MouseEvent.h"
+#include "Sparky/Events/ApplicationEvent.h"
+
+#include<string>
 
 namespace Sparky {
 	class SPARKY_API GameLayer : public Layer
@@ -39,6 +44,10 @@ namespace Sparky {
 
 		void AddGameObjects(GameObject gameObject);
 
+		bool OnKeyPressed(KeyPressedEvent& event);
+
+		void OnGameObjectMove(glm::vec3& position);
+
 		inline const std::string& GetName() const { return m_DebugName; }
 
 		inline std::vector<GameObject> GetGameObjects() { return gameObjects; }
@@ -46,6 +55,13 @@ namespace Sparky {
 		inline size_t GetGameObjectsSize() { return gameObjects.size(); }
 
 		inline uint64_t GetGameObjectsSizeUint64() { return gameObjects.size(); }
+
+		glm::vec3 m_CameraPosition;
+		float m_CameraMoveSpeed = 5.0f;
+
+
+		float m_CameraRotation = 0.0f;
+		float m_CameraRotationSpeed = 180.0f;
 
 
 	protected:

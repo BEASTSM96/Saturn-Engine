@@ -105,7 +105,8 @@ project "Spark"
 		{
 			"SP_PLATFORM_WINDOWS",
 			"SP_BUILD_DLL",
-			"GLFW_INCLUDE_NONE"
+			"GLFW_INCLUDE_NONE",
+			"SPARKY_GAME_BASE"
 		}
 
 	filter "configurations:Debug"

@@ -25,6 +25,12 @@
 
 #include "Sparky/Renderer/Renderer.h"
 
+#include "Sparky/Layer.h"
+
+#include "Sparky/Input.h"
+
+#include "Sparky/KeyCodes.h"
+
 //#include "Sparky/Application.h"
 
 namespace Sparky {
@@ -39,7 +45,14 @@ namespace Sparky {
 		void Render();
 		void Init();
 
+
+		void OnKeyInput(KeyPressedEvent & InEvent);
+
+		void OnUpdate(Timestep ts);
+
+
 		std::string test = "test";
+
 
 		Sparky::Ref<Sparky::Shader> m_playerShader;
 		Sparky::Ref<Sparky::VertexArray> m_playerVA;
@@ -54,21 +67,11 @@ namespace Sparky {
 
 		Sparky::Ref<Sparky::Texture2D> m_Texture, m_beastlogo;
 
-		OrthographicCamera m_Camera;
-
-		glm::vec3 m_CameraPosition;
-		float m_CameraMoveSpeed = 5.0f;
-
-
-		float m_CameraRotation = 0.0f;
-		float m_CameraRotationSpeed = 180.0f;
-
-
 		float m_PlayerRotation = 0.0f;
 		float m_PlayerRotationSpeed = 180.0f;
 
 		glm::vec3 m_PlayerPosition;
-		float m_PlayerMoveSpeed = 5.0f;
+		float m_PlayerMoveSpeed = 50.0f;
 
 		bool m_ShadersDone = false;
 

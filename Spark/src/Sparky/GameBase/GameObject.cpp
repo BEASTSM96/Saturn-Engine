@@ -18,7 +18,7 @@ namespace Sparky {
 
 	GameObject* GameObject::s_Instance = nullptr;
 
-	GameObject::GameObject() : Serialiser::OBJ_NAME("GameObject"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f)
+	GameObject::GameObject() : Serialiser::OBJ_NAME("GameObject")
 	{
 		m_SquareVA.reset(Sparky::VertexArray::Create());
 
@@ -79,7 +79,7 @@ namespace Sparky {
 
 	}
 
-	GameObject::GameObject(const std::string& objectname, Json::Value& reconstructionValue) : Serialiser::OBJ_NAME("GameObject"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f)
+	GameObject::GameObject(const std::string& objectname, Json::Value& reconstructionValue) : Serialiser::OBJ_NAME("GameObject")
 	{
 		m_SquareVA.reset(Sparky::VertexArray::Create());
 
@@ -151,6 +151,55 @@ namespace Sparky {
 
 	}
 
+	void GameObject::OnKeyInput(KeyPressedEvent& InEvent)
+	{
+	}
+
+
+	void GameObject::OnUpdate(Timestep ts) {
+	
+		if (Sparky::Input::IsKeyPressed(SP_KEY_LEFT))
+		{
+			//m_PlayerPosition.x += m_PlayerMoveSpeed *ts;
+
+			SP_CORE_INFO("PLAYER POS {0} ", m_PlayerPosition.x);
+
+			Application::Get().m_gameLayer->m_Camera.SetPosition(m_PlayerPosition += m_PlayerMoveSpeed * ts);
+		}
+
+		else if (Sparky::Input::IsKeyPressed(SP_KEY_RIGHT))
+		{
+			m_PlayerPosition.x -= m_PlayerMoveSpeed * ts;
+
+			Application::Get().m_gameLayer->OnGameObjectMove(m_PlayerPosition);
+		}
+
+		if (Sparky::Input::IsKeyPressed(SP_KEY_DOWN))
+		{
+			m_PlayerPosition.y += m_PlayerMoveSpeed * ts;
+
+			Application::Get().m_gameLayer->OnGameObjectMove(m_PlayerPosition);
+		}
+
+		else if (Sparky::Input::IsKeyPressed(SP_KEY_UP))
+		{
+			m_PlayerPosition.y -= m_PlayerMoveSpeed * ts;
+
+			Application::Get().m_gameLayer->OnGameObjectMove(m_PlayerPosition);
+		}
+
+		if (Sparky::Input::IsKeyPressed(SP_KEY_A))
+		{
+			m_PlayerRotation += m_PlayerRotationSpeed * ts;
+		}
+
+		if (Sparky::Input::IsKeyPressed(SP_KEY_D))
+		{
+			m_PlayerRotation -= m_PlayerRotationSpeed * ts;
+		}
+	
+	}
+
 	void GameObject::Render()
 	{	
 		GameLayer* gl = Application::Get().m_gameLayer;
@@ -160,8 +209,6 @@ namespace Sparky {
 		FTransform tras = FTransform(m_PlayerPosition, scale, 0.0f);
 
 		gl->Sumbit(m_playerShader, m_SquareVA, tras);
-		
-
 		//m_playerTexture->Bind();
 	}
 
