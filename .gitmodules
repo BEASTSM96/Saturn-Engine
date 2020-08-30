@@ -16,9 +16,6 @@
 [submodule "Spark/vendor/ImguiFileDialog"]
 	path = Spark/vendor/ImguiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog
-[submodule "Spark/vendor/jsoncpp"]
-	path = Spark/vendor/jsoncpp
-	url = https://github.com/open-source-parsers/jsoncpp
 [submodule "Spark/vendor/assimp"]
 	path = Spark/vendor/assimp
 	url = https://github.com/assimp/assimp
