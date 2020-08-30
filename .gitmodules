@@ -1,24 +1,21 @@
-[submodule "Spark\\vendor\\GLFW"]
-	path = Spark\\vendor\\GLFW
+[submodule "Spark/vendor/GLFW"]
+	path = Spark/vendor/GLFW
 	url = https://github.com/TheCherno/glfw
-[submodule "Spark\\vendor\\glm"]
-	path = Spark\\vendor\\glm
+[submodule "Spark/vendor/glm"]
+	path = Spark/vendor/glm
 	url = https://github.com/g-truc/glm
-[submodule "Spark\\vendor\\imgui"]
-	path = Spark\\vendor\\imgui
+[submodule "Spark/vendor/imgui"]
+	path = Spark/vendor/imgui
 	url = https://github.com/ocornut/imgui
-[submodule "Spark\\vendor\\spdlog"]
-	path = Spark\\vendor\\spdlog
+[submodule "Spark/vendor/spdlog"]
+	path = Spark/vendor/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "Spark\\vendor\\dirent"]
-	path = Spark\\vendor\\dirent
+[submodule "Spark/vendor/dirent"]
+	path = Spark/vendor/dirent
 	url = https://github.com/tronkko/dirent/
-[submodule "Spark\\vendor\\ImguiFileDialog"]
-	path = Spark\\vendor\\ImguiFileDialog
+[submodule "Spark/vendor/ImguiFileDialog"]
+	path = Spark/vendor/ImguiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog
-[submodule "Spark\\vendor\\cereal"]
-	path = Spark\\vendor\\cereal
-	url = https://github.com/USCiLab/cereal
 [submodule "Spark/vendor/jsoncpp"]
 	path = Spark/vendor/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp
