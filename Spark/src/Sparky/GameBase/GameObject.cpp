@@ -155,6 +155,10 @@ namespace Sparky {
 	{
 	}
 
+	void GameObject::OnPos()
+	{
+		m_PlayerPosition.x += 50.0f * 0.01f;
+	}
 
 	void GameObject::OnUpdate(Timestep ts) {
 	
@@ -164,28 +168,28 @@ namespace Sparky {
 
 			SP_CORE_INFO("PLAYER POS {0} ", m_PlayerPosition.x);
 
-			Application::Get().m_gameLayer->m_Camera.SetPosition(m_PlayerPosition += m_PlayerMoveSpeed * ts);
+			(Application::Get().m_gameLayer->m_CameraPosition.x += Application::Get().m_gameLayer->m_CameraMoveSpeed * ts);
 		}
 
 		else if (Sparky::Input::IsKeyPressed(SP_KEY_RIGHT))
 		{
 			m_PlayerPosition.x -= m_PlayerMoveSpeed * ts;
 
-			Application::Get().m_gameLayer->OnGameObjectMove(m_PlayerPosition);
+			(Application::Get().m_gameLayer->m_CameraPosition.x -= Application::Get().m_gameLayer->m_CameraMoveSpeed * ts);
 		}
 
 		if (Sparky::Input::IsKeyPressed(SP_KEY_DOWN))
 		{
 			m_PlayerPosition.y += m_PlayerMoveSpeed * ts;
 
-			Application::Get().m_gameLayer->OnGameObjectMove(m_PlayerPosition);
+			(Application::Get().m_gameLayer->m_CameraPosition.y += Application::Get().m_gameLayer->m_CameraMoveSpeed * ts);
 		}
 
 		else if (Sparky::Input::IsKeyPressed(SP_KEY_UP))
 		{
 			m_PlayerPosition.y -= m_PlayerMoveSpeed * ts;
 
-			Application::Get().m_gameLayer->OnGameObjectMove(m_PlayerPosition);
+			(Application::Get().m_gameLayer->m_CameraPosition.y -= Application::Get().m_gameLayer->m_CameraMoveSpeed * ts);
 		}
 
 		if (Sparky::Input::IsKeyPressed(SP_KEY_A))

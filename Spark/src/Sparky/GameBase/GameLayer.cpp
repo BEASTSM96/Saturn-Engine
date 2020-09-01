@@ -45,7 +45,7 @@ namespace Sparky {
 
 		//OnGameObjectMove(gameObjects.at(0).m_PlayerPosition);
 
-		//m_Camera.SetPosition(gameObjects.at(0).m_PlayerPosition);
+		SetCamPos(m_CameraPosition);
 
 		Renderer::EndScene();
 	}
@@ -75,6 +75,11 @@ namespace Sparky {
 	}
 
 	void GameLayer::OnGameObjectMove(glm::vec3& position)
+	{
+		m_Camera.SetPosition(position);
+	}
+
+	void GameLayer::SetCamPos(glm::vec3& position)
 	{
 		m_Camera.SetPosition(position);
 	}

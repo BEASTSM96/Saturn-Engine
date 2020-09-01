@@ -48,6 +48,8 @@ namespace Sparky {
 
 		void OnGameObjectMove(glm::vec3& position);
 
+		void SetCamPos(glm::vec3& position);
+
 		inline const std::string& GetName() const { return m_DebugName; }
 
 		inline std::vector<GameObject> GetGameObjects() { return gameObjects; }

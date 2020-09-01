@@ -24,7 +24,7 @@ IncludeDir["ImGui"] = "Spark/vendor/imgui"
 IncludeDir["glm"] = "Spark/vendor/glm"
 IncludeDir["stb_image"] = "Spark/vendor/stb/"
 IncludeDir["json_cpp"] = "Spark/vendor/jsoncpp/"
-
+IncludeDir["Assimp"] = "Spark/vendor/assimp/"
 
 
 group "sp/Dependencies"
@@ -32,6 +32,7 @@ group "sp/Dependencies"
 	include "Spark/vendor/Glad"
 	include "Spark/vendor/imgui"
 	include "Spark/vendor/jsoncpp"
+	include "Spark/vendor/assimp"
 group "sp/Dependencies/Audio"
 	include "Spark/vendor/Audio/OpenAL-Soft"
 	include "Spark/vendor/Audio/libogg"
@@ -77,6 +78,7 @@ project "Spark"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.json_cpp}",
+		"%{IncludeDir.assimp}",
 		"%{prj.name}/vendor/ImguiFileDialog/ImguiFileDialog",
 		"%{prj.name}/vendor/dirent/include",
 		"%{prj.name}/vendor/Audio/OpenAL-Soft/include",

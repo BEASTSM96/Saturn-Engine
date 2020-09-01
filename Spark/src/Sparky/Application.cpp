@@ -132,12 +132,11 @@ namespace Sparky {
 
 		Serialiser::Init();
 
-
-		GameObject* m_GameObject = new GameObject();
+		GameObject* gameObject = new GameObject();
 
 		m_gameLayer = new GameLayer();
 
-		m_GameObject->Init();
+		gameObject->Init();
 
 		PushLayer(m_gameLayer);
 

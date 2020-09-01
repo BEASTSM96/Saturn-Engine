@@ -45,6 +45,8 @@ namespace Sparky {
 		void Render();
 		void Init();
 
+		void OnPos();
+
 
 		void OnKeyInput(KeyPressedEvent & InEvent);
 
