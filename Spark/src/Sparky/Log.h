@@ -3,6 +3,7 @@
 
 
 #include "Core.h"
+
 #include "spdlog\spdlog.h"
 #include "spdlog\fmt\ostr.h"
 
@@ -10,7 +11,7 @@
 
 namespace Sparky {
 
-	class SPARKY_API Log
+	class Log
 	{
 	public:
 		static void Init();
