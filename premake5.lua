@@ -1,3 +1,4 @@
+
 workspace "Sparky"
 	architecture "x64"
 	startproject "Sandbox"
@@ -25,7 +26,7 @@ IncludeDir["glm"] = "Spark/vendor/glm"
 IncludeDir["stb_image"] = "Spark/vendor/stb/"
 IncludeDir["json_cpp"] = "Spark/vendor/jsoncpp/"
 IncludeDir["Assimp"] = "Spark/vendor/assimp/"
-
+IncludeDir["entt"] = "Spark/vendor/entt/include"
 
 group "sp/Dependencies"
 	include "Spark/vendor/GLFW"
@@ -78,7 +79,9 @@ project "Spark"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.json_cpp}",
+		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
+				"%{prj.name}/vendor/assimp/include",
 		"%{prj.name}/vendor/ImguiFileDialog/ImguiFileDialog",
 		"%{prj.name}/vendor/dirent/include",
 		"%{prj.name}/vendor/Audio/OpenAL-Soft/include",
@@ -97,7 +100,8 @@ project "Spark"
 		"opengl32.lib",
 		"OpenAL-Soft",
 		"Jsoncpp",
-		"Vorbis"
+		"Vorbis",
+		"Spark/vendor/assimp/bin/assimp-vc142-mt.lib"
 	}
 
 	filter "system:windows"
@@ -125,6 +129,66 @@ project "Spark"
 		defines "SP_DIST"
 		runtime "Release"
 		optimize "on"
+
+group "sp/Core/dev"
+project "devcmd"
+	location "Spark/devcmd"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS"
+	}
+
+
+	files
+	{
+		"%{prj.name}/src/**.hpp",
+		"%{prj.name}/src/**.cpp"
+	}
+
+	filter "system:Unix"
+		defines
+		{
+			"SP_PLATFORM_LINUX"
+		}
+
+	filter "system:Mac"
+		defines
+		{
+			"SP_PLATFORM_MACOSX"
+		}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"SP_PLATFORM_WINDOWS"
+		}
+
+	filter "configurations:Debug"
+		defines "SP_DEBUG"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "SP_RELEASE"
+		runtime "Release"
+		optimize "on"
+
+	filter "configurations:Dist"
+		defines "SP_DIST"
+		runtime "Release"
+		optimize "on"
+
+
 
 group "sp/Core"
 project "Sandbox"
@@ -155,7 +219,9 @@ project "Sandbox"
 		"Spark/src",
 		"%{IncludeDir.json_cpp}",
 		"Spark/vendor",
-		"%{IncludeDir.glm}"
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.entt}"
 	}
 
 	links
@@ -173,7 +239,7 @@ project "Sandbox"
 	filter "system:Mac"
 		defines
 		{
-			"SP_PLATFORM_MACOSX"
+			"SP_PLATFORM_MACOS"
 		}
 
 	filter "system:windows"

@@ -16,9 +16,3 @@
 [submodule "Spark/vendor/ImguiFileDialog"]
 	path = Spark/vendor/ImguiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog
-[submodule "Spark/vendor/assimp"]
-	path = Spark/vendor/assimp
-	url = https://github.com/assimp/assimp
-[submodule "Spark/vendor/entt"]
-	path = Spark/vendor/entt
-	url = https://github.com/skypjack/entt
