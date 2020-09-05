@@ -1,7 +1,11 @@
 #pragma once
 
+#include "Sparky/Log.h"
+
 #include <string>
 #include <json/json.h>
+#include "Sparky/Core.h"
+
 
 #define CONSTRUCT Serialisable(const std::string& keyName, void* dataAddress) : GenericSerialisable(keyName, dataAddress) {  }
 

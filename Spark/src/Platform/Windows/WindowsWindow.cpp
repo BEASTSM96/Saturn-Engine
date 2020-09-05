@@ -55,7 +55,10 @@ namespace Sparky {
 		m_Context = new OpenGLContext(m_Window);
 		m_Context->Init();
 
-		
+
+		// tell GLFW to capture our mouse
+		//glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
 
