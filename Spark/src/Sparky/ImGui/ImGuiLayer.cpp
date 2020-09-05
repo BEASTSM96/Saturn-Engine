@@ -32,7 +32,6 @@ namespace Sparky {
 	{
 
 		archive();
-#define IMGUI_CLASSES_SPARKY 0
 	}
 
 	void ImGuiLayer::OnAttach()
@@ -41,8 +40,6 @@ namespace Sparky {
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-#define IMGUI_OBJECTS_SPARKY 0
 
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 																	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -100,8 +97,6 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
-
-#undef IMGUI_OBJECTS_SPARKY 0
 	}
 
 	void ImGuiLayer::OnImGuiRender()
@@ -123,13 +118,10 @@ namespace Sparky {
 	ImGuiFPS::ImGuiFPS() : Layer("ImguiFPS")
 	{
 		archive();
-
-#define IMGUI_CLASSES_SPARKY 1
 	}
 
 	ImGuiFPS::~ImGuiFPS()
 	{
-#undef IMGUI_CLASSES_SPARKY 1
 	}
 
 	void ImGuiFPS::OnAttach()
@@ -137,7 +129,6 @@ namespace Sparky {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-#define  IMGUI_OBJECTS_SPARKY 1
 
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
@@ -176,7 +167,6 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
-#undef IMGUI_OBJECTS_SPARKY 1
 	}
 
 	void ImGuiFPS::OnImGuiRender()
@@ -221,13 +211,10 @@ namespace Sparky {
 	ImGuiRenderStats::ImGuiRenderStats() : Layer("ImguiRenderStats")
 	{
 		archive();
-
-#define IMGUI_CLASSES_SPARKY 2
 	}
 
 	ImGuiRenderStats::~ImGuiRenderStats()
 	{
-#undef IMGUI_CLASSES_SPARKY 2
 	}
 
 	void ImGuiRenderStats::OnAttach()
@@ -235,7 +222,6 @@ namespace Sparky {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-#define IMGUI_OBJECTS_SPARKY 2
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 		// Setup Platform/Renderer bindings
@@ -273,7 +259,6 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
-#undef IMGUI_OBJECTS_SPARKY 2
 	}
 
 	void ImGuiRenderStats::OnImGuiRender()
@@ -306,14 +291,10 @@ namespace Sparky {
 
 		archive();
 
-#define IMGUI_CLASSES_SPARKY 5 //TopBar
-#define IMGUI_CLASSES_SPARKY 9 //EdLayer
 	}
 
 	ImguiTopBar::~ImguiTopBar()
 	{
-#undef IMGUI_CLASSES_SPARKY 5 //TopBar
-#undef IMGUI_CLASSES_SPARKY 9 //EdLayer
 	}
 
 	void ImguiTopBar::OnAttach()
@@ -321,8 +302,6 @@ namespace Sparky {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-#define IMGUI_OBJECTS_SPARKY 5 
-#define IMGUI_OBJECTS_SPARKY 9
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 		// Setup Platform/Renderer bindings
@@ -333,8 +312,6 @@ namespace Sparky {
 	{
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
-#undef  IMGUI_OBJECTS_SPARKY 5 
-#undef IMGUI_OBJECTS_SPARKY 9
 		ImGui::DestroyContext();
 	}
 
@@ -362,8 +339,6 @@ namespace Sparky {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
-#undef  IMGUI_OBJECTS_SPARKY 5 
-#undef IMGUI_OBJECTS_SPARKY 9
 	}
 
 
@@ -581,6 +556,7 @@ namespace Sparky {
 		}
 
 		ImGui::End();
+
 	}
 
 
@@ -663,6 +639,7 @@ namespace Sparky {
 	}
 
 	static void CreateToolbar() {
+
 
 		if (ImGui::Begin("Toolbar"))
 		{
@@ -981,7 +958,11 @@ namespace Sparky {
 				CreateOutliner();
 			}
 
+			ImGui::Begin("Viewport");
+			ImVec2 portSize =  ImGui::GetContentRegionAvail();
+			SP_CORE_WARN(" Viewport size : {0}, {1} ", portSize.x, portSize.y);
 
+			ImGui::End();
 			ImGui::End();
 			ImGui::End();
 			ImGui::End();
