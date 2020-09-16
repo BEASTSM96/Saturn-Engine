@@ -2,7 +2,7 @@
 
 #include "Sparky/Renderer/Buffer.h"
 
-namespace Sparky {
+namespace Saturn {
 
 	class OpenGLVertexBuffer : public VertexBuffer
 	{

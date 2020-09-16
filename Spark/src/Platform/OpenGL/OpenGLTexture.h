@@ -2,7 +2,7 @@
 
 #include "Sparky/Renderer/Texture.h"
 
-namespace Sparky {
+namespace Saturn {
 
 
 	/*             Sparky OpenGLTexture         */

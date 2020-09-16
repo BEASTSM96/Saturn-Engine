@@ -4,7 +4,7 @@
 #include <string>
 #include <glm/glm.hpp>
 
-namespace Sparky {
+namespace Saturn {
 
 	class OpenGLShader : public Shader
 	{

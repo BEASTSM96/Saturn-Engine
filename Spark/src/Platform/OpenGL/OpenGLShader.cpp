@@ -9,7 +9,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-namespace Sparky {
+namespace Saturn {
 
 	OpenGLShader::OpenGLShader(std::string& vertexSrc, const std::string& fragmentSrc)
 	{
@@ -38,9 +38,9 @@ namespace Sparky {
 			// We don't need the shader anymore.
 			glDeleteShader(vertexShader);
 
-			SP_CORE_ERROR("{0}", infoLog.data());
+			SAT_CORE_ERROR("{0}", infoLog.data());
 
-			SP_CORE_ASSERT(false, "VertexShader compilation failure!");
+			SAT_CORE_ASSERT(false, "VertexShader compilation failure!");
 
 			return;
 		}
@@ -72,9 +72,9 @@ namespace Sparky {
 			glDeleteShader(vertexShader);
 
 
-			SP_CORE_ERROR("{0}", infoLog.data());
+			SAT_CORE_ERROR("{0}", infoLog.data());
 
-			SP_CORE_ASSERT(false, "FragmentShader compilation failure!");
+			SAT_CORE_ASSERT(false, "FragmentShader compilation failure!");
 
 			return;
 		}
@@ -110,8 +110,8 @@ namespace Sparky {
 			glDeleteShader(vertexShader);
 			glDeleteShader(fragmentShader);
 
-			SP_CORE_ERROR("{0}", infoLog.data());
-			SP_CORE_ASSERT(false, "Shader link failure!");
+			SAT_CORE_ERROR("{0}", infoLog.data());
+			SAT_CORE_ASSERT(false, "Shader link failure!");
 			return;
 		}
 

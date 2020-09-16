@@ -4,7 +4,7 @@
 
 struct GLFWwindow;
 
-namespace Sparky {
+namespace Saturn {
 
 
 	class OpenGLContext : public GraphicsContext

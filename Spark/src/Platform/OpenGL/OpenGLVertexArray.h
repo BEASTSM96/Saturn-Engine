@@ -3,7 +3,7 @@
 #include "Sparky\Renderer\VertexArray.h"
 
 
-namespace Sparky {
+namespace Saturn {
 
 	class OpenGLVertexArray : public VertexArray
 	{
