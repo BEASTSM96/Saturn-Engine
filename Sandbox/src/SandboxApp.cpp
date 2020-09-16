@@ -15,7 +15,7 @@
 #include <Sparky/Core/Serialisation/Serialiser.h>
 #endif // SPARKY_SANDBOX
 
-class ExampleLayer : public Sparky::Layer
+class ExampleLayer : public Saturn::Layer
 {
 public:
 
@@ -25,7 +25,7 @@ public:
 
 		//archive();
 
-		//m_VertexArray.reset(Sparky::VertexArray::Create());
+		//m_VertexArray.reset(Saturn::VertexArray::Create());
 
 		//float vertices[3 * 7] = {
 		//	-0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f,
@@ -33,21 +33,21 @@ public:
 		//	 0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
 		//};
 
-		//Sparky::Ref<Sparky::VertexBuffer> vertexBuffer;
-		//vertexBuffer.reset(Sparky::VertexBuffer::Create(vertices, sizeof(vertices)));
-		//Sparky::BufferLayout layout = {
-		//	{ Sparky::ShaderDataType::Float3, "a_Position" },
-		//	{ Sparky::ShaderDataType::Float4, "a_Color" }
+		//Saturn::Ref<Saturn::VertexBuffer> vertexBuffer;
+		//vertexBuffer.reset(Saturn::VertexBuffer::Create(vertices, sizeof(vertices)));
+		//Saturn::BufferLayout layout = {
+		//	{ Saturn::ShaderDataType::Float3, "a_Position" },
+		//	{ Saturn::ShaderDataType::Float4, "a_Color" }
 		//};
 		//vertexBuffer->SetLayout(layout);
 		//m_VertexArray->AddVertexBuffer(vertexBuffer);
 
 		//uint32_t indices[3] = { 0, 1, 2 };
-		//Sparky::Ref<Sparky::IndexBuffer> indexBuffer;
-		//indexBuffer.reset(Sparky::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+		//Saturn::Ref<Saturn::IndexBuffer> indexBuffer;
+		//indexBuffer.reset(Saturn::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 		//m_VertexArray->SetIndexBuffer(indexBuffer);
 
-		//m_SquareVA.reset(Sparky::VertexArray::Create());
+		//m_SquareVA.reset(Saturn::VertexArray::Create());
 
 		//float squareVertices[5 * 4] = {
 		//	-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
@@ -56,17 +56,17 @@ public:
 		//	-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
 		//};
 
-		//Sparky::Ref<Sparky::VertexBuffer> squareVB;
-		//squareVB.reset(Sparky::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
+		//Saturn::Ref<Saturn::VertexBuffer> squareVB;
+		//squareVB.reset(Saturn::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
 		//squareVB->SetLayout({
-		//	{ Sparky::ShaderDataType::Float3, "a_Position" },
-		//	{ Sparky::ShaderDataType::Float2, "a_TexCoord" }
+		//	{ Saturn::ShaderDataType::Float3, "a_Position" },
+		//	{ Saturn::ShaderDataType::Float2, "a_TexCoord" }
 		//	});
 		//m_SquareVA->AddVertexBuffer(squareVB);
 
 		//uint32_t squareIndices[6] = { 0, 1, 2, 2, 3, 0 };
-		//Sparky::Ref<Sparky::IndexBuffer> squareIB;
-		//squareIB.reset(Sparky::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
+		//Saturn::Ref<Saturn::IndexBuffer> squareIB;
+		//squareIB.reset(Saturn::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
 		//m_SquareVA->SetIndexBuffer(squareIB);
 
 		//std::string vertexSrc = R"(
@@ -99,7 +99,7 @@ public:
 		//	}
 		//)";
 
-		//m_Shader.reset(Sparky::Shader::Create(vertexSrc, fragmentSrc));
+		//m_Shader.reset(Saturn::Shader::Create(vertexSrc, fragmentSrc));
 
 		//std::string flatShaderVertexSrc = R"(
 		//	#version 330 core
@@ -130,7 +130,7 @@ public:
 		//	}
 		//)";
 
-		//m_flatShader.reset(Sparky::Shader::Create(flatShaderVertexSrc, flastShaderFragmentSrc));
+		//m_flatShader.reset(Saturn::Shader::Create(flatShaderVertexSrc, flastShaderFragmentSrc));
 
 		//std::string textureShaderVertexSrc = R"(
 		//	#version 330 core
@@ -160,7 +160,7 @@ public:
 		//	}
 		//)";
 
-		//m_TextureShader.reset(Sparky::Shader::Create(textureShaderVertexSrc, textureShaderFragmentSrc));
+		//m_TextureShader.reset(Saturn::Shader::Create(textureShaderVertexSrc, textureShaderFragmentSrc));
 
 		//std::vector<STexture> textures {
 		//		STexture("Beastpic", "assets/tex/beastpic_pfp_1.png"),
@@ -189,59 +189,59 @@ public:
 
 		//deserialiseObjects;
 
-		//m_beastlogo = Sparky::Texture2D::Create(deserialiseObjects.at(0)->path);
-		//m_Texture = Sparky::Texture2D::Create(deserialiseObjects.at(1)->path);
+		//m_beastlogo = Saturn::Texture2D::Create(deserialiseObjects.at(0)->path);
+		//m_Texture = Saturn::Texture2D::Create(deserialiseObjects.at(1)->path);
 
 
-		//std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_TextureShader)->Bind();
-		//std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
+		//std::dynamic_pointer_cast<Saturn::OpenGLShader>(m_TextureShader)->Bind();
+		//std::dynamic_pointer_cast<Saturn::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
 
 	}
 
-	void OnUpdate(Sparky::Timestep ts) override
+	void OnUpdate(Saturn::Timestep ts) override
 	{
-		/*if (Sparky::Input::IsKeyPressed(SP_KEY_LEFT))
+		/*if (Saturn::Input::IsKeyPressed(SAT_KEY_LEFT))
 		{
 			m_CameraPosition.x += m_CameraMoveSpeed * ts;
 		}
 
-		else if (Sparky::Input::IsKeyPressed(SP_KEY_RIGHT))
+		else if (Saturn::Input::IsKeyPressed(SAT_KEY_RIGHT))
 		{
 			m_CameraPosition.x -= m_CameraMoveSpeed * ts;
 		}
 
-		if (Sparky::Input::IsKeyPressed(SP_KEY_DOWN))
+		if (Saturn::Input::IsKeyPressed(SAT_KEY_DOWN))
 		{
 			m_CameraPosition.y += m_CameraMoveSpeed * ts;
 		}
 
-		else if (Sparky::Input::IsKeyPressed(SP_KEY_UP))
+		else if (Saturn::Input::IsKeyPressed(SAT_KEY_UP))
 		{
 			m_CameraPosition.y -= m_CameraMoveSpeed * ts;
 		}
 
-		if (Sparky::Input::IsKeyPressed(SP_KEY_A))
+		if (Saturn::Input::IsKeyPressed(SAT_KEY_A))
 		{
 			m_CameraRotation += m_CameraRotationSpeed * ts;
 		}
 
-		if (Sparky::Input::IsKeyPressed(SP_KEY_D))
+		if (Saturn::Input::IsKeyPressed(SAT_KEY_D))
 		{
 			m_CameraRotation -= m_CameraRotationSpeed * ts;
 		}*/
 
-		/*Sparky::RenderCommand::SetClearColor({ 1, 1, 0, 0 });
-		Sparky::RenderCommand::Clear();*/
+		/*Saturn::RenderCommand::SetClearColor({ 1, 1, 0, 0 });
+		Saturn::RenderCommand::Clear();*/
 
 //		m_Camera.SetPosition(m_CameraPosition);
 //		m_Camera.SetRotation(m_CameraRotation);
 
-//		Sparky::Renderer::BeginScene(m_Camera);
+//		Saturn::Renderer::BeginScene(m_Camera);
 
 		//glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
-		//std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_flatShader)->Bind();
-		//std::dynamic_pointer_cast<Sparky::OpenGLShader>(m_flatShader)->UploadUniformFloat3("u_Color", m_SquareColor);
+		//std::dynamic_pointer_cast<Saturn::OpenGLShader>(m_flatShader)->Bind();
+		//std::dynamic_pointer_cast<Saturn::OpenGLShader>(m_flatShader)->UploadUniformFloat3("u_Color", m_SquareColor);
 
 		/*for (int y = 0; y < 20; y++)
 		{
@@ -249,25 +249,25 @@ public:
 			{
 				glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
 				glm::mat4 trasform = glm::translate(glm::mat4(1.0f), pos) * scale;
-				Sparky::Renderer::Submit(m_flatShader, m_SquareVA, trasform);
+				Saturn::Renderer::Submit(m_flatShader, m_SquareVA, trasform);
 			}
 
 		}*/
 
 		//TEMP
-#ifndef SP_DEBUG
+#ifndef SAT_DEBUG
 
 		//m_Texture->Bind();
 
-		//Sparky::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+		//Saturn::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
 
 		//m_beastlogo->Bind();
-		//Sparky::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+		//Saturn::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
 
-		//Sparky::Renderer::Submit(m_Shader, m_VertexArray);
+		//Saturn::Renderer::Submit(m_Shader, m_VertexArray);
 #endif
 
-		/*Sparky::Renderer::EndScene();*/
+		/*Saturn::Renderer::EndScene();*/
 
 	}
 
@@ -281,13 +281,13 @@ public:
 
 	}
 
-	void OnEvent(Sparky::Event& event) override
+	void OnEvent(Saturn::Event& event) override
 	{
-		Sparky::EventDispatcher dispatcher(event);
-		dispatcher.Dispatch<Sparky::KeyPressedEvent>(SP_BIND_EVENT_FN(ExampleLayer::OnKeyPressed));
+		Saturn::EventDispatcher dispatcher(event);
+		dispatcher.Dispatch<Saturn::KeyPressedEvent>(SAT_BIND_EVENT_FN(ExampleLayer::OnKeyPressed));
 	}
 
-	bool OnKeyPressed(Sparky::KeyPressedEvent& event) {
+	bool OnKeyPressed(Saturn::KeyPressedEvent& event) {
 	
 		
 
@@ -297,15 +297,15 @@ public:
 
 private:
 
-	Sparky::Ref<Sparky::Shader> m_Shader;
-	Sparky::Ref<Sparky::VertexArray> m_VertexArray;
+	Saturn::Ref<Saturn::Shader> m_Shader;
+	Saturn::Ref<Saturn::VertexArray> m_VertexArray;
 
-	Sparky::Ref<Sparky::Shader> m_flatShader, m_TextureShader;
-	Sparky::Ref<Sparky::VertexArray> m_SquareVA;
+	Saturn::Ref<Saturn::Shader> m_flatShader, m_TextureShader;
+	Saturn::Ref<Saturn::VertexArray> m_SquareVA;
 
-	Sparky::Ref<Sparky::Texture2D> m_Texture, m_beastlogo;
+	Saturn::Ref<Saturn::Texture2D> m_Texture, m_beastlogo;
 
-	Sparky::OrthographicCamera m_Camera;
+	Saturn::OrthographicCamera m_Camera;
 
 	glm::vec3 m_CameraPosition;
 	float m_CameraMoveSpeed = 5.0f;
@@ -320,14 +320,11 @@ public:
 };
 
 
-class Sandbox : public Sparky::Application
+class Sandbox : public Saturn::Application
 {
 public:
 	Sandbox()
 	{
-		//GameLayer* gl = new GameLayer();
-
-		//PushLayer(gl);
 	}
 
 	~Sandbox()
@@ -337,7 +334,7 @@ public:
 
 };
 
-Sparky::Application* Sparky::CreateApplication()
+Saturn::Application* Saturn::CreateApplication()
 {
 	return new Sandbox();
 }
