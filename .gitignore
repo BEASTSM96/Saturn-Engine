@@ -74,7 +74,8 @@ test.JSON
 imgui.ini
 [dD]esktop.ini
 **.ses
-Sanbox/assets
+
+#Sanbox/assets
 **/assets/tex/
 **/assets/tex/
 
@@ -86,3 +87,8 @@ Sandbox/assets/tex/
 
 **/assets/tex
 **/assets/tex
+
+#Old Sparky Stuff
+Spark/**
+Spark/
+Spark
