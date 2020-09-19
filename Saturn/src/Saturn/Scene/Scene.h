@@ -1,0 +1,58 @@
+#pragma once
+
+#include "entt.hpp"
+
+#include "Saturn/Core.h"
+#include "Saturn/Log.h"
+#include "Saturn/Core/Timestep.h"
+#include "Saturn/Core.h"
+
+
+
+namespace Saturn {
+
+
+	typedef struct sd {
+
+		std::string name;
+		float ID;
+
+	};
+
+
+	typedef sd SceneData;
+
+
+	class Entity;
+	class GameObject;
+
+	class SATURN_API Scene
+	{
+	public:
+		Scene();
+		~Scene();
+
+		Entity CreateEntity(const std::string& name = std::string());
+
+		GameObject CreateEntityGameObject(const std::string& name = std::string());
+
+		GameObject * CreateEntityGameObjectprt(const std::string& name = std::string());
+
+		SceneData& GetData() { return data; }
+
+		void OnUpdate(Timestep ts);
+		void OnViewportResize(uint32_t width, uint32_t height);
+	private:
+		entt::registry m_Registry;
+		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+
+		SceneData data;
+
+		friend class  Entity;
+
+		friend class  GameObject;
+
+		friend class  SceneHierarchyPanel;
+
+	};
+}
