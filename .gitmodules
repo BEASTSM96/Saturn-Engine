@@ -1,18 +1,18 @@
-[submodule "Spark/vendor/GLFW"]
-	path = Spark/vendor/GLFW
+[submodule "Saturn/vendor/GLFW"]
+	path = Saturn/vendor/GLFW
 	url = https://github.com/TheCherno/glfw
-[submodule "Spark/vendor/glm"]
-	path = Spark/vendor/glm
+[submodule "Saturn/vendor/glm"]
+	path = Saturn/vendor/glm
 	url = https://github.com/g-truc/glm
-[submodule "Spark/vendor/imgui"]
-	path = Spark/vendor/imgui
+[submodule "Saturn/vendor/imgui"]
+	path = Saturn/vendor/imgui
 	url = https://github.com/ocornut/imgui
-[submodule "Spark/vendor/spdlog"]
-	path = Spark/vendor/spdlog
+[submodule "Saturn/vendor/spdlog"]
+	path = Saturn/vendor/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "Spark/vendor/dirent"]
-	path = Spark/vendor/dirent
+[submodule "Saturn/vendor/dirent"]
+	path = Saturn/vendor/dirent
 	url = https://github.com/tronkko/dirent/
-[submodule "Spark/vendor/ImguiFileDialog"]
-	path = Spark/vendor/ImguiFileDialog
+[submodule "Saturn/vendor/ImguiFileDialog"]
+	path = Saturn/vendor/ImguiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog
