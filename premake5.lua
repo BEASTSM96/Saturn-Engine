@@ -1,5 +1,5 @@
 
-workspace "Sparky"
+workspace "Saturn"
 	architecture "x64"
 	startproject "Sandbox"
 
@@ -19,29 +19,31 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
-IncludeDir["GLFW"] = "Spark/vendor/GLFW/include"
-IncludeDir["Glad"] = "Spark/vendor/Glad/include"
-IncludeDir["ImGui"] = "Spark/vendor/imgui"
-IncludeDir["glm"] = "Spark/vendor/glm"
-IncludeDir["stb_image"] = "Spark/vendor/stb/"
-IncludeDir["json_cpp"] = "Spark/vendor/jsoncpp/"
-IncludeDir["Assimp"] = "Spark/vendor/assimp/"
-IncludeDir["entt"] = "Spark/vendor/entt/include"
+IncludeDir["GLFW"] = "Saturn/vendor/GLFW/include"
+IncludeDir["Glad"] = "Saturn/vendor/Glad/include"
+IncludeDir["ImGui"] = "Saturn/vendor/imgui"
+IncludeDir["glm"] = "Saturn/vendor/glm"
+IncludeDir["stb_image"] = "Saturn/vendor/stb/"
+IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
+IncludeDir["Assimp"] = "Saturn/vendor/assimp/"
+IncludeDir["entt"] = "Saturn/vendor/entt/include"
+IncludeDir["Box2D"] = "Saturn/vendor/box2d/include"
 
-group "sp/Dependencies"
+group "sat/Dependencies"
 	include "Spark/vendor/GLFW"
 	include "Spark/vendor/Glad"
 	include "Spark/vendor/imgui"
 	include "Spark/vendor/jsoncpp"
 	include "Spark/vendor/assimp"
-group "sp/Dependencies/Audio"
+	include "Spark/vendor/box2d"
+group "sat/Dependencies/Audio"
 	include "Spark/vendor/Audio/OpenAL-Soft"
 	include "Spark/vendor/Audio/libogg"
 	include "Spark/vendor/Audio/Vorbis"
 
-group "sp/Core"
-project "Spark"
-	location "Spark"
+group "sat/Core"
+project "Saturn"
+	location "Saturn"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
@@ -51,7 +53,7 @@ project "Spark"
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	pchheader "sppch.h"
-	pchsource "Spark/src/sppch.cpp"
+	pchsource "Saturn/src/sppch.cpp"
 
 	files
 	{
@@ -76,10 +78,12 @@ project "Spark"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
+			"%{prj.name}/vendor/imgui/ImGuizmo/",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.json_cpp}",
 		"%{IncludeDir.entt}",
+		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.assimp}",
 				"%{prj.name}/vendor/assimp/include",
 		"%{prj.name}/vendor/ImguiFileDialog/ImguiFileDialog",
@@ -101,7 +105,7 @@ project "Spark"
 		"OpenAL-Soft",
 		"Jsoncpp",
 		"Vorbis",
-		"Spark/vendor/assimp/bin/assimp-vc142-mt.lib"
+		"Saturn/vendor/assimp/bin/assimp-vc142-mt.lib"
 	}
 
 	filter "system:windows"
@@ -109,28 +113,110 @@ project "Spark"
 
 		defines
 		{
-			"SP_PLATFORM_WINDOWS",
-			"SP_BUILD_DLL",
+			"SAT_PLATFORM_WINDOWS",
+			"SAT_BUILD_DLL",
 			"GLFW_INCLUDE_NONE",
 			"SPARKY_GAME_BASE"
 		}
 
 	filter "configurations:Debug"
-		defines "SP_DEBUG"
+		defines "SAT_DEBUG"
 		runtime "Debug"
 		symbols "on"
 
 	filter "configurations:Release"
-		defines "SP_RELEASE"
+		defines "SAT_RELEASE"
 		runtime "Release"
 		optimize "on"
 
 	filter "configurations:Dist"
-		defines "SP_DIST"
+		defines "SAT_DIST"
+		runtime "Release"
+		optimize "on"
+---------------------------------------------------------------------------------------------------------------------------
+
+project "Saturn2D"
+	location "Saturn/2D"
+	kind "StaticLib"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp"
+	}
+
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS",
+		"AL_LIBTYPE_STATIC"
+	}
+
+	includedirs
+	{
+		"%{prj.name}/src",
+		"%Saturn/vendor/spdlog/include",
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.ImGui}",
+			"Saturn/vendor/imgui/ImGuizmo/",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.stb_image}",
+		"%{IncludeDir.json_cpp}",
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.Box2D}",
+		"%{IncludeDir.assimp}",
+				"Saturn/vendor/assimp/include",
+		"Saturn/vendor/ImguiFileDialog/ImguiFileDialog",
+		"Saturn/vendor/dirent/include",
+		"Saturn/vendor/Audio/OpenAL-Soft/include",
+		"Saturn/vendor/Audio/OpenAL-Soft/src",
+		"Saturn/vendor/Audio/OpenAL-Soft/src/common",
+		"Saturn/vendor/Audio/libogg/include",
+		"Saturn/vendor/Audio/Vorbis/include",
+		"Saturn/vendor/Audio/minimp3"
+	}
+
+	links 
+	{ 
+		"Saturn"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"SAT_PLATFORM_WINDOWS",
+			"SAT_BUILD_DLL",
+			"GLFW_INCLUDE_NONE",
+			"SPARKY_GAME_BASE"
+		}
+
+	filter "configurations:Debug"
+		defines "SAT_DEBUG"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "SAT_RELEASE"
 		runtime "Release"
 		optimize "on"
 
-group "sp/Core/dev"
+	filter "configurations:Dist"
+		defines "SAT_DIST"
+		runtime "Release"
+		optimize "on"
+
+
+
+
+group "sat/Core/dev"
 project "devcmd"
 	location "Spark/devcmd"
 	kind "ConsoleApp"
@@ -156,13 +242,13 @@ project "devcmd"
 	filter "system:Unix"
 		defines
 		{
-			"SP_PLATFORM_LINUX"
+			"SAT_PLATFORM_LINUX"
 		}
 
 	filter "system:Mac"
 		defines
 		{
-			"SP_PLATFORM_MACOSX"
+			"SAT_PLATFORM_MACOSX"
 		}
 
 	filter "system:windows"
@@ -170,27 +256,27 @@ project "devcmd"
 
 		defines
 		{
-			"SP_PLATFORM_WINDOWS"
+			"SAT_PLATFORM_WINDOWS"
 		}
 
 	filter "configurations:Debug"
-		defines "SP_DEBUG"
+		defines "SAT_DEBUG"
 		runtime "Debug"
 		symbols "on"
 
 	filter "configurations:Release"
-		defines "SP_RELEASE"
+		defines "SAT_RELEASE"
 		runtime "Release"
 		optimize "on"
 
 	filter "configurations:Dist"
-		defines "SP_DIST"
+		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
 
 
 
-group "sp/Core"
+group "sat/Core"
 project "Sandbox"
 	location "Sandbox"
 	kind "ConsoleApp"
@@ -215,31 +301,33 @@ project "Sandbox"
 
 	includedirs
 	{
-		"Spark/vendor/spdlog/include",
-		"Spark/src",
+		"Saturn/vendor/spdlog/include",
+		"Saturn/src",
 		"%{IncludeDir.json_cpp}",
-		"Spark/vendor",
+		"Saturn/vendor",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.Glad}",
-		"%{IncludeDir.entt}"
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.Assimp}"
 	}
 
 	links
 	{
-		"Spark"
+		"Saturn",
+		"Saturn2D"
 	}
 
 
 	filter "system:Unix"
 		defines
 		{
-			"SP_PLATFORM_LINUX"
+			"SAT_PLATFORM_LINUX"
 		}
 
 	filter "system:Mac"
 		defines
 		{
-			"SP_PLATFORM_MACOS"
+			"SAT_PLATFORM_MACOS"
 		}
 
 	filter "system:windows"
@@ -247,20 +335,20 @@ project "Sandbox"
 
 		defines
 		{
-			"SP_PLATFORM_WINDOWS"
+			"SAT_PLATFORM_WINDOWS"
 		}
 
 	filter "configurations:Debug"
-		defines "SP_DEBUG"
+		defines "SAT_DEBUG"
 		runtime "Debug"
 		symbols "on"
 
 	filter "configurations:Release"
-		defines "SP_RELEASE"
+		defines "SAT_RELEASE"
 		runtime "Release"
 		optimize "on"
 
 	filter "configurations:Dist"
-		defines "SP_DIST"
+		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
