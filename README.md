@@ -1,9 +1,9 @@
-# Sparky [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/Sparky-Engine/blob/master/LICENSE)
+# Saturn [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/Sparky-Engine/blob/master/LICENSE)
 
-Sparky is primarily an early-stage interactive application and rendering engine for Windows. Currently not much is implemented.
+Saturn is primarily an early-stage interactive application and rendering engine for Windows. Currently not much is implemented.
 
 ## Getting Started
-Visual Studio 2019 is recommended, Sparky is officially untested on other development environments whilst we focus on a Windows build.
+Visual Studio 2019 is recommended, Saturn is officially untested on other development environments whilst we focus on a Windows build.
 
 Start by cloning the repository with `git clone https://github.com/BEASTSM96/Sparky-Engine`.
 
