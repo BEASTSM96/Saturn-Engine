@@ -5,8 +5,12 @@
 #include "Saturn/Scene/Components.h"
 
 #include "imgui.h"
+#include "ImGuizmo.h"
+#include "ImGuiFileDialog.cpp"
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
+
+#include "Saturn/Core/Serialisation/Serialiser.h"
 
 #include "Saturn/Application.h"
 
@@ -14,9 +18,6 @@
 
 #include "Saturn/Log.h"
 
-#include "ImGuiFileDialog.cpp"
-
-#include "ImGuizmo.h"
 #include "Saturn/Scene/Components.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -638,17 +639,63 @@ namespace Saturn {
 	void EditorLayer::OnAttach()
 	{
 
-		//FramebufferSpecification fbSpec;
-		//fbSpec.Width = 1280;
-		//fbSpec.Height = 720;
-		//m_Framebuffer = Framebuffer::Create(fbSpec);
-
-
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+		ImVec4* colors = ImGui::GetStyle().Colors;
+		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[ImGuiCol_WindowBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_PopupBg] = ImVec4(0.14f, 0.14f, 0.14f, 0.94f);
+		colors[ImGuiCol_Border] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
+		colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_FrameBg] = ImVec4(0.33f, 0.33f, 0.33f, 0.54f);
+		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.40f);
+		colors[ImGuiCol_FrameBgActive] = ImVec4(0.41f, 0.41f, 0.41f, 0.67f);
+		colors[ImGuiCol_TitleBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+		colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
+		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+		colors[ImGuiCol_CheckMark] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_SliderGrab] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
+		colors[ImGuiCol_Button] = ImVec4(0.38f, 0.38f, 0.38f, 0.40f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+		colors[ImGuiCol_Header] = ImVec4(0.65f, 0.65f, 0.65f, 0.31f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.34f, 0.34f, 0.34f, 0.80f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
+		colors[ImGuiCol_Separator] = ImVec4(0.54f, 0.54f, 0.54f, 0.50f);
+		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.55f, 0.55f, 0.55f, 0.78f);
+		colors[ImGuiCol_SeparatorActive] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+		colors[ImGuiCol_ResizeGrip] = ImVec4(0.40f, 0.40f, 0.40f, 0.25f);
+		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.67f);
+		colors[ImGuiCol_ResizeGripActive] = ImVec4(0.51f, 0.51f, 0.51f, 0.95f);
+		colors[ImGuiCol_Tab] = ImVec4(0.21f, 0.21f, 0.21f, 0.86f);
+		colors[ImGuiCol_TabHovered] = ImVec4(0.27f, 0.27f, 0.27f, 0.80f);
+		colors[ImGuiCol_TabActive] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+		colors[ImGuiCol_TabUnfocused] = ImVec4(0.19f, 0.19f, 0.19f, 0.97f);
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_DockingPreview] = ImVec4(0.26f, 0.59f, 0.98f, 0.70f);
+		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+		colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_PlotHistogram] = ImVec4(0.44f, 0.69f, 1.00f, 1.00f);
+		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.66f, 0.71f, 1.00f, 1.00f);
+		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+		colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+		colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
@@ -797,22 +844,56 @@ namespace Saturn {
 
 			io.ConfigWindowsMoveFromTitleBarOnly = true;
 
-			if (ImGui::Begin("Inspector")) {
-				
+			if (ImGui::Begin("Debugger")) {
+
+				if(ImGui::Button("Import")){
+
+					auto& [name, ex] = Application::Get().OpenFile(".obj\0* .obj;\0\0");
+
+					auto& [namefs, exfs] = Application::Get().OpenFile(".fs\0* .fs;\0\0");
+					auto& [namevs, exvs] = Application::Get().OpenFile(".vs\0* .vs;\0\0");
+
+
+					const char* nameOBJ = name.c_str(); 	const char* exOBJ = ex.c_str();
+					const char* FSName = namefs.c_str();	const char* FS_ex = exfs.c_str();
+					const char* VSName = namevs.c_str();	const char* VS_ex = exvs.c_str();
+
+					/* Shader and Model Config */
+					DShader* importedShader = new DShader(VSName, FSName);
+					Model* importedModel = new Model(name);
+
+					GameObject * gb = Application::Get().GetCurrentScene().CreateEntityGameObjectprt("");
+
+					gb->ourShader = new DShader(VSName, FSName);
+					gb->ourModel = new Model(name);
+				}
+
+				if (ImGui::Button("Destroy All Objects")) {
+
+					auto& [name, ex] = Application::Get().OpenFile(".obj\0* .obj;\0\0");
+
+					auto& [namefs, exfs] = Application::Get().OpenFile(".fs\0* .fs;\0\0");
+					auto& [namevs, exvs] = Application::Get().OpenFile(".vs\0* .vs;\0\0");
+
+
+					const char* nameOBJ = name.c_str(); 	const char* exOBJ = ex.c_str();
+					const char* FSName = namefs.c_str();	const char* FS_ex = exfs.c_str();
+					const char* VSName = namevs.c_str();	const char* VS_ex = exvs.c_str();
+
+					/* Shader and Model Config */
+					DShader* importedShader = new DShader(VSName, FSName);
+					Model* importedModel = new Model(name);
+
+					GameObject* gb = Application::Get().GetCurrentScene().CreateEntityGameObjectprt("");
+
+					gb->ourShader = new DShader(VSName, FSName);
+					gb->ourModel = new Model(name);
+				}
+
 			}
 
 			ImGui::End();
 			ImGui::End();
-#if 0
-			ImGui::End();
-			ImGui::End();
-			ImGui::End();
-			ImGui::End();
-			ImGui::End();
-			ImGui::End();
-#endif // 0
-
-
 
 		} 
 
@@ -889,7 +970,6 @@ namespace Saturn {
 			ImGui::TreePop();
 
 			if (ImGui::Begin("Viewport")) {
-
 				// view/projection transformations
 				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->Get3DCamera().Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
 
@@ -929,10 +1009,18 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::DrawEntityComponents(Entity entity)
 	{
+		auto& tagORNL = entity.GetComponent<TagComponent>().Tag;
+
 		if (entity.HasComponent<TagComponent>())
 		{
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 
+			static bool hasOldTag = false;
+			if (!hasOldTag)
+			{
+
+				hasOldTag = true;
+			}
 
 			char buffer[265];
 
@@ -950,9 +1038,39 @@ namespace Saturn {
 				}
 				ImGui::SameLine();
 				ImGui::Text("%f", id);
+
+				tag = tag.empty() ? "Unmanned GameObject / Entity" : tag;
+
+				Json::Value s;
+				std::ofstream sf = std::ofstream("assets/Engine/Objects/" + tagORNL + ".json");
+				{
+					s["Object"]["Tag"] = tag;
+
+					sf << s;
+				}
+
 			}
 			else
-				SAT_CORE_WARN("Entity dose not have a IdComponent!");
+			{
+				ImGui::Text("Tag"); ImGui::SameLine();
+				if (ImGui::InputText("##empty", buffer, sizeof(buffer)))
+				{
+					tag = std::string(buffer);
+				}
+
+				tag = tag.empty() ? "Unmanned GameObject / Entity" : tag;
+
+			}
+
+
+			Json::Value s;
+			std::ofstream sf = std::ofstream("assets/Engine/Objects/" + tagORNL + ".json");
+			{
+				s["Object"]["Tag"] = tag;
+
+				sf << s;
+			}
+
 
 		}
 		else

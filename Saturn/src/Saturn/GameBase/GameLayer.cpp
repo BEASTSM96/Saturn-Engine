@@ -87,7 +87,6 @@ namespace Saturn {
 		for (GameObject gb : gameObjects)
 		{
 			gb.Render();
-			gb.OnPBRRender();
 			gb.OnUpdate(ts);
 		}
 

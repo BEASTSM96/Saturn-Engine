@@ -8,7 +8,6 @@
 #include "Saturn/Core.h"
 
 
-
 namespace Saturn {
 
 
@@ -22,7 +21,7 @@ namespace Saturn {
 
 	typedef sd SceneData;
 
-
+	class Level;
 	class Entity;
 	class GameObject;
 
@@ -38,7 +37,7 @@ namespace Saturn {
 
 		GameObject * CreateEntityGameObjectprt(const std::string& name = std::string());
 
-		SceneData& GetData() { return data; }
+		SceneData& GetData() { return m_data; }
 
 		void OnUpdate(Timestep ts);
 		void OnViewportResize(uint32_t width, uint32_t height);
@@ -46,7 +45,9 @@ namespace Saturn {
 		entt::registry m_Registry;
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 
-		SceneData data;
+		SceneData m_data;
+
+		Level* m_CurrentLevel;
 
 		friend class  Entity;
 

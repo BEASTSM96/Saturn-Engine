@@ -3,11 +3,11 @@
 #include "World.h"
 
 #include "Saturn/Application.h"
-#include "Saturn/GameBase/GameObject.h"
 
 namespace Saturn {
 
-	class SATURN_API GameObject;
+	class GameObject;
+	class GameLayer;
 
 	class SATURN_API Level : World
 	{
@@ -22,17 +22,19 @@ namespace Saturn {
 
 		virtual uint64_t GetAllGameObjects() override;
 
+		GameLayer* CreateGameLayer();
+
 		virtual void * GetGameLayer() override;
 
 		virtual float GetID() override;
-
-
-
 
 	private:
 		float m_id = 0;
 
 		std::string m_name = "testlevel1";
 		std::vector<GameObject*> gameObjects;
+
+		GameLayer* m_Gamelayer;
+
 	};
 }

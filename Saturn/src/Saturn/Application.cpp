@@ -60,8 +60,6 @@ namespace Saturn {
 
 	Application::Application()
 	{
-
-
 		SAT_CORE_ASSERT(!s_Instance, "Application already exists!");
 
 		{

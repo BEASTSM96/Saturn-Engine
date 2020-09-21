@@ -30,16 +30,16 @@ IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["Box2D"] = "Saturn/vendor/box2d/include"
 
 group "sat/Dependencies"
-	include "Spark/vendor/GLFW"
-	include "Spark/vendor/Glad"
-	include "Spark/vendor/imgui"
-	include "Spark/vendor/jsoncpp"
-	include "Spark/vendor/assimp"
-	include "Spark/vendor/box2d"
+	include "Saturn/vendor/GLFW"
+	include "Saturn/vendor/Glad"
+	include "Saturn/vendor/imgui"
+	include "Saturn/vendor/jsoncpp"
+	include "Saturn/vendor/assimp"
+	include "Saturn/vendor/box2d"
 group "sat/Dependencies/Audio"
-	include "Spark/vendor/Audio/OpenAL-Soft"
-	include "Spark/vendor/Audio/libogg"
-	include "Spark/vendor/Audio/Vorbis"
+	include "Saturn/vendor/Audio/OpenAL-Soft"
+	include "Saturn/vendor/Audio/libogg"
+	include "Saturn/vendor/Audio/Vorbis"
 
 group "sat/Core"
 project "Saturn"
@@ -212,69 +212,6 @@ project "Saturn2D"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
-
-
-
-
-group "sat/Core/dev"
-project "devcmd"
-	location "Spark/devcmd"
-	kind "ConsoleApp"
-	language "C++"
-	cppdialect "C++17"
-	staticruntime "on"
-
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-	defines
-	{
-		"_CRT_SECURE_NO_WARNINGS"
-	}
-
-
-	files
-	{
-		"%{prj.name}/src/**.hpp",
-		"%{prj.name}/src/**.cpp"
-	}
-
-	filter "system:Unix"
-		defines
-		{
-			"SAT_PLATFORM_LINUX"
-		}
-
-	filter "system:Mac"
-		defines
-		{
-			"SAT_PLATFORM_MACOSX"
-		}
-
-	filter "system:windows"
-		systemversion "latest"
-
-		defines
-		{
-			"SAT_PLATFORM_WINDOWS"
-		}
-
-	filter "configurations:Debug"
-		defines "SAT_DEBUG"
-		runtime "Debug"
-		symbols "on"
-
-	filter "configurations:Release"
-		defines "SAT_RELEASE"
-		runtime "Release"
-		optimize "on"
-
-	filter "configurations:Dist"
-		defines "SAT_DIST"
-		runtime "Release"
-		optimize "on"
-
-
 
 group "sat/Core"
 project "Sandbox"

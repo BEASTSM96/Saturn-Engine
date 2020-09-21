@@ -7,6 +7,7 @@
 #include "Entity.h"
 #include "Saturn/Core/Math/Math.h"
 #include "Saturn/GameBase/GameObject.h"
+#include "Saturn/Core/World/Level.h"
 
 namespace Saturn {
 
@@ -18,9 +19,15 @@ namespace Saturn {
 	Scene::Scene()
 	{
 
-		data.ID = Random::Float();
-		data.name = data.name.empty() ? "Scene" : data.name;
+		m_data.ID = Random::Float();
+		m_data.name = m_data.name.empty() ? "Scene" : m_data.name;
 
+
+		/*******************************************************************************************************************/
+		m_CurrentLevel = new Level();
+		m_CurrentLevel->CreateGameLayer();
+
+		/*******************************************************************************************************************/
 #if ENTT_EXAMPLE_CODE
 		entt::entity entity = m_Registry.create();
 		m_Registry.emplace<TransformComponent>(entity, glm::mat4(1.0f));
@@ -97,7 +104,7 @@ namespace Saturn {
 
 	void Scene::OnUpdate(Timestep ts)
 	{
-
+		SAT_CORE_ASSERT(m_CurrentLevel->GetGameLayer(), "Error GameLayer is null!");
 	}
 
 

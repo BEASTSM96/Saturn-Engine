@@ -44,7 +44,7 @@ namespace Saturn {
 	};
 
 	// Interface representing a desktop system based Window
-	class SATURN_API SATURN_API Window
+	class SATURN_API Window
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>;

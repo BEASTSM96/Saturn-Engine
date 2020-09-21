@@ -9,7 +9,7 @@
 
 namespace Saturn {
 
-	class SATURN_API SATURN_API Layer : public Serialiser
+	class SATURN_API Layer : public Serialiser
 	{
 	public:
 		Layer(const std::string& name = "Layer");

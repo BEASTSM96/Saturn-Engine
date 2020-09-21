@@ -3,19 +3,13 @@
 
 #include "Saturn/Application.h"
 #include "Saturn/Core/Serialisation/Serialiser.h"
+#include "Saturn/GameBase/GameLayer.h"
 
 namespace Saturn {
 
     Level::Level()
     {
-//        m_id++;
-
-        m_id = rand() * 10000;
-
-        Application::Get().m_gameLayer = new GameLayer();
-
-        Application::Get().PushLayer(Application::Get().m_gameLayer);
-
+        m_id = Random::Float() * 10000;
     }
 
     Level::~Level()
@@ -48,9 +42,20 @@ namespace Saturn {
         return (uint64_t)gameObjects.size();
     }
 
+    GameLayer* Level::CreateGameLayer()
+    {
+        m_Gamelayer = new GameLayer();
+
+        Application::Get().m_gameLayer = m_Gamelayer;
+
+        Application::Get().PushLayer(m_Gamelayer);
+
+        return m_Gamelayer;
+    }
+
     void * Level::GetGameLayer()
     {
-        return Application::Get().m_gameLayer;
+        return m_Gamelayer;
     }
 
     float Level::GetID()

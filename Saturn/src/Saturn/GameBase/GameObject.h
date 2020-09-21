@@ -48,7 +48,7 @@ namespace Saturn {
 	};
 
 
-	class SATURN_API SATURN_API GameObject : public Entity, public Object /* Sparky GameObject */
+	class SATURN_API GameObject : public Entity, public Object /* Sparky GameObject */
 	{
 	public:
 		GameObject();
@@ -57,6 +57,8 @@ namespace Saturn {
 
 		GameObject(entt::entity handle, Scene* scene);
 		GameObject(const GameObject& other) = default;
+
+		virtual ~GameObject() = default;
 		//////////////////////////////////////////////////////////////////////////////////
 
 		template<typename T, typename... Args>
@@ -89,7 +91,6 @@ namespace Saturn {
 		operator bool() const { return m_EntityHandle != entt::null; }
 
 		//////////////////////////////////////////////////////////////////////////////////
-		virtual ~GameObject() = default;
 
 		void Render();
 		void Init();
@@ -98,12 +99,6 @@ namespace Saturn {
 		void OnKeyInput(KeyPressedEvent & InEvent);
 
 		void OnUpdate(Timestep ts);
-
-	private:
-		void renderSphere();
-		void renderCube();
-		void OnPBRRender();
-		void PBRirradiance_conversion();
 	public:
 
 		E_GameObjectState GetObjectState() { return GameObjectState; }
@@ -119,12 +114,6 @@ namespace Saturn {
 		E_GameObjectState GameObjectState = E_GameObjectState::Idle;
 
 		std::vector<DShader*> shaders;
-
-
-		std::string test = "test";
-
-		unsigned int cubeVAO = 0;
-		unsigned int cubeVBO = 0;
 
 		glm::mat4& transform = glm::mat4(1.0f);
 
@@ -169,13 +158,13 @@ namespace Saturn {
 		bool m_ShadersDone = false;
 		
 		bool m_3D = true;
-	protected:
-		virtual void archive() override {}
 
 	private:
-		friend class SATURN_API GameLayer;
+		friend class GameLayer;
 
-		friend class SATURN_API Scene;
+		friend class Scene;
+
+		friend class Entity;
 
 		static GameObject* s_Instance;
 	};
