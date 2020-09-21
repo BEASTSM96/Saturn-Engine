@@ -1,0 +1,9 @@
+[submodule "Saturn/vendor/GLFW"]
+	path = Saturn/vendor/GLFW
+	url = https://github.com/TheCherno/glfw
+[submodule "Saturn/vendor/glm"]
+	path = Saturn/vendor/glm
+	url = https://github.com/g-truc/glm
+[submodule "Saturn/vendor/spdlog"]
+	path = Saturn/vendor/spdlog
+	url = https://github.com/gabime/spdlog
