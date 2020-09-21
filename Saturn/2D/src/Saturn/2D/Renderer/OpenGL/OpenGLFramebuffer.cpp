@@ -1,4 +1,3 @@
-#include "sppch.h"
 #include "OpenGLFramebuffer.h"
 
 #include <glad/glad.h>
