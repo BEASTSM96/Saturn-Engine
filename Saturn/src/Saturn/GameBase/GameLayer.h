@@ -39,6 +39,8 @@ namespace Saturn {
 		GameLayer();
 		~GameLayer();
 
+		void OnAttach() override;
+
 		void OnUpdate(Timestep ts) override;
 		void OnEvent(Event& event) override;
 
@@ -95,12 +97,12 @@ namespace Saturn {
 		bool OnMouseCliked(MouseButtonEvent& e);
 		bool OnMouseMoved(MouseMovedEvent& e);
 
-		static GameLayer* s_Instance;
-
 		std::vector<GameObject> gameObjects;
 
 		Json::Value serialiser;
 
+	private:
+		static GameLayer* s_Instance;
 	};
 }
 #endif // SPARKY_GAME_BASE

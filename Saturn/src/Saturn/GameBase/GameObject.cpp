@@ -48,15 +48,7 @@ namespace Saturn {
 		GetComponent<TransformComponent>().Transform = glm::translate(transform, glm::vec3(10.0f, 10.0f, 10.0f));
 		GetComponent<TransformComponent>().Transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
 
-		if (m_3D)
-		{																							//Will prob be GameObject::s_Instance->GetMeshComp()
-			ourShader = new DShader("assets/shaders/3d_test.vs", "assets/shaders/3d_test.fs");
-
-			ourModel = new Model("assets/meshes/base_cone.obj");
-
 	
-			shaders.push_back(ourShader);
-		}
 
 		GameObjectState = E_GameObjectState::Idle;
 
@@ -78,9 +70,11 @@ namespace Saturn {
 
 	void GameObject::OnUpdate(Timestep ts) {
 	
-		ourModel->SetTransform(GetComponent<TransformComponent>().Transform);
-		ourModel->Update(ts, *ourShader);
-	
+		if (HasComponent<MeshComponent>())
+		{
+			ourModel->SetTransform(GetComponent<TransformComponent>().Transform);
+			ourModel->Update(ts, *ourShader);
+		}
 	}
 
 	void GameObject::Render()
@@ -99,20 +93,22 @@ namespace Saturn {
 		else 
 		{
 			GameLayer* gl = Application::Get().m_gameLayer;
+			if (HasComponent<MeshComponent>())
+			{
+				ourShader->use();
 
-			ourShader->use();
+				// view/projection transformations
+				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->m_3DCamera.Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
+				glm::mat4 view = Application::Get().m_gameLayer->m_3DCamera.GetViewMatrix();
+				ourShader->setMat4("projection", projection);
+				ourShader->setMat4("view", view);
 
-			// view/projection transformations
-			glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->m_3DCamera.Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
-			glm::mat4 view = Application::Get().m_gameLayer -> m_3DCamera.GetViewMatrix();
-			ourShader -> setMat4("projection", projection);
-			ourShader -> setMat4("view", view);
+				ourShader->setMat4("model", GetComponent<TransformComponent>().Transform);
 
-			ourShader->setMat4("model", GetComponent<TransformComponent>().Transform);
 
-	
-			ourModel -> Draw(*ourShader);
+				ourModel->Draw(*ourShader);
 
+			}
 		}
 	}
 

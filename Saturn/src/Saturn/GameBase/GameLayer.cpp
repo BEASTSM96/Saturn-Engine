@@ -39,6 +39,10 @@ namespace Saturn {
 	{
 	}
 
+	void GameLayer::OnAttach()
+	{
+	}
+
 	void GameLayer::OnUpdate(Timestep ts)
 	{
 		m_CameraController.OnUpdate(ts);
