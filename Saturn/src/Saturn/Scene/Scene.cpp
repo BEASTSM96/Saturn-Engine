@@ -62,7 +62,7 @@ namespace Saturn {
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
-		tag.Tag = name.empty() ? "Unmaned Entity" : name;
+		tag.Tag = name.empty() ? "Unmanned Entity" : name;
 
 		auto& ID = entity.AddComponent<IdComponent>();
 		ID.Id = Random::Float();
@@ -77,7 +77,7 @@ namespace Saturn {
 		entity.AddComponent<TransformComponent>();
 		
 		auto& tag = entity.AddComponent<TagComponent>();
-		tag.Tag = name.empty() ? "Unmaned GameObject" : name;
+		tag.Tag = name.empty() ? "Unmanned GameObject" : name;
 
 		auto& ID = entity.AddComponent<IdComponent>();
 		ID.Id = Random::Float();
@@ -92,7 +92,7 @@ namespace Saturn {
 		entity->AddComponent<TransformComponent>();
 
 		auto& tag = entity->AddComponent<TagComponent>();
-		tag.Tag = name.empty() ? "Unmaned GameObject" : name;
+		tag.Tag = name.empty() ? "Unmanned GameObject" : name;
 
 		auto& ID = entity->AddComponent<IdComponent>();
 		ID.Id = Random::Float();

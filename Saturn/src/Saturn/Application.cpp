@@ -48,13 +48,14 @@
 
 #include <json/json.h>
 
+#include <Windows.h>
+#include <commdlg.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
-#include <Windows.h>
 
 namespace Saturn {
 	#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
-	#pragma warning(disable: BIND_EVENT_FN)
+	#pragma warning(disable: (BIND_EVENT_FN))
 
 	Application* Application::s_Instance = nullptr;
 
@@ -138,9 +139,7 @@ namespace Saturn {
 	}
 
 	void Application::Run()
-	{
-		Audio::Init();
-		
+	{		
 		Serialiser::Init();
 
 		Math::Init();
@@ -154,9 +153,7 @@ namespace Saturn {
 		auto& e = m_Scene->CreateEntity("");
 		
 		gameObject = m_Scene->CreateEntityGameObjectprt("Cone");
-		//SAT_TEST_MEMORY;
 
-		//Saturn::Debuging::TestMemory2(gameObject, 100, 10);
 
 		while (m_Running && !m_Crashed)
 		{
@@ -177,8 +174,6 @@ namespace Saturn {
 					layer->OnUpdate(timestep);
 				}
 			}
-
-			glEnable(GL_MULTISAMPLE);
 
 			m_ImGuiLayer->Begin();
 			#if defined(SAT_DEBUG)
@@ -248,11 +243,11 @@ namespace Saturn {
 	{
 
 #ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;
+		SAT_FILEOPENNAMEA ofn;
 		CHAR szFile[260] = { 0 };
-		ZeroMemory(&ofn, sizeof(OPENFILENAME));
+		SAT_ZeroMemory(&ofn, sizeof(SAT_FILEOPENNAME));
 
-		ofn.lStructSize = sizeof(OPENFILENAME);
+		ofn.lStructSize = sizeof(SAT_FILEOPENNAME);
 		ofn.lpstrFilter = filter;
 		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
 		ofn.lpstrFile = szFile;
@@ -269,8 +264,6 @@ namespace Saturn {
 #endif
 
 #ifdef  SAT_PLATFORM_LINUX
-		m_Running = false;
-		m_Crashed = false;
 
 		return { std::string(), std::string() };
 #endif
@@ -308,67 +301,4 @@ namespace Saturn {
 		return { std::string(), std::string() };
 
 	}
-
-	std::string Application::SaveJSONFile() const
-	{
-#ifdef  SAT_PLATFORM_LINUX
-		m_Running = false;
-		m_Crashed = false;f
-#endif
-#ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;
-		CHAR szFile[260] = { 0 };
-
-		ZeroMemory(&ofn, sizeof(OPENFILENAME));
-		ofn.lStructSize = sizeof(OPENFILENAME);
-		ofn.lpstrFilter = "SaveJSONFile (.json / .JSON) \0 * .json; * .JSON; \0\0";
-		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
-		ofn.lpstrFile = szFile;
-		ofn.nMaxFile = sizeof(szFile);
-		ofn.lpstrTitle = "Save file";
-		ofn.nFilterIndex = 1;
-		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-
-		if (GetSaveFileNameA(&ofn) == TRUE)
-		{
-			return ofn.lpstrFile;
-		}
-		return std::string();
-#endif
-		return std::string();
-
-	}
-
-	std::string Application::OpenProjectFile() const
-	{
-		#ifdef  SAT_PLATFORM_LINUX
-				m_Running = false;
-				m_Crashed = false;
-
-				return nullptr;
-		#endif
-#ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;
-		CHAR szFile[260] = { 0 };
-		ZeroMemory(&ofn, sizeof(OPENFILENAMEA));
-
-		ofn.lStructSize = sizeof(OPENFILENAMEA);
-		ofn.lpstrFilter = "ProjectFile\0*.sproject;\0\0";
-		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
-		ofn.lpstrFile = szFile;
-		ofn.nMaxFile = sizeof(szFile);
-		ofn.lpstrTitle = "Open Project file";
-		ofn.nFilterIndex = 1;
-		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-
-		if (GetOpenFileNameA(&ofn) == TRUE)
-		{
-			return ofn.lpstrFile;
-		}
-		return std::string();
-
-#endif
-		return std::string();
-	}
-
 }

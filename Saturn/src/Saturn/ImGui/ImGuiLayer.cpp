@@ -6,7 +6,6 @@
 
 #include "imgui.h"
 #include "ImGuizmo.h"
-#include "ImGuiFileDialog.cpp"
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
 
@@ -60,7 +59,6 @@ namespace Saturn {
 																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;																	// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
-		//ImGui::StyleColorsclass SATURN_APIic();
 
 		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -363,102 +361,16 @@ namespace Saturn {
 		if (ImGui::MenuItem("GitHub branch :", "master")) {}
 	}
 
-	static bool canValidateDialog = false;
-	SAT_FORCE_INLINE void InfosPane(std::string vFilter, igfd::UserDatas vUserDatas, bool* vCantContinue) // if vCantContinue is false, the user cant validate the dialog
-	{
-		ImGui::TextColored(ImVec4(0, 1, 1, 1), "Infos Pane");
-		ImGui::Text("Selected Filter : %s", vFilter.c_str());
-		if (vUserDatas)
-			ImGui::Text("UserDatas : %s", vUserDatas);
-		ImGui::Checkbox("if not checked you cant validate the dialog", &canValidateDialog);
-		if (vCantContinue)
-			*vCantContinue = canValidateDialog;
-	}
-
 	static void ShowSceneStuff(bool* p_open)
 	{
-		const char* filters = "Sparky Project files (*.sproject){.sproject}";
-
-		igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose Project File", filters, ".");
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".cpp", ImVec4((float)1.0f, 1.0f, 0.0f, 0.9f));
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".h", ImVec4((float)0.0f, 1.0f, 0.0f, 0.9f));
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".sproject", ImVec4((float)0.0f, 1.0f, 0.0f, 0.9f), "[SPARKY PROJECT FILE]");
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".SPARKYFILEC", ImVec4((float)1.0f, 0.0f, 1.0f, 0.9f));
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".EDFILE", ImVec4((float)0.0f, 0.0f, 8.0f, 0.9f));
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".sparkyfilec", ImVec4((float)1.0f, 0.0f, 1.0f, 0.9f));
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".edfile", ImVec4((float)0.0f, 0.0f, 8.0f, 0.9f));
-
-		// display
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey"))
-		{
-			// action if OK
-			if (igfd::ImGuiFileDialog::Instance()->IsOk == true)
-			{
-				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
-				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-				// action
-			}
-			// close
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
-		}
 	}
 
 	static void ShowCodeFiles(bool* p_open)
 	{
-
-		const char* filters = "Source files (*.cpp, *.h){*.cpp, *.h}";
-
-		igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose 5 File", filters, ".", 0);
-
-		//igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose Code File", filters, ".");
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".cpp", ImVec4(1.f, 1.f, 0.f, 0.9f), "[C++ FILE]");
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".h", ImVec4(0.f, 1.f, 0.f, 0.9f), "[HEADER FILE]");
-
-		igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".sproject", ImVec4(0.f, 1.f, 0.f, 0.9f), "[SPARKY PROJECT FILE]");
-
-		// display
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey"))
-		{
-			// action if OK
-			if (igfd::ImGuiFileDialog::Instance()->IsOk == true)
-			{
-				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
-				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-				// action
-			}
-			// close
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
-		}
 	}
 
 	static void ShowDirectoryChooser(bool* p_open)
 	{
-
-		igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose a Directory", ".*", ".");
-		//igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", "Choose a Directory", 0, ".");
-
-		// display
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey"))
-		{
-			// action if OK
-			if (igfd::ImGuiFileDialog::Instance()->IsOk == true)
-			{
-				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
-				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-				// action
-			}
-			// close
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
-		}
 	}
 
 #ifdef ED_ENUMS
@@ -638,7 +550,10 @@ namespace Saturn {
 
 	void EditorLayer::OnAttach()
 	{
-
+		FramebufferSpecification fbSpec;
+		fbSpec.Width = Application::Get().GetWindow().GetWidth();
+		fbSpec.Height = Application::Get().GetWindow().GetHeight();
+		m_Framebuffer = Framebuffer::Create(fbSpec);
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -646,6 +561,9 @@ namespace Saturn {
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 		ImVec4* colors = ImGui::GetStyle().Colors;
+
+#define SAT_DARK_THMEME
+#ifdef SAT_DARK_THMEME
 		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 		colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
 		colors[ImGuiCol_WindowBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
@@ -697,6 +615,177 @@ namespace Saturn {
 		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
+#elif defined(SAT_DARK_THMEME_TWO)
+
+		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_TextDisabled] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+		colors[ImGuiCol_ChildBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_WindowBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_PopupBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_Border] = ImVec4(0.12f, 0.12f, 0.12f, 0.71f);
+		colors[ImGuiCol_BorderShadow] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+		colors[ImGuiCol_FrameBg] = ImVec4(0.42f, 0.42f, 0.42f, 0.54f);
+		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.42f, 0.42f, 0.42f, 0.40f);
+		colors[ImGuiCol_FrameBgActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.67f);
+		colors[ImGuiCol_TitleBg] = ImVec4(0.19f, 0.19f, 0.19f, 1.00f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
+		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.17f, 0.17f, 0.17f, 0.90f);
+		colors[ImGuiCol_MenuBarBg] = ImVec4(0.335f, 0.335f, 0.335f, 1.000f);
+		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.24f, 0.24f, 0.24f, 0.53f);
+		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.52f, 0.52f, 0.52f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.76f, 0.76f, 0.76f, 1.00f);
+		colors[ImGuiCol_CheckMark] = ImVec4(0.65f, 0.65f, 0.65f, 1.00f);
+		colors[ImGuiCol_SliderGrab] = ImVec4(0.52f, 0.52f, 0.52f, 1.00f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.64f, 0.64f, 0.64f, 1.00f);
+		colors[ImGuiCol_Button] = ImVec4(0.54f, 0.54f, 0.54f, 0.35f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.52f, 0.52f, 0.52f, 0.59f);
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.76f, 0.76f, 0.76f, 1.00f);
+		colors[ImGuiCol_Header] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.47f, 0.47f, 0.47f, 1.00f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.76f, 0.76f, 0.76f, 0.77f);
+		colors[ImGuiCol_Separator] = ImVec4(0.000f, 0.000f, 0.000f, 0.137f);
+		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.700f, 0.671f, 0.600f, 0.290f);
+		colors[ImGuiCol_SeparatorActive] = ImVec4(0.702f, 0.671f, 0.600f, 0.674f);
+		colors[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
+		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
+		colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
+		colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+		colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+		colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.73f, 0.73f, 0.73f, 0.35f);
+		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+		colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+		colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+
+		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
+		colors[ImGuiCol_Tab] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_TabHovered] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+		colors[ImGuiCol_TabActive] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
+		colors[ImGuiCol_TabUnfocused] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
+		colors[ImGuiCol_DockingPreview] = ImVec4(0.85f, 0.85f, 0.85f, 0.28f);
+
+#elif defined(SAT_DARK_THMEME_THREE)
+		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
+		colors[ImGuiCol_ChildBg] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
+		colors[ImGuiCol_PopupBg] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
+		colors[ImGuiCol_Border] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
+		colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_FrameBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
+		colors[ImGuiCol_FrameBgActive] = ImVec4(0.67f, 0.67f, 0.67f, 0.39f);
+		colors[ImGuiCol_TitleBg] = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
+		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+		colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
+		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+		colors[ImGuiCol_CheckMark] = ImVec4(0.11f, 0.64f, 0.92f, 1.00f);
+		colors[ImGuiCol_SliderGrab] = ImVec4(0.11f, 0.64f, 0.92f, 1.00f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.08f, 0.50f, 0.72f, 1.00f);
+		colors[ImGuiCol_Button] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.67f, 0.67f, 0.67f, 0.39f);
+		colors[ImGuiCol_Header] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.67f, 0.67f, 0.67f, 0.39f);
+		colors[ImGuiCol_Separator] = colors[ImGuiCol_Border];
+		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.41f, 0.42f, 0.44f, 1.00f);
+		colors[ImGuiCol_SeparatorActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
+		colors[ImGuiCol_ResizeGrip] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.29f, 0.30f, 0.31f, 0.67f);
+		colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
+		colors[ImGuiCol_Tab] = ImVec4(0.08f, 0.08f, 0.09f, 0.83f);
+		colors[ImGuiCol_TabHovered] = ImVec4(0.33f, 0.34f, 0.36f, 0.83f);
+		colors[ImGuiCol_TabActive] = ImVec4(0.23f, 0.23f, 0.24f, 1.00f);
+		colors[ImGuiCol_TabUnfocused] = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
+		colors[ImGuiCol_DockingPreview] = ImVec4(0.26f, 0.59f, 0.98f, 0.70f);
+		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+		colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+		colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+		colors[ImGuiCol_DragDropTarget] = ImVec4(0.11f, 0.64f, 0.92f, 1.00f);
+		colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+#elif defined(SAT_DARK_THMEME_FOUR)
+		ImGuiStyle& style = ImGui::GetStyle();
+		style.WindowRounding = 5.3f;
+		style.FrameRounding = 2.3f;
+		style.ScrollbarRounding = 0;
+
+		//From the theme one
+		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[ImGuiCol_WindowBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_PopupBg] = ImVec4(0.14f, 0.14f, 0.14f, 0.94f);
+		colors[ImGuiCol_Border] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
+		colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_FrameBg] = ImVec4(0.33f, 0.33f, 0.33f, 0.54f);
+		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.40f);
+		colors[ImGuiCol_FrameBgActive] = ImVec4(0.41f, 0.41f, 0.41f, 0.67f);
+		colors[ImGuiCol_TitleBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+		colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
+		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+		colors[ImGuiCol_CheckMark] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_SliderGrab] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
+		colors[ImGuiCol_Button] = ImVec4(0.38f, 0.38f, 0.38f, 0.40f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+		colors[ImGuiCol_Header] = ImVec4(0.65f, 0.65f, 0.65f, 0.31f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.34f, 0.34f, 0.34f, 0.80f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
+		colors[ImGuiCol_Separator] = ImVec4(0.54f, 0.54f, 0.54f, 0.50f);
+		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.55f, 0.55f, 0.55f, 0.78f);
+		colors[ImGuiCol_SeparatorActive] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+		colors[ImGuiCol_ResizeGrip] = ImVec4(0.40f, 0.40f, 0.40f, 0.25f);
+		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.67f);
+		colors[ImGuiCol_ResizeGripActive] = ImVec4(0.51f, 0.51f, 0.51f, 0.95f);
+		colors[ImGuiCol_Tab] = ImVec4(0.21f, 0.21f, 0.21f, 0.86f);
+		colors[ImGuiCol_TabHovered] = ImVec4(0.27f, 0.27f, 0.27f, 0.80f);
+		colors[ImGuiCol_TabActive] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+		colors[ImGuiCol_TabUnfocused] = ImVec4(0.19f, 0.19f, 0.19f, 0.97f);
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_DockingPreview] = ImVec4(0.26f, 0.59f, 0.98f, 0.70f);
+		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+		colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_PlotHistogram] = ImVec4(0.44f, 0.69f, 1.00f, 1.00f);
+		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.66f, 0.71f, 1.00f, 1.00f);
+		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+		colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+		colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+
+#endif // SAT_DARK_THMEME
+
+#ifdef SAT_LIGHT_THMEME
+		ImGui::StyleColorsLight();
+#endif // SAT_LIGHT_THMEME
+
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
@@ -737,6 +826,8 @@ namespace Saturn {
 
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
+		m_Framebuffer->Bind();
+		m_Framebuffer->Unbind();
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -751,6 +842,10 @@ namespace Saturn {
 			io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 			if (ImGui::Begin("Viewport")) {	
+
+				uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+				ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
 				ImVec2 portSize =  ImGui::GetContentRegionAvail();
 				m_ViewportSize = { portSize.x, portSize.y };
 #if 0
@@ -848,10 +943,16 @@ namespace Saturn {
 
 				if(ImGui::Button("Import")){
 
+					SAT_CORE_INFO("--------------------------------------------------------------------------------------------------");
+					SAT_CORE_INFO("Awaiting user file location!");
+
 					auto& [name, ex] = Application::Get().OpenFile(".obj\0* .obj;\0\0");
 
-					auto& [namefs, exfs] = Application::Get().OpenFile(".fs\0* .fs;\0\0");
-					auto& [namevs, exvs] = Application::Get().OpenFile(".vs\0* .vs;\0\0");
+					auto& [namefs, exfs] = Application::Get().OpenFile(".satshaderf\0* .satshaderf;\0\0");
+					auto& [namevs, exvs] = Application::Get().OpenFile(".satshaderv\0* .satshaderv;\0\0");
+
+
+					SAT_CORE_INFO("Found Files. Files : {0}, {1} and {2}", name, namefs, namevs);
 
 
 					const char* nameOBJ = name.c_str(); 	const char* exOBJ = ex.c_str();
@@ -861,33 +962,28 @@ namespace Saturn {
 					/* Shader and Model Config */
 					DShader* importedShader = new DShader(VSName, FSName);
 					Model* importedModel = new Model(name);
+
+					SAT_CORE_WARN("Compiling Shader : (ID) {0}", importedShader->ID);
+					SAT_CORE_WARN("	Compiling Shaders can take a while!");
+					SAT_CORE_WARN("	Compiling Shaders can also use system resources!");
 
 					GameObject * gb = Application::Get().GetCurrentScene().CreateEntityGameObjectprt("");
 
-					gb->ourShader = new DShader(VSName, FSName);
-					gb->ourModel = new Model(name);
-				}
+					SAT_CORE_INFO("Creating new GameObject!");
 
-				if (ImGui::Button("Destroy All Objects")) {
+					gb->ourShader = importedShader;
+					gb->ourModel = importedModel;
 
-					auto& [name, ex] = Application::Get().OpenFile(".obj\0* .obj;\0\0");
+					SAT_CORE_ASSERT(gb->HasComponent<TagComponent>(), "GameObject dose not A TagComponent!");
+					SAT_CORE_INFO("New GameObject made! : (Tag) {0}", gb->GetComponent<TagComponent>().Tag);
+					SAT_CORE_WARN("Setting new Shader to the imported shader");
+					SAT_CORE_WARN("Setting new Model to the imported Model");
+					SAT_CORE_INFO("--------------------------------------------------------------------------------------------------");
 
-					auto& [namefs, exfs] = Application::Get().OpenFile(".fs\0* .fs;\0\0");
-					auto& [namevs, exvs] = Application::Get().OpenFile(".vs\0* .vs;\0\0");
+					SAT_CORE_INFO("{0} {1} {2} {3} {4} {5}", importedShader->ID, importedModel->directory, VSName, FSName, name, gb->GetComponent<TagComponent>().Tag);
 
-
-					const char* nameOBJ = name.c_str(); 	const char* exOBJ = ex.c_str();
-					const char* FSName = namefs.c_str();	const char* FS_ex = exfs.c_str();
-					const char* VSName = namevs.c_str();	const char* VS_ex = exvs.c_str();
-
-					/* Shader and Model Config */
-					DShader* importedShader = new DShader(VSName, FSName);
-					Model* importedModel = new Model(name);
-
-					GameObject* gb = Application::Get().GetCurrentScene().CreateEntityGameObjectprt("");
-
-					gb->ourShader = new DShader(VSName, FSName);
-					gb->ourModel = new Model(name);
+					delete importedShader;
+					delete importedModel;
 				}
 
 			}
@@ -898,12 +994,6 @@ namespace Saturn {
 		} 
 
 	}
-
-	template<typename T>
-	inline void EditorLayer::DrawInfo(const char* name, bool* p_open, void* flags, T comp, std::string compname, T compnameinfo)
-	{
-	}
-
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
@@ -1036,19 +1126,11 @@ namespace Saturn {
 				{
 					tag = std::string(buffer);
 				}
+
 				ImGui::SameLine();
 				ImGui::Text("%f", id);
 
 				tag = tag.empty() ? "Unmanned GameObject / Entity" : tag;
-
-				Json::Value s;
-				std::ofstream sf = std::ofstream("assets/Engine/Objects/" + tagORNL + ".json");
-				{
-					s["Object"]["Tag"] = tag;
-
-					sf << s;
-				}
-
 			}
 			else
 			{
@@ -1062,16 +1144,6 @@ namespace Saturn {
 
 			}
 
-
-			Json::Value s;
-			std::ofstream sf = std::ofstream("assets/Engine/Objects/" + tagORNL + ".json");
-			{
-				s["Object"]["Tag"] = tag;
-
-				sf << s;
-			}
-
-
 		}
 		else
 			SAT_CORE_ASSERT(entity.HasComponent<TagComponent>(), "Entity dose not have a TagComponent!");
@@ -1083,7 +1155,7 @@ namespace Saturn {
 
 			if (ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Transform")) {
 				if (ImGui::DragFloat3("Position", glm::value_ptr(entity.GetComponent<TransformComponent>().Transform[3]), 0.5f));
-				//if (ImGui::DragFloat3("Rotation", glm::value_ptr(entity.GetComponent<TransformComponent>().Transform[4]), 0.5f));
+
 				if (ImGui::DragFloat3("Scale", glm::value_ptr(entity.GetComponent<TransformComponent>().Transform[2]), 0.5f));
 
 				ImGui::TreePop();
@@ -1091,8 +1163,6 @@ namespace Saturn {
 		}
 		else
 			SAT_CORE_ASSERT(entity.HasComponent<TransformComponent>(), "Entity dose not have a TransformComponent!");
-
-
 	}
 
 } //namespace

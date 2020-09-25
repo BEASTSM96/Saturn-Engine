@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 
-
 namespace Saturn {
 
 	/** @brief A TransformComponent.
@@ -112,6 +111,35 @@ namespace Saturn {
 			: Id(id), Idname(idname) {}
 	};
 
+	/** @brief A MeshComponent.
+	*
+	* @code
+	*
+	* Model * Model;
+	*
+	*
+	* MeshComponent()
+	* MeshComponent(const MeshComponent&) = default
+	* MeshComponent(const Model& Model)
+	*
+	*
+	* @endcode
+	*/
+	class Model;
+
+	struct MeshComponent
+	{
+	public:
+		MeshComponent() = default;
+		MeshComponent(const MeshComponent&) = default;
+		MeshComponent(Model * model)
+			: m_Model(model) {}
+	public:
+		Model* GetModel() { return m_Model; };
+	private:
+		Model * m_Model;
+
+	};
 
 
 }

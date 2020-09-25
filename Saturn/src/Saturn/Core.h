@@ -108,7 +108,7 @@ namespace Saturn {
 	using Ref = std::shared_ptr<T>;
 
 	template<typename T>
-	using Refprt = T*;
+	using Refptr = T*;
 
 	using SPint = uint64_t;
 
@@ -154,5 +154,48 @@ namespace Saturn {
 #define SAT_CORE_DELAY(...) ::std::this_thread::sleep_for(__VA_ARGS__)
 #endif
 
+#define SAT_MoveMemory MoveMemory 
+#define SAT_CopyMemory CopyMemory 
+#define SAT_FillMemory FillMemory 
+#define SAT_ZeroMemory ZeroMemory
+
+#define SAT_FILEOPENNAMEA OPENFILENAMEA
+#define SAT_FILEOPENNAME OPENFILENAME
+
+#ifdef SAT_SYM
+	#define TYPE_INT int
+	#define TYPE_FLOAT float
+	#define TYPE_INT_PTR int*
+	#define TYPE_FLOAT_PTR float*
+	#define __VOID void
+	#define __VOID_PTR void*
+	#define TYPE_VOID __VOID
+	#define TYPE_VOID_PTR __VOID_PTR
+	#define __UNSIGNED unsigned
+	#define TYPE__UNSIGNED_INT __UNSIGNED TYPE_INT
+	#define TYPE__UNSIGNED_FLOAT __UNSIGNED TYPE_FLOAT
+	#define TYPE__UNSIGNED_INT __UNSIGNED TYPE_INT*
+	#define TYPE__UNSIGNED_FLOAT __UNSIGNED TYPE_FLOAT*
+	#define NULLPTR nullptr
+	#define TYPE_NULL NULL
+	#define TYPE_NULL_PTR NULLPTR
+	#define TYPE_ZERO 0
+	#define TYPE_ONE 1
+	#define SAT_ZeroMemory RtlZeroMemory
+	#ifdef MR
+
+
+		#define USE_OPENGL 0
+		#if defined (SAT_PLATFORM_WINDOWS)
+				#define USE_DX 0
+		#else
+				#define USE_DX 0
+		#endif
+		#define USE_VULKAN 0
+
+	#endif // MR
+
+	#define TYPE_OSSTREAM std::ofstream
+#endif // SAT_SYM
 
 #endif
