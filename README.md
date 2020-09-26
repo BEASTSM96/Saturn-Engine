@@ -13,8 +13,9 @@ If the repository was cloned non-recursively previously, use `git submodule upda
 
 It's Just [here](https://github.com/BEASTSM96/Sparky-Engine/blob/master/INSTALL.md)
 
+## 
 
-## Main features to come:
+### Main features to come:
 - Fast 2D rendering (UI, particles, sprites, etc.)
 - High-fidelity Physically-Based 3D rendering 
 - Support for Mac, Linux, Android and iOS
