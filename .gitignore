@@ -93,3 +93,7 @@ Spark/**
 Spark/
 Spark
 Spark
+Sandbox/assets/tex
+**/Sandbox/*.json
+Sandbox/**.json
+Sandbox/*.json
