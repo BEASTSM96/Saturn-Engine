@@ -10,3 +10,6 @@
 [submodule "Saturn/vendor/imgui"]
 	path = Saturn/vendor/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "Saturn/vendor/stduuid"]
+	path = Saturn/vendor/stduuid
+	url = https://github.com/mariusbancila/stduuid
