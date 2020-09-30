@@ -28,6 +28,10 @@ namespace Saturn {
         std::string             directory;
         bool                    gammaCorrection;
 
+        DShader * GetShader() {
+            return new DShader("assets/shaders/3d_test.satshaderv", "assets/shaders/3d_test.satshaderf");
+        }
+
        const glm::mat4& GetTransform() {
             return transform;
        }
@@ -36,6 +40,9 @@ namespace Saturn {
         const glm::mat4& SetTransform(glm::mat4 & newtransform) {
             return transform = newtransform;
         }
+
+    private:
+        void ProcessMaterials(const aiScene* scene);
 
     private:
         // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
@@ -53,6 +60,11 @@ namespace Saturn {
        glm::mat4                oldtransform = glm::mat4(0.0f);
 
        glm::mat4               transform = glm::mat4(1.0f);
+
+       DShader      *           m_Shader;
+
+       std::string m_Path;
+       std::string m_Directory;
 
     };
 }
