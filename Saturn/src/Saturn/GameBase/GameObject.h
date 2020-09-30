@@ -10,7 +10,6 @@
 *										Friend class SATURN_API GameLayer (needed for rendering on that layer).
 *										Entity (for ECS)
 */
-
 // Always include this 
 #include "entt.hpp"
 #include "Saturn/Scene/Scene.h"
@@ -27,7 +26,7 @@
 #include "Saturn/Renderer/VertexArray.h"
 #include "Saturn/Renderer/Shader.h"
 #include "Saturn/Renderer/Renderer.h"
-#include "Saturn/Renderer/3D/3dShader.h"
+//#include "Saturn/Renderer/3D/3dShader.h"
 
 #include "Saturn/Layer.h"
 
@@ -37,6 +36,8 @@
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
+
+class DShader;
 
 namespace Saturn {
 
@@ -100,18 +101,11 @@ namespace Saturn {
 
 		void OnUpdate(Timestep ts);
 	public:
-
-		E_GameObjectState GetObjectState() { return GameObjectState; }
-
-		SPint GetObjectStateInInt() { return GameObjectState; }
- 
-		E_GameObjectState SetObjectState(E_GameObjectState newstate) { if (newstate == GameObjectState) { SAT_CORE_WARN("You are setting a new State, when the old state is the same!"); return E_GameObjectState::Idle; GameObjectState = E_GameObjectState::Idle; } else return GameObjectState = newstate; }
+		GameObject* SpawnGameObject();
 
 	private:
 		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
-
-		E_GameObjectState GameObjectState = E_GameObjectState::Idle;
 
 		std::vector<DShader*> shaders;
 

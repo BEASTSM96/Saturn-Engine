@@ -125,20 +125,20 @@ namespace Saturn {
 	*
 	* @endcode
 	*/
+
 	class Model;
 
 	struct MeshComponent
 	{
 	public:
+		Model* GetModel() { return m_Model; }
+	private:
+		Model* m_Model = nullptr;
+	public:
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;
 		MeshComponent(Model * model)
 			: m_Model(model) {}
-	public:
-		Model* GetModel() { return m_Model; };
-	private:
-		Model * m_Model;
-
 	};
 
 

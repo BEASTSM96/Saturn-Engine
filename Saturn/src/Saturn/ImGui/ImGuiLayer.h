@@ -15,8 +15,6 @@
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Scene/Entity.h"
 
-#include "Saturn/Editor/Core.h"
-
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <glm/gtc/type_ptr.hpp>

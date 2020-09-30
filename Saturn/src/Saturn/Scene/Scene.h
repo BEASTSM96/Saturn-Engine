@@ -11,15 +11,12 @@
 namespace Saturn {
 
 
-	typedef struct sd {
+	struct SceneData {
 
 		std::string name;
 		float ID;
 
 	};
-
-
-	typedef sd SceneData;
 
 	class Level;
 	class Entity;

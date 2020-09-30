@@ -13,6 +13,7 @@
 
 #include "Saturn/Core.h"
 
+#pragma warning(disable: 4101)
 
 #ifdef SPARKY_GAME_BASE
 /*  THIS class SATURN_API WILL PROB BE THE BATCH RENDERER!*/

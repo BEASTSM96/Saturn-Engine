@@ -9,6 +9,7 @@ namespace Saturn {
 
     Level::Level()
     {
+        SAT_PROFILE_FUNCTION();
         m_id = Random::Float() * 10000;
     }
 

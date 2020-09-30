@@ -40,9 +40,7 @@
 
 #include "Core/World/Level.h"
 
-#include "Debug/memoryexttest.h"
-
-#include "Core/Math/Math.h"
+#include "Core/UUID/UUID.h"
 
 #include <imgui.h>
 
@@ -61,6 +59,8 @@ namespace Saturn {
 
 	Application::Application()
 	{
+		SAT_PROFILE_FUNCTION();
+
 		SAT_CORE_ASSERT(!s_Instance, "Application already exists!");
 
 		{
@@ -88,35 +88,31 @@ namespace Saturn {
 		{
 			PushOverlay(m_ImGuiLayer);
 			PushOverlay(m_RenderStats);
-			//PushOverlay(m_EditorLayer);
+			PushOverlay(m_EditorLayer);
 			//PushOverlay(m_ImguiTopBar);
 
 			#define SPARKY_GAME_BASE
-
-
-			#ifndef APP_CORE_UI
-			#define APP_CORE_UI
-					#ifdef SAT_DEBUG
-								//PushOverlay(m_ImguiTopBar);
-								PushOverlay(m_EditorLayer);
-					#endif // SAT_DEBUG
-			#endif // !APP_CORE_UI
 		}
 	}
 
 	Application::~Application()
 	{
+		SAT_PROFILE_FUNCTION();
 		m_Level->~Level();
 	}
 
 	void Application::PushLayer(Layer* layer)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		m_LayerStack.PushLayer(layer);
 		layer->OnAttach();
 	}
 
 	void Application::PushOverlay(Layer* layer)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		m_LayerStack.PushOverlay(layer);
 		layer->OnAttach();
 	}
@@ -124,6 +120,8 @@ namespace Saturn {
 
 	void Application::OnEvent(Event& e)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		EventDispatcher dispatcher(e);
 
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
@@ -140,6 +138,8 @@ namespace Saturn {
 
 	void Application::Run()
 	{		
+		SAT_PROFILE_FUNCTION();
+
 		Serialiser::Init();
 
 		Math::Init();
@@ -157,6 +157,8 @@ namespace Saturn {
 
 		while (m_Running && !m_Crashed)
 		{
+			SAT_PROFILE_SCOPE("RunLoop");
+
 			frames++;
 
 			float time = (float)glfwGetTime(); //Platform::GetTime();
@@ -191,7 +193,6 @@ namespace Saturn {
 			m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
-
 		}
 		while (m_Crashed && !m_Running)
 		{
@@ -239,8 +240,10 @@ namespace Saturn {
 	}
 
 
-	std::pair< std::string, std::string> Application::OpenFile(const char* filter) const
+	std::pair<std::string, std::string> Application::OpenFile(const char* filter) const
 	{
+
+		SAT_PROFILE_FUNCTION();
 
 #ifdef  SAT_PLATFORM_WINDOWS
 		SAT_FILEOPENNAMEA ofn;
@@ -272,17 +275,17 @@ namespace Saturn {
 	}
 
 
-	std::pair< std::string, std::string> Application::SaveFile(const char* f) const
+	std::pair<std::string, std::string> Application::SaveFile(const char* f) const
 	{
+		SAT_PROFILE_FUNCTION();
+
 #ifdef  SAT_PLATFORM_LINUX
-		m_Running = false;
-		m_Crashed = false;
 #endif
 #ifdef  SAT_PLATFORM_WINDOWS
 		OPENFILENAMEA ofn;
 		CHAR szFile[260] = { 0 };
 
-		ZeroMemory(&ofn, sizeof(OPENFILENAME));
+		SAT_ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.lpstrFilter = f;
 		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
@@ -301,4 +304,6 @@ namespace Saturn {
 		return { std::string(), std::string() };
 
 	}
+
+
 }

@@ -27,6 +27,7 @@ IncludeDir["stb_image"] = "Saturn/vendor/stb/"
 IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
 IncludeDir["Assimp"] = "Saturn/vendor/assimp/"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
+IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
@@ -34,6 +35,7 @@ group "sat/Dependencies"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/jsoncpp"
 	include "Saturn/vendor/assimp"
+	include "Saturn/vendor/SPIRV_Cross"
 group "sat/Dependencies/Audio"
 	include "Saturn/vendor/Audio/OpenAL-Soft"
 	include "Saturn/vendor/Audio/libogg"
@@ -83,6 +85,7 @@ project "Saturn"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
 				"%{prj.name}/vendor/assimp/include",
+		"%{IncludeDir.SPIRV_Cross}",
 		"%{prj.name}/vendor/ImguiFileDialog/ImguiFileDialog",
 		"%{prj.name}/vendor/dirent/include",
 		"%{prj.name}/vendor/Audio/OpenAL-Soft/include",

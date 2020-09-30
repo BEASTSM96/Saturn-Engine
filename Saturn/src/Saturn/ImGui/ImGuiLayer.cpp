@@ -4,6 +4,11 @@
 #include "Platform/OpenGL/OpenGLFramebuffer.h"
 #include "Saturn/Scene/Components.h"
 
+#define IMGUI_MEMORY_EDITOR
+#ifdef IMGUI_MEMORY_EDITOR
+#include "imgui_widgets.cpp"
+#endif // IMGUI_MEMORY_EDITOR
+
 #include "imgui.h"
 #include "ImGuizmo.h"
 #include "examples/imgui_impl_glfw.h"
@@ -41,12 +46,15 @@ namespace Saturn {
 	ImGuiLayer::ImGuiLayer()
 		: Layer("ImGuiLayer")
 	{
+		SAT_PROFILE_FUNCTION();
 
 		archive();
 	}
 
 	void ImGuiLayer::OnAttach()
 	{
+		SAT_PROFILE_FUNCTION();
+
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -78,6 +86,8 @@ namespace Saturn {
 
 	void ImGuiLayer::OnDetach()
 	{
+		SAT_PROFILE_FUNCTION();
+
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
@@ -85,6 +95,8 @@ namespace Saturn {
 
 	void ImGuiLayer::Begin()
 	{
+		SAT_PROFILE_FUNCTION();
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -92,6 +104,8 @@ namespace Saturn {
 
 	void ImGuiLayer::End()
 	{
+		SAT_PROFILE_FUNCTION();
+
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::Get();
 		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
@@ -111,6 +125,8 @@ namespace Saturn {
 
 	void ImGuiLayer::OnImGuiRender()
 	{
+		SAT_PROFILE_FUNCTION();
+
 		archive();
 	}
 
@@ -541,15 +557,20 @@ namespace Saturn {
 
 	EditorLayer::EditorLayer() : Layer("EditorLayer")
 	{
+		SAT_PROFILE_FUNCTION();
+
 		archive();
 	}
 
 	EditorLayer::~EditorLayer()
 	{
+		SAT_PROFILE_FUNCTION();
 	}
 
 	void EditorLayer::OnAttach()
 	{
+		SAT_PROFILE_FUNCTION();
+
 		FramebufferSpecification fbSpec;
 		fbSpec.Width = Application::Get().GetWindow().GetWidth();
 		fbSpec.Height = Application::Get().GetWindow().GetHeight();
@@ -792,6 +813,8 @@ namespace Saturn {
 
 	void EditorLayer::OnDetach()
 	{
+		SAT_PROFILE_FUNCTION();
+
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
@@ -799,6 +822,8 @@ namespace Saturn {
 
 	void EditorLayer::Begin()
 	{
+		SAT_PROFILE_FUNCTION();
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -806,6 +831,8 @@ namespace Saturn {
 
 	void EditorLayer::End()
 	{
+		SAT_PROFILE_FUNCTION();
+
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::Get();
 		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
@@ -826,12 +853,15 @@ namespace Saturn {
 
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		m_Framebuffer->Bind();
 		m_Framebuffer->Unbind();
 	}
 
 	void EditorLayer::OnImGuiRender()
 	{
+		SAT_PROFILE_FUNCTION();
 
 		ImGuizmo::BeginFrame();
 		
@@ -844,10 +874,10 @@ namespace Saturn {
 			if (ImGui::Begin("Viewport")) {	
 
 				uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
-				ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+				
 
-				ImVec2 portSize =  ImGui::GetContentRegionAvail();
-				m_ViewportSize = { portSize.x, portSize.y };
+
+
 #if 0
 				// view/projection transformations
 				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->Get3DCamera().Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
@@ -939,9 +969,11 @@ namespace Saturn {
 
 			io.ConfigWindowsMoveFromTitleBarOnly = true;
 
+#ifdef SAT_DEBUG
+
 			if (ImGui::Begin("Debugger")) {
 
-				if(ImGui::Button("Import")){
+				if(ImGui::Button("Import")) {
 
 					SAT_CORE_INFO("--------------------------------------------------------------------------------------------------");
 					SAT_CORE_INFO("Awaiting user file location!");
@@ -986,7 +1018,65 @@ namespace Saturn {
 					delete importedModel;
 				}
 
+				static bool m_open = false;
+				if (ImGui::Button("Shader Edit")) {
+					m_open = true;
+				}
+
+				if (ImGui::Begin("Shader Editor"), &m_open) {
+					static char buffer[1024 * 16] =
+					"#version 330 core\n"
+					"\n"
+					"layout(location = 0) in vec3 aPos;\n"
+					"layout(location = 1) in vec3 aNormal;\n"
+					"layout(location = 2) in vec2 aTexCoords;\n"
+					"\n"
+					"out vec2 TexCoords;\n"
+					"\n"
+					"uniform mat4 model;\n"
+					"uniform mat4 view;\n"
+					"uniform mat4 projection;\n"
+					"\n"
+					"void main()\n"
+					"{\n"
+						"\n" "TexCoords = aTexCoords;\n"
+						"gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
+						"\n"
+					"}\n"
+					"/*This is just a exmaple shader*/\n"	;
+
+					if (ImGui::IsKeyPressed(SAT_KEY_LEFT_CONTROL) && ImGui::IsKeyPressed(SAT_KEY_S))
+					{
+						auto[name, ex] = Application::Get().SaveFile(".satshader\0* .satshaderf; *.satshaderv;\0\0");
+
+						SAT_CORE_INFO("Name = {0}", name);
+
+						std::ofstream shaderfile(name);
+
+						shaderfile << buffer;
+					}
+
+					if (ImGui::IsKeyPressed(SAT_KEY_LEFT_CONTROL) && ImGui::IsKeyPressed(SAT_KEY_O))
+					{
+						auto [name, ex] = Application::Get().OpenFile(".satshader\0* .satshaderf; *.satshaderv;\0\0");
+
+						SAT_CORE_INFO("Name = {0}", name);
+
+						std::ifstream shaderfile(name);
+
+						shaderfile >> buffer;
+					}
+
+					static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
+					if (ImGui::InputTextMultiline("##shdeditor", buffer, sizeof(buffer), ImVec2(-0.01f, -0.01f), flags));
+
+				}
+
+				ImGui::End();
+
 			}
+
+#endif // SAT_DEBUG
 
 			ImGui::End();
 			ImGui::End();
@@ -998,16 +1088,19 @@ namespace Saturn {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 	{
+		SAT_PROFILE_FUNCTION();
 		SetContext(context);
 	}
 
 	void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
 	{
+		SAT_PROFILE_FUNCTION();
 		m_Context = context;
 	}
 
 	void SceneHierarchyPanel::OnImGuiRender()
 	{
+		SAT_PROFILE_FUNCTION();
 		ImGui::Begin("Scene Hierarchy");
 
 		m_Context->m_Registry.each([&](auto entityID)
@@ -1034,6 +1127,7 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
 	{
+		SAT_PROFILE_FUNCTION();
 		auto& tag = entity.GetComponent<TagComponent>().Tag;
 
 		auto& id = entity.GetComponent<IdComponent>().Id;
@@ -1099,6 +1193,7 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::DrawEntityComponents(Entity entity)
 	{
+		SAT_PROFILE_FUNCTION();
 		auto& tagORNL = entity.GetComponent<TagComponent>().Tag;
 
 		if (entity.HasComponent<TagComponent>())
@@ -1154,9 +1249,7 @@ namespace Saturn {
 			auto& pos = entity.GetComponent<TransformComponent>().Transform;
 
 			if (ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Transform")) {
-				if (ImGui::DragFloat3("Position", glm::value_ptr(entity.GetComponent<TransformComponent>().Transform[3]), 0.5f));
-
-				if (ImGui::DragFloat3("Scale", glm::value_ptr(entity.GetComponent<TransformComponent>().Transform[2]), 0.5f));
+				ImGui::DragFloat3("Position", glm::value_ptr(entity.GetComponent<TransformComponent>().Transform[3]), 0.5f);
 
 				ImGui::TreePop();
 			}

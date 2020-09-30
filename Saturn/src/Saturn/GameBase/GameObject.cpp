@@ -2,6 +2,7 @@
 #include "GameObject.h"
 #include "Saturn/Core/Serialisation/Object.h"
 
+#include "Saturn/Renderer/3D/3dShader.h"
 #include "GameLayer.h"
 
 #include "Saturn/Application.h"
@@ -16,6 +17,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#pragma warning(disable: 26812)
 
 
 #ifdef SPARKY_GAME_BASE
@@ -34,23 +36,19 @@ namespace Saturn {
 
 	GameObject::GameObject(entt::entity handle, Scene* scene) : Serialiser::OBJ_NAME("GameObject"), m_EntityHandle(handle), m_Scene(scene)
 	{
-
 	}
 
 	void GameObject::Init() {
+
+		SAT_PROFILE_FUNCTION();
 
 		s_Instance = this;
 
 		// tell stb_image.h to flip loaded texture's on the y-axis
 		stbi_set_flip_vertically_on_load(true);
 
-
 		GetComponent<TransformComponent>().Transform = glm::translate(transform, glm::vec3(10.0f, 10.0f, 10.0f));
 		GetComponent<TransformComponent>().Transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
-
-	
-
-		GameObjectState = E_GameObjectState::Idle;
 
 		GameLayer * gl = static_cast<GameLayer*>(Application::Get().GetCurrentScene().m_CurrentLevel->GetGameLayer());
 
@@ -69,7 +67,8 @@ namespace Saturn {
 	}
 
 	void GameObject::OnUpdate(Timestep ts) {
-	
+		SAT_PROFILE_FUNCTION();
+
 		if (HasComponent<MeshComponent>())
 		{
 			ourModel->SetTransform(GetComponent<TransformComponent>().Transform);
@@ -79,6 +78,8 @@ namespace Saturn {
 
 	void GameObject::Render()
 	{	
+		SAT_PROFILE_FUNCTION();
+
 		if (!m_3D)
 		{
 			GameLayer* gl = Application::Get().m_gameLayer;
@@ -92,24 +93,46 @@ namespace Saturn {
 		}
 		else 
 		{
+			SAT_PROFILE_SCOPE("GameObjectRenderLoop");
+
 			GameLayer* gl = Application::Get().m_gameLayer;
 			if (HasComponent<MeshComponent>())
 			{
-				ourShader->use();
+
+
+				GetComponent<MeshComponent>().GetModel()->GetShader()->Bind();
 
 				// view/projection transformations
 				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->m_3DCamera.Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
 				glm::mat4 view = Application::Get().m_gameLayer->m_3DCamera.GetViewMatrix();
-				ourShader->setMat4("projection", projection);
-				ourShader->setMat4("view", view);
+				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadMat4("projection", projection);
+				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadMat4("view", view);
 
-				ourShader->setMat4("model", GetComponent<TransformComponent>().Transform);
+				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadMat4(
+					"model",
+					GetComponent<TransformComponent>().Transform
+				);
 
+				// material properties
 
-				ourModel->Draw(*ourShader);
+				//Load the texture(s)
+				unsigned int diffuseMap = loadTexture("assets/meshes/red.png");
+
+				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadInt("material.diffuse", diffuseMap);
+				// bind diffuse map
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+				GetComponent<MeshComponent>().GetModel()->Draw(*GetComponent<MeshComponent>().GetModel()->GetShader());
 
 			}
 		}
+	}
+
+
+	GameObject* GameObject::SpawnGameObject()
+	{
+		return Application::Get().GetCurrentScene().CreateEntityGameObjectprt("");
 	}
 
 	// utility function for loading a 2D texture from file

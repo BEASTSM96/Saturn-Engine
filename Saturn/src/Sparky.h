@@ -34,8 +34,6 @@
 
 #include "Saturn/Core/File/SparkyFile.h"
 
-#include "Saturn/Core/string/String.h"
-
 #include "Saturn/Core/File/SparkyFile.h"
 
 #include "Saturn/Renderer/Texture.h"

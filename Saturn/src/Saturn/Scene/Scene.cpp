@@ -18,6 +18,7 @@ namespace Saturn {
 
 	Scene::Scene()
 	{
+		SAT_PROFILE_FUNCTION();
 
 		m_data.ID = Random::Float();
 		m_data.name = m_data.name.empty() ? "Scene" : m_data.name;
@@ -59,6 +60,8 @@ namespace Saturn {
 
 	Entity Scene::CreateEntity(const std::string& name)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
@@ -72,6 +75,8 @@ namespace Saturn {
 
 	GameObject Scene::CreateEntityGameObject(const std::string& name)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		GameObject entity = { m_Registry.create(), this };
 
 		entity.AddComponent<TransformComponent>();
@@ -87,9 +92,16 @@ namespace Saturn {
 
 	GameObject * Scene::CreateEntityGameObjectprt(const std::string& name)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		GameObject * entity = new GameObject( m_Registry.create(), this );
+		memset(entity, 0, sizeof(entity));
 
 		entity->AddComponent<TransformComponent>();
+
+		entity->ourModel = new Model("assets/meshes/CUBE.fbx");
+		entity->AddComponent<MeshComponent>(entity->ourModel);
+
 
 		auto& tag = entity->AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Unmanned GameObject" : name;
@@ -104,6 +116,8 @@ namespace Saturn {
 
 	void Scene::OnUpdate(Timestep ts)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		SAT_CORE_ASSERT(m_CurrentLevel->GetGameLayer(), "Error GameLayer is null!");
 	}
 

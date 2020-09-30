@@ -162,26 +162,70 @@ namespace Saturn {
 #define SAT_FILEOPENNAMEA OPENFILENAMEA
 #define SAT_FILEOPENNAME OPENFILENAME
 
+#define SAT_SYM
 #ifdef SAT_SYM
 	#define TYPE_INT int
 	#define TYPE_FLOAT float
-	#define TYPE_INT_PTR int*
-	#define TYPE_FLOAT_PTR float*
+	#define TYPE_INT_PTR TYPE_INT PTR
+	#define TYPE_FLOAT_PTR TYPE_FLOAT PTR
 	#define __VOID void
-	#define __VOID_PTR void*
+	#define __VOID_PTR __VOID PTR
 	#define TYPE_VOID __VOID
 	#define TYPE_VOID_PTR __VOID_PTR
 	#define __UNSIGNED unsigned
 	#define TYPE__UNSIGNED_INT __UNSIGNED TYPE_INT
 	#define TYPE__UNSIGNED_FLOAT __UNSIGNED TYPE_FLOAT
-	#define TYPE__UNSIGNED_INT __UNSIGNED TYPE_INT*
-	#define TYPE__UNSIGNED_FLOAT __UNSIGNED TYPE_FLOAT*
+	#define TYPE__UNSIGNED_INT __UNSIGNED TYPE_INT PTR
+	#define TYPE__UNSIGNED_FLOAT __UNSIGNED TYPE_FLOAT PTR
 	#define NULLPTR nullptr
 	#define TYPE_NULL NULL
 	#define TYPE_NULL_PTR NULLPTR
 	#define TYPE_ZERO 0
 	#define TYPE_ONE 1
 	#define SAT_ZeroMemory RtlZeroMemory
+	#define PTR *
+	#define NEW new
+	#define PTR_POINT ->
+	#define TYPENAME typename
+	#define TEMPLATE template
+	#define CLASS class
+	#define OP_BACKSL /
+	#define OP_FWDSL \
+	
+#if TEST_CODE
+
+CLASS MyClass{
+public:
+	MyClass();
+	~MyClass();
+
+	__VOID Test() {
+	
+	
+	}
+
+
+}
+
+CLASS MyOtherClass{
+
+public:
+	MyOtherClass();
+	~MyOtherClass();
+
+
+	__VOID GetPRT()
+	{
+		MyClass* test = new MyClass();
+		test PTR_POINT Test();
+	}
+
+}
+
+#endif // TEST_CODE
+
+
+
 	#ifdef MR
 
 
