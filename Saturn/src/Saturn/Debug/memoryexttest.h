@@ -95,22 +95,3 @@ namespace Saturn {
 		}
 	}
 }
-
-enum pft
-{
-Windows,
-Mac
-};
-
-enum DCE
-{
-#ifdef SAT_PLATFORM_WINDOWS
-	Checkptf = Windows
-#elif defined (SAT_PLATFORM_MACOSX)
-	Checkptf = Mac
-#elif defined (SAT_PLATFORM_LINUX)
-	Checkptf = 0
-#else
-	Checkptf = 0
-#endif // SAT_PLATFORM_WINDOWS
-};
