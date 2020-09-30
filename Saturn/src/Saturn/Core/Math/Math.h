@@ -4,6 +4,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#pragma warning(disable: 26495)
+#pragma warning(disable: 26451)
+#pragma warning(disable: 26812)
+#pragma warning(disable: 6001)
+#pragma warning(disable: 4244)
+
 class SATURN_API MathType
 {
 public:

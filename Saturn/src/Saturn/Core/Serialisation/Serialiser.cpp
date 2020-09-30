@@ -22,8 +22,9 @@ namespace Saturn
 
 	void Serialiser::Init()
 	{
-		SAT_CORE_WARN("Serialiser inited! ");
 
+		SAT_PROFILE_FUNCTION();
+		SAT_CORE_WARN("Serialiser inited! ");
 	}
 
 	Serialiser::~Serialiser()

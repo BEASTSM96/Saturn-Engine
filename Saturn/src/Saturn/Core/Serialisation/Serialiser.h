@@ -6,6 +6,8 @@
 
 #include "Types.h"
 
+#pragma warning(disable: 4005)
+
 #define OBJ_NAME(name) Serialiser(name)
 #define MEMBER(name, var, type) new Serialiser<type>(#name, &var)
 #define MEMBER(name, type) new Serialiser<type>(#name, &var)
