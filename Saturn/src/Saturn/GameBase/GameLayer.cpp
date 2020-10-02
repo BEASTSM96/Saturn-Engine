@@ -99,7 +99,7 @@ namespace Saturn {
 	}
 
 
-	void GameLayer::Sumbit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform) {
+	void GameLayer::Sumbit(const RefSR<Shader>& shader, const RefSR<VertexArray>& vertexArray, FTransform Intransform) {
 		Renderer::Submit(shader, vertexArray, Intransform);
 	}
 

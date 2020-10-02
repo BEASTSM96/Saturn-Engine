@@ -1,80 +1,123 @@
 #include "sppch.h"
 #include "OpenGLFramebuffer.h"
 
+#include "Saturn/Renderer/Renderer.h"
 #include <glad/glad.h>
 
 namespace Saturn {
 
-	static const uint32_t s_MaxFramebufferSize = 8192;
-
 	OpenGLFramebuffer::OpenGLFramebuffer(const FramebufferSpecification& spec)
 		: m_Specification(spec)
 	{
-		Invalidate();
+		Resize(spec.Width, spec.Height, true);
 	}
 
 	OpenGLFramebuffer::~OpenGLFramebuffer()
 	{
 		glDeleteFramebuffers(1, &m_RendererID);
-		glDeleteTextures(1, &m_ColorAttachment);
-		glDeleteTextures(1, &m_DepthAttachment);
 	}
 
-	void OpenGLFramebuffer::Invalidate()
+	void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height, bool forceRecreate)
 	{
-		/*Gen the framebuffer*/
-		glGenFramebuffers(1, &m_RendererID);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+		if (!forceRecreate && (m_Specification.Width == width && m_Specification.Height == height))
+			return;
 
-		glCreateTextures(GL_TEXTURE_3D, 1, &m_ColorAttachment);
-		glBindTexture(GL_TEXTURE_3D, m_ColorAttachment);
-		glTexImage2D(GL_TEXTURE_3D, 0, GL_RGBA8, m_Specification.Width, m_Specification.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		m_Specification.Width = width;
+		m_Specification.Height = height;
+		
+			if (m_RendererID)
+			{
+				glDeleteFramebuffers(1, &m_RendererID);
+				glDeleteTextures(1, &m_ColorAttachment);
+				glDeleteTextures(1, &m_DepthAttachment);
+			}
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
+			glGenFramebuffers(1, &m_RendererID);
+			glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
 
-		glCreateTextures(GL_TEXTURE_3D, 1, &m_DepthAttachment);
-		glBindTexture(GL_TEXTURE_3D, m_DepthAttachment);
-		glTexStorage2D(GL_TEXTURE_3D, 1, GL_DEPTH24_STENCIL8, m_Specification.Width, m_Specification.Height);
+			bool multisample = m_Specification.Samples > 1;
+			if (multisample)
+			{
+				glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &m_ColorAttachment);
+				glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_ColorAttachment);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachment, 0);
+				// TODO: Create Hazel texture object based on format here
+				if (m_Specification.Format == FramebufferFormat::RGBA16F)
+				{
+					glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_Specification.Samples, GL_RGBA16F, m_Specification.Width, m_Specification.Height, GL_FALSE);
+				}
+				else if (m_Specification.Format == FramebufferFormat::RGBA8)
+				{
+					glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_Specification.Samples, GL_RGBA8, m_Specification.Width, m_Specification.Height, GL_FALSE);
+				}
+				// glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				// glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+			}
+			else
+			{
+				glCreateTextures(GL_TEXTURE_2D, 1, &m_ColorAttachment);
+				glBindTexture(GL_TEXTURE_2D, m_ColorAttachment);
 
-	/*	unsigned int texture;
-		glCreateTextures(GL_TEXTURE_3D, 1, &texture);
-		glBindTexture(GL_TEXTURE_3D, texture);
-		glTexStorage2D(GL_TEXTURE_3D, 1, GL_DEPTH24_STENCIL8, m_Specification.Width, m_Specification.Height);
+				// TODO: Create Hazel texture object based on format here
+				if (m_Specification.Format == FramebufferFormat::RGBA16F)
+				{
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_Specification.Width, m_Specification.Height, 0, GL_RGBA, GL_FLOAT, nullptr);
+				}
+				else if (m_Specification.Format == FramebufferFormat::RGBA8)
+				{
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Specification.Width, m_Specification.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+				}
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
+			}
 
-		/glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture, 0);*/
+			if (multisample)
+			{
+				glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &m_DepthAttachment);
+				glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_DepthAttachment);
+				glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_Specification.Samples, GL_DEPTH24_STENCIL8, m_Specification.Width, m_Specification.Height, GL_FALSE);
+				glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+			}
+			else
+			{
+				glCreateTextures(GL_TEXTURE_2D, 1, &m_DepthAttachment);
+				glBindTexture(GL_TEXTURE_2D, m_DepthAttachment);
+				glTexImage2D(
+					GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_Specification.Width, m_Specification.Height, 0,
+					GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL
+				);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachment, 0);
+			}
 
+			if (multisample)
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_ColorAttachment, 0);
+			else
+				glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_ColorAttachment, 0);
 
-		//SAT_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, m_DepthAttachment, 0);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			SAT_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void OpenGLFramebuffer::Bind()
+	void OpenGLFramebuffer::Bind() const
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
 		glViewport(0, 0, m_Specification.Width, m_Specification.Height);
+
 	}
 
-	void OpenGLFramebuffer::Unbind()
+	void OpenGLFramebuffer::Unbind() const
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height)
+	void OpenGLFramebuffer::BindTexture(uint32_t slot) const
 	{
-		if (width == 0 || height == 0 || width > s_MaxFramebufferSize || height > s_MaxFramebufferSize)
-		{
-			SAT_CORE_WARN("Attempted to rezize framebuffer to {0}, {1}", width, height);
-			return;
-		}
-		m_Specification.Width = width;
-		m_Specification.Height = height;
-
-		Invalidate();
+		glBindTextureUnit(slot, m_ColorAttachment);
 	}
 
 }

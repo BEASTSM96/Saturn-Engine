@@ -56,6 +56,11 @@ namespace Saturn {
 
         void UploadTextureType(const std::string& name, unsigned int value) const;
 
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        int GetInt(const std::string& name) const;
+
+
     private:
         void dispatch(const unsigned int sizeX, const unsigned int sizeY, const unsigned int sizeZ) const;
 

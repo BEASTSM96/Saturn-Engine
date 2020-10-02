@@ -41,7 +41,7 @@ class DShader;
 
 namespace Saturn {
 
-	enum E_GameObjectState : SPint //uint64_t
+	enum E_GameObjectState : uint64_t
 	{
 		Idle,
 		Walking,
@@ -130,18 +130,18 @@ namespace Saturn {
 		DShader *		backgroundShader;
 
 		
-		Ref<Shader> m_playerShader;
-		Ref<VertexArray> m_playerVA;
+		RefSR<Shader> m_playerShader;
+		RefSR<VertexArray> m_playerVA;
 
-		Ref<Texture2D> m_playerTexture;
+		RefSR<Texture2D> m_playerTexture;
 
-		Ref<Shader> m_Shader;
-		Ref<VertexArray> m_VertexArray;
+		RefSR<Shader> m_Shader;
+		RefSR<VertexArray> m_VertexArray;
 
-		Ref<Shader> m_flatShader, m_TextureShader;
-		Ref<VertexArray> m_SquareVA;
+		RefSR<Shader> m_flatShader, m_TextureShader;
+		RefSR<VertexArray> m_SquareVA;
 
-		Ref<Texture2D> m_Texture, m_beastlogo;
+		RefSR<Texture2D> m_Texture, m_beastlogo;
 
 		float m_PlayerRotation = 0.0f;
 		float m_PlayerRotationSpeed = 180.0f;
@@ -155,6 +155,8 @@ namespace Saturn {
 
 	private:
 		friend class GameLayer;
+
+		friend class Model;
 
 		friend class Scene;
 

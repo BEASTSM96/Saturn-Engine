@@ -40,12 +40,6 @@
 
 #include "Core/World/Level.h"
 
-#include "Core/UUID/UUID.h"
-
-#include <imgui.h>
-
-#include <json/json.h>
-
 #include <Windows.h>
 #include <commdlg.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -153,7 +147,6 @@ namespace Saturn {
 		auto& e = m_Scene->CreateEntity("");
 		
 		gameObject = m_Scene->CreateEntityGameObjectprt("Cone");
-
 
 		while (m_Running && !m_Crashed)
 		{

@@ -68,18 +68,18 @@ namespace Saturn {
 
 		bool m_HasBeenSerialised = false;
 
-		Saturn::Ref<Saturn::Shader> m_playerShader;
+		Saturn::RefSR<Saturn::Shader> m_playerShader;
 		Saturn::Ref<Saturn::VertexArray> m_playerVA;
 
-		Saturn::Ref<Saturn::Texture2D> m_playerTexture;
+		Saturn::RefSR<Saturn::Texture2D> m_playerTexture;
 
-		Saturn::Ref<Saturn::Shader> m_Shader;
-		Saturn::Ref<Saturn::VertexArray> m_VertexArray;
+		Saturn::RefSR<Saturn::Shader> m_Shader;
+		Saturn::RefSR<Saturn::VertexArray> m_VertexArray;
 
-		Saturn::Ref<Saturn::Shader> m_flatShader, m_TextureShader;
-		Saturn::Ref<Saturn::VertexArray> m_SquareVA;
+		Saturn::RefSR<Saturn::Shader> m_flatShader, m_TextureShader;
+		Saturn::RefSR<Saturn::VertexArray> m_SquareVA;
 
-		Saturn::Ref<Saturn::Texture2D> m_Texture, m_beastlogo;
+		Saturn::RefSR<Saturn::Texture2D> m_Texture, m_beastlogo;
 
 		OrthographicCamera m_Camera;
 

@@ -57,11 +57,28 @@ namespace Saturn {
 		static void Begin3DScene(SCamera& camera);
 		static void EndScene();
 
-		static void Submit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform);
+		template<typename FuncT>
+		static void Submit(FuncT&& func)
+		{
+			auto renderCmd = [](void* ptr) {
+				auto pFunc = (FuncT*)ptr;
+				(*pFunc)();
 
-		static void Submit3D(const Ref<DShader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform);
+				// NOTE: Instead of destroying we could try and enforce all items to be trivally destructible
+				// however some items like uniforms which contain std::strings still exist for now
+				// static_assert(std::is_trivially_destructible_v<FuncT>, "FuncT must be trivially destructible");
+				pFunc->~FuncT();
+			};
+			auto storageBuffer = GetRenderCommandQueue().Allocate(renderCmd, sizeof(func));
+			new (storageBuffer) FuncT(std::forward<FuncT>(func));
+		}
+		
+		static void Submit(const RefSR<Shader>& shader, const RefSR<VertexArray>& vertexArray, FTransform Intransform);
 
-		SAT_FORCE_INLINE static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
+		static void Submit3D(const RefSR<DShader>& shader, const RefSR<VertexArray>& vertexArray, FTransform Intransform);
+
+
+		static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
 		static void Init();
 

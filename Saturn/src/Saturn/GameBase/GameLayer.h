@@ -44,7 +44,7 @@ namespace Saturn {
 		void OnUpdate(Timestep ts) override;
 		void OnEvent(Event& event) override;
 
-		void Sumbit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform);
+		void Sumbit(const RefSR<Shader>& shader, const RefSR<VertexArray>& vertexArray, FTransform Intransform);
 
 		void AddGameObjects(GameObject gameObject);
 
