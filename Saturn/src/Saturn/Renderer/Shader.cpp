@@ -9,10 +9,10 @@ namespace Saturn {
 
 	Shader* Shader::Create(std::string& vertexSrc, const std::string& fragmentSrc)
 	{
-		switch (Renderer::GetAPI())
+		switch (RendererAPI::Current())
 		{
-			case RendererAPI::API::None: SAT_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
-			case RendererAPI::API::OpenGL: return new OpenGLShader(vertexSrc, fragmentSrc);
+			case RendererAPIType::None: SAT_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
+			case RendererAPIType::OpenGL: return new OpenGLShader(vertexSrc, fragmentSrc);
 		}
 
 		SAT_CORE_ASSERT(false, "Unknown RendererAPI");

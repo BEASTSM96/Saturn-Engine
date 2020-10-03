@@ -3,6 +3,8 @@
 #include "Saturn/Core.h"
 #include "RendererAPI.h"
 
+#include <glm/glm.hpp>
+
 namespace Saturn {
 
 	enum class FramebufferFormat

@@ -9,11 +9,12 @@ namespace Saturn {
 	{
 		Ref<Framebuffer> result = nullptr;
 
-		switch (RendererAPI::GetAPI())
+		switch (RendererAPI::Current())
 		{
-			case RendererAPI::API::None:		return nullptr;
-			case RendererAPI::API::OpenGL:		result = Ref<OpenGLFramebuffer>::Create(spec);
+		case RendererAPIType::None:    SAT_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
+		case RendererAPIType::OpenGL:  return Ref<OpenGLFramebuffer>::Create(spec);
 		}
+
 		FramebufferPool::GetGlobal()->Add(result);
 		return result;
 	}

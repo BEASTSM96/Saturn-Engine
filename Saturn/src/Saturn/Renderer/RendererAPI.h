@@ -1,31 +1,57 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
-#include "VertexArray.h"
-
 namespace Saturn {
 
 	using RendererID = uint32_t;
 
-	class SATURN_API RendererAPI
+	enum class RendererAPIType
 	{
-	public:
-		enum class API
-		{
-			None = 0, OpenGL = 1, Vulkan = 2
-		};
-	public:
-		virtual void SetClearColor(const glm::vec4& color) = 0;
-		virtual void Clear() = 0;
-
-		virtual void DrawIndexed(const RefSR<VertexArray>& vertexArray) = 0;
-
-		static API GetAPI() { return s_API; }
-
-		virtual void Init() = 0;
-		virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
-	private:
-		static API s_API;
+		None,
+		OpenGL
 	};
+
+	// TODO: move into separate header
+	enum class PrimitiveType
+	{
+		None = 0, Triangles, Lines
+	};
+
+	struct RenderAPICapabilities
+	{
+		std::string Vendor;
+		std::string Renderer;
+		std::string Version;
+
+		int MaxSamples = 0;
+		float MaxAnisotropy = 0.0f;
+		int MaxTextureUnits = 0;
+	};
+
+	class RendererAPI
+	{
+	private:
+
+	public:
+		static void Init();
+		static void Shutdown();
+
+		static void Clear(float r, float g, float b, float a);
+		static void SetClearColor(float r, float g, float b, float a);
+
+		static void DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest = true);
+		static void SetLineThickness(float thickness);
+
+		static RenderAPICapabilities& GetCapabilities()
+		{
+			static RenderAPICapabilities capabilities;
+			return capabilities;
+		}
+
+		static RendererAPIType Current() { return s_CurrentRendererAPI; }
+	private:
+		static void LoadRequiredAssets();
+	private:
+		static RendererAPIType s_CurrentRendererAPI;
+	};
+
 }

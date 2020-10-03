@@ -98,11 +98,6 @@ namespace Saturn {
 		Renderer::EndScene();
 	}
 
-
-	void GameLayer::Sumbit(const RefSR<Shader>& shader, const RefSR<VertexArray>& vertexArray, FTransform Intransform) {
-		Renderer::Submit(shader, vertexArray, Intransform);
-	}
-
 	void GameLayer::OnEvent(Event& event)
 	{
 		m_CameraController.OnEvent(event);

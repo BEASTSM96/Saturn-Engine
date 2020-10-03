@@ -7,6 +7,13 @@
 
 namespace Saturn {
 
+	enum class MaterialFlag
+	{
+		None = BIT(0),
+		DepthTest = BIT(1),
+		Blend = BIT(2)
+	};
+
 	class SATURN_API Material : RefCounted
 	{
 	public:
@@ -23,6 +30,5 @@ namespace Saturn {
 		static Material* Create(std::string Name, glm::vec3 Ambient, glm::vec3 Diffuse, glm::vec3 Specular, GLuint DiffuseTexture, GLuint SpecularTexture);
 
 	};
-
 
 }

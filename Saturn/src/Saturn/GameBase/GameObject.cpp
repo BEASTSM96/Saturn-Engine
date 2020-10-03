@@ -79,18 +79,7 @@ namespace Saturn {
 	{	
 		SAT_PROFILE_FUNCTION();
 
-		if (!m_3D)
-		{
-			GameLayer* gl = Application::Get().m_gameLayer;
-
-			glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.1f));
-
-			FTransform tras = FTransform(m_PlayerPosition, scale, 0.0f);
-
-			gl->Sumbit(m_playerShader, m_SquareVA, tras);
-			//m_playerTexture->Bind();
-		}
-		else 
+		if(m_3D)
 		{
 			SAT_PROFILE_SCOPE("GameObjectRenderLoop");
 

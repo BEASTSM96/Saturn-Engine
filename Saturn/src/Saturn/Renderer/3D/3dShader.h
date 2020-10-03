@@ -8,13 +8,9 @@ namespace Saturn {
     class SATURN_API DShader
     {
     public:
-        unsigned int ID;
-        // constructor generates the shader
-
         DShader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
         ~DShader();
 
-        // activate the shader & deactivate the shader
 
         void Bind();
 
@@ -59,8 +55,8 @@ namespace Saturn {
         ////////////////////////////////////////////////////////////////////////////////////
 
         int GetInt(const std::string& name) const;
-
-
+    public:
+        unsigned int ID;
     private:
         void dispatch(const unsigned int sizeX, const unsigned int sizeY, const unsigned int sizeZ) const;
 
