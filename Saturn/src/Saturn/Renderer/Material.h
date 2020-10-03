@@ -7,18 +7,7 @@
 
 namespace Saturn {
 
-<<<<<<< HEAD
-	enum class MaterialFlag
-	{
-		None = BIT(0),
-		DepthTest = BIT(1),
-		Blend = BIT(2)
-	};
-
-	class SATURN_API Material : RefCounted
-=======
 	class SATURN_API Material
->>>>>>> parent of 0ef25b2... TestCommit
 	{
 	public:
 		virtual ~Material() = default;
@@ -33,5 +22,6 @@ namespace Saturn {
 		static Material* Create(glm::vec3 Ambient, glm::vec3 Diffuse, glm::vec3 Specular, GLuint DiffuseTexture, GLuint SpecularTexture);
 
 	};
+
 
 }

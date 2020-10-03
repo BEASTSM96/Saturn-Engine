@@ -85,9 +85,13 @@
 	#define SAT_CORE_ASSERT(x, ...)
 #endif
 
+
 #define BIT(x) (1 << x)
 
 #define SAT_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+
+/** For testing the app (aka just mem) */
+#define SAT_TEST
 
 #define SAT_class(name) class SATURN_API(name)
 
