@@ -52,11 +52,14 @@ namespace Saturn {
 
         void UploadTextureType(const std::string& name, unsigned int value) const;
 
+<<<<<<< HEAD
         ////////////////////////////////////////////////////////////////////////////////////
 
         int GetInt(const std::string& name) const;
     public:
         unsigned int ID;
+=======
+>>>>>>> parent of 0ef25b2... TestCommit
     private:
         void dispatch(const unsigned int sizeX, const unsigned int sizeY, const unsigned int sizeZ) const;
 

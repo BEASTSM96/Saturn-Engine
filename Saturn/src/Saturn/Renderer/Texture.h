@@ -2,12 +2,13 @@
 
 
 #include <string>
+#include "Saturn/Core.h"
 
 namespace Saturn { 
 
 
 	/*             Sparky Texture         */
-	class Texture
+	class SATURN_API Texture
 	{
 	public:
 		virtual ~Texture() = default;
@@ -19,10 +20,10 @@ namespace Saturn {
 	};
 
 	/*               Sparky Texture 2D        */
-	class Texture2D : public Texture
+	class SATURN_API Texture2D : public Texture
 	{
 	public:
-		static std::shared_ptr<Texture2D> Create(const std::string& path);
+		static Ref<Texture2D> Create(const std::string& path);
 	};
 
 }

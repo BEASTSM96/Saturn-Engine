@@ -30,7 +30,7 @@ namespace Saturn {
 			s_RendererAPI->Clear();
 		}
 
-		SAT_FORCE_INLINE static void DrawIndexed(const RefSR<VertexArray>& vertexArray)
+		SAT_FORCE_INLINE static void DrawIndexed(const Ref<VertexArray>& vertexArray)
 		{
 			s_RendererAPI->DrawIndexed(vertexArray);
 		}

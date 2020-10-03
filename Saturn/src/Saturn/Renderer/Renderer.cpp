@@ -6,8 +6,9 @@
 
 namespace Saturn {
 
-	RendererAPIType RendererAPI::s_CurrentRendererAPI = RendererAPIType::OpenGL;
+	Renderer::SceneData* Renderer::m_SceneData = new Renderer::SceneData;
 
+<<<<<<< HEAD
 
 	void Renderer::BeginScene(OrthographicCamera& camera)
 	{
@@ -23,6 +24,36 @@ namespace Saturn {
 	{
 	}
 
+=======
+	void Renderer::BeginScene(OrthographicCamera& camera)
+	{
+		m_SceneData->ViewProjectionMatrix = camera.GetViewProjectionMatrix();
+	}
+
+	void Renderer::Begin3DScene(SCamera& camera)
+	{
+		m_SceneData->ViewProjectionMatrix = camera.GetViewMatrix();
+	}
+
+	void Renderer::EndScene()
+	{
+	}
+
+	void Renderer::Submit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform)
+	{
+		shader->Bind();
+		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_ViewProjection", m_SceneData->ViewProjectionMatrix);
+		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_Transform", Intransform.scale);
+
+		vertexArray->Bind();
+		RenderCommand::DrawIndexed(vertexArray);
+	}
+
+	void Renderer::Submit3D(const Ref<DShader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform)
+	{
+	}
+
+>>>>>>> parent of 0ef25b2... TestCommit
 	void Renderer::Init()
 	{
 		RenderCommand::Init();
@@ -32,5 +63,4 @@ namespace Saturn {
 	{
 		RenderCommand::SetViewport(0, 0, width, height);
 	}
-
 }

@@ -26,6 +26,7 @@ namespace Saturn {
 		static void Begin3DScene(SCamera& camera);
 		static void EndScene();
 
+<<<<<<< HEAD
 		template<typename FuncT>
 		static void Submit(FuncT&& func)
 		{
@@ -43,6 +44,13 @@ namespace Saturn {
 		}
 
 		static RendererAPIType GetAPI() { return RendererAPI::Current(); }
+=======
+		static void Submit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform);
+
+		static void Submit3D(const Ref<DShader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform);
+
+		SAT_FORCE_INLINE static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
+>>>>>>> parent of 0ef25b2... TestCommit
 
 		static void Init();
 

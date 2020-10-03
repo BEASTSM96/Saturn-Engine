@@ -571,72 +571,71 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
+		FramebufferSpecification fbSpec;
+		fbSpec.Width = Application::Get().GetWindow().GetWidth();
+		fbSpec.Height = Application::Get().GetWindow().GetHeight();
+		m_Framebuffer = Framebuffer::Create(fbSpec);
+
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-
 
 		ImVec4* colors = ImGui::GetStyle().Colors;
 
-
-
-#ifdef SAT_PLATFORM_WINDOWS
-		ImFont* pFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
-		io.FontDefault = io.Fonts->Fonts.back();
-#endif // SAT_PLATFORM_WINDOWS
-
 #define SAT_DARK_THMEME
 #ifdef SAT_DARK_THMEME
-		// ImGui Colors
-		colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-		colors[ImGuiCol_TextDisabled] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-		colors[ImGuiCol_WindowBg] = ImVec4(0.18f, 0.18f, 0.18f, 1.0f); // Window background
-		colors[ImGuiCol_ChildBg] = ImVec4(1.0f, 1.0f, 1.0f, 0.0f);
-		colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
-		colors[ImGuiCol_Border] = ImVec4(0.43f, 0.43f, 0.50f, 0.5f);
-		colors[ImGuiCol_BorderShadow] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-		colors[ImGuiCol_FrameBg] = ImVec4(0.3f, 0.3f, 0.3f, 0.5f); // Widget backgrounds
-		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.4f, 0.4f, 0.4f, 0.4f);
-		colors[ImGuiCol_FrameBgActive] = ImVec4(0.4f, 0.4f, 0.4f, 0.6f);
-		colors[ImGuiCol_TitleBg] = ImVec4(0.04f, 0.04f, 0.04f, 1.0f);
-		colors[ImGuiCol_TitleBgActive] = ImVec4(0.29f, 0.29f, 0.29f, 1.0f);
-		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.0f, 0.0f, 0.0f, 0.51f);
-		colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.0f);
+		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[ImGuiCol_WindowBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_PopupBg] = ImVec4(0.14f, 0.14f, 0.14f, 0.94f);
+		colors[ImGuiCol_Border] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
+		colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_FrameBg] = ImVec4(0.33f, 0.33f, 0.33f, 0.54f);
+		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.40f);
+		colors[ImGuiCol_FrameBgActive] = ImVec4(0.41f, 0.41f, 0.41f, 0.67f);
+		colors[ImGuiCol_TitleBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+		colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
 		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
-		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.0f);
-		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.0f);
-		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.0f);
-		colors[ImGuiCol_CheckMark] = ImVec4(0.94f, 0.94f, 0.94f, 1.0f);
-		colors[ImGuiCol_SliderGrab] = ImVec4(0.51f, 0.51f, 0.51f, 0.7f);
-		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.66f, 0.66f, 0.66f, 1.0f);
-		colors[ImGuiCol_Button] = ImVec4(0.44f, 0.44f, 0.44f, 0.4f);
-		colors[ImGuiCol_ButtonHovered] = ImVec4(0.46f, 0.47f, 0.48f, 1.0f);
-		colors[ImGuiCol_ButtonActive] = ImVec4(0.42f, 0.42f, 0.42f, 1.0f);
-		colors[ImGuiCol_Header] = ImVec4(0.7f, 0.7f, 0.7f, 0.31f);
-		colors[ImGuiCol_HeaderHovered] = ImVec4(0.7f, 0.7f, 0.7f, 0.8f);
-		colors[ImGuiCol_HeaderActive] = ImVec4(0.48f, 0.5f, 0.52f, 1.0f);
-		colors[ImGuiCol_Separator] = ImVec4(0.43f, 0.43f, 0.5f, 0.5f);
-		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.72f, 0.72f, 0.72f, 0.78f);
-		colors[ImGuiCol_SeparatorActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.0f);
-		colors[ImGuiCol_ResizeGrip] = ImVec4(0.91f, 0.91f, 0.91f, 0.25f);
-		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.81f, 0.81f, 0.81f, 0.67f);
-		colors[ImGuiCol_ResizeGripActive] = ImVec4(0.46f, 0.46f, 0.46f, 0.95f);
-		colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.0f);
-		colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.0f, 0.43f, 0.35f, 1.0f);
-		colors[ImGuiCol_PlotHistogram] = ImVec4(0.73f, 0.6f, 0.15f, 1.0f);
-		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.0f, 0.6f, 0.0f, 1.0f);
-		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.87f, 0.87f, 0.87f, 0.35f);
-		colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.8f, 0.8f, 0.8f, 0.35f);
-		colors[ImGuiCol_DragDropTarget] = ImVec4(1.0f, 1.0f, 0.0f, 0.9f);
-		colors[ImGuiCol_NavHighlight] = ImVec4(0.60f, 0.6f, 0.6f, 1.0f);
-		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.7f);
+		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+		colors[ImGuiCol_CheckMark] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_SliderGrab] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
+		colors[ImGuiCol_Button] = ImVec4(0.38f, 0.38f, 0.38f, 0.40f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+		colors[ImGuiCol_Header] = ImVec4(0.65f, 0.65f, 0.65f, 0.31f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.34f, 0.34f, 0.34f, 0.80f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
+		colors[ImGuiCol_Separator] = ImVec4(0.54f, 0.54f, 0.54f, 0.50f);
+		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.55f, 0.55f, 0.55f, 0.78f);
+		colors[ImGuiCol_SeparatorActive] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+		colors[ImGuiCol_ResizeGrip] = ImVec4(0.40f, 0.40f, 0.40f, 0.25f);
+		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.67f);
+		colors[ImGuiCol_ResizeGripActive] = ImVec4(0.51f, 0.51f, 0.51f, 0.95f);
+		colors[ImGuiCol_Tab] = ImVec4(0.21f, 0.21f, 0.21f, 0.86f);
+		colors[ImGuiCol_TabHovered] = ImVec4(0.27f, 0.27f, 0.27f, 0.80f);
+		colors[ImGuiCol_TabActive] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+		colors[ImGuiCol_TabUnfocused] = ImVec4(0.19f, 0.19f, 0.19f, 0.97f);
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+		colors[ImGuiCol_DockingPreview] = ImVec4(0.26f, 0.59f, 0.98f, 0.70f);
+		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+		colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_PlotHistogram] = ImVec4(0.44f, 0.69f, 1.00f, 1.00f);
+		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.66f, 0.71f, 1.00f, 1.00f);
+		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+		colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+		colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
 #elif defined(SAT_DARK_THMEME_TWO)
 
 		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -855,27 +854,9 @@ namespace Saturn {
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
 		SAT_PROFILE_FUNCTION();
-	}
 
-	void EditorLayer::OnEvent(Event& e) {
-		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<MouseButtonPressedEvent>(SAT_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
-	}
-
-	bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
-		return false;
-	}
-
-	void EditorLayer::Outline()
-	{
-		Ref<Material> OutlineMaterial;
-
-		// Outline
-		auto outlineShader = DShader("assets/shaders/Outline.satshaderf", "assets/shaders/Outline.satshaderv");
-
-		glDisable(GL_DEPTH_TEST);
-
-
+		m_Framebuffer->Bind();
+		m_Framebuffer->Unbind();
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -891,6 +872,9 @@ namespace Saturn {
 			io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 			if (ImGui::Begin("Viewport")) {	
+
+				uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+			
 #if 0
 				// view/projection transformations
 				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->Get3DCamera().Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
@@ -1099,53 +1083,16 @@ namespace Saturn {
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	SceneHierarchyPanel::SceneHierarchyPanel(const RefSR<Scene>& context)
+	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 	{
 		SAT_PROFILE_FUNCTION();
 		SetContext(context);
 	}
 
-	void SceneHierarchyPanel::SetContext(const RefSR<Scene>& context)
+	void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
 	{
 		SAT_PROFILE_FUNCTION();
 		m_Context = context;
-	}
-
-	unsigned int LoadTexture(char const* path)
-	{
-		unsigned int textureID;
-		glGenTextures(1, &textureID);
-
-		int width, height, nrComponents;
-		unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
-		if (data)
-		{
-			GLenum format;
-			if (nrComponents == 1)
-				format = GL_RED;
-			else if (nrComponents == 3)
-				format = GL_RGB;
-			else if (nrComponents == 4)
-				format = GL_RGBA;
-
-			glBindTexture(GL_TEXTURE_2D, textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			stbi_image_free(data);
-		}
-		else
-		{
-			std::cout << "Texture failed to load at path: " << path << std::endl;
-			stbi_image_free(data);
-		}
-
-		return textureID;
 	}
 
 	void SceneHierarchyPanel::OnImGuiRender()
@@ -1159,13 +1106,11 @@ namespace Saturn {
 			DrawEntityNode(entity);
 		});
 
-		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-			m_SelectionContext = {};
-
 		ImGui::End();
 
 
 		if (ImGui::Begin("Inspector")) {
+
 			ImGui::Spacing();
 			if (m_SelectionContext) 
 				DrawEntityComponents(m_SelectionContext);
@@ -1174,97 +1119,37 @@ namespace Saturn {
 
 		ImGui::End();
 
-		if (m_SelectionContext)
+
+	}
+
+	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
+	{
+		SAT_PROFILE_FUNCTION();
+		auto& tag = entity.GetComponent<TagComponent>().Tag;
+
+		auto& id = entity.GetComponent<IdComponent>().Id;
+
+		auto& transform = entity.GetComponent<TransformComponent>().Transform;
+
+		float* t =  glm::value_ptr(transform);
+
+		ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
+
+		if (ImGui::IsItemClicked())
 		{
-			if (ImGui::Begin("Materials"))
-			{
-				if (m_SelectionContext.HasComponent<MeshComponent>())
-				{
+			m_SelectionContext = entity;
 
-					for (uint32_t i = 0; i < m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetMaterial().size(); i++)
-					{
-						ImGui::Text("Model Shader ID: %i", m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetShader()->ID);
-					}
-
-					ImGui::Separator();
-
-					for (uint32_t i = 0; i < m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetMaterial().size(); i++)
-					{
-						ImGui::Text("Material Name: %s", m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetMaterial().at(i)->GetName().c_str());
-					}
-
-					ImGui::Separator();
-
-					for (uint32_t i = 0; i < m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetMaterial().size(); i++)
-					{
-						ImGui::Text("GameObject Name: %s", m_SelectionContext.GetComponent<TagComponent>().Tag.c_str());
-						ImGui::Text("Model Name: %s", m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetName().c_str());
-					}
-
-					ImGui::Separator();
-
-					for (uint32_t i = 0; i < m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetMaterial().size(); i++)
-					{
-						// Albedo
-						if (ImGui::CollapsingHeader("Albedo", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-						{
-						}
-
-						ImGui::Separator();
-
-						// Diffuse
-						if (ImGui::CollapsingHeader("Diffuse", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-						{
-							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-							bool useDiffuseMap = true;
-							ImGui::PopStyleVar();
-							if (ImGui::Checkbox("Use##DiffuseMap", &useDiffuseMap)) {
-
-//								if (useDiffuseMap)
-//								{
-////
-//								}
-//
-//								if (!useDiffuseMap)
-//								{
-//									m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetShader()->UploadInt("material.diffuseTex", 0);
-//									m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetShader()->UploadInt("material.diffuse", 0);
-//								}
-							}
-
-							ImGui::Separator();
-						}
-
-						ImGui::Separator();
-
-						// Normals
-						if (ImGui::CollapsingHeader("Normals", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-						{
-						}
-
-						ImGui::Separator();
-
-						// Metalness
-						if (ImGui::CollapsingHeader("Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-						{
-						}
-
-						ImGui::Separator();
-
-						// Roughness
-						if (ImGui::CollapsingHeader("Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-						{
-						}
-
-					}
-				}
-			}
-
-			ImGui::End();
 		}
 
-		if (m_SelectionContext)
+		if (opened)
 		{
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+			bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
+			if (opened)
+				ImGui::TreePop();
+			ImGui::TreePop();
+
 			if (ImGui::Begin("Viewport")) {
 				// view/projection transformations
 				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->Get3DCamera().Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
@@ -1298,37 +1183,7 @@ namespace Saturn {
 			}
 
 			ImGui::End();
-		}
-	}
 
-	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
-	{
-		SAT_PROFILE_FUNCTION();
-		auto& tag = entity.GetComponent<TagComponent>().Tag;
-
-		auto& id = entity.GetComponent<IdComponent>().Id;
-
-		auto& transform = entity.GetComponent<TransformComponent>().Transform;
-
-		float* t =  glm::value_ptr(transform);
-
-		ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
-
-		if (ImGui::IsItemClicked())
-		{
-			m_SelectionContext = entity;
-
-		}
-
-
-		if (opened)
-		{
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-			bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
-			if (opened)
-				ImGui::TreePop();
-			ImGui::TreePop();
 		}
 
 	}

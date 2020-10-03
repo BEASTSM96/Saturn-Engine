@@ -7,7 +7,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
 
-#include "Saturn/Renderer/Material.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -18,14 +17,20 @@ namespace Saturn {
 	Model::Model(std::string const& path, bool gamma)
         : gammaCorrection(gamma)
     {
+        transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+        transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
+
+        transform = transform;
+
         m_Shader = new DShader("assets/shaders/3d_test.satshaderv", "assets/shaders/3d_test.satshaderf");
 
         m_Directory = path.substr(0, path.find_last_of('/'));
         m_Directory = m_Directory.substr(0, path.find_last_of('\\'));
 
-        m_Name = "Emtpy Model";
 
         loadModel(path);
+
+
 
     }
 
@@ -36,7 +41,7 @@ namespace Saturn {
     }
 
     void Model::Update(Timestep ts, DShader& shader)
-    {       
+    {
     }
 
     void Model::loadModel(std::string const& path)
@@ -45,13 +50,7 @@ namespace Saturn {
 
         const aiScene* s = m_Importer.ReadFile(
             path, 
-            aiProcess_CalcTangentSpace |        // Create binormals/tangents just in case
-            aiProcess_Triangulate |             // Make sure we're triangles
-            aiProcess_SortByPType |             // Split meshes by primitive type
-            aiProcess_GenNormals |              // Make sure we have legit normals
-            aiProcess_GenUVCoords |             // Convert UVs if required 
-            aiProcess_OptimizeMeshes |          // Batch draws where possible
-            aiProcess_ValidateDataStructure   // Validation
+            aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_MakeLeftHanded | aiProcess_FlipWindingOrder | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices
         );
 
 
@@ -64,11 +63,7 @@ namespace Saturn {
         directory = path.substr(0, path.find_last_of('/'));
 
         processNode(s->mRootNode, s);
-        /* Might not need to do this*/
-        if (s->HasMaterials())
-        {
-            ProcessMaterials(s);
-        }
+        ProcessMaterials(s);
     }
 
     void Model::processNode(aiNode* node, const aiScene* scene)
@@ -164,35 +159,47 @@ namespace Saturn {
             const char* normalTex = !normalPath.empty() ? normalPath.c_str() : nullptr;
 
             const char* materialName = material->GetName().length != 0 ? material->GetName().C_Str() : "Unnamed Material";
-
-            if (diffusePath.empty())
-            {
-                diffusePath = "assets/tex/default/Checkerboard.tga";
-            }
-
-            /*Should not really use a raw pointer here!*/
-            Material* mat = Material::Create(
-                materialName,
-                glm::vec3(color.r, color.g, color.b),
-                glm::vec3(color.r, color.g, color.b),
-                glm::vec3(color.r, color.g, color.b),
-                TextureFromFile(diffusePath.c_str(), diffusePath),
-                0
-            );
-
-          mat->SendToShader(m_Shader);
-
-          m_Materials.push_back(mat);
-
         }
 
+    }
+
+
+
+    std::vector<FTexture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
+    {
+        std::vector<FTexture> textures;
+        for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
+        {
+            aiString str;
+            mat->GetTexture(type, i, &str);
+            // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
+            bool skip = false;
+            for (unsigned int j = 0; j < textures_loaded.size(); j++)
+            {
+                if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
+                {
+                    textures.push_back(textures_loaded[j]);
+                    skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
+                    break;
+                }
+            }
+            if (!skip)
+            {   // if texture hasn't been loaded already, load it
+                FTexture texture;
+                texture.id = TextureFromFile(str.C_Str(), this->directory);
+                texture.type = typeName;
+                texture.path = str.C_Str();
+                textures.push_back(texture);
+                textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
+            }
+        }
+        return textures;
     }
 
     unsigned int Model::TextureFromFile(const char* path, const std::string& directory, bool gamma)
     {
         std::string filename = std::string(path);
-        std::string filepath = std::string(path);
-        filename = filepath;
+        filename = directory + '/' + filename;
 
         unsigned int textureID;
         glGenTextures(1, &textureID);
@@ -222,7 +229,7 @@ namespace Saturn {
         }
         else
         {
-            std::cout << "Texture failed to load at path: " << path << " directory "  << directory << " filename " << filename << std::endl;
+            std::cout << "Texture failed to load at path: " << path << std::endl;
             stbi_image_free(data);
         }
 

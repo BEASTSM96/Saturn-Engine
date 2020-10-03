@@ -1,12 +1,15 @@
 #include "sppch.h"
 #include "Framebuffer.h"
 
+#include "Saturn/Renderer/Renderer.h"
+
 #include "Platform/OpenGL/OpenGLFramebuffer.h"
 
 namespace Saturn {
 
 	Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& spec)
 	{
+<<<<<<< HEAD
 		Ref<Framebuffer> result = nullptr;
 
 		switch (RendererAPI::Current())
@@ -28,17 +31,17 @@ namespace Saturn {
 
 	FramebufferPool::~FramebufferPool()
 	{
+=======
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None:    SAT_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
+		case RendererAPI::API::OpenGL:  return CreateRef<OpenGLFramebuffer>(spec);
+		}
+>>>>>>> parent of 0ef25b2... TestCommit
 
+		SAT_CORE_ASSERT(false, "Unknown RendererAPI!");
+		return nullptr;
 	}
 
-	std::weak_ptr<Framebuffer> FramebufferPool::AllocateBuffer()
-	{
-		//m_Pool.push_back();
-		return std::weak_ptr<Framebuffer>();
-	}
 
-	void FramebufferPool::Add(const Ref<Framebuffer>& framebuffer)
-	{
-		m_Pool.push_back(framebuffer);
-	}
 }

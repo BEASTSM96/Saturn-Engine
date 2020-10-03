@@ -98,6 +98,14 @@ namespace Saturn {
 		Renderer::EndScene();
 	}
 
+<<<<<<< HEAD
+=======
+
+	void GameLayer::Sumbit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform) {
+		Renderer::Submit(shader, vertexArray, Intransform);
+	}
+
+>>>>>>> parent of 0ef25b2... TestCommit
 	void GameLayer::OnEvent(Event& event)
 	{
 		m_CameraController.OnEvent(event);

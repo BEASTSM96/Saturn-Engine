@@ -7,6 +7,7 @@
 
 namespace Saturn {
 
+<<<<<<< HEAD
 	//////////////////////////////////////////////////////////////////////////////////
 	// Material
 	//////////////////////////////////////////////////////////////////////////////////
@@ -18,6 +19,14 @@ namespace Saturn {
 		{
 		case RendererAPIType::None:    SAT_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
 		case RendererAPIType::OpenGL:  return Ref<OpenGLMaterial>::Create(spec);
+=======
+	Material * Material::Create(glm::vec3 Ambient, glm::vec3 Diffuse, glm::vec3 Specular, GLuint DiffuseTexture, GLuint SpecularTexture)
+    {
+		switch (Renderer::GetAPI())
+		{
+			case RendererAPI::API::None: SAT_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
+			case RendererAPI::API::OpenGL: return new OpenGLMaterial(Ambient, Diffuse, Specular, DiffuseTexture, SpecularTexture);
+>>>>>>> parent of 0ef25b2... TestCommit
 		}
 
 

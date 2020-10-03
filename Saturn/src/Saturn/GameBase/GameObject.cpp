@@ -71,6 +71,7 @@ namespace Saturn {
 
 		if (HasComponent<MeshComponent>())
 		{
+			ourModel->SetTransform(GetComponent<TransformComponent>().Transform);
 			ourModel->Update(ts, *ourShader);
 		}
 	}
@@ -86,24 +87,33 @@ namespace Saturn {
 			GameLayer* gl = Application::Get().m_gameLayer;
 			if (HasComponent<MeshComponent>())
 			{
-				GetComponent<MeshComponent>().GetModel()->m_Shader->Bind();
+
+
+				GetComponent<MeshComponent>().GetModel()->GetShader()->Bind();
 
 				// view/projection transformations
 				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->m_3DCamera.Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
 				glm::mat4 view = Application::Get().m_gameLayer->m_3DCamera.GetViewMatrix();
-				GetComponent<MeshComponent>().GetModel()->m_Shader->UploadMat4("projection", projection);
-				GetComponent<MeshComponent>().GetModel()->m_Shader->UploadMat4("view", view);
+				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadMat4("projection", projection);
+				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadMat4("view", view);
 
-				GetComponent<MeshComponent>().GetModel()->m_Shader->UploadMat4(
+				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadMat4(
 					"model",
 					GetComponent<TransformComponent>().Transform
 				);
 
-				/** Material Properties*/
-				GetComponent<MeshComponent>().GetModel()->m_Shader;
+				// material properties
 
-				
-				GetComponent<MeshComponent>().GetModel()->Draw(*GetComponent<MeshComponent>().GetModel()->m_Shader);
+				//Load the texture(s)
+				unsigned int diffuseMap = loadTexture("assets/meshes/red.png");
+
+				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadInt("material.diffuse", diffuseMap);
+				// bind diffuse map
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+				GetComponent<MeshComponent>().GetModel()->Draw(*GetComponent<MeshComponent>().GetModel()->GetShader());
+
 			}
 		}
 	}

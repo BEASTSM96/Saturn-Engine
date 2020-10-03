@@ -44,6 +44,11 @@ namespace Saturn {
 		void OnUpdate(Timestep ts) override;
 		void OnEvent(Event& event) override;
 
+<<<<<<< HEAD
+=======
+		void Sumbit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform);
+
+>>>>>>> parent of 0ef25b2... TestCommit
 		void AddGameObjects(GameObject gameObject);
 
 		bool OnKeyPressed(KeyPressedEvent& event);

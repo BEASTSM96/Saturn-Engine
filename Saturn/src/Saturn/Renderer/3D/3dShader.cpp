@@ -179,13 +179,6 @@ namespace Saturn {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
     }
 
-    int DShader::GetInt(const std::string& name) const
-    {
-        int extalue;
-        glGetUniformiv(ID, glGetUniformLocation(ID, name.c_str()), &extalue);
-        return extalue;
-    }
-
     void DShader::checkCompileErrors(GLuint shader, std::string type)
     {
         GLint success;

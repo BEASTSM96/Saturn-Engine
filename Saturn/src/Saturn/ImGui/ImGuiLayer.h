@@ -121,10 +121,8 @@ namespace Saturn {
 		virtual void OnDetach() override;
 		virtual void OnImGuiRender() override;
 		virtual void OnUpdate(Timestep ts) override;
-		virtual void OnEvent(Event& e) override;
-		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
-		void Outline();
+		void EditTransform(glm::mat4  t);
 
 		void Begin();
 		void End();
@@ -139,7 +137,7 @@ namespace Saturn {
 	private:
 		float m_Time = 0.0f;
 
-		RefSR<Framebuffer> m_Framebuffer;
+		Ref<Framebuffer> m_Framebuffer;
 
 		virtual void archive() override {
 
@@ -154,16 +152,16 @@ namespace Saturn {
 	{
 	public:
 		SceneHierarchyPanel() = default;
-		SceneHierarchyPanel(const RefSR<Scene> & scene);
+		SceneHierarchyPanel(const Ref<Scene> & scene);
 
-		void SetContext(const RefSR<Scene> & scene);
+		void SetContext(const Ref<Scene> & scene);
 
 		void OnImGuiRender();
 	private:
 		void DrawEntityNode(Entity entity);
 		void DrawEntityComponents(Entity entity);
 	private:
-		RefSR<Scene> m_Context;
+		Ref<Scene> m_Context;
 		Entity m_SelectionContext;
 
 		friend class EditorLayer;

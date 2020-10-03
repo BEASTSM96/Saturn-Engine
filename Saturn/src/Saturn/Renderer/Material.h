@@ -7,6 +7,7 @@
 
 namespace Saturn {
 
+<<<<<<< HEAD
 	enum class MaterialFlag
 	{
 		None = BIT(0),
@@ -15,6 +16,9 @@ namespace Saturn {
 	};
 
 	class SATURN_API Material : RefCounted
+=======
+	class SATURN_API Material
+>>>>>>> parent of 0ef25b2... TestCommit
 	{
 	public:
 		virtual ~Material() = default;
@@ -22,12 +26,11 @@ namespace Saturn {
 		virtual void Bind() = 0;
 		virtual void Unbind() = 0;
 
+		virtual void SendToShader(GLuint ShaderID) = 0;
+
 		virtual void SendToShader(DShader Shader) = 0;
-		virtual void SendToShader(DShader* Shader) = 0;
 
-		virtual std::string GetName() = 0;
-
-		static Material* Create(std::string Name, glm::vec3 Ambient, glm::vec3 Diffuse, glm::vec3 Specular, GLuint DiffuseTexture, GLuint SpecularTexture);
+		static Material* Create(glm::vec3 Ambient, glm::vec3 Diffuse, glm::vec3 Specular, GLuint DiffuseTexture, GLuint SpecularTexture);
 
 	};
 
