@@ -32,8 +32,7 @@ namespace Saturn {
 
 		GameObject CreateEntityGameObject(const std::string& name = std::string());
 
-		GameObject * CreateEntityGameObjectprt(const std::string& name = std::string());
-
+		GameObject * CreateEntityGameObjectprt(const std::string& name, const std::vector<std::string> ShaderPaths, std::string ObjectPath = std::string());
 		SceneData& GetData() { return m_data; }
 
 		void OnUpdate(Timestep ts);

@@ -10,8 +10,8 @@ namespace Saturn {
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::API::None:    SAT_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
-		case RendererAPI::API::OpenGL:  return std::make_shared<OpenGLTexture2D>(path);
+			case RendererAPIType::None:    SAT_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
+			case RendererAPIType::OpenGL:  return std::make_shared<OpenGLTexture2D>(path);
 		}
 
 		SAT_CORE_ASSERT(false, "Unknown RendererAPI!");

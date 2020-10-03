@@ -40,8 +40,6 @@
 
 #include "Core/World/Level.h"
 
-#include "Core/UUID/UUID.h"
-
 #include <imgui.h>
 
 #include <json/json.h>
@@ -53,7 +51,7 @@
 
 namespace Saturn {
 	#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
-	#pragma warning(disable: (BIND_EVENT_FN))
+	#pragma warning(disable: BIND_EVENT_FN)
 
 	Application* Application::s_Instance = nullptr;
 
@@ -152,8 +150,13 @@ namespace Saturn {
 
 		auto& e = m_Scene->CreateEntity("");
 		
-		gameObject = m_Scene->CreateEntityGameObjectprt("Cone");
+		std::vector<std::string> paths;
+		paths.push_back("assets/shaders/3d_test.satshaderv");
+		paths.push_back("assets/shaders/3d_test.satshaderf");
 
+		gameObject = m_Scene->CreateEntityGameObjectprt("Cone", paths);
+
+		auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths, "assets/meshes/m1911/m1911.fbx");
 
 		while (m_Running && !m_Crashed)
 		{

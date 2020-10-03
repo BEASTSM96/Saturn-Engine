@@ -11,8 +11,8 @@ namespace Saturn {
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::API::None: SAT_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
-		case RendererAPI::API::OpenGL: return new OpenGLVertexArray();
+			case RendererAPIType::None: SAT_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
+			case RendererAPIType::OpenGL: return new OpenGLVertexArray();
 		}
 
 		SAT_CORE_ASSERT(false, "Unknown RendererAPI");

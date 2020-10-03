@@ -16,7 +16,7 @@ namespace Saturn {
     Level::~Level()
     {
         //Save the into a file
-        
+
         Json::Value sa;
 
         {
@@ -54,7 +54,7 @@ namespace Saturn {
         return m_Gamelayer;
     }
 
-    void * Level::GetGameLayer()
+    void* Level::GetGameLayer()
     {
         return m_Gamelayer;
     }

@@ -24,7 +24,7 @@ namespace Saturn {
 
 		GameLayer* CreateGameLayer();
 
-		virtual void * GetGameLayer() override;
+		virtual void* GetGameLayer() override;
 
 		virtual float GetID() override;
 

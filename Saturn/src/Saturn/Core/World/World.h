@@ -27,7 +27,7 @@ namespace Saturn {
 		virtual std::string GetLevelName() = 0;
 		virtual uint64_t GetAllGameObjects() = 0;
 
-		virtual void * GetGameLayer() = 0;
+		virtual void* GetGameLayer() = 0;
 		virtual float GetID() = 0;
 
 	private:

@@ -41,14 +41,6 @@ class DShader;
 
 namespace Saturn {
 
-	enum E_GameObjectState : SPint //uint64_t
-	{
-		Idle,
-		Walking,
-		Runing		
-	};
-
-
 	class SATURN_API GameObject : public Entity, public Object /* Sparky GameObject */
 	{
 	public:
@@ -118,8 +110,6 @@ namespace Saturn {
 		glm::mat4& GetTransform() {
 			return GetComponent<TransformComponent>().Transform;
 		}
-
-		DShader *		ourShader;
 
 		Model *			ourModel;
 

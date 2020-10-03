@@ -90,18 +90,22 @@ namespace Saturn {
 		return entity;
 	}
 
-	GameObject * Scene::CreateEntityGameObjectprt(const std::string& name)
+	GameObject * Scene::CreateEntityGameObjectprt(const std::string& name, const std::vector<std::string> ShaderPaths, std::string ObjectPath)
 	{
 		SAT_PROFILE_FUNCTION();
 
 		GameObject * entity = new GameObject( m_Registry.create(), this );
-		memset(entity, 0, sizeof(entity));
 
 		entity->AddComponent<TransformComponent>();
 
-		entity->ourModel = new Model("assets/meshes/CUBE.fbx");
-		entity->AddComponent<MeshComponent>(entity->ourModel);
 
+		if (ObjectPath.empty()) {
+			std::string name = "assets/meshes/CUBE.fbx";
+			ObjectPath = name;
+		}
+
+		entity->ourModel = new Model(ObjectPath, ShaderPaths.at(0), ShaderPaths.at(1));
+		entity->AddComponent<MeshComponent>(entity->ourModel);
 
 		auto& tag = entity->AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Unmanned GameObject" : name;

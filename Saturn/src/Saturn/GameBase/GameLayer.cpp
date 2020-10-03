@@ -19,13 +19,13 @@
 /*  THIS class SATURN_API WILL PROB BE THE BATCH RENDERER!*/
 
 namespace Saturn {
-	
+
 
 	GameLayer* GameLayer::s_Instance = nullptr;
 
 	bool firstMouse = true;
 
-	GameLayer::GameLayer() : Layer("GameLayer") , m_3DCamera(glm::vec3(0.0f, 0.0f, 3.0f)) ,  m_Camera(-1.6f, 1.6f, -0.9f, 0.9f) , m_CameraController(1280.0f / 720.0f)
+	GameLayer::GameLayer() : Layer("GameLayer"), m_3DCamera(glm::vec3(0.0f, 0.0f, 3.0f)), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), m_CameraController(1280.0f / 720.0f)
 	{
 		SAT_CORE_ASSERT(!s_Instance, "More than one Game Layer already exists!");
 
@@ -98,14 +98,6 @@ namespace Saturn {
 		Renderer::EndScene();
 	}
 
-<<<<<<< HEAD
-=======
-
-	void GameLayer::Sumbit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform) {
-		Renderer::Submit(shader, vertexArray, Intransform);
-	}
-
->>>>>>> parent of 0ef25b2... TestCommit
 	void GameLayer::OnEvent(Event& event)
 	{
 		m_CameraController.OnEvent(event);
@@ -114,7 +106,7 @@ namespace Saturn {
 		dispatcher.Dispatch<KeyPressedEvent>(SAT_BIND_EVENT_FN(GameLayer::OnKeyPressed));
 		dispatcher.Dispatch<MouseScrolledEvent>(SAT_BIND_EVENT_FN(GameLayer::OnMouseScrolled));
 		dispatcher.Dispatch<MouseMovedEvent>(SAT_BIND_EVENT_FN(GameLayer::OnMouseMoved));
-	
+
 	}
 
 

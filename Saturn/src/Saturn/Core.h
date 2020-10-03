@@ -105,18 +105,39 @@ namespace Saturn {
 	using Scope = std::unique_ptr<T>;
 
 	template<typename T>
-	using Ref = std::shared_ptr<T>;
+	using RefSR = std::shared_ptr<T>;
 
 	template<typename T>
-	using Refptr = T*;
-
-	using SPint = uint64_t;
+	using Ref = std::shared_ptr<T>;
 
 	template<typename T, typename ... Args>
-	constexpr Ref<T> CreateRef(Args&& ... args)
+	constexpr Scope<T> CreateScope(Args&& ... args)
+	{
+		return std::make_unique<T>(std::forward<Args>(args)...);
+	}
+
+	template<typename T, typename ... Args>
+	constexpr RefSR<T> CreateRef(Args&& ... args)
 	{
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
+
+	class RefCounted
+	{
+	public:
+		void IncRefCount() const
+		{
+			m_RefCount++;
+		}
+		void DecRefCount() const
+		{
+			m_RefCount--;
+		}
+
+		uint32_t GetRefCount() const { return m_RefCount; }
+	private:
+		mutable uint32_t m_RefCount = 0; // TODO: atomic
+	};
 
 
 	typedef struct fIO //base engine file system
@@ -175,14 +196,14 @@ namespace Saturn {
 	#define __UNSIGNED unsigned
 	#define TYPE__UNSIGNED_INT __UNSIGNED TYPE_INT
 	#define TYPE__UNSIGNED_FLOAT __UNSIGNED TYPE_FLOAT
-	#define TYPE__UNSIGNED_INT __UNSIGNED TYPE_INT PTR
-	#define TYPE__UNSIGNED_FLOAT __UNSIGNED TYPE_FLOAT PTR
+	#define TYPE__UNSIGNED_INT_PTR __UNSIGNED TYPE_INT PTR
+	#define TYPE__UNSIGNED_FLOAT_PTR __UNSIGNED TYPE_FLOAT PTR
 	#define NULLPTR nullptr
 	#define TYPE_NULL NULL
 	#define TYPE_NULL_PTR NULLPTR
 	#define TYPE_ZERO 0
 	#define TYPE_ONE 1
-	#define SAT_ZeroMemory RtlZeroMemory
+	#define SAT_ZeroMemory ZeroMemory
 	#define PTR *
 	#define NEW new
 	#define PTR_POINT ->
@@ -216,7 +237,7 @@ public:
 
 	__VOID GetPRT()
 	{
-		MyClass* test = new MyClass();
+		MyClass* test = NEW MyClass();
 		test PTR_POINT Test();
 	}
 

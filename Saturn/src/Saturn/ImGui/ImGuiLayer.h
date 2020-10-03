@@ -152,9 +152,9 @@ namespace Saturn {
 	{
 	public:
 		SceneHierarchyPanel() = default;
-		SceneHierarchyPanel(const Ref<Scene> & scene);
+		SceneHierarchyPanel(const RefSR<Scene> & scene);
 
-		void SetContext(const Ref<Scene> & scene);
+		void SetContext(const RefSR<Scene> & scene);
 
 		void OnImGuiRender();
 	private:

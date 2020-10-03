@@ -83,7 +83,7 @@ namespace Saturn {
 
 		Level* m_Level;
 
-		Ref<Scene> m_Scene;
+		RefSR<Scene> m_Scene;
 
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 

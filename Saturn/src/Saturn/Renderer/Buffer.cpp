@@ -10,8 +10,8 @@ namespace Saturn {
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::API::None: SAT_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
-		case RendererAPI::API::OpenGL: return new OpenGLVertexBuffer(vertices, size);
+			case RendererAPIType::None: SAT_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
+			case RendererAPIType::OpenGL: return new OpenGLVertexBuffer(vertices, size);
 		}
 
 		SAT_CORE_ASSERT(false, "Unknown RendererAPI");
@@ -23,8 +23,8 @@ namespace Saturn {
 
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::API::None: SAT_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
-		case RendererAPI::API::OpenGL: return new OpenGLIndexBuffer(indices, size);
+			case RendererAPIType::None: SAT_CORE_ASSERT(false, "RendererAPI none"); return nullptr;
+			case RendererAPIType::OpenGL: return new OpenGLIndexBuffer(indices, size);
 		}
 
 		SAT_CORE_ASSERT(false, "Unknown RendererAPI");

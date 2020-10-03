@@ -15,62 +15,6 @@
 #include <Saturn/Core/Serialisation/Serialiser.h>
 #endif // SPARKY_SANDBOX
 
-class ExampleLayer : public Saturn::Layer
-{
-public:
-
-	ExampleLayer()
-		: Layer("Example"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), m_CameraPosition(0.0f), m_SquarePosition(0.0f)
-	{
-	}
-
-	void OnUpdate(Saturn::Timestep ts) override
-	{
-	}
-
-	void OnImGuiRender() override
-	{
-	}
-
-	void OnEvent(Saturn::Event& event) override
-	{
-		Saturn::EventDispatcher dispatcher(event);
-		dispatcher.Dispatch<Saturn::KeyPressedEvent>(SAT_BIND_EVENT_FN(ExampleLayer::OnKeyPressed));
-	}
-
-	bool OnKeyPressed(Saturn::KeyPressedEvent& event) {
-	
-		
-
-		return false;
-
-	}
-
-private:
-
-	Saturn::Ref<Saturn::Shader> m_Shader;
-	Saturn::Ref<Saturn::VertexArray> m_VertexArray;
-
-	Saturn::Ref<Saturn::Shader> m_flatShader, m_TextureShader;
-	Saturn::Ref<Saturn::VertexArray> m_SquareVA;
-
-	Saturn::Ref<Saturn::Texture2D> m_Texture, m_beastlogo;
-
-	Saturn::OrthographicCamera m_Camera;
-
-	glm::vec3 m_CameraPosition;
-	float m_CameraMoveSpeed = 5.0f;
-
-
-	float m_CameraRotation = 0.0f;
-	float m_CameraRotationSpeed = 180.0f;
-
-	glm::vec3 m_SquarePosition;
-public:
-	glm::vec3 m_SquareColor = {0.2f, 0.3f, 0.8f};
-};
-
-
 class Sandbox : public Saturn::Application
 {
 public:

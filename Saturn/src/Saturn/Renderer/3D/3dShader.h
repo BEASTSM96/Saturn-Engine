@@ -10,13 +10,9 @@ namespace Saturn {
     public:
         DShader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
         ~DShader();
-
-
         void Bind();
-
         void Unbind();
 
-        // utility uniform functions
 
         void UploadBool(const std::string& name, bool value) const;
 
@@ -52,20 +48,10 @@ namespace Saturn {
 
         void UploadTextureType(const std::string& name, unsigned int value) const;
 
-<<<<<<< HEAD
-        ////////////////////////////////////////////////////////////////////////////////////
-
-        int GetInt(const std::string& name) const;
     public:
         unsigned int ID;
-=======
->>>>>>> parent of 0ef25b2... TestCommit
     private:
         void dispatch(const unsigned int sizeX, const unsigned int sizeY, const unsigned int sizeZ) const;
-
-
-        // utility function for checking shader compilation/linking errors.
-        // ------------------------------------------------------------------------
         void checkCompileErrors(GLuint shader, std::string type);
     };
 

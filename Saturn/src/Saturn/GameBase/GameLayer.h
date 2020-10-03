@@ -44,11 +44,8 @@ namespace Saturn {
 		void OnUpdate(Timestep ts) override;
 		void OnEvent(Event& event) override;
 
-<<<<<<< HEAD
-=======
 		void Sumbit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform);
 
->>>>>>> parent of 0ef25b2... TestCommit
 		void AddGameObjects(GameObject gameObject);
 
 		bool OnKeyPressed(KeyPressedEvent& event);
@@ -62,7 +59,7 @@ namespace Saturn {
 
 		const SCamera& Get3DLayerCamera() const { return m_3DCamera; }
 
-		SCamera & Get3DCamera() { return m_3DCamera; }
+		SCamera& Get3DCamera() { return m_3DCamera; }
 
 		const OrthographicCamera& GetLayerCamera() const { return m_Camera; }
 

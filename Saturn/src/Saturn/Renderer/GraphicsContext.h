@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Saturn/Core.h"
+
 namespace Saturn {
 
 	class SATURN_API GraphicsContext {

@@ -50,11 +50,11 @@ namespace Saturn {
 		GetComponent<TransformComponent>().Transform = glm::translate(transform, glm::vec3(10.0f, 10.0f, 10.0f));
 		GetComponent<TransformComponent>().Transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
 
-		GameLayer * gl = static_cast<GameLayer*>(Application::Get().GetCurrentScene().m_CurrentLevel->GetGameLayer());
+		GameLayer* gl = static_cast<GameLayer*>(Application::Get().GetCurrentScene().m_CurrentLevel->GetGameLayer());
 
 		gl->gameObjects.push_back(*this);
 
-		SAT_CORE_WARN("GameObject Size {0} " , gl->gameObjects.size());
+		SAT_CORE_WARN("GameObject Size {0} ", gl->gameObjects.size());
 	}
 
 	void GameObject::OnKeyInput(KeyPressedEvent& InEvent)
@@ -68,52 +68,46 @@ namespace Saturn {
 
 	void GameObject::OnUpdate(Timestep ts) {
 		SAT_PROFILE_FUNCTION();
-
-		if (HasComponent<MeshComponent>())
-		{
-			ourModel->SetTransform(GetComponent<TransformComponent>().Transform);
-			ourModel->Update(ts, *ourShader);
-		}
 	}
 
 	void GameObject::Render()
-	{	
+	{
 		SAT_PROFILE_FUNCTION();
 
-		if(m_3D)
+		if (!m_3D)
+		{
+			GameLayer* gl = Application::Get().m_gameLayer;
+
+			glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.1f));
+
+			FTransform tras = FTransform(m_PlayerPosition, scale, 0.0f);
+
+		}
+		else
 		{
 			SAT_PROFILE_SCOPE("GameObjectRenderLoop");
 
 			GameLayer* gl = Application::Get().m_gameLayer;
 			if (HasComponent<MeshComponent>())
 			{
-
-
-				GetComponent<MeshComponent>().GetModel()->GetShader()->Bind();
+				GetComponent<MeshComponent>().GetModel()->m_Shader->Bind();
 
 				// view/projection transformations
 				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->m_3DCamera.Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
 				glm::mat4 view = Application::Get().m_gameLayer->m_3DCamera.GetViewMatrix();
-				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadMat4("projection", projection);
-				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadMat4("view", view);
+				GetComponent<MeshComponent>().GetModel()->m_Shader->UploadMat4("projection", projection);
+				GetComponent<MeshComponent>().GetModel()->m_Shader->UploadMat4("view", view);
 
-				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadMat4(
+				GetComponent<MeshComponent>().GetModel()->m_Shader->UploadMat4(
 					"model",
 					GetComponent<TransformComponent>().Transform
 				);
 
-				// material properties
+				/** Material Properties*/
+				GetComponent<MeshComponent>().GetModel()->m_Shader;
 
-				//Load the texture(s)
-				unsigned int diffuseMap = loadTexture("assets/meshes/red.png");
 
-				GetComponent<MeshComponent>().GetModel()->GetShader()->UploadInt("material.diffuse", diffuseMap);
-				// bind diffuse map
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, diffuseMap);
-
-				GetComponent<MeshComponent>().GetModel()->Draw(*GetComponent<MeshComponent>().GetModel()->GetShader());
-
+				GetComponent<MeshComponent>().GetModel()->Draw(*GetComponent<MeshComponent>().GetModel()->m_Shader);
 			}
 		}
 	}
@@ -121,7 +115,11 @@ namespace Saturn {
 
 	GameObject* GameObject::SpawnGameObject()
 	{
-		return Application::Get().GetCurrentScene().CreateEntityGameObjectprt("");
+		std::vector<std::string> paths;
+		paths.push_back("assets/shaders/3d_test.satshaderv");
+		paths.push_back("assets/shaders/3d_test.satshaderf");
+
+		return Application::Get().GetCurrentScene().CreateEntityGameObjectprt("", paths);
 	}
 
 	// utility function for loading a 2D texture from file
