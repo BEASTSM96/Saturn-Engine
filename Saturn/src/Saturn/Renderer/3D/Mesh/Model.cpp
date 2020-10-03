@@ -63,11 +63,24 @@ namespace Saturn {
 
         directory = path.substr(0, path.find_last_of('/'));
 
+        m_IsAnimated = s->mAnimations != nullptr;
+
+
         processNode(s->mRootNode, s);
+
         /* Might not need to do this*/
         if (s->HasMaterials())
         {
             ProcessMaterials(s);
+        }
+
+        for (size_t m = 0; m < s->mNumMeshes; m++)
+        {
+            if (s->HasAnimations())
+            {
+                aiMesh* mesh = s->mMeshes[m];
+                ProcessAnimations(mesh, s);
+            }
         }
     }
 
@@ -98,6 +111,10 @@ namespace Saturn {
 
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
+
+            SAT_CORE_ASSERT(mesh->HasPositions(), "Meshes require positions.");
+            SAT_CORE_ASSERT(mesh->HasNormals(), "Meshes require normals.");
+
             Vertex vertex;
             glm::vec3 vector;
             vector.x = mesh->mVertices[i].x;
@@ -187,6 +204,33 @@ namespace Saturn {
         }
 
     }
+
+    void Model::ProcessAnimations(aiMesh* mesh, const aiScene* scene)
+    {
+        // Vertices
+        if (m_IsAnimated)
+        {
+            for (size_t i = 0; i < mesh->mNumVertices; i++)
+            {
+                AnimatedVertex vertex;
+                vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+                vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+
+                if (mesh->HasTangentsAndBitangents())
+                {
+                    vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+                    vertex.Binormal = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
+                }
+
+                if (mesh->HasTextureCoords(0))
+                    vertex.Texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+
+                m_AnimatedVertices.push_back(vertex);
+            }
+        }
+
+    }
+
 
     unsigned int Model::TextureFromFile(const char* path, const std::string& directory, bool gamma)
     {

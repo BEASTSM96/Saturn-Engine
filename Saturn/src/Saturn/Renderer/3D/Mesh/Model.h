@@ -43,6 +43,7 @@ namespace Saturn {
 
         void ProcessMaterials(const aiScene* scene);
 
+        void ProcessAnimations(aiMesh* mesh, const aiScene* scene);
 
         void loadModel(std::string const& path);
 
@@ -61,6 +62,20 @@ namespace Saturn {
         std::string m_Path;
         std::string m_Directory;
         std::string m_Name;
+
+        std::vector<Index> m_Indices;
+        std::vector<Vertex> m_StaticVertices;
+        std::vector<AnimatedVertex> m_AnimatedVertices;
+
+        std::unordered_map<uint32_t, std::vector<Triangle>> m_TriangleCache;
+
+        // Animation
+        bool m_IsAnimated = false;
+        float m_AnimationTime = 0.0f;
+        float m_WorldTime = 0.0f;
+        float m_TimeMultiplier = 1.0f;
+        bool m_AnimationPlaying = true;
+
 
     private:
         friend class GameObject;

@@ -162,8 +162,6 @@ namespace Saturn {
 		{
 			SAT_PROFILE_SCOPE("RunLoop");
 
-			frames++;
-
 			float time = (float)glfwGetTime(); //Platform::GetTime();
 
 			Timestep timestep = time - LastFrameTime;
