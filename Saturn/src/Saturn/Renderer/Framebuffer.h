@@ -1,15 +1,24 @@
 #pragma once
 
-#include "Saturn/Core.h"
-
 #include <glm/glm.hpp>
+#include "Saturn/Core.h"
+#include "Saturn/Renderer/RendererAPI.h"
+
 
 namespace Saturn {
 
+	enum class FramebufferFormat 
+	{
+		None = 0,
+		RGBA8 = 1,
+		RGBA16F = 2
+	};
+
 	struct FramebufferSpecification
 	{
-		uint32_t Width = 0, Height = 0;
-		// FramebufferFormat Format = 
+		uint32_t Width = 1280, Height = 720;
+		glm::vec3 ClearColor;
+		FramebufferFormat Format;
 		uint32_t Samples = 1;
 
 		bool SwapChainTarget = false;
@@ -31,4 +40,24 @@ namespace Saturn {
 
 		static Ref<Framebuffer> Create(const FramebufferSpecification& spec);
 	};
+
+
+	class FramebufferPool final
+	{
+	public:
+		FramebufferPool(uint32_t maxFBs = 32);
+		~FramebufferPool();
+
+		std::weak_ptr<Framebuffer> AllocateBuffer();
+		void Add(std::weak_ptr<Framebuffer> framebuffer);
+
+		const std::vector<std::weak_ptr<Framebuffer>>& GetAll() const { return m_Pool; }
+
+		inline static FramebufferPool* GetGlobal() { return s_Instance; }
+	private:
+		std::vector<std::weak_ptr<Framebuffer>> m_Pool;
+
+		static FramebufferPool* s_Instance;
+	};
+
 }

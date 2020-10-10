@@ -9,15 +9,15 @@ namespace Saturn {
 	{
 	
 	public:
-		SAT_FORCE_INLINE static bool IsKeyPressed(int keycode) { return s_Instance->IsKeyPressedImpl(keycode); }
+		static bool IsKeyPressed(int keycode) { return s_Instance->IsKeyPressedImpl(keycode); }
 	
-		SAT_FORCE_INLINE static float GetMouseX() { return s_Instance->GetMouseXImpl(); }
+		static float GetMouseX() { return s_Instance->GetMouseXImpl(); }
 
-		SAT_FORCE_INLINE static float GetMouseY() { return s_Instance->GetMouseYImpl(); }
+		static float GetMouseY() { return s_Instance->GetMouseYImpl(); }
 
-		SAT_FORCE_INLINE static std::pair<float , float> GetMousePos() { return s_Instance->GetMousePosImpl(); }
+		static std::pair<float , float> GetMousePos() { return s_Instance->GetMousePosImpl(); }
 
-		SAT_FORCE_INLINE static bool IsMouseButtonPressed(int button) { return s_Instance->IsMouseButtonPressedImpl(button); }
+		static bool IsMouseButtonPressed(int button) { return s_Instance->IsMouseButtonPressedImpl(button); }
 
 	protected:
 		virtual bool IsKeyPressedImpl(int keycode) = 0;

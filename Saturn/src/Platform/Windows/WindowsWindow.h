@@ -17,11 +17,11 @@ namespace Saturn {
 
 		void OnUpdate() override;
 
-		SAT_FORCE_INLINE unsigned int GetWidth() const override { return m_Data.Width; }
-		SAT_FORCE_INLINE unsigned int GetHeight() const override { return m_Data.Height; }
+		unsigned int GetWidth() const override { return m_Data.Width; }
+		unsigned int GetHeight() const override { return m_Data.Height; }
 
 		// Window attributes
-		SAT_FORCE_INLINE void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
+		void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;
 		bool IsVSync() const override;
 

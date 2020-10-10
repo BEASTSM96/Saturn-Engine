@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "Saturn/Core/UUID.h"
 
 namespace Saturn {
 
@@ -88,28 +89,24 @@ namespace Saturn {
 	*
 	* @code
 	* 
-	* float Id;
-	* 
-	* std::string Idname;
+	* UUID ID;
 	*
 	* IdComponent()
 	* IdComponent(const IdComponent&) = default
-	* IdComponent(const std::string& id)
-	*
+	* IdComponent(const UUID& uuid)
 	* 
 	* @endcode
 	*/
 	struct IdComponent
 	{
-		float Id;
-
-		std::string Idname;
+		UUID ID;
 
 		IdComponent() = default;
 		IdComponent(const IdComponent&) = default;
-		IdComponent(const float& id, const std::string& idname)
-			: Id(id), Idname(idname) {}
+		IdComponent(const UUID& uuid)
+			: ID(uuid) {}
 	};
+
 
 	/** @brief A MeshComponent.
 	*

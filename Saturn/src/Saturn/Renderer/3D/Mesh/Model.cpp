@@ -68,20 +68,25 @@ namespace Saturn {
 
         processNode(s->mRootNode, s);
 
+        if (s->HasAnimations())
+        {
+            delete m_Shader;
+            m_Shader = new DShader("assets/shaders/3D_TestAnimation.glsl", "assets/shaders/3D_TestAnimationv.glsl");
+            for (size_t m = 0; m < s->mNumMeshes; m++)
+            {
+                aiMesh* mesh = s->mMeshes[m];
+                ProcessAnimations(mesh, s);
+            }
+
+        }
+
         /* Might not need to do this*/
         if (s->HasMaterials())
         {
             ProcessMaterials(s);
         }
 
-        for (size_t m = 0; m < s->mNumMeshes; m++)
-        {
-            if (s->HasAnimations())
-            {
-                aiMesh* mesh = s->mMeshes[m];
-                ProcessAnimations(mesh, s);
-            }
-        }
+
     }
 
     void Model::processNode(aiNode* node, const aiScene* scene)
@@ -143,6 +148,8 @@ namespace Saturn {
             }
         }
 
+
+
         // return a mesh object created from the extracted mesh data
         return Mesh(vertices, indices, textures);
     }
@@ -194,7 +201,7 @@ namespace Saturn {
                 glm::vec3(color.r, color.g, color.b),
                 glm::vec3(color.r, color.g, color.b),
                 TextureFromFile(diffusePath.c_str(), diffusePath),
-                0
+                TextureFromFile(diffusePath.c_str(), diffusePath)
             );
 
             mat->SendToShader(m_Shader);

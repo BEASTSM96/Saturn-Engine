@@ -21,7 +21,7 @@ namespace Saturn {
 		virtual void OnImGuiRender() {}
 		virtual void OnEvent(Event& event) {}
 
-		SAT_FORCE_INLINE const std::string& GetName() const { return m_DebugName; }
+		const std::string& GetName() const { return m_DebugName; }
 
 		std::string m_DebugName;
 	protected:

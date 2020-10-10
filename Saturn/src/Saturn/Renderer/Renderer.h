@@ -79,6 +79,7 @@ namespace Saturn {
 			new (storageBuffer) FuncT(std::forward<FuncT>(func));
 		}
 
+
 		static void Submit3D(const Ref<DShader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform);
 
 		static RendererAPIType GetAPI() { return RendererAPI::Current(); }
@@ -86,6 +87,8 @@ namespace Saturn {
 		static void Init();
 
 		static void OnWindowResize(uint32_t width, uint32_t height);
+	private:
+		static RenderCommandQueue& GetRenderCommandQueue();
 	private:
 		struct SceneData
 		{

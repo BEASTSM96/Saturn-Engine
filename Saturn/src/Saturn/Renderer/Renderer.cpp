@@ -6,8 +6,16 @@
 
 namespace Saturn {
 
-
 	Renderer::SceneData* Renderer::m_SceneData = new Renderer::SceneData;
+
+	struct RendererData
+	{
+		//Ref<RenderPass> m_ActiveRenderPass;
+		RenderCommandQueue m_CommandQueue;
+		//Scope<ShaderLibrary> m_ShaderLibrary;
+		Ref<VertexArray> m_FullscreenQuadVertexArray;
+	};
+	static RendererData s_Data;
 
 	void Renderer::BeginScene(OrthographicCamera& camera)
 	{
@@ -35,5 +43,10 @@ namespace Saturn {
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)
 	{
 		RenderCommand::SetViewport(0, 0, width, height);
+	}
+
+	RenderCommandQueue& Renderer::GetRenderCommandQueue()
+	{
+		return s_Data.m_CommandQueue;
 	}
 }

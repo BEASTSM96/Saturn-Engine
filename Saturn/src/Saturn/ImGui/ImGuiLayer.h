@@ -163,6 +163,8 @@ namespace Saturn {
 	private:
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext;
+		Ref<Framebuffer> m_Framebuffer;
+		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
 
 		friend class EditorLayer;
 	};

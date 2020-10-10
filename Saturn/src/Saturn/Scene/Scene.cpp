@@ -68,7 +68,6 @@ namespace Saturn {
 		tag.Tag = name.empty() ? "Unmanned Entity" : name;
 
 		auto& ID = entity.AddComponent<IdComponent>();
-		ID.Id = Random::Float();
 
 		return entity;
 	}
@@ -85,7 +84,6 @@ namespace Saturn {
 		tag.Tag = name.empty() ? "Unmanned GameObject" : name;
 
 		auto& ID = entity.AddComponent<IdComponent>();
-		ID.Id = Random::Float();
 
 		return entity;
 	}
@@ -98,6 +96,10 @@ namespace Saturn {
 
 		entity->AddComponent<TransformComponent>();
 
+		auto& tag = entity->AddComponent<TagComponent>();
+		tag.Tag = name.empty() ? "Unmanned GameObject" : name;
+
+		auto& ID = entity->AddComponent<IdComponent>();
 
 		if (ObjectPath.empty()) {
 			std::string name = "assets/meshes/CUBE.fbx";
@@ -106,12 +108,6 @@ namespace Saturn {
 
 		entity->ourModel = new Model(ObjectPath, ShaderPaths.at(0), ShaderPaths.at(1));
 		entity->AddComponent<MeshComponent>(entity->ourModel);
-
-		auto& tag = entity->AddComponent<TagComponent>();
-		tag.Tag = name.empty() ? "Unmanned GameObject" : name;
-
-		auto& ID = entity->AddComponent<IdComponent>();
-		ID.Id = Random::Float();
 
 		entity->Init();
 

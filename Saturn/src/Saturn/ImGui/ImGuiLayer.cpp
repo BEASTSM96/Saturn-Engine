@@ -585,7 +585,13 @@ namespace Saturn {
 
 		ImVec4* colors = ImGui::GetStyle().Colors;
 
+		FramebufferSpecification fbSpec;
+		fbSpec.Width = 1280;
+		fbSpec.Height = 720;
+		m_Framebuffer = Framebuffer::Create(fbSpec);
 
+		m_Framebuffer->Bind();
+		m_Framebuffer->Unbind();
 
 #ifdef SAT_PLATFORM_WINDOWS
 		ImFont* pFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
@@ -863,103 +869,17 @@ namespace Saturn {
 
 		ImGuizmo::BeginFrame();
 
-		static bool dock = true;
 		{
 			ImGuiIO& io = ImGui::GetIO();
 
 			io.ConfigWindowsMoveFromTitleBarOnly = true;
+	
+			if(ImGui::Begin("TestFrameBuffer"))
+			{
+				uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+				ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
-			if (ImGui::Begin("Viewport")) {
-#if 0
-				// view/projection transformations
-				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->Get3DCamera().Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
-
-				glm::mat4 view = Application::Get().m_gameLayer->Get3DCamera().GetViewMatrix();
-
-				glm::mat4& ObjectMatrix = Application::Get().gameObject->GetComponent<TransformComponent>().Transform;
-
-				float* v = glm::value_ptr(view);
-
-				float* p = glm::value_ptr(projection);
-
-				float* o = glm::value_ptr(ObjectMatrix);
-
-				static const float identityMatrix[16] =
-				{
-					1.f, 0.f, 0.f, 0.f,
-					0.f, 1.f, 0.f, 0.f,
-					0.f, 0.f, 1.f, 0.f,
-					0.f, 0.f, 0.f, 1.f
-				};
-
-				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
-
-				ImGuizmo::DrawGrid(v, p, identityMatrix, 100.f);
-
-				{
-					static bool q;
-					static bool e;
-					static bool c;
-					static bool z;
-
-
-					if (Input::IsKeyPressed(SAT_KEY_Q))
-					{
-						q = true;
-						z = false;
-						c = false;
-						e = false;
-					}
-
-					if (q)
-					{
-						ImGuizmo::Manipulate(v, p, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, o, NULL, NULL);
-					}
-
-					if (Input::IsKeyPressed(SAT_KEY_E))
-					{
-						e = true;
-						z = false;
-						c = false;
-						q = false;
-					}
-
-					if (e)
-					{
-						ImGuizmo::Manipulate(v, p, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::LOCAL, o, NULL, NULL);
-					}
-
-					if (Input::IsKeyPressed(SAT_KEY_C))
-					{
-						c = true;
-						z = false;
-						e = false;
-						q = false;
-					}
-
-					if (c)
-					{
-						ImGuizmo::Manipulate(v, p, ImGuizmo::OPERATION::SCALE, ImGuizmo::MODE::LOCAL, o, NULL, NULL);
-					}
-
-					if (Input::IsKeyPressed(SAT_KEY_Z))
-					{
-						z = true;
-						c = false;
-						e = false;
-						q = false;
-					}
-
-					if (z)
-					{
-						ImGuizmo::Manipulate(v, p, ImGuizmo::OPERATION::BOUNDS, ImGuizmo::MODE::LOCAL, o, NULL, NULL);
-					}
-				}
-#endif
 			}
-
-			io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 #ifdef SAT_DEBUG
 
@@ -1018,64 +938,12 @@ namespace Saturn {
 					m_open = true;
 				}
 
-				if (ImGui::Begin("Shader Editor"), &m_open) {
-					static char buffer[1024 * 16] =
-						"#version 330 core\n"
-						"\n"
-						"layout(location = 0) in vec3 aPos;\n"
-						"layout(location = 1) in vec3 aNormal;\n"
-						"layout(location = 2) in vec2 aTexCoords;\n"
-						"\n"
-						"out vec2 TexCoords;\n"
-						"\n"
-						"uniform mat4 model;\n"
-						"uniform mat4 view;\n"
-						"uniform mat4 projection;\n"
-						"\n"
-						"void main()\n"
-						"{\n"
-						"\n" "TexCoords = aTexCoords;\n"
-						"gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
-						"\n"
-						"}\n"
-						"/*This is just a exmaple shader*/\n";
-
-					if (ImGui::IsKeyPressed(SAT_KEY_LEFT_CONTROL) && ImGui::IsKeyPressed(SAT_KEY_S))
-					{
-						auto [name, ex] = Application::Get().SaveFile(".satshader\0* .satshaderf; *.satshaderv;\0\0");
-
-						SAT_CORE_INFO("Name = {0}", name);
-
-						std::ofstream shaderfile(name);
-
-						shaderfile << buffer;
-					}
-
-					if (ImGui::IsKeyPressed(SAT_KEY_LEFT_CONTROL) && ImGui::IsKeyPressed(SAT_KEY_O))
-					{
-						auto [name, ex] = Application::Get().OpenFile(".satshader\0* .satshaderf; *.satshaderv;\0\0");
-
-						SAT_CORE_INFO("Name = {0}", name);
-
-						std::ifstream shaderfile(name);
-
-						shaderfile >> buffer;
-					}
-
-					static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
-					if (ImGui::InputTextMultiline("##shdeditor", buffer, sizeof(buffer), ImVec2(-0.01f, -0.01f), flags));
-
-				}
-
-				ImGui::End();
-
 			}
 
 #endif // SAT_DEBUG
 
 			ImGui::End();
 			ImGui::End();
-
 		}
 
 	}
@@ -1248,6 +1116,8 @@ namespace Saturn {
 		if (m_SelectionContext)
 		{
 			if (ImGui::Begin("Viewport")) {
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+#if 0
 				// view/projection transformations
 				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->Get3DCamera().Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
 
@@ -1276,7 +1146,9 @@ namespace Saturn {
 
 				ImGuizmo::DrawGrid(v, p, identityMatrix, 100.f);
 
-				ImGuizmo::Manipulate(v, p, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, o, NULL, NULL);
+				ImGuizmo::Manipulate(v, p, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, o, NULL, NULL);  
+#endif // 0
+				ImGui::PopStyleVar();
 			}
 
 			ImGui::End();
@@ -1288,7 +1160,7 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 		auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-		auto& id = entity.GetComponent<IdComponent>().Id;
+		auto& id = entity.GetComponent<IdComponent>().ID;
 
 		auto& transform = entity.GetComponent<TransformComponent>().Transform;
 
@@ -1338,7 +1210,7 @@ namespace Saturn {
 
 			if (entity.HasComponent<IdComponent>())
 			{
-				auto& id = entity.GetComponent<IdComponent>().Id;
+				auto& id = entity.GetComponent<IdComponent>().ID;
 
 				ImGui::Text("Tag"); ImGui::SameLine();
 				if (ImGui::InputText("##empty", buffer, sizeof(buffer)))
@@ -1346,10 +1218,10 @@ namespace Saturn {
 					tag = std::string(buffer);
 				}
 
-				ImGui::SameLine();
-				ImGui::Text("%f", id);
-
 				tag = tag.empty() ? "Unmanned GameObject / Entity" : tag;
+
+				ImGui::SameLine();
+				ImGui::TextDisabled("%llx", id);
 			}
 			else
 			{

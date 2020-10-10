@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#pragma warning(push, 0)
+
 #if (__cplusplus >= 201402L)
 #error C++ 14 is not supported
 #else
@@ -10,8 +12,12 @@
 #ifdef _WIN64
 	/* Windows x64  */
 #define SAT_PLATFORM_WINDOWS
-#ifdef SAT_DLL && SAT_PLATFORM_WINDOWS
-#define SATURN_API 
+#ifdef SAT_DLL
+#ifdef SAT_BUILD_DLL
+#define SATURN_API SAT_DLL_EXPORT
+#else
+#define SATURN_API SAT_DLL_IMPORT
+#endif // SAT_BUILD_DLL
 #else
 #define SATURN_API
 #endif
@@ -51,16 +57,12 @@
 #endif // End of platform detection
 
 #ifdef SAT_DLL
-
-#define SAT_DLL_IMPORT __declspec(dllimport)
-#define SAT_DLL_EXPORT __declspec(dllexport)
-
+	#define SAT_DLL_IMPORT __declspec(dllimport)
+	#define SAT_DLL_EXPORT __declspec(dllexport)
 #else
-#define SAT_DLL_IMPORT
-#define SAT_DLL_EXPORT
-
+	#define SAT_DLL_IMPORT
+	#define SAT_DLL_EXPORT
 #endif // SAT_DLL
-
 
 #ifdef SAT_DEBUG
 	#if defined(SAT_PLATFORM_WINDOWS)
@@ -90,15 +92,6 @@
 
 #define SAT_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 
-/** For testing the app (aka just mem) */
-#define SAT_TEST
-
-#define SAT_class(name) class SATURN_API(name)
-
-#define SAT_FORCEINLINE inline
-
-#define SAT_FORCE_INLINE __forceinline
-
 namespace Saturn {
 
 	template<typename T>
@@ -122,22 +115,10 @@ namespace Saturn {
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
 
-	class RefCounted
-	{
-	public:
-		void IncRefCount() const
-		{
-			m_RefCount++;
-		}
-		void DecRefCount() const
-		{
-			m_RefCount--;
-		}
+	#include "Core/Ref.h"
+	typedef Saturn::Core::RefCounted RefCounted;
 
-		uint32_t GetRefCount() const { return m_RefCount; }
-	private:
-		mutable uint32_t m_RefCount = 0; // TODO: atomic
-	};
+
 
 
 	typedef struct fIO //base engine file system
@@ -149,7 +130,7 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		float			ScSavingRate;							// = 5.0f
-		const char*		ScFilename;						       // = "{gamename ? enginegame ? edname}.sats"
+		const char*		ScFilename;						       // = "{scname}.sats"
 		const char*		ScLogFilename;                        // = "{scname}.log"
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -175,15 +156,15 @@ namespace Saturn {
 #define SAT_CORE_DELAY(...) ::std::this_thread::sleep_for(__VA_ARGS__)
 #endif
 
-#define SAT_MoveMemory MoveMemory 
-#define SAT_CopyMemory CopyMemory 
-#define SAT_FillMemory FillMemory 
-#define SAT_ZeroMemory ZeroMemory
+//from the vc++
+#define SAT_MoveMemory(Destination,Source,Length) memmove((Destination),(Source),(Length))
+#define SAT_CopyMemory(Destination,Source,Length) memcpy((Destination),(Source),(Length))
+#define SAT_FillMemory(Destination,Length,Fill) memset((Destination),(Fill),(Length))
+#define SAT_ZeroMemory(Destination,Length) memset((Destination),0,(Length))
 
 #define SAT_FILEOPENNAMEA OPENFILENAMEA
 #define SAT_FILEOPENNAME OPENFILENAME
 
-#define SAT_SYM
 #ifdef SAT_SYM
 	#define TYPE_INT int
 	#define TYPE_FLOAT float
@@ -264,3 +245,5 @@ public:
 #endif // SAT_SYM
 
 #endif
+
+#pragma warning(pop)

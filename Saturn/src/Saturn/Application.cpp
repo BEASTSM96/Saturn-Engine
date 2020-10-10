@@ -1,44 +1,22 @@
 #include "sppch.h"
 #include "Application.h"
+#include "Saturn/Core.h"
 
 #include "Events/ApplicationEvent.h"
 
 #include "Log.h"
-
 #include "Layer.h"
-
 #include "Saturn/Input.h"
-
 #include <glad/glad.h>
-
 #include <GLFW/glfw3.h>
-
 #include "ImGui/ImGuiLayer.h"
-
 #include "Saturn/Renderer\Buffer.h"
-
 #include "Renderer/Renderer.h"
-
-#include "Renderer/OrthographicCamera.h"
-
-#include "Saturn/Core/File/SparkyFile.h"
-
 #include "Saturn/ImGui/ImGuiLayer.h"
-
-#include "Saturn/Audio/SparkyAudio.h"
-
-#include "Saturn/Core.h"
-
-#include "Saturn/Core/Serialisation/Serialiser.h"
-
-#include "Saturn/Core/Serialisation/Object.h"
-
 #include "Scene/Components.h"
 #include "Scene/Entity.h"
-
-#include "GameBase/GameLayer.h"
-
 #include "Core/World/Level.h"
+#include "Saturn/Renderer/Framebuffer.h"
 
 #include <imgui.h>
 
@@ -154,9 +132,11 @@ namespace Saturn {
 		paths.push_back("assets/shaders/3d_test.satshaderv");
 		paths.push_back("assets/shaders/3d_test.satshaderf");
 
-		gameObject = m_Scene->CreateEntityGameObjectprt("Cone", paths);
+		gameObject = m_Scene->CreateEntityGameObjectprt("Cube", paths);
 
-		auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths, "assets/meshes/m1911/m1911.fbx");
+		SAT_CORE_INFO("{0}", gameObject->GetComponent<IdComponent>().ID);
+
+		//auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths, "assets/meshes/m1911/m1911.fbx");
 
 		while (m_Running && !m_Crashed)
 		{
@@ -228,14 +208,20 @@ namespace Saturn {
 
 	bool Application::OnWindowResize(WindowResizeEvent& e)
 	{
-		if (e.GetWidth() == 0 || e.GetHeight() == 0)
+		int width = e.GetWidth(), height = e.GetHeight();
+		if (width || height)
 		{
 			m_Minimized = true;
 			return false;
 		}
-
 		m_Minimized = false;
-		Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
+		Renderer::Submit([=]() { glViewport(0, 0, width, height); });
+		auto& fbs = FramebufferPool::GetGlobal()->GetAll();
+		for (auto& fb : fbs)
+		{
+			if (auto fbp = fb.lock())
+				fbp->Resize(width, height);
+		}
 
 		return false;
 	}

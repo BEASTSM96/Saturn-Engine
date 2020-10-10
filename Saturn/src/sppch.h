@@ -1,5 +1,7 @@
 #pragma once
 
+#pragma warning(push, 0)
+
 #ifdef SAT_PLATFORM_WINDOWS
 	#ifndef NOMINMAX
 		// See github.com/skypjack/entt/wiki/Frequently-Asked-Questions#warning-c4003-the-min-the-max-and-the-macro
@@ -25,3 +27,4 @@
 #ifdef SAT_PLATFORM_WINDOWS
 	#include <Windows.h>
 #endif // SAT_PLATFORM_WINDOWS
+#pragma warning(pop)
