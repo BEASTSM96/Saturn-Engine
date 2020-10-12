@@ -1003,6 +1003,26 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 		ImGui::Begin("Scene Hierarchy");
 
+		#if defined (SAT_DEBUG)
+			if(ImGui::Button("NewEntity")) 
+			{
+
+				std::vector<std::string> paths;
+				paths.push_back("assets/shaders/3d_test.satshaderv");
+				paths.push_back("assets/shaders/3d_test.satshaderf");
+
+				Application::Get().GetCurrentScene().CreateEntityGameObjectprt("", paths, "");
+			}
+
+			int num = 0;
+			m_Context->m_Registry.each([&](auto entityID)
+			{
+				num++; 
+			});
+			ImGui::SameLine();
+			ImGui::Text("Num Entitys : %i", num);
+		#endif // 
+
 		m_Context->m_Registry.each([&](auto entityID)
 		{
 			Entity entity{ entityID , m_Context.get() };
@@ -1020,6 +1040,22 @@ namespace Saturn {
 			if (m_SelectionContext)
 				DrawEntityComponents(m_SelectionContext);
 
+		}
+
+		if (ImGui::BeginDragDropTarget()) {
+
+			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("EntityDD");
+			if (payload)
+			{
+				SAT_CORE_ASSERT(payload->DataSize == sizeof(entt::entity), "Invalid ImGuiPayload!");
+				entt::entity* id = (entt::entity*)payload->Data;
+
+				#if defined (SAT_DEBUG)
+				SAT_CORE_INFO("Payload ID: {0}", *id);
+				#endif // 
+
+			}
+			ImGui::EndDragDropTarget();
 		}
 
 		ImGui::End();
@@ -1075,13 +1111,7 @@ namespace Saturn {
 								////
 								//								}
 								//
-								//								if (!useDiffuseMap)
-								//								{
-								//									m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetShader()->UploadInt("material.diffuseTex", 0);
-								//									m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetShader()->UploadInt("material.diffuse", 0);
-								//								}
 							}
-
 							ImGui::Separator();
 						}
 

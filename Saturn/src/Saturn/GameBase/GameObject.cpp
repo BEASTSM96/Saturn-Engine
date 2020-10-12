@@ -108,6 +108,11 @@ namespace Saturn {
 
 
 				GetComponent<MeshComponent>().GetModel()->Draw(*GetComponent<MeshComponent>().GetModel()->m_Shader);
+
+				/////////////////////////////////////////////////////////////////////SKYBOX-TMP//////////////////////////////
+
+				Ref<Material> SkyboxMaterial;
+
 			}
 		}
 	}

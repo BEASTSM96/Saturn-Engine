@@ -9,17 +9,17 @@ namespace Saturn {
 	{
 		switch (type)
 		{
-			case Saturn::ShaderDataType::Float:    return GL_FLOAT;
-			case Saturn::ShaderDataType::Float2:   return GL_FLOAT;
-			case Saturn::ShaderDataType::Float3:   return GL_FLOAT;
-			case Saturn::ShaderDataType::Float4:   return GL_FLOAT;
-			case Saturn::ShaderDataType::Mat3:     return GL_FLOAT;
-			case Saturn::ShaderDataType::Mat4:     return GL_FLOAT;
-			case Saturn::ShaderDataType::Int:      return GL_INT;
-			case Saturn::ShaderDataType::Int2:     return GL_INT;
-			case Saturn::ShaderDataType::Int3:     return GL_INT;
-			case Saturn::ShaderDataType::Int4:     return GL_INT;
-			case Saturn::ShaderDataType::Bool:     return GL_BOOL;
+			case ShaderDataType::Float:    return GL_FLOAT;
+			case ShaderDataType::Float2:   return GL_FLOAT;
+			case ShaderDataType::Float3:   return GL_FLOAT;
+			case ShaderDataType::Float4:   return GL_FLOAT;
+			case ShaderDataType::Mat3:     return GL_FLOAT;
+			case ShaderDataType::Mat4:     return GL_FLOAT;
+			case ShaderDataType::Int:      return GL_INT;
+			case ShaderDataType::Int2:     return GL_INT;
+			case ShaderDataType::Int3:     return GL_INT;
+			case ShaderDataType::Int4:     return GL_INT;
+			case ShaderDataType::Bool:     return GL_BOOL;
 		}
 
 		SAT_CORE_ASSERT(false, "Unknown ShaderDataType!");

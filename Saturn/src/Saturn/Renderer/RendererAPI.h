@@ -8,10 +8,10 @@ namespace Saturn {
 
 	enum class RendererAPIType
 	{
-		None,
-		OpenGL,
-		DX,
-		Vulkan
+		None = 0x0,
+		OpenGL = 0x1,
+		DX = 0x2,
+		Vulkan = 0x4
 	};
 
 	// TODO: move into separate header

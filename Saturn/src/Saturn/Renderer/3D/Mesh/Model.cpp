@@ -1,13 +1,13 @@
 #include "sppch.h"
 #include "Model.h"
 
-#include <glad/glad.h> 
+#include "Saturn/Renderer/Renderer.h"
+#include "Saturn/Renderer/Material.h"
 
+#include <glad/glad.h> 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
-
-#include "Saturn/Renderer/Material.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -31,8 +31,9 @@ namespace Saturn {
 
     void Model::Draw(DShader& shader)
     {
-        for (unsigned int i = 0; i < meshes.size(); i++)
+        for (unsigned int i = 0; i < meshes.size(); i++) {
             meshes[i].Draw(shader);
+        }
     }
 
     void Model::Update(Timestep ts, DShader& shader)
@@ -156,6 +157,7 @@ namespace Saturn {
 
     void Model::ProcessMaterials(const aiScene* scene)
     {
+        int count = 0;
         for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
             aiMaterial* material = scene->mMaterials[i];
 
@@ -187,7 +189,11 @@ namespace Saturn {
             const char* roughnessTex = !roughnessPath.empty() ? roughnessPath.c_str() : nullptr;
             const char* normalTex = !normalPath.empty() ? normalPath.c_str() : nullptr;
 
+            count++;
+
             const char* materialName = material->GetName().length != 0 ? material->GetName().C_Str() : "Unnamed Material";
+
+       
 
             if (diffusePath.empty())
             {
