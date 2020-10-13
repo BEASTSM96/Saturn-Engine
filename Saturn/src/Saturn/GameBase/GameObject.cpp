@@ -9,7 +9,7 @@
 #include "Saturn/Scene/Components.h"
 
 #include "Platform/OpenGL/OpenGLShader.h"
-
+#include "Platform/OpenGL/OpenGLMaterial.h"
 
 #include <GLFW/glfw3.h>
 
@@ -111,7 +111,14 @@ namespace Saturn {
 
 				/////////////////////////////////////////////////////////////////////SKYBOX-TMP//////////////////////////////
 
-				Ref<Material> SkyboxMaterial;
+				Material * SkyboxMaterial = new OpenGLMaterial(
+					"Skybox", 
+					{0, 0, 0},
+					{0, 0, 0}, 
+					{0, 0, 0}, 
+					0, 
+					0
+				);
 
 			}
 		}

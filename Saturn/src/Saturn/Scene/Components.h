@@ -138,5 +138,15 @@ namespace Saturn {
 			: m_Model(model) {}
 	};
 
+	/** @brief RelationshipComponent.
+	*
+	*/
 
+	struct RelationshipComponent 
+	{
+		entt::entity Parent{ entt::null };
+		std::unordered_set < entt::entity > Children;
+
+		glm::mat4 RelativeTransform = glm::mat4{ 0.0f };
+	};
 }
