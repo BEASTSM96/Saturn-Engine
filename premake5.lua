@@ -28,6 +28,7 @@ IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
 IncludeDir["Assimp"] = "Saturn/vendor/assimp/include"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
+IncludeDir["PhysX"] = "Saturn/vendor/PhysX/include"
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
@@ -36,6 +37,7 @@ group "sat/Dependencies"
 	include "Saturn/vendor/jsoncpp"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
+	include "Saturn/vendor/PhysX"
 
 group "sat/Core"
 project "Saturn"
@@ -81,7 +83,8 @@ project "Saturn"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
 			"%{prj.name}/vendor/assimp/include/",
-		"%{IncludeDir.SPIRV_Cross}"
+		"%{IncludeDir.SPIRV_Cross}",
+		"%{IncludeDir.PhysX}"
 	}
 
 	links 
