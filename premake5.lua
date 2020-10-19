@@ -37,7 +37,8 @@ group "sat/Dependencies"
 	include "Saturn/vendor/jsoncpp"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
-
+	include "Saturn/vendor/PhysX"
+	
 group "sat/Core"
 project "Saturn"
 	location "Saturn"
@@ -293,7 +294,3 @@ project "Titan"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
-
-
-workspace "PhysX"
-	include "Saturn/vendor/PhysX"
