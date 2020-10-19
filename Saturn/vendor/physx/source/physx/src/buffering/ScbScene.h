@@ -39,7 +39,7 @@
 #include "PsHashSet.h"
 
 #if PX_SUPPORT_PVD
-#include "PxPhysics.h"
+#include "PxPhys"
 #include "ScbScenePvdClient.h"
 #endif
 

@@ -30,7 +30,7 @@
 #ifndef PX_PHYSICS_SCB_RIGID_OBJECT
 #define PX_PHYSICS_SCB_RIGID_OBJECT
 
-#include "../../simulationcontroller/include/ScRigidCore.h"
+#include "ScRigidCore.h"
 #include "ScbScene.h"
 #include "ScbActor.h"
 #include "ScbShape.h"
