@@ -97,3 +97,7 @@ Sandbox/assets/tex
 **/Sandbox/*.json
 Sandbox/**.json
 Sandbox/*.json
+assets/**
+Titan/SaturnProfile-Runtime.json
+Titan/SaturnProfile-Shutdown.json
+Titan/SaturnProfile-Startup.json

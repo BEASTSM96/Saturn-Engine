@@ -14,22 +14,3 @@
 #define SPARKY_SANDBOX
 #include <Saturn/Core/Serialisation/Serialiser.h>
 #endif // SPARKY_SANDBOX
-
-class Sandbox : public Saturn::Application
-{
-public:
-	Sandbox()
-	{
-	}
-
-	~Sandbox()
-	{
-
-	}
-
-};
-
-Saturn::Application* Saturn::CreateApplication()
-{
-	return new Sandbox();
-}

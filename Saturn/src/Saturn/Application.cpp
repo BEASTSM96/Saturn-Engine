@@ -7,8 +7,6 @@
 #include "Log.h"
 #include "Layer.h"
 #include "Saturn/Input.h"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include "ImGui/ImGuiLayer.h"
 #include "Saturn/Renderer\Buffer.h"
 #include "Renderer/Renderer.h"
@@ -17,10 +15,14 @@
 #include "Scene/Entity.h"
 #include "Core/World/Level.h"
 #include "Saturn/Renderer/Framebuffer.h"
+#include "GameBase/Skybox.h"
+#include "GameBase/GameObject.h"
+#include "Scene/Scene.h"
 
 #include <imgui.h>
-
 #include <json/json.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 #include <Windows.h>
 #include <commdlg.h>
@@ -132,12 +134,14 @@ namespace Saturn {
 		paths.push_back("assets/shaders/3d_test.satshaderv");
 		paths.push_back("assets/shaders/3d_test.satshaderf");
 
-		gameObject = m_Scene->CreateEntityGameObjectprt("Cube", paths);
+		gameObject = m_Scene->CreateEntityGameObjectprt<GameObject>("GameObject", paths);
 
-		SAT_CORE_INFO("{0}", gameObject->GetComponent<IdComponent>().ID);
+		//SAT_CORE_INFO("%llf {0}", gameObject->GetComponent<IdComponent>().ID);
 
 		//auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths, "assets/meshes/m1911/m1911.fbx");
 
+		auto editor_Skybox = m_Scene->CreateEntityGameObjectprt<Skybox>("Skybox", paths, "assets/meshes/Skybox.fbx");
+		
 		while (m_Running && !m_Crashed)
 		{
 			SAT_PROFILE_SCOPE("RunLoop");
@@ -292,5 +296,6 @@ namespace Saturn {
 
 	}
 
+	bool Application::HasCurrentScene() { if (m_Scene) return true; if (!m_Scene) return false; }
 
 }

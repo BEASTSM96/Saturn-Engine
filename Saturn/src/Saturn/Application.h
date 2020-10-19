@@ -53,6 +53,7 @@ namespace Saturn {
 
 		void SetCrashState(bool state);
 		bool SetRunningState(bool state);
+		bool HasCurrentScene();
 
 		std::pair< std::string, std::string> OpenFile(const char* filter) const;
 

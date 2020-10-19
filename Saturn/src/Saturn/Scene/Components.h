@@ -149,4 +149,18 @@ namespace Saturn {
 
 		glm::mat4 RelativeTransform = glm::mat4{ 0.0f };
 	};
+
+	/** @brief SkyboxComponent.
+	*
+	*/
+
+	struct SkyboxComponent
+	{
+		float texture_inst;
+		MeshComponent m_Mesh;
+		SkyboxComponent() = default;
+		SkyboxComponent(const SkyboxComponent&) = default;
+		SkyboxComponent(MeshComponent mesh) : m_Mesh(mesh) {};
+	};
+
 }

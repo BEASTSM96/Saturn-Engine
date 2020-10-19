@@ -6,7 +6,7 @@
 #include "Saturn/Log.h"
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/Core.h"
-
+#include "Saturn/Debug/Instrumentor.h"
 
 namespace Saturn {
 
@@ -32,8 +32,11 @@ namespace Saturn {
 
 		GameObject CreateEntityGameObject(const std::string& name = std::string());
 
-		GameObject * CreateEntityGameObjectprt(const std::string& name, const std::vector<std::string> ShaderPaths, std::string ObjectPath = std::string());
+		template<class T>
+		T* CreateEntityGameObjectprt(std::string name, std::vector<std::string> ShaderPaths, std::string ObjectPath = std::string());
+
 		SceneData& GetData() { return m_data; }
+		Level& GetLevel() { return *m_CurrentLevel; }
 
 		void OnUpdate(Timestep ts);
 		void OnViewportResize(uint32_t width, uint32_t height);
@@ -52,4 +55,31 @@ namespace Saturn {
 		friend class  SceneHierarchyPanel;
 
 	};
+
+	template<class T>
+	inline T* Scene::CreateEntityGameObjectprt(std::string name, std::vector<std::string> ShaderPaths, std::string ObjectPath)
+	{
+		SAT_PROFILE_FUNCTION();
+
+		T* entity = new T( m_Registry.create(), this );
+
+		entity->AddComponent<TransformComponent>();
+
+		auto& tag = entity->AddComponent<TagComponent>();
+		tag.Tag = name.empty() ? "Unmanned GameObject" : name;
+
+		auto& ID = entity->AddComponent<IdComponent>();
+
+		if (ObjectPath.empty()) {
+			std::string name = "assets/meshes/CUBE.fbx";
+			ObjectPath = name;
+		}
+
+		entity->ourModel = new Model(ObjectPath, ShaderPaths.at(0), ShaderPaths.at(1));
+		entity->AddComponent<MeshComponent>(entity->ourModel);
+
+		entity->Init();
+
+		return entity;
+	}
 }

@@ -85,20 +85,21 @@ namespace Saturn {
 
 		//////////////////////////////////////////////////////////////////////////////////
 
-		void Render();
-		void Init();
+		virtual void Render();
+		virtual void Init();
 
 		void OnPos();
 		void OnKeyInput(KeyPressedEvent & InEvent);
 
-		void OnUpdate(Timestep ts);
+		virtual	void OnUpdate(Timestep ts);
 	public:
 		GameObject* SpawnGameObject();
 
-	private:
+	protected:
 		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
 
+	private:
 		std::vector<DShader*> shaders;
 
 		glm::mat4& transform = glm::mat4(1.0f);
@@ -115,32 +116,6 @@ namespace Saturn {
 
 		DShader *		shader;
 
-		DShader *		pbrShader;
-		DShader *		equirectangularToCubemapShader;
-		DShader *		backgroundShader;
-
-		
-		Ref<Shader> m_playerShader;
-		Ref<VertexArray> m_playerVA;
-
-		Ref<Texture2D> m_playerTexture;
-
-		Ref<Shader> m_Shader;
-		Ref<VertexArray> m_VertexArray;
-
-		Ref<Shader> m_flatShader, m_TextureShader;
-		Ref<VertexArray> m_SquareVA;
-
-		Ref<Texture2D> m_Texture, m_beastlogo;
-
-		float m_PlayerRotation = 0.0f;
-		float m_PlayerRotationSpeed = 180.0f;
-
-		glm::vec3 m_PlayerPosition;
-		float m_PlayerMoveSpeed = 50.0f;
-
-		bool m_ShadersDone = false;
-		
 		bool m_3D = true;
 
 	private:

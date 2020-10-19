@@ -47,7 +47,7 @@ namespace Saturn {
 		// tell stb_image.h to flip loaded texture's on the y-axis
 		stbi_set_flip_vertically_on_load(true);
 
-		GetComponent<TransformComponent>().Transform = glm::translate(transform, glm::vec3(10.0f, 10.0f, 10.0f));
+		GetComponent<TransformComponent>().Transform = glm::translate(transform, glm::vec3(1.0f, 10.0f, 10.0f));
 		GetComponent<TransformComponent>().Transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
 
 		GameLayer* gl = static_cast<GameLayer*>(Application::Get().GetCurrentScene().m_CurrentLevel->GetGameLayer());
@@ -61,11 +61,6 @@ namespace Saturn {
 	{
 	}
 
-	void GameObject::OnPos()
-	{
-		m_PlayerPosition.x += 50.0f * 0.01f;
-	}
-
 	void GameObject::OnUpdate(Timestep ts) {
 		SAT_PROFILE_FUNCTION();
 	}
@@ -74,16 +69,7 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		if (!m_3D)
-		{
-			GameLayer* gl = Application::Get().m_gameLayer;
-
-			glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.1f));
-
-			FTransform tras = FTransform(m_PlayerPosition, scale, 0.0f);
-
-		}
-		else
+		if(m_3D)
 		{
 			SAT_PROFILE_SCOPE("GameObjectRenderLoop");
 
@@ -131,7 +117,7 @@ namespace Saturn {
 		paths.push_back("assets/shaders/3d_test.satshaderv");
 		paths.push_back("assets/shaders/3d_test.satshaderf");
 
-		return Application::Get().GetCurrentScene().CreateEntityGameObjectprt("", paths);
+		return  nullptr; //Application::Get().GetCurrentScene().CreateEntityGameObjectprt<GameObject>("", paths);
 	}
 
 	// utility function for loading a 2D texture from file

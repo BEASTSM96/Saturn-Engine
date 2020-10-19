@@ -915,7 +915,7 @@ namespace Saturn {
 					SAT_CORE_WARN("	Compiling Shaders can also use system resources!");
 
 
-					GameObject* gb = Application::Get().GetCurrentScene().CreateEntityGameObjectprt("", paths);
+					GameObject* gb = nullptr;
 
 					SAT_CORE_INFO("Creating new GameObject!");
 
@@ -1011,7 +1011,7 @@ namespace Saturn {
 				paths.push_back("assets/shaders/3d_test.satshaderv");
 				paths.push_back("assets/shaders/3d_test.satshaderf");
 
-				Application::Get().GetCurrentScene().CreateEntityGameObjectprt("", paths, "");
+				//Application::Get().GetCurrentScene().CreateEntityGameObjectprt<GameObject>("", paths, "");
 			}
 
 			int num = 0;
@@ -1021,6 +1021,29 @@ namespace Saturn {
 			});
 			ImGui::SameLine();
 			ImGui::Text("Num Entitys : %i", num);
+
+			int numberEntt = 0;
+			ImGui::InputInt("NewEntitys", &numberEntt, sizeof(numberEntt));
+
+			if(ImGui::Button("Exit!")) 
+			{
+				Application::Get().SetRunningState(false);
+			}
+
+			std::vector<std::string> paths;
+			paths.push_back("assets/shaders/3d_test.satshaderv");
+			paths.push_back("assets/shaders/3d_test.satshaderf");
+
+			for (int i = 0; i < numberEntt; i++)
+			{
+				#ifdef BAD
+				//Application::Get().GetCurrentScene().CreateEntityGameObjectprt("", paths, "");
+				#else
+				//Application::Get().GetCurrentScene().CreateEntityGameObject("");
+				#endif // BAD
+
+			}
+
 		#endif // 
 
 		m_Context->m_Registry.each([&](auto entityID)

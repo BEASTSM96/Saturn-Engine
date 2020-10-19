@@ -48,6 +48,10 @@
 
 #include "Saturn/Renderer/Framebuffer.h"
 
+/*GameStuff*/
+#include "Saturn/GameBase/GameObject.h"
+#include "Saturn/GameBase/GameLayer.h"
+
 // ---Entry Point---------------------
 #include "Saturn/EntryPoint.h"
 // ----------------------------------- 
