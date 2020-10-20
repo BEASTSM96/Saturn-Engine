@@ -10,7 +10,11 @@ namespace Saturn {
 	{
 	}
 
-	Skybox::Skybox(entt::entity handle, Scene* scene) : Serialiser::OBJ_NAME("Skybox"), m_EntityHandle(GameObject::m_EntityHandle), m_Scene(GameObject::m_Scene)
+	Skybox::Skybox(const std::string& objectname, Json::Value& reconstructionValue) : Serialiser::OBJ_NAME("Skybox")
+	{
+	}
+
+	Skybox::Skybox(entt::entity handle, Scene* scene) : Serialiser::OBJ_NAME("Skybox")
 	{
 	}
 

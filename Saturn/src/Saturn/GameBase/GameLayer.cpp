@@ -38,6 +38,10 @@ namespace Saturn {
 
 	GameLayer::~GameLayer()
 	{
+		for (GameObject gb : gameObjects)
+		{
+			gb.Cleanup(false);
+		}
 	}
 
 	void GameLayer::OnAttach()

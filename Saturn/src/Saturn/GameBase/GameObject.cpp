@@ -16,6 +16,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
+#include "physx/PxPhysicsAPI.h"
 
 #pragma warning(disable: 26812)
 
@@ -23,6 +24,7 @@
 #ifdef SPARKY_GAME_BASE
 
 namespace Saturn {
+
 
 	GameObject* GameObject::s_Instance = nullptr;
 
@@ -55,6 +57,9 @@ namespace Saturn {
 		gl->gameObjects.push_back(*this);
 
 		SAT_CORE_WARN("GameObject Size {0} ", gl->gameObjects.size());
+
+		Physics::Actor::PhysicsActor::InitPhysics(false);
+
 	}
 
 	void GameObject::OnKeyInput(KeyPressedEvent& InEvent)

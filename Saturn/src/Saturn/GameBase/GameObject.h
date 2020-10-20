@@ -7,15 +7,22 @@
 * 
 *********************************************************************************************************
 *										Object (needed for serialisation).
-*										Friend class SATURN_API GameLayer (needed for rendering on that layer).
+*										Friend class GameLayer (needed for rendering on that layer).
 *										Entity (for ECS)
 */
+
 // Always include this 
 #include "entt.hpp"
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Core/Serialisation/Object.h"
 #include "Saturn/Scene/Components.h"
 #include "Saturn/Scene/Entity.h"
+#include "PhysicsActor.h"
+
+#include "physx/PxPhysicsAPI.h"
+#include "physx/foundation/PxPreprocessor.h"
+#include "physx/foundation/PxSimpleTypes.h"
+#include "physx/PxFoundation.h"
 
 
 #ifdef SPARKY_GAME_BASE
@@ -41,7 +48,7 @@ class DShader;
 
 namespace Saturn {
 
-	class SATURN_API GameObject : public Entity, public Object /* Sparky GameObject */
+	class SATURN_API GameObject : public Entity, public Object, public Physics::Actor::PhysicsActor /* Sparky GameObject */
 	{
 	public:
 		GameObject();

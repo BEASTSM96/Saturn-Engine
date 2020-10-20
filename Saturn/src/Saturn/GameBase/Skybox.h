@@ -10,6 +10,7 @@ namespace Saturn {
 	{
 	public:
 		Skybox();
+		Skybox(const std::string& objectname, Json::Value& reconstructionValue);
 		//////////////////////////////////////////////////////////////////////////////
 
 		Skybox(entt::entity handle, Scene* scene);
