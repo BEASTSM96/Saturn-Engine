@@ -84,7 +84,9 @@ project "Saturn"
 		"%{IncludeDir.assimp}",
 			"%{prj.name}/vendor/assimp/include/",
 		"%{IncludeDir.SPIRV_Cross}",
-		"%{IncludeDir.PhysX}"
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx"
 	}
 
 	links 
@@ -114,14 +116,9 @@ project "Saturn"
 
 		links
 		{
-			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib"
+			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
+			"Saturn/vendor/physx/bin/Debug-windows-x86_64/PhysX/PhysX.lib"
 		}
-
-		postbuildcommands 
-		{
-			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
-		}
-
 
 	filter "configurations:Release"
 		defines "SAT_RELEASE"
@@ -256,7 +253,10 @@ project "Titan"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.Assimp}",
-		"%{IncludeDir.ImGui}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx"
 	}
 
 	links
