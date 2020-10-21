@@ -50,6 +50,8 @@ namespace Saturn::Physics::Actor {
 		RELEASE(m_Dispatcher);
 		RELEASE(m_Physics);
 		RELEASE(m_Foundation);
+
+		SAT_CORE_WARN("[PhysicsActor] Scene Cleanup!");
 	}
 
 	physx::PxRigidDynamic* PhysicsActor::CreateDynamic(const physx::PxTransform& t, const physx::PxGeometry& geometry, const physx::PxVec3& velocity)

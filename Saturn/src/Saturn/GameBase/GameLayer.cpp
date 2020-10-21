@@ -77,14 +77,11 @@ namespace Saturn {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
-
 		if (Input::IsKeyPressed(SAT_KEY_LEFT_ALT) && Input::IsKeyPressed(SAT_KEY_M)) {
 
 			GLFWwindow* win = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 
 			glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-
 		}
 		else if (Input::IsKeyPressed(SAT_KEY_LEFT_ALT) && Input::IsKeyPressed(SAT_KEY_N))
 		{
@@ -97,6 +94,13 @@ namespace Saturn {
 		{
 			gb.Render();
 			gb.OnUpdate(ts);
+		}
+
+		for (GameObject gb : gameObjects)
+		{
+			for (auto i : gb.GetPxScene().getActors())
+			{
+			}
 		}
 
 		Renderer::EndScene();

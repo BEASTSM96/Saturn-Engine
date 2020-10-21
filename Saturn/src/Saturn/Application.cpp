@@ -136,11 +136,9 @@ namespace Saturn {
 
 		gameObject = m_Scene->CreateEntityGameObjectprt<GameObject>("GameObject", paths);
 
-		//SAT_CORE_INFO("%llf {0}", gameObject->GetComponent<IdComponent>().ID);
+		//auto* gun = m_Scene->CreateEntityGameObjectprt<GameObject>("Gun", paths, "assets/meshes/m1911/m1911.fbx");
 
-		//auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths, "assets/meshes/m1911/m1911.fbx");
-
-		auto editor_Skybox = m_Scene->CreateEntityGameObjectprt<Skybox>("Skybox", paths, "assets/meshes/Skybox.fbx");
+		//auto editor_Skybox = m_Scene->CreateEntityGameObjectprt<Skybox>("Skybox", paths, "assets/meshes/Skybox.fbx");
 		
 		while (m_Running && !m_Crashed)
 		{
@@ -151,7 +149,6 @@ namespace Saturn {
 			Timestep timestep = time - LastFrameTime;
 
 			LastFrameTime = time;
-
 
 			if (!m_Minimized)
 			{
@@ -166,6 +163,7 @@ namespace Saturn {
 			#if defined(SAT_DEBUG)
 						for (Layer* layer : m_LayerStack) {
 							layer->OnImGuiRender();
+							//
 						}
 						m_SceneHierarchyPanel.OnImGuiRender();
 

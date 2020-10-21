@@ -57,7 +57,7 @@ namespace Saturn {
 	};
 
 	template<class T>
-	inline T* Scene::CreateEntityGameObjectprt(std::string name, std::vector<std::string> ShaderPaths, std::string ObjectPath)
+	T* Scene::CreateEntityGameObjectprt(std::string name, std::vector<std::string> ShaderPaths, std::string ObjectPath)
 	{
 		SAT_PROFILE_FUNCTION();
 
