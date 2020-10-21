@@ -30,3 +30,4 @@ It's Just [here](https://github.com/BEASTSM96/Sparky-Engine/blob/master/INSTALL.
 
 [![Twitter](https://img.shields.io/badge/%40beastsm96--blue.svg?style=social&logo=Twitter)](https://twitter.com/beastsm96)
 [![Youtube](https://img.shields.io/badge/BEAST--red.svg?style=social&logo=youtube)](https://www.youtube.com/channel/UC4kS5P7Jsq3eacveJiFuQbg)
+[![Discord](https://img.shields.io/badge/EngineDiscord--red.svg?style=social&logo=discord)](https://discord.gg/9tTVbkt)
