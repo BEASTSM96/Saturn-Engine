@@ -5,7 +5,7 @@ Saturn is primarily an early-stage interactive application and rendering engine 
 ## Getting Started
 Visual Studio 2019 is recommended, Saturn is officially untested on other development environments whilst we focus on a Windows build.
 
-Start by cloning the repository with `git clone https://github.com/BEASTSM96/Sparky-Engine`.
+Start by cloning the repository with `git clone https://github.com/BEASTSM96/Saturn-Engine`.
 
 If the repository was cloned non-recursively previously, use `git submodule update --init` to clone the necessary submodules.
 
