@@ -6,6 +6,7 @@ namespace Saturn::Physics::Actor {
 
 	PhysicsActor::PhysicsActor()
 	{
+		InitPhysics(false);
 	}
 
 	PhysicsActor::~PhysicsActor()
@@ -35,18 +36,19 @@ namespace Saturn::Physics::Actor {
 		m_PhysXScene->addActor(*groundPlane);
 	}
 
+	void PhysicsActor::StepPhysics(bool)
+	{
+		m_PhysXScene->simulate(1.0f / 60.0f);
+		m_PhysXScene->fetchResults(true);
+		physx::PxReal loc = 10.0f;
+		CreateStack(physx::PxTransform(physx::PxVec3(0, 0, loc -= 10.0f)), 10, 2.0f);
+	}
+
 	void PhysicsActor::Cleanup(bool)
 	{
 		RELEASE(m_PhysXScene);
 		RELEASE(m_Dispatcher);
 		RELEASE(m_Physics);
-		if (m_Pvd)
-		{
-			physx::PxPvdTransport* transport = m_Pvd->getTransport();
-			m_Pvd->release();	
-			m_Pvd = NULL;
-			RELEASE(transport);
-		}
 		RELEASE(m_Foundation);
 	}
 
@@ -57,6 +59,25 @@ namespace Saturn::Physics::Actor {
 		dynamic->setLinearVelocity(velocity);
 		m_PhysXScene->addActor(*dynamic);
 		return dynamic;
+	}
+
+	void PhysicsActor::CreateStack(const physx::PxTransform& t, physx::PxU32 size, physx::PxReal halfExtent)
+	{
+		physx::PxShape* shape = m_Physics->createShape(physx::PxBoxGeometry(halfExtent, halfExtent, halfExtent), *m_Material);
+		for (physx::PxU32 i = 0; i < size; i++)
+		{
+			for (physx::PxU32 j = 0; j < size - i; j++)
+			{
+
+				physx::PxTransform localTm(physx::PxVec3(physx::PxReal(j * 2) - physx::PxReal(size - i), physx::PxReal(i * 2 + 1), 0) * halfExtent);
+				physx::PxRigidDynamic* body = m_Physics->createRigidDynamic(t.transform(localTm));
+				body->attachShape(*shape);
+				physx::PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
+				m_PhysXScene->addActor(*body);
+			}
+		}
+		shape->release();
+
 	}
 
 }

@@ -13,6 +13,7 @@
 #include "physx/foundation/PxPreprocessor.h"
 #include "physx/foundation/PxSimpleTypes.h"
 #include "physx/PxFoundation.h"
+#include "physx/foundation/PxTransform.h"
 
 namespace Saturn::Physics {
 
@@ -27,7 +28,9 @@ namespace Saturn::Physics {
 			~PhysicsActor();
 
 			void InitPhysics(bool isinteractive);
+			void StepPhysics(bool);
 			void Cleanup(bool);
+			void CreateStack(const physx::PxTransform& t, physx::PxU32 size, physx::PxReal halfExtent);
 			physx::PxRigidDynamic* PhysicsActor::CreateDynamic(const physx::PxTransform& t, const physx::PxGeometry& geometry, const physx::PxVec3& velocity = physx::PxVec3(0));
 
 		public:
