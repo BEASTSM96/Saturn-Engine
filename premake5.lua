@@ -66,6 +66,7 @@ project "Saturn"
 	defines
 	{
 		"_CRT_SECURE_NO_WARNINGS",
+		"PX_PHYSX_STATIC_LIB",
 		"AL_LIBTYPE_STATIC"
 	}
 
@@ -117,7 +118,7 @@ project "Saturn"
 		links
 		{
 			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
-			"Saturn/vendor/physx/bin/Debug-windows-x86_64/PhysX/PhysX.lib"
+			"Saturn/vendor/physx/bin/Debug/PhysX_64.lib"
 		}
 
 	filter "configurations:Release"
@@ -263,14 +264,6 @@ project "Titan"
 	{
 		"Saturn"
 	}
-
-	postbuildcommands 
-	{
-		'{COPY} "../Sandbox/assets/" "../assets/"'
-	}
-	postbuildmessage "EDITTOR BUILDING..."
-	postbuildmessage "Done moving sandbox assets to editor assests!" 
-
 
 	filter "system:windows"
 		systemversion "latest"

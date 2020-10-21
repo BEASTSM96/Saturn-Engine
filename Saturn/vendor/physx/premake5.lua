@@ -8,8 +8,9 @@ project "PhysX"
     characterset "MBCS"
 
     defines {
-    	"PX_PHYSX_STATIC_LIB",
-    	"PX_COOKING",
+		"PX_PHYSX_STATIC_LIB",
+		"PX_PHYSX_STATIC_LIB",
+    	"PX_COOKING"
     }
 
 	files {
