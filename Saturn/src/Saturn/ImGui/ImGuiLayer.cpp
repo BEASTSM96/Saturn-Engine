@@ -126,8 +126,6 @@ namespace Saturn {
 	void ImGuiLayer::OnImGuiRender()
 	{
 		SAT_PROFILE_FUNCTION();
-
-		archive();
 	}
 
 
