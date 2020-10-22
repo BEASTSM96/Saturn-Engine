@@ -24,18 +24,24 @@ IncludeDir["Glad"] = "Saturn/vendor/Glad/include"
 IncludeDir["ImGui"] = "Saturn/vendor/imgui"
 IncludeDir["glm"] = "Saturn/vendor/glm"
 IncludeDir["stb_image"] = "Saturn/vendor/stb/"
-IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
 IncludeDir["Assimp"] = "Saturn/vendor/assimp/include"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
+
+IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
+IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
+IncludeDir["Saturn-Serialisation"] = "Saturn/vendor/Saturn-Serialisation/"
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/Glad"
 	include "Saturn/vendor/imgui"
-	include "Saturn/vendor/jsoncpp"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
+		group "sat/Dependencies/Serialisation"
+			include "Saturn/vendor/jsoncpp"
+			include "Saturn/vendor/yaml-cpp"
+--			include "Saturn/vendor/Saturn-Serialisation"
 
 group "sat/Core"
 project "Saturn"
@@ -81,7 +87,8 @@ project "Saturn"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
 			"%{prj.name}/vendor/assimp/include/",
-		"%{IncludeDir.SPIRV_Cross}"
+		"%{IncludeDir.SPIRV_Cross}",
+		"%{IncludeDir.yaml_cpp}"
 	}
 
 	links 
@@ -111,7 +118,8 @@ project "Saturn"
 
 		links
 		{
-			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib"
+			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
+			"Saturn/vendor/yaml-cpp/bin/Debug/yaml-cpp.lib",
 		}
 
 		postbuildcommands 
