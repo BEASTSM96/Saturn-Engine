@@ -1,6 +1,6 @@
 workspace "Saturn"
 	architecture "x64"
-	startproject "Sandbox"
+	startproject "Titan"
 	targetdir "build"
 
 	configurations
