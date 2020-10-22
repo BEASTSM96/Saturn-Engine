@@ -34,6 +34,7 @@ namespace Saturn {
 
 		GameObject * CreateEntityGameObjectprt(const std::string& name, const std::vector<std::string> ShaderPaths, std::string ObjectPath = std::string());
 		SceneData& GetData() { return m_data; }
+		Level& GetLevel() { return *m_CurrentLevel; }
 
 		void OnUpdate(Timestep ts);
 		void OnViewportResize(uint32_t width, uint32_t height);

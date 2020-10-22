@@ -1,8 +1,15 @@
 #pragma once
 
 #include <filesystem>
-
 #include <json/json.h>
+
+#include "Saturn/Scene/Entity.h"
+
+//#define YAML
+
+#ifdef YAML
+#include <yaml-cpp/yaml.h>
+#endif
 
 #include "Types.h"
 
@@ -22,8 +29,22 @@ namespace Saturn {
 		static void Init();
 
 		virtual ~Serialiser();
-		virtual void Serialise(Json::Value& members);
+
+#ifdef YAML
+		virtual void Serialise(const std::string& filepath);
+#else
+		virtual void Serialise(const std::string& filepath);
+#endif
 		virtual void Deserialise(Json::Value& members);
+
+#ifdef YAML
+		virtual void SerialiseEntity(YAML::Emitter& out, Entity entity);
+#else
+		void SerialiseEntity(Json::Value& members, Entity entity);
+		void SerialiseEntity(Json::Value& members, GameObject entity);
+#endif // YAML
+
+
 
 		std::string m_ObjectName;
 		bool m_shouldSerialise;
@@ -31,9 +52,7 @@ namespace Saturn {
 
 		virtual void archive() {};
 		void SerialisationData(GenericSerialisable* serialisable) {
-		
 			m_Serialisables.push_back(serialisable);
-		
 		}
 
 		template<typename T, class ... Targs>

@@ -138,6 +138,10 @@ namespace Saturn {
 
 		//auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths, "assets/meshes/m1911/m1911.fbx");
 
+		Json::Value x;
+		Serialiser s = Serialiser("test");
+		s.Serialise("Scene1.json");
+
 		while (m_Running && !m_Crashed)
 		{
 			SAT_PROFILE_SCOPE("RunLoop");
