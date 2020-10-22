@@ -11,7 +11,7 @@ If the repository was cloned non-recursively previously, use `git submodule upda
 
 ## How to Install:
 
-It's Just [here](https://github.com/BEASTSM96/Sparky-Engine/blob/master/INSTALL.md)
+It's Just [here](https://github.com/BEASTSM96/Saturn-Engine/blob/master/INSTALL.md)
 
 ## 
 
