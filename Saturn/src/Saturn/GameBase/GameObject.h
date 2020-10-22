@@ -108,7 +108,7 @@ namespace Saturn {
 	public:
 
 		glm::mat4& GetTransform() {
-			return GetComponent<TransformComponent>().Transform;
+			return GetComponent<TransformComponent>().GetTransform();
 		}
 
 		Model *			ourModel;

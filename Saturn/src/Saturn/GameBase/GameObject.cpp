@@ -47,9 +47,6 @@ namespace Saturn {
 		// tell stb_image.h to flip loaded texture's on the y-axis
 		stbi_set_flip_vertically_on_load(true);
 
-		GetComponent<TransformComponent>().Transform = glm::translate(transform, glm::vec3(10.0f, 10.0f, 10.0f));
-		GetComponent<TransformComponent>().Transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
-
 		GameLayer* gl = static_cast<GameLayer*>(Application::Get().GetCurrentScene().m_CurrentLevel->GetGameLayer());
 
 		gl->gameObjects.push_back(*this);
@@ -81,7 +78,6 @@ namespace Saturn {
 			glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.1f));
 
 			FTransform tras = FTransform(m_PlayerPosition, scale, 0.0f);
-
 		}
 		else
 		{
@@ -100,7 +96,7 @@ namespace Saturn {
 
 				GetComponent<MeshComponent>().GetModel()->m_Shader->UploadMat4(
 					"model",
-					GetComponent<TransformComponent>().Transform
+					GetComponent<TransformComponent>().GetTransform()
 				);
 
 				/** Material Properties*/
