@@ -585,14 +585,6 @@ namespace Saturn {
 
 		ImVec4* colors = ImGui::GetStyle().Colors;
 
-		FramebufferSpecification fbSpec;
-		fbSpec.Width = 1280;
-		fbSpec.Height = 720;
-		m_Framebuffer = Framebuffer::Create(fbSpec);
-
-		m_Framebuffer->Bind();
-		m_Framebuffer->Unbind();
-
 #ifdef SAT_PLATFORM_WINDOWS
 		ImFont* pFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
 		io.FontDefault = io.Fonts->Fonts.back();
@@ -874,12 +866,6 @@ namespace Saturn {
 
 			io.ConfigWindowsMoveFromTitleBarOnly = true;
 	
-			if(ImGui::Begin("TestFrameBuffer"))
-			{
-				uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
-				ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-
-			}
 
 #ifdef SAT_DEBUG
 
@@ -942,7 +928,6 @@ namespace Saturn {
 
 #endif // SAT_DEBUG
 
-			ImGui::End();
 			ImGui::End();
 		}
 
