@@ -38,10 +38,18 @@ namespace Saturn::Physics::Actor {
 
 	void PhysicsActor::StepPhysics(bool)
 	{
+		m_PhysXScene->setVisualizationParameter(physx::PxVisualizationParameter::eSCALE, 1.0f);
+		m_PhysXScene->setVisualizationParameter(physx::PxVisualizationParameter::eACTOR_AXES, 2.0f);
+
 		m_PhysXScene->simulate(1.0f / 60.0f);
 		m_PhysXScene->fetchResults(true);
-		physx::PxReal loc = 10.0f;
-		CreateStack(physx::PxTransform(physx::PxVec3(0, 0, loc -= 10.0f)), 10, 2.0f);
+		static bool xdone = false;
+		if (!xdone)
+		{
+			physx::PxReal loc = 10.0f;
+			CreateStack(physx::PxTransform(physx::PxVec3(0, 0, loc -= 10.0f)), 10, 2.0f);
+			xdone = true;
+		}
 	}
 
 	void PhysicsActor::Cleanup(bool)

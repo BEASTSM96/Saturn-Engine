@@ -46,8 +46,6 @@ namespace Saturn {
 
 		s_Instance = this;
 
-		Physics::Actor::PhysicsActor::StepPhysics(false);
-
 		// tell stb_image.h to flip loaded texture's on the y-axis
 		stbi_set_flip_vertically_on_load(true);
 
@@ -74,11 +72,14 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		Physics::Actor::PhysicsActor::StepPhysics(false);
+		StepPhysics(false);
 
 		if(m_3D)
 		{
 			SAT_PROFILE_SCOPE("GameObjectRenderLoop");
+
+#if !0
+
 
 			GameLayer* gl = Application::Get().m_gameLayer;
 			if (HasComponent<MeshComponent>())
@@ -113,12 +114,11 @@ namespace Saturn {
 					0
 				);
 
-				Physics::Actor::PhysicsActor::StepPhysics(false);
-
+				//Physics::Actor::PhysicsActor::GetPxScene().addActor(*PhysXActor);
 			}
+#endif
 		}
 	}
-
 
 	GameObject* GameObject::SpawnGameObject()
 	{

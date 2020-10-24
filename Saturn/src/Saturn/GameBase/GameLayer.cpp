@@ -96,13 +96,6 @@ namespace Saturn {
 			gb.OnUpdate(ts);
 		}
 
-		for (GameObject gb : gameObjects)
-		{
-			for (auto i : gb.GetPxScene().getActors())
-			{
-			}
-		}
-
 		Renderer::EndScene();
 	}
 

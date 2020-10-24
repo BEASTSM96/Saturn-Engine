@@ -45,10 +45,14 @@
 #include <assimp/scene.h>
 
 class DShader;
+using namespace physx;
 
 namespace Saturn {
 
-	class SATURN_API GameObject : public Entity, public Object, public Physics::Actor::PhysicsActor /* Sparky GameObject */
+	class SATURN_API GameObject : 
+		public Entity, 
+		public Object, 
+		public Physics::Actor::PhysicsActor
 	{
 	public:
 		GameObject();
@@ -102,6 +106,8 @@ namespace Saturn {
 	public:
 		GameObject* SpawnGameObject();
 
+	public:
+		physx::PxActor* PhysXActor;
 	protected:
 		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
