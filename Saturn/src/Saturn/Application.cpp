@@ -140,7 +140,7 @@ namespace Saturn {
 
 		Json::Value x;
 		Serialiser s = Serialiser("test");
-		s.Serialise("Scene1.json");
+		//s.Serialise("Scene1.json");
 
 		while (m_Running && !m_Crashed)
 		{
@@ -178,6 +178,8 @@ namespace Saturn {
 			m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
+
+			s.Deserialise("Scene1.json");
 		}
 		while (m_Crashed && !m_Running)
 		{

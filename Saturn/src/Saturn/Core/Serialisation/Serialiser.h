@@ -32,10 +32,11 @@ namespace Saturn {
 
 #ifdef YAML
 		virtual void Serialise(const std::string& filepath);
+		virtual void Deserialise(const std::string& filepath);
 #else
 		virtual void Serialise(const std::string& filepath);
+		virtual void Deserialise(const std::string& filepath);
 #endif
-		virtual void Deserialise(Json::Value& members);
 
 #ifdef YAML
 		virtual void SerialiseEntity(YAML::Emitter& out, Entity entity);
