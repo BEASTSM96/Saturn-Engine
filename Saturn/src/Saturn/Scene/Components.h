@@ -5,6 +5,8 @@
 
 namespace Saturn {
 
+	struct Component {};
+
 	/** @brief A TransformComponent.
 	*
 	* @code
@@ -23,7 +25,7 @@ namespace Saturn {
 	* @endcode
 	*/
 
-	struct TransformComponent
+	struct TransformComponent : Component
 	{
 		glm::vec3  Position =		{ 0.0f , 0.0f, 0.0f };
 		glm::vec3  Rotation =		{ 0.0f , 0.0f, 0.0f };
@@ -60,7 +62,7 @@ namespace Saturn {
 	* 
 	* @endcode
 	*/
-	struct SpriteRendererComponent
+	struct SpriteRendererComponent : Component
 	{
 		glm::vec4 Color { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -83,7 +85,7 @@ namespace Saturn {
 	*
 	* @endcode
 	*/
-	struct TagComponent
+	struct TagComponent : Component
 	{
 		std::string Tag;
 
@@ -105,7 +107,7 @@ namespace Saturn {
 	* 
 	* @endcode
 	*/
-	struct IdComponent
+	struct IdComponent : Component
 	{
 		UUID ID;
 
@@ -133,7 +135,7 @@ namespace Saturn {
 
 	class Model;
 
-	struct MeshComponent
+	struct MeshComponent : Component
 	{
 	public:
 		Model* GetModel() { return m_Model; }
@@ -150,7 +152,7 @@ namespace Saturn {
 	*
 	*/
 
-	struct RelationshipComponent 
+	struct RelationshipComponent : Component
 	{
 		entt::entity Parent{ entt::null };
 		std::unordered_set < entt::entity > Children;
