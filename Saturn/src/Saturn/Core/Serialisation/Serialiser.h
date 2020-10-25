@@ -5,7 +5,7 @@
 
 #include "Saturn/Scene/Entity.h"
 
-//#define YAML
+#define YAML
 
 #ifdef YAML
 #include <yaml-cpp/yaml.h>
@@ -40,6 +40,7 @@ namespace Saturn {
 
 #ifdef YAML
 		virtual void SerialiseEntity(YAML::Emitter& out, Entity entity);
+		virtual void SerialiseEntity(YAML::Emitter& out, GameObject entity);
 #else
 		void SerialiseEntity(Json::Value& members, Entity entity);
 		void SerialiseEntity(Json::Value& members, GameObject entity);
