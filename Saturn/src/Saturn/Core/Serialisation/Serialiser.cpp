@@ -1,9 +1,8 @@
 #include "sppch.h"
 #include "Serialiser.h"
 
-#define  YAML
-
-#ifdef YAML
+#ifdef _YAML
+	#include <glm/glm.hpp>
 	#include <yaml-cpp/yaml.h>
 #endif
 
@@ -25,7 +24,7 @@
 #include <io.h>
 #include <string.h>
 
-#ifdef YAML
+#ifdef _YAML
 
 namespace YAML {
 
@@ -80,13 +79,12 @@ namespace YAML {
 	};
 
 }
-#endif // YAML
 
-
+#endif // _YAML
 
 namespace Saturn {
 
-#ifdef YAML
+#ifdef _YAML
 	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
 	{
 		out << YAML::Flow;
@@ -120,7 +118,7 @@ namespace Saturn {
 
 	Serialiser::~Serialiser() {}
 
-#ifdef YAML
+#ifdef _YAML
 	void Serialiser::Serialise(const std::string& filepath)
 	{
 		YAML::Emitter out;
@@ -128,13 +126,13 @@ namespace Saturn {
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-		Application::Get().GetCurrentScene()->GetRegistry().each([&](auto entityID)
+		Application::Get().GetCurrentScene().GetRegistry().each([&](auto entityID)
 		{
-			Entity entity = { entityID, m_Scene.get() };
+			Entity entity = { entityID, Application::Get().GetCurrentScene().GetRegistry().get() };
 			if (!entity)
 				return;
 
-			SerializeEntity(out, entity);
+			SerialiseEntity(out, entity);
 		});
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
@@ -157,7 +155,7 @@ namespace Saturn {
 	}
 #endif
 	
-#ifdef YAML
+#ifdef _YAML
 	void Serialiser::SerialiseEntity(YAML::Emitter& out, Entity entity)
 	{
 
@@ -361,7 +359,7 @@ namespace Saturn {
 #endif
 
 
-#ifdef YAML
+#ifdef _YAML
 
 	void Serialiser::Deserialise(const std::string& filepath)
 	{

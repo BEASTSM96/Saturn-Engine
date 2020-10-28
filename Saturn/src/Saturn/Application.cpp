@@ -74,7 +74,6 @@ namespace Saturn {
 	Application::~Application()
 	{
 		SAT_PROFILE_FUNCTION();
-		m_Level->~Level();
 	}
 
 	void Application::PushLayer(Layer* layer)
@@ -120,8 +119,6 @@ namespace Saturn {
 
 		Math::Init();
 
-		m_Level = new Level();
-
 		m_Scene = CreateRef<Scene>();
 
 		m_SceneHierarchyPanel.SetContext(m_Scene);
@@ -134,13 +131,7 @@ namespace Saturn {
 
 		gameObject = m_Scene->CreateEntityGameObjectprt("Cube", paths);
 
-		SAT_CORE_INFO("{0}", gameObject->GetComponent<IdComponent>().ID);
-
-		//auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths, "assets/meshes/m1911/m1911.fbx");
-
-		Json::Value x;
-		Serialiser s = Serialiser("test");
-		//s.Serialise("Scene1.json");
+//		auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths);
 
 		while (m_Running && !m_Crashed)
 		{
@@ -179,7 +170,6 @@ namespace Saturn {
 
 			m_Window->OnUpdate();
 
-			s.Deserialise("Scene1.json");
 		}
 		while (m_Crashed && !m_Running)
 		{

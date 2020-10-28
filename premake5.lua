@@ -125,6 +125,7 @@ project "Saturn"
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Titan/"',
 		}
 
 
@@ -141,6 +142,7 @@ project "Saturn"
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Titan/"',
 		}
 
 	filter "configurations:Dist"
@@ -156,6 +158,7 @@ project "Saturn"
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Titan/"',
 		}
 
 ---------------------------------------------------------------------------------------------------------------------------
@@ -271,11 +274,24 @@ project "Titan"
 
 	postbuildcommands 
 	{
-		'{COPY} "../Sandbox/assets/" "../assets/"'
+		'{COPY} "../%{prj.name}/assets/" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/assets/"'
 	}
-	postbuildmessage "EDITTOR BUILDING..."
-	postbuildmessage "Done moving sandbox assets to editor assests!" 
 
+	filter "configurations:Dist"
+		postbuildcommands 
+		{
+			'{COPY} "Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/"'
+		}
+	filter "configurations:Release"
+		postbuildcommands 
+		{
+			'{COPY} "Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/"'
+		}
+	filter "configurations:Debug"
+		postbuildcommands 
+		{
+			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/"'
+		}
 
 	filter "system:windows"
 		systemversion "latest"

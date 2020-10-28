@@ -59,7 +59,7 @@ namespace Saturn {
 		Scene* m_Scene = nullptr;
 
 		friend class GameObject;
-
+		friend class Scene;
 	};
 
 

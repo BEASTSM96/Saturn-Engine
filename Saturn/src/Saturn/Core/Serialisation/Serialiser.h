@@ -5,12 +5,6 @@
 
 #include "Saturn/Scene/Entity.h"
 
-#define YAML
-
-#ifdef YAML
-#include <yaml-cpp/yaml.h>
-#endif
-
 #include "Types.h"
 
 #pragma warning(disable: 4005)
@@ -30,7 +24,7 @@ namespace Saturn {
 
 		virtual ~Serialiser();
 
-#ifdef YAML
+#ifdef _YAML
 		virtual void Serialise(const std::string& filepath);
 		virtual void Deserialise(const std::string& filepath);
 #else
@@ -38,7 +32,7 @@ namespace Saturn {
 		virtual void Deserialise(const std::string& filepath);
 #endif
 
-#ifdef YAML
+#ifdef _YAML
 		virtual void SerialiseEntity(YAML::Emitter& out, Entity entity);
 		virtual void SerialiseEntity(YAML::Emitter& out, GameObject entity);
 #else
