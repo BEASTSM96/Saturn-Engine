@@ -58,10 +58,21 @@ namespace Saturn {
 	class SATURN_API Renderer
 	{
 	public:
-		static void BeginScene(OrthographicCamera& camera);
-		static void Begin3DScene(SCamera& camera);
-		static void EndScene();
+		typedef void(*RenderCommandFn)(void*);
 
+		/*Commands*/
+
+		static void Clear();
+		static void Clear(float r, float g, float b, float a = 1.0f);
+		static void SetClearColor(float r, float g, float b, float a);
+		static void DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest = true);
+
+		/*OpenGL*/
+		static void SetLineThickness(float thickness);
+		static void ClearMagenta();
+		static void Init();
+
+		static Ref<ShaderLibrary> GetShaderLibrary();
 
 		template<typename FuncT>
 		static void Submit(FuncT&& func)
@@ -79,13 +90,20 @@ namespace Saturn {
 			new (storageBuffer) FuncT(std::forward<FuncT>(func));
 		}
 
+		static void WaitAndRender();
 
-		static void Submit3D(const Ref<DShader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform);
+		/*Render stuff*/
+		static void BeginRenderPass(RenderPass renderPass, bool clear = true);
+		static void EndRenderPass();
+
+		static void SubmitQuad(Material material, const glm::mat4& transform = glm::mat4(1.0f));
+		static void SubmitFullscreenQuad(Material material);
+		static void SubmitMesh(Mesh mesh, const glm::mat4& transform, Material overrideMaterial);
+
+		static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
+		static void DrawAABB(Mesh mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
 
 		static RendererAPIType GetAPI() { return RendererAPI::Current(); }
-
-		static void Init();
-
 		static void OnWindowResize(uint32_t width, uint32_t height);
 	private:
 		static RenderCommandQueue& GetRenderCommandQueue();
