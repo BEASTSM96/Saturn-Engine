@@ -101,3 +101,4 @@ Titan/SaturnProfile-Runtime.json
 Titan/SaturnProfile-Shutdown.json
 Titan/SaturnProfile-Startup.json
 assets/**
+Titan/*.json
