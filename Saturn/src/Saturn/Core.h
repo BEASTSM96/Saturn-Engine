@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include "Core/Ref.h"
 
 #pragma warning(push, 0)
 
@@ -100,9 +101,6 @@ namespace Saturn {
 	template<typename T>
 	using RefSR = std::shared_ptr<T>;
 
-	template<typename T>
-	using Ref = std::shared_ptr<T>;
-
 	template<typename T, typename ... Args>
 	constexpr Scope<T> CreateScope(Args&& ... args)
 	{
@@ -114,12 +112,6 @@ namespace Saturn {
 	{
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
-
-	#include "Core/Ref.h"
-	typedef Saturn::Core::RefCounted RefCounted;
-
-
-
 
 	typedef struct fIO //base engine file system
 	{
