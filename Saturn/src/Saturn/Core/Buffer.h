@@ -4,7 +4,7 @@
 #include "Saturn/Log.h"
 #include "Typedef.h"
 
-namespace Saturn::Core {
+namespace Saturn {
 
 	struct Buffer
 	{
@@ -88,10 +88,4 @@ namespace Saturn::Core {
 
 
 	};
-
-
-}
-
-namespace Saturn {
-	SAT_TYPEDEF(Core::Buffer, Buffer);
 }

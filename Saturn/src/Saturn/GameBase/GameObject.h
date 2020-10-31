@@ -23,7 +23,6 @@
 #include "Saturn/Renderer/3D/Mesh/Model.h"
 #include "Saturn/Renderer/Texture.h"
 #include "Saturn/Renderer/OrthographicCamera.h"
-#include "Saturn/Renderer/VertexArray.h"
 #include "Saturn/Renderer/Shader.h"
 #include "Saturn/Renderer/Renderer.h"
 //#include "Saturn/Renderer/3D/3dShader.h"

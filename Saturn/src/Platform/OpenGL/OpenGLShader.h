@@ -1,10 +1,8 @@
 #pragma once
 
 #include "Saturn/Renderer/Shader.h"
-#include "OpenGLShaderUniform.h"
-#include <string>
-#include <glm/glm.hpp>
 #include <glad/glad.h>
+#include "OpenGLShaderUniform.h"
 
 namespace Saturn {
 
@@ -105,4 +103,3 @@ namespace Saturn {
 
 	};
 }
-

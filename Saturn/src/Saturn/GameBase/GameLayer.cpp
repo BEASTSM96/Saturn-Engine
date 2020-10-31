@@ -51,8 +51,6 @@ namespace Saturn {
 		RenderCommand::SetClearColor({ 0.45f, 0.4f, 0.4f, 1.f });
 		RenderCommand::Clear();
 
-		Renderer::Begin3DScene(m_CameraController.Get3DCamera());
-
 		float velocity = 50 * 0.1f;
 		if (Input::IsKeyPressed(SAT_KEY_W))
 			m_3DCamera.ProcessKeyboard(Camera_Movement::FORWARD, ts);
