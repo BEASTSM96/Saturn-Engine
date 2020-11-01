@@ -1,7 +1,5 @@
 #pragma once
 
-#include "VertexArray.h"
-
 namespace Saturn {
 
 	using RendererID = uint32_t;

@@ -13,12 +13,12 @@ namespace Saturn {
 	
 	Ref<Shader> Shader::Create(const std::string& filepath)
 	{
-		Ref<Shader> result = nullptr;
+		Ref<Shader> result;
 
 		switch (RendererAPI::Current())
 		{
-		case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: result = new OpenGLShader(filepath);
+			case RendererAPIType::None: return nullptr;
+			case RendererAPIType::OpenGL: result = OpenGLShader::Create(filepath);
 		}
 		s_AllShaders.push_back(result);
 		return result;

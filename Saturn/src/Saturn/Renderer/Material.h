@@ -8,6 +8,13 @@
 
 namespace Saturn {
 
+	enum class MaterialFlag
+	{
+		None = BIT(0),
+		DepthTest = BIT(1),
+		Blend = BIT(2)
+	};
+
 	class SATURN_API Material
 	{
 	public:

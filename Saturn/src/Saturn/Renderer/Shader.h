@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Saturn/Core.h"
+#include "Saturn/Core/Ref.h"
 #include "Saturn/Core/Buffer.h"
 
 #include "Saturn/Renderer/RendererAPI.h"
@@ -121,8 +122,8 @@ namespace Saturn {
 
 		virtual const std::string& GetName() const = 0;
 
-		static RefSR<Shader> Create(const std::string& filepath);
-		static RefSR<Shader> CreateFromString(const std::string& source);
+		static Ref<Shader> Create(const std::string& filepath);
+		static Ref<Shader> CreateFromString(const std::string& source);
 
 		virtual void SetVSMaterialUniformBuffer(Buffer buffer) = 0;
 		virtual void SetPSMaterialUniformBuffer(Buffer buffer) = 0;

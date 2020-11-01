@@ -13,6 +13,7 @@ namespace Saturn {
     {
     public:
         //Just to clean to up
+        //This is dumb
         using openglbool = GLboolean;
 	};
 
