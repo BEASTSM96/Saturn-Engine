@@ -211,20 +211,9 @@ namespace Saturn {
 	bool Application::OnWindowResize(WindowResizeEvent& e)
 	{
 		int width = e.GetWidth(), height = e.GetHeight();
-		if (width || height)
-		{
-			m_Minimized = true;
-			return false;
-		}
+		
 		m_Minimized = false;
-		Renderer::Submit([=]() { glViewport(0, 0, width, height); });
-		auto& fbs = FramebufferPool::GetGlobal()->GetAll();
-		for (auto& fb : fbs)
-		{
-			if (auto fbp = fb.lock())
-				fbp->Resize(width, height);
-		}
-
+		Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
 		return false;
 	}
 

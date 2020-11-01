@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include "Saturn/Core/UUID.h"
+#include "physx/PxPhysicsAPI.h"
 
 namespace Saturn {
 
@@ -163,4 +164,35 @@ namespace Saturn {
 		SkyboxComponent(MeshComponent mesh) : m_Mesh(mesh) {};
 	};
 
+
+	/** @brief BoxCollider.
+	*
+	*/
+
+	class BoxCollision;
+
+	struct BoxCollider
+	{
+		RefSR<BoxCollision>m_BoxCollision;
+
+		BoxCollider() = default;
+		BoxCollider(const BoxCollider&) = default;
+		BoxCollider(RefSR<BoxCollision> BoxCollision) : m_BoxCollision(BoxCollision) {};
+	};
+
+
+	/** @brief RigidBodyComponent.
+	*
+	
+	struct RigidBodyComponent
+	{
+		physx::PxRigidDynamic * m_RigidBody;
+
+		physx::PxRigidDynamic * m_RigidBody = new physx::PxRigidDynamic();
+
+		RigidBodyComponent() = default;
+		RigidBodyComponent(const RigidBodyComponent&) = default;
+		RigidBodyComponent(physx::PxRigidDynamic * RigidBody) : m_RigidBody(RigidBody) {};
+	};
+	*/
 }

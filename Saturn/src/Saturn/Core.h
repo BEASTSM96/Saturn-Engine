@@ -193,6 +193,8 @@ namespace Saturn {
 	#define CLASS class
 	#define OP_BACKSL /
 	#define OP_FWDSL \
+	#define THIS this
+	#define _STD_IOSSTREAM << 
 	
 #if TEST_CODE
 
@@ -203,6 +205,7 @@ public:
 
 	__VOID Test() {
 	
+		_STD cout _STD_IOSSTREAM "Hello World" _STD_IOSSTREAM _STD endl;
 	
 	}
 
@@ -246,16 +249,12 @@ public:
 
 
 /*
-* Why is there _name_? this is to let the user that is core or that it shouldn't be used that much / macro that gets call when using one that's like it self.
+* Why is there _name_? this is to let the user that is core or that it shouldn't be used that much / macro that gets call when using one that's like itself.
 */
 
 /*Can be used for macros just core*/
 #define _VA_AGRS_(x) x
-
-#define _VA_AGRS_(x) \
-{\
-	x; \
-}
+#define VA_ARGS(x) _VA_AGRS_(x)
 
 #endif
 

@@ -25,15 +25,15 @@ namespace Saturn {
 	class SATURN_API Scene
 	{
 	public:
+		template<class T>
+		T* CreateEntityGameObjectprt(std::string name, std::vector<std::string> ShaderPaths, std::string ObjectPath = std::string());
+
 		Scene();
 		~Scene();
 
 		Entity CreateEntity(const std::string& name = std::string());
 
 		GameObject CreateEntityGameObject(const std::string& name = std::string());
-
-		template<class T>
-		T* CreateEntityGameObjectprt(std::string name, std::vector<std::string> ShaderPaths, std::string ObjectPath = std::string());
 
 		SceneData& GetData() { return m_data; }
 		Level& GetLevel() { return *m_CurrentLevel; }
@@ -61,7 +61,7 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		T* entity = new T( m_Registry.create(), this );
+		T* entity = new T(m_Registry.create(), this);
 
 		entity->AddComponent<TransformComponent>();
 

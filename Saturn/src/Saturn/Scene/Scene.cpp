@@ -9,7 +9,6 @@
 #include "Saturn/Core/World/Level.h"
 
 namespace Saturn {
-
 	Scene::Scene()
 	{
 		SAT_PROFILE_FUNCTION();
