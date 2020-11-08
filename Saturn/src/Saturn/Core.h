@@ -88,7 +88,6 @@
 	#define SAT_CORE_ASSERT(x, ...)
 #endif
 
-
 #define BIT(x) (1 << x)
 
 #define SAT_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
@@ -236,18 +235,8 @@ public:
 	#define TYPE_OSSTREAM std::ofstream
 #endif // SAT_SYM
 
-
-/*
-* Why is there _name_? this is to let the user that is core or that it shouldn't be used that much / macro that gets call when using one that's like it self.
-*/
-
 /*Can be used for macros just core*/
 #define _VA_AGRS_(x) x
-
-#define _VA_AGRS_(x) \
-{\
-	x; \
-}
 
 #endif
 

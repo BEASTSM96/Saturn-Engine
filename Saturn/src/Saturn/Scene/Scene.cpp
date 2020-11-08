@@ -81,9 +81,6 @@ namespace Saturn {
 			ObjectPath = name;
 		}
 
-		entity->ourModel = new Model(ObjectPath, ShaderPaths.at(0), ShaderPaths.at(1));
-		entity->AddComponent<MeshComponent>(entity->ourModel);
-
 		entity->Init();
 
 		return entity;

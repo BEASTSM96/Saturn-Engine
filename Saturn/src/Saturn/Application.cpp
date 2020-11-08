@@ -10,7 +10,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "ImGui/ImGuiLayer.h"
-#include "Saturn/Renderer\Buffer.h"
 #include "Renderer/Renderer.h"
 #include "Saturn/ImGui/ImGuiLayer.h"
 #include "Scene/Components.h"
@@ -69,6 +68,9 @@ namespace Saturn {
 
 			#define SPARKY_GAME_BASE
 		}
+
+		Renderer::Init();
+		Renderer::WaitAndRender();
 	}
 
 	Application::~Application()
@@ -171,16 +173,6 @@ namespace Saturn {
 			m_Window->OnUpdate();
 
 		}
-		while (m_Crashed && !m_Running)
-		{
-			float time = (float)glfwGetTime(); //Platform::GetTime();
-
-			Timestep timestep = time - LastFrameTime;
-
-			LastFrameTime = time;
-
-			m_Window->OnUpdate();
-		}
 	}
 
 	void Application::SetCrashState(bool state)
@@ -205,7 +197,7 @@ namespace Saturn {
 	bool Application::OnWindowResize(WindowResizeEvent& e)
 	{
 		int width = e.GetWidth(), height = e.GetHeight();
-		if (width || height)
+		if (width == 0 || height == 0)
 		{
 			m_Minimized = true;
 			return false;
@@ -214,10 +206,7 @@ namespace Saturn {
 		Renderer::Submit([=]() { glViewport(0, 0, width, height); });
 		auto& fbs = FramebufferPool::GetGlobal()->GetAll();
 		for (auto& fb : fbs)
-		{
-			if (auto fbp = fb.lock())
-				fbp->Resize(width, height);
-		}
+			fb->Resize(width, height);
 
 		return false;
 	}

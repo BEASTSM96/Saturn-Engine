@@ -133,19 +133,18 @@ namespace Saturn {
 	* @endcode
 	*/
 
-	class Model;
+	class Mesh;
 
 	struct MeshComponent : Component
 	{
-	public:
-		Model* GetModel() { return m_Model; }
-	private:
-		Model* m_Model = nullptr;
-	public:
+		Ref<Saturn::Mesh> Mesh;
+
 		MeshComponent() = default;
-		MeshComponent(const MeshComponent&) = default;
-		MeshComponent(Model * model)
-			: m_Model(model) {}
+		MeshComponent(const MeshComponent& other) = default;
+		MeshComponent(Ref<Saturn::Mesh>& model)
+			: Mesh(model) {}
+
+		operator Ref<Saturn::Mesh>() { return Mesh; }
 	};
 
 	/** @brief RelationshipComponent.

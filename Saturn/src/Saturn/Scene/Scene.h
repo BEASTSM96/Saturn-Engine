@@ -7,14 +7,13 @@
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/Core.h"
 #include "Saturn/Renderer/Material.h"
-#include "Saturn/Renderer/3D/Mesh/Mesh.h"
 
 namespace Saturn {
 
 	struct SceneData {
 		UUID SceneID;
 		std::string name;
-		RefSR<FTexture> m_SkyboxTexture;
+		RefSR<Texture2D> m_SkyboxTexture;
 		RefSR<Material> m_SkyboxMaterial;
 	};
 
