@@ -4,6 +4,8 @@
 #include "Saturn/Renderer/Pipeline.h"
 #include "Saturn/Renderer/Shader.h"
 #include "Saturn/Renderer/Renderer.h"
+#include "IndexBuffer.h"
+#include "VertexBuffer.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 

@@ -10,21 +10,21 @@
 namespace Saturn {
 
 	std::vector<Ref<Shader>> Shader::s_AllShaders;
-	
+
 	Ref<Shader> Shader::Create(const std::string& filepath)
 	{
-		Ref<Shader> result;
+		Ref<Shader> result = nullptr;
 
 		switch (RendererAPI::Current())
 		{
-			case RendererAPIType::None: return nullptr;
-			case RendererAPIType::OpenGL: result = OpenGLShader::Create(filepath);
+		case RendererAPIType::None: return nullptr;
+		case RendererAPIType::OpenGL: result = Ref<OpenGLShader>::Create(filepath);
 		}
 		s_AllShaders.push_back(result);
 		return result;
 	}
 
-	RefSR<Shader> Shader::CreateFromString(const std::string& source)
+	Ref<Shader> Shader::CreateFromString(const std::string& source)
 	{
 		Ref<Shader> result = nullptr;
 
@@ -39,15 +39,13 @@ namespace Saturn {
 
 	ShaderLibrary::ShaderLibrary()
 	{
-
 	}
 
 	ShaderLibrary::~ShaderLibrary()
 	{
-
 	}
 
-	void ShaderLibrary::Add(const Ref<Shader>& shader)
+	void ShaderLibrary::Add(const Saturn::Ref<Shader>& shader)
 	{
 		auto& name = shader->GetName();
 		SAT_CORE_ASSERT(m_Shaders.find(name) == m_Shaders.end());
@@ -73,5 +71,4 @@ namespace Saturn {
 		SAT_CORE_ASSERT(m_Shaders.find(name) != m_Shaders.end());
 		return m_Shaders.at(name);
 	}
-
 }

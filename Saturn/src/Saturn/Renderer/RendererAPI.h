@@ -32,7 +32,7 @@ namespace Saturn {
 	class SATURN_API RendererAPI
 	{
 	public:
-		virtual void Init();
+		static void Init();
 		static void Shutdown();
 
 		static void Clear(float r, float g, float b, float a);

@@ -47,8 +47,6 @@ namespace Saturn {
 		{
 			if (Data)
 				memset(Data, 0, Size);
-			else
-				SAT_CORE_WARN("Data was 0 or null");
 		}
 
 		template<typename T>

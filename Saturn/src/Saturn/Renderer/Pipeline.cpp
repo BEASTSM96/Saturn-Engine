@@ -3,7 +3,7 @@
 
 #include "Renderer.h"
 
-#include "Saturn/Platform/OpenGL/OpenGLPipeline.h"
+#include "Platform/OpenGL/OpenGLPipeline.h"
 
 namespace Saturn {
 

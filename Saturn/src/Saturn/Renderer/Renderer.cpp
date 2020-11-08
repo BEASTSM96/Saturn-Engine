@@ -6,7 +6,12 @@
 #include <glad/glad.h>
 
 #include "RendererAPI.h"
+#include "Material.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "Pipeline.h"
 #include "Renderer2D.h"
+#include "SceneRenderer.h"
 
 
 namespace Saturn {
@@ -31,7 +36,7 @@ namespace Saturn {
 		s_Data.m_ShaderLibrary = Ref<ShaderLibrary>::Create();
 		Renderer::Submit([]() { RendererAPI::Init(); });
 
-//		SceneRenderer::Init();
+		SceneRenderer::Init();
 
 		// Create fullscreen quad
 		float x = -1;
@@ -142,7 +147,7 @@ namespace Saturn {
 		s_Data.m_ActiveRenderPass = nullptr;
 	}
 
-	void Renderer::SubmitQuad(Ref<Material> material, const glm::mat4& transform)
+	void Renderer::SubmitQuad(Ref<MaterialInstance> material, const glm::mat4& transform)
 	{
 		bool depthTest = true;
 		if (material)
@@ -160,7 +165,7 @@ namespace Saturn {
 		Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest);
 	}
 
-	void Renderer::SubmitFullscreenQuad(Ref<Material> material)
+	void Renderer::SubmitFullscreenQuad(Ref<MaterialInstance> material)
 	{
 		bool depthTest = true;
 		if (material)
@@ -175,10 +180,8 @@ namespace Saturn {
 		Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest);
 	}
 
-	void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial)
+	void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial)
 	{
-		// auto material = overrideMaterial ? overrideMaterial : mesh->GetMaterial();
-		// auto shader = material->GetShader();
 		// TODO: Sort this out
 		mesh->m_VertexBuffer->Bind();
 		mesh->m_Pipeline->Bind();
@@ -215,16 +218,12 @@ namespace Saturn {
 
 	void Renderer::DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color)
 	{
-		/*
-
 		for (Submesh& submesh : mesh->m_Submeshes)
 		{
 			auto& aabb = submesh.BoundingBox;
 			auto aabbTransform = transform * submesh.Transform;
 			DrawAABB(aabb, aabbTransform);
 		}
-
-		*/
 	}
 
 	void Renderer::DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color /*= glm::vec4(1.0f)*/)

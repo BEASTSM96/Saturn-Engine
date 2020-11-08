@@ -7,7 +7,7 @@ namespace Saturn {
 
 	struct RenderPassSpecification
 	{
-		RefSR<Framebuffer> TargetFramebuffer;
+		Ref<Framebuffer> TargetFramebuffer;
 	};
 
 	class RenderPass : public RefCounted

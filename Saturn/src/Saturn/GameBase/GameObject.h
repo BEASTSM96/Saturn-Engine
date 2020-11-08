@@ -20,7 +20,7 @@
 
 #ifdef SPARKY_GAME_BASE
 
-#include "Saturn/Renderer/3D/Mesh/Model.h"
+#include "Saturn/Renderer/Mesh.h"
 #include "Saturn/Renderer/Texture.h"
 #include "Saturn/Renderer/OrthographicCamera.h"
 #include "Saturn/Renderer/Shader.h"
@@ -110,37 +110,13 @@ namespace Saturn {
 			return GetComponent<TransformComponent>().GetTransform();
 		}
 
-		Model *			ourModel;
+		Mesh *			ourModel;
 
 		DShader *		shader;
 
 		DShader *		pbrShader;
 		DShader *		equirectangularToCubemapShader;
 		DShader *		backgroundShader;
-
-		
-		Ref<Shader> m_playerShader;
-		Ref<VertexArray> m_playerVA;
-
-		Ref<Texture2D> m_playerTexture;
-
-		Ref<Shader> m_Shader;
-		Ref<VertexArray> m_VertexArray;
-
-		Ref<Shader> m_flatShader, m_TextureShader;
-		Ref<VertexArray> m_SquareVA;
-
-		Ref<Texture2D> m_Texture, m_beastlogo;
-
-		float m_PlayerRotation = 0.0f;
-		float m_PlayerRotationSpeed = 180.0f;
-
-		glm::vec3 m_PlayerPosition;
-		float m_PlayerMoveSpeed = 50.0f;
-
-		bool m_ShadersDone = false;
-		
-		bool m_3D = true;
 
 	private:
 		friend class GameLayer;

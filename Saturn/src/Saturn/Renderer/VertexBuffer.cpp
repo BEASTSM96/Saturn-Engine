@@ -3,7 +3,7 @@
 
 #include "Renderer.h"
 
-#include "Saturn/Platform/OpenGL/OpenGLVertexBuffer.h"
+#include "Platform/OpenGL/OpenGLVertexBuffer.h"
 
 namespace Saturn {
 

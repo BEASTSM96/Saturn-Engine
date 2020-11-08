@@ -3,7 +3,7 @@
 #include "RenderCommandQueue.h"
 #include "RenderPass.h"
 #include "Saturn/Core/AABB/AABB.h"
-//#include "Mesh.h"
+#include "Mesh.h"
 
 namespace Saturn {
 
@@ -50,9 +50,9 @@ namespace Saturn {
 		static void BeginRenderPass(Ref<RenderPass> renderPass, bool clear = true);
 		static void EndRenderPass();
 
-		static void SubmitQuad(Ref<Material> material, const glm::mat4& transform = glm::mat4(1.0f));
-		static void SubmitFullscreenQuad(Ref<Material> material);
-		static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial);
+		static void SubmitQuad(Ref<MaterialInstance> material, const glm::mat4& transform = glm::mat4(1.0f));
+		static void SubmitFullscreenQuad(Ref<MaterialInstance> material);
+		static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial);
 
 		static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
 		static void DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));

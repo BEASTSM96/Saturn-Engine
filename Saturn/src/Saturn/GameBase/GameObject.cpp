@@ -2,20 +2,17 @@
 #include "GameObject.h"
 #include "Saturn/Core/Serialisation/Object.h"
 
-#include "Saturn/Renderer/3D/3dShader.h"
 #include "GameLayer.h"
 
 #include "Saturn/Application.h"
 #include "Saturn/Scene/Components.h"
 
 #include "Platform/OpenGL/OpenGLShader.h"
-#include "Platform/OpenGL/OpenGLMaterial.h"
 
 #include <GLFW/glfw3.h>
-
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <glm/gtc/type_ptr.hpp>
+#include <stb_image.h>
 
 #pragma warning(disable: 26812)
 
@@ -58,11 +55,6 @@ namespace Saturn {
 	{
 	}
 
-	void GameObject::OnPos()
-	{
-		m_PlayerPosition.x += 50.0f * 0.01f;
-	}
-
 	void GameObject::OnUpdate(Timestep ts) {
 		SAT_PROFILE_FUNCTION();
 	}
@@ -71,13 +63,13 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		if (m_3D)
-		{
+		
 			SAT_PROFILE_SCOPE("GameObjectRenderLoop");
 
 			GameLayer* gl = Application::Get().m_gameLayer;
 			if (HasComponent<MeshComponent>())
 			{
+				/*
 				GetComponent<MeshComponent>().GetModel()->m_Shader->Bind();
 
 				// view/projection transformations
@@ -91,25 +83,12 @@ namespace Saturn {
 					GetComponent<TransformComponent>().GetTransform()
 				);
 
-				/** Material Properties*/
-				GetComponent<MeshComponent>().GetModel()->m_Shader;
-
-
 				GetComponent<MeshComponent>().GetModel()->Draw(*GetComponent<MeshComponent>().GetModel()->m_Shader);
 
+				*/
 				/////////////////////////////////////////////////////////////////////SKYBOX-TMP//////////////////////////////
-
-				Material * SkyboxMaterial = new OpenGLMaterial(
-					"Skybox", 
-					{0, 0, 0},
-					{0, 0, 0}, 
-					{0, 0, 0}, 
-					0, 
-					0
-				);
-
 			}
-		}
+		
 	}
 
 

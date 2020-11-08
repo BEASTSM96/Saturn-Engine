@@ -4,9 +4,29 @@
 #include <glad/glad.h>
 
 namespace Saturn {
+	static void OpenGLLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+	{
+		switch (severity)
+		{
+		case GL_DEBUG_SEVERITY_HIGH:
+			SAT_CORE_ERROR("[OpenGL Debug HIGH] {0}", message);
+			SAT_CORE_ASSERT(false, "GL_DEBUG_SEVERITY_HIGH");
+			break;
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			SAT_CORE_WARN("[OpenGL Debug MEDIUM] {0}", message);
+			break;
+		case GL_DEBUG_SEVERITY_LOW:
+			SAT_CORE_INFO("[OpenGL Debug LOW] {0}", message);
+			break;
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			//SAT_CORE_TRACE("[OpenGL Debug NOTIFICATION] {0}", message);
+			break;
+		}
+	}
 
 	void RendererAPI::Init()
 	{
+		glDebugMessageCallback(OpenGLLogMessage, nullptr);
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
