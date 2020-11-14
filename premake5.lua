@@ -80,7 +80,6 @@ project "Saturn"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
-			"%{prj.name}/vendor/imgui/ImGuizmo/",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.json_cpp}",
@@ -200,11 +199,6 @@ project "Sandbox"
 	links
 	{
 		"Saturn"
-	}
-
-	postbuildcommands 
-	{
-		'{COPY} "../Sandbox/assets" "%{cfg.targetdir}/assets"'
 	}
 
 	filter "system:windows"

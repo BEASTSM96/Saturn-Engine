@@ -15,7 +15,7 @@ namespace Saturn {
 
 	struct SceneRendererCamera
 	{
-		Saturn::SCamera Camera;
+		Saturn::EditorCamera Camera;
 		glm::mat4 ViewMatrix;
 	};
 

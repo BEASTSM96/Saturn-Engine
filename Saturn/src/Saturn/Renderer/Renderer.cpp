@@ -15,7 +15,6 @@
 
 
 namespace Saturn {
-
 	RendererAPIType RendererAPI::s_CurrentRendererAPI = RendererAPIType::OpenGL;
 
 	struct RendererData
@@ -35,6 +34,9 @@ namespace Saturn {
 	{
 		s_Data.m_ShaderLibrary = Ref<ShaderLibrary>::Create();
 		Renderer::Submit([]() { RendererAPI::Init(); });
+
+		Renderer::GetShaderLibrary()->Load("assets/shaders/PBR_Static.glsl");
+		Renderer::GetShaderLibrary()->Load("assets/shaders/PBR_Anim.glsl");
 
 		SceneRenderer::Init();
 
@@ -182,6 +184,8 @@ namespace Saturn {
 
 	void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial)
 	{
+		// auto material = overrideMaterial ? overrideMaterial : mesh->GetMaterialInstance();
+		// auto shader = material->GetShader();
 		// TODO: Sort this out
 		mesh->m_VertexBuffer->Bind();
 		mesh->m_Pipeline->Bind();

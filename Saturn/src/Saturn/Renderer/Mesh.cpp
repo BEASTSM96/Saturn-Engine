@@ -85,9 +85,9 @@ namespace Saturn {
 		m_Scene = scene;
 
 		m_IsAnimated = scene->mAnimations != nullptr;
-		m_MeshShader = m_IsAnimated ? Renderer::GetShaderLibrary()->Get("HazelPBR_Anim") : Renderer::GetShaderLibrary()->Get("HazelPBR_Static");
+		m_MeshShader = m_IsAnimated ? Renderer::GetShaderLibrary()->Get("PBR_Anim") : Renderer::GetShaderLibrary()->Get("PBR_Static");
 		m_BaseMaterial = Ref<Material>::Create(m_MeshShader);
-		// m_MaterialInstance = Ref<MaterialInstance>::Create(m_BaseMaterial);
+		//m_MaterialInstance = Ref<MaterialInstance>::Create(m_BaseMaterial);
 		m_InverseTransform = glm::inverse(Mat4FromAssimpMat4(scene->mRootNode->mTransformation));
 
 		uint32_t vertexCount = 0;
@@ -254,7 +254,6 @@ namespace Saturn {
 				bool hasAlbedoMap = aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == AI_SUCCESS;
 				if (hasAlbedoMap)
 				{
-					// TODO: Temp - this should be handled by Hazel's filesystem
 					std::filesystem::path path = filename;
 					auto parentPath = path.parent_path();
 					parentPath /= std::string(aiTexPath.data);
@@ -284,7 +283,6 @@ namespace Saturn {
 				mi->Set("u_NormalTexToggle", 0.0f);
 				if (aiMaterial->GetTexture(aiTextureType_NORMALS, 0, &aiTexPath) == AI_SUCCESS)
 				{
-					// TODO: Temp - this should be handled by Hazel's filesystem
 					std::filesystem::path path = filename;
 					auto parentPath = path.parent_path();
 					parentPath /= std::string(aiTexPath.data);
@@ -311,7 +309,6 @@ namespace Saturn {
 				// mi->Set("u_RoughnessTexToggle", 0.0f);
 				if (aiMaterial->GetTexture(aiTextureType_SHININESS, 0, &aiTexPath) == AI_SUCCESS)
 				{
-					// TODO: Temp - this should be handled by Hazel's filesystem
 					std::filesystem::path path = filename;
 					auto parentPath = path.parent_path();
 					parentPath /= std::string(aiTexPath.data);
@@ -338,7 +335,6 @@ namespace Saturn {
 				// Metalness map (or is it??)
 				if (aiMaterial->Get("$raw.ReflectionFactor|file", aiPTI_String, 0, aiTexPath) == AI_SUCCESS)
 				{
-					// TODO: Temp - this should be handled by Hazel's filesystem
 					std::filesystem::path path = filename;
 					auto parentPath = path.parent_path();
 					parentPath /= std::string(aiTexPath.data);

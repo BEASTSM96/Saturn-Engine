@@ -34,7 +34,7 @@ namespace Saturn {
 		void Set(const std::string& name, const T& value)
 		{
 			auto decl = FindUniformDeclaration(name);
-			HZ_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
+			SAT_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
 			auto& buffer = GetUniformBufferTarget(decl);
 			buffer.Write((byte*)&value, decl->GetSize(), decl->GetOffset());
 

@@ -3,32 +3,26 @@
 
 #include "Platform/OpenGL/OpenGLFramebuffer.h"
 #include "Saturn/Scene/Components.h"
-
-#define IMGUI_MEMORY_EDITOR
-#ifdef IMGUI_MEMORY_EDITOR
-#include "imgui_widgets.cpp"
-#endif // IMGUI_MEMORY_EDITOR
-
-#include "imgui.h"
+#include <imgui.h>
 #include "ImGuizmo.h"
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
-
 #include "Saturn/Core/Serialisation/Serialiser.h"
-
 #include "Saturn/Application.h"
-
 #include "Saturn/Core/Timestep.h"
-
 #include "Saturn/Log.h"
-
 #include "Saturn/Scene/Components.h"
+#include "Saturn/Renderer/SceneRenderer.h"
+#include "Saturn/Renderer/Renderer2D.h"
+#include "Saturn/Core.h"
+#include "Saturn/MouseButtons.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
+#include <stb_image.h>
 
 // TEMPORARY
 #include <GLFW/glfw3.h>
@@ -128,416 +122,6 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 	}
 
-
-	////////////////////////////////////////////////
-	////////////////IMGUIFPS///////////////////////
-	//////////////////////////////////////////////
-
-
-	//////////////////////////////////////////
-	////////////NOTFORALLPLATFORMS///////////
-	////////////////////////////////////////
-
-	//#define SAT_FPS
-	ImGuiFPS::ImGuiFPS() : Layer("ImguiFPS")
-	{
-		archive();
-	}
-
-	ImGuiFPS::~ImGuiFPS()
-	{
-	}
-
-	void ImGuiFPS::OnAttach()
-	{
-		// Setup Dear ImGui context
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-		// Setup Platform/Renderer bindings
-		ImGui_ImplOpenGL3_Init("#version 410");
-	}
-
-	void ImGuiFPS::OnDetach()
-	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-	}
-
-	void ImGuiFPS::Begin()
-	{
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-	}
-
-	void ImGuiFPS::End()
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		Application& app = Application::Get();
-		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
-
-		// Rendering
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
-	}
-
-	void ImGuiFPS::OnImGuiRender()
-	{
-
-		static bool show = true;
-
-		float LastFrameTime = 0.0f;
-
-		float time = (float)glfwGetTime(); //Platform::GetTime();
-
-		Timestep timestep = time - LastFrameTime;
-
-		LastFrameTime = time;
-
-		if (show)
-		{
-			ImGui::Begin("test");
-			//SAT_CORE_INFO("FPS {0}", timestep);
-			ImGui::Text("yes fps is here ", timestep);
-			ImGui::End();
-		}
-	}
-
-	////////////////////////////////////////////////////////
-	////////////////imguirenderstats////////////////////////
-	///////////////////////////////////////////////////////
-
-	//////////////////////////////////////////
-	////////////NOTFORALLPLATFORMS///////////
-	////////////////////////////////////////
-
-
-
-	//TEMP
-#include <GLFW\glfw3.h>
-
-#include <glad\glad.h>
-#include <gl\GL.h>
-
-
-	ImGuiRenderStats::ImGuiRenderStats() : Layer("ImguiRenderStats")
-	{
-		archive();
-	}
-
-	ImGuiRenderStats::~ImGuiRenderStats()
-	{
-	}
-
-	void ImGuiRenderStats::OnAttach()
-	{
-		// Setup Dear ImGui context
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-		// Setup Platform/Renderer bindings
-		ImGui_ImplOpenGL3_Init("#version 410");
-	}
-
-	void ImGuiRenderStats::OnDetach()
-	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-	}
-
-	void ImGuiRenderStats::Begin()
-	{
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-	}
-
-	void ImGuiRenderStats::End()
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		Application& app = Application::Get();
-		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
-
-		// Rendering
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
-	}
-
-	void ImGuiRenderStats::OnImGuiRender()
-	{
-		static bool show = true;
-		if (show)
-		{
-
-			const char* ver = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-			const char* vender = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-			const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-
-			ImGui::Begin("RendererStats");
-			ImGui::Text(ver);
-			ImGui::Text(vender);
-			ImGui::Text(renderer);
-
-			ImGui::End();
-		}
-	}
-
-
-	///////////////////////////////////////////
-	///////////////IMGUITOPBAR////////////////
-	/////////////////////////////////////////
-
-
-	ImguiTopBar::ImguiTopBar() : Layer("TopBar")
-	{
-
-		archive();
-
-	}
-
-	ImguiTopBar::~ImguiTopBar()
-	{
-	}
-
-	void ImguiTopBar::OnAttach()
-	{
-		// Setup Dear ImGui context
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-		// Setup Platform/Renderer bindings
-		ImGui_ImplOpenGL3_Init("#version 410");
-	}
-
-	void ImguiTopBar::OnDetach()
-	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-	}
-
-	void ImguiTopBar::Begin()
-	{
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-	}
-
-	void ImguiTopBar::End()
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		Application& app = Application::Get();
-		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
-
-		// Rendering
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
-	}
-
-
-	static void ShowAboutSparkyWindow()
-	{
-		ImGui::MenuItem("(About menu)", NULL, false, false);
-		if (ImGui::MenuItem("About")) {}
-		if (ImGui::MenuItem("ver :", "v 0.21")) {}
-		if (ImGui::MenuItem("Build :", "dev")) {}
-		if (ImGui::MenuItem("GitHub branch :", "master")) {}
-	}
-
-	static void ShowSceneStuff(bool* p_open)
-	{
-	}
-
-	static void ShowCodeFiles(bool* p_open)
-	{
-	}
-
-	static void ShowDirectoryChooser(bool* p_open)
-	{
-	}
-
-#ifdef ED_ENUMS
-	std::string ImguiTopBar::GetContextForType(E_EditorFileType type)
-	{
-		if (type == E_EditorFileType::FileScene)
-		{
-			return ".sats";
-		}
-	}
-#endif
-	void ImguiTopBar::OnImGuiRender()
-	{
-
-		static bool showScene = false;
-		static bool showFile = false;
-		static bool showCodeFile = false;
-		static bool showSparky = false;
-		static bool showDirectoryChooser = false;
-
-
-		if (showScene)           ShowSceneStuff(&showScene);
-		if (showCodeFile)           ShowCodeFiles(&showCodeFile);
-		if (showDirectoryChooser)           ShowDirectoryChooser(&showDirectoryChooser);
-		//if (showFile)           ShowExampleAppDocuments(&show_app_documents); 
-		//if (showSparky)       ShowExampleAppMainMenuBar();
-
-	// Note: Switch this to true to enable dockspace
-		static bool dockspaceOpen = true;
-		static bool opt_fullscreen_persistant = true;
-		bool opt_fullscreen = opt_fullscreen_persistant;
-		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-		// because it would be confusing to have two docking targets within each others.
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-		if (opt_fullscreen)
-		{
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(viewport->Pos);
-			ImGui::SetNextWindowSize(viewport->Size);
-			ImGui::SetNextWindowViewport(viewport->ID);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-		}
-
-
-		// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and handle the pass - thru hole, so we ask Begin() to not render a background.
-		//if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-			//window_flags |= ImGuiWindowFlags_NoBackground;
-
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
-		ImGui::PopStyleVar();
-
-		if (opt_fullscreen)
-			ImGui::PopStyleVar(2);
-
-		// DockSpace
-		ImGuiIO& io = ImGui::GetIO();
-
-		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-		{
-			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-		}
-
-		if (ImGui::BeginMenuBar()) {
-
-			if (ImGui::BeginMenu("Scene"))
-			{
-				if (ImGui::Button("Open")) {
-
-					auto [name, ex] = Application::Get().OpenFile("SaturnSceneFiles\0* .sats;\0\0");
-
-					std::ifstream sc(name + ex);
-
-					sc >> Application::Get().GetCurrentScene().GetData().name;
-
-					SAT_CORE_WARN("Scene Name =  {0}", Application::Get().GetCurrentScene().GetData().name);
-				}
-
-				if (ImGui::Button("Save")) {
-					auto [name, ex] = Application::Get().SaveFile(".sats\0* .sats;\0\0");
-
-
-
-					Json::Value s;
-
-					{
-
-						if (ex == ".sats")
-						{
-							ex = "";
-						}
-
-						std::ofstream sc(name + ex);
-
-						s["Level"]["Name"] = Application::Get().GetCurrentScene().GetData().name;
-
-						sc << s;
-
-					}
-				}
-
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::Button("Open code files..."))
-				{
-					auto [name, ex] = Application::Get().OpenFile("CodeFiles\0* .cpp; * .h;\0\0");
-				}
-
-				if (ImGui::Button("Save"))
-				{
-
-				}
-				if (ImGui::Button("SaveAs..."))
-				{
-					auto [name, ex] = Application::Get().SaveFile("ye");
-				}
-				if (ImGui::Button("SaveAll"))
-				{
-					//ShowFileExp();
-				}
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Sparky"))
-			{
-				if (ImGui::Button("Quit"))
-				{
-					Application::Get().SetRunningState(false);
-				}
-				if (ImGui::BeginMenu("About"))
-				{
-					ShowAboutSparkyWindow();
-					ImGui::EndMenu();
-				}
-				ImGui::EndMenu();
-			}
-			ImGui::EndMenuBar();
-		}
-
-		ImGui::End();
-
-	}
-
-
 	///////////////////////////////////////////
 	//////////////EditorLayer/////////////////
 	/////////////////////////////////////////
@@ -551,9 +135,7 @@ namespace Saturn {
 	/////////////////////////////////////////////////////////
 
 
-
-
-	EditorLayer::EditorLayer() : Layer("EditorLayer")
+	EditorLayer::EditorLayer() : Layer("EditorLayer"), m_EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f))
 	{
 		SAT_PROFILE_FUNCTION();
 
@@ -582,14 +164,6 @@ namespace Saturn {
 
 
 		ImVec4* colors = ImGui::GetStyle().Colors;
-
-		FramebufferSpecification fbSpec;
-		fbSpec.Width = 1280;
-		fbSpec.Height = 720;
-		m_Framebuffer = Framebuffer::Create(fbSpec);
-
-		m_Framebuffer->Bind();
-		m_Framebuffer->Unbind();
 
 #ifdef SAT_PLATFORM_WINDOWS
 		ImFont* pFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
@@ -812,6 +386,11 @@ namespace Saturn {
 		ImGui::StyleColorsLight();
 #endif // SAT_LIGHT_THMEME
 
+		m_EditorScene = Ref<Scene>::Create();
+		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(m_EditorScene);
+		m_SceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
+
+
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
@@ -855,421 +434,498 @@ namespace Saturn {
 		}
 	}
 
+	bool EditorLayer::Property(const std::string& name, bool& value)
+	{
+		ImGui::Text(name.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + name;
+		bool result = ImGui::Checkbox(id.c_str(), &value);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return result;
+	}
+
+	bool EditorLayer::Property(const std::string& name, float& value, float min, float max, PropertyFlag flags)
+	{
+		ImGui::Text(name.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + name;
+		bool changed = false;
+		if (flags == PropertyFlag::SliderProperty)
+			changed = ImGui::SliderFloat(id.c_str(), &value, min, max);
+		else
+			changed = ImGui::DragFloat(id.c_str(), &value, 1.0f, min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return changed;
+	}
+
+	bool EditorLayer::Property(const std::string& name, glm::vec2& value, EditorLayer::PropertyFlag flags)
+	{
+		return Property(name, value, -1.0f, 1.0f, flags);
+	}
+
+	bool EditorLayer::Property(const std::string& name, glm::vec2& value, float min, float max, PropertyFlag flags)
+	{
+		ImGui::Text(name.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + name;
+		bool changed = false;
+		if (flags == PropertyFlag::SliderProperty)
+			changed = ImGui::SliderFloat2(id.c_str(), glm::value_ptr(value), min, max);
+		else
+			changed = ImGui::DragFloat2(id.c_str(), glm::value_ptr(value), 1.0f, min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return changed;
+	}
+
+	bool EditorLayer::Property(const std::string& name, glm::vec3& value, EditorLayer::PropertyFlag flags)
+	{
+		return Property(name, value, -1.0f, 1.0f, flags);
+	}
+
+	bool EditorLayer::Property(const std::string& name, glm::vec3& value, float min, float max, EditorLayer::PropertyFlag flags)
+	{
+		ImGui::Text(name.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + name;
+		bool changed = false;
+		if ((int)flags & (int)PropertyFlag::ColorProperty)
+			changed = ImGui::ColorEdit3(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs);
+		else if (flags == PropertyFlag::SliderProperty)
+			changed = ImGui::SliderFloat3(id.c_str(), glm::value_ptr(value), min, max);
+		else
+			changed = ImGui::DragFloat3(id.c_str(), glm::value_ptr(value), 1.0f, min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return changed;
+	}
+
+	bool EditorLayer::Property(const std::string& name, glm::vec4& value, EditorLayer::PropertyFlag flags)
+	{
+		return Property(name, value, -1.0f, 1.0f, flags);
+	}
+
+	bool EditorLayer::Property(const std::string& name, glm::vec4& value, float min, float max, EditorLayer::PropertyFlag flags)
+	{
+		ImGui::Text(name.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + name;
+		bool changed = false;
+		if ((int)flags & (int)PropertyFlag::ColorProperty)
+			changed = ImGui::ColorEdit4(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs);
+		else if (flags == PropertyFlag::SliderProperty)
+			changed = ImGui::SliderFloat4(id.c_str(), glm::value_ptr(value), min, max);
+		else
+			changed = ImGui::DragFloat4(id.c_str(), glm::value_ptr(value), 1.0f, min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return changed;
+	}
+
+	void EditorLayer::SelectEntity(Entity entity)
+	{
+		SelectedSubmesh selection;
+		if (entity.HasComponent<MeshComponent>())
+		{
+			selection.Mesh = &entity.GetComponent<MeshComponent>().Mesh->GetSubmeshes()[0];
+		}
+		selection.Entity = entity;
+		m_SelectionContext.clear();
+		m_SelectionContext.push_back(selection);
+
+		//m_EditorScene->SetSelectedEntity(entity);
+	}
 
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
-		SAT_PROFILE_FUNCTION();
+		m_EditorCamera.OnUpdate(ts);
+	
+		m_EditorScene->OnRenderEditor(ts, m_EditorCamera);
+
+		m_DrawOnTopBoundingBoxes = true;
+
+		if (m_DrawOnTopBoundingBoxes) {
+			Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
+			auto viewProj = m_EditorCamera.GetViewProjection();
+			Renderer2D::BeginScene(viewProj, false);
+			// TODO: Renderer::DrawAABB(m_MeshEntity.GetComponent<MeshComponent>(), m_MeshEntity.GetComponent<TransformComponent>());
+			Renderer2D::EndScene();
+			Renderer::EndRenderPass();
+		}
+
+		if (m_SelectionContext.size())
+		{
+			auto& selection = m_SelectionContext[0];
+
+			if (selection.Mesh && selection.Entity.HasComponent<MeshComponent>())
+			{
+				Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
+				auto viewProj = m_EditorCamera.GetViewProjection();
+				Renderer2D::BeginScene(viewProj, false);
+				glm::vec4 color = (m_SelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
+				Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.GetComponent<TransformComponent>().GetTransform() * selection.Mesh->Transform, color);
+				Renderer2D::EndScene();
+				Renderer::EndRenderPass();
+			}
+		}
+	}
+
+	std::pair<float, float> EditorLayer::GetMouseViewportSpace()
+	{
+		auto [mx, my] = ImGui::GetMousePos();
+		mx -= m_ViewportBounds[0].x;
+		my -= m_ViewportBounds[0].y;
+		auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
+		auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
+
+		return { (mx / viewportWidth) * 2.0f - 1.0f, ((my / viewportHeight) * 2.0f - 1.0f) * -1.0f };
+	}
+
+	std::pair<glm::vec3, glm::vec3> EditorLayer::CastRay(float mx, float my)
+	{
+		glm::vec4 mouseClipPos = { mx, my, -1.0f, 1.0f };
+
+		auto inverseProj = glm::inverse(m_EditorCamera.GetProjectionMatrix());
+		auto inverseView = glm::inverse(glm::mat3(m_EditorCamera.GetViewMatrix()));
+
+		glm::vec4 ray = inverseProj * mouseClipPos;
+		glm::vec3 rayPos = m_EditorCamera.GetPosition();
+		glm::vec3 rayDir = inverseView * glm::vec3(ray);
+
+		return { rayPos, rayDir };
+	}
+
+	Ray EditorLayer::CastMouseRay()
+	{
+		auto [mouseX, mouseY] = GetMouseViewportSpace();
+		if (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f)
+		{
+			auto [origin, direction] = CastRay(mouseX, mouseY);
+			return Ray(origin, direction);
+		}
+		return Ray::Zero();
+	}
+
+	void EditorLayer::OnEvent(Event& e)
+	{
+		m_EditorCamera.OnEvent(e);
+
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<MouseButtonPressedEvent>(SAT_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
+	}
+
+	bool EditorLayer::OnMouseButtonPressed(MouseButtonEvent& e)
+	{
+		auto [mx, my] = Input::GetMousePos();
+		if (e.GetMouseButton() == SAT_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(SAT_KEY_LEFT_ALT) && !ImGuizmo::IsOver()) {
+			auto [mouseX, mouseY] = GetMouseViewportSpace();
+			if (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f)
+			{
+				auto [origin, direction] = CastRay(mouseX, mouseY);
+			}
+		}
+
+		return false;
 	}
 
 	void EditorLayer::OnImGuiRender()
 	{
 		SAT_PROFILE_FUNCTION();
 
-		ImGuizmo::BeginFrame();
+		static bool p_open = true;
 
+		static bool opt_fullscreen_persistant = true;
+		static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
+		bool opt_fullscreen = opt_fullscreen_persistant;
+
+		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+		// because it would be confusing to have two docking targets within each others.
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+		if (opt_fullscreen)
 		{
-			ImGuiIO& io = ImGui::GetIO();
-
-			io.ConfigWindowsMoveFromTitleBarOnly = true;
-	
-			if(ImGui::Begin("TestFrameBuffer"))
-			{
-				uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
-				ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-
-			}
-
-#ifdef SAT_DEBUG
-
-			if (ImGui::Begin("Debugger")) {
-
-				if (ImGui::Button("Import")) {
-
-					SAT_CORE_INFO("--------------------------------------------------------------------------------------------------");
-					SAT_CORE_INFO("Awaiting user file location!");
-
-					auto& [name, ex] = Application::Get().OpenFile(".obj\0* .obj;\0\0");
-
-					auto& [namefs, exfs] = Application::Get().OpenFile(".satshaderf\0* .satshaderf;\0\0");
-					auto& [namevs, exvs] = Application::Get().OpenFile(".satshaderv\0* .satshaderv;\0\0");
-
-					std::vector<std::string> paths;
-					paths.push_back(namevs);
-					paths.push_back(namefs);
-
-					SAT_CORE_INFO("Found Files. Files : {0}, {1} and {2}", name, namefs, namevs);
-
-
-					const char* nameOBJ = name.c_str(); 	const char* exOBJ = ex.c_str();
-					const char* FSName = namefs.c_str();	const char* FS_ex = exfs.c_str();
-					const char* VSName = namevs.c_str();	const char* VS_ex = exvs.c_str();
-
-					/* Shader and Model Config */
-					DShader* importedShader = new DShader(VSName, FSName);
-					Model* importedModel = new Model(name, paths.at(0), paths.at(0));
-
-					SAT_CORE_WARN("Compiling Shader : (ID) {0}", importedShader->ID);
-					SAT_CORE_WARN("	Compiling Shaders can take a while!");
-					SAT_CORE_WARN("	Compiling Shaders can also use system resources!");
-
-
-					GameObject* gb = Application::Get().GetCurrentScene().CreateEntityGameObjectprt("", paths);
-
-					SAT_CORE_INFO("Creating new GameObject!");
-
-					gb->ourModel = importedModel;
-
-					SAT_CORE_ASSERT(gb->HasComponent<TagComponent>(), "GameObject dose not A TagComponent!");
-					SAT_CORE_INFO("New GameObject made! : (Tag) {0}", gb->GetComponent<TagComponent>().Tag);
-					SAT_CORE_WARN("Setting new Shader to the imported shader");
-					SAT_CORE_WARN("Setting new Model to the imported Model");
-					SAT_CORE_INFO("--------------------------------------------------------------------------------------------------");
-
-					SAT_CORE_INFO("{0} {1} {2} {3} {4} {5}", importedShader->ID, importedModel->directory, VSName, FSName, name, gb->GetComponent<TagComponent>().Tag);
-
-					delete importedShader;
-					delete importedModel;
-				}
-
-				static bool m_open = false;
-				if (ImGui::Button("Shader Edit")) {
-					m_open = true;
-				}
-
-			}
-
-#endif // SAT_DEBUG
-
-			ImGui::End();
-			ImGui::End();
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->Pos);
+			ImGui::SetNextWindowSize(viewport->Size);
+			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 		}
+
+		// When using ImGuiDockNodeFlags_PassthruDockspace, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
+		//if (opt_flags & ImGuiDockNodeFlags_PassthruDockspace)
+		//	window_flags |= ImGuiWindowFlags_NoBackground;
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		if (ImGui::Begin("DockSpace Demo", &p_open, window_flags)) {
+			ImGui::PopStyleVar();
+
+			if (opt_fullscreen)
+				ImGui::PopStyleVar(2);
+
+			// Dockspace
+			ImGuiIO& io = ImGui::GetIO();
+			if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+			{
+				ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
+			}
+			// Editor Panel ------------------------------------------------------------------------------
+			if (ImGui::Begin("Model")) {
+				if(ImGui::Begin("Environment")) {
+				
+					if (ImGui::Button("Load Environment Map"))
+					{
+						std::string filename = Application::Get().OpenFile("*.hdr").first;
+						if (filename != "")
+							m_EditorScene->SetEnvironment(Environment::Load(filename));
+					}
+				
+					ImGui::SliderFloat("Skybox LOD", &m_EditorScene->GetSkyboxLod(), 0.0f, 11.0f);
+				
+				//	//ImGui::Columns(2);
+				//	//ImGui::AlignTextToFramePadding();
+				//
+				//	//auto& light = m_EditorScene->GetLight();
+				}
+				ImGui::End();
+			}
+			ImGui::End();
+
+			if (ImGui::Begin("Viewport")) {
+				auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
+				auto viewportSize = ImGui::GetContentRegionAvail();
+				SceneRenderer::SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+				m_EditorScene->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+				m_EditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 10000.0f));
+				m_EditorCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
+				ImGui::Image((void*)SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
+				ImGui::PopStyleVar();
+
+				static int counter = 0;
+				auto windowSize = ImGui::GetWindowSize();
+				ImVec2 minBound = ImGui::GetWindowPos();
+				minBound.x += viewportOffset.x;
+				minBound.y += viewportOffset.y;
+
+				ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+				m_ViewportBounds[0] = { minBound.x, minBound.y };
+				m_ViewportBounds[1] = { maxBound.x, maxBound.y };
+				m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
+
+				// Gizmos
+				if (m_GizmoType != -1 && m_SelectionContext.size())
+				{
+					auto& selection = m_SelectionContext[0];
+
+					float rw = (float)ImGui::GetWindowWidth();
+					float rh = (float)ImGui::GetWindowHeight();
+					ImGuizmo::SetOrthographic(false);
+					ImGuizmo::SetDrawlist();
+					ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, rw, rh);
+
+					bool snap = Input::IsKeyPressed(SAT_KEY_LEFT_CONTROL);
+
+					auto& entityTransform = selection.Entity.GetComponent<TransformComponent>().GetTransform();
+				}
+
+			}
+			m_SceneHierarchyPanel->OnImGuiRender();
+
+			ImGui::End();
+
+		}
+		ImGui::End();
+
+		ImGuizmo::BeginFrame();
 
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	SceneHierarchyPanel::SceneHierarchyPanel(const RefSR<Scene>& context)
+	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context) : m_Context(context)
 	{
-		SAT_PROFILE_FUNCTION();
-		SetContext(context);
 	}
 
-	void SceneHierarchyPanel::SetContext(const RefSR<Scene>& context)
+	void SceneHierarchyPanel::SetContext(const Ref<Scene>& scene)
 	{
-		SAT_PROFILE_FUNCTION();
-		m_Context = context;
+		m_Context = scene;
+		m_SelectionContext = {};
 	}
 
-	unsigned int LoadTexture(char const* path)
+	void SceneHierarchyPanel::SetSelected(Entity entity)
 	{
-		unsigned int textureID;
-		glGenTextures(1, &textureID);
+		m_SelectionContext = entity;
+	}
 
-		int width, height, nrComponents;
-		unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
-		if (data)
-		{
-			GLenum format;
-			if (nrComponents == 1)
-				format = GL_RED;
-			else if (nrComponents == 3)
-				format = GL_RGB;
-			else if (nrComponents == 4)
-				format = GL_RGBA;
-
-			glBindTexture(GL_TEXTURE_2D, textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			stbi_image_free(data);
-		}
-		else
-		{
-			std::cout << "Texture failed to load at path: " << path << std::endl;
-			stbi_image_free(data);
-		}
-
-		return textureID;
+	void SceneHierarchyPanel::OnUpdate(Timestep ts)
+	{
 	}
 
 	void SceneHierarchyPanel::OnImGuiRender()
 	{
 		SAT_PROFILE_FUNCTION();
+
 		ImGui::Begin("Scene Hierarchy");
-
-		#if defined (SAT_DEBUG)
-			if(ImGui::Button("NewEntity")) 
+		if (m_Context) {
+			uint32_t entityCount = 0, meshCount = 0;
+			m_Context->m_Registry.each([&](auto entity)
 			{
-
-				std::vector<std::string> paths;
-				paths.push_back("assets/shaders/3d_test.satshaderv");
-				paths.push_back("assets/shaders/3d_test.satshaderf");
-
-				Application::Get().GetCurrentScene().CreateEntityGameObjectprt("", paths, "");
-			}
-
-			int num = 0;
-			m_Context->m_Registry.each([&](auto entityID)
-			{
-				num++; 
+				Entity e{ entity, m_Context.Raw() };
+				DrawEntityNode(e);
 			});
-			ImGui::SameLine();
-			ImGui::Text("Num Entitys : %i", num);
-		#endif // 
-
-		m_Context->m_Registry.each([&](auto entityID)
-		{
-			Entity entity{ entityID , m_Context.get() };
-			DrawEntityNode(entity);
-		});
-
+		}
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			m_SelectionContext = {};
 
-		ImGui::End();
+		if (ImGui::BeginPopupContextWindow(0, 1, false))
+		{
+			if (ImGui::MenuItem("Create Empty Entity"))
+			{
+				m_Context->CreateEntity("Empty Entity");
+			}
 
+			if (ImGui::MenuItem("Create Empty GameObject"))
+			{
+				m_Context->CreateEntityGameObject("Empty GameObject");
+			}
+			ImGui::EndPopup();
+		}
+
+		ImGui::End();
 
 		if (ImGui::Begin("Inspector")) {
-			ImGui::Spacing();
+
 			if (m_SelectionContext)
+			{
 				DrawEntityComponents(m_SelectionContext);
+			
+				if (ImGui::Button("Add Component"))
+					ImGui::OpenPopup("AddComponentPanel");
 
-		}
-
-		if (ImGui::BeginDragDropTarget()) {
-
-			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("EntityDD");
-			if (payload)
-			{
-				SAT_CORE_ASSERT(payload->DataSize == sizeof(entt::entity), "Invalid ImGuiPayload!");
-				entt::entity* id = (entt::entity*)payload->Data;
-
-				#if defined (SAT_DEBUG)
-				SAT_CORE_INFO("Payload ID: {0}", *id);
-				#endif // 
-
-			}
-			ImGui::EndDragDropTarget();
-		}
-
-		ImGui::End();
-
-		if (m_SelectionContext)
-		{
-			if (ImGui::Begin("Materials"))
-			{
-				if (m_SelectionContext.HasComponent<MeshComponent>())
+				if (ImGui::BeginPopup("AddComponentPanel"))
 				{
-
-					for (uint32_t i = 0; i < m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetMaterial().size(); i++)
+					if (!m_SelectionContext.HasComponent<MeshComponent>())
 					{
-						ImGui::Text("Model Shader ID: %i", m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetShader()->ID);
+						if (ImGui::Button("Mesh"))
+						{
+							m_SelectionContext.AddComponent<MeshComponent>();
+							ImGui::CloseCurrentPopup();
+						}
 					}
-
-					ImGui::Separator();
-
-					for (uint32_t i = 0; i < m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetMaterial().size(); i++)
-					{
-						ImGui::Text("Material Name: %s", m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetMaterial().at(i)->GetName().c_str());
-					}
-
-					ImGui::Separator();
-
-					for (uint32_t i = 0; i < m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetMaterial().size(); i++)
-					{
-						ImGui::Text("GameObject Name: %s", m_SelectionContext.GetComponent<TagComponent>().Tag.c_str());
-						ImGui::Text("Model Name: %s", m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetName().c_str());
-					}
-
-					ImGui::Separator();
-
-					for (uint32_t i = 0; i < m_SelectionContext.GetComponent<MeshComponent>().GetModel()->GetMaterial().size(); i++)
-					{
-						// Albedo
-						if (ImGui::CollapsingHeader("Albedo", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-						{
-						}
-
-						ImGui::Separator();
-
-						// Diffuse
-						if (ImGui::CollapsingHeader("Diffuse", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-						{
-							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-							bool useDiffuseMap = true;
-							ImGui::PopStyleVar();
-							if (ImGui::Checkbox("Use##DiffuseMap", &useDiffuseMap)) {
-
-								//								if (useDiffuseMap)
-								//								{
-								////
-								//								}
-								//
-							}
-							ImGui::Separator();
-						}
-
-						ImGui::Separator();
-
-						// Normals
-						if (ImGui::CollapsingHeader("Normals", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-						{
-						}
-
-						ImGui::Separator();
-
-						// Metalness
-						if (ImGui::CollapsingHeader("Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-						{
-						}
-
-						ImGui::Separator();
-
-						// Roughness
-						if (ImGui::CollapsingHeader("Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-						{
-						}
-
-					}
+					ImGui::EndPopup();
 				}
 			}
-
-			ImGui::End();
 		}
-
-		if (m_SelectionContext)
-		{
-			if (ImGui::Begin("Viewport")) {
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-#if 0
-				// view/projection transformations
-				glm::mat4 projection = glm::perspective(glm::radians(Application::Get().m_gameLayer->Get3DCamera().Zoom), (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), 0.1f, 100.0f);
-
-				glm::mat4 view = Application::Get().m_gameLayer->Get3DCamera().GetViewMatrix();
-
-				glm::mat4& ObjectMatrix = Application::Get().gameObject->GetComponent<TransformComponent>().Transform;
-
-				float* v = glm::value_ptr(view);
-
-				float* p = glm::value_ptr(projection);
-
-				float* o = glm::value_ptr(ObjectMatrix);
-
-				ImGuizmo::BeginFrame();
-
-				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
-
-				static const float identityMatrix[16] =
-				{
-					1.f, 0.f, 0.f, 0.f,
-					0.f, 1.f, 0.f, 0.f,
-					0.f, 0.f, 1.f, 0.f,
-					0.f, 0.f, 0.f, 1.f
-				};
-
-				ImGuizmo::DrawGrid(v, p, identityMatrix, 100.f);
-
-				ImGuizmo::Manipulate(v, p, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::MODE::LOCAL, o, NULL, NULL);  
-#endif // 0
-				ImGui::PopStyleVar();
-			}
-
-			ImGui::End();
-		}
-	}
-
-	static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
-	{
-		ImGui::PushID(label.c_str());
-
-		ImGui::Columns(2);
-		ImGui::SetColumnWidth(0, columnWidth);
-		ImGui::Text(label.c_str());
-		ImGui::NextColumn();
-
-		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-
-		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
-
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-		if (ImGui::Button("X", buttonSize))
-			values.x = resetValue;
-		ImGui::PopStyleColor(3);
-
-		ImGui::SameLine();
-		ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
-		ImGui::PopItemWidth();
-		ImGui::SameLine();
-
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
-		if (ImGui::Button("Y", buttonSize))
-			values.y = resetValue;
-		ImGui::PopStyleColor(3);
-
-		ImGui::SameLine();
-		ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
-		ImGui::PopItemWidth();
-		ImGui::SameLine();
-
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
-		if (ImGui::Button("Z", buttonSize))
-			values.z = resetValue;
-		ImGui::PopStyleColor(3);
-
-		ImGui::SameLine();
-		ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
-		ImGui::PopItemWidth();
-
-		ImGui::PopStyleVar();
-
-		ImGui::Columns(1);
-
-		ImGui::PopID();
+		ImGui::End();
 	}
 
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
 	{
 		SAT_PROFILE_FUNCTION();
-		auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-		auto& id = entity.GetComponent<IdComponent>().ID;
-
-		auto& transform = entity.GetComponent<TransformComponent>().Position;
-
-		float* t = glm::value_ptr(transform);
-
-		ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
-
-		if (ImGui::IsItemClicked())
+		if (entity.HasComponent<TagComponent>())
 		{
-			m_SelectionContext = entity;
+			auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-		}
+			ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+			bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
 
+			if (ImGui::IsItemClicked())
+			{
+				m_SelectionContext = entity;
+				if (m_SelectionChangedCallback)
+					m_SelectionChangedCallback(m_SelectionContext);
+			}
 
-		if (opened)
-		{
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-			bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
 			if (opened)
+			{
+				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+				bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
+				if (opened)
+					ImGui::TreePop();
 				ImGui::TreePop();
-			ImGui::TreePop();
+			}
 		}
+		else
+		{
+			entity.AddComponent<TagComponent>();
+		}
+	}
 
+	template<typename T, typename UIFunction>
+	static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
+	{
+		if (entity.HasComponent<T>())
+		{
+			bool removeComponent = false;
+
+			auto& component = entity.GetComponent<T>();
+			bool open = ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(T).hash_code()), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str());
+			ImGui::SameLine();
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
+			if (ImGui::Button("+"))
+			{
+				ImGui::OpenPopup("ComponentSettings");
+			}
+
+			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
+
+			if (ImGui::BeginPopup("ComponentSettings"))
+			{
+				if (ImGui::MenuItem("Remove component"))
+					removeComponent = true;
+
+				ImGui::EndPopup();
+			}
+
+			if (open)
+			{
+				uiFunction(component);
+				ImGui::NextColumn();
+				ImGui::Columns(1);
+				ImGui::TreePop();
+			}
+			ImGui::Separator();
+
+			if (removeComponent)
+				entity.RemoveComponent<T>();
+		}
+	}
+
+	static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition(const glm::mat4& transform)
+	{
+		glm::vec3 scale, translation, skew;
+		glm::vec4 perspective;
+		glm::quat orientation;
+		glm::decompose(transform, scale, orientation, translation, skew, perspective);
+
+		return { translation, orientation, scale };
 	}
 
 	void SceneHierarchyPanel::DrawEntityComponents(Entity entity)
@@ -1324,25 +980,95 @@ namespace Saturn {
 		else
 			SAT_CORE_ASSERT(entity.HasComponent<TagComponent>(), "Entity dose not have a TagComponent!");
 
-
+		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
 		if (entity.HasComponent<TransformComponent>())
 		{
+			auto& tc = entity.GetComponent<TransformComponent>();
+			auto& t = entity.GetComponent<TransformComponent>().GetTransform();
+			if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(TransformComponent).hash_code()), ImGuiTreeNodeFlags_DefaultOpen, "Transform"))
+			{
+				auto [translation, rotationQuat, scale] = GetTransformDecomposition(t);
+				glm::vec3 rotation = glm::degrees(glm::eulerAngles(rotationQuat));
 
-			if (ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Transform")) {
-				ImGui::DragFloat3("Position", glm::value_ptr(entity.GetComponent<TransformComponent>().Position), 0.5f);
+				ImGui::Columns(2);
+				ImGui::Text("Translation");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+
+				bool updateTransform = false;
+
+				if (ImGui::DragFloat3("##translation", glm::value_ptr(translation), 0.25f))
+				{
+					//tc.Transform[3] = glm::vec4(translation, 1.0f);
+					updateTransform = true;
+				}
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Text("Rotation");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+
+				if (ImGui::DragFloat3("##rotation", glm::value_ptr(rotation), 0.25f))
+				{
+					updateTransform = true;
+					// tc.Transform[3] = glm::vec4(translation, 1.0f);
+				}
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Text("Scale");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+
+				if (ImGui::DragFloat3("##scale", glm::value_ptr(scale), 0.25f))
+				{
+					updateTransform = true;
+				}
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Columns(1);
+
 
 				ImGui::TreePop();
 			}
-
-			auto& tc = entity.GetComponent<TransformComponent>();
-			DrawVec3Control("Translation", tc.Position);
-			glm::vec3 rotation = glm::degrees(tc.Rotation);
-			DrawVec3Control("Rotation", rotation);
-			tc.Rotation = glm::radians(rotation);
-			DrawVec3Control("Scale", tc.Scale, 1.0f);
+			ImGui::Separator();
 		}
-		else
-			SAT_CORE_ASSERT(entity.HasComponent<TransformComponent>(), "Entity dose not have a TransformComponent!");
+
+		DrawComponent<MeshComponent>("Mesh", entity, [](MeshComponent& mc)
+		{
+			if (ImGui::Button("...##openmesh"))
+			{
+				std::string file = Application::Get().OpenFile("").first;
+				if (!file.empty())
+					mc.Mesh = Ref<Mesh>::Create(file);
+			}
+
+			ImGui::Columns(3);
+			ImGui::SetColumnWidth(0, 100);
+			ImGui::SetColumnWidth(1, 300);
+			ImGui::SetColumnWidth(2, 40);
+			ImGui::Text("File Path");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			if (mc.Mesh)
+				ImGui::InputText("##meshfilepath", (char*)mc.Mesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+			else
+				ImGui::InputText("##meshfilepath", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+			if (ImGui::Button("...##openmesh", ImVec2(50, 20)))
+			{
+				std::string file = Application::Get().OpenFile("").first;
+				if (!file.empty())
+					mc.Mesh = Ref<Mesh>::Create(file);
+			}
+		});
+
 	}
 
 } //namespace

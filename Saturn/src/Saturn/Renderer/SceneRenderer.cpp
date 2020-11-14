@@ -20,7 +20,7 @@ namespace Saturn {
 
 			// Resources
 			Ref<MaterialInstance> SkyboxMaterial;
-			//Environment SceneEnvironment;
+			Environment SceneEnvironment;
 			Light ActiveLight;
 		} SceneData;
 
@@ -86,7 +86,6 @@ namespace Saturn {
 		s_Data.OutlineMaterial = MaterialInstance::Create(Material::Create(outlineShader));
 		s_Data.OutlineMaterial->SetFlag(MaterialFlag::DepthTest, false);
 	}
-
 	void SceneRenderer::SetViewportSize(uint32_t width, uint32_t height)
 	{
 		s_Data.GeoPass->GetSpecification().TargetFramebuffer->Resize(width, height);
@@ -100,9 +99,9 @@ namespace Saturn {
 		s_Data.ActiveScene = scene;
 
 		s_Data.SceneData.SceneCamera = camera;
-		//s_Data.SceneData.SkyboxMaterial = scene->m_SkyboxMaterial;
-		//s_Data.SceneData.SceneEnvironment = scene->m_Environment;
-		//s_Data.SceneData.ActiveLight = scene->m_Light;
+		s_Data.SceneData.SkyboxMaterial = scene->m_SkyboxMaterial;
+		s_Data.SceneData.SceneEnvironment = scene->m_Environment;
+		s_Data.SceneData.ActiveLight = scene->m_Light;
 	}
 
 	void SceneRenderer::EndScene()
@@ -192,8 +191,6 @@ namespace Saturn {
 
 	void SceneRenderer::GeometryPass()
 	{
-		/*
-
 		bool outline = s_Data.SelectedMeshDrawList.size() > 0;
 
 		if (outline)
@@ -322,15 +319,14 @@ namespace Saturn {
 		}
 
 		Renderer::EndRenderPass();
-		*/
 	}
 
 	void SceneRenderer::CompositePass()
 	{
 		Renderer::BeginRenderPass(s_Data.CompositePass);
-		//s_Data.CompositeShader->Bind();
-		//s_Data.CompositeShader->SetFloat("u_Exposure", s_Data.SceneData.SceneCamera.Camera.GetExposure());
-		//s_Data.CompositeShader->SetInt("u_TextureSamples", s_Data.GeoPass->GetSpecification().TargetFramebuffer->GetSpecification().Samples);
+		s_Data.CompositeShader->Bind();
+		s_Data.CompositeShader->SetFloat("u_Exposure", s_Data.SceneData.SceneCamera.Camera.GetExposure());
+		s_Data.CompositeShader->SetInt("u_TextureSamples", s_Data.GeoPass->GetSpecification().TargetFramebuffer->GetSpecification().Samples);
 		s_Data.GeoPass->GetSpecification().TargetFramebuffer->BindTexture();
 		Renderer::SubmitFullscreenQuad(nullptr);
 		Renderer::EndRenderPass();
@@ -369,5 +365,4 @@ namespace Saturn {
 	{
 		return s_Data.Options;
 	}
-
 }

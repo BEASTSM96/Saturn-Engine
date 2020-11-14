@@ -57,7 +57,7 @@ namespace Saturn {
 			}
 
 			// TODO: Keep top weights
-			SAT_CORE_WARN("Vertex has more than four bones/weights affecting it, extra data will be discarded (BoneID={0}, Weight={1})", BoneID, Weight);
+			//SAT_CORE_WARN("Vertex has more than four bones/weights affecting it, extra data will be discarded (BoneID={0}, Weight={1})", BoneID, Weight);
 		}
 	};
 

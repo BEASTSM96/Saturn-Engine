@@ -21,34 +21,21 @@
 
 namespace Saturn {
 
-	GameObject* GameObject::s_Instance = nullptr;
-
-	GameObject::GameObject() : Serialiser::OBJ_NAME("GameObject")
+	GameObject::GameObject()
 	{
 	}
 
-	GameObject::GameObject(const std::string& objectname, Json::Value& reconstructionValue) : Serialiser::OBJ_NAME("GameObject")
+	GameObject::GameObject(const std::string& objectname, Json::Value& reconstructionValue)
 	{
 	}
 
-	GameObject::GameObject(entt::entity handle, Scene* scene) : Serialiser::OBJ_NAME("GameObject"), m_EntityHandle(handle), m_Scene(scene)
+	GameObject::GameObject(entt::entity handle, Scene* scene) :m_EntityHandle(handle), m_Scene(scene)
 	{
 	}
 
 	void GameObject::Init() {
 
 		SAT_PROFILE_FUNCTION();
-
-		s_Instance = this;
-
-		// tell stb_image.h to flip loaded texture's on the y-axis
-		stbi_set_flip_vertically_on_load(true);
-
-		GameLayer* gl = static_cast<GameLayer*>(Application::Get().GetCurrentScene().m_CurrentLevel->GetGameLayer());
-
-		gl->gameObjects.push_back(*this);
-
-		SAT_CORE_WARN("GameObject Size {0} ", gl->gameObjects.size());
 	}
 
 	void GameObject::OnKeyInput(KeyPressedEvent& InEvent)

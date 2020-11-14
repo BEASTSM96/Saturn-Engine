@@ -48,8 +48,8 @@ namespace Saturn {
 	{
 		m_CameraController.OnUpdate(ts);
 
-		RendererAPI::SetClearColor(0.45f, 0.4f, 0.4f, 1.f);
-		RendererAPI::Clear(0.45f, 0.4f, 0.4f, 1.f);
+		//RendererAPI::SetClearColor(0.45f, 0.4f, 0.4f, 1.f);
+		//RendererAPI::Clear(0.45f, 0.4f, 0.4f, 1.f);
 
 		float velocity = 50 * 0.1f;
 		if (Input::IsKeyPressed(SAT_KEY_W))
