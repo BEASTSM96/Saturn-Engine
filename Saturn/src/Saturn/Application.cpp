@@ -146,8 +146,6 @@ namespace Saturn {
 				Application* app = this;
 				Renderer::Submit([app]() { app->RenderImGui(); });
 
-				//RenderImGui();
-
 				Renderer::WaitAndRender();
 			}
 			m_Window->OnUpdate();

@@ -72,10 +72,12 @@ namespace Saturn {
 		virtual void OnUpdate(Timestep ts) override;
 		virtual void OnEvent(Event& e) override;
 		bool OnMouseButtonPressed(MouseButtonEvent& e);
+		bool OnKeyPressedEvent(KeyPressedEvent& e);
 		std::pair<float, float> GetMouseViewportSpace();
 		std::pair<glm::vec3, glm::vec3> CastRay(float mx, float my);
 		Ray CastMouseRay();
 		void SelectEntity(Entity entity);
+		float GetSnapValue();
 
 		void Begin();
 		void End();
@@ -127,6 +129,8 @@ namespace Saturn {
 		std::vector<SelectedSubmesh> m_SelectionContext;
 		Ref<Scene> m_RuntimeScene, m_EditorScene;
 		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
+
+		void OnSelected(const SelectedSubmesh& selectionContext);
 
 		friend class SceneHierarchyPanel;
 

@@ -555,7 +555,7 @@ namespace Saturn {
 		m_SelectionContext.clear();
 		m_SelectionContext.push_back(selection);
 
-		//m_EditorScene->SetSelectedEntity(entity);
+		m_EditorScene->SetSelectedEntity(entity);
 	}
 
 	void EditorLayer::OnUpdate(Timestep ts)
@@ -634,6 +634,39 @@ namespace Saturn {
 
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<MouseButtonPressedEvent>(SAT_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
+		dispatcher.Dispatch<KeyPressedEvent>(SAT_BIND_EVENT_FN(EditorLayer::OnKeyPressedEvent));
+	}
+
+	bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& e)
+	{
+		switch (e.GetKeyCode())
+		{
+		case SAT_KEY_Q:
+			m_GizmoType = -1;
+			break;
+		case SAT_KEY_W:
+			m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+			break;
+		case SAT_KEY_E:
+			m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+			break;
+		case SAT_KEY_R:
+			m_GizmoType = ImGuizmo::OPERATION::SCALE;
+			break;
+		case SAT_KEY_DELETE:
+			if (m_SelectionContext.size())
+			{
+				Entity selectedEntity = m_SelectionContext[0].Entity;
+				m_EditorScene->DestroyEntity(selectedEntity);
+				m_SelectionContext.clear();
+				m_EditorScene->SetSelectedEntity({});
+				m_SceneHierarchyPanel->SetSelected({});
+			}
+			break;
+		}
+
+		return false;
+
 	}
 
 	bool EditorLayer::OnMouseButtonPressed(MouseButtonEvent& e)
@@ -644,10 +677,65 @@ namespace Saturn {
 			if (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f)
 			{
 				auto [origin, direction] = CastRay(mouseX, mouseY);
+				auto meshEntities = m_EditorScene->GetAllEntitiesWith<MeshComponent>();
+				for (auto e : meshEntities)
+				{
+					Entity entity = { e, m_EditorScene.Raw() };
+					auto mesh = entity.GetComponent<MeshComponent>().Mesh;
+					if (!mesh)
+						continue;
+
+					auto& submeshes = mesh->GetSubmeshes();
+					float lastT = std::numeric_limits<float>::max();
+					for (uint32_t i = 0; i < submeshes.size(); i++)
+					{
+						auto& submesh = submeshes[i];
+						Ray ray = {
+							glm::inverse(entity.GetComponent<TransformComponent>().GetTransform() *submesh.Transform) * glm::vec4(origin, 1.0f),
+							glm::inverse(glm::mat3(entity.GetComponent<TransformComponent>().GetTransform()) * glm::mat3(submesh.Transform)) * direction
+						};
+
+						float t;
+						bool intersects = ray.IntersectsAABB(submesh.BoundingBox, t);
+						if (intersects)
+						{
+							const auto& triangleCache = mesh->GetTriangleCache(i);
+							for (const auto& triangle : triangleCache)
+							{
+								if (ray.IntersectsTriangle(triangle.V0.Position, triangle.V1.Position, triangle.V2.Position, t))
+								{
+									SAT_CORE_WARN("INTERSECTION: {0}, t={1}", submesh.NodeName, t);
+									m_SelectionContext.push_back({ entity, &submesh, t });
+									break;
+								}
+							}
+						}
+					}
+				}
+				//std::sort(m_SelectionContext.begin(), m_SelectionContext.end(), [](auto& a, auto& b) { return a.Distance < b.Distance; });
+				if (m_SelectionContext.size())
+					OnSelected(m_SelectionContext[0]);
 			}
 		}
 
 		return false;
+	}
+
+	void EditorLayer::OnSelected(const SelectedSubmesh& selectionContext)
+	{
+		SelectEntity(selectionContext.Entity);
+		m_SceneHierarchyPanel->SetSelected(selectionContext.Entity);
+		m_EditorScene->SetSelectedEntity(selectionContext.Entity);
+	}
+
+	float EditorLayer::GetSnapValue() {
+		switch (m_GizmoType)
+		{
+		case  ImGuizmo::OPERATION::TRANSLATE: return 0.5f;
+		case  ImGuizmo::OPERATION::ROTATE: return 45.0f;
+		case  ImGuizmo::OPERATION::SCALE: return 0.5f;
+		}
+		return 0.0f;
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -715,6 +803,7 @@ namespace Saturn {
 			}
 			ImGui::End();
 
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 			if (ImGui::Begin("Viewport")) {
 				auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
 				auto viewportSize = ImGui::GetContentRegionAvail();
@@ -751,13 +840,37 @@ namespace Saturn {
 					bool snap = Input::IsKeyPressed(SAT_KEY_LEFT_CONTROL);
 
 					auto& entityTransform = selection.Entity.GetComponent<TransformComponent>().GetTransform();
+					float snapValue = GetSnapValue();
+					float snapValues[3] = { snapValue, snapValue, snapValue };
+					if (m_SelectionMode == SelectionMode::Entity)
+					{
+						glm::mat4 transform = selection.Entity.GetComponent<TransformComponent>().GetTransform();
+						float* _transform = glm::value_ptr(transform);
+
+						ImGuizmo::Manipulate(glm::value_ptr(m_EditorCamera.GetViewMatrix()), glm::value_ptr(m_EditorCamera.GetProjectionMatrix()), (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, _transform, nullptr, snap ? snapValues : nullptr);
+					}
+					else
+					{
+						if (selection.Mesh)
+						{
+							glm::mat4 transformBase = entityTransform * selection.Mesh->Transform;
+							ImGuizmo::Manipulate(glm::value_ptr(m_EditorCamera.GetViewMatrix()),
+								glm::value_ptr(m_EditorCamera.GetProjectionMatrix()),
+								(ImGuizmo::OPERATION)m_GizmoType,
+								ImGuizmo::LOCAL,
+								glm::value_ptr(transformBase),
+								nullptr,
+								snap ? snapValues : nullptr);
+
+							selection.Mesh->Transform = glm::inverse(entityTransform) * transformBase;
+						}
+					}
 				}
 
 			}
+			ImGui::PopStyleVar();
 			m_SceneHierarchyPanel->OnImGuiRender();
-
 			ImGui::End();
-
 		}
 		ImGui::End();
 

@@ -102,3 +102,5 @@ Titan/SaturnProfile-Shutdown.json
 Titan/SaturnProfile-Startup.json
 assets/**
 Titan/*.json
+Titan/assets/meshes/Walther_01
+Titan/assets/meshes/KrissVector
