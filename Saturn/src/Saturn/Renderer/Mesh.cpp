@@ -426,7 +426,6 @@ namespace Saturn {
 						{
 							metalnessTextureFound = true;
 
-							// TODO: Temp - this should be handled by Hazel's filesystem
 							std::filesystem::path path = filename;
 							auto parentPath = path.parent_path();
 							parentPath /= str;
