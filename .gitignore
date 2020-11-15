@@ -88,7 +88,6 @@ Sandbox/assets/tex/
 **/assets/tex
 **/assets/tex
 
-#Old Sparky Stuff
 Spark/**
 Spark/
 Spark
@@ -108,3 +107,4 @@ Titan/dna.txt
 Saturn/vendor/imgui/examples/example_allegro5
 Saturn/vendor/imgui/examples/example_apple_metal
 Saturn/vendor/imgui/examples/example_apple_opengl2
+!Saturn/vender/assimp/bin/
