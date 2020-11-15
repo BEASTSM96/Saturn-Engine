@@ -104,3 +104,4 @@ assets/**
 Titan/*.json
 Titan/assets/meshes/Walther_01
 Titan/assets/meshes/KrissVector
+Titan/dna.txt
