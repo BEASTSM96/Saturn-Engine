@@ -10,7 +10,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "ImGui/ImGuiLayer.h"
-#include "Saturn/Renderer\Buffer.h"
 #include "Renderer/Renderer.h"
 #include "Saturn/ImGui/ImGuiLayer.h"
 #include "Scene/Components.h"
@@ -39,36 +38,19 @@ namespace Saturn {
 
 		SAT_CORE_ASSERT(!s_Instance, "Application already exists!");
 
-		{
-			s_Instance = this;
-			m_Window = std::unique_ptr<Window>(Window::Create());
-			m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
-			m_Window->SetVSync(false);
+		s_Instance = this;
+		m_Window = std::unique_ptr<Window>(Window::Create());
+		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+		m_Window->SetVSync(false);
 
-			Renderer::Init();
-		}
+		m_ImGuiLayer = new ImGuiLayer();
+		m_EditorLayer = new EditorLayer();
 
-		{
-			m_ImGuiLayer = new ImGuiLayer();
+		PushOverlay(m_ImGuiLayer);
+		PushOverlay(m_EditorLayer);
 
-			m_FPSLayer = new ImGuiFPS();
-			m_RenderStats = new ImGuiRenderStats();
-			m_ImguiTopBar = new ImguiTopBar();
-
-//#ifdef SAT_DEBUG
-			m_EditorLayer = new EditorLayer();
-
-//#endif
-		}
-
-		{
-			PushOverlay(m_ImGuiLayer);
-			PushOverlay(m_RenderStats);
-			PushOverlay(m_EditorLayer);
-			//PushOverlay(m_ImguiTopBar);
-
-			#define SPARKY_GAME_BASE
-		}
+		Renderer::Init();
+		Renderer::WaitAndRender();
 	}
 
 	Application::~Application()
@@ -92,6 +74,23 @@ namespace Saturn {
 		layer->OnAttach();
 	}
 
+	void Application::RenderImGui()
+	{
+		m_ImGuiLayer->Begin();
+
+		ImGui::Begin("Renderer");
+		auto& caps = RendererAPI::GetCapabilities();
+		ImGui::Text("Vendor: %s", caps.Vendor.c_str());
+		ImGui::Text("Renderer: %s", caps.Renderer.c_str());
+		ImGui::Text("Version: %s", caps.Version.c_str());
+		ImGui::Text("Frame Time: %.2fms\n", m_TimeStep.GetMilliseconds());
+		ImGui::End();
+
+		for (Layer* layer : m_LayerStack)
+			layer->OnImGuiRender();
+
+		m_ImGuiLayer->End();
+	}
 
 	void Application::OnEvent(Event& e)
 	{
@@ -119,9 +118,7 @@ namespace Saturn {
 
 		Math::Init();
 
-		m_Scene = CreateRef<Scene>();
-
-		m_SceneHierarchyPanel.SetContext(m_Scene);
+		m_Scene = Ref<Scene>::Create();
 
 		auto& e = m_Scene->CreateEntity("");
 		
@@ -131,55 +128,34 @@ namespace Saturn {
 
 		gameObject = m_Scene->CreateEntityGameObjectprt("Cube", paths);
 
-//		auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths);
+		//auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths);
+
+		//gameObject->AddComponent<MeshComponent>().Mesh = Ref<Mesh>::Create("assets/models/m1911/m1911.fbx");
+
 
 		while (m_Running && !m_Crashed)
 		{
 			SAT_PROFILE_SCOPE("RunLoop");
 
-			float time = (float)glfwGetTime(); //Platform::GetTime();
-
-			Timestep timestep = time - LastFrameTime;
-
-			LastFrameTime = time;
-
-
 			if (!m_Minimized)
 			{
 				for (Layer* layer : m_LayerStack)
-				{
-					SAT_CORE_ASSERT(/*!*/layer, "layer in 'm_LayerStack' array null, 0 or not vaild.");
-					layer->OnUpdate(timestep);
-				}
+					layer->OnUpdate(m_TimeStep);
+				
+
+				Application* app = this;
+				Renderer::Submit([app]() { app->RenderImGui(); });
+
+				Renderer::WaitAndRender();
 			}
-
-			m_ImGuiLayer->Begin();
-			#if defined(SAT_DEBUG)
-						for (Layer* layer : m_LayerStack) {
-							layer->OnImGuiRender();
-						}
-						m_SceneHierarchyPanel.OnImGuiRender();
-
-			#else
-				for (Layer* layer : m_LayerStack)
-					layer->OnImGuiRender();
-
-				m_SceneHierarchyPanel.OnImGuiRender();
-			#endif 			
-			m_ImGuiLayer->End();
-
 			m_Window->OnUpdate();
 
-		}
-		while (m_Crashed && !m_Running)
-		{
 			float time = (float)glfwGetTime(); //Platform::GetTime();
 
-			Timestep timestep = time - LastFrameTime;
+			m_TimeStep = time - LastFrameTime;
 
 			LastFrameTime = time;
 
-			m_Window->OnUpdate();
 		}
 	}
 
@@ -205,7 +181,7 @@ namespace Saturn {
 	bool Application::OnWindowResize(WindowResizeEvent& e)
 	{
 		int width = e.GetWidth(), height = e.GetHeight();
-		if (width || height)
+		if (width == 0 || height == 0)
 		{
 			m_Minimized = true;
 			return false;
@@ -214,10 +190,7 @@ namespace Saturn {
 		Renderer::Submit([=]() { glViewport(0, 0, width, height); });
 		auto& fbs = FramebufferPool::GetGlobal()->GetAll();
 		for (auto& fb : fbs)
-		{
-			if (auto fbp = fb.lock())
-				fbp->Resize(width, height);
-		}
+			fb->Resize(width, height);
 
 		return false;
 	}

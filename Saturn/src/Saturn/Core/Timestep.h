@@ -2,23 +2,18 @@
 
 namespace Saturn {
 
-
-	class SATURN_API Timestep
+	class Timestep
 	{
 	public:
-		Timestep(float time = 0.0f) 
-			: m_Time(time)
-		{
-		}
+		Timestep() {}
+		Timestep(float time);
 
+		inline float GetSeconds() const { return m_Time; }
+		inline float GetMilliseconds() const { return m_Time * 1000.0f; }
 
-		operator float() const{ return m_Time; }
-
-		float GetSeconds() const { return m_Time; }
-		float GetMillseconds() const { return m_Time * 1000.0f; }
+		operator float() { return m_Time; }
 	private:
-
-		float m_Time;
+		float m_Time = 0.0f;
 	};
 
 }

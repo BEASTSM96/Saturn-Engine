@@ -3,7 +3,7 @@
 #include "Saturn/Log.h"
 #include <string>
 
-namespace Saturn::Core {
+namespace Saturn {
 
 	/*
 	* LOGGING LEVELS

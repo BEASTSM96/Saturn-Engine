@@ -4,7 +4,7 @@
 #include "Saturn/Log.h"
 #include "Typedef.h"
 
-namespace Saturn::Core {
+namespace Saturn {
 
 	struct Buffer
 	{
@@ -47,8 +47,6 @@ namespace Saturn::Core {
 		{
 			if (Data)
 				memset(Data, 0, Size);
-			else
-				SAT_CORE_WARN("Data was 0 or null");
 		}
 
 		template<typename T>
@@ -88,10 +86,4 @@ namespace Saturn::Core {
 
 
 	};
-
-
-}
-
-namespace Saturn {
-	SAT_TYPEDEF(Core::Buffer, Buffer);
 }

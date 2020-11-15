@@ -42,6 +42,7 @@ namespace Saturn {
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
 
+		void RenderImGui();
 
 		Window& GetWindow() { return *m_Window; }
 
@@ -72,20 +73,12 @@ namespace Saturn {
 		std::unique_ptr<Window> m_Window;
 
 		ImGuiLayer* m_ImGuiLayer;
-		
-		ImGuiFPS* m_FPSLayer;
-
-		ImGuiRenderStats* m_RenderStats;
-
-		ImguiTopBar* m_ImguiTopBar;
 
 		EditorLayer* m_EditorLayer;
 
 		Level* m_Level;
 
-		RefSR<Scene> m_Scene;
-
-		SceneHierarchyPanel m_SceneHierarchyPanel;
+		Ref<Scene> m_Scene;
 
 		bool m_Running = true;
 
@@ -96,6 +89,9 @@ namespace Saturn {
 		float LastFrameTime = 0.0f;
 
 		bool m_Minimized = false;
+
+		Timestep m_TimeStep;
+
 	private:
 		static Application* s_Instance;
 	};

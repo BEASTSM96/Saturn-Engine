@@ -20,6 +20,7 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include "Saturn/Core.h"
 #include "Saturn/Log.h"
 #include "Saturn/Core/Math/Math.h"
 #include "Saturn/Debug/Instrumentor.h"

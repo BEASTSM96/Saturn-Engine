@@ -10,20 +10,15 @@ namespace Saturn {
 	Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& spec)
 	{
 		Ref<Framebuffer> result = nullptr;
-		switch (Renderer::GetAPI())
+
+		switch (RendererAPI::Current())
 		{
-			case RendererAPIType::None:    SAT_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
-			case RendererAPIType::OpenGL:  return CreateRef<OpenGLFramebuffer>(spec);
+		case RendererAPIType::None:		return nullptr;
+		case RendererAPIType::OpenGL:	result = Ref<OpenGLFramebuffer>::Create(spec);
 		}
-
-		SAT_CORE_ASSERT(false, "Unknown RendererAPI!");
 		FramebufferPool::GetGlobal()->Add(result);
-		return nullptr;
+		return result;
 	}
-
-	/// <summary>
-	/// FramebufferPool
-	/// </summary>
 
 	FramebufferPool* FramebufferPool::s_Instance = new FramebufferPool;
 
@@ -39,13 +34,13 @@ namespace Saturn {
 
 	std::weak_ptr<Framebuffer> FramebufferPool::AllocateBuffer()
 	{
+		// m_Pool.push_back();
 		return std::weak_ptr<Framebuffer>();
 	}
 
-	void FramebufferPool::Add(std::weak_ptr<Framebuffer> framebuffer)
+	void FramebufferPool::Add(const Ref<Framebuffer>& framebuffer)
 	{
 		m_Pool.push_back(framebuffer);
 	}
-
 
 }

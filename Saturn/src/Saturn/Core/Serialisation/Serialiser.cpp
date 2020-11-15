@@ -213,6 +213,8 @@ namespace Saturn {
 
 			if (entitys)
 			{
+				/*
+
 				members["Entitys"]
 					[entitys.GetComponent<TagComponent>().Tag]
 				["EntityName"] = entitys.GetComponent<TagComponent>().Tag;
@@ -267,6 +269,7 @@ namespace Saturn {
 						["Relationship"]["Children"] = i;
 					}
 				}
+				*/
 			}
 		}
 
@@ -287,6 +290,8 @@ namespace Saturn {
 
 			if (entitys)
 			{
+
+				/*
 
 				//members["Entitys"] = Json::Value(Json::arrayValue);
 				
@@ -347,6 +352,7 @@ namespace Saturn {
 						["Relationship"]["Children"] = i;
 					}
 				}
+				*/
 			}
 		}
 

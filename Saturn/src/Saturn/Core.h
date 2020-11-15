@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include "Core/Ref.h"
 
 #pragma warning(push, 0)
 
@@ -87,7 +88,6 @@
 	#define SAT_CORE_ASSERT(x, ...)
 #endif
 
-
 #define BIT(x) (1 << x)
 
 #define SAT_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
@@ -100,9 +100,6 @@ namespace Saturn {
 	template<typename T>
 	using RefSR = std::shared_ptr<T>;
 
-	template<typename T>
-	using Ref = std::shared_ptr<T>;
-
 	template<typename T, typename ... Args>
 	constexpr Scope<T> CreateScope(Args&& ... args)
 	{
@@ -114,12 +111,6 @@ namespace Saturn {
 	{
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
-
-	#include "Core/Ref.h"
-	typedef Saturn::Core::RefCounted RefCounted;
-
-
-
 
 	typedef struct fIO //base engine file system
 	{
@@ -244,18 +235,8 @@ public:
 	#define TYPE_OSSTREAM std::ofstream
 #endif // SAT_SYM
 
-
-/*
-* Why is there _name_? this is to let the user that is core or that it shouldn't be used that much / macro that gets call when using one that's like it self.
-*/
-
 /*Can be used for macros just core*/
 #define _VA_AGRS_(x) x
-
-#define _VA_AGRS_(x) \
-{\
-	x; \
-}
 
 #endif
 
