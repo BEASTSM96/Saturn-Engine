@@ -2,21 +2,17 @@
 #include "GameObject.h"
 #include "Saturn/Core/Serialisation/Object.h"
 
-#include "Saturn/Renderer/3D/3dShader.h"
 #include "GameLayer.h"
 
 #include "Saturn/Application.h"
 #include "Saturn/Scene/Components.h"
 
 #include "Platform/OpenGL/OpenGLShader.h"
-#include "Platform/OpenGL/OpenGLMaterial.h"
 
 #include <GLFW/glfw3.h>
-
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <glm/gtc/type_ptr.hpp>
-#include "physx/PxPhysicsAPI.h"
+#include <stb_image.h>
 
 #pragma warning(disable: 26812)
 
@@ -25,39 +21,21 @@
 
 namespace Saturn {
 
-
-	GameObject* GameObject::s_Instance = nullptr;
-
-	GameObject::GameObject() : Serialiser::OBJ_NAME("GameObject")
+	GameObject::GameObject()
 	{
 	}
 
-	GameObject::GameObject(const std::string& objectname, Json::Value& reconstructionValue) : Serialiser::OBJ_NAME("GameObject")
+	GameObject::GameObject(const std::string& objectname, Json::Value& reconstructionValue)
 	{
 	}
 
-	GameObject::GameObject(entt::entity handle, Scene* scene) : Serialiser::OBJ_NAME("GameObject"), m_EntityHandle(handle), m_Scene(scene)
+	GameObject::GameObject(entt::entity handle, Scene* scene) :m_EntityHandle(handle), m_Scene(scene)
 	{
 	}
 
 	void GameObject::Init() {
 
 		SAT_PROFILE_FUNCTION();
-
-		s_Instance = this;
-
-		// tell stb_image.h to flip loaded texture's on the y-axis
-		stbi_set_flip_vertically_on_load(true);
-
-		GetComponent<TransformComponent>().Transform = glm::translate(transform, glm::vec3(1.0f, 10.0f, 10.0f));
-		GetComponent<TransformComponent>().Transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
-
-		GameLayer* gl = static_cast<GameLayer*>(Application::Get().GetCurrentScene().m_CurrentLevel->GetGameLayer());
-
-		gl->gameObjects.push_back(*this);
-
-		SAT_CORE_WARN("GameObject Size {0} ", gl->gameObjects.size());
-
 	}
 
 	void GameObject::OnKeyInput(KeyPressedEvent& InEvent)
@@ -72,18 +50,13 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		StepPhysics(false);
-
-		if(m_3D)
-		{
+		
 			SAT_PROFILE_SCOPE("GameObjectRenderLoop");
-
-#if !0
-
 
 			GameLayer* gl = Application::Get().m_gameLayer;
 			if (HasComponent<MeshComponent>())
 			{
+				/*
 				GetComponent<MeshComponent>().GetModel()->m_Shader->Bind();
 
 				// view/projection transformations
@@ -94,31 +67,17 @@ namespace Saturn {
 
 				GetComponent<MeshComponent>().GetModel()->m_Shader->UploadMat4(
 					"model",
-					GetComponent<TransformComponent>().Transform
+					GetComponent<TransformComponent>().GetTransform()
 				);
-
-				/** Material Properties*/
-				GetComponent<MeshComponent>().GetModel()->m_Shader;
-
 
 				GetComponent<MeshComponent>().GetModel()->Draw(*GetComponent<MeshComponent>().GetModel()->m_Shader);
 
+				*/
 				/////////////////////////////////////////////////////////////////////SKYBOX-TMP//////////////////////////////
-
-				Material * SkyboxMaterial = new OpenGLMaterial(
-					"Skybox", 
-					{0, 0, 0},
-					{0, 0, 0}, 
-					{0, 0, 0}, 
-					0, 
-					0
-				);
-
-				//Physics::Actor::PhysicsActor::GetPxScene().addActor(*PhysXActor);
 			}
-#endif
-		}
+		
 	}
+
 
 	GameObject* GameObject::SpawnGameObject()
 	{
@@ -126,7 +85,7 @@ namespace Saturn {
 		paths.push_back("assets/shaders/3d_test.satshaderv");
 		paths.push_back("assets/shaders/3d_test.satshaderf");
 
-		return  nullptr; //Application::Get().GetCurrentScene().CreateEntityGameObjectprt<GameObject>("", paths);
+		return Application::Get().GetCurrentScene().CreateEntityGameObjectprt("", paths);
 	}
 
 	// utility function for loading a 2D texture from file

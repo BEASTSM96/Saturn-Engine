@@ -7,30 +7,22 @@
 * 
 *********************************************************************************************************
 *										Object (needed for serialisation).
-*										Friend class GameLayer (needed for rendering on that layer).
+*										Friend class SATURN_API GameLayer (needed for rendering on that layer).
 *										Entity (for ECS)
 */
-
 // Always include this 
 #include "entt.hpp"
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Core/Serialisation/Object.h"
 #include "Saturn/Scene/Components.h"
 #include "Saturn/Scene/Entity.h"
-#include "PhysicsActor.h"
-
-#include "physx/PxPhysicsAPI.h"
-#include "physx/foundation/PxPreprocessor.h"
-#include "physx/foundation/PxSimpleTypes.h"
-#include "physx/PxFoundation.h"
 
 
 #ifdef SPARKY_GAME_BASE
 
-#include "Saturn/Renderer/3D/Mesh/Model.h"
+#include "Saturn/Renderer/Mesh.h"
 #include "Saturn/Renderer/Texture.h"
 #include "Saturn/Renderer/OrthographicCamera.h"
-#include "Saturn/Renderer/VertexArray.h"
 #include "Saturn/Renderer/Shader.h"
 #include "Saturn/Renderer/Renderer.h"
 //#include "Saturn/Renderer/3D/3dShader.h"
@@ -45,14 +37,10 @@
 #include <assimp/scene.h>
 
 class DShader;
-using namespace physx;
 
 namespace Saturn {
 
-	class SATURN_API GameObject : 
-		public Entity, 
-		public Object, 
-		public Physics::Actor::PhysicsActor
+	class SATURN_API GameObject : public Entity, public Object /* Sparky GameObject */
 	{
 	public:
 		GameObject();
@@ -96,23 +84,20 @@ namespace Saturn {
 
 		//////////////////////////////////////////////////////////////////////////////////
 
-		virtual void Render();
-		virtual void Init();
+		void Render();
+		void Init();
 
 		void OnPos();
 		void OnKeyInput(KeyPressedEvent & InEvent);
 
-		virtual	void OnUpdate(Timestep ts);
+		void OnUpdate(Timestep ts);
 	public:
 		GameObject* SpawnGameObject();
 
-	public:
-		physx::PxActor* PhysXActor;
-	protected:
+	private:
 		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
 
-	private:
 		std::vector<DShader*> shaders;
 
 		glm::mat4& transform = glm::mat4(1.0f);
@@ -122,14 +107,16 @@ namespace Saturn {
 	public:
 
 		glm::mat4& GetTransform() {
-			return GetComponent<TransformComponent>().Transform;
+			return GetComponent<TransformComponent>().GetTransform();
 		}
 
-		Model *			ourModel;
+		Mesh *			ourModel;
 
 		DShader *		shader;
 
-		bool m_3D = true;
+		DShader *		pbrShader;
+		DShader *		equirectangularToCubemapShader;
+		DShader *		backgroundShader;
 
 	private:
 		friend class GameLayer;

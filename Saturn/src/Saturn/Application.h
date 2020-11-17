@@ -1,32 +1,31 @@
 #pragma once
 
-
-/*
-* Sparky App
-*/
-
-
-
 #include "Core.h"
 
 #include "Window.h"
 #include "Saturn/LayerStack.h"
 #include "Saturn/Events/Event.h"
 #include "Saturn/Events/ApplicationEvent.h"
-
 #include "Saturn/ImGui/ImGuiLayer.h"
 #include "Saturn/Core/Timestep.h"
-
 #include "GameBase/GameLayer.h"
 #include "Core/World/Level.h"
 
 #include <string>
 #include <vector>
 
-class GameLayer;
-class Level;
+namespace Saturn {
+	class ModuleManager;
+	class Module;
+	class GameLayer;
+	class Level;
+}
 
 namespace Saturn {
+
+	class ModuleManager;
+	class Module;
+
 	class SATURN_API Application
 	{
 	public:
@@ -42,10 +41,13 @@ namespace Saturn {
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
 
+		void RenderImGui();
 
 		Window& GetWindow() { return *m_Window; }
 
 		Scene& GetCurrentScene() { return *m_Scene; }
+		ModuleManager& GetModuleManager() { return *m_ModuleManager; }
+		//Ref<Saturn::ModuleManager> GetModuleManagerRef() { return m_ModuleManager; }
 
 		static Application& Get() { return *s_Instance; }
 		static bool IsRunning() { return Get().m_Running; }
@@ -53,7 +55,6 @@ namespace Saturn {
 
 		void SetCrashState(bool state);
 		bool SetRunningState(bool state);
-		bool HasCurrentScene();
 
 		std::pair< std::string, std::string> OpenFile(const char* filter) const;
 
@@ -68,25 +69,22 @@ namespace Saturn {
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
+
+		void Init();
+
 	private:
 
 		std::unique_ptr<Window> m_Window;
 
 		ImGuiLayer* m_ImGuiLayer;
-		
-		ImGuiFPS* m_FPSLayer;
-
-		ImGuiRenderStats* m_RenderStats;
-
-		ImguiTopBar* m_ImguiTopBar;
 
 		EditorLayer* m_EditorLayer;
 
 		Level* m_Level;
 
-		RefSR<Scene> m_Scene;
+		Ref<Scene> m_Scene;
 
-		SceneHierarchyPanel m_SceneHierarchyPanel;
+		Ref<ModuleManager> m_ModuleManager;
 
 		bool m_Running = true;
 
@@ -97,6 +95,9 @@ namespace Saturn {
 		float LastFrameTime = 0.0f;
 
 		bool m_Minimized = false;
+
+		Timestep m_TimeStep;
+
 	private:
 		static Application* s_Instance;
 	};

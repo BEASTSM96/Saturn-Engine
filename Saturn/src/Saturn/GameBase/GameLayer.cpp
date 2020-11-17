@@ -38,10 +38,6 @@ namespace Saturn {
 
 	GameLayer::~GameLayer()
 	{
-		for (GameObject gb : gameObjects)
-		{
-			gb.Cleanup(false);
-		}
 	}
 
 	void GameLayer::OnAttach()
@@ -52,10 +48,8 @@ namespace Saturn {
 	{
 		m_CameraController.OnUpdate(ts);
 
-		RenderCommand::SetClearColor({ 0.45f, 0.4f, 0.4f, 1.f });
-		RenderCommand::Clear();
-
-		Renderer::Begin3DScene(m_CameraController.Get3DCamera());
+		//RendererAPI::SetClearColor(0.45f, 0.4f, 0.4f, 1.f);
+		//RendererAPI::Clear(0.45f, 0.4f, 0.4f, 1.f);
 
 		float velocity = 50 * 0.1f;
 		if (Input::IsKeyPressed(SAT_KEY_W))
@@ -77,11 +71,14 @@ namespace Saturn {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
+
 		if (Input::IsKeyPressed(SAT_KEY_LEFT_ALT) && Input::IsKeyPressed(SAT_KEY_M)) {
 
 			GLFWwindow* win = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 
 			glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+
 		}
 		else if (Input::IsKeyPressed(SAT_KEY_LEFT_ALT) && Input::IsKeyPressed(SAT_KEY_N))
 		{
@@ -95,8 +92,6 @@ namespace Saturn {
 			gb.Render();
 			gb.OnUpdate(ts);
 		}
-
-		Renderer::EndScene();
 	}
 
 	void GameLayer::OnEvent(Event& event)

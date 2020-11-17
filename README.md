@@ -9,10 +9,6 @@ Start by cloning the repository with `git clone https://github.com/BEASTSM96/Sat
 
 If the repository was cloned non-recursively previously, use `git submodule update --init` to clone the necessary submodules.
 
-## How to Install:
-
-It's Just [here](https://github.com/BEASTSM96/Saturn-Engine/blob/master/INSTALL.md)
-
 ## 
 
 ### Main features to come:

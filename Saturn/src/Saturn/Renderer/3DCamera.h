@@ -34,7 +34,7 @@ namespace Saturn {
     };
 
 
-    //3D Camera //TODO Add Object class SATURN_API
+    //3D Camera //TODO Add Object class
     class SATURN_API SCamera : public EmptyCamera
     {
     public:

@@ -7,22 +7,21 @@
 #include "Log.h"
 #include "Layer.h"
 #include "Saturn/Input.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include "ImGui/ImGuiLayer.h"
-#include "Saturn/Renderer\Buffer.h"
 #include "Renderer/Renderer.h"
 #include "Saturn/ImGui/ImGuiLayer.h"
 #include "Scene/Components.h"
 #include "Scene/Entity.h"
 #include "Core/World/Level.h"
 #include "Saturn/Renderer/Framebuffer.h"
-#include "GameBase/Skybox.h"
-#include "GameBase/GameObject.h"
-#include "Scene/Scene.h"
+#include "Core/Modules/ModuleManager.h"
+#include "Core/Modules/Module.h"
 
 #include <imgui.h>
+
 #include <json/json.h>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
 #include <Windows.h>
 #include <commdlg.h>
@@ -41,42 +40,24 @@ namespace Saturn {
 
 		SAT_CORE_ASSERT(!s_Instance, "Application already exists!");
 
-		{
-			s_Instance = this;
-			m_Window = std::unique_ptr<Window>(Window::Create());
-			m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
-			m_Window->SetVSync(false);
+		s_Instance = this;
+		m_Window = std::unique_ptr<Window>(Window::Create());
+		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+		m_Window->SetVSync(false);
 
-			Renderer::Init();
-		}
+		m_ImGuiLayer = new ImGuiLayer();
+		m_EditorLayer = new EditorLayer();
 
-		{
-			m_ImGuiLayer = new ImGuiLayer();
+		PushOverlay(m_ImGuiLayer);
+		PushOverlay(m_EditorLayer);
 
-			m_FPSLayer = new ImGuiFPS();
-			m_RenderStats = new ImGuiRenderStats();
-			m_ImguiTopBar = new ImguiTopBar();
-
-//#ifdef SAT_DEBUG
-			m_EditorLayer = new EditorLayer();
-
-//#endif
-		}
-
-		{
-			PushOverlay(m_ImGuiLayer);
-			PushOverlay(m_RenderStats);
-			PushOverlay(m_EditorLayer);
-			//PushOverlay(m_ImguiTopBar);
-
-			#define SPARKY_GAME_BASE
-		}
+		Renderer::Init();
+		Renderer::WaitAndRender();
 	}
 
 	Application::~Application()
 	{
 		SAT_PROFILE_FUNCTION();
-		m_Level->~Level();
 	}
 
 	void Application::PushLayer(Layer* layer)
@@ -95,6 +76,23 @@ namespace Saturn {
 		layer->OnAttach();
 	}
 
+	void Application::RenderImGui()
+	{
+		m_ImGuiLayer->Begin();
+
+		ImGui::Begin("Renderer");
+		auto& caps = RendererAPI::GetCapabilities();
+		ImGui::Text("Vendor: %s", caps.Vendor.c_str());
+		ImGui::Text("Renderer: %s", caps.Renderer.c_str());
+		ImGui::Text("Version: %s", caps.Version.c_str());
+		ImGui::Text("Frame Time: %.2fms\n", m_TimeStep.GetMilliseconds());
+		ImGui::End();
+
+		for (Layer* layer : m_LayerStack)
+			layer->OnImGuiRender();
+
+		m_ImGuiLayer->End();
+	}
 
 	void Application::OnEvent(Event& e)
 	{
@@ -114,78 +112,44 @@ namespace Saturn {
 		}
 	}
 
+	void Application::Init()
+	{
+		Serialiser::Init();
+		Math::Init();
+
+		m_ModuleManager =  Ref<ModuleManager>::Create();
+
+	}
+
 	void Application::Run()
 	{		
 		SAT_PROFILE_FUNCTION();
 
-		Serialiser::Init();
+		Init();
 
-		Math::Init();
-
-		m_Level = new Level();
-
-		m_Scene = CreateRef<Scene>();
-
-		m_SceneHierarchyPanel.SetContext(m_Scene);
-
-		auto& e = m_Scene->CreateEntity("");
-		
-		std::vector<std::string> paths;
-		paths.push_back("assets/shaders/3d_test.satshaderv");
-		paths.push_back("assets/shaders/3d_test.satshaderf");
-
-		gameObject = m_Scene->CreateEntityGameObjectprt<GameObject>("GameObject", paths);
-
-		//auto* gun = m_Scene->CreateEntityGameObjectprt<GameObject>("Gun", paths, "assets/meshes/m1911/m1911.fbx");
-
-		//auto editor_Skybox = m_Scene->CreateEntityGameObjectprt<Skybox>("Skybox", paths, "assets/meshes/Skybox.fbx");
-		
 		while (m_Running && !m_Crashed)
 		{
 			SAT_PROFILE_SCOPE("RunLoop");
 
-			float time = (float)glfwGetTime(); //Platform::GetTime();
-
-			Timestep timestep = time - LastFrameTime;
-
-			LastFrameTime = time;
-
 			if (!m_Minimized)
 			{
 				for (Layer* layer : m_LayerStack)
-				{
-					SAT_CORE_ASSERT(/*!*/layer, "layer in 'm_LayerStack' array null, 0 or not vaild.");
-					layer->OnUpdate(timestep);
-				}
+					layer->OnUpdate(m_TimeStep);
+				
+
+				Application* app = this;
+				Renderer::Submit([app]() { app->RenderImGui(); });
+
+				Renderer::WaitAndRender();
 			}
-
-			m_ImGuiLayer->Begin();
-			#if defined(SAT_DEBUG)
-						for (Layer* layer : m_LayerStack) {
-							layer->OnImGuiRender();
-							//
-						}
-						m_SceneHierarchyPanel.OnImGuiRender();
-
-			#else
-				for (Layer* layer : m_LayerStack)
-					layer->OnImGuiRender();
-
-				m_SceneHierarchyPanel.OnImGuiRender();
-			#endif 			
-			m_ImGuiLayer->End();
-
 			m_Window->OnUpdate();
-		}
-		while (m_Crashed && !m_Running)
-		{
+
 			float time = (float)glfwGetTime(); //Platform::GetTime();
 
-			Timestep timestep = time - LastFrameTime;
+			m_TimeStep = time - LastFrameTime;
 
 			LastFrameTime = time;
 
-			m_Window->OnUpdate();
 		}
 	}
 
@@ -211,12 +175,19 @@ namespace Saturn {
 	bool Application::OnWindowResize(WindowResizeEvent& e)
 	{
 		int width = e.GetWidth(), height = e.GetHeight();
-		
+		if (width == 0 || height == 0)
+		{
+			m_Minimized = true;
+			return false;
+		}
 		m_Minimized = false;
-		Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
+		Renderer::Submit([=]() { glViewport(0, 0, width, height); });
+		auto& fbs = FramebufferPool::GetGlobal()->GetAll();
+		for (auto& fb : fbs)
+			fb->Resize(width, height);
+
 		return false;
 	}
-
 
 	std::pair<std::string, std::string> Application::OpenFile(const char* filter) const
 	{
@@ -283,6 +254,5 @@ namespace Saturn {
 
 	}
 
-	bool Application::HasCurrentScene() { if (m_Scene) return true; if (!m_Scene) return false; }
 
 }

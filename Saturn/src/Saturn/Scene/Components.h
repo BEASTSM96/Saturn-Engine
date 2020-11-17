@@ -2,9 +2,10 @@
 
 #include <glm/glm.hpp>
 #include "Saturn/Core/UUID.h"
-#include "physx/PxPhysicsAPI.h"
 
 namespace Saturn {
+
+	struct Component {};
 
 	/** @brief A TransformComponent.
 	*
@@ -24,19 +25,27 @@ namespace Saturn {
 	* @endcode
 	*/
 
-	struct TransformComponent
+	struct TransformComponent : Component
 	{
-		glm::mat4  Transform{ 1.0f };
+		glm::vec3  Position =		{ 0.0f , 0.0f, 0.0f };
+		glm::vec3  Rotation =		{ 0.0f , 0.0f, 0.0f };
+		glm::vec3  Scale	=		{ 1.0f , 1.0f, 1.0f };
 
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
-		TransformComponent(const glm::mat4 & Transform) 
-			: Transform(Transform) {}
+		TransformComponent(const glm::vec3& Position)
+			: Position(Position) {}
 
+		glm::mat4 GetTransform() const
+		{
+			glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), Rotation.x, { 1, 0, 0 })
+				* glm::rotate(glm::mat4(1.0f), Rotation.y, { 0, 1, 0 })
+				* glm::rotate(glm::mat4(1.0f), Rotation.z, { 0, 0, 1 });
 
-		operator glm::mat4& () { return Transform; }
-
-		operator const glm::mat4& () { return Transform; }
+			return glm::translate(glm::mat4(1.0f), Position)
+				* rotation
+				* glm::scale(glm::mat4(1.0f), Scale);
+		}
 
 	};
 
@@ -53,7 +62,7 @@ namespace Saturn {
 	* 
 	* @endcode
 	*/
-	struct SpriteRendererComponent
+	struct SpriteRendererComponent : Component
 	{
 		glm::vec4 Color { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -76,7 +85,7 @@ namespace Saturn {
 	*
 	* @endcode
 	*/
-	struct TagComponent
+	struct TagComponent : Component
 	{
 		std::string Tag;
 
@@ -98,7 +107,7 @@ namespace Saturn {
 	* 
 	* @endcode
 	*/
-	struct IdComponent
+	struct IdComponent : Component
 	{
 		UUID ID;
 
@@ -124,75 +133,29 @@ namespace Saturn {
 	* @endcode
 	*/
 
-	class Model;
+	class Mesh;
 
-	struct MeshComponent
+	struct MeshComponent : Component
 	{
-	public:
-		Model* GetModel() { return m_Model; }
-	private:
-		Model* m_Model = nullptr;
-	public:
+		Ref<Saturn::Mesh> Mesh;
+
 		MeshComponent() = default;
-		MeshComponent(const MeshComponent&) = default;
-		MeshComponent(Model * model)
-			: m_Model(model) {}
+		MeshComponent(const MeshComponent& other) = default;
+		MeshComponent(Ref<Saturn::Mesh>& model)
+			: Mesh(model) {}
+
+		operator Ref<Saturn::Mesh>() { return Mesh; }
 	};
 
 	/** @brief RelationshipComponent.
 	*
 	*/
 
-	struct RelationshipComponent 
+	struct RelationshipComponent : Component
 	{
 		entt::entity Parent{ entt::null };
 		std::unordered_set < entt::entity > Children;
 
 		glm::mat4 RelativeTransform = glm::mat4{ 0.0f };
 	};
-
-	/** @brief SkyboxComponent.
-	*
-	*/
-
-	struct SkyboxComponent
-	{
-		float texture_inst;
-		MeshComponent m_Mesh;
-		SkyboxComponent() = default;
-		SkyboxComponent(const SkyboxComponent&) = default;
-		SkyboxComponent(MeshComponent mesh) : m_Mesh(mesh) {};
-	};
-
-
-	/** @brief BoxCollider.
-	*
-	*/
-
-	class BoxCollision;
-
-	struct BoxCollider
-	{
-		RefSR<BoxCollision>m_BoxCollision;
-
-		BoxCollider() = default;
-		BoxCollider(const BoxCollider&) = default;
-		BoxCollider(RefSR<BoxCollision> BoxCollision) : m_BoxCollision(BoxCollision) {};
-	};
-
-
-	/** @brief RigidBodyComponent.
-	*
-	
-	struct RigidBodyComponent
-	{
-		physx::PxRigidDynamic * m_RigidBody;
-
-		physx::PxRigidDynamic * m_RigidBody = new physx::PxRigidDynamic();
-
-		RigidBodyComponent() = default;
-		RigidBodyComponent(const RigidBodyComponent&) = default;
-		RigidBodyComponent(physx::PxRigidDynamic * RigidBody) : m_RigidBody(RigidBody) {};
-	};
-	*/
 }

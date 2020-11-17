@@ -44,8 +44,6 @@ namespace Saturn {
 		void OnUpdate(Timestep ts) override;
 		void OnEvent(Event& event) override;
 
-		void Sumbit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, FTransform Intransform);
-
 		void AddGameObjects(GameObject gameObject);
 
 		bool OnKeyPressed(KeyPressedEvent& event);
@@ -70,16 +68,6 @@ namespace Saturn {
 		size_t GetGameObjectsSize() { return gameObjects.size(); }
 
 		uint64_t GetGameObjectsSizeUint64() { return gameObjects.size(); }
-
-
-	public:
-		glm::vec3 m_CameraPosition;
-		float m_CameraMoveSpeed = 5.0f;
-
-
-		float m_CameraRotation = 0.0f;
-		float m_CameraRotationSpeed = 180.0f;
-
 
 	protected:
 		std::string m_DebugName = "GameLayer";

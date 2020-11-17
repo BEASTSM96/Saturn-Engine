@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Saturn/Core.h"
-
+#include "KeyCodes.h"
+#include "MouseButtons.h"
 
 namespace Saturn {
 

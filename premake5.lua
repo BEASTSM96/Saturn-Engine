@@ -1,6 +1,6 @@
 workspace "Saturn"
 	architecture "x64"
-	startproject "Sandbox"
+	startproject "Titan"
 	targetdir "build"
 
 	configurations
@@ -24,21 +24,31 @@ IncludeDir["Glad"] = "Saturn/vendor/Glad/include"
 IncludeDir["ImGui"] = "Saturn/vendor/imgui"
 IncludeDir["glm"] = "Saturn/vendor/glm"
 IncludeDir["stb_image"] = "Saturn/vendor/stb/"
-IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
 IncludeDir["Assimp"] = "Saturn/vendor/assimp/include"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
 IncludeDir["PhysX"] = "Saturn/vendor/PhysX/include"
 
+IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
+IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
+IncludeDir["Saturn-Serialisation"] = "Saturn/vendor/Saturn-Serialisation/"
+
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/Glad"
 	include "Saturn/vendor/imgui"
-	include "Saturn/vendor/jsoncpp"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
+<<<<<<< HEAD
 	include "Saturn/vendor/PhysX"
 	
+=======
+		group "sat/Dependencies/Serialisation"
+			include "Saturn/vendor/jsoncpp"
+			include "Saturn/vendor/yaml-cpp"
+--			include "Saturn/vendor/Saturn-Serialisation"
+
+>>>>>>> 644c83827fd721a0e3c31e9f46d48e0dc38bf366
 group "sat/Core"
 project "Saturn"
 	location "Saturn"
@@ -77,7 +87,6 @@ project "Saturn"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
-			"%{prj.name}/vendor/imgui/ImGuizmo/",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.json_cpp}",
@@ -85,9 +94,13 @@ project "Saturn"
 		"%{IncludeDir.assimp}",
 			"%{prj.name}/vendor/assimp/include/",
 		"%{IncludeDir.SPIRV_Cross}",
+<<<<<<< HEAD
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx"
+=======
+		"%{IncludeDir.yaml_cpp}"
+>>>>>>> 644c83827fd721a0e3c31e9f46d48e0dc38bf366
 	}
 
 	links 
@@ -118,9 +131,22 @@ project "Saturn"
 		links
 		{
 			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
+<<<<<<< HEAD
 			"Saturn/vendor/physx/bin/Debug/PhysX_64.lib"
 		}
 
+=======
+			"Saturn/vendor/yaml-cpp/bin/Debug/yaml-cpp.lib",
+		}
+
+		postbuildcommands 
+		{
+			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Titan/"',
+		}
+
+
+>>>>>>> 644c83827fd721a0e3c31e9f46d48e0dc38bf366
 	filter "configurations:Release"
 		defines "SAT_RELEASE"
 		runtime "Release"
@@ -134,6 +160,7 @@ project "Saturn"
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Titan/"',
 		}
 
 	filter "configurations:Dist"
@@ -149,6 +176,7 @@ project "Saturn"
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Titan/"',
 		}
 
 ---------------------------------------------------------------------------------------------------------------------------
@@ -190,11 +218,6 @@ project "Sandbox"
 	links
 	{
 		"Saturn"
-	}
-
-	postbuildcommands 
-	{
-		'{COPY} "../Sandbox/assets" "%{cfg.targetdir}/assets"'
 	}
 
 	filter "system:windows"
@@ -265,6 +288,30 @@ project "Titan"
 		"Saturn"
 	}
 
+<<<<<<< HEAD
+=======
+	postbuildcommands 
+	{
+		'{COPY} "../%{prj.name}/assets/" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/assets/"'
+	}
+
+	filter "configurations:Dist"
+		postbuildcommands 
+		{
+			'{COPY} "Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/"'
+		}
+	filter "configurations:Release"
+		postbuildcommands 
+		{
+			'{COPY} "Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/"'
+		}
+	filter "configurations:Debug"
+		postbuildcommands 
+		{
+			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/"'
+		}
+
+>>>>>>> 644c83827fd721a0e3c31e9f46d48e0dc38bf366
 	filter "system:windows"
 		systemversion "latest"
 
