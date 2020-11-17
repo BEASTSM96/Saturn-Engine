@@ -16,6 +16,8 @@
 #include "Scene/Entity.h"
 #include "Core/World/Level.h"
 #include "Saturn/Renderer/Framebuffer.h"
+#include "Core/Modules/ModuleManager.h"
+#include "Core/Modules/Module.h"
 
 #include <imgui.h>
 
@@ -110,28 +112,20 @@ namespace Saturn {
 		}
 	}
 
+	void Application::Init()
+	{
+		Serialiser::Init();
+		Math::Init();
+
+		m_ModuleManager =  Ref<ModuleManager>::Create();
+
+	}
+
 	void Application::Run()
 	{		
 		SAT_PROFILE_FUNCTION();
 
-		Serialiser::Init();
-
-		Math::Init();
-
-		m_Scene = Ref<Scene>::Create();
-
-		auto& e = m_Scene->CreateEntity("");
-		
-		std::vector<std::string> paths;
-		paths.push_back("assets/shaders/3d_test.satshaderv");
-		paths.push_back("assets/shaders/3d_test.satshaderf");
-
-		gameObject = m_Scene->CreateEntityGameObjectprt("Cube", paths);
-
-		//auto* gun = m_Scene->CreateEntityGameObjectprt("Gun", paths);
-
-		//gameObject->AddComponent<MeshComponent>().Mesh = Ref<Mesh>::Create("assets/models/m1911/m1911.fbx");
-
+		Init();
 
 		while (m_Running && !m_Crashed)
 		{
@@ -194,7 +188,6 @@ namespace Saturn {
 
 		return false;
 	}
-
 
 	std::pair<std::string, std::string> Application::OpenFile(const char* filter) const
 	{

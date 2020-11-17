@@ -1,32 +1,31 @@
 #pragma once
 
-
-/*
-* Sparky App
-*/
-
-
-
 #include "Core.h"
 
 #include "Window.h"
 #include "Saturn/LayerStack.h"
 #include "Saturn/Events/Event.h"
 #include "Saturn/Events/ApplicationEvent.h"
-
 #include "Saturn/ImGui/ImGuiLayer.h"
 #include "Saturn/Core/Timestep.h"
-
 #include "GameBase/GameLayer.h"
 #include "Core/World/Level.h"
 
 #include <string>
 #include <vector>
 
-class GameLayer;
-class Level;
+namespace Saturn {
+	class ModuleManager;
+	class Module;
+	class GameLayer;
+	class Level;
+}
 
 namespace Saturn {
+
+	class ModuleManager;
+	class Module;
+
 	class SATURN_API Application
 	{
 	public:
@@ -47,6 +46,8 @@ namespace Saturn {
 		Window& GetWindow() { return *m_Window; }
 
 		Scene& GetCurrentScene() { return *m_Scene; }
+		ModuleManager& GetModuleManager() { return *m_ModuleManager; }
+		//Ref<Saturn::ModuleManager> GetModuleManagerRef() { return m_ModuleManager; }
 
 		static Application& Get() { return *s_Instance; }
 		static bool IsRunning() { return Get().m_Running; }
@@ -68,6 +69,9 @@ namespace Saturn {
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
+
+		void Init();
+
 	private:
 
 		std::unique_ptr<Window> m_Window;
@@ -79,6 +83,8 @@ namespace Saturn {
 		Level* m_Level;
 
 		Ref<Scene> m_Scene;
+
+		Ref<ModuleManager> m_ModuleManager;
 
 		bool m_Running = true;
 

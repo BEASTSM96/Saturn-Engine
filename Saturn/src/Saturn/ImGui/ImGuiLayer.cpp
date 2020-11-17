@@ -16,6 +16,8 @@
 #include "Saturn/Renderer/Renderer2D.h"
 #include "Saturn/Core.h"
 #include "Saturn/MouseButtons.h"
+#include "Saturn/Core/Modules/Module.h"
+#include "Saturn/Core/Modules/ModuleManager.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -570,7 +572,6 @@ namespace Saturn {
 			Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
 			auto viewProj = m_EditorCamera.GetViewProjection();
 			Renderer2D::BeginScene(viewProj, false);
-			// TODO: Renderer::DrawAABB(m_MeshEntity.GetComponent<MeshComponent>(), m_MeshEntity.GetComponent<TransformComponent>());
 			Renderer2D::EndScene();
 			Renderer::EndRenderPass();
 		}
@@ -712,7 +713,7 @@ namespace Saturn {
 						}
 					}
 				}
-				//std::sort(m_SelectionContext.begin(), m_SelectionContext.end(), [](auto& a, auto& b) { return a.Distance < b.Distance; });
+				std::sort(m_SelectionContext.begin(), m_SelectionContext.end(), [](auto& a, auto& b) { return a.Distance < b.Distance; });
 				if (m_SelectionContext.size())
 					OnSelected(m_SelectionContext[0]);
 			}
@@ -794,6 +795,21 @@ namespace Saturn {
 				
 					ImGui::SliderFloat("Skybox LOD", &m_EditorScene->GetSkyboxLod(), 0.0f, 11.0f);
 				
+					ImGui::SliderFloat("Skybox LOD", &m_EditorScene->GetSkyboxLod(), 0.0f, 11.0f);
+
+					ImGui::Columns(2);
+					ImGui::AlignTextToFramePadding();
+
+					auto& light = m_EditorScene->GetLight();
+					Property("Light Direction", light.Direction, PropertyFlag::SliderProperty);
+					Property("Light Radiance", light.Radiance, PropertyFlag::ColorProperty);
+					Property("Light Multiplier", light.Multiplier, 0.0f, 5.0f, PropertyFlag::SliderProperty);
+
+					Property("Exposure", m_EditorCamera.GetExposure(), 0.0f, 5.0f, PropertyFlag::SliderProperty);
+
+					//Property("Radiance Prefiltering", m_RadiancePrefilter);
+					//Property("Env Map Rotation", m_EnvMapRotation, -360.0f, 360.0f, PropertyFlag::SliderProperty);
+
 				//	//ImGui::Columns(2);
 				//	//ImGui::AlignTextToFramePadding();
 				//
@@ -872,6 +888,53 @@ namespace Saturn {
 			m_SceneHierarchyPanel->OnImGuiRender();
 			ImGui::End();
 		}
+
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("Modules##modules_lister"))
+			{
+
+				if (ImGui::Button("Create##New Module"))
+				{
+					//temp create module and move into modules list
+					SAT_CORE_WARN("[!]New Module creating");
+					std::string path =  Application::Get().SaveFile(".smoudle").first;
+					Ref<Module>tmp_module = Ref<Module>::Create(path, "tmp_module");
+					SAT_CORE_WARN("[!]Module created in {0}", path);
+
+					Application::Get().GetModuleManager().InitNewModule(tmp_module, "tmp_module", "assets\\modules\\");
+					Application::Get().GetModuleManager().CopyModuleFrom(tmp_module);
+
+					Application::Get().GetModuleManager().GetModules();
+				}
+				if (ImGui::Button("Create Game Module"))
+				{
+					//temp create module and move into modules list
+					SAT_CORE_WARN("[!]New Module creating");
+					std::string path = Application::Get().SaveFile(".smoudle").first;
+					Ref<Module>game_module = Ref<Module>::Create(path, "GameModule");
+					SAT_CORE_WARN("[!]Module created in {0} Module {1}", path, game_module.Raw()->GetName().c_str());
+
+					Application::Get().GetModuleManager().AddGameModule(game_module);
+				}
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenuBar();
+		}
+
+
+#ifdef SAT_DEBUG
+		if (ImGui::Begin("Scene##debug"))
+		{
+			for (int i = 0; i < Application::Get().GetModuleManager().GetModules().size(); i++)
+			{
+				ImGui::Text("Modules %i", i);
+			}
+		}
+		ImGui::End();
+#endif // SAT_DEBUG
+
 		ImGui::End();
 
 		ImGuizmo::BeginFrame();
@@ -1146,6 +1209,13 @@ namespace Saturn {
 
 				ImGui::Columns(1);
 
+				if (updateTransform)
+				{
+					tc.GetTransform() = glm::translate(glm::mat4(1.0f), translation) *
+						glm::toMat4(glm::quat(glm::radians(rotation))) *
+						glm::scale(glm::mat4(1.0f), scale);
+				}
+
 
 				ImGui::TreePop();
 			}
@@ -1179,8 +1249,26 @@ namespace Saturn {
 				std::string file = Application::Get().OpenFile("").first;
 				if (!file.empty())
 					mc.Mesh = Ref<Mesh>::Create(file);
+
 			}
 		});
+
+		if (entity.HasComponent<TagComponent>())
+		{
+			if (entity.HasComponent<MeshComponent>())
+			{
+				auto mc = entity.GetComponent<MeshComponent>();
+
+				if (mc.Mesh)
+				{
+					auto mesh = entity.GetComponent<MeshComponent>().Mesh;
+					auto tag = entity.GetComponent<TagComponent>().Tag;
+
+					tag = mesh.Raw()->GetSubmeshes()[0].MeshName;
+				}
+			}
+		}
+
 
 	}
 
