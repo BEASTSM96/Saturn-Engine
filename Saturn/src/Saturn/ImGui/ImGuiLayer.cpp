@@ -4,6 +4,7 @@
 #include "Platform/OpenGL/OpenGLFramebuffer.h"
 #include "Saturn/Scene/Components.h"
 #include <imgui.h>
+#include <imgui_internal.h>
 #include "ImGuizmo.h"
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
@@ -44,7 +45,6 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		archive();
 	}
 
 	void ImGuiLayer::OnAttach()
@@ -140,8 +140,6 @@ namespace Saturn {
 	EditorLayer::EditorLayer() : Layer("EditorLayer"), m_EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f))
 	{
 		SAT_PROFILE_FUNCTION();
-
-		archive();
 	}
 
 	EditorLayer::~EditorLayer()
@@ -666,8 +664,32 @@ namespace Saturn {
 			break;
 		}
 
+		if (Input::IsKeyPressed(SAT_KEY_LEFT_SHIFT))
+		{
+			switch (e.GetKeyCode())
+			{
+			case SAT_KEY_S:
+				SaveSceneAs();
+				break;
+			}
+		}
 		return false;
 
+	}
+
+	void EditorLayer::SaveSceneAs()
+	{
+		auto& app = Application::Get();
+		std::string filepath = app.SaveFile("Scene (*.sc)\0*.sc\0").first;
+		if (!filepath.empty())
+		{
+			Serialiser serializer(m_EditorScene);
+			serializer.Serialise(filepath);
+
+			std::filesystem::path path = filepath;
+			//UpdateWindowTitle(path.filename().string());
+			//m_SceneFilePath = filepath;
+		}
 	}
 
 	bool EditorLayer::OnMouseButtonPressed(MouseButtonEvent& e)
@@ -791,10 +813,7 @@ namespace Saturn {
 						std::string filename = Application::Get().OpenFile("*.hdr").first;
 						if (filename != "")
 							m_EditorScene->SetEnvironment(Environment::Load(filename));
-					}
-				
-					ImGui::SliderFloat("Skybox LOD", &m_EditorScene->GetSkyboxLod(), 0.0f, 11.0f);
-				
+					}				
 					ImGui::SliderFloat("Skybox LOD", &m_EditorScene->GetSkyboxLod(), 0.0f, 11.0f);
 
 					ImGui::Columns(2);
@@ -806,14 +825,6 @@ namespace Saturn {
 					Property("Light Multiplier", light.Multiplier, 0.0f, 5.0f, PropertyFlag::SliderProperty);
 
 					Property("Exposure", m_EditorCamera.GetExposure(), 0.0f, 5.0f, PropertyFlag::SliderProperty);
-
-					//Property("Radiance Prefiltering", m_RadiancePrefilter);
-					//Property("Env Map Rotation", m_EnvMapRotation, -360.0f, 360.0f, PropertyFlag::SliderProperty);
-
-				//	//ImGui::Columns(2);
-				//	//ImGui::AlignTextToFramePadding();
-				//
-				//	//auto& light = m_EditorScene->GetLight();
 				}
 				ImGui::End();
 			}
@@ -885,6 +896,13 @@ namespace Saturn {
 
 			}
 			ImGui::PopStyleVar();
+
+			if (ImGui::Begin("Content")) {
+			
+				ImGui::End();
+			}
+
+
 			m_SceneHierarchyPanel->OnImGuiRender();
 			ImGui::End();
 		}
@@ -1052,6 +1070,83 @@ namespace Saturn {
 		}
 	}
 
+
+	static bool DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
+	{
+		bool modified = false;
+
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
+
+		ImGui::PushID(label.c_str());
+
+		ImGui::Columns(2);
+		ImGui::SetColumnWidth(0, columnWidth);
+		ImGui::Text(label.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if ((ImGui::Button("X", buttonSize))) {
+			values.x = resetValue;
+			modified = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		modified |= ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if ((ImGui::Button("Y", buttonSize))) {
+			values.y = resetValue;
+			modified = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		modified |= ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if ((ImGui::Button("Z", buttonSize))) {
+			values.z = resetValue;
+			modified = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		modified |= ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+
+		ImGui::Columns(1);
+
+		ImGui::PopID();
+
+		return modified;
+	}
+
 	template<typename T, typename UIFunction>
 	static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
 	{
@@ -1157,80 +1252,27 @@ namespace Saturn {
 			SAT_CORE_ASSERT(entity.HasComponent<TagComponent>(), "Entity dose not have a TagComponent!");
 
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
-		if (entity.HasComponent<TransformComponent>())
+
+		DrawComponent<TransformComponent>("Transform", entity, [](TransformComponent& tc)
 		{
-			auto& tc = entity.GetComponent<TransformComponent>();
-			auto& t = entity.GetComponent<TransformComponent>().GetTransform();
-			if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(TransformComponent).hash_code()), ImGuiTreeNodeFlags_DefaultOpen, "Transform"))
+			auto [translation, rotationQuat, scale] = GetTransformDecomposition(tc);
+			bool updateTransform = false;
+			updateTransform |= DrawVec3Control("Translation", translation);
+			glm::vec3 rotation = glm::degrees(glm::eulerAngles(rotationQuat));
+			updateTransform |= DrawVec3Control("Rotation", rotation);
+			updateTransform |= DrawVec3Control("Scale", scale);
+
+			if (updateTransform)
 			{
-				auto [translation, rotationQuat, scale] = GetTransformDecomposition(t);
-				glm::vec3 rotation = glm::degrees(glm::eulerAngles(rotationQuat));
+				glm::mat4 frotation = glm::rotate(glm::mat4(1.0f), tc.Rotation.x, { 1, 0, 0 }) * glm::rotate(glm::mat4(1.0f), tc.Rotation.y, { 0, 1, 0 }) * glm::rotate(glm::mat4(1.0f), tc.Rotation.z, { 0, 0, 1 });
 
-				ImGui::Columns(2);
-				ImGui::Text("Translation");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-
-				bool updateTransform = false;
-
-				if (ImGui::DragFloat3("##translation", glm::value_ptr(translation), 0.25f))
-				{
-					//tc.Transform[3] = glm::vec4(translation, 1.0f);
-					updateTransform = true;
-				}
-
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-
-				ImGui::Text("Rotation");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-
-				if (ImGui::DragFloat3("##rotation", glm::value_ptr(rotation), 0.25f))
-				{
-					updateTransform = true;
-					// tc.Transform[3] = glm::vec4(translation, 1.0f);
-				}
-
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-
-				ImGui::Text("Scale");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-
-				if (ImGui::DragFloat3("##scale", glm::value_ptr(scale), 0.25f))
-				{
-					updateTransform = true;
-				}
-
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-
-				ImGui::Columns(1);
-
-				if (updateTransform)
-				{
-					tc.GetTransform() = glm::translate(glm::mat4(1.0f), translation) *
-						glm::toMat4(glm::quat(glm::radians(rotation))) *
-						glm::scale(glm::mat4(1.0f), scale);
-				}
-
-
-				ImGui::TreePop();
+				glm::translate(glm::mat4(1.0f), tc.Position) * frotation* glm::scale(glm::mat4(1.0f), tc.Scale);
 			}
-			ImGui::Separator();
-		}
+
+		});
 
 		DrawComponent<MeshComponent>("Mesh", entity, [](MeshComponent& mc)
 		{
-			if (ImGui::Button("...##openmesh"))
-			{
-				std::string file = Application::Get().OpenFile("").first;
-				if (!file.empty())
-					mc.Mesh = Ref<Mesh>::Create(file);
-			}
-
 			ImGui::Columns(3);
 			ImGui::SetColumnWidth(0, 100);
 			ImGui::SetColumnWidth(1, 300);

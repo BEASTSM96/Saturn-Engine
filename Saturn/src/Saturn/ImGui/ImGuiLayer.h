@@ -32,10 +32,6 @@ namespace Saturn {
 		void End();
 	private:
 		float m_Time = 0.0f;
-		virtual void archive() override {
-
-			SerialisationData(new Serialisable<int>("m_Time", &m_Time));
-		}
 
 	};
 
@@ -53,11 +49,6 @@ namespace Saturn {
 		void End();
 	private:
 		float m_Time = 0.0f;
-
-		virtual void archive() override {
-
-			SerialisationData(new Serialisable<int>("m_Time", &m_Time));
-		}
 	};
 
 	class EditorLayer : public Layer
@@ -100,6 +91,7 @@ namespace Saturn {
 
 
 	private:
+		void SaveSceneAs();
 
 		Scope<SceneHierarchyPanel> m_SceneHierarchyPanel;
 
