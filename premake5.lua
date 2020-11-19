@@ -258,7 +258,8 @@ project "Titan"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.Assimp}",
-		"%{IncludeDir.ImGui}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.yaml_cpp}"
 	}
 
 	links

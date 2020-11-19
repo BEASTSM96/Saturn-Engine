@@ -24,11 +24,6 @@ namespace Saturn {
 		const std::string& GetName() const { return m_DebugName; }
 
 		std::string m_DebugName;
-	protected:
-		virtual void archive() override {
-
-			SerialisationData(new Serialisable<std::string>("Layer Debug Name : ", &m_DebugName));
-		}
 
 	};
 }

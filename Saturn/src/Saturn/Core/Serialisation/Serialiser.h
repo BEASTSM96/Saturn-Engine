@@ -1,10 +1,10 @@
 #pragma once
 
 #include <filesystem>
+#include <yaml-cpp/yaml.h>
 #include <json/json.h>
-
 #include "Saturn/Scene/Entity.h"
-
+#include "Saturn/Scene/Scene.h"
 #include "Types.h"
 
 #pragma warning(disable: 4005)
@@ -19,48 +19,24 @@ namespace Saturn {
 	public:
 		Serialiser(const std::string& objectname, bool shouldSerialise = true);
 		Serialiser(const std::string& objectname, Json::Value& reconstructionValue);
+		Serialiser(const Ref<Scene>& scene);
 
 		static void Init();
 
 		virtual ~Serialiser();
 
-#ifdef _YAML
 		virtual void Serialise(const std::string& filepath);
 		virtual void Deserialise(const std::string& filepath);
-#else
-		virtual void Serialise(const std::string& filepath);
-		virtual void Deserialise(const std::string& filepath);
-#endif
 
-#ifdef _YAML
 		virtual void SerialiseEntity(YAML::Emitter& out, Entity entity);
 		virtual void SerialiseEntity(YAML::Emitter& out, GameObject entity);
-#else
-		void SerialiseEntity(Json::Value& members, Entity entity);
-		void SerialiseEntity(Json::Value& members, GameObject entity);
-#endif // YAML
-
-
 
 		std::string m_ObjectName;
 		bool m_shouldSerialise;
-	protected:
+	private:
+		Ref<Scene> m_Scene;
 
-		virtual void archive() {};
-		void SerialisationData(GenericSerialisable* serialisable) {
-			m_Serialisables.push_back(serialisable);
-		}
+		friend class  Scene;
 
-		template<typename T, class ... Targs>
-		void SerialisationData(const GenericSerialisable& serialisable, T value, Targs... Fargs) {
-		
-			m_Serialisables.push_back(serialisable);
-
-			SerialisationData(value, Fargs...);
-		
-		}
-
-
-		std::vector<GenericSerialisable*> m_Serialisables;
 	};
 }

@@ -47,6 +47,9 @@ namespace Saturn {
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
 
+		operator glm::mat4& () { return GetTransform(); }
+		operator const glm::mat4& () const { return GetTransform(); }
+
 	};
 
 

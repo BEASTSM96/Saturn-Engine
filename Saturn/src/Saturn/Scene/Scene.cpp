@@ -31,9 +31,6 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		m_SceneEntity = m_Registry.create();
-		//m_Registry.emplace<SceneComponent>(m_SceneEntity, m_SceneID);
-
 		auto skyboxShader = Shader::Create("assets/shaders/Skybox.glsl");
 		m_SkyboxMaterial = MaterialInstance::Create(Material::Create(skyboxShader));
 		m_SkyboxMaterial->SetFlag(MaterialFlag::DepthTest, false);

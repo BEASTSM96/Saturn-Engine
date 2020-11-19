@@ -105,8 +105,9 @@ namespace Saturn {
 		Level* m_CurrentLevel;
 
 		friend class  Entity;
-		friend class  SceneRenderer;
 		friend class  GameObject;
+		friend class  SceneRenderer;
+		friend class  Serialiser;
 		friend class  SceneHierarchyPanel;
 
 	};

@@ -1,8 +1,9 @@
 #include "sppch.h"
 #include "Serialiser.h"
 
+#define _YAML
+
 #ifdef _YAML
-	#include <glm/glm.hpp>
 	#include <yaml-cpp/yaml.h>
 #endif
 
@@ -23,6 +24,12 @@
 #include <fcntl.h>
 #include <io.h>
 #include <string.h>
+
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #ifdef _YAML
 
@@ -85,6 +92,13 @@ namespace YAML {
 namespace Saturn {
 
 #ifdef _YAML
+	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
+	{
+		out << YAML::Flow;
+		out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
+		return out;
+	}
+
 	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
 	{
 		out << YAML::Flow;
@@ -92,12 +106,21 @@ namespace Saturn {
 		return out;
 	}
 
+
 	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& v)
 	{
 		out << YAML::Flow;
 		out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
 		return out;
 	}
+
+	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& v)
+	{
+		out << YAML::Flow;
+		out << YAML::BeginSeq << v.w << v.x << v.y << v.z << YAML::EndSeq;
+		return out;
+	}
+
 #endif // YAML
 
 	Serialiser::Serialiser(const std::string& objectname, bool shouldSerialise) : m_shouldSerialise(true), m_ObjectName(objectname)
@@ -110,6 +133,11 @@ namespace Saturn {
 
 	}
 
+	Serialiser::Serialiser(const Ref<Scene>& scene) 
+		: m_Scene(scene)
+	{
+	}
+
 	void Serialiser::Init()
 	{
 		SAT_PROFILE_FUNCTION();
@@ -118,47 +146,70 @@ namespace Saturn {
 
 	Serialiser::~Serialiser() {}
 
-#ifdef _YAML
-	void Serialiser::Serialise(const std::string& filepath)
+	static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition(const glm::mat4& transform)
 	{
-		YAML::Emitter out;
-		out << YAML::BeginMap;
-		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
-		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+		glm::vec3 scale, translation, skew;
+		glm::vec4 perspective;
+		glm::quat orientation;
+		glm::decompose(transform, scale, orientation, translation, skew, perspective);
 
-		Application::Get().GetCurrentScene().GetRegistry().each([&](auto entityID)
-		{
-			Entity entity = { entityID, Application::Get().GetCurrentScene().GetRegistry().get() };
-			if (!entity)
-				return;
-
-			SerialiseEntity(out, entity);
-		});
-		out << YAML::EndSeq;
-		out << YAML::EndMap;
-
-		std::ofstream fout(filepath);
-		fout << out.c_str();
-
+		return { translation, orientation, scale };
 	}
-#else
-	void Serialiser::Serialise(const std::string& filepath)
-	{
-		for (int i = 0; i < Application::Get().m_gameLayer->GetGameObjects().size(); i++)
-		{
-			Json::Value x;
-			for (GameObject gb : Application::Get().m_gameLayer->GetGameObjects())
-			{
-				SerialiseEntity(x, Application::Get().m_gameLayer->GetGameObjects().at(i));
-			}
-		}
-	}
-#endif
-	
+
 #ifdef _YAML
 	void Serialiser::SerialiseEntity(YAML::Emitter& out, Entity entity)
 	{
+		SAT_CORE_ASSERT(
+			entity.HasComponent<TagComponent>()
+			&& entity.HasComponent<TransformComponent>()
+			&& entity.HasComponent<IdComponent>(),
+			"Error! entity dose not have a TagComponent, TransformComponent and a IdComponent!"
+		);
 
+		UUID uuid = entity.GetComponent<IdComponent>().ID;
+		out << YAML::BeginMap; // Entity
+		out << YAML::Key << "Entity" << YAML::Value << uuid; // TODO: Entity ID goes here
+
+		if (entity.HasComponent<TagComponent>())
+		{
+			out << YAML::Key << "TagComponent";
+			out << YAML::BeginMap; // TagComponent
+
+			auto& tag = entity.GetComponent<TagComponent>().Tag;
+			out << YAML::Key << "Tag" << YAML::Value << tag;
+
+			out << YAML::EndMap; // TagComponent
+		}
+		else
+			SAT_CORE_ASSERT(entity.HasComponent<TagComponent>(), "Error! entity dose not have a TagComponent!");
+
+		if (entity.HasComponent<TransformComponent>())
+		{
+			out << YAML::Key << "TransformComponent";
+			out << YAML::BeginMap; // TransformComponent
+
+			auto& tc = entity.GetComponent<TransformComponent>();
+			out << YAML::Key << "Position" << YAML::Value << tc.Position;
+			out << YAML::Key << "Rotation" << YAML::Value << tc.Rotation;
+			out << YAML::Key << "Scale" << YAML::Value << tc.Scale;
+
+			out << YAML::EndMap; // TransformComponent
+		}
+		else
+			SAT_CORE_ASSERT(entity.HasComponent<TransformComponent>(), "Error! entity dose not have a TransformComponent!");
+
+
+		if (entity.HasComponent<MeshComponent>())
+		{
+			out << YAML::Key << "MeshComponent";
+			out << YAML::BeginMap; // MeshComponent
+
+			auto mesh = entity.GetComponent<MeshComponent>().Mesh;
+			out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
+
+			out << YAML::EndMap; // MeshComponent
+		}
+		out << YAML::EndMap; // Entity
 	}
 
 	void Serialiser::SerialiseEntity(YAML::Emitter& out, GameObject entity)
@@ -171,8 +222,9 @@ namespace Saturn {
 			"Error! entity dose not have a TagComponent, TransformComponent and a IdComponent!"
 		);
 
+		UUID uuid = entity.GetComponent<IdComponent>().ID;
 		out << YAML::BeginMap; // Entity
-		out << YAML::Key << "Entity" << YAML::Value << entity.GetComponent<IdComponent>().ID; // TODO: Entity ID goes here
+		out << YAML::Key << "Entity" << YAML::Value << uuid; // TODO: Entity ID goes here
 
 		if (entity.HasComponent<TagComponent>())
 		{
@@ -202,167 +254,71 @@ namespace Saturn {
 		else
 			SAT_CORE_ASSERT(entity.HasComponent<TransformComponent>(), "Error! entity dose not have a TransformComponent!");
 
+
+		if (entity.HasComponent<MeshComponent>())
+		{
+			out << YAML::Key << "MeshComponent";
+			out << YAML::BeginMap; // MeshComponent
+
+			auto mesh = entity.GetComponent<MeshComponent>().Mesh;
+			out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
+
+			out << YAML::EndMap; // MeshComponent
+		}
 		out << YAML::EndMap; // Entity
 	}
-#else
-	void Serialiser::SerialiseEntity(Json::Value& members, Entity entity)
+
+	static void SerialiseEnvironment(YAML::Emitter& out, const Ref<Scene>& scene)
 	{
-		for (int i = 0; i < Application::Get().m_gameLayer->GetGameObjects().size(); i++)
-		{
-			auto entitys = Application::Get().m_gameLayer->GetGameObjects().at(i);
-
-			if (entitys)
-			{
-				/*
-
-				members["Entitys"]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["EntityName"] = entitys.GetComponent<TagComponent>().Tag;
-
-				members["Entitys"]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["ID"] = uint64_t(entitys.GetComponent<IdComponent>().ID);
-
-				float* pos = glm::value_ptr(entitys.GetComponent<TransformComponent>().Position);
-				float* rot = glm::value_ptr(entitys.GetComponent<TransformComponent>().Rotation);
-				float* scale = glm::value_ptr(entitys.GetComponent<TransformComponent>().Scale);
-
-				members["Entitys"]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["Transform"]["Pos"] = float(int(pos));
-
-				members["Entitys"]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["Transform"]["Rot"] = float(int(rot));
-
-				members["Entitys"]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["Transform"]["Scale"] = float(int(scale));
-
-				members["Entitys"]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["Mesh"]["Model Name"] = entitys.GetComponent<MeshComponent>().GetModel()->GetName();
-
-				members["Entitys"]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["Mesh"]["Model Materials"] = entitys.GetComponent<MeshComponent>().GetModel()->GetMaterial().size();
-
-
-				for (int i = 0; i < entitys.GetComponent<MeshComponent>().GetModel()->GetMaterial().size(); i++)
-				{
-					members["Entitys"]
-						[entitys.GetComponent<TagComponent>().Tag]
-					["Mesh"]["Model Material Name (At the Index)"] = entitys.GetComponent<MeshComponent>().GetModel()->GetMaterial().at(i)->GetName();
-
-				}
-
-				if (entitys.HasComponent<RelationshipComponent>())
-				{
-					members["Entitys"]
-						[entitys.GetComponent<TagComponent>().Tag]
-					["Relationship"]["RelativeTransform"] = entitys.GetComponent<RelationshipComponent>().RelativeTransform.length();
-
-					for (int i = 0; i < entitys.GetComponent<RelationshipComponent>().Children.size(); i++)
-					{
-						members["Entitys"]
-							[entitys.GetComponent<TagComponent>().Tag]
-						["Relationship"]["Children"] = i;
-					}
-				}
-				*/
-			}
-		}
-
-		{
-			std::ofstream fout("Scene1.json");
-			fout << members;
-		}
-		
+		out << YAML::Key << "Environment";
+		out << YAML::Value;
+		out << YAML::BeginMap; // Environment
+		out << YAML::Key << "AssetPath" << YAML::Value << scene->GetEnvironment().FilePath;
+		const auto& light = scene->GetLight();
+		out << YAML::Key << "Light" << YAML::Value;
+		out << YAML::BeginMap; // Light
+		out << YAML::Key << "Direction" << YAML::Value << light.Direction;
+		out << YAML::Key << "Radiance" << YAML::Value << light.Radiance;
+		out << YAML::Key << "Multiplier" << YAML::Value << light.Multiplier;
+		out << YAML::EndMap; // Light
+		out << YAML::EndMap; // Environment
 	}
-
-	void Serialiser::SerialiseEntity(Json::Value& members, GameObject entity)
-	{
-		Json::Value x;
-
-		for (int i = 0; i < Application::Get().m_gameLayer->GetGameObjects().size(); i++)
-		{
-			auto entitys = Application::Get().m_gameLayer->GetGameObjects().at(i);
-
-			if (entitys)
-			{
-
-				/*
-
-				//members["Entitys"] = Json::Value(Json::arrayValue);
-				
-				members.append(Json::Value::null);
-				members.clear();
-
-				x["Entitys"] = members;
-
-				x["Entitys"][i][entitys.GetComponent<TagComponent>().Tag]["EntityName"] = entitys.GetComponent<TagComponent>().Tag;
-
-				x["Entitys"][i]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["ID"] = uint64_t(entitys.GetComponent<IdComponent>().ID);
-
-				float* pos = glm::value_ptr(entitys.GetComponent<TransformComponent>().Position);
-				float* rot = glm::value_ptr(entitys.GetComponent<TransformComponent>().Rotation);
-				float* scale = glm::value_ptr(entitys.GetComponent<TransformComponent>().Scale);
-
-				x["Entitys"][i]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["Transform"]["Pos"] = float(int(pos));
-
-				x["Entitys"][i]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["Transform"]["Rot"] = float(int(rot));
-
-				x["Entitys"][i]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["Transform"]["Scale"] = float(int(scale));
-
-				x["Entitys"][i]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["Mesh"]["Model Name"] = entitys.GetComponent<MeshComponent>().GetModel()->GetName();
-
-				x["Entitys"][i]
-					[entitys.GetComponent<TagComponent>().Tag]
-				["Mesh"]["Model Materials"] = entitys.GetComponent<MeshComponent>().GetModel()->GetMaterial().size();
-
-
-				for (int i = 0; i < entitys.GetComponent<MeshComponent>().GetModel()->GetMaterial().size(); i++)
-				{
-					x["Entitys"][i]
-						[entitys.GetComponent<TagComponent>().Tag]
-					["Mesh"]["Model Material Name (At the Index)"] = entitys.GetComponent<MeshComponent>().GetModel()->GetMaterial().at(i)->GetName();
-					
-				}
-
-				if (entitys.HasComponent<RelationshipComponent>())
-				{
-					x["Entitys"][i]
-						[entitys.GetComponent<TagComponent>().Tag]
-					["Relationship"]["RelativeTransform"] = entitys.GetComponent<RelationshipComponent>().RelativeTransform.length();
-
-					for (int i = 0; i < entitys.GetComponent<RelationshipComponent>().Children.size(); i++)
-					{
-						x["Entitys"][i]
-							[entitys.GetComponent<TagComponent>().Tag]
-						["Relationship"]["Children"] = i;
-					}
-				}
-				*/
-			}
-		}
-
-		{
-			std::ofstream fout("Scene1.json");
-			fout << x;
-		}
-	}
-
+	
 #endif
+
+#ifdef _YAML
+	void Serialiser::Serialise(const std::string& filepath)
+	{
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "Scene";
+		out << YAML::Value << "Scene Name";
+		SerialiseEnvironment(out, m_Scene);
+		out << YAML::Key << "Entities";
+		out << YAML::Value << YAML::BeginSeq;
+		m_Scene->m_Registry.each([&](auto entityID)
+		{
+			Entity entity = { entityID, m_Scene.Raw() };
+			if (!entity || !entity.HasComponent<IdComponent>())
+				return;
+
+			SerialiseEntity(out, entity);
+
+		});
+		out << YAML::EndSeq;
+		out << YAML::EndMap;
+
+		std::ofstream fout(filepath);
+		fout << out.c_str();
+
+	}
+#else
+	void Serialiser::Serialise(const std::string& filepath)
+	{
+
+	}
+#endif
+
 
 
 #ifdef _YAML

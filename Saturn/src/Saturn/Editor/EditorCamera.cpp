@@ -69,20 +69,18 @@ namespace Saturn {
 
 	void EditorCamera::OnUpdate(Timestep ts)
 	{
-		if (Input::IsKeyPressed(SAT_KEY_LEFT_ALT))
-		{
-			const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
-			glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
-			m_InitialMousePosition = mouse;
+		
+		const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
+		glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
+		m_InitialMousePosition = mouse;
 
-			if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE))
-				MousePan(delta);
-			else if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
-				MouseRotate(delta);
-			else if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT))
-				MouseZoom(delta.y);
-		}
-
+		if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE))
+			MousePan(delta);
+		else if (Input::IsMouseButtonPressed(SAT_MOUSE_BUTTON_RIGHT))
+			MouseRotate(delta);
+		else if (Input::IsKeyPressed(GLFW_KEY_LEFT_ALT))
+			MouseZoom(delta.y);
+	
 		UpdateCameraView();
 	}
 
