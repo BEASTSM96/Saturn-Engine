@@ -108,3 +108,4 @@ Saturn/vendor/imgui/examples/example_allegro5
 Saturn/vendor/imgui/examples/example_apple_metal
 Saturn/vendor/imgui/examples/example_apple_opengl2
 !Saturn/vender/assimp/bin/
+!vender/bin/premake
