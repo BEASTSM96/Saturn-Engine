@@ -21,9 +21,6 @@ jobs:
     - name: Update Submodules
       run: git submodule update
 
-    - name: Generate Submodulesv2
-      run: git submodule --init
-
     - name: Generate Project Files
       run: scripts/WindowsGenProjects.bat
 
