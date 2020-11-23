@@ -1,27 +1,26 @@
 name: build
 
 on:
-	push:
-    		branches: [ master ]
-  	pull_request:
-    		branches: [ master ]
+ push: 
+  branches: [ master ]
+ pull_request:
+  branches: [ master ]
 
 jobs:
-	build:
-		runs-on: 
-			windows-latest
-		defaults:
-      			run:
-        			shell: 
-					cmd
-		 steps:
-    			- uses: actions/checkout@v2
+ build:
+  runs-on: 
+   windows-latest
+ defaults:
+  run:
+    shell: cmd
+ steps:
+ - uses: actions/checkout@v2
 
-    			- name: Generate Project Files
-      				run: ./scripts/Win-GenProjects.bat
+- name: Generate Project Files
+ run: ./scripts/Win-GenProjects.bat
 
-    			- name: Setup MSBuild
-     			 	uses: microsoft/setup-msbuild@v1.0.2
+   - name: Setup MSBuild
+   uses: microsoft/setup-msbuild@v1.0.2
 
-    			- name: Build Solution
-      				run: msbuild -property:Configuration=Debug,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Saturn.sln
+    - name: Build Solution
+   run: msbuild -property:Configuration=Debug,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Saturn.sln
