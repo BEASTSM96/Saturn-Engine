@@ -1,7 +1,11 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "Saturn/Core/UUID.h"
+#include "Saturn/Physics/Rigidbody.h"
 
 namespace Saturn {
 
@@ -28,7 +32,7 @@ namespace Saturn {
 	struct TransformComponent : Component
 	{
 		glm::vec3  Position =		{ 0.0f , 0.0f, 0.0f };
-		glm::vec3  Rotation =		{ 0.0f , 0.0f, 0.0f };
+		glm::quat  Rotation;
 		glm::vec3  Scale	=		{ 1.0f , 1.0f, 1.0f };
 
 		TransformComponent() = default;
@@ -38,13 +42,16 @@ namespace Saturn {
 
 		glm::mat4 GetTransform() const
 		{
-			glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), Rotation.x, { 1, 0, 0 })
-				* glm::rotate(glm::mat4(1.0f), Rotation.y, { 0, 1, 0 })
-				* glm::rotate(glm::mat4(1.0f), Rotation.z, { 0, 0, 1 });
+			glm::mat4 position = glm::translate(glm::mat4(1.0f), Position);
+			glm::mat4 rotation = glm::toMat4(Rotation);
+			glm::mat4 scale = glm::scale(glm::mat4(1.0f), Scale);
 
-			return glm::translate(glm::mat4(1.0f), Position)
-				* rotation
-				* glm::scale(glm::mat4(1.0f), Scale);
+
+			return position * rotation * scale;
+
+			//return glm::translate(glm::mat4(1.0f), Position)
+			//	* rotation
+			//	* glm::scale(glm::mat4(1.0f), Scale);
 		}
 
 		operator glm::mat4& () { return GetTransform(); }
@@ -161,4 +168,25 @@ namespace Saturn {
 
 		glm::mat4 RelativeTransform = glm::mat4{ 0.0f };
 	};
+
+	struct PhysicsComponent {
+		Rigidbody* rigidbody;
+
+		PhysicsComponent(Rigidbody* rb) :rigidbody(rb) {}
+	};
+
+	struct BoxColliderComponent {
+		glm::vec3 extents;
+
+		BoxColliderComponent() = default;
+		BoxColliderComponent(const glm::vec3& extents) : extents(extents) {}
+	};
+
+	struct SphereColliderComponent {
+		float radius;
+
+		SphereColliderComponent() = default;
+		SphereColliderComponent(float radius) : radius(radius) {}
+	};
+
 }

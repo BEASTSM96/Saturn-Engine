@@ -85,6 +85,7 @@ namespace Saturn {
 		auto outlineShader = Shader::Create("assets/shaders/Outline.glsl");
 		s_Data.OutlineMaterial = MaterialInstance::Create(Material::Create(outlineShader));
 		s_Data.OutlineMaterial->SetFlag(MaterialFlag::DepthTest, false);
+
 	}
 
 	void SceneRenderer::SetViewportSize(uint32_t width, uint32_t height)

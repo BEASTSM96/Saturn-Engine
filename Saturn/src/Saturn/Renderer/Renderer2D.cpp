@@ -9,6 +9,9 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#pragma warning( disable : 26495 )
+#pragma warning( disable : 26495 )
+
 namespace Saturn {
 
 	struct QuadVertex

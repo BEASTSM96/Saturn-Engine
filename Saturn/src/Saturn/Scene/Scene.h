@@ -7,6 +7,11 @@
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/Renderer/Material.h"
 #include "Saturn/Editor/EditorCamera.h"
+#include "Saturn/Core/UUID.h"
+
+#include "Saturn/Physics/PhysicsScene.h"
+
+#include <reactphysics3d/reactphysics3d.h>
 
 namespace Saturn {
 
@@ -38,6 +43,8 @@ namespace Saturn {
 	class Entity;
 	class GameObject;
 
+	using EntityMap = std::unordered_map<UUID, Entity>;
+
 	class Scene : public RefCounted
 	{
 	public:
@@ -45,6 +52,7 @@ namespace Saturn {
 		~Scene();
 
 		Entity CreateEntity(const std::string& name = std::string());
+		Entity CreateEntityWithID(UUID uuid, const std::string& name = "");
 		GameObject CreateEntityGameObject(const std::string& name = std::string());
 		GameObject * CreateEntityGameObjectprt(const std::string& name, const std::vector<std::string> ShaderPaths, std::string ObjectPath = std::string());
 		void DestroyEntity(Entity entity);
@@ -57,6 +65,10 @@ namespace Saturn {
 		auto GetAllEntitiesWith()
 		{
 			return m_Registry.view<T>();
+		}
+
+		PhysicsScene* GetPhysicsScene() {
+			return &*m_physicsScene;
 		}
 
 		SceneData& GetData() { return m_data; }
@@ -81,10 +93,22 @@ namespace Saturn {
 
 		// Editor-specific
 		void SetSelectedEntity(entt::entity entity) { m_SelectedEntity = entity; }
+
+		//phys
+		void PhysicsUpdate(float delta);
+		void ContactStay(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
+		void ContactEnter(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
+		void ContactExit(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
+
+		void PhysicsComponentCreate(entt::registry& r, entt::entity ent);
+
+		std::shared_ptr<PhysicsScene> m_physicsScene;
 	private:
 		UUID m_SceneID;
 		entt::entity m_SceneEntity;
 		entt::registry m_Registry;
+
+		EntityMap m_EntityIDMap;
 
 		std::string m_DebugName;
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;

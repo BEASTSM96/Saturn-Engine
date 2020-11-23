@@ -9,6 +9,7 @@
 #include "Saturn/GameBase/GameObject.h"
 #include "Saturn/Core/World/Level.h"
 #include "Saturn/Renderer/SceneRenderer.h"
+#include "Saturn/Core/UUID.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -35,6 +36,8 @@ namespace Saturn {
 		m_SkyboxMaterial = MaterialInstance::Create(Material::Create(skyboxShader));
 		m_SkyboxMaterial->SetFlag(MaterialFlag::DepthTest, false);
 
+		m_physicsScene = std::make_shared<PhysicsScene>(this);
+
 	}
 
 	Scene::~Scene()
@@ -55,7 +58,7 @@ namespace Saturn {
 
 	void Scene::OnUpdate(Timestep ts)
 	{
-
+		m_physicsScene->Update(ts);
 	}
 
 	void Scene::OnRenderEditor(Timestep ts, const EditorCamera& editorCamera)
@@ -100,6 +103,21 @@ namespace Saturn {
 
 		auto& ID = entity.AddComponent<IdComponent>();
 
+		return entity;
+	}
+
+	Entity Scene::CreateEntityWithID(UUID uuid, const std::string& name)
+	{
+		auto entity = Entity{ m_Registry.create(), this };
+		auto& idComponent = entity.AddComponent<IdComponent>();
+		idComponent.ID = uuid;
+
+		entity.AddComponent<TransformComponent>();
+		if (!name.empty())
+			entity.AddComponent<TagComponent>(name);
+
+		SAT_CORE_ASSERT(m_EntityIDMap.find(uuid) == m_EntityIDMap.end());
+		m_EntityIDMap[uuid] = entity;
 		return entity;
 	}
 
@@ -186,4 +204,30 @@ namespace Saturn {
 		auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap(filepath);
 		return { filepath, radiance, irradiance };
 	}
+
+	void Scene::PhysicsUpdate(float delta)
+	{
+		auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
+		for (auto ent : view) {
+			auto [transform, physics] = view.get<TransformComponent, PhysicsComponent>(ent);
+
+			transform.Position = physics.rigidbody->GetPosition();
+			transform.Rotation = physics.rigidbody->GetRotation();
+		}
+	}
+
+	void Scene::ContactStay(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) {
+		auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
+	}
+
+	void Scene::ContactEnter(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) {
+		auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
+
+	}
+
+	void Scene::ContactExit(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) {
+		auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
+	}
+
+
 }

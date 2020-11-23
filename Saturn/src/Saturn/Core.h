@@ -156,84 +156,14 @@ namespace Saturn {
 #define SAT_FILEOPENNAMEA OPENFILENAMEA
 #define SAT_FILEOPENNAME OPENFILENAME
 
-#ifdef SAT_SYM
-	#define TYPE_INT int
-	#define TYPE_FLOAT float
-	#define TYPE_INT_PTR TYPE_INT PTR
-	#define TYPE_FLOAT_PTR TYPE_FLOAT PTR
-	#define __VOID void
-	#define __VOID_PTR __VOID PTR
-	#define TYPE_VOID __VOID
-	#define TYPE_VOID_PTR __VOID_PTR
-	#define __UNSIGNED unsigned
-	#define TYPE__UNSIGNED_INT __UNSIGNED TYPE_INT
-	#define TYPE__UNSIGNED_FLOAT __UNSIGNED TYPE_FLOAT
-	#define TYPE__UNSIGNED_INT_PTR __UNSIGNED TYPE_INT PTR
-	#define TYPE__UNSIGNED_FLOAT_PTR __UNSIGNED TYPE_FLOAT PTR
-	#define NULLPTR nullptr
-	#define TYPE_NULL NULL
-	#define TYPE_NULL_PTR NULLPTR
-	#define TYPE_ZERO 0
-	#define TYPE_ONE 1
-	#define SAT_ZeroMemory ZeroMemory
-	#define PTR *
-	#define NEW new
-	#define PTR_POINT ->
-	#define TYPENAME typename
-	#define TEMPLATE template
-	#define CLASS class
-	#define OP_BACKSL /
-	#define OP_FWDSL \
-	
-#if TEST_CODE
+#define STRUCT(name) struct name {
+#define STRUCT_END() }
 
-CLASS MyClass{
-public:
-	MyClass();
-	~MyClass();
+#define CLASS(name) class name {
+#define CLASS_END(name) }
 
-	__VOID Test() {
-	
-	
-	}
-
-
-}
-
-CLASS MyOtherClass{
-
-public:
-	MyOtherClass();
-	~MyOtherClass();
-
-
-	__VOID GetPRT()
-	{
-		MyClass* test = NEW MyClass();
-		test PTR_POINT Test();
-	}
-
-}
-
-#endif // TEST_CODE
-
-
-
-	#ifdef MR
-
-
-		#define USE_OPENGL 0
-		#if defined (SAT_PLATFORM_WINDOWS)
-				#define USE_DX 0
-		#else
-				#define USE_DX 0
-		#endif
-		#define USE_VULKAN 0
-
-	#endif // MR
-
-	#define TYPE_OSSTREAM std::ofstream
-#endif // SAT_SYM
+#define NAMESPACE(name) namespace name {
+#define NAMESPACE_END(name) }
 
 /*Can be used for macros just core*/
 #define _VA_AGRS_(x) x
