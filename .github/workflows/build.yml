@@ -15,6 +15,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Generate Submodules
+      run: git submodule init
+
+    - name: Update Submodules
+      run: git submodule update
+
     - name: Generate Project Files
       run: scripts/WindowsGenProjects.bat
 
