@@ -36,6 +36,28 @@
 namespace YAML {
 
 	template<>
+	struct convert<glm::vec2>
+	{
+		static Node encode(const glm::vec2& rhs)
+		{
+			Node node;
+			node.push_back(rhs.x);
+			node.push_back(rhs.y);
+			return node;
+		}
+
+		static bool decode(const Node& node, glm::vec2& rhs)
+		{
+			if (!node.IsSequence() || node.size() != 2)
+				return false;
+
+			rhs.x = node[0].as<float>();
+			rhs.y = node[1].as<float>();
+			return true;
+		}
+	};
+
+	template<>
 	struct convert<glm::vec3>
 	{
 		static Node encode(const glm::vec3& rhs)
@@ -85,6 +107,31 @@ namespace YAML {
 		}
 	};
 
+	template <>
+	struct convert<glm::quat> {
+		static Node encode(const glm::quat& rhs) {
+			Node node;
+			node.push_back(rhs.w);
+			node.push_back(rhs.x);
+			node.push_back(rhs.y);
+			node.push_back(rhs.z);
+			return node;
+		}
+
+		static bool decode(const Node& node, glm::quat& rhs) {
+			if (!node.IsSequence() || node.size() != 4) {
+				return false;
+			}
+
+			rhs.w = node[0].as<float>();
+			rhs.x = node[1].as<float>();
+			rhs.y = node[2].as<float>();
+			rhs.z = node[3].as<float>();
+
+			return true;
+		}
+	};
+
 }
 
 #endif // _YAML
@@ -114,10 +161,9 @@ namespace Saturn {
 		return out;
 	}
 
-	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& v)
-	{
+	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& v) {
 		out << YAML::Flow;
-		out << YAML::BeginSeq << v.w << v.x << v.y << v.z << YAML::EndSeq;
+		out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
 		return out;
 	}
 
@@ -134,7 +180,7 @@ namespace Saturn {
 	}
 
 	Serialiser::Serialiser(const Ref<Scene>& scene) 
-		: m_Scene(scene)
+		: m_Scene(scene), m_shouldSerialise(true)
 	{
 	}
 
@@ -325,6 +371,80 @@ namespace Saturn {
 
 	void Serialiser::Deserialise(const std::string& filepath)
 	{
+
+		std::ifstream stream(filepath);
+		std::stringstream strStream;
+		strStream << stream.rdbuf();
+
+		YAML::Node data = YAML::Load(strStream.str());
+		if (!data["Scene"])
+			return;
+
+		std::string sceneName = data["Scene"].as<std::string>();
+		SAT_CORE_INFO("Deserializing scene '{0}'", sceneName);
+
+		auto environment = data["Environment"];
+		if (environment)
+		{
+			std::string envPath = environment["AssetPath"].as<std::string>();
+			m_Scene->SetEnvironment(Environment::Load(envPath));
+
+			auto lightNode = environment["Light"];
+			if (lightNode)
+			{
+				auto& light = m_Scene->GetLight();
+				light.Direction = lightNode["Direction"].as<glm::vec3>();
+				light.Radiance = lightNode["Radiance"].as<glm::vec3>();
+				light.Multiplier = lightNode["Multiplier"].as<float>();
+			}
+		}
+
+		auto entities = data["Entities"];
+		if (entities)
+		{
+			for (auto entity : entities)
+			{
+				uint64_t uuid = entity["Entity"].as<uint64_t>();
+
+				std::string name;
+				auto tagComponent = entity["TagComponent"];
+				if (tagComponent)
+					name = tagComponent["Tag"].as<std::string>();
+
+				SAT_CORE_INFO("Deserialized entity with ID = {0}, name = {1}", uuid, name);
+
+				Entity deserializedEntity = m_Scene->CreateEntityWithID(uuid, name);
+
+				auto transformComponent = entity["TransformComponent"];
+				if (transformComponent)
+				{
+					// Entities always have transforms
+					auto& transform = deserializedEntity.GetComponent<TransformComponent>().GetTransform();
+					glm::vec3 translation = transformComponent["Position"].as<glm::vec3>();
+					glm::quat rotation = transformComponent["Rotation"].as<glm::quat>();
+					glm::vec3 scale = transformComponent["Scale"].as<glm::vec3>();
+
+					transform = glm::translate(glm::mat4(1.0f), translation) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
+
+					SAT_CORE_INFO("  Entity Transform:");
+					SAT_CORE_INFO("    Translation: {0}, {1}, {2}", translation.x, translation.y, translation.z);
+					SAT_CORE_INFO("    Rotation: {0}, {1}, {2}, {3}", rotation.w, rotation.x, rotation.y, rotation.z);
+					SAT_CORE_INFO("    Scale: {0}, {1}, {2}", scale.x, scale.y, scale.z);
+				}
+
+				auto meshComponent = entity["MeshComponent"];
+				if (meshComponent)
+				{
+					std::string meshPath = meshComponent["AssetPath"].as<std::string>();
+					// TEMP (because script creates mesh component...)
+					if (!deserializedEntity.HasComponent<MeshComponent>())
+						deserializedEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshPath));
+
+					SAT_CORE_INFO("  Mesh Asset Path: {0}", meshPath);
+				}
+
+			}
+		}
 
 	}
 

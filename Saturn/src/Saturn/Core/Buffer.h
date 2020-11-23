@@ -2,7 +2,6 @@
 
 #include "Saturn/Core.h"
 #include "Saturn/Log.h"
-#include "Typedef.h"
 
 namespace Saturn {
 

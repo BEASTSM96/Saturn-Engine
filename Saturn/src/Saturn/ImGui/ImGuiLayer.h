@@ -140,6 +140,9 @@ namespace Saturn {
 		void OnImGuiRender();
 		void OnUpdate(Timestep ts);
 
+		Entity& GetSelectionContext() { return m_SelectionContext; }
+
+
 	private:
 		void DrawEntityNode(Entity entity);
 		void DrawEntityComponents(Entity entity);
