@@ -148,6 +148,8 @@ namespace Saturn {
 	EditorLayer::~EditorLayer()
 	{
 		SAT_PROFILE_FUNCTION();
+
+		m_Serialiser_Thread.join();
 	}
 
 	void EditorLayer::OnAttach()
@@ -392,10 +394,17 @@ namespace Saturn {
 		m_EditorScene = Ref<Scene>::Create();
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(m_EditorScene);
 		m_SceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
-
 		
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
+
+		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
+	}
+
+	void EditorLayer::DeserialiseDebugLvl()
+	{
+		Serialiser s(m_EditorScene);
+		s.Deserialise("assets\\test.sc");
 	}
 
 	void EditorLayer::OnDetach()
@@ -558,8 +567,6 @@ namespace Saturn {
 		m_SelectionContext.clear();
 		m_SelectionContext.push_back(selection);
 		
-
-
 		m_EditorScene->SetSelectedEntity(entity);
 	}
 
@@ -591,7 +598,7 @@ namespace Saturn {
 				auto viewProj = m_EditorCamera.GetViewProjection();
 				Renderer2D::BeginScene(viewProj, false);
 				glm::vec4 color = (m_SelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
-				Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.GetComponent<TransformComponent>().GetTransform() * selection.Mesh->Transform, color);
+				//Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.GetComponent<TransformComponent>().GetTransform() * selection.Mesh->Transform, color);
 				Renderer2D::EndScene();
 				Renderer::EndRenderPass();
 			}
@@ -641,6 +648,7 @@ namespace Saturn {
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<MouseButtonPressedEvent>(SAT_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
 		dispatcher.Dispatch<KeyPressedEvent>(SAT_BIND_EVENT_FN(EditorLayer::OnKeyPressedEvent));
+
 	}
 
 	bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& e)
@@ -679,15 +687,6 @@ namespace Saturn {
 				SaveSceneAs();
 				break;
 			}
-
-			switch (e.GetKeyCode())
-			{
-			case SAT_KEY_F:
-				Serialiser serializer(m_EditorScene);
-				serializer.Deserialise("assets\\test.sc");
-				break;
-			}
-
 		}
 		return false;
 

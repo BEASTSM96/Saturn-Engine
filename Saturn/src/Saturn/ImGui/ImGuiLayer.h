@@ -70,6 +70,8 @@ namespace Saturn {
 		void SelectEntity(Entity entity);
 		float GetSnapValue();
 
+		void DeserialiseDebugLvl();
+
 		void Begin();
 		void End();
 
@@ -121,6 +123,8 @@ namespace Saturn {
 		std::vector<SelectedSubmesh> m_SelectionContext;
 		Ref<Scene> m_RuntimeScene, m_EditorScene;
 		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
+
+		std::thread m_Serialiser_Thread;
 
 		void OnSelected(const SelectedSubmesh& selectionContext);
 
