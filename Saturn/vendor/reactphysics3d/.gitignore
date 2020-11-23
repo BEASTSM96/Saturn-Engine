@@ -1,0 +1,45 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Logs #
+######################
+*.log
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# vim swap files
+#####################
+*.*sw*
+
+# documentation
+#####################
+documentation/API/html/
+documentation/UserManual/html/
+documentation/UserManual/*.4ct
+documentation/UserManual/*.4tc
+documentation/UserManual/*.aux
+documentation/UserManual/*.dvi
+documentation/UserManual/*.css
+documentation/UserManual/*.html
+documentation/UserManual/*.idv
+documentation/UserManual/*.lg
+documentation/UserManual/*.out
+documentation/UserManual/*.tmp
+documentation/UserManual/*.toc
+documentation/UserManual/*.xref
+documentation/UserManual/*.xref

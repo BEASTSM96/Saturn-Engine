@@ -27,6 +27,7 @@ IncludeDir["stb_image"] = "Saturn/vendor/stb/"
 IncludeDir["Assimp"] = "Saturn/vendor/assimp/include"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
+IncludeDir["ReactPhysics3D"] = "Saturn/vendor/reactphysics3d/include"
 
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
 IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
@@ -38,6 +39,7 @@ group "sat/Dependencies"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
+	include "Saturn/vendor/reactphysics3d"
 		group "sat/Dependencies/Serialisation"
 			include "Saturn/vendor/jsoncpp"
 			include "Saturn/vendor/yaml-cpp"
@@ -87,7 +89,8 @@ project "Saturn"
 		"%{IncludeDir.assimp}",
 			"%{prj.name}/vendor/assimp/include/",
 		"%{IncludeDir.SPIRV_Cross}",
-		"%{IncludeDir.yaml_cpp}"
+		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.ReactPhysics3D}"
 	}
 
 	links 
@@ -96,7 +99,8 @@ project "Saturn"
 		"Glad",
 		"ImGui",
 		"opengl32.lib",
-		"Jsoncpp"
+		"Jsoncpp",
+		"ReactPhysics3D"
 	}
 
 	filter "system:windows"
@@ -259,7 +263,8 @@ project "Titan"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.Assimp}",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.yaml_cpp}"
+		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.ReactPhysics3D}"
 	}
 
 	links
