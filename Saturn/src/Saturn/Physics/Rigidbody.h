@@ -29,6 +29,6 @@ namespace Saturn {
 
 		std::vector<reactphysics3d::Collider*> m_colliders;
 		bool m_isKinematic;
-		rp3d::RigidBody* m_body;
+		reactphysics3d::RigidBody* m_body;
 	};
 }

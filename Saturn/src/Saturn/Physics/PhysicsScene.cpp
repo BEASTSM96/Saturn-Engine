@@ -65,15 +65,15 @@ namespace Saturn {
 		return result;
 	}
 
-	void PhysicsScene::ContactStay(rp3d::CollisionBody* body, rp3d::CollisionBody* other) {
+	void PhysicsScene::ContactStay(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) {
 		m_scene->ContactStay(body, other);
 	}
 
-	void PhysicsScene::ContactEnter(rp3d::CollisionBody* body, rp3d::CollisionBody* other) {
+	void PhysicsScene::ContactEnter(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) {
 		m_scene->ContactEnter(body, other);
 	}
 
-	void PhysicsScene::ContactExit(rp3d::CollisionBody* body, rp3d::CollisionBody* other) {
+	void PhysicsScene::ContactExit(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) {
 		m_scene->ContactExit(body, other);
 	}
 }

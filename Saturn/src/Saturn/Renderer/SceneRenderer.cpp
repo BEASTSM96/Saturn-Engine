@@ -283,7 +283,7 @@ namespace Saturn {
 			s_Data.OutlineMaterial->Set("u_ViewProjection", viewProjection);
 			for (auto& dc : s_Data.SelectedMeshDrawList)
 			{
-				Renderer::SubmitMesh(dc.Mesh, dc.Transform, s_Data.OutlineMaterial);
+			//	Renderer::SubmitMesh(dc.Mesh, dc.Transform, s_Data.OutlineMaterial);
 			}
 
 			Renderer::Submit([]()
@@ -293,7 +293,7 @@ namespace Saturn {
 			});
 			for (auto& dc : s_Data.SelectedMeshDrawList)
 			{
-				Renderer::SubmitMesh(dc.Mesh, dc.Transform, s_Data.OutlineMaterial);
+			//	Renderer::SubmitMesh(dc.Mesh, dc.Transform, s_Data.OutlineMaterial);
 			}
 
 			Renderer::Submit([]()
