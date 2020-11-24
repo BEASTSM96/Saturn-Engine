@@ -1,11 +1,7 @@
 #include "sppch.h"
 #include "Serialiser.h"
 
-#define _YAML
-
-#ifdef _YAML
-	#include <yaml-cpp/yaml.h>
-#endif
+#include <yaml-cpp/yaml.h>
 
 #include "Object.h"
 
@@ -30,8 +26,6 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#ifdef _YAML
 
 namespace YAML {
 
@@ -134,11 +128,9 @@ namespace YAML {
 
 }
 
-#endif // _YAML
 
 namespace Saturn {
 
-#ifdef _YAML
 	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
 	{
 		out << YAML::Flow;
@@ -167,7 +159,6 @@ namespace Saturn {
 		return out;
 	}
 
-#endif // YAML
 
 	Serialiser::Serialiser(const std::string& objectname, bool shouldSerialise) : m_shouldSerialise(true), m_ObjectName(objectname)
 	{
@@ -202,7 +193,6 @@ namespace Saturn {
 		return { translation, orientation, scale };
 	}
 
-#ifdef _YAML
 	void Serialiser::SerialiseEntity(YAML::Emitter& out, Entity entity)
 	{
 		SAT_CORE_ASSERT(
@@ -330,9 +320,6 @@ namespace Saturn {
 		out << YAML::EndMap; // Environment
 	}
 	
-#endif
-
-#ifdef _YAML
 	void Serialiser::Serialise(const std::string& filepath)
 	{
 		YAML::Emitter out;
@@ -358,16 +345,6 @@ namespace Saturn {
 		fout << out.c_str();
 
 	}
-#else
-	void Serialiser::Serialise(const std::string& filepath)
-	{
-
-	}
-#endif
-
-
-
-#ifdef _YAML
 
 	void Serialiser::Deserialise(const std::string& filepath)
 	{
@@ -447,41 +424,5 @@ namespace Saturn {
 		}
 
 	}
-
-#else
-
-	void Serialiser::Deserialise(const std::string& filepath)
-	{
-		Json::Value members;
-
-		std::ifstream stream(filepath);
-		std::stringstream strStream;
-		strStream << stream.rdbuf();
-
-		for (int i = 0; i < Application::Get().m_gameLayer->GetGameObjects().size(); i++)
-		{
-			auto entitys = Application::Get().m_gameLayer->GetGameObjects().at(i);
-
-			std::string EntityName;
-			float		ID;
-			std::string Mesh;
-			std::string ModelMaterialName;
-			std::string ModelMaterials;
-			std::string ModelName;
-			float		Transform;
-			float		Pos;
-			float		Rot;
-			float		Scale;
-
-			std::vector<std::string>DeserialisedStringVales;
-			std::vector<int>DeserialisedIntVales;
-
-			Json::Value d = members["Entitys"];
-			EntityName = d[0].get("EntityName", 0).asString();
-			ID = d[0].get("ID", 0).asFloat();
-		}
-	}
-
-#endif // YAML
 
 }
