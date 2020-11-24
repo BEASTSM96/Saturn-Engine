@@ -6,6 +6,8 @@
 
 #include "Saturn/Core/UUID.h"
 #include "Saturn/Physics/Rigidbody.h"
+#include "Saturn/Core/GUID.h"
+
 
 namespace Saturn {
 
@@ -170,9 +172,11 @@ namespace Saturn {
 	};
 
 	struct PhysicsComponent {
+		bool useGravity;
+
 		Rigidbody* rigidbody;
 
-		PhysicsComponent(Rigidbody* rb) :rigidbody(rb) {}
+		PhysicsComponent(Rigidbody* rb) : rigidbody(rb) {}
 	};
 
 	struct BoxColliderComponent {
@@ -188,5 +192,4 @@ namespace Saturn {
 		SphereColliderComponent() = default;
 		SphereColliderComponent(float radius) : radius(radius) {}
 	};
-
 }

@@ -213,20 +213,92 @@ namespace Saturn {
 
 			transform.Position = physics.rigidbody->GetPosition();
 			transform.Rotation = physics.rigidbody->GetRotation();
+
 		}
 	}
 
 	void Scene::ContactStay(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) {
 		auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
+
+		SAT_CORE_WARN("ContactStay");
+
+		Entity curr;
+		Entity otherEntity;
+
+		for (auto entity : view)
+		{
+			auto [tc, pc] = view.get<TransformComponent, PhysicsComponent>(entity);
+
+			if (pc.rigidbody->m_body == body)
+			{
+				curr = Entity(entity, this);
+			}
+			else if(pc.rigidbody->m_body == other)
+			{
+				otherEntity = Entity(entity, this);
+			}
+		}
+
 	}
 
 	void Scene::ContactEnter(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) {
 		auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
 
+		SAT_CORE_WARN("ContactEnter");
+
+		Entity curr;
+		Entity otherEntity;
+
+		for (auto entity : view)
+		{
+			auto [tc, pc] = view.get<TransformComponent, PhysicsComponent>(entity);
+
+			if (pc.rigidbody->m_body == body)
+			{
+				curr = Entity(entity, this);
+			}
+			else if (pc.rigidbody->m_body == other)
+			{
+				otherEntity = Entity(entity, this);
+			}
+		}
+
 	}
 
 	void Scene::ContactExit(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) {
 		auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
+
+		SAT_CORE_WARN("ContactExit");
+
+		Entity curr;
+		Entity otherEntity;
+
+		for (auto entity : view)
+		{
+			auto [tc, pc] = view.get<TransformComponent, PhysicsComponent>(entity);
+
+			if (pc.rigidbody->m_body == body)
+			{
+				curr = Entity(entity, this);
+			}
+			else if (pc.rigidbody->m_body == other)
+			{
+				otherEntity = Entity(entity, this);
+			}
+		}
+
+	}
+
+	void Scene::Contact(rp3d::CollisionBody* body) {
+		auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
+		for (auto ent : view) {
+			auto [transform, physics] = view.get<TransformComponent, PhysicsComponent>(ent);
+
+			if (physics.rigidbody->m_body == body) {
+				SAT_CORE_INFO("collision");
+				break;
+			}
+		}
 	}
 
 

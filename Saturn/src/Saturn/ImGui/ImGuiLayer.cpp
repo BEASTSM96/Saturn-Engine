@@ -395,10 +395,12 @@ namespace Saturn {
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(m_EditorScene);
 		m_SceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
 		
+		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
+
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
 
-		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
+
 	}
 
 	void EditorLayer::DeserialiseDebugLvl()
@@ -579,6 +581,7 @@ namespace Saturn {
 		m_DrawOnTopBoundingBoxes = true;
 
 		m_EditorScene->OnUpdate(ts);
+
 
 		if (m_DrawOnTopBoundingBoxes) {
 			Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
@@ -1042,7 +1045,14 @@ namespace Saturn {
 					}
 					if (ImGui::BeginMenu("Physics")) {
 						if (ImGui::MenuItem("Physics")) {
-							m_SelectionContext.AddComponent<PhysicsComponent>(new Rigidbody(m_Context->GetPhysicsScene(), glm::vec3(0, -2, 0))).rigidbody->AddBoxCollider(glm::vec3(1));
+							m_SelectionContext.AddComponent<PhysicsComponent>
+								(new Rigidbody
+											(
+												m_Context->GetPhysicsScene(), /*Phys Scene*/
+												true, /*UseGravity*/
+												glm::vec3(0, -2, 0) /*Pos*/
+											)
+								).rigidbody->AddBoxCollider(glm::vec3(1));
 						}
 
 						if (ImGui::MenuItem("Box Collider")) {
@@ -1244,7 +1254,7 @@ namespace Saturn {
 		ImGui::NextColumn();
 
 		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
-		ImGui::Checkbox("##BIN", val);
+		ImGui::Checkbox("##value", val);
 
 		ImGui::PopItemWidth();
 
@@ -1351,7 +1361,6 @@ namespace Saturn {
 			}
 
 		});
-
 
 		DrawComponent<MeshComponent>("Mesh", entity, [](auto& mc)
 		{

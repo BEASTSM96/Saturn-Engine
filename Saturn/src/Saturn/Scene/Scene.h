@@ -102,6 +102,8 @@ namespace Saturn {
 
 		void PhysicsComponentCreate(entt::registry& r, entt::entity ent);
 
+		void Contact(rp3d::CollisionBody* body);
+
 		std::shared_ptr<PhysicsScene> m_physicsScene;
 	private:
 		UUID m_SceneID;
