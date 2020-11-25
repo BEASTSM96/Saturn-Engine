@@ -214,6 +214,14 @@ namespace Saturn {
 			transform.Position = physics.rigidbody->GetPosition();
 			transform.Rotation = physics.rigidbody->GetRotation();
 
+			m_physicsScene->m_world->createCollisionBody(reactphysics3d::Transform(reactphysics3d::Vector3(transform.Position.x, transform.Position.y, transform.Position.z), reactphysics3d::Quaternion(transform.Rotation.w, transform.Rotation.x, transform.Rotation.y, transform.Rotation.z)));
+
+
+			const reactphysics3d::Vector3 scale = reactphysics3d::Vector3(transform.Scale.x, transform.Scale.y, transform.Scale.z);
+
+
+			physics.rigidbody->AddBoxCollider(glm::vec3(1, 1, 1));
+
 		}
 	}
 

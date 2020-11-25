@@ -29,10 +29,11 @@ uniform float u_Res;
 
 in vec2 v_TexCoord;
 
-float grid(vec2 st, float res)
+float grid(vec2 st)
 {
-	vec2 grid = fract(st);
-	return step(res, grid.x) * step(res, grid.y);
+	float res = u_Res;
+	vec2 grid =  fract( (st / 2) );
+	return step(res, grid.x * 1) * step(res, grid.y * 1);
 }
 
 void main()
@@ -40,6 +41,6 @@ void main()
 	float scale = u_Scale;
 	float resolution = u_Res;
 
-	float x = grid(v_TexCoord * scale, resolution);
+	float x = grid(v_TexCoord * scale);
 	color = vec4(vec3(0.2), 0.5) * (1.0 - x);
 }

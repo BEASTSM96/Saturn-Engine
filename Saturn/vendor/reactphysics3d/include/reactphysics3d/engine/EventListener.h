@@ -62,6 +62,7 @@ class EventListener : public CollisionCallback {
          * @param callbackData Contains information about all the triggers that are colliding
          */
         virtual void onTrigger(const OverlapCallback::CallbackData& callbackData) {}
+
 };
 
 }

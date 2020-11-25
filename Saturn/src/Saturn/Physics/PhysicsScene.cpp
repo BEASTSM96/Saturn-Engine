@@ -25,11 +25,22 @@ namespace Saturn {
 
 		m_accumulator += delta;
 
+		m_world->setIsDebugRenderingEnabled(true);
+
+		reactphysics3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
+		debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+		debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
+		debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
+		debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::COLLIDER_BROADPHASE_AABB, true);
+		debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+
+
 		while (m_accumulator >= timeStep) {
 			m_world->update(timeStep);
 			m_scene->PhysicsUpdate(timeStep);
-
+		
 			m_accumulator -= delta;
+
 		}
 	}
 

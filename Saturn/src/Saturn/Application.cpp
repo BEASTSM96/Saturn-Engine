@@ -117,7 +117,7 @@ namespace Saturn {
 		Serialiser::Init();
 		Math::Init();
 
-		m_ModuleManager =  Ref<ModuleManager>::Create();
+		m_ModuleManager = Ref<ModuleManager>::Create();
 
 	}
 
@@ -136,7 +136,6 @@ namespace Saturn {
 				for (Layer* layer : m_LayerStack)
 					layer->OnUpdate(m_TimeStep);
 				
-
 				Application* app = this;
 				Renderer::Submit([app]() { app->RenderImGui(); });
 
@@ -149,8 +148,6 @@ namespace Saturn {
 			m_TimeStep = time - LastFrameTime;
 
 			LastFrameTime = time;
-
-
 		}
 	}
 

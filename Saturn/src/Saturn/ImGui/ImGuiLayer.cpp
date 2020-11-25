@@ -33,8 +33,6 @@
 
 namespace Saturn {
 
-#define IMGUI_class SATURN_APIES_SPARKY -0
-#define IMGUI_OBJECTS_SPARKY nullptr
 
 	///////////////////////////////////////
 	////////////FORALLPLATFORMS///////////
@@ -1374,7 +1372,7 @@ namespace Saturn {
 			if (mc.Mesh)
 				ImGui::InputText("##meshfilepath", (char*)mc.Mesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
 			else
-				ImGui::InputText("##meshfilepath", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
+				ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 			if (ImGui::Button("...##openmesh", ImVec2(50, 20)))
