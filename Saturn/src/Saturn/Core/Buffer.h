@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Saturn/Core/Base.h"
 #include "Saturn/Log.h"
+#include "Saturn/Core/Base.h"
 
 namespace Saturn {
 

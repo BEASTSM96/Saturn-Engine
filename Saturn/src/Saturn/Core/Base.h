@@ -8,54 +8,8 @@
 #if (__cplusplus >= 201402L)
 #error C++ 14 is not supported
 #else
-#ifdef _WIN32
-/* Windows x64/x86 */
-#ifdef _WIN64
-	/* Windows x64  */
-#define SAT_PLATFORM_WINDOWS
-#ifdef SAT_DLL
-#ifdef SAT_BUILD_DLL
-#define SATURN_API SAT_DLL_EXPORT
-#else
-#define SATURN_API SAT_DLL_IMPORT
-#endif // SAT_BUILD_DLL
-#else
-#define SATURN_API
-#endif
-#else
-	/* Windows x86 */
-#error "x86 Builds are not supported!"
-#endif
-#elif defined(__APPLE__) || defined(__MACH__)
-#include <TargetConditionals.h>
-/* TARGET_OS_MAC exists on all the platforms
- * so we must check all of them (in this order)
- * to ensure that we're running on MAC
- * and not some other Apple platform */
-#if TARGET_IPHONE_SIMULATOR == 1
-#error "IOS simulator is not supported!"
-#elif TARGET_OS_IPHONE == 1
-#define SAT_PLATFORM_IOS
-#error "IOS is not supported!"
-#elif TARGET_OS_MAC == 1
-#define SAT_PLATFORM_MACOS
-#error "MacOS is not supported!"
-#else
-#error "Unknown Apple platform!"
-#endif
- /* We also have to check __ANDROID__ before __linux__
-  * since android is based on the linux kernel
-  * it has __linux__ defined */
-#elif defined(__ANDROID__)
-#define SAT_PLATFORM_ANDROID
-#error "Android is not supported!"
-#elif defined(__linux__)
-#define SAT_PLATFORM_LINUX
-#error "Linux is not supported!"
-#else
-/* Unknown compiler/platform */
-#error "Unknown platform!"
-#endif // End of platform detection
+
+#include "PlatformDetection.h"
 
 #ifdef SAT_DLL
 	#define SAT_DLL_IMPORT __declspec(dllimport)
@@ -79,14 +33,7 @@
 	#define SAT_DEBUGBREAK()
 #endif
 
-// TODO: Make this macro able to take in no arguments except condition
-#ifdef SAT_ENABLE_ASSERTS
-	#define SAT_ASSERT(x, ...) { if(!(x)) {/*SAT_ERROR("Assertion Failed: {0}", __VA_ARGS__);*/ SAT_DEBUGBREAK(); } }
-	#define SAT_CORE_ASSERT(x, ...) { if(!(x)) { /*SAT_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__);*/ SAT_DEBUGBREAK(); } }
-#else
-	#define SAT_CL_ASSERT(x, ...)
-	#define SAT_CORE_ASSERT(x, ...)
-#endif
+#include "Asserts.h"
 
 #define BIT(x) (1 << x)
 
