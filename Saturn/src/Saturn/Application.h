@@ -1,15 +1,12 @@
 #pragma once
 
-#include "Core.h"
-
+#include "Core/Base.h"
 #include "Window.h"
 #include "Saturn/LayerStack.h"
 #include "Saturn/Events/Event.h"
 #include "Saturn/Events/ApplicationEvent.h"
 #include "Saturn/ImGui/ImGuiLayer.h"
 #include "Saturn/Core/Timestep.h"
-#include "GameBase/GameLayer.h"
-#include "Core/World/Level.h"
 
 #include <string>
 #include <vector>
@@ -27,7 +24,7 @@ namespace Saturn {
 	class ModuleManager;
 	class Module;
 
-	class SATURN_API Application
+	class Application
 	{
 	public:
 		Application();
@@ -48,7 +45,7 @@ namespace Saturn {
 
 		Scene& GetCurrentScene() { return *m_Scene; }
 		ModuleManager& GetModuleManager() { return *m_ModuleManager; }
-		SceneMananger& GetSceneManangerr() { return *m_SceneManager; }
+		SceneManager& GetSceneMananger() { return *m_SceneManager; }
 		//Ref<Saturn::ModuleManager> GetModuleManagerRef() { return m_ModuleManager; }
 
 		static Application& Get() { return *s_Instance; }
@@ -84,7 +81,7 @@ namespace Saturn {
 
 		Ref<Scene> m_Scene;
 
-		Ref<SceneMananger> m_SceneManager;
+		Ref<SceneManager> m_SceneManager;
 		Ref<ModuleManager> m_ModuleManager;
 
 		bool m_Running = true;

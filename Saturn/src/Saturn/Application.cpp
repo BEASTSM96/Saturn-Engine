@@ -1,6 +1,6 @@
 #include "sppch.h"
 #include "Application.h"
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 
 #include "Events/ApplicationEvent.h"
 
@@ -14,7 +14,6 @@
 #include "Saturn/ImGui/ImGuiLayer.h"
 #include "Scene/Components.h"
 #include "Scene/Entity.h"
-#include "Core/World/Level.h"
 #include "Saturn/Renderer/Framebuffer.h"
 #include "Core/Modules/ModuleManager.h"
 #include "Core/Modules/Module.h"
@@ -25,7 +24,6 @@
 #include <json/json.h>
 
 #include <Windows.h>
-#include <commdlg.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
@@ -119,7 +117,7 @@ namespace Saturn {
 		Math::Init();
 
 		m_ModuleManager = Ref<ModuleManager>::Create();
-		m_SceneManager = Ref<SceneMananger>::Create();
+		m_SceneManager = Ref<SceneManager>::Create();
 	}
 
 	void Application::Run()
@@ -194,11 +192,11 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 
 #ifdef  SAT_PLATFORM_WINDOWS
-		SAT_FILEOPENNAMEA ofn;
+		OPENFILENAMEA ofn;
 		CHAR szFile[260] = { 0 };
-		SAT_ZeroMemory(&ofn, sizeof(SAT_FILEOPENNAME));
+		ZeroMemory(&ofn, sizeof(OPENFILENAMEA));
 
-		ofn.lStructSize = sizeof(SAT_FILEOPENNAME);
+		ofn.lStructSize = sizeof(OPENFILENAMEA);
 		ofn.lpstrFilter = filter;
 		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
 		ofn.lpstrFile = szFile;
@@ -233,7 +231,7 @@ namespace Saturn {
 		OPENFILENAMEA ofn;
 		CHAR szFile[260] = { 0 };
 
-		SAT_ZeroMemory(&ofn, sizeof(OPENFILENAME));
+		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.lpstrFilter = f;
 		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());

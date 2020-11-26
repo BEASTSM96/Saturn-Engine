@@ -10,13 +10,13 @@
 #pragma warning(disable: 6001)
 #pragma warning(disable: 4244)
 
-class SATURN_API MathType
+class MathType
 {
 public:
 	static void Init() {};
 };
 
-class SATURN_API Random : MathType
+class Random : MathType
 {
 public:
 	static void Init()
@@ -51,7 +51,7 @@ private:
 
 
 
-class SATURN_API Math
+class Math
 {
 public:
 	static void Init() {

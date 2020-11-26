@@ -6,8 +6,6 @@
 #include "Object.h"
 
 #include "Saturn/Application.h"
-#include "Saturn/Core/World/Level.h"
-#include "Saturn/GameBase/GameLayer.h"
 #include "Saturn/Scene/Scene.h"
 
 #include "Saturn/Scene/Components.h"

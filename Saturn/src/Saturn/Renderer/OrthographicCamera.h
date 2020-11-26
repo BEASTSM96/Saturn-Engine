@@ -4,7 +4,7 @@
 
 namespace Saturn {
 
-	class SATURN_API OrthographicCamera : EmptyCamera
+	class OrthographicCamera : EmptyCamera
 	{
 	public:
 		OrthographicCamera(float left, float right, float bottom, float top);

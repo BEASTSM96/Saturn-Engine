@@ -2,8 +2,6 @@
 #include "GameObject.h"
 #include "Saturn/Core/Serialisation/Object.h"
 
-#include "GameLayer.h"
-
 #include "Saturn/Application.h"
 #include "Saturn/Scene/Components.h"
 

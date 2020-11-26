@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 #include "Saturn/Core/Ref.h"
 #include "Saturn/Core/Buffer.h"
 
@@ -100,7 +100,7 @@ namespace Saturn {
 	};
 
 
-	class SATURN_API Shader : public RefCounted
+	class Shader : public RefCounted
 	{
 	public:
 		using ShaderReloadedCallback = std::function<void()>;

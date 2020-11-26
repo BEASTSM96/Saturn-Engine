@@ -10,6 +10,7 @@
 #include "Saturn/Core/World/Level.h"
 #include "Saturn/Renderer/SceneRenderer.h"
 #include "Saturn/Core/UUID.h"
+#include "SceneManager.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>

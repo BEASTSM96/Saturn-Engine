@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Saturn/Log.h"
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 #include "Scene.h"
 #include "entt.hpp"
 
 namespace Saturn {
 
 
-	class SATURN_API Entity
+	class Entity
 	{
 	public:
 		Entity() = default;

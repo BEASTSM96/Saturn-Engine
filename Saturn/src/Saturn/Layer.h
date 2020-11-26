@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 #include "Saturn/Events/Event.h"
 
 #include "Core/Timestep.h"
@@ -9,7 +9,7 @@
 
 namespace Saturn {
 
-	class SATURN_API Layer : public Serialiser
+	class Layer : public Serialiser
 	{
 	public:
 		Layer(const std::string& name = "Layer");

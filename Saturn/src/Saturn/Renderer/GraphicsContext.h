@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 
 namespace Saturn {
 
-	class SATURN_API GraphicsContext {
+	classGraphicsContext {
 
 	public:
 		virtual void Init() = 0;

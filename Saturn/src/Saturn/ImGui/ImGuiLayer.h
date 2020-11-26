@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Saturn/Layer.h"
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 #include "Saturn/Log.h"
 #include "Saturn/Events/ApplicationEvent.h"
 #include "Saturn/Events/KeyEvent.h"
@@ -18,7 +18,7 @@
 
 namespace Saturn {
 
-	class SATURN_API ImGuiLayer : public Layer
+	class ImGuiLayer : public Layer
 	{
 	public:
 		ImGuiLayer();
@@ -35,7 +35,7 @@ namespace Saturn {
 
 	};
 
-	class  SATURN_API ImGuiRenderStats : public Layer
+	class ImGuiRenderStats : public Layer
 	{
 	public:
 		ImGuiRenderStats();
@@ -132,7 +132,7 @@ namespace Saturn {
 
 	};
 
-	class SATURN_API SceneHierarchyPanel
+	class SceneHierarchyPanel
 	{
 	public:
 		SceneHierarchyPanel() = default;

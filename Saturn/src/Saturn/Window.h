@@ -2,7 +2,7 @@
 
 #include "sppch.h"
 
-#include "Core.h"
+#include "Core/Base.h"
 #include "Events/Event.h"
 
 namespace Saturn {
@@ -42,7 +42,7 @@ namespace Saturn {
 	};
 
 	// Interface representing a desktop system based Window
-	class SATURN_API Window
+	class Window
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>;

@@ -2,12 +2,12 @@
 
 /*
 *					Sparky GameObject
-* 1. This class SATURN_API for NOT for the objects, the objects are in the Entity class SATURN_API.
-*  1.5.This class SATURN_API IS for all of the Entities, that the renderer can rendered on one layer (GameLayer.h).
+* 1. This class for NOT for the objects, the objects are in the Entity class .
+*  1.5.This class IS for all of the Entities, that the renderer can rendered on one layer (GameLayer.h).
 * 
 *********************************************************************************************************
 *										Object (needed for serialisation).
-*										Friend class SATURN_API GameLayer (needed for rendering on that layer).
+*										Friend class GameLayer (needed for rendering on that layer).
 *										Entity (for ECS)
 */
 // Always include this 
@@ -40,7 +40,7 @@ class DShader;
 
 namespace Saturn {
 
-	class SATURN_API GameObject : public Entity, public Object /* Sparky GameObject */
+	class GameObject : public Entity, public Object /* Sparky GameObject */
 	{
 	public:
 		GameObject();

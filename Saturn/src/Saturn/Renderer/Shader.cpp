@@ -5,7 +5,7 @@
 
 #include "Platform\OpenGL\OpenGLShader.h"
 
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 
 namespace Saturn {
 

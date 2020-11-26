@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Saturn/Core.h"
+#include "Core/Base.h"
 #include "KeyCodes.h"
 #include "MouseButtons.h"
 
 namespace Saturn {
 
-	class SATURN_API Input 
+	class Input 
 	{
 	
 	public:

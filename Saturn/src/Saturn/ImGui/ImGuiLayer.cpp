@@ -15,10 +15,11 @@
 #include "Saturn/Scene/Components.h"
 #include "Saturn/Renderer/SceneRenderer.h"
 #include "Saturn/Renderer/Renderer2D.h"
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 #include "Saturn/MouseButtons.h"
 #include "Saturn/Core/Modules/Module.h"
 #include "Saturn/Core/Modules/ModuleManager.h"
+#include "Saturn/Scene/SceneManager.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -394,6 +395,8 @@ namespace Saturn {
 		m_SceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
 		
 		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
+
+		Application::Get().GetSceneMananger().AddScene(m_EditorScene.Raw());
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
@@ -961,6 +964,9 @@ namespace Saturn {
 				ImGui::Text("Modules %i", i);
 			}
 		}
+
+		
+
 		ImGui::End();
 #endif // SAT_DEBUG
 
