@@ -1,6 +1,6 @@
 #include "sppch.h"
 #include "Application.h"
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 
 #include "Events/ApplicationEvent.h"
 
@@ -119,7 +119,7 @@ namespace Saturn {
 		Math::Init();
 
 		m_ModuleManager = Ref<ModuleManager>::Create();
-		m_SceneManager = Ref<SceneMananger>::Create();
+		m_SceneManager = Ref<SceneManager>::Create();
 	}
 
 	void Application::Run()

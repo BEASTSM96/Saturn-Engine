@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Saturn/Layer.h"
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 #include "Saturn/Log.h"
 #include "Saturn/Events/ApplicationEvent.h"
 #include "Saturn/Events/KeyEvent.h"

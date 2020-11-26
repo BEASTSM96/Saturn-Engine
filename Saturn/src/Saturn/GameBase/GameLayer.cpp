@@ -11,7 +11,7 @@
 
 #include "Saturn/MouseButtons.h"
 
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 
 #pragma warning(disable: 4101)
 

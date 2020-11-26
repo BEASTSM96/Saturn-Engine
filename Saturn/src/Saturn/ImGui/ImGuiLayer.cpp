@@ -15,7 +15,7 @@
 #include "Saturn/Scene/Components.h"
 #include "Saturn/Renderer/SceneRenderer.h"
 #include "Saturn/Renderer/Renderer2D.h"
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 #include "Saturn/MouseButtons.h"
 #include "Saturn/Core/Modules/Module.h"
 #include "Saturn/Core/Modules/ModuleManager.h"
@@ -169,7 +169,7 @@ namespace Saturn {
 		ImVec4* colors = ImGui::GetStyle().Colors;
 
 #ifdef SAT_PLATFORM_WINDOWS
-		ImFont* pFont = io.Fonts->AddFontFromFileTTF("assets\\fonts\\segoeui.ttf", 18.0f);
+		ImFont* pFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
 		io.FontDefault = io.Fonts->Fonts.back();
 #endif // SAT_PLATFORM_WINDOWS
 

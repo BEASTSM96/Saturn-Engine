@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Saturn/Log.h"
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 #include "Scene.h"
 #include "entt.hpp"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 #include "Saturn/Renderer/EmptyCamera.h"
 
 #include <glm/glm.hpp>
@@ -13,7 +13,7 @@
 #include "Saturn/Input.h"
 
 #include "Saturn/KeyCodes.h"
-#include "Saturn/Core.h"
+#include "Saturn/Core/Base.h"
 
 namespace Saturn {
 
