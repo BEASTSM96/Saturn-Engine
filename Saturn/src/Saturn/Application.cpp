@@ -18,6 +18,7 @@
 #include "Saturn/Renderer/Framebuffer.h"
 #include "Core/Modules/ModuleManager.h"
 #include "Core/Modules/Module.h"
+#include "Scene/SceneManager.h"
 
 #include <imgui.h>
 
@@ -118,7 +119,7 @@ namespace Saturn {
 		Math::Init();
 
 		m_ModuleManager = Ref<ModuleManager>::Create();
-
+		m_SceneManager = Ref<SceneMananger>::Create();
 	}
 
 	void Application::Run()

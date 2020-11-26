@@ -7,11 +7,11 @@ namespace Saturn {
 
 	class Scene;
 
-	class SceneMananger : public RefCounted
+	class SceneManager : public RefCounted
 	{
 	public:
-		SceneMananger();
-		~SceneMananger();
+		SceneManager();
+		~SceneManager();
 
 		void AddScene(const Ref<Scene>& scene);
 
@@ -22,6 +22,6 @@ namespace Saturn {
 		std::vector<Ref<Scene>>m_Scenes;
 
 	private:
-		static SceneMananger* s_Instance;
+		static SceneManager* s_Instance;
 	};
 }

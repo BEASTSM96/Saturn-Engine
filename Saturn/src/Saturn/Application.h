@@ -19,6 +19,7 @@ namespace Saturn {
 	class Module;
 	class GameLayer;
 	class Level;
+	class SceneManager;
 }
 
 namespace Saturn {
@@ -47,6 +48,7 @@ namespace Saturn {
 
 		Scene& GetCurrentScene() { return *m_Scene; }
 		ModuleManager& GetModuleManager() { return *m_ModuleManager; }
+		SceneMananger& GetSceneManangerr() { return *m_SceneManager; }
 		//Ref<Saturn::ModuleManager> GetModuleManagerRef() { return m_ModuleManager; }
 
 		static Application& Get() { return *s_Instance; }
@@ -80,10 +82,9 @@ namespace Saturn {
 
 		EditorLayer* m_EditorLayer;
 
-		Level* m_Level;
-
 		Ref<Scene> m_Scene;
 
+		Ref<SceneMananger> m_SceneManager;
 		Ref<ModuleManager> m_ModuleManager;
 
 		bool m_Running = true;

@@ -1,16 +1,16 @@
 #include "sppch.h"
-#include "SceneMananger.h"
+#include "SceneManager.h"
 
 namespace Saturn {
 
-	SceneMananger* SceneMananger::s_Instance = nullptr;
+	SceneManager* SceneManager::s_Instance = nullptr;
 
-	SceneMananger::SceneMananger()
+	SceneManager::SceneManager()
 	{
 		SAT_CORE_ASSERT(!s_Instance, "SceneMananger already exists!");
 	}
 
-	SceneMananger::~SceneMananger()
+	SceneManager::~SceneManager()
 	{
 		for (int i = 0; i < m_Scenes.size(); i++)
 		{
@@ -18,7 +18,7 @@ namespace Saturn {
 		}
 	}
 
-	void SceneMananger::AddScene(const Ref<Scene>& scene)
+	void SceneManager::AddScene(const Ref<Scene>& scene)
 	{
 		SAT_CORE_ASSERT(scene, "Scene was not vaild (0xFFFFF(NULL))");
 		m_Scenes.push_back(scene);
