@@ -44,7 +44,7 @@ namespace Saturn {
 
 	OpenGLVertexBuffer::~OpenGLVertexBuffer()
 	{
-		GLu rendererID = m_RendererID;
+		GLuint rendererID = m_RendererID;
 		Renderer::Submit([rendererID]() {
 			glDeleteBuffers(1, &rendererID);
 		});

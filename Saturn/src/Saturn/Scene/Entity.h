@@ -44,7 +44,7 @@ namespace Saturn {
 
 		operator bool() const { return m_EntityHandle != entt::null; }
 		operator entt::entity() const { return m_EntityHandle; }
-		operator uint32_t() const { return (uint32_t)m_EntityHandle; }
+		operator u32() const { return (u32)m_EntityHandle; }
 
 		bool operator==(const Entity& other) const
 		{

@@ -726,7 +726,7 @@ namespace Saturn {
 
 					auto& submeshes = mesh->GetSubmeshes();
 					float lastT = std::numeric_limits<float>::max();
-					for (uint32_t i = 0; i < submeshes.size(); i++)
+					for (u32 i = 0; i < submeshes.size(); i++)
 					{
 						auto& submesh = submeshes[i];
 						Ray ray = {
@@ -850,10 +850,10 @@ namespace Saturn {
 			if (ImGui::Begin("Viewport")) {
 				auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
 				auto viewportSize = ImGui::GetContentRegionAvail();
-				SceneRenderer::SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-				m_EditorScene->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+				SceneRenderer::SetViewportSize((u32)viewportSize.x, (u32)viewportSize.y);
+				m_EditorScene->SetViewportSize((u32)viewportSize.x, (u32)viewportSize.y);
 				m_EditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 10000.0f));
-				m_EditorCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+				m_EditorCamera.SetViewportSize((u32)viewportSize.x, (u32)viewportSize.y);
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
 				ImGui::Image((void*)SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
 				ImGui::PopStyleVar();
@@ -996,7 +996,7 @@ namespace Saturn {
 
 		ImGui::Begin("Scene Hierarchy");
 		if (m_Context) {
-			uint32_t entityCount = 0, meshCount = 0;
+			u32 entityCount = 0, meshCount = 0;
 			m_Context->m_Registry.each([&](auto entity)
 			{
 				Entity e{ entity, m_Context.Raw() };
@@ -1080,7 +1080,7 @@ namespace Saturn {
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 
 			ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-			bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
+			bool opened = ImGui::TreeNodeEx((void*)(u64)(u32)entity, flags, tag.c_str());
 
 			if (ImGui::IsItemClicked())
 			{
@@ -1197,7 +1197,7 @@ namespace Saturn {
 			bool removeComponent = false;
 
 			auto& component = entity.GetComponent<T>();
-			bool open = ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(T).hash_code()), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str());
+			bool open = ImGui::TreeNodeEx((void*)((u32)entity | typeid(T).hash_code()), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str());
 			ImGui::SameLine();
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));

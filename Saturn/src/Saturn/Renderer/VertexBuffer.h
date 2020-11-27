@@ -15,7 +15,7 @@ namespace Saturn {
 		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool
 	};
 
-	static uint32_t ShaderDataTypeSize(ShaderDataType type)
+	static u32 ShaderDataTypeSize(ShaderDataType type)
 	{
 		switch (type)
 		{
@@ -40,8 +40,8 @@ namespace Saturn {
 	{
 		std::string Name;
 		ShaderDataType Type;
-		uint32_t Size;
-		uint32_t Offset;
+		u32 Size;
+		u32 Offset;
 		bool Normalized;
 
 		VertexBufferElement() = default;
@@ -51,7 +51,7 @@ namespace Saturn {
 		{
 		}
 
-		uint32_t GetComponentCount() const
+		u32 GetComponentCount() const
 		{
 			switch (Type)
 			{
@@ -84,7 +84,7 @@ namespace Saturn {
 			CalculateOffsetsAndStride();
 		}
 
-		inline uint32_t GetStride() const { return m_Stride; }
+		inline u32 GetStride() const { return m_Stride; }
 		inline const std::vector<VertexBufferElement>& GetElements() const { return m_Elements; }
 
 		std::vector<VertexBufferElement>::iterator begin() { return m_Elements.begin(); }
@@ -94,7 +94,7 @@ namespace Saturn {
 	private:
 		void CalculateOffsetsAndStride()
 		{
-			uint32_t offset = 0;
+			u32 offset = 0;
 			m_Stride = 0;
 			for (auto& element : m_Elements)
 			{
@@ -105,7 +105,7 @@ namespace Saturn {
 		}
 	private:
 		std::vector<VertexBufferElement> m_Elements;
-		uint32_t m_Stride = 0;
+		u32 m_Stride = 0;
 	};
 
 	enum class VertexBufferUsage
@@ -118,7 +118,7 @@ namespace Saturn {
 	public:
 		virtual ~VertexBuffer() {}
 
-		virtual void SetData(void* buffer, uint32_t size, uint32_t offset = 0) = 0;
+		virtual void SetData(void* buffer, u32 size, u32 offset = 0) = 0;
 		virtual void Bind() const = 0;
 
 		virtual const VertexBufferLayout& GetLayout() const = 0;
@@ -127,8 +127,8 @@ namespace Saturn {
 		virtual unsigned int GetSize() const = 0;
 		virtual RendererID GetRendererID() const = 0;
 
-		static Ref<VertexBuffer> Create(void* data, uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Static);
-		static Ref<VertexBuffer> Create(uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Dynamic);
+		static Ref<VertexBuffer> Create(void* data, u32 size, VertexBufferUsage usage = VertexBufferUsage::Static);
+		static Ref<VertexBuffer> Create(u32 size, VertexBufferUsage usage = VertexBufferUsage::Dynamic);
 	};
 
 }
