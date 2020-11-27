@@ -11,14 +11,6 @@
 
 #include "PlatformDetection.h"
 
-#ifdef SAT_DLL
-	#define SAT_DLL_IMPORT __declspec(dllimport)
-	#define SAT_DLL_EXPORT __declspec(dllexport)
-#else
-	#define SAT_DLL_IMPORT
-	#define SAT_DLL_EXPORT
-#endif // SAT_DLL
-
 #ifdef SAT_DEBUG
 	#if defined(SAT_PLATFORM_WINDOWS)
 		#define SAT_DEBUGBREAK() __debugbreak()
@@ -32,6 +24,11 @@
 #else
 	#define SAT_DEBUGBREAK()
 #endif
+
+namespace Saturn {
+	void InitCore();
+	void EndCore();
+}
 
 #include "Asserts.h"
 
