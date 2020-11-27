@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 	Saturn::InitCore();
 
 	SAT_PROFILE_BEGIN_SESSION("Startup", "SaturnProfile-Startup.json");
-	auto app = Saturn::CreateApplication();
+	Saturn::Application* app = Saturn::CreateApplication();
 	SAT_PROFILE_END_SESSION();
 
 	SAT_PROFILE_BEGIN_SESSION("Runtime", "SaturnProfile-Runtime.json");

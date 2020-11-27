@@ -27,8 +27,8 @@ namespace Saturn {
 
 		void Bind();
 
-		u32 GetFlags() const { return m_MaterialFlags; }
-		void SetFlag(MaterialFlag flag) { m_MaterialFlags |= (u32)flag; }
+		uint32_t GetFlags() const { return m_MaterialFlags; }
+		void SetFlag(MaterialFlag flag) { m_MaterialFlags |= (uint32_t)flag; }
 
 		template <typename T>
 		void Set(const std::string& name, const T& value)
@@ -45,7 +45,7 @@ namespace Saturn {
 		void Set(const std::string& name, const Ref<Texture>& texture)
 		{
 			auto decl = FindResourceDeclaration(name);
-			u32 slot = decl->GetRegister();
+			uint32_t slot = decl->GetRegister();
 			if (m_Textures.size() <= slot)
 				m_Textures.resize((size_t)slot + 1);
 			m_Textures[slot] = texture;
@@ -74,7 +74,7 @@ namespace Saturn {
 		Ref<T> GetResource(const std::string& name)
 		{
 			auto decl = FindResourceDeclaration(name);
-			u32 slot = decl->GetRegister();
+			uint32_t slot = decl->GetRegister();
 			SAT_CORE_ASSERT(slot < m_Textures.size(), "Texture slot is invalid!");
 			return m_Textures[slot];
 		}
@@ -96,7 +96,7 @@ namespace Saturn {
 		Buffer m_PSUniformStorageBuffer;
 		std::vector<Ref<Texture>> m_Textures;
 
-		u32 m_MaterialFlags;
+		uint32_t m_MaterialFlags;
 	};
 
 	class MaterialInstance : public RefCounted
@@ -127,7 +127,7 @@ namespace Saturn {
 				//SAT_CORE_WARN("Cannot find material property: ", name);
 				return;
 			}
-			u32 slot = decl->GetRegister();
+			uint32_t slot = decl->GetRegister();
 			if (m_Textures.size() <= slot)
 				m_Textures.resize((size_t)slot + 1);
 			m_Textures[slot] = texture;
@@ -157,7 +157,7 @@ namespace Saturn {
 		{
 			auto decl = m_Material->FindResourceDeclaration(name);
 			SAT_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
-			u32 slot = decl->GetRegister();
+			uint32_t slot = decl->GetRegister();
 			SAT_CORE_ASSERT(slot < m_Textures.size(), "Texture slot is invalid!");
 			return Ref<T>(m_Textures[slot]);
 		}
@@ -169,7 +169,7 @@ namespace Saturn {
 			if (!decl)
 				return nullptr;
 
-			u32 slot = decl->GetRegister();
+			uint32_t slot = decl->GetRegister();
 			if (slot >= m_Textures.size())
 				return nullptr;
 
@@ -179,8 +179,8 @@ namespace Saturn {
 
 		void Bind();
 
-		u32 GetFlags() const { return m_Material->m_MaterialFlags; }
-		bool GetFlag(MaterialFlag flag) const { return (u32)flag & m_Material->m_MaterialFlags; }
+		uint32_t GetFlags() const { return m_Material->m_MaterialFlags; }
+		bool GetFlag(MaterialFlag flag) const { return (uint32_t)flag & m_Material->m_MaterialFlags; }
 		void SetFlag(MaterialFlag flag, bool value = true);
 
 		Ref<Shader> GetShader() { return m_Material->m_Shader; }

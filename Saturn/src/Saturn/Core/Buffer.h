@@ -1,26 +1,25 @@
 #pragma once
 
-#include "Saturn/Log.h"
 #include "Saturn/Core/Base.h"
 
 namespace Saturn {
 
 	struct Buffer
 	{
-		u8* Data;
-		u32 Size;
+		uint8_t* Data;
+		uint32_t Size;
 
 		Buffer()
 			: Data(nullptr), Size(0)
 		{
 		}
 
-		Buffer(u8* data, u32 size)
+		Buffer(uint8_t* data, uint32_t size)
 			: Data(data), Size(size)
 		{
 		}
 
-		static Buffer Copy(void* data, u32 size)
+		static Buffer Copy(void* data, uint32_t size)
 		{
 			Buffer buffer;
 			buffer.Allocate(size);
@@ -28,7 +27,7 @@ namespace Saturn {
 			return buffer;
 		}
 
-		void Allocate(u32 size)
+		void Allocate(uint32_t size)
 		{
 			delete[] Data;
 			Data = nullptr;
@@ -38,7 +37,7 @@ namespace Saturn {
 				return;
 			}
 
-			Data = new u8[size];
+			Data = new uint8_t[size];
 			Size = size;
 		}
 
@@ -49,12 +48,12 @@ namespace Saturn {
 		}
 
 		template<typename T>
-		T& Read(u32 offset = 0)
+		T& Read(uint32_t offset = 0)
 		{
 			return *(T*)(Data + offset);
 		}
 
-		void Write(void* data, u32 size, u32 offset = 0)
+		void Write(void* data, uint32_t size, uint32_t offset = 0)
 		{
 			SAT_CORE_ASSERT(offset + size <= Size, "Buffer overflow!");
 			memcpy(Data + offset, data, size);
@@ -65,12 +64,12 @@ namespace Saturn {
 			return Data;
 		}
 
-		u8& operator[](int index)
+		uint8_t& operator[](int index)
 		{
 			return Data[index];
 		}
 
-		u8 operator[](int index) const
+		uint8_t operator[](int index) const
 		{
 			return Data[index];
 		}
@@ -81,7 +80,7 @@ namespace Saturn {
 			return (T*)Data;
 		}
 
-		inline u32 GetSize() const { return Size; }
+		inline uint32_t GetSize() const { return Size; }
 
 
 	};

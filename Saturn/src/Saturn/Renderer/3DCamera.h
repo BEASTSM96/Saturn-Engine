@@ -25,7 +25,7 @@ namespace Saturn {
     const float SENSITIVITY = 0.1f;
     const float ZOOM = 45.0f;
 
-    enum Camera_Movement : u32 {
+    enum Camera_Movement : uint32_t {
         NONE,
         FORWARD,
         BACKWARD,

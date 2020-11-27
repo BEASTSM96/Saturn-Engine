@@ -41,10 +41,10 @@ namespace Saturn {
 		glm::vec3 Binormal;
 		glm::vec2 Texcoord;
 
-		u32 IDs[4] = { 0, 0,0, 0 };
+		uint32_t IDs[4] = { 0, 0,0, 0 };
 		float Weights[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
 
-		void AddBoneData(u32 BoneID, float Weight)
+		void AddBoneData(uint32_t BoneID, float Weight)
 		{
 			for (size_t i = 0; i < 4; i++)
 			{
@@ -65,10 +65,10 @@ namespace Saturn {
 
 	struct Index
 	{
-		u32 V1, V2, V3;
+		uint32_t V1, V2, V3;
 	};
 
-	static_assert(sizeof(Index) == 3 * sizeof(u32));
+	static_assert(sizeof(Index) == 3 * sizeof(uint32_t));
 
 	struct BoneInfo
 	{
@@ -78,7 +78,7 @@ namespace Saturn {
 
 	struct VertexBoneData
 	{
-		u32 IDs[4];
+		uint32_t IDs[4];
 		float Weights[4];
 
 		VertexBoneData()
@@ -87,7 +87,7 @@ namespace Saturn {
 			memset(Weights, 0, sizeof(Weights));
 		};
 
-		void AddBoneData(u32 BoneID, float Weight)
+		void AddBoneData(uint32_t BoneID, float Weight)
 		{
 			for (size_t i = 0; i < 4; i++)
 			{
@@ -115,10 +115,10 @@ namespace Saturn {
 	class Submesh
 	{
 	public:
-		u32 BaseVertex;
-		u32 BaseIndex;
-		u32 MaterialIndex;
-		u32 IndexCount;
+		uint32_t BaseVertex;
+		uint32_t BaseIndex;
+		uint32_t MaterialIndex;
+		uint32_t IndexCount;
 
 		glm::mat4 Transform;
 		AABB BoundingBox;
@@ -144,16 +144,16 @@ namespace Saturn {
 		const std::vector<Ref<Texture2D>>& GetTextures() const { return m_Textures; }
 		const std::string& GetFilePath() const { return m_FilePath; }
 
-		const std::vector<Triangle> GetTriangleCache(u32 index) const { return m_TriangleCache.at(index); }
+		const std::vector<Triangle> GetTriangleCache(uint32_t index) const { return m_TriangleCache.at(index); }
 	private:
 		void BoneTransform(float time);
 		void ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
-		void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), u32 level = 0);
+		void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), uint32_t level = 0);
 
 		const aiNodeAnim* FindNodeAnim(const aiAnimation* animation, const std::string& nodeName);
-		u32 FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
-		u32 FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
-		u32 FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
+		uint32_t FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
+		uint32_t FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
+		uint32_t FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
 		glm::vec3 InterpolateTranslation(float animationTime, const aiNodeAnim* nodeAnim);
 		glm::quat InterpolateRotation(float animationTime, const aiNodeAnim* nodeAnim);
 		glm::vec3 InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim);
@@ -164,7 +164,7 @@ namespace Saturn {
 
 		glm::mat4 m_InverseTransform;
 
-		u32 m_BoneCount = 0;
+		uint32_t m_BoneCount = 0;
 		std::vector<BoneInfo> m_BoneInfo;
 
 		Ref<Pipeline> m_Pipeline;
@@ -174,7 +174,7 @@ namespace Saturn {
 		std::vector<Vertex> m_StaticVertices;
 		std::vector<AnimatedVertex> m_AnimatedVertices;
 		std::vector<Index> m_Indices;
-		std::unordered_map<std::string, u32> m_BoneMapping;
+		std::unordered_map<std::string, uint32_t> m_BoneMapping;
 		std::vector<glm::mat4> m_BoneTransforms;
 		const aiScene* m_Scene;
 
@@ -185,7 +185,7 @@ namespace Saturn {
 		std::vector<Ref<Texture2D>> m_NormalMaps;
 		std::vector<Ref<MaterialInstance>> m_Materials;
 
-		std::unordered_map<u32, std::vector<Triangle>> m_TriangleCache;
+		std::unordered_map<uint32_t, std::vector<Triangle>> m_TriangleCache;
 
 		// Animation
 		bool m_IsAnimated = false;

@@ -1,6 +1,8 @@
 #include "sppch.h"
 #include "RenderCommandQueue.h"
 
+#define SAT_RENDER_TRACE(...) SAT_CORE_TRACE(__VA_ARGS__)
+
 namespace Saturn {
 
 	RenderCommandQueue::RenderCommandQueue()
@@ -17,6 +19,8 @@ namespace Saturn {
 
 	void* RenderCommandQueue::Allocate(RenderCommandFn fn, uint32_t size)
 	{
+		SAT_RENDER_TRACE("{0}", (int)m_CommandBufferPtr);
+
 		// TODO: alignment
 		*(RenderCommandFn*)m_CommandBufferPtr = fn;
 		m_CommandBufferPtr += sizeof(RenderCommandFn);
@@ -33,7 +37,9 @@ namespace Saturn {
 
 	void RenderCommandQueue::Execute()
 	{
-		uint8_t* buffer = m_CommandBuffer;
+		//SAT_RENDER_TRACE("RenderCommandQueue::Execute -- {0} commands, {1} bytes", m_CommandCount, (m_CommandBufferPtr - m_CommandBuffer));
+
+		byte* buffer = m_CommandBuffer;
 
 		for (uint32_t i = 0; i < m_CommandCount; i++)
 		{
@@ -47,6 +53,8 @@ namespace Saturn {
 		}
 
 		m_CommandBufferPtr = m_CommandBuffer;
+		SAT_RENDER_TRACE("({0}, {1}, {2}) [({3}, {4})]", (int)m_CommandBufferPtr, (int)m_CommandBuffer, m_CommandCount, m_CommandBufferPtr, m_CommandBuffer);
 		m_CommandCount = 0;
 	}
+
 }

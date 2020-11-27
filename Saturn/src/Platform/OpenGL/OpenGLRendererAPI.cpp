@@ -85,7 +85,7 @@ namespace Saturn {
 		glClearColor(r, g, b, a);
 	}
 
-	void RendererAPI::DrawIndexed(u32 count, PrimitiveType type, bool depthTest)
+	void RendererAPI::DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest)
 	{
 		if (!depthTest)
 			glDisable(GL_DEPTH_TEST);

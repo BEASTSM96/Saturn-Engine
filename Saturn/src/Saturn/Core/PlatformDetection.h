@@ -48,3 +48,17 @@
 /* Unknown compiler/platform */
 #error "Unknown platform!"
 #endif // End of platform detection
+
+#ifdef SAT_DEBUG
+#if defined(SAT_PLATFORM_WINDOWS)
+#define SAT_DEBUGBREAK() __debugbreak()
+#elif defined(SAT_PLATFORM_LINUX)
+#include <signal.h>
+#define SAT_DEBUGBREAK() raise(SIGTRAP)
+#else
+#error "Platform doesn't support debugbreak yet!"
+#endif
+#define SAT_ENABLE_ASSERTS
+#else
+#define SAT_DEBUGBREAK()
+#endif

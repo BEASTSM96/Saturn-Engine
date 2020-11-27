@@ -18,7 +18,7 @@ namespace Saturn {
 		return 0;
 	}
 
-	OpenGLVertexBuffer::OpenGLVertexBuffer(void* data, u32 size, VertexBufferUsage usage)
+	OpenGLVertexBuffer::OpenGLVertexBuffer(void* data, uint32_t size, VertexBufferUsage usage)
 		: m_Size(size), m_Usage(usage)
 	{
 		m_LocalData = Buffer::Copy(data, size);
@@ -31,7 +31,7 @@ namespace Saturn {
 		});
 	}
 
-	OpenGLVertexBuffer::OpenGLVertexBuffer(u32 size, VertexBufferUsage usage)
+	OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size, VertexBufferUsage usage)
 		: m_Size(size), m_Usage(usage)
 	{
 		Ref<OpenGLVertexBuffer> instance = this;
@@ -50,7 +50,7 @@ namespace Saturn {
 		});
 	}
 
-	void OpenGLVertexBuffer::SetData(void* data, u32 size, u32 offset)
+	void OpenGLVertexBuffer::SetData(void* data, uint32_t size, uint32_t offset)
 	{
 		m_LocalData = Buffer::Copy(data, size);
 		m_Size = size;

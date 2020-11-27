@@ -11,20 +11,20 @@ namespace Saturn {
 	class OpenGLIndexBuffer : public IndexBuffer
 	{
 	public:
-		OpenGLIndexBuffer(u32 size);
-		OpenGLIndexBuffer(void* data, u32 size);
+		OpenGLIndexBuffer(uint32_t size);
+		OpenGLIndexBuffer(void* data, uint32_t size);
 		virtual ~OpenGLIndexBuffer();
 
-		virtual void SetData(void* data, u32 size, u32 offset = 0);
+		virtual void SetData(void* data, uint32_t size, uint32_t offset = 0);
 		virtual void Bind() const;
 
-		virtual u32 GetCount() const { return m_Size / sizeof(u32); }
+		virtual uint32_t GetCount() const { return m_Size / sizeof(uint32_t); }
 
-		virtual u32 GetSize() const { return m_Size; }
+		virtual uint32_t GetSize() const { return m_Size; }
 		virtual RendererID GetRendererID() const { return m_RendererID; }
 	private:
 		RendererID m_RendererID = 0;
-		u32 m_Size;
+		uint32_t m_Size;
 
 		Buffer m_LocalData;
 	};

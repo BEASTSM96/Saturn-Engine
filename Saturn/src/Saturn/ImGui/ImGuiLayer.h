@@ -1,20 +1,16 @@
 #pragma once
 
+#include "sppch.h"
 #include "Saturn/Layer.h"
-#include "Saturn/Core/Base.h"
-#include "Saturn/Log.h"
-#include "Saturn/Events/ApplicationEvent.h"
-#include "Saturn/Events/KeyEvent.h"
-#include "Saturn/Events/MouseEvent.h"
-#include "Platform/OpenGL/OpenGLFramebuffer.h"
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
-#include "Saturn/Editor/EditorCamera.h"
+#include <imgui.h>
+#include <imgui_internal.h>
+
+#define EDITOR
+#ifdef EDITOR
 #include "Saturn/Renderer/Mesh.h"
 #include "Saturn/Core/Ray.h"
+#endif // EDITOR
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 namespace Saturn {
 
@@ -22,34 +18,20 @@ namespace Saturn {
 	{
 	public:
 		ImGuiLayer();
-		~ImGuiLayer() = default;
+		ImGuiLayer(const std::string& name);
+		virtual ~ImGuiLayer() = default;
+
+		void Begin();
+		void End();
 
 		virtual void OnAttach() override;
 		virtual void OnDetach() override;
 		virtual void OnImGuiRender() override;
-
-		void Begin();
-		void End();
 	private:
 		float m_Time = 0.0f;
 
 	};
 
-	class  SATURN_API ImGuiRenderStats : public Layer
-	{
-	public:
-		ImGuiRenderStats();
-		~ImGuiRenderStats();
-
-		virtual void OnAttach() override;
-		virtual void OnDetach() override;
-		virtual void OnImGuiRender() override;
-
-		void Begin();
-		void End();
-	private:
-		float m_Time = 0.0f;
-	};
 
 	class EditorLayer : public Layer
 	{
@@ -136,7 +118,7 @@ namespace Saturn {
 	{
 	public:
 		SceneHierarchyPanel() = default;
-		SceneHierarchyPanel(const Ref<Scene> & scene);
+		SceneHierarchyPanel(const Ref<Scene>& scene);
 		void SetContext(const Ref<Scene>& scene);
 		void SetSelected(Entity entity);
 		void SetSelectionChangedCallback(const std::function<void(Entity)>& func) { m_SelectionChangedCallback = func; }
@@ -158,4 +140,5 @@ namespace Saturn {
 
 		friend class EditorLayer;
 	};
+
 }

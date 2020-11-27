@@ -8,23 +8,23 @@ namespace Saturn {
 	class OpenGLTexture2D : public Texture2D
 	{
 	public:
-		OpenGLTexture2D(TextureFormat format, u32 width, u32 height, TextureWrap wrap);
+		OpenGLTexture2D(TextureFormat format, uint32_t width, uint32_t height, TextureWrap wrap);
 		OpenGLTexture2D(const std::string& path, bool srgb);
 		virtual ~OpenGLTexture2D();
 
-		virtual void Bind(u32 slot = 0) const;
+		virtual void Bind(uint32_t slot = 0) const;
 
 		virtual TextureFormat GetFormat() const override { return m_Format; }
-		virtual u32 GetWidth() const override { return m_Width; }
-		virtual u32 GetHeight() const override { return m_Height; }
+		virtual uint32_t GetWidth() const override { return m_Width; }
+		virtual uint32_t GetHeight() const override { return m_Height; }
 		// This function currently returns the expected number of mips based on image size,
 		// not present mips in data
-		virtual u32 GetMipLevelCount() const override;
+		virtual uint32_t GetMipLevelCount() const override;
 
 		virtual void Lock() override;
 		virtual void Unlock() override;
 
-		virtual void Resize(u32 width, u32 height) override;
+		virtual void Resize(uint32_t width, uint32_t height) override;
 		virtual Buffer GetWriteableBuffer() override;
 
 		virtual const std::string& GetPath() const override { return m_FilePath; }
@@ -41,7 +41,7 @@ namespace Saturn {
 		RendererID m_RendererID;
 		TextureFormat m_Format;
 		TextureWrap m_Wrap = TextureWrap::Clamp;
-		u32 m_Width, m_Height;
+		uint32_t m_Width, m_Height;
 
 		Buffer m_ImageData;
 		bool m_IsHDR = false;
@@ -55,18 +55,18 @@ namespace Saturn {
 	class OpenGLTextureCube : public TextureCube
 	{
 	public:
-		OpenGLTextureCube(TextureFormat format, u32 width, u32 height);
+		OpenGLTextureCube(TextureFormat format, uint32_t width, uint32_t height);
 		OpenGLTextureCube(const std::string& path);
 		virtual ~OpenGLTextureCube();
 
-		virtual void Bind(u32 slot = 0) const;
+		virtual void Bind(uint32_t slot = 0) const;
 
 		virtual TextureFormat GetFormat() const { return m_Format; }
-		virtual u32 GetWidth() const { return m_Width; }
-		virtual u32 GetHeight() const { return m_Height; }
+		virtual uint32_t GetWidth() const { return m_Width; }
+		virtual uint32_t GetHeight() const { return m_Height; }
 		// This function currently returns the expected number of mips based on image size,
 		// not present mips in data
-		virtual u32 GetMipLevelCount() const override;
+		virtual uint32_t GetMipLevelCount() const override;
 
 		virtual const std::string& GetPath() const override { return m_FilePath; }
 
@@ -79,7 +79,7 @@ namespace Saturn {
 	private:
 		RendererID m_RendererID;
 		TextureFormat m_Format;
-		u32 m_Width, m_Height;
+		uint32_t m_Width, m_Height;
 
 		unsigned char* m_ImageData;
 

@@ -4,10 +4,10 @@
 
 namespace Saturn {
 
-	using u8 = uint8_t;
-	using u16 = uint16_t;
-	using u32 = uint32_t;
-	using u64 = uint64_t;
+//	using uint8_t = std::uint8_t;
+//	using uint16_t = std::uint16_t;
+//	using uint32_t = std::uint32_t;
+//	using u64 = std::uint64_t;
 
 	using i8 = int8_t;
 	using i16 = int16_t;

@@ -12,12 +12,12 @@ namespace Saturn {
 		OpenGLFramebuffer(const FramebufferSpecification& spec);
 		virtual ~OpenGLFramebuffer();
 
-		virtual void Resize(u32 width, u32 height, bool forceRecreate = false) override;
+		virtual void Resize(uint32_t width, uint32_t height, bool forceRecreate = false) override;
 
 		virtual void Bind() const override;
 		virtual void Unbind() const override;
 
-		virtual void BindTexture(u32 slot = 0) const override;
+		virtual void BindTexture(uint32_t slot = 0) const override;
 
 		virtual RendererID GetRendererID() const { return m_RendererID; }
 		virtual RendererID GetColorAttachmentRendererID() const { return m_ColorAttachment; }

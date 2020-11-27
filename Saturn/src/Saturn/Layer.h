@@ -1,15 +1,17 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
-#include "Saturn/Events/Event.h"
-
 #include "Core/Timestep.h"
 
-#include "Core/Serialisation/Serialiser.h"
+#include "Saturn/Core/Serialisation/Serialiser.h"
+#include "Saturn/Events/Event.h"
+#include "Saturn/Events/KeyEvent.h"
+#include "Saturn/Events/MouseEvent.h"
+#include "Saturn/Events/ApplicationEvent.h"
 
 namespace Saturn {
 
-	class SATURN_API Layer : public Serialiser
+	class Layer
 	{
 	public:
 		Layer(const std::string& name = "Layer");
@@ -22,7 +24,7 @@ namespace Saturn {
 		virtual void OnEvent(Event& event) {}
 
 		const std::string& GetName() const { return m_DebugName; }
-
+	private:
 		std::string m_DebugName;
 
 	};

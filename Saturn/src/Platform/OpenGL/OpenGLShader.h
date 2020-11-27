@@ -30,7 +30,7 @@ namespace Saturn {
 		virtual void SetMat4(const std::string& name, const glm::mat4& value) override;
 		virtual void SetMat4FromRenderThread(const std::string& name, const glm::mat4& value, bool bind = true) override;
 
-		virtual void SetIntArray(const std::string& name, int* values, u32 size) override;
+		virtual void SetIntArray(const std::string& name, int* values, uint32_t size) override;
 
 		virtual const std::string& GetName() const override { return m_Name; }
 	private:
@@ -55,20 +55,20 @@ namespace Saturn {
 		void ResolveAndSetUniformArray(OpenGLShaderUniformDeclaration* uniform, Buffer buffer);
 		void ResolveAndSetUniformField(const OpenGLShaderUniformDeclaration& field, byte* data, int32_t offset);
 
-		void UploadUniformInt(u32 location, int32_t value);
-		void UploadUniformIntArray(u32 location, int32_t* values, int32_t count);
-		void UploadUniformFloat(u32 location, float value);
-		void UploadUniformFloat2(u32 location, const glm::vec2& value);
-		void UploadUniformFloat3(u32 location, const glm::vec3& value);
-		void UploadUniformFloat4(u32 location, const glm::vec4& value);
-		void UploadUniformMat3(u32 location, const glm::mat3& values);
-		void UploadUniformMat4(u32 location, const glm::mat4& values);
-		void UploadUniformMat4Array(u32 location, const glm::mat4& values, u32 count);
+		void UploadUniformInt(uint32_t location, int32_t value);
+		void UploadUniformIntArray(uint32_t location, int32_t* values, int32_t count);
+		void UploadUniformFloat(uint32_t location, float value);
+		void UploadUniformFloat2(uint32_t location, const glm::vec2& value);
+		void UploadUniformFloat3(uint32_t location, const glm::vec3& value);
+		void UploadUniformFloat4(uint32_t location, const glm::vec4& value);
+		void UploadUniformMat3(uint32_t location, const glm::mat3& values);
+		void UploadUniformMat4(uint32_t location, const glm::mat4& values);
+		void UploadUniformMat4Array(uint32_t location, const glm::mat4& values, uint32_t count);
 
-		void UploadUniformStruct(OpenGLShaderUniformDeclaration* uniform, byte* buffer, u32 offset);
+		void UploadUniformStruct(OpenGLShaderUniformDeclaration* uniform, byte* buffer, uint32_t offset);
 
 		void UploadUniformInt(const std::string& name, int32_t value);
-		void UploadUniformIntArray(const std::string& name, int32_t* values, u32 count);
+		void UploadUniformIntArray(const std::string& name, int32_t* values, uint32_t count);
 
 		void UploadUniformFloat(const std::string& name, float value);
 		void UploadUniformFloat2(const std::string& name, const glm::vec2& value);

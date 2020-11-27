@@ -24,7 +24,7 @@ namespace Saturn {
 	// Texture2D
 	//////////////////////////////////////////////////////////////////////////////////
 
-	OpenGLTexture2D::OpenGLTexture2D(TextureFormat format, u32 width, u32 height, TextureWrap wrap)
+	OpenGLTexture2D::OpenGLTexture2D(TextureFormat format, uint32_t width, uint32_t height, TextureWrap wrap)
 		: m_Format(format), m_Width(width), m_Height(height), m_Wrap(wrap)
 	{
 		Ref<OpenGLTexture2D> instance = this;
@@ -123,7 +123,7 @@ namespace Saturn {
 		});
 	}
 
-	void OpenGLTexture2D::Bind(u32 slot) const
+	void OpenGLTexture2D::Bind(uint32_t slot) const
 	{
 		Ref<const OpenGLTexture2D> instance = this;
 		Renderer::Submit([instance, slot]() {
@@ -145,7 +145,7 @@ namespace Saturn {
 		});
 	}
 
-	void OpenGLTexture2D::Resize(u32 width, u32 height)
+	void OpenGLTexture2D::Resize(uint32_t width, uint32_t height)
 	{
 		SAT_CORE_ASSERT(m_Locked, "Texture must be locked!");
 
@@ -161,7 +161,7 @@ namespace Saturn {
 		return m_ImageData;
 	}
 
-	u32 OpenGLTexture2D::GetMipLevelCount() const
+	uint32_t OpenGLTexture2D::GetMipLevelCount() const
 	{
 		return Texture::CalculateMipMapCount(m_Width, m_Height);
 	}
@@ -170,13 +170,13 @@ namespace Saturn {
 	// TextureCube
 	//////////////////////////////////////////////////////////////////////////////////
 
-	OpenGLTextureCube::OpenGLTextureCube(TextureFormat format, u32 width, u32 height)
+	OpenGLTextureCube::OpenGLTextureCube(TextureFormat format, uint32_t width, uint32_t height)
 	{
 		m_Width = width;
 		m_Height = height;
 		m_Format = format;
 
-		u32 levels = Texture::CalculateMipMapCount(width, height);
+		uint32_t levels = Texture::CalculateMipMapCount(width, height);
 		Ref<OpenGLTextureCube> instance = this;
 		Renderer::Submit([instance, levels]() mutable
 		{
@@ -205,13 +205,13 @@ namespace Saturn {
 		m_Height = height;
 		m_Format = TextureFormat::RGB;
 
-		u32 faceWidth = m_Width / 4;
-		u32 faceHeight = m_Height / 3;
+		uint32_t faceWidth = m_Width / 4;
+		uint32_t faceHeight = m_Height / 3;
 		SAT_CORE_ASSERT(faceWidth == faceHeight, "Non-square faces!");
 
-		std::array<u8*, 6> faces;
+		std::array<uint8_t*, 6> faces;
 		for (size_t i = 0; i < faces.size(); i++)
-			faces[i] = new u8[faceWidth * faceHeight * 3]; // 3 BPP
+			faces[i] = new uint8_t[faceWidth * faceHeight * 3]; // 3 BPP
 
 		int faceIndex = 0;
 
@@ -293,7 +293,7 @@ namespace Saturn {
 		});
 	}
 
-	void OpenGLTextureCube::Bind(u32 slot) const
+	void OpenGLTextureCube::Bind(uint32_t slot) const
 	{
 		Ref<const OpenGLTextureCube> instance = this;
 		Renderer::Submit([instance, slot]() {
@@ -301,7 +301,7 @@ namespace Saturn {
 		});
 	}
 
-	u32 OpenGLTextureCube::GetMipLevelCount() const
+	uint32_t OpenGLTextureCube::GetMipLevelCount() const
 	{
 		return Texture::CalculateMipMapCount(m_Width, m_Height);
 	}

@@ -7,7 +7,7 @@
 
 namespace Saturn {
 
-	OpenGLIndexBuffer::OpenGLIndexBuffer(void* data, u32 size)
+	OpenGLIndexBuffer::OpenGLIndexBuffer(void* data, uint32_t size)
 		: m_RendererID(0), m_Size(size)
 	{
 		m_LocalData = Buffer::Copy(data, size);
@@ -19,7 +19,7 @@ namespace Saturn {
 		});
 	}
 
-	OpenGLIndexBuffer::OpenGLIndexBuffer(u32 size)
+	OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t size)
 		: m_Size(size)
 	{
 		// m_LocalData = Buffer(size);
@@ -39,7 +39,7 @@ namespace Saturn {
 		});
 	}
 
-	void OpenGLIndexBuffer::SetData(void* data, u32 size, u32 offset)
+	void OpenGLIndexBuffer::SetData(void* data, uint32_t size, uint32_t offset)
 	{
 		m_LocalData = Buffer::Copy(data, size);
 		m_Size = size;

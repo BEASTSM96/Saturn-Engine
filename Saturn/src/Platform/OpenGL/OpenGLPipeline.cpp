@@ -62,7 +62,7 @@ namespace Saturn {
 
 #if 0
 			const auto& layout = instance->m_Specification.Layout;
-			u32 attribIndex = 0;
+			uint32_t attribIndex = 0;
 			for (const auto& element : layout)
 			{
 				auto glBaseType = ShaderDataTypeToOpenGLBaseType(element.Type);
@@ -99,7 +99,7 @@ namespace Saturn {
 			glBindVertexArray(instance->m_VertexArrayRendererID);
 
 			const auto& layout = instance->m_Specification.Layout;
-			u32 attribIndex = 0;
+			uint32_t attribIndex = 0;
 			for (const auto& element : layout)
 			{
 				auto glBaseType = ShaderDataTypeToOpenGLBaseType(element.Type);
