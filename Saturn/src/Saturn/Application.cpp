@@ -43,7 +43,7 @@ namespace Saturn {
 		s_Instance = this;
 		m_Window = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
-		m_Window->SetVSync(true);
+		m_Window->SetVSync(false);
 
 		m_ImGuiLayer = new ImGuiLayer();
 
@@ -58,12 +58,14 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 	}
 
-	void Application::PushLayer(Layer* layer)
+	Layer* Application::PushLayer(Layer* layer)
 	{
 		SAT_PROFILE_FUNCTION();
 
 		m_LayerStack.PushLayer(layer);
 		layer->OnAttach();
+
+		return layer;
 	}
 
 	void Application::PushOverlay(Layer* layer)
@@ -152,6 +154,7 @@ namespace Saturn {
 		}
 		/* Call Editor / child functions */
 		OnShutdown();
+		OnShutdownSave();
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)

@@ -20,7 +20,7 @@ namespace Saturn {
 	struct RendererData
 	{
 		Ref<RenderPass> m_ActiveRenderPass;
-		RenderCommandQueue m_CommandQueue = RenderCommandQueue();
+		RenderCommandQueue m_CommandQueue;
 		Ref<ShaderLibrary> m_ShaderLibrary;
 
 		Ref<VertexBuffer> m_FullscreenQuadVertexBuffer;

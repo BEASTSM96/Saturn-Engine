@@ -52,6 +52,14 @@ namespace Saturn {
 		void SelectEntity(Entity entity);
 		float GetSnapValue();
 
+		Ref<Scene>& GetEditorScene() {
+			return m_EditorScene;
+		}
+
+		Ref<Scene>& GetRuntimeScene() {
+			return m_RuntimeScene;
+		}
+
 		void DeserialiseDebugLvl();
 
 		void Begin();
@@ -111,7 +119,6 @@ namespace Saturn {
 		void OnSelected(const SelectedSubmesh& selectionContext);
 
 		friend class SceneHierarchyPanel;
-
 	};
 
 	class SATURN_API SceneHierarchyPanel

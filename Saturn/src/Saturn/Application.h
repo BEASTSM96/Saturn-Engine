@@ -40,11 +40,12 @@ namespace Saturn {
 		/*----------For Editor----------*/
 		virtual void OnInit() {}
 		virtual void OnShutdown() {}
+		virtual void OnShutdownSave() {}
 		/*------------------------------*/
 
 		void OnEvent(Event& e);
 
-		void PushLayer(Layer* layer);
+		Layer* PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
 		void RenderImGui();
 
