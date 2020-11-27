@@ -3,8 +3,10 @@ name: build
 on:
   push:
     branches: [ master ]
+    branches: [ ddx ]
   pull_request:
     branches: [ master ]
+    branches: [ ddx ]
 
 jobs:
   build:
