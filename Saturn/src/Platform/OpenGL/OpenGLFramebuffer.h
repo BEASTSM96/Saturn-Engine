@@ -5,7 +5,6 @@
 namespace Saturn {
 
 	class Application;
-	class GameObject;
 
 	class OpenGLFramebuffer : public Framebuffer
 	{

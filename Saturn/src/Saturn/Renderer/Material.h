@@ -65,7 +65,7 @@ namespace Saturn {
 		T& Get(const std::string& name)
 		{
 			auto decl = FindUniformDeclaration(name);
-			HZ_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
+			SAT_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
 			auto& buffer = GetUniformBufferTarget(decl);
 			return buffer.Read<T>(decl->GetOffset());
 		}
@@ -75,7 +75,7 @@ namespace Saturn {
 		{
 			auto decl = FindResourceDeclaration(name);
 			u32 slot = decl->GetRegister();
-			HZ_CORE_ASSERT(slot < m_Textures.size(), "Texture slot is invalid!");
+			SAT_CORE_ASSERT(slot < m_Textures.size(), "Texture slot is invalid!");
 			return m_Textures[slot];
 		}
 	public:
@@ -112,7 +112,6 @@ namespace Saturn {
 			auto decl = m_Material->FindUniformDeclaration(name);
 			if (!decl)
 				return;
-			// HZ_CORE_ASSERT(decl, "Could not find uniform with name '{0}'", name);
 			SAT_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
 			auto& buffer = GetUniformBufferTarget(decl);
 			buffer.Write((byte*)&value, decl->GetSize(), decl->GetOffset());
@@ -148,7 +147,7 @@ namespace Saturn {
 		T& Get(const std::string& name)
 		{
 			auto decl = m_Material->FindUniformDeclaration(name);
-			HZ_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
+			SAT_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
 			auto& buffer = GetUniformBufferTarget(decl);
 			return buffer.Read<T>(decl->GetOffset());
 		}

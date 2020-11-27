@@ -8,8 +8,6 @@
 #include "Saturn/Events/ApplicationEvent.h"
 #include "Saturn/ImGui/ImGuiLayer.h"
 #include "Saturn/Core/Timestep.h"
-#include "GameBase/GameLayer.h"
-#include "Core/World/Level.h"
 
 #include <string>
 #include <vector>
@@ -65,8 +63,6 @@ namespace Saturn {
 		std::string SaveJSONFile() const;
 
 		GameLayer* m_gameLayer;
-
-		GameObject* gameObject;
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);

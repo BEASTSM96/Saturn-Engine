@@ -15,6 +15,7 @@
 #include "Saturn/Scene/Components.h"
 #include "Saturn/Renderer/SceneRenderer.h"
 #include "Saturn/Renderer/Renderer2D.h"
+#include "Saturn/Renderer/Renderer.h"
 #include "Saturn/Core/Base.h"
 #include "Saturn/MouseButtons.h"
 #include "Saturn/Core/Modules/Module.h"
@@ -1011,11 +1012,6 @@ namespace Saturn {
 			if (ImGui::MenuItem("Create Empty Entity"))
 			{
 				m_Context->CreateEntity("Empty Entity");
-			}
-
-			if (ImGui::MenuItem("Create Empty GameObject"))
-			{
-				m_Context->CreateEntityGameObject("Empty GameObject");
 			}
 			ImGui::EndPopup();
 		}

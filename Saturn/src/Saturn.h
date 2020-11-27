@@ -30,8 +30,6 @@
 
 #include "Saturn/Core/Serialisation/Serialiser.h"
 
-#include "Saturn/GameBase/GameLayer.h"
-
 #include "Saturn/Renderer/OrthographicCameraController.h"
 
 #include "Saturn/Scene/Components.h"
