@@ -18,6 +18,6 @@ namespace Saturn {
 		virtual void Bind() override;
 	private:
 		PipelineSpecification m_Specification;
-		uint32_t m_VertexArrayRendererID = 0;
+		u32 m_VertexArrayRendererID = 0;
 	};
 }

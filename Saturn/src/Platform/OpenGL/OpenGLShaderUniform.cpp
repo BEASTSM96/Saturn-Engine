@@ -4,7 +4,7 @@
 
 namespace Saturn {
 
-	OpenGLShaderUniformDeclaration::OpenGLShaderUniformDeclaration(ShaderDomain domain, Type type, const std::string& name, uint32_t count)
+	OpenGLShaderUniformDeclaration::OpenGLShaderUniformDeclaration(ShaderDomain domain, Type type, const std::string& name, u32 count)
 		: m_Type(type), m_Struct(nullptr), m_Domain(domain)
 	{
 		m_Name = name;
@@ -12,7 +12,7 @@ namespace Saturn {
 		m_Size = SizeOfUniformType(type) * count;
 	}
 
-	OpenGLShaderUniformDeclaration::OpenGLShaderUniformDeclaration(ShaderDomain domain, ShaderStruct* uniformStruct, const std::string& name, uint32_t count)
+	OpenGLShaderUniformDeclaration::OpenGLShaderUniformDeclaration(ShaderDomain domain, ShaderStruct* uniformStruct, const std::string& name, u32 count)
 		: m_Struct(uniformStruct), m_Type(OpenGLShaderUniformDeclaration::Type::STRUCT), m_Domain(domain)
 	{
 		m_Name = name;
@@ -20,7 +20,7 @@ namespace Saturn {
 		m_Size = m_Struct->GetSize() * count;
 	}
 
-	void OpenGLShaderUniformDeclaration::SetOffset(uint32_t offset)
+	void OpenGLShaderUniformDeclaration::SetOffset(u32 offset)
 	{
 		if (m_Type == OpenGLShaderUniformDeclaration::Type::STRUCT)
 			m_Struct->SetOffset(offset);
@@ -28,7 +28,7 @@ namespace Saturn {
 		m_Offset = offset;
 	}
 
-	uint32_t OpenGLShaderUniformDeclaration::SizeOfUniformType(Type type)
+	u32 OpenGLShaderUniformDeclaration::SizeOfUniformType(Type type)
 	{
 		switch (type)
 		{
@@ -78,7 +78,7 @@ namespace Saturn {
 
 	void OpenGLShaderUniformBufferDeclaration::PushUniform(OpenGLShaderUniformDeclaration* uniform)
 	{
-		uint32_t offset = 0;
+		u32 offset = 0;
 		if (m_Uniforms.size())
 		{
 			OpenGLShaderUniformDeclaration* previous = (OpenGLShaderUniformDeclaration*)m_Uniforms.back();
@@ -99,7 +99,7 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	OpenGLShaderResourceDeclaration::OpenGLShaderResourceDeclaration(Type type, const std::string& name, uint32_t count)
+	OpenGLShaderResourceDeclaration::OpenGLShaderResourceDeclaration(Type type, const std::string& name, u32 count)
 		: m_Type(type), m_Name(name), m_Count(count)
 	{
 		m_Name = name;

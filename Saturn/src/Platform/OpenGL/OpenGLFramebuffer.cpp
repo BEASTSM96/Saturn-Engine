@@ -19,7 +19,7 @@ namespace Saturn {
 		});
 	}
 
-	void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height, bool forceRecreate)
+	void OpenGLFramebuffer::Resize(u32 width, u32 height, bool forceRecreate)
 	{
 		if (!forceRecreate && (m_Specification.Width == width && m_Specification.Height == height))
 			return;
@@ -124,7 +124,7 @@ namespace Saturn {
 		});
 	}
 
-	void OpenGLFramebuffer::BindTexture(uint32_t slot) const
+	void OpenGLFramebuffer::BindTexture(u32 slot) const
 	{
 		Renderer::Submit([=]() {
 			glBindTextureUnit(slot, m_ColorAttachment);
