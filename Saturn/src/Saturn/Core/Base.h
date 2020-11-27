@@ -33,6 +33,20 @@ namespace Saturn {
 
 #define SAT_BIND_EVENT_FN(fn) std::bind(&##fn, this, std::placeholders::_1)
 
+#ifdef SAT_DEBUG
+#if defined(SAT_PLATFORM_WINDOWS)
+#define SAT_DEBUGBREAK() __debugbreak()
+#elif defined(SAT_PLATFORM_LINUX)
+#include <signal.h>
+#define SAT_DEBUGBREAK() raise(SIGTRAP)
+#else
+#error "Platform doesn't support debugbreak yet!"
+#endif
+#define SAT_ENABLE_ASSERTS
+#else
+#define SAT_DEBUGBREAK()
+#endif
+
 #include "Asserts.h"
 
 #include "Types.h"
