@@ -393,12 +393,9 @@ namespace Saturn {
 		m_EditorScene = Ref<Scene>::Create();
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(m_EditorScene);
 		m_SceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
-#define TODO_FIX
-#ifdef TODO_FIX
-		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
-#endif // TODO_FIX
-		
 
+		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
+		
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
@@ -703,6 +700,28 @@ namespace Saturn {
 			}
 		}
 #endif
+
+
+		if (Input::IsKeyPressed(SAT_KEY_LEFT_SHIFT))
+		{
+			switch (e.GetKeyCode())
+			{
+			case SAT_KEY_P:
+				m_RuntimeScene = m_EditorScene->CopyScene(m_EditorScene);
+				break;
+			}
+		}
+
+		if (Input::IsKeyPressed(SAT_KEY_LEFT_CONTROL))
+		{
+			switch (e.GetKeyCode())
+			{
+			case SAT_KEY_P:
+				m_RuntimeScene->BeginRuntime(m_RuntimeScene);
+				m_RuntimeScene->StartRuntime();
+				break;
+			}
+		}
 
 		return false;
 

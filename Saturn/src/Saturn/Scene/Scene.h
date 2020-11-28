@@ -39,6 +39,13 @@ namespace Saturn {
 		float Multiplier = 1.0f;
 	};
 
+	struct RuntimeData
+	{
+		bool Running = false;
+		Ref<Scene> RuntimeScene;
+		UUID RuntimeID;
+	};
+
 	class Level;
 	class Entity;
 
@@ -99,7 +106,21 @@ namespace Saturn {
 
 		void Contact(rp3d::CollisionBody* body);
 
+		/*------------------------ Runtime helpers ------------------------ */
+		Ref<Scene> CopyScene(const Ref<Scene>& CurrentScene);
+		Ref<Scene> CopyScene(const Ref<Scene>& CurrentScene, Ref<Scene> NewScene);
+		Scene* CopyScene(const Scene*& CurrentScene);
+		Scene* CopyScene(const Scene*& CurrentScene, Scene* NewScene);
+		void BeginRuntime(Ref<Scene> scene);
+		void StartRuntime();
+		void EndRuntime(Ref<Scene> scene);
+	private:
+		void UpdateRuntime();
+		/*------------------------------------------------------------------ */
+	public:
 		std::shared_ptr<PhysicsScene> m_physicsScene;
+
+
 	private:
 		UUID m_SceneID;
 		entt::entity m_SceneEntity;
@@ -124,6 +145,8 @@ namespace Saturn {
 		SceneData m_data;
 
 		Level* m_CurrentLevel;
+
+		RuntimeData m_RuntimeData;
 
 		friend class Entity;
 		friend class SceneRenderer;

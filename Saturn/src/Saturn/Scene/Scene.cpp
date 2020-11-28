@@ -57,7 +57,10 @@ namespace Saturn {
 
 	void Scene::OnUpdate(Timestep ts)
 	{
-		m_physicsScene->Update(ts);
+		if (m_RuntimeData.Running)
+		{
+			m_physicsScene->Update(ts);
+		}
 	}
 
 	void Scene::OnRenderEditor(Timestep ts, const EditorCamera& editorCamera)
@@ -163,15 +166,6 @@ namespace Saturn {
 
 			transform.Position = physics.rigidbody->GetPosition();
 			transform.Rotation = physics.rigidbody->GetRotation();
-
-			m_physicsScene->m_world->createCollisionBody(reactphysics3d::Transform(reactphysics3d::Vector3(transform.Position.x, transform.Position.y, transform.Position.z), reactphysics3d::Quaternion(transform.Rotation.w, transform.Rotation.x, transform.Rotation.y, transform.Rotation.z)));
-
-
-			const reactphysics3d::Vector3 scale = reactphysics3d::Vector3(transform.Scale.x, transform.Scale.y, transform.Scale.z);
-
-
-			physics.rigidbody->AddBoxCollider(glm::vec3(1, 1, 1));
-
 		}
 	}
 
@@ -259,5 +253,130 @@ namespace Saturn {
 		}
 	}
 
+	/*------------------------ Runtime helpers ------------------------ */
+
+
+	/**
+	 * Copies the scene and returns the new scene
+	*/
+	Ref<Scene> Scene::CopyScene(const Ref<Scene>& CurrentScene)
+	{
+		SAT_CORE_WARN("Copying Scene!");
+		Ref<Scene> CScene = Ref<Scene>::Create();
+		CScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
+		CScene->m_data = CurrentScene->m_data;
+		CScene->m_DebugName = CurrentScene->m_DebugName;
+		CScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
+		CScene->m_Environment = CurrentScene->m_Environment;
+		CScene->m_Light = CurrentScene->m_Light;
+		CScene->m_LightMultiplier = CurrentScene->m_LightMultiplier;
+		CScene->m_SkyboxLod = CurrentScene->m_SkyboxLod;
+		CScene->m_SkyboxMaterial = CurrentScene->m_SkyboxMaterial;
+		CScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
+		CScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
+		CScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
+		CScene->m_physicsScene = CurrentScene->m_physicsScene;
+		CScene->m_RuntimeData = CurrentScene->m_RuntimeData;
+		return CScene;
+	}
+
+	/**
+	 * Copies the scene and returns the new scene
+	*/
+	Scene* Scene::CopyScene(const Scene*& CurrentScene)
+	{
+		SAT_CORE_WARN("Copying Scene!");
+		Scene* CScene = new Scene();
+		CScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
+		CScene->m_data = CurrentScene->m_data;
+		CScene->m_DebugName = CurrentScene->m_DebugName;
+		CScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
+		CScene->m_Environment = CurrentScene->m_Environment;
+		CScene->m_Light = CurrentScene->m_Light;
+		CScene->m_LightMultiplier = CurrentScene->m_LightMultiplier;
+		CScene->m_SkyboxLod = CurrentScene->m_SkyboxLod;
+		CScene->m_SkyboxMaterial = CurrentScene->m_SkyboxMaterial;
+		CScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
+		CScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
+		CScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
+		CScene->m_physicsScene = CurrentScene->m_physicsScene;
+		CScene->m_RuntimeData = CurrentScene->m_RuntimeData;
+		return CScene;
+	}
+
+	/**
+	 * Copies the scene and returns the new scene, and fills the 'NewScece' value
+	*/
+	Ref<Scene> Scene::CopyScene(const Ref<Scene>& CurrentScene, Ref<Scene> NewScene)
+	{
+		SAT_CORE_WARN("Copying Scene!");
+		NewScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
+		NewScene->m_data = CurrentScene->m_data;
+		NewScene->m_DebugName = CurrentScene->m_DebugName;
+		NewScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
+		NewScene->m_Environment = CurrentScene->m_Environment;
+		NewScene->m_Light = CurrentScene->m_Light;
+		NewScene->m_LightMultiplier = CurrentScene->m_LightMultiplier;
+		NewScene->m_SkyboxLod = CurrentScene->m_SkyboxLod;
+		NewScene->m_SkyboxMaterial = CurrentScene->m_SkyboxMaterial;
+		NewScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
+		NewScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
+		NewScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
+		NewScene->m_physicsScene = CurrentScene->m_physicsScene;
+		NewScene->m_RuntimeData = CurrentScene->m_RuntimeData;
+		return NewScene;
+	}
+
+	/**
+	 * Copies the scene and returns the new scene, and fills the 'NewScece' value
+	*/
+	Scene* Scene::CopyScene(const Scene*& CurrentScene, Scene* NewScene)
+	{
+		SAT_CORE_WARN("Copying Scene!");
+		NewScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
+		NewScene->m_data = CurrentScene->m_data;
+		NewScene->m_DebugName = CurrentScene->m_DebugName;
+		NewScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
+		NewScene->m_Environment = CurrentScene->m_Environment;
+		NewScene->m_Light = CurrentScene->m_Light;
+		NewScene->m_LightMultiplier = CurrentScene->m_LightMultiplier;
+		NewScene->m_SkyboxLod = CurrentScene->m_SkyboxLod;
+		NewScene->m_SkyboxMaterial = CurrentScene->m_SkyboxMaterial;
+		NewScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
+		NewScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
+		NewScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
+		NewScene->m_physicsScene = CurrentScene->m_physicsScene;
+		NewScene->m_RuntimeData = CurrentScene->m_RuntimeData;
+		return NewScene;
+	}
+
+	void Scene::BeginRuntime(Ref<Scene> scene)
+	{
+		SAT_CORE_WARN("Begining Runtime!");
+		m_RuntimeData.RuntimeScene = scene;
+		m_RuntimeData.RuntimeID;
+	}
+
+	void Scene::StartRuntime()
+	{
+		SAT_CORE_WARN("Starting Runtime!");
+		m_RuntimeData.Running = true;
+	}
+
+	void Scene::UpdateRuntime()
+	{
+		SAT_CORE_WARN("Updating Runtime!");
+		auto view = m_Registry.view<TransformComponent, PhysicsComponent /*, TODO: When add other comps */>();
+
+		for (auto entity : view)
+		{
+			auto [tc, pc] = view.get<TransformComponent, PhysicsComponent>(entity);
+
+			tc.Position = pc.rigidbody->GetPosition();
+			tc.Rotation = pc.rigidbody->GetRotation();
+
+		}
+
+	}
 
 }
