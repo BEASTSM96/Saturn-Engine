@@ -6,10 +6,12 @@ extern Saturn::Application* Saturn::CreateApplication();
 
 int main(int argc, char** argv)
 {
-	Saturn::InitializeCore();
+	//Saturn::Log::Init();
+
+	Saturn::InitCore();
 
 	SAT_PROFILE_BEGIN_SESSION("Startup", "SaturnProfile-Startup.json");
-	auto app = Saturn::CreateApplication();
+	Saturn::Application* app = Saturn::CreateApplication();
 	SAT_PROFILE_END_SESSION();
 
 	SAT_PROFILE_BEGIN_SESSION("Runtime", "SaturnProfile-Runtime.json");
@@ -20,7 +22,7 @@ int main(int argc, char** argv)
 	delete app;
 	SAT_PROFILE_END_SESSION();
 
-	Saturn::ShutdownCore();
+	Saturn::EndCore();
 }
 
 #endif 

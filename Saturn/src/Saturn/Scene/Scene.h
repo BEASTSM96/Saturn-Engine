@@ -41,7 +41,6 @@ namespace Saturn {
 
 	class Level;
 	class Entity;
-	class GameObject;
 
 	using EntityMap = std::unordered_map<UUID, Entity>;
 
@@ -53,11 +52,7 @@ namespace Saturn {
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "");
-		GameObject CreateEntityGameObject(const std::string& name = std::string());
-		GameObject * CreateEntityGameObjectprt(const std::string& name, const std::vector<std::string> ShaderPaths, std::string ObjectPath = std::string());
 		void DestroyEntity(Entity entity);
-		void DestroyGameObject(GameObject entity);
-		void DestroyGameObject(GameObject * entity);
 
 		void OnRenderEditor(Timestep ts, const EditorCamera& editorCamera);
 
@@ -131,7 +126,6 @@ namespace Saturn {
 		Level* m_CurrentLevel;
 
 		friend class Entity;
-		friend class GameObject;
 		friend class SceneRenderer;
 		friend class Serialiser;
 		friend class SceneHierarchyPanel;

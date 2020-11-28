@@ -33,22 +33,20 @@ namespace Saturn {
 
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application()
+	Application::Application(const ApplicationProps& props /*= {"Saturn Engine", 1280, 720}*/)
 	{
 		SAT_PROFILE_FUNCTION();
 
 		SAT_CORE_ASSERT(!s_Instance, "Application already exists!");
 
 		s_Instance = this;
-		m_Window = std::unique_ptr<Window>(Window::Create());
+		m_Window = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 		m_Window->SetVSync(false);
 
 		m_ImGuiLayer = new ImGuiLayer();
-		m_EditorLayer = new EditorLayer();
 
 		PushOverlay(m_ImGuiLayer);
-		PushOverlay(m_EditorLayer);
 
 		Renderer::Init();
 		Renderer::WaitAndRender();
@@ -59,12 +57,14 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 	}
 
-	void Application::PushLayer(Layer* layer)
+	Layer* Application::PushLayer(Layer* layer)
 	{
 		SAT_PROFILE_FUNCTION();
 
 		m_LayerStack.PushLayer(layer);
 		layer->OnAttach();
+
+		return layer;
 	}
 
 	void Application::PushOverlay(Layer* layer)
@@ -126,6 +126,9 @@ namespace Saturn {
 
 		Init();
 
+		/* Call Editor / child functions */
+		OnInit();
+
 		while (m_Running && !m_Crashed)
 		{
 			SAT_PROFILE_SCOPE("RunLoop");
@@ -148,19 +151,9 @@ namespace Saturn {
 
 			LastFrameTime = time;
 		}
-	}
-
-	void Application::SetCrashState(bool state)
-	{
-		m_Crashed = state;
-		m_Running = !state;
-	}
-
-	bool Application::SetRunningState(bool state)
-	{
-		m_Running = state;
-
-		return state;
+		/* Call Editor / child functions */
+		OnShutdown();
+		OnShutdownSave();
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)

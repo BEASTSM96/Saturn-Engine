@@ -29,7 +29,6 @@ namespace Saturn {
 		virtual void Deserialise(const std::string& filepath);
 
 		virtual void SerialiseEntity(YAML::Emitter& out, Entity entity);
-		virtual void SerialiseEntity(YAML::Emitter& out, GameObject entity);
 
 		std::string m_ObjectName;
 		bool m_shouldSerialise;

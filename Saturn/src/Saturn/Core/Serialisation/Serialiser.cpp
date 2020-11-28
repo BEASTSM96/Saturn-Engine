@@ -11,8 +11,6 @@
 #include "Saturn/Scene/Components.h"
 #include "Saturn/Scene/Entity.h"
 
-#include "Saturn/GameBase/GameObject.h"
-
 #include <fstream>
 #include <iostream>
 #include <fcntl.h>
@@ -215,62 +213,6 @@ namespace Saturn {
 			out << YAML::EndMap; // TagComponent
 		}
 		else
-			SAT_CORE_ASSERT(entity.HasComponent<TagComponent>(), "Error! entity dose not have a TagComponent!");
-
-		if (entity.HasComponent<TransformComponent>())
-		{
-			out << YAML::Key << "TransformComponent";
-			out << YAML::BeginMap; // TransformComponent
-
-			auto& tc = entity.GetComponent<TransformComponent>();
-			out << YAML::Key << "Position" << YAML::Value << tc.Position;
-			out << YAML::Key << "Rotation" << YAML::Value << tc.Rotation;
-			out << YAML::Key << "Scale" << YAML::Value << tc.Scale;
-
-			out << YAML::EndMap; // TransformComponent
-		}
-		else
-			SAT_CORE_ASSERT(entity.HasComponent<TransformComponent>(), "Error! entity dose not have a TransformComponent!");
-
-
-		if (entity.HasComponent<MeshComponent>())
-		{
-			out << YAML::Key << "MeshComponent";
-			out << YAML::BeginMap; // MeshComponent
-
-			auto mesh = entity.GetComponent<MeshComponent>().Mesh;
-			out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
-
-			out << YAML::EndMap; // MeshComponent
-		}
-		out << YAML::EndMap; // Entity
-	}
-
-	void Serialiser::SerialiseEntity(YAML::Emitter& out, GameObject entity)
-	{
-
-		SAT_CORE_ASSERT(
-			entity.HasComponent<TagComponent>()
-			&& entity.HasComponent<TransformComponent>()
-			&& entity.HasComponent<IdComponent>(), 
-			"Error! entity dose not have a TagComponent, TransformComponent and a IdComponent!"
-		);
-
-		UUID uuid = entity.GetComponent<IdComponent>().ID;
-		out << YAML::BeginMap; // Entity
-		out << YAML::Key << "Entity" << YAML::Value << uuid; // TODO: Entity ID goes here
-
-		if (entity.HasComponent<TagComponent>())
-		{
-			out << YAML::Key << "TagComponent";
-			out << YAML::BeginMap; // TagComponent
-
-			auto& tag = entity.GetComponent<TagComponent>().Tag;
-			out << YAML::Key << "Tag" << YAML::Value << tag;
-
-			out << YAML::EndMap; // TagComponent
-		}
-		else 
 			SAT_CORE_ASSERT(entity.HasComponent<TagComponent>(), "Error! entity dose not have a TagComponent!");
 
 		if (entity.HasComponent<TransformComponent>())

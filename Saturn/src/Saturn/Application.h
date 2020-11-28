@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Base.h"
+
 #include "Window.h"
 #include "Saturn/LayerStack.h"
 #include "Saturn/Events/Event.h"
@@ -14,8 +15,6 @@
 namespace Saturn {
 	class ModuleManager;
 	class Module;
-	class GameLayer;
-	class Level;
 	class SceneManager;
 }
 
@@ -24,60 +23,58 @@ namespace Saturn {
 	class ModuleManager;
 	class Module;
 
-	class Application
+	struct ApplicationProps
+	{
+		std::string Name;
+		uint32_t WindowWidth, WindowHeight;
+	};
+
+	class SATURN_API Application
 	{
 	public:
-		Application();
+		Application(const ApplicationProps& props = {"Saturn Engine", 1280, 720});
 		virtual ~Application();
-
-		float frames;
 
 		void Run();
 
+		/*----------For Editor----------*/
+		virtual void OnInit() {}
+		virtual void OnShutdown() {}
+		virtual void OnShutdownSave() {}
+		/*------------------------------*/
+
 		void OnEvent(Event& e);
 
-		void PushLayer(Layer* layer);
+		Layer* PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
-
 		void RenderImGui();
 
-		Window& GetWindow() { return *m_Window; }
+		void Init();
 
-		Scene& GetCurrentScene() { return *m_Scene; }
-		ModuleManager& GetModuleManager() { return *m_ModuleManager; }
-		SceneManager& GetSceneMananger() { return *m_SceneManager; }
-		//Ref<Saturn::ModuleManager> GetModuleManagerRef() { return m_ModuleManager; }
+		Window& GetWindow() { return *m_Window; }
 
 		static Application& Get() { return *s_Instance; }
 		static bool IsRunning() { return Get().m_Running; }
 		static bool GetMinimized() { return Get().m_Minimized; }
 
-		void SetCrashState(bool state);
-		bool SetRunningState(bool state);
-
 		std::pair< std::string, std::string> OpenFile(const char* filter) const;
-
-		std::string OpenProjectFile() const;
 		std::pair< std::string, std::string> SaveFile(const char* f) const;
-		std::string SaveJSONFile() const;
 
-		GameLayer* m_gameLayer;
-
-		GameObject* gameObject;
+	public:
+		Scene& GetCurrentScene() { return *m_Scene; }
+		ModuleManager& GetModuleManager() { return *m_ModuleManager; }
+		SceneManager& GetSceneManangerr() { return *m_SceneManager; }
+		//Ref<Saturn::ModuleManager> GetModuleManagerRef() { return m_ModuleManager; }
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
-
-		void Init();
 
 	private:
 
 		std::unique_ptr<Window> m_Window;
 
 		ImGuiLayer* m_ImGuiLayer;
-
-		EditorLayer* m_EditorLayer;
 
 		Ref<Scene> m_Scene;
 

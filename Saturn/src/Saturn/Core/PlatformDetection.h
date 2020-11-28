@@ -1,9 +1,19 @@
-// Platform detection using predefined macros
+#pragma once
+
 #ifdef _WIN32
-	/* Windows x64/x86 */
+/* Windows x64/x86 */
 #ifdef _WIN64
 	/* Windows x64  */
 #define SAT_PLATFORM_WINDOWS
+#ifdef SAT_DLL
+#ifdef SAT_BUILD_DLL
+#define SATURN_API SAT_DLL_EXPORT
+#else
+#define SATURN_API SAT_DLL_IMPORT
+#endif // SAT_BUILD_DLL
+#else
+#define SATURN_API
+#endif
 #else
 	/* Windows x86 */
 #error "x86 Builds are not supported!"
@@ -35,6 +45,20 @@
 #define SAT_PLATFORM_LINUX
 #error "Linux is not supported!"
 #else
-	/* Unknown compiler/platform */
+/* Unknown compiler/platform */
 #error "Unknown platform!"
 #endif // End of platform detection
+
+#ifdef SAT_DEBUG
+#if defined(SAT_PLATFORM_WINDOWS)
+#define SAT_DEBUGBREAK() __debugbreak()
+#elif defined(SAT_PLATFORM_LINUX)
+#include <signal.h>
+#define SAT_DEBUGBREAK() raise(SIGTRAP)
+#else
+#error "Platform doesn't support debugbreak yet!"
+#endif
+#define SAT_ENABLE_ASSERTS
+#else
+#define SAT_DEBUGBREAK()
+#endif

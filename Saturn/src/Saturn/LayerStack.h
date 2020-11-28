@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Core/Base.h"
+#include "Saturn/Core/Base.h"
 #include "Layer.h"
 
 #include <vector>
 
 namespace Saturn {
 
-	class LayerStack
+	class SATURN_API LayerStack
 	{
 	public:
 		LayerStack();

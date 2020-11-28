@@ -1,36 +1,44 @@
 #include "sppch.h"
 #include "ImGuiLayer.h"
 
-#include "Platform/OpenGL/OpenGLFramebuffer.h"
-#include "Saturn/Scene/Components.h"
 #include <imgui.h>
 #include <imgui_internal.h>
-#include "ImGuizmo.h"
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
-#include "Saturn/Core/Serialisation/Serialiser.h"
+
 #include "Saturn/Application.h"
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/Log.h"
+
+// TEMPORARY
+#include <GLFW/glfw3.h>
+#include <glad/glad.h>
+
+#define EDITOR
+#ifdef EDITOR
+
+#include "Saturn/Core/Serialisation/Serialiser.h"
+
+#include "Platform/OpenGL/OpenGLFramebuffer.h"
+#include "Saturn/Scene/Components.h"
+
+#include "ImGuizmo.h"
+
 #include "Saturn/Scene/Components.h"
 #include "Saturn/Renderer/SceneRenderer.h"
 #include "Saturn/Renderer/Renderer2D.h"
+#include "Saturn/Renderer/Renderer.h"
 #include "Saturn/Core/Base.h"
 #include "Saturn/MouseButtons.h"
 #include "Saturn/Core/Modules/Module.h"
 #include "Saturn/Core/Modules/ModuleManager.h"
-#include "Saturn/Scene/SceneManager.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <stb_image.h>
-
-// TEMPORARY
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
+#endif // EDITOR
 
 namespace Saturn {
 
@@ -43,6 +51,11 @@ namespace Saturn {
 		: Layer("ImGuiLayer")
 	{
 		SAT_PROFILE_FUNCTION();
+
+	}
+
+	ImGuiLayer::ImGuiLayer(const std::string& name)
+	{
 
 	}
 
@@ -120,27 +133,13 @@ namespace Saturn {
 
 	void ImGuiLayer::OnImGuiRender()
 	{
-		SAT_PROFILE_FUNCTION();
 	}
-
-	///////////////////////////////////////////
-	//////////////EditorLayer/////////////////
-	/////////////////////////////////////////
-
-	///////////////////////////////////////////
-	////////////FORALLPLATFORMS--NOT///////////
-	//////////////////////////////////////////
-
-	///////////////////////////////////////////////////////////
-	////////////////SHOULD-MOVE-TO-EDITOR-PROJECT/////////////
-	/////////////////////////////////////////////////////////
-
 
 	EditorLayer::EditorLayer() : Layer("EditorLayer"), m_EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f))
 	{
 		SAT_PROFILE_FUNCTION();
 
-		
+
 
 	}
 
@@ -170,7 +169,7 @@ namespace Saturn {
 		ImVec4* colors = ImGui::GetStyle().Colors;
 
 #ifdef SAT_PLATFORM_WINDOWS
-		ImFont* pFont = io.Fonts->AddFontFromFileTTF("assets\\fonts\\segoeui.ttf", 18.0f);
+		ImFont* pFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
 		io.FontDefault = io.Fonts->Fonts.back();
 #endif // SAT_PLATFORM_WINDOWS
 
@@ -393,10 +392,8 @@ namespace Saturn {
 		m_EditorScene = Ref<Scene>::Create();
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(m_EditorScene);
 		m_SceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
-		
-		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
 
-		Application::Get().GetSceneMananger().AddScene(m_EditorScene.Raw());
+		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
@@ -569,14 +566,14 @@ namespace Saturn {
 		selection.Entity = entity;
 		m_SelectionContext.clear();
 		m_SelectionContext.push_back(selection);
-		
+
 		m_EditorScene->SetSelectedEntity(entity);
 	}
 
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
 		m_EditorCamera.OnUpdate(ts);
-	
+
 		m_EditorScene->OnRenderEditor(ts, m_EditorCamera);
 
 		m_DrawOnTopBoundingBoxes = true;
@@ -733,7 +730,7 @@ namespace Saturn {
 					{
 						auto& submesh = submeshes[i];
 						Ray ray = {
-							glm::inverse(entity.GetComponent<TransformComponent>().GetTransform() *submesh.Transform) * glm::vec4(origin, 1.0f),
+							glm::inverse(entity.GetComponent<TransformComponent>().GetTransform() * submesh.Transform) * glm::vec4(origin, 1.0f),
 							glm::inverse(glm::mat3(entity.GetComponent<TransformComponent>().GetTransform()) * glm::mat3(submesh.Transform)) * direction
 						};
 
@@ -825,14 +822,14 @@ namespace Saturn {
 			}
 			// Editor Panel ------------------------------------------------------------------------------
 			if (ImGui::Begin("Model")) {
-				if(ImGui::Begin("Environment")) {
-				
+				if (ImGui::Begin("Environment")) {
+
 					if (ImGui::Button("Load Environment Map"))
 					{
 						std::string filename = Application::Get().OpenFile("HDR (*.hdr)\0 * .hdr\0").first;
 						if (filename != "")
 							m_EditorScene->SetEnvironment(Environment::Load(filename));
-					}				
+					}
 					ImGui::SliderFloat("Skybox LOD", &m_EditorScene->GetSkyboxLod(), 0.0f, 11.0f);
 
 					ImGui::Columns(2);
@@ -930,7 +927,7 @@ namespace Saturn {
 				{
 					//temp create module and move into modules list
 					SAT_CORE_WARN("[!]New Module creating");
-					std::string path =  Application::Get().SaveFile("Saturn Module (*.smodule)\0*.smodule\0").first;
+					std::string path = Application::Get().SaveFile("Saturn Module (*.smodule)\0*.smodule\0").first;
 					Ref<Module>tmp_module = Ref<Module>::Create(path, "tmp_module");
 					SAT_CORE_WARN("[!]Module created in {0}", path);
 
@@ -964,9 +961,6 @@ namespace Saturn {
 				ImGui::Text("Modules %i", i);
 			}
 		}
-
-		
-
 		ImGui::End();
 #endif // SAT_DEBUG
 
@@ -1018,11 +1012,6 @@ namespace Saturn {
 			{
 				m_Context->CreateEntity("Empty Entity");
 			}
-
-			if (ImGui::MenuItem("Create Empty GameObject"))
-			{
-				m_Context->CreateEntityGameObject("Empty GameObject");
-			}
 			ImGui::EndPopup();
 		}
 
@@ -1033,7 +1022,7 @@ namespace Saturn {
 			if (m_SelectionContext)
 			{
 				DrawEntityComponents(m_SelectionContext);
-			
+
 				if (ImGui::Button("Add Component"))
 					ImGui::OpenPopup("AddComponentPanel");
 
@@ -1051,12 +1040,12 @@ namespace Saturn {
 						if (ImGui::MenuItem("Physics")) {
 							m_SelectionContext.AddComponent<PhysicsComponent>
 								(new Rigidbody
-											(
-												m_Context->GetPhysicsScene(), /*Phys Scene*/
-												true, /*UseGravity*/
-												glm::vec3(0, -2, 0) /*Pos*/
-											)
-								).rigidbody->AddBoxCollider(glm::vec3(1));
+								(
+									m_Context->GetPhysicsScene(), /*Phys Scene*/
+									true, /*UseGravity*/
+									glm::vec3(0, -2, 0) /*Pos*/
+								)
+									).rigidbody->AddBoxCollider(glm::vec3(1));
 						}
 
 						if (ImGui::MenuItem("Box Collider")) {
@@ -1361,7 +1350,7 @@ namespace Saturn {
 
 			if (updateTransform)
 			{
-				
+
 			}
 
 		});
@@ -1400,7 +1389,7 @@ namespace Saturn {
 
 		DrawComponent<PhysicsComponent>("Physics", entity, [](auto& pc)
 		{
-			
+
 
 		});
 
