@@ -33,6 +33,9 @@
 #include "Saturn/Core/Modules/Module.h"
 #include "Saturn/Core/Modules/ModuleManager.h"
 
+#include "Saturn/Input.h"
+
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>

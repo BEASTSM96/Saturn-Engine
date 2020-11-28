@@ -44,6 +44,7 @@ namespace Saturn {
 
 	bool OrthographicCameraController::CameraMove()
 	{
+		return false;
 	}
 
 	void OrthographicCameraController::OnResize(float width, float height)

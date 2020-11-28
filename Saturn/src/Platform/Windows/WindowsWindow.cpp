@@ -1,11 +1,12 @@
 #include "sppch.h"
 #include "WindowsWindow.h"
-#include "Saturn/Events\ApplicationEvent.h"
-#include "Saturn/Events\Event.h"
-#include "Saturn/Events\KeyEvent.h"
-#include "Saturn/Events\MouseEvent.h"
 
-#include "Platform\OpenGL\OpenGLContext.h"
+#include "Saturn/Events/ApplicationEvent.h"
+#include "Saturn/Events/Event.h"
+#include "Saturn/Events/KeyEvent.h"
+#include "Saturn/Events/MouseEvent.h"
+
+#include "Platform/OpenGL/OpenGLContext.h"
 
 
 namespace Saturn {

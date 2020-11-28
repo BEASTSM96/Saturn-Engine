@@ -8,7 +8,6 @@ namespace Saturn {
 
 	class SATURN_API Input 
 	{
-	
 	public:
 		static bool IsKeyPressed(int keycode) { return s_Instance->IsKeyPressedImpl(keycode); }
 	
