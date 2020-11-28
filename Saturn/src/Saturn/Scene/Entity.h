@@ -8,7 +8,7 @@
 namespace Saturn {
 
 
-	class SATURN_API Entity
+	class Entity
 	{
 	public:
 		Entity() = default;

@@ -14,7 +14,7 @@
 #define MEMBER(name, type) new Serialiser<type>(#name, &var)
 
 namespace Saturn {
-	class SATURN_API Serialiser
+	class Serialiser
 	{
 	public:
 		Serialiser(const std::string& objectname, bool shouldSerialise = true);
@@ -35,7 +35,7 @@ namespace Saturn {
 	private:
 		Ref<Scene> m_Scene;
 
-		friend class  Scene;
+		friend class Scene;
 
 	};
 }

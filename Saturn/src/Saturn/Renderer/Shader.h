@@ -134,7 +134,7 @@ namespace Saturn {
 	};
 
 
-	class SATURN_API Shader : public RefCounted
+	class Shader : public RefCounted
 	{
 	public:
 		using ShaderReloadedCallback = std::function<void()>;

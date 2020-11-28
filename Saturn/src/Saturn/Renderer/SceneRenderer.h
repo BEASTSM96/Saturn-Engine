@@ -2,7 +2,6 @@
 
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Renderer/Mesh.h"
-#include "3DCamera.h"
 #include "RenderPass.h"
 
 namespace Saturn {

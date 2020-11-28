@@ -13,7 +13,7 @@ namespace Saturn {
     //This is dumb
     using openglbool = GLboolean;
 
-    class SATURN_API EmptyCamera
+    class EmptyCamera
     {
     public:
         const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }

@@ -5,7 +5,7 @@
 #include "Serialiser.h"
 
 namespace Saturn {
-	class SATURN_API Object
+	class Object
 	{
 	public:
 		Object();

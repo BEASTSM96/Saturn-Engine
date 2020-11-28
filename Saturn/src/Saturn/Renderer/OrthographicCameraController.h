@@ -1,7 +1,6 @@
 #pragma once
 
 #include "OrthographicCamera.h"
-#include "Saturn/Renderer/3DCamera.h"
 #include "Saturn/Core/Timestep.h"
 
 #include "Saturn/Events/ApplicationEvent.h"
@@ -9,7 +8,7 @@
 
 namespace Saturn {
 
-	class SATURN_API OrthographicCameraController
+	class OrthographicCameraController
 	{
 	public:
 		OrthographicCameraController(float aspectRatio, bool rotation = false);
@@ -21,12 +20,6 @@ namespace Saturn {
 
 		OrthographicCamera& GetCamera() { return m_Camera; }
 		const OrthographicCamera& GetCamera() const { return m_Camera; }
-
-		SCamera *  Get3DCameraTest() { return m_3DCameraTest; }
-		const SCamera *  Get3DCameraTest() const { return m_3DCameraTest; }
-
-		SCamera& Get3DCamera() { return m_3DCamera; }
-		const SCamera& Get3DCamera() const { return m_3DCamera; }
 
 		float GetZoomLevel() const { return m_ZoomLevel; }
 		void SetZoomLevel(float level) { m_ZoomLevel = level; }
@@ -41,11 +34,6 @@ namespace Saturn {
 		float m_AspectRatio;
 		float m_ZoomLevel = 1.0f;
 		OrthographicCamera m_Camera;
-
-		SCamera m_3DCamera;
-
-
-		SCamera * m_3DCameraTest;
 
 		bool m_Rotation;
 

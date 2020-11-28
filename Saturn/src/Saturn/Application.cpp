@@ -24,7 +24,6 @@
 #include <json/json.h>
 
 #include <Windows.h>
-#include <commdlg.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
@@ -186,11 +185,11 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 
 #ifdef  SAT_PLATFORM_WINDOWS
-		SAT_FILEOPENNAMEA ofn;
+		OPENFILENAMEA ofn;
 		CHAR szFile[260] = { 0 };
-		SAT_ZeroMemory(&ofn, sizeof(SAT_FILEOPENNAME));
+		ZeroMemory(&ofn, sizeof(OPENFILENAMEA));
 
-		ofn.lStructSize = sizeof(SAT_FILEOPENNAME);
+		ofn.lStructSize = sizeof(OPENFILENAMEA);
 		ofn.lpstrFilter = filter;
 		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
 		ofn.lpstrFile = szFile;
@@ -225,7 +224,7 @@ namespace Saturn {
 		OPENFILENAMEA ofn;
 		CHAR szFile[260] = { 0 };
 
-		SAT_ZeroMemory(&ofn, sizeof(OPENFILENAME));
+		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.lpstrFilter = f;
 		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
