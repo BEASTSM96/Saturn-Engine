@@ -68,6 +68,5 @@ namespace Saturn {
 
 		virtual const std::string& GetPath() const = 0;
 	};
-
 }
 

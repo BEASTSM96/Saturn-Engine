@@ -9,18 +9,18 @@
 
 namespace Saturn {
 
-    //Just to clean to up
-    //This is dumb
-    using openglbool = GLboolean;
+	//Just to clean to up
+	//This is dumb
+	using openglbool = GLboolean;
 
-    class EmptyCamera
-    {
-    public:
-        const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
-        void SetProjectionMatrix(const glm::mat4& projectionMatrix) { m_ProjectionMatrix = projectionMatrix; }
+	class SATURN_API EmptyCamera
+	{
+	public:
+		const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
+		void SetProjectionMatrix(const glm::mat4& projectionMatrix) { m_ProjectionMatrix = projectionMatrix; }
 
-    protected:
-        glm::mat4 m_ProjectionMatrix = glm::mat4(1.0f);
+	protected:
+		glm::mat4 m_ProjectionMatrix = glm::mat4(1.0f);
 	};
 
 }

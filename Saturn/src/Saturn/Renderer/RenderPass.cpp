@@ -11,8 +11,8 @@ namespace Saturn {
 	{
 		switch (RendererAPI::Current())
 		{
-			case RendererAPIType::None:    SAT_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
-			case RendererAPIType::OpenGL:  return Ref<OpenGLRenderPass>::Create(spec);
+		case RendererAPIType::None:    SAT_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
+		case RendererAPIType::OpenGL:  return Ref<OpenGLRenderPass>::Create(spec);
 		}
 
 		SAT_CORE_ASSERT(false, "Unknown RendererAPI!");

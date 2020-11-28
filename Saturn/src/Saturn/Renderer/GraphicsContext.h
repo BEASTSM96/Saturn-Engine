@@ -4,7 +4,7 @@
 
 namespace Saturn {
 
-	class GraphicsContext {
+	class SATURN_API GraphicsContext {
 
 	public:
 		virtual void Init() = 0;

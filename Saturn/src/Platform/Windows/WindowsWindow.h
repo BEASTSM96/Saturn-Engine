@@ -2,10 +2,10 @@
 
 #include "Saturn/Window.h"
 
-#include <GLFW\glfw3.h>
+#include <GLFW/glfw3.h>
 
 
-#include "Saturn/Renderer\GraphicsContext.h"
+#include "Saturn/Renderer/GraphicsContext.h"
 
 namespace Saturn {
 

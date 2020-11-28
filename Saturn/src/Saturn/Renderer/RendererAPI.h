@@ -29,7 +29,7 @@ namespace Saturn {
 		int MaxTextureUnits = 0;
 	};
 
-	class RendererAPI
+	class SATURN_API RendererAPI
 	{
 	public:
 		static void Init();

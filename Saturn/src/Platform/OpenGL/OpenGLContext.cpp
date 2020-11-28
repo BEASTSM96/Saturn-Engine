@@ -1,14 +1,14 @@
 #include "sppch.h"
 #include "OpenGLContext.h"
 
-#include <GLFW\glfw3.h>
+#include <GLFW/glfw3.h>
 
-#include <glad\glad.h>
+#include <glad/glad.h>
 
 
 namespace Saturn {
 
-	OpenGLContext::OpenGLContext(GLFWwindow * windowHandle)
+	OpenGLContext::OpenGLContext(GLFWwindow* windowHandle)
 		: m_WindowHandle(windowHandle)
 	{
 		SAT_CORE_ASSERT(windowHandle, "Window handle is null!")

@@ -25,6 +25,7 @@
 
 namespace Saturn {
 
+
 #define MESH_DEBUG_LOG 0
 #if MESH_DEBUG_LOG
 #define SAT_MESH_LOG(...) SAT_CORE_TRACE(__VA_ARGS__)
@@ -356,7 +357,7 @@ namespace Saturn {
 				{
 					SAT_MESH_LOG("    No metalness texture");
 					mi->Set("u_Metalness", metalness);
-				}
+			}
 #endif
 
 				bool metalnessTextureFound = false;
@@ -413,7 +414,7 @@ namespace Saturn {
 					case aiTextureType_UNKNOWN:
 						SAT_MESH_LOG("  Semantic = aiTextureType_UNKNOWN");
 						break;
-					}
+				}
 #endif
 
 					if (prop->mType == aiPTI_String)
@@ -446,7 +447,7 @@ namespace Saturn {
 							break;
 						}
 					}
-				}
+		}
 
 				if (!metalnessTextureFound)
 				{
@@ -455,9 +456,9 @@ namespace Saturn {
 					mi->Set("u_Metalness", metalness);
 					mi->Set("u_MetalnessTexToggle", 0.0f);
 				}
-			}
+	}
 			SAT_MESH_LOG("------------------------");
-		}
+}
 
 		VertexBufferLayout vertexLayout;
 		if (m_IsAnimated)

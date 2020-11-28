@@ -7,6 +7,7 @@
 
 namespace Saturn {
 
+
 	Ref<Texture2D> Texture2D::Create(TextureFormat format, unsigned int width, unsigned int height, TextureWrap wrap)
 	{
 		switch (RendererAPI::Current())

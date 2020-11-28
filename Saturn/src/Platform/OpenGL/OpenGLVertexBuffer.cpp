@@ -11,8 +11,8 @@ namespace Saturn {
 	{
 		switch (usage)
 		{
-			case VertexBufferUsage::Static:    return GL_STATIC_DRAW;
-			case VertexBufferUsage::Dynamic:   return GL_DYNAMIC_DRAW;
+		case VertexBufferUsage::Static:    return GL_STATIC_DRAW;
+		case VertexBufferUsage::Dynamic:   return GL_DYNAMIC_DRAW;
 		}
 		SAT_CORE_ASSERT(false, "Unknown vertex buffer usage");
 		return 0;

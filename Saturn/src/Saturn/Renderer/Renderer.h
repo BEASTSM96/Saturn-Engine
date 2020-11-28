@@ -7,9 +7,10 @@
 
 namespace Saturn {
 
+
 	class ShaderLibrary;
 
-	class Renderer
+	class SATURN_API Renderer
 	{
 	public:
 		typedef void(*RenderCommandFn)(void*);

@@ -19,7 +19,7 @@ namespace Saturn {
 			SAT_CORE_INFO("[OpenGL Debug LOW] {0}", message);
 			break;
 		case GL_DEBUG_SEVERITY_NOTIFICATION:
-			//SAT_CORE_TRACE("[OpenGL Debug NOTIFICATION] {0}\n", message);
+			//SAT_CORE_TRACE("[OpenGL Debug NOTIFICATION] {0}", message);
 			break;
 		}
 	}

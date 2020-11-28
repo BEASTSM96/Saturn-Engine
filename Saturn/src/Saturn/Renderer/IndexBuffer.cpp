@@ -11,8 +11,8 @@ namespace Saturn {
 	{
 		switch (RendererAPI::Current())
 		{
-			case RendererAPIType::None:    return nullptr;
-			case RendererAPIType::OpenGL:  return Ref<OpenGLIndexBuffer>::Create(size);
+		case RendererAPIType::None:    return nullptr;
+		case RendererAPIType::OpenGL:  return Ref<OpenGLIndexBuffer>::Create(size);
 		}
 		SAT_CORE_ASSERT(false, "Unknown RendererAPI");
 		return nullptr;
@@ -22,11 +22,10 @@ namespace Saturn {
 	{
 		switch (RendererAPI::Current())
 		{
-			case RendererAPIType::None:    return nullptr;
-			case RendererAPIType::OpenGL:  return Ref<OpenGLIndexBuffer>::Create(data, size);
+		case RendererAPIType::None:    return nullptr;
+		case RendererAPIType::OpenGL:  return Ref<OpenGLIndexBuffer>::Create(data, size);
 		}
 		SAT_CORE_ASSERT(false, "Unknown RendererAPI");
 		return nullptr;
 	}
-
 }
