@@ -76,6 +76,8 @@ namespace Saturn {
 
 		ImGuiLayer* m_ImGuiLayer;
 
+		EditorLayer* m_EditorLayer;
+
 		Ref<Scene> m_Scene;
 
 		Ref<SceneManager> m_SceneManager;

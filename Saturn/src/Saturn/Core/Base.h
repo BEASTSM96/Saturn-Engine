@@ -31,7 +31,7 @@ namespace Saturn {
 
 #define BIT(x) (1 << x)
 
-#define SAT_BIND_EVENT_FN(fn) std::bind(&##fn, this, std::placeholders::_1)
+#define SAT_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 
 #ifdef SAT_DEBUG
 #if defined(SAT_PLATFORM_WINDOWS)

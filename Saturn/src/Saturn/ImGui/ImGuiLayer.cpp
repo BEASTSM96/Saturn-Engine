@@ -142,8 +142,6 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-
-
 	}
 
 	EditorLayer::~EditorLayer()
@@ -395,13 +393,14 @@ namespace Saturn {
 		m_EditorScene = Ref<Scene>::Create();
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(m_EditorScene);
 		m_SceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
-
+#define TODO_FIX
+#ifdef TODO_FIX
 		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
+#endif // TODO_FIX
+		
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
-
-
 	}
 
 	void EditorLayer::DeserialiseDebugLvl()
@@ -692,6 +691,19 @@ namespace Saturn {
 				break;
 			}
 		}
+
+#ifdef SAT_DEBUG
+		if (Input::IsKeyPressed(SAT_KEY_LEFT_SHIFT))
+		{
+			switch (e.GetKeyCode())
+			{
+			case SAT_KEY_F:
+				DeserialiseDebugLvl();
+				break;
+			}
+		}
+#endif
+
 		return false;
 
 	}

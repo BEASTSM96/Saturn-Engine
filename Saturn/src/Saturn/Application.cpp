@@ -45,8 +45,11 @@ namespace Saturn {
 		m_Window->SetVSync(false);
 
 		m_ImGuiLayer = new ImGuiLayer();
+		m_EditorLayer = new EditorLayer();
 
+		//PushLayer(m_EditorLayer);
 		PushOverlay(m_ImGuiLayer);
+		PushOverlay(m_EditorLayer);
 
 		Renderer::Init();
 		Renderer::WaitAndRender();
@@ -125,10 +128,6 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 
 		Init();
-
-		/* Call Editor / child functions */
-		OnInit();
-
 		while (m_Running && !m_Crashed)
 		{
 			SAT_PROFILE_SCOPE("RunLoop");

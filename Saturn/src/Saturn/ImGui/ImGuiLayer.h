@@ -85,6 +85,8 @@ namespace Saturn {
 	private:
 		void SaveSceneAs();
 
+		int times = 0;
+
 		Scope<SceneHierarchyPanel> m_SceneHierarchyPanel;
 
 		EditorCamera m_EditorCamera;
