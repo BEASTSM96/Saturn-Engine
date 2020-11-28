@@ -9,6 +9,7 @@
 
 #include <string>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Saturn {
 
@@ -65,6 +66,8 @@ namespace Saturn {
 		template<typename T>
 		void Push(const std::string& name, const T& data) {}
 
+#ifdef SAT_PLATFORM_WINDOWS
+
 		template<>
 		void Push(const std::string& name, const float& data)
 		{
@@ -96,6 +99,37 @@ namespace Saturn {
 			memcpy(Buffer + Cursor, glm::value_ptr(data), sizeof(glm::mat4));
 			Cursor += sizeof(glm::mat4);
 		}
+
+#elif defined (SAT_PLATFORM_LINUX)
+		void Push(const std::string& name, const float& data)
+		{
+			Uniforms[Index++] = { UniformType::Float, Cursor, name };
+			memcpy(Buffer + Cursor, &data, sizeof(float));
+			Cursor += sizeof(float);
+		}
+
+		void Push(const std::string& name, const glm::vec3& data)
+		{
+			Uniforms[Index++] = { UniformType::Float3, Cursor, name };
+			memcpy(Buffer + Cursor, glm::value_ptr(data), sizeof(glm::vec3));
+			Cursor += sizeof(glm::vec3);
+		}
+
+		void Push(const std::string& name, const glm::vec4& data)
+		{
+			Uniforms[Index++] = { UniformType::Float4, Cursor, name };
+			memcpy(Buffer + Cursor, glm::value_ptr(data), sizeof(glm::vec4));
+			Cursor += sizeof(glm::vec4);
+		}
+
+		void Push(const std::string& name, const glm::mat4& data)
+		{
+			Uniforms[Index++] = { UniformType::Matrix4x4, Cursor, name };
+			memcpy(Buffer + Cursor, glm::value_ptr(data), sizeof(glm::mat4));
+			Cursor += sizeof(glm::mat4);
+		}
+
+#endif // SAT_PLATFORM_WINDOWS
 
 	};
 
