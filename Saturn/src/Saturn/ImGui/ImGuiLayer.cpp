@@ -826,6 +826,12 @@ namespace Saturn {
 		return 0.0f;
 	}
 
+	void EditorLayer::StartImGuiConsole()
+	{
+		static bool p_open = true;
+		ImGuiConsole::OnImGuiRender(&p_open);
+	}
+
 	void EditorLayer::OnImGuiRender()
 	{
 		SAT_PROFILE_FUNCTION();
@@ -871,8 +877,9 @@ namespace Saturn {
 				ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
 				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
 			}
-			ImGuiConsole::OnImGuiRender(&p_open);
+			m_ImGuiConsole_Thread = std::thread(&EditorLayer::StartImGuiConsole, this);
 			// Editor Panel ------------------------------------------------------------------------------
+			m_ImGuiConsole_Thread.join();
 			if (ImGui::Begin("Model")) {
 				if (ImGui::Begin("Environment")) {
 
@@ -897,6 +904,7 @@ namespace Saturn {
 				ImGui::End();
 			}
 			ImGui::End();
+
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 			if (ImGui::Begin("Viewport")) {

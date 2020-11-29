@@ -85,6 +85,7 @@ namespace Saturn {
 
 	private:
 		void SaveSceneAs();
+		void StartImGuiConsole();
 
 		int times = 0;
 
@@ -118,6 +119,7 @@ namespace Saturn {
 		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
 
 		std::thread m_Serialiser_Thread;
+		std::thread m_ImGuiConsole_Thread;
 
 		void OnSelected(const SelectedSubmesh& selectionContext);
 
