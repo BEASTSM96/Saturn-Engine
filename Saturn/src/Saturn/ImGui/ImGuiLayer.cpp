@@ -32,6 +32,7 @@
 #include "Saturn/MouseButtons.h"
 #include "Saturn/Core/Modules/Module.h"
 #include "Saturn/Core/Modules/ModuleManager.h"
+#include "Saturn/Scene/SceneManager.h"
 
 #include "Saturn/Input.h"
 
@@ -392,8 +393,11 @@ namespace Saturn {
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(m_EditorScene);
 		m_SceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
 
+		Application::Get().GetSceneMananger().Raw()->AddScene(m_EditorScene);
+
 		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
 		
+
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
@@ -602,6 +606,11 @@ namespace Saturn {
 				Renderer::EndRenderPass();
 			}
 		}
+
+		if (m_RuntimeScene) {
+			m_RuntimeScene->OnRenderRuntime(ts);
+		}
+
 	}
 
 	std::pair<float, float> EditorLayer::GetMouseViewportSpace()
@@ -720,6 +729,13 @@ namespace Saturn {
 				m_RuntimeScene = Ref<Scene>::Create();
 				m_SceneHierarchyPanel->SetContext(m_RuntimeScene);
 				m_EditorScene->CopyScene(m_RuntimeScene);
+				Application::Get().GetSceneMananger().Raw()->AddScene(m_RuntimeScene);
+				break;
+			case SAT_KEY_X:
+				m_RuntimeScene->m_RuntimeRunning = false;
+				m_RuntimeScene = nullptr;
+				m_SelectionContext.clear();
+				m_SceneHierarchyPanel->SetContext(m_EditorScene);
 				break;
 			}
 		}
@@ -995,6 +1011,12 @@ namespace Saturn {
 			{
 				ImGui::Text("Modules %i", i);
 			}
+
+			for (int i = 0; i < Application::Get().GetSceneMananger().Raw()->GetScenes().size(); i++)
+			{
+				ImGui::Text("Sceces %i", i);
+			}
+
 		}
 		ImGui::End();
 #endif // SAT_DEBUG

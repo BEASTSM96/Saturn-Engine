@@ -62,6 +62,7 @@ namespace Saturn {
 		void DestroyEntity(Entity entity);
 
 		void OnRenderEditor(Timestep ts, const EditorCamera& editorCamera);
+		void OnRenderRuntime(Timestep ts);
 
 		template<typename T>
 		auto GetAllEntitiesWith()

@@ -14,7 +14,7 @@ namespace Saturn {
 	{
 		for (int i = 0; i < m_Scenes.size(); i++)
 		{
-			delete m_Scenes.at(i).Raw();
+			//delete m_Scenes.at(i).Raw();
 		}
 	}
 

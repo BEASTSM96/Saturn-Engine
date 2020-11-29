@@ -9,6 +9,8 @@
 #include "Saturn/Renderer/SceneRenderer.h"
 #include "Saturn/Core/UUID.h"
 #include "SceneManager.h"
+#include "Saturn/Application.h"
+#include "SceneManager.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -36,7 +38,6 @@ namespace Saturn {
 		m_SkyboxMaterial->SetFlag(MaterialFlag::DepthTest, false);
 
 		m_physicsScene = std::make_shared<PhysicsScene>(this);
-
 	}
 
 	Scene::~Scene()
@@ -57,9 +58,7 @@ namespace Saturn {
 
 	void Scene::OnUpdate(Timestep ts)
 	{
-
 		m_physicsScene->Update(ts);
-
 	}
 
 	void Scene::OnRenderEditor(Timestep ts, const EditorCamera& editorCamera)
@@ -92,6 +91,13 @@ namespace Saturn {
 
 	}
 
+	void Scene::OnRenderRuntime(Timestep ts)
+	{
+		/////////////////////////////////////////////////////////////////////
+		// RENDER 3D SCENE
+		/////////////////////////////////////////////////////////////////////
+		//TODO: ADD!
+	}
 
 	Entity Scene::CreateEntity(const std::string& name)
 	{

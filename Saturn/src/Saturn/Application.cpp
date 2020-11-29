@@ -44,6 +44,8 @@ namespace Saturn {
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 		m_Window->SetVSync(false);
 
+		Init();
+
 		m_ImGuiLayer = new ImGuiLayer();
 		m_EditorLayer = new EditorLayer();
 
@@ -126,8 +128,6 @@ namespace Saturn {
 	void Application::Run()
 	{		
 		SAT_PROFILE_FUNCTION();
-
-		Init();
 		while (m_Running && !m_Crashed)
 		{
 			SAT_PROFILE_SCOPE("RunLoop");

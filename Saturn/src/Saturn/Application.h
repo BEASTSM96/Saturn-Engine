@@ -63,7 +63,7 @@ namespace Saturn {
 	public:
 		Scene& GetCurrentScene() { return *m_Scene; }
 		ModuleManager& GetModuleManager() { return *m_ModuleManager; }
-		SceneManager& GetSceneManangerr() { return *m_SceneManager; }
+		Ref<SceneManager>& GetSceneMananger() { return m_SceneManager; }
 		//Ref<Saturn::ModuleManager> GetModuleManagerRef() { return m_ModuleManager; }
 
 	private:
