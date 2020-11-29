@@ -58,7 +58,7 @@ namespace Saturn {
 		~Scene();
 
 		Entity CreateEntity(const std::string& name = std::string());
-		Entity CreateEntityWithID(UUID uuid, const std::string& name = "");
+		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
 		void DestroyEntity(Entity entity);
 
 		void OnRenderEditor(Timestep ts, const EditorCamera& editorCamera);
@@ -111,9 +111,12 @@ namespace Saturn {
 		Ref<Scene> CopyScene(const Ref<Scene>& CurrentScene, Ref<Scene> NewScene);
 		Scene* CopyScene(const Scene*& CurrentScene);
 		Scene* CopyScene(const Scene*& CurrentScene, Scene* NewScene);
-		void BeginRuntime(Ref<Scene> scene);
+		void BeginRuntime(Ref<Scene>& scene);
 		void StartRuntime();
 		void EndRuntime(Ref<Scene> scene);
+		RuntimeData& GetRuntimeData() { return m_RuntimeData; }
+		bool m_RuntimeRunning = false;
+
 	private:
 		void UpdateRuntime();
 		/*------------------------------------------------------------------ */

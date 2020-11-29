@@ -717,8 +717,18 @@ namespace Saturn {
 			switch (e.GetKeyCode())
 			{
 			case SAT_KEY_P:
-				m_RuntimeScene->BeginRuntime(m_RuntimeScene);
-				m_RuntimeScene->StartRuntime();
+
+				if (!m_RuntimeScene->GetRuntimeData().Running)
+				{
+					SAT_CORE_INFO("{0}", m_RuntimeScene->GetRuntimeData().Running);
+					m_RuntimeScene->BeginRuntime(m_RuntimeScene);
+					m_RuntimeScene->StartRuntime();
+				}
+				if (m_RuntimeScene->GetRuntimeData().Running)
+				{
+					SAT_CORE_INFO("{0}", m_RuntimeScene->GetRuntimeData().Running);	
+					m_RuntimeScene->GetRuntimeData().Running = false;
+				}
 				break;
 			}
 		}
