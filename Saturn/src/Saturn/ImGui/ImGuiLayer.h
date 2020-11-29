@@ -11,6 +11,7 @@
 #include "Saturn/Core/Ray.h"
 #endif // EDITOR
 
+#include "ImGuiConsole.h"
 
 namespace Saturn {
 

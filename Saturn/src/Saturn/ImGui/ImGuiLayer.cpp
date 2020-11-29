@@ -140,7 +140,6 @@ namespace Saturn {
 	EditorLayer::EditorLayer() : Layer("EditorLayer"), m_EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f))
 	{
 		SAT_PROFILE_FUNCTION();
-
 	}
 
 	EditorLayer::~EditorLayer()
@@ -610,7 +609,6 @@ namespace Saturn {
 		if (m_RuntimeScene) {
 			m_RuntimeScene->OnRenderRuntime(ts);
 		}
-
 	}
 
 	std::pair<float, float> EditorLayer::GetMouseViewportSpace()
@@ -834,6 +832,8 @@ namespace Saturn {
 
 		static bool p_open = true;
 
+		//auto m_ImConsoleThread = std::thread(&ImGuiConsole::OnImGuiRender);
+
 		static bool opt_fullscreen_persistant = true;
 		static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
 		bool opt_fullscreen = opt_fullscreen_persistant;
@@ -871,6 +871,7 @@ namespace Saturn {
 				ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
 				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
 			}
+			ImGuiConsole::OnImGuiRender(&p_open);
 			// Editor Panel ------------------------------------------------------------------------------
 			if (ImGui::Begin("Model")) {
 				if (ImGui::Begin("Environment")) {
@@ -936,27 +937,59 @@ namespace Saturn {
 					auto& entityTransform = selection.Entity.GetComponent<TransformComponent>().GetTransform();
 					float snapValue = GetSnapValue();
 					float snapValues[3] = { snapValue, snapValue, snapValue };
+					m_SelectionMode = SelectionMode::Entity;
 					if (m_SelectionMode == SelectionMode::Entity)
 					{
-						glm::mat4 transform = selection.Entity.GetComponent<TransformComponent>().GetTransform();
-						float* _transform = glm::value_ptr(transform);
+						if ((ImGuizmo::OPERATION)m_GizmoType == ImGuizmo::OPERATION::TRANSLATE)
+						{
+							auto& tc = m_SceneHierarchyPanel->m_SelectionContext.GetComponent<TransformComponent>();
+							auto& pos = glm::translate(glm::mat4(1.0f), tc.Position);
+							float* _pos = glm::value_ptr(pos);
 
-						ImGuizmo::Manipulate(glm::value_ptr(m_EditorCamera.GetViewMatrix()), glm::value_ptr(m_EditorCamera.GetProjectionMatrix()), (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, _transform, nullptr, snap ? snapValues : nullptr);
+							ImGuizmo::Manipulate(glm::value_ptr(m_EditorCamera.GetViewMatrix()), glm::value_ptr(m_EditorCamera.GetProjectionMatrix()), (ImGuizmo::OPERATION::TRANSLATE), ImGuizmo::LOCAL, _pos, nullptr, snap ? snapValues : nullptr);
+
+						}
+
+						if ((ImGuizmo::OPERATION)m_GizmoType == ImGuizmo::OPERATION::ROTATE)
+						{
+							auto& tc = m_SceneHierarchyPanel->m_SelectionContext.GetComponent<TransformComponent>();
+							auto& rot = glm::toMat4(tc.Rotation);
+							float* _rot = glm::value_ptr(rot);
+
+							ImGuizmo::Manipulate(glm::value_ptr(m_EditorCamera.GetViewMatrix()), glm::value_ptr(m_EditorCamera.GetProjectionMatrix()), (ImGuizmo::OPERATION::ROTATE), ImGuizmo::LOCAL, _rot, nullptr, snap ? snapValues : nullptr);
+						}
+
+
+						if ((ImGuizmo::OPERATION)m_GizmoType == ImGuizmo::OPERATION::SCALE)
+						{
+							auto& tc = m_SceneHierarchyPanel->m_SelectionContext.GetComponent<TransformComponent>();
+							auto& scale = glm::scale(glm::mat4(1.0f), tc.Scale);
+							float* _scale = glm::value_ptr(scale);
+
+							ImGuizmo::Manipulate(glm::value_ptr(m_EditorCamera.GetViewMatrix()), glm::value_ptr(m_EditorCamera.GetProjectionMatrix()), (ImGuizmo::OPERATION::SCALE), ImGuizmo::LOCAL, _scale, nullptr, snap ? snapValues : nullptr);
+						}
+
+						//glm::mat4 transform = m_SceneHierarchyPanel->m_SelectionContext.GetComponent<TransformComponent>().GetTransform();
+						//float* _transform = glm::value_ptr(transform);
+
+						//ImGuizmo::Manipulate(glm::value_ptr(m_EditorCamera.GetViewMatrix()), glm::value_ptr(m_EditorCamera.GetProjectionMatrix()), (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, _transform, nullptr, snap ? snapValues : nullptr);
 					}
 					else
 					{
-						if (selection.Mesh)
+						if (m_SceneHierarchyPanel->m_SelectionContext.HasComponent<TransformComponent>())
 						{
-							glm::mat4 transformBase = entityTransform * selection.Mesh->Transform;
-							ImGuizmo::Manipulate(glm::value_ptr(m_EditorCamera.GetViewMatrix()),
-								glm::value_ptr(m_EditorCamera.GetProjectionMatrix()),
-								(ImGuizmo::OPERATION)m_GizmoType,
-								ImGuizmo::LOCAL,
-								glm::value_ptr(transformBase),
-								nullptr,
-								snap ? snapValues : nullptr);
+							auto tc = m_SceneHierarchyPanel->m_SelectionContext.GetComponent<TransformComponent>();
 
-							selection.Mesh->Transform = glm::inverse(entityTransform) * transformBase;
+							//glm::mat4 transformBase = entityTransform * ;
+							//ImGuizmo::Manipulate(glm::value_ptr(m_EditorCamera.GetViewMatrix()),
+								//glm::value_ptr(m_EditorCamera.GetProjectionMatrix()),
+								//(ImGuizmo::OPERATION)m_GizmoType,
+								//ImGuizmo::LOCAL,
+								//glm::value_ptr(transformBase),
+								//nullptr,
+								//snap ? snapValues : nullptr);
+
+							//selection.Mesh->Transform = glm::inverse(entityTransform) * transformBase;
 						}
 					}
 
