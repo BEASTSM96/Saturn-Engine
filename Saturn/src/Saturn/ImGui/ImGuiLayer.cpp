@@ -81,8 +81,7 @@ namespace Saturn {
 
 		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
 		ImGuiStyle& style = ImGui::GetStyle();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
 			style.WindowRounding = 0.0f;
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
@@ -125,8 +124,7 @@ namespace Saturn {
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
 			GLFWwindow* backup_current_context = glfwGetCurrentContext();
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
@@ -577,8 +575,10 @@ namespace Saturn {
 
 		m_DrawOnTopBoundingBoxes = true;
 
-		m_EditorScene->OnUpdate(ts);
-
+		if (m_RuntimeScene) {
+			m_RuntimeScene->PhysicsUpdate(ts);
+			m_RuntimeScene->OnUpdate(ts);
+		}
 
 		if (m_DrawOnTopBoundingBoxes) {
 			Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
@@ -588,8 +588,7 @@ namespace Saturn {
 			Renderer::EndRenderPass();
 		}
 
-		if (m_SelectionContext.size())
-		{
+		if (m_SelectionContext.size()) {
 			auto& selection = m_SelectionContext[0];
 
 			if (selection.Mesh && selection.Entity.HasComponent<MeshComponent>())
@@ -707,7 +706,7 @@ namespace Saturn {
 			switch (e.GetKeyCode())
 			{
 			case SAT_KEY_P:
-				m_RuntimeScene = m_EditorScene->CopyScene(m_EditorScene);
+				//m_RuntimeScene = m_EditorScene->CopyScene(m_EditorScene);
 				break;
 			}
 		}
@@ -717,18 +716,10 @@ namespace Saturn {
 			switch (e.GetKeyCode())
 			{
 			case SAT_KEY_P:
-
-				if (!m_RuntimeScene->GetRuntimeData().Running)
-				{
-					SAT_CORE_INFO("{0}", m_RuntimeScene->GetRuntimeData().Running);
-					m_RuntimeScene->BeginRuntime(m_RuntimeScene);
-					m_RuntimeScene->StartRuntime();
-				}
-				if (m_RuntimeScene->GetRuntimeData().Running)
-				{
-					SAT_CORE_INFO("{0}", m_RuntimeScene->GetRuntimeData().Running);	
-					m_RuntimeScene->GetRuntimeData().Running = false;
-				}
+				m_SelectionContext.clear();
+				m_RuntimeScene = Ref<Scene>::Create();
+				m_SceneHierarchyPanel->SetContext(m_RuntimeScene);
+				m_EditorScene->CopyScene(m_RuntimeScene);
 				break;
 			}
 		}

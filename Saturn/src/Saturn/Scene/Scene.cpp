@@ -57,10 +57,9 @@ namespace Saturn {
 
 	void Scene::OnUpdate(Timestep ts)
 	{
-		if (m_RuntimeData.Running)
-		{
-			m_physicsScene->Update(ts);
-		}
+
+		m_physicsScene->Update(ts);
+
 	}
 
 	void Scene::OnRenderEditor(Timestep ts, const EditorCamera& editorCamera)
@@ -448,21 +447,57 @@ namespace Saturn {
 		return NewScene;
 	}
 
-	void Scene::BeginRuntime(Ref<Scene>& scene)
+	/**
+	 * Copies the scene and fills the 'NewScece' value
+	*/
+	void Scene::CopyScene(Ref<Scene>& NewScene)
+	{
+		SAT_CORE_WARN("Copying Scene!");
+		NewScene->m_CurrentLevel = m_CurrentLevel;
+		NewScene->m_data = m_data;
+		NewScene->m_DebugName = m_DebugName;
+		NewScene->m_EntityIDMap = m_EntityIDMap;
+		NewScene->m_Environment = m_Environment;
+		NewScene->m_Light = m_Light;
+		NewScene->m_LightMultiplier = m_LightMultiplier;
+		NewScene->m_SkyboxLod = m_SkyboxLod;
+		NewScene->m_SkyboxMaterial = m_SkyboxMaterial;
+		NewScene->m_SkyboxTexture = m_SkyboxTexture;
+		NewScene->m_ViewportHeight = m_ViewportHeight;
+		NewScene->m_ViewportWidth = m_ViewportWidth;
+		NewScene->m_physicsScene = m_physicsScene;
+		NewScene->m_RuntimeData = m_RuntimeData;
+
+		std::unordered_map<UUID, entt::entity> enttMap;
+		auto idComponents = m_Registry.view<IdComponent>();
+		for (auto entity : idComponents)
+		{
+			auto uuid = m_Registry.get<IdComponent>(entity).ID;
+			Entity e = NewScene->CreateEntityWithID(uuid, "", true);
+			enttMap[uuid] = e.m_EntityHandle;
+		}
+
+		CopyComponent<TagComponent>(NewScene->m_Registry, m_Registry, enttMap);
+		CopyComponent<TransformComponent>(NewScene->m_Registry, m_Registry, enttMap);
+		CopyComponent<MeshComponent>(NewScene->m_Registry, m_Registry, enttMap);
+		CopyComponent<RelationshipComponent>(NewScene->m_Registry, m_Registry, enttMap);
+		CopyComponent<PhysicsComponent>(NewScene->m_Registry, m_Registry, enttMap);
+		CopyComponent<BoxColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
+		CopyComponent<SphereColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
+		CopyComponent<SpriteRendererComponent>(NewScene->m_Registry, m_Registry, enttMap);
+
+	}
+
+	void Scene::BeginRuntime()
 	{
 		SAT_CORE_WARN("[Runtime] Begining!");
-		m_RuntimeData = scene->m_RuntimeData;
-		m_RuntimeData.RuntimeScene = scene;
-		m_RuntimeData.Running = true;
-		scene->m_RuntimeData.Running = m_RuntimeData.Running;
-		scene->m_RuntimeData.RuntimeID = m_RuntimeData.RuntimeID;
-		scene->m_RuntimeData.RuntimeScene = m_RuntimeData.RuntimeScene;
+		StartRuntime();
 	}
 
 	void Scene::StartRuntime()
 	{
 		SAT_CORE_WARN("[Runtime] Starting!");
-		m_RuntimeData.Running = true;
+		m_RuntimeRunning = true;
 	}
 
 	void Scene::UpdateRuntime()

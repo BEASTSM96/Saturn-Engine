@@ -111,7 +111,9 @@ namespace Saturn {
 		Ref<Scene> CopyScene(const Ref<Scene>& CurrentScene, Ref<Scene> NewScene);
 		Scene* CopyScene(const Scene*& CurrentScene);
 		Scene* CopyScene(const Scene*& CurrentScene, Scene* NewScene);
-		void BeginRuntime(Ref<Scene>& scene);
+		void CopyScene(Ref<Scene>& NewScene);
+
+		void BeginRuntime();
 		void StartRuntime();
 		void EndRuntime(Ref<Scene> scene);
 		RuntimeData& GetRuntimeData() { return m_RuntimeData; }
