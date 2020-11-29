@@ -1047,7 +1047,7 @@ namespace Saturn {
 
 			for (int i = 0; i < Application::Get().GetSceneMananger().Raw()->GetScenes().size(); i++)
 			{
-				ImGui::Text("Sceces %i", i);
+				ImGui::Text("Scenes %i", i);
 			}
 
 		}
