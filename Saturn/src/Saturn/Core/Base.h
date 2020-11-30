@@ -51,6 +51,12 @@ namespace Saturn {
 
 #include "Types.h"
 
+#define PHYSX
+#ifdef PHYSX
+#define USE_NVIDIA
+#endif // PHYSX
+
+
 namespace Saturn {
 
 	template<typename T>
