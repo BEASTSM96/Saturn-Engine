@@ -905,6 +905,10 @@ namespace Saturn {
 			}
 			ImGui::End();
 
+			if (ImGui::Begin("Assets##astmgr"))
+			{
+			}
+			ImGui::End();
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 			if (ImGui::Begin("Viewport")) {
