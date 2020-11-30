@@ -1,6 +1,6 @@
 # Saturn [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/Sparky-Engine/blob/master/LICENSE)
 
-Saturn is primarily an early-stage interactive application and rendering engine for Windows. Currently not much is implemented.
+Saturn is primarily an early-stage game engine for Windows. Currently not much is implemented.
 
 ![Renderer01](/Titan/assets/.github/i/sat/Renderer01.png?raw=true "Renderer01")
 
