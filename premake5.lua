@@ -122,8 +122,7 @@ project "Saturn"
 		links
 		{
 			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
-			"Saturn/vendor/yaml-cpp/bin/Debug/yaml-cpp.lib",
-			"Saturn/vendor/physx/bin/Debug/PhysX_64.lib"
+			"Saturn/vendor/yaml-cpp/bin/Debug/yaml-cpp.lib"
 		}
 
 		postbuildcommands 
