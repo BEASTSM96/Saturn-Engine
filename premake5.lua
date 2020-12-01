@@ -28,7 +28,6 @@ IncludeDir["Assimp"] = "Saturn/vendor/assimp/include"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
 IncludeDir["ReactPhysics3D"] = "Saturn/vendor/reactphysics3d/include"
-IncludeDir["PhysX"] = "Saturn/vendor/PhysX/include"
 
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
 IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
@@ -41,7 +40,6 @@ group "sat/Dependencies"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
 	include "Saturn/vendor/reactphysics3d"
-	include "Saturn/vendor/PhysX"
 		group "sat/Dependencies/Serialisation"
 			include "Saturn/vendor/jsoncpp"
 			include "Saturn/vendor/yaml-cpp"
@@ -74,8 +72,7 @@ project "Saturn"
 	defines
 	{
 		"_CRT_SECURE_NO_WARNINGS",
-		"AL_LIBTYPE_STATIC",
-		"PX_PHYSX_STATIC_LIB"
+		"AL_LIBTYPE_STATIC"
 	}
 
 	includedirs
@@ -93,10 +90,7 @@ project "Saturn"
 			"%{prj.name}/vendor/assimp/include/",
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.ReactPhysics3D}",
-		"%{IncludeDir.PhysX}",
-		"%{IncludeDir.PhysX}/pxshared",
-		"%{IncludeDir.PhysX}/physx"
+		"%{IncludeDir.ReactPhysics3D}"
 	}
 
 	links 
@@ -106,8 +100,7 @@ project "Saturn"
 		"ImGui",
 		"opengl32.lib",
 		"Jsoncpp",
-		"ReactPhysics3D",
-		"PhysX"
+		"ReactPhysics3D"
 	}
 
 	filter "system:windows"
