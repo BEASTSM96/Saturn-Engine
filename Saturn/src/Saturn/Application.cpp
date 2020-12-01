@@ -33,16 +33,16 @@ namespace Saturn {
 
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application(const ApplicationProps& props /*= {"Saturn Engine", 1280, 720}*/)
+	Application::Application( const ApplicationProps& props /*= {"Saturn Engine", 1280, 720}*/ )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		SAT_CORE_ASSERT(!s_Instance, "Application already exists!");
+		SAT_CORE_ASSERT( !s_Instance, "Application already exists!" );
 
 		s_Instance = this;
-		m_Window = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
-		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
-		m_Window->SetVSync(false);
+		m_Window = std::unique_ptr< Window >( Window::Create( WindowProps( props.Name, props.WindowWidth, props.WindowHeight ) ) );
+		m_Window->SetEventCallback( BIND_EVENT_FN(OnEvent) );
+		m_Window->SetVSync( false );
 
 		Init();
 
@@ -50,8 +50,8 @@ namespace Saturn {
 		m_EditorLayer = new EditorLayer();
 
 		//PushLayer(m_EditorLayer);
-		PushOverlay(m_ImGuiLayer);
-		PushOverlay(m_EditorLayer);
+		PushOverlay( m_ImGuiLayer );
+		PushOverlay( m_EditorLayer );
 
 		Renderer::Init();
 		Renderer::WaitAndRender();
@@ -62,21 +62,21 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 	}
 
-	Layer* Application::PushLayer(Layer* layer)
+	Layer* Application::PushLayer( Layer* layer )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		m_LayerStack.PushLayer(layer);
+		m_LayerStack.PushLayer( layer );
 		layer->OnAttach();
 
 		return layer;
 	}
 
-	void Application::PushOverlay(Layer* layer)
+	void Application::PushOverlay( Layer* layer )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		m_LayerStack.PushOverlay(layer);
+		m_LayerStack.PushOverlay( layer );
 		layer->OnAttach();
 	}
 
@@ -84,34 +84,34 @@ namespace Saturn {
 	{
 		m_ImGuiLayer->Begin();
 
-		ImGui::Begin("Renderer");
+		ImGui::Begin( "Renderer" );
 		auto& caps = RendererAPI::GetCapabilities();
-		ImGui::Text("Vendor: %s", caps.Vendor.c_str());
-		ImGui::Text("Renderer: %s", caps.Renderer.c_str());
-		ImGui::Text("Version: %s", caps.Version.c_str());
-		ImGui::Text("Frame Time: %.2fms\n", m_TimeStep.GetMilliseconds());
+		ImGui::Text( "Vendor: %s", caps.Vendor.c_str() );
+		ImGui::Text( "Renderer: %s", caps.Renderer.c_str() );
+		ImGui::Text( "Version: %s", caps.Version.c_str() );
+		ImGui::Text( "Frame Time: %.2fms\n", m_TimeStep.GetMilliseconds() );
 		ImGui::End();
 
-		for (Layer* layer : m_LayerStack)
+		for ( Layer* layer : m_LayerStack )
 			layer->OnImGuiRender();
 
 		m_ImGuiLayer->End();
 	}
 
-	void Application::OnEvent(Event& e)
+	void Application::OnEvent( Event& e )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		EventDispatcher dispatcher(e);
+		EventDispatcher dispatcher( e );
 
-		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
+		dispatcher.Dispatch< WindowCloseEvent >( BIND_EVENT_FN(OnWindowClose) );
 
-		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OnWindowResize));
+		dispatcher.Dispatch< WindowResizeEvent >( BIND_EVENT_FN(OnWindowResize) );
 
-		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
+		for ( auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
 		{
-			(*--it)->OnEvent(e);
-			if (e.Handled)
+			( *--it )->OnEvent( e );
+			if ( e.Handled )
 				break;
 		}
 	}
@@ -121,24 +121,24 @@ namespace Saturn {
 		Serialiser::Init();
 		Math::Init();
 
-		m_ModuleManager = Ref<ModuleManager>::Create();
-		m_SceneManager = Ref<SceneManager>::Create();
+		m_ModuleManager = Ref< ModuleManager >::Create();
+		m_SceneManager = Ref< SceneManager >::Create();
 	}
 
 	void Application::Run()
 	{		
 		SAT_PROFILE_FUNCTION();
-		while (m_Running && !m_Crashed)
+		while ( m_Running && !m_Crashed )
 		{
-			SAT_PROFILE_SCOPE("RunLoop");
+			SAT_PROFILE_SCOPE( "RunLoop" );
 
 			if (!m_Minimized)
 			{
-				for (Layer* layer : m_LayerStack)
-					layer->OnUpdate(m_TimeStep);
+				for ( Layer* layer : m_LayerStack )
+					layer->OnUpdate( m_TimeStep );
 				
 				Application* app = this;
-				Renderer::Submit([app]() { app->RenderImGui(); });
+				Renderer::Submit( [ app ]() { app->RenderImGui(); });
 
 				Renderer::WaitAndRender();
 			}
@@ -155,13 +155,13 @@ namespace Saturn {
 		OnShutdownSave();
 	}
 
-	bool Application::OnWindowClose(WindowCloseEvent& e)
+	bool Application::OnWindowClose( WindowCloseEvent& e )
 	{
 		m_Running = false;
 		return true;
 	}
 
-	bool Application::OnWindowResize(WindowResizeEvent& e)
+	bool Application::OnWindowResize( WindowResizeEvent& e )
 	{
 		int width = e.GetWidth(), height = e.GetHeight();
 		if (width == 0 || height == 0)
@@ -170,15 +170,15 @@ namespace Saturn {
 			return false;
 		}
 		m_Minimized = false;
-		Renderer::Submit([=]() { glViewport(0, 0, width, height); });
+		Renderer::Submit([=]() { glViewport( 0, 0, width, height ); });
 		auto& fbs = FramebufferPool::GetGlobal()->GetAll();
-		for (auto& fb : fbs)
+		for ( auto& fb : fbs )
 			fb->Resize(width, height);
 
 		return false;
 	}
 
-	std::pair<std::string, std::string> Application::OpenFile(const char* filter) const
+	std::pair< std::string, std::string > Application::OpenFile( const char* filter ) const
 	{
 
 		SAT_PROFILE_FUNCTION();
@@ -213,7 +213,7 @@ namespace Saturn {
 	}
 
 
-	std::pair<std::string, std::string> Application::SaveFile(const char* f) const
+	std::pair< std::string, std::string > Application::SaveFile( const char* f ) const
 	{
 		SAT_PROFILE_FUNCTION();
 

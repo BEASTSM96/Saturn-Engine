@@ -18,8 +18,8 @@ namespace Saturn {
 	public:
 		static void Init();
 
-		static RefSR<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
-		static RefSR<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
+		static RefSR< spdlog::logger >& GetCoreLogger() { return s_CoreLogger; }
+		static RefSR< spdlog::logger >& GetClientLogger() { return s_ClientLogger; }
 	private:
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;

@@ -32,7 +32,7 @@ namespace Saturn {
 	class SATURN_API Application
 	{
 	public:
-		Application(const ApplicationProps& props = {"Saturn Engine", 1280, 720});
+		Application( const ApplicationProps& props = {"Saturn Engine", 1280, 720} );
 		virtual ~Application();
 
 		void Run();
@@ -43,10 +43,10 @@ namespace Saturn {
 		virtual void OnShutdownSave() {}
 		/*------------------------------*/
 
-		void OnEvent(Event& e);
+		void OnEvent( Event& e );
 
-		Layer* PushLayer(Layer* layer);
-		void PushOverlay(Layer* layer);
+		Layer* PushLayer( Layer* layer );
+		void PushOverlay( Layer* layer );
 		void RenderImGui();
 
 		void Init();
@@ -57,8 +57,8 @@ namespace Saturn {
 		static bool IsRunning() { return Get().m_Running; }
 		static bool GetMinimized() { return Get().m_Minimized; }
 
-		std::pair< std::string, std::string> OpenFile(const char* filter) const;
-		std::pair< std::string, std::string> SaveFile(const char* f) const;
+		std::pair< std::string, std::string > OpenFile( const char* filter ) const;
+		std::pair< std::string, std::string > SaveFile( const char* f ) const;
 
 	public:
 		Scene& GetCurrentScene() { return *m_Scene; }
@@ -67,21 +67,21 @@ namespace Saturn {
 		//Ref<Saturn::ModuleManager> GetModuleManagerRef() { return m_ModuleManager; }
 
 	private:
-		bool OnWindowClose(WindowCloseEvent& e);
-		bool OnWindowResize(WindowResizeEvent& e);
+		bool OnWindowClose( WindowCloseEvent& e );
+		bool OnWindowResize( WindowResizeEvent& e );
 
 	private:
 
-		std::unique_ptr<Window> m_Window;
+		std::unique_ptr< Window > m_Window;
 
 		ImGuiLayer* m_ImGuiLayer;
 
 		EditorLayer* m_EditorLayer;
 
-		Ref<Scene> m_Scene;
+		Ref< Scene > m_Scene;
 
-		Ref<SceneManager> m_SceneManager;
-		Ref<ModuleManager> m_ModuleManager;
+		Ref< SceneManager > m_SceneManager;
+		Ref< ModuleManager > m_ModuleManager;
 
 		bool m_Running = true;
 

@@ -14,14 +14,14 @@ namespace Saturn {
 	class Layer
 	{
 	public:
-		Layer(const std::string& name = "Layer");
+		Layer( const std::string& name = "Layer" );
 		virtual ~Layer();
 
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}
-		virtual void OnUpdate(Timestep ts) {}
+		virtual void OnUpdate( Timestep ts ) {}
 		virtual void OnImGuiRender() {}
-		virtual void OnEvent(Event& event) {}
+		virtual void OnEvent( Event& event ) {}
 
 		const std::string& GetName() const { return m_DebugName; }
 	private:

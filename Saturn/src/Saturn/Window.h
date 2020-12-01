@@ -14,28 +14,28 @@ namespace Saturn {
 		unsigned int Height;
 
 #ifdef SAT_DEBUG
-		WindowProps(const std::string& title = "Saturn Engine Mode : Debug",
+		WindowProps( const std::string& title = "Saturn Engine Mode : Debug",
 			unsigned int width = 1280,
 			unsigned int height = 720)
-			: Title(title), Width(width), Height(height)
+			: Title( title ), Width( width ), Height(height)
 		{
 		}
 #endif // SAT_DEBUG
 
 #ifdef SAT_DIST
-		WindowProps(const std::string& title = "Saturn Engine",
+		WindowProps( const std::string& title = "Saturn Engine",
 			unsigned int width = 1280,
 			unsigned int height = 720)
-			: Title(title), Width(width), Height(height)
+			: Title( title ), Width( width ), Height( height )
 		{
 		}
 #endif // SAT_DIST
 
 #ifdef SAT_RELEASE
-		WindowProps(const std::string& title = "Saturn Engine Mode : Release",
+		WindowProps( const std::string& title = "Saturn Engine Mode : Release",
 			unsigned int width = 1280,
 			unsigned int height = 720)
-			: Title(title), Width(width), Height(height)
+			: Title( title ), Width( width ), Height( height )
 		{
 		}
 #endif // SAT_RELEASE
@@ -55,13 +55,13 @@ namespace Saturn {
 		virtual unsigned int GetHeight() const = 0;
 
 		// Window attributes
-		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
-		virtual void SetVSync(bool enabled) = 0;
+		virtual void SetEventCallback( const EventCallbackFn& callback ) = 0;
+		virtual void SetVSync( bool enabled ) = 0;
 		virtual bool IsVSync() const = 0;
 
 		virtual void* GetNativeWindow() const = 0;
 
-		static Window* Create(const WindowProps& props = WindowProps());
+		static Window* Create( const WindowProps& props = WindowProps() );
 	};
 
 }

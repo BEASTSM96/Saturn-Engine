@@ -24,7 +24,7 @@ namespace Saturn {
 		void CreateGameObjectAsset();
 
 		template<typename T, typename... Args>
-		void CreateAssetFrom(Args&&... args)
+		T CreateAssetFrom(Args&&... args)
 		{
 			//Compile time
 			static_assert(std::is_base_of<Asset, T>::value, "Class is not Asset!");
@@ -34,7 +34,7 @@ namespace Saturn {
 			SAT_CORE_ASSERT(std::is_base_of<Asset, T>::value, "Class is not Asset!");
 			SAT_CORE_ASSERT(std::is_base_of<AssetBase, T>::value, "Class is not AssetBase!");
 
-			T(new T(std::forward<Args>(args)...));
+			return T(new T(std::forward<Args>(args)...));
 		}
 
 	private:
