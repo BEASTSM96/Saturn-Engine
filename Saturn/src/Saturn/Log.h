@@ -16,10 +16,10 @@ namespace Saturn {
 	class SATURN_API Log
 	{
 	public:
-		static void Init();
+		static void Init( void );
 
-		static RefSR< spdlog::logger >& GetCoreLogger() { return s_CoreLogger; }
-		static RefSR< spdlog::logger >& GetClientLogger() { return s_ClientLogger; }
+		static RefSR< spdlog::logger >& GetCoreLogger( void ) { return s_CoreLogger; }
+		static RefSR< spdlog::logger >& GetClientLogger( void ) { return s_ClientLogger; }
 	private:
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;
@@ -35,8 +35,8 @@ namespace Saturn {
 #define SAT_CORE_FATAL(...)				Saturn::Log::GetCoreLogger()->critical(__VA_ARGS__)
 
 // Client log macros
-#define SAT_CL_TRACE(...)				Saturn::Log::GetClientLogger()->trace(__VA_ARGS__)
-#define SAT_CL_INFO(...)				Saturn::Log::GetClientLogger()->info(__VA_ARGS__)
-#define SAT_CL_WARN(...)				Saturn::Log::GetClientLogger()->warn(__VA_ARGS__)
-#define SAT_CL_ERROR(...)				Saturn::Log::GetClientLogger()->error(__VA_ARGS__)
-#define SAT_CL_FATAL(...)				Saturn::Log::GetClientLogger()->critical(__VA_ARGS__)
+#define SAT_TRACE(...)				Saturn::Log::GetClientLogger()->trace(__VA_ARGS__)
+#define SAT_INFO(...)				Saturn::Log::GetClientLogger()->info(__VA_ARGS__)
+#define SAT_WARN(...)				Saturn::Log::GetClientLogger()->warn(__VA_ARGS__)
+#define SAT_ERROR(...)				Saturn::Log::GetClientLogger()->error(__VA_ARGS__)
+#define SAT_FATAL(...)				Saturn::Log::GetClientLogger()->critical(__VA_ARGS__)

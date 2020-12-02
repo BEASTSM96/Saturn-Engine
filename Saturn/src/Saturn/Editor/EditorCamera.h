@@ -12,7 +12,7 @@ namespace Saturn {
 		EditorCamera() = default;
 		EditorCamera(const glm::mat4& projectionMatrix);
 
-		void Focus();
+		void Focus( void );
 		void OnUpdate(Timestep ts);
 		void OnEvent(Event& e);
 
@@ -24,19 +24,19 @@ namespace Saturn {
 		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
 		glm::mat4 GetViewProjection() const { return m_ProjectionMatrix * m_ViewMatrix; }
 
-		glm::vec3 GetUpDirection();
-		glm::vec3 GetRightDirection();
-		glm::vec3 GetForwardDirection();
+		glm::vec3 GetUpDirection( void );
+		glm::vec3 GetRightDirection( void );
+		glm::vec3 GetForwardDirection( void );
 		const glm::vec3& GetPosition() const { return m_Position; }
-		glm::quat GetOrientation() const;
+		glm::quat GetOrientation( void ) const;
 
-		float GetExposure() const { return m_Exposure; }
-		float& GetExposure() { return m_Exposure; }
+		float GetExposure( void ) const { return m_Exposure; }
+		float& GetExposure( void ) { return m_Exposure; }
 
-		float GetPitch() const { return m_Pitch; }
-		float GetYaw() const { return m_Yaw; }
+		float GetPitch( void ) const { return m_Pitch; }
+		float GetYaw( void ) const { return m_Yaw; }
 	private:
-		void UpdateCameraView();
+		void UpdateCameraView( void );
 
 		bool OnMouseScroll(MouseScrolledEvent& e);
 
@@ -44,11 +44,11 @@ namespace Saturn {
 		void MouseRotate(const glm::vec2& delta);
 		void MouseZoom(float delta);
 
-		glm::vec3 CalculatePosition();
+		glm::vec3 CalculatePosition( void );
 
 		std::pair<float, float> PanSpeed() const;
-		float RotationSpeed() const;
-		float ZoomSpeed() const;
+		float RotationSpeed( void ) const;
+		float ZoomSpeed( void ) const;
 	private:
 		glm::mat4 m_ViewMatrix;
 		glm::vec3 m_Position, m_Rotation, m_FocalPoint;

@@ -54,8 +54,8 @@ namespace Saturn {
 	class Scene : public RefCounted
 	{
 	public:
-		Scene();
-		~Scene();
+		Scene( void );
+		~Scene( void );
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
@@ -65,7 +65,7 @@ namespace Saturn {
 		void OnRenderRuntime(Timestep ts);
 
 		template<typename T>
-		auto GetAllEntitiesWith()
+		auto GetAllEntitiesWith( void )
 		{
 			return m_Registry.view<T>();
 		}
@@ -88,7 +88,7 @@ namespace Saturn {
 		Light& GetLight() { return m_Light; }
 		const Light& GetLight() const { return m_Light; }
 
-		Entity GetMainCameraEntity();
+		Entity GetMainCameraEntity( void );
 
 		float& GetSkyboxLod() { return m_SkyboxLod; }
 
@@ -114,14 +114,14 @@ namespace Saturn {
 		Scene* CopyScene(const Scene*& CurrentScene, Scene* NewScene);
 		void CopyScene(Ref<Scene>& NewScene);
 
-		void BeginRuntime();
-		void StartRuntime();
+		void BeginRuntime( void );
+		void StartRuntime( void );
 		void EndRuntime(Ref<Scene> scene);
 		RuntimeData& GetRuntimeData() { return m_RuntimeData; }
 		bool m_RuntimeRunning = false;
 
 	private:
-		void UpdateRuntime();
+		void UpdateRuntime( void );
 		/*------------------------------------------------------------------ */
 	public:
 		std::shared_ptr<PhysicsScene> m_physicsScene;

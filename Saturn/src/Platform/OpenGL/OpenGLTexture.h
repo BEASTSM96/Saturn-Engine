@@ -15,8 +15,8 @@ namespace Saturn {
 		virtual void Bind(uint32_t slot = 0) const;
 
 		virtual TextureFormat GetFormat() const override { return m_Format; }
-		virtual uint32_t GetWidth() const override { return m_Width; }
-		virtual uint32_t GetHeight() const override { return m_Height; }
+		virtual uint32_t GetWidth( void )  const override { return m_Width; }
+		virtual uint32_t GetHeight( void )  const override { return m_Height; }
 		// This function currently returns the expected number of mips based on image size,
 		// not present mips in data
 		virtual uint32_t GetMipLevelCount() const override;
@@ -62,8 +62,8 @@ namespace Saturn {
 		virtual void Bind(uint32_t slot = 0) const;
 
 		virtual TextureFormat GetFormat() const { return m_Format; }
-		virtual uint32_t GetWidth() const { return m_Width; }
-		virtual uint32_t GetHeight() const { return m_Height; }
+		virtual uint32_t GetWidth( void )  const { return m_Width; }
+		virtual uint32_t GetHeight( void )  const { return m_Height; }
 		// This function currently returns the expected number of mips based on image size,
 		// not present mips in data
 		virtual uint32_t GetMipLevelCount() const override;

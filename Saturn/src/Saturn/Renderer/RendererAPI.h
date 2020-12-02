@@ -32,8 +32,8 @@ namespace Saturn {
 	class SATURN_API RendererAPI
 	{
 	public:
-		static void Init();
-		static void Shutdown();
+		static void Init( void ) ;
+		static void Shutdown( void ) ;
 
 		static void Clear(float r, float g, float b, float a);
 		static void SetClearColor(float r, float g, float b, float a);
@@ -49,7 +49,7 @@ namespace Saturn {
 
 		static RendererAPIType Current() { return s_CurrentRendererAPI; }
 	private:
-		static void LoadRequiredAssets();
+		static void LoadRequiredAssets( void ) ;
 	private:
 		static RendererAPIType s_CurrentRendererAPI;
 	};

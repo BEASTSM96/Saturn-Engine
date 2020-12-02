@@ -29,7 +29,7 @@ namespace Saturn {
 		UUID SceneID;
 	};
 
-	Scene::Scene()
+	Scene::Scene( void )
 	{
 		SAT_PROFILE_FUNCTION();
 
@@ -40,7 +40,7 @@ namespace Saturn {
 		m_physicsScene = std::make_shared<PhysicsScene>(this);
 	}
 
-	Scene::~Scene()
+	Scene::~Scene( void )
 	{
 		//s_ActiveScenes.erase(m_SceneID);
 		m_Registry.clear();
@@ -151,7 +151,7 @@ namespace Saturn {
 		m_SkyboxMaterial->Set("u_Texture", skybox);
 	}
 
-	Entity Scene::GetMainCameraEntity()
+	Entity Scene::GetMainCameraEntity( void )
 	{
 		//todo: add
 		return {};
@@ -494,19 +494,19 @@ namespace Saturn {
 
 	}
 
-	void Scene::BeginRuntime()
+	void Scene::BeginRuntime( void )
 	{
 		SAT_CORE_WARN("[Runtime] Begining!");
 		StartRuntime();
 	}
 
-	void Scene::StartRuntime()
+	void Scene::StartRuntime( void )
 	{
 		SAT_CORE_WARN("[Runtime] Starting!");
 		m_RuntimeRunning = true;
 	}
 
-	void Scene::UpdateRuntime()
+	void Scene::UpdateRuntime( void )
 	{
 		SAT_CORE_WARN("Updating Runtime!");
 		auto view = m_Registry.view<TransformComponent, PhysicsComponent /*, TODO: When add other comps */>();

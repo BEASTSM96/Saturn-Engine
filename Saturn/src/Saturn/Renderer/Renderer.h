@@ -17,17 +17,17 @@ namespace Saturn {
 
 		/*Commands*/
 
-		static void Clear();
+		static void Clear( void );
 		static void Clear(float r, float g, float b, float a = 1.0f);
 		static void SetClearColor(float r, float g, float b, float a);
 		static void DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest = true);
 
 		/*OpenGL*/
 		static void SetLineThickness(float thickness);
-		static void ClearMagenta();
-		static void Init();
+		static void ClearMagenta( void );
+		static void Init( void );
 
-		static Ref<ShaderLibrary> GetShaderLibrary();
+		static Ref<ShaderLibrary> GetShaderLibrary( void );
 
 		template<typename FuncT>
 		static void Submit(FuncT&& func)
@@ -36,8 +36,6 @@ namespace Saturn {
 				auto pFunc = (FuncT*)ptr;
 				(*pFunc)();
 
-				// NOTE: Instead of destroying we could try and enforce all items to be trivally destructible
-				// however some items like uniforms which contain std::strings still exist for now
 				//static_assert(std::is_trivially_destructible_v<FuncT>, "FuncT must be trivially destructible");
 				pFunc->~FuncT();
 			};
@@ -45,11 +43,11 @@ namespace Saturn {
 			new (storageBuffer) FuncT(std::forward<FuncT>(func));
 		}
 
-		static void WaitAndRender();
+		static void WaitAndRender( void );
 
 		/*Render stuff*/
 		static void BeginRenderPass(Ref<RenderPass> renderPass, bool clear = true);
-		static void EndRenderPass();
+		static void EndRenderPass( void );
 
 		static void SubmitQuad(Ref<MaterialInstance> material, const glm::mat4& transform = glm::mat4(1.0f));
 		static void SubmitFullscreenQuad(Ref<MaterialInstance> material);
@@ -61,7 +59,7 @@ namespace Saturn {
 		static RendererAPIType GetAPI() { return RendererAPI::Current(); }
 		static void OnWindowResize(uint32_t width, uint32_t height);
 	private:
-		static RenderCommandQueue& GetRenderCommandQueue();
+		static RenderCommandQueue& GetRenderCommandQueue( void );
 	private:
 		struct SceneData
 		{

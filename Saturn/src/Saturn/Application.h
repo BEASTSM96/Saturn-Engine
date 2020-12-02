@@ -33,37 +33,37 @@ namespace Saturn {
 	{
 	public:
 		Application( const ApplicationProps& props = {"Saturn Engine", 1280, 720} );
-		virtual ~Application();
+		virtual ~Application( void );
 
-		void Run();
+		void Run( void );
 
 		/*----------For Editor----------*/
-		virtual void OnInit() {}
-		virtual void OnShutdown() {}
-		virtual void OnShutdownSave() {}
+		virtual void OnInit( void ) {}
+		virtual void OnShutdown( void ) {}
+		virtual void OnShutdownSave( void ) {}
 		/*------------------------------*/
 
 		void OnEvent( Event& e );
 
 		Layer* PushLayer( Layer* layer );
 		void PushOverlay( Layer* layer );
-		void RenderImGui();
+		void RenderImGui( void );
 
-		void Init();
+		void Init( void );
 
 		Window& GetWindow() { return *m_Window; }
 
 		static Application& Get() { return *s_Instance; }
-		static bool IsRunning() { return Get().m_Running; }
-		static bool GetMinimized() { return Get().m_Minimized; }
+		static bool IsRunning( void ) { return Get().m_Running; }
+		static bool GetMinimized( void ) { return Get().m_Minimized; }
 
 		std::pair< std::string, std::string > OpenFile( const char* filter ) const;
 		std::pair< std::string, std::string > SaveFile( const char* f ) const;
 
 	public:
-		Scene& GetCurrentScene() { return *m_Scene; }
-		ModuleManager& GetModuleManager() { return *m_ModuleManager; }
-		Ref<SceneManager>& GetSceneMananger() { return m_SceneManager; }
+		Scene& GetCurrentScene( void ) { return *m_Scene; }
+		ModuleManager& GetModuleManager( void ) { return *m_ModuleManager; }
+		Ref<SceneManager>& GetSceneMananger( void ) { return m_SceneManager; }
 		//Ref<Saturn::ModuleManager> GetModuleManagerRef() { return m_ModuleManager; }
 
 	private:

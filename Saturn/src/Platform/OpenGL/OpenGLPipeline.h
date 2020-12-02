@@ -13,9 +13,9 @@ namespace Saturn {
 		virtual PipelineSpecification& GetSpecification() { return m_Specification; }
 		virtual const PipelineSpecification& GetSpecification() const { return m_Specification; }
 
-		virtual void Invalidate() override;
+		virtual void Invalidate( void ) override;
 
-		virtual void Bind() override;
+		virtual void Bind( void ) override;
 	private:
 		PipelineSpecification m_Specification;
 		uint32_t m_VertexArrayRendererID = 0;

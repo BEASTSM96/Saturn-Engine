@@ -14,13 +14,13 @@ namespace Saturn {
 		virtual ~OpenGLVertexBuffer();
 
 		virtual void SetData(void* data, uint32_t size, uint32_t offset = 0);
-		virtual void Bind() const;
+		virtual void Bind( void ) const;
 
-		virtual const VertexBufferLayout& GetLayout() const override { return m_Layout; }
+		virtual const VertexBufferLayout& GetLayout( void ) const override { return m_Layout; }
 		virtual void SetLayout(const VertexBufferLayout& layout) override { m_Layout = layout; }
 
-		virtual uint32_t GetSize() const { return m_Size; }
-		virtual RendererID GetRendererID() const { return m_RendererID; }
+		virtual uint32_t GetSize( void ) const { return m_Size; }
+		virtual RendererID GetRendererID( void ) const { return m_RendererID; }
 	private:
 		RendererID m_RendererID = 0;
 		uint32_t m_Size;

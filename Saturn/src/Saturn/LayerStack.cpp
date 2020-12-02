@@ -4,11 +4,11 @@
 
 namespace Saturn {
 
-	LayerStack::LayerStack()
+	LayerStack::LayerStack( void )
 	{
 	}
 
-	LayerStack::~LayerStack()
+	LayerStack::~LayerStack( void )
 	{
 		for ( Layer* layer : m_Layers ) 
 			delete layer;

@@ -13,10 +13,10 @@ namespace Saturn {
 		OpenGLShader(const std::string& filepath);
 		static Ref<OpenGLShader> CreateFromString(const std::string& source);
 
-		virtual void Reload() override;
+		virtual void Reload( void ) override;
 		virtual void AddShaderReloadedCallback(const ShaderReloadedCallback& callback) override;
 
-		virtual void Bind() override;
+		virtual void Bind( void ) override;
 		virtual RendererID GetRendererID() const override { return m_RendererID; }
 
 		virtual void UploadUniformBuffer(const UniformBufferBase& uniformBuffer) override;
@@ -38,16 +38,16 @@ namespace Saturn {
 
 		std::string ReadShaderFromFile(const std::string& filepath) const;
 		std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
-		void Parse();
+		void Parse( void );
 		void ParseUniform(const std::string& statement, ShaderDomain domain);
 		void ParseUniformStruct(const std::string& block, ShaderDomain domain);
 		ShaderStruct* FindStruct(const std::string& name);
 
 		int32_t GetUniformLocation(const std::string& name) const;
 
-		void ResolveUniforms();
-		void ValidateUniforms();
-		void CompileAndUploadShader();
+		void ResolveUniforms( void );
+		void ValidateUniforms( void );
+		void CompileAndUploadShader( void );
 		static GLenum ShaderTypeFromString(const std::string& type);
 
 		void ResolveAndSetUniforms(const Ref<OpenGLShaderUniformBufferDeclaration>& decl, Buffer buffer);

@@ -15,7 +15,7 @@ namespace Saturn {
 		WindowsWindow(const WindowProps& props);
 		virtual ~WindowsWindow();
 
-		void OnUpdate() override;
+		void OnUpdate( void ) override;
 
 		unsigned int GetWidth() const override { return m_Data.Width; }
 		unsigned int GetHeight() const override { return m_Data.Height; }
@@ -23,13 +23,13 @@ namespace Saturn {
 		// Window attributes
 		void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;
-		bool IsVSync() const override;
+		bool IsVSync( void ) const override;
 
 		virtual void* GetNativeWindow() const { return m_Window; };
 
 	private:
 		virtual void Init(const WindowProps& props);
-		virtual void Shutdown();
+		virtual void Shutdown( void );
 	private:
 		GLFWwindow* m_Window;
 

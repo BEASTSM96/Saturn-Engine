@@ -55,7 +55,7 @@ namespace Saturn {
 			}
 		}
 
-		void EndSession()
+		void EndSession( void )
 		{
 			std::lock_guard lock(m_Mutex);
 			InternalEndSession();
@@ -100,13 +100,13 @@ namespace Saturn {
 			EndSession();
 		}
 
-		void WriteHeader()
+		void WriteHeader( void )
 		{
 			m_OutputStream << "{\"otherData\": {},\"traceEvents\":[{}";
 			m_OutputStream.flush();
 		}
 
-		void WriteFooter()
+		void WriteFooter( void )
 		{
 			m_OutputStream << "]}";
 			m_OutputStream.flush();
@@ -114,7 +114,7 @@ namespace Saturn {
 
 		// Note: you must already own lock on m_Mutex before
 		// calling InternalEndSession()
-		void InternalEndSession()
+		void InternalEndSession( void )
 		{
 			if (m_CurrentSession)
 			{
@@ -145,7 +145,7 @@ namespace Saturn {
 				Stop();
 		}
 
-		void Stop()
+		void Stop( void )
 		{
 			auto endTimepoint = std::chrono::steady_clock::now();
 			auto highResStart = FloatingPointMicroseconds{ m_StartTimepoint.time_since_epoch() };

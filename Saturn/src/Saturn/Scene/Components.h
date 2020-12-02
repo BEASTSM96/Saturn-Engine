@@ -35,7 +35,7 @@ namespace Saturn {
 		glm::quat  Rotation;
 		glm::vec3  Scale	=		{ 1.0f , 1.0f, 1.0f };
 
-		TransformComponent() = default;
+		TransformComponent( void ) = default;
 		TransformComponent(const TransformComponent&) = default;
 		TransformComponent(const glm::vec3& Position)
 			: Position(Position) {}

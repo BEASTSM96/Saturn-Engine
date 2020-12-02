@@ -205,22 +205,10 @@ namespace Saturn {
 			s_Data.Stats.DrawCalls++;
 		}
 
-#if OLD
-		Flush();
-#endif
 	}
 
 	void Renderer2D::Flush()
 	{
-#if OLD
-		// Bind textures
-		for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-			s_Data.TextureSlots[i]->Bind(i);
-
-		s_Data.QuadVertexArray->Bind();
-		Renderer::DrawIndexed(s_Data.QuadIndexCount, false);
-		s_Data.Stats.DrawCalls++;
-#endif
 	}
 
 	void Renderer2D::FlushAndReset()

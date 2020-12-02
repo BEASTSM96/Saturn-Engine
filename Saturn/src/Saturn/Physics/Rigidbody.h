@@ -16,13 +16,13 @@ namespace Saturn {
 		void AddBoxCollider(const glm::vec3& halfExtents);
 		void AddSphereCollider(float radius);
 
-		glm::vec3 GetPosition();
-		glm::quat GetRotation();
+		glm::vec3 GetPosition( void );
+		glm::quat GetRotation( void );
 
-		inline bool GetKinematic() const { return m_isKinematic; }
+		inline bool GetKinematic( void ) const { return m_isKinematic; }
 		void SetKinematic(bool set);
 
-		float GetMass() const;
+		float GetMass( void ) const;
 		void SetMass(float mass);
 
 		//

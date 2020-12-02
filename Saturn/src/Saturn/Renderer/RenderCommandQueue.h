@@ -14,7 +14,7 @@ namespace Saturn {
 
 		void* Allocate(RenderCommandFn func, uint32_t size);
 
-		void Execute();
+		void Execute( void );
 	private:
 		uint8_t* m_CommandBuffer;
 		uint8_t* m_CommandBufferPtr;

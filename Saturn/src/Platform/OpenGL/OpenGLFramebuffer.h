@@ -15,8 +15,8 @@ namespace Saturn {
 
 		virtual void Resize(uint32_t width, uint32_t height, bool forceRecreate = false) override;
 
-		virtual void Bind() const override;
-		virtual void Unbind() const override;
+		virtual void Bind( void ) const override;
+		virtual void Unbind( void ) const override;
 
 		virtual void BindTexture(uint32_t slot = 0) const override;
 

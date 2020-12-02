@@ -6,8 +6,8 @@
 #pragma warning(push, 0)
 
 namespace Saturn {
-	void InitCore();
-	void EndCore();
+	void InitCore( void );
+	void EndCore( void );
 }
 
 #if (__cplusplus >= 201402L)

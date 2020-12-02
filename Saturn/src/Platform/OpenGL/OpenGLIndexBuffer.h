@@ -16,7 +16,7 @@ namespace Saturn {
 		virtual ~OpenGLIndexBuffer();
 
 		virtual void SetData(void* data, uint32_t size, uint32_t offset = 0);
-		virtual void Bind() const;
+		virtual void Bind( void ) const;
 
 		virtual uint32_t GetCount() const { return m_Size / sizeof(uint32_t); }
 

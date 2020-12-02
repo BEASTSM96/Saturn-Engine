@@ -47,9 +47,9 @@ namespace Saturn {
 
 	struct UniformBufferBase
 	{
-		virtual const byte* GetBuffer() const = 0;
-		virtual const UniformDecl* GetUniforms() const = 0;
-		virtual unsigned int GetUniformCount() const = 0;
+		virtual const byte* GetBuffer( void )  const = 0;
+		virtual const UniformDecl* GetUniforms( void )  const = 0;
+		virtual unsigned int GetUniformCount( void )  const = 0;
 	};
 
 	template<unsigned int N, unsigned int U>
@@ -60,9 +60,9 @@ namespace Saturn {
 		std::ptrdiff_t Cursor = 0;
 		int Index = 0;
 
-		virtual const byte* GetBuffer() const override { return Buffer; }
-		virtual const UniformDecl* GetUniforms() const override { return Uniforms; }
-		virtual unsigned int GetUniformCount() const { return U; }
+		virtual const byte* GetBuffer( void )  const override { return Buffer; }
+		virtual const UniformDecl* GetUniforms( void ) const override { return Uniforms; }
+		virtual unsigned int GetUniformCount( void )  const { return U; }
 
 		template<typename T>
 		void Push(const std::string& name, const T& data) {}
@@ -107,9 +107,9 @@ namespace Saturn {
 	public:
 		using ShaderReloadedCallback = std::function<void()>;
 
-		virtual void Reload() = 0;
+		virtual void Reload( void )  = 0;
 
-		virtual void Bind() = 0;
+		virtual void Bind( void )  = 0;
 		virtual RendererID GetRendererID() const = 0;
 		virtual void UploadUniformBuffer(const UniformBufferBase& uniformBuffer) = 0;
 

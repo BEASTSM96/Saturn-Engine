@@ -41,7 +41,7 @@ namespace Saturn {
 			Size = size;
 		}
 
-		void ZeroInitialize()
+		void ZeroInitialize( void )
 		{
 			if (Data)
 				memset(Data, 0, Size);

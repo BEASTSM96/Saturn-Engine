@@ -15,7 +15,7 @@ namespace Saturn {
             Direction = direction;
         }
 
-        static Ray Zero()
+        static Ray Zero( void )
         {
             return { {0.0f, 0.0f, 0.0f},{0.0f, 0.0f, 0.0f} };
         }

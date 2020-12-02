@@ -248,6 +248,7 @@ namespace Saturn {
 				glStencilMask(0xff);
 			});
 		}
+
 		for (auto& dc : s_Data.SelectedMeshDrawList)
 		{
 			auto baseMaterial = dc.Mesh->GetMaterial();

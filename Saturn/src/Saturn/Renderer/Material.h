@@ -25,7 +25,7 @@ namespace Saturn {
 		Material(const Ref<Shader>& shader);
 		virtual ~Material();
 
-		void Bind();
+		void Bind( void );
 
 		uint32_t GetFlags() const { return m_MaterialFlags; }
 		void SetFlag(MaterialFlag flag) { m_MaterialFlags |= (uint32_t)flag; }
@@ -65,7 +65,7 @@ namespace Saturn {
 		T& Get(const std::string& name)
 		{
 			auto decl = FindUniformDeclaration(name);
-			HZ_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
+			SAT_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
 			auto& buffer = GetUniformBufferTarget(decl);
 			return buffer.Read<T>(decl->GetOffset());
 		}
@@ -75,15 +75,15 @@ namespace Saturn {
 		{
 			auto decl = FindResourceDeclaration(name);
 			uint32_t slot = decl->GetRegister();
-			HZ_CORE_ASSERT(slot < m_Textures.size(), "Texture slot is invalid!");
+			SAT_CORE_ASSERT(slot < m_Textures.size(), "Texture slot is invalid!");
 			return m_Textures[slot];
 		}
 	public:
 		static Ref<Material> Create(const Ref<Shader>& shader);
 	private:
-		void AllocateStorage();
-		void OnShaderReloaded();
-		void BindTextures();
+		void AllocateStorage( void );
+		void OnShaderReloaded( void );
+		void BindTextures( void );
 
 		ShaderUniformDeclaration* FindUniformDeclaration(const std::string& name);
 		ShaderResourceDeclaration* FindResourceDeclaration(const std::string& name);
@@ -112,7 +112,6 @@ namespace Saturn {
 			auto decl = m_Material->FindUniformDeclaration(name);
 			if (!decl)
 				return;
-			// HZ_CORE_ASSERT(decl, "Could not find uniform with name '{0}'", name);
 			SAT_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
 			auto& buffer = GetUniformBufferTarget(decl);
 			buffer.Write((byte*)&value, decl->GetSize(), decl->GetOffset());
@@ -178,7 +177,7 @@ namespace Saturn {
 		}
 
 
-		void Bind();
+		void Bind( void );
 
 		uint32_t GetFlags() const { return m_Material->m_MaterialFlags; }
 		bool GetFlag(MaterialFlag flag) const { return (uint32_t)flag & m_Material->m_MaterialFlags; }
@@ -190,8 +189,8 @@ namespace Saturn {
 	public:
 		static Ref<MaterialInstance> Create(const Ref<Material>& material);
 	private:
-		void AllocateStorage();
-		void OnShaderReloaded();
+		void AllocateStorage( void );
+		void OnShaderReloaded( void );
 		Buffer& GetUniformBufferTarget(ShaderUniformDeclaration* uniformDeclaration);
 		void OnMaterialValueUpdated(ShaderUniformDeclaration* decl);
 	private:

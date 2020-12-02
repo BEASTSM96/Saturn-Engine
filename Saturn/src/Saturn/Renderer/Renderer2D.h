@@ -9,12 +9,12 @@ namespace Saturn {
 	class Renderer2D
 	{
 	public:
-		static void Init();
-		static void Shutdown();
+		static void Init( void ) ;
+		static void Shutdown( void ) ;
 
 		static void BeginScene(const glm::mat4& viewProj, bool depthTest = true);
-		static void EndScene();
-		static void Flush();
+		static void EndScene( void ) ;
+		static void Flush( void ) ;
 
 		// Primitives
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
@@ -41,10 +41,10 @@ namespace Saturn {
 			uint32_t GetTotalVertexCount() { return QuadCount * 4 + LineCount * 2; }
 			uint32_t GetTotalIndexCount() { return QuadCount * 6 + LineCount * 2; }
 		};
-		static void ResetStats();
-		static Statistics GetStats();
+		static void ResetStats( void );
+		static Statistics GetStats( void );
 	private:
-		static void FlushAndReset();
-		static void FlushAndResetLines();
+		static void FlushAndReset( void ) ;
+		static void FlushAndResetLines( void ) ;
 	};
 }

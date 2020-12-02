@@ -133,7 +133,7 @@ namespace Saturn {
 		~Mesh();
 
 		void OnUpdate(Timestep ts);
-		void DumpVertexBuffer();
+		void DumpVertexBuffer( void );
 
 		std::vector<Submesh>& GetSubmeshes() { return m_Submeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return m_Submeshes; }

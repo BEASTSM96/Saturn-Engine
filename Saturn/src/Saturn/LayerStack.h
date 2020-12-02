@@ -10,8 +10,8 @@ namespace Saturn {
 	class SATURN_API LayerStack
 	{
 	public:
-		LayerStack();
-		~LayerStack();
+		LayerStack( void );
+		~LayerStack( void );
 
 		void PushLayer( Layer* layer );
 		void PushOverlay( Layer* overlay );

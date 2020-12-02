@@ -7,19 +7,19 @@ namespace Saturn {
 	class RefCounter
 	{
 	public:
-		virtual void IncRefCount() const = 0;
-		virtual void DecRefCount() const = 0;
-		virtual uint32_t GetRefCount() const = 0;
+		virtual void IncRefCount( void )  const = 0;
+		virtual void DecRefCount( void )  const = 0;
+		virtual uint32_t GetRefCount( void )  const = 0;
 	};
 
 	class RefCounted : RefCounter
 	{
 	public:
-		void IncRefCount() const override
+		void IncRefCount( void )  const override
 		{
 			m_RefCount++;
 		}
-		void DecRefCount() const override
+		void DecRefCount( void )  const override
 		{
 			m_RefCount--;
 		}
@@ -136,13 +136,13 @@ namespace Saturn {
 			return Ref<T>(new T(std::forward<Args>(args)...));
 		}
 	private:
-		void IncRef() const
+		void IncRef( void )  const
 		{
 			if (m_Instance)
 				m_Instance->IncRefCount();
 		}
 
-		void DecRef() const
+		void DecRef( void )  const
 		{
 			if (m_Instance)
 			{

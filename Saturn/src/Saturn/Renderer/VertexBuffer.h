@@ -92,7 +92,7 @@ namespace Saturn {
 		std::vector<VertexBufferElement>::const_iterator begin() const { return m_Elements.begin(); }
 		std::vector<VertexBufferElement>::const_iterator end() const { return m_Elements.end(); }
 	private:
-		void CalculateOffsetsAndStride()
+		void CalculateOffsetsAndStride( void )
 		{
 			uint32_t offset = 0;
 			m_Stride = 0;
@@ -119,13 +119,13 @@ namespace Saturn {
 		virtual ~VertexBuffer() {}
 
 		virtual void SetData(void* buffer, uint32_t size, uint32_t offset = 0) = 0;
-		virtual void Bind() const = 0;
+		virtual void Bind( void ) const = 0;
 
-		virtual const VertexBufferLayout& GetLayout() const = 0;
+		virtual const VertexBufferLayout& GetLayout( void ) const = 0;
 		virtual void SetLayout(const VertexBufferLayout& layout) = 0;
 
-		virtual unsigned int GetSize() const = 0;
-		virtual RendererID GetRendererID() const = 0;
+		virtual unsigned int GetSize( void ) const = 0;
+		virtual RendererID GetRendererID( void ) const = 0;
 
 		static Ref<VertexBuffer> Create(void* data, uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Static);
 		static Ref<VertexBuffer> Create(uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Dynamic);

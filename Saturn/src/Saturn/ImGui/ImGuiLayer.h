@@ -22,12 +22,12 @@ namespace Saturn {
 		ImGuiLayer(const std::string& name);
 		virtual ~ImGuiLayer() = default;
 
-		void Begin();
-		void End();
+		void Begin( void );
+		void End( void );
 
-		virtual void OnAttach() override;
-		virtual void OnDetach() override;
-		virtual void OnImGuiRender() override;
+		virtual void OnAttach( void ) override;
+		virtual void OnDetach( void ) override;
+		virtual void OnImGuiRender( void ) override;
 	private:
 		float m_Time = 0.0f;
 
@@ -37,21 +37,21 @@ namespace Saturn {
 	class EditorLayer : public Layer
 	{
 	public:
-		EditorLayer();
-		~EditorLayer();
+		EditorLayer( void );
+		~EditorLayer( void );
 
-		virtual void OnAttach() override;
-		virtual void OnDetach() override;
+		virtual void OnAttach( void ) override;
+		virtual void OnDetach( void ) override;
 		virtual void OnImGuiRender() override;
 		virtual void OnUpdate(Timestep ts) override;
 		virtual void OnEvent(Event& e) override;
 		bool OnMouseButtonPressed(MouseButtonEvent& e);
 		bool OnKeyPressedEvent(KeyPressedEvent& e);
-		std::pair<float, float> GetMouseViewportSpace();
+		std::pair<float, float> GetMouseViewportSpace( void );
 		std::pair<glm::vec3, glm::vec3> CastRay(float mx, float my);
-		Ray CastMouseRay();
+		Ray CastMouseRay( void );
 		void SelectEntity(Entity entity);
-		float GetSnapValue();
+		float GetSnapValue( void );
 
 		Ref<Scene>& GetEditorScene() {
 			return m_EditorScene;
@@ -63,8 +63,8 @@ namespace Saturn {
 
 		void DeserialiseDebugLvl();
 
-		void Begin();
-		void End();
+		void Begin( void );
+		void End( void );
 
 
 		enum class PropertyFlag
@@ -84,8 +84,8 @@ namespace Saturn {
 
 
 	private:
-		void SaveSceneAs();
-		void StartImGuiConsole();
+		void SaveSceneAs( void );
+		void StartImGuiConsole( void );
 
 		int times = 0;
 
@@ -135,7 +135,7 @@ namespace Saturn {
 		void SetSelected(Entity entity);
 		void SetSelectionChangedCallback(const std::function<void(Entity)>& func) { m_SelectionChangedCallback = func; }
 
-		void OnImGuiRender();
+		void OnImGuiRender( void );
 		void OnUpdate(Timestep ts);
 
 		Entity& GetSelectionContext() { return m_SelectionContext; }

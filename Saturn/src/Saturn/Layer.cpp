@@ -8,7 +8,7 @@ namespace Saturn {
 	{
 	}
 
-	Layer::~Layer()
+	Layer::~Layer( void )
 	{
 
 	}

@@ -4,7 +4,7 @@
 
 namespace Saturn {
 	namespace deadbeef {
-		void Throw() 
+		void Throw( void ) 
 		{
 			//just throw it already
 			int val = 0xDEADBEEF;

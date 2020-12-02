@@ -10,8 +10,8 @@ namespace Saturn {
 	class SceneManager : public RefCounted
 	{
 	public:
-		SceneManager();
-		~SceneManager();
+		SceneManager( void );
+		~SceneManager( void );
 
 		void AddScene( const Ref< Scene >& scene );
 

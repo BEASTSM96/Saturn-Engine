@@ -38,10 +38,10 @@ namespace Saturn {
 
 		bool Handled = false;
 
-		virtual EventType GetEventType() const = 0;
-		virtual const char* GetName() const = 0;
-		virtual int GetCategoryFlags() const = 0;
-		virtual std::string ToString() const { return GetName(); }
+		virtual EventType GetEventType( void ) const = 0;
+		virtual const char* GetName( void ) const = 0;
+		virtual int GetCategoryFlags( void ) const = 0;
+		virtual std::string ToString( void ) const { return GetName(); }
 
 		bool IsInCategory(EventCategory category)
 		{

@@ -12,8 +12,8 @@ namespace Saturn {
 	public:
 		OpenGLContext(GLFWwindow* windowHandle);
 
-		virtual void Init() override;
-		virtual void SwapBuffers() override;
+		virtual void Init( void ) override;
+		virtual void SwapBuffers( void ) override;
 
 	private:
 		GLFWwindow* m_WindowHandle;

@@ -21,7 +21,7 @@ namespace Saturn {
 		Serialiser(const std::string& objectname, Json::Value& reconstructionValue);
 		Serialiser(const Ref<Scene>& scene);
 
-		static void Init();
+		static void Init( void );
 
 		virtual ~Serialiser();
 
