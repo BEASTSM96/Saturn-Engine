@@ -18,6 +18,7 @@
 #include "Core/Modules/ModuleManager.h"
 #include "Core/Modules/Module.h"
 #include "Scene/SceneManager.h"
+#include "Saturn/GameFramework/HotReload.h"
 
 #include <imgui.h>
 
@@ -28,8 +29,8 @@
 #include <GLFW/glfw3native.h>
 
 namespace Saturn {
-	#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
-	#pragma warning(disable: BIND_EVENT_FN)
+#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
+#pragma warning(disable: BIND_EVENT_FN)
 
 	Application* Application::s_Instance = nullptr;
 
@@ -41,7 +42,7 @@ namespace Saturn {
 
 		s_Instance = this;
 		m_Window = std::unique_ptr< Window >( Window::Create( WindowProps( props.Name, props.WindowWidth, props.WindowHeight ) ) );
-		m_Window->SetEventCallback( BIND_EVENT_FN(OnEvent) );
+		m_Window->SetEventCallback( BIND_EVENT_FN( OnEvent ) );
 		m_Window->SetVSync( false );
 
 		Init();
@@ -49,12 +50,15 @@ namespace Saturn {
 		m_ImGuiLayer = new ImGuiLayer();
 		m_EditorLayer = new EditorLayer();
 
+		Renderer::Init();
+		Renderer::WaitAndRender();
+
 		//PushLayer(m_EditorLayer);
 		PushOverlay( m_ImGuiLayer );
 		PushOverlay( m_EditorLayer );
 
-		Renderer::Init();
-		Renderer::WaitAndRender();
+		m_Window->Maximize();
+
 	}
 
 	Application::~Application()
@@ -92,7 +96,7 @@ namespace Saturn {
 		ImGui::Text( "Frame Time: %.2fms\n", m_TimeStep.GetMilliseconds() );
 		ImGui::End();
 
-		for ( Layer* layer : m_LayerStack )
+		for( Layer* layer : m_LayerStack )
 			layer->OnImGuiRender();
 
 		m_ImGuiLayer->End();
@@ -104,14 +108,14 @@ namespace Saturn {
 
 		EventDispatcher dispatcher( e );
 
-		dispatcher.Dispatch< WindowCloseEvent >( BIND_EVENT_FN(OnWindowClose) );
+		dispatcher.Dispatch< WindowCloseEvent >( BIND_EVENT_FN( OnWindowClose ) );
 
-		dispatcher.Dispatch< WindowResizeEvent >( BIND_EVENT_FN(OnWindowResize) );
+		dispatcher.Dispatch< WindowResizeEvent >( BIND_EVENT_FN( OnWindowResize ) );
 
-		for ( auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
+		for( auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
 		{
 			( *--it )->OnEvent( e );
-			if ( e.Handled )
+			if( e.Handled )
 				break;
 		}
 	}
@@ -123,28 +127,34 @@ namespace Saturn {
 
 		m_ModuleManager = Ref< ModuleManager >::Create();
 		m_SceneManager = Ref< SceneManager >::Create();
+		m_HotReload = Ref< HotReload >::Create();
 	}
 
 	void Application::Run()
-	{		
+	{
 		SAT_PROFILE_FUNCTION();
-		while ( m_Running && !m_Crashed )
+
+		std::string name = "MyGame";
+		m_HotReload->m_GameContext->m_Games.push_back(Game());
+		m_HotReload->OnHotReload( ( const char )name.c_str() );
+
+		while( m_Running && !m_Crashed )
 		{
 			SAT_PROFILE_SCOPE( "RunLoop" );
 
-			if (!m_Minimized)
+			if( !m_Minimized )
 			{
-				for ( Layer* layer : m_LayerStack )
+				for( Layer* layer : m_LayerStack )
 					layer->OnUpdate( m_TimeStep );
-				
+
 				Application* app = this;
-				Renderer::Submit( [ app ]() { app->RenderImGui(); });
+				Renderer::Submit( [app]() { app->RenderImGui(); } );
 
 				Renderer::WaitAndRender();
 			}
 			m_Window->OnUpdate();
 
-			float time = (float)glfwGetTime(); //Platform::GetTime();
+			float time = ( float )glfwGetTime(); //Platform::GetTime();
 
 			m_TimeStep = time - LastFrameTime;
 
@@ -164,16 +174,16 @@ namespace Saturn {
 	bool Application::OnWindowResize( WindowResizeEvent& e )
 	{
 		int width = e.GetWidth(), height = e.GetHeight();
-		if (width == 0 || height == 0)
+		if( width == 0 || height == 0 )
 		{
 			m_Minimized = true;
 			return false;
 		}
 		m_Minimized = false;
-		Renderer::Submit([=]() { glViewport( 0, 0, width, height ); });
+		Renderer::Submit( [=]() { glViewport( 0, 0, width, height ); } );
 		auto& fbs = FramebufferPool::GetGlobal()->GetAll();
-		for ( auto& fb : fbs )
-			fb->Resize(width, height);
+		for( auto& fb : fbs )
+			fb->Resize( width, height );
 
 		return false;
 	}
@@ -183,31 +193,31 @@ namespace Saturn {
 
 		SAT_PROFILE_FUNCTION();
 
-#ifdef  SAT_PLATFORM_WINDOWS
+	#ifdef  SAT_PLATFORM_WINDOWS
 		OPENFILENAMEA ofn;
-		CHAR szFile[260] = { 0 };
-		ZeroMemory(&ofn, sizeof(OPENFILENAMEA));
+		CHAR szFile[ 260 ] ={ 0 };
+		ZeroMemory( &ofn, sizeof( OPENFILENAMEA ) );
 
-		ofn.lStructSize = sizeof(OPENFILENAMEA);
+		ofn.lStructSize = sizeof( OPENFILENAMEA );
 		ofn.lpstrFilter = filter;
-		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
+		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* )m_Window->GetNativeWindow() );
 		ofn.lpstrFile = szFile;
-		ofn.nMaxFile = sizeof(szFile);
+		ofn.nMaxFile = sizeof( szFile );
 		ofn.lpstrTitle = filter;
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
-		if (GetOpenFileNameA(&ofn) == TRUE)
+		if( GetOpenFileNameA( &ofn ) == TRUE )
 		{
 			return { ofn.lpstrFile,  ofn.lpstrFilter };
 		}
 		return { std::string(), std::string() };
-#endif
+	#endif
 
-#ifdef  SAT_PLATFORM_LINUX
+	#ifdef  SAT_PLATFORM_LINUX
 
 		return { std::string(), std::string() };
-#endif
+	#endif
 
 		return  { std::string(), std::string() };
 	}
@@ -217,28 +227,28 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-#ifdef  SAT_PLATFORM_LINUX
-#endif
-#ifdef  SAT_PLATFORM_WINDOWS
+	#ifdef  SAT_PLATFORM_LINUX
+	#endif
+	#ifdef  SAT_PLATFORM_WINDOWS
 		OPENFILENAMEA ofn;
-		CHAR szFile[260] = { 0 };
+		CHAR szFile[ 260 ] ={ 0 };
 
-		ZeroMemory(&ofn, sizeof(OPENFILENAME));
-		ofn.lStructSize = sizeof(OPENFILENAME);
+		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
+		ofn.lStructSize = sizeof( OPENFILENAME );
 		ofn.lpstrFilter = f;
-		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)m_Window->GetNativeWindow());
+		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* )m_Window->GetNativeWindow() );
 		ofn.lpstrFile = szFile;
-		ofn.nMaxFile = sizeof(szFile);
+		ofn.nMaxFile = sizeof( szFile );
 		ofn.lpstrTitle = "Save file";
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
-		if (GetSaveFileNameA(&ofn) == TRUE)
+		if( GetSaveFileNameA( &ofn ) == TRUE )
 		{
 			return { ofn.lpstrFile, ofn.lpstrFilter };
 		}
 		return { std::string(), std::string() };
-#endif
+	#endif
 		return { std::string(), std::string() };
 
 	}

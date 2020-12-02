@@ -6,25 +6,25 @@
 
 namespace Saturn {
 
-	class SATURN_API Input 
+	class SATURN_API Input
 	{
 	public:
 		static bool IsKeyPressed( int keycode ) { return s_Instance->IsKeyPressedImpl( keycode ); }
-	
+
 		static float GetMouseX() { return s_Instance->GetMouseXImpl(); }
 
 		static float GetMouseY() { return s_Instance->GetMouseYImpl(); }
 
-		static std::pair< float , float > GetMousePos() { return s_Instance->GetMousePosImpl(); }
+		static std::pair< float, float > GetMousePos() { return s_Instance->GetMousePosImpl(); }
 
 		static bool IsMouseButtonPressed( int button ) { return s_Instance->IsMouseButtonPressedImpl( button ); }
 
 	protected:
 		virtual bool IsKeyPressedImpl( int keycode ) = 0;
 
-		virtual float GetMouseXImpl() = 0;
+		virtual float GetMouseXImpl( void ) = 0;
 
-		virtual float GetMouseYImpl() = 0;
+		virtual float GetMouseYImpl( void ) = 0;
 
 		virtual std::pair< float, float > GetMousePosImpl() = 0;
 

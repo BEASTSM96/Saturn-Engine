@@ -17,9 +17,9 @@ namespace Saturn {
 		logSinks.emplace_back( std::make_shared< spdlog::sinks::basic_file_sink_mt >( "Saturn.log", true ) );
 		logSinks.emplace_back( std::make_shared< ImGuiConsoleSink_mt >( true ) );
 
-		logSinks[0]->set_pattern( "%^[%T] %n: %v%$" );
-		logSinks[1]->set_pattern( "[%T] [%l] %n: %v" );
-		logSinks[2]->set_pattern( "%^[%T] [%l] %n: %v%$" );
+		logSinks[ 0 ]->set_pattern( "%^[%T] %n: %v%$" );
+		logSinks[ 1 ]->set_pattern( "[%T] [%l] %n: %v" );
+		logSinks[ 2 ]->set_pattern( "%^[%T] [%l] %n: %v%$" );
 
 		s_CoreLogger = std::make_shared< spdlog::logger >( "SATURN", begin( logSinks ), end( logSinks ) );
 		spdlog::register_logger( s_CoreLogger );

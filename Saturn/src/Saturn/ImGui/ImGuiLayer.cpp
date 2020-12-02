@@ -146,7 +146,7 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		m_Serialiser_Thread.join();
+		//m_Serialiser_Thread.join();
 	}
 
 	void EditorLayer::OnAttach()
@@ -394,8 +394,10 @@ namespace Saturn {
 
 		Application::Get().GetSceneMananger().Raw()->AddScene(m_EditorScene);
 
-		m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
+		//m_Serialiser_Thread = std::thread(&EditorLayer::DeserialiseDebugLvl, this);
 		
+		DeserialiseDebugLvl();
+
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
@@ -1474,7 +1476,7 @@ namespace Saturn {
 			ImGui::NextColumn();
 			if (ImGui::Button("...##openmesh", ImVec2(50, 20)))
 			{
-				std::string file = Application::Get().OpenFile("ObjectFile (*.fbx)\0*.fbx\0").first;
+				std::string file = Application::Get().OpenFile("ObjectFile (*.fbx)\0*.obj\0").first;
 				if (!file.empty())
 					mc.Mesh = Ref<Mesh>::Create(file);
 

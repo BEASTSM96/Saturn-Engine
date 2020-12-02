@@ -16,6 +16,7 @@ namespace Saturn {
 	class ModuleManager;
 	class Module;
 	class SceneManager;
+	class HotReload;
 }
 
 namespace Saturn {
@@ -32,15 +33,15 @@ namespace Saturn {
 	class SATURN_API Application
 	{
 	public:
-		Application( const ApplicationProps& props = {"Saturn Engine", 1280, 720} );
+		Application( const ApplicationProps& props ={ "Saturn Engine", 1280, 720 } );
 		virtual ~Application( void );
 
 		void Run( void );
 
 		/*----------For Editor----------*/
-		virtual void OnInit( void ) {}
-		virtual void OnShutdown( void ) {}
-		virtual void OnShutdownSave( void ) {}
+		virtual void OnInit( void ) { }
+		virtual void OnShutdown( void ) { }
+		virtual void OnShutdownSave( void ) { }
 		/*------------------------------*/
 
 		void OnEvent( Event& e );
@@ -82,6 +83,7 @@ namespace Saturn {
 
 		Ref< SceneManager > m_SceneManager;
 		Ref< ModuleManager > m_ModuleManager;
+		Ref< HotReload > m_HotReload;
 
 		bool m_Running = true;
 

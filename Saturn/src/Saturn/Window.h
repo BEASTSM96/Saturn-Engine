@@ -58,6 +58,7 @@ namespace Saturn {
 		virtual void SetEventCallback( const EventCallbackFn& callback ) = 0;
 		virtual void SetVSync( bool enabled ) = 0;
 		virtual bool IsVSync( void ) const = 0;
+		virtual void Maximize( void ) = 0;
 
 		virtual void* GetNativeWindow( void ) const = 0;
 

@@ -4,7 +4,7 @@
 
 extern Saturn::Application* Saturn::CreateApplication();
 
-int main(int argc, char** argv)
+int main( int argc, char** argv )
 {
 	//Saturn::Log::Init();
 
