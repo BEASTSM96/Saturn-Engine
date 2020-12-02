@@ -56,6 +56,7 @@ namespace Saturn {
 #define USE_NVIDIA
 #endif // PHYSX
 
+#define HOTRELOADS(name) struct name {
 
 namespace Saturn {
 

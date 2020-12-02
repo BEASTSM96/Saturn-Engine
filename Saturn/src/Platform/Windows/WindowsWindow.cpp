@@ -176,4 +176,9 @@ namespace Saturn {
 		return m_Data.VSync;
 	}
 
+	void WindowsWindow::Maximize( void )
+	{
+		glfwMaximizeWindow( m_Window );
+	}
+
 }
