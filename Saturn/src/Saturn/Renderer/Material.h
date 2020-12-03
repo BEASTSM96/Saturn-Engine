@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Saturn/Core/Base.h"
 #include "Saturn/Log.h"
+#include "Saturn/Core/Base.h"
 #include "Shader.h"
 #include "Texture.h"
 
@@ -124,7 +124,6 @@ namespace Saturn {
 			auto decl = m_Material->FindResourceDeclaration(name);
 			if (!decl)
 			{
-				//SAT_CORE_WARN("Cannot find material property: ", name);
 				return;
 			}
 			uint32_t slot = decl->GetRegister();
@@ -147,7 +146,7 @@ namespace Saturn {
 		T& Get(const std::string& name)
 		{
 			auto decl = m_Material->FindUniformDeclaration(name);
-			HZ_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
+			SAT_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
 			auto& buffer = GetUniformBufferTarget(decl);
 			return buffer.Read<T>(decl->GetOffset());
 		}
@@ -156,9 +155,9 @@ namespace Saturn {
 		Ref<T> GetResource(const std::string& name)
 		{
 			auto decl = m_Material->FindResourceDeclaration(name);
-			HZ_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
+			SAT_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
 			uint32_t slot = decl->GetRegister();
-			HZ_CORE_ASSERT(slot < m_Textures.size(), "Texture slot is invalid!");
+			SAT_CORE_ASSERT(slot < m_Textures.size(), "Texture slot is invalid!");
 			return Ref<T>(m_Textures[slot]);
 		}
 

@@ -2,30 +2,42 @@
 
 #include "Core/Base.h"
 
-#pragma warning(push, 0)
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
-#pragma warning(pop)
+
+#include <glm/glm.hpp>
 
 #include "ImGui/ImGuiConsole.h"
 
-#include "ImGui/ImGuiLayer.h"
-
 namespace Saturn {
 
-	class SATURN_API Log
+	class Log
 	{
 	public:
 		static void Init( void );
 
-		static RefSR< spdlog::logger >& GetCoreLogger( void ) { return s_CoreLogger; }
-		static RefSR< spdlog::logger >& GetClientLogger( void ) { return s_ClientLogger; }
+		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
+		inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
 	private:
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;
 	};
 
+
 }
+
+template<typename OStream>
+OStream& operator<<( OStream& os, const glm::vec3& vec )
+{
+	return os << '(' << vec.x << ", " << vec.y << ", " << vec.z << ')';
+}
+
+template<typename OStream>
+OStream& operator<<( OStream& os, const glm::vec4& vec )
+{
+	return os << '(' << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ')';
+}
+
 
 // Core log macros
 #define SAT_CORE_TRACE(...)				Saturn::Log::GetCoreLogger()->trace(__VA_ARGS__)

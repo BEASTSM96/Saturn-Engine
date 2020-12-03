@@ -1,15 +1,12 @@
 #include "sppch.h"
 #include "Scene.h"
 
+#include "Entity.h"
+
 #include "Components.h"
 
-#include <glm/glm.hpp>
-#include "Entity.h"
-#include "Saturn/Core/Math/Math.h"
 #include "Saturn/Renderer/SceneRenderer.h"
-#include "Saturn/Core/UUID.h"
-#include "SceneManager.h"
-#include "Saturn/Application.h"
+
 #include "SceneManager.h"
 
 #define GLM_ENABLE_EXPERIMENTAL

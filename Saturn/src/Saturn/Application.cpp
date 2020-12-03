@@ -123,7 +123,6 @@ namespace Saturn {
 	void Application::Init()
 	{
 		Serialiser::Init();
-		Math::Init();
 
 		m_ModuleManager = Ref< ModuleManager >::Create();
 		m_SceneManager = Ref< SceneManager >::Create();

@@ -1,5 +1,6 @@
-#pragma once
+#pragma once 
 
+#include "Base.h"
 #include <xhash>
 
 namespace Saturn {

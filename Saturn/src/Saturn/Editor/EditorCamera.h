@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Saturn/Renderer/EmptyCamera.h"
+#include "Saturn/Renderer/Camera.h"
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/Events/MouseEvent.h"
 
 namespace Saturn {
 
-	class EditorCamera : public EmptyCamera
+	class EditorCamera : public Camera
 	{
 	public:
 		EditorCamera() = default;
