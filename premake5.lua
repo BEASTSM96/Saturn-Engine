@@ -29,11 +29,9 @@ IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
 IncludeDir["ReactPhysics3D"] = "Saturn/vendor/reactphysics3d/include"
 
-
 -- Game
 GameDir = {}
 GameDir["Game"] = "Game/"
-
 
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
 IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
@@ -46,8 +44,6 @@ group "sat/Dependencies"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
 	include "Saturn/vendor/reactphysics3d"
-	group "Runtime"
-		include "Game"
 	group "sat/Dependencies/Serialisation"
 			include "Saturn/vendor/jsoncpp"
 			include "Saturn/vendor/yaml-cpp"
@@ -98,7 +94,8 @@ project "Saturn"
 			"%{prj.name}/vendor/assimp/include/",
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.ReactPhysics3D}"
+		"%{IncludeDir.ReactPhysics3D}",
+		"Saturn/vendor/yaml-cpp/include"
 	}
 
 	links 
@@ -212,7 +209,9 @@ project "Titan"
 		"%{IncludeDir.Assimp}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.ReactPhysics3D}"
+		"%{IncludeDir.ReactPhysics3D}",
+		"Saturn/vendor/yaml-cpp/include",
+		"Saturn/vendor/glm/"
 	}
 
 	links
@@ -263,3 +262,7 @@ project "Titan"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
+
+
+group "Runtime"
+	include "Game"

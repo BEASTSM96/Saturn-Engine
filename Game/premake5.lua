@@ -1,16 +1,3 @@
--- Include directories relative to root folder (solution directory)
-IncludeDir = {}
-IncludeDir["GLFW"] = "Saturn/vendor/GLFW/include"
-IncludeDir["Glad"] = "Saturn/vendor/Glad/include"
-IncludeDir["ImGui"] = "Saturn/vendor/imgui"
-IncludeDir["glm"] = "Saturn/vendor/glm"
-IncludeDir["stb_image"] = "Saturn/vendor/stb/"
-IncludeDir["Assimp"] = "Saturn/vendor/assimp/include"
-IncludeDir["entt"] = "Saturn/vendor/entt/include"
-IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
-IncludeDir["ReactPhysics3D"] = "Saturn/vendor/reactphysics3d/include"
-
-
 
 project "Game"
     architecture "x64"
@@ -52,7 +39,6 @@ project "Game"
 	{
 		"%{prj.name}/src",
         "../Saturn/src",
-		"../Saturn/vendor",
 		--vendor
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
@@ -65,9 +51,14 @@ project "Game"
 			"%{prj.name}/vendor/assimp/include/",
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.ReactPhysics3D}"
-
-
+		"%{IncludeDir.ReactPhysics3D}",
+		"../Saturn/vendor/yaml-cpp/include",
+		"../Saturn/vendor/glm",
+		"../Saturn/vendor/spdlog/include",
+		"../Saturn/vendor/Glad/include",
+		"../Saturn/vendor/entt/include",
+		"../Saturn/vendor/GLFW/include",
+		"../Saturn/vendor/reactphysics3d/include"
 	}
 
     links 

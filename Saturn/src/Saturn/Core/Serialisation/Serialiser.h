@@ -2,10 +2,8 @@
 
 #include <filesystem>
 #include <yaml-cpp/yaml.h>
-#include <json/json.h>
 #include "Saturn/Scene/Entity.h"
 #include "Saturn/Scene/Scene.h"
-#include "Types.h"
 
 #pragma warning(disable: 4005)
 
@@ -14,7 +12,6 @@ namespace Saturn {
 	{
 	public:
 		Serialiser(const std::string& objectname, bool shouldSerialise = true);
-		Serialiser(const std::string& objectname, Json::Value& reconstructionValue);
 		Serialiser(const Ref<Scene>& scene);
 
 		static void Init( void );

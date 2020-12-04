@@ -169,7 +169,8 @@ namespace Saturn {
 		glm::mat4 RelativeTransform = glm::mat4{ 0.0f };
 	};
 
-	struct PhysicsComponent {
+	struct PhysicsComponent : Component
+	{
 		bool useGravity;
 
 		Rigidbody* rigidbody;
@@ -177,17 +178,40 @@ namespace Saturn {
 		PhysicsComponent(Rigidbody* rb) : rigidbody(rb) {}
 	};
 
-	struct BoxColliderComponent {
-		glm::vec3 extents;
+	struct BoxColliderComponent : Component
+	{
+		glm::vec3 Extents;
 
 		BoxColliderComponent() = default;
-		BoxColliderComponent(const glm::vec3& extents) : extents(extents) {}
+		BoxColliderComponent(const glm::vec3& extents) : Extents(extents) {}
 	};
 
-	struct SphereColliderComponent {
-		float radius;
+	struct SphereColliderComponent : Component
+	{
+		float Radius;
 
 		SphereColliderComponent() = default;
-		SphereColliderComponent(float radius) : radius(radius) {}
+		SphereColliderComponent(float radius) : Radius(radius) {}
 	};
+
+
+	struct ScriptComponent : Component
+	{
+
+		struct Data 
+		{
+			//Path -> being like the path to the .cpp file
+			std::string Path;
+			//Name -> being like the name to the .cpp file
+			std::string Name;
+
+			bool Runtime;
+			bool UpdateOnPlay;
+			bool CanExec;
+			bool DoseAddNewComponent;
+		};
+
+		Data m_Data;
+	};
+
 }

@@ -22,8 +22,6 @@
 
 #include <imgui.h>
 
-#include <json/json.h>
-
 #include <Windows.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
@@ -132,11 +130,6 @@ namespace Saturn {
 	void Application::Run()
 	{
 		SAT_PROFILE_FUNCTION();
-
-		std::string name = "MyGame";
-		m_HotReload->m_GameContext->m_Games.push_back(Game());
-		m_HotReload->OnHotReload( ( const char )name.c_str() );
-
 		while( m_Running && !m_Crashed )
 		{
 			SAT_PROFILE_SCOPE( "RunLoop" );

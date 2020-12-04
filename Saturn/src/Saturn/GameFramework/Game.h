@@ -2,6 +2,7 @@
 
 #include "Saturn/Core/Base.h"
 #include "Saturn/Core/Assets/Asset.h"
+#include "Saturn/Scene/Scene.h"
 
 #include <vector>
 #include <string>
@@ -41,7 +42,7 @@ namespace Saturn {
 		}
 
 		public:
-			virtual void ConfigGame( Saturn::Ref<Saturn::Scene> runtimeScece )  = 0;
+			virtual void ConfigGame( Ref<Scene> runtimeScece )  = 0;
 		public:
 
 

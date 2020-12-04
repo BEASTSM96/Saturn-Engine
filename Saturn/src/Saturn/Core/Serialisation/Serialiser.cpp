@@ -3,8 +3,6 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "Object.h"
-
 #include "Saturn/Application.h"
 #include "Saturn/Scene/Scene.h"
 
@@ -158,12 +156,6 @@ namespace Saturn {
 
 	Serialiser::Serialiser(const std::string& objectname, bool shouldSerialise) : m_shouldSerialise(true), m_ObjectName(objectname)
 	{
-	}
-
-	Serialiser::Serialiser(const std::string& objectname, Json::Value& reconstructionValue) : m_shouldSerialise(true), m_ObjectName(objectname)
-	{
-
-
 	}
 
 	Serialiser::Serialiser(const Ref<Scene>& scene) 

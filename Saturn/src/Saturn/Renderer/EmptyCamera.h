@@ -4,7 +4,6 @@
 
 #include <glad/glad.h>
 
-#include "Saturn/Core/Serialisation/Object.h"
 #include "Saturn/Core/Serialisation/Serialiser.h"
 
 namespace Saturn {
