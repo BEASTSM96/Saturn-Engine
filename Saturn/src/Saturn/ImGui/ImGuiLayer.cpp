@@ -1561,11 +1561,11 @@ namespace Saturn {
 		});
 
 		DrawComponent<BoxColliderComponent>("Box Collider", entity, [](auto& component) {
-			DrawVec3Control("Extents", component.extents, component.extents);
+			DrawVec3Control("Extents", component.Extents, component.Extents);
 		});
 
 		DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](auto& component) {
-			DrawFloatControl("Radius", &component.radius, component.radius);
+			DrawFloatControl("Radius", &component.Radius, component.Radius);
 		});
 
 		DrawComponent<PhysicsComponent>("Physics", entity, [](auto& pc)
