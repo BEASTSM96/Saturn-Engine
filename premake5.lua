@@ -29,6 +29,12 @@ IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
 IncludeDir["ReactPhysics3D"] = "Saturn/vendor/reactphysics3d/include"
 
+
+-- Game
+GameDir = {}
+GameDir["Game"] = "Game/"
+
+
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
 IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
 IncludeDir["Saturn-Serialisation"] = "Saturn/vendor/Saturn-Serialisation/"
@@ -40,7 +46,9 @@ group "sat/Dependencies"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
 	include "Saturn/vendor/reactphysics3d"
-		group "sat/Dependencies/Serialisation"
+	group "Runtime"
+		include "Game"
+	group "sat/Dependencies/Serialisation"
 			include "Saturn/vendor/jsoncpp"
 			include "Saturn/vendor/yaml-cpp"
 --			include "Saturn/vendor/Saturn-Serialisation"

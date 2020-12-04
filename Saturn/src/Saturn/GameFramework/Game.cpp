@@ -23,6 +23,10 @@ namespace Saturn {
 
 		//TODO: Somehow create the msbuild
 
+		//system("cd ../Game\\");
+		//system("cd C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin");
+		//system("MSBuild.exe");
+
 		return true;
 	}
 
