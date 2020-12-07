@@ -56,6 +56,23 @@ namespace Saturn {
 	void Scene::OnUpdate(Timestep ts)
 	{
 		m_physicsScene->Update(ts);
+
+
+		{	
+			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+			{
+				if( !nsc.Instance )
+				{
+					nsc.InstantiateFunc();
+					nsc.OnCreateFunc( nsc.Instance );
+
+					nsc.OnBeignPlayFunc( nsc.Instance );
+				}
+
+				nsc.OnUpdateFunc( nsc.Instance, ts );
+
+			} );
+		}
 	}
 
 	void Scene::OnRenderEditor(Timestep ts, const EditorCamera& editorCamera)

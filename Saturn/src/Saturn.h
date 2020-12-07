@@ -36,6 +36,8 @@
 
 #include "Saturn/Renderer/Framebuffer.h"
 
+#include "Saturn/Scene/ScriptableEntity.h"
+
 // ---Renderer---------------------
 #include "Saturn/Renderer/RenderCommandQueue.h"
 #include "Saturn/Renderer/Renderer.h"

@@ -399,6 +399,37 @@ namespace Saturn {
 		//DeserialiseDebugLvl();
 
 
+		class MyTestGame : public ScriptableEntity
+			//thats in the engine(lol)
+		{
+		public:
+		
+			void OnCreate()
+			{
+			}
+
+			void OnDestroy()
+			{
+			}
+
+			void OnBeginPlay()
+			{
+				SAT_INFO("BeginPlay!");
+			}
+
+			void OnUpdate( Timestep ts )
+			{
+				SAT_INFO("Update ts = {0}s, {1}ms", ts.GetSeconds(), ts.GetMilliseconds());
+			}
+
+		private:
+
+		};
+
+		auto& GameEntity = m_EditorScene->CreateEntity("GameEntity");
+
+		GameEntity.AddComponent<NativeScriptComponent>().Bind<MyTestGame>();
+
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
@@ -600,6 +631,8 @@ namespace Saturn {
 		m_EditorScene->OnRenderEditor(ts, m_EditorCamera);
 
 		m_DrawOnTopBoundingBoxes = true;
+
+		m_EditorScene->OnUpdate(ts);
 
 		if (m_RuntimeScene) {
 			m_RuntimeScene->PhysicsUpdate(ts);
@@ -953,7 +986,6 @@ namespace Saturn {
 				m_ViewportBounds[0] = { minBound.x, minBound.y };
 				m_ViewportBounds[1] = { maxBound.x, maxBound.y };
 				m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
-
 				// Gizmos
 				if( m_GizmoType != -1 && m_SelectionContext.size() )
 				{
@@ -969,7 +1001,7 @@ namespace Saturn {
 
 					auto& entityTransform = selection.Entity.GetComponent<TransformComponent>().GetTransform();
 					float snapValue = GetSnapValue();
-					float snapValues[ 3 ] = { snapValue, snapValue, snapValue };
+					float snapValues[ 3 ] ={ snapValue, snapValue, snapValue };
 					if( m_SelectionMode == SelectionMode::Entity )
 					{
 						ImGuizmo::Manipulate( glm::value_ptr( m_EditorCamera.GetViewMatrix() ),
@@ -994,8 +1026,6 @@ namespace Saturn {
 						selection.Mesh->Transform = glm::inverse( entityTransform ) * transformBase;
 					}
 				}
-
-
 			}
 			ImGui::PopStyleVar();
 
@@ -1572,6 +1602,13 @@ namespace Saturn {
 		{
 
 
+		});
+
+
+
+		DrawComponent<NativeScriptComponent>( "NativeScript", entity, []( auto& ncs )
+		{
+			
 		});
 
 
