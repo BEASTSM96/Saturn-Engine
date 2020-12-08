@@ -108,11 +108,11 @@ namespace Saturn {
 		void Contact(rp3d::CollisionBody* body);
 
 		/*------------------------ Runtime helpers ------------------------ */
-		Ref<Scene> CopyScene(const Ref<Scene>& CurrentScene);
-		Ref<Scene> CopyScene(const Ref<Scene>& CurrentScene, Ref<Scene> NewScene);
-		Scene* CopyScene(const Scene*& CurrentScene);
-		Scene* CopyScene(const Scene*& CurrentScene, Scene* NewScene);
-		void CopyScene(Ref<Scene>& NewScene);
+		Ref<Scene> CopyScene( const Ref<Scene>& CurrentScene );
+		Ref<Scene> CopyScene( const Ref<Scene>& CurrentScene, Ref<Scene> NewScene );
+		Scene* CopyScene( const Scene*& CurrentScene );
+		Scene* CopyScene( const Scene*& CurrentScene, Scene* NewScene );
+		void CopyScene( Ref<Scene>& NewScene );
 
 		void BeginRuntime( void );
 		void StartRuntime( void );
@@ -121,7 +121,7 @@ namespace Saturn {
 		bool m_RuntimeRunning = false;
 
 	private:
-		void UpdateRuntime( void );
+		void UpdateRuntime( Timestep ts );
 		/*------------------------------------------------------------------ */
 	public:
 		std::shared_ptr<PhysicsScene> m_physicsScene;

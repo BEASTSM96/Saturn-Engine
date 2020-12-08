@@ -9,6 +9,9 @@
 
 #include "SceneManager.h"
 
+#include "Saturn/Application.h"
+#include "Saturn/GameFramework/HotReload.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -57,22 +60,11 @@ namespace Saturn {
 	{
 		m_physicsScene->Update(ts);
 
-
-		{	
-			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
-			{
-				if( !nsc.Instance )
-				{
-					nsc.InstantiateFunc();
-					nsc.OnCreateFunc( nsc.Instance );
-
-					nsc.OnBeignPlayFunc( nsc.Instance );
-				}
-
-				nsc.OnUpdateFunc( nsc.Instance, ts );
-
-			} );
+		if (m_RuntimeRunning)
+		{
+			UpdateRuntime(ts);
 		}
+
 	}
 
 	void Scene::OnRenderEditor(Timestep ts, const EditorCamera& editorCamera)
@@ -505,7 +497,7 @@ namespace Saturn {
 		CopyComponent<BoxColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
 		CopyComponent<SphereColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
 		CopyComponent<SpriteRendererComponent>(NewScene->m_Registry, m_Registry, enttMap);
-
+		CopyComponent<NativeScriptComponent>(NewScene->m_Registry, m_Registry, enttMap);
 	}
 
 	void Scene::BeginRuntime( void )
@@ -520,9 +512,9 @@ namespace Saturn {
 		m_RuntimeRunning = true;
 	}
 
-	void Scene::UpdateRuntime( void )
+	void Scene::UpdateRuntime( Timestep ts )
 	{
-		SAT_CORE_WARN("Updating Runtime!");
+		//SAT_CORE_WARN("Updating Runtime!");
 		auto view = m_Registry.view<TransformComponent, PhysicsComponent /*, TODO: When add other comps */>();
 
 		for (auto entity : view)
@@ -532,6 +524,23 @@ namespace Saturn {
 			tc.Position = pc.rigidbody->GetPosition();
 			tc.Rotation = pc.rigidbody->GetRotation();
 
+		}
+
+		Application::Get().GetHotReload()->OnHotReload();
+
+		{
+			m_Registry.view<NativeScriptComponent>().each( [=]( auto entity, auto& nsc )
+			{
+				if( !nsc.Instance )
+				{
+					nsc.InstantiateFunc();
+					nsc.OnCreateFunc( nsc.Instance );
+					nsc.OnBeignPlayFunc( nsc.Instance );
+				}
+
+				nsc.OnUpdateFunc( nsc.Instance, ts );
+
+			});
 		}
 
 	}

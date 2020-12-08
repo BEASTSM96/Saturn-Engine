@@ -14,6 +14,7 @@ namespace Saturn {
 		);
 		SAT_CORE_WARN("============= v0.a01=============");
 		SAT_CORE_WARN("{0} ({1})", "Welcome to", "v0.a01");
+		SAT_CORE_WARN("API Docs (https://beastsm96.github.io/Projects/Saturn-Engine/api/v0.a01)");
 	}
 
 	void EndCore( void )

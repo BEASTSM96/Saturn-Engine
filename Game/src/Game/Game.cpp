@@ -30,43 +30,20 @@ SOFTWARE.
 #include <Saturn/Renderer/Mesh.h>
 #include <Saturn/Scene/Components.h>
 #include <Saturn/GameFramework/Game.h>
+#include <Saturn/Scene/Entity.h>
 
 namespace game {
 
-	class GGame : public Saturn::Game {
+	class GEntity : public Saturn::ScriptableEntity
+	{
 	public:
-		GGame();
-		~GGame();
 
-		//virtual void ConfigGame( Ref<Scene> runtimeScece ) override;
+		void BeginPlay() {}
 
-
-		void ConfigGame( Saturn::Ref<Saturn::Scene> runtimeScece ) override;
-
+	protected:
+		
+	private:
 	};
-
-	GGame::GGame()
-	{
-
-	}
-
-	GGame::~GGame()
-	{
-
-	}
-
-	void GGame::ConfigGame( Saturn::Ref<Saturn::Scene> runtimeScece )
-	{
-		auto entities =  runtimeScece->GetRegistry().view<Saturn::TransformComponent>();
-		for (auto& entity : entities)
-		{
-			auto& transform = entities.get<Saturn::TransformComponent>(entity);
-
-
-
-		}
-
-	}
 
 	class debug
 	{
@@ -95,7 +72,7 @@ namespace game {
 
 	void debug::logEx( char msg )
 	{
-		__debugbreak();
+		SAT_INFO("[Log Ex] {}", msg);
 	}
 
 }

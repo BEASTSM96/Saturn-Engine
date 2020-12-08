@@ -115,6 +115,7 @@ namespace Saturn {
 
 		SelectionMode m_SelectionMode;
 		Ref<Texture2D> m_CheckerboardTex;
+		Ref<Texture2D> m_FooBarTexure;
 		std::vector<SelectedSubmesh> m_SelectionContext;
 		Ref<Scene> m_RuntimeScene, m_EditorScene;
 		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };

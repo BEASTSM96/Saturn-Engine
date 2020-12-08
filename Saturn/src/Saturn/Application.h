@@ -65,7 +65,7 @@ namespace Saturn {
 		Scene& GetCurrentScene( void ) { return *m_Scene; }
 		ModuleManager& GetModuleManager( void ) { return *m_ModuleManager; }
 		Ref<SceneManager>& GetSceneMananger( void ) { return m_SceneManager; }
-		//Ref<Saturn::ModuleManager> GetModuleManagerRef() { return m_ModuleManager; }
+		Ref< HotReload >& GetHotReload() { return m_HotReload; }
 
 	private:
 		bool OnWindowClose( WindowCloseEvent& e );

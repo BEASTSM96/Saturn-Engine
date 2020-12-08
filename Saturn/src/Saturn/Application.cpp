@@ -43,8 +43,6 @@ namespace Saturn {
 		m_Window->SetEventCallback( BIND_EVENT_FN( OnEvent ) );
 		m_Window->SetVSync( false );
 
-		Init();
-
 		m_ImGuiLayer = new ImGuiLayer();
 		m_EditorLayer = new EditorLayer();
 
@@ -53,6 +51,7 @@ namespace Saturn {
 
 		//PushLayer(m_EditorLayer);
 		PushOverlay( m_ImGuiLayer );
+		Init();
 		PushOverlay( m_EditorLayer );
 
 		m_Window->Maximize();
@@ -125,6 +124,7 @@ namespace Saturn {
 		m_ModuleManager = Ref< ModuleManager >::Create();
 		m_SceneManager = Ref< SceneManager >::Create();
 		m_HotReload = Ref< HotReload >::Create();
+		m_HotReload->m_Scece = m_EditorLayer->GetEditorScene();
 	}
 
 	void Application::Run()

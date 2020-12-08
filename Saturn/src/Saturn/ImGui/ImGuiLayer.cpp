@@ -158,22 +158,22 @@ namespace Saturn {
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+																	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
+																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
 
 		ImVec4* colors = ImGui::GetStyle().Colors;
 
-#ifdef SAT_PLATFORM_WINDOWS
+	#ifdef SAT_PLATFORM_WINDOWS
 		ImFont* pFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
 		io.FontDefault = io.Fonts->Fonts.back();
-#endif // SAT_PLATFORM_WINDOWS
+	#endif // SAT_PLATFORM_WINDOWS
 
-#define SAT_DARK_THMEME
-#ifdef SAT_DARK_THMEME
+	#define SAT_DARK_THMEME
+	#ifdef SAT_DARK_THMEME
 		// ImGui Colors
 		colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		colors[ImGuiCol_TextDisabled] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
@@ -217,7 +217,7 @@ namespace Saturn {
 		colors[ImGuiCol_DragDropTarget] = ImVec4(1.0f, 1.0f, 0.0f, 0.9f);
 		colors[ImGuiCol_NavHighlight] = ImVec4(0.60f, 0.6f, 0.6f, 1.0f);
 		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.7f);
-#elif defined(SAT_DARK_THMEME_TWO)
+	#elif defined(SAT_DARK_THMEME_TWO)
 
 		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 		colors[ImGuiCol_TextDisabled] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
@@ -271,7 +271,7 @@ namespace Saturn {
 		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
 		colors[ImGuiCol_DockingPreview] = ImVec4(0.85f, 0.85f, 0.85f, 0.28f);
 
-#elif defined(SAT_DARK_THMEME_THREE)
+	#elif defined(SAT_DARK_THMEME_THREE)
 		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 		colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
 		colors[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
@@ -323,7 +323,7 @@ namespace Saturn {
 		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
-#elif defined(SAT_DARK_THMEME_FOUR)
+	#elif defined(SAT_DARK_THMEME_FOUR)
 		ImGuiStyle& style = ImGui::GetStyle();
 		style.WindowRounding = 5.3f;
 		style.FrameRounding = 2.3f;
@@ -382,11 +382,11 @@ namespace Saturn {
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
 
-#endif // SAT_DARK_THMEME
+	#endif // SAT_DARK_THMEME
 
-#ifdef SAT_LIGHT_THMEME
+	#ifdef SAT_LIGHT_THMEME
 		ImGui::StyleColorsLight();
-#endif // SAT_LIGHT_THMEME
+	#endif // SAT_LIGHT_THMEME
 
 		m_EditorScene = Ref<Scene>::Create();
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(m_EditorScene);
@@ -395,6 +395,8 @@ namespace Saturn {
 		Application::Get().GetSceneMananger().Raw()->AddScene(m_EditorScene);
 
 		m_CheckerboardTex = Texture2D::Create("assets/editor/Checkerboard.tga");
+		m_FooBarTexure = Texture2D::Create("assets/textures/FooBar.png");
+
 
 		//DeserialiseDebugLvl();
 
@@ -403,23 +405,18 @@ namespace Saturn {
 			//thats in the engine(lol)
 		{
 		public:
-		
-			void OnCreate()
-			{
-			}
 
-			void OnDestroy()
-			{
-			}
+			void OnCreate() {}
+
+			void OnDestroy() {}
 
 			void OnBeginPlay()
 			{
-				SAT_INFO("BeginPlay!");
 			}
 
 			void OnUpdate( Timestep ts )
 			{
-				SAT_INFO("Update ts = {0}s, {1}ms", ts.GetSeconds(), ts.GetMilliseconds());
+				SAT_INFO("Hello, ts {0}", ts.GetSeconds());
 			}
 
 		private:
@@ -632,10 +629,7 @@ namespace Saturn {
 
 		m_DrawOnTopBoundingBoxes = true;
 
-		m_EditorScene->OnUpdate(ts);
-
 		if (m_RuntimeScene) {
-			m_RuntimeScene->PhysicsUpdate(ts);
 			m_RuntimeScene->OnUpdate(ts);
 		}
 
@@ -717,69 +711,70 @@ namespace Saturn {
 	{
 		switch (e.GetKeyCode())
 		{
-		case SAT_KEY_Q:
-			m_GizmoType = -1;
-			break;
-		case SAT_KEY_E:
-			m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-			break;
-		case SAT_KEY_W:
-			m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-			break;
-		case SAT_KEY_R:
-			m_GizmoType = ImGuizmo::OPERATION::SCALE;
-			break;
-		case SAT_KEY_DELETE:
-			if (m_SelectionContext.size())
-			{
-				Entity selectedEntity = m_SelectionContext[0].Entity;
-				m_EditorScene->DestroyEntity(selectedEntity);
-				m_SelectionContext.clear();
-				m_EditorScene->SetSelectedEntity({});
-				m_SceneHierarchyPanel->SetSelected({});
-			}
-			break;
+			case SAT_KEY_Q:
+				m_GizmoType = -1;
+				break;
+			case SAT_KEY_E:
+				m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+				break;
+			case SAT_KEY_W:
+				m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+				break;
+			case SAT_KEY_R:
+				m_GizmoType = ImGuizmo::OPERATION::SCALE;
+				break;
+			case SAT_KEY_DELETE:
+				if (m_SelectionContext.size())
+				{
+					Entity selectedEntity = m_SelectionContext[0].Entity;
+					m_EditorScene->DestroyEntity(selectedEntity);
+					m_SelectionContext.clear();
+					m_EditorScene->SetSelectedEntity({});
+					m_SceneHierarchyPanel->SetSelected({});
+				}
+				break;
 		}
 
 		if (Input::IsKeyPressed(SAT_KEY_LEFT_SHIFT))
 		{
 			switch (e.GetKeyCode())
 			{
-			case SAT_KEY_S:
-				SaveSceneAs();
-				break;
+				case SAT_KEY_S:
+					SaveSceneAs();
+					break;
 			}
 		}
 
-#ifdef SAT_DEBUG
+	#ifdef SAT_DEBUG
 		if (Input::IsKeyPressed(SAT_KEY_LEFT_SHIFT))
 		{
 			switch (e.GetKeyCode())
 			{
-			case SAT_KEY_F:
-				DeserialiseDebugLvl();
-				break;
+				case SAT_KEY_F:
+					DeserialiseDebugLvl();
+					break;
 			}
 		}
-#endif
+	#endif
 
 		if (Input::IsKeyPressed(SAT_KEY_LEFT_CONTROL))
 		{
 			switch (e.GetKeyCode())
 			{
-			case SAT_KEY_P:
-				m_SelectionContext.clear();
-				m_RuntimeScene = Ref<Scene>::Create();
-				m_SceneHierarchyPanel->SetContext(m_RuntimeScene);
-				m_EditorScene->CopyScene(m_RuntimeScene);
-				Application::Get().GetSceneMananger().Raw()->AddScene(m_RuntimeScene);
-				break;
-			case SAT_KEY_X:
-				m_RuntimeScene->m_RuntimeRunning = false;
-				m_RuntimeScene = nullptr;
-				m_SelectionContext.clear();
-				m_SceneHierarchyPanel->SetContext(m_EditorScene);
-				break;
+				case SAT_KEY_P:
+					m_SelectionContext.clear();
+					m_RuntimeScene = Ref<Scene>::Create();
+					m_SceneHierarchyPanel->SetContext(m_RuntimeScene);
+					m_EditorScene->CopyScene(m_RuntimeScene);
+					Application::Get().GetSceneMananger().Raw()->AddScene(m_RuntimeScene);
+					m_RuntimeScene->m_RuntimeRunning = true;
+					break;
+				case SAT_KEY_X:
+					m_RuntimeScene->m_RuntimeRunning = false;
+					m_RuntimeScene = nullptr;
+					m_SelectionContext.clear();
+					m_SceneHierarchyPanel->SetContext(m_EditorScene);
+					break;
 			}
 		}
 
@@ -863,9 +858,9 @@ namespace Saturn {
 	float EditorLayer::GetSnapValue() {
 		switch (m_GizmoType)
 		{
-		case  ImGuizmo::OPERATION::TRANSLATE: return 0.5f;
-		case  ImGuizmo::OPERATION::ROTATE: return 45.0f;
-		case  ImGuizmo::OPERATION::SCALE: return 0.5f;
+			case  ImGuizmo::OPERATION::TRANSLATE: return 0.5f;
+			case  ImGuizmo::OPERATION::ROTATE: return 45.0f;
+			case  ImGuizmo::OPERATION::SCALE: return 0.5f;
 		}
 		return 0.0f;
 	}
@@ -924,6 +919,51 @@ namespace Saturn {
 			m_ImGuiConsole_Thread = std::thread(&EditorLayer::StartImGuiConsole, this);
 			// Editor Panel ------------------------------------------------------------------------------
 			m_ImGuiConsole_Thread.join();
+
+
+			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
+			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );
+			ImGui::PushStyleVar( ImGuiStyleVar_ItemInnerSpacing, ImVec2( 0, 0 ) );
+			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
+			ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.8f, 0.8f, 0.8f, 0.0f ) );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
+			if(ImGui::Begin( "Toolbar" )) 
+			{
+				if (ImGui::ImageButton((ImTextureID)(m_FooBarTexure->GetRendererID()), ImVec2(125, 125), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0,0,0,0), ImVec4(0.9f, 0.9f, 0.9f, 1.0f))) 
+				{
+					m_SelectionContext.clear();
+					m_RuntimeScene = Ref<Scene>::Create();
+					m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
+					m_EditorScene->CopyScene( m_RuntimeScene );
+					Application::Get().GetSceneMananger().Raw()->AddScene( m_RuntimeScene );
+					m_RuntimeScene->m_RuntimeRunning = true;
+				}
+
+				if (m_RuntimeScene)
+				{
+					if( m_RuntimeScene->m_RuntimeRunning )
+					{
+						ImGui::SameLine();
+
+						if( ImGui::ImageButton( ( ImTextureID )( m_CheckerboardTex->GetRendererID() ), ImVec2( 125, 125 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
+						{
+							m_RuntimeScene->m_RuntimeRunning = false;
+							m_RuntimeScene = nullptr;
+							m_SelectionContext.clear();
+							m_SceneHierarchyPanel->SetContext( m_EditorScene );
+						}
+					}
+				}
+
+				ImGui::End();
+			}
+			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
+			ImGui::PopStyleVar();
+			ImGui::PopStyleVar();
+			ImGui::PopStyleVar();
+
 			if (ImGui::Begin("Model")) {
 				if (ImGui::Begin("Environment")) {
 
@@ -956,6 +996,7 @@ namespace Saturn {
 
 			}
 			ImGui::End();
+
 
 			if (ImGui::Begin("Assets##astmgr"))
 			{
@@ -1158,7 +1199,7 @@ namespace Saturn {
 		}
 
 
-#ifdef SAT_DEBUG
+	#ifdef SAT_DEBUG
 		if (ImGui::Begin("Scene##debug"))
 		{
 			for (int i = 0; i < Application::Get().GetModuleManager().GetModules().size(); i++)
@@ -1173,7 +1214,7 @@ namespace Saturn {
 
 		}
 		ImGui::End();
-#endif // SAT_DEBUG
+	#endif // SAT_DEBUG
 
 		ImGui::End();
 
@@ -1209,10 +1250,10 @@ namespace Saturn {
 		if (m_Context) {
 			uint32_t entityCount = 0, meshCount = 0;
 			m_Context->m_Registry.each([&](auto entity)
-			{
-				Entity e{ entity, m_Context.Raw() };
-				DrawEntityNode(e);
-			});
+				{
+					Entity e{ entity, m_Context.Raw() };
+					DrawEntityNode(e);
+				});
 		}
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			m_SelectionContext = {};
@@ -1255,7 +1296,7 @@ namespace Saturn {
 									m_Context->GetPhysicsScene(), /*Phys Scene*/
 									true, /*UseGravity*/
 									glm::vec3(0, -2, 0) /*Pos*/
-								)
+									)
 									).rigidbody->AddBoxCollider(glm::vec3(1));
 						}
 
@@ -1292,7 +1333,7 @@ namespace Saturn {
 			{
 				m_SelectionContext = entity;
 				//if (m_SelectionChangedCallback)
-					m_SelectionChangedCallback(m_SelectionContext);
+				m_SelectionChangedCallback(m_SelectionContext);
 			}
 
 			if (opened)
@@ -1544,72 +1585,72 @@ namespace Saturn {
 
 
 		DrawComponent<TransformComponent>("Transform", entity, [](auto& tc)
-		{
-
-			/*
-			auto translation = entity.GetComponent<TransformComponent>().Position;
-			auto rotationQuat = tc.Position;
-			auto scale = tc.Scale;
-			*/
-			bool updateTransform = false;
-			updateTransform |= DrawVec3Control("Translation", tc.Position, tc.Position);
-			glm::vec3 newRotation = glm::degrees(glm::eulerAngles(tc.Rotation));
-			updateTransform |= DrawVec3Control("Rotation", newRotation, newRotation);
-			updateTransform |= DrawVec3Control("Scale", tc.Scale, tc.Scale);
-
-			tc.Rotation = glm::quat(glm::radians(newRotation));
-
-			if (updateTransform)
 			{
 
-			}
+				/*
+				auto translation = entity.GetComponent<TransformComponent>().Position;
+				auto rotationQuat = tc.Position;
+				auto scale = tc.Scale;
+				*/
+				bool updateTransform = false;
+				updateTransform |= DrawVec3Control("Translation", tc.Position, tc.Position);
+				glm::vec3 newRotation = glm::degrees(glm::eulerAngles(tc.Rotation));
+				updateTransform |= DrawVec3Control("Rotation", newRotation, newRotation);
+				updateTransform |= DrawVec3Control("Scale", tc.Scale, tc.Scale);
 
-		});
+				tc.Rotation = glm::quat(glm::radians(newRotation));
+
+				if (updateTransform)
+				{
+
+				}
+
+			});
 
 		DrawComponent<MeshComponent>("Mesh", entity, [](auto& mc)
-		{
-			ImGui::Columns(3);
-			ImGui::SetColumnWidth(0, 100);
-			ImGui::SetColumnWidth(1, 300);
-			ImGui::SetColumnWidth(2, 40);
-			ImGui::Text("File Path");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			if (mc.Mesh)
-				ImGui::InputText("##meshfilepath", (char*)mc.Mesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
-			else
-				ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-			if (ImGui::Button("...##openmesh", ImVec2(50, 20)))
 			{
-				std::string file = Application::Get().OpenFile("ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0").first;
-				if (!file.empty())
-					mc.Mesh = Ref<Mesh>::Create(file);
+				ImGui::Columns(3);
+				ImGui::SetColumnWidth(0, 100);
+				ImGui::SetColumnWidth(1, 300);
+				ImGui::SetColumnWidth(2, 40);
+				ImGui::Text("File Path");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (mc.Mesh)
+					ImGui::InputText("##meshfilepath", (char*)mc.Mesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+				else
+					ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				if (ImGui::Button("...##openmesh", ImVec2(50, 20)))
+				{
+					std::string file = Application::Get().OpenFile("ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0").first;
+					if (!file.empty())
+						mc.Mesh = Ref<Mesh>::Create(file);
 
-			}
-		});
+				}
+			});
 
 		DrawComponent<BoxColliderComponent>("Box Collider", entity, [](auto& component) {
 			DrawVec3Control("Extents", component.Extents, component.Extents);
-		});
+			});
 
 		DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](auto& component) {
 			DrawFloatControl("Radius", &component.Radius, component.Radius);
-		});
+			});
 
 		DrawComponent<PhysicsComponent>("Physics", entity, [](auto& pc)
-		{
+			{
 
 
-		});
+			});
 
 
 
 		DrawComponent<NativeScriptComponent>( "NativeScript", entity, []( auto& ncs )
-		{
-			
-		});
+			{
+
+			});
 
 
 		if (entity.HasComponent<TagComponent>())
