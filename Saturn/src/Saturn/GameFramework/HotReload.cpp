@@ -11,7 +11,7 @@ namespace Saturn {
 	{
 		s_Instance = this;
 
-		m_GameContext = Ref<GameContext>::Create();
+		m_GameContext = Ref<GameContext>::Create(this);
 	}
 
 	HotReload::~HotReload()
@@ -27,6 +27,7 @@ namespace Saturn {
 	void HotReload::OnHotReload()
 	{
 		m_GameContext->CompileAllGames();
+		m_GameContext->ConfigAllGames();
 	}
 
 }

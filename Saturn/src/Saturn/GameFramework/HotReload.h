@@ -29,6 +29,7 @@ namespace Saturn {
 		void OnHotReload( char name );
 
 		Ref<GameContext> m_GameContext;
+		Ref<Scene> m_Scece;
 
 		HotReloadStruct m_HotReloadStruct;
 	public:

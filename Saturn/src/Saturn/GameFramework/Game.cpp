@@ -1,10 +1,11 @@
 #include "sppch.h"
 #include "Game.h"
 
+#include "HotReload.h"
+
 #ifdef SAT_PLATFORM_WINDOWS
 #include <Windows.h>
 #endif // SAT_PLATFORM_WINDOWS
-
 
 namespace Saturn {
 
@@ -17,7 +18,7 @@ namespace Saturn {
 
 	}
 
-	bool Game::Compile( GameContext* gameContext )
+	bool Game::Compile( Saturn::GameContext* gameContext )
 	{
 		std::string MSBuildPath = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe";
 
@@ -40,9 +41,9 @@ namespace Saturn {
 
 	}
 
-	GameContext::GameContext()
+	GameContext::GameContext( HotReload* hotReload )
 	{
-
+		m_Scene = hotReload->m_Scece.Raw();
 	}
 
 	GameContext::~GameContext()
@@ -55,6 +56,14 @@ namespace Saturn {
 		for( auto& cn : m_Games )
 		{
 			cn.Compile(this);
+		}
+	}
+
+	void GameContext::ConfigAllGames( void )
+	{
+		for( auto& cn : m_Games )
+		{
+			cn.ConfigGame( m_Scene );
 		}
 	}
 

@@ -10,6 +10,7 @@
 namespace Saturn {
 
 	class GameContext;
+	class HotReload;
 
 	class Game : public RefCounted
 	{
@@ -44,9 +45,8 @@ namespace Saturn {
 		public:
 			virtual void ConfigGame( Ref<Scene> runtimeScece )  = 0;
 		public:
-
-
-		bool Compile( GameContext* gameContext );
+			
+		virtual bool Compile( Saturn::GameContext* gameContext );
 		void Start( void );
 		void End( void );
 
@@ -62,28 +62,30 @@ namespace Saturn {
 	class GameContext : public RefCounted
 	{
 	public:
-		GameContext();
+		GameContext( HotReload* hotReload );
 		~GameContext();
 
 		void CompileAllGames( void );
+		void ConfigAllGames( void );
 
 		template<class T>
-		Ref< T > LookFor() 
+		Ref< T > LookFor()
 		{
 			SAT_CORE_ASSERT( false, "Not added" );
 		}
 
 		bool CompileGame( char name )
 		{
-			for ( auto& cn : m_Games )
+			for( auto& cn : m_Games )
 			{
 				//if( cn.GetName().c_str() == ( const char* )name )
-					return cn.Compile( this );
+				return cn.Compile( this );
 			}
 		}
 
 		std::vector<Game> m_Games;
-
+	private:
+		Scene* m_Scene;
 	private:
 		friend class Game;
 	};
