@@ -5,7 +5,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Saturn/Core/UUID.h"
-#include "ScriptableEntity.h"
 #include "Saturn/Physics/Rigidbody.h"
 
 namespace Saturn {
@@ -217,34 +216,22 @@ namespace Saturn {
 		Data m_Data;
 	};
 
+	class ScriptableEntity;
+
 	//For coding in c++ 
 	//@see https://beastsm96.github.io/Projects/Saturn-Engine/api/v0.a01/Scene/Components
 	struct NativeScriptComponent : Component
 	{
 		ScriptableEntity* Instance = nullptr;
 	
-
-		std::function<void()> InstantiateFunc;
-		std::function<void()> DestroyFunc;
-		//api calls
-		std::function<void(ScriptableEntity*)> OnCreateFunc;
-		std::function<void(ScriptableEntity*, Timestep)> OnUpdateFunc;
-		std::function<void(ScriptableEntity*)> OnBeignPlayFunc;
-		std::function<void(ScriptableEntity*)> OnDestroyFunc;
+		ScriptableEntity*(*InstantiateScript)();
+		void (*DestroyScript)(NativeScriptComponent*);
 
 		template<typename T>
 		void Bind() 
 		{
-			InstantiateFunc = [&]() { Instance = new T(); };
-			DestroyFunc = [&]() { delete (T*)Instance; };
-
-			OnCreateFunc = [](ScriptableEntity * instance) { ((T*)instance)->OnCreate(); };
-
-
-			OnBeignPlayFunc = [](ScriptableEntity * instance) { ((T*)instance)->OnBeginPlay(); };
-			OnUpdateFunc = [](ScriptableEntity * instance, Timestep ts) { ((T*)instance)->OnUpdate(ts); };
-			OnDestroyFunc = [](ScriptableEntity * instance) { ((T*)instance)->OnDestroy(); };
-
+			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
+			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
 		}
 
 	};

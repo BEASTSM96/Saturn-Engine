@@ -36,6 +36,7 @@
 
 #include "Saturn/Input.h"
 
+#include "Saturn/Scene/ScriptableEntity.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -408,7 +409,7 @@ namespace Saturn {
 
 			void OnCreate() {}
 
-			void OnDestroy() {}
+			void OnDestroy()  {}
 
 			void OnBeginPlay()
 			{
@@ -417,6 +418,14 @@ namespace Saturn {
 			void OnUpdate( Timestep ts )
 			{
 				SAT_INFO("Hello, ts {0}", ts.GetSeconds());
+
+				if (Input::IsKeyPressed(SAT_KEY_W))
+				{
+					GetComponent<TransformComponent>().Position + 10.0f * ts;
+				}
+
+			//	SAT_INFO("Position X {0} Y {1} Z {2}", GetComponent<TransformComponent>().Position.z, GetComponent<TransformComponent>().Position.y, GetComponent<TransformComponent>().Position.z);
+
 			}
 
 		private:
@@ -742,6 +751,18 @@ namespace Saturn {
 				case SAT_KEY_S:
 					SaveSceneAs();
 					break;
+				case SAT_KEY_O:
+					std::string filepath = Application::Get().OpenFile("Scene (*.sc)\0*.sc\0").first;
+					if( !filepath.empty() )
+					{
+						Serialiser serializer( m_EditorScene );
+						serializer.Deserialise( filepath );
+
+						std::filesystem::path path = filepath;
+						UpdateWindowTitle( path.filename().string() );
+						//m_SceneFilePath = filepath;
+					}
+					break;
 			}
 		}
 
@@ -1027,6 +1048,7 @@ namespace Saturn {
 				m_ViewportBounds[0] = { minBound.x, minBound.y };
 				m_ViewportBounds[1] = { maxBound.x, maxBound.y };
 				m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
+
 				// Gizmos
 				if( m_GizmoType != -1 && m_SelectionContext.size() )
 				{
@@ -1040,31 +1062,26 @@ namespace Saturn {
 
 					bool snap = Input::IsKeyPressed( SAT_KEY_LEFT_CONTROL );
 
-					auto& entityTransform = selection.Entity.GetComponent<TransformComponent>().GetTransform();
+
+					auto& tc = selection.Entity.GetComponent<TransformComponent>();
+
+					glm::mat4 position = glm::translate( glm::mat4( 1.0f ), tc.Position );
+					glm::mat4 rotation = glm::toMat4( tc.Rotation );
+					glm::mat4 scale = glm::scale( glm::mat4( 1.0f ), tc.Scale );
+
+					glm::mat4 entityTransform = position * rotation * scale;
+				
+					float* et = glm::value_ptr( entityTransform );
+
 					float snapValue = GetSnapValue();
-					float snapValues[ 3 ] ={ snapValue, snapValue, snapValue };
+					float snapValues[ 3 ] = { snapValue, snapValue, snapValue };
+
 					if( m_SelectionMode == SelectionMode::Entity )
 					{
-						ImGuizmo::Manipulate( glm::value_ptr( m_EditorCamera.GetViewMatrix() ),
-							glm::value_ptr( m_EditorCamera.GetProjectionMatrix() ),
-							( ImGuizmo::OPERATION )m_GizmoType,
-							ImGuizmo::LOCAL,
-							glm::value_ptr( entityTransform ),
-							nullptr,
-							snap ? snapValues : nullptr );
-					}
-					else
-					{
-						glm::mat4 transformBase = entityTransform * selection.Mesh->Transform;
-						ImGuizmo::Manipulate( glm::value_ptr( m_EditorCamera.GetViewMatrix() ),
-							glm::value_ptr( m_EditorCamera.GetProjectionMatrix() ),
-							( ImGuizmo::OPERATION )m_GizmoType,
-							ImGuizmo::LOCAL,
-							glm::value_ptr( transformBase ),
-							nullptr,
-							snap ? snapValues : nullptr );
+						auto viewm = glm::value_ptr( m_EditorCamera.GetViewMatrix() );
+						auto projm = glm::value_ptr( m_EditorCamera.GetProjectionMatrix() );
 
-						selection.Mesh->Transform = glm::inverse( entityTransform ) * transformBase;
+						ImGuizmo::Manipulate( viewm, projm, ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, et, nullptr, snap ? snapValues : nullptr );
 					}
 				}
 			}
@@ -1164,58 +1181,6 @@ namespace Saturn {
 			ImGui::End();
 		}
 
-		if (ImGui::BeginMenuBar())
-		{
-			if (ImGui::BeginMenu("Modules##modules_lister"))
-			{
-
-				if (ImGui::Button("Create##New Module"))
-				{
-					//temp create module and move into modules list
-					SAT_CORE_WARN("[!]New Module creating");
-					std::string path = Application::Get().SaveFile("Saturn Module (*.smodule)\0*.smodule\0").first;
-					Ref<Module>tmp_module = Ref<Module>::Create(path, "tmp_module");
-					SAT_CORE_WARN("[!]Module created in {0}", path);
-
-					Application::Get().GetModuleManager().InitNewModule(tmp_module, "tmp_module", "assets\\modules\\");
-					Application::Get().GetModuleManager().CopyModuleFrom(tmp_module);
-
-					Application::Get().GetModuleManager().GetModules();
-				}
-				if (ImGui::Button("Create Game Module"))
-				{
-					//temp create module and move into modules list
-					SAT_CORE_WARN("[!]New Module creating");
-					std::string path = Application::Get().SaveFile("Saturn Module (*.smodule)\0*.smodule\0").first;
-					Ref<Module>game_module = Ref<Module>::Create(path, "GameModule");
-					SAT_CORE_WARN("[!]Module created in {0} Module {1}", path, game_module.Raw()->GetName().c_str());
-
-					Application::Get().GetModuleManager().AddGameModule(game_module);
-				}
-				ImGui::EndMenu();
-			}
-
-			ImGui::EndMenuBar();
-		}
-
-
-	#ifdef SAT_DEBUG
-		if (ImGui::Begin("Scene##debug"))
-		{
-			for (int i = 0; i < Application::Get().GetModuleManager().GetModules().size(); i++)
-			{
-				ImGui::Text("Modules %i", i);
-			}
-
-			for (int i = 0; i < Application::Get().GetSceneMananger().Raw()->GetScenes().size(); i++)
-			{
-				ImGui::Text("Scenes %i", i);
-			}
-
-		}
-		ImGui::End();
-	#endif // SAT_DEBUG
-
 		ImGui::End();
 
 		ImGuizmo::BeginFrame();
@@ -1251,7 +1216,7 @@ namespace Saturn {
 			uint32_t entityCount = 0, meshCount = 0;
 			m_Context->m_Registry.each([&](auto entity)
 				{
-					Entity e{ entity, m_Context.Raw() };
+					Entity e ( entity, m_Context.Raw() );
 					DrawEntityNode(e);
 				});
 		}
@@ -1285,6 +1250,14 @@ namespace Saturn {
 						if (ImGui::Button("Mesh"))
 						{
 							m_SelectionContext.AddComponent<MeshComponent>();
+							ImGui::CloseCurrentPopup();
+						}
+					}
+					if( !m_SelectionContext.HasComponent<NativeScriptComponent>() )
+					{
+						if( ImGui::Button( "NativeScript" ) )
+						{
+							m_SelectionContext.AddComponent<NativeScriptComponent>();
 							ImGui::CloseCurrentPopup();
 						}
 					}
@@ -1372,7 +1345,7 @@ namespace Saturn {
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f } );
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
 		ImGui::PushFont(boldFont);
@@ -1437,43 +1410,43 @@ namespace Saturn {
 	}
 
 	template<typename T, typename UIFunction>
-	static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
+	static void DrawComponent( const std::string& name, Entity entity, UIFunction uiFunction )
 	{
-		if (entity.HasComponent<T>())
+		if( entity.HasComponent<T>() )
 		{
 			bool removeComponent = false;
 
 			auto& component = entity.GetComponent<T>();
-			bool open = ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(T).hash_code()), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str());
+			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str() );
 			ImGui::SameLine();
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button("+"))
+			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
+			if( ImGui::Button( "+" ) )
 			{
-				ImGui::OpenPopup("ComponentSettings");
+				ImGui::OpenPopup( "ComponentSettings" );
 			}
 
 			ImGui::PopStyleColor();
 			ImGui::PopStyleColor();
 
-			if (ImGui::BeginPopup("ComponentSettings"))
+			if( ImGui::BeginPopup( "ComponentSettings" ) )
 			{
-				if (ImGui::MenuItem("Remove component"))
+				if( ImGui::MenuItem( "Remove component" ) )
 					removeComponent = true;
 
 				ImGui::EndPopup();
 			}
 
-			if (open)
+			if( open )
 			{
-				uiFunction(component);
+				uiFunction( component );
 				ImGui::NextColumn();
-				ImGui::Columns(1);
+				ImGui::Columns( 1 );
 				ImGui::TreePop();
 			}
 			ImGui::Separator();
 
-			if (removeComponent)
+			if( removeComponent )
 				entity.RemoveComponent<T>();
 		}
 	}
@@ -1527,7 +1500,6 @@ namespace Saturn {
 
 		ImGui::PopID();
 	}
-
 
 	void SceneHierarchyPanel::DrawEntityComponents(Entity entity)
 	{
@@ -1584,28 +1556,25 @@ namespace Saturn {
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
 
 
-		DrawComponent<TransformComponent>("Transform", entity, [](auto& tc)
+		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )
 			{
+				auto& translation = tc.Position;
+				auto& rotation = tc.Rotation;
+				auto& scale = tc.Scale;
 
-				/*
-				auto translation = entity.GetComponent<TransformComponent>().Position;
-				auto rotationQuat = tc.Position;
-				auto scale = tc.Scale;
-				*/
 				bool updateTransform = false;
-				updateTransform |= DrawVec3Control("Translation", tc.Position, tc.Position);
+				updateTransform |= DrawVec3Control( "Translation", tc.Position, tc.Position );
 				glm::vec3 newRotation = glm::degrees(glm::eulerAngles(tc.Rotation));
-				updateTransform |= DrawVec3Control("Rotation", newRotation, newRotation);
-				updateTransform |= DrawVec3Control("Scale", tc.Scale, tc.Scale);
+				updateTransform |= DrawVec3Control( "Rotation", newRotation, newRotation );
+				updateTransform |= DrawVec3Control( "Scale", tc.Scale, tc.Scale, 1.0f );
 
 				tc.Rotation = glm::quat(glm::radians(newRotation));
 
-				if (updateTransform)
+				if( updateTransform )
 				{
-
+					//TODO: Add
 				}
-
-			});
+			} );
 
 		DrawComponent<MeshComponent>("Mesh", entity, [](auto& mc)
 			{
@@ -1631,12 +1600,22 @@ namespace Saturn {
 				}
 			});
 
+		DrawComponent<NativeScriptComponent>( "NativeScript", entity, []( auto& ncs )
+			{
+
+				std::string classname = "";
+
+				ImGui::InputText("##name", (char*)classname.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+
+				ImGui::Button("Create Object");
+			} );
+
 		DrawComponent<BoxColliderComponent>("Box Collider", entity, [](auto& component) {
-			DrawVec3Control("Extents", component.Extents, component.Extents);
+				DrawVec3Control("Extents", component.Extents, component.Extents);
 			});
 
 		DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](auto& component) {
-			DrawFloatControl("Radius", &component.Radius, component.Radius);
+				DrawFloatControl("Radius", &component.Radius, component.Radius);
 			});
 
 		DrawComponent<PhysicsComponent>("Physics", entity, [](auto& pc)
@@ -1644,30 +1623,6 @@ namespace Saturn {
 
 
 			});
-
-
-
-		DrawComponent<NativeScriptComponent>( "NativeScript", entity, []( auto& ncs )
-			{
-
-			});
-
-
-		if (entity.HasComponent<TagComponent>())
-		{
-			if (entity.HasComponent<MeshComponent>())
-			{
-				auto mc = entity.GetComponent<MeshComponent>();
-
-				if (mc.Mesh)
-				{
-					auto mesh = entity.GetComponent<MeshComponent>().Mesh;
-					auto tag = entity.GetComponent<TagComponent>().Tag;
-
-					tag = mesh.Raw()->GetSubmeshes()[0].MeshName;
-				}
-			}
-		}
 
 
 	}

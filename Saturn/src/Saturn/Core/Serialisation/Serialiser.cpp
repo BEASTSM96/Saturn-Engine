@@ -187,7 +187,7 @@ namespace Saturn {
 			entity.HasComponent<TagComponent>()
 			&& entity.HasComponent<TransformComponent>()
 			&& entity.HasComponent<IdComponent>(),
-			"Error! entity dose not have a TagComponent, TransformComponent and a IdComponent!"
+			"Entity dose not have a TagComponent, TransformComponent and a IdComponent!"
 		);
 
 		UUID uuid = entity.GetComponent<IdComponent>().ID;
@@ -205,7 +205,7 @@ namespace Saturn {
 			out << YAML::EndMap; // TagComponent
 		}
 		else
-			SAT_CORE_ASSERT(entity.HasComponent<TagComponent>(), "Error! entity dose not have a TagComponent!");
+			SAT_CORE_ASSERT(entity.HasComponent<TagComponent>(), "Entity dose not have a TagComponent!");
 
 		if (entity.HasComponent<TransformComponent>())
 		{
@@ -220,7 +220,7 @@ namespace Saturn {
 			out << YAML::EndMap; // TransformComponent
 		}
 		else
-			SAT_CORE_ASSERT(entity.HasComponent<TransformComponent>(), "Error! entity dose not have a TransformComponent!");
+			SAT_CORE_ASSERT(entity.HasComponent<TransformComponent>(), "Entity dose not have a TransformComponent!");
 
 
 		if (entity.HasComponent<MeshComponent>())
@@ -320,20 +320,23 @@ namespace Saturn {
 				if (tagComponent)
 					name = tagComponent["Tag"].as<std::string>();
 
-				SAT_CORE_INFO("Deserialized entity with ID = {0}, name = {1}", uuid, name);
+				SAT_CORE_INFO("Deserialized entity with ID ({0}), name = {1}", uuid, name);
 
 				Entity deserializedEntity = m_Scene->CreateEntityWithID(uuid, name);
 
 				auto transformComponent = entity["TransformComponent"];
 				if (transformComponent)
 				{
-					// Entities always have transforms
 					auto& transform = deserializedEntity.GetComponent<TransformComponent>().GetTransform();
 					glm::vec3 translation = transformComponent["Position"].as<glm::vec3>();
 					glm::quat rotation = transformComponent["Rotation"].as<glm::quat>();
 					glm::vec3 scale = transformComponent["Scale"].as<glm::vec3>();
 
 					transform = glm::translate(glm::mat4(1.0f), translation) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
+
+					deserializedEntity.GetComponent<TransformComponent>().Position = translation;
+					deserializedEntity.GetComponent<TransformComponent>().Rotation = rotation;
+					deserializedEntity.GetComponent<TransformComponent>().Scale = scale;
 
 					SAT_CORE_INFO("  Entity Transform:");
 					SAT_CORE_INFO("    Translation: {0}, {1}, {2}", translation.x, translation.y, translation.z);
@@ -345,7 +348,6 @@ namespace Saturn {
 				if (meshComponent)
 				{
 					std::string meshPath = meshComponent["AssetPath"].as<std::string>();
-					// TEMP (because script creates mesh component...)
 					if (!deserializedEntity.HasComponent<MeshComponent>())
 						deserializedEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshPath));
 

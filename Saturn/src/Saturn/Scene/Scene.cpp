@@ -12,6 +12,8 @@
 #include "Saturn/Application.h"
 #include "Saturn/GameFramework/HotReload.h"
 
+#include "ScriptableEntity.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -529,16 +531,18 @@ namespace Saturn {
 		Application::Get().GetHotReload()->OnHotReload();
 
 		{
-			m_Registry.view<NativeScriptComponent>().each( [=]( auto entity, auto& nsc )
+			m_Registry.view<NativeScriptComponent>().each( [=] ( auto entity, auto& nsc )
 			{
 				if( !nsc.Instance )
 				{
-					nsc.InstantiateFunc();
-					nsc.OnCreateFunc( nsc.Instance );
-					nsc.OnBeignPlayFunc( nsc.Instance );
+					nsc.Instance = nsc.InstantiateScript();
+					nsc.Instance->m_Entity = Entity{ entity, this };
+
+					nsc.Instance->OnCreate();
+					nsc.Instance->BeginPlay();
 				}
 
-				nsc.OnUpdateFunc( nsc.Instance, ts );
+				nsc.Instance->OnUpdate(ts);
 
 			});
 		}

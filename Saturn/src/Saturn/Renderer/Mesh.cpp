@@ -65,7 +65,7 @@ namespace Saturn {
 		}
 
 		virtual void write(const char* message) override
-		{
+		{			
 			SAT_CORE_ERROR("Assimp error: {0}", message);
 		}
 	};
@@ -88,7 +88,6 @@ namespace Saturn {
 		m_IsAnimated = scene->mAnimations != nullptr;
 		m_MeshShader = m_IsAnimated ? Renderer::GetShaderLibrary()->Get("PBR_Anim") : Renderer::GetShaderLibrary()->Get("PBR_Static");
 		m_BaseMaterial = Ref<Material>::Create(m_MeshShader);
-		//m_MaterialInstance = Ref<MaterialInstance>::Create(m_BaseMaterial);
 		m_InverseTransform = glm::inverse(Mat4FromAssimpMat4(scene->mRootNode->mTransformation));
 
 		uint32_t vertexCount = 0;

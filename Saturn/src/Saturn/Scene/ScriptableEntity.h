@@ -7,35 +7,20 @@ namespace Saturn {
 	class ScriptableEntity
 	{
 	public:
+		virtual ~ScriptableEntity() { }
 
 		template<typename T>
-		T& GetComponent() 
+		T& GetComponent()
 		{
-			return m_Entity->GetComponent<T>();
+			return m_Entity.GetComponent<T>();
 		}
-
-		template<typename T>
-		bool HasComponent()
-		{
-			return m_Entity->HasComponent<T>();
-		}
-
-		template<typename T>
-		void RemoveComponent()
-		{
-			m_Entity->RemoveComponent<T>();
-		}
-		
-		template<typename T, typename... Args>
-		T& AddComponent( Args&&... args )
-		{
-			return m_Entity->AddComponent<T>();
-		}
-
 	protected:
-		Entity* m_Entity;
+		virtual void OnCreate() { }
+		virtual void OnDestroy() { }
+		virtual void OnUpdate( Timestep ts ) { }
+		virtual void BeginPlay() { }
 	private:
-		friend class Entity;
+		Entity m_Entity;
+		friend class Scene;
 	};
-
 }
