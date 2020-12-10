@@ -1,7 +1,9 @@
 #pragma once
 
 #include "EventListener.h"
+#pragma warning(push)
 #include <reactphysics3d/reactphysics3d.h>
+#pragma  warning(pop)
 
 namespace Saturn {
 

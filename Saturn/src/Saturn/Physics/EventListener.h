@@ -1,6 +1,8 @@
 #pragma once
 
+#pragma warning(push)
 #include <reactphysics3d/reactphysics3d.h>
+#pragma  warning(pop)
 
 #include "Saturn/Log.h"
 

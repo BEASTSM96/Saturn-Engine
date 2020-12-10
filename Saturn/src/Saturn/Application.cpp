@@ -186,16 +186,16 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 
 	#ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;
-		CHAR szFile[ 260 ] ={ 0 };
-		ZeroMemory( &ofn, sizeof( OPENFILENAMEA ) );
+		OPENFILENAMEA ofn;       // common dialog box structure
+		CHAR szFile[ 260 ] = { 0 };       // if using TCHAR macros
 
-		ofn.lStructSize = sizeof( OPENFILENAMEA );
-		ofn.lpstrFilter = filter;
+										// Initialize OPENFILENAME
+		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
+		ofn.lStructSize = sizeof( OPENFILENAME );
 		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* )m_Window->GetNativeWindow() );
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof( szFile );
-		ofn.lpstrTitle = filter;
+		ofn.lpstrFilter = filter;
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
@@ -222,16 +222,16 @@ namespace Saturn {
 	#ifdef  SAT_PLATFORM_LINUX
 	#endif
 	#ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;
-		CHAR szFile[ 260 ] ={ 0 };
+		OPENFILENAMEA ofn;       // common dialog box structure
+		CHAR szFile[ 260 ] ={ 0 };       // if using TCHAR macros
 
+		// Initialize OPENFILENAME
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
-		ofn.lpstrFilter = f;
 		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* )m_Window->GetNativeWindow() );
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof( szFile );
-		ofn.lpstrTitle = "Save file";
+		ofn.lpstrFilter = f;
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 

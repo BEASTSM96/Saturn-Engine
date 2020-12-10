@@ -64,6 +64,7 @@ namespace Saturn {
 		else
 		{
 			SAT_CORE_INFO("Loading texture {0}, srgb={1}", path, srgb);
+
 			m_ImageData.Data = stbi_load(path.c_str(), &width, &height, &channels, srgb ? STBI_rgb : STBI_rgb_alpha);
 			SAT_CORE_ASSERT(m_ImageData.Data, "Could not read image!");
 			m_Format = TextureFormat::RGBA;
