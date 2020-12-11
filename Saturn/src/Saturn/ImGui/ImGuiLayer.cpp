@@ -407,24 +407,29 @@ namespace Saturn {
 		{
 		public:
 
+			MyTestGame() {}
+
+			~MyTestGame() {}
+
 			void OnCreate() {}
 
 			void OnDestroy()  {}
 
-			void OnBeginPlay()
+			void BeginPlay()
 			{
+				SAT_INFO("BeginPlay");
 			}
 
 			void OnUpdate( Timestep ts )
 			{
 				SAT_INFO("Hello, ts {0}", ts.GetSeconds());
 
-				if (Input::IsKeyPressed(SAT_KEY_W))
+				if (Input::IsKeyPressed(Key::W))
 				{
-					GetComponent<TransformComponent>().Position + 10.0f * ts;
+					GetComponent<TransformComponent>().Position.y + 10.0f * ts;
 				}
 
-			//	SAT_INFO("Position X {0} Y {1} Z {2}", GetComponent<TransformComponent>().Position.z, GetComponent<TransformComponent>().Position.y, GetComponent<TransformComponent>().Position.z);
+				SAT_INFO("Position X {0} Y {1} Z {2}", GetComponent<TransformComponent>().Position.z, GetComponent<TransformComponent>().Position.y, GetComponent<TransformComponent>().Position.z);
 
 			}
 
@@ -748,21 +753,20 @@ namespace Saturn {
 		{
 			switch (e.GetKeyCode())
 			{
-				case SAT_KEY_S:
-					SaveSceneAs();
-					break;
-				case SAT_KEY_O:
-					std::string filepath = Application::Get().OpenFile("Scene (*.sc)\0*.sc\0").first;
-					if( !filepath.empty() )
-					{
-						Serialiser serializer( m_EditorScene );
-						serializer.Deserialise( filepath );
-
-						std::filesystem::path path = filepath;
-						UpdateWindowTitle( path.filename().string() );
-						//m_SceneFilePath = filepath;
-					}
-					break;
+			case SAT_KEY_S:
+				SaveSceneAs();
+				break;
+			case SAT_KEY_O:
+				std::string filepath = Application::Get().OpenFile("Scene (*.sc)\0*.sc\0").first;
+				if( !filepath.empty() )
+				{
+					Serialiser serializer( m_EditorScene );
+					serializer.Deserialise( filepath );
+					std::filesystem::path path = filepath;
+					UpdateWindowTitle( path.filename().string() );
+					//m_SceneFilePath = filepath;
+				}
+				break;
 			}
 		}
 
@@ -782,20 +786,25 @@ namespace Saturn {
 		{
 			switch (e.GetKeyCode())
 			{
-				case SAT_KEY_P:
-					m_SelectionContext.clear();
-					m_RuntimeScene = Ref<Scene>::Create();
-					m_SceneHierarchyPanel->SetContext(m_RuntimeScene);
-					m_EditorScene->CopyScene(m_RuntimeScene);
-					Application::Get().GetSceneMananger().Raw()->AddScene(m_RuntimeScene);
-					m_RuntimeScene->m_RuntimeRunning = true;
-					break;
-				case SAT_KEY_X:
-					m_RuntimeScene->m_RuntimeRunning = false;
-					m_RuntimeScene = nullptr;
-					m_SelectionContext.clear();
-					m_SceneHierarchyPanel->SetContext(m_EditorScene);
-					break;
+			case SAT_KEY_P:
+				m_SelectionContext.clear();
+				m_RuntimeScene = Ref<Scene>::Create();
+				m_SceneHierarchyPanel->SetContext(m_RuntimeScene);
+				m_EditorScene->CopyScene(m_RuntimeScene);
+				Application::Get().GetSceneMananger().Raw()->AddScene(m_RuntimeScene);
+				m_RuntimeScene->m_RuntimeRunning = true;
+				break;
+			case SAT_KEY_X:
+				m_RuntimeScene->m_RuntimeRunning = false;
+				m_RuntimeScene = nullptr;
+				m_SelectionContext.clear();
+				m_SceneHierarchyPanel->SetContext(m_EditorScene);
+				break;
+			case SAT_KEY_G:
+				// Toggle grid
+				SceneRenderer::GetOptions().ShowGrid = !SceneRenderer::GetOptions().ShowGrid;
+				break;
+
 			}
 		}
 
@@ -821,49 +830,50 @@ namespace Saturn {
 	bool EditorLayer::OnMouseButtonPressed(MouseButtonEvent& e)
 	{
 		auto [mx, my] = Input::GetMousePos();
-		if (e.GetMouseButton() == SAT_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(SAT_KEY_LEFT_ALT) && !ImGuizmo::IsOver()) {
+		if( e.GetMouseButton() == SAT_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed( SAT_KEY_LEFT_ALT ) && !ImGuizmo::IsOver() )
+		{
 			auto [mouseX, mouseY] = GetMouseViewportSpace();
-			if (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f)
+			if( mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f )
 			{
-				auto [origin, direction] = CastRay(mouseX, mouseY);
+				auto [origin, direction] = CastRay( mouseX, mouseY );
 				auto meshEntities = m_EditorScene->GetAllEntitiesWith<MeshComponent>();
-				for (auto e : meshEntities)
+				for( auto e : meshEntities )
 				{
-					Entity entity = { e, m_EditorScene.Raw() };
+					Entity entity ={ e, m_EditorScene.Raw() };
 					auto mesh = entity.GetComponent<MeshComponent>().Mesh;
-					if (!mesh)
+					if( !mesh )
 						continue;
 
 					auto& submeshes = mesh->GetSubmeshes();
 					float lastT = std::numeric_limits<float>::max();
-					for (uint32_t i = 0; i < submeshes.size(); i++)
+					for( uint32_t i = 0; i < submeshes.size(); i++ )
 					{
-						auto& submesh = submeshes[i];
-						Ray ray = {
-							glm::inverse(entity.GetComponent<TransformComponent>().GetTransform() * submesh.Transform) * glm::vec4(origin, 1.0f),
-							glm::inverse(glm::mat3(entity.GetComponent<TransformComponent>().GetTransform()) * glm::mat3(submesh.Transform)) * direction
+						auto& submesh = submeshes[ i ];
+						Ray ray ={
+							glm::inverse( entity.GetComponent<TransformComponent>().GetTransform() * submesh.Transform ) * glm::vec4( origin, 1.0f ),
+							glm::inverse( glm::mat3( entity.GetComponent<TransformComponent>().GetTransform() ) * glm::mat3( submesh.Transform ) ) * direction
 						};
 
 						float t;
-						bool intersects = ray.IntersectsAABB(submesh.BoundingBox, t);
-						if (intersects)
+						bool intersects = ray.IntersectsAABB( submesh.BoundingBox, t );
+						if( intersects )
 						{
-							const auto& triangleCache = mesh->GetTriangleCache(i);
-							for (const auto& triangle : triangleCache)
+							const auto& triangleCache = mesh->GetTriangleCache( i );
+							for( const auto& triangle : triangleCache )
 							{
-								if (ray.IntersectsTriangle(triangle.V0.Position, triangle.V1.Position, triangle.V2.Position, t))
+								if( ray.IntersectsTriangle( triangle.V0.Position, triangle.V1.Position, triangle.V2.Position, t ) )
 								{
-									SAT_CORE_WARN("INTERSECTION: {0}, t={1}", submesh.NodeName, t);
-									m_SelectionContext.push_back({ entity, &submesh, t });
+									SAT_CORE_WARN( "INTERSECTION: {0}, t={1}", submesh.NodeName, t );
+									m_SelectionContext.push_back( { entity, &submesh, t } );
 									break;
 								}
 							}
 						}
 					}
 				}
-				std::sort(m_SelectionContext.begin(), m_SelectionContext.end(), [](auto& a, auto& b) { return a.Distance < b.Distance; });
-				if (m_SelectionContext.size())
-					OnSelected(m_SelectionContext[0]);
+				std::sort( m_SelectionContext.begin(), m_SelectionContext.end(), []( auto& a, auto& b ) { return a.Distance < b.Distance; } );
+				if( m_SelectionContext.size() )
+					OnSelected( m_SelectionContext[ 0 ] );
 			}
 		}
 
@@ -890,6 +900,80 @@ namespace Saturn {
 	{
 		static bool p_open = true;
 		ImGuiConsole::OnImGuiRender(&p_open);
+	}
+
+	static bool DecomposeTransform( const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale )
+	{
+		// From glm::decompose in matrix_decompose.inl
+
+		using namespace glm;
+		using T = float;
+
+		mat4 LocalMatrix( transform );
+
+		// Normalize the matrix.
+		if( epsilonEqual( LocalMatrix[ 3 ][ 3 ], static_cast< float >( 0 ), epsilon<T>() ) )
+			return false;
+
+		// First, isolate perspective.  This is the messiest.
+		if(
+			epsilonNotEqual( LocalMatrix[ 0 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) ||
+			epsilonNotEqual( LocalMatrix[ 1 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) ||
+			epsilonNotEqual( LocalMatrix[ 2 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) )
+		{
+			// Clear the perspective partition
+			LocalMatrix[ 0 ][ 3 ] = LocalMatrix[ 1 ][ 3 ] = LocalMatrix[ 2 ][ 3 ] = static_cast< T >( 0 );
+			LocalMatrix[ 3 ][ 3 ] = static_cast< T >( 1 );
+		}
+
+		// Next take care of translation (easy).
+		translation = vec3( LocalMatrix[ 3 ] );
+		LocalMatrix[ 3 ] = vec4( 0, 0, 0, LocalMatrix[ 3 ].w );
+
+		vec3 Row[ 3 ], Pdum3;
+
+		// Now get scale and shear.
+		for( length_t i = 0; i < 3; ++i )
+			for( length_t j = 0; j < 3; ++j )
+				Row[ i ][ j ] = LocalMatrix[ i ][ j ];
+
+		// Compute X scale factor and normalize first row.
+		scale.x = length( Row[ 0 ] );
+		Row[ 0 ] = detail::scale( Row[ 0 ], static_cast< T >( 1 ) );
+		scale.y = length( Row[ 1 ] );
+		Row[ 1 ] = detail::scale( Row[ 1 ], static_cast< T >( 1 ) );
+		scale.z = length( Row[ 2 ] );
+		Row[ 2 ] = detail::scale( Row[ 2 ], static_cast< T >( 1 ) );
+
+		// At this point, the matrix (in rows[]) is orthonormal.
+		// Check for a coordinate system flip.  If the determinant
+		// is -1, then negate the matrix and the scaling factors.
+	#if 0
+		Pdum3 = cross( Row[ 1 ], Row[ 2 ] ); // v3Cross(row[1], row[2], Pdum3);
+		if( dot( Row[ 0 ], Pdum3 ) < 0 )
+		{
+			for( length_t i = 0; i < 3; i++ )
+			{
+				scale[ i ] *= static_cast< T >( -1 );
+				Row[ i ] *= static_cast< T >( -1 );
+			}
+		}
+	#endif
+
+		rotation.y = asin( -Row[ 0 ][ 2 ] );
+		if( cos( rotation.y ) != 0 )
+		{
+			rotation.x = atan2( Row[ 1 ][ 2 ], Row[ 2 ][ 2 ] );
+			rotation.z = atan2( Row[ 0 ][ 1 ], Row[ 0 ][ 0 ] );
+		}
+		else
+		{
+			rotation.x = atan2( -Row[ 2 ][ 0 ], Row[ 1 ][ 1 ] );
+			rotation.z = 0;
+		}
+
+
+		return true;
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -1081,7 +1165,24 @@ namespace Saturn {
 						auto viewm = glm::value_ptr( m_EditorCamera.GetViewMatrix() );
 						auto projm = glm::value_ptr( m_EditorCamera.GetProjectionMatrix() );
 
-						ImGuizmo::Manipulate( viewm, projm, ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, et, nullptr, snap ? snapValues : nullptr );
+						Entity selectedEntity = m_SceneHierarchyPanel->GetSelectionContext();
+						auto& tc = selectedEntity.GetComponent<TransformComponent>();
+						glm::mat4 transform = tc.GetTransform();
+						ImGuizmo::Manipulate( viewm, projm , ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr( transform ), nullptr, snap ? snapValues : nullptr );
+
+
+						if( ImGuizmo::IsUsing() )
+						{
+							glm::vec3 translation, scale;
+							glm::quat rotation;
+							DecomposeTransform( transform, translation, rotation, scale );
+
+							glm::quat deltaRotation = rotation - tc.Rotation;
+							tc.Position = translation;
+							tc.Rotation += deltaRotation;
+							tc.Scale = scale;
+						}
+
 					}
 				}
 			}
@@ -1229,7 +1330,42 @@ namespace Saturn {
 			{
 				m_Context->CreateEntity("Empty Entity");
 			}
+
+			if( ImGui::MenuItem( "Create Mesh Entity" ) )
+			{
+				Entity e =  m_Context->CreateEntity( "Mesh Entity" );
+				if( e.HasComponent<MeshComponent>() )
+				{
+					SAT_CORE_ASSERT( false, "Entity somehow has a mesh component" );
+				}
+
+				if( !e.HasComponent<MeshComponent>() )
+				{
+					auto& mc = e.AddComponent<MeshComponent>();
+					std::string filepath = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
+					mc.Mesh = Ref<Mesh>::Create( filepath );
+				}
+
+			}
+		
+			if( ImGui::MenuItem( "Create Empty Mesh Entity" ) )
+			{
+				Entity e =  m_Context->CreateEntity( "Empty Mesh Entity" );
+				if( e.HasComponent<MeshComponent>() )
+				{
+					SAT_CORE_ASSERT( false, "Entity somehow has a mesh component" );
+				}
+
+				if( !e.HasComponent<MeshComponent>() )
+				{
+					auto& mc = e.AddComponent<MeshComponent>();
+					mc.Mesh = Ref<Mesh>::Create( "" );
+				}
+
+			}
+
 			ImGui::EndPopup();
+
 		}
 
 		ImGui::End();
@@ -1504,57 +1640,31 @@ namespace Saturn {
 	void SceneHierarchyPanel::DrawEntityComponents(Entity entity)
 	{
 		SAT_PROFILE_FUNCTION();
-		m_Context.Raw()->SetSelectedEntity(entity);
 
-		if (entity.HasComponent<TagComponent>())
+		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+
+		auto id = entity.GetComponent<IdComponent>().ID;
+
+		if( entity.HasComponent<TagComponent>() )
 		{
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
-
-			static bool hasOldTag = false;
-			if (!hasOldTag)
+			char buffer[ 256 ];
+			memset( buffer, 0, 256 );
+			memcpy( buffer, tag.c_str(), tag.length() );
+			ImGui::PushItemWidth( contentRegionAvailable.x * 0.5f );
+			if( ImGui::InputText( "##Tag", buffer, 256 ) )
 			{
-
-				hasOldTag = true;
+				tag = std::string( buffer );
 			}
-
-			char buffer[265];
-
-			memset(buffer, 0, sizeof(buffer));
-			strcpy_s(buffer, sizeof(buffer), tag.c_str());
-
-			if (entity.HasComponent<IdComponent>())
-			{
-				auto& id = entity.GetComponent<IdComponent>().ID;
-
-				ImGui::Text("Tag"); ImGui::SameLine();
-				if (ImGui::InputText("##empty", buffer, sizeof(buffer)))
-				{
-					tag = std::string(buffer);
-				}
-
-				tag = tag.empty() ? "Unmanned GameObject / Entity" : tag;
-
-				ImGui::SameLine();
-				ImGui::TextDisabled("%llx", id);
-			}
-			else
-			{
-				ImGui::Text("Tag"); ImGui::SameLine();
-				if (ImGui::InputText("##empty", buffer, sizeof(buffer)))
-				{
-					tag = std::string(buffer);
-				}
-
-				tag = tag.empty() ? "Unmanned GameObject / Entity" : tag;
-
-			}
-
+			ImGui::PopItemWidth();
 		}
-		else
-			SAT_CORE_ASSERT(entity.HasComponent<TagComponent>(), "Entity dose not have a TagComponent!");
 
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
 
+		// ID
+		ImGui::SameLine();
+		ImGui::TextDisabled( "%i", id );
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
 		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )
 			{
