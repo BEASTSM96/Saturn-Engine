@@ -36,7 +36,6 @@ namespace Saturn {
 		static Ref<RenderPass> GetFinalRenderPass( void ) ;
 		static Ref<Texture2D> GetFinalColorBuffer( void ) ;
 
-		// TODO: Temp
 		static uint32_t GetFinalColorBufferRendererID();
 
 		static SceneRendererOptions& GetOptions();

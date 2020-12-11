@@ -131,6 +131,7 @@
 #endif
 
 
+#define SAT_USE_NEW_KEY_CODES
 #ifdef SAT_USE_NEW_KEY_CODES
 
 namespace Saturn {
