@@ -59,7 +59,7 @@ namespace Saturn {
 		friend class GameContext;
 	};
 
-	class GameContext : public RefCounted
+	class GAMEFRAMEWORK_API GameContext : public RefCounted
 	{
 	public:
 		GameContext( HotReload* hotReload );

@@ -24,4 +24,13 @@ namespace Saturn {
 	{
 	}
 
+	unsigned int rand_char()
+	{
+		using namespace std;
+
+		random_device rd;
+		mt19937 gen( rd() );
+		uniform_int_distribution<> dis( 0, 255 );
+		return dis( gen );
+	}
 }

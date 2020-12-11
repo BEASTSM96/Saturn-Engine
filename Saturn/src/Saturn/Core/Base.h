@@ -18,13 +18,15 @@ namespace Saturn {
 
 
 //from the vc++
-#define SAT_MoveMemory(Destination,Source,Length) memmove((Destination),(Source),(Length))
-#define SAT_CopyMemory(Destination,Source,Length) memcpy((Destination),(Source),(Length))
-#define SAT_FillMemory(Destination,Length,Fill) memset((Destination),(Fill),(Length))
-#define SAT_ZeroMemory(Destination,Length) memset((Destination),0,(Length))
+#define SAT_MoveMemory( Destination, Source, Length ) memmove( ( Destination ), ( Source ), ( Length ) )
+#define SAT_CopyMemory( Destination, Source, Length ) memcpy( ( Destination ), ( Source ), ( Length ) )
+#define SAT_FillMemory( Destination, Length, Fill ) memset( ( Destination ), ( Fill ), ( Length ) )
+#define SAT_ZeroMemory( Destination, Length ) memset( ( Destination ), 0, ( Length ) )
 
 #define SAT_FILEOPENNAMEA OPENFILENAMEA
 #define SAT_FILEOPENNAME OPENFILENAME
+
+#define GAMEFRAMEWORK_API
 
 /*Can be used for macros just core*/
 #define _VA_AGRS_(x) x

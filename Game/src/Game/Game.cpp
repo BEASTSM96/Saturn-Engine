@@ -31,6 +31,7 @@ SOFTWARE.
 #include <Saturn/Scene/Components.h>
 #include <Saturn/GameFramework/Game.h>
 #include <Saturn/Scene/Entity.h>
+#include <Saturn/Scene/ScriptableEntity.h>
 
 namespace game {
 

@@ -1239,7 +1239,7 @@ namespace Saturn {
 										if (albedoMap)
 										{
 											ImGui::BeginTooltip();
-											ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+											ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
 											ImGui::TextUnformatted(albedoMap->GetPath().c_str());
 											ImGui::PopTextWrapPos();
 											ImGui::Image((void*)albedoMap->GetRendererID(), ImVec2(384, 384));

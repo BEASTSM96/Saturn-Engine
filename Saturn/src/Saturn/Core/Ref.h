@@ -4,6 +4,27 @@
 
 namespace Saturn {
 
+#ifdef SAT_PLATFORM_LINUX
+	class RefCounted
+	{
+	public:
+		void IncRefCount( void )  const
+		{
+			m_RefCount++;
+		}
+
+		void DecRefCount( void )  const
+		{
+			m_RefCount--;
+		}
+
+		uint32_t GetRefCount() const { return m_RefCount; }
+	private:
+		mutable uint32_t m_RefCount = 0; // TODO: atomic
+	};
+
+#endif
+
 	class RefCounter
 	{
 	public:
@@ -133,7 +154,13 @@ namespace Saturn {
 		template<typename... Args>
 		static Ref<T> Create(Args&&... args)
 		{
+		#ifdef SAT_PLATFORM_LINUX
+			return Ref<T>(new T(std::move<Args>(args)...));
+		#endif
+
+		#ifdef SAT_PLATFORM_WINDOWS
 			return Ref<T>(new T(std::forward<Args>(args)...));
+		#endif
 		}
 	private:
 		void IncRef( void )  const
