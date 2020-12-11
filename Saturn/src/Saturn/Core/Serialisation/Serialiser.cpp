@@ -335,8 +335,8 @@ namespace Saturn {
 					transform = glm::translate(glm::mat4(1.0f), translation) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
 
 					deserializedEntity.GetComponent<TransformComponent>().Position = translation;
-					deserializedEntity.GetComponent<TransformComponent>().Rotation = rotation;
-					deserializedEntity.GetComponent<TransformComponent>().Scale = scale;
+					//deserializedEntity.GetComponent<TransformComponent>().Rotation = rotation;
+					//deserializedEntity.GetComponent<TransformComponent>().Scale = scale;
 
 					SAT_CORE_INFO("  Entity Transform:");
 					SAT_CORE_INFO("    Translation: {0}, {1}, {2}", translation.x, translation.y, translation.z);

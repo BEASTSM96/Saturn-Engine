@@ -6,39 +6,30 @@ Environment:
     Radiance: [0, -1, 0]
     Multiplier: 0
 Entities:
-  - Entity: 7220846536590931008
+  - Entity: 5428978520265349422
     TagComponent:
-      Tag: Stormtrooper2
+      Tag: StormtrooperShuffling
     TransformComponent:
-      Position: [3.9000001, 0, 0]
-      Rotation: [0, 0, 0, 1]
+      Position: [4.69999981, -0.300000012, 0]
+      Rotation: [0, 0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
       AssetPath: assets\meshes\dancin-stormtrooper2\source\shuffling.fbx
-  - Entity: 13524367406386411112
+  - Entity: 4026053141268519193
     TagComponent:
-      Tag: Stormtrooper
+      Tag: StormtrooperSilly
     TransformComponent:
-      Position: [-3.9000001, 0, 0]
-      Rotation: [0, 0, 0, 1]
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
       AssetPath: assets\meshes\dancing-stormtrooper\source\silly_dancing.fbx
-  - Entity: 5909569925960781592
+  - Entity: 17135938056412442913
     TagComponent:
-      Tag: Floor
+      Tag: Mesh Entity
     TransformComponent:
-      Position: [0, -10, 0]
-      Rotation: [-1, 4.37113883e-08, 1.91068547e-15, -4.37113883e-08]
-      Scale: [1, 1, 1]
+      Position: [-2.42106819, 7.43424463, -9.22506237]
+      Rotation: [0, 0.706984699, 0, 0.707228839]
+      Scale: [0.999984205, 0.999999762, 0.999983609]
     MeshComponent:
-      AssetPath: assets\models\Plane1m.fbx
-  - Entity: 7514802698436192091
-    TagComponent:
-      Tag: Player
-    TransformComponent:
-      Position: [0, 0, 0]
-      Rotation: [0, 0, 0, 1]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      AssetPath: assets\meshes\Sphere1m.fbx
+      AssetPath: assets\meshes\Cube1m.fbx

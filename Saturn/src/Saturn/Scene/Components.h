@@ -31,20 +31,22 @@ namespace Saturn {
 
 	struct TransformComponent : Component
 	{
-		glm::vec3  Position =		{ 0.0f , 0.0f, 0.0f };
+		glm::vec3  Position ={ 0.0f , 0.0f, 0.0f };
 		glm::quat  Rotation;
-		glm::vec3  Scale	=		{ 1.0f , 1.0f, 1.0f };
+		glm::vec3  Scale	={ 1.0f , 1.0f, 1.0f };
 
 		TransformComponent( void ) = default;
-		TransformComponent(const TransformComponent&) = default;
-		TransformComponent(const glm::vec3& Position)
-			: Position(Position) {}
+		TransformComponent( const TransformComponent& ) = default;
+		TransformComponent( const glm::vec3 & Position )
+			: Position( Position )
+		{
+		}
 
 		glm::mat4 GetTransform() const
 		{
-			glm::mat4 position = glm::translate(glm::mat4(1.0f), Position);
-			glm::mat4 rotation = glm::toMat4(Rotation);
-			glm::mat4 scale = glm::scale(glm::mat4(1.0f), Scale);
+			glm::mat4 position = glm::translate( glm::mat4( 1.0f ), Position );
+			glm::mat4 rotation = glm::toMat4( Rotation );
+			glm::mat4 scale = glm::scale( glm::mat4( 1.0f ), Scale );
 
 
 			return position * rotation * scale;
@@ -54,8 +56,8 @@ namespace Saturn {
 			//	* glm::scale(glm::mat4(1.0f), Scale);
 		}
 
-		operator glm::mat4& () { return GetTransform(); }
-		operator const glm::mat4& () const { return GetTransform(); }
+		operator glm::mat4& ( ) { return GetTransform(); }
+		operator const glm::mat4& ( ) const { return GetTransform(); }
 
 	};
 
@@ -77,9 +79,12 @@ namespace Saturn {
 		glm::vec4 Color { 1.0f, 1.0f, 1.0f, 1.0f };
 
 		SpriteRendererComponent() = default;
-		SpriteRendererComponent(const SpriteRendererComponent&) = default;
-		SpriteRendererComponent(const glm::vec4& color)
-			: Color(color) {}
+		SpriteRendererComponent( const SpriteRendererComponent& ) = default;
+		SpriteRendererComponent( const glm::vec4& color )
+			: Color( color ) 
+
+		{
+		}
 	};
 
 
@@ -100,9 +105,12 @@ namespace Saturn {
 		std::string Tag;
 
 		TagComponent() = default;
-		TagComponent(const TagComponent&) = default;
-		TagComponent(const std::string& tag)
-			: Tag(tag) {}
+		TagComponent( const TagComponent& ) = default;
+		TagComponent( const std::string& tag )
+			: Tag( tag )
+
+		{
+		}
 	};
 
 	/** @brief A IdComponent.
@@ -122,9 +130,11 @@ namespace Saturn {
 		UUID ID;
 
 		IdComponent() = default;
-		IdComponent(const IdComponent&) = default;
-		IdComponent(const UUID& uuid)
-			: ID(uuid) {}
+		IdComponent( const IdComponent& ) = default;
+		IdComponent( const UUID& uuid )
+			: ID( uuid ) 
+		{
+		}
 	};
 
 
@@ -150,9 +160,11 @@ namespace Saturn {
 		Ref<Saturn::Mesh> Mesh;
 
 		MeshComponent() = default;
-		MeshComponent(const MeshComponent& other) = default;
-		MeshComponent(Ref<Saturn::Mesh>& model)
-			: Mesh(model) {}
+		MeshComponent( const MeshComponent & other ) = default;
+		MeshComponent( Ref<Saturn::Mesh> & model )
+			: Mesh( model )
+		{
+		}
 
 		operator Ref<Saturn::Mesh>() { return Mesh; }
 	};
@@ -175,7 +187,7 @@ namespace Saturn {
 
 		Rigidbody* rigidbody;
 
-		PhysicsComponent(Rigidbody* rb) : rigidbody(rb) {}
+		PhysicsComponent( Rigidbody* rb ) : rigidbody( rb ) { }
 	};
 
 	struct BoxColliderComponent : Component
@@ -183,7 +195,7 @@ namespace Saturn {
 		glm::vec3 Extents;
 
 		BoxColliderComponent() = default;
-		BoxColliderComponent(const glm::vec3& extents) : Extents(extents) {}
+		BoxColliderComponent( const glm::vec3 & extents ) : Extents( extents ) { }
 	};
 
 	struct SphereColliderComponent : Component
@@ -191,7 +203,7 @@ namespace Saturn {
 		float Radius;
 
 		SphereColliderComponent() = default;
-		SphereColliderComponent(float radius) : Radius(radius) {}
+		SphereColliderComponent( float radius ) : Radius( radius ) { }
 	};
 
 	//
@@ -199,8 +211,7 @@ namespace Saturn {
 	//
 	struct ScriptComponent : Component
 	{
-
-		struct Data 
+		struct Data
 		{
 			//Path -> being like the path to the .cpp file
 			std::string Path;
@@ -223,15 +234,15 @@ namespace Saturn {
 	struct NativeScriptComponent : Component
 	{
 		ScriptableEntity* Instance = nullptr;
-	
-		ScriptableEntity*(*InstantiateScript)();
-		void (*DestroyScript)(NativeScriptComponent*);
+
+		ScriptableEntity* ( *InstantiateScript )( );
+		void ( *DestroyScript )( NativeScriptComponent* );
 
 		template<typename T>
-		void Bind() 
+		void Bind()
 		{
-			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
-			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
+			InstantiateScript = []() { return static_cast< ScriptableEntity* >( new T() ); };
+			DestroyScript = []( NativeScriptComponent* nsc ) { delete nsc->Instance; nsc->Instance = nullptr; };
 		}
 
 	};
