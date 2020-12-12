@@ -408,7 +408,6 @@ namespace Saturn {
 		public:
 
 			MyTestGame() {}
-
 			~MyTestGame() {}
 
 			void OnCreate() {}
@@ -1344,6 +1343,7 @@ namespace Saturn {
 					auto& mc = e.AddComponent<MeshComponent>();
 					std::string filepath = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
 					mc.Mesh = Ref<Mesh>::Create( filepath );
+					mc.Mesh->DumpVertexBuffer();
 				}
 
 			}
@@ -1359,7 +1359,6 @@ namespace Saturn {
 				if( !e.HasComponent<MeshComponent>() )
 				{
 					auto& mc = e.AddComponent<MeshComponent>();
-					mc.Mesh = Ref<Mesh>::Create( "" );
 				}
 
 			}
@@ -1711,14 +1710,23 @@ namespace Saturn {
 			});
 
 		DrawComponent<NativeScriptComponent>( "NativeScript", entity, []( auto& ncs )
+		{
+			std::string tag = "Enter Class Name";
+			char buffer[ 256 ];
+			memset( buffer, 0, 256 );
+			memcpy( buffer, tag.c_str(), tag.length() );
+			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+			ImGui::PushItemWidth( contentRegionAvailable.x * 0.5f );
+			if( ImGui::InputText( "##Tag", buffer, 256 ) )
 			{
+				tag = std::string( buffer );
+			}
 
-				std::string classname = "";
-
-				ImGui::InputText("##name", (char*)classname.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
-
-				ImGui::Button("Create Object");
-			} );
+			SAT_CORE_INFO("{}", tag);
+			
+			ImGui::Button( "Create Object" );
+			ImGui::PopItemWidth();
+		});
 
 		DrawComponent<BoxColliderComponent>("Box Collider", entity, [](auto& component) {
 				DrawVec3Control("Extents", component.Extents, component.Extents);

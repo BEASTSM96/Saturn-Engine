@@ -43,6 +43,9 @@ namespace Saturn {
 			m_Scene->m_Registry.remove<T>(m_EntityHandle);
 		}
 
+		Scene& GetScene() { return *m_Scene; }
+		const Scene& GetScene() const { return *m_Scene; }
+
 		glm::mat4& Transform() { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ); }
 		const glm::mat4& Transform() const { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ); }
 
@@ -70,5 +73,6 @@ namespace Saturn {
 		Scene* m_Scene = nullptr;
 	private:
 		friend class Scene;
+		friend class ScriptableEntity;
 	};
 }

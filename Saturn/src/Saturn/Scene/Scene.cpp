@@ -62,6 +62,17 @@ namespace Saturn {
 	{
 		m_physicsScene->Update(ts);
 
+		m_Registry.view<NativeScriptComponent>().each( [=]( auto entity, auto& nsc )
+			{
+				if( !nsc.Instance )
+				{
+					nsc.Instance = nsc.InstantiateScript();
+					nsc.Instance->m_Entity = Entity{ entity, this };
+
+				}
+
+			} );
+
 		if (m_RuntimeRunning)
 		{
 			UpdateRuntime(ts);
@@ -121,8 +132,19 @@ namespace Saturn {
 		return entity;
 	}
 
+	ScriptableEntity Scene::CreateScriptableEntity( const std::string& name )
+	{
+		SAT_PROFILE_FUNCTION();
+
+		ScriptableEntity entity;
+
+		return entity;
+	}
+
 	Entity Scene::CreateEntityWithID(UUID uuid, const std::string& name, bool runtimeMap)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		auto entity = Entity{ m_Registry.create(), this };
 		auto& idComponent = entity.AddComponent<IdComponent>();
 		idComponent.ID = uuid;
@@ -138,11 +160,15 @@ namespace Saturn {
 
 	void Scene::DestroyEntity(Entity entity)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		m_Registry.destroy(entity.m_EntityHandle);
 	}
 
 	void Scene::SetViewportSize(uint32_t width, uint32_t height)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
 	}
@@ -167,12 +193,16 @@ namespace Saturn {
 
 	Environment Environment::Load(const std::string& filepath)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap(filepath);
 		return { filepath, radiance, irradiance };
 	}
 
 	void Scene::PhysicsUpdate(float delta)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
 		for (auto ent : view) {
 			auto [transform, physics] = view.get<TransformComponent, PhysicsComponent>(ent);
@@ -296,6 +326,8 @@ namespace Saturn {
 	*/
 	Ref<Scene> Scene::CopyScene(const Ref<Scene>& CurrentScene)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		SAT_CORE_WARN("Copying Scene!");
 		Ref<Scene> CScene = Ref<Scene>::Create();
 		CScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
@@ -466,6 +498,8 @@ namespace Saturn {
 	*/
 	void Scene::CopyScene(Ref<Scene>& NewScene)
 	{
+		SAT_PROFILE_FUNCTION();
+
 		SAT_CORE_WARN("Copying Scene!");
 		NewScene->m_CurrentLevel = m_CurrentLevel;
 		NewScene->m_data = m_data;
@@ -516,12 +550,15 @@ namespace Saturn {
 
 	void Scene::UpdateRuntime( Timestep ts )
 	{
+		SAT_PROFILE_SCOPE("UpdateRuntime");
+		SAT_PROFILE_FUNCTION();
+
 		//SAT_CORE_WARN("Updating Runtime!");
-		auto view = m_Registry.view<TransformComponent, PhysicsComponent /*, TODO: When add other comps */>();
+		auto view = m_Registry.view<TransformComponent, PhysicsComponent, NativeScriptComponent /*, TODO: When add other comps */>();
 
 		for (auto entity : view)
 		{
-			auto [tc, pc] = view.get<TransformComponent, PhysicsComponent>(entity);
+			auto [tc, pc, ncs] = view.get<TransformComponent, PhysicsComponent, NativeScriptComponent>(entity);
 
 			tc.Position = pc.rigidbody->GetPosition();
 			tc.Rotation = pc.rigidbody->GetRotation();

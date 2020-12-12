@@ -20,9 +20,7 @@ namespace Saturn {
 		uint32_t Height = 720;
 		glm::vec4 ClearColor;
 		FramebufferFormat Format;
-		uint32_t Samples = 1; // multisampling
-
-		// SwapChainTarget = screen buffer (i.e. no framebuffer)
+		uint32_t Samples = 1;
 		bool SwapChainTarget = false;
 	};
 

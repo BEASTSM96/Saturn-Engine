@@ -48,6 +48,7 @@ namespace Saturn {
 
 	class Level;
 	class Entity;
+	class ScriptableEntity;
 
 	using EntityMap = std::unordered_map<UUID, Entity>;
 
@@ -59,6 +60,7 @@ namespace Saturn {
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
+		ScriptableEntity CreateScriptableEntity( const std::string& name = "" );
 		void DestroyEntity(Entity entity);
 
 		void OnRenderEditor(Timestep ts, const EditorCamera& editorCamera);
