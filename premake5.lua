@@ -211,7 +211,8 @@ project "Titan"
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ReactPhysics3D}",
 		"Saturn/vendor/yaml-cpp/include",
-		"Saturn/vendor/glm/"
+		"Saturn/vendor/glm/",
+		"%{IncludeDir.SPIRV_Cross}",
 	}
 
 	links

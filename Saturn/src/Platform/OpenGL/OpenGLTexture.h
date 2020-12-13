@@ -8,11 +8,11 @@ namespace Saturn {
 	class OpenGLTexture2D : public Texture2D
 	{
 	public:
-		OpenGLTexture2D(TextureFormat format, uint32_t width, uint32_t height, TextureWrap wrap);
-		OpenGLTexture2D(const std::string& path, bool srgb);
+		OpenGLTexture2D( TextureFormat format, uint32_t width, uint32_t height, TextureWrap wrap );
+		OpenGLTexture2D( const std::string& path, bool srgb );
 		virtual ~OpenGLTexture2D();
 
-		virtual void Bind(uint32_t slot = 0) const;
+		virtual void Bind( uint32_t slot = 0 ) const;
 
 		virtual TextureFormat GetFormat() const override { return m_Format; }
 		virtual uint32_t GetWidth( void )  const override { return m_Width; }
@@ -24,7 +24,7 @@ namespace Saturn {
 		virtual void Lock() override;
 		virtual void Unlock() override;
 
-		virtual void Resize(uint32_t width, uint32_t height) override;
+		virtual void Resize( uint32_t width, uint32_t height ) override;
 		virtual Buffer GetWriteableBuffer() override;
 
 		virtual const std::string& GetPath() const override { return m_FilePath; }
@@ -33,9 +33,9 @@ namespace Saturn {
 
 		virtual RendererID GetRendererID() const override { return m_RendererID; }
 
-		virtual bool operator==(const Texture& other) const override
+		virtual bool operator==( const Texture& other ) const override
 		{
-			return m_RendererID == ((OpenGLTexture2D&)other).m_RendererID;
+			return m_RendererID == ( ( OpenGLTexture2D& )other ).m_RendererID;
 		}
 	private:
 		RendererID m_RendererID;
@@ -55,11 +55,11 @@ namespace Saturn {
 	class OpenGLTextureCube : public TextureCube
 	{
 	public:
-		OpenGLTextureCube(TextureFormat format, uint32_t width, uint32_t height);
-		OpenGLTextureCube(const std::string& path);
+		OpenGLTextureCube( TextureFormat format, uint32_t width, uint32_t height );
+		OpenGLTextureCube( const std::string& path );
 		virtual ~OpenGLTextureCube();
 
-		virtual void Bind(uint32_t slot = 0) const;
+		virtual void Bind( uint32_t slot = 0 ) const;
 
 		virtual TextureFormat GetFormat() const { return m_Format; }
 		virtual uint32_t GetWidth( void )  const { return m_Width; }
@@ -72,9 +72,9 @@ namespace Saturn {
 
 		virtual RendererID GetRendererID() const override { return m_RendererID; }
 
-		virtual bool operator==(const Texture& other) const override
+		virtual bool operator==( const Texture& other ) const override
 		{
-			return m_RendererID == ((OpenGLTextureCube&)other).m_RendererID;
+			return m_RendererID == ( ( OpenGLTextureCube& )other ).m_RendererID;
 		}
 	private:
 		RendererID m_RendererID;
@@ -85,6 +85,7 @@ namespace Saturn {
 
 		std::string m_FilePath;
 	};
+
 }
 
 

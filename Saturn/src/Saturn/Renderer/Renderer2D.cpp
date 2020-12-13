@@ -552,5 +552,4 @@ namespace Saturn {
 	{
 		return s_Data.Stats;
 	}
-
 }

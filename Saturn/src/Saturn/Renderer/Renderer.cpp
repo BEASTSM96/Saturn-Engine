@@ -33,10 +33,10 @@ namespace Saturn {
 	void Renderer::Init()
 	{
 		s_Data.m_ShaderLibrary = Ref<ShaderLibrary>::Create();
-		Renderer::Submit([]() { RendererAPI::Init(); });
+		Renderer::Submit( []() { RendererAPI::Init(); } );
 
-		Renderer::GetShaderLibrary()->Load("assets/shaders/PBR_Static.glsl");
-		Renderer::GetShaderLibrary()->Load("assets/shaders/PBR_Anim.glsl");
+		Renderer::GetShaderLibrary()->Load( "assets/shaders/PBR_Static.glsl" );
+		Renderer::GetShaderLibrary()->Load( "assets/shaders/PBR_Anim.glsl" );
 
 		SceneRenderer::Init();
 
@@ -86,16 +86,16 @@ namespace Saturn {
 	void Renderer::Clear()
 	{
 		Renderer::Submit( []()
- {
-	 RendererAPI::Clear( 0.0f, 0.0f, 0.0f, 1.0f );
+			{
+				RendererAPI::Clear( 0.0f, 0.0f, 0.0f, 1.0f );
 			} );
 	}
 
 	void Renderer::Clear( float r, float g, float b, float a )
 	{
 		Renderer::Submit( [=]()
- {
-	 RendererAPI::Clear( r, g, b, a );
+			{
+				RendererAPI::Clear( r, g, b, a );
 			} );
 	}
 
@@ -111,16 +111,16 @@ namespace Saturn {
 	void Renderer::DrawIndexed( uint32_t count, PrimitiveType type, bool depthTest )
 	{
 		Renderer::Submit( [=]()
- {
-	 RendererAPI::DrawIndexed( count, type, depthTest );
+			{
+				RendererAPI::DrawIndexed( count, type, depthTest );
 			} );
 	}
 
 	void Renderer::SetLineThickness( float thickness )
 	{
 		Renderer::Submit( [=]()
- {
-	 RendererAPI::SetLineThickness( thickness );
+			{
+				RendererAPI::SetLineThickness( thickness );
 			} );
 	}
 
@@ -133,7 +133,6 @@ namespace Saturn {
 	{
 		SAT_CORE_ASSERT( renderPass, "Render pass cannot be null!" );
 
-		// TODO: Convert all of this into a render command buffer
 		s_Data.m_ActiveRenderPass = renderPass;
 
 		renderPass->GetSpecification().TargetFramebuffer->Bind();
@@ -141,15 +140,15 @@ namespace Saturn {
 		{
 			const glm::vec4& clearColor = renderPass->GetSpecification().TargetFramebuffer->GetSpecification().ClearColor;
 			Renderer::Submit( [=]()
- {
-	 RendererAPI::Clear( clearColor.r, clearColor.g, clearColor.b, clearColor.a );
+				{
+					RendererAPI::Clear( clearColor.r, clearColor.g, clearColor.b, clearColor.a );
 				} );
 		}
 	}
 
 	void Renderer::EndRenderPass()
 	{
-		SAT_CORE_ASSERT( s_Data.m_ActiveRenderPass, "No active render pass! Have you called Renderer::EndRenderPass twice?" );
+		SAT_CORE_ASSERT( s_Data.m_ActiveRenderPass, "No active render pass!" );
 		s_Data.m_ActiveRenderPass->GetSpecification().TargetFramebuffer->Unbind();
 		s_Data.m_ActiveRenderPass = nullptr;
 	}
@@ -215,13 +214,13 @@ namespace Saturn {
 			shader->SetMat4( "u_Transform", transform * submesh.Transform );
 
 			Renderer::Submit( [submesh, material]()
- {
-	 if( material->GetFlag( MaterialFlag::DepthTest ) )
-		 glEnable( GL_DEPTH_TEST );
-	 else
-		 glDisable( GL_DEPTH_TEST );
+				{
+					if( material->GetFlag( MaterialFlag::DepthTest ) )
+						glEnable( GL_DEPTH_TEST );
+					else
+						glDisable( GL_DEPTH_TEST );
 
-	 glDrawElementsBaseVertex( GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, ( void* )( sizeof( uint32_t ) * submesh.BaseIndex ), submesh.BaseVertex );
+					glDrawElementsBaseVertex( GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, ( void* )( sizeof( uint32_t ) * submesh.BaseIndex ), submesh.BaseVertex );
 				} );
 		}
 	}

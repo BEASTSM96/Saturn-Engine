@@ -4,7 +4,6 @@
 #include "Saturn/Renderer/Shader.h"
 
 namespace Saturn {
-
 	struct PipelineSpecification
 	{
 		Ref<Saturn::Shader> Shader;
@@ -23,7 +22,7 @@ namespace Saturn {
 
 		virtual void Bind( void ) = 0;
 
-		static Ref<Pipeline> Create(const PipelineSpecification& spec);
+		static Ref<Pipeline> Create( const PipelineSpecification& spec );
 	};
 
 }

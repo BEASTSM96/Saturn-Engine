@@ -7,12 +7,12 @@ namespace Saturn {
 	class RenderCommandQueue
 	{
 	public:
-		typedef void(*RenderCommandFn)(void*);
+		typedef void( *RenderCommandFn )( void* );
 
 		RenderCommandQueue();
 		~RenderCommandQueue();
 
-		void* Allocate(RenderCommandFn func, uint32_t size);
+		void* Allocate( RenderCommandFn func, uint32_t size );
 
 		void Execute( void );
 	private:

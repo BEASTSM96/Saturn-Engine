@@ -7,9 +7,9 @@ namespace Saturn {
 
 	RenderCommandQueue::RenderCommandQueue()
 	{
-		m_CommandBuffer = new uint8_t[10 * 1024 * 1024]; // 10mb buffer
+		m_CommandBuffer = new uint8_t[ 10 * 1024 * 1024 ];
 		m_CommandBufferPtr = m_CommandBuffer;
-		memset(m_CommandBuffer, 0, 10 * 1024 * 1024);
+		memset( m_CommandBuffer, 0, 10 * 1024 * 1024 );
 	}
 
 	RenderCommandQueue::~RenderCommandQueue()
@@ -17,13 +17,13 @@ namespace Saturn {
 		delete[] m_CommandBuffer;
 	}
 
-	void* RenderCommandQueue::Allocate(RenderCommandFn fn, uint32_t size)
+	void* RenderCommandQueue::Allocate( RenderCommandFn fn, uint32_t size )
 	{
-		*(RenderCommandFn*)m_CommandBufferPtr = fn;
-		m_CommandBufferPtr += sizeof(RenderCommandFn);
+		*( RenderCommandFn* )m_CommandBufferPtr = fn;
+		m_CommandBufferPtr += sizeof( RenderCommandFn );
 
-		*(uint32_t*)m_CommandBufferPtr = size;
-		m_CommandBufferPtr += sizeof(uint32_t);
+		*( uint32_t* )m_CommandBufferPtr = size;
+		m_CommandBufferPtr += sizeof( uint32_t );
 
 		void* memory = m_CommandBufferPtr;
 		m_CommandBufferPtr += size;
@@ -36,14 +36,14 @@ namespace Saturn {
 	{
 		uint8_t* buffer = m_CommandBuffer;
 
-		for (uint32_t i = 0; i < m_CommandCount; i++)
+		for( uint32_t i = 0; i < m_CommandCount; i++ )
 		{
-			RenderCommandFn function = *(RenderCommandFn*)buffer;
-			buffer += sizeof(RenderCommandFn);
+			RenderCommandFn function = *( RenderCommandFn* )buffer;
+			buffer += sizeof( RenderCommandFn );
 
-			uint32_t size = *(uint32_t*)buffer;
-			buffer += sizeof(uint32_t);
-			function(buffer);
+			uint32_t size = *( uint32_t* )buffer;
+			buffer += sizeof( uint32_t );
+			function( buffer );
 			buffer += size;
 		}
 

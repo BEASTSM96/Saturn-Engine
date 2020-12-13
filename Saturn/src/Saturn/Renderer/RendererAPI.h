@@ -32,14 +32,14 @@ namespace Saturn {
 	class SATURN_API RendererAPI
 	{
 	public:
-		static void Init( void ) ;
-		static void Shutdown( void ) ;
+		static void Init( void );
+		static void Shutdown( void );
 
-		static void Clear(float r, float g, float b, float a);
-		static void SetClearColor(float r, float g, float b, float a);
+		static void Clear( float r, float g, float b, float a );
+		static void SetClearColor( float r, float g, float b, float a );
 
-		static void DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest = true);
-		static void SetLineThickness(float thickness);
+		static void DrawIndexed( uint32_t count, PrimitiveType type, bool depthTest = true );
+		static void SetLineThickness( float thickness );
 
 		static RenderAPICapabilities& GetCapabilities()
 		{
@@ -49,7 +49,7 @@ namespace Saturn {
 
 		static RendererAPIType Current() { return s_CurrentRendererAPI; }
 	private:
-		static void LoadRequiredAssets( void ) ;
+		static void LoadRequiredAssets( void );
 	private:
 		static RendererAPIType s_CurrentRendererAPI;
 	};

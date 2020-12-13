@@ -19,7 +19,7 @@ namespace Saturn {
 		uint32_t m_Count;
 		Type m_Type;
 	public:
-		OpenGLShaderResourceDeclaration(Type type, const std::string& name, uint32_t count);
+		OpenGLShaderResourceDeclaration( Type type, const std::string& name, uint32_t count );
 
 		inline const std::string& GetName() const override { return m_Name; }
 		inline uint32_t GetRegister() const override { return m_Register; }
@@ -27,8 +27,8 @@ namespace Saturn {
 
 		inline Type GetType() const { return m_Type; }
 	public:
-		static Type StringToType(const std::string& type);
-		static std::string TypeToString(Type type);
+		static Type StringToType( const std::string& type );
+		static std::string TypeToString( Type type );
 	};
 
 	class OpenGLShaderUniformDeclaration : public ShaderUniformDeclaration
@@ -52,8 +52,8 @@ namespace Saturn {
 		ShaderStruct* m_Struct;
 		mutable int32_t m_Location;
 	public:
-		OpenGLShaderUniformDeclaration(ShaderDomain domain, Type type, const std::string& name, uint32_t count = 1);
-		OpenGLShaderUniformDeclaration(ShaderDomain domain, ShaderStruct* uniformStruct, const std::string& name, uint32_t count = 1);
+		OpenGLShaderUniformDeclaration( ShaderDomain domain, Type type, const std::string& name, uint32_t count = 1 );
+		OpenGLShaderUniformDeclaration( ShaderDomain domain, ShaderStruct* uniformStruct, const std::string& name, uint32_t count = 1 );
 
 		inline const std::string& GetName() const override { return m_Name; }
 		inline uint32_t GetSize() const override { return m_Size; }
@@ -65,13 +65,13 @@ namespace Saturn {
 		int32_t GetLocation() const { return m_Location; }
 		inline Type GetType() const { return m_Type; }
 		inline bool IsArray() const { return m_Count > 1; }
-		inline const ShaderStruct& GetShaderUniformStruct() const { SAT_CORE_ASSERT(m_Struct, ""); return *m_Struct; }
+		inline const ShaderStruct& GetShaderUniformStruct() const { SAT_CORE_ASSERT( m_Struct, "" ); return *m_Struct; }
 	protected:
-		void SetOffset(uint32_t offset) override;
+		void SetOffset( uint32_t offset ) override;
 	public:
-		static uint32_t SizeOfUniformType(Type type);
-		static Type StringToType(const std::string& type);
-		static std::string TypeToString(Type type);
+		static uint32_t SizeOfUniformType( Type type );
+		static Type StringToType( const std::string& type );
+		static std::string TypeToString( Type type );
 	};
 
 	struct GLShaderUniformField
@@ -94,9 +94,9 @@ namespace Saturn {
 		uint32_t m_Size;
 		ShaderDomain m_Domain;
 	public:
-		OpenGLShaderUniformBufferDeclaration(const std::string& name, ShaderDomain domain);
+		OpenGLShaderUniformBufferDeclaration( const std::string& name, ShaderDomain domain );
 
-		void PushUniform(OpenGLShaderUniformDeclaration* uniform);
+		void PushUniform( OpenGLShaderUniformDeclaration* uniform );
 
 		inline const std::string& GetName() const override { return m_Name; }
 		inline uint32_t GetRegister() const override { return m_Register; }
@@ -104,7 +104,6 @@ namespace Saturn {
 		virtual ShaderDomain GetDomain() const { return m_Domain; }
 		inline const ShaderUniformList& GetUniformDeclarations() const override { return m_Uniforms; }
 
-		ShaderUniformDeclaration* FindUniform(const std::string& name);
+		ShaderUniformDeclaration* FindUniform( const std::string& name );
 	};
-
 }

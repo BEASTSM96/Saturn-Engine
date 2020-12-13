@@ -27,13 +27,13 @@ namespace Saturn {
 	class Framebuffer : public RefCounted
 	{
 	public:
-		virtual ~Framebuffer() {}
+		virtual ~Framebuffer() { }
 		virtual void Bind( void ) const = 0;
 		virtual void Unbind( void ) const = 0;
 
-		virtual void Resize(uint32_t width, uint32_t height, bool forceRecreate = false) = 0;
+		virtual void Resize( uint32_t width, uint32_t height, bool forceRecreate = false ) = 0;
 
-		virtual void BindTexture(uint32_t slot = 0) const = 0;
+		virtual void BindTexture( uint32_t slot = 0 ) const = 0;
 
 		virtual RendererID GetRendererID() const = 0;
 		virtual RendererID GetColorAttachmentRendererID( void ) const = 0;
@@ -41,17 +41,17 @@ namespace Saturn {
 
 		virtual const FramebufferSpecification& GetSpecification( void ) const = 0;
 
-		static Ref<Framebuffer> Create(const FramebufferSpecification& spec);
+		static Ref<Framebuffer> Create( const FramebufferSpecification& spec );
 	};
 
 	class FramebufferPool final
 	{
 	public:
-		FramebufferPool(uint32_t maxFBs = 32);
+		FramebufferPool( uint32_t maxFBs = 32 );
 		~FramebufferPool();
 
 		std::weak_ptr<Framebuffer> AllocateBuffer( void );
-		void Add(const Ref<Framebuffer>& framebuffer);
+		void Add( const Ref<Framebuffer>& framebuffer );
 
 		std::vector<Ref<Framebuffer>>& GetAll() { return m_Pool; }
 		const std::vector<Ref<Framebuffer>>& GetAll() const { return m_Pool; }

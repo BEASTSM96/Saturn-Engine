@@ -16,24 +16,25 @@ namespace Saturn {
 	};
 
 	//TODO: maybe move this into a new file?
-	static uint32_t ShaderDataTypeSize(ShaderDataType type)
+	static uint32_t ShaderDataTypeSize( ShaderDataType type )
 	{
-		switch (type)
+		switch( type )
 		{
-		case ShaderDataType::Float:    return 4;
-		case ShaderDataType::Float2:   return 4 * 2;
-		case ShaderDataType::Float3:   return 4 * 3;
-		case ShaderDataType::Float4:   return 4 * 4;
-		case ShaderDataType::Mat3:     return 4 * 3 * 3;
-		case ShaderDataType::Mat4:     return 4 * 4 * 4;
-		case ShaderDataType::Int:      return 4;
-		case ShaderDataType::Int2:     return 4 * 2;
-		case ShaderDataType::Int3:     return 4 * 3;
-		case ShaderDataType::Int4:     return 4 * 4;
-		case ShaderDataType::Bool:     return 1;
+			case ShaderDataType::Float:    return 4;
+			case ShaderDataType::Float2:   return 4 * 2;
+			case ShaderDataType::Float3:   return 4 * 3;
+			case ShaderDataType::Float4:   return 4 * 4;
+			case ShaderDataType::Mat3:     return 4 * 3 * 3;
+			case ShaderDataType::Mat4:     return 4 * 4 * 4;
+			case ShaderDataType::Int:      return 4;
+			case ShaderDataType::Int2:     return 4 * 2;
+			case ShaderDataType::Int3:     return 4 * 3;
+			case ShaderDataType::Int4:     return 4 * 4;
+			case ShaderDataType::Bool:     return 1;
 		}
 
-		SAT_CORE_ASSERT(false, "Unknown ShaderDataType!");
+		SAT_CORE_ERROR( "ShaderDataTypes are Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4 and Bool" );
+		SAT_CORE_ASSERT( false, "Unknown ShaderDataType!" );
 		return 0;
 	}
 
@@ -47,29 +48,29 @@ namespace Saturn {
 
 		VertexBufferElement() = default;
 
-		VertexBufferElement(ShaderDataType type, const std::string& name, bool normalized = false)
-			: Name(name), Type(type), Size(ShaderDataTypeSize(type)), Offset(0), Normalized(normalized)
+		VertexBufferElement( ShaderDataType type, const std::string& name, bool normalized = false )
+			: Name( name ), Type( type ), Size( ShaderDataTypeSize( type ) ), Offset( 0 ), Normalized( normalized )
 		{
 		}
 
 		uint32_t GetComponentCount() const
 		{
-			switch (Type)
+			switch( Type )
 			{
-			case ShaderDataType::Float:   return 1;
-			case ShaderDataType::Float2:  return 2;
-			case ShaderDataType::Float3:  return 3;
-			case ShaderDataType::Float4:  return 4;
-			case ShaderDataType::Mat3:    return 3 * 3;
-			case ShaderDataType::Mat4:    return 4 * 4;
-			case ShaderDataType::Int:     return 1;
-			case ShaderDataType::Int2:    return 2;
-			case ShaderDataType::Int3:    return 3;
-			case ShaderDataType::Int4:    return 4;
-			case ShaderDataType::Bool:    return 1;
+				case ShaderDataType::Float:   return 1;
+				case ShaderDataType::Float2:  return 2;
+				case ShaderDataType::Float3:  return 3;
+				case ShaderDataType::Float4:  return 4;
+				case ShaderDataType::Mat3:    return 3 * 3;
+				case ShaderDataType::Mat4:    return 4 * 4;
+				case ShaderDataType::Int:     return 1;
+				case ShaderDataType::Int2:    return 2;
+				case ShaderDataType::Int3:    return 3;
+				case ShaderDataType::Int4:    return 4;
+				case ShaderDataType::Bool:    return 1;
 			}
 
-			SAT_CORE_ASSERT(false, "Unknown ShaderDataType!");
+			SAT_CORE_ASSERT( false, "Unknown ShaderDataType!" );
 			return 0;
 		}
 	};
@@ -77,10 +78,10 @@ namespace Saturn {
 	class VertexBufferLayout
 	{
 	public:
-		VertexBufferLayout() {}
+		VertexBufferLayout() { }
 
-		VertexBufferLayout(const std::initializer_list<VertexBufferElement>& elements)
-			: m_Elements(elements)
+		VertexBufferLayout( const std::initializer_list<VertexBufferElement>& elements )
+			: m_Elements( elements )
 		{
 			CalculateOffsetsAndStride();
 		}
@@ -97,7 +98,7 @@ namespace Saturn {
 		{
 			uint32_t offset = 0;
 			m_Stride = 0;
-			for (auto& element : m_Elements)
+			for( auto& element : m_Elements )
 			{
 				element.Offset = offset;
 				offset += element.Size;
@@ -117,19 +118,19 @@ namespace Saturn {
 	class VertexBuffer : public RefCounted
 	{
 	public:
-		virtual ~VertexBuffer() {}
+		virtual ~VertexBuffer() { }
 
-		virtual void SetData(void* buffer, uint32_t size, uint32_t offset = 0) = 0;
+		virtual void SetData( void* buffer, uint32_t size, uint32_t offset = 0 ) = 0;
 		virtual void Bind( void ) const = 0;
 
 		virtual const VertexBufferLayout& GetLayout( void ) const = 0;
-		virtual void SetLayout(const VertexBufferLayout& layout) = 0;
+		virtual void SetLayout( const VertexBufferLayout& layout ) = 0;
 
 		virtual unsigned int GetSize( void ) const = 0;
 		virtual RendererID GetRendererID( void ) const = 0;
 
-		static Ref<VertexBuffer> Create(void* data, uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Static);
-		static Ref<VertexBuffer> Create(uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Dynamic);
+		static Ref<VertexBuffer> Create( void* data, uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Static );
+		static Ref<VertexBuffer> Create( uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Dynamic );
 	};
 
 }

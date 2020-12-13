@@ -6,11 +6,10 @@ struct GLFWwindow;
 
 namespace Saturn {
 
-
 	class OpenGLContext : public GraphicsContext
 	{
 	public:
-		OpenGLContext(GLFWwindow* windowHandle);
+		OpenGLContext( GLFWwindow* windowHandle );
 
 		virtual void Init( void ) override;
 		virtual void SwapBuffers( void ) override;

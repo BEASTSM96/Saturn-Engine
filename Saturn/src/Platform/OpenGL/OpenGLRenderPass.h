@@ -7,7 +7,7 @@ namespace Saturn {
 	class OpenGLRenderPass : public RenderPass
 	{
 	public:
-		OpenGLRenderPass(const RenderPassSpecification& spec);
+		OpenGLRenderPass( const RenderPassSpecification& spec );
 		virtual ~OpenGLRenderPass();
 
 		virtual RenderPassSpecification& GetSpecification() override { return m_Specification; }

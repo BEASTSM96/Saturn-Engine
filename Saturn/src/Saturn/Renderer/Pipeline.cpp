@@ -6,15 +6,14 @@
 #include "Platform/OpenGL/OpenGLPipeline.h"
 
 namespace Saturn {
-
-	Ref<Pipeline> Pipeline::Create(const PipelineSpecification& spec)
+	Ref<Pipeline> Pipeline::Create( const PipelineSpecification& spec )
 	{
-		switch (RendererAPI::Current())
+		switch( RendererAPI::Current() )
 		{
-		case RendererAPIType::None:    return nullptr;
-		case RendererAPIType::OpenGL:  return Ref<OpenGLPipeline>::Create(spec);
+			case RendererAPIType::None:    return nullptr;
+			case RendererAPIType::OpenGL:  return Ref<OpenGLPipeline>::Create( spec );
 		}
-		SAT_CORE_ASSERT(false, "Unknown RendererAPI");
+		SAT_CORE_ASSERT( false, "Unknown RendererAPI" );
 		return nullptr;
 	}
 }

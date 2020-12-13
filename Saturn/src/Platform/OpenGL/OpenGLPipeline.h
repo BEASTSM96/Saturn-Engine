@@ -7,7 +7,7 @@ namespace Saturn {
 	class OpenGLPipeline : public Pipeline
 	{
 	public:
-		OpenGLPipeline(const PipelineSpecification& spec);
+		OpenGLPipeline( const PipelineSpecification& spec );
 		virtual ~OpenGLPipeline();
 
 		virtual PipelineSpecification& GetSpecification() { return m_Specification; }
