@@ -1277,6 +1277,20 @@ namespace Saturn {
 			ImGui::End();
 
 
+			if(ImGui::Begin("Mesh Debug"))
+			{
+				if (ImGui::Button("DumpData"))
+				{
+					auto view = m_EditorScene->GetRegistry().view<MeshComponent>();
+
+					for (const auto& entity : view)
+					{
+						auto mc = view.get<MeshComponent>(entity);
+						mc.Mesh->DumpVertexBuffer();
+					}
+				}
+			}
+			ImGui::End();
 			m_SceneHierarchyPanel->OnImGuiRender();
 			ImGui::End();
 		}
@@ -1343,7 +1357,6 @@ namespace Saturn {
 					auto& mc = e.AddComponent<MeshComponent>();
 					std::string filepath = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
 					mc.Mesh = Ref<Mesh>::Create( filepath );
-					mc.Mesh->DumpVertexBuffer();
 				}
 
 			}
@@ -1709,28 +1722,25 @@ namespace Saturn {
 				}
 			});
 
-		DrawComponent<NativeScriptComponent>( "NativeScript", entity, []( auto& ncs )
+		DrawComponent<NativeScriptComponent>( "Native Script Component", entity, [this]( auto& ncs )
 		{
-			std::string tag = "Enter Class Name";
 			char buffer[ 256 ];
 			memset( buffer, 0, 256 );
-			memcpy( buffer, tag.c_str(), tag.length() );
-			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
-			ImGui::PushItemWidth( contentRegionAvailable.x * 0.5f );
-			if( ImGui::InputText( "##Tag", buffer, 256 ) )
+			memcpy( buffer, m_NCSTag.c_str(), m_NCSTag.length() );
+			if( ImGui::InputText( "##cname", buffer, 256 ) )
 			{
-				tag = std::string( buffer );
+				m_NCSTag = std::string( buffer );
 			}
 
-			SAT_CORE_INFO("{}", tag);
-			
-			ImGui::Button( "Create Object" );
-			ImGui::PopItemWidth();
+			if( ImGui::Button( "Create Object" ) )
+			{
+			}
 		});
 
-		DrawComponent<BoxColliderComponent>("Box Collider", entity, [](auto& component) {
-				DrawVec3Control("Extents", component.Extents, component.Extents);
-			});
+		DrawComponent<BoxColliderComponent>( "Box Collider", entity, []( auto& component )
+		{
+			DrawVec3Control( "Extents", component.Extents, component.Extents );
+		});
 
 		DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](auto& component) {
 				DrawFloatControl("Radius", &component.Radius, component.Radius);

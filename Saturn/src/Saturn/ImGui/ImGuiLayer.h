@@ -149,6 +149,7 @@ namespace Saturn {
 	private:
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext;
+		std::string m_NCSTag = "Enter Class Name";
 
 		std::function<void(Entity)> m_SelectionChangedCallback;
 

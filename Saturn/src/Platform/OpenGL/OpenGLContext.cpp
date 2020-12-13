@@ -18,7 +18,10 @@ namespace Saturn {
 	{
 		glfwMakeContextCurrent( m_WindowHandle );
 		int status = gladLoadGLLoader( ( GLADloadproc )glfwGetProcAddress );
-		SAT_CORE_FATAL( "Failed to load Glad!" );
+		if (status == 0)
+		{
+			SAT_CORE_FATAL( "Failed to load Glad!" );
+		}
 		SAT_CORE_ASSERT( status, "Failed to load Glad!" );
 
 		SAT_CORE_INFO("OpenGl Renderer: {0} {1}", glGetString(GL_VENDOR), glGetString(GL_RENDERER));
