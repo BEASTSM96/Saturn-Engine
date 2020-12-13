@@ -28,6 +28,11 @@ namespace Saturn {
 		virtual void OnAttach( void ) override;
 		virtual void OnDetach( void ) override;
 		virtual void OnImGuiRender( void ) override;
+
+		void SetTheme(int theme);
+
+	protected:
+		int m_Theme = 0;
 	private:
 		float m_Time = 0.0f;
 

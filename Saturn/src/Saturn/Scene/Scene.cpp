@@ -62,17 +62,6 @@ namespace Saturn {
 	{
 		m_physicsScene->Update(ts);
 
-		m_Registry.view<NativeScriptComponent>().each( [=]( auto entity, auto& nsc )
-			{
-				if( !nsc.Instance )
-				{
-					nsc.Instance = nsc.InstantiateScript();
-					nsc.Instance->m_Entity = Entity{ entity, this };
-
-				}
-
-			} );
-
 		if (m_RuntimeRunning)
 		{
 			UpdateRuntime(ts);
@@ -553,12 +542,27 @@ namespace Saturn {
 		SAT_PROFILE_SCOPE("UpdateRuntime");
 		SAT_PROFILE_FUNCTION();
 
-		//SAT_CORE_WARN("Updating Runtime!");
-		auto view = m_Registry.view<TransformComponent, PhysicsComponent, NativeScriptComponent /*, TODO: When add other comps */>();
+		{
+			m_Registry.view<NativeScriptComponent>().each( [=]( auto entity, auto& nsc )
+				{
+					if( !nsc.Instance )
+					{
+						nsc.Instance = nsc.InstantiateScript();
+						nsc.Instance->m_Entity = Entity{ entity, this };
 
+						nsc.Instance->OnCreate();
+						nsc.Instance->BeginPlay();
+					}
+
+					nsc.Instance->OnUpdate( ts );
+
+				} );
+		}
+
+		auto view = m_Registry.view<TransformComponent, PhysicsComponent, NativeScriptComponent /*, TODO: When add other comps */>();
 		for (auto entity : view)
 		{
-			auto [tc, pc, ncs] = view.get<TransformComponent, PhysicsComponent, NativeScriptComponent>(entity);
+			auto [ tc, pc, ncs ] = view.get< TransformComponent, PhysicsComponent, NativeScriptComponent >( entity );
 
 			tc.Position = pc.rigidbody->GetPosition();
 			tc.Rotation = pc.rigidbody->GetRotation();
@@ -566,24 +570,6 @@ namespace Saturn {
 		}
 
 		Application::Get().GetHotReload()->OnHotReload();
-
-		{
-			m_Registry.view<NativeScriptComponent>().each( [=] ( auto entity, auto& nsc )
-			{
-				if( !nsc.Instance )
-				{
-					nsc.Instance = nsc.InstantiateScript();
-					nsc.Instance->m_Entity = Entity{ entity, this };
-
-					nsc.Instance->OnCreate();
-					nsc.Instance->BeginPlay();
-				}
-
-				nsc.Instance->OnUpdate(ts);
-
-			});
-		}
-
 	}
 
 }
