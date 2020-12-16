@@ -1457,7 +1457,9 @@ namespace Saturn {
 
 						ImGui::Separator();
 
-						// Selected material
+						/**
+						 * Selected material -> view and edit the stuff 
+						*/
 						if (selectedMaterialIndex < materials.size())
 						{
 							auto& materialInstance = materials[selectedMaterialIndex];
@@ -1479,7 +1481,7 @@ namespace Saturn {
 										if (albedoMap)
 										{
 											ImGui::BeginTooltip();
-											ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
+											ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
 											ImGui::TextUnformatted(albedoMap->GetPath().c_str());
 											ImGui::PopTextWrapPos();
 											ImGui::Image((void*)albedoMap->GetRendererID(), ImVec2(384, 384));
@@ -1510,7 +1512,119 @@ namespace Saturn {
 									ImGui::ColorEdit3("Color##Albedo", glm::value_ptr(albedoColor), ImGuiColorEditFlags_NoInputs);
 								}
 							}
+							{
+								// Normals
+								if (ImGui::CollapsingHeader("Normals", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+								{
+									ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+									bool useNormalMap = materialInstance->Get<float>("u_NormalTexToggle");
+									Ref<Texture2D> normalMap = materialInstance->TryGetResource<Texture2D>("u_NormalTexture");
+									ImGui::Image(normalMap ? (void*)normalMap->GetRendererID() : (void*)m_CheckerboardTex->GetRendererID(), ImVec2(64, 64));
+									ImGui::PopStyleVar();
+									if (ImGui::IsItemHovered())
+									{
+										if (normalMap)
+										{
+											ImGui::BeginTooltip();
+											ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+											ImGui::TextUnformatted(normalMap->GetPath().c_str());
+											ImGui::PopTextWrapPos();
+											ImGui::Image((void*)normalMap->GetRendererID(), ImVec2(384, 384));
+											ImGui::EndTooltip();
+										}
+										if (ImGui::IsItemClicked())
+										{
+											std::string filename = Application::Get().OpenFile("").first;
+											if (filename != "")
+											{
+												normalMap = Texture2D::Create(filename);
+												materialInstance->Set("u_NormalTexture", normalMap);
+											}
+										}
+									}
+									ImGui::SameLine();
+									if (ImGui::Checkbox("Use##NormalMap", &useNormalMap))
+										materialInstance->Set<float>("u_NormalTexToggle", useNormalMap ? 1.0f : 0.0f);
+								}
+							}
+							{
+								// Metalness
+								if (ImGui::CollapsingHeader("Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+								{
+									ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+									float& metalnessValue = materialInstance->Get<float>("u_Metalness");
+									bool useMetalnessMap = materialInstance->Get<float>("u_MetalnessTexToggle");
+									Ref<Texture2D> metalnessMap = materialInstance->TryGetResource<Texture2D>("u_MetalnessTexture");
+									ImGui::Image(metalnessMap ? (void*)metalnessMap->GetRendererID() : (void*)m_CheckerboardTex->GetRendererID(), ImVec2(64, 64));
+									ImGui::PopStyleVar();
+									if (ImGui::IsItemHovered())
+									{
+										if (metalnessMap)
+										{
+											ImGui::BeginTooltip();
+											ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+											ImGui::TextUnformatted(metalnessMap->GetPath().c_str());
+											ImGui::PopTextWrapPos();
+											ImGui::Image((void*)metalnessMap->GetRendererID(), ImVec2(384, 384));
+											ImGui::EndTooltip();
+										}
+										if (ImGui::IsItemClicked())
+										{
+											std::string filename = Application::Get().OpenFile("").first;
+											if (filename != "")
+											{
+												metalnessMap = Texture2D::Create(filename);
+												materialInstance->Set("u_MetalnessTexture", metalnessMap);
+											}
+										}
+									}
+									ImGui::SameLine();
+									if (ImGui::Checkbox("Use##MetalnessMap", &useMetalnessMap))
+										materialInstance->Set<float>("u_MetalnessTexToggle", useMetalnessMap ? 1.0f : 0.0f);
+									ImGui::SameLine();
+									ImGui::SliderFloat("Value##MetalnessInput", &metalnessValue, 0.0f, 1.0f);
+								}
+							}
+							{
+								// Roughness
+								if (ImGui::CollapsingHeader("Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+								{
+									ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+									float& roughnessValue = materialInstance->Get<float>("u_Roughness");
+									bool useRoughnessMap = materialInstance->Get<float>("u_RoughnessTexToggle");
+									Ref<Texture2D> roughnessMap = materialInstance->TryGetResource<Texture2D>("u_RoughnessTexture");
+									ImGui::Image(roughnessMap ? (void*)roughnessMap->GetRendererID() : (void*)m_CheckerboardTex->GetRendererID(), ImVec2(64, 64));
+									ImGui::PopStyleVar();
+									if (ImGui::IsItemHovered())
+									{
+										if (roughnessMap)
+										{
+											ImGui::BeginTooltip();
+											ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+											ImGui::TextUnformatted(roughnessMap->GetPath().c_str());
+											ImGui::PopTextWrapPos();
+											ImGui::Image((void*)roughnessMap->GetRendererID(), ImVec2(384, 384));
+											ImGui::EndTooltip();
+										}
+										if (ImGui::IsItemClicked())
+										{
+											std::string filename = Application::Get().OpenFile("").first;
+											if (filename != "")
+											{
+												roughnessMap = Texture2D::Create(filename);
+												materialInstance->Set("u_RoughnessTexture", roughnessMap);
+											}
+										}
+									}
+									ImGui::SameLine();
+									if (ImGui::Checkbox("Use##RoughnessMap", &useRoughnessMap))
+										materialInstance->Set<float>("u_RoughnessTexToggle", useRoughnessMap ? 1.0f : 0.0f);
+									ImGui::SameLine();
+									ImGui::SliderFloat("Value##RoughnessInput", &roughnessValue, 0.0f, 1.0f);
+								}
+							}
 						}
+
 					}
 				}
 			}
@@ -1971,10 +2085,6 @@ namespace Saturn {
 			if( ImGui::InputText( "##cname", buffer, 256 ) )
 			{
 				m_NCSTag = std::string( buffer );
-			}
-
-			if( ImGui::Button( "Create Object" ) )
-			{
 			}
 		});
 
