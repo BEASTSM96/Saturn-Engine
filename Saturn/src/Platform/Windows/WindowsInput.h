@@ -8,13 +8,13 @@ namespace Saturn {
 	{
 
 	protected:
-		virtual bool IsKeyPressedImpl(int keycode) override;
+		virtual bool IsKeyPressedImpl( int keycode ) override;
 
 		virtual float GetMouseXImpl( void ) override;
 
 		virtual float GetMouseYImpl( void ) override;
 
-		virtual bool IsMouseButtonPressedImpl(int button) override;
+		virtual bool IsMouseButtonPressedImpl( int button ) override;
 
 		virtual std::pair<float, float> GetMousePosImpl( void ) override;
 	};
