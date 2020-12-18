@@ -13,6 +13,8 @@
 
 #include "Saturn/Core/AABB/AABB.h"
 
+DISABLE_ALL_WARNINGS_BEGIN
+
 struct aiNode;
 struct aiAnimation;
 struct aiNodeAnim;
@@ -32,6 +34,10 @@ namespace Saturn {
 		glm::vec3 Binormal;
 		glm::vec2 Texcoord;
 	};
+
+	DISABLE_ALL_WARNINGS_BEGIN
+
+	#pragma warning(push, 0)
 
 	struct AnimatedVertex
 	{
@@ -60,6 +66,10 @@ namespace Saturn {
 			SAT_CORE_WARN("Vertex has more than four bones/weights affecting it, extra data will be discarded (BoneID={0}, Weight={1})", BoneID, Weight);
 		}
 	};
+
+	#pragma warning(pop)
+
+	DISABLE_ALL_WARNINGS_END
 
 	static const int NumAttributes = 5;
 
@@ -203,3 +213,6 @@ namespace Saturn {
 	};
 
 }
+
+
+DISABLE_ALL_WARNINGS_END

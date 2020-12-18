@@ -91,6 +91,7 @@ namespace Saturn {
 	private:
 		void SaveSceneAs( void );
 		void StartImGuiConsole( void );
+		void PrepRuntime();
 
 		int times = 0;
 

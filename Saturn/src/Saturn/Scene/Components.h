@@ -9,6 +9,8 @@
 
 namespace Saturn {
 
+	DISABLE_ALL_WARNINGS_BEGIN
+
 	struct Component {};
 
 	/** @brief A TransformComponent.
@@ -247,5 +249,6 @@ namespace Saturn {
 
 	};
 
+	DISABLE_ALL_WARNINGS_END
 
 }

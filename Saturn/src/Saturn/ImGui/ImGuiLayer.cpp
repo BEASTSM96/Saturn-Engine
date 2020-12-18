@@ -875,6 +875,15 @@ namespace Saturn {
 
 	}
 
+	void EditorLayer::PrepRuntime()
+	{
+		auto view = m_EditorScene->GetRegistry().view<TransformComponent, MeshComponent, NativeScriptComponent>();
+		for( auto entity : view )
+		{
+			auto [tc, mc, ncs] = view.get< TransformComponent, MeshComponent, NativeScriptComponent >( entity );
+		}
+	}
+
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
 		m_EditorCamera.OnUpdate(ts);
@@ -883,36 +892,36 @@ namespace Saturn {
 
 		m_DrawOnTopBoundingBoxes = true;
 
+		PrepRuntime();
+
 		if (m_RuntimeScene) {
 			m_RuntimeScene->OnUpdate(ts);
-		}
-
-		if (m_DrawOnTopBoundingBoxes) {
-			Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
-			auto viewProj = m_EditorCamera.GetViewProjection();
-			Renderer2D::BeginScene(viewProj, false);
-			Renderer2D::EndScene();
-			Renderer::EndRenderPass();
-		}
-
-		if (m_SelectionContext.size()) {
-			auto& selection = m_SelectionContext[0];
-
-			if (selection.Mesh && selection.Entity.HasComponent<MeshComponent>())
-			{
-				Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
-				auto viewProj = m_EditorCamera.GetViewProjection();
-				Renderer2D::BeginScene(viewProj, false);
-				glm::vec4 color = (m_SelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
-				//Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.GetComponent<TransformComponent>().GetTransform() * selection.Mesh->Transform, color);
-				Renderer2D::EndScene();
-				Renderer::EndRenderPass();
-			}
-		}
-
-		if (m_RuntimeScene) {
 			m_RuntimeScene->OnRenderRuntime(ts);
 		}
+
+
+		//if (m_DrawOnTopBoundingBoxes) {
+		//	Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
+		//	auto viewProj = m_EditorCamera.GetViewProjection();
+		//	Renderer2D::BeginScene(viewProj, false);
+		//	Renderer2D::EndScene();
+		//	Renderer::EndRenderPass();
+		//}
+
+		//if (m_SelectionContext.size()) {
+		//	auto& selection = m_SelectionContext[0];
+
+		//	if (selection.Mesh && selection.Entity.HasComponent<MeshComponent>())
+		//	{
+		//		Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
+		//		auto viewProj = m_EditorCamera.GetViewProjection();
+		//		Renderer2D::BeginScene(viewProj, false);
+		//		glm::vec4 color = (m_SelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
+		//		//Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.GetComponent<TransformComponent>().GetTransform() * selection.Mesh->Transform, color);
+		//		Renderer2D::EndScene();
+		//		Renderer::EndRenderPass();
+		//	}
+		//}
 	}
 
 	std::pair<float, float> EditorLayer::GetMouseViewportSpace()
@@ -1156,10 +1165,12 @@ namespace Saturn {
 			return false;
 
 		// First, isolate perspective.  This is the messiest.
-		if(
-			epsilonNotEqual( LocalMatrix[ 0 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) ||
-			epsilonNotEqual( LocalMatrix[ 1 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) ||
-			epsilonNotEqual( LocalMatrix[ 2 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) )
+		if
+			(
+				epsilonNotEqual( LocalMatrix[ 0 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) ||
+				epsilonNotEqual( LocalMatrix[ 1 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) ||
+				epsilonNotEqual( LocalMatrix[ 2 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) 
+			)
 		{
 			// Clear the perspective partition
 			LocalMatrix[ 0 ][ 3 ] = LocalMatrix[ 1 ][ 3 ] = LocalMatrix[ 2 ][ 3 ] = static_cast< T >( 0 );
@@ -1729,6 +1740,18 @@ namespace Saturn {
 					auto& mc = e.AddComponent<MeshComponent>();
 				}
 
+			}
+
+			if( ImGui::MenuItem( "Create Character Entity" ) )
+			{
+				Character e;
+				e.AddComponentOnRuntime<NativeScriptComponent>();
+				//e.GetComponent<NativeScriptComponent>().Bind<Character>();
+			}
+
+			if( ImGui::MenuItem( "Create ncs Entity" ) )
+			{
+				ScriptableEntity e;
 			}
 
 			ImGui::EndPopup();

@@ -11,6 +11,8 @@
 
 #include "Saturn/Log.h"
 
+#pragma warning (disable : 26115)
+
 namespace Saturn {
 
 	using FloatingPointMicroseconds = std::chrono::duration<double, std::micro>;

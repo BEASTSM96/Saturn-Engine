@@ -3,6 +3,7 @@
 #include "sppch.h"
 #include "Saturn/Core/Base.h"
 
+#pragma warning(disable: 26812)
 
 namespace Saturn {
 
@@ -18,11 +19,11 @@ namespace Saturn {
 	enum EventCategory
 	{
 		None = 0,
-		EventCategoryApplication = BIT(0),
-		EventCategoryInput = BIT(1),
-		EventCategoryKeyboard = BIT(2),
-		EventCategoryMouse = BIT(3),
-		EventCategoryMouseButton = BIT(4)
+		EventCategoryApplication = BIT( 0 ),
+		EventCategoryInput = BIT( 1 ),
+		EventCategoryKeyboard = BIT( 2 ),
+		EventCategoryMouse = BIT( 3 ),
+		EventCategoryMouseButton = BIT( 4 )
 	};
 
 #define EVENT_CLASS_TYPE(type) static EventType GetStaticType() { return EventType::type; }\
@@ -43,7 +44,7 @@ namespace Saturn {
 		virtual int GetCategoryFlags( void ) const = 0;
 		virtual std::string ToString( void ) const { return GetName(); }
 
-		bool IsInCategory(EventCategory category)
+		bool IsInCategory( EventCategory category )
 		{
 			return GetCategoryFlags() & category;
 		}
@@ -52,18 +53,18 @@ namespace Saturn {
 	class EventDispatcher
 	{
 	public:
-		EventDispatcher(Event& event)
-			: m_Event(event)
+		EventDispatcher( Event& event )
+			: m_Event( event )
 		{
 		}
 
 		// F will be deduced by the compiler
 		template<typename T, typename F>
-		bool Dispatch(const F& func)
+		bool Dispatch( const F& func )
 		{
-			if (m_Event.GetEventType() == T::GetStaticType())
+			if( m_Event.GetEventType() == T::GetStaticType() )
 			{
-				m_Event.Handled = func(static_cast<T&>(m_Event));
+				m_Event.Handled = func( static_cast< T& >( m_Event ) );
 				return true;
 			}
 			return false;
@@ -72,7 +73,7 @@ namespace Saturn {
 		Event& m_Event;
 	};
 
-	inline std::ostream& operator<<(std::ostream& os, const Event& e)
+	inline std::ostream& operator<<( std::ostream& os, const Event& e )
 	{
 		return os << e.ToString();
 	}

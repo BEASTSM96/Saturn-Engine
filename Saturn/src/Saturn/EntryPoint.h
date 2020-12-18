@@ -10,6 +10,10 @@ int main( int argc, char** argv )
 
 	Saturn::InitCore();
 
+	auto agrvcx = *argv;
+
+	SAT_CORE_INFO("[Main] ( {0}, From : {1} ) ", argc, agrvcx);
+
 	SAT_PROFILE_BEGIN_SESSION( "Startup", "SaturnProfile-Startup.json" );
 	Saturn::Application* app = Saturn::CreateApplication();
 	SAT_PROFILE_END_SESSION();

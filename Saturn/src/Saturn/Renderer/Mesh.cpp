@@ -22,8 +22,13 @@
 #include <filesystem>
 
 #pragma warning(disable: 4267)
+#pragma warning(disable: 26451)
+
 
 namespace Saturn {
+
+	DISABLE_ALL_WARNINGS_BEGIN
+
 
 #define MESH_DEBUG_LOG
 #ifdef MESH_DEBUG_LOG
@@ -657,4 +662,7 @@ namespace Saturn {
 		}
 		SAT_MESH_LOG( "------------------------------------------------------" );
 	}
+
+	DISABLE_ALL_WARNINGS_END
+
 }
