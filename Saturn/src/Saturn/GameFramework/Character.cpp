@@ -18,7 +18,7 @@ namespace Saturn {
 
 	void Character::OnCreate()
 	{
-		AddComponent<MeshComponent>().Mesh = Ref<Mesh>::Create("assets\\meshes\\Sphere1m.fbx");
+		SAT_INFO("Character::OnCreate");
 	}
 
 	void Character::OnDestroy()

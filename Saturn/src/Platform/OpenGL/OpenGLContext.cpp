@@ -8,6 +8,8 @@
 
 namespace Saturn {
 
+	DISABLE_ALL_WARNINGS_BEGIN
+
 	OpenGLContext::OpenGLContext( GLFWwindow* windowHandle )
 		: m_WindowHandle( windowHandle )
 	{
@@ -32,5 +34,7 @@ namespace Saturn {
 
 		glfwSwapBuffers( m_WindowHandle );
 	}
+
+	DISABLE_ALL_WARNINGS_END
 
 }

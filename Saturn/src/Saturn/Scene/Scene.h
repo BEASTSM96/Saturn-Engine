@@ -61,6 +61,7 @@ namespace Saturn {
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
 		ScriptableEntity CreateScriptableEntity( const std::string& name = "" );
+		ScriptableEntity* CreateScriptableEntityptr( const std::string& name );
 		void DestroyEntity(Entity entity);
 
 		void OnRenderEditor(Timestep ts, const EditorCamera& editorCamera);
@@ -124,6 +125,7 @@ namespace Saturn {
 
 	private:
 		void UpdateRuntime( Timestep ts );
+		std::vector<ScriptableEntity*> m_ScriptableEntitys;
 		/*------------------------------------------------------------------ */
 	public:
 		std::shared_ptr<PhysicsScene> m_physicsScene;
@@ -157,8 +159,9 @@ namespace Saturn {
 		RuntimeData m_RuntimeData;
 
 		friend class Entity;
-		friend class SceneRenderer;
 		friend class Serialiser;
+		friend class SceneRenderer;
+		friend class ScriptableEntity;
 		friend class SceneHierarchyPanel;
 
 	};

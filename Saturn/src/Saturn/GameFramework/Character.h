@@ -18,6 +18,8 @@ namespace Saturn {
 	private:
 		void ProcessInput( Timestep ts );
 
+	private:
+		friend class SceneHierarchyPanel;
 	};
 
 }

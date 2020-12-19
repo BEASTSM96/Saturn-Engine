@@ -95,7 +95,8 @@ project "Saturn"
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ReactPhysics3D}",
-		"Saturn/vendor/yaml-cpp/include"
+		"Saturn/vendor/yaml-cpp/include",
+		"Saturn/vendor/SaturnLog/SaturnLogging/src"
 	}
 
 	links 
@@ -212,7 +213,7 @@ project "Titan"
 		"%{IncludeDir.ReactPhysics3D}",
 		"Saturn/vendor/yaml-cpp/include",
 		"Saturn/vendor/glm/",
-		"%{IncludeDir.SPIRV_Cross}",
+		"%{IncludeDir.SPIRV_Cross}"
 	}
 
 	links

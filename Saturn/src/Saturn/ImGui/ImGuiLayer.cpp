@@ -1292,7 +1292,7 @@ namespace Saturn {
 					m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
 					m_EditorScene->CopyScene( m_RuntimeScene );
 					Application::Get().GetSceneMananger().Raw()->AddScene( m_RuntimeScene );
-					m_RuntimeScene->m_RuntimeRunning = true;
+					m_RuntimeScene->BeginRuntime();
 				}
 
 				if (m_RuntimeScene)
@@ -1744,8 +1744,8 @@ namespace Saturn {
 
 			if( ImGui::MenuItem( "Create Character Entity" ) )
 			{
-				Character e;
-				e.AddComponentOnRuntime<NativeScriptComponent>();
+				ScriptableEntity* e = m_Context->CreateScriptableEntityptr("ScriptableEntity");
+				//e.AddComponentOnRuntime<NativeScriptComponent>();
 				//e.GetComponent<NativeScriptComponent>().Bind<Character>();
 			}
 

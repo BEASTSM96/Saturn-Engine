@@ -6,6 +6,8 @@ struct GLFWwindow;
 
 namespace Saturn {
 
+	DISABLE_ALL_WARNINGS_BEGIN
+
 	class OpenGLContext : public GraphicsContext
 	{
 	public:
@@ -17,5 +19,7 @@ namespace Saturn {
 	private:
 		GLFWwindow* m_WindowHandle;
 	};
+
+	DISABLE_ALL_WARNINGS_END
 
 }

@@ -7,6 +7,7 @@ namespace Saturn {
 	class ScriptableEntity
 	{
 	public:
+		ScriptableEntity() { }
 		virtual ~ScriptableEntity() { }
 
 		template<typename T>
@@ -34,12 +35,16 @@ namespace Saturn {
 		}
 
 	protected:
-		virtual void OnCreate() { }
-		virtual void OnDestroy() { }
+		virtual void OnCreate() { SAT_INFO("Super::OnCreate"); }
+		virtual void OnDestroy() { SAT_INFO("Super::OnDestroy"); }
 		virtual void OnUpdate( Timestep ts ) { }
-		virtual void BeginPlay() { }
+		virtual void BeginPlay() { SAT_INFO("Super::BeginPlay"); }
+
 	private:
 		Entity m_Entity;
+		Scene* m_Scene;
 		friend class Scene;
+		friend class EditorLayer;
+		friend class SceneHierarchyPanel;
 	};
 }

@@ -231,11 +231,33 @@ namespace Saturn {
 
 	class ScriptableEntity;
 
+
 	//For coding in c++ 
 	//@see https://beastsm96.github.io/Projects/Saturn-Engine/api/v0.a01/Scene/Components
 	struct NativeScriptComponent : Component
 	{
+	
 		ScriptableEntity* Instance = nullptr;
+
+
+	#define NEW
+	#ifdef NEW
+
+	#	ifdef _HAS_CXX17
+
+		template<typename T>
+		void Bind()
+		{
+		}
+
+
+	#	endif // _HAS_CXX17
+
+	#endif // NEW
+
+	#ifndef NEW
+
+
 
 		ScriptableEntity* ( *InstantiateScript )( );
 		void ( *DestroyScript )( NativeScriptComponent* );
@@ -246,6 +268,9 @@ namespace Saturn {
 			InstantiateScript = []() { return static_cast< ScriptableEntity* >( new T() ); };
 			DestroyScript = []( NativeScriptComponent* nsc ) { delete nsc->Instance; nsc->Instance = nullptr; };
 		}
+
+	#endif // !NEW
+
 
 	};
 

@@ -14,11 +14,12 @@
 
 #include "ScriptableEntity.h"
 
+#include "Saturn/GameFramework/Character.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 
 namespace Saturn {
 
@@ -85,9 +86,9 @@ namespace Saturn {
 			if (meshComponent.Mesh)
 			{
 				meshComponent.Mesh->OnUpdate(ts);
-		
+
 				// TODO: Should we render (logically)
-		
+
 				if (m_SelectedEntity == entity)
 					SceneRenderer::SubmitSelectedMesh(meshComponent, transformComponent.GetTransform());
 				else
@@ -126,11 +127,42 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 
 		ScriptableEntity entity;
+		entity.m_Entity = CreateEntity(name);
+		entity.m_Scene = this;
+		entity.m_Entity.AddComponent<NativeScriptComponent>();
+		auto& ncs = entity.m_Entity.GetComponent<NativeScriptComponent>();
 
 		return entity;
 	}
 
-	Entity Scene::CreateEntityWithID(UUID uuid, const std::string& name, bool runtimeMap)
+	Saturn::ScriptableEntity* Scene::CreateScriptableEntityptr( const std::string& name )
+	{
+		SAT_PROFILE_FUNCTION();
+
+		ScriptableEntity* entity = new ScriptableEntity();
+		entity->m_Entity = CreateEntity( name );
+		entity->m_Scene = this;
+		entity->AddComponent<NativeScriptComponent>();
+		auto& ncs = entity->GetComponent<NativeScriptComponent>();
+		ncs.Instance = entity;
+		if( ncs.Instance == nullptr )
+		{
+			SAT_CORE_ERROR( "NativeScriptComponent.Instance null" );
+			SAT_CORE_INFO( "Retrying!" );
+
+			ncs.Instance = entity;
+
+			SAT_CORE_ASSERT( ncs.Instance != nullptr, "NativeScriptComponent.Instance null" );
+		}
+		ncs.Instance->OnCreate();
+	
+
+		m_ScriptableEntitys.push_back(entity);
+
+		return entity;
+	}
+
+	Entity Scene::CreateEntityWithID( UUID uuid, const std::string& name, bool runtimeMap )
 	{
 		SAT_PROFILE_FUNCTION();
 
@@ -210,6 +242,7 @@ namespace Saturn {
 		Entity otherEntity;
 
 		for (auto entity : view)
+
 		{
 			auto [tc, pc] = view.get<TransformComponent, PhysicsComponent>(entity);
 
@@ -311,7 +344,7 @@ namespace Saturn {
 	}
 
 	/**
-	 * Copies the scene and returns the new scene
+	* Copies the scene and returns the new scene
 	*/
 	Ref<Scene> Scene::CopyScene(const Ref<Scene>& CurrentScene)
 	{
@@ -356,7 +389,7 @@ namespace Saturn {
 	}
 
 	/**
-	 * Copies the scene and returns the new scene
+	* Copies the scene and returns the new scene
 	*/
 	Scene* Scene::CopyScene(const Scene*& CurrentScene)
 	{
@@ -399,7 +432,7 @@ namespace Saturn {
 	}
 
 	/**
-	 * Copies the scene and returns the new scene, and fills the 'NewScece' value
+	* Copies the scene and returns the new scene, and fills the 'NewScece' value
 	*/
 	Ref<Scene> Scene::CopyScene(const Ref<Scene>& CurrentScene, Ref<Scene> NewScene)
 	{
@@ -441,7 +474,7 @@ namespace Saturn {
 	}
 
 	/**
-	 * Copies the scene and returns the new scene, and fills the 'NewScece' value
+	* Copies the scene and returns the new scene, and fills the 'NewScece' value
 	*/
 	Scene* Scene::CopyScene(const Scene*& CurrentScene, Scene* NewScene)
 	{
@@ -483,7 +516,7 @@ namespace Saturn {
 	}
 
 	/**
-	 * Copies the scene and fills the 'NewScece' value
+	* Copies the scene and fills the 'NewScece' value
 	*/
 	void Scene::CopyScene(Ref<Scene>& NewScene)
 	{
@@ -523,6 +556,10 @@ namespace Saturn {
 		CopyComponent<SphereColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
 		CopyComponent<SpriteRendererComponent>(NewScene->m_Registry, m_Registry, enttMap);
 		CopyComponent<NativeScriptComponent>(NewScene->m_Registry, m_Registry, enttMap);
+
+
+		NewScene->m_ScriptableEntitys = m_ScriptableEntitys;
+
 	}
 
 	void Scene::BeginRuntime( void )
@@ -535,6 +572,15 @@ namespace Saturn {
 	{
 		SAT_CORE_WARN("[Runtime] Starting!");
 		m_RuntimeRunning = true;
+
+		for( auto entity : m_ScriptableEntitys )
+		{
+			auto ncs = entity->GetComponent<NativeScriptComponent>();
+		
+			ncs.Instance->BeginPlay();
+
+		}
+
 	}
 
 	void Scene::UpdateRuntime( Timestep ts )
@@ -542,34 +588,39 @@ namespace Saturn {
 		SAT_PROFILE_SCOPE("UpdateRuntime");
 		SAT_PROFILE_FUNCTION();
 
+		SAT_CORE_INFO("UpdateRuntime");
+
+		for( auto entity : m_ScriptableEntitys )
 		{
-			m_Registry.view<NativeScriptComponent>().each( [=]( auto entity, auto& nsc )
-				{
-					if( !nsc.Instance )
-					{
-						nsc.Instance = nsc.InstantiateScript();
-						nsc.Instance->m_Entity = Entity{ entity, this };
 
-						nsc.Instance->OnCreate();
-						nsc.Instance->BeginPlay();
-					}
+			if (!entity->HasComponent<NativeScriptComponent>())
+			{
+				entity->AddComponent<NativeScriptComponent>();
+				entity->GetComponent<NativeScriptComponent>().Instance = entity;
 
-					nsc.Instance->OnUpdate( ts );
 
-				} );
+				entity->GetComponent<NativeScriptComponent>().Instance->OnCreate();
+				entity->GetComponent<NativeScriptComponent>().Instance->BeginPlay();
+
+			}
+
+			auto ncs = entity->GetComponent<NativeScriptComponent>();
+
+			ncs.Instance->OnUpdate(ts);
+
 		}
 
 		auto view = m_Registry.view<TransformComponent, PhysicsComponent, NativeScriptComponent /*, TODO: When add other comps */>();
-		for (auto entity : view)
+		for( auto entity : view )
 		{
-			auto [ tc, pc, ncs ] = view.get< TransformComponent, PhysicsComponent, NativeScriptComponent >( entity );
+			auto [tc, pc, ncs] = view.get< TransformComponent, PhysicsComponent, NativeScriptComponent >( entity );
 
 			tc.Position = pc.rigidbody->GetPosition();
 			tc.Rotation = pc.rigidbody->GetRotation();
 
 		}
-
 		Application::Get().GetHotReload()->OnHotReload();
 	}
+
 
 }
