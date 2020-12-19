@@ -135,7 +135,7 @@ namespace Saturn {
 		return entity;
 	}
 
-	Saturn::ScriptableEntity* Scene::CreateScriptableEntityptr( const std::string& name )
+	ScriptableEntity* Scene::CreateScriptableEntityptr( const std::string& name )
 	{
 		SAT_PROFILE_FUNCTION();
 
@@ -587,8 +587,6 @@ namespace Saturn {
 	{
 		SAT_PROFILE_SCOPE("UpdateRuntime");
 		SAT_PROFILE_FUNCTION();
-
-		SAT_CORE_INFO("UpdateRuntime");
 
 		for( auto entity : m_ScriptableEntitys )
 		{

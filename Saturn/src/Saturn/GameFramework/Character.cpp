@@ -14,7 +14,6 @@ namespace Saturn {
 	Character::~Character()
 	{
 	}
-	
 
 	void Character::OnCreate()
 	{

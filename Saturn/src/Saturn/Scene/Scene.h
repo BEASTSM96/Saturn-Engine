@@ -62,6 +62,35 @@ namespace Saturn {
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
 		ScriptableEntity CreateScriptableEntity( const std::string& name = "" );
 		ScriptableEntity* CreateScriptableEntityptr( const std::string& name );
+
+		template<typename T>
+		T* CreateScriptableEntityT( const std::string& name )
+		{
+			SAT_PROFILE_FUNCTION();
+
+			T* entity = new T();
+			entity->m_Entity = CreateEntity( name );
+			entity->m_Scene = this;
+			entity->AddComponent<NativeScriptComponent>();
+			auto& ncs = entity->GetComponent<NativeScriptComponent>();
+			ncs.Instance = entity;
+			if( ncs.Instance == nullptr )
+			{
+				SAT_CORE_ERROR( "NativeScriptComponent.Instance null" );
+				SAT_CORE_INFO( "Retrying!" );
+
+				ncs.Instance = entity;
+
+				SAT_CORE_ASSERT( ncs.Instance != nullptr, "NativeScriptComponent.Instance null" );
+			}
+			ncs.Instance->OnCreate();
+
+
+			m_ScriptableEntitys.push_back( entity );
+
+			return entity;
+		}
+
 		void DestroyEntity(Entity entity);
 
 		void OnRenderEditor(Timestep ts, const EditorCamera& editorCamera);

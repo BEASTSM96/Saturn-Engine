@@ -1744,14 +1744,13 @@ namespace Saturn {
 
 			if( ImGui::MenuItem( "Create Character Entity" ) )
 			{
-				ScriptableEntity* e = m_Context->CreateScriptableEntityptr("ScriptableEntity");
-				//e.AddComponentOnRuntime<NativeScriptComponent>();
-				//e.GetComponent<NativeScriptComponent>().Bind<Character>();
+				Character* e = m_Context->CreateScriptableEntityT<Character>("Character Entity");
+				//Character* e = dynamic_cast<Character*>(m_Context->CreateScriptableEntityptr("Character Entity"));
 			}
 
 			if( ImGui::MenuItem( "Create ncs Entity" ) )
 			{
-				ScriptableEntity e;
+				ScriptableEntity* e = m_Context->CreateScriptableEntityptr("ScriptableEntity");
 			}
 
 			ImGui::EndPopup();
