@@ -40,9 +40,10 @@ namespace Saturn {
 		virtual void OnUpdate( Timestep ts ) { }
 		virtual void BeginPlay() { SAT_INFO("Super::BeginPlay"); }
 
+
+		Scene* m_Scene;
 	private:
 		Entity m_Entity;
-		Scene* m_Scene;
 		friend class Scene;
 		friend class EditorLayer;
 		friend class SceneHierarchyPanel;

@@ -63,6 +63,8 @@ namespace Saturn {
 		ScriptableEntity CreateScriptableEntity( const std::string& name = "" );
 		ScriptableEntity* CreateScriptableEntityptr( const std::string& name );
 
+		//FOR EDITOR USE!
+		// Use SpawnEntity for runtime!
 		template<typename T>
 		T* CreateScriptableEntityT( const std::string& name )
 		{
@@ -91,10 +93,47 @@ namespace Saturn {
 			return entity;
 		}
 
+		//Spawns a T
+		template<typename T>
+		T* SpawnEntity( std::string name, glm::vec3 position, glm::quat rotation, bool addncs = true )
+		{
+			SAT_PROFILE_FUNCTION();
+
+			T* entity = new T();
+			entity->m_Entity = CreateEntity( name );
+			entity->m_Scene = this;
+			entity->GetComponent<TransformComponent>().Position = position;
+			entity->GetComponent<TransformComponent>().Rotation = rotation;
+			if (addncs)
+			{
+				entity->AddComponent<NativeScriptComponent>();
+				auto& ncs = entity->GetComponent<NativeScriptComponent>();
+				ncs.Instance = entity;
+
+				if( ncs.Instance == nullptr )
+				{
+					SAT_ERROR( "[Runtime Context] NativeScriptComponent.Instance null" );
+					SAT_INFO( "[Runtime Context] Retrying!" );
+
+					ncs.Instance = entity;
+
+					SAT_ASSERT( ncs.Instance != nullptr, "[Runtime Context] NativeScriptComponent.Instance null" );
+				}
+
+				ncs.Instance->OnCreate();
+
+			}
+
+			m_ScriptableEntitys.push_back( entity );
+
+			return entity;
+		}
+
+
 		void DestroyEntity(Entity entity);
 
-		void OnRenderEditor(Timestep ts, const EditorCamera& editorCamera);
-		void OnRenderRuntime(Timestep ts);
+		void OnRenderEditor( Timestep ts, const EditorCamera& editorCamera );
+		void OnRenderRuntime( Timestep ts );
 
 		template<typename T>
 		auto GetAllEntitiesWith( void )

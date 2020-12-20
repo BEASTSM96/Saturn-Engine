@@ -62,6 +62,11 @@ namespace Saturn {
 			GetComponent<TransformComponent>().Position.y += 90 * ts;
 		}
 
+		if( Input::IsKeyPressed( Key::F ) )
+		{
+			auto mynewScriptableEntity = m_Scene->SpawnEntity<ScriptableEntity>( "Scriptable Entity", glm::vec3(0, 0, 0 ), glm::quat( 0, 0, 0, 0 ) );
+		}
+
 	}
 
 	void Character::OnUpdate( Timestep ts )
