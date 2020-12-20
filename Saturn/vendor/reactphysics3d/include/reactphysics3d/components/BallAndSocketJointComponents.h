@@ -26,12 +26,14 @@
 #ifndef REACTPHYSICS3D_BALL_AND_SOCKET_JOINT_COMPONENTS_H
 #define REACTPHYSICS3D_BALL_AND_SOCKET_JOINT_COMPONENTS_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/mathematics/Transform.h>
 #include <reactphysics3d/mathematics/Matrix3x3.h>
 #include <reactphysics3d/engine/Entity.h>
 #include <reactphysics3d/components/Components.h>
 #include <reactphysics3d/containers/Map.h>
+#pragma warning(pop)
 
 // ReactPhysics3D namespace
 namespace reactphysics3d {

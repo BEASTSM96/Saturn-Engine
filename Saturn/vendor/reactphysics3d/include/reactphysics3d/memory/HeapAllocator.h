@@ -26,12 +26,14 @@
 #ifndef REACTPHYSICS3D_HEAP_ALLOCATOR_H
 #define REACTPHYSICS3D_HEAP_ALLOCATOR_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/memory/MemoryAllocator.h>
 #include <cassert>
 #include <mutex>
 #include <reactphysics3d/containers/Map.h>
+#pragma warning(pop)
 
 /// ReactPhysics3D namespace
 namespace reactphysics3d {

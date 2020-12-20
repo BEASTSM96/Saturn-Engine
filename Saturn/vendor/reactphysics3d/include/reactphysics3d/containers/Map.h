@@ -26,10 +26,12 @@
 #ifndef REACTPHYSICS3D_MAP_H
 #define REACTPHYSICS3D_MAP_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/memory/MemoryAllocator.h>
 #include <reactphysics3d/mathematics/mathematics_functions.h>
 #include <reactphysics3d/containers/Pair.h>
+#pragma warning(pop)
 #include <cstring>
 #include <stdexcept>
 #include <functional>

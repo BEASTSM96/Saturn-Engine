@@ -26,6 +26,7 @@
 #ifndef REACTPHYSICS3D_PHYSICS_WORLD_H
 #define REACTPHYSICS3D_PHYSICS_WORLD_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/mathematics/mathematics.h>
 #include <reactphysics3d/containers/List.h>
@@ -51,6 +52,7 @@
 #include <reactphysics3d/systems/DynamicsSystem.h>
 #include <reactphysics3d/engine/Islands.h>
 #include <reactphysics3d/utils/DebugRenderer.h>
+#pragma warning(pop)
 #include <sstream>
 
 /// Namespace ReactPhysics3D

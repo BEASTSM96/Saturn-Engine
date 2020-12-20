@@ -27,9 +27,13 @@
 #define REACTPHYSICS3D_DEFAULT_ALLOCATOR_H
 
 // Libraries
+#pragma warning(push)
+
 #include <reactphysics3d/memory/MemoryAllocator.h>
 #include <cstdlib>
 #include <iostream>
+
+#pragma  warning(pop)
 
 /// ReactPhysics3D namespace
 namespace reactphysics3d {

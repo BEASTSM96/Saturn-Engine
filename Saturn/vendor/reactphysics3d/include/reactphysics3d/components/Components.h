@@ -26,10 +26,12 @@
 #ifndef REACTPHYSICS3D_COMPONENTS_H
 #define REACTPHYSICS3D_COMPONENTS_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/engine/Entity.h>
 #include <reactphysics3d/containers/Map.h>
+#pragma warning(pop)
 
 // ReactPhysics3D namespace
 namespace reactphysics3d {

@@ -26,9 +26,11 @@
 #ifndef REACTPHYSICS3D_TRANSFORM_H
 #define	REACTPHYSICS3D_TRANSFORM_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/mathematics/Vector3.h>
 #include <reactphysics3d/mathematics/Quaternion.h>
+#pragma warning(pop)
 
 // ReactPhysiscs3D namespace
 namespace reactphysics3d {

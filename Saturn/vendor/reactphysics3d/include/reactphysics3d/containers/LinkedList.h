@@ -26,8 +26,10 @@
 #ifndef REACTPHYSICS3D_LINKED_LIST_H
 #define REACTPHYSICS3D_LINKED_LIST_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/memory/MemoryAllocator.h>
+#pragma warning(pop)
 
 namespace reactphysics3d {
 

@@ -26,6 +26,7 @@
 #ifndef REACTPHYSICS3D_MATHEMATICS_H
 #define REACTPHYSICS3D_MATHEMATICS_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/mathematics/Matrix3x3.h>
 #include <reactphysics3d/mathematics/Matrix2x2.h>
@@ -39,5 +40,6 @@
 #include <cstdio>
 #include <cassert>
 #include <cmath>
+#pragma warning(pop)
 
 #endif

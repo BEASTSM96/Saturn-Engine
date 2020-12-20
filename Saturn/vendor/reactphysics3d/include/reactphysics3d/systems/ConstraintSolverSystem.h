@@ -26,6 +26,7 @@
 #ifndef REACTPHYSICS3D_CONSTRAINT_SOLVER_SYSTEM_H
 #define REACTPHYSICS3D_CONSTRAINT_SOLVER_SYSTEM_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/mathematics/mathematics.h>
@@ -33,6 +34,7 @@
 #include <reactphysics3d/systems/SolveFixedJointSystem.h>
 #include <reactphysics3d/systems/SolveHingeJointSystem.h>
 #include <reactphysics3d/systems/SolveSliderJointSystem.h>
+#pragma warning(pop)
 
 namespace reactphysics3d {
 

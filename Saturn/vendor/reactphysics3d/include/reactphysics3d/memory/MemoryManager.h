@@ -26,11 +26,13 @@
 #ifndef REACTPHYSICS3D_MEMORY_MANAGER_H
 #define REACTPHYSICS3D_MEMORY_MANAGER_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/memory/DefaultAllocator.h>
 #include <reactphysics3d/memory/PoolAllocator.h>
 #include <reactphysics3d/memory/HeapAllocator.h>
 #include <reactphysics3d/memory/SingleFrameAllocator.h>
+#pragma warning(pop)
 
 /// Namespace ReactPhysics3D
 namespace reactphysics3d {

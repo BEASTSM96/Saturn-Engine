@@ -26,9 +26,11 @@
 #ifndef REACTPHYSICS3D_EVENT_LISTENER_H
 #define REACTPHYSICS3D_EVENT_LISTENER_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/collision/CollisionCallback.h>
 #include <reactphysics3d/collision/OverlapCallback.h>
+#pragma warning(pop)
 
 namespace reactphysics3d {
 

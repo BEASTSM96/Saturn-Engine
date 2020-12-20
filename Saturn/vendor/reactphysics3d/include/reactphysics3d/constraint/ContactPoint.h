@@ -26,10 +26,12 @@
 #ifndef REACTPHYSICS3D_CONTACT_POINT_H
 #define REACTPHYSICS3D_CONTACT_POINT_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/mathematics/mathematics.h>
 #include <reactphysics3d/collision/ContactPointInfo.h>
+#pragma warning(pop)
 
 /// ReactPhysics3D namespace
 namespace reactphysics3d {

@@ -26,8 +26,10 @@
 #ifndef REACTPHYSICS3D_VORONOI_SIMPLEX_H
 #define	REACTPHYSICS3D_VORONOI_SIMPLEX_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/mathematics/Vector3.h>
+#pragma warning(pop)
 
 /// ReactPhysics3D namespace
 namespace reactphysics3d {

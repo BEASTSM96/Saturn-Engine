@@ -28,7 +28,9 @@
 
 // Libraries
 #include <cassert>
+#pragma warning(push)
 #include <reactphysics3d/configuration.h>
+#pragma warning(pop)
 
 namespace reactphysics3d {
 

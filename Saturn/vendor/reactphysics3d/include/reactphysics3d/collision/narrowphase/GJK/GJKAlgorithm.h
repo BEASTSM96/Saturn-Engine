@@ -26,9 +26,11 @@
 #ifndef REACTPHYSICS3D_GJK_ALGORITHM_H
 #define REACTPHYSICS3D_GJK_ALGORITHM_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/decimal.h>
 #include <reactphysics3d/configuration.h>
+#pragma warning(pop)
 
 /// ReactPhysics3D namespace
 namespace reactphysics3d {

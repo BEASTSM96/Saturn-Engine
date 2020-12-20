@@ -27,9 +27,11 @@
 #define REACTPHYSICS3D_DEFAULT_LOGGER_H
 
 // Libraries
+#pragma warning(push)
 #include <reactphysics3d/utils/Logger.h>
 #include <reactphysics3d/containers/List.h>
 #include <reactphysics3d/containers/Map.h>
+#pragma warning(pop)
 #include <string>
 #include <iostream>
 #include <fstream>

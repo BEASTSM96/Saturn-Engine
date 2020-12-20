@@ -26,12 +26,14 @@
 #ifndef REACTPHYSICS3D_DYNAMICS_SYSTEM_H
 #define REACTPHYSICS3D_DYNAMICS_SYSTEM_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/utils/Profiler.h>
 #include <reactphysics3d/components/CollisionBodyComponents.h>
 #include <reactphysics3d/components/RigidBodyComponents.h>
 #include <reactphysics3d/components/TransformComponents.h>
 #include <reactphysics3d/components/ColliderComponents.h>
+#pragma warning(pop)
 
 namespace reactphysics3d {
 

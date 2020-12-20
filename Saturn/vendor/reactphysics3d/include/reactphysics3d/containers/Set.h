@@ -26,9 +26,11 @@
 #ifndef REACTPHYSICS3D_SET_H
 #define REACTPHYSICS3D_SET_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/memory/MemoryAllocator.h>
 #include <reactphysics3d/mathematics/mathematics_functions.h>
+#pragma warning(pop)
 #include <cstring>
 #include <stdexcept>
 #include <functional>

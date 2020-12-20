@@ -28,7 +28,9 @@
 
 // Libraries
 #include <cassert>
+#pragma warning(push)
 #include <reactphysics3d/mathematics/Vector2.h>
+#pragma warning(pop)
 
 /// ReactPhysics3D namespace
 namespace reactphysics3d {
