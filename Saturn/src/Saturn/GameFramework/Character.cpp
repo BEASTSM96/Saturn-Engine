@@ -75,8 +75,6 @@ namespace Saturn {
 		SAT_PROFILE_SCOPE("Character::OnUpdate");
 
 		ProcessInput(ts);
-
-		SAT_INFO("{0}", GetComponent<TransformComponent>().Position.y);
 	}
 
 }

@@ -1749,14 +1749,7 @@ namespace Saturn {
 					}
 					if (ImGui::BeginMenu("Physics")) {
 						if (ImGui::MenuItem("Physics")) {
-							m_SelectionContext.AddComponent<PhysicsComponent>
-								(new Rigidbody
-								(
-									m_Context->GetPhysicsScene(), /*Phys Scene*/
-									true, /*UseGravity*/
-									glm::vec3(0, -2, 0) /*Pos*/
-									)
-									).rigidbody->AddBoxCollider(glm::vec3(1));
+							m_SelectionContext.AddComponent<PhysicsComponent>();
 						}
 
 						if (ImGui::MenuItem("Box Collider")) {

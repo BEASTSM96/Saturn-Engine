@@ -10,16 +10,16 @@ namespace Saturn {
 	{
 	public:
 		EditorCamera() = default;
-		EditorCamera(const glm::mat4& projectionMatrix);
+		EditorCamera( const glm::mat4& projectionMatrix );
 
 		void Focus( void );
-		void OnUpdate(Timestep ts);
-		void OnEvent(Event& e);
+		void OnUpdate( Timestep ts );
+		void OnEvent( Event& e );
 
 		inline float GetDistance() const { return m_Distance; }
-		inline void SetDistance(float distance) { m_Distance = distance; }
+		inline void SetDistance( float distance ) { m_Distance = distance; }
 
-		inline void SetViewportSize(uint32_t width, uint32_t height) { m_ViewportWidth = width; m_ViewportHeight = height; }
+		inline void SetViewportSize( uint32_t width, uint32_t height ) { m_ViewportWidth = width; m_ViewportHeight = height; }
 
 		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
 		glm::mat4 GetViewProjection() const { return m_ProjectionMatrix * m_ViewMatrix; }
@@ -38,11 +38,11 @@ namespace Saturn {
 	private:
 		void UpdateCameraView( void );
 
-		bool OnMouseScroll(MouseScrolledEvent& e);
+		bool OnMouseScroll( MouseScrolledEvent& e );
 
-		void MousePan(const glm::vec2& delta);
-		void MouseRotate(const glm::vec2& delta);
-		void MouseZoom(float delta);
+		void MousePan( const glm::vec2& delta );
+		void MouseRotate( const glm::vec2& delta );
+		void MouseZoom( float delta );
 
 		glm::vec3 CalculatePosition( void );
 

@@ -145,4 +145,5 @@ namespace Saturn {
 	{
 		return glm::quat( glm::vec3( -m_Pitch, -m_Yaw, 0.0f ) );
 	}
+
 }

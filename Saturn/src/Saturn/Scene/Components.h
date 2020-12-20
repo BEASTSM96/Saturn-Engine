@@ -185,11 +185,10 @@ namespace Saturn {
 
 	struct PhysicsComponent : Component
 	{
-		bool useGravity;
-
-		Rigidbody* rigidbody;
-
-		PhysicsComponent( Rigidbody* rb ) : rigidbody( rb ) { }
+		glm::vec3 Position;
+		glm::vec3 Velocity;
+		glm::vec3 Force;
+		float Mass;
 	};
 
 	struct BoxColliderComponent : Component
@@ -223,7 +222,7 @@ namespace Saturn {
 			bool Runtime;
 			bool UpdateOnPlay;
 			bool CanExec;
-			bool DoseAddNewComponent;
+			bool DoesAddNewComponent;
 		};
 
 		Data m_Data;
@@ -243,16 +242,11 @@ namespace Saturn {
 	#define NEW
 	#ifdef NEW
 
-	#	ifdef _HAS_CXX17
-
+		//TODO:Going to remove
 		template<typename T>
 		void Bind()
 		{
 		}
-
-
-	#	endif // _HAS_CXX17
-
 	#endif // NEW
 
 	#ifndef NEW

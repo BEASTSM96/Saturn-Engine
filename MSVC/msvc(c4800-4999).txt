@@ -1,0 +1,567 @@
+											MSVC Compiler warnings (as of 12/18/20 c++17 https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c4800-through-c4999?view=msvc-160)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	C4800	Implicit conversion from 'type' to bool. Possible information loss
+	C4803	'method': the raise method has a different storage class from that of the event, 'event'
+	C4804	'operation': unsafe use of type 'bool' in operation
+	C4805	'operation': unsafe mix of type 'type1' and type 'type2' in operation
+	C4806	'operation': unsafe operation: no value of type 'type1' promoted to type 'type2' can equal the given constant
+	C4807	'operation': unsafe mix of type 'type1' and signed bit field of type 'type2'
+	C4808	case 'value' is not a valid value for switch condition of type 'bool'
+	C4809	switch statement has redundant 'default' label; all possible 'case' labels are given
+	C4810	value of pragma pack(show) == n
+	C4811	value of pragma conform(forScope, show) == value
+	C4812	obsolete declaration style: please use 'new_syntax' instead
+	C4813	'function': a friend function of a local class must have been previously declared
+	C4816	'param': parameter has a zero-sized array which will be truncated (unless the object is passed by reference)
+	C4817	'member': illegal use of '.' to access this member; compiler replaced with '->'
+	C4819	The file contains a character that cannot be represented in the current code page (number). Save the file in Unicode format to prevent data loss
+	C4820	'bytes' bytes padding added after construct 'member_name'
+	C4821	Unable to determine Unicode encoding type, please save the file with signature (BOM)
+	C4822	'member function': local class member function does not have a body
+	C4823	'function': uses pinning pointers but unwind semantics are not enabled. Consider using /EHa
+	C4826	Conversion from 'type1' to 'type2' is sign-extended. This may cause unexpected runtime behavior.
+	C4827	A public 'ToString' method with 0 parameters should be marked as virtual and override
+	C4829	Possibly incorrect parameters to function main. Consider 'int main(Platform::Array<Platform::String^>^ argv)'
+	C4835	'variable': the initializer for exported data will not be run until managed code is first executed in the host assembly
+	C4837	trigraph detected: '??character' replaced by 'character'
+	C4838	conversion from 'type_1' to 'type_2' requires a narrowing conversion
+	C4839	non-standard use of class 'type' as an argument to a variadic function
+	C4840	non-portable use of class 'type' as an argument to a variadic function
+	C4841	non-standard extension used: compound member designator used in offsetof
+	C4842	the result of 'offsetof' applied to a type using multiple inheritance is not guaranteed to be consistent between compiler releases
+	C4843	'type1': An exception handler of reference to array or function type is unreachable, use 'type2' instead
+	C4844	'export module module_name;' is now the preferred syntax for declaring a module interface
+	C4845	'__declspec(no_init_all)' is ignored if '/d1initall[0|1|2|3]' was not specified on the command line
+	C4846	'value' is not a valid argument for '/d1initall': command-line flag ignored
+	C4847	'__declspec(no_init_all)' can only be applied to a function, a class type, or a local variable: ignored
+	C4848	support for standard attribute 'no_unique_address' in C++17 and earlier is a vendor extension
+	C4854	binding dereferenced null pointer to reference has undefined behavior
+	C4855	implicit capture of 'this' via '[=]' is deprecated in 'version'
+	C4856	'value' is not a valid argument for '/d1initAll:FillPattern' (value must be between 0 and 255). Command-line flag ignored
+	C4857	C++/CLI mode does not support C++ versions newer than C++17; setting language to /std:c++17
+	C4866	compiler may not enforce left-to-right evaluation order for call to operator_name
+	C4867	'function': function call missing argument list; use 'call' to create a pointer to member
+	C4868	'file(line_number)' compiler may not enforce left-to-right evaluation order in braced initialization list
+	C4872	floating point division by zero detected when compiling the call graph for the concurrency::parallel_for_each at: 'location'
+	C4880	casting from 'const type_1' to 'type_2': casting away constness from a pointer or reference may result in undefined behavior in an amp restricted function
+	C4881	the constructor and/or the destructor will not be invoked for tile_static variable 'variable-name'
+	C4882	passing functors with non-const call operators to concurrency::parallel_for_each is deprecated
+	C4900	Il mismatch between 'tool1' version 'version1' and 'tool2' version 'version2'
+	C4905	wide string literal cast to 'LPSTR'
+	C4906	string literal cast to 'LPWSTR'
+	C4910	'<identifier>: '__declspec(dllexport)' and 'extern' are incompatible on an explicit instantiation
+	C4912	'attribute': attribute has undefined behavior on a nested UDT
+	C4913	user defined binary operator ',' exists but no overload could convert all operands, default built-in binary operator ',' used
+	C4916	in order to have a dispid, 'description': must be introduced by an interface
+	C4917	'declarator': a GUID can only be associated with a class, interface or namespace
+	C4918	'character': invalid character in pragma optimization list
+	C4920	enum enum-name member member_1=value_1 already seen in enum enum-name as member_2=value_2
+	C4921	'description': attribute value 'attribute' should not be multiply specified
+	C4925	'method': dispinterface method cannot be called from script
+	C4926	'identifier': symbol is already defined: attributes ignored
+	C4927	illegal conversion; more than one user-defined conversion has been implicitly applied
+	C4928	illegal copy-initialization; more than one user-defined conversion has been implicitly applied
+	C4929	'file': typelibrary contains a union; ignoring the 'embedded_idl' qualifier
+	C4930	'prototype': prototyped function not called (was a variable definition intended?)
+	C4931	we are assuming the type library was built for number-bit pointers
+	C4932	__identifier(identifier) and __identifier(identifier) are indistinguishable
+	C4934	'__delegate(multicast)' is deprecated, use '__delegate' instead
+	C4935	assembly access specifier modified from 'access'
+	C4936	this __declspec is supported only when compiled with /clr or /clr:pure
+	C4937	'text1' and 'text2' are indistinguishable as arguments to 'directive'
+	C4938	'var': Floating point reduction variable may cause inconsistent results under /fp:strict or #pragma fenv_access
+	C4939	#pragma vtordisp is deprecated and will be removed in a future release of Visual C++
+	C4944	'symbol': cannot import symbol from 'assembly1': as 'symbol' already exists in the current scope
+	C4945	'symbol': cannot import symbol from 'assembly1': as 'symbol' has already been imported from another assembly 'assembly2'
+	C4946	reinterpret_cast used between related classes: 'class1' and 'class2'
+	C4947	'type_or_member': marked as obsolete
+	C4948	return type of 'accessor' does not match the last parameter type of the corresponding setter
+	C4949	pragmas 'managed' and 'unmanaged' are meaningful only when compiled with '/clr[:option]'
+	C4950	'type_or_member': marked as obsolete
+	C4951	'function' has been edited since profile data was collected, function profile data not used
+	C4952	'function': no profile data found in program database 'pgd-file'
+	C4953	Inlinee 'function' has been edited since profile data was collected, profile data not used
+	C4954	'function': not profiled (contains __int64 switch expression)
+	C4955	'import2': import ignored; already imported from 'import1'
+	C4956	'type': this type is not verifiable
+	C4957	'cast': explicit cast from 'cast_from' to 'cast_to' is not verifiable
+	C4958	'operation': pointer arithmetic is not verifiable
+	C4959	cannot define unmanaged type 'type' in /clr:safe because accessing its members yields unverifiable code
+	C4960	'function' is too big to be profiled
+	C4961	No profile data was merged into 'pgd-file', profile-guided optimizations disabled
+	C4962	'function': Profile-guided optimizations disabled because optimizations caused profile data to become inconsistent
+	C4963	'description': no profile data found; different compiler options were used in instrumented build
+	C4964	No optimization options were specified; profile info will not be collected
+	C4965	implicit box of integer 0; use nullptr or explicit cast
+	C4966	'function' has __code_seg annotation with unsupported segment name, annotation ignored
+	C4970	delegate constructor: target object ignored since 'type' is static
+	C4971	Argument order: <target object>, <target function> for delegate constructor is deprecated, use <target function>, <target object="">
+	C4972	Directly modifying or treating the result of an unbox operation as an lvalue is unverifiable
+	C4973	'symbol': marked as deprecated
+	C4974	'symbol': marked as deprecated
+	C4981	Warbird: function 'function' marked as __forceinline not inlined because it contains exception semantics
+	C4984	'if constexpr' is a C++17 language extension
+	C4985	'symbol_name': attributes not present on previous declaration.
+	C4986	'declaration': exception specification does not match previous declaration
+	C4987	nonstandard extension used: 'throw (...)'
+	C4988	'variable': variable declared outside class/function scope
+	C4989	'type': type has conflicting definitions.
+	C4990	Warbird: message
+	C4991	Warbird: function 'function' marked as __forceinline not inlined because protection level of inlinee is greater than the parent
+	C4992	Warbird: function 'function-name' marked as __forceinline not inlined because it contains inline assembly which cannot be protected
+	C4995	'function': name was marked as #pragma deprecated
+	C4996	'deprecated-declaration': deprecation-message (or "was declared deprecated")
+	C4997	'class': coclass does not implement a COM interface or pseudo-interface
+	C4998	EXPECTATION FAILED: expectation(value)
+	C4999	UNKNOWN WARNING Please choose the Technical Support command on the Visual C++ Help menu, or open the Technical Support help file for more information
+	C5022	'type': multiple move constructors specified
+	C5023	'type': multiple move assignment operators specified
+	C5024	'type': move constructor was implicitly defined as deleted
+	C5025	'type': move assignment operator was implicitly defined as deleted
+	C5026	'type': move constructor was implicitly defined as deleted
+	C5027	'type': move assignment operator was implicitly defined as deleted
+	C5028	'name': Alignment specified in prior declaration (number) not specified in definition
+	C5029	nonstandard extension used: alignment attributes in C++ apply to variables, data members and tag types only
+	C5030	attribute 'attribute-name' is not recognized
+	C5031	#pragma warning(pop): likely mismatch, popping warning state pushed in different file
+	C5032	detected #pragma warning(push) with no corresponding #pragma warning(pop)
+	C5033	'storage-class' is no longer a supported storage class
+	C5034	use of intrinsic 'intrinsic' causes function function-name to be compiled as guest code
+	C5035	use of feature 'feature' causes function function-name to be compiled as guest code
+	C5036	varargs function pointer conversion when compiling with /hybrid:x86arm64 'type1' to 'type2'
+	C5037	'member-function': an out-of-line definition of a member of a class template cannot have default arguments
+	C5038	data member 'member1' will be initialized after data member 'member2'
+	C5039	'function': pointer or reference to potentially throwing function passed to extern C function under -EHc. Undefined behavior may occur if this function throws an exception.
+	C5040	dynamic exception specifications are valid only in C++14 and earlier; treating as noexcept(false)
+	C5041	'definition': out-of-line definition for constexpr static data member is not needed and is deprecated in C++17
+	C5042	'declaration': function declarations at block scope cannot be specified 'inline' in standard C++; remove 'inline' specifier
+	C5043	'specification': exception specification does not match previous declaration
+	C5044	An argument to command-line option option-name points to a path 'path-name' that does not exist
+	C5045	Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+	C5046	'function': Symbol involving type with internal linkage not defined
+	C5047	use of nonstandard __if_exists with modules is not supported
+	C5048	Use of macro 'macroname' may result in non-deterministic output
+	C5049	'string': Embedding a full path may result in machine-dependent output
+	C5050	Possible incompatible environment while importing module 'module_name': issue
+	C5051	attribute 'attribute-name' requires at least 'standard-level'; ignored
+	C5052	Keyword 'keyword-name' was introduced in C++<version> and requires use of the 'option-name' command-line option
+	C5053	support for 'explicit(<expr>)' in C++17 and earlier is a vendor extension
+	C5054	operator 'operator-name': deprecated between enumerations of different types
+	C5055	operator 'operator-name': deprecated between enumerations and floating-point types
+	C5056	operator 'operator-name': deprecated for array types
+	C5057	header unit reference to 'name' already exists. Ignoring header unit 'header-name'
+	C5058	file system error: cannot find header file 'file-name' for header unit 'unit-name'
+	C5059	runtime checks and address sanitizer is not currently supported - disabling runtime checks
+	C5060	/Qpar and address sanitizer not currently supported - disabling auto-parallelization
+	C5061	the use of a comma operator as a subscript expression has been deprecated
+	C5062	enum direct list initialization between 'type-1' and 'type-2' is no longer supported
+	C5063	'std::is_constant_evaluated' always evaluates to true in manifestly constant-evaluated expressions
+	C5100	__VA_ARGS__ is reserved for use in variadic macros
+	C5101	use of preprocessor directive in function-like macro argument list is undefined behavior
+	C5102	ignoring invalid command-line macro definition 'value'
+	C5103	pasting 'token1' and 'token2' does not result in a valid preprocessing token
+	C5104	found 'string1#string2' in macro replacement list, did you mean 'string1""#string2'?
+	C5105	macro expansion producing 'defined' has undefined behavior
+	C5106	macro redefined with different parameter names
+	C5107	missing terminating 'char' character
+	C5108	__VA_OPT__ is reserved for use in variadic macros
+	C5200	feature 'feature-name' requires compiler flag 'option-name'
+	C5201	a module declaration can appear only at the start of a translation unit unless a global module fragment is used
+	C5202	a global module fragment can only contain preprocessor directives
+	C5203	a parenthesized declarator name after 'explicit' will be considered an explicit-specifier in C++20
+	C5204	'type-name': class has virtual functions, but its trivial destructor is not virtual; instances of objects derived from this class may not be destructed correctly
+	C5205	delete of an abstract class 'type-name' that has a non-virtual destructor results in undefined behavior
+	C5206	deduced return types for coroutines is a non-standard extension
+	C5207	the simple requirement asserts the validity of expression 'e->id'. Did you mean '{ e } -> id'? You can suppress the warning using '{ e->id }'
+	C5208	unnamed class used in typedef name cannot declare members other than non-static data members, member enumerations, or member classes
+	C5209	the C++20 syntax for an init-capture has changed to '& ...opt identifier initializer'
+	C5210	'name' is not a valid header unit reference; ignoring
+	C5212	'name' is not a valid named reference; treating as reference to file
+	C5213	'name' named reference is treated as a named partition but the name is not specified; treating as reference to file
+	C5214	applying 'modifier' to an operand with a volatile qualified type is deprecated in C++20
+	C5215	'name' a function parameter with a volatile qualified type is deprecated in C++20
+	C5216	'name' a volatile qualified return type is deprecated in C++20
+	C5217	a structured binding declaration that includes volatile is deprecated in C++20
+	C5218	destroying delete may not behave as intended when non-conforming switches '/Zc:sizedDealloc-' or '/Zc:alignedNew-' are used
+	C5219	implicit conversion from 'type-1' to 'type-2', possible loss of data
+	C5220	'name': a non-static data member with a volatile qualified type no longer implies that compiler generated copy/move constructors and copy/move assignment operators are not trivial
+	C5221	xfg::rename is deprecated.
+
+	----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	C4800
+	C4803
+	C4804
+	C4805
+	C4806
+	C4807
+	C4808
+	C4809
+	C4810
+	C4811
+	C4812
+	C4813
+	C4816
+	C4817
+	C4819
+	C4820
+	C4821
+	C4822
+	C4823
+	C4826
+	C4827
+	C4829
+	C4835
+	C4837
+	C4838
+	C4839
+	C4840
+	C4841
+	C4842
+	C4843
+	C4844
+	C4845
+	C4846
+	C4847
+	C4848
+	C4854
+	C4855
+	C4856
+	C4857
+	C4866
+	C4867
+	C4868
+	C4872
+	C4880
+	C4881
+	C4882
+	C4900
+	C4905
+	C4906
+	C4910
+	C4912
+	C4913
+	C4916
+	C4917
+	C4918
+	C4920
+	C4921
+	C4925
+	C4926
+	C4927
+	C4928
+	C4929
+	C4930
+	C4931
+	C4932
+	C4934
+	C4935
+	C4936
+	C4937
+	C4938
+	C4939
+	C4944
+	C4945
+	C4946
+	C4947
+	C4948
+	C4949
+	C4950
+	C4951
+	C4952
+	C4953
+	C4954
+	C4955
+	C4956
+	C4957
+	C4958
+	C4959
+	C4960
+	C4961
+	C4962
+	C4963
+	C4964
+	C4965
+	C4966
+	C4970
+	C4971
+	C4972
+	C4973
+	C4974
+	C4981
+	C4984
+	C4985
+	C4986
+	C4987
+	C4988
+	C4989
+	C4990
+	C4991
+	C4992
+	C4995
+	C4996
+	C4997
+	C4998
+	C4999
+	C5022
+	C5023
+	C5024
+	C5025
+	C5026
+	C5027
+	C5028
+	C5029
+	C5030
+	C5031
+	C5032
+	C5033
+	C5034
+	C5035
+	C5036
+	C5037
+	C5038
+	C5039
+	C5040
+	C5041
+	C5042
+	C5043
+	C5044
+	C5045
+	C5046
+	C5047
+	C5048
+	C5049
+	C5050
+	C5051
+	C5052
+	C5053
+	C5054
+	C5055
+	C5056
+	C5057
+	C5058
+	C5059
+	C5060
+	C5061
+	C5062
+	C5063
+	C5100
+	C5101
+	C5102
+	C5103
+	C5104
+	C5105
+	C5106
+	C5107
+	C5108
+	C5200
+	C5201
+	C5202
+	C5203
+	C5204
+	C5205
+	C5206
+	C5207
+	C5208
+	C5209
+	C5210
+	C5212
+	C5213
+	C5214
+	C5215
+	C5216
+	C5217
+	C5218
+	C5219
+	C5220
+	C5221
+
+	----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	4800
+	4803
+	4804
+	4805
+	4806
+	4807
+	4808
+	4809
+	4810
+	4811
+	4812
+	4813
+	4816
+	4817
+	4819
+	4820
+	4821
+	4822
+	4823
+	4826
+	4827
+	4829
+	4835
+	4837
+	4838
+	4839
+	4840
+	4841
+	4842
+	4843
+	4844
+	4845
+	4846
+	4847
+	4848
+	4854
+	4855
+	4856
+	4857
+	4866
+	4867
+	4868
+	4872
+	4880
+	4881
+	4882
+	4900
+	4905
+	4906
+	4910
+	4912
+	4913
+	4916
+	4917
+	4918
+	4920
+	4921
+	4925
+	4926
+	4927
+	4928
+	4929
+	4930
+	4931
+	4932
+	4934
+	4935
+	4936
+	4937
+	4938
+	4939
+	4944
+	4945
+	4946
+	4947
+	4948
+	4949
+	4950
+	4951
+	4952
+	4953
+	4954
+	4955
+	4956
+	4957
+	4958
+	4959
+	4960
+	4961
+	4962
+	4963
+	4964
+	4965
+	4966
+	4970
+	4971
+	4972
+	4973
+	4974
+	4981
+	4984
+	4985
+	4986
+	4987
+	4988
+	4989
+	4990
+	4991
+	4992
+	4995
+	4996
+	4997
+	4998
+	4999
+	5022
+	5023
+	5024
+	5025
+	5026
+	5027
+	5028
+	5029
+	5030
+	5031
+	5032
+	5033
+	5034
+	5035
+	5036
+	5037
+	5038
+	5039
+	5040
+	5041
+	5042
+	5043
+	5044
+	5045
+	5046
+	5047
+	5048
+	5049
+	5050
+	5051
+	5052
+	5053
+	5054
+	5055
+	5056
+	5057
+	5058
+	5059
+	5060
+	5061
+	5062
+	5063
+	5100
+	5101
+	5102
+	5103
+	5104
+	5105
+	5106
+	5107
+	5108
+	5200
+	5201
+	5202
+	5203
+	5204
+	5205
+	5206
+	5207
+	5208
+	5209
+	5210
+	5212
+	5213
+	5214
+	5215
+	5216
+	5217
+	5218
+	5219
+	5220
+	5221

@@ -2,9 +2,7 @@
 
 #include <stdint.h>
 
-#define PHYSICNAMESPACE Physics
-
-namespace /*staurn::*/ PHYSICNAMESPACE {
+namespace /*staurn::*/ Saturn {
 
 	using Decimal = float;
 	using Integer = int;
