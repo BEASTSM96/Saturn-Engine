@@ -30,13 +30,16 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 		SAT_INFO("Character::BeginPlay");
 
+		std::string filepath = "assets/meshes/Cube1m.fbx";
+		AddComponent<MeshComponent>().Mesh = Ref<Mesh>::Create(filepath);
+
 	}
 
 	void Character::ProcessInput( Timestep ts )
 	{
 		if( Input::IsKeyPressed( Key::W ) )
 		{
-			GetComponent<TransformComponent>().Position.y += 90 * ts;
+			GetComponent<TransformComponent>().Position.z -= 90 * ts;
 		}
 
 		if( Input::IsKeyPressed( Key::A ) )
@@ -46,12 +49,17 @@ namespace Saturn {
 
 		if( Input::IsKeyPressed( Key::S ) )
 		{
-			GetComponent<TransformComponent>().Position.y -= 90 * ts;
+			GetComponent<TransformComponent>().Position.z += 90 * ts;
 		}
 
 		if( Input::IsKeyPressed( Key::D ) )
 		{
 			GetComponent<TransformComponent>().Position.x += 90 * ts;
+		}
+
+		if ( Input::IsKeyPressed( Key::Space ) )
+		{
+			GetComponent<TransformComponent>().Position.y += 90 * ts;
 		}
 
 	}

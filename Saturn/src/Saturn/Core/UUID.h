@@ -26,9 +26,9 @@ namespace std {
 	template <>
 	struct hash<Saturn::UUID>
 	{
-		std::size_t operator()(const Saturn::UUID& uuid) const
+		std::size_t operator()( const Saturn::UUID& uuid ) const
 		{
-			return hash<uint64_t>()((uint64_t)uuid);
+			return hash<uint64_t>()( ( uint64_t )uuid );
 		}
 	};
 }

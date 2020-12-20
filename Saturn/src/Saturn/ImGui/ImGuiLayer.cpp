@@ -49,7 +49,6 @@
 
 namespace Saturn {
 
-
 	///////////////////////////////////////
 	////////////FORALLPLATFORMS///////////
 	/////////////////////////////////////
@@ -642,44 +641,6 @@ namespace Saturn {
 		//DeserialiseDebugLvl();
 
 
-		class MyTestGame : public ScriptableEntity
-			//thats in the engine(lol)
-		{
-		public:
-
-			MyTestGame() {}
-			~MyTestGame() {}
-
-			void OnCreate() {}
-
-			void OnDestroy()  {}
-
-			void BeginPlay()
-			{
-				SAT_INFO("BeginPlay");
-			}
-
-			void OnUpdate( Timestep ts )
-			{
-				SAT_INFO("Hello, ts {0}", ts.GetSeconds());
-
-				if (Input::IsKeyPressed(Key::W))
-				{
-					GetComponent<TransformComponent>().Position.y + 10.0f * ts;
-				}
-
-				SAT_INFO("Position X {0} Y {1} Z {2}", GetComponent<TransformComponent>().Position.z, GetComponent<TransformComponent>().Position.y, GetComponent<TransformComponent>().Position.z);
-
-			}
-
-		private:
-
-		};
-
-		auto& GameEntity = m_EditorScene->CreateEntity( "GameEntity" );
-
-		GameEntity.AddComponent<NativeScriptComponent>().Bind<Character>();
-
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
@@ -704,8 +665,8 @@ namespace Saturn {
 
 	void EditorLayer::DeserialiseDebugLvl()
 	{
-		Serialiser s(m_EditorScene);
-		s.Deserialise("assets\\test.sc");
+		Serialiser s( m_EditorScene );
+		s.Deserialise( "assets\\test.sc" );
 
 		std::filesystem::path path = "test";
 		//UpdateWindowTitle( path.filename().string() );
@@ -735,18 +696,18 @@ namespace Saturn {
 
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::Get();
-		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
+		io.DisplaySize = ImVec2( ( float )app.GetWindow().GetWidth(), ( float )app.GetWindow().GetHeight() );
 
 		// Rendering
 		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
 
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
 		{
 			GLFWwindow* backup_current_context = glfwGetCurrentContext();
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
+			glfwMakeContextCurrent( backup_current_context );
 		}
 	}
 
@@ -767,16 +728,16 @@ namespace Saturn {
 
 	bool EditorLayer::Property(const std::string& name, float& value, float min, float max, PropertyFlag flags)
 	{
-		ImGui::Text(name.c_str());
+		ImGui::Text( name.c_str() );
 		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
+		ImGui::PushItemWidth( -1 );
 
 		std::string id = "##" + name;
 		bool changed = false;
-		if (flags == PropertyFlag::SliderProperty)
-			changed = ImGui::SliderFloat(id.c_str(), &value, min, max);
+		if( flags == PropertyFlag::SliderProperty )
+			changed = ImGui::SliderFloat( id.c_str(), &value, min, max );
 		else
-			changed = ImGui::DragFloat(id.c_str(), &value, 1.0f, min, max);
+			changed = ImGui::DragFloat( id.c_str(), &value, 1.0f, min, max );
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -786,21 +747,21 @@ namespace Saturn {
 
 	bool EditorLayer::Property(const std::string& name, glm::vec2& value, EditorLayer::PropertyFlag flags)
 	{
-		return Property(name, value, -1.0f, 1.0f, flags);
+		return Property( name, value, -1.0f, 1.0f, flags );
 	}
 
 	bool EditorLayer::Property(const std::string& name, glm::vec2& value, float min, float max, PropertyFlag flags)
 	{
-		ImGui::Text(name.c_str());
+		ImGui::Text( name.c_str() );
 		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
+		ImGui::PushItemWidth( -1 );
 
 		std::string id = "##" + name;
 		bool changed = false;
-		if (flags == PropertyFlag::SliderProperty)
-			changed = ImGui::SliderFloat2(id.c_str(), glm::value_ptr(value), min, max);
+		if( flags == PropertyFlag::SliderProperty )
+			changed = ImGui::SliderFloat2( id.c_str(), glm::value_ptr( value ), min, max );
 		else
-			changed = ImGui::DragFloat2(id.c_str(), glm::value_ptr(value), 1.0f, min, max);
+			changed = ImGui::DragFloat2( id.c_str(), glm::value_ptr( value ), 1.0f, min, max );
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -1002,20 +963,20 @@ namespace Saturn {
 		{
 			switch (e.GetKeyCode())
 			{
-			case SAT_KEY_S:
-				SaveSceneAs();
-				break;
-			case SAT_KEY_O:
-				std::string filepath = Application::Get().OpenFile("Scene (*.sc)\0*.sc\0").first;
-				if( !filepath.empty() )
-				{
-					Serialiser serializer( m_EditorScene );
-					serializer.Deserialise( filepath );
-					std::filesystem::path path = filepath;
-					UpdateWindowTitle( path.filename().string() );
-					//m_SceneFilePath = filepath;
-				}
-				break;
+				case SAT_KEY_S:
+					SaveSceneAs();
+					break;
+				case SAT_KEY_O:
+					std::string filepath = Application::Get().OpenFile("Scene (*.sc)\0*.sc\0").first;
+					if( !filepath.empty() )
+					{
+						Serialiser serializer( m_EditorScene );
+						serializer.Deserialise( filepath );
+						std::filesystem::path path = filepath;
+						UpdateWindowTitle( path.filename().string() );
+						//m_SceneFilePath = filepath;
+					}
+					break;
 			}
 		}
 
@@ -1035,24 +996,24 @@ namespace Saturn {
 		{
 			switch (e.GetKeyCode())
 			{
-			case SAT_KEY_P:
-				m_SelectionContext.clear();
-				m_RuntimeScene = Ref<Scene>::Create();
-				m_SceneHierarchyPanel->SetContext(m_RuntimeScene);
-				m_EditorScene->CopyScene(m_RuntimeScene);
-				Application::Get().GetSceneMananger().Raw()->AddScene(m_RuntimeScene);
-				m_RuntimeScene->m_RuntimeRunning = true;
-				break;
-			case SAT_KEY_X:
-				m_RuntimeScene->m_RuntimeRunning = false;
-				m_RuntimeScene = nullptr;
-				m_SelectionContext.clear();
-				m_SceneHierarchyPanel->SetContext(m_EditorScene);
-				break;
-			case SAT_KEY_G:
-				// Toggle grid
-				SceneRenderer::GetOptions().ShowGrid = !SceneRenderer::GetOptions().ShowGrid;
-				break;
+				case SAT_KEY_P:
+					m_SelectionContext.clear();
+					m_RuntimeScene = Ref<Scene>::Create();
+					m_SceneHierarchyPanel->SetContext(m_RuntimeScene);
+					m_EditorScene->CopyScene(m_RuntimeScene);
+					Application::Get().GetSceneMananger().Raw()->AddScene(m_RuntimeScene);
+					m_RuntimeScene->m_RuntimeRunning = true;
+					break;
+				case SAT_KEY_X:
+					m_RuntimeScene->m_RuntimeRunning = false;
+					m_RuntimeScene = nullptr;
+					m_SelectionContext.clear();
+					m_SceneHierarchyPanel->SetContext(m_EditorScene);
+					break;
+				case SAT_KEY_G:
+					// Toggle grid
+					SceneRenderer::GetOptions().ShowGrid = !SceneRenderer::GetOptions().ShowGrid;
+					break;
 
 			}
 		}
@@ -1295,7 +1256,7 @@ namespace Saturn {
 					m_RuntimeScene->BeginRuntime();
 				}
 
-				if (m_RuntimeScene)
+				if( m_RuntimeScene )
 				{
 					if( m_RuntimeScene->m_RuntimeRunning )
 					{
@@ -1405,7 +1366,7 @@ namespace Saturn {
 					glm::mat4 scale = glm::scale( glm::mat4( 1.0f ), tc.Scale );
 
 					glm::mat4 entityTransform = position * rotation * scale;
-				
+
 					float* et = glm::value_ptr( entityTransform );
 
 					float snapValue = GetSnapValue();
@@ -1469,7 +1430,7 @@ namespace Saturn {
 						ImGui::Separator();
 
 						/**
-						 * Selected material -> view and edit the stuff 
+						* Selected material -> view and edit the stuff 
 						*/
 						if (selectedMaterialIndex < materials.size())
 						{
@@ -1726,7 +1687,7 @@ namespace Saturn {
 				}
 
 			}
-		
+
 			if( ImGui::MenuItem( "Create Empty Mesh Entity" ) )
 			{
 				Entity e =  m_Context->CreateEntity( "Empty Mesh Entity" );
@@ -1748,7 +1709,7 @@ namespace Saturn {
 				//Character* e = dynamic_cast<Character*>(m_Context->CreateScriptableEntityptr("Character Entity"));
 			}
 
-			if( ImGui::MenuItem( "Create ncs Entity" ) )
+			if( ImGui::MenuItem( "Create Scriptable Entity Entity" ) )
 			{
 				ScriptableEntity* e = m_Context->CreateScriptableEntityptr("ScriptableEntity");
 			}
@@ -2067,7 +2028,7 @@ namespace Saturn {
 				updateTransform |= DrawVec3Control( "Rotation", newRotation, newRotation );
 				updateTransform |= DrawVec3Control( "Scale", tc.Scale, tc.Scale, 1.0f );
 
-				tc.Rotation = glm::quat(glm::radians(newRotation));
+				tc.Rotation = glm::quat( glm::radians( newRotation ) );
 
 				if( updateTransform )
 				{
@@ -2100,23 +2061,23 @@ namespace Saturn {
 			});
 
 		DrawComponent<NativeScriptComponent>( "Native Script Component", entity, [this]( auto& ncs )
-		{
-			char buffer[ 256 ];
-			memset( buffer, 0, 256 );
-			memcpy( buffer, m_NCSTag.c_str(), m_NCSTag.length() );
-			if( ImGui::InputText( "##cname", buffer, 256 ) )
 			{
-				m_NCSTag = std::string( buffer );
-			}
-		});
+				char buffer[ 256 ];
+				memset( buffer, 0, 256 );
+				memcpy( buffer, m_NCSTag.c_str(), m_NCSTag.length() );
+				if( ImGui::InputText( "##cname", buffer, 256 ) )
+				{
+					m_NCSTag = std::string( buffer );
+				}
+			});
 
 		DrawComponent<BoxColliderComponent>( "Box Collider", entity, []( auto& component )
-		{
-			DrawVec3Control( "Extents", component.Extents, component.Extents );
-		});
+			{
+				DrawVec3Control( "Extents", component.Extents, component.Extents );
+			});
 
 		DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](auto& component) {
-				DrawFloatControl("Radius", &component.Radius, component.Radius);
+			DrawFloatControl("Radius", &component.Radius, component.Radius);
 			});
 
 		DrawComponent<PhysicsComponent>("Physics", entity, [](auto& pc)
@@ -2124,8 +2085,5 @@ namespace Saturn {
 
 
 			});
-
-
 	}
-
 } //namespace
