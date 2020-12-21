@@ -39,8 +39,7 @@ namespace Saturn {
 		template<typename T>
 		void RemoveComponent()
 		{
-			SAT_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
-			m_Scene->m_Registry.remove<T>(m_EntityHandle);
+			m_Scene->m_Registry.remove_if_exists<T>(m_EntityHandle);
 		}
 
 		Scene& GetScene() { return *m_Scene; }
