@@ -1014,7 +1014,6 @@ namespace Saturn {
 					// Toggle grid
 					SceneRenderer::GetOptions().ShowGrid = !SceneRenderer::GetOptions().ShowGrid;
 					break;
-
 			}
 		}
 
@@ -1315,8 +1314,26 @@ namespace Saturn {
 			ImGui::End();
 
 
-			if (ImGui::Begin("Assets##astmgr"))
+			if (ImGui::Begin("Assets"))
 			{
+				namespace fs = std::filesystem;
+
+				std::string path = "assets/";
+				for (const auto & entry : fs::directory_iterator(path))
+				{
+				
+					if (!entry.path().has_extension())
+					{
+						ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)(const char*)entry.path().c_str(), NULL, (const char*)entry.path().c_str());
+
+						SAT_INFO("{0}", (const char*)entry.path().c_str());
+
+						//ImGui::TreePop();
+					}
+
+				}
+				
+
 			}
 			ImGui::End();
 
@@ -1894,6 +1911,7 @@ namespace Saturn {
 		if( entity.HasComponent<T>() )
 		{
 			bool removeComponent = false;
+			bool removeAllComponent = false;
 
 			auto& component = entity.GetComponent<T>();
 			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str() );
@@ -1912,6 +1930,9 @@ namespace Saturn {
 			{
 				if( ImGui::MenuItem( "Remove component" ) )
 					removeComponent = true;
+
+				if( ImGui::MenuItem( "Remove All components" ) )
+					removeAllComponent = true;
 
 				ImGui::EndPopup();
 			}
