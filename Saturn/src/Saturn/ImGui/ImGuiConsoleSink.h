@@ -38,13 +38,13 @@ namespace Saturn {
 		{
 			switch (level)
 			{
-			case spdlog::level::level_enum::trace: return ImGuiConsole::Message::Level::Trace;
-			case spdlog::level::level_enum::debug: return ImGuiConsole::Message::Level::Debug;
-			case spdlog::level::level_enum::info: return ImGuiConsole::Message::Level::Info;
-			case spdlog::level::level_enum::warn: return ImGuiConsole::Message::Level::Warn;
-			case spdlog::level::level_enum::err: return ImGuiConsole::Message::Level::Error;
-			case spdlog::level::level_enum::critical: return ImGuiConsole::Message::Level::Critical;
-			case spdlog::level::level_enum::off: return ImGuiConsole::Message::Level::Off;
+				case spdlog::level::level_enum::trace: return ImGuiConsole::Message::Level::Trace;
+				case spdlog::level::level_enum::debug: return ImGuiConsole::Message::Level::Debug;
+				case spdlog::level::level_enum::info: return ImGuiConsole::Message::Level::Info;
+				case spdlog::level::level_enum::warn: return ImGuiConsole::Message::Level::Warn;
+				case spdlog::level::level_enum::err: return ImGuiConsole::Message::Level::Error;
+				case spdlog::level::level_enum::critical: return ImGuiConsole::Message::Level::Critical;
+				case spdlog::level::level_enum::off: return ImGuiConsole::Message::Level::Off;
 			}
 			return ImGuiConsole::Message::Level::Invalid;
 		}

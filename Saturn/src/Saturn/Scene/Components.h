@@ -210,24 +210,6 @@ namespace Saturn {
 	//
 	// ScriptComponents
 	//
-	struct ScriptComponent : Component
-	{
-		struct Data
-		{
-			//Path -> being like the path to the .cpp file
-			std::string Path;
-			//Name -> being like the name to the .cpp file
-			std::string Name;
-
-			bool Runtime;
-			bool UpdateOnPlay;
-			bool CanExec;
-			bool DoesAddNewComponent;
-		};
-
-		Data m_Data;
-	};
-
 	class ScriptableEntity;
 
 
@@ -238,34 +220,11 @@ namespace Saturn {
 	
 		ScriptableEntity* Instance = nullptr;
 
-
-	#define NEW
-	#ifdef NEW
-
 		//TODO:Going to remove
 		template<typename T>
 		void Bind()
 		{
 		}
-	#endif // NEW
-
-	#ifndef NEW
-
-
-
-		ScriptableEntity* ( *InstantiateScript )( );
-		void ( *DestroyScript )( NativeScriptComponent* );
-
-		template<typename T>
-		void Bind()
-		{
-			InstantiateScript = []() { return static_cast< ScriptableEntity* >( new T() ); };
-			DestroyScript = []( NativeScriptComponent* nsc ) { delete nsc->Instance; nsc->Instance = nullptr; };
-		}
-
-	#endif // !NEW
-
-
 	};
 
 	DISABLE_ALL_WARNINGS_END

@@ -1319,17 +1319,17 @@ namespace Saturn {
 				namespace fs = std::filesystem;
 
 				std::string path = "assets/";
+				fs::path fspath = "assets/";
+
 				for (const auto & entry : fs::directory_iterator(path))
 				{
-				
-					if (!entry.path().has_extension())
-					{
-						ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)(const char*)entry.path().c_str(), NULL, (const char*)entry.path().c_str());
+					fspath = entry.path();
 
-						SAT_INFO("{0}", (const char*)entry.path().c_str());
+					const char* c_style_path = fspath.string().c_str();
 
-						//ImGui::TreePop();
-					}
+					ImGui::Text("%c", *c_style_path);
+
+					SAT_INFO("{0}", *c_style_path);
 
 				}
 				

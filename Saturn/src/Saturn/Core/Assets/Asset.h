@@ -4,40 +4,47 @@
 
 namespace Saturn {
 
-	//TODO: Add more stuff
-	class AssetBase
+	enum class AssetType
 	{
-	public:
-		AssetBase();
-		~AssetBase();
-
-	private:
-
+		None = 0, Folder
 	};
 
-	class Asset : public AssetBase
+	class FolderAsset;
+	class AssetCollection;
+
+	class Asset
 	{
 	public:
-		Asset();
-		~Asset();
+		Asset() = default;
+		virtual ~Asset() = default;
 
-		void CreateGameObjectAsset();
+		static Ref<Asset> Load(std::string path, std::string RootDir, AssetCollection* assetCollection);
 
-		template<typename T, typename... Args>
-		T CreateAssetFrom(Args&&... args)
-		{
-			//Compile time
-			static_assert(std::is_base_of<Asset, T>::value, "Class is not Asset!");
-			static_assert(std::is_base_of<AssetBase, T>::value, "Class is not AssetBase!");
+		Ref<Asset> GetParent() const;
 
-			//Editor time
-			SAT_CORE_ASSERT(std::is_base_of<Asset, T>::value, "Class is not Asset!");
-			SAT_CORE_ASSERT(std::is_base_of<AssetBase, T>::value, "Class is not AssetBase!");
+		std::string& GetName() { return m_Name; }
+		std::string& GetPath() { return m_Path; }
 
-			return T(new T(std::forward<Args>(args)...));
-		}
+		const std::string& GetName() const { return m_Name; }
+		const std::string& GetPath() const { return m_Path; }
 
-	private:
+		UUID& GetUUID() { return m_UUID; }
+		const UUID& GetUUID() const { return m_UUID; }
+		void SetUUID();
+
+		bool IsFolder() const { m_Type == AssetType::Folder; }
+
+		FolderAsset* GetFolderAsset();
+	protected:
+		AssetType m_Type = AssetType::None;
+
+		std::string m_Name;
+		std::string m_Path;
+		UUID m_UUID;
+
+		AssetCollection* m_AssetCollection = nullptr;
+
+		friend class AssetCollection;
 
 	};
 }
