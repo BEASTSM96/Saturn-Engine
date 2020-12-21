@@ -12,7 +12,7 @@ namespace Saturn {
 	class FolderAsset;
 	class AssetCollection;
 
-	class Asset
+	class Asset : public RefCounted
 	{
 	public:
 		Asset() = default;

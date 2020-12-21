@@ -119,7 +119,7 @@ namespace Saturn {
 		bool m_AllowViewportCameraEvents = false;
 		bool m_DrawOnTopBoundingBoxes = false;
 
-		SelectionMode m_SelectionMode;
+		SelectionMode m_SelectionMode = SelectionMode::Entity;
 		Ref<Texture2D> m_CheckerboardTex;
 		Ref<Texture2D> m_FooBarTexure;
 		std::vector<SelectedSubmesh> m_SelectionContext;

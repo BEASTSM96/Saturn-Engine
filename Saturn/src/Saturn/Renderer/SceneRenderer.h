@@ -9,6 +9,7 @@ namespace Saturn {
 	struct SceneRendererOptions
 	{
 		bool ShowGrid = true;
+		bool ShowSolids = true;
 		bool ShowBoundingBoxes = false;
 	};
 

@@ -321,6 +321,23 @@ namespace Saturn {
 			Renderer2D::EndScene();
 		}
 
+		if( GetOptions().ShowSolids )
+		{
+			Renderer::Submit( []()
+				{
+					glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+				} );
+		}
+
+		if( !GetOptions().ShowSolids )
+		{
+			Renderer::Submit( []()
+				{
+					glPolygonMode( GL_FRONT, GL_LINE );
+					glPolygonMode( GL_BACK, GL_LINE );
+				} );
+		}
+
 		Renderer::EndRenderPass();
 	}
 

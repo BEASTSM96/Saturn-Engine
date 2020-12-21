@@ -996,24 +996,15 @@ namespace Saturn {
 		{
 			switch (e.GetKeyCode())
 			{
-				case SAT_KEY_P:
-					m_SelectionContext.clear();
-					m_RuntimeScene = Ref<Scene>::Create();
-					m_SceneHierarchyPanel->SetContext(m_RuntimeScene);
-					m_EditorScene->CopyScene(m_RuntimeScene);
-					Application::Get().GetSceneMananger().Raw()->AddScene(m_RuntimeScene);
-					m_RuntimeScene->m_RuntimeRunning = true;
-					break;
-				case SAT_KEY_X:
-					m_RuntimeScene->m_RuntimeRunning = false;
-					m_RuntimeScene = nullptr;
-					m_SelectionContext.clear();
-					m_SceneHierarchyPanel->SetContext(m_EditorScene);
-					break;
 				case SAT_KEY_G:
 					// Toggle grid
 					SceneRenderer::GetOptions().ShowGrid = !SceneRenderer::GetOptions().ShowGrid;
 					break;
+				case SAT_KEY_J:
+					// Toggle grid
+					SceneRenderer::GetOptions().ShowSolids = !SceneRenderer::GetOptions().ShowSolids;
+					break;
+
 			}
 		}
 
@@ -1301,10 +1292,10 @@ namespace Saturn {
 
 					Property("Exposure", m_EditorCamera.GetExposure(), 0.0f, 5.0f, PropertyFlag::SliderProperty);
 
-					char* label = m_SelectionMode == SelectionMode::Entity ? "Entity" : "Mesh";
+					char* label = "Entity";
 					if( ImGui::Button( label ) )
 					{
-						m_SelectionMode = m_SelectionMode == SelectionMode::Entity ? SelectionMode::SubMesh : SelectionMode::Entity;
+						m_SelectionMode = SelectionMode::Entity;
 					}
 
 				}
@@ -1329,7 +1320,7 @@ namespace Saturn {
 
 					ImGui::Text("%c", *c_style_path);
 
-					SAT_INFO("{0}", *c_style_path);
+					//SAT_INFO("{0}", *c_style_path);
 
 				}
 				
@@ -1341,14 +1332,14 @@ namespace Saturn {
 			if (ImGui::Begin("Viewport")) {
 				auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
 				auto viewportSize = ImGui::GetContentRegionAvail();
-				SceneRenderer::SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-				m_EditorScene->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+				SceneRenderer::SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
+				m_EditorScene->SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
 				if( m_RuntimeScene )
 					m_RuntimeScene->SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
-				m_EditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 10000.0f));
-				m_EditorCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
-				ImGui::Image((void*)SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
+				m_EditorCamera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
+				m_EditorCamera.SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
+				ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
+				ImGui::Image( ( void* )SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 } );
 				ImGui::PopStyleVar();
 
 				static int counter = 0;
