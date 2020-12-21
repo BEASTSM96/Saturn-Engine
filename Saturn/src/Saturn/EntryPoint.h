@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef SAT_PLATFORM_WINDOWS
-
 extern Saturn::Application* Saturn::CreateApplication();
 
 int main( int argc, char** argv )
@@ -12,7 +10,7 @@ int main( int argc, char** argv )
 
 	auto agrvcx = *argv;
 
-	SAT_CORE_INFO("[Main] ( {0}, From : {1} ) ", argc, agrvcx);
+	SAT_CORE_INFO( "Exe : {0}", agrvcx );
 
 	SAT_PROFILE_BEGIN_SESSION( "Startup", "SaturnProfile-Startup.json" );
 	Saturn::Application* app = Saturn::CreateApplication();
@@ -28,5 +26,3 @@ int main( int argc, char** argv )
 
 	Saturn::EndCore();
 }
-
-#endif 

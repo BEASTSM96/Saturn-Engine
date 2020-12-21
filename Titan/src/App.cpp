@@ -6,12 +6,12 @@
 class EditorApplication : public Saturn::Application
 {
 public:
-	EditorApplication(const Saturn::ApplicationProps& props) : Application(props)
+	EditorApplication( const Saturn::ApplicationProps& props ) : Application( props )
 	{
 	}
 };
 
 Saturn::Application* Saturn::CreateApplication()
 {
-	return new EditorApplication({ "SaturnEditor", 1600, 900 });
+	return new EditorApplication( { "SaturnEditor", 1600, 900 } );
 }
