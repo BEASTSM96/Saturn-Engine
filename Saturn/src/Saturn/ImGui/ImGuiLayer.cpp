@@ -663,7 +663,7 @@ namespace Saturn {
 		Application::Get().GetSceneMananger().Raw()->AddScene(m_EditorScene);
 
 		m_CheckerboardTex = Texture2D::Create("assets/editor/Checkerboard.tga");
-		m_FooBarTexure = Texture2D::Create("assets/textures/FooBar.png");
+		m_FooBarTexure = Texture2D::Create("assets/textures/PlayButton.png");
 
 
 		//DeserialiseDebugLvl();
@@ -943,7 +943,7 @@ namespace Saturn {
 		auto [mouseX, mouseY] = GetMouseViewportSpace();
 		if (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f)
 		{
-			auto [origin, direction] = CastRay(mouseX, mouseY);
+			auto [origin, direction] = CastRay( mouseX, mouseY ); 
 			return Ray(origin, direction);
 		}
 		return Ray::Zero();
@@ -1264,14 +1264,18 @@ namespace Saturn {
 			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
 			if(ImGui::Begin( "Toolbar" )) 
 			{
-				if (ImGui::ImageButton((ImTextureID)(m_FooBarTexure->GetRendererID()), ImVec2(125, 125), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0,0,0,0), ImVec4(0.9f, 0.9f, 0.9f, 1.0f))) 
+				if( !m_RuntimeScene )
 				{
-					m_SelectionContext.clear();
-					m_RuntimeScene = Ref<Scene>::Create();
-					m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
-					m_EditorScene->CopyScene( m_RuntimeScene );
-					Application::Get().GetSceneMananger().Raw()->AddScene( m_RuntimeScene );
-					m_RuntimeScene->BeginRuntime();
+
+					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
+					{
+						m_SelectionContext.clear();
+						m_RuntimeScene = Ref<Scene>::Create();
+						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
+						m_EditorScene->CopyScene( m_RuntimeScene );
+						Application::Get().GetSceneMananger().Raw()->AddScene( m_RuntimeScene );
+						m_RuntimeScene->BeginRuntime();
+					}
 				}
 
 				if( m_RuntimeScene )
@@ -1280,7 +1284,7 @@ namespace Saturn {
 					{
 						ImGui::SameLine();
 
-						if( ImGui::ImageButton( ( ImTextureID )( m_CheckerboardTex->GetRendererID() ), ImVec2( 125, 125 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
+						if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
 						{
 							m_RuntimeScene->m_RuntimeRunning = false;
 							m_RuntimeScene = nullptr;
