@@ -15,7 +15,7 @@ If the repository was cloned non-recursively previously, use `git submodule upda
 
 ### Premake
 
-If you want to use [![Premake](https://github.com/premake/premake-core)], start by going into the `scrtpts` folder, then run `WindowsGenProjects.bat` that will create the project files.
+If you want to use Premake, start by going into the `scrtpts` folder, then run `WindowsGenProjects.bat` that will create the project files.
 
 Then go back to the root dir of the project, and open `Saturn.sln` right click on the solution *`(Solution 'Saturn' (x of x projects))`* and click build *or `Ctrl Shift B`.*
 
