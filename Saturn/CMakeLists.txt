@@ -1,7 +1,7 @@
 file( GLOB_RECURSE saturn_src_files "src/Saturn/*.cpp" )
 file( GLOB_RECURSE saturn_header_files "src/Saturn/*.h" )
 
-set( SAT_ALL_PLARFORM_FILES "src/Saturn.h" "src/sppch.h" "src/sppch.cpp" ${saturn_src_files} %{saturn_header_files} "vendor/stb/stb_image.h" "vendor/stb/stb_image.cpp" )
+set( SAT_ALL_PLARFORM_FILES "src/Saturn.h" "src/sppch.h" "src/sppch.cpp" ${saturn_src_files} ${saturn_header_files} "vendor/stb/stb_image.h" "vendor/stb/stb_image.cpp" )
 
 file( GLOB_RECURSE opengl_src_files "src/Plaform/OpenGL/*.cpp" )
 file( GLOB_RECURSE opengl_header_files "src/Plaform/OpenGL/*.h" )
