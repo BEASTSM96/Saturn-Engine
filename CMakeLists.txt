@@ -17,9 +17,8 @@ add_subdirectory( Saturn/vendor/yaml-cpp )
 
 add_subdirectory( Saturn )
 add_subdirectory( Titan )
-add_subdirectory( Sandbox )
 
-if(WIN32)
+if( WIN32 )
 set_property(  DIRECTORY PROPERTY VS_STARTUP_PROJECT "Titan" )
 endif()
 
