@@ -16,8 +16,12 @@ set( SAT_OS_FILES ${win_src_files} ${win_header_files} )
 
 #endif()
 
-
-add_library( Saturn STATIC ${SAT_ALL_PLARFORM_FILES} ${SAT_OS_FILES} ${opengl_src_files} %{opengl_header_files} "src/Saturn/ImGui/ImGuizmo.h" "src/Saturn/ImGui/ImGuizmo.cpp" )
+add_library( Saturn STATIC ${SAT_ALL_PLARFORM_FILES} ${SAT_OS_FILES} 
+	${opengl_src_files} 
+	%{opengl_header_files} 
+	"src/Saturn/ImGui/ImGuizmo.h" 
+	"src/Saturn/ImGui/ImGuizmo.cpp" 
+)
 
 target_precompile_headers( Saturn PUBLIC "src/sppch.h" )
 
