@@ -44,6 +44,8 @@
 
 #include "Saturn/GameFramework/Character.h"
 
+#include "Saturn/Physics/beastPhysics/PhysicsWorld.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -64,11 +66,12 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		auto skyboxShader = Shader::Create("assets/shaders/Skybox.glsl");
-		m_SkyboxMaterial = MaterialInstance::Create(Material::Create(skyboxShader));
-		m_SkyboxMaterial->SetFlag(MaterialFlag::DepthTest, false);
+		auto skyboxShader = Shader::Create( "assets/shaders/Skybox.glsl" );
+		m_SkyboxMaterial = MaterialInstance::Create( Material::Create( skyboxShader ) );
+		m_SkyboxMaterial->SetFlag( MaterialFlag::DepthTest, false );
 
-		m_physicsScene = std::make_shared<PhysicsScene>(this);
+		m_physicsScene = std::make_shared<PhysicsScene>( this );
+		m_PhysicsWorld = Ref<PhysicsWorld>::Create( this );
 	}
 
 	Scene::~Scene( void )
@@ -155,7 +158,7 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 
 		ScriptableEntity entity;
-		entity.m_Entity = CreateEntity(name);
+		entity.m_Entity = CreateEntity( name );
 		entity.m_Scene = this;
 		entity.m_Entity.AddComponent<NativeScriptComponent>();
 		auto& ncs = entity.m_Entity.GetComponent<NativeScriptComponent>();
@@ -248,17 +251,27 @@ namespace Saturn {
 		return { filepath, radiance, irradiance };
 	}
 
-	void Scene::PhysicsUpdate(float delta)
+	void Scene::PhysicsUpdate( float delta )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
-		for (auto ent : view) {
-			auto [transform, physics] = view.get<TransformComponent, PhysicsComponent>(ent);
+		SAT_CORE_INFO( "PhysicsUpdate" );
 
-//			transform.Position = physics.rigidbody->GetPosition();
-//			transform.Rotation = physics.rigidbody->GetRotation();
+		m_PhysicsWorld->Step( delta );
+
+		auto view = GetRegistry().view<TransformComponent, PhysicsComponent>();
+
+		for( const auto& entity : view )
+		{
+			auto [tc, pc] = view.get<TransformComponent, PhysicsComponent>( entity );
+
+			tc.Position = pc.Position;
+
+			SAT_CORE_INFO( "tc.Position.y {0}, tc.Position.x {1} ", tc.Position.y, tc.Position.x );
+
+			SAT_CORE_INFO( "pc.Position.y {0}, pc.Position.x {1} ", pc.Position.y, pc.Position.x );
 		}
+
 	}
 
 	void Scene::ContactStay(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) 

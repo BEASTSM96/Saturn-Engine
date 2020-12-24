@@ -43,6 +43,8 @@
 
 namespace Saturn {
 
+	class PhysicsWorld;
+
 	struct SceneData {
 		UUID SceneID;
 		std::string name;
@@ -240,6 +242,8 @@ namespace Saturn {
 		Environment m_Environment;
 		Ref<TextureCube> m_SkyboxTexture;
 		Ref<MaterialInstance> m_SkyboxMaterial;
+
+		Ref<PhysicsWorld> m_PhysicsWorld;
 
 		entt::entity m_SelectedEntity;
 

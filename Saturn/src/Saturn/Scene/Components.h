@@ -216,7 +216,7 @@ namespace Saturn {
 		glm::vec3 Position;
 		glm::vec3 Velocity;
 		glm::vec3 Force;
-		float Mass;
+		float Mass = 1.0f;
 	};
 
 	struct BoxColliderComponent : Component

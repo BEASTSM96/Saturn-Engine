@@ -36,21 +36,22 @@
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Scene/Components.h"
+#include "Saturn/Scene/Entity.h"
 
 namespace Saturn {
 
-	class PhysicsWorld
+	class PhysicsWorld : public RefCounted
 	{
 	public:
+		PhysicsWorld( Ref<Scene> scene ) { m_Scene = scene; }
+
 		void Step( Timestep ts ) 
 		{
-
 			auto view = m_Scene->GetRegistry().view<TransformComponent, PhysicsComponent>();
 
 			for( const auto& entity : view )
 			{
 				auto [tc, pc] = view.get<TransformComponent, PhysicsComponent>( entity );
-
 
 				pc.Force += pc.Mass * m_Gravity;
 
@@ -61,6 +62,11 @@ namespace Saturn {
 				pc.Force = glm::vec3( 0, 0, 0 );
 
 			}
+		}
+
+		void SetEntityPos(Entity entity) 
+		{
+			entity.GetComponent<TransformComponent>().Position = entity.GetComponent<PhysicsComponent>().Position;
 		}
 
 	protected:
