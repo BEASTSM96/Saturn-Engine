@@ -192,7 +192,7 @@ namespace Saturn {
 		envUnfiltered->Bind();
 
 		Renderer::Submit( [envUnfiltered, envFiltered, cubemapSize]()
- {
+		{
 	 const float deltaRoughness = 1.0f / glm::max( ( float )( envFiltered->GetMipLevelCount() - 1.0f ), 1.0f );
 	 for( int level = 1, size = cubemapSize / 2; level < envFiltered->GetMipLevelCount(); level++, size /= 2 ) // <= ?
 	 {

@@ -67,22 +67,22 @@ namespace Saturn {
 	{
 		if( Input::IsKeyPressed( Key::W ) )
 		{
-			GetComponent<TransformComponent>().Position.z -= 90 * ts;
+			GetComponent<TransformComponent>().Position.x += 90 * ts;
 		}
 
 		if( Input::IsKeyPressed( Key::A ) )
 		{
-			GetComponent<TransformComponent>().Position.x -= 90 * ts;
+			GetComponent<TransformComponent>().Position.z -= 90 * ts;
 		}
 
 		if( Input::IsKeyPressed( Key::S ) )
 		{
-			GetComponent<TransformComponent>().Position.z += 90 * ts;
+			GetComponent<TransformComponent>().Position.x -= 90 * ts;
 		}
 
 		if( Input::IsKeyPressed( Key::D ) )
 		{
-			GetComponent<TransformComponent>().Position.x += 90 * ts;
+			GetComponent<TransformComponent>().Position.z += 90 * ts;
 		}
 
 		if ( Input::IsKeyPressed( Key::Space ) )
