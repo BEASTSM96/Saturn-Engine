@@ -161,33 +161,4 @@ namespace Saturn {
 
 		friend class SceneHierarchyPanel;
 	};
-
-	class SATURN_API SceneHierarchyPanel
-	{
-	public:
-		SceneHierarchyPanel() = default;
-		SceneHierarchyPanel(const Ref<Scene>& scene);
-		void SetContext(const Ref<Scene>& scene);
-		void SetSelected(Entity entity);
-		void SetSelectionChangedCallback(const std::function<void(Entity)>& func) { m_SelectionChangedCallback = func; }
-
-		void OnImGuiRender( void );
-		void OnUpdate(Timestep ts);
-
-		Entity& GetSelectionContext() { return m_SelectionContext; }
-
-
-	private:
-		void DrawEntityNode(Entity entity);
-		void DrawEntityComponents(Entity entity);
-	private:
-		Ref<Scene> m_Context;
-		Entity m_SelectionContext;
-		std::string m_NCSTag = "Enter Class Name";
-
-		std::function<void(Entity)> m_SelectionChangedCallback;
-
-		friend class EditorLayer;
-	};
-
 }

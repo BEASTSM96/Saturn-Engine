@@ -217,7 +217,7 @@ namespace Saturn {
 
 		void BeginRuntime( void );
 		void StartRuntime( void );
-		void EndRuntime(Ref<Scene> scene);
+		void EndRuntime( void );
 		RuntimeData& GetRuntimeData() { return m_RuntimeData; }
 		bool m_RuntimeRunning = false;
 

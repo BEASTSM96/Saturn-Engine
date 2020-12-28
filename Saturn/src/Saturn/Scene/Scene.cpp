@@ -555,6 +555,18 @@ namespace Saturn {
 
 	}
 
+	void Scene::EndRuntime( void )
+	{
+		m_RuntimeRunning = false;
+
+		for( auto entity : m_ScriptableEntitys )
+		{
+			auto ncs = entity->GetComponent<NativeScriptComponent>();
+
+			ncs.Instance->OnDestroy();
+		}
+	}
+
 	void Scene::UpdateRuntime( Timestep ts )
 	{
 		SAT_PROFILE_SCOPE("UpdateRuntime");

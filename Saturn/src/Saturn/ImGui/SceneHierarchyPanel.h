@@ -26,82 +26,44 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Character.h"
+#pragma once
 
-#include "Saturn/Renderer/Renderer.h"
+#include "Saturn/Core/Base.h"
+#include "Saturn/Scene/Scene.h"
+#include "Saturn/Scene/Entity.h"
+#include "Saturn/Core/Timestep.h"
 
-#include "Saturn/Input.h"
+#include <functional>
 
 namespace Saturn {
 
-	Character::Character()
+	class SceneHierarchyPanel
 	{
-	}
+	public:
+		SceneHierarchyPanel() = default;
+		SceneHierarchyPanel( const Ref<Scene>& scene );
+		void SetContext( const Ref<Scene>& scene );
+		void SetSelected( Entity entity );
+		void SetSelectionChangedCallback( const std::function<void( Entity )>& func ) { m_SelectionChangedCallback = func; }
 
-	Character::~Character()
-	{
-	}
+		void OnImGuiRender( void );
+		void OnUpdate( Timestep ts );
 
-	void Character::OnCreate()
-	{
-		SAT_INFO("Character::OnCreate");
-	}
+		Entity& GetSelectionContext() { return m_SelectionContext; }
 
-	void Character::OnDestroy()
-	{
-		RemoveComponent<MeshComponent>();
-	}
 
-	void Character::BeginPlay()
-	{
-		SAT_PROFILE_FUNCTION();
-		SAT_INFO("Character::BeginPlay");
+	private:
+		void DrawEntityNode( Entity entity );
+		void DrawEntityComponents( Entity entity );
+	private:
+		Ref<Scene> m_Context;
+		Entity m_SelectionContext;
+		std::string m_NCSTag = "Enter Class Name";
 
-		std::string filepath = "assets/meshes/Cube1m.fbx";
-		AddComponent<MeshComponent>().Mesh = Ref<Mesh>::Create(filepath);
+		std::function<void( Entity )> m_SelectionChangedCallback;
 
-	}
+		friend class EditorLayer;
+	};
 
-	void Character::ProcessInput( Timestep ts )
-	{
-		if( Input::IsKeyPressed( Key::W ) )
-		{
-			GetComponent<TransformComponent>().Position.x += 90 * ts;
-		}
-
-		if( Input::IsKeyPressed( Key::A ) )
-		{
-			GetComponent<TransformComponent>().Position.z -= 90 * ts;
-		}
-
-		if( Input::IsKeyPressed( Key::S ) )
-		{
-			GetComponent<TransformComponent>().Position.x -= 90 * ts;
-		}
-
-		if( Input::IsKeyPressed( Key::D ) )
-		{
-			GetComponent<TransformComponent>().Position.z += 90 * ts;
-		}
-
-		if ( Input::IsKeyPressed( Key::Space ) )
-		{
-			GetComponent<TransformComponent>().Position.y += 90 * ts;
-		}
-
-		if( Input::IsKeyPressed( Key::F ) )
-		{
-			auto mynewScriptableEntity = m_Scene->SpawnEntity<ScriptableEntity>( "Scriptable Entity", glm::vec3(0, 0, 0 ), glm::quat( 0, 0, 0, 0 ) );
-		}
-
-	}
-
-	void Character::OnUpdate( Timestep ts )
-	{
-		SAT_PROFILE_FUNCTION();
-
-		ProcessInput(ts);
-	}
 
 }
