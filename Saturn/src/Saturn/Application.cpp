@@ -83,7 +83,6 @@ namespace Saturn {
 		PushOverlay( m_EditorLayer );
 
 		m_Window->Maximize();
-
 	}
 
 	Application::~Application()
