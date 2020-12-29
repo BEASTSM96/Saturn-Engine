@@ -26,66 +26,39 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Core.h"
-
-#include <vector>
-
-#include "Saturn/Core/Ref.h"
-#include "Saturn/Core/Timestep.h"
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Components.h"
-#include "Saturn/Scene/Entity.h"
+#include "sppch.h"
 #include "Collision.h"
 
 namespace Saturn {
 
-	class PhysicsWorld : public RefCounted
+    bool Collision::TestAABB( glm::vec4 a, glm::vec4 b )
+    {
+       if ( a.x + b.w >= b.x && b.x + b.w >= a.x && a.y + a.b >= b.y && b.y + b.b >= a.y )
+       {
+		   SAT_CORE_INFO( "[AABB] a.x + b.w >= b.x && b.x + b.w >= a.x && a.y + a.b >= b.y && b.y + b.b >= a.y " );
+           return true;
+       }
+       return false;
+    }
+
+	bool Collision::TestAABB( glm::vec3 a, glm::vec3 b )
 	{
-	public:
-		PhysicsWorld( Ref<Scene> scene ) { m_Scene = scene; }
-
-		void Step( Timestep ts ) 
+		if( a.z == b.z )
 		{
-			auto view = m_Scene->GetRegistry().view<TransformComponent, PhysicsComponent>();
-
-			for( const auto& entity : view )
-			{
-				auto [tc, pc] = view.get<TransformComponent, PhysicsComponent>( entity );
-
-				pc.Force += pc.Mass * m_Gravity;
-
-				pc.Velocity += pc.Force / pc.Mass * ts.GetSeconds();
-
-				pc.Position += pc.Velocity;
-
-				pc.Force = glm::vec3( 0, 0, 0 );
-
-			}
+			SAT_CORE_INFO( "[AABB] a.z == b.z " );
+			return true;
 		}
-
-		void SetEntityPos(Entity entity)
+		if( a.x == b.x )
 		{
-			entity.GetComponent<TransformComponent>().Position = entity.GetComponent<PhysicsComponent>().Position;
+			SAT_CORE_INFO( "[AABB] a.x == b.x " );
+			return true;
 		}
-
-		void TestAABBWorld ( Entity a, Entity b )
+		if( a.z == b.z && a.x == b.x )
 		{
-			auto& atc =  a.GetComponent<TransformComponent>();
-			auto& btc =  b.GetComponent<TransformComponent>();
-
-			Collision::TestAABB(atc.Position, btc.Position);
-
+			SAT_CORE_INFO( "[AABB] a.z == b.z & a.x == b.x " );
+			return true;
 		}
-
-	protected:
-		Ref<Scene> m_Scene;
-
-	private:
-		std::vector<PhysicsComponent> m_PhysicsComponents;
-		glm::vec3 m_Gravity = glm::vec3( 0, -9.81f, 0 );
-	};
-
+		return false;
+	}
 
 }

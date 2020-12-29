@@ -28,15 +28,38 @@
 
 #pragma once
 
+#include "Core.h"
 #include "Saturn/Core/Base.h"
-#include "Saturn/Application.h"
+#include "Saturn/Core/AABB/AABB.h"
 #include <glm/glm.hpp>
 
 namespace Saturn {
-	class SATURN_API Raycast
+
+	class Collision : public RefCounted
 	{
 	public:
-		//Returns the distance of A and B
+
+		static bool TestAABB( glm::vec4 a, glm::vec4 b );
+		static bool TestAABB( glm::vec3 a, glm::vec3 b );
+
+	protected:
+	private:
+	};
+
+	class Collider : public RefCounted
+	{
+	public:
+	protected:
+	private:
 	};
 
 }
+
+/*
+*	A - > x, y, z 
+*	B - > x, y, z
+*	
+*	a->z = b->z //collision??
+*	a->x = b->x //collision??
+*	
+*/

@@ -255,8 +255,6 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		SAT_CORE_INFO( "PhysicsUpdate" );
-
 		m_PhysicsWorld->Step( delta );
 
 		auto view = GetRegistry().view<TransformComponent, PhysicsComponent>();
@@ -553,6 +551,13 @@ namespace Saturn {
 
 		}
 
+		auto& a = CreateEntity( "a" );
+		auto& b = CreateEntity( "b" );
+
+		a.GetComponent<TransformComponent>().Position.x = -10;
+		b.GetComponent<TransformComponent>().Position.x = -10;
+
+		m_PhysicsWorld->TestAABBWorld(a, b);
 	}
 
 	void Scene::EndRuntime( void )
@@ -569,7 +574,6 @@ namespace Saturn {
 
 	void Scene::UpdateRuntime( Timestep ts )
 	{
-		SAT_PROFILE_SCOPE("UpdateRuntime");
 		SAT_PROFILE_FUNCTION();
 
 		for( auto entity : m_ScriptableEntitys )
