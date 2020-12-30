@@ -37,7 +37,8 @@ namespace Saturn {
 
 	class Scene;
 
-	class PhysicsScene {
+	class PhysicsScene : public RefCounted 
+	{
 	public:
 		PhysicsScene(Scene* scene);
 		~PhysicsScene();

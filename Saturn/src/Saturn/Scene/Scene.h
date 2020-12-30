@@ -172,7 +172,7 @@ namespace Saturn {
 		}
 
 		PhysicsScene* GetPhysicsScene() {
-			return &*m_physicsScene;
+			return &*m_ReactPhysicsScene;
 		}
 
 		SceneData& GetData() { return m_data; }
@@ -226,7 +226,7 @@ namespace Saturn {
 		std::vector<ScriptableEntity*> m_ScriptableEntitys;
 		/*------------------------------------------------------------------ */
 	public:
-		std::shared_ptr<PhysicsScene> m_physicsScene;
+		Ref<PhysicsScene> m_ReactPhysicsScene;
 
 
 	private:

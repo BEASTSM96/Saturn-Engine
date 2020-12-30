@@ -235,6 +235,15 @@ namespace Saturn {
 		SphereColliderComponent( float radius ) : Radius( radius ) { }
 	};
 
+	struct RigidbodyComponent : Component
+	{
+		Ref<Rigidbody> m_body;
+
+		RigidbodyComponent() = default;
+		RigidbodyComponent( Ref<Rigidbody> m_Body ) : m_body( m_Body ) { }
+	};
+
+
 	//
 	// ScriptComponents
 	//

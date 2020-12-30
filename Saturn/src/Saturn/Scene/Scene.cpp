@@ -70,7 +70,7 @@ namespace Saturn {
 		m_SkyboxMaterial = MaterialInstance::Create( Material::Create( skyboxShader ) );
 		m_SkyboxMaterial->SetFlag( MaterialFlag::DepthTest, false );
 
-		m_physicsScene = std::make_shared<PhysicsScene>( this );
+		m_ReactPhysicsScene = Ref<PhysicsScene>::Create( this );
 		m_PhysicsWorld = Ref<PhysicsWorld>::Create( this );
 	}
 
@@ -92,7 +92,7 @@ namespace Saturn {
 
 	void Scene::OnUpdate(Timestep ts)
 	{
-		m_physicsScene->Update(ts);
+		m_ReactPhysicsScene->Update(ts);
 
 		if (m_RuntimeRunning)
 		{
@@ -268,7 +268,14 @@ namespace Saturn {
 			SAT_CORE_INFO( "tc.Position.y {0}, tc.Position.x {1} ", tc.Position.y, tc.Position.x );
 
 			SAT_CORE_INFO( "pc.Position.y {0}, pc.Position.x {1} ", pc.Position.y, pc.Position.x );
+
+			auto [tc, rb] = view.get<TransformComponent, RigidbodyComponent>( entity );
+
+			tc.Position = rb.m_body->GetPosition();
+
 		}
+
+
 
 	}
 
@@ -334,7 +341,7 @@ namespace Saturn {
 		CScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
 		CScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
 		CScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
-		CScene->m_physicsScene = CurrentScene->m_physicsScene;
+		CScene->m_ReactPhysicsScene = CurrentScene->m_ReactPhysicsScene;
 		CScene->m_RuntimeData = CurrentScene->m_RuntimeData;
 
 		std::unordered_map<UUID, entt::entity> enttMap;
@@ -377,7 +384,7 @@ namespace Saturn {
 		CScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
 		CScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
 		CScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
-		CScene->m_physicsScene = CurrentScene->m_physicsScene;
+		CScene->m_ReactPhysicsScene = CurrentScene->m_ReactPhysicsScene;
 		CScene->m_RuntimeData = CurrentScene->m_RuntimeData;
 
 		std::unordered_map<UUID, entt::entity> enttMap;
@@ -419,7 +426,7 @@ namespace Saturn {
 		NewScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
 		NewScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
 		NewScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
-		NewScene->m_physicsScene = CurrentScene->m_physicsScene;
+		NewScene->m_ReactPhysicsScene = CurrentScene->m_ReactPhysicsScene;
 		NewScene->m_RuntimeData = CurrentScene->m_RuntimeData;
 
 		std::unordered_map<UUID, entt::entity> enttMap;
@@ -461,7 +468,7 @@ namespace Saturn {
 		NewScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
 		NewScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
 		NewScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
-		NewScene->m_physicsScene = CurrentScene->m_physicsScene;
+		NewScene->m_ReactPhysicsScene = CurrentScene->m_ReactPhysicsScene;
 		NewScene->m_RuntimeData = CurrentScene->m_RuntimeData;
 
 		std::unordered_map<UUID, entt::entity> enttMap;
@@ -505,7 +512,7 @@ namespace Saturn {
 		NewScene->m_SkyboxTexture = m_SkyboxTexture;
 		NewScene->m_ViewportHeight = m_ViewportHeight;
 		NewScene->m_ViewportWidth = m_ViewportWidth;
-		NewScene->m_physicsScene = m_physicsScene;
+		NewScene->m_ReactPhysicsScene = m_ReactPhysicsScene;
 		NewScene->m_RuntimeData = m_RuntimeData;
 
 		std::unordered_map<UUID, entt::entity> enttMap;
@@ -557,7 +564,7 @@ namespace Saturn {
 		a.GetComponent<TransformComponent>().Position.x = -10;
 		b.GetComponent<TransformComponent>().Position.x = -10;
 
-		m_PhysicsWorld->TestAABBWorld(a, b);
+		m_PhysicsWorld->TestAABBWorld( a, b );
 	}
 
 	void Scene::EndRuntime( void )

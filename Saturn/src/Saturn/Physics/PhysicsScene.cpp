@@ -39,16 +39,29 @@
 
 namespace Saturn {
 
-	PhysicsScene::PhysicsScene(Scene* scene) : m_scene(scene), m_eventListener(this) {
+	PhysicsScene::PhysicsScene(Scene* scene) : m_scene(scene), m_eventListener(this) 
+	{
+
 		m_world = m_common.createPhysicsWorld();
+
+		std::string name = "Test";
+
+		rp3d::DefaultLogger* defaultLogger = m_common.createDefaultLogger();
+		unsigned int logLevel = static_cast< unsigned int >( rp3d::Logger::Level::Information ) | static_cast< unsigned int >( rp3d::Logger::Level::Warning ) |
+			static_cast< unsigned int >( rp3d::Logger::Level::Error );
+		defaultLogger->addFileDestination( "rp3d_log_" + name + ".html", logLevel, rp3d::DefaultLogger::Format::HTML );
+		m_common.setLogger( defaultLogger );
+
 		m_world->setEventListener(&m_eventListener);
+
 	}
 
 	PhysicsScene::~PhysicsScene() {
 
 	}
 
-	void PhysicsScene::Update(float delta) {
+	void PhysicsScene::Update(float delta) 
+	{
 		const float timeStep = 1.0f / 60.0f;
 
 		m_accumulator += delta;
