@@ -2,7 +2,7 @@
 
 Saturn is primarily an early-stage game engine for Windows. Currently not much is implemented.
 
-![Renderer01](/Titan/assets/.github/i/sat/Renderer01.png?raw=true "Renderer01")
+![SaturnLogo](/Titan/assets/.github/i/sat/SaturnLogov1.png?raw=true "SaturnLogov1")
 
 ## Getting Started
 Visual Studio 2019 is recommended, Saturn is officially untested on other development environments whilst we focus on a Windows build.
