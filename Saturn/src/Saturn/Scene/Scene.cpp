@@ -302,6 +302,11 @@ namespace Saturn {
 
 			//tc.Position = pc.Position;
 
+			if( rb.isKinematic )
+			{
+				rb.m_body->SetMass( 0.0f );
+			}
+
 			tc.Position = rb.m_body->GetPosition();
 
 			SAT_CORE_INFO( "tc.Position.y {0}, tc.Position.x {1} ", tc.Position.y, tc.Position.x );

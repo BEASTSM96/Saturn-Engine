@@ -41,16 +41,27 @@ namespace Saturn {
 
 	void EventListener::onContact(const rp3d::CollisionCallback::CallbackData& callbackData) {
 		// For each contact pair
-		for (unsigned int p = 0; p < callbackData.getNbContactPairs(); p++) {
-
+		for( unsigned int p = 0; p < callbackData.getNbContactPairs(); p++ )
+		{
 			// Get the contact pair
-			rp3d::CollisionCallback::ContactPair contactPair = callbackData.getContactPair(p);
+			rp3d::CollisionCallback::ContactPair contactPair = callbackData.getContactPair( p );
 
 			// For each contact point of the contact pair
-			for (unsigned int c = 0; c < contactPair.getNbContactPoints(); c++) {
-				rp3d::CollisionCallback::ContactPoint contactPoint = contactPair.getContactPoint(c);
-				m_physicsScene->Contact(contactPair.getCollider1()->getBody());
-				m_physicsScene->Contact(contactPair.getCollider2()->getBody());
+			for( unsigned int c = 0; c < contactPair.getNbContactPoints(); c++ )
+			{
+				if( contactPair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactExit )
+				{
+					m_physicsScene->ContactExit( contactPair.getCollider1()->getBody(), contactPair.getCollider2()->getBody() );
+					SAT_CORE_INFO( "Contact" );
+				}
+				else if( contactPair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactStart )
+				{
+					m_physicsScene->ContactEnter( contactPair.getCollider1()->getBody(), contactPair.getCollider2()->getBody() );
+				}
+				else if( contactPair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactStay )
+				{
+					m_physicsScene->ContactStay( contactPair.getCollider1()->getBody(), contactPair.getCollider2()->getBody() );
+				}
 			}
 		}
 	}

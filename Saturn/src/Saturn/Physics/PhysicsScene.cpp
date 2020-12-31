@@ -85,7 +85,22 @@ namespace Saturn {
 
 	}
 
-	void PhysicsScene::Update(float delta) 
+	void PhysicsScene::ContactStay( rp3d::CollisionBody* body, rp3d::CollisionBody* other )
+	{
+		m_scene->ContactStay( body, other );
+	}
+
+	void PhysicsScene::ContactEnter( rp3d::CollisionBody* body, rp3d::CollisionBody* other )
+	{
+		m_scene->ContactEnter( body, other );
+	}
+
+	void PhysicsScene::ContactExit( rp3d::CollisionBody* body, rp3d::CollisionBody* other )
+	{	
+		m_scene->ContactExit( body, other );
+	}
+
+	void PhysicsScene::Update( float delta )
 	{
 		const float timeStep = 1.0f / 60.0f;
 

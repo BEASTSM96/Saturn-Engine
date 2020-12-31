@@ -48,6 +48,10 @@ namespace Saturn {
 		void Contact(rp3d::CollisionBody* body);
 
 		void RegLog();
+
+		void ContactStay( rp3d::CollisionBody* body, rp3d::CollisionBody* other );
+		void ContactEnter( rp3d::CollisionBody* body, rp3d::CollisionBody* other );
+		void ContactExit( rp3d::CollisionBody* body, rp3d::CollisionBody* other );
 	private:
 		friend class Scene;
 
