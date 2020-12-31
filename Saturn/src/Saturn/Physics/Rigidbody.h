@@ -38,7 +38,8 @@ namespace Saturn {
 
 	class PhysicsScene;
 
-	class Rigidbody {
+	class Rigidbody : public RefCounted
+	{
 	public:
 		Rigidbody(PhysicsScene* scene, bool useGravity = true, const glm::vec3& position = glm::vec3(0.0f), const glm::vec3& rotation = glm::vec3(0.0f));
 		~Rigidbody();

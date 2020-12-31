@@ -237,10 +237,12 @@ namespace Saturn {
 
 	struct RigidbodyComponent : Component
 	{
-		Ref<Rigidbody> m_body;
+		bool isKinematic;
+
+		Rigidbody* m_body;
 
 		RigidbodyComponent() = default;
-		RigidbodyComponent( Ref<Rigidbody> m_Body ) : m_body( m_Body ) { }
+		RigidbodyComponent( Rigidbody* m_Body, bool IsKinematic ) : m_body( m_Body ), isKinematic(IsKinematic) { }
 	};
 
 

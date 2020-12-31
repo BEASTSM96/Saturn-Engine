@@ -46,6 +46,8 @@ namespace Saturn {
 		void Update(float delta);
 
 		void Contact(rp3d::CollisionBody* body);
+
+		void RegLog();
 	private:
 		friend class Scene;
 

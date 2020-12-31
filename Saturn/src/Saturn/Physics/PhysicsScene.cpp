@@ -41,22 +41,47 @@ namespace Saturn {
 
 	PhysicsScene::PhysicsScene(Scene* scene) : m_scene(scene), m_eventListener(this) 
 	{
+		m_world = m_common.createPhysicsWorld(  );
 
-		m_world = m_common.createPhysicsWorld();
+		m_world->setEventListener( &m_eventListener );
+		m_world->setIsDebugRenderingEnabled( true );
+	}
 
-		std::string name = "Test";
-
-		rp3d::DefaultLogger* defaultLogger = m_common.createDefaultLogger();
-		unsigned int logLevel = static_cast< unsigned int >( rp3d::Logger::Level::Information ) | static_cast< unsigned int >( rp3d::Logger::Level::Warning ) |
-			static_cast< unsigned int >( rp3d::Logger::Level::Error );
-		defaultLogger->addFileDestination( "rp3d_log_" + name + ".html", logLevel, rp3d::DefaultLogger::Format::HTML );
-		m_common.setLogger( defaultLogger );
-
-		m_world->setEventListener(&m_eventListener);
+	PhysicsScene::~PhysicsScene() 
+	{
 
 	}
 
-	PhysicsScene::~PhysicsScene() {
+	void PhysicsScene::RegLog()
+	{
+		std::string name = "Test";
+
+		rp3d::PhysicsWorld::WorldSettings worldSettings;
+		worldSettings.worldName = name;
+
+		rp3d::DefaultLogger* defaultLogger = m_common.createDefaultLogger();
+
+		rp3d::uint logLevel = static_cast< rp3d::uint >( static_cast< rp3d::uint >( rp3d::Logger::Level::Warning ) | static_cast< rp3d::uint >( rp3d::Logger::Level::Error ) );
+
+		defaultLogger->addFileDestination( "rp3d_log_" + name + ".html", logLevel, rp3d::DefaultLogger::Format::HTML );
+		m_common.setLogger( defaultLogger );
+
+		// Enable debug rendering 
+		m_world->setIsDebugRenderingEnabled( true );
+
+		// Get a reference to the debug renderer 
+		rp3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
+
+		// Select the contact points and contact normals to be displayed 
+		debugRenderer.setIsDebugItemDisplayed( rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true );
+		debugRenderer.setIsDebugItemDisplayed( rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true );
+
+		Renderer::Submit( [=]()
+{
+	rp3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
+		debugRenderer.setIsDebugItemDisplayed( rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true );
+		debugRenderer.setIsDebugItemDisplayed( rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true );
+	} );
 
 	}
 
@@ -66,15 +91,16 @@ namespace Saturn {
 
 		m_accumulator += delta;
 
-		m_world->setIsDebugRenderingEnabled(true);
 
-		reactphysics3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
-		debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
-		debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
-		debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
-		debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::COLLIDER_BROADPHASE_AABB, true);
-		debugRenderer.setIsDebugItemDisplayed(reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+		Renderer::Submit( [=]() {
 
+			reactphysics3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
+		debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true );
+		debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true );
+		debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true );
+		debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::COLLIDER_BROADPHASE_AABB, true );
+		debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true );
+			} );
 
 		while (m_accumulator >= timeStep) {
 			m_world->update(timeStep);
@@ -89,7 +115,7 @@ namespace Saturn {
 		m_scene->Contact(body);
 	}
 
-	glm::vec3 Vec3FromReactVec3(const reactphysics3d::Vector3& matrix)
+	glm::vec3 Vec3FromReactVec3( const reactphysics3d::Vector3& matrix )
 	{
 		glm::vec3 result;
 		result.x = matrix.x;

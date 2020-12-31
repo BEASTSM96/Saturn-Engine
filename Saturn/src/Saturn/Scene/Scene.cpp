@@ -62,6 +62,41 @@ namespace Saturn {
 		UUID SceneID;
 	};
 
+	void Scene::PhysicsComponentCreate( entt::registry& r, entt::entity ent )
+	{
+		if (!r.has<TransformComponent>(ent))
+		{
+			SAT_CORE_ERROR( "PhysicsComponent needs a TransformComponent!" );
+			return;
+		}
+
+		auto& physics = r.get<RigidbodyComponent>( ent );
+		auto& trans = r.get<TransformComponent>( ent );
+		physics.m_body = new Rigidbody( m_ReactPhysicsScene.Raw(), true, trans.Position );
+
+		if (physics.isKinematic)
+		{
+			physics.m_body->SetKinematic( true );
+		}
+
+
+		if( r.has<BoxColliderComponent>( ent ) )
+		{
+			physics.m_body->AddBoxCollider(r.get<BoxColliderComponent>(ent).Extents);
+		}
+
+		if( r.has<SphereColliderComponent>( ent ) )
+		{
+			physics.m_body->AddSphereCollider( r.get<SphereColliderComponent>( ent ).Radius );
+		}
+
+		if ( !r.has<SphereColliderComponent>(ent) && !r.has<BoxColliderComponent>( ent ) )
+		{
+			SAT_CORE_WARN("You need to add a ColliderComponent Sphere or box.");
+		}
+
+	}
+
 	Scene::Scene( void )
 	{
 		SAT_PROFILE_FUNCTION();
@@ -72,6 +107,8 @@ namespace Saturn {
 
 		m_ReactPhysicsScene = Ref<PhysicsScene>::Create( this );
 		m_PhysicsWorld = Ref<PhysicsWorld>::Create( this );
+
+		m_Registry.on_construct<RigidbodyComponent>().connect<&Scene::PhysicsComponentCreate>( this );
 	}
 
 	Scene::~Scene( void )
@@ -257,26 +294,18 @@ namespace Saturn {
 
 		m_PhysicsWorld->Step( delta );
 
-		auto view = GetRegistry().view<TransformComponent, PhysicsComponent>();
+		auto view = GetRegistry().view<TransformComponent, RigidbodyComponent>();
 
 		for( const auto& entity : view )
 		{
-			auto [tc, pc] = view.get<TransformComponent, PhysicsComponent>( entity );
+			auto [tc, rb] = view.get<TransformComponent, RigidbodyComponent>( entity );
 
-			tc.Position = pc.Position;
-
-			SAT_CORE_INFO( "tc.Position.y {0}, tc.Position.x {1} ", tc.Position.y, tc.Position.x );
-
-			SAT_CORE_INFO( "pc.Position.y {0}, pc.Position.x {1} ", pc.Position.y, pc.Position.x );
-
-			auto rb = view.get<RigidbodyComponent>( entity );
+			//tc.Position = pc.Position;
 
 			tc.Position = rb.m_body->GetPosition();
 
+			SAT_CORE_INFO( "tc.Position.y {0}, tc.Position.x {1} ", tc.Position.y, tc.Position.x );
 		}
-
-
-
 	}
 
 	void Scene::ContactStay(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other) 
@@ -291,7 +320,7 @@ namespace Saturn {
 	{
 	}
 
-	void Scene::Contact(rp3d::CollisionBody* body) 
+	void Scene::Contact( rp3d::CollisionBody* body )
 	{
 	}
 
@@ -514,26 +543,28 @@ namespace Saturn {
 		NewScene->m_ViewportWidth = m_ViewportWidth;
 		NewScene->m_ReactPhysicsScene = m_ReactPhysicsScene;
 		NewScene->m_RuntimeData = m_RuntimeData;
+		NewScene->m_ReactPhysicsScene->RegLog();
 
 		std::unordered_map<UUID, entt::entity> enttMap;
 		auto idComponents = m_Registry.view<IdComponent>();
-		for (auto entity : idComponents)
+		for( auto entity : idComponents )
 		{
-			auto uuid = m_Registry.get<IdComponent>(entity).ID;
-			Entity e = NewScene->CreateEntityWithID(uuid, "", true);
-			enttMap[uuid] = e.m_EntityHandle;
+			auto uuid = m_Registry.get<IdComponent>( entity ).ID;
+			Entity e = NewScene->CreateEntityWithID( uuid, "", true );
+			enttMap[ uuid ] = e.m_EntityHandle;
 		}
 
-		CopyComponent<TagComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<TransformComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<MeshComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<RelationshipComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<PhysicsComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<BoxColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<SphereColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<SpriteRendererComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<NativeScriptComponent>(NewScene->m_Registry, m_Registry, enttMap);
 
+		CopyComponent<TagComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<TransformComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<MeshComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<RelationshipComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<PhysicsComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<BoxColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<SphereColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<SpriteRendererComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<NativeScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<RigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
 		NewScene->m_ScriptableEntitys = m_ScriptableEntitys;
 

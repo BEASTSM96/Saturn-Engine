@@ -164,19 +164,37 @@ namespace Saturn {
 					}
 					if( ImGui::BeginMenu( "Physics" ) )
 					{
-						if( ImGui::MenuItem( "Physics" ) )
+						if( !m_SelectionContext.HasComponent<PhysicsComponent>() )
 						{
-							m_SelectionContext.AddComponent<PhysicsComponent>();
+
+							if( ImGui::MenuItem( "Physics" ) )
+							{
+								m_SelectionContext.AddComponent<PhysicsComponent>();
+							}
 						}
 
-						if( ImGui::MenuItem( "Box Collider" ) )
+						if( !m_SelectionContext.HasComponent<RigidbodyComponent>() )
 						{
-							m_SelectionContext.AddComponent<BoxColliderComponent>( glm::vec3( 1 ) );
+							if( ImGui::MenuItem( "Rigidbody" ) )
+							{
+								m_SelectionContext.AddComponent<RigidbodyComponent>();
+							}
 						}
 
-						if( ImGui::MenuItem( "Sphere Collider" ) )
+						if( !m_SelectionContext.HasComponent<BoxColliderComponent>() )
 						{
-							m_SelectionContext.AddComponent<SphereColliderComponent>( 1.0f );
+							if( ImGui::MenuItem( "Box Collider" ) )
+							{
+								m_SelectionContext.AddComponent<BoxColliderComponent>( glm::vec3( 1 ) );
+							}
+						}
+
+						if( !m_SelectionContext.HasComponent<SphereColliderComponent>() )
+						{
+							if( ImGui::MenuItem( "Sphere Collider" ) )
+							{
+								m_SelectionContext.AddComponent<SphereColliderComponent>( 1.0f );
+							}
 						}
 
 						ImGui::EndMenu();
@@ -504,6 +522,25 @@ namespace Saturn {
 
 		DrawComponent<PhysicsComponent>( "Physics", entity, []( auto& pc )
 			{
+
+
+			} );
+
+		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )
+			{
+
+				bool canKinematic = rb.m_body->GetKinematic();
+				DrawBoolControl( "Kinematic", &canKinematic );
+
+				if ( canKinematic )
+				{
+					rb.m_body->SetKinematic( true );
+				}
+
+				if (!canKinematic )
+				{
+					rb.m_body->SetKinematic( false );
+				}
 
 
 			} );
