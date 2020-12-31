@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 BEAST                                                                  *
+* Copyright (c) 2020 - 2021 BEAST                                                           *
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -25,7 +25,6 @@
 * SOFTWARE.                                                                                 *
 *********************************************************************************************
 */
-
 #pragma once
 
 #include "Saturn/Renderer/RenderPass.h"

@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 BEAST                                                                  *
+* Copyright (c) 2020 - 2021 BEAST                                                           *
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -269,7 +269,7 @@ namespace Saturn {
 
 			SAT_CORE_INFO( "pc.Position.y {0}, pc.Position.x {1} ", pc.Position.y, pc.Position.x );
 
-			auto [tc, rb] = view.get<TransformComponent, RigidbodyComponent>( entity );
+			auto rb = view.get<RigidbodyComponent>( entity );
 
 			tc.Position = rb.m_body->GetPosition();
 
