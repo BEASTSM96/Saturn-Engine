@@ -668,6 +668,7 @@ namespace Saturn {
 
 		//DeserialiseDebugLvl();
 
+		OpenScene("assets/physic_scene.sc");
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init("#version 410");
@@ -675,20 +676,23 @@ namespace Saturn {
 
 	void UpdateWindowTitle( std::string name )
 	{
-	#ifdef SAT_PLATFORM_WINDOWS
-	#ifdef SAT_DEBUG
-		std::string title = name + " - Saturn - " + "Windows" + " (" + "Debug" + ")";
-	#endif // SAT_DEBUG
-
-	#ifdef SAT_RELEASE
-		std::string title = name + " - Saturn - " + "Windows" + " (" + "Release" + ")";
-	#endif // SAT_RELEASE
-
-	#ifdef SAT_DIST
-		std::string title = name + " - Saturn - " + "Windows" + " (" + "Dist" + ")";
-	#endif //SAT_DIST
-	#endif
+		std::string title = name + " - Saturn - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ")";
 		Application::Get().GetWindow().SetTitle( title );
+	}
+
+	void EditorLayer::OpenScene( const std::string& filepath )
+	{
+		Ref<Scene> newScene = Ref<Scene>::Create();
+		Serialiser serialiser( newScene );
+		serialiser.Deserialise( filepath );
+		m_EditorScene = newScene;
+
+		std::filesystem::path path = filepath;
+		UpdateWindowTitle( path.filename().string() );
+		m_SceneHierarchyPanel->SetContext( m_EditorScene );
+
+		m_EditorScene->SetSelectedEntity( {} );
+		m_SelectionContext.clear();
 	}
 
 	void EditorLayer::DeserialiseDebugLvl()
@@ -799,7 +803,7 @@ namespace Saturn {
 
 	bool EditorLayer::Property(const std::string& name, glm::vec3& value, EditorLayer::PropertyFlag flags)
 	{
-		return Property(name, value, -1.0f, 1.0f, flags);
+		return Property( name, value, -1.0f, 1.0f, flags );
 	}
 
 	bool EditorLayer::Property(const std::string& name, glm::vec3& value, float min, float max, EditorLayer::PropertyFlag flags)
@@ -825,7 +829,7 @@ namespace Saturn {
 
 	bool EditorLayer::Property(const std::string& name, glm::vec4& value, EditorLayer::PropertyFlag flags)
 	{
-		return Property(name, value, -1.0f, 1.0f, flags);
+		return Property( name, value, -1.0f, 1.0f, flags );
 	}
 
 	bool EditorLayer::Property(const std::string& name, glm::vec4& value, float min, float max, EditorLayer::PropertyFlag flags)
@@ -1418,6 +1422,7 @@ namespace Saturn {
 						auto projm = glm::value_ptr( m_EditorCamera.GetProjectionMatrix() );
 
 						Entity selectedEntity = m_SceneHierarchyPanel->GetSelectionContext();
+
 						auto& tc = selectedEntity.GetComponent<TransformComponent>();
 						glm::mat4 transform = tc.GetTransform();
 						ImGuizmo::Manipulate( viewm, projm , ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr( transform ), nullptr, snap ? snapValues : nullptr );

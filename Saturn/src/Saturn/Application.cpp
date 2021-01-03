@@ -272,5 +272,29 @@ namespace Saturn {
 
 	}
 
+	const char* Application::GetConfigurationName()
+	{
+	#if defined(SAT_DEBUG)
+		return "Debug";
+	#elif defined(SAT_RELEASE)
+		return "Release";
+	#elif defined(SAT_DIST)
+		return "Dist";
+	#else
+	#error Undefined configuration?
+	#endif
+	}
+
+	const char* Application::GetPlatformName()
+	{
+	#if defined(SAT_PLATFORM_WINDOWS)
+		return "Windows x64";
+	#elif defined(SAT_PLATFORM_LINUX)
+		return "Linux";
+	#else
+	#error Undefined platform?
+	#endif
+	}
+
 
 }

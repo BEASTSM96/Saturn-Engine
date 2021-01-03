@@ -89,6 +89,9 @@ namespace Saturn {
 		std::pair< std::string, std::string > OpenFile( const char* filter ) const;
 		std::pair< std::string, std::string > SaveFile( const char* f ) const;
 
+		static const char* GetConfigurationName();
+		static const char* GetPlatformName();
+
 	public:
 		Scene& GetCurrentScene( void ) { return *m_Scene; }
 		ModuleManager& GetModuleManager( void ) { return *m_ModuleManager; }

@@ -74,6 +74,7 @@ namespace Saturn {
 		~EditorLayer( void );
 
 		virtual void OnAttach( void ) override;
+		void OpenScene( const std::string& filepath );
 		virtual void OnDetach( void ) override;
 		virtual void OnImGuiRender() override;
 		virtual void OnUpdate(Timestep ts) override;
