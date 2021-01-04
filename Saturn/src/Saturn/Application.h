@@ -102,19 +102,19 @@ namespace Saturn {
 		bool OnWindowClose( WindowCloseEvent& e );
 		bool OnWindowResize( WindowResizeEvent& e );
 
-	private:
-
-		std::unique_ptr< Window > m_Window;
-
-		ImGuiLayer* m_ImGuiLayer;
-
-		EditorLayer* m_EditorLayer;
+	protected:
 
 		Ref< Scene > m_Scene;
 
 		Ref< SceneManager > m_SceneManager;
 		Ref< ModuleManager > m_ModuleManager;
 		Ref< HotReload > m_HotReload;
+
+	private:
+
+		std::unique_ptr< Window > m_Window;
+
+		ImGuiLayer* m_ImGuiLayer;
 
 		bool m_Running = true;
 

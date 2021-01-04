@@ -72,17 +72,17 @@ namespace Saturn {
 		m_Window->SetVSync( false );
 
 		m_ImGuiLayer = new ImGuiLayer();
-		m_EditorLayer = new EditorLayer();
+		//m_EditorLayer = new EditorLayer();
 
 		Renderer::Init();
 		Renderer::WaitAndRender();
 
-		//PushLayer(m_EditorLayer);
 		PushOverlay( m_ImGuiLayer );
-		Init();
-		PushOverlay( m_EditorLayer );
+		//PushOverlay( m_EditorLayer );
 
 		m_Window->Maximize();
+
+		Init();
 	}
 
 	Application::~Application()
@@ -151,12 +151,13 @@ namespace Saturn {
 		m_ModuleManager = Ref< ModuleManager >::Create();
 		m_SceneManager = Ref< SceneManager >::Create();
 		m_HotReload = Ref< HotReload >::Create();
-		m_HotReload->m_Scece = m_EditorLayer->GetEditorScene();
+		//m_HotReload->m_Scece = m_EditorLayer->GetEditorScene();
 	}
 
 	void Application::Run()
 	{
 		SAT_PROFILE_FUNCTION();
+
 		while( m_Running && !m_Crashed )
 		{
 			SAT_PROFILE_SCOPE( "RunLoop" );

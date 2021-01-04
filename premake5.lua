@@ -1020,6 +1020,7 @@ project "Titan"
 		"Saturn/src",
 		"Saturn/vendor",
 		"%{IncludeDir.json_cpp}",
+		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.entt}",
