@@ -46,6 +46,7 @@ namespace Saturn {
 		void SetSelected( Entity entity );
 		void SetSelectionChangedCallback( const std::function<void( Entity )>& func ) { m_SelectionChangedCallback = func; }
 
+
 		void OnImGuiRender( void );
 		void OnUpdate( Timestep ts );
 
@@ -53,6 +54,7 @@ namespace Saturn {
 
 
 	private:
+		bool CheckSelectionContext( Entity selectedEntity );
 		void DrawEntityNode( Entity entity );
 		void DrawEntityComponents( Entity entity );
 	private:

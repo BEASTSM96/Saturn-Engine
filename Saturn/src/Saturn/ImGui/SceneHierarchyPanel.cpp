@@ -50,6 +50,33 @@ namespace Saturn {
 	{
 		m_Context = scene;
 		m_SelectionContext = {};
+
+		/*
+		if( m_SelectionContext && false )
+		{
+			// Try and find same entity in new scene
+			auto& entityMap = m_Context->GetEntityMap();
+			UUID selectedEntityID = m_SelectionContext.GetUUID();
+			if( entityMap.find( selectedEntityID ) != entityMap.end() )
+				m_SelectionContext = entityMap.at( selectedEntityID );
+		}
+		*/
+
+		auto& EntityA = m_Context->CreateEntity( "A" );
+		m_SelectionContext = EntityA;
+		m_SelectionContext ={}; 
+		m_Context->DestroyEntity( EntityA );
+
+
+		auto& EntityB = m_Context->CreateEntity( "B" );
+		m_SelectionContext = EntityB;
+		m_SelectionContext ={};
+		m_Context->DestroyEntity( EntityB );
+
+		auto& EntityC = m_Context->CreateEntity( "C" );
+		m_SelectionContext = EntityC;
+		m_SelectionContext ={};
+		m_Context->DestroyEntity( EntityC );
 	}
 
 	void SceneHierarchyPanel::SetSelected( Entity entity )
@@ -82,7 +109,8 @@ namespace Saturn {
 		{
 			if( ImGui::MenuItem( "Create Empty Entity" ) )
 			{
-				m_Context->CreateEntity( "Empty Entity" );
+				auto Entity =  m_Context->CreateEntity( "Empty Entity" );
+				SetSelected( Entity );
 			}
 
 			if( ImGui::MenuItem( "Create Mesh Entity" ) )
@@ -98,6 +126,7 @@ namespace Saturn {
 					auto& mc = e.AddComponent<MeshComponent>();
 					std::string filepath = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
 					mc.Mesh = Ref<Mesh>::Create( filepath );
+					SetSelected( e );
 				}
 
 			}
@@ -113,6 +142,7 @@ namespace Saturn {
 				if( !e.HasComponent<MeshComponent>() )
 				{
 					auto& mc = e.AddComponent<MeshComponent>();
+					SetSelected( e );
 				}
 
 			}
@@ -123,9 +153,10 @@ namespace Saturn {
 				//Character* e = dynamic_cast<Character*>(m_Context->CreateScriptableEntityptr("Character Entity"));
 			}
 
-			if( ImGui::MenuItem( "Create Scriptable Entity Entity" ) )
+			if( ImGui::MenuItem( "Create Scriptable Entity" ) )
 			{
 				ScriptableEntity* e = m_Context->CreateScriptableEntityptr( "ScriptableEntity" );
+				SetSelected( e->m_Entity );
 			}
 
 			ImGui::EndPopup();
@@ -136,7 +167,6 @@ namespace Saturn {
 
 		if( ImGui::Begin( "Inspector" ) )
 		{
-
 			if( m_SelectionContext )
 			{
 				DrawEntityComponents( m_SelectionContext );
@@ -215,14 +245,16 @@ namespace Saturn {
 		{
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-			ImGuiTreeNodeFlags flags = ( ( m_SelectionContext == entity ) ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
-			bool opened = ImGui::TreeNodeEx( ( void* )( uint64_t )( uint32_t )entity, flags, tag.c_str() );
+			ImGuiTreeNodeFlags flags = ( entity == m_SelectionContext ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
+			bool opened = ImGui::TreeNodeEx( ( void* )( uint32_t )entity, flags, tag.c_str() );
 
 			if( ImGui::IsItemClicked() )
 			{
 				m_SelectionContext = entity;
-				//if (m_SelectionChangedCallback)
-				m_SelectionChangedCallback( m_SelectionContext );
+				if( m_SelectionChangedCallback )
+				{
+					m_SelectionChangedCallback( m_SelectionContext );
+				}
 			}
 
 			if( opened )
@@ -237,6 +269,7 @@ namespace Saturn {
 		else
 		{
 			entity.AddComponent<TagComponent>();
+			DrawEntityNode( entity );
 		}
 	}
 

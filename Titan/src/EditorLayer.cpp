@@ -94,7 +94,6 @@ namespace Saturn {
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-
 		m_EditorScene = Ref<Scene>::Create();
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>( m_EditorScene );
 		m_SceneHierarchyPanel->SetSelectionChangedCallback( std::bind( &EditorLayer::SelectEntity, this, std::placeholders::_1 ) );
@@ -104,19 +103,41 @@ namespace Saturn {
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
 
-
-		//DeserialiseDebugLvl();
-
 		OpenScene( "assets/physic_scene.sc" );
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init( "#version 410" );
 	}
 
-	void UpdateWindowTitle( std::string name )
+	void EditorLayer::UpdateWindowTitle( std::string name )
 	{
 		std::string title = name + " - Saturn - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ")";
 		Application::Get().GetWindow().SetTitle( title );
+	}
+
+	void EditorLayer::NewScene()
+	{
+		m_EditorScene = Ref<Scene>::Create();
+		m_SceneHierarchyPanel->SetContext( m_EditorScene );
+		UpdateWindowTitle( "Untitled Scene" );
+
+		m_EditorCamera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 1000.0f ) );
+	}
+
+	void EditorLayer::OpenScene( )
+	{
+		Ref<Scene> newScene = Ref<Scene>::Create();
+		Serialiser serialiser( newScene );
+		std::string filepath = Application::Get().OpenFile( "Scene( *.sc )\0 * .sc\0").first;
+		serialiser.Deserialise( filepath );
+		m_EditorScene = newScene;
+
+		std::filesystem::path path = filepath;
+		UpdateWindowTitle( path.filename().string() );
+		m_SceneHierarchyPanel->SetContext( m_EditorScene );
+
+		m_EditorScene->SetSelectedEntity( {} );
+		m_SelectionContext.clear();
 	}
 
 	void EditorLayer::OpenScene( const std::string& filepath )
@@ -697,10 +718,28 @@ namespace Saturn {
 				ImGuiID dockspace_id = ImGui::GetID( "MyDockspace" );
 				ImGui::DockSpace( dockspace_id, ImVec2( 0.0f, 0.0f ), opt_flags );
 			}
+
+			if(ImGui::BeginMainMenuBar()) 
+			{
+				if (ImGui::BeginMenu("File"))
+				{
+					if( ImGui::MenuItem( "New", "Shift+N" ) )
+						NewScene();
+
+					if( ImGui::MenuItem( "Open...", "Shift+O" ) )
+						OpenScene();
+
+					if( ImGui::MenuItem( "Save As...", "Shift+S" ) )
+						SaveSceneAs();
+					ImGui::EndMenu();
+				}
+
+				ImGui::EndMainMenuBar();
+			}
+
 			m_ImGuiConsole_Thread = std::thread( &EditorLayer::StartImGuiConsole, this );
 			// Editor Panel ------------------------------------------------------------------------------
 			m_ImGuiConsole_Thread.join();
-
 
 			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
 			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );

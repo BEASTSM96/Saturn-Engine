@@ -92,7 +92,7 @@ namespace Saturn {
 
 		void BeginPlay() {}
 
-		//UUID GetUUID() { return GetComponent<IdComponent>().ID; }
+		UUID GetUUID() { return GetComponent<IdComponent>().ID; }
 	private:
 		Entity( const std::string& name );
 	protected:

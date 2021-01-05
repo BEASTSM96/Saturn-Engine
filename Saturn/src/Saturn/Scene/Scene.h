@@ -208,6 +208,8 @@ namespace Saturn {
 
 		void Contact(rp3d::CollisionBody* body);
 
+		const EntityMap& GetEntityMap() const { return m_EntityIDMap; }
+
 		/*------------------------ Runtime helpers ------------------------ */
 		Ref<Scene> CopyScene( const Ref<Scene>& CurrentScene );
 		Ref<Scene> CopyScene( const Ref<Scene>& CurrentScene, Ref<Scene> NewScene );
