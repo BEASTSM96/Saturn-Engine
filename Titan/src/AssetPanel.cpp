@@ -67,6 +67,18 @@ namespace Saturn {
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 
+		namespace fs = std::filesystem;
+
+		for( fs::recursive_directory_iterator it( "assets/" ); it != fs::recursive_directory_iterator(); ++it )
+		{
+			m_AssetsFolderContents.push_back( it->path().string() );
+
+			if( it->path().extension() == ".asset" )
+			{
+				m_Assets.push_back( it->path().string() );
+			}
+		}
+
 		ImGui_ImplOpenGL3_Init( "#version 410" );
 	}
 
@@ -132,6 +144,58 @@ namespace Saturn {
 		}
 		ImGui::End();
 
+		if( ImGui::Begin( "Assets", &p_open ) )
+		{
+			std::string m_FolderPath = "abc..";
+
+			for( fs::recursive_directory_iterator it( asset_path ); it != fs::recursive_directory_iterator(); ++it )
+			{
+				{
+
+					if ( !it->path().has_extension() )
+					{
+						m_FolderPath = it->path().string();
+					}
+
+					if( it->path().extension() == ".png" )
+					{
+						m_FolderPath = m_FolderPath;
+
+						if ( CheckHasAsset( it->path().filename().string(), it->path().string(), m_FolderPath ) == false )
+						{
+							Ref<Texture2D> PngImage = Texture2D::Create( it->path().string() );
+							ImGui::ImageButton( ( ImTextureID )PngImage->GetRendererID(), ImVec2( 64, 64 ) );
+						}
+					}
+				}
+
+			}
+		}
+		ImGui::End();
+	}
+
+	bool AssetPanel::CheckHasAsset( std::string name, std::string filepath, std::string folder )
+	{
+		namespace fs = std::filesystem;
+
+		for( fs::directory_iterator it( folder ); it != fs::directory_iterator(); ++it )
+		{
+			if ( it->path().filename() == name && std::find( m_Assets.begin(), m_Assets.end(), name ) == m_Assets.end() && it->path().filename() != name + ".asset" )
+			{
+				m_Assets.push_back( name );
+
+				std::ofstream ofstream( name + ".asset" );
+
+				fs::remove( folder + name + ".asset" );
+				fs::copy_file( name + ".asset", folder + name + ".asset" );
+
+				return false;
+			}
+			else if( it->path().filename() == name + ".asset" )
+			{
+				return true;
+			}
+		}
 	}
 
 	void AssetPanel::OnEvent( Event& e )

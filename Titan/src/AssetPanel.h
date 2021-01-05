@@ -33,6 +33,8 @@
 #include <Saturn/Core/Ray.h>
 #include <Saturn/Core/Ref.h>
 
+#include <vector>
+
 namespace Saturn {
 
 	class AssetPanel : public Layer, public RefCounted
@@ -44,6 +46,7 @@ namespace Saturn {
 		virtual void OnAttach( void ) override;
 		virtual void OnDetach( void ) override;
 		virtual void OnImGuiRender() override;
+		bool CheckHasAsset( std::string name, std::string filepath, std::string folder );
 		virtual void OnUpdate( Timestep ts ) override;
 		virtual void OnEvent( Event& e ) override;
 
@@ -53,6 +56,9 @@ namespace Saturn {
 
 	protected:
 		Ref<Texture2D> m_CheckerboardTex;
+
+		std::vector<std::string> m_Assets;
+		std::vector<std::string> m_AssetsFolderContents;
 	private:
 	};
 }
