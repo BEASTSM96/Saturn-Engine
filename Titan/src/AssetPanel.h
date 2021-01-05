@@ -26,116 +26,33 @@
 *********************************************************************************************
 */
 
+
 #pragma once
 
-#include <Saturn/Layer.h>
-#include <Saturn/Renderer/Mesh.h>
+#include <Saturn/Layer.h> 
 #include <Saturn/Core/Ray.h>
-#include <Saturn/ImGui/ImGuiConsole.h>
+#include <Saturn/Core/Ref.h>
 
-#include "AssetPanel.h"
+namespace Saturn {
 
-namespace Saturn { 
-
-	class EditorLayer : public Layer
+	class AssetPanel : public Layer, public RefCounted
 	{
 	public:
-		EditorLayer( void );
-		~EditorLayer( void );
-
+		AssetPanel( void );
+		~AssetPanel( void );
+	public:
 		virtual void OnAttach( void ) override;
-		void UpdateWindowTitle( std::string name );
-		void NewScene();
-		void OpenScene();
-		void OpenScene( const std::string& filepath );
 		virtual void OnDetach( void ) override;
 		virtual void OnImGuiRender() override;
 		virtual void OnUpdate( Timestep ts ) override;
 		virtual void OnEvent( Event& e ) override;
+
 		bool OnMouseButtonPressed( MouseButtonEvent& e );
 		bool OnKeyPressedEvent( KeyPressedEvent& e );
-		std::pair<float, float> GetMouseViewportSpace( void );
-		std::pair<glm::vec3, glm::vec3> CastRay( float mx, float my );
-		Ray CastMouseRay( void );
-		void SelectEntity( Entity entity );
-		float GetSnapValue( void );
+	public:
 
-		Ref<Scene>& GetEditorScene()
-		{
-			return m_EditorScene;
-		}
-
-		Ref<Scene>& GetRuntimeScene()
-		{
-			return m_RuntimeScene;
-		}
-
-		void DeserialiseDebugLvl();
-
-		void Begin( void );
-		void End( void );
-
-
-		enum class PropertyFlag
-		{
-			None = 0, ColorProperty = 1, DragProperty = 2, SliderProperty = 4
-		};
-
-		// ImGui UI helpers
-		bool Property( const std::string& name, bool& value );
-		bool Property( const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None );
-		bool Property( const std::string& name, glm::vec2& value, PropertyFlag flags );
-		bool Property( const std::string& name, glm::vec2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None );
-		bool Property( const std::string& name, glm::vec3& value, PropertyFlag flags );
-		bool Property( const std::string& name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None );
-		bool Property( const std::string& name, glm::vec4& value, PropertyFlag flags );
-		bool Property( const std::string& name, glm::vec4& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None );
-
-
-	private:
-		void SaveSceneAs( void );
-		void StartImGuiConsole( void );
-		void PrepRuntime();
-
-		int times = 0;
-
-		Scope<SceneHierarchyPanel> m_SceneHierarchyPanel;
-		Ref<AssetPanel> m_AssetPanel;
-
-		EditorCamera m_EditorCamera;
-
-		struct SelectedSubmesh
-		{
-			Saturn::Entity Entity;
-			Submesh* Mesh = nullptr;
-			float Distance = 0.0f;
-		};
-
-
-		enum class SelectionMode
-		{
-			None = 0, Entity = 1, SubMesh = 2
-		};
-
-		glm::vec2 m_ViewportBounds[ 2 ];
-		int m_GizmoType = -1; // -1 = no gizmo
-		float m_SnapValue = 0.5f;
-		float m_RotationSnapValue = 45.0f;
-		bool m_AllowViewportCameraEvents = false;
-		bool m_DrawOnTopBoundingBoxes = false;
-
-		SelectionMode m_SelectionMode = SelectionMode::Entity;
+	protected:
 		Ref<Texture2D> m_CheckerboardTex;
-		Ref<Texture2D> m_FooBarTexure;
-		std::vector<SelectedSubmesh> m_SelectionContext;
-		Ref<Scene> m_RuntimeScene, m_EditorScene;
-		glm::vec2 m_ViewportSize ={ 0.0f, 0.0f };
-
-		std::thread m_Serialiser_Thread;
-		std::thread m_ImGuiConsole_Thread;
-
-		void OnSelected( const SelectedSubmesh& selectionContext );
-
-		friend class SceneHierarchyPanel;
+	private:
 	};
 }

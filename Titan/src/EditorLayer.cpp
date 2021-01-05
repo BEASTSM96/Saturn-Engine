@@ -97,6 +97,8 @@ namespace Saturn {
 		m_EditorScene = Ref<Scene>::Create();
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>( m_EditorScene );
 		m_SceneHierarchyPanel->SetSelectionChangedCallback( std::bind( &EditorLayer::SelectEntity, this, std::placeholders::_1 ) );
+		m_AssetPanel = Ref<AssetPanel>::Create();
+		m_AssetPanel->OnAttach();
 
 		Application::Get().GetSceneMananger().Raw()->AddScene( m_EditorScene );
 
@@ -171,6 +173,8 @@ namespace Saturn {
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
+
+		m_AssetPanel->OnDetach();
 	}
 
 	void EditorLayer::Begin()
@@ -741,6 +745,8 @@ namespace Saturn {
 			// Editor Panel ------------------------------------------------------------------------------
 			m_ImGuiConsole_Thread.join();
 
+			m_AssetPanel->OnImGuiRender();
+
 			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
 			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );
 			ImGui::PushStyleVar( ImGuiStyleVar_ItemInnerSpacing, ImVec2( 0, 0 ) );
@@ -819,30 +825,6 @@ namespace Saturn {
 
 				}
 				ImGui::End();
-
-			}
-			ImGui::End();
-
-
-			if( ImGui::Begin( "Assets" ) )
-			{
-				namespace fs = std::filesystem;
-
-				std::string path = "assets/";
-				fs::path fspath = "assets/";
-
-				for( const auto& entry : fs::directory_iterator( path ) )
-				{
-					fspath = entry.path();
-
-					const char* c_style_path = fspath.string().c_str();
-
-					ImGui::Text( "%c", *c_style_path );
-
-					//SAT_INFO("{0}", *c_style_path);
-
-				}
-
 
 			}
 			ImGui::End();

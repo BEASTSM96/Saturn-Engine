@@ -1,0 +1,152 @@
+/********************************************************************************************
+*                                                                                           *
+*                                                                                           *
+*                                                                                           *
+* MIT License                                                                               *
+*                                                                                           *
+* Copyright (c) 2020 - 2021 BEAST                                                           *
+*                                                                                           *
+* Permission is hereby granted, free of charge, to any person obtaining a copy              *
+* of this software and associated documentation files (the "Software"), to deal             *
+* in the Software without restriction, including without limitation the rights              *
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                 *
+* copies of the Software, and to permit persons to whom the Software is                     *
+* furnished to do so, subject to the following conditions:                                  *
+*                                                                                           *
+* The above copyright notice and this permission notice shall be included in all            *
+* copies or substantial portions of the Software.                                           *
+*                                                                                           *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                *
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                  *
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE               *
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                    *
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,             *
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE             *
+* SOFTWARE.                                                                                 *
+*********************************************************************************************
+*/
+
+#include "AssetPanel.h"
+
+#include <imgui.h>
+#include <imgui_internal.h>
+#include "examples/imgui_impl_glfw.h"
+#include "examples/imgui_impl_opengl3.h"
+
+// TEMPORARY
+#include <GLFW/glfw3.h>
+#include <glad/glad.h>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <filesystem>
+
+namespace Saturn {
+
+	AssetPanel::AssetPanel( void ) : Layer( "AssetPanel" )
+	{
+	}
+
+	AssetPanel::~AssetPanel( void )
+	{
+
+	}
+
+	void AssetPanel::OnAttach( void )
+	{
+		// Setup Dear ImGui context
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); ( void )io;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
+
+		ImGui_ImplOpenGL3_Init( "#version 410" );
+	}
+
+	void AssetPanel::OnDetach( void )
+	{
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+	}
+
+	void AssetPanel::OnUpdate( Timestep ts )
+	{
+
+	}
+
+	void AssetPanel::OnImGuiRender()
+	{
+		bool p_open = true;
+		namespace fs = std::filesystem;
+
+		std::string asset_path = "assets";
+
+		int selected = ( 1 << 2 );
+
+		unsigned int idx;
+
+		if( ImGui::Begin( "AssetPanel", &p_open ) )
+		{
+			for( fs::recursive_directory_iterator it( asset_path ); it != fs::recursive_directory_iterator(); ++it )
+			{
+				if ( fs::is_directory( it->path() ) )
+				{
+					for( int i = 0; i < it.depth(); ++i )
+					{
+						ImGui::Indent();
+					}
+
+					if( ImGui::TreeNode( it->path().filename().string().c_str() ) )
+					{
+						ImGui::TreePop();
+					}
+
+					for( int i = 0; i < it.depth(); ++i )
+					{
+						ImGui::Unindent();
+					}
+				}
+				else
+				{
+					for( int i = 0; i < it.depth(); ++i )
+					{
+						ImGui::Indent();
+					}
+
+					ImGui::Text( it->path().filename().string().c_str() );
+
+					for( int i = 0; i < it.depth(); ++i )
+					{
+						ImGui::Unindent();
+					}
+				}
+			}
+		}
+		ImGui::End();
+
+	}
+
+	void AssetPanel::OnEvent( Event& e )
+	{
+
+	}
+
+	bool AssetPanel::OnMouseButtonPressed( MouseButtonEvent& e )
+	{
+
+	}
+
+	bool AssetPanel::OnKeyPressedEvent( KeyPressedEvent& e )
+	{
+
+	}
+
+}
