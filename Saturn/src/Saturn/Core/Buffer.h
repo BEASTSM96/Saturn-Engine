@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
+#include "Saturn/Log.h"
 
 namespace Saturn {
 

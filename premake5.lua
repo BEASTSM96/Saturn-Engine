@@ -961,7 +961,8 @@ project "Saturn"
 
 		links
 		{
-			"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib"
+			"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib",
+			"Saturn/vendor/yaml-cpp/bin/Release/yaml-cpp.lib"
 		}
 
 		postbuildcommands 
@@ -1856,23 +1857,24 @@ project "Titan"
 
 	postbuildcommands 
 	{
-		'{COPY} "../%{prj.name}/assets/" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/assets/"'
+		'{COPY} "../Titan/assets" "%{cfg.targetdir}/assets"',
+		'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"'
 	}
 
 	filter "configurations:Dist"
 		postbuildcommands 
 		{
-			'{COPY} "Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/"'
+			'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"'
 		}
 	filter "configurations:Release"
 		postbuildcommands 
 		{
-			'{COPY} "Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/"'
+			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"'
 		}
 	filter "configurations:Debug"
 		postbuildcommands 
 		{
-			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}/"'
+			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "system:windows"
