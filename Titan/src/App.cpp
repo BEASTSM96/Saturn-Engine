@@ -16,6 +16,8 @@ public:
 	{
 		m_EditorLayer = new Saturn::EditorLayer();
 		PushOverlay( m_EditorLayer );
+
+		m_Window->SetWindowImage( "assets/.github/i/sat/SaturnLogov1.png" );
 	}
 private:
 	Saturn::EditorLayer* m_EditorLayer;

@@ -88,6 +88,7 @@ namespace Saturn {
 		virtual bool IsVSync( void ) const = 0;
 		virtual void Maximize( void ) = 0;
 		virtual void SetTitle( const std::string& title ) = 0;
+		virtual void SetWindowImage( const char* filepath ) = 0;
 
 		virtual void* GetNativeWindow( void ) const = 0;
 

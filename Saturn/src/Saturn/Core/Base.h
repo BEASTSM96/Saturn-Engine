@@ -46,10 +46,10 @@ namespace Saturn {
 
 
 #define DISABLE_ALL_WARNINGS_BEGIN \
-    __pragma(warning(push, 0))
+	__pragma(warning(push, 0))
 
 #define DISABLE_ALL_WARNINGS_END \
-    __pragma(warning(pop))
+	__pragma(warning(pop))
 
 //from the vc++
 #define SAT_MoveMemory( Destination, Source, Length ) memmove( ( Destination ), ( Source ), ( Length ) )

@@ -28,6 +28,7 @@
 
 #pragma once
 
+
 // TODO: Make this macro able to take in no arguments except condition
 #ifdef SAT_ENABLE_ASSERTS
 

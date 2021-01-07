@@ -109,10 +109,9 @@ namespace Saturn {
 		Ref< SceneManager > m_SceneManager;
 		Ref< ModuleManager > m_ModuleManager;
 		Ref< HotReload > m_HotReload;
+		std::unique_ptr< Window > m_Window;
 
 	private:
-
-		std::unique_ptr< Window > m_Window;
 
 		ImGuiLayer* m_ImGuiLayer;
 

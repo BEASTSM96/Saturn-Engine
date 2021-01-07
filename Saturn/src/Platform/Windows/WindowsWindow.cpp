@@ -36,6 +36,9 @@
 
 #include "Platform/OpenGL/OpenGLContext.h"
 
+#include "GLFW/glfw3.h"
+
+#include "stb_image.h"
 
 namespace Saturn {
 
@@ -213,5 +216,13 @@ namespace Saturn {
 	{
 		m_Data.Title = title;
 		glfwSetWindowTitle( m_Window, m_Data.Title.c_str() );
+	}
+
+	void WindowsWindow::SetWindowImage( const char* filepath )
+	{
+		GLFWimage image[ 1 ];
+		image[ 0 ].pixels = stbi_load( filepath, &image[ 0 ].width, &image[ 0 ].height, 0, 4 );
+		glfwSetWindowIcon( m_Window, 1, image );
+		stbi_image_free( image[ 0 ].pixels );
 	}
 }
