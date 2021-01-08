@@ -163,10 +163,17 @@ namespace Saturn {
 
 						if ( CheckHasAsset( it->path().filename().string(), it->path().string(), m_FolderPath ) == false )
 						{
-							Ref<Texture2D> PngImage = Texture2D::Create( it->path().string() );
-							ImGui::ImageButton( ( ImTextureID )PngImage->GetRendererID(), ImVec2( 64, 64 ) );
+							//Ref<Texture2D> PngImage = Texture2D::Create("assets/");
+							//ImGui::ImageButton( ( ImTextureID )PngImage->GetRendererID(), ImVec2( 64, 64 ) );
 						}
 					}
+
+					if( it->path().extension() == ".tga" )
+					{
+						m_FolderPath = m_FolderPath;
+
+					}
+
 				}
 
 			}
@@ -184,10 +191,9 @@ namespace Saturn {
 			{
 				m_Assets.push_back( name );
 
-				std::ofstream ofstream( name + ".asset" );
+				//fs::path asset( folder + name + ".asset" );
 
-				fs::remove( folder + name + ".asset" );
-				fs::copy_file( name + ".asset", folder + name + ".asset" );
+				//fs::remove( folder + name + ".asset" );
 
 				return false;
 			}

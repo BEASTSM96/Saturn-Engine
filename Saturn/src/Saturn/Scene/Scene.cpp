@@ -593,14 +593,6 @@ namespace Saturn {
 			ncs.Instance->BeginPlay();
 
 		}
-
-		auto& a = CreateEntity( "a" );
-		auto& b = CreateEntity( "b" );
-
-		a.GetComponent<TransformComponent>().Position.x = -10;
-		b.GetComponent<TransformComponent>().Position.x = -10;
-
-		m_PhysicsWorld->TestAABBWorld( a, b );
 	}
 
 	void Scene::EndRuntime( void )
@@ -613,6 +605,11 @@ namespace Saturn {
 
 			ncs.Instance->OnDestroy();
 		}
+	}
+
+	void Scene::ResetRuntime( const Ref<Scene>& EditorScene )
+	{
+		
 	}
 
 	void Scene::UpdateRuntime( Timestep ts )

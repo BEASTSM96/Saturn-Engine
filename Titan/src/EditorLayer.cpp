@@ -747,6 +747,8 @@ namespace Saturn {
 
 			m_AssetPanel->OnImGuiRender();
 
+			m_SceneHierarchyPanel->OnImGuiRender();
+
 			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
 			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );
 			ImGui::PushStyleVar( ImGuiStyleVar_ItemInnerSpacing, ImVec2( 0, 0 ) );
@@ -1115,21 +1117,6 @@ namespace Saturn {
 			ImGui::End();
 
 
-			if( ImGui::Begin( "Mesh Debug" ) )
-			{
-				if( ImGui::Button( "DumpData" ) )
-				{
-					auto view = m_EditorScene->GetRegistry().view<MeshComponent>();
-
-					for( const auto& entity : view )
-					{
-						auto mc = view.get<MeshComponent>( entity );
-						mc.Mesh->DumpVertexBuffer();
-					}
-				}
-			}
-			ImGui::End();
-			m_SceneHierarchyPanel->OnImGuiRender();
 			ImGui::End();
 		}
 

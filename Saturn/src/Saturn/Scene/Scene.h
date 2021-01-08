@@ -220,6 +220,7 @@ namespace Saturn {
 		void BeginRuntime( void );
 		void StartRuntime( void );
 		void EndRuntime( void );
+		void ResetRuntime( const Ref<Scene>& EditorScene );
 		RuntimeData& GetRuntimeData() { return m_RuntimeData; }
 		bool m_RuntimeRunning = false;
 
