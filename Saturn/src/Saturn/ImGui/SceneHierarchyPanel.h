@@ -64,6 +64,8 @@ namespace Saturn {
 
 		std::function<void( Entity )> m_SelectionChangedCallback;
 
+		bool canDraw = false;
+
 		friend class EditorLayer;
 	};
 

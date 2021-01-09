@@ -168,12 +168,32 @@ namespace Saturn {
 
 	}
 
-	void Scene::OnRenderRuntime(Timestep ts)
+	void Scene::OnRenderRuntime( Timestep ts, const SceneCamera& sceneCamera )
 	{
 		/////////////////////////////////////////////////////////////////////
 		// RENDER 3D SCENE
 		/////////////////////////////////////////////////////////////////////
-		//TODO: ADD!
+		m_SkyboxMaterial->Set( "u_TextureLod", m_SkyboxLod );
+
+		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
+		SceneRenderer::BeginScene( this, { sceneCamera, sceneCamera.GetViewMatrix() } );
+		for( auto entity : group )
+		{
+			auto& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
+			if( meshComponent.Mesh )
+			{
+				meshComponent.Mesh->OnUpdate( ts );
+
+				// TODO: Should we render (logically)
+
+				if( m_SelectedEntity == entity )
+					SceneRenderer::SubmitSelectedMesh( meshComponent, transformComponent.GetTransform() );
+				else
+					SceneRenderer::SubmitMesh( meshComponent, transformComponent.GetTransform() );
+			}
+		}
+
+		SceneRenderer::EndScene();
 	}
 
 	Entity Scene::CreateEntity(const std::string& name)
@@ -570,6 +590,7 @@ namespace Saturn {
 		CopyComponent<SpriteRendererComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<NativeScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<RigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
 		NewScene->m_ScriptableEntitys = m_ScriptableEntitys;
 

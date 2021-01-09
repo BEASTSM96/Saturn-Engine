@@ -83,6 +83,7 @@ namespace YAML {
 			node.push_back( rhs.x );
 			node.push_back( rhs.y );
 			node.push_back( rhs.z );
+			node.SetStyle( EmitterStyle::Flow );
 			return node;
 		}
 
@@ -108,6 +109,7 @@ namespace YAML {
 			node.push_back( rhs.y );
 			node.push_back( rhs.z );
 			node.push_back( rhs.w );
+			node.SetStyle( EmitterStyle::Flow );
 			return node;
 		}
 
@@ -134,6 +136,7 @@ namespace YAML {
 			node.push_back( rhs.x );
 			node.push_back( rhs.y );
 			node.push_back( rhs.z );
+			node.SetStyle( EmitterStyle::Flow );
 			return node;
 		}
 
@@ -224,7 +227,6 @@ namespace Saturn {
 
 	void Serialiser::SerialiseEntity( YAML::Emitter& out, Entity entity )
 	{
-
 		UUID uuid = entity.GetComponent<IdComponent>().ID;
 		out << YAML::BeginMap; // Entity
 		out << YAML::Key << "Entity" << YAML::Value << uuid; // TODO: Entity ID goes here
@@ -239,8 +241,6 @@ namespace Saturn {
 
 			out << YAML::EndMap; // TagComponent
 		}
-		else
-			SAT_CORE_ASSERT( entity.HasComponent<TagComponent>(), "Entity does not have a TagComponent!" );
 
 		if( entity.HasComponent<TransformComponent>() )
 		{
@@ -254,9 +254,6 @@ namespace Saturn {
 
 			out << YAML::EndMap; // TransformComponent
 		}
-		else
-			SAT_CORE_ASSERT( entity.HasComponent<TransformComponent>(), "Entity does not have a TransformComponent!" );
-
 
 		if( entity.HasComponent<MeshComponent>() )
 		{
@@ -347,7 +344,7 @@ namespace Saturn {
 		m_Scene->m_Registry.each( [&]( auto entityID )
 			{
 				Entity entity ={ entityID, m_Scene.Raw() };
-				if( !entity || !entity.HasComponent<IdComponent>() )
+				if( !entity )
 					return;
 
 				SerialiseEntity( out, entity );
@@ -363,12 +360,7 @@ namespace Saturn {
 
 	void Serialiser::Deserialise( const std::string& filepath )
 	{
-
-		std::ifstream stream( filepath );
-		std::stringstream strStream;
-		strStream << stream.rdbuf();
-
-		YAML::Node data = YAML::Load( strStream.str() );
+		YAML::Node data = YAML::LoadFile( filepath );
 		if( !data[ "Scene" ] )
 			return;
 
@@ -410,21 +402,17 @@ namespace Saturn {
 				auto transformComponent = entity[ "TransformComponent" ];
 				if( transformComponent )
 				{
-					auto& transform = deserializedEntity.GetComponent<TransformComponent>().GetTransform();
-					glm::vec3 translation = transformComponent[ "Position" ].as<glm::vec3>();
-					glm::quat rotation = transformComponent[ "Rotation" ].as<glm::quat>();
-					glm::vec3 scale = transformComponent[ "Scale" ].as<glm::vec3>();
-
-					transform = glm::translate( glm::mat4( 1.0f ), translation ) * glm::toMat4( rotation ) * glm::scale( glm::mat4( 1.0f ), scale );
-
-					deserializedEntity.GetComponent<TransformComponent>().Position = translation;
-					//deserializedEntity.GetComponent<TransformComponent>().Rotation = rotation;
-					//deserializedEntity.GetComponent<TransformComponent>().Scale = scale;
+					// Entities always have transforms
+					auto& tc = deserializedEntity.GetComponent<TransformComponent>();
+					tc.Position = transformComponent[ "Position" ].as<glm::vec3>();
+					tc.Rotation = transformComponent[ "Rotation" ].as<glm::quat>();
+					tc.Scale = transformComponent[ "Scale" ].as<glm::vec3>();
 
 					SAT_CORE_INFO( "  Entity Transform:" );
-					SAT_CORE_INFO( "    Translation: {0}, {1}, {2}", translation.x, translation.y, translation.z );
-					SAT_CORE_INFO( "    Rotation: {0}, {1}, {2}, {3}", rotation.w, rotation.x, rotation.y, rotation.z );
-					SAT_CORE_INFO( "    Scale: {0}, {1}, {2}", scale.x, scale.y, scale.z );
+					SAT_CORE_INFO( "    Translation: {0}, {1}, {2}", tc.Position.x, tc.Position.y, tc.Position.z );
+					SAT_CORE_INFO( "    Rotation: {0}, {1}, {2}, {3}", tc.Rotation.w, tc.Rotation.x, tc.Rotation.y, tc.Rotation.z );
+					SAT_CORE_INFO( "    Scale: {0}, {1}, {2}", tc.Scale.x, tc.Scale.y, tc.Scale.z );
+
 				}
 
 				auto meshComponent = entity[ "MeshComponent" ];

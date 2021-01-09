@@ -102,8 +102,9 @@ namespace Saturn {
 					DrawEntityNode( e );
 				} );
 		}
-		if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
-			m_SelectionContext ={};
+
+		//if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
+			//m_SelectionContext ={};
 
 		if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
 		{
@@ -165,8 +166,21 @@ namespace Saturn {
 
 		ImGui::End();
 
+		if (canDraw)
+		{
+			if( ImGui::Begin( "Inspector" ) )
+			{
+
+				DrawEntityComponents( m_SelectionContext );
+				
+				ImGui::End();
+			}
+		}
+
 		if( ImGui::Begin( "Inspector" ) )
 		{
+
+			/*
 			if( m_SelectionContext )
 			{
 				DrawEntityComponents( m_SelectionContext );
@@ -227,12 +241,22 @@ namespace Saturn {
 							}
 						}
 
+						if( !m_SelectionContext.HasComponent<CameraComponent>() )
+						{
+							if( ImGui::Button( "Camera" ) )
+							{
+								m_SelectionContext.AddComponent<CameraComponent>();
+								ImGui::CloseCurrentPopup();
+							}
+						}
+
 						ImGui::EndMenu();
 					}
 
 					ImGui::EndPopup();
 				}
 			}
+			*/
 		}
 		ImGui::End();
 	}
@@ -245,12 +269,14 @@ namespace Saturn {
 		{
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-			ImGuiTreeNodeFlags flags = ( entity == m_SelectionContext ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
-			bool opened = ImGui::TreeNodeEx( ( void* )( uint32_t )entity, flags, tag.c_str() );
+			ImGuiTreeNodeFlags flags = ( ( m_SelectionContext == entity ) ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
+			flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+			bool opened = ImGui::TreeNodeEx( ( void* )( uint64_t )( uint32_t )entity, flags, tag.c_str() );
 
 			if( ImGui::IsItemClicked() )
 			{
 				m_SelectionContext = entity;
+				canDraw = true;
 				if( m_SelectionChangedCallback )
 				{
 					m_SelectionChangedCallback( m_SelectionContext );
@@ -507,6 +533,23 @@ namespace Saturn {
 					//TODO: Add
 				}
 			} );
+
+
+		DrawComponent<CameraComponent>( "Camera", entity, []( auto& cc )
+	{
+
+		ImGui::Columns( 3 );
+		ImGui::SetColumnWidth( 0, 100 );
+		ImGui::SetColumnWidth( 1, 300 );
+		ImGui::SetColumnWidth( 2, 40 );
+		ImGui::Text( "Camera" );
+		ImGui::NextColumn();
+		ImGui::PushItemWidth( -1 );
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+			if( !cc.Camera )
+				cc.Camera = Ref<SceneCamera>::Create( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
+	} );
 
 		DrawComponent<MeshComponent>( "Mesh", entity, []( auto& mc )
 			{

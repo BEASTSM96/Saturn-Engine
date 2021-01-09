@@ -32,6 +32,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Saturn/Scene/SceneCamera.h"
 #include "Saturn/Core/UUID.h"
 #include "Saturn/Physics/Rigidbody.h"
 
@@ -115,6 +116,29 @@ namespace Saturn {
 
 		{
 		}
+	};
+
+	/** @brief A CameraComponent.
+	*
+	* @code
+	*
+	* Ref<SceneCamera> Camera
+	* bool Primary
+	* bool FixedAspectRatio
+	*
+	* CameraComponent()
+	* CameraComponent(const CameraComponent&)
+	*
+	* @endcode
+	*/
+	struct CameraComponent : Component
+	{
+		Ref<Saturn::SceneCamera> Camera;
+		bool Primary = true;
+		bool FixedAspectRatio = false;
+
+		CameraComponent() = default;
+		CameraComponent( const CameraComponent& ) = default;
 	};
 
 

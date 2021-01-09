@@ -10,7 +10,7 @@ Entities:
     TagComponent:
       Tag: Cube1m2
     TransformComponent:
-      Position: [0, 0, 0]
+      Position: [0, -30, 0]
       Rotation: [0, 0, 0, 1]
       Scale: [32.1300011, 1, 32.1300011]
     MeshComponent:

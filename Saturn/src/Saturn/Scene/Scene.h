@@ -39,6 +39,7 @@
 
 #include "entt.hpp"
 
+#include "Saturn/Scene/SceneCamera.h"
 #include "Saturn/Editor/EditorCamera.h"
 
 namespace Saturn {
@@ -163,7 +164,7 @@ namespace Saturn {
 		void DestroyEntity(Entity entity);
 
 		void OnRenderEditor( Timestep ts, const EditorCamera& editorCamera );
-		void OnRenderRuntime( Timestep ts );
+		void OnRenderRuntime( Timestep ts, const SceneCamera& sceneCamera );
 
 		template<typename T>
 		auto GetAllEntitiesWith( void )

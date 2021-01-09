@@ -144,16 +144,24 @@ namespace Saturn {
 
 	void EditorLayer::OpenScene( const std::string& filepath )
 	{
+		m_EditorScene = nullptr;
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		Serialiser serialiser( newScene );
-		serialiser.Deserialise( filepath );
+		if( filepath.empty()) 
+		{
+			serialiser.Deserialise( "assets/untitled.sc" );
+		}
+		else
+		{
+			serialiser.Deserialise( filepath );
+		}
 		m_EditorScene = newScene;
 
 		std::filesystem::path path = filepath;
 		UpdateWindowTitle( path.filename().string() );
 		m_SceneHierarchyPanel->SetContext( m_EditorScene );
 
-		m_EditorScene->SetSelectedEntity( {} );
+		//m_EditorScene->SetSelectedEntity( {} );
 		m_SelectionContext.clear();
 	}
 
@@ -354,7 +362,36 @@ namespace Saturn {
 		if( m_RuntimeScene )
 		{
 			m_RuntimeScene->OnUpdate( ts );
-			m_RuntimeScene->OnRenderRuntime( ts );
+
+			if( m_RuntimeScene->m_RuntimeRunning ) 
+			{ 
+				Ref<SceneCamera>* mainCamera = nullptr;
+				glm::mat4 cameraTransform;
+				{
+					auto view = m_RuntimeScene->GetRegistry().view<TransformComponent, CameraComponent>();
+					for( auto entity : view )
+					{
+						auto [transform, camera] = view.get<TransformComponent, CameraComponent>( entity );
+
+						if( camera.Primary )
+						{
+							mainCamera = &camera.Camera;
+							cameraTransform = transform.GetTransform();
+							break;
+						}
+					}
+				}
+
+
+				if (mainCamera != nullptr)
+				{
+					m_RuntimeScene->OnRenderRuntime( ts, *mainCamera->Raw() );
+				}
+				else
+				{
+					m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
+				}
+			}
 		}
 
 
@@ -465,14 +502,7 @@ namespace Saturn {
 					break;
 				case SAT_KEY_O:
 					std::string filepath = Application::Get().OpenFile( "Scene (*.sc)\0*.sc\0" ).first;
-					if( !filepath.empty() )
-					{
-						Serialiser serializer( m_EditorScene );
-						serializer.Deserialise( filepath );
-						std::filesystem::path path = filepath;
-						UpdateWindowTitle( path.filename().string() );
-						//m_SceneFilePath = filepath;
-					}
+					OpenScene( filepath );
 					break;
 			}
 		}
@@ -741,13 +771,14 @@ namespace Saturn {
 				ImGui::EndMainMenuBar();
 			}
 
+			m_SceneHierarchyPanel->OnImGuiRender();
+
 			m_ImGuiConsole_Thread = std::thread( &EditorLayer::StartImGuiConsole, this );
 			// Editor Panel ------------------------------------------------------------------------------
 			m_ImGuiConsole_Thread.join();
 
 			m_AssetPanel->OnImGuiRender();
 
-			m_SceneHierarchyPanel->OnImGuiRender();
 
 			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
 			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );
@@ -918,6 +949,7 @@ namespace Saturn {
 			if( m_SelectionContext.size() )
 			{
 				Entity selectedEntity = m_SelectionContext.front().Entity;
+				m_SceneHierarchyPanel->SetSelected( selectedEntity );
 				if( selectedEntity.HasComponent<MeshComponent>() )
 				{
 					Ref<Mesh> mesh = selectedEntity.GetComponent<MeshComponent>().Mesh;

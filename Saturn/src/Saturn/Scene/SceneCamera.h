@@ -28,49 +28,68 @@
 
 #pragma once
 
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Renderer/Mesh.h"
-#include "RenderPass.h"
+#include "Saturn/Renderer/Camera.h"
+#include "Saturn/Core/Timestep.h"
+#include "Saturn/Events/MouseEvent.h"
 
 namespace Saturn {
 
-	struct SceneRendererOptions
-	{
-		bool ShowGrid = true;
-		bool ShowSolids = true;
-		bool ShowBoundingBoxes = false;
-	};
-
-	struct SceneRendererCamera
-	{
-		Saturn::Camera Camera;
-		glm::mat4 ViewMatrix;
-	};
-
-	class SceneRenderer
+	class SceneCamera : public Camera, public RefCounted
 	{
 	public:
-		static void Init( void );
+		SceneCamera() = default;
+		SceneCamera( const glm::mat4 & projectionMatrix );
 
-		static void SetViewportSize( uint32_t width, uint32_t height );
+		void Focus( void );
+		void OnUpdate( Timestep ts );
+		void OnEvent( Event & e );
 
-		static void BeginScene( const Scene* scene, const SceneRendererCamera& camera );
-		static void EndScene( void );
+		inline float GetDistance() const { return m_Distance; }
+		inline void SetDistance( float distance ) { m_Distance = distance; }
 
-		static void SubmitMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ), Ref<MaterialInstance> overrideMaterial = nullptr );
-		static void SubmitSelectedMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ) );
+		inline void SetViewportSize( uint32_t width, uint32_t height ) { m_ViewportWidth = width; m_ViewportHeight = height; }
 
-		static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap( const std::string& filepath );
+		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
+		glm::mat4 GetViewProjection() const { return m_ProjectionMatrix * m_ViewMatrix; }
 
-		static Ref<RenderPass> GetFinalRenderPass( void );
-		static Ref<Texture2D> GetFinalColorBuffer( void );
+		glm::vec3 GetUpDirection( void );
+		glm::vec3 GetRightDirection( void );
+		glm::vec3 GetForwardDirection( void );
+		const glm::vec3& GetPosition() const { return m_Position; }
+		glm::quat GetOrientation( void ) const;
 
-		static uint32_t GetFinalColorBufferRendererID();
+		float GetExposure( void ) const { return m_Exposure; }
+		float& GetExposure( void ) { return m_Exposure; }
 
-		static SceneRendererOptions& GetOptions();
+		float GetPitch( void ) const { return m_Pitch; }
+		float GetYaw( void ) const { return m_Yaw; }
 	private:
-		static void FlushDrawList( void );
-		static void GeometryPass( void );
-		static void CompositePass( void );
+		void UpdateCameraView( void );
+
+		bool OnMouseScroll( MouseScrolledEvent & e );
+
+		void MousePan( const glm::vec2 & delta );
+		void MouseRotate( const glm::vec2 & delta );
+		void MouseZoom( float delta );
+
+		glm::vec3 CalculatePosition( void );
+
+		std::pair<float, float> PanSpeed() const;
+		float RotationSpeed( void ) const;
+		float ZoomSpeed( void ) const;
+	private:
+		glm::mat4 m_ViewMatrix;
+		glm::vec3 m_Position, m_Rotation, m_FocalPoint;
+
+		bool m_Panning, m_Rotating;
+		glm::vec2 m_InitialMousePosition;
+		glm::vec3 m_InitialFocalPoint, m_InitialRotation;
+
+		float m_Distance;
+		float m_Pitch, m_Yaw;
+
+		float m_Exposure = 0.8f;
+
+		uint32_t m_ViewportWidth = 1280, m_ViewportHeight = 720;
 	};
 }
