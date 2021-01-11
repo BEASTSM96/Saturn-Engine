@@ -103,8 +103,11 @@ namespace Saturn {
 				} );
 		}
 
-		//if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
-			//m_SelectionContext ={};
+		if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
+		{
+			SetSelected({});
+			Reset();
+		}
 
 		if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
 		{
@@ -170,21 +173,8 @@ namespace Saturn {
 		{
 			if( ImGui::Begin( "Inspector" ) )
 			{
-
 				DrawEntityComponents( m_SelectionContext );
 				
-				ImGui::End();
-			}
-		}
-
-		if( ImGui::Begin( "Inspector" ) )
-		{
-
-			/*
-			if( m_SelectionContext )
-			{
-				DrawEntityComponents( m_SelectionContext );
-
 				if( ImGui::Button( "Add Component" ) )
 					ImGui::OpenPopup( "AddComponentPanel" );
 
@@ -203,6 +193,14 @@ namespace Saturn {
 						if( ImGui::Button( "NativeScript" ) )
 						{
 							m_SelectionContext.AddComponent<NativeScriptComponent>();
+							ImGui::CloseCurrentPopup();
+						}
+					}
+					if( !m_SelectionContext.HasComponent<CameraComponent>() )
+					{
+						if( ImGui::Button( "Camera" ) )
+						{
+							m_SelectionContext.AddComponent<CameraComponent>();
 							ImGui::CloseCurrentPopup();
 						}
 					}
@@ -240,25 +238,23 @@ namespace Saturn {
 								m_SelectionContext.AddComponent<SphereColliderComponent>( 1.0f );
 							}
 						}
-
-						if( !m_SelectionContext.HasComponent<CameraComponent>() )
-						{
-							if( ImGui::Button( "Camera" ) )
-							{
-								m_SelectionContext.AddComponent<CameraComponent>();
-								ImGui::CloseCurrentPopup();
-							}
-						}
-
 						ImGui::EndMenu();
 					}
 
 					ImGui::EndPopup();
 				}
+
+
+				ImGui::End();
 			}
-			*/
 		}
-		ImGui::End();
+		else
+		{
+			if( ImGui::Begin( "Inspector" ) )
+			{
+				ImGui::End();
+			}
+		}
 	}
 
 	void SceneHierarchyPanel::DrawEntityNode( Entity entity )

@@ -46,6 +46,7 @@ namespace Saturn {
 		void SetSelected( Entity entity );
 		void SetSelectionChangedCallback( const std::function<void( Entity )>& func ) { m_SelectionChangedCallback = func; }
 
+		void Reset() { canDraw = false; };
 
 		void OnImGuiRender( void );
 		void OnUpdate( Timestep ts );

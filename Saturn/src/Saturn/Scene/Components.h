@@ -79,6 +79,50 @@ namespace Saturn {
 			glm::mat4 rotation = glm::toMat4( Rotation );
 			glm::mat4 scale = glm::scale( glm::mat4( 1.0f ), Scale );
 
+			if ( Position.x > FLT_MAX )
+			{
+				SAT_CORE_ASSERT(false, " Position.x > FLT_MAX" );
+			}
+
+			if( Position.y > FLT_MAX )
+			{
+				SAT_CORE_ASSERT( false, " Position.y > FLT_MAX" );
+			}
+
+			if( Position.z > FLT_MAX )
+			{
+				SAT_CORE_ASSERT( false, " Position.z > FLT_MAX" );
+			}
+
+			if( Rotation.x > FLT_MAX )
+			{
+				SAT_CORE_ASSERT( false, " Rotation.x > FLT_MAX" );
+			}
+
+			if( Rotation.y > FLT_MAX )
+			{
+				SAT_CORE_ASSERT( false, " Rotation.y > FLT_MAX" );
+			}
+
+			if( Rotation.z > FLT_MAX )
+			{
+				SAT_CORE_ASSERT( false, " Rotation.z > FLT_MAX" );
+			}
+
+			if( Scale.x > FLT_MAX )
+			{
+				SAT_CORE_ASSERT( false, " Scale.x > FLT_MAX" );
+			}
+
+			if( Scale.y > FLT_MAX )
+			{
+				SAT_CORE_ASSERT( false, " Scale.y > FLT_MAX" );
+			}
+
+			if( Scale.z > FLT_MAX )
+			{
+				SAT_CORE_ASSERT( false, " Scale.z > FLT_MAX" );
+			}
 
 			return position * rotation * scale;
 
@@ -162,6 +206,31 @@ namespace Saturn {
 		TagComponent( const TagComponent& ) = default;
 		TagComponent( const std::string& tag )
 			: Tag( tag )
+
+		{
+		}
+	};
+
+	/** @brief A SkyLightComponent.
+	*
+	* @code
+	*
+	* Environment SkyLightEnvironment;
+	*
+	* SkyLightComponent()
+	* SkyLightComponent(const SkyLightComponent&)
+	* SkyLightComponent(const std::string& tag)
+	*
+	* @endcode
+	*/
+	struct SkyLightComponent : Component
+	{
+		Saturn::Environment SkyLightEnvironment;
+
+		SkyLightComponent() = default;
+		SkyLightComponent( const SkyLightComponent& ) = default;
+		SkyLightComponent( const Saturn::Environment& environment )
+			: SkyLightEnvironment( environment )
 
 		{
 		}
@@ -277,7 +346,7 @@ namespace Saturn {
 
 
 	//For coding in c++ 
-	//@see https://beastsm96.github.io/Projects/Saturn-Engine/api/v0.a01/Scene/Components
+	//@see https://beastsm96.github.io/Saturn-Engine/api/v0.a01/Scene/Components
 	struct NativeScriptComponent : Component
 	{
 	

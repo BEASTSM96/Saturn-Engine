@@ -128,8 +128,12 @@ namespace Saturn {
 		Ref<Texture2D> m_CheckerboardTex;
 		Ref<Texture2D> m_FooBarTexure;
 		std::vector<SelectedSubmesh> m_SelectionContext;
-		Ref<Scene> m_RuntimeScene, m_EditorScene;
+		Ref<Scene> m_RuntimeScene;
+		Ref<Scene> m_EditorScene;
 		glm::vec2 m_ViewportSize ={ 0.0f, 0.0f };
+
+		std::vector<TransformComponent> m_EditorTransformComponents;
+		std::vector<TransformComponent> m_RuntimeTransformComponents;
 
 		std::thread m_Serialiser_Thread;
 		std::thread m_ImGuiConsole_Thread;

@@ -161,7 +161,7 @@ namespace Saturn {
 		UpdateWindowTitle( path.filename().string() );
 		m_SceneHierarchyPanel->SetContext( m_EditorScene );
 
-		//m_EditorScene->SetSelectedEntity( {} );
+		m_EditorScene->SetSelectedEntity( {} );
 		m_SelectionContext.clear();
 	}
 
@@ -793,11 +793,13 @@ namespace Saturn {
 
 					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
 					{
+						m_EditorScene->SetSelectedEntity( {} );
+						m_SceneHierarchyPanel->SetSelected( {} );
 						m_SelectionContext.clear();
+						m_SceneHierarchyPanel->Reset();
 						m_RuntimeScene = Ref<Scene>::Create();
 						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
 						m_EditorScene->CopyScene( m_RuntimeScene );
-						Application::Get().GetSceneMananger().Raw()->AddScene( m_RuntimeScene );
 						m_RuntimeScene->BeginRuntime();
 					}
 				}
@@ -810,10 +812,15 @@ namespace Saturn {
 
 						if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
 						{
+							m_RuntimeScene->SetSelectedEntity( {} );
+							m_SceneHierarchyPanel->SetSelected( {} );
+							m_SelectionContext.clear();
+							m_SceneHierarchyPanel->Reset();
 							m_RuntimeScene->EndRuntime();
 							m_RuntimeScene = nullptr;
 							m_SelectionContext.clear();
 							m_SceneHierarchyPanel->SetContext( m_EditorScene );
+							//delete m_RuntimeScene.Raw();
 						}
 					}
 				}
@@ -949,7 +956,7 @@ namespace Saturn {
 			if( m_SelectionContext.size() )
 			{
 				Entity selectedEntity = m_SelectionContext.front().Entity;
-				m_SceneHierarchyPanel->SetSelected( selectedEntity );
+				//m_SceneHierarchyPanel->SetSelected( selectedEntity );
 				if( selectedEntity.HasComponent<MeshComponent>() )
 				{
 					Ref<Mesh> mesh = selectedEntity.GetComponent<MeshComponent>().Mesh;
