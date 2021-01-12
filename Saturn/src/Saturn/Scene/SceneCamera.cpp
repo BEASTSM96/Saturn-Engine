@@ -44,6 +44,8 @@ namespace Saturn {
 
 	SceneCamera::SceneCamera( const glm::mat4& projectionMatrix )
 	{
+		m_ProjectionMatrix = glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f );
+
 		m_Rotation = glm::vec3( 90.0f, 0.0f, 0.0f );
 		m_FocalPoint = glm::vec3( 0.0f );
 

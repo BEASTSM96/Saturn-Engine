@@ -55,6 +55,11 @@ namespace Saturn {
 		glm::vec3 GetUpDirection( void );
 		glm::vec3 GetRightDirection( void );
 		glm::vec3 GetForwardDirection( void );
+		void SetPosition( glm::vec3 Position )
+		{
+			m_Position = Position; 
+			CalculatePosition();
+		}
 		const glm::vec3& GetPosition() const { return m_Position; }
 		glm::quat GetOrientation( void ) const;
 

@@ -44,7 +44,7 @@ namespace Saturn {
 		float GetExposure() const { return m_Exposure; }
 		float& GetExposure() { return m_Exposure; }
 	protected:
-		glm::mat4 m_ProjectionMatrix = glm::mat4( 1.0f );
+		glm::mat4 m_ProjectionMatrix;
 		float m_Exposure = 0.8f;
 	};
 }

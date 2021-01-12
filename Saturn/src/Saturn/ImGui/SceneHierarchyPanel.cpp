@@ -200,7 +200,7 @@ namespace Saturn {
 					{
 						if( ImGui::Button( "Camera" ) )
 						{
-							m_SelectionContext.AddComponent<CameraComponent>();
+							m_SelectionContext.AddComponent<CameraComponent>().Camera = Ref<SceneCamera>::Create( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
 							ImGui::CloseCurrentPopup();
 						}
 					}
@@ -543,8 +543,8 @@ namespace Saturn {
 		ImGui::PushItemWidth( -1 );
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-			if( !cc.Camera )
-				cc.Camera = Ref<SceneCamera>::Create( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
+			//if( !cc.Camera )
+				//cc.Camera = Ref<SceneCamera>::Create( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
 	} );
 
 		DrawComponent<MeshComponent>( "Mesh", entity, []( auto& mc )

@@ -43,8 +43,13 @@ namespace Saturn {
 	{
 		m_world = m_common.createPhysicsWorld(  );
 
+		// Get a reference to the debug renderer 
+		rp3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
+
 		m_world->setEventListener( &m_eventListener );
 		m_world->setIsDebugRenderingEnabled( true );
+
+		RegLog();
 	}
 
 	PhysicsScene::~PhysicsScene() 
@@ -69,18 +74,16 @@ namespace Saturn {
 		// Enable debug rendering 
 		m_world->setIsDebugRenderingEnabled( true );
 
-		// Get a reference to the debug renderer 
 		rp3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
-
-		// Select the contact points and contact normals to be displayed 
-		debugRenderer.setIsDebugItemDisplayed( rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true );
-		debugRenderer.setIsDebugItemDisplayed( rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true );
 
 		Renderer::Submit( [=]()
 {
 	rp3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
-		debugRenderer.setIsDebugItemDisplayed( rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true );
-		debugRenderer.setIsDebugItemDisplayed( rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true );
+	debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true );
+	debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true );
+	debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true );
+	debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::COLLIDER_BROADPHASE_AABB, true );
+	debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true );
 	} );
 
 	}

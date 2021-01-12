@@ -58,6 +58,7 @@ namespace Saturn {
 	public:
 		virtual void IncRefCount( void )  const = 0;
 		virtual void DecRefCount( void )  const = 0;
+		virtual void SetRefCount( uint32_t Count )  const = 0;
 		virtual uint32_t GetRefCount( void )  const = 0;
 	};
 
@@ -68,9 +69,20 @@ namespace Saturn {
 		{
 			m_RefCount++;
 		}
+
 		void DecRefCount( void )  const override
 		{
 			m_RefCount--;
+		}
+
+		void SetRefCount( uint32_t Count ) const override
+		{
+			if( GetRefCount() != 0 )
+			{
+				m_RefCount = Count;
+			}
+			else
+				m_RefCount = 0;
 		}
 
 		uint32_t GetRefCount() const override { return m_RefCount; }
@@ -83,34 +95,34 @@ namespace Saturn {
 	{
 	public:
 		Ref()
-			: m_Instance(nullptr)
+			: m_Instance( nullptr )
 		{
 		}
 
-		Ref(std::nullptr_t n)
-			: m_Instance(nullptr)
+		Ref( std::nullptr_t n )
+			: m_Instance( nullptr )
 		{
 		}
 
-		Ref(T* instance)
-			: m_Instance(instance)
+		Ref( T* instance )
+			: m_Instance( instance )
 		{
-			static_assert(std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!");
+			static_assert( std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!" );
 
 			IncRef();
 		}
 
 		template<typename T2>
-		Ref(const Ref<T2>& other)
+		Ref( const Ref<T2>& other )
 		{
-			m_Instance = (T*)other.m_Instance;
+			m_Instance = ( T* )other.m_Instance;
 			IncRef();
 		}
 
 		template<typename T2>
-		Ref(Ref<T2>&& other)
+		Ref( Ref<T2>&& other )
 		{
-			m_Instance = (T*)other.m_Instance;
+			m_Instance = ( T* )other.m_Instance;
 			other.m_Instance = nullptr;
 		}
 
@@ -119,20 +131,20 @@ namespace Saturn {
 			DecRef();
 		}
 
-		Ref(const Ref<T>& other)
-			: m_Instance(other.m_Instance)
+		Ref( const Ref<T>& other )
+			: m_Instance( other.m_Instance )
 		{
 			IncRef();
 		}
 
-		Ref& operator=(std::nullptr_t)
+		Ref& operator=( std::nullptr_t )
 		{
 			DecRef();
 			m_Instance = nullptr;
 			return *this;
 		}
 
-		Ref& operator=(const Ref<T>& other)
+		Ref& operator=( const Ref<T>& other )
 		{
 			other.IncRef();
 			DecRef();
@@ -142,7 +154,7 @@ namespace Saturn {
 		}
 
 		template<typename T2>
-		Ref& operator=(const Ref<T2>& other)
+		Ref& operator=( const Ref<T2>& other )
 		{
 			other.IncRef();
 			DecRef();
@@ -152,7 +164,7 @@ namespace Saturn {
 		}
 
 		template<typename T2>
-		Ref& operator=(Ref<T2>&& other)
+		Ref& operator=( Ref<T2>&& other )
 		{
 			DecRef();
 
@@ -173,36 +185,41 @@ namespace Saturn {
 		T* Raw() { return  m_Instance; }
 		const T* Raw() const { return  m_Instance; }
 
-		void Reset(T* instance = nullptr)
+		void Reset( T* instance = nullptr )
 		{
 			DecRef();
 			m_Instance = instance;
 		}
 
+		void Destory()
+		{
+			m_Instance->SetRefCount( 0 );
+		}
+
 		template<typename... Args>
-		static Ref<T> Create(Args&&... args)
+		static Ref<T> Create( Args&&... args )
 		{
 		#ifdef SAT_PLATFORM_LINUX
-			return Ref<T>(new T(std::move<Args>(args)...));
+			return Ref<T>( new T( std::move<Args>( args )... ) );
 		#endif
 
 		#ifdef SAT_PLATFORM_WINDOWS
-			return Ref<T>(new T(std::forward<Args>(args)...));
+			return Ref<T>( new T( std::forward<Args>( args )... ) );
 		#endif
 		}
 	private:
 		void IncRef( void )  const
 		{
-			if (m_Instance)
+			if( m_Instance )
 				m_Instance->IncRefCount();
 		}
 
 		void DecRef( void )  const
 		{
-			if (m_Instance)
+			if( m_Instance )
 			{
 				m_Instance->DecRefCount();
-				if (m_Instance->GetRefCount() == 0)
+				if( m_Instance->GetRefCount() == 0 )
 				{
 					delete m_Instance;
 				}
@@ -212,6 +229,6 @@ namespace Saturn {
 		template<class T2>
 		friend class Ref;
 		T* m_Instance;
-	};
+		};
 
 }

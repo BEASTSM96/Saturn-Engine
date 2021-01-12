@@ -328,8 +328,6 @@ namespace Saturn {
 			}
 
 			tc.Position = rb.m_body->GetPosition();
-
-			SAT_CORE_INFO( "tc.Position.y {0}, tc.Position.x {1} ", tc.Position.y, tc.Position.x );
 		}
 	}
 

@@ -60,6 +60,8 @@
 #include <Saturn/Scene/ScriptableEntity.h>
 
 #include <Saturn/ImGui/SceneHierarchyPanel.h>
+#include <Saturn/Scene/SceneCamera.h>
+
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -367,6 +369,7 @@ namespace Saturn {
 			{ 
 				Ref<SceneCamera>* mainCamera = nullptr;
 				glm::mat4 cameraTransform;
+				glm::vec3 cameraPosition;
 				{
 					auto view = m_RuntimeScene->GetRegistry().view<TransformComponent, CameraComponent>();
 					for( auto entity : view )
@@ -377,14 +380,16 @@ namespace Saturn {
 						{
 							mainCamera = &camera.Camera;
 							cameraTransform = transform.GetTransform();
+							//cameraPosition = transform.Position;
+							//cameraPosition.x += 5.0f;
 							break;
 						}
 					}
 				}
 
-
 				if (mainCamera != nullptr)
 				{
+					//mainCamera->Raw()->SetPosition( cameraPosition );
 					m_RuntimeScene->OnRenderRuntime( ts, *mainCamera->Raw() );
 				}
 				else
@@ -790,7 +795,6 @@ namespace Saturn {
 			{
 				if( !m_RuntimeScene )
 				{
-
 					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
 					{
 						m_EditorScene->SetSelectedEntity( {} );
@@ -817,7 +821,6 @@ namespace Saturn {
 							m_SelectionContext.clear();
 							m_SceneHierarchyPanel->Reset();
 							m_RuntimeScene->EndRuntime();
-							m_RuntimeScene = nullptr;
 							m_SelectionContext.clear();
 							m_SceneHierarchyPanel->SetContext( m_EditorScene );
 							//delete m_RuntimeScene.Raw();
