@@ -96,18 +96,18 @@ namespace Saturn {
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-		m_EditorScene = Ref<Scene>::Create();
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>( m_EditorScene );
 		m_SceneHierarchyPanel->SetSelectionChangedCallback( std::bind( &EditorLayer::SelectEntity, this, std::placeholders::_1 ) );
 		m_AssetPanel = Ref<AssetPanel>::Create();
 		m_AssetPanel->OnAttach();
+
+		OpenScene( "" );
 
 		Application::Get().GetSceneMananger().Raw()->AddScene( m_EditorScene );
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
 
-		OpenScene( "assets/physic_scene.sc" );
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init( "#version 410" );
