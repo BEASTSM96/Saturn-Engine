@@ -76,15 +76,6 @@ namespace Saturn {
 
 		rp3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
 
-		Renderer::Submit( [=]()
-{
-	rp3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
-	debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true );
-	debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true );
-	debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true );
-	debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::COLLIDER_BROADPHASE_AABB, true );
-	debugRenderer.setIsDebugItemDisplayed( reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true );
-	} );
 
 	}
 

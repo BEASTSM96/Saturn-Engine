@@ -238,6 +238,15 @@ namespace Saturn {
 								m_SelectionContext.AddComponent<SphereColliderComponent>( 1.0f );
 							}
 						}
+
+						if( !m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() )
+						{
+							if( ImGui::MenuItem( "PHYSX RB" ) )
+							{
+								m_SelectionContext.AddComponent<PhysXRigidbodyComponent>().m_body = new PhysXRigidbody( m_Context->m_PhysXScene.Raw(), m_SelectionContext.GetComponent<TransformComponent>().Position, m_SelectionContext.GetComponent<TransformComponent>().Rotation );
+							}
+						}
+
 						ImGui::EndMenu();
 					}
 
@@ -595,6 +604,24 @@ namespace Saturn {
 		DrawComponent<PhysicsComponent>( "Physics", entity, []( auto& pc )
 			{
 
+
+			} );
+
+		DrawComponent<PhysXRigidbodyComponent>( "PhysXRigidbody", entity, []( auto& rb )
+			{
+
+				bool canKinematic = rb.m_body->IsKinematic();
+				DrawBoolControl( "Kinematic", &canKinematic );
+
+				if( canKinematic )
+				{
+					rb.m_body->SetKinematic( true );
+				}
+
+				if( !canKinematic )
+				{
+					rb.m_body->SetKinematic( false );
+				}
 
 			} );
 

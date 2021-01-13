@@ -46,6 +46,8 @@
 
 #include "Saturn/Physics/beastPhysics/PhysicsWorld.h"
 
+#include "Saturn/Physics/PhysX/PhysXScene.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -106,6 +108,7 @@ namespace Saturn {
 		m_SkyboxMaterial->SetFlag( MaterialFlag::DepthTest, false );
 
 		m_ReactPhysicsScene = Ref<PhysicsScene>::Create( this );
+		m_PhysXScene = Ref<PhysXScene>::Create( this );
 		m_PhysicsWorld = Ref<PhysicsWorld>::Create( this );
 
 		m_Registry.on_construct<RigidbodyComponent>().connect<&Scene::PhysicsComponentCreate>( this );
@@ -114,6 +117,7 @@ namespace Saturn {
 	Scene::~Scene( void )
 	{
 		//s_ActiveScenes.erase(m_SceneID);
+
 		m_Registry.clear();
 	}
 
@@ -131,9 +135,27 @@ namespace Saturn {
 	{
 		m_ReactPhysicsScene->Update(ts);
 
+		
+
+
 		if (m_RuntimeRunning)
 		{
 			UpdateRuntime(ts);
+
+			auto view = GetRegistry().view<PhysXRigidbodyComponent, TransformComponent>();
+
+			for( const auto& entity : view )
+			{
+				auto [tc, rb] = view.get<TransformComponent, PhysXRigidbodyComponent>( entity );
+
+				//tc.Position = pc.Position;
+
+				SAT_CORE_INFO( "x {0}", rb.m_body->GetPos().x );
+				SAT_CORE_INFO( "y {0}", rb.m_body->GetPos().y );
+				SAT_CORE_INFO( "z {0}", rb.m_body->GetPos().z );
+
+				tc.Position = rb.m_body->GetPos();
+			}
 		}
 
 	}
@@ -588,6 +610,7 @@ namespace Saturn {
 		CopyComponent<SpriteRendererComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<NativeScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<RigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<PhysXRigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
 		NewScene->m_ScriptableEntitys = m_ScriptableEntitys;

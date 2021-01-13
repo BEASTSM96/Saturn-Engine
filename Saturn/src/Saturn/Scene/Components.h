@@ -35,6 +35,7 @@
 #include "Saturn/Scene/SceneCamera.h"
 #include "Saturn/Core/UUID.h"
 #include "Saturn/Physics/Rigidbody.h"
+#include "Saturn/Physics/PhysX/PhysXRigidBody.h"
 
 namespace Saturn {
 
@@ -334,6 +335,16 @@ namespace Saturn {
 
 		RigidbodyComponent() = default;
 		RigidbodyComponent( Rigidbody* m_Body, bool IsKinematic ) : m_body( m_Body ), isKinematic(IsKinematic) { }
+	};
+
+	struct PhysXRigidbodyComponent : Component
+	{
+		bool isKinematic;
+
+		PhysXRigidbody* m_body;
+
+		PhysXRigidbodyComponent() = default;
+		PhysXRigidbodyComponent( PhysXRigidbody* m_Body, bool IsKinematic ) : m_body( m_Body ), isKinematic( IsKinematic ) { }
 	};
 
 

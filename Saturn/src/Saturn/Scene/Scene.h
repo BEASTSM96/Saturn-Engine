@@ -36,6 +36,7 @@
 #include "Saturn/Renderer/Material.h"
 
 #include "Saturn/Physics/PhysicsScene.h"
+#include "Saturn/Physics/PhysX/PhysXScene.h"
 
 #include "entt.hpp"
 
@@ -231,6 +232,7 @@ namespace Saturn {
 		/*------------------------------------------------------------------ */
 	public:
 		Ref<PhysicsScene> m_ReactPhysicsScene;
+		Ref<PhysXScene> m_PhysXScene;
 
 
 	private:

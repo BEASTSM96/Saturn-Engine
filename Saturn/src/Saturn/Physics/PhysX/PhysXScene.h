@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
+#include "Saturn/Core/Timestep.h"
 
 #ifdef USE_NVIDIA
 
@@ -14,21 +15,23 @@ namespace Saturn {
 	
 	class Scene;
 
-	class PhysXScene {
+	class PhysXScene : public RefCounted
+	{
 	public:
-		PhysXScene(Scene* scene);
+		PhysXScene( Scene* scene );
 		~PhysXScene();
 
-		void Update(Timestep ts);
+		void Update( Timestep ts );
 
 		PhysXErrorCallback m_DefaultErrorCallback;
 		physx::PxDefaultAllocator m_DefaultAllocatorCallback;
-		static physx::PxFoundation* m_Foundation;
-		static physx::PxCooking* m_Cooking;
-		static physx::PxPhysics* m_Physics;
+		physx::PxFoundation* m_Foundation = NULL;
+		physx::PxDefaultCpuDispatcher* m_Dispatcher = NULL;
+		physx::PxCooking* m_Cooking = NULL;
+		physx::PxPhysics* m_Physics = NULL;
+		physx::PxScene* m_PhysXScene = NULL;
 
 	protected:
-		physx::PxScene* m_PhysXScene;
 		Scene* m_Scene;
 
 	private:
