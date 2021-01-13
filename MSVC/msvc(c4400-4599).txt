@@ -1,0 +1,531 @@
+											MSVC Compiler warnings (as of 12/18/20 c++17 https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c4400-through-c4599?view=msvc-160)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	C4600	#pragma 'macro name': expected a valid non-empty string
+	C4400	'type': const/volatile qualifiers on this type are not supported
+	C4401	'bitfield': member is bit field
+	C4402	must use PTR operator
+	C4403	illegal PTR operator
+	C4404	period on directive ignored
+	C4405	'identifier': identifier is reserved word
+	C4406	operand on directive ignored
+	C4407	cast between different pointer to member representations, compiler may generate incorrect code
+	C4408	anonymous 'struct|union' did not declare any data members
+	C4409	illegal instruction size
+	C4410	illegal size for operand
+	C4411	'identifier': symbol resolves to displacement register
+	C4412	'function': function signature contains type 'type'; C++ objects are unsafe to pass between pure code and mixed or native.
+	C4413	'classname::member': reference member is initialized to a temporary that doesn't persist after the constructor exits
+	C4414	'function': short jump to function converted to near
+	C4415	duplicate __declspec(code_seg('name'))
+	C4416	__declspec(code_seg(...)) contains empty string: ignored
+	C4417	an explicit template instantiation cannot have __declspec(code_seg(...)): ignored
+	C4418	__declspec(code_seg(...)) ignored on an enum
+	C4419	'symbol' has no effect when applied to private ref class 'class'.
+	C4420	'checked_operator': operator not available, using 'operator' instead; run-time checking may be compromised
+	C4421	'parameter': a reference parameter on a resumable function is potentially unsafe
+	C4423	'std::bad_alloc': will be caught by class ('type') on line number
+	C4424	catch for 'type1' preceded by 'type2' on line number; unpredictable behavior may result if 'std::bad_alloc' is thrown
+	C4425	A SAL annotation cannot be applied to '...'
+	C4426	optimization flags changed after including header, may be due to #pragma optimize()
+	C4427	'operator': overflow in constant division, undefined behavior
+	C4429	possible incomplete or improperly formed universal-character-name
+	C4430	missing type specifier - int assumed. Note: C++ does not support default-int
+	C4431	missing type specifier - int assumed. Note: C no longer supports default-int
+	C4434	a static constructor must have private accessibility; changing to private access
+	C4435	'derived_class': Object layout under /vd2 will change due to virtual base 'base_class'
+	C4436	dynamic_cast from virtual base 'base_class' to 'derived_class' in constructor or destructor could fail with partially-constructed object
+	C4437	dynamic_cast from virtual base 'base_class' to 'derived_class' could fail in some contexts
+	C4438	'function': cannot be called safely in /await:clrcompat mode. If 'function' calls into the CLR it may result in CLR head corruption
+	C4439	'function': function definition with a managed type in the signature must have a __clrcall calling convention
+	C4440	calling convention redefinition from 'calling_convention1' to 'calling_convenction2' ignored
+	C4441	calling convention of 'calling_convention1' ignored; 'calling_convention2' used instead
+	C4442	embedded null terminator in __annotation argument. Value will be truncated.
+	C4443	expected pragma parameter to be '0', '1', or '2'
+	C4444	'identifier': top level '__unaligned' is not implemented in this context
+	C4445	'function': in a 'WinRT|managed' type a virtual method cannot be private
+	C4446	'type': cannot map member 'name1' into this type, due to conflict with the type name. The method was renamed to 'name2'
+	C4447	'main' signature found without threading model. Consider using 'int main(Platform::Array<Platform::String^>^ args)'.
+	C4448	'type1' does not have a default interface specified in metadata. Picking: 'type2', which may fail at runtime.
+	C4449	'type' an unsealed type should be marked as '[WebHostHidden]'
+	C4450	'type1' should be marked as '[WebHostHidden]' because it derives from 'type2'
+	C4451	'classname1::member': Usage of ref class 'classname2::member' inside this context can lead to invalid marshaling of object across contexts
+	C4452	'identifier': public type cannot be at global scope. It must be in a namespace that is a child of the name of the output .winmd file.
+	C4453	'type': A '[WebHostHidden]' type should not be used on the published surface of a public type that is not '[WebHostHidden]'
+	C4454	'function' is overloaded by more than the number of input parameters without having [DefaultOverload] specified. Picking 'declaration' as the default overload
+	C4455	'operator operator': literal suffix identifiers that do not start with an underscore are reserved
+	C4456	declaration of 'identifier' hides previous local declaration
+	C4457	declaration of 'identifier' hides function parameter
+	C4458	declaration of 'identifier' hides class member
+	C4459	declaration of 'identifier' hides global declaration
+	C4460	'WinRT|managed' operator 'operator', has parameter passed by reference. 'WinRT|managed' operator 'operator' has different semantics from C++ operator 'cpp_operator', did you intend to pass by value?
+	C4461	'classname': this class has a finalizer '!finalizer' but no destructor '~dtor'
+	C4462	'type' : cannot determine the GUID of the type. Program may fail at runtime.
+	C4463	overflow; assigning 'value' to bit-field that can only hold values from 'min_value' to 'max_value'
+	C4464	relative include path contains '..'
+	C4470	floating-point control pragmas ignored under /clr
+	C4471	'enumeration': a forward declaration of an unscoped enumeration must have an underlying type (int assumed)
+	C4472	'identifier' is a native enum: add an access specifier (private/public) to declare a 'WinRT|managed' enum
+	C4473	'function' : not enough arguments passed for format string
+	C4474	'function' : too many arguments passed for format string
+	C4475	'function' : length modifier 'modifier' cannot be used with type field character 'character' in format specifier
+	C4476	'function' : unknown type field character 'character' in format specifier
+	C4477	'function' : format string 'string' requires an argument of type 'type', but variadic argument number has type 'type'
+	C4478	'function' : positional and non-positional placeholders cannot be mixed in the same format string
+	C4480	nonstandard extension used: specifying underlying type for enum 'enumeration'
+	C4481	nonstandard extension used: override specifier 'keyword'
+	C4482	nonstandard extension used: enum 'enumeration' used in qualified name
+	C4483	syntax error: expected C++ keyword
+	C4484	'override_function': matches base ref class method 'base_class_function', but is not marked 'virtual', 'new' or 'override'; 'new' (and not 'virtual') is assumed
+	C4485	'override_function': matches base ref class method 'base_class_function', but is not marked 'new' or 'override'; 'new' (and 'virtual') is assumed
+	C4486	'function': a private virtual method of a ref class or value class should be marked 'sealed'
+	C4487	'derived_class_function': matches inherited non-virtual method 'base_class_function' but is not explicitly marked 'new'
+	C4488	'function': requires 'keyword' keyword to implement the interface method 'interface_method'
+	C4489	'specifier': not allowed on interface method 'method'; override specifiers are only allowed on ref class and value class methods
+	C4490	'override': incorrect use of override specifier; 'function' does not match a base ref class method
+	C4491	'name': has an illegal IDL version format
+	C4492	'function1': matches base ref class method 'function2', but is not marked 'override'
+	C4493	delete expression has no effect as the destructor of 'type' does not have 'public' accessibility
+	C4494	'function' : Ignoring __declspec(allocator) because the function return type is not a pointer or reference
+	C4495	nonstandard extension '__super' used: replace with explicit base class name
+	C4496	nonstandard extension 'for each' used: replace with ranged-for statement
+	C4497	nonstandard extension 'sealed' used: replace with 'final'
+	C4498	nonstandard extension used: 'extension'
+	C4499	'function' : an explicit specialization cannot have a storage class (ignored)"
+	C4502	'linkage specification' requires use of keyword 'extern' and must precede all other specifiers
+	C4503	'identifier': decorated name length exceeded, name was truncated
+	C4505	'function': unreferenced local function has been removed
+	C4506	no definition for inline function 'function'
+	C4508	'function': function should return a value; 'void' return type assumed
+	C4509	nonstandard extension used: 'function' uses SEH and 'object' has destructor
+	C4510	'class': default constructor was implicitly defined as deleted
+	C4511	'class': copy constructor was implicitly defined as deleted
+	C4512	'class': assignment operator was implicitly defined as deleted
+	C4513	'class': destructor was implicitly defined as deleted
+	C4514	'function': unreferenced inline function has been removed
+	C4515	'namespace': namespace uses itself
+	C4516	'class::symbol': access-declarations are deprecated; member using-declarations provide a better alternative
+	C4517	access-declarations are deprecated; member using-declarations provide a better alternative
+	C4518	'specifier': storage-class or type specifier(s) unexpected here; ignored
+	C4519	default template arguments are only allowed on a class template
+	C4521	'class': multiple copy constructors specified
+	C4522	'class': multiple assignment operators specified
+	C4523	'class': multiple destructors specified
+	C4526	'function': static member function cannot override virtual function 'virtual function' override ignored, virtual function will be hidden
+	C4530	C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
+	C4531	C++ exception handling not available on Windows CE. Use Structured Exception Handling
+	C4532	'continue': jump out of '__finally/finally' block has undefined behavior during termination handling
+	C4533	initialization of 'variable' is skipped by 'goto label'
+	C4534	'constructor' will not be a default constructor for 'class/struct' 'identifier' due to the default argument
+	C4535	calling _set_se_translator() requires /EHa
+	C4536	'typename': type-name exceeds meta-data limit of 'character_limit' characters
+	C4537	'object': '.' applied to non-UDT type
+	C4538	'type': const/volatile qualifiers on this type are not supported
+	C4540	dynamic_cast used to convert to inaccessible or ambiguous base; run-time test will fail ('type1' to 'type2')
+	C4541	'identifier' used on polymorphic type 'type' with /GR-; unpredictable behavior may result
+	C4542	Skipping generation of merged injected text file, cannot write filetype file: 'issue': message
+	C4543	Injected text suppressed by attribute 'no_injected_text'
+	C4544	'declaration': default template argument ignored on this template declaration
+	C4545	expression before comma evaluates to a function which is missing an argument list
+	C4546	function call before comma missing argument list
+	C4547	'operator': operator before comma has no effect; expected operator with side-effect
+	C4548	expression before comma has no effect; expected expression with side-effect
+	C4549	'operator': operator before comma has no effect; did you intend 'operator'?
+	C4550	expression evaluates to a function which is missing an argument list
+	C4551	function call missing argument list
+	C4552	'operator': operator has no effect; expected operator with side-effect
+	C4553	'operator': operator has no effect; did you intend 'operator?
+	C4554 	'operator': check operator precedence for possible error; use parentheses to clarify precedence
+	C4555	expression has no effect; expected expression with side-effect
+	C4556	value of intrinsic immediate argument 'value' is out of range 'lower_bound - upper_bound'
+	C4557	'__assume' contains effect 'effect'
+	C4558	value of operand 'value' is out of range 'lower_bound - upper_bound'
+	C4559	'function': redefinition; the function gains __declspec(modifier)
+	C4561	'__fastcall' incompatible with the '/clr' option: converting to '__stdcall'
+	C4562	fully prototyped functions are required with the '/clr' option: converting '()' to '(void)'
+	C4564	method 'method' of 'class' 'classname' defines unsupported default parameter 'parameter'
+	C4565	'function': redefinition; the symbol was previously declared with __declspec(modifier)
+	C4566	character represented by universal-character-name 'char' cannot be represented in the current code page (number)
+	C4568	'function': no members match the signature of the explicit override
+	C4569	'function': no members match the signature of the explicit override
+	C4570	'type': is not explicitly declared as abstract but has abstract functions
+	C4571	Informational: catch(...) semantics changed since Visual C++ 7.1; structured exceptions (SEH) are no longer caught
+	C4572	[ParamArray] attribute is deprecated under /clr, use '...' instead
+	C4573	the usage of 'lambda function' requires the compiler to capture 'this' but the current default capture mode does not allow it
+	C4574	'Identifier' is defined to be '0': did you mean to use '#if identifier'?
+	C4575	'__vectorcall' incompatible with the '/clr' option: converting to '__stdcall'
+	C4576	a parenthesized type followed by an initializer list is a non-standard explicit type conversion syntax
+	C4577	'noexcept' used with no exception handling mode specified; termination on exception is not guaranteed. Specify /EHsc
+	C4578	'abs': conversion from 'type1' to 'type2', possible loss of data (Did you mean to call 'function' or to #include <cmath>?)
+	C4580	[attribute] is deprecated; instead specify System::Attribute or Platform::Metadata as a base class
+	C4581	deprecated behavior: '"string"' replaced with 'string' to process attribute
+	C4582	'type': constructor is not implicitly called
+	C4583	'type': destructor is not implicitly called
+	C4584	'class1': base-class 'class2' is already a base-class of 'class3'
+	C4585	'class': A WinRT 'public ref class' must either be sealed or derive from an existing unsealed class
+	C4586	'type': A public type cannot be declared in a top-level namespace called 'Windows'
+	C4587	'anonymous_structure': behavior change: constructor is no longer implicitly called
+	C4588	'anonymous_structure': behavior change: destructor is no longer implicitly called
+	C4591	'constexpr' call-depth limit of number exceeded (/constexpr:depth<NUMBER>)
+	C4592	'function': 'constexpr' call evaluation failed; function will be called at run-time
+	C4593	'function': 'constexpr' call evaluation step limit of 'limit' exceeded; use /constexpr:steps<NUMBER> to increase the limit
+	C4594	'type': destructor will not be implicitly called if an exception is thrown
+	C4595	'type': behavior change: destructor will no longer be implicitly called if an exception is thrown
+	C4596	'identifier': illegal qualified name in member declaration
+	C4597	undefined behavior: offsetof applied to a member of a virtual base
+	C4598	'#include "header"': header number number in the precompiled header does not match current compilation at that position
+	C4599	'flag path': command line argument number number does not match precompiled header
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	C4600
+	C4400
+	C4401
+	C4402
+	C4403
+	C4404
+	C4405
+	C4406
+	C4407
+	C4408
+	C4409
+	C4410
+	C4411
+	C4412
+	C4413
+	C4414
+	C4415
+	C4416
+	C4417
+	C4418
+	C4419
+	C4420
+	C4421
+	C4423
+	C4424
+	C4425
+	C4426
+	C4427
+	C4429
+	C4430
+	C4431
+	C4434
+	C4435
+	C4436
+	C4437
+	C4438
+	C4439
+	C4440
+	C4441
+	C4442
+	C4443
+	C4444
+	C4445
+	C4446
+	C4447
+	C4448
+	C4449
+	C4450
+	C4451
+	C4452
+	C4453
+	C4454
+	C4455
+	C4456
+	C4457
+	C4458
+	C4459
+	C4460
+	C4461
+	C4462
+	C4463
+	C4464
+	C4470
+	C4471
+	C4472
+	C4473
+	C4474
+	C4475
+	C4476
+	C4477
+	C4478
+	C4480
+	C4481
+	C4482
+	C4483
+	C4484
+	C4485
+	C4486
+	C4487
+	C4488
+	C4489
+	C4490
+	C4491
+	C4492
+	C4493
+	C4494
+	C4495
+	C4496
+	C4497
+	C4498
+	C4499
+	C4502
+	C4503
+	C4505
+	C4506
+	C4508
+	C4509
+	C4510
+	C4511
+	C4512
+	C4513
+	C4514
+	C4515
+	C4516
+	C4517
+	C4518
+	C4519
+	C4521
+	C4522
+	C4523
+	C4526
+	C4530
+	C4531
+	C4532
+	C4533
+	C4534
+	C4535
+	C4536
+	C4537
+	C4538
+	C4540
+	C4541
+	C4542
+	C4543
+	C4544
+	C4545
+	C4546
+	C4547
+	C4548
+	C4549
+	C4550
+	C4551
+	C4552
+	C4553
+	C4554
+	C4555
+	C4556
+	C4557
+	C4558
+	C4559
+	C4561
+	C4562
+	C4564
+	C4565
+	C4566
+	C4568
+	C4569
+	C4570
+	C4571
+	C4572
+	C4573
+	C4574
+	C4575
+	C4576
+	C4577
+	C4578
+	C4580
+	C4581
+	C4582
+	C4583
+	C4584
+	C4585
+	C4586
+	C4587
+	C4588
+	C4591
+	C4592
+	C4593
+	C4594
+	C4595
+	C4596
+	C4597
+	C4598
+	C4599
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	4600
+	4400
+	4401
+	4402
+	4403
+	4404
+	4405
+	4406
+	4407
+	4408
+	4409
+	4410
+	4411
+	4412
+	4413
+	4414
+	4415
+	4416
+	4417
+	4418
+	4419
+	4420
+	4421
+	4423
+	4424
+	4425
+	4426
+	4427
+	4429
+	4430
+	4431
+	4434
+	4435
+	4436
+	4437
+	4438
+	4439
+	4440
+	4441
+	4442
+	4443
+	4444
+	4445
+	4446
+	4447
+	4448
+	4449
+	4450
+	4451
+	4452
+	4453
+	4454
+	4455
+	4456
+	4457
+	4458
+	4459
+	4460
+	4461
+	4462
+	4463
+	4464
+	4470
+	4471
+	4472
+	4473
+	4474
+	4475
+	4476
+	4477
+	4478
+	4480
+	4481
+	4482
+	4483
+	4484
+	4485
+	4486
+	4487
+	4488
+	4489
+	4490
+	4491
+	4492
+	4493
+	4494
+	4495
+	4496
+	4497
+	4498
+	4499
+	4502
+	4503
+	4505
+	4506
+	4508
+	4509
+	4510
+	4511
+	4512
+	4513
+	4514
+	4515
+	4516
+	4517
+	4518
+	4519
+	4521
+	4522
+	4523
+	4526
+	4530
+	4531
+	4532
+	4533
+	4534
+	4535
+	4536
+	4537
+	4538
+	4540
+	4541
+	4542
+	4543
+	4544
+	4545
+	4546
+	4547
+	4548
+	4549
+	4550
+	4551
+	4552
+	4553
+	4554
+	4555
+	4556
+	4557
+	4558
+	4559
+	4561
+	4562
+	4564
+	4565
+	4566
+	4568
+	4569
+	4570
+	4571
+	4572
+	4573
+	4574
+	4575
+	4576
+	4577
+	4578
+	4580
+	4581
+	4582
+	4583
+	4584
+	4585
+	4586
+	4587
+	4588
+	4591
+	4592
+	4593
+	4594
+	4595
+	4596
+	4597
+	4598
+	4599

@@ -28,7 +28,7 @@ namespace Saturn {
 			struct Color { float r, g, b, a; };
 		public:
 			Message(const std::string message = "", Level level = Level::Invalid);
-			void OnImGuiRender();
+			void OnImGuiRender( void );
 
 			static Level GetLowerLevel(Level level);
 			static Level GetHigherLevel(Level level);
@@ -43,16 +43,16 @@ namespace Saturn {
 	public:
 		~ImGuiConsole() = default;
 		static void AddMessage(std::shared_ptr<Message> message);
-		static void Clear();
+		static void Clear( void );
 		static void OnImGuiRender(bool* show);
 	protected:
 		ImGuiConsole() = default;
 	private:
 		struct ImGuiRendering
 		{
-			static void ImGuiRenderHeader();
-			static void ImGuiRenderSettings();
-			static void ImGuiRenderMessages();
+			static void ImGuiRenderHeader( void );
+			static void ImGuiRenderSettings( void );
+			static void ImGuiRenderMessages( void );
 		};
 	private:
 		static float s_DisplayScale;

@@ -32,8 +32,10 @@
 #include <utility>
 #include <sstream>
 #include <string>
+#pragma warning(push)
 #include <reactphysics3d/decimal.h>
 #include <reactphysics3d/containers/Pair.h>
+#pragma warning(pop)
 
 // Windows platform
 #if defined(WIN32) ||defined(_WIN32) || defined(_WIN64) ||defined(__WIN32__) || defined(__WINDOWS__)

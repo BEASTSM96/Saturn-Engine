@@ -26,12 +26,14 @@
 #ifndef REACTPHYSICS3D_COLLIDERS_COMPONENTS_H
 #define REACTPHYSICS3D_COLLIDERS_COMPONENTS_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/mathematics/Transform.h>
 #include <reactphysics3d/engine/Entity.h>
 #include <reactphysics3d/containers/Map.h>
 #include <reactphysics3d/collision/shapes/AABB.h>
 #include <reactphysics3d/components/Components.h>
+#pragma warning(pop)
 
 // ReactPhysics3D namespace
 namespace reactphysics3d {

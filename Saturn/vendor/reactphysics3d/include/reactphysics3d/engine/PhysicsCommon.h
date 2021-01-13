@@ -26,6 +26,7 @@
 #ifndef REACTPHYSICS3D_PHYSICS_COMMON_H
 #define REACTPHYSICS3D_PHYSICS_COMMON_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/memory/MemoryManager.h>
 #include <reactphysics3d/engine/PhysicsWorld.h>
@@ -37,6 +38,7 @@
 #include <reactphysics3d/collision/shapes/ConcaveMeshShape.h>
 #include <reactphysics3d/collision/TriangleMesh.h>
 #include <reactphysics3d/utils/DefaultLogger.h>
+#pragma warning(pop)
 
 /// ReactPhysics3D namespace
 namespace reactphysics3d {

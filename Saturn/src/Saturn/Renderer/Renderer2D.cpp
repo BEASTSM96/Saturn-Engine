@@ -1,3 +1,31 @@
+/********************************************************************************************
+*                                                                                           *
+*                                                                                           *
+*                                                                                           *
+* MIT License                                                                               *
+*                                                                                           *
+* Copyright (c) 2020 - 2021 BEAST                                                           *
+*                                                                                           *
+* Permission is hereby granted, free of charge, to any person obtaining a copy              *
+* of this software and associated documentation files (the "Software"), to deal             *
+* in the Software without restriction, including without limitation the rights              *
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                 *
+* copies of the Software, and to permit persons to whom the Software is                     *
+* furnished to do so, subject to the following conditions:                                  *
+*                                                                                           *
+* The above copyright notice and this permission notice shall be included in all            *
+* copies or substantial portions of the Software.                                           *
+*                                                                                           *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                *
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                  *
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE               *
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                    *
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,             *
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE             *
+* SOFTWARE.                                                                                 *
+*********************************************************************************************
+*/
+
 #include "sppch.h"
 #include "Renderer2D.h"
 
@@ -54,7 +82,7 @@ namespace Saturn {
 		std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
 		uint32_t TextureSlotIndex = 1; // 0 = white texture
 
-		glm::vec4 QuadVertexPositions[4];
+		glm::vec4 QuadVertexPositions[ 4 ];
 
 		// Lines
 		Ref<Pipeline> LinePipeline;
@@ -79,73 +107,73 @@ namespace Saturn {
 	{
 		{
 			PipelineSpecification pipelineSpecification;
-			pipelineSpecification.Layout = {
+			pipelineSpecification.Layout ={
 				{ ShaderDataType::Float3, "a_Position" },
 				{ ShaderDataType::Float4, "a_Color" },
 				{ ShaderDataType::Float2, "a_TexCoord" },
 				{ ShaderDataType::Float, "a_TexIndex" },
 				{ ShaderDataType::Float, "a_TilingFactor" }
 			};
-			s_Data.QuadPipeline = Pipeline::Create(pipelineSpecification);
+			s_Data.QuadPipeline = Pipeline::Create( pipelineSpecification );
 
-			s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
-			s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
+			s_Data.QuadVertexBuffer = VertexBuffer::Create( s_Data.MaxVertices * sizeof( QuadVertex ) );
+			s_Data.QuadVertexBufferBase = new QuadVertex[ s_Data.MaxVertices ];
 
-			uint32_t* quadIndices = new uint32_t[s_Data.MaxIndices];
+			uint32_t* quadIndices = new uint32_t[ s_Data.MaxIndices ];
 
 			uint32_t offset = 0;
-			for (uint32_t i = 0; i < s_Data.MaxIndices; i += 6)
+			for( uint32_t i = 0; i < s_Data.MaxIndices; i += 6 )
 			{
-				quadIndices[i + 0] = offset + 0;
-				quadIndices[i + 1] = offset + 1;
-				quadIndices[i + 2] = offset + 2;
+				quadIndices[ i + 0 ] = offset + 0;
+				quadIndices[ i + 1 ] = offset + 1;
+				quadIndices[ i + 2 ] = offset + 2;
 
-				quadIndices[i + 3] = offset + 2;
-				quadIndices[i + 4] = offset + 3;
-				quadIndices[i + 5] = offset + 0;
+				quadIndices[ i + 3 ] = offset + 2;
+				quadIndices[ i + 4 ] = offset + 3;
+				quadIndices[ i + 5 ] = offset + 0;
 
 				offset += 4;
 			}
 
-			s_Data.QuadIndexBuffer = IndexBuffer::Create(quadIndices, s_Data.MaxIndices);
+			s_Data.QuadIndexBuffer = IndexBuffer::Create( quadIndices, s_Data.MaxIndices );
 			delete[] quadIndices;
 		}
 
-		s_Data.WhiteTexture = Texture2D::Create(TextureFormat::RGBA, 1, 1);
+		s_Data.WhiteTexture = Texture2D::Create( TextureFormat::RGBA, 1, 1 );
 		uint32_t whiteTextureData = 0xffffffff;
 		s_Data.WhiteTexture->Lock();
-		s_Data.WhiteTexture->GetWriteableBuffer().Write(&whiteTextureData, sizeof(uint32_t));
+		s_Data.WhiteTexture->GetWriteableBuffer().Write( &whiteTextureData, sizeof( uint32_t ) );
 		s_Data.WhiteTexture->Unlock();
 
-		s_Data.TextureShader = Shader::Create("assets/shaders/Renderer2D.glsl");
+		s_Data.TextureShader = Shader::Create( "assets/shaders/Renderer2D.glsl" );
 
 		// Set all texture slots to 0
-		s_Data.TextureSlots[0] = s_Data.WhiteTexture;
+		s_Data.TextureSlots[ 0 ] = s_Data.WhiteTexture;
 
-		s_Data.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
-		s_Data.QuadVertexPositions[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
-		s_Data.QuadVertexPositions[2] = { 0.5f,  0.5f, 0.0f, 1.0f };
-		s_Data.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
+		s_Data.QuadVertexPositions[ 0 ] ={ -0.5f, -0.5f, 0.0f, 1.0f };
+		s_Data.QuadVertexPositions[ 1 ] ={ 0.5f, -0.5f, 0.0f, 1.0f };
+		s_Data.QuadVertexPositions[ 2 ] ={ 0.5f,  0.5f, 0.0f, 1.0f };
+		s_Data.QuadVertexPositions[ 3 ] ={ -0.5f,  0.5f, 0.0f, 1.0f };
 
 		// Lines
 		{
-			s_Data.LineShader = Shader::Create("assets/shaders/Renderer2D_Line.glsl");
+			s_Data.LineShader = Shader::Create( "assets/shaders/Renderer2D_Line.glsl" );
 
 			PipelineSpecification pipelineSpecification;
-			pipelineSpecification.Layout = {
+			pipelineSpecification.Layout ={
 				{ ShaderDataType::Float3, "a_Position" },
 				{ ShaderDataType::Float4, "a_Color" }
 			};
-			s_Data.LinePipeline = Pipeline::Create(pipelineSpecification);
+			s_Data.LinePipeline = Pipeline::Create( pipelineSpecification );
 
-			s_Data.LineVertexBuffer = VertexBuffer::Create(s_Data.MaxLineVertices * sizeof(LineVertex));
-			s_Data.LineVertexBufferBase = new LineVertex[s_Data.MaxLineVertices];
+			s_Data.LineVertexBuffer = VertexBuffer::Create( s_Data.MaxLineVertices * sizeof( LineVertex ) );
+			s_Data.LineVertexBufferBase = new LineVertex[ s_Data.MaxLineVertices ];
 
-			uint32_t* lineIndices = new uint32_t[s_Data.MaxLineIndices];
-			for (uint32_t i = 0; i < s_Data.MaxLineIndices; i++)
-				lineIndices[i] = i;
+			uint32_t* lineIndices = new uint32_t[ s_Data.MaxLineIndices ];
+			for( uint32_t i = 0; i < s_Data.MaxLineIndices; i++ )
+				lineIndices[ i ] = i;
 
-			s_Data.LineIndexBuffer = IndexBuffer::Create(lineIndices, s_Data.MaxLineIndices);
+			s_Data.LineIndexBuffer = IndexBuffer::Create( lineIndices, s_Data.MaxLineIndices );
 			delete[] lineIndices;
 		}
 	}
@@ -154,13 +182,13 @@ namespace Saturn {
 	{
 	}
 
-	void Renderer2D::BeginScene(const glm::mat4& viewProj, bool depthTest)
+	void Renderer2D::BeginScene( const glm::mat4& viewProj, bool depthTest )
 	{
 		s_Data.CameraViewProj = viewProj;
 		s_Data.DepthTest = depthTest;
 
 		s_Data.TextureShader->Bind();
-		s_Data.TextureShader->SetMat4("u_ViewProjection", viewProj);
+		s_Data.TextureShader->SetMat4( "u_ViewProjection", viewProj );
 
 		s_Data.QuadIndexCount = 0;
 		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
@@ -173,54 +201,42 @@ namespace Saturn {
 
 	void Renderer2D::EndScene()
 	{
-		uint32_t dataSize = (uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase;
-		if (dataSize)
+		uint32_t dataSize = ( uint8_t* )s_Data.QuadVertexBufferPtr - ( uint8_t* )s_Data.QuadVertexBufferBase;
+		if( dataSize )
 		{
-			s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
+			s_Data.QuadVertexBuffer->SetData( s_Data.QuadVertexBufferBase, dataSize );
 
 			s_Data.TextureShader->Bind();
-			s_Data.TextureShader->SetMat4("u_ViewProjection", s_Data.CameraViewProj);
+			s_Data.TextureShader->SetMat4( "u_ViewProjection", s_Data.CameraViewProj );
 
-			for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-				s_Data.TextureSlots[i]->Bind(i);
+			for( uint32_t i = 0; i < s_Data.TextureSlotIndex; i++ )
+				s_Data.TextureSlots[ i ]->Bind( i );
 
 			s_Data.QuadPipeline->Bind();
 			s_Data.QuadIndexBuffer->Bind();
-			Renderer::DrawIndexed(s_Data.QuadIndexCount, PrimitiveType::Triangles, s_Data.DepthTest);
+			Renderer::DrawIndexed( s_Data.QuadIndexCount, PrimitiveType::Triangles, s_Data.DepthTest );
 			s_Data.Stats.DrawCalls++;
 		}
 
-		dataSize = (uint8_t*)s_Data.LineVertexBufferPtr - (uint8_t*)s_Data.LineVertexBufferBase;
-		if (dataSize)
+		dataSize = ( uint8_t* )s_Data.LineVertexBufferPtr - ( uint8_t* )s_Data.LineVertexBufferBase;
+		if( dataSize )
 		{
-			s_Data.LineVertexBuffer->SetData(s_Data.LineVertexBufferBase, dataSize);
+			s_Data.LineVertexBuffer->SetData( s_Data.LineVertexBufferBase, dataSize );
 
 			s_Data.LineShader->Bind();
-			s_Data.LineShader->SetMat4("u_ViewProjection", s_Data.CameraViewProj);
+			s_Data.LineShader->SetMat4( "u_ViewProjection", s_Data.CameraViewProj );
 
 			s_Data.LinePipeline->Bind();
 			s_Data.LineIndexBuffer->Bind();
-			Renderer::SetLineThickness(2.0f);
-			Renderer::DrawIndexed(s_Data.LineIndexCount, PrimitiveType::Lines, s_Data.DepthTest);
+			Renderer::SetLineThickness( 2.0f );
+			Renderer::DrawIndexed( s_Data.LineIndexCount, PrimitiveType::Lines, s_Data.DepthTest );
 			s_Data.Stats.DrawCalls++;
 		}
 
-#if OLD
-		Flush();
-#endif
 	}
 
 	void Renderer2D::Flush()
 	{
-#if OLD
-		// Bind textures
-		for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-			s_Data.TextureSlots[i]->Bind(i);
-
-		s_Data.QuadVertexArray->Bind();
-		Renderer::DrawIndexed(s_Data.QuadIndexCount, false);
-		s_Data.Stats.DrawCalls++;
-#endif
 	}
 
 	void Renderer2D::FlushAndReset()
@@ -238,21 +254,21 @@ namespace Saturn {
 
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
+	void Renderer2D::DrawQuad( const glm::mat4& transform, const glm::vec4& color )
 	{
 		constexpr size_t quadVertexCount = 4;
 		const float textureIndex = 0.0f; // White Texture
-		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+		constexpr glm::vec2 textureCoords[] ={ { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 		const float tilingFactor = 1.0f;
 
-		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+		if( s_Data.QuadIndexCount >= Renderer2DData::MaxIndices )
 			FlushAndReset();
 
-		for (size_t i = 0; i < quadVertexCount; i++)
+		for( size_t i = 0; i < quadVertexCount; i++ )
 		{
-			s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
+			s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ i ];
 			s_Data.QuadVertexBufferPtr->Color = color;
-			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
+			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[ i ];
 			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 			s_Data.QuadVertexBufferPtr++;
@@ -263,40 +279,40 @@ namespace Saturn {
 		s_Data.Stats.QuadCount++;
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
+	void Renderer2D::DrawQuad( const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor )
 	{
 		constexpr size_t quadVertexCount = 4;
-		constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+		constexpr glm::vec4 color ={ 1.0f, 1.0f, 1.0f, 1.0f };
+		constexpr glm::vec2 textureCoords[] ={ { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 
-		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+		if( s_Data.QuadIndexCount >= Renderer2DData::MaxIndices )
 			FlushAndReset();
 
 		float textureIndex = 0.0f;
-		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
+		for( uint32_t i = 1; i < s_Data.TextureSlotIndex; i++ )
 		{
-			if (*s_Data.TextureSlots[i].Raw() == *texture.Raw())
+			if( *s_Data.TextureSlots[ i ].Raw() == *texture.Raw() )
 			{
-				textureIndex = (float)i;
+				textureIndex = ( float )i;
 				break;
 			}
 		}
 
-		if (textureIndex == 0.0f)
+		if( textureIndex == 0.0f )
 		{
-			if (s_Data.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
+			if( s_Data.TextureSlotIndex >= Renderer2DData::MaxTextureSlots )
 				FlushAndReset();
 
-			textureIndex = (float)s_Data.TextureSlotIndex;
-			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+			textureIndex = ( float )s_Data.TextureSlotIndex;
+			s_Data.TextureSlots[ s_Data.TextureSlotIndex ] = texture;
 			s_Data.TextureSlotIndex++;
 		}
 
-		for (size_t i = 0; i < quadVertexCount; i++)
+		for( size_t i = 0; i < quadVertexCount; i++ )
 		{
-			s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
+			s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ i ];
 			s_Data.QuadVertexBufferPtr->Color = color;
-			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
+			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[ i ];
 			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 			s_Data.QuadVertexBufferPtr++;
@@ -307,46 +323,46 @@ namespace Saturn {
 		s_Data.Stats.QuadCount++;
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
+	void Renderer2D::DrawQuad( const glm::vec2& position, const glm::vec2& size, const glm::vec4& color )
 	{
-		DrawQuad({ position.x, position.y, 0.0f }, size, color);
+		DrawQuad( { position.x, position.y, 0.0f }, size, color );
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
+	void Renderer2D::DrawQuad( const glm::vec3& position, const glm::vec2& size, const glm::vec4& color )
 	{
-		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+		if( s_Data.QuadIndexCount >= Renderer2DData::MaxIndices )
 			FlushAndReset();
 
 		const float textureIndex = 0.0f; // White Texture
 		const float tilingFactor = 1.0f;
 
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+		glm::mat4 transform = glm::translate( glm::mat4( 1.0f ), position )
+			* glm::scale( glm::mat4( 1.0f ), { size.x, size.y, 1.0f } );
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[0];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 0 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 0.0f, 0.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 0.0f, 0.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[1];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 1 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 1.0f, 0.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 1.0f, 0.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[2];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 2 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 1.0f, 1.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 1.0f, 1.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[3];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 3 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 0.0f, 1.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 0.0f, 1.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
@@ -356,62 +372,62 @@ namespace Saturn {
 		s_Data.Stats.QuadCount++;
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
+	void Renderer2D::DrawQuad( const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor )
 	{
-		DrawQuad({ position.x, position.y, 0.0f }, size, texture, tilingFactor, tintColor);
+		DrawQuad( { position.x, position.y, 0.0f }, size, texture, tilingFactor, tintColor );
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
+	void Renderer2D::DrawQuad( const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor )
 	{
-		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+		if( s_Data.QuadIndexCount >= Renderer2DData::MaxIndices )
 			FlushAndReset();
 
-		constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		constexpr glm::vec4 color ={ 1.0f, 1.0f, 1.0f, 1.0f };
 
 		float textureIndex = 0.0f;
-		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
+		for( uint32_t i = 1; i < s_Data.TextureSlotIndex; i++ )
 		{
-			if (*s_Data.TextureSlots[i].Raw() == *texture.Raw())
+			if( *s_Data.TextureSlots[ i ].Raw() == *texture.Raw() )
 			{
-				textureIndex = (float)i;
+				textureIndex = ( float )i;
 				break;
 			}
 		}
 
-		if (textureIndex == 0.0f)
+		if( textureIndex == 0.0f )
 		{
-			textureIndex = (float)s_Data.TextureSlotIndex;
-			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+			textureIndex = ( float )s_Data.TextureSlotIndex;
+			s_Data.TextureSlots[ s_Data.TextureSlotIndex ] = texture;
 			s_Data.TextureSlotIndex++;
 		}
 
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+		glm::mat4 transform = glm::translate( glm::mat4( 1.0f ), position )
+			* glm::scale( glm::mat4( 1.0f ), { size.x, size.y, 1.0f } );
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[0];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 0 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 0.0f, 0.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 0.0f, 0.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[1];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 1 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 1.0f, 0.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 1.0f, 0.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[2];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 2 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 1.0f, 1.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 1.0f, 1.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[3];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 3 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 0.0f, 1.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 0.0f, 1.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
@@ -421,47 +437,47 @@ namespace Saturn {
 		s_Data.Stats.QuadCount++;
 	}
 
-	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color)
+	void Renderer2D::DrawRotatedQuad( const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color )
 	{
-		DrawRotatedQuad({ position.x, position.y, 0.0f }, size, rotation, color);
+		DrawRotatedQuad( { position.x, position.y, 0.0f }, size, rotation, color );
 	}
 
-	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color)
+	void Renderer2D::DrawRotatedQuad( const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color )
 	{
-		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+		if( s_Data.QuadIndexCount >= Renderer2DData::MaxIndices )
 			FlushAndReset();
 
 		const float textureIndex = 0.0f; // White Texture
 		const float tilingFactor = 1.0f;
 
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-			* glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
-			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+		glm::mat4 transform = glm::translate( glm::mat4( 1.0f ), position )
+			* glm::rotate( glm::mat4( 1.0f ), glm::radians( rotation ), { 0.0f, 0.0f, 1.0f } )
+			* glm::scale( glm::mat4( 1.0f ), { size.x, size.y, 1.0f } );
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[0];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 0 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 0.0f, 0.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 0.0f, 0.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[1];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 1 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 1.0f, 0.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 1.0f, 0.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[2];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 2 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 1.0f, 1.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 1.0f, 1.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[3];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 3 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 0.0f, 1.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 0.0f, 1.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
@@ -471,63 +487,63 @@ namespace Saturn {
 		s_Data.Stats.QuadCount++;
 	}
 
-	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
+	void Renderer2D::DrawRotatedQuad( const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor )
 	{
-		DrawRotatedQuad({ position.x, position.y, 0.0f }, size, rotation, texture, tilingFactor, tintColor);
+		DrawRotatedQuad( { position.x, position.y, 0.0f }, size, rotation, texture, tilingFactor, tintColor );
 	}
 
-	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
+	void Renderer2D::DrawRotatedQuad( const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor )
 	{
-		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+		if( s_Data.QuadIndexCount >= Renderer2DData::MaxIndices )
 			FlushAndReset();
 
-		constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		constexpr glm::vec4 color ={ 1.0f, 1.0f, 1.0f, 1.0f };
 
 		float textureIndex = 0.0f;
-		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
+		for( uint32_t i = 1; i < s_Data.TextureSlotIndex; i++ )
 		{
-			if (*s_Data.TextureSlots[i].Raw() == *texture.Raw())
+			if( *s_Data.TextureSlots[ i ].Raw() == *texture.Raw() )
 			{
-				textureIndex = (float)i;
+				textureIndex = ( float )i;
 				break;
 			}
 		}
 
-		if (textureIndex == 0.0f)
+		if( textureIndex == 0.0f )
 		{
-			textureIndex = (float)s_Data.TextureSlotIndex;
-			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+			textureIndex = ( float )s_Data.TextureSlotIndex;
+			s_Data.TextureSlots[ s_Data.TextureSlotIndex ] = texture;
 			s_Data.TextureSlotIndex++;
 		}
 
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-			* glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
-			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+		glm::mat4 transform = glm::translate( glm::mat4( 1.0f ), position )
+			* glm::rotate( glm::mat4( 1.0f ), glm::radians( rotation ), { 0.0f, 0.0f, 1.0f } )
+			* glm::scale( glm::mat4( 1.0f ), { size.x, size.y, 1.0f } );
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[0];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 0 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 0.0f, 0.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 0.0f, 0.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[1];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 1 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 1.0f, 0.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 1.0f, 0.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[2];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 2 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 1.0f, 1.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 1.0f, 1.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
 
-		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[3];
+		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[ 3 ];
 		s_Data.QuadVertexBufferPtr->Color = color;
-		s_Data.QuadVertexBufferPtr->TexCoord = { 0.0f, 1.0f };
+		s_Data.QuadVertexBufferPtr->TexCoord ={ 0.0f, 1.0f };
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 		s_Data.QuadVertexBufferPtr++;
@@ -537,9 +553,9 @@ namespace Saturn {
 		s_Data.Stats.QuadCount++;
 	}
 
-	void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color)
+	void Renderer2D::DrawLine( const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color )
 	{
-		if (s_Data.LineIndexCount >= Renderer2DData::MaxLineIndices)
+		if( s_Data.LineIndexCount >= Renderer2DData::MaxLineIndices )
 			FlushAndResetLines();
 
 		s_Data.LineVertexBufferPtr->Position = p0;
@@ -557,12 +573,11 @@ namespace Saturn {
 
 	void Renderer2D::ResetStats()
 	{
-		memset(&s_Data.Stats, 0, sizeof(Statistics));
+		memset( &s_Data.Stats, 0, sizeof( Statistics ) );
 	}
 
 	Renderer2D::Statistics Renderer2D::GetStats()
 	{
 		return s_Data.Stats;
 	}
-
 }

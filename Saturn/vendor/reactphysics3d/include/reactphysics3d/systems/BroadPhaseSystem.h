@@ -26,6 +26,7 @@
 #ifndef REACTPHYSICS3D_BROAD_PHASE_ALGORITHM_H
 #define REACTPHYSICS3D_BROAD_PHASE_ALGORITHM_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/collision/broadphase/DynamicAABBTree.h>
 #include <reactphysics3d/containers/LinkedList.h>
@@ -33,6 +34,7 @@
 #include <reactphysics3d/components/ColliderComponents.h>
 #include <reactphysics3d/components/TransformComponents.h>
 #include <reactphysics3d/components/RigidBodyComponents.h>
+#pragma warning(pop)
 #include <cstring>
 
 /// Namespace ReactPhysics3D

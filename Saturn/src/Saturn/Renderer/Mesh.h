@@ -1,3 +1,31 @@
+/********************************************************************************************
+*                                                                                           *
+*                                                                                           *
+*                                                                                           *
+* MIT License                                                                               *
+*                                                                                           *
+* Copyright (c) 2020 - 2021 BEAST                                                           *
+*                                                                                           *
+* Permission is hereby granted, free of charge, to any person obtaining a copy              *
+* of this software and associated documentation files (the "Software"), to deal             *
+* in the Software without restriction, including without limitation the rights              *
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                 *
+* copies of the Software, and to permit persons to whom the Software is                     *
+* furnished to do so, subject to the following conditions:                                  *
+*                                                                                           *
+* The above copyright notice and this permission notice shall be included in all            *
+* copies or substantial portions of the Software.                                           *
+*                                                                                           *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                *
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                  *
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE               *
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                    *
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,             *
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE             *
+* SOFTWARE.                                                                                 *
+*********************************************************************************************
+*/
+
 #pragma once
 
 #include <vector>
@@ -12,6 +40,8 @@
 #include "Saturn/Renderer/Material.h"
 
 #include "Saturn/Core/AABB/AABB.h"
+
+DISABLE_ALL_WARNINGS_BEGIN
 
 struct aiNode;
 struct aiAnimation;
@@ -33,6 +63,10 @@ namespace Saturn {
 		glm::vec2 Texcoord;
 	};
 
+	DISABLE_ALL_WARNINGS_BEGIN
+
+	#pragma warning(push, 0)
+
 	struct AnimatedVertex
 	{
 		glm::vec3 Position;
@@ -41,25 +75,29 @@ namespace Saturn {
 		glm::vec3 Binormal;
 		glm::vec2 Texcoord;
 
-		uint32_t IDs[4] = { 0, 0,0, 0 };
-		float Weights[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
+		uint32_t IDs[ 4 ] ={ 0, 0,0, 0 };
+		float Weights[ 4 ]{ 0.0f, 0.0f, 0.0f, 0.0f };
 
-		void AddBoneData(uint32_t BoneID, float Weight)
+		void AddBoneData( uint32_t BoneID, float Weight )
 		{
-			for (size_t i = 0; i < 4; i++)
+			for( size_t i = 0; i < 4; i++ )
 			{
-				if (Weights[i] == 0.0)
+				if( Weights[ i ] == 0.0 )
 				{
-					IDs[i] = BoneID;
-					Weights[i] = Weight;
+					IDs[ i ] = BoneID;
+					Weights[ i ] = Weight;
 					return;
 				}
 			}
 
 			// TODO: Keep top weights
-			//SAT_CORE_WARN("Vertex has more than four bones/weights affecting it, extra data will be discarded (BoneID={0}, Weight={1})", BoneID, Weight);
+			SAT_CORE_WARN("Vertex has more than four bones/weights affecting it, extra data will be discarded (BoneID={0}, Weight={1})", BoneID, Weight);
 		}
 	};
+
+	#pragma warning(pop)
+
+	DISABLE_ALL_WARNINGS_END
 
 	static const int NumAttributes = 5;
 
@@ -68,7 +106,7 @@ namespace Saturn {
 		uint32_t V1, V2, V3;
 	};
 
-	static_assert(sizeof(Index) == 3 * sizeof(uint32_t));
+	static_assert( sizeof( Index ) == 3 * sizeof( uint32_t ) );
 
 	struct BoneInfo
 	{
@@ -78,29 +116,29 @@ namespace Saturn {
 
 	struct VertexBoneData
 	{
-		uint32_t IDs[4];
-		float Weights[4];
+		uint32_t IDs[ 4 ];
+		float Weights[ 4 ];
 
 		VertexBoneData()
 		{
-			memset(IDs, 0, sizeof(IDs));
-			memset(Weights, 0, sizeof(Weights));
+			memset( IDs, 0, sizeof( IDs ) );
+			memset( Weights, 0, sizeof( Weights ) );
 		};
 
-		void AddBoneData(uint32_t BoneID, float Weight)
+		void AddBoneData( uint32_t BoneID, float Weight )
 		{
-			for (size_t i = 0; i < 4; i++)
+			for( size_t i = 0; i < 4; i++ )
 			{
-				if (Weights[i] == 0.0)
+				if( Weights[ i ] == 0.0 )
 				{
-					IDs[i] = BoneID;
-					Weights[i] = Weight;
+					IDs[ i ] = BoneID;
+					Weights[ i ] = Weight;
 					return;
 				}
 			}
 
 			// should never get here - more bones than we have space for
-			SAT_CORE_ASSERT(false, "Too many bones!");
+			SAT_CORE_ASSERT( false, "Too many bones!" );
 		}
 	};
 
@@ -108,8 +146,10 @@ namespace Saturn {
 	{
 		Vertex V0, V1, V2;
 
-		Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2)
-			: V0(v0), V1(v1), V2(v2) {}
+		Triangle( const Vertex& v0, const Vertex& v1, const Vertex& v2 )
+			: V0( v0 ), V1( v1 ), V2( v2 )
+		{
+		}
 	};
 
 	class Submesh
@@ -129,11 +169,11 @@ namespace Saturn {
 	class Mesh : public RefCounted
 	{
 	public:
-		Mesh(const std::string& filename);
+		Mesh( const std::string& filename );
 		~Mesh();
 
-		void OnUpdate(Timestep ts);
-		void DumpVertexBuffer();
+		void OnUpdate( Timestep ts );
+		void DumpVertexBuffer( void );
 
 		std::vector<Submesh>& GetSubmeshes() { return m_Submeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return m_Submeshes; }
@@ -144,19 +184,19 @@ namespace Saturn {
 		const std::vector<Ref<Texture2D>>& GetTextures() const { return m_Textures; }
 		const std::string& GetFilePath() const { return m_FilePath; }
 
-		const std::vector<Triangle> GetTriangleCache(uint32_t index) const { return m_TriangleCache.at(index); }
+		const std::vector<Triangle> GetTriangleCache( uint32_t index ) const { return m_TriangleCache.at( index ); }
 	private:
-		void BoneTransform(float time);
-		void ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
-		void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), uint32_t level = 0);
+		void BoneTransform( float time );
+		void ReadNodeHierarchy( float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform );
+		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
 
-		const aiNodeAnim* FindNodeAnim(const aiAnimation* animation, const std::string& nodeName);
-		uint32_t FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
-		uint32_t FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
-		uint32_t FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
-		glm::vec3 InterpolateTranslation(float animationTime, const aiNodeAnim* nodeAnim);
-		glm::quat InterpolateRotation(float animationTime, const aiNodeAnim* nodeAnim);
-		glm::vec3 InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim);
+		const aiNodeAnim* FindNodeAnim( const aiAnimation* animation, const std::string& nodeName );
+		uint32_t FindPosition( float AnimationTime, const aiNodeAnim* pNodeAnim );
+		uint32_t FindRotation( float AnimationTime, const aiNodeAnim* pNodeAnim );
+		uint32_t FindScaling( float AnimationTime, const aiNodeAnim* pNodeAnim );
+		glm::vec3 InterpolateTranslation( float animationTime, const aiNodeAnim* nodeAnim );
+		glm::quat InterpolateRotation( float animationTime, const aiNodeAnim* nodeAnim );
+		glm::vec3 InterpolateScale( float animationTime, const aiNodeAnim* nodeAnim );
 	private:
 		std::vector<Submesh> m_Submeshes;
 
@@ -195,9 +235,12 @@ namespace Saturn {
 		bool m_AnimationPlaying = true;
 
 		std::string m_FilePath;
-
+	private:
 		friend class Renderer;
 		friend class SceneHierarchyPanel;
 	};
 
 }
+
+
+DISABLE_ALL_WARNINGS_END

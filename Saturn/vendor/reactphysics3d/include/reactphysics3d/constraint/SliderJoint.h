@@ -26,10 +26,12 @@
 #ifndef REACTPHYSICS3D_SLIDER_JOINT_H
 #define REACTPHYSICS3D_SLIDER_JOINT_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/mathematics/mathematics.h>
 #include <reactphysics3d/body/RigidBody.h>
 #include <reactphysics3d/constraint/Joint.h>
+#pragma warning(pop)
 
 namespace reactphysics3d {
 

@@ -1,3 +1,31 @@
+/********************************************************************************************
+*                                                                                           *
+*                                                                                           *
+*                                                                                           *
+* MIT License                                                                               *
+*                                                                                           *
+* Copyright (c) 2020 - 2021 BEAST                                                           *
+*                                                                                           *
+* Permission is hereby granted, free of charge, to any person obtaining a copy              *
+* of this software and associated documentation files (the "Software"), to deal             *
+* in the Software without restriction, including without limitation the rights              *
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                 *
+* copies of the Software, and to permit persons to whom the Software is                     *
+* furnished to do so, subject to the following conditions:                                  *
+*                                                                                           *
+* The above copyright notice and this permission notice shall be included in all            *
+* copies or substantial portions of the Software.                                           *
+*                                                                                           *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                *
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                  *
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE               *
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                    *
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,             *
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE             *
+* SOFTWARE.                                                                                 *
+*********************************************************************************************
+*/
+
 #pragma once
 
 #include <random>
@@ -9,6 +37,7 @@
 #pragma warning(disable: 26812)
 #pragma warning(disable: 6001)
 #pragma warning(disable: 4244)
+
 
 class MathType
 {
@@ -35,7 +64,7 @@ public:
 	}
 
 	/*
-		* Returns a Random bool value, either 'true' or 'false'
+	* Returns a Random bool value, either 'true' or 'false'
 	*/
 	static bool Bool()
 	{
@@ -63,11 +92,7 @@ private:
 
 };
 
-
-
-
 namespace Saturn {
-
 
 	using Vector1				=							glm::vec1;
 	using Vector2				=							glm::vec2;
@@ -89,25 +114,60 @@ namespace Saturn {
 	using Mat4x3				=							glm::mat4x3;
 	using Mat4x4				=							glm::mat4x4;
 
+	struct Vec2
+	{
+		float x;
+		float y;
 
-	static int Abs(int wa) {
-		return glm::abs(wa);
+		Vec2() { x = 0.0f; y = 0.0f; };
+		Vec2( float _x, float _y ) { x = _x; y = _y; };
+	};
+
+
+	struct Vec3
+	{
+		float x;
+		float y;
+		float z;
+
+		Vec3() { x = 0.0f; y = 0.0f; z = 0.0f; };
+		Vec3( float _x, float _y, float _z ) { x = _x; y = _y; z = _z; };
+	};
+
+	struct Vec4
+	{
+		float x;
+		float y;
+		float z;
+		float w;
+
+		Vec4() { x = 0.0f; y = 0.0f; z = 0.0f; w = 0.0f; };
+		Vec4( float _x, float _y, float _z, float _w ) { x = _x; y = _y; z = _z; w = _w; };
+	};
+
+
+	static int Abs( int wa )
+	{
+		return glm::abs( wa );
 	}
 
-	static int Sin(int wa) {
-		return glm::sin(wa);
+	static int Sin( int wa )
+	{
+		return glm::sin( wa );
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	static uint64_t AddInt64(uint64_t wa, uint64_t wa2) {
-	
+	static uint64_t AddInt64( uint64_t wa, uint64_t wa2 )
+	{
+
 		uint64_t newnum = wa + wa2;
-	
+
 		return newnum;
 
 	}
 
-	static uint32_t AddInt32(uint32_t wa, uint32_t wa2) {
+	static uint32_t AddInt32( uint32_t wa, uint32_t wa2 )
+	{
 
 		uint32_t newnum = wa + wa2;
 
@@ -115,7 +175,8 @@ namespace Saturn {
 
 	}
 
-	static int AddInt(int wa, int wa2) {
+	static int AddInt( int wa, int wa2 )
+	{
 
 		int newnum = wa + wa2;
 
@@ -123,7 +184,8 @@ namespace Saturn {
 
 	}
 
-	static float AddFloat(float wa, float wa2) {
+	static float AddFloat( float wa, float wa2 )
+	{
 
 		float newnum = wa + wa2;
 
@@ -131,25 +193,28 @@ namespace Saturn {
 
 	}
 
-	static double AddDouble(double wa, double wa2) {
-		
-		float newnum = AddFloat(float(wa), float(wa2));
+	static double AddDouble( double wa, double wa2 )
+	{
 
-		return double(newnum);
+		float newnum = AddFloat( float( wa ), float( wa2 ) );
+
+		return double( newnum );
 
 	}
 
-	static double AddDoubleInt(double wa, double wa2) {
+	static double AddDoubleInt( double wa, double wa2 )
+	{
 
-		int newnum = AddInt(int(wa), int(wa2));
+		int newnum = AddInt( int( wa ), int( wa2 ) );
 
-		return double(newnum);
+		return double( newnum );
 
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	static uint64_t DivideInt64(uint64_t wa, uint64_t wa2) {
+	static uint64_t DivideInt64( uint64_t wa, uint64_t wa2 )
+	{
 
 		uint64_t newnum = wa / wa2;
 
@@ -157,7 +222,8 @@ namespace Saturn {
 
 	}
 
-	static uint32_t DivideInt32(uint32_t wa, uint32_t wa2) {
+	static uint32_t DivideInt32( uint32_t wa, uint32_t wa2 )
+	{
 
 		uint32_t newnum = wa / wa2;
 
@@ -165,7 +231,8 @@ namespace Saturn {
 
 	}
 
-	static int DivideInt(int wa, int wa2) {
+	static int DivideInt( int wa, int wa2 )
+	{
 
 		int newnum = wa / wa2;
 
@@ -173,7 +240,8 @@ namespace Saturn {
 
 	}
 
-	static float DivideFloat(float wa, float wa2) {
+	static float DivideFloat( float wa, float wa2 )
+	{
 
 		float newnum = wa / wa2;
 
@@ -181,25 +249,28 @@ namespace Saturn {
 
 	}
 
-	static double DivideDouble(double wa, double wa2) {
+	static double DivideDouble( double wa, double wa2 )
+	{
 
-		float newnum = DivideFloat(float(wa), float(wa2));
+		float newnum = DivideFloat( float( wa ), float( wa2 ) );
 
-		return double(newnum);
+		return double( newnum );
 
 	}
 
-	static double DivideDoubleInt(double wa, double wa2) {
+	static double DivideDoubleInt( double wa, double wa2 )
+	{
 
-		int newnum = DivideFloat(int(wa), int(wa2));
+		int newnum = DivideFloat( int( wa ), int( wa2 ) );
 
-		return double(newnum);
+		return double( newnum );
 
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	static uint64_t MultiplyInt64(uint64_t wa, uint64_t wa2) {
+	static uint64_t MultiplyInt64( uint64_t wa, uint64_t wa2 )
+	{
 
 		uint64_t newnum = wa * wa2;
 
@@ -207,7 +278,8 @@ namespace Saturn {
 
 	}
 
-	static uint32_t MultiplyInt32(uint32_t wa, uint32_t wa2) {
+	static uint32_t MultiplyInt32( uint32_t wa, uint32_t wa2 )
+	{
 
 		uint32_t newnum = wa * wa2;
 
@@ -215,7 +287,8 @@ namespace Saturn {
 
 	}
 
-	static int MultiplyInt(int wa, int wa2) {
+	static int MultiplyInt( int wa, int wa2 )
+	{
 
 		int newnum = wa * wa2;
 
@@ -223,7 +296,8 @@ namespace Saturn {
 
 	}
 
-	static float MultiplyFloat(float wa, float wa2) {
+	static float MultiplyFloat( float wa, float wa2 )
+	{
 
 		float newnum = wa * wa2;
 
@@ -231,22 +305,23 @@ namespace Saturn {
 
 	}
 
-	static double MultiplyDouble(double wa, double wa2) {
+	static double MultiplyDouble( double wa, double wa2 )
+	{
 
-		float newnum = MultiplyFloat(float(wa), float(wa2));
+		float newnum = MultiplyFloat( float( wa ), float( wa2 ) );
 
-		return double(newnum);
-
-	}
-
-	static double MultiplyDoubleInt(double wa, double wa2) {
-
-		
-		int newnum = MultiplyDouble(int(wa), int(wa2));
-
-		return double(newnum);
+		return double( newnum );
 
 	}
 
+	static double MultiplyDoubleInt( double wa, double wa2 )
+	{
+
+
+		int newnum = MultiplyDouble( int( wa ), int( wa2 ) );
+
+		return double( newnum );
+
+	}
 
 }

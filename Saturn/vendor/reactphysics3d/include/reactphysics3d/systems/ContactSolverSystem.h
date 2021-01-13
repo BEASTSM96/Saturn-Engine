@@ -26,10 +26,12 @@
 #ifndef REACTPHYSICS3D_CONTACT_SOLVER_SYSTEM_H
 #define REACTPHYSICS3D_CONTACT_SOLVER_SYSTEM_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/mathematics/Vector3.h>
 #include <reactphysics3d/mathematics/Matrix3x3.h>
+#pragma warning(pop)
 
 /// ReactPhysics3D namespace
 namespace reactphysics3d {

@@ -26,10 +26,12 @@
 #ifndef REACTPHYSICS3D_CONSTRAINT_H
 #define REACTPHYSICS3D_CONSTRAINT_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/body/RigidBody.h>
 #include <reactphysics3d/mathematics/mathematics.h>
+#pragma warning(pop)
 
 // ReactPhysics3D namespace
 namespace reactphysics3d {

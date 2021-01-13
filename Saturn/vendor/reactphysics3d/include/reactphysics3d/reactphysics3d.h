@@ -34,6 +34,7 @@
 #ifndef REACTPHYSICS3D_H
 #define REACTPHYSICS3D_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/mathematics/mathematics.h>
@@ -65,6 +66,7 @@
 #include <reactphysics3d/constraint/HingeJoint.h>
 #include <reactphysics3d/constraint/FixedJoint.h>
 #include <reactphysics3d/containers/List.h>
+#pragma warning(pop)
 
 /// Alias to the ReactPhysics3D namespace
 namespace rp3d = reactphysics3d;

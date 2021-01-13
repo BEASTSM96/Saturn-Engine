@@ -26,11 +26,13 @@
 #ifndef REACTPHYSICS3D_ENTITY_MANAGER_H
 #define REACTPHYSICS3D_ENTITY_MANAGER_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/containers/List.h>
 #include <reactphysics3d/containers/Deque.h>
 #include <reactphysics3d/engine/Entity.h>
+#pragma warning(pop)
 
 /// Namespace reactphysics3d
 namespace reactphysics3d {

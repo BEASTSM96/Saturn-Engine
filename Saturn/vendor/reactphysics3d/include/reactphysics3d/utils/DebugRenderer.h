@@ -26,11 +26,13 @@
 #ifndef REACTPHYSICS3D_DEBUG_RENDERER_H
 #define REACTPHYSICS3D_DEBUG_RENDERER_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/containers/List.h>
 #include <reactphysics3d/containers/Map.h>
 #include <reactphysics3d/mathematics/mathematics.h>
 #include <reactphysics3d/engine/EventListener.h>
+#pragma warning(pop)
 #include <string>
 
 /// ReactPhysics3D namespace

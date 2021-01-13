@@ -26,6 +26,7 @@
 #ifndef REACTPHYSICS3D_COLLISION_DETECTION_SYSTEM_H
 #define REACTPHYSICS3D_COLLISION_DETECTION_SYSTEM_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/body/CollisionBody.h>
 #include <reactphysics3d/systems/BroadPhaseSystem.h>
@@ -43,6 +44,7 @@
 #include <reactphysics3d/containers/Set.h>
 #include <reactphysics3d/components/ColliderComponents.h>
 #include <reactphysics3d/components/TransformComponents.h>
+#pragma warning(pop)
 
 /// ReactPhysics3D namespace
 namespace reactphysics3d {

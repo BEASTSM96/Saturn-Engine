@@ -26,6 +26,7 @@
 #ifndef REACTPHYSICS3D_OVERLAPPING_PAIR_H
 #define	REACTPHYSICS3D_OVERLAPPING_PAIR_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/collision/Collider.h>
 #include <reactphysics3d/containers/Map.h>
@@ -36,6 +37,7 @@
 #include <reactphysics3d/components/ColliderComponents.h>
 #include <reactphysics3d/components/CollisionBodyComponents.h>
 #include <reactphysics3d/components/RigidBodyComponents.h>
+#pragma warning(pop)
 #include <cstddef>
 
 /// ReactPhysics3D namespace

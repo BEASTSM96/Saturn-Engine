@@ -153,13 +153,13 @@ namespace Saturn {
 	{
 		switch (level)
 		{
-		case ImGuiConsole::Message::Level::Off: return ImGuiConsole::Message::Level::Critical;
-		case ImGuiConsole::Message::Level::Critical: return ImGuiConsole::Message::Level::Error;
-		case ImGuiConsole::Message::Level::Error: return ImGuiConsole::Message::Level::Warn;
-		case ImGuiConsole::Message::Level::Warn: //return ImGuiConsole::Message::Level::Debug;
-		case ImGuiConsole::Message::Level::Debug: return ImGuiConsole::Message::Level::Info;
-		case ImGuiConsole::Message::Level::Info:
-		case ImGuiConsole::Message::Level::Trace: return ImGuiConsole::Message::Level::Trace;
+			case ImGuiConsole::Message::Level::Off: return ImGuiConsole::Message::Level::Critical;
+			case ImGuiConsole::Message::Level::Critical: return ImGuiConsole::Message::Level::Error;
+			case ImGuiConsole::Message::Level::Error: return ImGuiConsole::Message::Level::Warn;
+			case ImGuiConsole::Message::Level::Warn: //return ImGuiConsole::Message::Level::Debug;
+			case ImGuiConsole::Message::Level::Debug: return ImGuiConsole::Message::Level::Info;
+			case ImGuiConsole::Message::Level::Info:
+			case ImGuiConsole::Message::Level::Trace: return ImGuiConsole::Message::Level::Trace;
 		}
 		return ImGuiConsole::Message::Level::Invalid;
 	}

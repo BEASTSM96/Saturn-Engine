@@ -26,9 +26,11 @@
 #ifndef REACTPHYSICS3D_HINGE_JOINT_H
 #define REACTPHYSICS3D_HINGE_JOINT_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/constraint/Joint.h>
 #include <reactphysics3d/mathematics/mathematics.h>
+#pragma warning(pop)
 
 namespace reactphysics3d {
 

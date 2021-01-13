@@ -7,3 +7,6 @@
 [submodule "Saturn/vendor/spdlog"]
 	path = Saturn/vendor/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "Saturn/vendor/SaturnLog"]
+	path = Saturn/vendor/SaturnLog
+	url = https://github.com/BEASTSM96/SaturnLog

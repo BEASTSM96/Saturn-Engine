@@ -28,8 +28,10 @@
 
 // Libraries
 #include <memory>
+#pragma warning(push)
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/memory/MemoryAllocator.h>
+#pragma warning(pop)
 
 namespace reactphysics3d {
 

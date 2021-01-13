@@ -26,8 +26,10 @@
 #ifndef REACTPHYSICS3D_ENTITY_H
 #define REACTPHYSICS3D_ENTITY_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
+#pragma warning(pop)
 
 /// Namespace reactphysics3d
 namespace reactphysics3d {

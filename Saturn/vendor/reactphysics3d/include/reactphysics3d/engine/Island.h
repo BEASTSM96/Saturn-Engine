@@ -26,8 +26,10 @@
 #ifndef REACTPHYSICS3D_ISLAND_H
 #define REACTPHYSICS3D_ISLAND_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/constraint/Joint.h>
+#pragma warning(pop)
 
 namespace reactphysics3d {
 

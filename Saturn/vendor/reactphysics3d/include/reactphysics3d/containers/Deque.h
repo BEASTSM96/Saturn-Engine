@@ -26,9 +26,11 @@
 #ifndef REACTPHYSICS3D_DEQUE_H
 #define REACTPHYSICS3D_DEQUE_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/memory/MemoryAllocator.h>
+#pragma warning(pop)
 #include <cassert>
 #include <cmath>
 #include <cstring>

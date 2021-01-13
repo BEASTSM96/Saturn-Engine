@@ -2,7 +2,7 @@
 
 Saturn is primarily an early-stage game engine for Windows. Currently not much is implemented.
 
-![Renderer01](/Titan/assets/.github/i/sat/Renderer01.png?raw=true "Renderer01")
+![SaturnLogo](/Titan/assets/.github/i/sat/SaturnLogov1.png?raw=true "SaturnLogov1")
 
 ## Getting Started
 Visual Studio 2019 is recommended, Saturn is officially untested on other development environments whilst we focus on a Windows build.
@@ -10,6 +10,16 @@ Visual Studio 2019 is recommended, Saturn is officially untested on other develo
 Start by cloning the repository with `git clone https://github.com/BEASTSM96/Saturn-Engine`.
 
 If the repository was cloned non-recursively previously, use `git submodule update --init` to clone the necessary submodules.
+
+# Seting up the project (Windows)
+
+### Premake
+
+If you want to use Premake, start by going into the `scrtpts` folder, then run `WindowsGenProjects.bat` that will create the project files.
+
+Then go back to the root dir of the project, and open `Saturn.sln` right click on the solution *`(Solution 'Saturn' (x of x projects))`* and click build *or `Ctrl Shift B`.*
+
+Now go to `Saturn\vendor\assimp\*build-config*`, now copy `assimp-vc142-md(d).dll` now go back to the root dir and put the dll in `bin *build-config-windows-x86_64\Titan`. *you can also do that with the imgui.ini in `*root-dir*\Titan`*
 
 ## 
 

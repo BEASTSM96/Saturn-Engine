@@ -26,10 +26,12 @@
 #ifndef REACTPHYSICS3D_DYNAMIC_AABB_TREE_H
 #define REACTPHYSICS3D_DYNAMIC_AABB_TREE_H
 
+#pragma warning(push)
 // Libraries
 #include <reactphysics3d/configuration.h>
 #include <reactphysics3d/collision/shapes/AABB.h>
 #include <reactphysics3d/containers/Set.h>
+#pragma warning(pop)
 
 /// Namespace ReactPhysics3D
 namespace reactphysics3d {
