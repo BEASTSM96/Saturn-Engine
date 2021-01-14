@@ -243,7 +243,7 @@ namespace Saturn {
 						{
 							if( ImGui::MenuItem( "PHYSX RB" ) )
 							{
-								m_SelectionContext.AddComponent<PhysXRigidbodyComponent>().m_body = new PhysXRigidbody( m_Context->m_PhysXScene.Raw(), m_SelectionContext.GetComponent<TransformComponent>().Position, m_SelectionContext.GetComponent<TransformComponent>().Rotation );
+								m_SelectionContext.AddComponent<PhysXRigidbodyComponent>();
 							}
 						}
 

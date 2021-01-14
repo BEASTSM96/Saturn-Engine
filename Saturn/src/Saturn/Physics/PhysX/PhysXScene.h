@@ -35,6 +35,7 @@ namespace Saturn {
 		Scene* m_Scene;
 
 	private:
+		_declspec( align( 16 ) ) std::uint8_t MemoryBlock[65536];
 	};
 }
 

@@ -97,6 +97,7 @@ namespace Saturn {
 		Ref()
 			: m_Instance( nullptr )
 		{
+			static_assert( std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!" );
 		}
 
 		Ref( std::nullptr_t n )
@@ -210,12 +211,17 @@ namespace Saturn {
 	private:
 		void IncRef( void )  const
 		{
+			static_assert( std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!" );
+
 			if( m_Instance )
 				m_Instance->IncRefCount();
 		}
 
 		void DecRef( void )  const
 		{
+
+			static_assert( std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!" );
+
 			if( m_Instance )
 			{
 				m_Instance->DecRefCount();

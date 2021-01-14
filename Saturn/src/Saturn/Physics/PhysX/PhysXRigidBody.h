@@ -37,36 +37,9 @@ namespace Saturn {
 
 		}
 
-		glm::vec3 GetPos()
-		{
-			float xpos = m_Body->getGlobalPose().p.x;
-			float ypos = m_Body->getGlobalPose().p.y;
-			float zpos = m_Body->getGlobalPose().p.z;
+		glm::vec3 GetPos();
 
-			glm::vec3 pos;
-
-			pos.x = xpos;
-			pos.y = ypos;
-			pos.z = zpos;
-
-			return  pos;
-		}
-
-		glm::quat GetRot()
-		{
-			auto xq = m_Body->getGlobalPose().q.x;
-			auto yq = m_Body->getGlobalPose().q.y;
-			auto zq = m_Body->getGlobalPose().q.z;
-			auto wq = m_Body->getGlobalPose().q.w;
-
-			glm::quat q;
-			q.x = xq;
-			q.y = yq;
-			q.z = zq;
-			q.w = wq;
-
-			return q;
-		}
+		glm::quat GetRot();
 
 		void SetKinematic( bool kinematic );
 

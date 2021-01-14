@@ -2,6 +2,7 @@
 #include "PhysXScene.h"
 
 #include "Saturn/Scene/Scene.h"
+#include "Saturn/Renderer/Renderer.h"
 
 namespace Saturn {
 
@@ -26,21 +27,31 @@ namespace Saturn {
 
 		physx::PxSceneDesc sceneDesc( m_Physics->getTolerancesScale() );
 		sceneDesc.gravity = physx::PxVec3( 0.0f, -9.81f, 0.0f );
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD;
 		m_Dispatcher = physx::PxDefaultCpuDispatcherCreate( 2 );
 		sceneDesc.cpuDispatcher	= m_Dispatcher;
 		sceneDesc.filterShader	= physx::PxDefaultSimulationFilterShader;
 		m_PhysXScene = m_Physics->createScene( sceneDesc );
 
-	#if !0
-		physx::PxMaterial* m_Material	= NULL;
-		m_Material = m_Physics->createMaterial( 0.5f, 0.5f, 0.6f );
-		physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_Physics, physx::PxPlane( 0, 1, 0, 0 ), *m_Material );
-		m_PhysXScene->addActor( *groundPlane );
+	#if 0
+
+		Renderer::Submit( [=]
+		{
+			 physx::PxMaterial* m_Material = NULL;
+			 m_Material = m_Physics->createMaterial( 0.5f, 0.5f, 0.6f );
+			 physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_Physics, physx::PxPlane( 0, 1, 0, 0 ), *m_Material );
+			 m_PhysXScene->addActor( *groundPlane );
+		} );
+
+		
 	#endif
 	}
 
 	void PhysXScene::Update( Timestep ts )
 	{
+		m_Scene->PhysicsUpdate( PhysicsType::PhysX, ts );
+		m_PhysXScene->simulate( ts, nullptr, MemoryBlock, sizeof(MemoryBlock) );
+		m_PhysXScene->fetchResults( true );
 	}
 
 	PhysXScene::~PhysXScene()

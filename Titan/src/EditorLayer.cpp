@@ -793,6 +793,7 @@ namespace Saturn {
 			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
 			if( ImGui::Begin( "Toolbar" ) )
 			{
+			#if 0
 				if( !m_RuntimeScene )
 				{
 					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
@@ -824,6 +825,39 @@ namespace Saturn {
 							m_SelectionContext.clear();
 							m_SceneHierarchyPanel->SetContext( m_EditorScene );
 							//delete m_RuntimeScene.Raw();
+						}
+					}
+				}
+			#endif
+
+				if( !m_RuntimeScene )
+				{
+
+					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
+					{
+						m_SceneHierarchyPanel->Reset();
+						m_SelectionContext.clear();
+						m_RuntimeScene = Ref<Scene>::Create();
+						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
+						m_EditorScene->CopyScene( m_RuntimeScene );
+						Application::Get().GetSceneMananger().Raw()->AddScene( m_RuntimeScene );
+						m_RuntimeScene->BeginRuntime();
+					}
+				}
+
+				if( m_RuntimeScene )
+				{
+					if( m_RuntimeScene->m_RuntimeRunning )
+					{
+						ImGui::SameLine();
+
+						if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
+						{
+							m_SceneHierarchyPanel->Reset();
+							m_RuntimeScene->EndRuntime();
+							m_RuntimeScene = nullptr;
+							m_SelectionContext.clear();
+							m_SceneHierarchyPanel->SetContext( m_EditorScene );
 						}
 					}
 				}

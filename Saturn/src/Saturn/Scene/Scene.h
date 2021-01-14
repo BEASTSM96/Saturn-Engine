@@ -78,6 +78,13 @@ namespace Saturn {
 		UUID RuntimeID;
 	};
 
+	enum class PhysicsType
+	{
+		None = 0,
+		PhysX = 1,
+		ReactPhysics = 2
+	};
+
 	class Level;
 	class Entity;
 	class ScriptableEntity;
@@ -201,12 +208,14 @@ namespace Saturn {
 		void SetSelectedEntity(entt::entity entity) { m_SelectedEntity = entity; }
 
 		//phys
-		void PhysicsUpdate(float delta);
+		void PhysicsUpdate( PhysicsType type, float delta );
 		void ContactStay(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
 		void ContactEnter(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
 		void ContactExit(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
 
 		void PhysicsComponentCreate(entt::registry& r, entt::entity ent);
+
+		void PhysXRigidbodyComponentCreate( entt::registry& r, entt::entity ent );
 
 		void Contact(rp3d::CollisionBody* body);
 
