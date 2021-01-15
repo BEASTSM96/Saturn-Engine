@@ -356,17 +356,15 @@ namespace Saturn {
 		m_EditorCamera.OnUpdate( ts );
 
 		m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
-
 		m_DrawOnTopBoundingBoxes = true;
 
 		PrepRuntime();
 
 		if( m_RuntimeScene )
 		{
-			m_RuntimeScene->OnUpdate( ts );
 
-			if( m_RuntimeScene->m_RuntimeRunning ) 
-			{ 
+			if( m_RuntimeScene->m_RuntimeRunning )
+			{
 				Ref<SceneCamera>* mainCamera = nullptr;
 				glm::mat4 cameraTransform;
 				glm::vec3 cameraPosition;
@@ -387,18 +385,20 @@ namespace Saturn {
 					}
 				}
 
-				if (mainCamera != nullptr)
+				if( mainCamera != nullptr )
 				{
 					//mainCamera->Raw()->SetPosition( cameraPosition );
 					m_RuntimeScene->OnRenderRuntime( ts, *mainCamera->Raw() );
 				}
 				else
 				{
-					m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
+					//m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
 				}
 			}
-		}
 
+			//m_RuntimeScene->OnUpdate( ts );
+		}
+		m_EditorScene->OnUpdate( ts );
 
 		//if (m_DrawOnTopBoundingBoxes) {
 		//	Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
@@ -836,6 +836,8 @@ namespace Saturn {
 					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
 					{
 						m_SceneHierarchyPanel->Reset();
+						m_EditorScene->SetSelectedEntity( {} );
+						m_SceneHierarchyPanel->SetSelected( {} );
 						m_SelectionContext.clear();
 						m_RuntimeScene = Ref<Scene>::Create();
 						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
@@ -854,6 +856,8 @@ namespace Saturn {
 						if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
 						{
 							m_SceneHierarchyPanel->Reset();
+							m_RuntimeScene->SetSelectedEntity( {} );
+							m_SceneHierarchyPanel->SetSelected( {} );
 							m_RuntimeScene->EndRuntime();
 							m_RuntimeScene = nullptr;
 							m_SelectionContext.clear();

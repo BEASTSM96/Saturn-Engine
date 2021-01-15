@@ -157,8 +157,8 @@ namespace Saturn {
 
 	void Scene::OnUpdate(Timestep ts)
 	{
-		m_ReactPhysicsScene->Update(ts);
 		m_PhysXScene->Update( ts );
+		m_ReactPhysicsScene->Update(ts);
 		
 		if (m_RuntimeRunning)
 		{
@@ -341,8 +341,9 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		auto ReactView = GetRegistry().view<TransformComponent, RigidbodyComponent>();
-		auto PhysXView = GetRegistry().view<TransformComponent, PhysXRigidbodyComponent>();
+		
+		auto ReactView = m_Registry.view<TransformComponent, RigidbodyComponent>();
+		auto PhysXView = m_Registry.view<TransformComponent, PhysXRigidbodyComponent>();
 
 		switch( type )
 		{

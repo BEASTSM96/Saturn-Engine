@@ -49,8 +49,8 @@ namespace Saturn {
 
 	void PhysXScene::Update( Timestep ts )
 	{
-		m_Scene->PhysicsUpdate( PhysicsType::PhysX, ts );
 		m_PhysXScene->simulate( ts, nullptr, MemoryBlock, sizeof(MemoryBlock) );
+		m_Scene->PhysicsUpdate( PhysicsType::PhysX, ts );
 		m_PhysXScene->fetchResults( true );
 	}
 

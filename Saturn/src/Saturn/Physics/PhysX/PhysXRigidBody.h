@@ -14,6 +14,14 @@
 
 namespace Saturn {
 
+	enum class ForceType
+	{
+		Force = 1,
+		Acceleration = 2,
+		Impulse = 3,
+		VelocityChange = 4
+	};	
+
 	class PhysXRigidbody
 	{
 	public:
@@ -45,11 +53,20 @@ namespace Saturn {
 
 		bool IsKinematic();
 
+		void ApplyForce( glm::vec3 force, ForceType type );
+		void AttachShape( physx::PxShape& shape );
+
+		physx::PxRigidBody& GetPxBody() { return *m_Body; }
+		PhysXScene& GetPxScene() { return *m_Scene; }
+
 	protected:
 		PhysXScene* m_Scene;
 		physx::PxRigidDynamic* m_Body = NULL;
 	private:
 		bool m_Kinematic = false;
+
+		friend class PhysXCollider;
+
 	};
 }
 
