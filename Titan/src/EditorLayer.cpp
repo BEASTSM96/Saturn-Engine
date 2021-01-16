@@ -355,14 +355,17 @@ namespace Saturn {
 	{
 		m_EditorCamera.OnUpdate( ts );
 
-		m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
+		//... only if we aren't in runtime, we can render editor with the editor camera
+		if( !m_RuntimeScene )
+		{
+			m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
+		}
 		m_DrawOnTopBoundingBoxes = true;
 
 		PrepRuntime();
 
 		if( m_RuntimeScene )
 		{
-
 			if( m_RuntimeScene->m_RuntimeRunning )
 			{
 				Ref<SceneCamera>* mainCamera = nullptr;
@@ -392,13 +395,23 @@ namespace Saturn {
 				}
 				else
 				{
-					//m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
+					//... if we don't have a scene camera we can just copy a editor camera and render the runtime...
+					if ( !m_NoSceneCamera )
+					{
+						SAT_CORE_INFO( "No scene camera was found copying editor camera!" );
+						m_NoSceneCamera = Ref<EditorCamera>::Create( m_EditorCamera.GetProjectionMatrix() );
+						*m_NoSceneCamera = m_EditorCamera;
+					}
+					else
+					{
+						*m_NoSceneCamera = m_EditorCamera;
+					}
+					m_RuntimeScene->OnRenderEditor( ts, *m_NoSceneCamera );
 				}
 			}
 
-			//m_RuntimeScene->OnUpdate( ts );
+			m_RuntimeScene->OnUpdate( ts );
 		}
-		m_EditorScene->OnUpdate( ts );
 
 		//if (m_DrawOnTopBoundingBoxes) {
 		//	Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
@@ -858,6 +871,7 @@ namespace Saturn {
 							m_SceneHierarchyPanel->Reset();
 							m_RuntimeScene->SetSelectedEntity( {} );
 							m_SceneHierarchyPanel->SetSelected( {} );
+							m_NoSceneCamera = nullptr;
 							m_RuntimeScene->EndRuntime();
 							m_RuntimeScene = nullptr;
 							m_SelectionContext.clear();
