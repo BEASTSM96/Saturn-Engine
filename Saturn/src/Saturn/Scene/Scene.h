@@ -216,6 +216,7 @@ namespace Saturn {
 		void PhysicsComponentCreate(entt::registry& r, entt::entity ent);
 
 		void PhysXRigidbodyComponentCreate( entt::registry& r, entt::entity ent );
+		void PhysXBoxComponentCreate( entt::registry& r, entt::entity ent );
 
 		void Contact(rp3d::CollisionBody* body);
 

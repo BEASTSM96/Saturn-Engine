@@ -111,15 +111,25 @@ namespace Saturn {
 		auto& trans = r.get<TransformComponent>( ent );
 		physics.m_body = new PhysXRigidbody( m_PhysXScene.Raw(), trans.Position, trans.Rotation );
 
-		if( physics.isKinematic )
+
+		physics.m_body->SetKinematic( r.get<PhysXRigidbodyComponent>( ent ).isKinematic );
+
+	}
+
+	void Scene::PhysXBoxComponentCreate( entt::registry& r, entt::entity ent )
+	{
+		if( !r.has<TransformComponent>( ent ) )
 		{
-			physics.m_body->SetKinematic( true );
-		}
-		else
-		{
-			physics.m_body->SetKinematic( false );
+			SAT_CORE_ERROR( "PhysicsComponent needs a TransformComponent!" );
+			return;
 		}
 
+		auto& physics = r.get<PhysXBoxColliderComponent>( ent );
+		auto& rb = r.get<PhysXRigidbodyComponent>( ent ).m_body;
+		auto& rbScene = r.get<PhysXRigidbodyComponent>( ent ).m_body->m_Scene;
+		auto& trans = r.get<TransformComponent>( ent );
+		PhysXMaterial* mat = new PhysXMaterial( rbScene, "..." );
+		physics.m_body = new PhysXBoxCollider( rbScene, rb, mat, physics.Extents );
 	}
 
 	Scene::Scene( void )
@@ -136,6 +146,7 @@ namespace Saturn {
 
 		m_Registry.on_construct<RigidbodyComponent>().connect<&Scene::PhysicsComponentCreate>( this );
 		m_Registry.on_construct<PhysXRigidbodyComponent>().connect<&Scene::PhysXRigidbodyComponentCreate>( this );
+		m_Registry.on_construct<PhysXBoxColliderComponent>().connect<&Scene::PhysXBoxComponentCreate>( this );
 	}
 
 	Scene::~Scene( void )
@@ -353,6 +364,11 @@ namespace Saturn {
 				for( const auto& entity : PhysXView )
 				{
 					auto [tc, rb] = PhysXView.get<TransformComponent, PhysXRigidbodyComponent>( entity );
+
+					if( rb.isKinematic )
+					{
+						rb.m_body->GetPxBody().setMass( 0.0f );
+					}
 
 					tc.Position = rb.m_body->GetPos();
 				}
@@ -623,7 +639,6 @@ namespace Saturn {
 			enttMap[ uuid ] = e.m_EntityHandle;
 		}
 
-
 		CopyComponent<TagComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<TransformComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<MeshComponent>( NewScene->m_Registry, m_Registry, enttMap );
@@ -635,6 +650,7 @@ namespace Saturn {
 		CopyComponent<NativeScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<RigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXRigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<PhysXBoxColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
 		NewScene->m_ScriptableEntitys = m_ScriptableEntitys;

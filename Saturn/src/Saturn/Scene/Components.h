@@ -36,6 +36,7 @@
 #include "Saturn/Core/UUID.h"
 #include "Saturn/Physics/Rigidbody.h"
 #include "Saturn/Physics/PhysX/PhysXRigidBody.h"
+#include "Saturn/Physics/PhysX/PhysXBoxCollider.h"
 
 namespace Saturn {
 
@@ -347,6 +348,15 @@ namespace Saturn {
 		PhysXRigidbodyComponent( PhysXRigidbody* m_Body, bool IsKinematic ) : m_body( m_Body ), isKinematic( IsKinematic ) { }
 	};
 
+	struct PhysXBoxColliderComponent : Component
+	{
+		glm::vec3 Extents ={ 10.0f, 10.0f, 10.0f };
+
+		PhysXBoxCollider* m_body;
+
+		PhysXBoxColliderComponent() = default;
+		PhysXBoxColliderComponent( PhysXBoxCollider* m_Body, const glm::vec3& extents ) : m_body( m_Body ), Extents( extents ) { }
+	};
 
 	//
 	// ScriptComponents
