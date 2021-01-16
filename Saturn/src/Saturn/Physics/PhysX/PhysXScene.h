@@ -30,6 +30,7 @@ namespace Saturn {
 		physx::PxCooking* m_Cooking = NULL;
 		physx::PxPhysics* m_Physics = NULL;
 		physx::PxScene* m_PhysXScene = NULL;
+		physx::PxPvd* m_PVD = NULL;
 
 	protected:
 		Scene* m_Scene;

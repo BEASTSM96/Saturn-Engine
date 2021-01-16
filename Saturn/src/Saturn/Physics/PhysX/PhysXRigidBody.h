@@ -22,7 +22,7 @@ namespace Saturn {
 		VelocityChange = 4
 	};	
 
-	class PhysXRigidbody
+	class PhysXRigidbody : public RefCounted
 	{
 	public:
 		PhysXRigidbody( PhysXScene* scene, glm::vec3 pos, glm::quat rot );
@@ -59,13 +59,15 @@ namespace Saturn {
 		physx::PxRigidBody& GetPxBody() { return *m_Body; }
 		PhysXScene& GetPxScene() { return *m_Scene; }
 
-	protected:
 		PhysXScene* m_Scene;
 		physx::PxRigidDynamic* m_Body = NULL;
+	protected:
+
 	private:
 		bool m_Kinematic = false;
 
 		friend class PhysXCollider;
+		friend class PhysXMaterial;
 
 	};
 }

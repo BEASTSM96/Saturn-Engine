@@ -201,6 +201,8 @@ namespace Saturn {
 						if( ImGui::Button( "Camera" ) )
 						{
 							m_SelectionContext.AddComponent<CameraComponent>().Camera = Ref<SceneCamera>::Create( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
+							m_SelectionContext.GetComponent<CameraComponent>().Camera->SetProjectionMatrix( glm::perspectiveFov( glm::radians( 90.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
+							m_SelectionContext.GetComponent<CameraComponent>().Camera->SetPosition( m_SelectionContext.GetComponent<TransformComponent>().Position );
 							ImGui::CloseCurrentPopup();
 						}
 					}
@@ -241,9 +243,17 @@ namespace Saturn {
 
 						if( !m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() )
 						{
-							if( ImGui::MenuItem( "PHYSX RB" ) )
+							if( ImGui::MenuItem( "PhysXRigidbody" ) )
 							{
 								m_SelectionContext.AddComponent<PhysXRigidbodyComponent>();
+							}
+						}
+
+						if( m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() )
+						{
+							if( ImGui::MenuItem( "PhysXBox" ) )
+							{
+								m_SelectionContext.AddComponent<PhysXBoxColliderComponent>();
 							}
 						}
 
@@ -610,18 +620,19 @@ namespace Saturn {
 		DrawComponent<PhysXRigidbodyComponent>( "PhysXRigidbody", entity, []( auto& rb )
 			{
 
+				bool Kinematic = rb.isKinematic;
 				bool canKinematic = rb.m_body->IsKinematic();
-				DrawBoolControl( "Kinematic", &canKinematic );
+				DrawBoolControl( "Kinematic", &rb.isKinematic );
 
-				if( canKinematic )
-				{
-					rb.m_body->SetKinematic( true );
-				}
+				rb.m_body->SetKinematic( rb.isKinematic );
 
-				if( !canKinematic )
-				{
-					rb.m_body->SetKinematic( false );
-				}
+			} );
+
+
+		DrawComponent<PhysXBoxColliderComponent>( "PhysXBoxCollider", entity, []( auto& bc )
+			{
+
+				DrawVec3Control( "Extents", bc.Extents, bc.Extents );
 
 			} );
 
@@ -631,16 +642,7 @@ namespace Saturn {
 				bool canKinematic = rb.m_body->GetKinematic();
 				DrawBoolControl( "Kinematic", &canKinematic );
 
-				if ( canKinematic )
-				{
-					rb.m_body->SetKinematic( true );
-				}
-
-				if (!canKinematic )
-				{
-					rb.m_body->SetKinematic( false );
-				}
-
+				rb.m_body->SetKinematic( canKinematic );
 
 			} );
 	}
