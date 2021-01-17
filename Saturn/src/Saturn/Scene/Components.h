@@ -37,6 +37,7 @@
 #include "Saturn/Physics/Rigidbody.h"
 #include "Saturn/Physics/PhysX/PhysXRigidBody.h"
 #include "Saturn/Physics/PhysX/PhysXBoxCollider.h"
+#include "Saturn/Physics/PhysX/PhysXSphereCollider.h"
 
 namespace Saturn {
 
@@ -350,12 +351,22 @@ namespace Saturn {
 
 	struct PhysXBoxColliderComponent : Component
 	{
-		glm::vec3 Extents ={ 10.0f, 10.0f, 10.0f };
+		glm::vec3 Extents ={ 1.0f, 1.0f, 1.0f };
 
 		PhysXBoxCollider* m_body;
 
 		PhysXBoxColliderComponent() = default;
 		PhysXBoxColliderComponent( PhysXBoxCollider* m_Body, const glm::vec3& extents ) : m_body( m_Body ), Extents( extents ) { }
+	};
+
+	struct PhysXSphereColliderComponent : Component
+	{
+		float Radius = 1.0f;
+
+		PhysXSphereCollider* m_body;
+
+		PhysXSphereColliderComponent() = default;
+		PhysXSphereColliderComponent( PhysXSphereCollider* m_Body, float radius ) : m_body( m_Body ), Radius( radius ) { }
 	};
 
 	//

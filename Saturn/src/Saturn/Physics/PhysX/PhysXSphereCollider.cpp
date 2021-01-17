@@ -26,41 +26,56 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/Core/Base.h"
-
-#ifdef USE_NVIDIA
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <physx/PxPhysicsAPI.h>
-#include "PhysXRigidBody.h"
+#include "sppch.h"
+#include "PhysXSphereCollider.h"
 
 namespace Saturn {
 
-	class PhysXCollider : public RefCounted
+	PhysXSphereCollider::PhysXSphereCollider( PhysXScene* scene, PhysXRigidbody* body, PhysXMaterial* material, float Radius )
+		: PhysXCollider( body, std::vector< physx::PxShape* >(1, scene->m_Physics->createShape( physx::PxSphereGeometry( Radius ), *material->m_Material, true ) ) )
 	{
-	public:
-		PhysXCollider( PhysXRigidbody* body, std::vector<physx::PxShape*> shapes );
-		~PhysXCollider();
+		m_Body = body;
+		m_Scene = scene;
+		SetCenter( glm::vec3() );
+		SetRadius( Radius );
+	}
 
-		void SetPosition( glm::vec3 position );
+	PhysXSphereCollider::~PhysXSphereCollider()
+	{
 
-		std::vector<physx::PxShape*>& GetShapes();
-		const std::vector<physx::PxShape*>& GetShapes() const;
-	protected:
-		std::vector<physx::PxShape*> m_Shapes;
-		PhysXRigidbody* m_Body;
-		PhysXScene* m_Scene;
+	}
 
-	private:
+	void PhysXSphereCollider::SetCenter( const glm::vec3& center )
+	{
+		GetShapes()[ 0 ]->setLocalPose( physx::PxTransform( center.x, center.y, center.z ) );
+	}
 
-	};
+	glm::vec3 PhysXSphereCollider::GetCenter()
+	{
+		const physx::PxVec3 center = GetShapes()[ 0 ]->getLocalPose().p;
+		return glm::vec3( center.x, center.y, center.z );
+	}
+
+	void PhysXSphereCollider::SetRadius( float radius )
+	{
+		GetShapes()[ 0 ]->getGeometry().sphere().radius = radius;
+	}
+
+	float& PhysXSphereCollider::GetRadius()
+	{
+		return GetShapes()[ 0 ]->getGeometry().sphere().radius;
+	}
+
+	void PhysXSphereCollider::Scale( const glm::vec3& scale )
+	{
+		physx::PxShape* shape = GetShapes()[ 0 ];
+		const physx::PxVec3 realscale( scale.x, scale.y, scale.z );
+		physx::PxTransform pose = shape->getLocalPose();
+		physx::PxSphereGeometry& sphere = shape->getGeometry().sphere();
+		sphere.radius *= std::pow( std::abs( realscale.x * realscale.y * realscale.z ), 1.0f / 3.0f );
+		shape->setGeometry( sphere );
+		pose.p = pose.p.multiply( realscale );
+		shape->setLocalPose( pose );
+	}
+
 }
-
-
-#endif

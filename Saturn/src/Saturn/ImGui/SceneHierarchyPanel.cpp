@@ -249,11 +249,27 @@ namespace Saturn {
 							}
 						}
 
-						if( m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() )
+						if
+							( !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>() 
+								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() 
+								&& !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
+							)
 						{
-							if( ImGui::MenuItem( "PhysXBox" ) )
+							if( ImGui::MenuItem( "PhysXBoxCollider" ) )
 							{
 								m_SelectionContext.AddComponent<PhysXBoxColliderComponent>();
+							}
+						}
+
+						if
+							( !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
+								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() 
+								&& !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>() 
+							)
+						{
+							if( ImGui::MenuItem( "PhysXSphereCollider" ) )
+							{
+								m_SelectionContext.AddComponent<PhysXSphereColliderComponent>();
 							}
 						}
 
@@ -635,6 +651,13 @@ namespace Saturn {
 				DrawVec3Control( "Extents", bc.Extents, bc.Extents );
 
 			} );
+
+		DrawComponent<PhysXSphereColliderComponent>( "PhysXSphereCollider", entity, []( auto& sc )
+		{
+
+				DrawFloatControl( "Radius", &sc.Radius, sc.Radius );
+
+		} );
 
 		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )
 			{

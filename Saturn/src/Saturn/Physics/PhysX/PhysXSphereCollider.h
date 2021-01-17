@@ -38,27 +38,30 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <physx/PxPhysicsAPI.h>
-#include "PhysXRigidBody.h"
+
+#include "PhysXCollider.h"
+#include "PhysXMaterial.h"
+#include "PhysXHelpers.h"
 
 namespace Saturn {
 
-	class PhysXCollider : public RefCounted
+	class PhysXSphereCollider : public PhysXCollider, public RefCounted
 	{
 	public:
-		PhysXCollider( PhysXRigidbody* body, std::vector<physx::PxShape*> shapes );
-		~PhysXCollider();
+		PhysXSphereCollider( PhysXScene* scene, PhysXRigidbody* body, PhysXMaterial* material, float Radius );
+		~PhysXSphereCollider();
 
-		void SetPosition( glm::vec3 position );
+		void SetCenter( const glm::vec3& center );
+		glm::vec3 GetCenter();
 
-		std::vector<physx::PxShape*>& GetShapes();
-		const std::vector<physx::PxShape*>& GetShapes() const;
-	protected:
-		std::vector<physx::PxShape*> m_Shapes;
-		PhysXRigidbody* m_Body;
-		PhysXScene* m_Scene;
+		void SetRadius( float radius );
+		float& GetRadius();
+
+		void Scale( const glm::vec3& scale );
 
 	private:
-
+		PhysXRigidbody* m_Body;
+		PhysXScene* m_Scene;
 	};
 }
 

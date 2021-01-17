@@ -132,6 +132,23 @@ namespace Saturn {
 		physics.m_body = new PhysXBoxCollider( rbScene, rb, mat, physics.Extents );
 	}
 
+	void Scene::PhysXBoxSphereComponentCreate( entt::registry& r, entt::entity ent )
+	{
+		if( !r.has<TransformComponent>( ent ) )
+		{
+			SAT_CORE_ERROR( "PhysicsComponent needs a TransformComponent!" );
+			return;
+		}
+
+		auto& physics = r.get<PhysXSphereColliderComponent>( ent );
+		auto& rb = r.get<PhysXRigidbodyComponent>( ent ).m_body;
+		auto& rbScene = r.get<PhysXRigidbodyComponent>( ent ).m_body->m_Scene;
+		auto& trans = r.get<TransformComponent>( ent );
+
+		PhysXMaterial* mat = new PhysXMaterial( rbScene, "..." );
+		physics.m_body = new PhysXSphereCollider( rbScene, rb, mat, physics.Radius );
+	}
+
 	Scene::Scene( void )
 	{
 		SAT_PROFILE_FUNCTION();
@@ -141,12 +158,13 @@ namespace Saturn {
 		m_SkyboxMaterial->SetFlag( MaterialFlag::DepthTest, false );
 
 		m_ReactPhysicsScene = Ref<PhysicsScene>::Create( this );
-		m_PhysXScene = Ref<PhysXScene>::Create( this );
+		m_PhysXScene = Ref<PhysXScene>::Create( this );;
 		m_PhysicsWorld = Ref<PhysicsWorld>::Create( this );
 
 		m_Registry.on_construct<RigidbodyComponent>().connect<&Scene::PhysicsComponentCreate>( this );
 		m_Registry.on_construct<PhysXRigidbodyComponent>().connect<&Scene::PhysXRigidbodyComponentCreate>( this );
 		m_Registry.on_construct<PhysXBoxColliderComponent>().connect<&Scene::PhysXBoxComponentCreate>( this );
+		m_Registry.on_construct<PhysXSphereColliderComponent>().connect<&Scene::PhysXBoxSphereComponentCreate>( this );
 	}
 
 	Scene::~Scene( void )
@@ -629,6 +647,7 @@ namespace Saturn {
 		NewScene->m_ReactPhysicsScene = m_ReactPhysicsScene;
 		NewScene->m_RuntimeData = m_RuntimeData;
 		NewScene->m_ReactPhysicsScene->RegLog();
+		//NewScene->m_PhysXScene = m_PhysXScene;
 
 		std::unordered_map<UUID, entt::entity> enttMap;
 		auto idComponents = m_Registry.view<IdComponent>();
@@ -651,10 +670,12 @@ namespace Saturn {
 		CopyComponent<RigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXRigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXBoxColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<PhysXSphereColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
 		NewScene->m_ScriptableEntitys = m_ScriptableEntitys;
-
+		NewScene->m_PhysXScene->m_Foundation = m_PhysXScene->m_Foundation;
+		NewScene->m_PhysXScene->m_PVD = m_PhysXScene->m_PVD;
 	}
 
 	void Scene::BeginRuntime( void )
