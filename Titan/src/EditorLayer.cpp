@@ -429,6 +429,15 @@ namespace Saturn {
 			}
 		}
 
+		if( !m_RuntimeScene )
+		{
+			auto viewSphere = m_EditorScene->GetRegistry().view<TransformComponent, PhysXSphereColliderComponent>();
+			for( auto entity : viewSphere )
+			{
+				auto [transform, sphereCollider] = viewSphere.get<TransformComponent, PhysXSphereColliderComponent>( entity );
+				sphereCollider.Radius = transform.Scale.y / 2.0f;
+			}
+		}
 		//if (m_DrawOnTopBoundingBoxes) {
 		//	Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
 		//	auto viewProj = m_EditorCamera.GetViewProjection();
