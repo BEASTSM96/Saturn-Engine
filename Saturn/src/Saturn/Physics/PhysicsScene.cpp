@@ -39,9 +39,9 @@
 
 namespace Saturn {
 
-	PhysicsScene::PhysicsScene(Scene* scene) : m_scene(scene), m_eventListener(this) 
+	PhysicsScene::PhysicsScene( Scene* scene ) : m_scene( scene ), m_eventListener( this )
 	{
-		m_world = m_common.createPhysicsWorld(  );
+		m_world = m_common.createPhysicsWorld();
 
 		// Get a reference to the debug renderer 
 		rp3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
@@ -52,7 +52,7 @@ namespace Saturn {
 		RegLog();
 	}
 
-	PhysicsScene::~PhysicsScene() 
+	PhysicsScene::~PhysicsScene()
 	{
 
 	}
@@ -75,8 +75,6 @@ namespace Saturn {
 		m_world->setIsDebugRenderingEnabled( true );
 
 		rp3d::DebugRenderer& debugRenderer = m_world->getDebugRenderer();
-
-
 	}
 
 	void PhysicsScene::ContactStay( rp3d::CollisionBody* body, rp3d::CollisionBody* other )
@@ -90,7 +88,7 @@ namespace Saturn {
 	}
 
 	void PhysicsScene::ContactExit( rp3d::CollisionBody* body, rp3d::CollisionBody* other )
-	{	
+	{
 		m_scene->ContactExit( body, other );
 	}
 
@@ -101,17 +99,19 @@ namespace Saturn {
 		m_accumulator += delta;
 
 
-		while (m_accumulator >= timeStep) {
-			m_world->update(timeStep);
+		while( m_accumulator >= timeStep )
+		{
+			m_world->update( timeStep );
 			m_scene->PhysicsUpdate( PhysicsType::ReactPhysics, timeStep );
-		
+
 			m_accumulator -= delta;
 
 		}
 	}
 
-	void PhysicsScene::Contact(rp3d::CollisionBody* body) {
-		m_scene->Contact(body);
+	void PhysicsScene::Contact( rp3d::CollisionBody* body )
+	{
+		m_scene->Contact( body );
 	}
 
 	glm::vec3 Vec3FromReactVec3( const reactphysics3d::Vector3& matrix )
@@ -123,7 +123,7 @@ namespace Saturn {
 		return result;
 	}
 
-	glm::vec3 Vec3FromReactQuaternion(const reactphysics3d::Quaternion& matrix)
+	glm::vec3 Vec3FromReactQuaternion( const reactphysics3d::Quaternion& matrix )
 	{
 		glm::vec3 result;
 		result.x = matrix.x;
@@ -132,10 +132,10 @@ namespace Saturn {
 		return result;
 	}
 
-	glm::mat4 Mat4FromReactMat4(const reactphysics3d::Transform& matrix)
+	glm::mat4 Mat4FromReactMat4( const reactphysics3d::Transform& matrix )
 	{
 		glm::mat4 result;
-		result = glm::translate(result, Vec3FromReactVec3(matrix.getPosition()));
+		result = glm::translate( result, Vec3FromReactVec3( matrix.getPosition() ) );
 		//result = glm::rotate(Vec3FromReactQuaternion(matrix.getOrientation()));
 		return result;
 	}

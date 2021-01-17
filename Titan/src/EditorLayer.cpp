@@ -90,12 +90,9 @@ namespace Saturn {
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); ( void )io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-																	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;      
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>( m_EditorScene );
 		m_SceneHierarchyPanel->SetSelectionChangedCallback( std::bind( &EditorLayer::SelectEntity, this, std::placeholders::_1 ) );
 		m_AssetPanel = Ref<AssetPanel>::Create();
@@ -161,6 +158,11 @@ namespace Saturn {
 
 		std::filesystem::path path = filepath;
 		UpdateWindowTitle( path.filename().string() );
+
+		if( filepath.empty() )
+			UpdateWindowTitle( "Untitled Scene" );
+
+		m_SceneHierarchyPanel->Reset();
 		m_SceneHierarchyPanel->SetContext( m_EditorScene );
 
 		m_EditorScene->SetSelectedEntity( {} );
@@ -359,6 +361,7 @@ namespace Saturn {
 		if( !m_RuntimeScene )
 		{
 			m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
+			m_EditorScene->m_PhysXScene->RenderPhysXDebug( m_EditorCamera );
 		}
 		m_DrawOnTopBoundingBoxes = true;
 
@@ -392,6 +395,7 @@ namespace Saturn {
 				{
 					//mainCamera->Raw()->SetPosition( cameraPosition );
 					m_RuntimeScene->OnRenderRuntime( ts, *mainCamera->Raw() );
+					m_RuntimeScene->m_PhysXScene->RenderPhysXDebug( *mainCamera->Raw() );
 				}
 				else
 				{
@@ -407,10 +411,22 @@ namespace Saturn {
 						*m_NoSceneCamera = m_EditorCamera;
 					}
 					m_RuntimeScene->OnRenderEditor( ts, *m_NoSceneCamera );
+					m_RuntimeScene->m_PhysXScene->RenderPhysXDebug( *m_NoSceneCamera );
 				}
 			}
 
 			m_RuntimeScene->OnUpdate( ts );
+		}
+
+		if ( !m_RuntimeScene )
+		{
+			//... for physx and others we will have to half the extents... 
+			auto view = m_EditorScene->GetRegistry().view<TransformComponent, PhysXBoxColliderComponent>();
+			for( auto entity : view )
+			{
+				auto [transform, boxCollider] = view.get<TransformComponent, PhysXBoxColliderComponent>( entity );
+				boxCollider.Extents = transform.Scale / 2.0f;
+			}
 		}
 
 		//if (m_DrawOnTopBoundingBoxes) {
