@@ -950,17 +950,7 @@ project "Saturn"
 		links
 		{
 			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
-			"Saturn/vendor/physx/bin/Debug/PhysX_64.lib",
-			--"Saturn/vendor/physx/bin/Debug/PhysX.lib",
-			"Saturn/vendor/physx/bin/Debug/PhysXCharacterKinematic_static_64.lib",
-			"Saturn/vendor/physx/bin/Debug/PhysXCommon_64.lib",
-			"Saturn/vendor/physx/bin/Debug/PhysXCooking_64.lib",
-			"Saturn/vendor/physx/bin/Debug/PhysXExtensions_static_64.lib",
-			"Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.lib",
-			"Saturn/vendor/physx/bin/Debug/PhysXPvdSDK_static_64.lib",
-			"Saturn/vendor/physx/bin/Debug/PhysXTask_static_64.lib",
-			"Saturn/vendor/physx/bin/Debug/SceneQuery_static_64.lib",
-			"Saturn/vendor/physx/bin/Debug/SimulationController_static_64.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysX.lib",
 			"Saturn/vendor/yaml-cpp/bin/Debug/yaml-cpp.lib"
 		}
 
@@ -979,16 +969,7 @@ project "Saturn"
 		links
 		{
 			"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib",
-			"Saturn/vendor/physx/bin/Release/PhysX_64.lib",
-			--"Saturn/vendor/physx/bin/Release/PhysXCharacterKinematic_static_64.lib",
-			--"Saturn/vendor/physx/bin/Release/PhysXCommon_64.lib",
-			--"Saturn/vendor/physx/bin/Release/PhysXCooking_64.lib",
-			--"Saturn/vendor/physx/bin/Release/PhysXExtensions_static_64.lib",
-			--"Saturn/vendor/physx/bin/Release/PhysXFoundation_64.lib",
-			--"Saturn/vendor/physx/bin/Release/PhysXPvdSDK_static_64.lib",
-			--"Saturn/vendor/physx/bin/Release/PhysXTask_static_64.lib",
-			--"Saturn/vendor/physx/bin/Release/SceneQuery_static_64.lib",
-			--"Saturn/vendor/physx/bin/Release/SimulationController_static_64.lib",
+			"Saturn/vendor/physx/bin/Release/PhysX.lib",
 			"Saturn/vendor/yaml-cpp/bin/Release/yaml-cpp.lib"
 		}
 
