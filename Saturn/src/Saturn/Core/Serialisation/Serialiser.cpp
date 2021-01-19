@@ -312,6 +312,53 @@ namespace Saturn {
 			out << YAML::EndMap;
 		}
 
+		//PhysX
+
+		if( entity.HasComponent<PhysXRigidbodyComponent>() )
+		{
+			out << YAML::Key << "PhysXRigidbodyComponent";
+			out << YAML::BeginMap;
+
+			auto rb = entity.GetComponent<PhysXRigidbodyComponent>();
+			out << YAML::Key << "Kinematic" << YAML::Value << rb.isKinematic;
+
+			out << YAML::EndMap;
+		}
+
+		if( entity.HasComponent<PhysXBoxColliderComponent>() )
+		{
+			out << YAML::Key << "PhysXBoxColliderComponent";
+			out << YAML::BeginMap;
+
+			auto bc = entity.GetComponent<PhysXBoxColliderComponent>();
+			out << YAML::Key << "Extents" << YAML::Value << bc.Extents;
+
+			out << YAML::EndMap;
+		}
+
+		if( entity.HasComponent<PhysXSphereColliderComponent>() )
+		{
+			out << YAML::Key << "PhysXSphereColliderComponent";
+			out << YAML::BeginMap;
+
+			auto sc = entity.GetComponent<PhysXSphereColliderComponent>();
+			out << YAML::Key << "Radius" << YAML::Value << sc.Radius;
+
+			out << YAML::EndMap;
+		}
+
+		if( entity.HasComponent<PhysXCapsuleColliderComponent>() )
+		{
+			out << YAML::Key << "PhysXCapsuleColliderComponent";
+			out << YAML::BeginMap;
+
+			auto cc = entity.GetComponent<PhysXCapsuleColliderComponent>();
+			out << YAML::Key << "Radius" << YAML::Value << cc.Radius;
+			out << YAML::Key << "Height" << YAML::Value << cc.Height;
+
+			out << YAML::EndMap;
+		}
+
 
 		out << YAML::EndMap; // Entity
 	}
@@ -463,6 +510,50 @@ namespace Saturn {
 						deserializedEntity.AddComponent<RigidbodyComponent>().isKinematic = iskinematic;
 
 					SAT_CORE_INFO( " RigidBodyComponent isKinematic: {0}", iskinematic );
+				}
+
+				//PhysX
+
+				auto physxrigidbodyComponent = entity[ "PhysXRigidbodyComponent" ];
+				if( physxrigidbodyComponent )
+				{
+					bool iskinematic = physxrigidbodyComponent[ "Kinematic" ].as<bool>();
+					if( !deserializedEntity.HasComponent<PhysXRigidbodyComponent>() )
+						deserializedEntity.AddComponent<PhysXRigidbodyComponent>().isKinematic = iskinematic;
+
+					SAT_CORE_INFO( " PhysXRigidbodyComponent isKinematic: {0}", iskinematic );
+				}
+
+				auto physxboxcolliderComponent = entity[ "PhysXBoxColliderComponent" ];
+				if( physxboxcolliderComponent )
+				{
+					glm::vec3 extents = physxboxcolliderComponent[ "Extents" ].as<glm::vec3>();
+					if( !deserializedEntity.HasComponent<PhysXBoxColliderComponent>() )
+						deserializedEntity.AddComponent<PhysXBoxColliderComponent>().Extents = extents;
+
+					SAT_CORE_INFO( " PhysXBoxColliderComponent Extents: {0}, {1}, {2}", extents.x, extents.y, extents.z );
+				}
+
+				auto physxspherecolliderComponent = entity[ "PhysXSphereColliderComponent" ];
+				if( physxspherecolliderComponent )
+				{
+					float radius = physxspherecolliderComponent[ "Radius" ].as<float>();
+					if( !deserializedEntity.HasComponent<PhysXSphereColliderComponent>() )
+						deserializedEntity.AddComponent<PhysXSphereColliderComponent>().Radius = radius;
+
+					SAT_CORE_INFO( " PhysXSphereColliderComponent Radius: {0}", radius );
+				}
+
+				auto physxcapsulecolliderComponent = entity[ "PhysXCapsuleColliderComponent" ];
+				if( physxcapsulecolliderComponent )
+				{
+					float radius = physxcapsulecolliderComponent[ "Radius" ].as<float>();
+					float height = physxcapsulecolliderComponent[ "Height" ].as<float>();
+					if( !deserializedEntity.HasComponent<PhysXCapsuleColliderComponent>() )
+						deserializedEntity.AddComponent<PhysXCapsuleColliderComponent>().Radius = radius;
+					deserializedEntity.GetComponent<PhysXCapsuleColliderComponent>().Height = height;
+
+					SAT_CORE_INFO( " PhysXCapsuleColliderComponent Radius, Height: {0} {1}", radius, height );
 				}
 
 			}
