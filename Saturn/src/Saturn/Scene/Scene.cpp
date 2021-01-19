@@ -103,7 +103,7 @@ namespace Saturn {
 	{
 		if( !r.has<TransformComponent>( ent ) )
 		{
-			SAT_CORE_ERROR( "PhysicsComponent needs a TransformComponent!" );
+			SAT_CORE_ERROR( "PhysXRigidbodyComponent needs a TransformComponent!" );
 			return;
 		}
 
@@ -120,7 +120,7 @@ namespace Saturn {
 	{
 		if( !r.has<TransformComponent>( ent ) )
 		{
-			SAT_CORE_ERROR( "PhysicsComponent needs a TransformComponent!" );
+			SAT_CORE_ERROR( "PhysXBoxComponent needs a TransformComponent!" );
 			return;
 		}
 
@@ -136,7 +136,7 @@ namespace Saturn {
 	{
 		if( !r.has<TransformComponent>( ent ) )
 		{
-			SAT_CORE_ERROR( "PhysicsComponent needs a TransformComponent!" );
+			SAT_CORE_ERROR( "PhysXBoxSphereComponent needs a TransformComponent!" );
 			return;
 		}
 
@@ -147,6 +147,37 @@ namespace Saturn {
 
 		PhysXMaterial* mat = new PhysXMaterial( rbScene, "..." );
 		physics.m_body = new PhysXSphereCollider( rbScene, rb, mat, physics.Radius );
+	}
+
+	void Scene::CameraComponentCreate( entt::registry& r, entt::entity ent )
+	{
+		if( !r.has<TransformComponent>( ent ) )
+		{
+			SAT_CORE_ERROR( "CameraComponent needs a TransformComponent!" );
+			return;
+		}
+
+		auto& cameraComponent = r.get<CameraComponent>( ent );
+		cameraComponent.Camera = Ref<SceneCamera>::Create();
+		cameraComponent.Camera->SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
+		cameraComponent.Camera->SetPosition( r.get<TransformComponent>( ent ).Position );
+	}
+
+	void Scene::PhysXCapsuleColliderComponentCreate( entt::registry& r, entt::entity ent )
+	{
+		if( !r.has<TransformComponent>( ent ) )
+		{
+			SAT_CORE_ERROR( "PhysXCapsuleColliderComponent needs a TransformComponent!" );
+			return;
+		}
+
+		auto& physics = r.get<PhysXCapsuleColliderComponent>( ent );
+		auto& rb = r.get<PhysXRigidbodyComponent>( ent ).m_body;
+		auto& rbScene = r.get<PhysXRigidbodyComponent>( ent ).m_body->m_Scene;
+		auto& trans = r.get<TransformComponent>( ent );
+
+		PhysXMaterial* mat = new PhysXMaterial( rbScene, "..." );
+		physics.m_body = new PhysXCapsuleCollider( rbScene, rb, mat, physics.Radius, physics.Height );
 	}
 
 	Scene::Scene( void )
@@ -165,6 +196,8 @@ namespace Saturn {
 		m_Registry.on_construct<PhysXRigidbodyComponent>().connect<&Scene::PhysXRigidbodyComponentCreate>( this );
 		m_Registry.on_construct<PhysXBoxColliderComponent>().connect<&Scene::PhysXBoxComponentCreate>( this );
 		m_Registry.on_construct<PhysXSphereColliderComponent>().connect<&Scene::PhysXBoxSphereComponentCreate>( this );
+		m_Registry.on_construct<PhysXCapsuleColliderComponent>().connect<&Scene::PhysXCapsuleColliderComponentCreate>( this );
+		m_Registry.on_construct<CameraComponent>().connect<&Scene::CameraComponentCreate>( this );
 	}
 
 	Scene::~Scene( void )
@@ -671,6 +704,7 @@ namespace Saturn {
 		CopyComponent<PhysXRigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXBoxColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXSphereColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<PhysXCapsuleColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
 		NewScene->m_ScriptableEntitys = m_ScriptableEntitys;

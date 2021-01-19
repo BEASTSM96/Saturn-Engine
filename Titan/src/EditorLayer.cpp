@@ -384,7 +384,7 @@ namespace Saturn {
 						{
 							mainCamera = &camera.Camera;
 							cameraTransform = transform.GetTransform();
-							//cameraPosition = transform.Position;
+							cameraPosition = transform.Position;
 							//cameraPosition.x += 5.0f;
 							break;
 						}
@@ -393,7 +393,8 @@ namespace Saturn {
 
 				if( mainCamera != nullptr )
 				{
-					//mainCamera->Raw()->SetPosition( cameraPosition );
+					mainCamera->Raw()->SetPosition( cameraPosition );
+					mainCamera->Raw()->OnUpdate( ts );
 					m_RuntimeScene->OnRenderRuntime( ts, *mainCamera->Raw() );
 					m_RuntimeScene->m_PhysXScene->RenderPhysXDebug( *mainCamera->Raw() );
 				}
@@ -501,6 +502,35 @@ namespace Saturn {
 	void EditorLayer::OnEvent( Event& e )
 	{
 		m_EditorCamera.OnEvent( e );
+
+		if( m_RuntimeScene )
+		{
+			if( m_RuntimeScene->m_RuntimeRunning )
+			{
+				Ref<SceneCamera>* mainCamera = nullptr;
+				{
+					auto view = m_RuntimeScene->GetRegistry().view<TransformComponent, CameraComponent>();
+					for( auto entity : view )
+					{
+						auto [transform, camera] = view.get<TransformComponent, CameraComponent>( entity );
+
+						if( camera.Primary )
+						{
+							mainCamera = &camera.Camera;
+							break;
+						}
+					}
+				}
+
+				if( mainCamera != nullptr )
+				{
+					//mainCamera->Raw()->SetPosition( cameraPosition );
+					mainCamera->Raw()->OnEvent( e );
+				}
+				
+			}
+
+		}
 
 		EventDispatcher dispatcher( e );
 		dispatcher.Dispatch<MouseButtonPressedEvent>( SAT_BIND_EVENT_FN( EditorLayer::OnMouseButtonPressed ) );

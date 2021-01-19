@@ -200,9 +200,7 @@ namespace Saturn {
 					{
 						if( ImGui::Button( "Camera" ) )
 						{
-							m_SelectionContext.AddComponent<CameraComponent>().Camera = Ref<SceneCamera>::Create( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
-							m_SelectionContext.GetComponent<CameraComponent>().Camera->SetProjectionMatrix( glm::perspectiveFov( glm::radians( 90.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
-							m_SelectionContext.GetComponent<CameraComponent>().Camera->SetPosition( m_SelectionContext.GetComponent<TransformComponent>().Position );
+							m_SelectionContext.AddComponent<CameraComponent>();
 							ImGui::CloseCurrentPopup();
 						}
 					}
@@ -253,6 +251,7 @@ namespace Saturn {
 							( !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>() 
 								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() 
 								&& !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
+								&& !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>()
 							)
 						{
 							if( ImGui::MenuItem( "PhysXBoxCollider" ) )
@@ -264,12 +263,26 @@ namespace Saturn {
 						if
 							( !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
 								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() 
-								&& !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>() 
+								&& !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>()
+								&& !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>()
 							)
 						{
 							if( ImGui::MenuItem( "PhysXSphereCollider" ) )
 							{
 								m_SelectionContext.AddComponent<PhysXSphereColliderComponent>();
+							}
+						}
+
+						if
+							( !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>()
+								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>()
+								&& !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>()
+								&& !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
+							)
+						{
+							if( ImGui::MenuItem( "PhysXCapsuleCollider" ) )
+							{
+								m_SelectionContext.AddComponent<PhysXCapsuleColliderComponent>();
 							}
 						}
 
@@ -544,6 +557,26 @@ namespace Saturn {
 		ImGui::SameLine();
 		ImGui::TextDisabled( "%i", id );
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		//Parent Classes (move to master!!!)
+		ImGui::SameLine();
+		ImGui::Spacing();
+		ImGui::SameLine();
+		if( ImGui::Button( "+##APIClass" ) )
+		{
+			ImGui::OpenPopup( "APIParentClass" );
+		}
+
+		if( ImGui::BeginPopup( "APIParentClass" ) )
+		{
+			if( ImGui::MenuItem( "Character" ) )
+			{
+				Character* e = m_Context->CreateScriptableEntityT<Character>( "Getting tag..." );
+				e->GetComponent<TagComponent>().Tag = entity.GetComponent<TagComponent>().Tag;
+				//entity.GetComponent()
+			}
+
+			ImGui::EndPopup();
+		}
 
 		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )
 			{
@@ -623,15 +656,15 @@ namespace Saturn {
 			} );
 
 		DrawComponent<SphereColliderComponent>( "Sphere Collider", entity, []( auto& component )
- {
-	 DrawFloatControl( "Radius", &component.Radius, component.Radius );
-			} );
+		{
+			DrawFloatControl( "Radius", &component.Radius, component.Radius );
+		});
 
 		DrawComponent<PhysicsComponent>( "Physics", entity, []( auto& pc )
-			{
+		{
 
 
-			} );
+		});
 
 		DrawComponent<PhysXRigidbodyComponent>( "PhysXRigidbody", entity, []( auto& rb )
 			{
@@ -656,6 +689,14 @@ namespace Saturn {
 		{
 
 				DrawFloatControl( "Radius", &sc.Radius, sc.Radius );
+
+		} );
+
+		DrawComponent<PhysXCapsuleColliderComponent>( "PhysXCapsuleCollider", entity, []( auto& cc )
+		{
+
+			DrawFloatControl( "Radius", &cc.Radius, cc.Radius );
+			DrawFloatControl( "Height", &cc.Height, cc.Height );
 
 		} );
 
