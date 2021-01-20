@@ -103,6 +103,7 @@ namespace Saturn {
 		Ref<AssetPanel> m_AssetPanel;
 
 		EditorCamera m_EditorCamera;
+		Ref<EditorCamera> m_NoSceneCamera;
 
 		struct SelectedSubmesh
 		{

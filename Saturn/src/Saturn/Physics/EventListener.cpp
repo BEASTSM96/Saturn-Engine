@@ -35,11 +35,13 @@
 
 namespace Saturn {
 
-	EventListener::EventListener(PhysicsScene* physicsScene) : m_physicsScene(physicsScene) {
+	EventListener::EventListener(PhysicsScene* physicsScene) : m_physicsScene(physicsScene) 
+	{
 
 	}
 
-	void EventListener::onContact(const rp3d::CollisionCallback::CallbackData& callbackData) {
+	void EventListener::onContact(const rp3d::CollisionCallback::CallbackData& callbackData) 
+	{
 		// For each contact pair
 		for( unsigned int p = 0; p < callbackData.getNbContactPairs(); p++ )
 		{

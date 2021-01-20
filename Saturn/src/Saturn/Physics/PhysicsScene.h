@@ -37,15 +37,15 @@ namespace Saturn {
 
 	class Scene;
 
-	class PhysicsScene : public RefCounted 
+	class PhysicsScene : public RefCounted
 	{
 	public:
-		PhysicsScene(Scene* scene);
+		PhysicsScene( Scene* scene );
 		~PhysicsScene();
 
-		void Update(float delta);
+		void Update( float delta );
 
-		void Contact(rp3d::CollisionBody* body);
+		void Contact( rp3d::CollisionBody* body );
 
 		void RegLog();
 

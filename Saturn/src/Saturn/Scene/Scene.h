@@ -36,6 +36,7 @@
 #include "Saturn/Renderer/Material.h"
 
 #include "Saturn/Physics/PhysicsScene.h"
+#include "Saturn/Physics/PhysX/PhysXScene.h"
 
 #include "entt.hpp"
 
@@ -75,6 +76,13 @@ namespace Saturn {
 		bool Running = false;
 		Ref<Scene> RuntimeScene;
 		UUID RuntimeID;
+	};
+
+	enum class PhysicsType
+	{
+		None = 0,
+		PhysX = 1,
+		ReactPhysics = 2
 	};
 
 	class Level;
@@ -200,14 +208,20 @@ namespace Saturn {
 		void SetSelectedEntity(entt::entity entity) { m_SelectedEntity = entity; }
 
 		//phys
-		void PhysicsUpdate(float delta);
+		void PhysicsUpdate( PhysicsType type, float delta );
 		void ContactStay(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
 		void ContactEnter(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
 		void ContactExit(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
 
 		void PhysicsComponentCreate(entt::registry& r, entt::entity ent);
 
-		void Contact(rp3d::CollisionBody* body);
+		void PhysXRigidbodyComponentCreate( entt::registry& r, entt::entity ent );
+		void PhysXBoxComponentCreate( entt::registry& r, entt::entity ent );
+		void PhysXBoxSphereComponentCreate( entt::registry& r, entt::entity ent );
+		void CameraComponentCreate( entt::registry& r, entt::entity ent );
+		void PhysXCapsuleColliderComponentCreate( entt::registry& r, entt::entity ent );
+
+		void Contact( rp3d::CollisionBody* body );
 
 		const EntityMap& GetEntityMap() const { return m_EntityIDMap; }
 
@@ -231,6 +245,7 @@ namespace Saturn {
 		/*------------------------------------------------------------------ */
 	public:
 		Ref<PhysicsScene> m_ReactPhysicsScene;
+		Ref<PhysXScene> m_PhysXScene;
 
 
 	private:

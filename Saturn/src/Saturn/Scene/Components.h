@@ -35,6 +35,10 @@
 #include "Saturn/Scene/SceneCamera.h"
 #include "Saturn/Core/UUID.h"
 #include "Saturn/Physics/Rigidbody.h"
+#include "Saturn/Physics/PhysX/PhysXRigidBody.h"
+#include "Saturn/Physics/PhysX/PhysXBoxCollider.h"
+#include "Saturn/Physics/PhysX/PhysXSphereCollider.h"
+#include "Saturn/Physics/PhysX/PhysXCapsuleCollider.h"
 
 namespace Saturn {
 
@@ -336,6 +340,48 @@ namespace Saturn {
 		RigidbodyComponent( Rigidbody* m_Body, bool IsKinematic ) : m_body( m_Body ), isKinematic(IsKinematic) { }
 	};
 
+	struct PhysXRigidbodyComponent : Component
+	{
+		bool isKinematic;
+
+		PhysXRigidbody* m_body;
+
+		PhysXRigidbodyComponent() = default;
+		PhysXRigidbodyComponent( PhysXRigidbody* m_Body, bool IsKinematic ) : m_body( m_Body ), isKinematic( IsKinematic ) { }
+	};
+
+	struct PhysXBoxColliderComponent : Component
+	{
+		glm::vec3 Extents ={ 1.0f, 1.0f, 1.0f };
+
+		PhysXBoxCollider* m_body;
+
+		PhysXBoxColliderComponent() = default;
+		PhysXBoxColliderComponent( PhysXBoxCollider* m_Body, const glm::vec3& extents ) : m_body( m_Body ), Extents( extents ) { }
+
+
+	};
+
+	struct PhysXSphereColliderComponent : Component
+	{
+		float Radius = 1.0f;
+
+		PhysXSphereCollider* m_body;
+
+		PhysXSphereColliderComponent() = default;
+		PhysXSphereColliderComponent( PhysXSphereCollider* m_Body, float radius ) : m_body( m_Body ), Radius( radius ) { }
+	};
+
+	struct PhysXCapsuleColliderComponent : Component
+	{
+		float Radius = 1.0f;
+		float Height = 1.0f;
+
+		PhysXCapsuleCollider* m_body;
+
+		PhysXCapsuleColliderComponent() = default;
+		PhysXCapsuleColliderComponent( PhysXCapsuleCollider* m_Body, float radius ) : m_body( m_Body ), Radius( radius ) { }
+	};
 
 	//
 	// ScriptComponents

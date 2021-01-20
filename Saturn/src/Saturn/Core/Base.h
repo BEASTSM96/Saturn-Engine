@@ -44,12 +44,8 @@ namespace Saturn {
 
 #include "PlatformDetection.h"
 
-
-#define DISABLE_ALL_WARNINGS_BEGIN \
-	__pragma(warning(push, 0))
-
-#define DISABLE_ALL_WARNINGS_END \
-	__pragma(warning(pop))
+#define DISABLE_ALL_WARNINGS_BEGIN
+#define DISABLE_ALL_WARNINGS_END
 
 //from the vc++
 #define SAT_MoveMemory( Destination, Source, Length ) memmove( ( Destination ), ( Source ), ( Length ) )

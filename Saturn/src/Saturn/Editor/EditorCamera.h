@@ -34,7 +34,7 @@
 
 namespace Saturn {
 
-	class EditorCamera : public Camera
+	class EditorCamera : public Camera, public RefCounted
 	{
 	public:
 		EditorCamera() = default;

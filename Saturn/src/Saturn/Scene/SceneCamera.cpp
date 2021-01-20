@@ -103,7 +103,7 @@ namespace Saturn {
 		glm::vec2 delta = ( mouse - m_InitialMousePosition ) * 0.003f;
 		m_InitialMousePosition = mouse;
 
-		if( Input::IsMouseButtonPressed( GLFW_MOUSE_BUTTON_MIDDLE ) )
+		if( Input::IsMouseButtonPressed( SAT_MOUSE_BUTTON_MIDDLE ) )
 			MousePan( delta );
 		else if( Input::IsMouseButtonPressed( SAT_MOUSE_BUTTON_RIGHT ) )
 			MouseRotate( delta );

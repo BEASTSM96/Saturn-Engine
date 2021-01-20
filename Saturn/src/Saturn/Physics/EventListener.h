@@ -38,12 +38,13 @@ namespace Saturn {
 
 	class PhysicsScene;
 
-	class EventListener : public rp3d::EventListener {
+	class EventListener : public rp3d::EventListener 
+	{
+	public:
+		EventListener( PhysicsScene* physicsScene );
+
+		void onContact( const rp3d::CollisionCallback::CallbackData& callbackData ) override;
 	private:
 		PhysicsScene* m_physicsScene;
-	public:
-		EventListener(PhysicsScene* physicsScene);
-
-		void onContact(const rp3d::CollisionCallback::CallbackData& callbackData) override;
 	};
 }

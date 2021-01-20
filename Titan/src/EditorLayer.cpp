@@ -90,24 +90,21 @@ namespace Saturn {
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); ( void )io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-																	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-																	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-		m_EditorScene = Ref<Scene>::Create();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;      
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>( m_EditorScene );
 		m_SceneHierarchyPanel->SetSelectionChangedCallback( std::bind( &EditorLayer::SelectEntity, this, std::placeholders::_1 ) );
 		m_AssetPanel = Ref<AssetPanel>::Create();
 		m_AssetPanel->OnAttach();
+
+		OpenScene( "" );
 
 		Application::Get().GetSceneMananger().Raw()->AddScene( m_EditorScene );
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
 
-		OpenScene( "assets/physic_scene.sc" );
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init( "#version 410" );
@@ -161,6 +158,11 @@ namespace Saturn {
 
 		std::filesystem::path path = filepath;
 		UpdateWindowTitle( path.filename().string() );
+
+		if( filepath.empty() )
+			UpdateWindowTitle( "Untitled Scene" );
+
+		m_SceneHierarchyPanel->Reset();
 		m_SceneHierarchyPanel->SetContext( m_EditorScene );
 
 		m_EditorScene->SetSelectedEntity( {} );
@@ -355,18 +357,20 @@ namespace Saturn {
 	{
 		m_EditorCamera.OnUpdate( ts );
 
-		m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
-
+		//... only if we aren't in runtime, we can render editor with the editor camera
+		if( !m_RuntimeScene )
+		{
+			m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
+			m_EditorScene->m_PhysXScene->RenderPhysXDebug( m_EditorCamera );
+		}
 		m_DrawOnTopBoundingBoxes = true;
 
 		PrepRuntime();
 
 		if( m_RuntimeScene )
 		{
-			m_RuntimeScene->OnUpdate( ts );
-
-			if( m_RuntimeScene->m_RuntimeRunning ) 
-			{ 
+			if( m_RuntimeScene->m_RuntimeRunning )
+			{
 				Ref<SceneCamera>* mainCamera = nullptr;
 				glm::mat4 cameraTransform;
 				glm::vec3 cameraPosition;
@@ -380,26 +384,61 @@ namespace Saturn {
 						{
 							mainCamera = &camera.Camera;
 							cameraTransform = transform.GetTransform();
-							//cameraPosition = transform.Position;
+							cameraPosition = transform.Position;
 							//cameraPosition.x += 5.0f;
 							break;
 						}
 					}
 				}
 
-				if (mainCamera != nullptr)
+				if( mainCamera != nullptr )
 				{
-					//mainCamera->Raw()->SetPosition( cameraPosition );
+					mainCamera->Raw()->SetPosition( cameraPosition );
+					mainCamera->Raw()->OnUpdate( ts );
 					m_RuntimeScene->OnRenderRuntime( ts, *mainCamera->Raw() );
+					m_RuntimeScene->m_PhysXScene->RenderPhysXDebug( *mainCamera->Raw() );
 				}
 				else
 				{
-					m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
+					//... if we don't have a scene camera we can just copy a editor camera and render the runtime...
+					if ( !m_NoSceneCamera )
+					{
+						SAT_CORE_INFO( "No scene camera was found copying editor camera!" );
+						m_NoSceneCamera = Ref<EditorCamera>::Create( m_EditorCamera.GetProjectionMatrix() );
+						*m_NoSceneCamera = m_EditorCamera;
+					}
+					else
+					{
+						*m_NoSceneCamera = m_EditorCamera;
+					}
+					m_RuntimeScene->OnRenderEditor( ts, *m_NoSceneCamera );
+					m_RuntimeScene->m_PhysXScene->RenderPhysXDebug( *m_NoSceneCamera );
 				}
+			}
+
+			m_RuntimeScene->OnUpdate( ts );
+		}
+
+		if ( !m_RuntimeScene )
+		{
+			//... for physx and others we will have to half the extents... 
+			auto view = m_EditorScene->GetRegistry().view<TransformComponent, PhysXBoxColliderComponent>();
+			for( auto entity : view )
+			{
+				auto [transform, boxCollider] = view.get<TransformComponent, PhysXBoxColliderComponent>( entity );
+				boxCollider.Extents = transform.Scale / 2.0f;
 			}
 		}
 
-
+		if( !m_RuntimeScene )
+		{
+			auto viewSphere = m_EditorScene->GetRegistry().view<TransformComponent, PhysXSphereColliderComponent>();
+			for( auto entity : viewSphere )
+			{
+				auto [transform, sphereCollider] = viewSphere.get<TransformComponent, PhysXSphereColliderComponent>( entity );
+				sphereCollider.Radius = transform.Scale.y / 2.0f;
+			}
+		}
 		//if (m_DrawOnTopBoundingBoxes) {
 		//	Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
 		//	auto viewProj = m_EditorCamera.GetViewProjection();
@@ -463,6 +502,35 @@ namespace Saturn {
 	void EditorLayer::OnEvent( Event& e )
 	{
 		m_EditorCamera.OnEvent( e );
+
+		if( m_RuntimeScene )
+		{
+			if( m_RuntimeScene->m_RuntimeRunning )
+			{
+				Ref<SceneCamera>* mainCamera = nullptr;
+				{
+					auto view = m_RuntimeScene->GetRegistry().view<TransformComponent, CameraComponent>();
+					for( auto entity : view )
+					{
+						auto [transform, camera] = view.get<TransformComponent, CameraComponent>( entity );
+
+						if( camera.Primary )
+						{
+							mainCamera = &camera.Camera;
+							break;
+						}
+					}
+				}
+
+				if( mainCamera != nullptr )
+				{
+					//mainCamera->Raw()->SetPosition( cameraPosition );
+					mainCamera->Raw()->OnEvent( e );
+				}
+				
+			}
+
+		}
 
 		EventDispatcher dispatcher( e );
 		dispatcher.Dispatch<MouseButtonPressedEvent>( SAT_BIND_EVENT_FN( EditorLayer::OnMouseButtonPressed ) );
@@ -793,6 +861,7 @@ namespace Saturn {
 			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
 			if( ImGui::Begin( "Toolbar" ) )
 			{
+			#if 0
 				if( !m_RuntimeScene )
 				{
 					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
@@ -824,6 +893,44 @@ namespace Saturn {
 							m_SelectionContext.clear();
 							m_SceneHierarchyPanel->SetContext( m_EditorScene );
 							//delete m_RuntimeScene.Raw();
+						}
+					}
+				}
+			#endif
+
+				if( !m_RuntimeScene )
+				{
+
+					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
+					{
+						m_SceneHierarchyPanel->Reset();
+						m_EditorScene->SetSelectedEntity( {} );
+						m_SceneHierarchyPanel->SetSelected( {} );
+						m_SelectionContext.clear();
+						m_RuntimeScene = Ref<Scene>::Create();
+						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
+						m_EditorScene->CopyScene( m_RuntimeScene );
+						Application::Get().GetSceneMananger().Raw()->AddScene( m_RuntimeScene );
+						m_RuntimeScene->BeginRuntime();
+					}
+				}
+
+				if( m_RuntimeScene )
+				{
+					if( m_RuntimeScene->m_RuntimeRunning )
+					{
+						ImGui::SameLine();
+
+						if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
+						{
+							m_SceneHierarchyPanel->Reset();
+							m_RuntimeScene->SetSelectedEntity( {} );
+							m_SceneHierarchyPanel->SetSelected( {} );
+							m_NoSceneCamera = nullptr;
+							m_RuntimeScene->EndRuntime();
+							m_RuntimeScene = nullptr;
+							m_SelectionContext.clear();
+							m_SceneHierarchyPanel->SetContext( m_EditorScene );
 						}
 					}
 				}

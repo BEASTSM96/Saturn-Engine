@@ -28,6 +28,7 @@ IncludeDir["Assimp"] = "Saturn/vendor/assimp/include"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
 IncludeDir["ReactPhysics3D"] = "Saturn/vendor/reactphysics3d/include"
+IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 
 -- Game
 GameDir = {}
@@ -44,6 +45,7 @@ group "sat/Dependencies"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
 	include "Saturn/vendor/reactphysics3d"
+	include "Saturn/vendor/physx"
 	group "sat/Dependencies/Serialisation"
 			include "Saturn/vendor/jsoncpp"
 			include "Saturn/vendor/yaml-cpp"
@@ -76,6 +78,7 @@ project "Saturn"
 	defines
 	{
 		"_CRT_SECURE_NO_WARNINGS",
+		"PX_PHYSX_STATIC_LIB",
 		"AL_LIBTYPE_STATIC"
 	}
 
@@ -88,6 +91,9 @@ project "Saturn"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx",
 		"%{IncludeDir.json_cpp}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
@@ -944,6 +950,7 @@ project "Saturn"
 		links
 		{
 			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysX.lib",
 			"Saturn/vendor/yaml-cpp/bin/Debug/yaml-cpp.lib"
 		}
 
@@ -962,6 +969,7 @@ project "Saturn"
 		links
 		{
 			"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib",
+			"Saturn/vendor/physx/bin/Release/PhysX.lib",
 			"Saturn/vendor/yaml-cpp/bin/Release/yaml-cpp.lib"
 		}
 
@@ -978,7 +986,8 @@ project "Saturn"
 
 		links
 		{
-			"Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.lib"
+			"Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.lib",
+			"Saturn/vendor/physx/bin/Dist/PhysX_64.lib",
 		}
 
 		postbuildcommands 
@@ -1028,6 +1037,9 @@ project "Titan"
 		"%{IncludeDir.Assimp}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx",
 		"%{IncludeDir.ReactPhysics3D}",
 		"Saturn/vendor/yaml-cpp/include",
 		"Saturn/vendor/glm/",
