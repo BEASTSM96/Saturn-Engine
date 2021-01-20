@@ -19,8 +19,6 @@ If you want to use Premake, start by going into the `scrtpts` folder, then run `
 
 Then go back to the root dir of the project, and open `Saturn.sln` right click on the solution *`(Solution 'Saturn' (x of x projects))`* and click build *or `Ctrl Shift B`.*
 
-Now go to `Saturn\vendor\assimp\*build-config*`, now copy `assimp-vc142-md(d).dll` now go back to the root dir and put the dll in `bin *build-config-windows-x86_64\Titan`. *you can also do that with the imgui.ini in `*root-dir*\Titan`*
-
 ## 
 
 ### Main features to come:
