@@ -211,12 +211,12 @@ namespace Saturn {
 
 	bool AssetPanel::OnMouseButtonPressed( MouseButtonEvent& e )
 	{
-
+		return true;
 	}
 
 	bool AssetPanel::OnKeyPressedEvent( KeyPressedEvent& e )
 	{
-
+		return true;
 	}
 
 }

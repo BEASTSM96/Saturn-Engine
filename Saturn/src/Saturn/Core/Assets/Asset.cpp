@@ -35,7 +35,7 @@ namespace Saturn {
 
 	Ref<Saturn::Asset> Asset::Load( std::string path, std::string RootDir, AssetCollection* assetCollection )
 	{
-
+		return Ref<Saturn::Asset>::Create();
 	}
 
 	Ref<Asset> Asset::GetParent() const
