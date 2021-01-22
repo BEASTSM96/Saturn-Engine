@@ -32,6 +32,7 @@
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Renderer/Renderer.h"
 #include "Saturn/Renderer/Renderer2D.h"
+#include "PhysXSimulationEventCallback.h"
 
 namespace Saturn {
 
@@ -60,7 +61,6 @@ namespace Saturn {
 		if ( !m_PVD )
 		{
 		}
-
 		physx::PxSceneDesc sceneDesc( m_Physics->getTolerancesScale() );
 		sceneDesc.gravity = physx::PxVec3( 0.0f, -9.81f, 0.0f );
 		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD;
@@ -68,6 +68,12 @@ namespace Saturn {
 		sceneDesc.cpuDispatcher	= m_Dispatcher;
 		sceneDesc.filterShader	= physx::PxDefaultSimulationFilterShader;
 		m_PhysXScene = m_Physics->createScene( sceneDesc );
+
+		if( !m_PhysXSimulationEventCallback )
+		{
+			m_PhysXSimulationEventCallback = new PhysXSimulationEventCallback( sceneDesc );
+		}
+		sceneDesc.simulationEventCallback = m_PhysXSimulationEventCallback;
 
 		physx::PxPvdSceneClient* pvdClient = m_PhysXScene->getScenePvdClient();
 		if( pvdClient )

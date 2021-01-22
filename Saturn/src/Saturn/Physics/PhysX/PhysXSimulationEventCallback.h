@@ -29,52 +29,47 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
-#include "Saturn/Core/Timestep.h"
 
 #ifdef USE_NVIDIA
 
-#include <physx/PxPhysicsAPI.h>
-#include <physx/PxFoundation.h>
-#include <physx/PxScene.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-#include "ErrorCallback.h"
-#include "Saturn/Renderer/Camera.h"
-#include "Saturn/Editor/EditorCamera.h"
-#include "Saturn/Scene/SceneCamera.h"
+#include <physx/PxPhysicsAPI.h>
+
+#include "PhysXScene.h"
+#include "PhysXCollider.h"
 
 namespace Saturn {
-	
-	class Scene;
-	class PhysXSimulationEventCallback;
 
-	class PhysXScene : public RefCounted
+	class PhysXSimulationEventCallback : public physx::PxSimulationEventCallback
 	{
 	public:
-		PhysXScene( Scene* scene );
-		~PhysXScene();
+		PhysXSimulationEventCallback( physx::PxSceneDesc PxSceneDesc );
+		~PhysXSimulationEventCallback();
 
-		void Update( Timestep ts );
-		void RenderPhysXDebug( const SceneCamera& camera );
-		void RenderPhysXDebug( const EditorCamera& camera );
+		void SetSceneContext( PhysXScene* scene );
 
-		PhysXSimulationEventCallback* m_PhysXSimulationEventCallback;
-		PhysXErrorCallback m_DefaultErrorCallback;
-		physx::PxDefaultAllocator m_DefaultAllocatorCallback;
-		physx::PxFoundation* m_Foundation = NULL;
-		physx::PxDefaultCpuDispatcher* m_Dispatcher = NULL;
-		physx::PxCooking* m_Cooking = NULL;
-		physx::PxPhysics* m_Physics = NULL;
-		physx::PxScene* m_PhysXScene = NULL;
-		physx::PxPvd* m_PVD = NULL;
+	public:
+		void onConstraintBreak( physx::PxConstraintInfo* constraints, physx::PxU32 count ) override;
+		void onWake( physx::PxActor** actors, physx::PxU32 count ) override;
+		void onSleep( physx::PxActor** actors, physx::PxU32 count ) override;
+		void onContact( const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs ) override;
+		void onTrigger( physx::PxTriggerPair* pairs, physx::PxU32 count ) override;
+		void onAdvance( const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count ) override;
 
 	protected:
-		Scene* m_Scene;
-
+		std::function<void( PhysXCollider, PhysXCollider )> m_OnContact;
+		std::function<void()> m_OnTrigger;
+		std::function<void()> m_OnWake;
+		std::function<void()> m_OnSleep;
+		std::function<void()> m_OnConstraintBreak;
 	private:
-		_declspec( align( 16 ) ) std::uint8_t MemoryBlock[65536];
+		PhysXScene* m_Scene;
 	};
+
 }
 
-#else
-#error You need to use nvidia for physx!
-#endif // USE_NVIDIA
+#endif
