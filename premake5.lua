@@ -30,7 +30,7 @@ IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
 IncludeDir["ReactPhysics3D"] = "Saturn/vendor/reactphysics3d/include"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
-
+IncludeDir["mono"] = "Saturn/vendor/mono/include"
 -- Game
 GameDir = {}
 GameDir["Game"] = "Game/"
@@ -103,6 +103,7 @@ project "Saturn"
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ReactPhysics3D}",
+		"%{IncludeDir.mono}",
 		"Saturn/vendor/yaml-cpp/include",
 		"Saturn/vendor/SaturnLog/SaturnLogging/src"
 	}
