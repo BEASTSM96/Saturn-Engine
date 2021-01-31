@@ -140,7 +140,7 @@ namespace Saturn {
 		s_MonoDomain = mono_domain_create_appdomain( name, nullptr );
 
 		// =========================== |
-		// ----> LOAD RUNTIME ASSEBLY  |
+		// ----> LOAD RUNTIME ASSEMBLY | 
 		// =========================== |
 
 		if(s_AppAssembly)
