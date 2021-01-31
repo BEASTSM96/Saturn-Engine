@@ -51,7 +51,6 @@ namespace Saturn {
 		m_Context = scene;
 		m_SelectionContext = {};
 
-		/*
 		if( m_SelectionContext && false )
 		{
 			// Try and find same entity in new scene
@@ -60,23 +59,6 @@ namespace Saturn {
 			if( entityMap.find( selectedEntityID ) != entityMap.end() )
 				m_SelectionContext = entityMap.at( selectedEntityID );
 		}
-		*/
-
-		auto& EntityA = m_Context->CreateEntity( "A" );
-		m_SelectionContext = EntityA;
-		m_SelectionContext ={}; 
-		m_Context->DestroyEntity( EntityA );
-
-
-		auto& EntityB = m_Context->CreateEntity( "B" );
-		m_SelectionContext = EntityB;
-		m_SelectionContext ={};
-		m_Context->DestroyEntity( EntityB );
-
-		auto& EntityC = m_Context->CreateEntity( "C" );
-		m_SelectionContext = EntityC;
-		m_SelectionContext ={};
-		m_Context->DestroyEntity( EntityC );
 	}
 
 	void SceneHierarchyPanel::SetSelected( Entity entity )
@@ -709,6 +691,11 @@ namespace Saturn {
 				rb.m_body->SetKinematic( canKinematic );
 
 			} );
+
+		DrawComponent<ScriptComponent>("Script", entity, []( auto& csc )
+		{
+			ImGui::Text( "Module Name: %s", csc.ModuleName.c_str() );
+		});
 	}
 
 }
