@@ -186,6 +186,14 @@ namespace Saturn {
 							ImGui::CloseCurrentPopup();
 						}
 					}
+					if( !m_SelectionContext.HasComponent<ScriptComponent>() )
+					{
+						if( ImGui::Button( "Script" ) )
+						{
+							m_SelectionContext.AddComponent<ScriptComponent>();
+							ImGui::CloseCurrentPopup();
+						}
+					}
 					if( ImGui::BeginMenu( "Physics" ) )
 					{
 						if( !m_SelectionContext.HasComponent<PhysicsComponent>() )
@@ -694,7 +702,9 @@ namespace Saturn {
 
 		DrawComponent<ScriptComponent>("Script", entity, []( auto& csc )
 		{
-			ImGui::Text( "Module Name: %s", csc.ModuleName.c_str() );
+			ImGui::Text( "Module Name:" );
+			ImGui::SameLine();
+			ImGui::InputText( "##name", (char*)csc.ModuleName.c_str(), 256 );
 		});
 	}
 

@@ -48,6 +48,8 @@
 
 #include "Saturn/Physics/PhysX/PhysXScene.h"
 
+#include "Saturn/Script/ScriptEngine.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -180,6 +182,12 @@ namespace Saturn {
 		physics.m_body = new PhysXCapsuleCollider( rbScene, rb, mat, physics.Radius, physics.Height );
 	}
 
+	void Scene::ScriptComponentCreate( entt::registry& r, entt::entity ent )
+	{
+		Entity e ={ e, this };
+		ScriptEngine::OnInitEntity( e );
+	}
+
 	Scene::Scene( void )
 	{
 		SAT_PROFILE_FUNCTION();
@@ -198,6 +206,7 @@ namespace Saturn {
 		m_Registry.on_construct<PhysXSphereColliderComponent>().connect<&Scene::PhysXBoxSphereComponentCreate>( this );
 		m_Registry.on_construct<PhysXCapsuleColliderComponent>().connect<&Scene::PhysXCapsuleColliderComponentCreate>( this );
 		m_Registry.on_construct<CameraComponent>().connect<&Scene::CameraComponentCreate>( this );
+		m_Registry.on_construct<ScriptComponent>().connect<&Scene::ScriptComponentCreate>( this );
 	}
 
 	Scene::~Scene( void )
@@ -706,6 +715,7 @@ namespace Saturn {
 		CopyComponent<PhysXSphereColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXCapsuleColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<ScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
 		NewScene->m_ScriptableEntitys = m_ScriptableEntitys;
 		NewScene->m_PhysXScene->m_Foundation = m_PhysXScene->m_Foundation;

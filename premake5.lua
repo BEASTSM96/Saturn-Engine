@@ -138,12 +138,14 @@ project "Saturn"
 		{
 			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
 			"Saturn/vendor/physx/bin/Debug/PhysX.lib",
+			"Saturn/vendor/mono/lib/mono-2.0-sgen.lib",
 			"Saturn/vendor/yaml-cpp/bin/Debug/yaml-cpp.lib"
 		}
 
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Titan/"',
 		}
 
@@ -249,17 +251,20 @@ project "Titan"
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/bin/Dist/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"'
 		}
 	filter "configurations:Release"
 		postbuildcommands 
 		{
-			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"'
+			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 	filter "configurations:Debug"
 		postbuildcommands 
 		{
-			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"'
+			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "system:windows"

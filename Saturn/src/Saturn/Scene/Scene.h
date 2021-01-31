@@ -220,6 +220,7 @@ namespace Saturn {
 		void PhysXBoxSphereComponentCreate( entt::registry& r, entt::entity ent );
 		void CameraComponentCreate( entt::registry& r, entt::entity ent );
 		void PhysXCapsuleColliderComponentCreate( entt::registry& r, entt::entity ent );
+		void ScriptComponentCreate( entt::registry& r, entt::entity ent );
 
 		void Contact( rp3d::CollisionBody* body );
 
