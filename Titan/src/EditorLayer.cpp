@@ -54,6 +54,7 @@
 #include <Saturn/Core/Modules/Module.h>
 #include <Saturn/Core/Modules/ModuleManager.h>
 #include <Saturn/Scene/SceneManager.h>
+#include <Saturn/Script/ScriptEngine.h>
 
 #include <Saturn/Input.h>
 
@@ -105,6 +106,8 @@ namespace Saturn {
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
 
+		ScriptEngine::Init( "assets/assembly/game/exapp.dll" );
+		ScriptEngine::SetSceneContext(m_EditorScene);
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init( "#version 410" );
@@ -910,7 +913,6 @@ namespace Saturn {
 						m_RuntimeScene = Ref<Scene>::Create();
 						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
 						m_EditorScene->CopyScene( m_RuntimeScene );
-						Application::Get().GetSceneMananger().Raw()->AddScene( m_RuntimeScene );
 						m_RuntimeScene->BeginRuntime();
 					}
 				}

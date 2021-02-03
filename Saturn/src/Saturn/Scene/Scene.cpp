@@ -38,7 +38,6 @@
 #include "SceneManager.h"
 
 #include "Saturn/Application.h"
-#include "Saturn/GameFramework/HotReload.h"
 
 #include "ScriptableEntity.h"
 
@@ -184,13 +183,22 @@ namespace Saturn {
 
 	void Scene::ScriptComponentCreate( entt::registry& r, entt::entity ent )
 	{
-		Entity e ={ e, this };
-		ScriptEngine::OnInitEntity( e );
+		auto view = r.view<SceneComponent>();
+		UUID sceneId = r.get<SceneComponent>( view.front() ).SceneID;
+		Scene* scene = s_ActiveScenes[ sceneId ];
+
+		auto enttId = r.get<IdComponent>( ent ).ID;
+		SAT_CORE_ASSERT( scene->m_EntityIDMap.find( enttId ) != scene->m_EntityIDMap.end() );
+		ScriptEngine::OnInitEntity( scene->m_EntityIDMap.at(enttId) );
 	}
 
 	Scene::Scene( void )
 	{
 		SAT_PROFILE_FUNCTION();
+
+		s_ActiveScenes[ m_SceneID ] = this;
+		m_SceneEntity = m_Registry.create();
+		m_Registry.emplace<SceneComponent>( m_SceneEntity, m_SceneID );
 
 		auto skyboxShader = Shader::Create( "assets/shaders/Skybox.glsl" );
 		m_SkyboxMaterial = MaterialInstance::Create( Material::Create( skyboxShader ) );
@@ -211,7 +219,7 @@ namespace Saturn {
 
 	Scene::~Scene( void )
 	{
-		//s_ActiveScenes.erase(m_SceneID);
+		s_ActiveScenes.erase(m_SceneID);
 
 		m_Registry.clear();
 	}
@@ -305,8 +313,27 @@ namespace Saturn {
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Unmanned Entity" : name;
 
-		auto& ID = entity.AddComponent<IdComponent>();
+		auto& IDcomponent = entity.AddComponent<IdComponent>();
+		entity.GetComponent<IdComponent>().ID ={};
 
+		m_EntityIDMap[ IDcomponent.ID ] = entity;
+		return entity;
+	}
+
+	Entity Scene::CreateEntityWithID( UUID uuid, const std::string& name, bool runtimeMap )
+	{
+		SAT_PROFILE_FUNCTION();
+
+		auto entity = Entity{ m_Registry.create(), this };
+		auto& idComponent = entity.AddComponent<IdComponent>();
+		idComponent.ID = uuid;
+
+		entity.AddComponent<TransformComponent>();
+		if( !name.empty() )
+			entity.AddComponent<TagComponent>( name );
+
+		//SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) == m_EntityIDMap.end(), "Entity has the same name!" );
+		m_EntityIDMap[ uuid ] = entity;
 		return entity;
 	}
 
@@ -347,23 +374,6 @@ namespace Saturn {
 
 		m_ScriptableEntitys.push_back(entity);
 
-		return entity;
-	}
-
-	Entity Scene::CreateEntityWithID( UUID uuid, const std::string& name, bool runtimeMap )
-	{
-		SAT_PROFILE_FUNCTION();
-
-		auto entity = Entity{ m_Registry.create(), this };
-		auto& idComponent = entity.AddComponent<IdComponent>();
-		idComponent.ID = uuid;
-
-		entity.AddComponent<TransformComponent>();
-		if (!name.empty())
-			entity.AddComponent<TagComponent>(name);
-
-		//SAT_CORE_ASSERT(m_EntityIDMap.find(uuid) == m_EntityIDMap.end());
-		m_EntityIDMap[uuid] = entity;
 		return entity;
 	}
 
@@ -477,10 +487,14 @@ namespace Saturn {
 		auto components = srcRegistry.view<T>();
 		for (auto srcEntity : components)
 		{
-			entt::entity destEntity = enttMap.at(srcRegistry.get<IdComponent>(srcEntity).ID);
+			if ( !srcRegistry.has<SceneComponent>( srcEntity ))
+			{
+				SAT_CORE_INFO( "{0}", srcRegistry.get<IdComponent>( srcEntity ).ID );
+				entt::entity destEntity = enttMap.at( srcRegistry.get<IdComponent>( srcEntity ).ID );
 
-			auto& srcComponent = srcRegistry.get<T>(srcEntity);
-			auto& destComponent = dstRegistry.emplace_or_replace<T>(destEntity, srcComponent);
+				auto& srcComponent = srcRegistry.get<T>( srcEntity );
+				auto& destComponent = dstRegistry.emplace_or_replace<T>( destEntity, srcComponent );
+			}
 		}
 	}
 
@@ -503,7 +517,6 @@ namespace Saturn {
 
 		SAT_CORE_WARN("Copying Scene!");
 		Ref<Scene> CScene = Ref<Scene>::Create();
-		CScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
 		CScene->m_data = CurrentScene->m_data;
 		CScene->m_DebugName = CurrentScene->m_DebugName;
 		CScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
@@ -546,7 +559,6 @@ namespace Saturn {
 	{
 		SAT_CORE_WARN("Copying Scene!");
 		Scene* CScene = new Scene();
-		CScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
 		CScene->m_data = CurrentScene->m_data;
 		CScene->m_DebugName = CurrentScene->m_DebugName;
 		CScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
@@ -588,7 +600,6 @@ namespace Saturn {
 	Ref<Scene> Scene::CopyScene(const Ref<Scene>& CurrentScene, Ref<Scene> NewScene)
 	{
 		SAT_CORE_WARN("Copying Scene!");
-		NewScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
 		NewScene->m_data = CurrentScene->m_data;
 		NewScene->m_DebugName = CurrentScene->m_DebugName;
 		NewScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
@@ -630,7 +641,6 @@ namespace Saturn {
 	Scene* Scene::CopyScene(const Scene*& CurrentScene, Scene* NewScene)
 	{
 		SAT_CORE_WARN("Copying Scene!");
-		NewScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
 		NewScene->m_data = CurrentScene->m_data;
 		NewScene->m_DebugName = CurrentScene->m_DebugName;
 		NewScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
@@ -674,7 +684,6 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 
 		SAT_CORE_WARN("Copying Scene!");
-		NewScene->m_CurrentLevel = m_CurrentLevel;
 		NewScene->m_data = m_data;
 		NewScene->m_DebugName = m_DebugName;
 		NewScene->m_EntityIDMap = m_EntityIDMap;
@@ -740,6 +749,14 @@ namespace Saturn {
 			ncs.Instance->BeginPlay();
 
 		}
+
+		auto view = m_Registry.view<ScriptComponent>();
+		for( auto entt : view )
+		{
+			Entity e ={ entt, this };
+			ScriptEngine::OnCreateEntity( e );
+			ScriptEngine::OnEntityBeginPlay( e );
+		}
 	}
 
 	void Scene::EndRuntime( void )
@@ -780,11 +797,14 @@ namespace Saturn {
 			auto ncs = entity->GetComponent<NativeScriptComponent>();
 
 			ncs.Instance->OnUpdate(ts);
-
 		}
 
-		Application::Get().GetHotReload()->OnHotReload();
+		auto view = m_Registry.view<ScriptComponent>();
+		for (auto entt : view) 
+		{
+			Entity e ={ entt, this };
+			ScriptEngine::OnUpdateEntity( e, ts );
+		}
+
 	}
-
-
 }

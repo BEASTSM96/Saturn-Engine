@@ -1,8 +1,7 @@
 #include "sppch.h"
 #include "ScriptEngine.h"
 
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
+#include "Saturn/Script/ScriptRegistry.h"
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>
@@ -18,6 +17,8 @@ namespace Saturn {
 
 	static std::unordered_map<std::string, EntityClass> s_EntityClass;
 	static std::unordered_map<uint32_t, EntityInstance> s_EntityInstanceMap;
+
+	static Ref<Scene> m_Scene;
 
 	MonoAssembly* LoadAssemblyFromFile( const char* filepath )
 	{
@@ -114,8 +115,9 @@ namespace Saturn {
 	MonoImage* s_AppAssemblyImage = nullptr;
 	MonoImage* s_CoreAssemblyImage = nullptr;
 
-	ScriptEngine::ScriptEngine()
+	ScriptEngine::ScriptEngine( const Ref<Scene>& scene )
 	{
+		m_Scene = scene;
 	}
 
 	ScriptEngine::~ScriptEngine()
@@ -131,12 +133,13 @@ namespace Saturn {
 		s_Init = true;
 		s_AssemblyPath = path;
 
-		mono_set_assemblies_path( "mono/lib" );
+		mono_set_dirs( "C:\\Program Files\\Mono\\lib", "C:\\Program Files\\Mono\\etc" );
+		mono_set_assemblies_path( "../Saturn/vendor/mono/lib" );
 		mono_jit_set_trace_options( "--verbose" );
 
 		auto domain = mono_jit_init( "Saturn" );
 
-		char* name = ( char* )"Saturn-Runtime";
+		char* name = ( char* )"Saturn_Runtime";
 		s_MonoDomain = mono_domain_create_appdomain( name, nullptr );
 
 		// =========================== |
@@ -148,7 +151,7 @@ namespace Saturn {
 			mono_domain_unload( s_MonoDomain );
 			mono_assembly_close( s_AppAssembly );
 
-			char* name = ( char* )"Saturn-Runtime";
+			char* name = ( char* )"Saturn_Runtime-Runtime";
 			s_MonoDomain = mono_domain_create_appdomain( name, nullptr );
 		}
 
@@ -157,6 +160,7 @@ namespace Saturn {
 
 		s_AppAssembly = LoadAssembly( path );
 		s_AppAssemblyImage = GetAssemblyImage( s_AppAssembly );
+		ScriptRegistry::RegisterAll();
 	}
 
 	void ScriptEngine::Shutdown()
@@ -169,37 +173,31 @@ namespace Saturn {
 		if( !s_Init )
 			return;
 		
-		EntityInstance& entityInstance = s_EntityInstanceMap[ ( uint32_t )entity ];
+		auto& entityInstance = GetEntityInstanceData(entity.GetComponent<IdComponent>().ID);
 		if( entityInstance.ScrtptClass->MethodOnCreate )
 			MonoUtils::CallMethod(entityInstance.Get(), entityInstance.ScrtptClass->MethodOnCreate);
 	}
 
-	void ScriptEngine::OnEntityBeingPlay( uint32_t entityID )
+	void ScriptEngine::OnEntityBeginPlay( Entity entity )
 	{
 		if( !s_Init )
 			return;
 
-		SAT_CORE_ASSERT(s_EntityInstanceMap.find(entityID) != s_EntityInstanceMap.end(), "Entity was not in the map!");
-
-		auto& entity = s_EntityInstanceMap[ entityID ];
-
-		if( entity.ScrtptClass->MethodBeginPlay )
-			MonoUtils::CallMethod( entity.Get(), entity.ScrtptClass->MethodBeginPlay );
+		auto& entityInstance = GetEntityInstanceData( entity.GetComponent<IdComponent>().ID );
+		if( entityInstance.ScrtptClass->MethodBeginPlay )
+			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScrtptClass->MethodBeginPlay );
 	}
 
-	void ScriptEngine::OnUpdateEntity( uint32_t entityID, Timestep ts )
+	void ScriptEngine::OnUpdateEntity( Entity entity, Timestep ts )
 	{
 		if( !s_Init )
 			return;
 
-		SAT_CORE_ASSERT( s_EntityInstanceMap.find( entityID ) != s_EntityInstanceMap.end(), "Entity was not in the map!" );
-
-		auto& entity = s_EntityInstanceMap[ entityID ];
-
-		if ( entity.ScrtptClass->MethodOnUpdate )
+		auto& entityInstance = GetEntityInstanceData( entity.GetComponent<IdComponent>().ID );
+		if ( entityInstance.ScrtptClass->MethodOnUpdate )
 		{
 			void* args[] ={ &ts };
-			MonoUtils::CallMethod( entity.Get(), entity.ScrtptClass->MethodOnUpdate, args );
+			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScrtptClass->MethodOnUpdate, args );
 		}
 	}
 
@@ -210,46 +208,82 @@ namespace Saturn {
 
 		Scene* scene = entity.m_Scene;
 		UUID id = entity.GetComponent<IdComponent>().ID;
-		auto& moduleName =  entity.GetComponent<ScriptComponent>().ModuleName;
+		auto& moduleName = entity.GetComponent<ScriptComponent>().ModuleName;
 		EntityClass& entityClass = s_EntityClass[ moduleName ];
 
-		if ( moduleName.find('.') != std::string::npos)
-		{
-			entityClass.NamespaceName = moduleName.substr( 0, moduleName.find_first_of( '.' ) );
-			entityClass.ClassName = moduleName.substr( moduleName.find_first_of( '.' ) +1 );
-		}
-		else
-		{
-			entityClass.ClassName = moduleName;
-		}
+		if( moduleName == "" ) return;
+		if ( !ModuleExists(moduleName) ) return;
 
-		entityClass.Class = GetClass( s_AppAssemblyImage, entityClass );
-		entityClass.InitClassMethods( s_AppAssemblyImage );
-
-		EntityInstance& entityInstance = s_EntityInstanceMap[ id ];
-		entityInstance.ScrtptClass = &entityClass;
-		entityInstance.Handle = Instantiate( entityClass );
+		if ( moduleName != "" )
 		{
-			MonoClassField* it;
-			void* ptr = 0;
-			while( (it = mono_class_get_fields(entityClass.Class, &ptr)) != NULL )
+			entityClass.FullName = moduleName;
+			if( moduleName.find( '.' ) != std::string::npos )
 			{
-				const char* name = mono_field_get_name( it );
-				uint32_t flags = mono_field_get_flags( it );
-				if(flags & MONO_FIELD_ATTR_PUBLIC == 0)
-					continue;
+				entityClass.NamespaceName = moduleName.substr( 0, moduleName.find_first_of( '.' ) );
+				entityClass.ClassName = moduleName.substr( moduleName.find_first_of( '.' ) + 1 );
+			}
+			else
+			{
+				entityClass.ClassName = moduleName;
+			}
 
-				MonoType* fieldtype = mono_field_get_type( it );
-				FieldType fieldType = MonoToSaturn( fieldtype );
 
-				//TODO: Show public fields in editor
-				auto& publicField = s_PublicFields[ moduleName ].emplace_back( name, fieldType );
-				publicField.m_EntityInstance = &entityInstance;
-				publicField.m_MonoClassField = it;
+			entityClass.Class = GetClass( s_AppAssemblyImage, entityClass );
+			entityClass.InitClassMethods( s_AppAssemblyImage );
 
+			EntityInstance& entityInstance = s_EntityInstanceMap[ id ];
+			entityInstance.ScrtptClass = &entityClass;
+			entityInstance.Handle = Instantiate( entityClass );
+			{
+				MonoClassField* it;
+				void* ptr = 0;
+				while( ( it = mono_class_get_fields( entityClass.Class, &ptr ) ) != NULL )
+				{
+					const char* name = mono_field_get_name( it );
+					uint32_t flags = mono_field_get_flags( it );
+					if( flags & MONO_FIELD_ATTR_PUBLIC == 0 )
+						continue;
+
+					MonoType* fieldtype = mono_field_get_type( it );
+					FieldType fieldType = MonoToSaturn( fieldtype );
+
+					auto& publicField = s_PublicFields[ moduleName ].emplace_back( name, fieldType );
+					publicField.m_EntityInstance = &entityInstance;
+					publicField.m_MonoClassField = it;
+
+				}
 			}
 		}
+	}
 
+	void ScriptEngine::SetSceneContext( const Ref<Scene>& scene )
+	{
+		m_Scene = scene;
+	}
+
+	bool ScriptEngine::ModuleExists( const std::string& moduleName )
+	{
+		std::string NamespaceName, ClassName;
+		if( moduleName.find( '.' ) != std::string::npos )
+		{
+			NamespaceName = moduleName.substr( 0, moduleName.find_first_of( '.' ) );
+			ClassName = moduleName.substr( moduleName.find_first_of( '.' ) + 1 );
+		}
+		else
+			ClassName = moduleName;
+
+		MonoClass* monoClass = mono_class_from_name( s_AppAssemblyImage, NamespaceName.c_str(), ClassName.c_str() );
+		return monoClass != nullptr;
+	}
+
+	EntityInstance& ScriptEngine::GetEntityInstanceData( UUID entityId )
+	{
+		return s_EntityInstanceMap.at(entityId);
+	}
+
+	Saturn::Ref<Saturn::Scene>& ScriptEngine::GetScene()
+	{
+		return m_Scene;
 	}
 
 	const Saturn::FieldMap& ScriptEngine::GetFieldMap()
@@ -257,12 +291,12 @@ namespace Saturn {
 		return s_PublicFields;
 	}
 
-	void PublicField::GetValue_Internal( void* value )
+	void PublicField::GetValue_Internal( void* value ) const
 	{
 		mono_field_get_value( m_EntityInstance->Get(), m_MonoClassField, value );
 	}
 
-	void PublicField::SetValue_Internal( void* outValue )
+	void PublicField::SetValue_Internal( void* outValue ) const
 	{
 		mono_field_set_value( m_EntityInstance->Get(), m_MonoClassField, outValue );
 	}
@@ -272,6 +306,7 @@ namespace Saturn {
 		MonoMethodDesc* monoDecs = mono_method_desc_new( desc.c_str(), NULL );
 		if( !monoDecs )
 			SAT_CORE_ERROR("[Mono Runtime API] mono_method_desc_new failed ");
+
 		MonoMethod* method = mono_method_desc_search_in_image( monoDecs, image );
 		if( !method )
 			SAT_CORE_ERROR( "[Mono Runtime API] mono_method_desc_search_in_image failed " );

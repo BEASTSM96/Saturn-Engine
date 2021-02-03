@@ -389,7 +389,7 @@ namespace Saturn {
 
 	struct ScriptComponent : Component
 	{
-		std::string ModuleName;
+		std::string ModuleName = "ExampleApp.Test";
 	};
 
 	class ScriptableEntity;

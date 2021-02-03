@@ -1,12 +1,13 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
-#include "Saturn/Scene/Entity.h"
-#include <string>
+
+#include "Saturn/Scene/Scene.h"
 
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>
 #include <mono/metadata/object.h>
+#include <string>
 
 extern "C" {
 	typedef struct _MonoObject MonoObject;
@@ -65,16 +66,16 @@ namespace Saturn {
 		std::string ClassName;
 		std::string NamespaceName;
 		
-		MonoClass* Class;
-		MonoMethod* MethodOnCreate;
-		MonoMethod* MethodBeginPlay;
-		MonoMethod* MethodOnUpdate;
-		MonoMethod* MethodOnDestory;
-		MonoMethod* MethodOnCollisionEnter;
-		MonoMethod* MethodOnCollisionExit;
-		MonoMethod* MethodOnCollisionStay;
-		MonoMethod* MethodOnTriggerEnter;
-		MonoMethod* MethodOnTriggerExit;
+		MonoClass* Class = nullptr;
+		MonoMethod* MethodOnCreate = nullptr;
+		MonoMethod* MethodBeginPlay = nullptr;
+		MonoMethod* MethodOnUpdate = nullptr;
+		MonoMethod* MethodOnDestory = nullptr;
+		MonoMethod* MethodOnCollisionEnter = nullptr;
+		MonoMethod* MethodOnCollisionExit = nullptr;
+		MonoMethod* MethodOnCollisionStay = nullptr;
+		MonoMethod* MethodOnTriggerEnter = nullptr;
+		MonoMethod* MethodOnTriggerExit = nullptr;
 
 		void InitClassMethods( MonoImage* image )
 		{
@@ -107,16 +108,16 @@ namespace Saturn {
 		PublicField(const std::string& name, FieldType type) 
 			: Name(name), Type(type) {}
 
-		template<typename Ty>
-		Ty GetValue() const 
+		template<typename T>
+		T GetValue() const
 		{
-			Ty value;
+			T value;
 			GetValue_Internal( &value );
 			return value;
 		}
 
-		template<typename Ty>
-		void SetValue( Ty value ) const
+		template<typename T>
+		void SetValue( T value ) const
 		{
 			SetValue_Internal( &value );
 		}
@@ -125,8 +126,8 @@ namespace Saturn {
 		EntityInstance* m_EntityInstance;
 		MonoClassField* m_MonoClassField;
 
-		void GetValue_Internal( void* value );
-		void SetValue_Internal( void* outValue );
+		void GetValue_Internal( void* value ) const;
+		void SetValue_Internal( void* outValue ) const;
 
 
 		friend class ScriptEngine;
@@ -137,20 +138,22 @@ namespace Saturn {
 	class ScriptEngine
 	{
 	public:
-		ScriptEngine();
+		ScriptEngine(const Ref<Scene>& scene);
 		~ScriptEngine();
 
 		static void Init( const std::string& path );
 		static void Shutdown();
 
 		static void OnCreateEntity( Entity entity );
-		static void OnEntityBeingPlay( uint32_t entityID );
-		static void OnUpdateEntity( uint32_t entityID, Timestep ts );
+		static void OnEntityBeginPlay( Entity entity );
+		static void OnUpdateEntity( Entity entity, Timestep ts );
 		static void OnInitEntity( Entity entity );
+		static void SetSceneContext( const Ref<Scene>& scene );
+		static bool ModuleExists( const std::string& moduleName );
+		static EntityInstance& GetEntityInstanceData( UUID entityId );
+		static Ref<Scene>& GetScene();
+
 
 		static const FieldMap& GetFieldMap();
-
-	private:
-
 	};
 }

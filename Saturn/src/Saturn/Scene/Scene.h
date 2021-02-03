@@ -45,6 +45,10 @@
 
 namespace Saturn {
 
+	class Entity;
+	class ScriptableEntity;
+	using EntityMap = std::unordered_map<UUID, Entity>;
+
 	class PhysicsWorld;
 
 	struct SceneData {
@@ -84,12 +88,6 @@ namespace Saturn {
 		PhysX = 1,
 		ReactPhysics = 2
 	};
-
-	class Level;
-	class Entity;
-	class ScriptableEntity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
 
 	class Scene : public RefCounted
 	{
@@ -185,7 +183,6 @@ namespace Saturn {
 		}
 
 		SceneData& GetData() { return m_data; }
-		Level& GetLevel() { return *m_CurrentLevel; }
 		entt::registry& GetRegistry() { return m_Registry; }
 
 		void OnUpdate(Timestep ts);
@@ -273,8 +270,6 @@ namespace Saturn {
 		float m_LightMultiplier = 0.3f;
 
 		SceneData m_data;
-
-		Level* m_CurrentLevel;
 
 		RuntimeData m_RuntimeData;
 

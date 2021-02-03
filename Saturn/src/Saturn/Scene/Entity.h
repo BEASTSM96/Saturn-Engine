@@ -70,6 +70,11 @@ namespace Saturn {
 			m_Scene->m_Registry.remove_if_exists<T>(m_EntityHandle);
 		}
 
+		entt::entity Raw() 
+		{
+			return m_EntityHandle;
+		}
+
 		Scene& GetScene() { return *m_Scene; }
 		const Scene& GetScene() const { return *m_Scene; }
 
