@@ -12,9 +12,9 @@ namespace Saturn
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern string GetTag_Native(uint entityID);
+        public static extern string GetTag_Native(ulong entityID);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern string SetTag_Native(uint entityID, string tag);
+        public static extern string SetTag_Native(ulong entityID, string tag);
     }
 }

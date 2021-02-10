@@ -37,7 +37,7 @@ namespace Saturn {
 			case MONO_TYPE_I4: return FieldType::Int;
 			case MONO_TYPE_U4: return FieldType::UnsignedInt;
 			case MONO_TYPE_STRING: return FieldType::String;
-			case MONO_TYPE_VALUETYPE: 
+			case MONO_TYPE_VALUETYPE:
 			{
 				char* name = mono_type_get_name( monoType );
 				if( strcmp( name, "Saturn.Vector2" ) == 0 ) return FieldType::Vec2;
@@ -60,32 +60,7 @@ namespace Saturn {
 		static void PrintClassProps( MonoClass* monoClass );
 	};
 
-	struct EntityClass 
-	{
-		std::string FullName;
-		std::string ClassName;
-		std::string NamespaceName;
-		
-		MonoClass* Class = nullptr;
-		MonoMethod* MethodOnCreate = nullptr;
-		MonoMethod* MethodBeginPlay = nullptr;
-		MonoMethod* MethodOnUpdate = nullptr;
-		MonoMethod* MethodOnDestory = nullptr;
-		MonoMethod* MethodOnCollisionEnter = nullptr;
-		MonoMethod* MethodOnCollisionExit = nullptr;
-		MonoMethod* MethodOnCollisionStay = nullptr;
-		MonoMethod* MethodOnTriggerEnter = nullptr;
-		MonoMethod* MethodOnTriggerExit = nullptr;
-
-		void InitClassMethods( MonoImage* image )
-		{
-			MethodOnCreate   =  MonoUtils::GetMethod( image, FullName + ":OnCreate()" );
-			MethodBeginPlay  =  MonoUtils::GetMethod( image, FullName + ":OnBeginPlay()" );
-			MethodOnUpdate   =  MonoUtils::GetMethod( image, FullName + ":OnUpdate(single)" );
-			MethodOnDestory  =  MonoUtils::GetMethod( image, FullName + ":OnDestory()" );
-		}
-
-	};
+	struct EntityClass;
 
 	struct EntityInstance
 	{
@@ -94,7 +69,7 @@ namespace Saturn {
 		uint32_t Handle;
 		Scene* SceneInstance;
 
-		MonoObject* Get() 
+		MonoObject* Get()
 		{
 			return mono_gchandle_get_target( Handle );
 		}
@@ -105,8 +80,10 @@ namespace Saturn {
 		std::string Name;
 		FieldType Type;
 
-		PublicField(const std::string& name, FieldType type) 
-			: Name(name), Type(type) {}
+		PublicField( const std::string& name, FieldType type )
+			: Name( name ), Type( type )
+		{
+		}
 
 		template<typename T>
 		T GetValue() const
@@ -138,7 +115,7 @@ namespace Saturn {
 	class ScriptEngine
 	{
 	public:
-		ScriptEngine(const Ref<Scene>& scene);
+		ScriptEngine( const Ref<Scene>& scene );
 		~ScriptEngine();
 
 		static void Init( const std::string& path );

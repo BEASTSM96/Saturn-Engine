@@ -8,10 +8,11 @@ namespace Saturn {
 	class ScriptHelpers
 	{
 	public:
-		static EntityMap GetEntityMap( Ref<Scene>& scene, uint32_t entityID )
+		static EntityMap GetEntityMap( Ref<Scene>& scene, uint64_t entityID )
 		{
-			auto& map = scene->GetEntityMap();
-			SAT_CORE_ASSERT( map.find( entityID ) != map.end() );
+			UUID id = entityID;
+			const auto& map = scene->GetEntityMap();
+			SAT_CORE_ASSERT( map.find( id ) != map.end() );
 			return map;
 		}
 

@@ -22,7 +22,7 @@ uint32_t id = mono_type_get_type( type ); \
 s_HasComponentFuncs[ type ] = []( Entity& entity ) { return entity.HasComponent<_Type>(); }; \
 s_CreateComponentFuncs[type] = [](Entity& entity) { return entity.AddComponent<_Type>(); }; \
 } else { \
-SAT_CORE_ERROR("No C# component class for ", (const char*)#_Type); \
+SAT_CORE_ERROR("No C# component class for ", #_Type); \
 } \
 }
 
@@ -39,7 +39,8 @@ SAT_CORE_ERROR("No C# component class for ", (const char*)#_Type); \
 		InitComponentType();
 
 		mono_add_internal_call( "Saturn.Log::Fatal_Native", Saturn::Scripting::Saturn_Log_Fatal );
-		mono_add_internal_call( "Saturn.Log::Fatal_Error", Saturn::Scripting::Saturn_Log_Error );
+		mono_add_internal_call( "Saturn.Log::Error_Native", Saturn::Scripting::Saturn_Log_Error );
+		mono_add_internal_call( "Saturn.Log::Warn_Native", Saturn::Scripting::Saturn_Log_Warn );
 		mono_add_internal_call( "Saturn.Log::Info_Native", Saturn::Scripting::Saturn_Log_Info );
 		mono_add_internal_call( "Saturn.Log::Trace_Native", Saturn::Scripting::Saturn_Log_Trace );
 

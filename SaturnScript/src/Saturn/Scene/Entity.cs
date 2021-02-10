@@ -5,10 +5,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saturn {
+namespace Saturn 
+{
     public class Entity
     {
-        public uint EntityID { get; private set; }
+        public ulong EntityID { get; private set; }
+
+        protected Entity() { EntityID = 0; }
+        internal Entity(ulong id) 
+        {
+            EntityID = id;
+            Console.WriteLine("Entity destroyed {0}", id);
+        }
 
         ~Entity() 
         {
@@ -23,14 +31,14 @@ namespace Saturn {
             return comp;
         }
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void CreateComponent_Native( uint entityID, Type type );
+        private static extern void CreateComponent_Native( ulong entityID, Type type );
 
         public bool HasComponent<T>() where T : Component, new()
         {
             return HasComponent_Native(EntityID, typeof(T));
         }
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern bool HasComponent_Native(uint entityID, Type type);
+        private static extern bool HasComponent_Native(ulong entityID, Type type);
 
         public T GetComponent<T>() where T : Component, new()
         {

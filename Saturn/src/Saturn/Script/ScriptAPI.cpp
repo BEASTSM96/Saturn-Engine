@@ -33,6 +33,11 @@ namespace Saturn::Scripting {
 		SAT_ERROR( MonoToString( msg ) );
 	}
 
+	void Saturn_Log_Warn( MonoString* msg )
+	{
+		SAT_WARN( MonoToString( msg ) );
+	}
+
 	void Saturn_Log_Info( MonoString* msg )
 	{
 		SAT_INFO( MonoToString( msg ) );
@@ -60,7 +65,7 @@ namespace Saturn::Scripting {
 		comp.GetTransform() = *transform;
 	}
 
-	void Saturn_Entity_CreateComponent( uint32_t entityID, void* type )
+	void Saturn_Entity_CreateComponent( uint64_t entityID, void* type )
 	{
 		auto& map =  ScriptHelpers::GetEntityMap( ScriptEngine::GetScene(), entityID );
 		Entity e = map.at( entityID );

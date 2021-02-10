@@ -17,6 +17,7 @@ namespace Scripting {
 
 	void Saturn_Log_Fatal( MonoString* msg );
 	void Saturn_Log_Error( MonoString* msg );
+	void Saturn_Log_Warn( MonoString* msg );
 	void Saturn_Log_Info( MonoString* msg );
 	void Saturn_Log_Trace( MonoString* msg );
 
@@ -24,7 +25,7 @@ namespace Scripting {
 
 	void Saturn_Entity_GetTransform( uint32_t entityID, glm::mat4* transform );
 	void Saturn_Entity_SetTransform( uint32_t entityID, glm::mat4* transform );
-	void Saturn_Entity_CreateComponent( uint32_t entityID, void* type );
+	void Saturn_Entity_CreateComponent( uint64_t entityID, void* type );
 	bool Saturn_Entity_HasComponent( uint32_t entityID, void* type );
 
 	MonoString* Saturn_TagComponent_GetTag( uint32_t entityID );

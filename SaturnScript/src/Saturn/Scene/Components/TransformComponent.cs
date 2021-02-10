@@ -15,15 +15,15 @@ namespace Saturn
             }
             set
             {
-                SetTransform_Native( Entity.EntityID, ref value);
+                SetTransform_Native(Entity.EntityID, ref value);
             }
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void GetTransform_Native(uint entityID, out Matrix4 result);
+        public static extern void GetTransform_Native(ulong entityID, out Matrix4 result);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void SetTransform_Native( uint entityID, ref Matrix4 result);
+        public static extern void SetTransform_Native(ulong entityID, ref Matrix4 result);
 
     }
 }

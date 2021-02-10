@@ -48,6 +48,7 @@ namespace Saturn {
 	class Entity;
 	class ScriptableEntity;
 	using EntityMap = std::unordered_map<UUID, Entity>;
+	using EntityMonoMap = std::unordered_map<unsigned long, Entity>;
 
 	class PhysicsWorld;
 
@@ -222,6 +223,9 @@ namespace Saturn {
 		void Contact( rp3d::CollisionBody* body );
 
 		const EntityMap& GetEntityMap() const { return m_EntityIDMap; }
+		const EntityMonoMap& GetEntityMonoMap() const { return m_EntityMonoIDMap; }
+		const UUID& GetUUID() const { return m_SceneID; }
+		UUID& GetUUID() { return m_SceneID; }
 
 		/*------------------------ Runtime helpers ------------------------ */
 		Ref<Scene> CopyScene( const Ref<Scene>& CurrentScene );
@@ -252,6 +256,7 @@ namespace Saturn {
 		entt::registry m_Registry;
 
 		EntityMap m_EntityIDMap;
+		EntityMonoMap m_EntityMonoIDMap;
 
 		std::string m_DebugName;
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;

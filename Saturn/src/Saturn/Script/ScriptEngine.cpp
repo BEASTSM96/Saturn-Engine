@@ -15,8 +15,43 @@ namespace Saturn {
 
 	static FieldMap s_PublicFields;
 
+	static MonoAssembly* s_AppAssembly = nullptr;
+	static MonoAssembly* s_CoreAssembly = nullptr;
+	MonoImage* s_AppAssemblyImage = nullptr;
+	MonoImage* s_CoreAssemblyImage = nullptr;
+
+	struct EntityClass
+	{
+		std::string FullName;
+		std::string ClassName;
+		std::string NamespaceName;
+
+		MonoClass* Class = nullptr;
+		MonoMethod* MethodConstructor = nullptr;
+		MonoMethod* MethodOnCreate = nullptr;
+		MonoMethod* MethodBeginPlay = nullptr;
+		MonoMethod* MethodOnUpdate = nullptr;
+		MonoMethod* MethodOnDestory = nullptr;
+		MonoMethod* MethodOnCollisionEnter = nullptr;
+		MonoMethod* MethodOnCollisionExit = nullptr;
+		MonoMethod* MethodOnCollisionStay = nullptr;
+		MonoMethod* MethodOnTriggerEnter = nullptr;
+		MonoMethod* MethodOnTriggerExit = nullptr;
+
+		void InitClassMethods( MonoImage* image )
+		{
+			MethodConstructor = MonoUtils::GetMethod( s_CoreAssemblyImage, "Saturn.Entity:.ctor(ulong)" );
+			MethodOnCreate   =  MonoUtils::GetMethod( image, FullName + ":OnCreate()" );
+			MethodBeginPlay  =  MonoUtils::GetMethod( image, FullName + ":OnBeginPlay()" );
+			MethodOnUpdate   =  MonoUtils::GetMethod( image, FullName + ":OnUpdate(single)" );
+			MethodOnDestory  =  MonoUtils::GetMethod( image, FullName + ":OnDestory()" );
+		}
+
+	};
+
+
 	static std::unordered_map<std::string, EntityClass> s_EntityClass;
-	static std::unordered_map<uint32_t, EntityInstance> s_EntityInstanceMap;
+	static std::unordered_map<UUID, EntityInstance> s_EntityInstanceMap;
 
 	static Ref<Scene> m_Scene;
 
@@ -110,10 +145,6 @@ namespace Saturn {
 		return handle;
 	}
 
-	static MonoAssembly* s_AppAssembly = nullptr;
-	static MonoAssembly* s_CoreAssembly = nullptr;
-	MonoImage* s_AppAssemblyImage = nullptr;
-	MonoImage* s_CoreAssemblyImage = nullptr;
 
 	ScriptEngine::ScriptEngine( const Ref<Scene>& scene )
 	{
@@ -173,7 +204,13 @@ namespace Saturn {
 		if( !s_Init )
 			return;
 		
-		auto& entityInstance = GetEntityInstanceData(entity.GetComponent<IdComponent>().ID);
+		UUID id = entity.GetComponent<IdComponent>().ID;
+		auto& entityInstance = GetEntityInstanceData( id );
+
+		void* param[] ={ &id };
+		if( entityInstance.ScrtptClass->MethodConstructor )
+			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScrtptClass->MethodConstructor, param );
+
 		if( entityInstance.ScrtptClass->MethodOnCreate )
 			MonoUtils::CallMethod(entityInstance.Get(), entityInstance.ScrtptClass->MethodOnCreate);
 	}
@@ -183,7 +220,9 @@ namespace Saturn {
 		if( !s_Init )
 			return;
 
-		auto& entityInstance = GetEntityInstanceData( entity.GetComponent<IdComponent>().ID );
+		UUID id = entity.GetComponent<IdComponent>().ID;
+		auto& entityInstance = GetEntityInstanceData( id );
+
 		if( entityInstance.ScrtptClass->MethodBeginPlay )
 			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScrtptClass->MethodBeginPlay );
 	}
@@ -231,6 +270,8 @@ namespace Saturn {
 			entityClass.Class = GetClass( s_AppAssemblyImage, entityClass );
 			entityClass.InitClassMethods( s_AppAssemblyImage );
 
+			SAT_CORE_INFO( "0{0}", scene->GetUUID() );
+			SAT_CORE_INFO( "1{0}", id );
 			EntityInstance& entityInstance = s_EntityInstanceMap[ id ];
 			entityInstance.ScrtptClass = &entityClass;
 			entityInstance.Handle = Instantiate( entityClass );
@@ -278,7 +319,8 @@ namespace Saturn {
 
 	EntityInstance& ScriptEngine::GetEntityInstanceData( UUID entityId )
 	{
-		return s_EntityInstanceMap.at(entityId);
+		auto& idMap = s_EntityInstanceMap.at( entityId );
+		return idMap;
 	}
 
 	Saturn::Ref<Saturn::Scene>& ScriptEngine::GetScene()
