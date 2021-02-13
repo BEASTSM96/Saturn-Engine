@@ -23,12 +23,15 @@ namespace Scripting {
 
 	bool Saturn_Input_IsKeyPressed( KeyCode key );
 
-	void Saturn_Entity_GetTransform( uint32_t entityID, glm::mat4* transform );
-	void Saturn_Entity_SetTransform( uint32_t entityID, glm::mat4* transform );
+	void Saturn_Entity_GetTransform( uint64_t entityID, glm::mat4* transform );
+	void Saturn_Entity_SetTransform( uint64_t entityID, glm::mat4* transform );
 	void Saturn_Entity_CreateComponent( uint64_t entityID, void* type );
-	bool Saturn_Entity_HasComponent( uint32_t entityID, void* type );
+	bool Saturn_Entity_HasComponent( uint64_t entityID, void* type );
 
-	MonoString* Saturn_TagComponent_GetTag( uint32_t entityID );
-	void Saturn_TagComponent_SetTag( uint32_t entityID, MonoString* tag );
+	Mesh Saturn_Entity_GetMesh( uint64_t entityID );
+	void Saturn_Entity_SetMesh( uint64_t entityID, void* type );
+
+	MonoString* Saturn_TagComponent_GetTag( uint64_t entityID );
+	void Saturn_TagComponent_SetTag( uint64_t entityID, MonoString* tag );
 }
 }

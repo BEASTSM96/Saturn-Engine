@@ -51,6 +51,9 @@ SAT_CORE_ERROR("No C# component class for ", #_Type); \
 		mono_add_internal_call( "Saturn.Entity::CreateComponent_Native", Saturn::Scripting::Saturn_Entity_CreateComponent );
 		mono_add_internal_call( "Saturn.Entity::HasComponent_Native", Saturn::Scripting::Saturn_Entity_HasComponent );
 
+		mono_add_internal_call( "Saturn.Entity::GetMesh_Native", Saturn::Scripting::Saturn_Entity_GetMesh );
+		mono_add_internal_call( "Saturn.Entity::SetMesh_Native", Saturn::Scripting::Saturn_Entity_SetMesh );
+
 		mono_add_internal_call( "Saturn.TagComponent::GetTag_Native", Saturn::Scripting::Saturn_TagComponent_GetTag );
 		mono_add_internal_call( "Saturn.TagComponent::SetTag_Native", Saturn::Scripting::Saturn_TagComponent_SetTag );
 	}

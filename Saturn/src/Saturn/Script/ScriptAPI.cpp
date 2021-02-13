@@ -53,13 +53,13 @@ namespace Saturn::Scripting {
 		return Input::IsKeyPressed( key );
 	}
 
-	void Saturn_Entity_GetTransform( uint32_t entityID, glm::mat4* transform )
+	void Saturn_Entity_GetTransform( uint64_t entityID, glm::mat4* transform )
 	{
 		auto& comp = ScriptHelpers::GetCompFromScene<TransformComponent>( ScriptEngine::GetScene(), entityID );
 		*transform = comp.GetTransform();
 	}
 
-	void Saturn_Entity_SetTransform( uint32_t entityID, glm::mat4* transform )
+	void Saturn_Entity_SetTransform( uint64_t entityID, glm::mat4* transform )
 	{
 		auto& comp = ScriptHelpers::GetCompFromScene<TransformComponent>( ScriptEngine::GetScene(), entityID );
 		comp.GetTransform() = *transform;
@@ -73,7 +73,7 @@ namespace Saturn::Scripting {
 		s_CreateComponentFuncs[ monoType ]( e );
 	}
 
-	bool Saturn_Entity_HasComponent( uint32_t entityID, void* type )
+	bool Saturn_Entity_HasComponent( uint64_t entityID, void* type )
 	{
 		auto& map =  ScriptHelpers::GetEntityMap( ScriptEngine::GetScene(), entityID );
 		Entity e = map.at( entityID );
@@ -82,14 +82,26 @@ namespace Saturn::Scripting {
 		return res;
 	}
 
-	MonoString* Saturn_TagComponent_GetTag( uint32_t entityID )
+	Mesh Saturn_Entity_GetMesh( uint64_t entityID )
+	{
+		auto& comp = ScriptHelpers::GetCompFromScene<MeshComponent>( ScriptEngine::GetScene(), entityID );
+		return Mesh( comp.Mesh->GetFilePath() );
+	}
+
+	void Saturn_Entity_SetMesh( uint64_t entityID, void* type )
+	{
+		auto& comp = ScriptHelpers::GetCompFromScene<MeshComponent>( ScriptEngine::GetScene(), entityID );
+		comp.Mesh = (Mesh*)type;
+	}
+
+	MonoString* Saturn_TagComponent_GetTag( uint64_t entityID )
 	{
 		auto& comp = ScriptHelpers::GetCompFromScene<TagComponent>( ScriptEngine::GetScene(), entityID );
 		std::string tag = comp.Tag;
 		return mono_string_new( mono_domain_get(), tag.c_str() );
 	}
 
-	void Saturn_TagComponent_SetTag( uint32_t entityID, MonoString* tag )
+	void Saturn_TagComponent_SetTag( uint64_t entityID, MonoString* tag )
 	{
 		auto& comp = ScriptHelpers::GetCompFromScene<TagComponent>( ScriptEngine::GetScene(), entityID );
 		std::string strtag = comp.Tag;

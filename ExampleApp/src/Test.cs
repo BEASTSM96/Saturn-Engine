@@ -13,18 +13,43 @@ namespace ExampleApp
 
         public void OnCreate()
         {
-            Log.Fatal("OnCreate");
+            Log.Info("OnCreate");
         }
 
         public void OnBeginPlay()
         {
-            Log.Fatal("OnBeginPlay");
+            Log.Info("OnBeginPlay");
+            CreateComponent<MeshComponent>();
+            GetComponent<MeshComponent>();
         }
 
         public void OnUpdate(float ts)
         {
-            Log.Fatal("OnUpdate");
+            if (Input.IsKeyPressed((UInt16)Input.Key.W))
+            {
+                Log.Info("W Key Pressed");
+            }
+
+            if (Input.IsKeyPressed((UInt16)Input.Key.A))
+            {
+                Log.Info("A Key Pressed");
+            }
+
+            if (Input.IsKeyPressed((UInt16)Input.Key.S))
+            {
+                Log.Info("S Key Pressed");
+            }
+
+            if (Input.IsKeyPressed((UInt16)Input.Key.D))
+            {
+                Log.Info("D Key Pressed");
+            }
         }
 
+    }
+
+    class TestII
+    {
+       
     }
 }
