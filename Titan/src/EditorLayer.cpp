@@ -107,7 +107,7 @@ namespace Saturn {
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
 
 		ScriptEngine::Init( "assets/assembly/game/exapp.dll" );
-		ScriptEngine::SetSceneContext(m_EditorScene);
+		ScriptEngine::SetSceneContext( m_EditorScene );
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init( "#version 410" );

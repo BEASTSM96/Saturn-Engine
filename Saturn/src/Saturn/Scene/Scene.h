@@ -52,7 +52,13 @@ namespace Saturn {
 
 	class PhysicsWorld;
 
-	struct SceneData {
+	struct SceneComponent
+	{
+		UUID SceneID;
+	};
+
+	struct SceneData 
+	{
 		UUID SceneID;
 		std::string name;
 		RefSR<Texture2D> m_SkyboxTexture;

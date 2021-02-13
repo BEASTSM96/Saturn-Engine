@@ -217,7 +217,8 @@ namespace Saturn {
 			m_Context->m_Registry.each( [&]( auto entity )
 				{
 					Entity e( entity, m_Context.Raw() );
-					DrawEntityNode( e );
+					if(!m_Context->m_Registry.has<SceneComponent>( entity ))
+						DrawEntityNode( e );
 				} );
 		}
 
