@@ -107,6 +107,14 @@ Saturn/vendor/imgui/examples/example_allegro5
 Saturn/vendor/imgui/examples/example_apple_metal
 Saturn/vendor/imgui/examples/example_apple_opengl2
 !Saturn/vender/assimp/bin/
+!Saturn/vender/physx/bin/
+!Saturn/vender/mono/bin/
+!Saturn/vender/assimp/bin/**
+!Saturn/vender/physx/bin/**
+!Saturn/vender/mono/bin/**
+!Saturn/vender/assimp/bin/*
+!Saturn/vender/physx/bin/*
+!Saturn/vender/mono/bin/*
 !vender/bin/premake
 Titan/assets/testtemp.sc
 Saturn/vendor/**/Makefile

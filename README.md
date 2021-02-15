@@ -1,13 +1,15 @@
-# Saturn [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/Sparky-Engine/blob/master/LICENSE)
+# Saturn [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/Sparky-Engine/blob/master/LICENSE) 
+[![repo-size](https://img.shields.io/github/repo-size/BEASTSM96/Sparky-Engine)
 
-Saturn is primarily an early-stage game engine for Windows. Currently not much is implemented.
+
+Saturn is primarily an early-stage game engine for Windows.
 
 ![SaturnLogo](/Titan/assets/.github/i/sat/SaturnLogov1.png?raw=true "SaturnLogov1")
 
 ## Getting Started
 Visual Studio 2019 is recommended, Saturn is officially untested on other development environments whilst we focus on a Windows build.
 
-Start by cloning the repository with `git clone https://github.com/BEASTSM96/Saturn-Engine`.
+Start by cloning the repository with `git clone --recursive https://github.com/BEASTSM96/Saturn-Engine`.
 
 If the repository was cloned non-recursively previously, use `git submodule update --init` to clone the necessary submodules.
 
@@ -16,22 +18,19 @@ If the repository was cloned non-recursively previously, use `git submodule upda
 ### Premake
 
 If you want to use Premake, start by going into the `scrtpts` folder, then run `WindowsGenProjects.bat` that will create the project files.
-
-Then go back to the root dir of the project, and open `Saturn.sln` right click on the solution *`(Solution 'Saturn' (x of x projects))`* and click build *or `Ctrl Shift B`.*
+Then open `Saturn.sln` right click on the solution and click build *or `Ctrl Shift B`.*
 
 ## 
 
 ### Main features to come:
-- Support for Mac, Linux, Android and iOS
-    - Native rendering API support (DirectX, Vulkan, Metal)
+- Support for Linux, Android and iOS
+    - Native rendering API support (DirectX, Vulkan)
 - Fully featured viewer and editor applications
 - Full Runtime interaction and behavior
-- Integrated 3rd party 2D and 3D physics engine
 - Procedural terrain and world generation
 - Artificial Intelligence
 - Audio system
-
-
-[![Twitter](https://img.shields.io/badge/%40beastsm96--blue.svg?style=social&logo=Twitter)](https://twitter.com/beastsm96)
-[![Youtube](https://img.shields.io/badge/BEAST--red.svg?style=social&logo=youtube)](https://www.youtube.com/channel/UC4kS5P7Jsq3eacveJiFuQbg)
-[![Discord](https://img.shields.io/badge/EngineDiscord--red.svg?style=social&logo=discord)](https://discord.gg/9tTVbkt)
+- Native Code System (C++ Scripting)
+- HotReloading (Part of native code system)
+- C# Scripting
+- Asset System

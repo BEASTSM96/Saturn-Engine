@@ -387,7 +387,16 @@ namespace Saturn {
 
 	Entity Scene::GetMainCameraEntity( void )
 	{
-		//todo: add
+		auto view = m_Registry.view<TransformComponent, CameraComponent>();
+		for( auto entity : view )
+		{
+			auto [transform, camera] = view.get<TransformComponent, CameraComponent>( entity );
+
+			if( camera.Primary )
+			{
+				return { entity, this };
+			}
+		}
 		return {};
 	}
 
