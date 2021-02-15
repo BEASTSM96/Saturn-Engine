@@ -1,5 +1,4 @@
-# Saturn [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/Sparky-Engine/blob/master/LICENSE) 
-[![repo-size](https://img.shields.io/github/repo-size/BEASTSM96/Sparky-Engine)
+# Saturn [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/Sparky-Engine/blob/master/LICENSE) ![repo-size](https://img.shields.io/github/repo-size/BEASTSM96/Sparky-Engine)
 
 
 Saturn is primarily an early-stage game engine for Windows.
@@ -33,4 +32,4 @@ Then open `Saturn.sln` right click on the solution and click build *or `Ctrl Shi
 - Native Code System (C++ Scripting)
 - HotReloading (Part of native code system)
 - C# Scripting
-- Asset System
+- Asset Manager
