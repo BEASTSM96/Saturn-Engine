@@ -533,6 +533,7 @@ namespace Saturn {
 				if( m_SelectionContext.size() )
 				{
 					Entity selectedEntity = m_SelectionContext[ 0 ].Entity;
+					m_SceneHierarchyPanel->canDraw = false;
 					m_EditorScene->DestroyEntity( selectedEntity );
 					m_SelectionContext.clear();
 					m_EditorScene->SetSelectedEntity( {} );

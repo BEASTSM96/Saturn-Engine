@@ -785,5 +785,4 @@ namespace Saturn {
 		Application::Get().GetHotReload()->OnHotReload();
 	}
 
-
 }
