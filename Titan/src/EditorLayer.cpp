@@ -55,6 +55,8 @@
 #include <Saturn/Core/Modules/ModuleManager.h>
 #include <Saturn/Scene/SceneManager.h>
 
+#include <Saturn/Scripting/ScriptLoader.h>
+
 #include <Saturn/Input.h>
 
 #include <Saturn/Scene/ScriptableEntity.h>
@@ -105,6 +107,8 @@ namespace Saturn {
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
 
+		Ref<Library> lib = ScriptLoader::LoadDLL( "Game", L"Game.dll" );
+		lib->CallFunction<void>( "test" );
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init( "#version 410" );

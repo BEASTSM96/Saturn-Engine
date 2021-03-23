@@ -24,58 +24,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <Saturn/Log.h>
-#include <entt.hpp>
-#include <unordered_set>
-#include <Saturn/Renderer/Mesh.h>
-#include <Saturn/Scene/Components.h>
-#include <Saturn/GameFramework/Game.h>
-#include <Saturn/Scene/Entity.h>
-#include <Saturn/Scene/ScriptableEntity.h>
+#include "Game.h"
+#include "Saturn/Core/Base.h"
+#include "Saturn/Log.h"
 
-namespace game {
+#include <stdio.h>
 
-	class GEntity : public Saturn::ScriptableEntity
-	{
-	public:
-
-		void BeginPlay() {}
-
-	protected:
-		
-	private:
-	};
-
-	class debug
-	{
-	public:
-		debug();
-		~debug();
-
-		void log( char msg );
-		void logEx( char msg );
-	private:
-
-	};
-
-	debug::debug()
-	{
-	}
-
-	debug::~debug()
-	{
-	}
-
-	void debug::log( char msg )
-	{
-		logEx(msg);
-	}
-
-	void debug::logEx( char msg )
-	{
-		SAT_INFO("[Log Ex] {}", msg);
-	}
-
+void test() 
+{
+	Saturn::Info( "test" );
 }
+
 
 #endif

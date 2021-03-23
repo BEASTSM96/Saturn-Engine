@@ -46,21 +46,23 @@ namespace Saturn {
 	void Character::OnCreate()
 	{
 		SAT_INFO("Character::OnCreate");
+		std::string filepath = "assets/meshes/Cube1m.fbx";
+		AddComponent<MeshComponent>().Mesh = Ref<Mesh>::Create( filepath );
+		AddComponent<PhysXRigidbodyComponent>();
+		AddComponent<PhysXBoxColliderComponent>();
+		GetComponent<TransformComponent>().GetTransform() = GetComponent<TransformComponent>().GetTransform();
 	}
 
 	void Character::OnDestroy()
 	{
-		RemoveComponent<MeshComponent>();
+		
 	}
 
 	void Character::BeginPlay()
 	{
 		SAT_PROFILE_FUNCTION();
 		SAT_INFO("Character::BeginPlay");
-
-		std::string filepath = "assets/meshes/Cube1m.fbx";
-		AddComponent<MeshComponent>().Mesh = Ref<Mesh>::Create(filepath);
-
+		GetComponent<TransformComponent>().GetTransform() = GetComponent<TransformComponent>().GetTransform();
 	}
 
 	void Character::ProcessInput( Timestep ts )
@@ -68,6 +70,7 @@ namespace Saturn {
 		if( Input::IsKeyPressed( Key::W ) )
 		{
 			GetComponent<TransformComponent>().Position.x += 90 * ts;
+			SAT_CORE_INFO("{0}, {1}, {2}", GetComponent<TransformComponent>().Position.x, GetComponent<TransformComponent>().Position.y, GetComponent<TransformComponent>().Position.z );
 		}
 
 		if( Input::IsKeyPressed( Key::A ) )
