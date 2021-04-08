@@ -49,6 +49,9 @@ project "Game"
 		"%{IncludeDir.json_cpp}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx",
 			"%{prj.name}/vendor/assimp/include/",
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.yaml_cpp}",
@@ -59,7 +62,10 @@ project "Game"
 		"../Saturn/vendor/Glad/include",
 		"../Saturn/vendor/entt/include",
 		"../Saturn/vendor/GLFW/include",
-		"../Saturn/vendor/reactphysics3d/include"
+		"../Saturn/vendor/reactphysics3d/include",
+		"../Saturn/vendor/physx/include",
+		"../Saturn/vendor/physx/include/pxshared",
+		"../Saturn/vendor/physx/include/physx"
 	}
 
     links 

@@ -80,8 +80,6 @@ namespace Saturn {
 	EditorLayer::~EditorLayer()
 	{
 		SAT_PROFILE_FUNCTION();
-
-		//m_Serialiser_Thread.join();
 	}
 
 	void EditorLayer::OnAttach()
@@ -106,8 +104,10 @@ namespace Saturn {
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
+	
+		std::string name = "game";
+		Ref<Library> lib = ScriptLoader::LoadDLL( name, L"game.dll" );
 
-		Ref<Library> lib = ScriptLoader::LoadDLL( "Game", L"Game.dll" );
 		lib->CallFunction<void>( "test" );
 
 		// Setup Platform/Renderer bindings
@@ -177,9 +177,6 @@ namespace Saturn {
 	{
 		Serialiser s( m_EditorScene );
 		s.Deserialise( "assets\\test.sc" );
-
-		std::filesystem::path path = "test";
-		//UpdateWindowTitle( path.filename().string() );
 	}
 
 	void EditorLayer::OnDetach()
@@ -1018,6 +1015,7 @@ namespace Saturn {
 						auto projm = glm::value_ptr( m_EditorCamera.GetProjectionMatrix() );
 
 						Entity selectedEntity = m_SceneHierarchyPanel->GetSelectionContext();
+						selectedEntity.m_Scene = m_SceneHierarchyPanel->GetSelectionContext().m_Scene;
 
 						auto& tc = selectedEntity.GetComponent<TransformComponent>();
 						glm::mat4 transform = tc.GetTransform();

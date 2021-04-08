@@ -50,6 +50,9 @@ namespace Saturn {
 		template<typename T>
 		void CallFunction( std::string name )
 		{
+			if( this == nullptr )
+				return;
+
 			if( m_Library == NULL )
 				return;
 

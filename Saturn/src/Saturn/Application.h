@@ -93,10 +93,10 @@ namespace Saturn {
 		static const char* GetPlatformName();
 
 	public:
-		Scene& GetCurrentScene( void ) { return *m_Scene; }
-		ModuleManager& GetModuleManager( void ) { return *m_ModuleManager; }
-		Ref<SceneManager>& GetSceneMananger( void ) { return m_SceneManager; }
-		Ref< HotReload >& GetHotReload() { return m_HotReload; }
+		Scene& GetCurrentScene( void ) { return *Get().m_Scene; }
+		ModuleManager& GetModuleManager( void ) { return *Get().m_ModuleManager; }
+		Ref<SceneManager>& GetSceneMananger( void ) { return Get().m_SceneManager; }
+		Ref< HotReload >& GetHotReload() { return Get().m_HotReload; }
 
 	private:
 		bool OnWindowClose( WindowCloseEvent& e );
