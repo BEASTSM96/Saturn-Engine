@@ -108,6 +108,9 @@ namespace Saturn {
 		std::string name = "game";
 		Ref<Library> lib = ScriptLoader::LoadDLL( name, L"game.dll" );
 
+		ScriptUtilities::SetCurrentSceneContext( m_EditorScene );
+
+		lib->CallSceneInit();
 		lib->CallFunction<void>( "test" );
 
 		// Setup Platform/Renderer bindings

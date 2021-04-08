@@ -29,6 +29,8 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
+#include "Saturn/Scene/Scene.h"
+#include "EngineScriptUtilities.h"
 #include "Library.h"
 
 #include <string>

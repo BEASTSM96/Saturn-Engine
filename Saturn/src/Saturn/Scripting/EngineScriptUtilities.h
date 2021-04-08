@@ -30,62 +30,17 @@
 
 #include "Saturn/Core/Base.h"
 #include "Saturn/Scene/Scene.h"
-#include "EngineScriptUtilities.h"
-
-typedef void __declspec( dllimport ) ( *func )( );
-typedef void __declspec( dllimport ) ( *sceneinit )( Saturn::Ref<Saturn::Scene> );
 
 namespace Saturn {
 
-	class ScriptLoader;
+	namespace ScriptUtilities {
 
-	class Library : public RefCounted
-	{
-	public:
-		Library();
+		static Ref<Scene> m_CurrentSceneContext;
 
-		std::string& GetName() { return m_Name; }
-		std::string& GetPath() { return m_Path; }
+		static Ref<Scene> GetCurrentScene() { return m_CurrentSceneContext; }
 
-		const std::string& GetName() const { return m_Name; }
-		const std::string& GetPath() const { return m_Path; }
+		static void SetCurrentSceneContext( Ref<Scene>& scene ) { m_CurrentSceneContext = scene; }
 
-		void SetName( std::string name ) { m_Name = name; }
+	}
 
-		template<typename T>
-		void CallFunction( std::string name )
-		{
-			if( this == nullptr )
-				return;
-
-			if( m_Library == NULL )
-				return;
-
-			void ( *cfunc )( ) = ( func )GetProcAddress( m_Library, ( LPCSTR )name.c_str() );
-
-			cfunc();
-		}
-
-		void CallSceneInit() 
-		{
-			if( this == nullptr )
-				return;
-
-			if( m_Library == NULL )
-				return;
-
-			void ( *initfunc )( Saturn::Ref<Saturn::Scene> ) = ( sceneinit )GetProcAddress( m_Library, "SceneInit" );
-			Ref<Scene>& scene = ScriptUtilities::m_CurrentSceneContext;
-			initfunc( scene );
-		}
-
-	private:
-		std::string m_Name;
-		std::string m_Path;
-
-		HINSTANCE m_Library;
-
-	private:
-		friend class ScriptLoader;
-	};
 }

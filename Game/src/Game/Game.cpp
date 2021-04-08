@@ -24,15 +24,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "Saturn/Log.h"
-#include "Saturn/Core/Base.h"
-#include "Saturn/Scene/Entity.h"
 #include "Game.h"
 #include <stdio.h>
 
 void test() 
 {
 
+}
+
+void SceneInit( Saturn::Ref<Saturn::Scene> scene )
+{
 }
 
 
