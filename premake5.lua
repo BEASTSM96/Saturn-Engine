@@ -30,10 +30,6 @@ IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
 IncludeDir["ReactPhysics3D"] = "Saturn/vendor/reactphysics3d/include"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
--- Game
-GameDir = {}
-GameDir["Game"] = "Game/"
-
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
 IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
 IncludeDir["Saturn-Serialisation"] = "Saturn/vendor/Saturn-Serialisation/"
@@ -282,7 +278,3 @@ project "Titan"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
-
-
-group "Runtime"
-	include "Game"
