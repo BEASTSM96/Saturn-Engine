@@ -819,7 +819,7 @@ namespace Saturn {
 
 		DrawComponent<ScriptComponent>("Script", entity, []( auto& csc )
 		{
-			std::string name = csc.ModuleName;
+			std::string name = /*TEMP*/"ExampleApp.Test";
 
 			ImGui::Text( "Module Name:" );
 			ImGui::SameLine();

@@ -19,8 +19,6 @@ namespace ExampleApp
         public void OnBeginPlay()
         {
             Log.Info("OnBeginPlay");
-            CreateComponent<MeshComponent>();
-            GetComponent<MeshComponent>();
         }
 
         public void OnUpdate(float ts)
@@ -46,10 +44,5 @@ namespace ExampleApp
             }
         }
 
-    }
-
-    class TestII
-    {
-       
     }
 }
