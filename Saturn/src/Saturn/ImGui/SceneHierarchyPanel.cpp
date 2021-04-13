@@ -29,7 +29,6 @@
 #include "sppch.h"
 #include "SceneHierarchyPanel.h"
 #include "Saturn/Scene/Entity.h"
-#include "Saturn/GameFramework/Character.h"
 #include "Saturn/Application.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -151,18 +150,6 @@ namespace Saturn {
 
 			}
 
-			if( ImGui::MenuItem( "Create Character Entity" ) )
-			{
-				Character* e = m_Context->CreateScriptableEntityT<Character>( "Character Entity" );
-				//Character* e = dynamic_cast<Character*>(m_Context->CreateScriptableEntityptr("Character Entity"));
-			}
-
-			if( ImGui::MenuItem( "Create Scriptable Entity" ) )
-			{
-				ScriptableEntity* e = m_Context->CreateScriptableEntityptr( "ScriptableEntity" );
-				SetSelected( e->m_Entity );
-			}
-
 			ImGui::EndPopup();
 
 		}
@@ -185,14 +172,6 @@ namespace Saturn {
 						if( ImGui::Button( "Mesh" ) )
 						{
 							m_SelectionContext.AddComponent<MeshComponent>();
-							ImGui::CloseCurrentPopup();
-						}
-					}
-					if( !m_SelectionContext.HasComponent<NativeScriptComponent>() )
-					{
-						if( ImGui::Button( "NativeScript" ) )
-						{
-							m_SelectionContext.AddComponent<NativeScriptComponent>();
 							ImGui::CloseCurrentPopup();
 						}
 					}
@@ -561,22 +540,6 @@ namespace Saturn {
 		ImGui::SameLine();
 		ImGui::Spacing();
 		ImGui::SameLine();
-		if( ImGui::Button( "+##APIClass" ) )
-		{
-			ImGui::OpenPopup( "APIParentClass" );
-		}
-
-		if( ImGui::BeginPopup( "APIParentClass" ) )
-		{
-			if( ImGui::MenuItem( "Character" ) )
-			{
-				Character* e = m_Context->CreateScriptableEntityT<Character>( "Getting tag..." );
-				e->GetComponent<TagComponent>().Tag = entity.GetComponent<TagComponent>().Tag;
-				//entity.GetComponent()
-			}
-
-			ImGui::EndPopup();
-		}
 
 		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )
 			{
@@ -636,17 +599,6 @@ namespace Saturn {
 					if( !file.empty() )
 						mc.Mesh = Ref<Mesh>::Create( file );
 
-				}
-			} );
-
-		DrawComponent<NativeScriptComponent>( "Native Script Component", entity, [this]( auto& ncs )
-			{
-				char buffer[ 256 ];
-				memset( buffer, 0, 256 );
-				memcpy( buffer, m_NCSTag.c_str(), m_NCSTag.length() );
-				if( ImGui::InputText( "##cname", buffer, 256 ) )
-				{
-					m_NCSTag = std::string( buffer );
 				}
 			} );
 

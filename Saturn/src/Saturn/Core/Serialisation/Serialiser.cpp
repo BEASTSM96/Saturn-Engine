@@ -190,14 +190,6 @@ namespace Saturn {
 		return out;
 	}
 
-	YAML::Emitter& operator<<( YAML::Emitter& out, NativeScriptComponent& ncs )
-	{
-		out << YAML::Flow;
-		out << YAML::BeginSeq << ncs.Instance << YAML::EndSeq;
-		return out;
-	}
-
-
 	Serialiser::Serialiser( const std::string& objectname, bool shouldSerialise ) : m_shouldSerialise( true ), m_ObjectName( objectname )
 	{
 	}
@@ -264,18 +256,6 @@ namespace Saturn {
 			out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
 
 			out << YAML::EndMap; // MeshComponent
-		}
-
-		if( entity.HasComponent<NativeScriptComponent>() )
-		{
-			out << YAML::Key << "NativeScriptComponent";
-			out << YAML::BeginMap; // MeshComponent
-
-			auto ncs = entity.GetComponent<NativeScriptComponent>();
-			std::cout << ncs.Instance << std::endl;
-			out << YAML::Key << "Instance pointer" << YAML::Value << ncs.Instance;
-
-			out << YAML::EndMap; // NativeScriptComponent
 		}
 
 		if( entity.HasComponent<RigidbodyComponent>() )

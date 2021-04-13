@@ -99,75 +99,6 @@ namespace Saturn {
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
-		ScriptableEntity CreateScriptableEntity( const std::string& name = "" );
-		ScriptableEntity* CreateScriptableEntityptr( const std::string& name );
-
-		//FOR EDITOR USE!
-		// Use SpawnEntity for runtime!
-		template<typename T>
-		T* CreateScriptableEntityT( const std::string& name )
-		{
-			SAT_PROFILE_FUNCTION();
-
-			T* entity = new T();
-			entity->m_Entity = CreateEntity( name );
-			entity->m_Scene = this;
-			entity->AddComponent<NativeScriptComponent>();
-			auto& ncs = entity->GetComponent<NativeScriptComponent>();
-			ncs.Instance = entity;
-			if( ncs.Instance == nullptr )
-			{
-				SAT_CORE_ERROR( "NativeScriptComponent.Instance null" );
-				SAT_CORE_INFO( "Retrying!" );
-
-				ncs.Instance = entity;
-
-				SAT_CORE_ASSERT( ncs.Instance != nullptr, "NativeScriptComponent.Instance null" );
-			}
-			ncs.Instance->OnCreate();
-
-
-			m_ScriptableEntitys.push_back( entity );
-
-			return entity;
-		}
-
-		//Spawns a T
-		template<typename T>
-		T* SpawnEntity( std::string name, glm::vec3 position, glm::quat rotation, bool addncs = true )
-		{
-			SAT_PROFILE_FUNCTION();
-
-			T* entity = new T();
-			entity->m_Entity = CreateEntity( name );
-			entity->m_Scene = this;
-			entity->GetComponent<TransformComponent>().Position = position;
-			entity->GetComponent<TransformComponent>().Rotation = rotation;
-			if (addncs)
-			{
-				entity->AddComponent<NativeScriptComponent>();
-				auto& ncs = entity->GetComponent<NativeScriptComponent>();
-				ncs.Instance = entity;
-
-				if( ncs.Instance == nullptr )
-				{
-					SAT_ERROR( "[Runtime Context] NativeScriptComponent.Instance null" );
-					SAT_INFO( "[Runtime Context] Retrying!" );
-
-					ncs.Instance = entity;
-
-					SAT_ASSERT( ncs.Instance != nullptr, "[Runtime Context] NativeScriptComponent.Instance null" );
-				}
-
-				ncs.Instance->OnCreate();
-
-			}
-
-			m_ScriptableEntitys.push_back( entity );
-
-			return entity;
-		}
-
 
 		void DestroyEntity(Entity entity);
 
@@ -241,12 +172,10 @@ namespace Saturn {
 
 	private:
 		void UpdateRuntime( Timestep ts );
-		std::vector<ScriptableEntity*> m_ScriptableEntitys;
 		/*------------------------------------------------------------------ */
 	public:
 		Ref<PhysicsScene> m_ReactPhysicsScene;
 		Ref<PhysXScene> m_PhysXScene;
-
 
 	private:
 		UUID m_SceneID;

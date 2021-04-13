@@ -46,7 +46,6 @@
 #include "Core/Modules/ModuleManager.h"
 #include "Core/Modules/Module.h"
 #include "Scene/SceneManager.h"
-#include "Saturn/GameFramework/HotReload.h"
 
 #include <imgui.h>
 
@@ -147,11 +146,6 @@ namespace Saturn {
 	void Application::Init()
 	{
 		Serialiser::Init();
-
-		m_ModuleManager = Ref< ModuleManager >::Create();
-		m_SceneManager = Ref< SceneManager >::Create();
-		m_HotReload = Ref< HotReload >::Create();
-		//m_HotReload->m_Scece = m_EditorLayer->GetEditorScene();
 	}
 
 	void Application::Run()
