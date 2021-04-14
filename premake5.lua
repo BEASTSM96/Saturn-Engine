@@ -33,6 +33,7 @@ IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
 IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
 IncludeDir["Saturn-Serialisation"] = "Saturn/vendor/Saturn-Serialisation/"
+IncludeDir["mono"] = "Saturn/vendor/mono/include"
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"

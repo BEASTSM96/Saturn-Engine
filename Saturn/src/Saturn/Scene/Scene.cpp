@@ -291,11 +291,11 @@ namespace Saturn {
 		SceneRenderer::EndScene();
 	}
 
-	Entity Scene::CreateEntity(const std::string& name)
+	Entity Scene::CreateEntity( const std::string& name )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		Entity entity = { m_Registry.create(), this };
+		Entity entity ={ m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Unmanned Entity" : name;
@@ -324,30 +324,14 @@ namespace Saturn {
 		return entity;
 	}
 
-	Entity Scene::CreateEntityWithID( UUID uuid, const std::string& name, bool runtimeMap )
+	void Scene::DestroyEntity( Entity entity )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		auto entity = Entity{ m_Registry.create(), this };
-		auto& idComponent = entity.AddComponent<IdComponent>();
-		idComponent.ID = uuid;
-
-		entity.AddComponent<TransformComponent>();
-		if (!name.empty())
-			entity.AddComponent<TagComponent>(name);
-
-		//SAT_CORE_ASSERT(m_EntityIDMap.find(uuid) == m_EntityIDMap.end());
-		m_EntityIDMap[uuid] = entity;
-  }
-
-	void Scene::DestroyEntity(Entity entity)
-	{
-		SAT_PROFILE_FUNCTION();
-
-		m_Registry.destroy(entity.m_EntityHandle);
+		m_Registry.destroy( entity.m_EntityHandle );
 	}
 
-	void Scene::SetViewportSize(uint32_t width, uint32_t height)
+	void Scene::SetViewportSize( uint32_t width, uint32_t height )
 	{
 		SAT_PROFILE_FUNCTION();
 
@@ -355,16 +339,16 @@ namespace Saturn {
 		m_ViewportHeight = height;
 	}
 
-	void Scene::SetEnvironment(const Environment& environment)
+	void Scene::SetEnvironment( const Environment& environment )
 	{
 		m_Environment = environment;
-		SetSkybox(environment.RadianceMap);
+		SetSkybox( environment.RadianceMap );
 	}
 
-	void Scene::SetSkybox(const Ref<TextureCube>& skybox)
+	void Scene::SetSkybox( const Ref<TextureCube>& skybox )
 	{
 		m_SkyboxTexture = skybox;
-		m_SkyboxMaterial->Set("u_Texture", skybox);
+		m_SkyboxMaterial->Set( "u_Texture", skybox );
 	}
 
 	Entity Scene::GetMainCameraEntity( void )
