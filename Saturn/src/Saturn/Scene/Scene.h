@@ -45,9 +45,20 @@
 
 namespace Saturn {
 
+	class Entity;
+	class ScriptableEntity;
+	using EntityMap = std::unordered_map<UUID, Entity>;
+	using EntityMonoMap = std::unordered_map<unsigned long, Entity>;
+
 	class PhysicsWorld;
 
-	struct SceneData {
+	struct SceneComponent
+	{
+		UUID SceneID;
+	};
+
+	struct SceneData 
+	{
 		UUID SceneID;
 		std::string name;
 		RefSR<Texture2D> m_SkyboxTexture;
@@ -85,12 +96,6 @@ namespace Saturn {
 		ReactPhysics = 2
 	};
 
-	class Level;
-	class Entity;
-	class ScriptableEntity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
 	class Scene : public RefCounted
 	{
 	public:
@@ -99,75 +104,6 @@ namespace Saturn {
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
-		ScriptableEntity CreateScriptableEntity( const std::string& name = "" );
-		ScriptableEntity* CreateScriptableEntityptr( const std::string& name );
-
-		//FOR EDITOR USE!
-		// Use SpawnEntity for runtime!
-		template<typename T>
-		T* CreateScriptableEntityT( const std::string& name )
-		{
-			SAT_PROFILE_FUNCTION();
-
-			T* entity = new T();
-			entity->m_Entity = CreateEntity( name );
-			entity->m_Scene = this;
-			entity->AddComponent<NativeScriptComponent>();
-			auto& ncs = entity->GetComponent<NativeScriptComponent>();
-			ncs.Instance = entity;
-			if( ncs.Instance == nullptr )
-			{
-				SAT_CORE_ERROR( "NativeScriptComponent.Instance null" );
-				SAT_CORE_INFO( "Retrying!" );
-
-				ncs.Instance = entity;
-
-				SAT_CORE_ASSERT( ncs.Instance != nullptr, "NativeScriptComponent.Instance null" );
-			}
-			ncs.Instance->OnCreate();
-
-
-			m_ScriptableEntitys.push_back( entity );
-
-			return entity;
-		}
-
-		//Spawns a T
-		template<typename T>
-		T* SpawnEntity( std::string name, glm::vec3 position, glm::quat rotation, bool addncs = true )
-		{
-			SAT_PROFILE_FUNCTION();
-
-			T* entity = new T();
-			entity->m_Entity = CreateEntity( name );
-			entity->m_Scene = this;
-			entity->GetComponent<TransformComponent>().Position = position;
-			entity->GetComponent<TransformComponent>().Rotation = rotation;
-			if (addncs)
-			{
-				entity->AddComponent<NativeScriptComponent>();
-				auto& ncs = entity->GetComponent<NativeScriptComponent>();
-				ncs.Instance = entity;
-
-				if( ncs.Instance == nullptr )
-				{
-					SAT_ERROR( "[Runtime Context] NativeScriptComponent.Instance null" );
-					SAT_INFO( "[Runtime Context] Retrying!" );
-
-					ncs.Instance = entity;
-
-					SAT_ASSERT( ncs.Instance != nullptr, "[Runtime Context] NativeScriptComponent.Instance null" );
-				}
-
-				ncs.Instance->OnCreate();
-
-			}
-
-			m_ScriptableEntitys.push_back( entity );
-
-			return entity;
-		}
-
 
 		void DestroyEntity(Entity entity);
 
@@ -185,7 +121,6 @@ namespace Saturn {
 		}
 
 		SceneData& GetData() { return m_data; }
-		Level& GetLevel() { return *m_CurrentLevel; }
 		entt::registry& GetRegistry() { return m_Registry; }
 
 		void OnUpdate(Timestep ts);
@@ -220,10 +155,14 @@ namespace Saturn {
 		void PhysXBoxSphereComponentCreate( entt::registry& r, entt::entity ent );
 		void CameraComponentCreate( entt::registry& r, entt::entity ent );
 		void PhysXCapsuleColliderComponentCreate( entt::registry& r, entt::entity ent );
+		void ScriptComponentCreate( entt::registry& r, entt::entity ent );
 
 		void Contact( rp3d::CollisionBody* body );
 
 		const EntityMap& GetEntityMap() const { return m_EntityIDMap; }
+		const EntityMonoMap& GetEntityMonoMap() const { return m_EntityMonoIDMap; }
+		const UUID& GetUUID() const { return m_SceneID; }
+		UUID& GetUUID() { return m_SceneID; }
 
 		/*------------------------ Runtime helpers ------------------------ */
 		Ref<Scene> CopyScene( const Ref<Scene>& CurrentScene );
@@ -241,12 +180,10 @@ namespace Saturn {
 
 	private:
 		void UpdateRuntime( Timestep ts );
-		std::vector<ScriptableEntity*> m_ScriptableEntitys;
 		/*------------------------------------------------------------------ */
 	public:
 		Ref<PhysicsScene> m_ReactPhysicsScene;
 		Ref<PhysXScene> m_PhysXScene;
-
 
 	private:
 		UUID m_SceneID;
@@ -254,6 +191,7 @@ namespace Saturn {
 		entt::registry m_Registry;
 
 		EntityMap m_EntityIDMap;
+		EntityMonoMap m_EntityMonoIDMap;
 
 		std::string m_DebugName;
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
@@ -272,8 +210,6 @@ namespace Saturn {
 		float m_LightMultiplier = 0.3f;
 
 		SceneData m_data;
-
-		Level* m_CurrentLevel;
 
 		RuntimeData m_RuntimeData;
 

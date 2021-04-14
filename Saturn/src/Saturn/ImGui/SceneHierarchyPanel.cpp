@@ -29,8 +29,8 @@
 #include "sppch.h"
 #include "SceneHierarchyPanel.h"
 #include "Saturn/Scene/Entity.h"
-#include "Saturn/GameFramework/Character.h"
 #include "Saturn/Application.h"
+#include "Saturn/Script/ScriptEngine.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -42,6 +42,141 @@
 
 namespace Saturn {
 
+	static int s_UIContextID = 0;
+	static uint32_t s_Counter = 0;
+	static char s_IDBuffer[ 16 ];
+
+	static void PushID()
+	{
+		ImGui::PushID( s_UIContextID++ );
+		s_Counter = 0;
+	}
+
+	static void PopID()
+	{
+		ImGui::PopID();
+		s_UIContextID--;
+	}
+
+	static void BeginPropertyGrid()
+	{
+		PushID();
+		ImGui::Columns( 2 );
+	}
+
+	static bool Property( const char* label, std::string& value )
+	{
+		bool modified = false;
+
+		ImGui::Text( label );
+		ImGui::NextColumn();
+		ImGui::PushItemWidth( -1 );
+
+		char buffer[ 256 ];
+		strcpy( buffer, value.c_str() );
+
+		s_IDBuffer[ 0 ] = '#';
+		s_IDBuffer[ 1 ] = '#';
+		memset( s_IDBuffer + 2, 0, 14 );
+		itoa( s_Counter++, s_IDBuffer + 2, 16 );
+		if( ImGui::InputText( s_IDBuffer, buffer, 256 ) )
+		{
+			value = buffer;
+			modified = true;
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
+	}
+
+	static void Property( const char* label, const char* value )
+	{
+		ImGui::Text( label );
+		ImGui::NextColumn();
+		ImGui::PushItemWidth( -1 );
+
+		s_IDBuffer[ 0 ] = '#';
+		s_IDBuffer[ 1 ] = '#';
+		memset( s_IDBuffer + 2, 0, 14 );
+		itoa( s_Counter++, s_IDBuffer + 2, 16 );
+		ImGui::InputText( s_IDBuffer, ( char* )value, 256, ImGuiInputTextFlags_ReadOnly );
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+	}
+
+	static bool Property( const char* label, int& value )
+	{
+		bool modified = false;
+
+		ImGui::Text( label );
+		ImGui::NextColumn();
+		ImGui::PushItemWidth( -1 );
+
+		s_IDBuffer[ 0 ] = '#';
+		s_IDBuffer[ 1 ] = '#';
+		memset( s_IDBuffer + 2, 0, 14 );
+		itoa( s_Counter++, s_IDBuffer + 2, 16 );
+		if( ImGui::DragInt( s_IDBuffer, &value ) )
+			modified = true;
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
+	}
+
+	static bool Property( const char* label, float& value, float delta = 0.1f )
+	{
+		bool modified = false;
+
+		ImGui::Text( label );
+		ImGui::NextColumn();
+		ImGui::PushItemWidth( -1 );
+
+		s_IDBuffer[ 0 ] = '#';
+		s_IDBuffer[ 1 ] = '#';
+		memset( s_IDBuffer + 2, 0, 14 );
+		itoa( s_Counter++, s_IDBuffer + 2, 16 );
+		if( ImGui::DragFloat( s_IDBuffer, &value, delta ) )
+			modified = true;
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
+	}
+
+	static bool Property( const char* label, glm::vec2& value, float delta = 0.1f )
+	{
+		bool modified = false;
+
+		ImGui::Text( label );
+		ImGui::NextColumn();
+		ImGui::PushItemWidth( -1 );
+
+		s_IDBuffer[ 0 ] = '#';
+		s_IDBuffer[ 1 ] = '#';
+		memset( s_IDBuffer + 2, 0, 14 );
+		itoa( s_Counter++, s_IDBuffer + 2, 16 );
+		if( ImGui::DragFloat2( s_IDBuffer, glm::value_ptr( value ), delta ) )
+			modified = true;
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
+	}
+
+	static void EndPropertyGrid()
+	{
+		ImGui::Columns( 1 );
+		PopID();
+	}
+
+
 	SceneHierarchyPanel::SceneHierarchyPanel( const Ref<Scene>& context ) : m_Context( context )
 	{
 	}
@@ -51,7 +186,6 @@ namespace Saturn {
 		m_Context = scene;
 		m_SelectionContext = {};
 
-		/*
 		if( m_SelectionContext && false )
 		{
 			// Try and find same entity in new scene
@@ -60,23 +194,6 @@ namespace Saturn {
 			if( entityMap.find( selectedEntityID ) != entityMap.end() )
 				m_SelectionContext = entityMap.at( selectedEntityID );
 		}
-		*/
-
-		auto& EntityA = m_Context->CreateEntity( "A" );
-		m_SelectionContext = EntityA;
-		m_SelectionContext ={}; 
-		m_Context->DestroyEntity( EntityA );
-
-
-		auto& EntityB = m_Context->CreateEntity( "B" );
-		m_SelectionContext = EntityB;
-		m_SelectionContext ={};
-		m_Context->DestroyEntity( EntityB );
-
-		auto& EntityC = m_Context->CreateEntity( "C" );
-		m_SelectionContext = EntityC;
-		m_SelectionContext ={};
-		m_Context->DestroyEntity( EntityC );
 	}
 
 	void SceneHierarchyPanel::SetSelected( Entity entity )
@@ -99,7 +216,8 @@ namespace Saturn {
 			m_Context->m_Registry.each( [&]( auto entity )
 				{
 					Entity e( entity, m_Context.Raw() );
-					DrawEntityNode( e );
+					if(!m_Context->m_Registry.has<SceneComponent>( entity ))
+						DrawEntityNode( e );
 				} );
 		}
 
@@ -151,18 +269,6 @@ namespace Saturn {
 
 			}
 
-			if( ImGui::MenuItem( "Create Character Entity" ) )
-			{
-				Character* e = m_Context->CreateScriptableEntityT<Character>( "Character Entity" );
-				//Character* e = dynamic_cast<Character*>(m_Context->CreateScriptableEntityptr("Character Entity"));
-			}
-
-			if( ImGui::MenuItem( "Create Scriptable Entity" ) )
-			{
-				ScriptableEntity* e = m_Context->CreateScriptableEntityptr( "ScriptableEntity" );
-				SetSelected( e->m_Entity );
-			}
-
 			ImGui::EndPopup();
 
 		}
@@ -188,19 +294,19 @@ namespace Saturn {
 							ImGui::CloseCurrentPopup();
 						}
 					}
-					if( !m_SelectionContext.HasComponent<NativeScriptComponent>() )
-					{
-						if( ImGui::Button( "NativeScript" ) )
-						{
-							m_SelectionContext.AddComponent<NativeScriptComponent>();
-							ImGui::CloseCurrentPopup();
-						}
-					}
 					if( !m_SelectionContext.HasComponent<CameraComponent>() )
 					{
 						if( ImGui::Button( "Camera" ) )
 						{
 							m_SelectionContext.AddComponent<CameraComponent>();
+							ImGui::CloseCurrentPopup();
+						}
+					}
+					if( !m_SelectionContext.HasComponent<ScriptComponent>() )
+					{
+						if( ImGui::Button( "Script" ) )
+						{
+							m_SelectionContext.AddComponent<ScriptComponent>();
 							ImGui::CloseCurrentPopup();
 						}
 					}
@@ -555,28 +661,8 @@ namespace Saturn {
 
 		// ID
 		ImGui::SameLine();
-		ImGui::TextDisabled( "%i", id );
+		ImGui::TextDisabled( "%f", id );
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-		//Parent Classes (move to master!!!)
-		ImGui::SameLine();
-		ImGui::Spacing();
-		ImGui::SameLine();
-		if( ImGui::Button( "+##APIClass" ) )
-		{
-			ImGui::OpenPopup( "APIParentClass" );
-		}
-
-		if( ImGui::BeginPopup( "APIParentClass" ) )
-		{
-			if( ImGui::MenuItem( "Character" ) )
-			{
-				Character* e = m_Context->CreateScriptableEntityT<Character>( "Getting tag..." );
-				e->GetComponent<TagComponent>().Tag = entity.GetComponent<TagComponent>().Tag;
-				//entity.GetComponent()
-			}
-
-			ImGui::EndPopup();
-		}
 
 		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )
 			{
@@ -639,17 +725,6 @@ namespace Saturn {
 				}
 			} );
 
-		DrawComponent<NativeScriptComponent>( "Native Script Component", entity, [this]( auto& ncs )
-			{
-				char buffer[ 256 ];
-				memset( buffer, 0, 256 );
-				memcpy( buffer, m_NCSTag.c_str(), m_NCSTag.length() );
-				if( ImGui::InputText( "##cname", buffer, 256 ) )
-				{
-					m_NCSTag = std::string( buffer );
-				}
-			} );
-
 		DrawComponent<BoxColliderComponent>( "Box Collider", entity, []( auto& component )
 			{
 				DrawVec3Control( "Extents", component.Extents, component.Extents );
@@ -709,6 +784,62 @@ namespace Saturn {
 				rb.m_body->SetKinematic( canKinematic );
 
 			} );
+
+		DrawComponent<ScriptComponent>("Script", entity, []( auto& csc )
+		{
+			std::string name = /*TEMP*/"ExampleApp.Test";
+
+			ImGui::Text( "Module Name:" );
+			ImGui::SameLine();
+			ImGui::InputText( "##name", (char*)csc.ModuleName.c_str(), 256 );
+
+			auto& fieldMap = ScriptEngine::GetFieldMap();
+			if( fieldMap.find( csc.ModuleName ) != fieldMap.end() )
+			{
+				auto& publicFields = fieldMap.at( csc.ModuleName );
+				for( auto& field : publicFields )
+				{
+					switch( field.Type )
+					{
+						case FieldType::Int:
+						{
+							int value = field.GetValue<int>();
+							if( Property( field.Name.c_str(), value ) )
+							{
+								field.SetValue( value );
+							}
+							break;
+						}
+						case FieldType::Float:
+						{
+							float value = field.GetValue<float>();
+							if( Property( field.Name.c_str(), value, 0.2f ) )
+							{
+								field.SetValue( value );
+							}
+							break;
+						}
+						case FieldType::Vec2:
+						{
+							glm::vec2 value = field.GetValue<glm::vec2>();
+							if( Property( field.Name.c_str(), value, 0.2f ) )
+							{
+								field.SetValue( value );
+							}
+							break;
+						}
+					}
+				}
+			}
+
+			
+
+		});
+
+		if( ImGui::Button( "Run Script" ) )
+		{
+			ScriptEngine::OnCreateEntity( entity );
+		}
 	}
 
 }

@@ -30,13 +30,10 @@ IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
 IncludeDir["ReactPhysics3D"] = "Saturn/vendor/reactphysics3d/include"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
--- Game
-GameDir = {}
-GameDir["Game"] = "Game/"
-
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
 IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
 IncludeDir["Saturn-Serialisation"] = "Saturn/vendor/Saturn-Serialisation/"
+IncludeDir["mono"] = "Saturn/vendor/mono/include"
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
@@ -102,6 +99,7 @@ project "Saturn"
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ReactPhysics3D}",
+		"%{IncludeDir.mono}",
 		"Saturn/vendor/yaml-cpp/include",
 		"Saturn/vendor/SaturnLog/SaturnLogging/src"
 	}
@@ -136,12 +134,14 @@ project "Saturn"
 		{
 			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
 			"Saturn/vendor/physx/bin/Debug/PhysX.lib",
+			"Saturn/vendor/mono/lib/mono-2.0-sgen.lib",
 			"Saturn/vendor/yaml-cpp/bin/Debug/yaml-cpp.lib"
 		}
 
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Titan/"',
 		}
 
@@ -187,6 +187,26 @@ group "sat/Core"
 
 ---------------------------------------------------------------------------------------------------------------------------
 
+group "sat/Core"
+project "SaturnScript"
+	location "SaturnScript"
+	kind "SharedLib"
+	language "C#"
+	warnings "Off"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"%{prj.name}/src/**.cs"
+	}
+
+	postbuildcommands 
+	{
+		--'{COPY} "../%{cfg.targetdir}/SaturnScript.dll" "SaturnScript/build/SaturnScript.dll"',
+	}
+
 group "sat/Tools"
 project "Titan"
 	location "Titan"
@@ -229,6 +249,7 @@ project "Titan"
 		"%{IncludeDir.ReactPhysics3D}",
 		"Saturn/vendor/yaml-cpp/include",
 		"Saturn/vendor/glm/",
+		"%{IncludeDir.mono}",
 		"%{IncludeDir.SPIRV_Cross}"
 	}
 
@@ -247,17 +268,24 @@ project "Titan"
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"'
+			'{COPY} "../Saturn/vendor/mono/bin/Dist/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/lib/mono-2.0-sgen.lib" "%{cfg.targetdir}/assets/mono/lib"',
+			'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"',
 		}
 	filter "configurations:Release"
 		postbuildcommands 
 		{
-			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"'
+			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 	filter "configurations:Debug"
 		postbuildcommands 
 		{
-			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"'
+			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/lib/mono-2.0-sgen.lib" "%{cfg.targetdir}/assets/mono/lib"',
+			'{COPY} "../Saturn/vendor/mono/lib/eglib.lib" "%{cfg.targetdir}/assets/mono/lib"',
+			'{COPY} "../Saturn/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+			'{COPY} "../SaturnScript/build/SaturnScript.dll" "%{cfg.targetdir}/assets/assembly/SaturnRuntime.dll"'
 		}
 
 	filter "system:windows"
@@ -283,6 +311,27 @@ project "Titan"
 		runtime "Release"
 		optimize "on"
 
+group "sat/Runtime"
+project "ExampleApp"
+	location "ExampleApp"
+	kind "SharedLib"
+	language "C#"
+	warnings "Off"
 
-group "Runtime"
-	include "Game"
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"%{prj.name}/src/**.cs"
+	}
+
+	links 
+	{
+		"SaturnScript"
+	}
+
+	postbuildcommands 
+	{
+		
+	}

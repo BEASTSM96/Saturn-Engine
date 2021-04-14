@@ -7388,7 +7388,7 @@ namespace entt {
                 const auto& calls = signal->calls;
                 const auto it = std::find_if( calls.cbegin(), calls.cend(), [value_or_instance]( const auto& delegate )
      {
-             return delegate.instance() == value_or_instance;
+         return delegate.instance() == value_or_instance;
                 } );
 
                 other.offset = std::distance( it, calls.cend() );
@@ -14582,7 +14582,7 @@ namespace entt {
         {
             const auto it = std::min_element( pools.begin(), pools.end(), []( const auto* lhs, const auto* rhs )
      {
-             return ( !lhs && rhs ) || ( lhs && rhs && lhs->size() < rhs->size() );
+         return ( !lhs && rhs ) || ( lhs && rhs && lhs->size() < rhs->size() );
             } );
 
             // brings the best candidate (if any) on front of the vector
@@ -14941,7 +14941,7 @@ namespace entt {
         {
             return ( std::min )( { static_cast< const basic_sparse_set<entity_type> * >( std::get<storage_type<Component>*>( pools ) )... }, []( const auto* lhs, const auto* rhs )
      {
-             return lhs->size() < rhs->size();
+         return lhs->size() < rhs->size();
             } );
         }
 
@@ -16585,7 +16585,7 @@ namespace entt {
 
             return ( [this, entity]( auto* cpool )
      {
-             return cpool->contains( entity ) ? ( cpool->remove( *this, entity ), true ) : false;
+         return cpool->contains( entity ) ? ( cpool->remove( *this, entity ), true ) : false;
             }( assure<Component>() ) + ... + size_type{} );
         }
 
@@ -16799,7 +16799,7 @@ namespace entt {
             {
                 ( [this]( auto* cpool )
      {
-             cpool->remove( *this, cpool->basic_sparse_set<entity_type>::begin(), cpool->basic_sparse_set<entity_type>::end() );
+         cpool->remove( *this, cpool->basic_sparse_set<entity_type>::begin(), cpool->basic_sparse_set<entity_type>::end() );
                 }( assure<Component>() ), ... );
             }
         }
@@ -16875,10 +16875,10 @@ namespace entt {
         {
             each( [this, &func]( const auto entity )
      {
-             if( orphan( entity ) )
-             {
-                 func( entity );
-             }
+         if( orphan( entity ) )
+         {
+             func( entity );
+         }
             } );
         }
 
@@ -17042,14 +17042,14 @@ namespace entt {
 
             std::transform( first, last, component.begin(), [this]( const auto ctype )
      {
-             const auto it = std::find_if( pools.cbegin(), pools.cend(), [ctype]( auto&& pdata ) { return pdata.poly && pdata.poly->value_type().hash() == ctype; } );
-             return it == pools.cend() ? nullptr : it->pool.get();
+         const auto it = std::find_if( pools.cbegin(), pools.cend(), [ctype]( auto&& pdata ) { return pdata.poly && pdata.poly->value_type().hash() == ctype; } );
+         return it == pools.cend() ? nullptr : it->pool.get();
             } );
 
             std::transform( from, to, filter.begin(), [this]( const auto ctype )
      {
-             const auto it = std::find_if( pools.cbegin(), pools.cend(), [ctype]( auto&& pdata ) { return pdata.poly && pdata.poly->value_type().hash() == ctype; } );
-             return it == pools.cend() ? nullptr : it->pool.get();
+         const auto it = std::find_if( pools.cbegin(), pools.cend(), [ctype]( auto&& pdata ) { return pdata.poly && pdata.poly->value_type().hash() == ctype; } );
+         return it == pools.cend() ? nullptr : it->pool.get();
             } );
 
             return { std::move( component ), std::move( filter ) };
@@ -17135,12 +17135,12 @@ namespace entt {
 
                         const auto next = std::find_if_not( groups.cbegin(), groups.cend(), [size]( const auto& gdata )
          {
-                     return !( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) ) || ( size > gdata.size );
+             return !( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) ) || ( size > gdata.size );
                         } );
 
                         const auto prev = std::find_if( std::make_reverse_iterator( next ), groups.crend(), []( const auto& gdata )
          {
-                     return ( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) );
+             return ( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) );
                         } );
 
                         maybe_valid_if = ( next == groups.cend() ? maybe_valid_if : next->group.get() );
@@ -17263,7 +17263,7 @@ namespace entt {
             constexpr auto size = sizeof...( Owned ) + sizeof...( Get ) + sizeof...( Exclude );
             return std::find_if( groups.cbegin(), groups.cend(), [size]( const auto& gdata )
      {
-             return ( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) ) && ( size < gdata.size );
+         return ( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) ) && ( size < gdata.size );
             } ) == groups.cend();
         }
 
@@ -18737,14 +18737,14 @@ namespace entt {
             {
                 if( [&reg, entt]()
      {
-             if constexpr( sizeof...( Ignore ) == 0 )
-             {
-                 return reg.template has<AllOf..., Require...>( entt ) && !reg.template any<NoneOf..., Reject...>( entt );
-             }
-             else
-             {
-                 return reg.template has<AllOf..., Require...>( entt ) && ( ( std::is_same_v<Ignore..., NoneOf> || !reg.template any<NoneOf>( entt ) ) && ... ) && !reg.template any<Reject...>( entt );
-             }
+         if constexpr( sizeof...( Ignore ) == 0 )
+         {
+             return reg.template has<AllOf..., Require...>( entt ) && !reg.template any<NoneOf..., Reject...>( entt );
+         }
+         else
+         {
+             return reg.template has<AllOf..., Require...>( entt ) && ( ( std::is_same_v<Ignore..., NoneOf> || !reg.template any<NoneOf>( entt ) ) && ... ) && !reg.template any<Reject...>( entt );
+         }
                 }( ) )
                 {
                     if( !obs.view.contains( entt ) )
@@ -20703,7 +20703,7 @@ namespace entt {
 
             return ( [this, entity]( auto* cpool )
      {
-             return cpool->contains( entity ) ? ( cpool->remove( *this, entity ), true ) : false;
+         return cpool->contains( entity ) ? ( cpool->remove( *this, entity ), true ) : false;
             }( assure<Component>() ) + ... + size_type{} );
         }
 
@@ -20917,7 +20917,7 @@ namespace entt {
             {
                 ( [this]( auto* cpool )
      {
-             cpool->remove( *this, cpool->basic_sparse_set<entity_type>::begin(), cpool->basic_sparse_set<entity_type>::end() );
+         cpool->remove( *this, cpool->basic_sparse_set<entity_type>::begin(), cpool->basic_sparse_set<entity_type>::end() );
                 }( assure<Component>() ), ... );
             }
         }
@@ -20993,10 +20993,10 @@ namespace entt {
         {
             each( [this, &func]( const auto entity )
      {
-             if( orphan( entity ) )
-             {
-                 func( entity );
-             }
+         if( orphan( entity ) )
+         {
+             func( entity );
+         }
             } );
         }
 
@@ -21160,14 +21160,14 @@ namespace entt {
 
             std::transform( first, last, component.begin(), [this]( const auto ctype )
      {
-             const auto it = std::find_if( pools.cbegin(), pools.cend(), [ctype]( auto&& pdata ) { return pdata.poly && pdata.poly->value_type().hash() == ctype; } );
-             return it == pools.cend() ? nullptr : it->pool.get();
+         const auto it = std::find_if( pools.cbegin(), pools.cend(), [ctype]( auto&& pdata ) { return pdata.poly && pdata.poly->value_type().hash() == ctype; } );
+         return it == pools.cend() ? nullptr : it->pool.get();
             } );
 
             std::transform( from, to, filter.begin(), [this]( const auto ctype )
      {
-             const auto it = std::find_if( pools.cbegin(), pools.cend(), [ctype]( auto&& pdata ) { return pdata.poly && pdata.poly->value_type().hash() == ctype; } );
-             return it == pools.cend() ? nullptr : it->pool.get();
+         const auto it = std::find_if( pools.cbegin(), pools.cend(), [ctype]( auto&& pdata ) { return pdata.poly && pdata.poly->value_type().hash() == ctype; } );
+         return it == pools.cend() ? nullptr : it->pool.get();
             } );
 
             return { std::move( component ), std::move( filter ) };
@@ -21253,12 +21253,12 @@ namespace entt {
 
                         const auto next = std::find_if_not( groups.cbegin(), groups.cend(), [size]( const auto& gdata )
          {
-                     return !( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) ) || ( size > gdata.size );
+             return !( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) ) || ( size > gdata.size );
                         } );
 
                         const auto prev = std::find_if( std::make_reverse_iterator( next ), groups.crend(), []( const auto& gdata )
          {
-                     return ( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) );
+             return ( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) );
                         } );
 
                         maybe_valid_if = ( next == groups.cend() ? maybe_valid_if : next->group.get() );
@@ -21381,7 +21381,7 @@ namespace entt {
             constexpr auto size = sizeof...( Owned ) + sizeof...( Get ) + sizeof...( Exclude );
             return std::find_if( groups.cbegin(), groups.cend(), [size]( const auto& gdata )
      {
-             return ( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) ) && ( size < gdata.size );
+         return ( 0u + ... + gdata.owned( type_hash<std::decay_t<Owned>>::value() ) ) && ( size < gdata.size );
             } ) == groups.cend();
         }
 
@@ -21855,7 +21855,7 @@ namespace entt {
         {
             const auto it = std::min_element( pools.begin(), pools.end(), []( const auto* lhs, const auto* rhs )
      {
-             return ( !lhs && rhs ) || ( lhs && rhs && lhs->size() < rhs->size() );
+         return ( !lhs && rhs ) || ( lhs && rhs && lhs->size() < rhs->size() );
             } );
 
             // brings the best candidate (if any) on front of the vector
@@ -22246,7 +22246,7 @@ namespace entt {
         {
             reg->orphans( [this]( const auto entt )
      {
-             reg->destroy( entt );
+         reg->destroy( entt );
             } );
 
             return *this;
@@ -22549,7 +22549,7 @@ namespace entt {
         {
             reg->orphans( [this]( const auto entt )
      {
-             reg->destroy( entt );
+         reg->destroy( entt );
             } );
 
             return *this;
@@ -24487,7 +24487,7 @@ namespace entt {
         {
             return ( std::min )( { static_cast< const basic_sparse_set<entity_type> * >( std::get<storage_type<Component>*>( pools ) )... }, []( const auto* lhs, const auto* rhs )
      {
-             return lhs->size() < rhs->size();
+         return lhs->size() < rhs->size();
             } );
         }
 
@@ -31505,7 +31505,7 @@ namespace entt {
         {
             return internal::find_if<&node_type::base>( [id]( const auto* curr )
      {
-             return curr->type()->id == id;
+         return curr->type()->id == id;
             }, node );
         }
 
@@ -31575,7 +31575,7 @@ namespace entt {
         {
             return internal::find_if<&node_type::data>( [id]( const auto* curr )
      {
-             return curr->id == id;
+         return curr->id == id;
             }, node );
         }
 
@@ -31602,7 +31602,7 @@ namespace entt {
         {
             return internal::find_if<&node_type::func>( [id]( const auto* curr )
      {
-             return curr->id == id;
+         return curr->id == id;
             }, node );
         }
 
@@ -31623,7 +31623,7 @@ namespace entt {
 
             internal::find_if<&node_type::ctor>( [args, sz, &any]( const auto* curr )
      {
-             return ( curr->size == sz ) && ( any = curr->invoke( args ) );
+         return ( curr->size == sz ) && ( any = curr->invoke( args ) );
             }, node );
 
             return any;
@@ -35220,7 +35220,7 @@ namespace entt {
         {
             return internal::find_if<&node_type::base>( [id]( const auto* curr )
      {
-             return curr->type()->id == id;
+         return curr->type()->id == id;
             }, node );
         }
 
@@ -35290,7 +35290,7 @@ namespace entt {
         {
             return internal::find_if<&node_type::data>( [id]( const auto* curr )
      {
-             return curr->id == id;
+         return curr->id == id;
             }, node );
         }
 
@@ -35317,7 +35317,7 @@ namespace entt {
         {
             return internal::find_if<&node_type::func>( [id]( const auto* curr )
      {
-             return curr->id == id;
+         return curr->id == id;
             }, node );
         }
 
@@ -35338,7 +35338,7 @@ namespace entt {
 
             internal::find_if<&node_type::ctor>( [args, sz, &any]( const auto* curr )
      {
-             return ( curr->size == sz ) && ( any = curr->invoke( args ) );
+         return ( curr->size == sz ) && ( any = curr->invoke( args ) );
             }, node );
 
             return any;
@@ -44425,7 +44425,7 @@ namespace entt {
                 const auto& calls = signal->calls;
                 const auto it = std::find_if( calls.cbegin(), calls.cend(), [value_or_instance]( const auto& delegate )
      {
-             return delegate.instance() == value_or_instance;
+         return delegate.instance() == value_or_instance;
                 } );
 
                 other.offset = std::distance( it, calls.cend() );
@@ -45232,7 +45232,7 @@ namespace entt {
         {
             return std::all_of( pools.cbegin(), pools.cend(), []( auto&& cpool )
      {
-             return !cpool || cpool->empty();
+         return !cpool || cpool->empty();
             } );
         }
 
@@ -45652,7 +45652,7 @@ namespace entt {
                 const auto& calls = signal->calls;
                 const auto it = std::find_if( calls.cbegin(), calls.cend(), [value_or_instance]( const auto& delegate )
      {
-             return delegate.instance() == value_or_instance;
+         return delegate.instance() == value_or_instance;
                 } );
 
                 other.offset = std::distance( it, calls.cend() );
