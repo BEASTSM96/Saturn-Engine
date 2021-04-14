@@ -82,6 +82,7 @@ namespace Saturn {
 		m_Window->Maximize();
 
 		Init();
+
 	}
 
 	Application::~Application()

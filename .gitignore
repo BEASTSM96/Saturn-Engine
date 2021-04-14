@@ -1,3 +1,13 @@
+!Saturn/vender/assimp/bin/
+!Saturn/vender/physx/bin/
+!Saturn/vender/mono/bin/
+!Saturn/vender/assimp/bin/**
+!Saturn/vender/physx/bin/**
+!Saturn/vender/mono/bin/**
+!Saturn/vender/assimp/bin/*
+!Saturn/vender/physx/bin/*
+!Saturn/vender/mono/bin/*
+
 # Prerequisites
 *.d
 

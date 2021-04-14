@@ -38,6 +38,8 @@
 #include "Saturn/Physics/beastPhysics/PhysicsWorld.h"
 #include "Saturn/Physics/PhysX/PhysXScene.h"
 
+#include "Saturn/Script/ScriptEngine.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -49,10 +51,6 @@ namespace Saturn {
 
 	std::unordered_map<UUID, Scene*> s_ActiveScenes;
 
-	struct SceneComponent
-	{
-		UUID SceneID;
-	};
 
 	void Scene::PhysicsComponentCreate( entt::registry& r, entt::entity ent )
 	{
@@ -170,9 +168,24 @@ namespace Saturn {
 		physics.m_body = new PhysXCapsuleCollider( rbScene, rb, mat, physics.Radius, physics.Height );
 	}
 
+	void Scene::ScriptComponentCreate( entt::registry& r, entt::entity ent )
+	{
+		auto view = r.view<SceneComponent>();
+		UUID sceneId = r.get<SceneComponent>( view.front() ).SceneID;
+		Scene* scene = s_ActiveScenes[ sceneId ];
+
+		auto enttId = r.get<IdComponent>( ent ).ID;
+		SAT_CORE_ASSERT( scene->m_EntityIDMap.find( enttId ) != scene->m_EntityIDMap.end() );
+		ScriptEngine::OnInitEntity( scene->m_EntityIDMap.at(enttId) );
+	}
+
 	Scene::Scene( void )
 	{
 		SAT_PROFILE_FUNCTION();
+
+		s_ActiveScenes[ m_SceneID ] = this;
+		m_SceneEntity = m_Registry.create();
+		m_Registry.emplace<SceneComponent>( m_SceneEntity, m_SceneID );
 
 		auto skyboxShader = Shader::Create( "assets/shaders/Skybox.glsl" );
 		m_SkyboxMaterial = MaterialInstance::Create( Material::Create( skyboxShader ) );
@@ -188,11 +201,12 @@ namespace Saturn {
 		m_Registry.on_construct<PhysXSphereColliderComponent>().connect<&Scene::PhysXBoxSphereComponentCreate>( this );
 		m_Registry.on_construct<PhysXCapsuleColliderComponent>().connect<&Scene::PhysXCapsuleColliderComponentCreate>( this );
 		m_Registry.on_construct<CameraComponent>().connect<&Scene::CameraComponentCreate>( this );
+		m_Registry.on_construct<ScriptComponent>().connect<&Scene::ScriptComponentCreate>( this );
 	}
 
 	Scene::~Scene( void )
 	{
-		//s_ActiveScenes.erase(m_SceneID);
+		s_ActiveScenes.erase(m_SceneID);
 
 		m_Registry.clear();
 	}
@@ -286,8 +300,27 @@ namespace Saturn {
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Unmanned Entity" : name;
 
-		auto& ID = entity.AddComponent<IdComponent>();
+		auto& IDcomponent = entity.AddComponent<IdComponent>();
+		entity.GetComponent<IdComponent>().ID ={};
 
+		m_EntityIDMap[ IDcomponent.ID ] = entity;
+		return entity;
+	}
+
+	Entity Scene::CreateEntityWithID( UUID uuid, const std::string& name, bool runtimeMap )
+	{
+		SAT_PROFILE_FUNCTION();
+
+		auto entity = Entity{ m_Registry.create(), this };
+		auto& idComponent = entity.AddComponent<IdComponent>();
+		idComponent.ID = uuid;
+
+		entity.AddComponent<TransformComponent>();
+		if( !name.empty() )
+			entity.AddComponent<TagComponent>( name );
+
+		//SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) == m_EntityIDMap.end(), "Entity has the same name!" );
+		m_EntityIDMap[ uuid ] = entity;
 		return entity;
 	}
 
@@ -305,8 +338,7 @@ namespace Saturn {
 
 		//SAT_CORE_ASSERT(m_EntityIDMap.find(uuid) == m_EntityIDMap.end());
 		m_EntityIDMap[uuid] = entity;
-		return entity;
-	}
+  }
 
 	void Scene::DestroyEntity(Entity entity)
 	{
@@ -427,10 +459,14 @@ namespace Saturn {
 		auto components = srcRegistry.view<T>();
 		for (auto srcEntity : components)
 		{
-			entt::entity destEntity = enttMap.at(srcRegistry.get<IdComponent>(srcEntity).ID);
+			if ( !srcRegistry.has<SceneComponent>( srcEntity ))
+			{
+				SAT_CORE_INFO( "{0}", srcRegistry.get<IdComponent>( srcEntity ).ID );
+				entt::entity destEntity = enttMap.at( srcRegistry.get<IdComponent>( srcEntity ).ID );
 
-			auto& srcComponent = srcRegistry.get<T>(srcEntity);
-			auto& destComponent = dstRegistry.emplace_or_replace<T>(destEntity, srcComponent);
+				auto& srcComponent = srcRegistry.get<T>( srcEntity );
+				auto& destComponent = dstRegistry.emplace_or_replace<T>( destEntity, srcComponent );
+			}
 		}
 	}
 
@@ -452,7 +488,6 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 
 		SAT_CORE_WARN("Copying Scene!");
-		NewScene->m_CurrentLevel = m_CurrentLevel;
 		NewScene->m_data = m_data;
 		NewScene->m_DebugName = m_DebugName;
 		NewScene->m_EntityIDMap = m_EntityIDMap;
@@ -492,6 +527,7 @@ namespace Saturn {
 		CopyComponent<PhysXSphereColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXCapsuleColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<ScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
 		NewScene->m_PhysXScene->m_Foundation = m_PhysXScene->m_Foundation;
 		NewScene->m_PhysXScene->m_PVD = m_PhysXScene->m_PVD;
@@ -507,6 +543,14 @@ namespace Saturn {
 	{
 		SAT_CORE_WARN("[Runtime] Starting!");
 		m_RuntimeRunning = true;
+
+		auto view = m_Registry.view<ScriptComponent>();
+		for( auto entt : view )
+		{
+			Entity e ={ entt, this };
+			ScriptEngine::OnCreateEntity( e );
+			ScriptEngine::OnEntityBeginPlay( e );
+		}
 	}
 
 	void Scene::EndRuntime( void )
@@ -522,6 +566,13 @@ namespace Saturn {
 	void Scene::UpdateRuntime( Timestep ts )
 	{
 		SAT_PROFILE_FUNCTION();
-	}
 
+    auto view = m_Registry.view<ScriptComponent>();
+		for (auto entt : view) 
+		{
+			Entity e ={ entt, this };
+			ScriptEngine::OnUpdateEntity( e, ts );
+		}
+
+	}
 }

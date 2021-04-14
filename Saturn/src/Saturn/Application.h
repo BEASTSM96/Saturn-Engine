@@ -44,7 +44,6 @@ namespace Saturn {
 	class ModuleManager;
 	class Module;
 	class SceneManager;
-	class HotReload;
 }
 
 namespace Saturn {
@@ -94,7 +93,6 @@ namespace Saturn {
 
 	public:
 		Scene& GetCurrentScene( void ) { return *Get().m_Scene; }
-
 	private:
 		bool OnWindowClose( WindowCloseEvent& e );
 		bool OnWindowResize( WindowResizeEvent& e );
@@ -102,7 +100,6 @@ namespace Saturn {
 	protected:
 
 		Ref< Scene > m_Scene;
-
 		std::unique_ptr< Window > m_Window;
 
 	private:

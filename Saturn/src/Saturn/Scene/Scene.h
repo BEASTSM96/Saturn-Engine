@@ -45,9 +45,20 @@
 
 namespace Saturn {
 
+	class Entity;
+	class ScriptableEntity;
+	using EntityMap = std::unordered_map<UUID, Entity>;
+	using EntityMonoMap = std::unordered_map<unsigned long, Entity>;
+
 	class PhysicsWorld;
 
-	struct SceneData {
+	struct SceneComponent
+	{
+		UUID SceneID;
+	};
+
+	struct SceneData 
+	{
 		UUID SceneID;
 		std::string name;
 		RefSR<Texture2D> m_SkyboxTexture;
@@ -85,12 +96,6 @@ namespace Saturn {
 		ReactPhysics = 2
 	};
 
-	class Level;
-	class Entity;
-	class ScriptableEntity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
 	class Scene : public RefCounted
 	{
 	public:
@@ -116,7 +121,6 @@ namespace Saturn {
 		}
 
 		SceneData& GetData() { return m_data; }
-		Level& GetLevel() { return *m_CurrentLevel; }
 		entt::registry& GetRegistry() { return m_Registry; }
 
 		void OnUpdate(Timestep ts);
@@ -151,10 +155,14 @@ namespace Saturn {
 		void PhysXBoxSphereComponentCreate( entt::registry& r, entt::entity ent );
 		void CameraComponentCreate( entt::registry& r, entt::entity ent );
 		void PhysXCapsuleColliderComponentCreate( entt::registry& r, entt::entity ent );
+		void ScriptComponentCreate( entt::registry& r, entt::entity ent );
 
 		void Contact( rp3d::CollisionBody* body );
 
 		const EntityMap& GetEntityMap() const { return m_EntityIDMap; }
+		const EntityMonoMap& GetEntityMonoMap() const { return m_EntityMonoIDMap; }
+		const UUID& GetUUID() const { return m_SceneID; }
+		UUID& GetUUID() { return m_SceneID; }
 
 		/*------------------------ Runtime helpers ------------------------ */
 		Ref<Scene> CopyScene( const Ref<Scene>& CurrentScene );
@@ -183,6 +191,7 @@ namespace Saturn {
 		entt::registry m_Registry;
 
 		EntityMap m_EntityIDMap;
+		EntityMonoMap m_EntityMonoIDMap;
 
 		std::string m_DebugName;
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
@@ -201,8 +210,6 @@ namespace Saturn {
 		float m_LightMultiplier = 0.3f;
 
 		SceneData m_data;
-
-		Level* m_CurrentLevel;
 
 		RuntimeData m_RuntimeData;
 
