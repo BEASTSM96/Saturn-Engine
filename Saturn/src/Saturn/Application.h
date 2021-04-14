@@ -92,10 +92,7 @@ namespace Saturn {
 		static const char* GetPlatformName();
 
 	public:
-		Scene& GetCurrentScene( void ) { return *m_Scene; }
-		ModuleManager& GetModuleManager( void ) { return *m_ModuleManager; }
-		Ref<SceneManager>& GetSceneMananger( void ) { return m_SceneManager; }
-
+		Scene& GetCurrentScene( void ) { return *Get().m_Scene; }
 	private:
 		bool OnWindowClose( WindowCloseEvent& e );
 		bool OnWindowResize( WindowResizeEvent& e );
@@ -103,9 +100,6 @@ namespace Saturn {
 	protected:
 
 		Ref< Scene > m_Scene;
-
-		Ref< SceneManager > m_SceneManager;
-		Ref< ModuleManager > m_ModuleManager;
 		std::unique_ptr< Window > m_Window;
 
 	private:

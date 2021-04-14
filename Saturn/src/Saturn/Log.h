@@ -51,7 +51,35 @@ namespace Saturn {
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;
 	};
 
+	template<typename T>
+	static void Info( const T& msg )
+	{
+		Log::GetCoreLogger()->info( msg );
+	}
 
+	template<typename T>
+	static void Trace( const T& msg )
+	{
+		Log::GetCoreLogger()->trace( msg );
+	}
+
+	template<typename T>
+	static void Warn( const T& msg )
+	{
+		Log::GetCoreLogger()->warn( msg );
+	}
+
+	template<typename T>
+	static void Error( const T& msg )
+	{
+		Log::GetCoreLogger()->error( msg );
+	}
+
+	template<typename T>
+	static void Fatal( const T& msg )
+	{
+		Log::GetCoreLogger()->critical( msg );
+	}
 }
 
 template<typename OStream>

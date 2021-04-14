@@ -386,26 +386,8 @@ namespace Saturn {
 	//
 	// ScriptComponents
 	//
-
 	struct ScriptComponent : Component
 	{
 		std::string ModuleName = "ExampleApp.Test";
-	};
-
-	class ScriptableEntity;
-
-
-	//For coding in c++ 
-	//@see https://beastsm96.github.io/Saturn-Engine/api/v0.a01/Scene/Components
-	struct NativeScriptComponent : Component
-	{
-	
-		ScriptableEntity* Instance = nullptr;
-
-		//TODO:Going to remove
-		template<typename T>
-		void Bind()
-		{
-		}
 	};
 }

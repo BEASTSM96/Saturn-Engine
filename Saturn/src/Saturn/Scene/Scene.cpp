@@ -30,21 +30,12 @@
 #include "Scene.h"
 
 #include "Entity.h"
-
 #include "Components.h"
-
 #include "Saturn/Renderer/SceneRenderer.h"
-
 #include "SceneManager.h"
-
 #include "Saturn/Application.h"
-
 #include "ScriptableEntity.h"
-
-#include "Saturn/GameFramework/Character.h"
-
 #include "Saturn/Physics/beastPhysics/PhysicsWorld.h"
-
 #include "Saturn/Physics/PhysX/PhysXScene.h"
 
 #include "Saturn/Script/ScriptEngine.h"
@@ -333,45 +324,21 @@ namespace Saturn {
 		return entity;
 	}
 
-	ScriptableEntity Scene::CreateScriptableEntity( const std::string& name )
+	Entity Scene::CreateEntityWithID( UUID uuid, const std::string& name, bool runtimeMap )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		ScriptableEntity entity;
-		entity.m_Entity = CreateEntity( name );
-		entity.m_Scene = this;
-		entity.m_Entity.AddComponent<NativeScriptComponent>();
-		auto& ncs = entity.m_Entity.GetComponent<NativeScriptComponent>();
+		auto entity = Entity{ m_Registry.create(), this };
+		auto& idComponent = entity.AddComponent<IdComponent>();
+		idComponent.ID = uuid;
 
-		return entity;
-	}
+		entity.AddComponent<TransformComponent>();
+		if (!name.empty())
+			entity.AddComponent<TagComponent>(name);
 
-	ScriptableEntity* Scene::CreateScriptableEntityptr( const std::string& name )
-	{
-		SAT_PROFILE_FUNCTION();
-
-		ScriptableEntity* entity = new ScriptableEntity();
-		entity->m_Entity = CreateEntity( name );
-		entity->m_Scene = this;
-		entity->AddComponent<NativeScriptComponent>();
-		auto& ncs = entity->GetComponent<NativeScriptComponent>();
-		ncs.Instance = entity;
-		if( ncs.Instance == nullptr )
-		{
-			SAT_CORE_ERROR( "NativeScriptComponent.Instance null" );
-			SAT_CORE_INFO( "Retrying!" );
-
-			ncs.Instance = entity;
-
-			SAT_CORE_ASSERT( ncs.Instance != nullptr, "NativeScriptComponent.Instance null" );
-		}
-		ncs.Instance->OnCreate();
-	
-
-		m_ScriptableEntitys.push_back(entity);
-
-		return entity;
-	}
+		//SAT_CORE_ASSERT(m_EntityIDMap.find(uuid) == m_EntityIDMap.end());
+		m_EntityIDMap[uuid] = entity;
+  }
 
 	void Scene::DestroyEntity(Entity entity)
 	{
@@ -402,7 +369,16 @@ namespace Saturn {
 
 	Entity Scene::GetMainCameraEntity( void )
 	{
-		//todo: add
+		auto view = m_Registry.view<TransformComponent, CameraComponent>();
+		for( auto entity : view )
+		{
+			auto [transform, camera] = view.get<TransformComponent, CameraComponent>( entity );
+
+			if( camera.Primary )
+			{
+				return { entity, this };
+			}
+		}
 		return {};
 	}
 
@@ -545,7 +521,6 @@ namespace Saturn {
 		CopyComponent<BoxColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<SphereColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<SpriteRendererComponent>( NewScene->m_Registry, m_Registry, enttMap );
-		CopyComponent<NativeScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<RigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXRigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXBoxColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
@@ -554,7 +529,6 @@ namespace Saturn {
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<ScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
-		NewScene->m_ScriptableEntitys = m_ScriptableEntitys;
 		NewScene->m_PhysXScene->m_Foundation = m_PhysXScene->m_Foundation;
 		NewScene->m_PhysXScene->m_PVD = m_PhysXScene->m_PVD;
 	}
@@ -570,14 +544,6 @@ namespace Saturn {
 		SAT_CORE_WARN("[Runtime] Starting!");
 		m_RuntimeRunning = true;
 
-		for( auto entity : m_ScriptableEntitys )
-		{
-			auto ncs = entity->GetComponent<NativeScriptComponent>();
-		
-			ncs.Instance->BeginPlay();
-
-		}
-
 		auto view = m_Registry.view<ScriptComponent>();
 		for( auto entt : view )
 		{
@@ -590,13 +556,6 @@ namespace Saturn {
 	void Scene::EndRuntime( void )
 	{
 		m_RuntimeRunning = false;
-
-		for( auto entity : m_ScriptableEntitys )
-		{
-			auto ncs = entity->GetComponent<NativeScriptComponent>();
-
-			ncs.Instance->OnDestroy();
-		}
 	}
 
 	void Scene::ResetRuntime( const Ref<Scene>& EditorScene )
@@ -608,26 +567,7 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		for( auto entity : m_ScriptableEntitys )
-		{
-
-			if (!entity->HasComponent<NativeScriptComponent>())
-			{
-				entity->AddComponent<NativeScriptComponent>();
-				entity->GetComponent<NativeScriptComponent>().Instance = entity;
-
-
-				entity->GetComponent<NativeScriptComponent>().Instance->OnCreate();
-				entity->GetComponent<NativeScriptComponent>().Instance->BeginPlay();
-
-			}
-
-			auto ncs = entity->GetComponent<NativeScriptComponent>();
-
-			ncs.Instance->OnUpdate(ts);
-		}
-
-		auto view = m_Registry.view<ScriptComponent>();
+    auto view = m_Registry.view<ScriptComponent>();
 		for (auto entt : view) 
 		{
 			Entity e ={ entt, this };

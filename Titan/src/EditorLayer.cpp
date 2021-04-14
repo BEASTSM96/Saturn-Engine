@@ -55,7 +55,6 @@
 #include <Saturn/Core/Modules/ModuleManager.h>
 #include <Saturn/Scene/SceneManager.h>
 #include <Saturn/Script/ScriptEngine.h>
-
 #include <Saturn/Input.h>
 
 #include <Saturn/Scene/ScriptableEntity.h>
@@ -79,8 +78,6 @@ namespace Saturn {
 	EditorLayer::~EditorLayer()
 	{
 		SAT_PROFILE_FUNCTION();
-
-		//m_Serialiser_Thread.join();
 	}
 
 	void EditorLayer::OnAttach()
@@ -100,8 +97,6 @@ namespace Saturn {
 		m_AssetPanel->OnAttach();
 
 		OpenScene( "" );
-
-		Application::Get().GetSceneMananger().Raw()->AddScene( m_EditorScene );
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
@@ -176,9 +171,6 @@ namespace Saturn {
 	{
 		Serialiser s( m_EditorScene );
 		s.Deserialise( "assets\\test.sc" );
-
-		std::filesystem::path path = "test";
-		//UpdateWindowTitle( path.filename().string() );
 	}
 
 	void EditorLayer::OnDetach()
@@ -349,26 +341,19 @@ namespace Saturn {
 
 	void EditorLayer::PrepRuntime()
 	{
-		auto view = m_EditorScene->GetRegistry().view<TransformComponent, MeshComponent, NativeScriptComponent>();
-		for( auto entity : view )
-		{
-			auto [tc, mc, ncs] = view.get< TransformComponent, MeshComponent, NativeScriptComponent >( entity );
-		}
 	}
 
 	void EditorLayer::OnUpdate( Timestep ts )
 	{
 		m_EditorCamera.OnUpdate( ts );
 
-		//... only if we aren't in runtime, we can render editor with the editor camera
+		//only if we aren't in runtime, we can render editor with the editor camera
 		if( !m_RuntimeScene )
 		{
 			m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
 			m_EditorScene->m_PhysXScene->RenderPhysXDebug( m_EditorCamera );
 		}
 		m_DrawOnTopBoundingBoxes = true;
-
-		PrepRuntime();
 
 		if( m_RuntimeScene )
 		{
@@ -399,11 +384,10 @@ namespace Saturn {
 					mainCamera->Raw()->SetPosition( cameraPosition );
 					mainCamera->Raw()->OnUpdate( ts );
 					m_RuntimeScene->OnRenderRuntime( ts, *mainCamera->Raw() );
-					m_RuntimeScene->m_PhysXScene->RenderPhysXDebug( *mainCamera->Raw() );
 				}
 				else
 				{
-					//... if we don't have a scene camera we can just copy a editor camera and render the runtime...
+					//If we don't have a scene camera we can just copy a editor camera and render the runtime...
 					if ( !m_NoSceneCamera )
 					{
 						SAT_CORE_INFO( "No scene camera was found copying editor camera!" );
@@ -415,7 +399,7 @@ namespace Saturn {
 						*m_NoSceneCamera = m_EditorCamera;
 					}
 					m_RuntimeScene->OnRenderEditor( ts, *m_NoSceneCamera );
-					m_RuntimeScene->m_PhysXScene->RenderPhysXDebug( *m_NoSceneCamera );
+					m_RuntimeScene->m_PhysXScene->RenderPhysXDebug( m_EditorCamera );
 				}
 			}
 
@@ -424,7 +408,7 @@ namespace Saturn {
 
 		if ( !m_RuntimeScene )
 		{
-			//... for physx and others we will have to half the extents... 
+			//For physx and others we will have to half the extents... 
 			auto view = m_EditorScene->GetRegistry().view<TransformComponent, PhysXBoxColliderComponent>();
 			for( auto entity : view )
 			{
@@ -442,28 +426,6 @@ namespace Saturn {
 				sphereCollider.Radius = transform.Scale.y / 2.0f;
 			}
 		}
-		//if (m_DrawOnTopBoundingBoxes) {
-		//	Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
-		//	auto viewProj = m_EditorCamera.GetViewProjection();
-		//	Renderer2D::BeginScene(viewProj, false);
-		//	Renderer2D::EndScene();
-		//	Renderer::EndRenderPass();
-		//}
-
-		//if (m_SelectionContext.size()) {
-		//	auto& selection = m_SelectionContext[0];
-
-		//	if (selection.Mesh && selection.Entity.HasComponent<MeshComponent>())
-		//	{
-		//		Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
-		//		auto viewProj = m_EditorCamera.GetViewProjection();
-		//		Renderer2D::BeginScene(viewProj, false);
-		//		glm::vec4 color = (m_SelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
-		//		//Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.GetComponent<TransformComponent>().GetTransform() * selection.Mesh->Transform, color);
-		//		Renderer2D::EndScene();
-		//		Renderer::EndRenderPass();
-		//	}
-		//}
 	}
 
 	std::pair<float, float> EditorLayer::GetMouseViewportSpace()
@@ -561,6 +523,7 @@ namespace Saturn {
 				if( m_SelectionContext.size() )
 				{
 					Entity selectedEntity = m_SelectionContext[ 0 ].Entity;
+					m_SceneHierarchyPanel->canDraw = false;
 					m_EditorScene->DestroyEntity( selectedEntity );
 					m_SelectionContext.clear();
 					m_EditorScene->SetSelectedEntity( {} );
@@ -1040,6 +1003,7 @@ namespace Saturn {
 						auto projm = glm::value_ptr( m_EditorCamera.GetProjectionMatrix() );
 
 						Entity selectedEntity = m_SceneHierarchyPanel->GetSelectionContext();
+						selectedEntity.m_Scene = m_SceneHierarchyPanel->GetSelectionContext().m_Scene;
 
 						auto& tc = selectedEntity.GetComponent<TransformComponent>();
 						glm::mat4 transform = tc.GetTransform();

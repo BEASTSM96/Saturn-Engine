@@ -106,6 +106,7 @@ namespace Saturn {
 	private:
 		friend class Scene;
 		friend class ScriptableEntity;
+		friend class EditorLayer;
 		friend class ScriptEngine;
 	};
 }
