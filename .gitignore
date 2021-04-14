@@ -1,3 +1,13 @@
+!Saturn/vender/assimp/bin/
+!Saturn/vender/physx/bin/
+!Saturn/vender/mono/bin/
+!Saturn/vender/assimp/bin/**
+!Saturn/vender/physx/bin/**
+!Saturn/vender/mono/bin/**
+!Saturn/vender/assimp/bin/*
+!Saturn/vender/physx/bin/*
+!Saturn/vender/mono/bin/*
+
 # Prerequisites
 *.d
 
@@ -121,3 +131,6 @@ Saturn/vendor/**/Makefile
 Saturn/Makefile
 Makefile
 Titan/rp3d_log_Test.html
+*.csproj
+*.csproj.user
+Titan/assets/assembly/SaturnScript.pdb

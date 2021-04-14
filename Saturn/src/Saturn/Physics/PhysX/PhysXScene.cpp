@@ -28,7 +28,6 @@
 
 #include "sppch.h"
 #include "PhysXScene.h"
-
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Renderer/Renderer.h"
 #include "Saturn/Renderer/Renderer2D.h"
@@ -276,7 +275,7 @@ namespace Saturn {
 
 	PhysXScene::~PhysXScene()
 	{
-
+		
 	}
 
 }

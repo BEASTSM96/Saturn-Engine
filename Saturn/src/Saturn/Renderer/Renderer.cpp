@@ -41,7 +41,6 @@
 #include "Renderer2D.h"
 #include "SceneRenderer.h"
 
-
 namespace Saturn {
 	RendererAPIType RendererAPI::s_CurrentRendererAPI = RendererAPIType::OpenGL;
 

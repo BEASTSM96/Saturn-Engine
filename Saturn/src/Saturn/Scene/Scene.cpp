@@ -30,23 +30,15 @@
 #include "Scene.h"
 
 #include "Entity.h"
-
 #include "Components.h"
-
 #include "Saturn/Renderer/SceneRenderer.h"
-
 #include "SceneManager.h"
-
 #include "Saturn/Application.h"
-#include "Saturn/GameFramework/HotReload.h"
-
 #include "ScriptableEntity.h"
-
-#include "Saturn/GameFramework/Character.h"
-
 #include "Saturn/Physics/beastPhysics/PhysicsWorld.h"
-
 #include "Saturn/Physics/PhysX/PhysXScene.h"
+
+#include "Saturn/Script/ScriptEngine.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -59,10 +51,6 @@ namespace Saturn {
 
 	std::unordered_map<UUID, Scene*> s_ActiveScenes;
 
-	struct SceneComponent
-	{
-		UUID SceneID;
-	};
 
 	void Scene::PhysicsComponentCreate( entt::registry& r, entt::entity ent )
 	{
@@ -180,9 +168,24 @@ namespace Saturn {
 		physics.m_body = new PhysXCapsuleCollider( rbScene, rb, mat, physics.Radius, physics.Height );
 	}
 
+	void Scene::ScriptComponentCreate( entt::registry& r, entt::entity ent )
+	{
+		auto view = r.view<SceneComponent>();
+		UUID sceneId = r.get<SceneComponent>( view.front() ).SceneID;
+		Scene* scene = s_ActiveScenes[ sceneId ];
+
+		auto enttId = r.get<IdComponent>( ent ).ID;
+		SAT_CORE_ASSERT( scene->m_EntityIDMap.find( enttId ) != scene->m_EntityIDMap.end() );
+		ScriptEngine::OnInitEntity( scene->m_EntityIDMap.at(enttId) );
+	}
+
 	Scene::Scene( void )
 	{
 		SAT_PROFILE_FUNCTION();
+
+		s_ActiveScenes[ m_SceneID ] = this;
+		m_SceneEntity = m_Registry.create();
+		m_Registry.emplace<SceneComponent>( m_SceneEntity, m_SceneID );
 
 		auto skyboxShader = Shader::Create( "assets/shaders/Skybox.glsl" );
 		m_SkyboxMaterial = MaterialInstance::Create( Material::Create( skyboxShader ) );
@@ -198,11 +201,12 @@ namespace Saturn {
 		m_Registry.on_construct<PhysXSphereColliderComponent>().connect<&Scene::PhysXBoxSphereComponentCreate>( this );
 		m_Registry.on_construct<PhysXCapsuleColliderComponent>().connect<&Scene::PhysXCapsuleColliderComponentCreate>( this );
 		m_Registry.on_construct<CameraComponent>().connect<&Scene::CameraComponentCreate>( this );
+		m_Registry.on_construct<ScriptComponent>().connect<&Scene::ScriptComponentCreate>( this );
 	}
 
 	Scene::~Scene( void )
 	{
-		//s_ActiveScenes.erase(m_SceneID);
+		s_ActiveScenes.erase(m_SceneID);
 
 		m_Registry.clear();
 	}
@@ -287,57 +291,19 @@ namespace Saturn {
 		SceneRenderer::EndScene();
 	}
 
-	Entity Scene::CreateEntity(const std::string& name)
+	Entity Scene::CreateEntity( const std::string& name )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		Entity entity = { m_Registry.create(), this };
+		Entity entity ={ m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Unmanned Entity" : name;
 
-		auto& ID = entity.AddComponent<IdComponent>();
+		auto& IDcomponent = entity.AddComponent<IdComponent>();
+		entity.GetComponent<IdComponent>().ID ={};
 
-		return entity;
-	}
-
-	ScriptableEntity Scene::CreateScriptableEntity( const std::string& name )
-	{
-		SAT_PROFILE_FUNCTION();
-
-		ScriptableEntity entity;
-		entity.m_Entity = CreateEntity( name );
-		entity.m_Scene = this;
-		entity.m_Entity.AddComponent<NativeScriptComponent>();
-		auto& ncs = entity.m_Entity.GetComponent<NativeScriptComponent>();
-
-		return entity;
-	}
-
-	ScriptableEntity* Scene::CreateScriptableEntityptr( const std::string& name )
-	{
-		SAT_PROFILE_FUNCTION();
-
-		ScriptableEntity* entity = new ScriptableEntity();
-		entity->m_Entity = CreateEntity( name );
-		entity->m_Scene = this;
-		entity->AddComponent<NativeScriptComponent>();
-		auto& ncs = entity->GetComponent<NativeScriptComponent>();
-		ncs.Instance = entity;
-		if( ncs.Instance == nullptr )
-		{
-			SAT_CORE_ERROR( "NativeScriptComponent.Instance null" );
-			SAT_CORE_INFO( "Retrying!" );
-
-			ncs.Instance = entity;
-
-			SAT_CORE_ASSERT( ncs.Instance != nullptr, "NativeScriptComponent.Instance null" );
-		}
-		ncs.Instance->OnCreate();
-	
-
-		m_ScriptableEntitys.push_back(entity);
-
+		m_EntityIDMap[ IDcomponent.ID ] = entity;
 		return entity;
 	}
 
@@ -350,22 +316,22 @@ namespace Saturn {
 		idComponent.ID = uuid;
 
 		entity.AddComponent<TransformComponent>();
-		if (!name.empty())
-			entity.AddComponent<TagComponent>(name);
+		if( !name.empty() )
+			entity.AddComponent<TagComponent>( name );
 
-		//SAT_CORE_ASSERT(m_EntityIDMap.find(uuid) == m_EntityIDMap.end());
-		m_EntityIDMap[uuid] = entity;
+		//SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) == m_EntityIDMap.end(), "Entity has the same name!" );
+		m_EntityIDMap[ uuid ] = entity;
 		return entity;
 	}
 
-	void Scene::DestroyEntity(Entity entity)
+	void Scene::DestroyEntity( Entity entity )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		m_Registry.destroy(entity.m_EntityHandle);
+		m_Registry.destroy( entity.m_EntityHandle );
 	}
 
-	void Scene::SetViewportSize(uint32_t width, uint32_t height)
+	void Scene::SetViewportSize( uint32_t width, uint32_t height )
 	{
 		SAT_PROFILE_FUNCTION();
 
@@ -373,16 +339,16 @@ namespace Saturn {
 		m_ViewportHeight = height;
 	}
 
-	void Scene::SetEnvironment(const Environment& environment)
+	void Scene::SetEnvironment( const Environment& environment )
 	{
 		m_Environment = environment;
-		SetSkybox(environment.RadianceMap);
+		SetSkybox( environment.RadianceMap );
 	}
 
-	void Scene::SetSkybox(const Ref<TextureCube>& skybox)
+	void Scene::SetSkybox( const Ref<TextureCube>& skybox )
 	{
 		m_SkyboxTexture = skybox;
-		m_SkyboxMaterial->Set("u_Texture", skybox);
+		m_SkyboxMaterial->Set( "u_Texture", skybox );
 	}
 
 	Entity Scene::GetMainCameraEntity( void )
@@ -477,10 +443,14 @@ namespace Saturn {
 		auto components = srcRegistry.view<T>();
 		for (auto srcEntity : components)
 		{
-			entt::entity destEntity = enttMap.at(srcRegistry.get<IdComponent>(srcEntity).ID);
+			if ( !srcRegistry.has<SceneComponent>( srcEntity ))
+			{
+				SAT_CORE_INFO( "{0}", srcRegistry.get<IdComponent>( srcEntity ).ID );
+				entt::entity destEntity = enttMap.at( srcRegistry.get<IdComponent>( srcEntity ).ID );
 
-			auto& srcComponent = srcRegistry.get<T>(srcEntity);
-			auto& destComponent = dstRegistry.emplace_or_replace<T>(destEntity, srcComponent);
+				auto& srcComponent = srcRegistry.get<T>( srcEntity );
+				auto& destComponent = dstRegistry.emplace_or_replace<T>( destEntity, srcComponent );
+			}
 		}
 	}
 
@@ -495,178 +465,6 @@ namespace Saturn {
 	}
 
 	/**
-	* Copies the scene and returns the new scene
-	*/
-	Ref<Scene> Scene::CopyScene(const Ref<Scene>& CurrentScene)
-	{
-		SAT_PROFILE_FUNCTION();
-
-		SAT_CORE_WARN("Copying Scene!");
-		Ref<Scene> CScene = Ref<Scene>::Create();
-		CScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
-		CScene->m_data = CurrentScene->m_data;
-		CScene->m_DebugName = CurrentScene->m_DebugName;
-		CScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
-		CScene->m_Environment = CurrentScene->m_Environment;
-		CScene->m_Light = CurrentScene->m_Light;
-		CScene->m_LightMultiplier = CurrentScene->m_LightMultiplier;
-		CScene->m_SkyboxLod = CurrentScene->m_SkyboxLod;
-		CScene->m_SkyboxMaterial = CurrentScene->m_SkyboxMaterial;
-		CScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
-		CScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
-		CScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
-		CScene->m_ReactPhysicsScene = CurrentScene->m_ReactPhysicsScene;
-		CScene->m_RuntimeData = CurrentScene->m_RuntimeData;
-
-		std::unordered_map<UUID, entt::entity> enttMap;
-		auto idComponents = m_Registry.view<IdComponent>();
-		for (auto entity : idComponents)
-		{
-			auto uuid = m_Registry.get<IdComponent>(entity).ID;
-			Entity e = CScene->CreateEntityWithID(uuid, "", true);
-			enttMap[uuid] = e.m_EntityHandle;
-		}
-
-		CopyComponent<TagComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<TransformComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<MeshComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<RelationshipComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<PhysicsComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<BoxColliderComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<SphereColliderComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<SpriteRendererComponent>(CScene->m_Registry, m_Registry, enttMap);
-
-		return CScene;
-	}
-
-	/**
-	* Copies the scene and returns the new scene
-	*/
-	Scene* Scene::CopyScene(const Scene*& CurrentScene)
-	{
-		SAT_CORE_WARN("Copying Scene!");
-		Scene* CScene = new Scene();
-		CScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
-		CScene->m_data = CurrentScene->m_data;
-		CScene->m_DebugName = CurrentScene->m_DebugName;
-		CScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
-		CScene->m_Environment = CurrentScene->m_Environment;
-		CScene->m_Light = CurrentScene->m_Light;
-		CScene->m_LightMultiplier = CurrentScene->m_LightMultiplier;
-		CScene->m_SkyboxLod = CurrentScene->m_SkyboxLod;
-		CScene->m_SkyboxMaterial = CurrentScene->m_SkyboxMaterial;
-		CScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
-		CScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
-		CScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
-		CScene->m_ReactPhysicsScene = CurrentScene->m_ReactPhysicsScene;
-		CScene->m_RuntimeData = CurrentScene->m_RuntimeData;
-
-		std::unordered_map<UUID, entt::entity> enttMap;
-		auto idComponents = m_Registry.view<IdComponent>();
-		for (auto entity : idComponents)
-		{
-			auto uuid = m_Registry.get<IdComponent>(entity).ID;
-			Entity e = CScene->CreateEntityWithID(uuid, "", true);
-			enttMap[uuid] = e.m_EntityHandle;
-		}
-
-		CopyComponent<TagComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<TransformComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<MeshComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<RelationshipComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<PhysicsComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<BoxColliderComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<SphereColliderComponent>(CScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<SpriteRendererComponent>(CScene->m_Registry, m_Registry, enttMap);
-
-		return CScene;
-	}
-
-	/**
-	* Copies the scene and returns the new scene, and fills the 'NewScece' value
-	*/
-	Ref<Scene> Scene::CopyScene(const Ref<Scene>& CurrentScene, Ref<Scene> NewScene)
-	{
-		SAT_CORE_WARN("Copying Scene!");
-		NewScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
-		NewScene->m_data = CurrentScene->m_data;
-		NewScene->m_DebugName = CurrentScene->m_DebugName;
-		NewScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
-		NewScene->m_Environment = CurrentScene->m_Environment;
-		NewScene->m_Light = CurrentScene->m_Light;
-		NewScene->m_LightMultiplier = CurrentScene->m_LightMultiplier;
-		NewScene->m_SkyboxLod = CurrentScene->m_SkyboxLod;
-		NewScene->m_SkyboxMaterial = CurrentScene->m_SkyboxMaterial;
-		NewScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
-		NewScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
-		NewScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
-		NewScene->m_ReactPhysicsScene = CurrentScene->m_ReactPhysicsScene;
-		NewScene->m_RuntimeData = CurrentScene->m_RuntimeData;
-
-		std::unordered_map<UUID, entt::entity> enttMap;
-		auto idComponents = m_Registry.view<IdComponent>();
-		for (auto entity : idComponents)
-		{
-			auto uuid = m_Registry.get<IdComponent>(entity).ID;
-			Entity e = NewScene->CreateEntityWithID(uuid, "", true);
-			enttMap[uuid] = e.m_EntityHandle;
-		}
-
-		CopyComponent<TagComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<TransformComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<MeshComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<RelationshipComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<PhysicsComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<BoxColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<SphereColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<SpriteRendererComponent>(NewScene->m_Registry, m_Registry, enttMap);
-
-		return NewScene;
-	}
-
-	/**
-	* Copies the scene and returns the new scene, and fills the 'NewScece' value
-	*/
-	Scene* Scene::CopyScene(const Scene*& CurrentScene, Scene* NewScene)
-	{
-		SAT_CORE_WARN("Copying Scene!");
-		NewScene->m_CurrentLevel = CurrentScene->m_CurrentLevel;
-		NewScene->m_data = CurrentScene->m_data;
-		NewScene->m_DebugName = CurrentScene->m_DebugName;
-		NewScene->m_EntityIDMap = CurrentScene->m_EntityIDMap;
-		NewScene->m_Environment = CurrentScene->m_Environment;
-		NewScene->m_Light = CurrentScene->m_Light;
-		NewScene->m_LightMultiplier = CurrentScene->m_LightMultiplier;
-		NewScene->m_SkyboxLod = CurrentScene->m_SkyboxLod;
-		NewScene->m_SkyboxMaterial = CurrentScene->m_SkyboxMaterial;
-		NewScene->m_SkyboxTexture = CurrentScene->m_SkyboxTexture;
-		NewScene->m_ViewportHeight = CurrentScene->m_ViewportHeight;
-		NewScene->m_ViewportWidth = CurrentScene->m_ViewportWidth;
-		NewScene->m_ReactPhysicsScene = CurrentScene->m_ReactPhysicsScene;
-		NewScene->m_RuntimeData = CurrentScene->m_RuntimeData;
-
-		std::unordered_map<UUID, entt::entity> enttMap;
-		auto idComponents = m_Registry.view<IdComponent>();
-		for (auto entity : idComponents)
-		{
-			auto uuid = m_Registry.get<IdComponent>(entity).ID;
-			Entity e = NewScene->CreateEntityWithID(uuid, "", true);
-			enttMap[uuid] = e.m_EntityHandle;
-		}
-
-		CopyComponent<TagComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<TransformComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<MeshComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<RelationshipComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<PhysicsComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<BoxColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<SphereColliderComponent>(NewScene->m_Registry, m_Registry, enttMap);
-		CopyComponent<SpriteRendererComponent>(NewScene->m_Registry, m_Registry, enttMap);
-
-		return NewScene;
-	}
-
-	/**
 	* Copies the scene and fills the 'NewScece' value
 	*/
 	void Scene::CopyScene(Ref<Scene>& NewScene)
@@ -674,7 +472,6 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 
 		SAT_CORE_WARN("Copying Scene!");
-		NewScene->m_CurrentLevel = m_CurrentLevel;
 		NewScene->m_data = m_data;
 		NewScene->m_DebugName = m_DebugName;
 		NewScene->m_EntityIDMap = m_EntityIDMap;
@@ -708,15 +505,14 @@ namespace Saturn {
 		CopyComponent<BoxColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<SphereColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<SpriteRendererComponent>( NewScene->m_Registry, m_Registry, enttMap );
-		CopyComponent<NativeScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<RigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXRigidbodyComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXBoxColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXSphereColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXCapsuleColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<ScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
-		NewScene->m_ScriptableEntitys = m_ScriptableEntitys;
 		NewScene->m_PhysXScene->m_Foundation = m_PhysXScene->m_Foundation;
 		NewScene->m_PhysXScene->m_PVD = m_PhysXScene->m_PVD;
 	}
@@ -732,25 +528,18 @@ namespace Saturn {
 		SAT_CORE_WARN("[Runtime] Starting!");
 		m_RuntimeRunning = true;
 
-		for( auto entity : m_ScriptableEntitys )
+		auto view = m_Registry.view<ScriptComponent>();
+		for( auto entt : view )
 		{
-			auto ncs = entity->GetComponent<NativeScriptComponent>();
-		
-			ncs.Instance->BeginPlay();
-
+			Entity e ={ entt, this };
+			ScriptEngine::OnCreateEntity( e );
+			ScriptEngine::OnEntityBeginPlay( e );
 		}
 	}
 
 	void Scene::EndRuntime( void )
 	{
 		m_RuntimeRunning = false;
-
-		for( auto entity : m_ScriptableEntitys )
-		{
-			auto ncs = entity->GetComponent<NativeScriptComponent>();
-
-			ncs.Instance->OnDestroy();
-		}
 	}
 
 	void Scene::ResetRuntime( const Ref<Scene>& EditorScene )
@@ -762,27 +551,12 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		for( auto entity : m_ScriptableEntitys )
+    auto view = m_Registry.view<ScriptComponent>();
+		for (auto entt : view) 
 		{
-
-			if (!entity->HasComponent<NativeScriptComponent>())
-			{
-				entity->AddComponent<NativeScriptComponent>();
-				entity->GetComponent<NativeScriptComponent>().Instance = entity;
-
-
-				entity->GetComponent<NativeScriptComponent>().Instance->OnCreate();
-				entity->GetComponent<NativeScriptComponent>().Instance->BeginPlay();
-
-			}
-
-			auto ncs = entity->GetComponent<NativeScriptComponent>();
-
-			ncs.Instance->OnUpdate(ts);
-
+			Entity e ={ entt, this };
+			ScriptEngine::OnUpdateEntity( e, ts );
 		}
 
-		Application::Get().GetHotReload()->OnHotReload();
 	}
-
 }
