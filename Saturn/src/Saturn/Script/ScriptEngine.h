@@ -64,7 +64,7 @@ namespace Saturn {
 
 	struct EntityInstance
 	{
-		EntityClass* ScrtptClass;
+		EntityClass* ScriptClass;
 
 		uint32_t Handle;
 		Scene* SceneInstance;
@@ -125,6 +125,8 @@ namespace Saturn {
 		static void OnEntityBeginPlay( Entity entity );
 		static void OnUpdateEntity( Entity entity, Timestep ts );
 		static void OnInitEntity( Entity entity );
+		static void OnCollisionBegin( Entity entity );
+		static void OnCollisionExit( Entity entity );
 		static void SetSceneContext( const Ref<Scene>& scene );
 		static bool ModuleExists( const std::string& moduleName );
 		static EntityInstance& GetEntityInstanceData( UUID entityId );

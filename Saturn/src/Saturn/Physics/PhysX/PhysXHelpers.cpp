@@ -27,56 +27,29 @@
 */
 
 #include "sppch.h"
-#include "PhysXCollider.h"
+#include "PhysXHelpers.h"
 
 namespace Saturn {
 
-	PhysXCollider::PhysXCollider( PhysXRigidbody* body, std::vector<physx::PxShape*> shapes ) : m_Shapes( std::move( shapes ) )
-	{
-		m_Body = body;
-
-		if( m_Body->m_Scene )
+    physx::PxFilterFlags CollisionFilterShader( physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize )
+    {
+		if( physx::PxFilterObjectIsTrigger( attributes0 ) || physx::PxFilterObjectIsTrigger( attributes1 ) )
 		{
-			m_Scene = m_Body->m_Scene;
+			pairFlags = physx::PxPairFlag::eTRIGGER_DEFAULT;
+			return physx::PxFilterFlag::eDEFAULT;
 		}
 
-		for( physx::PxShape* shape : m_Shapes )
+		pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT;
+		pairFlags |= physx::PxPairFlag::eDETECT_CCD_CONTACT;
+
+		if( ( filterData0.word0 & filterData1.word1 ) || ( filterData1.word0 & filterData0.word1 ) )
 		{
-			m_Body->m_Body->attachShape( *shape );
-			shape->setFlag( physx::PxShapeFlag::eVISUALIZATION, true );
-			shape->setFlag( physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true );
-			shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, true );
-			shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, false );
+			pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
+			pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_LOST;
+			pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_CCD;
+			return physx::PxFilterFlag::eDEFAULT;
 		}
 
-	}
-
-	PhysXCollider::~PhysXCollider()
-	{
-		for( physx::PxShape* shape : m_Shapes )
-		{
-			m_Body->m_Body->detachShape( *shape );
-		}
-
-		m_Scene->m_PhysXScene->removeActor( *m_Body->m_Body );
-		m_Body->m_Body->release();
-
-		m_Shapes.clear();
-	}
-
-	std::vector<physx::PxShape*>& PhysXCollider::GetShapes()
-	{
-		return m_Shapes;
-	}
-
-	const std::vector<physx::PxShape*>& PhysXCollider::GetShapes() const
-	{
-		return m_Shapes;
-	}
-
-	void PhysXCollider::SetPosition( glm::vec3 position )
-	{
-
-	}
-
+		return physx::PxFilterFlag::eDEFAULT;
+    }
 }

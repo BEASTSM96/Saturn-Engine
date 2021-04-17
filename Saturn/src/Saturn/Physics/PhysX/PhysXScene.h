@@ -41,6 +41,7 @@
 #include "Saturn/Renderer/Camera.h"
 #include "Saturn/Editor/EditorCamera.h"
 #include "Saturn/Scene/SceneCamera.h"
+#include "PhysXHelpers.h"
 
 namespace Saturn {
 	
@@ -54,10 +55,7 @@ namespace Saturn {
 		~PhysXScene();
 
 		void Update( Timestep ts );
-		void RenderPhysXDebug( const SceneCamera& camera );
-		void RenderPhysXDebug( const EditorCamera& camera );
 
-		PhysXSimulationEventCallback* m_PhysXSimulationEventCallback;
 		PhysXErrorCallback m_DefaultErrorCallback;
 		physx::PxDefaultAllocator m_DefaultAllocatorCallback;
 		physx::PxFoundation* m_Foundation = NULL;

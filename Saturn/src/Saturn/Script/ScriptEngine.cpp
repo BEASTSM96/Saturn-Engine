@@ -32,7 +32,7 @@ namespace Saturn {
 		MonoMethod* MethodBeginPlay = nullptr;
 		MonoMethod* MethodOnUpdate = nullptr;
 		MonoMethod* MethodOnDestory = nullptr;
-		MonoMethod* MethodOnCollisionEnter = nullptr;
+		MonoMethod* MethodOnCollisionBegin = nullptr;
 		MonoMethod* MethodOnCollisionExit = nullptr;
 		MonoMethod* MethodOnCollisionStay = nullptr;
 		MonoMethod* MethodOnTriggerEnter = nullptr;
@@ -45,6 +45,8 @@ namespace Saturn {
 			MethodBeginPlay  =  MonoUtils::GetMethod( image, FullName + ":OnBeginPlay()" );
 			MethodOnUpdate   =  MonoUtils::GetMethod( image, FullName + ":OnUpdate(single)" );
 			MethodOnDestory  =  MonoUtils::GetMethod( image, FullName + ":OnDestory()" );
+			MethodOnCollisionBegin = MonoUtils::GetMethod( image, FullName + ":OnCollisionBegin()" );
+			MethodOnCollisionExit = MonoUtils::GetMethod( image, FullName + ":OnCollisionExit()" );
 		}
 
 	};
@@ -208,11 +210,11 @@ namespace Saturn {
 		auto& entityInstance = GetEntityInstanceData( id );
 
 		void* param[] ={ &id };
-		if( entityInstance.ScrtptClass->MethodConstructor )
-			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScrtptClass->MethodConstructor, param );
+		if( entityInstance.ScriptClass->MethodConstructor )
+			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScriptClass->MethodConstructor, param );
 
-		if( entityInstance.ScrtptClass->MethodOnCreate )
-			MonoUtils::CallMethod(entityInstance.Get(), entityInstance.ScrtptClass->MethodOnCreate);
+		if( entityInstance.ScriptClass->MethodOnCreate )
+			MonoUtils::CallMethod(entityInstance.Get(), entityInstance.ScriptClass->MethodOnCreate);
 	}
 
 	void ScriptEngine::OnEntityBeginPlay( Entity entity )
@@ -223,8 +225,8 @@ namespace Saturn {
 		UUID id = entity.GetComponent<IdComponent>().ID;
 		auto& entityInstance = GetEntityInstanceData( id );
 
-		if( entityInstance.ScrtptClass->MethodBeginPlay )
-			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScrtptClass->MethodBeginPlay );
+		if( entityInstance.ScriptClass->MethodBeginPlay )
+			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScriptClass->MethodBeginPlay );
 	}
 
 	void ScriptEngine::OnUpdateEntity( Entity entity, Timestep ts )
@@ -233,10 +235,10 @@ namespace Saturn {
 			return;
 
 		auto& entityInstance = GetEntityInstanceData( entity.GetComponent<IdComponent>().ID );
-		if ( entityInstance.ScrtptClass->MethodOnUpdate )
+		if ( entityInstance.ScriptClass->MethodOnUpdate )
 		{
 			void* args[] ={ &ts };
-			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScrtptClass->MethodOnUpdate, args );
+			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScriptClass->MethodOnUpdate, args );
 		}
 	}
 
@@ -273,7 +275,7 @@ namespace Saturn {
 			SAT_CORE_INFO( "0{0}", scene->GetUUID() );
 			SAT_CORE_INFO( "1{0}", id );
 			EntityInstance& entityInstance = s_EntityInstanceMap[ id ];
-			entityInstance.ScrtptClass = &entityClass;
+			entityInstance.ScriptClass = &entityClass;
 			entityInstance.Handle = Instantiate( entityClass );
 			{
 				MonoClassField* it;
@@ -295,6 +297,30 @@ namespace Saturn {
 				}
 			}
 		}
+	}
+
+	void ScriptEngine::OnCollisionBegin( Entity entity )
+	{
+		if( !s_Init )
+			return;
+
+		UUID id = entity.GetComponent<IdComponent>().ID;
+		auto& entityInstance = GetEntityInstanceData( id );
+
+		if( entityInstance.ScriptClass->MethodOnCollisionBegin )
+			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScriptClass->MethodOnCollisionBegin );
+	}
+
+	void ScriptEngine::OnCollisionExit( Entity entity )
+	{
+		if( !s_Init )
+			return;
+
+		UUID id = entity.GetComponent<IdComponent>().ID;
+		auto& entityInstance = GetEntityInstanceData( id );
+
+		if( entityInstance.ScriptClass->MethodOnCollisionExit )
+			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScriptClass->MethodOnCollisionExit );
 	}
 
 	void ScriptEngine::SetSceneContext( const Ref<Scene>& scene )

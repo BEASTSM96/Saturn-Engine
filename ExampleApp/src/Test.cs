@@ -21,6 +21,16 @@ namespace ExampleApp
             Log.Info("OnBeginPlay");
         }
 
+        public void OnCollisionBegin()
+        {
+            Log.Info("OnCollisionBegin");
+        }
+
+        public void OnCollisionExit() 
+        {
+            Log.Info("OnCollisionExit");
+        }
+
         public void OnUpdate(float ts)
         {
             if (Input.IsKeyPressed((UInt16)Input.Key.W))

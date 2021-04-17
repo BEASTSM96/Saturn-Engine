@@ -351,7 +351,6 @@ namespace Saturn {
 		if( !m_RuntimeScene )
 		{
 			m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
-			m_EditorScene->m_PhysXScene->RenderPhysXDebug( m_EditorCamera );
 		}
 		m_DrawOnTopBoundingBoxes = true;
 
@@ -399,7 +398,6 @@ namespace Saturn {
 						*m_NoSceneCamera = m_EditorCamera;
 					}
 					m_RuntimeScene->OnRenderEditor( ts, *m_NoSceneCamera );
-					m_RuntimeScene->m_PhysXScene->RenderPhysXDebug( m_EditorCamera );
 				}
 			}
 

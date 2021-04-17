@@ -3,11 +3,13 @@
 
 #include <physx/PxPhysicsAPI.h>
 
+#include "Saturn/Scene/Components.h"
+#include "Saturn/Scene/Entity.h"
+
 namespace Saturn {
 
-	PhysXSimulationEventCallback::PhysXSimulationEventCallback( physx::PxSceneDesc PxSceneDesc )
+	PhysXSimulationEventCallback::PhysXSimulationEventCallback()
 	{
-		PxSceneDesc.simulationEventCallback = this;
 		SetSceneContext( nullptr );
 	}
 
@@ -39,47 +41,50 @@ namespace Saturn {
 
 	void PhysXSimulationEventCallback::onContact( const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs )
 	{
-		if( pairHeader.flags.isSet( physx::PxContactPairHeaderFlag::eREMOVED_ACTOR_0 ) || pairHeader.flags.isSet( physx::PxContactPairHeaderFlag::eREMOVED_ACTOR_1 ) )
-		{
-			SAT_CORE_ERROR( "pairHeader.flags.isSet( PxContactPairHeaderFlag::eREMOVED_ACTOR_0 ) || pairHeader.flags.isSet( PxContactPairHeaderFlag::eREMOVED_ACTOR_1 )" );
-			return;
-		}
-		if( pairHeader.actors[ 0 ]->userData == nullptr || pairHeader.actors[ 1 ]->userData == nullptr )
-			return;
-		for ( physx::PxU32 index = 0; index < nbPairs; ++index )
-		{
-			const physx::PxContactPair& contactPair = pairs[index];
-			if ( contactPair.flags.isSet( physx::PxContactPairFlag::eREMOVED_SHAPE_0 ) || contactPair.flags.isSet( physx::PxContactPairFlag::eREMOVED_SHAPE_1 ) )
-			{
-				SAT_CORE_INFO( "contactPair.flags.isSet( PxContactPairFlag::eREMOVED_SHAPE_0 ) || contactPair.flags.isSet( PxContactPairFlag::eREMOVED_SHAPE_1 )" );
-				continue;
-			}
-			if( contactPair.flags.isSet( physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH ) ) 
-			{
-				//TODO: Add ContactType
-			}
-			if( contactPair.flags.isSet( physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH ) )
-			{
-				//TODO: Add ContactType
-			}
-			physx::PxContactStreamIterator iterator( contactPair.contactPatches, contactPair.contactPoints, contactPair.getInternalFaceIndices(), contactPair.patchCount, contactPair.contactCount );
-			while( iterator.hasNextPatch() )
-			{
-				iterator.nextPatch();
-				while( iterator.hasNextContact() ) 
-				{
-					iterator.nextContact();
-					const physx::PxVec3 position = iterator.getContactPoint();
-					const physx::PxVec3 normal = iterator.getContactNormal();
-				}
-			}
+		Entity& a = *( Entity* )pairHeader.actors[ 0 ]->userData;
+		Entity& b = *( Entity* )pairHeader.actors[ 1 ]->userData;
 
+		SAT_CORE_INFO( "onContact" );
+
+		if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
+		{
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionBegin( a );
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionBegin( b );
+		}
+
+		if( pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH )
+		{
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionExit( a );
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionExit( b );
 		}
 	}
 
 	void PhysXSimulationEventCallback::onTrigger( physx::PxTriggerPair* pairs, physx::PxU32 count )
 	{
+		Entity& a = *( Entity* )pairs->triggerActor->userData;
+		Entity& b = *( Entity* )pairs->otherActor->userData;
 
+		SAT_CORE_INFO( "onContact" );
+
+		if( pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND )
+		{
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionBegin( a );
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionBegin( b );
+		}
+
+		if( pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_LOST )
+		{
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionExit( a );
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionExit( b );
+		}
 	}
 
 	void PhysXSimulationEventCallback::onAdvance( const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count )

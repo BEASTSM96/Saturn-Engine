@@ -378,7 +378,6 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		
 		auto ReactView = m_Registry.view<TransformComponent, RigidbodyComponent>();
 		auto PhysXView = m_Registry.view<TransformComponent, PhysXRigidbodyComponent>();
 
@@ -397,6 +396,8 @@ namespace Saturn {
 					}
 
 					tc.Position = rb.m_body->GetPos();
+					rb.m_body->GetPos() = tc.Position;
+					
 				}
 				break;
 			case Saturn::PhysicsType::ReactPhysics:
