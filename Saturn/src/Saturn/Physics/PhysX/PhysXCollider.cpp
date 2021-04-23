@@ -58,7 +58,7 @@ namespace Saturn {
 			m_Body->m_Body->detachShape( *shape );
 		}
 
-		m_Scene->m_PhysXScene->removeActor( *m_Body->m_Body );
+		m_Scene->GetPhysXScene().removeActor( *m_Body->m_Body );
 		m_Body->m_Body->release();
 
 		m_Shapes.clear();

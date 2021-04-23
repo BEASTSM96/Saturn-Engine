@@ -46,16 +46,16 @@ namespace Saturn {
 
 		physx::PxTransform PhysXTransform( PxPos, PxQua );
 
-		m_Body = m_Scene->m_Physics->createRigidDynamic( PhysXTransform );
+		m_Body = m_Scene->GetPhysics().createRigidDynamic( PhysXTransform );
 		m_Body->userData = this;
 		m_Body->setActorFlag( physx::PxActorFlag::eVISUALIZATION, true );
-		m_Scene->m_PhysXScene->addActor( *m_Body );
+		m_Scene->GetPhysXScene().addActor( *m_Body );
 
 	}
 
 	PhysXRigidbody::~PhysXRigidbody()
 	{
-		m_Scene->m_Physics->release();
+		m_Scene->GetPhysics().release();
 	}
 
 	glm::vec3 PhysXRigidbody::GetPos()

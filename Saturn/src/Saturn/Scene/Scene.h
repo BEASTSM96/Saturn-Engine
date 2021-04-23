@@ -139,6 +139,8 @@ namespace Saturn {
 
 		void DuplicateEntity(Entity entity);
 
+		void CreatePhysxScene();
+
 		// Editor-specific
 		void SetSelectedEntity(entt::entity entity) { m_SelectedEntity = entity; }
 

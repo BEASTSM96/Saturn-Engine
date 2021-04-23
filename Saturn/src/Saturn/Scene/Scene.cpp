@@ -179,6 +179,11 @@ namespace Saturn {
 		ScriptEngine::OnInitEntity( scene->m_EntityIDMap.at(enttId) );
 	}
 
+	void Scene::CreatePhysxScene()
+	{
+		//m_PhysXScene = Ref<PhysXScene>::Create( this );
+	}
+
 	Scene::Scene( void )
 	{
 		SAT_PROFILE_FUNCTION();
@@ -187,12 +192,13 @@ namespace Saturn {
 		m_SceneEntity = m_Registry.create();
 		m_Registry.emplace<SceneComponent>( m_SceneEntity, m_SceneID );
 
+		m_PhysXScene = Ref<PhysXScene>::Create( this );
+
 		auto skyboxShader = Shader::Create( "assets/shaders/Skybox.glsl" );
 		m_SkyboxMaterial = MaterialInstance::Create( Material::Create( skyboxShader ) );
 		m_SkyboxMaterial->SetFlag( MaterialFlag::DepthTest, false );
 
 		m_ReactPhysicsScene = Ref<PhysicsScene>::Create( this );
-		m_PhysXScene = Ref<PhysXScene>::Create( this );;
 		m_PhysicsWorld = Ref<PhysicsWorld>::Create( this );
 
 		m_Registry.on_construct<RigidbodyComponent>().connect<&Scene::PhysicsComponentCreate>( this );
@@ -374,6 +380,7 @@ namespace Saturn {
 		return { filepath, radiance, irradiance };
 	}
 
+
 	void Scene::PhysicsUpdate( PhysicsType type, float delta )
 	{
 		SAT_PROFILE_FUNCTION();
@@ -513,9 +520,6 @@ namespace Saturn {
 		CopyComponent<PhysXCapsuleColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<ScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
-
-		NewScene->m_PhysXScene->m_Foundation = m_PhysXScene->m_Foundation;
-		NewScene->m_PhysXScene->m_PVD = m_PhysXScene->m_PVD;
 	}
 
 	void Scene::BeginRuntime( void )

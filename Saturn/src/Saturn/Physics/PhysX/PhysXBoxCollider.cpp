@@ -35,7 +35,7 @@ namespace Saturn {
 		: PhysXCollider( 
 			body, 
 			std::vector<physx::PxShape*>(
-			1, scene->m_Physics->createShape(
+			1, scene->GetPhysics().createShape(
 			physx::PxBoxGeometry( physx::PxVec3( Extents.x, Extents.y, Extents.z ) ),
 			*material->m_Material, 
 			true

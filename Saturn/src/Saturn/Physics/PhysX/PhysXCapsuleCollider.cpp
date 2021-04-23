@@ -32,7 +32,7 @@
 namespace Saturn {
 
 	PhysXCapsuleCollider::PhysXCapsuleCollider( PhysXScene* scene, PhysXRigidbody* body, PhysXMaterial* material, float Radius, float Height )
-		: PhysXCollider( body, std::vector<physx::PxShape*>(1, scene->m_Physics->createShape( physx::PxCapsuleGeometry( Radius, Height / 2.0f ), *material->m_Material ) ) )
+		: PhysXCollider( body, std::vector<physx::PxShape*>(1, scene->GetPhysics().createShape( physx::PxCapsuleGeometry( Radius, Height / 2.0f ), *material->m_Material ) ) )
 	{
 		m_Body = body;
 		m_Scene = scene;

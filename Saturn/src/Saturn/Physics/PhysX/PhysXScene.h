@@ -54,16 +54,16 @@ namespace Saturn {
 		PhysXScene( Scene* scene );
 		~PhysXScene();
 
+		static void Init();
+
 		void Update( Timestep ts );
 
-		PhysXErrorCallback m_DefaultErrorCallback;
-		physx::PxDefaultAllocator m_DefaultAllocatorCallback;
-		physx::PxFoundation* m_Foundation = NULL;
-		physx::PxDefaultCpuDispatcher* m_Dispatcher = NULL;
-		physx::PxCooking* m_Cooking = NULL;
-		physx::PxPhysics* m_Physics = NULL;
-		physx::PxScene* m_PhysXScene = NULL;
-		physx::PxPvd* m_PVD = NULL;
+	public:
+		physx::PxPhysics& GetPhysics();
+		physx::PxScene& GetPhysXScene();
+
+		const physx::PxPhysics& GetPhysics() const;
+		const physx::PxScene& GetPhysXScene() const;
 
 	protected:
 		Scene* m_Scene;
@@ -71,6 +71,18 @@ namespace Saturn {
 	private:
 		_declspec( align( 16 ) ) std::uint8_t MemoryBlock[65536];
 	};
+
+	class PhysXContact : public physx::PxSimulationEventCallback
+	{
+	public:
+		virtual void onConstraintBreak( physx::PxConstraintInfo* constraints, physx::PxU32 count ) override;
+		virtual void onWake( physx::PxActor** actors, physx::PxU32 count ) override;
+		virtual void onSleep( physx::PxActor** actors, physx::PxU32 count ) override;
+		virtual void onContact( const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs ) override;
+		virtual void onTrigger( physx::PxTriggerPair* pairs, physx::PxU32 count ) override;
+		virtual void onAdvance( const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count ) override;
+	};
+
 }
 
 #else

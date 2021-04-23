@@ -37,7 +37,7 @@ namespace Saturn {
 		StaticFriction = 0.5f;
 		DynamicFriction = StaticFriction;
 		Restitution = 0.6f;
-		m_Material = m_Scene->m_Physics->createMaterial( StaticFriction, DynamicFriction, Restitution );
+		m_Material = m_Scene->GetPhysics().createMaterial( StaticFriction, DynamicFriction, Restitution );
 	}
 
 	PhysXMaterial::PhysXMaterial( PhysXScene* scene, std::string name, float staticFriction, float dynamicFriction, float restitution )
@@ -46,7 +46,7 @@ namespace Saturn {
 		StaticFriction = staticFriction;
 		DynamicFriction = dynamicFriction;
 		Restitution = restitution;
-		m_Material = m_Scene->m_Physics->createMaterial( staticFriction, dynamicFriction, restitution );
+		m_Material = m_Scene->GetPhysics().createMaterial( staticFriction, dynamicFriction, restitution );
 	}
 
 	PhysXMaterial::~PhysXMaterial()

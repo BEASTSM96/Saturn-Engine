@@ -56,6 +56,7 @@
 #include <Saturn/Scene/SceneManager.h>
 #include <Saturn/Script/ScriptEngine.h>
 #include <Saturn/Input.h>
+#include <Saturn/Physics/PhysX/PhysXScene.h>
 
 #include <Saturn/Scene/ScriptableEntity.h>
 
@@ -96,6 +97,8 @@ namespace Saturn {
 		m_AssetPanel = Ref<AssetPanel>::Create();
 		m_AssetPanel->OnAttach();
 
+		PhysXScene::Init();
+
 		OpenScene( "" );
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
@@ -117,6 +120,7 @@ namespace Saturn {
 	void EditorLayer::NewScene()
 	{
 		m_EditorScene = Ref<Scene>::Create();
+		m_EditorScene->CreatePhysxScene();
 		m_SceneHierarchyPanel->SetContext( m_EditorScene );
 		UpdateWindowTitle( "Untitled Scene" );
 
@@ -130,6 +134,7 @@ namespace Saturn {
 		std::string filepath = Application::Get().OpenFile( "Scene( *.sc )\0 * .sc\0").first;
 		serialiser.Deserialise( filepath );
 		m_EditorScene = newScene;
+		m_EditorScene->CreatePhysxScene();
 
 		std::filesystem::path path = filepath;
 		UpdateWindowTitle( path.filename().string() );
@@ -164,6 +169,7 @@ namespace Saturn {
 		m_SceneHierarchyPanel->SetContext( m_EditorScene );
 
 		m_EditorScene->SetSelectedEntity( {} );
+		m_EditorScene->CreatePhysxScene();
 		m_SelectionContext.clear();
 	}
 
