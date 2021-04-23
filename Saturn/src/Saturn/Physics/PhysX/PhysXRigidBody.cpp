@@ -29,9 +29,11 @@
 #include "sppch.h"
 #include "PhysXRigidBody.h"
 
+#include "Saturn/Scene/Entity.h"
+
 namespace Saturn {
 
-	PhysXRigidbody::PhysXRigidbody( PhysXScene* scene, glm::vec3 pos, glm::quat rot ) : m_Scene( scene )
+	PhysXRigidbody::PhysXRigidbody( Entity& entity, PhysXScene* scene, glm::vec3 pos, glm::quat rot ) : m_Scene( scene )
 	{
 		physx::PxVec3 PxPos;
 		PxPos.x = pos.x;
@@ -47,10 +49,22 @@ namespace Saturn {
 		physx::PxTransform PhysXTransform( PxPos, PxQua );
 
 		m_Body = m_Scene->GetPhysics().createRigidDynamic( PhysXTransform );
-		m_Body->userData = this;
 		m_Body->setActorFlag( physx::PxActorFlag::eVISUALIZATION, true );
-		m_Scene->GetPhysXScene().addActor( *m_Body );
 
+		physx::PxAllocatorCallback& allocator = scene->GetAllocator();
+		physx::PxFilterData filterData;
+		filterData.word0 = BIT( 0 );
+		filterData.word1 = BIT( 0 );
+		const physx::PxU32 numShapes = m_Body->getNbShapes();
+		physx::PxShape** shapes = ( physx::PxShape** )allocator.allocate( sizeof( physx::PxShape* ) * numShapes, "", "", 0 );
+		m_Body->getShapes( shapes, numShapes );
+		for( physx::PxU32 i = 0; i < numShapes; i++ )
+			shapes[ i ]->setSimulationFilterData( filterData );
+		allocator.deallocate( shapes );
+		m_Body->userData = &entity;
+
+
+		m_Scene->GetPhysXScene().addActor( *m_Body );
 	}
 
 	PhysXRigidbody::~PhysXRigidbody()

@@ -62,6 +62,9 @@ namespace Saturn {
 		physx::PxPhysics& GetPhysics();
 		physx::PxScene& GetPhysXScene();
 
+		physx::PxAllocatorCallback& GetAllocator();
+		const physx::PxAllocatorCallback& GetAllocator() const;
+
 		const physx::PxPhysics& GetPhysics() const;
 		const physx::PxScene& GetPhysXScene() const;
 

@@ -50,10 +50,11 @@ namespace Saturn {
 		VelocityChange = 4
 	};	
 
+	class Entity;
 	class PhysXRigidbody : public RefCounted
 	{
 	public:
-		PhysXRigidbody( PhysXScene* scene, glm::vec3 pos, glm::quat rot );
+		PhysXRigidbody( Entity& entity, PhysXScene* scene, glm::vec3 pos, glm::quat rot );
 		~PhysXRigidbody();
 
 		glm::mat4 GetTransform()

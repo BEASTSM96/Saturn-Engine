@@ -31,8 +31,8 @@
 
 namespace Saturn {
 
-    physx::PxFilterFlags CollisionFilterShader( physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize )
-    {
+	physx::PxFilterFlags CollisionFilterShader( physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize )
+	{
 		if( physx::PxFilterObjectIsTrigger( attributes0 ) || physx::PxFilterObjectIsTrigger( attributes1 ) )
 		{
 			pairFlags = physx::PxPairFlag::eTRIGGER_DEFAULT;
@@ -51,5 +51,5 @@ namespace Saturn {
 		}
 
 		return physx::PxFilterFlag::eSUPPRESS;
-    }
+	}
 }

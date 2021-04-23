@@ -40,13 +40,13 @@ namespace Saturn {
 
 	static PhysXContact s_PhysXSimulationEventCallback;
 	static physx::PxDefaultCpuDispatcher* s_Dispatcher;
-	static PhysXErrorCallback m_DefaultErrorCallback;
-	static physx::PxDefaultAllocator m_DefaultAllocatorCallback;
-	static physx::PxFoundation* m_Foundation = NULL;
-	static physx::PxCooking* m_Cooking = NULL;
-	static physx::PxPhysics* m_Physics = NULL;
-	static physx::PxScene* m_PhysXScene = NULL;
-	static physx::PxPvd* m_PVD = NULL;
+	static PhysXErrorCallback s_DefaultErrorCallback;
+	static physx::PxDefaultAllocator s_DefaultAllocatorCallback;
+	static physx::PxFoundation* s_Foundation;
+	static physx::PxCooking* s_Cooking;
+	static physx::PxPhysics* s_Physics;
+	static physx::PxScene* s_PhysXScene;
+	static physx::PxPvd* s_PVD;
 
 
 	PhysXScene::PhysXScene( Scene* scene ) : m_Scene( scene )
@@ -61,77 +61,74 @@ namespace Saturn {
 
 	void PhysXScene::Update( Timestep ts )
 	{
-		m_PhysXScene->simulate( ts, nullptr, MemoryBlock, sizeof( MemoryBlock ) );
+		s_PhysXScene->simulate( ts, nullptr, MemoryBlock, sizeof( MemoryBlock ) );
 		m_Scene->PhysicsUpdate( PhysicsType::PhysX, ts );
-		m_PhysXScene->fetchResults( true );
+		s_PhysXScene->fetchResults( true );
+	}
+
+	physx::PxAllocatorCallback& PhysXScene::GetAllocator()
+	{
+		return s_DefaultAllocatorCallback;
+	}
+
+	const physx::PxAllocatorCallback& PhysXScene::GetAllocator() const
+	{
+		return s_DefaultAllocatorCallback;
 	}
 
 	physx::PxPhysics& PhysXScene::GetPhysics()
 	{
-		return *m_Physics;
+		return *s_Physics;
 	}
 
 	const physx::PxPhysics& PhysXScene::GetPhysics() const
 	{
-		return *m_Physics;
+		return *s_Physics;
 	}
 
 	physx::PxScene& PhysXScene::GetPhysXScene()
 	{
-		return *m_PhysXScene;
+		return *s_PhysXScene;
 	}
 
 	const physx::PxScene& PhysXScene::GetPhysXScene() const
 	{
-		return *m_PhysXScene;
+		return *s_PhysXScene;
 	}
 
 	void PhysXScene::Init()
 	{
-		if( !m_Foundation )
+		physx::PxTolerancesScale ToleranceScale;
+		ToleranceScale.length = 10;
+
+		s_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, s_DefaultAllocatorCallback, s_DefaultErrorCallback );
+		s_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *s_Foundation, ToleranceScale, true );
+
+		s_PVD = PxCreatePvd( *s_Foundation );
+		if( s_PVD )
 		{
-			m_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, m_DefaultAllocatorCallback, m_DefaultErrorCallback );
+			physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate( "localhost", 0001, 10 );
+			s_PVD->connect( *transport, physx::PxPvdInstrumentationFlag::eALL );
 		}
 
-		if( !m_Cooking )
-		{
-			physx::PxTolerancesScale ToleranceScale;
-			m_Cooking = PxCreateCooking( PX_PHYSICS_VERSION, *m_Foundation, physx::PxCookingParams( ToleranceScale ) );
-		}
-		physx::PxCookingParams cookingParameters = m_Cooking->getParams();
-		cookingParameters.meshPreprocessParams.set( physx::PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH );
-		m_Cooking->setParams( cookingParameters );
-
-		if( !m_Physics )
-		{
-			physx::PxTolerancesScale ToleranceScale;
-			ToleranceScale.length = 10;
-			m_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, ToleranceScale, true );
-		}
-
+		s_Cooking = PxCreateCooking( PX_PHYSICS_VERSION, *s_Foundation, s_Physics->getTolerancesScale() );
 		s_Dispatcher = physx::PxDefaultCpuDispatcherCreate( 1 );
 
-		physx::PxSceneDesc sceneDesc( m_Physics->getTolerancesScale() );
+		physx::PxCookingParams cookingParameters = s_Cooking->getParams();
+		cookingParameters.meshPreprocessParams.set( physx::PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH );
+		s_Cooking->setParams( cookingParameters );
+
+		physx::PxSceneDesc sceneDesc( s_Physics->getTolerancesScale() );
 		sceneDesc.gravity = physx::PxVec3( 0.0f, -9.81f, 0.0f );
 		sceneDesc.broadPhaseType = physx::PxBroadPhaseType::eABP;
 		sceneDesc.cpuDispatcher = s_Dispatcher;
-		sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
+		//sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
+		sceneDesc.filterShader = CollisionFilterShader;
 		sceneDesc.simulationEventCallback = &s_PhysXSimulationEventCallback;
 		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD;
 		sceneDesc.frictionType = physx::PxFrictionType::ePATCH;
 
-		m_PhysXScene = m_Physics->createScene( sceneDesc );
-
-		physx::PxPvdSceneClient* pvdClient = m_PhysXScene->getScenePvdClient();
-		if( pvdClient )
-		{
-			pvdClient->setScenePvdFlag( physx::PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true );
-			pvdClient->setScenePvdFlag( physx::PxPvdSceneFlag::eTRANSMIT_CONTACTS, true );
-			pvdClient->setScenePvdFlag( physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true );
-		}
-
-		m_PhysXScene->setVisualizationParameter( physx::PxVisualizationParameter::eSCALE, 1.0f );
-		m_PhysXScene->setVisualizationParameter( physx::PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f );
+		s_PhysXScene = s_Physics->createScene( sceneDesc );
 	}
 
 	void PhysXContact::onConstraintBreak( physx::PxConstraintInfo* constraints, physx::PxU32 count )

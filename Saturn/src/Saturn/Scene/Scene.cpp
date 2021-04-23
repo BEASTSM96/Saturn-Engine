@@ -97,7 +97,8 @@ namespace Saturn {
 
 		auto& physics = r.get<PhysXRigidbodyComponent>( ent );
 		auto& trans = r.get<TransformComponent>( ent );
-		physics.m_body = new PhysXRigidbody( m_PhysXScene.Raw(), trans.Position, trans.Rotation );
+		Entity e(ent, this);
+		physics.m_body = new PhysXRigidbody( e, m_PhysXScene.Raw(), trans.Position, trans.Rotation );
 
 
 		physics.m_body->SetKinematic( r.get<PhysXRigidbodyComponent>( ent ).isKinematic );
