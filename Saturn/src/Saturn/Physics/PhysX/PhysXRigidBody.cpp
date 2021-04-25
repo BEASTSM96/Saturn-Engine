@@ -53,7 +53,7 @@ namespace Saturn {
 		physx::PxTransform PhysXTransform( PxPos, PxQua );
 
 		m_Body = PhysXFnd::GetPhysics().createRigidDynamic( PhysXTransform );
-		m_Body->setActorFlag( physx::PxActorFlag::eVISUALIZATION, true );
+
 		m_Body->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, true );
 
 		physx::PxAllocatorCallback& allocator = PhysXFnd::GetAllocator();
@@ -69,6 +69,8 @@ namespace Saturn {
 		m_Body->userData = &entity;
 
 		SetKinematic( rb.isKinematic );
+
+		physx::PxRigidBodyExt::setMassAndUpdateInertia( *m_Body, 1 );
 	}
 
 	PhysXRigidbody::~PhysXRigidbody()
