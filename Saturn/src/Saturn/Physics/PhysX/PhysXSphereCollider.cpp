@@ -36,7 +36,6 @@ namespace Saturn {
 	{
 		m_Body = body;
 		m_Scene = scene;
-		SetCenter( glm::vec3() );
 		SetRadius( Radius );
 	}
 

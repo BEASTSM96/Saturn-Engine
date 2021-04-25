@@ -50,6 +50,7 @@ namespace Saturn {
 
 		m_Body = m_Scene->GetPhysics().createRigidDynamic( PhysXTransform );
 		m_Body->setActorFlag( physx::PxActorFlag::eVISUALIZATION, true );
+		m_Body->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, true );
 
 		physx::PxAllocatorCallback& allocator = scene->GetAllocator();
 		physx::PxFilterData filterData;

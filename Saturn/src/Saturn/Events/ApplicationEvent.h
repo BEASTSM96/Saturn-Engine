@@ -30,7 +30,6 @@
 
 #include "Event.h"
 
-
 namespace Saturn {
 
 	class WindowResizeEvent : public Event

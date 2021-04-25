@@ -42,11 +42,9 @@ namespace Saturn {
 
 		for( physx::PxShape* shape : m_Shapes )
 		{
-			m_Body->m_Body->attachShape( *shape );
-			shape->setFlag( physx::PxShapeFlag::eVISUALIZATION, true );
-			shape->setFlag( physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true );
 			shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, true );
 			shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, false );
+			m_Body->m_Body->attachShape( *shape );
 		}
 
 	}
