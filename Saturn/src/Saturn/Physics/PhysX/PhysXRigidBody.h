@@ -38,7 +38,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <physx/PxPhysicsAPI.h>
-#include "PhysXScene.h"
 
 namespace Saturn {
 
@@ -54,7 +53,7 @@ namespace Saturn {
 	class PhysXRigidbody : public RefCounted
 	{
 	public:
-		PhysXRigidbody( Entity& entity, PhysXScene* scene, glm::vec3 pos, glm::quat rot );
+		PhysXRigidbody( Entity& entity, glm::vec3 pos, glm::quat rot );
 		~PhysXRigidbody();
 
 		glm::mat4 GetTransform()
@@ -84,11 +83,9 @@ namespace Saturn {
 
 		void ApplyForce( glm::vec3 force, ForceType type );
 		void AttachShape( physx::PxShape& shape );
+		void AddActorToScene();
 
 		physx::PxRigidBody& GetPxBody() { return *m_Body; }
-		PhysXScene& GetPxScene() { return *m_Scene; }
-
-		PhysXScene* m_Scene;
 		physx::PxRigidDynamic* m_Body = NULL;
 	protected:
 

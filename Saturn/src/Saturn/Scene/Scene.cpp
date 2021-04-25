@@ -35,8 +35,7 @@
 #include "SceneManager.h"
 #include "Saturn/Application.h"
 #include "ScriptableEntity.h"
-#include "Saturn/Physics/beastPhysics/PhysicsWorld.h"
-#include "Saturn/Physics/PhysX/PhysXScene.h"
+#include "Saturn/Physics/PhysX/PhysXRuntime.h"
 
 #include "Saturn/Script/ScriptEngine.h"
 
@@ -62,29 +61,7 @@ namespace Saturn {
 
 		auto& physics = r.get<RigidbodyComponent>( ent );
 		auto& trans = r.get<TransformComponent>( ent );
-		physics.m_body = new Rigidbody( m_ReactPhysicsScene.Raw(), true, trans.Position );
-
-		if (physics.isKinematic)
-		{
-			physics.m_body->SetKinematic( true );
-		}
-
-
-		if( r.has<BoxColliderComponent>( ent ) )
-		{
-			physics.m_body->AddBoxCollider(r.get<BoxColliderComponent>(ent).Extents);
-		}
-
-		if( r.has<SphereColliderComponent>( ent ) )
-		{
-			physics.m_body->AddSphereCollider( r.get<SphereColliderComponent>( ent ).Radius );
-		}
-
-		if ( !r.has<SphereColliderComponent>(ent) && !r.has<BoxColliderComponent>( ent ) )
-		{
-			SAT_CORE_WARN("You need to add a ColliderComponent Sphere or box.");
-		}
-
+		
 	}
 
 	void Scene::PhysXRigidbodyComponentCreate( entt::registry& r, entt::entity ent )
@@ -95,14 +72,9 @@ namespace Saturn {
 			return;
 		}
 
-		auto& physics = r.get<PhysXRigidbodyComponent>( ent );
-		auto& trans = r.get<TransformComponent>( ent );
-		Entity e(ent, this);
-		physics.m_body = new PhysXRigidbody( e, m_PhysXScene.Raw(), trans.Position, trans.Rotation );
-
-
-		physics.m_body->SetKinematic( r.get<PhysXRigidbodyComponent>( ent ).isKinematic );
-
+		Entity e( ent, this );
+		//PhysXFnd::AddRigidBody( e );
+		
 	}
 
 	void Scene::PhysXBoxComponentCreate( entt::registry& r, entt::entity ent )
@@ -112,13 +84,9 @@ namespace Saturn {
 			SAT_CORE_ERROR( "PhysXBoxComponent needs a TransformComponent!" );
 			return;
 		}
+		
+		Entity e( ent, this );
 
-		auto& physics = r.get<PhysXBoxColliderComponent>( ent );
-		auto& rb = r.get<PhysXRigidbodyComponent>( ent ).m_body;
-		auto& rbScene = r.get<PhysXRigidbodyComponent>( ent ).m_body->m_Scene;
-		auto& trans = r.get<TransformComponent>( ent );
-		PhysXMaterial* mat = new PhysXMaterial( rbScene, "..." );
-		physics.m_body = new PhysXBoxCollider( rbScene, rb, mat, physics.Extents );
 	}
 
 	void Scene::PhysXBoxSphereComponentCreate( entt::registry& r, entt::entity ent )
@@ -129,13 +97,7 @@ namespace Saturn {
 			return;
 		}
 
-		auto& physics = r.get<PhysXSphereColliderComponent>( ent );
-		auto& rb = r.get<PhysXRigidbodyComponent>( ent ).m_body;
-		auto& rbScene = r.get<PhysXRigidbodyComponent>( ent ).m_body->m_Scene;
-		auto& trans = r.get<TransformComponent>( ent );
-
-		PhysXMaterial* mat = new PhysXMaterial( rbScene, "..." );
-		physics.m_body = new PhysXSphereCollider( rbScene, rb, mat, physics.Radius );
+		Entity e( ent, this );
 	}
 
 	void Scene::CameraComponentCreate( entt::registry& r, entt::entity ent )
@@ -160,13 +122,7 @@ namespace Saturn {
 			return;
 		}
 
-		auto& physics = r.get<PhysXCapsuleColliderComponent>( ent );
-		auto& rb = r.get<PhysXRigidbodyComponent>( ent ).m_body;
-		auto& rbScene = r.get<PhysXRigidbodyComponent>( ent ).m_body->m_Scene;
-		auto& trans = r.get<TransformComponent>( ent );
-
-		PhysXMaterial* mat = new PhysXMaterial( rbScene, "..." );
-		physics.m_body = new PhysXCapsuleCollider( rbScene, rb, mat, physics.Radius, physics.Height );
+		Entity e( ent, this );
 	}
 
 	void Scene::ScriptComponentCreate( entt::registry& r, entt::entity ent )
@@ -193,16 +149,12 @@ namespace Saturn {
 		m_SceneEntity = m_Registry.create();
 		m_Registry.emplace<SceneComponent>( m_SceneEntity, m_SceneID );
 
-		m_PhysXScene = Ref<PhysXScene>::Create( this );
-
 		auto skyboxShader = Shader::Create( "assets/shaders/Skybox.glsl" );
 		m_SkyboxMaterial = MaterialInstance::Create( Material::Create( skyboxShader ) );
 		m_SkyboxMaterial->SetFlag( MaterialFlag::DepthTest, false );
 
 		m_ReactPhysicsScene = Ref<PhysicsScene>::Create( this );
-		m_PhysicsWorld = Ref<PhysicsWorld>::Create( this );
 
-		m_Registry.on_construct<RigidbodyComponent>().connect<&Scene::PhysicsComponentCreate>( this );
 		m_Registry.on_construct<PhysXRigidbodyComponent>().connect<&Scene::PhysXRigidbodyComponentCreate>( this );
 		m_Registry.on_construct<PhysXBoxColliderComponent>().connect<&Scene::PhysXBoxComponentCreate>( this );
 		m_Registry.on_construct<PhysXSphereColliderComponent>().connect<&Scene::PhysXBoxSphereComponentCreate>( this );
@@ -230,7 +182,6 @@ namespace Saturn {
 
 	void Scene::OnUpdate(Timestep ts)
 	{
-		m_PhysXScene->Update( ts );
 		m_ReactPhysicsScene->Update(ts);
 		
 		if (m_RuntimeRunning)
@@ -400,27 +351,12 @@ namespace Saturn {
 
 					if( rb.isKinematic )
 					{
-						rb.m_body->GetPxBody().setMass( 0.0f );
+						rb.m_Rigidbody->GetPxBody().setMass( 0.0f );
 					}
 
-					tc.Position = rb.m_body->GetPos();
-					rb.m_body->GetPos() = tc.Position;
+					tc.Position = rb.m_Rigidbody->GetPos();
+					rb.m_Rigidbody->GetPos() = tc.Position;
 					
-				}
-				break;
-			case Saturn::PhysicsType::ReactPhysics:
-				for( const auto& entity : ReactView )
-				{
-					auto [tc, rb] = ReactView.get<TransformComponent, RigidbodyComponent>( entity );
-
-					//tc.Position = pc.Position;
-
-					if( rb.isKinematic )
-					{
-						rb.m_body->SetMass( 0.0f );
-					}
-
-					tc.Position = rb.m_body->GetPosition();
 				}
 				break;
 			default:
@@ -534,6 +470,9 @@ namespace Saturn {
 		SAT_CORE_WARN("[Runtime] Starting!");
 		m_RuntimeRunning = true;
 
+		m_PhysXRuntime = new PhysXRuntime();
+		m_PhysXRuntime->CreateScene();
+
 		auto view = m_Registry.view<ScriptComponent>();
 		for( auto entt : view )
 		{
@@ -541,11 +480,54 @@ namespace Saturn {
 			ScriptEngine::OnCreateEntity( e );
 			ScriptEngine::OnEntityBeginPlay( e );
 		}
+
+		{
+			auto view = m_Registry.view<PhysXRigidbodyComponent>();
+			for( auto entity : view )
+			{
+				Entity e ={ entity, this };
+				auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
+				PhysXFnd::AddRigidBody( e );
+				rb.m_Rigidbody->AddActorToScene();
+			}
+		}
+
+		{
+			auto view = m_Registry.view<PhysXBoxColliderComponent>();
+			for( auto entity : view )
+			{
+				Entity e ={ entity, this };
+				auto& rb = e.GetComponent<PhysXBoxColliderComponent>();
+				PhysXFnd::CreateBoxCollider( e );
+			}
+		}
+
+		{
+			auto view = m_Registry.view<PhysXCapsuleColliderComponent>();
+			for( auto entity : view )
+			{
+				Entity e ={ entity, this };
+				auto& rb = e.GetComponent<PhysXCapsuleColliderComponent>();
+				PhysXFnd::CreateCapsuleCollider( e );
+			}
+		}
+
+		{
+			auto view = m_Registry.view<PhysXSphereColliderComponent>();
+			for( auto entity : view )
+			{
+				Entity e ={ entity, this };
+				auto& rb = e.GetComponent<PhysXSphereColliderComponent>();
+				PhysXFnd::CreateSphereCollider( e );
+			}
+		}
 	}
 
 	void Scene::EndRuntime( void )
 	{
 		m_RuntimeRunning = false;
+		delete m_PhysXRuntime;
+		m_PhysXRuntime = nullptr;
 	}
 
 	void Scene::ResetRuntime( const Ref<Scene>& EditorScene )
@@ -557,7 +539,9 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-    auto view = m_Registry.view<ScriptComponent>();
+		m_PhysXRuntime->Update( ts, *this );
+
+		auto view = m_Registry.view<ScriptComponent>();
 		for (auto entt : view) 
 		{
 			Entity e ={ entt, this };

@@ -36,9 +36,6 @@
 #include "Saturn/Core/UUID.h"
 #include "Saturn/Physics/Rigidbody.h"
 #include "Saturn/Physics/PhysX/PhysXRigidBody.h"
-#include "Saturn/Physics/PhysX/PhysXBoxCollider.h"
-#include "Saturn/Physics/PhysX/PhysXSphereCollider.h"
-#include "Saturn/Physics/PhysX/PhysXCapsuleCollider.h"
 
 namespace Saturn {
 
@@ -334,42 +331,39 @@ namespace Saturn {
 	{
 		bool isKinematic;
 
-		Rigidbody* m_body;
-
 		RigidbodyComponent() = default;
-		RigidbodyComponent( Rigidbody* m_Body, bool IsKinematic ) : m_body( m_Body ), isKinematic(IsKinematic) { }
+		RigidbodyComponent( bool IsKinematic ) : isKinematic(IsKinematic) { }
 	};
 
 	struct PhysXRigidbodyComponent : Component
 	{
 		bool isKinematic;
 
-		PhysXRigidbody* m_body;
+		PhysXRigidbody* m_Rigidbody;
 
 		PhysXRigidbodyComponent() = default;
-		PhysXRigidbodyComponent( PhysXRigidbody* m_Body, bool IsKinematic ) : m_body( m_Body ), isKinematic( IsKinematic ) { }
+		PhysXRigidbodyComponent( bool IsKinematic ) : isKinematic( IsKinematic ) { }
 	};
 
 	struct PhysXBoxColliderComponent : Component
 	{
-		glm::vec3 Extents ={ 1.0f, 1.0f, 1.0f };
+		glm::vec3 Extents ={ 1.0f, 1.0f, 1.0f };	
+		glm::vec3 Offset ={ 0.0f, 0.0f, 0.0f };
 
-		PhysXBoxCollider* m_body;
+		bool IsTrigger = false;
 
 		PhysXBoxColliderComponent() = default;
-		PhysXBoxColliderComponent( PhysXBoxCollider* m_Body, const glm::vec3& extents ) : m_body( m_Body ), Extents( extents ) { }
-
-
+		PhysXBoxColliderComponent( const glm::vec3& extents ) : Extents( extents ) { }
 	};
 
 	struct PhysXSphereColliderComponent : Component
 	{
 		float Radius = 1.0f;
 
-		PhysXSphereCollider* m_body;
+		bool IsTrigger = false;
 
 		PhysXSphereColliderComponent() = default;
-		PhysXSphereColliderComponent( PhysXSphereCollider* m_Body, float radius ) : m_body( m_Body ), Radius( radius ) { }
+		PhysXSphereColliderComponent( float radius ) : Radius( radius ) { }
 	};
 
 	struct PhysXCapsuleColliderComponent : Component
@@ -377,10 +371,10 @@ namespace Saturn {
 		float Radius = 1.0f;
 		float Height = 1.0f;
 
-		PhysXCapsuleCollider* m_body;
+		bool IsTrigger = false;
 
 		PhysXCapsuleColliderComponent() = default;
-		PhysXCapsuleColliderComponent( PhysXCapsuleCollider* m_Body, float radius ) : m_body( m_Body ), Radius( radius ) { }
+		PhysXCapsuleColliderComponent( float radius ) : Radius( radius ) { }
 	};
 
 	//

@@ -745,10 +745,9 @@ namespace Saturn {
 			{
 
 				bool Kinematic = rb.isKinematic;
-				bool canKinematic = rb.m_body->IsKinematic();
-				DrawBoolControl( "Kinematic", &rb.isKinematic );
+				DrawBoolControl( "Kinematic", &Kinematic );
 
-				rb.m_body->SetKinematic( rb.isKinematic );
+				rb.isKinematic = Kinematic;
 
 			} );
 
@@ -774,16 +773,6 @@ namespace Saturn {
 			DrawFloatControl( "Height", &cc.Height, cc.Height );
 
 		} );
-
-		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )
-			{
-
-				bool canKinematic = rb.m_body->GetKinematic();
-				DrawBoolControl( "Kinematic", &canKinematic );
-
-				rb.m_body->SetKinematic( canKinematic );
-
-			} );
 
 		DrawComponent<ScriptComponent>("Script", entity, []( auto& csc )
 		{

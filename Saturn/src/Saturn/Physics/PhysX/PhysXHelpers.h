@@ -39,6 +39,8 @@
 
 #include <physx/PxPhysicsAPI.h>
 
+#define SAT_PHYSX_RELEASE(obj) obj->release(); obj = nullptr
+
 namespace Saturn {
 
 	static glm::vec3 PxVec3ToGLM( physx::PxVec3 vec ) 
@@ -58,6 +60,25 @@ namespace Saturn {
 		pxvec3.z = vec.z;
 		return pxvec3;
 	}
+
+	static physx::PxQuat GLMToPhysXQuat( glm::quat& quat )
+	{
+		return physx::PxQuat( quat.x, quat.y, quat.z, quat.w );
+	}
+
+	static physx::PxVec3 GLMToPhysXVec( glm::vec3& vec )
+	{
+		return *( physx::PxVec3* )&vec;
+	}
+
+	static physx::PxTransform glmTransformToPx( glm::mat4& mat )
+	{
+		physx::PxQuat r = GLMToPhysXQuat( glm::normalize( glm::quat( mat ) ) );
+		physx::PxVec3 p = GLMToPhysXVec( glm::vec3( mat[ 3 ] ) );
+
+		return physx::PxTransform( p, r );
+	}
+
 
 	physx::PxFilterFlags CollisionFilterShader( physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize );
 

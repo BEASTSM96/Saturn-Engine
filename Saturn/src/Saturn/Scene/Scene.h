@@ -36,8 +36,6 @@
 #include "Saturn/Renderer/Material.h"
 
 #include "Saturn/Physics/PhysicsScene.h"
-#include "Saturn/Physics/PhysX/PhysXScene.h"
-
 #include "entt.hpp"
 
 #include "Saturn/Scene/SceneCamera.h"
@@ -47,6 +45,7 @@ namespace Saturn {
 
 	class Entity;
 	class ScriptableEntity;
+	class PhysXRuntime;
 	using EntityMap = std::unordered_map<UUID, Entity>;
 	using EntityMonoMap = std::unordered_map<unsigned long, Entity>;
 
@@ -185,7 +184,6 @@ namespace Saturn {
 		/*------------------------------------------------------------------ */
 	public:
 		Ref<PhysicsScene> m_ReactPhysicsScene;
-		Ref<PhysXScene> m_PhysXScene;
 
 	private:
 		UUID m_SceneID;
@@ -202,8 +200,6 @@ namespace Saturn {
 		Ref<TextureCube> m_SkyboxTexture;
 		Ref<MaterialInstance> m_SkyboxMaterial;
 
-		Ref<PhysicsWorld> m_PhysicsWorld;
-
 		entt::entity m_SelectedEntity;
 
 		float m_SkyboxLod = 1.0f;
@@ -214,6 +210,8 @@ namespace Saturn {
 		SceneData m_data;
 
 		RuntimeData m_RuntimeData;
+
+		PhysXRuntime* m_PhysXRuntime = nullptr;
 
 		friend class Entity;
 		friend class Serialiser;

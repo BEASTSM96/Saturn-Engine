@@ -30,11 +30,15 @@
 #include "PhysXRigidBody.h"
 
 #include "Saturn/Scene/Entity.h"
+#include "PhysXFnd.h"
+#include "PhysXRuntime.h"
 
 namespace Saturn {
 
-	PhysXRigidbody::PhysXRigidbody( Entity& entity, PhysXScene* scene, glm::vec3 pos, glm::quat rot ) : m_Scene( scene )
+	PhysXRigidbody::PhysXRigidbody( Entity& entity, glm::vec3 pos, glm::quat rot )
 	{
+		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
+
 		physx::PxVec3 PxPos;
 		PxPos.x = pos.x;
 		PxPos.y = pos.y;
@@ -48,11 +52,11 @@ namespace Saturn {
 
 		physx::PxTransform PhysXTransform( PxPos, PxQua );
 
-		m_Body = m_Scene->GetPhysics().createRigidDynamic( PhysXTransform );
+		m_Body = PhysXFnd::GetPhysics().createRigidDynamic( PhysXTransform );
 		m_Body->setActorFlag( physx::PxActorFlag::eVISUALIZATION, true );
 		m_Body->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, true );
 
-		physx::PxAllocatorCallback& allocator = scene->GetAllocator();
+		physx::PxAllocatorCallback& allocator = PhysXFnd::GetAllocator();
 		physx::PxFilterData filterData;
 		filterData.word0 = BIT( 0 );
 		filterData.word1 = BIT( 0 );
@@ -64,13 +68,12 @@ namespace Saturn {
 		allocator.deallocate( shapes );
 		m_Body->userData = &entity;
 
-
-		m_Scene->GetPhysXScene().addActor( *m_Body );
+		SetKinematic( rb.isKinematic );
 	}
 
 	PhysXRigidbody::~PhysXRigidbody()
 	{
-		m_Scene->GetPhysics().release();
+		PhysXFnd::GetPhysics().release();
 	}
 
 	glm::vec3 PhysXRigidbody::GetPos()
@@ -108,14 +111,6 @@ namespace Saturn {
 	{
 		m_Body->setRigidBodyFlag( physx::PxRigidBodyFlag::eKINEMATIC, kinematic );
 		m_Kinematic = kinematic;
-
-		if( kinematic )
-		{
-			const glm::vec3 position = GetPos();
-			const glm::quat rotation = GetRot();
-
-			m_Body->setKinematicTarget( physx::PxTransform( position.x, position.y, position.z, physx::PxQuat( rotation.x, rotation.y, rotation.z, rotation.w ) ) );
-		}
 	}
 
 	bool PhysXRigidbody::IsKinematic()
@@ -151,6 +146,11 @@ namespace Saturn {
 	void PhysXRigidbody::AttachShape( physx::PxShape& shape )
 	{
 		m_Body->attachShape( shape );
+	}
+
+	void PhysXRigidbody::AddActorToScene()
+	{
+		PhysXRuntime::GetPhysXScene().addActor( *m_Body );
 	}
 
 }

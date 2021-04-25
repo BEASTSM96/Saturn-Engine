@@ -26,58 +26,74 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "PhysXBoxCollider.h"
+#pragma once
+
+#include "Saturn/Scene/Entity.h"
+
+#include <stdint.h>
 
 namespace Saturn {
 
-	PhysXBoxCollider::PhysXBoxCollider( PhysXScene* scene, PhysXRigidbody* body, PhysXMaterial* material, glm::vec3 Extents )
-		: PhysXCollider( body, std::vector<physx::PxShape*>( 1, scene->GetPhysics().createShape( physx::PxBoxGeometry( Extents.x, Extents.y, Extents.z ), *material->m_Material ) ) )
-	{
-		m_Body = body;
-		m_Scene = scene;
-	}
+	//The Main PhysX class for Saturn.
 
-	PhysXBoxCollider::~PhysXBoxCollider()
+	enum class ForceMode : uint16_t
 	{
-	
-	}
+		Force = 0,
+		Impulse,
+		VelocityChange,
+		Acceleration
+	};
 
-	void PhysXBoxCollider::SetCenter( const glm::vec3& center )
+	enum class BroadphaseType
 	{
-		GetShapes()[ 0 ]->setLocalPose( physx::PxTransform( center.x, center.y, center.z ) );
-	}
+		SweepAndPrune,
+		MultiBoxPrune,
+		AutomaticBoxPrune
+	};
 
-	glm::vec3 PhysXBoxCollider::GetCenter()
+	enum class FrictionType
 	{
-		const physx::PxVec3 center = GetShapes()[ 0 ]->getLocalPose().p;
-		return glm::vec3( center.x, center.y, center.z );
-	}
+		Patch,
+		OneDirectional,
+		TwoDirectional
+	};
 
-	void PhysXBoxCollider::SetSize( const glm::vec3& size )
-	{
-		GetShapes()[ 0 ]->getGeometry().box().halfExtents = physx::PxVec3( size.x / 2.0f, size.y / 2.0f, size.z / 2.0f );
-	}
+	//TODO: Settings
 
-	glm::vec3 PhysXBoxCollider::GetSize()
+	class PhysXFnd : public RefCounted
 	{
-		const physx::PxVec3 size = 2.0f * GetShapes()[ 0 ]->getGeometry().box().halfExtents;
-		return glm::vec3( size.x, size.y, size.z );
-	}
+	public:
+		static void Init();
+		static physx::PxScene* CreateScene();
 
-	void PhysXBoxCollider::Scale( const glm::vec3& scale )
+		static void CreateBoxCollider( Entity& entity );
+		static void CreateSphereCollider( Entity& entity );
+		static void CreateCapsuleCollider( Entity& entity );
+		static void AddRigidBody( Entity& entity );
+	public:
+		static physx::PxPhysics& GetPhysics();
+		static physx::PxScene& GetPhysXScene();
+
+		static physx::PxAllocatorCallback& GetAllocator();
+	protected:
+	private:
+	};
+
+	class PhysXContact : public physx::PxSimulationEventCallback, public RefCounted
 	{
-		physx::PxShape* shape = GetShapes()[ 0 ];
-		const physx::PxVec3 realscale( scale.x, scale.y, scale.z );
-		physx::PxTransform pose = shape->getLocalPose();
-		const physx::PxMat33 PxMatrix = physx::PxMat33::createDiagonal( realscale ) * physx::PxMat33( pose.q );
-		physx::PxBoxGeometry& box = shape->getGeometry().box();
-		box.halfExtents.x *= PxMatrix.column0.magnitude();
-		box.halfExtents.y *= PxMatrix.column1.magnitude();
-		box.halfExtents.z *= PxMatrix.column2.magnitude();
-		shape->setGeometry( box );
-		pose.p = pose.p.multiply( realscale );
-		shape->setLocalPose( pose );
-	}
+	public:
+		virtual void onConstraintBreak( physx::PxConstraintInfo* constraints, physx::PxU32 count ) override;
+		virtual void onWake( physx::PxActor** actors, physx::PxU32 count ) override;
+		virtual void onSleep( physx::PxActor** actors, physx::PxU32 count ) override;
+		virtual void onContact( const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs ) override;
+		virtual void onTrigger( physx::PxTriggerPair* pairs, physx::PxU32 count ) override;
+		virtual void onAdvance( const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count ) override;
+	};
+
+	class PhysXErrorCallback : public physx::PxErrorCallback, public RefCounted
+	{
+	public:
+		void reportError( physx::PxErrorCode::Enum code, const char* message, const char* file, int line ) override;
+	};
 
 }

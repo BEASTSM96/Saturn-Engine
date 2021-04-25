@@ -56,7 +56,7 @@
 #include <Saturn/Scene/SceneManager.h>
 #include <Saturn/Script/ScriptEngine.h>
 #include <Saturn/Input.h>
-#include <Saturn/Physics/PhysX/PhysXScene.h>
+#include <Saturn/Physics/PhysX/PhysXFnd.h>
 
 #include <Saturn/Scene/ScriptableEntity.h>
 
@@ -97,7 +97,7 @@ namespace Saturn {
 		m_AssetPanel = Ref<AssetPanel>::Create();
 		m_AssetPanel->OnAttach();
 
-		PhysXScene::Init();
+		PhysXFnd::Init();
 
 		OpenScene( "" );
 
