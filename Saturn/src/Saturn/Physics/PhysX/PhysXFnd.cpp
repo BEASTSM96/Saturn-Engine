@@ -77,7 +77,8 @@ namespace Saturn {
 		sceneDesc.gravity = physx::PxVec3( 0.0f, -9.81f, 0.0f );
 		sceneDesc.broadPhaseType = physx::PxBroadPhaseType::eABP;
 		sceneDesc.cpuDispatcher = s_Dispatcher;
-		sceneDesc.filterShader = CollisionFilterShader;
+		sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
+		//sceneDesc.filterShader = CollisionFilterShader;
 		sceneDesc.simulationEventCallback = &s_PhysXSimulationEventCallback;
 		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD;
 		sceneDesc.frictionType = physx::PxFrictionType::ePATCH;
@@ -101,7 +102,7 @@ namespace Saturn {
 		if( entitySize.z != 0.0f )
 			size.z *= entitySize.z;
 
-		physx::PxBoxGeometry boxGeo = physx::PxBoxGeometry( size.x, size.y, size.z );
+		physx::PxBoxGeometry boxGeo = physx::PxBoxGeometry( size.x / 2, size.y / 2, size.z / 2  );
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( *rb.m_Rigidbody->m_Body, boxGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
 		shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
 		shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
@@ -119,7 +120,7 @@ namespace Saturn {
 		if( entitySize.x != 0.0f )
 			size *= entitySize.x;
 
-		physx::PxSphereGeometry sphereGeo = physx::PxSphereGeometry( size );
+		physx::PxSphereGeometry sphereGeo = physx::PxSphereGeometry( size / 2 );
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( *rb.m_Rigidbody->m_Body, sphereGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
 		shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
 		shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
