@@ -70,7 +70,7 @@ namespace Saturn {
 
 		SetKinematic( rb.isKinematic );
 
-		physx::PxRigidBodyExt::setMassAndUpdateInertia( *m_Body, 1 );
+		physx::PxRigidBodyExt::setMassAndUpdateInertia( *m_Body, 100 );
 	}
 
 	PhysXRigidbody::~PhysXRigidbody()

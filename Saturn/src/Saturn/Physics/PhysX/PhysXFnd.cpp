@@ -33,6 +33,8 @@
 
 #include <physx/PxPhysicsAPI.h>
 
+#include "Saturn/Script/ScriptEngine.h"
+
 namespace Saturn {
 
 	static PhysXContact s_PhysXSimulationEventCallback;
@@ -143,7 +145,7 @@ namespace Saturn {
 		shape->setLocalPose( physx::PxTransform( physx::PxQuat( physx::PxHalfPi, physx::PxVec3( 0, 0, 1 ) ) ) );
 	}
 
-	void PhysXFnd::AddRigidBody( Entity& entity )
+	void PhysXFnd::AddRigidBody( Entity entity )
 	{
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = entity.GetComponent<TransformComponent>();
@@ -190,18 +192,18 @@ namespace Saturn {
 
 		if( pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH )
 		{
-			//if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
-			//	ScriptEngine::OnCollisionBegin( a );
-			//if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
-			//	ScriptEngine::OnCollisionBegin( b );
+			if( a.HasComponent<ScriptComponent>() )
+				ScriptEngine::OnCollisionBegin( a );
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionBegin( b );
 		}
 
 		if( pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH )
 		{
-			//if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
-			//	ScriptEngine::OnCollisionExit( a );
-			//if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
-			//	ScriptEngine::OnCollisionExit( b );
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionExit( a );
+			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionExit( b );
 		}
 	}
 

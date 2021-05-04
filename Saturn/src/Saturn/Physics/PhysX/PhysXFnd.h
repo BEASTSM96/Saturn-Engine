@@ -69,7 +69,7 @@ namespace Saturn {
 		static void CreateBoxCollider( Entity& entity );
 		static void CreateSphereCollider( Entity& entity );
 		static void CreateCapsuleCollider( Entity& entity );
-		static void AddRigidBody( Entity& entity );
+		static void AddRigidBody( Entity entity );
 	public:
 		static physx::PxPhysics& GetPhysics();
 		static physx::PxScene& GetPhysXScene();

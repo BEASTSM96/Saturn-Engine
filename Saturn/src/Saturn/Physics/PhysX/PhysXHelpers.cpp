@@ -50,6 +50,10 @@ namespace Saturn {
 			return physx::PxFilterFlag::eDEFAULT;
 		}
 
-		return physx::PxFilterFlag::eSUPPRESS;
+		pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
+		pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_LOST;
+		pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_CCD;
+
+		return physx::PxFilterFlag::eDEFAULT;
 	}
 }

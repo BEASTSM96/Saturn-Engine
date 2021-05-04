@@ -410,13 +410,12 @@ namespace Saturn {
 	}
 
 	/**
-	* Copies the scene and fills the 'NewScece' value
+	* Copies the scene and fills the 'NewScene' value
 	*/
 	void Scene::CopyScene(Ref<Scene>& NewScene)
 	{
 		SAT_PROFILE_FUNCTION();
 
-		SAT_CORE_WARN("Copying Scene!");
 		NewScene->m_data = m_data;
 		NewScene->m_DebugName = m_DebugName;
 		NewScene->m_EntityIDMap = m_EntityIDMap;
@@ -431,7 +430,6 @@ namespace Saturn {
 		NewScene->m_ReactPhysicsScene = m_ReactPhysicsScene;
 		NewScene->m_RuntimeData = m_RuntimeData;
 		NewScene->m_ReactPhysicsScene->RegLog();
-		//NewScene->m_PhysXScene = m_PhysXScene;
 
 		std::unordered_map<UUID, entt::entity> enttMap;
 		auto idComponents = m_Registry.view<IdComponent>();
