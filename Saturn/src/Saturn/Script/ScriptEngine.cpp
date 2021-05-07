@@ -343,6 +343,12 @@ namespace Saturn {
 		return monoClass != nullptr;
 	}
 
+	bool ScriptEngine::IsEntityModuleValid( Entity entity )
+	{
+		entity.SetScene( m_Scene.Raw() );
+		return entity.HasComponent<ScriptComponent>() && ModuleExists(entity.GetComponent<ScriptComponent>().ModuleName);
+	}
+
 	EntityInstance& ScriptEngine::GetEntityInstanceData( UUID entityId )
 	{
 		auto& idMap = s_EntityInstanceMap.at( entityId );

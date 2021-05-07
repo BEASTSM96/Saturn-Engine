@@ -35,7 +35,7 @@
 
 namespace Saturn {
 
-	PhysXRigidbody::PhysXRigidbody( Entity& entity, glm::vec3 pos, glm::quat rot )
+	PhysXRigidbody::PhysXRigidbody( Entity entity, glm::vec3 pos, glm::quat rot )
 	{
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 

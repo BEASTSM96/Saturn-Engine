@@ -53,7 +53,7 @@ namespace Saturn {
 	class PhysXRigidbody : public RefCounted
 	{
 	public:
-		PhysXRigidbody( Entity& entity, glm::vec3 pos, glm::quat rot );
+		PhysXRigidbody( Entity entity, glm::vec3 pos, glm::quat rot );
 		~PhysXRigidbody();
 
 		glm::mat4 GetTransform()

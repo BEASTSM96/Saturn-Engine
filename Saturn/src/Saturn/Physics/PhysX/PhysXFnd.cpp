@@ -192,7 +192,7 @@ namespace Saturn {
 
 		if( pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH )
 		{
-			if( a.HasComponent<ScriptComponent>() )
+			if( ScriptEngine::IsEntityModuleValid(a) )
 				ScriptEngine::OnCollisionBegin( a );
 			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
 				ScriptEngine::OnCollisionBegin( b );
