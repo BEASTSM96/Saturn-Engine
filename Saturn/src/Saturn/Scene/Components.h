@@ -34,7 +34,6 @@
 
 #include "Saturn/Scene/SceneCamera.h"
 #include "Saturn/Core/UUID.h"
-#include "Saturn/Physics/Rigidbody.h"
 #include "Saturn/Physics/PhysX/PhysXRigidBody.h"
 
 namespace Saturn {
@@ -301,38 +300,6 @@ namespace Saturn {
 		std::unordered_set < entt::entity > Children;
 
 		glm::mat4 RelativeTransform = glm::mat4{ 0.0f };
-	};
-
-	struct PhysicsComponent : Component
-	{
-		glm::vec3 Position;
-		glm::vec3 Velocity;
-		glm::vec3 Force;
-		float Mass = 1.0f;
-	};
-
-	struct BoxColliderComponent : Component
-	{
-		glm::vec3 Extents;
-
-		BoxColliderComponent() = default;
-		BoxColliderComponent( const glm::vec3 & extents ) : Extents( extents ) { }
-	};
-
-	struct SphereColliderComponent : Component
-	{
-		float Radius;
-
-		SphereColliderComponent() = default;
-		SphereColliderComponent( float radius ) : Radius( radius ) { }
-	};
-
-	struct RigidbodyComponent : Component
-	{
-		bool isKinematic;
-
-		RigidbodyComponent() = default;
-		RigidbodyComponent( bool IsKinematic ) : isKinematic(IsKinematic) { }
 	};
 
 	struct PhysXRigidbodyComponent : Component

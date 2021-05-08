@@ -26,4 +26,9 @@ namespace Saturn {
 		return *s_Scene;
 	}
 
+	void PhysXRuntime::CreatePhysXCompsForEntity( Entity entity )
+	{
+		PhysXFnd::AddRigidBody( entity );
+	}
+
 }

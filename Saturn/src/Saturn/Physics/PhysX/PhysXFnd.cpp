@@ -89,7 +89,7 @@ namespace Saturn {
 		return s_Physics->createScene( sceneDesc );
 	}
 
-	void PhysXFnd::CreateBoxCollider( Entity& entity )
+	void PhysXFnd::CreateBoxCollider( Entity& entity, physx::PxRigidActor& actor )
 	{
 		auto& comp = entity.GetComponent<PhysXBoxColliderComponent>();
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
@@ -99,13 +99,13 @@ namespace Saturn {
 
 
 		physx::PxBoxGeometry boxGeo = physx::PxBoxGeometry( size.x / 2.0f, size.y / 2.0f, size.z / 2.0f );
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( *rb.m_Rigidbody->m_Body, boxGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, boxGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
 		shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
 		shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
 		shape->setLocalPose( glmTransformToPx( glm::translate( glm::mat4( 1.0f ), comp.Offset ) ) );
 	}
 
-	void PhysXFnd::CreateSphereCollider( Entity& entity )
+	void PhysXFnd::CreateSphereCollider( Entity& entity, physx::PxRigidActor& actor )
 	{
 		auto& comp = entity.GetComponent<PhysXSphereColliderComponent>();
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
@@ -117,12 +117,12 @@ namespace Saturn {
 			size *= entitySize.x;
 
 		physx::PxSphereGeometry sphereGeo = physx::PxSphereGeometry( size );
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( *rb.m_Rigidbody->m_Body, sphereGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, sphereGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
 		shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
 		shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
 	}
 
-	void PhysXFnd::CreateCapsuleCollider( Entity& entity )
+	void PhysXFnd::CreateCapsuleCollider( Entity& entity, physx::PxRigidActor& actor )
 	{
 		auto& comp = entity.GetComponent<PhysXCapsuleColliderComponent>();
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
@@ -139,7 +139,7 @@ namespace Saturn {
 			height *= ( entitySize.y );
 
 		physx::PxCapsuleGeometry capsuleGeo = physx::PxCapsuleGeometry( size, height / 2.0f );
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( *rb.m_Rigidbody->m_Body, capsuleGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, capsuleGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
 		shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
 		shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
 		shape->setLocalPose( physx::PxTransform( physx::PxQuat( physx::PxHalfPi, physx::PxVec3( 0, 0, 1 ) ) ) );
@@ -185,25 +185,32 @@ namespace Saturn {
 
 	void PhysXContact::onContact( const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs )
 	{
+
 		Entity& a = *( Entity* )pairHeader.actors[ 0 ]->userData;
 		Entity& b = *( Entity* )pairHeader.actors[ 1 ]->userData;
+		//TEMP
+		Entity ar ={ a.Raw(), ScriptEngine::GetScene().Raw() };
+		Entity br ={ b.Raw(), ScriptEngine::GetScene().Raw() };
 
 		SAT_CORE_INFO( "onContact" );
 
 		if( pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH )
 		{
-			if( ScriptEngine::IsEntityModuleValid(a) )
-				ScriptEngine::OnCollisionBegin( a );
-			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
-				ScriptEngine::OnCollisionBegin( b );
+			if( a.HasComponent<ScriptComponent>() )
+			{
+				if( ScriptEngine::ModuleExists( ar.GetComponent<ScriptComponent>().ModuleName ) )
+					ScriptEngine::OnCollisionBegin( ar );
+			}
+			if( ScriptEngine::IsEntityModuleValid( br ) )
+				ScriptEngine::OnCollisionBegin( br );
 		}
 
 		if( pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH )
 		{
-			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
-				ScriptEngine::OnCollisionExit( a );
-			if( a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( a.GetComponent<ScriptComponent>().ModuleName ) )
-				ScriptEngine::OnCollisionExit( b );
+			if( ar.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( ar.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionExit( ar );
+			if( br.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( br.GetComponent<ScriptComponent>().ModuleName ) )
+				ScriptEngine::OnCollisionExit( br ); 
 		}
 	}
 

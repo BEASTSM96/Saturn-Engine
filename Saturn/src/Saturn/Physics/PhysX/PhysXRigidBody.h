@@ -85,8 +85,8 @@ namespace Saturn {
 		void AttachShape( physx::PxShape& shape );
 		void AddActorToScene();
 
-		physx::PxRigidBody& GetPxBody() { return *m_Body; }
-		physx::PxRigidDynamic* m_Body = NULL;
+		physx::PxRigidActor& GetPxBody() { return *m_Body; }
+		physx::PxRigidActor* m_Body;
 	protected:
 
 	private:

@@ -35,7 +35,6 @@
 #include "Saturn/Renderer/Texture.h"
 #include "Saturn/Renderer/Material.h"
 
-#include "Saturn/Physics/PhysicsScene.h"
 #include "entt.hpp"
 
 #include "Saturn/Scene/SceneCamera.h"
@@ -81,18 +80,17 @@ namespace Saturn {
 		float Multiplier = 1.0f;
 	};
 
-	struct RuntimeData
-	{
-		bool Running = false;
-		Ref<Scene> RuntimeScene;
-		UUID RuntimeID;
-	};
 
 	enum class PhysicsType
 	{
 		None = 0,
 		PhysX = 1,
 		ReactPhysics = 2
+	};
+
+
+	struct RuntimeData
+	{
 	};
 
 	class Scene : public RefCounted
@@ -113,10 +111,6 @@ namespace Saturn {
 		auto GetAllEntitiesWith( void )
 		{
 			return m_Registry.view<T>();
-		}
-
-		PhysicsScene* GetPhysicsScene() {
-			return &*m_ReactPhysicsScene;
 		}
 
 		SceneData& GetData() { return m_data; }
@@ -143,11 +137,8 @@ namespace Saturn {
 		// Editor-specific
 		void SetSelectedEntity(entt::entity entity) { m_SelectedEntity = entity; }
 
-		//phys
+		//Physics
 		void PhysicsUpdate( PhysicsType type, float delta );
-		void ContactStay(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
-		void ContactEnter(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
-		void ContactExit(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
 
 		void PhysicsComponentCreate(entt::registry& r, entt::entity ent);
 
@@ -157,8 +148,6 @@ namespace Saturn {
 		void CameraComponentCreate( entt::registry& r, entt::entity ent );
 		void PhysXCapsuleColliderComponentCreate( entt::registry& r, entt::entity ent );
 		void ScriptComponentCreate( entt::registry& r, entt::entity ent );
-
-		void Contact( rp3d::CollisionBody* body );
 
 		const EntityMap& GetEntityMap() const { return m_EntityIDMap; }
 		const EntityMonoMap& GetEntityMonoMap() const { return m_EntityMonoIDMap; }
@@ -182,8 +171,6 @@ namespace Saturn {
 	private:
 		void UpdateRuntime( Timestep ts );
 		/*------------------------------------------------------------------ */
-	public:
-		Ref<PhysicsScene> m_ReactPhysicsScene;
 
 	private:
 		UUID m_SceneID;

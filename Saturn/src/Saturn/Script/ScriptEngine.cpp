@@ -345,7 +345,6 @@ namespace Saturn {
 
 	bool ScriptEngine::IsEntityModuleValid( Entity entity )
 	{
-		entity.SetScene( m_Scene.Raw() );
 		return entity.HasComponent<ScriptComponent>() && ModuleExists(entity.GetComponent<ScriptComponent>().ModuleName);
 	}
 
