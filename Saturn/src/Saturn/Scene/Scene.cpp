@@ -460,8 +460,6 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		m_PhysXRuntime->Update( ts, *this );
-
 		auto view = m_Registry.view<ScriptComponent>();
 		for (auto entt : view) 
 		{
@@ -469,5 +467,16 @@ namespace Saturn {
 			ScriptEngine::OnUpdateEntity( e, ts );
 		}
 
+		{
+			auto view = m_Registry.view<PhysXRigidbodyComponent>();
+			for( auto entity : view )
+			{
+				Entity e ={ entity, this };
+				auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
+				rb.m_Rigidbody->SetUserData( e );
+			}
+		}
+
+		m_PhysXRuntime->Update( ts, *this );
 	}
 }

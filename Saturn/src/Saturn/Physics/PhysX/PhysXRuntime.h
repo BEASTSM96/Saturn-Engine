@@ -43,6 +43,7 @@ namespace Saturn {
 		static physx::PxScene& GetPhysXScene();
 		static void CreatePhysXCompsForEntity( Entity entity );
 	protected:
+		static void ForceSetRbUserData();
 	private:
 	};
 

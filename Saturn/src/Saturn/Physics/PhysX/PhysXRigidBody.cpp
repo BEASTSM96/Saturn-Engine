@@ -37,6 +37,7 @@ namespace Saturn {
 
 	PhysXRigidbody::PhysXRigidbody( Entity entity, glm::vec3 pos, glm::quat rot )
 	{
+
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 
 		physx::PxVec3 PxPos;
@@ -55,7 +56,7 @@ namespace Saturn {
 		physx::PxRigidDynamic* actor = PhysXFnd::GetPhysics().createRigidDynamic( PhysXTransform );
 
 		actor->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, true );
-		 
+
 		physx::PxRigidBodyExt::setMassAndUpdateInertia( *actor, 100 );
 		m_Body = actor;
 
@@ -76,10 +77,8 @@ namespace Saturn {
 		for( physx::PxU32 i = 0; i < numShapes; i++ )
 			shapes[ i ]->setSimulationFilterData( filterData );
 		allocator.deallocate( shapes );
-
-		SetKinematic( rb.isKinematic );
-
 		m_Body->userData = &entity;
+		SetKinematic( rb.isKinematic );
 	}
 
 	PhysXRigidbody::~PhysXRigidbody()
@@ -168,6 +167,11 @@ namespace Saturn {
 	void PhysXRigidbody::AddActorToScene()
 	{
 		PhysXRuntime::GetPhysXScene().addActor( *m_Body );
+	}
+
+	void PhysXRigidbody::SetUserData( Entity& e )
+	{
+		m_Body->userData = &e;
 	}
 
 }

@@ -84,6 +84,7 @@ namespace Saturn {
 		void ApplyForce( glm::vec3 force, ForceType type );
 		void AttachShape( physx::PxShape& shape );
 		void AddActorToScene();
+		void SetUserData( Entity& e );
 
 		physx::PxRigidActor& GetPxBody() { return *m_Body; }
 		physx::PxRigidActor* m_Body;

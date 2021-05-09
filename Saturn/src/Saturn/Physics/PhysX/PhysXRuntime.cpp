@@ -10,6 +10,8 @@ namespace Saturn {
 	{
 		s_UpdateTime += ts.GetMilliseconds();
 
+		ForceSetRbUserData();
+
 		s_Scene->simulate( ts );
 		s_Scene->fetchResults( true );
 		scene.PhysicsUpdate( PhysicsType::PhysX, ts );
@@ -29,6 +31,11 @@ namespace Saturn {
 	void PhysXRuntime::CreatePhysXCompsForEntity( Entity entity )
 	{
 		PhysXFnd::AddRigidBody( entity );
+	}
+
+	void PhysXRuntime::ForceSetRbUserData()
+	{
+
 	}
 
 }
