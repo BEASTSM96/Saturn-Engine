@@ -447,6 +447,7 @@ namespace Saturn {
 	void Scene::EndRuntime( void )
 	{
 		m_RuntimeRunning = false;
+		m_PhysXRuntime->Clear();
 		delete m_PhysXRuntime;
 		m_PhysXRuntime = nullptr;
 	}
