@@ -134,6 +134,8 @@ namespace Saturn {
 
 		void CreatePhysxScene();
 
+		Entity& CreateEntityFromPhysXData( void* data );
+
 		// Editor-specific
 		void SetSelectedEntity(entt::entity entity) { m_SelectedEntity = entity; }
 

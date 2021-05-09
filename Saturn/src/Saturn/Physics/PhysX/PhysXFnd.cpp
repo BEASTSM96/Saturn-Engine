@@ -167,6 +167,11 @@ namespace Saturn {
 		return s_DefaultAllocatorCallback;
 	}
 
+	PhysXContact& PhysXFnd::GetPhysXContact()
+	{
+		return s_PhysXSimulationEventCallback;
+	}
+
 	void PhysXContact::onConstraintBreak( physx::PxConstraintInfo* constraints, physx::PxU32 count )
 	{
 		PX_UNUSED( constraints );
@@ -185,32 +190,22 @@ namespace Saturn {
 
 	void PhysXContact::onContact( const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs )
 	{
-
 		Entity& a = *( Entity* )pairHeader.actors[ 0 ]->userData;
 		Entity& b = *( Entity* )pairHeader.actors[ 1 ]->userData;
-		//TEMP
-		Entity ar ={ a.Raw(), ScriptEngine::GetScene().Raw() };
-		Entity br ={ b.Raw(), ScriptEngine::GetScene().Raw() };
-
-		SAT_CORE_INFO( "onContact" );
 
 		if( pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH )
 		{
-			if( a.HasComponent<ScriptComponent>() )
-			{
-				if( ScriptEngine::ModuleExists( ar.GetComponent<ScriptComponent>().ModuleName ) )
-					ScriptEngine::OnCollisionBegin( ar );
-			}
-			if( ScriptEngine::IsEntityModuleValid( br ) )
-				ScriptEngine::OnCollisionBegin( br );
+			if( ScriptEngine::IsEntityModuleValid( a ) )
+				ScriptEngine::OnCollisionBegin( a );
+			if( ScriptEngine::IsEntityModuleValid( b ) )
+				ScriptEngine::OnCollisionBegin( b );
 		}
-
-		if( pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH )
+		else if( pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH )
 		{
-			if( ar.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( ar.GetComponent<ScriptComponent>().ModuleName ) )
-				ScriptEngine::OnCollisionExit( ar );
-			if( br.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists( br.GetComponent<ScriptComponent>().ModuleName ) )
-				ScriptEngine::OnCollisionExit( br ); 
+			if( ScriptEngine::IsEntityModuleValid( a ) )
+				ScriptEngine::OnCollisionExit( a );
+			if( ScriptEngine::IsEntityModuleValid( b ) )
+				ScriptEngine::OnCollisionExit( b );
 		}
 	}
 

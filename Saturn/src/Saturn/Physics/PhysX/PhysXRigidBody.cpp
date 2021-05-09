@@ -76,9 +76,10 @@ namespace Saturn {
 		for( physx::PxU32 i = 0; i < numShapes; i++ )
 			shapes[ i ]->setSimulationFilterData( filterData );
 		allocator.deallocate( shapes );
-		m_Body->userData = &entity;
+
 		SetKinematic( rb.isKinematic );
 
+		m_Body->userData = &entity;
 	}
 
 	PhysXRigidbody::~PhysXRigidbody()

@@ -331,6 +331,14 @@ namespace Saturn {
 		}
 	}
 
+	Entity& Scene::CreateEntityFromPhysXData( void* data )
+	{
+		Entity& a = *( Entity* )data;
+		Entity e = CreateEntity( "" );
+		e.m_EntityHandle = a.m_EntityHandle;
+		return e;
+	}
+
 	/*------------------------ Runtime helpers ------------------------ */
 
 	template<typename T>
