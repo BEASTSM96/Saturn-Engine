@@ -204,7 +204,7 @@ project "SaturnScript"
 
 	postbuildcommands 
 	{
-		'{COPY} "../%{cfg.targetdir}/SaturnScript.dll" "../SaturnScript/build/SaturnScript.dll"',
+		--'{COPY} "../%{cfg.targetdir}/SaturnScript.dll" "../SaturnScript/build/SaturnScript.dll"',
 	}
 
 group "sat/Tools"

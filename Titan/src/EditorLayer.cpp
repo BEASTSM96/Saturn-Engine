@@ -881,6 +881,7 @@ namespace Saturn {
 						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
 						m_EditorScene->CopyScene( m_RuntimeScene );
 						m_RuntimeScene->BeginRuntime();
+						ScriptEngine::SetSceneContext( m_EditorScene );
 					}
 				}
 

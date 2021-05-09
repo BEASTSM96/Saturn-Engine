@@ -15,7 +15,7 @@ namespace Saturn
         internal Entity(ulong id) 
         {
             EntityID = id;
-            Console.WriteLine("Entity destroyed {0}", id);
+            Console.WriteLine("Entity created {0}", id);
         }
 
         ~Entity() 

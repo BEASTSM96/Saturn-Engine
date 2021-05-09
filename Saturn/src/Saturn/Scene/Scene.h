@@ -151,7 +151,7 @@ namespace Saturn {
 		void PhysXCapsuleColliderComponentCreate( entt::registry& r, entt::entity ent );
 		void ScriptComponentCreate( entt::registry& r, entt::entity ent );
 
-		const EntityMap& GetEntityMap() const { return m_EntityIDMap; }
+		const EntityMap& GetEntityMap() const;
 		const EntityMonoMap& GetEntityMonoMap() const { return m_EntityMonoIDMap; }
 		const UUID& GetUUID() const { return m_SceneID; }
 		UUID& GetUUID() { return m_SceneID; }

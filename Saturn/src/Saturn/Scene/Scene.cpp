@@ -104,6 +104,11 @@ namespace Saturn {
 		ScriptEngine::OnInitEntity( scene->m_EntityIDMap.at(enttId) );
 	}
 
+	const EntityMap& Scene::GetEntityMap() const
+	{
+		return m_EntityIDMap;
+	}
+
 	void Scene::DuplicateEntity( Entity entity )
 	{
 	}
@@ -378,6 +383,7 @@ namespace Saturn {
 		NewScene->m_data = m_data;
 		NewScene->m_DebugName = m_DebugName;
 		NewScene->m_EntityIDMap = m_EntityIDMap;
+		NewScene->m_EntityMonoIDMap = m_EntityMonoIDMap;
 		NewScene->m_Environment = m_Environment;
 		NewScene->m_Light = m_Light;
 		NewScene->m_LightMultiplier = m_LightMultiplier;

@@ -775,11 +775,6 @@ namespace Saturn {
 			
 
 		});
-
-		if( ImGui::Button( "Run Script" ) )
-		{
-			ScriptEngine::OnCreateEntity( entity );
-		}
 	}
 
 }

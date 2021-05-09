@@ -17,11 +17,12 @@ namespace Saturn {
 		}
 
 		template<typename Ty>
-		static Ty& GetCompFromScene( Ref<Scene>& scene, uint32_t entityID )
+		static Ty& GetCompFromScene( Ref<Scene>& scene, uint64_t entityID )
 		{
-			auto& map = scene->GetEntityMap();
-			SAT_CORE_ASSERT( map.find( entityID ) != map.end() );
-			Entity e = map.at( entityID );
+			UUID id = entityID;
+			const auto& map = scene->GetEntityMap();
+			SAT_CORE_ASSERT( map.find( id ) != map.end() );
+			Entity e = map.at( id );
 			return e.GetComponent<Ty>();
 		}
 	protected:

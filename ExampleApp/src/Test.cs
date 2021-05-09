@@ -52,6 +52,11 @@ namespace ExampleApp
             {
                 Log.Info("D Key Pressed");
             }
+
+            if (Input.IsKeyPressed((UInt16)Input.Key.X))
+            {
+                GetComponent<PhysXRigidbodyComponent>().ApplyForce(new Vector3(10, 10, 10), PhysXForceMode.Force);
+            }
         }
 
     }
