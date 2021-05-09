@@ -33,6 +33,11 @@ namespace Saturn {
 		PhysXFnd::AddRigidBody( entity );
 	}
 
+	void PhysXRuntime::Clear()
+	{
+		s_Scene = nullptr;
+	}
+
 	void PhysXRuntime::ForceSetRbUserData()
 	{
 

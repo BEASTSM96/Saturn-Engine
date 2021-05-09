@@ -116,7 +116,7 @@ namespace Saturn {
 		if( entitySize.x != 0.0f )
 			size *= entitySize.x;
 
-		physx::PxSphereGeometry sphereGeo = physx::PxSphereGeometry( size );
+		physx::PxSphereGeometry sphereGeo = physx::PxSphereGeometry( size / 2.0f );
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, sphereGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
 		shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
 		shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
