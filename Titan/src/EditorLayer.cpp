@@ -833,43 +833,6 @@ namespace Saturn {
 			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
 			if( ImGui::Begin( "Toolbar" ) )
 			{
-			#if 0
-				if( !m_RuntimeScene )
-				{
-					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
-					{
-						m_EditorScene->SetSelectedEntity( {} );
-						m_SceneHierarchyPanel->SetSelected( {} );
-						m_SelectionContext.clear();
-						m_SceneHierarchyPanel->Reset();
-						m_RuntimeScene = Ref<Scene>::Create();
-						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
-						m_EditorScene->CopyScene( m_RuntimeScene );
-						m_RuntimeScene->BeginRuntime();
-					}
-				}
-
-				if( m_RuntimeScene )
-				{
-					if( m_RuntimeScene->m_RuntimeRunning )
-					{
-						ImGui::SameLine();
-
-						if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
-						{
-							m_RuntimeScene->SetSelectedEntity( {} );
-							m_SceneHierarchyPanel->SetSelected( {} );
-							m_SelectionContext.clear();
-							m_SceneHierarchyPanel->Reset();
-							m_RuntimeScene->EndRuntime();
-							m_SelectionContext.clear();
-							m_SceneHierarchyPanel->SetContext( m_EditorScene );
-							//delete m_RuntimeScene.Raw();
-						}
-					}
-				}
-			#endif
-
 				if( !m_RuntimeScene )
 				{
 
@@ -988,9 +951,6 @@ namespace Saturn {
 					ImGuizmo::SetDrawlist();
 					ImGuizmo::SetRect( ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, rw, rh );
 
-					bool snap = Input::IsKeyPressed( SAT_KEY_LEFT_CONTROL );
-
-
 					auto& tc = selection.Entity.GetComponent<TransformComponent>();
 
 					glm::mat4 position = glm::translate( glm::mat4( 1.0f ), tc.Position );
@@ -1001,9 +961,10 @@ namespace Saturn {
 
 					float* et = glm::value_ptr( entityTransform );
 
+					bool wantsToSnap = Input::IsKeyPressed( Key::LeftControl );
 					float snapValue = GetSnapValue();
 					float snapValues[ 3 ] ={ snapValue, snapValue, snapValue };
-
+					
 					if( m_SelectionMode == SelectionMode::Entity )
 					{
 						auto viewm = glm::value_ptr( m_EditorCamera.GetViewMatrix() );
@@ -1014,13 +975,14 @@ namespace Saturn {
 
 						auto& tc = selectedEntity.GetComponent<TransformComponent>();
 						glm::mat4 transform = tc.GetTransform();
-						ImGuizmo::Manipulate( viewm, projm, ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr( transform ), nullptr, snap ? snapValues : nullptr );
+						ImGuizmo::Manipulate( viewm, projm, ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr( transform ), nullptr, wantsToSnap ? snapValues : nullptr );
 
-
+						
 						if( ImGuizmo::IsUsing() )
 						{
 							glm::vec3 translation, scale;
 							glm::quat rotation;
+
 							DecomposeTransform( transform, translation, rotation, scale );
 
 							glm::quat deltaRotation = rotation - tc.Rotation;
@@ -1028,7 +990,7 @@ namespace Saturn {
 							tc.Rotation += deltaRotation;
 							tc.Scale = scale;
 						}
-
+						
 					}
 				}
 			}
