@@ -305,6 +305,9 @@ namespace Saturn {
 	struct PhysXRigidbodyComponent : Component
 	{
 		bool isKinematic;
+		bool UseCCD;
+		int Mass;
+
 
 		PhysXRigidbody* m_Rigidbody;
 
