@@ -337,7 +337,11 @@ namespace Saturn {
 		m_Scene->m_Registry.each( [&]( auto entityID )
 			{
 				Entity entity ={ entityID, m_Scene.Raw() };
+
 				if( !entity )
+					return;
+
+				if( entity.HasComponent<SceneComponent>() )
 					return;
 
 				SerialiseEntity( out, entity );
