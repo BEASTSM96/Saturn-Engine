@@ -85,11 +85,14 @@ namespace Saturn {
 		void AttachShape( physx::PxShape& shape );
 		void AddActorToScene();
 		void SetUserData( Entity& e );
+		void UseCCD( bool use );
+		void SetMass( int mass );
 
 		physx::PxRigidActor& GetPxBody() { return *m_Body; }
 		physx::PxRigidActor* m_Body;
 	protected:
-
+		int m_Mass = 1.0;
+		bool m_UseCCD = true;
 	private:
 		bool m_Kinematic = false;
 

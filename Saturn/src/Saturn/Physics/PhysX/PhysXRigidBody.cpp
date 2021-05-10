@@ -55,9 +55,9 @@ namespace Saturn {
 
 		physx::PxRigidDynamic* actor = PhysXFnd::GetPhysics().createRigidDynamic( PhysXTransform );
 
-		actor->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, true );
+		actor->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, rb.UseCCD );
 
-		physx::PxRigidBodyExt::setMassAndUpdateInertia( *actor, 100 );
+		physx::PxRigidBodyExt::setMassAndUpdateInertia( *actor, rb.Mass );
 		m_Body = actor;
 
 		if( entity.HasComponent<PhysXBoxColliderComponent>() )
@@ -172,6 +172,14 @@ namespace Saturn {
 	void PhysXRigidbody::SetUserData( Entity& e )
 	{
 		m_Body->userData = &e;
+	}
+
+	void PhysXRigidbody::UseCCD( bool use )
+	{	
+	}
+
+	void PhysXRigidbody::SetMass( int mass )
+	{
 	}
 
 }

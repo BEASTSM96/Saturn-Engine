@@ -602,6 +602,27 @@ namespace Saturn {
 		ImGui::PopID();
 	}
 
+	void DrawIntControl( const std::string& label, int* val, float min = 0.0, float max = 0.0, float step = 1.0f, float colWidth = 100.0f )
+	{
+		ImGui::PushID( label.c_str() );
+
+		ImGui::Columns( 2, NULL, false );
+
+
+		ImGui::SetColumnWidth( 0, colWidth );
+		ImGui::Text( "%s", label.c_str() );
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
+		ImGui::DragInt( "##FLIN", val, step, min, max );
+
+		ImGui::PopItemWidth();
+
+		ImGui::Columns( 1, NULL, false );
+
+		ImGui::PopID();
+	}
+
 	void SceneHierarchyPanel::DrawEntityComponents( Entity entity )
 	{
 		SAT_PROFILE_FUNCTION();
@@ -696,10 +717,17 @@ namespace Saturn {
 			{
 
 				bool Kinematic = rb.isKinematic;
+				bool ccd = rb.UseCCD;
+				int mass = rb.Mass;
 				DrawBoolControl( "Kinematic", &Kinematic );
+				DrawBoolControl( "Enbale Continuous collision detection ", &ccd );
+				DrawIntControl( "Set Mass", &mass );
 
 				rb.isKinematic = Kinematic;
-
+				rb.UseCCD = ccd;
+				rb.Mass = mass;
+				rb.m_Rigidbody->UseCCD(ccd);
+				rb.m_Rigidbody->SetMass(mass);
 			} );
 
 
