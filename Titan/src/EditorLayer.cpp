@@ -410,6 +410,7 @@ namespace Saturn {
 			m_RuntimeScene->OnUpdate( ts );
 		}
 
+		/*
 		if ( !m_RuntimeScene )
 		{
 			//For physx and others we will have to half the extents... 
@@ -430,6 +431,7 @@ namespace Saturn {
 				sphereCollider.Radius = transform.Scale.y / 2.0f;
 			}
 		}
+		*/
 	}
 
 	std::pair<float, float> EditorLayer::GetMouseViewportSpace()
