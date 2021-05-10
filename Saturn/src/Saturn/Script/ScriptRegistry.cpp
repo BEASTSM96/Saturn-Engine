@@ -32,6 +32,7 @@ SAT_CORE_ERROR("No C# component class for ", #_Type); \
 		ComponentRegisterType( IdComponent );
 		ComponentRegisterType( TransformComponent );
 		ComponentRegisterType( MeshComponent );
+		ComponentRegisterType( PhysXRigidbodyComponent );
 	}
 
 	void ScriptRegistry::RegisterAll()
@@ -56,5 +57,7 @@ SAT_CORE_ERROR("No C# component class for ", #_Type); \
 
 		mono_add_internal_call( "Saturn.TagComponent::GetTag_Native", Saturn::Scripting::Saturn_TagComponent_GetTag );
 		mono_add_internal_call( "Saturn.TagComponent::SetTag_Native", Saturn::Scripting::Saturn_TagComponent_SetTag );
+
+		mono_add_internal_call( "Saturn.PhysXRigidbodyComponent::AddForce_Native", Saturn::Scripting::Saturn_RigidBodyComponent_AddForce );
 	}
 }

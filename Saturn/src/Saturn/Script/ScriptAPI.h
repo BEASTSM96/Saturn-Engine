@@ -33,5 +33,7 @@ namespace Scripting {
 
 	MonoString* Saturn_TagComponent_GetTag( uint64_t entityID );
 	void Saturn_TagComponent_SetTag( uint64_t entityID, MonoString* tag );
+
+	void Saturn_RigidBodyComponent_AddForce( uint64_t entityID, glm::vec3 forcedire, ForceType type );
 }
 }

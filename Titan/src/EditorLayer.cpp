@@ -56,7 +56,7 @@
 #include <Saturn/Scene/SceneManager.h>
 #include <Saturn/Script/ScriptEngine.h>
 #include <Saturn/Input.h>
-#include <Saturn/Physics/PhysX/PhysXScene.h>
+#include <Saturn/Physics/PhysX/PhysXFnd.h>
 
 #include <Saturn/Scene/ScriptableEntity.h>
 
@@ -97,7 +97,7 @@ namespace Saturn {
 		m_AssetPanel = Ref<AssetPanel>::Create();
 		m_AssetPanel->OnAttach();
 
-		PhysXScene::Init();
+		PhysXFnd::Init();
 
 		OpenScene( "" );
 
@@ -410,6 +410,7 @@ namespace Saturn {
 			m_RuntimeScene->OnUpdate( ts );
 		}
 
+		/*
 		if ( !m_RuntimeScene )
 		{
 			//For physx and others we will have to half the extents... 
@@ -430,6 +431,7 @@ namespace Saturn {
 				sphereCollider.Radius = transform.Scale.y / 2.0f;
 			}
 		}
+		*/
 	}
 
 	std::pair<float, float> EditorLayer::GetMouseViewportSpace()
@@ -881,6 +883,7 @@ namespace Saturn {
 						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
 						m_EditorScene->CopyScene( m_RuntimeScene );
 						m_RuntimeScene->BeginRuntime();
+						ScriptEngine::SetSceneContext( m_EditorScene );
 					}
 				}
 

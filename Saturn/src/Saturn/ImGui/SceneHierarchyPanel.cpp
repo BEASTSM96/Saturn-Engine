@@ -312,39 +312,6 @@ namespace Saturn {
 					}
 					if( ImGui::BeginMenu( "Physics" ) )
 					{
-						if( !m_SelectionContext.HasComponent<PhysicsComponent>() )
-						{
-
-							if( ImGui::MenuItem( "Physics" ) )
-							{
-								m_SelectionContext.AddComponent<PhysicsComponent>();
-							}
-						}
-
-						if( !m_SelectionContext.HasComponent<RigidbodyComponent>() )
-						{
-							if( ImGui::MenuItem( "Rigidbody" ) )
-							{
-								m_SelectionContext.AddComponent<RigidbodyComponent>();
-							}
-						}
-
-						if( !m_SelectionContext.HasComponent<BoxColliderComponent>() )
-						{
-							if( ImGui::MenuItem( "Box Collider" ) )
-							{
-								m_SelectionContext.AddComponent<BoxColliderComponent>( glm::vec3( 1 ) );
-							}
-						}
-
-						if( !m_SelectionContext.HasComponent<SphereColliderComponent>() )
-						{
-							if( ImGui::MenuItem( "Sphere Collider" ) )
-							{
-								m_SelectionContext.AddComponent<SphereColliderComponent>( 1.0f );
-							}
-						}
-
 						if( !m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() )
 						{
 							if( ImGui::MenuItem( "PhysXRigidbody" ) )
@@ -725,30 +692,13 @@ namespace Saturn {
 				}
 			} );
 
-		DrawComponent<BoxColliderComponent>( "Box Collider", entity, []( auto& component )
-			{
-				DrawVec3Control( "Extents", component.Extents, component.Extents );
-			} );
-
-		DrawComponent<SphereColliderComponent>( "Sphere Collider", entity, []( auto& component )
-		{
-			DrawFloatControl( "Radius", &component.Radius, component.Radius );
-		});
-
-		DrawComponent<PhysicsComponent>( "Physics", entity, []( auto& pc )
-		{
-
-
-		});
-
 		DrawComponent<PhysXRigidbodyComponent>( "PhysXRigidbody", entity, []( auto& rb )
 			{
 
 				bool Kinematic = rb.isKinematic;
-				bool canKinematic = rb.m_body->IsKinematic();
-				DrawBoolControl( "Kinematic", &rb.isKinematic );
+				DrawBoolControl( "Kinematic", &Kinematic );
 
-				rb.m_body->SetKinematic( rb.isKinematic );
+				rb.isKinematic = Kinematic;
 
 			} );
 
@@ -774,16 +724,6 @@ namespace Saturn {
 			DrawFloatControl( "Height", &cc.Height, cc.Height );
 
 		} );
-
-		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )
-			{
-
-				bool canKinematic = rb.m_body->GetKinematic();
-				DrawBoolControl( "Kinematic", &canKinematic );
-
-				rb.m_body->SetKinematic( canKinematic );
-
-			} );
 
 		DrawComponent<ScriptComponent>("Script", entity, []( auto& csc )
 		{
@@ -835,11 +775,6 @@ namespace Saturn {
 			
 
 		});
-
-		if( ImGui::Button( "Run Script" ) )
-		{
-			ScriptEngine::OnCreateEntity( entity );
-		}
 	}
 
 }

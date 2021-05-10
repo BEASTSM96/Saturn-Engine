@@ -35,9 +35,6 @@
 #include "Saturn/Renderer/Texture.h"
 #include "Saturn/Renderer/Material.h"
 
-#include "Saturn/Physics/PhysicsScene.h"
-#include "Saturn/Physics/PhysX/PhysXScene.h"
-
 #include "entt.hpp"
 
 #include "Saturn/Scene/SceneCamera.h"
@@ -47,6 +44,7 @@ namespace Saturn {
 
 	class Entity;
 	class ScriptableEntity;
+	class PhysXRuntime;
 	using EntityMap = std::unordered_map<UUID, Entity>;
 	using EntityMonoMap = std::unordered_map<unsigned long, Entity>;
 
@@ -82,18 +80,17 @@ namespace Saturn {
 		float Multiplier = 1.0f;
 	};
 
-	struct RuntimeData
-	{
-		bool Running = false;
-		Ref<Scene> RuntimeScene;
-		UUID RuntimeID;
-	};
 
 	enum class PhysicsType
 	{
 		None = 0,
 		PhysX = 1,
 		ReactPhysics = 2
+	};
+
+
+	struct RuntimeData
+	{
 	};
 
 	class Scene : public RefCounted
@@ -114,10 +111,6 @@ namespace Saturn {
 		auto GetAllEntitiesWith( void )
 		{
 			return m_Registry.view<T>();
-		}
-
-		PhysicsScene* GetPhysicsScene() {
-			return &*m_ReactPhysicsScene;
 		}
 
 		SceneData& GetData() { return m_data; }
@@ -141,14 +134,13 @@ namespace Saturn {
 
 		void CreatePhysxScene();
 
+		Entity& CreateEntityFromPhysXData( void* data );
+
 		// Editor-specific
 		void SetSelectedEntity(entt::entity entity) { m_SelectedEntity = entity; }
 
-		//phys
+		//Physics
 		void PhysicsUpdate( PhysicsType type, float delta );
-		void ContactStay(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
-		void ContactEnter(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
-		void ContactExit(reactphysics3d::CollisionBody* body, reactphysics3d::CollisionBody* other);
 
 		void PhysicsComponentCreate(entt::registry& r, entt::entity ent);
 
@@ -159,9 +151,7 @@ namespace Saturn {
 		void PhysXCapsuleColliderComponentCreate( entt::registry& r, entt::entity ent );
 		void ScriptComponentCreate( entt::registry& r, entt::entity ent );
 
-		void Contact( rp3d::CollisionBody* body );
-
-		const EntityMap& GetEntityMap() const { return m_EntityIDMap; }
+		const EntityMap& GetEntityMap() const;
 		const EntityMonoMap& GetEntityMonoMap() const { return m_EntityMonoIDMap; }
 		const UUID& GetUUID() const { return m_SceneID; }
 		UUID& GetUUID() { return m_SceneID; }
@@ -183,9 +173,6 @@ namespace Saturn {
 	private:
 		void UpdateRuntime( Timestep ts );
 		/*------------------------------------------------------------------ */
-	public:
-		Ref<PhysicsScene> m_ReactPhysicsScene;
-		Ref<PhysXScene> m_PhysXScene;
 
 	private:
 		UUID m_SceneID;
@@ -202,8 +189,6 @@ namespace Saturn {
 		Ref<TextureCube> m_SkyboxTexture;
 		Ref<MaterialInstance> m_SkyboxMaterial;
 
-		Ref<PhysicsWorld> m_PhysicsWorld;
-
 		entt::entity m_SelectedEntity;
 
 		float m_SkyboxLod = 1.0f;
@@ -214,6 +199,8 @@ namespace Saturn {
 		SceneData m_data;
 
 		RuntimeData m_RuntimeData;
+
+		PhysXRuntime* m_PhysXRuntime = nullptr;
 
 		friend class Entity;
 		friend class Serialiser;

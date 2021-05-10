@@ -107,4 +107,10 @@ namespace Saturn::Scripting {
 		std::string strtag = comp.Tag;
 		comp.Tag = MonoToString( tag );
 	}
+
+	void Saturn_RigidBodyComponent_AddForce( uint64_t entityID, glm::vec3 forcedire, ForceType type )
+	{
+		auto& comp = ScriptHelpers::GetCompFromScene<PhysXRigidbodyComponent>( ScriptEngine::GetScene(), entityID );
+		comp.m_Rigidbody->ApplyForce( forcedire, type );
+	}
 }

@@ -28,39 +28,73 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
+#include "Saturn/Scene/Entity.h"
 
-#ifdef USE_NVIDIA
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <physx/PxPhysicsAPI.h>
-#include "PhysXRigidBody.h"
+#include <stdint.h>
 
 namespace Saturn {
 
-	class PhysXCollider : public RefCounted
+	//The Main PhysX class for Saturn.
+
+	enum class ForceMode : uint16_t
+	{
+		Force = 0,
+		Impulse,
+		VelocityChange,
+		Acceleration
+	};
+
+	enum class BroadphaseType
+	{
+		SweepAndPrune,
+		MultiBoxPrune,
+		AutomaticBoxPrune
+	};
+
+	enum class FrictionType
+	{
+		Patch,
+		OneDirectional,
+		TwoDirectional
+	};
+
+	//TODO: Settings
+
+	class PhysXContact : public physx::PxSimulationEventCallback, public RefCounted
 	{
 	public:
-		PhysXCollider( PhysXRigidbody* body, std::vector<physx::PxShape*> shapes );
-		~PhysXCollider();
-
-		void SetPosition( glm::vec3 position );
-
-		std::vector<physx::PxShape*>& GetShapes();
-		const std::vector<physx::PxShape*>& GetShapes() const;
-	protected:
-		std::vector<physx::PxShape*> m_Shapes;
-		PhysXRigidbody* m_Body;
-		PhysXScene* m_Scene;
-
-	private:
-
+		virtual void onConstraintBreak( physx::PxConstraintInfo* constraints, physx::PxU32 count ) override;
+		virtual void onWake( physx::PxActor** actors, physx::PxU32 count ) override;
+		virtual void onSleep( physx::PxActor** actors, physx::PxU32 count ) override;
+		virtual void onContact( const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs ) override;
+		virtual void onTrigger( physx::PxTriggerPair* pairs, physx::PxU32 count ) override;
+		virtual void onAdvance( const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count ) override;
 	};
+
+	class PhysXFnd : public RefCounted
+	{
+	public:
+		static void Init();
+		static physx::PxScene* CreateScene();
+
+		static void CreateBoxCollider( Entity& entity, physx::PxRigidActor& actor );
+		static void CreateSphereCollider( Entity& entity, physx::PxRigidActor& actor );
+		static void CreateCapsuleCollider( Entity& entity, physx::PxRigidActor& actor );
+		static void AddRigidBody( Entity entity );
+	public:
+		static physx::PxPhysics& GetPhysics();
+		static physx::PxScene& GetPhysXScene();
+
+		static physx::PxAllocatorCallback& GetAllocator();
+		static PhysXContact& GetPhysXContact();
+	protected:
+	private:
+	};
+
+	class PhysXErrorCallback : public physx::PxErrorCallback, public RefCounted
+	{
+	public:
+		void reportError( physx::PxErrorCode::Enum code, const char* message, const char* file, int line ) override;
+	};
+
 }
-
-
-#endif

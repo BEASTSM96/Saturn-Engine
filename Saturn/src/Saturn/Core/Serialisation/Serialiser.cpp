@@ -258,40 +258,6 @@ namespace Saturn {
 			out << YAML::EndMap; // MeshComponent
 		}
 
-		if( entity.HasComponent<RigidbodyComponent>() )
-		{
-			out << YAML::Key << "RigidbodyComponent";
-			out << YAML::BeginMap; 
-
-			auto rb = entity.GetComponent<RigidbodyComponent>();
-			out << YAML::Key << "Is Kinematic" << YAML::Value << rb.isKinematic;
-
-			out << YAML::EndMap;
-		}
-
-		if( entity.HasComponent<BoxColliderComponent>() )
-		{
-			out << YAML::Key << "BoxColliderComponent";
-			out << YAML::BeginMap;
-
-			auto bc = entity.GetComponent<BoxColliderComponent>();
-			out << YAML::Key << "Extents" << YAML::Value << bc.Extents;
-
-			out << YAML::EndMap;
-		}
-
-
-		if( entity.HasComponent<SphereColliderComponent>() )
-		{
-			out << YAML::Key << "SphereColliderComponent";
-			out << YAML::BeginMap;
-
-			auto sc = entity.GetComponent<SphereColliderComponent>();
-			out << YAML::Key << "Radius" << YAML::Value << sc.Radius;
-
-			out << YAML::EndMap;
-		}
-
 		//PhysX
 
 		if( entity.HasComponent<PhysXRigidbodyComponent>() )
@@ -460,36 +426,6 @@ namespace Saturn {
 					//	deserializedEntity.AddComponent<MeshComponent>( Ref<Mesh>::Create( meshPath ) );
 
 					SAT_CORE_INFO( " NativeScriptComponent Instance Pointer: {0}", instancePointer );
-				}
-
-				auto boxColliderComponent = entity[ "BoxColliderComponent" ];
-				if( boxColliderComponent )
-				{
-					glm::vec3 extents = boxColliderComponent[ "Extents" ].as<glm::vec3>();
-					if( !deserializedEntity.HasComponent<BoxColliderComponent>() )
-						deserializedEntity.AddComponent<BoxColliderComponent>().Extents = extents;
-
-					SAT_CORE_INFO( " BoxColliderComponent Extents: {0}", extents );
-				}
-
-				auto sphereColliderComponent = entity[ "SphereColliderComponent" ];
-				if( sphereColliderComponent )
-				{
-					float radius = boxColliderComponent[ "Radius" ].as<float>();
-					if( !deserializedEntity.HasComponent<SphereColliderComponent>() )
-						deserializedEntity.AddComponent<SphereColliderComponent>().Radius = radius;
-
-					SAT_CORE_INFO( " sphereColliderComponent Radius: {0}", radius );
-				}
-
-				auto rigidbodyComponent = entity[ "RigidbodyComponent" ];
-				if( rigidbodyComponent )
-				{
-					bool iskinematic = rigidbodyComponent[ "Is Kinematic" ].as<bool>();
-					if( !deserializedEntity.HasComponent<RigidbodyComponent>() )
-						deserializedEntity.AddComponent<RigidbodyComponent>().isKinematic = iskinematic;
-
-					SAT_CORE_INFO( " RigidBodyComponent isKinematic: {0}", iskinematic );
 				}
 
 				//PhysX

@@ -30,11 +30,16 @@
 #include "PhysXRigidBody.h"
 
 #include "Saturn/Scene/Entity.h"
+#include "PhysXFnd.h"
+#include "PhysXRuntime.h"
 
 namespace Saturn {
 
-	PhysXRigidbody::PhysXRigidbody( Entity& entity, PhysXScene* scene, glm::vec3 pos, glm::quat rot ) : m_Scene( scene )
+	PhysXRigidbody::PhysXRigidbody( Entity entity, glm::vec3 pos, glm::quat rot )
 	{
+
+		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
+
 		physx::PxVec3 PxPos;
 		PxPos.x = pos.x;
 		PxPos.y = pos.y;
@@ -48,11 +53,21 @@ namespace Saturn {
 
 		physx::PxTransform PhysXTransform( PxPos, PxQua );
 
-		m_Body = m_Scene->GetPhysics().createRigidDynamic( PhysXTransform );
-		m_Body->setActorFlag( physx::PxActorFlag::eVISUALIZATION, true );
-		m_Body->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, true );
+		physx::PxRigidDynamic* actor = PhysXFnd::GetPhysics().createRigidDynamic( PhysXTransform );
 
-		physx::PxAllocatorCallback& allocator = scene->GetAllocator();
+		actor->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, true );
+
+		physx::PxRigidBodyExt::setMassAndUpdateInertia( *actor, 100 );
+		m_Body = actor;
+
+		if( entity.HasComponent<PhysXBoxColliderComponent>() )
+			PhysXFnd::CreateBoxCollider( entity, *m_Body );
+		if( entity.HasComponent<PhysXSphereColliderComponent>() )
+			PhysXFnd::CreateSphereCollider( entity, *m_Body );
+		if( entity.HasComponent<PhysXCapsuleColliderComponent>() )
+			PhysXFnd::CreateCapsuleCollider( entity, *m_Body );
+
+		physx::PxAllocatorCallback& allocator = PhysXFnd::GetAllocator();
 		physx::PxFilterData filterData;
 		filterData.word0 = BIT( 0 );
 		filterData.word1 = BIT( 0 );
@@ -63,14 +78,12 @@ namespace Saturn {
 			shapes[ i ]->setSimulationFilterData( filterData );
 		allocator.deallocate( shapes );
 		m_Body->userData = &entity;
-
-
-		m_Scene->GetPhysXScene().addActor( *m_Body );
+		SetKinematic( rb.isKinematic );
 	}
 
 	PhysXRigidbody::~PhysXRigidbody()
 	{
-		m_Scene->GetPhysics().release();
+		PhysXFnd::GetPhysics().release();
 	}
 
 	glm::vec3 PhysXRigidbody::GetPos()
@@ -106,41 +119,39 @@ namespace Saturn {
 
 	void PhysXRigidbody::SetKinematic( bool kinematic )
 	{
-		m_Body->setRigidBodyFlag( physx::PxRigidBodyFlag::eKINEMATIC, kinematic );
+		physx::PxRigidDynamic* actor = ( physx::PxRigidDynamic* )m_Body;
+
+		actor->setRigidBodyFlag( physx::PxRigidBodyFlag::eKINEMATIC, kinematic );
 		m_Kinematic = kinematic;
-
-		if( kinematic )
-		{
-			const glm::vec3 position = GetPos();
-			const glm::quat rotation = GetRot();
-
-			m_Body->setKinematicTarget( physx::PxTransform( position.x, position.y, position.z, physx::PxQuat( rotation.x, rotation.y, rotation.z, rotation.w ) ) );
-		}
 	}
 
 	bool PhysXRigidbody::IsKinematic()
 	{
-		return m_Body->getRigidBodyFlags().isSet( physx::PxRigidBodyFlag::eKINEMATIC );
+		physx::PxRigidDynamic* actor = ( physx::PxRigidDynamic* )m_Body;
+
+		return actor->getRigidBodyFlags().isSet( physx::PxRigidBodyFlag::eKINEMATIC );
 	}
 
 	void PhysXRigidbody::ApplyForce( glm::vec3 force, ForceType type )
 	{
+		physx::PxRigidDynamic* actor = ( physx::PxRigidDynamic* )m_Body;
+
 		switch( type )
 		{
 			case Saturn::ForceType::Force:
-				m_Body->addForce( physx::PxVec3( force.x, force.y, force.z ), physx::PxForceMode::eFORCE );
+				actor->addForce( physx::PxVec3( force.x, force.y, force.z ), physx::PxForceMode::eFORCE );
 				SAT_CORE_INFO( "Added Force type: {0}, Force Location X = {1}, Y = {2}, Z = {3}", ForceType::Force, force.x, force.y, force.z );
 				break;
 			case Saturn::ForceType::Acceleration:
-				m_Body->addForce( physx::PxVec3( force.x, force.y, force.z ), physx::PxForceMode::eACCELERATION );
+				actor->addForce( physx::PxVec3( force.x, force.y, force.z ), physx::PxForceMode::eACCELERATION );
 				SAT_CORE_INFO( "Added Force type: {0}, Force Location X = {1}, Y = {2}, Z = {3}", ForceType::Acceleration, force.x, force.y, force.z );
 				break;
 			case Saturn::ForceType::Impulse:
-				m_Body->addForce( physx::PxVec3( force.x, force.y, force.z ), physx::PxForceMode::eIMPULSE );
+				actor->addForce( physx::PxVec3( force.x, force.y, force.z ), physx::PxForceMode::eIMPULSE );
 				SAT_CORE_INFO( "Added Force type: {0}, Force Location X = {1}, Y = {2}, Z = {3}", ForceType::Impulse, force.x, force.y, force.z );
 				break;
 			case Saturn::ForceType::VelocityChange:
-				m_Body->addForce( physx::PxVec3( force.x, force.y, force.z ), physx::PxForceMode::eVELOCITY_CHANGE );
+				actor->addForce( physx::PxVec3( force.x, force.y, force.z ), physx::PxForceMode::eVELOCITY_CHANGE );
 				SAT_CORE_INFO( "Added Force type: {0}, Force Location X = {1}, Y = {2}, Z = {3}", ForceType::VelocityChange, force.x, force.y, force.z );
 				break;
 			default:
@@ -151,6 +162,16 @@ namespace Saturn {
 	void PhysXRigidbody::AttachShape( physx::PxShape& shape )
 	{
 		m_Body->attachShape( shape );
+	}
+
+	void PhysXRigidbody::AddActorToScene()
+	{
+		PhysXRuntime::GetPhysXScene().addActor( *m_Body );
+	}
+
+	void PhysXRigidbody::SetUserData( Entity& e )
+	{
+		m_Body->userData = &e;
 	}
 
 }

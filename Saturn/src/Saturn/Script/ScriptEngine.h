@@ -129,6 +129,7 @@ namespace Saturn {
 		static void OnCollisionExit( Entity entity );
 		static void SetSceneContext( const Ref<Scene>& scene );
 		static bool ModuleExists( const std::string& moduleName );
+		static bool IsEntityModuleValid( Entity entity );
 		static EntityInstance& GetEntityInstanceData( UUID entityId );
 		static Ref<Scene>& GetScene();
 

@@ -75,15 +75,25 @@ namespace Saturn {
 			return m_EntityHandle;
 		}
 
+		bool IsVaild() 
+		{
+			return m_Scene->m_Registry.valid( m_EntityHandle );
+		}
+
 		Scene& GetScene() { return *m_Scene; }
 		const Scene& GetScene() const { return *m_Scene; }
+
+		void SetScene( Scene* sceneIn ) 
+		{ 
+			m_Scene = sceneIn;
+		}
 
 		glm::mat4& Transform() { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ); }
 		const glm::mat4& Transform() const { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ); }
 
+		operator bool() const { return m_EntityHandle != entt::null; }
+		operator entt::entity() const { return m_EntityHandle;  }
 		operator uint32_t () const { return ( uint32_t )m_EntityHandle; }
-		operator entt::entity() const { return m_EntityHandle; }
-		operator bool() const { return ( uint32_t )m_EntityHandle && m_Scene; }
 
 		bool operator==( const Entity& other ) const
 		{
@@ -95,11 +105,8 @@ namespace Saturn {
 			return !( *this == other );
 		}
 
-		void BeginPlay() {}
-
 		UUID GetUUID() { return GetComponent<IdComponent>().ID; }
-	private:
-		Entity( const std::string& name );
+
 	protected:
 		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
