@@ -46,6 +46,7 @@
 #include "Core/Modules/ModuleManager.h"
 #include "Core/Modules/Module.h"
 #include "Scene/SceneManager.h"
+#include "Core/FileSystemHelpers.h"
 
 #include <imgui.h>
 
@@ -59,7 +60,8 @@ namespace Saturn {
 
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application( const ApplicationProps& props /*= {"Saturn Engine", 1280, 720}*/ )
+	Application::Application( ApplicationCommandLineArgs args, const ApplicationProps& props /*={ "Saturn Engine(Pre Init), (????/????) ", 1280, 720 }*/ )
+		: m_CommandLineArgs( args )
 	{
 		SAT_PROFILE_FUNCTION();
 
@@ -79,7 +81,11 @@ namespace Saturn {
 		PushOverlay( m_ImGuiLayer );
 		//PushOverlay( m_EditorLayer );
 
-		m_Window->Maximize();
+		if( !FileSystem::DoesFileExist( "", "version-control.vcinfo" ) )
+		{
+			m_VersionCtrl.FixedUUID = UUID();
+			m_VersionCtrl.Branch = "master";
+		}
 
 		Init();
 
@@ -152,6 +158,8 @@ namespace Saturn {
 	void Application::Run()
 	{
 		SAT_PROFILE_FUNCTION();
+
+		m_Window->Maximize();
 
 		while( m_Running && !m_Crashed )
 		{
@@ -291,6 +299,4 @@ namespace Saturn {
 	#error Undefined platform?
 	#endif
 	}
-
-
 }

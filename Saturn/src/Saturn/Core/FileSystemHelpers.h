@@ -28,29 +28,28 @@
 
 #pragma once
 
-extern Saturn::Application* Saturn::CreateApplication( Saturn::ApplicationCommandLineArgs args );
+#include <string>
+#include <filesystem>
 
-int main( int argc, char** argv )
-{
-	//Saturn::Log::Init();
+namespace Saturn { 
 
-	Saturn::InitCore();
+	namespace FileSystem { 
 
-	auto agrvcx = *argv;
+		//Will check if a folder exists in the working dir
+		static bool DoesFolderExist( std::string folderDir )
+		{
+			if( std::filesystem::exists( folderDir ) )
+				return true;
+			return false;
+		}
 
-	SAT_CORE_INFO( "Exe : {0}", agrvcx );
+		//Will check if a file exists in the working dir
+		static bool DoesFileExist( std::string dir, std::string fileName )
+		{
+			if( std::filesystem::exists( fileName ) )
+				return true;
+			return false;
+		}
 
-	SAT_PROFILE_BEGIN_SESSION( "Startup", "SaturnProfile-Startup.json" );
-	Saturn::Application* app = Saturn::CreateApplication( { argc, argv } );
-	SAT_PROFILE_END_SESSION();
-
-	SAT_PROFILE_BEGIN_SESSION( "Runtime", "SaturnProfile-Runtime.json" );
-	app->Run();
-	SAT_PROFILE_END_SESSION();
-
-	SAT_PROFILE_BEGIN_SESSION( "Shutdown", "SaturnProfile-Shutdown.json" );
-	delete app;
-	SAT_PROFILE_END_SESSION();
-
-	Saturn::EndCore();
+	}
 }

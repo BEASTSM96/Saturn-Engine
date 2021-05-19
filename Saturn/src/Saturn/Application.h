@@ -57,13 +57,33 @@ namespace Saturn {
 		uint32_t WindowWidth, WindowHeight;
 	};
 
+	struct ApplicationCommandLineArgs
+	{
+		int Count = 0;
+		char** Args = nullptr;
+
+		const char* operator[]( int index ) const
+		{
+			SAT_CORE_ASSERT( index < Count );
+			return Args[ index ];
+		}
+	};
+
+	struct VersionCtrl
+	{
+		UUID FixedUUID = NULL;
+		std::string Branch;
+	};
+
 	class SATURN_API Application
 	{
 	public:
-		Application( const ApplicationProps& props ={ "Saturn Engine", 1280, 720 } );
+		Application( ApplicationCommandLineArgs args, const ApplicationProps& props ={ "Saturn Engine(Pre Init), (????/????) ", 1280, 720 } );
 		virtual ~Application( void );
 
 		void Run( void );
+
+		ApplicationCommandLineArgs GetCommandLineArgs() const { return m_CommandLineArgs; }
 
 		/*----------For Editor----------*/
 		virtual void OnInit( void ) { }
@@ -91,6 +111,8 @@ namespace Saturn {
 		static const char* GetConfigurationName();
 		static const char* GetPlatformName();
 
+		UUID& GetFixedVersionUUID() { return m_VersionCtrl.FixedUUID;  };
+		VersionCtrl& GetVersionCtrl() { return m_VersionCtrl; };
 	public:
 		Scene& GetCurrentScene( void ) { return *Get().m_Scene; }
 	private:
@@ -103,7 +125,9 @@ namespace Saturn {
 		std::unique_ptr< Window > m_Window;
 
 	private:
-
+		ApplicationCommandLineArgs m_CommandLineArgs;
+		VersionCtrl m_VersionCtrl;
+		
 		ImGuiLayer* m_ImGuiLayer;
 
 		bool m_Running = true;
@@ -123,5 +147,5 @@ namespace Saturn {
 	};
 
 	// To be defined in CLIENT
-	Application* CreateApplication();
+	Application* CreateApplication( ApplicationCommandLineArgs args );
 }

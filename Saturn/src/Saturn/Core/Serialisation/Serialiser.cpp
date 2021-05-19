@@ -309,6 +309,37 @@ namespace Saturn {
 		out << YAML::EndMap; // Entity
 	}
 
+	void Serialiser::SerialiseVC( const std::string& filepath )
+	{
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "Version Ctrl for Saturn";
+		out << YAML::Value << " ";
+		out << YAML::Value << "uuid" << YAML::Value << (uint64_t)Application::Get().GetFixedVersionUUID();
+		out << YAML::Value << "Branch" << YAML::Value << Application::Get().GetVersionCtrl().Branch;
+		out << YAML::EndSeq;
+		out << YAML::EndMap;
+
+		std::ofstream fout( filepath );
+		fout << out.c_str();
+	}
+
+	void Serialiser::DeserialiseVC( const std::string& filepath )
+	{
+		if( filepath.empty() )
+			return;
+		YAML::Node data = YAML::LoadFile( filepath );
+		if( !data[ "Version Ctrl for Saturn" ] )
+			return;
+
+		SAT_CORE_INFO( "Starting deserializing of version control info" );
+		uint64_t vcUUID = data[ "uuid" ].as<uint64_t>();
+		std::string branch = data[ "Branch" ].as<std::string>();
+
+		Application::Get().GetVersionCtrl().FixedUUID = vcUUID;
+		Application::Get().GetVersionCtrl().Branch = branch;
+	}
+
 	static void SerialiseEnvironment( YAML::Emitter& out, const Ref<Scene>& scene )
 	{
 		out << YAML::Key << "Environment";
@@ -357,6 +388,8 @@ namespace Saturn {
 
 	void Serialiser::Deserialise( const std::string& filepath )
 	{
+		if( filepath.empty() )
+			return;
 		YAML::Node data = YAML::LoadFile( filepath );
 		if( !data[ "Scene" ] )
 			return;

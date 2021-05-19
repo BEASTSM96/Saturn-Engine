@@ -63,6 +63,8 @@
 #include <Saturn/ImGui/SceneHierarchyPanel.h>
 #include <Saturn/Scene/SceneCamera.h>
 
+#include <Saturn/Core/FileSystemHelpers.h>
+
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -107,13 +109,18 @@ namespace Saturn {
 		ScriptEngine::Init( "assets/assembly/game/exapp.dll" );
 		ScriptEngine::SetSceneContext( m_EditorScene );
 
+	
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init( "#version 410" );
 	}
 
 	void EditorLayer::UpdateWindowTitle( std::string name )
 	{
-		std::string title = name + " - Saturn - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ")";
+		uint64_t uuid  = Application::Get().GetFixedVersionUUID();
+		std::string branch  = Application::Get().GetVersionCtrl().Branch;
+		std::string uuidstr = std::to_string(uuid);
+
+		std::string title = name + " - Saturn - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ")" + "," + " (" + " " + uuidstr + " " + "/" + " " + branch + " )" ;
 		Application::Get().GetWindow().SetTitle( title );
 	}
 
@@ -158,6 +165,18 @@ namespace Saturn {
 			serialiser.Deserialise( filepath );
 		}
 		m_EditorScene = newScene;
+
+		if( FileSystem::DoesFileExist( "", "version-control.vcinfo" ) )
+		{
+			Serialiser s( m_EditorScene );
+			s.DeserialiseVC( "version-control.vcinfo" );
+		}
+		else
+		{
+			Serialiser s( m_EditorScene );
+			s.SerialiseVC( "version-control.vcinfo" );
+		}
+
 
 		std::filesystem::path path = filepath;
 		UpdateWindowTitle( path.filename().string() );
@@ -353,7 +372,7 @@ namespace Saturn {
 	{
 		m_EditorCamera.OnUpdate( ts );
 
-		//only if we aren't in runtime, we can render editor with the editor camera
+		//Only if we aren't in runtime, we can render editor with the editor camera
 		if( !m_RuntimeScene )
 		{
 			m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
@@ -1027,7 +1046,7 @@ namespace Saturn {
 						ImGui::Separator();
 
 						/**
-						* Selected material -> view and edit the stuff
+						* Selected material
 						*/
 						if( selectedMaterialIndex < materials.size() )
 						{

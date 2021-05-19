@@ -94,12 +94,13 @@ namespace Saturn {
 		auto& comp = entity.GetComponent<PhysXBoxColliderComponent>();
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = entity.GetComponent<TransformComponent>();
+		auto& mat = entity.GetComponent<PhysXMaterialComponent>();
 		glm::vec3 size = comp.Extents;
 		glm::vec3 entitySize = trans.Scale;
 
 
 		physx::PxBoxGeometry boxGeo = physx::PxBoxGeometry( size.x / 2.0f, size.y / 2.0f, size.z / 2.0f );
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, boxGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, boxGeo, *s_Physics->createMaterial( mat.StaticFriction, mat.DynamicFriction, mat.Restitution ) );
 		shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
 		shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
 		shape->setLocalPose( glmTransformToPx( glm::translate( glm::mat4( 1.0f ), comp.Offset ) ) );
@@ -110,6 +111,7 @@ namespace Saturn {
 		auto& comp = entity.GetComponent<PhysXSphereColliderComponent>();
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = entity.GetComponent<TransformComponent>();
+		auto& mat = entity.GetComponent<PhysXMaterialComponent>();
 		float size = comp.Radius;
 		glm::vec3 entitySize = trans.Scale;
 
@@ -117,7 +119,7 @@ namespace Saturn {
 			size *= entitySize.x;
 
 		physx::PxSphereGeometry sphereGeo = physx::PxSphereGeometry( size / 2.0f );
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, sphereGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, sphereGeo, *s_Physics->createMaterial( mat.StaticFriction, mat.DynamicFriction, mat.Restitution ) );
 		shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
 		shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
 	}
@@ -127,6 +129,7 @@ namespace Saturn {
 		auto& comp = entity.GetComponent<PhysXCapsuleColliderComponent>();
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = entity.GetComponent<TransformComponent>();
+		auto& mat = entity.GetComponent<PhysXMaterialComponent>();
 		float size = comp.Radius;
 		float height = comp.Height;
 
@@ -139,10 +142,19 @@ namespace Saturn {
 			height *= ( entitySize.y );
 
 		physx::PxCapsuleGeometry capsuleGeo = physx::PxCapsuleGeometry( size, height / 2.0f );
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, capsuleGeo, *s_Physics->createMaterial( 1, 1, 1 ) );
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, capsuleGeo, *s_Physics->createMaterial( mat.StaticFriction, mat.DynamicFriction, mat.Restitution ) );
 		shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
 		shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
 		shape->setLocalPose( physx::PxTransform( physx::PxQuat( physx::PxHalfPi, physx::PxVec3( 0, 0, 1 ) ) ) );
+	}
+
+	void PhysXFnd::CreateConvexMesh( Entity& entity, physx::PxRigidActor& actor )
+	{
+		auto& trans = entity.GetComponent<TransformComponent>();
+		auto& mesh = entity.GetComponent<MeshComponent>();
+		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
+		auto& mat = entity.GetComponent<PhysXMaterialComponent>();
+		auto& comp = entity.GetComponent<PhysXCapsuleColliderComponent>();
 	}
 
 	void PhysXFnd::AddRigidBody( Entity entity )

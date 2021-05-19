@@ -11,7 +11,7 @@
 class EditorApplication : public Saturn::Application
 {
 public:
-	EditorApplication( const Saturn::ApplicationProps& props ) : Application( props )
+	EditorApplication( Saturn::ApplicationCommandLineArgs args, const Saturn::ApplicationProps& props ) : Application( args, props )
 	{
 		m_EditorLayer = new Saturn::EditorLayer();
 		PushOverlay( m_EditorLayer );
@@ -27,7 +27,7 @@ private:
 	Saturn::EditorLayer* m_EditorLayer;
 };
 
-Saturn::Application* Saturn::CreateApplication()
+Saturn::Application* Saturn::CreateApplication( Saturn::ApplicationCommandLineArgs args )
 {
-	return new EditorApplication( { "SaturnEditor", 1600, 900 } );
+	return new EditorApplication( args, { "SaturnEditor (Editor Pre Init), (*UUID not yet loaded, *branch)", 1600, 900 } );
 }

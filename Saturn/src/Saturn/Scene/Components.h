@@ -347,6 +347,13 @@ namespace Saturn {
 		PhysXCapsuleColliderComponent( float radius ) : Radius( radius ) { }
 	};
 
+	struct PhysXMaterialComponent : Component
+	{
+		float StaticFriction = 0;
+		float DynamicFriction = 0;
+		float Restitution = 0;
+	};
+
 	//
 	// ScriptComponents
 	//

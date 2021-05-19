@@ -134,3 +134,4 @@ Titan/rp3d_log_Test.html
 *.csproj
 *.csproj.user
 Titan/assets/assembly/SaturnScript.pdb
+Titan/version-control.vcinfo

@@ -317,6 +317,7 @@ namespace Saturn {
 							if( ImGui::MenuItem( "PhysXRigidbody" ) )
 							{
 								m_SelectionContext.AddComponent<PhysXRigidbodyComponent>();
+								m_SelectionContext.AddComponent<PhysXMaterialComponent>();
 							}
 						}
 
@@ -545,8 +546,13 @@ namespace Saturn {
 			}
 			ImGui::Separator();
 
-			if( removeComponent )
+			if( removeComponent ) 
+			{ 
+				if( sizeof(T) == sizeof(PhysXMaterialComponent) )
+					return;
+
 				entity.RemoveComponent<T>();
+			}
 		}
 	}
 
@@ -719,8 +725,9 @@ namespace Saturn {
 				bool Kinematic = rb.isKinematic;
 				bool ccd = rb.UseCCD;
 				int mass = rb.Mass;
+				DrawBoolControl( "Enbale Continuous collision detection ", &ccd, 225 );
 				DrawBoolControl( "Kinematic", &Kinematic );
-				DrawBoolControl( "Enbale Continuous collision detection ", &ccd );
+
 				DrawIntControl( "Set Mass", &mass );
 
 				rb.isKinematic = Kinematic;
@@ -731,27 +738,35 @@ namespace Saturn {
 			} );
 
 
+		DrawComponent<PhysXMaterialComponent>( "PhysXMaterial", entity, []( auto& mat )
+		{
+			DrawFloatControl( "DynamicFriction", &mat.DynamicFriction );
+			DrawFloatControl( "StaticFriction", &mat.StaticFriction );
+			DrawFloatControl( "Restitution", &mat.Restitution );
+		} );
+
 		DrawComponent<PhysXBoxColliderComponent>( "PhysXBoxCollider", entity, []( auto& bc )
 			{
-
 				DrawVec3Control( "Extents", bc.Extents, bc.Extents );
-
+				DrawBoolControl( "Is Trigger", &bc.IsTrigger );
 			} );
 
 		DrawComponent<PhysXSphereColliderComponent>( "PhysXSphereCollider", entity, []( auto& sc )
 		{
-
+			    DrawBoolControl( "Is Trigger", &sc.IsTrigger );
 				DrawFloatControl( "Radius", &sc.Radius, sc.Radius );
 
 		} );
 
 		DrawComponent<PhysXCapsuleColliderComponent>( "PhysXCapsuleCollider", entity, []( auto& cc )
 		{
-
+			DrawBoolControl( "Is Trigger", &cc.IsTrigger );
 			DrawFloatControl( "Radius", &cc.Radius, cc.Radius );
 			DrawFloatControl( "Height", &cc.Height, cc.Height );
 
 		} );
+
+
 
 		DrawComponent<ScriptComponent>("Script", entity, []( auto& csc )
 		{
