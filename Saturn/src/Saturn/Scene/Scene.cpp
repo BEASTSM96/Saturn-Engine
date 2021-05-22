@@ -412,6 +412,7 @@ namespace Saturn {
 		CopyComponent<PhysXBoxColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXSphereColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<PhysXCapsuleColliderComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<PhysXMaterialComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<ScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
 	}

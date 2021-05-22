@@ -121,8 +121,7 @@ project "Saturn"
 		{
 			"SAT_PLATFORM_WINDOWS",
 			"SAT_BUILD_DLL",
-			"GLFW_INCLUDE_NONE",
-			"SPARKY_GAME_BASE"
+			"GLFW_INCLUDE_NONE"
 		}
 
 	filter "configurations:Debug"
@@ -264,30 +263,6 @@ project "Titan"
 		'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"'
 	}
 
-	filter "configurations:Dist"
-		postbuildcommands 
-		{
-			'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/mono/bin/Dist/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/mono/lib/mono-2.0-sgen.lib" "%{cfg.targetdir}/assets/mono/lib"',
-			'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"',
-		}
-	filter "configurations:Release"
-		postbuildcommands 
-		{
-			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/mono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
-		}
-	filter "configurations:Debug"
-		postbuildcommands 
-		{
-			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/mono/lib/mono-2.0-sgen.lib" "%{cfg.targetdir}/assets/mono/lib"',
-			'{COPY} "../Saturn/vendor/mono/lib/eglib.lib" "%{cfg.targetdir}/assets/mono/lib"',
-			'{COPY} "../Saturn/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
-			'{COPY} "../SaturnScript/build/SaturnScript.dll" "%{cfg.targetdir}/assets/assembly/SaturnRuntime.dll"'
-		}
-
 	filter "system:windows"
 		systemversion "latest"
 
@@ -301,15 +276,38 @@ project "Titan"
 		runtime "Debug"
 		symbols "on"
 
+		postbuildcommands 
+		{
+			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/lib/mono-2.0-sgen.lib" "%{cfg.targetdir}/assets/mono/lib"',
+			'{COPY} "../Saturn/vendor/mono/lib/eglib.lib" "%{cfg.targetdir}/assets/mono/lib"',
+			'{COPY} "../Saturn/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+			'{COPY} "../SaturnScript/build/SaturnScript.dll" "%{cfg.targetdir}/assets/assembly/SaturnRuntime.dll"'
+		}
+
 	filter "configurations:Release"
 		defines "SAT_RELEASE"
 		runtime "Release"
 		optimize "on"
 
+		postbuildcommands 
+		{
+			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
+		}
+
 	filter "configurations:Dist"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
+
+		postbuildcommands 
+		{
+			'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/bin/Dist/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/mono/lib/mono-2.0-sgen.lib" "%{cfg.targetdir}/assets/mono/lib"',
+			'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"',
+		}
 
 group "sat/Runtime"
 project "ExampleApp"

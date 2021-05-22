@@ -252,7 +252,7 @@ namespace Saturn {
 			out << YAML::Key << "MeshComponent";
 			out << YAML::BeginMap; // MeshComponent
 
-			auto mesh = entity.GetComponent<MeshComponent>().Mesh;
+			auto& mesh = entity.GetComponent<MeshComponent>().Mesh;
 			out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
 
 			out << YAML::EndMap; // MeshComponent
@@ -265,8 +265,14 @@ namespace Saturn {
 			out << YAML::Key << "PhysXRigidbodyComponent";
 			out << YAML::BeginMap;
 
-			auto rb = entity.GetComponent<PhysXRigidbodyComponent>();
+			auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
+			auto& mat = entity.GetComponent<PhysXMaterialComponent>();
 			out << YAML::Key << "Kinematic" << YAML::Value << rb.isKinematic;
+			out << YAML::Key << "Mass" << YAML::Value << rb.Mass;
+			out << YAML::Key << "CCD" << YAML::Value << rb.UseCCD;
+			out << YAML::Key << "Material-DynamicFriction" << YAML::Value << mat.DynamicFriction;
+			out << YAML::Key << "Material-StaticFriction" << YAML::Value << mat.StaticFriction;
+			out << YAML::Key << "Material-Restitution" << YAML::Value << mat.Restitution;
 
 			out << YAML::EndMap;
 		}
@@ -276,7 +282,7 @@ namespace Saturn {
 			out << YAML::Key << "PhysXBoxColliderComponent";
 			out << YAML::BeginMap;
 
-			auto bc = entity.GetComponent<PhysXBoxColliderComponent>();
+			auto& bc = entity.GetComponent<PhysXBoxColliderComponent>();
 			out << YAML::Key << "Extents" << YAML::Value << bc.Extents;
 
 			out << YAML::EndMap;
@@ -287,7 +293,7 @@ namespace Saturn {
 			out << YAML::Key << "PhysXSphereColliderComponent";
 			out << YAML::BeginMap;
 
-			auto sc = entity.GetComponent<PhysXSphereColliderComponent>();
+			auto& sc = entity.GetComponent<PhysXSphereColliderComponent>();
 			out << YAML::Key << "Radius" << YAML::Value << sc.Radius;
 
 			out << YAML::EndMap;
@@ -298,7 +304,7 @@ namespace Saturn {
 			out << YAML::Key << "PhysXCapsuleColliderComponent";
 			out << YAML::BeginMap;
 
-			auto cc = entity.GetComponent<PhysXCapsuleColliderComponent>();
+			auto& cc = entity.GetComponent<PhysXCapsuleColliderComponent>();
 			out << YAML::Key << "Radius" << YAML::Value << cc.Radius;
 			out << YAML::Key << "Height" << YAML::Value << cc.Height;
 
@@ -471,8 +477,25 @@ namespace Saturn {
 				if( physxrigidbodyComponent )
 				{
 					bool iskinematic = physxrigidbodyComponent[ "Kinematic" ].as<bool>();
-					if( !deserializedEntity.HasComponent<PhysXRigidbodyComponent>() )
+					float mass = physxrigidbodyComponent[ "Mass" ].as<float>();
+					bool ccd = physxrigidbodyComponent[ "CCD" ].as<bool>();
+
+					int dynamicFriction = physxrigidbodyComponent["Material-DynamicFriction"].as<float>();
+					int restitution = physxrigidbodyComponent[ "Material-Restitution" ].as<float>();
+					int staticFriction = physxrigidbodyComponent[ "Material-StaticFriction" ].as<float>();
+
+					if( !deserializedEntity.HasComponent<PhysXRigidbodyComponent>() ) 
+					{
 						deserializedEntity.AddComponent<PhysXRigidbodyComponent>().isKinematic = iskinematic;
+						deserializedEntity.AddComponent<PhysXMaterialComponent>();
+						auto& rb = deserializedEntity.GetComponent<PhysXRigidbodyComponent>();
+						rb.Mass = mass;
+						rb.UseCCD = ccd;
+						auto& mat = deserializedEntity.GetComponent<PhysXMaterialComponent>();
+						mat.DynamicFriction = dynamicFriction;
+						mat.Restitution = restitution;
+						mat.StaticFriction = staticFriction;
+					}
 
 					SAT_CORE_INFO( " PhysXRigidbodyComponent isKinematic: {0}", iskinematic );
 				}

@@ -212,11 +212,10 @@ namespace Saturn {
 		ImGui::Begin( "Scene Hierarchy" );
 		if( m_Context )
 		{
-			uint32_t entityCount = 0, meshCount = 0;
 			m_Context->m_Registry.each( [&]( auto entity )
 				{
-					Entity e( entity, m_Context.Raw() );
-					if(!m_Context->m_Registry.has<SceneComponent>( entity ))
+					Entity e{ entity, m_Context.Raw() };
+					if( !m_Context->m_Registry.has<SceneComponent>( entity ) )
 						DrawEntityNode( e );
 				} );
 		}
@@ -275,7 +274,7 @@ namespace Saturn {
 
 		ImGui::End();
 
-		if (canDraw)
+		if( canDraw )
 		{
 			if( ImGui::Begin( "Inspector" ) )
 			{
@@ -655,7 +654,7 @@ namespace Saturn {
 
 		// ID
 		ImGui::SameLine();
-		ImGui::TextDisabled( "%f", id );
+		ImGui::TextDisabled( "%iix", id );
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
 		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )

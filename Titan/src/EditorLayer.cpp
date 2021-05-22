@@ -873,7 +873,6 @@ namespace Saturn {
 
 				if( !m_RuntimeScene )
 				{
-
 					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
 					{
 						m_SceneHierarchyPanel->Reset();
@@ -935,8 +934,15 @@ namespace Saturn {
 			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 			if( ImGui::Begin( "Viewport" ) )
 			{
-				auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
+				auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+				auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+
+				auto viewportOffset = ImGui::GetWindowPos(); // includes tab bar
 				auto viewportSize = ImGui::GetContentRegionAvail();
+
+				m_ViewportBounds[ 0 ] ={ viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+				m_ViewportBounds[ 1 ] ={ viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+
 				SceneRenderer::SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
 				m_EditorScene->SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
 				if( m_RuntimeScene )
@@ -947,16 +953,8 @@ namespace Saturn {
 				ImGui::Image( ( void* )SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 } );
 				ImGui::PopStyleVar();
 
-				static int counter = 0;
-				auto windowSize = ImGui::GetWindowSize();
-				ImVec2 minBound = ImGui::GetWindowPos();
-				minBound.x += viewportOffset.x;
-				minBound.y += viewportOffset.y;
 
-				ImVec2 maxBound ={ minBound.x + windowSize.x, minBound.y + windowSize.y };
-				m_ViewportBounds[ 0 ] ={ minBound.x, minBound.y };
-				m_ViewportBounds[ 1 ] ={ maxBound.x, maxBound.y };
-				m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
+				m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect( ImVec2( viewportMinRegion.x, viewportMinRegion.y), ImVec2( viewportMaxRegion.x, viewportMaxRegion.y ) );
 
 				// Gizmos
 				if( m_GizmoType != -1 && m_SelectionContext.size() )

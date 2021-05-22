@@ -6,29 +6,39 @@ Environment:
     Radiance: [0, -1, 0]
     Multiplier: 0
 Entities:
-  - Entity: 10950120370714488226
+  - Entity: 6897180264170162680
     TagComponent:
-      Tag: Empty Entity
+      Tag: Sphere
     TransformComponent:
-      Position: [0, 0, 0]
-      Rotation: [0, 0, 1, -4.37113883e-08]
-      Scale: [35.2174225, 1, 32.2669983]
-    MeshComponent:
-      AssetPath: assets\meshes\Cube1m.fbx
-    PhysXRigidbodyComponent:
-      Kinematic: true
-    PhysXBoxColliderComponent:
-      Extents: [17.6087112, 0.5, 16.1334991]
-  - Entity: 173420204987980016
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Position: [0, 14.1658697, 0]
+      Position: [0, 15.9208851, 0]
       Rotation: [0, 0, 0, 1]
-      Scale: [2, 2, 2]
+      Scale: [1, 1, 1]
     MeshComponent:
       AssetPath: assets\meshes\Sphere1m.fbx
     PhysXRigidbodyComponent:
       Kinematic: false
+      Mass: 2
+      CCD: true
+      Material-DynamicFriction: 1
+      Material-StaticFriction: 1
+      Material-Restitution: 1
     PhysXSphereColliderComponent:
-      Radius: 4.69499969
+      Radius: 1
+  - Entity: 12069022435483687739
+    TagComponent:
+      Tag: Floor
+    TransformComponent:
+      Position: [0, -0.592308044, 0]
+      Rotation: [0, 0, 0, 1]
+      Scale: [35.9775581, 1.04284251, 34.7892838]
+    MeshComponent:
+      AssetPath: assets\meshes\Cube1m.fbx
+    PhysXRigidbodyComponent:
+      Kinematic: true
+      Mass: 0
+      CCD: true
+      Material-DynamicFriction: 1
+      Material-StaticFriction: 1
+      Material-Restitution: 1
+    PhysXBoxColliderComponent:
+      Extents: [1, 1, 1]
