@@ -747,12 +747,14 @@ namespace Saturn {
 		DrawComponent<PhysXBoxColliderComponent>( "PhysXBoxCollider", entity, []( auto& bc )
 			{
 				DrawVec3Control( "Extents", bc.Extents, bc.Extents );
+				ImGui::Spacing();
 				DrawBoolControl( "Is Trigger", &bc.IsTrigger );
 			} );
 
 		DrawComponent<PhysXSphereColliderComponent>( "PhysXSphereCollider", entity, []( auto& sc )
 		{
 			    DrawBoolControl( "Is Trigger", &sc.IsTrigger );
+				ImGui::Spacing();
 				DrawFloatControl( "Radius", &sc.Radius, sc.Radius );
 
 		} );
@@ -760,11 +762,11 @@ namespace Saturn {
 		DrawComponent<PhysXCapsuleColliderComponent>( "PhysXCapsuleCollider", entity, []( auto& cc )
 		{
 			DrawBoolControl( "Is Trigger", &cc.IsTrigger );
+			ImGui::Spacing();
 			DrawFloatControl( "Radius", &cc.Radius, cc.Radius );
 			DrawFloatControl( "Height", &cc.Height, cc.Height );
 
 		} );
-
 
 
 		DrawComponent<ScriptComponent>("Script", entity, []( auto& csc )

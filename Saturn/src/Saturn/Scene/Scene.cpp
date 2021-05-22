@@ -53,7 +53,7 @@ namespace Saturn {
 
 	void Scene::PhysicsComponentCreate( entt::registry& r, entt::entity ent )
 	{
-		
+
 	}
 
 	void Scene::PhysXRigidbodyComponentCreate( entt::registry& r, entt::entity ent )
@@ -101,7 +101,7 @@ namespace Saturn {
 
 		auto enttId = r.get<IdComponent>( ent ).ID;
 		SAT_CORE_ASSERT( scene->m_EntityIDMap.find( enttId ) != scene->m_EntityIDMap.end() );
-		ScriptEngine::OnInitEntity( scene->m_EntityIDMap.at(enttId) );
+		ScriptEngine::OnInitEntity( scene->m_EntityIDMap.at( enttId ) );
 	}
 
 	const EntityMap& Scene::GetEntityMap() const
@@ -140,53 +140,53 @@ namespace Saturn {
 
 	Scene::~Scene( void )
 	{
-		s_ActiveScenes.erase(m_SceneID);
+		s_ActiveScenes.erase( m_SceneID );
 
 		m_Registry.clear();
 	}
 
-	static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition(const glm::mat4& transform)
+	static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition( const glm::mat4& transform )
 	{
 		glm::vec3 scale, translation, skew;
 		glm::vec4 perspective;
 		glm::quat orientation;
-		glm::decompose(transform, scale, orientation, translation, skew, perspective);
+		glm::decompose( transform, scale, orientation, translation, skew, perspective );
 
 		return { translation, orientation, scale };
 	}
 
-	void Scene::OnUpdate(Timestep ts)
+	void Scene::OnUpdate( Timestep ts )
 	{
-		if (m_RuntimeRunning)
+		if( m_RuntimeRunning )
 		{
-			UpdateRuntime(ts);
+			UpdateRuntime( ts );
 		}
 
 	}
 
-	void Scene::OnRenderEditor(Timestep ts, const EditorCamera& editorCamera)
+	void Scene::OnRenderEditor( Timestep ts, const EditorCamera& editorCamera )
 	{
 
 		/////////////////////////////////////////////////////////////////////
 		// RENDER 3D SCENE
 		/////////////////////////////////////////////////////////////////////
-		m_SkyboxMaterial->Set("u_TextureLod", m_SkyboxLod);
+		m_SkyboxMaterial->Set( "u_TextureLod", m_SkyboxLod );
 
-		auto group = m_Registry.group<MeshComponent>(entt::get<TransformComponent>);
-		SceneRenderer::BeginScene(this, { editorCamera, editorCamera.GetViewMatrix() });
-		for (auto entity : group)
+		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
+		SceneRenderer::BeginScene( this, { editorCamera, editorCamera.GetViewMatrix() } );
+		for( auto entity : group )
 		{
-			auto& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
-			if (meshComponent.Mesh)
+			auto& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
+			if( meshComponent.Mesh )
 			{
-				meshComponent.Mesh->OnUpdate(ts);
+				meshComponent.Mesh->OnUpdate( ts );
 
 				// TODO: Should we render (logically)
 
-				if (m_SelectedEntity == entity)
-					SceneRenderer::SubmitSelectedMesh(meshComponent, transformComponent.GetTransform());
+				if( m_SelectedEntity == entity )
+					SceneRenderer::SubmitSelectedMesh( meshComponent, transformComponent.GetTransform() );
 				else
-					SceneRenderer::SubmitMesh(meshComponent, transformComponent.GetTransform());
+					SceneRenderer::SubmitMesh( meshComponent, transformComponent.GetTransform() );
 			}
 		}
 
@@ -297,11 +297,11 @@ namespace Saturn {
 		return {};
 	}
 
-	Environment Environment::Load(const std::string& filepath)
+	Environment Environment::Load( const std::string& filepath )
 	{
 		SAT_PROFILE_FUNCTION();
 
-		auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap(filepath);
+		auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap( filepath );
 		return { filepath, radiance, irradiance };
 	}
 
@@ -328,7 +328,7 @@ namespace Saturn {
 
 					tc.Position = rb.m_Rigidbody->GetPos();
 					rb.m_Rigidbody->GetPos() = tc.Position;
-					
+
 				}
 				break;
 			default:
@@ -347,12 +347,12 @@ namespace Saturn {
 	/*------------------------ Runtime helpers ------------------------ */
 
 	template<typename T>
-	static void CopyComponent(entt::registry& dstRegistry, entt::registry& srcRegistry, const std::unordered_map<UUID, entt::entity>& enttMap)
+	static void CopyComponent( entt::registry& dstRegistry, entt::registry& srcRegistry, const std::unordered_map<UUID, entt::entity>& enttMap )
 	{
 		auto components = srcRegistry.view<T>();
-		for (auto srcEntity : components)
+		for( auto srcEntity : components )
 		{
-			if ( !srcRegistry.has<SceneComponent>( srcEntity ))
+			if( !srcRegistry.has<SceneComponent>( srcEntity ) )
 			{
 				SAT_CORE_INFO( "{0}", srcRegistry.get<IdComponent>( srcEntity ).ID );
 				entt::entity destEntity = enttMap.at( srcRegistry.get<IdComponent>( srcEntity ).ID );
@@ -364,19 +364,19 @@ namespace Saturn {
 	}
 
 	template<typename T>
-	static void CopyComponentIfExists(entt::entity dst, entt::entity src, entt::registry& registry)
+	static void CopyComponentIfExists( entt::entity dst, entt::entity src, entt::registry& registry )
 	{
-		if (registry.has<T>(src))
+		if( registry.has<T>( src ) )
 		{
-			auto& srcComponent = registry.get<T>(src);
-			registry.emplace_or_replace<T>(dst, srcComponent);
+			auto& srcComponent = registry.get<T>( src );
+			registry.emplace_or_replace<T>( dst, srcComponent );
 		}
 	}
 
 	/**
 	* Copies the scene and fills the 'NewScene' value
 	*/
-	void Scene::CopyScene(Ref<Scene>& NewScene)
+	void Scene::CopyScene( Ref<Scene>& NewScene )
 	{
 		SAT_PROFILE_FUNCTION();
 
@@ -419,13 +419,13 @@ namespace Saturn {
 
 	void Scene::BeginRuntime( void )
 	{
-		SAT_CORE_WARN("[Runtime] Begining!");
+		SAT_CORE_WARN( "[Runtime] Begining!" );
 		StartRuntime();
 	}
 
 	void Scene::StartRuntime( void )
 	{
-		SAT_CORE_WARN("[Runtime] Starting!");
+		SAT_CORE_WARN( "[Runtime] Starting!" );
 		m_RuntimeRunning = true;
 
 		m_PhysXRuntime = new PhysXRuntime();
@@ -461,7 +461,7 @@ namespace Saturn {
 
 	void Scene::ResetRuntime( const Ref<Scene>& EditorScene )
 	{
-		
+
 	}
 
 	void Scene::UpdateRuntime( Timestep ts )
@@ -469,7 +469,7 @@ namespace Saturn {
 		SAT_PROFILE_FUNCTION();
 
 		auto view = m_Registry.view<ScriptComponent>();
-		for (auto entt : view) 
+		for( auto entt : view )
 		{
 			Entity e ={ entt, this };
 			ScriptEngine::OnUpdateEntity( e, ts );
