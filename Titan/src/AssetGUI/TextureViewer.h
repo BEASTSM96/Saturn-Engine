@@ -26,44 +26,39 @@
 *********************************************************************************************
 */
 
-
 #pragma once
 
 #include <Saturn/Layer.h> 
 #include <Saturn/Core/Ray.h>
 #include <Saturn/Core/Ref.h>
 
-#include <vector>
+#include <Saturn/Renderer/Texture.h>
 
-namespace Saturn {
-	class EditorLayer;
-}
+namespace Saturn { 
 
-namespace Saturn {
-
-	class AssetPanel : public Layer, public RefCounted
+	class TextureViewer : public Layer, public RefCounted
 	{
 	public:
-		AssetPanel( void );
-		~AssetPanel( void );
+		TextureViewer( void );
+		~TextureViewer( void );
 	public:
 		virtual void OnAttach( void ) override;
 		virtual void OnDetach( void ) override;
 		virtual void OnImGuiRender() override;
-		bool CheckHasAsset( std::string name, std::string filepath, std::string folder );
 		virtual void OnUpdate( Timestep ts ) override;
 		virtual void OnEvent( Event& e ) override;
+
+		static void SetRenderImageTarget( std::string filepath);
 
 		bool OnMouseButtonPressed( MouseButtonEvent& e );
 		bool OnKeyPressedEvent( KeyPressedEvent& e );
 	protected:
-		Ref<Scene> m_CurrentScene;
-		Ref<Texture2D> m_CheckerboardTex;
 
-		std::vector<std::string> m_Assets;
-		std::vector<std::string> m_AssetsFolderContents;
-		friend class EditorLayer;
 	private:
-		friend class EditorLayer;
+		int PerImagineSizeX = 0;
+		int PerImagineSizeY = 0;
+		bool Reset = false;
+	private:
 	};
+
 }

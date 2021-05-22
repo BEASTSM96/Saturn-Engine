@@ -43,6 +43,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <filesystem>
+#include "AssetGUI/TextureViewer.h"
+#include "EditorLayer.h"
 
 namespace Saturn {
 
@@ -107,6 +109,8 @@ namespace Saturn {
 
 		if( ImGui::Begin( "AssetPanel", &p_open ) )
 		{
+			std::string m_FolderPath = "abc..";
+
 			for( fs::recursive_directory_iterator it( asset_path ); it != fs::recursive_directory_iterator(); ++it )
 			{
 				if ( fs::is_directory( it->path() ) )
@@ -125,6 +129,12 @@ namespace Saturn {
 					{
 						ImGui::Unindent();
 					}
+
+					if( !it->path().has_extension() )
+					{
+						m_FolderPath = it->path().string();
+					}
+
 				}
 				else
 				{
@@ -133,7 +143,17 @@ namespace Saturn {
 						ImGui::Indent();
 					}
 
-					ImGui::Text( it->path().filename().string().c_str() );
+					if( it->path().extension() == ".png" || it->path().extension() == ".tga" || it->path().extension() == ".hdr" )
+					{
+						if( ImGui::Button( it->path().filename().string().c_str() ) )
+						{
+							ImGui::Begin( "TextureViewer" );
+							TextureViewer::SetRenderImageTarget( m_FolderPath + "\\" + it->path().filename().string().c_str() );
+							ImGui::End();
+						}
+					}
+					else
+						ImGui::Text( it->path().filename().string().c_str() );
 
 					for( int i = 0; i < it.depth(); ++i )
 					{
@@ -161,11 +181,18 @@ namespace Saturn {
 					{
 						m_FolderPath = m_FolderPath;
 
+						/*
 						if ( CheckHasAsset( it->path().filename().string(), it->path().string(), m_FolderPath ) == false )
 						{
-							//Ref<Texture2D> PngImage = Texture2D::Create("assets/");
-							//ImGui::ImageButton( ( ImTextureID )PngImage->GetRendererID(), ImVec2( 64, 64 ) );
 						}
+						*/
+
+						if(ImGui::Button( it->path().filename().string().c_str()))
+						{
+							SAT_CORE_INFO( "TODO" );
+							TextureViewer::SetRenderImageTarget( m_FolderPath + "\\" + it->path().filename().string().c_str() );
+						}
+
 					}
 
 					if( it->path().extension() == ".tga" )

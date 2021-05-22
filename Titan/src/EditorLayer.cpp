@@ -98,6 +98,8 @@ namespace Saturn {
 		m_SceneHierarchyPanel->SetSelectionChangedCallback( std::bind( &EditorLayer::SelectEntity, this, std::placeholders::_1 ) );
 		m_AssetPanel = Ref<AssetPanel>::Create();
 		m_AssetPanel->OnAttach();
+		m_TextureViewerPanel = Ref<TextureViewer>::Create();
+		m_TextureViewerPanel->OnAttach();
 
 		PhysXFnd::Init();
 
@@ -109,7 +111,6 @@ namespace Saturn {
 		ScriptEngine::Init( "assets/assembly/game/exapp.dll" );
 		ScriptEngine::SetSceneContext( m_EditorScene );
 
-	
 		// Setup Platform/Renderer bindings
 		ImGui_ImplOpenGL3_Init( "#version 410" );
 	}
@@ -190,6 +191,7 @@ namespace Saturn {
 		m_EditorScene->SetSelectedEntity( {} );
 		m_EditorScene->CreatePhysxScene();
 		m_SelectionContext.clear();
+		m_AssetPanel->m_CurrentScene = m_EditorScene;
 	}
 
 	void EditorLayer::DeserialiseDebugLvl()
@@ -207,6 +209,7 @@ namespace Saturn {
 		ImGui::DestroyContext();
 
 		m_AssetPanel->OnDetach();
+		m_TextureViewerPanel->OnDetach();
 	}
 
 	void EditorLayer::Begin()
@@ -842,7 +845,7 @@ namespace Saturn {
 			m_ImGuiConsole_Thread.join();
 
 			m_AssetPanel->OnImGuiRender();
-
+			m_TextureViewerPanel->OnImGuiRender();
 
 			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
 			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );
@@ -852,6 +855,22 @@ namespace Saturn {
 			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
 			if( ImGui::Begin( "Toolbar" ) )
 			{
+				if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
+				{
+					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
+					{
+						m_SceneHierarchyPanel->Reset();
+						m_RuntimeScene->SetSelectedEntity( {} );
+						m_SceneHierarchyPanel->SetSelected( {} );
+						m_NoSceneCamera = nullptr;
+						m_RuntimeScene->EndRuntime();
+						m_RuntimeScene = nullptr;
+						m_SelectionContext.clear();
+						m_SceneHierarchyPanel->SetContext( m_EditorScene );
+					}
+
+				}
+
 				if( !m_RuntimeScene )
 				{
 
@@ -866,26 +885,6 @@ namespace Saturn {
 						m_EditorScene->CopyScene( m_RuntimeScene );
 						m_RuntimeScene->BeginRuntime();
 						ScriptEngine::SetSceneContext( m_EditorScene );
-					}
-				}
-
-				if( m_RuntimeScene )
-				{
-					if( m_RuntimeScene->m_RuntimeRunning )
-					{
-						ImGui::SameLine();
-
-						if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
-						{
-							m_SceneHierarchyPanel->Reset();
-							m_RuntimeScene->SetSelectedEntity( {} );
-							m_SceneHierarchyPanel->SetSelected( {} );
-							m_NoSceneCamera = nullptr;
-							m_RuntimeScene->EndRuntime();
-							m_RuntimeScene = nullptr;
-							m_SelectionContext.clear();
-							m_SceneHierarchyPanel->SetContext( m_EditorScene );
-						}
 					}
 				}
 
