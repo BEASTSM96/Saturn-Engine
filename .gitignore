@@ -5,59 +5,8 @@
 !Saturn/vender/physx/bin/**
 !Saturn/vender/mono/bin/**
 !Saturn/vender/assimp/bin/*
-!Saturn/vender/physx/bin/*
+!Saturn/vender/physx/bin/**
 !Saturn/vender/mono/bin/*
-
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-#VS 2015 STUFF
-Sparky.VC
-Sparky.VC.VC.opendb
-Sparky.VC.db
-*.VC
-*.VC.db
-*.VC.VC.opendb
-
-#vs stuff cuz git yeah
-/.vs
-*.sln
-
-*.ipch
-
-#bin stuff
-Bin
-Bin-int
 
 # Binaries
 **/bin/
@@ -74,37 +23,13 @@ bin-int/
 **.vcxproj.filters
 **.vcxproj.user
 
-
-#stuff for dev ver
-**.sproject
-**.mp3
-**.ogg
-**.sasset
-test.JSON
 [dD]esktop.ini
-**.ses
 
-#Sanbox/assets
-**/assets/tex/
-**/assets/tex/
-
-Sandbox/assets/tex
-Sandbox/assets/tex
-
-Sandbox/assets/tex/
-Sandbox/assets/tex/
 
 **/assets/tex
 **/assets/tex
 
-Spark/**
-Spark/
-Spark
-Spark
-Sandbox/assets/tex
-**/Sandbox/*.json
-Sandbox/**.json
-Sandbox/*.json
+
 Titan/SaturnProfile-Runtime.json
 Titan/SaturnProfile-Shutdown.json
 Titan/SaturnProfile-Startup.json
@@ -135,3 +60,4 @@ Titan/rp3d_log_Test.html
 *.csproj.user
 Titan/assets/assembly/SaturnScript.pdb
 Titan/version-control.vcinfo
+SaturnScript/build/SaturnScript.dll
