@@ -124,13 +124,14 @@ namespace Saturn {
 		static void OnCreateEntity( Entity entity );
 		static void OnEntityBeginPlay( Entity entity );
 		static void OnUpdateEntity( Entity entity, Timestep ts );
-		static void OnInitEntity( Entity entity );
+		static void OnInitEntity( Entity& entity );
 		static void OnCollisionBegin( Entity entity );
 		static void OnCollisionExit( Entity entity );
 		static void SetSceneContext( const Ref<Scene>& scene );
 		static bool ModuleExists( const std::string& moduleName );
 		static bool IsEntityModuleValid( Entity entity );
 		static EntityInstance& GetEntityInstanceData( UUID entityId );
+		static bool EntityInstanceDataContants( UUID entityId );
 		static Ref<Scene>& GetScene();
 
 

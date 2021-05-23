@@ -364,6 +364,22 @@ namespace Saturn {
 		}
 	}
 
+	static void CopyScriptData( const std::unordered_map<UUID, entt::entity>& enttMap, entt::registry& registry )
+	{
+		auto component = registry.view<ScriptComponent>();
+		for( auto srcEntity : component )
+		{
+			if( !registry.has<SceneComponent>( srcEntity ) )
+			{
+				SAT_CORE_INFO( "{0}", registry.get<IdComponent>( srcEntity ).ID );
+				entt::entity destEntity = enttMap.at( registry.get<IdComponent>( srcEntity ).ID );
+
+				auto& srcComponent = registry.get<ScriptComponent>( srcEntity );
+
+			}
+		}
+	}
+
 	/**
 	* Copies the scene and fills the 'NewScene' value
 	*/
@@ -406,6 +422,9 @@ namespace Saturn {
 		CopyComponent<PhysXMaterialComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<ScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
+
+		CopyScriptData( enttMap, m_Registry );
+
 	}
 
 	void Scene::BeginRuntime( void )
@@ -426,6 +445,8 @@ namespace Saturn {
 		for( auto entt : view )
 		{
 			Entity e ={ entt, this };
+			if( !ScriptEngine::EntityInstanceDataContants( e.GetComponent<IdComponent>().ID ) )
+				ScriptEngine::OnInitEntity( e );
 			ScriptEngine::OnCreateEntity( e );
 			ScriptEngine::OnEntityBeginPlay( e );
 		}

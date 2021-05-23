@@ -774,10 +774,97 @@ namespace Saturn {
 		} );
 
 
+		if( entity.HasComponent<ScriptComponent>() )
+		{
+			bool removeComponent = false;
+			bool removeAllComponent = false;
+
+			auto& component = entity.GetComponent<ScriptComponent>();
+			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( ScriptComponent ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, "Script" );
+			ImGui::SameLine();
+			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
+			if( ImGui::Button( "+" ) )
+			{
+				ImGui::OpenPopup( "ComponentSettings" );
+			}
+
+			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
+
+			if( ImGui::BeginPopup( "ComponentSettings" ) )
+			{
+				if( ImGui::MenuItem( "Remove component" ) )
+					removeComponent = true;
+
+				ImGui::EndPopup();
+			}
+
+			if( open )
+			{
+				std::string name;
+
+				ImGui::Text( "Module Name:" );
+				ImGui::SameLine();
+
+				if(ImGui::InputText( "##name", ( char* )component.ModuleName.c_str(), 256 ))
+				{
+				}
+
+				auto& fieldMap = ScriptEngine::GetFieldMap();
+				if( fieldMap.find( component.ModuleName ) != fieldMap.end() )
+				{
+					auto& publicFields = fieldMap.at( component.ModuleName );
+					for( auto& field : publicFields )
+					{
+						switch( field.Type )
+						{
+							case FieldType::Int:
+							{
+								int value = field.GetValue<int>();
+								if( Property( field.Name.c_str(), value ) )
+								{
+									field.SetValue( value );
+								}
+								break;
+							}
+							case FieldType::Float:
+							{
+								float value = field.GetValue<float>();
+								if( Property( field.Name.c_str(), value, 0.2f ) )
+								{
+									field.SetValue( value );
+								}
+								break;
+							}
+							case FieldType::Vec2:
+							{
+								glm::vec2 value = field.GetValue<glm::vec2>();
+								if( Property( field.Name.c_str(), value, 0.2f ) )
+								{
+									field.SetValue( value );
+								}
+								break;
+							}
+						}
+					}
+				}
+
+				ImGui::NextColumn();
+				ImGui::Columns( 1 );
+				ImGui::TreePop();
+			}
+			ImGui::Separator();
+
+			if( removeComponent )
+			{
+				entity.RemoveComponent<ScriptComponent>();
+			}
+		}
+
+		/*
 		DrawComponent<ScriptComponent>( "Script", entity, []( auto& csc )
 		{
-			std::string name = /*TEMP*/"ExampleApp.Test";
-
 			ImGui::Text( "Module Name:" );
 			ImGui::SameLine();
 			ImGui::InputText( "##name", ( char* )csc.ModuleName.c_str(), 256 );
@@ -821,9 +908,8 @@ namespace Saturn {
 				}
 			}
 
-
-
 		} );
+		*/
 	}
 
 }

@@ -359,6 +359,6 @@ namespace Saturn {
 	//
 	struct ScriptComponent : Component
 	{
-		std::string ModuleName = "ExampleApp.Test";
+		std::string ModuleName = "ExampleApp.Null";
 	};
 }

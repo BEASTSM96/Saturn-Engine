@@ -54,26 +54,4 @@ namespace Saturn {
 		std::ifstream m_File;
 	private:
 	};
-
-	class ScriptViewerEntity : public Layer, public RefCounted
-	{
-	public:
-		ScriptViewerEntity( void );
-		~ScriptViewerEntity( void );
-	public:
-		virtual void OnAttach( void ) override;
-		virtual void OnDetach( void ) override;
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override;
-		virtual void OnEvent( Event& e ) override;
-
-		bool OnMouseButtonPressed( MouseButtonEvent& e );
-		bool OnKeyPressedEvent( KeyPressedEvent& e );
-	protected:
-		std::string m_FileLines;
-		std::string m_Filepath;
-		std::ifstream m_File;
-	private:
-	};
-
 }

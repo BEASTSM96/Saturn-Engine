@@ -51,7 +51,6 @@ namespace Saturn {
 
 	};
 
-
 	static std::unordered_map<std::string, EntityClass> s_EntityClass;
 	static std::unordered_map<UUID, EntityInstance> s_EntityInstanceMap;
 
@@ -242,7 +241,7 @@ namespace Saturn {
 		}
 	}
 
-	void ScriptEngine::OnInitEntity( Entity entity )
+	void ScriptEngine::OnInitEntity( Entity& entity )
 	{
 		if( !s_Init )
 			return;
@@ -252,8 +251,11 @@ namespace Saturn {
 		auto& moduleName = entity.GetComponent<ScriptComponent>().ModuleName;
 		EntityClass& entityClass = s_EntityClass[ moduleName ];
 
-		if( moduleName == "" ) return;
-		if ( !ModuleExists(moduleName) ) return;
+		if( moduleName == "" )
+			return;
+
+		if( !ModuleExists( moduleName ) )
+			return;
 
 		if ( moduleName != "" )
 		{
@@ -352,6 +354,15 @@ namespace Saturn {
 	{
 		auto& idMap = s_EntityInstanceMap.at( entityId );
 		return idMap;
+	}
+
+	bool ScriptEngine::EntityInstanceDataContants( UUID entityId )
+	{
+		if( s_EntityInstanceMap.size() <= 0 )
+			return false;
+
+		if( s_EntityInstanceMap.find( entityId ) != s_EntityInstanceMap.end() )
+			return true;
 	}
 
 	Saturn::Ref<Saturn::Scene>& ScriptEngine::GetScene()

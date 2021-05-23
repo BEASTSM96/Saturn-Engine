@@ -26,7 +26,7 @@ namespace ExampleApp
             Log.Info("OnCollisionBegin");
         }
 
-        public void OnCollisionExit() 
+        public void OnCollisionExit()
         {
             Log.Info("OnCollisionExit");
         }
@@ -59,5 +59,9 @@ namespace ExampleApp
             }
         }
 
+    }
+
+    class Null
+    {
     }
 }

@@ -123,47 +123,4 @@ namespace Saturn {
 		return true;
 	}
 
-	ScriptViewerEntity::ScriptViewerEntity( void ) : Layer( "ScriptViewerEntity" )
-	{
-	}
-
-	ScriptViewerEntity::~ScriptViewerEntity( void )
-	{
-	}
-
-	void ScriptViewerEntity::OnAttach( void )
-	{
-
-	}
-
-	void ScriptViewerEntity::OnDetach( void )
-	{
-
-	}
-
-	void ScriptViewerEntity::OnImGuiRender()
-	{
-
-	}
-
-	void ScriptViewerEntity::OnUpdate( Timestep ts )
-	{
-
-	}
-
-	void ScriptViewerEntity::OnEvent( Event& e )
-	{
-
-	}
-
-	bool ScriptViewerEntity::OnMouseButtonPressed( MouseButtonEvent& e )
-	{
-		return true;
-	}
-
-	bool ScriptViewerEntity::OnKeyPressedEvent( KeyPressedEvent& e )
-	{
-		return true;
-	}
-
 }
