@@ -43,6 +43,9 @@ Saturn/vendor/imgui/examples/example_apple_metal
 Saturn/vendor/imgui/examples/example_apple_opengl2
 !Saturn/vender/assimp/bin/
 !Saturn/vender/physx/bin/
+!Saturn/vender/physx/bin/Debug/**
+!Saturn/vender/physx/bin/**/**
+!Saturn/vender/physx/bin/Dist/**
 !Saturn/vender/mono/bin/
 !Saturn/vender/assimp/bin/**
 !Saturn/vender/physx/bin/**
@@ -60,4 +63,3 @@ Titan/rp3d_log_Test.html
 *.csproj.user
 Titan/assets/assembly/SaturnScript.pdb
 Titan/version-control.vcinfo
-SaturnScript/build/SaturnScript.dll
