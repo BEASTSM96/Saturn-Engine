@@ -27,7 +27,6 @@ project "PhysX"
         "include/pxshared/",
         "source/**/*/",
     }
-
 	filter "system:windows"
 		systemversion "latest"
 		cppdialect "C++17"
@@ -40,7 +39,7 @@ project "PhysX"
 	filter "configurations:Debug"
 		runtime "Debug"
 		symbols "on"
-		
+				
 	filter "configurations:Release"
 		runtime "Release"
 		optimize "on"
