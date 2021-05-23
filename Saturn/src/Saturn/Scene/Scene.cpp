@@ -50,7 +50,6 @@ namespace Saturn {
 
 	std::unordered_map<UUID, Scene*> s_ActiveScenes;
 
-
 	void Scene::PhysicsComponentCreate( entt::registry& r, entt::entity ent )
 	{
 
@@ -68,6 +67,10 @@ namespace Saturn {
 	{
 	}
 
+	void Scene::PhysXCapsuleColliderComponentCreate( entt::registry& r, entt::entity ent )
+	{
+	}
+
 	void Scene::CameraComponentCreate( entt::registry& r, entt::entity ent )
 	{
 		if( !r.has<TransformComponent>( ent ) )
@@ -80,17 +83,6 @@ namespace Saturn {
 		cameraComponent.Camera = Ref<SceneCamera>::Create();
 		cameraComponent.Camera->SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
 		cameraComponent.Camera->SetPosition( r.get<TransformComponent>( ent ).Position );
-	}
-
-	void Scene::PhysXCapsuleColliderComponentCreate( entt::registry& r, entt::entity ent )
-	{
-		if( !r.has<TransformComponent>( ent ) )
-		{
-			SAT_CORE_ERROR( "PhysXCapsuleColliderComponent needs a TransformComponent!" );
-			return;
-		}
-
-		Entity e( ent, this );
 	}
 
 	void Scene::ScriptComponentCreate( entt::registry& r, entt::entity ent )
@@ -115,7 +107,6 @@ namespace Saturn {
 
 	void Scene::CreatePhysxScene()
 	{
-		//m_PhysXScene = Ref<PhysXScene>::Create( this );
 	}
 
 	Scene::Scene( void )

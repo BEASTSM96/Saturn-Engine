@@ -79,11 +79,11 @@ private:
 };
 
 
-
 class Math
 {
 public:
-	static void Init() {
+	static void Init() 
+	{
 		MathType::Init();
 	}
 
@@ -93,7 +93,7 @@ private:
 };
 
 namespace Saturn {
-
+	/*
 	using Vector1				=							glm::vec1;
 	using Vector2				=							glm::vec2;
 	using Vector3				=							glm::vec3;
@@ -113,215 +113,5 @@ namespace Saturn {
 	using Mat4x2				=							glm::mat4x2;
 	using Mat4x3				=							glm::mat4x3;
 	using Mat4x4				=							glm::mat4x4;
-
-	struct Vec2
-	{
-		float x;
-		float y;
-
-		Vec2() { x = 0.0f; y = 0.0f; };
-		Vec2( float _x, float _y ) { x = _x; y = _y; };
-	};
-
-
-	struct Vec3
-	{
-		float x;
-		float y;
-		float z;
-
-		Vec3() { x = 0.0f; y = 0.0f; z = 0.0f; };
-		Vec3( float _x, float _y, float _z ) { x = _x; y = _y; z = _z; };
-	};
-
-	struct Vec4
-	{
-		float x;
-		float y;
-		float z;
-		float w;
-
-		Vec4() { x = 0.0f; y = 0.0f; z = 0.0f; w = 0.0f; };
-		Vec4( float _x, float _y, float _z, float _w ) { x = _x; y = _y; z = _z; w = _w; };
-	};
-
-
-	static int Abs( int wa )
-	{
-		return glm::abs( wa );
-	}
-
-	static int Sin( int wa )
-	{
-		return glm::sin( wa );
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	static uint64_t AddInt64( uint64_t wa, uint64_t wa2 )
-	{
-
-		uint64_t newnum = wa + wa2;
-
-		return newnum;
-
-	}
-
-	static uint32_t AddInt32( uint32_t wa, uint32_t wa2 )
-	{
-
-		uint32_t newnum = wa + wa2;
-
-		return newnum;
-
-	}
-
-	static int AddInt( int wa, int wa2 )
-	{
-
-		int newnum = wa + wa2;
-
-		return newnum;
-
-	}
-
-	static float AddFloat( float wa, float wa2 )
-	{
-
-		float newnum = wa + wa2;
-
-		return newnum;
-
-	}
-
-	static double AddDouble( double wa, double wa2 )
-	{
-
-		float newnum = AddFloat( float( wa ), float( wa2 ) );
-
-		return double( newnum );
-
-	}
-
-	static double AddDoubleInt( double wa, double wa2 )
-	{
-
-		int newnum = AddInt( int( wa ), int( wa2 ) );
-
-		return double( newnum );
-
-	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	static uint64_t DivideInt64( uint64_t wa, uint64_t wa2 )
-	{
-
-		uint64_t newnum = wa / wa2;
-
-		return newnum;
-
-	}
-
-	static uint32_t DivideInt32( uint32_t wa, uint32_t wa2 )
-	{
-
-		uint32_t newnum = wa / wa2;
-
-		return newnum;
-
-	}
-
-	static int DivideInt( int wa, int wa2 )
-	{
-
-		int newnum = wa / wa2;
-
-		return newnum;
-
-	}
-
-	static float DivideFloat( float wa, float wa2 )
-	{
-
-		float newnum = wa / wa2;
-
-		return newnum;
-
-	}
-
-	static double DivideDouble( double wa, double wa2 )
-	{
-
-		float newnum = DivideFloat( float( wa ), float( wa2 ) );
-
-		return double( newnum );
-
-	}
-
-	static double DivideDoubleInt( double wa, double wa2 )
-	{
-
-		int newnum = DivideFloat( int( wa ), int( wa2 ) );
-
-		return double( newnum );
-
-	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	static uint64_t MultiplyInt64( uint64_t wa, uint64_t wa2 )
-	{
-
-		uint64_t newnum = wa * wa2;
-
-		return newnum;
-
-	}
-
-	static uint32_t MultiplyInt32( uint32_t wa, uint32_t wa2 )
-	{
-
-		uint32_t newnum = wa * wa2;
-
-		return newnum;
-
-	}
-
-	static int MultiplyInt( int wa, int wa2 )
-	{
-
-		int newnum = wa * wa2;
-
-		return newnum;
-
-	}
-
-	static float MultiplyFloat( float wa, float wa2 )
-	{
-
-		float newnum = wa * wa2;
-
-		return newnum;
-
-	}
-
-	static double MultiplyDouble( double wa, double wa2 )
-	{
-
-		float newnum = MultiplyFloat( float( wa ), float( wa2 ) );
-
-		return double( newnum );
-
-	}
-
-	static double MultiplyDoubleInt( double wa, double wa2 )
-	{
-
-
-		int newnum = MultiplyDouble( int( wa ), int( wa2 ) );
-
-		return double( newnum );
-
-	}
-
+	*/
 }

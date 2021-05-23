@@ -91,7 +91,7 @@ namespace Saturn {
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); ( void )io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;      
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>( m_EditorScene );
@@ -119,9 +119,9 @@ namespace Saturn {
 	{
 		uint64_t uuid  = Application::Get().GetFixedVersionUUID();
 		std::string branch  = Application::Get().GetVersionCtrl().Branch;
-		std::string uuidstr = std::to_string(uuid);
+		std::string uuidstr = std::to_string( uuid );
 
-		std::string title = name + " - Saturn - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ")" + "," + " (" + " " + uuidstr + " " + "/" + " " + branch + " )" ;
+		std::string title = name + " - Saturn - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ")" + "," + " (" + " " + uuidstr + " " + "/" + " " + branch + " )";
 		Application::Get().GetWindow().SetTitle( title );
 	}
 
@@ -135,11 +135,11 @@ namespace Saturn {
 		m_EditorCamera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 1000.0f ) );
 	}
 
-	void EditorLayer::OpenScene( )
+	void EditorLayer::OpenScene()
 	{
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		Serialiser serialiser( newScene );
-		std::string filepath = Application::Get().OpenFile( "Scene( *.sc )\0 * .sc\0").first;
+		std::string filepath = Application::Get().OpenFile( "Scene( *.sc )\0 * .sc\0" ).first;
 		serialiser.Deserialise( filepath );
 		m_EditorScene = newScene;
 		m_EditorScene->CreatePhysxScene();
@@ -157,7 +157,7 @@ namespace Saturn {
 		m_EditorScene = nullptr;
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		Serialiser serialiser( newScene );
-		if( filepath.empty()) 
+		if( filepath.empty() )
 		{
 			serialiser.Deserialise( "assets/untitled.sc" );
 		}
@@ -415,7 +415,7 @@ namespace Saturn {
 				else
 				{
 					//If we don't have a scene camera we can just copy a editor camera and render the runtime...
-					if ( !m_NoSceneCamera )
+					if( !m_NoSceneCamera )
 					{
 						SAT_CORE_INFO( "No scene camera was found copying editor camera!" );
 						m_NoSceneCamera = Ref<EditorCamera>::Create( m_EditorCamera.GetProjectionMatrix() );
@@ -435,7 +435,7 @@ namespace Saturn {
 		/*
 		if ( !m_RuntimeScene )
 		{
-			//For physx and others we will have to half the extents... 
+			//For physx and others we will have to half the extents...
 			auto view = m_EditorScene->GetRegistry().view<TransformComponent, PhysXBoxColliderComponent>();
 			for( auto entity : view )
 			{
@@ -520,7 +520,7 @@ namespace Saturn {
 					//mainCamera->Raw()->SetPosition( cameraPosition );
 					mainCamera->Raw()->OnEvent( e );
 				}
-				
+
 			}
 
 		}
@@ -820,9 +820,9 @@ namespace Saturn {
 				ImGui::DockSpace( dockspace_id, ImVec2( 0.0f, 0.0f ), opt_flags );
 			}
 
-			if(ImGui::BeginMainMenuBar()) 
+			if( ImGui::BeginMainMenuBar() )
 			{
-				if (ImGui::BeginMenu("File"))
+				if( ImGui::BeginMenu( "File" ) )
 				{
 					if( ImGui::MenuItem( "New", "Shift+N" ) )
 						NewScene();
@@ -954,7 +954,7 @@ namespace Saturn {
 				ImGui::PopStyleVar();
 
 
-				m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect( ImVec2( viewportMinRegion.x, viewportMinRegion.y), ImVec2( viewportMaxRegion.x, viewportMaxRegion.y ) );
+				m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect( ImVec2( viewportMinRegion.x, viewportMinRegion.y ), ImVec2( viewportMaxRegion.x, viewportMaxRegion.y ) );
 
 				// Gizmos
 				if( m_GizmoType != -1 && m_SelectionContext.size() )
@@ -980,7 +980,7 @@ namespace Saturn {
 					bool wantsToSnap = Input::IsKeyPressed( Key::LeftControl );
 					float snapValue = GetSnapValue();
 					float snapValues[ 3 ] ={ snapValue, snapValue, snapValue };
-					
+
 					if( m_SelectionMode == SelectionMode::Entity )
 					{
 						auto viewm = glm::value_ptr( m_EditorCamera.GetViewMatrix() );
@@ -993,7 +993,7 @@ namespace Saturn {
 						glm::mat4 transform = tc.GetTransform();
 						ImGuizmo::Manipulate( viewm, projm, ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr( transform ), nullptr, wantsToSnap ? snapValues : nullptr );
 
-						
+
 						if( ImGuizmo::IsUsing() )
 						{
 							glm::vec3 translation, scale;
@@ -1006,7 +1006,7 @@ namespace Saturn {
 							tc.Rotation += deltaRotation;
 							tc.Scale = scale;
 						}
-						
+
 					}
 				}
 			}

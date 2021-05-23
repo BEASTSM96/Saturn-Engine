@@ -150,8 +150,7 @@ namespace Saturn {
 			ImGui::Spacing();
 
 			DrawIntControlTextureViewer( "Set X Size", &PerImagineSizeX, 0.0F, 2500.0F, 1.0F, 75.0F ); ImGui::SameLine(); ImGui::Spacing();
-			DrawBoolControlTextureViewer( "Reset To Texture Size", &Reset, 150.0F );
-			if( Reset )
+			if( ImGui::Button( "Reset To Texture Size", ImVec2( 175, 25 ) ) )
 			{
 				PerImagineSizeX = m_CheckerboardTex->GetWidth();
 				PerImagineSizeY = m_CheckerboardTex->GetWidth();

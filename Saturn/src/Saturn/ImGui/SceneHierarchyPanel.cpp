@@ -184,7 +184,7 @@ namespace Saturn {
 	void SceneHierarchyPanel::SetContext( const Ref<Scene>& scene )
 	{
 		m_Context = scene;
-		m_SelectionContext = {};
+		m_SelectionContext ={};
 
 		if( m_SelectionContext && false )
 		{
@@ -222,7 +222,7 @@ namespace Saturn {
 
 		if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
 		{
-			SetSelected({});
+			SetSelected( {} );
 			Reset();
 		}
 
@@ -279,7 +279,7 @@ namespace Saturn {
 			if( ImGui::Begin( "Inspector" ) )
 			{
 				DrawEntityComponents( m_SelectionContext );
-				
+
 				if( ImGui::Button( "Add Component" ) )
 					ImGui::OpenPopup( "AddComponentPanel" );
 
@@ -321,8 +321,8 @@ namespace Saturn {
 						}
 
 						if
-							( !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>() 
-								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() 
+							( !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>()
+								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>()
 								&& !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
 								&& !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>()
 							)
@@ -335,7 +335,7 @@ namespace Saturn {
 
 						if
 							( !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
-								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() 
+								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>()
 								&& !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>()
 								&& !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>()
 							)
@@ -545,10 +545,15 @@ namespace Saturn {
 			}
 			ImGui::Separator();
 
-			if( removeComponent ) 
-			{ 
-				if( sizeof(T) == sizeof(PhysXMaterialComponent) )
+			if( removeComponent )
+			{
+				if( sizeof( T ) == sizeof( PhysXMaterialComponent ) )
 					return;
+
+				if( sizeof( T ) == sizeof( PhysXRigidbodyComponent ) )
+				{
+					entity.RemoveComponent<PhysXMaterialComponent>();
+				}
 
 				entity.RemoveComponent<T>();
 			}
@@ -690,8 +695,8 @@ namespace Saturn {
 		ImGui::PushItemWidth( -1 );
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-			//if( !cc.Camera )
-				//cc.Camera = Ref<SceneCamera>::Create( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
+		//if( !cc.Camera )
+			//cc.Camera = Ref<SceneCamera>::Create( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
 	} );
 
 		DrawComponent<MeshComponent>( "Mesh", entity, []( auto& mc )
@@ -732,8 +737,8 @@ namespace Saturn {
 				rb.isKinematic = Kinematic;
 				rb.UseCCD = ccd;
 				rb.Mass = mass;
-				rb.m_Rigidbody->UseCCD(ccd);
-				rb.m_Rigidbody->SetMass(mass);
+				rb.m_Rigidbody->UseCCD( ccd );
+				rb.m_Rigidbody->SetMass( mass );
 			} );
 
 
@@ -753,9 +758,9 @@ namespace Saturn {
 
 		DrawComponent<PhysXSphereColliderComponent>( "PhysXSphereCollider", entity, []( auto& sc )
 		{
-			    DrawBoolControl( "Is Trigger", &sc.IsTrigger );
-				ImGui::Spacing();
-				DrawFloatControl( "Radius", &sc.Radius, sc.Radius );
+			DrawBoolControl( "Is Trigger", &sc.IsTrigger );
+			ImGui::Spacing();
+			DrawFloatControl( "Radius", &sc.Radius, sc.Radius );
 
 		} );
 
@@ -769,13 +774,13 @@ namespace Saturn {
 		} );
 
 
-		DrawComponent<ScriptComponent>("Script", entity, []( auto& csc )
+		DrawComponent<ScriptComponent>( "Script", entity, []( auto& csc )
 		{
 			std::string name = /*TEMP*/"ExampleApp.Test";
 
 			ImGui::Text( "Module Name:" );
 			ImGui::SameLine();
-			ImGui::InputText( "##name", (char*)csc.ModuleName.c_str(), 256 );
+			ImGui::InputText( "##name", ( char* )csc.ModuleName.c_str(), 256 );
 
 			auto& fieldMap = ScriptEngine::GetFieldMap();
 			if( fieldMap.find( csc.ModuleName ) != fieldMap.end() )
@@ -816,9 +821,9 @@ namespace Saturn {
 				}
 			}
 
-			
 
-		});
+
+		} );
 	}
 
 }
