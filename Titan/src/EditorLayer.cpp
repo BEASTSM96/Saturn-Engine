@@ -993,7 +993,6 @@ namespace Saturn {
 						glm::mat4 transform = tc.GetTransform();
 						ImGuizmo::Manipulate( viewm, projm, ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr( transform ), nullptr, wantsToSnap ? snapValues : nullptr );
 
-
 						if( ImGuizmo::IsUsing() )
 						{
 							glm::vec3 translation, scale;

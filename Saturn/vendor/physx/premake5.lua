@@ -40,6 +40,13 @@ project "PhysX"
 	filter "configurations:Debug"
 		runtime "Debug"
 		symbols "on"
+
+		postbuildcommands 
+		{
+			'{COPY} "%{cfg.targetdir}/PhysX.idb" "bin/Debug/"',
+			'{COPY} "%{cfg.targetdir}/PhysX.lib" "bin/Debug/"',
+			'{COPY} "%{cfg.targetdir}/PhysX.pdb" "bin/Debug/"'
+		}
 		
 	filter "configurations:Release"
 		runtime "Release"
