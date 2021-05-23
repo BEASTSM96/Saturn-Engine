@@ -87,19 +87,17 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		// Setup Dear ImGui context
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); ( void )io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		m_SceneHierarchyPanel = CreateScope<SceneHierarchyPanel>( m_EditorScene );
 		m_SceneHierarchyPanel->SetSelectionChangedCallback( std::bind( &EditorLayer::SelectEntity, this, std::placeholders::_1 ) );
+
 		m_AssetPanel = Ref<AssetPanel>::Create();
-		m_AssetPanel->OnAttach();
 		m_TextureViewerPanel = Ref<TextureViewer>::Create();
+		m_ScriptViewerStandalone = Ref<ScriptViewerStandalone>::Create();
+
+		m_AssetPanel->OnAttach();
+		m_ScriptViewerStandalone->OnAttach();
 		m_TextureViewerPanel->OnAttach();
+
 
 		PhysXFnd::Init();
 
@@ -111,8 +109,6 @@ namespace Saturn {
 		ScriptEngine::Init( "assets/assembly/game/exapp.dll" );
 		ScriptEngine::SetSceneContext( m_EditorScene );
 
-		// Setup Platform/Renderer bindings
-		ImGui_ImplOpenGL3_Init( "#version 410" );
 	}
 
 	void EditorLayer::UpdateWindowTitle( std::string name )
@@ -204,12 +200,9 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-
 		m_AssetPanel->OnDetach();
 		m_TextureViewerPanel->OnDetach();
+		m_ScriptViewerStandalone->OnDetach();
 	}
 
 	void EditorLayer::Begin()
@@ -846,6 +839,7 @@ namespace Saturn {
 
 			m_AssetPanel->OnImGuiRender();
 			m_TextureViewerPanel->OnImGuiRender();
+			m_ScriptViewerStandalone->OnImGuiRender();
 
 			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
 			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );

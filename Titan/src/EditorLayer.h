@@ -32,9 +32,10 @@
 #include <Saturn/Renderer/Mesh.h>
 #include <Saturn/Core/Ray.h>
 #include <Saturn/ImGui/ImGuiConsole.h>
-#include "AssetGUI/TextureViewer.h"
 
 #include "AssetPanel.h"
+#include "AssetGUI/ScriptViewer.h"
+#include "AssetGUI/TextureViewer.h"
 
 namespace Saturn { 
 
@@ -103,6 +104,7 @@ namespace Saturn {
 		Scope<SceneHierarchyPanel> m_SceneHierarchyPanel;
 		Ref<TextureViewer> m_TextureViewerPanel;
 		Ref<AssetPanel> m_AssetPanel;
+		Ref<ScriptViewerStandalone> m_ScriptViewerStandalone;
 
 		EditorCamera m_EditorCamera;
 		Ref<EditorCamera> m_NoSceneCamera;

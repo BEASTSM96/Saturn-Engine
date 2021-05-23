@@ -58,24 +58,11 @@ namespace Saturn {
 
 	void TextureViewer::OnAttach( void )
 	{
-		// Setup Dear ImGui context
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); ( void )io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
-
-		ImGui_ImplOpenGL3_Init( "#version 410" );
 	}
 
 	void TextureViewer::OnDetach( void )
 	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
 	}
 
 	void DrawBoolControlTextureViewer( const std::string& label, bool* val, float colWidth = 100.0f )

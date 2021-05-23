@@ -26,72 +26,54 @@
 *********************************************************************************************
 */
 
-#include "MeshViewer.h"
+#pragma once
 
-#include <imgui.h>
-#include <imgui_internal.h>
-#include "examples/imgui_impl_glfw.h"
-#include "examples/imgui_impl_opengl3.h"
-
-// TEMPORARY
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <Saturn/Application.h>
+#include <Saturn/Layer.h> 
+#include <Saturn/Core/Ray.h>
+#include <Saturn/Core/Ref.h>
 
 namespace Saturn {
-
-	MeshViewer::MeshViewer( void )
+	
+	class ScriptViewerStandalone : public Layer, public RefCounted
 	{
+	public:
+		ScriptViewerStandalone( void );
+		~ScriptViewerStandalone( void );
+	public:
+		virtual void OnAttach( void ) override;
+		virtual void OnDetach( void ) override;
+		virtual void OnImGuiRender() override;
+		virtual void OnUpdate( Timestep ts ) override;
+		virtual void OnEvent( Event& e ) override;
 
-	}
+		bool OnMouseButtonPressed( MouseButtonEvent& e );
+		bool OnKeyPressedEvent( KeyPressedEvent& e );
+	protected:
+		std::string m_FileLines;
+		std::string m_Filepath;
+		std::ifstream m_File;
+	private:
+	};
 
-	MeshViewer::~MeshViewer( void )
+	class ScriptViewerEntity : public Layer, public RefCounted
 	{
+	public:
+		ScriptViewerEntity( void );
+		~ScriptViewerEntity( void );
+	public:
+		virtual void OnAttach( void ) override;
+		virtual void OnDetach( void ) override;
+		virtual void OnImGuiRender() override;
+		virtual void OnUpdate( Timestep ts ) override;
+		virtual void OnEvent( Event& e ) override;
 
-	}
+		bool OnMouseButtonPressed( MouseButtonEvent& e );
+		bool OnKeyPressedEvent( KeyPressedEvent& e );
+	protected:
+		std::string m_FileLines;
+		std::string m_Filepath;
+		std::ifstream m_File;
+	private:
+	};
 
-	void MeshViewer::OnAttach( void )
-	{
-	}
-
-	void MeshViewer::OnDetach( void )
-	{
-	}
-
-	void MeshViewer::OnImGuiRender()
-	{
-		bool p_open = true;
-
-		if( ImGui::Begin( "MeshViewer" ) )
-		{
-
-		}
-		ImGui::End();
-	}
-
-	void MeshViewer::OnUpdate( Timestep ts )
-	{
-
-	}
-
-	void MeshViewer::OnEvent( Event& e )
-	{
-
-	}
-
-	bool MeshViewer::OnMouseButtonPressed( MouseButtonEvent& e )
-	{
-		return true;
-	}
-
-	bool MeshViewer::OnKeyPressedEvent( KeyPressedEvent& e )
-	{
-		return true;
-	}
 }

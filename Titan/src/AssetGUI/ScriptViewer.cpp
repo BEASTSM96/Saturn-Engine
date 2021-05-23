@@ -26,7 +26,7 @@
 *********************************************************************************************
 */
 
-#include "MeshViewer.h"
+#include "ScriptViewer.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -46,52 +46,124 @@
 
 namespace Saturn {
 
-	MeshViewer::MeshViewer( void )
-	{
-
-	}
-
-	MeshViewer::~MeshViewer( void )
-	{
-
-	}
-
-	void MeshViewer::OnAttach( void )
+	ScriptViewerStandalone::ScriptViewerStandalone( void ) : Layer( "ScriptViewerStandalone" )
 	{
 	}
 
-	void MeshViewer::OnDetach( void )
+	ScriptViewerStandalone::~ScriptViewerStandalone( void )
 	{
 	}
 
-	void MeshViewer::OnImGuiRender()
+	void ScriptViewerStandalone::OnAttach( void )
 	{
-		bool p_open = true;
+	}
 
-		if( ImGui::Begin( "MeshViewer" ) )
+	void ScriptViewerStandalone::OnDetach( void )
+	{
+	}
+
+	void ScriptViewerStandalone::OnImGuiRender()
+	{
+		if( ImGui::Begin( "Script Viewer Standalone" ) )
 		{
+			if( ImGui::Button( "OpenScript", ImVec2( 100, 50 ) ) )
+			{
+				if( !m_Filepath.empty() )
+					m_Filepath = "";
+		
+				if( !m_FileLines.empty() )
+					m_FileLines = "";
+
+				m_Filepath = Application::Get().OpenFile( "C# Script (*.cs)\0*.cs;" ).first;
+
+				m_File = std::ifstream( m_Filepath );
+
+				if( m_File.is_open() )
+				{
+					std::string line;
+					std::string fullText;
+		
+					while( std::getline( m_File, line ) )
+					{
+						fullText = fullText + m_FileLines + line + "\n";
+					}
+					m_FileLines = "\n" + fullText;
+
+					m_File.close();
+				}
+			}
+
+			ImGui::SameLine();
+
+			ImGui::Text( "File Path: %s", m_Filepath.c_str() );
+
+			ImGui::Separator();
+
+			ImGui::Text( m_FileLines.c_str() );
 
 		}
 		ImGui::End();
 	}
 
-	void MeshViewer::OnUpdate( Timestep ts )
+	void ScriptViewerStandalone::OnUpdate( Timestep ts )
 	{
-
 	}
 
-	void MeshViewer::OnEvent( Event& e )
+	void ScriptViewerStandalone::OnEvent( Event& e )
 	{
-
 	}
 
-	bool MeshViewer::OnMouseButtonPressed( MouseButtonEvent& e )
+	bool ScriptViewerStandalone::OnMouseButtonPressed( MouseButtonEvent& e )
 	{
 		return true;
 	}
 
-	bool MeshViewer::OnKeyPressedEvent( KeyPressedEvent& e )
+	bool ScriptViewerStandalone::OnKeyPressedEvent( KeyPressedEvent& e )
 	{
 		return true;
 	}
+
+	ScriptViewerEntity::ScriptViewerEntity( void ) : Layer( "ScriptViewerEntity" )
+	{
+	}
+
+	ScriptViewerEntity::~ScriptViewerEntity( void )
+	{
+	}
+
+	void ScriptViewerEntity::OnAttach( void )
+	{
+
+	}
+
+	void ScriptViewerEntity::OnDetach( void )
+	{
+
+	}
+
+	void ScriptViewerEntity::OnImGuiRender()
+	{
+
+	}
+
+	void ScriptViewerEntity::OnUpdate( Timestep ts )
+	{
+
+	}
+
+	void ScriptViewerEntity::OnEvent( Event& e )
+	{
+
+	}
+
+	bool ScriptViewerEntity::OnMouseButtonPressed( MouseButtonEvent& e )
+	{
+		return true;
+	}
+
+	bool ScriptViewerEntity::OnKeyPressedEvent( KeyPressedEvent& e )
+	{
+		return true;
+	}
+
 }
