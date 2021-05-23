@@ -27,7 +27,6 @@ project "PhysX"
         "include/pxshared/",
         "source/**/*/",
     }
-
 	filter "system:windows"
 		systemversion "latest"
 		cppdialect "C++17"

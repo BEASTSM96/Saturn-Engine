@@ -1214,8 +1214,6 @@ namespace Saturn {
 			}
 
 			ImGui::End();
-
-
 			ImGui::End();
 		}
 
