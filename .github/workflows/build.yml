@@ -28,3 +28,5 @@ jobs:
 
     - name: Build Solution
       run: msbuild -property:Configuration=Debug,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Saturn.sln
+    - name: List Files in PhysX
+      run: cd Saturn/vendor/physx/bin
