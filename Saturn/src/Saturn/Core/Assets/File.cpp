@@ -26,47 +26,43 @@
 *********************************************************************************************
 */
 
+#include "sppch.h"
+#include "File.h"
 
-#pragma once
-
-#include <Saturn/Layer.h> 
-#include <Saturn/Core/Ray.h>
-#include <Saturn/Core/Ref.h>
-
-#include <vector>
-
-namespace Saturn {
-	class EditorLayer;
-}
+#include "FileCollection.h"
 
 namespace Saturn {
 
-	class AssetPanel : public Layer, public RefCounted
+	File::File()
 	{
-	public:
-		AssetPanel( void );
-		~AssetPanel( void );
-	public:
-		virtual void OnAttach( void ) override;
-		virtual void OnDetach( void ) override;
-		virtual void OnImGuiRender() override;
-		bool CheckHasAsset( std::string name, std::string filepath, std::string folder );
-		virtual void OnUpdate( Timestep ts ) override;
-		virtual void OnEvent( Event& e ) override;
+	}
 
-		bool OnMouseButtonPressed( MouseButtonEvent& e );
-		bool OnKeyPressedEvent( KeyPressedEvent& e );
-	protected:
-		Ref<Scene> m_CurrentScene;
-		Ref<Texture2D> m_CheckerboardTex;
+	void File::Init( std::string name, std::string filepath, FileExtensionType type )
+	{
+		SetUUID( UUID() );
+		SetName( name );
+		SetFilepath( filepath );
+		SetFileExtensionType( type );
+	}
 
-		std::vector<std::string> m_Assets;
-		std::vector<std::string> m_AssetsFolderContents;
-		std::string m_FolderPath = "assets";
-		std::string m_Folder;
-		std::string m_CurrentFolder;
-		friend class EditorLayer;
-	private:
-		friend class EditorLayer;
-	};
+	void File::SetUUID( UUID uuid )
+	{
+		m_UUID = uuid;
+	}
+
+	void File::SetFileExtensionType( FileExtensionType type )
+	{
+		m_FileExtensionType = type;
+	}
+
+	void File::SetFilepath( std::string filepath )
+	{
+		m_Filepath = filepath;
+	}
+
+	void File::SetName( std::string name )
+	{
+		m_Name = name;
+	}
+
 }

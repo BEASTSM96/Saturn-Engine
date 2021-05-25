@@ -26,47 +26,25 @@
 *********************************************************************************************
 */
 
-
 #pragma once
 
-#include <Saturn/Layer.h> 
-#include <Saturn/Core/Ray.h>
-#include <Saturn/Core/Ref.h>
+#include "Saturn/Core/Base.h"
+#include "File.h"
 
-#include <vector>
-
-namespace Saturn {
-	class EditorLayer;
-}
+#include <unordered_map>
 
 namespace Saturn {
 
-	class AssetPanel : public Layer, public RefCounted
+	class FileCollection : public RefCounted
 	{
 	public:
-		AssetPanel( void );
-		~AssetPanel( void );
-	public:
-		virtual void OnAttach( void ) override;
-		virtual void OnDetach( void ) override;
-		virtual void OnImGuiRender() override;
-		bool CheckHasAsset( std::string name, std::string filepath, std::string folder );
-		virtual void OnUpdate( Timestep ts ) override;
-		virtual void OnEvent( Event& e ) override;
+		static void AddFileToCollection( Ref<File>& file );
+		static void RemoveFileFromCollection( File* file );
+		static Ref<File> GetFile( std::string name );
+		static bool DoesFileExistInCollection( std::string name );
 
-		bool OnMouseButtonPressed( MouseButtonEvent& e );
-		bool OnKeyPressedEvent( KeyPressedEvent& e );
-	protected:
-		Ref<Scene> m_CurrentScene;
-		Ref<Texture2D> m_CheckerboardTex;
+		static int GetCollectionSize();
 
-		std::vector<std::string> m_Assets;
-		std::vector<std::string> m_AssetsFolderContents;
-		std::string m_FolderPath = "assets";
-		std::string m_Folder;
-		std::string m_CurrentFolder;
-		friend class EditorLayer;
-	private:
-		friend class EditorLayer;
 	};
+
 }

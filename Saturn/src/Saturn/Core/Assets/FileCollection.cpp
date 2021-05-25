@@ -26,47 +26,48 @@
 *********************************************************************************************
 */
 
-
-#pragma once
-
-#include <Saturn/Layer.h> 
-#include <Saturn/Core/Ray.h>
-#include <Saturn/Core/Ref.h>
-
-#include <vector>
-
-namespace Saturn {
-	class EditorLayer;
-}
+#include "sppch.h"
+#include "FileCollection.h"
 
 namespace Saturn {
 
-	class AssetPanel : public Layer, public RefCounted
+	static std::vector<Ref<File>> s_Files;
+
+	void FileCollection::AddFileToCollection( Ref<File>& file )
 	{
-	public:
-		AssetPanel( void );
-		~AssetPanel( void );
-	public:
-		virtual void OnAttach( void ) override;
-		virtual void OnDetach( void ) override;
-		virtual void OnImGuiRender() override;
-		bool CheckHasAsset( std::string name, std::string filepath, std::string folder );
-		virtual void OnUpdate( Timestep ts ) override;
-		virtual void OnEvent( Event& e ) override;
+		s_Files.push_back( file.Raw() );
+	}
 
-		bool OnMouseButtonPressed( MouseButtonEvent& e );
-		bool OnKeyPressedEvent( KeyPressedEvent& e );
-	protected:
-		Ref<Scene> m_CurrentScene;
-		Ref<Texture2D> m_CheckerboardTex;
+	void FileCollection::RemoveFileFromCollection( File* file )
+	{
+	}
 
-		std::vector<std::string> m_Assets;
-		std::vector<std::string> m_AssetsFolderContents;
-		std::string m_FolderPath = "assets";
-		std::string m_Folder;
-		std::string m_CurrentFolder;
-		friend class EditorLayer;
-	private:
-		friend class EditorLayer;
-	};
+	Ref<File> FileCollection::GetFile( std::string name )
+	{
+		for( size_t i = 0; i < s_Files.size(); i++ )
+		{
+			Ref<File> file = s_Files[ i ];
+			if( file->GetName() == name )
+				return file;
+		}
+		abort();
+		return nullptr;
+	}
+
+	bool FileCollection::DoesFileExistInCollection( std::string name )
+	{
+		for( size_t i = 0; i < s_Files.size(); i++ )
+		{
+			Ref<File> file = s_Files[ i ];
+			if( file->GetName() == name )
+				return true;
+		}
+		return false;
+	}
+
+	int FileCollection::GetCollectionSize()
+	{
+		return s_Files.size();
+	}
+
 }

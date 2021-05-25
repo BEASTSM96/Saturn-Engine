@@ -26,47 +26,40 @@
 *********************************************************************************************
 */
 
-
 #pragma once
 
-#include <Saturn/Layer.h> 
-#include <Saturn/Core/Ray.h>
-#include <Saturn/Core/Ref.h>
+#include "Saturn/Core/Base.h"
+#include "Saturn/Core/UUID.h"
+#include "FileType.h"
 
-#include <vector>
-
-namespace Saturn {
-	class EditorLayer;
-}
+#include <string>
 
 namespace Saturn {
 
-	class AssetPanel : public Layer, public RefCounted
+	class File : public RefCounted
 	{
 	public:
-		AssetPanel( void );
-		~AssetPanel( void );
+		File();
+		~File() { };
+
+		void Init( std::string name, std::string filepath, FileExtensionType type );
+
 	public:
-		virtual void OnAttach( void ) override;
-		virtual void OnDetach( void ) override;
-		virtual void OnImGuiRender() override;
-		bool CheckHasAsset( std::string name, std::string filepath, std::string folder );
-		virtual void OnUpdate( Timestep ts ) override;
-		virtual void OnEvent( Event& e ) override;
+		std::string& GetName() { return m_Name; }
+		std::string& GetFilepath() { return m_Filepath; }
+		FileExtensionType& GetExtensionType() { return m_FileExtensionType; }
+		UUID& GetUUID() { return m_UUID; }
 
-		bool OnMouseButtonPressed( MouseButtonEvent& e );
-		bool OnKeyPressedEvent( KeyPressedEvent& e );
 	protected:
-		Ref<Scene> m_CurrentScene;
-		Ref<Texture2D> m_CheckerboardTex;
-
-		std::vector<std::string> m_Assets;
-		std::vector<std::string> m_AssetsFolderContents;
-		std::string m_FolderPath = "assets";
-		std::string m_Folder;
-		std::string m_CurrentFolder;
-		friend class EditorLayer;
+		UUID m_UUID;
+		FileExtensionType m_FileExtensionType = FileExtensionType::UNKNOWN;
+		std::string m_Filepath = "";
+		std::string m_Name = "";
 	private:
-		friend class EditorLayer;
+		void SetUUID( UUID uuid );
+		void SetFileExtensionType( FileExtensionType fileExtensionType );
+		void SetFilepath( std::string filepath );
+		void SetName( std::string name );
 	};
+
 }

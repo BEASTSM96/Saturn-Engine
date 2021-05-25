@@ -45,6 +45,9 @@
 #include <filesystem>
 #include "AssetGUI/TextureViewer.h"
 #include "EditorLayer.h"
+#include "Saturn/Renderer/Texture.h"
+
+#include "Saturn/Core/Assets/FileCollection.h"
 
 namespace Saturn {
 
@@ -166,44 +169,373 @@ namespace Saturn {
 
 		if( ImGui::Begin( "Assets", &p_open ) )
 		{
-			std::string m_FolderPath = "abc..";
+			ImGui::Text( "File Path: %s", m_FolderPath.c_str() );
 
-			for( fs::recursive_directory_iterator it( asset_path ); it != fs::recursive_directory_iterator(); ++it )
+			if ( m_FolderPath == "assets" )
 			{
+				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+				ImGui::Button( "Back" );
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			}
+			else
+			{
+				if( ImGui::Button( "Back" ) )
 				{
+					fs::path currentPath( m_FolderPath );
+					fs::path root_path = currentPath.parent_path();
 
-					if ( !it->path().has_extension() )
+					m_FolderPath = root_path.string();
+
+				}
+				
+			}
+
+			if( ImGui::Button( "Scan All Folders for Assets" ) )
+			{
+				for( fs::recursive_directory_iterator it( "assets\\" ); it != fs::recursive_directory_iterator(); ++it )
+				{
+					if( it->path().extension().string() == ".sc" )
 					{
-						m_FolderPath = it->path().string();
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  "assets\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::SCENE );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
 					}
 
-					if( it->path().extension() == ".png" )
+					if( it->path().extension().string() == ".txt" )
 					{
-						m_FolderPath = m_FolderPath;
-
-						/*
-						if ( CheckHasAsset( it->path().filename().string(), it->path().string(), m_FolderPath ) == false )
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
 						{
+							std::string path =  "assets\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::TEXT );
+
+							FileCollection::AddFileToCollection( scFile );
 						}
-						*/
+					}
 
-						if(ImGui::Button( it->path().filename().string().c_str()))
+					if( it->path().extension().string() == ".png" )
+					{
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
 						{
-							SAT_CORE_INFO( "TODO" );
-							TextureViewer::SetRenderImageTarget( m_FolderPath + "\\" + it->path().filename().string().c_str() );
+							std::string path =  "assets\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::PNG );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".tga" )
+					{
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  "assets\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::TGA );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".obj" )
+					{
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  "assets\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::OBJ );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".fbx" )
+					{
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  "assets\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::FBX );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".c#" )
+					{
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  "assets\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::SCRIPT );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".glsl" )
+					{
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  "assets\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::SHADER );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".hdr" )
+					{
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  "assets\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::HDR );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+				}
+			}
+
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+
+			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
+			{
+				if( !it->path().has_extension() )
+				{
+					if( ImGui::Button( it->path().filename().string().c_str() ) )
+					{
+						m_CurrentFolder = it->path().filename().string().c_str();
+						m_FolderPath = m_FolderPath + "\\" + it->path().filename().string();
+					}
+					ImGui::SameLine();
+				}
+			}
+
+			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
+			{
+				if( it->path().has_extension() )
+				{
+					ImGui::SameLine();
+
+					if ( it->path().extension().string() == ".sc" )
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::SCENE );
+
+							FileCollection::AddFileToCollection( scFile );
 						}
 
 					}
-
-					if( it->path().extension() == ".tga" )
+					
+					if( it->path().extension().string() == ".png" )
 					{
-						m_FolderPath = m_FolderPath;
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
 
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::PNG );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".tga" )
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::TGA );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".hdr" )
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::HDR );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".c#" )
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::SCRIPT );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".obj" )
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::OBJ );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".fbx" )
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::FBX );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".txt" )
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::TEXT );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
+					}
+
+					if( it->path().extension().string() == ".glsl" )
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
+						{
+							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+							Ref<File>& scFile = Ref<File>::Create();
+
+							scFile->Init( it->path().filename().string(), path, FileExtensionType::SHADER );
+
+							FileCollection::AddFileToCollection( scFile );
+						}
 					}
 
 				}
-
 			}
+		}
+		ImGui::End();
+
+		if ( ImGui::Begin("AssetDebuger") )
+		{
+			ImGui::Text( "File Collection Size: %i", FileCollection::GetCollectionSize() );
 		}
 		ImGui::End();
 	}
