@@ -189,6 +189,12 @@ namespace Saturn {
 		m_CheckerboardTex = newTexture;
 	}
 
+	void TextureViewer::SetRenderImageTarget( Ref<Texture2D>& texture )
+	{
+		m_CheckerboardTex = nullptr;
+		m_CheckerboardTex = texture;
+	}
+
 	bool TextureViewer::OnMouseButtonPressed( MouseButtonEvent& e )
 	{
 		return true;

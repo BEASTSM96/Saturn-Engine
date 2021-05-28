@@ -37,6 +37,8 @@
 #include "AssetGUI/ScriptViewer.h"
 #include "AssetGUI/TextureViewer.h"
 
+#include <Saturn/Core/Assets/FileType.h>
+
 namespace Saturn { 
 
 	class EditorLayer : public Layer
@@ -97,6 +99,25 @@ namespace Saturn {
 	private:
 		void SaveSceneAs( void );
 		void StartImGuiConsole( void );
+
+		template<typename T>
+		void MakeFileFrom( std::string filename, std::string filepath, FileExtensionType type )
+		{
+			static_assert( std::is_base_of<File, T>::value, "T is not type of File" );
+
+			std::string path = filepath;
+
+			if( !FileCollection::DoesFileExistInCollection( filename ) )
+			{
+				Ref<T>& file = Ref<T>::Create();
+
+				file->Init( filename, path, type );
+
+				FileCollection::AddFileToCollection( (Ref<File>&)file );
+			}
+		}
+
+		void StartAssetLayer();
 		void PrepRuntime();
 
 		int times = 0;
@@ -145,6 +166,15 @@ namespace Saturn {
 
 		void OnSelected( const SelectedSubmesh& selectionContext );
 
+	private:
+		//TODO: Add back to AssetPanel.h
+		std::vector<std::string> m_Assets;
+		std::vector<std::string> m_AssetsFolderContents;
+		std::string m_FolderPath = "assets";
+		std::string m_Folder;
+		std::string m_CurrentFolder;
+
+	private:
 		friend class SceneHierarchyPanel;
 	};
 }

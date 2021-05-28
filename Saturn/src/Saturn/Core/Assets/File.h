@@ -42,7 +42,7 @@ namespace Saturn {
 		File();
 		~File() { };
 
-		void Init( std::string name, std::string filepath, FileExtensionType type );
+		virtual void Init( std::string name, std::string filepath, FileExtensionType type );
 
 	public:
 		std::string& GetName() { return m_Name; }
@@ -55,7 +55,7 @@ namespace Saturn {
 		FileExtensionType m_FileExtensionType = FileExtensionType::UNKNOWN;
 		std::string m_Filepath = "";
 		std::string m_Name = "";
-	private:
+	
 		void SetUUID( UUID uuid );
 		void SetFileExtensionType( FileExtensionType fileExtensionType );
 		void SetFilepath( std::string filepath );

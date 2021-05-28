@@ -48,6 +48,8 @@
 #include "Saturn/Renderer/Texture.h"
 
 #include "Saturn/Core/Assets/FileCollection.h"
+#include "Saturn/Core/Assets/PNGFile.h"
+
 
 namespace Saturn {
 
@@ -116,7 +118,7 @@ namespace Saturn {
 
 			for( fs::recursive_directory_iterator it( asset_path ); it != fs::recursive_directory_iterator(); ++it )
 			{
-				if ( fs::is_directory( it->path() ) )
+				if( fs::is_directory( it->path() ) )
 				{
 					for( int i = 0; i < it.depth(); ++i )
 					{
@@ -171,7 +173,7 @@ namespace Saturn {
 		{
 			ImGui::Text( "File Path: %s", m_FolderPath.c_str() );
 
-			if ( m_FolderPath == "assets" )
+			if( m_FolderPath == "assets" )
 			{
 				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
@@ -189,7 +191,7 @@ namespace Saturn {
 					m_FolderPath = root_path.string();
 
 				}
-				
+
 			}
 
 			if( ImGui::Button( "Scan All Folders for Assets" ) )
@@ -228,13 +230,13 @@ namespace Saturn {
 					{
 						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
 						{
-							std::string path =  "assets\\" + it->path().filename().string();
+							std::string path = it->path().string();
 
-							Ref<File>& scFile = Ref<File>::Create();
+							Ref<PNGFile>& scFile = Ref<PNGFile>::Create();
 
 							scFile->Init( it->path().filename().string(), path, FileExtensionType::PNG );
 
-							FileCollection::AddFileToCollection( scFile );
+							FileCollection::AddFileToCollection( ( Ref<File> )scFile );
 						}
 					}
 
@@ -242,13 +244,13 @@ namespace Saturn {
 					{
 						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
 						{
-							std::string path =  "assets\\" + it->path().filename().string();
+							std::string path = it->path().string();
 
-							Ref<File>& scFile = Ref<File>::Create();
+							Ref<PNGFile>& scFile = Ref<PNGFile>::Create();
 
 							scFile->Init( it->path().filename().string(), path, FileExtensionType::TGA );
 
-							FileCollection::AddFileToCollection( scFile );
+							FileCollection::AddFileToCollection( ( Ref<File> )scFile );
 						}
 					}
 
@@ -312,13 +314,13 @@ namespace Saturn {
 					{
 						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
 						{
-							std::string path =  "assets\\" + it->path().filename().string();
+							std::string path = it->path().string();
 
-							Ref<File>& scFile = Ref<File>::Create();
+							Ref<PNGFile>& scFile = Ref<PNGFile>::Create();
 
 							scFile->Init( it->path().filename().string(), path, FileExtensionType::HDR );
 
-							FileCollection::AddFileToCollection( scFile );
+							FileCollection::AddFileToCollection( ( Ref<File> )scFile );
 						}
 					}
 				}
@@ -347,18 +349,12 @@ namespace Saturn {
 				{
 					ImGui::SameLine();
 
-					if ( it->path().extension().string() == ".sc" )
+					if( it->path().extension().string() == ".sc" )
 					{
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::Button( it->path().filename().string().c_str() );
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
+						std::string path = m_FolderPath + "\\" + it->path().filename().string();
 
 						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
 						{
-							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
 							Ref<File>& scFile = Ref<File>::Create();
 
 							scFile->Init( it->path().filename().string(), path, FileExtensionType::SCENE );
@@ -366,66 +362,78 @@ namespace Saturn {
 							FileCollection::AddFileToCollection( scFile );
 						}
 
+						if( ImGui::Button( it->path().filename().string().c_str(), ImVec2( 64, 64 ) ) )
+						{
+							
+						}
+
 					}
-					
+
 					if( it->path().extension().string() == ".png" )
 					{
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::Button( it->path().filename().string().c_str() );
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
+						std::string path = m_FolderPath + "\\" + it->path().filename().string();
 
 						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
 						{
-							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
-							Ref<File>& scFile = Ref<File>::Create();
+							Ref<PNGFile>& scFile = Ref<PNGFile>::Create();
 
 							scFile->Init( it->path().filename().string(), path, FileExtensionType::PNG );
 
-							FileCollection::AddFileToCollection( scFile );
+							FileCollection::AddFileToCollection( ( Ref<File> )scFile );
 						}
+
+						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
+
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), ImVec2( 64, 64 ) );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
 					}
 
 					if( it->path().extension().string() == ".tga" )
 					{
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::Button( it->path().filename().string().c_str() );
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
+						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
 
 						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
 						{
-							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
-							Ref<File>& scFile = Ref<File>::Create();
+							Ref<PNGFile>& scFile = Ref<PNGFile>::Create();
 
 							scFile->Init( it->path().filename().string(), path, FileExtensionType::TGA );
 
-							FileCollection::AddFileToCollection( scFile );
+							FileCollection::AddFileToCollection( ( Ref<File> )scFile );
 						}
+
+						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
+
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), ImVec2( 64, 64 ) );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
 					}
 
 					if( it->path().extension().string() == ".hdr" )
 					{
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::Button( it->path().filename().string().c_str() );
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
+						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
 
 						if( !FileCollection::DoesFileExistInCollection( it->path().filename().string() ) )
 						{
-							std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
-							Ref<File>& scFile = Ref<File>::Create();
+							Ref<PNGFile>& scFile = Ref<PNGFile>::Create();
 
 							scFile->Init( it->path().filename().string(), path, FileExtensionType::HDR );
 
-							FileCollection::AddFileToCollection( scFile );
+							FileCollection::AddFileToCollection( ( Ref<File> )scFile );
 						}
+
+						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
+
+						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), ImVec2( 64, 64 ) ) )
+						{
+							TextureViewer::SetRenderImageTarget( file->GetData() );
+						}
+
 					}
 
 					if( it->path().extension().string() == ".c#" )
@@ -533,7 +541,7 @@ namespace Saturn {
 		}
 		ImGui::End();
 
-		if ( ImGui::Begin("AssetDebuger") )
+		if( ImGui::Begin( "AssetDebuger" ) )
 		{
 			ImGui::Text( "File Collection Size: %i", FileCollection::GetCollectionSize() );
 		}
@@ -546,7 +554,7 @@ namespace Saturn {
 
 		for( fs::directory_iterator it( folder ); it != fs::directory_iterator(); ++it )
 		{
-			if ( it->path().filename() == name && std::find( m_Assets.begin(), m_Assets.end(), name ) == m_Assets.end() && it->path().filename() != name + ".asset" )
+			if( it->path().filename() == name && std::find( m_Assets.begin(), m_Assets.end(), name ) == m_Assets.end() && it->path().filename() != name + ".asset" )
 			{
 				m_Assets.push_back( name );
 

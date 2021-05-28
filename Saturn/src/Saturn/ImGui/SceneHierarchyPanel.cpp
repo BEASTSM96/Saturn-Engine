@@ -659,7 +659,7 @@ namespace Saturn {
 
 		// ID
 		ImGui::SameLine();
-		ImGui::TextDisabled( "%iix", id );
+		ImGui::TextDisabled( "%llx", id );
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
 		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )

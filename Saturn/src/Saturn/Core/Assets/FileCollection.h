@@ -35,6 +35,8 @@
 
 namespace Saturn {
 
+	class Scene;
+
 	class FileCollection : public RefCounted
 	{
 	public:
@@ -42,6 +44,8 @@ namespace Saturn {
 		static void RemoveFileFromCollection( File* file );
 		static Ref<File> GetFile( std::string name );
 		static bool DoesFileExistInCollection( std::string name );
+		static Ref<Scene>& GetScene();
+		static void SetScene( Ref<Scene>& scene );
 
 		static int GetCollectionSize();
 

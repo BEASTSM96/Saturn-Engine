@@ -26,61 +26,26 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "FileCollection.h"
+#pragma once
 
-#include "Saturn/Scene/Scene.h"
+#include "File.h"
+
+#include <Saturn/Renderer/Texture.h>
 
 namespace Saturn {
 
-	static std::vector<Ref<File>> s_Files;
-	static Ref<Scene> s_Scene;
-
-	void FileCollection::AddFileToCollection( Ref<File>& file )
+	class PNGFile : public File
 	{
-		s_Files.push_back( file.Raw() );
-	}
+	public:
+		PNGFile();
+		~PNGFile() { };
 
-	void FileCollection::RemoveFileFromCollection( File* file )
-	{
-	}
+		void Init( std::string name, std::string filepath, FileExtensionType type ) override;
+	
+		Ref<Texture2D>& GetData() { return m_Data; }
 
-	Ref<File> FileCollection::GetFile( std::string name )
-	{
-		for( size_t i = 0; i < s_Files.size(); i++ )
-		{
-			Ref<File> file = s_Files[ i ];
-			if( file->GetName() == name )
-				return file;
-		}
-		abort();
-		return nullptr;
-	}
-
-	bool FileCollection::DoesFileExistInCollection( std::string name )
-	{
-		for( size_t i = 0; i < s_Files.size(); i++ )
-		{
-			Ref<File> file = s_Files[ i ];
-			if( file->GetName() == name )
-				return true;
-		}
-		return false;
-	}
-
-	Ref<Scene>& FileCollection::GetScene()
-	{
-		return s_Scene;
-	}
-
-	void FileCollection::SetScene( Ref<Scene>& scene )
-	{
-		s_Scene = scene;
-	}
-
-	int FileCollection::GetCollectionSize()
-	{
-		return s_Files.size();
-	}
+	private:
+		Ref<Texture2D> m_Data;
+	};
 
 }

@@ -64,6 +64,8 @@
 #include <Saturn/Scene/SceneCamera.h>
 
 #include <Saturn/Core/FileSystemHelpers.h>
+#include <Saturn/Core/Assets/FileCollection.h>
+#include <Saturn/Core/Assets/PNGFile.h>
 
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -116,6 +118,9 @@ namespace Saturn {
 		uint64_t uuid  = Application::Get().GetFixedVersionUUID();
 		std::string branch  = Application::Get().GetVersionCtrl().Branch;
 		std::string uuidstr = std::to_string( uuid );
+
+		if( name.empty() )
+			name = "Unnamed Scene";
 
 		std::string title = name + " - Saturn - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ")" + "," + " (" + " " + uuidstr + " " + "/" + " " + branch + " )";
 		Application::Get().GetWindow().SetTitle( title );
@@ -178,14 +183,10 @@ namespace Saturn {
 		std::filesystem::path path = filepath;
 		UpdateWindowTitle( path.filename().string() );
 
-		if( filepath.empty() )
-			UpdateWindowTitle( "Untitled Scene" );
-
 		m_SceneHierarchyPanel->Reset();
 		m_SceneHierarchyPanel->SetContext( m_EditorScene );
 
 		m_EditorScene->SetSelectedEntity( {} );
-		m_EditorScene->CreatePhysxScene();
 		m_SelectionContext.clear();
 		m_AssetPanel->m_CurrentScene = m_EditorScene;
 	}
@@ -690,6 +691,343 @@ namespace Saturn {
 		ImGuiConsole::OnImGuiRender( &p_open );
 	}
 
+	//TODO: Add back into the AssetLayer.cpp file
+	void EditorLayer::StartAssetLayer()
+	{
+		bool p_open = true;
+		namespace fs = std::filesystem;
+
+		std::string asset_path = "assets";
+
+		int selected = ( 1 << 2 );
+
+		unsigned int idx;
+
+		if( ImGui::Begin( "AssetPanel", &p_open ) )
+		{
+			std::string m_FolderPath = "abc..";
+
+			for( fs::recursive_directory_iterator it( asset_path ); it != fs::recursive_directory_iterator(); ++it )
+			{
+				if( fs::is_directory( it->path() ) )
+				{
+					for( int i = 0; i < it.depth(); ++i )
+					{
+						ImGui::Indent();
+					}
+
+					if( ImGui::TreeNode( it->path().filename().string().c_str() ) )
+					{
+						ImGui::TreePop();
+					}
+
+					for( int i = 0; i < it.depth(); ++i )
+					{
+						ImGui::Unindent();
+					}
+
+					if( !it->path().has_extension() )
+					{
+						m_FolderPath = it->path().string();
+					}
+
+				}
+				else
+				{
+					for( int i = 0; i < it.depth(); ++i )
+					{
+						ImGui::Indent();
+					}
+
+					for( int i = 0; i < it.depth(); ++i )
+					{
+						ImGui::Unindent();
+					}
+				}
+			}
+		}
+		ImGui::End();
+
+		if( ImGui::Begin( "Assets", &p_open ) )
+		{
+			auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+			auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+
+			auto viewportOffset = ImGui::GetWindowPos(); // includes tab bar
+			auto viewportSize = ImGui::GetContentRegionAvail();
+
+			ImGui::Text( "File Path: %s", m_FolderPath.c_str() );
+
+			if( m_FolderPath == "assets" )
+			{
+				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+				ImGui::Button( "Back" );
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			}
+			else
+			{
+				if( ImGui::Button( "Back" ) )
+				{
+					fs::path currentPath( m_FolderPath );
+					fs::path root_path = currentPath.parent_path();
+
+					m_FolderPath = root_path.string();
+
+				}
+
+			}
+
+			if( ImGui::Button( "Scan All Folders for Assets" ) )
+			{
+				for( fs::recursive_directory_iterator it( "assets\\" ); it != fs::recursive_directory_iterator(); ++it )
+				{
+					if( it->path().extension().string() == ".sc" )
+					{
+						MakeFileFrom<File>( it->path().filename().string(), it->path().string(), FileExtensionType::SCENE );
+					}
+
+					if( it->path().extension().string() == ".txt" )
+					{
+						MakeFileFrom<File>( it->path().filename().string(), it->path().string(), FileExtensionType::TEXT );
+					}
+
+					if( it->path().extension().string() == ".png" )
+					{
+						MakeFileFrom<PNGFile>( it->path().filename().string(), it->path().string(),  FileExtensionType::PNG );
+					}
+
+					if( it->path().extension().string() == ".tga" )
+					{
+						MakeFileFrom<PNGFile>( it->path().filename().string(), it->path().string(), FileExtensionType::TGA );
+					}
+
+					if( it->path().extension().string() == ".obj" )
+					{
+						MakeFileFrom<File>( it->path().filename().string(), it->path().string(), FileExtensionType::OBJ );
+					}
+
+					if( it->path().extension().string() == ".fbx" )
+					{
+						MakeFileFrom<File>( it->path().filename().string(), it->path().string(), FileExtensionType::FBX );
+					}
+
+					if( it->path().extension().string() == ".c#" )
+					{
+						MakeFileFrom<File>( it->path().filename().string(), it->path().string(), FileExtensionType::SCRIPT );
+					}
+
+					if( it->path().extension().string() == ".glsl" )
+					{
+						MakeFileFrom<File>( it->path().filename().string(), it->path().string(), FileExtensionType::SHADER );
+					}
+
+					if( it->path().extension().string() == ".hdr" )
+					{
+						MakeFileFrom<PNGFile>( it->path().filename().string(), it->path().string(), FileExtensionType::HDR );
+					}
+				}
+			}
+
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+
+			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
+			{
+				if( !it->path().has_extension() )
+				{
+					if( ImGui::Button( it->path().filename().string().c_str() ) )
+					{
+						m_CurrentFolder = it->path().filename().string().c_str();
+						m_FolderPath = m_FolderPath + "\\" + it->path().filename().string();
+					}
+					ImGui::SameLine();
+				}
+			}
+
+			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
+			{
+				if( it->path().has_extension() )
+				{
+
+					if( it->path().extension().string() == ".sc" )
+					{
+						std::string path = m_FolderPath + "\\" + it->path().filename().string();
+
+						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SCENE );
+
+						ImVec2 imageSize( 64, 64 );
+						ImGuiStyle& style = ImGui::GetStyle();
+						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+						if( m_RuntimeScene )
+						{
+							ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+							ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+							ImGui::Button( it->path().filename().string().c_str(), ImVec2( 64, 64 ) );
+							ImGui::PopItemFlag();
+							ImGui::PopStyleVar();
+						}
+						else
+						{
+							ImGui::PushID( 69 );
+							if( ImGui::Button( it->path().filename().string().c_str(), ImVec2( 64, 64 ) ) )
+							{
+								OpenScene( path );
+							}
+							float last_button_x2 = ImGui::GetItemRectMax().x;
+							float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+							if( next_button_x2 < window_visible_x2 )
+								ImGui::SameLine();
+							ImGui::PopID();
+						}
+
+					}
+
+					if( it->path().extension().string() == ".png" )
+					{
+						std::string path = m_FolderPath + "\\" + it->path().filename().string();
+
+						MakeFileFrom<PNGFile>( it->path().filename().string(), path, FileExtensionType::PNG );
+
+						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
+
+
+						ImVec2 imageSize( 64, 64 );
+						ImGuiStyle& style = ImGui::GetStyle();
+						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+						ImGui::PushID( 69 );
+						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
+						{
+							TextureViewer::SetRenderImageTarget( file->GetData() );
+						}
+						float last_button_x2 = ImGui::GetItemRectMax().x;
+						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+						if( next_button_x2 < window_visible_x2 )
+							ImGui::SameLine();
+						ImGui::PopID();
+					}
+
+					if( it->path().extension().string() == ".tga" )
+					{
+						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+						MakeFileFrom<PNGFile>( it->path().filename().string(), path, FileExtensionType::TGA );
+
+						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
+
+						ImVec2 imageSize( 64, 64 );
+						ImGuiStyle& style = ImGui::GetStyle();
+						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+						ImGui::PushID( 69 );
+						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
+						{
+							TextureViewer::SetRenderImageTarget( file->GetData() );
+						}
+						float last_button_x2 = ImGui::GetItemRectMax().x;
+						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+						if( next_button_x2 < window_visible_x2 )
+							ImGui::SameLine();
+						ImGui::PopID();
+					}
+
+					if( it->path().extension().string() == ".hdr" )
+					{
+						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+						MakeFileFrom<PNGFile>( it->path().filename().string(), path, FileExtensionType::HDR );
+
+						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
+
+						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), ImVec2( 64, 64 ) ) )
+						{
+							TextureViewer::SetRenderImageTarget( file->GetData() );
+						}
+
+					}
+
+					if( it->path().extension().string() == ".c#" )
+					{
+						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SCRIPT );
+					}
+
+					if( it->path().extension().string() == ".obj" )
+					{
+						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::OBJ );
+					}
+
+					if( it->path().extension().string() == ".fbx" )
+					{
+						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::FBX );
+					}
+
+					if( it->path().extension().string() == ".txt" )
+					{
+						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::TEXT );
+					}
+
+					if( it->path().extension().string() == ".glsl" )
+					{
+						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
+
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::Button( it->path().filename().string().c_str() );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+
+						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SHADER );
+					}
+
+				}
+			}
+		}
+		ImGui::End();
+
+		if( ImGui::Begin( "AssetDebuger" ) )
+		{
+			ImGui::Text( "File Collection Size: %i", FileCollection::GetCollectionSize() );
+		}
+		ImGui::End();
+	}
+
 	static bool DecomposeTransform( const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale )
 	{
 		// From glm::decompose in matrix_decompose.inl
@@ -837,9 +1175,11 @@ namespace Saturn {
 			// Editor Panel ------------------------------------------------------------------------------
 			m_ImGuiConsole_Thread.join();
 
-			m_AssetPanel->OnImGuiRender();
+			//m_AssetPanel->OnImGuiRender();
 			m_TextureViewerPanel->OnImGuiRender();
 			m_ScriptViewerStandalone->OnImGuiRender();
+
+			StartAssetLayer();
 
 			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
 			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );

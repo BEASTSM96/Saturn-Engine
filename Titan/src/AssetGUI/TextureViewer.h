@@ -49,6 +49,7 @@ namespace Saturn {
 		virtual void OnEvent( Event& e ) override;
 
 		static void SetRenderImageTarget( std::string filepath);
+		static void SetRenderImageTarget( Ref<Texture2D>& texture );
 
 		bool OnMouseButtonPressed( MouseButtonEvent& e );
 		bool OnKeyPressedEvent( KeyPressedEvent& e );
