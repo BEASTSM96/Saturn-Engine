@@ -894,7 +894,6 @@ namespace Saturn {
 
 						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
 
-
 						ImVec2 imageSize( 64, 64 );
 						ImGuiStyle& style = ImGui::GetStyle();
 						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
@@ -943,10 +942,20 @@ namespace Saturn {
 
 						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
 
-						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), ImVec2( 64, 64 ) ) )
+						ImVec2 imageSize( 64, 64 );
+						ImGuiStyle& style = ImGui::GetStyle();
+						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+						ImGui::PushID( 69 );
+						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
 						{
 							TextureViewer::SetRenderImageTarget( file->GetData() );
 						}
+						float last_button_x2 = ImGui::GetItemRectMax().x;
+						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+						if( next_button_x2 < window_visible_x2 )
+							ImGui::SameLine();
+						ImGui::PopID();
 
 					}
 
@@ -954,66 +963,112 @@ namespace Saturn {
 					{
 						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
 
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::Button( it->path().filename().string().c_str() );
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
-
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SCRIPT );
+
+						ImVec2 imageSize( 64, 64 );
+						ImGuiStyle& style = ImGui::GetStyle();
+						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+						ImGui::PushID( 69 );
+						if( ImGui::Button( it->path().filename().string().c_str() ) )
+						{
+
+						}
+						float last_button_x2 = ImGui::GetItemRectMax().x;
+						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+						if( next_button_x2 < window_visible_x2 )
+							ImGui::SameLine();
+						ImGui::PopID();
 					}
 
 					if( it->path().extension().string() == ".obj" )
 					{
 						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
 
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::Button( it->path().filename().string().c_str() );
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
-
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::OBJ );
+
+						ImVec2 imageSize( 64, 64 );
+						ImGuiStyle& style = ImGui::GetStyle();
+						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+						ImGui::PushID( 69 );
+						if( ImGui::Button( it->path().filename().string().c_str() ) )
+						{
+
+						}
+						float last_button_x2 = ImGui::GetItemRectMax().x;
+						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+						if( next_button_x2 < window_visible_x2 )
+							ImGui::SameLine();
+						ImGui::PopID();
 					}
 
 					if( it->path().extension().string() == ".fbx" )
 					{
 						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
 
-
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::Button( it->path().filename().string().c_str() );
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
-
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::FBX );
+
+						ImVec2 imageSize( 64, 64 );
+						ImGuiStyle& style = ImGui::GetStyle();
+						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+						ImGui::PushID( 69 );
+						if( ImGui::Button( it->path().filename().string().c_str() ) )
+						{
+
+						}
+						float last_button_x2 = ImGui::GetItemRectMax().x;
+						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+						if( next_button_x2 < window_visible_x2 )
+							ImGui::SameLine();
+						ImGui::PopID();
+
 					}
 
 					if( it->path().extension().string() == ".txt" )
 					{
 						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
 
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::Button( it->path().filename().string().c_str() );
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
-
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::TEXT );
+
+						ImVec2 imageSize( 64, 64 );
+						ImGuiStyle& style = ImGui::GetStyle();
+						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+						ImGui::PushID( 69 );
+						if( ImGui::Button( it->path().filename().string().c_str() ) )
+						{
+
+						}
+						float last_button_x2 = ImGui::GetItemRectMax().x;
+						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+						if( next_button_x2 < window_visible_x2 )
+							ImGui::SameLine();
+						ImGui::PopID();
+
 					}
 
 					if( it->path().extension().string() == ".glsl" )
 					{
 						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
 
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::Button( it->path().filename().string().c_str() );
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
-
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SHADER );
+
+						ImVec2 imageSize( 64, 64 );
+						ImGuiStyle& style = ImGui::GetStyle();
+						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+						ImGui::PushID( 69 );
+						if( ImGui::Button( it->path().filename().string().c_str() ) )
+						{
+
+						}
+						float last_button_x2 = ImGui::GetItemRectMax().x;
+						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+						if( next_button_x2 < window_visible_x2 )
+							ImGui::SameLine();
+						ImGui::PopID();
 					}
 
 				}
