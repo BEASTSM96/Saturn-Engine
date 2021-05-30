@@ -46,6 +46,10 @@ namespace Saturn {
 		virtual void OnUpdate( Timestep ts ) override;
 		virtual void OnEvent( Event& e ) override;
 
+		void ShowWindowAgain();
+		void Reset();
+		void SetFile( std::string filepath );
+
 		bool OnMouseButtonPressed( MouseButtonEvent& e );
 		bool OnKeyPressedEvent( KeyPressedEvent& e );
 	protected:
@@ -53,5 +57,7 @@ namespace Saturn {
 		std::string m_Filepath;
 		std::ifstream m_File;
 	private:
+		bool m_Reset = false;
+		bool m_WindowIsOpen = true;
 	};
 }

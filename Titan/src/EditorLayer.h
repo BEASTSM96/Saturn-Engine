@@ -153,6 +153,7 @@ namespace Saturn {
 		SelectionMode m_SelectionMode = SelectionMode::Entity;
 		Ref<Texture2D> m_CheckerboardTex;
 		Ref<Texture2D> m_FooBarTexure;
+		Ref<Texture2D> m_FileSceneTexture;
 		std::vector<SelectedSubmesh> m_SelectionContext;
 		Ref<Scene> m_RuntimeScene;
 		Ref<Scene> m_EditorScene;

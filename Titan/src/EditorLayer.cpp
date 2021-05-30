@@ -100,13 +100,13 @@ namespace Saturn {
 		m_ScriptViewerStandalone->OnAttach();
 		m_TextureViewerPanel->OnAttach();
 
-
 		PhysXFnd::Init();
 
 		OpenScene( "" );
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
+		m_FileSceneTexture = Texture2D::Create( "assets/.github/i/sat/SaturnLogov2.png" );
 
 		ScriptEngine::Init( "assets/assembly/game/exapp.dll" );
 		ScriptEngine::SetSceneContext( m_EditorScene );
@@ -795,7 +795,7 @@ namespace Saturn {
 
 					if( it->path().extension().string() == ".png" )
 					{
-						MakeFileFrom<PNGFile>( it->path().filename().string(), it->path().string(),  FileExtensionType::PNG );
+						MakeFileFrom<PNGFile>( it->path().filename().string(), it->path().string(), FileExtensionType::PNG );
 					}
 
 					if( it->path().extension().string() == ".tga" )
@@ -813,7 +813,7 @@ namespace Saturn {
 						MakeFileFrom<File>( it->path().filename().string(), it->path().string(), FileExtensionType::FBX );
 					}
 
-					if( it->path().extension().string() == ".c#" )
+					if( it->path().extension().string() == ".cs" )
 					{
 						MakeFileFrom<File>( it->path().filename().string(), it->path().string(), FileExtensionType::SCRIPT );
 					}
@@ -838,12 +838,21 @@ namespace Saturn {
 			{
 				if( !it->path().has_extension() )
 				{
-					if( ImGui::Button( it->path().filename().string().c_str() ) )
+					ImVec2 imageSize( 64, 64 );
+					ImGuiStyle& style = ImGui::GetStyle();
+					float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+					ImGui::PushID( 69 );
+					if( ImGui::Button( it->path().filename().string().c_str(), imageSize ) )
 					{
 						m_CurrentFolder = it->path().filename().string().c_str();
 						m_FolderPath = m_FolderPath + "\\" + it->path().filename().string();
 					}
-					ImGui::SameLine();
+					float last_button_x2 = ImGui::GetItemRectMax().x;
+					float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+					if( next_button_x2 < window_visible_x2 )
+						ImGui::SameLine();
+					ImGui::PopID();
 				}
 			}
 
@@ -851,7 +860,6 @@ namespace Saturn {
 			{
 				if( it->path().has_extension() )
 				{
-
 					if( it->path().extension().string() == ".sc" )
 					{
 						std::string path = m_FolderPath + "\\" + it->path().filename().string();
@@ -866,14 +874,20 @@ namespace Saturn {
 						{
 							ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 							ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+							ImGui::PushID( 69 );
 							ImGui::Button( it->path().filename().string().c_str(), ImVec2( 64, 64 ) );
+							float last_button_x2 = ImGui::GetItemRectMax().x;
+							float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
+							if( next_button_x2 < window_visible_x2 )
+								ImGui::SameLine();
+							ImGui::PopID();
 							ImGui::PopItemFlag();
 							ImGui::PopStyleVar();
 						}
 						else
 						{
 							ImGui::PushID( 69 );
-							if( ImGui::Button( it->path().filename().string().c_str(), ImVec2( 64, 64 ) ) )
+							if( ImGui::Button( it->path().filename().string().c_str(), imageSize ) )
 							{
 								OpenScene( path );
 							}
@@ -901,6 +915,8 @@ namespace Saturn {
 						ImGui::PushID( 69 );
 						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
 						{
+							m_TextureViewerPanel->ShowWindowAgain();
+							m_TextureViewerPanel->Reset();
 							TextureViewer::SetRenderImageTarget( file->GetData() );
 						}
 						float last_button_x2 = ImGui::GetItemRectMax().x;
@@ -925,6 +941,8 @@ namespace Saturn {
 						ImGui::PushID( 69 );
 						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
 						{
+							m_TextureViewerPanel->ShowWindowAgain();
+							m_TextureViewerPanel->Reset();
 							TextureViewer::SetRenderImageTarget( file->GetData() );
 						}
 						float last_button_x2 = ImGui::GetItemRectMax().x;
@@ -949,6 +967,8 @@ namespace Saturn {
 						ImGui::PushID( 69 );
 						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
 						{
+							m_TextureViewerPanel->ShowWindowAgain();
+							m_TextureViewerPanel->Reset();
 							TextureViewer::SetRenderImageTarget( file->GetData() );
 						}
 						float last_button_x2 = ImGui::GetItemRectMax().x;
@@ -959,7 +979,7 @@ namespace Saturn {
 
 					}
 
-					if( it->path().extension().string() == ".c#" )
+					if( it->path().extension().string() == ".cs" )
 					{
 						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
 
@@ -970,9 +990,10 @@ namespace Saturn {
 						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
 						ImGui::PushID( 69 );
-						if( ImGui::Button( it->path().filename().string().c_str() ) )
+						if( ImGui::Button( it->path().filename().string().c_str(), imageSize ) )
 						{
-
+							m_ScriptViewerStandalone->ShowWindowAgain();
+							m_ScriptViewerStandalone->SetFile( it->path().string() );
 						}
 						float last_button_x2 = ImGui::GetItemRectMax().x;
 						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
@@ -1039,7 +1060,6 @@ namespace Saturn {
 						ImGui::PushID( 69 );
 						if( ImGui::Button( it->path().filename().string().c_str() ) )
 						{
-
 						}
 						float last_button_x2 = ImGui::GetItemRectMax().x;
 						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;

@@ -64,45 +64,48 @@ namespace Saturn {
 
 	void ScriptViewerStandalone::OnImGuiRender()
 	{
-		if( ImGui::Begin( "Script Viewer Standalone" ) )
+		if( m_WindowIsOpen )
 		{
-			if( ImGui::Button( "OpenScript", ImVec2( 100, 50 ) ) )
+			if( ImGui::Begin( "Script Viewer Standalone", &m_WindowIsOpen ) )
 			{
-				if( !m_Filepath.empty() )
-					m_Filepath = "";
-		
-				if( !m_FileLines.empty() )
-					m_FileLines = "";
-
-				m_Filepath = Application::Get().OpenFile( "C# Script (*.cs)\0*.cs;" ).first;
-
-				m_File = std::ifstream( m_Filepath );
-
-				if( m_File.is_open() )
+				if( ImGui::Button( "OpenScript", ImVec2( 100, 50 ) ) )
 				{
-					std::string line;
-					std::string fullText;
-		
-					while( std::getline( m_File, line ) )
+					if( !m_Filepath.empty() )
+						m_Filepath = "";
+
+					if( !m_FileLines.empty() )
+						m_FileLines = "";
+
+					m_Filepath = Application::Get().OpenFile( "C# Script (*.cs)\0*.cs;" ).first;
+
+					m_File = std::ifstream( m_Filepath );
+
+					if( m_File.is_open() )
 					{
-						fullText = fullText + m_FileLines + line + "\n";
+						std::string line;
+						std::string fullText;
+
+						while( std::getline( m_File, line ) )
+						{
+							fullText = fullText + m_FileLines + line + "\n";
+						}
+						m_FileLines = "\n" + fullText;
+
+						m_File.close();
 					}
-					m_FileLines = "\n" + fullText;
-
-					m_File.close();
 				}
+
+				ImGui::SameLine();
+
+				ImGui::Text( "File Path: %s", m_Filepath.c_str() );
+
+				ImGui::Separator();
+
+				ImGui::Text( m_FileLines.c_str() );
+
 			}
-
-			ImGui::SameLine();
-
-			ImGui::Text( "File Path: %s", m_Filepath.c_str() );
-
-			ImGui::Separator();
-
-			ImGui::Text( m_FileLines.c_str() );
-
+			ImGui::End();
 		}
-		ImGui::End();
 	}
 
 	void ScriptViewerStandalone::OnUpdate( Timestep ts )
@@ -110,6 +113,42 @@ namespace Saturn {
 	}
 
 	void ScriptViewerStandalone::OnEvent( Event& e )
+	{
+	}
+
+	void ScriptViewerStandalone::ShowWindowAgain()
+	{
+		if( !m_WindowIsOpen )
+			m_WindowIsOpen = true;
+	}
+
+	void ScriptViewerStandalone::SetFile( std::string filepath )
+	{
+		if( !m_Filepath.empty() )
+			m_Filepath = "";
+
+		if( !m_FileLines.empty() )
+			m_FileLines = "";
+
+		m_Filepath = filepath;
+		m_File = std::ifstream( m_Filepath );
+
+		if( m_File.is_open() )
+		{
+			std::string line;
+			std::string fullText;
+
+			while( std::getline( m_File, line ) )
+			{
+				fullText = fullText + m_FileLines + line + "\n";
+			}
+			m_FileLines = "\n" + fullText;
+
+			m_File.close();
+		}
+	}
+
+	void ScriptViewerStandalone::Reset()
 	{
 	}
 

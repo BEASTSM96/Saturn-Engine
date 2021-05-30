@@ -130,56 +130,61 @@ namespace Saturn {
 
 	void TextureViewer::OnImGuiRender()
 	{
-		bool p_open = true;
-
-		if( ImGui::Begin( "TextureViewer" ) )
+		if( m_WindowIsOpen )
 		{
-			ImGui::Spacing();
+			if( ImGui::Begin( "TextureViewer", &m_WindowIsOpen ) )
+			{
+				ImGui::Spacing();
 
-			DrawIntControlTextureViewer( "Set X Size", &PerImagineSizeX, 0.0F, 2500.0F, 1.0F, 75.0F ); ImGui::SameLine(); ImGui::Spacing();
-			if( ImGui::Button( "Reset To Texture Size", ImVec2( 175, 25 ) ) )
-			{
-				PerImagineSizeX = m_CheckerboardTex->GetWidth();
-				PerImagineSizeY = m_CheckerboardTex->GetWidth();
-				Reset = false;
-			}
-			DrawIntControlTextureViewer( "Set Y Size", &PerImagineSizeY, 0.0F, 2500.0F, 1.0F, 75.0F );
-			if( ImGui::Button( "Half Size", ImVec2( 125, 25 ) ) )
-			{
-				if( PerImagineSizeX == 0 && PerImagineSizeY == 0 )
+				DrawIntControlTextureViewer( "Set X Size", &m_PerImagineSizeX, 0.0F, 2500.0F, 1.0F, 75.0F ); ImGui::SameLine(); ImGui::Spacing();
+				DrawIntControlTextureViewer( "Set Y Size", &m_PerImagineSizeY, 0.0F, 2500.0F, 1.0F, 75.0F );
+				if( ImGui::Button( "Reset To Texture Size", ImVec2( 175, 25 ) ) )
 				{
-					PerImagineSizeX = m_CheckerboardTex->GetWidth();
-					PerImagineSizeY = m_CheckerboardTex->GetWidth();
-					Reset = false;
+					m_PerImagineSizeX = m_CheckerboardTex->GetWidth();
+					m_PerImagineSizeY = m_CheckerboardTex->GetWidth();
+					m_Reset = false;
 				}
+				if( ImGui::Button( "Half Size", ImVec2( 125, 25 ) ) )
+				{
+					if( m_PerImagineSizeX == 0 && m_PerImagineSizeY == 0 )
+					{
+						m_PerImagineSizeX = m_CheckerboardTex->GetWidth();
+						m_PerImagineSizeY = m_CheckerboardTex->GetWidth();
+						m_Reset = false;
+					}
 
-				PerImagineSizeX = PerImagineSizeX / 2;
-				PerImagineSizeY = PerImagineSizeY / 2;
-			}
-			if( ImGui::Button( "Open New Texture", ImVec2( 125, 25 ) ) )
-			{
-				std::string filepath = Application::Get().OpenFile( "Texture 2D (*.tga *.png)\0*.tga; *.png\0" ).first;
-				m_CheckerboardTex = nullptr;
-				m_CheckerboardTex = Texture2D::Create( filepath, false );
+					m_PerImagineSizeX = m_PerImagineSizeX / 2;
+					m_PerImagineSizeY = m_PerImagineSizeY / 2;
+				}
+				if( ImGui::Button( "Open New Texture", ImVec2( 125, 25 ) ) )
+				{
+					std::string filepath = Application::Get().OpenFile( "Texture 2D (*.tga *.png)\0*.tga; *.png\0" ).first;
+					m_CheckerboardTex = nullptr;
+					m_CheckerboardTex = Texture2D::Create( filepath, false );
 
-				Reset = true;
+					m_Reset = true;
+				}
+				if( m_CheckerboardTex )
+				{
+					ImGui::SameLine();
+					ImGui::Text( "File Path: %s", m_CheckerboardTex->GetPath().c_str() );
+				}
+				ImGui::Image( ( ImTextureID )m_CheckerboardTex->GetRendererID(), ImVec2( m_PerImagineSizeX, m_PerImagineSizeY ) );
 			}
-			if( m_CheckerboardTex )
-			{
-				ImGui::SameLine();
-				ImGui::Text( "File Path: %s", m_CheckerboardTex->GetPath().c_str() );
-			}
-			ImGui::Image( ( ImTextureID )m_CheckerboardTex->GetRendererID(), ImVec2( PerImagineSizeX, PerImagineSizeY ) );
+			ImGui::End();
 		}
-		ImGui::End();
 	}
 
-	void TextureViewer::OnUpdate( Timestep ts )
+	void TextureViewer::ShowWindowAgain()
 	{
+		if( !m_WindowIsOpen )
+			m_WindowIsOpen = true;
 	}
 
-	void TextureViewer::OnEvent( Event& e )
+	void TextureViewer::Reset()
 	{
+		m_PerImagineSizeX = 64;
+		m_PerImagineSizeY = 64;
 	}
 
 	void TextureViewer::SetRenderImageTarget( std::string filepath )
@@ -193,6 +198,14 @@ namespace Saturn {
 	{
 		m_CheckerboardTex = nullptr;
 		m_CheckerboardTex = texture;
+	}
+
+	void TextureViewer::OnUpdate( Timestep ts )
+	{
+	}
+
+	void TextureViewer::OnEvent( Event& e )
+	{
 	}
 
 	bool TextureViewer::OnMouseButtonPressed( MouseButtonEvent& e )

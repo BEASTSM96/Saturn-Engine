@@ -48,6 +48,9 @@ namespace Saturn {
 		virtual void OnUpdate( Timestep ts ) override;
 		virtual void OnEvent( Event& e ) override;
 
+		void ShowWindowAgain();
+		void Reset();
+
 		static void SetRenderImageTarget( std::string filepath);
 		static void SetRenderImageTarget( Ref<Texture2D>& texture );
 
@@ -56,9 +59,10 @@ namespace Saturn {
 	protected:
 
 	private:
-		int PerImagineSizeX = 0;
-		int PerImagineSizeY = 0;
-		bool Reset = false;
+		int m_PerImagineSizeX = 0;
+		int m_PerImagineSizeY = 0;
+		bool m_Reset = false;
+		bool m_WindowIsOpen = true;
 	private:
 	};
 
