@@ -10695,6 +10695,32 @@ ImGuiViewport* ImGui::FindViewportByPlatformHandle(void* platform_handle)
     return NULL;
 }
 
+void ImGui::ManualWrapBegin( ImVec2 button_sz, int int_id )
+{
+    IM_ASSERT( button_sz.x != 0 || button_sz.y != 0 ); // button_sz.xy can't be 0.
+
+    ImGuiStyle& style = GetStyle();
+
+    float window_visible_x2 = GetWindowPos().x + GetWindowContentRegionMax().x;
+    PushID( int_id );
+    //Render code
+}
+
+void ImGui::ManualWrapEnd( ImVec2 button_sz )
+{
+    IM_ASSERT( button_sz.x != 0 || button_sz.y != 0 ); // button_sz.xy can't be 0.
+
+    ImGuiStyle& style = GetStyle();
+
+    float last_button_x2 = GetItemRectMax().x;
+    float next_button_x2 = last_button_x2 + style.ItemSpacing.x + button_sz.x; // Position if next Text/Button/etc was on same line
+    float window_visible_x2 = GetWindowPos().x + GetWindowContentRegionMax().x;
+
+    if( next_button_x2 < window_visible_x2 )
+        SameLine();
+    PopID();
+}
+
 void ImGui::SetCurrentViewport(ImGuiWindow* current_window, ImGuiViewportP* viewport)
 {
     ImGuiContext& g = *GImGui;

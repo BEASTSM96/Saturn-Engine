@@ -797,6 +797,9 @@ namespace ImGui
     IMGUI_API ImGuiViewport*    FindViewportByID(ImGuiID id);                                   // this is a helper for back-ends.
     IMGUI_API ImGuiViewport*    FindViewportByPlatformHandle(void* platform_handle);            // this is a helper for back-ends. the type platform_handle is decided by the back-end (e.g. HWND, MyWindow*, GLFWwindow* etc.)
 
+    IMGUI_API void ManualWrapBegin( ImVec2 button_sz, int int_id = 1 );
+    IMGUI_API void ManualWrapEnd( ImVec2 button_sz );
+
 } // namespace ImGui
 
 //-----------------------------------------------------------------------------

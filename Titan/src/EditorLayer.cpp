@@ -867,35 +867,25 @@ namespace Saturn {
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SCENE );
 
 						ImVec2 imageSize( 64, 64 );
-						ImGuiStyle& style = ImGui::GetStyle();
-						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
 						if( m_RuntimeScene )
 						{
 							ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 							ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-							ImGui::PushID( 69 );
+							ImGui::ManualWrapBegin( imageSize );
 							ImGui::Button( it->path().filename().string().c_str(), ImVec2( 64, 64 ) );
-							float last_button_x2 = ImGui::GetItemRectMax().x;
-							float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-							if( next_button_x2 < window_visible_x2 )
-								ImGui::SameLine();
-							ImGui::PopID();
+							ImGui::ManualWrapEnd( imageSize );
 							ImGui::PopItemFlag();
 							ImGui::PopStyleVar();
 						}
 						else
 						{
-							ImGui::PushID( 69 );
+							ImGui::ManualWrapBegin( imageSize );
 							if( ImGui::Button( it->path().filename().string().c_str(), imageSize ) )
 							{
 								OpenScene( path );
 							}
-							float last_button_x2 = ImGui::GetItemRectMax().x;
-							float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-							if( next_button_x2 < window_visible_x2 )
-								ImGui::SameLine();
-							ImGui::PopID();
+							ImGui::ManualWrapEnd( imageSize );
 						}
 
 					}
@@ -909,21 +899,15 @@ namespace Saturn {
 						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
 
 						ImVec2 imageSize( 64, 64 );
-						ImGuiStyle& style = ImGui::GetStyle();
-						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-						ImGui::PushID( 69 );
+						ImGui::ManualWrapBegin( imageSize );
 						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
 						{
 							m_TextureViewerPanel->ShowWindowAgain();
 							m_TextureViewerPanel->Reset();
 							TextureViewer::SetRenderImageTarget( file->GetData() );
 						}
-						float last_button_x2 = ImGui::GetItemRectMax().x;
-						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-						if( next_button_x2 < window_visible_x2 )
-							ImGui::SameLine();
-						ImGui::PopID();
+						ImGui::ManualWrapEnd( imageSize );
 					}
 
 					if( it->path().extension().string() == ".tga" )
@@ -935,21 +919,15 @@ namespace Saturn {
 						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
 
 						ImVec2 imageSize( 64, 64 );
-						ImGuiStyle& style = ImGui::GetStyle();
-						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-						ImGui::PushID( 69 );
+						ImGui::ManualWrapBegin( imageSize );
 						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
 						{
 							m_TextureViewerPanel->ShowWindowAgain();
 							m_TextureViewerPanel->Reset();
 							TextureViewer::SetRenderImageTarget( file->GetData() );
 						}
-						float last_button_x2 = ImGui::GetItemRectMax().x;
-						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-						if( next_button_x2 < window_visible_x2 )
-							ImGui::SameLine();
-						ImGui::PopID();
+						ImGui::ManualWrapEnd( imageSize );
 					}
 
 					if( it->path().extension().string() == ".hdr" )
@@ -961,21 +939,15 @@ namespace Saturn {
 						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
 
 						ImVec2 imageSize( 64, 64 );
-						ImGuiStyle& style = ImGui::GetStyle();
-						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-						ImGui::PushID( 69 );
+						ImGui::ManualWrapBegin( imageSize );
 						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
 						{
 							m_TextureViewerPanel->ShowWindowAgain();
 							m_TextureViewerPanel->Reset();
 							TextureViewer::SetRenderImageTarget( file->GetData() );
 						}
-						float last_button_x2 = ImGui::GetItemRectMax().x;
-						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-						if( next_button_x2 < window_visible_x2 )
-							ImGui::SameLine();
-						ImGui::PopID();
+						ImGui::ManualWrapEnd( imageSize );
 
 					}
 
@@ -986,20 +958,14 @@ namespace Saturn {
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SCRIPT );
 
 						ImVec2 imageSize( 64, 64 );
-						ImGuiStyle& style = ImGui::GetStyle();
-						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-						ImGui::PushID( 69 );
+						ImGui::ManualWrapBegin( imageSize );
 						if( ImGui::Button( it->path().filename().string().c_str(), imageSize ) )
 						{
 							m_ScriptViewerStandalone->ShowWindowAgain();
 							m_ScriptViewerStandalone->SetFile( it->path().string() );
 						}
-						float last_button_x2 = ImGui::GetItemRectMax().x;
-						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-						if( next_button_x2 < window_visible_x2 )
-							ImGui::SameLine();
-						ImGui::PopID();
+						ImGui::ManualWrapEnd( imageSize );
 					}
 
 					if( it->path().extension().string() == ".obj" )
@@ -1009,19 +975,13 @@ namespace Saturn {
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::OBJ );
 
 						ImVec2 imageSize( 64, 64 );
-						ImGuiStyle& style = ImGui::GetStyle();
-						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-						ImGui::PushID( 69 );
+						ImGui::ManualWrapBegin( imageSize );
 						if( ImGui::Button( it->path().filename().string().c_str() ) )
 						{
 
 						}
-						float last_button_x2 = ImGui::GetItemRectMax().x;
-						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-						if( next_button_x2 < window_visible_x2 )
-							ImGui::SameLine();
-						ImGui::PopID();
+						ImGui::ManualWrapEnd( imageSize );
 					}
 
 					if( it->path().extension().string() == ".fbx" )
@@ -1031,19 +991,13 @@ namespace Saturn {
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::FBX );
 
 						ImVec2 imageSize( 64, 64 );
-						ImGuiStyle& style = ImGui::GetStyle();
-						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-						ImGui::PushID( 69 );
+						ImGui::ManualWrapBegin( imageSize );
 						if( ImGui::Button( it->path().filename().string().c_str() ) )
 						{
 
 						}
-						float last_button_x2 = ImGui::GetItemRectMax().x;
-						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-						if( next_button_x2 < window_visible_x2 )
-							ImGui::SameLine();
-						ImGui::PopID();
+						ImGui::ManualWrapEnd( imageSize );
 
 					}
 
@@ -1054,18 +1008,12 @@ namespace Saturn {
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::TEXT );
 
 						ImVec2 imageSize( 64, 64 );
-						ImGuiStyle& style = ImGui::GetStyle();
-						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-						ImGui::PushID( 69 );
+						ImGui::ManualWrapBegin( imageSize );
 						if( ImGui::Button( it->path().filename().string().c_str() ) )
 						{
 						}
-						float last_button_x2 = ImGui::GetItemRectMax().x;
-						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-						if( next_button_x2 < window_visible_x2 )
-							ImGui::SameLine();
-						ImGui::PopID();
+						ImGui::ManualWrapEnd( imageSize );
 
 					}
 
@@ -1076,22 +1024,105 @@ namespace Saturn {
 						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SHADER );
 
 						ImVec2 imageSize( 64, 64 );
-						ImGuiStyle& style = ImGui::GetStyle();
-						float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-						ImGui::PushID( 69 );
+						ImGui::ManualWrapBegin( imageSize );
 						if( ImGui::Button( it->path().filename().string().c_str() ) )
 						{
 
 						}
-						float last_button_x2 = ImGui::GetItemRectMax().x;
-						float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-						if( next_button_x2 < window_visible_x2 )
-							ImGui::SameLine();
-						ImGui::PopID();
+						ImGui::ManualWrapEnd( imageSize );
 					}
 
 				}
+			}
+
+			static bool openModal = false;
+
+			if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
+			{
+				if( ImGui::MenuItem( "Create new File" ) )
+				{
+					openModal = true;
+				}
+				ImGui::EndPopup();
+			}
+
+			if( openModal )
+			{
+				ImGui::OpenPopup( "Create new File" );
+			}
+
+			if( ImGui::BeginPopupModal( "Create new File", &openModal ) )
+			{
+				static char filename[ 256 ] = "";
+				static char folder[ 256 ] = "";
+				static bool fileAlreadyExists = false;
+				static char* fullpath = "";
+
+				ImGui::SetWindowSize( ImVec2( 235, 235 ) );
+
+				ImGui::AlignTextToFramePadding();
+				if( ImGui::Button( "...##showdropdown" ) )
+					ImGui::OpenPopup( "AddFileExtension" );
+
+				if( ImGui::BeginPopup( "AddFileExtension" ) )
+				{
+					if( ImGui::MenuItem( "Scene File" ) )
+					{
+						strcat( filename, ".sc" );
+					}
+
+					if( ImGui::MenuItem( "cs File" ) )
+					{
+						strcat( filename, ".cs" );
+					}
+					ImGui::EndPopup();
+				}
+				ImGui::Text( "File Name and extension : " );
+				ImGui::SameLine();
+				ImGui::InputText( "##filename", filename, IM_ARRAYSIZE( filename ) );
+
+				ImGui::Text( "Folder : " );
+				ImGui::SameLine();
+				if( ImGui::InputText( "##folder", folder, IM_ARRAYSIZE( folder ) ) )
+				{
+					char* foldercopy = folder;
+					char* filenamecopy = filename;
+					fullpath = strcat( strcat( foldercopy, "\\" ), filenamecopy );
+				}
+
+				if( std::filesystem::exists( fullpath ) )
+				{
+					ImGui::Text( "File already exists" );
+					fileAlreadyExists = true;
+				}
+				else
+				{
+					fileAlreadyExists = false;
+				}
+
+				if( ImGui::Button( "Cancel" ) )
+				{
+					ImGui::CloseCurrentPopup();
+					openModal = false;
+				}
+				ImGui::SameLine();
+				if( ImGui::Button( "Done" ) && !fileAlreadyExists )
+				{
+					std::string fullFileName;
+
+					fullFileName = filename;
+
+					std::ofstream file( fullpath );
+
+					std::string currPath = std::filesystem::current_path().string();
+
+					ImGui::CloseCurrentPopup();
+					openModal = false;
+
+				}
+
+				ImGui::EndPopup();
 			}
 		}
 		ImGui::End();

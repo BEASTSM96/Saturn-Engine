@@ -251,10 +251,13 @@ namespace Saturn {
 		auto& moduleName = entity.GetComponent<ScriptComponent>().ModuleName;
 		EntityClass& entityClass = s_EntityClass[ moduleName ];
 
-		if( moduleName == "" )
+		if( moduleName == "" || moduleName == "ExampleApp.Null" )
 			return;
 
 		if( !ModuleExists( moduleName ) )
+			return;
+
+		if( s_EntityInstanceMap[ id ].ScriptClass != NULL && s_EntityInstanceMap[ id ].ScriptClass->ClassName != "Null" )
 			return;
 
 		if ( moduleName != "" )
@@ -274,8 +277,6 @@ namespace Saturn {
 			entityClass.Class = GetClass( s_AppAssemblyImage, entityClass );
 			entityClass.InitClassMethods( s_AppAssemblyImage );
 
-			SAT_CORE_INFO( "0{0}", scene->GetUUID() );
-			SAT_CORE_INFO( "1{0}", id );
 			EntityInstance& entityInstance = s_EntityInstanceMap[ id ];
 			entityInstance.ScriptClass = &entityClass;
 			entityInstance.Handle = Instantiate( entityClass );
