@@ -38,6 +38,7 @@
 #include "AssetGUI/TextureViewer.h"
 
 #include <Saturn/Core/Assets/FileType.h>
+#include <Saturn/Core/EngineSettings/EngineSettings.h>
 
 namespace Saturn { 
 
@@ -154,6 +155,8 @@ namespace Saturn {
 		Ref<Texture2D> m_CheckerboardTex;
 		Ref<Texture2D> m_FooBarTexure;
 		Ref<Texture2D> m_FileSceneTexture;
+		Ref<Texture2D> m_UnkownFile;
+		Ref<Texture2D> m_TextFile;
 		std::vector<SelectedSubmesh> m_SelectionContext;
 		Ref<Scene> m_RuntimeScene;
 		Ref<Scene> m_EditorScene;

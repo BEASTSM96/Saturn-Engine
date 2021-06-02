@@ -108,6 +108,9 @@ namespace Saturn {
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
 		m_FileSceneTexture = Texture2D::Create( "assets/.github/i/sat/SaturnLogov2.png" );
 
+		m_UnkownFile = Texture2D::Create( "assets/textures/assetpanel/unkown_file.png" );
+		m_TextFile = Texture2D::Create( "assets/textures/assetpanel/text_file.png" );
+
 		ScriptEngine::Init( "assets/assembly/game/exapp.dll" );
 		ScriptEngine::SetSceneContext( m_EditorScene );
 
@@ -691,6 +694,45 @@ namespace Saturn {
 		ImGuiConsole::OnImGuiRender( &p_open );
 	}
 
+	static void DrawAssetText( const char* text ) 
+	{
+		ImVec2 rectMin = ImGui::GetItemRectMin();
+		ImVec2 rectSize = ImGui::GetItemRectSize();
+		ImVec2 textSize = ImGui::CalcTextSize( text );
+
+		static ImVec2 padding( 5, 5 );
+		static int marginTop = 15;
+
+		ImDrawList& windowDrawList = *ImGui::GetWindowDrawList();
+		ImGuiStyle& style = ImGui::GetStyle();
+
+		if( textSize.x + padding.x * 2 <= rectSize.x )
+		{
+			float rectMin_x = rectMin.x - padding.x + ( rectSize.x - textSize.x ) / 2;
+			float rectMin_y = rectMin.y + rectSize.y + marginTop;
+
+			float rectMax_x = rectMin_x + textSize.x + padding.x * 2;
+			float rectMax_y = rectMin_y + textSize.y + padding.y * 2;
+
+			windowDrawList.AddRectFilled( { rectMin_x, rectMin_y }, { rectMax_x, rectMax_y }, ImColor( ImVec4( 0.18f, 0.18f, 0.18f, 1.0f ) ), 0 );
+			windowDrawList.AddText( { rectMin_x + padding.x, rectMin_y + padding.y }, ImColor( 1.0f, 1.0f, 1.0f ), text );
+		}
+		else
+		{
+			float rectMin_y = rectMin.y + rectSize.y + marginTop;
+
+			float rectMax_x = rectMin.x + rectSize.x;
+			float rectMax_y = rectMin_y + textSize.y + padding.y * 2;
+
+			windowDrawList.AddRectFilled( { rectMin.x, rectMin_y }, { rectMax_x, rectMax_y }, ImColor( ImVec4( 0.18f, 0.18f, 0.18f, 1.0f ) ), 0 );
+
+			rectMax_x -= padding.x;
+			rectMax_y -= padding.y;
+
+			ImGui::RenderTextEllipsis( &windowDrawList, { rectMin.x + padding.x, rectMin_y + padding.y }, { rectMax_x, rectMax_y }, rectMax_x, rectMax_x + 5, text, nullptr, &textSize );
+		}
+	}
+
 	//TODO: Add back into the AssetLayer.cpp file
 	void EditorLayer::StartAssetLayer()
 	{
@@ -839,20 +881,17 @@ namespace Saturn {
 				if( !it->path().has_extension() )
 				{
 					ImVec2 imageSize( 64, 64 );
-					ImGuiStyle& style = ImGui::GetStyle();
-					float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-					ImGui::PushID( 69 );
+					ImGui::ManualWrapBegin( imageSize );
 					if( ImGui::Button( it->path().filename().string().c_str(), imageSize ) )
 					{
 						m_CurrentFolder = it->path().filename().string().c_str();
 						m_FolderPath = m_FolderPath + "\\" + it->path().filename().string();
 					}
-					float last_button_x2 = ImGui::GetItemRectMax().x;
-					float next_button_x2 = last_button_x2 + style.ItemSpacing.x + imageSize.x;
-					if( next_button_x2 < window_visible_x2 )
-						ImGui::SameLine();
-					ImGui::PopID();
+
+					DrawAssetText( it->path().filename().string().c_str() );
+
+					ImGui::ManualWrapEnd( imageSize );
 				}
 			}
 
@@ -881,10 +920,13 @@ namespace Saturn {
 						else
 						{
 							ImGui::ManualWrapBegin( imageSize );
-							if( ImGui::Button( it->path().filename().string().c_str(), imageSize ) )
+							if( ImGui::ImageButton( ( ImTextureID )m_UnkownFile->GetRendererID(), imageSize ) )
 							{
 								OpenScene( path );
 							}
+
+							DrawAssetText( it->path().filename().string().c_str() );
+
 							ImGui::ManualWrapEnd( imageSize );
 						}
 
@@ -907,6 +949,9 @@ namespace Saturn {
 							m_TextureViewerPanel->Reset();
 							TextureViewer::SetRenderImageTarget( file->GetData() );
 						}
+
+						DrawAssetText( it->path().filename().string().c_str() );
+
 						ImGui::ManualWrapEnd( imageSize );
 					}
 
@@ -927,6 +972,9 @@ namespace Saturn {
 							m_TextureViewerPanel->Reset();
 							TextureViewer::SetRenderImageTarget( file->GetData() );
 						}
+
+						DrawAssetText( it->path().filename().string().c_str() );
+
 						ImGui::ManualWrapEnd( imageSize );
 					}
 
@@ -947,6 +995,9 @@ namespace Saturn {
 							m_TextureViewerPanel->Reset();
 							TextureViewer::SetRenderImageTarget( file->GetData() );
 						}
+
+						DrawAssetText( it->path().filename().string().c_str() );
+
 						ImGui::ManualWrapEnd( imageSize );
 
 					}
@@ -965,6 +1016,9 @@ namespace Saturn {
 							m_ScriptViewerStandalone->ShowWindowAgain();
 							m_ScriptViewerStandalone->SetFile( it->path().string() );
 						}
+
+						DrawAssetText( it->path().filename().string().c_str() );
+
 						ImGui::ManualWrapEnd( imageSize );
 					}
 
@@ -981,6 +1035,9 @@ namespace Saturn {
 						{
 
 						}
+
+						DrawAssetText( it->path().filename().string().c_str() );
+
 						ImGui::ManualWrapEnd( imageSize );
 					}
 
@@ -997,6 +1054,9 @@ namespace Saturn {
 						{
 
 						}
+
+						DrawAssetText( it->path().filename().string().c_str() );
+
 						ImGui::ManualWrapEnd( imageSize );
 
 					}
@@ -1010,9 +1070,12 @@ namespace Saturn {
 						ImVec2 imageSize( 64, 64 );
 
 						ImGui::ManualWrapBegin( imageSize );
-						if( ImGui::Button( it->path().filename().string().c_str() ) )
+						if( ImGui::ImageButton( (ImTextureID)m_TextFile->GetRendererID(), imageSize ) )
 						{
 						}
+
+						DrawAssetText( it->path().filename().string().c_str() );
+
 						ImGui::ManualWrapEnd( imageSize );
 
 					}
@@ -1030,12 +1093,31 @@ namespace Saturn {
 						{
 
 						}
+
+						DrawAssetText( it->path().filename().string().c_str() );
+
 						ImGui::ManualWrapEnd( imageSize );
 					}
 
 				}
 			}
 
+			/*
+			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
+			{
+				if( it->path().has_extension() )
+				{
+					if( it->path().extension().string() == ".sc" )
+					{
+						ImVec2 imageSize( 64, 64 );
+
+						ImGui::ManualWrapBegin( imageSize );
+						ImGui::Text( it->path().filename().string().c_str() );
+						ImGui::ManualWrapEnd( imageSize );
+					}
+				}
+			}
+			*/
 			static bool openModal = false;
 
 			if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
@@ -1336,6 +1418,29 @@ namespace Saturn {
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
+
+
+			if( ImGui::Begin( "Project Settings" ) )
+			{
+				ImGui::Text( "Startup Scene :" );
+				ImGui::SameLine();
+
+				static char name[256];
+
+				ImGui::Columns( 2 );
+				ImGui::NextColumn();
+
+				ImGui::InputText( "##engine-startup-scene", name, IM_ARRAYSIZE( name ) );
+
+				ProjectSettings::SetStartupSceneName( name );
+
+				if( ImGui::Button( "Open Startup Project" ) )
+				{
+					OpenScene( ProjectSettings::GetStartupSceneName() );
+				}
+
+			}
+			ImGui::End();
 
 			if( ImGui::Begin( "Model" ) )
 			{
