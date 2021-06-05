@@ -102,7 +102,8 @@ namespace Saturn {
 
 		PhysXFnd::Init();
 
-		OpenScene( "" );
+		ProjectSettings::LoadStartupScene();
+		OpenScene( ProjectSettings::GetStartupSceneName() );
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
@@ -1425,20 +1426,23 @@ namespace Saturn {
 				ImGui::Text( "Startup Scene :" );
 				ImGui::SameLine();
 
-				static char name[256];
-
 				ImGui::Columns( 2 );
 				ImGui::NextColumn();
 
-				ImGui::InputText( "##engine-startup-scene", name, IM_ARRAYSIZE( name ) );
+				ImGui::InputText( "##engine-startup-scene", ( char* )ProjectSettings::GetStartupSceneName().c_str(), 256 );
 
-				ProjectSettings::SetStartupSceneName( name );
+				ProjectSettings::SetStartupSceneName( ProjectSettings::GetStartupSceneName() );
 
 				if( ImGui::Button( "Open Startup Project" ) )
 				{
 					OpenScene( ProjectSettings::GetStartupSceneName() );
 				}
 
+				ImGui::NextColumn();
+				if( ImGui::Button( "Save" ) )
+				{
+					ProjectSettings::SaveStartupScene();
+				}
 			}
 			ImGui::End();
 

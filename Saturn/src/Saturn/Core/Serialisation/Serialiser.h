@@ -39,20 +39,24 @@ namespace Saturn {
 	class Serialiser
 	{
 	public:
-		Serialiser(const std::string& objectname, bool shouldSerialise = true);
-		Serialiser(const Ref<Scene>& scene);
+		Serialiser();
+		Serialiser( const std::string& objectname, bool shouldSerialise = true );
+		Serialiser( const Ref<Scene>& scene );
 
 		static void Init( void );
 
 		virtual ~Serialiser();
 
-		virtual void Serialise(const std::string& filepath);
-		virtual void Deserialise(const std::string& filepath);
+		virtual void Serialise( const std::string& filepath );
+		virtual void Deserialise( const std::string& filepath );
 
-		virtual void SerialiseEntity(YAML::Emitter& out, Entity entity);
+		virtual void SerialiseEntity( YAML::Emitter& out, Entity entity );
 
 		virtual void SerialiseVC( const std::string& filepath );
 		virtual void DeserialiseVC( const std::string& filepath );
+
+		virtual void SerialiseProjectSettings( const std::string& filepath );
+		virtual void DeserialiseProjectSettings( const std::string& filepath );
 
 		std::string m_ObjectName;
 		bool m_shouldSerialise;

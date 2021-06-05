@@ -36,6 +36,7 @@
 
 #include "Saturn/Scene/Components.h"
 #include "Saturn/Scene/Entity.h"
+#include "Saturn/Core/EngineSettings/EngineSettings.h"
 
 #include <fstream>
 #include <iostream>
@@ -199,6 +200,10 @@ namespace Saturn {
 	{
 	}
 
+	Serialiser::Serialiser()
+	{
+	}
+
 	void Serialiser::Init( void )
 	{
 		SAT_PROFILE_FUNCTION();
@@ -346,6 +351,38 @@ namespace Saturn {
 		Application::Get().GetVersionCtrl().Branch = branch;
 	}
 
+	void Serialiser::SerialiseProjectSettings( const std::string& filepath )
+	{
+		YAML::Emitter out;
+
+		out << YAML::BeginMap;
+		out << YAML::Key << "Project Settings";
+		out << YAML::Value << " ";
+		out << YAML::Value << "Startup Scene" << YAML::Value << ProjectSettings::GetStartupSceneName();
+		out << YAML::EndSeq;
+		out << YAML::EndMap;
+
+		std::ofstream fout( filepath );
+		fout << out.c_str();
+	}
+
+	void Serialiser::DeserialiseProjectSettings( const std::string& filepath )
+	{
+		if( filepath.empty() )
+			return;
+
+		YAML::Node data = YAML::LoadFile( filepath );
+
+		if( !data[ "Project Settings" ] )
+			return;
+
+		SAT_CORE_INFO( "Starting deserializing of Project Settings" );
+
+		std::string sceneName = data[ "Startup Scene" ].as<std::string>();
+
+		ProjectSettings::SetStartupSceneName( sceneName );
+	}
+
 	static void SerialiseEnvironment( YAML::Emitter& out, const Ref<Scene>& scene )
 	{
 		out << YAML::Key << "Environment";
@@ -396,7 +433,9 @@ namespace Saturn {
 	{
 		if( filepath.empty() )
 			return;
+
 		YAML::Node data = YAML::LoadFile( filepath );
+
 		if( !data[ "Scene" ] )
 			return;
 

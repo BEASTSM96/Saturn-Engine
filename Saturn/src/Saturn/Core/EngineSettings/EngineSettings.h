@@ -38,6 +38,10 @@ namespace Saturn {
 	public:
 		static void SetStartupSceneName( std::string scenename );
 		static std::string GetStartupSceneName();
+
+		static void SaveStartupScene();
+		static void LoadStartupScene();
+
 	protected:
 	private:
 	};
