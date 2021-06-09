@@ -485,9 +485,13 @@ namespace Saturn {
 					tc.Rotation = transformComponent[ "Rotation" ].as<glm::quat>();
 					tc.Scale = transformComponent[ "Scale" ].as<glm::vec3>();
 
+					//TODO: Fix the -180 z thing for now we will hack a fix
+					if( tc.Rotation.x <= 1 )
+						tc.Rotation.x = 0;
+
 					SAT_CORE_INFO( "  Entity Transform:" );
 					SAT_CORE_INFO( "    Translation: {0}, {1}, {2}", tc.Position.x, tc.Position.y, tc.Position.z );
-					SAT_CORE_INFO( "    Rotation: {0}, {1}, {2}, {3}", tc.Rotation.w, tc.Rotation.x, tc.Rotation.y, tc.Rotation.z );
+					SAT_CORE_INFO( "    Rotation: {0}, {1}, {2}, {3}", tc.Rotation.x, tc.Rotation.y, tc.Rotation.z, tc.Rotation.w );
 					SAT_CORE_INFO( "    Scale: {0}, {1}, {2}", tc.Scale.x, tc.Scale.y, tc.Scale.z );
 
 				}

@@ -11,7 +11,7 @@ Entities:
       Tag: Sponza
     TransformComponent:
       Position: [0, 0, 0]
-      Rotation: [0, 0, 0, 1]
+      Rotation: [0, 0, 0, 0]
       Scale: [0.00999999978, 0.00999999978, 0.00999999978]
     MeshComponent:
       AssetPath: assets\meshes\sponza\sponza.obj

@@ -103,7 +103,7 @@ namespace Saturn {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		ImGuiIO& io = ImGui::GetIO(); ( void )io;
 
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 																	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -115,20 +115,21 @@ namespace Saturn {
 
 		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
 		ImGuiStyle& style = ImGui::GetStyle();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
+		{
 			style.WindowRounding = 0.0f;
-			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
 		}
 
 		Application& app = Application::Get();
-		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+		GLFWwindow* window = static_cast< GLFWwindow* >( app.GetWindow().GetNativeWindow() );
 
 		// Setup Platform/Renderer bindings
-		ImGui_ImplGlfw_InitForOpenGL(window, true);
+		ImGui_ImplGlfw_InitForOpenGL( window, true );
 
 		ImVec4* colors = ImGui::GetStyle().Colors;
 
-		if (m_Theme == 0)
+		if( m_Theme == 0 )
 		{
 			colors[ ImGuiCol_Text ] = ImVec4( 1.0f, 1.0f, 1.0f, 1.0f );
 			colors[ ImGuiCol_TextDisabled ] = ImVec4( 0.5f, 0.5f, 0.5f, 1.0f );
@@ -174,7 +175,7 @@ namespace Saturn {
 			colors[ ImGuiCol_NavWindowingHighlight ] = ImVec4( 1.0f, 1.0f, 1.0f, 0.7f );
 		}
 
-		if (m_Theme == 1)
+		if( m_Theme == 1 )
 		{
 			colors[ ImGuiCol_Text ] = ImVec4( 1.00f, 1.00f, 1.00f, 1.00f );
 			colors[ ImGuiCol_TextDisabled ] = ImVec4( 0.40f, 0.40f, 0.40f, 1.00f );
@@ -229,7 +230,7 @@ namespace Saturn {
 			colors[ ImGuiCol_DockingPreview ] = ImVec4( 0.85f, 0.85f, 0.85f, 0.28f );
 		}
 
-		if (m_Theme == 2)
+		if( m_Theme == 2 )
 		{
 			colors[ ImGuiCol_Text ] = ImVec4( 1.00f, 1.00f, 1.00f, 1.00f );
 			colors[ ImGuiCol_TextDisabled ] = ImVec4( 0.50f, 0.50f, 0.50f, 1.00f );
@@ -284,7 +285,7 @@ namespace Saturn {
 		}
 
 
-		if (m_Theme == 3)
+		if( m_Theme == 3 )
 		{
 			ImGuiStyle& style = ImGui::GetStyle();
 			style.WindowRounding = 5.3f;
@@ -344,22 +345,15 @@ namespace Saturn {
 			colors[ ImGuiCol_ModalWindowDimBg ] = ImVec4( 0.80f, 0.80f, 0.80f, 0.35f );
 		}
 
-		if (m_Theme == 4)
+		if( m_Theme == 4 )
 		{
 			ImGui::StyleColorsLight();
 		}
 
-		io.Fonts->AddFontDefault();
-
-		static const ImWchar icons_ranges[] ={ ICON_MIN_FA, ICON_MAX_FA, 0 };
-		ImFontConfig icons_config;
-		icons_config.MergeMode = true;
-		icons_config.PixelSnapH = true;
-		io.Fonts->AddFontFromFileTTF( "C:\\Windows\\Fonts\\segoeui.ttf", 18.0f );
-		io.Fonts->AddFontFromFileTTF( FONT_ICON_FILE_NAME_FAS, 16.0f, &icons_config, icons_ranges );
+		ImFont* pFont = io.Fonts->AddFontFromFileTTF( "C:\\Windows\\Fonts\\segoeui.ttf", 18.0f );
 		io.FontDefault = io.Fonts->Fonts.back();
 
-		ImGui_ImplOpenGL3_Init("#version 410");
+		ImGui_ImplOpenGL3_Init( "#version 410" );
 	}
 
 	void ImGuiLayer::OnDetach()

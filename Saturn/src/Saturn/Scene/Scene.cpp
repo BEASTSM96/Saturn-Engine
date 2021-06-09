@@ -101,10 +101,6 @@ namespace Saturn {
 		return m_EntityIDMap;
 	}
 
-	void Scene::DuplicateEntity( Entity entity )
-	{
-	}
-
 	void Scene::CreatePhysxScene()
 	{
 	}
@@ -425,6 +421,26 @@ namespace Saturn {
 
 		CopyScriptData( enttMap, m_Registry );
 
+	}
+
+	void Scene::DuplicateEntity( Entity entity )
+	{
+		auto uuid = m_Registry.get<IdComponent>( entity ).ID;
+		auto tag = m_Registry.get<TagComponent>( entity ).Tag;
+		Entity e = CreateEntity( tag + " - Copy" );
+
+		CopyComponentIfExists<TagComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<TransformComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<MeshComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<RelationshipComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<SpriteRendererComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<PhysXRigidbodyComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<PhysXBoxColliderComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<PhysXSphereColliderComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<PhysXCapsuleColliderComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<PhysXMaterialComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<CameraComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<ScriptComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
 	}
 
 	void Scene::BeginRuntime( void )

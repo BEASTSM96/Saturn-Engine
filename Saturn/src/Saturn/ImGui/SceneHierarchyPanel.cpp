@@ -199,6 +199,7 @@ namespace Saturn {
 	void SceneHierarchyPanel::SetSelected( Entity entity )
 	{
 		m_SelectionContext = entity;
+		m_Context->SetSelectedEntity( entity );
 	}
 
 	void SceneHierarchyPanel::OnUpdate( Timestep ts )
@@ -245,7 +246,7 @@ namespace Saturn {
 				if( !e.HasComponent<MeshComponent>() )
 				{
 					auto& mc = e.AddComponent<MeshComponent>();
-					std::string filepath = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
+					std::string filepath = Application::Get().OpenFile( " Mesh (*.fbx *.obj)\0*.obj; *.fbx\0" ).first;
 					mc.Mesh = Ref<Mesh>::Create( filepath );
 					SetSelected( e );
 				}

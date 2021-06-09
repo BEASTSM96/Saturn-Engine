@@ -372,7 +372,8 @@ namespace Saturn {
 
 	void EditorLayer::OnUpdate( Timestep ts )
 	{
-		m_EditorCamera.OnUpdate( ts );
+		if( m_AllowViewportCameraEvents )
+			m_EditorCamera.OnUpdate( ts );
 
 		//Only if we aren't in runtime, we can render editor with the editor camera
 		if( !m_RuntimeScene )
@@ -493,7 +494,8 @@ namespace Saturn {
 
 	void EditorLayer::OnEvent( Event& e )
 	{
-		m_EditorCamera.OnEvent( e );
+		if( m_AllowViewportCameraEvents )
+			m_EditorCamera.OnEvent( e );
 
 		if( m_RuntimeScene )
 		{
@@ -589,15 +591,19 @@ namespace Saturn {
 		{
 			switch( e.GetKeyCode() )
 			{
-				case SAT_KEY_G:
+				case Key::G:
 					// Toggle grid
 					SceneRenderer::GetOptions().ShowGrid = !SceneRenderer::GetOptions().ShowGrid;
 					break;
-				case SAT_KEY_J:
-					// Toggle grid
+				case Key::J:
+					// Toggle solids
 					SceneRenderer::GetOptions().ShowSolids = !SceneRenderer::GetOptions().ShowSolids;
 					break;
 
+				case Key::D:
+					// Toggle solids
+					m_EditorScene->DuplicateEntity( m_SceneHierarchyPanel->GetSelectionContext() );
+					break;
 			}
 		}
 
@@ -667,8 +673,11 @@ namespace Saturn {
 				std::sort( m_SelectionContext.begin(), m_SelectionContext.end(), []( auto& a, auto& b ) { return a.Distance < b.Distance; } );
 				if( m_SelectionContext.size() )
 					OnSelected( m_SelectionContext[ 0 ] );
+				m_SelectionContext.clear();
 			}
 		}
+
+		m_SelectionContext.clear();
 
 		return false;
 	}
@@ -696,7 +705,7 @@ namespace Saturn {
 		ImGuiConsole::OnImGuiRender( &p_open );
 	}
 
-	static void DrawAssetText( const char* text ) 
+	static void DrawAssetText( const char* text )
 	{
 		ImVec2 rectMin = ImGui::GetItemRectMin();
 		ImVec2 rectSize = ImGui::GetItemRectSize();
@@ -807,13 +816,13 @@ namespace Saturn {
 			{
 				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-				ImGui::Text( ICON_FA_BACKWARD " Back" );
+				ImGui::Button( "Back" );
 				ImGui::PopItemFlag();
 				ImGui::PopStyleVar();
 			}
 			else
 			{
-				if( ImGui::Button( ICON_FA_BACKWARD " Back" ) )
+				if( ImGui::Button( "Back" ) )
 				{
 					fs::path currentPath( m_FolderPath );
 					fs::path root_path = currentPath.parent_path();
@@ -878,6 +887,7 @@ namespace Saturn {
 			ImGui::Spacing();
 			ImGui::Separator();
 			ImGui::Spacing();
+
 			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
 			{
 				if( !it->path().has_extension() )
@@ -922,7 +932,7 @@ namespace Saturn {
 						else
 						{
 							ImGui::ManualWrapBegin( imageSize );
-							if( ImGui::ImageButton( ( ImTextureID )m_UnkownFile->GetRendererID(), imageSize ) )
+							if( ImGui::Button( it->path().filename().string().c_str(), ImVec2( 64, 64 ) ) )
 							{
 								OpenScene( path );
 							}
@@ -1104,7 +1114,6 @@ namespace Saturn {
 				}
 			}
 
-
 			/*
 			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
 			{
@@ -1113,7 +1122,6 @@ namespace Saturn {
 					if( it->path().extension().string() == ".sc" )
 					{
 						ImVec2 imageSize( 64, 64 );
-
 						ImGui::ManualWrapBegin( imageSize );
 						ImGui::Text( it->path().filename().string().c_str() );
 						ImGui::ManualWrapEnd( imageSize );
@@ -1494,6 +1502,8 @@ namespace Saturn {
 
 				m_ViewportBounds[ 0 ] ={ viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
 				m_ViewportBounds[ 1 ] ={ viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+
+				m_ViewportSelected = ImGui::IsWindowFocused();
 
 				SceneRenderer::SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
 				m_EditorScene->SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
