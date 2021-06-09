@@ -28,10 +28,8 @@ IncludeDir["stb_image"] = "Saturn/vendor/stb/"
 IncludeDir["Assimp"] = "Saturn/vendor/assimp/include"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
-IncludeDir["ReactPhysics3D"] = "Saturn/vendor/reactphysics3d/include"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
-IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
 IncludeDir["Saturn-Serialisation"] = "Saturn/vendor/Saturn-Serialisation/"
 IncludeDir["mono"] = "Saturn/vendor/mono/include"
 IncludeDir["FontAwesome"] = "Saturn/vendor/FontAwseome/"
@@ -42,12 +40,9 @@ group "sat/Dependencies"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
-	include "Saturn/vendor/reactphysics3d"
 	include "Saturn/vendor/physx"
 	group "sat/Dependencies/Serialisation"
-			include "Saturn/vendor/jsoncpp"
 			include "Saturn/vendor/yaml-cpp"
---			include "Saturn/vendor/Saturn-Serialisation"
 
 group "sat/Core"
 project "Saturn"
@@ -93,13 +88,11 @@ project "Saturn"
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
-		"%{IncludeDir.json_cpp}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
 			"%{prj.name}/vendor/assimp/include/",
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.ReactPhysics3D}",
 		"%{IncludeDir.mono}",
 		"%{IncludeDir.FontAwesome}",
 		"Saturn/vendor/yaml-cpp/include",
