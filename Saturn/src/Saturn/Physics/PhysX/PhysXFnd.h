@@ -75,6 +75,7 @@ namespace Saturn {
 	{
 	public:
 		static void Init();
+		static void Clear();
 		static physx::PxScene* CreateScene();
 
 		static void CreateBoxCollider( Entity& entity, physx::PxRigidActor& actor );

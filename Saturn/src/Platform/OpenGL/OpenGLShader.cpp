@@ -66,6 +66,12 @@ namespace Saturn {
 		Reload();
 	}
 
+	OpenGLShader::~OpenGLShader()
+	{
+		m_RendererID = 0;
+		delete this;
+	}
+
 	Ref<OpenGLShader> OpenGLShader::CreateFromString( const std::string& source )
 	{
 		Ref<OpenGLShader> shader = Ref<OpenGLShader>::Create();
@@ -84,6 +90,8 @@ namespace Saturn {
 		m_ShaderSource = PreProcess( source );
 		if( !m_IsCompute )
 			Parse();
+
+		SAT_CORE_INFO( "m_RendererID {0}, Name {1}", m_RendererID, m_Name );
 
 		Renderer::Submit( [=]()
 			{
@@ -114,10 +122,16 @@ namespace Saturn {
 
 	void OpenGLShader::Bind()
 	{
+		if( m_RendererID == 25 && Saturn::RestartInProg() )
+		{
+			SAT_CORE_INFO( "Failed to bind shader : {0}", m_Name );
+			return;
+		}
+
 		Renderer::Submit( [=]()
- {
-	 glUseProgram( m_RendererID );
-			} );
+		{
+			 glUseProgram( m_RendererID );
+		} );
 	}
 
 	std::string OpenGLShader::ReadShaderFromFile( const std::string& filepath ) const

@@ -204,6 +204,7 @@ namespace Saturn {
 		void Add( const Ref<Shader>& shader );
 		void Load( const std::string& path );
 		void Load( const std::string& name, const std::string& path );
+		void Clear();
 
 		const Ref<Shader>& Get( const std::string& name ) const;
 	private:

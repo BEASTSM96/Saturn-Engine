@@ -115,6 +115,20 @@ namespace Saturn {
 
 	}
 
+	void SceneRenderer::Shutdown( void )
+	{
+		s_Data ={};
+		s_Data.ActiveScene = nullptr;
+		s_Data.BRDFLUT = nullptr;
+		s_Data.CompositePass = nullptr;
+		s_Data.CompositeShader = nullptr;
+		s_Data.DrawList.clear();
+		s_Data.GeoPass = nullptr;
+		s_Data.GridMaterial = nullptr;
+		s_Data.SceneData ={};
+		s_Data.SelectedMeshDrawList.clear();
+	}
+
 	void SceneRenderer::SetViewportSize( uint32_t width, uint32_t height )
 	{
 		s_Data.GeoPass->GetSpecification().TargetFramebuffer->Resize( width, height );
@@ -160,10 +174,31 @@ namespace Saturn {
 		const uint32_t cubemapSize = 2048;
 		const uint32_t irradianceMapSize = 32;
 
-		Ref<TextureCube> envUnfiltered = TextureCube::Create( TextureFormat::Float16, cubemapSize, cubemapSize );
+		Ref<Texture2D> envEquirect;
+		Ref<TextureCube> envUnfiltered;
+
+		if( envEquirect )
+			envEquirect = nullptr;
+
+		if( envUnfiltered )
+			envUnfiltered = nullptr;
+
+		if( equirectangularConversionShader )
+			equirectangularConversionShader = nullptr;
+
+		if( equirectangularConversionShader )
+			equirectangularConversionShader = nullptr;
+
+		if( envFilteringShader )
+			envFilteringShader = nullptr;
+
+		if( envIrradianceShader )
+			envIrradianceShader = nullptr;
+
+		envUnfiltered = TextureCube::Create( TextureFormat::Float16, cubemapSize, cubemapSize );
 		if( !equirectangularConversionShader )
 			equirectangularConversionShader = Shader::Create( "assets/shaders/EquirectangularToCubeMap.glsl" );
-		Ref<Texture2D> envEquirect = Texture2D::Create( filepath );
+		envEquirect = Texture2D::Create( filepath );
 		SAT_CORE_ASSERT( envEquirect->GetFormat() == TextureFormat::Float16, "Texture is not HDR!" );
 
 		equirectangularConversionShader->Bind();

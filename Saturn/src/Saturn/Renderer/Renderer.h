@@ -53,6 +53,7 @@ namespace Saturn {
 		static void SetLineThickness( float thickness );
 		static void ClearMagenta( void );
 		static void Init( void );
+		static void Shutdown( void );
 
 		static Ref<ShaderLibrary> GetShaderLibrary( void );
 

@@ -53,10 +53,10 @@ namespace Saturn {
 
 		Ref<OpenGLVertexBuffer> instance = this;
 		Renderer::Submit( [instance]() mutable
-			{
-				glCreateBuffers( 1, &instance->m_RendererID );
-				glNamedBufferData( instance->m_RendererID, instance->m_Size, instance->m_LocalData.Data, OpenGLUsage( instance->m_Usage ) );
-			} );
+		{
+			glCreateBuffers( 1, &instance->m_RendererID );
+			glNamedBufferData( instance->m_RendererID, instance->m_Size, instance->m_LocalData.Data, OpenGLUsage( instance->m_Usage ) );
+		} );
 	}
 
 	OpenGLVertexBuffer::OpenGLVertexBuffer( uint32_t size, VertexBufferUsage usage )
@@ -64,19 +64,19 @@ namespace Saturn {
 	{
 		Ref<OpenGLVertexBuffer> instance = this;
 		Renderer::Submit( [instance]() mutable
-			{
-				glCreateBuffers( 1, &instance->m_RendererID );
-				glNamedBufferData( instance->m_RendererID, instance->m_Size, nullptr, OpenGLUsage( instance->m_Usage ) );
-			} );
+		{
+			glCreateBuffers( 1, &instance->m_RendererID );
+			glNamedBufferData( instance->m_RendererID, instance->m_Size, nullptr, OpenGLUsage( instance->m_Usage ) );
+		} );
 	}
 
 	OpenGLVertexBuffer::~OpenGLVertexBuffer()
 	{
 		GLuint rendererID = m_RendererID;
 		Renderer::Submit( [rendererID]()
-			{
-				glDeleteBuffers( 1, &rendererID );
-			} );
+ {
+	 glDeleteBuffers( 1, &rendererID );
+		} );
 	}
 
 	void OpenGLVertexBuffer::SetData( void* data, uint32_t size, uint32_t offset )
@@ -85,17 +85,17 @@ namespace Saturn {
 		m_Size = size;
 		Ref<OpenGLVertexBuffer> instance = this;
 		Renderer::Submit( [instance, offset]()
-			{
-				glNamedBufferSubData( instance->m_RendererID, offset, instance->m_Size, instance->m_LocalData.Data );
-			} );
+ {
+	 glNamedBufferSubData( instance->m_RendererID, offset, instance->m_Size, instance->m_LocalData.Data );
+		} );
 	}
 
 	void OpenGLVertexBuffer::Bind() const
 	{
 		Ref<const OpenGLVertexBuffer> instance = this;
 		Renderer::Submit( [instance]()
-			{
-				glBindBuffer( GL_ARRAY_BUFFER, instance->m_RendererID );
-			} );
+ {
+	 glBindBuffer( GL_ARRAY_BUFFER, instance->m_RendererID );
+		} );
 	}
 }

@@ -73,6 +73,34 @@ namespace Saturn {
 
 	}
 
+	void PhysXFnd::Clear()
+	{
+		if( s_Dispatcher )
+			s_Dispatcher->release();
+		s_Dispatcher = nullptr;
+
+		if( s_Cooking )
+			s_Cooking->release();
+		s_Cooking = nullptr;
+
+		if( s_Physics )
+			s_Physics->release();
+		s_Physics = nullptr;
+
+		if( s_PhysXScene )
+			s_PhysXScene->release();
+		s_PhysXScene = nullptr;
+
+		if( s_PVD )
+			s_PVD->release();
+		s_PVD = nullptr;
+
+		if( s_Foundation )
+			s_Foundation->release();
+		s_Foundation = nullptr;
+
+	}
+
 	physx::PxScene* PhysXFnd::CreateScene()
 	{
 		physx::PxSceneDesc sceneDesc( s_Physics->getTolerancesScale() );

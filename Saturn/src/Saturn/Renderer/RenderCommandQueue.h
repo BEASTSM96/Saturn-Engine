@@ -40,6 +40,8 @@ namespace Saturn {
 		RenderCommandQueue();
 		~RenderCommandQueue();
 
+		void ClearCmdBuffer();
+
 		void* Allocate( RenderCommandFn func, uint32_t size );
 
 		void Execute( void );

@@ -446,6 +446,8 @@ namespace Saturn {
 		if( environment )
 		{
 			std::string envPath = environment[ "AssetPath" ].as<std::string>();
+			if( envPath.empty() )
+				envPath = "assets\\env\\birchwood_4k.hdr";
 			m_Scene->SetEnvironment( Environment::Load( envPath ) );
 
 			auto lightNode = environment[ "Light" ];

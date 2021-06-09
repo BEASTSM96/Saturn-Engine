@@ -94,6 +94,16 @@ namespace Saturn {
 		m_Shaders[ name ] = Ref<Shader>( Shader::Create( path ) );
 	}
 
+	void ShaderLibrary::Clear()
+	{
+		for( int i = 0; i < m_Shaders.size(); i++ )
+		{
+			SAT_CORE_INFO( "{0}", i );
+		}
+
+		m_Shaders.clear();
+	}
+
 	const Ref<Shader>& ShaderLibrary::Get( const std::string& name ) const
 	{
 		SAT_CORE_ASSERT( m_Shaders.find( name ) != m_Shaders.end() );

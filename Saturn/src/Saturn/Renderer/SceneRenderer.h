@@ -51,6 +51,7 @@ namespace Saturn {
 	{
 	public:
 		static void Init( void );
+		static void Shutdown( void );
 
 		static void SetViewportSize( uint32_t width, uint32_t height );
 

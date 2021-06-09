@@ -67,11 +67,12 @@
 #include <Saturn/Core/Assets/FileCollection.h>
 #include <Saturn/Core/Assets/PNGFile.h>
 
-
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <FontAwseome/IconsForkAwesome.h>
 
 namespace Saturn {
 
@@ -716,6 +717,7 @@ namespace Saturn {
 			float rectMax_y = rectMin_y + textSize.y + padding.y * 2;
 
 			windowDrawList.AddRectFilled( { rectMin_x, rectMin_y }, { rectMax_x, rectMax_y }, ImColor( ImVec4( 0.18f, 0.18f, 0.18f, 1.0f ) ), 0 );
+
 			windowDrawList.AddText( { rectMin_x + padding.x, rectMin_y + padding.y }, ImColor( 1.0f, 1.0f, 1.0f ), text );
 		}
 		else
@@ -805,13 +807,13 @@ namespace Saturn {
 			{
 				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-				ImGui::Button( "Back" );
+				ImGui::Text( ICON_FA_BACKWARD " Back" );
 				ImGui::PopItemFlag();
 				ImGui::PopStyleVar();
 			}
 			else
 			{
-				if( ImGui::Button( "Back" ) )
+				if( ImGui::Button( ICON_FA_BACKWARD " Back" ) )
 				{
 					fs::path currentPath( m_FolderPath );
 					fs::path root_path = currentPath.parent_path();
@@ -876,7 +878,6 @@ namespace Saturn {
 			ImGui::Spacing();
 			ImGui::Separator();
 			ImGui::Spacing();
-
 			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
 			{
 				if( !it->path().has_extension() )
@@ -1071,7 +1072,7 @@ namespace Saturn {
 						ImVec2 imageSize( 64, 64 );
 
 						ImGui::ManualWrapBegin( imageSize );
-						if( ImGui::ImageButton( (ImTextureID)m_TextFile->GetRendererID(), imageSize ) )
+						if( ImGui::ImageButton( ( ImTextureID )m_TextFile->GetRendererID(), imageSize ) )
 						{
 						}
 
@@ -1102,6 +1103,7 @@ namespace Saturn {
 
 				}
 			}
+
 
 			/*
 			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )

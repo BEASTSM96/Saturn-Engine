@@ -39,6 +39,7 @@ namespace Saturn {
 	public:
 		OpenGLShader() = default;
 		OpenGLShader( const std::string& filepath );
+		~OpenGLShader();
 		static Ref<OpenGLShader> CreateFromString( const std::string& source );
 
 		virtual void Reload( void ) override;

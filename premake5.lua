@@ -34,6 +34,7 @@ IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
 IncludeDir["json_cpp"] = "Saturn/vendor/jsoncpp/"
 IncludeDir["Saturn-Serialisation"] = "Saturn/vendor/Saturn-Serialisation/"
 IncludeDir["mono"] = "Saturn/vendor/mono/include"
+IncludeDir["FontAwesome"] = "Saturn/vendor/FontAwseome/"
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
@@ -100,6 +101,7 @@ project "Saturn"
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ReactPhysics3D}",
 		"%{IncludeDir.mono}",
+		"%{IncludeDir.FontAwesome}",
 		"Saturn/vendor/yaml-cpp/include",
 		"Saturn/vendor/SaturnLog/SaturnLogging/src"
 	}

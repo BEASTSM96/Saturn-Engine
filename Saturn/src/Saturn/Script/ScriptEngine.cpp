@@ -138,9 +138,9 @@ namespace Saturn {
 	static uint32_t Instantiate( EntityClass& entityClass )
 	{
 		MonoObject* instance = mono_object_new( s_MonoDomain, entityClass.Class );
-		if(!instance)
+		if( !instance )
 			SAT_CORE_ERROR( "mono_object_new failed" );
-		
+
 		mono_runtime_object_init( instance );
 		uint32_t handle = mono_gchandle_new( instance, false );
 		return handle;
@@ -165,6 +165,9 @@ namespace Saturn {
 		s_Init = true;
 		s_AssemblyPath = path;
 
+		if( Saturn::RestartInProg() )
+			return; //Already Init'ed this class and you can't call mono_jit_cleanup if you want to initialize it again
+			
 		mono_set_dirs( "C:\\Program Files\\Mono\\lib", "C:\\Program Files\\Mono\\etc" );
 		mono_set_assemblies_path( "../Saturn/vendor/mono/lib" );
 		mono_jit_set_trace_options( "--verbose" );
@@ -178,7 +181,7 @@ namespace Saturn {
 		// ----> LOAD RUNTIME ASSEMBLY | 
 		// =========================== |
 
-		if(s_AppAssembly)
+		if( s_AppAssembly )
 		{
 			mono_domain_unload( s_MonoDomain );
 			mono_assembly_close( s_AppAssembly );
@@ -197,14 +200,15 @@ namespace Saturn {
 
 	void ScriptEngine::Shutdown()
 	{
-
+		if( !Saturn::CheckRestart() && Saturn::RestartInProg() )
+			mono_jit_cleanup( s_MonoDomain );
 	}
 
 	void ScriptEngine::OnCreateEntity( Entity entity )
 	{
 		if( !s_Init )
 			return;
-		
+
 		UUID id = entity.GetComponent<IdComponent>().ID;
 		auto& entityInstance = GetEntityInstanceData( id );
 
@@ -213,7 +217,7 @@ namespace Saturn {
 			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScriptClass->MethodConstructor, param );
 
 		if( entityInstance.ScriptClass->MethodOnCreate )
-			MonoUtils::CallMethod(entityInstance.Get(), entityInstance.ScriptClass->MethodOnCreate);
+			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScriptClass->MethodOnCreate );
 	}
 
 	void ScriptEngine::OnEntityBeginPlay( Entity entity )
@@ -234,7 +238,7 @@ namespace Saturn {
 			return;
 
 		auto& entityInstance = GetEntityInstanceData( entity.GetComponent<IdComponent>().ID );
-		if ( entityInstance.ScriptClass->MethodOnUpdate )
+		if( entityInstance.ScriptClass->MethodOnUpdate )
 		{
 			void* args[] ={ &ts };
 			MonoUtils::CallMethod( entityInstance.Get(), entityInstance.ScriptClass->MethodOnUpdate, args );
@@ -260,7 +264,7 @@ namespace Saturn {
 		if( s_EntityInstanceMap[ id ].ScriptClass != NULL && s_EntityInstanceMap[ id ].ScriptClass->ClassName != "Null" )
 			return;
 
-		if ( moduleName != "" )
+		if( moduleName != "" )
 		{
 			entityClass.FullName = moduleName;
 			if( moduleName.find( '.' ) != std::string::npos )
@@ -348,7 +352,7 @@ namespace Saturn {
 
 	bool ScriptEngine::IsEntityModuleValid( Entity entity )
 	{
-		return entity.HasComponent<ScriptComponent>() && ModuleExists(entity.GetComponent<ScriptComponent>().ModuleName);
+		return entity.HasComponent<ScriptComponent>() && ModuleExists( entity.GetComponent<ScriptComponent>().ModuleName );
 	}
 
 	EntityInstance& ScriptEngine::GetEntityInstanceData( UUID entityId )
@@ -390,7 +394,7 @@ namespace Saturn {
 	{
 		MonoMethodDesc* monoDecs = mono_method_desc_new( desc.c_str(), NULL );
 		if( !monoDecs )
-			SAT_CORE_ERROR("[Mono Runtime API] mono_method_desc_new failed ");
+			SAT_CORE_ERROR( "[Mono Runtime API] mono_method_desc_new failed " );
 
 		MonoMethod* method = mono_method_desc_search_in_image( monoDecs, image );
 		if( !method )
@@ -406,7 +410,7 @@ namespace Saturn {
 		return result;
 	}
 
-	void MonoUtils::PrintClassMethod( MonoClass* monoClass ) {}
-	void MonoUtils::PrintClassProps( MonoClass* monoClass ) {}
+	void MonoUtils::PrintClassMethod( MonoClass* monoClass ) { }
+	void MonoUtils::PrintClassProps( MonoClass* monoClass ) { }
 
 }

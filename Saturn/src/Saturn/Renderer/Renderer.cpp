@@ -60,6 +60,7 @@ namespace Saturn {
 	void Renderer::Init()
 	{
 		s_Data.m_ShaderLibrary = Ref<ShaderLibrary>::Create();
+		s_Data.m_CommandQueue = RenderCommandQueue();
 		Renderer::Submit( []() { RendererAPI::Init(); } );
 
 		Renderer::GetShaderLibrary()->Load( "assets/shaders/PBR_Static.glsl" );
@@ -103,6 +104,18 @@ namespace Saturn {
 		s_Data.m_FullscreenQuadIndexBuffer = IndexBuffer::Create( indices, 6 * sizeof( uint32_t ) );
 
 		Renderer2D::Init();
+	}
+
+	void Renderer::Shutdown( void )
+	{
+		Renderer::GetShaderLibrary()->Clear();
+		s_Data.m_ActiveRenderPass = nullptr;
+		s_Data.m_ShaderLibrary = nullptr;
+		s_Data.m_FullscreenQuadVertexBuffer = nullptr;
+		s_Data.m_FullscreenQuadPipeline = nullptr;
+		s_Data.m_FullscreenQuadIndexBuffer = nullptr;
+		SceneRenderer::Shutdown();
+		s_Data.m_CommandQueue.ClearCmdBuffer();
 	}
 
 	Ref<ShaderLibrary> Renderer::GetShaderLibrary()

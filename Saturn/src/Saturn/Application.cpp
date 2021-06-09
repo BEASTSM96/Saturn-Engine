@@ -65,6 +65,9 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
+		if( CheckRestart() && RestartInProg() )
+			s_Instance = nullptr;
+
 		SAT_CORE_ASSERT( !s_Instance, "Application already exists!" );
 
 		s_Instance = this;
@@ -94,6 +97,9 @@ namespace Saturn {
 	Application::~Application()
 	{
 		SAT_PROFILE_FUNCTION();
+
+		m_Window = nullptr;
+		//Renderer::Shutdown();
 	}
 
 	Layer* Application::PushLayer( Layer* layer )

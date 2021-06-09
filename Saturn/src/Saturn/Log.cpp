@@ -63,4 +63,12 @@ namespace Saturn {
 		//s_CoreLogger->flush_on(spdlog::level::trace);
 	}
 
+	void Log::Clear( void )
+	{
+		s_CoreLogger = nullptr;
+		s_ClientLogger = nullptr;
+
+		spdlog::shutdown();
+	}
+
 }

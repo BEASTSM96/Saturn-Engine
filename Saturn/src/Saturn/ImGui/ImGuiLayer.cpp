@@ -73,7 +73,10 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+
 #endif // EDITOR
+
+#include "IconsForkAwesome.h"
 
 namespace Saturn {
 
@@ -346,7 +349,14 @@ namespace Saturn {
 			ImGui::StyleColorsLight();
 		}
 
-		ImFont* pFont = io.Fonts->AddFontFromFileTTF( "C:\\Windows\\Fonts\\segoeui.ttf", 18.0f );
+		io.Fonts->AddFontDefault();
+
+		static const ImWchar icons_ranges[] ={ ICON_MIN_FA, ICON_MAX_FA, 0 };
+		ImFontConfig icons_config;
+		icons_config.MergeMode = true;
+		icons_config.PixelSnapH = true;
+		io.Fonts->AddFontFromFileTTF( "C:\\Windows\\Fonts\\segoeui.ttf", 18.0f );
+		io.Fonts->AddFontFromFileTTF( FONT_ICON_FILE_NAME_FAS, 16.0f, &icons_config, icons_ranges );
 		io.FontDefault = io.Fonts->Fonts.back();
 
 		ImGui_ImplOpenGL3_Init("#version 410");

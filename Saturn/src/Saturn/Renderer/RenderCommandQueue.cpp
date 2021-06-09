@@ -31,22 +31,25 @@
 
 namespace Saturn {
 
-	//TODO: just redo
-
 	RenderCommandQueue::RenderCommandQueue()
 	{
-		m_CommandBuffer = new uint8_t[ 10 * 1024 * 1024 ];
+		m_CommandBuffer = new uint8_t[ 10 * 1024 * 1024 ]; // 10mb buffer
 		m_CommandBufferPtr = m_CommandBuffer;
 		memset( m_CommandBuffer, 0, 10 * 1024 * 1024 );
 	}
 
 	RenderCommandQueue::~RenderCommandQueue()
 	{
+	}
+
+	void RenderCommandQueue::ClearCmdBuffer()
+	{
 		delete[] m_CommandBuffer;
 	}
 
 	void* RenderCommandQueue::Allocate( RenderCommandFn fn, uint32_t size )
 	{
+		// TODO: alignment
 		*( RenderCommandFn* )m_CommandBufferPtr = fn;
 		m_CommandBufferPtr += sizeof( RenderCommandFn );
 

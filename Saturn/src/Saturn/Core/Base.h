@@ -34,8 +34,15 @@
 #pragma warning(push, 0)
 
 namespace Saturn {
+
 	void InitCore( void );
 	void EndCore( void );
+
+	//Restart
+	bool CheckRestart();
+	void SetRestartOnAppClose( bool restart );
+	bool RestartInProg();
+	void StartRestart();
 }
 
 #if (__cplusplus >= 201402L)
