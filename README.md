@@ -12,7 +12,7 @@ Start by cloning the repository with `git clone --recursive https://github.com/B
 
 If the repository was cloned non-recursively previously, use `git submodule update --init` to clone the necessary submodules.
 
-# Seting up the project (Windows)
+## Seting up the project (Windows)
 
 ### Premake
 
