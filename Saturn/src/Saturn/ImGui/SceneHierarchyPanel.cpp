@@ -321,6 +321,15 @@ namespace Saturn {
 						}
 					}
 
+					if( !m_SelectionContext.HasComponent<PointLightComponent>() )
+					{
+						if( ImGui::Button( "Point Light" ) )
+						{
+							m_SelectionContext.AddComponent<PointLightComponent>();
+							ImGui::CloseCurrentPopup();
+						}
+					}
+
 					if( ImGui::BeginMenu( "Physics" ) )
 					{
 						if( !m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() )
@@ -815,6 +824,11 @@ namespace Saturn {
 						mc.Mesh = Ref<Mesh>::Create( file );
 
 				}
+			} );
+
+		DrawComponent<PointLightComponent>( "Point Light", entity, []( auto& plc )
+			{
+				DrawVec3Control( "Light Location", plc.Position, plc.Position );
 			} );
 
 		DrawComponent<PhysXRigidbodyComponent>( "PhysX Rigidbody", entity, []( auto& rb )

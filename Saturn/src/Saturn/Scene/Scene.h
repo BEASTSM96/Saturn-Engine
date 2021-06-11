@@ -127,6 +127,7 @@ namespace Saturn {
 		const Light& GetLight() const { return m_Light; }
 
 		Entity GetMainCameraEntity( void );
+		Entity GetMainLightEntity( void );
 
 		float& GetSkyboxLod() { return m_SkyboxLod; }
 

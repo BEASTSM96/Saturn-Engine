@@ -224,11 +224,38 @@ namespace Saturn {
 	struct SkyLightComponent : Component
 	{
 		Saturn::Environment SkyLightEnvironment;
+		std::string EnvironmentFilepath = "";
 
 		SkyLightComponent() = default;
 		SkyLightComponent( const SkyLightComponent& ) = default;
 		SkyLightComponent( const Saturn::Environment& environment )
 			: SkyLightEnvironment( environment )
+
+		{
+		}
+	};
+
+	/** @brief A PointLightComponent.
+	*
+	* @code
+	*
+	* Environment SkyLightEnvironment;
+	*
+	* SkyLightComponent()
+	* SkyLightComponent(const SkyLightComponent&)
+	* SkyLightComponent(const std::string& tag)
+	*
+	* @endcode
+	*/
+	struct PointLightComponent : Component
+	{
+		glm::vec3 Position ={ 0.0f , 0.0f, 0.0f };
+		bool Main = true;
+
+		PointLightComponent() = default;
+		PointLightComponent( const PointLightComponent& ) = default;
+		PointLightComponent( const glm::vec3& position )
+			: Position( position )
 
 		{
 		}

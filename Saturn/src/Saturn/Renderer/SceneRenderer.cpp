@@ -156,6 +156,40 @@ namespace Saturn {
 		FlushDrawList();
 	}
 
+	void SceneRenderer::RenderShadows( Scene* scene, Entity e )
+	{
+		Entity lightEntity = scene->GetMainLightEntity();
+
+		if( !lightEntity )
+			return;
+
+		auto mesh = e.GetComponent<MeshComponent>().Mesh;
+		{
+			glm::vec3 lightPos = lightEntity.GetComponent<TransformComponent>().Position;
+
+			glm::mat4 lightProjection, lightView;
+			glm::mat4 lightSpaceMatrix;
+			float near_plane = 10.0f, far_plane = 7.5f * 2;
+			lightProjection = glm::ortho( -10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane );
+			lightView = glm::lookAt( lightPos, glm::vec3( 0.0f ), glm::vec3( 0.0, 1.0, 0.0 ) );
+			lightSpaceMatrix = lightProjection * lightView;
+
+
+			if( mesh )
+			{
+				auto& materials = mesh->GetMaterials();
+				static uint32_t selectedMaterialIndex = 0;
+				for( uint32_t i = 0; i < materials.size(); i++ )
+				{
+					auto& materialInstance = materials[ i ];
+
+					materialInstance->Set( "u_ShadowMap", 1.0f );
+					materialInstance->Set( "u_LightMatrix", lightSpaceMatrix );
+				}
+			}
+		}
+	}
+
 	void SceneRenderer::SubmitMesh( Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial )
 	{
 		// TODO: Culling, sorting, etc.

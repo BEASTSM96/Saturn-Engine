@@ -9,25 +9,28 @@ layout(location = 4) in vec2 a_TexCoord;
 
 uniform mat4 u_ViewProjectionMatrix;
 uniform mat4 u_Transform;
+uniform mat4 u_LightMatrix;
 
 out VertexOutput
 {
 	vec3 WorldPosition;
-    vec3 Normal;
+	vec3 Normal;
 	vec2 TexCoord;
 	mat3 WorldNormals;
 	mat3 WorldTransform;
 	vec3 Binormal;
+	vec4 LightSpace;
 } vs_Output;
 
 void main()
 {
 	vs_Output.WorldPosition = vec3(u_Transform * vec4(a_Position, 1.0));
-    vs_Output.Normal = mat3(u_Transform) * a_Normal;
+	vs_Output.Normal = mat3(u_Transform) * a_Normal;
 	vs_Output.TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y);
 	vs_Output.WorldNormals = mat3(u_Transform) * mat3(a_Tangent, a_Binormal, a_Normal);
 	vs_Output.WorldTransform = mat3(u_Transform);
 	vs_Output.Binormal = a_Binormal;
+	vs_Output.LightSpace = u_LightMatrix * vec4( vs_Output.WorldPosition, 1.0 );
 
 	gl_Position = u_ViewProjectionMatrix * u_Transform * vec4(a_Position, 1.0);
 }
@@ -52,11 +55,12 @@ struct Light {
 in VertexOutput
 {
 	vec3 WorldPosition;
-    vec3 Normal;
+	vec3 Normal;
 	vec2 TexCoord;
 	mat3 WorldNormals;
 	mat3 WorldTransform;
 	vec3 Binormal;
+	vec4 LightSpace;
 } vs_Input;
 
 layout(location = 0) out vec4 color;
@@ -90,6 +94,9 @@ uniform float u_NormalTexToggle;
 uniform float u_MetalnessTexToggle;
 uniform float u_RoughnessTexToggle;
 
+//Shadows
+uniform sampler2D u_ShadowMap;
+
 struct PBRParameters
 {
 	vec3 Albedo;
@@ -102,6 +109,14 @@ struct PBRParameters
 };
 
 PBRParameters m_Params;
+
+struct ShadowParameters
+{
+	vec4 LightSpace;
+	mat4 LightMatrix;
+};
+
+ShadowParameters m_ShadowParams;
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2
@@ -130,23 +145,23 @@ float gaSchlickGGX(float cosLi, float NdotV, float roughness)
 
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
-    float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
+	float r = (roughness + 1.0);
+	float k = (r*r) / 8.0;
 
-    float nom   = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
+	float nom   = NdotV;
+	float denom = NdotV * (1.0 - k) + k;
 
-    return nom / denom;
+	return nom / denom;
 }
 
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 {
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+	float NdotV = max(dot(N, V), 0.0);
+	float NdotL = max(dot(N, L), 0.0);
+	float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+	float ggx1 = GeometrySchlickGGX(NdotL, roughness);
 
-    return ggx1 * ggx2;
+	return ggx1 * ggx2;
 }
 
 // Shlick's approximation of the Fresnel factor.
@@ -157,7 +172,7 @@ vec3 fresnelSchlick(vec3 F0, float cosTheta)
 
 vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
 {
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 } 
 
 // ---------------------------------------------------------------------------------------------------
@@ -166,17 +181,17 @@ vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
 // so turning this on online will cause poor performance
 float RadicalInverse_VdC(uint bits) 
 {
-    bits = (bits << 16u) | (bits >> 16u);
-    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-    return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+	bits = (bits << 16u) | (bits >> 16u);
+	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+	return float(bits) * 2.3283064365386963e-10; // / 0x100000000
 }
 
 vec2 Hammersley(uint i, uint N)
 {
-    return vec2(float(i)/float(N), RadicalInverse_VdC(i));
+	return vec2(float(i)/float(N), RadicalInverse_VdC(i));
 }
 
 vec3 ImportanceSampleGGX(vec2 Xi, float Roughness, vec3 N)
@@ -223,11 +238,11 @@ vec3 PrefilterEnvMap(float Roughness, vec3 R)
 
 vec3 RotateVectorAboutY(float angle, vec3 vec)
 {
-    angle = radians(angle);
-    mat3x3 rotationMatrix ={vec3(cos(angle),0.0,sin(angle)),
-                            vec3(0.0,1.0,0.0),
-                            vec3(-sin(angle),0.0,cos(angle))};
-    return rotationMatrix * vec;
+	angle = radians(angle);
+	mat3x3 rotationMatrix ={vec3(cos(angle),0.0,sin(angle)),
+							vec3(0.0,1.0,0.0),
+							vec3(-sin(angle),0.0,cos(angle))};
+	return rotationMatrix * vec;
 }
 
 vec3 Lighting(vec3 F0)
@@ -277,13 +292,35 @@ vec3 IBL(vec3 F0, vec3 Lr)
 	return kd * diffuseIBL + specularIBL;
 }
 
+void CheckABlending() 
+{
+}
+
+float CalcShadows( vec4 fragPos )
+{
+	// perform perspective divide
+	vec3 projCoords = fragPos.xyz / fragPos.w;
+	// transform to [0,1] range
+	projCoords = projCoords * 0.5 + 0.5;
+	// get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+	float closestDepth = texture( u_ShadowMap, projCoords.xy ).r;
+	// get depth of current fragment from light's perspective
+	float currentDepth = projCoords.z;
+	// check whether current frag pos is in shadow
+	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+
+	return shadow;
+}
+
 void main()
 {
 	// Standard PBR inputs
-	m_Params.Albedo = u_AlbedoTexToggle > 0.5 ? texture(u_AlbedoTexture, vs_Input.TexCoord).rgb : u_AlbedoColor; 
+	m_Params.Albedo = u_AlbedoTexToggle > 0.5 ? texture(u_AlbedoTexture, vs_Input.TexCoord).rgb : u_AlbedoColor;
 	m_Params.Metalness = u_MetalnessTexToggle > 0.5 ? texture(u_MetalnessTexture, vs_Input.TexCoord).r : u_Metalness;
 	m_Params.Roughness = u_RoughnessTexToggle > 0.5 ?  texture(u_RoughnessTexture, vs_Input.TexCoord).r : u_Roughness;
-    m_Params.Roughness = max(m_Params.Roughness, 0.05); // Minimum roughness of 0.05 to keep specular highlight
+	m_Params.Roughness = max(m_Params.Roughness, 0.05); // Minimum roughness of 0.05 to keep specular highlight
+
+	m_ShadowParams.LightSpace = vs_Input.LightSpace;
 
 	// Normals (either from vertex or map)
 	m_Params.Normal = normalize(vs_Input.Normal);
@@ -293,9 +330,12 @@ void main()
 		m_Params.Normal = normalize(vs_Input.WorldNormals * m_Params.Normal);
 	}
 
+	CheckABlending();
+
 	m_Params.View = normalize(u_CameraPosition - vs_Input.WorldPosition);
 	m_Params.NdotV = max(dot(m_Params.Normal, m_Params.View), 0.0);
-		
+	
+
 	// Specular reflection vector
 	vec3 Lr = 2.0 * m_Params.NdotV * m_Params.Normal - m_Params.View;
 
@@ -305,5 +345,18 @@ void main()
 	vec3 lightContribution = Lighting(F0);
 	vec3 iblContribution = IBL(F0, Lr);
 
-	color = vec4(lightContribution + iblContribution, 1.0);
+	if( u_AlbedoTexToggle != 0.5 ) 
+	{
+		vec4 texColor = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgba;
+
+		if( texColor.a < 0.1 )
+			discard;
+	}
+
+	vec3 ambient = 0.3 * vec3( lightContribution + iblContribution );
+
+	float shadow = CalcShadows( m_ShadowParams.LightSpace );
+	vec3 lighting = ( ambient + ( 1.0 - shadow ) * ( m_Params.Albedo + m_Params.Metalness ) ) * vec3( lightContribution + iblContribution );
+
+	color = vec4( lighting, 1.0);
 }

@@ -117,6 +117,8 @@ namespace Saturn {
 		m_SkyboxMaterial = MaterialInstance::Create( Material::Create( skyboxShader ) );
 		m_SkyboxMaterial->SetFlag( MaterialFlag::DepthTest, false );
 
+		SetEnvironment( {} );
+
 		m_Registry.on_construct<PhysXRigidbodyComponent>().connect<&Scene::PhysXRigidbodyComponentCreate>( this );
 		m_Registry.on_construct<PhysXBoxColliderComponent>().connect<&Scene::PhysXBoxComponentCreate>( this );
 		m_Registry.on_construct<PhysXSphereColliderComponent>().connect<&Scene::PhysXBoxSphereComponentCreate>( this );
@@ -163,12 +165,19 @@ namespace Saturn {
 		SceneRenderer::BeginScene( this, { editorCamera, editorCamera.GetViewMatrix() } );
 		for( auto entity : group )
 		{
+
+			Entity e ={ entity, this };
+
+			SceneRenderer::RenderShadows( this, e );
+
 			auto& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
 			if( meshComponent.Mesh )
 			{
 				meshComponent.Mesh->OnUpdate( ts );
 
 				// TODO: Should we render (logically)
+
+
 
 				if( m_SelectedEntity == entity )
 					SceneRenderer::SubmitSelectedMesh( meshComponent, transformComponent.GetTransform() );
@@ -277,6 +286,21 @@ namespace Saturn {
 			auto [transform, camera] = view.get<TransformComponent, CameraComponent>( entity );
 
 			if( camera.Primary )
+			{
+				return { entity, this };
+			}
+		}
+		return {};
+	}
+
+	Entity Scene::GetMainLightEntity( void )
+	{
+		auto view = m_Registry.view<TransformComponent, PointLightComponent>();
+		for( auto entity : view )
+		{
+			auto [transform, light] = view.get<TransformComponent, PointLightComponent>( entity );
+
+			if( light.Main )
 			{
 				return { entity, this };
 			}

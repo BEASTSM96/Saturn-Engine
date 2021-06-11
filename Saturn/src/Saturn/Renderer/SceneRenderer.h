@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Saturn/Scene/Scene.h"
+#include "Saturn/Scene/Entity.h"
 #include "Saturn/Renderer/Mesh.h"
 #include "RenderPass.h"
 
@@ -57,6 +58,8 @@ namespace Saturn {
 
 		static void BeginScene( const Scene* scene, const SceneRendererCamera& camera );
 		static void EndScene( void );
+
+		static void RenderShadows( Scene* scene, Entity e );
 
 		static void SubmitMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ), Ref<MaterialInstance> overrideMaterial = nullptr );
 		static void SubmitSelectedMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ) );

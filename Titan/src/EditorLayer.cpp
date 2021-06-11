@@ -1553,6 +1553,9 @@ namespace Saturn {
 						Entity selectedEntity = m_SceneHierarchyPanel->GetSelectionContext();
 						selectedEntity.m_Scene = m_SceneHierarchyPanel->GetSelectionContext().m_Scene;
 
+						if( !selectedEntity )
+							return;
+
 						auto& tc = selectedEntity.GetComponent<TransformComponent>();
 						glm::mat4 transform = tc.GetTransform();
 						ImGuizmo::Manipulate( viewm, projm, ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr( transform ), nullptr, wantsToSnap ? snapValues : nullptr );
