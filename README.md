@@ -22,14 +22,12 @@ Then open `Saturn.sln` right click on the solution and click build *or `Ctrl Shi
 ## 
 
 ### Main features to come:
-- Support for Linux, Android and iOS
-    - Native rendering API support (DirectX, Vulkan)
+- Support for Linux, Android and iOS ❗
+    - Native rendering API support (DirectX, Vulkan) ❗
 - Fully featured viewer and editor applications
 - Full Runtime interaction and behavior
 - Procedural terrain and world generation
 - Artificial Intelligence
 - Audio system
-- Native Code System (C++ Scripting)
-- HotReloading (Part of native code system)
-- C# Scripting
-- Asset Manager
+- C# Scripting ✔️
+- Asset Manager ✔️
