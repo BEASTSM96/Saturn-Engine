@@ -316,6 +316,16 @@ namespace Saturn {
 			out << YAML::EndMap;
 		}
 
+		if( entity.HasComponent<SkyLightComponent>() )
+		{
+			out << YAML::Key << "SkyLightComponent";
+			out << YAML::BeginMap;
+
+			auto& skl = entity.GetComponent<SkyLightComponent>();
+			out << YAML::Key << "Environment File path" << YAML::Value << skl.EnvironmentFilepath;
+
+			out << YAML::EndMap;
+		}
 
 		out << YAML::EndMap; // Entity
 	}
@@ -446,9 +456,8 @@ namespace Saturn {
 		if( environment )
 		{
 			std::string envPath = environment[ "AssetPath" ].as<std::string>();
-			if( envPath.empty() )
-				envPath = "assets\\env\\birchwood_4k.hdr";
-			m_Scene->SetEnvironment( Environment::Load( envPath ) );
+			//if( envPath != "null" )
+				//m_Scene->SetEnvironment( Environment::Load( envPath ) );
 
 			auto lightNode = environment[ "Light" ];
 			if( lightNode )
@@ -486,8 +495,8 @@ namespace Saturn {
 					tc.Scale = transformComponent[ "Scale" ].as<glm::vec3>();
 
 					//TODO: Fix the -180 z thing for now we will hack a fix
-					if( tc.Rotation.x <= 1 )
-						tc.Rotation.x = 0;
+					if( tc.Rotation.z == 1 )
+						tc.Rotation.z = 0;
 
 					SAT_CORE_INFO( "  Entity Transform:" );
 					SAT_CORE_INFO( "    Translation: {0}, {1}, {2}", tc.Position.x, tc.Position.y, tc.Position.z );
@@ -577,6 +586,18 @@ namespace Saturn {
 					SAT_CORE_INFO( " PhysXCapsuleColliderComponent Radius, Height: {0} {1}", radius, height );
 				}
 
+				auto skylightcomponent = entity[ "SkyLightComponent" ];
+				if( skylightcomponent )
+				{
+					std::string filepath = skylightcomponent[ "Environment File path" ].as<std::string>();
+
+					if( !deserializedEntity.HasComponent<SkyLightComponent>() )
+						deserializedEntity.AddComponent<SkyLightComponent>().EnvironmentFilepath = filepath;
+
+					m_Scene->SetEnvironment( Environment::Load( filepath ) );
+
+					SAT_CORE_INFO( " SkyLightComponent Filepath: {0}", filepath );
+				}
 			}
 		}
 

@@ -310,11 +310,22 @@ namespace Saturn {
 							ImGui::CloseCurrentPopup();
 						}
 					}
+
+
+					if( !m_SelectionContext.HasComponent<SkyLightComponent>() )
+					{
+						if( ImGui::Button( "Sky Light" ) )
+						{
+							m_SelectionContext.AddComponent<SkyLightComponent>();
+							ImGui::CloseCurrentPopup();
+						}
+					}
+
 					if( ImGui::BeginMenu( "Physics" ) )
 					{
 						if( !m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() )
 						{
-							if( ImGui::MenuItem( "PhysXRigidbody" ) )
+							if( ImGui::MenuItem( "PhysX Rigidbody" ) )
 							{
 								m_SelectionContext.AddComponent<PhysXRigidbodyComponent>();
 								m_SelectionContext.AddComponent<PhysXMaterialComponent>();
@@ -328,7 +339,7 @@ namespace Saturn {
 								&& !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>()
 							)
 						{
-							if( ImGui::MenuItem( "PhysXBoxCollider" ) )
+							if( ImGui::MenuItem( "PhysX BoxCollider" ) )
 							{
 								m_SelectionContext.AddComponent<PhysXBoxColliderComponent>();
 							}
@@ -341,7 +352,7 @@ namespace Saturn {
 								&& !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>()
 							)
 						{
-							if( ImGui::MenuItem( "PhysXSphereCollider" ) )
+							if( ImGui::MenuItem( "PhysX SphereCollider" ) )
 							{
 								m_SelectionContext.AddComponent<PhysXSphereColliderComponent>();
 							}
@@ -354,12 +365,11 @@ namespace Saturn {
 								&& !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
 							)
 						{
-							if( ImGui::MenuItem( "PhysXCapsuleCollider" ) )
+							if( ImGui::MenuItem( "PhysX CapsuleCollider" ) )
 							{
 								m_SelectionContext.AddComponent<PhysXCapsuleColliderComponent>();
 							}
 						}
-
 						ImGui::EndMenu();
 					}
 
@@ -807,7 +817,7 @@ namespace Saturn {
 				}
 			} );
 
-		DrawComponent<PhysXRigidbodyComponent>( "PhysXRigidbody", entity, []( auto& rb )
+		DrawComponent<PhysXRigidbodyComponent>( "PhysX Rigidbody", entity, []( auto& rb )
 			{
 
 				bool Kinematic = rb.isKinematic;
@@ -826,21 +836,21 @@ namespace Saturn {
 			} );
 
 
-		DrawComponent<PhysXMaterialComponent>( "PhysXMaterial", entity, []( auto& mat )
+		DrawComponent<PhysXMaterialComponent>( "PhysX Material", entity, []( auto& mat )
 		{
 			DrawFloatControl( "DynamicFriction", &mat.DynamicFriction );
 			DrawFloatControl( "StaticFriction", &mat.StaticFriction );
 			DrawFloatControl( "Restitution", &mat.Restitution );
 		} );
 
-		DrawComponent<PhysXBoxColliderComponent>( "PhysXBoxCollider", entity, []( auto& bc )
+		DrawComponent<PhysXBoxColliderComponent>( "PhysX BoxCollider", entity, []( auto& bc )
 			{
 				DrawVec3Control( "Extents", bc.Extents, bc.Extents );
 				ImGui::Spacing();
 				DrawBoolControl( "Is Trigger", &bc.IsTrigger );
 			} );
 
-		DrawComponent<PhysXSphereColliderComponent>( "PhysXSphereCollider", entity, []( auto& sc )
+		DrawComponent<PhysXSphereColliderComponent>( "PhysX SphereCollider", entity, []( auto& sc )
 		{
 			DrawBoolControl( "Is Trigger", &sc.IsTrigger );
 			ImGui::Spacing();
@@ -848,7 +858,7 @@ namespace Saturn {
 
 		} );
 
-		DrawComponent<PhysXCapsuleColliderComponent>( "PhysXCapsuleCollider", entity, []( auto& cc )
+		DrawComponent<PhysXCapsuleColliderComponent>( "PhysX CapsuleCollider", entity, []( auto& cc )
 		{
 			DrawBoolControl( "Is Trigger", &cc.IsTrigger );
 			ImGui::Spacing();
@@ -857,6 +867,67 @@ namespace Saturn {
 
 		} );
 
+		if( entity.HasComponent<SkyLightComponent>() )
+		{
+			bool removeComponent = false;
+			bool removeAllComponent = false;
+
+			auto& component = entity.GetComponent<SkyLightComponent>();
+			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( SkyLightComponent ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, "Sky Light" );
+			ImGui::SameLine();
+			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
+			if( ImGui::Button( "+" ) )
+			{
+				ImGui::OpenPopup( "ComponentSettings" );
+			}
+
+			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
+
+			if( ImGui::BeginPopup( "ComponentSettings" ) )
+			{
+				if( ImGui::MenuItem( "Remove component" ) )
+					removeComponent = true;
+
+				ImGui::EndPopup();
+			}
+
+			if( open )
+			{
+				static std::string filename;
+
+				if( ImGui::Button( "Load Environment Map" ) )
+				{
+					filename = Application::Get().OpenFile( "HDR (*.hdr)\0 * .hdr\0" ).first;
+					if( filename != "" )
+					{
+						component.EnvironmentFilepath = filename;
+						Environment env = Environment::Load( filename );
+						m_Context->SetEnvironment( env );
+						component.SkyLightEnvironment = env;
+					}
+
+				}
+				ImGui::Text( "Skybox LOD" );
+				ImGui::SliderFloat( "##sklLOD", &m_Context->GetSkyboxLod(), 0.0f, 11.0f );
+				ImGui::Text( "File Path" );
+				if( filename != "" )
+					ImGui::InputText( "##filepath", ( char* )filename.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+				else
+					ImGui::InputText( "##filepath", ( char* )"", 256, ImGuiInputTextFlags_ReadOnly );
+
+				ImGui::NextColumn();
+				ImGui::Columns( 1 );
+				ImGui::TreePop();
+			}
+			ImGui::Separator();
+
+			if( removeComponent )
+			{
+				entity.RemoveComponent<SkyLightComponent>();
+			}
+		}
 
 		if( entity.HasComponent<ScriptComponent>() )
 		{

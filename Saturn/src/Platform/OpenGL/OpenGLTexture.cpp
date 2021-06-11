@@ -113,7 +113,7 @@ namespace Saturn {
 		m_Height = height;
 
 		Ref<OpenGLTexture2D> instance = this;
-		Renderer::Submit( [instance, srgb]() mutable
+		Renderer::Submit( [instance, srgb, channels]() mutable
 			{
 				// TODO: Consolidate properly
 				if( srgb )
@@ -141,6 +141,10 @@ namespace Saturn {
 					GLenum internalFormat = SaturnToOpenGLTextureFormat( instance->m_Format );
 					GLenum format = srgb ? GL_SRGB8 : ( instance->m_IsHDR ? GL_RGB : SaturnToOpenGLTextureFormat( instance->m_Format ) ); // HDR = GL_RGB for now
 					GLenum type = internalFormat == GL_RGBA16F ? GL_FLOAT : GL_UNSIGNED_BYTE;
+					if( instance->m_Format == TextureFormat::RGBA )
+						SAT_CORE_INFO( "[{0}] Texture internal format RGBA", instance->m_FilePath );
+					else
+						SAT_CORE_INFO( "Texture internal format other" );
 					glTexImage2D( GL_TEXTURE_2D, 0, internalFormat, instance->m_Width, instance->m_Height, 0, format, type, instance->m_ImageData.Data );
 					glGenerateMipmap( GL_TEXTURE_2D );
 

@@ -133,10 +133,11 @@ namespace Saturn {
 
 	void EditorLayer::NewScene()
 	{
+		m_EditorScene->SetEnvironment( {} );
 		m_EditorScene = Ref<Scene>::Create();
 		m_EditorScene->CreatePhysxScene();
 		m_SceneHierarchyPanel->SetContext( m_EditorScene );
-		UpdateWindowTitle( "Untitled Scene" );
+		UpdateWindowTitle( "Unnamed Scene" );
 
 		m_EditorCamera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 1000.0f ) );
 	}
@@ -677,7 +678,7 @@ namespace Saturn {
 			}
 		}
 
-		m_SelectionContext.clear();
+		//m_SelectionContext.clear();
 
 		return false;
 	}
@@ -1461,13 +1462,14 @@ namespace Saturn {
 				if( ImGui::Begin( "Environment" ) )
 				{
 
-					if( ImGui::Button( "Load Environment Map" ) )
+					/*if( ImGui::Button( "Load Environment Map" ) )
 					{
 						std::string filename = Application::Get().OpenFile( "HDR (*.hdr)\0 * .hdr\0" ).first;
 						if( filename != "" )
 							m_EditorScene->SetEnvironment( Environment::Load( filename ) );
 					}
 					ImGui::SliderFloat( "Skybox LOD", &m_EditorScene->GetSkyboxLod(), 0.0f, 11.0f );
+					*/
 
 					ImGui::Columns( 2 );
 					ImGui::AlignTextToFramePadding();
