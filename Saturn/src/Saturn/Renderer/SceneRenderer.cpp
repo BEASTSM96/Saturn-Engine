@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "SceneRenderer.h"
 
+#include "Saturn/Application.h"
+
 #include "Renderer.h"
 
 #include <glad/glad.h>
@@ -36,6 +38,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Renderer2D.h"
+
+#include "ShadowMapFBO.h"
 
 namespace Saturn {
 	struct SceneRendererData
@@ -69,6 +73,9 @@ namespace Saturn {
 		// Grid
 		Ref<MaterialInstance> GridMaterial;
 		Ref<MaterialInstance> OutlineMaterial;
+
+		// Shadows
+		Ref<ShadowMapFBO> ShadowMapFBO;
 
 		SceneRendererOptions Options;
 	};
@@ -113,6 +120,9 @@ namespace Saturn {
 		s_Data.OutlineMaterial = MaterialInstance::Create( Material::Create( outlineShader ) );
 		s_Data.OutlineMaterial->SetFlag( MaterialFlag::DepthTest, false );
 
+
+		s_Data.ShadowMapFBO = ShadowMapFBO::Create( 1024, 1024 );
+
 	}
 
 	void SceneRenderer::Shutdown( void )
@@ -156,49 +166,57 @@ namespace Saturn {
 		FlushDrawList();
 	}
 
-	void SceneRenderer::RenderShadows( Scene* scene, Entity e )
+	void SceneRenderer::ShadowMapPass()
 	{
-		Entity lightEntity = scene->GetMainLightEntity();
-
-		if( !lightEntity )
-			return;
-
-		auto mesh = e.GetComponent<MeshComponent>().Mesh;
+		Renderer::BeginRenderPass( s_Data.CompositePass );
+		Renderer::Submit( []()
 		{
-			glm::vec3 lightPos = lightEntity.GetComponent<TransformComponent>().Position;
+			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-			glm::mat4 lightProjection, lightView;
-			glm::mat4 lightSpaceMatrix;
-			float near_plane = 10.0f, far_plane = 7.5f * 2;
-			lightProjection = glm::ortho( -10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane );
-			lightView = glm::lookAt( lightPos, glm::vec3( 0.0f ), glm::vec3( 0.0, 1.0, 0.0 ) );
-			lightSpaceMatrix = lightProjection * lightView;
+			s_Data.ShadowMapFBO->BindForReading( ( void* )( GLenum )GL_TEXTURE0 );
 
+		} );
+		Renderer::EndRenderPass();
+	}
 
-			if( mesh )
-			{
-				auto& materials = mesh->GetMaterials();
-				static uint32_t selectedMaterialIndex = 0;
-				for( uint32_t i = 0; i < materials.size(); i++ )
-				{
-					auto& materialInstance = materials[ i ];
-
-					materialInstance->Set( "u_ShadowMap", 1.0f );
-					materialInstance->Set( "u_LightMatrix", lightSpaceMatrix );
-				}
-			}
-		}
+	void SceneRenderer::RenderShadows( Scene* scene, Entity e, const SceneRendererCamera& camera )
+	{
 	}
 
 	void SceneRenderer::SubmitMesh( Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial )
 	{
 		// TODO: Culling, sorting, etc.
+
+		Renderer::Submit( []()
+		{
+			s_Data.ShadowMapFBO->BindForWriting();
+
+			glClear( GL_DEPTH_BUFFER_BIT );
+		} );
+
 		s_Data.DrawList.push_back( { mesh, overrideMaterial, transform } );
+
+		Renderer::Submit( []()
+		{
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		} );
 	}
 
 	void SceneRenderer::SubmitSelectedMesh( Ref<Mesh> mesh, const glm::mat4& transform )
 	{
+		Renderer::Submit( []()
+		{
+			s_Data.ShadowMapFBO->BindForWriting();
+
+			glClear( GL_DEPTH_BUFFER_BIT );
+		} );
+
 		s_Data.SelectedMeshDrawList.push_back( { mesh, nullptr, transform } );
+
+		Renderer::Submit( []()
+		{
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		} );
 	}
 
 	static Ref<Shader> equirectangularConversionShader, envFilteringShader, envIrradianceShader;
@@ -216,9 +234,6 @@ namespace Saturn {
 
 		if( envUnfiltered )
 			envUnfiltered = nullptr;
-
-		if( equirectangularConversionShader )
-			equirectangularConversionShader = nullptr;
 
 		if( equirectangularConversionShader )
 			equirectangularConversionShader = nullptr;
@@ -476,6 +491,11 @@ namespace Saturn {
 	uint32_t SceneRenderer::GetFinalColorBufferRendererID()
 	{
 		return s_Data.CompositePass->GetSpecification().TargetFramebuffer->GetColorAttachmentRendererID();
+	}
+
+	uint32_t SceneRenderer::GetColorIDShadowMap()
+	{
+		return s_Data.ShadowMapFBO->GetColorAttachmentRendererID();
 	}
 
 	SceneRendererOptions& SceneRenderer::GetOptions()

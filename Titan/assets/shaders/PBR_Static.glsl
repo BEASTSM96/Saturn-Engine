@@ -96,6 +96,7 @@ uniform float u_RoughnessTexToggle;
 
 //Shadows
 uniform sampler2D u_ShadowMap;
+uniform vec3 u_LightPos;
 
 struct PBRParameters
 {
@@ -306,8 +307,28 @@ float CalcShadows( vec4 fragPos )
 	float closestDepth = texture( u_ShadowMap, projCoords.xy ).r;
 	// get depth of current fragment from light's perspective
 	float currentDepth = projCoords.z;
+	// calculate bias (based on depth map resolution and slope)
+	vec3 normal = normalize( m_Params.Normal );
+	vec3 lightDir = normalize( u_LightPos - vs_Input.WorldPosition );
+	float bias = max( 0.05 * ( 1.0 - dot( normal, lightDir ) ), 0.005 );
 	// check whether current frag pos is in shadow
-	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+	// float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+	// PCF
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize( u_ShadowMap, 0 );
+	for( int x = -1; x <= 1; ++x )
+	{
+		for( int y = -1; y <= 1; ++y )
+		{
+			float pcfDepth = texture( u_ShadowMap, projCoords.xy + vec2( x, y ) * texelSize ).r;
+			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+		}
+	}
+	shadow /= 9.0;
+
+	// keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+	//if( projCoords.z > 1.0 )
+	//	shadow = 0.0;
 
 	return shadow;
 }
@@ -329,8 +350,6 @@ void main()
 		m_Params.Normal = normalize(2.0 * texture(u_NormalTexture, vs_Input.TexCoord).rgb - 1.0);
 		m_Params.Normal = normalize(vs_Input.WorldNormals * m_Params.Normal);
 	}
-
-	CheckABlending();
 
 	m_Params.View = normalize(u_CameraPosition - vs_Input.WorldPosition);
 	m_Params.NdotV = max(dot(m_Params.Normal, m_Params.View), 0.0);
@@ -358,5 +377,8 @@ void main()
 	float shadow = CalcShadows( m_ShadowParams.LightSpace );
 	vec3 lighting = ( ambient + ( 1.0 - shadow ) * ( m_Params.Albedo + m_Params.Metalness ) ) * vec3( lightContribution + iblContribution );
 
-	color = vec4( lighting, 1.0);
+	float depth = texture( u_ShadowMap, vs_Input.TexCoord ).x;
+	depth = 1.0 - ( 1.0 - depth ) * 25.0;
+
+	color = vec4( lighting, 1.0f );
 }

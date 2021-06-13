@@ -28,57 +28,23 @@
 
 #pragma once
 
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
-#include "Saturn/Renderer/Mesh.h"
-#include "RenderPass.h"
+#include "Saturn/Core/Base.h"
 
 namespace Saturn {
 
-	struct SceneRendererOptions
-	{
-		bool ShowGrid = true;
-		bool ShowSolids = true;
-		bool ShowBoundingBoxes = false;
-	};
-
-	struct SceneRendererCamera
-	{
-		Saturn::Camera Camera;
-		glm::mat4 ViewMatrix;
-	};
-
-	class SceneRenderer
+	class ShadowMapFBO : public RefCounted
 	{
 	public:
-		static void Init( void );
-		static void Shutdown( void );
+		virtual ~ShadowMapFBO() { }
 
-		static void SetViewportSize( uint32_t width, uint32_t height );
+		virtual void BindForWriting() = 0;
+		virtual void BindForReading( void* textureUnit ) = 0;
 
-		static void BeginScene( const Scene* scene, const SceneRendererCamera& camera );
-		static void EndScene( void );
+		virtual uint32_t GetColorAttachmentRendererID() const =0;
 
-		static void ShadowMapPass();
-
-		static void RenderShadows( Scene* scene, Entity e, const SceneRendererCamera& camera );
-
-		static void SubmitMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ), Ref<MaterialInstance> overrideMaterial = nullptr );
-		static void SubmitSelectedMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ) );
-
-		static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap( const std::string& filepath );
-
-		static Ref<RenderPass> GetFinalRenderPass( void );
-		static Ref<Texture2D> GetFinalColorBuffer( void );
-
-		static uint32_t GetFinalColorBufferRendererID();
-
-		static uint32_t GetColorIDShadowMap();
-
-		static SceneRendererOptions& GetOptions();
+		static Ref<ShadowMapFBO> Create( int width, int height );
+	protected:
 	private:
-		static void FlushDrawList( void );
-		static void GeometryPass( void );
-		static void CompositePass( void );
 	};
+
 }

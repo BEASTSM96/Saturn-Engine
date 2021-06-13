@@ -920,14 +920,15 @@ namespace Saturn {
 						Environment env = Environment::Load( filename );
 						m_Context->SetEnvironment( env );
 						component.SkyLightEnvironment = env;
+						component.EnvironmentFilepath = filename;
 					}
 
 				}
 				ImGui::Text( "Skybox LOD" );
 				ImGui::SliderFloat( "##sklLOD", &m_Context->GetSkyboxLod(), 0.0f, 11.0f );
 				ImGui::Text( "File Path" );
-				if( filename != "" )
-					ImGui::InputText( "##filepath", ( char* )filename.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+				if( component.EnvironmentFilepath != "" )
+					ImGui::InputText( "##filepath", ( char* )component.EnvironmentFilepath.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 				else
 					ImGui::InputText( "##filepath", ( char* )"", 256, ImGuiInputTextFlags_ReadOnly );
 

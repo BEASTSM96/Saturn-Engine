@@ -594,6 +594,8 @@ namespace Saturn {
 					if( !deserializedEntity.HasComponent<SkyLightComponent>() )
 						deserializedEntity.AddComponent<SkyLightComponent>().EnvironmentFilepath = filepath;
 
+					deserializedEntity.GetComponent<SkyLightComponent>().EnvironmentFilepath = filepath;
+
 					m_Scene->SetEnvironment( Environment::Load( filepath ) );
 
 					SAT_CORE_INFO( " SkyLightComponent Filepath: {0}", filepath );

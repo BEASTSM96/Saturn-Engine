@@ -62,7 +62,7 @@ namespace Saturn {
 		virtual uint32_t GetRefCount( void )  const = 0;
 	};
 
-	class RefCounted : RefCounter
+	class RefCounted : public RefCounter
 	{
 	public:
 		void IncRefCount( void )  const override

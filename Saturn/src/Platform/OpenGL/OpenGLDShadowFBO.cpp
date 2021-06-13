@@ -26,59 +26,64 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "OpenGLDShadowFBO.h"
 
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
-#include "Saturn/Renderer/Mesh.h"
-#include "RenderPass.h"
+#include "Saturn/Renderer/Renderer.h"
 
 namespace Saturn {
 
-	struct SceneRendererOptions
+	OpenGLShadowMapFBO::OpenGLShadowMapFBO( int width, int height )
 	{
-		bool ShowGrid = true;
-		bool ShowSolids = true;
-		bool ShowBoundingBoxes = false;
-	};
+		Renderer::Submit( [=]()
+		{
+			glGenFramebuffers( 1, &m_Fbo );
 
-	struct SceneRendererCamera
+			glGenTextures( 1, &m_ShadowMap );
+			glBindTexture( GL_TEXTURE_2D, m_ShadowMap );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+			glBindFramebuffer( GL_FRAMEBUFFER, m_Fbo );
+
+			glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowMap, 0 );
+
+			glDrawBuffer( GL_NONE );
+			glReadBuffer( GL_NONE );
+
+			SAT_CORE_ASSERT( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!" );
+			if( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE )
+			{
+				SAT_CORE_ERROR( "Framebuffer is incomplete!" );
+			}
+
+		} );
+	}
+
+	OpenGLShadowMapFBO::~OpenGLShadowMapFBO()
 	{
-		Saturn::Camera Camera;
-		glm::mat4 ViewMatrix;
-	};
 
-	class SceneRenderer
+	}
+
+	void OpenGLShadowMapFBO::BindForWriting()
 	{
-	public:
-		static void Init( void );
-		static void Shutdown( void );
+		Renderer::Submit( [=]()
+		{
+			glBindFramebuffer( GL_DRAW_FRAMEBUFFER, m_Fbo );
+		} );
+	}
 
-		static void SetViewportSize( uint32_t width, uint32_t height );
+	void OpenGLShadowMapFBO::BindForReading( void* textureUnit )
+	{
+		GLenum textUnit = ( GLenum )textureUnit;
 
-		static void BeginScene( const Scene* scene, const SceneRendererCamera& camera );
-		static void EndScene( void );
-
-		static void ShadowMapPass();
-
-		static void RenderShadows( Scene* scene, Entity e, const SceneRendererCamera& camera );
-
-		static void SubmitMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ), Ref<MaterialInstance> overrideMaterial = nullptr );
-		static void SubmitSelectedMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ) );
-
-		static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap( const std::string& filepath );
-
-		static Ref<RenderPass> GetFinalRenderPass( void );
-		static Ref<Texture2D> GetFinalColorBuffer( void );
-
-		static uint32_t GetFinalColorBufferRendererID();
-
-		static uint32_t GetColorIDShadowMap();
-
-		static SceneRendererOptions& GetOptions();
-	private:
-		static void FlushDrawList( void );
-		static void GeometryPass( void );
-		static void CompositePass( void );
-	};
+		Renderer::Submit( [=]()
+		{
+			glActiveTexture( textUnit );
+			glBindTexture( GL_TEXTURE_2D, m_ShadowMap );
+		} );
+	}
 }

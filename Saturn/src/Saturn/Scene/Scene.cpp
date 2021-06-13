@@ -168,16 +168,12 @@ namespace Saturn {
 
 			Entity e ={ entity, this };
 
-			SceneRenderer::RenderShadows( this, e );
-
 			auto& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
 			if( meshComponent.Mesh )
 			{
 				meshComponent.Mesh->OnUpdate( ts );
 
 				// TODO: Should we render (logically)
-
-
 
 				if( m_SelectedEntity == entity )
 					SceneRenderer::SubmitSelectedMesh( meshComponent, transformComponent.GetTransform() );
@@ -442,6 +438,8 @@ namespace Saturn {
 		CopyComponent<PhysXMaterialComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<CameraComponent>( NewScene->m_Registry, m_Registry, enttMap );
 		CopyComponent<ScriptComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<PointLightComponent>( NewScene->m_Registry, m_Registry, enttMap );
+		CopyComponent<SkyLightComponent>( NewScene->m_Registry, m_Registry, enttMap );
 
 		CopyScriptData( enttMap, m_Registry );
 
@@ -465,6 +463,8 @@ namespace Saturn {
 		CopyComponentIfExists<PhysXMaterialComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
 		CopyComponentIfExists<CameraComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
 		CopyComponentIfExists<ScriptComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<PointLightComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
+		CopyComponentIfExists<SkyLightComponent>( e.m_EntityHandle, entity.m_EntityHandle, m_Registry );
 	}
 
 	void Scene::BeginRuntime( void )

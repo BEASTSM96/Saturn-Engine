@@ -674,7 +674,7 @@ namespace Saturn {
 				std::sort( m_SelectionContext.begin(), m_SelectionContext.end(), []( auto& a, auto& b ) { return a.Distance < b.Distance; } );
 				if( m_SelectionContext.size() )
 					OnSelected( m_SelectionContext[ 0 ] );
-				m_SelectionContext.clear();
+				//m_SelectionContext.clear();
 			}
 		}
 
@@ -1577,6 +1577,16 @@ namespace Saturn {
 				}
 			}
 			ImGui::PopStyleVar();
+
+			if(ImGui::Begin("Scene Renderer"))
+			{
+				auto viewportSize = ImGui::GetContentRegionAvail();
+
+				ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
+				ImGui::Image( ( void* )SceneRenderer::GetColorIDShadowMap(), viewportSize, { 0, 1 }, { 1, 0 } );
+				ImGui::PopStyleVar();
+			}
+			ImGui::End();
 
 			ImGui::Begin( "Materials" );
 

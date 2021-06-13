@@ -26,59 +26,24 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "ShadowMapFBO.h"
 
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
-#include "Saturn/Renderer/Mesh.h"
-#include "RenderPass.h"
+#include "Renderer.h"
+
+#include "Platform/OpenGL/OpenGLDShadowFBO.h"
 
 namespace Saturn {
 
-	struct SceneRendererOptions
+	Ref<ShadowMapFBO> ShadowMapFBO::Create( int width, int height )
 	{
-		bool ShowGrid = true;
-		bool ShowSolids = true;
-		bool ShowBoundingBoxes = false;
-	};
+		Ref<ShadowMapFBO> result = nullptr;
 
-	struct SceneRendererCamera
-	{
-		Saturn::Camera Camera;
-		glm::mat4 ViewMatrix;
-	};
-
-	class SceneRenderer
-	{
-	public:
-		static void Init( void );
-		static void Shutdown( void );
-
-		static void SetViewportSize( uint32_t width, uint32_t height );
-
-		static void BeginScene( const Scene* scene, const SceneRendererCamera& camera );
-		static void EndScene( void );
-
-		static void ShadowMapPass();
-
-		static void RenderShadows( Scene* scene, Entity e, const SceneRendererCamera& camera );
-
-		static void SubmitMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ), Ref<MaterialInstance> overrideMaterial = nullptr );
-		static void SubmitSelectedMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ) );
-
-		static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap( const std::string& filepath );
-
-		static Ref<RenderPass> GetFinalRenderPass( void );
-		static Ref<Texture2D> GetFinalColorBuffer( void );
-
-		static uint32_t GetFinalColorBufferRendererID();
-
-		static uint32_t GetColorIDShadowMap();
-
-		static SceneRendererOptions& GetOptions();
-	private:
-		static void FlushDrawList( void );
-		static void GeometryPass( void );
-		static void CompositePass( void );
-	};
+		switch( RendererAPI::Current() )
+		{
+			case RendererAPIType::None:		return nullptr;
+			case RendererAPIType::OpenGL:	result = Ref<OpenGLShadowMapFBO>::Create( width, height );
+		}
+		return result;
+	}
 }
