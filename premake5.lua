@@ -104,9 +104,7 @@ project "Saturn"
 		"GLFW",
 		"Glad",
 		"ImGui",
-		"opengl32.lib",
-		"Jsoncpp",
-		"ReactPhysics3D"
+		"opengl32.lib"
 	}
 
 	filter "system:windows"
