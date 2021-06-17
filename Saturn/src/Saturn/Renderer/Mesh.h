@@ -185,6 +185,15 @@ namespace Saturn {
 		const std::string& GetFilePath() const { return m_FilePath; }
 
 		const std::vector<Triangle> GetTriangleCache( uint32_t index ) const { return m_TriangleCache.at( index ); }
+		//const size_t GetTriangleCount() const { return m_TriangleCache.size(); }
+
+		const uint32_t& GetVertexCount() const { return m_VertexCount; }
+		const uint32_t& GetTriangleCount() const { return m_TriangleCount; }
+		const uint32_t& GetIndicesCount() const { return m_IndicesCount; }
+		const uint32_t& GetVerticesCount() const { return m_VerticesCount; }
+
+		const std::vector<Index>& GetIndices() const { return m_Indices; }
+
 	private:
 		void BoneTransform( float time );
 		void ReadNodeHierarchy( float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform );
@@ -217,6 +226,11 @@ namespace Saturn {
 		std::unordered_map<std::string, uint32_t> m_BoneMapping;
 		std::vector<glm::mat4> m_BoneTransforms;
 		const aiScene* m_Scene;
+
+		uint32_t m_VertexCount = 0;
+		uint32_t m_TriangleCount = 0;
+		uint32_t m_IndicesCount = 0;
+		uint32_t m_VerticesCount = 0;
 
 		// Materials
 		Ref<Shader> m_MeshShader;

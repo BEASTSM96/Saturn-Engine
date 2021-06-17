@@ -346,6 +346,7 @@ namespace Saturn {
 								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>()
 								&& !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
 								&& !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>()
+								&& !m_SelectionContext.HasComponent<PhysXMeshColliderComponent>()
 							)
 						{
 							if( ImGui::MenuItem( "PhysX BoxCollider" ) )
@@ -359,6 +360,7 @@ namespace Saturn {
 								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>()
 								&& !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>()
 								&& !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>()
+								&& !m_SelectionContext.HasComponent<PhysXMeshColliderComponent>()
 							)
 						{
 							if( ImGui::MenuItem( "PhysX SphereCollider" ) )
@@ -372,6 +374,7 @@ namespace Saturn {
 								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>()
 								&& !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>()
 								&& !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
+								&& !m_SelectionContext.HasComponent<PhysXMeshColliderComponent>()
 							)
 						{
 							if( ImGui::MenuItem( "PhysX CapsuleCollider" ) )
@@ -379,6 +382,21 @@ namespace Saturn {
 								m_SelectionContext.AddComponent<PhysXCapsuleColliderComponent>();
 							}
 						}
+
+						if
+							( !m_SelectionContext.HasComponent<PhysXMeshColliderComponent>()
+								&& m_SelectionContext.HasComponent<PhysXRigidbodyComponent>()
+								&& !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>()
+								&& !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>()
+								&& !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>()
+							)
+						{
+							if( ImGui::MenuItem( "PhysX MeshCollider" ) )
+							{
+								m_SelectionContext.AddComponent<PhysXMeshColliderComponent>();
+							}
+						}
+
 						ImGui::EndMenu();
 					}
 
@@ -870,6 +888,10 @@ namespace Saturn {
 			ImGui::Spacing();
 			DrawFloatControl( "Radius", &sc.Radius, sc.Radius );
 
+		} );
+
+		DrawComponent<PhysXMeshColliderComponent>( "PhysX MeshCollider", entity, []( auto& mc )
+		{
 		} );
 
 		DrawComponent<PhysXCapsuleColliderComponent>( "PhysX CapsuleCollider", entity, []( auto& cc )

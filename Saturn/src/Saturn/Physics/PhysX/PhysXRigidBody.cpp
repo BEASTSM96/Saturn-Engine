@@ -66,6 +66,8 @@ namespace Saturn {
 			PhysXFnd::CreateSphereCollider( entity, *m_Body );
 		if( entity.HasComponent<PhysXCapsuleColliderComponent>() )
 			PhysXFnd::CreateCapsuleCollider( entity, *m_Body );
+		if( entity.HasComponent<PhysXMeshColliderComponent>() )
+			PhysXFnd::BuildTriMesh( entity, *m_Body, entity.GetComponent<MeshComponent>().Mesh );
 
 		physx::PxAllocatorCallback& allocator = PhysXFnd::GetAllocator();
 		physx::PxFilterData filterData;

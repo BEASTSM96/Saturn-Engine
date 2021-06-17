@@ -46,6 +46,7 @@ namespace Saturn {
 	static physx::PxPhysics* s_Physics;
 	static physx::PxScene* s_PhysXScene;
 	static physx::PxPvd* s_PVD;
+	static physx::PxDefaultMemoryOutputStream* s_OutStream = nullptr;
 
 	void PhysXFnd::Init()
 	{
@@ -53,6 +54,8 @@ namespace Saturn {
 
 		s_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, s_DefaultAllocatorCallback, s_DefaultErrorCallback );
 		s_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *s_Foundation, FndToleranceScale, true );
+
+		s_OutStream = new physx::PxDefaultMemoryOutputStream();
 
 		s_PVD = PxCreatePvd( *s_Foundation );
 		if( s_PVD )
@@ -176,13 +179,41 @@ namespace Saturn {
 		shape->setLocalPose( physx::PxTransform( physx::PxQuat( physx::PxHalfPi, physx::PxVec3( 0, 0, 1 ) ) ) );
 	}
 
-	void PhysXFnd::CreateConvexMesh( Entity& entity, physx::PxRigidActor& actor )
+	physx::PxShape* PhysXFnd::BuildTriMesh( Entity& entity, physx::PxRigidActor& actor, const Ref<Mesh>& mesh )
 	{
 		auto& trans = entity.GetComponent<TransformComponent>();
-		auto& mesh = entity.GetComponent<MeshComponent>();
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 		auto& mat = entity.GetComponent<PhysXMaterialComponent>();
-		auto& comp = entity.GetComponent<PhysXCapsuleColliderComponent>();
+		auto& comp = entity.GetComponent<PhysXMeshColliderComponent>();
+
+		physx::PxTriangleMeshDesc meshDesc{};
+		meshDesc.points.count           = mesh->GetTriangleCount();
+		meshDesc.points.stride          = sizeof( physx::PxVec3 );
+		meshDesc.points.data            = new physx::PxVec3[ mesh->GetTriangleCount() ];
+
+		meshDesc.triangles.count        = mesh->GetTriangleCount();
+		meshDesc.triangles.stride       = 3 * sizeof( physx::PxU32 );
+		meshDesc.triangles.data         = new physx::PxU32[ mesh->GetIndicesCount() ];
+
+		PX_ASSERT( s_Cooking->validateTriangleMesh( meshDesc ) );
+
+		physx::PxDefaultMemoryOutputStream outStream;
+
+		bool result = s_Cooking->cookTriangleMesh( meshDesc, outStream );
+		SAT_CORE_ASSERT( result, "Failed to cook mesh" );
+
+		//SAT_CORE_ASSERT( result, "Failed to cook mesh!" );
+
+		physx::PxDefaultMemoryInputData readBuf( outStream.getData(), outStream.getSize() );
+
+		auto physxMesh = s_Physics->createTriangleMesh( readBuf );
+
+		physx::PxShape* shape{};
+		shape = s_Physics->createShape( physx::PxTriangleMeshGeometry( physxMesh ), *s_Physics->createMaterial( mat.StaticFriction, mat.DynamicFriction, mat.Restitution ) );
+		shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
+		shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
+		shape->setLocalPose( physx::PxTransform( physx::PxQuat( physx::PxHalfPi, physx::PxVec3( 0, 0, 1 ) ) ) );
+		return shape;
 	}
 
 	void PhysXFnd::AddRigidBody( Entity entity )

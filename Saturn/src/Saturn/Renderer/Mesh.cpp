@@ -441,6 +441,11 @@ namespace Saturn {
 		PipelineSpecification pipelineSpecification;
 		pipelineSpecification.Layout = vertexLayout;
 		m_Pipeline = Pipeline::Create( pipelineSpecification );
+
+		m_VertexCount = vertexCount;
+		m_TriangleCount = m_TriangleCache.size();
+		m_VerticesCount = m_StaticVertices.size() + m_AnimatedVertices.size();
+		m_IndicesCount = m_Indices.size();
 	}
 
 	Mesh::~Mesh()

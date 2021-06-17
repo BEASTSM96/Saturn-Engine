@@ -77,51 +77,6 @@ namespace Saturn {
 			glm::mat4 rotation = glm::toMat4( Rotation );
 			glm::mat4 scale = glm::scale( glm::mat4( 1.0f ), Scale );
 
-			if ( Position.x > FLT_MAX )
-			{
-				SAT_CORE_ASSERT(false, " Position.x > FLT_MAX" );
-			}
-
-			if( Position.y > FLT_MAX )
-			{
-				SAT_CORE_ASSERT( false, " Position.y > FLT_MAX" );
-			}
-
-			if( Position.z > FLT_MAX )
-			{
-				SAT_CORE_ASSERT( false, " Position.z > FLT_MAX" );
-			}
-
-			if( Rotation.x > FLT_MAX )
-			{
-				SAT_CORE_ASSERT( false, " Rotation.x > FLT_MAX" );
-			}
-
-			if( Rotation.y > FLT_MAX )
-			{
-				SAT_CORE_ASSERT( false, " Rotation.y > FLT_MAX" );
-			}
-
-			if( Rotation.z > FLT_MAX )
-			{
-				SAT_CORE_ASSERT( false, " Rotation.z > FLT_MAX" );
-			}
-
-			if( Scale.x > FLT_MAX )
-			{
-				SAT_CORE_ASSERT( false, " Scale.x > FLT_MAX" );
-			}
-
-			if( Scale.y > FLT_MAX )
-			{
-				SAT_CORE_ASSERT( false, " Scale.y > FLT_MAX" );
-			}
-
-			if( Scale.z > FLT_MAX )
-			{
-				SAT_CORE_ASSERT( false, " Scale.z > FLT_MAX" );
-			}
-
 			return position * rotation * scale;
 
 			//return glm::translate(glm::mat4(1.0f), Position)
@@ -308,7 +263,7 @@ namespace Saturn {
 		Ref<Saturn::Mesh> Mesh;
 
 		MeshComponent() = default;
-		MeshComponent( const MeshComponent & other ) = default;
+		MeshComponent( const MeshComponent& other ) = default;
 		MeshComponent( Ref<Saturn::Mesh> & model )
 			: Mesh( model )
 		{
@@ -376,9 +331,14 @@ namespace Saturn {
 
 	struct PhysXMaterialComponent : Component
 	{
-		float StaticFriction = 0;
-		float DynamicFriction = 0;
-		float Restitution = 0;
+		float StaticFriction = 0.6f;
+		float DynamicFriction = 0.6f;
+		float Restitution = 0.0f;
+	};
+
+	struct PhysXMeshColliderComponent : Component
+	{
+		bool IsTrigger = false;
 	};
 
 	//
