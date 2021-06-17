@@ -30,6 +30,8 @@
 
 extern Saturn::Application* Saturn::CreateApplication( Saturn::ApplicationCommandLineArgs args );
 
+#include <ProjectBrowser/ProjectBrowserMain.h>
+
 void FGuardedMain( int argc, char** argv )
 {
 	Saturn::InitCore();
@@ -37,6 +39,11 @@ void FGuardedMain( int argc, char** argv )
 	auto agrvcx = *argv;
 
 	SAT_CORE_INFO( "Exe : {0}", agrvcx );
+
+	SAT_CORE_INFO( "Starting Project Browser" );
+	SAT_PROFILE_BEGIN_SESSION( "Startup", "ProjectBrowserProfile-Startup.json" );
+
+	ProjectBrowser::FGuardedMain( argc, argv );
 
 	SAT_PROFILE_BEGIN_SESSION( "Startup", "SaturnProfile-Startup.json" );
 	Saturn::Application* app = Saturn::CreateApplication( { argc, argv } );

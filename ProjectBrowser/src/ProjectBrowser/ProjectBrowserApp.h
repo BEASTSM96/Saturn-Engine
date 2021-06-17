@@ -28,73 +28,60 @@
 
 #pragma once
 
-#include "sppch.h"
+#include "Saturn/Application.h"
+#include "Saturn/Core/Base.h"
 
-#include "Core/Base.h"
-#include "Events/Event.h"
+namespace ProjectBrowser {
 
-namespace Saturn {
+	class ProjectBrowserLayer;
 
-	struct WindowProps
-	{
-		std::string Title;
-		unsigned int Width;
-		unsigned int Height;
-
-#ifdef SAT_DEBUG
-		WindowProps( const std::string& title = "Saturn Engine Mode : Debug",
-			unsigned int width = 1280,
-			unsigned int height = 720)
-			: Title( title ), Width( width ), Height(height)
-		{
-		}
-#endif // SAT_DEBUG
-
-#ifdef SAT_DIST
-		WindowProps( const std::string& title = "Saturn Engine",
-			unsigned int width = 1280,
-			unsigned int height = 720)
-			: Title( title ), Width( width ), Height( height )
-		{
-		}
-#endif // SAT_DIST
-
-#ifdef SAT_RELEASE
-		WindowProps( const std::string& title = "Saturn Engine Mode : Release",
-			unsigned int width = 1280,
-			unsigned int height = 720)
-			: Title( title ), Width( width ), Height( height )
-		{
-		}
-#endif // SAT_RELEASE
-	};
-
-	// Interface representing a desktop system based Window
-	class Window
+	class ProjectBrowserApp
 	{
 	public:
-		using EventCallbackFn = std::function<void(Event&)>;
+		ProjectBrowserApp( Saturn::ApplicationCommandLineArgs args, const Saturn::ApplicationProps& props );
+		~ProjectBrowserApp();
 
-		virtual ~Window() {}
+		void Run( void );
 
-		virtual void OnUpdate( void ) = 0;
+		static ProjectBrowserApp& Get() { return *s_Instance; }
 
-		virtual unsigned int GetWidth( void ) const = 0;
-		virtual unsigned int GetHeight() const = 0;
+		Saturn::ApplicationCommandLineArgs GetCommandLineArgs() const { return m_CommandLineArgs; }
 
-		// Window attributes
-		virtual void SetEventCallback( const EventCallbackFn& callback ) = 0;
-		virtual void SetVSync( bool enabled ) = 0;
-		virtual bool IsVSync( void ) const = 0;
-		virtual void Maximize( void ) = 0;
-		virtual void Minimize( void ) = 0;
-		virtual void Restore( void ) = 0;
-		virtual void SetTitle( const std::string& title ) = 0;
-		virtual void SetWindowImage( const char* filepath ) = 0;
+		void OnEvent( Saturn::Event& e );
 
-		virtual void* GetNativeWindow( void ) const = 0;
+		Saturn::Layer* PushLayer( Saturn::Layer* layer );
+		void PushOverlay( Saturn::Layer* layer );
+		void RenderImGui( void );
 
-		static Window* Create( const WindowProps& props = WindowProps() );
+		void Init( void );
+
+		Saturn::Window& GetWindow() { return *m_Window; }
+
+	protected:
+		
+	private:
+		bool OnWindowClose( Saturn::WindowCloseEvent& e );
+		bool OnWindowResize( Saturn::WindowResizeEvent& e );
+	private:
+		Saturn::ApplicationCommandLineArgs m_CommandLineArgs;
+		Saturn::VersionCtrl m_VersionCtrl;
+
+		ProjectBrowserLayer* m_ImGuiLayer;
+
+		bool m_Running = true;
+
+		Saturn::LayerStack m_LayerStack;
+
+		bool m_Crashed = false;
+
+		float LastFrameTime = 0.0f;
+
+		bool m_Minimized = false;
+
+		Saturn::Timestep m_TimeStep;
+
+		std::unique_ptr<Saturn::Window> m_Window;
+	private:
+		static ProjectBrowserApp* s_Instance;
 	};
-
 }

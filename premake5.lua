@@ -96,7 +96,8 @@ project "Saturn"
 		"%{IncludeDir.mono}",
 		"%{IncludeDir.FontAwesome}",
 		"Saturn/vendor/yaml-cpp/include",
-		"Saturn/vendor/SaturnLog/SaturnLogging/src"
+		"Saturn/vendor/SaturnLog/SaturnLogging/src",
+		"ProjectBrowser/src"
 	}
 
 	links 
@@ -177,6 +178,80 @@ project "Saturn"
 
 group "sat/Core"
 
+project "ProjectBrowser"
+location "ProjectBrowser"
+	kind "StaticLib"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+	warnings "Off"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS"
+	}
+
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp"
+	}
+
+	includedirs
+	{
+		"%{prj.name}/src",
+		"Saturn/src",
+		"Saturn/vendor/spdlog/include",
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.stb_image}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx",
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.assimp}",
+			"Saturn/vendor/assimp/include/",
+		"%{IncludeDir.SPIRV_Cross}",
+		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.mono}",
+		"%{IncludeDir.FontAwesome}",
+		"Saturn/vendor/yaml-cpp/include",
+		"Saturn/vendor/SaturnLog/SaturnLogging/src"
+	}
+
+	links
+	{
+		"Saturn"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"SAT_PLATFORM_WINDOWS"
+		}
+
+	filter "configurations:Debug"
+		defines "SAT_DEBUG"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "SAT_RELEASE"
+		runtime "Release"
+		optimize "on"
+
+	filter "configurations:Dist"
+		defines "SAT_DIST"
+		runtime "Release"
+		optimize "on"
+
 ---------------------------------------------------------------------------------------------------------------------------
 
 group "sat/Core"
@@ -242,12 +317,14 @@ project "Titan"
 		"Saturn/vendor/yaml-cpp/include",
 		"Saturn/vendor/glm/",
 		"%{IncludeDir.mono}",
-		"%{IncludeDir.SPIRV_Cross}"
+		"%{IncludeDir.SPIRV_Cross}",
+		"ProjectBrowser/src"
 	}
 
 	links
 	{
-		"Saturn"
+		"Saturn",
+		"ProjectBrowser"
 	}
 
 	postbuildcommands 

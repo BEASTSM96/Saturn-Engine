@@ -1364,8 +1364,38 @@ namespace Saturn {
 					if( ImGui::MenuItem( "Save As...", "Shift+S" ) )
 						SaveSceneAs();
 					ImGui::EndMenu();
+
+				}
+				/*
+				if( ImGui::Button( ICON_FA_WINDOW_MINIMIZE "" ) )
+				{
+					Application::Get().GetWindow().Minimize();
 				}
 
+				static bool restore = false;
+
+				if( !restore )
+				{
+					if( ImGui::Button( ICON_FA_WINDOW_RESTORE "" ) )
+					{
+						Application::Get().GetWindow().Restore();
+						restore = true;
+					}
+				}
+				else
+				{
+					if( ImGui::Button( ICON_FA_WINDOW_MAXIMIZE "" ) )
+					{
+						Application::Get().GetWindow().Maximize();
+						restore = false;
+					}
+				}
+
+				if( ImGui::Button( ICON_FA_WINDOW_CLOSE "" ) )
+				{
+					Application::Get().Close();
+				}
+				*/
 				ImGui::EndMainMenuBar();
 			}
 

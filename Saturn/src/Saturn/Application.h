@@ -105,6 +105,8 @@ namespace Saturn {
 		static bool IsRunning( void ) { return Get().m_Running; }
 		static bool GetMinimized( void ) { return Get().m_Minimized; }
 
+		static void Close() { Get().m_Running = false; }
+
 		std::pair< std::string, std::string > OpenFile( const char* filter ) const;
 		std::pair< std::string, std::string > SaveFile( const char* f ) const;
 
