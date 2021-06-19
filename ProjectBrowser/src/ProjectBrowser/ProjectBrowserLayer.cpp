@@ -115,6 +115,12 @@ namespace ProjectBrowser {
 		static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
 		bool opt_fullscreen = opt_fullscreen_persistant;
 
+		//Check if we have already have a startup project
+		if ( Saturn::ProjectSettings::HasStartupProject() )
+		{
+			ProjectBrowserApp::Get().SetPendingClose( true );
+		}
+
 		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
 		// because it would be confusing to have two docking targets within each others.
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;

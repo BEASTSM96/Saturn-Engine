@@ -369,6 +369,8 @@ namespace Saturn {
 		out << YAML::Key << "Project Settings";
 		out << YAML::Value << " ";
 		out << YAML::Value << "Startup Scene" << YAML::Value << ProjectSettings::GetStartupSceneName();
+		out << YAML::Value << "Startup Project Name" << YAML::Value << ProjectSettings::GetStartupProjectName();
+		out << YAML::Value << "Startup Project Folder" << YAML::Value << ProjectSettings::GetStartupProjectFolder();
 		out << YAML::Key << "Last project settings" << YAML::Value;
 		out << YAML::BeginMap; // Last project
 		out << YAML::Value << "Last Project Folder" << YAML::Value << ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
@@ -394,6 +396,9 @@ namespace Saturn {
 		SAT_CORE_INFO( "Starting deserializing of Project Settings" );
 
 		std::string sceneName = data[ "Startup Scene" ].as<std::string>();
+		std::string startupProjectName = data[ "Startup Project Name" ].as<std::string>();
+		std::string startupProjectFolder = data[ "Startup Project Folder" ].as<std::string>();
+
 		std::string projectFolder;
 		std::string projectName;
 
@@ -404,7 +409,12 @@ namespace Saturn {
 			projectName = lastProjectNode[ "Last Project Name" ].as<std::string>();
 		}
 
-		Ref<Project> project = Ref<Project>::Create( projectFolder, projectName );
+		Ref<Project> project;
+
+		if( startupProjectFolder.empty() && startupProjectName.empty() )
+			project = Ref<Project>::Create( projectFolder, projectName );
+		else
+			project = Ref<Project>::Create( "assets\\" + startupProjectFolder, startupProjectName );
 
 		ProjectSettings::SetCurrentProject( project );
 		ProjectSettings::SetStartupSceneName( sceneName );

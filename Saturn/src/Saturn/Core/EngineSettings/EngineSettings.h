@@ -43,6 +43,15 @@ namespace Saturn {
 		static void SetCurrentProject( Ref<Project>& project );
 		static Ref<Project>& GetCurrentProject();
 
+		static void SetStartupNameFolder( std::string name, std::string folder );
+		static void SetStartupName( std::string name );
+		static void SetStartupFolder( std::string folder );
+
+		static std::string& GetStartupProjectName();
+		static std::string& GetStartupProjectFolder();
+
+		static bool HasStartupProject();
+
 		static void Save();
 		static void Load();
 

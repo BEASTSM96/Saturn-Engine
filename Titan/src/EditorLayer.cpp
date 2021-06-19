@@ -1366,36 +1366,6 @@ namespace Saturn {
 					ImGui::EndMenu();
 
 				}
-				/*
-				if( ImGui::Button( ICON_FA_WINDOW_MINIMIZE "" ) )
-				{
-					Application::Get().GetWindow().Minimize();
-				}
-
-				static bool restore = false;
-
-				if( !restore )
-				{
-					if( ImGui::Button( ICON_FA_WINDOW_RESTORE "" ) )
-					{
-						Application::Get().GetWindow().Restore();
-						restore = true;
-					}
-				}
-				else
-				{
-					if( ImGui::Button( ICON_FA_WINDOW_MAXIMIZE "" ) )
-					{
-						Application::Get().GetWindow().Maximize();
-						restore = false;
-					}
-				}
-
-				if( ImGui::Button( ICON_FA_WINDOW_CLOSE "" ) )
-				{
-					Application::Get().Close();
-				}
-				*/
 
 				const char* text = ProjectSettings::GetCurrentProject()->GetName().c_str();
 
@@ -1473,10 +1443,7 @@ namespace Saturn {
 			if( ImGui::Begin( "Project Settings" ) )
 			{
 				ImGui::Text( "Startup Scene :" );
-				ImGui::SameLine();
-
-				ImGui::Columns( 2 );
-				ImGui::NextColumn();
+				//ImGui::SameLine();
 
 				char buffer[ 256 ];
 				memset( buffer, 0, 256 );
@@ -1491,7 +1458,28 @@ namespace Saturn {
 					OpenScene( ProjectSettings::GetStartupSceneName() );
 				}
 
-				ImGui::NextColumn();
+				ImGui::Text( "Startup project name :" );
+
+				char buff[ 256 ];
+				memset( buff, 0, 256 );
+				memcpy( buff, ProjectSettings::GetStartupProjectName().c_str(), ProjectSettings::GetStartupProjectName().length() );
+				if( ImGui::InputText( "##name", buff, 256 ) )
+				{
+					ProjectSettings::SetStartupName( std::string( buff ) );
+				}
+
+				ImGui::Text( "Startup project folder :" );
+
+				char bufr[ 256 ];
+				memset( bufr, 0, 256 );
+				memcpy( bufr, ProjectSettings::GetStartupProjectFolder().c_str(), ProjectSettings::GetStartupProjectFolder().length() );
+				if( ImGui::InputText( "##yourmum", bufr, 256 ) )
+				{
+					ProjectSettings::SetStartupFolder( std::string( bufr ) );
+				}
+
+				//SAT_CORE_INFO( "{0}, {1}", ProjectSettings::GetStartupNameFolder().first, ProjectSettings::GetStartupNameFolder().second );
+
 				if( ImGui::Button( "Save" ) )
 				{
 					ProjectSettings::Save();

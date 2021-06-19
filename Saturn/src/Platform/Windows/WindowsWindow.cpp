@@ -87,9 +87,6 @@ namespace Saturn {
 		m_Context = new OpenGLContext( m_Window );
 		m_Context->Init();
 
-		//glfwWindowHint( GLFW_DECORATED, GLFW_TRUE );
-		//glfwWindowHint( GLFW_RESIZABLE, GLFW_TRUE );
-
 		glfwSetWindowUserPointer( m_Window, &m_Data );
 		SetVSync( true );
 
