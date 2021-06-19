@@ -26,43 +26,33 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "ModuleManager.h"
-#include "Module.h"
+#pragma once
+
+#include "Saturn/Core/Base.h"
+#include "Saturn/Core/UUID.h"
+#include <string>
 
 namespace Saturn {
 
-	ModuleManager::ModuleManager()
+	class Project : public RefCounted
 	{
-	}
+	public:
+		Project( std::string& filepath, std::string name );
+		Project( UUID& uuid );
+		virtual ~Project();
 
-	ModuleManager::~ModuleManager()
-	{
-		for( int i = 0; i < m_Modules.size(); i++ )
-		{
-			delete m_Modules.at( i ).Raw();
-		}
+		/* Copies the assets from the working dir into the project dir */
+		void CopyAssets();
 
-		m_Modules.clear();
-	}
+		std::string& GetAssetsFolderPath() { return m_AssetsPath; }
+		const std::string& GetAssetsFolderPath() const { return m_AssetsPath; }
 
-	void ModuleManager::InitNewModule( Ref<Module>& module, std::string name, std::string path )
-	{
-		module.Raw()->m_Manager = this;
-		m_Modules.push_back( module );
-	}
-
-	void ModuleManager::AddGameModule( Ref<Module>& gamemodule )
-	{
-		gamemodule.Raw()->m_Manager = this;
-		m_Modules.push_back( gamemodule );
-	}
-
-	Ref<Module> ModuleManager::CopyModuleFrom( Ref<Module> moudule )
-	{
-		Ref<Module>NewModule = moudule;
-		NewModule.Raw()->m_Manager = moudule.Raw()->m_Manager;
-		return NewModule;
-	}
+	protected:
+	private:
+		std::string m_AssetsPath;
+		std::string m_WorkingDir;
+		std::string m_Name;
+		UUID m_UUID;
+	};
 
 }

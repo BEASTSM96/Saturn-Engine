@@ -163,11 +163,61 @@ namespace ProjectBrowser {
 				if( ImGui::Button( "New Project" ) )
 				{
 					ImGui::OpenPopup( "new-project" );
+				}
 
-					if( ImGui::BeginPopupModal( "new-project" ) ) 
+				if( ImGui::BeginPopupModal( "new-project" ) )
+				{
+					ImGui::Text( "Enter project Name" );
+					static std::string name;
+					if( name.length() > 256 )
 					{
-						ImGui::EndPopup();
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::InputText( "##name", ( char* )name.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+						ImGui::SameLine();
+						if( ImGui::Button( "Clear" ) ) 
+							name = "";
 					}
+					else
+						ImGui::InputText( "##name", ( char* )name.c_str(), 256 );
+
+					ImGui::Text( "Enter project Directory" );
+					static std::string directory = "Null";
+					if( directory.length() > 256 )
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+						ImGui::InputText( "##directory", ( char* )directory.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+						ImGui::SameLine();
+						if( ImGui::Button( "Clear" ) )
+							directory = "";
+					}
+					else
+						ImGui::InputText( "##directory", ( char* )directory.c_str(), 256 );
+
+					namespace fs = std::filesystem;
+
+					if( ImGui::Button( "Create Project" ) )
+					{
+						bool res;
+
+						std::string copy = directory;
+
+						if( copy != "" )
+						{
+							res = fs::create_directories( "assets\\" + directory );
+							SAT_CORE_ASSERT( res, "Failed to create directories for project");
+							directory = "Null";
+							name = "Null";
+							ImGui::CloseCurrentPopup();
+						}
+					}
+
+					ImGui::EndPopup();
 				}
 			}
 
