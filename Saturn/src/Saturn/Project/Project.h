@@ -44,11 +44,19 @@ namespace Saturn {
 		/* Copies the assets from the working dir into the project dir */
 		void CopyAssets();
 
+	public:
 		std::string& GetAssetsFolderPath() { return m_AssetsPath; }
 		const std::string& GetAssetsFolderPath() const { return m_AssetsPath; }
 
+		std::string& GetName() { return m_Name; }
+		const std::string& GetName() const { return m_Name; }
+
+		UUID& GetUUID() { return m_UUID; }
+		const UUID& GetUUID() const { return m_UUID; }
+
 	protected:
 	private:
+		// working dir is the Solution working dir
 		std::string m_AssetsPath;
 		std::string m_WorkingDir;
 		std::string m_Name;

@@ -47,6 +47,8 @@ namespace ProjectBrowser {
 
 		Saturn::ApplicationCommandLineArgs GetCommandLineArgs() const { return m_CommandLineArgs; }
 
+		void SetPendingClose( bool close ) { m_PendingClose = close; }
+
 		void OnEvent( Saturn::Event& e );
 
 		Saturn::Layer* PushLayer( Saturn::Layer* layer );
@@ -69,6 +71,7 @@ namespace ProjectBrowser {
 		ProjectBrowserLayer* m_ImGuiLayer;
 
 		bool m_Running = true;
+		bool m_PendingClose = false;
 
 		Saturn::LayerStack m_LayerStack;
 

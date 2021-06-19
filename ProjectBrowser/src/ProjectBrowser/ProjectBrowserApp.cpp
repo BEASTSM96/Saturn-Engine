@@ -103,7 +103,7 @@ namespace ProjectBrowser {
 	void ProjectBrowserApp::Run( void )
 	{
 		SAT_PROFILE_FUNCTION();
-		while( m_Running && !m_Crashed )
+		while( m_Running && !m_Crashed && !m_PendingClose )
 		{
 			SAT_PROFILE_SCOPE( "ProjectBroswer-RunLoop" );
 

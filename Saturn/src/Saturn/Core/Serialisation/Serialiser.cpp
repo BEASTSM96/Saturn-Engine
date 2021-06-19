@@ -369,6 +369,11 @@ namespace Saturn {
 		out << YAML::Key << "Project Settings";
 		out << YAML::Value << " ";
 		out << YAML::Value << "Startup Scene" << YAML::Value << ProjectSettings::GetStartupSceneName();
+		out << YAML::Key << "Last project settings" << YAML::Value;
+		out << YAML::BeginMap; // Last project
+		out << YAML::Value << "Last Project Folder" << YAML::Value << ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
+		out << YAML::Value << "Last Project Name" << YAML::Value << ProjectSettings::GetCurrentProject()->GetName();
+		out << YAML::EndMap; // Last project
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
 
@@ -389,8 +394,30 @@ namespace Saturn {
 		SAT_CORE_INFO( "Starting deserializing of Project Settings" );
 
 		std::string sceneName = data[ "Startup Scene" ].as<std::string>();
+		std::string projectFolder;
+		std::string projectName;
 
+		auto lastProjectNode = data[ "Last project settings" ];
+		if( lastProjectNode )
+		{
+			projectFolder = lastProjectNode[ "Last Project Folder" ].as<std::string>();
+			projectName = lastProjectNode[ "Last Project Name" ].as<std::string>();
+		}
+
+		Ref<Project> project = Ref<Project>::Create( projectFolder, projectName );
+
+		ProjectSettings::SetCurrentProject( project );
 		ProjectSettings::SetStartupSceneName( sceneName );
+	}
+
+	void Serialiser::SerialiseProject( const std::string& filepath )
+	{
+
+	}
+
+	void Serialiser::DeserialiseProject( const std::string& filepath )
+	{
+
 	}
 
 	static void SerialiseEnvironment( YAML::Emitter& out, const Ref<Scene>& scene )

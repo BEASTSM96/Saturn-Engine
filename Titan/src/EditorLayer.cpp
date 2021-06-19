@@ -51,8 +51,6 @@
 #include <Saturn/Renderer/Renderer.h>
 #include <Saturn/Core/Base.h>
 #include <Saturn/MouseButtons.h>
-#include <Saturn/Core/Modules/Module.h>
-#include <Saturn/Core/Modules/ModuleManager.h>
 #include <Saturn/Scene/SceneManager.h>
 #include <Saturn/Script/ScriptEngine.h>
 #include <Saturn/Input.h>
@@ -103,7 +101,7 @@ namespace Saturn {
 
 		PhysXFnd::Init();
 
-		ProjectSettings::LoadStartupScene();
+		ProjectSettings::Load();
 		OpenScene( ProjectSettings::GetStartupSceneName() );
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
@@ -811,6 +809,8 @@ namespace Saturn {
 			auto viewportOffset = ImGui::GetWindowPos(); // includes tab bar
 			auto viewportSize = ImGui::GetContentRegionAvail();
 
+			m_FolderPath = ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
+
 			ImGui::Text( "File Path: %s", m_FolderPath.c_str() );
 
 			if( m_FolderPath == "assets" )
@@ -836,7 +836,7 @@ namespace Saturn {
 
 			if( ImGui::Button( "Scan All Folders for Assets" ) )
 			{
-				for( fs::recursive_directory_iterator it( "assets\\" ); it != fs::recursive_directory_iterator(); ++it )
+				for( fs::recursive_directory_iterator it( m_FolderPath ); it != fs::recursive_directory_iterator(); ++it )
 				{
 					if( it->path().extension().string() == ".sc" )
 					{
@@ -1396,6 +1396,14 @@ namespace Saturn {
 					Application::Get().Close();
 				}
 				*/
+
+				const char* text = ProjectSettings::GetCurrentProject()->GetName().c_str();
+
+				ImVec2 textSize = ImGui::CalcTextSize( text );
+				ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
+
+				ImGui::Text( text );
+
 				ImGui::EndMainMenuBar();
 			}
 
@@ -1470,9 +1478,13 @@ namespace Saturn {
 				ImGui::Columns( 2 );
 				ImGui::NextColumn();
 
-				ImGui::InputText( "##engine-startup-scene", ( char* )ProjectSettings::GetStartupSceneName().c_str(), 256 );
-
-				ProjectSettings::SetStartupSceneName( ProjectSettings::GetStartupSceneName() );
+				char buffer[ 256 ];
+				memset( buffer, 0, 256 );
+				memcpy( buffer, ProjectSettings::GetStartupSceneName().c_str(), ProjectSettings::GetStartupSceneName().length() );
+				if( ImGui::InputText( "##directory", buffer, 256 ) )
+				{
+					ProjectSettings::SetStartupSceneName( std::string( buffer ) );
+				}
 
 				if( ImGui::Button( "Open Startup Project" ) )
 				{
@@ -1482,7 +1494,7 @@ namespace Saturn {
 				ImGui::NextColumn();
 				if( ImGui::Button( "Save" ) )
 				{
-					ProjectSettings::SaveStartupScene();
+					ProjectSettings::Save();
 				}
 			}
 			ImGui::End();

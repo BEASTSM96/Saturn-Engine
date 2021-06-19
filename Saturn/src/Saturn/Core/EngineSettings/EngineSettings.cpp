@@ -36,6 +36,7 @@ namespace Saturn {
 	static std::string m_StartupSceneName;
 	static std::string m_ProjectName;
 	static std::string m_AssetPath;
+	static Ref<Project> m_CurrentProject;
 
 	void ProjectSettings::SetStartupSceneName( std::string scenename )
 	{
@@ -47,16 +48,25 @@ namespace Saturn {
 		return m_StartupSceneName;
 	}
 
-	void ProjectSettings::SaveStartupScene()
+	void ProjectSettings::SetCurrentProject( Ref<Project>& project )
+	{
+		m_CurrentProject = project;
+	}
+
+	Ref<Project>& ProjectSettings::GetCurrentProject()
+	{
+		return m_CurrentProject;
+	}
+
+	void ProjectSettings::Save()
 	{
 		Serialiser s;
 		s.SerialiseProjectSettings( "assets\\EngineSettings.eng" );
 	}
 
-	void ProjectSettings::LoadStartupScene()
+	void ProjectSettings::Load()
 	{
 		Serialiser s;
 		s.DeserialiseProjectSettings( "assets\\EngineSettings.eng" );
 	}
-
 }

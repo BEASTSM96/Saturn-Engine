@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
+#include "Saturn/Project/Project.h"
 #include <string>
 
 namespace Saturn {
@@ -39,8 +40,11 @@ namespace Saturn {
 		static void SetStartupSceneName( std::string scenename );
 		static std::string GetStartupSceneName();
 
-		static void SaveStartupScene();
-		static void LoadStartupScene();
+		static void SetCurrentProject( Ref<Project>& project );
+		static Ref<Project>& GetCurrentProject();
+
+		static void Save();
+		static void Load();
 
 	protected:
 	private:

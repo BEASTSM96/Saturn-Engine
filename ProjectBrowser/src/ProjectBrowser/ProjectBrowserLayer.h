@@ -30,6 +30,8 @@
 
 #include <Saturn/Core/Timestep.h>
 
+#include <string>
+
 namespace ProjectBrowser {
 
 	class ProjectBrowserLayer
@@ -48,6 +50,8 @@ namespace ProjectBrowser {
 
 	protected:
 	private:
+		std::string m_ProjectName = "Null";
+		std::string m_ProjectDirectory = "Null";
 	};
 
 }

@@ -37,6 +37,8 @@
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
 
+#include <Saturn/Project/Project.h>
+#include <Saturn/Core/EngineSettings/EngineSettings.h>
 
 namespace ProjectBrowser {
 
@@ -168,52 +170,66 @@ namespace ProjectBrowser {
 				if( ImGui::BeginPopupModal( "new-project" ) )
 				{
 					ImGui::Text( "Enter project Name" );
-					static std::string name;
-					if( name.length() > 256 )
+					if( m_ProjectName.length() > 256 )
 					{
 						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::InputText( "##name", ( char* )name.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+						ImGui::InputText( "##name", ( char* )m_ProjectName.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 						ImGui::PopItemFlag();
 						ImGui::PopStyleVar();
 						ImGui::SameLine();
 						if( ImGui::Button( "Clear" ) ) 
-							name = "";
+							m_ProjectName = "";
 					}
 					else
-						ImGui::InputText( "##name", ( char* )name.c_str(), 256 );
+					{
+						char buffer[ 256 ];
+						memset( buffer, 0, 256 );
+						memcpy( buffer, m_ProjectName.c_str(), m_ProjectName.length() );
+						if( ImGui::InputText( "##name", buffer, 256 ) )
+						{
+							m_ProjectName = std::string( buffer );
+						}
+					}
 
 					ImGui::Text( "Enter project Directory" );
-					static std::string directory = "Null";
-					if( directory.length() > 256 )
+					if( m_ProjectDirectory.length() > 256 && !std::filesystem::exists( m_ProjectDirectory ) )
 					{
 						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-						ImGui::InputText( "##directory", ( char* )directory.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+						ImGui::InputText( "##directory", ( char* )m_ProjectDirectory.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 						ImGui::PopItemFlag();
 						ImGui::PopStyleVar();
 						ImGui::SameLine();
 						if( ImGui::Button( "Clear" ) )
-							directory = "";
+							m_ProjectDirectory = "";
 					}
 					else
-						ImGui::InputText( "##directory", ( char* )directory.c_str(), 256 );
+					{
+						char buffer[ 256 ];
+						memset( buffer, 0, 256 );
+						memcpy( buffer, m_ProjectDirectory.c_str(), m_ProjectDirectory.length() );
+						if( ImGui::InputText( "##directory", buffer, 256 ) )
+						{
+							m_ProjectDirectory = "assets\\" + std::string( buffer );
+						}
+					}
 
 					namespace fs = std::filesystem;
 
 					if( ImGui::Button( "Create Project" ) )
 					{
-						bool res;
-
-						std::string copy = directory;
-
-						if( copy != "" )
+						if( m_ProjectDirectory != "" )
 						{
-							res = fs::create_directories( "assets\\" + directory );
-							SAT_CORE_ASSERT( res, "Failed to create directories for project");
-							directory = "Null";
-							name = "Null";
+							fs::create_directories( m_ProjectDirectory );
+							Saturn::Ref<Saturn::Project> project = Saturn::Ref<Saturn::Project>::Create( m_ProjectDirectory, m_ProjectName );
+							Saturn::ProjectSettings::SetCurrentProject( project );
+							m_ProjectDirectory = "Null";
+							m_ProjectName = "Null";
 							ImGui::CloseCurrentPopup();
+							Saturn::ProjectSettings::Save();
+							Saturn::ProjectSettings::GetCurrentProject()->CopyAssets();
+							ProjectBrowserApp::Get().SetPendingClose( true );
 						}
 					}
 

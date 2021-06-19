@@ -16,6 +16,8 @@ namespace Saturn {
 	{
 		m_Name = name;
 		m_AssetsPath = filepath;
+		m_WorkingDir = std::filesystem::current_path().string();
+		m_WorkingDir += "\\assets";
 	}
 
 	Project::~Project()
@@ -25,9 +27,5 @@ namespace Saturn {
 
 	void Project::CopyAssets()
 	{
-		if( std::filesystem::exists( "assets\\" + m_Name + "Project" ) )
-		{
-			std::filesystem::copy( m_WorkingDir, m_AssetsPath );
-		}
 	}
 }

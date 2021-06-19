@@ -58,6 +58,9 @@ namespace Saturn {
 		virtual void SerialiseProjectSettings( const std::string& filepath );
 		virtual void DeserialiseProjectSettings( const std::string& filepath );
 
+		virtual void SerialiseProject( const std::string& filepath );
+		virtual void DeserialiseProject( const std::string& filepath );
+
 		std::string m_ObjectName;
 		bool m_shouldSerialise;
 	private:
