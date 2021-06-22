@@ -87,8 +87,6 @@ namespace Saturn {
 		m_Context = new OpenGLContext( m_Window );
 		m_Context->Init();
 
-		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
-
 		glfwSetWindowUserPointer( m_Window, &m_Data );
 		SetVSync( true );
 
@@ -186,6 +184,7 @@ namespace Saturn {
 	void WindowsWindow::Shutdown()
 	{
 		glfwDestroyWindow( m_Window );
+		s_GLFWInitialized = false;
 	}
 
 	void WindowsWindow::OnUpdate()
@@ -212,6 +211,16 @@ namespace Saturn {
 	void WindowsWindow::Maximize( void )
 	{
 		glfwMaximizeWindow( m_Window );
+	}
+
+	void WindowsWindow::Minimize( void )
+	{
+		SAT_CORE_ASSERT( false );
+	}
+
+	void WindowsWindow::Restore( void )
+	{
+		glfwRestoreWindow( m_Window );
 	}
 
 	void WindowsWindow::SetTitle( const std::string& title )

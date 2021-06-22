@@ -51,8 +51,6 @@
 #include <Saturn/Renderer/Renderer.h>
 #include <Saturn/Core/Base.h>
 #include <Saturn/MouseButtons.h>
-#include <Saturn/Core/Modules/Module.h>
-#include <Saturn/Core/Modules/ModuleManager.h>
 #include <Saturn/Scene/SceneManager.h>
 #include <Saturn/Script/ScriptEngine.h>
 #include <Saturn/Input.h>
@@ -103,11 +101,12 @@ namespace Saturn {
 
 		PhysXFnd::Init();
 
-		ProjectSettings::LoadStartupScene();
+		ProjectSettings::Load();
 		OpenScene( ProjectSettings::GetStartupSceneName() );
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
-		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
+		m_PlayButtonTexture = Texture2D::Create( "assets/textures/PlayButton.png" );
+		m_PauseButtonTexture = Texture2D::Create( "assets/textures/PauseButton.png" );
 		m_FileSceneTexture = Texture2D::Create( "assets/.github/i/sat/SaturnLogov2.png" );
 
 		m_UnkownFile = Texture2D::Create( "assets/textures/assetpanel/unkown_file.png" );
@@ -811,6 +810,8 @@ namespace Saturn {
 			auto viewportOffset = ImGui::GetWindowPos(); // includes tab bar
 			auto viewportSize = ImGui::GetContentRegionAvail();
 
+			m_FolderPath = ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
+
 			ImGui::Text( "File Path: %s", m_FolderPath.c_str() );
 
 			if( m_FolderPath == "assets" )
@@ -836,7 +837,7 @@ namespace Saturn {
 
 			if( ImGui::Button( "Scan All Folders for Assets" ) )
 			{
-				for( fs::recursive_directory_iterator it( "assets\\" ); it != fs::recursive_directory_iterator(); ++it )
+				for( fs::recursive_directory_iterator it( m_FolderPath ); it != fs::recursive_directory_iterator(); ++it )
 				{
 					if( it->path().extension().string() == ".sc" )
 					{
@@ -1364,7 +1365,15 @@ namespace Saturn {
 					if( ImGui::MenuItem( "Save As...", "Shift+S" ) )
 						SaveSceneAs();
 					ImGui::EndMenu();
+
 				}
+
+				const char* text = ProjectSettings::GetCurrentProject()->GetName().c_str();
+
+				ImVec2 textSize = ImGui::CalcTextSize( text );
+				ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
+
+				ImGui::Text( text );
 
 				ImGui::EndMainMenuBar();
 			}
@@ -1389,26 +1398,10 @@ namespace Saturn {
 			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
 			if( ImGui::Begin( "Toolbar" ) )
 			{
-				if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
+				//ImGui::SetCursorPos( (ImGui::GetWindowSize() - ImVec2( 35, 35 )) * 0.5f );
+				if( ImGui::ImageButton( (ImTextureID)(m_PlayButtonTexture->GetRendererID()), ImVec2( 35, 35 ) ) )
 				{
-					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
-					{
-						m_SceneHierarchyPanel->Reset();
-						m_RuntimeScene->SetSelectedEntity( {} );
-						m_SceneHierarchyPanel->SetSelected( {} );
-						m_NoSceneCamera = nullptr;
-						m_RuntimeScene->EndRuntime();
-						m_RuntimeScene = nullptr;
-						m_SelectionContext.clear();
-						m_SceneHierarchyPanel->SetContext( m_EditorScene );
-						ScriptEngine::SetSceneContext( m_RuntimeScene );
-					}
-
-				}
-
-				if( !m_RuntimeScene )
-				{
-					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
+					if( !m_RuntimeScene )
 					{
 						m_SceneHierarchyPanel->Reset();
 						m_EditorScene->SetSelectedEntity( {} );
@@ -1421,6 +1414,25 @@ namespace Saturn {
 						ScriptEngine::SetSceneContext( m_EditorScene );
 					}
 				}
+
+				ImGui::SameLine();
+
+				if( ImGui::ImageButton( (ImTextureID)(m_PauseButtonTexture->GetRendererID()), ImVec2( 35, 35 ) ) )
+				{
+					if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
+					{
+						m_SceneHierarchyPanel->Reset();
+						m_RuntimeScene->SetSelectedEntity( {} );
+						m_SceneHierarchyPanel->SetSelected( {} );
+						m_NoSceneCamera = nullptr;
+						m_RuntimeScene->EndRuntime();
+						m_RuntimeScene = nullptr;
+						m_SelectionContext.clear();
+						m_SceneHierarchyPanel->SetContext( m_EditorScene );
+						ScriptEngine::SetSceneContext( m_RuntimeScene );
+					}
+				}
+				
 
 				ImGui::End();
 			}
@@ -1435,24 +1447,46 @@ namespace Saturn {
 			if( ImGui::Begin( "Project Settings" ) )
 			{
 				ImGui::Text( "Startup Scene :" );
-				ImGui::SameLine();
+				//ImGui::SameLine();
 
-				ImGui::Columns( 2 );
-				ImGui::NextColumn();
-
-				ImGui::InputText( "##engine-startup-scene", ( char* )ProjectSettings::GetStartupSceneName().c_str(), 256 );
-
-				ProjectSettings::SetStartupSceneName( ProjectSettings::GetStartupSceneName() );
+				char buffer[ 256 ];
+				memset( buffer, 0, 256 );
+				memcpy( buffer, ProjectSettings::GetStartupSceneName().c_str(), ProjectSettings::GetStartupSceneName().length() );
+				if( ImGui::InputText( "##directory", buffer, 256 ) )
+				{
+					ProjectSettings::SetStartupSceneName( std::string( buffer ) );
+				}
 
 				if( ImGui::Button( "Open Startup Project" ) )
 				{
 					OpenScene( ProjectSettings::GetStartupSceneName() );
 				}
 
-				ImGui::NextColumn();
+				ImGui::Text( "Startup project name :" );
+
+				char buff[ 256 ];
+				memset( buff, 0, 256 );
+				memcpy( buff, ProjectSettings::GetStartupProjectName().c_str(), ProjectSettings::GetStartupProjectName().length() );
+				if( ImGui::InputText( "##name", buff, 256 ) )
+				{
+					ProjectSettings::SetStartupName( std::string( buff ) );
+				}
+
+				ImGui::Text( "Startup project folder :" );
+
+				char bufr[ 256 ];
+				memset( bufr, 0, 256 );
+				memcpy( bufr, ProjectSettings::GetStartupProjectFolder().c_str(), ProjectSettings::GetStartupProjectFolder().length() );
+				if( ImGui::InputText( "##yourmum", bufr, 256 ) )
+				{
+					ProjectSettings::SetStartupFolder( std::string( bufr ) );
+				}
+
+				//SAT_CORE_INFO( "{0}, {1}", ProjectSettings::GetStartupNameFolder().first, ProjectSettings::GetStartupNameFolder().second );
+
 				if( ImGui::Button( "Save" ) )
 				{
-					ProjectSettings::SaveStartupScene();
+					ProjectSettings::Save();
 				}
 			}
 			ImGui::End();

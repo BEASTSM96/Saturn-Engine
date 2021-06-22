@@ -54,6 +54,8 @@ namespace Saturn {
 		bool IsVSync( void ) const override;
 
 		virtual void Maximize( void ) override;
+		virtual void Minimize( void ) override;
+		virtual void Restore( void ) override;
 		virtual void SetTitle( const std::string& title ) override;
 
 		virtual void* GetNativeWindow() const { return m_Window; };
