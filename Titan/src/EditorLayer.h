@@ -154,7 +154,8 @@ namespace Saturn {
 
 		SelectionMode m_SelectionMode = SelectionMode::Entity;
 		Ref<Texture2D> m_CheckerboardTex;
-		Ref<Texture2D> m_FooBarTexure;
+		Ref<Texture2D> m_PlayButtonTexture;
+		Ref<Texture2D> m_PauseButtonTexture;
 		Ref<Texture2D> m_FileSceneTexture;
 		Ref<Texture2D> m_UnkownFile;
 		Ref<Texture2D> m_TextFile;

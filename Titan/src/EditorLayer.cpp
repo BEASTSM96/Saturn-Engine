@@ -105,7 +105,8 @@ namespace Saturn {
 		OpenScene( ProjectSettings::GetStartupSceneName() );
 
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
-		m_FooBarTexure = Texture2D::Create( "assets/textures/PlayButton.png" );
+		m_PlayButtonTexture = Texture2D::Create( "assets/textures/PlayButton.png" );
+		m_PauseButtonTexture = Texture2D::Create( "assets/textures/PauseButton.png" );
 		m_FileSceneTexture = Texture2D::Create( "assets/.github/i/sat/SaturnLogov2.png" );
 
 		m_UnkownFile = Texture2D::Create( "assets/textures/assetpanel/unkown_file.png" );
@@ -1397,26 +1398,10 @@ namespace Saturn {
 			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
 			if( ImGui::Begin( "Toolbar" ) )
 			{
-				if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
+				//ImGui::SetCursorPos( (ImGui::GetWindowSize() - ImVec2( 35, 35 )) * 0.5f );
+				if( ImGui::ImageButton( (ImTextureID)(m_PlayButtonTexture->GetRendererID()), ImVec2( 35, 35 ) ) )
 				{
-					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 1.0f, 1.0f, 1.0f, 0.2f ) ) )
-					{
-						m_SceneHierarchyPanel->Reset();
-						m_RuntimeScene->SetSelectedEntity( {} );
-						m_SceneHierarchyPanel->SetSelected( {} );
-						m_NoSceneCamera = nullptr;
-						m_RuntimeScene->EndRuntime();
-						m_RuntimeScene = nullptr;
-						m_SelectionContext.clear();
-						m_SceneHierarchyPanel->SetContext( m_EditorScene );
-						ScriptEngine::SetSceneContext( m_RuntimeScene );
-					}
-
-				}
-
-				if( !m_RuntimeScene )
-				{
-					if( ImGui::ImageButton( ( ImTextureID )( m_FooBarTexure->GetRendererID() ), ImVec2( 50, 50 ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), -1, ImVec4( 0, 0, 0, 0 ), ImVec4( 0.9f, 0.9f, 0.9f, 1.0f ) ) )
+					if( !m_RuntimeScene )
 					{
 						m_SceneHierarchyPanel->Reset();
 						m_EditorScene->SetSelectedEntity( {} );
@@ -1429,6 +1414,25 @@ namespace Saturn {
 						ScriptEngine::SetSceneContext( m_EditorScene );
 					}
 				}
+
+				ImGui::SameLine();
+
+				if( ImGui::ImageButton( (ImTextureID)(m_PauseButtonTexture->GetRendererID()), ImVec2( 35, 35 ) ) )
+				{
+					if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
+					{
+						m_SceneHierarchyPanel->Reset();
+						m_RuntimeScene->SetSelectedEntity( {} );
+						m_SceneHierarchyPanel->SetSelected( {} );
+						m_NoSceneCamera = nullptr;
+						m_RuntimeScene->EndRuntime();
+						m_RuntimeScene = nullptr;
+						m_SelectionContext.clear();
+						m_SceneHierarchyPanel->SetContext( m_EditorScene );
+						ScriptEngine::SetSceneContext( m_RuntimeScene );
+					}
+				}
+				
 
 				ImGui::End();
 			}
