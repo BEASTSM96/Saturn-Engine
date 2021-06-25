@@ -137,6 +137,7 @@ namespace Saturn {
 			submesh.MeshName = mesh->mName.C_Str();
 
 			vertexCount += mesh->mNumVertices;
+			submesh.VertexCount = vertexCount;
 			indexCount += submesh.IndexCount;
 
 			SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );

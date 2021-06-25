@@ -31,6 +31,7 @@
 #include "Saturn/Scene/Entity.h"
 #include "Saturn/Application.h"
 #include "Saturn/Script/ScriptEngine.h"
+#include "Saturn/Physics/PhysX/PhysXFnd.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -673,7 +674,9 @@ namespace Saturn {
 
 			if( removeComponent )
 			{
-				if( sizeof( T ) == sizeof( PhysXMaterialComponent ) )
+				if( sizeof( T ) != sizeof( PhysXMaterialComponent ) )
+					entity.RemoveComponent<T>();
+				else
 					return;
 
 				if( sizeof( T ) == sizeof( PhysXRigidbodyComponent ) )
@@ -681,7 +684,7 @@ namespace Saturn {
 					entity.RemoveComponent<PhysXMaterialComponent>();
 				}
 
-				entity.RemoveComponent<T>();
+
 			}
 		}
 	}
@@ -890,8 +893,18 @@ namespace Saturn {
 
 		} );
 
-		DrawComponent<PhysXMeshColliderComponent>( "PhysX MeshCollider", entity, []( auto& mc )
+		DrawComponent<PhysXMeshColliderComponent>( "PhysX MeshCollider", entity, [&]( PhysXMeshColliderComponent& mc )
 		{
+			if( ImGui::Button( "Open Mesh" ) )
+			{
+				auto filename = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
+
+				if( filename != "" )
+				{
+					auto& mesh = Ref<Mesh>::Create( filename );
+					PhysXFnd::BuildTriMesh( entity, mesh );
+				}
+			}
 		} );
 
 		DrawComponent<PhysXCapsuleColliderComponent>( "PhysX CapsuleCollider", entity, []( auto& cc )

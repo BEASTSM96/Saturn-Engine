@@ -40,7 +40,6 @@ group "sat/Dependencies"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/assimp"
 	include "Saturn/vendor/SPIRV_Cross"
-	include "Saturn/vendor/physx"
 	group "sat/Dependencies/Serialisation"
 			include "Saturn/vendor/yaml-cpp"
 
@@ -73,6 +72,7 @@ project "Saturn"
 	{
 		"_CRT_SECURE_NO_WARNINGS",
 		"PX_PHYSX_STATIC_LIB",
+		"PX_GENERATE_STATIC_LIBRARIES",
 		"AL_LIBTYPE_STATIC"
 	}
 
@@ -126,15 +126,34 @@ project "Saturn"
 		links
 		{
 			"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
-			"Saturn/vendor/physx/bin/Debug/PhysX.lib",
 			"Saturn/vendor/mono/lib/mono-2.0-sgen.lib",
-			"Saturn/vendor/yaml-cpp/bin/Debug/yaml-cpp.lib"
+			"Saturn/vendor/yaml-cpp/bin/Debug/yaml-cpp.lib",
+
+			-- Link PhysX
+			"Saturn/vendor/physx/bin/Debug/LowLevel_static_64.lib",
+			"Saturn/vendor/physx/bin/Debug/LowLevelAABB_static_64.lib",
+			"Saturn/vendor/physx/bin/Debug/LowLevelDynamics_static_64.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysX_64.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysXCharacterKinematic_static_64.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysXCommon_64.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysXCooking_64.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysXExtensions_static_64.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysXPvdSDK_static_64.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysXTask_static_64.lib",
+			"Saturn/vendor/physx/bin/Debug/PhysXVehicle_static_64.lib",
+			"Saturn/vendor/physx/bin/Debug/SceneQuery_static_64.lib",
+			"Saturn/vendor/physx/bin/Debug/SimulationController_static_64.lib"
 		}
 
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Titan/"',
 		}
 
@@ -147,13 +166,33 @@ project "Saturn"
 		links
 		{
 			"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib",
-			"Saturn/vendor/physx/bin/Release/PhysX.lib",
-			"Saturn/vendor/yaml-cpp/bin/Release/yaml-cpp.lib"
+			"Saturn/vendor/yaml-cpp/bin/Release/yaml-cpp.lib",
+
+			-- Link PhysX
+			"Saturn/vendor/physx/bin/Release/LowLevel_static_64.lib",
+			"Saturn/vendor/physx/bin/Release/LowLevelAABB_static_64.lib",
+			"Saturn/vendor/physx/bin/Release/LowLevelDynamics_static_64.lib",
+			"Saturn/vendor/physx/bin/Release/PhysX_64.lib",
+			"Saturn/vendor/physx/bin/Release/PhysXCharacterKinematic_static_64.lib",
+			"Saturn/vendor/physx/bin/Release/PhysXCommon_64.lib",
+			"Saturn/vendor/physx/bin/Release/PhysXCooking_64.lib",
+			"Saturn/vendor/physx/bin/Release/PhysXExtensions_static_64.lib",
+			"Saturn/vendor/physx/bin/Release/PhysXFoundation_64.lib",
+			"Saturn/vendor/physx/bin/Release/PhysXPvdSDK_static_64.lib",
+			"Saturn/vendor/physx/bin/Release/PhysXTask_static_64.lib",
+			"Saturn/vendor/physx/bin/Release/PhysXVehicle_static_64.lib",
+			"Saturn/vendor/physx/bin/Release/SceneQuery_static_64.lib",
+			"Saturn/vendor/physx/bin/Release/SimulationController_static_64.lib"
+
 		}
 
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Titan/"',
 		}
 
@@ -165,7 +204,21 @@ project "Saturn"
 		links
 		{
 			"Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.lib",
-			"Saturn/vendor/physx/bin/Dist/PhysX_64.lib",
+			-- Link PhysX
+			"Saturn/vendor/PhysX/bin/Release/LowLevel_static_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/LowLevelAABB_static_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/LowLevelDynamics_static_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/PhysX_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/PhysXCharacterKinematic_static_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/PhysXCommon_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/PhysXCooking_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/PhysXExtensions_static_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/PhysXFoundation_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/PhysXPvdSDK_static_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/PhysXTask_static_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/PhysXVehicle_static_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/SceneQuery_static_64.lib",
+			"Saturn/vendor/PhysX/bin/Release/SimulationController_static_64.lib"
 		}
 
 		postbuildcommands 
@@ -352,7 +405,13 @@ project "Titan"
 			'{COPY} "../Saturn/vendor/mono/lib/mono-2.0-sgen.lib" "%{cfg.targetdir}/assets/mono/lib"',
 			'{COPY} "../Saturn/vendor/mono/lib/eglib.lib" "%{cfg.targetdir}/assets/mono/lib"',
 			'{COPY} "../Saturn/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
-			'{COPY} "../SaturnScript/build/SaturnScript.dll" "%{cfg.targetdir}/assets/assembly/SaturnRuntime.dll"'
+			'{COPY} "../SaturnScript/build/SaturnScript.dll" "%{cfg.targetdir}/assets/assembly/SaturnRuntime.dll"',
+
+			-- Copy PhysX
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Release"
@@ -363,7 +422,13 @@ project "Titan"
 		postbuildcommands 
 		{
 			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/mono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
+			'{COPY} "../Saturn/vendor/mono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+
+			-- Copy PhysX
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Dist"
@@ -377,6 +442,12 @@ project "Titan"
 			'{COPY} "../Saturn/vendor/mono/bin/Dist/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/mono/lib/mono-2.0-sgen.lib" "%{cfg.targetdir}/assets/mono/lib"',
 			'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"',
+
+			-- Copy PhysX
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
 		}
 
 group "sat/Runtime"
