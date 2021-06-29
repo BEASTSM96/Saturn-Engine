@@ -79,6 +79,13 @@ namespace Saturn {
 		return physx::PxTransform( p, r );
 	}
 
+	static physx::PxTransform glmTransformToPx( glm::vec3& pos, glm::quat rot )
+	{
+		physx::PxQuat r = GLMToPhysXQuat( rot );
+		physx::PxVec3 p = GLMToPhysXVec( pos );
+
+		return physx::PxTransform( p, r );
+	}
 
 	physx::PxFilterFlags CollisionFilterShader( physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize );
 

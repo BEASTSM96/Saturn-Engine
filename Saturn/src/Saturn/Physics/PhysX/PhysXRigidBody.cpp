@@ -32,18 +32,25 @@
 #include "Saturn/Scene/Entity.h"
 #include "PhysXFnd.h"
 #include "PhysXRuntime.h"
+#include "PhysXHelpers.h"
 
 namespace Saturn {
 
-	PhysXRigidbody::PhysXRigidbody( Entity entity, glm::vec3 pos, glm::quat rot )
+	PhysXRigidbody::PhysXRigidbody( Entity entity, glm::vec3& pos, glm::quat& rot )
+		: m_Entity( entity )
 	{
 
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 
+		auto& trans = entity.GetComponent<TransformComponent>();
+
+		if( trans.Position.y <= -0 )
+			trans.Position.y = 0;
+
 		physx::PxVec3 PxPos;
-		PxPos.x = pos.x;
-		PxPos.y = pos.y;
-		PxPos.z = pos.z;
+		PxPos.x = trans.Position.x;
+		PxPos.y = trans.Position.y;
+		PxPos.z = trans.Position.z;
 
 		physx::PxQuat PxQua;
 		PxQua.x = rot.x;
@@ -53,21 +60,30 @@ namespace Saturn {
 
 		physx::PxTransform PhysXTransform( PxPos, PxQua );
 
-		physx::PxRigidDynamic* actor = PhysXFnd::GetPhysics().createRigidDynamic( PhysXTransform );
+		physx::PxRigidDynamic* actor = PhysXFnd::GetPhysics().createRigidDynamic( glmTransformToPx( trans.GetTransform() ) );
 
-		actor->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, rb.UseCCD );
+		if( !rb.isKinematic )
+			actor->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, rb.UseCCD );
 
 		physx::PxRigidBodyExt::setMassAndUpdateInertia( *actor, rb.Mass );
 		m_Body = actor;
+	}
 
-		if( entity.HasComponent<PhysXBoxColliderComponent>() )
-			PhysXFnd::CreateBoxCollider( entity, *m_Body );
-		if( entity.HasComponent<PhysXSphereColliderComponent>() )
-			PhysXFnd::CreateSphereCollider( entity, *m_Body );
-		if( entity.HasComponent<PhysXCapsuleColliderComponent>() )
-			PhysXFnd::CreateCapsuleCollider( entity, *m_Body );
-		//if( entity.HasComponent<PhysXMeshColliderComponent>() )
-		//	PhysXFnd::BuildTriMesh( entity, *m_Body, entity.GetComponent<MeshComponent>().Mesh );
+	PhysXRigidbody::~PhysXRigidbody()
+	{
+		PhysXFnd::GetPhysics().release();
+	}
+
+	void PhysXRigidbody::Init()
+	{
+		auto& rb = m_Entity.GetComponent<PhysXRigidbodyComponent>();
+
+		if( m_Entity.HasComponent<PhysXBoxColliderComponent>() )
+			PhysXFnd::CreateBoxCollider( m_Entity, *m_Body );
+		if( m_Entity.HasComponent<PhysXSphereColliderComponent>() )
+			PhysXFnd::CreateSphereCollider( m_Entity, *m_Body );
+		if( m_Entity.HasComponent<PhysXCapsuleColliderComponent>() )
+			PhysXFnd::CreateCapsuleCollider( m_Entity, *m_Body );
 
 		physx::PxAllocatorCallback& allocator = PhysXFnd::GetAllocator();
 		physx::PxFilterData filterData;
@@ -79,13 +95,8 @@ namespace Saturn {
 		for( physx::PxU32 i = 0; i < numShapes; i++ )
 			shapes[ i ]->setSimulationFilterData( filterData );
 		allocator.deallocate( shapes );
-		m_Body->userData = &entity;
+		m_Body->userData = &m_Entity;
 		SetKinematic( rb.isKinematic );
-	}
-
-	PhysXRigidbody::~PhysXRigidbody()
-	{
-		PhysXFnd::GetPhysics().release();
 	}
 
 	glm::vec3 PhysXRigidbody::GetPos()
@@ -161,9 +172,9 @@ namespace Saturn {
 		}
 	}
 
-	void PhysXRigidbody::AttachShape( physx::PxShape& shape )
+	bool PhysXRigidbody::AttachShape( physx::PxShape& shape )
 	{
-		m_Body->attachShape( shape );
+		return m_Body->attachShape( shape );
 	}
 
 	void PhysXRigidbody::AddActorToScene()

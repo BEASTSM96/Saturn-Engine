@@ -53,8 +53,10 @@ namespace Saturn {
 	class PhysXRigidbody : public RefCounted
 	{
 	public:
-		PhysXRigidbody( Entity entity, glm::vec3 pos, glm::quat rot );
+		PhysXRigidbody( Entity entity, glm::vec3& pos, glm::quat& rot );
 		~PhysXRigidbody();
+		
+		void Init();
 
 		glm::mat4 GetTransform()
 		{
@@ -82,7 +84,7 @@ namespace Saturn {
 		bool IsKinematic();
 
 		void ApplyForce( glm::vec3 force, ForceType type );
-		void AttachShape( physx::PxShape& shape );
+		bool AttachShape( physx::PxShape& shape );
 		void AddActorToScene();
 		void SetUserData( Entity& e );
 		void UseCCD( bool use );
@@ -95,6 +97,8 @@ namespace Saturn {
 		bool m_UseCCD = true;
 	private:
 		bool m_Kinematic = false;
+
+		Entity& m_Entity;
 
 		friend class PhysXCollider;
 		friend class PhysXMaterial;

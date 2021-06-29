@@ -71,6 +71,12 @@ namespace Saturn {
 		virtual void onAdvance( const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count ) override;
 	};
 
+	class PhysXAssertCallback : public physx::PxAssertHandler, public RefCounted
+	{
+	public:
+		virtual void operator()( const char* exp, const char* file, int line, bool& ignore ) override;
+	};
+
 	class PhysXFnd : public RefCounted
 	{
 	public:
@@ -81,8 +87,7 @@ namespace Saturn {
 		static void CreateBoxCollider( Entity& entity, physx::PxRigidActor& actor );
 		static void CreateSphereCollider( Entity& entity, physx::PxRigidActor& actor );
 		static void CreateCapsuleCollider( Entity& entity, physx::PxRigidActor& actor );
-		static physx::PxShape* BuildTriMesh( Entity& entity, const Ref<Mesh>& mesh );
-		static void AddRigidBody( Entity entity );
+		static void AddRigidBody( Entity& entity );
 	public:
 		static physx::PxPhysics& GetPhysics();
 		static physx::PxScene& GetPhysXScene();
