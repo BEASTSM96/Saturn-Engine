@@ -174,6 +174,10 @@ namespace Saturn {
 				meshComponent.Mesh->OnUpdate( ts );
 
 				// TODO: Should we render (logically)
+				if( m_SelectedEntity == entity )
+					SceneRenderer::ShadowMapPass( this, meshComponent, transformComponent.GetTransform(), true );
+				else
+					SceneRenderer::ShadowMapPass( this, meshComponent, transformComponent.GetTransform(), false );
 
 				if( m_SelectedEntity == entity )
 					SceneRenderer::SubmitSelectedMesh( meshComponent, transformComponent.GetTransform() );

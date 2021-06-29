@@ -195,6 +195,9 @@ namespace Saturn {
 
 		const std::vector<Index>& GetIndices() const { return m_Indices; }
 
+		const std::vector<Vertex>& GetVertices() const { return m_StaticVertices; }
+		const std::vector<AnimatedVertex>& GetAnimatedVertices() const { return m_AnimatedVertices; }
+
 	private:
 		void BoneTransform( float time );
 		void ReadNodeHierarchy( float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform );

@@ -56,10 +56,10 @@ namespace Saturn {
 
 		static void SetViewportSize( uint32_t width, uint32_t height );
 
-		static void BeginScene( const Scene* scene, const SceneRendererCamera& camera );
+		static void BeginScene( Ref<Scene> scene, const SceneRendererCamera& camera );
 		static void EndScene( void );
 
-		static void ShadowMapPass();
+		static void ShadowMapPass( Ref<Scene> scene, Ref<Mesh> mesh, const glm::mat4& transform, bool selected );
 
 		static void RenderShadows( Scene* scene, Entity e, const SceneRendererCamera& camera );
 

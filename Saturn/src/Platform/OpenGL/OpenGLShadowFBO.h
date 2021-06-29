@@ -34,22 +34,35 @@
 
 namespace Saturn {
 
+	// Shadow map framebuffer
+	// And the shadow depth map
+
 	class OpenGLShadowMapFBO : public ShadowMapFBO
 	{
 	public:
 		OpenGLShadowMapFBO( int width, int height );
 		virtual ~OpenGLShadowMapFBO();
 
-		virtual void BindForWriting() override;
+		void CreateBuffer() override;
+		void AttachBuffer() override;
 
-		virtual void BindForReading( void* textureUnit ) override;
+		uint32_t GetWidth() const override { return m_Width; }
+		uint32_t GetHeight() const override { return m_Height; }
 
 		virtual uint32_t GetColorAttachmentRendererID() const { return m_ShadowMap; }
+
+		void Bind() override;
+		void Unbind() override;
+		void Resize( int width, int height ) override;
 
 	protected:
 
 	private:
 		GLuint m_Fbo;
 		GLuint m_ShadowMap;
+
+		uint32_t m_Width = 1024;
+		uint32_t m_Height= 1024;
+
 	};
 }

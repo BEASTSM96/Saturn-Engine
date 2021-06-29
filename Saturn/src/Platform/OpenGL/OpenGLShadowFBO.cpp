@@ -27,7 +27,7 @@
 */
 
 #include "sppch.h"
-#include "OpenGLDShadowFBO.h"
+#include "OpenGLShadowFBO.h"
 
 #include "Saturn/Renderer/Renderer.h"
 
@@ -35,32 +35,7 @@ namespace Saturn {
 
 	OpenGLShadowMapFBO::OpenGLShadowMapFBO( int width, int height )
 	{
-		Renderer::Submit( [=]()
-		{
-			glGenFramebuffers( 1, &m_Fbo );
-
-			glGenTextures( 1, &m_ShadowMap );
-			glBindTexture( GL_TEXTURE_2D, m_ShadowMap );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-
-			glBindFramebuffer( GL_FRAMEBUFFER, m_Fbo );
-
-			glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowMap, 0 );
-
-			glDrawBuffer( GL_NONE );
-			glReadBuffer( GL_NONE );
-
-			SAT_CORE_ASSERT( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!" );
-			if( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE )
-			{
-				SAT_CORE_ERROR( "Framebuffer is incomplete!" );
-			}
-
-		} );
+		Resize( width, height );
 	}
 
 	OpenGLShadowMapFBO::~OpenGLShadowMapFBO()
@@ -68,22 +43,76 @@ namespace Saturn {
 
 	}
 
-	void OpenGLShadowMapFBO::BindForWriting()
+	void OpenGLShadowMapFBO::CreateBuffer()
 	{
 		Renderer::Submit( [=]()
 		{
-			glBindFramebuffer( GL_DRAW_FRAMEBUFFER, m_Fbo );
-		} );
-	}
+			glGenFramebuffers( 1, &m_Fbo );
 
-	void OpenGLShadowMapFBO::BindForReading( void* textureUnit )
-	{
-		GLenum textUnit = ( GLenum )textureUnit;
-
-		Renderer::Submit( [=]()
-		{
-			glActiveTexture( textUnit );
+			glGenTextures( 1, &m_ShadowMap );
 			glBindTexture( GL_TEXTURE_2D, m_ShadowMap );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, m_Width, m_Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+			glBindFramebuffer( GL_FRAMEBUFFER, m_Fbo );
+			glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowMap, 0 );
+			glDrawBuffer( GL_NONE );
+			glReadBuffer( GL_NONE );
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 		} );
 	}
+
+	void OpenGLShadowMapFBO::AttachBuffer()
+	{	
+		
+	}
+
+	void OpenGLShadowMapFBO::Bind()
+	{
+		Renderer::Submit( [=]()
+		{
+			glBindFramebuffer( GL_FRAMEBUFFER, m_Fbo );
+			glClear( GL_DEPTH_BUFFER_BIT );
+			glActiveTexture( GL_TEXTURE0 );
+		} );
+	}
+
+	void OpenGLShadowMapFBO::Unbind()
+	{
+		Renderer::Submit( [=]()
+		{
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		} );
+	}
+
+	void OpenGLShadowMapFBO::Resize( int width, int height )
+	{
+		Renderer::Submit( [=]()
+		{
+			if( m_Fbo )
+			{
+				glDeleteFramebuffers( 1, &m_Fbo );
+				glDeleteTextures( 1, &m_ShadowMap );
+			}
+
+			glGenFramebuffers( 1, &m_Fbo );
+
+			glGenTextures( 1, &m_ShadowMap );
+			glBindTexture( GL_TEXTURE_2D, m_ShadowMap );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, m_Width, m_Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+			glBindFramebuffer( GL_FRAMEBUFFER, m_Fbo );
+			glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowMap, 0 );
+			glDrawBuffer( GL_NONE );
+			glReadBuffer( GL_NONE );
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+		} );
+	}
+
 }

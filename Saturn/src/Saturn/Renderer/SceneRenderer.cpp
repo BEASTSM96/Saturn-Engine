@@ -53,6 +53,8 @@ namespace Saturn {
 			Ref<MaterialInstance> SkyboxMaterial;
 			Environment SceneEnvironment;
 			Light ActiveLight;
+			glm::vec3 LightPos;
+			glm::mat4 LightSpace;
 		} SceneData;
 
 		Ref<Texture2D> BRDFLUT;
@@ -122,12 +124,10 @@ namespace Saturn {
 
 
 		s_Data.ShadowMapFBO = ShadowMapFBO::Create( 1024, 1024 );
-
 	}
 
 	void SceneRenderer::Shutdown( void )
 	{
-		s_Data ={};
 		s_Data.ActiveScene = nullptr;
 		s_Data.BRDFLUT = nullptr;
 		s_Data.CompositePass = nullptr;
@@ -135,7 +135,6 @@ namespace Saturn {
 		s_Data.DrawList.clear();
 		s_Data.GeoPass = nullptr;
 		s_Data.GridMaterial = nullptr;
-		s_Data.SceneData ={};
 		s_Data.SelectedMeshDrawList.clear();
 	}
 
@@ -143,13 +142,14 @@ namespace Saturn {
 	{
 		s_Data.GeoPass->GetSpecification().TargetFramebuffer->Resize( width, height );
 		s_Data.CompositePass->GetSpecification().TargetFramebuffer->Resize( width, height );
+		s_Data.ShadowMapFBO->Resize( width, height );
 	}
 
-	void SceneRenderer::BeginScene( const Scene* scene, const SceneRendererCamera& camera )
+	void SceneRenderer::BeginScene( Ref<Scene> scene, const SceneRendererCamera& camera )
 	{
 		SAT_CORE_ASSERT( !s_Data.ActiveScene, "" );
 
-		s_Data.ActiveScene = scene;
+		s_Data.ActiveScene = scene.Raw();
 
 		s_Data.SceneData.SceneCamera = camera;
 		s_Data.SceneData.SkyboxMaterial = scene->m_SkyboxMaterial;
@@ -166,17 +166,63 @@ namespace Saturn {
 		FlushDrawList();
 	}
 
-	void SceneRenderer::ShadowMapPass()
+	void SceneRenderer::ShadowMapPass( Ref<Scene> scene, Ref<Mesh> mesh, const glm::mat4& transform, bool selected )
 	{
-		Renderer::BeginRenderPass( s_Data.CompositePass );
-		Renderer::Submit( []()
+		// Render depth of scene to texture (from light's perspective)
+
+		glm::mat4 lightProjection, lightView;
+		glm::mat4 lightSpaceMatrix;
+
+		auto& lightEntity = scene->GetMainLightEntity();
+
+		if( !lightEntity )
+			return;
+
+		//glm::vec3 lightPos = lightEntity.GetComponent<TransformComponent>().Position;
+
+		glm::vec3 lightPos( -2.0f, 4.0f, -1.0f );
+
+		float near_plane = 1.0f, far_plane = 7.5f;
+		lightProjection = glm::ortho( -10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane );
+		lightView = glm::lookAt( lightPos, glm::vec3( 0.0f ), glm::vec3( 0.0, 1.0, 0.0 ) );
+		lightSpaceMatrix = lightProjection * lightView;
+
+		// Render Scene from light pov
+
+		static bool create = false;
+		static Ref<MaterialInstance> shadowMap;
+	
+		if( !create )
 		{
-			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+			auto shadowDepthShader = Shader::Create( "assets/shaders/Shadow-Depth.glsl" );
+			shadowMap = MaterialInstance::Create( Material::Create( shadowDepthShader ) );
+			create = true;
+		}
 
-			s_Data.ShadowMapFBO->BindForReading( ( void* )( GLenum )GL_TEXTURE0 );
+		auto viewProjection = s_Data.SceneData.SceneCamera.Camera.GetProjectionMatrix() * s_Data.SceneData.SceneCamera.ViewMatrix;
 
-		} );
-		Renderer::EndRenderPass();
+		shadowMap->Bind();
+		shadowMap->Set( "u_LightSpaceMatrix", lightSpaceMatrix );
+		shadowMap->Set( "u_ViewProjectionMatrix", viewProjection );
+
+		Renderer::Submit([] 
+		{
+			glViewport(0, 0, s_Data.ShadowMapFBO->GetWidth(), s_Data.ShadowMapFBO->GetHeight());
+		});
+		s_Data.ShadowMapFBO->Bind();
+		if( selected )
+			SubmitSelectedMesh( mesh, transform );
+		else
+			SubmitMesh( mesh, transform, shadowMap );
+		s_Data.ShadowMapFBO->Unbind();
+
+		//Render Scene
+
+		s_Data.SceneData.LightPos = lightPos;
+		s_Data.SceneData.LightSpace = lightSpaceMatrix;
+
+		//Renderer::BeginRenderPass( s_Data.CompositePass );
+		//Renderer::EndRenderPass();
 	}
 
 	void SceneRenderer::RenderShadows( Scene* scene, Entity e, const SceneRendererCamera& camera )
@@ -186,37 +232,12 @@ namespace Saturn {
 	void SceneRenderer::SubmitMesh( Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial )
 	{
 		// TODO: Culling, sorting, etc.
-
-		Renderer::Submit( []()
-		{
-			s_Data.ShadowMapFBO->BindForWriting();
-
-			glClear( GL_DEPTH_BUFFER_BIT );
-		} );
-
 		s_Data.DrawList.push_back( { mesh, overrideMaterial, transform } );
-
-		Renderer::Submit( []()
-		{
-			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-		} );
 	}
 
 	void SceneRenderer::SubmitSelectedMesh( Ref<Mesh> mesh, const glm::mat4& transform )
 	{
-		Renderer::Submit( []()
-		{
-			s_Data.ShadowMapFBO->BindForWriting();
-
-			glClear( GL_DEPTH_BUFFER_BIT );
-		} );
-
 		s_Data.SelectedMeshDrawList.push_back( { mesh, nullptr, transform } );
-
-		Renderer::Submit( []()
-		{
-			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-		} );
 	}
 
 	static Ref<Shader> equirectangularConversionShader, envFilteringShader, envIrradianceShader;
@@ -345,6 +366,11 @@ namespace Saturn {
 			baseMaterial->Set( "u_EnvIrradianceTex", s_Data.SceneData.SceneEnvironment.IrradianceMap );
 			baseMaterial->Set( "u_BRDFLUTTexture", s_Data.BRDFLUT );
 
+			//Shadows
+			baseMaterial->Set( "u_LightPos", s_Data.SceneData.LightPos );
+			baseMaterial->Set( "u_LightMatrix", s_Data.SceneData.LightSpace );
+			baseMaterial->Set( "u_ViewPos", cameraPosition );
+
 			// Set lights (TODO: move to light environment and don't do per mesh)
 			baseMaterial->Set( "lights", s_Data.SceneData.ActiveLight );
 
@@ -374,6 +400,11 @@ namespace Saturn {
 
 			// Set lights (TODO: move to light environment and don't do per mesh)
 			baseMaterial->Set( "lights", s_Data.SceneData.ActiveLight );
+
+			//Shadows
+			baseMaterial->Set( "u_LightPos", s_Data.SceneData.LightPos );
+			baseMaterial->Set( "u_LightMatrix", s_Data.SceneData.LightSpace );
+			baseMaterial->Set( "u_ViewPos", cameraPosition );
 
 			auto overrideMaterial = nullptr; // dc.Material;
 			Renderer::SubmitMesh( dc.Mesh, dc.Transform, overrideMaterial );

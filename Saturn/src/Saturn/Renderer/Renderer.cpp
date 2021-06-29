@@ -214,15 +214,23 @@ namespace Saturn {
 	void Renderer::SubmitFullscreenQuad( Ref<MaterialInstance> material )
 	{
 		bool depthTest = true;
+		bool cullFace = true;
 		if( material )
 		{
 			material->Bind();
 			depthTest = material->GetFlag( MaterialFlag::DepthTest );
+			cullFace = !material->GetFlag( MaterialFlag::TwoSided );
 		}
 
 		s_Data.m_FullscreenQuadVertexBuffer->Bind();
 		s_Data.m_FullscreenQuadPipeline->Bind();
 		s_Data.m_FullscreenQuadIndexBuffer->Bind();
+
+		if( cullFace )
+			Renderer::Submit( [cullFace] { glEnable( GL_CULL_FACE ); } );
+		else
+			Renderer::Submit( [cullFace] { glDisable( GL_CULL_FACE ); } );
+
 		Renderer::DrawIndexed( 6, PrimitiveType::Triangles, depthTest );
 	}
 

@@ -31,7 +31,7 @@
 
 #include "Renderer.h"
 
-#include "Platform/OpenGL/OpenGLDShadowFBO.h"
+#include "Platform/OpenGL/OpenGLShadowFBO.h"
 
 namespace Saturn {
 

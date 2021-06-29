@@ -37,10 +37,18 @@ namespace Saturn {
 	public:
 		virtual ~ShadowMapFBO() { }
 
-		virtual void BindForWriting() = 0;
-		virtual void BindForReading( void* textureUnit ) = 0;
+		virtual void CreateBuffer() = 0;
+		virtual void AttachBuffer() = 0;
 
 		virtual uint32_t GetColorAttachmentRendererID() const =0;
+
+		virtual void Resize( int width, int height ) = 0;
+
+		virtual void Bind() = 0;
+		virtual void Unbind() = 0;
+
+		virtual uint32_t GetWidth() const =0;
+		virtual uint32_t GetHeight() const =0;
 
 		static Ref<ShadowMapFBO> Create( int width, int height );
 	protected:

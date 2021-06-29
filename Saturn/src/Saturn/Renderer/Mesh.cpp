@@ -482,6 +482,7 @@ namespace Saturn {
 	void Mesh::TraverseNodes( aiNode* node, const glm::mat4& parentTransform, uint32_t level )
 	{
 		glm::mat4 transform = parentTransform * Mat4FromAssimpMat4( node->mTransformation );
+
 		for( uint32_t i = 0; i < node->mNumMeshes; i++ )
 		{
 			uint32_t mesh = node->mMeshes[ i ];
