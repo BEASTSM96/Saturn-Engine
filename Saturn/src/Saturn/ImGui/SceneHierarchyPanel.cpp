@@ -895,16 +895,6 @@ namespace Saturn {
 
 		DrawComponent<PhysXMeshColliderComponent>( "PhysX MeshCollider", entity, [&]( PhysXMeshColliderComponent& mc )
 		{
-			if( ImGui::Button( "Open Mesh" ) )
-			{
-				auto filename = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
-
-				if( filename != "" )
-				{
-					auto& mesh = Ref<Mesh>::Create( filename );
-					PhysXFnd::BuildTriMesh( entity, mesh );
-				}
-			}
 		} );
 
 		DrawComponent<PhysXCapsuleColliderComponent>( "PhysX CapsuleCollider", entity, []( auto& cc )

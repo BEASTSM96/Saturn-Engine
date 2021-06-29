@@ -28,64 +28,66 @@
 
 #pragma once
 
-#include "Saturn/Renderer/Camera.h"
-#include "Saturn/Core/Timestep.h"
-#include "Saturn/Events/MouseEvent.h"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Saturn {
 
-	class EditorCamera : public Camera, public RefCounted
+	static bool DecomposeTransform( const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale )
 	{
-	public:
-		EditorCamera() = default;
-		EditorCamera( const glm::mat4& projectionMatrix );
+		using namespace glm;
+		using T = float;
 
-		void Focus( void );
-		void OnUpdate( Timestep ts );
-		void OnEvent( Event& e );
+		mat4 LocalMatrix( transform );
 
-		inline float GetDistance() const { return m_Distance; }
-		inline void SetDistance( float distance ) { m_Distance = distance; }
+		// Normalize the matrix.
+		if( epsilonEqual( LocalMatrix[ 3 ][ 3 ], static_cast< float >( 0 ), epsilon<T>() ) )
+			return false;
 
-		inline void SetViewportSize( uint32_t width, uint32_t height ) { m_ViewportWidth = width; m_ViewportHeight = height; }
+		// First, isolate perspective.  This is the messiest.
+		if(
+			epsilonNotEqual( LocalMatrix[ 0 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) ||
+			epsilonNotEqual( LocalMatrix[ 1 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) ||
+			epsilonNotEqual( LocalMatrix[ 2 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) )
+		{
+			// Clear the perspective partition
+			LocalMatrix[ 0 ][ 3 ] = LocalMatrix[ 1 ][ 3 ] = LocalMatrix[ 2 ][ 3 ] = static_cast< T >( 0 );
+			LocalMatrix[ 3 ][ 3 ] = static_cast< T >( 1 );
+		}
 
-		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
-		glm::mat4 GetViewProjection() const { return m_ProjectionMatrix * m_ViewMatrix; }
+		// Next take care of translation (easy).
+		translation = vec3( LocalMatrix[ 3 ] );
+		LocalMatrix[ 3 ] = vec4( 0, 0, 0, LocalMatrix[ 3 ].w );
 
-		glm::vec3 GetUpDirection( void );
-		glm::vec3 GetRightDirection( void );
-		glm::vec3 GetForwardDirection( void );
-		const glm::vec3& GetPosition() const { return m_Position; }
-		glm::quat GetOrientation( void ) const;
+		vec3 Row[ 3 ];
 
-		float GetPitch( void ) const { return m_Pitch; }
-		float GetYaw( void ) const { return m_Yaw; }
-	private:
-		void UpdateCameraView( void );
+		// Now get scale and shear.
+		for( length_t i = 0; i < 3; ++i )
+			for( length_t j = 0; j < 3; ++j )
+				Row[ i ][ j ] = LocalMatrix[ i ][ j ];
 
-		bool OnMouseScroll( MouseScrolledEvent& e );
+		// Compute X scale factor and normalize first row.
+		scale.x = length( Row[ 0 ] );
+		Row[ 0 ] = detail::scale( Row[ 0 ], static_cast< T >( 1 ) );
+		scale.y = length( Row[ 1 ] );
+		Row[ 1 ] = detail::scale( Row[ 1 ], static_cast< T >( 1 ) );
+		scale.z = length( Row[ 2 ] );
+		Row[ 2 ] = detail::scale( Row[ 2 ], static_cast< T >( 1 ) );
 
-		void MousePan( const glm::vec2& delta );
-		void MouseRotate( const glm::vec2& delta );
-		void MouseZoom( float delta );
-
-		glm::vec3 CalculatePosition( void );
-
-		std::pair<float, float> PanSpeed() const;
-		float RotationSpeed( void ) const;
-		float ZoomSpeed( void ) const;
-	private:
-		glm::mat4 m_ViewMatrix;
-		glm::vec3 m_Position, m_Rotation, m_FocalPoint;
-
-		bool m_Panning, m_Rotating;
-		glm::vec2 m_InitialMousePosition;
-		glm::vec3 m_InitialFocalPoint, m_InitialRotation;
-
-		float m_Distance;
-		float m_Pitch, m_Yaw;
-
-		uint32_t m_ViewportWidth = 1280, m_ViewportHeight = 720;
-	};
+		rotation.y = asin( -Row[ 0 ][ 2 ] );
+		if( cos( rotation.y ) != 0 )
+		{
+			rotation.x = atan2( Row[ 1 ][ 2 ], Row[ 2 ][ 2 ] );
+			rotation.z = atan2( Row[ 0 ][ 1 ], Row[ 0 ][ 0 ] );
+		}
+		else
+		{
+			rotation.x = atan2( -Row[ 2 ][ 0 ], Row[ 1 ][ 1 ] );
+			rotation.z = 0;
+		}
+		return true;
+	}
 
 }
