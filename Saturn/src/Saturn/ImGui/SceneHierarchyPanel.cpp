@@ -893,8 +893,51 @@ namespace Saturn {
 
 		} );
 
-		DrawComponent<PhysXMeshColliderComponent>( "PhysX MeshCollider", entity, [&]( PhysXMeshColliderComponent& mc )
+		DrawComponent<PhysXMeshColliderComponent>( "PhysX MeshCollider", entity, [&]( PhysXMeshColliderComponent& mcc )
 		{
+			if( ImGui::Button( "Create Mesh" ) )
+			{
+				if( mcc.IsConvex )
+				{
+					mcc.CollisionMesh = m_SelectionContext.GetComponent<MeshComponent>().Mesh;
+					PhysXFnd::CreateConvexMesh( mcc, glm::vec3(1.0f), true );
+				}
+				else
+				{
+					mcc.CollisionMesh = m_SelectionContext.GetComponent<MeshComponent>().Mesh;
+					PhysXFnd::CreateTriangleMesh( mcc, glm::vec3( 1.0f ), true );
+				}
+			}
+
+			if( mcc.OverrideMesh )
+			{
+				ImGui::Columns( 3 );
+				ImGui::SetColumnWidth( 0, 100 );
+				ImGui::SetColumnWidth( 1, 300 );
+				ImGui::SetColumnWidth( 2, 40 );
+				ImGui::Text( "File Path" );
+				ImGui::NextColumn();
+				ImGui::PushItemWidth( -1 );
+				if( mcc.CollisionMesh )
+					ImGui::InputText( "##meshfilepath", ( char* )mcc.CollisionMesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+				else
+					ImGui::InputText( "##meshfilepath", ( char* )"Null", 256, ImGuiInputTextFlags_ReadOnly );
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				if( ImGui::Button( "...##openmesh" ) )
+				{
+					std::string file = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
+					if( !file.empty() )
+					{
+						mcc.CollisionMesh = Ref<Mesh>::Create( file );
+						PhysXFnd::CreateTriangleMesh( mcc, glm::vec3( 1.0f ), true );
+					}
+				}
+
+				ImGui::Columns( 1 );
+			}
+
+			DrawBoolControl( "Is Convex", &mcc.IsConvex );
 		} );
 
 		DrawComponent<PhysXCapsuleColliderComponent>( "PhysX CapsuleCollider", entity, []( auto& cc )

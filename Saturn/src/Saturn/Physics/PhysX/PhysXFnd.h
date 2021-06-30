@@ -30,6 +30,8 @@
 
 #include "Saturn/Scene/Entity.h"
 
+#include "Saturn/Scene/Components.h"
+
 #include <stdint.h>
 
 namespace Saturn {
@@ -87,6 +89,11 @@ namespace Saturn {
 		static void CreateBoxCollider( Entity& entity, physx::PxRigidActor& actor );
 		static void CreateSphereCollider( Entity& entity, physx::PxRigidActor& actor );
 		static void CreateCapsuleCollider( Entity& entity, physx::PxRigidActor& actor );
+		static void CreateMeshCollider( Entity& entity, physx::PxRigidActor& actor );
+
+		static std::vector<physx::PxShape*> CreateConvexMesh( PhysXMeshColliderComponent& collider, const glm::vec3& size, bool invalidateOld = false );
+		static std::vector<physx::PxShape*> CreateTriangleMesh( PhysXMeshColliderComponent& collider, const glm::vec3& scale = glm::vec3( 1.0f ), bool invalidateOld = false );
+
 		static void AddRigidBody( Entity& entity );
 	public:
 		static physx::PxPhysics& GetPhysics();

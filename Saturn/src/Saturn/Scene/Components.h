@@ -338,7 +338,20 @@ namespace Saturn {
 
 	struct PhysXMeshColliderComponent : Component
 	{
+		Ref<Mesh> CollisionMesh;
+		std::vector<Ref<Mesh>> ProcessedMeshes;
+		bool IsConvex = false;
 		bool IsTrigger = false;
+		bool OverrideMesh = false;
+
+		PhysXMeshColliderComponent() = default;
+		PhysXMeshColliderComponent( const PhysXMeshColliderComponent & other ) = default;
+		PhysXMeshColliderComponent( const Ref<Mesh>&mesh )
+			: CollisionMesh( mesh )
+		{
+		}
+
+		operator Ref<Mesh>() { return CollisionMesh; }
 	};
 
 	//

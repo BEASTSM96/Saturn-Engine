@@ -171,6 +171,7 @@ namespace Saturn {
 	{
 	public:
 		Mesh( const std::string& filename );
+		Mesh( const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform );
 		~Mesh();
 
 		void OnUpdate( Timestep ts );

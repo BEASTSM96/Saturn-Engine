@@ -71,7 +71,20 @@ namespace Saturn {
 		return *( physx::PxVec3* )&vec;
 	}
 
+	static glm::quat PxQuatToGLM( const physx::PxQuat& quat )
+	{
+		return *( glm::quat* )&quat;
+	}
+
 	static physx::PxTransform glmTransformToPx( glm::mat4& mat )
+	{
+		physx::PxQuat r = GLMToPhysXQuat( glm::normalize( glm::quat( mat ) ) );
+		physx::PxVec3 p = GLMToPhysXVec( glm::vec3( mat[ 3 ] ) );
+
+		return physx::PxTransform( p, r );
+	}
+
+	static physx::PxTransform glmTransformToPx( const glm::mat4& mat )
 	{
 		physx::PxQuat r = GLMToPhysXQuat( glm::normalize( glm::quat( mat ) ) );
 		physx::PxVec3 p = GLMToPhysXVec( glm::vec3( mat[ 3 ] ) );
@@ -85,6 +98,19 @@ namespace Saturn {
 		physx::PxVec3 p = GLMToPhysXVec( pos );
 
 		return physx::PxTransform( p, r );
+	}
+
+	static physx::PxQuat GlmQuatToPxQuat( const glm::quat& quat )
+	{
+		// Note: PxQuat elements are in a different order than glm::quat!
+		return physx::PxQuat( quat.x, quat.y, quat.z, quat.w );
+	}
+
+	static glm::mat4 PxTransformToGlm( physx::PxTransform trans )
+	{
+		glm::quat rotation = PxQuatToGLM( trans.q );
+		glm::vec3 position = PxVec3ToGLM( trans.p );
+		return glm::translate( glm::mat4( 1.0F ), position ) * glm::toMat4( rotation );
 	}
 
 	physx::PxFilterFlags CollisionFilterShader( physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize );
