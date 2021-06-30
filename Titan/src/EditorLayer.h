@@ -157,6 +157,7 @@ namespace Saturn {
 		Ref<Texture2D> m_PlayButtonTexture;
 		Ref<Texture2D> m_PauseButtonTexture;
 		Ref<Texture2D> m_FileSceneTexture;
+		Ref<Texture2D> m_StopButtonTexture;
 		Ref<Texture2D> m_UnkownFile;
 		Ref<Texture2D> m_TextFile;
 		std::vector<SelectedSubmesh> m_SelectionContext;

@@ -110,6 +110,7 @@ namespace Saturn {
 		m_PlayButtonTexture = Texture2D::Create( "assets/textures/PlayButton.png" );
 		m_PauseButtonTexture = Texture2D::Create( "assets/textures/PauseButton.png" );
 		m_FileSceneTexture = Texture2D::Create( "assets/.github/i/sat/SaturnLogov2.png" );
+		m_StopButtonTexture = Texture2D::Create( "assets/textures/StopButton.png" );
 
 		m_UnkownFile = Texture2D::Create( "assets/textures/assetpanel/unkown_file.png" );
 		m_TextFile = Texture2D::Create( "assets/textures/assetpanel/text_file.png" );
@@ -374,12 +375,15 @@ namespace Saturn {
 
 	void EditorLayer::OnUpdate( Timestep ts )
 	{
-		if( m_AllowViewportCameraEvents )
-			m_EditorCamera.OnUpdate( ts );
 
 		//Only if we aren't in runtime, we can render editor with the editor camera
 		if( !m_RuntimeScene )
 		{
+			m_EditorCamera.SetActive( m_AllowViewportCameraEvents || glfwGetInputMode( static_cast< GLFWwindow* >( Application::Get().GetWindow().GetNativeWindow() ), GLFW_CURSOR ) == GLFW_CURSOR_DISABLED );
+
+			if( m_AllowViewportCameraEvents )
+				m_EditorCamera.OnUpdate( ts );
+
 			m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
 		}
 		m_DrawOnTopBoundingBoxes = true;
@@ -538,19 +542,19 @@ namespace Saturn {
 	{
 		switch( e.GetKeyCode() )
 		{
-			case SAT_KEY_Q:
+			case Key::Q:
 				m_GizmoType = -1;
 				break;
-			case SAT_KEY_E:
+			case Key::E:
 				m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
 				break;
-			case SAT_KEY_W:
+			case Key::W:
 				m_GizmoType = ImGuizmo::OPERATION::ROTATE;
 				break;
-			case SAT_KEY_R:
+			case Key::R:
 				m_GizmoType = ImGuizmo::OPERATION::SCALE;
 				break;
-			case SAT_KEY_DELETE:
+			case Key::Delete:
 				if( m_SelectionContext.size() )
 				{
 					Entity selectedEntity = m_SelectionContext[ 0 ].Entity;
@@ -563,33 +567,7 @@ namespace Saturn {
 				break;
 		}
 
-		if( Input::IsKeyPressed( SAT_KEY_LEFT_SHIFT ) )
-		{
-			switch( e.GetKeyCode() )
-			{
-				case SAT_KEY_S:
-					SaveSceneAs();
-					break;
-				case SAT_KEY_O:
-					std::string filepath = Application::Get().OpenFile( "Scene (*.sc)\0*.sc\0" ).first;
-					OpenScene( filepath );
-					break;
-			}
-		}
-
-	#ifdef SAT_DEBUG
-		if( Input::IsKeyPressed( SAT_KEY_LEFT_SHIFT ) )
-		{
-			switch( e.GetKeyCode() )
-			{
-				case SAT_KEY_F:
-					DeserialiseDebugLvl();
-					break;
-			}
-		}
-	#endif
-
-		if( Input::IsKeyPressed( SAT_KEY_LEFT_CONTROL ) )
+		if( Input::IsKeyPressed( Key::LeftShift ) )
 		{
 			switch( e.GetKeyCode() )
 			{
@@ -630,8 +608,8 @@ namespace Saturn {
 
 	bool EditorLayer::OnMouseButtonPressed( MouseButtonEvent& e )
 	{
-		auto [mx, my] = Input::GetMousePos();
-		if( e.GetMouseButton() == SAT_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed( SAT_KEY_LEFT_ALT ) && !ImGuizmo::IsOver() )
+		auto [mx, my] = Input::GetMousePosition();
+		if( e.GetMouseButton() == Mouse::Left && !Input::IsKeyPressed( Key::LeftAlt ) && !ImGuizmo::IsOver() )
 		{
 			auto [mouseX, mouseY] = GetMouseViewportSpace();
 			if( mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f )
@@ -1322,28 +1300,15 @@ namespace Saturn {
 			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
 			ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.8f, 0.8f, 0.8f, 0.0f ) );
 			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
-			if( ImGui::Begin( "Toolbar" ) )
+			if( ImGui::Begin( "Toolbar", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse ) )
 			{
-				//ImGui::SetCursorPos( (ImGui::GetWindowSize() - ImVec2( 35, 35 )) * 0.5f );
-				if( ImGui::ImageButton( (ImTextureID)(m_PlayButtonTexture->GetRendererID()), ImVec2( 35, 35 ) ) )
-				{
-					if( !m_RuntimeScene )
-					{
-						m_SceneHierarchyPanel->Reset();
-						m_EditorScene->SetSelectedEntity( {} );
-						m_SceneHierarchyPanel->SetSelected( {} );
-						m_SelectionContext.clear();
-						m_RuntimeScene = Ref<Scene>::Create();
-						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
-						m_EditorScene->CopyScene( m_RuntimeScene );
-						m_RuntimeScene->BeginRuntime();
-						ScriptEngine::SetSceneContext( m_EditorScene );
-					}
-				}
+				float size = ImGui::GetWindowHeight() - 4.0f;
+				// Make buttons in the center of the window
+				ImGui::SameLine( ( ImGui::GetWindowContentRegionMax().x / 2.0f ) - ( 1.5f * ( ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x ) ) - ( size / 2.0f ) );
 
-				ImGui::SameLine();
+				Ref<Texture2D> button = m_RuntimeScene == !nullptr ? m_StopButtonTexture : m_PlayButtonTexture;
 
-				if( ImGui::ImageButton( (ImTextureID)(m_PauseButtonTexture->GetRendererID()), ImVec2( 35, 35 ) ) )
+				if( ImGui::ImageButton( ( ( ImTextureID )( button->GetRendererID() ) ), ImVec2( size, size ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), 0 ) ) 
 				{
 					if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
 					{
@@ -1357,8 +1322,19 @@ namespace Saturn {
 						m_SceneHierarchyPanel->SetContext( m_EditorScene );
 						ScriptEngine::SetSceneContext( m_RuntimeScene );
 					}
+					else
+					{
+						m_SceneHierarchyPanel->Reset();
+						m_EditorScene->SetSelectedEntity( {} );
+						m_SceneHierarchyPanel->SetSelected( {} );
+						m_SelectionContext.clear();
+						m_RuntimeScene = Ref<Scene>::Create();
+						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
+						m_EditorScene->CopyScene( m_RuntimeScene );
+						m_RuntimeScene->BeginRuntime();
+						ScriptEngine::SetSceneContext( m_EditorScene );
+					}
 				}
-				
 
 				ImGui::End();
 			}
@@ -1472,8 +1448,16 @@ namespace Saturn {
 				ImGui::Image( ( void* )SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 } );
 				ImGui::PopStyleVar();
 
+				static int counter = 0;
+				auto windowSize = ImGui::GetWindowSize();
+				ImVec2 minBound = ImGui::GetWindowPos();
+				minBound.x += viewportOffset.x;
+				minBound.y += viewportOffset.y;
 
-				m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect( ImVec2( viewportMinRegion.x, viewportMinRegion.y ), ImVec2( viewportMaxRegion.x, viewportMaxRegion.y ) );
+				ImVec2 maxBound ={ minBound.x + windowSize.x, minBound.y + windowSize.y };
+				m_ViewportBounds[ 0 ] ={ minBound.x, minBound.y };
+				m_ViewportBounds[ 1 ] ={ maxBound.x, maxBound.y };
+				m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
 
 				// Gizmos
 				if( m_GizmoType != -1 && m_SelectionContext.size() )
