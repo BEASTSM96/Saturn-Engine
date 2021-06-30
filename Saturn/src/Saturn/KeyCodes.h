@@ -28,8 +28,6 @@
 
 #pragma once
 
-#define SAT_USE_OLD_KEY_CODES
-
 #ifdef SAT_USE_OLD_KEY_CODES
 	//From GLFW
 	/* Printable keys */

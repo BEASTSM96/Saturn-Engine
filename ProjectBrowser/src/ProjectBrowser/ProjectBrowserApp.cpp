@@ -71,6 +71,7 @@ namespace ProjectBrowser {
 		SAT_PROFILE_FUNCTION();
 
 		m_Window = nullptr;
+		s_Instance = nullptr;
 	}
 
 	void ProjectBrowserApp::Init( void )

@@ -34,31 +34,24 @@
 
 namespace Saturn {
 
-	class SATURN_API Input
+	enum class CursorMode
+	{
+		Normal = 0,
+		Hidden = 1,
+		Locked = 2
+	};
+
+	class Input
 	{
 	public:
-		static bool IsKeyPressed( int keycode ) { return s_Instance->IsKeyPressedImpl( keycode ); }
+		static bool IsKeyPressed( KeyCode keycode );
 
-		static float GetMouseX() { return s_Instance->GetMouseXImpl(); }
+		static bool IsMouseButtonPressed( MouseButton button );
+		static float GetMouseX();
+		static float GetMouseY();
+		static std::pair<float, float> GetMousePosition();
 
-		static float GetMouseY() { return s_Instance->GetMouseYImpl(); }
-
-		static std::pair< float, float > GetMousePos() { return s_Instance->GetMousePosImpl(); }
-
-		static bool IsMouseButtonPressed( int button ) { return s_Instance->IsMouseButtonPressedImpl( button ); }
-
-	protected:
-		virtual bool IsKeyPressedImpl( int keycode ) = 0;
-
-		virtual float GetMouseXImpl( void ) = 0;
-
-		virtual float GetMouseYImpl( void ) = 0;
-
-		virtual std::pair< float, float > GetMousePosImpl() = 0;
-
-		virtual bool IsMouseButtonPressedImpl( int button ) = 0;
-	private:
-		static Input* s_Instance;
-
+		static void SetCursorMode( CursorMode mode );
+		static CursorMode GetCursorMode();
 	};
 }
