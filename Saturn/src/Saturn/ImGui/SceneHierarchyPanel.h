@@ -55,12 +55,13 @@ namespace Saturn {
 
 
 	private:
+		void DrawComponents( Entity entity );
 		bool CheckSelectionContext( Entity selectedEntity );
 		void DrawEntityNode( Entity entity );
 		void DrawEntityComponents( Entity entity );
 	private:
 		Ref<Scene> m_Context;
-		Entity m_SelectionContext;
+		Entity m_SelectionContext = {};
 		std::string m_NCSTag = "Enter Class Name";
 
 		std::function<void( Entity )> m_SelectionChangedCallback;

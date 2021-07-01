@@ -366,7 +366,7 @@ namespace Saturn {
 		m_SelectionContext.push_back( selection );
 
 		m_EditorScene->SetSelectedEntity( entity );
-
+		m_SceneHierarchyPanel->SetSelected( entity );
 	}
 
 	void EditorLayer::PrepRuntime()
@@ -567,7 +567,7 @@ namespace Saturn {
 				break;
 		}
 
-		if( Input::IsKeyPressed( Key::LeftShift ) )
+		if( Input::IsKeyPressed( Key::LeftControl ) )
 		{
 			switch( e.GetKeyCode() )
 			{
@@ -582,7 +582,8 @@ namespace Saturn {
 
 				case Key::D:
 					// Toggle solids
-					m_EditorScene->DuplicateEntity( m_SceneHierarchyPanel->GetSelectionContext() );
+					if( m_SelectionContext.size() )
+						m_EditorScene->DuplicateEntity( m_SceneHierarchyPanel->GetSelectionContext() );
 					break;
 			}
 		}
@@ -1490,7 +1491,6 @@ namespace Saturn {
 						auto projm = glm::value_ptr( m_EditorCamera.GetProjectionMatrix() );
 
 						Entity selectedEntity = m_SceneHierarchyPanel->GetSelectionContext();
-						selectedEntity.m_Scene = m_SceneHierarchyPanel->GetSelectionContext().m_Scene;
 
 						if( !selectedEntity )
 							return;
