@@ -83,6 +83,10 @@ namespace Saturn {
 
 		bool IsKinematic();
 
+		glm::vec3 GetLinearVelocity();
+
+		void SetLinearVelocity( glm::vec3 velocity );
+
 		void ApplyForce( glm::vec3 force, ForceType type );
 		bool AttachShape( physx::PxShape& shape );
 		void AddActorToScene();

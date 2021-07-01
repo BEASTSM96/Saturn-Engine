@@ -20,6 +20,21 @@ namespace Saturn
             Y = y;
         }
 
+        public void Clamp(Vector2 min, Vector2 max)
+        {
+            X = Mathf.Clamp(X, min.X, max.X);
+            Y = Mathf.Clamp(Y, min.Y, max.Y);
+        }
+
+        public static Vector2 operator -(Vector2 left, Vector2 right)
+        {
+            return new Vector2(left.X - right.X, left.Y - right.Y);
+        }
+
+        public static Vector2 operator -(Vector2 vector)
+        {
+            return new Vector2(-vector.X, -vector.Y);
+        }
     }
 
     [StructLayout(LayoutKind.Explicit)]
@@ -41,6 +56,67 @@ namespace Saturn
             Z = z;
         }
 
+        public float Length()
+        {
+            return (float)Math.Sqrt(X * X + Y * Y + Z * Z);
+        }
+
+        public Vector3 Normalized()
+        {
+            float length = Length();
+            float x = X / length;
+            float y = Y / length;
+            float z = Z / length;
+            return new Vector3(x, y, z);
+        }
+
+        public void Normalize()
+        {
+            float length = Length();
+            X = X / length;
+            Y = Y / length;
+            Z = Z / length;
+        }
+
+        public static Vector3 operator *(Vector3 left, float scalar)
+        {
+            return new Vector3(left.X * scalar, left.Y * scalar, left.Z * scalar);
+        }
+
+        public static Vector3 operator *(float scalar, Vector3 right)
+        {
+            return new Vector3(scalar * right.X, scalar * right.Y, scalar * right.Z);
+        }
+
+        public static Vector3 operator +(Vector3 left, Vector3 right)
+        {
+            return new Vector3(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
+        }
+
+        public static Vector3 operator +(Vector3 left, float right)
+        {
+            return new Vector3(left.X + right, left.Y + right, left.Z + right);
+        }
+
+        public static Vector3 operator -(Vector3 left, Vector3 right)
+        {
+            return new Vector3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
+        }
+
+        public static Vector3 operator /(Vector3 left, Vector3 right)
+        {
+            return new Vector3(left.X / right.X, left.Y / right.Y, left.Z / right.Z);
+        }
+
+        public static Vector3 operator /(Vector3 left, float scalar)
+        {
+            return new Vector3(left.X / scalar, left.Y / scalar, left.Z / scalar);
+        }
+
+        public static Vector3 operator -(Vector3 vector)
+        {
+            return new Vector3(-vector.X, -vector.Y, -vector.Z);
+        }
 
     }
 

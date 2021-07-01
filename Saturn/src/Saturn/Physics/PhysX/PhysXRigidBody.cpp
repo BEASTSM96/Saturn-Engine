@@ -147,6 +147,21 @@ namespace Saturn {
 		return actor->getRigidBodyFlags().isSet( physx::PxRigidBodyFlag::eKINEMATIC );
 	}
 
+	glm::vec3 PhysXRigidbody::GetLinearVelocity()
+	{
+		physx::PxRigidDynamic* actor = ( physx::PxRigidDynamic* )m_Body;
+
+		return PxVec3ToGLM( actor->getLinearVelocity() );
+	}
+
+	void PhysXRigidbody::SetLinearVelocity( glm::vec3 velocity )
+	{
+		physx::PxRigidDynamic* actor = ( physx::PxRigidDynamic* )m_Body;
+		auto& newVelocity = glmVec3ToPx( velocity );
+
+		actor->setLinearVelocity( newVelocity );
+	}
+
 	void PhysXRigidbody::ApplyForce( glm::vec3 force, ForceType type )
 	{
 		physx::PxRigidDynamic* actor = ( physx::PxRigidDynamic* )m_Body;
@@ -181,7 +196,8 @@ namespace Saturn {
 
 	void PhysXRigidbody::AddActorToScene()
 	{
-		PhysXRuntime::GetPhysXScene().addActor( *m_Body );
+		physx::PxScene* scene = static_cast< physx::PxScene* >( PhysXRuntime::GetPhysXScene() );
+		scene->addActor( *m_Body );
 	}
 
 	void PhysXRigidbody::SetUserData( Entity& e )

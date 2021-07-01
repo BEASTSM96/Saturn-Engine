@@ -1,9 +1,11 @@
 #pragma once
 
-#include "Saturn/KeyCodes.h"
+#include "Saturn/Input.h"
 #include "ScriptHelpers.h"
 #include "ScriptEngine.h"
 #include "Saturn/Scene/Components.h"
+
+#include "Saturn/Physics/PhysX/PhysXFnd.h"
 
 #include <glm/glm.hpp>
 
@@ -21,12 +23,24 @@ namespace Scripting {
 	void Saturn_Log_Info( MonoString* msg );
 	void Saturn_Log_Trace( MonoString* msg );
 
+	// Input
 	bool Saturn_Input_IsKeyPressed( KeyCode key );
-
-	void Saturn_Entity_GetTransform( uint64_t entityID, glm::mat4* transform );
-	void Saturn_Entity_SetTransform( uint64_t entityID, glm::mat4* transform );
+	bool Saturn_Input_IsMouseButtonPressed( MouseButton button );
+	void Saturn_Input_SetCursorMode( CursorMode mode );
+	CursorMode Saturn_Input_GetCursorMode();
+	void Saturn_Input_GetMousePosition( glm::vec2* outPos );
+	
 	void Saturn_Entity_CreateComponent( uint64_t entityID, void* type );
 	bool Saturn_Entity_HasComponent( uint64_t entityID, void* type );
+
+	void Saturn_TransformComponent_GetTransform( uint64_t entityID, TransformComponent* outTransform );
+	void Saturn_TransformComponent_SetTransform( uint64_t entityID, TransformComponent* inTransform );
+	void Saturn_TransformComponent_GetTranslation( uint64_t entityID, glm::vec3* outTranslation );
+	void Saturn_TransformComponent_SetTranslation( uint64_t entityID, glm::vec3* inTranslation );
+	void Saturn_TransformComponent_GetRotation( uint64_t entityID, glm::vec3* outRotation );
+	void Saturn_TransformComponent_SetRotation( uint64_t entityID, glm::vec3* inRotation );
+	void Saturn_TransformComponent_GetScale( uint64_t entityID, glm::vec3* outScale );
+	void Saturn_TransformComponent_SetScale( uint64_t entityID, glm::vec3* inScale );
 
 	Mesh Saturn_Entity_GetMesh( uint64_t entityID );
 	void Saturn_Entity_SetMesh( uint64_t entityID, void* type );
@@ -35,5 +49,12 @@ namespace Scripting {
 	void Saturn_TagComponent_SetTag( uint64_t entityID, MonoString* tag );
 
 	void Saturn_RigidBodyComponent_AddForce( uint64_t entityID, glm::vec3 forcedire, ForceType type );
+	bool Saturn_Physics_Raycast( glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit );
+
+	void Saturn_RigidBodyComponent_GetLinearVelocity( uint64_t entityID, glm::vec3* outVelocity );
+	void Saturn_RigidBodyComponent_SetLinearVelocity( uint64_t entityID, glm::vec3* velocity );
+
+	uint64_t Saturn_Entity_FindEntityByTag(MonoString* tag);
+
 }
 }

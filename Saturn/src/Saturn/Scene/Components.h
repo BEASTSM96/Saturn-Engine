@@ -61,8 +61,12 @@ namespace Saturn {
 	struct TransformComponent : Component
 	{
 		glm::vec3  Position ={ 0.0f , 0.0f, 0.0f };
-		glm::quat  Rotation;
+		glm::quat  Rotation ={ 0.0f, 0.0f, 0.0f, 0.0f };
 		glm::vec3  Scale	={ 1.0f , 1.0f, 1.0f };
+
+		glm::vec3 Up ={ 0.0f, 1.0f, 0.0f };
+		glm::vec3 Right ={ 1.0f, 0.0f, 0.0f };
+		glm::vec3 Forward ={ 0.0f, 0.0f, -1.0f };
 
 		TransformComponent( void ) = default;
 		TransformComponent( const TransformComponent& ) = default;
@@ -130,7 +134,7 @@ namespace Saturn {
 	*/
 	struct CameraComponent : Component
 	{
-		Ref<Saturn::SceneCamera> Camera;
+		SceneCamera Camera;
 		bool Primary = true;
 		bool FixedAspectRatio = false;
 
@@ -301,6 +305,8 @@ namespace Saturn {
 	{
 		glm::vec3 Extents ={ 1.0f, 1.0f, 1.0f };	
 		glm::vec3 Offset ={ 0.0f, 0.0f, 0.0f };
+
+		Ref<Mesh> DebugMesh;
 
 		bool IsTrigger = false;
 

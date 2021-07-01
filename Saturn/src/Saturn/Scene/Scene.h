@@ -105,7 +105,7 @@ namespace Saturn {
 		void DestroyEntity(Entity entity);
 
 		void OnRenderEditor( Timestep ts, const EditorCamera& editorCamera );
-		void OnRenderRuntime( Timestep ts, const SceneCamera& sceneCamera );
+		void OnRenderRuntime( Timestep ts );
 
 		template<typename T>
 		auto GetAllEntitiesWith( void )
@@ -157,6 +157,8 @@ namespace Saturn {
 		const EntityMonoMap& GetEntityMonoMap() const { return m_EntityMonoIDMap; }
 		const UUID& GetUUID() const { return m_SceneID; }
 		UUID& GetUUID() { return m_SceneID; }
+
+		Entity FindEntityByTag( const std::string& tag );
 
 		/*------------------------ Runtime helpers ------------------------ */
 		Ref<Scene> CopyScene( const Ref<Scene>& CurrentScene );

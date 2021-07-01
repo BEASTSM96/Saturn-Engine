@@ -115,7 +115,7 @@ namespace Saturn {
 		m_UnkownFile = Texture2D::Create( "assets/textures/assetpanel/unkown_file.png" );
 		m_TextFile = Texture2D::Create( "assets/textures/assetpanel/text_file.png" );
 
-		ScriptEngine::Init( "assets/assembly/game/exapp.dll" );
+		ScriptEngine::Init( "assets/assembly/game/ExampleApp.dll" );
 		ScriptEngine::SetSceneContext( m_EditorScene );
 
 	}
@@ -375,6 +375,7 @@ namespace Saturn {
 
 	void EditorLayer::OnUpdate( Timestep ts )
 	{
+		m_DrawOnTopBoundingBoxes = true;
 
 		//Only if we aren't in runtime, we can render editor with the editor camera
 		if( !m_RuntimeScene )
@@ -386,80 +387,15 @@ namespace Saturn {
 
 			m_EditorScene->OnRenderEditor( ts, m_EditorCamera );
 		}
-		m_DrawOnTopBoundingBoxes = true;
 
 		if( m_RuntimeScene )
 		{
 			if( m_RuntimeScene->m_RuntimeRunning )
 			{
-				Ref<SceneCamera>* mainCamera = nullptr;
-				glm::mat4 cameraTransform;
-				glm::vec3 cameraPosition;
-				{
-					auto view = m_RuntimeScene->GetRegistry().view<TransformComponent, CameraComponent>();
-					for( auto entity : view )
-					{
-						auto [transform, camera] = view.get<TransformComponent, CameraComponent>( entity );
-
-						if( camera.Primary )
-						{
-							mainCamera = &camera.Camera;
-							cameraTransform = transform.GetTransform();
-							cameraPosition = transform.Position;
-							//cameraPosition.x += 5.0f;
-							break;
-						}
-					}
-				}
-
-				if( mainCamera != nullptr )
-				{
-					mainCamera->Raw()->SetPosition( cameraPosition );
-					mainCamera->Raw()->OnUpdate( ts );
-					m_RuntimeScene->OnRenderRuntime( ts, *mainCamera->Raw() );
-				}
-				else
-				{
-					//If we don't have a scene camera we can just copy a editor camera and render the runtime...
-					if( !m_NoSceneCamera )
-					{
-						SAT_CORE_INFO( "No scene camera was found copying editor camera!" );
-						m_NoSceneCamera = Ref<EditorCamera>::Create( m_EditorCamera.GetProjectionMatrix() );
-						*m_NoSceneCamera = m_EditorCamera;
-					}
-					else
-					{
-						*m_NoSceneCamera = m_EditorCamera;
-					}
-					m_RuntimeScene->OnRenderEditor( ts, *m_NoSceneCamera );
-				}
-			}
-
-			m_RuntimeScene->OnUpdate( ts );
-		}
-
-		/*
-		if ( !m_RuntimeScene )
-		{
-			//For physx and others we will have to half the extents...
-			auto view = m_EditorScene->GetRegistry().view<TransformComponent, PhysXBoxColliderComponent>();
-			for( auto entity : view )
-			{
-				auto [transform, boxCollider] = view.get<TransformComponent, PhysXBoxColliderComponent>( entity );
-				boxCollider.Extents = transform.Scale / 2.0f;
+				m_RuntimeScene->OnUpdate( ts );
+				m_RuntimeScene->OnRenderRuntime( ts );
 			}
 		}
-
-		if( !m_RuntimeScene )
-		{
-			auto viewSphere = m_EditorScene->GetRegistry().view<TransformComponent, PhysXSphereColliderComponent>();
-			for( auto entity : viewSphere )
-			{
-				auto [transform, sphereCollider] = viewSphere.get<TransformComponent, PhysXSphereColliderComponent>( entity );
-				sphereCollider.Radius = transform.Scale.y / 2.0f;
-			}
-		}
-		*/
 	}
 
 	std::pair<float, float> EditorLayer::GetMouseViewportSpace()
@@ -507,27 +443,6 @@ namespace Saturn {
 		{
 			if( m_RuntimeScene->m_RuntimeRunning )
 			{
-				Ref<SceneCamera>* mainCamera = nullptr;
-				{
-					auto view = m_RuntimeScene->GetRegistry().view<TransformComponent, CameraComponent>();
-					for( auto entity : view )
-					{
-						auto [transform, camera] = view.get<TransformComponent, CameraComponent>( entity );
-
-						if( camera.Primary )
-						{
-							mainCamera = &camera.Camera;
-							break;
-						}
-					}
-				}
-
-				if( mainCamera != nullptr )
-				{
-					//mainCamera->Raw()->SetPosition( cameraPosition );
-					mainCamera->Raw()->OnEvent( e );
-				}
-
 			}
 
 		}
@@ -1321,7 +1236,7 @@ namespace Saturn {
 						m_RuntimeScene = nullptr;
 						m_SelectionContext.clear();
 						m_SceneHierarchyPanel->SetContext( m_EditorScene );
-						ScriptEngine::SetSceneContext( m_RuntimeScene );
+						ScriptEngine::SetSceneContext( m_EditorScene );
 					}
 					else
 					{
@@ -1333,7 +1248,7 @@ namespace Saturn {
 						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
 						m_EditorScene->CopyScene( m_RuntimeScene );
 						m_RuntimeScene->BeginRuntime();
-						ScriptEngine::SetSceneContext( m_EditorScene );
+						ScriptEngine::SetSceneContext( m_RuntimeScene );
 					}
 				}
 

@@ -71,6 +71,7 @@ namespace Saturn {
 		};
 		std::vector<DrawCommand> DrawList;
 		std::vector<DrawCommand> SelectedMeshDrawList;
+		std::vector<DrawCommand> SelectedMeshDebugOutlineList;
 
 		// Grid
 		Ref<MaterialInstance> GridMaterial;
@@ -327,6 +328,7 @@ namespace Saturn {
 	void SceneRenderer::GeometryPass()
 	{
 		bool outline = s_Data.SelectedMeshDrawList.size() > 0;
+		bool debugOutline = s_Data.SelectedMeshDebugOutlineList.size() > 0;
 
 		if( outline )
 		{
@@ -407,6 +409,7 @@ namespace Saturn {
 			baseMaterial->Set( "u_ViewPos", cameraPosition );
 
 			auto overrideMaterial = nullptr; // dc.Material;
+
 			Renderer::SubmitMesh( dc.Mesh, dc.Transform, overrideMaterial );
 		}
 
@@ -509,8 +512,6 @@ namespace Saturn {
 
 	Ref<Texture2D> SceneRenderer::GetFinalColorBuffer()
 	{
-		// return s_Data.CompositePass->GetSpecification().TargetFramebuffer;
-		SAT_CORE_ASSERT( false, "Not implemented" );
 		return nullptr;
 	}
 

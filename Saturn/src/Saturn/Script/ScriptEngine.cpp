@@ -190,7 +190,7 @@ namespace Saturn {
 			s_MonoDomain = mono_domain_create_appdomain( name, nullptr );
 		}
 
-		s_CoreAssembly = LoadAssembly( "assets/assembly/SaturnRuntime.dll" );
+		s_CoreAssembly = LoadAssembly( "assets/assembly/SaturnScript.dll" );
 		s_CoreAssemblyImage = GetAssemblyImage( s_CoreAssembly );
 
 		s_AppAssembly = LoadAssembly( path );
@@ -335,6 +335,14 @@ namespace Saturn {
 		m_Scene = scene;
 	}
 
+	void ScriptEngine::ShutdownScriptEntity( Entity entity, const std::string& moduleName )
+	{
+		EntityInstance& entityInstanceData = GetEntityInstanceData( entity.GetUUID() );
+		FieldMap& moduleFieldMap = s_PublicFields;
+		if( moduleFieldMap.find( moduleName ) != moduleFieldMap.end() )
+			moduleFieldMap.erase( moduleName );
+	}
+
 	bool ScriptEngine::ModuleExists( const std::string& moduleName )
 	{
 		std::string NamespaceName, ClassName;
@@ -357,8 +365,11 @@ namespace Saturn {
 
 	EntityInstance& ScriptEngine::GetEntityInstanceData( UUID entityId )
 	{
-		auto& idMap = s_EntityInstanceMap.at( entityId );
-		return idMap;
+		if( s_EntityInstanceMap.size() )
+		{
+			auto& idMap = s_EntityInstanceMap.at( entityId );
+			return idMap;
+		}
 	}
 
 	bool ScriptEngine::EntityInstanceDataContants( UUID entityId )
@@ -370,7 +381,7 @@ namespace Saturn {
 			return true;
 	}
 
-	Saturn::Ref<Saturn::Scene>& ScriptEngine::GetScene()
+	const Saturn::Ref<Saturn::Scene>& ScriptEngine::GetScene()
 	{
 		return m_Scene;
 	}

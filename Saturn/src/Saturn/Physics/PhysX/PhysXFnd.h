@@ -60,6 +60,14 @@ namespace Saturn {
 		TwoDirectional
 	};
 
+	struct RaycastHit
+	{
+		uint64_t EntityID;
+		glm::vec3 Position;
+		glm::vec3 Normal;
+		float Distance;
+	};
+
 	//TODO: Settings
 
 	class PhysXContact : public physx::PxSimulationEventCallback, public RefCounted
@@ -93,6 +101,8 @@ namespace Saturn {
 
 		static std::vector<physx::PxShape*> CreateConvexMesh( PhysXMeshColliderComponent& collider, const glm::vec3& size, bool invalidateOld = false );
 		static std::vector<physx::PxShape*> CreateTriangleMesh( PhysXMeshColliderComponent& collider, const glm::vec3& scale = glm::vec3( 1.0f ), bool invalidateOld = false );
+
+		static bool Raycast( const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* hit );
 
 		static void AddRigidBody( Entity& entity );
 	public:

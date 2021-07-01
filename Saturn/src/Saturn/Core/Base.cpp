@@ -35,7 +35,7 @@
 
 namespace Saturn {
 
-	static bool s_AppRestart = true;
+	static bool s_AppRestart = false;
 	static bool s_AppRestartInProg = false;
 
 	void InitCore( void )

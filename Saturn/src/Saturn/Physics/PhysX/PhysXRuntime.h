@@ -40,7 +40,7 @@ namespace Saturn {
 	public:
 		static void Update( Timestep ts, Scene& scene );
 		static void CreateScene();
-		static physx::PxScene& GetPhysXScene();
+		static void* GetPhysXScene();
 		static void CreatePhysXCompsForEntity( Entity entity );
 		static void Clear();
 	protected:

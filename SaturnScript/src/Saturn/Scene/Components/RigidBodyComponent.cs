@@ -5,13 +5,27 @@ namespace Saturn
 {
     public class PhysXRigidbodyComponent : Component
     {
-        public void ApplyForce(Vector3 forcedire, PhysXForceMode physXForceMode)
+        public enum Type
         {
-            Console.WriteLine("RB ID {0}", Entity.EntityID);
-            AddForce_Native(Entity.EntityID, forcedire, physXForceMode);
+            Static,
+            Dynamic
+        }
+
+        public Vector3 GetLinearVelocity()
+        {
+            GetLinearVelocity_Native(Entity.EntityID, out Vector3 velocity);
+            return velocity;
+        }
+
+        public void SetLinearVelocity(Vector3 velocity)
+        {
+            SetLinearVelocity_Native(Entity.EntityID, ref velocity);
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void AddForce_Native(ulong entityID, Vector3 forcedire, PhysXForceMode physXForceMode);
+        internal static extern void GetLinearVelocity_Native(ulong entityID, out Vector3 velocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetLinearVelocity_Native(ulong entityID, ref Vector3 velocity);
+
     }
 }

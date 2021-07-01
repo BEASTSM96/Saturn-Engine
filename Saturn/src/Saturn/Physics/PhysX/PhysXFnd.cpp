@@ -31,6 +31,8 @@
 
 #include "PhysXHelpers.h"
 
+#include "PhysXRuntime.h"
+
 #include <physx/PxPhysicsAPI.h>
 
 #include "Saturn/Script/ScriptEngine.h"
@@ -121,9 +123,11 @@ namespace Saturn {
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = entity.GetComponent<TransformComponent>();
 		auto& mat = entity.GetComponent<PhysXMaterialComponent>();
+		auto& mesh = entity.GetComponent<MeshComponent>();
 		glm::vec3 size = comp.Extents;
 		glm::vec3 entitySize = trans.Scale;
 
+		comp.DebugMesh = mesh;
 
 		physx::PxBoxGeometry boxGeo = physx::PxBoxGeometry( size.x / 2.0f, size.y / 2.0f, size.z / 2.0f );
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, boxGeo, *s_Physics->createMaterial( mat.StaticFriction, mat.DynamicFriction, mat.Restitution ) );
@@ -190,8 +194,10 @@ namespace Saturn {
 				shape->setMaterials( materials, 1 );
 				shape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger );
 				shape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger );
-				actor.attachShape( *shape );
+				bool res = actor.attachShape( *shape );
 				shape->release();
+				if( res )
+					shape = nullptr;
 			}
 		}
 		else
@@ -391,6 +397,24 @@ namespace Saturn {
 		}
 
 		return shapes;
+	}
+
+	bool PhysXFnd::Raycast( const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* hit )
+	{
+		physx::PxScene* scene = static_cast< physx::PxScene* >( PhysXRuntime::GetPhysXScene() );
+		physx::PxRaycastBuffer hitInfo;
+		bool result = scene->raycast( glmVec3ToPx( origin ), glmVec3ToPx( glm::normalize( direction ) ), maxDistance, hitInfo );
+
+		if( result )
+		{
+			Entity& entity = *( Entity* )hitInfo.block.actor->userData;
+			hit->EntityID = entity.GetUUID();
+			hit->Position = PxVec3ToGLM( hitInfo.block.position );
+			hit->Normal = PxVec3ToGLM( hitInfo.block.normal );
+			hit->Distance = hitInfo.block.distance;
+		}
+
+		return result;
 	}
 
 	void PhysXFnd::AddRigidBody( Entity& entity )

@@ -23,9 +23,9 @@ namespace Saturn {
 		s_Scene = PhysXFnd::CreateScene();
 	}
 
-	physx::PxScene& PhysXRuntime::GetPhysXScene()
+	void* PhysXRuntime::GetPhysXScene()
 	{
-		return *s_Scene;
+		return s_Scene;
 	}
 
 	void PhysXRuntime::CreatePhysXCompsForEntity( Entity entity )

@@ -51,5 +51,20 @@ namespace Saturn
             return null;
         }
 
+        public Entity FindEntityByTag(string tag)
+        {
+            ulong entityID = FindEntityByTag_Native(tag);
+            return new Entity(entityID);
+        }
+
+        public Entity FindEntityByID(ulong entityID)
+        {
+            // TODO: Verify the entity id
+            return new Entity(entityID);
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern ulong FindEntityByTag_Native(string tag);
+
     }
 }

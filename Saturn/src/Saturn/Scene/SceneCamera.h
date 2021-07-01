@@ -34,68 +34,38 @@
 
 namespace Saturn {
 
-	class SceneCamera : public Camera, public RefCounted
+	class SceneCamera : public Camera
 	{
 	public:
-		SceneCamera() = default;
-		SceneCamera( const glm::mat4 & projectionMatrix );
+		enum class ProjectionType { Perspective = 0, Orthographic = 1 };
+	public:
+		void SetPerspective( float verticalFOV, float nearClip = 0.01f, float farClip = 1000.0f );
+		void SetOrthographic( float size, float nearClip = -1.0f, float farClip = 1.0f );
+		void SetViewportSize( uint32_t width, uint32_t height );
 
-		void Focus( void );
-		void OnUpdate( Timestep ts );
-		void OnEvent( Event & e );
+		void SetPerspectiveVerticalFOV( float verticalFov ) { m_PerspectiveFOV = glm::radians( verticalFov ); }
+		float GetPerspectiveVerticalFOV() const { return glm::degrees( m_PerspectiveFOV ); }
+		void SetPerspectiveNearClip( float nearClip ) { m_PerspectiveNear = nearClip; }
+		float GetPerspectiveNearClip() const { return m_PerspectiveNear; }
+		void SetPerspectiveFarClip( float farClip ) { m_PerspectiveFar = farClip; }
+		float GetPerspectiveFarClip() const { return m_PerspectiveFar; }
 
-		inline float GetDistance() const { return m_Distance; }
-		inline void SetDistance( float distance ) { m_Distance = distance; }
+		void SetOrthographicSize( float size ) { m_OrthographicSize = size; }
+		float GetOrthographicSize() const { return m_OrthographicSize; }
+		void SetOrthographicNearClip( float nearClip ) { m_OrthographicNear = nearClip; }
+		float GetOrthographicNearClip() const { return m_OrthographicNear; }
+		void SetOrthographicFarClip( float farClip ) { m_OrthographicFar = farClip; }
+		float GetOrthographicFarClip() const { return m_OrthographicFar; }
 
-		inline void SetViewportSize( uint32_t width, uint32_t height ) { m_ViewportWidth = width; m_ViewportHeight = height; }
-
-		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
-		glm::mat4 GetViewProjection() const { return m_ProjectionMatrix * m_ViewMatrix; }
-
-		glm::vec3 GetUpDirection( void );
-		glm::vec3 GetRightDirection( void );
-		glm::vec3 GetForwardDirection( void );
-		void SetPosition( glm::vec3 Position )
-		{
-			m_Position = Position;
-			UpdateCameraView();
-			//CalculatePosition();
-		}
-		const glm::vec3& GetPosition() const { return m_Position; }
-		glm::quat GetOrientation( void ) const;
-
-		float GetExposure( void ) const { return m_Exposure; }
-		float& GetExposure( void ) { return m_Exposure; }
-
-		float GetPitch( void ) const { return m_Pitch; }
-		float GetYaw( void ) const { return m_Yaw; }
+		void SetProjectionType( ProjectionType type ) { m_ProjectionType = type; }
+		ProjectionType GetProjectionType() const { return m_ProjectionType; }
 	private:
-		void UpdateCameraView( void );
+		ProjectionType m_ProjectionType = ProjectionType::Perspective;
 
-		bool OnMouseScroll( MouseScrolledEvent & e );
+		float m_PerspectiveFOV = glm::radians( 45.0f );
+		float m_PerspectiveNear = 0.1f, m_PerspectiveFar = 1000.0f;
 
-		void MousePan( const glm::vec2 & delta );
-		void MouseRotate( const glm::vec2 & delta );
-		void MouseZoom( float delta );
-
-		glm::vec3 CalculatePosition( void );
-
-		std::pair<float, float> PanSpeed() const;
-		float RotationSpeed( void ) const;
-		float ZoomSpeed( void ) const;
-	private:
-		glm::mat4 m_ViewMatrix;
-		glm::vec3 m_Position, m_Rotation, m_FocalPoint;
-
-		bool m_Panning, m_Rotating;
-		glm::vec2 m_InitialMousePosition;
-		glm::vec3 m_InitialFocalPoint, m_InitialRotation;
-
-		float m_Distance;
-		float m_Pitch, m_Yaw;
-
-		float m_Exposure = 0.8f;
-
-		uint32_t m_ViewportWidth = 1280, m_ViewportHeight = 720;
+		float m_OrthographicSize = 10.0f;
+		float m_OrthographicNear = -1.0f, m_OrthographicFar = 1.0f;
 	};
 }

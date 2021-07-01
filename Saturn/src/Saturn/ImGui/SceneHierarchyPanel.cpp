@@ -802,23 +802,6 @@ namespace Saturn {
 				tc.Rotation = glm::quat( glm::radians( newRotation ) );
 			} );
 
-
-		DrawComponent<CameraComponent>( "Camera", entity, []( auto& cc )
-	{
-
-		ImGui::Columns( 3 );
-		ImGui::SetColumnWidth( 0, 100 );
-		ImGui::SetColumnWidth( 1, 300 );
-		ImGui::SetColumnWidth( 2, 40 );
-		ImGui::Text( "Camera" );
-		ImGui::NextColumn();
-		ImGui::PushItemWidth( -1 );
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-		//if( !cc.Camera )
-			//cc.Camera = Ref<SceneCamera>::Create( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
-	} );
-
 		DrawComponent<MeshComponent>( "Mesh", entity, []( auto& mc )
 			{
 				ImGui::Columns( 3 );
@@ -866,6 +849,23 @@ namespace Saturn {
 				rb.m_Rigidbody->SetMass( mass );
 			} );
 
+
+		DrawComponent<CameraComponent>( "Camera Component", entity, [&]( auto& cc )
+		{
+			DrawBoolControl( "Is Primary", &cc.Primary );
+			ImGui::Spacing();
+
+			const char* projTypeStrings[] ={ "Perspective", "Orthographic" };
+			int currentProj = ( int )cc.Camera.GetProjectionType();
+
+			float verticalFOV = cc.Camera.GetPerspectiveVerticalFOV();
+			float nearClip = cc.Camera.GetPerspectiveNearClip();
+			float farClip = cc.Camera.GetPerspectiveFarClip();
+
+			DrawFloatControl( "Vertical FOV", &verticalFOV );
+			DrawFloatControl( "Near Clip", &nearClip );
+			DrawFloatControl( "Far Clip", &farClip );
+		} );
 
 		DrawComponent<PhysXMaterialComponent>( "PhysX Material", entity, []( auto& mat )
 		{
@@ -1040,13 +1040,25 @@ namespace Saturn {
 
 				ImGui::Text( "Module Name:" );
 				ImGui::SameLine();
+				std::string oldName = component.ModuleName;
 
-				if(ImGui::InputText( "##name", ( char* )component.ModuleName.c_str(), 256 ))
+				char buffer[ 256 ];
+				memset( buffer, 0, 256 );
+				memcpy( buffer, component.ModuleName.c_str(), component.ModuleName.length() );
+
+				if(ImGui::InputText( "##name", buffer, 256 ))
 				{
+					component.ModuleName = std::string( buffer );
+
+					if( ScriptEngine::ModuleExists( oldName ) && component.ModuleName != "ExampleApp.Null" )
+						ScriptEngine::ShutdownScriptEntity( entity, oldName );
+
+					if( ScriptEngine::ModuleExists( component.ModuleName ) )
+						ScriptEngine::OnInitEntity( entity );
 				}
 
 				auto& fieldMap = ScriptEngine::GetFieldMap();
-				if( fieldMap.find( component.ModuleName ) != fieldMap.end() )
+				if( ScriptEngine::ModuleExists( component.ModuleName ) && component.ModuleName != "ExampleApp.Null" )
 				{
 					auto& publicFields = fieldMap.at( component.ModuleName );
 					for( auto& field : publicFields )

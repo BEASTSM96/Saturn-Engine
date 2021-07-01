@@ -53,21 +53,32 @@ namespace Saturn::Scripting {
 		return Input::IsKeyPressed( key );
 	}
 
-	void Saturn_Entity_GetTransform( uint64_t entityID, glm::mat4* transform )
+	bool Saturn_Input_IsMouseButtonPressed( MouseButton button )
 	{
-		auto& comp = ScriptHelpers::GetCompFromScene<TransformComponent>( ScriptEngine::GetScene(), entityID );
-		*transform = comp.GetTransform();
+		return Input::IsMouseButtonPressed( button );
 	}
 
-	void Saturn_Entity_SetTransform( uint64_t entityID, glm::mat4* transform )
+	void Saturn_Input_SetCursorMode( CursorMode mode )
 	{
-		auto& comp = ScriptHelpers::GetCompFromScene<TransformComponent>( ScriptEngine::GetScene(), entityID );
-		comp.GetTransform() = *transform;
+		Input::SetCursorMode( mode );
+	}
+
+	CursorMode Saturn_Input_GetCursorMode()
+	{
+		return Input::GetCursorMode();
+	}
+
+	void Saturn_Input_GetMousePosition( glm::vec2* outPos )
+	{
+		auto [x,y] = Input::GetMousePosition();
+		*outPos ={ x, y };
 	}
 
 	void Saturn_Entity_CreateComponent( uint64_t entityID, void* type )
 	{
-		auto& map =  ScriptHelpers::GetEntityMap( ScriptEngine::GetScene(), entityID );
+		Ref<Scene> scene = ScriptEngine::GetScene();
+		auto& map =  ScriptHelpers::GetEntityMap( scene, entityID );
+
 		Entity e = map.at( entityID );
 		MonoType* monoType = mono_reflection_type_get_type( ( MonoReflectionType* )type );
 		s_CreateComponentFuncs[ monoType ]( e );
@@ -75,42 +86,171 @@ namespace Saturn::Scripting {
 
 	bool Saturn_Entity_HasComponent( uint64_t entityID, void* type )
 	{
-		auto& map =  ScriptHelpers::GetEntityMap( ScriptEngine::GetScene(), entityID );
+		Ref<Scene> scene = ScriptEngine::GetScene();
+		auto& map =  ScriptHelpers::GetEntityMap( scene, entityID );
+
 		Entity e = map.at( entityID );
 		MonoType* monoType = mono_reflection_type_get_type( ( MonoReflectionType* )type );
 		bool res = s_HasComponentFuncs[ monoType ]( e );
 		return res;
 	}
 
+	void Saturn_TransformComponent_GetTransform( uint64_t entityID, TransformComponent* outTransform )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+		const auto& entityMap = scene->GetEntityMap();
+
+		Entity entity = entityMap.at( entityID );
+
+		*outTransform = entity.GetComponent<TransformComponent>();
+	}
+
+	void Saturn_TransformComponent_SetTransform( uint64_t entityID, TransformComponent* inTransform )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+		auto& comp = ScriptHelpers::GetCompFromScene<TransformComponent>( scene, entityID );
+		comp.GetTransform() = *inTransform;
+	}
+
+	void Saturn_TransformComponent_GetTranslation( uint64_t entityID, glm::vec3* outTranslation )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+		const auto& entityMap = scene->GetEntityMap();
+
+		Entity entity = entityMap.at( entityID );
+
+		*outTranslation = entity.GetComponent<TransformComponent>().Position;
+	}
+
+	void Saturn_TransformComponent_SetTranslation( uint64_t entityID, glm::vec3* inTranslation )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+		const auto& entityMap = scene->GetEntityMap();
+
+		Entity entity = entityMap.at( entityID );
+
+		entity.GetComponent<TransformComponent>().Position = *inTranslation;
+	}
+
+	void Saturn_TransformComponent_GetRotation( uint64_t entityID, glm::vec3* outRotation )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+		const auto& entityMap = scene->GetEntityMap();
+
+		Entity entity = entityMap.at( entityID );
+
+		auto& rotation = entity.GetComponent<TransformComponent>().Rotation;
+
+		glm::vec3 rot( rotation.x, rotation.y, rotation.z );
+
+		*outRotation = rot;
+	}
+
+	void Saturn_TransformComponent_SetRotation( uint64_t entityID, glm::vec3* inRotation )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+		const auto& entityMap = scene->GetEntityMap();
+
+		Entity entity = entityMap.at( entityID );
+		entity.GetComponent<TransformComponent>().Rotation = *inRotation;
+	}
+
+	void Saturn_TransformComponent_GetScale( uint64_t entityID, glm::vec3* outScale )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+		const auto& entityMap = scene->GetEntityMap();
+
+		Entity entity = entityMap.at( entityID );
+		*outScale = entity.GetComponent<TransformComponent>().Scale;
+	}
+
+	void Saturn_TransformComponent_SetScale( uint64_t entityID, glm::vec3* inScale )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+		const auto& entityMap = scene->GetEntityMap();
+
+		Entity entity = entityMap.at( entityID );
+		entity.GetComponent<TransformComponent>().Scale = *inScale;
+	}
+
 	Mesh Saturn_Entity_GetMesh( uint64_t entityID )
 	{
-		auto& comp = ScriptHelpers::GetCompFromScene<MeshComponent>( ScriptEngine::GetScene(), entityID );
+		Ref<Scene> scene = ScriptEngine::GetScene();
+
+		auto& comp = ScriptHelpers::GetCompFromScene<MeshComponent>( scene, entityID );
 		return Mesh( comp.Mesh->GetFilePath() );
 	}
 
 	void Saturn_Entity_SetMesh( uint64_t entityID, void* type )
 	{
-		auto& comp = ScriptHelpers::GetCompFromScene<MeshComponent>( ScriptEngine::GetScene(), entityID );
+		Ref<Scene> scene = ScriptEngine::GetScene();
+
+		auto& comp = ScriptHelpers::GetCompFromScene<MeshComponent>( scene, entityID );
 		comp.Mesh = (Mesh*)type;
+	}
+
+	uint64_t Saturn_Entity_FindEntityByTag( MonoString* tag )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+
+		Entity entity = scene->FindEntityByTag( mono_string_to_utf8( tag ) );
+		if( entity.IsVaild() )
+			return entity.GetComponent<IdComponent>().ID;
+
+		return 0;
 	}
 
 	MonoString* Saturn_TagComponent_GetTag( uint64_t entityID )
 	{
-		auto& comp = ScriptHelpers::GetCompFromScene<TagComponent>( ScriptEngine::GetScene(), entityID );
+		Ref<Scene> scene = ScriptEngine::GetScene();
+
+		auto& comp = ScriptHelpers::GetCompFromScene<TagComponent>( scene, entityID );
 		std::string tag = comp.Tag;
 		return mono_string_new( mono_domain_get(), tag.c_str() );
 	}
 
 	void Saturn_TagComponent_SetTag( uint64_t entityID, MonoString* tag )
 	{
-		auto& comp = ScriptHelpers::GetCompFromScene<TagComponent>( ScriptEngine::GetScene(), entityID );
+		Ref<Scene> scene = ScriptEngine::GetScene();
+
+		auto& comp = ScriptHelpers::GetCompFromScene<TagComponent>( scene, entityID );
 		std::string strtag = comp.Tag;
 		comp.Tag = MonoToString( tag );
 	}
 
 	void Saturn_RigidBodyComponent_AddForce( uint64_t entityID, glm::vec3 forcedire, ForceType type )
 	{
-		auto& comp = ScriptHelpers::GetCompFromScene<PhysXRigidbodyComponent>( ScriptEngine::GetScene(), entityID );
-		comp.m_Rigidbody->ApplyForce( forcedire, type );
+		Ref<Scene> scene = ScriptEngine::GetScene();
+
+		auto& comp = ScriptHelpers::GetCompFromScene<PhysXRigidbodyComponent>( scene, entityID );
+
+		if( !comp.isKinematic )
+			comp.m_Rigidbody->ApplyForce( forcedire, type );
+		else
+			SAT_CORE_WARN( "Cannot add a force to a kinematic actor!" ); return;
+	}
+
+	bool Saturn_Physics_Raycast( glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit )
+	{
+		return PhysXFnd::Raycast( *origin, *direction, maxDistance, hit );
+	}
+
+	void Saturn_RigidBodyComponent_GetLinearVelocity( uint64_t entityID, glm::vec3* outVelocity )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+
+		auto& comp = ScriptHelpers::GetCompFromScene<PhysXRigidbodyComponent>( scene, entityID );
+
+		*outVelocity = comp.m_Rigidbody->GetLinearVelocity();
+	}
+
+	void Saturn_RigidBodyComponent_SetLinearVelocity( uint64_t entityID, glm::vec3* velocity )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+
+		auto& comp = ScriptHelpers::GetCompFromScene<PhysXRigidbodyComponent>( scene, entityID );
+
+		comp.m_Rigidbody->SetLinearVelocity( *velocity );
+
 	}
 }
