@@ -110,6 +110,8 @@ namespace Saturn {
 		std::pair< std::string, std::string > OpenFile( const char* filter ) const;
 		std::pair< std::string, std::string > SaveFile( const char* f ) const;
 
+		Timestep& GetTimeStep() { return Get().m_TimeStep;  }
+
 		static const char* GetConfigurationName();
 		static const char* GetPlatformName();
 

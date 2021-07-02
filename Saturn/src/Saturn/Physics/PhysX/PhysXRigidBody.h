@@ -81,6 +81,8 @@ namespace Saturn {
 
 		void SetKinematic( bool kinematic );
 
+		void Rotate( const glm::vec3& rotation );
+
 		bool IsKinematic();
 
 		glm::vec3 GetLinearVelocity();

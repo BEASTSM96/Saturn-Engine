@@ -41,6 +41,10 @@ namespace Scripting {
 	void Saturn_TransformComponent_SetRotation( uint64_t entityID, glm::vec3* inRotation );
 	void Saturn_TransformComponent_GetScale( uint64_t entityID, glm::vec3* outScale );
 	void Saturn_TransformComponent_SetScale( uint64_t entityID, glm::vec3* inScale );
+	// Rotation
+	void Saturn_TransformComponent_GetRotationX( uint64_t entityID, glm::vec3* outX );
+	void Saturn_TransformComponent_GetRotationY( uint64_t entityID, glm::vec3* outY );
+	void Saturn_TransformComponent_GetRotationZ( uint64_t entityID, glm::vec3* outZ );
 
 	Mesh Saturn_Entity_GetMesh( uint64_t entityID );
 	void Saturn_Entity_SetMesh( uint64_t entityID, void* type );
@@ -48,11 +52,14 @@ namespace Scripting {
 	MonoString* Saturn_TagComponent_GetTag( uint64_t entityID );
 	void Saturn_TagComponent_SetTag( uint64_t entityID, MonoString* tag );
 
-	void Saturn_RigidBodyComponent_AddForce( uint64_t entityID, glm::vec3 forcedire, ForceType type );
 	bool Saturn_Physics_Raycast( glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit );
 
 	void Saturn_RigidBodyComponent_GetLinearVelocity( uint64_t entityID, glm::vec3* outVelocity );
 	void Saturn_RigidBodyComponent_SetLinearVelocity( uint64_t entityID, glm::vec3* velocity );
+	void Saturn_RigidBodyComponent_ApplyForce( uint64_t entityID, glm::vec3* inForceDir, ForceType type );
+	void Saturn_RigidBodyComponent_Rotate( uint64_t entityID, glm::vec3* rotation );
+
+	void Saturn_TimeStep_GetTimeStep(float* outTime);
 
 	uint64_t Saturn_Entity_FindEntityByTag(MonoString* tag);
 

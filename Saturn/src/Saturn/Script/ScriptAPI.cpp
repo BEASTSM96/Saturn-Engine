@@ -4,6 +4,8 @@
 #include "Saturn/Input.h"
 #include "Saturn/Scene/Entity.h"
 
+#include "Saturn/Application.h"
+
 #include <mono/jit/jit.h>
 
 namespace Saturn {
@@ -152,7 +154,9 @@ namespace Saturn::Scripting {
 		const auto& entityMap = scene->GetEntityMap();
 
 		Entity entity = entityMap.at( entityID );
-		entity.GetComponent<TransformComponent>().Rotation = *inRotation;
+		auto& rot = entity.GetComponent<TransformComponent>().Rotation; 
+		rot = glm::quat( 0.0F, inRotation->x, inRotation->y, inRotation->z );
+		SAT_CORE_INFO( "Rotation X{0}, Y{1}, Z{2}", rot.x, rot.y, rot.z );
 	}
 
 	void Saturn_TransformComponent_GetScale( uint64_t entityID, glm::vec3* outScale )
@@ -253,4 +257,43 @@ namespace Saturn::Scripting {
 		comp.m_Rigidbody->SetLinearVelocity( *velocity );
 
 	}
+
+	void Saturn_RigidBodyComponent_Rotate( uint64_t entityID, glm::vec3* rotation )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+
+		auto& comp = ScriptHelpers::GetCompFromScene<PhysXRigidbodyComponent>( scene, entityID );
+
+		comp.m_Rigidbody->Rotate( *rotation );
+	}
+
+	void Saturn_RigidBodyComponent_ApplyForce( uint64_t entityID, glm::vec3* inForceDir, ForceType type )
+	{
+		Ref<Scene> scene = ScriptEngine::GetScene();
+
+		auto& comp = ScriptHelpers::GetCompFromScene<PhysXRigidbodyComponent>( scene, entityID );
+
+		comp.m_Rigidbody->ApplyForce( *inForceDir, type );
+	}
+
+	void Saturn_TimeStep_GetTimeStep( float* outTime )
+	{
+		*outTime = Application::Get().GetTimeStep();
+	}
+
+	void Saturn_TransformComponent_GetRotationX( uint64_t entityID, glm::vec3* outX )
+	{
+
+	}
+
+	void Saturn_TransformComponent_GetRotationY( uint64_t entityID, glm::vec3* outY )
+	{
+
+	}
+
+	void Saturn_TransformComponent_GetRotationZ( uint64_t entityID, glm::vec3* outZ )
+	{
+
+	}
+
 }

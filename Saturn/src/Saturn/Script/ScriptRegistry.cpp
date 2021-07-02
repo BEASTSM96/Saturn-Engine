@@ -76,9 +76,12 @@ SAT_CORE_ERROR("No C# component class for {0}", #_Type); \
 		mono_add_internal_call( "Saturn.TransformComponent::GetScale_Native", Saturn::Scripting::Saturn_TransformComponent_GetScale );
 		mono_add_internal_call( "Saturn.TransformComponent::SetScale_Native", Saturn::Scripting::Saturn_TransformComponent_SetScale );
 
-		mono_add_internal_call( "Saturn.RigidBodyComponent::GetLinearVelocity_Native", Saturn::Scripting::Saturn_RigidBodyComponent_GetLinearVelocity );
-		mono_add_internal_call( "Saturn.RigidBodyComponent::SetLinearVelocity_Native", Saturn::Scripting::Saturn_RigidBodyComponent_SetLinearVelocity );
+		mono_add_internal_call( "Saturn.PhysXRigidbodyComponent::GetLinearVelocity_Native", Saturn::Scripting::Saturn_RigidBodyComponent_GetLinearVelocity );
+		mono_add_internal_call( "Saturn.PhysXRigidbodyComponent::SetLinearVelocity_Native", Saturn::Scripting::Saturn_RigidBodyComponent_SetLinearVelocity );
+		mono_add_internal_call( "Saturn.PhysXRigidbodyComponent::Rotate_Native", Saturn::Scripting::Saturn_RigidBodyComponent_Rotate );
 
-		mono_add_internal_call( "Saturn.PhysXRigidbodyComponent::AddForce_Native", Saturn::Scripting::Saturn_RigidBodyComponent_AddForce );
+		mono_add_internal_call( "Saturn.PhysXRigidbodyComponent::AddForce_Native", Saturn::Scripting::Saturn_RigidBodyComponent_ApplyForce );
+
+		mono_add_internal_call( "Saturn.TimeStep::GetTimeStep_Native", Saturn::Scripting::Saturn_TimeStep_GetTimeStep );
 	}
 }

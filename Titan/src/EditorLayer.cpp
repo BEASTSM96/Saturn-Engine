@@ -115,7 +115,7 @@ namespace Saturn {
 		m_UnkownFile = Texture2D::Create( "assets/textures/assetpanel/unkown_file.png" );
 		m_TextFile = Texture2D::Create( "assets/textures/assetpanel/text_file.png" );
 
-		ScriptEngine::Init( "assets/assembly/game/ExampleApp.dll" );
+		ScriptEngine::Init( "assets/assembly/ExampleApp.dll" );
 		ScriptEngine::SetSceneContext( m_EditorScene );
 
 	}

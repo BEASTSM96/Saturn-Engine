@@ -140,6 +140,16 @@ namespace Saturn {
 		m_Kinematic = kinematic;
 	}
 
+	void PhysXRigidbody::Rotate( const glm::vec3& rotation )
+	{
+		physx::PxTransform trans = m_Body->getGlobalPose();
+		trans.q *= ( physx::PxQuat( glm::radians( rotation.x ), { 1.0f, 0.0f, 0.0f } ) 
+			* physx::PxQuat( glm::radians( rotation.y ), { 0.0F, 1.0F, 0.0F } )
+			* physx::PxQuat( glm::radians( rotation.z ), { 0.0F, 0.0F, 1.0F } ) );
+		m_Body->setGlobalPose( trans );
+
+	}
+
 	bool PhysXRigidbody::IsKinematic()
 	{
 		physx::PxRigidDynamic* actor = ( physx::PxRigidDynamic* )m_Body;

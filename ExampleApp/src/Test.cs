@@ -3,6 +3,8 @@ using Saturn;
 
 namespace ExampleApp
 {
+    class Null { }
+
     class Test : Entity
     {
         public float TestFloat = 0.0f;
@@ -60,16 +62,16 @@ namespace ExampleApp
 
     }
 
-    class FPSPlayer : Entity
+    class FreeCamera : Entity
     {
-        public float WalkingSpeed = 10.0F;
-        public float RunSpeed = 20.0F;
-        public float JumpForce = 50.0F;
+        public float WalkingSpeed = 3.0F;
+        public float RunSpeed = 5.0F;
+        public float JumpForce = 1.0F;
         public float CameraForwardOffset = 0.2F;
-        public float CameraYOffset = 0.85F;
+        public float CameraYOffset = 8.850F;
 
         [NonSerialized]
-        public float MouseSensitivity = 10.0F;
+        public float MouseSensitivity = 2;
 
         private bool m_Colliding = false;
         private float m_CurrentSpeed;
@@ -86,16 +88,18 @@ namespace ExampleApp
 
         private Vector2 m_MovementDirection = new Vector2(0.0F);
         private bool m_ShouldJump = false;
+        private Vector3 localPos = new Vector3(0, 0, 0);
+        private Vector3 localRotation = new Vector3(0, 0, 0);
 
         void OnCreate()
         {
             m_Transform = GetComponent<TransformComponent>();
             m_RigidBody = GetComponent<PhysXRigidbodyComponent>();
 
-            m_CurrentSpeed = WalkingSpeed;
-
             m_CameraEntity = FindEntityByTag("Camera");
             m_CameraTransform = m_CameraEntity.GetComponent<TransformComponent>();
+
+            m_CurrentSpeed = WalkingSpeed;
 
             m_LastMousePosition = Input.GetMousePosition();
 
@@ -104,82 +108,80 @@ namespace ExampleApp
 
         void OnUpdate(float ts)
         {
-            if (Input.IsKeyPressed(Key.Escape) && Input.GetCursorMode() == CursorMode.Locked)
-                Input.SetCursorMode(CursorMode.Normal);
+            // Check Mouse
+            {
+                if (Input.IsKeyPressed(Key.Escape) && Input.GetCursorMode() == CursorMode.Locked)
+                    Input.SetCursorMode(CursorMode.Normal);
 
-            if (Input.IsMouseButtonPressed(MouseButton.Left) && Input.GetCursorMode() == CursorMode.Normal)
-                Input.SetCursorMode(CursorMode.Locked);
+                if (Input.IsMouseButtonPressed(MouseButton.Left) && Input.GetCursorMode() == CursorMode.Normal)
+                    Input.SetCursorMode(CursorMode.Locked);
+            }
+
+            // Update Location
+
+            if (Input.IsKeyPressed(Key.W))
+                localPos.Y += 1.0f;
+
+            if(Input.IsKeyPressed(Key.S))
+                localPos.Y -= 1.0f;
+
+            if (Input.IsKeyPressed(Key.D))
+                localPos.X += 1.0f;
+
+            if (Input.IsKeyPressed(Key.A))
+                localPos.X -= 1.0f;
 
             m_CurrentSpeed = Input.IsKeyPressed(Key.LeftControl) ? RunSpeed : WalkingSpeed;
 
+            // Update Movement
+            {
+                m_Transform.Translation = localPos;
+            }
+
+            // Update Rotation
+            {
+               float mouseX = Input.GetMousePosition().X;
+               float mouseY = Input.GetMousePosition().Y;
+
+                Vector2 currentMousePosition = Input.GetMousePosition();
+                Vector2 delta = m_LastMousePosition - currentMousePosition;
+                float xRotation = delta.Y * (MouseSensitivity * 0.05F) * ts;
+
+                if (xRotation != 0.0F)
+                {
+                 //   m_Transform.Rotation += new Vector3(xRotation, 0.0F, 0.0F);
+                }
+
+                localRotation.X = mouseX;
+                localRotation.Y = mouseY;
+
+                Log.Info(mouseX.ToString());
+                Log.Info("local pos" + localRotation.X.ToString());
+
+                m_Transform.Rotation = new Vector3(Mathf.Clamp(mouseX * Mathf.Rad2Deg, -80.0F, 80.0F), 0.0F, 0.0F) * Mathf.Deg2Rad;
+                m_CameraTransform.Rotation = new Vector3(Mathf.Clamp(mouseX * Mathf.Rad2Deg, -80.0F, 80.0F), 0.0F, 0.0F) * Mathf.Deg2Rad;
+            }
+
             UpdateMovementInput();
             UpdateRotation(ts);
-            UpdateCameraTransform();
+            UpdateCameraTransform(ts);
             UpdateMovement();
         }
 
         private void UpdateMovementInput()
         {
-            if (Input.IsKeyPressed(Key.W))
-                m_MovementDirection.Y = 1.0F;
-            else if (Input.IsKeyPressed(Key.S))
-                m_MovementDirection.Y = -1.0F;
-            else
-                m_MovementDirection.Y = 0.0F;
-
-            if (Input.IsKeyPressed(Key.A))
-                m_MovementDirection.X = -1.0F;
-            else if (Input.IsKeyPressed(Key.D))
-                m_MovementDirection.X = 1.0F;
-            else
-                m_MovementDirection.X = 0.0F;
-
-            m_ShouldJump = Input.IsKeyPressed(Key.Space) && !m_ShouldJump;
         }
 
         private void UpdateRotation(float ts)
         {
-            if (Input.GetCursorMode() != CursorMode.Locked)
-                return;
-
-            Vector2 currentMousePosition = Input.GetMousePosition();
-            Vector2 delta = m_LastMousePosition - currentMousePosition;
-            m_CurrentYMovement = delta.X * MouseSensitivity * ts;
-            float xRotation = delta.Y * (MouseSensitivity * 0.05F) * ts;
-
-            if (xRotation != 0.0F)
-            {
-                m_CameraTransform.Rotation += new Vector3(xRotation, 0.0F, 0.0F);
-            }
-
-            m_CameraTransform.Rotation = new Vector3(Mathf.Clamp(m_CameraTransform.Rotation.X * Mathf.Rad2Deg, -80.0F, 80.0F), 0.0F, 0.0F) * Mathf.Deg2Rad;
-            m_LastMousePosition = currentMousePosition;
-
         }
 
         private void UpdateMovement()
         {
-            Vector3 movement = m_CameraTransform.Transform.Right * m_MovementDirection.X + m_CameraTransform.Transform.Forward * m_MovementDirection.Y;
-            movement.Normalize();
-            Vector3 velocity = movement * m_CurrentSpeed;
-            velocity.Y = m_RigidBody.GetLinearVelocity().Y;
-            m_RigidBody.SetLinearVelocity(velocity);
-
-            if (m_ShouldJump && m_Colliding)
-            {
-                //m_RigidBody.AddForce(Vector3.Up * JumpForce, ForceMode.Impulse);
-                m_ShouldJump = false;
-            }
         }
 
-        private void UpdateCameraTransform()
+        private void UpdateCameraTransform(float ts)
         {
-            Vector3 position = m_Transform.Translation + m_Transform.Transform.Forward * CameraForwardOffset;
-            position.Y = m_Transform.Translation.Y + CameraYOffset;
-            m_CameraTransform.Translation = position;
-            m_CameraTransform.Rotation = new Vector3(m_CameraTransform.Rotation.X, m_Transform.Rotation.Y, m_CameraTransform.Rotation.Z);
         }
     }
-
-    class Null {}
 }

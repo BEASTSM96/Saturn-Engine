@@ -80,6 +80,24 @@ namespace Saturn
             }
         }
 
+        float GetRotationX() 
+        {
+            GetRotationX_Native(Entity.EntityID, out float x);
+            return x;
+        }
+
+        float GetRotationY()
+        {
+            GetRotationX_Native(Entity.EntityID, out float y);
+            return y;
+        }
+
+        float GetRotationZ()
+        {
+            GetRotationX_Native(Entity.EntityID, out float z);
+            return z;
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetTransform_Native(ulong entityID, out Transform outTransform);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -92,6 +110,12 @@ namespace Saturn
         internal static extern void GetRotation_Native(ulong entityID, out Vector3 outRotation);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetRotation_Native(ulong entityID, ref Vector3 inRotation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetRotationX_Native(ulong entityID, out float x);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetRotationY_Native(ulong entityID, out float y);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetRotationZ_Native(ulong entityID, out float z);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetScale_Native(ulong entityID, out Vector3 outScale);
         [MethodImpl(MethodImplOptions.InternalCall)]
