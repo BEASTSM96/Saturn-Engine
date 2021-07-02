@@ -71,11 +71,12 @@ namespace Saturn {
 		};
 		std::vector<DrawCommand> DrawList;
 		std::vector<DrawCommand> SelectedMeshDrawList;
-		std::vector<DrawCommand> SelectedMeshDebugOutlineList;
+		std::vector<DrawCommand> ColliderDrawList;
 
 		// Grid
 		Ref<MaterialInstance> GridMaterial;
 		Ref<MaterialInstance> OutlineMaterial;
+		Ref<MaterialInstance> ColliderMaterial;
 
 		// Shadows
 		Ref<ShadowMapFBO> ShadowMapFBO;
@@ -122,7 +123,12 @@ namespace Saturn {
 		auto outlineShader = Shader::Create( "assets/shaders/Outline.glsl" );
 		s_Data.OutlineMaterial = MaterialInstance::Create( Material::Create( outlineShader ) );
 		s_Data.OutlineMaterial->SetFlag( MaterialFlag::DepthTest, false );
+		s_Data.OutlineMaterial->SetFlag( MaterialFlag::TwoSided, true );
 
+		// Collider
+		auto colliderShader = Shader::Create( "assets/shaders/Collider.glsl" );
+		s_Data.ColliderMaterial = MaterialInstance::Create( Material::Create( colliderShader ) );
+		s_Data.ColliderMaterial->SetFlag( MaterialFlag::DepthTest, false );
 
 		s_Data.ShadowMapFBO = ShadowMapFBO::Create( 1024, 1024 );
 	}
@@ -137,6 +143,7 @@ namespace Saturn {
 		s_Data.GeoPass = nullptr;
 		s_Data.GridMaterial = nullptr;
 		s_Data.SelectedMeshDrawList.clear();
+		s_Data.ColliderDrawList.clear();
 	}
 
 	void SceneRenderer::SetViewportSize( uint32_t width, uint32_t height )
@@ -241,6 +248,11 @@ namespace Saturn {
 		s_Data.SelectedMeshDrawList.push_back( { mesh, nullptr, transform } );
 	}
 
+	void SceneRenderer::SubmitColliderMesh( const PhysXBoxColliderComponent& comp, const glm::mat4& trans /*= glm::mat4(1.0f)*/ )
+	{
+		s_Data.ColliderDrawList.push_back( { comp.DebugMesh, nullptr, glm::translate( trans, comp.Offset ) } );
+	}
+
 	static Ref<Shader> equirectangularConversionShader, envFilteringShader, envIrradianceShader;
 
 	std::pair<Ref<TextureCube>, Ref<TextureCube>> SceneRenderer::CreateEnvironmentMap( const std::string& filepath )
@@ -328,7 +340,7 @@ namespace Saturn {
 	void SceneRenderer::GeometryPass()
 	{
 		bool outline = s_Data.SelectedMeshDrawList.size() > 0;
-		bool debugOutline = s_Data.SelectedMeshDebugOutlineList.size() > 0;
+		bool collider = s_Data.ColliderDrawList.size() > 0;
 
 		if( outline )
 		{
@@ -430,7 +442,7 @@ namespace Saturn {
 			s_Data.OutlineMaterial->Set( "u_ViewProjection", viewProjection );
 			for( auto& dc : s_Data.SelectedMeshDrawList )
 			{
-				Renderer::SubmitMesh(dc.Mesh, dc.Transform, s_Data.OutlineMaterial);
+				Renderer::SubmitMesh( dc.Mesh, dc.Transform, s_Data.OutlineMaterial );
 			}
 
 			Renderer::Submit( []()
@@ -440,7 +452,7 @@ namespace Saturn {
 
 			for( auto& dc : s_Data.SelectedMeshDrawList )
 			{
-				Renderer::SubmitMesh(dc.Mesh, dc.Transform, s_Data.OutlineMaterial);
+				Renderer::SubmitMesh( dc.Mesh, dc.Transform, s_Data.OutlineMaterial );
 			}
 
 			Renderer::Submit( []()
@@ -450,6 +462,43 @@ namespace Saturn {
 					glStencilFunc( GL_ALWAYS, 1, 0xff );
 					glEnable( GL_DEPTH_TEST );
 				} );
+		}
+
+		if( collider ) 
+		{
+			Renderer::Submit( []()
+			{
+				glLineWidth( 1 );
+				glEnable( GL_LINE_SMOOTH );
+				glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+				glDisable( GL_DEPTH_TEST );
+			} );
+
+			s_Data.ColliderMaterial->Set( "u_ViewProjection", viewProjection );
+			for( auto& dc : s_Data.ColliderDrawList )
+			{
+				if( dc.Mesh )
+					Renderer::SubmitMesh( dc.Mesh, dc.Transform, s_Data.ColliderMaterial );
+			}
+
+			Renderer::Submit( []()
+			{
+				glPointSize( 1 );
+				glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
+			} );
+
+			for( auto& dc : s_Data.ColliderDrawList )
+			{
+				if( dc.Mesh )
+					Renderer::SubmitMesh( dc.Mesh, dc.Transform, s_Data.ColliderMaterial );
+			}
+
+			Renderer::Submit( []()
+			{
+				glEnable( GL_DEPTH_TEST );
+				glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+			} );
+
 		}
 
 		// Grid
@@ -508,6 +557,7 @@ namespace Saturn {
 		s_Data.DrawList.clear();
 		s_Data.SelectedMeshDrawList.clear();
 		s_Data.SceneData ={};
+		s_Data.ColliderDrawList.clear();
 	}
 
 	Ref<Texture2D> SceneRenderer::GetFinalColorBuffer()

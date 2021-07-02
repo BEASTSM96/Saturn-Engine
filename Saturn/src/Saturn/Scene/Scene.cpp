@@ -186,6 +186,18 @@ namespace Saturn {
 			}
 		}
 
+		{
+			auto view = m_Registry.view<PhysXBoxColliderComponent>();
+			for( auto entity : view )
+			{
+				Entity e ={ entity, this };
+				auto& comp = e.GetComponent<PhysXBoxColliderComponent>();
+
+				if( m_SelectedEntity == entity )
+					SceneRenderer::SubmitColliderMesh( comp, e.GetComponent<TransformComponent>().GetTransform() );
+			}
+		}
+
 		SceneRenderer::EndScene();
 
 	}

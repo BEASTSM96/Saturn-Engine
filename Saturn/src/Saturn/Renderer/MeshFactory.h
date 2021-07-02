@@ -28,61 +28,16 @@
 
 #pragma once
 
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
-#include "Saturn/Renderer/Mesh.h"
-#include "RenderPass.h"
+#include "Mesh.h"
 
 namespace Saturn {
 
-	struct SceneRendererOptions
-	{
-		bool ShowGrid = true;
-		bool ShowSolids = true;
-		bool ShowBoundingBoxes = false;
-	};
-
-	struct SceneRendererCamera
-	{
-		Saturn::Camera Camera;
-		glm::mat4 ViewMatrix;
-	};
-
-	class SceneRenderer
+	class MeshFactory 
 	{
 	public:
-		static void Init( void );
-		static void Shutdown( void );
-
-		static void SetViewportSize( uint32_t width, uint32_t height );
-
-		static void BeginScene( Ref<Scene> scene, const SceneRendererCamera& camera );
-		static void EndScene( void );
-
-		static void ShadowMapPass( Ref<Scene> scene, Ref<Mesh> mesh, const glm::mat4& transform, bool selected );
-
-		static void RenderShadows( Scene* scene, Entity e, const SceneRendererCamera& camera );
-
-		static void SubmitMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ), Ref<MaterialInstance> overrideMaterial = nullptr );
-		static void SubmitSelectedMesh( Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4( 1.0f ) );
-
-		static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap( const std::string& filepath );
-
-		// PhysX
-
-		static void SubmitColliderMesh(const PhysXBoxColliderComponent& comp, const glm::mat4& trans = glm::mat4(1.0f));
-
-		static Ref<RenderPass> GetFinalRenderPass( void );
-		static Ref<Texture2D> GetFinalColorBuffer( void );
-
-		static uint32_t GetFinalColorBufferRendererID();
-
-		static uint32_t GetColorIDShadowMap();
-
-		static SceneRendererOptions& GetOptions();
-	private:
-		static void FlushDrawList( void );
-		static void GeometryPass( void );
-		static void CompositePass( void );
+		static Ref<Mesh> CreateBox( const glm::vec3& size );
+		static Ref<Mesh> CreateSphere( float radius );
+		static Ref<Mesh> CreateCapsule( float radius, float height );
 	};
+
 }

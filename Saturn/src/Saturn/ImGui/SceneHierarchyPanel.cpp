@@ -32,6 +32,7 @@
 #include "Saturn/Application.h"
 #include "Saturn/Script/ScriptEngine.h"
 #include "Saturn/Physics/PhysX/PhysXFnd.h"
+#include "Saturn/Renderer/MeshFactory.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -876,7 +877,11 @@ namespace Saturn {
 
 		DrawComponent<PhysXBoxColliderComponent>( "PhysX BoxCollider", entity, []( auto& bc )
 			{
-				DrawVec3Control( "Extents", bc.Extents, bc.Extents );
+				bool res = DrawVec3Control( "Extents", bc.Extents, bc.Extents );
+				if( res ) 
+				{
+					bc.DebugMesh = MeshFactory::CreateBox( bc.Extents );
+				}
 				ImGui::Spacing();
 				DrawBoolControl( "Is Trigger", &bc.IsTrigger );
 			} );
