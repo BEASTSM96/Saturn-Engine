@@ -366,6 +366,7 @@ namespace Saturn {
 		m_SelectionContext.push_back( selection );
 
 		m_EditorScene->SetSelectedEntity( entity );
+		m_SceneHierarchyPanel->SetSelected( {} );
 		m_SceneHierarchyPanel->SetSelected( entity );
 	}
 
@@ -439,18 +440,9 @@ namespace Saturn {
 		if( m_AllowViewportCameraEvents )
 			m_EditorCamera.OnEvent( e );
 
-		if( m_RuntimeScene )
-		{
-			if( m_RuntimeScene->m_RuntimeRunning )
-			{
-			}
-
-		}
-
 		EventDispatcher dispatcher( e );
 		dispatcher.Dispatch<MouseButtonPressedEvent>( SAT_BIND_EVENT_FN( EditorLayer::OnMouseButtonPressed ) );
 		dispatcher.Dispatch<KeyPressedEvent>( SAT_BIND_EVENT_FN( EditorLayer::OnKeyPressedEvent ) );
-
 	}
 
 	bool EditorLayer::OnKeyPressedEvent( KeyPressedEvent& e )
@@ -494,9 +486,7 @@ namespace Saturn {
 					// Toggle solids
 					SceneRenderer::GetOptions().ShowSolids = !SceneRenderer::GetOptions().ShowSolids;
 					break;
-
 				case Key::D:
-					// Toggle solids
 					if( m_SelectionContext.size() )
 						m_EditorScene->DuplicateEntity( m_SceneHierarchyPanel->GetSelectionContext() );
 					break;
@@ -1157,500 +1147,461 @@ namespace Saturn {
 		//	window_flags |= ImGuiWindowFlags_NoBackground;
 
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
-		if( ImGui::Begin( "DockSpace Demo", &p_open, window_flags ) )
+		ImGui::Begin( "DockSpace Demo", &p_open, window_flags );
+		ImGui::PopStyleVar();
+
+		if( opt_fullscreen )
+			ImGui::PopStyleVar( 2 );
+
+		// Dockspace
+		ImGuiIO& io = ImGui::GetIO();
+		if( io.ConfigFlags & ImGuiConfigFlags_DockingEnable )
 		{
-			ImGui::PopStyleVar();
+			ImGuiID dockspace_id = ImGui::GetID( "MyDockspace" );
+			ImGui::DockSpace( dockspace_id, ImVec2( 0.0f, 0.0f ), opt_flags );
+		}
 
-			if( opt_fullscreen )
-				ImGui::PopStyleVar( 2 );
-
-			// Dockspace
-			ImGuiIO& io = ImGui::GetIO();
-			if( io.ConfigFlags & ImGuiConfigFlags_DockingEnable )
+		if( ImGui::BeginMainMenuBar() )
+		{
+			if( ImGui::BeginMenu( "File" ) )
 			{
-				ImGuiID dockspace_id = ImGui::GetID( "MyDockspace" );
-				ImGui::DockSpace( dockspace_id, ImVec2( 0.0f, 0.0f ), opt_flags );
+				if( ImGui::MenuItem( "New", "Shift+N" ) )
+					NewScene();
+
+				if( ImGui::MenuItem( "Open...", "Shift+O" ) )
+					OpenScene();
+
+				if( ImGui::MenuItem( "Save As...", "Shift+S" ) )
+					SaveSceneAs();
+				ImGui::EndMenu();
+
 			}
 
-			if( ImGui::BeginMainMenuBar() )
+			const char* text = ProjectSettings::GetCurrentProject()->GetName().c_str();
+
+			ImVec2 textSize = ImGui::CalcTextSize( text );
+			ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
+
+			ImGui::Text( text );
+
+			ImGui::EndMainMenuBar();
+		}
+
+		m_SceneHierarchyPanel->OnImGuiRender();
+
+		m_ImGuiConsole_Thread = std::thread( &EditorLayer::StartImGuiConsole, this );
+		// Editor Panel ------------------------------------------------------------------------------
+		m_ImGuiConsole_Thread.join();
+
+		//m_AssetPanel->OnImGuiRender();
+		m_TextureViewerPanel->OnImGuiRender();
+		m_ScriptViewerStandalone->OnImGuiRender();
+
+		StartAssetLayer();
+
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemInnerSpacing, ImVec2( 0, 0 ) );
+		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
+		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.8f, 0.8f, 0.8f, 0.0f ) );
+		ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
+
+		ImGui::Begin( "Toolbar", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
+		float size = ImGui::GetWindowHeight() - 4.0f;
+		// Make buttons in the center of the window
+		ImGui::SameLine( ( ImGui::GetWindowContentRegionMax().x / 2.0f ) - ( 1.5f * ( ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x ) ) - ( size / 2.0f ) );
+
+		Ref<Texture2D> button = m_RuntimeScene == !nullptr ? m_StopButtonTexture : m_PlayButtonTexture;
+
+		if( ImGui::ImageButton( ( ( ImTextureID )( button->GetRendererID() ) ), ImVec2( size, size ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), 0 ) )
+		{
+			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
 			{
-				if( ImGui::BeginMenu( "File" ) )
-				{
-					if( ImGui::MenuItem( "New", "Shift+N" ) )
-						NewScene();
-
-					if( ImGui::MenuItem( "Open...", "Shift+O" ) )
-						OpenScene();
-
-					if( ImGui::MenuItem( "Save As...", "Shift+S" ) )
-						SaveSceneAs();
-					ImGui::EndMenu();
-
-				}
-
-				const char* text = ProjectSettings::GetCurrentProject()->GetName().c_str();
-
-				ImVec2 textSize = ImGui::CalcTextSize( text );
-				ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
-
-				ImGui::Text( text );
-
-				ImGui::EndMainMenuBar();
+				m_SceneHierarchyPanel->Reset();
+				m_RuntimeScene->SetSelectedEntity( {} );
+				m_SceneHierarchyPanel->SetSelected( {} );
+				m_NoSceneCamera = nullptr;
+				m_RuntimeScene->EndRuntime();
+				m_RuntimeScene = nullptr;
+				m_SelectionContext.clear();
+				m_SceneHierarchyPanel->SetContext( m_EditorScene );
+				ScriptEngine::SetSceneContext( m_EditorScene );
 			}
-
-			m_SceneHierarchyPanel->OnImGuiRender();
-
-			m_ImGuiConsole_Thread = std::thread( &EditorLayer::StartImGuiConsole, this );
-			// Editor Panel ------------------------------------------------------------------------------
-			m_ImGuiConsole_Thread.join();
-
-			//m_AssetPanel->OnImGuiRender();
-			m_TextureViewerPanel->OnImGuiRender();
-			m_ScriptViewerStandalone->OnImGuiRender();
-
-			StartAssetLayer();
-
-			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
-			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );
-			ImGui::PushStyleVar( ImGuiStyleVar_ItemInnerSpacing, ImVec2( 0, 0 ) );
-			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
-			ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.8f, 0.8f, 0.8f, 0.0f ) );
-			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
-			if( ImGui::Begin( "Toolbar", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse ) )
+			else
 			{
-				float size = ImGui::GetWindowHeight() - 4.0f;
-				// Make buttons in the center of the window
-				ImGui::SameLine( ( ImGui::GetWindowContentRegionMax().x / 2.0f ) - ( 1.5f * ( ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x ) ) - ( size / 2.0f ) );
-
-				Ref<Texture2D> button = m_RuntimeScene == !nullptr ? m_StopButtonTexture : m_PlayButtonTexture;
-
-				if( ImGui::ImageButton( ( ( ImTextureID )( button->GetRendererID() ) ), ImVec2( size, size ), ImVec2( 0, 0 ), ImVec2( 1, 1 ), 0 ) ) 
-				{
-					if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
-					{
-						m_SceneHierarchyPanel->Reset();
-						m_RuntimeScene->SetSelectedEntity( {} );
-						m_SceneHierarchyPanel->SetSelected( {} );
-						m_NoSceneCamera = nullptr;
-						m_RuntimeScene->EndRuntime();
-						m_RuntimeScene = nullptr;
-						m_SelectionContext.clear();
-						m_SceneHierarchyPanel->SetContext( m_EditorScene );
-						ScriptEngine::SetSceneContext( m_EditorScene );
-					}
-					else
-					{
-						m_SceneHierarchyPanel->Reset();
-						m_EditorScene->SetSelectedEntity( {} );
-						m_SceneHierarchyPanel->SetSelected( {} );
-						m_SelectionContext.clear();
-						m_RuntimeScene = Ref<Scene>::Create();
-						m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
-						m_EditorScene->CopyScene( m_RuntimeScene );
-						m_RuntimeScene->BeginRuntime();
-						ScriptEngine::SetSceneContext( m_RuntimeScene );
-					}
-				}
-
-				ImGui::End();
+				m_SceneHierarchyPanel->Reset();
+				m_EditorScene->SetSelectedEntity( {} );
+				m_SceneHierarchyPanel->SetSelected( {} );
+				m_SelectionContext.clear();
+				m_RuntimeScene = Ref<Scene>::Create();
+				m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
+				m_EditorScene->CopyScene( m_RuntimeScene );
+				m_RuntimeScene->BeginRuntime();
+				ScriptEngine::SetSceneContext( m_RuntimeScene );
 			}
-			ImGui::PopStyleColor();
-			ImGui::PopStyleColor();
-			ImGui::PopStyleColor();
-			ImGui::PopStyleVar();
-			ImGui::PopStyleVar();
-			ImGui::PopStyleVar();
-
-
-			if( ImGui::Begin( "Project Settings" ) )
-			{
-				ImGui::Text( "Startup Scene :" );
-				//ImGui::SameLine();
-
-				char buffer[ 256 ];
-				memset( buffer, 0, 256 );
-				memcpy( buffer, ProjectSettings::GetStartupSceneName().c_str(), ProjectSettings::GetStartupSceneName().length() );
-				if( ImGui::InputText( "##directory", buffer, 256 ) )
-				{
-					ProjectSettings::SetStartupSceneName( std::string( buffer ) );
-				}
-
-				if( ImGui::Button( "Open Startup Project" ) )
-				{
-					OpenScene( ProjectSettings::GetStartupSceneName() );
-				}
-
-				ImGui::Text( "Startup project name :" );
-
-				char buff[ 256 ];
-				memset( buff, 0, 256 );
-				memcpy( buff, ProjectSettings::GetStartupProjectName().c_str(), ProjectSettings::GetStartupProjectName().length() );
-				if( ImGui::InputText( "##name", buff, 256 ) )
-				{
-					ProjectSettings::SetStartupName( std::string( buff ) );
-				}
-
-				ImGui::Text( "Startup project folder :" );
-
-				char bufr[ 256 ];
-				memset( bufr, 0, 256 );
-				memcpy( bufr, ProjectSettings::GetStartupProjectFolder().c_str(), ProjectSettings::GetStartupProjectFolder().length() );
-				if( ImGui::InputText( "##yourmum", bufr, 256 ) )
-				{
-					ProjectSettings::SetStartupFolder( std::string( bufr ) );
-				}
-
-				//SAT_CORE_INFO( "{0}, {1}", ProjectSettings::GetStartupNameFolder().first, ProjectSettings::GetStartupNameFolder().second );
-
-				if( ImGui::Button( "Save" ) )
-				{
-					ProjectSettings::Save();
-				}
-			}
-			ImGui::End();
-
-			if( ImGui::Begin( "Environment" ) )
-			{
-
-				/*if( ImGui::Button( "Load Environment Map" ) )
-				{
-				std::string filename = Application::Get().OpenFile( "HDR (*.hdr)\0 * .hdr\0" ).first;
-				if( filename != "" )
-				m_EditorScene->SetEnvironment( Environment::Load( filename ) );
-				}
-				ImGui::SliderFloat( "Skybox LOD", &m_EditorScene->GetSkyboxLod(), 0.0f, 11.0f );
-				*/
-
-				ImGui::Columns( 2 );
-				ImGui::AlignTextToFramePadding();
-
-				auto& light = m_EditorScene->GetLight();
-				Property( "Light Direction", light.Direction, PropertyFlag::SliderProperty );
-				Property( "Light Radiance", light.Radiance, PropertyFlag::ColorProperty );
-				Property( "Light Multiplier", light.Multiplier, 0.0f, 5.0f, PropertyFlag::SliderProperty );
-
-				Property( "Exposure", m_EditorCamera.GetExposure(), 0.0f, 5.0f, PropertyFlag::SliderProperty );
-
-				char* label = "Entity";
-				if( ImGui::Button( label ) )
-				{
-					m_SelectionMode = SelectionMode::Entity;
-				}
-
-			}
-			ImGui::End();
-
-			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
-			if( ImGui::Begin( "Viewport" ) )
-			{
-				auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-				auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-
-				auto viewportOffset = ImGui::GetWindowPos(); // includes tab bar
-				auto viewportSize = ImGui::GetContentRegionAvail();
-
-				m_ViewportBounds[ 0 ] ={ viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-				m_ViewportBounds[ 1 ] ={ viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-
-				m_ViewportSelected = ImGui::IsWindowFocused();
-
-				SceneRenderer::SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
-				m_EditorScene->SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
-				if( m_RuntimeScene )
-					m_RuntimeScene->SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
-				m_EditorCamera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
-				m_EditorCamera.SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
-				ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
-				ImGui::Image( ( void* )SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 } );
-				ImGui::PopStyleVar();
-
-				static int counter = 0;
-				auto windowSize = ImGui::GetWindowSize();
-				ImVec2 minBound = ImGui::GetWindowPos();
-				minBound.x += viewportOffset.x;
-				minBound.y += viewportOffset.y;
-
-				ImVec2 maxBound ={ minBound.x + windowSize.x, minBound.y + windowSize.y };
-				m_ViewportBounds[ 0 ] ={ minBound.x, minBound.y };
-				m_ViewportBounds[ 1 ] ={ maxBound.x, maxBound.y };
-				m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
-
-				// Gizmos
-				if( m_GizmoType != -1 && m_SelectionContext.size() )
-				{
-					auto& selection = m_SelectionContext[ 0 ];
-
-					float rw = ( float )ImGui::GetWindowWidth();
-					float rh = ( float )ImGui::GetWindowHeight();
-					ImGuizmo::SetOrthographic( false );
-					ImGuizmo::SetDrawlist();
-					ImGuizmo::SetRect( ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, rw, rh );
-
-					auto& tc = selection.Entity.GetComponent<TransformComponent>();
-
-					glm::mat4 position = glm::translate( glm::mat4( 1.0f ), tc.Position );
-					glm::mat4 rotation = glm::toMat4( tc.Rotation );
-					glm::mat4 scale = glm::scale( glm::mat4( 1.0f ), tc.Scale );
-
-					glm::mat4 entityTransform = position * rotation * scale;
-
-					float* et = glm::value_ptr( entityTransform );
-
-					bool wantsToSnap = Input::IsKeyPressed( Key::LeftControl );
-					float snapValue = GetSnapValue();
-					float snapValues[ 3 ] ={ snapValue, snapValue, snapValue };
-
-					if( m_SelectionMode == SelectionMode::Entity )
-					{
-						auto viewm = glm::value_ptr( m_EditorCamera.GetViewMatrix() );
-						auto projm = glm::value_ptr( m_EditorCamera.GetProjectionMatrix() );
-
-						Entity selectedEntity = m_SceneHierarchyPanel->GetSelectionContext();
-
-						if( !selectedEntity )
-							return;
-
-						auto& tc = selectedEntity.GetComponent<TransformComponent>();
-						glm::mat4 transform = tc.GetTransform();
-						ImGuizmo::Manipulate( viewm, projm, ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr( transform ), nullptr, wantsToSnap ? snapValues : nullptr );
-
-						if( ImGuizmo::IsUsing() )
-						{
-							glm::vec3 translation, scale;
-							glm::quat rotation;
-
-							DecomposeTransform( transform, translation, rotation, scale );
-
-							glm::quat deltaRotation = rotation - tc.Rotation;
-							tc.Position = translation;
-							tc.Rotation += deltaRotation;
-							tc.Scale = scale;
-						}
-
-					}
-				}
-			}
-			ImGui::PopStyleVar();
-
-			if(ImGui::Begin("Scene Renderer"))
-			{
-				auto viewportSize = ImGui::GetContentRegionAvail();
-
-				ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
-				ImGui::Image( ( void* )SceneRenderer::GetColorIDShadowMap(), viewportSize, { 0, 1 }, { 1, 0 } );
-				ImGui::PopStyleVar();
-			}
-			ImGui::End();
-
-			ImGui::Begin( "Materials" );
-
-			if( m_SelectionContext.size() )
-			{
-				Entity selectedEntity = m_SelectionContext.front().Entity;
-				//m_SceneHierarchyPanel->SetSelected( selectedEntity );
-				if( selectedEntity.HasComponent<MeshComponent>() )
-				{
-					Ref<Mesh> mesh = selectedEntity.GetComponent<MeshComponent>().Mesh;
-					if( mesh )
-					{
-						auto& materials = mesh->GetMaterials();
-						static uint32_t selectedMaterialIndex = 0;
-						for( uint32_t i = 0; i < materials.size(); i++ )
-						{
-							auto& materialInstance = materials[ i ];
-
-							ImGuiTreeNodeFlags node_flags = ( selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_Leaf;
-							bool opened = ImGui::TreeNodeEx( ( void* )( &materialInstance ), node_flags, materialInstance->GetName().c_str() );
-							if( ImGui::IsItemClicked() )
-							{
-								selectedMaterialIndex = i;
-							}
-							if( opened )
-								ImGui::TreePop();
-
-						}
-
-						ImGui::Separator();
-
-						/**
-						* Selected material
-						*/
-						if( selectedMaterialIndex < materials.size() )
-						{
-							auto& materialInstance = materials[ selectedMaterialIndex ];
-							ImGui::Text( "Shader: %s", materialInstance->GetShader()->GetName().c_str() );
-							// Textures ------------------------------------------------------------------------------
-							{
-								// Albedo
-								if( ImGui::CollapsingHeader( "Albedo", nullptr, ImGuiTreeNodeFlags_DefaultOpen ) )
-								{
-									ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10, 10 ) );
-
-									auto& albedoColor = materialInstance->Get<glm::vec3>( "u_AlbedoColor" );
-									bool useAlbedoMap = materialInstance->Get<float>( "u_AlbedoTexToggle" );
-									Ref<Texture2D> albedoMap = materialInstance->TryGetResource<Texture2D>( "u_AlbedoTexture" );
-									ImGui::Image( albedoMap ? ( void* )albedoMap->GetRendererID() : ( void* )m_CheckerboardTex->GetRendererID(), ImVec2( 64, 64 ) );
-									ImGui::PopStyleVar();
-									if( ImGui::IsItemHovered() )
-									{
-										if( albedoMap )
-										{
-											ImGui::BeginTooltip();
-											ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
-											ImGui::TextUnformatted( albedoMap->GetPath().c_str() );
-											ImGui::PopTextWrapPos();
-											ImGui::Image( ( void* )albedoMap->GetRendererID(), ImVec2( 384, 384 ) );
-											ImGui::EndTooltip();
-										}
-										if( ImGui::IsItemClicked() )
-										{
-											std::string filename = Application::Get().OpenFile( "" ).first;
-											if( filename != "" )
-											{
-												albedoMap = Texture2D::Create( filename, true/*m_AlbedoInput.SRGB*/ );
-												materialInstance->Set( "u_AlbedoTexture", albedoMap );
-											}
-										}
-									}
-									ImGui::SameLine();
-									ImGui::BeginGroup();
-									if( ImGui::Checkbox( "Use##AlbedoMap", &useAlbedoMap ) )
-										materialInstance->Set<float>( "u_AlbedoTexToggle", useAlbedoMap ? 1.0f : 0.0f );
-
-									/*if (ImGui::Checkbox("sRGB##AlbedoMap", &m_AlbedoInput.SRGB))
-									{
-									if (m_AlbedoInput.TextureMap)
-									m_AlbedoInput.TextureMap = Texture2D::Create(m_AlbedoInput.TextureMap->GetPath(), m_AlbedoInput.SRGB);
-									}*/
-									ImGui::EndGroup();
-									ImGui::SameLine();
-									ImGui::ColorEdit3( "Color##Albedo", glm::value_ptr( albedoColor ), ImGuiColorEditFlags_NoInputs );
-								}
-							}
-							{
-								// Normals
-								if( ImGui::CollapsingHeader( "Normals", nullptr, ImGuiTreeNodeFlags_DefaultOpen ) )
-								{
-									ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10, 10 ) );
-									bool useNormalMap = materialInstance->Get<float>( "u_NormalTexToggle" );
-									Ref<Texture2D> normalMap = materialInstance->TryGetResource<Texture2D>( "u_NormalTexture" );
-									ImGui::Image( normalMap ? ( void* )normalMap->GetRendererID() : ( void* )m_CheckerboardTex->GetRendererID(), ImVec2( 64, 64 ) );
-									ImGui::PopStyleVar();
-									if( ImGui::IsItemHovered() )
-									{
-										if( normalMap )
-										{
-											ImGui::BeginTooltip();
-											ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
-											ImGui::TextUnformatted( normalMap->GetPath().c_str() );
-											ImGui::PopTextWrapPos();
-											ImGui::Image( ( void* )normalMap->GetRendererID(), ImVec2( 384, 384 ) );
-											ImGui::EndTooltip();
-										}
-										if( ImGui::IsItemClicked() )
-										{
-											std::string filename = Application::Get().OpenFile( "" ).first;
-											if( filename != "" )
-											{
-												normalMap = Texture2D::Create( filename );
-												materialInstance->Set( "u_NormalTexture", normalMap );
-											}
-										}
-									}
-									ImGui::SameLine();
-									if( ImGui::Checkbox( "Use##NormalMap", &useNormalMap ) )
-										materialInstance->Set<float>( "u_NormalTexToggle", useNormalMap ? 1.0f : 0.0f );
-								}
-							}
-							{
-								// Metalness
-								if( ImGui::CollapsingHeader( "Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen ) )
-								{
-									ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10, 10 ) );
-									float& metalnessValue = materialInstance->Get<float>( "u_Metalness" );
-									bool useMetalnessMap = materialInstance->Get<float>( "u_MetalnessTexToggle" );
-									Ref<Texture2D> metalnessMap = materialInstance->TryGetResource<Texture2D>( "u_MetalnessTexture" );
-									ImGui::Image( metalnessMap ? ( void* )metalnessMap->GetRendererID() : ( void* )m_CheckerboardTex->GetRendererID(), ImVec2( 64, 64 ) );
-									ImGui::PopStyleVar();
-									if( ImGui::IsItemHovered() )
-									{
-										if( metalnessMap )
-										{
-											ImGui::BeginTooltip();
-											ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
-											ImGui::TextUnformatted( metalnessMap->GetPath().c_str() );
-											ImGui::PopTextWrapPos();
-											ImGui::Image( ( void* )metalnessMap->GetRendererID(), ImVec2( 384, 384 ) );
-											ImGui::EndTooltip();
-										}
-										if( ImGui::IsItemClicked() )
-										{
-											std::string filename = Application::Get().OpenFile( "" ).first;
-											if( filename != "" )
-											{
-												metalnessMap = Texture2D::Create( filename );
-												materialInstance->Set( "u_MetalnessTexture", metalnessMap );
-											}
-										}
-									}
-									ImGui::SameLine();
-									if( ImGui::Checkbox( "Use##MetalnessMap", &useMetalnessMap ) )
-										materialInstance->Set<float>( "u_MetalnessTexToggle", useMetalnessMap ? 1.0f : 0.0f );
-									ImGui::SameLine();
-									ImGui::SliderFloat( "Value##MetalnessInput", &metalnessValue, 0.0f, 1.0f );
-								}
-							}
-							{
-								// Roughness
-								if( ImGui::CollapsingHeader( "Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen ) )
-								{
-									ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10, 10 ) );
-									float& roughnessValue = materialInstance->Get<float>( "u_Roughness" );
-									bool useRoughnessMap = materialInstance->Get<float>( "u_RoughnessTexToggle" );
-									Ref<Texture2D> roughnessMap = materialInstance->TryGetResource<Texture2D>( "u_RoughnessTexture" );
-									ImGui::Image( roughnessMap ? ( void* )roughnessMap->GetRendererID() : ( void* )m_CheckerboardTex->GetRendererID(), ImVec2( 64, 64 ) );
-									ImGui::PopStyleVar();
-									if( ImGui::IsItemHovered() )
-									{
-										if( roughnessMap )
-										{
-											ImGui::BeginTooltip();
-											ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
-											ImGui::TextUnformatted( roughnessMap->GetPath().c_str() );
-											ImGui::PopTextWrapPos();
-											ImGui::Image( ( void* )roughnessMap->GetRendererID(), ImVec2( 384, 384 ) );
-											ImGui::EndTooltip();
-										}
-										if( ImGui::IsItemClicked() )
-										{
-											std::string filename = Application::Get().OpenFile( "" ).first;
-											if( filename != "" )
-											{
-												roughnessMap = Texture2D::Create( filename );
-												materialInstance->Set( "u_RoughnessTexture", roughnessMap );
-											}
-										}
-									}
-									ImGui::SameLine();
-									if( ImGui::Checkbox( "Use##RoughnessMap", &useRoughnessMap ) )
-										materialInstance->Set<float>( "u_RoughnessTexToggle", useRoughnessMap ? 1.0f : 0.0f );
-									ImGui::SameLine();
-									ImGui::SliderFloat( "Value##RoughnessInput", &roughnessValue, 0.0f, 1.0f );
-								}
-							}
-						}
-
-					}
-				}
-			}
-
-			ImGui::End();
-			ImGui::End();
 		}
 
 		ImGui::End();
 
-		ImGuizmo::BeginFrame();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
+		ImGui::PopStyleVar();
+		ImGui::PopStyleVar();
+
+
+		ImGui::Begin( "Project Settings" );
+		ImGui::Text( "Startup Scene :" );
+		//ImGui::SameLine();
+
+		char buffer[ 256 ];
+		memset( buffer, 0, 256 );
+		memcpy( buffer, ProjectSettings::GetStartupSceneName().c_str(), ProjectSettings::GetStartupSceneName().length() );
+		if( ImGui::InputText( "##directory", buffer, 256 ) )
+		{
+			ProjectSettings::SetStartupSceneName( std::string( buffer ) );
+		}
+
+		if( ImGui::Button( "Open Startup Project" ) )
+		{
+			OpenScene( ProjectSettings::GetStartupSceneName() );
+		}
+
+		ImGui::Text( "Startup project name :" );
+
+		char buff[ 256 ];
+		memset( buff, 0, 256 );
+		memcpy( buff, ProjectSettings::GetStartupProjectName().c_str(), ProjectSettings::GetStartupProjectName().length() );
+		if( ImGui::InputText( "##name", buff, 256 ) )
+		{
+			ProjectSettings::SetStartupName( std::string( buff ) );
+		}
+
+		ImGui::Text( "Startup project folder :" );
+
+		char bufr[ 256 ];
+		memset( bufr, 0, 256 );
+		memcpy( bufr, ProjectSettings::GetStartupProjectFolder().c_str(), ProjectSettings::GetStartupProjectFolder().length() );
+		if( ImGui::InputText( "##yourmum", bufr, 256 ) )
+		{
+			ProjectSettings::SetStartupFolder( std::string( bufr ) );
+		}
+
+		//SAT_CORE_INFO( "{0}, {1}", ProjectSettings::GetStartupNameFolder().first, ProjectSettings::GetStartupNameFolder().second );
+
+		if( ImGui::Button( "Save" ) )
+		{
+			ProjectSettings::Save();
+		}
+		ImGui::End();
+
+		ImGui::Begin( "Environment" );
+		ImGui::Columns( 2 );
+		ImGui::AlignTextToFramePadding();
+
+		auto& light = m_EditorScene->GetLight();
+		Property( "Light Direction", light.Direction, PropertyFlag::SliderProperty );
+		Property( "Light Radiance", light.Radiance, PropertyFlag::ColorProperty );
+		Property( "Light Multiplier", light.Multiplier, 0.0f, 5.0f, PropertyFlag::SliderProperty );
+
+		Property( "Exposure", m_EditorCamera.GetExposure(), 0.0f, 5.0f, PropertyFlag::SliderProperty );
+
+		char* label = "Entity";
+		if( ImGui::Button( label ) )
+		{
+			m_SelectionMode = SelectionMode::Entity;
+		}
+		ImGui::End();
+
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+
+		ImGui::Begin( "Viewport" );
+		auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+		auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+
+		auto viewportOffset = ImGui::GetWindowPos(); // includes tab bar
+		auto viewportSize = ImGui::GetContentRegionAvail();
+
+		m_ViewportBounds[ 0 ] ={ viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+		m_ViewportBounds[ 1 ] ={ viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+
+		m_ViewportSelected = ImGui::IsWindowFocused();
+
+		SceneRenderer::SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
+		m_EditorScene->SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
+
+		if( m_RuntimeScene )
+			m_RuntimeScene->SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
+
+		m_EditorCamera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
+		m_EditorCamera.SetViewportSize( ( uint32_t )viewportSize.x, ( uint32_t )viewportSize.y );
+
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
+		ImGui::Image( ( void* )SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 } );
+		ImGui::PopStyleVar();
+
+		static int counter = 0;
+		auto windowSize = ImGui::GetWindowSize();
+		ImVec2 minBound = ImGui::GetWindowPos();
+		minBound.x += viewportOffset.x;
+		minBound.y += viewportOffset.y;
+
+		ImVec2 maxBound ={ minBound.x + windowSize.x, minBound.y + windowSize.y };
+		m_ViewportBounds[ 0 ] ={ minBound.x, minBound.y };
+		m_ViewportBounds[ 1 ] ={ maxBound.x, maxBound.y };
+		m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
+
+		// Gizmos
+		Entity selectedEntity = m_SceneHierarchyPanel->GetSelectionContext();
+
+		if( selectedEntity && m_GizmoType != -1 )
+		{
+			float rw = ( float )ImGui::GetWindowWidth();
+			float rh = ( float )ImGui::GetWindowHeight();
+
+			ImGuizmo::SetOrthographic( false );
+			ImGuizmo::SetDrawlist();
+
+			ImGuizmo::SetRect( ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, rw, rh );
+
+			const glm::mat4& cameraProjection = m_EditorCamera.GetProjectionMatrix();
+			glm::mat4 viewMatrix = m_EditorCamera.GetViewMatrix();
+
+			auto& tc = selectedEntity.GetComponent<TransformComponent>();
+			glm::mat4 transform = tc.GetTransform();
+
+			bool snap = Input::IsKeyPressed( Key::LeftControl );
+			float snapValue = 0.5f;
+			if( m_GizmoType == ImGuizmo::OPERATION::ROTATE )
+				snapValue = 45.0f;
+
+			float snapValues[ 3 ] ={ snapValue, snapValue, snapValue };
+
+			ImGuizmo::Manipulate( glm::value_ptr( viewMatrix ), glm::value_ptr( cameraProjection ), ( ImGuizmo::OPERATION )m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr( transform ), nullptr, snap ? snapValues : nullptr );
+
+			if( ImGuizmo::IsUsing() )
+			{
+				glm::vec3 translation, scale;
+				glm::quat rotation;
+
+				DecomposeTransform( transform, translation, rotation, scale );
+
+				glm::quat delta = rotation - tc.Rotation;
+				tc.Position = translation;
+				tc.Rotation += delta;
+				tc.Scale = scale;
+			}
+		}
+		ImGui::End();
+
+		ImGui::PopStyleVar();
+
+		/*
+		ImGui::Begin( "Materials" );
+
+		if( m_SelectionContext.size() )
+		{
+			Entity selectedEntity = m_SelectionContext.front().Entity;
+			//m_SceneHierarchyPanel->SetSelected( selectedEntity );
+			if( selectedEntity.HasComponent<MeshComponent>() )
+			{
+				Ref<Mesh> mesh = selectedEntity.GetComponent<MeshComponent>().Mesh;
+				if( mesh )
+				{
+					auto& materials = mesh->GetMaterials();
+					static uint32_t selectedMaterialIndex = 0;
+					for( uint32_t i = 0; i < materials.size(); i++ )
+					{
+						auto& materialInstance = materials[ i ];
+
+						ImGuiTreeNodeFlags node_flags = ( selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_Leaf;
+						bool opened = ImGui::TreeNodeEx( ( void* )( &materialInstance ), node_flags, materialInstance->GetName().c_str() );
+						if( ImGui::IsItemClicked() )
+						{
+							selectedMaterialIndex = i;
+						}
+						if( opened )
+							ImGui::TreePop();
+
+					}
+
+					ImGui::Separator();
+
+					if( selectedMaterialIndex < materials.size() )
+					{
+						auto& materialInstance = materials[ selectedMaterialIndex ];
+						ImGui::Text( "Shader: %s", materialInstance->GetShader()->GetName().c_str() );
+						// Textures ------------------------------------------------------------------------------
+						{
+							// Albedo
+							if( ImGui::CollapsingHeader( "Albedo", nullptr, ImGuiTreeNodeFlags_DefaultOpen ) )
+							{
+								ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10, 10 ) );
+
+								auto& albedoColor = materialInstance->Get<glm::vec3>( "u_AlbedoColor" );
+								bool useAlbedoMap = materialInstance->Get<float>( "u_AlbedoTexToggle" );
+								Ref<Texture2D> albedoMap = materialInstance->TryGetResource<Texture2D>( "u_AlbedoTexture" );
+								ImGui::Image( albedoMap ? ( void* )albedoMap->GetRendererID() : ( void* )m_CheckerboardTex->GetRendererID(), ImVec2( 64, 64 ) );
+								ImGui::PopStyleVar();
+								if( ImGui::IsItemHovered() )
+								{
+									if( albedoMap )
+									{
+										ImGui::BeginTooltip();
+										ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
+										ImGui::TextUnformatted( albedoMap->GetPath().c_str() );
+										ImGui::PopTextWrapPos();
+										ImGui::Image( ( void* )albedoMap->GetRendererID(), ImVec2( 384, 384 ) );
+										ImGui::EndTooltip();
+									}
+									if( ImGui::IsItemClicked() )
+									{
+										std::string filename = Application::Get().OpenFile( "" ).first;
+										if( filename != "" )
+										{
+											albedoMap = Texture2D::Create( filename, true/*m_AlbedoInput.SRGB );
+											materialInstance->Set( "u_AlbedoTexture", albedoMap );
+										}
+									}
+								}
+								ImGui::SameLine();
+								ImGui::BeginGroup();
+								if( ImGui::Checkbox( "Use##AlbedoMap", &useAlbedoMap ) )
+									materialInstance->Set<float>( "u_AlbedoTexToggle", useAlbedoMap ? 1.0f : 0.0f );
+
+								if (ImGui::Checkbox("sRGB##AlbedoMap", &m_AlbedoInput.SRGB))
+								{
+								if (m_AlbedoInput.TextureMap)
+								m_AlbedoInput.TextureMap = Texture2D::Create(m_AlbedoInput.TextureMap->GetPath(), m_AlbedoInput.SRGB);
+								}
+								ImGui::EndGroup();
+								ImGui::SameLine();
+								ImGui::ColorEdit3( "Color##Albedo", glm::value_ptr( albedoColor ), ImGuiColorEditFlags_NoInputs );
+							}
+						}
+						{
+							// Normals
+							if( ImGui::CollapsingHeader( "Normals", nullptr, ImGuiTreeNodeFlags_DefaultOpen ) )
+							{
+								ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10, 10 ) );
+								bool useNormalMap = materialInstance->Get<float>( "u_NormalTexToggle" );
+								Ref<Texture2D> normalMap = materialInstance->TryGetResource<Texture2D>( "u_NormalTexture" );
+								ImGui::Image( normalMap ? ( void* )normalMap->GetRendererID() : ( void* )m_CheckerboardTex->GetRendererID(), ImVec2( 64, 64 ) );
+								ImGui::PopStyleVar();
+								if( ImGui::IsItemHovered() )
+								{
+									if( normalMap )
+									{
+										ImGui::BeginTooltip();
+										ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
+										ImGui::TextUnformatted( normalMap->GetPath().c_str() );
+										ImGui::PopTextWrapPos();
+										ImGui::Image( ( void* )normalMap->GetRendererID(), ImVec2( 384, 384 ) );
+										ImGui::EndTooltip();
+									}
+									if( ImGui::IsItemClicked() )
+									{
+										std::string filename = Application::Get().OpenFile( "" ).first;
+										if( filename != "" )
+										{
+											normalMap = Texture2D::Create( filename );
+											materialInstance->Set( "u_NormalTexture", normalMap );
+										}
+									}
+								}
+								ImGui::SameLine();
+								if( ImGui::Checkbox( "Use##NormalMap", &useNormalMap ) )
+									materialInstance->Set<float>( "u_NormalTexToggle", useNormalMap ? 1.0f : 0.0f );
+							}
+						}
+						{
+							// Metalness
+							if( ImGui::CollapsingHeader( "Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen ) )
+							{
+								ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10, 10 ) );
+								float& metalnessValue = materialInstance->Get<float>( "u_Metalness" );
+								bool useMetalnessMap = materialInstance->Get<float>( "u_MetalnessTexToggle" );
+								Ref<Texture2D> metalnessMap = materialInstance->TryGetResource<Texture2D>( "u_MetalnessTexture" );
+								ImGui::Image( metalnessMap ? ( void* )metalnessMap->GetRendererID() : ( void* )m_CheckerboardTex->GetRendererID(), ImVec2( 64, 64 ) );
+								ImGui::PopStyleVar();
+								if( ImGui::IsItemHovered() )
+								{
+									if( metalnessMap )
+									{
+										ImGui::BeginTooltip();
+										ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
+										ImGui::TextUnformatted( metalnessMap->GetPath().c_str() );
+										ImGui::PopTextWrapPos();
+										ImGui::Image( ( void* )metalnessMap->GetRendererID(), ImVec2( 384, 384 ) );
+										ImGui::EndTooltip();
+									}
+									if( ImGui::IsItemClicked() )
+									{
+										std::string filename = Application::Get().OpenFile( "" ).first;
+										if( filename != "" )
+										{
+											metalnessMap = Texture2D::Create( filename );
+											materialInstance->Set( "u_MetalnessTexture", metalnessMap );
+										}
+									}
+								}
+								ImGui::SameLine();
+								if( ImGui::Checkbox( "Use##MetalnessMap", &useMetalnessMap ) )
+									materialInstance->Set<float>( "u_MetalnessTexToggle", useMetalnessMap ? 1.0f : 0.0f );
+								ImGui::SameLine();
+								ImGui::SliderFloat( "Value##MetalnessInput", &metalnessValue, 0.0f, 1.0f );
+							}
+						}
+						{
+							// Roughness
+							if( ImGui::CollapsingHeader( "Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen ) )
+							{
+								ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10, 10 ) );
+								float& roughnessValue = materialInstance->Get<float>( "u_Roughness" );
+								bool useRoughnessMap = materialInstance->Get<float>( "u_RoughnessTexToggle" );
+								Ref<Texture2D> roughnessMap = materialInstance->TryGetResource<Texture2D>( "u_RoughnessTexture" );
+								ImGui::Image( roughnessMap ? ( void* )roughnessMap->GetRendererID() : ( void* )m_CheckerboardTex->GetRendererID(), ImVec2( 64, 64 ) );
+								ImGui::PopStyleVar();
+								if( ImGui::IsItemHovered() )
+								{
+									if( roughnessMap )
+									{
+										ImGui::BeginTooltip();
+										ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
+										ImGui::TextUnformatted( roughnessMap->GetPath().c_str() );
+										ImGui::PopTextWrapPos();
+										ImGui::Image( ( void* )roughnessMap->GetRendererID(), ImVec2( 384, 384 ) );
+										ImGui::EndTooltip();
+									}
+									if( ImGui::IsItemClicked() )
+									{
+										std::string filename = Application::Get().OpenFile( "" ).first;
+										if( filename != "" )
+										{
+											roughnessMap = Texture2D::Create( filename );
+											materialInstance->Set( "u_RoughnessTexture", roughnessMap );
+										}
+									}
+								}
+								ImGui::SameLine();
+								if( ImGui::Checkbox( "Use##RoughnessMap", &useRoughnessMap ) )
+									materialInstance->Set<float>( "u_RoughnessTexToggle", useRoughnessMap ? 1.0f : 0.0f );
+								ImGui::SameLine();
+								ImGui::SliderFloat( "Value##RoughnessInput", &roughnessValue, 0.0f, 1.0f );
+							}
+						}
+					}
+
+				}
+			}
+		}
+		ImGui::End();
+		*/
+
+		ImGui::End();
+
+		//ImGuizmo::BeginFrame();
 
 	}
 }

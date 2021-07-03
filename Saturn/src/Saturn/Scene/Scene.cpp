@@ -78,11 +78,6 @@ namespace Saturn {
 			SAT_CORE_ERROR( "CameraComponent needs a TransformComponent!" );
 			return;
 		}
-
-		//auto& cameraComponent = r.get<CameraComponent>( ent );
-		//cameraComponent.Camera = Ref<SceneCamera>::Create();
-		//cameraComponent.Camera->SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
-		//cameraComponent.Camera->SetPosition( r.get<TransformComponent>( ent ).Position );
 	}
 
 	void Scene::ScriptComponentCreate( entt::registry& r, entt::entity ent )

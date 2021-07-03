@@ -212,6 +212,45 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
+
+		ImGui::Begin( "Scene Hierarchy" );
+
+		if( m_Context )
+		{
+			m_Context->m_Registry.each( [&]( auto entity )
+			{
+				Entity e{ entity, m_Context.Raw() };
+				if( !m_Context->m_Registry.has<SceneComponent>( entity ) || !e )
+					DrawEntityNode( e );
+			} );
+
+			if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
+			{
+				SetSelected( {} );
+			}
+
+			if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
+			{
+				if( ImGui::MenuItem( "Create Empty Entity" ) )
+				{
+					auto Entity =  m_Context->CreateEntity( "Empty Entity" );
+					SetSelected( Entity );
+				}
+				ImGui::EndPopup();
+
+			}
+
+			ImGui::Begin( "Inspector" );
+			if( m_SelectionContext )
+			{
+				DrawComponents( m_SelectionContext );
+			}
+			ImGui::End();
+		}
+
+		ImGui::End();
+
+		/*
 		ImGui::Begin( "Scene Hierarchy" );
 		if( m_Context )
 		{
@@ -226,7 +265,6 @@ namespace Saturn {
 			if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
 			{
 				SetSelected( {} );
-				Reset();
 			}
 
 			if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
@@ -236,41 +274,6 @@ namespace Saturn {
 					auto Entity =  m_Context->CreateEntity( "Empty Entity" );
 					SetSelected( Entity );
 				}
-
-				if( ImGui::MenuItem( "Create Mesh Entity" ) )
-				{
-					Entity e =  m_Context->CreateEntity( "Mesh Entity" );
-					if( e.HasComponent<MeshComponent>() )
-					{
-						SAT_CORE_ASSERT( false, "Entity somehow has a mesh component" );
-					}
-
-					if( !e.HasComponent<MeshComponent>() )
-					{
-						auto& mc = e.AddComponent<MeshComponent>();
-						std::string filepath = Application::Get().OpenFile( " Mesh (*.fbx *.obj)\0*.obj; *.fbx\0" ).first;
-						mc.Mesh = Ref<Mesh>::Create( filepath );
-						SetSelected( e );
-					}
-
-				}
-
-				if( ImGui::MenuItem( "Create Empty Mesh Entity" ) )
-				{
-					Entity e =  m_Context->CreateEntity( "Empty Mesh Entity" );
-					if( e.HasComponent<MeshComponent>() )
-					{
-						SAT_CORE_ASSERT( false, "Entity somehow has a mesh component" );
-					}
-
-					if( !e.HasComponent<MeshComponent>() )
-					{
-						auto& mc = e.AddComponent<MeshComponent>();
-						SetSelected( e );
-					}
-
-				}
-
 				ImGui::EndPopup();
 
 			}
@@ -283,8 +286,9 @@ namespace Saturn {
 			{
 				DrawComponents( m_SelectionContext );
 			}
+			ImGui::End();
 		}
-		ImGui::End();
+		*/
 	}
 
 	void SceneHierarchyPanel::DrawComponents( Entity entity )
