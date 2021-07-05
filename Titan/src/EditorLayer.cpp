@@ -1600,8 +1600,5 @@ namespace Saturn {
 		*/
 
 		ImGui::End();
-
-		//ImGuizmo::BeginFrame();
-
 	}
 }

@@ -65,3 +65,6 @@ Titan/assets/assembly/SaturnScript.pdb
 Titan/version-control.vcinfo
 Titan/assets/EngineSettings.eng
 Output-Build.txt
+*.scor
+*.incl
+*.t0*

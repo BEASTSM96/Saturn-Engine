@@ -35,20 +35,51 @@
 
 namespace Saturn {
 
-	enum class FramebufferFormat
+	enum class FramebufferTextureFormat
 	{
 		None = 0,
-		RGBA8 = 1,
-		RGBA16F = 2
+
+		// Color
+		RGBA8   = 1,
+		RGBA16F = 2,
+		RGBA32F = 3,
+		RGB32F  = 4,
+
+		DEPTH32F = 5,
+		DEPTH24STENCIL8 = 6,
+
+		Depth = DEPTH24STENCIL8
+	};
+
+	struct FramebufferTextureSpecification
+	{
+		FramebufferTextureSpecification() = default;
+		FramebufferTextureSpecification( FramebufferTextureFormat format ) : TextureFormat( format ) { }
+
+		FramebufferTextureFormat TextureFormat;
+	};
+
+	struct FramebufferAttachmentSpecification
+	{
+		FramebufferAttachmentSpecification() = default;
+		FramebufferAttachmentSpecification( const std::initializer_list<FramebufferTextureSpecification>& attachments ) : Attachments(attachments) {}
+
+		std::vector<FramebufferTextureSpecification> Attachments;
 	};
 
 	struct FramebufferSpecification
 	{
 		uint32_t Width = 1280;
 		uint32_t Height = 720;
+
 		glm::vec4 ClearColor;
-		FramebufferFormat Format;
+
+		FramebufferAttachmentSpecification Attachments;
+
 		uint32_t Samples = 1;
+
+		bool NoResize = false;
+
 		bool SwapChainTarget = false;
 	};
 
@@ -61,10 +92,13 @@ namespace Saturn {
 
 		virtual void Resize( uint32_t width, uint32_t height, bool forceRecreate = false ) = 0;
 
-		virtual void BindTexture( uint32_t slot = 0 ) const = 0;
+		virtual void BindTexture( uint32_t index = 0, uint32_t slot = 0 ) const = 0;
+
+		virtual uint32_t GetWidth() const  = 0;
+		virtual uint32_t GetHeight() const = 0;
 
 		virtual RendererID GetRendererID() const = 0;
-		virtual RendererID GetColorAttachmentRendererID( void ) const = 0;
+		virtual RendererID GetColorAttachmentRendererID( int index = 0 ) const = 0;
 		virtual RendererID GetDepthAttachmentRendererID( void ) const = 0;
 
 		virtual const FramebufferSpecification& GetSpecification( void ) const = 0;

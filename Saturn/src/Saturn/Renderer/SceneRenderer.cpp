@@ -89,9 +89,7 @@ namespace Saturn {
 	void SceneRenderer::Init()
 	{
 		FramebufferSpecification geoFramebufferSpec;
-		geoFramebufferSpec.Width = 1280;
-		geoFramebufferSpec.Height = 720;
-		geoFramebufferSpec.Format = FramebufferFormat::RGBA16F;
+		geoFramebufferSpec.Attachments ={ FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::Depth };
 		geoFramebufferSpec.Samples = 8;
 		geoFramebufferSpec.ClearColor ={ 0.1f, 0.1f, 0.1f, 1.0f };
 
@@ -100,10 +98,8 @@ namespace Saturn {
 		s_Data.GeoPass = RenderPass::Create( geoRenderPassSpec );
 
 		FramebufferSpecification compFramebufferSpec;
-		compFramebufferSpec.Width = 1280;
-		compFramebufferSpec.Height = 720;
-		compFramebufferSpec.Format = FramebufferFormat::RGBA8;
-		compFramebufferSpec.ClearColor ={ 0.5f, 0.1f, 0.1f, 1.0f };
+		compFramebufferSpec.Attachments ={ FramebufferTextureFormat::RGBA8 };
+		compFramebufferSpec.ClearColor ={ 0.1f, 0.1f, 0.1f, 1.0f };
 
 		RenderPassSpecification compRenderPassSpec;
 		compRenderPassSpec.TargetFramebuffer = Framebuffer::Create( compFramebufferSpec );
