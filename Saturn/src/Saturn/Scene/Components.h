@@ -316,9 +316,12 @@ namespace Saturn {
 
 	struct PhysXSphereColliderComponent : Component
 	{
+		glm::vec3 Offset ={ 0.0f, 0.0f, 0.0f };
 		float Radius = 1.0f;
 
 		bool IsTrigger = false;
+
+		Ref<Mesh> DebugMesh;
 
 		PhysXSphereColliderComponent() = default;
 		PhysXSphereColliderComponent( float radius ) : Radius( radius ) { }
@@ -326,10 +329,14 @@ namespace Saturn {
 
 	struct PhysXCapsuleColliderComponent : Component
 	{
+		glm::vec3 Offset ={ 0.0f, 0.0f, 0.0f };
+
 		float Radius = 1.0f;
 		float Height = 1.0f;
 
 		bool IsTrigger = false;
+
+		Ref<Mesh> DebugMesh;
 
 		PhysXCapsuleColliderComponent() = default;
 		PhysXCapsuleColliderComponent( float radius ) : Radius( radius ) { }
@@ -349,6 +356,8 @@ namespace Saturn {
 		bool IsConvex = false;
 		bool IsTrigger = false;
 		bool OverrideMesh = false;
+
+		Ref<Mesh> DebugMesh;
 
 		PhysXMeshColliderComponent() = default;
 		PhysXMeshColliderComponent( const PhysXMeshColliderComponent & other ) = default;

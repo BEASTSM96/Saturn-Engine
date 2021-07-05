@@ -700,8 +700,10 @@ namespace Saturn {
 		return { translation, orientation, scale };
 	}
 
-	void DrawBoolControl( const std::string& label, bool* val, float colWidth = 100.0f )
+	bool DrawBoolControl( const std::string& label, bool* val, float colWidth = 100.0f )
 	{
+		bool result = false;
+
 		ImGui::PushID( label.c_str() );
 
 		ImGui::Columns( 2, NULL, false );
@@ -712,17 +714,21 @@ namespace Saturn {
 		ImGui::NextColumn();
 
 		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
-		ImGui::Checkbox( "##value", val );
+		result = ImGui::Checkbox( "##value", val );
 
 		ImGui::PopItemWidth();
 
 		ImGui::Columns( 1, NULL, false );
 
 		ImGui::PopID();
+
+		return result;
 	}
 
-	void DrawFloatControl( const std::string& label, float* val, float min = 0.0, float max = 0.0, float step = 1.0f, float colWidth = 100.0f )
+	bool DrawFloatControl( const std::string& label, float* val, float min = 0.0, float max = 0.0, float step = 1.0f, float colWidth = 100.0f )
 	{
+		bool result = false;
+
 		ImGui::PushID( label.c_str() );
 
 		ImGui::Columns( 2, NULL, false );
@@ -733,17 +739,21 @@ namespace Saturn {
 		ImGui::NextColumn();
 
 		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
-		ImGui::DragFloat( "##FLIN", val, step, min, max );
+		result = ImGui::DragFloat( "##FLIN", val, step, min, max );
 
 		ImGui::PopItemWidth();
 
 		ImGui::Columns( 1, NULL, false );
 
 		ImGui::PopID();
+
+		return result;
 	}
 
-	void DrawIntControl( const std::string& label, int* val, float min = 0.0, float max = 0.0, float step = 1.0f, float colWidth = 100.0f )
+	bool DrawIntControl( const std::string& label, int* val, float min = 0.0, float max = 0.0, float step = 1.0f, float colWidth = 100.0f )
 	{
+		bool result = false;
+
 		ImGui::PushID( label.c_str() );
 
 		ImGui::Columns( 2, NULL, false );
@@ -754,13 +764,15 @@ namespace Saturn {
 		ImGui::NextColumn();
 
 		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
-		ImGui::DragInt( "##FLIN", val, step, min, max );
+		result = ImGui::DragInt( "##FLIN", val, step, min, max );
 
 		ImGui::PopItemWidth();
 
 		ImGui::Columns( 1, NULL, false );
 
 		ImGui::PopID();
+
+		return result;
 	}
 
 	void SceneHierarchyPanel::DrawEntityComponents( Entity entity )
@@ -886,6 +898,11 @@ namespace Saturn {
 				{
 					bc.DebugMesh = MeshFactory::CreateBox( bc.Extents );
 				}
+				if( !bc.DebugMesh )
+				{
+					bc.DebugMesh = MeshFactory::CreateBox( bc.Extents );
+				}
+
 				ImGui::Spacing();
 				DrawBoolControl( "Is Trigger", &bc.IsTrigger );
 			} );
@@ -894,7 +911,20 @@ namespace Saturn {
 		{
 			DrawBoolControl( "Is Trigger", &sc.IsTrigger );
 			ImGui::Spacing();
-			DrawFloatControl( "Radius", &sc.Radius, sc.Radius );
+			bool res = DrawFloatControl( "Radius", &sc.Radius, sc.Radius );
+
+			ImGui::Spacing();
+
+			if( res )
+			{
+				sc.DebugMesh = nullptr;
+				sc.DebugMesh = MeshFactory::CreateSphere( sc.Radius );
+			}
+
+			if( !sc.DebugMesh )
+			{
+				sc.DebugMesh = MeshFactory::CreateSphere( sc.Radius );
+			}
 
 		} );
 
@@ -949,8 +979,28 @@ namespace Saturn {
 		{
 			DrawBoolControl( "Is Trigger", &cc.IsTrigger );
 			ImGui::Spacing();
-			DrawFloatControl( "Radius", &cc.Radius, cc.Radius );
-			DrawFloatControl( "Height", &cc.Height, cc.Height );
+			bool res = DrawFloatControl( "Radius", &cc.Radius, cc.Radius );
+			bool resOne = DrawFloatControl( "Height", &cc.Height, cc.Height );
+			ImGui::Spacing();
+
+			// If we can changed the radius or height
+			if( res || resOne )
+			{
+				cc.DebugMesh = nullptr;
+				cc.DebugMesh = MeshFactory::CreateCapsule( cc.Radius, cc.Radius );
+			}
+			// Render even if we have no changed it
+			else if( !res || !resOne )
+			{
+				cc.DebugMesh = nullptr;
+				cc.DebugMesh = MeshFactory::CreateCapsule( cc.Radius, cc.Radius );
+			}
+
+			// If the debug mesh is null, make it and the render
+			if( !cc.DebugMesh )
+			{
+				cc.DebugMesh = MeshFactory::CreateCapsule( cc.Radius, cc.Radius );
+			}
 
 		} );
 

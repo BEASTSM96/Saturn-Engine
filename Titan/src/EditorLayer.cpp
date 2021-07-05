@@ -472,6 +472,13 @@ namespace Saturn {
 					m_SceneHierarchyPanel->SetSelected( {} );
 				}
 				break;
+			case Key::F:
+				if( m_SelectionContext.size() )
+				{
+					Entity selectedEntity = m_SelectionContext[ 0 ].Entity;
+					m_EditorCamera.Focus( selectedEntity.GetComponent<TransformComponent>().Position );
+				}
+				break;
 		}
 
 		if( Input::IsKeyPressed( Key::LeftControl ) )

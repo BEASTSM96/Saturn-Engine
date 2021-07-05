@@ -124,6 +124,7 @@ namespace Saturn {
 		auto& trans = entity.GetComponent<TransformComponent>();
 		auto& mat = entity.GetComponent<PhysXMaterialComponent>();
 		auto& mesh = entity.GetComponent<MeshComponent>();
+
 		glm::vec3 size = comp.Extents;
 		glm::vec3 entitySize = trans.Scale;
 
@@ -142,11 +143,15 @@ namespace Saturn {
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = entity.GetComponent<TransformComponent>();
 		auto& mat = entity.GetComponent<PhysXMaterialComponent>();
+		auto& mesh = entity.GetComponent<MeshComponent>();
+
 		float size = comp.Radius;
 		glm::vec3 entitySize = trans.Scale;
 
 		if( entitySize.x != 0.0f )
 			size *= entitySize.x;
+
+		comp.DebugMesh = mesh;
 
 		physx::PxSphereGeometry sphereGeo = physx::PxSphereGeometry( size / 2.0f );
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, sphereGeo, *s_Physics->createMaterial( mat.StaticFriction, mat.DynamicFriction, mat.Restitution ) );
@@ -160,6 +165,8 @@ namespace Saturn {
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = entity.GetComponent<TransformComponent>();
 		auto& mat = entity.GetComponent<PhysXMaterialComponent>();
+		auto& mesh = entity.GetComponent<MeshComponent>();
+
 		float size = comp.Radius;
 		float height = comp.Height;
 
@@ -170,6 +177,8 @@ namespace Saturn {
 
 		if( entitySize.y != 0.0f )
 			height *= ( entitySize.y );
+
+		comp.DebugMesh = mesh;
 
 		physx::PxCapsuleGeometry capsuleGeo = physx::PxCapsuleGeometry( size, height / 2.0f );
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape( actor, capsuleGeo, *s_Physics->createMaterial( mat.StaticFriction, mat.DynamicFriction, mat.Restitution ) );

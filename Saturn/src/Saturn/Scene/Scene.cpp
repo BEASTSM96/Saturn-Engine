@@ -170,11 +170,6 @@ namespace Saturn {
 
 				// TODO: Should we render (logically)
 				if( m_SelectedEntity == entity )
-					SceneRenderer::ShadowMapPass( this, meshComponent, transformComponent.GetTransform(), true );
-				else
-					SceneRenderer::ShadowMapPass( this, meshComponent, transformComponent.GetTransform(), false );
-
-				if( m_SelectedEntity == entity )
 					SceneRenderer::SubmitSelectedMesh( meshComponent, transformComponent.GetTransform() );
 				else
 					SceneRenderer::SubmitMesh( meshComponent, transformComponent.GetTransform() );
@@ -189,7 +184,44 @@ namespace Saturn {
 				auto& comp = e.GetComponent<PhysXBoxColliderComponent>();
 
 				if( m_SelectedEntity == entity )
-					SceneRenderer::SubmitColliderMesh( comp, e.GetComponent<TransformComponent>().GetTransform() );
+					SceneRenderer::SubmitColliderMesh( comp.DebugMesh, e.GetComponent<TransformComponent>().GetTransform() );
+			}
+		}
+
+		{
+			auto view = m_Registry.view<PhysXSphereColliderComponent>();
+			for( auto entity : view )
+			{
+				Entity e ={ entity, this };
+				auto& comp = e.GetComponent<PhysXSphereColliderComponent>();
+
+				if( m_SelectedEntity == entity )
+					SceneRenderer::SubmitColliderMesh( comp.DebugMesh, e.GetComponent<TransformComponent>().GetTransform() );
+			}
+		}
+
+		{
+			auto view = m_Registry.view<PhysXCapsuleColliderComponent>();
+			for( auto entity : view )
+			{
+				Entity e ={ entity, this };
+				auto& comp = e.GetComponent<PhysXCapsuleColliderComponent>();
+
+				if( m_SelectedEntity == entity )
+					SceneRenderer::SubmitColliderMesh( comp.DebugMesh, e.GetComponent<TransformComponent>().GetTransform() );
+			}
+		}
+
+
+		{
+			auto view = m_Registry.view<PhysXMeshColliderComponent>();
+			for( auto entity : view )
+			{
+				Entity e ={ entity, this };
+				auto& comp = e.GetComponent<PhysXMeshColliderComponent>();
+
+				if( m_SelectedEntity == entity )
+					SceneRenderer::SubmitColliderMesh( comp.CollisionMesh, e.GetComponent<TransformComponent>().GetTransform() );
 			}
 		}
 
@@ -204,7 +236,8 @@ namespace Saturn {
 		/////////////////////////////////////////////////////////////////////
 
 		Entity cameraEntity = GetMainCameraEntity();
-		if( !cameraEntity.IsVaild() )
+
+		if( !cameraEntity )
 		{
 			SAT_CORE_ERROR( "Could not find any cameras to render!" );
 			return;

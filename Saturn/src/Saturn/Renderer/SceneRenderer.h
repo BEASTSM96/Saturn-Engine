@@ -69,8 +69,7 @@ namespace Saturn {
 		static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap( const std::string& filepath );
 
 		// PhysX
-
-		static void SubmitColliderMesh(const PhysXBoxColliderComponent& comp, const glm::mat4& trans = glm::mat4(1.0f));
+		static void SubmitColliderMesh( Ref<Mesh> mesh, const glm::mat4& trans /*= glm::mat4( 1.0f ) */ );
 
 		static Ref<RenderPass> GetFinalRenderPass( void );
 		static Ref<Texture2D> GetFinalColorBuffer( void );

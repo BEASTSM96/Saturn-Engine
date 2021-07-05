@@ -244,9 +244,9 @@ namespace Saturn {
 		s_Data.SelectedMeshDrawList.push_back( { mesh, nullptr, transform } );
 	}
 
-	void SceneRenderer::SubmitColliderMesh( const PhysXBoxColliderComponent& comp, const glm::mat4& trans /*= glm::mat4(1.0f)*/ )
+	void SceneRenderer::SubmitColliderMesh( Ref<Mesh> mesh, const glm::mat4& trans /*= glm::mat4( 1.0f ) */ )
 	{
-		s_Data.ColliderDrawList.push_back( { comp.DebugMesh, nullptr, glm::translate( trans, comp.Offset ) } );
+		s_Data.ColliderDrawList.push_back( { mesh, nullptr, trans } );
 	}
 
 	static Ref<Shader> equirectangularConversionShader, envFilteringShader, envIrradianceShader;
