@@ -96,11 +96,6 @@ namespace Saturn {
 
 	void ShaderLibrary::Clear()
 	{
-		for( int i = 0; i < m_Shaders.size(); i++ )
-		{
-			SAT_CORE_INFO( "{0}", i );
-		}
-
 		m_Shaders.clear();
 	}
 

@@ -75,7 +75,7 @@ namespace Saturn {
 
 		// Grid
 		Ref<MaterialInstance> GridMaterial;
-		Ref<MaterialInstance> OutlineMaterial;
+		Ref<MaterialInstance> OutlineMaterial, OutlineAnimantedMesh;
 		Ref<MaterialInstance> ColliderMaterial;
 
 		// Shadows
@@ -283,11 +283,11 @@ namespace Saturn {
 		equirectangularConversionShader->Bind();
 		envEquirect->Bind();
 		Renderer::Submit( [envUnfiltered, cubemapSize, envEquirect]()
-			{
+		{
 				glBindImageTexture( 0, envUnfiltered->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F );
 				glDispatchCompute( cubemapSize / 32, cubemapSize / 32, 6 );
 				glGenerateTextureMipmap( envUnfiltered->GetRendererID() );
-			} );
+		} );
 
 
 		if( !envFilteringShader )
@@ -296,25 +296,25 @@ namespace Saturn {
 		Ref<TextureCube> envFiltered = TextureCube::Create( TextureFormat::Float16, cubemapSize, cubemapSize );
 
 		Renderer::Submit( [envUnfiltered, envFiltered]()
-			{
+		{
 				glCopyImageSubData( envUnfiltered->GetRendererID(), GL_TEXTURE_CUBE_MAP, 0, 0, 0, 0,
 					envFiltered->GetRendererID(), GL_TEXTURE_CUBE_MAP, 0, 0, 0, 0,
 					envFiltered->GetWidth(), envFiltered->GetHeight(), 6 );
-			} );
+		} );
 
 		envFilteringShader->Bind();
 		envUnfiltered->Bind();
 
 		Renderer::Submit( [envUnfiltered, envFiltered, cubemapSize]()
 		{
-	 const float deltaRoughness = 1.0f / glm::max( ( float )( envFiltered->GetMipLevelCount() - 1.0f ), 1.0f );
-	 for( int level = 1, size = cubemapSize / 2; level < envFiltered->GetMipLevelCount(); level++, size /= 2 ) // <= ?
-	 {
-		 const GLuint numGroups = glm::max( 1, size / 32 );
-		 glBindImageTexture( 0, envFiltered->GetRendererID(), level, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F );
-		 glProgramUniform1f( envFilteringShader->GetRendererID(), 0, level * deltaRoughness );
-		 glDispatchCompute( numGroups, numGroups, 6 );
-	 }
+			const float deltaRoughness = 1.0f / glm::max( ( float )( envFiltered->GetMipLevelCount() - 1.0f ), 1.0f );
+			for( int level = 1, size = cubemapSize / 2; level < envFiltered->GetMipLevelCount(); level++, size /= 2 ) // <= ?
+			{
+				const GLuint numGroups = glm::max( 1, size / 32 );
+				glBindImageTexture( 0, envFiltered->GetRendererID(), level, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F );
+				glProgramUniform1f( envFilteringShader->GetRendererID(), 0, level * deltaRoughness );
+				glDispatchCompute( numGroups, numGroups, 6 );
+			}
 			} );
 
 		if( !envIrradianceShader )
@@ -324,11 +324,11 @@ namespace Saturn {
 		envIrradianceShader->Bind();
 		envFiltered->Bind();
 		Renderer::Submit( [irradianceMap]()
-			{
+		{
 				glBindImageTexture( 0, irradianceMap->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F );
 				glDispatchCompute( irradianceMap->GetWidth() / 32, irradianceMap->GetHeight() / 32, 6 );
 				glGenerateTextureMipmap( irradianceMap->GetRendererID() );
-			} );
+		} );
 
 		return { envFiltered, irradianceMap };
 	}

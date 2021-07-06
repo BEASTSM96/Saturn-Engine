@@ -47,7 +47,7 @@ namespace Saturn {
 	struct RendererData
 	{
 		Ref<RenderPass> m_ActiveRenderPass;
-		RenderCommandQueue m_CommandQueue;
+		RenderCommandQueue* m_CommandQueue;
 		Ref<ShaderLibrary> m_ShaderLibrary;
 
 		Ref<VertexBuffer> m_FullscreenQuadVertexBuffer;
@@ -60,7 +60,7 @@ namespace Saturn {
 	void Renderer::Init()
 	{
 		s_Data.m_ShaderLibrary = Ref<ShaderLibrary>::Create();
-		s_Data.m_CommandQueue = RenderCommandQueue();
+		s_Data.m_CommandQueue = new RenderCommandQueue();
 		Renderer::Submit( []() { RendererAPI::Init(); } );
 
 		Renderer::GetShaderLibrary()->Load( "assets/shaders/PBR_Static.glsl" );
@@ -108,14 +108,19 @@ namespace Saturn {
 
 	void Renderer::Shutdown( void )
 	{
+		Renderer2D::Shutdown();
+
 		Renderer::GetShaderLibrary()->Clear();
+
 		s_Data.m_ActiveRenderPass = nullptr;
 		s_Data.m_ShaderLibrary = nullptr;
 		s_Data.m_FullscreenQuadVertexBuffer = nullptr;
 		s_Data.m_FullscreenQuadPipeline = nullptr;
 		s_Data.m_FullscreenQuadIndexBuffer = nullptr;
+
 		SceneRenderer::Shutdown();
-		s_Data.m_CommandQueue.ClearCmdBuffer();
+
+		delete s_Data.m_CommandQueue;
 	}
 
 	Ref<ShaderLibrary> Renderer::GetShaderLibrary()
@@ -166,7 +171,7 @@ namespace Saturn {
 
 	void Renderer::WaitAndRender()
 	{
-		s_Data.m_CommandQueue.Execute();
+		s_Data.m_CommandQueue->Execute();
 	}
 
 	void Renderer::BeginRenderPass( Ref<RenderPass> renderPass, bool clear )
@@ -313,6 +318,6 @@ namespace Saturn {
 
 	RenderCommandQueue& Renderer::GetRenderCommandQueue()
 	{
-		return s_Data.m_CommandQueue;
+		return *s_Data.m_CommandQueue;
 	}
 }

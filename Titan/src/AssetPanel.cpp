@@ -64,14 +64,6 @@ namespace Saturn {
 
 	void AssetPanel::OnAttach( void )
 	{
-		// Setup Dear ImGui context
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); ( void )io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
 		m_CheckerboardTex = Texture2D::Create( "assets/editor/Checkerboard.tga" );
 
 		namespace fs = std::filesystem;
@@ -86,14 +78,10 @@ namespace Saturn {
 			}
 		}
 
-		ImGui_ImplOpenGL3_Init( "#version 410" );
 	}
 
 	void AssetPanel::OnDetach( void )
 	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
 	}
 
 	void AssetPanel::OnUpdate( Timestep ts )

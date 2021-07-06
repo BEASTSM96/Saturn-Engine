@@ -165,43 +165,57 @@ namespace Saturn {
 		s_Init = true;
 		s_AssemblyPath = path;
 
-		if( Saturn::RestartInProg() )
-			return; //Already Init'ed this class and you can't call mono_jit_cleanup if you want to initialize it again
-			
-		mono_set_dirs( "C:\\Program Files\\Mono\\lib", "C:\\Program Files\\Mono\\etc" );
-		mono_set_assemblies_path( "../Saturn/vendor/mono/lib" );
-		mono_jit_set_trace_options( "--verbose" );
+		if( !s_MonoDomain )
+		{
+			mono_set_dirs( "C:\\Program Files\\Mono\\lib", "C:\\Program Files\\Mono\\etc" );
+			mono_set_assemblies_path( "../Saturn/vendor/mono/lib" );
+			mono_jit_set_trace_options( "--verbose" );
 
-		auto domain = mono_jit_init( "Saturn" );
+			auto domain = mono_jit_init( "Saturn" );
 
-		char* name = ( char* )"Saturn_Runtime";
-		s_MonoDomain = mono_domain_create_appdomain( name, nullptr );
+			char* name = ( char* )"Saturn_Runtime";
+			s_MonoDomain = mono_domain_create_appdomain( name, nullptr );
+		}
 
 		// =========================== |
 		// ----> LOAD RUNTIME ASSEMBLY | 
 		// =========================== |
 
-		if( s_AppAssembly )
+		if( !s_AppAssembly )
 		{
-			mono_domain_unload( s_MonoDomain );
-			mono_assembly_close( s_AppAssembly );
+			// TODO: Remove?
+			if( s_AppAssembly )
+			{
+				mono_domain_unload( s_MonoDomain );
+				mono_assembly_close( s_AppAssembly );
 
-			char* name = ( char* )"Saturn_Runtime-Runtime";
-			s_MonoDomain = mono_domain_create_appdomain( name, nullptr );
+				char* name = ( char* )"Saturn_Runtime-Runtime";
+				s_MonoDomain = mono_domain_create_appdomain( name, nullptr );
+			}
+
+			s_CoreAssembly = LoadAssembly( "assets/assembly/SaturnScript.dll" );
+			s_CoreAssemblyImage = GetAssemblyImage( s_CoreAssembly );
+
+			s_AppAssembly = LoadAssembly( path );
+			s_AppAssemblyImage = GetAssemblyImage( s_AppAssembly );
+			ScriptRegistry::RegisterAll();
 		}
-
-		s_CoreAssembly = LoadAssembly( "assets/assembly/SaturnScript.dll" );
-		s_CoreAssemblyImage = GetAssemblyImage( s_CoreAssembly );
-
-		s_AppAssembly = LoadAssembly( path );
-		s_AppAssemblyImage = GetAssemblyImage( s_AppAssembly );
-		ScriptRegistry::RegisterAll();
 	}
 
 	void ScriptEngine::Shutdown()
 	{
-		if( !Saturn::CheckRestart() && Saturn::RestartInProg() )
-			mono_jit_cleanup( s_MonoDomain );
+		m_Scene = nullptr;
+		s_EntityInstanceMap.clear();
+
+		/*
+		mono_assembly_close( s_AppAssembly );
+		mono_assembly_close( s_CoreAssembly );
+
+		mono_image_close( s_AppAssemblyImage );
+		mono_image_close( s_CoreAssemblyImage );
+
+		mono_domain_unload( s_MonoDomain );
+		*/
 	}
 
 	void ScriptEngine::OnCreateEntity( Entity entity )

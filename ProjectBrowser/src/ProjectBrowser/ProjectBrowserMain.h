@@ -32,7 +32,7 @@
 
 namespace ProjectBrowser {
 
-	void FGuardedMain( int argc, char** argv )
+	void FMain( int argc, char** argv )
 	{
 		auto* app = new ProjectBrowserApp( { argc, argv }, { "Saturn Project Browser", 900, 720 } );
 		SAT_PROFILE_END_SESSION();

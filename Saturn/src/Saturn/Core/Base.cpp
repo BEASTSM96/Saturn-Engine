@@ -32,6 +32,7 @@
 #include "Saturn/Log.h"
 #include "Saturn/Physics/PhysX/PhysXFnd.h"
 #include "Saturn/Script/ScriptEngine.h"
+#include "Saturn/Renderer/Renderer.h"
 
 namespace Saturn {
 

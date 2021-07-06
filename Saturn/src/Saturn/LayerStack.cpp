@@ -37,10 +37,7 @@ namespace Saturn {
 	}
 
 	LayerStack::~LayerStack( void )
-	{
-		for ( Layer* layer : m_Layers ) 
-			delete layer;
-		
+	{		
 	}
 
 	void LayerStack::PushLayer( Layer* layer )

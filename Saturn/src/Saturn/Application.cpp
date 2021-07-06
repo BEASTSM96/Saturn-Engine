@@ -46,11 +46,17 @@
 #include "Scene/SceneManager.h"
 #include "Core/FileSystemHelpers.h"
 
+#include "Physics/PhysX/PhysXFnd.h"
+#include "Script/ScriptEngine.h"
+
 #include <imgui.h>
 
 #include <Windows.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+
+extern bool g_ApplicationRunning;
+extern bool g_ProjectBroserWasOpen;
 
 namespace Saturn {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -63,12 +69,8 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		if( CheckRestart() && RestartInProg() )
-			s_Instance = nullptr;
-
-		SAT_CORE_ASSERT( !s_Instance, "Application already exists!" );
-
 		s_Instance = this;
+
 		m_Window = std::unique_ptr< Window >( Window::Create( WindowProps( props.Name, props.WindowWidth, props.WindowHeight ) ) );
 		m_Window->SetEventCallback( BIND_EVENT_FN( OnEvent ) );
 		m_Window->SetVSync( false );
@@ -96,8 +98,35 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		m_Window = nullptr;
-		//Renderer::Shutdown();
+		// If we close the window from the X button the os with handle the rest so we don't need to do all of this
+		// We will do some tho
+		if( g_ApplicationRunning )
+		{
+			for( Layer* layer : m_LayerStack )
+			{
+				layer->OnDetach();
+				delete layer;
+			}
+
+			FramebufferPool::GetGlobal()->GetAll().clear();
+
+			ScriptEngine::Shutdown();
+			PhysXFnd::Clear();
+
+			m_Window = nullptr;
+
+			Renderer::Shutdown();
+		}
+		else
+		{
+			for( Layer* layer : m_LayerStack )
+			{
+				layer->OnDetach();
+				delete layer;
+			}
+
+			FramebufferPool::GetGlobal()->GetAll().clear();
+		}
 	}
 
 	Layer* Application::PushLayer( Layer* layer )
@@ -195,6 +224,8 @@ namespace Saturn {
 	bool Application::OnWindowClose( WindowCloseEvent& e )
 	{
 		m_Running = false;
+		g_ApplicationRunning = false;
+		g_ProjectBroserWasOpen = false;
 		return true;
 	}
 

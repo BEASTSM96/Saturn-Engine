@@ -30,7 +30,6 @@
 #include "RenderCommandQueue.h"
 
 namespace Saturn {
-
 	RenderCommandQueue::RenderCommandQueue()
 	{
 		m_CommandBuffer = new uint8_t[ 10 * 1024 * 1024 ]; // 10mb buffer
@@ -39,10 +38,6 @@ namespace Saturn {
 	}
 
 	RenderCommandQueue::~RenderCommandQueue()
-	{
-	}
-
-	void RenderCommandQueue::ClearCmdBuffer()
 	{
 		delete[] m_CommandBuffer;
 	}
@@ -65,7 +60,9 @@ namespace Saturn {
 
 	void RenderCommandQueue::Execute()
 	{
-		uint8_t* buffer = m_CommandBuffer;
+		//HZ_RENDER_TRACE("RenderCommandQueue::Execute -- {0} commands, {1} bytes", m_CommandCount, (m_CommandBufferPtr - m_CommandBuffer));
+
+		byte* buffer = m_CommandBuffer;
 
 		for( uint32_t i = 0; i < m_CommandCount; i++ )
 		{

@@ -30,8 +30,6 @@
 #include <Saturn/EntryPoint.h>
 
 #include "EditorLayer.h"
-#include <Saturn/Scene/SceneManager.h>
-#include <Saturn/Scene/Scene.h>
 
 class EditorApplication : public Saturn::Application
 {

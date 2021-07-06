@@ -1184,13 +1184,26 @@ namespace Saturn {
 
 			}
 
+			if( ImGui::BeginMenu("...") )
+			{
+				if( ImGui::MenuItem( "Restart", "Ctrl+O+P" ) )
+				{
+					ImVec2 textSize = ImGui::CalcTextSize( "Restart" );
+					ImGui::SameLine( ImGui::GetWindowWidth() - 11 - textSize.x - textSize.y );
+
+					Application::Get().Close();
+					
+				}
+
+				ImGui::EndMenu();
+			}
+
 			const char* text = ProjectSettings::GetCurrentProject()->GetName().c_str();
 
 			ImVec2 textSize = ImGui::CalcTextSize( text );
 			ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
 
 			ImGui::Text( text );
-
 			ImGui::EndMainMenuBar();
 		}
 
