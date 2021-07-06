@@ -1168,6 +1168,8 @@ namespace Saturn {
 			ImGui::DockSpace( dockspace_id, ImVec2( 0.0f, 0.0f ), opt_flags );
 		}
 
+		static bool openModal = false;
+
 		if( ImGui::BeginMainMenuBar() )
 		{
 			if( ImGui::BeginMenu( "File" ) )
@@ -1188,11 +1190,7 @@ namespace Saturn {
 			{
 				if( ImGui::MenuItem( "Restart", "Ctrl+O+P" ) )
 				{
-					ImVec2 textSize = ImGui::CalcTextSize( "Restart" );
-					ImGui::SameLine( ImGui::GetWindowWidth() - 11 - textSize.x - textSize.y );
-
-					Application::Get().Close();
-					
+					openModal = true;
 				}
 
 				ImGui::EndMenu();
@@ -1205,6 +1203,38 @@ namespace Saturn {
 
 			ImGui::Text( text );
 			ImGui::EndMainMenuBar();
+		}
+
+		if( openModal )
+		{
+			ImGui::OpenPopup( "Restart Warning" );
+		}
+
+		if( ImGui::BeginPopupModal( "Restart Warning", &openModal ) )
+		{
+			ImGui::SetWindowSize( ImVec2( 1600, 720 ) );
+
+			ImGui::TextWrapped( "Warning!\n Restarting the engine will not restart everything it will still keep most things the same, a good example is the script engine, the engine will not restart the script engine, instead it will only clear the entities and reset the scene!" );
+
+			ImGui::TextWrapped( "Are you sure you want to restart?" );
+
+			ImGui::TextColored( ImVec4( 1, 0, 0, 1 ), "Any un-saved work will be lost" );
+
+			if( ImGui::Button( "Yes" ) )
+			{
+				openModal = false;
+				Application::Get().Close();
+			}
+
+			ImGui::SameLine();
+
+			if( ImGui::Button( "No" ) )
+			{
+				openModal = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
 		}
 
 		m_SceneHierarchyPanel->OnImGuiRender();
