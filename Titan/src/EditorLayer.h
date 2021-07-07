@@ -42,6 +42,18 @@
 
 namespace Saturn { 
 
+	enum class AssetPanelStatus 
+	{
+		NONE = 0,
+		SAFE = 1,
+		IMPORTING = 2,
+		SAVING = 3,
+		CLOSING = 4,
+		SELECTED_FILE_INFO = 5,
+
+		Default = SAFE
+	};
+
 	class EditorLayer : public Layer
 	{
 	public:
@@ -64,6 +76,8 @@ namespace Saturn {
 		Ray CastMouseRay( void );
 		void SelectEntity( Entity entity );
 		float GetSnapValue( void );
+		
+		static EditorLayer& Get() { return *s_Instance; }
 
 		Ref<Scene>& GetEditorScene()
 		{
@@ -118,6 +132,7 @@ namespace Saturn {
 			}
 		}
 
+		void UpdateAssetStatus();
 		void StartAssetLayer();
 		void PrepRuntime();
 
@@ -180,8 +195,14 @@ namespace Saturn {
 		std::string m_FolderPath = "assets";
 		std::string m_Folder;
 		std::string m_CurrentFolder;
+		std::string m_CurrentFile;
+		std::string m_CurrentStatusString;
+
+		AssetPanelStatus m_AssetPanelStatus = AssetPanelStatus::Default;
 
 	private:
 		friend class SceneHierarchyPanel;
+	private:
+		static EditorLayer* s_Instance;
 	};
 }

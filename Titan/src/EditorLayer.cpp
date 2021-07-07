@@ -76,14 +76,27 @@
 
 namespace Saturn {
 
+	EditorLayer* EditorLayer::s_Instance = nullptr;
+
 	EditorLayer::EditorLayer() : Layer( "EditorLayer" ), m_EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) )
 	{
+		s_Instance = this;
+
 		SAT_PROFILE_FUNCTION();
 	}
 
 	EditorLayer::~EditorLayer()
 	{
 		SAT_PROFILE_FUNCTION();
+
+		m_CheckerboardTex     = nullptr;
+		m_PlayButtonTexture   = nullptr;
+		m_PauseButtonTexture  = nullptr;
+		m_FileSceneTexture    = nullptr;
+		m_StopButtonTexture   = nullptr;
+		m_UnkownFile          = nullptr;
+		m_TextFile            = nullptr;
+		m_SceneHierarchyPanel = nullptr;
 	}
 
 	void EditorLayer::OnAttach()
@@ -497,6 +510,12 @@ namespace Saturn {
 					if( m_SelectionContext.size() )
 						m_EditorScene->DuplicateEntity( m_SceneHierarchyPanel->GetSelectionContext() );
 					break;
+				case Key::O: 
+				{
+					if( Input::IsKeyPressed( Key::P ) )
+						Application::Get().Close();
+					break;
+				}
 			}
 		}
 
@@ -638,6 +657,37 @@ namespace Saturn {
 		}
 	}
 
+	void EditorLayer::UpdateAssetStatus()
+	{
+		ImGui::BeginChild( "##asset-panel-bottom", ImVec2( ImGui::GetColumnWidth() - 12, 30 ) );
+
+		// Asset panel status
+
+		switch( m_AssetPanelStatus )
+		{
+			case AssetPanelStatus::NONE:
+			case AssetPanelStatus::SAFE:
+				m_CurrentStatusString = "";
+				break;
+			case AssetPanelStatus::IMPORTING:
+				m_CurrentStatusString = "Importing File " + m_CurrentFile;
+				break;
+			case AssetPanelStatus::SAVING:
+				m_CurrentStatusString = "Saving Registry";
+				break;
+			case AssetPanelStatus::CLOSING:
+				m_CurrentStatusString = "Closing & saving registry";
+				break;
+			case AssetPanelStatus::SELECTED_FILE_INFO:
+				break;
+		}
+
+
+		ImGui::Text( m_CurrentStatusString.c_str() );
+
+		ImGui::EndChild();
+	}
+
 	//TODO: Add back into the AssetLayer.cpp file
 	void EditorLayer::StartAssetLayer()
 	{
@@ -708,6 +758,8 @@ namespace Saturn {
 			auto viewportOffset = ImGui::GetWindowPos(); // includes tab bar
 			auto viewportSize = ImGui::GetContentRegionAvail();
 
+			ImGui::BeginChild( "##asset-panel-main" );
+
 			static std::string folderpath = ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
 			
 			// i.e. if the folder is not been set the projects one
@@ -739,6 +791,8 @@ namespace Saturn {
 			{
 				for( fs::recursive_directory_iterator it( m_FolderPath ); it != fs::recursive_directory_iterator(); ++it )
 				{
+					m_CurrentFile = it->path().filename().string();
+
 					if( it->path().extension().string() == ".sc" )
 					{
 						MakeFileFrom<File>( it->path().filename().string(), it->path().string(), FileExtensionType::SCENE );
@@ -814,6 +868,8 @@ namespace Saturn {
 			{
 				if( it->path().has_extension() )
 				{
+					m_CurrentFile = it->path().filename().string();
+
 					if( it->path().extension().string() == ".sc" )
 					{
 						std::string path = m_FolderPath + "\\" + it->path().filename().string();
@@ -1045,6 +1101,9 @@ namespace Saturn {
 				}
 			}
 			*/
+
+			ImGui::EndChild();
+
 			static bool openModal = false;
 
 			if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
@@ -1133,6 +1192,8 @@ namespace Saturn {
 
 				ImGui::EndPopup();
 			}
+
+			ImGui::Separator();
 		}
 		ImGui::End();
 

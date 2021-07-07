@@ -53,6 +53,7 @@ namespace Saturn {
 
 #endif
 
+#ifdef SAT_PLATFORM_WINDOWS
 	class RefCounter
 	{
 	public:
@@ -89,6 +90,7 @@ namespace Saturn {
 	private:
 		mutable uint32_t m_RefCount = 0; // TODO: atomic
 	};
+#endif // SAT_PLATFORM_WINDOWS
 
 	template<typename T>
 	class Ref
