@@ -361,8 +361,15 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
+		std::string name = "";
+
+		size_t found = filepath.find_last_of( "/\\" );
+		name = found != std::string::npos ? filepath.substr( found + 1 ) : filepath;
+		found = name.find_last_of( "." );
+		name = found != std::string::npos ? name.substr( 0, found ) : name;
+
 		auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap( filepath );
-		return { filepath, radiance, irradiance };
+		return { filepath, name, radiance, irradiance };
 	}
 
 

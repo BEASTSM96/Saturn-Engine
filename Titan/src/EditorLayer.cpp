@@ -695,6 +695,11 @@ namespace Saturn {
 		}
 		ImGui::End();
 
+		// Self Ref
+		// m_CurrentFolder = current folder that we are viewing / the folder that we are in
+		// m_FolderPath = the full path the the folder that we are in
+		// static folder path the project root dir
+
 		if( ImGui::Begin( "Assets", &p_open ) )
 		{
 			auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
@@ -703,11 +708,15 @@ namespace Saturn {
 			auto viewportOffset = ImGui::GetWindowPos(); // includes tab bar
 			auto viewportSize = ImGui::GetContentRegionAvail();
 
-			m_FolderPath = ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
+			static std::string folderpath = ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
+			
+			// i.e. if the folder is not been set the projects one
+			if( m_FolderPath == "assets" )
+				m_FolderPath = folderpath;
 
 			ImGui::Text( "File Path: %s", m_FolderPath.c_str() );
 
-			if( m_FolderPath == "assets" )
+			if( m_FolderPath == "assets" + m_FolderPath )
 			{
 				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
@@ -723,9 +732,7 @@ namespace Saturn {
 					fs::path root_path = currentPath.parent_path();
 
 					m_FolderPath = root_path.string();
-
 				}
-
 			}
 
 			if( ImGui::Button( "Scan All Folders for Assets" ) )
@@ -774,7 +781,8 @@ namespace Saturn {
 
 					if( it->path().extension().string() == ".hdr" )
 					{
-						MakeFileFrom<PNGFile>( it->path().filename().string(), it->path().string(), FileExtensionType::HDR );
+						if( m_EditorScene->GetEnvironment().Name != it->path().filename().string() )
+							MakeFileFrom<PNGFile>( it->path().filename().string(), it->path().string(), FileExtensionType::HDR );
 					}
 				}
 			}
@@ -793,7 +801,7 @@ namespace Saturn {
 					if( ImGui::Button( it->path().filename().string().c_str(), imageSize ) )
 					{
 						m_CurrentFolder = it->path().filename().string().c_str();
-						m_FolderPath = m_FolderPath + "\\" + it->path().filename().string();
+						m_FolderPath += "\\" + m_CurrentFolder;
 					}
 
 					DrawAssetText( it->path().filename().string().c_str() );
@@ -901,6 +909,19 @@ namespace Saturn {
 							m_TextureViewerPanel->ShowWindowAgain();
 							m_TextureViewerPanel->Reset();
 							TextureViewer::SetRenderImageTarget( file->GetData() );
+							
+							auto& envName = m_EditorScene->GetEnvironment().Name;
+
+							if( envName == file->GetName() )
+							{
+								SAT_CORE_WARN( "The file that you have selected is the same as the one in the scene!" );
+								return;
+							}
+							else
+							{
+								auto& env = Environment::Load( file->GetFilepath() );
+								m_EditorScene->SetEnvironment( env );
+							}
 						}
 
 						DrawAssetText( it->path().filename().string().c_str() );
@@ -1252,6 +1273,7 @@ namespace Saturn {
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 12, 0 ) );
 		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 12, 4 ) );
 		ImGui::PushStyleVar( ImGuiStyleVar_ItemInnerSpacing, ImVec2( 0, 0 ) );
+		ImGui::PushStyleVar( ImGuiStyleVar_FrameBorderSize, 0 );
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.8f, 0.8f, 0.8f, 0.0f ) );
 		ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
@@ -1296,6 +1318,7 @@ namespace Saturn {
 		ImGui::PopStyleColor();
 		ImGui::PopStyleColor();
 		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();

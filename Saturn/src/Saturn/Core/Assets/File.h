@@ -46,6 +46,7 @@ namespace Saturn {
 
 	public:
 		std::string& GetName() { return m_Name; }
+		const std::string& GetName() const { return m_Name; }
 		std::string& GetFilepath() { return m_Filepath; }
 		FileExtensionType& GetExtensionType() { return m_FileExtensionType; }
 		UUID& GetUUID() { return m_UUID; }

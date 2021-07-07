@@ -66,6 +66,8 @@ namespace Saturn {
 	struct Environment
 	{
 		std::string FilePath;
+		std::string Name;
+
 		Ref<TextureCube> RadianceMap;
 		Ref<TextureCube> IrradianceMap;
 
