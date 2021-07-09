@@ -903,14 +903,17 @@ namespace Saturn {
 				auto relativePath = fs::relative( path, m_FolderPath );
 				std::string filenameString = relativePath.filename().string();
 
-				ImGui::ImageButton( ( ImTextureID )m_FileTexture->GetRendererID(), { thumbnailSize, thumbnailSize } );
-
-				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+				if (!it->is_directory())
 				{
-				}
-				ImGui::TextWrapped( filenameString.c_str() );
+					ImGui::ImageButton( ( ImTextureID )m_FileTexture->GetRendererID(), { thumbnailSize, thumbnailSize } );
 
-				ImGui::NextColumn();
+					if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+					{
+					}
+					ImGui::TextWrapped( filenameString.c_str() );
+
+					ImGui::NextColumn();
+				}
 			}
 
 			ImGui::Columns( 1 );
