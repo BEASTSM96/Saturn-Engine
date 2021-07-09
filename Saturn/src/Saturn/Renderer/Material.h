@@ -94,7 +94,7 @@ namespace Saturn {
 		T& Get( const std::string& name )
 		{
 			auto decl = FindUniformDeclaration( name );
-			SAT_CORE_ASSERT( decl, "Could not find uniform with name 'x'" );
+			SAT_CORE_ASSERT( decl, "Could not find uniform with name '{0}'", name.c_str() );
 			auto& buffer = GetUniformBufferTarget( decl );
 			return buffer.Read<T>( decl->GetOffset() );
 		}
@@ -141,7 +141,7 @@ namespace Saturn {
 			auto decl = m_Material->FindUniformDeclaration( name );
 			if( !decl )
 				return;
-			SAT_CORE_ASSERT( decl, "Could not find uniform with name 'x'" );
+			SAT_CORE_ASSERT( decl, "Could not find uniform with name 'x'");
 			auto& buffer = GetUniformBufferTarget( decl );
 			buffer.Write( ( byte* )&value, decl->GetSize(), decl->GetOffset() );
 

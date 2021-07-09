@@ -175,10 +175,16 @@ namespace Saturn {
 		Ref<Texture2D> m_StopButtonTexture;
 		Ref<Texture2D> m_UnkownFile;
 		Ref<Texture2D> m_TextFile;
+		// New File texture ( from TheCherno )
+		Ref<Texture2D> m_FolderTexture;
+		Ref<Texture2D> m_FileTexture;
+
 		std::vector<SelectedSubmesh> m_SelectionContext;
 		Ref<Scene> m_RuntimeScene;
 		Ref<Scene> m_EditorScene;
 		glm::vec2 m_ViewportSize ={ 0.0f, 0.0f };
+
+		std::string m_CurrentSceneFilepath;
 
 		std::vector<TransformComponent> m_EditorTransformComponents;
 		std::vector<TransformComponent> m_RuntimeTransformComponents;

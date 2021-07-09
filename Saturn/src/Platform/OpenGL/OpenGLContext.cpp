@@ -54,12 +54,11 @@ namespace Saturn {
 		}
 		SAT_CORE_ASSERT( status, "Failed to load Glad!" );
 
-		SAT_CORE_INFO("OpenGL Renderer: {2}, {0}, {1}", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
+		SAT_CORE_INFO( "OpenGL Renderer: {2}, {0}, {1}", glGetString( GL_VENDOR ), glGetString( GL_RENDERER ), glGetString( GL_VERSION ) );
 	}
 
 	void OpenGLContext::SwapBuffers()
 	{
-
 		glfwSwapBuffers( m_WindowHandle );
 	}
 

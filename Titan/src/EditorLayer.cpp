@@ -128,6 +128,10 @@ namespace Saturn {
 		m_UnkownFile = Texture2D::Create( "assets/textures/assetpanel/unkown_file.png" );
 		m_TextFile = Texture2D::Create( "assets/textures/assetpanel/text_file.png" );
 
+		// New Texture icons
+		m_FolderTexture = Texture2D::Create( "assets/textures/assetpanel/DirectoryIcon.png" );
+		m_FileTexture = Texture2D::Create( "assets/textures/assetpanel/FileIcon.png" );
+
 		ScriptEngine::Init( "assets/assembly/ExampleApp.dll" );
 		ScriptEngine::SetSceneContext( m_EditorScene );
 
@@ -179,14 +183,18 @@ namespace Saturn {
 		m_EditorScene = nullptr;
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		Serialiser serialiser( newScene );
-		if( filepath.empty() )
-		{
-			serialiser.Deserialise( "assets/untitled.sc" );
-		}
-		else
+
+		if( m_CurrentSceneFilepath.empty() && !filepath.empty() )
 		{
 			serialiser.Deserialise( filepath );
+			m_CurrentSceneFilepath = filepath;
 		}
+		else if( filepath.empty() )
+		{
+			serialiser.Deserialise( "assets/untitled.sc" );
+			m_CurrentSceneFilepath = "assets/untitled.sc";
+		}
+		
 		m_EditorScene = newScene;
 
 		if( FileSystem::DoesFileExist( "", "version-control.vcinfo" ) )
@@ -525,16 +533,26 @@ namespace Saturn {
 
 	void EditorLayer::SaveSceneAs()
 	{
-		auto& app = Application::Get();
-		std::string filepath = app.SaveFile( "Scene (*.sc)\0*.sc\0" ).first;
-		if( !filepath.empty() )
+		if( m_CurrentSceneFilepath.empty() )
+		{
+			auto& app = Application::Get();
+			std::string filepath = app.SaveFile( "Scene (*.sc)\0*.sc\0" ).first;
+			if( !filepath.empty() )
+			{
+				Serialiser serializer( m_EditorScene );
+				serializer.Serialise( filepath );
+
+				m_CurrentSceneFilepath = filepath;
+
+				std::filesystem::path path = filepath;
+				UpdateWindowTitle( path.filename().string() );
+				//m_SceneFilePath = filepath;
+			}
+		}
+		else
 		{
 			Serialiser serializer( m_EditorScene );
-			serializer.Serialise( filepath );
-
-			std::filesystem::path path = filepath;
-			UpdateWindowTitle( path.filename().string() );
-			//m_SceneFilePath = filepath;
+			serializer.Serialise( m_CurrentSceneFilepath );
 		}
 	}
 
@@ -768,7 +786,7 @@ namespace Saturn {
 
 			ImGui::Text( "File Path: %s", m_FolderPath.c_str() );
 
-			if( m_FolderPath == "assets" + m_FolderPath )
+			if( m_FolderPath == folderpath )
 			{
 				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
@@ -787,6 +805,7 @@ namespace Saturn {
 				}
 			}
 
+			/*
 			if( ImGui::Button( "Scan All Folders for Assets" ) )
 			{
 				for( fs::recursive_directory_iterator it( m_FolderPath ); it != fs::recursive_directory_iterator(); ++it )
@@ -840,267 +859,64 @@ namespace Saturn {
 					}
 				}
 			}
+			*/
+
+			static float padding = 16.0f;
+			static float thumbnailSize = 128.0f;
+			float cellSize = thumbnailSize + padding;
+
+			float panelWidth = ImGui::GetContentRegionAvail().x;
+			int columnCount = ( int )( panelWidth / cellSize );
+			if( columnCount < 1 )
+				columnCount = 1;
 
 			ImGui::Spacing();
 			ImGui::Separator();
 			ImGui::Spacing();
 
-			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
-			{
-				if( !it->path().has_extension() )
-				{
-					ImVec2 imageSize( 64, 64 );
-
-					ImGui::ManualWrapBegin( imageSize );
-					if( ImGui::Button( it->path().filename().string().c_str(), imageSize ) )
-					{
-						m_CurrentFolder = it->path().filename().string().c_str();
-						m_FolderPath += "\\" + m_CurrentFolder;
-					}
-
-					DrawAssetText( it->path().filename().string().c_str() );
-
-					ImGui::ManualWrapEnd( imageSize );
-				}
-			}
+			ImGui::Columns( columnCount, 0, false );
 
 			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
 			{
-				if( it->path().has_extension() )
+				const auto& path = it->path();
+				auto relativePath = fs::relative( path, m_FolderPath );
+				std::string filenameString = relativePath.filename().string();
+
+				if( it->is_directory() ) 
 				{
-					m_CurrentFile = it->path().filename().string();
+					ImGui::ImageButton( ( ImTextureID )m_FolderTexture->GetRendererID(), { thumbnailSize, thumbnailSize } );
 
-					if( it->path().extension().string() == ".sc" )
+					if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 					{
-						std::string path = m_FolderPath + "\\" + it->path().filename().string();
-
-						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SCENE );
-
-						ImVec2 imageSize( 64, 64 );
-
-						if( m_RuntimeScene )
-						{
-							ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-							ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-							ImGui::ManualWrapBegin( imageSize );
-							ImGui::Button( it->path().filename().string().c_str(), ImVec2( 64, 64 ) );
-							ImGui::ManualWrapEnd( imageSize );
-							ImGui::PopItemFlag();
-							ImGui::PopStyleVar();
-						}
-						else
-						{
-							ImGui::ManualWrapBegin( imageSize );
-							if( ImGui::Button( it->path().filename().string().c_str(), ImVec2( 64, 64 ) ) )
-							{
-								OpenScene( path );
-							}
-
-							DrawAssetText( it->path().filename().string().c_str() );
-
-							ImGui::ManualWrapEnd( imageSize );
-						}
-
+						if( it->is_directory() )
+							m_FolderPath += "\\" + path.filename().string();
 					}
+					ImGui::TextWrapped( filenameString.c_str() );
 
-					if( it->path().extension().string() == ".png" )
-					{
-						std::string path = m_FolderPath + "\\" + it->path().filename().string();
-
-						MakeFileFrom<PNGFile>( it->path().filename().string(), path, FileExtensionType::PNG );
-
-						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
-
-						ImVec2 imageSize( 64, 64 );
-
-						ImGui::ManualWrapBegin( imageSize );
-						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
-						{
-							m_TextureViewerPanel->ShowWindowAgain();
-							m_TextureViewerPanel->Reset();
-							TextureViewer::SetRenderImageTarget( file->GetData() );
-						}
-
-						DrawAssetText( it->path().filename().string().c_str() );
-
-						ImGui::ManualWrapEnd( imageSize );
-					}
-
-					if( it->path().extension().string() == ".tga" )
-					{
-						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
-						MakeFileFrom<PNGFile>( it->path().filename().string(), path, FileExtensionType::TGA );
-
-						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
-
-						ImVec2 imageSize( 64, 64 );
-
-						ImGui::ManualWrapBegin( imageSize );
-						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
-						{
-							m_TextureViewerPanel->ShowWindowAgain();
-							m_TextureViewerPanel->Reset();
-							TextureViewer::SetRenderImageTarget( file->GetData() );
-						}
-
-						DrawAssetText( it->path().filename().string().c_str() );
-
-						ImGui::ManualWrapEnd( imageSize );
-					}
-
-					if( it->path().extension().string() == ".hdr" )
-					{
-						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
-						MakeFileFrom<PNGFile>( it->path().filename().string(), path, FileExtensionType::HDR );
-
-						Ref<PNGFile> file = FileCollection::GetFile( it->path().filename().string() );
-
-						ImVec2 imageSize( 64, 64 );
-
-						ImGui::ManualWrapBegin( imageSize );
-						if( ImGui::ImageButton( ( ImTextureID )file->GetData()->GetRendererID(), imageSize ) )
-						{
-							m_TextureViewerPanel->ShowWindowAgain();
-							m_TextureViewerPanel->Reset();
-							TextureViewer::SetRenderImageTarget( file->GetData() );
-							
-							auto& envName = m_EditorScene->GetEnvironment().Name;
-
-							if( envName == file->GetName() )
-							{
-								SAT_CORE_WARN( "The file that you have selected is the same as the one in the scene!" );
-								return;
-							}
-							else
-							{
-								auto& env = Environment::Load( file->GetFilepath() );
-								m_EditorScene->SetEnvironment( env );
-							}
-						}
-
-						DrawAssetText( it->path().filename().string().c_str() );
-
-						ImGui::ManualWrapEnd( imageSize );
-
-					}
-
-					if( it->path().extension().string() == ".cs" )
-					{
-						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
-						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SCRIPT );
-
-						ImVec2 imageSize( 64, 64 );
-
-						ImGui::ManualWrapBegin( imageSize );
-						if( ImGui::Button( it->path().filename().string().c_str(), imageSize ) )
-						{
-							m_ScriptViewerStandalone->ShowWindowAgain();
-							m_ScriptViewerStandalone->SetFile( it->path().string() );
-						}
-
-						DrawAssetText( it->path().filename().string().c_str() );
-
-						ImGui::ManualWrapEnd( imageSize );
-					}
-
-					if( it->path().extension().string() == ".obj" )
-					{
-						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
-						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::OBJ );
-
-						ImVec2 imageSize( 64, 64 );
-
-						ImGui::ManualWrapBegin( imageSize );
-						if( ImGui::Button( it->path().filename().string().c_str() ) )
-						{
-
-						}
-
-						DrawAssetText( it->path().filename().string().c_str() );
-
-						ImGui::ManualWrapEnd( imageSize );
-					}
-
-					if( it->path().extension().string() == ".fbx" )
-					{
-						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
-						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::FBX );
-
-						ImVec2 imageSize( 64, 64 );
-
-						ImGui::ManualWrapBegin( imageSize );
-						if( ImGui::Button( it->path().filename().string().c_str() ) )
-						{
-
-						}
-
-						DrawAssetText( it->path().filename().string().c_str() );
-
-						ImGui::ManualWrapEnd( imageSize );
-
-					}
-
-					if( it->path().extension().string() == ".txt" )
-					{
-						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
-						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::TEXT );
-
-						ImVec2 imageSize( 64, 64 );
-
-						ImGui::ManualWrapBegin( imageSize );
-						if( ImGui::ImageButton( ( ImTextureID )m_TextFile->GetRendererID(), imageSize ) )
-						{
-						}
-
-						DrawAssetText( it->path().filename().string().c_str() );
-
-						ImGui::ManualWrapEnd( imageSize );
-
-					}
-
-					if( it->path().extension().string() == ".glsl" )
-					{
-						std::string path =  m_FolderPath + "\\" + it->path().filename().string();
-
-						MakeFileFrom<File>( it->path().filename().string(), path, FileExtensionType::SHADER );
-
-						ImVec2 imageSize( 64, 64 );
-
-						ImGui::ManualWrapBegin( imageSize );
-						if( ImGui::Button( it->path().filename().string().c_str() ) )
-						{
-
-						}
-
-						DrawAssetText( it->path().filename().string().c_str() );
-
-						ImGui::ManualWrapEnd( imageSize );
-					}
-
+					ImGui::NextColumn();
 				}
 			}
 
-			/*
-			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
+			for ( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
 			{
-				if( it->path().has_extension() )
+				const auto& path = it->path();
+				auto relativePath = fs::relative( path, m_FolderPath );
+				std::string filenameString = relativePath.filename().string();
+
+				ImGui::ImageButton( ( ImTextureID )m_FileTexture->GetRendererID(), { thumbnailSize, thumbnailSize } );
+
+				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 				{
-					if( it->path().extension().string() == ".sc" )
-					{
-						ImVec2 imageSize( 64, 64 );
-						ImGui::ManualWrapBegin( imageSize );
-						ImGui::Text( it->path().filename().string().c_str() );
-						ImGui::ManualWrapEnd( imageSize );
-					}
 				}
+				ImGui::TextWrapped( filenameString.c_str() );
+
+				ImGui::NextColumn();
 			}
-			*/
+
+			ImGui::Columns( 1 );
+
+			ImGui::SliderFloat( "Thumbnail Size", &thumbnailSize, 16, 512 );
+			ImGui::SliderFloat( "Padding", &padding, 16, 512 );
 
 			ImGui::EndChild();
 
@@ -1196,12 +1012,6 @@ namespace Saturn {
 			ImGui::Separator();
 		}
 		ImGui::End();
-
-		if( ImGui::Begin( "AssetDebuger" ) )
-		{
-			ImGui::Text( "File Collection Size: %i", FileCollection::GetCollectionSize() );
-		}
-		ImGui::End();
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -1256,21 +1066,34 @@ namespace Saturn {
 		{
 			if( ImGui::BeginMenu( "File" ) )
 			{
-				if( ImGui::MenuItem( "New", "Shift+N" ) )
+				if( ImGui::MenuItem( "New", "Ctrl+N" ) )
 					NewScene();
 
-				if( ImGui::MenuItem( "Open...", "Shift+O" ) )
+				if( ImGui::MenuItem( "Open...", "Ctrl+O" ) )
 					OpenScene();
 
-				if( ImGui::MenuItem( "Save As...", "Shift+S" ) )
+				if( ImGui::MenuItem( "Save As...", "Ctrl+S" ) )
 					SaveSceneAs();
+				ImGui::EndMenu();
+
+			}
+
+			if( ImGui::BeginMenu( "Settings" ) )
+			{
+				if( ImGui::MenuItem( "VSync" ) ) 
+				{
+					auto& app = Application::Get();
+
+					app.GetWindow().SetVSync( !app.GetWindow().IsVSync() );
+				}
+
 				ImGui::EndMenu();
 
 			}
 
 			if( ImGui::BeginMenu("...") )
 			{
-				if( ImGui::MenuItem( "Restart", "Ctrl+O+P" ) )
+				if( ImGui::MenuItem( "Restart" ) )
 				{
 					openModal = true;
 				}
@@ -1296,15 +1119,16 @@ namespace Saturn {
 		{
 			ImGui::SetWindowSize( ImVec2( 1600, 720 ) );
 
-			ImGui::TextWrapped( "Warning!\n Restarting the engine will not restart everything it will still keep most things the same, a good example is the script engine, the engine will not restart the script engine, instead it will only clear the entities and reset the scene!" );
+			ImGui::TextWrapped( "Warning!\nRestarting the engine will not restart everything it will still keep most things the same, a good example is the script engine, the engine will not restart the script engine, instead it will only clear the entities and reset the scene!" );
 
 			ImGui::TextWrapped( "Are you sure you want to restart?" );
-
-			ImGui::TextColored( ImVec4( 1, 0, 0, 1 ), "Any un-saved work will be lost" );
-
+ 
 			if( ImGui::Button( "Yes" ) )
 			{
 				openModal = false;
+
+				SaveSceneAs(); // Should save the scene
+
 				Application::Get().Close();
 			}
 

@@ -11,7 +11,7 @@ Entities:
       Tag: Sky Light
     TransformComponent:
       Position: [0, 0, 0]
-      Rotation: [0, 0, 0, 1]
+      Rotation: [0, 0, 0, 0]
       Scale: [1, 1, 1]
     SkyLightComponent:
       Environment File path: assets\env\pink_sunrise_4k.hdr
@@ -38,8 +38,8 @@ Entities:
       Tag: Sphere
     TransformComponent:
       Position: [0, 15.9208851, 0]
-      Rotation: [0, 0, 0, 0]
-      Scale: [1, 1, 1]
+      Rotation: [0, 0, 0, 1]
+      Scale: [5.00999928, 5.00999928, 5.00999928]
     MeshComponent:
       AssetPath: assets\meshes\Sphere1m.fbx
     PhysXRigidbodyComponent:

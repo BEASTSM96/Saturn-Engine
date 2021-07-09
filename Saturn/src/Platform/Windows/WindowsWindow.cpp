@@ -199,6 +199,8 @@ namespace Saturn {
 		else
 			glfwSwapInterval( 0 );
 
+		SAT_CORE_INFO( "VSync is now {0}", enabled );
+
 		m_Data.VSync = enabled;
 	}
 
