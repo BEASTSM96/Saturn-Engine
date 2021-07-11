@@ -43,9 +43,14 @@ public:
 		//m_Window->SetWindowImage( "assets/.github/i/sat/SaturnLogov1.png" );
 	}
 
+	void OnShutdown( void ) override
+	{
+		//delete m_EditorLayer; m_EditorLayer = nullptr;
+	}
+
+public:
 	Saturn::EditorLayer& GetEditorLayer() { return *m_EditorLayer; }
 	const Saturn::EditorLayer& GetEditorLayer() const { return *m_EditorLayer; }
-
 private:
 	Saturn::EditorLayer* m_EditorLayer;
 };

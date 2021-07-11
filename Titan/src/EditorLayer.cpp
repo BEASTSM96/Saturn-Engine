@@ -80,6 +80,8 @@ namespace Saturn {
 
 	EditorLayer::EditorLayer() : Layer( "EditorLayer" ), m_EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) )
 	{
+		SAT_CORE_ASSERT( !s_Instance, "Editor Layer already exists!" );
+
 		s_Instance = this;
 
 		SAT_PROFILE_FUNCTION();
@@ -97,6 +99,7 @@ namespace Saturn {
 		m_UnkownFile          = nullptr;
 		m_TextFile            = nullptr;
 		m_SceneHierarchyPanel = nullptr;
+		s_Instance            = nullptr;
 	}
 
 	void EditorLayer::OnAttach()
@@ -194,7 +197,7 @@ namespace Saturn {
 			serialiser.Deserialise( "assets/untitled.sc" );
 			m_CurrentSceneFilepath = "assets/untitled.sc";
 		}
-		
+
 		m_EditorScene = newScene;
 
 		if( FileSystem::DoesFileExist( "", "version-control.vcinfo" ) )
@@ -229,40 +232,16 @@ namespace Saturn {
 	void EditorLayer::OnDetach()
 	{
 		SAT_PROFILE_FUNCTION();
-
-		m_AssetPanel->OnDetach();
-		m_TextureViewerPanel->OnDetach();
-		m_ScriptViewerStandalone->OnDetach();
 	}
 
 	void EditorLayer::Begin()
 	{
 		SAT_PROFILE_FUNCTION();
-
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
 	}
 
 	void EditorLayer::End()
 	{
 		SAT_PROFILE_FUNCTION();
-
-		ImGuiIO& io = ImGui::GetIO();
-		Application& app = Application::Get();
-		io.DisplaySize = ImVec2( ( float )app.GetWindow().GetWidth(), ( float )app.GetWindow().GetHeight() );
-
-		// Rendering
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
-
-		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent( backup_current_context );
-		}
 	}
 
 	bool EditorLayer::Property( const std::string& name, bool& value )
@@ -518,7 +497,7 @@ namespace Saturn {
 					if( m_SelectionContext.size() )
 						m_EditorScene->DuplicateEntity( m_SceneHierarchyPanel->GetSelectionContext() );
 					break;
-				case Key::O: 
+				case Key::O:
 				{
 					if( Input::IsKeyPressed( Key::P ) )
 						Application::Get().Close();
@@ -600,7 +579,7 @@ namespace Saturn {
 						}
 					}
 				}
-				std::sort( m_SelectionContext.begin(), m_SelectionContext.end(), []( auto& a, auto& b ) { return a.Distance < b.Distance; } );
+				std::sort( m_SelectionContext.begin(), m_SelectionContext.end(), [] ( auto& a, auto& b ) { return a.Distance < b.Distance; } );
 				if( m_SelectionContext.size() )
 					OnSelected( m_SelectionContext[ 0 ] );
 				//m_SelectionContext.clear();
@@ -633,46 +612,6 @@ namespace Saturn {
 	{
 		static bool p_open = true;
 		ImGuiConsole::OnImGuiRender( &p_open );
-	}
-
-	static void DrawAssetText( const char* text )
-	{
-		ImVec2 rectMin = ImGui::GetItemRectMin();
-		ImVec2 rectSize = ImGui::GetItemRectSize();
-		ImVec2 textSize = ImGui::CalcTextSize( text );
-
-		static ImVec2 padding( 5, 5 );
-		static int marginTop = 15;
-
-		ImDrawList& windowDrawList = *ImGui::GetWindowDrawList();
-		ImGuiStyle& style = ImGui::GetStyle();
-
-		if( textSize.x + padding.x * 2 <= rectSize.x )
-		{
-			float rectMin_x = rectMin.x - padding.x + ( rectSize.x - textSize.x ) / 2;
-			float rectMin_y = rectMin.y + rectSize.y + marginTop;
-
-			float rectMax_x = rectMin_x + textSize.x + padding.x * 2;
-			float rectMax_y = rectMin_y + textSize.y + padding.y * 2;
-
-			windowDrawList.AddRectFilled( { rectMin_x, rectMin_y }, { rectMax_x, rectMax_y }, ImColor( ImVec4( 0.18f, 0.18f, 0.18f, 1.0f ) ), 0 );
-
-			windowDrawList.AddText( { rectMin_x + padding.x, rectMin_y + padding.y }, ImColor( 1.0f, 1.0f, 1.0f ), text );
-		}
-		else
-		{
-			float rectMin_y = rectMin.y + rectSize.y + marginTop;
-
-			float rectMax_x = rectMin.x + rectSize.x;
-			float rectMax_y = rectMin_y + textSize.y + padding.y * 2;
-
-			windowDrawList.AddRectFilled( { rectMin.x, rectMin_y }, { rectMax_x, rectMax_y }, ImColor( ImVec4( 0.18f, 0.18f, 0.18f, 1.0f ) ), 0 );
-
-			rectMax_x -= padding.x;
-			rectMax_y -= padding.y;
-
-			ImGui::RenderTextEllipsis( &windowDrawList, { rectMin.x + padding.x, rectMin_y + padding.y }, { rectMax_x, rectMax_y }, rectMax_x, rectMax_x + 5, text, nullptr, &textSize );
-		}
 	}
 
 	void EditorLayer::UpdateAssetStatus()
@@ -779,7 +718,7 @@ namespace Saturn {
 			ImGui::BeginChild( "##asset-panel-main" );
 
 			static std::string folderpath = ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
-			
+
 			// i.e. if the folder is not been set the projects one
 			if( m_FolderPath == "assets" )
 				m_FolderPath = folderpath;
@@ -882,7 +821,7 @@ namespace Saturn {
 				auto relativePath = fs::relative( path, m_FolderPath );
 				std::string filenameString = relativePath.filename().string();
 
-				if( it->is_directory() ) 
+				if( it->is_directory() )
 				{
 					ImGui::ImageButton( ( ImTextureID )m_FolderTexture->GetRendererID(), { thumbnailSize, thumbnailSize } );
 
@@ -897,13 +836,13 @@ namespace Saturn {
 				}
 			}
 
-			for ( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
+			for( fs::directory_iterator it( m_FolderPath ); it != fs::directory_iterator(); ++it )
 			{
 				const auto& path = it->path();
 				auto relativePath = fs::relative( path, m_FolderPath );
 				std::string filenameString = relativePath.filename().string();
 
-				if (!it->is_directory())
+				if( !it->is_directory() )
 				{
 					ImGui::ImageButton( ( ImTextureID )m_FileTexture->GetRendererID(), { thumbnailSize, thumbnailSize } );
 
@@ -1083,7 +1022,7 @@ namespace Saturn {
 
 			if( ImGui::BeginMenu( "Settings" ) )
 			{
-				if( ImGui::MenuItem( "VSync" ) ) 
+				if( ImGui::MenuItem( "VSync" ) )
 				{
 					auto& app = Application::Get();
 
@@ -1094,7 +1033,7 @@ namespace Saturn {
 
 			}
 
-			if( ImGui::BeginMenu("...") )
+			if( ImGui::BeginMenu( "..." ) )
 			{
 				if( ImGui::MenuItem( "Restart" ) )
 				{
@@ -1125,7 +1064,7 @@ namespace Saturn {
 			ImGui::TextWrapped( "Warning!\nRestarting the engine will not restart everything it will still keep most things the same, a good example is the script engine, the engine will not restart the script engine, instead it will only clear the entities and reset the scene!" );
 
 			ImGui::TextWrapped( "Are you sure you want to restart?" );
- 
+
 			if( ImGui::Button( "Yes" ) )
 			{
 				openModal = false;
