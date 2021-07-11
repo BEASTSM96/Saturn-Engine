@@ -38,7 +38,7 @@ Entities:
       Tag: Sphere
     TransformComponent:
       Position: [0, 15.9208851, 0]
-      Rotation: [0, 0, 0, 1]
+      Rotation: [0, 0, 0, 0]
       Scale: [5.00999928, 5.00999928, 5.00999928]
     MeshComponent:
       AssetPath: assets\meshes\Sphere1m.fbx
