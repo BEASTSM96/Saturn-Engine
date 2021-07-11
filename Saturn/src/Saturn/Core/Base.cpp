@@ -43,8 +43,8 @@ namespace Saturn {
 	{
 		Saturn::Log::Init();
 
-		SAT_CORE_TRACE("View License at https://github.com/BEASTSM96/Saturn-Engine/blob/master/LICENSE");
-		SAT_CORE_TRACE("API Docs (https://beastsm96.github.io/Projects/Saturn-Engine/api/v0.a01)");
+		SAT_CORE_TRACE( "View License at https://github.com/BEASTSM96/Saturn-Engine/blob/master/LICENSE" );
+		SAT_CORE_TRACE( "API Docs (https://beastsm96.github.io/Projects/Saturn-Engine/api/v0.a01)" );
 	}
 
 	void EndCore( void )
@@ -52,6 +52,14 @@ namespace Saturn {
 		SAT_CORE_WARN( "Shuting Down!" );
 		Saturn::Log::Clear();
 	}
+
+	bool ExecuteCommand( const char* cmd )
+	{
+		int res = system( cmd );
+		SAT_CORE_WARN( "Shell command : '{0}' has been called at { 1 }", cmd, __FILE__ );
+		return ( bool )res;
+	}
+
 
 	bool CheckRestart()
 	{

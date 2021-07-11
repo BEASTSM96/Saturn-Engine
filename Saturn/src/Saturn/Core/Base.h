@@ -43,6 +43,9 @@ namespace Saturn {
 	void SetRestartOnAppClose( bool restart );
 	bool RestartInProg();
 	void StartRestart();
+
+	bool ExecuteCommand( const char* cmd );
+
 }
 
 #if (__cplusplus >= 201402L)
@@ -116,7 +119,6 @@ namespace Saturn {
 	{
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
-
 }
 
 #endif
