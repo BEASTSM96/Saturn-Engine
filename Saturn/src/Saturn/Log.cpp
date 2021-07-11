@@ -49,10 +49,10 @@ namespace Saturn {
 		logSinks[ 1 ]->set_pattern( "[%T] [%l] %n: %v" );
 		logSinks[ 2 ]->set_pattern( "%^[%T] [%l] %n: %v%$" );
 
-		s_CoreLogger = std::make_shared< spdlog::logger >( "SATURN", begin( logSinks ), end( logSinks ) );
+		s_CoreLogger = std::make_shared< spdlog::logger >( "Saturn", begin( logSinks ), end( logSinks ) );
 		spdlog::register_logger( s_CoreLogger );
 
-		s_ClientLogger = std::make_shared< spdlog::logger >( "APP", begin( logSinks ), end( logSinks ) );
+		s_ClientLogger = std::make_shared< spdlog::logger >( "App", begin( logSinks ), end( logSinks ) );
 		spdlog::register_logger( s_ClientLogger );
 
 		// configure the loggers

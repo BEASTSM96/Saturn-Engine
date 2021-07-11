@@ -116,6 +116,8 @@ namespace Saturn {
 			m_Window = nullptr;
 
 			Renderer::Shutdown();
+
+			ExecuteCommand( "cls" );
 		}
 		else
 		{
@@ -159,8 +161,9 @@ namespace Saturn {
 		ImGui::Text( "Frame Time: %.2fms\n", m_TimeStep.GetMilliseconds() );
 		ImGui::End();
 
-		for( Layer* layer : m_LayerStack )
-			layer->OnImGuiRender();
+		if( m_Running )
+			for( Layer* layer : m_LayerStack )
+				layer->OnImGuiRender();
 
 		m_ImGuiLayer->End();
 	}
