@@ -120,7 +120,7 @@ namespace Saturn {
 				{
 					glCreateTextures( GL_TEXTURE_2D, 1, &instance->m_RendererID );
 					int levels = Texture::CalculateMipMapCount( instance->m_Width, instance->m_Height );
-					glTextureStorage2D( instance->m_RendererID, levels, GL_SRGB8, instance->m_Width, instance->m_Height );
+					glTextureStorage2D( instance->m_RendererID, levels, GL_SRGB8_ALPHA8, instance->m_Width, instance->m_Height );
 					glTextureParameteri( instance->m_RendererID, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR );
 					glTextureParameteri( instance->m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 

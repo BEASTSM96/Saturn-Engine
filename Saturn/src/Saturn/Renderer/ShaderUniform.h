@@ -43,18 +43,18 @@ namespace Saturn {
 
 	class ShaderUniformDeclaration
 	{
-	public:
-		virtual const std::string& GetName( void )  const = 0;
-		virtual uint32_t GetSize( void ) const = 0;
-		virtual uint32_t GetCount( void )  const = 0;
-		virtual uint32_t GetOffset( void )  const = 0;
-		virtual ShaderDomain GetDomain( void )  const = 0;
-	protected:
-		virtual void SetOffset( uint32_t offset ) = 0;
 	private:
 		friend class Shader;
 		friend class OpenGLShader;
 		friend class ShaderStruct;
+	public:
+		virtual const std::string& GetName() const = 0;
+		virtual uint32_t GetSize() const = 0;
+		virtual uint32_t GetCount() const = 0;
+		virtual uint32_t GetOffset() const = 0;
+		virtual ShaderDomain GetDomain() const = 0;
+	protected:
+		virtual void SetOffset( uint32_t offset ) = 0;
 	};
 
 	typedef std::vector<ShaderUniformDeclaration*> ShaderUniformList;
@@ -63,18 +63,19 @@ namespace Saturn {
 	{
 	public:
 		virtual const std::string& GetName() const = 0;
-		virtual uint32_t GetRegister( void )  const = 0;
-		virtual uint32_t GetSize( void )  const = 0;
-		virtual const ShaderUniformList& GetUniformDeclarations( void )  const = 0;
+		virtual uint32_t GetRegister() const = 0;
+		virtual uint32_t GetSize() const = 0;
+		virtual const ShaderUniformList& GetUniformDeclarations() const = 0;
 
 		virtual ShaderUniformDeclaration* FindUniform( const std::string& name ) = 0;
 	};
 
 	typedef std::vector<ShaderUniformBufferDeclaration*> ShaderUniformBufferList;
 
-
 	class ShaderStruct
 	{
+	private:
+		friend class Shader;
 	private:
 		std::string m_Name;
 		std::vector<ShaderUniformDeclaration*> m_Fields;
@@ -105,21 +106,17 @@ namespace Saturn {
 		inline uint32_t GetSize() const { return m_Size; }
 		inline uint32_t GetOffset() const { return m_Offset; }
 		inline const std::vector<ShaderUniformDeclaration*>& GetFields() const { return m_Fields; }
-	private:
-		friend class Shader;
 	};
-
 
 	typedef std::vector<ShaderStruct*> ShaderStructList;
 
 	class ShaderResourceDeclaration
 	{
 	public:
-		virtual const std::string& GetName( void )  const = 0;
-		virtual uint32_t GetRegister( void )  const = 0;
-		virtual uint32_t GetCount( void )  const = 0;
+		virtual const std::string& GetName() const = 0;
+		virtual uint32_t GetRegister() const = 0;
+		virtual uint32_t GetCount() const = 0;
 	};
 
 	typedef std::vector<ShaderResourceDeclaration*> ShaderResourceList;
-
 }

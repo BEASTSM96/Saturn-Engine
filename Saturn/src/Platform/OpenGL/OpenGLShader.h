@@ -39,13 +39,12 @@ namespace Saturn {
 	public:
 		OpenGLShader() = default;
 		OpenGLShader( const std::string& filepath );
-		~OpenGLShader();
 		static Ref<OpenGLShader> CreateFromString( const std::string& source );
 
-		virtual void Reload( void ) override;
+		virtual void Reload() override;
 		virtual void AddShaderReloadedCallback( const ShaderReloadedCallback& callback ) override;
 
-		virtual void Bind( void ) override;
+		virtual void Bind() override;
 		virtual RendererID GetRendererID() const override { return m_RendererID; }
 
 		virtual void UploadUniformBuffer( const UniformBufferBase& uniformBuffer ) override;
@@ -53,8 +52,10 @@ namespace Saturn {
 		virtual void SetVSMaterialUniformBuffer( Buffer buffer ) override;
 		virtual void SetPSMaterialUniformBuffer( Buffer buffer ) override;
 
-		virtual void SetFloat( const std::string& name, float value ) override;
 		virtual void SetInt( const std::string& name, int value ) override;
+		virtual void SetBool( const std::string& name, bool value ) override;
+		virtual void SetFloat( const std::string& name, float value ) override;
+		virtual void SetFloat2( const std::string& name, const glm::vec2& value ) override;
 		virtual void SetFloat3( const std::string& name, const glm::vec3& value ) override;
 		virtual void SetMat4( const std::string& name, const glm::mat4& value ) override;
 		virtual void SetMat4FromRenderThread( const std::string& name, const glm::mat4& value, bool bind = true ) override;
@@ -67,16 +68,16 @@ namespace Saturn {
 
 		std::string ReadShaderFromFile( const std::string& filepath ) const;
 		std::unordered_map<GLenum, std::string> PreProcess( const std::string& source );
-		void Parse( void );
+		void Parse();
 		void ParseUniform( const std::string& statement, ShaderDomain domain );
 		void ParseUniformStruct( const std::string& block, ShaderDomain domain );
 		ShaderStruct* FindStruct( const std::string& name );
 
 		int32_t GetUniformLocation( const std::string& name ) const;
 
-		void ResolveUniforms( void );
-		void ValidateUniforms( void );
-		void CompileAndUploadShader( void );
+		void ResolveUniforms();
+		void ValidateUniforms();
+		void CompileAndUploadShader();
 		static GLenum ShaderTypeFromString( const std::string& type );
 
 		void ResolveAndSetUniforms( const Ref<OpenGLShaderUniformBufferDeclaration>& decl, Buffer buffer );

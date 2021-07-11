@@ -25,6 +25,7 @@
 * SOFTWARE.                                                                                 *
 *********************************************************************************************
 */
+
 #include "sppch.h"
 #include "OpenGLShader.h"
 
@@ -33,27 +34,17 @@
 #include <limits>
 
 #include <glm/gtc/type_ptr.hpp>
+
 #include "Saturn/Renderer/Renderer.h"
-
-#ifdef USE_SPIRV_CROSS_CPP_API
-#include <Saturn/vendor/SPIRV_Cross/spirv_glsl.hpp>
-#include <Saturn/vendor/SPIRV_Cross/spirv.h>
-#include <Saturn/vendor/SPIRV_Cross/spirv_common.hpp>
-#include <Saturn/vendor/SPIRV_Cross/spirv_cross.hpp>
-#include <vector>
-#include <utility>
-#endif // USE_SPIRV_CROSS_CPP_API
-
 
 namespace Saturn {
 
 #define UNIFORM_LOGGING 0
 #if UNIFORM_LOGGING
-#define SAT_LOG_UNIFORM(...) SAT_CORE_WARN(__VA_ARGS__)
+#define SAT_CORE_INFO(...) SAT_CORE_WARN(__VA_ARGS__)
 #else
-#define SAT_LOG_UNIFORM
+#define SAT_CORE_INFO
 #endif
-
 
 	OpenGLShader::OpenGLShader( const std::string& filepath )
 		: m_AssetPath( filepath )
@@ -64,12 +55,6 @@ namespace Saturn {
 		m_Name = found != std::string::npos ? m_Name.substr( 0, found ) : m_Name;
 
 		Reload();
-	}
-
-	OpenGLShader::~OpenGLShader()
-	{
-		m_RendererID = 0;
-		delete this;
 	}
 
 	Ref<OpenGLShader> OpenGLShader::CreateFromString( const std::string& source )
@@ -91,28 +76,26 @@ namespace Saturn {
 		if( !m_IsCompute )
 			Parse();
 
-		SAT_CORE_INFO( "m_RendererID {0}, Name {1}", m_RendererID, m_Name );
+		Renderer::Submit( [=] ()
+		{
+			if( m_RendererID )
+				glDeleteProgram( m_RendererID );
 
-		Renderer::Submit( [=]()
+			CompileAndUploadShader();
+			if( !m_IsCompute )
 			{
-				if( m_RendererID )
-					glDeleteProgram( m_RendererID );
+				ResolveUniforms();
+				ValidateUniforms();
+			}
 
-				CompileAndUploadShader();
-				if( !m_IsCompute )
-				{
-					ResolveUniforms();
-					ValidateUniforms();
-				}
+			if( m_Loaded )
+			{
+				for( auto& callback : m_ShaderReloadedCallbacks )
+					callback();
+			}
 
-				if( m_Loaded )
-				{
-					for( auto& callback : m_ShaderReloadedCallbacks )
-						callback();
-				}
-
-				m_Loaded = true;
-			} );
+			m_Loaded = true;
+		} );
 	}
 
 	void OpenGLShader::AddShaderReloadedCallback( const ShaderReloadedCallback& callback )
@@ -122,15 +105,9 @@ namespace Saturn {
 
 	void OpenGLShader::Bind()
 	{
-		if( m_RendererID == 25 && Saturn::RestartInProg() )
-		{
-			SAT_CORE_INFO( "Failed to bind shader : {0}", m_Name );
-			return;
-		}
-
-		Renderer::Submit( [=]()
-		{
-			 glUseProgram( m_RendererID );
+		Renderer::Submit( [=] ()
+ {
+	 glUseProgram( m_RendererID );
 		} );
 	}
 
@@ -235,7 +212,7 @@ namespace Saturn {
 
 	std::vector<std::string> Tokenize( const std::string& string )
 	{
-		return SplitString( string, " \t\n" );
+		return SplitString( string, " \t\n\r" );
 	}
 
 	std::vector<std::string> GetLines( const std::string& string )
@@ -308,6 +285,7 @@ namespace Saturn {
 
 	static bool IsTypeStringResource( const std::string& type )
 	{
+		if( type == "sampler1D" )		return true;
 		if( type == "sampler2D" )		return true;
 		if( type == "sampler2DMS" )		return true;
 		if( type == "samplerCube" )		return true;
@@ -555,11 +533,11 @@ namespace Saturn {
 			}
 			else if( resource->GetCount() > 1 )
 			{
-				resource->m_Register = 0;
+				resource->m_Register = sampler;
 				uint32_t count = resource->GetCount();
 				int* samplers = new int[ count ];
 				for( uint32_t s = 0; s < count; s++ )
-					samplers[ s ] = s;
+					samplers[ s ] = sampler++;
 				UploadUniformIntArray( resource->GetName(), samplers, count );
 				delete[] samplers;
 			}
@@ -619,7 +597,7 @@ namespace Saturn {
 				std::vector<GLchar> infoLog( maxLength );
 				glGetShaderInfoLog( shaderRendererID, maxLength, &maxLength, &infoLog[ 0 ] );
 
-				SAT_CORE_ERROR( "Shader compilation failed:\n{0}", &infoLog[ 0 ] );
+				SAT_CORE_ERROR( "Shader compilation failed ({0}):\n{1}", m_AssetPath, &infoLog[ 0 ] );
 
 				// We don't need the shader anymore.
 				glDeleteShader( shaderRendererID );
@@ -645,7 +623,7 @@ namespace Saturn {
 			// The maxLength includes the NULL character
 			std::vector<GLchar> infoLog( maxLength );
 			glGetProgramInfoLog( program, maxLength, &maxLength, &infoLog[ 0 ] );
-			SAT_CORE_ERROR( "Shader compilation failed:\n{0}", &infoLog[ 0 ] );
+			SAT_CORE_ERROR( "Shader linking failed ({0}):\n{1}", m_AssetPath, &infoLog[ 0 ] );
 
 			// We don't need the program anymore.
 			glDeleteProgram( program );
@@ -663,20 +641,20 @@ namespace Saturn {
 
 	void OpenGLShader::SetVSMaterialUniformBuffer( Buffer buffer )
 	{
-		Renderer::Submit( [this, buffer]()
+		Renderer::Submit( [this, buffer] ()
  {
 	 glUseProgram( m_RendererID );
 	 ResolveAndSetUniforms( m_VSMaterialUniformBuffer, buffer );
-			} );
+		} );
 	}
 
 	void OpenGLShader::SetPSMaterialUniformBuffer( Buffer buffer )
 	{
-		Renderer::Submit( [this, buffer]()
+		Renderer::Submit( [this, buffer] ()
  {
 	 glUseProgram( m_RendererID );
 	 ResolveAndSetUniforms( m_PSMaterialUniformBuffer, buffer );
-			} );
+		} );
 	}
 
 	void OpenGLShader::ResolveAndSetUniforms( const Ref<OpenGLShaderUniformBufferDeclaration>& decl, Buffer buffer )
@@ -702,6 +680,9 @@ namespace Saturn {
 		uint32_t offset = uniform->GetOffset();
 		switch( uniform->GetType() )
 		{
+			case OpenGLShaderUniformDeclaration::Type::BOOL:
+				UploadUniformFloat( uniform->GetLocation(), *( bool* )&buffer.Data[ offset ] );
+				break;
 			case OpenGLShaderUniformDeclaration::Type::FLOAT32:
 				UploadUniformFloat( uniform->GetLocation(), *( float* )&buffer.Data[ offset ] );
 				break;
@@ -709,19 +690,19 @@ namespace Saturn {
 				UploadUniformInt( uniform->GetLocation(), *( int32_t* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::VEC2:
-				UploadUniformFloat2( uniform->GetLocation(), *( glm::vec2* ) & buffer.Data[ offset ] );
+				UploadUniformFloat2( uniform->GetLocation(), *( glm::vec2* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::VEC3:
-				UploadUniformFloat3( uniform->GetLocation(), *( glm::vec3* ) & buffer.Data[ offset ] );
+				UploadUniformFloat3( uniform->GetLocation(), *( glm::vec3* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::VEC4:
-				UploadUniformFloat4( uniform->GetLocation(), *( glm::vec4* ) & buffer.Data[ offset ] );
+				UploadUniformFloat4( uniform->GetLocation(), *( glm::vec4* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::MAT3:
-				UploadUniformMat3( uniform->GetLocation(), *( glm::mat3* ) & buffer.Data[ offset ] );
+				UploadUniformMat3( uniform->GetLocation(), *( glm::mat3* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::MAT4:
-				UploadUniformMat4( uniform->GetLocation(), *( glm::mat4* ) & buffer.Data[ offset ] );
+				UploadUniformMat4( uniform->GetLocation(), *( glm::mat4* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::STRUCT:
 				UploadUniformStruct( uniform, buffer.Data, offset );
@@ -738,6 +719,9 @@ namespace Saturn {
 		uint32_t offset = uniform->GetOffset();
 		switch( uniform->GetType() )
 		{
+			case OpenGLShaderUniformDeclaration::Type::BOOL:
+				UploadUniformFloat( uniform->GetLocation(), *( bool* )&buffer.Data[ offset ] );
+				break;
 			case OpenGLShaderUniformDeclaration::Type::FLOAT32:
 				UploadUniformFloat( uniform->GetLocation(), *( float* )&buffer.Data[ offset ] );
 				break;
@@ -745,19 +729,19 @@ namespace Saturn {
 				UploadUniformInt( uniform->GetLocation(), *( int32_t* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::VEC2:
-				UploadUniformFloat2( uniform->GetLocation(), *( glm::vec2* ) & buffer.Data[ offset ] );
+				UploadUniformFloat2( uniform->GetLocation(), *( glm::vec2* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::VEC3:
-				UploadUniformFloat3( uniform->GetLocation(), *( glm::vec3* ) & buffer.Data[ offset ] );
+				UploadUniformFloat3( uniform->GetLocation(), *( glm::vec3* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::VEC4:
-				UploadUniformFloat4( uniform->GetLocation(), *( glm::vec4* ) & buffer.Data[ offset ] );
+				UploadUniformFloat4( uniform->GetLocation(), *( glm::vec4* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::MAT3:
-				UploadUniformMat3( uniform->GetLocation(), *( glm::mat3* ) & buffer.Data[ offset ] );
+				UploadUniformMat3( uniform->GetLocation(), *( glm::mat3* )&buffer.Data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::MAT4:
-				UploadUniformMat4Array( uniform->GetLocation(), *( glm::mat4* ) & buffer.Data[ offset ], uniform->GetCount() );
+				UploadUniformMat4Array( uniform->GetLocation(), *( glm::mat4* )&buffer.Data[ offset ], uniform->GetCount() );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::STRUCT:
 				UploadUniformStruct( uniform, buffer.Data, offset );
@@ -771,6 +755,9 @@ namespace Saturn {
 	{
 		switch( field.GetType() )
 		{
+			case OpenGLShaderUniformDeclaration::Type::BOOL:
+				UploadUniformFloat( field.GetLocation(), *( bool* )&data[ offset ] );
+				break;
 			case OpenGLShaderUniformDeclaration::Type::FLOAT32:
 				UploadUniformFloat( field.GetLocation(), *( float* )&data[ offset ] );
 				break;
@@ -778,19 +765,19 @@ namespace Saturn {
 				UploadUniformInt( field.GetLocation(), *( int32_t* )&data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::VEC2:
-				UploadUniformFloat2( field.GetLocation(), *( glm::vec2* ) & data[ offset ] );
+				UploadUniformFloat2( field.GetLocation(), *( glm::vec2* )&data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::VEC3:
-				UploadUniformFloat3( field.GetLocation(), *( glm::vec3* ) & data[ offset ] );
+				UploadUniformFloat3( field.GetLocation(), *( glm::vec3* )&data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::VEC4:
-				UploadUniformFloat4( field.GetLocation(), *( glm::vec4* ) & data[ offset ] );
+				UploadUniformFloat4( field.GetLocation(), *( glm::vec4* )&data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::MAT3:
-				UploadUniformMat3( field.GetLocation(), *( glm::mat3* ) & data[ offset ] );
+				UploadUniformMat3( field.GetLocation(), *( glm::mat3* )&data[ offset ] );
 				break;
 			case OpenGLShaderUniformDeclaration::Type::MAT4:
-				UploadUniformMat4( field.GetLocation(), *( glm::mat4* ) & data[ offset ] );
+				UploadUniformMat4( field.GetLocation(), *( glm::mat4* )&data[ offset ] );
 				break;
 			default:
 				SAT_CORE_ASSERT( false, "Unknown uniform type!" );
@@ -808,37 +795,37 @@ namespace Saturn {
 				{
 					const std::string& name = decl.Name;
 					float value = *( float* )( uniformBuffer.GetBuffer() + decl.Offset );
-					Renderer::Submit( [=]()
+					Renderer::Submit( [=] ()
  {
 	 UploadUniformFloat( name, value );
-						} );
+					} );
 				}
 				case UniformType::Float3:
 				{
 					const std::string& name = decl.Name;
 					glm::vec3& values = *( glm::vec3* )( uniformBuffer.GetBuffer() + decl.Offset );
-					Renderer::Submit( [=]()
+					Renderer::Submit( [=] ()
  {
 	 UploadUniformFloat3( name, values );
-						} );
+					} );
 				}
 				case UniformType::Float4:
 				{
 					const std::string& name = decl.Name;
 					glm::vec4& values = *( glm::vec4* )( uniformBuffer.GetBuffer() + decl.Offset );
-					Renderer::Submit( [=]()
+					Renderer::Submit( [=] ()
  {
 	 UploadUniformFloat4( name, values );
-						} );
+					} );
 				}
 				case UniformType::Matrix4x4:
 				{
 					const std::string& name = decl.Name;
 					glm::mat4& values = *( glm::mat4* )( uniformBuffer.GetBuffer() + decl.Offset );
-					Renderer::Submit( [=]()
+					Renderer::Submit( [=] ()
  {
 	 UploadUniformMat4( name, values );
-						} );
+					} );
 				}
 			}
 		}
@@ -846,34 +833,50 @@ namespace Saturn {
 
 	void OpenGLShader::SetFloat( const std::string& name, float value )
 	{
-		Renderer::Submit( [=]()
+		Renderer::Submit( [=] ()
  {
 	 UploadUniformFloat( name, value );
-			} );
+		} );
 	}
 
 	void OpenGLShader::SetInt( const std::string& name, int value )
 	{
-		Renderer::Submit( [=]()
+		Renderer::Submit( [=] ()
  {
 	 UploadUniformInt( name, value );
-			} );
+		} );
+	}
+
+	void OpenGLShader::SetBool( const std::string& name, bool value )
+	{
+		Renderer::Submit( [=] ()
+ {
+	 UploadUniformInt( name, value );
+		} );
+	}
+
+	void OpenGLShader::SetFloat2( const std::string& name, const glm::vec2& value )
+	{
+		Renderer::Submit( [=] ()
+ {
+	 UploadUniformFloat2( name, value );
+		} );
 	}
 
 	void OpenGLShader::SetFloat3( const std::string& name, const glm::vec3& value )
 	{
-		Renderer::Submit( [=]()
+		Renderer::Submit( [=] ()
  {
 	 UploadUniformFloat3( name, value );
-			} );
+		} );
 	}
 
 	void OpenGLShader::SetMat4( const std::string& name, const glm::mat4& value )
 	{
-		Renderer::Submit( [=]()
+		Renderer::Submit( [=] ()
  {
 	 UploadUniformMat4( name, value );
-			} );
+		} );
 	}
 
 	void OpenGLShader::SetMat4FromRenderThread( const std::string& name, const glm::mat4& value, bool bind )
@@ -892,10 +895,10 @@ namespace Saturn {
 
 	void OpenGLShader::SetIntArray( const std::string& name, int* values, uint32_t size )
 	{
-		Renderer::Submit( [=]()
+		Renderer::Submit( [=] ()
  {
 	 UploadUniformIntArray( name, values, size );
-			} );
+		} );
 	}
 
 	void OpenGLShader::UploadUniformInt( uint32_t location, int32_t value )
@@ -974,8 +977,19 @@ namespace Saturn {
 		if( location != -1 )
 			glUniform1f( location, value );
 		else
-			SAT_LOG_UNIFORM( "Uniform '{0}' not found!", name );
+			SAT_CORE_INFO( "Uniform '{0}' not found!", name );
 	}
+
+	void OpenGLShader::UploadUniformFloat2( const std::string& name, const glm::vec2& values )
+	{
+		glUseProgram( m_RendererID );
+		auto location = glGetUniformLocation( m_RendererID, name.c_str() );
+		if( location != -1 )
+			glUniform2f( location, values.x, values.y );
+		else
+			SAT_CORE_INFO( "Uniform '{0}' not found!", name );
+	}
+
 
 	void OpenGLShader::UploadUniformFloat3( const std::string& name, const glm::vec3& values )
 	{
@@ -984,7 +998,7 @@ namespace Saturn {
 		if( location != -1 )
 			glUniform3f( location, values.x, values.y, values.z );
 		else
-			SAT_LOG_UNIFORM( "Uniform '{0}' not found!", name );
+			SAT_CORE_INFO( "Uniform '{0}' not found!", name );
 	}
 
 	void OpenGLShader::UploadUniformFloat4( const std::string& name, const glm::vec4& values )
@@ -994,7 +1008,7 @@ namespace Saturn {
 		if( location != -1 )
 			glUniform4f( location, values.x, values.y, values.z, values.w );
 		else
-			SAT_LOG_UNIFORM( "Uniform '{0}' not found!", name );
+			SAT_CORE_INFO( "Uniform '{0}' not found!", name );
 	}
 
 	void OpenGLShader::UploadUniformMat4( const std::string& name, const glm::mat4& values )
@@ -1004,7 +1018,7 @@ namespace Saturn {
 		if( location != -1 )
 			glUniformMatrix4fv( location, 1, GL_FALSE, ( const float* )&values );
 		else
-			SAT_LOG_UNIFORM( "Uniform '{0}' not found!", name );
+			SAT_CORE_INFO( "Uniform '{0}' not found!", name );
 	}
 
 }
