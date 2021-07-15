@@ -476,7 +476,6 @@ namespace Saturn {
 	{
 		SAT_PROFILE_FUNCTION();
 
-		NewScene->m_data = m_data;
 		NewScene->m_DebugName = m_DebugName;
 		NewScene->m_EntityIDMap = m_EntityIDMap;
 		NewScene->m_EntityMonoIDMap = m_EntityMonoIDMap;

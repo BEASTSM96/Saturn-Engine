@@ -39,8 +39,6 @@
 
 #include "Renderer2D.h"
 
-#include "ShadowMapFBO.h"
-
 namespace Saturn {
 	struct SceneRendererData
 	{
@@ -77,9 +75,6 @@ namespace Saturn {
 		Ref<MaterialInstance> GridMaterial;
 		Ref<MaterialInstance> OutlineMaterial, OutlineAnimantedMesh;
 		Ref<MaterialInstance> ColliderMaterial;
-
-		// Shadows
-		Ref<ShadowMapFBO> ShadowMapFBO;
 
 		SceneRendererOptions Options;
 	};
@@ -125,8 +120,6 @@ namespace Saturn {
 		auto colliderShader = Shader::Create( "assets/shaders/Collider.glsl" );
 		s_Data.ColliderMaterial = MaterialInstance::Create( Material::Create( colliderShader ) );
 		s_Data.ColliderMaterial->SetFlag( MaterialFlag::DepthTest, false );
-
-		s_Data.ShadowMapFBO = ShadowMapFBO::Create( 1024, 1024 );
 	}
 
 	void SceneRenderer::Shutdown( void )
@@ -146,7 +139,6 @@ namespace Saturn {
 	{
 		s_Data.GeoPass->GetSpecification().TargetFramebuffer->Resize( width, height );
 		s_Data.CompositePass->GetSpecification().TargetFramebuffer->Resize( width, height );
-		s_Data.ShadowMapFBO->Resize( width, height );
 	}
 
 	void SceneRenderer::BeginScene( Ref<Scene> scene, const SceneRendererCamera& camera )
@@ -170,63 +162,8 @@ namespace Saturn {
 		FlushDrawList();
 	}
 
-	void SceneRenderer::ShadowMapPass( Ref<Scene> scene, Ref<Mesh> mesh, const glm::mat4& transform, bool selected )
+	void SceneRenderer::ShadowMapPass()
 	{
-		// Render depth of scene to texture (from light's perspective)
-
-		glm::mat4 lightProjection, lightView;
-		glm::mat4 lightSpaceMatrix;
-
-		auto& lightEntity = scene->GetMainLightEntity();
-
-		if( !lightEntity )
-			return;
-
-		//glm::vec3 lightPos = lightEntity.GetComponent<TransformComponent>().Position;
-
-		glm::vec3 lightPos( -2.0f, 4.0f, -1.0f );
-
-		float near_plane = 1.0f, far_plane = 7.5f;
-		lightProjection = glm::ortho( -10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane );
-		lightView = glm::lookAt( lightPos, glm::vec3( 0.0f ), glm::vec3( 0.0, 1.0, 0.0 ) );
-		lightSpaceMatrix = lightProjection * lightView;
-
-		// Render Scene from light pov
-
-		static bool create = false;
-		static Ref<MaterialInstance> shadowMap;
-	
-		if( !create )
-		{
-			auto shadowDepthShader = Shader::Create( "assets/shaders/Shadow-Depth.glsl" );
-			shadowMap = MaterialInstance::Create( Material::Create( shadowDepthShader ) );
-			create = true;
-		}
-
-		auto viewProjection = s_Data.SceneData.SceneCamera.Camera.GetProjectionMatrix() * s_Data.SceneData.SceneCamera.ViewMatrix;
-
-		shadowMap->Bind();
-		shadowMap->Set( "u_LightSpaceMatrix", lightSpaceMatrix );
-		shadowMap->Set( "u_ViewProjectionMatrix", viewProjection );
-
-		Renderer::Submit([] 
-		{
-			glViewport(0, 0, s_Data.ShadowMapFBO->GetWidth(), s_Data.ShadowMapFBO->GetHeight());
-		});
-		s_Data.ShadowMapFBO->Bind();
-		if( selected )
-			SubmitSelectedMesh( mesh, transform );
-		else
-			SubmitMesh( mesh, transform, shadowMap );
-		s_Data.ShadowMapFBO->Unbind();
-
-		//Render Scene
-
-		s_Data.SceneData.LightPos = lightPos;
-		s_Data.SceneData.LightSpace = lightSpaceMatrix;
-
-		//Renderer::BeginRenderPass( s_Data.CompositePass );
-		//Renderer::EndRenderPass();
 	}
 
 	void SceneRenderer::RenderShadows( Scene* scene, Entity e, const SceneRendererCamera& camera )
@@ -282,11 +219,11 @@ namespace Saturn {
 
 		equirectangularConversionShader->Bind();
 		envEquirect->Bind();
-		Renderer::Submit( [envUnfiltered, cubemapSize, envEquirect]()
+		Renderer::Submit( [envUnfiltered, cubemapSize, envEquirect] ()
 		{
-				glBindImageTexture( 0, envUnfiltered->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F );
-				glDispatchCompute( cubemapSize / 32, cubemapSize / 32, 6 );
-				glGenerateTextureMipmap( envUnfiltered->GetRendererID() );
+			glBindImageTexture( 0, envUnfiltered->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F );
+			glDispatchCompute( cubemapSize / 32, cubemapSize / 32, 6 );
+			glGenerateTextureMipmap( envUnfiltered->GetRendererID() );
 		} );
 
 
@@ -295,17 +232,17 @@ namespace Saturn {
 
 		Ref<TextureCube> envFiltered = TextureCube::Create( TextureFormat::Float16, cubemapSize, cubemapSize );
 
-		Renderer::Submit( [envUnfiltered, envFiltered]()
+		Renderer::Submit( [envUnfiltered, envFiltered] ()
 		{
-				glCopyImageSubData( envUnfiltered->GetRendererID(), GL_TEXTURE_CUBE_MAP, 0, 0, 0, 0,
-					envFiltered->GetRendererID(), GL_TEXTURE_CUBE_MAP, 0, 0, 0, 0,
-					envFiltered->GetWidth(), envFiltered->GetHeight(), 6 );
+			glCopyImageSubData( envUnfiltered->GetRendererID(), GL_TEXTURE_CUBE_MAP, 0, 0, 0, 0,
+				envFiltered->GetRendererID(), GL_TEXTURE_CUBE_MAP, 0, 0, 0, 0,
+				envFiltered->GetWidth(), envFiltered->GetHeight(), 6 );
 		} );
 
 		envFilteringShader->Bind();
 		envUnfiltered->Bind();
 
-		Renderer::Submit( [envUnfiltered, envFiltered, cubemapSize]()
+		Renderer::Submit( [envUnfiltered, envFiltered, cubemapSize] ()
 		{
 			const float deltaRoughness = 1.0f / glm::max( ( float )( envFiltered->GetMipLevelCount() - 1.0f ), 1.0f );
 			for( int level = 1, size = cubemapSize / 2; level < envFiltered->GetMipLevelCount(); level++, size /= 2 ) // <= ?
@@ -323,11 +260,11 @@ namespace Saturn {
 		Ref<TextureCube> irradianceMap = TextureCube::Create( TextureFormat::Float16, irradianceMapSize, irradianceMapSize );
 		envIrradianceShader->Bind();
 		envFiltered->Bind();
-		Renderer::Submit( [irradianceMap]()
+		Renderer::Submit( [irradianceMap] ()
 		{
-				glBindImageTexture( 0, irradianceMap->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F );
-				glDispatchCompute( irradianceMap->GetWidth() / 32, irradianceMap->GetHeight() / 32, 6 );
-				glGenerateTextureMipmap( irradianceMap->GetRendererID() );
+			glBindImageTexture( 0, irradianceMap->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F );
+			glDispatchCompute( irradianceMap->GetWidth() / 32, irradianceMap->GetHeight() / 32, 6 );
+			glGenerateTextureMipmap( irradianceMap->GetRendererID() );
 		} );
 
 		return { envFiltered, irradianceMap };
@@ -340,7 +277,7 @@ namespace Saturn {
 
 		if( outline )
 		{
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 				{
 					glStencilOp( GL_KEEP, GL_KEEP, GL_REPLACE );
 				} );
@@ -350,7 +287,7 @@ namespace Saturn {
 
 		if( outline )
 		{
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 				{
 					glStencilMask( 0 );
 				} );
@@ -390,7 +327,7 @@ namespace Saturn {
 
 		if( outline )
 		{
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 				{
 					glStencilFunc( GL_ALWAYS, 1, 0xff );
 					glStencilMask( 0xff );
@@ -423,7 +360,7 @@ namespace Saturn {
 
 		if( outline )
 		{
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 				{
 					glStencilFunc( GL_NOTEQUAL, 1, 0xff );
 					glStencilMask( 0 );
@@ -441,7 +378,7 @@ namespace Saturn {
 				Renderer::SubmitMesh( dc.Mesh, dc.Transform, s_Data.OutlineMaterial );
 			}
 
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 				{
 					glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
 				} );
@@ -451,7 +388,7 @@ namespace Saturn {
 				Renderer::SubmitMesh( dc.Mesh, dc.Transform, s_Data.OutlineMaterial );
 			}
 
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 				{
 					glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 					glStencilMask( 0xff );
@@ -460,9 +397,9 @@ namespace Saturn {
 				} );
 		}
 
-		if( collider ) 
+		if( collider )
 		{
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 			{
 				glLineWidth( 1 );
 				glEnable( GL_LINE_SMOOTH );
@@ -477,7 +414,7 @@ namespace Saturn {
 					Renderer::SubmitMesh( dc.Mesh, dc.Transform, s_Data.ColliderMaterial );
 			}
 
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 			{
 				glPointSize( 1 );
 				glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
@@ -489,7 +426,7 @@ namespace Saturn {
 					Renderer::SubmitMesh( dc.Mesh, dc.Transform, s_Data.ColliderMaterial );
 			}
 
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 			{
 				glEnable( GL_DEPTH_TEST );
 				glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -514,7 +451,7 @@ namespace Saturn {
 
 		if( GetOptions().ShowSolids )
 		{
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 				{
 					glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 				} );
@@ -522,7 +459,7 @@ namespace Saturn {
 
 		if( !GetOptions().ShowSolids )
 		{
-			Renderer::Submit( []()
+			Renderer::Submit( [] ()
 				{
 					glPolygonMode( GL_FRONT, GL_LINE );
 					glPolygonMode( GL_BACK, GL_LINE );
@@ -573,7 +510,7 @@ namespace Saturn {
 
 	uint32_t SceneRenderer::GetColorIDShadowMap()
 	{
-		return s_Data.ShadowMapFBO->GetColorAttachmentRendererID();
+		return -FLT_MAX;
 	}
 
 	SceneRendererOptions& SceneRenderer::GetOptions()

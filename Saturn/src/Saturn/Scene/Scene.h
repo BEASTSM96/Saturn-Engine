@@ -43,7 +43,6 @@
 namespace Saturn {
 
 	class Entity;
-	class ScriptableEntity;
 	class PhysXRuntime;
 	using EntityMap = std::unordered_map<UUID, Entity>;
 	using EntityMonoMap = std::unordered_map<unsigned long, Entity>;
@@ -55,14 +54,6 @@ namespace Saturn {
 		UUID SceneID;
 	};
 
-	struct SceneData 
-	{
-		UUID SceneID;
-		std::string name;
-		RefSR<Texture2D> m_SkyboxTexture;
-		RefSR<Material> m_SkyboxMaterial;
-	};
-
 	struct Environment
 	{
 		std::string FilePath;
@@ -71,25 +62,36 @@ namespace Saturn {
 		Ref<TextureCube> RadianceMap;
 		Ref<TextureCube> IrradianceMap;
 
-		static Environment Load(const std::string& filepath);
+		static Environment Load( const std::string& filepath );
 	};
 
 	struct Light
 	{
-		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 Radiance = { 0.0f, -1.0f, 0.0f };
+		glm::vec3 Direction ={ 0.0f, 0.0f, 0.0f };
+		glm::vec3 Radiance ={ 0.0f, -1.0f, 0.0f };
 
 		float Multiplier = 1.0f;
 	};
 
+	struct DirectionalLight
+	{
+		glm::vec3 Direction ={ 0.0f, 0.0f, 0.0f };
+		glm::vec3 Radiance ={ 0.0f, 0.0f, 0.0f };
+		float Multiplier = 0.0f;
+
+		bool CastShadows = true;
+	};
+
+	struct EnvironmentLights
+	{
+		DirectionalLight DirectionalLights[ 4 ];
+	};
 
 	enum class PhysicsType
 	{
 		None = 0,
-		PhysX = 1,
-		ReactPhysics = 2
+		PhysX = 1
 	};
-
 
 	struct RuntimeData
 	{
@@ -101,10 +103,10 @@ namespace Saturn {
 		Scene( void );
 		~Scene( void );
 
-		Entity CreateEntity(const std::string& name = std::string());
-		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
+		Entity CreateEntity( const std::string& name = std::string() );
+		Entity CreateEntityWithID( UUID uuid, const std::string& name = "", bool runtimeMap = false );
 
-		void DestroyEntity(Entity entity);
+		void DestroyEntity( Entity entity );
 
 		void OnRenderEditor( Timestep ts, const EditorCamera& editorCamera );
 		void OnRenderRuntime( Timestep ts );
@@ -115,15 +117,14 @@ namespace Saturn {
 			return m_Registry.view<T>();
 		}
 
-		SceneData& GetData() { return m_data; }
 		entt::registry& GetRegistry() { return m_Registry; }
 
-		void OnUpdate(Timestep ts);
-		void SetViewportSize(uint32_t width, uint32_t height);
+		void OnUpdate( Timestep ts );
+		void SetViewportSize( uint32_t width, uint32_t height );
 
-		void SetEnvironment(const Environment& environment);
+		void SetEnvironment( const Environment& environment );
 		const Environment& GetEnvironment() const { return m_Environment; }
-		void SetSkybox(const Ref<TextureCube>& skybox);
+		void SetSkybox( const Ref<TextureCube>& skybox );
 
 		Light& GetLight() { return m_Light; }
 		const Light& GetLight() const { return m_Light; }
@@ -134,19 +135,19 @@ namespace Saturn {
 
 		float& GetSkyboxLod() { return m_SkyboxLod; }
 
-		void DuplicateEntity(Entity entity);
+		void DuplicateEntity( Entity entity );
 
 		void CreatePhysxScene();
 
 		Entity& CreateEntityFromPhysXData( void* data );
 
 		// Editor-specific
-		void SetSelectedEntity(entt::entity entity) { m_SelectedEntity = entity; }
+		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
 
 		//Physics
 		void PhysicsUpdate( PhysicsType type, float delta );
 
-		void PhysicsComponentCreate(entt::registry& r, entt::entity ent);
+		void PhysicsComponentCreate( entt::registry& r, entt::entity ent );
 
 		void PhysXRigidbodyComponentCreate( entt::registry& r, entt::entity ent );
 		void PhysXBoxComponentCreate( entt::registry& r, entt::entity ent );
@@ -199,10 +200,11 @@ namespace Saturn {
 
 		float m_SkyboxLod = 1.0f;
 
-		Light m_Light;
-		float m_LightMultiplier = 0.3f;
+		EnvironmentLights m_LightEnvironment;
 
-		SceneData m_data;
+		Light m_Light;
+		float m_EnvironmentIntensity = 1.0f;
+		float m_LightMultiplier = 0.3f;
 
 		RuntimeData m_RuntimeData;
 

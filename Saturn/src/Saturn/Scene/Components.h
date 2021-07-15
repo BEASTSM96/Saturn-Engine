@@ -185,6 +185,9 @@ namespace Saturn {
 		Saturn::Environment SkyLightEnvironment;
 		std::string EnvironmentFilepath = "";
 
+		float Intensity = 1.0f;
+		float Angle = 0.0f;
+
 		SkyLightComponent() = default;
 		SkyLightComponent( const SkyLightComponent& ) = default;
 		SkyLightComponent( const Saturn::Environment& environment )
@@ -276,10 +279,18 @@ namespace Saturn {
 		operator Ref<Saturn::Mesh>() { return Mesh; }
 	};
 
+	struct DirectionalLightComponent
+	{
+		glm::vec3 Radiance ={ 1.0f, 1.0f, 1.0f };
+		float Intensity = 1.0f;
+		bool CastShadows = true;
+		bool SoftShadows = true;
+		float LightSize = 0.5f; // For PCSS
+	};
+
 	/** @brief RelationshipComponent.
 	*
 	*/
-
 	struct RelationshipComponent : Component
 	{
 		entt::entity Parent{ entt::null };

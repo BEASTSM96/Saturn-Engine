@@ -46,6 +46,8 @@ namespace Saturn {
 	{
 		Saturn::Camera Camera;
 		glm::mat4 ViewMatrix;
+		float Near, Far;
+		float FOV;
 	};
 
 	class SceneRenderer
@@ -59,7 +61,7 @@ namespace Saturn {
 		static void BeginScene( Ref<Scene> scene, const SceneRendererCamera& camera );
 		static void EndScene( void );
 
-		static void ShadowMapPass( Ref<Scene> scene, Ref<Mesh> mesh, const glm::mat4& transform, bool selected );
+		static void ShadowMapPass();
 
 		static void RenderShadows( Scene* scene, Entity e, const SceneRendererCamera& camera );
 

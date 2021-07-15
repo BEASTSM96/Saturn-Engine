@@ -35,16 +35,23 @@ extern Saturn::Application* Saturn::CreateApplication( Saturn::ApplicationComman
 bool g_ApplicationRunning = true;
 bool g_ProjectBroserWasOpen = false;
 
+bool g_MainEntered = false;
+
 void FGuardedMain( int argc, char** argv )
 {
+	if( g_MainEntered == true )
+	{
+		assert( false ); // FGuardedMain cannot be called more that one time!
+	}
+	g_MainEntered = true;
+
 	while( g_ApplicationRunning )
 	{
 		Saturn::InitCore();
 
-		auto agrvcx = *argv;
-
-		SAT_CORE_INFO( "Exe : {0}", agrvcx );
 		SAT_CORE_INFO( "Starting Project Browser" );
+		
+
 
 		Saturn::Application* app = Saturn::CreateApplication( { argc, argv } );
 		app->Run();
@@ -53,7 +60,16 @@ void FGuardedMain( int argc, char** argv )
 	}
 }
 
+void ResetFull() 
+{
+	g_ApplicationRunning = false;
+	g_MainEntered = false;
+	g_ProjectBroserWasOpen = false;
+}
+
 int main( int argc, char** argv )
-{	
+{
 	FGuardedMain( argc, argv );
+
+	ResetFull();
 }

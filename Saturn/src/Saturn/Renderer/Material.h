@@ -113,9 +113,10 @@ namespace Saturn {
 		void AllocateStorage( void );
 		void OnShaderReloaded( void );
 		void BindTextures( void );
-
+	public:
 		ShaderUniformDeclaration* FindUniformDeclaration( const std::string& name );
 		ShaderResourceDeclaration* FindResourceDeclaration( const std::string& name );
+	private:
 		Buffer& GetUniformBufferTarget( ShaderUniformDeclaration* uniformDeclaration );
 	private:
 		Ref<Shader> m_Shader;

@@ -110,8 +110,6 @@ namespace Saturn {
 	{
 		Renderer2D::Shutdown();
 
-		Renderer::GetShaderLibrary()->Clear();
-
 		s_Data.m_ActiveRenderPass = nullptr;
 		s_Data.m_ShaderLibrary = nullptr;
 		s_Data.m_FullscreenQuadVertexBuffer = nullptr;
@@ -275,6 +273,31 @@ namespace Saturn {
 
 					glDrawElementsBaseVertex( GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, ( void* )( sizeof( uint32_t ) * submesh.BaseIndex ), submesh.BaseVertex );
 				} );
+		}
+	}
+
+	void Renderer::SubmitMeshWithShader( Ref<Mesh> mesh, const glm::mat4& transform, Ref<Shader> shader )
+	{
+		mesh->m_VertexBuffer->Bind();
+		mesh->m_Pipeline->Bind();
+		mesh->m_IndexBuffer->Bind();
+
+		for( Submesh& submesh : mesh->m_Submeshes )
+		{
+			if( mesh->m_IsAnimated )
+			{
+				for( size_t i = 0; i < mesh->m_BoneTransforms.size(); i++ )
+				{
+					std::string uniformName = std::string( "u_BoneTransforms[" ) + std::to_string( i ) + std::string( "]" );
+					shader->SetMat4( uniformName, mesh->m_BoneTransforms[ i ] );
+				}
+			}
+			shader->SetMat4( "u_Transform", transform * submesh.Transform );
+
+			Renderer::Submit( [submesh] ()
+			{
+				 glDrawElementsBaseVertex( GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, ( void* )( sizeof( uint32_t ) * submesh.BaseIndex ), submesh.BaseVertex );
+			} );
 		}
 	}
 

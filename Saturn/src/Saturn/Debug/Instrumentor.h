@@ -221,8 +221,13 @@ namespace Saturn {
 	}
 }
 
+#define SAT_PROFILE_DISBALE
+#ifndef SAT_PROFILE_DISBALE
 #define SAT_PROFILE 0
-#if defined (SAT_PROFILE) 
+#else
+#endif // !SAT_PROFILE_DISBALE
+
+#if defined (SAT_PROFILE)
 // Resolve which function signature macro will be used. Note that this only
 // is resolved when the (pre)compiler starts, so the syntax highlighting
 // could mark the wrong one in your editor!

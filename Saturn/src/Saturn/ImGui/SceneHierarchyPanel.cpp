@@ -130,7 +130,7 @@ namespace Saturn {
 		return modified;
 	}
 
-	static bool Property( const char* label, float& value, float delta = 0.1f )
+	static bool Property( const char* label, float& value, float delta = 0.1f, float min = 0.0f, float max = 0.0f )
 	{
 		bool modified = false;
 
@@ -142,7 +142,49 @@ namespace Saturn {
 		s_IDBuffer[ 1 ] = '#';
 		memset( s_IDBuffer + 2, 0, 14 );
 		itoa( s_Counter++, s_IDBuffer + 2, 16 );
-		if( ImGui::DragFloat( s_IDBuffer, &value, delta ) )
+		if( ImGui::DragFloat( s_IDBuffer, &value, delta, min, max ) )
+			modified = true;
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
+	}
+
+	static bool Property( const char* label, bool& value )
+	{
+		bool modified = false;
+
+		ImGui::Text( label );
+		ImGui::NextColumn();
+		ImGui::PushItemWidth( -1 );
+
+		s_IDBuffer[ 0 ] = '#';
+		s_IDBuffer[ 1 ] = '#';
+		memset( s_IDBuffer + 2, 0, 14 );
+		itoa( s_Counter++, s_IDBuffer + 2, 16 );
+		if( ImGui::Checkbox( s_IDBuffer, &value ) )
+			modified = true;
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
+	}
+
+	static bool Property( const char* label, glm::vec3& color )
+	{
+		bool modified = false;
+
+		ImGui::Text( label );
+		ImGui::NextColumn();
+		ImGui::PushItemWidth( -1 );
+
+		s_IDBuffer[ 0 ] = '#';
+		s_IDBuffer[ 1 ] = '#';
+		memset( s_IDBuffer + 2, 0, 14 );
+		itoa( s_Counter++, s_IDBuffer + 2, 16 );
+		if( ImGui::ColorEdit3( s_IDBuffer, glm::value_ptr( color ) ) )
 			modified = true;
 
 		ImGui::PopItemWidth();
@@ -340,6 +382,15 @@ namespace Saturn {
 				if( ImGui::Button( "Point Light" ) )
 				{
 					m_SelectionContext.AddComponent<PointLightComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			if( !m_SelectionContext.HasComponent<DirectionalLightComponent>() )
+			{
+				if( ImGui::Button( "Directional Light" ) )
+				{
+					m_SelectionContext.AddComponent<DirectionalLightComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -866,7 +917,6 @@ namespace Saturn {
 				rb.m_Rigidbody->SetMass( mass );
 			} );
 
-
 		DrawComponent<CameraComponent>( "Camera Component", entity, [&]( auto& cc )
 		{
 			DrawBoolControl( "Is Primary", &cc.Primary );
@@ -1004,6 +1054,18 @@ namespace Saturn {
 
 		} );
 
+		DrawComponent<DirectionalLightComponent>( "Directional Light", entity, [] ( DirectionalLightComponent& dlc )
+		{
+			BeginPropertyGrid();
+			Property( "Radiance", dlc.Radiance );
+			Property( "Intensity", dlc.Intensity );
+			Property( "Cast Shadows", dlc.CastShadows );
+			Property( "Soft Shadows", dlc.SoftShadows );
+			Property( "Source Size", dlc.LightSize );
+			EndPropertyGrid();
+		} );
+
+
 		if( entity.HasComponent<SkyLightComponent>() )
 		{
 			bool removeComponent = false;
@@ -1058,6 +1120,10 @@ namespace Saturn {
 				ImGui::NextColumn();
 				ImGui::Columns( 1 );
 				ImGui::TreePop();
+				
+				BeginPropertyGrid();
+				Property( "Intensity", component.Intensity, 0.01f, 0.0f, 5.0f );
+				EndPropertyGrid();
 			}
 			ImGui::Separator();
 

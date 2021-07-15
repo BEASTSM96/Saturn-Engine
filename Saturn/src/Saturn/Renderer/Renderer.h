@@ -79,6 +79,7 @@ namespace Saturn {
 		static void SubmitQuad( Ref<MaterialInstance> material, const glm::mat4& transform = glm::mat4( 1.0f ) );
 		static void SubmitFullscreenQuad( Ref<MaterialInstance> material );
 		static void SubmitMesh( Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial );
+		static void SubmitMeshWithShader( Ref<Mesh> mesh, const glm::mat4& transform, Ref<Shader> shader );
 
 		static void DrawAABB( const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4( 1.0f ) );
 		static void DrawAABB( Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4( 1.0f ) );
