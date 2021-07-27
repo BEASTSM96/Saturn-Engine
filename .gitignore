@@ -25,18 +25,10 @@ bin-int/
 
 [dD]esktop.ini
 
-
-**/assets/tex
 **/assets/tex
 
-
-Titan/SaturnProfile-Runtime.json
-Titan/SaturnProfile-Shutdown.json
-Titan/SaturnProfile-Startup.json
 assets/**
 Titan/*.json
-Titan/assets/meshes/Walther_01
-Titan/assets/meshes/KrissVector
 Titan/dna.txt
 Saturn/vendor/imgui/examples/example_allegro5
 Saturn/vendor/imgui/examples/example_apple_metal
