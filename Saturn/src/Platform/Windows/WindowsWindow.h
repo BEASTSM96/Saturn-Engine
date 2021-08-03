@@ -76,6 +76,7 @@ namespace Saturn {
 			std::string Title;
 			unsigned int Width, Height;
 			bool VSync;
+			bool ShowOnCreation;
 
 			EventCallbackFn EventCallback;
 		};

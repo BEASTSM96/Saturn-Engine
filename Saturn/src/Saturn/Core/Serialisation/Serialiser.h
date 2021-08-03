@@ -43,8 +43,6 @@ namespace Saturn {
 		Serialiser( const std::string& objectname, bool shouldSerialise = true );
 		Serialiser( const Ref<Scene>& scene );
 
-		static void Init( void );
-
 		virtual ~Serialiser();
 
 		virtual void Serialise( const std::string& filepath );

@@ -69,6 +69,7 @@ namespace Saturn {
 		m_Data.Title = props.Title;
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
+		m_Data.ShowOnCreation = props.ShowOnCreation;
 
 		SAT_CORE_INFO( "Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height );
 
@@ -82,6 +83,9 @@ namespace Saturn {
 		}
 
 		m_Window = glfwCreateWindow( ( int )props.Width, ( int )props.Height, m_Data.Title.c_str(), nullptr, nullptr );
+		
+		if( !m_Data.ShowOnCreation )
+			glfwHideWindow( m_Window );
 
 		m_Context = new OpenGLContext( m_Window );
 		m_Context->Init();

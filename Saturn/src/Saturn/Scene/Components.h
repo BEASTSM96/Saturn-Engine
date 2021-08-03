@@ -61,7 +61,7 @@ namespace Saturn {
 	struct TransformComponent : Component
 	{
 		glm::vec3  Position ={ 0.0f , 0.0f, 0.0f };
-		glm::quat  Rotation ={ 0.0f, 0.0f, 0.0f, 0.0f };
+		glm::vec3  Rotation ={ 0.0f, 0.0f, 0.0f };
 		glm::vec3  Scale	={ 1.0f , 1.0f, 1.0f };
 
 		glm::vec3 Up ={ 0.0f, 1.0f, 0.0f };
@@ -77,15 +77,11 @@ namespace Saturn {
 
 		glm::mat4 GetTransform() const
 		{
-			glm::mat4 position = glm::translate( glm::mat4( 1.0f ), Position );
-			glm::mat4 rotation = glm::toMat4( Rotation );
-			glm::mat4 scale = glm::scale( glm::mat4( 1.0f ), Scale );
+			glm::mat4 rotation = glm::toMat4( glm::quat( Rotation ) );
 
-			return position * rotation * scale;
-
-			//return glm::translate(glm::mat4(1.0f), Position)
-			//	* rotation
-			//	* glm::scale(glm::mat4(1.0f), Scale);
+			return glm::translate( glm::mat4( 1.0f ), Position )
+				* rotation
+				* glm::scale( glm::mat4( 1.0f ), Scale );
 		}
 
 		operator glm::mat4& ( ) { return GetTransform(); }

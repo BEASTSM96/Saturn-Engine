@@ -155,7 +155,7 @@ namespace Saturn::Scripting {
 
 		Entity entity = entityMap.at( entityID );
 		auto& rot = entity.GetComponent<TransformComponent>().Rotation; 
-		rot = glm::quat( 0.0F, inRotation->x, inRotation->y, inRotation->z );
+		rot = glm::vec3( inRotation->x, inRotation->y, inRotation->z );
 		SAT_CORE_INFO( "Rotation X{0}, Y{1}, Z{2}", rot.x, rot.y, rot.z );
 	}
 

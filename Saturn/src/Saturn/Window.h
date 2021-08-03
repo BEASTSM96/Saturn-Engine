@@ -40,33 +40,14 @@ namespace Saturn {
 		std::string Title;
 		unsigned int Width;
 		unsigned int Height;
+		bool ShowOnCreation;
 
-#ifdef SAT_DEBUG
-		WindowProps( const std::string& title = "Saturn Engine Mode : Debug",
-			unsigned int width = 1280,
-			unsigned int height = 720)
-			: Title( title ), Width( width ), Height(height)
-		{
-		}
-#endif // SAT_DEBUG
-
-#ifdef SAT_DIST
 		WindowProps( const std::string& title = "Saturn Engine",
 			unsigned int width = 1280,
-			unsigned int height = 720)
-			: Title( title ), Width( width ), Height( height )
+			unsigned int height = 720, bool showOnCreation = true)
+			: Title( title ), Width( width ), Height(height), ShowOnCreation(showOnCreation)
 		{
 		}
-#endif // SAT_DIST
-
-#ifdef SAT_RELEASE
-		WindowProps( const std::string& title = "Saturn Engine Mode : Release",
-			unsigned int width = 1280,
-			unsigned int height = 720)
-			: Title( title ), Width( width ), Height( height )
-		{
-		}
-#endif // SAT_RELEASE
 	};
 
 	// Interface representing a desktop system based Window

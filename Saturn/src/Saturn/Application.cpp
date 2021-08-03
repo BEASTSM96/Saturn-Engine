@@ -71,18 +71,12 @@ namespace Saturn {
 
 		s_Instance = this;
 
-		m_Window = std::unique_ptr< Window >( Window::Create( WindowProps( props.Name, props.WindowWidth, props.WindowHeight ) ) );
+		m_Window = std::unique_ptr< Window >( Window::Create( WindowProps( props.Name, props.WindowWidth, props.WindowHeight, false ) ) );
 		m_Window->SetEventCallback( BIND_EVENT_FN( OnEvent ) );
 		m_Window->SetVSync( false );
 
-		m_ImGuiLayer = new ImGuiLayer();
-		//m_EditorLayer = new EditorLayer();
-
 		Renderer::Init();
 		Renderer::WaitAndRender();
-
-		PushOverlay( m_ImGuiLayer );
-		//PushOverlay( m_EditorLayer );
 
 		if( !FileSystem::DoesFileExist( "", "version-control.vcinfo" ) )
 		{
@@ -91,6 +85,9 @@ namespace Saturn {
 		}
 
 		Init();
+
+		m_ImGuiLayer = new ImGuiLayer();
+		PushOverlay( m_ImGuiLayer );
 
 	}
 
@@ -186,10 +183,7 @@ namespace Saturn {
 		}
 	}
 
-	void Application::Init()
-	{
-		Serialiser::Init();
-	}
+	void Application::Init() {}
 
 	void Application::Run()
 	{

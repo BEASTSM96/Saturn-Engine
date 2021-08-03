@@ -863,11 +863,11 @@ namespace Saturn {
 
 				bool updateTransform = false;
 				updateTransform |= DrawVec3Control( "Translation", tc.Position, tc.Position );
-				glm::vec3 newRotation = glm::degrees( glm::eulerAngles( tc.Rotation ) );
-				updateTransform |= DrawVec3Control( "Rotation", newRotation, newRotation );
+				//glm::vec3 newRotation = glm::degrees( glm::eulerAngles( tc.Rotation ) );
+				updateTransform |= DrawVec3Control( "Rotation", tc.Rotation, tc.Rotation );
 				updateTransform |= DrawVec3Control( "Scale", tc.Scale, tc.Scale, 1.0f );
 
-				tc.Rotation = glm::quat( glm::radians( newRotation ) );
+				//tc.Rotation = glm::quat( glm::radians( newRotation ) );
 			} );
 
 		DrawComponent<MeshComponent>( "Mesh", entity, []( auto& mc )

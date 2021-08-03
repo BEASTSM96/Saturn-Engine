@@ -137,7 +137,6 @@ namespace Saturn {
 
 		ScriptEngine::Init( "assets/assembly/ExampleApp.dll" );
 		ScriptEngine::SetSceneContext( m_EditorScene );
-
 	}
 
 	void EditorLayer::UpdateWindowTitle( std::string name )
@@ -1283,13 +1282,13 @@ namespace Saturn {
 			if( ImGuizmo::IsUsing() )
 			{
 				glm::vec3 translation, scale;
-				glm::quat rotation;
+				glm::vec3 rotation;
 
 				DecomposeTransform( transform, translation, rotation, scale );
 
-				glm::quat delta = rotation - tc.Rotation;
+				glm::vec3 deltaRotation = rotation - tc.Rotation;
 				tc.Position = translation;
-				tc.Rotation += delta;
+				tc.Rotation += deltaRotation;
 				tc.Scale = scale;
 			}
 		}

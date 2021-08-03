@@ -36,7 +36,7 @@
 
 namespace Saturn {
 
-	PhysXRigidbody::PhysXRigidbody( Entity entity, glm::vec3& pos, glm::quat& rot )
+	PhysXRigidbody::PhysXRigidbody( Entity entity, glm::vec3& pos, glm::vec3& rot )
 		: m_Entity( entity )
 	{
 
@@ -56,7 +56,7 @@ namespace Saturn {
 		PxQua.x = rot.x;
 		PxQua.y = rot.y;
 		PxQua.z = rot.z;
-		PxQua.w = rot.w;
+		PxQua.w = 0;
 
 		physx::PxTransform PhysXTransform( PxPos, PxQua );
 

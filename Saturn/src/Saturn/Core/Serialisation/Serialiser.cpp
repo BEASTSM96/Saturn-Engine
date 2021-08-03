@@ -204,23 +204,7 @@ namespace Saturn {
 	{
 	}
 
-	void Serialiser::Init( void )
-	{
-		SAT_PROFILE_FUNCTION();
-		SAT_CORE_WARN( "Serialiser inited! " );
-	}
-
 	Serialiser::~Serialiser() { }
-
-	static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition( const glm::mat4& transform )
-	{
-		glm::vec3 scale, translation, skew;
-		glm::vec4 perspective;
-		glm::quat orientation;
-		glm::decompose( transform, scale, orientation, translation, skew, perspective );
-
-		return { translation, orientation, scale };
-	}
 
 	void Serialiser::SerialiseEntity( YAML::Emitter& out, Entity entity )
 	{
@@ -528,16 +512,12 @@ namespace Saturn {
 					// Entities always have transforms
 					auto& tc = deserializedEntity.GetComponent<TransformComponent>();
 					tc.Position = transformComponent[ "Position" ].as<glm::vec3>();
-					tc.Rotation = transformComponent[ "Rotation" ].as<glm::quat>();
+					tc.Rotation = transformComponent[ "Rotation" ].as<glm::vec3>();
 					tc.Scale = transformComponent[ "Scale" ].as<glm::vec3>();
-
-					//TODO: Fix the -180 z thing for now we will hack a fix
-					if( tc.Rotation.z == 1 )
-						tc.Rotation.z = 0;
 
 					SAT_CORE_INFO( "  Entity Transform:" );
 					SAT_CORE_INFO( "    Translation: {0}, {1}, {2}", tc.Position.x, tc.Position.y, tc.Position.z );
-					SAT_CORE_INFO( "    Rotation: {0}, {1}, {2}, {3}", tc.Rotation.x, tc.Rotation.y, tc.Rotation.z, tc.Rotation.w );
+					SAT_CORE_INFO( "    Rotation: {0}, {1}, {2}", tc.Rotation.x, tc.Rotation.y, tc.Rotation.z );
 					SAT_CORE_INFO( "    Scale: {0}, {1}, {2}", tc.Scale.x, tc.Scale.y, tc.Scale.z );
 
 				}

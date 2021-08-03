@@ -49,13 +49,10 @@ void FGuardedMain( int argc, char** argv )
 	{
 		Saturn::InitCore();
 
-		SAT_CORE_INFO( "Starting Project Browser" );
-		
-
-
 		Saturn::Application* app = Saturn::CreateApplication( { argc, argv } );
 		app->Run();
 		delete app;
+
 		Saturn::EndCore();
 	}
 }
