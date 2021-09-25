@@ -17,11 +17,11 @@ jobs:
     - name: Generate Submodules
       run: git submodule update --init
 
-    - name: Generate Project Files
-      run: scripts/CI-Download-Premake.bat
+    - name: Download Premake
+      run: BEASTSM96/premake-action@v1.0
 
     - name: Generate Project Files
-      run: scripts/WindowsGenProjects.bat
+      run: scripts/WindowsGenProjects - CI.bat
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.2
