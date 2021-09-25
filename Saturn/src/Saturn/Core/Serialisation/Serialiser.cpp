@@ -353,8 +353,8 @@ namespace Saturn {
 		out << YAML::Key << "Project Settings";
 		out << YAML::Value << " ";
 		out << YAML::Value << "Startup Scene" << YAML::Value << ProjectSettings::GetStartupSceneName();
-		out << YAML::Value << "Startup Project Name" << YAML::Value << ProjectSettings::GetStartupProjectName();
-		out << YAML::Value << "Startup Project Folder" << YAML::Value << ProjectSettings::GetStartupProjectFolder();
+		out << YAML::Value << "Startup ProjectName" << YAML::Value << ProjectSettings::GetStartupProjectName();
+		out << YAML::Value << "Startup ProjectFolder" << YAML::Value << ProjectSettings::GetStartupProjectFolder();
 		out << YAML::Key << "Last project settings" << YAML::Value;
 		out << YAML::BeginMap; // Last project
 		out << YAML::Value << "Last Project Folder" << YAML::Value << ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
@@ -378,10 +378,10 @@ namespace Saturn {
 			return;
 
 		SAT_CORE_INFO( "Starting deserializing of Project Settings" );
-
+		
 		std::string sceneName = data[ "Startup Scene" ].as<std::string>();
-		std::string startupProjectName = data[ "Startup Project Name" ].as<std::string>();
-		std::string startupProjectFolder = data[ "Startup Project Folder" ].as<std::string>();
+		std::string startupProjectName = data[ "Startup ProjectName" ].as<std::string>();
+		std::string startupProjectFolder = data[ "Startup ProjectFolder" ].as<std::string>();
 
 		std::string projectFolder;
 		std::string projectName;
@@ -394,14 +394,13 @@ namespace Saturn {
 		}
 
 		Ref<Project> project;
-
 		if( startupProjectFolder.empty() && startupProjectName.empty() )
 			project = Ref<Project>::Create( projectFolder, projectName );
 		else
 			project = Ref<Project>::Create( "assets\\" + startupProjectFolder, startupProjectName );
 
 		ProjectSettings::SetCurrentProject( project );
-		ProjectSettings::SetStartupSceneName( sceneName );
+		ProjectSettings::SetStartupSceneName( "assets\\callback_testing.sc" );
 	}
 
 	void Serialiser::SerialiseProject( const std::string& filepath )
@@ -512,7 +511,7 @@ namespace Saturn {
 					// Entities always have transforms
 					auto& tc = deserializedEntity.GetComponent<TransformComponent>();
 					tc.Position = transformComponent[ "Position" ].as<glm::vec3>();
-					tc.Rotation = transformComponent[ "Rotation" ].as<glm::vec3>();
+					tc.Rotation = glm::vec3( 0, 0, 0 ); //transformComponent[ "Rotation" ].as<glm::vec3>();
 					tc.Scale = transformComponent[ "Scale" ].as<glm::vec3>();
 
 					SAT_CORE_INFO( "  Entity Transform:" );

@@ -29,9 +29,5 @@
 #include "sppch.h"
 #include "WindowFactory.h"
 
-namespace Saturn {
-
-    Window& WindowFactory::_CreateWindow( WindowProps props )
-    {
-    }
+namespace Saturn {    
 }

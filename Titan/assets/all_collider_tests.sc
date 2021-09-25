@@ -14,9 +14,11 @@ Entities:
       Rotation: [0, 0, 0, 1]
       Scale: [1, 1, 1]
     MeshComponent:
-      AssetPath: S:\dev\Sparky\Saturn-Engine\Titan\assets\meshes\Cube1m.fbx
+      AssetPath: assets\meshes\Cube1m.fbx
     PhysXRigidbodyComponent:
       Kinematic: false
+      Mass: 1
+      CCD: true
     PhysXBoxColliderComponent:
       Extents: [0.5, 0.5, 0.5]
   - Entity: 3055790865195180191
@@ -27,9 +29,11 @@ Entities:
       Rotation: [0, 0, 0, 1]
       Scale: [1, 1, 1]
     MeshComponent:
-      AssetPath: S:\dev\Sparky\Saturn-Engine\Titan\assets\meshes\Sphere1m.fbx
+      AssetPath: assets\meshes\Sphere1m.fbx
     PhysXRigidbodyComponent:
       Kinematic: false
+      Mass: 1
+      CCD: true
     PhysXSphereColliderComponent:
       Radius: 0.5
   - Entity: 2320747535667194579
@@ -40,7 +44,7 @@ Entities:
       Rotation: [0, 0, 0, 1]
       Scale: [34.5991325, 0.330227077, 32.6803017]
     MeshComponent:
-      AssetPath: S:\dev\Sparky\Saturn-Engine\Titan\assets\meshes\Cube1m.fbx
+      AssetPath: assets\meshes\Cube1m.fbx
     PhysXRigidbodyComponent:
       Kinematic: true
     PhysXBoxColliderComponent:

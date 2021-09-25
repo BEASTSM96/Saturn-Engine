@@ -716,7 +716,9 @@ namespace Saturn {
 
 			ImGui::BeginChild( "##asset-panel-main" );
 
-			static std::string folderpath = ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
+			static std::string folderpath;
+
+			folderpath = ProjectSettings::GetCurrentProject()->GetAssetsFolderPath();
 
 			// i.e. if the folder is not been set the projects one
 			if( m_FolderPath == "assets" )
@@ -1042,7 +1044,9 @@ namespace Saturn {
 				ImGui::EndMenu();
 			}
 
-			const char* text = ProjectSettings::GetCurrentProject()->GetName().c_str();
+			const char* text = "";
+			if( ProjectSettings::GetCurrentProject() )
+				text = ProjectSettings::GetCurrentProject()->GetName().c_str();
 
 			ImVec2 textSize = ImGui::CalcTextSize( text );
 			ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );

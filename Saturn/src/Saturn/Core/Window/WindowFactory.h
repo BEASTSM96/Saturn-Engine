@@ -37,9 +37,9 @@ namespace Saturn {
 	class WindowFactory : public RefCounted
 	{
 	public:
-		Window& CreateSaturnWindow( WindowProps props ) { return _CreateWindow( props ); }
+		//Window& CreateSaturnWindow( WindowProps props ) { return _CreateWindow( props ); }
 	protected:
-		Window& _CreateWindow( WindowProps props );
+		//Window& _CreateWindow( WindowProps props );
 	private:
 	};
 
