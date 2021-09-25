@@ -27,21 +27,13 @@ IncludeDir["glm"] = "Saturn/vendor/glm"
 IncludeDir["stb_image"] = "Saturn/vendor/stb/"
 IncludeDir["Assimp"] = "Saturn/vendor/assimp/include"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
-IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
-IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include"
-IncludeDir["Saturn-Serialisation"] = "Saturn/vendor/Saturn-Serialisation/"
 IncludeDir["mono"] = "Saturn/vendor/mono/include"
-IncludeDir["FontAwesome"] = "Saturn/vendor/FontAwseome/"
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/Glad"
 	include "Saturn/vendor/imgui"
-	include "Saturn/vendor/assimp"
-	include "Saturn/vendor/SPIRV_Cross"
-	group "sat/Dependencies/Serialisation"
-			include "Saturn/vendor/yaml-cpp"
 
 group "sat/Core"
 project "Saturn"
@@ -114,7 +106,6 @@ project "Saturn"
 		defines
 		{
 			"SAT_PLATFORM_WINDOWS",
-			"SAT_BUILD_DLL",
 			"GLFW_INCLUDE_NONE"
 		}
 
