@@ -18,7 +18,7 @@ jobs:
       run: git submodule update --init
 
     - name: Download Premake
-      uses: BEASTSM96/premake-action@v1.0
+      uses: BEASTSM96/premake-action@v1.1
 
     - name: Generate Project Files
       run: scripts/WindowsGenProjects - CI.bat
