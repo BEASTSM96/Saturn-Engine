@@ -148,8 +148,8 @@ project "Titan"
 
 	postbuildcommands 
 	{
-		'{COPY} "../Titan/assets" "%{cfg.targetdir}/assets"',
-		'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"'
+		--'{COPY} "../Titan/assets" "%{cfg.targetdir}/assets"',
+		--'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"'
 	}
 
 	filter "system:windows"
