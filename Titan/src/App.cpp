@@ -26,36 +26,22 @@
 *********************************************************************************************
 */
 
-#include <Saturn.h>
-#include <Saturn/EntryPoint.h>
+// Main (C-P)
 
-#include "EditorLayer.h"
+#if defined( _WIN32 )
+#include <Windows.h>
+#endif // _WIN32
 
-class EditorApplication : public Saturn::Application
+int main( int count, char** args ) 
 {
-public:
-	EditorApplication( Saturn::ApplicationCommandLineArgs args, const Saturn::ApplicationProps& props ) : Application( args, props )
-	{
-		m_EditorLayer = new Saturn::EditorLayer();
-		PushOverlay( m_EditorLayer );
 
-		//TODO: Make a better icon as it does not fit
-		//m_Window->SetWindowImage( "assets/.github/i/sat/SaturnLogov1.png" );
-	}
-
-	void OnShutdown( void ) override
-	{
-		//delete m_EditorLayer; m_EditorLayer = nullptr;
-	}
-
-public:
-	Saturn::EditorLayer& GetEditorLayer() { return *m_EditorLayer; }
-	const Saturn::EditorLayer& GetEditorLayer() const { return *m_EditorLayer; }
-private:
-	Saturn::EditorLayer* m_EditorLayer;
-};
-
-Saturn::Application* Saturn::CreateApplication( Saturn::ApplicationCommandLineArgs args )
-{
-	return new EditorApplication( args, { "SaturnEditor (Editor Pre Init), (*UUID not yet loaded, *branch)", 1600, 900 } );
 }
+
+#if defined ( _WIN32 )
+
+int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
+{
+	return main( __argc, __argv );
+}
+
+#endif
