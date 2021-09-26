@@ -1,4 +1,4 @@
-name: CI(Linux)
+name: CI(MacOS)
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ master, v2 ]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     defaults:
       run:
         shell: bash
