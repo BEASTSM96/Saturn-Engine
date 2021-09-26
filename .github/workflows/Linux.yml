@@ -21,7 +21,7 @@ jobs:
       uses: BEASTSM96/premake-action@v1.1
 
     - name: Generate Project Files
-      run: ./tpremake/premake gmake2
+      run: ./tpremake/premake5 gmake2
 
     - name: Make Solution
       run: make
