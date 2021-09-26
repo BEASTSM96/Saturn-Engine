@@ -10,7 +10,7 @@ jobs:
     runs-on: macos-latest
     defaults:
       run:
-        shell: cmd
+        shell: bash
     steps:
     - uses: actions/checkout@v2
 
