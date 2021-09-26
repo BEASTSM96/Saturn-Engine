@@ -28,7 +28,7 @@
 
 // Main (C-P)
 
-#if defined( _WIN32 )
+#if defined( SAT_PLATFORM_WINDOWS )
 #include <Windows.h>
 #endif // _WIN32
 
@@ -37,7 +37,7 @@ int main( int count, char** args )
 
 }
 
-#if defined ( _WIN32 )
+#if defined ( SAT_PLATFORM_WINDOWS )
 
 int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
 {
