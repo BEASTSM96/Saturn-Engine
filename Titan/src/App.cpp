@@ -28,9 +28,15 @@
 
 // Main (C-P)
 
+// Fix GLFW defines not being defined when they are defined
+#if defined ( SAT_PLATFORM_LINUX )
+#define _GLFW_X11
+#define GLFW_EXPOSE_NATIVE_X11
+#endif // SAT_PLATFORM_LINUX
+
 #if defined( SAT_PLATFORM_WINDOWS )
 #include <Windows.h>
-#endif // _WIN32
+#endif // SAT_PLATFORM_WINDOWS
 
 int main( int count, char** args ) 
 {
@@ -44,4 +50,4 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	return main( __argc, __argv );
 }
 
-#endif
+#endif // SAT_PLATFORM_WINDOWS
