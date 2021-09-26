@@ -1,4 +1,4 @@
-name: CI(Windows)
+name: CI(Linux)
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ master, v2 ]
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: macos-latest
     defaults:
       run:
         shell: cmd
@@ -23,8 +23,5 @@ jobs:
     - name: Generate Project Files
       run: scripts/WindowsGenProjects-CI.bat
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Build Solution
-      run: msbuild -property:Configuration=Debug,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Saturn.sln
+    - name: Make Solution
+      run: make
