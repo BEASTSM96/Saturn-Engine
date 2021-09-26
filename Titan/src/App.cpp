@@ -32,6 +32,9 @@
 #if defined ( SAT_PLATFORM_LINUX )
 #define _GLFW_X11
 #define GLFW_EXPOSE_NATIVE_X11
+#elif defined ( SAT_PLATFORM_MAC )
+#define _GLFW_X11
+#define GLFW_EXPOSE_NATIVE_COCOA
 #endif // SAT_PLATFORM_LINUX
 
 #if defined( SAT_PLATFORM_WINDOWS )
