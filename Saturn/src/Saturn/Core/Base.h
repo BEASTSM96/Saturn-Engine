@@ -27,3 +27,27 @@
 */
 
 #pragma once
+
+#include "Asserts.h"
+
+#define SINGLETON( x )                    \
+public:                                   \
+static x& Get() { static x _; return _; } \
+x( const x& ) = delete;                   \
+x( x&& ) = delete;                        \
+x& operator=( x&& ) = delete;             \
+x& operator=( const x& ) = delete
+
+
+namespace Saturn::Core {
+
+	inline void BreakDebug()
+	{
+	#if defined( _WIN32 )
+		__debugbreak();
+	#else
+		return;
+	#endif // _MSC_VER
+	}
+
+}

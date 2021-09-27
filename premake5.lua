@@ -105,6 +105,53 @@ project "Saturn"
 		runtime "Release"
 		optimize "on"
 
+	
+	filter "system:linux"
+		systemversion "latest"
+
+		defines
+		{
+			"SAT_PLATFORM_LINUX"
+		}
+
+		filter "configurations:Debug"
+			defines "SAT_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "SAT_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+		filter "configurations:Dist"
+			defines "SAT_DIST"
+			runtime "Release"
+			optimize "on"
+
+	filter "system:macosx"
+		systemversion "latest"
+
+		defines
+		{
+			"SAT_PLATFORM_MAC"
+		}
+
+		filter "configurations:Debug"
+			defines "SAT_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "SAT_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+		filter "configurations:Dist"
+			defines "SAT_DIST"
+			runtime "Release"
+			optimize "on"
+
 ---------------------------------------------------------------------------------------------------------------------------
 
 group "sat/Tools"

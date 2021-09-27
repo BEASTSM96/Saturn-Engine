@@ -26,14 +26,12 @@
 *********************************************************************************************
 */
 
-// Main (C-P)
-
 // Fix GLFW defines not being defined when they are defined
 #if defined ( SAT_PLATFORM_LINUX )
 #define _GLFW_X11
 #define GLFW_EXPOSE_NATIVE_X11
 #elif defined ( SAT_PLATFORM_MAC )
-#define _GLFW_X11
+#define _GLFW_COCOA
 #define GLFW_EXPOSE_NATIVE_COCOA
 #endif // SAT_PLATFORM_LINUX
 
@@ -41,9 +39,14 @@
 #include <Windows.h>
 #endif // SAT_PLATFORM_WINDOWS
 
+#include "Saturn/Core/Window.h"
+
 int main( int count, char** args ) 
 {
-
+	while( true )
+	{
+		Saturn::Window::Get().OnUpdate();
+	}
 }
 
 #if defined ( SAT_PLATFORM_WINDOWS )

@@ -27,3 +27,39 @@
 */
 
 #pragma once
+
+#include "Base.h"
+
+#include <string>
+
+#if defined ( SAT_PLATFORM_LINUX ) || defined ( SAT_PLATFORM_MAC ) 
+#include <cstring>
+#endif
+
+struct GLFWwindow;
+
+namespace Saturn {
+
+	class Window
+	{
+		SINGLETON( Window );
+
+		Window();
+		~Window();
+
+	public:
+
+		void OnUpdate();
+
+		void Maximize();
+		void Restore();
+		void SetTitle( const std::string& title );
+
+	private:
+		GLFWwindow* m_Window = nullptr;
+
+		int m_Height = 720;
+		int m_Width  = 1200;
+		std::string m_Title = "Saturn";
+	};
+}
