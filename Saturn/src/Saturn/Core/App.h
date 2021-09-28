@@ -26,34 +26,26 @@
 *********************************************************************************************
 */
 
-// Fix GLFW defines not being defined when they are defined
-#if defined ( SAT_PLATFORM_LINUX )
-#define _GLFW_X11
-#define GLFW_EXPOSE_NATIVE_X11
-#elif defined ( SAT_PLATFORM_MAC )
-#define _GLFW_COCOA
-#define GLFW_EXPOSE_NATIVE_COCOA
-#endif // SAT_PLATFORM_LINUX
+#pragma once
 
-#if defined( SAT_PLATFORM_WINDOWS )
-#include <Windows.h>
-#endif // SAT_PLATFORM_WINDOWS
+#include "Base.h"
 
-#include "Saturn/Core/App.h"
+namespace Saturn {
 
-int main( int count, char** args ) 
-{
-	while( true )
+	class Application
 	{
-		Saturn::Application::Get().Run();
-	}
+		SINGLETON( Application );
+
+		Application()  {}
+		~Application() {}
+
+	public:
+
+		void Run();
+
+	protected:
+	private:
+		bool m_Running = true;
+	};
+
 }
-
-#if defined ( SAT_PLATFORM_WINDOWS )
-
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
-{
-	return main( __argc, __argv );
-}
-
-#endif // SAT_PLATFORM_WINDOWS

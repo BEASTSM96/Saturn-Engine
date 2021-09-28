@@ -26,34 +26,8 @@
 *********************************************************************************************
 */
 
-// Fix GLFW defines not being defined when they are defined
-#if defined ( SAT_PLATFORM_LINUX )
-#define _GLFW_X11
-#define GLFW_EXPOSE_NATIVE_X11
-#elif defined ( SAT_PLATFORM_MAC )
-#define _GLFW_COCOA
-#define GLFW_EXPOSE_NATIVE_COCOA
-#endif // SAT_PLATFORM_LINUX
+#include "sppch.h"
 
-#if defined( SAT_PLATFORM_WINDOWS )
-#include <Windows.h>
-#endif // SAT_PLATFORM_WINDOWS
-
-#include "Saturn/Core/App.h"
-
-int main( int count, char** args ) 
-{
-	while( true )
-	{
-		Saturn::Application::Get().Run();
-	}
-}
-
-#if defined ( SAT_PLATFORM_WINDOWS )
-
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
-{
-	return main( __argc, __argv );
-}
-
-#endif // SAT_PLATFORM_WINDOWS
+#define IMGUI_IMPL_OPENGL_LOADER_GLAD
+#include "examples\imgui_impl_glfw.cpp"
+#include "examples\imgui_impl_opengl3.cpp"

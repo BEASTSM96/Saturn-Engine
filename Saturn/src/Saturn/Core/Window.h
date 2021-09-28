@@ -36,6 +36,10 @@
 #include <cstring>
 #endif
 
+#if defined( SAT_PLATFORM_WINDOWS )
+#include <Windows.h>
+#endif
+
 struct GLFWwindow;
 
 namespace Saturn {
@@ -55,11 +59,19 @@ namespace Saturn {
 		void Restore();
 		void SetTitle( const std::string& title );
 
+		void NewFrame();
+		void EndFrame();
+
 	private:
 		GLFWwindow* m_Window = nullptr;
 
 		int m_Height = 720;
 		int m_Width  = 1200;
 		std::string m_Title = "Saturn";
+
+	#if defined ( SAT_PLATFORM_WINDOWS )
+		WNDPROC  m_WindowProc  = nullptr;
+		static LRESULT WindowProc( HWND handle, UINT msg, WPARAM WParam, LPARAM LParam );
+	#endif
 	};
 }
