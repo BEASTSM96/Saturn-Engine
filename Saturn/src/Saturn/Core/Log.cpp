@@ -26,25 +26,43 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "Log.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include <spdlog/sinks/basic_file_sink.h>
 
-#ifdef SAT_PLATFORM_WINDOWS
-	#include <Windows.h>
-	#ifndef NOMINMAX
-		// See github.com/skypjack/entt/wiki/Frequently-Asked-Questions#warning-c4003-the-min-the-max-and-the-macro
-		#define NOMINMAX
-	#endif
-#endif
+namespace Saturn {
 
-#include <memory>
-#include <vector>
-#include <string>
-#include <array>
-#include <unordered_map>
-#include <functional>
-#include <algorithm>
+	std::shared_ptr< spdlog::logger > Log::s_CoreLogger;
+	std::shared_ptr< spdlog::logger > Log::s_ClientLogger;
 
-#include <fstream>
+	void Log::Init( void )
+	{
+		std::vector<spdlog::sink_ptr> logSinks;
+		logSinks.emplace_back( std::make_shared< spdlog::sinks::stdout_color_sink_mt >() );
+		logSinks.emplace_back( std::make_shared< spdlog::sinks::basic_file_sink_mt >( "Saturn.log", true ) );
 
-#include <Saturn/Core/Log.h>
-#include <Saturn/Core/Base.h>
+		logSinks[ 0 ]->set_pattern( "%^[%T] %n: %v%$" );
+		logSinks[ 1 ]->set_pattern( "[%T] [%l] %n: %v" );
+
+		s_CoreLogger = std::make_shared< spdlog::logger >( "Saturn", begin( logSinks ), end( logSinks ) );
+		spdlog::register_logger( s_CoreLogger );
+
+		s_ClientLogger = std::make_shared< spdlog::logger >( "App", begin( logSinks ), end( logSinks ) );
+		spdlog::register_logger( s_ClientLogger );
+
+		// configure the loggers
+		spdlog::set_pattern( "%^[%T] %n: %v%$" );
+		s_CoreLogger->set_level( spdlog::level::trace );
+		s_ClientLogger->set_level( spdlog::level::trace );
+	}
+
+	void Log::Clear( void )
+	{
+		s_CoreLogger = nullptr;
+		s_ClientLogger = nullptr;
+
+		spdlog::shutdown();
+	}
+
+}

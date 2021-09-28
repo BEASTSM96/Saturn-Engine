@@ -9,7 +9,7 @@ namespace Saturn {
 
 	void GLFWErrorCallback( int error, const char* desc )
 	{
-		printf( "GLFW Error %i, %c", error, desc );
+		SAT_CORE_ERROR( "GLFW Error {0}, {1}", error, desc );
 	}
 
 	Window::Window()
@@ -18,25 +18,31 @@ namespace Saturn {
 
 		if( glfwInit() == GLFW_FALSE )
 			return;
-	#if defined ( SAT_PLATFORM_WINDOWS )
+
 		glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
 		glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
-	#endif
 		glfwWindowHint( GLFW_DECORATED, GLFW_TRUE );
 
 		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
+
+		// Make Current before loading OpenGL
+		glfwMakeContextCurrent( m_Window );
 
 	#if !defined ( SAT_DONT_USE_GL )
 		int result = gladLoadGLLoader( ( GLADloadproc )glfwGetProcAddress );
 		if( result == 0 )
 		{
-			// Log Fail
+			SAT_CORE_ERROR( "Failed to load OpenGL with Glad!" );
 		}
+		SAT_CORE_INFO( "OpenGL Renderer: {2}, {0}, {1}", glGetString( GL_VENDOR ), glGetString( GL_RENDERER ), glGetString( GL_VERSION ) );
 	#endif
 
 		glfwSetWindowUserPointer( m_Window, this );
-		glfwMakeContextCurrent( m_Window );
 		glfwSwapInterval( GLFW_TRUE );	
+
+	#if defined( SAT_PLATFORM_WINDOWS )
+
+	#endif
 	}
 
 	Window::~Window()

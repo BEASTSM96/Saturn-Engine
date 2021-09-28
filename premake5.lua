@@ -77,7 +77,6 @@ project "Saturn"
 	{ 
 		"GLFW",
 		"Glad",
-		"glfw3",
 		"ImGui",
 		"opengl32.lib"
 	}
@@ -191,8 +190,7 @@ project "Titan"
 
 	links
 	{
-		"Saturn",
-		"glfw3"
+		"Saturn"
 	}
 
 	postbuildcommands 

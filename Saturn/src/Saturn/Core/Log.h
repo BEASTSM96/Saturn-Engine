@@ -28,23 +28,89 @@
 
 #pragma once
 
-#ifdef SAT_PLATFORM_WINDOWS
-	#include <Windows.h>
-	#ifndef NOMINMAX
-		// See github.com/skypjack/entt/wiki/Frequently-Asked-Questions#warning-c4003-the-min-the-max-and-the-macro
-		#define NOMINMAX
-	#endif
-#endif
+#include "Base.h"
 
-#include <memory>
-#include <vector>
-#include <string>
-#include <array>
-#include <unordered_map>
-#include <functional>
-#include <algorithm>
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
+#include <glm/glm.hpp>
 
-#include <fstream>
+namespace Saturn {
 
-#include <Saturn/Core/Log.h>
-#include <Saturn/Core/Base.h>
+	class Log
+	{
+		SINGLETON( Log );
+
+		Log() { Init(); }
+		~Log() { Clear(); }
+
+		void Init();
+		void Clear();
+
+	public:
+
+		static inline std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
+		static inline std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
+
+	private:
+
+		static std::shared_ptr<spdlog::logger> s_CoreLogger;
+		static std::shared_ptr<spdlog::logger> s_ClientLogger;
+	};
+
+	template<typename T>
+	static void Info( const T& msg )
+	{
+		Log::Get().GetCoreLogger()->info( msg );
+	}
+
+	template<typename T>
+	static void Trace( const T& msg )
+	{
+		Log::Get().GetCoreLogger()->trace( msg );
+	}
+
+	template<typename T>
+	static void Warn( const T& msg )
+	{
+		Log::Get().GetCoreLogger()->warn( msg );
+	}
+
+	template<typename T>
+	static void Error( const T& msg )
+	{
+		Log::Get().GetCoreLogger()->error( msg );
+	}
+
+	template<typename T>
+	static void Fatal( const T& msg )
+	{
+		Log::Get().GetCoreLogger()->critical( msg );
+	}
+}
+
+template<typename OStream>
+OStream& operator<<( OStream& os, const glm::vec3& vec )
+{
+	return os << '(' << vec.x << ", " << vec.y << ", " << vec.z << ')';
+}
+
+template<typename OStream>
+OStream& operator<<( OStream& os, const glm::vec4& vec )
+{
+	return os << '(' << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ')';
+}
+
+
+// Core log macros
+#define SAT_CORE_TRACE(...)				Saturn::Log::Get().GetCoreLogger()->trace(__VA_ARGS__)
+#define SAT_CORE_INFO(...)				Saturn::Log::Get().GetCoreLogger()->info(__VA_ARGS__)
+#define SAT_CORE_WARN(...)				Saturn::Log::Get().GetCoreLogger()->warn(__VA_ARGS__)
+#define SAT_CORE_ERROR(...)				Saturn::Log::Get().GetCoreLogger()->error(__VA_ARGS__)
+#define SAT_CORE_FATAL(...)				Saturn::Log::Get().GetCoreLogger()->critical(__VA_ARGS__)
+
+// Client log macros
+#define SAT_TRACE(...)					Saturn::Log::Get().GetClientLogger()->trace(__VA_ARGS__)
+#define SAT_INFO(...)					Saturn::Log::Get().GetClientLogger()->info(__VA_ARGS__)
+#define SAT_WARN(...)					Saturn::Log::Get().GetClientLogger()->warn(__VA_ARGS__)
+#define SAT_ERROR(...)					Saturn::Log::Get().GetClientLogger()->error(__VA_ARGS__)
+#define SAT_FATAL(...)					Saturn::Log::Get().GetClientLogger()->critical(__VA_ARGS__)
