@@ -29,6 +29,7 @@
 #include "sppch.h"
 #include "Window.h"
 
+#include "App.h"
 #include "Saturn/ImGui/Styles.h"
 
 #include <glad/glad.h>
@@ -83,6 +84,11 @@ namespace Saturn {
 
 		glfwSetWindowUserPointer( m_Window, this );
 		glfwSwapInterval( GLFW_TRUE );	
+
+		// Set GLFW events
+		glfwSetWindowCloseCallback( m_Window, []( GLFWwindow* window ) { Application::Get().Close(); } );
+
+		glfwSetWindowSizeCallback( m_Window, SizeCallback );
 
 	#if defined( SAT_PLATFORM_WINDOWS ) && defined ( SAT_PLATFORM_WINDOWS_A )
 		HWND      WindowHandle    = glfwGetWin32Window( m_Window );
@@ -162,6 +168,9 @@ namespace Saturn {
 
 	void Window::NewFrame()
 	{
+		if( !Application::Get().Running() )
+			return;
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -172,6 +181,9 @@ namespace Saturn {
 
 	void Window::EndFrame()
 	{
+		if( !Application::Get().Running() )
+			return;
+
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
 
@@ -187,6 +199,14 @@ namespace Saturn {
 			glfwMakeContextCurrent( backup_current_context );
 		}
 
+	}
+
+	void Window::SizeCallback( GLFWwindow* wind, int h, int w )
+	{
+		Window* window = ( Window* )glfwGetWindowUserPointer( wind );
+
+		window->m_Height = h;
+		window->m_Width = w;
 	}
 
 #if defined ( SAT_PLATFORM_WINDOWS )

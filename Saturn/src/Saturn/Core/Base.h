@@ -38,7 +38,6 @@ x( x&& ) = delete;                        \
 x& operator=( x&& ) = delete;             \
 x& operator=( const x& ) = delete
 
-
 namespace Saturn::Core {
 
 	inline void BreakDebug()

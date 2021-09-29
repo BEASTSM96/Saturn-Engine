@@ -63,6 +63,10 @@ namespace Saturn {
 		void EndFrame();
 
 	private:
+
+		static void SizeCallback( GLFWwindow* wind, int h, int w );
+
+	private:
 		GLFWwindow* m_Window = nullptr;
 
 		int m_Height = 720;

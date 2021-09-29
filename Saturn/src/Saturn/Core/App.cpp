@@ -49,4 +49,10 @@ namespace Saturn {
 			Window::Get().EndFrame();
 		}
 	}
+
+	void Application::Close()
+	{
+		m_Running = false;
+	}
+
 }

@@ -30,6 +30,7 @@
 
 #include "Base.h"
 
+
 namespace Saturn {
 
 	class Application
@@ -42,6 +43,9 @@ namespace Saturn {
 	public:
 
 		void Run();
+		void Close();
+
+		bool Running() { return m_Running; }
 
 	protected:
 	private:

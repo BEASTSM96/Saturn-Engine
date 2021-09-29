@@ -43,10 +43,9 @@
 
 int main( int count, char** args ) 
 {
-	while( true )
-	{
-		Saturn::Application::Get().Run();
-	}
+	Saturn::Application::Get();
+
+	Saturn::Application::Get().Run();
 }
 
 #if defined ( SAT_PLATFORM_WINDOWS )
