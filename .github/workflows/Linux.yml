@@ -14,9 +14,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install X11
+    - name: Update
       run: sudo apt-get update
+      
+    - name: Upgrade
       run: sudo apt-get upgrade
+
+    - name: Install X11
       run: sudo apt install xorg-dev
 
     - name: Generate Submodules
