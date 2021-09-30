@@ -26,7 +26,7 @@
 *********************************************************************************************
 */
 
-#include "Saturn/Core/Base.h"
+#include "Saturn/Core/App.h"
 
 // Fix GLFW defines not being defined when they are defined
 #if defined ( SAT_LINUX )
@@ -40,8 +40,6 @@
 #if defined( SAT_WINDOWS )
 #include <Windows.h>
 #endif // SAT_WINDOWS
-
-#include "Saturn/Core/App.h"
 
 int main( int count, char** args ) 
 {

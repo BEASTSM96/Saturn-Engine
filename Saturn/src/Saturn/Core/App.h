@@ -30,7 +30,6 @@
 
 #include "Base.h"
 
-
 namespace Saturn {
 
 	class Application
