@@ -33,4 +33,4 @@ jobs:
       run: ./tpremake/premake5 gmake2
 
     - name: Make Solution
-      run: make
+      run: make -j
