@@ -21,7 +21,10 @@ jobs:
       uses: BEASTSM96/premake-action@v1.1
 
     - name: Generate Project Files
-      run: ./tpremake/premake5 gmake2
+      run: ./tpremake/premake5 xcode4
 
-    - name: Make Solution
-      run: make
+    - name: Clean project
+      run: xcodebuild clean -workspace "Saturn.xcworkspace" -scheme "Saturn"
+
+    - name: Build project
+      run: xcodebuild build -workspace "Saturn.xcworkspace" -scheme "Saturn" -configuration Release | xcpretty -c && exit ${PIPESTATUS[0]}
