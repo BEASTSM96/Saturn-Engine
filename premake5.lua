@@ -114,6 +114,15 @@ project "Saturn"
 			"SAT_PLATFORM_LINUX"
 		}
 
+		links 
+		{
+			"stdc++fs",
+			"pthread",
+			"dl",
+			"GL",
+			"X11",
+		}
+
 		filter "configurations:Debug"
 			defines "SAT_DEBUG"
 			runtime "Debug"
