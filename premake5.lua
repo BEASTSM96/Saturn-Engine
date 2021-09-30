@@ -213,7 +213,8 @@ project "Titan"
 
 		defines
 		{
-			"SAT_PLATFORM_WINDOWS"
+			"SAT_PLATFORM_WINDOWS",
+			"GLFW_INCLUDE_NONE"
 		}
 
 	filter "configurations:Debug"
@@ -230,3 +231,59 @@ project "Titan"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
+
+
+	filter "system:linux"
+		systemversion "latest"
+
+		defines
+		{
+			"SAT_PLATFORM_LINUX"
+		}
+
+		links 
+		{
+			"stdc++fs",
+			"pthread",
+			"dl",
+			"GL",
+			"X11"
+		}
+
+		filter "configurations:Debug"
+			defines "SAT_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "SAT_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+		filter "configurations:Dist"
+			defines "SAT_DIST"
+			runtime "Release"
+			optimize "on"
+
+	filter "system:macosx"
+		systemversion "latest"
+
+		defines
+		{
+			"SAT_PLATFORM_MAC"
+		}
+
+		filter "configurations:Debug"
+			defines "SAT_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "SAT_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+		filter "configurations:Dist"
+			defines "SAT_DIST"
+			runtime "Release"
+			optimize "on"
