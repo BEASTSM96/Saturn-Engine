@@ -247,7 +247,10 @@ project "Titan"
 			"pthread",
 			"dl",
 			"GL",
-			"X11"
+			"X11",
+			"GLFW",
+			"Glad",
+			"ImGui"
 		}
 
 		filter "configurations:Debug"
