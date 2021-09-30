@@ -32,11 +32,11 @@
 
 #include <string>
 
-#if defined ( SAT_PLATFORM_LINUX ) || defined ( SAT_PLATFORM_MAC ) 
+#if defined ( SAT_LINUX ) || defined ( SAT_MAC ) 
 #include <cstring>
 #endif
 
-#if defined( SAT_PLATFORM_WINDOWS )
+#if defined( SAT_WINDOWS )
 #include <Windows.h>
 #endif
 
@@ -73,7 +73,7 @@ namespace Saturn {
 		int m_Width  = 1200;
 		std::string m_Title = "Saturn";
 
-	#if defined ( SAT_PLATFORM_WINDOWS )
+	#if defined ( SAT_WINDOWS )
 		WNDPROC  m_WindowProc  = nullptr;
 		static LRESULT WindowProc( HWND handle, UINT msg, WPARAM WParam, LPARAM LParam );
 	#endif

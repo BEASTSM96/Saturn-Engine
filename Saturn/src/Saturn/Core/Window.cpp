@@ -34,15 +34,15 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #include <imgui.h>
+
 #if !defined ( SAT_DONT_USE_GL )
 #include "examples/imgui_impl_opengl3.h"
 #include "examples/imgui_impl_glfw.h"
 #endif
 
-#if defined ( SAT_PLATFORM_WINDOWS )
+#if defined ( SAT_WINDOWS )
 #include <dwmapi.h>
 #endif
 
@@ -62,7 +62,7 @@ namespace Saturn {
 
 		glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
 		glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
-	#if defined( SAT_PLATFORM_WINDOWS_A )
+	#if defined( SAT_WINDOWS_A )
 		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 	#else
 		glfwWindowHint( GLFW_DECORATED, GLFW_TRUE );
@@ -90,7 +90,7 @@ namespace Saturn {
 
 		glfwSetWindowSizeCallback( m_Window, SizeCallback );
 
-	#if defined( SAT_PLATFORM_WINDOWS ) && defined ( SAT_PLATFORM_WINDOWS_A )
+	#if defined( SAT_WINDOWS ) && defined ( SAT_WINDOWS_A )
 		HWND      WindowHandle    = glfwGetWin32Window( m_Window );
 		HINSTANCE Instance        = GetModuleHandle( nullptr );
 
@@ -209,7 +209,7 @@ namespace Saturn {
 		window->m_Width = w;
 	}
 
-#if defined ( SAT_PLATFORM_WINDOWS )
+#if defined ( SAT_WINDOWS )
 
 #endif
 }
