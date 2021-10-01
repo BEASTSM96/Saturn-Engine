@@ -201,9 +201,6 @@ namespace Saturn {
 
 		// Was EndFrame
 
-		if( !Application::Get().Running() )
-			return;
-
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
 

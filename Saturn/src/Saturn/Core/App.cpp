@@ -72,7 +72,7 @@ namespace Saturn {
 
 			Window::Get().OnUpdate();
 
-			glClearColor( 0.100000001, 0.100000001, 0.100000001, 1.0f );
+			glClearColor( GL_CLEAR_COLOR_X_Y_Z, 1.0f );
 			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 
 			shader.Bind();
