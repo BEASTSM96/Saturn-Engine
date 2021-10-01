@@ -49,6 +49,7 @@
 
 #if defined ( SAT_WINDOWS )
 #include <dwmapi.h>
+#include <Windows.h>
 #endif
 
 namespace Saturn {
@@ -67,7 +68,7 @@ namespace Saturn {
 
 		glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
 		glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
-	#if defined( SAT_WINDOWS_A )
+	#if defined( SAT_WINDOWS )
 		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 	#else
 		glfwWindowHint( GLFW_DECORATED, GLFW_TRUE );
@@ -95,20 +96,23 @@ namespace Saturn {
 
 		glfwSetWindowSizeCallback( m_Window, SizeCallback );
 
-	#if defined( SAT_WINDOWS ) && defined ( SAT_WINDOWS_A )
-		HWND      WindowHandle    = glfwGetWin32Window( m_Window );
-		HINSTANCE Instance        = GetModuleHandle( nullptr );
+	#if defined( SAT_WINDOWS )
 
-		SetWindowLong( WindowHandle, GWL_STYLE, GetWindowLong( WindowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX );
+		// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
+
+		HWND      windowHandle    = glfwGetWin32Window( m_Window );
+		HINSTANCE instance        = GetModuleHandle( nullptr );
+
+		SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX );
 
 		// Fix missing drop shadow
-		MARGINS ShadowMargins;
-		ShadowMargins ={ 1, 1, 1, 1 };
-		DwmExtendFrameIntoClientArea( WindowHandle, &ShadowMargins );
+		MARGINS shadowMargins;
+		shadowMargins ={ 1, 1, 1, 1 };
+		DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
 
 		// Override window procedure with custom one to allow native window moving behavior without a title bar
-		SetWindowLongPtr( WindowHandle, GWLP_USERDATA, ( LONG_PTR )this );
-		m_WindowProc = ( WNDPROC )SetWindowLongPtr( WindowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
+		SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
+		m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
 	#endif
 
 		// Init ImGui
@@ -152,7 +156,6 @@ namespace Saturn {
 	void Window::OnUpdate()
 	{
 		glfwPollEvents();
-		glfwSwapBuffers( m_Window );
 	}
 
 	void Window::Maximize()
@@ -171,8 +174,10 @@ namespace Saturn {
 		glfwSetWindowTitle( m_Window, m_Title.c_str() );
 	}
 
-	void Window::NewFrame()
+	void Window::Render()
 	{
+		// Was NewFrame
+
 		if( !Application::Get().Running() )
 			return;
 
@@ -180,12 +185,22 @@ namespace Saturn {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		bool demo = true;
-		ImGui::ShowDemoWindow( &demo );
-	}
+		// TEMP
+		if( ImGui::BeginMainMenuBar() )
+		{
+			if( ImGui::BeginMenu( "File" ) )
+			{
+				if( ImGui::MenuItem( "Exit", "Alt+F4" ) ) exit( 0 /*EXIT_SUCCESS*/ );
 
-	void Window::EndFrame()
-	{
+				ImGui::EndMenu();
+			}
+		}
+
+		ImGui::EndMainMenuBar();
+
+
+		// Was EndFrame
+
 		if( !Application::Get().Running() )
 			return;
 
@@ -204,6 +219,7 @@ namespace Saturn {
 			glfwMakeContextCurrent( backup_current_context );
 		}
 
+		glfwSwapBuffers( m_Window );
 	}
 
 	void Window::SizeCallback( GLFWwindow* wind, int h, int w )
@@ -215,6 +231,102 @@ namespace Saturn {
 	}
 
 #if defined ( SAT_WINDOWS )
+
+	// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
+
+	LRESULT Window::WindowProc( HWND handle, UINT msg, WPARAM WParam, LPARAM LParam )
+	{
+		Window* self = ( Window* )GetWindowLongPtr( handle, GWLP_USERDATA );
+
+		switch( msg )
+		{
+			case WM_NCHITTEST:
+			{
+				POINT mousePos;
+				RECT  windowRect;
+
+				GetCursorPos( &mousePos );
+				GetWindowRect( handle, &windowRect );
+
+				if( PtInRect( &windowRect, mousePos ) )
+				{
+					const int borderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER ) + 2;
+					const int borderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER ) + 2;
+
+					if( mousePos.y < ( windowRect.top + borderY ) )
+					{
+						if( mousePos.x < ( windowRect.left + borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTTOPLEFT; }
+						else if( mousePos.x >= ( windowRect.right - borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTTOPRIGHT; }
+						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTTOP; }
+					}
+					else if( mousePos.y >= ( windowRect.bottom - borderY ) )
+					{
+						if( mousePos.x < ( windowRect.left + borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTBOTTOMLEFT; }
+						else if( mousePos.x >= ( windowRect.right - borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTBOTTOMRIGHT; }
+						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTBOTTOM; }
+					}
+					else if( mousePos.x < ( windowRect.left + borderX ) )
+					{
+						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
+						return HTLEFT;
+					}
+					else if( mousePos.x >= ( windowRect.right - borderX ) )
+					{
+						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
+						return HTRIGHT;
+					}
+					else
+					{
+						// Drag the menu bar to move the window
+						if( !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + self->m_Height ) ) )
+							return HTCAPTION;
+					}
+				}
+				break;
+			}
+
+			case WM_NCCALCSIZE:
+			{
+				// Preserve the old client area and align it with the upper-left corner of the new client area
+				return 0;
+				break;
+			} 
+
+			case WM_ENTERSIZEMOVE:
+			{
+				SetTimer( handle, 1, USER_TIMER_MINIMUM, NULL );
+				break;
+			} 
+
+			case WM_EXITSIZEMOVE:
+			{
+				KillTimer( handle, 1 );
+				break;
+			} 
+
+			case WM_TIMER:
+			{
+				const UINT_PTR timerID = ( UINT_PTR )WParam;
+
+				if( timerID == 1 )
+				{
+					self->Render();
+				}
+				break;
+			} 
+
+			case WM_SIZE:
+			case WM_MOVE:
+			{
+				self->Render();
+				break;
+			}
+
+		}
+
+		return CallWindowProc( self->m_WindowProc, handle, msg, WParam, LParam );
+
+	}
 
 #endif
 }

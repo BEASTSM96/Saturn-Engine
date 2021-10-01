@@ -68,7 +68,7 @@ namespace Saturn {
 
 		while( m_Running )
 		{
-			Window::Get().NewFrame();
+			Window::Get().Render();
 
 			Window::Get().OnUpdate();
 
@@ -78,9 +78,6 @@ namespace Saturn {
 			shader.Bind();
 			glBindVertexArray( VAO );
 			glDrawArrays( GL_TRIANGLES, 0, 3 );
-
-			Window::Get().EndFrame();
-
 		}
 	}
 

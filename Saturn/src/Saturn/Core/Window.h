@@ -59,8 +59,7 @@ namespace Saturn {
 		void Restore();
 		void SetTitle( const std::string& title );
 
-		void NewFrame();
-		void EndFrame();
+		void Render();
 
 	private:
 
