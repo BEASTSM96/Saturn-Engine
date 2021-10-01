@@ -84,6 +84,11 @@ project "Saturn"
 	filter "system:windows"
 		systemversion "latest"
 
+		links 
+		{
+			"dwmapi"	
+		}
+
 		defines
 		{
 			"SAT_PLATFORM_WINDOWS",

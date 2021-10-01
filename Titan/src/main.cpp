@@ -37,7 +37,7 @@
 #define GLFW_EXPOSE_NATIVE_COCOA
 #endif // SAT_LINUX
 
-#if defined( SAT_WINDOWS_A )
+#if defined( SAT_WINDOWS )
 #include <Windows.h>
 #endif // SAT_WINDOWS
 
@@ -48,7 +48,7 @@ int main( int count, char** args )
 	Saturn::Application::Get().Run();
 }
 
-#if defined ( SAT_WINDOWS_A )
+#if defined ( SAT_WINDOWS )
 
 int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
 {

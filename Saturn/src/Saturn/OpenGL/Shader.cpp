@@ -229,7 +229,7 @@ namespace Saturn {
 		while ( tt_pos != std::string::npos )
 		{
 			// Fine first eol in Type Token pos
-			size_t eol_CL_LF = filepath.find_first_of( CR_LF, tt_pos );
+			size_t eol_CL_LF = filepath.find_first_of( __CR_LF__, tt_pos );
 			SAT_CORE_ASSERT( eol_CL_LF != std::string::npos, "[Shader] Syntax Error!" );
 
 			// Get shader type

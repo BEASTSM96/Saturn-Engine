@@ -31,17 +31,19 @@
 // Short Macros
 #if defined ( SAT_PLATFORM_WINDOWS )
 #define SAT_WINDOWS 1
+#define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined ( SAT_PLATFORM_LINUX )
 #define SAT_LINUX 1
+#define GLFW_EXPOSE_NATIVE_X11
 #else
 #define SAT_MAC 1
 #endif 
 
 // Line Ending for shaders
 
-#define CR_LF "\r\n"
-#define LF "\n"
-#define CR "\r"
+#define __CR_LF__ "\r\n"
+#define _LF__ "\n"
+#define _CR__ "\r"
 
 #define SINGLETON( x )                    \
 public:                                   \
