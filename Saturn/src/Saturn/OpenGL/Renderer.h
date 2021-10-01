@@ -28,41 +28,8 @@
 
 #pragma once
 
-// Short Macros
-#if defined ( SAT_PLATFORM_WINDOWS )
-#define SAT_WINDOWS 1
-#elif defined ( SAT_PLATFORM_LINUX )
-#define SAT_LINUX 1
-#else
-#define SAT_MAC 1
-#endif 
+namespace Saturn {
 
-// Line Ending for shaders
 
-#define CR_LF "\r\n"
-#define LF "\n"
-#define CR "\r"
-
-#define SINGLETON( x )                    \
-public:                                   \
-static x& Get() { static x _; return _; } \
-x( const x& ) = delete;                   \
-x( x&& ) = delete;                        \
-x& operator=( x&& ) = delete;             \
-x& operator=( const x& ) = delete
-
-namespace Saturn::Core {
-
-	inline void BreakDebug()
-	{
-	#if defined( _WIN32 )
-		__debugbreak();
-	#else
-		return;
-	#endif // _MSC_VER
-	}
 
 }
-
-// Inject asserts
-#include "Asserts.h"

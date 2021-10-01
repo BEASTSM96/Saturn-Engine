@@ -28,41 +28,71 @@
 
 #pragma once
 
-// Short Macros
-#if defined ( SAT_PLATFORM_WINDOWS )
-#define SAT_WINDOWS 1
-#elif defined ( SAT_PLATFORM_LINUX )
-#define SAT_LINUX 1
-#else
-#define SAT_MAC 1
-#endif 
+#include "Common.h"
 
-// Line Ending for shaders
+#include <string>
 
-#define CR_LF "\r\n"
-#define LF "\n"
-#define CR "\r"
+namespace Saturn {
 
-#define SINGLETON( x )                    \
-public:                                   \
-static x& Get() { static x _; return _; } \
-x( const x& ) = delete;                   \
-x( x&& ) = delete;                        \
-x& operator=( x&& ) = delete;             \
-x& operator=( const x& ) = delete
-
-namespace Saturn::Core {
-
-	inline void BreakDebug()
+	class Shader
 	{
-	#if defined( _WIN32 )
-		__debugbreak();
-	#else
-		return;
-	#endif // _MSC_VER
-	}
+	public:
+
+		Shader() = default;
+		Shader( const std::string& filename );
+
+		void Bind();
+		RendererID GetRendererID() { return m_ID; }
+
+		const std::string& GetName() { return m_Name; }
+
+		// Uniform Funcs
+
+		void SetBool( const std::string& name, bool val );
+		void SetInt( const std::string& name, int val );
+		void SetFloat( const std::string& name, float val );
+
+	private:
+
+		void Load( const std::string& filepath );
+		void Parse();
+
+		void CompileAndUploadShader();
+		std::string ReadShaderFromFile( const std::string& src );
+
+		const char* FindToken( const char* shader, const std::string& token );
+		std::string GetStatement( const char* str, const char** outPosition );
+
+		void ParseUniform( const std::string& statement, int domain );
+
+		std::unordered_map<unsigned int, std::string> DetermineShaderTypes( const std::string& filepath );
+
+		unsigned int ShaderTypeFromString( const std::string& type );
+
+	private:
+
+		RendererID m_ID = 0;
+		bool m_Loaded = false;
+		std::string m_Name, m_Filepath;
+
+		// We technically have 2 shaders in one file, so we make a map here
+		std::unordered_map<unsigned int, std::string> m_Shaders;
+
+	private:
+
+		const char* FTLSD_VertexShaderSource = "#version 330 core\n"
+			"layout (location = 0) in vec3 aPos;\n"
+			"void main()\n"
+			"{\n"
+			"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+			"}\0";
+
+		const char* FTLSD_FragmentShaderSource = "#version 330 core\n"
+			"out vec4 FragColor;\n"
+			"void main()\n"
+			"{\n"
+			"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+			"}\n\0";
+	};
 
 }
-
-// Inject asserts
-#include "Asserts.h"

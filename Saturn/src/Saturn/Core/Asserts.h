@@ -31,8 +31,8 @@
 #define _VA_AGRS_( x ) x
 
 #if defined ( SAT_DEBUG )
-#define SAT_ASSERT_NO_MESSAGE(condition) { if(!(condition)) { SAT_ERROR("Assertion Failed: {2}, Line {0}, File, {1}", __LINE__, __FILE__, #condition); SAT_DEBUGBREAK(); } }
-#define SAT_ASSERT_MESSAGE(condition, ...) { if(!(condition)) { SAT_ERROR("Assertion Failed: {2}, Line {1}, File, {2}", __LINE__, __FILE__, __VA_ARGS__); SAT_DEBUGBREAK(); } }
+#define SAT_ASSERT_NO_MESSAGE(condition) { if(!(condition)) { SAT_ERROR("Assertion Failed: {2}, Line {0}, File, {1}", __LINE__, __FILE__, #condition); Saturn::Core::BreakDebug(); } }
+#define SAT_ASSERT_MESSAGE(condition, ...) { if(!(condition)) { SAT_ERROR("Assertion Failed: {2}, Line {1}, File, {2}", __LINE__, __FILE__, __VA_ARGS__); Saturn::Core::BreakDebug(); } }
 
 #define SAT_ASSERT_RESOLVE(arg1, arg2, macro, ...) macro
 #define SAT_GET_ASSERT_MACRO(...) _VA_AGRS_(SAT_ASSERT_RESOLVE(__VA_ARGS__, SAT_ASSERT_MESSAGE, SAT_ASSERT_NO_MESSAGE))

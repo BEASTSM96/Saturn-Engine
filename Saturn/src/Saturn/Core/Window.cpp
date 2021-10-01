@@ -32,7 +32,7 @@
 #include "App.h"
 #include "Saturn/ImGui/Styles.h"
 
-#if defined( SAT_WINDOWS ) || defined( SAT_MAC )
+#if defined( SAT_WINDOWS ) || defined( SAT_LINUX )
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
