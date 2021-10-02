@@ -32,15 +32,12 @@
 #include "App.h"
 #include "Saturn/ImGui/Styles.h"
 
-#if defined( SAT_WINDOWS ) || defined( SAT_LINUX )
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
-#else
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
-#include "GLFW/glfw3native.h"
-#endif
+
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #if !defined ( SAT_DONT_USE_GL )
 #include "examples/imgui_impl_opengl3.h"
@@ -68,7 +65,7 @@ namespace Saturn {
 
 		glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
 		glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
-	#if defined( SAT_WINDOWS )
+	#if defined( SAT_WINDOWS_A )
 		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 	#else
 		glfwWindowHint( GLFW_DECORATED, GLFW_TRUE );
@@ -96,7 +93,7 @@ namespace Saturn {
 
 		glfwSetWindowSizeCallback( m_Window, SizeCallback );
 
-	#if defined( SAT_WINDOWS )
+	#if defined( SAT_WINDOWS_A )
 
 		// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
 
@@ -143,6 +140,8 @@ namespace Saturn {
 		ImGui_ImplGlfw_InitForOpenGL( m_Window, true );
 		ImGui_ImplOpenGL3_Init( "#version 410" );
 	#endif
+
+		m_TitleBar = new TitleBar();
 	}
 
 	Window::~Window()
@@ -155,12 +154,26 @@ namespace Saturn {
 
 	void Window::OnUpdate()
 	{
+		if( Minimized )
+			return;
+
 		glfwPollEvents();
 	}
 
 	void Window::Maximize()
 	{
-		glfwMaximizeWindow( m_Window );
+		const bool wasMaximized = ( glfwGetWindowAttrib( m_Window, GLFW_MAXIMIZED ) == GLFW_TRUE );
+
+		if( !wasMaximized ) { glfwMaximizeWindow( m_Window ); Minimized = false; }
+		else Restore();
+	}
+
+	void Window::Minimize()
+	{
+		const bool wasMinimize = ( glfwGetWindowAttrib( m_Window, GLFW_ICONIFIED ) == GLFW_TRUE );
+
+		if( !wasMinimize ) { Minimized = true; glfwIconifyWindow( m_Window ); }
+		else Restore();
 	}
 
 	void Window::Restore()
@@ -183,29 +196,20 @@ namespace Saturn {
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
+
 		ImGui::NewFrame();
 
-		// TEMP
-		if( ImGui::BeginMainMenuBar() )
-		{
-			if( ImGui::BeginMenu( "File" ) )
-			{
-				if( ImGui::MenuItem( "Exit", "Alt+F4" ) ) exit( 0 /*EXIT_SUCCESS*/ );
+		ImGui::DockSpaceOverViewport( nullptr, ImGuiDockNodeFlags_NoWindowMenuButton );
 
-				ImGui::EndMenu();
-			}
-		}
-
-		ImGui::EndMainMenuBar();
-
+		m_TitleBar->Draw();
 
 		// Was EndFrame
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
 
-		// Rendering
 		ImGui::Render();
+
 		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
 
 		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
@@ -252,15 +256,15 @@ namespace Saturn {
 
 					if( mousePos.y < ( windowRect.top + borderY ) )
 					{
-						if( mousePos.x < ( windowRect.left + borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTTOPLEFT; }
+						if( mousePos.x < ( windowRect.left + borderX ) )        { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTTOPLEFT; }
 						else if( mousePos.x >= ( windowRect.right - borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTTOPRIGHT; }
-						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTTOP; }
+						else                                                    { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTTOP; }
 					}
 					else if( mousePos.y >= ( windowRect.bottom - borderY ) )
 					{
-						if( mousePos.x < ( windowRect.left + borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTBOTTOMLEFT; }
+						if( mousePos.x < ( windowRect.left + borderX ) )        { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTBOTTOMLEFT; }
 						else if( mousePos.x >= ( windowRect.right - borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTBOTTOMRIGHT; }
-						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTBOTTOM; }
+						else                                                    { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTBOTTOM; }
 					}
 					else if( mousePos.x < ( windowRect.left + borderX ) )
 					{
@@ -275,12 +279,13 @@ namespace Saturn {
 					else
 					{
 						// Drag the menu bar to move the window
-						if( !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + self->m_Height ) ) )
+						if( !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + self->m_TitleBar->Height() ) ) )
 							return HTCAPTION;
 					}
 				}
 				break;
 			}
+
 
 			case WM_NCCALCSIZE:
 			{
@@ -318,11 +323,9 @@ namespace Saturn {
 				self->Render();
 				break;
 			}
-
 		}
 
 		return CallWindowProc( self->m_WindowProc, handle, msg, WParam, LParam );
-
 	}
 
 #endif

@@ -28,45 +28,26 @@
 
 #pragma once
 
-// Short Macros
-#if defined ( SAT_PLATFORM_WINDOWS )
-#define SAT_WINDOWS 1
-#define GLFW_EXPOSE_NATIVE_WIN32
-#elif defined ( SAT_PLATFORM_LINUX )
-#define SAT_LINUX 1
-#define GLFW_EXPOSE_NATIVE_X11
-#else
-#define SAT_MAC 1
-#endif 
+#include "Saturn/Core/App.h"
 
-#define GLFW_RESIZE_NESW_CURSOR 0x00036008
+#include <imgui.h>
+#include <imgui_internal.h>
 
-// Line Ending for shaders
+namespace Saturn {
 
-#define __CR_LF__ "\r\n"
-#define _LF__ "\n"
-#define _CR__ "\r"
-
-#define SINGLETON( x )                    \
-public:                                   \
-static x& Get() { static x _; return _; } \
-x( const x& ) = delete;                   \
-x( x&& ) = delete;                        \
-x& operator=( x&& ) = delete;             \
-x& operator=( const x& ) = delete
-
-namespace Saturn::Core {
-
-	inline void BreakDebug()
+	class TitleBar
 	{
-	#if defined( _WIN32 )
-		__debugbreak();
-	#else
-		return;
-	#endif // _MSC_VER
-	}
+	public:
+
+		TitleBar();
+
+		void Draw();
+
+		float Height() const { return m_Height; }
+
+	private:
+
+		float m_Height;
+	};
 
 }
-
-// Inject asserts
-#include "Asserts.h"

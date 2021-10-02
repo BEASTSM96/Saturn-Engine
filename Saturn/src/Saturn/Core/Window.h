@@ -30,6 +30,8 @@
 
 #include "Base.h"
 
+#include "Saturn/ImGui/TitleBar.h"
+
 #include <string>
 
 #if defined ( SAT_LINUX ) || defined ( SAT_MAC ) 
@@ -56,6 +58,8 @@ namespace Saturn {
 		void OnUpdate();
 
 		void Maximize();
+		void Minimize();
+
 		void Restore();
 		void SetTitle( const std::string& title );
 
@@ -71,6 +75,12 @@ namespace Saturn {
 		int m_Height = 720;
 		int m_Width  = 1200;
 		std::string m_Title = "Saturn";
+
+		bool Minimized = false;
+
+		// Widgets
+
+		TitleBar* m_TitleBar;
 
 	#if defined ( SAT_WINDOWS )
 		WNDPROC  m_WindowProc  = nullptr;
