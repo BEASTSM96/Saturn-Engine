@@ -32,6 +32,8 @@
 #include "App.h"
 #include "Saturn/ImGui/Styles.h"
 
+#include "Saturn/OpenGL/Renderer.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -63,8 +65,10 @@ namespace Saturn {
 		if( glfwInit() == GLFW_FALSE )
 			return;
 
-		glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
-		glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
+	#if defined ( SAT_DEBUG ) && !defined ( SAT_DONT_USE_GL )
+		glfwWindowHint( GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE );
+	#endif
+
 	#if defined( SAT_WINDOWS_A )
 		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 	#else
@@ -199,8 +203,6 @@ namespace Saturn {
 
 		ImGui::NewFrame();
 
-		ImGui::DockSpaceOverViewport( nullptr, ImGuiDockNodeFlags_NoWindowMenuButton );
-
 		m_TitleBar->Draw();
 
 		// Was EndFrame
@@ -229,6 +231,8 @@ namespace Saturn {
 
 		window->m_Height = h;
 		window->m_Width = w;
+
+		Renderer::Get().Reszie( w, h );
 	}
 
 #if defined ( SAT_WINDOWS )

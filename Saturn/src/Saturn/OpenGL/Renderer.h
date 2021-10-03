@@ -28,8 +28,26 @@
 
 #pragma once
 
+#include "Saturn/Core/Base.h"
+#include "Common.h"
+
 namespace Saturn {
 
+	class Renderer
+	{
+		SINGLETON( Renderer );
 
+		Renderer() { Init(); }
+		~Renderer() {  }
 
+	public:
+
+		void Clear();
+		void Reszie( int width, int height );
+
+	protected:
+	private:
+
+		void Init();
+	};
 }

@@ -65,6 +65,8 @@ namespace Saturn {
 			glDeleteProgram( m_ID );
 
 		CompileAndUploadShader();
+
+		m_Loaded = true;
 	}
 
 	void Shader::Parse()
