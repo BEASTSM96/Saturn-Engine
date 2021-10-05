@@ -72,7 +72,7 @@ namespace Saturn {
 	void Shader::Parse()
 	{
 		const char* token;
-		
+
 		// Vertex and Fragment strings
 		const char* vstr;
 		const char* fstr;
@@ -184,7 +184,7 @@ namespace Saturn {
 		const char* t = shader;
 
 		// Return ptr of the first occurrence of token in t & check if not null
-		while ( t = strstr( t, token.c_str() ) )
+		while( t = strstr( t, token.c_str() ) )
 		{
 			bool left = shader == t || isspace( t[ -1 ] );
 
@@ -194,7 +194,7 @@ namespace Saturn {
 				return t;
 
 			t += token.size();
-		}	
+		}
 		return nullptr;
 	}
 
@@ -228,7 +228,7 @@ namespace Saturn {
 		size_t tt_length = strlen( typeToken );
 		size_t tt_pos = filepath.find( typeToken, 0 );
 
-		while ( tt_pos != std::string::npos )
+		while( tt_pos != std::string::npos )
 		{
 			// Fine first eol in Type Token pos
 			size_t eol_CL_LF = filepath.find_first_of( __CR_LF__, tt_pos );
@@ -267,4 +267,20 @@ namespace Saturn {
 	{
 		glUniform1f( glGetUniformLocation( m_ID, name.c_str() ), val );
 	}
+
+	void Shader::SetFloat2( const std::string& name, const glm::vec2& val )
+	{
+		glUniform2f( glGetUniformLocation( m_ID, name.c_str() ), val.x, val.y );
+	}
+
+	void Shader::SetFloat3( const std::string& name, const glm::vec3& val )
+	{
+		glUniform3f( glGetUniformLocation( m_ID, name.c_str() ), val.x, val.y, val.z );
+	}
+
+	void Shader::SetMat4( const std::string& name, const glm::mat4& val )
+	{
+		glUniformMatrix4fv( glGetUniformLocation( m_ID, name.c_str() ), 1, GL_FALSE, ( const float* )&val );
+	}
+
 }

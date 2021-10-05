@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "Renderer.h"
 
+#include "Saturn/Core/Math.h"
+
 #include <glad/glad.h>
 
 namespace Saturn {
@@ -53,10 +55,13 @@ namespace Saturn {
 
 	void Renderer::Init()
 	{
+		// Enable Debug logging
+
 		glDebugMessageCallback( OpenGLLogMessage, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 		glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
 
+		// Gen empty vertex array
 		unsigned int vao;
 		glGenVertexArrays( 1, &vao );
 		glBindVertexArray( vao );
@@ -83,6 +88,19 @@ namespace Saturn {
 	void Renderer::Reszie( int width, int height )
 	{
 		glViewport( 0, 0, width, height );
+	}
+
+	void Renderer::Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture )
+	{
+		shader.Bind();
+		texture.Bind();
+
+		glm::vec3 pos, rot, scale;
+		Math::DecomposeTransform( trans, pos, rot, scale );
+
+		shader.SetMat4( "u_Transform", trans );
+
+		glDrawArrays( GL_TRIANGLES, 0, 3 );
 	}
 
 }

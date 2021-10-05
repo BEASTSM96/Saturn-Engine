@@ -94,9 +94,8 @@ namespace Saturn {
 
 		// Set GLFW events
 		glfwSetWindowCloseCallback( m_Window, []( GLFWwindow* window ) { Application::Get().Close(); } );
-
 		glfwSetWindowSizeCallback( m_Window, SizeCallback );
-
+		glfwSetFramebufferSizeCallback( m_Window, []( GLFWwindow* window, int width, int height ) { Renderer::Get().Reszie( width, height ); } );
 	#if defined( SAT_WINDOWS_A )
 
 		// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
@@ -231,8 +230,6 @@ namespace Saturn {
 
 		window->m_Height = h;
 		window->m_Width = w;
-
-		Renderer::Get().Reszie( w, h );
 	}
 
 #if defined ( SAT_WINDOWS )

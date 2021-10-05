@@ -31,6 +31,9 @@
 #include "Saturn/Core/Base.h"
 #include "Common.h"
 
+#include "Shader.h"
+#include "Texture.h"
+
 namespace Saturn {
 
 	class Renderer
@@ -45,6 +48,8 @@ namespace Saturn {
 		void Clear();
 		void Reszie( int width, int height );
 
+		// Render code
+		void Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture );
 	protected:
 	private:
 

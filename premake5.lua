@@ -66,11 +66,12 @@ project "Saturn"
 	includedirs
 	{
 		"%{prj.name}/src",
+		"%{prj.name}/vendor/stb/",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.glm}",
+		"%{IncludeDir.glm}"
 	}
 
 	links 
