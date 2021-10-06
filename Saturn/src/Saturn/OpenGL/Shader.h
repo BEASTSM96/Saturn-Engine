@@ -37,7 +37,6 @@ namespace Saturn {
 	class Shader
 	{
 	public:
-
 		Shader() = default;
 		Shader( const std::string& filename );
 

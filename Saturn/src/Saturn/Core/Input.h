@@ -26,84 +26,38 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Renderer.h"
+#pragma once
 
-#include "Saturn/Core/Math.h"
+#include <utility>
 
-#include <glad/glad.h>
+namespace Saturn::Input {
 
-namespace Saturn {
-
-	static void OpenGLLogMessage( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam )
+	class InputEvents
 	{
-		switch( severity )
-		{
-			case GL_DEBUG_SEVERITY_HIGH:
-				SAT_CORE_ERROR( "[OpenGL Debug HIGH] {0}", message );
-				SAT_CORE_ASSERT( false, "GL_DEBUG_SEVERITY_HIGH" );
-				break;
-			case GL_DEBUG_SEVERITY_MEDIUM:
-				SAT_CORE_WARN( "[OpenGL Debug MEDIUM] {0}", message );
-				break;
-			case GL_DEBUG_SEVERITY_LOW:
-				SAT_CORE_INFO( "[OpenGL Debug LOW] {0}", message );
-				break;
-		}
-	}
+	};
 
-	void Renderer::Init()
-	{
-		// Enable Debug logging
+	// Func defs
 
-		m_Camera = EditorCamera( 30.0f, 1.778f, 0.1f, 1000.0f );
+	typedef void ( *FPN_OnScroll )( InputEvents* sclass );
 
-		glDebugMessageCallback( OpenGLLogMessage, nullptr );
-		glEnable( GL_DEBUG_OUTPUT );
-		glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
+	// Mouse Offset
 
-		// Gen empty vertex array
-		unsigned int vao;
-		glGenVertexArrays( 1, &vao );
-		glBindVertexArray( vao );
+	extern std::pair<float, float> MouseOffset();
+	extern float MouseXOffset();
+	extern float MouseYOffset();
 
-		glEnable( GL_DEPTH_TEST );
-		//glEnable( GL_CULL_FACE );
-		glEnable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
-		glFrontFace( GL_CCW );
+	extern void SetOffset( float offx, float offy );
 
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glBlendFuncSeparate( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
+	// Mouse Pos
 
-		glEnable( GL_MULTISAMPLE );
-		glEnable( GL_STENCIL_TEST );
-	}
+	extern void SetMousePos( int x, int y );
 
-	void Renderer::Clear()
-	{
-		glClearColor( GL_CLEAR_COLOR_X_Y_Z, 1.0f );
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-	}
+	extern std::pair<float, float> MousePos();
+	extern int MouseY();
+	extern int MouseX();
 
-	void Renderer::Resize( int width, int height )
-	{
-		glViewport( 0, 0, width, height );
+	// Mouse Scroll Event
 
-		m_Camera.SetViewportSize( width, height );
-	}
-
-	void Renderer::Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture )
-	{
-		shader.Bind();
-		texture.Bind();
-
-		glm::vec3 pos, rot, scale;
-		Math::DecomposeTransform( trans, pos, rot, scale );
-
-		shader.SetMat4( "u_Transform", trans );
-
-		glDrawArrays( GL_TRIANGLES, 0, 6 );
-	}
-
+	extern void Subscribe( std::function<void()> func );
+	extern void UpdateScrollEvents();
 }

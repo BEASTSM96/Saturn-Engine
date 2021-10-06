@@ -26,84 +26,77 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Renderer.h"
+#pragma once
 
-#include "Saturn/Core/Math.h"
-
-#include <glad/glad.h>
+#include "Saturn/Core/Timestep.h"
+#include "Saturn/Core/Input.h"
+#include "Camera.h"
 
 namespace Saturn {
 
-	static void OpenGLLogMessage( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam )
+	class EditorCamera : public Camera, public Input::InputEvents
 	{
-		switch( severity )
-		{
-			case GL_DEBUG_SEVERITY_HIGH:
-				SAT_CORE_ERROR( "[OpenGL Debug HIGH] {0}", message );
-				SAT_CORE_ASSERT( false, "GL_DEBUG_SEVERITY_HIGH" );
-				break;
-			case GL_DEBUG_SEVERITY_MEDIUM:
-				SAT_CORE_WARN( "[OpenGL Debug MEDIUM] {0}", message );
-				break;
-			case GL_DEBUG_SEVERITY_LOW:
-				SAT_CORE_INFO( "[OpenGL Debug LOW] {0}", message );
-				break;
-		}
-	}
+	public:
+		EditorCamera() = default;
+		EditorCamera( float fov, float aspectRatio, float nearClip, float farClip );
 
-	void Renderer::Init()
-	{
-		// Enable Debug logging
+		~EditorCamera() = default;
 
-		m_Camera = EditorCamera( 30.0f, 1.778f, 0.1f, 1000.0f );
+		void OnUpdate( Timestep ts );
+		void OnEvent();
 
-		glDebugMessageCallback( OpenGLLogMessage, nullptr );
-		glEnable( GL_DEBUG_OUTPUT );
-		glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
+	public:
 
-		// Gen empty vertex array
-		unsigned int vao;
-		glGenVertexArrays( 1, &vao );
-		glBindVertexArray( vao );
+		inline float Distance() const { return m_Distance; }
+		inline void SetDistance( float distance ) { m_Distance = distance; }
 
-		glEnable( GL_DEPTH_TEST );
-		//glEnable( GL_CULL_FACE );
-		glEnable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
-		glFrontFace( GL_CCW );
+		inline void SetViewportSize( float width, float height ) { m_ViewportWidth = width; m_ViewportHeight = height; UpdateProjection(); }
 
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glBlendFuncSeparate( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
+		const glm::mat4& ViewMatrix() const { return m_ViewMatrix; }
+		glm::mat4 ViewProjection() const { return m_Projection * m_ViewMatrix; }
 
-		glEnable( GL_MULTISAMPLE );
-		glEnable( GL_STENCIL_TEST );
-	}
+		glm::vec3 UpDirection() const;
+		glm::vec3 RightDirection() const;
+		glm::vec3 ForwardDirection() const;
+		const glm::vec3& Position() const { return m_Position; }
+		glm::quat Orientation() const;
 
-	void Renderer::Clear()
-	{
-		glClearColor( GL_CLEAR_COLOR_X_Y_Z, 1.0f );
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-	}
+		float Pitch() const { return m_Pitch; }
+		float Yaw() const { return m_Yaw; }
 
-	void Renderer::Resize( int width, int height )
-	{
-		glViewport( 0, 0, width, height );
+	public:
+		// Events
 
-		m_Camera.SetViewportSize( width, height );
-	}
+		static void OnMouseScroll();
 
-	void Renderer::Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture )
-	{
-		shader.Bind();
-		texture.Bind();
+	private:
 
-		glm::vec3 pos, rot, scale;
-		Math::DecomposeTransform( trans, pos, rot, scale );
+		void UpdateProjection();
+		void UpdateView();
 
-		shader.SetMat4( "u_Transform", trans );
+		void MousePan( const glm::vec2& delta );
+		void MouseRotate( const glm::vec2& delta );
+		void MouseZoom( float delta );
 
-		glDrawArrays( GL_TRIANGLES, 0, 6 );
-	}
+		glm::vec3 CalculatePosition() const;
 
+		std::pair<float, float> PanSpeed() const;
+		float RotationSpeed() const;
+		float ZoomSpeed() const;
+
+	private:
+
+		float m_FOV = 45.0f, m_AspectRatio = 1.778f, m_NearClip = 0.1f, m_FarClip = 1000.0f;
+
+		glm::mat4 m_ViewMatrix;
+		glm::vec3 m_Position ={ 0.0f, 0.0f, 0.0f };
+		glm::vec3 m_FocalPoint ={ 0.0f, 0.0f, 0.0f };
+
+		glm::vec2 m_InitialMousePosition ={ 0.0f, 0.0f };
+
+		float m_Distance = 10.0f;
+		float m_Pitch = 0.0f, m_Yaw = 0.0f;
+
+		float m_ViewportWidth = 1280, m_ViewportHeight = 720;
+	};
 }

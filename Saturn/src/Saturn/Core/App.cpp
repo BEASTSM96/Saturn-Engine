@@ -34,6 +34,7 @@
 #include "Saturn/OpenGL/Shader.h"
 #include "Saturn/OpenGL/Renderer.h"
 #include "Saturn/OpenGL/Texture.h"
+#include "Saturn/Core/Renderer/EditorCamera.h"
 
 #include <GLFW/glfw3.h>
 
@@ -92,26 +93,40 @@ namespace Saturn {
 		text2d.Bind();
 
 		shader.Bind();
-		shader.SetInt( "texture2", 1 );
+		shader.SetInt( "u_Texture0", 1 );
+
+		Timestep ts;
+		float lastframetime = 0.0f;
 
 		while( m_Running )
 		{
+			float time = ( float )glfwGetTime();
+
+			ts = time - lastframetime;
 			Window::Get().Render();
 
 			Window::Get().OnUpdate();
 
 			Renderer::Get().Clear();
 
-			glm::mat4 trans = glm::mat4( 1.0f );
-			trans = glm::translate( trans, glm::vec3( 0.5f, -0.5f, 0.0f ) );
-			trans = glm::rotate( trans, ( float )glfwGetTime(), glm::vec3( 0.0f, 0.0f, 1.0f ) );
+			Renderer::Get().RendererCamera().OnUpdate( ts );
 
-			unsigned int transformLoc = glGetUniformLocation( shader.GetRendererID(), "u_Transform" );
-			glUniformMatrix4fv( transformLoc, 1, GL_FALSE, glm::value_ptr( trans ) );
+			glm::mat4 trans = glm::mat4( 1.0f );
+			trans = glm::translate( trans, glm::vec3( 0.0f, 0.0f, 0.0f ) );
+			trans = glm::rotate( trans, ( float )glfwGetTime(), glm::vec3( 0.0f, 0.0f, 0.0f ) );
+
+			Renderer::Get().Submit( trans, shader, text2d );
+
+			auto viewProjection = Renderer::Get().RendererCamera().ProjectionMatrix() * Renderer::Get().RendererCamera().ViewMatrix();
+
+			shader.SetMat4( "u_Transform", trans );
+			shader.SetMat4( "u_ViewProjectionMatrix", viewProjection );
 
 			glBindVertexArray( VAO );
-			Renderer::Get().Submit( trans, shader, text2d );
+
+			lastframetime = time;
 		}
+
 	}
 
 	void Application::Close()

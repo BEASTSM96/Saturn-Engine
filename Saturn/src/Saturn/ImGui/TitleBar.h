@@ -38,7 +38,6 @@ namespace Saturn {
 	class TitleBar
 	{
 	public:
-
 		TitleBar();
 
 		void Draw();

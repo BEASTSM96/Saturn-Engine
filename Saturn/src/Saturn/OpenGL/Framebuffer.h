@@ -26,84 +26,87 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Renderer.h"
+#pragma once
 
-#include "Saturn/Core/Math.h"
+#include "Common.h"
 
-#include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <stdint.h>
+#include <vector>
 
 namespace Saturn {
 
-	static void OpenGLLogMessage( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam )
+	enum class FramebufferTextureFormat
 	{
-		switch( severity )
-		{
-			case GL_DEBUG_SEVERITY_HIGH:
-				SAT_CORE_ERROR( "[OpenGL Debug HIGH] {0}", message );
-				SAT_CORE_ASSERT( false, "GL_DEBUG_SEVERITY_HIGH" );
-				break;
-			case GL_DEBUG_SEVERITY_MEDIUM:
-				SAT_CORE_WARN( "[OpenGL Debug MEDIUM] {0}", message );
-				break;
-			case GL_DEBUG_SEVERITY_LOW:
-				SAT_CORE_INFO( "[OpenGL Debug LOW] {0}", message );
-				break;
-		}
-	}
+		None = 0,
 
-	void Renderer::Init()
+		// Color
+		RGBA8   = 1,
+		RGBA16F = 2,
+		RGBA32F = 3,
+		RGB32F  = 4,
+
+		DEPTH32F = 5,
+		DEPTH24STENCIL8 = 6,
+
+		Depth = DEPTH24STENCIL8
+	};
+
+	struct FramebufferTextureSpecification
 	{
-		// Enable Debug logging
+		FramebufferTextureSpecification() = default;
+		FramebufferTextureSpecification( FramebufferTextureFormat format ) : TextureFormat( format ) { }
 
-		m_Camera = EditorCamera( 30.0f, 1.778f, 0.1f, 1000.0f );
+		FramebufferTextureFormat TextureFormat;
+	};
 
-		glDebugMessageCallback( OpenGLLogMessage, nullptr );
-		glEnable( GL_DEBUG_OUTPUT );
-		glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
-
-		// Gen empty vertex array
-		unsigned int vao;
-		glGenVertexArrays( 1, &vao );
-		glBindVertexArray( vao );
-
-		glEnable( GL_DEPTH_TEST );
-		//glEnable( GL_CULL_FACE );
-		glEnable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
-		glFrontFace( GL_CCW );
-
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glBlendFuncSeparate( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
-
-		glEnable( GL_MULTISAMPLE );
-		glEnable( GL_STENCIL_TEST );
-	}
-
-	void Renderer::Clear()
+	struct FramebufferAttachmentSpecification
 	{
-		glClearColor( GL_CLEAR_COLOR_X_Y_Z, 1.0f );
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-	}
+		FramebufferAttachmentSpecification() = default;
+		FramebufferAttachmentSpecification( const std::initializer_list<FramebufferTextureSpecification>& attachments ) : Attachments( attachments ) { }
 
-	void Renderer::Resize( int width, int height )
+		std::vector<FramebufferTextureSpecification> Attachments;
+	};
+
+	struct FramebufferSpecification
 	{
-		glViewport( 0, 0, width, height );
+		uint32_t Width = 1280;
+		uint32_t Height = 720;
 
-		m_Camera.SetViewportSize( width, height );
-	}
+		glm::vec4 ClearColor;
 
-	void Renderer::Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture )
+		FramebufferAttachmentSpecification Attachments;
+
+		uint32_t Samples = 1;
+
+		bool NoResize = false;
+
+		bool SwapChainTarget = false;
+	};
+
+	class Framebuffer
 	{
-		shader.Bind();
-		texture.Bind();
+	public:
 
-		glm::vec3 pos, rot, scale;
-		Math::DecomposeTransform( trans, pos, rot, scale );
+		~Framebuffer();
 
-		shader.SetMat4( "u_Transform", trans );
+		void Bind();
+		void Unbind();
 
-		glDrawArrays( GL_TRIANGLES, 0, 6 );
-	}
+		void Resize( uint32_t width, uint32_t height, bool forceRecreate = false );
 
+		void BindTexture( uint32_t index , uint32_t slot  );
+
+		uint32_t GetWidth();
+		uint32_t GetHeight();
+
+		RendererID GetRendererID();
+
+		RendererID GetColorAttachmentRendererID( int index );
+		RendererID GetColorAttachmentRendererID( int index );
+		RendererID GetDepthAttachmentRendererID( void );
+
+	protected:
+	private:
+	};
 }

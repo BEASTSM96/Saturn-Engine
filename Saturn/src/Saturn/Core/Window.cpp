@@ -33,6 +33,7 @@
 #include "Saturn/ImGui/Styles.h"
 
 #include "Saturn/OpenGL/Renderer.h"
+#include "Input.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -93,9 +94,12 @@ namespace Saturn {
 		glfwSwapInterval( GLFW_TRUE );	
 
 		// Set GLFW events
-		glfwSetWindowCloseCallback( m_Window, []( GLFWwindow* window ) { Application::Get().Close(); } );
+		glfwSetWindowCloseCallback( m_Window, []( GLFWwindow* window )                            { Application::Get().Close();                                     } );
 		glfwSetWindowSizeCallback( m_Window, SizeCallback );
-		glfwSetFramebufferSizeCallback( m_Window, []( GLFWwindow* window, int width, int height ) { Renderer::Get().Reszie( width, height ); } );
+		glfwSetFramebufferSizeCallback( m_Window, []( GLFWwindow* window, int width, int height ) { Renderer::Get().Resize( width, height );                        } );
+		glfwSetScrollCallback( m_Window, []( GLFWwindow* window, double xOffset, double yOffset ) { Input::SetOffset( xOffset, yOffset ); Input::UpdateScrollEvents(); } );
+		glfwSetCursorPosCallback( m_Window, []( GLFWwindow* window, double x, double y )          { Input::SetMousePos( x, y );                                     } );
+
 	#if defined( SAT_WINDOWS_A )
 
 		// Thanks to Geno for this code https://github.com/Geno-IDE/Geno

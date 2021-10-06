@@ -27,83 +27,74 @@
 */
 
 #include "sppch.h"
-#include "Renderer.h"
+#include "Input.h"
 
-#include "Saturn/Core/Math.h"
+#include <vector>
 
-#include <glad/glad.h>
+namespace Saturn::Input {
 
-namespace Saturn {
+	// TODO: Maybe think of something better?
 
-	static void OpenGLLogMessage( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam )
+	static std::pair<float, float> s_MouseOffsets;
+	static std::pair<float, float> s_MousePos;
+
+	static std::vector<std::function<void()>> s_ScrollEvents;
+
+    std::pair<float, float> MouseOffset()
+    {
+		return s_MouseOffsets;
+    }
+
+	float MouseXOffset()
 	{
-		switch( severity )
+		return s_MouseOffsets.first;
+	}
+
+	float MouseYOffset()
+	{
+		return s_MouseOffsets.second;
+	}
+
+	void SetOffset( float offx, float offy )
+	{
+		s_MouseOffsets.first = offx;
+		s_MouseOffsets.second = offy;
+
+		SAT_CORE_INFO( "Mouse Offset {0}, {1}", offx, offy );
+	}
+
+	void SetMousePos( int x, int y )
+	{
+		s_MousePos.first = x;
+		s_MousePos.second = y;
+	}
+
+	std::pair<float, float> MousePos()
+	{
+		return s_MousePos;
+	}
+
+	int MouseY()
+	{
+		return s_MousePos.second;
+	}
+
+	int MouseX()
+	{
+		return s_MousePos.first;
+	}
+
+	void Subscribe( std::function<void()> func )
+	{
+		s_ScrollEvents.push_back( func );
+	}
+
+	void UpdateScrollEvents()
+	{
+		for ( auto& event : s_ScrollEvents )
 		{
-			case GL_DEBUG_SEVERITY_HIGH:
-				SAT_CORE_ERROR( "[OpenGL Debug HIGH] {0}", message );
-				SAT_CORE_ASSERT( false, "GL_DEBUG_SEVERITY_HIGH" );
-				break;
-			case GL_DEBUG_SEVERITY_MEDIUM:
-				SAT_CORE_WARN( "[OpenGL Debug MEDIUM] {0}", message );
-				break;
-			case GL_DEBUG_SEVERITY_LOW:
-				SAT_CORE_INFO( "[OpenGL Debug LOW] {0}", message );
-				break;
+			event();
 		}
-	}
-
-	void Renderer::Init()
-	{
-		// Enable Debug logging
-
-		m_Camera = EditorCamera( 30.0f, 1.778f, 0.1f, 1000.0f );
-
-		glDebugMessageCallback( OpenGLLogMessage, nullptr );
-		glEnable( GL_DEBUG_OUTPUT );
-		glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
-
-		// Gen empty vertex array
-		unsigned int vao;
-		glGenVertexArrays( 1, &vao );
-		glBindVertexArray( vao );
-
-		glEnable( GL_DEPTH_TEST );
-		//glEnable( GL_CULL_FACE );
-		glEnable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
-		glFrontFace( GL_CCW );
-
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glBlendFuncSeparate( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
-
-		glEnable( GL_MULTISAMPLE );
-		glEnable( GL_STENCIL_TEST );
-	}
-
-	void Renderer::Clear()
-	{
-		glClearColor( GL_CLEAR_COLOR_X_Y_Z, 1.0f );
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-	}
-
-	void Renderer::Resize( int width, int height )
-	{
-		glViewport( 0, 0, width, height );
-
-		m_Camera.SetViewportSize( width, height );
-	}
-
-	void Renderer::Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture )
-	{
-		shader.Bind();
-		texture.Bind();
-
-		glm::vec3 pos, rot, scale;
-		Math::DecomposeTransform( trans, pos, rot, scale );
-
-		shader.SetMat4( "u_Transform", trans );
-
-		glDrawArrays( GL_TRIANGLES, 0, 6 );
 	}
 
 }

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
+#include "Saturn/Core/Renderer/EditorCamera.h"
 #include "Common.h"
 
 #include "Shader.h"
@@ -46,12 +47,17 @@ namespace Saturn {
 	public:
 
 		void Clear();
-		void Reszie( int width, int height );
+		void Resize( int width, int height );
 
 		// Render code
 		void Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture );
+
+		EditorCamera& RendererCamera() { return m_Camera; }
+
 	protected:
 	private:
+
+		EditorCamera m_Camera;
 
 		void Init();
 	};

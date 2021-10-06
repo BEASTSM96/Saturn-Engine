@@ -65,6 +65,9 @@ namespace Saturn {
 
 		void Render();
 
+		int Width() { return m_Width; }
+		int Height() { return m_Height; }
+
 	private:
 
 		static void SizeCallback( GLFWwindow* wind, int h, int w );

@@ -103,7 +103,9 @@ namespace Saturn {
 		{
 			return m_RendererID == ( ( Texture2D& )other ).m_RendererID;
 		}
+
 	private:
+
 		RendererID m_RendererID;
 		TextureFormat m_Format;
 		TextureWrap m_Wrap = TextureWrap::Clamp;

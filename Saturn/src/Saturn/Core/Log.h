@@ -48,8 +48,8 @@ namespace Saturn {
 
 	public:
 
-		static inline std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
-		static inline std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
+		static inline std::shared_ptr<spdlog::logger>& CoreLogger() { return s_CoreLogger; }
+		static inline std::shared_ptr<spdlog::logger>& ClientLogger() { return s_ClientLogger; }
 
 	private:
 
@@ -102,15 +102,15 @@ OStream& operator<<( OStream& os, const glm::vec4& vec )
 
 
 // Core log macros
-#define SAT_CORE_TRACE(...)				Saturn::Log::Get().GetCoreLogger()->trace(__VA_ARGS__)
-#define SAT_CORE_INFO(...)				Saturn::Log::Get().GetCoreLogger()->info(__VA_ARGS__)
-#define SAT_CORE_WARN(...)				Saturn::Log::Get().GetCoreLogger()->warn(__VA_ARGS__)
-#define SAT_CORE_ERROR(...)				Saturn::Log::Get().GetCoreLogger()->error(__VA_ARGS__)
-#define SAT_CORE_FATAL(...)				Saturn::Log::Get().GetCoreLogger()->critical(__VA_ARGS__)
+#define SAT_CORE_TRACE(...)				Saturn::Log::Get().CoreLogger()->trace(__VA_ARGS__)
+#define SAT_CORE_INFO(...)				Saturn::Log::Get().CoreLogger()->info(__VA_ARGS__)
+#define SAT_CORE_WARN(...)				Saturn::Log::Get().CoreLogger()->warn(__VA_ARGS__)
+#define SAT_CORE_ERROR(...)				Saturn::Log::Get().CoreLogger()->error(__VA_ARGS__)
+#define SAT_CORE_FATAL(...)				Saturn::Log::Get().CoreLogger()->critical(__VA_ARGS__)
 
 // Client log macros
-#define SAT_TRACE(...)					Saturn::Log::Get().GetClientLogger()->trace(__VA_ARGS__)
-#define SAT_INFO(...)					Saturn::Log::Get().GetClientLogger()->info(__VA_ARGS__)
-#define SAT_WARN(...)					Saturn::Log::Get().GetClientLogger()->warn(__VA_ARGS__)
-#define SAT_ERROR(...)					Saturn::Log::Get().GetClientLogger()->error(__VA_ARGS__)
-#define SAT_FATAL(...)					Saturn::Log::Get().GetClientLogger()->critical(__VA_ARGS__)
+#define SAT_TRACE(...)					Saturn::Log::Get().ClientLogger()->trace(__VA_ARGS__)
+#define SAT_INFO(...)					Saturn::Log::Get().ClientLogger()->info(__VA_ARGS__)
+#define SAT_WARN(...)					Saturn::Log::Get().ClientLogger()->warn(__VA_ARGS__)
+#define SAT_ERROR(...)					Saturn::Log::Get().ClientLogger()->error(__VA_ARGS__)
+#define SAT_FATAL(...)					Saturn::Log::Get().ClientLogger()->critical(__VA_ARGS__)
