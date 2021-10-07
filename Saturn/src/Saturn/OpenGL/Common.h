@@ -34,6 +34,6 @@
 
 namespace Saturn {
 
-	typedef uint8_t RendererID;
+	typedef uint32_t RendererID;
 
 }

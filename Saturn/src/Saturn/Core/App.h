@@ -49,6 +49,9 @@ namespace Saturn {
 	protected:
 	private:
 		bool m_Running = true;
+
+		Timestep m_Timestep;
+		float m_LastFrameTime = 0.0f;
 	};
 
 }

@@ -39,6 +39,7 @@ namespace Saturn {
 	public:
 		EditorCamera() = default;
 		EditorCamera( float fov, float aspectRatio, float nearClip, float farClip );
+		EditorCamera( const glm::mat4& projectionMatrix );
 
 		~EditorCamera() = default;
 
@@ -63,6 +64,8 @@ namespace Saturn {
 
 		float Pitch() const { return m_Pitch; }
 		float Yaw() const { return m_Yaw; }
+
+		void SetProjectionMatrix( const glm::mat4& projectionMatrix ) { m_Projection = projectionMatrix; }
 
 	public:
 		// Events

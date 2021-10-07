@@ -30,6 +30,8 @@
 
 #include "Saturn/Core/Base.h"
 #include "Saturn/Core/Renderer/EditorCamera.h"
+
+#include "Framebuffer.h"
 #include "Common.h"
 
 #include "Shader.h"
@@ -42,7 +44,7 @@ namespace Saturn {
 		SINGLETON( Renderer );
 
 		Renderer() { Init(); }
-		~Renderer() {  }
+		~Renderer() { }
 
 	public:
 
@@ -53,9 +55,12 @@ namespace Saturn {
 		void Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture );
 
 		EditorCamera& RendererCamera() { return m_Camera; }
+		Framebuffer& TargetFramebuffer() { return m_Framebuffer; }
 
 	protected:
 	private:
+
+		Framebuffer m_Framebuffer;
 
 		EditorCamera m_Camera;
 

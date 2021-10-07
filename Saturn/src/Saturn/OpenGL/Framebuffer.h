@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "Saturn/Core/Base.h"
 #include "Common.h"
 
 #include <glm/glm.hpp>
@@ -87,7 +88,8 @@ namespace Saturn {
 	class Framebuffer
 	{
 	public:
-
+		Framebuffer( const FramebufferSpecification& spec );
+		Framebuffer() { };
 		~Framebuffer();
 
 		void Bind();
@@ -97,16 +99,28 @@ namespace Saturn {
 
 		void BindTexture( uint32_t index , uint32_t slot  );
 
-		uint32_t GetWidth();
-		uint32_t GetHeight();
+		uint32_t Width()  { return m_Specification.Width; }
+		uint32_t Height() { return m_Specification.Height; }
 
-		RendererID GetRendererID();
+		RendererID GetRendererID() const { return m_RendererID; }
 
-		RendererID GetColorAttachmentRendererID( int index );
-		RendererID GetColorAttachmentRendererID( int index );
-		RendererID GetDepthAttachmentRendererID( void );
+		RendererID ColorAttachmentRendererID( int index = 0 ) { return m_ColorAttachments[ index ]; }
+		RendererID DepthAttachmentRendererID( void ) const { return m_DepthAttachment; }
 
-	protected:
+		virtual const FramebufferSpecification& Specification( void ) const { return m_Specification; }
+
 	private:
+		FramebufferSpecification m_Specification;
+		RendererID m_RendererID = 0;
+
+		std::vector<RendererID> m_ColorAttachments;
+		RendererID m_DepthAttachment;
+
+		std::vector<FramebufferTextureFormat> m_ColorAttachmentsFormat;
+		FramebufferTextureFormat m_DepthAttachmentFormat = FramebufferTextureFormat::None;
+
+		uint32_t m_Width = 0, m_Height = 0;
+
+		
 	};
 }

@@ -38,6 +38,8 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Saturn {
 
@@ -45,7 +47,17 @@ namespace Saturn {
 	EditorCamera* s_EditorCamera = nullptr;
 
 	EditorCamera::EditorCamera( float fov, float aspectRatio, float nearClip, float farClip )
-		: m_FOV( fov ), m_AspectRatio( aspectRatio ), m_NearClip( nearClip ), m_FarClip( farClip ), Camera( glm::perspective( glm::radians( fov ), aspectRatio, nearClip, farClip ) )
+		: m_FOV( fov ), m_AspectRatio( aspectRatio ), m_NearClip( nearClip ), m_FarClip( farClip ), Camera( glm::perspectiveFov( glm::radians( fov ), aspectRatio, nearClip, farClip, 1000.0f ) )
+	{
+		s_EditorCamera = this;
+
+		std::function<void()> func = OnMouseScroll;
+		Input::Subscribe( func );
+
+		UpdateView();
+	}
+
+	EditorCamera::EditorCamera( const glm::mat4& projectionMatrix ) : Camera( projectionMatrix )
 	{
 		s_EditorCamera = this;
 

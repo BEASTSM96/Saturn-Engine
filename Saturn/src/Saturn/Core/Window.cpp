@@ -38,6 +38,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
+#include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -51,6 +56,10 @@
 #include <dwmapi.h>
 #include <Windows.h>
 #endif
+
+// TEMP
+// FIXME
+#include "Saturn/OpenGL/Framebuffer.h"
 
 namespace Saturn {
 
@@ -207,6 +216,18 @@ namespace Saturn {
 		ImGui::NewFrame();
 
 		m_TitleBar->Draw();
+
+		ImGui::Begin( "viewport" );
+		{
+			auto viewportSize = ImGui::GetContentRegionAvail();
+
+			Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
+			Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
+
+			ImGui::Image( ( void* )Renderer::Get().TargetFramebuffer().ColorAttachmentRendererID(), viewportSize, { 0, 1 }, { 1, 0 } );
+		}
+
+		ImGui::End();
 
 		// Was EndFrame
 

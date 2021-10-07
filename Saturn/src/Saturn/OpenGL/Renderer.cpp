@@ -55,9 +55,6 @@ namespace Saturn {
 	void Renderer::Init()
 	{
 		// Enable Debug logging
-
-		m_Camera = EditorCamera( 30.0f, 1.778f, 0.1f, 1000.0f );
-
 		glDebugMessageCallback( OpenGLLogMessage, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 		glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
@@ -78,6 +75,14 @@ namespace Saturn {
 
 		glEnable( GL_MULTISAMPLE );
 		glEnable( GL_STENCIL_TEST );
+
+		m_Camera = EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f );
+
+		FramebufferSpecification compFramebufferSpec;
+		compFramebufferSpec.Attachments ={ FramebufferTextureFormat::RGBA8 };
+		compFramebufferSpec.ClearColor ={ 0.1f, 0.1f, 0.1f, 1.0f };
+
+		m_Framebuffer = Framebuffer( compFramebufferSpec );
 	}
 
 	void Renderer::Clear()
@@ -88,9 +93,10 @@ namespace Saturn {
 
 	void Renderer::Resize( int width, int height )
 	{
-		glViewport( 0, 0, width, height );
+		SAT_CORE_ASSERT( height != 0, "Window height null!" );
 
 		m_Camera.SetViewportSize( width, height );
+		m_Framebuffer.Resize( width, height, false );
 	}
 
 	void Renderer::Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture )
