@@ -28,45 +28,27 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#include "Framebuffer.h"
 #include "Common.h"
+#include "Saturn/Core/Base.h"
 
-#include "Shader.h"
-#include "Texture.h"
+struct aiNode;
+struct aiAnimation;
+struct aiNodeAnim;
+struct aiScene;
+
+namespace Assimp {
+	class Importer;
+}
 
 namespace Saturn {
 
-	class Renderer
+	class Mesh
 	{
-		SINGLETON( Renderer );
-
-		Renderer() { Init(); }
-		~Renderer() { }
-
 	public:
+		Mesh();
+		~Mesh();
 
-		void Clear();
-		void Resize( int width, int height );
-
-		// Render code
-		void Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture );
-
-		void Submit( const Mesh& mesh );
-
-
-		EditorCamera& RendererCamera() { return m_Camera; }
-		Framebuffer& TargetFramebuffer() { return m_Framebuffer; }
-
-	protected:
 	private:
 
-		Framebuffer m_Framebuffer;
-
-		EditorCamera m_Camera;
-
-		void Init();
 	};
 }

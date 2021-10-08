@@ -61,8 +61,11 @@ namespace Saturn::Core {
 	{
 	#if defined( _WIN32 )
 		__debugbreak();
+	#elif defined ( SAT_LINUX ) && defined ( __has_builtin( __builtin_debugtrap) )
+		__builtin_debugtrap();
 	#else
-		return;
+	#include <signal.h>
+		raise( SIGTRAP );
 	#endif // _MSC_VER
 	}
 
@@ -72,3 +75,4 @@ namespace Saturn::Core {
 #include "Asserts.h"
 // Common includes
 #include "Timestep.h"
+#include "Ref.h"
