@@ -54,6 +54,9 @@ namespace Saturn {
 		~Window();
 
 	public:
+		using EventCallbackFn = std::function<void( Event& )>;
+
+	public:
 
 		void OnUpdate();
 
@@ -64,6 +67,10 @@ namespace Saturn {
 		void SetTitle( const std::string& title );
 
 		void Render();
+
+		void SetEventCallback( const EventCallbackFn& callback ) { m_EventCallback = callback; }
+
+		void* NativeWindow() const { return m_Window; }
 
 		int Width() { return m_Width; }
 		int Height() { return m_Height; }
@@ -80,6 +87,8 @@ namespace Saturn {
 		std::string m_Title = "Saturn";
 
 		bool Minimized = false;
+
+		EventCallbackFn m_EventCallback;
 
 		// Widgets
 

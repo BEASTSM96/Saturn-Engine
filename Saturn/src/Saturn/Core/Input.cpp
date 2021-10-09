@@ -29,72 +29,62 @@
 #include "sppch.h"
 #include "Input.h"
 
+#include <GLFW/glfw3.h>
+#include "Saturn/Core/Window.h"
+
 #include <vector>
 
-namespace Saturn::Input {
+namespace Saturn {
 
-	// TODO: Maybe think of something better?
-
-	static std::pair<float, float> s_MouseOffsets;
-	static std::pair<float, float> s_MousePos;
-
-	static std::vector<std::function<void()>> s_ScrollEvents;
-
-    std::pair<float, float> MouseOffset()
-    {
-		return s_MouseOffsets;
-    }
-
-	float MouseXOffset()
+	bool Input::KeyPressed( Key key )
 	{
-		return s_MouseOffsets.first;
+		auto& window = static_cast< Window& >( Window::Get() );
+		auto state = glfwGetKey( static_cast< GLFWwindow* >( window.NativeWindow() ), static_cast< int32_t >( key ) );
+
+		return state == GLFW_PRESS || state == GLFW_REPEAT;
 	}
 
-	float MouseYOffset()
+	bool Input::MouseButtonPressed( MouseButton button )
 	{
-		return s_MouseOffsets.second;
+		auto& window = static_cast< Window& >( Window::Get() );
+		auto state = glfwGetMouseButton( static_cast< GLFWwindow* >( window.NativeWindow() ), static_cast< int32_t >( button ) );
+
+		return state == GLFW_PRESS;
 	}
 
-	void SetOffset( float offx, float offy )
+	float Input::MouseX()
 	{
-		s_MouseOffsets.first = offx;
-		s_MouseOffsets.second = offy;
-
-		SAT_CORE_INFO( "Mouse Offset {0}, {1}", offx, offy );
+		auto [x, y] = MousePosition();
+		return ( float )x;
 	}
 
-	void SetMousePos( int x, int y )
+	float Input::MouseY()
 	{
-		s_MousePos.first = x;
-		s_MousePos.second = y;
+		auto [x, y] = MousePosition();
+		return ( float )y;
 	}
 
-	std::pair<float, float> MousePos()
+	std::pair<float, float> Input::MousePosition()
 	{
-		return s_MousePos;
+		auto& window = static_cast< Window& >( Window::Get() );
+
+		double x, y;
+		glfwGetCursorPos( static_cast< GLFWwindow* >( window.NativeWindow() ), &x, &y );
+		return { ( float )x, ( float )y };
 	}
 
-	int MouseY()
+	void Input::SetCursorMode( CursorMode mode )
 	{
-		return s_MousePos.second;
+		auto& window = static_cast< Window& >( Window::Get() );
+
+		glfwSetInputMode( static_cast< GLFWwindow* >( window.NativeWindow() ), GLFW_CURSOR, GLFW_CURSOR_NORMAL + ( int )mode );
 	}
 
-	int MouseX()
+	CursorMode Input::GetCursorMode()
 	{
-		return s_MousePos.first;
-	}
+		auto& window = static_cast< Window& >( Window::Get() );
 
-	void Subscribe( std::function<void()> func )
-	{
-		s_ScrollEvents.push_back( func );
-	}
-
-	void UpdateScrollEvents()
-	{
-		for ( auto& event : s_ScrollEvents )
-		{
-			event();
-		}
+		return ( CursorMode )( glfwGetInputMode( static_cast< GLFWwindow* >( window.NativeWindow() ), GLFW_CURSOR ) - GLFW_CURSOR_NORMAL );
 	}
 
 }

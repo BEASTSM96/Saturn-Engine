@@ -28,34 +28,22 @@
 
 #pragma once
 
-#include "Base.h"
-
-#include "Input.h"
+#include <stdint.h>
 
 namespace Saturn {
 
-	class Application
+	enum MouseButton : uint16_t
 	{
-		SINGLETON( Application );
+		Button0 = 0,
+		Button1 = 1,
+		Button2 = 2,
+		Button3 = 3,
+		Button4 = 4,
+		Button5 = 5,
 
-		Application()  {}
-		~Application() {}
-
-	public:
-		void Run();
-		void Close();
-
-		bool Running() { return m_Running; }
-
-	protected:
-
-		void OnEvent( Event& e );
-
-	private:
-		bool m_Running = true;
-
-		Timestep m_Timestep;
-		float m_LastFrameTime = 0.0f;
+		Left = 6,
+		Right = 7,
+		Middle = 8,
 	};
 
 }

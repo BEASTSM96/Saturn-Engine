@@ -34,7 +34,7 @@
 
 namespace Saturn {
 
-	class EditorCamera : public Camera, public Input::InputEvents
+	class EditorCamera : public Camera
 	{
 	public:
 		EditorCamera() = default;
@@ -44,8 +44,6 @@ namespace Saturn {
 		~EditorCamera() = default;
 
 		void OnUpdate( Timestep ts );
-		void OnEvent();
-
 	public:
 
 		inline float Distance() const { return m_Distance; }
@@ -70,8 +68,8 @@ namespace Saturn {
 	public:
 		// Events
 
-		static void OnMouseScroll();
-
+		void OnEvent( Event& e );
+		bool OnMouseScroll( MouseScrolledEvent& e );
 	private:
 
 		void UpdateProjection();

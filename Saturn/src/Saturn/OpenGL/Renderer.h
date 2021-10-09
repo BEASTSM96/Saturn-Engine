@@ -54,9 +54,11 @@ namespace Saturn {
 		// Render code
 		void Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture );
 
-		void Submit( const Mesh& mesh );
+		//void Submit( const Mesh& mesh );
 
+		void OnEvent( Event& e );
 
+	public:
 		EditorCamera& RendererCamera() { return m_Camera; }
 		Framebuffer& TargetFramebuffer() { return m_Framebuffer; }
 

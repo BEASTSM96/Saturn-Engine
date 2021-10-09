@@ -43,27 +43,14 @@
 
 namespace Saturn {
 
-	// HACK: Fix static and input events
-	EditorCamera* s_EditorCamera = nullptr;
-
 	EditorCamera::EditorCamera( float fov, float aspectRatio, float nearClip, float farClip )
 		: m_FOV( fov ), m_AspectRatio( aspectRatio ), m_NearClip( nearClip ), m_FarClip( farClip ), Camera( glm::perspectiveFov( glm::radians( fov ), aspectRatio, nearClip, farClip, 1000.0f ) )
 	{
-		s_EditorCamera = this;
-
-		std::function<void()> func = OnMouseScroll;
-		Input::Subscribe( func );
-
 		UpdateView();
 	}
 
 	EditorCamera::EditorCamera( const glm::mat4& projectionMatrix ) : Camera( projectionMatrix )
 	{
-		s_EditorCamera = this;
-
-		std::function<void()> func = OnMouseScroll;
-		Input::Subscribe( func );
-
 		UpdateView();
 	}
 
@@ -112,7 +99,7 @@ namespace Saturn {
 	{
 		if( ImGui::IsKeyPressed( GLFW_KEY_LEFT_ALT ) )
 		{
-			const glm::vec2& mouse{ Input::MouseX(), Input::MouseY() };
+			const glm::vec2& mouse{ Input::Get().MouseX(), Input::Get().MouseY() };
 			glm::vec2 delta = ( mouse - m_InitialMousePosition ) * 0.003f;
 			m_InitialMousePosition = mouse;
 
@@ -127,11 +114,19 @@ namespace Saturn {
 		UpdateView();
 	}
 
-	void EditorCamera::OnMouseScroll()
+	void EditorCamera::OnEvent( Event& e )
 	{
-		float delta = Input::MouseYOffset() * 0.1f;
-		s_EditorCamera->MouseZoom( delta );
-		s_EditorCamera->UpdateView();
+		EventDispatcher dispatcher( e );
+		dispatcher.Dispatch<MouseScrolledEvent>( SAT_BIND_EVENT_FN( EditorCamera::OnMouseScroll ) );
+	}
+
+	bool EditorCamera::OnMouseScroll( MouseScrolledEvent& e )
+	{
+		float delta = e.XOffset() * 0.1f;
+		MouseZoom( delta );
+		UpdateView();
+
+		return true;
 	}
 
 	void EditorCamera::MousePan( const glm::vec2& delta )

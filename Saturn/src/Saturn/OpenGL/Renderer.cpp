@@ -96,7 +96,7 @@ namespace Saturn {
 		SAT_CORE_ASSERT( height != 0, "Window height null!" );
 
 		m_Camera.SetViewportSize( width, height );
-		m_Framebuffer.Resize( width, height, false );
+		m_Framebuffer.Resize( width, height, true );
 	}
 
 	void Renderer::Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture )
@@ -110,6 +110,11 @@ namespace Saturn {
 		shader.SetMat4( "u_Transform", trans );
 
 		glDrawArrays( GL_TRIANGLES, 0, 6 );
+	}
+
+	void Renderer::OnEvent( Event& e )
+	{
+		m_Camera.OnEvent( e );
 	}
 
 }
