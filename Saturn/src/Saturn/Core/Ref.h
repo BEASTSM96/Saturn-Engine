@@ -41,6 +41,8 @@ namespace Saturn {
 		template<typename T2>
 		Ref( const Ref<T2>& other ) { m_Pointer = ( T* )other.m_Pointer; }
 
+		Ref( const Ref<T>& other ) { m_Pointer = ( T* )other.m_Pointer; }
+
 		template<typename T2>
 		Ref( const Ref<T2>&& other )
 		{
@@ -48,16 +50,16 @@ namespace Saturn {
 			other.m_Pointer = nullptr;
 		}
 
-		~Ref() { delete m_Pointer; }
+		~Ref() { /*delete m_Pointer;*/ }
 
 		void Delete() 
 		{
-			this->~Ref();
+			//this->~Ref();
 		}
 
 		void Reset()
 		{
-			delete m_Pointer;
+			//delete m_Pointer;
 			m_Pointer = nullptr;
 		}
 
@@ -69,25 +71,36 @@ namespace Saturn {
 
 	public:
 	
-		Ref& operator=( std::nullptr_t null ) 
+		Ref& operator=( std::nullptr_t ) 
 		{
-			delete m_Pointer;
+			//delete m_Pointer;
 			m_Pointer = nullptr;
 			return *this;
 		}
 
 		Ref& operator=( Ref<T>& other )
 		{
-			delete m_Pointer;
+			//delete m_Pointer;
 
 			m_Pointer = other.m_Pointer;
 
 			return *this;
 		}
 
-		Ref& operator=( Ref<T>&& other )
+		template<typename T2>
+		Ref& operator=( Ref<T2>& other )
 		{
-			delete m_Pointer;
+			//delete m_Pointer;
+
+			m_Pointer = other.m_Pointer;
+
+			return *this;
+		}
+
+		template<typename T2>
+		Ref& operator=( Ref<T2>&& other )
+		{
+			//delete m_Pointer;
 
 			m_Pointer = other.m_Pointer;
 
@@ -100,8 +113,8 @@ namespace Saturn {
 		T* operator->()             { return m_Pointer; }
 		const T* operator->() const { return m_Pointer; }
 
-		T& operator->()             { return m_Pointer; }
-		const T& operator->() const { return m_Pointer; }
+		T& operator*()             { return *m_Pointer; }
+		const T& operator*() const { return *m_Pointer; }
 
 		T* Pointer()             { return m_Pointer; }
 		const T* Pointer() const { return m_Pointer; }

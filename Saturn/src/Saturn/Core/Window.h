@@ -31,6 +31,7 @@
 #include "Base.h"
 
 #include "Saturn/ImGui/TitleBar.h"
+#include "Saturn/ImGui/Dockspace.h"
 
 #include <string>
 
@@ -86,13 +87,12 @@ namespace Saturn {
 		int m_Width  = 1200;
 		std::string m_Title = "Saturn";
 
-		bool Minimized = false;
+		bool m_Minimized = false;
 
 		EventCallbackFn m_EventCallback;
 
 		// Widgets
-
-		TitleBar* m_TitleBar;
+		ImGuiDockspace* m_Dockspace;
 
 	#if defined ( SAT_WINDOWS )
 		WNDPROC  m_WindowProc  = nullptr;

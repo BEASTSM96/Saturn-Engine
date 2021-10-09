@@ -281,6 +281,31 @@ virtual int CategoryFlags( void ) const { return 0; }
 
 	//////////////////////////////////////////////////////////////////////////
 
+	class WindowResizeEvent : public Event
+	{
+	public:
+		WindowResizeEvent( unsigned int width, unsigned int height )
+			: m_Width( width ), m_Height( height )
+		{
+		}
+
+		unsigned int Width( void )  const { return m_Width; }
+		unsigned int Height( void )  const { return m_Height; }
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "WindowResizeEvent: " << m_Width << ", " << m_Height;
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE( Resize )
+	private:
+		unsigned int m_Width, m_Height;
+	};
+	
+	//////////////////////////////////////////////////////////////////////////
+
 	class EventDispatcher
 	{
 	public:

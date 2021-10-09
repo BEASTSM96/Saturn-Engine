@@ -103,9 +103,19 @@ namespace Saturn {
 		glfwSwapInterval( GLFW_TRUE );	
 
 		// Set GLFW events
-		glfwSetWindowCloseCallback( m_Window, []( GLFWwindow* window )                            { Application::Get().Close();                                     } );
-		glfwSetWindowSizeCallback( m_Window, SizeCallback );
-		glfwSetFramebufferSizeCallback( m_Window, []( GLFWwindow* window, int width, int height ) { Renderer::Get().Resize( width, height );                        } );
+		glfwSetWindowCloseCallback( m_Window, []( GLFWwindow* window )                            { Application::Get().Close(); } );
+
+		glfwSetWindowSizeCallback( m_Window, []( GLFWwindow* window, int w, int h )               
+		{
+			Window& win = *( Window* )glfwGetWindowUserPointer( window );
+
+			SizeCallback( window, w, h );
+
+			WindowResizeEvent event( ( float )w, ( float )h );
+			win.m_EventCallback( event );
+		} );
+
+		//glfwSetFramebufferSizeCallback( m_Window, []( GLFWwindow* window, int width, int height ) {                         } );
 
 		glfwSetScrollCallback( m_Window, []( GLFWwindow* window, double xOffset, double yOffset ) 
 		{ 
@@ -148,7 +158,7 @@ namespace Saturn {
 					break;
 				}
 			}
-	    } );
+		} );
 
 	#if defined( SAT_WINDOWS_A )
 
@@ -198,7 +208,7 @@ namespace Saturn {
 		ImGui_ImplOpenGL3_Init( "#version 410" );
 	#endif
 
-		m_TitleBar = new TitleBar();
+		m_Dockspace = new ImGuiDockspace();
 	}
 
 	Window::~Window()
@@ -211,7 +221,7 @@ namespace Saturn {
 
 	void Window::OnUpdate()
 	{
-		if( Minimized )
+		if( m_Minimized )
 			return;
 
 		glfwPollEvents();
@@ -221,7 +231,7 @@ namespace Saturn {
 	{
 		const bool wasMaximized = ( glfwGetWindowAttrib( m_Window, GLFW_MAXIMIZED ) == GLFW_TRUE );
 
-		if( !wasMaximized ) { glfwMaximizeWindow( m_Window ); Minimized = false; }
+		if( !wasMaximized ) { glfwMaximizeWindow( m_Window ); m_Minimized = false; }
 		else Restore();
 	}
 
@@ -229,7 +239,7 @@ namespace Saturn {
 	{
 		const bool wasMinimize = ( glfwGetWindowAttrib( m_Window, GLFW_ICONIFIED ) == GLFW_TRUE );
 
-		if( !wasMinimize ) { Minimized = true; glfwIconifyWindow( m_Window ); }
+		if( !wasMinimize ) { m_Minimized = true; glfwIconifyWindow( m_Window ); }
 		else Restore();
 	}
 
@@ -256,7 +266,7 @@ namespace Saturn {
 
 		ImGui::NewFrame();
 
-		m_TitleBar->Draw();
+		m_Dockspace->Draw();
 
 		ImGui::Begin( "viewport" );
 		{
@@ -265,8 +275,7 @@ namespace Saturn {
 			Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
 			Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
 
-			ImGui::Image( ( ImTextureID )Renderer::Get().TargetFramebuffer().ColorAttachmentRendererID(), viewportSize, { 0, 1 }, { 1, 0 } );
-			ImGui::Image( ( ImTextureID )0, viewportSize, { 0, 1 }, { 1, 0 } );
+			ImGui::Image( (void*)( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
 		}
 
 		ImGui::End();
@@ -299,7 +308,7 @@ namespace Saturn {
 		window->m_Width = w;
 	}
 
-#if defined ( SAT_WINDOWS )
+#if defined ( SAT_WINDOWS_A )
 
 	// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
 
@@ -347,7 +356,7 @@ namespace Saturn {
 					else
 					{
 						// Drag the menu bar to move the window
-						if( !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + self->m_TitleBar->Height() ) ) )
+						if( !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + self->m_Dockspace->GetTitleBar().Height() ) ) )
 							return HTCAPTION;
 					}
 				}

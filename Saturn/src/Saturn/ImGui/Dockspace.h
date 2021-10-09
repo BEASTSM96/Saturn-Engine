@@ -28,99 +28,25 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-#include "Common.h"
-
-#include <glm/glm.hpp>
-#include <stdint.h>
-#include <vector>
+#include "TitleBar.h"
 
 namespace Saturn {
 
-	enum class FramebufferTextureFormat
-	{
-		None = 0,
-
-		// Color
-		RGBA8   = 1,
-		RGBA16F = 2,
-		RGBA32F = 3,
-		RGB32F  = 4,
-
-		DEPTH32F = 5,
-		DEPTH24STENCIL8 = 6,
-
-		Depth = DEPTH24STENCIL8
-	};
-
-	struct FramebufferTextureSpecification
-	{
-		FramebufferTextureSpecification() = default;
-		FramebufferTextureSpecification( FramebufferTextureFormat format ) : TextureFormat( format ) { }
-
-		FramebufferTextureFormat TextureFormat;
-	};
-
-	struct FramebufferAttachmentSpecification
-	{
-		FramebufferAttachmentSpecification() = default;
-		FramebufferAttachmentSpecification( const std::initializer_list<FramebufferTextureSpecification>& attachments ) : Attachments( attachments ) { }
-
-		std::vector<FramebufferTextureSpecification> Attachments;
-	};
-
-	struct FramebufferSpecification
-	{
-		uint32_t Width = 1280;
-		uint32_t Height = 720;
-
-		glm::vec4 ClearColor;
-
-		FramebufferAttachmentSpecification Attachments;
-
-		uint32_t Samples = 1;
-
-		bool NoResize = false;
-
-		bool SwapChainTarget = false;
-	};
-
-	class Framebuffer
+	class ImGuiDockspace
 	{
 	public:
-		Framebuffer( const FramebufferSpecification& spec );
-		Framebuffer() { };
-		~Framebuffer();
+		ImGuiDockspace();
 
-		void Bind();
-		void Unbind();
+		void Draw();
 
-		void Resize( uint32_t width, uint32_t height, bool forceRecreate = false );
+		float Height() const { return m_Height; }
 
-		void BindTexture( uint32_t index = 0, uint32_t slot = 0 );
-
-		uint32_t Width()  { return m_Specification.Width; }
-		uint32_t Height() { return m_Specification.Height; }
-
-		RendererID GetRendererID() const { return m_RendererID; }
-
-		RendererID ColorAttachmentRendererID( int index = 0 );
-		RendererID DepthAttachmentRendererID( void ) const;
-
-		virtual const FramebufferSpecification& Specification( void ) const { return m_Specification; }
-
+		TitleBar& GetTitleBar() { return *m_TitleBar; }
 	private:
-		FramebufferSpecification m_Specification;
-		RendererID m_RendererID = 0;
 
-		std::vector<RendererID> m_ColorAttachments;
-		RendererID m_DepthAttachment;
+		TitleBar* m_TitleBar;
 
-		std::vector<FramebufferTextureFormat> m_ColorAttachmentsFormat;
-		FramebufferTextureFormat m_DepthAttachmentFormat = FramebufferTextureFormat::None;
-
-		uint32_t m_Width = 0, m_Height = 0;
-
-		
+		float m_Height;
 	};
+
 }

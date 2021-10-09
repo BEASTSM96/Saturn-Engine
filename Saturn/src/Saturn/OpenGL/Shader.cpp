@@ -56,6 +56,8 @@ namespace Saturn {
 
 	void Shader::Load( const std::string& filepath )
 	{
+		SAT_CORE_INFO( "Loading shader at {0}...", filepath.c_str() );
+
 		std::string src = ReadShaderFromFile( filepath );
 
 		m_Shaders = DetermineShaderTypes( src );

@@ -26,101 +26,62 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "Dockspace.h"
 
-#include "Saturn/Core/Base.h"
-#include "Common.h"
-
-#include <glm/glm.hpp>
-#include <stdint.h>
-#include <vector>
+#include "imgui.h"
 
 namespace Saturn {
 
-	enum class FramebufferTextureFormat
+	ImGuiDockspace::ImGuiDockspace()
 	{
-		None = 0,
+		m_TitleBar = new TitleBar();
+	}
 
-		// Color
-		RGBA8   = 1,
-		RGBA16F = 2,
-		RGBA32F = 3,
-		RGB32F  = 4,
-
-		DEPTH32F = 5,
-		DEPTH24STENCIL8 = 6,
-
-		Depth = DEPTH24STENCIL8
-	};
-
-	struct FramebufferTextureSpecification
+	void ImGuiDockspace::Draw()
 	{
-		FramebufferTextureSpecification() = default;
-		FramebufferTextureSpecification( FramebufferTextureFormat format ) : TextureFormat( format ) { }
+		// imgui_demo.cpp
 
-		FramebufferTextureFormat TextureFormat;
-	};
+		bool p_open = true;
+		static bool opt_fullscreen_persistant = true;
+		bool opt_fullscreen = opt_fullscreen_persistant;
+		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-	struct FramebufferAttachmentSpecification
-	{
-		FramebufferAttachmentSpecification() = default;
-		FramebufferAttachmentSpecification( const std::initializer_list<FramebufferTextureSpecification>& attachments ) : Attachments( attachments ) { }
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+		if( opt_fullscreen )
+		{
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos( viewport->GetWorkPos() );
+			ImGui::SetNextWindowSize( viewport->GetWorkSize() );
+			ImGui::SetNextWindowViewport( viewport->ID );
+			ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
+			ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0.0f );
+			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+		}
 
-		std::vector<FramebufferTextureSpecification> Attachments;
-	};
+		//if( dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode )
+		//	window_flags |= ImGuiWindowFlags_NoBackground;
 
-	struct FramebufferSpecification
-	{
-		uint32_t Width = 1280;
-		uint32_t Height = 720;
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
+		ImGui::Begin( "DockSpace Demo", &p_open, window_flags );
+		ImGui::PopStyleVar();
 
-		glm::vec4 ClearColor;
+		if( opt_fullscreen )
+			ImGui::PopStyleVar( 2 );
 
-		FramebufferAttachmentSpecification Attachments;
+		ImGuiIO& io = ImGui::GetIO();
+		if( io.ConfigFlags & ImGuiConfigFlags_DockingEnable )
+		{
+			ImGuiID dockspace_id = ImGui::GetID( "MyDockSpace" );
+			ImGui::DockSpace( dockspace_id, ImVec2( 0.0f, 0.0f ), dockspace_flags );
+		}
 
-		uint32_t Samples = 1;
+		// Draw Widgets
 
-		bool NoResize = false;
+		m_TitleBar->Draw();
 
-		bool SwapChainTarget = false;
-	};
+		ImGui::End();
+	}
 
-	class Framebuffer
-	{
-	public:
-		Framebuffer( const FramebufferSpecification& spec );
-		Framebuffer() { };
-		~Framebuffer();
-
-		void Bind();
-		void Unbind();
-
-		void Resize( uint32_t width, uint32_t height, bool forceRecreate = false );
-
-		void BindTexture( uint32_t index = 0, uint32_t slot = 0 );
-
-		uint32_t Width()  { return m_Specification.Width; }
-		uint32_t Height() { return m_Specification.Height; }
-
-		RendererID GetRendererID() const { return m_RendererID; }
-
-		RendererID ColorAttachmentRendererID( int index = 0 );
-		RendererID DepthAttachmentRendererID( void ) const;
-
-		virtual const FramebufferSpecification& Specification( void ) const { return m_Specification; }
-
-	private:
-		FramebufferSpecification m_Specification;
-		RendererID m_RendererID = 0;
-
-		std::vector<RendererID> m_ColorAttachments;
-		RendererID m_DepthAttachment;
-
-		std::vector<FramebufferTextureFormat> m_ColorAttachmentsFormat;
-		FramebufferTextureFormat m_DepthAttachmentFormat = FramebufferTextureFormat::None;
-
-		uint32_t m_Width = 0, m_Height = 0;
-
-		
-	};
 }

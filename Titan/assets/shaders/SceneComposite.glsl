@@ -1,3 +1,5 @@
+// Framebuffer shader
+
 #type vertex
 #version 430
 

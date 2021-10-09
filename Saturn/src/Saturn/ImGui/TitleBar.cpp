@@ -40,7 +40,7 @@ namespace Saturn {
 
 	void TitleBar::Draw()
 	{
-		ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10.0f, 10.0f ) );
+		//ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10.0f, 10.0f ) );
 
 		// TEMP
 		if( ImGui::BeginMainMenuBar() )
@@ -142,7 +142,7 @@ namespace Saturn {
 			ImGui::EndMainMenuBar();
 		}
 
-		ImGui::PopStyleVar();
+		//ImGui::PopStyleVar();
 
 	}
 

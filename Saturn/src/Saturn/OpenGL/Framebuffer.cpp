@@ -122,12 +122,12 @@ namespace Saturn {
 
 	Framebuffer::Framebuffer( const FramebufferSpecification& spec ) : m_Specification( spec )
 	{
-		for ( auto format : m_Specification.Attachments.Attachments )
+		for( auto format : m_Specification.Attachments.Attachments )
 		{
-			if( FramebufferUtills::IsDepthFormat( format.TextureFormat ) )
-				m_DepthAttachmentFormat = format.TextureFormat;
-			else
+			if( !FramebufferUtills::IsDepthFormat( format.TextureFormat ) )
 				m_ColorAttachmentsFormat.emplace_back( format.TextureFormat );
+			else
+				m_DepthAttachmentFormat = format.TextureFormat;
 		}
 
 		Resize( spec.Width, spec.Height, true );
@@ -142,6 +142,12 @@ namespace Saturn {
 	{
 		if( !forceRecreate && ( m_Specification.Width == width && m_Specification.Height == height ) )
 			return;
+
+		if( width == 0 && height == 0 ) 
+		{
+			SAT_CORE_WARN( "[Framebuffer] Width and Height are 0 no resize." );
+			return;
+		}
 
 		m_Specification.Width = width;
 		m_Specification.Height = height;
@@ -219,6 +225,7 @@ namespace Saturn {
 		SAT_CORE_ASSERT( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!" );
 
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		glDrawBuffer( GL_BACK );
 	}
 
 	void Framebuffer::Bind()
@@ -236,4 +243,15 @@ namespace Saturn {
 	{
 		glBindTextureUnit( slot, m_ColorAttachments[ index ] );
 	}
+
+	RendererID Framebuffer::ColorAttachmentRendererID( int index /*= 0 */ )
+	{
+		return m_ColorAttachments[ index ];
+	}
+
+	RendererID Framebuffer::DepthAttachmentRendererID( void ) const
+	{
+		return m_DepthAttachment;
+	}
+
 }
