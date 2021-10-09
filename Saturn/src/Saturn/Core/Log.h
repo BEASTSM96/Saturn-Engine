@@ -60,31 +60,31 @@ namespace Saturn {
 	template<typename T>
 	static void Info( const T& msg )
 	{
-		Log::Get().GetCoreLogger()->info( msg );
+		Log::Get().CoreLogger()->info( msg );
 	}
 
 	template<typename T>
 	static void Trace( const T& msg )
 	{
-		Log::Get().GetCoreLogger()->trace( msg );
+		Log::Get().CoreLogger()->trace( msg );
 	}
 
 	template<typename T>
 	static void Warn( const T& msg )
 	{
-		Log::Get().GetCoreLogger()->warn( msg );
+		Log::Get().CoreLogger()->warn( msg );
 	}
 
 	template<typename T>
 	static void Error( const T& msg )
 	{
-		Log::Get().GetCoreLogger()->error( msg );
+		Log::Get().CoreLogger()->error( msg );
 	}
 
 	template<typename T>
 	static void Fatal( const T& msg )
 	{
-		Log::Get().GetCoreLogger()->critical( msg );
+		Log::Get().CoreLogger()->critical( msg );
 	}
 }
 

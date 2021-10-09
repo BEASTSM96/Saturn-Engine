@@ -35,6 +35,7 @@
 #elif defined ( SAT_PLATFORM_LINUX )
 #define SAT_LINUX 1
 #define GLFW_EXPOSE_NATIVE_X11
+#include <signal.h>
 #else
 #define SAT_MAC 1
 #endif 
@@ -63,10 +64,7 @@ namespace Saturn::Core {
 	{
 	#if defined( _WIN32 )
 		__debugbreak();
-	#elif defined ( SAT_LINUX ) && defined ( __has_builtin( __builtin_debugtrap) )
-		__builtin_debugtrap();
 	#else
-	#include <signal.h>
 		raise( SIGTRAP );
 	#endif // _MSC_VER
 	}
