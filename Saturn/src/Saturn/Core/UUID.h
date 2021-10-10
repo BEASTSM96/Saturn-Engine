@@ -28,39 +28,38 @@
 
 #pragma once
 
-#include "TitleBar.h"
-
-#include "SceneHierarchyPanel.h"
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
+#include "Base.h"
+#include <xhash>
 
 namespace Saturn {
 
-	class ImGuiDockspace
+	// "UUID" (universally unique identifier) or GUID is (usually) a 128-bit integer.
+	class UUID
 	{
 	public:
-		ImGuiDockspace();
+		UUID();
+		UUID( uint64_t uuid );
+		UUID( const UUID& other );
 
-		void Draw();
 
-	public:
-
-		float Height() const { return m_Height; }
-
-		TitleBar& GetTitleBar() { return *m_TitleBar; }
-
-	protected:
-
-		void SelectionChanged( Entity e );
+		operator uint64_t() { return m_UUID; }
+		operator const uint64_t() const { return m_UUID; }
 
 	private:
 
-		TitleBar* m_TitleBar;
-		SceneHierarchyPanel* m_SceneHierarchyPanel;
-
-		Ref<Scene> m_Scene;
-
-		float m_Height;
+		uint64_t m_UUID;
 	};
 
+}
+
+namespace std {
+
+	template <>
+	struct hash<Saturn::UUID>
+	{
+		std::size_t operator()( const Saturn::UUID& uuid ) const
+		{
+			return hash<uint64_t>()( ( uint64_t )uuid );
+		}
+	};
 }

@@ -78,6 +78,8 @@ namespace Saturn {
 			return *this;
 		}
 
+		//////////////////////////////////////////////////////////////////////////
+
 		Ref& operator=( Ref<T>& other )
 		{
 			//delete m_Pointer;
@@ -97,6 +99,31 @@ namespace Saturn {
 			return *this;
 		}
 
+		//////////////////////////////////////////////////////////////////////////
+		// CONST
+		//////////////////////////////////////////////////////////////////////////
+
+		Ref& operator=( const Ref<T>& other )
+		{
+			//delete m_Pointer;
+
+			m_Pointer = other.m_Pointer;
+
+			return *this;
+		}
+
+		template<typename T2>
+		Ref& operator=( const Ref<T2>& other )
+		{
+			//delete m_Pointer;
+
+			m_Pointer = other.m_Pointer;
+
+			return *this;
+		}
+
+		//////////////////////////////////////////////////////////////////////////
+
 		template<typename T2>
 		Ref& operator=( Ref<T2>&& other )
 		{
@@ -106,6 +133,8 @@ namespace Saturn {
 
 			return *this;
 		}
+
+		//////////////////////////////////////////////////////////////////////////
 
 		operator bool()       { return m_Pointer != nullptr; }
 		operator bool() const { return m_Pointer != nullptr; }

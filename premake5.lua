@@ -24,6 +24,7 @@ IncludeDir["GLFW"] = "Saturn/vendor/GLFW/include"
 IncludeDir["Glad"] = "Saturn/vendor/Glad/include"
 IncludeDir["ImGui"] = "Saturn/vendor/imgui"
 IncludeDir["glm"] = "Saturn/vendor/glm"
+IncludeDir["entt"] = "Saturn/vendor/entt/include"
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
@@ -71,7 +72,8 @@ project "Saturn"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.glm}"
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.entt}"
 	}
 
 	links 

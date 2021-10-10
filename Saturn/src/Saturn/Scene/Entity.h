@@ -28,39 +28,87 @@
 
 #pragma once
 
-#include "TitleBar.h"
+#include "Components.h"
+#include "Scene.h"
 
-#include "SceneHierarchyPanel.h"
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
+#include <glm/glm.hpp>
+#include "entt.hpp"
 
 namespace Saturn {
 
-	class ImGuiDockspace
+	class Entity
 	{
 	public:
-		ImGuiDockspace();
+		Entity() = default;
+		Entity( entt::entity handle, Scene * scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
+		Entity( const Entity & other ) = default;
 
-		void Draw();
+		template<typename T, typename... Args>
+		T& AddComponent( Args&&... args )
+		{
+			SAT_CORE_ASSERT( !HasComponent<T>(), "Entity already has component!" );
+			return m_Scene->m_Registry.emplace<T>( m_EntityHandle, std::forward<Args>( args )... );
+		}
 
-	public:
+		template<typename T>
+		T& GetComponent()
+		{
+			SAT_CORE_ASSERT( HasComponent<T>(), "Entity does not have component!" );
+			return m_Scene->m_Registry.get<T>( m_EntityHandle );
+		}
 
-		float Height() const { return m_Height; }
+		template<typename T>
+		bool HasComponent()
+		{
+			return m_Scene->m_Registry.has<T>( m_EntityHandle );
+		}
 
-		TitleBar& GetTitleBar() { return *m_TitleBar; }
+		template<typename T>
+		void RemoveComponent()
+		{
+			m_Scene->m_Registry.remove_if_exists<T>( m_EntityHandle );
+		}
+
+		bool IsVaild()
+		{
+			return m_Scene->m_Registry.valid( m_EntityHandle );
+		}
+
+		Scene& GetScene() { return *m_Scene; }
+		const Scene& GetScene() const { return *m_Scene; }
+
+		void SetScene( Scene* sceneIn )
+		{
+			m_Scene = sceneIn;
+		}
+
+		glm::mat4& Transform() { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ); }
+		const glm::mat4& Transform() const { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ); }
+
+		operator bool() const { return m_EntityHandle != entt::null && m_Scene != nullptr; }
+		operator entt::entity() const { return m_EntityHandle; }
+		operator uint32_t () const { return ( uint32_t )m_EntityHandle; }
+
+		bool operator==( const Entity& other ) const
+		{
+			return m_EntityHandle == other.m_EntityHandle && m_Scene == other.m_Scene;
+		}
+
+		bool operator!=( const Entity& other ) const
+		{
+			return !( *this == other );
+		}
+
+
+		UUID GetUUID() { return GetComponent<IdComponent>().ID; }
 
 	protected:
 
-		void SelectionChanged( Entity e );
+		entt::entity m_EntityHandle{ entt::null };
+		Scene* m_Scene = nullptr;
 
 	private:
 
-		TitleBar* m_TitleBar;
-		SceneHierarchyPanel* m_SceneHierarchyPanel;
-
-		Ref<Scene> m_Scene;
-
-		float m_Height;
+		friend class Scene;
 	};
-
 }

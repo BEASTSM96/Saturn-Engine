@@ -28,39 +28,111 @@
 
 #pragma once
 
-#include "TitleBar.h"
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-#include "SceneHierarchyPanel.h"
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
+#include "Saturn/Core/UUID.h"
+
+#include <string>
 
 namespace Saturn {
 
-	class ImGuiDockspace
+	/** @brief A TransformComponent.
+	*
+	* @code
+	*
+	* glm::mat4 Transform (default 1.0f)
+	*
+	* TransformComponent()
+	* TransformComponent(const TransformComponent&)
+	* TransformComponent(const glm::mat4 & Transform)
+	*
+	*
+	*	operator glm::mat4& ()
+	*
+	*	operator const glm::mat4& ()
+	*
+	* @endcode
+	*/
+
+	struct TransformComponent
 	{
-	public:
-		ImGuiDockspace();
+		glm::vec3  Position ={ 0.0f , 0.0f, 0.0f };
+		glm::vec3  Rotation ={ 0.0f, 0.0f, 0.0f };
+		glm::vec3  Scale	={ 1.0f , 1.0f, 1.0f };
 
-		void Draw();
+		glm::vec3 Up ={ 0.0f, 1.0f, 0.0f };
+		glm::vec3 Right ={ 1.0f, 0.0f, 0.0f };
+		glm::vec3 Forward ={ 0.0f, 0.0f, -1.0f };
 
-	public:
+		TransformComponent( void ) = default;
+		TransformComponent( const TransformComponent& ) = default;
+		TransformComponent( const glm::vec3& Position )
+			: Position( Position )
+		{
+		}
 
-		float Height() const { return m_Height; }
+		glm::mat4 GetTransform() const
+		{
+			glm::mat4 rotation = glm::toMat4( glm::quat( Rotation ) );
 
-		TitleBar& GetTitleBar() { return *m_TitleBar; }
+			return glm::translate( glm::mat4( 1.0f ), Position )
+				* rotation
+				* glm::scale( glm::mat4( 1.0f ), Scale );
+		}
 
-	protected:
+		operator glm::mat4& ( ) { return GetTransform(); }
+		operator const glm::mat4& ( ) const { return GetTransform(); }
 
-		void SelectionChanged( Entity e );
-
-	private:
-
-		TitleBar* m_TitleBar;
-		SceneHierarchyPanel* m_SceneHierarchyPanel;
-
-		Ref<Scene> m_Scene;
-
-		float m_Height;
 	};
 
+	/** @brief A TagComponent.
+	*
+	* @code
+	*
+	* std::string Tag;
+	*
+	* TagComponent()
+	* TagComponent(const TagComponent&) = default
+	* TagComponent(const std::string& tag)
+	*
+	* @endcode
+	*/
+	struct TagComponent
+	{
+		std::string Tag;
+
+		TagComponent() = default;
+		TagComponent( const TagComponent& ) = default;
+		TagComponent( const std::string& tag )
+			: Tag( tag )
+
+		{
+		}
+	};
+
+	/** @brief A IdComponent.
+	*
+	* @code
+	*
+	* UUID ID;
+	*
+	* IdComponent()
+	* IdComponent(const IdComponent&) = default
+	* IdComponent(const UUID& uuid)
+	*
+	* @endcode
+	*/
+	struct IdComponent
+	{
+		UUID ID;
+
+		IdComponent() = default;
+		IdComponent( const IdComponent& ) = default;
+		IdComponent( const UUID& uuid )
+			: ID( uuid )
+		{
+		}
+	};
 }

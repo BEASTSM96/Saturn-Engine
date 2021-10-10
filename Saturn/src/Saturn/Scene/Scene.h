@@ -28,39 +28,62 @@
 
 #pragma once
 
-#include "TitleBar.h"
+#include "Saturn/Core/Base.h"
 
-#include "SceneHierarchyPanel.h"
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
+#include "Saturn/Core/Renderer/EditorCamera.h"
+
+#include "Saturn/Core/UUID.h"
+#include "Saturn/Core/Timestep.h"
+
+#include "entt.hpp"
 
 namespace Saturn {
 
-	class ImGuiDockspace
+	class Entity;
+	using EntityMap = std::unordered_map<UUID, Entity>;
+
+	struct SceneComponent
+	{
+		UUID SceneID;
+	};
+
+	class Scene
 	{
 	public:
-		ImGuiDockspace();
+		Scene();
+		~Scene();
 
-		void Draw();
+		Entity CreateEntity( const std::string& name =  "" );
+		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
 
-	public:
+		void DestroyEntity( Entity entity );
 
-		float Height() const { return m_Height; }
+		void OnRenderEditor( Timestep ts, const EditorCamera& editorCamera );
 
-		TitleBar& GetTitleBar() { return *m_TitleBar; }
+		template<typename T>
+		auto GetAllEntitiesWith( void )
+		{
+			return m_Registry.view<T>();
+		}
 
-	protected:
-
-		void SelectionChanged( Entity e );
+		void OnUpdate( Timestep ts );
+		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
+		Entity FindEntityByTag( const std::string& tag );
+		void CopyScene( Ref<Scene>& NewScene );
 
 	private:
 
-		TitleBar* m_TitleBar;
-		SceneHierarchyPanel* m_SceneHierarchyPanel;
+		UUID m_SceneID;
 
-		Ref<Scene> m_Scene;
+		EntityMap m_EntityIDMap;
 
-		float m_Height;
+		entt::entity m_SceneEntity;
+		entt::registry m_Registry;
+
+		entt::entity m_SelectedEntity;
+	private:
+
+		friend class Entity;
+		friend class SceneHierarchyPanel;
 	};
-
 }

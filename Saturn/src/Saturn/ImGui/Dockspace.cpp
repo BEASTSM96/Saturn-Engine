@@ -35,7 +35,13 @@ namespace Saturn {
 
 	ImGuiDockspace::ImGuiDockspace()
 	{
+		m_Scene = Ref<Scene>::Create();
+
 		m_TitleBar = new TitleBar();
+		m_SceneHierarchyPanel = new SceneHierarchyPanel();
+		
+		m_SceneHierarchyPanel->SetContext( m_Scene );
+		m_SceneHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( ImGuiDockspace::SelectionChanged ) );
 	}
 
 	void ImGuiDockspace::Draw()
@@ -80,8 +86,14 @@ namespace Saturn {
 		// Draw Widgets
 
 		m_TitleBar->Draw();
+		m_SceneHierarchyPanel->Draw();
 
 		ImGui::End();
+	}
+
+	void ImGuiDockspace::SelectionChanged( Entity e )
+	{
+
 	}
 
 }

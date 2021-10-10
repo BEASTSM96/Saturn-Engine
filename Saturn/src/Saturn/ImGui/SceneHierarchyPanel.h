@@ -28,39 +28,39 @@
 
 #pragma once
 
-#include "TitleBar.h"
-
-#include "SceneHierarchyPanel.h"
-#include "Saturn/Scene/Scene.h"
+#include "Saturn/Core/Base.h"
 #include "Saturn/Scene/Entity.h"
+#include "Saturn/Scene/Scene.h"
+
+#include <functional>
 
 namespace Saturn {
 
-	class ImGuiDockspace
+	class SceneHierarchyPanel
 	{
 	public:
-		ImGuiDockspace();
+		SceneHierarchyPanel();
+		~SceneHierarchyPanel();
+
+		void SetContext( const Ref<Scene>& scene );
+		void SetSelected( Entity entity );
+		void SetSelectionChangedCallback( const std::function<void( Entity )>& func ) { m_SelectionChangedCallback = func; }
+
+		Entity& GetSelectionContext() { return m_SelectionContext; }
 
 		void Draw();
 
-	public:
-
-		float Height() const { return m_Height; }
-
-		TitleBar& GetTitleBar() { return *m_TitleBar; }
-
 	protected:
 
-		void SelectionChanged( Entity e );
+		void DrawComponents( Entity entity );
+		void DrawEntityNode( Entity entity );
+		void DrawEntityComponents( Entity entity );
 
 	private:
 
-		TitleBar* m_TitleBar;
-		SceneHierarchyPanel* m_SceneHierarchyPanel;
-
-		Ref<Scene> m_Scene;
-
-		float m_Height;
+		Ref<Scene> m_Context;
+		Entity m_SelectionContext ={};
+		std::function<void( Entity )> m_SelectionChangedCallback;
 	};
 
 }
