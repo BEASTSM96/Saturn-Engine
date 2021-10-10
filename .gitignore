@@ -61,11 +61,13 @@ Output-Build.txt
 *.incl
 *.t0*
 
-files
+# Codelite files
 *.mk
 *.project
 **/.codelite/
 *.workspace
+
+premake5
 
 Titan/Titan.txt
 
