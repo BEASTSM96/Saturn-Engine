@@ -60,3 +60,17 @@ Output-Build.txt
 *.scor
 *.incl
 *.t0*
+
+files
+*.mk
+*.project
+**/.codelite/
+*.workspace
+
+Titan/Titan.txt
+
+Saturn/Saturn.txt
+
+Saturn/vendor/Glad/Glad.txt
+
+Saturn/vendor/imgui/ImGui.txt
