@@ -26,75 +26,41 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Common.h"
-
-#include <string>
+#include "sppch.h"
+#include "ShaderLibrary.h"
 
 namespace Saturn {
 
-	class Shader
+	ShaderLibaray::ShaderLibaray()
 	{
-	public:
-		Shader() = default;
-		Shader( const std::string& filename );
+	}
 
-		void Bind();
-		RendererID GetRendererID() { return m_ID; }
+	ShaderLibaray::~ShaderLibaray()
+	{
+		m_Shaders.clear();
+	}
 
-		const std::string& Name() const { return m_Name; }
-		std::string& Name() { return m_Name; }
+	const Ref<Shader>& ShaderLibaray::Get( const std::string& name )
+	{
+		SAT_CORE_ASSERT( m_Shaders.find( name ) != m_Shaders.end(), "Shader was not found in the libaray" );
 
-		// Uniform Funcs
+		return m_Shaders.at( name );
+	}
 
-		void SetBool( const std::string& name, bool val );
-		void SetInt( const std::string& name, int val );
-		void SetFloat( const std::string& name, float value );
-		void SetFloat2( const std::string& name, const glm::vec2& val );
-		void SetFloat3( const std::string& name, const glm::vec3& val );
-		void SetMat4( const std::string& name, const glm::mat4& val );
+	void ShaderLibaray::Add( const Ref<Shader>& shader )
+	{
+		auto& name = shader->Name();
 
-	private:
+		SAT_CORE_ASSERT( m_Shaders.find( name ) == m_Shaders.end(), "Shader was already found in the libaray" );
 
-		void Load( const std::string& filepath );
-		void Parse();
+		m_Shaders[ name ] = shader;
+	}
 
-		void CompileAndUploadShader();
-		std::string ReadShaderFromFile( const std::string& src );
+	void ShaderLibaray::Load( const std::string& name, const std::string& filepath )
+	{
+		SAT_CORE_ASSERT( m_Shaders.find( name ) != m_Shaders.end(), "Shader was not found in the libaray" );
 
-		const char* FindToken( const char* shader, const std::string& token );
-		std::string GetStatement( const char* str, const char** outPosition );
+		m_Shaders[ name ] = Ref<Shader>::Create( path );
+	}
 
-		void ParseUniform( const std::string& statement, int domain );
-
-		std::unordered_map<unsigned int, std::string> DetermineShaderTypes( const std::string& filepath );
-
-		unsigned int ShaderTypeFromString( const std::string& type );
-
-	private:
-
-		RendererID m_ID = 0;
-		bool m_Loaded = false;
-		bool m_IsCompute = false;
-		std::string m_Name, m_Filepath;
-
-		// We technically have 2 shaders in one file, so we make a map here
-		std::unordered_map<unsigned int, std::string> m_Shaders;
-	private:
-
-		const char* FTLSD_VertexShaderSource = "#version 330 core\n"
-			"layout (location = 0) in vec3 aPos;\n"
-			"void main()\n"
-			"{\n"
-			"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-			"}\0";
-
-		const char* FTLSD_FragmentShaderSource = "#version 330 core\n"
-			"out vec4 FragColor;\n"
-			"void main()\n"
-			"{\n"
-			"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-			"}\n\0";
-	};
 }

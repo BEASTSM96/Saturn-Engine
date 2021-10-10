@@ -122,7 +122,9 @@ namespace Saturn {
 		std::vector<VertexBufferElement>::iterator end() { return m_Elements.end(); }
 		std::vector<VertexBufferElement>::const_iterator begin() const { return m_Elements.begin(); }
 		std::vector<VertexBufferElement>::const_iterator end() const { return m_Elements.end(); }
+
 	private:
+
 		void CalculateOffsetsAndStride( void )
 		{
 			uint32_t offset = 0;
@@ -134,7 +136,9 @@ namespace Saturn {
 				m_Stride += element.Size;
 			}
 		}
+
 	private:
+
 		std::vector<VertexBufferElement> m_Elements;
 		uint32_t m_Stride = 0;
 	};
@@ -162,6 +166,7 @@ namespace Saturn {
 		RendererID GetRendererID() const { return m_RendererID; }
 
 	private:
+
 		RendererID m_RendererID = 0;
 		uint32_t m_Size;
 		VertexBufferUsage m_Usage;

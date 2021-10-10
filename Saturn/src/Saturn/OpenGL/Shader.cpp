@@ -61,7 +61,9 @@ namespace Saturn {
 		std::string src = ReadShaderFromFile( filepath );
 
 		m_Shaders = DetermineShaderTypes( src );
-		Parse();
+
+		if( !m_IsCompute )
+			Parse();
 
 		if( m_ID )
 			glDeleteProgram( m_ID );
@@ -86,6 +88,8 @@ namespace Saturn {
 		vstr = vertexSource.c_str();
 		// Fragment Shader
 		fstr = fragmentSource.c_str();
+
+
 
 	}
 
@@ -214,8 +218,10 @@ namespace Saturn {
 	{
 		if( type == "vertex" )
 			return GL_VERTEX_SHADER;
-		if( type == "fragment" )
+		if( type == "fragment" || type == "pixel" )
 			return GL_FRAGMENT_SHADER;
+		if( type == "compute" )
+			return GL_COMPUTE_SHADER;
 
 		return GL_NONE;
 	}
@@ -242,14 +248,19 @@ namespace Saturn {
 
 			std::string type = filepath.substr( begin, eol_CL_LF - begin );
 
-			// TODO: Pixel and compute shaders
-
-			SAT_CORE_ASSERT( type == "vertex" || type == "fragment", "Invalid shader type specified" );
+			SAT_CORE_ASSERT( type == "vertex" || type == "fragment" || type == "pixel" || type == "compute", "Invalid shader type specified" );
 
 			size_t nextLinePos = filepath.find_first_not_of( "\r\n", eol_CL_LF );
 			tt_pos = filepath.find( typeToken, nextLinePos );
 			auto shaderType = ShaderTypeFromString( type );
 			shaderSources[ shaderType ] = filepath.substr( nextLinePos, tt_pos - ( nextLinePos == std::string::npos ? filepath.size() - 1 : nextLinePos ) );
+
+			// Compute shaders cannot contain other types
+			if( shaderType == GL_COMPUTE_SHADER )
+			{
+				m_IsCompute = true;
+				break;
+			}
 		}
 
 		return shaderSources;
