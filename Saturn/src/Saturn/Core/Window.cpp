@@ -268,7 +268,7 @@ namespace Saturn {
 
 		m_Dockspace->Draw();
 
-		ImGui::Begin( "viewport" );
+		ImGui::Begin( "Viewport" );
 		{
 			auto viewportSize = ImGui::GetContentRegionAvail();
 

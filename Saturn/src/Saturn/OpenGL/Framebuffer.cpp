@@ -116,26 +116,89 @@ namespace Saturn::FramebufferUtills {
 		glFramebufferTexture2D( GL_FRAMEBUFFER, attachmentType, TextureTarget( sampled ), id, 0 );
 
 	}
+
+	void CreateFramebuffer( const FramebufferSpecification& spec, const RendererID* id, const RendererID* textID, bool resize )
+	{
+		int width, height;
+		width = spec.Width;
+		height = spec.Width;
+
+		GLuint fbID = ( GLuint )id;
+		GLuint textureID = ( GLuint )textID;
+
+		if( width == 0 && height == 0 )
+		{
+			SAT_CORE_WARN( "[Framebuffer Creation] Width and Height are 0 no resize." );
+			return;
+		}
+
+		glGenTextures( 1, &textureID );
+		glBindTexture( GL_TEXTURE_2D, textureID );
+
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_INT, 0 );
+
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+		glBindTexture( GL_TEXTURE_2D, 0 );
+
+		glGenFramebuffers( 1, &fbID );
+		glBindFramebuffer( GL_FRAMEBUFFER, fbID );
+
+		if ( resize )
+		{
+			// No need to change the width and height as this is on the same thread
+
+			glBindTexture( GL_TEXTURE_2D, textureID );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_INT, 0 );
+
+			glBindTexture( GL_TEXTURE_2D, 0 );
+		}
+
+		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0 );
+
+		SAT_CORE_ASSERT( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!" );
+
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+	}
 }
 
 namespace Saturn {
 
 	Framebuffer::Framebuffer( const FramebufferSpecification& spec ) : m_Specification( spec )
 	{
-		for( auto format : m_Specification.Attachments.Attachments )
-		{
-			if( !FramebufferUtills::IsDepthFormat( format.TextureFormat ) )
-				m_ColorAttachmentsFormat.emplace_back( format.TextureFormat );
-			else
-				m_DepthAttachmentFormat = format.TextureFormat;
-		}
+		//FramebufferUtills::CreateFramebuffer( m_Specification, &m_RendererID, &m_TextureID, false );
 
-		Resize( spec.Width, spec.Height, true );
+		glGenTextures( 1, &m_TextureID );
+		glBindTexture( GL_TEXTURE_2D, m_TextureID );
+
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, spec.Width, spec.Height, 0, GL_RGBA, GL_UNSIGNED_INT, 0 );
+
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+		glBindTexture( GL_TEXTURE_2D, 0 );
+
+		glGenFramebuffers( 1, &m_RendererID );
+		glBindFramebuffer( GL_FRAMEBUFFER, m_RendererID );
+
+		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureID, 0 );
+
+		SAT_CORE_ASSERT( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!" );
+
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+		Resize( spec.Width, spec.Height );
 	}
 
 	Framebuffer::~Framebuffer()
 	{
 		glDeleteFramebuffers( 1, &m_RendererID );
+		glDeleteTextures( 1, &m_TextureID );
 	}
 
 	void Framebuffer::Resize( uint32_t width, uint32_t height, bool forceRecreate /*= false */ )
@@ -155,77 +218,10 @@ namespace Saturn {
 		m_Width = width;
 		m_Height = height;
 
-		if( m_RendererID )
-		{
-			glDeleteFramebuffers( 1, &m_RendererID );
-			glDeleteTextures( m_ColorAttachments.size(), m_ColorAttachments.data() );
-			glDeleteTextures( 1, &m_DepthAttachment );
+		glBindTexture( GL_TEXTURE_2D, m_TextureID );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_INT, 0 );
 
-			m_ColorAttachments.clear();
-			m_DepthAttachment = 0;
-		}
-
-		glGenFramebuffers( 1, &m_RendererID );
-		glBindFramebuffer( GL_FRAMEBUFFER, m_RendererID );
-
-		bool multisample = m_Specification.Samples > 1;
-
-		if( m_ColorAttachmentsFormat.size() )
-		{
-			m_ColorAttachments.resize( m_ColorAttachmentsFormat.size() );
-			FramebufferUtills::CreateTextures( multisample, m_ColorAttachments.data(), m_ColorAttachments.size() );
-
-			for( int i = 0; i < m_ColorAttachmentsFormat.size(); i++ )
-			{
-				FramebufferUtills::BindTexture( multisample, m_ColorAttachments[ i ] );
-				switch( m_ColorAttachmentsFormat[ i ] )
-				{
-					case FramebufferTextureFormat::RGBA8:
-						FramebufferUtills::AttachColorTexture( m_ColorAttachments[ i ], m_Specification.Samples, GL_RGBA8, m_Width, m_Height, i );
-						break;
-					case FramebufferTextureFormat::RGBA16F:
-						FramebufferUtills::AttachColorTexture( m_ColorAttachments[ i ], m_Specification.Samples, GL_RGBA16F, m_Width, m_Height, i );
-						break;
-					case FramebufferTextureFormat::RGBA32F:
-						FramebufferUtills::AttachColorTexture( m_ColorAttachments[ i ], m_Specification.Samples, GL_RGBA32F, m_Width, m_Height, i );
-						break;
-					case FramebufferTextureFormat::RGB32F:
-						FramebufferUtills::AttachColorTexture( m_ColorAttachments[ i ], m_Specification.Samples, GL_RGB32F, m_Width, m_Height, i );
-						break;
-				}
-			}
-		}
-
-		if( m_DepthAttachmentFormat != FramebufferTextureFormat::None )
-		{
-			FramebufferUtills::CreateTextures( multisample, &m_DepthAttachment, 1 );
-			FramebufferUtills::BindTexture( multisample, m_DepthAttachment );
-			switch( m_DepthAttachmentFormat )
-			{
-				case FramebufferTextureFormat::DEPTH32F:
-					FramebufferUtills::AttachDepthTexture( m_DepthAttachment, m_Specification.Samples, GL_DEPTH24_STENCIL8, GL_DEPTH_ATTACHMENT, m_Width, m_Height );
-					break;
-				case FramebufferTextureFormat::DEPTH24STENCIL8:
-					FramebufferUtills::AttachDepthTexture( m_DepthAttachment, m_Specification.Samples, GL_DEPTH_COMPONENT32F, GL_DEPTH_ATTACHMENT, m_Width, m_Height );
-					break;
-			}
-		}
-
-		if( m_ColorAttachments.size() > 1 )
-		{
-			SAT_CORE_ASSERT( m_ColorAttachments.size() <= 4 );
-			GLenum buffers[ 4 ] ={ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 , GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-			glDrawBuffers( m_ColorAttachments.size(), buffers );
-		}
-		else if( m_ColorAttachments.size() == 0 )
-		{
-			glDrawBuffer( GL_NONE );
-		}
-
-		SAT_CORE_ASSERT( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!" );
-
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-		glDrawBuffer( GL_BACK );
+		glBindTexture( GL_TEXTURE_2D, 0 );
 	}
 
 	void Framebuffer::Bind()
@@ -241,17 +237,17 @@ namespace Saturn {
 
 	void Framebuffer::BindTexture( uint32_t index, uint32_t slot )
 	{
-		glBindTextureUnit( slot, m_ColorAttachments[ index ] );
+		glBindTextureUnit( slot, m_TextureID );
 	}
 
 	RendererID Framebuffer::ColorAttachmentRendererID( int index /*= 0 */ )
 	{
-		return m_ColorAttachments[ index ];
+		return m_TextureID;
 	}
 
 	RendererID Framebuffer::DepthAttachmentRendererID( void ) const
 	{
-		return m_DepthAttachment;
+		return -FLT_MAX;
 	}
 
 }

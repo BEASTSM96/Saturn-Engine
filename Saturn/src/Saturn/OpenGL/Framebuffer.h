@@ -53,30 +53,12 @@ namespace Saturn {
 		Depth = DEPTH24STENCIL8
 	};
 
-	struct FramebufferTextureSpecification
-	{
-		FramebufferTextureSpecification() = default;
-		FramebufferTextureSpecification( FramebufferTextureFormat format ) : TextureFormat( format ) { }
-
-		FramebufferTextureFormat TextureFormat;
-	};
-
-	struct FramebufferAttachmentSpecification
-	{
-		FramebufferAttachmentSpecification() = default;
-		FramebufferAttachmentSpecification( const std::initializer_list<FramebufferTextureSpecification>& attachments ) : Attachments( attachments ) { }
-
-		std::vector<FramebufferTextureSpecification> Attachments;
-	};
-
 	struct FramebufferSpecification
 	{
 		uint32_t Width = 1280;
 		uint32_t Height = 720;
 
 		glm::vec4 ClearColor;
-
-		FramebufferAttachmentSpecification Attachments;
 
 		uint32_t Samples = 1;
 
@@ -89,7 +71,7 @@ namespace Saturn {
 	{
 	public:
 		Framebuffer( const FramebufferSpecification& spec );
-		Framebuffer() { };
+		Framebuffer() { }
 		~Framebuffer();
 
 		void Bind();
@@ -111,16 +93,11 @@ namespace Saturn {
 
 	private:
 		FramebufferSpecification m_Specification;
+
 		RendererID m_RendererID = 0;
 
-		std::vector<RendererID> m_ColorAttachments;
-		RendererID m_DepthAttachment;
-
-		std::vector<FramebufferTextureFormat> m_ColorAttachmentsFormat;
-		FramebufferTextureFormat m_DepthAttachmentFormat = FramebufferTextureFormat::None;
+		RendererID m_TextureID = 0;
 
 		uint32_t m_Width = 0, m_Height = 0;
-
-		
 	};
 }
