@@ -31,6 +31,8 @@
 #include "Saturn/Core/Base.h"
 #include "Saturn/Core/Renderer/EditorCamera.h"
 
+#include "Saturn/Core/Events.h"
+
 #include "Framebuffer.h"
 #include "Common.h"
 

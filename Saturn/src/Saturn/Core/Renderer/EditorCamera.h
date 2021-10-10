@@ -30,6 +30,7 @@
 
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/Core/Input.h"
+#include "Saturn/Core/Events.h"
 #include "Camera.h"
 
 namespace Saturn {

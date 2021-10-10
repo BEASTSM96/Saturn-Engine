@@ -116,61 +116,12 @@ namespace Saturn::FramebufferUtills {
 		glFramebufferTexture2D( GL_FRAMEBUFFER, attachmentType, TextureTarget( sampled ), id, 0 );
 
 	}
-
-	void CreateFramebuffer( const FramebufferSpecification& spec, const RendererID* id, const RendererID* textID, bool resize )
-	{
-		int width, height;
-		width = spec.Width;
-		height = spec.Width;
-
-		GLuint fbID = ( GLuint )id;
-		GLuint textureID = ( GLuint )textID;
-
-		if( width == 0 && height == 0 )
-		{
-			SAT_CORE_WARN( "[Framebuffer Creation] Width and Height are 0 no resize." );
-			return;
-		}
-
-		glGenTextures( 1, &textureID );
-		glBindTexture( GL_TEXTURE_2D, textureID );
-
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_INT, 0 );
-
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-
-		glBindTexture( GL_TEXTURE_2D, 0 );
-
-		glGenFramebuffers( 1, &fbID );
-		glBindFramebuffer( GL_FRAMEBUFFER, fbID );
-
-		if ( resize )
-		{
-			// No need to change the width and height as this is on the same thread
-
-			glBindTexture( GL_TEXTURE_2D, textureID );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_INT, 0 );
-
-			glBindTexture( GL_TEXTURE_2D, 0 );
-		}
-
-		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0 );
-
-		SAT_CORE_ASSERT( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!" );
-
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-	}
 }
 
 namespace Saturn {
 
 	Framebuffer::Framebuffer( const FramebufferSpecification& spec ) : m_Specification( spec )
 	{
-		//FramebufferUtills::CreateFramebuffer( m_Specification, &m_RendererID, &m_TextureID, false );
-
 		glGenTextures( 1, &m_TextureID );
 		glBindTexture( GL_TEXTURE_2D, m_TextureID );
 
