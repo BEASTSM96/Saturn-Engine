@@ -41,6 +41,50 @@
 
 namespace Saturn {
 
+	template<typename T, typename UIFunction>
+	static void DrawComponent( const std::string& name, Entity entity, UIFunction uiFunction )
+	{
+		if( entity.HasComponent<T>() )
+		{
+			bool removeComponent = false;
+
+			auto& component = entity.GetComponent<T>();
+			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str() );
+			ImGui::SameLine();
+			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
+			if( ImGui::Button( "+" ) )
+			{
+				ImGui::OpenPopup( "ComponentSettings" );
+			}
+
+			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
+
+			if( ImGui::BeginPopup( "ComponentSettings" ) )
+			{
+				if( ImGui::MenuItem( "Remove component" ) )
+					removeComponent = true;
+
+				ImGui::EndPopup();
+			}
+
+			if( open )
+			{
+				uiFunction( component );
+				ImGui::NextColumn();
+				ImGui::Columns( 1 );
+				ImGui::TreePop();
+			}
+			ImGui::Separator();
+
+			if( removeComponent )
+			{
+				entity.RemoveComponent<T>();
+			}
+		}
+	}
+
 	SceneHierarchyPanel::SceneHierarchyPanel()
 	{
 	}
