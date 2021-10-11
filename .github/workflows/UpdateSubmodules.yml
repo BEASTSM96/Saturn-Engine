@@ -4,10 +4,10 @@ name: CI( Update )
 on:
   schedule:
     # 18:00 on Mondays
-  - cron: '1 8 * * 1'
+  - cron: '0 18 * * 1'
   workflow_dispatch:
   
-  jobs:
+jobs:
     update_glm:
       name: Update GLM
       runs-on: windows
