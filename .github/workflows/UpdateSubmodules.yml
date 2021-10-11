@@ -23,7 +23,7 @@ jobs:
         - name: Update Submodule
         
           run: |
-           git submodule glm "(git checkout master; git pull)"
+           git submodule glm "(git checkout main; git pull)"
            git add glm
            git config --local user.email "action@github.com"
            git config --local user.name "GitHub Actions"
