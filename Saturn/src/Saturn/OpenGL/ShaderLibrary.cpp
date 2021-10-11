@@ -60,7 +60,7 @@ namespace Saturn {
 	{
 		SAT_CORE_ASSERT( m_Shaders.find( name ) != m_Shaders.end(), "Shader was not found in the libaray" );
 
-		m_Shaders[ name ] = Ref<Shader>::Create( path );
+		m_Shaders[ name ] = Ref<Shader>::Create( filepath );
 	}
 
 }
