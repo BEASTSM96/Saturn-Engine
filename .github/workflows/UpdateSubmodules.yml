@@ -10,7 +10,7 @@ on:
 jobs:
     update_glm:
       name: Update GLM
-      runs-on: windows
+      runs-on: windows-latest
       continue-on-error: true
       steps:
         - uses: actions/checkout@v2
