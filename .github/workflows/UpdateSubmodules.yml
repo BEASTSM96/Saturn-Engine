@@ -4,7 +4,7 @@ name: CI( Update )
 on:
   schedule:
     # 18:00 on Mondays
-  - cron: '0 18 * * 1'
+  - cron: '2 17 * * 1'
   workflow_dispatch:
   
 jobs:
