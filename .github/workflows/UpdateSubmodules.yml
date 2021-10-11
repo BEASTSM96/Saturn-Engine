@@ -3,8 +3,8 @@ name: CI( Update )
 # https://github.com/Geno-IDE/llvm/blob/master/.github/workflows/ci.yml#L4
 on:
   schedule:
-    # 18:00 on Mondays
-  - cron: '7 19 * * 1'
+    # 00:00 on Mondays
+  - cron: '00 00 * * 1'
   workflow_dispatch:
   
 jobs:
@@ -23,7 +23,7 @@ jobs:
         - name: Update Submodule
         
           run: |
-           git submodules foreach "(git checkout master; git pull)"
+           git submodule foreach "(git checkout master; git pull)"
            git add g-truc/glm
            git config --local user.email "action@github.com"
            git config --local user.name "GitHub Actions"
