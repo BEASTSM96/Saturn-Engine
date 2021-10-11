@@ -1,0 +1,31 @@
+name: CI( Update )
+
+# https://github.com/Geno-IDE/llvm/blob/master/.github/workflows/ci.yml#L4
+on:
+  schedule:
+    # 18:00 on Mondays
+  - cron: '1 8 * * 1'
+  workflow_dispatch:
+  
+  jobs:
+    update_glm:
+      name: Update GLM
+      runs-on: windows
+      continue-on-error: true
+      steps:
+        - uses: actions/checkout@v2
+          with:
+            submodules: true
+            
+        - name: Get Name
+          id: date
+          run: echo "::set-output name=date::$(Get-Date -Format "yyyy-MM-dd")"
+        - name: Update Submodule
+        
+          run: |
+           git submodules foreach "(git checkout master; git pull)"
+           git add g-truc/glm
+           git config --local user.email "action@github.com"
+           git config --local user.name "GitHub Actions"
+           git commit -m "Latest glm as of ${{ steps.date.outputs.date }}"
+           git push origin master
