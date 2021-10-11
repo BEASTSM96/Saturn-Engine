@@ -36,19 +36,20 @@
 
 namespace Saturn {
 
-	class ShaderLibaray
+	class ShaderLibrary
 	{
 	public:
-		ShaderLibaray();
-		ShaderLibaray( const std::unordered_map<std::string, Ref<Shader>>& newMap ) : m_Shaders( newMap ) { }
+		ShaderLibrary();
+		//ShaderLibrary( const std::unordered_map<std::string, Ref<Shader>>& newMap ) : m_Shaders( newMap ) { }
 
-		~ShaderLibaray();
+		~ShaderLibrary();
 
 		const Ref<Shader>& Get( const std::string& name );
 
 		void Add( const Ref<Shader>& shader );
 		void Load( const std::string& name, const std::string& filepath );
-	
+		void Load( const std::string& name );
+
 	private:
 
 		std::unordered_map<std::string, Ref<Shader>> m_Shaders;

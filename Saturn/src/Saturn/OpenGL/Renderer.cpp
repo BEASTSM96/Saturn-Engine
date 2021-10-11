@@ -78,9 +78,14 @@ namespace Saturn {
 		glEnable( GL_MULTISAMPLE );
 		glEnable( GL_STENCIL_TEST );
 
+		m_ShaderLibrary = Ref<ShaderLibrary>::Create();
+
+		m_ShaderLibrary->Load( "assets/shaders/SceneComposite.glsl" );
+		m_ShaderLibrary->Load( "assets/shaders/PBR_Static.glsl" );
+
 		m_Camera = EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f );
 
-		m_CompositeShader = Ref<Shader>::Create( "assets/shaders/SceneComposite.glsl" );
+		m_CompositeShader = m_ShaderLibrary->Get( "SceneComposite" );
 
 		FramebufferSpecification compFramebufferSpec;
 		compFramebufferSpec.ClearColor ={ 0.1f, 0.1f, 0.1f, 1.0f };

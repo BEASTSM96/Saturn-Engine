@@ -54,12 +54,11 @@ namespace Saturn {
 
 		void Delete() 
 		{
-			//this->~Ref();
+			delete m_Pointer;
 		}
 
 		void Reset()
 		{
-			//delete m_Pointer;
 			m_Pointer = nullptr;
 		}
 
@@ -130,7 +129,7 @@ namespace Saturn {
 			//delete m_Pointer;
 
 			m_Pointer = other.m_Pointer;
-
+			other.m_Pointer = nullptr;
 			return *this;
 		}
 
@@ -151,6 +150,10 @@ namespace Saturn {
 	private:
 
 		T* m_Pointer;
+
+	private:
+		// Fix cannot access private member declared in class
+		friend class Ref;
 	};
 
 }

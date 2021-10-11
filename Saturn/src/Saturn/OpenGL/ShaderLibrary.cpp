@@ -31,36 +31,46 @@
 
 namespace Saturn {
 
-	ShaderLibaray::ShaderLibaray()
+	ShaderLibrary::ShaderLibrary()
 	{
 	}
 
-	ShaderLibaray::~ShaderLibaray()
+	ShaderLibrary::~ShaderLibrary()
 	{
 		m_Shaders.clear();
 	}
 
-	const Ref<Shader>& ShaderLibaray::Get( const std::string& name )
+	const Ref<Shader>& ShaderLibrary::Get( const std::string& name )
 	{
-		SAT_CORE_ASSERT( m_Shaders.find( name ) != m_Shaders.end(), "Shader was not found in the libaray" );
+		SAT_CORE_ASSERT( m_Shaders.find( name ) != m_Shaders.end(), "Shader was not found in the library" );
 
 		return m_Shaders.at( name );
 	}
 
-	void ShaderLibaray::Add( const Ref<Shader>& shader )
+	void ShaderLibrary::Add( const Ref<Shader>& shader )
 	{
 		auto& name = shader->Name();
 
-		SAT_CORE_ASSERT( m_Shaders.find( name ) == m_Shaders.end(), "Shader was already found in the libaray" );
+		SAT_CORE_ASSERT( m_Shaders.find( name ) == m_Shaders.end(), "Shader was already found in the library" );
 
 		m_Shaders[ name ] = shader;
 	}
 
-	void ShaderLibaray::Load( const std::string& name, const std::string& filepath )
+	void ShaderLibrary::Load( const std::string& name, const std::string& filepath )
 	{
-		SAT_CORE_ASSERT( m_Shaders.find( name ) != m_Shaders.end(), "Shader was not found in the libaray" );
+		SAT_CORE_ASSERT( m_Shaders.find( name ) == m_Shaders.end(), "Shader was not found in the library" );
 
 		m_Shaders[ name ] = Ref<Shader>::Create( filepath );
 	}
 
+	void ShaderLibrary::Load( const std::string& name )
+	{
+		Ref<Shader> shader = Ref<Shader>::Create( name );
+
+		std::string& namee = shader->Name();
+
+		SAT_CORE_ASSERT( m_Shaders.find( namee ) == m_Shaders.end(), "Shader was not found in the library" );
+
+		m_Shaders[ namee ] = shader;
+	}
 }

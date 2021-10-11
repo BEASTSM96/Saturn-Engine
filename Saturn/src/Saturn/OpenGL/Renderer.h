@@ -34,6 +34,7 @@
 #include "Saturn/Core/Events.h"
 
 #include "Framebuffer.h"
+#include "ShaderLibrary.h"
 #include "Common.h"
 
 #include "Shader.h"
@@ -78,8 +79,13 @@ namespace Saturn {
 		Ref<Framebuffer>& TargetFramebuffer() { return m_Framebuffer; }
 		const Ref<Framebuffer>& TargetFramebuffer() const { return m_Framebuffer; }
 
+		Ref<ShaderLibrary>& GetShaderLibaray() { return m_ShaderLibrary; }
+		const Ref<ShaderLibrary>& GetShaderLibaray() const { return m_ShaderLibrary; }
+
 	protected:
 	private:
+
+		Ref<ShaderLibrary> m_ShaderLibrary;
 
 		Ref<Framebuffer> m_Framebuffer;
 		Ref<Framebuffer> m_GeoFramebuffer;
