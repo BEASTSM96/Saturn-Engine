@@ -24,7 +24,7 @@ jobs:
         
           run: |
            git submodule glm "(git checkout master; git pull)"
-           git add g-truc/glm
+           git add glm
            git config --local user.email "action@github.com"
            git config --local user.name "GitHub Actions"
            git commit -m "Latest glm as of ${{ steps.date.outputs.date }}"
