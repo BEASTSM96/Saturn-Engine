@@ -76,3 +76,5 @@ Saturn/Saturn.txt
 Saturn/vendor/Glad/Glad.txt
 
 Saturn/vendor/imgui/ImGui.txt
+
+**/.build-*/**.**
