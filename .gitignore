@@ -82,3 +82,9 @@ Saturn/vendor/imgui/ImGui.txt
 **/.build-release/**.**
 **/.build-rdist/**.**
 **/.build-dist/**.**
+
+.build-*/**.**
+.build-debug/
+.build-release/
+.build-rdist/
+.build-dist/
