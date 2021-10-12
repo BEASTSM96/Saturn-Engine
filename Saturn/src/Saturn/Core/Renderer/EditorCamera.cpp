@@ -97,17 +97,17 @@ namespace Saturn {
 
 	void EditorCamera::OnUpdate( Timestep ts )
 	{
-		if( ImGui::IsKeyPressed( GLFW_KEY_LEFT_ALT ) )
+		if( Input::Get().KeyPressed( Key::LeftAlt ) )
 		{
 			const glm::vec2& mouse{ Input::Get().MouseX(), Input::Get().MouseY() };
 			glm::vec2 delta = ( mouse - m_InitialMousePosition ) * 0.003f;
 			m_InitialMousePosition = mouse;
 
-			if( ImGui::IsMouseClicked( ImGuiMouseButton_Middle ) )
+			if( Input::Get().MouseButtonPressed( ImGuiMouseButton_Middle ) )
 				MousePan( delta );
-			else if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) )
+			else if( Input::Get().MouseButtonPressed( ImGuiMouseButton_Left ) )
 				MouseRotate( delta );
-			else if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
+			else if( Input::Get().MouseButtonPressed( ImGuiMouseButton_Right ) )
 				MouseZoom( delta.y );
 		}
 
@@ -122,7 +122,7 @@ namespace Saturn {
 
 	bool EditorCamera::OnMouseScroll( MouseScrolledEvent& e )
 	{
-		float delta = e.XOffset() * 0.1f;
+		float delta = e.YOffset() * 0.1f;
 		MouseZoom( delta );
 		UpdateView();
 

@@ -72,6 +72,7 @@ namespace Saturn::Core {
 }
 
 // Inject asserts
+#define __CORE_INCLUDED__
 #include "Asserts.h"
 // Common includes
 #include "Timestep.h"

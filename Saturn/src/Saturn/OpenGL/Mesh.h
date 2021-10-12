@@ -36,6 +36,7 @@
 #include "Texture.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Pipeline.h"
 
 #include <vector>
 #include <string>
@@ -101,11 +102,15 @@ namespace Saturn {
 		Mesh( const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform );
 		~Mesh();
 
+		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
+
 		Ref<Shader> GetMeshShader() { return m_MeshShader; }
 		std::vector<Submesh>& GetSubmeshes() { return m_Submeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return m_Submeshes; }
 		const std::vector<Ref<Texture2D>>& GetTextures() const { return m_Textures; }
-		const std::string& GetFilePath() const { return m_FilePath; }
+
+		std::string& FilePath() { return m_FilePath; }
+		const std::string& FilePath() const { return m_FilePath; }
 
 		const std::vector<Triangle> GetTriangleCache( uint32_t index ) const { return m_TriangleCache.at( index ); }
 
@@ -116,6 +121,9 @@ namespace Saturn {
 
 		const std::vector<Index>& GetIndices() const { return m_Indices; }
 		const std::vector<Vertex>& GetVertices() const { return m_StaticVertices; }
+
+		const Ref<Shader>& GetShader() const { return m_MeshShader; }
+		Ref<Shader>& GetShader() { return m_MeshShader; }
 
 	private:
 
@@ -139,6 +147,7 @@ namespace Saturn {
 
 		Ref<VertexBuffer> m_VertexBuffer;
 		Ref<IndexBuffer> m_IndexBuffer;
+		Ref<Pipeline> m_Pipeline;
 
 		Ref<Shader> m_MeshShader;
 	
@@ -148,5 +157,9 @@ namespace Saturn {
 		uint32_t m_VerticesCount = 0;
 
 		const aiScene* m_Scene;
+
+	private:
+
+		friend class Renderer;
 	};
 }

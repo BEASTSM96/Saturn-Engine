@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "Scene.h"
 
+#include "Saturn/OpenGL/Renderer.h"
+
 #include "Entity.h"
 #include "Components.h"
 
@@ -71,9 +73,21 @@ namespace Saturn {
 
 	}
 
-	void Scene::OnRenderEditor( Timestep ts, const EditorCamera& editorCamera )
+	void Scene::OnRenderEditor( Timestep ts )
 	{
+		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
+		Renderer::Get().BeginScene( this );
+		for ( auto e : group )
+		{
+			Entity entity = { e, this };
+			auto& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
+			if( meshComponent.Mesh )
+			{
+				Renderer::Get().SubmitMesh( meshComponent, transformComponent.GetTransform() );
+			}
+		}
 
+		Renderer::Get().EndScene();
 	}
 
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )

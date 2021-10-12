@@ -28,62 +28,17 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
-
 namespace Saturn {
 
-	class Entity;
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-	struct SceneComponent
-	{
-		UUID SceneID;
-	};
-
-	class Scene
+	class VertexArray
 	{
 	public:
-		Scene();
-		~Scene();
+		VertexArray();
+		~VertexArray();
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
 
-		void DestroyEntity( Entity entity );
-
-		void OnRenderEditor( Timestep ts );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		void OnUpdate( Timestep ts );
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		Entity FindEntityByTag( const std::string& tag );
-		void CopyScene( Ref<Scene>& NewScene );
 
 	private:
 
-		UUID m_SceneID;
-
-		EntityMap m_EntityIDMap;
-
-		entt::entity m_SceneEntity;
-		entt::registry m_Registry;
-
-		entt::entity m_SelectedEntity;
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
 	};
 }

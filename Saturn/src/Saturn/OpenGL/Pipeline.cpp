@@ -26,64 +26,87 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "Pipeline.h"
 
-#include "Saturn/Core/Base.h"
-
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
+#include <glad/glad.h>
 
 namespace Saturn {
 
-	class Entity;
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-	struct SceneComponent
+	static GLenum ShaderDataTypeToOpenGLBaseType( ShaderDataType type )
 	{
-		UUID SceneID;
-	};
-
-	class Scene
-	{
-	public:
-		Scene();
-		~Scene();
-
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
-
-		void DestroyEntity( Entity entity );
-
-		void OnRenderEditor( Timestep ts );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
+		switch( type )
 		{
-			return m_Registry.view<T>();
+			case ShaderDataType::Float:    return GL_FLOAT;
+			case ShaderDataType::Float2:   return GL_FLOAT;
+			case ShaderDataType::Float3:   return GL_FLOAT;
+			case ShaderDataType::Float4:   return GL_FLOAT;
+			case ShaderDataType::Mat3:     return GL_FLOAT;
+			case ShaderDataType::Mat4:     return GL_FLOAT;
+			case ShaderDataType::Int:      return GL_INT;
+			case ShaderDataType::Int2:     return GL_INT;
+			case ShaderDataType::Int3:     return GL_INT;
+			case ShaderDataType::Int4:     return GL_INT;
+			case ShaderDataType::Bool:     return GL_BOOL;
 		}
 
-		void OnUpdate( Timestep ts );
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		Entity FindEntityByTag( const std::string& tag );
-		void CopyScene( Ref<Scene>& NewScene );
+		SAT_CORE_ASSERT( false, "Unknown ShaderDataType!" );
+		return 0;
+	}
 
-	private:
+	Pipeline::Pipeline( const PipelineSpecification& spec ) : m_Specification( spec )
+	{
+		Invalidate();
+	}
 
-		UUID m_SceneID;
+	Pipeline::~Pipeline()
+	{
+		GLuint rendererID = m_VertexArrayRendererID;
+		glDeleteVertexArrays( 1, &rendererID );
+	}
 
-		EntityMap m_EntityIDMap;
+	void Pipeline::Invalidate( void )
+	{
+		auto& vertexArrayRendererID = m_VertexArrayRendererID;
 
-		entt::entity m_SceneEntity;
-		entt::registry m_Registry;
+		if( vertexArrayRendererID )
+			glDeleteVertexArrays( 1, &vertexArrayRendererID );
 
-		entt::entity m_SelectedEntity;
-	private:
+		glGenVertexArrays( 1, &vertexArrayRendererID );
+		glBindVertexArray( vertexArrayRendererID );
 
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-	};
+		glBindVertexArray( 0 );
+	}
+
+	void Pipeline::Bind( void )
+	{
+		glBindVertexArray( m_VertexArrayRendererID );
+
+		const auto& layout = m_Specification.Layout;
+		uint32_t attribIndex = 0;
+		for( const auto& element : layout )
+		{
+			auto glBaseType = ShaderDataTypeToOpenGLBaseType( element.Type );
+			glEnableVertexAttribArray( attribIndex );
+			if( glBaseType == GL_INT )
+			{
+				glVertexAttribIPointer( attribIndex,
+					element.GetComponentCount(),
+					glBaseType,
+					layout.GetStride(),
+					( const void* )( intptr_t )element.Offset );
+			}
+			else
+			{
+				glVertexAttribPointer( attribIndex,
+					element.GetComponentCount(),
+					glBaseType,
+					element.Normalized ? GL_TRUE : GL_FALSE,
+					layout.GetStride(),
+					( const void* )( intptr_t )element.Offset );
+			}
+			attribIndex++;
+		}
+	}
+
 }

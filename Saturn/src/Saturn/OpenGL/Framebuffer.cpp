@@ -122,34 +122,14 @@ namespace Saturn {
 
 	Framebuffer::Framebuffer( const FramebufferSpecification& spec ) : m_Specification( spec )
 	{
-		glGenTextures( 1, &m_TextureID );
-		glBindTexture( GL_TEXTURE_2D, m_TextureID );
-
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, spec.Width, spec.Height, 0, GL_RGBA, GL_UNSIGNED_INT, 0 );
-
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-
-		glBindTexture( GL_TEXTURE_2D, 0 );
-
-		glGenFramebuffers( 1, &m_RendererID );
-		glBindFramebuffer( GL_FRAMEBUFFER, m_RendererID );
-
-		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureID, 0 );
-
-		SAT_CORE_ASSERT( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!" );
-
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-
-		Resize( spec.Width, spec.Height );
+		Resize( spec.Width, spec.Height, true );
 	}
 
 	Framebuffer::~Framebuffer()
 	{
 		glDeleteFramebuffers( 1, &m_RendererID );
 		glDeleteTextures( 1, &m_TextureID );
+		glDeleteTextures( 1, &m_DepthTextureID );
 	}
 
 	void Framebuffer::Resize( uint32_t width, uint32_t height, bool forceRecreate /*= false */ )
@@ -169,10 +149,36 @@ namespace Saturn {
 		m_Width = width;
 		m_Height = height;
 
-		glBindTexture( GL_TEXTURE_2D, m_TextureID );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_INT, 0 );
+		if( m_RendererID )
+		{
+			glDeleteFramebuffers( 1, &m_RendererID );
+			glDeleteTextures( 1, &m_TextureID );
+			glDeleteTextures( 1, &m_DepthTextureID );
+		}
 
-		glBindTexture( GL_TEXTURE_2D, 0 );
+		glCreateFramebuffers( 1, &m_RendererID );
+		glBindFramebuffer( GL_FRAMEBUFFER, m_RendererID );
+
+		glCreateTextures( GL_TEXTURE_2D, 1, &m_TextureID );
+		glBindTexture( GL_TEXTURE_2D, m_TextureID );
+
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
+
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureID, 0 );
+
+		glCreateTextures( GL_TEXTURE_2D, 1, &m_DepthTextureID );
+		glBindTexture( GL_TEXTURE_2D, m_DepthTextureID );
+
+		glTexStorage2D( GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, m_Width, m_Height );
+
+		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_DepthTextureID, 0 );
+
+		SAT_CORE_ASSERT( glCheckFramebufferStatus( GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE, "The Framebuffer is incomplete" );
+
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
 
 	void Framebuffer::Bind()
@@ -198,7 +204,7 @@ namespace Saturn {
 
 	RendererID Framebuffer::DepthAttachmentRendererID( void ) const
 	{
-		return -FLT_MAX;
+		return m_DepthTextureID;
 	}
 
 }

@@ -29,61 +29,23 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
-
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
+#include "Framebuffer.h"
 
 namespace Saturn {
 
-	class Entity;
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-	struct SceneComponent
+	struct RenderPassSpecification
 	{
-		UUID SceneID;
+		Ref<Framebuffer> TargetFramebuffer;
 	};
 
-	class Scene
+	class RenderPass
 	{
 	public:
-		Scene();
-		~Scene();
+		RenderPass( const RenderPassSpecification& spec ) : m_Specification( spec ) {}
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
-
-		void DestroyEntity( Entity entity );
-
-		void OnRenderEditor( Timestep ts );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		void OnUpdate( Timestep ts );
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		Entity FindEntityByTag( const std::string& tag );
-		void CopyScene( Ref<Scene>& NewScene );
+		Ref<Framebuffer>& TargetFramebuffer() { return m_Specification.TargetFramebuffer; }
 
 	private:
-
-		UUID m_SceneID;
-
-		EntityMap m_EntityIDMap;
-
-		entt::entity m_SceneEntity;
-		entt::registry m_Registry;
-
-		entt::entity m_SelectedEntity;
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
+		RenderPassSpecification m_Specification;
 	};
 }

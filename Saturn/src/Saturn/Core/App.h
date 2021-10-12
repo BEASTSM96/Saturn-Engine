@@ -47,6 +47,11 @@ namespace Saturn {
 
 		bool Running() { return m_Running; }
 
+		Timestep& Time() { return m_Timestep; }
+
+		std::pair< std::string, std::string > OpenFile( const char* filter ) const;
+		std::pair< std::string, std::string > SaveFile( const char* f ) const;
+
 	protected:
 
 		void OnEvent( Event& e );

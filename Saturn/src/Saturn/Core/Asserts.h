@@ -28,6 +28,10 @@
 
 #pragma once
 
+#ifndef __CORE_INCLUDED__
+#error Include Core.h before including Asserts.h!
+#endif // !__CORE_INCLUDE
+
 #define _VA_AGRS_( x ) x
 
 #if defined ( SAT_DEBUG )

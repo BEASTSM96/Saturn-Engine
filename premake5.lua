@@ -105,15 +105,54 @@ project "Saturn"
 		runtime "Debug"
 		symbols "on"
 
+		filter "system:windows"
+			links 
+			{
+				"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib"
+			}
+
+			postbuildcommands 
+			{
+				'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"'
+			}
+
+
 	filter "configurations:Release"
 		defines "SAT_RELEASE"
 		runtime "Release"
 		optimize "on"
 
+		--filter "system:windows"
+		--{
+			links 
+			{
+				"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib"
+			}
+
+			postbuildcommands 
+			{
+				'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			}
+		--}
+
 	filter "configurations:Dist"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
+
+		--filter "system:windows"
+		--{
+			links
+			{ 
+				"Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.lib"
+			}
+
+			postbuildcommands 
+			{
+				'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			}
+		--}
+
 
 	
 	filter "system:linux"
@@ -214,8 +253,8 @@ project "Titan"
 
 	postbuildcommands 
 	{
-		--'{COPY} "../Titan/assets" "%{cfg.targetdir}/assets"',
-		--'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"'
+	--	'{COPY} "../Titan/assets" "%{cfg.targetdir}/assets"',
+	--	'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"'
 	}
 
 	filter "system:windows"

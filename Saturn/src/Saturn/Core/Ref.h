@@ -44,7 +44,7 @@ namespace Saturn {
 		Ref( const Ref<T>& other ) { m_Pointer = ( T* )other.m_Pointer; }
 
 		template<typename T2>
-		Ref( const Ref<T2>&& other )
+		Ref( Ref<T2>&& other )
 		{
 			m_Pointer = ( T* )other.m_Pointer;  
 			other.m_Pointer = nullptr;

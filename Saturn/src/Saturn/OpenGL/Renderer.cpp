@@ -29,7 +29,10 @@
 #include "sppch.h"
 #include "Renderer.h"
 
+#include "Saturn/Core/Window.h"
+
 #include "Saturn/Core/App.h"
+#include "Saturn/Scene/Scene.h"
 
 #include "Saturn/Core/Math.h"
 
@@ -90,14 +93,15 @@ namespace Saturn {
 		FramebufferSpecification compFramebufferSpec;
 		compFramebufferSpec.ClearColor ={ 0.1f, 0.1f, 0.1f, 1.0f };
 
+		RenderPassSpecification renderPassSpec;
+		//renderPassSpec.TargetFramebuffer = Ref<Framebuffer>::Create( compFramebufferSpec );
+
+		m_RenderPass = Ref<RenderPass>::Create( renderPassSpec );
+
 		m_Framebuffer = Ref<Framebuffer>::Create( compFramebufferSpec );
 
-		FramebufferSpecification geoFramebufferSpec;
-		//geoFramebufferSpec.Attachments ={ FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::Depth };
-		geoFramebufferSpec.Samples = 8;
-		geoFramebufferSpec.ClearColor ={ 0.1f, 0.1f, 0.1f, 1.0f };
-
-		m_GeoFramebuffer = Ref<Framebuffer>::Create( geoFramebufferSpec );
+		// Issue a resize event so the framebuffer resize to the right size
+		m_Framebuffer->Resize( Window::Get().Width(), Window::Get().Height(), true );
 	}
 
 	void Renderer::Clear()
@@ -109,7 +113,7 @@ namespace Saturn {
 	void Renderer::Resize( int width, int height )
 	{
 		m_Camera.SetViewportSize( width, height );
-		m_GeoFramebuffer->Resize( width, height );
+		//m_GeoFramebuffer->Resize( width, height );
 		m_Framebuffer->Resize( width, height );
 	}
 
@@ -131,27 +135,6 @@ namespace Saturn {
 		m_Camera.OnEvent( e );
 	}
 
-	void Renderer::BeginCompositePass()
-	{
-		m_Framebuffer->Bind();
-		Clear();
-	}
-
-	void Renderer::EndCompositePass()
-	{
-		m_Framebuffer->Unbind();
-	}
-
-	void Renderer::BeginGeoPass()
-	{
-		m_GeoFramebuffer->Bind();
-	}
-
-	void Renderer::EndGeoPass()
-	{
-		m_GeoFramebuffer->Unbind();
-	}
-
 	void Renderer::Enable( int cap )
 	{
 		glEnable( cap );
@@ -162,6 +145,60 @@ namespace Saturn {
 		glDisable( cap );
 	}
 
+	void Renderer::BeginScene( Ref<Scene> scene )
+	{
+		SAT_CORE_ASSERT( scene, " Scene is null " );
+
+		m_ActiveScene = scene;
+	}
+
+	void Renderer::EndScene()
+	{
+		m_ActiveScene = nullptr;
+
+		FlushDrawList();
+	}
+
+	void Renderer::SubmitMesh( Ref<Mesh> mesh, const glm::mat4 trans )
+	{
+		m_DrawList.push_back( { mesh, trans } );
+	}
+
+	void Renderer::RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans, Ref<Shader>& shader )
+	{
+		mesh->m_VertexBuffer->Bind();
+		mesh->m_Pipeline->Bind();
+		mesh->m_IndexBuffer->Bind();
+
+		auto viewProjection = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix();
+		glm::vec3 cameraPosition = glm::inverse( m_Camera.ViewMatrix() )[ 3 ];
+
+		SAT_CORE_INFO( "Camera Pos X Y Z {0} {1} {2}", cameraPosition.x, cameraPosition.y, cameraPosition.z );
+
+		for( Submesh& submesh : mesh->m_Submeshes )
+		{
+			Enable( GL_DEPTH_TEST );
+
+			shader->Bind();
+
+			shader->SetMat4( "u_ViewProjectionMatrix", viewProjection );
+			shader->SetFloat3( "u_CameraPosition", cameraPosition );
+			shader->SetFloat3( "u_ViewPos", cameraPosition );
+
+			shader->SetMat4( "u_Transform", trans * submesh.Transform );
+
+			glDrawElementsBaseVertex( GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, ( void* )( sizeof( uint32_t ) * submesh.BaseIndex ), submesh.BaseVertex );
+		}
+	}
+
+	void Renderer::FlushDrawList()
+	{
+		GeoPass();
+		CompositePass();
+
+		m_DrawList.clear();
+	}
+
 	uint32_t Renderer::GetFinalColorBufferRendererID()
 	{
 		return m_Framebuffer->ColorAttachmentRendererID();
@@ -169,25 +206,41 @@ namespace Saturn {
 
 	void Renderer::CompositePass()
 	{
-		Enable( GL_DEPTH_TEST );
-
-		BeginCompositePass();
-
-		m_CompositeShader->Bind();
-		m_CompositeShader->SetFloat( "u_Exposure", 0.800000012 );
-		m_CompositeShader->SetInt( "u_TextureSamples", m_Framebuffer->Specification().Samples );
-
-		m_Framebuffer->BindTexture();
-
-		EndCompositePass();
-
-		Disable( GL_DEPTH_TEST );
 	}
 
 	void Renderer::GeoPass()
 	{
-		BeginGeoPass();
+		glStencilOp( GL_KEEP, GL_KEEP, GL_REPLACE );
 
-		EndGeoPass();
+		StartRenderPass( m_RenderPass );
+
+		Clear();
+
+		auto viewProjection = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix();
+		glm::vec3 cameraPosition = glm::inverse( m_Camera.ViewMatrix() )[ 3 ];
+		
+		for( auto& dc : m_DrawList )
+		{
+			Ref<Shader>& shader = dc.Mesh->GetShader();
+
+			RenderMesh( dc.Mesh, dc.Transform, shader );
+		}
+
+		EndRenderPass( m_RenderPass );
 	}
+
+	void Renderer::StartRenderPass( Ref<RenderPass>& pass )
+	{
+		//pass->TargetFramebuffer()->Bind();
+
+		m_Framebuffer->Bind();
+	}
+
+	void Renderer::EndRenderPass( Ref<RenderPass>& pass )
+	{
+		//pass->TargetFramebuffer()->Unbind();
+
+		m_Framebuffer->Unbind();
+	}
+
 }

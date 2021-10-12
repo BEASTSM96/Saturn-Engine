@@ -97,6 +97,7 @@ namespace Saturn {
 		RendererID m_RendererID = 0;
 
 		RendererID m_TextureID = 0;
+		RendererID m_DepthTextureID = 0;
 
 		uint32_t m_Width = 0, m_Height = 0;
 	};

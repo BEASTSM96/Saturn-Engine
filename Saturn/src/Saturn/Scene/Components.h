@@ -135,4 +135,36 @@ namespace Saturn {
 		{
 		}
 	};
+
+	/** @brief A MeshComponent.
+	*
+	* @code
+	*
+	* Ref of type Mesh
+	*
+	*
+	* MeshComponent()
+	* MeshComponent(const MeshComponent&) = default
+	* MeshComponent( Ref of type Mesh )
+	*
+	*
+	* @endcode
+	*/
+
+	class Mesh;
+
+	struct MeshComponent
+	{
+		Ref<Saturn::Mesh> Mesh;
+
+		MeshComponent() = default;
+		MeshComponent( const MeshComponent& other ) = default;
+		MeshComponent( Ref<Saturn::Mesh>& model )
+			: Mesh( model )
+		{
+		}
+
+		operator Ref<Saturn::Mesh>() { return Mesh; }
+	};
+
 }

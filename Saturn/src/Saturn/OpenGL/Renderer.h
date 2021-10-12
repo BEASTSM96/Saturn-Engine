@@ -33,14 +33,18 @@
 
 #include "Saturn/Core/Events.h"
 
-#include "Framebuffer.h"
-#include "ShaderLibrary.h"
 #include "Common.h"
 
+#include "Mesh.h"
+#include "RenderPass.h"
+#include "Framebuffer.h"
+#include "ShaderLibrary.h"
 #include "Shader.h"
 #include "Texture.h"
 
 namespace Saturn {
+
+	class Scene;
 
 	class Renderer
 	{
@@ -63,13 +67,21 @@ namespace Saturn {
 
 		void CompositePass();
 		void GeoPass();
-		void BeginCompositePass();
-		void EndCompositePass();
-		void BeginGeoPass();
-		void EndGeoPass();
+		
+		void StartRenderPass( Ref<RenderPass>& pass );
+		void EndRenderPass( Ref<RenderPass>& pass );
 
 		void Enable( int cap );
 		void Disable( int cap );
+
+		void BeginScene( Ref<Scene> scene );
+		void EndScene();
+
+		void SubmitMesh( Ref<Mesh> mesh, const glm::mat4 trans );
+
+		void RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans, Ref<Shader>& shader );
+
+		void FlushDrawList();
 
 		uint32_t GetFinalColorBufferRendererID();
 
@@ -82,6 +94,14 @@ namespace Saturn {
 		Ref<ShaderLibrary>& GetShaderLibaray() { return m_ShaderLibrary; }
 		const Ref<ShaderLibrary>& GetShaderLibaray() const { return m_ShaderLibrary; }
 
+	public:
+
+		struct DrawCommand
+		{
+			Ref<Mesh> Mesh;
+			glm::mat4 Transform;
+		};
+
 	protected:
 	private:
 
@@ -90,9 +110,15 @@ namespace Saturn {
 		Ref<Framebuffer> m_Framebuffer;
 		Ref<Framebuffer> m_GeoFramebuffer;
 
+		Ref<RenderPass> m_RenderPass;
+
 		EditorCamera m_Camera;
 		
 		Ref<Shader> m_CompositeShader;
+
+		Ref<Scene> m_ActiveScene;
+
+		std::vector<DrawCommand> m_DrawList;
 
 		void Init();
 	};

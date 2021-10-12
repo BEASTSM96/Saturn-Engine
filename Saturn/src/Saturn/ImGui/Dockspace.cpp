@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "Dockspace.h"
 
+#include "Saturn/OpenGL/Renderer.h"
+
 #include "imgui.h"
 
 namespace Saturn {
@@ -87,6 +89,22 @@ namespace Saturn {
 
 		m_TitleBar->Draw();
 		m_SceneHierarchyPanel->Draw();
+
+		// Draw Viewport
+
+		ImGui::Begin( "Viewport" );
+		{
+			auto viewportSize = ImGui::GetContentRegionAvail();
+
+			Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
+			Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
+
+			ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
+		}
+
+		ImGui::End();
+
+		m_Scene->OnRenderEditor( Application::Get().Time() );
 
 		ImGui::End();
 	}
