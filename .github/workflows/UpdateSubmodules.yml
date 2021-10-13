@@ -21,11 +21,14 @@ jobs:
           run: |
             git config --local user.email "action@github.com"
             git config --local user.name "GitHub Actions"
+            git config --global user.email "action@github.com"
+            git config --global user.name "GitHub Actions"
             git config --list
             
         - name: Get Date
           id: date
           run: echo "::set-output name=date::$(Get-Date -Format "yyyy-MM-dd")"
+          
         - name: Update Submodule
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,3 +42,12 @@ jobs:
            cd ..
            git commit -m "Latest glm as of ${{ steps.date.outputs.date }}"
            git push origin v2
+           
+        - name: Cleanup
+          run: |
+            git config --local user.email ""
+            git config --local user.name ""
+            git config --global user.email ""
+            git config --global user.name ""
+            git config --list
+          
