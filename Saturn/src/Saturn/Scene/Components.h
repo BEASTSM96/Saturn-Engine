@@ -82,8 +82,29 @@ namespace Saturn {
 				* glm::scale( glm::mat4( 1.0f ), Scale );
 		}
 
+	#if defined ( SAT_WINDOWS )
 		operator glm::mat4& ( ) { return GetTransform(); }
 		operator const glm::mat4& ( ) const { return GetTransform(); }
+	#else
+
+		operator glm::mat4& ( ) 
+		{
+			glm::mat4 rotation = glm::toMat4( glm::quat( Rotation ) );
+
+			return glm::translate( glm::mat4( 1.0f ), Position )
+				* rotation
+				* glm::scale( glm::mat4( 1.0f ), Scale );
+		}
+
+		operator const glm::mat4& ( ) const 
+		{
+			glm::mat4 rotation = glm::toMat4( glm::quat( Rotation ) );
+
+			return glm::translate( glm::mat4( 1.0f ), Position )
+				* rotation
+				* glm::scale( glm::mat4( 1.0f ), Scale );
+		}
+	#endif
 
 	};
 

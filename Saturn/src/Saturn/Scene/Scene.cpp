@@ -80,7 +80,13 @@ namespace Saturn {
 		for ( auto e : group )
 		{
 			Entity entity = { e, this };
+
+		#if defined ( SAT_LINUX )
+			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
+		#else
 			auto& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
+		#endif
+
 			if( meshComponent.Mesh )
 			{
 				Renderer::Get().SubmitMesh( meshComponent, transformComponent.GetTransform() );

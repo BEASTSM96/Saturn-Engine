@@ -32,6 +32,12 @@
 
 #include "Saturn/Core/Renderer/EditorCamera.h"
 
+#if defined ( SAT_LINUX )
+
+#include "Entity.h"
+
+#endif
+
 #include "Saturn/Core/UUID.h"
 #include "Saturn/Core/Timestep.h"
 
@@ -39,8 +45,15 @@
 
 namespace Saturn {
 
-	class Entity;
+#if defined ( SAT_LINUX )
 	using EntityMap = std::unordered_map<UUID, Entity>;
+#else
+
+	class Entity;
+
+	using EntityMap = std::unordered_map<UUID, Entity>;
+
+#endif
 
 	struct SceneComponent
 	{
