@@ -23,7 +23,8 @@ jobs:
         - name: Update Submodule
         
           run: |
-           git submodule foreach "(git checkout main; git pull)"
+           cd Saturn/vendor/glm
+           git submodule update --remote --merge
            git add glm
            git config --local user.email "action@github.com"
            git config --local user.name "GitHub Actions"
