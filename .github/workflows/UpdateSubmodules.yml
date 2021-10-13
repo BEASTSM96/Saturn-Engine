@@ -36,5 +36,6 @@ jobs:
            git add glm
            cd ..
            cd ..
+           dir
            git commit -m "Latest glm as of ${{ steps.date.outputs.date }}"
            git push origin v2
