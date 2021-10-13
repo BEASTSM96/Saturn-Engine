@@ -221,9 +221,9 @@ namespace Saturn {
 		
 		for( auto& dc : m_DrawList )
 		{
-			Ref<Shader>& shader = dc.Mesh->GetShader();
+			Ref<Shader>& shader = dc.m_Mesh->GetShader();
 
-			RenderMesh( dc.Mesh, dc.Transform, shader );
+			RenderMesh( dc.m_Mesh, dc.m_Transform, shader );
 		}
 
 		EndRenderPass( m_RenderPass );

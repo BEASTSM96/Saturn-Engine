@@ -29,7 +29,12 @@
 #pragma once
 
 #include "Base.h"
+
+#if defined ( SAT_LINUX )
+#include <functional>
+#else
 #include <xhash>
+#endif
 
 namespace Saturn {
 

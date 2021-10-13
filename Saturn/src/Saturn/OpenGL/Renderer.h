@@ -98,8 +98,8 @@ namespace Saturn {
 
 		struct DrawCommand
 		{
-			Ref<Mesh> Mesh;
-			glm::mat4 Transform;
+			Ref<Mesh> m_Mesh;
+			glm::mat4 m_Transform;
 		};
 
 	protected:
