@@ -17,6 +17,12 @@ jobs:
           with:
             submodules: true
             
+        - name: Set git config
+          run: |
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Actions"
+            git config --list
+            
         - name: Get Date
           id: date
           run: echo "::set-output name=date::$(Get-Date -Format "yyyy-MM-dd")"
