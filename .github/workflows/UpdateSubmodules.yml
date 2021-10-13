@@ -17,15 +17,19 @@ jobs:
           with:
             submodules: true
             
-        - name: Get Name
+        - name: Get Date
           id: date
           run: echo "::set-output name=date::$(Get-Date -Format "yyyy-MM-dd")"
         - name: Update Submodule
-        
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
            cd Saturn/vendor/glm
            git submodule update --remote --merge
+           git pull
            git add glm
+           cd ..
+           cd ..
            git config --local user.email "action@github.com"
            git config --local user.name "GitHub Actions"
            git commit -m "Latest glm as of ${{ steps.date.outputs.date }}"
