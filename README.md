@@ -2,6 +2,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/Saturn-Engine/blob/master/LICENSE) 
 ![repo-size](https://img.shields.io/github/repo-size/BEASTSM96/Saturn-Engine) 
 [![CL(Windows)](https://github.com/BEASTSM96/Saturn-Engine/actions/workflows/Windows.yml/badge.svg)](https://github.com/BEASTSM96/Saturn-Engine/actions/workflows/Windows.yml)
+[![CL(Linux)](https://github.com/BEASTSM96/Saturn-Engine/actions/workflows/Linux.yml/badge.svg)](https://github.com/BEASTSM96/Saturn-Engine/actions/workflows/Linux.yml)
 
 ![SaturnLogo](/Titan/assets/.github/i/sat/SaturnLogov1.png?raw=true "SaturnLogov1")
 
