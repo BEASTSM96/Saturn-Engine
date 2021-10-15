@@ -61,6 +61,10 @@ namespace Saturn {
 		Ref<Scene> m_Scene;
 
 		float m_Height;
+
+	private:
+
+		bool m_SendCameraEvents = false;
 	};
 
 }

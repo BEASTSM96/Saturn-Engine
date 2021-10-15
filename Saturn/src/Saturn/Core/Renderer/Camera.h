@@ -39,13 +39,16 @@ namespace Saturn {
 		Camera( const glm::mat4 & projection )
 			: m_Projection( projection )
 		{
+			AllowEvents( true );
 		}
+
+		void AllowEvents( bool allow ) { m_CanRunEvents = allow; }
 
 		virtual ~Camera() = default;
 
 		const glm::mat4& ProjectionMatrix() const { return m_Projection; }
 	protected:
 		glm::mat4 m_Projection = glm::mat4( 1.0f );
-
+		bool m_CanRunEvents = true;
 	};
 }

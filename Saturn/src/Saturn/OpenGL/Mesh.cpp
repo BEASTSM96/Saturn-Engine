@@ -198,6 +198,20 @@ namespace Saturn {
 		submesh.Transform = transform;
 		m_Submeshes.push_back( submesh );
 
+		VertexBufferLayout vertexLayout;
+
+		vertexLayout ={
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal" },
+			{ ShaderDataType::Float3, "a_Tangent" },
+			{ ShaderDataType::Float3, "a_Binormal" },
+			{ ShaderDataType::Float2, "a_TexCoord" },
+		};
+
+		PipelineSpecification pipelineSpecification;
+		pipelineSpecification.Layout = vertexLayout;
+		m_Pipeline = Ref<Pipeline>::Create( pipelineSpecification );
+
 		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( Vertex ) );
 		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
 	}

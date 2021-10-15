@@ -93,14 +93,17 @@ namespace Saturn {
 		// Draw Viewport
 
 		ImGui::Begin( "Viewport" );
-		{
-			auto viewportSize = ImGui::GetContentRegionAvail();
 
-			Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
-			Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
+		m_SendCameraEvents = ImGui::IsWindowFocused();
+		Renderer::Get().RendererCamera().AllowEvents( m_SendCameraEvents );
 
-			ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
-		}
+		auto viewportSize = ImGui::GetContentRegionAvail();
+
+
+		Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
+		Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
+
+		ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
 
 		ImGui::End();
 

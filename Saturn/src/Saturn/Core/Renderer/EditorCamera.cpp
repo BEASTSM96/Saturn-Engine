@@ -97,7 +97,7 @@ namespace Saturn {
 
 	void EditorCamera::OnUpdate( Timestep ts )
 	{
-		if( Input::Get().KeyPressed( Key::LeftAlt ) )
+		if( m_CanRunEvents && Input::Get().KeyPressed( Key::LeftAlt ) )
 		{
 			const glm::vec2& mouse{ Input::Get().MouseX(), Input::Get().MouseY() };
 			glm::vec2 delta = ( mouse - m_InitialMousePosition ) * 0.003f;
@@ -116,6 +116,9 @@ namespace Saturn {
 
 	void EditorCamera::OnEvent( Event& e )
 	{
+		if( !m_CanRunEvents )
+			return;
+
 		EventDispatcher dispatcher( e );
 		dispatcher.Dispatch<MouseScrolledEvent>( SAT_BIND_EVENT_FN( EditorCamera::OnMouseScroll ) );
 	}
