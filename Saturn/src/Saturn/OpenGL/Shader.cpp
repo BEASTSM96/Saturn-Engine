@@ -31,7 +31,7 @@
 
 #include "Renderer.h"
 
-#include <glad/glad.h>
+#include "xGL.h"
 
 #include <string>
 #include <sstream>

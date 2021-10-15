@@ -36,7 +36,7 @@
 
 #include "Saturn/Core/Math.h"
 
-#include <glad/glad.h>
+#include "xGL.h"
 
 namespace Saturn {
 

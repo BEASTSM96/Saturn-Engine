@@ -21,7 +21,6 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
 IncludeDir["GLFW"] = "Saturn/vendor/GLFW/include"
-IncludeDir["Glad"] = "Saturn/vendor/Glad/include"
 IncludeDir["ImGui"] = "Saturn/vendor/imgui"
 IncludeDir["glm"] = "Saturn/vendor/glm"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
@@ -29,7 +28,6 @@ IncludeDir["assimp"] = "Saturn/vendor/assimp/include"
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
-	include "Saturn/vendor/Glad"
 	include "Saturn/vendor/imgui"
 
 group "sat/Core"
@@ -71,7 +69,6 @@ project "Saturn"
 		"%{prj.name}/vendor/stb/",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -81,7 +78,6 @@ project "Saturn"
 	links 
 	{ 
 		"GLFW",
-		"Glad",
 		"ImGui",
 		"opengl32.lib"
 	}
@@ -298,7 +294,6 @@ project "Titan"
 			"GL",
 			"X11",
 			"GLFW",
-			"Glad",
 			"ImGui"
 		}
 

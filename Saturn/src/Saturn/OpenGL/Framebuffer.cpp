@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "Framebuffer.h"
 
-#include <glad/glad.h>
+#include "xGL.h"
 
 namespace Saturn::FramebufferUtills {
 

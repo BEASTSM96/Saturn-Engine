@@ -36,7 +36,7 @@
 #include "Saturn/OpenGL/Texture.h"
 #include "Saturn/Core/Renderer/EditorCamera.h"
 
-#include <glad/glad.h>
+#include "Saturn/OpenGL/xGL.h"
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>

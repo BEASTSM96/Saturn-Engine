@@ -31,7 +31,7 @@
 
 #include "Renderer.h"
 
-#include <glad/glad.h>
+#include "xGL.h"
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>

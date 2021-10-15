@@ -35,7 +35,8 @@
 #include "Saturn/OpenGL/Renderer.h"
 #include "Input.h"
 
-#include <glad/glad.h>
+#include "Saturn/OpenGL/xGL.h"
+
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <glm/glm.hpp>
@@ -48,6 +49,7 @@
 #include <imgui_internal.h>
 
 #if !defined ( SAT_DONT_USE_GL )
+#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM "Saturn/OpenGL/xGL.h"
 #include "examples/imgui_impl_opengl3.h"
 #include "examples/imgui_impl_glfw.h"
 #endif
@@ -91,10 +93,10 @@ namespace Saturn {
 		glfwMakeContextCurrent( m_Window );
 
 	#if !defined ( SAT_DONT_USE_GL )
-		int result = gladLoadGLLoader( ( GLADloadproc )glfwGetProcAddress );
+		int result = xGL::LoadGL();
 		if( result == 0 )
 		{
-			SAT_CORE_ERROR( "Failed to load OpenGL with Glad!" );
+			SAT_CORE_ERROR( "Failed to load OpenGL with xGL!" );
 		}
 		SAT_CORE_INFO( "OpenGL Renderer: {2}, {0}, {1}", glGetString( GL_VENDOR ), glGetString( GL_RENDERER ), glGetString( GL_VERSION ) );
 	#endif

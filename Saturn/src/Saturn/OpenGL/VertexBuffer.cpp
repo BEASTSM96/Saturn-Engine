@@ -1,7 +1,7 @@
 #include "sppch.h"
 #include "VertexBuffer.h"
 
-#include <glad/glad.h>
+#include "xGL.h"
 
 namespace Saturn {
 

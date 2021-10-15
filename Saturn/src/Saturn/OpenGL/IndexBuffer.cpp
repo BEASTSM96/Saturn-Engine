@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "IndexBuffer.h"
 
-#include <glad/glad.h>
+#include "xGL.h"
 
 namespace Saturn {
 
