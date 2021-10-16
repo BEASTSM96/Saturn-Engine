@@ -25,10 +25,15 @@ IncludeDir["ImGui"] = "Saturn/vendor/imgui"
 IncludeDir["glm"] = "Saturn/vendor/glm"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["assimp"] = "Saturn/vendor/assimp/include"
+IncludeDir["DiscordRPC"] = "Saturn/vendor/discord-rpc/include"
+IncludeDir["discord-rpc"] = "Saturn/vendor/discord-rpc/include"
+IncludeDir["rapidjson"] = "Saturn/vendor/rapidjson/include"
+
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/imgui"
+	include "Saturn/vendor/discord-rpc"
 
 group "sat/Core"
 project "Saturn"
@@ -72,14 +77,16 @@ project "Saturn"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.assimp}"
+		"%{IncludeDir.assimp}",
+		"%{IncludeDir.DiscordRPC}",
+		"%{IncludeDir.rapidjson}"
 	}
 
 	links 
 	{ 
 		"GLFW",
 		"ImGui",
-		"opengl32.lib"
+		"discord-rpc"
 	}
 
 	filter "system:windows"
@@ -87,7 +94,8 @@ project "Saturn"
 
 		links 
 		{
-			"dwmapi"	
+			"dwmapi",
+			"opengl32.lib"	
 		}
 
 		defines

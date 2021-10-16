@@ -73,8 +73,6 @@ void xGL::FindGLVersion()
 		NULL
 	};
 
-	printf( ( const char* )glGetString( GL_VERSION ) );
-
 	version = ( const char* )glGetString( GL_VERSION );
 	if( !version ) return;
 

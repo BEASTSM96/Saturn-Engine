@@ -58,6 +58,8 @@ x( x&& ) = delete;                        \
 x& operator=( x&& ) = delete;             \
 x& operator=( const x& ) = delete
 
+#define BIT( x ) (1 << x)
+
 namespace Saturn::Core {
 
 	inline void BreakDebug()
