@@ -26,84 +26,92 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "DiscordRPC.h"
 
-#include "Saturn/Core/Base.h"
-
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#if defined ( SAT_LINUX )
-
-#include "Entity.h"
-
-#endif
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
+#define DISCORD_APP_ID "898878512990134283"
 
 namespace Saturn {
 
-#if defined ( SAT_LINUX )
-	using EntityMap = std::unordered_map<UUID, Entity>;
-#else
-
-	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-#endif
-
-	struct SceneComponent
+	static const char* GetImgFromStr( const std::string& str )
 	{
-		UUID SceneID;
-	};
+		if( str == ".cpp" || str == ".hpp" || str == ".h" /* Assume .h is c++ */ || str == ".cxx" )
+			return "img_l_cpp";
+		else if( str == ".c" )
+			return "img_l_c";
+		else if( str == ".cs" )
+			return "img_l_cs";
+		else if( str == "saturninrt" )
+			return "img_s_staurn";
+		else
+			return "default";
+	}
 
-	class Scene
+	static void HandleDiscordReady( const DiscordUser* connectedUser )
 	{
-	public:
-		Scene();
-		~Scene();
+		// TODO: Print to status bar
+		printf( "\nDiscord: connected to user %s#%s - %s\n", connectedUser->username, connectedUser->discriminator, connectedUser->userId );
+	}
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
+	static void HandleDiscordDisconnected( int errcode, const char* message )
+	{
+		// TODO: Print to status bar
+		printf( "\nDiscord: disconnected (%d: %s)\n", errcode, message );
+	}
 
-		void DestroyEntity( Entity entity );
+	static void HandleDiscordError( int errcode, const char* message )
+	{
+		// TODO: Print to status bar
+		printf( "\nDiscord: error (%d: %s)\n", errcode, message );
+	}
 
-		void OnRenderEditor( Timestep ts );
+	void DiscordRPC::Init()
+	{
+		DiscordEventHandlers handlers{};
 
-		template<typename T>
-		auto GetAllEntitiesWith( void )
+		handlers.ready        = HandleDiscordReady;
+		handlers.disconnected = HandleDiscordDisconnected;
+		handlers.errored      = HandleDiscordError;
+
+		Discord_Initialize( DISCORD_APP_ID, &handlers, 1, NULL );
+	}
+
+	void DiscordRPC::Update()
+	{
+		m_StartInUnixTime = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( m_StartTime.time_since_epoch() ).count();
+
+		DiscordRichPresence DiscordPresence{};
+
+		if( m_SceneName == "" || m_SceneName == "No Scene" )
 		{
-			return m_Registry.view<T>();
+			DiscordPresence.state = "No Scene";
+		}
+		else if( m_SceneName != ( const char* )"No Scene" )
+		{
+			DiscordPresence.state = m_SceneName.c_str();
 		}
 
-		void OnUpdate( Timestep ts );
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		Entity FindEntityByTag( const std::string& tag );
-		void CopyScene( Ref<Scene>& NewScene );
+		DiscordPresence.startTimestamp  = ( int64_t )m_StartInUnixTime;
 
-		void SetName( const std::string& name ) { m_Name = name; }
+		DiscordPresence.instance = 0;
 
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
+		DiscordPresence.largeImageKey = GetImgFromStr( "saturninrt" );
+		DiscordPresence.smallImageKey = GetImgFromStr( "saturninrt" );
+		DiscordPresence.smallImageText = "Saturn";
 
-	private:
+		m_CurrentRPC = DiscordPresence;
 
-		UUID m_SceneID;
+		DiscordPresence ={};
 
-		std::string m_Name;
+		Discord_UpdatePresence( &m_CurrentRPC );
 
-		EntityMap m_EntityIDMap;
+		Discord_RunCallbacks();
 
-		entt::entity m_SceneEntity;
-		entt::registry m_Registry;
+	}
 
-		entt::entity m_SelectedEntity;
-	private:
+	void DiscordRPC::Shutdown()
+	{
+		Discord_Shutdown();
+	}
 
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-	};
 }

@@ -219,7 +219,7 @@ project "Saturn"
 group "sat/Tools"
 project "Titan"
 	location "Titan"
-	kind "ConsoleApp"
+	kind "WindowedApp"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "on"
@@ -248,6 +248,7 @@ project "Titan"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.DiscordRPC}"
 	}
 
 	links

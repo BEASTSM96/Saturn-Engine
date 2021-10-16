@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "Dockspace.h"
 
+#include "Saturn/Discord/DiscordRPC.h"
+
 #include "Saturn/OpenGL/Renderer.h"
 
 #include "imgui.h"
@@ -38,6 +40,8 @@ namespace Saturn {
 	ImGuiDockspace::ImGuiDockspace()
 	{
 		m_Scene = Ref<Scene>::Create();
+
+		DiscordRPC::Get().m_SceneName = m_Scene->Name();
 
 		m_TitleBar = new TitleBar();
 		m_SceneHierarchyPanel = new SceneHierarchyPanel();

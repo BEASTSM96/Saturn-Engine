@@ -31,6 +31,8 @@
 
 #include "Window.h"
 
+#include "Saturn/Discord/DiscordRPC.h"
+
 #include "Saturn/OpenGL/Shader.h"
 #include "Saturn/OpenGL/Renderer.h"
 #include "Saturn/OpenGL/Texture.h"
@@ -57,9 +59,13 @@ namespace Saturn {
 
 		Renderer::Get();
 
+		DiscordRPC::Get().Init();
+
 		while( m_Running )
 		{
 			Window::Get().Render();
+
+			DiscordRPC::Get().Update();
 
 			Renderer::Get().RendererCamera().OnUpdate( m_Timestep );
 
@@ -74,6 +80,8 @@ namespace Saturn {
 
 			m_LastFrameTime = time;
 		}
+
+		DiscordRPC::Get().Shutdown();
 	}
 
 	void Application::Close()

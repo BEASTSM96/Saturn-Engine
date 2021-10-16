@@ -30,80 +30,62 @@
 
 #include "Saturn/Core/Base.h"
 
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#if defined ( SAT_LINUX )
-
-#include "Entity.h"
-
-#endif
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
+#include "Shader.h"
+#include "Texture.h"
+#include "VertexBuffer.h"
 
 namespace Saturn {
 
-#if defined ( SAT_LINUX )
-	using EntityMap = std::unordered_map<UUID, Entity>;
-#else
-
-	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-#endif
-
-	struct SceneComponent
-	{
-		UUID SceneID;
-	};
-
-	class Scene
+	// This class is so that Materials know what uniforms to include when making the Material. We don't want a uniform thats not connected to the material an example of this is a LightPosition uniform as there is no need for that in a material.
+	class MaterialUniform
 	{
 	public:
-		Scene();
-		~Scene();
+		MaterialUniform() {}
+		MaterialUniform( const std::string& name, ShaderDataType& type ) : m_Name( name ), m_Type( type ) {}
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
+		~MaterialUniform() = default;
 
-		void DestroyEntity( Entity entity );
+	private:
+		bool IsStruct = false;
+		std::string m_Name = "Unknown Uniform";
+		ShaderDataType m_Type = ShaderDataType::None;
+	};
 
-		void OnRenderEditor( Timestep ts );
+	enum class MaterialFlag
+	{
+		None = BIT( 0 ),
+		DepthTest = BIT( 1 ),
+		Blend = BIT( 2 ),
+		TwoSided = BIT( 3 )
+	};
 
-		template<typename T>
-		auto GetAllEntitiesWith( void )
+	class Material
+	{
+	public:
+		Material( Ref<Shader> shader );
+		~Material();
+
+		void Bind();
+
+		uint32_t GetFlags() const { return m_MaterialFlags; }
+		void SetFlag( MaterialFlag flag ) { m_MaterialFlags |= ( uint32_t )flag; }
+
+		template <typename T>
+		void Set( const std::string& name, const T& value ) 
 		{
-			return m_Registry.view<T>();
+			
 		}
 
-		void OnUpdate( Timestep ts );
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		Entity FindEntityByTag( const std::string& tag );
-		void CopyScene( Ref<Scene>& NewScene );
-
-		void SetName( const std::string& name ) { m_Name = name; }
-
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
-
 	private:
 
-		UUID m_SceneID;
+		void BindTextures();
 
-		std::string m_Name;
+		Ref<Shader> m_MaterialShader;
 
-		EntityMap m_EntityIDMap;
+		uint32_t m_MaterialFlags;
 
-		entt::entity m_SceneEntity;
-		entt::registry m_Registry;
-
-		entt::entity m_SelectedEntity;
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
+		std::vector<Ref<MaterialUniform>> m_Uniforms;
+		std::vector<Ref<Texture>> m_Textures;
 	};
+
 }

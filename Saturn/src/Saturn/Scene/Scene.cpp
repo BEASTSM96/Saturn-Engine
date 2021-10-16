@@ -59,6 +59,8 @@ namespace Saturn {
 		s_ActiveScenes[ m_SceneID ] = this;
 		m_SceneEntity = m_Registry.create();
 		m_Registry.emplace<SceneComponent>( m_SceneEntity, m_SceneID );
+
+		SetName( "Empty Scene" );
 	}
 
 	Scene::~Scene()
