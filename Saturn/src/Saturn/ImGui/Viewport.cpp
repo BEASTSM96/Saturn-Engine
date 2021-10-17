@@ -26,43 +26,37 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "TitleBar.h"
+#include "sppch.h"
 #include "Viewport.h"
 
-#include "SceneHierarchyPanel.h"
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
+#include "imgui.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Saturn {
 
-	class ImGuiDockspace
+	Viewport::Viewport()
 	{
-	public:
-		ImGuiDockspace();
+	}
 
-		void Draw();
+	void Viewport::Draw()
+	{
+		ImGui::Begin( "Viewport" );
 
-	public:
+		m_SendCameraEvents = ImGui::IsWindowFocused();
+		Renderer::Get().RendererCamera().AllowEvents( m_SendCameraEvents );
 
-		float Height() const { return m_Height; }
+		auto viewportSize = ImGui::GetContentRegionAvail();
 
-		TitleBar& GetTitleBar() { return *m_TitleBar; }
+		Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
+		Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
 
-	protected:
+		ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
 
-		void SelectionChanged( Entity e );
-
-	private:
-
-		TitleBar* m_TitleBar;
-		Viewport* m_Viewport;
-		SceneHierarchyPanel* m_SceneHierarchyPanel;
-
-		Ref<Scene> m_Scene;
-
-		float m_Height;
-	};
+		ImGui::End();
+	}
 
 }

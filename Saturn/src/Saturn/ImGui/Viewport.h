@@ -28,41 +28,19 @@
 
 #pragma once
 
-#include "TitleBar.h"
-#include "Viewport.h"
-
-#include "SceneHierarchyPanel.h"
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
+#include "Saturn/OpenGL/Renderer.h"
 
 namespace Saturn {
 
-	class ImGuiDockspace
+	class Viewport
 	{
 	public:
-		ImGuiDockspace();
+		Viewport();
 
 		void Draw();
 
-	public:
-
-		float Height() const { return m_Height; }
-
-		TitleBar& GetTitleBar() { return *m_TitleBar; }
-
-	protected:
-
-		void SelectionChanged( Entity e );
-
 	private:
 
-		TitleBar* m_TitleBar;
-		Viewport* m_Viewport;
-		SceneHierarchyPanel* m_SceneHierarchyPanel;
-
-		Ref<Scene> m_Scene;
-
-		float m_Height;
+		bool m_SendCameraEvents = false;
 	};
-
 }

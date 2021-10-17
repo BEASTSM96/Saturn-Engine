@@ -29,9 +29,9 @@
 #include "sppch.h"
 #include "Dockspace.h"
 
-#include "Saturn/Discord/DiscordRPC.h"
+#include "Saturn/Core/IO.h"
 
-#include "Saturn/OpenGL/Renderer.h"
+#include "Saturn/Discord/DiscordRPC.h"
 
 #include "imgui.h"
 
@@ -39,13 +39,16 @@ namespace Saturn {
 
 	ImGuiDockspace::ImGuiDockspace()
 	{
+		IO::Get().StdStreamRedirect();
+
 		m_Scene = Ref<Scene>::Create();
 
 		DiscordRPC::Get().m_SceneName = m_Scene->Name();
 
 		m_TitleBar = new TitleBar();
 		m_SceneHierarchyPanel = new SceneHierarchyPanel();
-		
+		m_Viewport = new Viewport();
+
 		m_SceneHierarchyPanel->SetContext( m_Scene );
 		m_SceneHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( ImGuiDockspace::SelectionChanged ) );
 	}
@@ -93,21 +96,12 @@ namespace Saturn {
 
 		m_TitleBar->Draw();
 		m_SceneHierarchyPanel->Draw();
+		m_Viewport->Draw();
+		
+		// TEMP
+		ImGui::Begin( "Output" );
 
-		// Draw Viewport
-
-		ImGui::Begin( "Viewport" );
-
-		m_SendCameraEvents = ImGui::IsWindowFocused();
-		Renderer::Get().RendererCamera().AllowEvents( m_SendCameraEvents );
-
-		auto viewportSize = ImGui::GetContentRegionAvail();
-
-
-		Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
-		Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
-
-		ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
+		ImGui::Text( "%s", IO::Get().StdStreamBuffer().str().c_str() );
 
 		ImGui::End();
 

@@ -28,41 +28,48 @@
 
 #pragma once
 
-#include "TitleBar.h"
-#include "Viewport.h"
+#include "Base.h"
 
-#include "SceneHierarchyPanel.h"
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
+#include <sstream>
+#include <iostream>
+
+#if defined( SAT_WINDOWS )
+#include <Windows.h>
+#endif
 
 namespace Saturn {
 
-	class ImGuiDockspace
+	using CharBuffer = std::basic_stringbuf<std::ostream::char_type>;
+
+	class IO
 	{
+		SINGLETON( IO );
+
+		IO() {}
+		~IO() {}
+
 	public:
-		ImGuiDockspace();
 
-		void Draw();
+		void Init();
 
-	public:
+		void Shutdown();
 
-		float Height() const { return m_Height; }
+		void StdStreamRedirect();
 
-		TitleBar& GetTitleBar() { return *m_TitleBar; }
+		void ConsoleStreamRedirect();
+
+		CharBuffer& StdStreamBuffer() { return m_StdStringBuffer; }
+		const CharBuffer& StdStreamBuffer() const { return m_StdStringBuffer; }
 
 	protected:
-
-		void SelectionChanged( Entity e );
-
 	private:
 
-		TitleBar* m_TitleBar;
-		Viewport* m_Viewport;
-		SceneHierarchyPanel* m_SceneHierarchyPanel;
+		CharBuffer m_StdStringBuffer;
+		std::streambuf* m_OldStdStringBuffer;
 
-		Ref<Scene> m_Scene;
+		CharBuffer m_CStringBuffer;
 
-		float m_Height;
+		wchar_t m_ConsoleStringBuffer[ 2 ];
 	};
 
 }

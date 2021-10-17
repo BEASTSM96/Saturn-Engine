@@ -26,43 +26,66 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "IO.h"
 
-#include "TitleBar.h"
-#include "Viewport.h"
-
-#include "SceneHierarchyPanel.h"
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
+#if defined ( SAT_WINDOWS )
+#define freopen freopen_s
+#endif
 
 namespace Saturn {
 
-	class ImGuiDockspace
+	void IO::Init()
 	{
-	public:
-		ImGuiDockspace();
+		m_OldStdStringBuffer = std::cout.rdbuf();
+	}
 
-		void Draw();
+	void IO::Shutdown()
+	{
+		std::cout.rdbuf( m_OldStdStringBuffer );
+	}
 
-	public:
+	void IO::StdStreamRedirect()
+	{
+		//ConsoleStreamRedirect();
 
-		float Height() const { return m_Height; }
+		std::cout.rdbuf( &m_StdStringBuffer );
+	}
 
-		TitleBar& GetTitleBar() { return *m_TitleBar; }
+	void IO::ConsoleStreamRedirect()
+	{
+	#if defined( SAT_WINDOWS )
 
-	protected:
+		bool res = true;
+		FILE* fp;
 
-		void SelectionChanged( Entity e );
+		if( GetStdHandle( STD_INPUT_HANDLE ) != INVALID_HANDLE_VALUE )
+			if( freopen( &fp, "CONIN$", "r", stdin ) != 0 )
+				res = false;
+			else
+				setvbuf( stdin, NULL, _IONBF, 0 );
 
-	private:
+		if( GetStdHandle( STD_OUTPUT_HANDLE ) != INVALID_HANDLE_VALUE )
+			if( freopen( &fp, "CONOUT$", "w", stdout ) != 0 )
+				res = false;
+			else
+				setvbuf( stdout, NULL, _IONBF, 0 );
 
-		TitleBar* m_TitleBar;
-		Viewport* m_Viewport;
-		SceneHierarchyPanel* m_SceneHierarchyPanel;
+		if( GetStdHandle( STD_ERROR_HANDLE ) != INVALID_HANDLE_VALUE )
+			if( freopen( &fp, "CONOUT$", "w", stderr ) != 0 )
+				res = false;
+			else
+				setvbuf( stderr, NULL, _IONBF, 0 );
 
-		Ref<Scene> m_Scene;
+		std::ios::sync_with_stdio( true );
 
-		float m_Height;
-	};
+		std::wcout.clear();
+		std::cout.clear();
+		std::wcerr.clear();
+		std::cerr.clear();
+		std::wcin.clear();
+		std::cin.clear();
+	#endif
+	}
 
 }

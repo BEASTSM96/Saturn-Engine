@@ -159,15 +159,30 @@ namespace Saturn {
 		glCreateFramebuffers( 1, &m_RendererID );
 		glBindFramebuffer( GL_FRAMEBUFFER, m_RendererID );
 
-		glCreateTextures( GL_TEXTURE_2D, 1, &m_TextureID );
-		glBindTexture( GL_TEXTURE_2D, m_TextureID );
+		if( m_Specification.Samples == 8 )
+		{
+			glCreateTextures( GL_TEXTURE_2D_MULTISAMPLE, 1, &m_TextureID );
+			glBindTexture( GL_TEXTURE_2D_MULTISAMPLE, m_TextureID );
 
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
+			glTexImage2DMultisample( GL_TEXTURE_2D_MULTISAMPLE, m_Specification.Samples, GL_RGBA8, m_Width, m_Height, GL_TRUE );
 
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			glTexParameteri( GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+			glTexParameteri( GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureID, 0 );
+			glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_TextureID, 0 );
+		}
+		else
+		{
+			glCreateTextures( GL_TEXTURE_2D, 1, &m_TextureID );
+			glBindTexture( GL_TEXTURE_2D, m_TextureID );
+
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
+
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+			glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureID, 0 );
+		}
 
 		glCreateTextures( GL_TEXTURE_2D, 1, &m_DepthTextureID );
 		glBindTexture( GL_TEXTURE_2D, m_DepthTextureID );
