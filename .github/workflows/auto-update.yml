@@ -16,4 +16,4 @@ jobs:
     - uses: actions/checkout@v2
     
     - name: Update
-      run: sudo apt-get install --only-upgrade libx11-dev
+      run: sudo apt-get install --only-upgrade libx11-dev libglu1-mesa-dev
