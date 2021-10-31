@@ -1,0 +1,19 @@
+name: Update libx11
+
+on:
+  schedule:
+    # 00:00 on Mondays
+  - cron: '00 00 * * 1'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Update
+      run: sudo apt-get install --only-upgrade libx11-dev
