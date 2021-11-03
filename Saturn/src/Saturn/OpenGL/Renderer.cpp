@@ -81,6 +81,8 @@ namespace Saturn {
 		glEnable( GL_MULTISAMPLE );
 		glEnable( GL_STENCIL_TEST );
 
+		// Gamma Correction -- but the problem with this is that it gives us no control over the power gamma - 2.2 as the gamma
+		//glEnable( GL_FRAMEBUFFER_SRGB );
 		m_ShaderLibrary = Ref<ShaderLibrary>::Create();
 
 		m_ShaderLibrary->Load( "assets/shaders/SceneComposite.glsl" );
@@ -107,6 +109,8 @@ namespace Saturn {
 	void Renderer::Clear()
 	{
 		glClearColor( GL_CLEAR_COLOR_X_Y_Z, 1.0f );
+		//glClearColor( pow( 0.100000001, m_Gamma ), pow( 0.100000001, m_Gamma ), pow( 0.100000001, m_Gamma ), 1.0f );
+		glClearColor( 0.100000001, 0.100000001, 0.100000001, 1.0f );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	}
 
@@ -213,6 +217,8 @@ namespace Saturn {
 		glStencilOp( GL_KEEP, GL_KEEP, GL_REPLACE );
 
 		StartRenderPass( m_RenderPass );
+		m_CompositeShader->Bind();
+		m_CompositeShader->SetFloat( "u_Gamma", m_Gamma );
 
 		Clear();
 

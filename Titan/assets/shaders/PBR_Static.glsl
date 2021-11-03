@@ -100,6 +100,9 @@ uniform sampler2D u_ShadowMap;
 uniform vec3 u_LightPos;
 uniform vec3 u_ViewPos;
 
+// Gamma
+uniform float u_Gamma;
+
 struct PBRParameters
 {
 	vec3 Albedo;
@@ -345,14 +348,6 @@ void main()
 	vec3 lightContribution = Lighting( F0 );
 	vec3 iblContribution = IBL( F0, Lr );
 
-	if( u_AlbedoTexToggle != 0.5 )
-	{
-		vec4 texColor = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgba;
-
-		if( texColor.a < 0.1 )
-			discard;
-	}
-
 	vec3 ambient = 0.3 * vec3( lightContribution + iblContribution );
 
 	// Shadow
@@ -368,6 +363,12 @@ void main()
 
 	//float depth = texture( u_ShadowMap, vs_Input.TexCoord ).x;
 	//depth = 1.0 - ( 1.0 - depth ) * 25.0;
+
+	//if( u_AlbedoTexToggle != 0.5 )
+	//{
+	//	if( texture( u_AlbedoTex, vs_Input.WorldPosition ).a < 0.1 )
+	//		discard;
+	//}
 
 	color = vec4( lighting, 1.0f );
 }

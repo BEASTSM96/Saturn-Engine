@@ -39,8 +39,8 @@ namespace Saturn {
 	{
 		switch( format )
 		{
-			case Saturn::TextureFormat::RGB:     return GL_RGB;
-			case Saturn::TextureFormat::RGBA:    return GL_RGBA;
+			case Saturn::TextureFormat::RGB:     return GL_SRGB;
+			case Saturn::TextureFormat::RGBA:    return GL_SRGB8_ALPHA8;
 			case Saturn::TextureFormat::Float16: return GL_RGBA16F;
 		}
 		SAT_CORE_ASSERT( false, "Unknown texture format!" );

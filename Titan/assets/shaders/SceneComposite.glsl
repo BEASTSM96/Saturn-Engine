@@ -24,6 +24,7 @@ in vec2 v_TexCoord;
 
 uniform sampler2DMS u_Texture;
 uniform float u_Exposure;
+uniform float u_Gamma;
 uniform int u_TextureSamples;
 
 vec4 MultiSampleTexture(sampler2DMS tex, ivec2 texCoord, int samples)
@@ -38,7 +39,6 @@ vec4 MultiSampleTexture(sampler2DMS tex, ivec2 texCoord, int samples)
 
 void main()
 {
-	const float gamma     = 2.2;
 	const float pureWhite = 1.0;
 
 	ivec2 texSize = textureSize(u_Texture);
@@ -55,5 +55,5 @@ void main()
 	vec3 mappedColor = (mappedLuminance / luminance) * color;
 
 	// Gamma correction.
-	o_Color = vec4(pow(mappedColor, vec3(1.0 / gamma)), 1.0);
+	o_Color = vec4(pow(mappedColor, vec3(1.0 / u_Gamma)), 1.0);
 }

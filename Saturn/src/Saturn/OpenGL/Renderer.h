@@ -119,6 +119,7 @@ namespace Saturn {
 		Ref<Scene> m_ActiveScene;
 
 		std::vector<DrawCommand> m_DrawList;
+		float m_Gamma = 2.2F;
 
 		void Init();
 	};

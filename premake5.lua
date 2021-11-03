@@ -104,21 +104,21 @@ project "Saturn"
 			"GLFW_INCLUDE_NONE"
 		}
 
-	filter "configurations:Debug"
-		defines "SAT_DEBUG"
-		runtime "Debug"
-		symbols "on"
+		filter "configurations:Debug"
+			defines "SAT_DEBUG"
+			runtime "Debug"
+			symbols "on"
 
-		filter "system:windows"
-			links 
-			{
-				"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib"
-			}
+			filter "system:windows"
+				links 
+				{
+					"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib"
+				}
 
-			postbuildcommands 
-			{
-				'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"'
-			}
+				postbuildcommands 
+				{
+					'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"'
+				}
 
 
 	filter "configurations:Release"
