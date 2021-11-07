@@ -30,26 +30,13 @@
 
 #include "Saturn/Core/Base.h"
 
+#include "MaterialUniform.h"
+
 #include "Shader.h"
 #include "Texture.h"
 #include "VertexBuffer.h"
 
 namespace Saturn {
-
-	// This class is so that Materials know what uniforms to include when making the Material. We don't want a uniform thats not connected to the material an example of this is a LightPosition uniform as there is no need for that in a material.
-	class MaterialUniform
-	{
-	public:
-		MaterialUniform() {}
-		MaterialUniform( const std::string& name, ShaderDataType& type ) : m_Name( name ), m_Type( type ) {}
-
-		~MaterialUniform() = default;
-
-	private:
-		bool IsStruct = false;
-		std::string m_Name = "Unknown Uniform";
-		ShaderDataType m_Type = ShaderDataType::None;
-	};
 
 	enum class MaterialFlag
 	{
@@ -57,6 +44,14 @@ namespace Saturn {
 		DepthTest = BIT( 1 ),
 		Blend = BIT( 2 ),
 		TwoSided = BIT( 3 )
+	};
+
+	enum class MaterialTextureType
+	{
+		Albedo,
+		Normal,
+		Metalness,
+		Roughness
 	};
 
 	class Material
@@ -71,21 +66,88 @@ namespace Saturn {
 		void SetFlag( MaterialFlag flag ) { m_MaterialFlags |= ( uint32_t )flag; }
 
 		template <typename T>
-		void Set( const std::string& name, const T& value ) 
+		void Set( const std::string& name, Ref<Texture2D> texture ) 
 		{
-			
+			SAT_CORE_ASSERT( m_Uniforms.find( name ) != m_Uniforms.end(), "Key not found!" );
+
+			if( m_Uniforms[ name ] )
+				m_Uniforms[ name ]->SetData( texture );
+
+			// Send it off to a list so when we are about the render we can tell the shader to one bind and two change the requested values.
+			SetPropChanged( name );
+		}
+
+		void Add( const std::string& name, Ref<Texture2D> texure, MaterialTextureType textureFormat ) 
+		{
+			SAT_CORE_ASSERT( m_Uniforms.find( name ) == m_Uniforms.end(), "Key was already found!" );
+
+			switch( textureFormat )
+			{
+				case MaterialTextureType::Albedo:
+				{
+					Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_AlbedoTexture" );
+					m_Uniforms.insert( { name, uni } );
+				} break;
+
+				case MaterialTextureType::Normal:
+				{
+					Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_NormalTexture" );
+					m_Uniforms.insert( { name, uni } );
+				} break;
+
+				case MaterialTextureType::Metalness:
+				{
+					Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_MetalnessTexture" );
+					m_Uniforms.insert( { name, uni } );
+				} break;
+
+				case MaterialTextureType::Roughness:
+				{
+					Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_RoughnessTexture" );
+					m_Uniforms.insert( { name, uni } );
+				} break;
+
+				default:
+					break;
+			}
+		}
+
+		Ref<MaterialUniform>& Get( const std::string& name ) 
+		{
+			SAT_CORE_ASSERT( m_Uniforms.find( name ) != m_Uniforms.end(), "Key not found!" );
+
+			return m_Uniforms[ name ];
 		}
 
 	private:
 
-		void BindTextures();
+		void SetPropChanged( const std::string& prop )
+		{
+			m_PropsChanged.push_back( prop );
+			/*
+			* 
+			* m_Shader.bind(); 
+			* 
+			* m_Shader.Set( "u_Texture", k->Data().RendererID() );
+			*/
+		}
+
+		void BindTextures() 
+		{
+			for( auto& [ k, v ] : m_Uniforms )
+			{
+				if( v->Data() )
+					v->Data()->Bind();
+			}
+		}
 
 		Ref<Shader> m_MaterialShader;
 
 		uint32_t m_MaterialFlags;
 
-		std::vector<Ref<MaterialUniform>> m_Uniforms;
+		std::unordered_map<std::string, Ref<MaterialUniform>> m_Uniforms;
 		std::vector<Ref<Texture>> m_Textures;
+		std::vector<std::string> m_PropsChanged;
 	};
 
 }

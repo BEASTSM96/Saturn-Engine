@@ -28,81 +28,38 @@
 
 #pragma once
 
-#include "Common.h"
+#include "Saturn/Core/Log.h"
 
-#include "MaterialUniform.h"
-
-#include <string>
+#include <stdint.h>
 
 namespace Saturn {
 
-	enum class ShaderDomain
+	enum class ShaderDataType
 	{
-		None = 0, Vertex = 0, Pixel = 1
+		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool
 	};
 
-	class Shader
+	//TODO: maybe move this into a new file?
+	static uint32_t ShaderDataTypeSize( ShaderDataType type )
 	{
-	public:
-		Shader() = default;
-		Shader( const std::string& filename );
+		switch( type )
+		{
+			case ShaderDataType::Float:    return 4;
+			case ShaderDataType::Float2:   return 4 * 2;
+			case ShaderDataType::Float3:   return 4 * 3;
+			case ShaderDataType::Float4:   return 4 * 4;
+			case ShaderDataType::Mat3:     return 4 * 3 * 3;
+			case ShaderDataType::Mat4:     return 4 * 4 * 4;
+			case ShaderDataType::Int:      return 4;
+			case ShaderDataType::Int2:     return 4 * 2;
+			case ShaderDataType::Int3:     return 4 * 3;
+			case ShaderDataType::Int4:     return 4 * 4;
+			case ShaderDataType::Bool:     return 1;
+		}
 
-		void Bind();
-		RendererID GetRendererID() { return m_ID; }
+		SAT_CORE_ERROR( "ShaderDataTypes are Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4 and Bool" );
+		SAT_CORE_ASSERT( false, "Unknown ShaderDataType!" );
+		return 0;
+	}
 
-		const std::string& Name() const { return m_Name; }
-		std::string& Name() { return m_Name; }
-
-		// Uniform Funcs
-
-		void SetBool( const std::string& name, bool val );
-		void SetInt( const std::string& name, int val );
-		void SetFloat( const std::string& name, float value );
-		void SetFloat2( const std::string& name, const glm::vec2& val );
-		void SetFloat3( const std::string& name, const glm::vec3& val );
-		void SetMat4( const std::string& name, const glm::mat4& val );
-
-	private:
-
-		void Load( const std::string& filepath );
-		void Parse();
-
-		void CompileAndUploadShader();
-		std::string ReadShaderFromFile( const std::string& src );
-
-		const char* FindToken( const char* shader, const std::string& token );
-		std::string GetStatement( const char* str, const char** outPosition );
-
-		void ParseUniform( const std::string& statement, ShaderDomain domain );
-
-		std::unordered_map<unsigned int, std::string> DetermineShaderTypes( const std::string& filepath );
-
-		unsigned int ShaderTypeFromString( const std::string& type );
-
-	private:
-
-		RendererID m_ID = 0;
-		bool m_Loaded = false;
-		bool m_IsCompute = false;
-		std::string m_Name, m_Filepath;
-
-		// We technically have 2 or more shaders in one file, so we make a map here
-		std::unordered_map<unsigned int, std::string> m_Shaders;
-
-	private:
-
-		const char* FTLSD_VertexShaderSource = "#version 330 core\n"
-			"layout (location = 0) in vec3 aPos;\n"
-			"void main()\n"
-			"{\n"
-			"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-			"}\0";
-
-		const char* FTLSD_FragmentShaderSource = "#version 330 core\n"
-			"out vec4 FragColor;\n"
-			"void main()\n"
-			"{\n"
-			"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-			"}\n\0";
-	};
 }

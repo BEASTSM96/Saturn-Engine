@@ -110,6 +110,11 @@ namespace Saturn {
 
 	Texture2D::Texture2D( const std::string& path, bool srgb )
 	{
+		size_t found = path.find_last_of( "/\\" );
+		m_FileName = found != std::string::npos ? m_FileName.substr( found + 1 ) : m_FileName;
+		found = m_FileName.find_last_of( "." );
+		m_FileName = found != std::string::npos ? path.substr( 0, found ) : path;
+
 		stbi_set_flip_vertically_on_load( true );
 
 		int w, h, chan;

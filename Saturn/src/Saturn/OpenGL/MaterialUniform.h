@@ -28,81 +28,55 @@
 
 #pragma once
 
-#include "Common.h"
-
-#include "MaterialUniform.h"
+#include "ShaderDataType.h"
 
 #include <string>
 
 namespace Saturn {
 
-	enum class ShaderDomain
-	{
-		None = 0, Vertex = 0, Pixel = 1
-	};
-
-	class Shader
+	// This class is so that Materials know what uniforms to include when making the Material. We don't want a uniform thats not connected to the material an example of this is a LightPosition uniform as there is no need for that in a material.
+	class MaterialUniform
 	{
 	public:
-		Shader() = default;
-		Shader( const std::string& filename );
+		MaterialUniform() {}
 
-		void Bind();
-		RendererID GetRendererID() { return m_ID; }
+		MaterialUniform( const std::string& name, Ref<Texture2D>& texture, const std::string& textureName, const std::string& textureNameInShader ) 
+		{
+			m_Name = name;
 
-		const std::string& Name() const { return m_Name; }
-		std::string& Name() { return m_Name; }
+			m_Data = texture;
 
-		// Uniform Funcs
+			m_TextureName = textureName;
+			m_ValueName = textureNameInShader;
+		}
 
-		void SetBool( const std::string& name, bool val );
-		void SetInt( const std::string& name, int val );
-		void SetFloat( const std::string& name, float value );
-		void SetFloat2( const std::string& name, const glm::vec2& val );
-		void SetFloat3( const std::string& name, const glm::vec3& val );
-		void SetMat4( const std::string& name, const glm::mat4& val );
+		~MaterialUniform()
+		{
+			m_Data.Delete();
 
-	private:
+			m_Name = m_TextureName = m_ValueName = "";
+		}
 
-		void Load( const std::string& filepath );
-		void Parse();
+		Ref<Texture2D> Data() { return m_Data; }
+		const Ref<Texture2D> Data() const { return m_Data; }
 
-		void CompileAndUploadShader();
-		std::string ReadShaderFromFile( const std::string& src );
-
-		const char* FindToken( const char* shader, const std::string& token );
-		std::string GetStatement( const char* str, const char** outPosition );
-
-		void ParseUniform( const std::string& statement, ShaderDomain domain );
-
-		std::unordered_map<unsigned int, std::string> DetermineShaderTypes( const std::string& filepath );
-
-		unsigned int ShaderTypeFromString( const std::string& type );
+		void SetData( Ref<Texture2D>& data ) 
+		{
+			m_Data = data;
+		}
 
 	private:
 
-		RendererID m_ID = 0;
-		bool m_Loaded = false;
-		bool m_IsCompute = false;
-		std::string m_Name, m_Filepath;
+		bool IsStruct = false;
+		std::string m_Name = "Unknown Uniform";
 
-		// We technically have 2 or more shaders in one file, so we make a map here
-		std::unordered_map<unsigned int, std::string> m_Shaders;
+		// EXAMPLE - uniform sampler2D u_sampler2D. where value name is "u_sampler2D" and valueType is "sampler2D"
 
-	private:
+		std::string m_TextureName = "";
+		std::string m_ValueName = "";
 
-		const char* FTLSD_VertexShaderSource = "#version 330 core\n"
-			"layout (location = 0) in vec3 aPos;\n"
-			"void main()\n"
-			"{\n"
-			"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-			"}\0";
+		Ref<Texture2D> m_Data;
 
-		const char* FTLSD_FragmentShaderSource = "#version 330 core\n"
-			"out vec4 FragColor;\n"
-			"void main()\n"
-			"{\n"
-			"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-			"}\n\0";
+		ShaderDataType m_Type = ShaderDataType::None;
 	};
 }

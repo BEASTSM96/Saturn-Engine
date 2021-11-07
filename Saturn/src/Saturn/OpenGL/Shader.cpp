@@ -91,8 +91,10 @@ namespace Saturn {
 		// Fragment Shader
 		fstr = fragmentSource.c_str();
 
-
-
+		while( token = FindToken( vstr, "uniform" ) )
+		{
+			ParseUniform( GetStatement( token, &vstr ), ShaderDomain::Vertex );
+		}
 	}
 
 	void Shader::CompileAndUploadShader()
@@ -206,12 +208,89 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	std::string Shader::GetStatement( const char* str, const char** outPosition )
+	const char* FindToken( const std::string& string, const std::string& token )
 	{
-		return "";
+		return FindToken( string.c_str(), token );
 	}
 
-	void Shader::ParseUniform( const std::string& statement, int domain )
+	std::vector<std::string> SplitString( const std::string& string, const std::string& delimiters )
+	{
+		size_t start = 0;
+		size_t end = string.find_first_of( delimiters );
+
+		std::vector<std::string> result;
+
+		while( end <= std::string::npos )
+		{
+			std::string token = string.substr( start, end - start );
+			if( !token.empty() )
+				result.push_back( token );
+
+			if( end == std::string::npos )
+				break;
+
+			start = end + 1;
+			end = string.find_first_of( delimiters, start );
+		}
+
+		return result;
+	}
+
+	std::vector<std::string> SplitString( const std::string& string, const char delimiter )
+	{
+		return SplitString( string, std::string( 1, delimiter ) );
+	}
+
+	std::vector<std::string> Tokenize( const std::string& string )
+	{
+		return SplitString( string, " \t\n\r" );
+	}
+
+	std::vector<std::string> GetLines( const std::string& string )
+	{
+		return SplitString( string, "\n" );
+	}
+
+	std::string GetBlock( const char* str, const char** outPosition )
+	{
+		const char* end = strstr( str, "}" );
+		if( !end )
+			return str;
+
+		if( outPosition )
+			*outPosition = end;
+		uint32_t length = end - str + 1;
+		return std::string( str, length );
+	}
+
+	std::string GetStatement( const char* str, const char** outPosition )
+	{
+		const char* end = strstr( str, ";" );
+		if( !end )
+			return str;
+
+		if( outPosition )
+			*outPosition = end;
+		uint32_t length = end - str + 1;
+		return std::string( str, length );
+	}
+
+	bool StartsWith( const std::string& string, const std::string& start )
+	{
+		return string.find( start ) == 0;
+	}
+
+	static bool IsTypeStringResource( const std::string& type )
+	{
+		if( type == "sampler1D" )		return true;
+		if( type == "sampler2D" )		return true;
+		if( type == "sampler2DMS" )		return true;
+		if( type == "samplerCube" )		return true;
+		if( type == "sampler2DShadow" )	return true;
+		return false;
+	}
+
+	void Shader::ParseUniform( const std::string& statement, ShaderDomain domain )
 	{
 
 	}
@@ -230,7 +309,7 @@ namespace Saturn {
 
 	std::unordered_map<GLenum, std::string> Shader::DetermineShaderTypes( const std::string& filepath )
 	{
-		// We technically have 2 shaders in one file, so we make a map here
+		// We technically have 2 or more shaders in one file, so we make a map here
 		std::unordered_map<GLenum, std::string> shaderSources;
 
 		// Find #type

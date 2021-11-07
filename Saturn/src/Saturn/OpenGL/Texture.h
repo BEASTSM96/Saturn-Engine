@@ -98,6 +98,7 @@ namespace Saturn {
 		virtual const std::string& GetPath() const  { return m_FilePath;   }
 		virtual bool Loaded() const                 { return m_Loaded;     }
 		virtual RendererID GetRendererID() const    { return m_RendererID; }
+		virtual std::string& Filename()             { return m_FileName; }
 
 		virtual bool operator==( const Texture& other ) const override
 		{
@@ -117,6 +118,7 @@ namespace Saturn {
 		bool m_Loaded = false;
 
 		std::string m_FilePath;
+		std::string m_FileName;
 	};
 
 }
