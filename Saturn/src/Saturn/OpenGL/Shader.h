@@ -57,6 +57,7 @@ namespace Saturn {
 
 		void SetBool( const std::string& name, bool val );
 		void SetInt( const std::string& name, int val );
+		void SetIntArray( const std::string& name, int32_t* vals, uint32_t count );
 		void SetFloat( const std::string& name, float value );
 		void SetFloat2( const std::string& name, const glm::vec2& val );
 		void SetFloat3( const std::string& name, const glm::vec3& val );

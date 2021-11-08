@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2021 BEAST                                                           *
+* Copyright (c) 2021 BEAST                                                           		*
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -26,44 +26,33 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "MaterialUniform.h"
 
-#include "Saturn/Core/Base.h"
-#include "ShaderDataType.h"
-
-#include <string>
+#include "Texture.h"
 
 namespace Saturn {
 
-	class Texture2D;
-
-	// This class is so that Materials know what uniforms to include when making the Material. We don't want a uniform thats not connected to the material an example of this is a LightPosition uniform as there is no need for that in a material.
-	class MaterialUniform
+	MaterialUniform::MaterialUniform( const std::string& name, Ref<Texture2D>& texture, const std::string& textureName, const std::string& textureNameInShader )
 	{
-	public:
-		MaterialUniform() {}
+		m_Name = name;
 
-		MaterialUniform( const std::string& name, Ref<Texture2D>& texture, const std::string& textureName, const std::string& textureNameInShader );
+		m_Data = texture;
 
-		~MaterialUniform();
+		m_TextureName = textureName;
+		m_ValueName = textureNameInShader;
+	}
 
-		Ref<Texture2D> Data() { return m_Data; }
-		const Ref<Texture2D> Data() const { return m_Data; }
+	MaterialUniform::~MaterialUniform()
+	{
+		m_Data.Delete();
 
-		void SetData( Ref<Texture2D>& data );
+		m_Name = m_TextureName = m_ValueName = "";
+	}
 
-	private:
+	void MaterialUniform::SetData( Ref<Texture2D>& data )
+	{
+		m_Data = data;
+	}
 
-		bool IsStruct = false;
-		std::string m_Name = "Unknown Uniform";
-
-		// EXAMPLE - uniform sampler2D u_sampler2D. where value name is "u_sampler2D" and valueType is "sampler2D"
-
-		std::string m_TextureName = "";
-		std::string m_ValueName = "";
-
-		Ref<Texture2D> m_Data;
-
-		ShaderDataType m_Type = ShaderDataType::None;
-	};
 }

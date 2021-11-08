@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2021 BEAST                                                           *
+* Copyright (c) 2021 BEAST                                                           		*
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -26,44 +26,87 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/Core/Base.h"
-#include "ShaderDataType.h"
-
-#include <string>
+#include "sppch.h"
+#include "Material.h"
 
 namespace Saturn {
 
-	class Texture2D;
-
-	// This class is so that Materials know what uniforms to include when making the Material. We don't want a uniform thats not connected to the material an example of this is a LightPosition uniform as there is no need for that in a material.
-	class MaterialUniform
+	Material::Material( Ref<Shader> shader ) : m_MaterialShader( shader )
 	{
-	public:
-		MaterialUniform() {}
+		SetFlag( MaterialFlag::DepthTest );
+	}
 
-		MaterialUniform( const std::string& name, Ref<Texture2D>& texture, const std::string& textureName, const std::string& textureNameInShader );
+	Material::~Material()
+	{
+		m_MaterialShader.Delete();
+	}
 
-		~MaterialUniform();
+	void Material::Bind()
+	{
+		BindTextures();
+	}
 
-		Ref<Texture2D> Data() { return m_Data; }
-		const Ref<Texture2D> Data() const { return m_Data; }
+	template <typename T>
+	void Material::Set( const std::string& name, Ref<Texture2D> texture )
+	{
+		SAT_CORE_ASSERT( m_Uniforms.find( name ) != m_Uniforms.end(), "Key not found!" );
 
-		void SetData( Ref<Texture2D>& data );
+		if( m_Uniforms[ name ] )
+			m_Uniforms[ name ]->SetData( texture );
 
-	private:
+		// Send it off to a list so when we are about the render we can tell the shader to one bind and two change the requested values.
+		SetPropChanged( name );
+	}
 
-		bool IsStruct = false;
-		std::string m_Name = "Unknown Uniform";
+	void Material::Add( const std::string& name, Ref<Texture2D> texure, MaterialTextureType textureFormat )
+	{
+		SAT_CORE_ASSERT( m_Uniforms.find( name ) == m_Uniforms.end(), "Key was already found!" );
 
-		// EXAMPLE - uniform sampler2D u_sampler2D. where value name is "u_sampler2D" and valueType is "sampler2D"
+		switch( textureFormat )
+		{
+			case MaterialTextureType::Albedo:
+			{
+				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_AlbedoTexture" );
+				m_Uniforms.insert( { name, uni } );
+			} break;
 
-		std::string m_TextureName = "";
-		std::string m_ValueName = "";
+			case MaterialTextureType::Normal:
+			{
+				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_NormalTexture" );
+				m_Uniforms.insert( { name, uni } );
+			} break;
 
-		Ref<Texture2D> m_Data;
+			case MaterialTextureType::Metalness:
+			{
+				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_MetalnessTexture" );
+				m_Uniforms.insert( { name, uni } );
+			} break;
 
-		ShaderDataType m_Type = ShaderDataType::None;
-	};
+			case MaterialTextureType::Roughness:
+			{
+				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_RoughnessTexture" );
+				m_Uniforms.insert( { name, uni } );
+			} break;
+
+			default:
+				break;
+		}
+	}
+
+	Ref<MaterialUniform>& Material::Get( const std::string& name )
+	{
+		SAT_CORE_ASSERT( m_Uniforms.find( name ) != m_Uniforms.end(), "Key not found!" );
+
+		return m_Uniforms[ name ];
+	}
+
+	void Material::BindTextures()
+	{
+		for( auto& [k, v] : m_Uniforms )
+		{
+			if( v->Data() )
+				v->Data()->Bind();
+		}
+	}
+
 }

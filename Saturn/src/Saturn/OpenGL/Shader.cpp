@@ -41,6 +41,95 @@
 
 namespace Saturn {
 
+	const char* Shader::FindToken( const char* shader, const std::string& token )
+	{
+		const char* t = shader;
+
+		// Return ptr of the first occurrence of token in t & check if not null
+		while( t = strstr( t, token.c_str() ) )
+		{
+			bool left = shader == t || isspace( t[ -1 ] );
+
+			bool right = !t[ token.size() ] || isspace( t[ token.size() ] );
+
+			if( left && right )
+				return t;
+
+			t += token.size();
+		}
+		return nullptr;
+	}
+
+	const char* FindToken( const std::string& string, const std::string& token )
+	{
+		return FindToken( string.c_str(), token );
+	}
+
+	std::vector<std::string> SplitString( const std::string& string, const std::string& delimiters )
+	{
+		size_t start = 0;
+		size_t end = string.find_first_of( delimiters );
+
+		std::vector<std::string> result;
+
+		while( end <= std::string::npos )
+		{
+			std::string token = string.substr( start, end - start );
+			if( !token.empty() )
+				result.push_back( token );
+
+			if( end == std::string::npos )
+				break;
+
+			start = end + 1;
+			end = string.find_first_of( delimiters, start );
+		}
+
+		return result;
+	}
+
+	std::vector<std::string> SplitString( const std::string& string, const char delimiter )
+	{
+		return SplitString( string, std::string( 1, delimiter ) );
+	}
+
+	std::vector<std::string> Tokenize( const std::string& string )
+	{
+		return SplitString( string, " \t\n\r" );
+	}
+
+	std::vector<std::string> GetLines( const std::string& string )
+	{
+		return SplitString( string, "\n" );
+	}
+
+	std::string GetBlock( const char* str, const char** outPosition )
+	{
+		const char* end = strstr( str, "}" );
+		if( !end )
+			return str;
+
+		if( outPosition )
+			*outPosition = end;
+		uint32_t length = end - str + 1;
+		return std::string( str, length );
+	}
+
+	bool StartsWith( const std::string& string, const std::string& start )
+	{
+		return string.find( start ) == 0;
+	}
+
+	static bool IsTypeStringResource( const std::string& type )
+	{
+		if( type == "sampler1D" )		return true;
+		if( type == "sampler2D" )		return true;
+		if( type == "sampler2DMS" )		return true;
+		if( type == "samplerCube" )		return true;
+		if( type == "sampler2DShadow" )	return true;
+		return false;
+	}
+
 	Shader::Shader( const std::string& filename ) : m_Filepath( filename )
 	{
 		size_t found = filename.find_last_of( "/\\" );
@@ -95,6 +184,18 @@ namespace Saturn {
 		{
 			ParseUniform( GetStatement( token, &vstr ), ShaderDomain::Vertex );
 		}
+	}
+
+	std::string Shader::GetStatement( const char* str, const char** outPosition )
+	{
+		const char* end = strstr( str, ";" );
+		if( !end )
+			return str;
+
+		if( outPosition )
+			*outPosition = end;
+		uint32_t length = end - str + 1;
+		return std::string( str, length );
 	}
 
 	void Shader::CompileAndUploadShader()
@@ -189,107 +290,6 @@ namespace Saturn {
 		return result;
 	}
 
-	const char* Shader::FindToken( const char* shader, const std::string& token )
-	{
-		const char* t = shader;
-
-		// Return ptr of the first occurrence of token in t & check if not null
-		while( t = strstr( t, token.c_str() ) )
-		{
-			bool left = shader == t || isspace( t[ -1 ] );
-
-			bool right = !t[ token.size() ] || isspace( t[ token.size() ] );
-
-			if( left && right )
-				return t;
-
-			t += token.size();
-		}
-		return nullptr;
-	}
-
-	const char* FindToken( const std::string& string, const std::string& token )
-	{
-		return FindToken( string.c_str(), token );
-	}
-
-	std::vector<std::string> SplitString( const std::string& string, const std::string& delimiters )
-	{
-		size_t start = 0;
-		size_t end = string.find_first_of( delimiters );
-
-		std::vector<std::string> result;
-
-		while( end <= std::string::npos )
-		{
-			std::string token = string.substr( start, end - start );
-			if( !token.empty() )
-				result.push_back( token );
-
-			if( end == std::string::npos )
-				break;
-
-			start = end + 1;
-			end = string.find_first_of( delimiters, start );
-		}
-
-		return result;
-	}
-
-	std::vector<std::string> SplitString( const std::string& string, const char delimiter )
-	{
-		return SplitString( string, std::string( 1, delimiter ) );
-	}
-
-	std::vector<std::string> Tokenize( const std::string& string )
-	{
-		return SplitString( string, " \t\n\r" );
-	}
-
-	std::vector<std::string> GetLines( const std::string& string )
-	{
-		return SplitString( string, "\n" );
-	}
-
-	std::string GetBlock( const char* str, const char** outPosition )
-	{
-		const char* end = strstr( str, "}" );
-		if( !end )
-			return str;
-
-		if( outPosition )
-			*outPosition = end;
-		uint32_t length = end - str + 1;
-		return std::string( str, length );
-	}
-
-	std::string GetStatement( const char* str, const char** outPosition )
-	{
-		const char* end = strstr( str, ";" );
-		if( !end )
-			return str;
-
-		if( outPosition )
-			*outPosition = end;
-		uint32_t length = end - str + 1;
-		return std::string( str, length );
-	}
-
-	bool StartsWith( const std::string& string, const std::string& start )
-	{
-		return string.find( start ) == 0;
-	}
-
-	static bool IsTypeStringResource( const std::string& type )
-	{
-		if( type == "sampler1D" )		return true;
-		if( type == "sampler2D" )		return true;
-		if( type == "sampler2DMS" )		return true;
-		if( type == "samplerCube" )		return true;
-		if( type == "sampler2DShadow" )	return true;
-		return false;
-	}
-
 	void Shader::ParseUniform( const std::string& statement, ShaderDomain domain )
 	{
 
@@ -355,6 +355,11 @@ namespace Saturn {
 	void Shader::SetInt( const std::string& name, int val )
 	{
 		glUniform1i( glGetUniformLocation( m_ID, name.c_str() ), val );
+	}
+
+	void Shader::SetIntArray( const std::string& name, int32_t* vals, uint32_t count )
+	{
+		glUniform1iv( glGetUniformLocation( m_ID, name.c_str() ), count, vals );
 	}
 
 	void Shader::SetFloat( const std::string& name, float val )
