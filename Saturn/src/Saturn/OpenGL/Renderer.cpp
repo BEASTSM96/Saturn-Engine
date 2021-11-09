@@ -108,7 +108,8 @@ namespace Saturn {
 
 	void Renderer::Clear()
 	{
-		glClearColor( pow( 0.07f, m_Gamma ), pow( 0.13f, m_Gamma ), pow( 0.17f, m_Gamma ), 1.0f );
+		//glClearColor( pow( 0.07f, m_Gamma ), pow( 0.13f, m_Gamma ), pow( 0.17f, m_Gamma ), 1.0f );
+		glClearColor( pow( 1, m_Gamma ), pow( 1, m_Gamma ), pow( 1, m_Gamma ), 1.0f );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	}
 
@@ -165,7 +166,7 @@ namespace Saturn {
 		m_DrawList.push_back( { mesh, trans } );
 	}
 
-	void Renderer::RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans, Ref<Shader>& shader )
+	void Renderer::RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans )
 	{
 		mesh->m_VertexBuffer->Bind();
 		mesh->m_Pipeline->Bind();
@@ -180,12 +181,14 @@ namespace Saturn {
 		{
 			Enable( GL_DEPTH_TEST );
 
-			shader->Bind();
+			mesh->GetMaterial()->Bind();
+			auto shader = mesh->GetMaterial()->GetShader();
 
+			shader->BindMaterialTextures();
 			shader->SetMat4( "u_ViewProjectionMatrix", viewProjection );
+			shader->SetInt( "u_Texture0", 1 );
 			shader->SetFloat3( "u_CameraPosition", cameraPosition );
 			shader->SetFloat3( "u_ViewPos", cameraPosition );
-
 			shader->SetMat4( "u_Transform", trans * submesh.Transform );
 
 			glDrawElementsBaseVertex( GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, ( void* )( sizeof( uint32_t ) * submesh.BaseIndex ), submesh.BaseVertex );
@@ -224,9 +227,7 @@ namespace Saturn {
 		
 		for( auto& dc : m_DrawList )
 		{
-			Ref<Shader>& shader = dc.m_Mesh->GetShader();
-
-			RenderMesh( dc.m_Mesh, dc.m_Transform, shader );
+			RenderMesh( dc.m_Mesh, dc.m_Transform );
 		}
 
 		EndRenderPass( m_RenderPass );

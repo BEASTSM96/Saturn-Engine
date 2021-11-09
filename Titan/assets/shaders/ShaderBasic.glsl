@@ -19,13 +19,13 @@ void main()
 #type fragment
 #version 430 core
 
-layout( location = 0 ) out vec4 color;
+layout( location = 0 ) out vec4 FinalColor;
 
 in vec2 TexCoord;
 
-uniform sampler2D u_Texture0;
+uniform sampler2D u_AlbedoTexture;
 
 void main()
 {
-	color = texture( u_Texture0, TexCoord );
+	FinalColor = texture( u_AlbedoTexture, TexCoord );
 }

@@ -43,18 +43,23 @@ namespace Saturn {
 
 	void Material::Bind()
 	{
-		BindTextures();
+		m_MaterialShader->Bind();
 
-		m_MaterialShader->BindMaterialTextures();
+		BindTextures();
 	}
 
-	template <typename T>
 	void Material::Set( const std::string& name, Ref<Texture2D> texture )
 	{
-		SAT_CORE_ASSERT( m_Uniforms.find( name ) != m_Uniforms.end(), "Key not found!" );
+		//SAT_CORE_ASSERT( m_Uniforms.find( name ) != m_Uniforms.end(), "Key not found!" );
 
-		if( m_Uniforms[ name ] )
-			m_Uniforms[ name ]->SetData( texture );
+		for( const auto& uni : m_Uniforms )
+		{
+			if( uni->m_Name == name )
+				return;
+
+			if( m_Uniforms[ uni ] )
+				m_Uniforms[ uni ]->SetData( texture );
+		}
 
 		// Send it off to a list so when we are about the render we can tell the shader to one bind and two change the requested values.
 		SetPropChanged( name );
@@ -62,32 +67,32 @@ namespace Saturn {
 
 	void Material::Add( const std::string& name, Ref<Texture2D> texure, MaterialTextureType textureFormat )
 	{
-		SAT_CORE_ASSERT( m_Uniforms.find( name ) == m_Uniforms.end(), "Key was already found!" );
+		//SAT_CORE_ASSERT( m_Uniforms.find( name ) == m_Uniforms.end(), "Key was already found!" );
 
 		switch( textureFormat )
 		{
 			case MaterialTextureType::Albedo:
 			{
 				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_AlbedoTexture" );
-				m_Uniforms.insert( { name, uni } );
+				m_Uniforms.push_back( uni );
 			} break;
 
 			case MaterialTextureType::Normal:
 			{
 				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_NormalTexture" );
-				m_Uniforms.insert( { name, uni } );
+				m_Uniforms.push_back( uni );
 			} break;
 
 			case MaterialTextureType::Metalness:
 			{
 				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_MetalnessTexture" );
-				m_Uniforms.insert( { name, uni } );
+				m_Uniforms.push_back( uni );
 			} break;
 
 			case MaterialTextureType::Roughness:
 			{
 				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_RoughnessTexture" );
-				m_Uniforms.insert( { name, uni } );
+				m_Uniforms.push_back( uni );
 			} break;
 
 			default:
@@ -97,17 +102,23 @@ namespace Saturn {
 
 	Ref<MaterialUniform>& Material::Get( const std::string& name )
 	{
-		SAT_CORE_ASSERT( m_Uniforms.find( name ) != m_Uniforms.end(), "Key not found!" );
+		//SAT_CORE_ASSERT( m_Uniforms.find( name ) != m_Uniforms.end(), "Key not found!" );
 
-		return m_Uniforms[ name ];
+		for( auto& uni : m_Uniforms )
+		{
+			if( uni->m_Name == name )
+				return uni;
+		}
 	}
 
 	void Material::BindTextures()
 	{
-		for( auto& [k, v] : m_Uniforms )
+		for( int i = 0; i < m_Uniforms.size(); i++ )
 		{
+			const auto& v = m_Uniforms[ i ];
+
 			if( v->Data() )
-				v->Data()->Bind();
+				v->Data()->Bind( i );
 		}
 	}
 

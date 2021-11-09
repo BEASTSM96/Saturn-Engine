@@ -103,7 +103,7 @@ namespace Saturn {
 
 		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( scene->mRootNode->mTransformation ) );
 		
-		m_MeshShader = Renderer::Get().GetShaderLibaray()->Get( "PBR_Static" );
+		m_MeshShader = Ref<Shader>::Create( "assets\\shaders\\ShaderBasic.glsl" );
 
 		uint32_t vertexCount = 0;
 		uint32_t indexCount = 0;
@@ -163,6 +163,64 @@ namespace Saturn {
 			if ( scene->HasMaterials() )
 			{
 				m_Textures.resize( scene->mNumMaterials );
+
+				for( uint32_t i = 0; i < scene->mNumMaterials; i++ )
+				{
+					auto aiMaterial = scene->mMaterials[ i ];
+					auto aiMaterialName = aiMaterial->GetName();
+
+					// TODO: More than one material!
+					Ref<Material> mat = Ref<Material>::Create( m_MeshShader );
+
+					SAT_CORE_INFO( "  {0} (Index = {1})", aiMaterialName.data, i );
+					aiString aiTexPath;
+					uint32_t textureCount = aiMaterial->GetTextureCount( aiTextureType_DIFFUSE );
+					SAT_CORE_INFO( "    TextureCount = {0}", textureCount );
+
+					aiColor3D aiColor;
+					aiMaterial->Get( AI_MATKEY_COLOR_DIFFUSE, aiColor );
+
+					float shininess, metalness;
+					if( aiMaterial->Get( AI_MATKEY_SHININESS, shininess ) != aiReturn_SUCCESS )
+						shininess = 80.0f; // Default value
+
+					if( aiMaterial->Get( AI_MATKEY_REFLECTIVITY, metalness ) != aiReturn_SUCCESS )
+						metalness = 0.0f;
+
+					float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
+					SAT_CORE_INFO( "    COLOR = {0}, {1}, {2}", aiColor.r, aiColor.g, aiColor.b );
+					SAT_CORE_INFO( "    ROUGHNESS = {0}", roughness );
+					bool hasAlbedoMap = aiMaterial->GetTexture( aiTextureType_DIFFUSE, 0, &aiTexPath ) == AI_SUCCESS;
+
+					if( hasAlbedoMap ) 
+					{
+						std::filesystem::path path = filename;
+						auto parentPath = path.parent_path();
+						parentPath /= std::string( aiTexPath.data );
+						std::string texturePath = parentPath.string();
+
+						SAT_CORE_INFO( "    Albedo map path = {0}", texturePath );
+					
+						auto texture = Ref<Texture2D>::Create( texturePath, true );
+
+						if ( texture->Loaded() )
+						{
+							m_Textures[ i ] = texture;
+
+							mat->Add( m_Textures[ i ]->Filename(), m_Textures[ i ], MaterialTextureType::Albedo );
+							mat->Set( m_Textures[ i ]->Filename(), m_Textures[ i ] );
+						}
+						else
+						{
+							SAT_CORE_ERROR( "Could not load texture: {0}", texturePath );
+							// Fallback to albedo color
+							//mat->Set( "u_AlbedoColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b } );
+						}
+					}
+
+					m_MeshMaterial = mat;
+				}
+
 			}
 
 			VertexBufferLayout vertexLayout;
@@ -237,4 +295,8 @@ namespace Saturn {
 			TraverseNodes( node->mChildren[ i ], transform, level + 1 );
 	}
 
+	Ref<Material> Mesh::GetMaterial()
+	{
+		return m_MeshMaterial;
+	}
 }

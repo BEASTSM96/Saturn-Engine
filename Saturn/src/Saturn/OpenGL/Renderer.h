@@ -79,7 +79,7 @@ namespace Saturn {
 
 		void SubmitMesh( Ref<Mesh> mesh, const glm::mat4 trans );
 
-		void RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans, Ref<Shader>& shader );
+		void RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans );
 
 		void FlushDrawList();
 

@@ -56,6 +56,9 @@ namespace Saturn {
 
 	void EditorCamera::UpdateProjection()
 	{
+		if( m_ViewportWidth == 0 && m_ViewportHeight == 0 || m_ViewportWidth == 0 || m_ViewportHeight == 0 )
+			return;
+
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
 		m_Projection = glm::perspective( glm::radians( m_FOV ), m_AspectRatio, m_NearClip, m_FarClip );
 	}

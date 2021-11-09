@@ -292,13 +292,14 @@ namespace Saturn {
 
 	void Shader::BindMaterialTextures()
 	{
-		int sample = 0;
+		int sample = 1;
 		for( int i = 0; i < 4; i++ )
 		{
 			// I know this is bad but it works
 			if( i == 1 )
-				SetInt( "u_AlbedoTexture", sample );
+				SetInt( "u_AlbedoTexture", 0 );
 
+			/*
 			if( i == 2 )
 				SetInt( "u_MetalnessTexture", sample );
 
@@ -307,6 +308,7 @@ namespace Saturn {
 
 			if( i == 4 )
 				SetInt( "u_NormalTexture", sample );
+			*/
 
 			sample++;
 		}

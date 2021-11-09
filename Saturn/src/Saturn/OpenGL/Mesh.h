@@ -37,6 +37,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Pipeline.h"
+#include "Material.h"
 
 #include <vector>
 #include <string>
@@ -104,26 +105,28 @@ namespace Saturn {
 
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
 
-		Ref<Shader> GetMeshShader() { return m_MeshShader; }
-		std::vector<Submesh>& GetSubmeshes() { return m_Submeshes; }
-		const std::vector<Submesh>& GetSubmeshes() const { return m_Submeshes; }
-		const std::vector<Ref<Texture2D>>& GetTextures() const { return m_Textures; }
+		Ref<Shader> MeshShader() { return m_MeshShader; }
+		std::vector<Submesh>& Submeshes() { return m_Submeshes; }
+		const std::vector<Submesh>& Submeshes() const { return m_Submeshes; }
+		const std::vector<Ref<Texture2D>>& Textures() const { return m_Textures; }
 
 		std::string& FilePath() { return m_FilePath; }
 		const std::string& FilePath() const { return m_FilePath; }
 
-		const std::vector<Triangle> GetTriangleCache( uint32_t index ) const { return m_TriangleCache.at( index ); }
+		const std::vector<Triangle> TriangleCache( uint32_t index ) const { return m_TriangleCache.at( index ); }
 
-		const uint32_t& GetVertexCount() const { return m_VertexCount; }
-		const uint32_t& GetTriangleCount() const { return m_TriangleCount; }
-		const uint32_t& GetIndicesCount() const { return m_IndicesCount; }
-		const uint32_t& GetVerticesCount() const { return m_VerticesCount; }
+		const uint32_t& VertexCount() const { return m_VertexCount; }
+		const uint32_t& TriangleCount() const { return m_TriangleCount; }
+		const uint32_t& IndicesCount() const { return m_IndicesCount; }
+		const uint32_t& VerticesCount() const { return m_VerticesCount; }
 
-		const std::vector<Index>& GetIndices() const { return m_Indices; }
-		const std::vector<Vertex>& GetVertices() const { return m_StaticVertices; }
+		const std::vector<Index>& Indices() const { return m_Indices; }
+		const std::vector<Vertex>& Vertices() const { return m_StaticVertices; }
 
 		const Ref<Shader>& GetShader() const { return m_MeshShader; }
 		Ref<Shader>& GetShader() { return m_MeshShader; }
+
+		Ref<Material> GetMaterial();
 
 	private:
 
@@ -150,7 +153,8 @@ namespace Saturn {
 		Ref<Pipeline> m_Pipeline;
 
 		Ref<Shader> m_MeshShader;
-	
+		Ref<Material> m_MeshMaterial;
+
 		uint32_t m_VertexCount = 0;
 		uint32_t m_TriangleCount = 0;
 		uint32_t m_IndicesCount = 0;

@@ -47,8 +47,8 @@ namespace Saturn {
 
 		~MaterialUniform();
 
-		Ref<Texture2D> Data() { return m_Data; }
-		const Ref<Texture2D> Data() const { return m_Data; }
+		Ref<Texture2D>& Data() { return m_Data; }
+		const Ref<Texture2D>& Data() const { return m_Data; }
 
 		void SetData( Ref<Texture2D>& data );
 
@@ -65,5 +65,7 @@ namespace Saturn {
 		Ref<Texture2D> m_Data;
 
 		ShaderDataType m_Type = ShaderDataType::None;
+
+		friend class Material;
 	};
 }

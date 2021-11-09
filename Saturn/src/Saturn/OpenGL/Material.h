@@ -65,12 +65,16 @@ namespace Saturn {
 		uint32_t Flags() const { return m_MaterialFlags; }
 		void SetFlag( MaterialFlag flag ) { m_MaterialFlags |= ( uint32_t )flag; }
 
-		template <typename T>
 		void Set( const std::string& name, Ref<Texture2D> texture );
 
 		void Add( const std::string& name, Ref<Texture2D> texure, MaterialTextureType textureFormat );
 
 		Ref<MaterialUniform>& Get( const std::string& name );
+
+		void BindTextures();
+		
+		Ref<Shader>& GetShader() { return m_MaterialShader; }
+		const Ref<Shader>& GetShader() const { return m_MaterialShader; }
 
 	private:
 
@@ -85,13 +89,12 @@ namespace Saturn {
 			*/
 		}
 
-		void BindTextures();
 
 		Ref<Shader> m_MaterialShader;
 
 		uint32_t m_MaterialFlags;
 
-		std::unordered_map<std::string, Ref<MaterialUniform>> m_Uniforms;
+		std::vector<Ref<MaterialUniform>> m_Uniforms;
 		std::vector<Ref<Texture>> m_Textures;
 		std::vector<std::string> m_PropsChanged;
 	};

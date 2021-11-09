@@ -111,9 +111,10 @@ namespace Saturn {
 	Texture2D::Texture2D( const std::string& path, bool srgb )
 	{
 		size_t found = path.find_last_of( "/\\" );
-		m_FileName = found != std::string::npos ? m_FileName.substr( found + 1 ) : m_FileName;
+		m_FileName = found != std::string::npos ? path.substr( found + 1 ) : path;
+
 		found = m_FileName.find_last_of( "." );
-		m_FileName = found != std::string::npos ? path.substr( 0, found ) : path;
+		m_FileName = found != std::string::npos ? m_FileName.substr( 0, found ) : m_FileName;
 
 		stbi_set_flip_vertically_on_load( true );
 
@@ -146,10 +147,9 @@ namespace Saturn {
 		m_Height = h;
 
 		// Get OpenGL to make the texture 
-		GLuint rendererID = m_RendererID;
 		if( srgb )
 		{
-			glCreateTextures( GL_TEXTURE_2D, 1, &rendererID );
+			glCreateTextures( GL_TEXTURE_2D, 1, &m_RendererID );
 			glActiveTexture( GL_TEXTURE0 );
 			glBindTexture( GL_TEXTURE_2D, m_RendererID );
 
@@ -165,7 +165,7 @@ namespace Saturn {
 		}
 		else
 		{
-			glGenTextures( 1, &rendererID ); 
+			glGenTextures( 1, &m_RendererID );
 			glActiveTexture( GL_TEXTURE0 );
 
 			// All upcoming GL_TEXTURE_2D operations now have effect on this texture object
@@ -209,6 +209,7 @@ namespace Saturn {
 	void Texture2D::Bind( uint32_t slot /*= 0 */ ) const
 	{
 		glBindTextureUnit( slot, m_RendererID );
+		//glActiveTexture( m_RendererID );
 	}
 
 	uint32_t Texture2D::MipLevelCount() const

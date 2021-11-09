@@ -147,6 +147,10 @@ namespace Saturn {
 		T* Pointer()             { return m_Pointer; }
 		const T* Pointer() const { return m_Pointer; }
 
+	public:
+
+		T* Null = nullptr;
+
 	private:
 
 		T* m_Pointer;
