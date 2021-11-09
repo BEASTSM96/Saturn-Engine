@@ -108,16 +108,13 @@ namespace Saturn {
 
 	void Renderer::Clear()
 	{
-		glClearColor( GL_CLEAR_COLOR_X_Y_Z, 1.0f );
-		//glClearColor( pow( 0.100000001, m_Gamma ), pow( 0.100000001, m_Gamma ), pow( 0.100000001, m_Gamma ), 1.0f );
-		glClearColor( 0.100000001, 0.100000001, 0.100000001, 1.0f );
+		glClearColor( pow( 0.07f, m_Gamma ), pow( 0.13f, m_Gamma ), pow( 0.17f, m_Gamma ), 1.0f );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	}
 
 	void Renderer::Resize( int width, int height )
 	{
 		m_Camera.SetViewportSize( width, height );
-		//m_GeoFramebuffer->Resize( width, height );
 		m_Framebuffer->Resize( width, height );
 	}
 

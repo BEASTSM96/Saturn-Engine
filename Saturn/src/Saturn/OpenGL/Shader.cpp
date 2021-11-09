@@ -290,6 +290,28 @@ namespace Saturn {
 		return result;
 	}
 
+	void Shader::BindMaterialTextures()
+	{
+		int sample = 0;
+		for( int i = 0; i < 4; i++ )
+		{
+			// I know this is bad but it works
+			if( i == 1 )
+				SetInt( "u_AlbedoTexture", sample );
+
+			if( i == 2 )
+				SetInt( "u_MetalnessTexture", sample );
+
+			if( i == 3 )
+				SetInt( "u_RoughnessTexture", sample );
+
+			if( i == 4 )
+				SetInt( "u_NormalTexture", sample );
+
+			sample++;
+		}
+	}
+
 	void Shader::ParseUniform( const std::string& statement, ShaderDomain domain )
 	{
 

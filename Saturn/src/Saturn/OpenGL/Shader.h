@@ -63,6 +63,8 @@ namespace Saturn {
 		void SetFloat3( const std::string& name, const glm::vec3& val );
 		void SetMat4( const std::string& name, const glm::mat4& val );
 
+		void BindMaterialTextures();
+
 	private:
 
 		void Load( const std::string& filepath );

@@ -44,6 +44,8 @@ namespace Saturn {
 	void Material::Bind()
 	{
 		BindTextures();
+
+		m_MaterialShader->BindMaterialTextures();
 	}
 
 	template <typename T>
