@@ -320,7 +320,7 @@ float CalcShadows( vec4 fragPos )
 
 void main()
 {
-	/* Standard PBR inputs
+	// Standard PBR inputs
 	m_Params.Albedo = u_AlbedoTexToggle > 0.5 ? texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb : u_AlbedoColor;
 	m_Params.Metalness = u_MetalnessTexToggle > 0.5 ? texture( u_MetalnessTexture, vs_Input.TexCoord ).r : u_Metalness;
 	m_Params.Roughness = u_RoughnessTexToggle > 0.5 ? texture( u_RoughnessTexture, vs_Input.TexCoord ).r : u_Roughness;
@@ -361,15 +361,7 @@ void main()
 
 	vec3 lighting = ( ambient + ( 1.0 - shadow ) * ( diffuse + m_Params.Metalness ) ) * m_Params.Albedo * vec3( lightContribution + iblContribution );
 
-	//float depth = texture( u_ShadowMap, vs_Input.TexCoord ).x;
-	//depth = 1.0 - ( 1.0 - depth ) * 25.0;
-
-	//if( u_AlbedoTexToggle != 0.5 )
-	//{
-	//	if( texture( u_AlbedoTex, vs_Input.WorldPosition ).a < 0.1 )
-	//		discard;
-	//}
-	*/
+	//color = vec4( lighting, 1.0f );
 
 	color = texture( u_AlbedoTexture, vs_Input.TexCoord );
 }

@@ -63,11 +63,13 @@ namespace Saturn {
 		void Bind();
 
 		uint32_t Flags() const { return m_MaterialFlags; }
+		bool IsFlagSet( MaterialFlag matf ) { return ( uint32_t )matf & m_MaterialFlags; }
+
 		void SetFlag( MaterialFlag flag ) { m_MaterialFlags |= ( uint32_t )flag; }
 
-		void Set( const std::string& name, Ref<Texture2D> texture );
+		void Set( const std::string& name, Ref<Texture2D>& texture );
 
-		void Add( const std::string& name, Ref<Texture2D> texure, MaterialTextureType textureFormat );
+		void Add( const std::string& name, Ref<Texture2D>& tex, MaterialTextureType textureFormat );
 
 		Ref<MaterialUniform>& Get( const std::string& name );
 

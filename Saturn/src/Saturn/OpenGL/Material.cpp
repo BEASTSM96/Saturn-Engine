@@ -43,12 +43,12 @@ namespace Saturn {
 
 	void Material::Bind()
 	{
-		m_MaterialShader->Bind();
-
 		BindTextures();
+
+		m_MaterialShader->Bind();
 	}
 
-	void Material::Set( const std::string& name, Ref<Texture2D> texture )
+	void Material::Set( const std::string& name, Ref<Texture2D>& texture )
 	{
 		//SAT_CORE_ASSERT( m_Uniforms.find( name ) != m_Uniforms.end(), "Key not found!" );
 
@@ -65,7 +65,7 @@ namespace Saturn {
 		SetPropChanged( name );
 	}
 
-	void Material::Add( const std::string& name, Ref<Texture2D> texure, MaterialTextureType textureFormat )
+	void Material::Add( const std::string& name, Ref<Texture2D>& tex, MaterialTextureType textureFormat )
 	{
 		//SAT_CORE_ASSERT( m_Uniforms.find( name ) == m_Uniforms.end(), "Key was already found!" );
 
@@ -73,25 +73,25 @@ namespace Saturn {
 		{
 			case MaterialTextureType::Albedo:
 			{
-				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_AlbedoTexture" );
+				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, tex, tex->Filename(), "u_AlbedoTexture" );
 				m_Uniforms.push_back( uni );
 			} break;
 
 			case MaterialTextureType::Normal:
 			{
-				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_NormalTexture" );
+				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, tex, tex->Filename(), "u_NormalTexture" );
 				m_Uniforms.push_back( uni );
 			} break;
 
 			case MaterialTextureType::Metalness:
 			{
-				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_MetalnessTexture" );
+				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, tex, tex->Filename(), "u_MetalnessTexture" );
 				m_Uniforms.push_back( uni );
 			} break;
 
 			case MaterialTextureType::Roughness:
 			{
-				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, texure, texure->Filename(), "u_RoughnessTexture" );
+				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, tex, tex->Filename(), "u_RoughnessTexture" );
 				m_Uniforms.push_back( uni );
 			} break;
 

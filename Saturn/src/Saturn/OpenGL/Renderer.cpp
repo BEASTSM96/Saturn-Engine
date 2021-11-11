@@ -70,7 +70,7 @@ namespace Saturn {
 		glBindVertexArray( vao );
 
 		glEnable( GL_DEPTH_TEST );
-		//glEnable( GL_CULL_FACE );
+		glEnable( GL_CULL_FACE );
 		glEnable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
 		glFrontFace( GL_CCW );
 
@@ -108,8 +108,8 @@ namespace Saturn {
 
 	void Renderer::Clear()
 	{
-		//glClearColor( pow( 0.07f, m_Gamma ), pow( 0.13f, m_Gamma ), pow( 0.17f, m_Gamma ), 1.0f );
-		glClearColor( pow( 1, m_Gamma ), pow( 1, m_Gamma ), pow( 1, m_Gamma ), 1.0f );
+		glClearColor( pow( 0.07f, m_Gamma ), pow( 0.13f, m_Gamma ), pow( 0.17f, m_Gamma ), 1.0f );
+		//glClearColor( pow( 1, m_Gamma ), pow( 1, m_Gamma ), pow( 1, m_Gamma ), 1.0f );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	}
 
@@ -121,8 +121,8 @@ namespace Saturn {
 
 	void Renderer::Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture )
 	{
-		shader.Bind();
 		texture.Bind();
+		shader.Bind();
 
 		glm::vec3 pos, rot, scale;
 		Math::DecomposeTransform( trans, pos, rot, scale );
@@ -175,18 +175,20 @@ namespace Saturn {
 		auto viewProjection = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix();
 		glm::vec3 cameraPosition = glm::inverse( m_Camera.ViewMatrix() )[ 3 ];
 
-		SAT_CORE_INFO( "Camera Pos X Y Z {0} {1} {2}", cameraPosition.x, cameraPosition.y, cameraPosition.z );
-
 		for( Submesh& submesh : mesh->m_Submeshes )
 		{
-			Enable( GL_DEPTH_TEST );
+			//Enable( GL_DEPTH_TEST );
+
+			if ( mesh->GetMaterial()->IsFlagSet( MaterialFlag::DepthTest ) )
+				glEnable( GL_DEPTH_TEST );
+			else
+				glEnable( GL_DEPTH_TEST );
 
 			mesh->GetMaterial()->Bind();
 			auto shader = mesh->GetMaterial()->GetShader();
 
-			shader->BindMaterialTextures();
+			//shader->BindMaterialTextures();
 			shader->SetMat4( "u_ViewProjectionMatrix", viewProjection );
-			shader->SetInt( "u_Texture0", 1 );
 			shader->SetFloat3( "u_CameraPosition", cameraPosition );
 			shader->SetFloat3( "u_ViewPos", cameraPosition );
 			shader->SetMat4( "u_Transform", trans * submesh.Transform );

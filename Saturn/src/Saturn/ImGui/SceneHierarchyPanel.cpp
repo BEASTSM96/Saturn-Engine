@@ -347,6 +347,9 @@ namespace Saturn {
 
 			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
 			{
+				if( mc.Mesh )
+					mc.Mesh.Delete();
+
 				std::string file = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
 				if( !file.empty() )
 					mc.Mesh = Ref<Mesh>::Create( file );

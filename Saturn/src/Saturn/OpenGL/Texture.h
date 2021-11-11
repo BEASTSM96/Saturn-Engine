@@ -31,6 +31,8 @@
 #include "Saturn/Core/Base.h"
 #include "Common.h"
 
+#include "stb_image.h"
+
 #include <string>
 
 #include <stdint.h>
@@ -112,7 +114,7 @@ namespace Saturn {
 		TextureWrap m_Wrap = TextureWrap::Clamp;
 		uint32_t m_Width, m_Height;
 
-		unsigned char* m_ImageData;
+		stbi_uc* m_ImageData;
 
 		bool m_Locked = false;
 		bool m_Loaded = false;
