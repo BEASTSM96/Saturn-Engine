@@ -68,6 +68,7 @@ namespace Saturn {
 		void SetFlag( MaterialFlag flag ) { m_MaterialFlags |= ( uint32_t )flag; }
 
 		void Set( const std::string& name, Ref<Texture2D>& texture );
+		void Set( const std::string& name, glm::vec3& array );
 
 		void Add( const std::string& name, Ref<Texture2D>& tex, MaterialTextureType textureFormat );
 

@@ -65,6 +65,23 @@ namespace Saturn {
 		SetPropChanged( name );
 	}
 
+	void Material::Set( const std::string& name, glm::vec3& array )
+	{
+		//SAT_CORE_ASSERT( m_Uniforms.find( name ) != m_Uniforms.end(), "Key not found!" );
+
+		for( const auto& uni : m_Uniforms )
+		{
+			if( uni->m_Name == name )
+				return;
+
+			if( m_Uniforms[ uni ] && m_Uniforms[ uni ]->IsTexture() )
+				m_Uniforms[ uni ]->SetValue<glm::vec3>( array );
+		}
+
+		// Send it off to a list so when we are about the render we can tell the shader to one bind and two change the requested values.
+		SetPropChanged( name );
+	}
+
 	void Material::Add( const std::string& name, Ref<Texture2D>& tex, MaterialTextureType textureFormat )
 	{
 		//SAT_CORE_ASSERT( m_Uniforms.find( name ) == m_Uniforms.end(), "Key was already found!" );

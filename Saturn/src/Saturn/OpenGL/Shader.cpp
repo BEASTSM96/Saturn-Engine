@@ -93,7 +93,7 @@ namespace Saturn {
 		return SplitString( string, std::string( 1, delimiter ) );
 	}
 
-	std::vector<std::string> Tokenize( const std::string& string )
+	std::vector<std::string> Tokenise( const std::string& string )
 	{
 		return SplitString( string, " \t\n\r" );
 	}
@@ -305,7 +305,32 @@ namespace Saturn {
 
 	void Shader::ParseUniform( const std::string& statement, ShaderDomain domain )
 	{
+		std::vector<std::string> tokens = Tokenise( statement );
+		uint32_t index = 0;
 
+		index++; // "uniform"
+		std::string typeString = tokens[ index++ ];
+		std::string name = tokens[ index++ ];
+		// Strip ; from name if present
+		if( const char* s = strstr( name.c_str(), ";" ) )
+			name = std::string( name.c_str(), s - name.c_str() );
+
+		std::string n( name );
+		int32_t count = 1;
+		const char* namestr = n.c_str();
+		if( const char* s = strstr( namestr, "[" ) )
+		{
+			name = std::string( namestr, s - namestr );
+
+			const char* end = strstr( namestr, "]" );
+			std::string c( s + 1, end - s );
+			count = atoi( c.c_str() );
+		}
+
+		if( IsTypeStringResource( typeString ) ) 
+		{
+			// TODO: Create uniforms (only textures)
+		}
 	}
 
 	GLenum Shader::ShaderTypeFromString( const std::string& type )

@@ -41,9 +41,12 @@ namespace Saturn {
 	class MaterialUniform
 	{
 	public:
-		MaterialUniform() {}
+		MaterialUniform() { }
 
 		MaterialUniform( const std::string& name, Ref<Texture2D>& texture, const std::string& textureName, const std::string& textureNameInShader );
+
+		// Non Texture Uniform
+		MaterialUniform( const std::string& name, const std::string& valueName );
 
 		~MaterialUniform();
 
@@ -52,9 +55,15 @@ namespace Saturn {
 
 		void SetData( Ref<Texture2D>& data );
 
+		template<typename Ty>
+		void SetValue( Ty& data ) { }
+
+		bool IsTexture() { return m_IsTextureUniform; }
+
 	private:
 
-		bool IsStruct = false;
+		bool m_IsStruct = false;
+		bool m_IsTextureUniform = false;
 		std::string m_Name = "Unknown Uniform";
 
 		// EXAMPLE - uniform sampler2D u_sampler2D. where value name is "u_sampler2D" and valueType is "sampler2D"
@@ -63,9 +72,13 @@ namespace Saturn {
 		std::string m_ValueName = "";
 
 		Ref<Texture2D> m_Data;
+		void* m_Value;
 
 		ShaderDataType m_Type = ShaderDataType::None;
 
+	private:
+
 		friend class Material;
 	};
+
 }

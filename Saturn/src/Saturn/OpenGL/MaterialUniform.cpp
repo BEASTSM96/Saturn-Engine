@@ -41,6 +41,16 @@ namespace Saturn {
 
 		m_TextureName = textureName;
 		m_ValueName = textureNameInShader;
+
+		m_IsTextureUniform = true;
+	}
+
+	MaterialUniform::MaterialUniform( const std::string& name, const std::string& valueName )
+	{
+		m_Name = name;
+		m_ValueName = valueName;
+
+		m_IsTextureUniform = false;
 	}
 
 	MaterialUniform::~MaterialUniform()
