@@ -70,7 +70,6 @@ namespace Saturn {
 		glBindVertexArray( vao );
 
 		glEnable( GL_DEPTH_TEST );
-		glEnable( GL_CULL_FACE );
 		glEnable( GL_TEXTURE_CUBE_MAP_SEAMLESS );
 		glFrontFace( GL_CCW );
 
@@ -88,18 +87,12 @@ namespace Saturn {
 		m_ShaderLibrary->Load( "assets/shaders/SceneComposite.glsl" );
 		m_ShaderLibrary->Load( "assets/shaders/PBR_Static.glsl" );
 
-		m_Camera = EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f );
+		m_Camera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
 
 		m_CompositeShader = m_ShaderLibrary->Get( "SceneComposite" );
 
 		FramebufferSpecification compFramebufferSpec;
-		compFramebufferSpec.ClearColor ={ 0.1f, 0.1f, 0.1f, 1.0f };
-
-		RenderPassSpecification renderPassSpec;
-		//renderPassSpec.TargetFramebuffer = Ref<Framebuffer>::Create( compFramebufferSpec );
-
-		m_RenderPass = Ref<RenderPass>::Create( renderPassSpec );
-
+		compFramebufferSpec.ClearColor ={ 0.07f, 0.13f, 0.17f, 1.0f };
 		m_Framebuffer = Ref<Framebuffer>::Create( compFramebufferSpec );
 
 		// Issue a resize event so the framebuffer resize to the right size
@@ -182,15 +175,14 @@ namespace Saturn {
 			if ( mesh->GetMaterial()->IsFlagSet( MaterialFlag::DepthTest ) )
 				glEnable( GL_DEPTH_TEST );
 			else
-				glEnable( GL_DEPTH_TEST );
+				glDisable( GL_DEPTH_TEST );
 
 			mesh->GetMaterial()->Bind();
 			auto shader = mesh->GetMaterial()->GetShader();
 
-			//shader->BindMaterialTextures();
+			shader->BindMaterialTextures();
 			shader->SetMat4( "u_ViewProjectionMatrix", viewProjection );
 			shader->SetFloat3( "u_CameraPosition", cameraPosition );
-			shader->SetFloat3( "u_ViewPos", cameraPosition );
 			shader->SetMat4( "u_Transform", trans * submesh.Transform );
 
 			glDrawElementsBaseVertex( GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, ( void* )( sizeof( uint32_t ) * submesh.BaseIndex ), submesh.BaseVertex );
@@ -216,9 +208,10 @@ namespace Saturn {
 
 	void Renderer::GeoPass()
 	{
+		StartRenderPass( m_RenderPass );
+		
 		glStencilOp( GL_KEEP, GL_KEEP, GL_REPLACE );
 
-		StartRenderPass( m_RenderPass );
 		m_CompositeShader->Bind();
 		m_CompositeShader->SetFloat( "u_Gamma", m_Gamma );
 
@@ -237,15 +230,11 @@ namespace Saturn {
 
 	void Renderer::StartRenderPass( Ref<RenderPass>& pass )
 	{
-		//pass->TargetFramebuffer()->Bind();
-
 		m_Framebuffer->Bind();
 	}
 
 	void Renderer::EndRenderPass( Ref<RenderPass>& pass )
 	{
-		//pass->TargetFramebuffer()->Unbind();
-
 		m_Framebuffer->Unbind();
 	}
 

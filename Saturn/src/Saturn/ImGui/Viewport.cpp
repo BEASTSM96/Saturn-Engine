@@ -28,6 +28,7 @@
 
 #include "sppch.h"
 #include "Viewport.h"
+#include "Saturn/Core/App.h"
 
 #include "imgui.h"
 
@@ -48,10 +49,13 @@ namespace Saturn {
 
 		m_SendCameraEvents = ImGui::IsWindowFocused();
 		Renderer::Get().RendererCamera().AllowEvents( m_SendCameraEvents );
+		Renderer::Get().RendererCamera().SetActive( m_SendCameraEvents );
+
+		Renderer::Get().RendererCamera().OnUpdate( Application::Get().Time() );
 
 		auto viewportSize = ImGui::GetContentRegionAvail();
 
-		Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
+		//Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
 		Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
 
 		ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );

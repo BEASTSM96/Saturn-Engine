@@ -162,6 +162,14 @@ namespace Saturn {
 			}
 		} );
 
+		glfwSetCharCallback( m_Window, []( GLFWwindow* window, unsigned int keycode )
+		{
+			Window& win = *( Window* )glfwGetWindowUserPointer( window );
+
+			KeyTypedEvent event( keycode );
+			win.m_EventCallback( event );
+		});
+
 		glfwSetMouseButtonCallback( m_Window, []( GLFWwindow* window, int button, int action, int mods )
 		{
 			Window& win = *( Window* )glfwGetWindowUserPointer( window );
