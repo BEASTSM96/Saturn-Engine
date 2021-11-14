@@ -100,16 +100,15 @@ namespace Saturn {
 			SAT_CORE_ERROR( "Failed to load mesh file: {0}", filename );
 
 		m_Scene = scene;
-
+		m_MeshShader = Ref<Shader>::Create( "assets\\shaders\\ShaderBasic.glsl" );
 		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( scene->mRootNode->mTransformation ) );
 		
-		m_MeshShader = Ref<Shader>::Create( "assets\\shaders\\ShaderBasic.glsl" );
 
 		uint32_t vertexCount = 0;
 		uint32_t indexCount = 0;
 
 		m_Submeshes.reserve( scene->mNumMeshes );
-		for ( size_t m = 0; m < scene->mNumMeshes; m++ )
+		for( size_t m = 0; m < scene->mNumMeshes; m++ )
 		{
 			aiMesh* mesh = scene->mMeshes[ m ];
 
@@ -156,95 +155,94 @@ namespace Saturn {
 
 				m_TriangleCache[ m ].emplace_back( m_StaticVertices[ index.V1 + submesh.BaseVertex ], m_StaticVertices[ index.V2 + submesh.BaseVertex ], m_StaticVertices[ index.V3 + submesh.BaseVertex ] );
 			}
+		}
 
-			TraverseNodes( scene->mRootNode );
+		TraverseNodes( scene->mRootNode );
 
-			// Materials
-			if ( scene->HasMaterials() )
+		// Materials
+		if( scene->HasMaterials() )
+		{
+			m_Textures.resize( scene->mNumMaterials );
+
+			for( uint32_t i = 0; i < scene->mNumMaterials; i++ )
 			{
-				m_Textures.resize( scene->mNumMaterials );
+				auto aiMaterial = scene->mMaterials[ i ];
+				auto aiMaterialName = aiMaterial->GetName();
 
-				for( uint32_t i = 0; i < scene->mNumMaterials; i++ )
+				// TODO: More than one material!
+				Ref<Material> mat = Ref<Material>::Create( m_MeshShader );
+
+				SAT_CORE_INFO( "  {0} (Index = {1})", aiMaterialName.data, i );
+				aiString aiTexPath;
+				uint32_t textureCount = aiMaterial->GetTextureCount( aiTextureType_DIFFUSE );
+				SAT_CORE_INFO( "    TextureCount = {0}", textureCount );
+
+				aiColor3D aiColor;
+				aiMaterial->Get( AI_MATKEY_COLOR_DIFFUSE, aiColor );
+
+				float shininess, metalness;
+				if( aiMaterial->Get( AI_MATKEY_SHININESS, shininess ) != aiReturn_SUCCESS )
+					shininess = 80.0f; // Default value
+
+				if( aiMaterial->Get( AI_MATKEY_REFLECTIVITY, metalness ) != aiReturn_SUCCESS )
+					metalness = 0.0f;
+
+				float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
+				SAT_CORE_INFO( "    COLOR = {0}, {1}, {2}", aiColor.r, aiColor.g, aiColor.b );
+				SAT_CORE_INFO( "    ROUGHNESS = {0}", roughness );
+				bool hasAlbedoMap = aiMaterial->GetTexture( aiTextureType_DIFFUSE, 0, &aiTexPath ) == AI_SUCCESS;
+
+				if( hasAlbedoMap )
 				{
-					auto aiMaterial = scene->mMaterials[ i ];
-					auto aiMaterialName = aiMaterial->GetName();
+					std::filesystem::path path = filename;
+					auto parentPath = path.parent_path();
+					parentPath /= std::string( aiTexPath.data );
+					std::string texturePath = parentPath.string();
 
-					// TODO: More than one material!
-					Ref<Material> mat = Ref<Material>::Create( m_MeshShader );
+					SAT_CORE_INFO( "    Albedo map path = {0}", texturePath );
 
-					SAT_CORE_INFO( "  {0} (Index = {1})", aiMaterialName.data, i );
-					aiString aiTexPath;
-					uint32_t textureCount = aiMaterial->GetTextureCount( aiTextureType_DIFFUSE );
-					SAT_CORE_INFO( "    TextureCount = {0}", textureCount );
+					auto texture = Ref<Texture2D>::Create( texturePath, true );
 
-					aiColor3D aiColor;
-					aiMaterial->Get( AI_MATKEY_COLOR_DIFFUSE, aiColor );
-
-					float shininess, metalness;
-					if( aiMaterial->Get( AI_MATKEY_SHININESS, shininess ) != aiReturn_SUCCESS )
-						shininess = 80.0f; // Default value
-
-					if( aiMaterial->Get( AI_MATKEY_REFLECTIVITY, metalness ) != aiReturn_SUCCESS )
-						metalness = 0.0f;
-
-					float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
-					SAT_CORE_INFO( "    COLOR = {0}, {1}, {2}", aiColor.r, aiColor.g, aiColor.b );
-					SAT_CORE_INFO( "    ROUGHNESS = {0}", roughness );
-					bool hasAlbedoMap = aiMaterial->GetTexture( aiTextureType_DIFFUSE, 0, &aiTexPath ) == AI_SUCCESS;
-
-					if( hasAlbedoMap ) 
+					if( texture->Loaded() )
 					{
-						std::filesystem::path path = filename;
-						auto parentPath = path.parent_path();
-						parentPath /= std::string( aiTexPath.data );
-						std::string texturePath = parentPath.string();
+						m_Textures[ i ] = texture;
 
-						SAT_CORE_INFO( "    Albedo map path = {0}", texturePath );
-					
-						auto texture = Ref<Texture2D>::Create( texturePath, true );
-
-						if ( texture->Loaded() )
-						{
-							m_Textures[ i ] = texture;
-
-							mat->Add( m_Textures[ i ]->Filename(), m_Textures[ i ], MaterialTextureType::Albedo );
-							mat->Set( m_Textures[ i ]->Filename(), m_Textures[ i ] );
-						}
-						else
-						{
-							SAT_CORE_ERROR( "Could not load texture: {0}", texturePath );
-							// Fallback to albedo color
-							//mat->Set( "u_AlbedoColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b } );
-						}
+						mat->Add( m_Textures[ i ]->Filename(), m_Textures[ i ], MaterialTextureType::Albedo );
+						mat->Set( m_Textures[ i ]->Filename(), m_Textures[ i ] );
 					}
-
-					m_MeshMaterial = mat;
+					else
+					{
+						SAT_CORE_ERROR( "Could not load texture: {0}", texturePath );
+						// Fallback to albedo color
+						mat->Set( "u_AlbedoColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b } );
+					}
 				}
 
+				m_MeshMaterial = mat;
 			}
-
-			VertexBufferLayout vertexLayout;
-
-			vertexLayout ={
-				{ ShaderDataType::Float3, "a_Position" },
-				{ ShaderDataType::Float3, "a_Normal" },
-				{ ShaderDataType::Float3, "a_Tangent" },
-				{ ShaderDataType::Float3, "a_Binormal" },
-				{ ShaderDataType::Float2, "a_TexCoord" },
-			};
-
-			m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( Vertex ) );
-			m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
-
-			PipelineSpecification pipelineSpecification;
-			pipelineSpecification.Layout = vertexLayout;
-			m_Pipeline = Ref<Pipeline>::Create( pipelineSpecification );
-
-			m_VertexCount = vertexCount;
-			m_TriangleCount = m_TriangleCache.size();
-			m_VerticesCount = m_StaticVertices.size();
-			m_IndicesCount = m_Indices.size();
 		}
+
+		VertexBufferLayout vertexLayout;
+
+		vertexLayout ={
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal" },
+			{ ShaderDataType::Float3, "a_Tangent" },
+			{ ShaderDataType::Float3, "a_Binormal" },
+			{ ShaderDataType::Float2, "a_TexCoord" },
+		};
+
+		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( Vertex ) );
+		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
+
+		PipelineSpecification pipelineSpecification;
+		pipelineSpecification.Layout = vertexLayout;
+		m_Pipeline = Ref<Pipeline>::Create( pipelineSpecification );
+
+		m_VertexCount = vertexCount;
+		m_TriangleCount = m_TriangleCache.size();
+		m_VerticesCount = m_StaticVertices.size();
+		m_IndicesCount = m_Indices.size();
 	}
 
 	Mesh::Mesh( const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform ) : m_StaticVertices( vertices ), m_Indices( indices )
