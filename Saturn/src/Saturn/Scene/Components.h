@@ -188,4 +188,14 @@ namespace Saturn {
 		operator Ref<Saturn::Mesh>() { return Mesh; }
 	};
 
+	struct LightComponent
+	{
+		float Intensity = 5.0f;
+		glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
+
+		// TODO: Light Types?
+
+		LightComponent() = default;
+		LightComponent( const LightComponent& other ) = default;
+	};
 }
