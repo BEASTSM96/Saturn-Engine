@@ -162,6 +162,27 @@ namespace Saturn {
 			}
 		} );
 
+		glfwSetMouseButtonCallback( m_Window, []( GLFWwindow* window, int button, int action, int mods )
+		{
+			Window& win = *( Window* )glfwGetWindowUserPointer( window );
+
+			switch( action )
+			{
+				case GLFW_PRESS:
+				{
+					MouseButtonPressedEvent event( button );
+					win.m_EventCallback( event );
+					break;
+				}
+				case GLFW_RELEASE:
+				{
+					MouseButtonReleasedEvent event( button );
+					win.m_EventCallback( event );
+					break;
+				}
+			}
+		} );
+
 	#if defined( SAT_WINDOWS_A )
 
 		// Thanks to Geno for this code https://github.com/Geno-IDE/Geno

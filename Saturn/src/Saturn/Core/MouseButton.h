@@ -45,9 +45,9 @@ namespace Saturn {
 			Button4 = 4,
 			Button5 = 5,
 
-			Left = 6,
-			Right = 7,
-			Middle = 8,
+			Left = Button0,
+			Right = Button1,
+			Middle = Button2,
 		};
 
 	}
