@@ -131,7 +131,7 @@ namespace Saturn {
 		glTextureSubImage2D( m_RendererID, 0, 0, 0, m_Width, m_Height, fformat, GL_UNSIGNED_BYTE, m_ImageData );
 	}
 
-	Texture2D::Texture2D( const std::string& path, bool srgb )
+	Texture2D::Texture2D( const std::string& path, bool srgb, bool specMap )
 	{
 		size_t found = path.find_last_of( "/\\" );
 		m_FileName = found != std::string::npos ? path.substr( found + 1 ) : path;
@@ -181,7 +181,10 @@ namespace Saturn {
 			glTextureParameteri( m_RendererID, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR );
 			glTextureParameteri( m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-			glTextureSubImage2D( m_RendererID, 0, 0, 0, m_Width, m_Height, GL_RGB, GL_UNSIGNED_BYTE, m_ImageData );
+			if ( !specMap )
+				glTextureSubImage2D( m_RendererID, 0, 0, 0, m_Width, m_Height, GL_RGB, GL_UNSIGNED_BYTE, m_ImageData );
+			else
+				glTextureSubImage2D( m_RendererID, 0, 0, 0, m_Width, m_Height, GL_RED, GL_UNSIGNED_BYTE, m_ImageData );
 			glGenerateTextureMipmap( m_RendererID );
 
 			glBindTexture( GL_TEXTURE_2D, 0 );
@@ -205,6 +208,12 @@ namespace Saturn {
 				internalFormat = GL_RGB8;
 				format = GL_RGB;
 				m_Format = TextureFormat::RGB;
+			}
+			else if( chan == 1 ) 
+			{
+				internalFormat = GL_RGB8;
+				format = GL_RED;
+				m_Format = TextureFormat::RED;
 			}
 
 			glCreateTextures( GL_TEXTURE_2D, 1, &m_RendererID );

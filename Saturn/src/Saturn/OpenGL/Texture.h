@@ -44,7 +44,8 @@ namespace Saturn {
 		None = 0,
 		RGB = 1,
 		RGBA = 2,
-		Float16 = 3
+		Float16 = 3,
+		RED = 4
 	};
 
 	enum class TextureWrap
@@ -80,7 +81,7 @@ namespace Saturn {
 	{
 	public:
 		Texture2D( TextureFormat format, uint32_t w, uint32_t h, TextureWrap wrap );
-		Texture2D( const std::string& path, bool srgb );
+		Texture2D( const std::string& path, bool srgb, bool secpMap = false );
 		virtual ~Texture2D();
 
 		virtual void Bind( uint32_t slot ) const;
