@@ -522,7 +522,6 @@ namespace Saturn {
 		ImGui::TextDisabled( "%llx", id );
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
-
 		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )
 		{
 			auto& translation = tc.Position;
@@ -571,7 +570,7 @@ namespace Saturn {
 			DrawColorVec3Control( "Light Color", lc.Color, lc.Color, 150.0f );
 		
 			DrawFloatControl( "Light Intensity", lc.Intensity, lc.Intensity, 110.0f );
-		});
+		} );
 	}
 
 }

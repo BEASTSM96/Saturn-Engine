@@ -128,6 +128,9 @@ namespace Saturn {
 
 		Ref<Material> GetMaterial();
 
+		// HACK: Unbind the last texture from memory
+		void UnbindLastTexture();
+
 	private:
 
 		std::vector<Vertex> m_StaticVertices;

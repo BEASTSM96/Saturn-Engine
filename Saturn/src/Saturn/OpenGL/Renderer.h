@@ -79,10 +79,7 @@ namespace Saturn {
 
 		void SubmitMesh( Ref<Mesh> mesh, const glm::mat4 trans );
 
-		void RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans );
-
 		void FlushDrawList();
-
 		uint32_t GetFinalColorBufferRendererID();
 
 	public:
@@ -103,6 +100,10 @@ namespace Saturn {
 		};
 
 	protected:
+	private:
+
+		void RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans );
+
 	private:
 
 		Ref<ShaderLibrary> m_ShaderLibrary;

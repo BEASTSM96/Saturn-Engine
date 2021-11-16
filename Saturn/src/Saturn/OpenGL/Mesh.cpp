@@ -258,8 +258,8 @@ namespace Saturn {
 
 		vertexLayout ={
 			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal" },
-			{ ShaderDataType::Float3, "a_Tangent" },
+			{ ShaderDataType::Float3, "a_Normal"   },
+			{ ShaderDataType::Float3, "a_Tangent"  },
 			{ ShaderDataType::Float3, "a_Binormal" },
 			{ ShaderDataType::Float2, "a_TexCoord" },
 		};
@@ -297,4 +297,10 @@ namespace Saturn {
 	{
 		return m_MeshMaterial;
 	}
+
+	void Mesh::UnbindLastTexture()
+	{
+		glBindTexture( GL_TEXTURE_2D, 0 );
+	}
+
 }

@@ -89,6 +89,8 @@ namespace Saturn {
 		std::string& Name() { return m_Name; }
 		const std::string& Name() const { return m_Name; }
 
+		Entity& LightEntity();
+
 	private:
 
 		UUID m_SceneID;

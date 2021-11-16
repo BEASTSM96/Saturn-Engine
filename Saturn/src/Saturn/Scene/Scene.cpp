@@ -150,4 +150,18 @@ namespace Saturn {
 
 	}
 
+	Entity& Scene::LightEntity()
+	{
+		auto group = m_Registry.group<LightComponent>( entt::get<TransformComponent> );
+		
+		for ( auto& e : group )
+		{
+			auto& [lightComponent, transformComponent] = group.get<LightComponent, TransformComponent>( e );
+			
+			return Entity( e, this );
+		}
+
+		return Entity{};
+	}
+
 }

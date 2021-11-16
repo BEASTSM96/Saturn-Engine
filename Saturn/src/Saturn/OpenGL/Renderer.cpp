@@ -149,9 +149,9 @@ namespace Saturn {
 
 	void Renderer::EndScene()
 	{
-		m_ActiveScene = nullptr;
-
 		FlushDrawList();
+
+		m_ActiveScene = nullptr;
 	}
 
 	void Renderer::SubmitMesh( Ref<Mesh> mesh, const glm::mat4 trans )
@@ -161,9 +161,14 @@ namespace Saturn {
 
 	void Renderer::RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans )
 	{
+		mesh->UnbindLastTexture();
 		mesh->m_VertexBuffer->Bind();
 		mesh->m_Pipeline->Bind();
 		mesh->m_IndexBuffer->Bind();
+		
+		Entity& light = m_ActiveScene->LightEntity();
+		auto& lightColor = light ? light.GetComponent<LightComponent>().Color : glm::vec3( 1.0f, 1.0f, 1.0f );
+		auto& lightPos = light ? light.GetComponent<TransformComponent>().Position : glm::vec3( 0.0f, 10.0f, 0.0f );
 
 		auto viewProjection = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix();
 		glm::vec3 cameraPosition = glm::inverse( m_Camera.ViewMatrix() )[ 3 ];
@@ -172,7 +177,7 @@ namespace Saturn {
 		{
 			//Enable( GL_DEPTH_TEST );
 
-			if ( mesh->GetMaterial()->IsFlagSet( MaterialFlag::DepthTest ) )
+			if( mesh->GetMaterial()->IsFlagSet( MaterialFlag::DepthTest ) )
 				glEnable( GL_DEPTH_TEST );
 			else
 				glDisable( GL_DEPTH_TEST );
@@ -184,6 +189,9 @@ namespace Saturn {
 			shader->SetMat4( "u_ViewProjectionMatrix", viewProjection );
 			shader->SetFloat3( "u_CameraPosition", cameraPosition );
 			shader->SetMat4( "u_Transform", trans * submesh.Transform );
+
+			shader->SetFloat3( "u_LightPosition", light ? lightPos : glm::vec3( 0.0f, 10.0f, 0.0f ) );
+			shader->SetFloat4( "u_LightColor", light ? glm::vec4( lightColor.x, lightColor.y, lightColor.z, 1.0f ) : glm::vec4( 1, 1, 1, 1 ) );
 
 			glDrawElementsBaseVertex( GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, ( void* )( sizeof( uint32_t ) * submesh.BaseIndex ), submesh.BaseVertex );
 		}

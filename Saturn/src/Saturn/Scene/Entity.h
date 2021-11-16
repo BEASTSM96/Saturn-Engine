@@ -69,7 +69,7 @@ namespace Saturn {
 			m_Scene->m_Registry.remove_if_exists<T>( m_EntityHandle );
 		}
 
-		bool IsVaild()
+		bool Vaild()
 		{
 			return m_Scene->m_Registry.valid( m_EntityHandle );
 		}

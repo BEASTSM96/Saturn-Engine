@@ -415,6 +415,11 @@ namespace Saturn {
 		glUniform3f( glGetUniformLocation( m_ID, name.c_str() ), val.x, val.y, val.z );
 	}
 
+	void Shader::SetFloat4( const std::string& name, const glm::vec4& val )
+	{
+		glUniform4f( glGetUniformLocation( m_ID, name.c_str() ), val.x, val.y, val.z, val.w );
+	}
+
 	void Shader::SetMat4( const std::string& name, const glm::mat4& val )
 	{
 		glUniformMatrix4fv( glGetUniformLocation( m_ID, name.c_str() ), 1, GL_FALSE, ( const float* )&val );
