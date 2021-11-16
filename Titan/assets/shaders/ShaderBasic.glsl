@@ -10,6 +10,7 @@ layout( location = 4 ) in vec2 a_TexCoord;
 uniform mat4 u_ViewProjectionMatrix;
 uniform mat4 u_Transform;
 uniform mat4 u_LightMatrix;
+
 // This should really be in the fragment shader... but we need it for the struct.
 uniform vec4 u_LightColor;
 
@@ -22,6 +23,7 @@ out VertexOutput
 	//
 	vec4 LightColor;
 	vec3 Normal;
+	//
 
 } vs_Output;
 
@@ -53,20 +55,29 @@ in VertexOutput
 	//
 	vec4 LightColor;
 	vec3 Normal;
-
+	//
 } vs_Input;
 
 uniform vec3 u_LightPosition;
+uniform vec3 u_CameraPosition;
+
 uniform sampler2D u_AlbedoTexture;
+uniform sampler2D u_SpecularTexture;
 
 void main()
 {
 	float ambient = 0.2f;
 
 	vec3 lightDir = normalize( u_LightPosition - vs_Input.WorldPos );
+	vec3 viewDir = normalize( u_CameraPosition - vs_Input.WorldPos );
 
 	float diff = max( dot( lightDir, normalize( vs_Input.Normal ) ), 0.0f );
 	vec3 diffuseL = diff + vec3( ambient );
 
-	FinalColor = texture( u_AlbedoTexture, vs_Input.TexCoord ) * vs_Input.LightColor * vec4( diffuseL, 1.0f );
+	float specularL = 0.5f;
+	vec3 reflectionDir = reflect( -lightDir, vs_Input.Normal );
+	float specAmount = pow( max( dot( viewDir, reflectionDir ), 0.0f ), 8 );
+	float specular = specAmount * specularL;
+
+	FinalColor = texture( u_AlbedoTexture, vs_Input.TexCoord ) * vs_Input.LightColor * vec4( diffuseL, 1.0f ) + texture( u_SpecularTexture, vs_Input.TexCoord ).r * specular;
 }

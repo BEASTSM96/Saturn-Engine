@@ -51,7 +51,8 @@ namespace Saturn {
 		Albedo,
 		Normal,
 		Metalness,
-		Roughness
+		Roughness,
+		Specular
 	};
 
 	class Material

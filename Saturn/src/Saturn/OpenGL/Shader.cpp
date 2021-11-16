@@ -295,7 +295,11 @@ namespace Saturn {
 		int sample = 0;
 		for( int i = 0; i < 4; i++ )
 		{
-			SetInt( "u_AlbedoTexture", sample );
+			// MUST FOLLOW THIS ORDER
+
+			SetInt( "u_AlbedoTexture", 0 );
+			SetInt( "u_SpecularTexture", 1 );
+			
 			break;
 
 			// TEMP

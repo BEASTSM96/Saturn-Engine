@@ -218,6 +218,34 @@ namespace Saturn {
 					}
 				}
 
+				// Specular
+				bool hasSpecularMap = aiMaterial->GetTexture( aiTextureType_SPECULAR, 0, &aiTexPath ) == AI_SUCCESS;
+				if( hasSpecularMap ) 
+				{
+					std::filesystem::path path = filename;
+					auto parentPath = path.parent_path();
+					parentPath /= std::string( aiTexPath.data );
+					std::string texturePath = parentPath.string();
+
+					SAT_CORE_INFO( "    Specular map path = {0}", texturePath );
+
+					auto texture = Ref<Texture2D>::Create( texturePath, true, true );
+
+					if( texture->Loaded() )
+					{
+						m_Textures[ i ] = texture;
+
+						mat->Add( m_Textures[ i ]->Filename(), m_Textures[ i ], MaterialTextureType::Specular );
+						mat->Set( m_Textures[ i ]->Filename(), m_Textures[ i ] );
+					}
+					else
+					{
+						SAT_CORE_ERROR( "Could not load texture: {0}", texturePath );
+						// Fallback to albedo color
+						//mat->Set( "u_SpecularColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b } );
+					}
+				}
+
 				m_MeshMaterial = mat;
 			}
 		}

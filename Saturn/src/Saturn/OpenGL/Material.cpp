@@ -112,6 +112,12 @@ namespace Saturn {
 				m_Uniforms.push_back( uni );
 			} break;
 
+			case MaterialTextureType::Specular:
+			{
+				Ref<MaterialUniform> uni = Ref<MaterialUniform>::Create( name, tex, tex->Filename(), "u_SpecularTexture" );
+				m_Uniforms.push_back( uni );
+			} break;
+
 			default:
 				break;
 		}
