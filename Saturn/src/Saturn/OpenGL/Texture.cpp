@@ -181,10 +181,8 @@ namespace Saturn {
 			glTextureParameteri( m_RendererID, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR );
 			glTextureParameteri( m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-			if ( !specMap )
-				glTextureSubImage2D( m_RendererID, 0, 0, 0, m_Width, m_Height, GL_RGB, GL_UNSIGNED_BYTE, m_ImageData );
-			else
-				glTextureSubImage2D( m_RendererID, 0, 0, 0, m_Width, m_Height, GL_RED, GL_UNSIGNED_BYTE, m_ImageData );
+			glTextureSubImage2D( m_RendererID, 0, 0, 0, m_Width, m_Height, GL_RGB, GL_UNSIGNED_BYTE, m_ImageData );
+
 			glGenerateTextureMipmap( m_RendererID );
 
 			glBindTexture( GL_TEXTURE_2D, 0 );
@@ -211,7 +209,8 @@ namespace Saturn {
 			}
 			else if( chan == 1 ) 
 			{
-				internalFormat = GL_RGB8;
+				// Yes, i know that a black and white texture prob does not have alpha or green and blue but we'll use this for now.
+				internalFormat = GL_RGBA8;
 				format = GL_RED;
 				m_Format = TextureFormat::RED;
 			}

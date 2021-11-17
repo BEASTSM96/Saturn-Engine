@@ -63,6 +63,7 @@ uniform vec3 u_CameraPosition;
 
 uniform sampler2D u_AlbedoTexture;
 uniform sampler2D u_SpecularTexture;
+uniform sampler2D u_NormalTexture;
 
 void main()
 {
@@ -73,10 +74,10 @@ void main()
 
 	float diff = max( dot( lightDir, normalize( vs_Input.Normal ) ), 0.0f );
 	vec3 diffuseL = diff + vec3( ambient );
-
-	float specularL = 0.5f;
-	vec3 reflectionDir = reflect( -lightDir, vs_Input.Normal );
-	float specAmount = pow( max( dot( viewDir, reflectionDir ), 0.0f ), 8 );
+	
+	float specularL = 0.50f;
+	vec3 reflectionDir = reflect( -lightDir, normalize( vs_Input.Normal ) );
+	float specAmount = pow( max( dot( viewDir, reflectionDir ), 0.0f ), 16 );
 	float specular = specAmount * specularL;
 
 	FinalColor = texture( u_AlbedoTexture, vs_Input.TexCoord ) * vs_Input.LightColor * vec4( diffuseL, 1.0f ) + texture( u_SpecularTexture, vs_Input.TexCoord ).r * specular;

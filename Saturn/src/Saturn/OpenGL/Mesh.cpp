@@ -229,7 +229,7 @@ namespace Saturn {
 
 					SAT_CORE_INFO( "    Specular map path = {0}", texturePath );
 
-					auto texture = Ref<Texture2D>::Create( texturePath, true, true );
+					auto texture = Ref<Texture2D>::Create( texturePath, false, true );
 
 					if( texture->Loaded() )
 					{
@@ -241,7 +241,7 @@ namespace Saturn {
 					else
 					{
 						SAT_CORE_ERROR( "Could not load texture: {0}", texturePath );
-						// Fallback to albedo color
+						// Fallback to specular color
 						//mat->Set( "u_SpecularColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b } );
 					}
 				}

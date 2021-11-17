@@ -161,7 +161,7 @@ namespace Saturn {
 
 	void Renderer::RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans )
 	{
-		mesh->UnbindLastTexture();
+		//mesh->UnbindLastTexture();
 		mesh->m_VertexBuffer->Bind();
 		mesh->m_Pipeline->Bind();
 		mesh->m_IndexBuffer->Bind();

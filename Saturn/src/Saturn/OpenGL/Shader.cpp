@@ -292,19 +292,8 @@ namespace Saturn {
 
 	void Shader::BindMaterialTextures()
 	{
-		int sample = 0;
-		for( int i = 0; i < 4; i++ )
-		{
-			// MUST FOLLOW THIS ORDER
-
-			SetInt( "u_AlbedoTexture", 0 );
-			SetInt( "u_SpecularTexture", 1 );
-			
-			break;
-
-			// TEMP
-			sample++;
-		}
+		SetInt( "u_AlbedoTexture", 0 );
+		//SetInt( "u_SpecularTexture", 1 );
 	}
 
 	void Shader::ParseUniform( const std::string& statement, ShaderDomain domain )
