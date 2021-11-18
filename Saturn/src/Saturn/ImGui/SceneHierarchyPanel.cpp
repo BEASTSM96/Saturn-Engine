@@ -277,7 +277,7 @@ namespace Saturn {
 		ImGui::PopStyleColor( 3 );
 
 		ImGui::SameLine();
-		modified |= ImGui::DragFloat( "##R", &values.x, 0.1f, 0.0f, 0.0f, "%.2f" );
+		modified |= ImGui::DragFloat( "##R", &values.x, 0.1f, 1.0f, 255.0f, "%.2f" );
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -294,7 +294,7 @@ namespace Saturn {
 		ImGui::PopStyleColor( 3 );
 
 		ImGui::SameLine();
-		modified |= ImGui::DragFloat( "##G", &values.y, 0.1f, 0.0f, 0.0f, "%.2f" );
+		modified |= ImGui::DragFloat( "##G", &values.y, 0.1f, 1.0f, 255.0f, "%.2f" );
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -312,7 +312,7 @@ namespace Saturn {
 
 		ImGui::SameLine();
 		ImGui::PushFont( boldFont );
-		modified |= ImGui::DragFloat( "##B", &values.z, 0.1f, 0.0f, 0.0f, "%.2f" );
+		modified |= ImGui::DragFloat( "##B", &values.z, 0.1f, 1.0f, 255.0f, "%.2f" );
 		ImGui::PopFont();
 		ImGui::PopItemWidth();
 

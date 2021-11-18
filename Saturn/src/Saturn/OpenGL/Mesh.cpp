@@ -51,6 +51,10 @@
 
 namespace Saturn {
 
+#if defined( SAT_DEBUG )
+	std::thread s_DebugThread;
+#endif
+
 	glm::mat4 Mat4FromAssimpMat4( const aiMatrix4x4& matrix )
 	{
 		glm::mat4 result;
@@ -87,6 +91,10 @@ namespace Saturn {
 		}
 	};
 
+	void Mesh::DebugWork()
+	{
+	}
+
 	Mesh::Mesh( const std::string& filename ) : m_FilePath( filename )
 	{
 		LogStream::Initialize();
@@ -103,7 +111,6 @@ namespace Saturn {
 		m_MeshShader = Ref<Shader>::Create( "assets\\shaders\\ShaderBasic.glsl" );
 		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( scene->mRootNode->mTransformation ) );
 		
-
 		uint32_t vertexCount = 0;
 		uint32_t indexCount = 0;
 
@@ -302,7 +309,6 @@ namespace Saturn {
 
 	Mesh::~Mesh()
 	{
-
 	}
 
 	void Mesh::TraverseNodes( aiNode* node, const glm::mat4& parentTransform, uint32_t level ) 

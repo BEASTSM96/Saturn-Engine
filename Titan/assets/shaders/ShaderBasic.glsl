@@ -20,6 +20,7 @@ out VertexOutput
 	//
 	vec3 WorldPos;
 	mat3 WorldTransform;
+	mat3 WorldNormals;
 	//
 	vec4 LightColor;
 	vec3 Normal;
@@ -33,6 +34,7 @@ void main()
 	//
 	vs_Output.WorldPos       = vec3( u_Transform * vec4( a_Position, 1.0 ) );
 	vs_Output.WorldTransform = mat3( u_Transform );
+	vs_Output.WorldNormals   = mat3( u_Transform ) * mat3( a_Tangent, a_Binormal, a_Normal );
 	//
 	vs_Output.LightColor = vec4( u_LightColor );
 	vs_Output.Normal = mat3( u_Transform ) * a_Normal;
@@ -52,6 +54,7 @@ in VertexOutput
 	//
 	vec3 WorldPos;
 	mat3 WorldTransform;
+	mat3 WorldNormals;
 	//
 	vec4 LightColor;
 	vec3 Normal;

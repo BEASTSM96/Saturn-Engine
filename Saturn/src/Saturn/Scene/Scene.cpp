@@ -152,13 +152,15 @@ namespace Saturn {
 
 	Entity& Scene::LightEntity()
 	{
+		std::vector<entt::entity> lights;
+
 		auto group = m_Registry.group<LightComponent>( entt::get<TransformComponent> );
 		
 		for ( auto& e : group )
 		{
 			auto& [lightComponent, transformComponent] = group.get<LightComponent, TransformComponent>( e );
 			
-			return Entity( e, this );
+			lights.push_back( e );
 		}
 
 		return Entity{};

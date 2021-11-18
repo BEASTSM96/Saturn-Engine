@@ -131,6 +131,10 @@ namespace Saturn {
 		// HACK: Unbind the last texture from memory
 		void UnbindLastTexture();
 
+	#if defined( SAT_DEBUG )
+		void DebugWork();
+	#endif
+
 	private:
 
 		std::vector<Vertex> m_StaticVertices;

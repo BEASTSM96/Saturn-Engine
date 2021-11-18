@@ -139,7 +139,7 @@ namespace Saturn {
 		found = m_FileName.find_last_of( "." );
 		m_FileName = found != std::string::npos ? m_FileName.substr( 0, found ) : m_FileName;
 
-		stbi_set_flip_vertically_on_load( true );
+		stbi_set_flip_vertically_on_load( false );
 
 		int w, h, chan = 0;
 
