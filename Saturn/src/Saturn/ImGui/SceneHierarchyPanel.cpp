@@ -129,9 +129,7 @@ namespace Saturn {
 		{
 			Entity e{ entity, m_Context.Pointer() };
 			if( !m_Context->m_Registry.has<SceneComponent>( entity ) || !e )
-			{
 				DrawEntityNode( e );
-			}
 		} );
 	}
 
@@ -140,8 +138,7 @@ namespace Saturn {
 		ImGui::Begin( "Scene Hierarchy" );
 
 		if( m_Context )
-		{
-		
+		{	
 			DrawEntities();
 
 			if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
@@ -208,21 +205,28 @@ namespace Saturn {
 		{
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-			ImGuiSelectableFlags flags = ImGuiSelectableFlags_AllowDoubleClick;
+			ImGuiTreeNodeFlags flags = ( ( m_SelectionContext == entity ) ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
+			flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-			bool selected = m_SelectionContext ? true : false;
-			bool pressed = ImGui::Selectable( tag.c_str(), selected, flags );
+			ImGui::Selectable( tag.c_str(), m_SelectionContext && m_SelectionContext == entity ? true : false );
+
+			if( ImGui::IsItemClicked() )
+			{
+				m_SelectionContext = entity;
+				if( m_SelectionChangedCallback )
+					m_SelectionChangedCallback( m_SelectionContext );
+			}
 
 			ImGui::NextColumn();
-
+			
 			{
 				auto& visibility = entity.GetComponent<VisibilityComponent>().visibility;
 
 				const char* visibilityStr = visibility == Visibility::Visible ? "Visible" : "Hidden";
 
-				bool change = ImGui::Selectable( visibilityStr );
+				ImGui::Selectable( visibilityStr );
 
-				if( change )
+				if( ImGui::IsItemClicked() )
 				{
 					Visibility newVis = visibility == Visibility::Visible ? Visibility::Hidden : Visibility::Visible;
 
@@ -231,13 +235,6 @@ namespace Saturn {
 			}
 
 			ImGui::NextColumn();
-
-			if( pressed )
-			{
-				m_SelectionContext = entity;
-				if( m_SelectionChangedCallback )
-					m_SelectionChangedCallback( m_SelectionContext );
-			}
 		}
 	}
 
