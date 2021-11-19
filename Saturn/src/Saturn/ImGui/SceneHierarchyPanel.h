@@ -55,6 +55,7 @@ namespace Saturn {
 		void DrawComponents( Entity entity );
 		void DrawEntityNode( Entity entity );
 		void DrawEntityComponents( Entity entity );
+		void DrawEntities();
 
 	private:
 

@@ -30,6 +30,7 @@
 
 #include "Components.h"
 #include "Scene.h"
+#include "EntityVisibility.h"
 
 #include <glm/glm.hpp>
 #include "entt.hpp"
@@ -40,7 +41,7 @@ namespace Saturn {
 	{
 	public:
 		Entity() = default;
-		Entity( entt::entity handle, Scene * scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
+		Entity( entt::entity handle, Scene* scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
 		Entity( const Entity & other ) = default;
 
 		template<typename T, typename... Args>

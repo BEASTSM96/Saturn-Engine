@@ -30,11 +30,10 @@
 #include "Renderer.h"
 
 #include "Saturn/Core/Window.h"
-
 #include "Saturn/Core/App.h"
-#include "Saturn/Scene/Scene.h"
-
 #include "Saturn/Core/Math.h"
+
+#include "Saturn/Scene/Scene.h"
 
 #include "xGL.h"
 
@@ -112,19 +111,6 @@ namespace Saturn {
 		m_Framebuffer->Resize( width, height );
 	}
 
-	void Renderer::Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture )
-	{
-		texture.Bind();
-		shader.Bind();
-
-		glm::vec3 pos, rot, scale;
-		Math::DecomposeTransform( trans, pos, rot, scale );
-
-		shader.SetMat4( "u_Transform", trans );
-
-		glDrawArrays( GL_TRIANGLES, 0, 6 );
-	}
-
 	void Renderer::OnEvent( Event& e )
 	{
 		m_Camera.OnEvent( e );
@@ -154,12 +140,12 @@ namespace Saturn {
 		m_ActiveScene = nullptr;
 	}
 
-	void Renderer::SubmitMesh( Ref<Mesh> mesh, const glm::mat4 trans )
+	void Renderer::SubmitMesh( Entity e, Ref<Mesh> mesh, const glm::mat4 trans )
 	{
-		m_DrawList.push_back( { mesh, trans } );
+		m_DrawList.push_back( { mesh, trans, e } );
 	}
 
-	void Renderer::RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans )
+	void Renderer::RenderMesh( Entity e, Ref<Mesh> mesh, const glm::mat4 trans )
 	{
 		//mesh->UnbindLastTexture();
 		mesh->m_VertexBuffer->Bind();
@@ -217,7 +203,7 @@ namespace Saturn {
 	void Renderer::GeoPass()
 	{
 		StartRenderPass( m_RenderPass );
-		
+
 		glStencilOp( GL_KEEP, GL_KEEP, GL_REPLACE );
 
 		m_CompositeShader->Bind();
@@ -227,10 +213,11 @@ namespace Saturn {
 
 		auto viewProjection = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix();
 		glm::vec3 cameraPosition = glm::inverse( m_Camera.ViewMatrix() )[ 3 ];
-		
+
 		for( auto& dc : m_DrawList )
 		{
-			RenderMesh( dc.m_Mesh, dc.m_Transform );
+			if( dc.m_Entity.GetComponent<VisibilityComponent>().visibility == Visibility::Visible )
+				RenderMesh( dc.m_Entity, dc.m_Mesh, dc.m_Transform );
 		}
 
 		EndRenderPass( m_RenderPass );

@@ -34,6 +34,8 @@
 
 #include "Saturn/Core/UUID.h"
 
+#include "EntityVisibility.h"
+
 #include <string>
 
 namespace Saturn {
@@ -106,6 +108,14 @@ namespace Saturn {
 		}
 	#endif
 
+	};
+
+	struct VisibilityComponent
+	{
+		Visibility visibility = Visibility::Visible;
+
+		VisibilityComponent() = default;
+		VisibilityComponent( const VisibilityComponent& other ) = default;
 	};
 
 	/** @brief A TagComponent.

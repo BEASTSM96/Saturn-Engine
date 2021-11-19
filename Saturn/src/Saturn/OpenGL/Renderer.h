@@ -30,6 +30,7 @@
 
 #include "Saturn/Core/Base.h"
 #include "Saturn/Core/Renderer/EditorCamera.h"
+#include "Saturn/Scene/Entity.h"
 
 #include "Saturn/Core/Events.h"
 
@@ -58,9 +59,6 @@ namespace Saturn {
 		void Clear();
 		void Resize( int width, int height );
 
-		// Render code
-		void Submit( const glm::mat4& trans, Shader& shader, Texture2D& texture );
-
 		//void Submit( const Mesh& mesh );
 
 		void OnEvent( Event& e );
@@ -77,7 +75,7 @@ namespace Saturn {
 		void BeginScene( Ref<Scene> scene );
 		void EndScene();
 
-		void SubmitMesh( Ref<Mesh> mesh, const glm::mat4 trans );
+		void SubmitMesh( Entity e, Ref<Mesh> mesh, const glm::mat4 trans );
 
 		void FlushDrawList();
 		uint32_t GetFinalColorBufferRendererID();
@@ -97,12 +95,13 @@ namespace Saturn {
 		{
 			Ref<Mesh> m_Mesh;
 			glm::mat4 m_Transform;
+			Entity m_Entity;
 		};
 
 	protected:
 	private:
 
-		void RenderMesh( Ref<Mesh> mesh, const glm::mat4 trans );
+		void RenderMesh( Entity e, Ref<Mesh> mesh, const glm::mat4 trans );
 
 	private:
 

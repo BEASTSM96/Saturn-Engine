@@ -108,18 +108,41 @@ namespace Saturn {
 		m_Context->SetSelectedEntity( entity );
 	}
 
+	void SceneHierarchyPanel::DrawEntities()
+	{
+		ImGui::Columns( 2, "Bar" );
+
+		ImGui::Columns( 2, "Key" );
+		{
+			ImGui::Text( "Name" );
+
+			ImGui::NextColumn();
+
+			ImGui::Text( "Visibility" );
+
+			ImGui::NextColumn();
+		}
+
+		ImGui::Separator();
+
+		m_Context->m_Registry.each( [&]( auto entity )
+		{
+			Entity e{ entity, m_Context.Pointer() };
+			if( !m_Context->m_Registry.has<SceneComponent>( entity ) || !e )
+			{
+				DrawEntityNode( e );
+			}
+		} );
+	}
+
 	void SceneHierarchyPanel::Draw()
 	{
 		ImGui::Begin( "Scene Hierarchy" );
 
 		if( m_Context )
 		{
-			m_Context->m_Registry.each( [&]( auto entity ) 
-			{
-				Entity e{ entity, m_Context.Pointer() };
-				if( !m_Context->m_Registry.has<SceneComponent>( entity ) || !e )
-					DrawEntityNode( e );
-			} );
+		
+			DrawEntities();
 
 			if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
 			{
@@ -185,33 +208,36 @@ namespace Saturn {
 		{
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-			ImGuiTreeNodeFlags flags = ( ( m_SelectionContext == entity ) ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
-			flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+			ImGuiSelectableFlags flags = ImGuiSelectableFlags_AllowDoubleClick;
 
-			bool opened = ImGui::TreeNodeEx( ( void* )( uint64_t )( uint32_t )entity, flags, tag.c_str() );
+			bool selected = m_SelectionContext ? true : false;
+			bool pressed = ImGui::Selectable( tag.c_str(), selected, flags );
 
-			if( ImGui::IsItemClicked() )
+			ImGui::NextColumn();
+
 			{
-				m_SelectionContext = entity;
-				if( m_SelectionChangedCallback )
+				auto& visibility = entity.GetComponent<VisibilityComponent>().visibility;
+
+				const char* visibilityStr = visibility == Visibility::Visible ? "Visible" : "Hidden";
+
+				bool change = ImGui::Selectable( visibilityStr );
+
+				if( change )
 				{
-					m_SelectionChangedCallback( m_SelectionContext );
+					Visibility newVis = visibility == Visibility::Visible ? Visibility::Hidden : Visibility::Visible;
+
+					entity.GetComponent<VisibilityComponent>().visibility = newVis;
 				}
 			}
 
-			if( opened )
+			ImGui::NextColumn();
+
+			if( pressed )
 			{
-				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-				bool opened = ImGui::TreeNodeEx( ( void* )9817239, flags, tag.c_str() );
-				if( opened )
-					ImGui::TreePop();
-				ImGui::TreePop();
+				m_SelectionContext = entity;
+				if( m_SelectionChangedCallback )
+					m_SelectionChangedCallback( m_SelectionContext );
 			}
-		}
-		else
-		{
-			entity.AddComponent<TagComponent>();
-			DrawEntityNode( entity );
 		}
 	}
 
@@ -249,10 +275,10 @@ namespace Saturn {
 			auto& scale = tc.Scale;
 
 			bool updateTransform = false;
-			updateTransform |= DrawVec3Control( "Translation", tc.Position, tc.Position );
+			updateTransform |= DrawVec3Control( "Translation", tc.Position );
 
-			updateTransform |= DrawVec3Control( "Rotation", tc.Rotation, tc.Rotation );
-			updateTransform |= DrawVec3Control( "Scale", tc.Scale, tc.Scale, 1.0f );
+			updateTransform |= DrawVec3Control( "Rotation", tc.Rotation );
+			updateTransform |= DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 
 		DrawComponent<MeshComponent>( "Mesh", entity, []( auto& mc )
@@ -287,9 +313,9 @@ namespace Saturn {
 
 		DrawComponent<LightComponent>( "Light", entity, []( auto& lc )
 		{
-			DrawColorVec3Control( "Light Color", lc.Color, lc.Color, 150.0f );
+			DrawColorVec3Control( "Light Color", lc.Color, 150.0f );
 		
-			DrawFloatControl( "Light Intensity", lc.Intensity, lc.Intensity, 110.0f );
+			DrawFloatControl( "Light Intensity", lc.Intensity, 110.0f );
 		} );
 	}
 

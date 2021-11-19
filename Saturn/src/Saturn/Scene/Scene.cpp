@@ -79,9 +79,10 @@ namespace Saturn {
 	{
 		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
 		Renderer::Get().BeginScene( this );
-		for ( auto e : group )
+
+		for ( const auto e : group )
 		{
-			Entity entity = { e, this };
+			Entity entity( e, this );
 
 		#if defined ( SAT_LINUX )
 			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
@@ -91,7 +92,7 @@ namespace Saturn {
 
 			if( meshComponent.Mesh )
 			{
-				Renderer::Get().SubmitMesh( meshComponent, transformComponent.GetTransform() );
+				Renderer::Get().SubmitMesh( entity, meshComponent, transformComponent.GetTransform() );
 			}
 		}
 
@@ -106,6 +107,7 @@ namespace Saturn {
 		tag.Tag = name.empty() ? "Unmanned Entity" : name;
 
 		auto& IDcomponent = entity.AddComponent<IdComponent>();
+		entity.AddComponent<VisibilityComponent>();
 		entity.GetComponent<IdComponent>().ID ={};
 
 		m_EntityIDMap[ IDcomponent.ID ] = entity;
@@ -152,7 +154,7 @@ namespace Saturn {
 
 	Entity& Scene::LightEntity()
 	{
-		std::vector<entt::entity> lights;
+		//std::vector<entt::entity> lights;
 
 		auto group = m_Registry.group<LightComponent>( entt::get<TransformComponent> );
 		
@@ -160,10 +162,35 @@ namespace Saturn {
 		{
 			auto& [lightComponent, transformComponent] = group.get<LightComponent, TransformComponent>( e );
 			
-			lights.push_back( e );
+			return Entity( e, this );
+
+			//lights.push_back( e );
 		}
 
 		return Entity{};
+	}
+
+	std::vector<Entity>& Scene::VisableEntities()
+	{
+		std::vector<Entity> entities;
+
+		auto view = m_Registry.view<VisibilityComponent>();
+
+		if ( view )
+		{
+			for( auto e : view )
+			{
+				auto& vis = view.get<VisibilityComponent>( e ).visibility;
+
+				Entity entity( e, this );
+
+				if( vis == Visibility::Visible )
+					entities.push_back( entity );
+
+			}
+		}
+
+		return entities;
 	}
 
 }
