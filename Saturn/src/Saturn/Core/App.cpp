@@ -69,9 +69,6 @@ namespace Saturn {
 
 			Renderer::Get().RendererCamera().OnUpdate( m_Timestep );
 
-			Renderer::Get().GeoPass();
-			Renderer::Get().CompositePass();
-
 			Window::Get().OnUpdate();
 
 			float time = ( float )glfwGetTime(); //Platform::GetTime();
