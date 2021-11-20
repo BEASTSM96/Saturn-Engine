@@ -207,5 +207,7 @@ namespace Saturn {
 
 		LightComponent() = default;
 		LightComponent( const LightComponent& other ) = default;
+
+		operator glm::vec4& ( ) { return glm::vec4( Color.x, Color.z, Color.y, 1.0f ); }
 	};
 }
