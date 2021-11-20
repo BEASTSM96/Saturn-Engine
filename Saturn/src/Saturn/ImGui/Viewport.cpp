@@ -45,6 +45,8 @@ namespace Saturn {
 
 	void Viewport::Draw()
 	{
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+
 		ImGui::Begin( "Viewport" );
 
 		m_SendCameraEvents = ImGui::IsWindowFocused();
@@ -58,9 +60,13 @@ namespace Saturn {
 		//Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
 		Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
 
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
 		ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
+		ImGui::PopStyleVar();
 
 		ImGui::End();
+
+		ImGui::PopStyleVar();
 	}
 
 }

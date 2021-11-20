@@ -65,6 +65,8 @@
 
 namespace Saturn {
 
+	ImFont* s_DefualtFont;
+
 	void GLFWErrorCallback( int error, const char* desc )
 	{
 		SAT_CORE_ERROR( "GLFW Error {0}, {1}", error, desc );
@@ -231,12 +233,17 @@ namespace Saturn {
 			style.WindowRounding = 0.0f;
 			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
 		}
+		
+		s_DefualtFont = io.Fonts->AddFontFromFileTTF( "assets\\Fonts\\NotoSans-Regular.ttf", 18.0f );
+		io.FontDefault = io.Fonts->Fonts.back();
 
 		Styles::Dark();
 
 	#if !defined ( SAT_DONT_USE_GL )
+
 		ImGui_ImplGlfw_InitForOpenGL( m_Window, true );
 		ImGui_ImplOpenGL3_Init( "#version 410" );
+		
 	#endif
 
 		m_Dockspace = new ImGuiDockspace();

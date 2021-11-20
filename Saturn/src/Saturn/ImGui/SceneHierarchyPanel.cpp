@@ -44,6 +44,30 @@
 
 namespace Saturn {
 
+	std::string::value_type CharUpFunc( std::string::value_type val ) 
+	{
+		return std::use_facet< std::ctype< std::string::value_type > >( std::locale() ).toupper( val );
+	}
+
+	std::string ToUpper( const std::string& src ) 
+	{
+		std::string result;
+		std::transform( src.begin(), src.end(), std::back_inserter( result ), CharUpFunc );
+		return result;
+	}
+
+	std::string::value_type CharDownFunc( std::string::value_type val )
+	{
+		return std::use_facet< std::ctype< std::string::value_type > >( std::locale() ).tolower( val );
+	}
+
+	std::string ToLower( const std::string& src )
+	{
+		std::string result;
+		std::transform( src.begin(), src.end(), std::back_inserter( result ), CharDownFunc );
+		return result;
+	}
+
 	template<typename T, typename UIFunction>
 	static void DrawComponent( const std::string& name, Entity entity, UIFunction uiFunction )
 	{
@@ -52,7 +76,12 @@ namespace Saturn {
 			bool removeComponent = false;
 
 			auto& component = entity.GetComponent<T>();
-			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str() );
+
+			// This is prob bad...
+			auto& newStr = ToUpper( name );
+
+			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, newStr.c_str() );
+
 			ImGui::SameLine();
 			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
 			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
