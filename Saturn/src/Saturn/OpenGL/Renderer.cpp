@@ -161,8 +161,6 @@ namespace Saturn {
 
 		for( Submesh& submesh : mesh->m_Submeshes )
 		{
-			//Enable( GL_DEPTH_TEST );
-
 			if( mesh->GetMaterial()->IsFlagSet( MaterialFlag::DepthTest ) )
 				glEnable( GL_DEPTH_TEST );
 			else
