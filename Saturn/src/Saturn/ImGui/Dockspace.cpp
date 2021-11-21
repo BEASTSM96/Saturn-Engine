@@ -66,8 +66,8 @@ namespace Saturn {
 		if( opt_fullscreen )
 		{
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos( viewport->GetWorkPos() );
-			ImGui::SetNextWindowSize( viewport->GetWorkSize() );
+			ImGui::SetNextWindowPos( viewport->WorkPos );
+			ImGui::SetNextWindowSize( viewport->WorkSize );
 			ImGui::SetNextWindowViewport( viewport->ID );
 			ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
 			ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0.0f );

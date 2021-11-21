@@ -49,9 +49,8 @@
 #include <imgui_internal.h>
 
 #if !defined ( SAT_DONT_USE_GL )
-#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM "Saturn/OpenGL/xGL.h"
-#include "examples/imgui_impl_opengl3.h"
-#include "examples/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_glfw.h"
 #endif
 
 #if defined ( SAT_WINDOWS )
