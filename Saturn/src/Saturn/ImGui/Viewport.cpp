@@ -47,7 +47,9 @@ namespace Saturn {
 	{
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 
-		ImGui::Begin( "Viewport" );
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+		
+		ImGui::Begin( "Viewport", 0, flags );
 
 		m_SendCameraEvents = ImGui::IsWindowFocused();
 		Renderer::Get().RendererCamera().AllowEvents( m_SendCameraEvents );

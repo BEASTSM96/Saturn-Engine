@@ -82,11 +82,7 @@ namespace Saturn {
 		glfwWindowHint( GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE );
 	#endif
 
-	#if defined( SAT_WINDOWS_A )
 		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
-	#else
-		glfwWindowHint( GLFW_DECORATED, GLFW_TRUE );
-	#endif
 
 		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
 
@@ -103,12 +99,12 @@ namespace Saturn {
 	#endif
 
 		glfwSetWindowUserPointer( m_Window, this );
-		glfwSwapInterval( GLFW_TRUE );	
+		glfwSwapInterval( GLFW_TRUE );
 
 		// Set GLFW events
-		glfwSetWindowCloseCallback( m_Window, []( GLFWwindow* window )                            { Application::Get().Close(); } );
+		glfwSetWindowCloseCallback( m_Window, []( GLFWwindow* window ) { Application::Get().Close(); } );
 
-		glfwSetWindowSizeCallback( m_Window, []( GLFWwindow* window, int w, int h )               
+		glfwSetWindowSizeCallback( m_Window, []( GLFWwindow* window, int w, int h )
 		{
 			Window& win = *( Window* )glfwGetWindowUserPointer( window );
 
@@ -120,16 +116,16 @@ namespace Saturn {
 
 		//glfwSetFramebufferSizeCallback( m_Window, []( GLFWwindow* window, int width, int height ) {                         } );
 
-		glfwSetScrollCallback( m_Window, []( GLFWwindow* window, double xOffset, double yOffset ) 
-		{ 
+		glfwSetScrollCallback( m_Window, []( GLFWwindow* window, double xOffset, double yOffset )
+		{
 			Window& win = *( Window* )glfwGetWindowUserPointer( window );
 
 			MouseScrolledEvent event( ( float )xOffset, ( float )yOffset );
 			win.m_EventCallback( event );
 		} );
 
-		glfwSetCursorPosCallback( m_Window, []( GLFWwindow* window, double x, double y ) 
-		{ 
+		glfwSetCursorPosCallback( m_Window, []( GLFWwindow* window, double x, double y )
+		{
 			Window& win = *( Window* )glfwGetWindowUserPointer( window );
 
 			MouseMovedEvent event( ( float )x, ( float )y );
@@ -169,7 +165,7 @@ namespace Saturn {
 
 			KeyTypedEvent event( keycode );
 			win.m_EventCallback( event );
-		});
+		} );
 
 		glfwSetMouseButtonCallback( m_Window, []( GLFWwindow* window, int button, int action, int mods )
 		{
@@ -192,14 +188,15 @@ namespace Saturn {
 			}
 		} );
 
-	#if defined( SAT_WINDOWS_A )
+
+	#if defined ( SAT_WINDOWS )
 
 		// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
 
 		HWND      windowHandle    = glfwGetWin32Window( m_Window );
 		HINSTANCE instance        = GetModuleHandle( nullptr );
 
-		SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX );
+		SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
 
 		// Fix missing drop shadow
 		MARGINS shadowMargins;
@@ -209,8 +206,8 @@ namespace Saturn {
 		// Override window procedure with custom one to allow native window moving behavior without a title bar
 		SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
 		m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
-	#endif
 
+	#endif
 		// Init ImGui
 
 		IMGUI_CHECKVERSION();
@@ -221,7 +218,7 @@ namespace Saturn {
 
 		ImGuiIO& io = ImGui::GetIO(); ( void )io;
 
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;      
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
@@ -232,7 +229,7 @@ namespace Saturn {
 			style.WindowRounding = 0.0f;
 			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
 		}
-		
+
 		s_DefualtFont = io.Fonts->AddFontFromFileTTF( "assets\\Fonts\\NotoSans-Regular.ttf", 18.0f );
 		io.FontDefault = io.Fonts->Fonts.back();
 
@@ -242,7 +239,7 @@ namespace Saturn {
 
 		ImGui_ImplGlfw_InitForOpenGL( m_Window, true );
 		ImGui_ImplOpenGL3_Init( "#version 410" );
-		
+
 	#endif
 
 		m_Dockspace = new ImGuiDockspace();
@@ -258,9 +255,6 @@ namespace Saturn {
 
 	void Window::OnUpdate()
 	{
-		if( m_Minimized )
-			return;
-
 		glfwPollEvents();
 	}
 
@@ -268,8 +262,40 @@ namespace Saturn {
 	{
 		const bool wasMaximized = ( glfwGetWindowAttrib( m_Window, GLFW_MAXIMIZED ) == GLFW_TRUE );
 
-		if( !wasMaximized ) { glfwMaximizeWindow( m_Window ); m_Minimized = false; }
-		else Restore();
+		if( !m_Maximized )
+		{
+			glfwMaximizeWindow( m_Window ); 
+			Restore();
+
+			int nx = GetSystemMetrics( SM_CXSCREEN ); 
+			int ny = GetSystemMetrics( SM_CYSCREEN );
+
+			RECT taskbarRect;
+			int taskbarHeight, taskbarWidth;
+
+			HWND taskBar = FindWindow( L"Shell_traywnd", NULL );
+			if( taskBar && GetWindowRect( taskBar, &taskbarRect ) )
+			{
+				taskbarHeight = taskbarRect.bottom - taskbarRect.top;
+				taskbarWidth = taskbarRect.right - taskbarRect.left;
+			}
+
+			m_Maximized = true;
+
+			MoveWindow( glfwGetWin32Window( m_Window ), 0, 0, nx, ny - taskbarHeight, FALSE );
+		}
+		else
+		{
+			Restore();
+
+			m_Width = 1200;
+			m_Height = 700;
+
+			int nx = GetSystemMetrics( SM_CXSCREEN ) - m_Width / 2;
+			int ny = GetSystemMetrics( SM_CYSCREEN ) - m_Height / 2;
+
+			MoveWindow( glfwGetWin32Window( m_Window ), 0, 0, nx, ny, FALSE );
+		}
 	}
 
 	void Window::Minimize()
@@ -282,6 +308,9 @@ namespace Saturn {
 
 	void Window::Restore()
 	{
+		m_Minimized = false;
+		m_Maximized = false;
+
 		glfwRestoreWindow( m_Window );
 	}
 
@@ -293,10 +322,19 @@ namespace Saturn {
 
 	void Window::Render()
 	{
-		// Was NewFrame
-
 		if( !Application::Get().Running() )
 			return;
+
+		if( m_Rendering )
+			return;
+
+		if( !m_Maximized && m_Minimized )
+			m_Minimized = false;
+
+		if( m_Maximized && m_Minimized )
+			m_Minimized = false;
+
+		m_Rendering = true;
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -304,8 +342,6 @@ namespace Saturn {
 		ImGui::NewFrame();
 
 		m_Dockspace->Draw();
-
-		// Was EndFrame
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
@@ -323,6 +359,8 @@ namespace Saturn {
 		}
 
 		glfwSwapBuffers( m_Window );
+
+		m_Rendering = false;
 	}
 
 	void Window::SizeCallback( GLFWwindow* wind, int h, int w )
@@ -333,7 +371,7 @@ namespace Saturn {
 		window->m_Width = w;
 	}
 
-#if defined ( SAT_WINDOWS_A )
+#if defined ( SAT_WINDOWS )
 
 	// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
 
@@ -351,22 +389,22 @@ namespace Saturn {
 				GetCursorPos( &mousePos );
 				GetWindowRect( handle, &windowRect );
 
-				if( PtInRect( &windowRect, mousePos ) )
+				if( !self->m_Maximized && PtInRect( &windowRect, mousePos ) )
 				{
-					const int borderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER ) + 2;
-					const int borderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER ) + 2;
+					const int borderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+					const int borderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
 
 					if( mousePos.y < ( windowRect.top + borderY ) )
 					{
-						if( mousePos.x < ( windowRect.left + borderX ) )        { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTTOPLEFT; }
+						if( mousePos.x < ( windowRect.left + borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTTOPLEFT; }
 						else if( mousePos.x >= ( windowRect.right - borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTTOPRIGHT; }
-						else                                                    { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTTOP; }
+						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTTOP; }
 					}
 					else if( mousePos.y >= ( windowRect.bottom - borderY ) )
 					{
-						if( mousePos.x < ( windowRect.left + borderX ) )        { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTBOTTOMLEFT; }
+						if( mousePos.x < ( windowRect.left + borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTBOTTOMLEFT; }
 						else if( mousePos.x >= ( windowRect.right - borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTBOTTOMRIGHT; }
-						else                                                    { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTBOTTOM; }
+						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTBOTTOM; }
 					}
 					else if( mousePos.x < ( windowRect.left + borderX ) )
 					{
@@ -381,52 +419,51 @@ namespace Saturn {
 					else
 					{
 						// Drag the menu bar to move the window
-						if( !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + self->m_Dockspace->GetTitleBar().Height() ) ) )
+						if( !self->m_Maximized && !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + self->m_Dockspace->GetTitleBar().Height() ) ) )
 							return HTCAPTION;
 					}
 				}
-				break;
-			}
 
+			} break;
 
 			case WM_NCCALCSIZE:
 			{
 				// Preserve the old client area and align it with the upper-left corner of the new client area
 				return 0;
-				break;
-			} 
+
+			} break;
 
 			case WM_ENTERSIZEMOVE:
 			{
 				SetTimer( handle, 1, USER_TIMER_MINIMUM, NULL );
-				break;
-			} 
+
+			} break;
 
 			case WM_EXITSIZEMOVE:
 			{
 				KillTimer( handle, 1 );
-				break;
-			} 
+
+			} break;
 
 			case WM_TIMER:
 			{
-				const UINT_PTR timerID = ( UINT_PTR )WParam;
+				const UINT_PTR TimerID = ( UINT_PTR )WParam;
 
-				if( timerID == 1 )
+				if( TimerID == 1 )
 				{
 					self->Render();
 				}
-				break;
-			} 
+
+			} break;
 
 			case WM_SIZE:
 			case WM_MOVE:
 			{
 				self->Render();
-				break;
-			}
-		}
 
+			} break;
+
+		}
 		return CallWindowProc( self->m_WindowProc, handle, msg, WParam, LParam );
 	}
 

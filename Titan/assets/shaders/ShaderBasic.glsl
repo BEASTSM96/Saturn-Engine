@@ -94,13 +94,13 @@ void main()
 
 	vec3 lightDir = normalize( TLightPos - TPos );
 	vec3 viewDir = normalize( TViewPos - TPos );
+	vec3 halfwayDir = normalize( lightDir + viewDir );
 
 	float diff = max( dot( lightDir, normalRGB ), 0.0f );
 	vec3 diffuseL = diff + vec3( ambient );
 	
 	float specularL = 0.50f;
 	vec3 reflectionDir = reflect( -lightDir, normalRGB );
-	vec3 halfwayDir = normalize( lightDir + viewDir );
 	float specAmount = pow( max( dot( normalRGB, halfwayDir ), 0.0f ), 32 );
 	float specular = specAmount * specularL;
 

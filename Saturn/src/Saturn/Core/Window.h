@@ -88,11 +88,14 @@ namespace Saturn {
 		std::string m_Title = "Saturn";
 
 		bool m_Minimized = false;
+		bool m_Maximized = false;
 
 		EventCallbackFn m_EventCallback;
 
 		// Widgets
 		ImGuiDockspace* m_Dockspace;
+
+		bool m_Rendering = false;
 
 	#if defined ( SAT_WINDOWS )
 		WNDPROC  m_WindowProc  = nullptr;
