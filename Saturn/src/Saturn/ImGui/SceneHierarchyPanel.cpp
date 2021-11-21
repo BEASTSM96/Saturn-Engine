@@ -76,8 +76,6 @@ namespace Saturn {
 			bool removeComponent = false;
 
 			auto& component = entity.GetComponent<T>();
-
-			// This is prob bad...
 			auto& newStr = ToUpper( name );
 
 			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, newStr.c_str() );

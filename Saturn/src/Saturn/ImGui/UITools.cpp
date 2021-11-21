@@ -34,7 +34,6 @@
 
 namespace Saturn {
 
-
 	bool DrawVec2Control( const std::string& label, glm::vec2& values, float resetValue /*= 0.0f*/, float columnWidth /*= 100.0f */ )
 	{
 		bool modified = false;
