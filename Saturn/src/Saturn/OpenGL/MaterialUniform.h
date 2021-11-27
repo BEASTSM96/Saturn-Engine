@@ -60,6 +60,9 @@ namespace Saturn {
 
 		bool IsTexture() { return m_IsTextureUniform; }
 
+		std::string& Name() { return m_Name; }
+		const std::string& Name() const { return m_Name; }
+
 	private:
 
 		bool m_IsStruct = false;

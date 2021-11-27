@@ -67,8 +67,6 @@ namespace Saturn {
 
 			DiscordRPC::Get().Update();
 
-			Renderer::Get().RendererCamera().OnUpdate( m_Timestep );
-
 			Window::Get().OnUpdate();
 
 			float time = ( float )glfwGetTime(); //Platform::GetTime();

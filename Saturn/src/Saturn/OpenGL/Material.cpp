@@ -33,6 +33,8 @@ namespace Saturn {
 
 	Material::Material( Ref<Shader> shader ) : m_MaterialShader( shader )
 	{
+		m_Name = m_MaterialShader->Name() + "_Material";
+
 		SetFlag( MaterialFlag::DepthTest );
 	}
 

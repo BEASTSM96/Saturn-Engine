@@ -74,8 +74,14 @@ namespace Saturn {
 		void Add( const std::string& name, Ref<Texture2D>& tex, MaterialTextureType textureFormat );
 
 		Ref<MaterialUniform>& Get( const std::string& name );
-
 		void BindTextures();
+
+		std::vector<Ref<MaterialUniform>>& Uniforms() { return m_Uniforms; }
+		const std::vector<Ref<MaterialUniform>>& Uniforms() const { return m_Uniforms; }
+
+		std::string& Name() { return m_Name; }
+		const std::string& Name() const { return m_Name; }
+
 		
 		Ref<Shader>& GetShader() { return m_MaterialShader; }
 		const Ref<Shader>& GetShader() const { return m_MaterialShader; }
@@ -85,14 +91,9 @@ namespace Saturn {
 		void SetPropChanged( const std::string& prop )
 		{
 			m_PropsChanged.push_back( prop );
-			/*
-			* 
-			* m_Shader.bind(); 
-			* 
-			* m_Shader.Set( "u_Texture", k->Data().RendererID() );
-			*/
 		}
 
+		std::string m_Name;
 
 		Ref<Shader> m_MaterialShader;
 

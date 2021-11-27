@@ -59,7 +59,7 @@ namespace Saturn {
 
 		auto viewportSize = ImGui::GetContentRegionAvail();
 
-		//Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
+		Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
 		Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
 
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );

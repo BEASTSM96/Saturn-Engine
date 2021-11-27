@@ -183,6 +183,37 @@ namespace Saturn {
 				ImGui::EndPopup();
 			}
 
+			ImGui::Begin( "Mesh Material Viewer" );
+
+			if( m_SelectionContext && m_SelectionContext.HasComponent<MeshComponent>() )
+			{
+				auto& mesh = m_SelectionContext.GetComponent<MeshComponent>().Mesh;
+
+				if( mesh )
+				{
+					auto& material = mesh->GetMaterial();
+
+					ImGui::Text( material->Name().c_str() );
+					ImGui::Separator();
+
+					for( int i = 0; i < material->Uniforms().size(); i++ )
+					{
+						auto& uniform = material->Uniforms()[ i ];
+
+						ImGui::Text( uniform->Name().c_str() );
+						ImGui::SameLine();
+
+						ImGui::Separator();
+
+						ImGui::Image( ( ImTextureID )uniform->Data()->GetRendererID(), ImVec2( 50, 50 ) );
+
+						// TODO: Values
+					}
+				}
+			}
+
+			ImGui::End();
+
 			ImGui::Begin( "Inspector" );
 			if( m_SelectionContext )
 			{
