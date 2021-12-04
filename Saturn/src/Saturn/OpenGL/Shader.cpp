@@ -31,6 +31,8 @@
 
 #include "Renderer.h"
 
+#include "MaterialUniform.h"
+
 #include "xGL.h"
 
 #include <string>
@@ -181,9 +183,10 @@ namespace Saturn {
 		fstr = fragmentSource.c_str();
 
 		while( token = FindToken( vstr, "uniform" ) )
-		{
 			ParseUniform( GetStatement( token, &vstr ), ShaderDomain::Vertex );
-		}
+
+		while( token = FindToken( fstr, "uniform" ) )
+			ParseUniform( GetStatement( token, &fstr ), ShaderDomain::Pixel );
 	}
 
 	std::string Shader::GetStatement( const char* str, const char** outPosition )
@@ -293,7 +296,8 @@ namespace Saturn {
 	void Shader::BindMaterialTextures()
 	{
 		SetInt( "u_AlbedoTexture", 0 );
-		//SetInt( "u_SpecularTexture", 1 );
+		SetInt( "u_SpecularTexture", 1 );
+		SetInt( "u_NormalTexture", 2 );
 	}
 
 	void Shader::ParseUniform( const std::string& statement, ShaderDomain domain )
@@ -314,7 +318,6 @@ namespace Saturn {
 		if( const char* s = strstr( namestr, "[" ) )
 		{
 			name = std::string( namestr, s - namestr );
-
 			const char* end = strstr( namestr, "]" );
 			std::string c( s + 1, end - s );
 			count = atoi( c.c_str() );
@@ -322,7 +325,6 @@ namespace Saturn {
 
 		if( IsTypeStringResource( typeString ) ) 
 		{
-			// TODO: Create uniforms (only textures)
 		}
 	}
 

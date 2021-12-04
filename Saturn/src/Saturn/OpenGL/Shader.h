@@ -29,9 +29,6 @@
 #pragma once
 
 #include "Common.h"
-
-#include "MaterialUniform.h"
-
 #include <string>
 
 namespace Saturn {
@@ -40,6 +37,8 @@ namespace Saturn {
 	{
 		None = 0, Vertex = 0, Pixel = 1
 	};
+
+	class MaterialUniform;
 
 	class Shader
 	{
@@ -93,20 +92,6 @@ namespace Saturn {
 		// We technically have 2 or more shaders in one file, so we make a map here
 		std::unordered_map<unsigned int, std::string> m_Shaders;
 
-	private:
-
-		const char* FTLSD_VertexShaderSource = "#version 330 core\n"
-			"layout (location = 0) in vec3 aPos;\n"
-			"void main()\n"
-			"{\n"
-			"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-			"}\0";
-
-		const char* FTLSD_FragmentShaderSource = "#version 330 core\n"
-			"out vec4 FragColor;\n"
-			"void main()\n"
-			"{\n"
-			"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-			"}\n\0";
+		std::vector<MaterialUniform> m_ShaderUniforms;
 	};
 }
