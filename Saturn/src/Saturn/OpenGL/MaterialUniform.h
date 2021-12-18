@@ -69,8 +69,6 @@ namespace Saturn {
 		bool m_IsTextureUniform = false;
 		std::string m_Name = "Unknown Uniform";
 
-		// EXAMPLE - uniform sampler2D u_sampler2D. where value name is "u_sampler2D" and valueType is "sampler2D"
-
 		std::string m_TextureName = "";
 		std::string m_ValueName = "";
 

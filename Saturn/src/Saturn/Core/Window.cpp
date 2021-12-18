@@ -262,40 +262,10 @@ namespace Saturn {
 	{
 		const bool wasMaximized = ( glfwGetWindowAttrib( m_Window, GLFW_MAXIMIZED ) == GLFW_TRUE );
 
-		if( !m_Maximized )
-		{
+		if( !wasMaximized )
 			glfwMaximizeWindow( m_Window ); 
-			Restore();
-
-			int nx = GetSystemMetrics( SM_CXSCREEN ); 
-			int ny = GetSystemMetrics( SM_CYSCREEN );
-
-			RECT taskbarRect;
-			int taskbarHeight, taskbarWidth;
-
-			HWND taskBar = FindWindow( L"Shell_traywnd", NULL );
-			if( taskBar && GetWindowRect( taskBar, &taskbarRect ) )
-			{
-				taskbarHeight = taskbarRect.bottom - taskbarRect.top;
-				taskbarWidth = taskbarRect.right - taskbarRect.left;
-			}
-
-			m_Maximized = true;
-
-			MoveWindow( glfwGetWin32Window( m_Window ), 0, 0, nx, ny - taskbarHeight, FALSE );
-		}
 		else
-		{
 			Restore();
-
-			m_Width = 1200;
-			m_Height = 700;
-
-			int nx = GetSystemMetrics( SM_CXSCREEN ) - m_Width / 2;
-			int ny = GetSystemMetrics( SM_CYSCREEN ) - m_Height / 2;
-
-			MoveWindow( glfwGetWin32Window( m_Window ), 0, 0, nx, ny, FALSE );
-		}
 	}
 
 	void Window::Minimize()
@@ -423,26 +393,41 @@ namespace Saturn {
 							return HTCAPTION;
 					}
 				}
-
 			} break;
 
 			case WM_NCCALCSIZE:
 			{
+				if( WParam /* TRUE */ )
+				{
+					WINDOWPLACEMENT windowPlacement { sizeof( WINDOWPLACEMENT ) };
+
+					if( GetWindowPlacement( handle, &windowPlacement ) && windowPlacement.showCmd == SW_SHOWMAXIMIZED )
+					{
+						NCCALCSIZE_PARAMS& params = *reinterpret_cast< LPNCCALCSIZE_PARAMS >( LParam );
+						const int borderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+						const int borderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+
+						params.rgrc[ 0 ].left += borderX;
+						params.rgrc[ 0 ].top  += borderX;
+						params.rgrc[ 0 ].right -= borderY;
+						params.rgrc[ 0 ].bottom -= borderY;
+
+						return WVR_VALIDRECTS;
+					}
+				}
+
 				// Preserve the old client area and align it with the upper-left corner of the new client area
 				return 0;
-
 			} break;
 
 			case WM_ENTERSIZEMOVE:
 			{
 				SetTimer( handle, 1, USER_TIMER_MINIMUM, NULL );
-
 			} break;
 
 			case WM_EXITSIZEMOVE:
 			{
 				KillTimer( handle, 1 );
-
 			} break;
 
 			case WM_TIMER:
@@ -453,14 +438,12 @@ namespace Saturn {
 				{
 					self->Render();
 				}
-
 			} break;
 
 			case WM_SIZE:
 			case WM_MOVE:
 			{
 				self->Render();
-
 			} break;
 
 		}
