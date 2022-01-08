@@ -77,6 +77,8 @@ namespace Saturn {
 
 	void Scene::OnRenderEditor( Timestep ts )
 	{
+	#if !defined( SAT_DONT_USE_GL )
+
 		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
 		Renderer::Get().BeginScene( this );
 
@@ -97,6 +99,8 @@ namespace Saturn {
 		}
 
 		Renderer::Get().EndScene();
+
+	#endif
 	}
 
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )

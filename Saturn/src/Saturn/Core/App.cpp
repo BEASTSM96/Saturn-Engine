@@ -34,7 +34,11 @@
 #include "Saturn/Discord/DiscordRPC.h"
 
 #include "Saturn/OpenGL/Shader.h"
+#if defined( SAT_DONT_USE_GL )
+#include "Saturn/WindowsDependent/DirectX-12/Renderer.h"
+#else
 #include "Saturn/OpenGL/Renderer.h"
+#endif
 #include "Saturn/OpenGL/Texture.h"
 #include "Saturn/Core/Renderer/EditorCamera.h"
 
@@ -57,17 +61,18 @@ namespace Saturn {
 		Window::Get();
 		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
-		//Renderer::Get();
+		Renderer::Get();
 
 		DiscordRPC::Get().Init();
 
 		while( m_Running )
 		{
+			Window::Get().OnUpdate();
 			Window::Get().Render();
+			Renderer::Get().Render();
 
 			DiscordRPC::Get().Update();
 
-			Window::Get().OnUpdate();
 
 			float time = ( float )glfwGetTime(); //Platform::GetTime();
 

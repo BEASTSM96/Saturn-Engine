@@ -32,7 +32,12 @@
 #include "App.h"
 #include "Saturn/ImGui/Styles.h"
 
+#if defined( SAT_DONT_USE_GL )
+#include "Saturn/WindowsDependent/DirectX-12/Renderer.h"
+#else
 #include "Saturn/OpenGL/Renderer.h"
+#endif
+
 #include "Input.h"
 
 #include "Saturn/OpenGL/xGL.h"
@@ -343,6 +348,15 @@ namespace Saturn {
 
 		m_Rendering = false;
 	}
+
+#if defined( _WIN32 )
+
+	HWND Window::PlatformWindow()
+	{
+		return glfwGetWin32Window( m_Window );
+	}
+
+#endif
 
 	void Window::SizeCallback( GLFWwindow* wind, int h, int w )
 	{

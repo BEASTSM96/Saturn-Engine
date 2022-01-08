@@ -52,6 +52,9 @@ namespace Saturn {
 		ImGui::Begin( "Viewport", 0, flags );
 
 		m_SendCameraEvents = ImGui::IsWindowFocused();
+
+	#if !defined( SAT_DONT_USE_GL ) 
+
 		Renderer::Get().RendererCamera().AllowEvents( m_SendCameraEvents );
 		Renderer::Get().RendererCamera().SetActive( m_SendCameraEvents );
 
@@ -65,6 +68,7 @@ namespace Saturn {
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
 		ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
 		ImGui::PopStyleVar();
+	#endif
 
 		ImGui::End();
 

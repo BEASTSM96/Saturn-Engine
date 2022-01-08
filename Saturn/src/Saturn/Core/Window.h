@@ -73,6 +73,10 @@ namespace Saturn {
 
 		void* NativeWindow() const { return m_Window; }
 
+	#if defined( _WIN32 )
+		HWND PlatformWindow();
+	#endif
+
 		int Width() { return m_Width; }
 		int Height() { return m_Height; }
 

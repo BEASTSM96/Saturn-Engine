@@ -42,6 +42,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+
 namespace Saturn {
 
 	std::string::value_type CharUpFunc( std::string::value_type val ) 
@@ -182,6 +183,8 @@ namespace Saturn {
 				ImGui::EndPopup();
 			}
 
+		#if !defined( SAT_DONT_USE_GL ) 
+
 			ImGui::Begin( "Mesh Material Viewer" );
 
 			if( m_SelectionContext && m_SelectionContext.HasComponent<MeshComponent>() )
@@ -212,6 +215,8 @@ namespace Saturn {
 			}
 
 			ImGui::End();
+
+		#endif
 
 			ImGui::Begin( "Inspector" );
 			if( m_SelectionContext )
@@ -335,6 +340,8 @@ namespace Saturn {
 			updateTransform |= DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 
+	#if !defined( SAT_DONT_USE_GL ) 
+
 		DrawComponent<MeshComponent>( "Mesh", entity, []( auto& mc )
 		{
 			ImGui::Columns( 3 );
@@ -364,6 +371,8 @@ namespace Saturn {
 			ImGui::NextColumn();
 
 		} );
+
+	#endif
 
 		DrawComponent<LightComponent>( "Light", entity, []( auto& lc )
 		{
