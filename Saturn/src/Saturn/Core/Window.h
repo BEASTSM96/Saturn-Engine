@@ -93,7 +93,7 @@ namespace Saturn {
 		EventCallbackFn m_EventCallback;
 
 		// Widgets
-		ImGuiDockspace* m_Dockspace;
+		ImGuiDockspace* m_Dockspace = nullptr;
 
 		bool m_Rendering = false;
 

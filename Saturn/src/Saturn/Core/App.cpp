@@ -57,7 +57,7 @@ namespace Saturn {
 		Window::Get();
 		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
-		Renderer::Get();
+		//Renderer::Get();
 
 		DiscordRPC::Get().Init();
 
@@ -125,7 +125,7 @@ namespace Saturn {
 
 		dispatcher.Dispatch< WindowResizeEvent >( APP_BIND_EVENT_FN( OnWindowResize ) );
 
-		Renderer::Get().OnEvent( e );
+		//Renderer::Get().OnEvent( e );
 	}
 
 	bool Application::OnWindowResize( WindowResizeEvent& e )
@@ -134,8 +134,8 @@ namespace Saturn {
 		if( width && height == 0 )
 			return false;
 
-		glViewport( 0, 0, width, height );
+		//glViewport( 0, 0, width, height );
 
-		Renderer::Get().Resize( width, height );
+		//Renderer::Get().Resize( width, height );
 	}
 }

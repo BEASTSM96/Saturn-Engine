@@ -80,6 +80,8 @@ namespace Saturn {
 
 	#if defined ( SAT_DEBUG ) && !defined ( SAT_DONT_USE_GL )
 		glfwWindowHint( GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE );
+	#elif defined ( SAT_DONT_USE_GL ) && !defined ( SAT_DONT_USE_DX )
+		glfwWindowHint( GLFW_NO_API, GL_TRUE );
 	#endif
 
 		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
@@ -247,8 +249,11 @@ namespace Saturn {
 
 	Window::~Window()
 	{
+	#if !defined ( SAT_DONT_USE_GL )
+
 		ImGui_ImplGlfw_Shutdown();
 		ImGui_ImplOpenGL3_Shutdown();
+	#endif
 
 		glfwDestroyWindow( m_Window );
 	}
@@ -306,20 +311,25 @@ namespace Saturn {
 
 		m_Rendering = true;
 
+	#if !defined ( SAT_DONT_USE_GL )
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
+	#endif
 
-		ImGui::NewFrame();
+		//ImGui::NewFrame();
 
-		m_Dockspace->Draw();
+		//m_Dockspace->Draw();
 
-		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
+		//ImGuiIO& io = ImGui::GetIO();
+		//io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
 
-		ImGui::Render();
+		//ImGui::Render();
 
+	#if !defined ( SAT_DONT_USE_GL )
 		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
+	#endif
 
+		/*
 		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
 		{
 			GLFWwindow* backup_current_context = glfwGetCurrentContext();
@@ -327,6 +337,7 @@ namespace Saturn {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent( backup_current_context );
 		}
+		*/
 
 		glfwSwapBuffers( m_Window );
 

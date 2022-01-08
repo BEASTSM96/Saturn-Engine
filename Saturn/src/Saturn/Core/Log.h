@@ -95,7 +95,7 @@ OStream& operator<<( OStream& os, const glm::vec3& vec )
 }
 
 template<typename OStream>
-OStream& operator<<( OStream& os, const glm::vec4& vec )
+OStream& operator<<( OStream& os, glm::vec4& vec )
 {
 	return os << '(' << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ')';
 }
