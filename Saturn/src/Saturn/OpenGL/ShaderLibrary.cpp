@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "ShaderLibrary.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	ShaderLibrary::ShaderLibrary()
@@ -74,3 +76,5 @@ namespace Saturn {
 		m_Shaders[ namee ] = shader;
 	}
 }
+
+#endif

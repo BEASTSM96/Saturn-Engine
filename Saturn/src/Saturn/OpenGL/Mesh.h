@@ -55,6 +55,8 @@ namespace Assimp {
 	class Importer;
 }
 
+#if !defined( SAT_DONT_USE_GL )
+
 namespace Saturn {
 
 	struct Vertex
@@ -174,3 +176,5 @@ namespace Saturn {
 		friend class Renderer;
 	};
 }
+
+#endif

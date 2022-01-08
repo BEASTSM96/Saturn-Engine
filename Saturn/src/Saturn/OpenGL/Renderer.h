@@ -43,6 +43,8 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	class Scene;
@@ -124,3 +126,5 @@ namespace Saturn {
 		void Init();
 	};
 }
+
+#endif

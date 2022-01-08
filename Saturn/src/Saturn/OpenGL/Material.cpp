@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "Material.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	Material::Material( Ref<Shader> shader ) : m_MaterialShader( shader )
@@ -148,3 +150,5 @@ namespace Saturn {
 	}
 
 }
+
+#endif

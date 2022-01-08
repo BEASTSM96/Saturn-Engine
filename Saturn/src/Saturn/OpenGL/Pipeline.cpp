@@ -31,6 +31,8 @@
 
 #include "xGL.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	static GLenum ShaderDataTypeToOpenGLBaseType( ShaderDataType type )
@@ -110,3 +112,5 @@ namespace Saturn {
 	}
 
 }
+
+#endif

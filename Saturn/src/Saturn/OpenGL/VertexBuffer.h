@@ -36,6 +36,8 @@
 #include <vector>
 #include <string>
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 	
 	// Vertex Shader Type
@@ -148,3 +150,5 @@ namespace Saturn {
 		void* m_Data;
 	};
 }
+
+#endif

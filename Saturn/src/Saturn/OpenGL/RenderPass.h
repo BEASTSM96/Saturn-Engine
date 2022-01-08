@@ -31,6 +31,8 @@
 #include "Saturn/Core/Base.h"
 #include "Framebuffer.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	struct RenderPassSpecification
@@ -49,3 +51,5 @@ namespace Saturn {
 		RenderPassSpecification m_Specification;
 	};
 }
+
+#endif

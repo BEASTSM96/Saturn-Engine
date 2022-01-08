@@ -34,6 +34,8 @@
 #include <vector>
 #include <unordered_map>
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	class ShaderLibrary
@@ -56,3 +58,5 @@ namespace Saturn {
 	};
 
 }
+
+#endif

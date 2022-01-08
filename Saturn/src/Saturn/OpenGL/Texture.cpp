@@ -31,6 +31,8 @@
 
 #include "xGL.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	// Sat -> OpenGL
@@ -270,3 +272,5 @@ namespace Saturn {
 	}
 
 }
+
+#endif

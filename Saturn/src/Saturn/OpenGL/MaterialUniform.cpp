@@ -31,6 +31,8 @@
 
 #include "Texture.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	MaterialUniform::MaterialUniform( const std::string& name, Ref<Texture2D>& texture, const std::string& textureName, const std::string& textureNameInShader )
@@ -66,3 +68,5 @@ namespace Saturn {
 	}
 
 }
+
+#endif

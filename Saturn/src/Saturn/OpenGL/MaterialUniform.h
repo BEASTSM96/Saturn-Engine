@@ -33,6 +33,8 @@
 
 #include <string>
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	class Texture2D;
@@ -83,3 +85,5 @@ namespace Saturn {
 	};
 
 }
+
+#endif

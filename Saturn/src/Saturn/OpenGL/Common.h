@@ -28,6 +28,8 @@
 
 #pragma once
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 #include <stdint.h>
 
 #define GL_CLEAR_COLOR_X_Y_Z 0.100000001, 0.100000001, 0.100000001
@@ -37,3 +39,5 @@ namespace Saturn {
 	typedef uint32_t RendererID;
 
 }
+
+#endif

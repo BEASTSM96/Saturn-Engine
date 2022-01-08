@@ -32,6 +32,8 @@
 #include "Shader.h"
 #include "VertexBuffer.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	struct PipelineSpecification
@@ -59,3 +61,5 @@ namespace Saturn {
 	};
 
 }
+
+#endif

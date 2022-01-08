@@ -31,6 +31,8 @@
 
 #include "xGL.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	IndexBuffer::IndexBuffer( void* data, uint32_t size, uint32_t offset /* = 0 */ ) : m_Size( size )
@@ -61,3 +63,5 @@ namespace Saturn {
 	}
 
 }
+
+#endif

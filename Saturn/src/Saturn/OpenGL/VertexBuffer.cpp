@@ -3,6 +3,8 @@
 
 #include "xGL.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	static GLenum OpenGLUsage( VertexBufferUsage usage )
@@ -51,3 +53,5 @@ namespace Saturn {
 		glNamedBufferSubData( m_RendererID, offset, m_Size, m_Data );
 	}
 }
+
+#endif

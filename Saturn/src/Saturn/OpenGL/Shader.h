@@ -31,6 +31,8 @@
 #include "Common.h"
 #include <string>
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	enum class ShaderDomain
@@ -95,3 +97,5 @@ namespace Saturn {
 		std::vector<MaterialUniform> m_ShaderUniforms;
 	};
 }
+
+#endif

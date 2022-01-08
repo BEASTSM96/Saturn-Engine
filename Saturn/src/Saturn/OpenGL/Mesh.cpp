@@ -49,6 +49,8 @@
 
 #include <filesystem>
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 #if defined( SAT_DEBUG )
@@ -366,3 +368,5 @@ namespace Saturn {
 	}
 
 }
+
+#endif

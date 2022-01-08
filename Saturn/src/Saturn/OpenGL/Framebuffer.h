@@ -35,6 +35,8 @@
 #include <stdint.h>
 #include <vector>
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	enum class FramebufferTextureFormat
@@ -102,3 +104,5 @@ namespace Saturn {
 		uint32_t m_Width = 0, m_Height = 0;
 	};
 }
+
+#endif

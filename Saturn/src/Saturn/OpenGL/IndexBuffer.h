@@ -31,6 +31,8 @@
 #include "Common.h"
 #include <stdint.h>
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	// For indexing VBOS
@@ -52,3 +54,5 @@ namespace Saturn {
 	};
 
 }
+
+#endif

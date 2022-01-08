@@ -32,6 +32,8 @@
 
 #include <stdint.h>
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	enum class ShaderDataType
@@ -63,3 +65,5 @@ namespace Saturn {
 	}
 
 }
+
+#endif

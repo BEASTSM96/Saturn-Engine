@@ -41,6 +41,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	const char* Shader::FindToken( const char* shader, const std::string& token )
@@ -421,3 +423,5 @@ namespace Saturn {
 	}
 
 }
+
+#endif

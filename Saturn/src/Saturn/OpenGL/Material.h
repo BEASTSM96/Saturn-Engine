@@ -36,6 +36,8 @@
 #include "Texture.h"
 #include "VertexBuffer.h"
 
+#if !defined( SAT_DONT_USE_GL ) 
+
 namespace Saturn {
 
 	enum class MaterialFlag
@@ -104,3 +106,5 @@ namespace Saturn {
 		std::vector<std::string> m_PropsChanged;
 	};
 }
+
+#endif
