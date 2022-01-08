@@ -44,7 +44,6 @@
 int main( int count, char** args ) 
 {
 	Saturn::Application::Get();
-
 	Saturn::Application::Get().Run();
 }
 
