@@ -30,6 +30,7 @@
 #include "Renderer.h"
 
 #include "Saturn/Core/Window.h"
+#include "Shader.h"
 
 namespace Saturn {
 
@@ -217,18 +218,7 @@ namespace Saturn {
 
 			// Create the pipeline state, which includes compiling and loading shaders.
 			{
-				ComPtr<ID3DBlob> vertexShader;
-				ComPtr<ID3DBlob> pixelShader;
-
-			#if defined(_DEBUG)
-				// Enable better shader debugging with the graphics debugging tools.
-				UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-			#else
-				UINT compileFlags = 0;
-			#endif
-
-				ThrowIfFailed( D3DCompileFromFile( L"assets\\shaders\\DX\\shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr ) );
-				ThrowIfFailed( D3DCompileFromFile( L"assets\\shaders\\DX\\shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr ) );
+				Shader triangleShader( "assets\\shaders\\DX\\shader.hlsl" );
 
 				// Define the vertex input layout.
 				D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
@@ -241,8 +231,8 @@ namespace Saturn {
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc ={};
 				psoDesc.InputLayout ={ inputElementDescs, _countof( inputElementDescs ) };
 				psoDesc.pRootSignature = m_RootSignature.Get();
-				psoDesc.VS = CD3DX12_SHADER_BYTECODE( vertexShader.Get() );
-				psoDesc.PS = CD3DX12_SHADER_BYTECODE( pixelShader.Get() );
+				psoDesc.VS = CD3DX12_SHADER_BYTECODE( triangleShader.VertexShader().Get() );
+				psoDesc.PS = CD3DX12_SHADER_BYTECODE( triangleShader.PixelShader().Get() );
 				psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC( D3D12_DEFAULT );
 				psoDesc.BlendState = CD3DX12_BLEND_DESC( D3D12_DEFAULT );
 				psoDesc.DepthStencilState.DepthEnable = FALSE;

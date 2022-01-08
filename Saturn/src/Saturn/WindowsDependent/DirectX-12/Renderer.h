@@ -51,6 +51,11 @@ namespace Saturn {
 
 		void Render();
 
+		ComPtr<ID3D12Device>& Device() { return m_Device; }
+		ComPtr<ID3D12CommandQueue>& CommandQueue() { return m_CommandQueue; }
+		ComPtr<ID3D12GraphicsCommandList>& CommandList() { return m_CommandList; }
+		ComPtr<ID3D12DescriptorHeap>& RTVHeap() { return m_RenderViewTargetHeap; }
+
 	public:
 	protected:
 	private:
