@@ -72,6 +72,11 @@ namespace Saturn {
 		ThrowIfFailed( m_CommandList->Reset( m_CommandAllocator.Get(), m_PipelineState.Get() ) );
 
 		m_CommandList->SetGraphicsRootSignature( m_RootSignature.Get() );
+
+		ID3D12DescriptorHeap* ppHeaps[] ={ m_SRVHeap.Get() };
+		m_CommandList->SetDescriptorHeaps( _countof( ppHeaps ), ppHeaps );
+
+		m_CommandList->SetGraphicsRootDescriptorTable( 0, m_SRVHeap->GetGPUDescriptorHandleForHeapStart() );
 		m_CommandList->RSSetViewports( 1, &m_Viewport );
 		m_CommandList->RSSetScissorRects( 1, &m_ScissorRect );
 
@@ -183,6 +188,12 @@ namespace Saturn {
 			rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 			rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 			ThrowIfFailed( m_Device->CreateDescriptorHeap( &rtvHeapDesc, IID_PPV_ARGS( &m_RenderViewTargetHeap ) ) );
+
+			D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc ={};
+			srvHeapDesc.NumDescriptors = 1;
+			srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+			ThrowIfFailed( m_Device->CreateDescriptorHeap( &srvHeapDesc, IID_PPV_ARGS( &m_SRVHeap ) ) );
 
 			m_RTVDescriptorSize = m_Device->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
 		}

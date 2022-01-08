@@ -59,9 +59,11 @@ namespace Saturn {
 	void Application::Run()
 	{
 		Window::Get();
-		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
-
 		Renderer::Get();
+
+		Window::Get().ImGuiLateInit();
+
+		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
 		DiscordRPC::Get().Init();
 

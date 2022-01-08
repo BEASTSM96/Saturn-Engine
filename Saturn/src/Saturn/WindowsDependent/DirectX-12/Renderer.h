@@ -52,9 +52,14 @@ namespace Saturn {
 		void Render();
 
 		ComPtr<ID3D12Device>& Device() { return m_Device; }
+		const ComPtr<ID3D12Device>& Device() const { return m_Device; }
+
+		ComPtr<ID3D12Device> DeviceNR() const { return m_Device; }
+
 		ComPtr<ID3D12CommandQueue>& CommandQueue() { return m_CommandQueue; }
 		ComPtr<ID3D12GraphicsCommandList>& CommandList() { return m_CommandList; }
 		ComPtr<ID3D12DescriptorHeap>& RTVHeap() { return m_RenderViewTargetHeap; }
+		ComPtr<ID3D12DescriptorHeap>& SRVHeap() { return m_RenderViewTargetHeap; }
 
 	public:
 	protected:
@@ -74,6 +79,7 @@ namespace Saturn {
 		ComPtr<ID3D12CommandQueue>        m_CommandQueue;
 		ComPtr<ID3D12RootSignature>       m_RootSignature;
 		ComPtr<ID3D12DescriptorHeap>      m_RenderViewTargetHeap;
+		ComPtr<ID3D12DescriptorHeap>      m_SRVHeap;
 		ComPtr<ID3D12PipelineState>       m_PipelineState;
 		ComPtr<ID3D12GraphicsCommandList> m_CommandList;
 		ComPtr<ID3D12Fence>               m_Fence;

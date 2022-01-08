@@ -53,9 +53,12 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include "backends/imgui_impl_glfw.h"
+
 #if !defined ( SAT_DONT_USE_GL )
 #include "backends/imgui_impl_opengl3.h"
-#include "backends/imgui_impl_glfw.h"
+#else
+#include "backends/imgui_impl_dx12.h"
 #endif
 
 #if defined ( SAT_WINDOWS )
@@ -247,6 +250,9 @@ namespace Saturn {
 		ImGui_ImplGlfw_InitForOpenGL( m_Window, true );
 		ImGui_ImplOpenGL3_Init( "#version 410" );
 
+	#else
+
+		ImGui_ImplGlfw_InitForOther( m_Window, true );
 	#endif
 
 		m_Dockspace = new ImGuiDockspace();
@@ -258,6 +264,12 @@ namespace Saturn {
 
 		ImGui_ImplGlfw_Shutdown();
 		ImGui_ImplOpenGL3_Shutdown();
+
+	#else
+
+		ImGui_ImplGlfw_Shutdown();
+		ImGui_ImplDX12_Shutdown();
+
 	#endif
 
 		glfwDestroyWindow( m_Window );
@@ -318,23 +330,26 @@ namespace Saturn {
 
 	#if !defined ( SAT_DONT_USE_GL )
 		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
+	#else
+		ImGui_ImplDX12_NewFrame();
 	#endif
 
-		//ImGui::NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 
-		//m_Dockspace->Draw();
+		m_Dockspace->Draw();
 
-		//ImGuiIO& io = ImGui::GetIO();
-		//io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
+		ImGuiIO& io = ImGui::GetIO();
+		io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
 
-		//ImGui::Render();
+		ImGui::Render();
 
 	#if !defined ( SAT_DONT_USE_GL )
 		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
+	#else
+		//ImGui_ImplDX12_RenderDrawData( ImGui::GetDrawData(), Renderer::Get().CommandList().Get() );
 	#endif
 
-		/*
 		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
 		{
 			GLFWwindow* backup_current_context = glfwGetCurrentContext();
@@ -342,11 +357,18 @@ namespace Saturn {
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent( backup_current_context );
 		}
-		*/
 
 		glfwSwapBuffers( m_Window );
 
 		m_Rendering = false;
+	}
+
+	void Window::ImGuiLateInit()
+	{
+		auto d = Renderer::Get().DeviceNR().Get();
+		auto srv = Renderer::Get().SRVHeap().Get();
+
+		ImGui_ImplDX12_Init( d, 3, DXGI_FORMAT_R8G8B8A8_UNORM, srv, srv->GetCPUDescriptorHandleForHeapStart(), srv->GetGPUDescriptorHandleForHeapStart() );
 	}
 
 #if defined( _WIN32 )

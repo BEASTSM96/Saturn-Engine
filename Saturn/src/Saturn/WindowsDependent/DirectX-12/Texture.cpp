@@ -122,7 +122,7 @@ namespace Saturn {
 		m_ResourceViewDesc.Format = m_TextureDesc.Format;
 		m_ResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		m_ResourceViewDesc.Texture2D.MipLevels = 1;
-		Renderer::Get().Device()->CreateShaderResourceView( m_Texture.Get(), &m_ResourceViewDesc, Renderer::Get().RTVHeap()->GetCPUDescriptorHandleForHeapStart() );
+		Renderer::Get().Device()->CreateShaderResourceView( m_Texture.Get(), &m_ResourceViewDesc, Renderer::Get().SRVHeap()->GetCPUDescriptorHandleForHeapStart() );
 
 		stbi_image_free( m_ImageData );
 	}
