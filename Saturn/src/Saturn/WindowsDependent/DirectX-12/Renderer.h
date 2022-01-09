@@ -53,18 +53,20 @@ namespace Saturn {
 
 		ComPtr<ID3D12Device>& Device() { return m_Device; }
 		const ComPtr<ID3D12Device>& Device() const { return m_Device; }
-
-		ComPtr<ID3D12Device> DeviceNR() const { return m_Device; }
+		ID3D12Device* DeviceNR() const { return m_Device.Get(); }
 
 		ComPtr<ID3D12CommandQueue>& CommandQueue() { return m_CommandQueue; }
 		ComPtr<ID3D12GraphicsCommandList>& CommandList() { return m_CommandList; }
 		ComPtr<ID3D12DescriptorHeap>& RTVHeap() { return m_RenderViewTargetHeap; }
-		ComPtr<ID3D12DescriptorHeap>& SRVHeap() { return m_RenderViewTargetHeap; }
+		ComPtr<ID3D12DescriptorHeap>& SRVHeap() { return m_SRVHeap; }
 
 	public:
 	protected:
 	private:
 
+		void CreateRootSignature();
+		void CreateDescriptorHeaps();
+		void CreateFrameResources();
 
 	private:
 		static const UINT m_FrameCount = 2;

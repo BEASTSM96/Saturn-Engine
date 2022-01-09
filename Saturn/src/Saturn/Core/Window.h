@@ -73,7 +73,7 @@ namespace Saturn {
 
 		void* NativeWindow() const { return m_Window; }
 
-		void ImGuiLateInit();
+		void ImGuiInit();
 
 	#if defined( _WIN32 )
 		HWND PlatformWindow();

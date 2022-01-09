@@ -61,7 +61,7 @@ namespace Saturn {
 		Window::Get();
 		Renderer::Get();
 
-		Window::Get().ImGuiLateInit();
+		Window::Get().ImGuiInit();
 
 		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
@@ -143,6 +143,6 @@ namespace Saturn {
 
 		//glViewport( 0, 0, width, height );
 
-		//Renderer::Get().Resize( width, height );
+		Renderer::Get().Resize( width, height );
 	}
 }

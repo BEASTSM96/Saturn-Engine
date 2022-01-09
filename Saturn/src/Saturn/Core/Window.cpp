@@ -70,6 +70,10 @@
 // FIXME
 #include "Saturn/OpenGL/Framebuffer.h"
 
+#include <dxgidebug.h>
+#include <D3d12SDKLayers.h>
+#pragma comment(lib, "dxguid.lib")
+
 namespace Saturn {
 
 	ImFont* s_DefualtFont;
@@ -218,44 +222,7 @@ namespace Saturn {
 		m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
 
 	#endif
-		// Init ImGui
 
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGui::StyleColorsDark();
-
-		// ImGui Theme
-
-		ImGuiIO& io = ImGui::GetIO(); ( void )io;
-
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-		ImGuiStyle& style = ImGui::GetStyle();
-		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
-		{
-			style.WindowRounding = 0.0f;
-			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
-		}
-
-		s_DefualtFont = io.Fonts->AddFontFromFileTTF( "assets\\Fonts\\NotoSans-Regular.ttf", 18.0f );
-		io.FontDefault = io.Fonts->Fonts.back();
-
-		Styles::Dark();
-
-	#if !defined ( SAT_DONT_USE_GL )
-
-		ImGui_ImplGlfw_InitForOpenGL( m_Window, true );
-		ImGui_ImplOpenGL3_Init( "#version 410" );
-
-	#else
-
-		ImGui_ImplGlfw_InitForOther( m_Window, true );
-	#endif
-
-		m_Dockspace = new ImGuiDockspace();
 	}
 
 	Window::~Window()
@@ -336,7 +303,8 @@ namespace Saturn {
 
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-
+		
+		ImGui::ShowDemoWindow();
 		m_Dockspace->Draw();
 
 		ImGuiIO& io = ImGui::GetIO();
@@ -347,7 +315,7 @@ namespace Saturn {
 	#if !defined ( SAT_DONT_USE_GL )
 		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
 	#else
-		//ImGui_ImplDX12_RenderDrawData( ImGui::GetDrawData(), Renderer::Get().CommandList().Get() );
+		// DX is in Renderer.h
 	#endif
 
 		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
@@ -363,12 +331,37 @@ namespace Saturn {
 		m_Rendering = false;
 	}
 
-	void Window::ImGuiLateInit()
+	void Window::ImGuiInit()
 	{
-		auto d = Renderer::Get().DeviceNR().Get();
-		auto srv = Renderer::Get().SRVHeap().Get();
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGui::StyleColorsDark();
 
-		ImGui_ImplDX12_Init( d, 3, DXGI_FORMAT_R8G8B8A8_UNORM, srv, srv->GetCPUDescriptorHandleForHeapStart(), srv->GetGPUDescriptorHandleForHeapStart() );
+		// ImGui Theme
+
+		ImGuiIO& io = ImGui::GetIO(); ( void )io;
+
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+		ImGuiStyle& style = ImGui::GetStyle();
+		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
+		{
+			style.WindowRounding = 0.0f;
+			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
+		}
+
+		//s_DefualtFont = io.Fonts->AddFontFromFileTTF( "assets\\Fonts\\NotoSans-Regular.ttf", 18.0f );
+		//io.FontDefault = io.Fonts->Fonts.back();
+
+		Styles::Dark();
+
+		ImGui_ImplGlfw_InitForOther( m_Window, true );
+		ImGui_ImplDX12_Init( Renderer::Get().Device().Get(), 3, DXGI_FORMAT_R8G8B8A8_UNORM, Renderer::Get().SRVHeap().Get(), Renderer::Get().SRVHeap()->GetCPUDescriptorHandleForHeapStart(), Renderer::Get().SRVHeap()->GetGPUDescriptorHandleForHeapStart() );
+
+		m_Dockspace = new ImGuiDockspace();
 	}
 
 #if defined( _WIN32 )
