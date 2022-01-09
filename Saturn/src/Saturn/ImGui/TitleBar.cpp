@@ -53,6 +53,9 @@ namespace Saturn {
 				ImGui::EndMenu();
 			}
 
+			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + 30 );
+			ImGui::Text( "%.1f FPS", ImGui::GetIO().Framerate );
+
 			// System buttons
 			{
 				const float  buttonSize = ImGui::GetFrameHeight();

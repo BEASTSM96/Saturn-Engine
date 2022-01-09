@@ -303,8 +303,7 @@ namespace Saturn {
 
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		
-		ImGui::ShowDemoWindow();
+
 		m_Dockspace->Draw();
 
 		ImGuiIO& io = ImGui::GetIO();
