@@ -40,6 +40,8 @@ namespace Saturn {
 
 	void TitleBar::Draw()
 	{
+		ImGui::SetNextItemWidth( 25.0f );
+
 		if( ImGui::BeginMainMenuBar() )
 		{
 			m_Height = ImGui::GetWindowHeight();

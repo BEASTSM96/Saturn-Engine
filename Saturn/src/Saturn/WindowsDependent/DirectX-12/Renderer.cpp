@@ -32,9 +32,11 @@
 #include "Saturn/Core/Window.h"
 #include "Shader.h"
 
+#include <backends/imgui_impl_dx12.h>
+
 namespace Saturn {
 
-	void Renderer::Init() 
+	void Renderer::Init()
 	{
 		m_FrameIndex = 0;
 		m_RTVDescriptorSize = 0;
@@ -50,6 +52,11 @@ namespace Saturn {
 		WaitForPreviousFrame();
 
 		CloseHandle( m_FenceEvent );
+
+		m_CommandQueue.Reset();
+		//ResetComPtrArray( m_RenderTargets );
+		m_SwapChain.Reset();
+		m_Device.Reset();
 	}
 
 	void Renderer::Clear()
@@ -62,15 +69,118 @@ namespace Saturn {
 
 	void Renderer::Resize( int width, int height )
 	{
+		if ( width != 0 || height != 0 )
+		{
+			for( UINT i = 0; i < m_FrameCount; i++ )
+			{
+				m_RenderTargets[ i ].Reset();
+				m_FenceValue = m_FrameIndex;
+			}
 
+			DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+			m_SwapChain->GetDesc( &swapChainDesc );
+			ThrowIfFailed( m_SwapChain->ResizeBuffers( m_FrameCount, width, height, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags ) );
+
+			BOOL fullscreenState;
+			ThrowIfFailed( m_SwapChain->GetFullscreenState( &fullscreenState, nullptr ) );
+			// #TODO: windowed mode
+
+			m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
+
+			m_AspectRatio = Window::Get().Width() / Window::Get().Height();
+
+			CreateFrameResources();
+		}
 	}
 	
+	void Renderer::CreateRootSignature()
+	{
+		// Create the root signature.
+		D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData ={};
+
+		// This is the highest version the sample supports. If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
+		featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+		if( FAILED( m_Device->CheckFeatureSupport( D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof( featureData ) ) ) )
+		{
+			featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+		}
+
+		CD3DX12_DESCRIPTOR_RANGE1 ranges[ 1 ];
+		ranges[ 0 ].Init( D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC );
+
+		CD3DX12_ROOT_PARAMETER1 rootParameters[ 1 ];
+		rootParameters[ 0 ].InitAsDescriptorTable( 1, &ranges[ 0 ], D3D12_SHADER_VISIBILITY_PIXEL );
+
+		D3D12_STATIC_SAMPLER_DESC sampler ={};
+		sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+		sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+		sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+		sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+		sampler.MipLODBias = 0;
+		sampler.MaxAnisotropy = 0;
+		sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+		sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+		sampler.MinLOD = 0.0f;
+		sampler.MaxLOD = D3D12_FLOAT32_MAX;
+		sampler.ShaderRegister = 0;
+		sampler.RegisterSpace = 0;
+		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+		rootSignatureDesc.Init_1_1( _countof( rootParameters ), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT );
+
+		ComPtr<ID3DBlob> signature;
+		ComPtr<ID3DBlob> error;
+		ThrowIfFailed( D3DX12SerializeVersionedRootSignature( &rootSignatureDesc, featureData.HighestVersion, &signature, &error ) );
+		ThrowIfFailed( m_Device->CreateRootSignature( 0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS( &m_RootSignature ) ) );
+	}
+
+	void Renderer::CreateDescriptorHeaps()
+	{
+		// Create render view target.
+		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc ={};
+		rtvHeapDesc.NumDescriptors = m_FrameCount;
+		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		ThrowIfFailed( m_Device->CreateDescriptorHeap( &rtvHeapDesc, IID_PPV_ARGS( &m_RenderViewTargetHeap ) ) );
+
+		// Create a shader resource view.
+		D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc ={};
+		srvHeapDesc.NumDescriptors = 1;
+		srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		ThrowIfFailed( m_Device->CreateDescriptorHeap( &srvHeapDesc, IID_PPV_ARGS( &m_SRVHeap ) ) );
+
+		m_RTVDescriptorSize = m_Device->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
+	}
+
+	void Renderer::CreateFrameResources()
+	{
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle( m_RenderViewTargetHeap->GetCPUDescriptorHandleForHeapStart() );
+
+		// Create a RTV for each frame
+		for( UINT n = 0; n < m_FrameCount; n++ )
+		{
+			ThrowIfFailed( m_SwapChain->GetBuffer( n, IID_PPV_ARGS( &m_RenderTargets[ n ] ) ) );
+			m_Device->CreateRenderTargetView( m_RenderTargets[ n ].Get(), nullptr, rtvHandle );
+			rtvHandle.Offset( 1, m_RTVDescriptorSize );
+		}
+	}
+
 	void Renderer::PopulateCommandList()
 	{
+		// Command list allocators can only be reset when the associated 
+		// command lists have finished execution on the GPU; apps should use 
+		// fences to determine GPU execution progress.
 		ThrowIfFailed( m_CommandAllocator->Reset() );
 
+		// However, when ExecuteCommandList() is called on a particular command 
+		// list, that command list can then be reset at any time and must be before 
+		// re-recording.
 		ThrowIfFailed( m_CommandList->Reset( m_CommandAllocator.Get(), m_PipelineState.Get() ) );
 
+		// Set necessary state.
 		m_CommandList->SetGraphicsRootSignature( m_RootSignature.Get() );
 
 		ID3D12DescriptorHeap* ppHeaps[] ={ m_SRVHeap.Get() };
@@ -80,17 +190,22 @@ namespace Saturn {
 		m_CommandList->RSSetViewports( 1, &m_Viewport );
 		m_CommandList->RSSetScissorRects( 1, &m_ScissorRect );
 
+		// Indicate that the back buffer will be used as a render target.
 		m_CommandList->ResourceBarrier( 1, &CD3DX12_RESOURCE_BARRIER::Transition( m_RenderTargets[ m_FrameIndex ].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET ) );
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle( m_RenderViewTargetHeap->GetCPUDescriptorHandleForHeapStart(), m_FrameIndex, m_RTVDescriptorSize );
 		m_CommandList->OMSetRenderTargets( 1, &rtvHandle, FALSE, nullptr );
 
-		Clear();
-
+		// Record commands.
+		const float clearColor[] ={ 0.0f, 0.2f, 0.4f, 1.0f };
+		m_CommandList->ClearRenderTargetView( rtvHandle, clearColor, 0, nullptr );
 		m_CommandList->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 		m_CommandList->IASetVertexBuffers( 0, 1, &m_VertexBufferView );
 		m_CommandList->DrawInstanced( 3, 1, 0, 0 );
 
+		ImGui_ImplDX12_RenderDrawData( ImGui::GetDrawData(), m_CommandList.Get() );
+
+		// Indicate that the back buffer will now be used to present.
 		m_CommandList->ResourceBarrier( 1, &CD3DX12_RESOURCE_BARRIER::Transition( m_RenderTargets[ m_FrameIndex ].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT ) );
 
 		ThrowIfFailed( m_CommandList->Close() );
@@ -162,7 +277,7 @@ namespace Saturn {
 
 		ThrowIfFailed( m_Device->CreateCommandQueue( &queueDesc, IID_PPV_ARGS( &m_CommandQueue ) ) );
 
-		// Describe and create the swap chain.
+		// Create the swap chain.
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc ={};
 		swapChainDesc.BufferCount = m_FrameCount;
 		swapChainDesc.Width = Window::Get().Width();
@@ -181,52 +296,16 @@ namespace Saturn {
 		ThrowIfFailed( swapChain.As( &m_SwapChain ) );
 		m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 
-		// Create descriptor heaps
-		{
-			D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc ={};
-			rtvHeapDesc.NumDescriptors = m_FrameCount;
-			rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-			rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-			ThrowIfFailed( m_Device->CreateDescriptorHeap( &rtvHeapDesc, IID_PPV_ARGS( &m_RenderViewTargetHeap ) ) );
+		CreateDescriptorHeaps();
 
-			D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc ={};
-			srvHeapDesc.NumDescriptors = 1;
-			srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-			srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-			ThrowIfFailed( m_Device->CreateDescriptorHeap( &srvHeapDesc, IID_PPV_ARGS( &m_SRVHeap ) ) );
-
-			m_RTVDescriptorSize = m_Device->GetDescriptorHandleIncrementSize( D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
-		}
-
-		// Create frame resources
-		{
-			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle( m_RenderViewTargetHeap->GetCPUDescriptorHandleForHeapStart() );
-
-			// Create a RTV for each frame
-			for( UINT n = 0; n < m_FrameCount; n++ )
-			{
-				ThrowIfFailed( m_SwapChain->GetBuffer( n, IID_PPV_ARGS( &m_RenderTargets[ n ] ) ) );
-				m_Device->CreateRenderTargetView( m_RenderTargets[ n ].Get(), nullptr, rtvHandle );
-				rtvHandle.Offset( 1, m_RTVDescriptorSize );
-			}
-		}
+		CreateFrameResources();
 
 		ThrowIfFailed( m_Device->CreateCommandAllocator( D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS( &m_CommandAllocator ) ) );
 
+		CreateRootSignature();
 
 		// TEMP LOAD HELLO TRI
 		{
-			// Create an empty root signature.
-			{
-				CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-				rootSignatureDesc.Init( 0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT );
-
-				ComPtr<ID3DBlob> signature;
-				ComPtr<ID3DBlob> error;
-				ThrowIfFailed( D3D12SerializeRootSignature( &rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error ) );
-				ThrowIfFailed( m_Device->CreateRootSignature( 0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS( &m_RootSignature ) ) );
-			}
-
 			// Create the pipeline state, which includes compiling and loading shaders.
 			{
 				Shader triangleShader( "assets\\shaders\\DX\\shader.hlsl" );
@@ -320,7 +399,6 @@ namespace Saturn {
 				WaitForPreviousFrame();
 			}
 		}
-
 	}
 
 	void Renderer::Render()
