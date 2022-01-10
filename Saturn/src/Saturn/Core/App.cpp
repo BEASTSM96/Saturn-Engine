@@ -34,10 +34,12 @@
 #include "Saturn/Discord/DiscordRPC.h"
 
 #include "Saturn/OpenGL/Shader.h"
-#if defined( SAT_DONT_USE_GL )
-#include "Saturn/WindowsDependent/DirectX-12/Renderer.h"
-#else
+#if !defined ( SAT_DONT_USE_GL )
 #include "Saturn/OpenGL/Renderer.h"
+#elif !defined( SAT_DONT_USE_DX )
+// Dx
+#else !defined( SAT_DONT_USE_VK )
+// Vk
 #endif
 #include "Saturn/OpenGL/Texture.h"
 #include "Saturn/Core/Renderer/EditorCamera.h"
@@ -59,7 +61,7 @@ namespace Saturn {
 	void Application::Run()
 	{
 		Window::Get();
-		Renderer::Get();
+		//Renderer::Get();
 
 		Window::Get().ImGuiInit();
 
@@ -71,7 +73,7 @@ namespace Saturn {
 		{
 			Window::Get().OnUpdate();
 			Window::Get().Render();
-			Renderer::Get().Render();
+			//Renderer::Get().Render();
 
 			DiscordRPC::Get().Update();
 
@@ -143,6 +145,6 @@ namespace Saturn {
 
 		//glViewport( 0, 0, width, height );
 
-		Renderer::Get().Resize( width, height );
+		//Renderer::Get().Resize( width, height );
 	}
 }

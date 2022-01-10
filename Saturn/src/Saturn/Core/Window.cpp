@@ -33,7 +33,7 @@
 #include "Saturn/ImGui/Styles.h"
 
 #if defined( SAT_DONT_USE_GL )
-#include "Saturn/WindowsDependent/DirectX-12/Renderer.h"
+// dx
 #else
 #include "Saturn/OpenGL/Renderer.h"
 #endif
@@ -232,7 +232,7 @@ namespace Saturn {
 		ImGui_ImplGlfw_Shutdown();
 		ImGui_ImplOpenGL3_Shutdown();
 
-	#else
+	#elif !defined ( SAT_DONT_USE_DX )
 
 		ImGui_ImplGlfw_Shutdown();
 		ImGui_ImplDX12_Shutdown();
@@ -297,19 +297,19 @@ namespace Saturn {
 
 	#if !defined ( SAT_DONT_USE_GL )
 		ImGui_ImplOpenGL3_NewFrame();
-	#else
-		ImGui_ImplDX12_NewFrame();
+	#elif !defined( SAT_DONT_USE_DX )
+		//dx
 	#endif
 
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+		//ImGui_ImplGlfw_NewFrame();
+		//ImGui::NewFrame();
 
-		m_Dockspace->Draw();
+		//m_Dockspace->Draw();
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
 
-		ImGui::Render();
+		//ImGui::Render();
 
 	#if !defined ( SAT_DONT_USE_GL )
 		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
@@ -320,8 +320,8 @@ namespace Saturn {
 		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
 		{
 			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
+			//ImGui::UpdatePlatformWindows();
+			//ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent( backup_current_context );
 		}
 
@@ -352,13 +352,12 @@ namespace Saturn {
 			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
 		}
 
-		//s_DefualtFont = io.Fonts->AddFontFromFileTTF( "assets\\Fonts\\NotoSans-Regular.ttf", 18.0f );
-		//io.FontDefault = io.Fonts->Fonts.back();
+		s_DefualtFont = io.Fonts->AddFontFromFileTTF( "assets\\Fonts\\NotoSans-Regular.ttf", 18.0f );
+		io.FontDefault = io.Fonts->Fonts.back();
 
 		Styles::Dark();
 
-		ImGui_ImplGlfw_InitForOther( m_Window, true );
-		ImGui_ImplDX12_Init( Renderer::Get().Device().Get(), 3, DXGI_FORMAT_R8G8B8A8_UNORM, Renderer::Get().SRVHeap().Get(), Renderer::Get().SRVHeap()->GetCPUDescriptorHandleForHeapStart(), Renderer::Get().SRVHeap()->GetGPUDescriptorHandleForHeapStart() );
+		// Call backends depend on Rendering API
 
 		m_Dockspace = new ImGuiDockspace();
 	}
@@ -479,7 +478,15 @@ namespace Saturn {
 				}
 			} break;
 
-			case WM_SIZE:
+			case WM_SIZE: 
+			{
+				RECT clientRect ={};
+				GetClientRect( handle, &clientRect );
+
+				self->SizeCallback( self->m_Window, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top );
+				self->Render();
+			} break;
+
 			case WM_MOVE:
 			{
 				self->Render();

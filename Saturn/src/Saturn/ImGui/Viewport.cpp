@@ -37,6 +37,17 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <D3Dcompiler.h>
+#include <DirectXMath.h>
+#include "d3dx12.h"
+#include <d3d11.h>
+
+#if !defined( SAT_DONT_USE_DX )
+// dx
+#endif
+
 namespace Saturn {
 
 	Viewport::Viewport()
@@ -68,6 +79,11 @@ namespace Saturn {
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
 		ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
 		ImGui::PopStyleVar();
+
+	#elif !defined( SAT_DONT_USE_DX )
+		//dx
+	#elif !defined( SAT_DONT_USE_VK )
+		// VK
 	#endif
 
 		ImGui::End();
