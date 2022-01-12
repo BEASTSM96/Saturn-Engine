@@ -57,6 +57,7 @@ project "Saturn"
 		"%{prj.name}/vendor/stb/**.cpp",
 		"%{prj.name}/vendor/stb/**.h",
 		"%{prj.name}/vendor/d3d12/**.h",
+		"%{prj.name}/vendor/vulkan/**.h",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl",
 	}
@@ -75,6 +76,7 @@ project "Saturn"
 		"%{prj.name}/vendor/stb/",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/vendor/d3d12/",
+		"%{prj.name}/vendor/vulkan/",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
@@ -100,7 +102,8 @@ project "Saturn"
 			"opengl32.lib",
 			"d3d12.lib",
 			"dxgi.lib",
-			"d3dcompiler.lib"
+			"d3dcompiler.lib",
+			"C:/VulkanSDK/1.2.170.0/Lib/vulkan-1.lib"
 		}
 
 		defines
