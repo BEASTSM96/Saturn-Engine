@@ -238,7 +238,7 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 
 
-	IndexBuffer::IndexBuffer( std::vector<uint32_t> Indices ) : m_Indices( Indices )
+	IndexBuffer::IndexBuffer( const std::vector<Index>& Indices ) : m_Indices( Indices )
 	{
 		m_Size = m_Indices.size();
 	}
@@ -248,7 +248,7 @@ namespace Saturn {
 		//m_Indices( static_cast<uint32_t>( pIndicesData ) );
 		m_Size = IndicesSize;
 	}
-
+	
 	IndexBuffer::~IndexBuffer()
 	{
 		Terminate();
@@ -294,8 +294,18 @@ namespace Saturn {
 
 		void* pData;
 		// Create a region of host data mapped to the device.
-		VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), StagingBufferMemory, 0, BufferSize, 0, &pData ) );
-		memcpy( pData, m_Indices.data(), ( size_t )BufferSize );
+		VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), StagingBufferMemory, 0, BufferSize, 0, 		&pData ) );
+
+		std::vector<uint32_t> RealIndices;
+
+		for ( Index& rIndex : m_Indices )
+		{
+			RealIndices.push_back( rIndex.V1 );
+			RealIndices.push_back( rIndex.V2 );
+			RealIndices.push_back( rIndex.V3 );
+		}
+		
+		memcpy( pData, RealIndices.data(), ( size_t )BufferSize );
 		vkUnmapMemory( VulkanContext::Get().GetDevice(), StagingBufferMemory );
 
 		//////////////////////////////////////////////////////////////////////////

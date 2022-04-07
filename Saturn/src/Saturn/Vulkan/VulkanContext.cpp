@@ -77,9 +77,9 @@ namespace Saturn {
 		m_Buffer = VertexBuffer( Vertices );
 		m_Buffer.CreateBuffer();
 		
-		m_IndexBuffer = IndexBuffer( { 0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-						  12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 } );
-		m_IndexBuffer.CreateBuffer();
+		//m_IndexBuffer = IndexBuffer( { 0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
+						 // 12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 } );
+		//m_IndexBuffer.CreateBuffer();
 
 		m_Mesh = Ref<Mesh>::Create( "assets/meshes/cerberus/cerberus.fbx" );
 
@@ -645,35 +645,34 @@ namespace Saturn {
 
 			vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
 
-			m_Buffer.Bind( CommandBuffer );
-			m_IndexBuffer.Bind( CommandBuffer );
+		//	m_Buffer.Bind( CommandBuffer );
+		//	m_IndexBuffer.Bind( CommandBuffer );
 
 			TransformComponent Comp;
-			Comp.Position = glm::vec3( 0, 0, 0 );
-			Comp.Rotation = glm::vec3( 0, 0, 0 );
-			Comp.Scale = glm::vec3( 1, 1, 1 );
+ 			Comp.Position = glm::vec3( 0, 0, 0 );
+			Comp.Rotation = glm::vec3( 0, 90, 0 );
+			Comp.Scale = glm::vec3( 0.2, 0.2, 0.2 );
 
+			m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
+			m_Mesh->GetIndexBuffer()->Bind( CommandBuffer );
+		
+			// 
 //			for( int i = 0; i < 4; i++ )
 			{
-				glm::mod( Comp.Rotation.y + 0.01f, glm::two_pi<float>() );
-				glm::mod( Comp.Rotation.x + 0.05f, glm::two_pi<float>() );
-				
-				Comp.Rotation.x += Comp.Rotation.x + 5;
-				Comp.Rotation.y += 5;
-
 				PushConstant PushC;
-				PushC.Offset ={ 0.0f, -0.4f + 0.25f };
-				PushC.Color ={ 0.0f, 0.0f, 0.2f + 0.2f * 2 };
-				PushC.Transfrom = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix() * Comp.GetTransform();
+				PushC.Offset ={ 0.0f, 0.0f };
+				PushC.Color ={ 0.0f, 0.0f, 0.0f };
+				PushC.Transfrom = Comp.GetTransform();
+				PushC.ViewProjectionMatrix = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix();
 
 				vkCmdPushConstants( CommandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
 
 				//m_Buffer.Draw( CommandBuffer );
-				m_IndexBuffer.Draw( CommandBuffer );
+			//	m_IndexBuffer.Draw( CommandBuffer );
+			m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
 			}
 
 
-			//m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			//m_Mesh->GetVertexBuffer()->Draw( CommandBuffer );
 		}
 
@@ -715,7 +714,11 @@ namespace Saturn {
 		VK_CHECK( vkQueuePresentKHR( m_GraphicsQueue, &PresentInfo ) );
 
 		// #TODO: This is bad.
-		VK_CHECK( vkDeviceWaitIdle( m_LogicalDevice ) );
+		if( vkDeviceWaitIdle( m_LogicalDevice ) == VK_ERROR_OUT_OF_DATE_KHR ) 
+		{
+			ResizeEvent();
+		}
+
 		VK_CHECK( vkQueueWaitIdle( m_PresentQueue ) );
 
 		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );

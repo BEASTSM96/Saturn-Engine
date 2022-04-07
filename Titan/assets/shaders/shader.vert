@@ -7,9 +7,10 @@ layout(push_constant) uniform Push {
 	mat4 Transform;
 	vec2 Offset;
 	vec3 Color;
+	mat4 VPM;
 } push;
 
 void main()
 {
-	gl_Position = push.Transform * vec4( position, 1.0 );
+	gl_Position = push.VPM * push.Transform * vec4( position, 1.0 );
 }

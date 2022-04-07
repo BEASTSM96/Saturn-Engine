@@ -147,6 +147,11 @@ namespace Saturn {
 		}
 	}
 
+	struct Index
+	{
+		uint32_t V1, V2, V3;
+	};
+
 	struct VertexLayoutType
 	{
 		FormatType Format;
@@ -202,7 +207,7 @@ namespace Saturn {
 	{
 	public:
 		IndexBuffer() { m_Size = 0; }
-		IndexBuffer( std::vector<uint32_t> Indices );
+		IndexBuffer( const std::vector<Index>& Indices );
 		IndexBuffer( void* pIndicesData, size_t IndicesSize );
 		~IndexBuffer();
 		
@@ -213,7 +218,7 @@ namespace Saturn {
 
 		void CreateBuffer();
 		
-		std::vector<uint32_t> m_Indices;
+		std::vector<Index> m_Indices;
 		
 	private:
 		

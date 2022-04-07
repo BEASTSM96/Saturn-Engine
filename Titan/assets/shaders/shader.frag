@@ -6,6 +6,7 @@ layout(push_constant) uniform Push {
 	mat4 Transform;
 	vec2 Offset;
 	vec3 Color;
+	mat4 VPM;
 } push;
 
 void main() {

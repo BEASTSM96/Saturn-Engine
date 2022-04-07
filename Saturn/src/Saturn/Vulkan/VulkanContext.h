@@ -52,6 +52,7 @@ namespace Saturn {
 		glm::mat4 Transfrom{ 1.f };
 		alignas( 8 ) glm::vec2 Offset;
 		alignas( 16 ) glm::vec3 Color;
+		glm::mat4 ViewProjectionMatrix;
 	};
 
 	class VulkanContext
