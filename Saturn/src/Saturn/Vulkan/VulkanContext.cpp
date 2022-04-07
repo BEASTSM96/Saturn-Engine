@@ -645,9 +645,6 @@ namespace Saturn {
 
 			vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
 
-		//	m_Buffer.Bind( CommandBuffer );
-		//	m_IndexBuffer.Bind( CommandBuffer );
-
 			TransformComponent Comp;
  			Comp.Position = glm::vec3( 0, 0, 0 );
 			Comp.Rotation = glm::vec3( 0, 90, 0 );
@@ -656,24 +653,17 @@ namespace Saturn {
 			m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			m_Mesh->GetIndexBuffer()->Bind( CommandBuffer );
 		
-			// 
-//			for( int i = 0; i < 4; i++ )
 			{
 				PushConstant PushC;
 				PushC.Offset ={ 0.0f, 0.0f };
 				PushC.Color ={ 0.0f, 0.0f, 0.0f };
-				PushC.Transfrom = Comp.GetTransform();
+				PushC.Transfrom = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix() * Comp.GetTransform();
 				PushC.ViewProjectionMatrix = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix();
 
 				vkCmdPushConstants( CommandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
 
-				//m_Buffer.Draw( CommandBuffer );
-			//	m_IndexBuffer.Draw( CommandBuffer );
-			m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
+				m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
 			}
-
-
-			//m_Mesh->GetVertexBuffer()->Draw( CommandBuffer );
 		}
 
 		vkCmdEndRenderPass( CommandBuffer );
