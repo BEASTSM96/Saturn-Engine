@@ -61,6 +61,9 @@
 #include "backends/imgui_impl_dx12.h"
 #endif
 
+#include <vulkan.h>
+#include <Saturn/Vulkan/Base.h>
+
 #if defined ( SAT_WINDOWS )
 #include <dwmapi.h>
 #include <Windows.h>
@@ -92,8 +95,8 @@ namespace Saturn {
 
 	#if defined ( SAT_DEBUG ) && !defined ( SAT_DONT_USE_GL )
 		glfwWindowHint( GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE );
-	#elif defined ( SAT_DONT_USE_GL ) && !defined ( SAT_DONT_USE_DX )
-		glfwWindowHint( GLFW_NO_API, GL_TRUE );
+	#elif defined ( SAT_DONT_USE_GL ) && defined ( SAT_DONT_USE_DX ) && !defined ( SAT_DONT_USE_VK )
+		glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
 	#endif
 
 		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
@@ -325,7 +328,7 @@ namespace Saturn {
 			glfwMakeContextCurrent( backup_current_context );
 		}
 
-		glfwSwapBuffers( m_Window );
+		//glfwSwapBuffers( m_Window );
 
 		m_Rendering = false;
 	}
@@ -362,6 +365,25 @@ namespace Saturn {
 		m_Dockspace = new ImGuiDockspace();
 	}
 
+	std::vector<const char*> Window::GetRequiredExtensions()
+	{		
+		uint32_t Count;
+		const char** ppExtensions;
+		
+		ppExtensions = glfwGetRequiredInstanceExtensions( &Count );
+
+		std::vector<const char*> Extensions( ppExtensions, ppExtensions + Count );
+
+		Extensions.push_back( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
+
+		return Extensions;
+	}
+
+	VkResult Window::CreateWindowSurface( VkInstance& rInstance, VkSurfaceKHR* pSurface )
+	{
+		return glfwCreateWindowSurface( rInstance, m_Window, nullptr, pSurface );
+	}
+
 #if defined( _WIN32 )
 
 	HWND Window::PlatformWindow()
@@ -370,6 +392,11 @@ namespace Saturn {
 	}
 
 #endif
+
+	void Window::GetSize( uint32_t* pWidth, uint32_t* pHeight )
+	{
+		glfwGetWindowSize( m_Window, ( int* )pWidth, ( int* )pHeight );
+	}
 
 	void Window::SizeCallback( GLFWwindow* wind, int h, int w )
 	{

@@ -26,88 +26,67 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "VulkanTexture.h"
 
-#include "Saturn/Core/Base.h"
-
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#if defined ( SAT_LINUX )
-
-#include "Entity.h"
-
-#endif
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
+#include <stb_image.h>
 
 namespace Saturn {
 
-#if defined ( SAT_LINUX )
-	using EntityMap = std::unordered_map<UUID, Entity>;
-#else
-
-	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-#endif
-
-	struct SceneComponent
+	VulkanTexture::VulkanTexture(
+		std::filesystem::path& rPath,
+		VkFormat Format,
+		VkImageTiling Tiling,
+		VkImageUsageFlags Usage,
+		VkMemoryPropertyFlags MemoryProps )
 	{
-		UUID SceneID;
-	};
+		int TextureWidth, TextureHeight, TextureChannels;
 
-	class Scene
+		stbi_uc* pTextureData = stbi_load( rPath.string().c_str(), &TextureWidth, &TextureHeight, &TextureChannels, STBI_default );
+
+		if( pTextureData == nullptr )
+			return;
+
+		// Create staging buffer to store texture data in Vulkan.
+		void* pPixelData = pTextureData;
+
+		VkDeviceSize ImageSize = TextureWidth * TextureHeight * 4;
+
+		VkMemoryAllocateInfo MemoryAllocateInfo ={ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+		MemoryAllocateInfo.allocationSize = ImageSize;
+		MemoryAllocateInfo.memoryTypeIndex = 0;
+
+		VkImageCreateInfo ImageCreateInfo ={ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+		ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+		ImageCreateInfo.extent.width = m_Width;
+		ImageCreateInfo.extent.height = m_Height;
+		ImageCreateInfo.extent.depth = 1;
+		ImageCreateInfo.mipLevels = 1;
+		ImageCreateInfo.arrayLayers = 1;
+		ImageCreateInfo.format = Format;
+		ImageCreateInfo.tiling = Tiling;
+		ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		ImageCreateInfo.usage = Usage;
+
+		VkMemoryRequirements MemoryRequirements;
+		VkBuffer Buffer;
+		VkDeviceMemory Memory;
+
+		VkBufferCreateInfo BufferCreateInfo ={ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		BufferCreateInfo.size = ImageSize;
+		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		VK_CHECK( vkCreateBuffer( VulkanContext::Get().GetDevice(), &BufferCreateInfo, nullptr, &Buffer ) );
+
+	}
+
+	VulkanTexture::~VulkanTexture()
 	{
-	public:
-		Scene();
-		~Scene();
+	}
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
+	void VulkanTexture::Init()
+	{
 
-		void DestroyEntity( Entity entity );
-
-		void OnRenderEditor( Timestep ts );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		void OnUpdate( Timestep ts );
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		Entity FindEntityByTag( const std::string& tag );
-		void CopyScene( Ref<Scene>& NewScene );
-
-		void SetName( const std::string& name ) { m_Name = name; }
-
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
-
-		Entity LightEntity();
-		std::vector<Entity>& VisableEntities();
-
-	private:
-
-		UUID m_SceneID;
-
-		std::string m_Name;
-
-		EntityMap m_EntityIDMap;
-
-		entt::entity m_SceneEntity;
-		entt::registry m_Registry;
-
-		entt::entity m_SelectedEntity;
-
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-	};
+	}
 }

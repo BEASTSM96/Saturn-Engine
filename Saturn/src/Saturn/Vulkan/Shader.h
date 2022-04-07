@@ -28,86 +28,71 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
+#include "Base.h"
+#include <vector>
+#include <string>
+#include <filesystem>
+#include <unordered_map>
 
-#include "Saturn/Core/Renderer/EditorCamera.h"
+class Shader;
 
-#if defined ( SAT_LINUX )
+class ShaderWorker
+{
+	SINGLETON( ShaderWorker );
 
-#include "Entity.h"
-
-#endif
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
-
-namespace Saturn {
-
-#if defined ( SAT_LINUX )
-	using EntityMap = std::unordered_map<UUID, Entity>;
-#else
-
-	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-#endif
-
-	struct SceneComponent
+public:
+	ShaderWorker() {}
+	~ShaderWorker() 
 	{
-		UUID SceneID;
-	};
-
-	class Scene
-	{
-	public:
-		Scene();
-		~Scene();
-
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
-
-		void DestroyEntity( Entity entity );
-
-		void OnRenderEditor( Timestep ts );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
+		for ( auto pShader : m_Shaders )
 		{
-			return m_Registry.view<T>();
+			delete pShader;
+			pShader = nullptr;
 		}
 
-		void OnUpdate( Timestep ts );
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		Entity FindEntityByTag( const std::string& tag );
-		void CopyScene( Ref<Scene>& NewScene );
+		m_Shaders.clear();
+		m_ShaderCodes.clear();
+	}
 
-		void SetName( const std::string& name ) { m_Name = name; }
+	void AddAndCompileShader( Shader* pShader );
+	void AddShader( Shader* pShader );
 
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
+	std::vector< uint32_t >& GetShaderCode( std::string Name ) 
+	{
+		if( m_ShaderCodes.find( Name ) != m_ShaderCodes.end() )
+		{
+			return m_ShaderCodes[ Name ];
+		}
+	}
 
-		Entity LightEntity();
-		std::vector<Entity>& VisableEntities();
+	void CompileShader( Shader* pShader );
 
-	private:
+private:
 
-		UUID m_SceneID;
 
-		std::string m_Name;
+	// Not a list of all compiled shaders.
+	std::vector< Shader* > m_Shaders;
+	std::unordered_map< std::string, std::vector<uint32_t> > m_ShaderCodes;
+};
 
-		EntityMap m_EntityIDMap;
+// #TODO: Make it so that more than one shader file can correspond to one shader class
+class Shader
+{
+public:
+	Shader() {}
+	Shader( std::string Name, std::filesystem::path Filepath );
+	~Shader();
 
-		entt::entity m_SceneEntity;
-		entt::registry m_Registry;
+private:
 
-		entt::entity m_SelectedEntity;
+	std::string m_FileContents = "";
 
-	private:
+	std::string m_Name = "";
 
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-	};
-}
+	std::filesystem::path m_Filepath = "";
+
+	void ReadFile();
+
+private:
+	friend class ShaderWorker;
+};

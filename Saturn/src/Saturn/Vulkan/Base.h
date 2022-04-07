@@ -28,86 +28,32 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
+#include <vulkan.h>
+#include <iostream>
+#include <string>
 
-#include "Saturn/Core/Renderer/EditorCamera.h"
+#define VK_CHECK( x ) _VkCheckResult( x );
 
-#if defined ( SAT_LINUX )
-
-#include "Entity.h"
-
-#endif
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
-
-namespace Saturn {
-
-#if defined ( SAT_LINUX )
-	using EntityMap = std::unordered_map<UUID, Entity>;
-#else
-
-	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-#endif
-
-	struct SceneComponent
+inline void _VkCheckResult( VkResult Result )
+{
+	if( Result != VK_SUCCESS )
 	{
-		UUID SceneID;
-	};
-
-	class Scene
-	{
-	public:
-		Scene();
-		~Scene();
-
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
-
-		void DestroyEntity( Entity entity );
-
-		void OnRenderEditor( Timestep ts );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		void OnUpdate( Timestep ts );
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		Entity FindEntityByTag( const std::string& tag );
-		void CopyScene( Ref<Scene>& NewScene );
-
-		void SetName( const std::string& name ) { m_Name = name; }
-
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
-
-		Entity LightEntity();
-		std::vector<Entity>& VisableEntities();
-
-	private:
-
-		UUID m_SceneID;
-
-		std::string m_Name;
-
-		EntityMap m_EntityIDMap;
-
-		entt::entity m_SceneEntity;
-		entt::registry m_Registry;
-
-		entt::entity m_SelectedEntity;
-
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-	};
+		std::cout << "[Vulkan Error] " << Result << "\n";
+		__debugbreak();
+	}
 }
+
+template< class Ty >
+class VulkanResource
+{
+public:
+
+	void BindResource() { }
+	void FreeResource() { }
+
+public:
+	Ty m_Resource;
+	VkDeviceMemory m_Memory;
+	VkDeviceSize m_AllocationSize;
+	uint32_t m_MemoryTypeIndex;
+};

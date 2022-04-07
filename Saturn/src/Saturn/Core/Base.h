@@ -29,6 +29,7 @@
 #pragma once
 
 #define SAT_DONT_USE_GL
+#define SAT_DONT_USE_DX
 
 // Short Macros
 #if defined ( SAT_PLATFORM_WINDOWS )

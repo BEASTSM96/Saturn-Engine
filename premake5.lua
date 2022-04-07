@@ -28,12 +28,14 @@ IncludeDir["assimp"] = "Saturn/vendor/assimp/include"
 IncludeDir["DiscordRPC"] = "Saturn/vendor/discord-rpc/include"
 IncludeDir["discord-rpc"] = "Saturn/vendor/discord-rpc/include"
 IncludeDir["rapidjson"] = "Saturn/vendor/rapidjson/include"
-
+IncludeDir["shaderc"] = "Saturn/vendor/shaderc/libshaderc/include"
+IncludeDir["glslc"] = "Saturn/vendor/shaderc/glslc/src"
 
 group "sat/Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/discord-rpc"
+	include "Saturn/vendor/SPIRV-Cross"
 
 group "sat/Core"
 project "Saturn"
@@ -83,13 +85,16 @@ project "Saturn"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
 		"%{IncludeDir.DiscordRPC}",
-		"%{IncludeDir.rapidjson}"
+		"%{IncludeDir.rapidjson}",
+		"%{IncludeDir.glslc}",
+		"%{IncludeDir.shaderc}"
 	}
 
 	links 
 	{ 
 		"GLFW",
 		"ImGui",
+		"SPIRV-Cross",
 		"discord-rpc"
 	}
 
@@ -103,7 +108,7 @@ project "Saturn"
 			"d3d12.lib",
 			"dxgi.lib",
 			"d3dcompiler.lib",
-			"C:/VulkanSDK/1.2.170.0/Lib/vulkan-1.lib"
+			"C:/VulkanSDK/1.2.189.2/Lib/vulkan-1.lib"
 		}
 
 		defines
@@ -120,7 +125,13 @@ project "Saturn"
 			filter "system:windows"
 				links 
 				{
-					"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib"
+					"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
+
+					"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc.lib",
+					"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc_util.lib",
+					"Saturn/vendor/shaderc/bin/Debug-Windows/glslangd.lib",
+					"Saturn/vendor/shaderc/bin/Debug-Windows/SPIRV-Tools.lib",
+					"Saturn/vendor/shaderc/bin/Debug-Windows/glslc.lib"
 				}
 
 				postbuildcommands 
@@ -138,7 +149,13 @@ project "Saturn"
 		--{
 			links 
 			{
-				"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib"
+				"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
+
+				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc.lib",
+				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",
+				"Saturn/vendor/shaderc/bin/Release-Windows/glslang.lib",
+				"Saturn/vendor/shaderc/bin/Release-Windows/SPIRV-Tools.lib",
+				"Saturn/vendor/shaderc/bin/Release-Windows/glslc.lib"
 			}
 
 			postbuildcommands 
@@ -156,7 +173,13 @@ project "Saturn"
 		--{
 			links
 			{ 
-				"Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.lib"
+				"Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.lib",
+
+				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc.lib",
+				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",
+				"Saturn/vendor/shaderc/bin/Release-Windows/glslang.lib",
+				"Saturn/vendor/shaderc/bin/Release-Windows/SPIRV-Tools.lib",
+				"Saturn/vendor/shaderc/bin/Release-Windows/glslc.lib"
 			}
 
 			postbuildcommands 

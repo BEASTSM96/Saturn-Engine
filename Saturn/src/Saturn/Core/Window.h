@@ -43,6 +43,8 @@
 #include <Windows.h>
 #endif
 
+#include <vulkan.h>
+
 struct GLFWwindow;
 
 namespace Saturn {
@@ -75,12 +77,18 @@ namespace Saturn {
 
 		void ImGuiInit();
 
+		std::vector<const char*> GetRequiredExtensions();
+
+		VkResult CreateWindowSurface( VkInstance& rInstance, VkSurfaceKHR* pSurface );
+
 	#if defined( _WIN32 )
 		HWND PlatformWindow();
 	#endif
 
 		int Width() { return m_Width; }
 		int Height() { return m_Height; }
+
+		void GetSize( uint32_t* pWidth, uint32_t* pHeight );
 
 	private:
 

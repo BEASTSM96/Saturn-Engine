@@ -28,86 +28,39 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#if defined ( SAT_LINUX )
-
-#include "Entity.h"
-
-#endif
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
+#include "Base.h"
+#include <vector>
+#include <string>
+#include <filesystem>
+#include <unordered_map>
+#include <vulkan.h>
 
 namespace Saturn {
 
-#if defined ( SAT_LINUX )
-	using EntityMap = std::unordered_map<UUID, Entity>;
-#else
-
-	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-#endif
-
-	struct SceneComponent
-	{
-		UUID SceneID;
-	};
-
-	class Scene
+	class Swapchain
 	{
 	public:
-		Scene();
-		~Scene();
+		Swapchain();
+		~Swapchain();
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
+		void Create();
+		void CreateFramebuffers();
+		void Recreate();
 
-		void DestroyEntity( Entity entity );
+		void Terminate();
 
-		void OnRenderEditor( Timestep ts );
+		bool AcquireNextImage( uint32_t Timeout, VkSemaphore Semaphore, VkFence Fence, uint32_t* pImageIndex );
 
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		void OnUpdate( Timestep ts );
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		Entity FindEntityByTag( const std::string& tag );
-		void CopyScene( Ref<Scene>& NewScene );
-
-		void SetName( const std::string& name ) { m_Name = name; }
-
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
-
-		Entity LightEntity();
-		std::vector<Entity>& VisableEntities();
-
+		VkSwapchainKHR& GetSwapchain() { return m_Swapchain; }
+		std::vector< VkFramebuffer >& GetFramebuffers() { return m_Framebuffers; }
 	private:
 
-		UUID m_SceneID;
+		void CreateImageViews();
 
-		std::string m_Name;
+		VkSwapchainKHR m_Swapchain;
 
-		EntityMap m_EntityIDMap;
-
-		entt::entity m_SceneEntity;
-		entt::registry m_Registry;
-
-		entt::entity m_SelectedEntity;
-
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
+		std::vector< VkImage > m_Images;
+		std::vector< VkImageView > m_ImageViews;
+		std::vector< VkFramebuffer > m_Framebuffers;
 	};
 }

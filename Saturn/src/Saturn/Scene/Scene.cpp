@@ -156,7 +156,7 @@ namespace Saturn {
 
 	}
 
-	Entity& Scene::LightEntity()
+	Entity Scene::LightEntity()
 	{
 		//std::vector<entt::entity> lights;
 
@@ -164,9 +164,9 @@ namespace Saturn {
 		
 		for ( auto& e : group )
 		{
-			auto& [lightComponent, transformComponent] = group.get<LightComponent, TransformComponent>( e );
+			//auto& [lightComponent, transformComponent] = group.get<LightComponent, TransformComponent>( e );
 			
-			return Entity( e, this );
+			//return Entity( e, this );
 
 			//lights.push_back( e );
 		}

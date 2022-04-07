@@ -39,7 +39,7 @@
 #elif !defined( SAT_DONT_USE_DX )
 // Dx
 #else !defined( SAT_DONT_USE_VK )
-// Vk
+#include "Saturn/Vulkan/VulkanContext.h"
 #endif
 #include "Saturn/OpenGL/Texture.h"
 #include "Saturn/Core/Renderer/EditorCamera.h"
@@ -61,7 +61,8 @@ namespace Saturn {
 	void Application::Run()
 	{
 		Window::Get();
-		//Renderer::Get();
+		VulkanContext::Get();
+		VulkanContext::Get().Init();
 
 		Window::Get().ImGuiInit();
 
@@ -73,7 +74,8 @@ namespace Saturn {
 		{
 			Window::Get().OnUpdate();
 			Window::Get().Render();
-			//Renderer::Get().Render();
+
+			VulkanContext::Get().Render();
 
 			DiscordRPC::Get().Update();
 

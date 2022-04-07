@@ -26,88 +26,91 @@
 *********************************************************************************************
 */
 
-#pragma once
 
-#include "Saturn/Core/Base.h"
+#include "sppch.h"
+#include "Shader.h"
 
-#include "Saturn/Core/Renderer/EditorCamera.h"
+#include <istream>
+#include <fstream>
+#include <iostream>
 
-#if defined ( SAT_LINUX )
+#include <shaderc/shaderc.hpp>
+#include <shaderc/shaderc.h>
+#include <cassert>
 
-#include "Entity.h"
+void ShaderWorker::AddAndCompileShader( Shader* pShader )
+{
+	AddShader( pShader );
+	CompileShader( pShader );
+}
 
-#endif
+void ShaderWorker::AddShader( Shader* pShader )
+{
+	m_Shaders.push_back( pShader );
+}
 
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
+void ShaderWorker::CompileShader( Shader* pShader )
+{
+	shaderc::Compiler       Compiler;
+	shaderc::CompileOptions CompilerOptions;
 
-#include "entt.hpp"
+	shaderc::SpvCompilationResult ShaderResult;
 
-namespace Saturn {
+	CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_performance );
 
-#if defined ( SAT_LINUX )
-	using EntityMap = std::unordered_map<UUID, Entity>;
-#else
+	auto ShaderString = pShader->m_Filepath.string();
+	auto ShaderCStr = ShaderString.c_str();
 
-	class Entity;
+	auto Result = Compiler.CompileGlslToSpvAssembly( 
+		pShader->m_FileContents.c_str(),
+		pShader->m_FileContents.size(), 
+		pShader->m_Filepath.extension() == ".vert" ? shaderc_shader_kind::shaderc_glsl_default_vertex_shader : shaderc_shader_kind::shaderc_glsl_default_fragment_shader, 
+		ShaderCStr,
+		CompilerOptions 
+	);
 
-	using EntityMap = std::unordered_map<UUID, Entity>;
+	std::string ResultString( Result.begin(), Result.end() );
 
-#endif
+	auto AssembleResult = Compiler.AssembleToSpv( ResultString.c_str(), 4 * ResultString.size() );
 
-	struct SceneComponent
+	if( AssembleResult.GetCompilationStatus() != shaderc_compilation_status_success )
 	{
-		UUID SceneID;
-	};
+		assert( 0 ); // Shader compilation failed.
+	}
 
-	class Scene
-	{
-	public:
-		Scene();
-		~Scene();
+	// Save code for later if we need it.
+	std::vector<uint32_t> Code( AssembleResult.begin(), AssembleResult.end() );
+	m_ShaderCodes.insert( { pShader->m_Name, Code } );
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
+	printf( "===== SHADER OUTPUT: =====\n%s\n", ResultString.c_str() );
+	printf( "==========================\n \n" );
+}
 
-		void DestroyEntity( Entity entity );
+Shader::Shader( std::string Name, std::filesystem::path Filepath )
+{
+	m_Filepath = std::move( Filepath );
+	m_Name = std::move( Name );
 
-		void OnRenderEditor( Timestep ts );
+	ReadFile();
+}
 
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
+Shader::~Shader()
+{
 
-		void OnUpdate( Timestep ts );
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		Entity FindEntityByTag( const std::string& tag );
-		void CopyScene( Ref<Scene>& NewScene );
+}
 
-		void SetName( const std::string& name ) { m_Name = name; }
+// I'm not even sure if this is good or not, and I think that using std::filesystem::file_size yields a differnet file size on other platforms.
+void Shader::ReadFile()
+{
+	std::ifstream f( m_Filepath, std::ios::ate | std::ios::binary );
 
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
+	size_t FileSize = static_cast< size_t >( f.tellg() );
+	std::vector<char> Buffer( FileSize );
 
-		Entity LightEntity();
-		std::vector<Entity>& VisableEntities();
+	f.seekg( 0 );
+	f.read( Buffer.data(), FileSize );
 
-	private:
+	f.close();
 
-		UUID m_SceneID;
-
-		std::string m_Name;
-
-		EntityMap m_EntityIDMap;
-
-		entt::entity m_SceneEntity;
-		entt::registry m_Registry;
-
-		entt::entity m_SelectedEntity;
-
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-	};
+	m_FileContents = std::string( Buffer.begin(), Buffer.end() );
 }
