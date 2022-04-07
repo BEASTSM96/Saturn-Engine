@@ -3,9 +3,11 @@
 #include "Base.h"
 #include "Saturn/Core/Window.h"
 #include "Saturn/Core/App.h"
+#include "Saturn/Core/Renderer/EditorCamera.h"
 #include "Shader.h"
 
 #include "SwapChain.h"
+#include "Mesh.h"
 
 #include "VulkanVertexBuffer.h"
 
@@ -47,7 +49,7 @@ namespace Saturn {
 
 	struct PushConstant
 	{
-		glm::mat2 Transfrom{ 1.f };
+		glm::mat4 Transfrom{ 1.f };
 		alignas( 8 ) glm::vec2 Offset;
 		alignas( 16 ) glm::vec3 Color;
 	};
@@ -75,6 +77,9 @@ namespace Saturn {
 		QueueFamilyIndices& GetQueueFamilyIndices() { return m_Indices; };
 
 		VkRenderPass& GetRenderPass() { return m_RenderPass; }
+		VkCommandPool& GetCommandPool() { return m_CommandPool; }
+		
+		VkQueue& GetGraphicsQueue() { return m_GraphicsQueue; }
 
 		void Init();
 		void ResizeEvent();
@@ -110,7 +115,6 @@ namespace Saturn {
 		VkPipeline m_Pipeline;
 		VkPipelineLayout m_PipelineLayout;
 
-		VertexBuffer m_Buffer;
 
 		VulkanDebugMessenger* m_pDebugMessenger;
 
@@ -121,6 +125,12 @@ namespace Saturn {
 		VkSurfaceFormatKHR m_SurfaceFormat;
 
 		QueueFamilyIndices m_Indices;
+
+		Ref<Mesh> m_Mesh;
+		
+		VertexBuffer m_Buffer;
+		IndexBuffer m_IndexBuffer;
+		EditorCamera m_Camera;
 
 		std::vector<VkImage>       m_SwapChainImages;
 		std::vector<VkImageView>   m_SwapChainImageViews;

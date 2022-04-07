@@ -50,7 +50,7 @@ namespace Saturn {
 			other.m_Pointer = nullptr;
 		}
 
-		~Ref() { /*delete m_Pointer;*/ }
+		~Ref() { if( m_Pointer ) delete m_Pointer; m_Pointer = nullptr; }
 
 		void Delete() 
 		{

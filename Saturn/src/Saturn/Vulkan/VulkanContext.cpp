@@ -13,7 +13,42 @@ const int MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace Saturn {
 	
-	const std::vector<Vertex> Vertices{ { { 0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } }, { { 0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f } }, { { -0.5f, 0.5f  }, { 0.0f, 0.0f, 1.0f } } };
+	const std::vector<Vertex> Vertices{   // left face (white)
+	  {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+	  {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+	  {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+	  {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
+
+	  // right face (yellow)
+	  {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+	  {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+	  {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+	  {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
+
+	  // top face (orange, remember y axis points down)
+	  {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+	  {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+	  {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+	  {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+
+	  // bottom face (red)
+	  {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+	  {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+	  {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+	  {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+
+	  // nose face (blue)
+	  {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+	  {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+	  {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+	  {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+
+	  // tail face (green)
+	  {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+	  {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+	  {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+	  {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+	};
 
 	void VulkanContext::Init()
 	{
@@ -41,8 +76,16 @@ namespace Saturn {
 
 		m_Buffer = VertexBuffer( Vertices );
 		m_Buffer.CreateBuffer();
+		
+		m_IndexBuffer = IndexBuffer( { 0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
+						  12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 } );
+		m_IndexBuffer.CreateBuffer();
+
+		m_Mesh = Ref<Mesh>::Create( "assets/meshes/cerberus/cerberus.fbx" );
 
 		CreatePipeline();
+
+		m_Camera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), (float)Window::Get().Width(), (float)Window::Get().Height(), 0.1f, 10000.0f ) );
 	}
 
 	void VulkanContext::Terminate()
@@ -551,6 +594,10 @@ namespace Saturn {
 		{
 			assert( 0 ); // Unable to get ImageIndex
 		}
+		
+		m_Camera.AllowEvents( true );
+		m_Camera.SetActive( true );
+		m_Camera.OnUpdate( Application::Get().Time() );
 
 		VkCommandBuffer CommandBuffer;
 		VkCommandBufferAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
@@ -599,18 +646,35 @@ namespace Saturn {
 			vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
 
 			m_Buffer.Bind( CommandBuffer );
+			m_IndexBuffer.Bind( CommandBuffer );
 
-			for( int i = 0; i < 4; i++ )
+			TransformComponent Comp;
+			Comp.Position = glm::vec3( 0, 0, 0 );
+			Comp.Rotation = glm::vec3( 0, 0, 0 );
+			Comp.Scale = glm::vec3( 1, 1, 1 );
+
+//			for( int i = 0; i < 4; i++ )
 			{
+				glm::mod( Comp.Rotation.y + 0.01f, glm::two_pi<float>() );
+				glm::mod( Comp.Rotation.x + 0.05f, glm::two_pi<float>() );
+				
+				Comp.Rotation.x += Comp.Rotation.x + 5;
+				Comp.Rotation.y += 5;
+
 				PushConstant PushC;
-				PushC.Offset ={ 0.0f, -0.4f + i * 0.25f };
-				PushC.Color ={ 0.0f, 0.0f, 0.2f + 0.2f * i };
+				PushC.Offset ={ 0.0f, -0.4f + 0.25f };
+				PushC.Color ={ 0.0f, 0.0f, 0.2f + 0.2f * 2 };
+				PushC.Transfrom = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix() * Comp.GetTransform();
 
 				vkCmdPushConstants( CommandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
 
-				m_Buffer.Draw( CommandBuffer );
+				//m_Buffer.Draw( CommandBuffer );
+				m_IndexBuffer.Draw( CommandBuffer );
 			}
 
+
+			//m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
+			//m_Mesh->GetVertexBuffer()->Draw( CommandBuffer );
 		}
 
 		vkCmdEndRenderPass( CommandBuffer );

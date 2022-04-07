@@ -41,7 +41,7 @@ namespace Saturn {
 
 	struct Vertex
 	{
-		glm::vec2 Position;
+		glm::vec3 Position;
 		glm::vec3 Color;
 	};
 
@@ -192,6 +192,31 @@ namespace Saturn {
 
 	private:
 
+		void* m_pData = nullptr;
+		VkBuffer m_Buffer = VK_NULL_HANDLE;
+		VkDeviceSize m_Size;
+		VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+	};
+
+	class IndexBuffer
+	{
+	public:
+		IndexBuffer() { m_Size = 0; }
+		IndexBuffer( std::vector<uint32_t> Indices );
+		IndexBuffer( void* pIndicesData, size_t IndicesSize );
+		~IndexBuffer();
+		
+		void Bind( VkCommandBuffer CommandBuffer );
+		void Draw( VkCommandBuffer CommandBuffer );
+
+		void Terminate();
+
+		void CreateBuffer();
+		
+		std::vector<uint32_t> m_Indices;
+		
+	private:
+		
 		void* m_pData = nullptr;
 		VkBuffer m_Buffer = VK_NULL_HANDLE;
 		VkDeviceSize m_Size;
