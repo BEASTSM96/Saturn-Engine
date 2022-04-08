@@ -60,6 +60,11 @@ namespace Saturn {
 		CreateSwapChain();
 		CreateCommandPool();
 		CreateSyncObjects();
+
+		// Init a theoretical swap chain.
+		SwapchainCreationData Data = GetSwapchainCreationData();
+		Data ={};
+		
 		CreateRenderpass();
 		CreateFramebuffers();
 
@@ -76,25 +81,21 @@ namespace Saturn {
 
 		m_Buffer = VertexBuffer( Vertices );
 		m_Buffer.CreateBuffer();
-		
-		//m_IndexBuffer = IndexBuffer( { 0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-						 // 12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 } );
-		//m_IndexBuffer.CreateBuffer();
 
 		m_Mesh = Ref<Mesh>::Create( "assets/meshes/cerberus/cerberus.fbx" );
 
-		CreatePipeline();
-
 		m_Camera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), (float)Window::Get().Width(), (float)Window::Get().Height(), 0.1f, 10000.0f ) );
+		
+		CreatePipeline();
 	}
 
 	void VulkanContext::Terminate()
 	{
 		m_SwapChain.Terminate();
 		m_Buffer.Terminate();
+		m_RenderPass.Terminate();
 
 		vkDestroyPipeline( m_LogicalDevice, m_Pipeline, nullptr );
-		vkDestroyRenderPass( m_LogicalDevice, m_RenderPass, nullptr );
 		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
 		vkDestroySemaphore( m_LogicalDevice, m_SubmitSemaphore, nullptr );
 		vkDestroySemaphore( m_LogicalDevice, m_AcquireSemaphore, nullptr );
@@ -354,7 +355,7 @@ namespace Saturn {
 		VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		FramebufferCreateInfo.width = Window::Get().Width();
 		FramebufferCreateInfo.height = Window::Get().Height();
-		FramebufferCreateInfo.renderPass = m_RenderPass;
+		FramebufferCreateInfo.renderPass = m_RenderPass.GetRenderPass();
 		FramebufferCreateInfo.layers = 1;
 		FramebufferCreateInfo.attachmentCount = 1;
 
@@ -368,33 +369,7 @@ namespace Saturn {
 
 	void VulkanContext::CreateRenderpass()
 	{
-		VkAttachmentDescription Attachments ={};
-		Attachments.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		Attachments.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		Attachments.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		Attachments.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		Attachments.samples = VK_SAMPLE_COUNT_1_BIT;
-		Attachments.format = m_SurfaceFormat.format;
-
-		VkAttachmentReference ColorAttactmentRef ={};
-		ColorAttactmentRef.attachment = 0;
-		ColorAttactmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		VkSubpassDescription DefaultSubpass ={};
-		DefaultSubpass.pColorAttachments = &ColorAttactmentRef;
-		DefaultSubpass.colorAttachmentCount = 1;
-
-		// TODO: Create a vector of attachments.
-
-		VkRenderPassCreateInfo RenderPassCreateInfo ={ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-		RenderPassCreateInfo.pAttachments = &Attachments;
-		RenderPassCreateInfo.attachmentCount = 1;
-		RenderPassCreateInfo.pSubpasses = &DefaultSubpass;
-		RenderPassCreateInfo.subpassCount = 1;
-
-		// For now we don't use a subpass but Vulkan needs one.
-
-		VK_CHECK( vkCreateRenderPass( m_LogicalDevice, &RenderPassCreateInfo, nullptr, &m_RenderPass ) );
+		m_RenderPass = Pass( nullptr, "MainRenderPass");
 	}
 
 	void VulkanContext::CreatePipeline()
@@ -507,7 +482,7 @@ namespace Saturn {
 
 		VkGraphicsPipelineCreateInfo PipelineCreateInfo ={ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
 		PipelineCreateInfo.layout = m_PipelineLayout;
-		PipelineCreateInfo.renderPass = m_RenderPass;
+		PipelineCreateInfo.renderPass = m_RenderPass.GetRenderPass();
 		PipelineCreateInfo.pColorBlendState = &ColorBlendState;
 		PipelineCreateInfo.pVertexInputState = &VertexInputState;
 		PipelineCreateInfo.stageCount = 2;
@@ -611,32 +586,19 @@ namespace Saturn {
 
 		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandPoolBeginInfo ) );
 
-		// Setup clear color
-		std::array<VkClearValue, 2> ClearColors{};
-		ClearColors[ 0 ].color ={ 0.1f, 0.1f, 0.1f, 1.0f };
-		ClearColors[ 1 ].depthStencil ={ 1.0f, 0 };
+		VkExtent2D Extent;
+		Window::Get().GetSize( &Extent.width, &Extent.height );
 
-		VkRenderPassBeginInfo RenderPassBeginInfo ={ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-		RenderPassBeginInfo.renderPass = m_RenderPass;
-		RenderPassBeginInfo.pClearValues = ClearColors.data();
-		RenderPassBeginInfo.clearValueCount = ClearColors.size();
-		RenderPassBeginInfo.framebuffer = m_SwapChain.GetFramebuffers()[ ImageIndex ];
-
-		VkExtent2D extent;
-		Window::Get().GetSize( &extent.width, &extent.height );
-
-		RenderPassBeginInfo.renderArea.extent = extent;
-
-		vkCmdBeginRenderPass( CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
-
+		m_RenderPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, ImageIndex );
+		
 		// Rendering Commands
 		{
 			VkRect2D Scissor ={};
-			Scissor.extent = extent;
+			Scissor.extent = Extent;
 
 			VkViewport Viewport ={};
-			Viewport.height = extent.height;
-			Viewport.width = extent.width;
+			Viewport.height = Extent.height;
+			Viewport.width = Extent.width;
 			Viewport.maxDepth = 1.0f;
 			Viewport.minDepth = 0;
 
@@ -648,7 +610,9 @@ namespace Saturn {
 			TransformComponent Comp;
  			Comp.Position = glm::vec3( 0, 0, 0 );
 			Comp.Rotation = glm::vec3( 0, 90, 0 );
-			Comp.Scale = glm::vec3( 0.2, 0.2, 0.2 );
+			Comp.Scale = glm::vec3( 1, 1, 1 );
+			
+			m_Camera.Focus( Comp.Position );
 
 			m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			m_Mesh->GetIndexBuffer()->Bind( CommandBuffer );
@@ -665,8 +629,8 @@ namespace Saturn {
 				m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
 			}
 		}
-
-		vkCmdEndRenderPass( CommandBuffer );
+		
+		m_RenderPass.EndPass();
 
 		VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
 
@@ -704,9 +668,14 @@ namespace Saturn {
 		VK_CHECK( vkQueuePresentKHR( m_GraphicsQueue, &PresentInfo ) );
 
 		// #TODO: This is bad.
-		if( vkDeviceWaitIdle( m_LogicalDevice ) == VK_ERROR_OUT_OF_DATE_KHR ) 
+		VkResult Result = vkDeviceWaitIdle( m_LogicalDevice );
+		if( Result == VK_SUBOPTIMAL_KHR || Result == VK_ERROR_OUT_OF_DATE_KHR )
 		{
 			ResizeEvent();
+		}
+		else if( Result != VK_SUCCESS )
+		{
+			std::cout << "Failed to present swapchain image" << std::endl;
 		}
 
 		VK_CHECK( vkQueueWaitIdle( m_PresentQueue ) );

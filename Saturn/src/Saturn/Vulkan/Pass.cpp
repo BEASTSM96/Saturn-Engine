@@ -27,65 +27,76 @@
 */
 
 #include "sppch.h"
-#include "IO.h"
+#include "Pass.h"
 
-#if defined ( SAT_WINDOWS )
-#define freopen freopen_s
-#endif
+#include "VulkanContext.h"
 
 namespace Saturn {
 
-	void IO::Init()
+	Pass::Pass( VkCommandBuffer CommandBuffer, std::string Name )
 	{
-		//m_OldStdStringBuffer = std::cout.rdbuf();
+		m_CommandBuffer = CommandBuffer;
+		m_Name = Name;
+
+		VkAttachmentDescription Attachments ={};
+		Attachments.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		Attachments.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		Attachments.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		Attachments.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		Attachments.samples = VK_SAMPLE_COUNT_1_BIT;
+		Attachments.format = VulkanContext::Get().GetSurfaceFormat().format;
+
+		VkAttachmentReference ColorAttactmentRef ={};
+		ColorAttactmentRef.attachment = 0;
+		ColorAttactmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription DefaultSubpass ={};
+		DefaultSubpass.pColorAttachments = &ColorAttactmentRef;
+		DefaultSubpass.colorAttachmentCount = 1;
+
+		VkRenderPassCreateInfo RenderPassCreateInfo ={ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+		RenderPassCreateInfo.pAttachments = &Attachments;
+		RenderPassCreateInfo.attachmentCount = 1;
+		RenderPassCreateInfo.pSubpasses = &DefaultSubpass;
+		RenderPassCreateInfo.subpassCount = 1;
+		
+		VK_CHECK( vkCreateRenderPass( VulkanContext::Get().GetDevice(), &RenderPassCreateInfo, nullptr, &m_Pass ) );
 	}
 
-	void IO::Shutdown()
+	Pass::~Pass()
 	{
-		//std::cout.rdbuf( m_OldStdStringBuffer );
 	}
 
-	void IO::StdStreamRedirect()
+	void Pass::Terminate()
 	{
-		//ConsoleStreamRedirect();
-
-		//std::cout.rdbuf( &m_StdStringBuffer );
+		//vkDestroyRenderPass( VulkanContext::Get().GetDevice(), m_Pass, nullptr );
 	}
 
-	void IO::ConsoleStreamRedirect()
+	void Pass::BeginPass( VkCommandBuffer CommandBuffer /* = nullptr */, VkSubpassContents Contents /* = VK_SUBPASS_CONTENTS_INLINE*/, uint32_t ImageIndex /* = 0 */ )
 	{
-	#if defined( SAT_WINDOWS )
+		m_CommandBuffer = CommandBuffer;
+		
+		std::array<VkClearValue, 2> ClearColors{};
+		ClearColors[ 0 ].color ={ 0.1f, 0.1f, 0.1f, 1.0f };
+		ClearColors[ 1 ].depthStencil ={ 1.0f, 0 };
 
-		bool res = true;
-		FILE* fp;
+		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+		RenderPassBeginInfo.renderPass = m_Pass;
+		RenderPassBeginInfo.pClearValues = ClearColors.data();
+		RenderPassBeginInfo.clearValueCount = ClearColors.size();
+		RenderPassBeginInfo.framebuffer = VulkanContext::Get().GetSwapchain().GetFramebuffers()[ ImageIndex ];
+		
+		VkExtent2D extent;
+		Window::Get().GetSize( &extent.width, &extent.height );
 
-		if( GetStdHandle( STD_INPUT_HANDLE ) != INVALID_HANDLE_VALUE )
-			if( freopen( &fp, "CONIN$", "r", stdin ) != 0 )
-				res = false;
-			else
-				setvbuf( stdin, NULL, _IONBF, 0 );
+		RenderPassBeginInfo.renderArea.extent = extent;
+		
+		vkCmdBeginRenderPass( m_CommandBuffer, &RenderPassBeginInfo, Contents );
+	}
 
-		if( GetStdHandle( STD_OUTPUT_HANDLE ) != INVALID_HANDLE_VALUE )
-			if( freopen( &fp, "CONOUT$", "w", stdout ) != 0 )
-				res = false;
-			else
-				setvbuf( stdout, NULL, _IONBF, 0 );
-
-		if( GetStdHandle( STD_ERROR_HANDLE ) != INVALID_HANDLE_VALUE )
-			if( freopen( &fp, "CONOUT$", "w", stderr ) != 0 )
-				res = false;
-			else
-				setvbuf( stderr, NULL, _IONBF, 0 );
-
-		std::ios::sync_with_stdio( true );
-
-		std::wcout.clear();
-		std::cout.clear();
-		std::wcerr.clear();
-		std::cerr.clear();
-		std::wcin.clear();
-		std::cin.clear();
-	#endif
+	void Pass::EndPass()
+	{
+		vkCmdEndRenderPass( m_CommandBuffer );
 	}
 
 }

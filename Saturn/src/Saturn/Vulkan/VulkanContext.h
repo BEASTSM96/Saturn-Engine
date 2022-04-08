@@ -8,6 +8,7 @@
 
 #include "SwapChain.h"
 #include "Mesh.h"
+#include "Pass.h"
 
 #include "VulkanVertexBuffer.h"
 
@@ -67,24 +68,29 @@ namespace Saturn {
 
 		void CreateFramebuffer( VkFramebuffer* pFramebuffer );
 
+		void Init();
+		void ResizeEvent();
+		uint32_t GetMemoryType( uint32_t TypeFilter, VkMemoryPropertyFlags Properties );
+		
+	public:
+		
 		VkInstance& GetInstance() { return m_Instance; }
 
 		VkDevice& GetDevice() { return m_LogicalDevice; }
 
 		VkSurfaceKHR& GetSurface() { return m_Surface; }
+		VkSurfaceFormatKHR& GetSurfaceFormat() { return m_SurfaceFormat; }
 
 		SwapchainCreationData GetSwapchainCreationData();
 
 		QueueFamilyIndices& GetQueueFamilyIndices() { return m_Indices; };
 
-		VkRenderPass& GetRenderPass() { return m_RenderPass; }
+		VkRenderPass& GetRenderPass() { return m_RenderPass.GetRenderPass(); }
 		VkCommandPool& GetCommandPool() { return m_CommandPool; }
-		
+
 		VkQueue& GetGraphicsQueue() { return m_GraphicsQueue; }
 
-		void Init();
-		void ResizeEvent();
-		uint32_t GetMemoryType( uint32_t TypeFilter, VkMemoryPropertyFlags Properties );
+		Swapchain& GetSwapchain() { return m_SwapChain; }
 
 	private:
 		void Terminate();
@@ -112,10 +118,11 @@ namespace Saturn {
 		VkDebugUtilsMessengerEXT m_DebugMessenger;
 		VkExtent2D m_SwapChainExtent;
 		VkCommandPool m_CommandPool;
-		VkRenderPass m_RenderPass;
+		//VkRenderPass m_RenderPass;
 		VkPipeline m_Pipeline;
 		VkPipelineLayout m_PipelineLayout;
 
+		Pass m_RenderPass;
 
 		VulkanDebugMessenger* m_pDebugMessenger;
 

@@ -26,66 +26,31 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "IO.h"
+#pragma once
 
-#if defined ( SAT_WINDOWS )
-#define freopen freopen_s
-#endif
+#include "Base.h"
+#include "Saturn/Core/Base.h"
 
 namespace Saturn {
-
-	void IO::Init()
+	
+	class Pass
 	{
-		//m_OldStdStringBuffer = std::cout.rdbuf();
-	}
+	public:
+		 Pass() { }
+		 Pass( VkCommandBuffer CommandBuffer, std::string Name );
+		~Pass();
+		
+		void Terminate();
 
-	void IO::Shutdown()
-	{
-		//std::cout.rdbuf( m_OldStdStringBuffer );
-	}
+		VkRenderPass& GetRenderPass() { return m_Pass; }
 
-	void IO::StdStreamRedirect()
-	{
-		//ConsoleStreamRedirect();
+		void BeginPass( VkCommandBuffer CommandBuffer = nullptr, VkSubpassContents Contents = VK_SUBPASS_CONTENTS_INLINE, uint32_t ImageIndex = 0 );
+		void EndPass();
 
-		//std::cout.rdbuf( &m_StdStringBuffer );
-	}
-
-	void IO::ConsoleStreamRedirect()
-	{
-	#if defined( SAT_WINDOWS )
-
-		bool res = true;
-		FILE* fp;
-
-		if( GetStdHandle( STD_INPUT_HANDLE ) != INVALID_HANDLE_VALUE )
-			if( freopen( &fp, "CONIN$", "r", stdin ) != 0 )
-				res = false;
-			else
-				setvbuf( stdin, NULL, _IONBF, 0 );
-
-		if( GetStdHandle( STD_OUTPUT_HANDLE ) != INVALID_HANDLE_VALUE )
-			if( freopen( &fp, "CONOUT$", "w", stdout ) != 0 )
-				res = false;
-			else
-				setvbuf( stdout, NULL, _IONBF, 0 );
-
-		if( GetStdHandle( STD_ERROR_HANDLE ) != INVALID_HANDLE_VALUE )
-			if( freopen( &fp, "CONOUT$", "w", stderr ) != 0 )
-				res = false;
-			else
-				setvbuf( stderr, NULL, _IONBF, 0 );
-
-		std::ios::sync_with_stdio( true );
-
-		std::wcout.clear();
-		std::cout.clear();
-		std::wcerr.clear();
-		std::cerr.clear();
-		std::wcin.clear();
-		std::cin.clear();
-	#endif
-	}
-
+	private:
+		std::string m_Name = "";
+		
+		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
+		VkRenderPass m_Pass = VK_NULL_HANDLE;
+	};
 }
