@@ -70,8 +70,7 @@ namespace Saturn {
 
 	std::vector<VkVertexInputBindingDescription> VertexBuffer::GetBindingDescriptions()
 	{
-
-		return { { 0, sizeof( Vertex ), VK_VERTEX_INPUT_RATE_VERTEX } };
+		return { { .binding = 0, .stride = sizeof( Vertex ), .inputRate = VK_VERTEX_INPUT_RATE_VERTEX } };
 	}
 
 	std::vector<VkVertexInputAttributeDescription> VertexBuffer::GetAttributeDescriptions()
