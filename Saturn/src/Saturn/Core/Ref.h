@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 namespace Saturn {
 
 	template<typename T>
@@ -55,6 +57,7 @@ namespace Saturn {
 		void Delete() 
 		{
 			delete m_Pointer;
+			m_Pointer = nullptr;
 		}
 
 		void Reset()
