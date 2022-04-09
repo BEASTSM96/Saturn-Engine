@@ -42,7 +42,7 @@ project "Saturn"
 	location "Saturn"
 	kind "StaticLib"
 	language "C++"
-	cppdialect "C++17"
+	cppdialect "C++20"
 	staticruntime "on"
 	warnings "Off"
 
@@ -69,7 +69,10 @@ project "Saturn"
 		"_CRT_SECURE_NO_WARNINGS",
 		"PX_PHYSX_STATIC_LIB",
 		"PX_GENERATE_STATIC_LIBRARIES",
-		"AL_LIBTYPE_STATIC"
+		"AL_LIBTYPE_STATIC",
+		"GLM_ENABLE_EXPERIMENTAL",
+		"GLM_FORCE_DEPTH_ZERO_TO_ONE",
+		"GLM_FORCE_RADIANS"
 	}
 
 	includedirs
