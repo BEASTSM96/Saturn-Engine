@@ -37,7 +37,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCB(
 	void*                                              pUserData )
 {
 	if( MessageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT )
-		std::cout << "Vulkan Error " << pCallbackData->pMessage << "\n";
+		SAT_CORE_ERROR( "{0}", pCallbackData->pMessage );
 
 	return VK_TRUE;
 }

@@ -30,6 +30,7 @@
 #include "SwapChain.h"
 
 #include "VulkanContext.h"
+#include "VulkanDebug.h"
 
 namespace Saturn {
 
@@ -79,18 +80,22 @@ namespace Saturn {
 		SwapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
 		VK_CHECK( vkCreateSwapchainKHR( VulkanContext::Get().GetDevice(), &SwapchainCreateInfo, nullptr, &m_Swapchain ) );
+		
+		SetDebugUtilsObjectName( "Swap chain", ( uint64_t )m_Swapchain, VK_OBJECT_TYPE_SWAPCHAIN_KHR );
 
 		CreateImageViews();
 	}
 
 	void Swapchain::CreateFramebuffers()
 	{
+		VulkanContext::Get().GetRenderPass().Recreate();
+
 		SwapchainCreationData SwapchainData = VulkanContext::Get().GetSwapchainCreationData();
 
 		VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		FramebufferCreateInfo.width = Window::Get().Width();
 		FramebufferCreateInfo.height = Window::Get().Height();
-		FramebufferCreateInfo.renderPass = VulkanContext::Get().GetRenderPass();
+		FramebufferCreateInfo.renderPass = VulkanContext::Get().GetRenderPass().GetRenderPass();
 		FramebufferCreateInfo.layers = 1;
 		FramebufferCreateInfo.attachmentCount = 1;
 
@@ -101,6 +106,8 @@ namespace Saturn {
 			FramebufferCreateInfo.pAttachments = &m_ImageViews[ i ];
 
 			VK_CHECK( vkCreateFramebuffer( VulkanContext::Get().GetDevice(), &FramebufferCreateInfo, nullptr, &m_Framebuffers[ i ] ) );
+			
+			SetDebugUtilsObjectName( "Framebuffer", ( uint64_t )m_Framebuffers[ i ], VK_OBJECT_TYPE_FRAMEBUFFER );
 		}
 	}
 
@@ -117,7 +124,7 @@ namespace Saturn {
 		{
 			vkDestroyImageView( VulkanContext::Get().GetDevice(), rImageView, nullptr );
 		}
-
+		
 		m_Framebuffers.clear();
 		m_ImageViews.clear();
 
@@ -161,6 +168,8 @@ namespace Saturn {
 		SwapchainCreateInfo.oldSwapchain = OldSwapchain;
 
 		VK_CHECK( vkCreateSwapchainKHR( VulkanContext::Get().GetDevice(), &SwapchainCreateInfo, nullptr, &m_Swapchain ) );
+		
+		SetDebugUtilsObjectName( "Swap chain", ( uint64_t )m_Swapchain, VK_OBJECT_TYPE_SWAPCHAIN_KHR );
 
 		// Recreate the framebuffers and image views that are linked to the new swapchain.
 		CreateImageViews();
@@ -214,6 +223,7 @@ namespace Saturn {
 
 		VK_CHECK( vkGetSwapchainImagesKHR( VulkanContext::Get().GetDevice(), m_Swapchain, &SwapchainData.ImageCount, nullptr ) );
 
+		m_Images.clear();
 		m_Images.resize( SwapchainData.ImageCount );
 
 		VK_CHECK( vkGetSwapchainImagesKHR( VulkanContext::Get().GetDevice(), m_Swapchain, &SwapchainData.ImageCount, m_Images.data() ) );
@@ -234,6 +244,7 @@ namespace Saturn {
 			ImageViewCreateInfo.image = m_Images[ i ];
 
 			VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageViews[ i ] ) );
+			SetDebugUtilsObjectName( "Image view", ( uint64_t )m_ImageViews[ i ], VK_OBJECT_TYPE_IMAGE_VIEW );
 		}
 	}
 }

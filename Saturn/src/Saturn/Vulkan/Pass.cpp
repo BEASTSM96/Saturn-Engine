@@ -30,6 +30,7 @@
 #include "Pass.h"
 
 #include "VulkanContext.h"
+#include "VulkanDebug.h"
 
 namespace Saturn {
 
@@ -61,6 +62,7 @@ namespace Saturn {
 		RenderPassCreateInfo.subpassCount = 1;
 		
 		VK_CHECK( vkCreateRenderPass( VulkanContext::Get().GetDevice(), &RenderPassCreateInfo, nullptr, &m_Pass ) );
+		SetDebugUtilsObjectName( m_Name, ( uint64_t )m_Pass, VK_OBJECT_TYPE_RENDER_PASS );
 	}
 
 	Pass::~Pass()
@@ -69,7 +71,42 @@ namespace Saturn {
 
 	void Pass::Terminate()
 	{
-		//vkDestroyRenderPass( VulkanContext::Get().GetDevice(), m_Pass, nullptr );
+		if( m_Pass )
+			vkDestroyRenderPass( VulkanContext::Get().GetDevice(), m_Pass, nullptr );
+
+		m_Pass = nullptr;
+	}
+	
+	void Pass::Recreate( VkCommandBuffer CommandBuffer /*=nullptr*/ )
+	{
+		vkDestroyRenderPass( VulkanContext::Get().GetDevice(), m_Pass, nullptr );
+
+		m_CommandBuffer = CommandBuffer;
+		m_Name = m_Name;
+
+		VkAttachmentDescription Attachments ={};
+		Attachments.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		Attachments.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		Attachments.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		Attachments.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		Attachments.samples = VK_SAMPLE_COUNT_1_BIT;
+		Attachments.format = VulkanContext::Get().GetSurfaceFormat().format;
+
+		VkAttachmentReference ColorAttactmentRef ={};
+		ColorAttactmentRef.attachment = 0;
+		ColorAttactmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription DefaultSubpass ={};
+		DefaultSubpass.pColorAttachments = &ColorAttactmentRef;
+		DefaultSubpass.colorAttachmentCount = 1;
+
+		VkRenderPassCreateInfo RenderPassCreateInfo ={ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+		RenderPassCreateInfo.pAttachments = &Attachments;
+		RenderPassCreateInfo.attachmentCount = 1;
+		RenderPassCreateInfo.pSubpasses = &DefaultSubpass;
+		RenderPassCreateInfo.subpassCount = 1;
+
+		VK_CHECK( vkCreateRenderPass( VulkanContext::Get().GetDevice(), &RenderPassCreateInfo, nullptr, &m_Pass ) );
 	}
 
 	void Pass::BeginPass( VkCommandBuffer CommandBuffer /* = nullptr */, VkSubpassContents Contents /* = VK_SUBPASS_CONTENTS_INLINE*/, uint32_t ImageIndex /* = 0 */ )

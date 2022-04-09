@@ -398,12 +398,12 @@ namespace Saturn {
 		glfwGetWindowSize( m_Window, ( int* )pWidth, ( int* )pHeight );
 	}
 
-	void Window::SizeCallback( GLFWwindow* wind, int h, int w )
+	void Window::SizeCallback( GLFWwindow* wind, int w, int h )
 	{
 		Window* window = ( Window* )glfwGetWindowUserPointer( wind );
 
-		window->m_Height = h;
 		window->m_Width = w;
+		window->m_Height = h;
 	}
 
 #if defined ( SAT_WINDOWS )

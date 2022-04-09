@@ -29,30 +29,16 @@
 #pragma once
 
 #include "Base.h"
-#include "Saturn/Core/Base.h"
 
 namespace Saturn {
-	
-	class Pass
+
+	class Texture
 	{
 	public:
-		 Pass() { }
-		 Pass( VkCommandBuffer CommandBuffer, std::string Name );
-		~Pass();
-		
-		void Terminate();
-
-		void Recreate( VkCommandBuffer CommandBuffer = nullptr );
-
-		VkRenderPass& GetRenderPass() { return m_Pass; }
-
-		void BeginPass( VkCommandBuffer CommandBuffer = nullptr, VkSubpassContents Contents = VK_SUBPASS_CONTENTS_INLINE, uint32_t ImageIndex = 0 );
-		void EndPass();
+		Texture();
+		~Texture();
 
 	private:
-		std::string m_Name = "";
-		
-		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
-		VkRenderPass m_Pass = VK_NULL_HANDLE;
+
 	};
 }

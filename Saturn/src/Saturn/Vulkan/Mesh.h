@@ -32,7 +32,8 @@
 #include "Saturn/Core/AABB/AABB.h"
 #include "Saturn/Core/Renderer/EditorCamera.h"
 #include "Shader.h"
-#include "VulkanVertexBuffer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 #include <vector>
 #include <string>

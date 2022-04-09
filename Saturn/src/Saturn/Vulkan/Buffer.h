@@ -28,30 +28,31 @@
 
 #pragma once
 
-#include "VulkanContext.h"
 #include <vulkan.h>
-
-#include <filesystem>
 
 namespace Saturn {
 
-	class VulkanTexture
+	class Buffer
 	{
 	public:
-		VulkanTexture( std::filesystem::path& rPath, VkFormat Format, VkImageTiling Tiling, VkImageUsageFlags Usage, VkMemoryPropertyFlags MemoryProps );
-		~VulkanTexture();
+		 Buffer() {}
+		~Buffer();
+		
+		void Create( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage, VkMemoryPropertyFlags MemProperties );
+		
+		VkBuffer& GetBuffer() { return m_Buffer; }
+
+		operator VkBuffer() const { return m_Buffer; }
+		operator VkBuffer&() { return m_Buffer; }
+
+	private:
+		VkBuffer m_Buffer = VK_NULL_HANDLE;
+		VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+		VkDeviceSize m_Size = 0;
 
 	private:
 
-		void Init();
-
-		uint32_t m_Width, m_Height;
-		VkFormat m_Format;
-		VkImageTiling m_Tiling;
-		VkImageUsageFlags m_Usage;
-
-		VulkanResource< VkImage > m_Image;
-
-		VkDeviceMemory m_ImageMemory;
+		friend class VertexBuffer;
+		friend class IndexBuffer;
 	};
 }

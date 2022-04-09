@@ -29,6 +29,8 @@
 #pragma once
 
 #include "Base.h"
+#include "Buffer.h"
+
 #include <vulkan.h>
 #include <string>
 #include <vector>
@@ -42,7 +44,10 @@ namespace Saturn {
 	struct Vertex
 	{
 		glm::vec3 Position;
-		glm::vec3 Color;
+		glm::vec3 Normal;
+		glm::vec3 Tangent;
+		glm::vec3 Binormal;
+		glm::vec2 Texcoord;
 	};
 
 	enum class FormatType
@@ -57,7 +62,7 @@ namespace Saturn {
 		Double
 	};
 
-	inline VkFormat  FormatTypeToVulkan( FormatType Type )
+	inline VkFormat FormatTypeToVulkan( FormatType Type )
 	{
 		switch( Type )
 		{
@@ -147,10 +152,7 @@ namespace Saturn {
 		}
 	}
 
-	struct Index
-	{
-		uint32_t V1, V2, V3;
-	};
+
 
 	struct VertexLayoutType
 	{
@@ -171,9 +173,9 @@ namespace Saturn {
 	class VertexBuffer
 	{
 	public:
-		VertexBuffer() : m_Size( 0 ), m_Buffer( VK_NULL_HANDLE ), m_Memory( VK_NULL_HANDLE ), m_pData( nullptr ) { }
+		VertexBuffer() : m_pData( nullptr ) { }
 
-		VertexBuffer( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage = 0 ) : m_Size( Size ), m_Buffer( VK_NULL_HANDLE ), m_Memory( VK_NULL_HANDLE ), m_pData( pData ) { }
+		VertexBuffer( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage = 0 ) : m_pData( pData ) { }
 
 		VertexBuffer( const std::vector< Vertex >& Vertices );
 
@@ -198,33 +200,7 @@ namespace Saturn {
 	private:
 
 		void* m_pData = nullptr;
-		VkBuffer m_Buffer = VK_NULL_HANDLE;
-		VkDeviceSize m_Size;
-		VkDeviceMemory m_Memory = VK_NULL_HANDLE;
-	};
-
-	class IndexBuffer
-	{
-	public:
-		IndexBuffer() { m_Size = 0; }
-		IndexBuffer( const std::vector<Index>& Indices );
-		IndexBuffer( void* pIndicesData, size_t IndicesSize );
-		~IndexBuffer();
-		
-		void Bind( VkCommandBuffer CommandBuffer );
-		void Draw( VkCommandBuffer CommandBuffer );
-
-		void Terminate();
-
-		void CreateBuffer();
-		
-		std::vector<Index> m_Indices;
-		
-	private:
-		
-		void* m_pData = nullptr;
-		VkBuffer m_Buffer = VK_NULL_HANDLE;
-		VkDeviceSize m_Size;
-		VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+	
+		Buffer m_Buffer;
 	};
 }

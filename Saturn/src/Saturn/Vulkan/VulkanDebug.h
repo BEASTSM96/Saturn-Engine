@@ -28,31 +28,47 @@
 
 #pragma once
 
-#include "Base.h"
-#include "Saturn/Core/Base.h"
+#include "VulkanContext.h"
 
 namespace Saturn {
-	
-	class Pass
+
+	inline void SetDebugUtilsObjectName( VkDebugUtilsObjectNameInfoEXT* pInfo )
 	{
-	public:
-		 Pass() { }
-		 Pass( VkCommandBuffer CommandBuffer, std::string Name );
-		~Pass();
-		
-		void Terminate();
+		PFN_vkSetDebugUtilsObjectNameEXT Function = ( PFN_vkSetDebugUtilsObjectNameEXT )vkGetInstanceProcAddr( VulkanContext::Get().GetInstance(), "vkSetDebugUtilsObjectNameEXT" );
 
-		void Recreate( VkCommandBuffer CommandBuffer = nullptr );
+		if ( Function )
+		{
+			Function( VulkanContext::Get().GetDevice(), pInfo );
+		}
+	}
 
-		VkRenderPass& GetRenderPass() { return m_Pass; }
+	inline void SetDebugUtilsObjectName( std::string Name, uint64_t Handle, VkObjectType ObjectType )
+	{
+		PFN_vkSetDebugUtilsObjectNameEXT Function = ( PFN_vkSetDebugUtilsObjectNameEXT )vkGetInstanceProcAddr( VulkanContext::Get().GetInstance(), "vkSetDebugUtilsObjectNameEXT" );
 
-		void BeginPass( VkCommandBuffer CommandBuffer = nullptr, VkSubpassContents Contents = VK_SUBPASS_CONTENTS_INLINE, uint32_t ImageIndex = 0 );
-		void EndPass();
+		VkDebugUtilsObjectNameInfoEXT Info = { VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
+		Info.objectHandle = ( uint64_t )Handle;
+		Info.objectType = ObjectType;
+		Info.pObjectName = Name.c_str();
 
-	private:
-		std::string m_Name = "";
-		
-		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
-		VkRenderPass m_Pass = VK_NULL_HANDLE;
-	};
+		if( Function )
+		{
+			Function( VulkanContext::Get().GetDevice(), &Info );
+		}
+	}
+
+	inline void SetDebugUtilsObjectName( const char* pName, uint64_t Handle, VkObjectType ObjectType )
+	{
+		PFN_vkSetDebugUtilsObjectNameEXT Function = ( PFN_vkSetDebugUtilsObjectNameEXT )vkGetInstanceProcAddr( VulkanContext::Get().GetInstance(), "vkSetDebugUtilsObjectNameEXT" );
+
+		VkDebugUtilsObjectNameInfoEXT Info ={ VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
+		Info.objectHandle = ( uint64_t )Handle;
+		Info.objectType = ObjectType;
+		Info.pObjectName = pName;
+
+		if( Function )
+		{
+			Function( VulkanContext::Get().GetDevice(), &Info );
+		}
+	}
 }

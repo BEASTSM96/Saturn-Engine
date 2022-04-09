@@ -134,7 +134,7 @@ namespace Saturn {
 			{
 				Vertex vertex ={};
 				vertex.Position ={ mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
-				//vertex.Normal ={ mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
+				vertex.Normal ={ mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
 
 				//if( mesh->HasTangentsAndBitangents() )
 				//{
@@ -142,8 +142,8 @@ namespace Saturn {
 				//	vertex.Binormal ={ mesh->mBitangents[ i ].x, mesh->mBitangents[ i ].y, mesh->mBitangents[ i ].z };
 				//}
 
-				//if( mesh->HasTextureCoords( 0 ) )
-				//	vertex.Texcoord ={ mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
+				if( mesh->HasTextureCoords( 0 ) )
+					vertex.Texcoord ={ mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
 
 				m_StaticVertices.push_back( vertex );
 			}
@@ -188,6 +188,11 @@ namespace Saturn {
 
 	Mesh::~Mesh()
 	{
+		m_VertexBuffer.Delete();
+		m_IndexBuffer.Delete();
+
+		m_Indices.clear();
+		m_StaticVertices.clear();
 	}
 
 	void Mesh::TraverseNodes( aiNode* node, const glm::mat4& parentTransform, uint32_t level ) 

@@ -68,26 +68,19 @@ namespace Saturn {
 
 		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
-		DiscordRPC::Get().Init();
-
 		while( m_Running )
 		{
-			Window::Get().OnUpdate();
-			Window::Get().Render();
-
-			VulkanContext::Get().Render();
-
-			DiscordRPC::Get().Update();
-
-
 			float time = ( float )glfwGetTime(); //Platform::GetTime();
 
 			m_Timestep = time - m_LastFrameTime;
 
 			m_LastFrameTime = time;
-		}
+			
+			Window::Get().OnUpdate();
+			Window::Get().Render();
 
-		DiscordRPC::Get().Shutdown();
+			VulkanContext::Get().Render();
+		}
 	}
 
 	void Application::Close()
@@ -136,6 +129,8 @@ namespace Saturn {
 
 		dispatcher.Dispatch< WindowResizeEvent >( APP_BIND_EVENT_FN( OnWindowResize ) );
 
+		VulkanContext::Get().OnEvent( e );
+
 		//Renderer::Get().OnEvent( e );
 	}
 
@@ -148,5 +143,12 @@ namespace Saturn {
 		//glViewport( 0, 0, width, height );
 
 		//Renderer::Get().Resize( width, height );
+
+		if( width == 0 && height == 0 )
+			VulkanContext::Get().SetWindowIconifed( true );
+		else
+			VulkanContext::Get().SetWindowIconifed( false );
+
+		VulkanContext::Get().ResizeEvent();
 	}
 }

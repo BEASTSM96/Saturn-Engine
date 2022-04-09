@@ -92,13 +92,13 @@ namespace Saturn {
 
 	private:
 
-		static void SizeCallback( GLFWwindow* wind, int h, int w );
+		static void SizeCallback( GLFWwindow* wind, int w, int h );
 
 	private:
 		GLFWwindow* m_Window = nullptr;
 
-		int m_Height = 720;
 		int m_Width  = 1200;
+		int m_Height = 720;
 		std::string m_Title = "Saturn";
 
 		bool m_Minimized = false;

@@ -6,11 +6,13 @@
 #include "Saturn/Core/Renderer/EditorCamera.h"
 #include "Shader.h"
 
+#include "IndexBuffer.h"
+#include "VertexBuffer.h"
+
 #include "SwapChain.h"
 #include "Mesh.h"
 #include "Pass.h"
 
-#include "VulkanVertexBuffer.h"
 
 #include <glm/glm.hpp>
 

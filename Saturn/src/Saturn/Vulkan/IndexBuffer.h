@@ -29,30 +29,44 @@
 #pragma once
 
 #include "Base.h"
-#include "Saturn/Core/Base.h"
+#include "Buffer.h"
+
+#include <vulkan.h>
+#include <string>
+#include <vector>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
 
 namespace Saturn {
-	
-	class Pass
+
+	struct Index
+	{
+		uint32_t V1, V2, V3;
+	};
+
+	class IndexBuffer
 	{
 	public:
-		 Pass() { }
-		 Pass( VkCommandBuffer CommandBuffer, std::string Name );
-		~Pass();
-		
+		IndexBuffer() { }
+		IndexBuffer( const std::vector<Index>& Indices );
+		IndexBuffer( void* pIndicesData, size_t IndicesSize );
+		~IndexBuffer();
+
+		void Bind( VkCommandBuffer CommandBuffer );
+		void Draw( VkCommandBuffer CommandBuffer );
+
 		void Terminate();
 
-		void Recreate( VkCommandBuffer CommandBuffer = nullptr );
+		void CreateBuffer();
 
-		VkRenderPass& GetRenderPass() { return m_Pass; }
-
-		void BeginPass( VkCommandBuffer CommandBuffer = nullptr, VkSubpassContents Contents = VK_SUBPASS_CONTENTS_INLINE, uint32_t ImageIndex = 0 );
-		void EndPass();
+		std::vector<Index> m_Indices;
 
 	private:
-		std::string m_Name = "";
+
+		void* m_pData = nullptr;
 		
-		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
-		VkRenderPass m_Pass = VK_NULL_HANDLE;
+		Buffer m_Buffer;
 	};
 }

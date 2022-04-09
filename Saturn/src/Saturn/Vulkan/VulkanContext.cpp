@@ -3,6 +3,8 @@
 
 #include "VulkanDebugMessenger.h"
 
+#include "VulkanDebug.h"
+
 #include <vulkan.h>
 #include <cassert>
 #include <set>
@@ -274,6 +276,7 @@ namespace Saturn {
 		//DeviceInfo.pNext = &Features;
 
 		VK_CHECK( vkCreateDevice( m_PhysicalDevice, &DeviceInfo, nullptr, &m_LogicalDevice ) );
+		SetDebugUtilsObjectName( "Physical Device", ( uint64_t )m_LogicalDevice, VK_OBJECT_TYPE_DEVICE );
 
 		// Assign a queue to each family.
 		vkGetDeviceQueue( m_LogicalDevice, m_Indices.GraphicsFamily.value(), 0, &m_GraphicsQueue );
@@ -353,6 +356,7 @@ namespace Saturn {
 		CommandPoolInfo.queueFamilyIndex = m_Indices.GraphicsFamily.value();
 
 		VK_CHECK( vkCreateCommandPool( m_LogicalDevice, &CommandPoolInfo, nullptr, &m_CommandPool ) );
+		SetDebugUtilsObjectName( "Command Pool", ( uint64_t )m_CommandPool, VK_OBJECT_TYPE_COMMAND_POOL );
 	}
 
 	void VulkanContext::CreateSyncObjects()
@@ -370,6 +374,9 @@ namespace Saturn {
 
 		VK_CHECK( vkCreateSemaphore( m_LogicalDevice, &SemaphoreCreateInfo, nullptr, &m_AcquireSemaphore ) );
 		VK_CHECK( vkCreateSemaphore( m_LogicalDevice, &SemaphoreCreateInfo, nullptr, &m_SubmitSemaphore ) );
+
+		SetDebugUtilsObjectName( "Semaphore", ( uint64_t )m_AcquireSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
+		SetDebugUtilsObjectName( "Semaphore", ( uint64_t )m_SubmitSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
 	}
 
 	void VulkanContext::CreateFramebuffers()
@@ -392,6 +399,7 @@ namespace Saturn {
 		}
 
 		VK_CHECK( vkCreateFramebuffer( m_LogicalDevice, &FramebufferCreateInfo, nullptr, pFramebuffer ) );
+		SetDebugUtilsObjectName( "Framebuffer", ( uint64_t )pFramebuffer, VK_OBJECT_TYPE_FRAMEBUFFER );
 	}
 
 	void VulkanContext::CreateRenderpass()
@@ -429,6 +437,9 @@ namespace Saturn {
 		FragCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/FragShader" ).data() );
 
 		VK_CHECK( vkCreateShaderModule( m_LogicalDevice, &FragCreateInfo, nullptr, &FragmentShader ) );
+		
+		SetDebugUtilsObjectName( "Triangle/FragShader", ( uint64_t )VertexShader, VK_OBJECT_TYPE_SHADER_MODULE );
+		SetDebugUtilsObjectName( "Triangle/VertexShader", ( uint64_t )FragmentShader, VK_OBJECT_TYPE_SHADER_MODULE );
 
 		VkPipelineShaderStageCreateInfo VertexStage ={ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
 		VertexStage.pName = "main";
@@ -522,6 +533,8 @@ namespace Saturn {
 
 		// We may need more pipelines, but for now we only need one and we really should only need one as creating them is really expensive.
 		VK_CHECK( vkCreateGraphicsPipelines( m_LogicalDevice, 0, 1, &PipelineCreateInfo, nullptr, &m_Pipeline ) );
+		
+		SetDebugUtilsObjectName( "Static Meshes", ( uint64_t )m_Pipeline, VK_OBJECT_TYPE_PIPELINE );
 
 		vkDestroyShaderModule( m_LogicalDevice, VertexShader, nullptr );
 		vkDestroyShaderModule( m_LogicalDevice, FragmentShader, nullptr );
@@ -608,8 +621,8 @@ namespace Saturn {
 		m_Camera.AllowEvents( true );
 		m_Camera.SetActive( true );
 		m_Camera.OnUpdate( Application::Get().Time() );
-		m_Camera.SetViewportSize( Window::Get().Width(), Window::Get().Height() );
-		m_Camera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), ( float )Window::Get().Width(), ( float )Window::Get().Height(), 0.1f, 1000.0f ) );
+		//m_Camera.SetViewportSize( Window::Get().Width(), Window::Get().Height() );
+		//m_Camera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), ( float )Window::Get().Width(), ( float )Window::Get().Height(), 0.1f, 1000.0f ) );
 
 		VkCommandBuffer CommandBuffer;
 		VkCommandBufferAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
@@ -617,6 +630,7 @@ namespace Saturn {
 		AllocateInfo.commandPool = m_CommandPool;
 
 		VK_CHECK( vkAllocateCommandBuffers( m_LogicalDevice, &AllocateInfo, &CommandBuffer ) );
+		SetDebugUtilsObjectName( "Command Buffer:Render", ( uint64_t )CommandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER );
 
 		VkCommandBufferBeginInfo CommandPoolBeginInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		CommandPoolBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;

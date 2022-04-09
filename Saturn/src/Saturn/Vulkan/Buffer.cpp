@@ -27,66 +27,54 @@
 */
 
 #include "sppch.h"
-#include "VulkanTexture.h"
+#include "Buffer.h"
 
-#include <stb_image.h>
+#include "VulkanContext.h"
+#include "VulkanDebug.h"
 
 namespace Saturn {
 
-	VulkanTexture::VulkanTexture(
-		std::filesystem::path& rPath,
-		VkFormat Format,
-		VkImageTiling Tiling,
-		VkImageUsageFlags Usage,
-		VkMemoryPropertyFlags MemoryProps )
+	Buffer::~Buffer()
 	{
-		int TextureWidth, TextureHeight, TextureChannels;
+		if( m_Buffer )
+			vkDestroyBuffer( VulkanContext::Get().GetDevice(), m_Buffer, nullptr );
 
-		stbi_uc* pTextureData = stbi_load( rPath.string().c_str(), &TextureWidth, &TextureHeight, &TextureChannels, STBI_default );
+		if ( m_Memory )
+			vkFreeMemory( VulkanContext::Get().GetDevice(), m_Memory, nullptr );
 
-		if( pTextureData == nullptr )
-			return;
+		m_Buffer = nullptr;
+		m_Memory = nullptr;
+	}
 
-		// Create staging buffer to store texture data in Vulkan.
-		void* pPixelData = pTextureData;
-
-		VkDeviceSize ImageSize = TextureWidth * TextureHeight * 4;
-
-		VkMemoryAllocateInfo MemoryAllocateInfo ={ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-		MemoryAllocateInfo.allocationSize = ImageSize;
-		MemoryAllocateInfo.memoryTypeIndex = 0;
-
-		VkImageCreateInfo ImageCreateInfo ={ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-		ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-		ImageCreateInfo.extent.width = m_Width;
-		ImageCreateInfo.extent.height = m_Height;
-		ImageCreateInfo.extent.depth = 1;
-		ImageCreateInfo.mipLevels = 1;
-		ImageCreateInfo.arrayLayers = 1;
-		ImageCreateInfo.format = Format;
-		ImageCreateInfo.tiling = Tiling;
-		ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		ImageCreateInfo.usage = Usage;
-
+	void Buffer::Create( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage, VkMemoryPropertyFlags MemProperties )
+	{
 		VkMemoryRequirements MemoryRequirements;
-		VkBuffer Buffer;
-		VkDeviceMemory Memory;
 
 		VkBufferCreateInfo BufferCreateInfo ={ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-		BufferCreateInfo.size = ImageSize;
-		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		BufferCreateInfo.size = Size;
+		BufferCreateInfo.usage = Usage;
 		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		VK_CHECK( vkCreateBuffer( VulkanContext::Get().GetDevice(), &BufferCreateInfo, nullptr, &Buffer ) );
+		VK_CHECK( vkCreateBuffer( VulkanContext::Get().GetDevice(), &BufferCreateInfo, nullptr, &m_Buffer ) );
+		SetDebugUtilsObjectName( "Internal Buffer", ( uint64_t )m_Buffer, VK_OBJECT_TYPE_BUFFER );
 
+		vkGetBufferMemoryRequirements( VulkanContext::Get().GetDevice(), m_Buffer, &MemoryRequirements );
+		
+		VkMemoryAllocateInfo MemoryAllocateInfo ={ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+		MemoryAllocateInfo.allocationSize = MemoryRequirements.size;
+		MemoryAllocateInfo.memoryTypeIndex = VulkanContext::Get().GetMemoryType( MemoryRequirements.memoryTypeBits, MemProperties );
+		
+		VK_CHECK( vkAllocateMemory( VulkanContext::Get().GetDevice(), &MemoryAllocateInfo, nullptr, &m_Memory ) );
+		
+		VK_CHECK( vkBindBufferMemory( VulkanContext::Get().GetDevice(), m_Buffer, m_Memory, 0 ) );
+		
+		if( pData != nullptr ) 
+		{
+			void* pMappedMemory = nullptr;
+			VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), m_Memory, 0, Size, 0, &pMappedMemory ) );
+			memcpy( pMappedMemory, pData, Size );
+			vkUnmapMemory( VulkanContext::Get().GetDevice(), m_Memory );
+		}
 	}
 
-	VulkanTexture::~VulkanTexture()
-	{
-	}
-
-	void VulkanTexture::Init()
-	{
-
-	}
 }
