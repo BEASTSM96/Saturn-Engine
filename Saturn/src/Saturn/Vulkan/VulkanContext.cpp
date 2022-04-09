@@ -79,20 +79,21 @@ namespace Saturn {
 		ShaderWorker::Get().CompileShader( pTriangleVertexShader );
 		ShaderWorker::Get().CompileShader( pTriangleFragShader );
 
-		m_Buffer = VertexBuffer( Vertices );
-		m_Buffer.CreateBuffer();
+		//m_Buffer = VertexBuffer( Vertices );
+		//m_Buffer.CreateBuffer();
 
 		m_Mesh = Ref<Mesh>::Create( "assets/meshes/cerberus/cerberus.fbx" );
 
-		m_Camera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), (float)Window::Get().Width(), (float)Window::Get().Height(), 0.1f, 10000.0f ) );
+		m_Camera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
 		
 		CreatePipeline();
 	}
 
 	void VulkanContext::Terminate()
 	{
+		m_Mesh.Delete();
+		
 		m_SwapChain.Terminate();
-		m_Buffer.Terminate();
 		m_RenderPass.Terminate();
 
 		vkDestroyPipeline( m_LogicalDevice, m_Pipeline, nullptr );
@@ -218,14 +219,35 @@ namespace Saturn {
 				}
 			}
 		}
+		
+		for ( int i = 0; i < PhysicalDevices.size(); i++ )
+		{
+			m_DeviceProps.push_back( {} );
+			vkGetPhysicalDeviceProperties( m_PhysicalDevice, &m_DeviceProps[ 0 ].DeviceProps );
 
-		m_DeviceProps.push_back( {} );
-		vkGetPhysicalDeviceProperties( m_PhysicalDevice, &m_DeviceProps[ 0 ].DeviceProps );
+			SAT_CORE_INFO( "===== Vulkan Device {0} Properties ===== ", i );
+			SAT_CORE_INFO( " Device Name: {0}", m_DeviceProps[ 0 ].DeviceProps.deviceName );
+			SAT_CORE_INFO( " Driver Version: {0}", m_DeviceProps[ 0 ].DeviceProps.driverVersion );
+			SAT_CORE_INFO( " API Version: {0}", m_DeviceProps[ 0 ].DeviceProps.apiVersion );
 
-		std::cout << " ===== Vulkan Device Properties ===== " << std::endl;
-		std::cout << " Device Name: " << m_DeviceProps[ 0 ].DeviceProps.deviceName << std::endl;
-		std::cout << " Driver Version: " << m_DeviceProps[ 0 ].DeviceProps.driverVersion << std::endl;
-		std::cout << " API Version: " << m_DeviceProps[ 0 ].DeviceProps.apiVersion << std::endl;
+			{
+				uint32_t Count;
+				vkEnumerateInstanceExtensionProperties( nullptr, &Count, nullptr );
+				std::vector<VkExtensionProperties> Extensions( Count );
+				vkEnumerateInstanceExtensionProperties( nullptr, &Count, Extensions.data() );
+
+				SAT_CORE_INFO( " Physical Device {0} has {1} extensions ", i, Count );
+				SAT_CORE_INFO( "  Available extensions:" );
+
+				for( const auto& rExtension : Extensions )
+				{
+					SAT_CORE_INFO( "   {0}", rExtension.extensionName );
+				}
+			}
+
+		}
+
+		SAT_CORE_INFO( "======================================== " );
 	}
 
 	void VulkanContext::CreateLogicalDevice()
@@ -312,6 +334,11 @@ namespace Saturn {
 		}
 
 		return Data;
+	}
+
+	void VulkanContext::OnEvent( Event& e )
+	{
+		m_Camera.OnEvent( e );
 	}
 
 	void VulkanContext::CreateSwapChain()
@@ -502,12 +529,17 @@ namespace Saturn {
 
 	void VulkanContext::ResizeEvent()
 	{
+		if( m_WindowIconifed )
+			return;
+
 		m_SwapChain.Recreate();
 
 		vkDestroyPipeline( m_LogicalDevice, m_Pipeline, nullptr );
 		vkDestroyPipelineLayout( m_LogicalDevice, m_PipelineLayout, nullptr );
 
 		CreatePipeline();
+		
+		m_Camera.SetViewportSize( Window::Get().Width(), Window::Get().Height() );
 	}
 
 	bool VulkanContext::CheckValidationLayerSupport()
@@ -556,6 +588,9 @@ namespace Saturn {
 	{
 		// Wait for last frame.
 		VK_CHECK( vkWaitForFences( m_LogicalDevice, 1, &m_FightFences[ s_FrameCount ], VK_TRUE, UINT32_MAX ) );
+		
+		if( m_WindowIconifed )
+			return;
 
 		// Reset current fence.
 		VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FightFences[ s_FrameCount ] ) );
@@ -573,6 +608,8 @@ namespace Saturn {
 		m_Camera.AllowEvents( true );
 		m_Camera.SetActive( true );
 		m_Camera.OnUpdate( Application::Get().Time() );
+		m_Camera.SetViewportSize( Window::Get().Width(), Window::Get().Height() );
+		m_Camera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), ( float )Window::Get().Width(), ( float )Window::Get().Height(), 0.1f, 1000.0f ) );
 
 		VkCommandBuffer CommandBuffer;
 		VkCommandBufferAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
@@ -609,21 +646,19 @@ namespace Saturn {
 
 			TransformComponent Comp;
  			Comp.Position = glm::vec3( 0, 0, 0 );
-			Comp.Rotation = glm::vec3( 0, 90, 0 );
+			Comp.Rotation = glm::vec3( 0, 0, 0 );
 			Comp.Scale = glm::vec3( 1, 1, 1 );
 			
-			m_Camera.Focus( Comp.Position );
-
 			m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			m_Mesh->GetIndexBuffer()->Bind( CommandBuffer );
 		
+			glm::mat4 ViewProj = m_Camera.ViewProjection();
+
 			{
 				PushConstant PushC;
-				PushC.Offset ={ 0.0f, 0.0f };
-				PushC.Color ={ 0.0f, 0.0f, 0.0f };
-				PushC.Transfrom = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix() * Comp.GetTransform();
-				PushC.ViewProjectionMatrix = m_Camera.ProjectionMatrix() * m_Camera.ViewMatrix();
-
+				PushC.VPM = ViewProj;
+				PushC.Transfrom = Comp.GetTransform();
+				
 				vkCmdPushConstants( CommandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
 
 				m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );

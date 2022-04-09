@@ -51,9 +51,7 @@ namespace Saturn {
 	struct PushConstant
 	{
 		glm::mat4 Transfrom{ 1.f };
-		alignas( 8 ) glm::vec2 Offset;
-		alignas( 16 ) glm::vec3 Color;
-		glm::mat4 ViewProjectionMatrix;
+		glm::mat4 VPM{ 1.f };
 	};
 
 	class VulkanContext
@@ -85,12 +83,16 @@ namespace Saturn {
 
 		QueueFamilyIndices& GetQueueFamilyIndices() { return m_Indices; };
 
-		VkRenderPass& GetRenderPass() { return m_RenderPass.GetRenderPass(); }
+		Pass& GetRenderPass() { return m_RenderPass; }
 		VkCommandPool& GetCommandPool() { return m_CommandPool; }
 
 		VkQueue& GetGraphicsQueue() { return m_GraphicsQueue; }
 
 		Swapchain& GetSwapchain() { return m_SwapChain; }
+
+		void OnEvent( Event& e );
+
+		void SetWindowIconifed( bool inconifed ) { m_WindowIconifed = inconifed; }
 
 	private:
 		void Terminate();
@@ -149,6 +151,8 @@ namespace Saturn {
 		std::vector<VkFence> m_FightFences;
 
 		uint32_t m_ImageCount;
+
+		bool m_WindowIconifed = false;
 
 		std::vector<const char*> DeviceExtensions  ={ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME };
 		std::vector<const char*> ValidationLayers ={ "VK_LAYER_KHRONOS_validation" };
