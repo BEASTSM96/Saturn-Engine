@@ -29,16 +29,63 @@
 #pragma once
 
 #include "Base.h"
+#include "Buffer.h"
+
+#include <filesystem>
 
 namespace Saturn {
+	
+	extern void CreateImage( 
+						uint32_t Width, 
+						uint32_t Height,
+						VkFormat Format, 
+						VkImageTiling Tiling,
+						VkImageUsageFlags Usage, 
+						VkMemoryPropertyFlags MemProps,
+						VkImage& rImage, VkDeviceMemory& rDeviceMemory );
+
+	extern VkImageView CreateImageView( 
+						VkImage Image, 
+						VkFormat Format );
+	
+	enum class AddressingMode
+	{
+		Repeat,
+		MirroredRepeat,
+		ClampToEdge,
+		ClampToBorder
+	};
 
 	class Texture
 	{
 	public:
-		Texture();
-		~Texture();
+		Texture() {}
+		Texture( std::filesystem::path Path, AddressingMode Mode ) : m_Path( Path ), m_AddressingMode( Mode ) {}
+		~Texture() { Terminate(); }
+		
+		void Terminate();
+
+		void TransitionImageLayout( VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
+		void CopyBufferToImage( Buffer& rBuffer );
+
+		void CreateTextureImage();
+
+	public:
+		
+		VkSampler& GetSampler() { return m_Sampler; }
+		VkImageView& GetImageView() { return m_ImageView; }
 
 	private:
+		std::filesystem::path m_Path = "";
+		
+		VkImage m_Image = VK_NULL_HANDLE;
+		VkDeviceMemory m_ImageMemory = VK_NULL_HANDLE;
+		VkImageView m_ImageView = VK_NULL_HANDLE;
+		VkSampler m_Sampler = VK_NULL_HANDLE;
+		
+		AddressingMode m_AddressingMode = AddressingMode::Repeat;
 
+		int m_Width = 0;
+		int m_Height = 0;
 	};
 }

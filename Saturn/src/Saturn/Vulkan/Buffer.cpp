@@ -38,6 +38,52 @@ namespace Saturn {
 	{
 		Terminate();
 	}
+	
+	//////////////////////////////////////////////////////////////////////////
+
+	void Buffer::CopyBuffer( VkBuffer SrcBuffer, VkBuffer DstBuffer, VkDeviceSize Size )
+	{
+		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
+
+		VkBufferCopy CopyRegion = {};
+		CopyRegion.srcOffset = 0;
+		CopyRegion.dstOffset = 0;
+		CopyRegion.size = Size;
+
+		vkCmdCopyBuffer( CommandBuffer, SrcBuffer, DstBuffer, 1, &CopyRegion );
+
+		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+	}
+
+	void Buffer::CopyBuffer( VkBuffer DstBuffer, VkDeviceSize Size )
+	{
+		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
+
+		VkBufferCopy CopyRegion ={};
+		CopyRegion.srcOffset = 0;
+		CopyRegion.dstOffset = 0;
+		CopyRegion.size = Size;
+
+		vkCmdCopyBuffer( CommandBuffer, m_Buffer, DstBuffer, 1, &CopyRegion );
+
+		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+	}
+
+	void Buffer::CopyBuffer( Buffer DstBuffer )
+	{
+		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
+
+		VkBufferCopy CopyRegion ={};
+		CopyRegion.srcOffset = 0;
+		CopyRegion.dstOffset = 0;
+		CopyRegion.size = DstBuffer.m_Size;
+
+		vkCmdCopyBuffer( CommandBuffer, m_Buffer, DstBuffer, 1, &CopyRegion );
+
+		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+	}
+	
+	//////////////////////////////////////////////////////////////////////////
 
 	void Buffer::Terminate()
 	{

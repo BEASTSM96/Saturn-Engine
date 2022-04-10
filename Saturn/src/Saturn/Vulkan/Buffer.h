@@ -38,6 +38,10 @@ namespace Saturn {
 		 Buffer() {}
 		~Buffer();
 		
+		static void CopyBuffer( VkBuffer SrcBuffer, VkBuffer DstBuffer, VkDeviceSize Size );
+		void CopyBuffer( VkBuffer DstBuffer, VkDeviceSize Size );
+		void CopyBuffer( Buffer DstBuffer );
+
 		void Create( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage, VkMemoryPropertyFlags MemProperties );
 		void Create( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage, VkMemoryPropertyFlags MemProperties, VkDeviceMemory& rMemory );
 		

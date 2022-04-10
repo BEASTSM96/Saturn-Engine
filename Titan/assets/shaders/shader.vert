@@ -6,6 +6,8 @@ layout(location = 2) in vec3 a_Tangent;
 layout(location = 3) in vec3 a_Bitangent;
 layout(location = 4) in vec2 a_TexCoord;
 
+layout(location = 0) out vec2 v_FragTexCoord;
+
 layout(push_constant) uniform Push {
 	mat4 Transform;
 	mat4 VPM;
@@ -19,5 +21,7 @@ layout(binding = 0) uniform UniformBufferObject {
 
 void main()
 {
+	v_FragTexCoord = a_TexCoord;
+
 	gl_Position = ubo.ViewProj * ubo.Model * vec4( a_Position, 1.0 );
 }

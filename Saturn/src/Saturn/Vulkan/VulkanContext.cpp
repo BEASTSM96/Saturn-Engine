@@ -34,6 +34,10 @@ namespace Saturn {
 		CreateDepthResources();
 		CreateFramebuffers();
 		CreateUniformBuffers();
+
+		m_TestTexture = Texture( "assets/meshes/vikingroom/texture.png", AddressingMode::ClampToBorder );
+		m_TestTexture.CreateTextureImage();
+
 		CreateDescriptorSetLayout();
 		CreateDescriptorPool();
 		CreateDescriptorSets();
@@ -52,10 +56,11 @@ namespace Saturn {
 		//m_Buffer = VertexBuffer( Vertices );
 		//m_Buffer.CreateBuffer();
 
-		m_Mesh = Ref<Mesh>::Create( "assets/meshes/cerberus/cerberus.fbx" );
+		m_Mesh = Ref<Mesh>::Create( "assets/meshes/vikingroom/new-vr.fbx" );
 
 		m_Camera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), ( float )Window::Get().Width(), ( float )Window::Get().Height(), 0.1f, 10000.0f ) );
-		
+
+
 		CreatePipeline();
 	}
 
@@ -66,6 +71,8 @@ namespace Saturn {
 		m_SwapChain.Terminate();
 		m_RenderPass.Terminate();
 		
+		m_TestTexture.Terminate();
+
 		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
 		{
 			m_UniformBuffers[ i ].Terminate();
@@ -249,12 +256,21 @@ namespace Saturn {
 			QueueCreateInfos.push_back( QueueCreateInfo );
 		}
 
+		// Enable the device features.
+		// It's very unlikey for a modern GPU to not support 'samplerAnisotropy' but just in case we check.
+		VkPhysicalDeviceFeatures Features;
+		vkGetPhysicalDeviceFeatures( m_PhysicalDevice, &Features );
+
+		SAT_CORE_ASSERT( Features.samplerAnisotropy, "The GPU does not support anisotropic filtering." );
+
+		Features.samplerAnisotropy = VK_TRUE;
+
 		VkDeviceCreateInfo DeviceInfo      ={ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		DeviceInfo.enabledExtensionCount   = DeviceExtensions.size();
 		DeviceInfo.ppEnabledExtensionNames = DeviceExtensions.data();
 		DeviceInfo.pQueueCreateInfos       = QueueCreateInfos.data();
 		DeviceInfo.queueCreateInfoCount    = QueueCreateInfos.size();
-		//DeviceInfo.pNext = &Features;
+		DeviceInfo.pEnabledFeatures = &Features;
 
 		VK_CHECK( vkCreateDevice( m_PhysicalDevice, &DeviceInfo, nullptr, &m_LogicalDevice ) );
 		SetDebugUtilsObjectName( "Physical Device", ( uint64_t )m_LogicalDevice, VK_OBJECT_TYPE_DEVICE );
@@ -375,9 +391,17 @@ namespace Saturn {
 		UBOLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 		UBOLayoutBinding.pImmutableSamplers = nullptr;
 		
+		VkDescriptorSetLayoutBinding SamplerLayoutBinding = {};
+		SamplerLayoutBinding.binding = 1;
+		SamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		SamplerLayoutBinding.descriptorCount = 1;
+		SamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		std::vector< VkDescriptorSetLayoutBinding > Bindings = { UBOLayoutBinding, SamplerLayoutBinding };
+
 		VkDescriptorSetLayoutCreateInfo LayoutCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-		LayoutCreateInfo.bindingCount = 1;
-		LayoutCreateInfo.pBindings = &UBOLayoutBinding;	
+		LayoutCreateInfo.bindingCount = Bindings.size();
+		LayoutCreateInfo.pBindings = Bindings.data();	
 
 		VK_CHECK( vkCreateDescriptorSetLayout( m_LogicalDevice, &LayoutCreateInfo, nullptr, &m_DescriptorSetLayout ) );
 	}
@@ -397,13 +421,14 @@ namespace Saturn {
 
 	void VulkanContext::CreateDescriptorPool()
 	{
-		VkDescriptorPoolSize PoolSize = {};
-		PoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		PoolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+		std::vector< VkDescriptorPoolSize > PoolSizes = {};
 		
+		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = MAX_FRAMES_IN_FLIGHT } );
+		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = MAX_FRAMES_IN_FLIGHT } );
+
 		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-		PoolCreateInfo.poolSizeCount = 1;
-		PoolCreateInfo.pPoolSizes = &PoolSize;
+		PoolCreateInfo.poolSizeCount = PoolSizes.size();
+		PoolCreateInfo.pPoolSizes = PoolSizes.data();
 		PoolCreateInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
 		
 		VK_CHECK( vkCreateDescriptorPool( m_LogicalDevice, &PoolCreateInfo, nullptr, &m_DescriptorPool ) );
@@ -429,15 +454,38 @@ namespace Saturn {
 			BufferInfo.offset = 0;
 			BufferInfo.range = sizeof( UniformBufferObject );
 			
-			VkWriteDescriptorSet DescriptorWrite = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-			DescriptorWrite.dstSet = m_DescriptorSets[ i ];
-			DescriptorWrite.dstBinding = 0;
-			DescriptorWrite.dstArrayElement = 0;
-			DescriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			DescriptorWrite.descriptorCount = 1;
-			DescriptorWrite.pBufferInfo = &BufferInfo;
+			VkDescriptorImageInfo ImageInfo = {};
+			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			ImageInfo.imageView = m_TestTexture.GetImageView();
+			ImageInfo.sampler = m_TestTexture.GetSampler();
+
+			std::vector< VkWriteDescriptorSet > DescriptorWrites;
+		
+			DescriptorWrites.push_back( { 
+				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, 
+				.pNext = nullptr, 
+				.dstSet = m_DescriptorSets[ i ], 
+				.dstBinding = 1,
+				.dstArrayElement = 0, 
+				.descriptorCount = 1,
+				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 
+				.pImageInfo = &ImageInfo, 
+				.pBufferInfo = nullptr,
+				.pTexelBufferView = nullptr } );
+
+			DescriptorWrites.push_back( {
+				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				.pNext = nullptr,
+				.dstSet = m_DescriptorSets[ i ],
+				.dstBinding = 0,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+				.pImageInfo = nullptr,
+				.pBufferInfo = &BufferInfo,
+				.pTexelBufferView = nullptr } );
 			
-			vkUpdateDescriptorSets( m_LogicalDevice, 1, &DescriptorWrite, 0, nullptr );
+			vkUpdateDescriptorSets( m_LogicalDevice, DescriptorWrites.size(), DescriptorWrites.data(), 0, nullptr );
 		}
 	}
 
@@ -692,7 +740,6 @@ namespace Saturn {
 		DepthStencilState.depthBoundsTestEnable = VK_FALSE;
 		DepthStencilState.stencilTestEnable = VK_FALSE;
 		
-
 		VkGraphicsPipelineCreateInfo PipelineCreateInfo ={ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
 		PipelineCreateInfo.layout = m_PipelineLayout;
 		PipelineCreateInfo.renderPass = m_RenderPass.GetRenderPass();
@@ -800,6 +847,41 @@ namespace Saturn {
 	bool VulkanContext::HasStencilComponent( VkFormat Format )
 	{
 		return Format == VK_FORMAT_D32_SFLOAT_S8_UINT || Format == VK_FORMAT_D24_UNORM_S8_UINT;
+	}
+
+	VkCommandBuffer VulkanContext::BeginSingleTimeCommands()
+	{
+		VkCommandBufferAllocateInfo AllocInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+		AllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		AllocInfo.commandPool = m_CommandPool;
+		AllocInfo.commandBufferCount = 1;
+		
+		VkCommandBuffer CommandBuffer;
+		VK_CHECK( vkAllocateCommandBuffers( m_LogicalDevice, &AllocInfo, &CommandBuffer ) );
+		
+		// Begin the command buffer.
+		VkCommandBufferBeginInfo BeginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+		BeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		
+		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &BeginInfo ) );
+		
+		return CommandBuffer;
+	}
+
+	void VulkanContext::EndSingleTimeCommands( VkCommandBuffer CommandBuffer )
+	{
+		VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
+
+		// Submit the command buffer.
+		VkSubmitInfo SubmitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		SubmitInfo.commandBufferCount = 1;
+		SubmitInfo.pCommandBuffers = &CommandBuffer;
+
+		VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, VK_NULL_HANDLE ) );
+		VK_CHECK( vkQueueWaitIdle( m_GraphicsQueue ) );
+
+		// Free the command buffer.
+		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
 	}
 
 	//////////////////////////////////////////////////////////////////////////

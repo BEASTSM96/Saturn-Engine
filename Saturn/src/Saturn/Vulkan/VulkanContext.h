@@ -12,7 +12,7 @@
 #include "SwapChain.h"
 #include "Mesh.h"
 #include "Pass.h"
-
+#include "Texture.h"
 
 #include <glm/glm.hpp>
 
@@ -83,6 +83,9 @@ namespace Saturn {
 		VkFormat FindSupportedFormat( const std::vector<VkFormat>& Formats, VkImageTiling Tiling, VkFormatFeatureFlags Features );
 		VkFormat FindDepthFormat();
 		bool HasStencilComponent( VkFormat Format );
+		
+		VkCommandBuffer BeginSingleTimeCommands();
+		void EndSingleTimeCommands( VkCommandBuffer CommandBuffer );
 
 	public:
 		
@@ -101,6 +104,8 @@ namespace Saturn {
 		VkCommandPool& GetCommandPool() { return m_CommandPool; }
 
 		VkQueue& GetGraphicsQueue() { return m_GraphicsQueue; }
+
+		VkPhysicalDevice& GetPhysicalDevice() { return m_PhysicalDevice; }
 
 		Swapchain& GetSwapchain() { return m_SwapChain; }
 
@@ -149,6 +154,8 @@ namespace Saturn {
 		VkImage m_DepthImage;
 		VkDeviceMemory m_DepthImageMemory;
 		VkImageView m_DepthImageView;
+		
+		Texture m_TestTexture;
 
 		Pass m_RenderPass;
 
