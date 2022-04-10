@@ -58,8 +58,10 @@ namespace Saturn {
 
 	struct UniformBufferObject
 	{
-		glm::mat4 Model;
-		glm::mat4 ViewProj;
+		alignas( 16 ) glm::mat4 Model;
+		alignas( 16 ) glm::mat4 View;
+		alignas( 16 ) glm::mat4 Proj;
+		alignas( 16 ) glm::mat4 VP;
 	};
 
 	class VulkanContext
@@ -128,7 +130,7 @@ namespace Saturn {
 		void CreateUniformBuffers();
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
-		void UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts );
+		void UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts, glm::mat4 Transform );
 		void CreateDepthResources();
 
 		void CreateRenderpass();

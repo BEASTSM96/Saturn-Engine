@@ -11,5 +11,9 @@ layout(push_constant) uniform Push {
 } push;
 
 void main() {
+	
+	//vec3 Color = vec3( 1.0, 0.0, 1.0 );
+	
+	//outColor = vec4( Color * texture( texSampler, v_FragTexCoord ).rgb, 1.0 );
 	outColor = texture( texSampler, v_FragTexCoord );
 }

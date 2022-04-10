@@ -262,4 +262,64 @@ namespace Saturn {
 
 		return ImageView;
 	}
+
+	VkImageView CreateImageView( VkImage Image, VkFormat Format, VkImageAspectFlags AspectMask )
+	{
+		VkImageViewCreateInfo ImageViewCreateInfo ={ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+		ImageViewCreateInfo.image = Image;
+		ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		ImageViewCreateInfo.format = Format;
+		ImageViewCreateInfo.subresourceRange.aspectMask = AspectMask;
+		ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+		ImageViewCreateInfo.subresourceRange.levelCount = 1;
+		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		ImageViewCreateInfo.subresourceRange.layerCount = 1;
+		
+		VkImageView ImageView;
+		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &ImageView ) );
+
+		return ImageView;
+	}
+	
+	void TransitionImageLayout( VkImage Image, VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout )
+	{
+		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
+
+		VkPipelineStageFlags SrcStage;
+		VkPipelineStageFlags DstStage;
+
+		VkImageMemoryBarrier ImageBarrier ={ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		ImageBarrier.oldLayout = OldLayout;
+		ImageBarrier.newLayout = NewLayout;
+		ImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		ImageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		ImageBarrier.image = Image;
+		ImageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		ImageBarrier.subresourceRange.baseMipLevel = 0;
+		ImageBarrier.subresourceRange.levelCount = 1;
+		ImageBarrier.subresourceRange.baseArrayLayer = 0;
+		ImageBarrier.subresourceRange.layerCount = 1;
+
+		if( OldLayout == VK_IMAGE_LAYOUT_UNDEFINED && NewLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL )
+		{
+			ImageBarrier.srcAccessMask = 0;
+			ImageBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			SrcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			DstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if( OldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && NewLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL )
+		{
+			ImageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			ImageBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			SrcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			DstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+
+		vkCmdPipelineBarrier( CommandBuffer, SrcStage, DstStage, 0, 0, nullptr, 0, nullptr, 1, &ImageBarrier );
+
+		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+	}
+
 }

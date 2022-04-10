@@ -57,7 +57,7 @@ namespace Saturn {
 
 		void CreateImageViews();
 
-		VkSwapchainKHR m_Swapchain;
+		VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
 
 		std::vector< VkImage > m_Images;
 		std::vector< VkImageView > m_ImageViews;

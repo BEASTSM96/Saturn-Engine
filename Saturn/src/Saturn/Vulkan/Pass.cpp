@@ -54,7 +54,6 @@ namespace Saturn {
 		} );
 
 		Attachments.push_back( {
-			.flags = 0,
 			.format = VulkanContext::Get().FindDepthFormat(),
 			.samples = VK_SAMPLE_COUNT_1_BIT,
 			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -189,7 +188,7 @@ namespace Saturn {
 		m_CommandBuffer = CommandBuffer;
 		
 		std::array<VkClearValue, 2> ClearColors{};
-		ClearColors[ 0 ].color ={ 0.1f, 0.1f, 0.1f, 1.0f };
+		ClearColors[ 0 ].color ={ { 0.1f, 0.1f, 0.1f, 1.0f } };
 		ClearColors[ 1 ].depthStencil ={ 1.0f, 0 };
 
 		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };

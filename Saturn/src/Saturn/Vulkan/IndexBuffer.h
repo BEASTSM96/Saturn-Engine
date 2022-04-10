@@ -62,6 +62,7 @@ namespace Saturn {
 		void CreateBuffer();
 
 		std::vector<Index> m_Indices;
+		std::vector<uint32_t> m_RealIndices;
 
 	private:
 

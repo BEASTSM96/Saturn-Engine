@@ -15,7 +15,9 @@ layout(push_constant) uniform Push {
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 Model;
-    mat4 ViewProj;
+    mat4 View;
+    mat4 Proj;
+    mat4 VP;
 } ubo;
 
 
@@ -23,5 +25,7 @@ void main()
 {
 	v_FragTexCoord = a_TexCoord;
 
-	gl_Position = ubo.ViewProj * ubo.Model * vec4( a_Position, 1.0 );
+	mat4 VP = ubo.View * ubo.Proj;
+
+	gl_Position = ubo.Proj * ubo.View * ubo.Model * vec4( a_Position, 1.0 );
 }

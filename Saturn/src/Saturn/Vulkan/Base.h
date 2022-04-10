@@ -39,7 +39,7 @@ inline void _VkCheckResult( VkResult Result )
 	if( Result != VK_SUCCESS )
 	{
 		SAT_CORE_INFO( "[Vulkan Error] {0}", Result );
-		__debugbreak();
+		//__debugbreak();
 	}
 }
 

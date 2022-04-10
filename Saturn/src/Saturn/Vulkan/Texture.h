@@ -48,6 +48,13 @@ namespace Saturn {
 						VkImage Image, 
 						VkFormat Format );
 	
+	extern VkImageView CreateImageView(
+					VkImage Image,
+					VkFormat Format,
+					VkImageAspectFlags AspectFlags );
+
+	extern void TransitionImageLayout( VkImage Image, VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
+
 	enum class AddressingMode
 	{
 		Repeat,

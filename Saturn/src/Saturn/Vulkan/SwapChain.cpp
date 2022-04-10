@@ -89,29 +89,27 @@ namespace Saturn {
 	void Swapchain::CreateFramebuffers()
 	{
 		VulkanContext::Get().GetRenderPass().Recreate();
-
 		SwapchainCreationData SwapchainData = VulkanContext::Get().GetSwapchainCreationData();
-
-		VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-		FramebufferCreateInfo.width = Window::Get().Width();
-		FramebufferCreateInfo.height = Window::Get().Height();
-		FramebufferCreateInfo.renderPass = VulkanContext::Get().GetRenderPass().GetRenderPass();
-		FramebufferCreateInfo.layers = 1;
-
-		m_Framebuffers.resize( SwapchainData.ImageCount );
-
-		for( uint32_t i = 0; i < SwapchainData.ImageCount; i++ )
+		
+		m_Framebuffers.resize( m_ImageViews.size() );
+			
+		for( int i = 0; i < m_ImageViews.size(); i++ )
 		{
 			std::vector< VkImageView > Attachments;
-			Attachments.push_back( m_ImageViews[ i ] );			
+			Attachments.push_back( m_ImageViews[ i ] );
 			Attachments.push_back( VulkanContext::Get().m_DepthImageView );
-
+			
+			VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+			FramebufferCreateInfo.width = Window::Get().Width();
+			FramebufferCreateInfo.height = Window::Get().Height();
+			FramebufferCreateInfo.renderPass = VulkanContext::Get().GetRenderPass().GetRenderPass();
+			FramebufferCreateInfo.layers = 1;
 			FramebufferCreateInfo.pAttachments = Attachments.data();
 			FramebufferCreateInfo.attachmentCount = Attachments.size();
 
 			VK_CHECK( vkCreateFramebuffer( VulkanContext::Get().GetDevice(), &FramebufferCreateInfo, nullptr, &m_Framebuffers[ i ] ) );
-			
-			SetDebugUtilsObjectName( "Framebuffer", ( uint64_t )m_Framebuffers[ i ], VK_OBJECT_TYPE_FRAMEBUFFER );
+
+			SetDebugUtilsObjectName( "Swapchain framebuffer", ( uint64_t )m_Framebuffers[ i ], VK_OBJECT_TYPE_FRAMEBUFFER );
 		}
 	}
 
@@ -198,8 +196,9 @@ namespace Saturn {
 		if( m_Swapchain )
 		{
 			vkDestroySwapchainKHR( VulkanContext::Get().GetDevice(), m_Swapchain, nullptr );
-			m_Swapchain = nullptr;
 		}
+		
+		m_Swapchain = nullptr;
 	}
 
 	bool Swapchain::AcquireNextImage( uint32_t Timeout, VkSemaphore Semaphore, VkFence Fence, uint32_t* pImageIndex )

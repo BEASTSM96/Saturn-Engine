@@ -33,11 +33,13 @@ namespace Saturn {
 		CreateRenderpass();
 		CreateDepthResources();
 		CreateFramebuffers();
-		CreateUniformBuffers();
 
-		m_TestTexture = Texture( "assets/meshes/vikingroom/texture.png", AddressingMode::ClampToBorder );
+		//m_TestTexture = Texture( "assets/meshes/cerberus/Textures/Cerberus_A.png", AddressingMode::ClampToBorder );
+		//m_TestTexture = Texture( "assets/meshes/vikingroom/texture.png", AddressingMode::ClampToBorder );
+		m_TestTexture = Texture( "assets/meshes/new/wooden/WoodenTexture.png", AddressingMode::ClampToBorder );
 		m_TestTexture.CreateTextureImage();
 
+		CreateUniformBuffers();
 		CreateDescriptorSetLayout();
 		CreateDescriptorPool();
 		CreateDescriptorSets();
@@ -56,9 +58,12 @@ namespace Saturn {
 		//m_Buffer = VertexBuffer( Vertices );
 		//m_Buffer.CreateBuffer();
 
-		m_Mesh = Ref<Mesh>::Create( "assets/meshes/vikingroom/new-vr.fbx" );
+		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/vikingroom/new-vr.fbx" );
+		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/cerberus/cerberus.fbx" );
+		m_Mesh = Ref<Mesh>::Create( "assets/meshes/new/wooden/wooden.fbx" );
+		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/sponza/sponza.obj" );
 
-		m_Camera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), ( float )Window::Get().Width(), ( float )Window::Get().Height(), 0.1f, 10000.0f ) );
+		m_Camera = EditorCamera( glm::perspective( glm::radians( 45.0f ), ( float )Window::Get().Width() / ( float )Window::Get().Height(), 0.1f, 10000.0f ) );
 
 
 		CreatePipeline();
@@ -489,7 +494,7 @@ namespace Saturn {
 		}
 	}
 
-	void VulkanContext::UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts )
+	void VulkanContext::UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts, glm::mat4 Transform )
 	{
 		// Calc time
 		static auto StartTime = std::chrono::high_resolution_clock::now();
@@ -497,11 +502,15 @@ namespace Saturn {
 		float Time = std::chrono::duration< float, std::chrono::seconds::period >( CurrentTime - StartTime ).count();
 
 		UniformBufferObject UBO = {};
-		UBO.ViewProj = m_Camera.ViewProjection();
-		//UBO.ViewProj[ 1 ][ 1 ] *= -1;
-		
-		UBO.Model = glm::rotate( glm::mat4( 1.0f ), Time * glm::radians( 90.0f ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+		UBO.Model = Transform;
+
+		UBO.View = m_Camera.ViewMatrix();
+		UBO.Proj = m_Camera.ProjectionMatrix();
 	
+		UBO.Proj[ 1 ][ 1 ] *= -1;
+
+		UBO.VP = m_Camera.ViewProjection();
+
 		void* Data;
 		VK_CHECK( vkMapMemory( m_LogicalDevice, m_UniformBuffersMemory[ ImageIndex ], 0, sizeof( UBO ), 0, &Data ) );
 		memcpy( Data, &UBO, sizeof( UBO ) );
@@ -513,87 +522,22 @@ namespace Saturn {
 		vkDestroyImage( m_LogicalDevice, m_DepthImage, nullptr );
 		vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
 		vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
-
+		
 		VkFormat DepthFormat = FindDepthFormat();
 		
-		// Create Image
-		VkImageCreateInfo ImageCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-		ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-		ImageCreateInfo.extent.width = Window::Get().Width();
-		ImageCreateInfo.extent.height = Window::Get().Height();
-		ImageCreateInfo.extent.depth = 1;
-		ImageCreateInfo.mipLevels = 1;
-		ImageCreateInfo.arrayLayers = 1;
-		ImageCreateInfo.format = DepthFormat;
-		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		ImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-		ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		CreateImage( 
+			Window::Get().Width(), Window::Get().Height(),
+			DepthFormat, 
+			VK_IMAGE_TILING_OPTIMAL, 
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+			m_DepthImage, 
+			m_DepthImageMemory 
+		);
 		
-		VK_CHECK( vkCreateImage( m_LogicalDevice, &ImageCreateInfo, nullptr, &m_DepthImage ) );
-		
-		// Allocate Memory
-		VkMemoryRequirements MemReqs;
-		vkGetImageMemoryRequirements( m_LogicalDevice, m_DepthImage, &MemReqs );
-		
-		VkMemoryAllocateInfo AllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-		AllocInfo.allocationSize = MemReqs.size;
-		AllocInfo.memoryTypeIndex = GetMemoryType( MemReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
-		
-		VK_CHECK( vkAllocateMemory( m_LogicalDevice, &AllocInfo, nullptr, &m_DepthImageMemory ) );
-		
-		// Bind Image
-		VK_CHECK( vkBindImageMemory( m_LogicalDevice, m_DepthImage, m_DepthImageMemory, 0 ) );
+		m_DepthImageView = CreateImageView( m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT );
 
-		// Create Image view
-		VkImageViewCreateInfo ImageViewCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-		ImageViewCreateInfo.image = m_DepthImage;
-		ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		ImageViewCreateInfo.format = DepthFormat;
-		ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-		ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-		ImageViewCreateInfo.subresourceRange.levelCount = 1;
-		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-		ImageViewCreateInfo.subresourceRange.layerCount = 1;
-
-		VK_CHECK( vkCreateImageView( m_LogicalDevice, &ImageViewCreateInfo, nullptr, &m_DepthImageView ) );
-
-		// Transition the image layout
-		VkCommandBuffer CommandBuffer;
-		
-		// Create a new command buffer.
-		VkCommandBufferAllocateInfo CommandBufferAllocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-		CommandBufferAllocateInfo.commandPool = m_CommandPool;
-		CommandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		CommandBufferAllocateInfo.commandBufferCount = 1;
-		
-		VK_CHECK( vkAllocateCommandBuffers( m_LogicalDevice, &CommandBufferAllocateInfo, &CommandBuffer ) );
-
-		VkCommandBufferBeginInfo CommandBufferBeginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-		CommandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		
-		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandBufferBeginInfo ) );
-		{
-			
-			VkImageMemoryBarrier TransitionImageLayout = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-			TransitionImageLayout.srcAccessMask = 0;
-			TransitionImageLayout.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-			
-			TransitionImageLayout.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			TransitionImageLayout.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			TransitionImageLayout.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			TransitionImageLayout.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			TransitionImageLayout.image = m_DepthImage;
-			TransitionImageLayout.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-			TransitionImageLayout.subresourceRange.baseMipLevel = 0;
-			TransitionImageLayout.subresourceRange.levelCount = 1;
-			TransitionImageLayout.subresourceRange.baseArrayLayer = 0;
-			TransitionImageLayout.subresourceRange.layerCount = 1;
-		
-			vkCmdPipelineBarrier( CommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0, nullptr, 0, nullptr, 1, &TransitionImageLayout );
-		}
-		VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );	
+		//TransitionImageLayout( m_DepthImage, DepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL );
 	}
 
 	void VulkanContext::CreateFramebuffer( VkFramebuffer* pFramebuffer )
@@ -736,7 +680,7 @@ namespace Saturn {
 		VkPipelineDepthStencilStateCreateInfo DepthStencilState ={ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
 		DepthStencilState.depthTestEnable = VK_TRUE;
 		DepthStencilState.depthWriteEnable = VK_TRUE;
-		DepthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+		DepthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
 		DepthStencilState.depthBoundsTestEnable = VK_FALSE;
 		DepthStencilState.stencilTestEnable = VK_FALSE;
 		
@@ -931,7 +875,6 @@ namespace Saturn {
 
 		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandPoolBeginInfo ) );
 
-		vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &m_DescriptorSets[ m_FrameCount ], 0, nullptr );
 
 		VkExtent2D Extent;
 		Window::Get().GetSize( &Extent.width, &Extent.height );
@@ -959,11 +902,13 @@ namespace Saturn {
 			Comp.Rotation = glm::vec3( 0, 0, 0 );
 			Comp.Scale = glm::vec3( 1, 1, 1 );
 			
-			m_Camera.Focus( Comp.Position );
+			//m_Camera.Focus( Comp.Position );
 
 			m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			m_Mesh->GetIndexBuffer()->Bind( CommandBuffer );
 		
+			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &m_DescriptorSets[ m_FrameCount ], 0, nullptr );
+
 			glm::mat4 ViewProj = m_Camera.ViewProjection();
 			//ViewProj[ 1 ][ 1 ] *= -1;
 
@@ -977,7 +922,7 @@ namespace Saturn {
 				vkCmdPushConstants( CommandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
 
 				{
-					UpdateUniformBuffers( m_FrameCount, Application::Get().Time() );
+					UpdateUniformBuffers( m_FrameCount, Application::Get().Time(), Comp.GetTransform() );
 				}
 
 				m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
