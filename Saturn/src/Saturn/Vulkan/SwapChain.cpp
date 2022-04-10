@@ -206,6 +206,8 @@ namespace Saturn {
 
 		if( Result == VK_ERROR_OUT_OF_DATE_KHR )
 		{
+			SAT_CORE_WARN( "Swap chain was out of date! recreating..." );
+
 			Recreate();
 			Result = vkAcquireNextImageKHR( VulkanContext::Get().GetDevice(), m_Swapchain, Timeout, Semaphore, Fence, pImageIndex );
 			if( Result == VK_ERROR_OUT_OF_DATE_KHR )

@@ -39,7 +39,13 @@ namespace Saturn {
 		~Buffer();
 		
 		void Create( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage, VkMemoryPropertyFlags MemProperties );
+		void Create( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage, VkMemoryPropertyFlags MemProperties, VkDeviceMemory& rMemory );
 		
+		void Terminate();
+
+		void Map( void** ppData, VkDeviceSize Size );
+		void Unmap();
+
 		VkBuffer& GetBuffer() { return m_Buffer; }
 
 		operator VkBuffer() const { return m_Buffer; }

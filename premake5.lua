@@ -125,35 +125,29 @@ project "Saturn"
 			runtime "Debug"
 			symbols "on"
 
-			filter "system:windows"
-				links 
-				{
-					"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
-
-					"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc.lib",
-					"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc_util.lib",
-					"Saturn/vendor/shaderc/bin/Debug-Windows/glslangd.lib",
-					"Saturn/vendor/shaderc/bin/Debug-Windows/SPIRV-Tools.lib",
-					"Saturn/vendor/shaderc/bin/Debug-Windows/glslc.lib"
-				}
-
-				postbuildcommands 
-				{
-					'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"'
-				}
-
-
-	filter "configurations:Release"
-		defines "SAT_RELEASE"
-		runtime "Release"
-		optimize "on"
-
-		--filter "system:windows"
-		--{
 			links 
 			{
 				"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
+				"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc.lib",
+				"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc_util.lib",
+				"Saturn/vendor/shaderc/bin/Debug-Windows/glslangd.lib",
+				"Saturn/vendor/shaderc/bin/Debug-Windows/SPIRV-Tools.lib",
+				"Saturn/vendor/shaderc/bin/Debug-Windows/glslc.lib"
+			}
 
+			postbuildcommands 
+			{
+				'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"'
+			}
+
+		filter "configurations:Release"
+			defines "SAT_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+			links 
+			{
+				"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/glslang.lib",
@@ -165,19 +159,15 @@ project "Saturn"
 			{
 				'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
 			}
-		--}
 
-	filter "configurations:Dist"
-		defines "SAT_DIST"
-		runtime "Release"
-		optimize "on"
+		filter "configurations:Dist"
+			defines "SAT_DIST"
+			runtime "Release"
+			optimize "on"
 
-		--filter "system:windows"
-		--{
 			links
 			{ 
 				"Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.lib",
-
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/glslang.lib",
@@ -189,64 +179,6 @@ project "Saturn"
 			{
 				'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
 			}
-		--}
-
-
-	
-	filter "system:linux"
-		systemversion "latest"
-
-		defines
-		{
-			"SAT_PLATFORM_LINUX"
-		}
-
-		links 
-		{
-			"stdc++fs",
-			"pthread",
-			"dl",
-			"GL",
-			"X11",
-		}
-
-		filter "configurations:Debug"
-			defines "SAT_DEBUG"
-			runtime "Debug"
-			symbols "on"
-
-		filter "configurations:Release"
-			defines "SAT_RELEASE"
-			runtime "Release"
-			optimize "on"
-
-		filter "configurations:Dist"
-			defines "SAT_DIST"
-			runtime "Release"
-			optimize "on"
-
-	filter "system:macosx"
-		systemversion "latest"
-
-		defines
-		{
-			"SAT_PLATFORM_MAC"
-		}
-
-		filter "configurations:Debug"
-			defines "SAT_DEBUG"
-			runtime "Debug"
-			symbols "on"
-
-		filter "configurations:Release"
-			defines "SAT_RELEASE"
-			runtime "Release"
-			optimize "on"
-
-		filter "configurations:Dist"
-			defines "SAT_DIST"
-			runtime "Release"
-			optimize "on"
 
 ---------------------------------------------------------------------------------------------------------------------------
 

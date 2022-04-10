@@ -11,7 +11,13 @@ layout(push_constant) uniform Push {
 	mat4 VPM;
 } push;
 
+layout(binding = 0) uniform UniformBufferObject {
+    mat4 Model;
+    mat4 ViewProj;
+} ubo;
+
+
 void main()
 {
-	gl_Position = push.VPM * push.Transform * vec4( a_Position, 1.0 );
+	gl_Position = ubo.ViewProj * ubo.Model * vec4( a_Position, 1.0 );
 }

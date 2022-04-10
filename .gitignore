@@ -1,12 +1,13 @@
-!Saturn/vender/assimp/bin/
-!Saturn/vender/physx/bin/
-!Saturn/vender/mono/bin/
-!Saturn/vender/assimp/bin/**
-!Saturn/vender/physx/bin/**
-!Saturn/vender/mono/bin/**
-!Saturn/vender/assimp/bin/*
-!Saturn/vender/physx/bin/**
-!Saturn/vender/mono/bin/*
+!Saturn/vendor/assimp/bin/
+!Saturn/vendor/physx/bin/
+!Saturn/vendor/mono/bin/
+!Saturn/vendor/assimp/bin/**
+!Saturn/vendor/physx/bin/**
+!Saturn/vendor/mono/bin/**
+!Saturn/vendor/assimp/bin/*
+!Saturn/vendor/physx/bin/**
+!Saturn/vendor/mono/bin/*
+!Saturn/vendor/shaderc/bin/
 
 # Binaries
 **/bin/

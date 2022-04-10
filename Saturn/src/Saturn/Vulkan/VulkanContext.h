@@ -56,6 +56,12 @@ namespace Saturn {
 		glm::mat4 VPM{ 1.f };
 	};
 
+	struct UniformBufferObject
+	{
+		glm::mat4 Model;
+		glm::mat4 ViewProj;
+	};
+
 	class VulkanContext
 	{
 		SINGLETON( VulkanContext );
@@ -107,6 +113,11 @@ namespace Saturn {
 		void CreateCommandPool();
 		void CreateSyncObjects();
 		void CreateFramebuffers();
+		void CreateDescriptorSetLayout();
+		void CreateUniformBuffers();
+		void CreateDescriptorPool();
+		void CreateDescriptorSets();
+		void UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts );
 
 		void CreateRenderpass();
 
@@ -125,6 +136,8 @@ namespace Saturn {
 		//VkRenderPass m_RenderPass;
 		VkPipeline m_Pipeline;
 		VkPipelineLayout m_PipelineLayout;
+		VkDescriptorSetLayout m_DescriptorSetLayout;
+		VkDescriptorPool m_DescriptorPool;
 
 		Pass m_RenderPass;
 
@@ -144,17 +157,23 @@ namespace Saturn {
 		IndexBuffer m_IndexBuffer;
 		EditorCamera m_Camera;
 
+		uint32_t m_ImageCount;
+		uint32_t m_FrameCount = 0;
+
+		bool m_WindowIconifed = false;
+
 		std::vector<VkImage>       m_SwapChainImages;
 		std::vector<VkImageView>   m_SwapChainImageViews;
 		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
+		
+		std::vector<Buffer> m_UniformBuffers;
+		std::vector<VkDeviceMemory> m_UniformBuffersMemory;
 
 		std::vector<PhysicalDeviceProperties> m_DeviceProps;
 
 		std::vector<VkFence> m_FightFences;
 
-		uint32_t m_ImageCount;
-
-		bool m_WindowIconifed = false;
+		std::vector< VkDescriptorSet > m_DescriptorSets;
 
 		std::vector<const char*> DeviceExtensions  ={ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME };
 		std::vector<const char*> ValidationLayers ={ "VK_LAYER_KHRONOS_validation" };

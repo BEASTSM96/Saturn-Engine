@@ -36,10 +36,15 @@ namespace Saturn {
 
 	Buffer::~Buffer()
 	{
+		Terminate();
+	}
+
+	void Buffer::Terminate()
+	{
 		if( m_Buffer )
 			vkDestroyBuffer( VulkanContext::Get().GetDevice(), m_Buffer, nullptr );
 
-		if ( m_Memory )
+		if( m_Memory )
 			vkFreeMemory( VulkanContext::Get().GetDevice(), m_Memory, nullptr );
 
 		m_Buffer = nullptr;
@@ -59,22 +64,66 @@ namespace Saturn {
 		SetDebugUtilsObjectName( "Internal Buffer", ( uint64_t )m_Buffer, VK_OBJECT_TYPE_BUFFER );
 
 		vkGetBufferMemoryRequirements( VulkanContext::Get().GetDevice(), m_Buffer, &MemoryRequirements );
-		
+
 		VkMemoryAllocateInfo MemoryAllocateInfo ={ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		MemoryAllocateInfo.allocationSize = MemoryRequirements.size;
 		MemoryAllocateInfo.memoryTypeIndex = VulkanContext::Get().GetMemoryType( MemoryRequirements.memoryTypeBits, MemProperties );
-		
+
 		VK_CHECK( vkAllocateMemory( VulkanContext::Get().GetDevice(), &MemoryAllocateInfo, nullptr, &m_Memory ) );
-		
+
 		VK_CHECK( vkBindBufferMemory( VulkanContext::Get().GetDevice(), m_Buffer, m_Memory, 0 ) );
-		
-		if( pData != nullptr ) 
+
+		if( pData != nullptr )
 		{
 			void* pMappedMemory = nullptr;
 			VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), m_Memory, 0, Size, 0, &pMappedMemory ) );
 			memcpy( pMappedMemory, pData, Size );
 			vkUnmapMemory( VulkanContext::Get().GetDevice(), m_Memory );
 		}
+	}
+
+	void Buffer::Create( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage, VkMemoryPropertyFlags MemProperties, VkDeviceMemory& rMemory )
+	{
+		VkMemoryRequirements MemoryRequirements;
+
+		VkBufferCreateInfo BufferCreateInfo ={ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		BufferCreateInfo.size = Size;
+		BufferCreateInfo.usage = Usage;
+		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		VK_CHECK( vkCreateBuffer( VulkanContext::Get().GetDevice(), &BufferCreateInfo, nullptr, &m_Buffer ) );
+		SetDebugUtilsObjectName( "Internal Buffer", ( uint64_t )m_Buffer, VK_OBJECT_TYPE_BUFFER );
+
+		vkGetBufferMemoryRequirements( VulkanContext::Get().GetDevice(), m_Buffer, &MemoryRequirements );
+
+		VkMemoryAllocateInfo MemoryAllocateInfo ={ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+		MemoryAllocateInfo.allocationSize = MemoryRequirements.size;
+		MemoryAllocateInfo.memoryTypeIndex = VulkanContext::Get().GetMemoryType( MemoryRequirements.memoryTypeBits, MemProperties );
+
+		VK_CHECK( vkAllocateMemory( VulkanContext::Get().GetDevice(), &MemoryAllocateInfo, nullptr, &rMemory ) );
+
+		VK_CHECK( vkBindBufferMemory( VulkanContext::Get().GetDevice(), m_Buffer, rMemory, 0 ) );
+
+		if( pData != nullptr )
+		{
+			void* pMappedMemory = nullptr;
+			VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), rMemory, 0, Size, 0, &pMappedMemory ) );
+			memcpy( pMappedMemory, pData, Size );
+			vkUnmapMemory( VulkanContext::Get().GetDevice(), rMemory );
+		}
+
+		m_Memory = rMemory;
+		m_Size = Size;
+	}
+
+	void Buffer::Map( void** ppData, VkDeviceSize Size )
+	{
+		VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), m_Memory, 0, Size, 0, ppData ) );
+	}
+
+	void Buffer::Unmap()
+	{
+		vkUnmapMemory( VulkanContext::Get().GetDevice(), m_Memory );
 	}
 
 }

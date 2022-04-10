@@ -15,43 +15,6 @@ const int MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace Saturn {
 	
-	const std::vector<Vertex> Vertices{   // left face (white)
-	  {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-	  {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-	  {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-	  {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-
-	  // right face (yellow)
-	  {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-	  {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-	  {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-	  {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-
-	  // top face (orange, remember y axis points down)
-	  {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-	  {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-	  {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-	  {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-
-	  // bottom face (red)
-	  {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-	  {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-	  {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-	  {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-
-	  // nose face (blue)
-	  {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-	  {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-	  {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-	  {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-
-	  // tail face (green)
-	  {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-	  {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-	  {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-	  {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-	};
-
 	void VulkanContext::Init()
 	{
 		CreateInstance();
@@ -69,6 +32,10 @@ namespace Saturn {
 		
 		CreateRenderpass();
 		CreateFramebuffers();
+		CreateUniformBuffers();
+		CreateDescriptorSetLayout();
+		CreateDescriptorPool();
+		CreateDescriptorSets();
 
 		ShaderWorker::Get();
 
@@ -97,7 +64,16 @@ namespace Saturn {
 		
 		m_SwapChain.Terminate();
 		m_RenderPass.Terminate();
+		
+		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		{
+			m_UniformBuffers[ i ].Terminate();
+		}
 
+		vkDestroyDescriptorPool( m_LogicalDevice, m_DescriptorPool, nullptr );
+
+		vkDestroyDescriptorSetLayout( m_LogicalDevice, m_DescriptorSetLayout, nullptr );
+		
 		vkDestroyPipeline( m_LogicalDevice, m_Pipeline, nullptr );
 		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
 		vkDestroySemaphore( m_LogicalDevice, m_SubmitSemaphore, nullptr );
@@ -384,6 +360,101 @@ namespace Saturn {
 		m_SwapChain.CreateFramebuffers();
 	}
 
+	void VulkanContext::CreateDescriptorSetLayout()
+	{
+		VkDescriptorSetLayoutBinding UBOLayoutBinding = {};
+		UBOLayoutBinding.binding = 0;
+		UBOLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		UBOLayoutBinding.descriptorCount = 1;
+		
+		UBOLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		UBOLayoutBinding.pImmutableSamplers = nullptr;
+		
+		VkDescriptorSetLayoutCreateInfo LayoutCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+		LayoutCreateInfo.bindingCount = 1;
+		LayoutCreateInfo.pBindings = &UBOLayoutBinding;	
+
+		VK_CHECK( vkCreateDescriptorSetLayout( m_LogicalDevice, &LayoutCreateInfo, nullptr, &m_DescriptorSetLayout ) );
+	}
+
+	void VulkanContext::CreateUniformBuffers()
+	{
+		VkDeviceSize BufferSize = sizeof( UniformBufferObject );
+		
+		m_UniformBuffers.resize( MAX_FRAMES_IN_FLIGHT );
+		m_UniformBuffersMemory.resize( MAX_FRAMES_IN_FLIGHT );
+		
+		for( size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		{
+			m_UniformBuffers[ i ].Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_UniformBuffersMemory[ i ] );
+		}
+	}
+
+	void VulkanContext::CreateDescriptorPool()
+	{
+		VkDescriptorPoolSize PoolSize = {};
+		PoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		PoolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+		
+		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+		PoolCreateInfo.poolSizeCount = 1;
+		PoolCreateInfo.pPoolSizes = &PoolSize;
+		PoolCreateInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
+		
+		VK_CHECK( vkCreateDescriptorPool( m_LogicalDevice, &PoolCreateInfo, nullptr, &m_DescriptorPool ) );
+	}
+
+	void VulkanContext::CreateDescriptorSets()
+	{
+		std::vector< VkDescriptorSetLayout > Layouts( MAX_FRAMES_IN_FLIGHT, m_DescriptorSetLayout );
+		
+		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+		AllocateInfo.descriptorPool = m_DescriptorPool;
+		AllocateInfo.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+		AllocateInfo.pSetLayouts = Layouts.data();
+		
+		m_DescriptorSets.resize( MAX_FRAMES_IN_FLIGHT );
+		
+		VK_CHECK( vkAllocateDescriptorSets( m_LogicalDevice, &AllocateInfo, m_DescriptorSets.data() ) );
+
+		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		{
+			VkDescriptorBufferInfo BufferInfo = {};
+			BufferInfo.buffer = m_UniformBuffers[ i ].GetBuffer();
+			BufferInfo.offset = 0;
+			BufferInfo.range = sizeof( UniformBufferObject );
+			
+			VkWriteDescriptorSet DescriptorWrite = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+			DescriptorWrite.dstSet = m_DescriptorSets[ i ];
+			DescriptorWrite.dstBinding = 0;
+			DescriptorWrite.dstArrayElement = 0;
+			DescriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			DescriptorWrite.descriptorCount = 1;
+			DescriptorWrite.pBufferInfo = &BufferInfo;
+			
+			vkUpdateDescriptorSets( m_LogicalDevice, 1, &DescriptorWrite, 0, nullptr );
+		}
+	}
+
+	void VulkanContext::UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts )
+	{
+		// Calc time
+		static auto StartTime = std::chrono::high_resolution_clock::now();
+		auto CurrentTime = std::chrono::high_resolution_clock::now();
+		float Time = std::chrono::duration< float, std::chrono::seconds::period >( CurrentTime - StartTime ).count();
+		
+		UniformBufferObject UBO = {};
+		UBO.ViewProj = m_Camera.ViewProjection();
+		UBO.ViewProj[ 1 ][ 1 ] *= -1;
+		
+		UBO.Model = glm::rotate( glm::mat4( 1.0f ), Time * glm::radians( 90.0f ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+	
+		void* Data;
+		VK_CHECK( vkMapMemory( m_LogicalDevice, m_UniformBuffersMemory[ ImageIndex ], 0, sizeof( UBO ), 0, &Data ) );
+		memcpy( Data, &UBO, sizeof( UBO ) );
+		vkUnmapMemory( m_LogicalDevice, m_UniformBuffersMemory[ ImageIndex ] );
+	}
+
 	void VulkanContext::CreateFramebuffer( VkFramebuffer* pFramebuffer )
 	{
 		VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
@@ -418,8 +489,11 @@ namespace Saturn {
 			VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo ={ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
 			PipelineLayoutCreateInfo.pushConstantRangeCount = 1;
 			PipelineLayoutCreateInfo.pPushConstantRanges = &PushConstantRage;
-
+			PipelineLayoutCreateInfo.setLayoutCount = 1;
+			PipelineLayoutCreateInfo.pSetLayouts = &m_DescriptorSetLayout;
+			
 			VK_CHECK( vkCreatePipelineLayout( m_LogicalDevice, &PipelineLayoutCreateInfo, nullptr, &m_PipelineLayout ) );
+			SetDebugUtilsObjectName( "Triangle pipeline layout", ( uint64_t )m_PipelineLayout, VK_OBJECT_TYPE_PIPELINE_LAYOUT );
 		}
 
 		VkShaderModule VertexShader;
@@ -595,18 +669,16 @@ namespace Saturn {
 	// Fence = CPU wait for GPU
 	// Semaphore = Can wait for other commands before running a command
 
-	static int s_FrameCount = 0;
-
 	void VulkanContext::Render()
 	{
 		// Wait for last frame.
-		VK_CHECK( vkWaitForFences( m_LogicalDevice, 1, &m_FightFences[ s_FrameCount ], VK_TRUE, UINT32_MAX ) );
+		VK_CHECK( vkWaitForFences( m_LogicalDevice, 1, &m_FightFences[ m_FrameCount ], VK_TRUE, UINT32_MAX ) );
 		
 		if( m_WindowIconifed )
 			return;
 
 		// Reset current fence.
-		VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FightFences[ s_FrameCount ] ) );
+		VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FightFences[ m_FrameCount ] ) );
 
 		// Acquire next image.
 		uint32_t ImageIndex;
@@ -617,12 +689,12 @@ namespace Saturn {
 		{
 			assert( 0 ); // Unable to get ImageIndex
 		}
-		
-		m_Camera.AllowEvents( true );
-		m_Camera.SetActive( true );
-		m_Camera.OnUpdate( Application::Get().Time() );
-		//m_Camera.SetViewportSize( Window::Get().Width(), Window::Get().Height() );
-		//m_Camera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), ( float )Window::Get().Width(), ( float )Window::Get().Height(), 0.1f, 1000.0f ) );
+
+		{
+			m_Camera.AllowEvents( true );
+			m_Camera.SetActive( true );
+			m_Camera.OnUpdate( Application::Get().Time() );
+		}
 
 		VkCommandBuffer CommandBuffer;
 		VkCommandBufferAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
@@ -630,12 +702,14 @@ namespace Saturn {
 		AllocateInfo.commandPool = m_CommandPool;
 
 		VK_CHECK( vkAllocateCommandBuffers( m_LogicalDevice, &AllocateInfo, &CommandBuffer ) );
-		SetDebugUtilsObjectName( "Command Buffer:Render", ( uint64_t )CommandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER );
+		SetDebugUtilsObjectName( "CommandBuffer:Render", ( uint64_t )CommandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER );
 
 		VkCommandBufferBeginInfo CommandPoolBeginInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		CommandPoolBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandPoolBeginInfo ) );
+
+		vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &m_DescriptorSets[ m_FrameCount ], 0, nullptr );
 
 		VkExtent2D Extent;
 		Window::Get().GetSize( &Extent.width, &Extent.height );
@@ -659,7 +733,7 @@ namespace Saturn {
 			vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
 
 			TransformComponent Comp;
- 			Comp.Position = glm::vec3( 0, 0, 0 );
+			Comp.Position = glm::vec3( 0, 0, 0 );
 			Comp.Rotation = glm::vec3( 0, 0, 0 );
 			Comp.Scale = glm::vec3( 1, 1, 1 );
 			
@@ -667,13 +741,20 @@ namespace Saturn {
 			m_Mesh->GetIndexBuffer()->Bind( CommandBuffer );
 		
 			glm::mat4 ViewProj = m_Camera.ViewProjection();
+			//ViewProj[ 1 ][ 1 ] *= -1;
 
 			{
 				PushConstant PushC;
 				PushC.VPM = ViewProj;
 				PushC.Transfrom = Comp.GetTransform();
 				
+				PushC.Transfrom[ 1 ][ 1 ] *= -1;
+
 				vkCmdPushConstants( CommandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
+
+				{
+					UpdateUniformBuffers( m_FrameCount, Application::Get().Time() );
+				}
 
 				m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
 			}
@@ -700,10 +781,10 @@ namespace Saturn {
 		SubmitInfo.pWaitSemaphores = &m_AcquireSemaphore;
 		SubmitInfo.waitSemaphoreCount = 1;
 
-		VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FightFences[ s_FrameCount ] ) );
+		VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FightFences[ m_FrameCount ] ) );
 
 		// Use current fence to be signaled.
-		VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, m_FightFences[ s_FrameCount ] ) );
+		VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, m_FightFences[ m_FrameCount ] ) );
 
 		VkPresentInfoKHR PresentInfo ={ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
 		PresentInfo.pSwapchains = &m_SwapChain.GetSwapchain();
@@ -731,7 +812,7 @@ namespace Saturn {
 
 		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
 
-		s_FrameCount = ( s_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
+		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
 	}
 
 }
