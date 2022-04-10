@@ -79,6 +79,12 @@ namespace Saturn {
 		uint32_t GetMemoryType( uint32_t TypeFilter, VkMemoryPropertyFlags Properties );
 		
 	public:
+
+		VkFormat FindSupportedFormat( const std::vector<VkFormat>& Formats, VkImageTiling Tiling, VkFormatFeatureFlags Features );
+		VkFormat FindDepthFormat();
+		bool HasStencilComponent( VkFormat Format );
+
+	public:
 		
 		VkInstance& GetInstance() { return m_Instance; }
 
@@ -118,6 +124,7 @@ namespace Saturn {
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
 		void UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts );
+		void CreateDepthResources();
 
 		void CreateRenderpass();
 
@@ -138,6 +145,10 @@ namespace Saturn {
 		VkPipelineLayout m_PipelineLayout;
 		VkDescriptorSetLayout m_DescriptorSetLayout;
 		VkDescriptorPool m_DescriptorPool;
+
+		VkImage m_DepthImage;
+		VkDeviceMemory m_DepthImageMemory;
+		VkImageView m_DepthImageView;
 
 		Pass m_RenderPass;
 
@@ -177,5 +188,8 @@ namespace Saturn {
 
 		std::vector<const char*> DeviceExtensions  ={ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME };
 		std::vector<const char*> ValidationLayers ={ "VK_LAYER_KHRONOS_validation" };
+
+	private:
+		friend class Swapchain;
 	};
 }

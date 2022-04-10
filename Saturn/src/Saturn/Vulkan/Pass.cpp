@@ -38,28 +38,65 @@ namespace Saturn {
 	{
 		m_CommandBuffer = CommandBuffer;
 		m_Name = Name;
+		
+		std::vector< VkAttachmentDescription > Attachments;
 
-		VkAttachmentDescription Attachments ={};
-		Attachments.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		Attachments.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		Attachments.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		Attachments.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		Attachments.samples = VK_SAMPLE_COUNT_1_BIT;
-		Attachments.format = VulkanContext::Get().GetSurfaceFormat().format;
+		Attachments.push_back( {
+			.flags = 0,
+			.format = VulkanContext::Get().GetSurfaceFormat().format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+		} );
 
-		VkAttachmentReference ColorAttactmentRef ={};
-		ColorAttactmentRef.attachment = 0;
-		ColorAttactmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		Attachments.push_back( {
+			.flags = 0,
+			.format = VulkanContext::Get().FindDepthFormat(),
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		} );
+		
+		std::vector< VkAttachmentReference > AttactmentRefs ={};
+		
+		AttactmentRefs.push_back( {
+			.attachment = 0,
+			.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+		} );
+
+		AttactmentRefs.push_back( {
+			.attachment = 1,
+			.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		} );
 
 		VkSubpassDescription DefaultSubpass ={};
-		DefaultSubpass.pColorAttachments = &ColorAttactmentRef;
+		DefaultSubpass.pColorAttachments = &AttactmentRefs[ 0 ];
 		DefaultSubpass.colorAttachmentCount = 1;
+		DefaultSubpass.pDepthStencilAttachment = &AttactmentRefs[ 1 ];
+		DefaultSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		
+		VkSubpassDependency Dependency = {};
+		Dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		Dependency.dstSubpass = 0;
+		Dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		Dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		Dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 		VkRenderPassCreateInfo RenderPassCreateInfo ={ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-		RenderPassCreateInfo.pAttachments = &Attachments;
-		RenderPassCreateInfo.attachmentCount = 1;
+		RenderPassCreateInfo.pAttachments = Attachments.data();
+		RenderPassCreateInfo.attachmentCount = Attachments.size();
 		RenderPassCreateInfo.pSubpasses = &DefaultSubpass;
 		RenderPassCreateInfo.subpassCount = 1;
+		RenderPassCreateInfo.pDependencies = &Dependency;
+		RenderPassCreateInfo.dependencyCount = 1;
 		
 		VK_CHECK( vkCreateRenderPass( VulkanContext::Get().GetDevice(), &RenderPassCreateInfo, nullptr, &m_Pass ) );
 		SetDebugUtilsObjectName( m_Name, ( uint64_t )m_Pass, VK_OBJECT_TYPE_RENDER_PASS );
@@ -83,30 +120,68 @@ namespace Saturn {
 
 		m_CommandBuffer = CommandBuffer;
 		m_Name = m_Name;
+		
+		std::vector< VkAttachmentDescription > Attachments;
 
-		VkAttachmentDescription Attachments ={};
-		Attachments.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		Attachments.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		Attachments.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		Attachments.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		Attachments.samples = VK_SAMPLE_COUNT_1_BIT;
-		Attachments.format = VulkanContext::Get().GetSurfaceFormat().format;
+		Attachments.push_back( {
+			.flags = 0,
+			.format = VulkanContext::Get().GetSurfaceFormat().format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+		} );
 
-		VkAttachmentReference ColorAttactmentRef ={};
-		ColorAttactmentRef.attachment = 0;
-		ColorAttactmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		Attachments.push_back( {
+			.flags = 0,
+			.format = VulkanContext::Get().FindDepthFormat(),
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		} );
+
+		std::vector< VkAttachmentReference > AttactmentRefs ={};
+
+		AttactmentRefs.push_back( {
+			.attachment = 0,
+			.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+		} );
+
+		AttactmentRefs.push_back( {
+			.attachment = 1,
+			.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		} );
 
 		VkSubpassDescription DefaultSubpass ={};
-		DefaultSubpass.pColorAttachments = &ColorAttactmentRef;
+		DefaultSubpass.pColorAttachments = &AttactmentRefs[ 0 ];
 		DefaultSubpass.colorAttachmentCount = 1;
+		DefaultSubpass.pDepthStencilAttachment = &AttactmentRefs[ 1 ];
+		DefaultSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+		VkSubpassDependency Dependency ={};
+		Dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		Dependency.dstSubpass = 0;
+		Dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		Dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		Dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 		VkRenderPassCreateInfo RenderPassCreateInfo ={ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-		RenderPassCreateInfo.pAttachments = &Attachments;
-		RenderPassCreateInfo.attachmentCount = 1;
+		RenderPassCreateInfo.pAttachments = Attachments.data();
+		RenderPassCreateInfo.attachmentCount = Attachments.size();
 		RenderPassCreateInfo.pSubpasses = &DefaultSubpass;
 		RenderPassCreateInfo.subpassCount = 1;
+		RenderPassCreateInfo.pDependencies = &Dependency;
+		RenderPassCreateInfo.dependencyCount = 1;
 
 		VK_CHECK( vkCreateRenderPass( VulkanContext::Get().GetDevice(), &RenderPassCreateInfo, nullptr, &m_Pass ) );
+		SetDebugUtilsObjectName( m_Name, ( uint64_t )m_Pass, VK_OBJECT_TYPE_RENDER_PASS );
 	}
 
 	void Pass::BeginPass( VkCommandBuffer CommandBuffer /* = nullptr */, VkSubpassContents Contents /* = VK_SUBPASS_CONTENTS_INLINE*/, uint32_t ImageIndex /* = 0 */ )
