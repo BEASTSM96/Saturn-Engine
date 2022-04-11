@@ -34,65 +34,88 @@
 #include <filesystem>
 #include <unordered_map>
 
-class Shader;
+namespace Saturn {
 
-class ShaderWorker
-{
-	SINGLETON( ShaderWorker );
+	class Shader;
 
-public:
-	ShaderWorker() {}
-	~ShaderWorker() 
+	class ShaderWorker
 	{
-		for ( auto pShader : m_Shaders )
+		SINGLETON( ShaderWorker );
+
+	public:
+		ShaderWorker() { }
+		~ShaderWorker()
 		{
-			delete pShader;
-			pShader = nullptr;
+			for( auto pShader : m_Shaders )
+			{
+				delete pShader;
+				pShader = nullptr;
+			}
+
+			m_Shaders.clear();
+			m_ShaderCodes.clear();
 		}
 
-		m_Shaders.clear();
-		m_ShaderCodes.clear();
-	}
+		void AddAndCompileShader( Shader* pShader );
+		void AddShader( Shader* pShader );
 
-	void AddAndCompileShader( Shader* pShader );
-	void AddShader( Shader* pShader );
-
-	std::vector< uint32_t >& GetShaderCode( std::string Name ) 
-	{
-		if( m_ShaderCodes.find( Name ) != m_ShaderCodes.end() )
+		std::vector< uint32_t >& GetShaderCode( std::string Name )
 		{
-			return m_ShaderCodes[ Name ];
+			if( m_ShaderCodes.find( Name ) != m_ShaderCodes.end() )
+			{
+				return m_ShaderCodes[ Name ];
+			}
 		}
-	}
 
-	void CompileShader( Shader* pShader );
+		void CompileShader( Shader* pShader );
 
-private:
+	private:
 
 
-	// Not a list of all compiled shaders.
-	std::vector< Shader* > m_Shaders;
-	std::unordered_map< std::string, std::vector<uint32_t> > m_ShaderCodes;
-};
+		// Not a list of all compiled shaders.
+		std::vector< Shader* > m_Shaders;
+		std::unordered_map< std::string, std::vector<uint32_t> > m_ShaderCodes;
+	};
+	
+	enum class ShaderType
+	{
+		Vertex,
+		Fragment,
+		Geometry,
+		Compute
+	};
 
-// #TODO: Make it so that more than one shader file can correspond to one shader class
-class Shader
-{
-public:
-	Shader() {}
-	Shader( std::string Name, std::filesystem::path Filepath );
-	~Shader();
+	extern ShaderType ShaderTypeFromString( std::string Str );
+	extern std::string ShaderTypeToString( ShaderType Type );
+	
+	// #TODO: Make it so that more than one shader file can correspond to one shader class
+	class Shader
+	{
+	public:
+		Shader() { }
+		Shader( std::string Name, std::filesystem::path Filepath );
+		~Shader();
 
-private:
+	private:
 
-	std::string m_FileContents = "";
+		void ReadFile();
 
-	std::string m_Name = "";
+		void DetermineShaderTypes();
+		
+	private:
+		// string                - int
+		// [{VetexShaderSrc}]    - [Vertex]
+		// [{FragmentShaderSrc}] - [Fragment]
+		std::unordered_map< std::string, ShaderType > m_ShaderSources;
+		
+		std::string m_FileContents = "";
 
-	std::filesystem::path m_Filepath = "";
+		std::string m_Name = "";
 
-	void ReadFile();
+		std::filesystem::path m_Filepath = "";
 
-private:
-	friend class ShaderWorker;
-};
+
+	private:
+		friend class ShaderWorker;
+	};
+}

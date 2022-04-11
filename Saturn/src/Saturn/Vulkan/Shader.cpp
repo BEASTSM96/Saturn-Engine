@@ -38,79 +38,161 @@
 #include <shaderc/shaderc.h>
 #include <cassert>
 
-void ShaderWorker::AddAndCompileShader( Shader* pShader )
-{
-	AddShader( pShader );
-	CompileShader( pShader );
-}
+namespace Saturn {
 
-void ShaderWorker::AddShader( Shader* pShader )
-{
-	m_Shaders.push_back( pShader );
-}
-
-void ShaderWorker::CompileShader( Shader* pShader )
-{
-	shaderc::Compiler       Compiler;
-	shaderc::CompileOptions CompilerOptions;
-
-	shaderc::SpvCompilationResult ShaderResult;
-
-	CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_performance );
-
-	auto ShaderString = pShader->m_Filepath.string();
-	auto ShaderCStr = ShaderString.c_str();
-
-	auto Result = Compiler.CompileGlslToSpvAssembly( 
-		pShader->m_FileContents.c_str(),
-		pShader->m_FileContents.size(), 
-		pShader->m_Filepath.extension() == ".vert" ? shaderc_shader_kind::shaderc_glsl_default_vertex_shader : shaderc_shader_kind::shaderc_glsl_default_fragment_shader, 
-		ShaderCStr,
-		CompilerOptions 
-	);
-
-	std::string ResultString( Result.begin(), Result.end() );
-
-	auto AssembleResult = Compiler.AssembleToSpv( ResultString.c_str(), 4 * ResultString.size() );
-
-	if( AssembleResult.GetCompilationStatus() != shaderc_compilation_status_success )
+	void ShaderWorker::AddAndCompileShader( Shader* pShader )
 	{
-		assert( 0 ); // Shader compilation failed.
+		AddShader( pShader );
+		CompileShader( pShader );
 	}
 
-	// Save code for later if we need it.
-	std::vector<uint32_t> Code( AssembleResult.begin(), AssembleResult.end() );
-	m_ShaderCodes.insert( { pShader->m_Name, Code } );
+	void ShaderWorker::AddShader( Shader* pShader )
+	{
+		m_Shaders.push_back( pShader );
+	}
 
-	printf( "===== SHADER OUTPUT: =====\n%s\n", ResultString.c_str() );
-	printf( "==========================\n \n" );
-}
+	void ShaderWorker::CompileShader( Shader* pShader )
+	{
+		shaderc::Compiler       Compiler;
+		shaderc::CompileOptions CompilerOptions;
 
-Shader::Shader( std::string Name, std::filesystem::path Filepath )
-{
-	m_Filepath = std::move( Filepath );
-	m_Name = std::move( Name );
+		shaderc::SpvCompilationResult ShaderResult;
 
-	ReadFile();
-}
+		CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_performance );
 
-Shader::~Shader()
-{
+		auto ShaderString = pShader->m_Filepath.string();
+		auto ShaderCStr = ShaderString.c_str();
+		
+		for( auto [src, type] : pShader->m_ShaderSources )
+		{
+			auto Result = Compiler.CompileGlslToSpvAssembly( 
+				src.c_str(), 
+				src.size(),
+				type == ShaderType::Vertex ? shaderc_shader_kind::shaderc_glsl_default_vertex_shader : shaderc_shader_kind::shaderc_glsl_default_fragment_shader, 
+				src.c_str(), 
+				CompilerOptions
+			);
 
-}
+			std::string ResultString( Result.begin(), Result.end() );
+			
+			auto AssembleResult = Compiler.AssembleToSpv( ResultString.c_str(), 4 * ResultString.size() );
 
-// I'm not even sure if this is good or not, and I think that using std::filesystem::file_size yields a differnet file size on other platforms.
-void Shader::ReadFile()
-{
-	std::ifstream f( m_Filepath, std::ios::ate | std::ios::binary );
+			if( AssembleResult.GetCompilationStatus() != shaderc_compilation_status_success )
+			{
+				assert( 0 ); // Shader compilation failed.
+			}
 
-	size_t FileSize = static_cast< size_t >( f.tellg() );
-	std::vector<char> Buffer( FileSize );
+			// Save code for later if we need it.
+			std::vector<uint32_t> Code( AssembleResult.begin(), AssembleResult.end() );
+			m_ShaderCodes.insert( { std::string( pShader->m_Name + ShaderTypeToString( type ) ), Code } );
 
-	f.seekg( 0 );
-	f.read( Buffer.data(), FileSize );
+			printf( "===== SHADER OUTPUT: =====\n%s\n", ResultString.c_str() );
+			printf( "==========================\n \n" );			
+		}
+	}
 
-	f.close();
+	Shader::Shader( std::string Name, std::filesystem::path Filepath )
+	{
+		m_Filepath = std::move( Filepath );
+		m_Name = std::move( Name );
 
-	m_FileContents = std::string( Buffer.begin(), Buffer.end() );
+		ReadFile();
+		DetermineShaderTypes();
+	}
+
+	Shader::~Shader()
+	{
+
+	}
+
+	// I'm not even sure if this is good or not, and I think that using std::filesystem::file_size yields a differnet file size on other platforms.
+	void Shader::ReadFile()
+	{
+		std::ifstream f( m_Filepath, std::ios::ate | std::ios::binary );
+
+		size_t FileSize = static_cast< size_t >( f.tellg() );
+		std::vector<char> Buffer( FileSize );
+
+		f.seekg( 0 );
+		f.read( Buffer.data(), FileSize );
+
+		f.close();
+
+		m_FileContents = std::string( Buffer.begin(), Buffer.end() );
+	}
+
+	void Shader::DetermineShaderTypes()
+	{		
+		const char* TypeToken = "#type";
+		size_t TypeTokenLength = strlen( TypeToken );
+		size_t TypeTokenPosition = m_FileContents.find( TypeToken, 0 );
+		
+		while ( TypeTokenPosition != std::string::npos )
+		{
+			std::string FileCopy;
+			
+			std::copy( m_FileContents.begin(), m_FileContents.end(), std::back_inserter( FileCopy ) );
+			
+			size_t TypeTokenEnd = FileCopy.find( "\r\n", TypeTokenPosition );
+
+			size_t Begin = TypeTokenPosition + TypeTokenLength + 1;
+
+			std::string Type = FileCopy.substr( Begin, TypeTokenEnd - Begin );
+			
+			size_t NextLinePos = FileCopy.find_first_not_of( "\r\n", TypeTokenEnd );
+			TypeTokenPosition = FileCopy.find( TypeToken, NextLinePos );
+			
+			auto RawShaderCode = FileCopy.substr( NextLinePos, TypeTokenPosition - ( NextLinePos == std::string::npos ? FileCopy.size() - 1 : NextLinePos ) );
+
+			auto Shader_Type = ShaderTypeFromString( Type );
+
+			m_ShaderSources.insert( { RawShaderCode, Shader_Type } );
+		}
+	}
+
+	ShaderType ShaderTypeFromString( std::string Str )
+	{
+		if( Str == "vertex" )
+		{
+			return ShaderType::Vertex;
+		}
+		else if( Str == "fragment" )
+		{
+			return ShaderType::Fragment;
+		}
+		else if( Str == "compute" )
+		{
+			return ShaderType::Compute;
+		}
+		else if( Str == "geometry" )
+		{
+			return ShaderType::Geometry;
+		}
+		else
+		{
+			return ShaderType::Vertex;
+		}
+	}
+
+	std::string ShaderTypeToString( ShaderType Type )
+	{
+		switch( Type )
+		{
+			case Saturn::ShaderType::Vertex: 
+				return "Vertex";
+				break;
+			case Saturn::ShaderType::Fragment:
+				return "Fragment";
+				break;
+			case Saturn::ShaderType::Geometry:
+				return "Geometry";
+				break;
+			case Saturn::ShaderType::Compute:
+				return "Compute";
+				break;
+			default:
+				break;
+		}
+	}
+
 }

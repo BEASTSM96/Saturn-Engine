@@ -35,8 +35,8 @@ namespace Saturn {
 		CreateFramebuffers();
 
 		//m_TestTexture = Texture( "assets/meshes/cerberus/Textures/Cerberus_A.png", AddressingMode::ClampToBorder );
-		//m_TestTexture = Texture( "assets/meshes/vikingroom/texture.png", AddressingMode::ClampToBorder );
-		m_TestTexture = Texture( "assets/meshes/new/wooden/WoodenTexture.png", AddressingMode::ClampToBorder );
+		m_TestTexture = Texture( "assets/meshes/vikingroom/texture.png", AddressingMode::ClampToBorder );
+		//m_TestTexture = Texture( "assets/meshes/new/wooden/WoodenTexture.png", AddressingMode::ClampToBorder );
 		m_TestTexture.CreateTextureImage();
 
 		CreateUniformBuffers();
@@ -45,22 +45,18 @@ namespace Saturn {
 		CreateDescriptorSets();
 
 		ShaderWorker::Get();
+		
+		Shader* pShader = new Shader( "Triangle/Shader", "assets/shaders/shader_new.glsl" );
 
-		Shader* pTriangleVertexShader = new Shader( "Triangle/VertexShader", "assets/shaders/shader.vert" );
-		Shader* pTriangleFragShader = new Shader( "Triangle/FragShader", "assets/shaders/shader.frag" );
-
-		ShaderWorker::Get().AddShader( pTriangleVertexShader );
-		ShaderWorker::Get().AddShader( pTriangleFragShader );
-
-		ShaderWorker::Get().CompileShader( pTriangleVertexShader );
-		ShaderWorker::Get().CompileShader( pTriangleFragShader );
+		ShaderWorker::Get().AddShader( pShader );
+		ShaderWorker::Get().CompileShader( pShader );
 
 		//m_Buffer = VertexBuffer( Vertices );
 		//m_Buffer.CreateBuffer();
 
-		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/vikingroom/new-vr.fbx" );
+		m_Mesh = Ref<Mesh>::Create( "assets/meshes/vikingroom/new-vr.fbx" );
 		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/cerberus/cerberus.fbx" );
-		m_Mesh = Ref<Mesh>::Create( "assets/meshes/new/wooden/wooden.fbx" );
+		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/new/wooden/wooden.fbx" );
 		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/sponza/sponza.obj" );
 
 		m_Camera = EditorCamera( glm::perspective( glm::radians( 45.0f ), ( float )Window::Get().Width() / ( float )Window::Get().Height(), 0.1f, 10000.0f ) );
@@ -506,11 +502,8 @@ namespace Saturn {
 
 		UBO.View = m_Camera.ViewMatrix();
 		UBO.Proj = m_Camera.ProjectionMatrix();
-	
 		UBO.Proj[ 1 ][ 1 ] *= -1;
-
-		UBO.VP = m_Camera.ViewProjection();
-
+	
 		void* Data;
 		VK_CHECK( vkMapMemory( m_LogicalDevice, m_UniformBuffersMemory[ ImageIndex ], 0, sizeof( UBO ), 0, &Data ) );
 		memcpy( Data, &UBO, sizeof( UBO ) );
@@ -586,14 +579,14 @@ namespace Saturn {
 
 		VkShaderModuleCreateInfo VertexCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
 
-		VertexCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( "Triangle/VertexShader" ).size();
-		VertexCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/VertexShader" ).data() );
+		VertexCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( "Triangle/ShaderVertex" ).size();
+		VertexCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/ShaderVertex" ).data() );
 
 		VK_CHECK( vkCreateShaderModule( m_LogicalDevice, &VertexCreateInfo, nullptr, &VertexShader ) );
 
 		VkShaderModuleCreateInfo FragCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-		FragCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( "Triangle/FragShader" ).size();
-		FragCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/FragShader" ).data() );
+		FragCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( "Triangle/ShaderFragment" ).size();
+		FragCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/ShaderFragment" ).data() );
 
 		VK_CHECK( vkCreateShaderModule( m_LogicalDevice, &FragCreateInfo, nullptr, &FragmentShader ) );
 		
