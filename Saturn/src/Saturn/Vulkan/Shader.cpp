@@ -48,7 +48,7 @@ namespace Saturn {
 
 	void ShaderWorker::AddShader( Shader* pShader )
 	{
-		m_Shaders.push_back( pShader );
+		m_Shaders[ pShader->GetName() ] = pShader;
 	}
 
 	void ShaderWorker::CompileShader( Shader* pShader )
@@ -61,7 +61,7 @@ namespace Saturn {
 		CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_performance );
 		
 	#if defined( _DEBUG )
-		CompilerOptions.SetGenerateDebugInfo();
+		//CompilerOptions.SetGenerateDebugInfo();
 	#endif
 		
 		for( auto [key, src] : pShader->m_ShaderSources )
@@ -92,8 +92,8 @@ namespace Saturn {
 			
 			m_ShaderCodes.insert( { std::string( pShader->m_Name + "/" + ShaderTypeToString( src.Type ) + "/" + std::to_string( src.Index ) ), Code } );
 
-			printf( "===== SHADER OUTPUT: =====\n%s\n", ResultString.c_str() );
-			printf( "==========================\n \n" );			
+			SAT_CORE_INFO("===== SHADER OUTPUT: =====\n{0}\n", ResultString.c_str() );
+			SAT_CORE_INFO( "==========================\n \n" );
 		}
 	}
 

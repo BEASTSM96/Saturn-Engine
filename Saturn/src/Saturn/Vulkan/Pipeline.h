@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "VulkanContext.h"
+#include "Shader.h"
 #include <vulkan.h>
 
 namespace Saturn {
@@ -46,6 +46,10 @@ namespace Saturn {
 	struct PipelineLayout
 	{
 		void Create();
+		void Terminate();
+
+		operator VkPipelineLayout() const { return Layout; }
+		operator VkPipelineLayout&()      { return Layout; }
 
 		VkPipelineLayout Layout = VK_NULL_HANDLE;
 		PushConstantPipelineData PushConstants = {};
@@ -54,7 +58,9 @@ namespace Saturn {
 
 	struct PipelineSpecification
 	{
-		Ref< Shader > Shader = nullptr;
+		void Terminate();
+
+		Shader* Shader = nullptr;
 		VkRenderPass RenderPass = VK_NULL_HANDLE;
 
 		PipelineLayout Layout = {};
@@ -71,8 +77,14 @@ namespace Saturn {
 	public:
 		Pipeline() { }
 		Pipeline( PipelineSpecification Spec );
-		~Pipeline();
+		~Pipeline() {}
 		
+		VkPipeline& GetPipeline() { return m_Pipeline; }
+		VkPipelineLayout& GetPipelineLayout() { return m_Specification.Layout.Layout; }
+		
+		operator VkPipeline() const { return m_Pipeline; }
+		operator VkPipeline&()      { return m_Pipeline; }
+
 		void Terminate();
 
 	private:

@@ -130,7 +130,7 @@ namespace Saturn {
 		ShaderWorker() { }
 		~ShaderWorker()
 		{
-			for( auto pShader : m_Shaders )
+			for( auto& [ ShaderName, pShader ] : m_Shaders )
 			{
 				delete pShader;
 				pShader = nullptr;
@@ -151,13 +151,21 @@ namespace Saturn {
 			}
 		}
 
+		Shader* GetShader( std::string Name )
+		{
+			if( m_Shaders.find( Name ) != m_Shaders.end() )
+			{
+				return m_Shaders[ Name ];
+			}
+		}
+
 		void CompileShader( Shader* pShader );
 
 	private:
 
 
 		// Not a list of all compiled shaders.
-		std::vector< Shader* > m_Shaders;
+		std::unordered_map< std::string, Shader* > m_Shaders;
 		std::unordered_map< std::string, std::vector<uint32_t> > m_ShaderCodes;
 	};
 

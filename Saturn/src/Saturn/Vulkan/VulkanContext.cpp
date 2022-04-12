@@ -107,7 +107,7 @@ namespace Saturn {
 			vkDestroyFramebuffer( m_LogicalDevice, rFramebuffer, nullptr );
 		}
 
-		vkDestroyPipelineLayout( m_LogicalDevice, m_PipelineLayout, nullptr );
+		m_Pipeline.Terminate();
 
 		vkDestroyDevice( m_LogicalDevice, nullptr );
 
@@ -558,6 +558,26 @@ namespace Saturn {
 
 	void VulkanContext::CreatePipeline()
 	{
+	#if 1
+		
+		VkPushConstantRange PushConstantRage ={};
+		PushConstantRage.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		PushConstantRage.offset = 0;
+		PushConstantRage.size = sizeof( PushConstant );
+
+		PipelineSpecification Spec;
+		
+		Spec.Width = Window::Get().Width();
+		Spec.Height = Window::Get().Height();
+		Spec.Name = "MainPipeline";
+		Spec.RenderPass = m_RenderPass.GetRenderPass();
+		Spec.Shader = ShaderWorker::Get().GetShader( "Triangle/Shader" );
+		Spec.UseDepthTest = true;
+		Spec.Layout.PushConstants = { { PushConstantRage } };
+		Spec.Layout.SetLayouts = { { m_DescriptorSetLayout } };
+
+		m_Pipeline = Pipeline( Spec );
+	#else
 		VkPushConstantRange PushConstantRage ={};
 		PushConstantRage.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		PushConstantRage.offset = 0;
@@ -579,14 +599,14 @@ namespace Saturn {
 
 		VkShaderModuleCreateInfo VertexCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
 
-		VertexCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( "Triangle/ShaderVertex" ).size();
-		VertexCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/ShaderVertex" ).data() );
+		VertexCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( "Triangle/Shader/Vertex/0" ).size();
+		VertexCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/Shader/Vertex/0" ).data() );
 
 		VK_CHECK( vkCreateShaderModule( m_LogicalDevice, &VertexCreateInfo, nullptr, &VertexShader ) );
 
 		VkShaderModuleCreateInfo FragCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-		FragCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( "Triangle/ShaderFragment" ).size();
-		FragCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/ShaderFragment" ).data() );
+		FragCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( "Triangle/Shader/Fragment/0" ).size();
+		FragCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/Shader/Fragment/0" ).data() );
 
 		VK_CHECK( vkCreateShaderModule( m_LogicalDevice, &FragCreateInfo, nullptr, &FragmentShader ) );
 		
@@ -698,6 +718,7 @@ namespace Saturn {
 
 		vkDestroyShaderModule( m_LogicalDevice, VertexShader, nullptr );
 		vkDestroyShaderModule( m_LogicalDevice, FragmentShader, nullptr );
+	#endif
 	}
 
 	void VulkanContext::ResizeEvent()
@@ -713,9 +734,8 @@ namespace Saturn {
 
 		m_SwapChain.Recreate();
 
-		vkDestroyPipeline( m_LogicalDevice, m_Pipeline, nullptr );
-		vkDestroyPipelineLayout( m_LogicalDevice, m_PipelineLayout, nullptr );
-
+		m_Pipeline.Terminate();
+		
 		CreatePipeline();
 //		CreateUniformBuffers();
 //		CreateCommandPool();
@@ -900,7 +920,7 @@ namespace Saturn {
 			m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			m_Mesh->GetIndexBuffer()->Bind( CommandBuffer );
 		
-			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &m_DescriptorSets[ m_FrameCount ], 0, nullptr );
+			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline.GetPipelineLayout(), 0, 1, &m_DescriptorSets[ m_FrameCount ], 0, nullptr );
 
 			glm::mat4 ViewProj = m_Camera.ViewProjection();
 			//ViewProj[ 1 ][ 1 ] *= -1;
@@ -912,12 +932,12 @@ namespace Saturn {
 				
 				//PushC.Transfrom[ 1 ][ 1 ] *= -1;
 
-				vkCmdPushConstants( CommandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
+				vkCmdPushConstants( CommandBuffer, m_Pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
 
 				{
 					UpdateUniformBuffers( m_FrameCount, Application::Get().Time(), Comp.GetTransform() );
 				}
-
+				
 				m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
 			}
 		}
