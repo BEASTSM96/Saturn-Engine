@@ -30,7 +30,9 @@
 
 #if !defined( SAT_DONT_USE_GL )
 #include "backends/imgui_impl_opengl3.cpp"
-#else
+#elif !defined( SAT_DONT_USE_DX )
 #include "backends/imgui_impl_dx12.cpp"
+#else
+#include "backends/imgui_impl_vulkan.cpp"
 #endif
 #include "backends/imgui_impl_glfw.cpp"

@@ -83,7 +83,7 @@ project "Saturn"
 		"%{prj.name}/vendor/stb/",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/vendor/d3d12/",
-		"%{prj.name}/vendor/vulkan/",
+		"%{prj.name}/vendor/vulkan/include",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
