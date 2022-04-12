@@ -113,7 +113,7 @@ project "Saturn"
 			"d3d12.lib",
 			"dxgi.lib",
 			"d3dcompiler.lib",
-			"C:/VulkanSDK/1.2.189.2/Lib/vulkan-1.lib"
+			"%{prj.name}/vendor/vulkan/lib/vulkan-1.lib"
 		}
 
 		defines
