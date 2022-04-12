@@ -8,6 +8,9 @@
 !Saturn/vendor/physx/bin/**
 !Saturn/vendor/mono/bin/*
 !Saturn/vendor/shaderc/bin/
+!Saturn/vendor/vulkan/bin/
+!Saturn/vendor/vulkan/bin/**
+!Saturn/vendor/vulkan/bin
 
 # Binaries
 **/bin/

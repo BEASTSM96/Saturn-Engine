@@ -59,17 +59,20 @@ namespace Saturn {
 		shaderc::SpvCompilationResult ShaderResult;
 
 		CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_performance );
-
-		auto ShaderString = pShader->m_Filepath.string();
-		auto ShaderCStr = ShaderString.c_str();
 		
-		for( auto [src, type] : pShader->m_ShaderSources )
+	#if defined( _DEBUG )
+		CompilerOptions.SetGenerateDebugInfo();
+	#endif
+		
+		for( auto [key, src] : pShader->m_ShaderSources )
 		{
+			auto ShaderSrcCode = src.Source;
+
 			auto Result = Compiler.CompileGlslToSpvAssembly( 
-				src.c_str(), 
-				src.size(),
-				type == ShaderType::Vertex ? shaderc_shader_kind::shaderc_glsl_default_vertex_shader : shaderc_shader_kind::shaderc_glsl_default_fragment_shader, 
-				src.c_str(), 
+				ShaderSrcCode.c_str(),
+				ShaderSrcCode.size(),
+				src.Type == ShaderType::Vertex ? shaderc_shader_kind::shaderc_glsl_default_vertex_shader : shaderc_shader_kind::shaderc_glsl_default_fragment_shader, 
+				ShaderSrcCode.c_str(),
 				CompilerOptions
 			);
 
@@ -84,12 +87,17 @@ namespace Saturn {
 
 			// Save code for later if we need it.
 			std::vector<uint32_t> Code( AssembleResult.begin(), AssembleResult.end() );
-			m_ShaderCodes.insert( { std::string( pShader->m_Name + ShaderTypeToString( type ) ), Code } );
+			
+			//m_ShaderCodes.insert( { std::string( pShader->m_ShaderCodenames[] ) ), Code } );
+			
+			m_ShaderCodes.insert( { std::string( pShader->m_Name + "/" + ShaderTypeToString( src.Type ) + "/" + std::to_string( src.Index ) ), Code } );
 
 			printf( "===== SHADER OUTPUT: =====\n%s\n", ResultString.c_str() );
 			printf( "==========================\n \n" );			
 		}
 	}
+
+	//////////////////////////////////////////////////////////////////////////
 
 	Shader::Shader( std::string Name, std::filesystem::path Filepath )
 	{
@@ -105,7 +113,6 @@ namespace Saturn {
 
 	}
 
-	// I'm not even sure if this is good or not, and I think that using std::filesystem::file_size yields a differnet file size on other platforms.
 	void Shader::ReadFile()
 	{
 		std::ifstream f( m_Filepath, std::ios::ate | std::ios::binary );
@@ -122,7 +129,11 @@ namespace Saturn {
 	}
 
 	void Shader::DetermineShaderTypes()
-	{		
+	{
+		int VertexShaders = -1;
+		int FragmentShaders = -1;
+		int ComputeShaders = -1;
+
 		const char* TypeToken = "#type";
 		size_t TypeTokenLength = strlen( TypeToken );
 		size_t TypeTokenPosition = m_FileContents.find( TypeToken, 0 );
@@ -146,7 +157,23 @@ namespace Saturn {
 
 			auto Shader_Type = ShaderTypeFromString( Type );
 
-			m_ShaderSources.insert( { RawShaderCode, Shader_Type } );
+			if( Shader_Type == ShaderType::Fragment )
+				FragmentShaders++;
+			else if( Shader_Type == ShaderType::Vertex )
+				VertexShaders++;
+			else if( Shader_Type == ShaderType::Compute )
+				ComputeShaders++;
+			
+			int Index = Shader_Type == ShaderType::Vertex ? VertexShaders : ( Shader_Type == ShaderType::Fragment ? FragmentShaders : ComputeShaders );
+
+			ShaderSource src = ShaderSource( RawShaderCode, Shader_Type, Index );
+			m_ShaderSources[ ShaderSourceKey( Shader_Type, Index ) ] = src;
+			
+			m_ShaderCodenames.push_back( { 
+				.m_UUID = UUID(), 
+				.m_Filename = m_Filepath.filename().string(), 
+				.m_Type = std::move( ShaderTypeToString( Shader_Type ) )
+			} );
 		}
 	}
 

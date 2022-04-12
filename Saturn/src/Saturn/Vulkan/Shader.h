@@ -28,11 +28,95 @@
 
 #pragma once
 
+#include "Saturn/Core/UUID.h"
+
 #include "Base.h"
 #include <vector>
 #include <string>
 #include <filesystem>
 #include <unordered_map>
+
+namespace Saturn {
+	
+	enum class ShaderType : uint32_t
+	{
+		Vertex = 0,
+		Fragment = 1,
+		Geometry = 2,
+		Compute = 3
+	};
+
+	struct ShaderCodename
+	{
+		UUID m_UUID;
+		std::string m_Filename;
+		std::string m_Type;
+	};
+
+	struct ShaderSource
+	{
+		ShaderSource() {}
+		~ShaderSource() {}
+		
+		ShaderSource( const std::string& rSrc, ShaderType Type, int Index )
+			: Source( rSrc ), Type( Type ), Index( Index )
+		{
+		}
+
+		std::string Source = "";
+		ShaderType Type = ShaderType::Vertex;
+		int Index = -1;
+	};
+
+	struct ShaderSourceKey
+	{
+		ShaderSourceKey() {}
+		ShaderSourceKey( ShaderType _Type, int _Index ) : Type( _Type ), Index( _Index ) {}
+		~ShaderSourceKey() {}
+
+		ShaderSourceKey operator=( const ShaderSourceKey& rKey )
+		{
+			Type = rKey.Type;
+			Index = rKey.Index;
+			return *this;
+		}
+		
+		bool operator==( const ShaderSourceKey& rKey )
+		{
+			return ( Type == rKey.Type && Index == rKey.Index );
+		}
+		
+		bool operator==( const ShaderSourceKey& rKey ) const
+		{
+			return ( Type == rKey.Type && Index == rKey.Index );
+		}
+
+		ShaderType Type = ShaderType::Vertex;
+		int Index = -1;
+	};
+}
+
+namespace std {
+
+	template<>
+	struct hash< Saturn::ShaderSourceKey >
+	{
+		size_t operator()( const Saturn::ShaderSourceKey& rKey ) const
+		{
+			return ( size_t ) rKey.Index;
+		}
+	};
+
+	template<>
+	struct hash< Saturn::ShaderSource >
+	{
+		size_t operator()( const Saturn::ShaderSource& rKey )
+		{
+			return hash< std::string >()( rKey.Source ) ^ ( ( size_t )rKey.Type << 32 );
+		}
+	};
+
+}
 
 namespace Saturn {
 
@@ -76,25 +160,21 @@ namespace Saturn {
 		std::vector< Shader* > m_Shaders;
 		std::unordered_map< std::string, std::vector<uint32_t> > m_ShaderCodes;
 	};
-	
-	enum class ShaderType
-	{
-		Vertex,
-		Fragment,
-		Geometry,
-		Compute
-	};
+
 
 	extern ShaderType ShaderTypeFromString( std::string Str );
 	extern std::string ShaderTypeToString( ShaderType Type );
-	
-	// #TODO: Make it so that more than one shader file can correspond to one shader class
+
 	class Shader
 	{
+		using ShaderSourceMap = std::unordered_map< ShaderSourceKey, ShaderSource >;
 	public:
 		Shader() { }
 		Shader( std::string Name, std::filesystem::path Filepath );
 		~Shader();
+
+		std::string& GetName() { return m_Name; }
+		ShaderSourceMap& GetShaderSources() { return m_ShaderSources; }
 
 	private:
 
@@ -106,14 +186,15 @@ namespace Saturn {
 		// string                - int
 		// [{VetexShaderSrc}]    - [Vertex]
 		// [{FragmentShaderSrc}] - [Fragment]
-		std::unordered_map< std::string, ShaderType > m_ShaderSources;
-		
+		std::unordered_map< ShaderSourceKey, ShaderSource > m_ShaderSources;
+
 		std::string m_FileContents = "";
 
 		std::string m_Name = "";
 
 		std::filesystem::path m_Filepath = "";
-
+		
+		std::vector< ShaderCodename > m_ShaderCodenames;
 
 	private:
 		friend class ShaderWorker;
