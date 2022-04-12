@@ -77,9 +77,10 @@ namespace Saturn {
 			m_LastFrameTime = time;
 			
 			Window::Get().OnUpdate();
-			Window::Get().Render();
-
+			
 			VulkanContext::Get().Render();
+
+			Window::Get().Render();
 		}
 	}
 

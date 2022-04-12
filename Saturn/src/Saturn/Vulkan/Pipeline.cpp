@@ -27,70 +27,49 @@
 */
 
 #include "sppch.h"
-#include "Viewport.h"
-#include "Saturn/Core/App.h"
+#include "Pipeline.h"
 
-#include "imgui.h"
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <D3Dcompiler.h>
-#include <DirectXMath.h>
-#include "d3dx12.h"
-#include <d3d11.h>
-
-#if !defined( SAT_DONT_USE_DX )
-// dx
-#endif
+#include "VulkanContext.h"
 
 namespace Saturn {
 
-	Viewport::Viewport()
+	void PipelineLayout::Create()
 	{
+		VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo = {};
+		PipelineLayoutCreateInfo.pushConstantRangeCount = PushConstants.PushConstantRanges.size();
+		PipelineLayoutCreateInfo.pPushConstantRanges = PushConstants.PushConstantRanges.data();
+		PipelineLayoutCreateInfo.setLayoutCount = SetLayouts.SetLayouts.size();
+		PipelineLayoutCreateInfo.pSetLayouts = SetLayouts.SetLayouts.data();
+
+		VK_CHECK( vkCreatePipelineLayout( VulkanContext::Get().GetDevice(), &PipelineLayoutCreateInfo, nullptr, &Layout ) );
 	}
 
-	void Viewport::Draw()
+	//////////////////////////////////////////////////////////////////////////
+
+	Pipeline::Pipeline( PipelineSpecification Spec )
 	{
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+		m_Specification = Spec;
 
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		
-		ImGui::Begin( "Viewport", 0, flags );
-
-		m_SendCameraEvents = ImGui::IsWindowFocused();
-
-	#if !defined( SAT_DONT_USE_GL ) 
-
-		Renderer::Get().RendererCamera().AllowEvents( m_SendCameraEvents );
-		Renderer::Get().RendererCamera().SetActive( m_SendCameraEvents );
-
-		Renderer::Get().RendererCamera().OnUpdate( Application::Get().Time() );
-
-		auto viewportSize = ImGui::GetContentRegionAvail();
-
-		Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
-		Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
-
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
-		ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
-		ImGui::PopStyleVar();
-
-	#elif !defined( SAT_DONT_USE_DX )
-		//dx
-	#elif !defined( SAT_DONT_USE_VK )
-		
-		
-
-	#endif
-
-		ImGui::End();
-
-		ImGui::PopStyleVar();
+		Create();
 	}
 
+	void Pipeline::Terminate()
+	{
+
+	}
+
+	void Pipeline::Create()
+	{
+		// Create the layout.
+
+		m_Specification.Layout.Create();
+
+		// Create shader modules
+
+		VkShaderModule VertexModule = VK_NULL_HANDLE;
+		VkShaderModule FragmentModule = VK_NULL_HANDLE;
+
+		VkShaderModuleCreateInfo VertexCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+		//VertexCreateInfo.codeSize = ShaderWorker::Get().GetShaderCode( std::string( m_Specification.Shader->GetName() ) );
+	}
 }

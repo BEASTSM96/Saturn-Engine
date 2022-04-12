@@ -26,71 +26,61 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Viewport.h"
-#include "Saturn/Core/App.h"
+#pragma once
 
-#include "imgui.h"
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <D3Dcompiler.h>
-#include <DirectXMath.h>
-#include "d3dx12.h"
-#include <d3d11.h>
-
-#if !defined( SAT_DONT_USE_DX )
-// dx
-#endif
+#include "VulkanContext.h"
+#include <vulkan.h>
 
 namespace Saturn {
 
-	Viewport::Viewport()
+	struct PipelineSetLayout
 	{
-	}
-
-	void Viewport::Draw()
+		std::vector< VkDescriptorSetLayout > SetLayouts;
+	};
+	
+	struct PushConstantPipelineData
 	{
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+		std::vector< VkPushConstantRange > PushConstantRanges;
+	};
+	
+	struct PipelineLayout
+	{
+		void Create();
 
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+		VkPipelineLayout Layout = VK_NULL_HANDLE;
+		PushConstantPipelineData PushConstants = {};
+		PipelineSetLayout SetLayouts = {};
+	};
+
+	struct PipelineSpecification
+	{
+		Ref< Shader > Shader = nullptr;
+		VkRenderPass RenderPass = VK_NULL_HANDLE;
+
+		PipelineLayout Layout = {};
 		
-		ImGui::Begin( "Viewport", 0, flags );
-
-		m_SendCameraEvents = ImGui::IsWindowFocused();
-
-	#if !defined( SAT_DONT_USE_GL ) 
-
-		Renderer::Get().RendererCamera().AllowEvents( m_SendCameraEvents );
-		Renderer::Get().RendererCamera().SetActive( m_SendCameraEvents );
-
-		Renderer::Get().RendererCamera().OnUpdate( Application::Get().Time() );
-
-		auto viewportSize = ImGui::GetContentRegionAvail();
-
-		Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
-		Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
-
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
-		ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
-		ImGui::PopStyleVar();
-
-	#elif !defined( SAT_DONT_USE_DX )
-		//dx
-	#elif !defined( SAT_DONT_USE_VK )
+		uint32_t Width = 0, Height = 0;
 		
+		bool UseDepthTest = false;
+
+		std::string Name = "Pipeline";
+	};
+
+	class Pipeline
+	{
+	public:
+		Pipeline() { }
+		Pipeline( PipelineSpecification Spec );
+		~Pipeline();
 		
+		void Terminate();
 
-	#endif
+	private:
 
-		ImGui::End();
+		void Create();
 
-		ImGui::PopStyleVar();
-	}
-
+		PipelineSpecification m_Specification = {};
+		
+		VkPipeline m_Pipeline = VK_NULL_HANDLE;
+	};
 }

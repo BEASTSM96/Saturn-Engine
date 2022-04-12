@@ -68,7 +68,9 @@ namespace Saturn {
 	{
 		auto& window = static_cast< Window& >( Window::Get() );
 
-		double x, y;
+		double x = 0;
+		double y = 0;
+
 		glfwGetCursorPos( static_cast< GLFWwindow* >( window.NativeWindow() ), &x, &y );
 		return { ( float )x, ( float )y };
 	}
