@@ -113,7 +113,7 @@ project "Saturn"
 			"d3d12.lib",
 			"dxgi.lib",
 			"d3dcompiler.lib",
-			"%{prj.name}/vendor/vulkan/lib/vulkan-1.lib"
+			"%{prj.name}/vendor/vulkan/bin/vulkan-1.lib"
 		}
 
 		defines
