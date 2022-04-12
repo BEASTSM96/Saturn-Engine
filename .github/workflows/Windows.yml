@@ -2,9 +2,9 @@ name: CI(Windows)
 
 on:
   push:
-    branches: [ master, v2 ]
+    branches: [ master, v2, vulkan ]
   pull_request:
-    branches: [ master, v2 ]
+    branches: [ master, v2, vulkan ]
 jobs:
   build:
     runs-on: windows-latest
