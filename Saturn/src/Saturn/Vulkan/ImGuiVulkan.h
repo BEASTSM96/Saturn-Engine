@@ -28,93 +28,37 @@
 
 #pragma once
 
-#include "Base.h"
-
-#include "Saturn/ImGui/TitleBar.h"
-#include "Saturn/ImGui/Dockspace.h"
-
-#include <string>
-
-#if defined ( SAT_LINUX ) || defined ( SAT_MAC ) 
-#include <cstring>
-#endif
-
-#if defined( SAT_WINDOWS )
-#include <Windows.h>
-#endif
+#include "Pass.h"
 
 #include <vulkan.h>
 
-struct GLFWwindow;
-
 namespace Saturn {
 
-	class Window
+	class ImGuiVulkan
 	{
-		SINGLETON( Window );
-
-		Window();
-		~Window();
-
 	public:
-		using EventCallbackFn = std::function<void( Event& )>;
+		ImGuiVulkan() { Init(); }
+		~ImGuiVulkan() { Terminate(); }
+		
+		void BeginImGuiRender( VkCommandBuffer CommandBuffer );
+		void ImGuiRender();
+		void EndImGuiRender();
 
-	public:
-
-		void OnUpdate();
-
-		void Maximize();
-		void Minimize();
-
-		void Restore();
-		void SetTitle( const std::string& title );
-
-		void Render();
-
-		void SetEventCallback( const EventCallbackFn& callback ) { m_EventCallback = callback; }
-
-		void* NativeWindow() const { return m_Window; }
-
-		void ImGuiInit();
-
-		std::vector<const char*> GetRequiredExtensions();
-
-		VkResult CreateWindowSurface( VkInstance& rInstance, VkSurfaceKHR* pSurface );
-
-	#if defined( _WIN32 )
-		HWND PlatformWindow();
-	#endif
-
-		int Width() { return m_Width; }
-		int Height() { return m_Height; }
-
-		void GetSize( uint32_t* pWidth, uint32_t* pHeight );
-
-		ImGuiDockspace* m_Dockspace = nullptr;
+		VkCommandBuffer& GetCommandBuffer() { return m_CommandBuffer; }
+		VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
 
 	private:
 
-		static void SizeCallback( GLFWwindow* wind, int w, int h );
+		VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
+		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
+		
+		Pass m_ImGuiPass;
 
 	private:
-		GLFWwindow* m_Window = nullptr;
 
-		int m_Width  = 1200;
-		int m_Height = 720;
-		std::string m_Title = "Saturn";
+		void Init();
+		void CreatePipeline();
+		void Terminate();
 
-		bool m_Minimized = false;
-		bool m_Maximized = false;
-
-		EventCallbackFn m_EventCallback;
-
-		// Widgets
-
-		bool m_Rendering = false;
-
-	#if defined ( SAT_WINDOWS )
-		WNDPROC  m_WindowProc  = nullptr;
-		static LRESULT WindowProc( HWND handle, UINT msg, WPARAM WParam, LPARAM LParam );
-	#endif
 	};
 }

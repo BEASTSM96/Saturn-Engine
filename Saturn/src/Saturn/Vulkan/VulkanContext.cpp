@@ -5,6 +5,13 @@
 
 #include "VulkanDebug.h"
 
+// ImGui
+#include <imgui.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <backends/imgui_impl_glfw.h>
+
+#include "ImGuiVulkan.h"
+
 #include <vulkan.h>
 #include <cassert>
 #include <set>
@@ -61,12 +68,15 @@ namespace Saturn {
 
 		m_Camera = EditorCamera( glm::perspective( glm::radians( 45.0f ), ( float )Window::Get().Width() / ( float )Window::Get().Height(), 0.1f, 10000.0f ) );
 
-
 		CreatePipeline();
+
+		m_pImGuiVulkan = new ImGuiVulkan();
 	}
 
 	void VulkanContext::Terminate()
 	{
+		delete m_pImGuiVulkan;
+
 		m_Mesh.Delete();
 		
 		m_SwapChain.Terminate();
@@ -425,6 +435,9 @@ namespace Saturn {
 		
 		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = MAX_FRAMES_IN_FLIGHT } );
 		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = MAX_FRAMES_IN_FLIGHT } );
+		
+		// ImGui Pool Sizes
+		
 
 		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 		PoolCreateInfo.poolSizeCount = PoolSizes.size();
@@ -868,6 +881,8 @@ namespace Saturn {
 			assert( 0 ); // Unable to get ImageIndex
 		}
 
+		m_DrawCalls = 0;
+		
 		{
 			m_Camera.AllowEvents( true );
 			m_Camera.SetActive( true );
@@ -875,98 +890,111 @@ namespace Saturn {
 		}
 
 		VkCommandBuffer CommandBuffer;
-		VkCommandBufferAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-		AllocateInfo.commandBufferCount = 1;
-		AllocateInfo.commandPool = m_CommandPool;
 
-		VK_CHECK( vkAllocateCommandBuffers( m_LogicalDevice, &AllocateInfo, &CommandBuffer ) );
-		SetDebugUtilsObjectName( "CommandBuffer:Render", ( uint64_t )CommandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER );
-
-		VkCommandBufferBeginInfo CommandPoolBeginInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-		CommandPoolBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandPoolBeginInfo ) );
-
-
-		VkExtent2D Extent;
-		Window::Get().GetSize( &Extent.width, &Extent.height );
-
-		m_RenderPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, ImageIndex );
-		
-		// Rendering Commands
+		// Geometry pass
 		{
-			VkRect2D Scissor ={};
-			Scissor.extent = Extent;
+			VkCommandBufferAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+			AllocateInfo.commandBufferCount = 1;
+			AllocateInfo.commandPool = m_CommandPool;
 
-			VkViewport Viewport ={};
-			Viewport.height = Extent.height;
-			Viewport.width = Extent.width;
-			Viewport.maxDepth = 1.0f;
-			Viewport.minDepth = 0;
+			VK_CHECK( vkAllocateCommandBuffers( m_LogicalDevice, &AllocateInfo, &CommandBuffer ) );
+			SetDebugUtilsObjectName( "CommandBuffer:Render", ( uint64_t )CommandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER );
 
-			vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
-			vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
+			VkCommandBufferBeginInfo CommandPoolBeginInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+			CommandPoolBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-			vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
+			VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandPoolBeginInfo ) );
 
-			TransformComponent Comp;
-			Comp.Position = glm::vec3( 0, 0, 0 );
-			Comp.Rotation = glm::vec3( 0, 0, 0 );
-			Comp.Scale = glm::vec3( 1, 1, 1 );
-			
-			//m_Camera.Focus( Comp.Position );
+			VkExtent2D Extent;
+			Window::Get().GetSize( &Extent.width, &Extent.height );
 
-			m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
-			m_Mesh->GetIndexBuffer()->Bind( CommandBuffer );
-		
-			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline.GetPipelineLayout(), 0, 1, &m_DescriptorSets[ m_FrameCount ], 0, nullptr );
+			m_RenderPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, ImageIndex );
 
-			glm::mat4 ViewProj = m_Camera.ViewProjection();
-			//ViewProj[ 1 ][ 1 ] *= -1;
-
+			// Rendering Commands
 			{
-				PushConstant PushC;
-				PushC.VPM = ViewProj;
-				PushC.Transfrom = Comp.GetTransform();
-				
-				//PushC.Transfrom[ 1 ][ 1 ] *= -1;
+				VkRect2D Scissor ={};
+				Scissor.extent = Extent;
 
-				vkCmdPushConstants( CommandBuffer, m_Pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
+				VkViewport Viewport ={};
+				Viewport.height = Extent.height;
+				Viewport.width = Extent.width;
+				Viewport.maxDepth = 1.0f;
+				Viewport.minDepth = 0;
+
+				vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
+				vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
+
+				vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
+
+				TransformComponent Comp;
+				Comp.Position = glm::vec3( 0, 0, 0 );
+				Comp.Rotation = glm::vec3( 0, 0, 0 );
+				Comp.Scale = glm::vec3( 1, 1, 1 );
+
+				//m_Camera.Focus( Comp.Position );
+
+				m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
+				m_Mesh->GetIndexBuffer()->Bind( CommandBuffer );
+
+				vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline.GetPipelineLayout(), 0, 1, &m_DescriptorSets[ m_FrameCount ], 0, nullptr );
+
+				glm::mat4 ViewProj = m_Camera.ViewProjection();
+				//ViewProj[ 1 ][ 1 ] *= -1;
 
 				{
-					UpdateUniformBuffers( m_FrameCount, Application::Get().Time(), Comp.GetTransform() );
+					PushConstant PushC;
+					PushC.VPM = ViewProj;
+					PushC.Transfrom = Comp.GetTransform();
+
+					//PushC.Transfrom[ 1 ][ 1 ] *= -1;
+
+					vkCmdPushConstants( CommandBuffer, m_Pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
+
+					{
+						UpdateUniformBuffers( m_FrameCount, Application::Get().Time(), Comp.GetTransform() );
+					}
+
+					m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
+					m_DrawCalls++;
 				}
-				
-				m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
 			}
+			
+			// ImGui Pass
+			{
+				m_pImGuiVulkan->BeginImGuiRender( CommandBuffer );
+
+				m_pImGuiVulkan->ImGuiRender();
+
+				m_pImGuiVulkan->EndImGuiRender();
+			}
+
+			m_RenderPass.EndPass();
+
+			VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
+
+			// Rendering Queue
+			VkPipelineStageFlags WaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+			VkSubmitInfo SubmitInfo ={ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+			SubmitInfo.commandBufferCount = 1;
+			SubmitInfo.pCommandBuffers = &CommandBuffer;
+			SubmitInfo.pWaitDstStageMask = &WaitStage;
+
+			// SIGNAL the SubmitSemaphore
+			SubmitInfo.pSignalSemaphores = &m_SubmitSemaphore;
+			SubmitInfo.signalSemaphoreCount = 1;
+
+			// WAIT for AcquireSemaphore
+			SubmitInfo.pWaitSemaphores = &m_AcquireSemaphore;
+			SubmitInfo.waitSemaphoreCount = 1;
+
+			VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FlightFences[ m_FrameCount ] ) );
+
+			// Use current fence to be signaled.
+			VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, m_FlightFences[ m_FrameCount ] ) );
 		}
 		
-		m_RenderPass.EndPass();
-
-		VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
-
-		// Rendering Queue
-
-		VkPipelineStageFlags WaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-		VkSubmitInfo SubmitInfo ={ VK_STRUCTURE_TYPE_SUBMIT_INFO };
-		SubmitInfo.commandBufferCount = 1;
-		SubmitInfo.pCommandBuffers = &CommandBuffer;
-		SubmitInfo.pWaitDstStageMask = &WaitStage;
-
-		// SIGNAL the SubmitSemaphore
-		SubmitInfo.pSignalSemaphores = &m_SubmitSemaphore;
-		SubmitInfo.signalSemaphoreCount = 1;
-
-		// WAIT for AcquireSemaphore
-		SubmitInfo.pWaitSemaphores = &m_AcquireSemaphore;
-		SubmitInfo.waitSemaphoreCount = 1;
-
-		VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FightFences[ m_FrameCount ] ) );
-
-		// Use current fence to be signaled.
-		VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, m_FightFences[ m_FrameCount ] ) );
-
+		// Present info.
 		VkPresentInfoKHR PresentInfo ={ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
 		PresentInfo.pSwapchains = &m_SwapChain.GetSwapchain();
 		PresentInfo.swapchainCount = 1;
@@ -992,7 +1020,7 @@ namespace Saturn {
 		VK_CHECK( vkQueueWaitIdle( m_PresentQueue ) );
 
 		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
-
+			
 		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
 	}
 

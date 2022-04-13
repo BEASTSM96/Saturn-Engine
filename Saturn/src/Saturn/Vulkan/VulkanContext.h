@@ -21,9 +21,9 @@
 #include <vector>
 #include <optional>
 
-//class Swapchain;
 namespace Saturn {
 
+	class ImGuiVulkan;
 	class VulkanDebugMessenger;
 
 	struct QueueFamilyIndices
@@ -87,6 +87,8 @@ namespace Saturn {
 		VkFormat FindDepthFormat();
 		bool HasStencilComponent( VkFormat Format );
 		
+		void RenderImGui() {}
+
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands( VkCommandBuffer CommandBuffer );
 
@@ -106,11 +108,19 @@ namespace Saturn {
 		Pass& GetRenderPass() { return m_RenderPass; }
 		VkCommandPool& GetCommandPool() { return m_CommandPool; }
 
+		VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
+
 		VkQueue& GetGraphicsQueue() { return m_GraphicsQueue; }
 
 		VkPhysicalDevice& GetPhysicalDevice() { return m_PhysicalDevice; }
 
 		Swapchain& GetSwapchain() { return m_SwapChain; }
+
+		ImGuiVulkan* GetImGuiVulkan() { return m_pImGuiVulkan; }
+
+		uint32_t GetImageCount() { return m_ImageCount; }
+
+		VkFence& GetCurrentFlightFence() { return m_FlightFences[ m_FrameCount ]; }
 
 		void OnEvent( Event& e );
 
@@ -184,6 +194,10 @@ namespace Saturn {
 		uint32_t m_FrameCount = 0;
 
 		bool m_WindowIconifed = false;
+
+		int m_DrawCalls;
+		
+		ImGuiVulkan* m_pImGuiVulkan = nullptr;
 
 		std::vector<VkImage>       m_SwapChainImages;
 		std::vector<VkImageView>   m_SwapChainImageViews;

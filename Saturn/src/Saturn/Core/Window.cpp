@@ -57,9 +57,14 @@
 
 #if !defined ( SAT_DONT_USE_GL )
 #include "backends/imgui_impl_opengl3.h"
-#else
+#elif !defined( SAT_DONT_USE_DX )
 #include "backends/imgui_impl_dx12.h"
+#else
+#include "backends/imgui_impl_vulkan.h"
+#include "Saturn/Vulkan/VulkanContext.h"
 #endif
+
+#include "Saturn/Vulkan/ImGuiVulkan.h"
 
 #include <vulkan.h>
 #include <Saturn/Vulkan/Base.h>
@@ -99,7 +104,7 @@ namespace Saturn {
 		glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
 	#endif
 
-		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
+		//glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 
 		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
 
@@ -131,7 +136,6 @@ namespace Saturn {
 			win.m_EventCallback( event );
 		} );
 
-		//glfwSetFramebufferSizeCallback( m_Window, []( GLFWwindow* window, int width, int height ) {                         } );
 
 		glfwSetScrollCallback( m_Window, []( GLFWwindow* window, double xOffset, double yOffset )
 		{
@@ -210,29 +214,28 @@ namespace Saturn {
 
 		// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
 
-		HWND      windowHandle    = glfwGetWin32Window( m_Window );
-		HINSTANCE instance        = GetModuleHandle( nullptr );
+		//HWND      windowHandle    = glfwGetWin32Window( m_Window );
+		//HINSTANCE instance        = GetModuleHandle( nullptr );
 
-		SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
+		//SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
 
 		// Fix missing drop shadow
-		MARGINS shadowMargins;
-		shadowMargins ={ 1, 1, 1, 1 };
-		DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
+		//MARGINS shadowMargins;
+		//shadowMargins ={ 1, 1, 1, 1 };
+		//DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
 
 		// Override window procedure with custom one to allow native window moving behavior without a title bar
-		SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
-		m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
+		//SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
+		//m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
 
 	#endif
-
 	}
 
 	Window::~Window()
 	{
+		ImGui_ImplGlfw_Shutdown();
 	#if !defined ( SAT_DONT_USE_GL )
 
-		ImGui_ImplGlfw_Shutdown();
 		ImGui_ImplOpenGL3_Shutdown();
 
 	#elif !defined ( SAT_DONT_USE_DX )
@@ -241,6 +244,8 @@ namespace Saturn {
 		ImGui_ImplDX12_Shutdown();
 
 	#endif
+
+	//	ImGui_ImplVulkan_Shutdown();
 
 		glfwDestroyWindow( m_Window );
 	}
@@ -302,6 +307,8 @@ namespace Saturn {
 		ImGui_ImplOpenGL3_NewFrame();
 	#elif !defined( SAT_DONT_USE_DX )
 		//dx
+	#else
+		//ImGui_ImplVulkan_NewFrame();
 	#endif
 
 		//ImGui_ImplGlfw_NewFrame();
@@ -317,15 +324,15 @@ namespace Saturn {
 	#if !defined ( SAT_DONT_USE_GL )
 		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
 	#else
-		// DX is in Renderer.h
+		//ImGui_ImplVulkan_RenderDrawData( ImGui::GetDrawData() );
 	#endif
 
 		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
 		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			//ImGui::UpdatePlatformWindows();
-			//ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent( backup_current_context );
+//			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+//			ImGui::UpdatePlatformWindows();
+//			ImGui::RenderPlatformWindowsDefault();
+//			glfwMakeContextCurrent( backup_current_context );
 		}
 
 		//glfwSwapBuffers( m_Window );
@@ -361,6 +368,36 @@ namespace Saturn {
 		Styles::Dark();
 
 		// Call backends depend on Rendering API
+		
+		// Init imgui with vulkan
+		ImGui_ImplGlfw_InitForVulkan( m_Window, true );
+	
+		ImGui_ImplVulkan_InitInfo ImGuiInitInfo = {};
+		ImGuiInitInfo.Instance = VulkanContext::Get().GetInstance();
+		ImGuiInitInfo.PhysicalDevice = VulkanContext::Get().GetPhysicalDevice();
+		ImGuiInitInfo.Device = VulkanContext::Get().GetDevice();
+		ImGuiInitInfo.Queue = VulkanContext::Get().GetGraphicsQueue();
+		ImGuiInitInfo.DescriptorPool = VulkanContext::Get().GetImGuiVulkan()->GetDescriptorPool();
+		ImGuiInitInfo.MinImageCount = 2;
+		ImGuiInitInfo.ImageCount = 2;
+		ImGuiInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+		ImGuiInitInfo.CheckVkResultFn = _VkCheckResult;
+		
+		ImGui_ImplVulkan_Init( &ImGuiInitInfo, VulkanContext::Get().GetRenderPass().GetRenderPass() );
+		
+		VkCommandBuffer CommandBuffer;
+		CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
+
+		{
+			ImGui_ImplVulkan_CreateFontsTexture( CommandBuffer );
+		}
+
+		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+
+		ImGui_ImplVulkan_DestroyFontUploadObjects();
+
+		//ImGui_ImplVulkan_Init();
 
 		m_Dockspace = new ImGuiDockspace();
 	}
