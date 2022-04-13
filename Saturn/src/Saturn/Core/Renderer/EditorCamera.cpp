@@ -50,17 +50,23 @@ namespace Saturn {
 	{
 		m_FocalPoint = glm::vec3( 0.0f );
 
-		glm::vec3 position ={ -5, 5, 5 };
+		glm::vec3 position ={ 0, 0, 0 };
 		m_Distance = glm::distance( position, m_FocalPoint );
 
 		m_Yaw = 3.0f * ( float )M_PI / 4.0f;
 		m_Pitch = M_PI / 4.0f;
 
 		m_Position = CalculatePosition();
+		
+		m_Position.y *= -1.0f;
+
 		const glm::quat orientation = Orientation();
 		m_WorldRotation = glm::eulerAngles( orientation ) * ( 180.0f / ( float )M_PI );
 		m_ViewMatrix = glm::translate( glm::mat4( 1.0f ), m_Position ) * glm::toMat4( orientation );
 		m_ViewMatrix = glm::inverse( m_ViewMatrix );
+
+		//m_ViewMatrix[ 1 ][ 1 ] *= -1;
+		//m_Projection[ 1 ][ 1 ] *= -1;
 	}
 
 	static void SetMouseEnabled( const bool enable )
@@ -97,17 +103,17 @@ namespace Saturn {
 				const float yawSign = UpDirection().y < 0 ? -1.0f : 1.0f;
 
 				if( Input::Get().KeyPressed( Key::Q ) )
-					m_PositionDelta -= ts.Milliseconds() * m_Speed * glm::vec3{ 0.f, yawSign, 0.f };
-				if( Input::Get().KeyPressed( Key::E ) )
 					m_PositionDelta += ts.Milliseconds() * m_Speed * glm::vec3{ 0.f, yawSign, 0.f };
+				if( Input::Get().KeyPressed( Key::E ) )
+					m_PositionDelta -= ts.Milliseconds() * m_Speed * glm::vec3{ 0.f, yawSign, 0.f };
 				if( Input::Get().KeyPressed( Key::S ) )
-					m_PositionDelta -= ts.Milliseconds() * m_Speed * m_WorldRotation;
-				if( Input::Get().KeyPressed( Key::W ) )
 					m_PositionDelta += ts.Milliseconds() * m_Speed * m_WorldRotation;
+				if( Input::Get().KeyPressed( Key::W ) )
+					m_PositionDelta -= ts.Milliseconds() * m_Speed * m_WorldRotation;
 				if( Input::Get().KeyPressed( Key::A ) )
-					m_PositionDelta -= ts.Milliseconds() * m_Speed * m_RightDirection;
-				if( Input::Get().KeyPressed( Key::D ) )
 					m_PositionDelta += ts.Milliseconds() * m_Speed * m_RightDirection;
+				if( Input::Get().KeyPressed( Key::D ) )
+					m_PositionDelta -= ts.Milliseconds() * m_Speed * m_RightDirection;
 
 				constexpr float maxRate{ 0.12f };
 				m_YawDelta += glm::clamp( yawSign * delta.x, -maxRate, maxRate );
@@ -149,6 +155,7 @@ namespace Saturn {
 		m_InitialMousePosition = mouse;
 
 		m_Position += m_PositionDelta;
+
 		m_Yaw += m_YawDelta;
 		m_Pitch += m_PitchDelta;
 
@@ -307,7 +314,7 @@ namespace Saturn {
 
 	glm::vec3 EditorCamera::UpDirection() const
 	{
-		return glm::rotate( Orientation(), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+		return glm::rotate( Orientation(), glm::vec3( 0.0f, -1.0f, 0.0f ) );
 	}
 
 	glm::vec3 EditorCamera::RightDirection() const

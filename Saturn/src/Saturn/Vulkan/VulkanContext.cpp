@@ -87,12 +87,11 @@ namespace Saturn {
 
 		vkDestroyDescriptorSetLayout( m_LogicalDevice, m_DescriptorSetLayout, nullptr );
 		
-		vkDestroyPipeline( m_LogicalDevice, m_Pipeline, nullptr );
 		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
 		vkDestroySemaphore( m_LogicalDevice, m_SubmitSemaphore, nullptr );
 		vkDestroySemaphore( m_LogicalDevice, m_AcquireSemaphore, nullptr );
 
-		for( auto& rFence : m_FightFences )
+		for( auto& rFence : m_FlightFences )
 		{
 			vkDestroyFence( m_LogicalDevice, rFence, nullptr );
 		}
@@ -363,11 +362,11 @@ namespace Saturn {
 		VkFenceCreateInfo     FenceCreateInfo     ={ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
 		FenceCreateInfo.flags                     = VK_FENCE_CREATE_SIGNALED_BIT;
 
-		m_FightFences.resize( MAX_FRAMES_IN_FLIGHT );
+		m_FlightFences.resize( MAX_FRAMES_IN_FLIGHT );
 
 		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
 		{
-			VK_CHECK( vkCreateFence( m_LogicalDevice, &FenceCreateInfo, nullptr, &m_FightFences[ i ] ) );
+			VK_CHECK( vkCreateFence( m_LogicalDevice, &FenceCreateInfo, nullptr, &m_FlightFences[ i ] ) );
 		}
 
 		VK_CHECK( vkCreateSemaphore( m_LogicalDevice, &SemaphoreCreateInfo, nullptr, &m_AcquireSemaphore ) );
@@ -851,13 +850,13 @@ namespace Saturn {
 	void VulkanContext::Render()
 	{
 		// Wait for last frame.
-		VK_CHECK( vkWaitForFences( m_LogicalDevice, 1, &m_FightFences[ m_FrameCount ], VK_TRUE, UINT32_MAX ) );
+		VK_CHECK( vkWaitForFences( m_LogicalDevice, 1, &m_FlightFences[ m_FrameCount ], VK_TRUE, UINT32_MAX ) );
 		
 		if( m_WindowIconifed )
 			return;
 
 		// Reset current fence.
-		VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FightFences[ m_FrameCount ] ) );
+		VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FlightFences[ m_FrameCount ] ) );
 
 		// Acquire next image.
 		uint32_t ImageIndex;

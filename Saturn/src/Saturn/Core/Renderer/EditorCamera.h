@@ -35,6 +35,7 @@
 
 namespace Saturn {
 
+
 	enum class CameraMode
 	{
 		NONE, FLYCAM, ARCBALL
@@ -124,4 +125,6 @@ namespace Saturn {
 
 		friend class EditorLayer;
 	};
+	
+#endif
 }

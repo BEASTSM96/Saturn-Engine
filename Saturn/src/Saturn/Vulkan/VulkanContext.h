@@ -13,6 +13,7 @@
 #include "Mesh.h"
 #include "Pass.h"
 #include "Texture.h"
+#include "Pipeline.h"
 
 #include <glm/glm.hpp>
 
@@ -148,10 +149,12 @@ namespace Saturn {
 		VkExtent2D m_SwapChainExtent;
 		VkCommandPool m_CommandPool;
 		//VkRenderPass m_RenderPass;
-		VkPipeline m_Pipeline;
-		VkPipelineLayout m_PipelineLayout;
+		//VkPipeline m_Pipeline;
+		//VkPipelineLayout m_PipelineLayout;
 		VkDescriptorSetLayout m_DescriptorSetLayout;
 		VkDescriptorPool m_DescriptorPool;
+
+		Pipeline m_Pipeline;
 
 		VkImage m_DepthImage;
 		VkDeviceMemory m_DepthImageMemory;
@@ -191,7 +194,7 @@ namespace Saturn {
 
 		std::vector<PhysicalDeviceProperties> m_DeviceProps;
 
-		std::vector<VkFence> m_FightFences;
+		std::vector<VkFence> m_FlightFences;
 
 		std::vector< VkDescriptorSet > m_DescriptorSets;
 
