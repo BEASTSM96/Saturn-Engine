@@ -18,13 +18,13 @@ jobs:
       run: git submodule update --init
 
     - name: Download Premake
-      uses: BEASTSM96/premake-action@v1.1
+      uses: BEASTSM96/premake-action@v1.3
 
     - name: Generate Project Files
       run: scripts/WindowsGenProjects-CI.bat
 
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
+      uses: microsoft/setup-msbuild@v1.1
 
     - name: Build Solution
       run: msbuild -property:Configuration=Debug,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Saturn.sln
