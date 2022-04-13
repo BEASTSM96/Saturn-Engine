@@ -81,6 +81,7 @@ namespace Saturn {
 		
 		VkSampler& GetSampler() { return m_Sampler; }
 		VkImageView& GetImageView() { return m_ImageView; }
+		VkImage& GetImage() { return m_Image; }
 
 	private:
 		std::filesystem::path m_Path = "";

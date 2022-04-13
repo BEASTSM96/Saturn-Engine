@@ -98,7 +98,7 @@ namespace Saturn {
 		m_Importer = std::make_unique<Assimp::Importer>();
 
 		const aiScene* scene = m_Importer->ReadFile( filename, s_MeshImportFlags );
-		if( !scene || !scene->HasMeshes() )
+		if( scene == nullptr || !scene->HasMeshes() )
 			SAT_CORE_ERROR( "Failed to load mesh file: {0}", filename );
 
 		m_Scene = scene;

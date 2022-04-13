@@ -31,6 +31,7 @@
 
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
+#include "Texture.h"
 
 #include <backends/imgui_impl_vulkan.h>
 #include <backends/imgui_impl_glfw.h>
@@ -41,21 +42,6 @@ namespace Saturn {
 	{
 		m_CommandBuffer = CommandBuffer;
 
-		//VkCommandBufferAllocateInfo AllocateInfo = /{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-		//AllocateInfo.commandPool = VulkanContext::Get().GetCommandPool();
-		//AllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		//AllocateInfo.commandBufferCount = 1;
-		
-		//VK_CHECK( vkAllocateCommandBuffers( VulkanContext::Get().GetDevice(), &AllocateInfo, &m_CommandBuffer ) );
-		
-		//SetDebugUtilsObjectName( "CommandBuffer:ImGui", ( uint64_t )m_CommandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER );
-
-		//VkCommandBufferBeginInfo BeginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-		//BeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-		//BeginInfo.pInheritanceInfo = nullptr;
-		
-		//VK_CHECK( vkBeginCommandBuffer( m_CommandBuffer, &BeginInfo ) );
-
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 
@@ -63,8 +49,6 @@ namespace Saturn {
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2( ( float )Window::Get().Width(), ( float )Window::Get().Height() );
-
-		//m_ImGuiPass.BeginPass( m_CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, ImageIndex );
 	}
 
 	void ImGuiVulkan::ImGuiRender()
@@ -80,29 +64,10 @@ namespace Saturn {
 
 		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
-
-		//m_ImGuiPass.EndPass();
-
-		//VK_CHECK( vkEndCommandBuffer( m_CommandBuffer ) );
-
-		//VkPipelineStageFlags WaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-		//VkSubmitInfo SubmitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-		//SubmitInfo.commandBufferCount = 1;
-		//SubmitInfo.pCommandBuffers = &m_CommandBuffer;
-		//SubmitInfo.pWaitDstStageMask = &WaitStage;
-
-		//VK_CHECK( vkQueueSubmit( VulkanContext::Get().GetGraphicsQueue(), 1, &SubmitInfo, VulkanContext::Get().GetCurrentFlightFence() ) );
-
-		//VK_CHECK( vkQueueWaitIdle( VulkanContext::Get().GetGraphicsQueue() ) );
-
-		//vkFreeCommandBuffers( VulkanContext::Get().GetDevice(), /VulkanContext::Get().GetCommandPool(), 1, &m_CommandBuffer );
 	}
 
 	void ImGuiVulkan::Init()
 	{
-		//m_ImGuiPass = Pass( VK_NULL_HANDLE, "ImGui Pass" );
-
 		// Create ImGui Descriptor Pool
 		std::vector< VkDescriptorPoolSize > PoolSizes;
 
@@ -118,55 +83,13 @@ namespace Saturn {
 		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 } );
 		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 } );
 		
-		VkDescriptorPoolSize pool_sizes[] =
-		{
-			{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
-			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-			{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
-		};
-
 		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 		PoolCreateInfo.maxSets = 1000;
-		PoolCreateInfo.poolSizeCount = std::size( pool_sizes );
-		PoolCreateInfo.pPoolSizes = pool_sizes;
+		PoolCreateInfo.poolSizeCount = PoolSizes.size();
+		PoolCreateInfo.pPoolSizes = PoolSizes.data();
 		
-		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_DescriptorPool ) );
-		
-		//////////////////////////////////////////////////////////////////////////
-
-		// Select Surface Format
-		//const VkFormat requestSurfaceImageFormat[] ={ VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
-		//const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-
-		//ImGui_ImplVulkanH_Window SWD;
-
-		//ImGui_ImplVulkanH_Window* WD = &SWD;
-		//WD->Surface = VulkanContext::Get().GetSurface();
-		//WD->SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat( VulkanContext::Get().GetPhysicalDevice(), WD->Surface, requestSurfaceImageFormat, IM_ARRAYSIZE( requestSurfaceImageFormat ), requestSurfaceColorSpace );
-		
-		//VkPresentModeKHR PresentMode[] ={ VK_PRESENT_MODE_FIFO_KHR };
-		
-		//WD->PresentMode = ImGui_ImplVulkanH_SelectPresentMode( VulkanContext::Get().GetPhysicalDevice(), WD->Surface, &PresentMode[0], IM_ARRAYSIZE( PresentMode ) );
-		
-		/*ImGui_ImplVulkanH_CreateOrResizeWindow( 
-			VulkanContext::Get().GetInstance(), 
-			VulkanContext::Get().GetPhysicalDevice(), 
-			VulkanContext::Get().GetDevice(), 
-			WD, 
-			VulkanContext::Get().GetQueueFamilyIndices().GraphicsFamily.value(), 
-			nullptr, 
-			Window::Get().Width(), 
-			Window::Get().Height(), 2 );
-			*/
+		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_DescriptorPool ) );	
 	}
 
 	void ImGuiVulkan::CreatePipeline()
@@ -180,8 +103,6 @@ namespace Saturn {
 			vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_DescriptorPool, nullptr );
 
 		m_DescriptorPool = nullptr;
-
-		m_ImGuiPass.Terminate();
 
 		ImGui_ImplVulkan_Shutdown();
 	}
