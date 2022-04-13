@@ -98,6 +98,7 @@ namespace Saturn {
 		RenderPassCreateInfo.dependencyCount = 1;
 		
 		VK_CHECK( vkCreateRenderPass( VulkanContext::Get().GetDevice(), &RenderPassCreateInfo, nullptr, &m_Pass ) );
+
 		SetDebugUtilsObjectName( m_Name, ( uint64_t )m_Pass, VK_OBJECT_TYPE_RENDER_PASS );
 	}
 
@@ -186,9 +187,9 @@ namespace Saturn {
 	void Pass::BeginPass( VkCommandBuffer CommandBuffer /* = nullptr */, VkSubpassContents Contents /* = VK_SUBPASS_CONTENTS_INLINE*/, uint32_t ImageIndex /* = 0 */ )
 	{
 		m_CommandBuffer = CommandBuffer;
-		
+
 		std::array<VkClearValue, 2> ClearColors{};
-		ClearColors[ 0 ].color ={ { 0.1f, 0.1f, 0.1f, 1.0f } };
+		ClearColors[ 0 ].color ={ { 0.0f, 0.0f, 0.0f, 1.0f } };
 		ClearColors[ 1 ].depthStencil ={ 1.0f, 0 };
 
 		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };

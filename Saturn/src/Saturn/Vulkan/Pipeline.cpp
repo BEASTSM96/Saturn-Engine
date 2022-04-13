@@ -206,7 +206,6 @@ namespace Saturn {
 		SetDebugUtilsObjectName( m_Specification.Name, ( uint64_t )m_Pipeline, VK_OBJECT_TYPE_PIPELINE );
 
 		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), VertexModule, nullptr );
-		
 		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), FragmentModule, nullptr );
 	}
 

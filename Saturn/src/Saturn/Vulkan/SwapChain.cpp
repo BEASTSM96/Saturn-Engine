@@ -74,7 +74,7 @@ namespace Saturn {
 
 		SwapchainCreateInfo.preTransform   = SwapchainData.SurfaceCaps.currentTransform;
 		SwapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // No alpha.
-		SwapchainCreateInfo.presentMode    = VK_PRESENT_MODE_MAILBOX_KHR;
+		SwapchainCreateInfo.presentMode    = VK_PRESENT_MODE_FIFO_KHR;
 		SwapchainCreateInfo.clipped        = true;
 
 		SwapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
@@ -161,7 +161,7 @@ namespace Saturn {
 
 		SwapchainCreateInfo.preTransform   = SwapchainData.SurfaceCaps.currentTransform;
 		SwapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // No alpha.
-		SwapchainCreateInfo.presentMode    = VK_PRESENT_MODE_MAILBOX_KHR;
+		SwapchainCreateInfo.presentMode    = VK_PRESENT_MODE_FIFO_KHR;
 		SwapchainCreateInfo.clipped        = true;
 
 		vkDestroySwapchainKHR( VulkanContext::Get().GetDevice(), OldSwapchain, nullptr );

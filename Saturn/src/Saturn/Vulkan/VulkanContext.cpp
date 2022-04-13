@@ -315,7 +315,7 @@ namespace Saturn {
 		for( VkSurfaceFormatKHR& rFormat : Data.SurfaceFormats )
 		{
 			// Use most common format type.
-			if( rFormat.format == VK_FORMAT_B8G8R8A8_SRGB && rFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR )
+			if( rFormat.format == VK_FORMAT_B8G8R8A8_UNORM && rFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR )
 			{
 				// Set context's format.
 				m_SurfaceFormat = rFormat;
