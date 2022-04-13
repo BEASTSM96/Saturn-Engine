@@ -125,6 +125,4 @@ namespace Saturn {
 
 		friend class EditorLayer;
 	};
-	
-#endif
 }

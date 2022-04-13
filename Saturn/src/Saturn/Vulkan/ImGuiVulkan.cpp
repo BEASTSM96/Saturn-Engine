@@ -140,23 +140,24 @@ namespace Saturn {
 		PoolCreateInfo.pPoolSizes = pool_sizes;
 		
 		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_DescriptorPool ) );
+		
+		//////////////////////////////////////////////////////////////////////////
 
 		// Select Surface Format
-		const VkFormat requestSurfaceImageFormat[] ={ VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
-		const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+		//const VkFormat requestSurfaceImageFormat[] ={ VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
+		//const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 
-		ImGui_ImplVulkanH_Window SWD;
+		//ImGui_ImplVulkanH_Window SWD;
 
-		ImGui_ImplVulkanH_Window* WD = &SWD;
-		WD->Surface = VulkanContext::Get().GetSurface();
-
-		ImGui_ImplVulkanH_SelectSurfaceFormat( VulkanContext::Get().GetPhysicalDevice(), WD->Surface, requestSurfaceImageFormat, IM_ARRAYSIZE( requestSurfaceImageFormat ), requestSurfaceColorSpace );
+		//ImGui_ImplVulkanH_Window* WD = &SWD;
+		//WD->Surface = VulkanContext::Get().GetSurface();
+		//WD->SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat( VulkanContext::Get().GetPhysicalDevice(), WD->Surface, requestSurfaceImageFormat, IM_ARRAYSIZE( requestSurfaceImageFormat ), requestSurfaceColorSpace );
 		
-		VkPresentModeKHR PresentMode[] ={ VK_PRESENT_MODE_FIFO_KHR };
+		//VkPresentModeKHR PresentMode[] ={ VK_PRESENT_MODE_FIFO_KHR };
 		
-		WD->PresentMode = ImGui_ImplVulkanH_SelectPresentMode( VulkanContext::Get().GetPhysicalDevice(), WD->Surface, &PresentMode[0], IM_ARRAYSIZE( PresentMode ) );
+		//WD->PresentMode = ImGui_ImplVulkanH_SelectPresentMode( VulkanContext::Get().GetPhysicalDevice(), WD->Surface, &PresentMode[0], IM_ARRAYSIZE( PresentMode ) );
 		
-		ImGui_ImplVulkanH_CreateOrResizeWindow( 
+		/*ImGui_ImplVulkanH_CreateOrResizeWindow( 
 			VulkanContext::Get().GetInstance(), 
 			VulkanContext::Get().GetPhysicalDevice(), 
 			VulkanContext::Get().GetDevice(), 
@@ -165,6 +166,7 @@ namespace Saturn {
 			nullptr, 
 			Window::Get().Width(), 
 			Window::Get().Height(), 2 );
+			*/
 	}
 
 	void ImGuiVulkan::CreatePipeline()
