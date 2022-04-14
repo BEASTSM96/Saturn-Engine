@@ -48,25 +48,58 @@ namespace Saturn {
 	EditorCamera::EditorCamera( const glm::mat4& projectionMatrix )
 		: Camera( projectionMatrix )
 	{
+	#if 1
+		
+		m_Yaw = 3.0f * ( float )M_PI / 4.0f;
+		m_Pitch = M_PI / 4.0f;
+
+		const glm::quat orientation = Orientation();
+		m_WorldRotation = glm::eulerAngles( orientation ) * ( 180.0f / ( float )M_PI );
+
+		glm::vec3 Translation = glm::vec3( 5.0f, 5.0f, 5.0f );
+		m_Distance = glm::distance( Translation, glm::vec3( 0.0f, 0.0f, 0.0f ) );
+		m_Position = CalculatePosition();
+		
+		if( m_FlipY )
+			m_Position.y * -1.0f;
+
+		glm::mat4 RotationM = glm::mat4( 1.0f );
+		glm::mat4 TranslationM = glm::mat4( 1.0f );
+		
+		RotationM = glm::rotate( RotationM, glm::radians( m_WorldRotation.x * m_FlipY ? -1.0f : 1.0f ), glm::vec3( 1.0f, 0.0f, 0.0f ) );
+		RotationM = glm::rotate( RotationM, glm::radians( m_WorldRotation.y ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+		RotationM = glm::rotate( RotationM, glm::radians( m_WorldRotation.z ), glm::vec3( 0.0f, 0.0f, 1.0f ) );
+
+		TranslationM = glm::translate( glm::mat4( 1.f ), Translation );
+		
+		m_ViewMatrix = TranslationM * RotationM;
+
+	#else
 		m_FocalPoint = glm::vec3( 0.0f );
 
-		glm::vec3 position ={ 0, 0, 0 };
+		glm::vec3 position ={ 5, -1.0f, 5 };
 		m_Distance = glm::distance( position, m_FocalPoint );
 
 		m_Yaw = 3.0f * ( float )M_PI / 4.0f;
 		m_Pitch = M_PI / 4.0f;
 
 		m_Position = CalculatePosition();
-		
-		m_Position.y *= -1.0f;
+
+		if( m_FlipY )
+			m_Position.y *= -1.0f;
 
 		const glm::quat orientation = Orientation();
 		m_WorldRotation = glm::eulerAngles( orientation ) * ( 180.0f / ( float )M_PI );
+
 		m_ViewMatrix = glm::translate( glm::mat4( 1.0f ), m_Position ) * glm::toMat4( orientation );
 		m_ViewMatrix = glm::inverse( m_ViewMatrix );
 
-		//m_ViewMatrix[ 1 ][ 1 ] *= -1;
-		//m_Projection[ 1 ][ 1 ] *= -1;
+		if( m_FlipY )
+		{
+			m_ViewMatrix[ 1 ][ 1 ] *= -1;
+			//m_Projection[ 1 ][ 1 ] *= -1;
+		}
+	#endif
 	}
 
 	static void SetMouseEnabled( const bool enable )
@@ -103,17 +136,19 @@ namespace Saturn {
 				const float yawSign = UpDirection().y < 0 ? -1.0f : 1.0f;
 
 				if( Input::Get().KeyPressed( Key::Q ) )
-					m_PositionDelta += ts.Milliseconds() * m_Speed * glm::vec3{ 0.f, yawSign, 0.f };
-				if( Input::Get().KeyPressed( Key::E ) )
 					m_PositionDelta -= ts.Milliseconds() * m_Speed * glm::vec3{ 0.f, yawSign, 0.f };
+				if( Input::Get().KeyPressed( Key::E ) )
+					m_PositionDelta += ts.Milliseconds() * m_Speed * glm::vec3{ 0.f, yawSign, 0.f };
+
 				if( Input::Get().KeyPressed( Key::S ) )
-					m_PositionDelta += ts.Milliseconds() * m_Speed * m_WorldRotation;
-				if( Input::Get().KeyPressed( Key::W ) )
 					m_PositionDelta -= ts.Milliseconds() * m_Speed * m_WorldRotation;
+				if( Input::Get().KeyPressed( Key::W ) )
+					m_PositionDelta += ts.Milliseconds() * m_Speed * m_WorldRotation;
+
 				if( Input::Get().KeyPressed( Key::A ) )
-					m_PositionDelta += ts.Milliseconds() * m_Speed * m_RightDirection;
-				if( Input::Get().KeyPressed( Key::D ) )
 					m_PositionDelta -= ts.Milliseconds() * m_Speed * m_RightDirection;
+				if( Input::Get().KeyPressed( Key::D ) )
+					m_PositionDelta += ts.Milliseconds() * m_Speed * m_RightDirection;
 
 				constexpr float maxRate{ 0.12f };
 				m_YawDelta += glm::clamp( yawSign * delta.x, -maxRate, maxRate );
@@ -121,7 +156,7 @@ namespace Saturn {
 
 				m_RightDirection = glm::cross( m_WorldRotation, glm::vec3{ 0.f, yawSign, 0.f } );
 
-				m_WorldRotation = glm::rotate( glm::normalize( glm::cross( glm::angleAxis( -m_PitchDelta, m_RightDirection ),
+				m_WorldRotation = glm::rotate( glm::normalize( glm::cross( glm::angleAxis( m_PitchDelta, m_RightDirection ),
 					glm::angleAxis( -m_YawDelta, glm::vec3{ 0.f, yawSign, 0.f } ) ) ), m_WorldRotation );
 			}
 			else if( Input::Get().KeyPressed( Key::LeftAlt ) )
@@ -178,8 +213,9 @@ namespace Saturn {
 		m_WorldRotation = glm::normalize( m_FocalPoint - m_Position );
 		m_FocalPoint = m_Position + ForwardDirection() * m_Distance;
 		m_Distance = glm::distance( m_Position, m_FocalPoint );
-		m_ViewMatrix = glm::lookAt( m_Position, lookAt, glm::vec3{ 0.f, yawSign, 0.f } );
-
+		m_ViewMatrix = glm::lookAt( m_Position, lookAt, glm::vec3{ 0.f, m_FlipY ? -yawSign : yawSign, 0.f } );
+		
+			
 		//damping for smooth camera
 		m_YawDelta *= 0.6f;
 		m_PitchDelta *= 0.6f;
@@ -314,7 +350,10 @@ namespace Saturn {
 
 	glm::vec3 EditorCamera::UpDirection() const
 	{
-		return glm::rotate( Orientation(), glm::vec3( 0.0f, -1.0f, 0.0f ) );
+		if( m_FlipY )
+			return glm::rotate( Orientation(), glm::vec3( 0.0f, -1.0f, 0.0f ) );
+		else
+			return glm::rotate( Orientation(), glm::vec3( 0.0f, 1.0f, 0.0f ) );
 	}
 
 	glm::vec3 EditorCamera::RightDirection() const
