@@ -69,6 +69,7 @@ namespace Saturn {
 		m_Camera = EditorCamera( glm::perspective( glm::radians( 45.0f ), ( float )Window::Get().Width() / ( float )Window::Get().Height(), 0.1f, 10000.0f ) );
 
 		CreatePipeline();
+		CreateOffscreenImages();
 
 		m_pImGuiVulkan = new ImGuiVulkan();
 	}
@@ -92,6 +93,24 @@ namespace Saturn {
 		vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
 		vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
 		vkDestroyImage( m_LogicalDevice, m_DepthImage, nullptr );
+		
+		{
+			vkFreeMemory( m_LogicalDevice, m_OffscreenColorMem, nullptr );
+			vkFreeMemory( m_LogicalDevice, m_OffscreenDepthMem, nullptr );
+
+			vkDestroyImageView( m_LogicalDevice, m_OffscreenColorImageView, nullptr );
+			vkDestroyImageView( m_LogicalDevice, m_OffscreenDepthImageView, nullptr );
+
+			vkDestroyImage( m_LogicalDevice, m_OffscreenColorImage, nullptr );
+			vkDestroyImage( m_LogicalDevice, m_OffscreenDepthImage, nullptr );
+
+			vkDestroySampler( m_LogicalDevice, m_OffscreenColorSampler, nullptr );
+			vkDestroySampler( m_LogicalDevice, m_OffscreenDepthSampler, nullptr );
+
+			vkDestroyFramebuffer( m_LogicalDevice, m_OffscreenFramebuffer, nullptr );
+
+			vkDestroyRenderPass( m_LogicalDevice, m_OffscreenPass, nullptr );
+		}
 
 		vkDestroyDescriptorPool( m_LogicalDevice, m_DescriptorPool, nullptr );
 
@@ -748,6 +767,10 @@ namespace Saturn {
 
 		m_Pipeline.Terminate();
 		
+		CreateOffscreenImages();
+
+		m_pImGuiVulkan->RecreateImages();
+
 		CreatePipeline();
 //		CreateUniformBuffers();
 //		CreateCommandPool();
@@ -790,7 +813,7 @@ namespace Saturn {
 
 		return true;
 	}
-
+	
 	VkFormat VulkanContext::FindSupportedFormat( const std::vector<VkFormat>& Formats, VkImageTiling Tiling, VkFormatFeatureFlags Features )
 	{
 		for ( VkFormat Format : Formats )
@@ -853,6 +876,210 @@ namespace Saturn {
 		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
 	}
 
+	void VulkanContext::CreateOffscreenImages()
+	{
+		if( m_OffscreenColorImage )
+			vkDestroyImage( m_LogicalDevice, m_OffscreenColorImage, nullptr );
+
+		if( m_OffscreenColorMem )
+			vkFreeMemory( m_LogicalDevice, m_OffscreenColorMem, nullptr );
+		
+		if( m_OffscreenDepthImage )
+			vkDestroyImage( m_LogicalDevice, m_OffscreenDepthImage, nullptr );
+
+		if( m_OffscreenDepthMem )
+			vkFreeMemory( m_LogicalDevice, m_OffscreenDepthMem, nullptr );
+		
+		if( m_OffscreenDepthImageView )
+			vkDestroyImageView( m_LogicalDevice, m_OffscreenDepthImageView, nullptr );
+		
+		if( m_OffscreenColorImageView )
+			vkDestroyImageView( m_LogicalDevice, m_OffscreenColorImageView, nullptr );
+
+		if( m_OffscreenColorSampler )
+			vkDestroySampler( m_LogicalDevice, m_OffscreenColorSampler, nullptr );
+		
+		if( m_OffscreenDepthSampler )
+			vkDestroySampler( m_LogicalDevice, m_OffscreenDepthSampler, nullptr );
+
+		if( m_OffscreenFramebuffer )
+			vkDestroyFramebuffer( m_LogicalDevice, m_OffscreenFramebuffer, nullptr );
+		
+		if( m_OffscreenPass )
+			vkDestroyRenderPass( m_LogicalDevice, m_OffscreenPass, nullptr );
+
+		// Create the color attachment.
+		VkFormat ColorFormat = FindSupportedFormat( { VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8A8_UNORM }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT );
+		VkFormat DepthFormat = FindSupportedFormat( { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT );
+
+		VkImageCreateInfo Image = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+		Image.imageType = VK_IMAGE_TYPE_2D;
+		Image.extent.width = Window::Get().Width();
+		Image.extent.height = Window::Get().Height();
+		Image.extent.depth = 1;
+		Image.mipLevels = 1;
+		Image.arrayLayers = 1;
+		Image.format = VK_FORMAT_B8G8R8A8_UNORM;
+		Image.samples = VK_SAMPLE_COUNT_1_BIT;
+		Image.tiling = VK_IMAGE_TILING_OPTIMAL;
+		Image.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		
+		VK_CHECK( vkCreateImage( m_LogicalDevice, &Image, nullptr, &m_OffscreenColorImage ) );
+
+		VkMemoryRequirements MemReqs;
+		vkGetImageMemoryRequirements( m_LogicalDevice, m_OffscreenColorImage, &MemReqs );
+	
+		VkMemoryAllocateInfo AllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+		AllocInfo.allocationSize = MemReqs.size;
+		AllocInfo.memoryTypeIndex = GetMemoryType( MemReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+
+		VK_CHECK( vkAllocateMemory( m_LogicalDevice, &AllocInfo, nullptr, &m_OffscreenColorMem ) );
+		VK_CHECK( vkBindImageMemory( m_LogicalDevice, m_OffscreenColorImage, m_OffscreenColorMem, 0 ) );
+		
+		// Create the color attachment view.
+		VkImageViewCreateInfo ColorView = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+		ColorView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		ColorView.format = VK_FORMAT_B8G8R8A8_UNORM;
+		ColorView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		ColorView.subresourceRange.baseMipLevel = 0;
+		ColorView.subresourceRange.levelCount = 1;
+		ColorView.subresourceRange.baseArrayLayer = 0;
+		ColorView.subresourceRange.layerCount = 1;
+		ColorView.image = m_OffscreenColorImage;
+		
+		VK_CHECK( vkCreateImageView( m_LogicalDevice, &ColorView, nullptr, &m_OffscreenColorImageView ) );
+
+		// Create sampler.
+		VkSamplerCreateInfo Sampler = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+		Sampler.magFilter = VK_FILTER_LINEAR;
+		Sampler.minFilter = VK_FILTER_LINEAR;
+		Sampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		Sampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		Sampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		Sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		Sampler.mipLodBias = 0.0f;
+		Sampler.maxAnisotropy = 1.0f;
+		Sampler.minLod = 0.0f;
+		Sampler.maxLod = 1.0f;
+		Sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		
+		VK_CHECK( vkCreateSampler( m_LogicalDevice, &Sampler, nullptr, &m_OffscreenColorSampler ) );
+
+		// Create the depth attachment.
+		Image.format = DepthFormat;
+		Image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+		VK_CHECK( vkCreateImage( m_LogicalDevice, &Image, nullptr, &m_OffscreenDepthImage ) );
+		
+		vkGetImageMemoryRequirements( m_LogicalDevice, m_OffscreenDepthImage, &MemReqs );
+		AllocInfo.allocationSize = MemReqs.size;
+		AllocInfo.memoryTypeIndex = GetMemoryType( MemReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+		
+		VK_CHECK( vkAllocateMemory( m_LogicalDevice, &AllocInfo, nullptr, &m_OffscreenDepthMem ) );
+		VK_CHECK( vkBindImageMemory( m_LogicalDevice, m_OffscreenDepthImage, m_OffscreenDepthMem, 0 ) );
+
+		// Create the depth attachment view.
+		VkImageViewCreateInfo DepthView = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+		DepthView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		DepthView.format = DepthFormat;
+		DepthView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+		DepthView.subresourceRange.baseMipLevel = 0;
+		DepthView.subresourceRange.levelCount = 1;
+		DepthView.subresourceRange.baseArrayLayer = 0;
+		DepthView.subresourceRange.layerCount = 1;
+		DepthView.image = m_OffscreenDepthImage;
+		
+		VK_CHECK( vkCreateImageView( m_LogicalDevice, &DepthView, nullptr, &m_OffscreenDepthImageView ) );
+
+		std::vector< VkAttachmentDescription > AttchmentDescriptions = {};
+	
+		// Color attachment.
+		AttchmentDescriptions.push_back( { 
+			.flags = 0, 
+			.format = VK_FORMAT_B8G8R8A8_UNORM,
+			.samples = VK_SAMPLE_COUNT_1_BIT, 
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR, 
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE, 
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, 
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE, 
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED, 
+			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL 
+		} );
+		
+		// Depth attachment.
+		AttchmentDescriptions.push_back( {
+			.flags = 0,
+			.format = DepthFormat,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		} );
+		
+		VkAttachmentReference ColorAttachmentRef = {};
+		ColorAttachmentRef.attachment = 0;
+		ColorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		
+		VkAttachmentReference DepthAttachmentRef = {};
+		DepthAttachmentRef.attachment = 1;
+		DepthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription Subpass = {};
+		Subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		Subpass.colorAttachmentCount = 1;
+		Subpass.pColorAttachments = &ColorAttachmentRef;
+		Subpass.pDepthStencilAttachment = &DepthAttachmentRef;
+		
+		std::vector< VkSubpassDependency > Dependencies ={};
+		
+		Dependencies.push_back( {
+			.srcSubpass = VK_SUBPASS_EXTERNAL,
+			.dstSubpass = 0,
+			.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+		} );
+
+		Dependencies.push_back( {
+			.srcSubpass = 0,
+			.dstSubpass = VK_SUBPASS_EXTERNAL,
+			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+			.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+		} );
+
+		VkRenderPassCreateInfo RenderPassInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+		RenderPassInfo.attachmentCount = (uint32_t)AttchmentDescriptions.size();
+		RenderPassInfo.pAttachments = AttchmentDescriptions.data();
+		RenderPassInfo.subpassCount = 1;
+		RenderPassInfo.pSubpasses = &Subpass;
+		RenderPassInfo.dependencyCount = (uint32_t)Dependencies.size();
+		RenderPassInfo.pDependencies = Dependencies.data();
+		
+		VK_CHECK( vkCreateRenderPass( m_LogicalDevice, &RenderPassInfo, nullptr, &m_OffscreenPass ) );
+
+		// Create the framebuffer.
+
+		VkImageView Attachments[] = { m_OffscreenColorImageView, m_OffscreenDepthImageView };
+
+		VkFramebufferCreateInfo FramebufferInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+		FramebufferInfo.renderPass = m_OffscreenPass;
+		FramebufferInfo.attachmentCount = 2;
+		FramebufferInfo.pAttachments = Attachments;
+		FramebufferInfo.width = Window::Get().Width();
+		FramebufferInfo.height = Window::Get().Height();
+		FramebufferInfo.layers = 1;
+		
+		VK_CHECK( vkCreateFramebuffer( m_LogicalDevice, &FramebufferInfo, nullptr, &m_OffscreenFramebuffer ) );
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// Render Loop
 	//////////////////////////////////////////////////////////////////////////
@@ -907,11 +1134,23 @@ namespace Saturn {
 
 			VkExtent2D Extent;
 			Window::Get().GetSize( &Extent.width, &Extent.height );
-
-			m_RenderPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, ImageIndex );
-
-			// Rendering Commands
+			
+			// First pass ~ offscreen rendering to a VkImage
+			// This is draw to the surface but will get cleared when we do our ImGui pass, we store the texture in a VkDescriptorSet to render later on.
 			{
+				VkClearValue ClearColors[ 2 ];
+				ClearColors[ 0 ].color ={ { 0.0f, 0.0f, 0.0f, 1.0f } };
+				ClearColors[ 1 ].depthStencil ={ 1.0f, 0 };
+
+				VkRenderPassBeginInfo RenderPassInfo ={ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+				RenderPassInfo.renderPass = m_OffscreenPass;
+				RenderPassInfo.framebuffer = m_OffscreenFramebuffer;
+				RenderPassInfo.renderArea.extent = Extent;
+				RenderPassInfo.clearValueCount = 2;
+				RenderPassInfo.pClearValues = ClearColors;	
+				
+				vkCmdBeginRenderPass( CommandBuffer, &RenderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
+				
 				VkRect2D Scissor ={};
 				Scissor.extent = Extent;
 
@@ -923,13 +1162,15 @@ namespace Saturn {
 
 				vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
 				vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
-
+				
 				vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
 
+				//////////////////////////////////////////////////////////////////////////
+
 				TransformComponent Comp;
-				Comp.Position = glm::vec3( 0, 0, 0 );
-				Comp.Rotation = glm::vec3( 0, 0, 0 );
-				Comp.Scale = glm::vec3( 1, 1, 1 );
+				Comp.Position = glm::vec3( 0.f, 0.f, 0.f );
+				Comp.Rotation = glm::vec3( 0.f, 0.f, 0.f );
+				Comp.Scale = glm::vec3( 1.f, 1.f, 1.f );
 
 				//m_Camera.Focus( Comp.Position );
 
@@ -939,14 +1180,11 @@ namespace Saturn {
 				vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline.GetPipelineLayout(), 0, 1, &m_DescriptorSets[ m_FrameCount ], 0, nullptr );
 
 				glm::mat4 ViewProj = m_Camera.ViewProjection();
-				//ViewProj[ 1 ][ 1 ] *= -1;
 
 				{
 					PushConstant PushC;
 					PushC.VPM = ViewProj;
 					PushC.Transfrom = Comp.GetTransform();
-
-					//PushC.Transfrom[ 1 ][ 1 ] *= -1;
 
 					vkCmdPushConstants( CommandBuffer, m_Pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
 
@@ -957,8 +1195,12 @@ namespace Saturn {
 					m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
 					m_DrawCalls++;
 				}
-			}
 			
+				vkCmdEndRenderPass( CommandBuffer );
+			}
+
+			m_RenderPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, ImageIndex );
+
 			// ImGui Pass
 			{
 				m_pImGuiVulkan->BeginImGuiRender( CommandBuffer );

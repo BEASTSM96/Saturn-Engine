@@ -370,32 +370,6 @@ namespace Saturn {
 		// Call backends depend on Rendering API
 		
 		// Init imgui with vulkan
-		ImGui_ImplGlfw_InitForVulkan( m_Window, true );
-	
-		ImGui_ImplVulkan_InitInfo ImGuiInitInfo = {};
-		ImGuiInitInfo.Instance = VulkanContext::Get().GetInstance();
-		ImGuiInitInfo.PhysicalDevice = VulkanContext::Get().GetPhysicalDevice();
-		ImGuiInitInfo.Device = VulkanContext::Get().GetDevice();
-		ImGuiInitInfo.Queue = VulkanContext::Get().GetGraphicsQueue();
-		ImGuiInitInfo.DescriptorPool = VulkanContext::Get().GetImGuiVulkan()->GetDescriptorPool();
-		ImGuiInitInfo.MinImageCount = 2;
-		ImGuiInitInfo.ImageCount = 2;
-		ImGuiInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-
-		ImGuiInitInfo.CheckVkResultFn = _VkCheckResult;
-		
-		ImGui_ImplVulkan_Init( &ImGuiInitInfo, VulkanContext::Get().GetRenderPass().GetRenderPass() );
-		
-		VkCommandBuffer CommandBuffer;
-		CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
-
-		{
-			ImGui_ImplVulkan_CreateFontsTexture( CommandBuffer );
-		}
-
-		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
-
-		ImGui_ImplVulkan_DestroyFontUploadObjects();
 
 		//ImGui_ImplVulkan_Init();
 

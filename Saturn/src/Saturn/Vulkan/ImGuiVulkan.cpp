@@ -38,6 +38,78 @@
 
 namespace Saturn {
 
+	void ImGuiVulkan::Init()
+	{
+		ImGui_ImplGlfw_InitForVulkan( ( GLFWwindow* )Window::Get().NativeWindow(), true );
+		
+		// Create ImGui Descriptor Pool
+		{
+			std::vector< VkDescriptorPoolSize > PoolSizes;
+
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 } );
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 } );
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 } );
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 } );
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 } );
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 } );
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 } );
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 } );
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 } );
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 } );
+			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 } );
+
+
+			VkDescriptorPoolCreateInfo PoolCreateInfo ={ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+			PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+			PoolCreateInfo.maxSets = 1000;
+			PoolCreateInfo.poolSizeCount = PoolSizes.size();
+			PoolCreateInfo.pPoolSizes = PoolSizes.data();
+
+			VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_DescriptorPool ) );
+		}
+
+		ImGui_ImplVulkan_InitInfo ImGuiInitInfo ={};
+		ImGuiInitInfo.Instance = VulkanContext::Get().GetInstance();
+		ImGuiInitInfo.PhysicalDevice = VulkanContext::Get().GetPhysicalDevice();
+		ImGuiInitInfo.Device = VulkanContext::Get().GetDevice();
+		ImGuiInitInfo.Queue = VulkanContext::Get().GetGraphicsQueue();
+		ImGuiInitInfo.DescriptorPool = m_DescriptorPool;
+		ImGuiInitInfo.MinImageCount = 2;
+		ImGuiInitInfo.ImageCount = 2;
+		ImGuiInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+		ImGuiInitInfo.CheckVkResultFn = _VkCheckResult;
+
+		ImGui_ImplVulkan_Init( &ImGuiInitInfo, VulkanContext::Get().GetRenderPass().GetRenderPass() );
+
+		VkCommandBuffer CommandBuffer;
+		CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
+
+		{
+			ImGui_ImplVulkan_CreateFontsTexture( CommandBuffer );
+		}
+
+		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+
+		ImGui_ImplVulkan_DestroyFontUploadObjects();
+
+		m_OffscreenID = ImGui_ImplVulkan_AddTexture( VulkanContext::Get().GetOffscreenColorSampler(), VulkanContext::Get().GetOffscreenColorView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+
+		m_pDockspace = new ImGuiDockspace();
+	}
+	
+	void ImGuiVulkan::Terminate()
+	{
+		if( m_DescriptorPool )
+			vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_DescriptorPool, nullptr );
+
+		m_DescriptorPool = nullptr;
+
+		delete m_pDockspace;
+
+		ImGui_ImplVulkan_Shutdown();
+	}
+
 	void ImGuiVulkan::BeginImGuiRender( VkCommandBuffer CommandBuffer )
 	{
 		m_CommandBuffer = CommandBuffer;
@@ -54,6 +126,8 @@ namespace Saturn {
 	void ImGuiVulkan::ImGuiRender()
 	{
 		ImGui::ShowDemoWindow();
+		
+		m_pDockspace->Draw();
 	}
 
 	void ImGuiVulkan::EndImGuiRender()
@@ -66,44 +140,12 @@ namespace Saturn {
 		ImGui::RenderPlatformWindowsDefault();
 	}
 
-	void ImGuiVulkan::Init()
+	void ImGuiVulkan::RecreateImages()
 	{
-		// Create ImGui Descriptor Pool
-		std::vector< VkDescriptorPoolSize > PoolSizes;
-
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 } );
-		
-		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-		PoolCreateInfo.maxSets = 1000;
-		PoolCreateInfo.poolSizeCount = PoolSizes.size();
-		PoolCreateInfo.pPoolSizes = PoolSizes.data();
-		
-		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_DescriptorPool ) );	
+		m_OffscreenID = ImGui_ImplVulkan_AddTexture( VulkanContext::Get().GetOffscreenColorSampler(), VulkanContext::Get().GetOffscreenColorView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
 
 	void ImGuiVulkan::CreatePipeline()
 	{
-
-	}
-
-	void ImGuiVulkan::Terminate()
-	{
-		if( m_DescriptorPool )
-			vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_DescriptorPool, nullptr );
-
-		m_DescriptorPool = nullptr;
-
-		ImGui_ImplVulkan_Shutdown();
 	}
 }
