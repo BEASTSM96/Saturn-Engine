@@ -30,6 +30,8 @@
 
 #include "Pass.h"
 
+#include "Saturn/ImGui/Dockspace.h"
+
 #include <vulkan.h>
 
 namespace Saturn {
@@ -44,8 +46,12 @@ namespace Saturn {
 		void ImGuiRender();
 		void EndImGuiRender();
 
+		void RecreateImages();
+
 		VkCommandBuffer& GetCommandBuffer() { return m_CommandBuffer; }
 		VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
+
+		void* GetOffscreenColorDescSet() { return m_OffscreenID; }
 
 	private:
 
@@ -53,6 +59,11 @@ namespace Saturn {
 		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
 		
 		Pass m_ImGuiPass;
+
+		// The current offscreen id, made from the color image and the color sampler.
+		void* m_OffscreenID;
+
+		ImGuiDockspace* m_pDockspace;
 
 	private:
 

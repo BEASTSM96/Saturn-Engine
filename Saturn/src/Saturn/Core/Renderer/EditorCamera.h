@@ -54,6 +54,8 @@ namespace Saturn {
 
 		bool Active() const { return m_IsActive; }
 		void SetActive( bool active ) { m_IsActive = active; }
+		
+		void Flip( bool flip ) {  m_FlipY = flip; }
 
 		inline float Distance() const { return m_Distance; }
 		inline void SetDistance( float distance ) { m_Distance = distance; }
@@ -101,6 +103,8 @@ namespace Saturn {
 		glm::mat4 m_ViewMatrix;
 		glm::vec3 m_Position, m_WorldRotation, m_FocalPoint;
 
+		glm::vec4 m_ViewPos;
+
 		bool m_IsActive = false;
 		bool m_Panning, m_Rotating;
 		glm::vec2 m_InitialMousePosition{};
@@ -114,6 +118,8 @@ namespace Saturn {
 		float m_PitchDelta{}, m_YawDelta{};
 		glm::vec3 m_PositionDelta{};
 		glm::vec3 m_RightDirection{};
+
+		bool m_FlipY = true;
 
 		CameraMode m_CameraMode{ CameraMode::ARCBALL };
 

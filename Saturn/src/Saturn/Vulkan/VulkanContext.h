@@ -125,6 +125,12 @@ namespace Saturn {
 		void OnEvent( Event& e );
 
 		void SetWindowIconifed( bool inconifed ) { m_WindowIconifed = inconifed; }
+		
+		VkImageView& GetOffscreenColorView() { return m_OffscreenColorImageView; }
+		VkImageView& GetOffscreenDepthView() { return m_OffscreenDepthImageView; }
+
+		VkSampler& GetOffscreenColorSampler() { return m_OffscreenColorSampler; }
+		VkSampler& GetOffscreenDepthSampler() { return m_OffscreenDepthSampler; }
 
 	private:
 		void Terminate();
@@ -150,6 +156,10 @@ namespace Saturn {
 
 		bool CheckValidationLayerSupport();
 
+		// Offscreen rendering
+		void CreateOffscreenFramebuffer() {}
+		void CreateOffscreenImages();
+
 		VkInstance m_Instance;
 		VkSurfaceKHR m_Surface;
 		VkPhysicalDevice m_PhysicalDevice;
@@ -158,9 +168,6 @@ namespace Saturn {
 		VkDebugUtilsMessengerEXT m_DebugMessenger;
 		VkExtent2D m_SwapChainExtent;
 		VkCommandPool m_CommandPool;
-		//VkRenderPass m_RenderPass;
-		//VkPipeline m_Pipeline;
-		//VkPipelineLayout m_PipelineLayout;
 		VkDescriptorSetLayout m_DescriptorSetLayout;
 		VkDescriptorPool m_DescriptorPool;
 
@@ -173,6 +180,13 @@ namespace Saturn {
 		Texture m_TestTexture;
 
 		Pass m_RenderPass;
+		VkRenderPass m_OffscreenPass;
+		VkFramebuffer m_OffscreenFramebuffer;
+
+		VkImage m_OffscreenColorImage, m_OffscreenDepthImage;
+		VkDeviceMemory m_OffscreenColorMem, m_OffscreenDepthMem;
+		VkImageView m_OffscreenColorImageView, m_OffscreenDepthImageView;
+		VkSampler m_OffscreenColorSampler, m_OffscreenDepthSampler;
 
 		VulkanDebugMessenger* m_pDebugMessenger;
 
@@ -186,8 +200,6 @@ namespace Saturn {
 
 		Ref<Mesh> m_Mesh;
 		
-		VertexBuffer m_Buffer;
-		IndexBuffer m_IndexBuffer;
 		EditorCamera m_Camera;
 
 		uint32_t m_ImageCount;

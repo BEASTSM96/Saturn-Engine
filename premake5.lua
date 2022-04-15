@@ -31,13 +31,13 @@ IncludeDir["rapidjson"] = "Saturn/vendor/rapidjson/include"
 IncludeDir["shaderc"] = "Saturn/vendor/shaderc/libshaderc/include"
 IncludeDir["glslc"] = "Saturn/vendor/shaderc/glslc/src"
 
-group "sat/Dependencies"
+group "Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/discord-rpc"
 	include "Saturn/vendor/SPIRV-Cross"
 
-group "sat/Core"
+group "Engine"
 project "Saturn"
 	location "Saturn"
 	kind "StaticLib"
@@ -184,7 +184,7 @@ project "Saturn"
 
 ---------------------------------------------------------------------------------------------------------------------------
 
-group "sat/Tools"
+group "Editor"
 project "Titan"
 	location "Titan"
 	-- kind "WindowedApp"
@@ -245,16 +245,21 @@ project "Titan"
 		runtime "Debug"
 		symbols "on"
 
+		postbuildcommands { '{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"' }
+
 	filter "configurations:Release"
 		defines "SAT_RELEASE"
 		runtime "Release"
 		optimize "on"
+
+		postbuildcommands { '{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"' }
 
 	filter "configurations:Dist"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
 
+		postbuildcommands { '{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"' }
 
 	filter "system:linux"
 		systemversion "latest"

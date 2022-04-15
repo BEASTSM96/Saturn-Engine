@@ -37,16 +37,8 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <D3Dcompiler.h>
-#include <DirectXMath.h>
-#include "d3dx12.h"
-#include <d3d11.h>
-
-#if !defined( SAT_DONT_USE_DX )
-// dx
-#endif
+#include "Saturn/Vulkan/VulkanContext.h"
+#include "Saturn/Vulkan/ImGuiVulkan.h"
 
 namespace Saturn {
 
@@ -83,8 +75,12 @@ namespace Saturn {
 	#elif !defined( SAT_DONT_USE_DX )
 		//dx
 	#elif !defined( SAT_DONT_USE_VK )
-		
-		
+
+		auto viewportSize = ImGui::GetContentRegionAvail();
+
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
+		ImGui::Image( VulkanContext::Get().GetImGuiVulkan()->GetOffscreenColorDescSet(), viewportSize );
+		ImGui::PopStyleVar();
 
 	#endif
 

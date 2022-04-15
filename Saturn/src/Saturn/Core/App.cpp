@@ -62,9 +62,10 @@ namespace Saturn {
 	{
 		Window::Get();
 		VulkanContext::Get();
-		VulkanContext::Get().Init();
 
 		Window::Get().ImGuiInit();
+		
+		VulkanContext::Get().Init();
 
 		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
