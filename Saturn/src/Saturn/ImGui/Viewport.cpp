@@ -37,13 +37,6 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <D3Dcompiler.h>
-#include <DirectXMath.h>
-#include "d3dx12.h"
-#include <d3d11.h>
-
 #if !defined( SAT_DONT_USE_DX )
 // dx
 #endif

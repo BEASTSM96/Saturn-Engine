@@ -41,9 +41,10 @@ namespace Saturn {
 		CreateDepthResources();
 		CreateFramebuffers();
 
-		//m_TestTexture = Texture( "assets/meshes/cerberus/Textures/Cerberus_A.png", AddressingMode::ClampToBorder );
-		//m_TestTexture = Texture( "assets/meshes/vikingroom/texture.png", AddressingMode::ClampToBorder );
-		m_TestTexture = Texture( "assets/meshes/new/wooden/WoodenTexture.png", AddressingMode::ClampToBorder );
+		//m_TestTexture = Texture( "assets/meshes/_Textures/Cerberus_A.png", AddressingMode::ClampToBorder );
+		m_TestTexture = Texture( "assets/meshes/_Textures/vikingroom.png", AddressingMode::ClampToBorder );
+		//m_TestTexture = Texture( "assets/meshes/_Textures/WoodenTexture.png", AddressingMode::ClampToBorder );
+
 		m_TestTexture.CreateTextureImage();
 
 		CreateUniformBuffers();
@@ -61,10 +62,9 @@ namespace Saturn {
 		//m_Buffer = VertexBuffer( Vertices );
 		//m_Buffer.CreateBuffer();
 
-		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/vikingroom/new-vr.fbx" );
-		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/cerberus/cerberus.fbx" );
-		m_Mesh = Ref<Mesh>::Create( "assets/meshes/new/wooden/wooden.fbx" );
-		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/sponza/sponza.obj" );
+		m_Mesh = Ref<Mesh>::Create( "assets/meshes/vikingroom.fbx" );
+		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/cerberus.fbx" );
+		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/wooden.fbx" );
 
 		m_Camera = EditorCamera( glm::perspective( glm::radians( 45.0f ), ( float )Window::Get().Width() / ( float )Window::Get().Height(), 0.1f, 10000.0f ) );
 
