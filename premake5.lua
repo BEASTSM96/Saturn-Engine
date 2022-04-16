@@ -103,6 +103,10 @@ project "Saturn"
 		"discord-rpc"
 	}
 
+	filter "system:not windows"
+		systemversion "latest"
+		cppdialect "C++2a"
+
 	filter "system:windows"
 		systemversion "latest"
 

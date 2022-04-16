@@ -102,6 +102,22 @@ namespace Saturn {
 		Renderer::Get().EndScene();
 
 	#endif
+		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
+		
+		SceneRenderer::Get().SetCurrentScene( this );
+
+		for( const auto e : group )
+		{
+			Entity entity( e, this );
+			
+			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
+			
+			if( meshComponent.Mesh )
+				SceneRenderer::Get().AddDrawCommand( meshComponent.Mesh, transformComponent.GetTransform() );
+
+		}
+
+		SceneRenderer::Get().RenderScene();
 	}
 
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )

@@ -132,6 +132,11 @@ namespace Saturn {
 		VkSampler& GetOffscreenColorSampler() { return m_OffscreenColorSampler; }
 		VkSampler& GetOffscreenDepthSampler() { return m_OffscreenDepthSampler; }
 
+		Pipeline& GetPipeline() { return m_Pipeline; }
+		std::vector< VkDescriptorSet >& GetDescriptorSets() { return m_DescriptorSets; }
+
+				void UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts, glm::mat4 Transform );
+
 	private:
 		void Terminate();
 
@@ -147,7 +152,6 @@ namespace Saturn {
 		void CreateUniformBuffers();
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
-		void UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts, glm::mat4 Transform );
 		void CreateDepthResources();
 
 		void CreateRenderpass();

@@ -26,52 +26,58 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "SceneRenderer.h"
 
-#include "Pass.h"
-
-#include "Saturn/ImGui/Dockspace.h"
-
-#include <vulkan.h>
+#include "VulkanContext.h"
 
 namespace Saturn {
 
-	class ImGuiVulkan
+	SceneRenderer::~SceneRenderer()
 	{
-	public:
-		ImGuiVulkan() { Init(); }
-		~ImGuiVulkan() { Terminate(); }
-		
-		void BeginImGuiRender( VkCommandBuffer CommandBuffer );
-		void ImGuiRender();
-		void EndImGuiRender();
+		m_DrawList.clear();
+	}
 
-		void RecreateImages();
+	void SceneRenderer::AddDrawCommand( Ref< Mesh > mesh, const glm::mat4 transform )
+	{
+		m_DrawList.push_back( { .Mesh = mesh, .Transform = transform } );
+	}
 
-		VkCommandBuffer& GetCommandBuffer() { return m_CommandBuffer; }
-		VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
+	void SceneRenderer::RenderDrawCommand( Ref< Mesh > mesh, const glm::mat4 transform )
+	{
+		// Render a draw command.
 
-		void* GetOffscreenColorDescSet() { return m_OffscreenID; }
+		// Bind vertex and index buffers.
+		mesh->GetVertexBuffer()->Bind( m_RendererData.CommandBuffer );
+		mesh->GetIndexBuffer()->Bind( m_RendererData.CommandBuffer );
 
-		ImGuiDockspace* GetDockspace() { return m_pDockspace; }
+		// Bind the descriptor sets.
+		vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ m_RendererData.FrameCount ], 0, nullptr );
 
-	private:
+		// No push constants for now.
 
-		VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
-		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
-		
-		Pass m_ImGuiPass;
+		// Update uniform buffers.
+		VulkanContext::Get().UpdateUniformBuffers( m_RendererData.FrameCount, Application::Get().Time(), transform );
 
-		// The current offscreen id, made from the color image and the color sampler.
-		void* m_OffscreenID;
+		// Draw.
+		mesh->GetIndexBuffer()->Draw( m_RendererData.CommandBuffer );
+	}
 
-		ImGuiDockspace* m_pDockspace;
+	void SceneRenderer::FlushDrawList()
+	{
+		m_DrawList.clear();
+	}
 
-	private:
+	void SceneRenderer::RenderScene()
+	{
+		for ( auto& Cmd : m_DrawList )
+		{
+			RenderDrawCommand( Cmd.Mesh, Cmd.Transform );
 
-		void Init();
-		void CreatePipeline();
-		void Terminate();
+			SAT_CORE_INFO( "Draw List size {0}", m_DrawList.size() );
+		}
 
-	};
+		FlushDrawList();
+	}
+
 }

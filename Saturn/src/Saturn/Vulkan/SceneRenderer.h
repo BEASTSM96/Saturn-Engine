@@ -28,50 +28,46 @@
 
 #pragma once
 
-#include "Pass.h"
-
-#include "Saturn/ImGui/Dockspace.h"
-
-#include <vulkan.h>
+#include "Saturn/Scene/Components.h"
+#include "Saturn/Scene/Scene.h"
+#include "Mesh.h"
 
 namespace Saturn {
 
-	class ImGuiVulkan
+	struct DrawCommand
 	{
+		Ref< Mesh > Mesh = nullptr;
+		glm::mat4 Transform;
+	};
+
+	struct RendererData
+	{
+		VkCommandBuffer CommandBuffer;
+		uint32_t FrameCount;
+	};
+
+	class SceneRenderer
+	{
+		SINGLETON( SceneRenderer );
 	public:
-		ImGuiVulkan() { Init(); }
-		~ImGuiVulkan() { Terminate(); }
+		 SceneRenderer() {}
+		~SceneRenderer();
 		
-		void BeginImGuiRender( VkCommandBuffer CommandBuffer );
-		void ImGuiRender();
-		void EndImGuiRender();
+		void SetRendererData( RendererData Data ) { m_RendererData = Data; }
 
-		void RecreateImages();
+		void SetCurrentScene( Scene* pScene ) { m_pSence = pScene; }
 
-		VkCommandBuffer& GetCommandBuffer() { return m_CommandBuffer; }
-		VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
+		void AddDrawCommand( Ref< Mesh > mesh, const glm::mat4 transform );
+		
+		void RenderDrawCommand( Ref< Mesh > mesh, const glm::mat4 transform );
+		
+		void FlushDrawList();
 
-		void* GetOffscreenColorDescSet() { return m_OffscreenID; }
-
-		ImGuiDockspace* GetDockspace() { return m_pDockspace; }
+		void RenderScene();
 
 	private:
-
-		VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
-		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
-		
-		Pass m_ImGuiPass;
-
-		// The current offscreen id, made from the color image and the color sampler.
-		void* m_OffscreenID;
-
-		ImGuiDockspace* m_pDockspace;
-
-	private:
-
-		void Init();
-		void CreatePipeline();
-		void Terminate();
-
+		RendererData m_RendererData;
+		std::vector< DrawCommand > m_DrawList;
+		Scene* m_pSence;
 	};
 }

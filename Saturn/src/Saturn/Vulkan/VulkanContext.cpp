@@ -11,6 +11,7 @@
 #include <backends/imgui_impl_glfw.h>
 
 #include "ImGuiVulkan.h"
+#include "SceneRenderer.h"
 
 #include <vulkan.h>
 #include <cassert>
@@ -72,6 +73,7 @@ namespace Saturn {
 		CreateOffscreenImages();
 
 		m_pImGuiVulkan = new ImGuiVulkan();
+		SceneRenderer::Get();
 	}
 
 	void VulkanContext::Terminate()
@@ -1178,35 +1180,10 @@ namespace Saturn {
 				vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
 
 				//////////////////////////////////////////////////////////////////////////
-
-				TransformComponent Comp;
-				Comp.Position = glm::vec3( 0.f, 0.f, 0.f );
-				Comp.Rotation = glm::vec3( 0.f, 0.f, 0.f );
-				Comp.Scale = glm::vec3( 1.f, 1.f, 1.f );
-
-				//m_Camera.Focus( Comp.Position );
-
-				m_Mesh->GetVertexBuffer()->Bind( CommandBuffer );
-				m_Mesh->GetIndexBuffer()->Bind( CommandBuffer );
-
-				vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline.GetPipelineLayout(), 0, 1, &m_DescriptorSets[ m_FrameCount ], 0, nullptr );
-
-				glm::mat4 ViewProj = m_Camera.ViewProjection();
-
-				{
-					PushConstant PushC;
-					PushC.VPM = ViewProj;
-					PushC.Transfrom = Comp.GetTransform();
-
-					vkCmdPushConstants( CommandBuffer, m_Pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstant ), &PushC );
-
-					{
-						UpdateUniformBuffers( m_FrameCount, Application::Get().Time(), Comp.GetTransform() );
-					}
-
-					m_Mesh->GetIndexBuffer()->Draw( CommandBuffer );
-					m_DrawCalls++;
-				}
+				
+				SceneRenderer::Get().SetRendererData( { CommandBuffer } );
+				
+				m_pImGuiVulkan->GetDockspace()->TryRenderScene();
 			
 				vkCmdEndRenderPass( CommandBuffer );
 				CmdDebugMarkerEnd( CommandBuffer );
@@ -1283,7 +1260,7 @@ namespace Saturn {
 		VK_CHECK( vkQueueWaitIdle( m_PresentQueue ) );
 
 		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
-			
+		
 		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
 	}
 
