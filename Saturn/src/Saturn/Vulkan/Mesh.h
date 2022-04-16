@@ -53,15 +53,6 @@ namespace Assimp {
 
 namespace Saturn {
 
-//	struct Vertex
-//	{
-//		glm::vec3 Position;
-//		glm::vec3 Normal;
-//		glm::vec3 Tangent;
-//		glm::vec3 Binormal;
-//		glm::vec2 Texcoord;
-//	};
-
 	struct Triangle
 	{
 		Vertex V0, V1, V2;
@@ -141,7 +132,6 @@ namespace Saturn {
 		Ref<IndexBuffer> m_IndexBuffer;
 
 		Ref<Shader> m_MeshShader;
-		Ref<Shader> m_MeshFragShader;
 
 		uint32_t m_VertexCount = 0;
 		uint32_t m_TriangleCount = 0;

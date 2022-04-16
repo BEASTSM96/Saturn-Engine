@@ -71,4 +71,49 @@ namespace Saturn {
 			Function( VulkanContext::Get().GetDevice(), &Info );
 		}
 	}
+
+	inline void SetDebugUtilsObjectTag( VkDebugUtilsObjectTagInfoEXT* pInfo )
+	{
+		PFN_vkSetDebugUtilsObjectTagEXT Function = ( PFN_vkSetDebugUtilsObjectTagEXT )vkGetInstanceProcAddr( VulkanContext::Get().GetInstance(), "vkSetDebugUtilsObjectTagEXT" );
+
+		if( Function )
+		{
+			Function( VulkanContext::Get().GetDevice(), pInfo );
+		}
+	}
+
+	inline void SetDebugUtilsObjectTag( uint64_t Tag, uint64_t Handle, VkObjectType ObjectType )
+	{
+		PFN_vkSetDebugUtilsObjectTagEXT Function = ( PFN_vkSetDebugUtilsObjectTagEXT )vkGetInstanceProcAddr( VulkanContext::Get().GetInstance(), "vkSetDebugUtilsObjectTagEXT" );
+
+		VkDebugUtilsObjectTagInfoEXT Info = { VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_TAG_INFO_EXT };
+		Info.objectHandle = ( uint64_t )Handle;
+		Info.objectType = ObjectType;
+		Info.tagName = Tag;
+
+		if( Function )
+		{
+			Function( VulkanContext::Get().GetDevice(), &Info );
+		}
+	}
+
+	inline void CmdDebugMarkerBegin( VkCommandBuffer CommandBuffer, VkDebugMarkerMarkerInfoEXT* pMarkerInfo )
+	{
+		PFN_vkCmdDebugMarkerBeginEXT Function = ( PFN_vkCmdDebugMarkerBeginEXT )vkGetDeviceProcAddr( VulkanContext::Get().GetDevice(), "vkCmdDebugMarkerBeginEXT" );
+
+		if( Function )
+		{
+			Function( CommandBuffer, pMarkerInfo );
+		}
+	}
+
+	inline void CmdDebugMarkerEnd( VkCommandBuffer CommandBuffer )
+	{
+		PFN_vkCmdDebugMarkerEndEXT Function = ( PFN_vkCmdDebugMarkerEndEXT )vkGetDeviceProcAddr( VulkanContext::Get().GetDevice(), "vkCmdDebugMarkerEndEXT" );
+
+		if( Function )
+		{
+			Function( CommandBuffer );
+		}
+	}
 }

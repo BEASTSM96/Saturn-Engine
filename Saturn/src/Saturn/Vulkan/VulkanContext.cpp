@@ -158,6 +158,7 @@ namespace Saturn {
 		AppInfo.apiVersion         = VK_API_VERSION_1_2;
 
 		auto Extensions = Window::Get().GetRequiredExtensions();
+		Extensions.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
 
 		VkInstanceCreateInfo InstanceInfo ={ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 		InstanceInfo.pApplicationInfo = &AppInfo;
@@ -293,6 +294,9 @@ namespace Saturn {
 		SAT_CORE_ASSERT( Features.samplerAnisotropy, "The GPU does not support anisotropic filtering." );
 
 		Features.samplerAnisotropy = VK_TRUE;
+
+		DeviceExtensions.push_back( VK_EXT_DEBUG_MARKER_EXTENSION_NAME );
+		//DeviceExtensions.push_back( "VK_EXT_debug_report" );
 
 		VkDeviceCreateInfo DeviceInfo      ={ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		DeviceInfo.enabledExtensionCount   = DeviceExtensions.size();
@@ -1148,7 +1152,15 @@ namespace Saturn {
 				RenderPassInfo.renderArea.extent = Extent;
 				RenderPassInfo.clearValueCount = 2;
 				RenderPassInfo.pClearValues = ClearColors;	
-				
+			
+
+				VkDebugMarkerMarkerInfoEXT MarkerInfo ={ VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
+				float Color[ 4 ] ={ 0.0f, 1.0f, 0.0f, 1.0f };
+				memcpy( MarkerInfo.color, &Color[ 0 ], sizeof( float ) * 4 );
+				MarkerInfo.pMarkerName = "Off-screen render pass";
+
+				CmdDebugMarkerBegin( CommandBuffer, &MarkerInfo );
+
 				vkCmdBeginRenderPass( CommandBuffer, &RenderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
 				
 				VkRect2D Scissor ={};
@@ -1197,7 +1209,15 @@ namespace Saturn {
 				}
 			
 				vkCmdEndRenderPass( CommandBuffer );
+				CmdDebugMarkerEnd( CommandBuffer );
 			}
+
+			VkDebugMarkerMarkerInfoEXT MarkerInfo ={ VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
+			float UIColor[ 4 ] ={ 0.0f, 0.0f, 0.0f, 1.0f };
+			memcpy( MarkerInfo.color, &UIColor[ 0 ], sizeof( float ) * 4 );
+			MarkerInfo.pMarkerName = "ImGui Pass/present pass";
+
+			CmdDebugMarkerBegin( CommandBuffer, &MarkerInfo );
 
 			m_RenderPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, ImageIndex );
 
@@ -1211,6 +1231,7 @@ namespace Saturn {
 			}
 
 			m_RenderPass.EndPass();
+			CmdDebugMarkerEnd( CommandBuffer );
 
 			VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
 
@@ -1235,7 +1256,7 @@ namespace Saturn {
 			// Use current fence to be signaled.
 			VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, m_FlightFences[ m_FrameCount ] ) );
 		}
-		
+
 		// Present info.
 		VkPresentInfoKHR PresentInfo ={ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
 		PresentInfo.pSwapchains = &m_SwapChain.GetSwapchain();

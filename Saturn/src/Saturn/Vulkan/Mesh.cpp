@@ -102,9 +102,8 @@ namespace Saturn {
 			SAT_CORE_ERROR( "Failed to load mesh file: {0}", filename );
 
 		m_Scene = scene;
-		//m_MeshShader = Ref<Shader>::Create( "Mesh/VertexShader", "assets\\shaders\\shader.vert" );
-		//m_MeshFragShader = Ref<Shader>::Create( "Mesh/FragShader", "assets\\shaders\\shader.frag" );
-
+		m_MeshShader = Ref<Shader>::Create( "Mesh/VertexShader", "assets\\shaders\\shader_new.glsl" );
+		
 		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( scene->mRootNode->mTransformation ) );
 		
 		uint32_t vertexCount = 0;

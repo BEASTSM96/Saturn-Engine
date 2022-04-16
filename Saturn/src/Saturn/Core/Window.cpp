@@ -104,7 +104,7 @@ namespace Saturn {
 		glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
 	#endif
 
-		//glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
+		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 
 		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
 
@@ -214,19 +214,19 @@ namespace Saturn {
 
 		// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
 
-		//HWND      windowHandle    = glfwGetWin32Window( m_Window );
-		//HINSTANCE instance        = GetModuleHandle( nullptr );
+		HWND      windowHandle    = glfwGetWin32Window( m_Window );
+		HINSTANCE instance        = GetModuleHandle( nullptr );
 
-		//SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
+		SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
 
 		// Fix missing drop shadow
-		//MARGINS shadowMargins;
-		//shadowMargins ={ 1, 1, 1, 1 };
-		//DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
+		MARGINS shadowMargins;
+		shadowMargins ={ 1, 1, 1, 1 };
+		DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
 
 		// Override window procedure with custom one to allow native window moving behavior without a title bar
-		//SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
-		//m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
+		SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
+		m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
 
 	#endif
 	}
@@ -366,12 +366,6 @@ namespace Saturn {
 		io.FontDefault = io.Fonts->Fonts.back();
 
 		Styles::Dark();
-
-		// Call backends depend on Rendering API
-		
-		// Init imgui with vulkan
-
-		//ImGui_ImplVulkan_Init();
 
 		m_Dockspace = new ImGuiDockspace();
 	}
