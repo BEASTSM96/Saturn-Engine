@@ -30,7 +30,7 @@
 #include "SceneHierarchyPanel.h"
 
 #include "Saturn/Core/App.h"
-#include "Saturn/OpenGL/Mesh.h"
+#include "Saturn/Vulkan/Mesh.h"
 #include "Saturn/Scene/Entity.h"
 #include "UITools.h"
 
@@ -340,8 +340,6 @@ namespace Saturn {
 			updateTransform |= DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 
-	#if !defined( SAT_DONT_USE_GL ) 
-
 		DrawComponent<MeshComponent>( "Mesh", entity, []( auto& mc )
 		{
 			ImGui::Columns( 3 );
@@ -371,8 +369,6 @@ namespace Saturn {
 			ImGui::NextColumn();
 
 		} );
-
-	#endif
 
 		DrawComponent<LightComponent>( "Light", entity, []( auto& lc )
 		{

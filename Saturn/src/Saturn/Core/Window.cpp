@@ -40,8 +40,6 @@
 
 #include "Input.h"
 
-#include "Saturn/OpenGL/xGL.h"
-
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <glm/glm.hpp>
@@ -55,14 +53,8 @@
 
 #include "backends/imgui_impl_glfw.h"
 
-#if !defined ( SAT_DONT_USE_GL )
-#include "backends/imgui_impl_opengl3.h"
-#elif !defined( SAT_DONT_USE_DX )
-#include "backends/imgui_impl_dx12.h"
-#else
 #include "backends/imgui_impl_vulkan.h"
 #include "Saturn/Vulkan/VulkanContext.h"
-#endif
 
 #include "Saturn/Vulkan/ImGuiVulkan.h"
 
@@ -73,14 +65,6 @@
 #include <dwmapi.h>
 #include <Windows.h>
 #endif
-
-// TEMP
-// FIXME
-#include "Saturn/OpenGL/Framebuffer.h"
-
-#include <dxgidebug.h>
-#include <D3d12SDKLayers.h>
-#pragma comment(lib, "dxguid.lib")
 
 namespace Saturn {
 

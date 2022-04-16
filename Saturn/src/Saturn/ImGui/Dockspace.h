@@ -50,6 +50,8 @@ namespace Saturn {
 
 		TitleBar& GetTitleBar() { return *m_TitleBar; }
 
+		void TryRenderScene();
+
 	protected:
 
 		void SelectionChanged( Entity e );

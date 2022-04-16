@@ -33,18 +33,7 @@
 
 #include "Saturn/Discord/DiscordRPC.h"
 
-#include "Saturn/OpenGL/Shader.h"
-#if !defined ( SAT_DONT_USE_GL )
-#include "Saturn/OpenGL/Renderer.h"
-#elif !defined( SAT_DONT_USE_DX )
-// Dx
-#else !defined( SAT_DONT_USE_VK )
 #include "Saturn/Vulkan/VulkanContext.h"
-#endif
-#include "Saturn/OpenGL/Texture.h"
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#include "Saturn/OpenGL/xGL.h"
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>

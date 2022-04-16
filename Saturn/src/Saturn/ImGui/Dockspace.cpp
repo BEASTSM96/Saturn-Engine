@@ -110,9 +110,12 @@ namespace Saturn {
 
 		ImGui::End();
 
-		m_Scene->OnRenderEditor( Application::Get().Time() );
-
 		ImGui::End();
+	}
+
+	void ImGuiDockspace::TryRenderScene()
+	{
+		m_Scene->OnRenderEditor( Application::Get().Time() );
 	}
 
 	void ImGuiDockspace::SelectionChanged( Entity e )

@@ -29,7 +29,8 @@
 #include "sppch.h"
 #include "Scene.h"
 
-#include "Saturn/OpenGL/Renderer.h"
+#include "Saturn/Vulkan/SceneRenderer.h"
+#include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Entity.h"
 #include "Components.h"
