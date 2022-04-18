@@ -30,12 +30,18 @@
 
 #include "Saturn/Scene/Components.h"
 #include "Saturn/Scene/Scene.h"
+#include "Saturn/Scene/Entity.h"
 #include "Mesh.h"
 
 namespace Saturn {
 
 	struct DrawCommand
 	{
+		DrawCommand( Entity e, Ref< Mesh > mesh, glm::mat4 trans ) : entity( e ), Mesh( mesh ), Transform( trans )
+		{
+		}
+
+		Entity entity;
 		Ref< Mesh > Mesh = nullptr;
 		glm::mat4 Transform;
 	};
@@ -57,13 +63,15 @@ namespace Saturn {
 
 		void SetCurrentScene( Scene* pScene ) { m_pSence = pScene; }
 
-		void AddDrawCommand( Ref< Mesh > mesh, const glm::mat4 transform );
+		void AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 		
-		void RenderDrawCommand( Ref< Mesh > mesh, const glm::mat4 transform );
+		void RenderDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 		
 		void FlushDrawList();
 
 		void RenderScene();
+		
+		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
 	private:
 		RendererData m_RendererData;

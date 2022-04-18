@@ -13,6 +13,8 @@
 #include "ImGuiVulkan.h"
 #include "SceneRenderer.h"
 
+#include <glm/gtx/matrix_decompose.hpp>
+
 #include <vulkan.h>
 #include <cassert>
 #include <set>
@@ -42,16 +44,13 @@ namespace Saturn {
 		CreateDepthResources();
 		CreateFramebuffers();
 
-		//m_TestTexture = Texture( "assets/meshes/_Textures/Cerberus_A.png", AddressingMode::ClampToBorder );
 		m_TestTexture = Texture( "assets/meshes/_Textures/vikingroom.png", AddressingMode::ClampToBorder );
-		//m_TestTexture = Texture( "assets/meshes/_Textures/WoodenTexture.png", AddressingMode::ClampToBorder );
 
 		m_TestTexture.CreateTextureImage();
 
-		CreateUniformBuffers();
 		CreateDescriptorSetLayout();
-		CreateDescriptorPool();
-		CreateDescriptorSets();
+		//CreateDescriptorPool();
+		//CreateDescriptorSets();
 
 		ShaderWorker::Get();
 		
@@ -59,13 +58,6 @@ namespace Saturn {
 
 		ShaderWorker::Get().AddShader( pShader );
 		ShaderWorker::Get().CompileShader( pShader );
-
-		//m_Buffer = VertexBuffer( Vertices );
-		//m_Buffer.CreateBuffer();
-
-		m_Mesh = Ref<Mesh>::Create( "assets/meshes/vikingroom.fbx" );
-		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/cerberus.fbx" );
-		//m_Mesh = Ref<Mesh>::Create( "assets/meshes/wooden.fbx" );
 
 		m_Camera = EditorCamera( glm::perspective( glm::radians( 45.0f ), ( float )Window::Get().Width() / ( float )Window::Get().Height(), 0.1f, 10000.0f ) );
 
@@ -80,17 +72,32 @@ namespace Saturn {
 	{
 		delete m_pImGuiVulkan;
 
-		m_Mesh.Delete();
-		
 		m_SwapChain.Terminate();
 		m_RenderPass.Terminate();
 		
 		m_TestTexture.Terminate();
 
-		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		if( m_UniformBuffers.size() > 1 ) 
 		{
-			m_UniformBuffers[ i ].Terminate();
+			for( auto& [uid, buffer] : m_UniformBuffers )
+			{
+				m_UniformBuffers[ uid ].Terminate();
+				m_UniformBuffers.erase( uid );
+			}
 		}
+		
+		m_UniformBuffers.clear();
+
+		if( m_UniformBuffersMemory.size() > 1 )
+		{
+			for( auto& [uid, mem] : m_UniformBuffersMemory )
+			{
+				vkFreeMemory( m_LogicalDevice, m_UniformBuffersMemory[ uid ], nullptr );
+				m_UniformBuffersMemory.erase( uid );
+			}
+		}
+
+		m_UniformBuffersMemory.clear();
 
 		vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
 		vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
@@ -116,7 +123,7 @@ namespace Saturn {
 
 		vkDestroyDescriptorPool( m_LogicalDevice, m_DescriptorPool, nullptr );
 
-		vkDestroyDescriptorSetLayout( m_LogicalDevice, m_DescriptorSetLayout, nullptr );
+		vkDestroyDescriptorSetLayout( m_LogicalDevice, m_DescriptorSetLayouts, nullptr );
 		
 		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
 		vkDestroySemaphore( m_LogicalDevice, m_SubmitSemaphore, nullptr );
@@ -438,113 +445,128 @@ namespace Saturn {
 		LayoutCreateInfo.bindingCount = Bindings.size();
 		LayoutCreateInfo.pBindings = Bindings.data();	
 
-		VK_CHECK( vkCreateDescriptorSetLayout( m_LogicalDevice, &LayoutCreateInfo, nullptr, &m_DescriptorSetLayout ) );
-	}
-
-	void VulkanContext::CreateUniformBuffers()
-	{
-		VkDeviceSize BufferSize = sizeof( UniformBufferObject );
-		
-		m_UniformBuffers.resize( MAX_FRAMES_IN_FLIGHT );
-		m_UniformBuffersMemory.resize( MAX_FRAMES_IN_FLIGHT );
-		
-		for( size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
-		{
-			m_UniformBuffers[ i ].Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_UniformBuffersMemory[ i ] );
-		}
+		VK_CHECK( vkCreateDescriptorSetLayout( m_LogicalDevice, &LayoutCreateInfo, nullptr, &m_DescriptorSetLayouts ) );
 	}
 
 	void VulkanContext::CreateDescriptorPool()
 	{
+		if( m_DescriptorPool )
+			vkDestroyDescriptorPool( m_LogicalDevice, m_DescriptorPool, nullptr );
+
+		m_DescriptorPool = nullptr;
+
 		std::vector< VkDescriptorPoolSize > PoolSizes = {};
 		
-		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = MAX_FRAMES_IN_FLIGHT } );
-		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = MAX_FRAMES_IN_FLIGHT } );
-		
-		// ImGui Pool Sizes
-		
+		for( int i = 0; i < m_UniformBuffers.size(); i++ )
+		{
+			PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 1000 } );
+
+			PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
+		}
 
 		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 		PoolCreateInfo.poolSizeCount = PoolSizes.size();
 		PoolCreateInfo.pPoolSizes = PoolSizes.data();
-		PoolCreateInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
-		
+		PoolCreateInfo.maxSets = 10000;
+		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;		
+
 		VK_CHECK( vkCreateDescriptorPool( m_LogicalDevice, &PoolCreateInfo, nullptr, &m_DescriptorPool ) );
 	}
 
 	void VulkanContext::CreateDescriptorSets()
 	{
-		std::vector< VkDescriptorSetLayout > Layouts( MAX_FRAMES_IN_FLIGHT, m_DescriptorSetLayout );
-		
-		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-		AllocateInfo.descriptorPool = m_DescriptorPool;
-		AllocateInfo.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
-		AllocateInfo.pSetLayouts = Layouts.data();
-		
-		m_DescriptorSets.resize( MAX_FRAMES_IN_FLIGHT );
-		
-		VK_CHECK( vkAllocateDescriptorSets( m_LogicalDevice, &AllocateInfo, m_DescriptorSets.data() ) );
-
-		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		for ( auto& [ uid, buffer ] : m_UniformBuffers )
 		{
-			VkDescriptorBufferInfo BufferInfo = {};
-			BufferInfo.buffer = m_UniformBuffers[ i ].GetBuffer();
+			std::vector< VkDescriptorSetLayout > Layouts( 10000, m_DescriptorSetLayouts );
+
+			VkDescriptorSetAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+			AllocateInfo.descriptorPool = m_DescriptorPool;
+			AllocateInfo.descriptorSetCount = m_UniformBuffers.size();
+			AllocateInfo.pSetLayouts = Layouts.data();
+
+			VK_CHECK( vkAllocateDescriptorSets( m_LogicalDevice, &AllocateInfo, &m_DescriptorSets[ uid ] ) );
+		}
+
+		for ( auto& [ uuid, buffer ] : m_UniformBuffers )
+		{
+			VkDescriptorBufferInfo BufferInfo ={};
+			BufferInfo.buffer = m_UniformBuffers[ uuid ].GetBuffer();
 			BufferInfo.offset = 0;
 			BufferInfo.range = sizeof( UniformBufferObject );
-			
-			VkDescriptorImageInfo ImageInfo = {};
-			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			ImageInfo.imageView = m_TestTexture.GetImageView();
-			ImageInfo.sampler = m_TestTexture.GetSampler();
 
-			std::vector< VkWriteDescriptorSet > DescriptorWrites;
-		
-			DescriptorWrites.push_back( { 
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, 
-				.pNext = nullptr, 
-				.dstSet = m_DescriptorSets[ i ], 
-				.dstBinding = 1,
-				.dstArrayElement = 0, 
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 
-				.pImageInfo = &ImageInfo, 
-				.pBufferInfo = nullptr,
-				.pTexelBufferView = nullptr } );
+			for( int i = 0; i < m_UniformBuffers.size(); i++ )
+			{
+				VkDescriptorImageInfo ImageInfo ={};
+				ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				ImageInfo.imageView = m_TestTexture.GetImageView();
+				ImageInfo.sampler = m_TestTexture.GetSampler();
 
-			DescriptorWrites.push_back( {
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.pNext = nullptr,
-				.dstSet = m_DescriptorSets[ i ],
-				.dstBinding = 0,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-				.pImageInfo = nullptr,
-				.pBufferInfo = &BufferInfo,
-				.pTexelBufferView = nullptr } );
-			
-			vkUpdateDescriptorSets( m_LogicalDevice, DescriptorWrites.size(), DescriptorWrites.data(), 0, nullptr );
+				std::vector< VkWriteDescriptorSet > DescriptorWrites;
+
+				DescriptorWrites.push_back( {
+					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+					.pNext = nullptr,
+					.dstSet = m_DescriptorSets[ uuid ],
+					.dstBinding = 1,
+					.dstArrayElement = 0,
+					.descriptorCount = 1,
+					.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+					.pImageInfo = &ImageInfo,
+					.pBufferInfo = nullptr,
+					.pTexelBufferView = nullptr } );
+
+				DescriptorWrites.push_back( {
+					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+					.pNext = nullptr,
+					.dstSet = m_DescriptorSets[ uuid ],
+					.dstBinding = 0,
+					.dstArrayElement = 0,
+					.descriptorCount = 1,
+					.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+					.pImageInfo = nullptr,
+					.pBufferInfo = &BufferInfo,
+					.pTexelBufferView = nullptr } );
+
+				vkUpdateDescriptorSets( m_LogicalDevice, DescriptorWrites.size(), DescriptorWrites.data(), 0, nullptr );
+			}
 		}
 	}
 
-	void VulkanContext::UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts, glm::mat4 Transform )
+	void VulkanContext::DestoryDescriptorPool()
 	{
-		// Calc time
-		static auto StartTime = std::chrono::high_resolution_clock::now();
-		auto CurrentTime = std::chrono::high_resolution_clock::now();
-		float Time = std::chrono::duration< float, std::chrono::seconds::period >( CurrentTime - StartTime ).count();
+		vkDestroyDescriptorPool( m_LogicalDevice, m_DescriptorPool, nullptr );
+	}
 
-		UniformBufferObject UBO = {};
+	void VulkanContext::DestoryDescriptorSets()
+	{
+		if( !m_DescriptorSets.size() )
+			return;
+
+		vkDestroyDescriptorSetLayout( m_LogicalDevice, m_DescriptorSetLayouts, nullptr );
+	}
+
+	void VulkanContext::UpdateUniformBuffers( UUID uuid, Timestep ts, glm::mat4 Transform )
+	{
+		UniformBufferObject UBO ={};
 		UBO.Model = Transform;
 
 		UBO.View = m_Camera.ViewMatrix();
 		UBO.Proj = m_Camera.ProjectionMatrix();
 		UBO.Proj[ 1 ][ 1 ] *= -1;
-	
+
 		void* Data;
-		VK_CHECK( vkMapMemory( m_LogicalDevice, m_UniformBuffersMemory[ ImageIndex ], 0, sizeof( UBO ), 0, &Data ) );
+		VK_CHECK( vkMapMemory( m_LogicalDevice, m_UniformBuffersMemory[ uuid ], 0, sizeof( UBO ), 0, &Data ) );
 		memcpy( Data, &UBO, sizeof( UBO ) );
-		vkUnmapMemory( m_LogicalDevice, m_UniformBuffersMemory[ ImageIndex ] );
+		vkUnmapMemory( m_LogicalDevice, m_UniformBuffersMemory[ uuid ] );
+	}
+
+	void VulkanContext::AddUniformBuffer( UUID uuid )
+	{
+		VkDeviceSize BufferSize = sizeof( UniformBufferObject );
+
+		m_UniformBuffersMemory[ uuid ] = nullptr;
+
+		m_UniformBuffers[ uuid ].Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_UniformBuffersMemory[ uuid ] );
 	}
 
 	void VulkanContext::CreateDepthResources()
@@ -566,8 +588,6 @@ namespace Saturn {
 		);
 		
 		m_DepthImageView = CreateImageView( m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT );
-
-		//TransitionImageLayout( m_DepthImage, DepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL );
 	}
 
 	void VulkanContext::CreateFramebuffer( VkFramebuffer* pFramebuffer )
@@ -595,7 +615,6 @@ namespace Saturn {
 
 	void VulkanContext::CreatePipeline()
 	{
-	#if 1
 		
 		VkPushConstantRange PushConstantRage ={};
 		PushConstantRage.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -611,151 +630,10 @@ namespace Saturn {
 		Spec.Shader = ShaderWorker::Get().GetShader( "Triangle/Shader" );
 		Spec.UseDepthTest = true;
 		Spec.Layout.PushConstants = { { PushConstantRage } };
-		Spec.Layout.SetLayouts = { { m_DescriptorSetLayout } };
+		Spec.Layout.SetLayouts = { { m_DescriptorSetLayouts }  };
 
+		m_Pipeline.Terminate();
 		m_Pipeline = Pipeline( Spec );
-	#else
-		VkPushConstantRange PushConstantRage ={};
-		PushConstantRage.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-		PushConstantRage.offset = 0;
-		PushConstantRage.size = sizeof( PushConstant );
-
-		{
-			VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo ={ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-			PipelineLayoutCreateInfo.pushConstantRangeCount = 1;
-			PipelineLayoutCreateInfo.pPushConstantRanges = &PushConstantRage;
-			PipelineLayoutCreateInfo.setLayoutCount = 1;
-			PipelineLayoutCreateInfo.pSetLayouts = &m_DescriptorSetLayout;
-			
-			VK_CHECK( vkCreatePipelineLayout( m_LogicalDevice, &PipelineLayoutCreateInfo, nullptr, &m_PipelineLayout ) );
-			SetDebugUtilsObjectName( "Triangle pipeline layout", ( uint64_t )m_PipelineLayout, VK_OBJECT_TYPE_PIPELINE_LAYOUT );
-		}
-
-		VkShaderModule VertexShader;
-		VkShaderModule FragmentShader;
-
-		VkShaderModuleCreateInfo VertexCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-
-		VertexCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( "Triangle/Shader/Vertex/0" ).size();
-		VertexCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/Shader/Vertex/0" ).data() );
-
-		VK_CHECK( vkCreateShaderModule( m_LogicalDevice, &VertexCreateInfo, nullptr, &VertexShader ) );
-
-		VkShaderModuleCreateInfo FragCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-		FragCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( "Triangle/Shader/Fragment/0" ).size();
-		FragCreateInfo.pCode = reinterpret_cast< const uint32_t* >( ShaderWorker::Get().GetShaderCode( "Triangle/Shader/Fragment/0" ).data() );
-
-		VK_CHECK( vkCreateShaderModule( m_LogicalDevice, &FragCreateInfo, nullptr, &FragmentShader ) );
-		
-		SetDebugUtilsObjectName( "Triangle/FragShader", ( uint64_t )VertexShader, VK_OBJECT_TYPE_SHADER_MODULE );
-		SetDebugUtilsObjectName( "Triangle/VertexShader", ( uint64_t )FragmentShader, VK_OBJECT_TYPE_SHADER_MODULE );
-
-		VkPipelineShaderStageCreateInfo VertexStage ={ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
-		VertexStage.pName = "main";
-		VertexStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
-		VertexStage.module = VertexShader;
-
-		VkPipelineShaderStageCreateInfo FragmentStage ={ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
-		FragmentStage.pName = "main";
-		FragmentStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		FragmentStage.module = FragmentShader;
-
-		std::vector<VkPipelineShaderStageCreateInfo> ShaderStages;
-		ShaderStages.push_back( VertexStage );
-		ShaderStages.push_back( FragmentStage );
-
-		VkPipelineShaderStageCreateInfo ShaderNStages[ 2 ];
-		ShaderNStages[ 0 ] = VertexStage;
-		ShaderNStages[ 1 ] = FragmentStage;
-
-		auto BindDesc = VertexBuffer::GetBindingDescriptions();
-		auto AttributeDesc = VertexBuffer::GetAttributeDescriptions();
-
-		VkPipelineVertexInputStateCreateInfo VertexInputState ={ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
-		VertexInputState.vertexBindingDescriptionCount = BindDesc.size();
-		VertexInputState.pVertexBindingDescriptions = BindDesc.data();
-		VertexInputState.vertexAttributeDescriptionCount = AttributeDesc.size();
-		VertexInputState.pVertexAttributeDescriptions = AttributeDesc.data();
-
-		VkPipelineColorBlendAttachmentState ColorBlendAttachment ={};
-		ColorBlendAttachment.blendEnable = VK_FALSE;
-		ColorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-
-		VkPipelineColorBlendStateCreateInfo ColorBlendState ={ VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
-		ColorBlendState.pAttachments = &ColorBlendAttachment;
-		ColorBlendState.attachmentCount = 1;
-
-		VkPipelineRasterizationStateCreateInfo RasterizationStageCreateInfo ={ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
-		RasterizationStageCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
-		// Cull back bit i.e. don't see stuff from the back
-		RasterizationStageCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-		// Same as glPolygonMode
-		RasterizationStageCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-		RasterizationStageCreateInfo.lineWidth = 1.0f;
-
-		// Multisampling - disabled
-		VkPipelineMultisampleStateCreateInfo PipelineMultisampleSCInfo{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
-		PipelineMultisampleSCInfo.sampleShadingEnable = VK_FALSE;
-		PipelineMultisampleSCInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-
-		VkPipelineInputAssemblyStateCreateInfo AssemblyStateCreateInfo ={ VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
-		// A series of separate point primitvies.
-		AssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-		AssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
-
-		VkRect2D Scissor ={};
-
-		VkViewport Viewport{};
-		Viewport.x = 0.0f;
-		Viewport.y = 0.0f;
-		Viewport.width  = ( float )Window::Get().Width();
-		Viewport.height = ( float )Window::Get().Height();
-		Viewport.minDepth = 0.0f;
-		Viewport.maxDepth = 1.0f;
-
-		std::vector< VkDynamicState > DynamicStates;
-		DynamicStates.push_back( VK_DYNAMIC_STATE_VIEWPORT );
-		DynamicStates.push_back( VK_DYNAMIC_STATE_SCISSOR );
-
-		VkPipelineDynamicStateCreateInfo PipelineDynamicStateCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
-		PipelineDynamicStateCreateInfo.dynamicStateCount = DynamicStates.size();
-		PipelineDynamicStateCreateInfo.pDynamicStates = DynamicStates.data();
-
-		VkPipelineViewportStateCreateInfo PipelineViewportState ={ VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
-		PipelineViewportState.pScissors = &Scissor;
-		PipelineViewportState.scissorCount = 1;
-		PipelineViewportState.pViewports = &Viewport;
-		PipelineViewportState.viewportCount = 1;
-
-		VkPipelineDepthStencilStateCreateInfo DepthStencilState ={ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
-		DepthStencilState.depthTestEnable = VK_TRUE;
-		DepthStencilState.depthWriteEnable = VK_TRUE;
-		DepthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
-		DepthStencilState.depthBoundsTestEnable = VK_FALSE;
-		DepthStencilState.stencilTestEnable = VK_FALSE;
-		
-		VkGraphicsPipelineCreateInfo PipelineCreateInfo ={ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
-		PipelineCreateInfo.layout = m_PipelineLayout;
-		PipelineCreateInfo.renderPass = m_RenderPass.GetRenderPass();
-		PipelineCreateInfo.pColorBlendState = &ColorBlendState;
-		PipelineCreateInfo.pVertexInputState = &VertexInputState;
-		PipelineCreateInfo.stageCount = 2;
-		PipelineCreateInfo.pStages = ShaderNStages;
-		PipelineCreateInfo.pRasterizationState = &RasterizationStageCreateInfo;
-		PipelineCreateInfo.pViewportState = &PipelineViewportState;
-		PipelineCreateInfo.pDynamicState = &PipelineDynamicStateCreateInfo;
-		PipelineCreateInfo.pMultisampleState = &PipelineMultisampleSCInfo;
-		PipelineCreateInfo.pInputAssemblyState = &AssemblyStateCreateInfo;
-		PipelineCreateInfo.pDepthStencilState = &DepthStencilState;
-
-		// We may need more pipelines, but for now we only need one and we really should only need one as creating them is really expensive.
-		VK_CHECK( vkCreateGraphicsPipelines( m_LogicalDevice, 0, 1, &PipelineCreateInfo, nullptr, &m_Pipeline ) );
-		
-		SetDebugUtilsObjectName( "Static Meshes", ( uint64_t )m_Pipeline, VK_OBJECT_TYPE_PIPELINE );
-
-		vkDestroyShaderModule( m_LogicalDevice, VertexShader, nullptr );
-		vkDestroyShaderModule( m_LogicalDevice, FragmentShader, nullptr );
-	#endif
 	}
 
 	void VulkanContext::ResizeEvent()
@@ -1209,7 +1087,7 @@ namespace Saturn {
 
 			m_RenderPass.EndPass();
 			CmdDebugMarkerEnd( CommandBuffer );
-
+			
 			VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
 
 			// Rendering Queue
@@ -1261,6 +1139,17 @@ namespace Saturn {
 
 		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
 		
+		//////////////////////////////////////////////////////////////////////////
+		// Destroy command sets & pools as we will recreate them.
+		
+		if( SceneRenderer::Get().GetDrawCmds().size() )
+		{
+			DestoryDescriptorSets();
+			DestoryDescriptorPool();
+		}
+
+		//////////////////////////////////////////////////////////////////////////
+
 		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
 	}
 

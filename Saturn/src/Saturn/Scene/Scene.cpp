@@ -113,7 +113,7 @@ namespace Saturn {
 			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
 			
 			if( meshComponent.Mesh )
-				SceneRenderer::Get().AddDrawCommand( meshComponent.Mesh, transformComponent.GetTransform() );
+				SceneRenderer::Get().AddDrawCommand( entity, meshComponent.Mesh, transformComponent.GetTransform() );
 
 		}
 
@@ -132,6 +132,12 @@ namespace Saturn {
 		entity.GetComponent<IdComponent>().ID ={};
 
 		m_EntityIDMap[ IDcomponent.ID ] = entity;
+		
+		VulkanContext::Get().AddUniformBuffer( IDcomponent.ID );
+		
+		// Recreate pipeline as a new entity has been created.
+		//VulkanContext::Get().CreatePipeline();
+
 		return entity;
 	}
 

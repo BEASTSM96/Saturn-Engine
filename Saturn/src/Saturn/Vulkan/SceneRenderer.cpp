@@ -31,6 +31,8 @@
 
 #include "VulkanContext.h"
 
+#include <glm/gtx/matrix_decompose.hpp>
+
 namespace Saturn {
 
 	SceneRenderer::~SceneRenderer()
@@ -38,13 +40,15 @@ namespace Saturn {
 		m_DrawList.clear();
 	}
 
-	void SceneRenderer::AddDrawCommand( Ref< Mesh > mesh, const glm::mat4 transform )
+	void SceneRenderer::AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
-		m_DrawList.push_back( { .Mesh = mesh, .Transform = transform } );
+		m_DrawList.push_back( { entity, mesh, transform } );
 	}
 
-	void SceneRenderer::RenderDrawCommand( Ref< Mesh > mesh, const glm::mat4 transform )
+	void SceneRenderer::RenderDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
+		auto& uuid = entity.GetComponent<IdComponent>().ID;
+
 		// Render a draw command.
 
 		// Bind vertex and index buffers.
@@ -52,12 +56,12 @@ namespace Saturn {
 		mesh->GetIndexBuffer()->Bind( m_RendererData.CommandBuffer );
 
 		// Bind the descriptor sets.
-		vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ m_RendererData.FrameCount ], 0, nullptr );
+		vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ uuid ], 0, nullptr );
 
 		// No push constants for now.
 
 		// Update uniform buffers.
-		VulkanContext::Get().UpdateUniformBuffers( m_RendererData.FrameCount, Application::Get().Time(), transform );
+		VulkanContext::Get().UpdateUniformBuffers( entity.GetComponent<IdComponent>().ID, Application::Get().Time(), entity.GetComponent<TransformComponent>().GetTransform() );
 
 		// Draw.
 		mesh->GetIndexBuffer()->Draw( m_RendererData.CommandBuffer );
@@ -70,11 +74,15 @@ namespace Saturn {
 
 	void SceneRenderer::RenderScene()
 	{
+		if( m_DrawList.size() )
+		{
+			VulkanContext::Get().CreateDescriptorPool();
+			VulkanContext::Get().CreateDescriptorSets();
+		}
+		
 		for ( auto& Cmd : m_DrawList )
 		{
-			RenderDrawCommand( Cmd.Mesh, Cmd.Transform );
-
-			SAT_CORE_INFO( "Draw List size {0}", m_DrawList.size() );
+			RenderDrawCommand( Cmd.entity, Cmd.Mesh, Cmd.Transform );	
 		}
 
 		FlushDrawList();

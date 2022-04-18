@@ -133,9 +133,22 @@ namespace Saturn {
 		VkSampler& GetOffscreenDepthSampler() { return m_OffscreenDepthSampler; }
 
 		Pipeline& GetPipeline() { return m_Pipeline; }
-		std::vector< VkDescriptorSet >& GetDescriptorSets() { return m_DescriptorSets; }
+		std::unordered_map< UUID, VkDescriptorSet >& GetDescriptorSets() { return m_DescriptorSets; }
 
-				void UpdateUniformBuffers( uint32_t ImageIndex, Timestep ts, glm::mat4 Transform );
+		void UpdateUniformBuffers( UUID uuid, Timestep ts, glm::mat4 Transform );
+		void AddUniformBuffer( UUID uuid );
+		
+		// Descriptor
+
+		void CreateDescriptorPool();
+		void CreateDescriptorSets();
+		
+		void DestoryDescriptorPool();
+		void DestoryDescriptorSets();
+
+		// --
+		
+		void CreatePipeline();
 
 	private:
 		void Terminate();
@@ -148,15 +161,16 @@ namespace Saturn {
 		void CreateCommandPool();
 		void CreateSyncObjects();
 		void CreateFramebuffers();
+		
+		// Descriptor
+		
 		void CreateDescriptorSetLayout();
-		void CreateUniformBuffers();
-		void CreateDescriptorPool();
-		void CreateDescriptorSets();
+		
+		// --
+
 		void CreateDepthResources();
 
 		void CreateRenderpass();
-
-		void CreatePipeline();
 
 		bool CheckValidationLayerSupport();
 
@@ -172,8 +186,9 @@ namespace Saturn {
 		VkDebugUtilsMessengerEXT m_DebugMessenger;
 		VkExtent2D m_SwapChainExtent;
 		VkCommandPool m_CommandPool;
-		VkDescriptorSetLayout m_DescriptorSetLayout;
 		VkDescriptorPool m_DescriptorPool;
+		
+		VkDescriptorSetLayout m_DescriptorSetLayouts;
 
 		Pipeline m_Pipeline;
 
@@ -202,8 +217,6 @@ namespace Saturn {
 
 		QueueFamilyIndices m_Indices;
 
-		Ref<Mesh> m_Mesh;
-		
 		EditorCamera m_Camera;
 
 		uint32_t m_ImageCount;
@@ -219,14 +232,14 @@ namespace Saturn {
 		std::vector<VkImageView>   m_SwapChainImageViews;
 		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
 		
-		std::vector<Buffer> m_UniformBuffers;
-		std::vector<VkDeviceMemory> m_UniformBuffersMemory;
+		std::unordered_map< UUID, Buffer > m_UniformBuffers;
+		std::unordered_map< UUID, VkDeviceMemory> m_UniformBuffersMemory;
 
 		std::vector<PhysicalDeviceProperties> m_DeviceProps;
 
 		std::vector<VkFence> m_FlightFences;
 
-		std::vector< VkDescriptorSet > m_DescriptorSets;
+		std::unordered_map< UUID, VkDescriptorSet > m_DescriptorSets;
 
 		std::vector<const char*> DeviceExtensions  ={ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME };
 		std::vector<const char*> ValidationLayers ={ "VK_LAYER_KHRONOS_validation" };

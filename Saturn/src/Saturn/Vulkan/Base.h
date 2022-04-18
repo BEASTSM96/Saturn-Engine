@@ -93,18 +93,3 @@ inline void _VkCheckResult( VkResult Result )
 		__debugbreak();
 	}
 }
-
-template< class Ty >
-class VulkanResource
-{
-public:
-
-	void BindResource() { }
-	void FreeResource() { }
-
-public:
-	Ty m_Resource;
-	VkDeviceMemory m_Memory;
-	VkDeviceSize m_AllocationSize;
-	uint32_t m_MemoryTypeIndex;
-};
