@@ -107,6 +107,29 @@ project "Saturn"
 		systemversion "latest"
 		cppdialect "C++2a"
 
+		
+	filter "system:linux"
+		systemversion "latest"
+		cppdialect "C++2a"
+
+		links 
+		{
+			"pthread",
+			"dl",
+			"m",
+			"X11",
+			"Xrandr",
+			"vulkan",
+			"vulkan-1"
+		}
+
+		defines
+		{
+			"SAT_PLATFORM_LINUX",
+			"GLFW_INCLUDE_NONE"
+		}
+
+
 	filter "system:windows"
 		systemversion "latest"
 
