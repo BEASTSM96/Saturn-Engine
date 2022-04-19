@@ -21,13 +21,34 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 VP;
 } ubo;
 
+layout(location = 1) out VertexOutput 
+{
+	vec3 Normal;
+	vec3 Tangent;
+	vec3 Bitangent;
+	vec3 Position;
+	vec2 TexCoord;
+} vs_Output;
+
+const vec3 DIR_TO_LIGHT = normalize(vec3(1.0, -3.0, -1.0));
 
 void main()
 {
-	v_FragTexCoord = a_TexCoord;
+	// Init members of vs_Output
+	vs_Output.Normal     = vec3( a_Normal );
+	vs_Output.Tangent    = vec3( a_Tangent );
+	vs_Output.Bitangent  = vec3( a_Bitangent );
+	vs_Output.Position   = vec3( a_Position );
+	vs_Output.TexCoord   = vec2( a_TexCoord );
 
-	mat4 VP = ubo.View * ubo.Proj;
+	vec3 NormalWorldSpace = normalize( mat3( ubo.Model ) * a_Normal );
+	//vec3 TangentWorldSpace = normalize( mat3( ubo.Model ) * a_Tangent );
+	//vec3 BitangentWorldSpace = normalize( mat3( ubo.Model ) * a_Bitangent );
+	
+	float LightIntensity = max( dot( NormalWorldSpace, DIR_TO_LIGHT ), 0 );
 
+	v_FragTexCoord = a_TexCoord.xy * LightIntensity;
+	
 	gl_Position = ubo.Proj * ubo.View * ubo.Model * vec4( a_Position, 1.0 );
 }
 
@@ -35,19 +56,27 @@ void main()
 #version 450
 
 layout (location = 0) in vec2 v_FragTexCoord;
-layout (binding = 1) uniform sampler2D texSampler;
 
-layout (location = 0) out vec4 outColor;
+// Textures
+layout (binding = 1) uniform sampler2D u_AlbedoTexture;
+
+layout (location = 0) out vec4 FinalColor;
 
 layout(push_constant) uniform Push {
 	mat4 Transform;
 	mat4 VPM;
 } push;
 
-void main() {
-	
-	//vec3 Color = vec3( 1.0, 0.0, 1.0 );
-	
-	//outColor = vec4( Color * texture( texSampler, v_FragTexCoord ).rgb, 1.0 );
-	outColor = texture( texSampler, v_FragTexCoord );
+layout(location = 1) in VertexOutput 
+{
+	vec3 Normal;
+	vec3 Tangent;
+	vec3 Bitangent;
+	vec3 Position;
+	vec2 TexCoord;
+} vs_Input;
+
+void main() 
+{
+	FinalColor = texture( u_AlbedoTexture, v_FragTexCoord );
 }

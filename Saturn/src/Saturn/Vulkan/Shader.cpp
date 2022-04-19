@@ -75,6 +75,10 @@ namespace Saturn {
 				ShaderSrcCode.c_str(),
 				CompilerOptions
 			);
+			
+			SAT_CORE_INFO( "Shader Warings {0}", Result.GetNumWarnings() );
+			SAT_CORE_INFO( "Shader Error status {0}", Result.GetCompilationStatus() );
+			SAT_CORE_INFO( "Shader Error messages {0}", Result.GetErrorMessage() );
 
 			std::string ResultString( Result.begin(), Result.end() );
 			

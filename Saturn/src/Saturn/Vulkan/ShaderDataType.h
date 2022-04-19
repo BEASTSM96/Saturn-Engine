@@ -28,73 +28,33 @@
 
 #pragma once
 
-#include <vulkan.h>
-#include <iostream>
-#include <string>
+#include <stdint.h>
 
-#define VK_CHECK( x ) _VkCheckResult( x );
+namespace Saturn {
 
-#define STR( x ) #x
-
-inline std::string_view VulkanResultToStr( VkResult Result )
-{
-	switch( Result )
+	enum class ShaderDataType
 	{
-		case VK_SUCCESS:
-			return "VK_SUCCESS";
-		case VK_NOT_READY:
-			return "VK_NOT_READY";
-		case VK_TIMEOUT:
-			return "VK_TIMEOUT";
-		case VK_EVENT_SET:
-			return "VK_EVENT_SET";
-		case VK_EVENT_RESET:
-			return "VK_EVENT_RESET";
-		case VK_INCOMPLETE:
-			return "VK_INCOMPLETE";
-		case VK_ERROR_OUT_OF_HOST_MEMORY:
-			return "VK_ERROR_OUT_OF_HOST_MEMORY";
-		case VK_ERROR_OUT_OF_DEVICE_MEMORY:
-			return "VK_ERROR_OUT_OF_DEVICE_MEMORY";
-		case VK_ERROR_INITIALIZATION_FAILED:
-			return "VK_ERROR_INITIALIZATION_FAILED";
-		case VK_ERROR_DEVICE_LOST:
-			return "VK_ERROR_DEVICE_LOST";
-		case VK_ERROR_MEMORY_MAP_FAILED:
-			return "VK_ERROR_MEMORY_MAP_FAILED";
-		case VK_ERROR_LAYER_NOT_PRESENT:
-			return "VK_ERROR_LAYER_NOT_PRESENT";
-		case VK_ERROR_EXTENSION_NOT_PRESENT:
-			return "VK_ERROR_EXTENSION_NOT_PRESENT";
-		case VK_ERROR_FEATURE_NOT_PRESENT:
-			return "VK_ERROR_FEATURE_NOT_PRESENT";
-		case VK_ERROR_INCOMPATIBLE_DRIVER:
-			return "VK_ERROR_INCOMPATIBLE_DRIVER";
-		case VK_ERROR_TOO_MANY_OBJECTS:
-			return "VK_ERROR_TOO_MANY_OBJECTS";
-		case VK_ERROR_FORMAT_NOT_SUPPORTED:
-			return "VK_ERROR_FORMAT_NOT_SUPPORTED";
-		case VK_ERROR_OUT_OF_POOL_MEMORY:
-			return "VK_ERROR_OUT_OF_POOL_MEMORY";
-		default:
-			return "VK_ERROR_UNKNOWN";
-	}
+		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool
+	};
 
-	return std::to_string( Result );
-}
-
-inline void _VkCheckResult( VkResult Result )
-{
-	if( Result != VK_SUCCESS )
+	// Vulkan shader type sizes
+	static uint32_t ShaderDataTypeSize( ShaderDataType type )
 	{
-		auto ErrorStr = VulkanResultToStr( Result );
+		switch( type )
+		{
+			case ShaderDataType::Float:		return 4;
+			case ShaderDataType::Float2:	return 4 * 2;
+			case ShaderDataType::Float3:	return 4 * 3;
+			case ShaderDataType::Float4:	return 4 * 4;
+			case ShaderDataType::Mat3:		return 4 * 3 * 3;
+			case ShaderDataType::Mat4:		return 4 * 4 * 4;
+			case ShaderDataType::Int:		return 4;
+			case ShaderDataType::Int2:		return 4 * 2;
+			case ShaderDataType::Int3:		return 4 * 3;
+			case ShaderDataType::Int4:		return 4 * 4;
+			case ShaderDataType::Bool:		return 1;
+		}
 
-		SAT_CORE_INFO( "[Vulkan Error] {0}", ErrorStr );
-
-	#if defined( _WIN32 )
-		__debugbreak();
-	#else
-		raise( SIGTRAP );
-	#endif // _MSC_VER
+		return 0;
 	}
 }
