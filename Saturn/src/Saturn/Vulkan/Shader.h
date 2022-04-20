@@ -30,6 +30,8 @@
 
 #include "Saturn/Core/UUID.h"
 
+#include "ShaderUniform.h"
+
 #include "Base.h"
 #include <vector>
 #include <string>
@@ -183,17 +185,62 @@ namespace Saturn {
 
 		std::string& GetName() { return m_Name; }
 		ShaderSourceMap& GetShaderSources() { return m_ShaderSources; }
+		
+		// Moves the uniform for the available uniforms to the uniforms list. So that we can use them. Also removes the uniform from the available uniforms.
+		void UseUniform( const std::string& rName ) 
+		{
+			for( auto& rUniform : m_AvailableUniforms )
+			{
+				if( rUniform.Name == rName )
+				{
+					m_Uniforms.push_back( rUniform );
+					std::remove( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), rUniform );
+					return;
+				}
+			}
+		}
+
+		// Moves the uniform for the uniforms to the available uniforms list. So that we can't use them. Also removes the uniform from the uniforms list.
+		void FreeUniform( ShaderUniform& rUniform ) 
+		{
+			std::remove( m_Uniforms.begin(), m_Uniforms.end(), rUniform );
+			m_AvailableUniforms.push_back( rUniform );
+		}
+
+		// Moves the uniform for the uniforms to the available uniforms list. So that we can't use them. Also removes the uniform from the uniforms list.
+		void FreeUniform( const std::string& rName )
+		{
+			for( auto& rUniform : m_Uniforms )
+			{
+				if( rUniform.Name == rName )
+				{
+					std::remove( m_Uniforms.begin(), m_Uniforms.end(), rUniform );
+					m_AvailableUniforms.push_back( rUniform );
+					return;
+				}
+			}
+		}
+		
+		ShaderUniform FindUniform( const std::string& rName ) 
+		{
+			for ( auto& rUniform : m_Uniforms )
+			{
+				if( rUniform.Name == rName )
+					return rUniform;
+			}
+
+			return ShaderUniform( "", -1, ShaderUniformTypes::None );
+		}
 
 	private:
 
 		void ReadFile();
 
+		void GetAvailableUniform();
+
 		void DetermineShaderTypes();
 		
 	private:
-		// string                - int
-		// [{VetexShaderSrc}]    - [Vertex]
-		// [{FragmentShaderSrc}] - [Fragment]
 		std::unordered_map< ShaderSourceKey, ShaderSource > m_ShaderSources;
 
 		std::string m_FileContents = "";
@@ -203,6 +250,9 @@ namespace Saturn {
 		std::filesystem::path m_Filepath = "";
 		
 		std::vector< ShaderCodename > m_ShaderCodenames;
+		std::vector< ShaderUniform > m_AvailableUniforms;
+		std::vector< ShaderUniform > m_Uniforms;
+		
 
 	private:
 		friend class ShaderWorker;

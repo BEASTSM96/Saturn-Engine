@@ -110,6 +110,7 @@ namespace Saturn {
 
 		ReadFile();
 		DetermineShaderTypes();
+		GetAvailableUniform();
 	}
 
 	Shader::~Shader()
@@ -130,6 +131,150 @@ namespace Saturn {
 		f.close();
 
 		m_FileContents = std::string( Buffer.begin(), Buffer.end() );
+	}
+
+	void Shader::GetAvailableUniform()
+	{
+		for ( auto& [key, src]  : m_ShaderSources )
+		{
+			// Parse the shader source code and find all the uniforms.
+			std::stringstream ss( src.Source );
+			std::string Line;
+
+			while( std::getline( ss, Line ) )
+			{
+				if( Line.find( "uniform" ) != std::string::npos )
+				{
+					// Check if the uniform is a push constant.
+					if( Line.find( "push_constant" ) != std::string::npos )
+					{
+						break;
+					}
+
+					// Find the uniform name.
+					auto UniformName = Line.substr( Line.find( "uniform" ) + 7 );
+
+					// Remove the ; from the end of the uniform name.
+					UniformName = UniformName.substr( 0, UniformName.find( ";" ) );
+					
+					// Find the a space. As right now we are left with the type and the name.
+					auto SpacePos = UniformName.find_last_of( ' ' );
+
+					// Remove anything before the space.
+					UniformName = UniformName.substr( SpacePos + 1 );
+
+					// Find the type of the uniform, from the current line.
+					auto UniformType = Line.substr( Line.find( "uniform" ) + 7 );
+					SpacePos = UniformType.find_last_of( ' ' );
+					
+					// Remove anything after the space. As right now we are left with the type and the name.
+					UniformType = UniformType.substr( 0, SpacePos );
+
+					// Remove the ; from the end of the uniform type.
+					UniformType = UniformType.substr( 0, UniformType.find( ";" ) );
+					
+					UniformType = UniformType.erase( 0, 1 );
+
+					// Find the "layout(binding=)" string
+					auto LayoutPos = Line.find_first_of( "layout(binding =" );
+					
+					std::string Location = "null";
+
+					// If the string is found, find the location.
+					if( LayoutPos != std::string::npos )
+					{
+						// Find the location.
+						Location = Line.substr( LayoutPos + 16 );
+
+						// Remove the ; from the end of the location.
+						Location = Location.substr( 0, Location.find( ";" ) );
+
+						// Find the location.
+						auto LocationPos = Location.find_first_of( ' ' ) + 3;
+
+						// Remove anything after the space. As right now we are left with the type and the name.
+						Location = Location.substr( 0, LocationPos );
+
+						// Remove the ; from the end of the location.
+						Location = Location.substr( 0, Location.find( ";" ) );
+						
+						// Remove the end bracket
+						Location = Location.substr( 0, Location.find_last_of( ")" ) );
+
+						size_t SpacePos = Location.find( " " );
+						Location = Location.erase( 0, SpacePos );
+
+						auto SpaceSize = strlen( " " );
+						Location = Location.erase( 0, SpaceSize );
+					}
+					else // Could be a layout(location =)
+					{
+						auto LayoutPos = Line.find_first_of( "layout(location =" );
+						
+						if( LayoutPos == std::string::npos )
+							break; // Formating is not correct.
+
+						// Find the location.
+						Location = Line.substr( LayoutPos + 16 );
+
+						// Remove the ; from the end of the location.
+						Location = Location.substr( 0, Location.find( ";" ) );
+
+						// Find the location.
+						auto LocationPos = Location.find_first_of( ' ' ) + 3;
+
+						// Remove anything after the space. As right now we are left with the type and the name.
+						Location = Location.substr( 0, LocationPos );
+
+						// Remove the ; from the end of the location.
+						Location = Location.substr( 0, Location.find( ";" ) );
+
+						// Remove the end bracket
+						Location = Location.substr( 0, Location.find_last_of( ")" ) );
+
+						size_t SpacePos = Location.find( " " );
+						Location = Location.erase( 0, SpacePos );
+
+						auto SpaceSize = strlen( " " );
+						Location = Location.erase( 0, SpaceSize );
+					}
+
+					ShaderUniformTypes Type = ShaderUniformTypes::Float;
+					
+					if( UniformType == "vec2" )
+					{
+						Type = ShaderUniformTypes::Float2;
+					}
+					else if( UniformType == "vec3" ) 
+					{
+						Type = ShaderUniformTypes::Float3;
+					}
+					else if( UniformType == "int" ) 
+					{
+						Type = ShaderUniformTypes::Int;
+					}
+					else if( UniformType == "float" ) 
+					{
+						Type = ShaderUniformTypes::Float;
+					}
+					else if( UniformType == "mat4" ) 
+					{
+						Type = ShaderUniformTypes::Mat4;
+					}
+					else if( UniformType == "sampler2D" ) 
+					{
+						Type = ShaderUniformTypes::Sampler2D;
+					}
+					else if( UniformType == "samplerCube" ) 
+					{
+						Type = ShaderUniformTypes::SamplerCube;
+					}
+
+					m_AvailableUniforms.push_back( { UniformName, std::stoi( Location ), Type } );
+				}
+
+			}
+		}
 	}
 
 	void Shader::DetermineShaderTypes()

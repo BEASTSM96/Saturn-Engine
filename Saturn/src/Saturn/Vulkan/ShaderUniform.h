@@ -28,61 +28,47 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <string>
 
+#include "ShaderDataType.h"
+	
 namespace Saturn {
 
-	enum class ShaderDataType
+	struct ShaderUniform
 	{
-		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool
-	};
-
-	enum class ShaderUniformTypes
-	{
-		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool, Sampler2D, SamplerCube
-	};
-
-	// Vulkan shader type sizes
-	static uint32_t ShaderDataTypeSize( ShaderDataType type )
-	{
-		switch( type )
+		 ShaderUniform() {}
+		~ShaderUniform() {}
+		
+		ShaderUniform( const std::string& name, int location, ShaderUniformTypes type )
+			: Name( name ), Location( location ), Type( type )
 		{
-			case ShaderDataType::Float:		return 4;
-			case ShaderDataType::Float2:	return 4 * 2;
-			case ShaderDataType::Float3:	return 4 * 3;
-			case ShaderDataType::Float4:	return 4 * 4;
-			case ShaderDataType::Mat3:		return 4 * 3 * 3;
-			case ShaderDataType::Mat4:		return 4 * 4 * 4;
-			case ShaderDataType::Int:		return 4;
-			case ShaderDataType::Int2:		return 4 * 2;
-			case ShaderDataType::Int3:		return 4 * 3;
-			case ShaderDataType::Int4:		return 4 * 4;
-			case ShaderDataType::Bool:		return 1;
+		}
+		
+		template<typename Ty>
+		void Set( Ty& Value ) 
+		{
+			pValue = &Value;
 		}
 
-		return 0;
-	}
-
-	// Vulkan shader type sizes
-	static uint32_t ShaderUniformTypesSize( ShaderUniformTypes type )
-	{
-		switch( type )
+		ShaderUniform& operator=( const ShaderUniform& other )
 		{
-			case ShaderUniformTypes::Float:		    return 4;
-			case ShaderUniformTypes::Float2:	    return 4 * 2;
-			case ShaderUniformTypes::Float3:	    return 4 * 3;
-			case ShaderUniformTypes::Float4:	    return 4 * 4;
-			case ShaderUniformTypes::Mat3:		    return 4 * 3 * 3;
-			case ShaderUniformTypes::Mat4:		    return 4 * 4 * 4;
-			case ShaderUniformTypes::Int:		    return 4;
-			case ShaderUniformTypes::Int2:		    return 4 * 2;
-			case ShaderUniformTypes::Int3:		    return 4 * 3;
-			case ShaderUniformTypes::Int4:		    return 4 * 4;
-			case ShaderUniformTypes::Bool:		    return 1;
-			case ShaderUniformTypes::Sampler2D:	    return 1;
-			case ShaderUniformTypes::SamplerCube:	return 1;
+			Name = other.Name;
+			Location = other.Location;
+			Type = other.Type;
+			pValue = other.pValue;
+			return *this;
+		}
+		
+		bool operator==( const ShaderUniform& other )
+		{
+			return ( Name == other.Name && Location == other.Location && Type == other.Type );
 		}
 
-		return 0;
-	}
+		std::string Name = "";
+		int Location = -1;
+		ShaderUniformTypes Type = ShaderUniformTypes::None;
+		
+		void* pValue = nullptr;
+	};
+
 }
