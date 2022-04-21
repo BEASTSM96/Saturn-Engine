@@ -142,6 +142,7 @@ namespace Saturn {
 
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
+		void CreateDescriptorSet( UUID uuid, Ref< Texture > rTexture );
 		
 		void DestoryDescriptorPool();
 		void DestoryDescriptorSets();

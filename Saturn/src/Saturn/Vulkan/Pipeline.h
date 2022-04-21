@@ -60,7 +60,7 @@ namespace Saturn {
 	{
 		void Terminate();
 
-		Shader* Shader = nullptr;
+		Shader* pShader = nullptr;
 		VkRenderPass RenderPass = VK_NULL_HANDLE;
 
 		PipelineLayout Layout = {};

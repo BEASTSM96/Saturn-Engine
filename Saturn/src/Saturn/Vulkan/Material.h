@@ -37,23 +37,132 @@ namespace Saturn {
 
 	struct MaterialSpec
 	{
-		std::string Name;
+	public:
+		MaterialSpec() 
+		{
+			Name = "";
+		}
+		
+		~MaterialSpec() 
+		{
+			Terminate();
+		}			
+		
+		void Terminate() 
+		{
+			Albedo.Terminate();
+			Normal.Terminate();
+			Roughness.Terminate();
+			Metallic.Terminate();
+			
+		}
+
+		MaterialSpec( 
+			std::string Name, 
+			UUID ID, 
+			ShaderUniform& Albedo,
+			ShaderUniform& Normal,
+			ShaderUniform& Metallic,
+			ShaderUniform& Roughness )
+		{
+			this->Name = std::move( Name );
+			this->ID = ID;
+			
+			// Copy shader uniforms.
+			memcpy( &this->Albedo, &Albedo, sizeof( ShaderUniform ) );
+			memcpy( &this->Normal, &Normal, sizeof( ShaderUniform ) );
+			memcpy( &this->Metallic, &Metallic, sizeof( ShaderUniform ) );
+			memcpy( &this->Roughness, &Roughness, sizeof( ShaderUniform ) );
+		}
+		
+		// Copy
+		MaterialSpec( const MaterialSpec& other )
+		{
+			Name = other.Name;
+			ID = other.ID;
+			
+			// Copy shader uniforms.
+			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
+			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
+			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
+			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
+		}
+
+		// Move
+		MaterialSpec( MaterialSpec&& other ) noexcept
+		{
+			Name = std::move( other.Name );
+			ID = other.ID;
+			
+			// Copy shader uniforms.
+			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
+			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
+			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
+			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
+		}
+		
+		// Copy assignment
+		MaterialSpec& operator=( const MaterialSpec& other )
+		{
+			Name = other.Name;
+			ID = other.ID;
+			
+			// Copy shader uniforms.
+			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
+			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
+			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
+			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
+			
+			return *this;
+		}
+
+		// Move assignment
+		MaterialSpec& operator=( MaterialSpec&& other ) noexcept
+		{
+			Name = std::move( other.Name );
+			ID = other.ID;
+			
+			// Copy shader uniforms.
+			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
+			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
+			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
+			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
+			
+			return *this;
+		}
+		
+		bool operator==( MaterialSpec& rOther ) 
+		{
+			return ( ID == rOther.ID );
+		}
+
+	public:
+		std::string Name = "";
+		
+		UUID ID = 0;
+
+		ShaderUniform Albedo;
+		ShaderUniform Normal;
+		ShaderUniform Metallic;
+		ShaderUniform Roughness;
 	};
 
 	class Material
 	{
 	public:
-		 Material( MaterialSpec Spec ) : m_Spec( Spec ) { }
+		 Material( const MaterialSpec& Spec );
 		~Material();
 
 		void Bind( Ref<Shader> Shader );
 
+		void Unbind();
+
+		void SetAlbedo( Ref<Texture> Albedo );
+		void SetNormal( Ref<Texture> Normal );
+		void SetMetallic( Ref<Texture> Metallic );
+		void SetRoughness( Ref<Texture> Roughness );
+
 	private:
 		MaterialSpec m_Spec;
-
-		Texture m_DiffuseTexture;
-		Texture m_SpecularTexture;
-		Texture m_NormalTexture;
-		Texture m_RoughnessTexture;
 	};
 }

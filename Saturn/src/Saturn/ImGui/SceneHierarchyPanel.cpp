@@ -340,7 +340,7 @@ namespace Saturn {
 			updateTransform |= DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 
-		DrawComponent<MeshComponent>( "Mesh", entity, []( auto& mc )
+		DrawComponent<MeshComponent>( "Mesh", entity, [&]( auto& mc )
 		{
 			ImGui::Columns( 3 );
 			ImGui::SetColumnWidth( 0, 100 );
@@ -357,7 +357,7 @@ namespace Saturn {
 
 				std::string file = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
 				if( !file.empty() )
-					mc.Mesh = Ref<Mesh>::Create( file );
+					mc.Mesh = Ref<Mesh>::Create( file, entity.GetComponent<IdComponent>().ID );
 			}
 
 			if( mc.Mesh )

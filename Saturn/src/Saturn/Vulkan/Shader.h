@@ -194,7 +194,7 @@ namespace Saturn {
 				if( rUniform.Name == rName )
 				{
 					m_Uniforms.push_back( rUniform );
-					std::remove( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), rUniform );
+					m_AvailableUniforms.erase( std::remove( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), rUniform ) );
 					return;
 				}
 			}
@@ -203,7 +203,7 @@ namespace Saturn {
 		// Moves the uniform for the uniforms to the available uniforms list. So that we can't use them. Also removes the uniform from the uniforms list.
 		void FreeUniform( ShaderUniform& rUniform ) 
 		{
-			std::remove( m_Uniforms.begin(), m_Uniforms.end(), rUniform );
+			m_Uniforms.erase( std::remove( m_Uniforms.begin(), m_Uniforms.end(), rUniform ) );
 			m_AvailableUniforms.push_back( rUniform );
 		}
 
@@ -214,7 +214,7 @@ namespace Saturn {
 			{
 				if( rUniform.Name == rName )
 				{
-					std::remove( m_Uniforms.begin(), m_Uniforms.end(), rUniform );
+					m_Uniforms.erase( std::remove( m_Uniforms.begin(), m_Uniforms.end(), rUniform ) );
 					m_AvailableUniforms.push_back( rUniform );
 					return;
 				}

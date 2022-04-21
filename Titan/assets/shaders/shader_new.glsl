@@ -41,13 +41,13 @@ void main()
 	vs_Output.Position   = vec3( a_Position );
 	vs_Output.TexCoord   = vec2( a_TexCoord );
 
-	vec3 NormalWorldSpace = normalize( mat3( ubo.Model ) * a_Normal );
+	//vec3 NormalWorldSpace = normalize( mat3( ubo.Model ) * a_Normal );
 	//vec3 TangentWorldSpace = normalize( mat3( ubo.Model ) * a_Tangent );
 	//vec3 BitangentWorldSpace = normalize( mat3( ubo.Model ) * a_Bitangent );
 	
-	float LightIntensity = max( dot( NormalWorldSpace, DIR_TO_LIGHT ), 0 );
+	//float LightIntensity = max( dot( NormalWorldSpace, DIR_TO_LIGHT ), 0 );
 
-	v_FragTexCoord = a_TexCoord.xy * LightIntensity;
+	v_FragTexCoord = a_TexCoord;
 	
 	gl_Position = ubo.Proj * ubo.View * ubo.Model * vec4( a_Position, 1.0 );
 }
@@ -59,6 +59,9 @@ layout (location = 0) in vec2 v_FragTexCoord;
 
 // Textures
 layout (binding = 1) uniform sampler2D u_AlbedoTexture;
+layout (binding = 2) uniform sampler2D u_NormalTexture;
+layout (binding = 3) uniform sampler2D u_MetallicTexture;
+layout (binding = 4) uniform sampler2D u_RoughnessTexture;
 
 layout (location = 0) out vec4 FinalColor;
 

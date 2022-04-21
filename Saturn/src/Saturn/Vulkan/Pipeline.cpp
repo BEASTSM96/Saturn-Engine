@@ -80,8 +80,8 @@ namespace Saturn {
 		VkShaderModule VertexModule = VK_NULL_HANDLE;
 		VkShaderModule FragmentModule = VK_NULL_HANDLE;
 
-		std::string FragmentName = m_Specification.Shader->GetName() + "/Fragment" + "/0";
-		std::string VertexName = m_Specification.Shader->GetName() + "/Vertex" + "/0";
+		std::string FragmentName = m_Specification.pShader->GetName() + "/Fragment" + "/0";
+		std::string VertexName = m_Specification.pShader->GetName() + "/Vertex" + "/0";
 		
 		//{
 			VkShaderModuleCreateInfo CreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };

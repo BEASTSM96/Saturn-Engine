@@ -89,7 +89,7 @@ namespace Saturn {
 		}
 	};
 
-	Mesh::Mesh( const std::string& filename ) : m_FilePath( filename )
+	Mesh::Mesh( const std::string& filename, UUID uuid ) : m_FilePath( filename )
 	{
 		LogStream::Initialize();
 
@@ -173,6 +173,60 @@ namespace Saturn {
 		m_TriangleCount = m_TriangleCache.size();
 		m_VerticesCount = m_StaticVertices.size();
 		m_IndicesCount = m_Indices.size();
+
+		// Create material.
+		for( size_t m = 0; m < scene->mNumMaterials; m++ )
+		{
+			aiMaterial* material = scene->mMaterials[ m ];
+
+			aiString name;
+			material->Get( AI_MATKEY_NAME, name );
+
+			aiColor3D color;
+			material->Get( AI_MATKEY_COLOR_DIFFUSE, color );
+			
+			// Ask nicely to the shader if we can use the shader (and the shader will always say yes).
+			m_MeshShader->UseUniform( "u_AlbedoTexture" );
+			m_MeshShader->UseUniform( "u_NormalTexture" );
+			m_MeshShader->UseUniform( "u_MetallicTexture" );
+			m_MeshShader->UseUniform( "u_RoughnessTexture" );
+
+			ShaderUniform Albedo = m_MeshShader->FindUniform( "u_AlbedoTexture" );
+			ShaderUniform Normal = m_MeshShader->FindUniform( "u_NormalTexture" );
+			ShaderUniform Metallic = m_MeshShader->FindUniform( "u_MetallicTexture" );
+			ShaderUniform Roughness = m_MeshShader->FindUniform( "u_RoughnessTexture" );
+			
+			std::string MatName = std::string( name.C_Str() );
+
+			MaterialSpec Spec(
+				MatName,
+				uuid,
+				Albedo, Albedo, Albedo, Albedo // TEMP: We only use Albedo for now
+			);
+			
+			m_MeshMaterial = Ref<Material>::Create( Spec );
+
+			// Albedo Texture
+			{
+				aiString AlbedoTexture;
+				if( material->GetTexture( aiTextureType_DIFFUSE, 0, &AlbedoTexture ) == AI_SUCCESS )
+				{
+					std::filesystem::path AlbedoPath = filename;
+					auto pp = AlbedoPath.parent_path();
+					
+					pp /= std::string( AlbedoTexture.data );
+					
+					auto AlbedoTexturePath = pp.string();
+
+					SAT_CORE_INFO( "MESH FOR ENTITY ID {0}: Albedo Map texture {1}", std::to_string( uuid ), AlbedoTexturePath );
+					
+					auto AlbedoTexture = Ref< Texture >::Create( AlbedoTexturePath, AddressingMode::Repeat );
+					AlbedoTexture->CreateTextureImage();
+
+					m_MeshMaterial->SetAlbedo( AlbedoTexture );	
+				}
+			}
+		}
 	}
 
 	Mesh::Mesh( const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform ) : m_StaticVertices( vertices ), m_Indices( indices )

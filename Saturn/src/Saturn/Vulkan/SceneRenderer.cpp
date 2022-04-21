@@ -55,6 +55,8 @@ namespace Saturn {
 		mesh->GetVertexBuffer()->Bind( m_RendererData.CommandBuffer );
 		mesh->GetIndexBuffer()->Bind( m_RendererData.CommandBuffer );
 
+		mesh->GetMaterial()->Bind( nullptr );
+
 		// Bind the descriptor sets.
 		vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ uuid ], 0, nullptr );
 
@@ -77,7 +79,7 @@ namespace Saturn {
 		if( m_DrawList.size() )
 		{
 			VulkanContext::Get().CreateDescriptorPool();
-			VulkanContext::Get().CreateDescriptorSets();
+			//VulkanContext::Get().CreateDescriptorSets();
 		}
 		
 		for ( auto& Cmd : m_DrawList )

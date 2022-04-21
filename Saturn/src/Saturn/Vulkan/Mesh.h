@@ -34,6 +34,7 @@
 #include "Shader.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Material.h"
 
 #include <vector>
 #include <string>
@@ -81,7 +82,7 @@ namespace Saturn {
 	class Mesh
 	{
 	public:
-		Mesh( const std::string& filename );
+		Mesh( const std::string& filename, UUID uuid );
 		Mesh( const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform );
 		~Mesh();
 
@@ -109,7 +110,9 @@ namespace Saturn {
 
 		Ref<VertexBuffer>& GetVertexBuffer() { return m_VertexBuffer; }
 		Ref<IndexBuffer>& GetIndexBuffer() { return m_IndexBuffer; }
+		Ref<Material>& GetMaterial() { return m_MeshMaterial; }
 		
+
 		glm::mat4 GetTransform() const { return m_InverseTransform; }
 
 	private:
@@ -132,6 +135,8 @@ namespace Saturn {
 		Ref<IndexBuffer> m_IndexBuffer;
 
 		Ref<Shader> m_MeshShader;
+		
+		Ref<Material> m_MeshMaterial;
 
 		uint32_t m_VertexCount = 0;
 		uint32_t m_TriangleCount = 0;

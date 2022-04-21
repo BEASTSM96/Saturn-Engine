@@ -127,6 +127,12 @@ namespace Saturn {
 
 		stbi_uc* pTextureData = stbi_load( m_Path.string().c_str(), &Width, &Height, &Channels, STBI_rgb_alpha );
 		
+		if( !std::filesystem::exists( m_Path ) )
+		{
+			SAT_CORE_ERROR( "Failed to load texture image: {0}", m_Path.string() );
+			return;
+		}
+
 		m_Width = Width;
 		m_Height = Height;
 

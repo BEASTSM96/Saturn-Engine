@@ -26,69 +26,52 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "Material.h"
 
-#include <string>
+#include "VulkanContext.h"
 
-#include "ShaderDataType.h"
-	
 namespace Saturn {
 
-	struct ShaderUniform
+	Material::Material( const MaterialSpec& Spec )
 	{
-		 ShaderUniform() {}
-		 ~ShaderUniform() 
-		 {
-			Name = "NULL"; 
-			
-			Location = -1; 
-			Type = ShaderUniformTypes::None;  
-			pValue = nullptr;
+		m_Spec = Spec;
+	}
 
-			Name.clear();
-			Name.~basic_string();
-		 }
-		
-		ShaderUniform( const std::string& name, int location, ShaderUniformTypes type )
-			: Name( name ), Location( location ), Type( type )
-		{
-			
-		}
-		
-		void Terminate() 
-		{
-			if( pValue != nullptr )
-			{
-				delete pValue;
-				pValue = nullptr;
-			}
-		}
+	Material::~Material()
+	{
+		m_Spec.Terminate();
+	}
 
-		template<typename Ty>
-		void Set( Ty& Value ) 
-		{
-			pValue = &Value;
-		}
+	void Material::Bind( Ref<Shader> Shader )
+	{
+		// Albedo Texture.
+		VulkanContext::Get().CreateDescriptorSet( m_Spec.ID, static_cast< Texture* >( ( Texture* )m_Spec.Albedo.pValue ) );
+	}
 
-		ShaderUniform& operator=( const ShaderUniform& other )
-		{
-			Name = other.Name;
-			Location = other.Location;
-			Type = other.Type;
-			pValue = other.pValue;
-			return *this;
-		}
-		
-		bool operator==( const ShaderUniform& other )
-		{
-			return ( Name == other.Name && Location == other.Location && Type == other.Type );
-		}
+	void Material::Unbind()
+	{
 
-		std::string Name = "";
-		int Location = -1;
-		ShaderUniformTypes Type = ShaderUniformTypes::None;
-		
-		void* pValue = nullptr;
-	};
+	}
+
+	void Material::SetAlbedo( Ref<Texture> Albedo )
+	{
+		m_Spec.Albedo.Set< Texture >( *Albedo.Pointer() );
+	}
+
+	void Material::SetNormal( Ref<Texture> Normal )
+	{
+		m_Spec.Normal.Set< Texture >( *Normal.Pointer() );
+	}
+
+	void Material::SetMetallic( Ref<Texture> Metallic )
+	{
+		m_Spec.Metallic.Set< Texture >( *Metallic.Pointer() );
+	}
+
+	void Material::SetRoughness( Ref<Texture> Roughness )
+	{
+		m_Spec.Roughness.Set< Texture >( *Roughness.Pointer() );
+	}
 
 }

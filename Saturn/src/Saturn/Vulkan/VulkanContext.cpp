@@ -532,6 +532,56 @@ namespace Saturn {
 		}
 	}
 
+	void VulkanContext::CreateDescriptorSet( UUID uuid, Ref< Texture > rTexture )
+	{
+		std::vector< VkDescriptorSetLayout > Layouts( 10000, m_DescriptorSetLayouts );
+
+		VkDescriptorSetAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+		AllocateInfo.descriptorPool = m_DescriptorPool;
+		AllocateInfo.descriptorSetCount = m_UniformBuffers.size();
+		AllocateInfo.pSetLayouts = Layouts.data();
+
+		VK_CHECK( vkAllocateDescriptorSets( m_LogicalDevice, &AllocateInfo, &m_DescriptorSets[ uuid ] ) );
+
+		VkDescriptorBufferInfo BufferInfo ={};
+		BufferInfo.buffer = m_UniformBuffers[ uuid ].GetBuffer();
+		BufferInfo.offset = 0;
+		BufferInfo.range = sizeof( UniformBufferObject );
+		
+		VkDescriptorImageInfo ImageInfo ={};
+		ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		ImageInfo.imageView = rTexture->GetImageView();
+		ImageInfo.sampler = rTexture->GetSampler();
+
+		std::vector< VkWriteDescriptorSet > DescriptorWrites;
+		
+		DescriptorWrites.push_back( {
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = nullptr,
+			.dstSet = m_DescriptorSets[ uuid ],
+			.dstBinding = 1,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.pImageInfo = &ImageInfo,
+			.pBufferInfo = nullptr,
+			.pTexelBufferView = nullptr } );
+
+		DescriptorWrites.push_back( {
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = nullptr,
+			.dstSet = m_DescriptorSets[ uuid ],
+			.dstBinding = 0,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.pImageInfo = nullptr,
+			.pBufferInfo = &BufferInfo,
+			.pTexelBufferView = nullptr } );
+
+		vkUpdateDescriptorSets( m_LogicalDevice, DescriptorWrites.size(), DescriptorWrites.data(), 0, nullptr );
+	}
+
 	void VulkanContext::DestoryDescriptorPool()
 	{
 		vkDestroyDescriptorPool( m_LogicalDevice, m_DescriptorPool, nullptr );
@@ -627,7 +677,7 @@ namespace Saturn {
 		Spec.Height = Window::Get().Height();
 		Spec.Name = "MainPipeline";
 		Spec.RenderPass = m_RenderPass.GetRenderPass();
-		Spec.Shader = ShaderWorker::Get().GetShader( "Triangle/Shader" );
+		Spec.pShader = ShaderWorker::Get().GetShader( "Triangle/Shader" );
 		Spec.UseDepthTest = true;
 		Spec.Layout.PushConstants = { { PushConstantRage } };
 		Spec.Layout.SetLayouts = { { m_DescriptorSetLayouts }  };
