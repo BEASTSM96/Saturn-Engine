@@ -221,7 +221,7 @@ namespace Saturn {
 			}
 		}
 		
-		ShaderUniform FindUniform( const std::string& rName ) 
+		ShaderUniform& FindUniform( const std::string& rName ) 
 		{
 			for ( auto& rUniform : m_Uniforms )
 			{
@@ -229,7 +229,7 @@ namespace Saturn {
 					return rUniform;
 			}
 
-			return ShaderUniform( "", -1, ShaderUniformTypes::None );
+			//return ShaderUniform( "", -1, ShaderUniformTypes::None );
 		}
 
 	private:

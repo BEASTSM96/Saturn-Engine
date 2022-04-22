@@ -44,13 +44,7 @@ namespace Saturn {
 		CreateDepthResources();
 		CreateFramebuffers();
 
-		m_TestTexture = Texture( "assets/meshes/_Textures/vikingroom.png", AddressingMode::ClampToBorder );
-
-		m_TestTexture.CreateTextureImage();
-
 		CreateDescriptorSetLayout();
-		//CreateDescriptorPool();
-		//CreateDescriptorSets();
 
 		ShaderWorker::Get();
 		
@@ -74,9 +68,7 @@ namespace Saturn {
 
 		m_SwapChain.Terminate();
 		m_RenderPass.Terminate();
-		
-		m_TestTexture.Terminate();
-
+	
 		if( m_UniformBuffers.size() > 1 ) 
 		{
 			for( auto& [uid, buffer] : m_UniformBuffers )
@@ -471,65 +463,6 @@ namespace Saturn {
 		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;		
 
 		VK_CHECK( vkCreateDescriptorPool( m_LogicalDevice, &PoolCreateInfo, nullptr, &m_DescriptorPool ) );
-	}
-
-	void VulkanContext::CreateDescriptorSets()
-	{
-		for ( auto& [ uid, buffer ] : m_UniformBuffers )
-		{
-			std::vector< VkDescriptorSetLayout > Layouts( 10000, m_DescriptorSetLayouts );
-
-			VkDescriptorSetAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-			AllocateInfo.descriptorPool = m_DescriptorPool;
-			AllocateInfo.descriptorSetCount = m_UniformBuffers.size();
-			AllocateInfo.pSetLayouts = Layouts.data();
-
-			VK_CHECK( vkAllocateDescriptorSets( m_LogicalDevice, &AllocateInfo, &m_DescriptorSets[ uid ] ) );
-		}
-
-		for ( auto& [ uuid, buffer ] : m_UniformBuffers )
-		{
-			VkDescriptorBufferInfo BufferInfo ={};
-			BufferInfo.buffer = m_UniformBuffers[ uuid ].GetBuffer();
-			BufferInfo.offset = 0;
-			BufferInfo.range = sizeof( UniformBufferObject );
-
-			for( int i = 0; i < m_UniformBuffers.size(); i++ )
-			{
-				VkDescriptorImageInfo ImageInfo ={};
-				ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				ImageInfo.imageView = m_TestTexture.GetImageView();
-				ImageInfo.sampler = m_TestTexture.GetSampler();
-
-				std::vector< VkWriteDescriptorSet > DescriptorWrites;
-
-				DescriptorWrites.push_back( {
-					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-					.pNext = nullptr,
-					.dstSet = m_DescriptorSets[ uuid ],
-					.dstBinding = 1,
-					.dstArrayElement = 0,
-					.descriptorCount = 1,
-					.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-					.pImageInfo = &ImageInfo,
-					.pBufferInfo = nullptr,
-					.pTexelBufferView = nullptr } );
-
-				DescriptorWrites.push_back( {
-					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-					.pNext = nullptr,
-					.dstSet = m_DescriptorSets[ uuid ],
-					.dstBinding = 0,
-					.dstArrayElement = 0,
-					.descriptorCount = 1,
-					.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-					.pImageInfo = nullptr,
-					.pBufferInfo = &BufferInfo,
-					.pTexelBufferView = nullptr } );
-
-				vkUpdateDescriptorSets( m_LogicalDevice, DescriptorWrites.size(), DescriptorWrites.data(), 0, nullptr );
-			}
-		}
 	}
 
 	void VulkanContext::CreateDescriptorSet( UUID uuid, Ref< Texture > rTexture )

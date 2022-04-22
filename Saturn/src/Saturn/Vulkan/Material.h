@@ -50,10 +50,10 @@ namespace Saturn {
 		
 		void Terminate() 
 		{
-			Albedo.Terminate();
-			Normal.Terminate();
-			Roughness.Terminate();
-			Metallic.Terminate();
+			//Albedo.Terminate();
+			//Normal.Terminate();
+			//Roughness.Terminate();
+			//Metallic.Terminate();
 			
 		}
 

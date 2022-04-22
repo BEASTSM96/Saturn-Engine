@@ -191,17 +191,20 @@ namespace Saturn {
 			m_MeshShader->UseUniform( "u_MetallicTexture" );
 			m_MeshShader->UseUniform( "u_RoughnessTexture" );
 
-			ShaderUniform Albedo = m_MeshShader->FindUniform( "u_AlbedoTexture" );
-			ShaderUniform Normal = m_MeshShader->FindUniform( "u_NormalTexture" );
-			ShaderUniform Metallic = m_MeshShader->FindUniform( "u_MetallicTexture" );
-			ShaderUniform Roughness = m_MeshShader->FindUniform( "u_RoughnessTexture" );
+			//ShaderUniform Albedo    = 
+			//ShaderUniform Normal   =  
+			//ShaderUniform Metallic =  
+			//ShaderUniform Roughness = 
 			
 			std::string MatName = std::string( name.C_Str() );
 
 			MaterialSpec Spec(
-				MatName,
-				uuid,
-				Albedo, Albedo, Albedo, Albedo // TEMP: We only use Albedo for now
+				MatName, uuid, 
+				m_MeshShader->FindUniform( "u_AlbedoTexture" ),
+				m_MeshShader->FindUniform( "u_NormalTexture" ), 
+				m_MeshShader->FindUniform( "u_MetallicTexture" ),
+				m_MeshShader->FindUniform( "u_RoughnessTexture" )
+			// TEMP: We only use Albedo for now
 			);
 			
 			m_MeshMaterial = Ref<Material>::Create( Spec );

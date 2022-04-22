@@ -141,7 +141,6 @@ namespace Saturn {
 		// Descriptor
 
 		void CreateDescriptorPool();
-		void CreateDescriptorSets();
 		void CreateDescriptorSet( UUID uuid, Ref< Texture > rTexture );
 		
 		void DestoryDescriptorPool();
@@ -197,8 +196,6 @@ namespace Saturn {
 		VkDeviceMemory m_DepthImageMemory;
 		VkImageView m_DepthImageView;
 		
-		Texture m_TestTexture;
-
 		Pass m_RenderPass;
 		VkRenderPass m_OffscreenPass;
 		VkFramebuffer m_OffscreenFramebuffer;

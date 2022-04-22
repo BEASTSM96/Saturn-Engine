@@ -39,20 +39,13 @@ namespace Saturn {
 		 ShaderUniform() {}
 		 ~ShaderUniform() 
 		 {
-			Name = "NULL"; 
-			
-			Location = -1; 
-			Type = ShaderUniformTypes::None;  
-			pValue = nullptr;
-
-			Name.clear();
-			Name.~basic_string();
+			 Terminate();
 		 }
 		
 		ShaderUniform( const std::string& name, int location, ShaderUniformTypes type )
 			: Name( name ), Location( location ), Type( type )
 		{
-			
+			UUID = location * location;
 		}
 		
 		void Terminate() 
@@ -62,6 +55,14 @@ namespace Saturn {
 				delete pValue;
 				pValue = nullptr;
 			}
+
+			Name = "Null";
+			
+			SAT_CORE_INFO("Shader Uniform {0} has been terminated.", Name);
+
+			Location = -1;
+			Type = ShaderUniformTypes::None;
+			pValue = nullptr;
 		}
 
 		template<typename Ty>
@@ -88,6 +89,8 @@ namespace Saturn {
 		int Location = -1;
 		ShaderUniformTypes Type = ShaderUniformTypes::None;
 		
+		int UUID;
+
 		void* pValue = nullptr;
 	};
 
