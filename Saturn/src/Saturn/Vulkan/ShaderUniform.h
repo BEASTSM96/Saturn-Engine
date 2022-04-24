@@ -31,24 +31,24 @@
 #include <string>
 
 #include "ShaderDataType.h"
-	
+
 namespace Saturn {
 
 	struct ShaderUniform
 	{
-		 ShaderUniform() {}
-		 ~ShaderUniform() 
-		 {
-			 Terminate();
-		 }
-		
+		ShaderUniform() {}
+		~ShaderUniform()
+		{
+			Terminate();
+		}
+
 		ShaderUniform( const std::string& name, int location, ShaderUniformTypes type )
 			: Name( name ), Location( location ), Type( type )
 		{
 			UUID = location * location;
 		}
-		
-		void Terminate() 
+
+		void Terminate()
 		{
 			if( pValue != nullptr )
 			{
@@ -57,8 +57,8 @@ namespace Saturn {
 			}
 
 			Name = "Null";
-			
-			SAT_CORE_INFO("Shader Uniform {0} has been terminated.", Name);
+
+			SAT_CORE_INFO( "Shader Uniform {0} has been terminated.", Name );
 
 			Location = -1;
 			Type = ShaderUniformTypes::None;
@@ -66,7 +66,7 @@ namespace Saturn {
 		}
 
 		template<typename Ty>
-		void Set( Ty& Value ) 
+		void Set( Ty& Value )
 		{
 			pValue = &Value;
 		}
@@ -79,7 +79,7 @@ namespace Saturn {
 			pValue = other.pValue;
 			return *this;
 		}
-		
+
 		bool operator==( const ShaderUniform& other )
 		{
 			return ( Name == other.Name && Location == other.Location && Type == other.Type );
@@ -88,7 +88,7 @@ namespace Saturn {
 		std::string Name = "";
 		int Location = -1;
 		ShaderUniformTypes Type = ShaderUniformTypes::None;
-		
+
 		int UUID;
 
 		void* pValue = nullptr;

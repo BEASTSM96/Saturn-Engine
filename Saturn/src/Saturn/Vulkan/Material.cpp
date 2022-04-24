@@ -46,7 +46,7 @@ namespace Saturn {
 	void Material::Bind( Ref<Shader> Shader )
 	{
 		// Albedo Texture.
-		VulkanContext::Get().CreateDescriptorSet( m_Spec.ID, static_cast< Texture* >( ( Texture* )m_Spec.Albedo.pValue ) );
+		VulkanContext::Get().CreateDescriptorSet( m_Spec.ID, static_cast< Texture2D* >( ( Texture2D* )m_Spec.Albedo.pValue ) );
 	}
 
 	void Material::Unbind()
@@ -54,24 +54,24 @@ namespace Saturn {
 
 	}
 
-	void Material::SetAlbedo( Ref<Texture> Albedo )
+	void Material::SetAlbedo( Ref<Texture2D> Albedo )
 	{
-		m_Spec.Albedo.Set< Texture >( *Albedo.Pointer() );
+		m_Spec.Albedo.Set< Texture2D >( *Albedo.Pointer() );
 	}
 
-	void Material::SetNormal( Ref<Texture> Normal )
+	void Material::SetNormal( Ref<Texture2D> Normal )
 	{
-		m_Spec.Normal.Set< Texture >( *Normal.Pointer() );
+		m_Spec.Normal.Set< Texture2D >( *Normal.Pointer() );
 	}
 
-	void Material::SetMetallic( Ref<Texture> Metallic )
+	void Material::SetMetallic( Ref<Texture2D> Metallic )
 	{
-		m_Spec.Metallic.Set< Texture >( *Metallic.Pointer() );
+		m_Spec.Metallic.Set< Texture2D >( *Metallic.Pointer() );
 	}
 
-	void Material::SetRoughness( Ref<Texture> Roughness )
+	void Material::SetRoughness( Ref<Texture2D> Roughness )
 	{
-		m_Spec.Roughness.Set< Texture >( *Roughness.Pointer() );
+		m_Spec.Roughness.Set< Texture2D >( *Roughness.Pointer() );
 	}
 
 }

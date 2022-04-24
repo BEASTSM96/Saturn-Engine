@@ -70,12 +70,11 @@ namespace Saturn {
 		Texture( std::filesystem::path Path, AddressingMode Mode ) : m_Path( Path ), m_AddressingMode( Mode ) {}
 		~Texture() { Terminate(); }
 		
-		void Terminate();
+		virtual void Terminate() = 0;
 
 		void TransitionImageLayout( VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
-		void CopyBufferToImage( Buffer& rBuffer );
 
-		void CreateTextureImage();
+		void CopyBufferToImage( Buffer& rBuffer );
 
 	public:
 		
@@ -83,7 +82,12 @@ namespace Saturn {
 		VkImageView& GetImageView() { return m_ImageView; }
 		VkImage& GetImage() { return m_Image; }
 
-	private:
+	public:
+
+		virtual void CreateTextureImage() = 0;
+
+	public:
+
 		std::filesystem::path m_Path = "";
 		
 		VkImage m_Image = VK_NULL_HANDLE;
@@ -95,5 +99,33 @@ namespace Saturn {
 
 		int m_Width = 0;
 		int m_Height = 0;
+	};
+	
+	class Texture2D : public Texture
+	{
+	public:
+		Texture2D() : Texture() {}
+		Texture2D( std::filesystem::path Path, AddressingMode Mode ) : Texture( Path, Mode ) { CreateTextureImage(); }
+		~Texture2D() { Terminate(); }
+		
+		void Terminate() override;
+
+	private:
+
+		void CreateTextureImage() override;
+	};
+
+	class CubeMapTexture : public Texture
+	{
+	public:
+		CubeMapTexture() : Texture() {}
+		CubeMapTexture( std::filesystem::path Path, AddressingMode Mode ) : Texture( Path, Mode ) { CreateTextureImage(); }
+		~CubeMapTexture() { Terminate(); }
+
+		void Terminate() override;
+
+	private:
+
+		void CreateTextureImage() override;
 	};
 }

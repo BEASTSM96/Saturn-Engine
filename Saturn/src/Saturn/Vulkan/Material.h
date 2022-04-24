@@ -157,10 +157,10 @@ namespace Saturn {
 
 		void Unbind();
 
-		void SetAlbedo( Ref<Texture> Albedo );
-		void SetNormal( Ref<Texture> Normal );
-		void SetMetallic( Ref<Texture> Metallic );
-		void SetRoughness( Ref<Texture> Roughness );
+		void SetAlbedo( Ref<Texture2D> Albedo );
+		void SetNormal( Ref<Texture2D> Normal );
+		void SetMetallic( Ref<Texture2D> Metallic );
+		void SetRoughness( Ref<Texture2D> Roughness );
 
 	private:
 		MaterialSpec m_Spec;
