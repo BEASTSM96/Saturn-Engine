@@ -992,7 +992,7 @@ namespace Saturn {
 			AllocateInfo.commandPool = m_CommandPool;
 
 			VK_CHECK( vkAllocateCommandBuffers( m_LogicalDevice, &AllocateInfo, &CommandBuffer ) );
-			SetDebugUtilsObjectName( "CommandBuffer:Render", ( uint64_t )CommandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER );
+			SetDebugUtilsObjectName( "CommandBuffer:Offscreen", ( uint64_t )CommandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER );
 
 			VkCommandBufferBeginInfo CommandPoolBeginInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 			CommandPoolBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -1015,14 +1015,15 @@ namespace Saturn {
 				RenderPassInfo.renderArea.extent = Extent;
 				RenderPassInfo.clearValueCount = 2;
 				RenderPassInfo.pClearValues = ClearColors;	
-			
+				
+				{
+					VkDebugMarkerMarkerInfoEXT MarkerInfo = { VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
+					float Color[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+					memcpy(MarkerInfo.color, &Color[0], sizeof(float) * 4);
+					MarkerInfo.pMarkerName = "Off-screen render pass";
 
-				VkDebugMarkerMarkerInfoEXT MarkerInfo ={ VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
-				float Color[ 4 ] ={ 0.0f, 1.0f, 0.0f, 1.0f };
-				memcpy( MarkerInfo.color, &Color[ 0 ], sizeof( float ) * 4 );
-				MarkerInfo.pMarkerName = "Off-screen render pass";
-
-				CmdDebugMarkerBegin( CommandBuffer, &MarkerInfo );
+					CmdDebugMarkerBegin(CommandBuffer, &MarkerInfo);
+				}
 
 				vkCmdBeginRenderPass( CommandBuffer, &RenderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
 				
@@ -1045,17 +1046,21 @@ namespace Saturn {
 				SceneRenderer::Get().SetRendererData( { CommandBuffer } );
 				
 				m_pImGuiVulkan->GetDockspace()->TryRenderScene();
+				
+				//////////////////////////////////////////////////////////////////////////
 			
 				vkCmdEndRenderPass( CommandBuffer );
 				CmdDebugMarkerEnd( CommandBuffer );
 			}
 
-			VkDebugMarkerMarkerInfoEXT MarkerInfo ={ VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
-			float UIColor[ 4 ] ={ 0.0f, 0.0f, 0.0f, 1.0f };
-			memcpy( MarkerInfo.color, &UIColor[ 0 ], sizeof( float ) * 4 );
-			MarkerInfo.pMarkerName = "ImGui Pass/present pass";
+			{	
+				VkDebugMarkerMarkerInfoEXT MarkerInfo = { VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
+				float UIColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+				memcpy(MarkerInfo.color, &UIColor[0], sizeof(float) * 4);
+				MarkerInfo.pMarkerName = "ImGui Pass/present pass";
 
-			CmdDebugMarkerBegin( CommandBuffer, &MarkerInfo );
+				CmdDebugMarkerBegin(CommandBuffer, &MarkerInfo);
+			}
 
 			m_RenderPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, ImageIndex );
 

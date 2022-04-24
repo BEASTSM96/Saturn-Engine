@@ -178,7 +178,7 @@ namespace Saturn {
 					// Find the "layout(binding=)" string
 					auto LayoutPos = Line.find_first_of( "layout(binding =" );
 					
-					std::string Location = "null";
+					std::string Location = "0";
 
 					// If the string is found, find the location.
 					if( LayoutPos != std::string::npos )
@@ -207,12 +207,12 @@ namespace Saturn {
 						auto SpaceSize = strlen( " " );
 						Location = Location.erase( 0, SpaceSize );
 					}
-					else // Could be a layout(location =)
+					else if( Line.find_first_of( "layout(location =" ) != std::string::npos ) // Could be a layout(location =)
 					{
 						auto LayoutPos = Line.find_first_of( "layout(location =" );
 						
-						if( LayoutPos == std::string::npos )
-							break; // Formating is not correct.
+						//if( LayoutPos == std::string::npos )
+						//	break; // Formating is not correct.
 
 						// Find the location.
 						Location = Line.substr( LayoutPos + 16 );
@@ -254,7 +254,7 @@ namespace Saturn {
 						Type = ShaderUniformTypes::Int;
 					}
 					else if( UniformType == "float" ) 
-					{
+					{	
 						Type = ShaderUniformTypes::Float;
 					}
 					else if( UniformType == "mat4" ) 
@@ -270,7 +270,7 @@ namespace Saturn {
 						Type = ShaderUniformTypes::SamplerCube;
 					}
 
-					m_AvailableUniforms.push_back( { UniformName, std::stoi( Location ), Type } );
+					m_AvailableUniforms.push_back( { UniformName, std::stoi( Location == "" ? "0" : Location ), Type } );
 				}
 
 			}

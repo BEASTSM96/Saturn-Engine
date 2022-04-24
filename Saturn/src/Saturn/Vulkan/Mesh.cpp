@@ -223,8 +223,7 @@ namespace Saturn {
 
 					SAT_CORE_INFO( "MESH FOR ENTITY ID {0}: Albedo Map texture {1}", std::to_string( uuid ), AlbedoTexturePath );
 					
-					auto AlbedoTexture = Ref< Texture >::Create( AlbedoTexturePath, AddressingMode::Repeat );
-					AlbedoTexture->CreateTextureImage();
+					auto AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
 
 					m_MeshMaterial->SetAlbedo( AlbedoTexture );	
 				}
