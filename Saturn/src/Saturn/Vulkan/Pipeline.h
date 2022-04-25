@@ -69,6 +69,9 @@ namespace Saturn {
 		
 		bool UseDepthTest = false;
 
+		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions = {};
+		std::vector< VkVertexInputBindingDescription > BindingDescriptions = {};
+
 		std::string Name = "Pipeline";
 	};
 

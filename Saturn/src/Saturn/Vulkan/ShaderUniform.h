@@ -42,7 +42,7 @@ namespace Saturn {
 			Terminate();
 		}
 
-		ShaderUniform( const std::string& name, int location, ShaderUniformTypes type )
+		ShaderUniform( const std::string& name, int location, ShaderDataType type )
 			: Name( name ), Location( location ), Type( type )
 		{
 			UUID = location * location;
@@ -61,7 +61,7 @@ namespace Saturn {
 			SAT_CORE_INFO( "Shader Uniform {0} has been terminated.", Name );
 
 			Location = -1;
-			Type = ShaderUniformTypes::None;
+			Type = ShaderDataType::None;
 			pValue = nullptr;
 		}
 
@@ -87,7 +87,7 @@ namespace Saturn {
 
 		std::string Name = "";
 		int Location = -1;
-		ShaderUniformTypes Type = ShaderUniformTypes::None;
+		ShaderDataType Type = ShaderDataType::None;
 
 		int UUID;
 

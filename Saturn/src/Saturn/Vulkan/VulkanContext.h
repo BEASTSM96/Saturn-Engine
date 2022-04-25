@@ -132,6 +132,10 @@ namespace Saturn {
 		VkSampler& GetOffscreenColorSampler() { return m_OffscreenColorSampler; }
 		VkSampler& GetOffscreenDepthSampler() { return m_OffscreenDepthSampler; }
 
+		VkRenderPass& GetOffscreenRenderPass() { return m_OffscreenPass; }
+
+		EditorCamera& GetEditorCamera() { return m_Camera; }
+
 		Pipeline& GetPipeline() { return m_Pipeline; }
 		std::unordered_map< UUID, VkDescriptorSet >& GetDescriptorSets() { return m_DescriptorSets; }
 

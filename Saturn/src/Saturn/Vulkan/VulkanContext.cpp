@@ -608,12 +608,37 @@ namespace Saturn {
 		
 		Spec.Width = Window::Get().Width();
 		Spec.Height = Window::Get().Height();
-		Spec.Name = "MainPipeline";
+		Spec.Name = "Static Meshes";
 		Spec.RenderPass = m_RenderPass.GetRenderPass();
 		Spec.pShader = ShaderWorker::Get().GetShader( "Triangle/Shader" );
 		Spec.UseDepthTest = true;
 		Spec.Layout.PushConstants = { { PushConstantRage } };
 		Spec.Layout.SetLayouts = { { m_DescriptorSetLayouts }  };
+		
+		VertexBufferLayout Layout =
+		{
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal" },
+			{ ShaderDataType::Float3, "a_Tangent" },
+			{ ShaderDataType::Float3, "a_Bitangent" },
+			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
+
+		// Gird shader attribute descriptions.
+		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
+		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Position ) } );
+		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Normal ) } );
+		AttributeDescriptions.push_back( { 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Tangent ) } );
+		AttributeDescriptions.push_back( { 3, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Binormal ) } );
+		AttributeDescriptions.push_back( { 4, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( MeshVertex, Texcoord ) } );
+
+		// Gird shader binding descriptions.
+		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
+		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
+
+		Spec.AttributeDescriptions = AttributeDescriptions;
+		Spec.BindingDescriptions = BindingDescriptions;
+		
 
 		m_Pipeline.Terminate();
 		m_Pipeline = Pipeline( Spec );
@@ -1018,11 +1043,11 @@ namespace Saturn {
 				
 				{
 					VkDebugMarkerMarkerInfoEXT MarkerInfo = { VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
-					float Color[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
-					memcpy(MarkerInfo.color, &Color[0], sizeof(float) * 4);
+					float Color[ 4 ] = { 0.0f, 1.0f, 0.0f, 1.0f };
+					memcpy( MarkerInfo.color, &Color[ 0 ], sizeof( float ) * 4 );
 					MarkerInfo.pMarkerName = "Off-screen render pass";
 
-					CmdDebugMarkerBegin(CommandBuffer, &MarkerInfo);
+					CmdDebugMarkerBegin( CommandBuffer, &MarkerInfo );
 				}
 
 				vkCmdBeginRenderPass( CommandBuffer, &RenderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
@@ -1043,7 +1068,7 @@ namespace Saturn {
 
 				//////////////////////////////////////////////////////////////////////////
 				
-				SceneRenderer::Get().SetRendererData( { CommandBuffer } );
+				SceneRenderer::Get().SetCommandBuffer( { CommandBuffer } );
 				
 				m_pImGuiVulkan->GetDockspace()->TryRenderScene();
 				

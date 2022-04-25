@@ -229,7 +229,7 @@ namespace Saturn {
 					return rUniform;
 			}
 
-			//return ShaderUniform( "", -1, ShaderUniformTypes::None );
+			//return ShaderUniform( "", -1, ShaderDataType::None );
 		}
 
 	private:

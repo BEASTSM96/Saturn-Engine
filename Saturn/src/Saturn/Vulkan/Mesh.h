@@ -56,9 +56,9 @@ namespace Saturn {
 
 	struct Triangle
 	{
-		Vertex V0, V1, V2;
+		MeshVertex V0, V1, V2;
 
-		Triangle( const Vertex& v0, const Vertex& v1, const Vertex& v2 )
+		Triangle( const MeshVertex& v0, const MeshVertex& v1, const MeshVertex& v2 )
 			: V0( v0 ), V1( v1 ), V2( v2 )
 		{
 		}
@@ -83,7 +83,7 @@ namespace Saturn {
 	{
 	public:
 		Mesh( const std::string& filename, UUID uuid );
-		Mesh( const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform );
+		Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform );
 		~Mesh();
 
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
@@ -103,7 +103,7 @@ namespace Saturn {
 		const uint32_t& VerticesCount() const { return m_VerticesCount; }
 
 		const std::vector<Index>& Indices() const { return m_Indices; }
-		const std::vector<Vertex>& Vertices() const { return m_StaticVertices; }
+		const std::vector<MeshVertex>& Vertices() const { return m_StaticVertices; }
 
 		const Ref<Shader>& GetShader() const { return m_MeshShader; }
 		Ref<Shader>& GetShader() { return m_MeshShader; }
@@ -117,11 +117,12 @@ namespace Saturn {
 
 	private:
 
-		std::vector<Vertex> m_StaticVertices;
+		std::vector<MeshVertex> m_StaticVertices;
 
 		std::vector<Submesh> m_Submeshes;
 
 		std::vector<Index> m_Indices;
+		std::vector<uint32_t> m_RealIndices;
 
 		std::unordered_map<uint32_t, std::vector<Triangle>> m_TriangleCache;
 

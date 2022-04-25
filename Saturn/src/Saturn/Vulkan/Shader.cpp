@@ -239,35 +239,35 @@ namespace Saturn {
 						Location = Location.erase( 0, SpaceSize );
 					}
 
-					ShaderUniformTypes Type = ShaderUniformTypes::Float;
+					ShaderDataType Type = ShaderDataType::Float;
 					
 					if( UniformType == "vec2" )
 					{
-						Type = ShaderUniformTypes::Float2;
+						Type = ShaderDataType::Float2;
 					}
 					else if( UniformType == "vec3" ) 
 					{
-						Type = ShaderUniformTypes::Float3;
+						Type = ShaderDataType::Float3;
 					}
 					else if( UniformType == "int" ) 
 					{
-						Type = ShaderUniformTypes::Int;
+						Type = ShaderDataType::Int;
 					}
 					else if( UniformType == "float" ) 
 					{	
-						Type = ShaderUniformTypes::Float;
+						Type = ShaderDataType::Float;
 					}
 					else if( UniformType == "mat4" ) 
 					{
-						Type = ShaderUniformTypes::Mat4;
+						Type = ShaderDataType::Mat4;
 					}
 					else if( UniformType == "sampler2D" ) 
 					{
-						Type = ShaderUniformTypes::Sampler2D;
+						Type = ShaderDataType::Sampler2D;
 					}
 					else if( UniformType == "samplerCube" ) 
 					{
-						Type = ShaderUniformTypes::SamplerCube;
+						Type = ShaderDataType::SamplerCube;
 					}
 
 					m_AvailableUniforms.push_back( { UniformName, std::stoi( Location == "" ? "0" : Location ), Type } );

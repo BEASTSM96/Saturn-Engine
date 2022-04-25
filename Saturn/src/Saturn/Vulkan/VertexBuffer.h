@@ -31,6 +31,8 @@
 #include "Base.h"
 #include "Buffer.h"
 
+#include "ShaderDataType.h"
+
 #include <vulkan.h>
 #include <string>
 #include <vector>
@@ -41,165 +43,129 @@
 
 namespace Saturn {
 
-	struct Vertex
+	struct BaseVertex
 	{
 		glm::vec3 Position;
-		glm::vec3 Normal;
-		glm::vec3 Tangent;
-		glm::vec3 Binormal;
 		glm::vec2 Texcoord;
 	};
 
-	enum class FormatType
+	struct GridVertex : public BaseVertex
 	{
-		Float,
-		Vector2,
-		Vector3,
-		Vector4,
-
-		IVec2,
-		UVec2,
-		Double
+		float Scale;
+		float Res;
 	};
 
-	inline VkFormat FormatTypeToVulkan( FormatType Type )
+	struct MeshVertex : public BaseVertex
 	{
-		switch( Type )
+		glm::vec3 Normal;
+		glm::vec3 Tangent;
+		glm::vec3 Binormal;
+	};
+	
+	struct VertexBufferElement
+	{
+		std::string Name;
+		ShaderDataType Type;
+		uint32_t Size;
+		uint32_t Offset;
+
+		VertexBufferElement() = default;
+
+		VertexBufferElement( ShaderDataType type, const std::string& name )
+			: Name( name ), Type( type ), Size( ShaderDataTypeSize( type ) ), Offset( 0 ) 
 		{
-			case FormatType::Float:
-				return VK_FORMAT_R32_SFLOAT;
-				break;
-			case FormatType::Vector2:
-				return VK_FORMAT_R32G32_SFLOAT;
-				break;
-			case FormatType::Vector3:
-				return VK_FORMAT_R32G32B32_SFLOAT;
-				break;
-			case FormatType::Vector4:
-				return VK_FORMAT_R32G32B32A32_SFLOAT;
-				break;
-			case FormatType::IVec2:
-				return VK_FORMAT_R32G32_SINT;
-				break;
-			case FormatType::UVec2:
-				return VK_FORMAT_R32G32_UINT;
-				break;
-			case FormatType::Double:
-				return VK_FORMAT_R64_SFLOAT;
-				break;
-			default:
-				break;
-		}
-	}
 
-	inline FormatType VulkanToFormatType( VkFormat Type )
-	{
-		switch( Type )
+		}
+
+		uint32_t GetComponentCount() const
 		{
-			case VK_FORMAT_R32_SFLOAT:
-				return FormatType::Float;
-				break;
-			case VK_FORMAT_R32G32_SFLOAT:
-				return FormatType::Vector2;
-				break;
-			case VK_FORMAT_R32G32B32_SFLOAT:
-				return FormatType::Vector3;
-				break;
-			case VK_FORMAT_R32G32B32A32_SFLOAT:
-				return FormatType::Vector4;
-				break;
-			case VK_FORMAT_R32G32_SINT:
-				return FormatType::IVec2;
-				break;
-			case VK_FORMAT_R32G32_UINT:
-				return FormatType::UVec2;
-				break;
-			case VK_FORMAT_R64_SFLOAT:
-				return FormatType::Double;
-				break;
-			default:
-				break;
+			switch( Type )
+			{
+				case ShaderDataType::Float:       return 1;
+				case ShaderDataType::Float2:      return 2;
+				case ShaderDataType::Float3:      return 3;
+				case ShaderDataType::Float4:      return 4;
+				case ShaderDataType::Mat3:        return 3 * 3;
+				case ShaderDataType::Mat4:        return 4 * 4;
+				case ShaderDataType::Int:         return 1;
+				case ShaderDataType::Int2:        return 2;
+				case ShaderDataType::Int3:        return 3;
+				case ShaderDataType::Int4:        return 4;
+				case ShaderDataType::Bool:        return 1;
+				case ShaderDataType::Sampler2D:   return 1;
+				case ShaderDataType::SamplerCube: return 1;
+			
+				SAT_CORE_ASSERT( false, "Unknown ShaderDataType!" );
+			}
 		}
-	}
-
-	inline std::string FormatTypeToGLSLType( FormatType Type )
-	{
-		switch( Type )
-		{
-			case FormatType::Float:
-				return "float";
-				break;
-			case FormatType::Vector2:
-				return "vec2";
-				break;
-			case FormatType::Vector3:
-				return "vec3";
-				break;
-			case FormatType::Vector4:
-				return "vec4";
-				break;
-			case FormatType::IVec2:
-				return "ivec2";
-				break;
-			case FormatType::UVec2:
-				return "uvec2";
-				break;
-			case FormatType::Double:
-				return "double";
-				break;
-			default:
-				break;
-		}
-	}
-
-
-
-	struct VertexLayoutType
-	{
-		FormatType Format;
-		std::string NameInShader;
 	};
 
-	// A vertex layout represents a one or more vertex layouts in the shader.
-	// So for example I could create one VertexLayout struct and have it contain all the data needed for a mesh.
-	struct VertexLayout
+	class VertexBufferLayout
 	{
-		VertexLayout( std::initializer_list< VertexLayoutType >& Layouts ) : Types( Layouts ) { }
+	public:
+		VertexBufferLayout() { }
+		
+		VertexBufferLayout( const std::initializer_list< VertexBufferElement >& elements )
+			: m_Elements( elements )
+		{
+			uint32_t offset = 0;
+			m_Stride = 0;
+			for( auto& element : m_Elements )
+			{
+				element.Offset = offset;
+				offset += element.Size;
+				m_Stride += element.Size;
+			}
+		}	
+		
+		inline VertexBufferLayout& operator=( VertexBufferLayout&& rrOther ) noexcept
+		{
+			m_Elements = std::move( rrOther.m_Elements );
+			m_Stride = rrOther.m_Stride;
+			
+			return *this;
+		}
 
-		std::vector< VertexLayoutType > Types;
+		
+
+		inline const std::vector< VertexBufferElement >& GetElements() const { return m_Elements; }
+		inline uint32_t GetStride() const { return m_Stride; }
+		
+		// Vector helpers.
+
+		std::vector< VertexBufferElement >::iterator begin() { return m_Elements.begin(); }
+		std::vector< VertexBufferElement >::iterator end() { return m_Elements.end(); }
+		std::vector< VertexBufferElement >::const_iterator begin() const { return m_Elements.begin(); }
+		std::vector< VertexBufferElement >::const_iterator end() const { return m_Elements.end(); }
+
+	private:
+		std::vector< VertexBufferElement> m_Elements;
+		uint32_t m_Stride = 0;
 	};
-
+	
 	// A vulkan vertex buffer.
 	class VertexBuffer
 	{
 	public:
 		VertexBuffer() : m_pData( nullptr ) { }
 
-		VertexBuffer( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage = 0 ) : m_pData( pData ) { }
-
-		VertexBuffer( const std::vector< Vertex >& Vertices );
-
+		VertexBuffer( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage = 0 ) : m_pData( pData ) { m_Buffer.m_Size = Size; }
+		
 		VertexBuffer( const VertexBuffer& ) = delete;
 
 		~VertexBuffer();
 		void Terminate();
-
-		void SetLayouts();
+		
+		void CreateBuffer();
 
 		void Bind( VkCommandBuffer CommandBuffer );
 		void Draw( VkCommandBuffer CommandBuffer );
 		void BindAndDraw( VkCommandBuffer CommandBuffer );
 
-		void CreateBuffer();
-
-		static std::vector<VkVertexInputBindingDescription> GetBindingDescriptions();
-		static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
-
-		std::vector<Vertex> m_Vertices;
-
 	private:
-
 		void* m_pData = nullptr;
+		
+		VertexBufferLayout Layout;
 	
 		Buffer m_Buffer;
 	};

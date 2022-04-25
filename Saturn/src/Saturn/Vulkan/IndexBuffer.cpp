@@ -37,15 +37,10 @@
 
 namespace Saturn {
 
-	IndexBuffer::IndexBuffer( const std::vector<Index>& Indices ) : m_Indices( Indices )
+	IndexBuffer::IndexBuffer( void* pData, size_t Size )
 	{
-		m_Buffer.m_Size = m_Indices.size();
-	}
-
-	IndexBuffer::IndexBuffer( void* pIndicesData, size_t IndicesSize )
-	{
-		//m_Indices( static_cast<uint32_t>( pIndicesData ) );
-		m_Buffer.m_Size = IndicesSize;
+		m_pData = pData;
+		m_Buffer.m_Size = Size;
 	}
 
 	IndexBuffer::~IndexBuffer()
@@ -60,30 +55,19 @@ namespace Saturn {
 
 	void IndexBuffer::Draw( VkCommandBuffer CommandBuffer )
 	{
-		vkCmdDrawIndexed( CommandBuffer, m_RealIndices.size(), 1, 0, 0, 0 );
+		vkCmdDrawIndexed( CommandBuffer, m_Buffer.m_Size, 1, 0, 0, 0 );
 	}
 
 	void IndexBuffer::CreateBuffer()
 	{
 		assert( m_Buffer.m_Size >= 3 && "Index count must be above 3!" );
 
-		VkDeviceSize BufferSize = sizeof( m_Indices[ 0 ] ) * m_Buffer.m_Size;
+		VkDeviceSize BufferSize = m_Buffer.m_Size * sizeof( uint32_t );
 
 		// Create staging buffer.
 		Buffer StagingBuffer;
 		
-		m_RealIndices.clear();
-		
-		// Fill the read indices vector.
-		// The m_RealIndices is a vector that holds the real amount of indices. as m_Indices hold the amount of indices in one triangle.
-		for( Index& rIndex : m_Indices )
-		{
-			m_RealIndices.push_back( rIndex.V1 );
-			m_RealIndices.push_back( rIndex.V2 );
-			m_RealIndices.push_back( rIndex.V3 );
-		}
-
-		StagingBuffer.Create( m_RealIndices.data(), BufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		StagingBuffer.Create( m_pData, BufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		
 		//////////////////////////////////////////////////////////////////////////
 

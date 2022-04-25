@@ -108,6 +108,8 @@ namespace Saturn {
 		
 		uint32_t vertexCount = 0;
 		uint32_t indexCount = 0;
+		
+		std::vector<uint32_t> Indices;
 
 		m_Submeshes.reserve( scene->mNumMeshes );
 		for( size_t m = 0; m < scene->mNumMeshes; m++ )
@@ -131,7 +133,7 @@ namespace Saturn {
 			// Vertices
 			for( size_t i = 0; i < mesh->mNumVertices; i++ )
 			{
-				Vertex vertex ={};
+				MeshVertex vertex ={};
 				vertex.Position ={ mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
 				vertex.Normal ={ mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
 
@@ -154,18 +156,32 @@ namespace Saturn {
 
 				Index index ={ mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] };
 				m_Indices.push_back( index );
+				
+				Indices.push_back( mesh->mFaces[ i ].mIndices[ 0 ] );
+				Indices.push_back( mesh->mFaces[ i ].mIndices[ 1 ] );
+				Indices.push_back( mesh->mFaces[ i ].mIndices[ 2 ] );
+				
 
 				m_TriangleCache[ m ].emplace_back( m_StaticVertices[ index.V1 + submesh.BaseVertex ], m_StaticVertices[ index.V2 + submesh.BaseVertex ], m_StaticVertices[ index.V3 + submesh.BaseVertex ] );
 			}
 		}
 
 		TraverseNodes( scene->mRootNode );
-
-		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices );
+		
+		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
 
 		m_VertexBuffer->CreateBuffer();
 
-		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices );
+		m_RealIndices.clear();
+
+		for( Index& rIndex : m_Indices )
+		{
+			m_RealIndices.push_back( rIndex.V1 );
+			m_RealIndices.push_back( rIndex.V2 );
+			m_RealIndices.push_back( rIndex.V3 );
+		}
+		
+		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() );
 		
 		m_IndexBuffer->CreateBuffer();
 
@@ -231,7 +247,7 @@ namespace Saturn {
 		}
 	}
 
-	Mesh::Mesh( const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform ) : m_StaticVertices( vertices ), m_Indices( indices )
+	Mesh::Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform ) : m_StaticVertices( vertices ), m_Indices( indices )
 	{
 		Submesh submesh;
 		submesh.BaseVertex = 0;

@@ -50,8 +50,7 @@ namespace Saturn {
 	{
 	public:
 		IndexBuffer() { }
-		IndexBuffer( const std::vector<Index>& Indices );
-		IndexBuffer( void* pIndicesData, size_t IndicesSize );
+		IndexBuffer( void* pData, size_t Size );
 		~IndexBuffer();
 
 		void Bind( VkCommandBuffer CommandBuffer );
@@ -61,13 +60,9 @@ namespace Saturn {
 
 		void CreateBuffer();
 
-		std::vector<Index> m_Indices;
-		std::vector<uint32_t> m_RealIndices;
-
 	private:
-
 		void* m_pData = nullptr;
-		
+
 		Buffer m_Buffer;
 	};
 }

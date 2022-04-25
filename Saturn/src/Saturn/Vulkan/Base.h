@@ -76,6 +76,14 @@ inline std::string_view VulkanResultToStr( VkResult Result )
 			return "VK_ERROR_FORMAT_NOT_SUPPORTED";
 		case VK_ERROR_OUT_OF_POOL_MEMORY:
 			return "VK_ERROR_OUT_OF_POOL_MEMORY";
+		case VK_ERROR_INVALID_EXTERNAL_HANDLE:
+			return "VK_ERROR_INVALID_EXTERNAL_HANDLE";
+		case VK_ERROR_SURFACE_LOST_KHR:
+			return "VK_ERROR_SURFACE_LOST_KHR";
+		case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
+			return "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR";
+		case VK_ERROR_OUT_OF_DATE_KHR:
+			return "VK_ERROR_OUT_OF_DATE_KHR";
 		default:
 			return "VK_ERROR_UNKNOWN";
 	}

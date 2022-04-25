@@ -120,16 +120,12 @@ namespace Saturn {
 				.module = FragmentModule,
 				.pName = "main"
 			} );
-
-		// Create the vertex input state.
-		auto BindDescription = VertexBuffer::GetBindingDescriptions();
-		auto AttributeDescription = VertexBuffer::GetAttributeDescriptions();
 		
 		VkPipelineVertexInputStateCreateInfo VertexInputState = { VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
-		VertexInputState.vertexBindingDescriptionCount = BindDescription.size();
-		VertexInputState.pVertexBindingDescriptions = BindDescription.data();
-		VertexInputState.vertexAttributeDescriptionCount = AttributeDescription.size();
-		VertexInputState.pVertexAttributeDescriptions = AttributeDescription.data();
+		VertexInputState.vertexBindingDescriptionCount = m_Specification.BindingDescriptions.size();
+		VertexInputState.pVertexBindingDescriptions = m_Specification.BindingDescriptions.data();
+		VertexInputState.vertexAttributeDescriptionCount = m_Specification.AttributeDescriptions.size();
+		VertexInputState.pVertexAttributeDescriptions = m_Specification.AttributeDescriptions.data();
 		
 		// Create the color blend attachment state.
 		VkPipelineColorBlendAttachmentState ColorBlendAttachmentState = {};

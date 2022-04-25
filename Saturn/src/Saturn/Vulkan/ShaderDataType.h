@@ -28,20 +28,17 @@
 
 #pragma once
 
+#include <vulkan.h>
+
 #include <stdint.h>
 
 namespace Saturn {
 
 	enum class ShaderDataType
 	{
-		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool
-	};
-
-	enum class ShaderUniformTypes
-	{
 		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool, Sampler2D, SamplerCube
 	};
-
+	
 	// Vulkan shader type sizes
 	static uint32_t ShaderDataTypeSize( ShaderDataType type )
 	{
@@ -63,26 +60,78 @@ namespace Saturn {
 		return 0;
 	}
 
-	// Vulkan shader type sizes
-	static uint32_t ShaderUniformTypesSize( ShaderUniformTypes type )
+	static VkFormat ShaderDataTypeToVulkan( ShaderDataType Type )
 	{
-		switch( type )
+		switch( Type )
 		{
-			case ShaderUniformTypes::Float:		    return 4;
-			case ShaderUniformTypes::Float2:	    return 4 * 2;
-			case ShaderUniformTypes::Float3:	    return 4 * 3;
-			case ShaderUniformTypes::Float4:	    return 4 * 4;
-			case ShaderUniformTypes::Mat3:		    return 4 * 3 * 3;
-			case ShaderUniformTypes::Mat4:		    return 4 * 4 * 4;
-			case ShaderUniformTypes::Int:		    return 4;
-			case ShaderUniformTypes::Int2:		    return 4 * 2;
-			case ShaderUniformTypes::Int3:		    return 4 * 3;
-			case ShaderUniformTypes::Int4:		    return 4 * 4;
-			case ShaderUniformTypes::Bool:		    return 1;
-			case ShaderUniformTypes::Sampler2D:	    return 1;
-			case ShaderUniformTypes::SamplerCube:	return 1;
+			case ShaderDataType::Float:
+				return VK_FORMAT_R32_SFLOAT;
+				break;
+			case ShaderDataType::Float2:
+				return VK_FORMAT_R32G32_SFLOAT;
+				break;
+			case ShaderDataType::Float3:
+				return VK_FORMAT_R32G32B32_SFLOAT;
+				break;
+			case ShaderDataType::Sampler2D:
+			case ShaderDataType::Mat4:
+			case ShaderDataType::Float4:
+				return VK_FORMAT_R32G32B32A32_SFLOAT;
+				break;
+			case ShaderDataType::Bool:
+			case ShaderDataType::Int:
+				return VK_FORMAT_R32_SINT;
+				break;
+			case ShaderDataType::Int2:
+				return VK_FORMAT_R32G32_SINT;
+				break;
+			case ShaderDataType::Int3:
+				return VK_FORMAT_R32G32B32_SINT;
+				break;
+			case ShaderDataType::Int4:
+				return VK_FORMAT_R32G32B32A32_SINT;
+				break;
+			case ShaderDataType::Mat3:
+				return VK_FORMAT_R32G32B32_SFLOAT;
+				break;
+			default:
+				break;
 		}
+	}
 
-		return 0;
+	static ShaderDataType VulkanToShaderDataType( VkFormat Type )
+	{
+		switch( Type )
+		{
+			case VK_FORMAT_R32_SFLOAT:
+				return ShaderDataType::Float;
+				break;
+			case VK_FORMAT_R32G32_SFLOAT:
+				return ShaderDataType::Float2;
+				break;
+			case VK_FORMAT_R32G32B32_SFLOAT:
+				return ShaderDataType::Float3;
+				break;
+			case VK_FORMAT_R32G32B32A32_SFLOAT:
+				return ShaderDataType::Float4;
+				break;
+			case VK_FORMAT_R32_SINT:
+				return ShaderDataType::Int;
+				break;
+			case VK_FORMAT_R32G32_SINT:
+				return ShaderDataType::Int2;
+				break;
+			case VK_FORMAT_R32G32B32_SINT:
+				return ShaderDataType::Int3;
+				break;
+			case VK_FORMAT_R32G32B32A32_SINT:
+				return ShaderDataType::Int4;
+				break;
+			case VK_FORMAT_R8_UNORM:
+				return ShaderDataType::Bool;
+				break;
+			default:
+				break;
+		}
 	}
 }
