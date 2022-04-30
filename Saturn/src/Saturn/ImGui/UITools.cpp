@@ -266,8 +266,8 @@ namespace Saturn {
 
 		ImGui::PushID( label.c_str() );
 
-		ImGui::Columns( 2 );
-		ImGui::SetColumnWidth( 0, columnWidth );
+		//ImGui::Columns( 2 );
+		//ImGui::SetColumnWidth( 0, columnWidth );
 
 		ImGui::Text( label.c_str() );
 
@@ -275,11 +275,11 @@ namespace Saturn {
 
 		ImGui::SameLine();
 
-		ImGui::PushMultiItemsWidths( 3, ImGui::CalcItemWidth() );
+		//ImGui::PushMultiItemsWidths( 3, ImGui::CalcItemWidth() );
 
-		modified |= ImGui::DragFloat( "##floatx", &values, 0.0f, 5000, 0.0f, "%.2f" );
+		modified |= ImGui::DragFloat( "##floatx", &values, 0.1f, 5000, 0.0f, "%.2f" );
 
-		ImGui::PopItemWidth();
+		//ImGui::PopItemWidth();
 
 		ImGui::PopID();
 
@@ -307,6 +307,35 @@ namespace Saturn {
 		ImGui::PushMultiItemsWidths( 3, ImGui::CalcItemWidth() );
 
 		modified |= ImGui::DragInt( "##intx", &values, 0.0f, 5000, 0.0f, "%.2f" );
+
+		ImGui::PopItemWidth();
+
+		ImGui::PopID();
+
+		return modified;
+	}
+
+	bool DrawBoolControl( const std::string& label, bool& value, float columnWidth /*= 125.0f */ )
+	{
+		bool modified = false;
+
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[ 0 ];
+
+		ImGui::PushID( label.c_str() );
+
+		//ImGui::Columns( 2 );
+		//ImGui::SetColumnWidth( 0, columnWidth );
+
+		ImGui::Text( label.c_str() );
+
+		//ImGui::NextColumn();
+
+		ImGui::SameLine();
+
+		ImGui::PushMultiItemsWidths( 3, ImGui::CalcItemWidth() );
+
+		modified |= ImGui::Checkbox( "##boolean", &value );
 
 		ImGui::PopItemWidth();
 

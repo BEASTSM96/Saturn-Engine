@@ -32,6 +32,8 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Saturn/Vulkan/EnvironmentMap.h"
+
 #include "Saturn/Core/UUID.h"
 
 #include "EntityVisibility.h"
@@ -187,5 +189,20 @@ namespace Saturn {
 		LightComponent( const LightComponent& other ) = default;
 
 		operator glm::vec4 ( ) { return std::move( glm::vec4( Color.x, Color.z, Color.y, 1.0f ) ); }
+	};
+
+	// Preetham sky
+	struct SkylightComponent 
+	{
+		EnvironmentMap Map;
+
+		bool DynamicSky = false;
+
+		float Turbidity = 2.0f;
+		float Azimuth = 1.0f;
+		float Inclination = 1.0f;
+
+		SkylightComponent() = default;
+		SkylightComponent( const SkylightComponent& other ) = default;
 	};
 }

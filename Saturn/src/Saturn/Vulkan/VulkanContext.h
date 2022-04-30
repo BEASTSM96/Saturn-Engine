@@ -59,10 +59,8 @@ namespace Saturn {
 
 	struct UniformBufferObject
 	{
-		alignas( 16 ) glm::mat4 Model;
-		alignas( 16 ) glm::mat4 View;
-		alignas( 16 ) glm::mat4 Proj;
-		alignas( 16 ) glm::mat4 VP;
+		glm::mat4 Model;
+		glm::mat4 ViewProjection;
 	};
 
 	class VulkanContext
@@ -87,7 +85,8 @@ namespace Saturn {
 		VkFormat FindDepthFormat();
 		bool HasStencilComponent( VkFormat Format );
 		
-		void RenderImGui() {}
+		void ShowDebugUUID( bool show ) { m_ShowDebugUUID = show; }
+		void RenderDebugUUID( UUID UID );
 
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands( VkCommandBuffer CommandBuffer );
@@ -138,6 +137,9 @@ namespace Saturn {
 
 		Pipeline& GetPipeline() { return m_Pipeline; }
 		std::unordered_map< UUID, VkDescriptorSet >& GetDescriptorSets() { return m_DescriptorSets; }
+		std::unordered_map< UUID, Buffer >& GetUniformBuffers() { return m_UniformBuffers; }
+		std::unordered_map< UUID, VkDeviceMemory >& GetUniformBuffersMemory() { return m_UniformBuffersMemory; }
+		
 
 		void UpdateUniformBuffers( UUID uuid, Timestep ts, glm::mat4 Transform );
 		void AddUniformBuffer( UUID uuid );
@@ -230,6 +232,14 @@ namespace Saturn {
 		
 		ImGuiVulkan* m_pImGuiVulkan = nullptr;
 
+		//////////////////////////////////////////////////////////////////////////
+		// UUID DEBUG
+		//////////////////////////////////////////////////////////////////////////
+		
+		bool m_ShowDebugUUID = false;
+
+		//////////////////////////////////////////////////////////////////////////
+
 		std::vector<VkImage>       m_SwapChainImages;
 		std::vector<VkImageView>   m_SwapChainImageViews;
 		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
@@ -248,5 +258,6 @@ namespace Saturn {
 
 	private:
 		friend class Swapchain;
+		friend class VulkanDebug;
 	};
 }

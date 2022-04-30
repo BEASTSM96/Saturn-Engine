@@ -30,6 +30,7 @@
 #include "SceneRenderer.h"
 
 #include "VulkanContext.h"
+#include "VulkanDebug.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 
@@ -38,30 +39,13 @@
 namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
-	
-	float perez( float theta, float gamma, float A, float B, float C, float D, float E )
-	{
-		return ( 1.f + A * exp( B / ( cos( theta ) + 0.01 ) ) ) * ( 1.f + C * exp( D * gamma ) + E * cos( gamma ) * cos( gamma ) );
-	}
-
-	float zenith_luminance( float sunTheta, float turbidity )
-	{
-		float chi = ( 4.f / 9.f - turbidity / 120 ) * ( M_PI - 2 * sunTheta );
-		return ( 4.0453 * turbidity - 4.9710 ) * tan( chi ) - 0.2155 * turbidity + 2.4192;
-	}
-	
-	float zenith_chromacity( const glm::vec4& c0, const glm::vec4& c1, const glm::vec4& c2, float sunTheta, float turbidity )
-	{
-		glm::vec4 thetav = glm::vec4( sunTheta * sunTheta * sunTheta, sunTheta * sunTheta, sunTheta, 1 );
-		return glm::dot( glm::vec3( turbidity * turbidity, turbidity, 1 ), glm::vec3( glm::dot( thetav, c0 ), glm::dot( thetav, c1 ), glm::dot( thetav, c2 ) ) );
-	}
-
-	//////////////////////////////////////////////////////////////////////////
 
 	void SceneRenderer::Init()
 	{
 		// Create grid.
 		CreateGridComponents();
+
+		CreateSkyboxComponents();
 	}
 
 	void SceneRenderer::Terminate()
@@ -74,6 +58,88 @@ namespace Saturn {
 		m_DrawList.clear();
 		
 		m_RendererData = {};
+	}
+
+	void SceneRenderer::RenderGrid()
+	{
+		// RENDER GRID
+		{
+			// BIND THE PIPELINE
+			{
+				vkCmdBindPipeline( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.GridPipeline.GetPipeline() );
+			}
+
+			// BIND THE DESCRIPTOR SET
+			{
+				vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.GridPipeline.GetPipelineLayout(), 0, 1, &m_RendererData.GridDescriptorSet, 0, nullptr );
+			}
+
+			// UPDATE UNIFORM BUFFERS
+			{
+				auto trans = glm::rotate( glm::mat4( 1.0f ), glm::radians( 90.0f ), glm::vec3( 1.0f, 0.0f, 0.0f ) ) * glm::scale( glm::mat4( 1.0f ), glm::vec3( 16.0f ) );
+
+				RendererData::GridMatricesObject GridMatricesObject = {};
+				GridMatricesObject.Transform = trans;
+				GridMatricesObject.ViewProjection = VulkanContext::Get().GetEditorCamera().ViewProjection();
+
+				GridMatricesObject.Res = 0.025f;
+				GridMatricesObject.Scale = 16.025f;
+
+				void* Data;
+
+				VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), m_RendererData.GridUniformBufferMemory, 0, sizeof( GridMatricesObject ), 0, &Data ) );
+				memcpy( Data, &GridMatricesObject, sizeof( GridMatricesObject ) );
+				vkUnmapMemory( VulkanContext::Get().GetDevice(), m_RendererData.GridUniformBufferMemory );
+			}
+
+			// DRAW
+			{
+				m_RendererData.GridVertexBuffer->Bind( m_RendererData.CommandBuffer );
+				m_RendererData.GridIndexBuffer->Bind( m_RendererData.CommandBuffer );
+
+				m_RendererData.GridIndexBuffer->Draw( m_RendererData.CommandBuffer );
+			}
+		}
+	}
+
+	void SceneRenderer::RenderSkybox()
+	{
+		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
+
+		// BIND THE PIPELINE
+		{
+			vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.SkyboxPipeline.GetPipeline() );
+		}
+
+		// BIND THE DESCRIPTOR SET
+		{
+			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.SkyboxPipeline.GetPipelineLayout(), 0, 1, &m_RendererData.SkyboxDescriptorSet, 0, nullptr );
+		}
+
+		// UPDATE UNIFORM BUFFERS
+		{
+			RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
+
+			SkyboxMatricesObject.View = VulkanContext::Get().GetEditorCamera().ViewMatrix();
+			SkyboxMatricesObject.Projection = VulkanContext::Get().GetEditorCamera().ProjectionMatrix();
+			SkyboxMatricesObject.Turbidity = 2.0;
+			SkyboxMatricesObject.Azimuth = 0.210;
+			SkyboxMatricesObject.Inclination = 2.050;
+
+			void* Data;
+			VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxUniformBufferMemory, 0, sizeof( SkyboxMatricesObject ), 0, &Data ) );
+			memcpy( Data, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
+			vkUnmapMemory( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxUniformBufferMemory );
+		}
+
+		// DRAW
+		{
+			m_RendererData.SkyboxVertexBuffer->Bind( CommandBuffer );
+			m_RendererData.SkyboxIndexBuffer->Bind( CommandBuffer );
+
+			m_RendererData.SkyboxIndexBuffer->Draw( CommandBuffer );
+			m_RendererData.SkyboxVertexBuffer->Draw( CommandBuffer );
+		}
 	}
 
 	void SceneRenderer::CreateGridComponents()
@@ -202,12 +268,147 @@ namespace Saturn {
 		vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.GridDescriptorPool, nullptr );
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// Skybox
+	//////////////////////////////////////////////////////////////////////////
+
+	void SceneRenderer::CreateSkyboxComponents()
+	{		
+		VertexBufferLayout Layout = 
+		{
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
+
+		// Create fullscreen quad.
+		CreateFullscreenQuad( &m_RendererData.SkyboxVertexBuffer, &m_RendererData.SkyboxIndexBuffer );
+
+		// Create skybox shader.
+		m_RendererData.SkyboxShader = Ref<Shader>::Create( "Skybox", "assets/shaders/Skybox.glsl" );
+
+		ShaderWorker::Get().AddShader( m_RendererData.SkyboxShader.Pointer() );
+		ShaderWorker::Get().CompileShader( m_RendererData.SkyboxShader.Pointer() );
+
+		// Create uniform buffer.
+		VkDeviceSize BufferSize = sizeof( RendererData::SkyboxMatricesObject );
+
+		m_RendererData.SkyboxUniformBufferMemory = nullptr;
+
+		m_RendererData.SkyboxUniformBuffer = Buffer();
+
+		m_RendererData.SkyboxUniformBuffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_RendererData.SkyboxUniformBufferMemory );
+		
+		// Create descriptor set layout.
+		VkDescriptorSetLayoutBinding BindingLayout = {};
+		BindingLayout.binding = 0;
+		BindingLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		BindingLayout.descriptorCount = 1;
+		BindingLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		std::vector< VkDescriptorSetLayoutBinding > Bindings = { BindingLayout };
+		
+		VkDescriptorSetLayoutCreateInfo LayoutInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+		LayoutInfo.bindingCount = Bindings.size();
+		LayoutInfo.pBindings = Bindings.data();
+		
+		VK_CHECK( vkCreateDescriptorSetLayout( VulkanContext::Get().GetDevice(), &LayoutInfo, nullptr, &m_RendererData.SkyboxDescriptorSetLayout ) );
+
+		// Create descriptor pool.
+		VkDescriptorPoolSize PoolSize = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 };
+		PoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		PoolSize.descriptorCount = 1;
+
+		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+		PoolCreateInfo.poolSizeCount = 1;
+		PoolCreateInfo.pPoolSizes = &PoolSize;
+		PoolCreateInfo.maxSets = 1;
+		
+		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_RendererData.SkyboxDescriptorPool ) );
+
+		// Create descriptor set.
+		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+		AllocateInfo.descriptorPool = m_RendererData.SkyboxDescriptorPool;
+		AllocateInfo.descriptorSetCount = 1;
+		AllocateInfo.pSetLayouts = &m_RendererData.SkyboxDescriptorSetLayout;
+
+		VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &AllocateInfo, &m_RendererData.SkyboxDescriptorSet ) );
+
+		// Create descriptor write.
+		VkDescriptorBufferInfo BufferInfo = {};
+		BufferInfo.buffer = m_RendererData.SkyboxUniformBuffer;
+		BufferInfo.offset = 0;
+		BufferInfo.range = BufferSize;
+		
+		VkWriteDescriptorSet Write = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+		Write.dstSet = m_RendererData.SkyboxDescriptorSet;
+		Write.dstBinding = 0;
+		Write.dstArrayElement = 0;
+		Write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		Write.descriptorCount = 1;
+		Write.pBufferInfo = &BufferInfo;
+		
+		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &Write, 0, nullptr );
+		
+		// Gird shader attribute descriptions.
+		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
+
+		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( BaseVertex, Position ) } );
+		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( BaseVertex, Texcoord ) } );
+		
+		// Grid shader binding descriptions.
+		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
+		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
+		
+		// Create pipeline.
+		PipelineSpecification PipelineSpec = {};
+		PipelineSpec.Width = Window::Get().Width();
+		PipelineSpec.Height = Window::Get().Height();
+		PipelineSpec.Name = "Skybox";
+		PipelineSpec.pShader = m_RendererData.SkyboxShader.Pointer();
+		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SkyboxDescriptorSetLayout } };
+		PipelineSpec.RenderPass = VulkanContext::Get().GetOffscreenRenderPass();
+		PipelineSpec.UseDepthTest = true;
+		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
+		PipelineSpec.BindingDescriptions = BindingDescriptions;
+		
+		m_RendererData.SkyboxPipeline = Pipeline( PipelineSpec );
+	}
+
+	void SceneRenderer::DestroySkyboxComponents()
+	{
+		// Destroy Skybox pipeline.
+		m_RendererData.SkyboxPipeline.Terminate();
+
+		// Destroy uniform buffer.
+		m_RendererData.SkyboxUniformBuffer.Terminate();
+
+		// Free uniform buffer memory.
+		if( m_RendererData.SkyboxUniformBufferMemory )
+			vkFreeMemory( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxUniformBufferMemory, nullptr );
+
+		// Destroy Skybox index buffer.
+		m_RendererData.SkyboxIndexBuffer->Terminate();
+
+		// Destroy Skybox vertex buffer.
+		m_RendererData.SkyboxVertexBuffer->Terminate();
+
+		// Destroy descriptor set layout.
+		vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxDescriptorSetLayout, nullptr );
+
+		// Destroy descriptor pool.
+		vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxDescriptorPool, nullptr );
+	}
+	
+	//////////////////////////////////////////////////////////////////////////
+
 	void SceneRenderer::CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer )
 	{
-		float x = -1;
-		float y = -1;
-		float width = 2, height = 2;
+		CreateFullscreenQuad( -1, -1, 2, 2, ppVertexBuffer, ppIndexBuffer );
+	}
 
+	void SceneRenderer::CreateFullscreenQuad( float x, float y, float w, float h, 
+		VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer )
+	{
 		struct QuadVertex
 		{
 			glm::vec3 Position;
@@ -219,20 +420,20 @@ namespace Saturn {
 		data[ 0 ].Position = glm::vec3( x, y, 0.1f );
 		data[ 0 ].TexCoord = glm::vec2( 0, 0 );
 
-		data[ 1 ].Position = glm::vec3( x + width, y, 0.1f );
+		data[ 1 ].Position = glm::vec3( x + w, y, 0.1f );
 		data[ 1 ].TexCoord = glm::vec2( 1, 0 );
 
-		data[ 2 ].Position = glm::vec3( x + width, y + height, 0.1f );
+		data[ 2 ].Position = glm::vec3( x + w, y + h, 0.1f );
 		data[ 2 ].TexCoord = glm::vec2( 1, 1 );
 
-		data[ 3 ].Position = glm::vec3( x, y + height, 0.1f );
+		data[ 3 ].Position = glm::vec3( x, y + h, 0.1f );
 		data[ 3 ].TexCoord = glm::vec2( 0, 1 );
-		
+
 		*ppVertexBuffer = new VertexBuffer( data, 4 * sizeof( QuadVertex ) );
-		
-		uint32_t indices[ 6 ] = { 0, 1, 2, 
+
+		uint32_t indices[ 6 ] = { 0, 1, 2,
 								  2, 3, 0, };
-		
+
 		*ppIndexBuffer = new IndexBuffer( indices, 6 );
 	}
 
@@ -250,6 +451,8 @@ namespace Saturn {
 	{
 		auto& uuid = entity.GetComponent<IdComponent>().ID;
 
+		vkCmdBindPipeline( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipeline() );
+		
 		// Render a draw command.
 
 		// Bind vertex and index buffers.
@@ -283,55 +486,27 @@ namespace Saturn {
 			//VulkanContext::Get().CreateDescriptorSets();
 		}
 		
-		// RENDER GRID
-		{
-			// BIND THE PIPELINE
-			{
-				vkCmdBindPipeline( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.GridPipeline.GetPipeline() );
-			}
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Skybox" );
 
-			// BIND THE DESCRIPTOR SET
-			{
-				vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.GridPipeline.GetPipelineLayout(), 0, 1, &m_RendererData.GridDescriptorSet, 0, nullptr );
-			}
+		RenderSkybox();
+		
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+		
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Grid" );
 
-			// UPDATE UNIFORM BUFFERS
-			{
-				auto trans = glm::rotate( glm::mat4( 1.0f ), glm::radians( 90.0f ), glm::vec3( 1.0f, 0.0f, 0.0f ) ) * glm::scale( glm::mat4( 1.0f ), glm::vec3( 16.0f ) );
+		RenderGrid();
+		
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+		
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Static meshes" );
 
-				RendererData::GridMatricesObject GridMatricesObject = {};
-				GridMatricesObject.Transform = trans;
-				GridMatricesObject.ViewProjection = VulkanContext::Get().GetEditorCamera().ViewProjection();
-
-				GridMatricesObject.Res = 0.025f;
-				GridMatricesObject.Scale = 16.025f;
-				
-				void* Data;
-
-				VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), m_RendererData.GridUniformBufferMemory, 0, sizeof( GridMatricesObject ), 0, &Data ) );
-				memcpy( Data, &GridMatricesObject, sizeof( GridMatricesObject ) );
-				vkUnmapMemory( VulkanContext::Get().GetDevice(), m_RendererData.GridUniformBufferMemory );
-			}
-
-			// DRAW
-			{
-				m_RendererData.GridVertexBuffer->Bind( m_RendererData.CommandBuffer );
-				m_RendererData.GridIndexBuffer->Bind( m_RendererData.CommandBuffer );
-				
-				m_RendererData.GridIndexBuffer->Draw( m_RendererData.CommandBuffer );
-				
-			}
-
-			// BIND THE STATIC MESHES PIPELINE
-			{
-				vkCmdBindPipeline( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipeline() );
-			}
-		}
-
+		// Render static meshes.
 		for ( auto& Cmd : m_DrawList )
 		{
 			RenderDrawCommand( Cmd.entity, Cmd.Mesh, Cmd.Transform );	
 		}
+
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		FlushDrawList();
 	}

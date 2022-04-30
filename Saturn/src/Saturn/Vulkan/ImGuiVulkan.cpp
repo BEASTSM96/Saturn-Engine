@@ -125,8 +125,6 @@ namespace Saturn {
 
 	void ImGuiVulkan::ImGuiRender()
 	{
-		ImGui::ShowDemoWindow();
-		
 		m_pDockspace->Draw();
 	}
 

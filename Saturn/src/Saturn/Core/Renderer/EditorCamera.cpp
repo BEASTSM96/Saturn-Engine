@@ -147,6 +147,7 @@ namespace Saturn {
 
 				if( Input::Get().KeyPressed( Key::A ) )
 					m_PositionDelta -= ts.Milliseconds() * m_Speed * m_RightDirection;
+				
 				if( Input::Get().KeyPressed( Key::D ) )
 					m_PositionDelta += ts.Milliseconds() * m_Speed * m_RightDirection;
 

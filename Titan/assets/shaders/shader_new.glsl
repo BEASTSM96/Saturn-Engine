@@ -16,9 +16,7 @@ layout(push_constant) uniform Push {
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 Model;
-    mat4 View;
-    mat4 Proj;
-    mat4 VP;
+    mat4 ViewProjection;
 } ubo;
 
 layout(location = 1) out VertexOutput 
@@ -49,7 +47,7 @@ void main()
 
 	v_FragTexCoord = a_TexCoord;
 	
-	gl_Position = ubo.Proj * ubo.View * ubo.Model * vec4( a_Position, 1.0 );
+	gl_Position = ubo.ViewProjection * ubo.Model * vec4( a_Position, 1.0 );
 }
 
 #type fragment

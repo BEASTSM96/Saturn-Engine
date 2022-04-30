@@ -48,6 +48,16 @@ namespace Saturn {
 		glm::mat4 Transform;
 	};
 
+	struct RenderSection 
+	{
+		VkCommandBuffer CommandBuffer;
+		Saturn::Pipeline Pipeline;
+
+		void Begin();
+
+		void End();
+	};
+
 	struct RendererData
 	{
 		VkCommandBuffer CommandBuffer;
@@ -70,8 +80,10 @@ namespace Saturn {
 			glm::mat4 View;
 			glm::mat4 Projection;
 			glm::vec4 ViewPos;
-
-			glm::vec3 p_A, p_B, p_C, p_D, p_E, p_Z;
+			
+			float Turbidity;
+			float Azimuth;
+			float Inclination;
 		};
 
 		VkDescriptorSet GridDescriptorSet = nullptr;
@@ -79,6 +91,9 @@ namespace Saturn {
 		VkDescriptorPool GridDescriptorPool = nullptr;
 		Buffer GridUniformBuffer;
 		VkDeviceMemory GridUniformBufferMemory;
+		
+		VertexBuffer* GridVertexBuffer;
+		IndexBuffer* GridIndexBuffer;
 
 		// Skybox
 		Pipeline SkyboxPipeline;
@@ -89,8 +104,8 @@ namespace Saturn {
 		Buffer SkyboxUniformBuffer;
 		VkDeviceMemory SkyboxUniformBufferMemory;
 
-		VertexBuffer* GridVertexBuffer;
-		IndexBuffer* GridIndexBuffer;
+		VertexBuffer* SkyboxVertexBuffer;
+		IndexBuffer* SkyboxIndexBuffer;
 
 		Ref< Shader > GridShader = nullptr;
 		Ref< Shader > SkyboxShader = nullptr;
@@ -115,17 +130,25 @@ namespace Saturn {
 		void FlushDrawList();
 
 		void RenderScene();
-		
+
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
 	private:
 		void Init();
 		void Terminate();
 
+		void RenderGrid();
+		void RenderSkybox();
+
 		void CreateGridComponents();
 		void DestroyGridComponents();
 
+		void CreateSkyboxComponents();
+		void DestroySkyboxComponents();
+
 		void CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
+		void CreateFullscreenQuad( float x, float y, float w, float h,
+			VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
 
 		RendererData m_RendererData;
 		std::vector< DrawCommand > m_DrawList;

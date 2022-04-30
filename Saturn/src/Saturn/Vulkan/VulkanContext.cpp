@@ -533,9 +533,13 @@ namespace Saturn {
 		UniformBufferObject UBO ={};
 		UBO.Model = Transform;
 
-		UBO.View = m_Camera.ViewMatrix();
-		UBO.Proj = m_Camera.ProjectionMatrix();
-		UBO.Proj[ 1 ][ 1 ] *= -1;
+		glm::mat4 view = m_Camera.ViewMatrix();
+		view[ 1 ][ 1 ] *= -1;
+
+		auto& proj = m_Camera.ProjectionMatrix();
+
+		UBO.ViewProjection = proj * view;
+		//UBO.ViewProjection[ 1 ][ 1 ] *= -1;
 
 		void* Data;
 		VK_CHECK( vkMapMemory( m_LogicalDevice, m_UniformBuffersMemory[ uuid ], 0, sizeof( UBO ), 0, &Data ) );
@@ -731,6 +735,10 @@ namespace Saturn {
 	bool VulkanContext::HasStencilComponent( VkFormat Format )
 	{
 		return Format == VK_FORMAT_D32_SFLOAT_S8_UINT || Format == VK_FORMAT_D24_UNORM_S8_UINT;
+	}
+
+	void VulkanContext::RenderDebugUUID( UUID UID )
+	{
 	}
 
 	VkCommandBuffer VulkanContext::BeginSingleTimeCommands()
@@ -1027,6 +1035,10 @@ namespace Saturn {
 			VkExtent2D Extent;
 			Window::Get().GetSize( &Extent.width, &Extent.height );
 			
+			uint32_t Width, Height;
+			Width = Extent.width;
+			Height = Extent.height;
+
 			// First pass ~ offscreen rendering to a VkImage
 			// This is draw to the surface but will get cleared when we do our ImGui pass, we store the texture in a VkDescriptorSet to render later on.
 			{
@@ -1055,17 +1067,29 @@ namespace Saturn {
 				VkRect2D Scissor ={};
 				Scissor.extent = Extent;
 
+				float w = -Window::Get().Width();
+				float h = -Window::Get().Height();
+#if 0
 				VkViewport Viewport ={};
-				Viewport.height = Extent.height;
 				Viewport.width = Extent.width;
+				Viewport.height = h;
+				Viewport.x = 0;
+				Viewport.y = Extent.height;
 				Viewport.maxDepth = 1.0f;
 				Viewport.minDepth = 0;
+#else
+				VkViewport Viewport ={};
+				Viewport.width = Extent.width;
+				Viewport.height = Extent.height;
+				Viewport.x = 0;
+				Viewport.y = 0;
+				Viewport.maxDepth = 1.0f;
+				Viewport.minDepth = 0;
+#endif
 
 				vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
 				vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
 				
-				vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
-
 				//////////////////////////////////////////////////////////////////////////
 				
 				SceneRenderer::Get().SetCommandBuffer( { CommandBuffer } );
