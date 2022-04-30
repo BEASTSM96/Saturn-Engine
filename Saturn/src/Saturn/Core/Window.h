@@ -106,8 +106,8 @@ namespace Saturn {
 		bool m_Minimized = false;
 		bool m_PendingMinimize = false;
 		
-
 		bool m_Maximized = false;
+		bool m_PendingMaximized = false;
 
 		EventCallbackFn m_EventCallback;
 

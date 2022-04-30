@@ -260,15 +260,6 @@ namespace Saturn {
 				}
 			}
 
-			if( !m_SelectionContext.HasComponent<SkylightComponent>() )
-			{
-				if( ImGui::Button( "Skylight" ) )
-				{
-					m_SelectionContext.AddComponent<SkylightComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-
 			ImGui::EndPopup();
 		}
 

@@ -261,12 +261,15 @@ namespace Saturn {
 
 		if( !wasMaximized )
 		{
-			glfwMaximizeWindow( m_Window );
-
-			m_Maximized = true;
 			m_PendingMinimize = false;
+			m_PendingMaximized = true;
 
-			VulkanContext::Get().SetWindowIconifed( !m_Minimized );
+			//glfwMaximizeWindow( m_Window );
+
+			//m_Maximized = true;
+			//m_PendingMinimize = false;
+
+			//VulkanContext::Get().SetWindowIconifed( !m_Minimized );
 		}
 		else
 			Restore();
@@ -279,6 +282,7 @@ namespace Saturn {
 		if( !wasMinimize ) 
 		{ 
 			m_PendingMinimize = true;
+			m_PendingMaximized = false;
 
 			//glfwIconifyWindow( m_Window ); 
 
@@ -320,6 +324,15 @@ namespace Saturn {
 			VulkanContext::Get().SetWindowIconifed( m_Minimized );
 
 			m_PendingMinimize = false;
+		}
+
+		if ( m_PendingMaximized )
+		{
+			glfwMaximizeWindow( m_Window );
+
+			VulkanContext::Get().SetWindowIconifed( false );
+
+			m_PendingMaximized = false;
 		}
 
 		m_Rendering = true;

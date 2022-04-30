@@ -159,14 +159,10 @@ void main()
 {
 	vec2 uv = vs_Input.TexCoord.xy / 2.0 + 0.5;
 	
-	float Inclination = u_Matrices.Inclination * PI / 180.0;
-	float Azimuth = u_Matrices.Azimuth * PI / 180.0;
-	float Turbidity = 2.0f;
+	float Inclination = u_Matrices.Inclination;
+	float Azimuth = u_Matrices.Azimuth;
+	float Turbidity = u_Matrices.Turbidity;
 	
-	// Test fixed values as we will soon be settings these from an entity.
-	Azimuth = 0.210;
-	Inclination = 2.050;
-
 	vec3 sunDir = normalize( vec3( sin( Inclination ) * cos( Azimuth ), cos( Inclination ), sin( Inclination ) * sin( Azimuth ) ) );
 	vec3 viewDir = normalize( vec3( ( uv * 2.0 ) - 1.0, 1.0 ) );
 	vec3 skyLuminance = calculateSkyLuminanceRGB( sunDir, viewDir, Turbidity );

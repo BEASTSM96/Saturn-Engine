@@ -109,42 +109,59 @@ namespace Saturn {
 	void SceneRenderer::RenderSkybox()
 	{
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
+		
+		Entity SkylightEntity;
 
-		// BIND THE PIPELINE
+		auto view = m_pSence->GetAllEntitiesWith< SkylightComponent >();
+
+		for ( const auto e : view )
 		{
-			vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.SkyboxPipeline.GetPipeline() );
+			SkylightEntity = { e, m_pSence };
 		}
 
-		// BIND THE DESCRIPTOR SET
+		if( SkylightEntity )
 		{
-			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.SkyboxPipeline.GetPipelineLayout(), 0, 1, &m_RendererData.SkyboxDescriptorSet, 0, nullptr );
-		}
-
-		// UPDATE UNIFORM BUFFERS
-		{
-			RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
-
-			SkyboxMatricesObject.View = VulkanContext::Get().GetEditorCamera().ViewMatrix();
-			SkyboxMatricesObject.Projection = VulkanContext::Get().GetEditorCamera().ProjectionMatrix();
-			SkyboxMatricesObject.Turbidity = 2.0;
-			SkyboxMatricesObject.Azimuth = 0.210;
-			SkyboxMatricesObject.Inclination = 2.050;
-
-			void* Data;
+			auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
 			
-			m_RendererData.SkyboxUniformBuffer.Map( &Data, sizeof( SkyboxMatricesObject ) );
+			if( !Skylight.DynamicSky )
+				return;
 
-			memcpy( Data, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
+			// BIND THE PIPELINE
+			{
+				vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.SkyboxPipeline.GetPipeline() );
+			}
 
-			m_RendererData.SkyboxUniformBuffer.Unmap();
-		}
+			// BIND THE DESCRIPTOR SET
+			{
+				vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.SkyboxPipeline.GetPipelineLayout(), 0, 1, &m_RendererData.SkyboxDescriptorSet, 0, nullptr );
+			}
 
-		// DRAW
-		{
-			m_RendererData.SkyboxVertexBuffer->Bind( CommandBuffer );
-			m_RendererData.SkyboxIndexBuffer->Bind( CommandBuffer );
+			// UPDATE UNIFORM BUFFERS
+			{
+				RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
 
-			m_RendererData.SkyboxIndexBuffer->Draw( CommandBuffer );
+				SkyboxMatricesObject.View = VulkanContext::Get().GetEditorCamera().ViewMatrix();
+				SkyboxMatricesObject.Projection = VulkanContext::Get().GetEditorCamera().ProjectionMatrix();
+				SkyboxMatricesObject.Turbidity = Skylight.Turbidity;
+				SkyboxMatricesObject.Azimuth = Skylight.Azimuth;
+				SkyboxMatricesObject.Inclination = Skylight.Inclination;
+
+				void* Data;
+
+				m_RendererData.SkyboxUniformBuffer.Map( &Data, sizeof( SkyboxMatricesObject ) );
+
+				memcpy( Data, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
+
+				m_RendererData.SkyboxUniformBuffer.Unmap();
+			}
+
+			// DRAW
+			{
+				m_RendererData.SkyboxVertexBuffer->Bind( CommandBuffer );
+				m_RendererData.SkyboxIndexBuffer->Bind( CommandBuffer );
+
+				m_RendererData.SkyboxIndexBuffer->Draw( CommandBuffer );
+			}
 		}
 	}
 
