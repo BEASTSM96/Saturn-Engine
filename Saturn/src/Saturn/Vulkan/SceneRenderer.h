@@ -90,7 +90,6 @@ namespace Saturn {
 		VkDescriptorSetLayout GridDescriptorSetLayout = nullptr;
 		VkDescriptorPool GridDescriptorPool = nullptr;
 		Buffer GridUniformBuffer;
-		VkDeviceMemory GridUniformBufferMemory;
 		
 		VertexBuffer* GridVertexBuffer;
 		IndexBuffer* GridIndexBuffer;
@@ -102,8 +101,7 @@ namespace Saturn {
 		VkDescriptorSetLayout SkyboxDescriptorSetLayout = nullptr;
 		VkDescriptorPool SkyboxDescriptorPool = nullptr;
 		Buffer SkyboxUniformBuffer;
-		VkDeviceMemory SkyboxUniformBufferMemory;
-
+		
 		VertexBuffer* SkyboxVertexBuffer;
 		IndexBuffer* SkyboxIndexBuffer;
 
@@ -116,7 +114,7 @@ namespace Saturn {
 		SINGLETON( SceneRenderer );
 	public:
 		 SceneRenderer() { Init(); }
-		 ~SceneRenderer();
+		 ~SceneRenderer() {}
 		
 		void SetRendererData( RendererData Data ) { m_RendererData = Data; }
 		void SetCommandBuffer( VkCommandBuffer CommandBuffer ) { m_RendererData.CommandBuffer = CommandBuffer; }
@@ -133,9 +131,10 @@ namespace Saturn {
 
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
+		void Terminate();
+
 	private:
 		void Init();
-		void Terminate();
 
 		void RenderGrid();
 		void RenderSkybox();

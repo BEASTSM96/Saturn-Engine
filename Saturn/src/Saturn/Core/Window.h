@@ -99,11 +99,14 @@ namespace Saturn {
 	private:
 		GLFWwindow* m_Window = nullptr;
 
-		int m_Width  = 1200;
-		int m_Height = 720;
+		int m_Width  = 3440;
+		int m_Height = 1400;
 		std::string m_Title = "Saturn";
 
 		bool m_Minimized = false;
+		bool m_PendingMinimize = false;
+		
+
 		bool m_Maximized = false;
 
 		EventCallbackFn m_EventCallback;

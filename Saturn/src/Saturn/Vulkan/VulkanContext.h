@@ -138,8 +138,6 @@ namespace Saturn {
 		Pipeline& GetPipeline() { return m_Pipeline; }
 		std::unordered_map< UUID, VkDescriptorSet >& GetDescriptorSets() { return m_DescriptorSets; }
 		std::unordered_map< UUID, Buffer >& GetUniformBuffers() { return m_UniformBuffers; }
-		std::unordered_map< UUID, VkDeviceMemory >& GetUniformBuffersMemory() { return m_UniformBuffersMemory; }
-		
 
 		void UpdateUniformBuffers( UUID uuid, Timestep ts, glm::mat4 Transform );
 		void AddUniformBuffer( UUID uuid );
@@ -245,7 +243,6 @@ namespace Saturn {
 		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
 		
 		std::unordered_map< UUID, Buffer > m_UniformBuffers;
-		std::unordered_map< UUID, VkDeviceMemory> m_UniformBuffersMemory;
 
 		std::vector<PhysicalDeviceProperties> m_DeviceProps;
 

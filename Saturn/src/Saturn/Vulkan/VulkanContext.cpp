@@ -79,18 +79,7 @@ namespace Saturn {
 		}
 		
 		m_UniformBuffers.clear();
-
-		if( m_UniformBuffersMemory.size() > 1 )
-		{
-			for( auto& [uid, mem] : m_UniformBuffersMemory )
-			{
-				vkFreeMemory( m_LogicalDevice, m_UniformBuffersMemory[ uid ], nullptr );
-				m_UniformBuffersMemory.erase( uid );
-			}
-		}
-
-		m_UniformBuffersMemory.clear();
-
+		
 		vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
 		vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
 		vkDestroyImage( m_LogicalDevice, m_DepthImage, nullptr );
@@ -137,6 +126,8 @@ namespace Saturn {
 		}
 
 		m_Pipeline.Terminate();
+
+		SceneRenderer::Get().Terminate();
 
 		vkDestroyDevice( m_LogicalDevice, nullptr );
 
@@ -542,18 +533,19 @@ namespace Saturn {
 		//UBO.ViewProjection[ 1 ][ 1 ] *= -1;
 
 		void* Data;
-		VK_CHECK( vkMapMemory( m_LogicalDevice, m_UniformBuffersMemory[ uuid ], 0, sizeof( UBO ), 0, &Data ) );
+		
+		m_UniformBuffers[ uuid ].Map( &Data, sizeof( UBO ) );
+
 		memcpy( Data, &UBO, sizeof( UBO ) );
-		vkUnmapMemory( m_LogicalDevice, m_UniformBuffersMemory[ uuid ] );
+
+		m_UniformBuffers[ uuid ].Unmap();
 	}
 
 	void VulkanContext::AddUniformBuffer( UUID uuid )
 	{
 		VkDeviceSize BufferSize = sizeof( UniformBufferObject );
 
-		m_UniformBuffersMemory[ uuid ] = nullptr;
-
-		m_UniformBuffers[ uuid ].Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_UniformBuffersMemory[ uuid ] );
+		m_UniformBuffers[ uuid ].Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 	}
 
 	void VulkanContext::CreateDepthResources()
@@ -993,7 +985,11 @@ namespace Saturn {
 		VK_CHECK( vkWaitForFences( m_LogicalDevice, 1, &m_FlightFences[ m_FrameCount ], VK_TRUE, UINT32_MAX ) );
 		
 		if( m_WindowIconifed )
+		{
+			SAT_CORE_INFO( "Window was inconfied... no longer presenting." );
+
 			return;
+		}
 
 		// Reset current fence.
 		VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FlightFences[ m_FrameCount ] ) );
@@ -1019,6 +1015,8 @@ namespace Saturn {
 		VkCommandBuffer CommandBuffer;
 
 		// Geometry pass
+		// Safe check just in case window was iconified. After the other check.
+		if( !m_WindowIconifed )
 		{
 			VkCommandBufferAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 			AllocateInfo.commandBufferCount = 1;

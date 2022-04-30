@@ -53,6 +53,8 @@ namespace Saturn {
 		// Destroy grid.
 		DestroyGridComponents();
 
+		DestroySkyboxComponents();
+
 		m_pSence = nullptr;
 		
 		m_DrawList.clear();
@@ -87,9 +89,11 @@ namespace Saturn {
 
 				void* Data;
 
-				VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), m_RendererData.GridUniformBufferMemory, 0, sizeof( GridMatricesObject ), 0, &Data ) );
+				m_RendererData.GridUniformBuffer.Map( &Data, sizeof( GridMatricesObject ) );
+
 				memcpy( Data, &GridMatricesObject, sizeof( GridMatricesObject ) );
-				vkUnmapMemory( VulkanContext::Get().GetDevice(), m_RendererData.GridUniformBufferMemory );
+				
+				m_RendererData.GridUniformBuffer.Unmap();
 			}
 
 			// DRAW
@@ -127,9 +131,12 @@ namespace Saturn {
 			SkyboxMatricesObject.Inclination = 2.050;
 
 			void* Data;
-			VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxUniformBufferMemory, 0, sizeof( SkyboxMatricesObject ), 0, &Data ) );
+			
+			m_RendererData.SkyboxUniformBuffer.Map( &Data, sizeof( SkyboxMatricesObject ) );
+
 			memcpy( Data, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
-			vkUnmapMemory( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxUniformBufferMemory );
+
+			m_RendererData.SkyboxUniformBuffer.Unmap();
 		}
 
 		// DRAW
@@ -159,12 +166,9 @@ namespace Saturn {
 		
 		// Create uniform buffer.
 		VkDeviceSize BufferSize = sizeof( RendererData::GridMatricesObject );
-
-		m_RendererData.GridUniformBufferMemory = nullptr;
-
 		m_RendererData.GridUniformBuffer = Buffer();
 
-		m_RendererData.GridUniformBuffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_RendererData.GridUniformBufferMemory );
+		m_RendererData.GridUniformBuffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		
 		// Create descriptor set layout.
 		// TODO: Move to vulkan context.
@@ -250,10 +254,6 @@ namespace Saturn {
 		// Destroy uniform buffer.
 		m_RendererData.GridUniformBuffer.Terminate();
 
-		// Free uniform buffer memory.
-		if( m_RendererData.GridUniformBufferMemory )
-			vkFreeMemory( VulkanContext::Get().GetDevice(), m_RendererData.GridUniformBufferMemory, nullptr );
-
 		// Destroy grid index buffer.
 		m_RendererData.GridIndexBuffer->Terminate();
 
@@ -291,11 +291,9 @@ namespace Saturn {
 		// Create uniform buffer.
 		VkDeviceSize BufferSize = sizeof( RendererData::SkyboxMatricesObject );
 
-		m_RendererData.SkyboxUniformBufferMemory = nullptr;
-
 		m_RendererData.SkyboxUniformBuffer = Buffer();
 
-		m_RendererData.SkyboxUniformBuffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_RendererData.SkyboxUniformBufferMemory );
+		m_RendererData.SkyboxUniformBuffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		
 		// Create descriptor set layout.
 		VkDescriptorSetLayoutBinding BindingLayout = {};
@@ -381,10 +379,6 @@ namespace Saturn {
 		// Destroy uniform buffer.
 		m_RendererData.SkyboxUniformBuffer.Terminate();
 
-		// Free uniform buffer memory.
-		if( m_RendererData.SkyboxUniformBufferMemory )
-			vkFreeMemory( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxUniformBufferMemory, nullptr );
-
 		// Destroy Skybox index buffer.
 		m_RendererData.SkyboxIndexBuffer->Terminate();
 
@@ -434,11 +428,6 @@ namespace Saturn {
 								  2, 3, 0, };
 
 		*ppIndexBuffer = new IndexBuffer( indices, 6 );
-	}
-
-	SceneRenderer::~SceneRenderer()
-	{
-		Terminate();
 	}
 
 	void SceneRenderer::AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )

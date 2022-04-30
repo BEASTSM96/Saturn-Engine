@@ -130,16 +130,7 @@ namespace Saturn {
 		int width = e.Width(), height = e.Height();
 		if( width && height == 0 )
 			return false;
-
-		//glViewport( 0, 0, width, height );
-
-		//Renderer::Get().Resize( width, height );
-
-		if( width == 0 && height == 0 )
-			VulkanContext::Get().SetWindowIconifed( true );
-		else
-			VulkanContext::Get().SetWindowIconifed( false );
-
+		
 		VulkanContext::Get().ResizeEvent();
 	}
 }

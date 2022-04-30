@@ -92,6 +92,22 @@ namespace Saturn {
 
 		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
 
+		// Get monitor width and height.
+
+		int x, y, w, h;
+
+		GLFWmonitor* pPrimary = glfwGetPrimaryMonitor();
+
+		glfwGetMonitorWorkarea( pPrimary, &x, &y, &w, &h );
+
+		glfwSetWindowSize( m_Window, w / 2, h / 2 );
+		glfwSetWindowPos( m_Window, x / 2, y / 2 );
+
+		m_Width = w / 2;
+		m_Height = h / 2;
+
+		//Maximize();
+
 		// Make Current before loading OpenGL
 		glfwMakeContextCurrent( m_Window );
 
@@ -244,7 +260,14 @@ namespace Saturn {
 		const bool wasMaximized = ( glfwGetWindowAttrib( m_Window, GLFW_MAXIMIZED ) == GLFW_TRUE );
 
 		if( !wasMaximized )
-			glfwMaximizeWindow( m_Window ); 
+		{
+			glfwMaximizeWindow( m_Window );
+
+			m_Maximized = true;
+			m_PendingMinimize = false;
+
+			VulkanContext::Get().SetWindowIconifed( !m_Minimized );
+		}
 		else
 			Restore();
 	}
@@ -253,14 +276,24 @@ namespace Saturn {
 	{
 		const bool wasMinimize = ( glfwGetWindowAttrib( m_Window, GLFW_ICONIFIED ) == GLFW_TRUE );
 
-		if( !wasMinimize ) { m_Minimized = true; glfwIconifyWindow( m_Window ); }
-		else Restore();
+		if( !wasMinimize ) 
+		{ 
+			m_PendingMinimize = true;
+
+			//glfwIconifyWindow( m_Window ); 
+
+//			VulkanContext::Get().SetWindowIconifed( m_Minimized ); 
+		}
+		else 
+			Restore();
 	}
 
 	void Window::Restore()
 	{
 		m_Minimized = false;
 		m_Maximized = false;
+
+		VulkanContext::Get().SetWindowIconifed( m_Minimized );
 
 		glfwRestoreWindow( m_Window );
 	}
@@ -279,11 +312,15 @@ namespace Saturn {
 		if( m_Rendering )
 			return;
 
-		if( !m_Maximized && m_Minimized )
-			m_Minimized = false;
+		// Because in VulkanContext we have end the render in order to move on, to do so we must minimize a later time.
+		if( m_PendingMinimize )
+		{
+			glfwIconifyWindow( m_Window );
 
-		if( m_Maximized && m_Minimized )
-			m_Minimized = false;
+			VulkanContext::Get().SetWindowIconifed( m_Minimized );
+
+			m_PendingMinimize = false;
+		}
 
 		m_Rendering = true;
 
