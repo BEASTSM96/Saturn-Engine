@@ -254,7 +254,24 @@ namespace Saturn {
 		// Flip texture
 		stbi_set_flip_vertically_on_load( true );
 
-		stbi_uc* pTextureData = stbi_load( m_Path.string().c_str(), &Width, &Height, &Channels, STBI_rgb_alpha );
+		stbi_uc* pTextureData;
+		
+		if( stbi_is_hdr( m_Path.string().c_str() ) )
+		{
+			SAT_CORE_INFO( "Loading HDR texture {0}", m_Path.string() );
+			pTextureData = ( uint8_t* ) stbi_loadf( m_Path.string().c_str(), &Width, &Height, &Channels, 0 );
+
+			m_HDR = true;
+		}
+		else
+		{
+			SAT_CORE_INFO( "Loading texture {0}", m_Path.string() );
+
+			// Load the hdr texture.
+			pTextureData = stbi_load( m_Path.string().c_str(), &Width, &Height, &Channels, STBI_rgb_alpha );
+
+			m_HDR = false;
+		}
 
 		if( !std::filesystem::exists( m_Path ) )
 		{
@@ -361,13 +378,19 @@ namespace Saturn {
 		// Flip texture
 		stbi_set_flip_vertically_on_load( true );
 
-		// Load the hdr texture.
-		stbi_uc* pTextureData = stbi_load( m_Path.string().c_str(), &Width, &Height, &Channels, STBI_rgb_alpha );
+		stbi_uc* pTextureData = nullptr;
 
-		if( !stbi_is_hdr( m_Path.string().c_str() ) )
+		if( stbi_is_hdr( m_Path.string().c_str() ) ) 
 		{
-			SAT_CORE_ERROR( "Texture must be a hdr texture!" );
-			return;
+			SAT_CORE_INFO( "Loading HDR texture {0}", m_Path.string() );
+			pTextureData = ( uint8_t* )stbi_loadf( m_Path.string().c_str(), &Width, &Height, &Channels, 0 );
+		}
+		else
+		{
+			SAT_CORE_INFO( "Loading texture {0}", m_Path.string() );
+			
+			// Load the hdr texture.
+			pTextureData = stbi_load( m_Path.string().c_str(), &Width, &Height, &Channels, STBI_rgb_alpha );
 		}
 
 		if( !std::filesystem::exists( m_Path ) )
