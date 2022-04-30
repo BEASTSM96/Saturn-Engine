@@ -40,4 +40,6 @@ namespace Saturn {
 
 	extern bool DrawFloatControl( const std::string& label, float& values, float columnWidth = 125.0f );
 	extern bool DrawIntControl( const std::string& label, int& values, float columnWidth = 125.0f );
+	
+	extern bool DrawBoolControl( const std::string& label, bool& value, float columnWidth = 125.0f );
 }

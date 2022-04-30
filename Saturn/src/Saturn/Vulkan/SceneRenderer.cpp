@@ -138,7 +138,6 @@ namespace Saturn {
 			m_RendererData.SkyboxIndexBuffer->Bind( CommandBuffer );
 
 			m_RendererData.SkyboxIndexBuffer->Draw( CommandBuffer );
-			m_RendererData.SkyboxVertexBuffer->Draw( CommandBuffer );
 		}
 	}
 

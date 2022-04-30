@@ -34,6 +34,8 @@
 #include "Saturn/Scene/Entity.h"
 #include "UITools.h"
 
+#include "Saturn/Vulkan/VulkanContext.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -133,10 +135,28 @@ namespace Saturn {
 	{
 		m_SelectionContext = entity;
 		m_Context->SetSelectedEntity( entity );
+
+		/*
+		if( m_Context->m_Registry.valid( entity ) ) 
+		{
+			if( entity.HasComponent<MeshComponent>() )
+			{
+				if( entity.GetComponent<MeshComponent>().Mesh ) 
+				{
+					VulkanContext::Get().RenderDebugUUID( entity.GetComponent< IdComponent >().ID );
+				}
+			}	
+		} 
+		else
+		{
+			VulkanContext::Get().ShowDebugUUID( false );
+		}
+		*/
 	}
 
 	void SceneHierarchyPanel::DrawEntities()
 	{
+		
 		ImGui::Columns( 2, "Bar" );
 
 		ImGui::Columns( 2, "Key" );
@@ -155,8 +175,10 @@ namespace Saturn {
 		m_Context->m_Registry.each( [&]( auto entity )
 		{
 			Entity e{ entity, m_Context.Pointer() };
-			if( !m_Context->m_Registry.has<SceneComponent>( entity ) || !e )
+			if( !m_Context->m_Registry.has<SceneComponent>( entity ) || !e ) 
+			{
 				DrawEntityNode( e );
+			}
 		} );
 	}
 
@@ -180,12 +202,16 @@ namespace Saturn {
 					auto Entity = m_Context->CreateEntity( "Empty Entity" );
 					SetSelected( Entity );
 				}
+
+				if( ImGui::MenuItem( "Skylight" ) )
+				{
+					auto Entity = m_Context->CreateEntity( "Skylight" );
+					Entity.AddComponent<SkylightComponent>();
+					SetSelected( Entity );
+				}
+
 				ImGui::EndPopup();
 			}
-
-		#if !defined( SAT_DONT_USE_GL ) 
-
-			ImGui::Begin( "Mesh Material Viewer" );
 
 			if( m_SelectionContext && m_SelectionContext.HasComponent<MeshComponent>() )
 			{
@@ -193,30 +219,8 @@ namespace Saturn {
 
 				if( mesh )
 				{
-					auto& material = mesh->GetMaterial();
-
-					ImGui::Text( material->Name().c_str() );
-					ImGui::Separator();
-
-					for( int i = 0; i < material->Uniforms().size(); i++ )
-					{
-						auto& uniform = material->Uniforms()[ i ];
-
-						ImGui::Text( uniform->Name().c_str() );
-						ImGui::SameLine();
-
-						ImGui::Separator();
-
-						ImGui::Image( ( ImTextureID )uniform->Data()->GetRendererID(), ImVec2( 50, 50 ) );
-
-						// TODO: Values
-					}
 				}
 			}
-
-			ImGui::End();
-
-		#endif
 
 			ImGui::Begin( "Inspector" );
 			if( m_SelectionContext )
@@ -256,6 +260,15 @@ namespace Saturn {
 				}
 			}
 
+			if( !m_SelectionContext.HasComponent<SkylightComponent>() )
+			{
+				if( ImGui::Button( "Skylight" ) )
+				{
+					m_SelectionContext.AddComponent<SkylightComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
 			ImGui::EndPopup();
 		}
 
@@ -275,6 +288,7 @@ namespace Saturn {
 			if( ImGui::IsItemClicked() )
 			{
 				m_SelectionContext = entity;
+				
 				if( m_SelectionChangedCallback )
 					m_SelectionChangedCallback( m_SelectionContext );
 			}
@@ -376,6 +390,29 @@ namespace Saturn {
 		
 			DrawFloatControl( "Light Intensity", lc.Intensity, 110.0f );
 		} );
+
+		DrawComponent<SkylightComponent>( "Skylight", entity, []( auto& skl )
+		{
+			if( !skl.DynamicSky )
+			{
+				if( ImGui::Button( "...##openenvmap", ImVec2( 50, 20 ) ) ) 
+				{
+					std::string file = Application::Get().OpenFile( "Environment map file (*.hdr)\0*.hdr;\0" ).first;
+					
+					//skl.Map = { .Name = file, .Path = file, .Texture = nullptr };
+				}
+			}
+
+			DrawBoolControl( "Dynamic Sky", skl.DynamicSky );
+
+			if ( skl.DynamicSky )
+			{
+				DrawFloatControl( "Turbidity", skl.Turbidity );
+				DrawFloatControl( "Azimuth", skl.Azimuth );
+				DrawFloatControl( "Inclination", skl.Inclination );
+			}
+		} );
+
 	}
 
 }

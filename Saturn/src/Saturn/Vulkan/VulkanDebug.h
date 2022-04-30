@@ -97,6 +97,29 @@ namespace Saturn {
 		}
 	}
 
+	inline void CmdBeginDebugLabel( VkCommandBuffer ComamndBuffer, std::string Name )
+	{
+		PFN_vkCmdBeginDebugUtilsLabelEXT Function = ( PFN_vkCmdBeginDebugUtilsLabelEXT ) vkGetDeviceProcAddr( VulkanContext::Get().GetDevice(), "vkCmdBeginDebugUtilsLabelEXT" );
+
+		VkDebugUtilsLabelEXT Info = { VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT };
+		Info.pLabelName = Name.c_str();
+		
+		if ( Function )
+		{
+			Function( ComamndBuffer, &Info );
+		}
+	}
+
+	inline void CmdEndDebugLabel( VkCommandBuffer ComamndBuffer )
+	{
+		PFN_vkCmdEndDebugUtilsLabelEXT Function = ( PFN_vkCmdEndDebugUtilsLabelEXT ) vkGetDeviceProcAddr( VulkanContext::Get().GetDevice(), "vkCmdEndDebugUtilsLabelEXT" );
+		
+		if( Function )
+		{
+			Function( ComamndBuffer );
+		}
+	}
+
 	inline void CmdDebugMarkerBegin( VkCommandBuffer CommandBuffer, VkDebugMarkerMarkerInfoEXT* pMarkerInfo )
 	{
 		PFN_vkCmdDebugMarkerBeginEXT Function = ( PFN_vkCmdDebugMarkerBeginEXT )vkGetDeviceProcAddr( VulkanContext::Get().GetDevice(), "vkCmdDebugMarkerBeginEXT" );
