@@ -58,9 +58,13 @@ namespace Saturn {
 
 		void Terminate();
 
-		void CreateBuffer();
-
+		
 	private:
+
+		void CreateBuffer();
+		
+	private:
+
 		void* m_pData = nullptr;
 
 		Buffer m_Buffer;

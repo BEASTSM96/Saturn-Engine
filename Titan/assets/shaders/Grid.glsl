@@ -1,86 +1,67 @@
 #type vertex
 #version 450
 
-layout(binding = 0) uniform Matrices {
-	mat4 View;
-	mat4 Projection;
+layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec2 a_TexCoord;
+
+layout(binding = 0) uniform Matrices 
+{
+	mat4 ViewProjection;
 	mat4 Transform;
+	float Scale;
+	float Res;
 } u_Matrices;
 
-layout(location = 1) out vec3 NearPoint;
-layout(location = 2) out vec3 FarPoint;
-layout(location = 3) out mat4 FragProj;
-layout(location = 7) out mat4 FragView;
-
-// Grid position are in clipped space
-vec3 gridPlane[6] = vec3[] (
-    vec3(1, 1, 0), vec3(-1, -1, 0), vec3(-1, 1, 0),
-    vec3(-1, -1, 0), vec3(1, 1, 0), vec3(1, -1, 0)
-);
-
-vec3 UnprojectPoint(float x, float y, float z, mat4 view, mat4 projection) 
+layout(location = 1) out VertexOutput 
 {
-    mat4 viewInv = inverse(view);
-    mat4 projInv = inverse(projection);
-    vec4 unprojectedPoint =  viewInv * projInv * vec4(x, y, z, 1.0);
-    return unprojectedPoint.xyz / unprojectedPoint.w;
-}
+	vec2 TexCoord;
+} vs_Output;
 
 void main() 
 {
-    FragProj = u_Matrices.Projection;
-    FragView = u_Matrices.View;
-
-    vec3 p = gridPlane[ gl_VertexIndex ].xyz;
-
-    NearPoint = UnprojectPoint(p.x, p.y, 0.0, u_Matrices.View, u_Matrices.Projection).xyz; // unprojecting on the near plane
-    FarPoint = UnprojectPoint(p.x, p.y, 1.0, u_Matrices.View, u_Matrices.Projection).xyz; // unprojecting on the far plane
-
-    gl_Position = vec4( p, 1.0 );
-    //gl_Position.y = -gl_Position.y; 
-
-   // gl_Position = vec4( p, 1.0 );
+	vs_Output.TexCoord = a_TexCoord;
+	
+	gl_Position = u_Matrices.ViewProjection * u_Matrices.Transform * vec4( a_Position, 1.0 );
 }
 
 #type fragment
 #version 450
 
-layout(location = 1) in vec3 NearPoint;
-layout(location = 2) in vec3 FarPoint;
-layout(location = 3) in mat4 FragProj;
-layout(location = 7) in mat4 FragView;
-
 layout(location = 0) out vec4 FinalColor;
 
-float computeDepth(vec3 pos) {
-    vec4 clip_space_pos = FragProj * FragView * vec4(pos.xyz, 1.0);
-    return (clip_space_pos.z / clip_space_pos.w);
-}
+layout(binding = 0) uniform Matrices 
+{
+	mat4 ViewProjection;
+	mat4 Transform;
+	float Scale;
+	float Res;
+} u_Matrices;
 
-vec4 grid(vec3 fragPos3D, float scale) {
-    vec2 coord = fragPos3D.xz * scale; // use the scale variable to set the distance between the lines
-    vec2 derivative = fwidth(coord);
-    vec2 grid = abs(fract(coord - 0.5) - 0.5) / derivative;
-    float line = min(grid.x, grid.y);
-    float minimumz = min(derivative.y, 1);
-    float minimumx = min(derivative.x, 1);
-    vec4 color = vec4(0.2, 0.2, 0.2, 1.0 - min(line, 1.0));
-    // z axis
-    if(fragPos3D.x > -0.1 * minimumx && fragPos3D.x < 0.1 * minimumx)
-        color.z = 1.0;
-    // x axis
-    if(fragPos3D.z > -0.1 * minimumz && fragPos3D.z < 0.1 * minimumz)
-        color.x = 1.0;
-    return color;
+layout(location = 1) in VertexOutput 
+{
+	vec2 TexCoord;
+} vs_Input;
+
+float grid( vec2 st ) 
+{
+	float res = u_Matrices.Res;
+	
+	vec2 grid = fract( ( st / 2 ) );
+
+	return step( res, grid.x * 1 ) * step( res, grid.y * 1 );
 }
 
 void main() 
 {
-    float t = -NearPoint.y / (FarPoint.y - NearPoint.y);
+	float scale = u_Matrices.Scale;
+	float res = u_Matrices.Res;
+	
+	float x = grid( vs_Input.TexCoord * scale );
+	
+	vec4 Color = vec4( vec3( 0.2 ), 0.5 ) * ( 1.0 - x );
+	
+	if( Color.a < 0.01 )
+		discard;
 
-    vec3 fragPos3D = NearPoint + t * (FarPoint - NearPoint);
-
-     gl_FragDepth = computeDepth( fragPos3D );
-
-    FinalColor = grid(fragPos3D, 10) * float(t > 0);
+	FinalColor = Color;
 }

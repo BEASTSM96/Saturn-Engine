@@ -149,20 +149,24 @@ namespace Saturn {
 	public:
 		VertexBuffer() : m_pData( nullptr ) { }
 
-		VertexBuffer( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage = 0 ) : m_pData( pData ) { m_Buffer.m_Size = Size; }
+		VertexBuffer( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage = 0 );
 		
 		VertexBuffer( const VertexBuffer& ) = delete;
 
 		~VertexBuffer();
 		void Terminate();
 		
-		void CreateBuffer();
 
 		void Bind( VkCommandBuffer CommandBuffer );
 		void Draw( VkCommandBuffer CommandBuffer );
 		void BindAndDraw( VkCommandBuffer CommandBuffer );
 
 	private:
+		
+		void CreateBuffer();
+
+	private:
+		
 		void* m_pData = nullptr;
 		
 		VertexBufferLayout Layout;

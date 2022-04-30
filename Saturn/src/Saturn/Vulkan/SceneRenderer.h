@@ -33,6 +33,8 @@
 #include "Saturn/Scene/Entity.h"
 #include "Mesh.h"
 
+#include "Pipeline.h"
+
 namespace Saturn {
 
 	struct DrawCommand
@@ -50,16 +52,59 @@ namespace Saturn {
 	{
 		VkCommandBuffer CommandBuffer;
 		uint32_t FrameCount;
+
+		// Grid
+		Pipeline GridPipeline;
+
+		struct GridMatricesObject
+		{
+			glm::mat4 ViewProjection;
+			glm::mat4 Transform;
+
+			float Scale;
+			float Res;
+		};
+
+		struct SkyboxMatricesObject
+		{
+			glm::mat4 View;
+			glm::mat4 Projection;
+			glm::vec4 ViewPos;
+
+			glm::vec3 p_A, p_B, p_C, p_D, p_E, p_Z;
+		};
+
+		VkDescriptorSet GridDescriptorSet = nullptr;
+		VkDescriptorSetLayout GridDescriptorSetLayout = nullptr;
+		VkDescriptorPool GridDescriptorPool = nullptr;
+		Buffer GridUniformBuffer;
+		VkDeviceMemory GridUniformBufferMemory;
+
+		// Skybox
+		Pipeline SkyboxPipeline;
+
+		VkDescriptorSet SkyboxDescriptorSet = nullptr;
+		VkDescriptorSetLayout SkyboxDescriptorSetLayout = nullptr;
+		VkDescriptorPool SkyboxDescriptorPool = nullptr;
+		Buffer SkyboxUniformBuffer;
+		VkDeviceMemory SkyboxUniformBufferMemory;
+
+		VertexBuffer* GridVertexBuffer;
+		IndexBuffer* GridIndexBuffer;
+
+		Ref< Shader > GridShader = nullptr;
+		Ref< Shader > SkyboxShader = nullptr;
 	};
 
 	class SceneRenderer
 	{
 		SINGLETON( SceneRenderer );
 	public:
-		 SceneRenderer() {}
-		~SceneRenderer();
+		 SceneRenderer() { Init(); }
+		 ~SceneRenderer();
 		
 		void SetRendererData( RendererData Data ) { m_RendererData = Data; }
+		void SetCommandBuffer( VkCommandBuffer CommandBuffer ) { m_RendererData.CommandBuffer = CommandBuffer; }
 
 		void SetCurrentScene( Scene* pScene ) { m_pSence = pScene; }
 
@@ -74,6 +119,14 @@ namespace Saturn {
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
 	private:
+		void Init();
+		void Terminate();
+
+		void CreateGridComponents();
+		void DestroyGridComponents();
+
+		void CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
+
 		RendererData m_RendererData;
 		std::vector< DrawCommand > m_DrawList;
 		Scene* m_pSence;

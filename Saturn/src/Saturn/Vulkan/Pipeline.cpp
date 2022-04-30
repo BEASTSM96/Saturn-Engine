@@ -130,8 +130,14 @@ namespace Saturn {
 		// Create the color blend attachment state.
 		VkPipelineColorBlendAttachmentState ColorBlendAttachmentState = {};
 		ColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		ColorBlendAttachmentState.blendEnable = VK_FALSE;
-		
+		ColorBlendAttachmentState.blendEnable = VK_TRUE;
+		ColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		ColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		ColorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
+		ColorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		ColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		ColorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
+
 		VkPipelineColorBlendStateCreateInfo ColorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
 		ColorBlendState.attachmentCount = 1;
 		ColorBlendState.pAttachments = &ColorBlendAttachmentState;
@@ -148,7 +154,7 @@ namespace Saturn {
 		PipelineMultisampleState.sampleShadingEnable = VK_FALSE;
 
 		VkPipelineDepthStencilStateCreateInfo DepthStencilState = { VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
-		DepthStencilState.depthTestEnable = m_Specification.UseDepthTest;
+		DepthStencilState.depthTestEnable = m_Specification.UseDepthTest ? VK_TRUE : VK_FALSE;
 		DepthStencilState.depthWriteEnable = VK_TRUE;
 		DepthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 		DepthStencilState.depthBoundsTestEnable = VK_FALSE;

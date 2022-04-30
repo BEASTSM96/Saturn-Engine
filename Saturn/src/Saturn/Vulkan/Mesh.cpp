@@ -170,8 +170,6 @@ namespace Saturn {
 		
 		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
 
-		m_VertexBuffer->CreateBuffer();
-
 		m_RealIndices.clear();
 
 		for( Index& rIndex : m_Indices )
@@ -183,8 +181,6 @@ namespace Saturn {
 		
 		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() );
 		
-		m_IndexBuffer->CreateBuffer();
-
 		m_VertexCount = vertexCount;
 		m_TriangleCount = m_TriangleCache.size();
 		m_VerticesCount = m_StaticVertices.size();

@@ -41,6 +41,8 @@ namespace Saturn {
 	{
 		m_pData = pData;
 		m_Buffer.m_Size = Size;
+
+		CreateBuffer();
 	}
 
 	IndexBuffer::~IndexBuffer()
