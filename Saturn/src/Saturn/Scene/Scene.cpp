@@ -145,8 +145,6 @@ namespace Saturn {
 
 		m_EntityIDMap[ IDcomponent.ID ] = entity;
 		
-		VulkanContext::Get().AddUniformBuffer( IDcomponent.ID );
-		
 		// Recreate pipeline as a new entity has been created.
 		//VulkanContext::Get().CreatePipeline();
 

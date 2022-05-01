@@ -5,6 +5,8 @@
 
 #include "VulkanDebug.h"
 
+#include "Saturn/Core/Timer.h"
+
 // ImGui
 #include <imgui.h>
 #include <backends/imgui_impl_vulkan.h>
@@ -413,14 +415,14 @@ namespace Saturn {
 		UBOLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		UBOLayoutBinding.descriptorCount = 1;
 		
-		UBOLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		UBOLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
 		UBOLayoutBinding.pImmutableSamplers = nullptr;
 		
 		VkDescriptorSetLayoutBinding SamplerLayoutBinding = {};
 		SamplerLayoutBinding.binding = 1;
 		SamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		SamplerLayoutBinding.descriptorCount = 1;
-		SamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		SamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
 
 		std::vector< VkDescriptorSetLayoutBinding > Bindings = { UBOLayoutBinding, SamplerLayoutBinding };
 
@@ -434,13 +436,11 @@ namespace Saturn {
 	void VulkanContext::CreateDescriptorPool()
 	{
 		if( m_DescriptorPool )
-			vkDestroyDescriptorPool( m_LogicalDevice, m_DescriptorPool, nullptr );
-
-		m_DescriptorPool = nullptr;
+			return;
 
 		std::vector< VkDescriptorPoolSize > PoolSizes = {};
 		
-		for( int i = 0; i < m_UniformBuffers.size(); i++ )
+		//for( int i = 0; i < m_UniformBuffers.size(); i++ )
 		{
 			PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 1000 } );
 
@@ -450,7 +450,7 @@ namespace Saturn {
 		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 		PoolCreateInfo.poolSizeCount = PoolSizes.size();
 		PoolCreateInfo.pPoolSizes = PoolSizes.data();
-		PoolCreateInfo.maxSets = 10000;
+		PoolCreateInfo.maxSets = 100000;
 		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;		
 
 		VK_CHECK( vkCreateDescriptorPool( m_LogicalDevice, &PoolCreateInfo, nullptr, &m_DescriptorPool ) );
@@ -458,7 +458,7 @@ namespace Saturn {
 
 	void VulkanContext::CreateDescriptorSet( UUID uuid, Ref< Texture > rTexture )
 	{
-		std::vector< VkDescriptorSetLayout > Layouts( 10000, m_DescriptorSetLayouts );
+		std::vector< VkDescriptorSetLayout > Layouts( m_UniformBuffers.size(), m_DescriptorSetLayouts );
 
 		VkDescriptorSetAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 		AllocateInfo.descriptorPool = m_DescriptorPool;
@@ -1014,7 +1014,6 @@ namespace Saturn {
 
 		VkCommandBuffer CommandBuffer;
 
-		// Geometry pass
 		// Safe check just in case window was iconified. After the other check.
 		if( !m_WindowIconifed )
 		{
@@ -1029,6 +1028,8 @@ namespace Saturn {
 			CommandPoolBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 			VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandPoolBeginInfo ) );
+			
+			CmdBeginDebugLabel( CommandBuffer, "Geometry pass" );
 
 			VkExtent2D Extent;
 			Window::Get().GetSize( &Extent.width, &Extent.height );
@@ -1037,7 +1038,10 @@ namespace Saturn {
 			Width = Extent.width;
 			Height = Extent.height;
 
-			// First pass ~ offscreen rendering to a VkImage
+			// Begin Geometry pass timer.
+			Timer GeometryPassTimer;
+			
+			// First pass ~ geometry pass
 			// This is draw to the surface but will get cleared when we do our ImGui pass, we store the texture in a VkDescriptorSet to render later on.
 			{
 				VkClearValue ClearColors[ 2 ];
@@ -1055,10 +1059,11 @@ namespace Saturn {
 					VkDebugMarkerMarkerInfoEXT MarkerInfo = { VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
 					float Color[ 4 ] = { 0.0f, 1.0f, 0.0f, 1.0f };
 					memcpy( MarkerInfo.color, &Color[ 0 ], sizeof( float ) * 4 );
-					MarkerInfo.pMarkerName = "Off-screen render pass";
+					MarkerInfo.pMarkerName = "Geometry render pass";
 
 					CmdDebugMarkerBegin( CommandBuffer, &MarkerInfo );
 				}
+				
 
 				vkCmdBeginRenderPass( CommandBuffer, &RenderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
 				
@@ -1089,24 +1094,30 @@ namespace Saturn {
 				vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
 				
 				//////////////////////////////////////////////////////////////////////////
-				
+			
 				SceneRenderer::Get().SetCommandBuffer( { CommandBuffer } );
 				
 				m_pImGuiVulkan->GetDockspace()->TryRenderScene();
-				
+
 				//////////////////////////////////////////////////////////////////////////
 			
 				vkCmdEndRenderPass( CommandBuffer );
 				CmdDebugMarkerEnd( CommandBuffer );
 			}
 
-			{	
+			CmdEndDebugLabel( CommandBuffer );
+			
+			SAT_CORE_INFO( "Geometry Pass took {0} ms", GeometryPassTimer.ElapsedMilliseconds() );
+
+			CmdBeginDebugLabel( CommandBuffer, "UI Pass" );
+
+			{
 				VkDebugMarkerMarkerInfoEXT MarkerInfo = { VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
-				float UIColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-				memcpy(MarkerInfo.color, &UIColor[0], sizeof(float) * 4);
+				float UIColor[ 4 ] = { 0.0f, 0.0f, 0.0f, 1.0f };
+				memcpy( MarkerInfo.color, &UIColor[ 0 ], sizeof( float ) * 4 );
 				MarkerInfo.pMarkerName = "ImGui Pass/present pass";
 
-				CmdDebugMarkerBegin(CommandBuffer, &MarkerInfo);
+				CmdDebugMarkerBegin( CommandBuffer, &MarkerInfo );
 			}
 
 			m_RenderPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, ImageIndex );
@@ -1121,8 +1132,11 @@ namespace Saturn {
 			}
 
 			m_RenderPass.EndPass();
-			CmdDebugMarkerEnd( CommandBuffer );
 			
+			CmdDebugMarkerEnd( CommandBuffer );
+
+			CmdEndDebugLabel( CommandBuffer );
+		
 			VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
 
 			// Rendering Queue
