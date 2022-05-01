@@ -145,9 +145,9 @@ namespace Saturn {
 		// Create the rasterization state.
 		VkPipelineRasterizationStateCreateInfo RasterizationState = { VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
 		RasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-		RasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
-		RasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
-		RasterizationState.lineWidth = 1.0f;
+		RasterizationState.cullMode = m_Specification.CullMode;
+		RasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		RasterizationState.lineWidth = 2.0f;
 
 		VkPipelineMultisampleStateCreateInfo PipelineMultisampleState = { VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
 		PipelineMultisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;

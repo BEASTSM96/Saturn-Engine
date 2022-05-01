@@ -57,9 +57,9 @@ namespace Saturn {
 		glm::mat4 VPM{ 1.f };
 	};
 
-	struct UniformBufferObject
+	struct Matrices
 	{
-		glm::mat4 Model;
+		glm::mat4 Transform;
 		glm::mat4 ViewProjection;
 	};
 

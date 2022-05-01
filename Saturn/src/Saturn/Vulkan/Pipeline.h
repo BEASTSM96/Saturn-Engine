@@ -69,6 +69,8 @@ namespace Saturn {
 		
 		bool UseDepthTest = false;
 
+		VkCullModeFlagBits CullMode = VK_CULL_MODE_BACK_BIT;
+
 		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions = {};
 		std::vector< VkVertexInputBindingDescription > BindingDescriptions = {};
 

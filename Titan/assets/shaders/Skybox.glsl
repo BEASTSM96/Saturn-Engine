@@ -33,8 +33,9 @@ void main()
 
 	vec4 position = vec4( a_Position.xy, 1.0, 1.0 );
 	
-	gl_Position = position;
-	
+	gl_Position = position;	
+	gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0;
+
 	vs_Output.TexCoord = ( InvViewProj * position ).xyz;
 }
 

@@ -470,7 +470,7 @@ namespace Saturn {
 		VkDescriptorBufferInfo BufferInfo ={};
 		BufferInfo.buffer = m_UniformBuffers[ uuid ].GetBuffer();
 		BufferInfo.offset = 0;
-		BufferInfo.range = sizeof( UniformBufferObject );
+		BufferInfo.range = sizeof( Matrices );
 		
 		VkDescriptorImageInfo ImageInfo ={};
 		ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -521,17 +521,11 @@ namespace Saturn {
 
 	void VulkanContext::UpdateUniformBuffers( UUID uuid, Timestep ts, glm::mat4 Transform )
 	{
-		UniformBufferObject UBO ={};
-		UBO.Model = Transform;
+		Matrices UBO ={};
 
-		glm::mat4 view = m_Camera.ViewMatrix();
-		view[ 1 ][ 1 ] *= -1;
-
-		auto& proj = m_Camera.ProjectionMatrix();
-
-		UBO.ViewProjection = proj * view;
-		//UBO.ViewProjection[ 1 ][ 1 ] *= -1;
-
+		UBO.Transform = Transform;
+		UBO.ViewProjection = m_Camera.ViewProjection();
+		
 		void* Data;
 		
 		m_UniformBuffers[ uuid ].Map( &Data, sizeof( UBO ) );
@@ -543,7 +537,7 @@ namespace Saturn {
 
 	void VulkanContext::AddUniformBuffer( UUID uuid )
 	{
-		VkDeviceSize BufferSize = sizeof( UniformBufferObject );
+		VkDeviceSize BufferSize = sizeof( Matrices );
 
 		m_UniformBuffers[ uuid ].Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 	}
@@ -610,7 +604,9 @@ namespace Saturn {
 		Spec.UseDepthTest = true;
 		Spec.Layout.PushConstants = { { PushConstantRage } };
 		Spec.Layout.SetLayouts = { { m_DescriptorSetLayouts }  };
-		
+		// Because we have not fliped the mesh the back cull mode will be the front cull mode.
+		Spec.CullMode = VK_CULL_MODE_FRONT_BIT;
+
 		VertexBufferLayout Layout =
 		{
 			{ ShaderDataType::Float3, "a_Position" },
@@ -1035,8 +1031,8 @@ namespace Saturn {
 			Window::Get().GetSize( &Extent.width, &Extent.height );
 			
 			uint32_t Width, Height;
-			Width = Extent.width;
-			Height = Extent.height;
+			Width = Window::Get().Width();
+			Height = Window::Get().Height();
 
 			// Begin Geometry pass timer.
 			Timer GeometryPassTimer;
@@ -1062,33 +1058,23 @@ namespace Saturn {
 					MarkerInfo.pMarkerName = "Geometry render pass";
 
 					CmdDebugMarkerBegin( CommandBuffer, &MarkerInfo );
-				}
-				
+				}	
 
 				vkCmdBeginRenderPass( CommandBuffer, &RenderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
 				
 				VkRect2D Scissor ={};
 				Scissor.extent = Extent;
+				
+				int negHeight = -Height;
 
-				float w = -Window::Get().Width();
-				float h = -Window::Get().Height();
-#if 0
-				VkViewport Viewport ={};
-				Viewport.width = Extent.width;
-				Viewport.height = h;
+				// Flip the viewport.
+				VkViewport Viewport = {};
 				Viewport.x = 0;
-				Viewport.y = Extent.height;
+				Viewport.y = Height;
+				Viewport.width = Width;
+				Viewport.height = negHeight;
+				Viewport.minDepth = 0.0f;
 				Viewport.maxDepth = 1.0f;
-				Viewport.minDepth = 0;
-#else
-				VkViewport Viewport ={};
-				Viewport.width = Extent.width;
-				Viewport.height = Extent.height;
-				Viewport.x = 0;
-				Viewport.y = 0;
-				Viewport.maxDepth = 1.0f;
-				Viewport.minDepth = 0;
-#endif
 
 				vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
 				vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );

@@ -21,7 +21,8 @@ void main()
 {
 	vs_Output.TexCoord = a_TexCoord;
 	
-	gl_Position = u_Matrices.ViewProjection * u_Matrices.Transform * vec4( a_Position, 1.0 );
+	gl_Position = u_Matrices.ViewProjection * u_Matrices.Transform * vec4( a_Position, 1.0 );	
+	gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0;
 }
 
 #type fragment
