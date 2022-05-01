@@ -30,6 +30,8 @@
 
 #include <string>
 
+#include "Texture.h"
+
 #include "ShaderDataType.h"
 
 namespace Saturn {
@@ -45,30 +47,70 @@ namespace Saturn {
 		ShaderUniform( const std::string& name, int location, ShaderDataType type )
 			: Name( name ), Location( location ), Type( type )
 		{
-			UUID = location * location;
+			UUID = location * 2;
 		}
 
 		void Terminate()
 		{
-			if( pValue != nullptr )
+			switch( Type )
 			{
-				delete pValue;
-				pValue = nullptr;
+				case Saturn::ShaderDataType::None:
+				case Saturn::ShaderDataType::Float:
+				case Saturn::ShaderDataType::Float2:
+				case Saturn::ShaderDataType::Float3:
+				case Saturn::ShaderDataType::Float4:
+				case Saturn::ShaderDataType::Mat3:
+				case Saturn::ShaderDataType::Mat4:
+				case Saturn::ShaderDataType::Int:
+				case Saturn::ShaderDataType::Int2:
+				case Saturn::ShaderDataType::Int3:
+				case Saturn::ShaderDataType::Int4:
+				case Saturn::ShaderDataType::Bool:
+				{
+					if( pValue != nullptr )
+					{
+						delete pValue;
+						pValue = nullptr;
+					}
+				} break;
+					
+				case Saturn::ShaderDataType::SamplerCube:
+				case Saturn::ShaderDataType::Sampler2D:
+				{
+					// Ty = Texture2D
+					
+					if ( pValue )
+					{				
+						Texture2D* Texture = ( Texture2D* )pValue;
+						Texture->Terminate();
+					}
+				} break;
+
+				default:
+					break;
 			}
-
-			Name = "Null";
-
-			SAT_CORE_INFO( "Shader Uniform {0} has been terminated.", Name );
-
+			
 			Location = -1;
 			Type = ShaderDataType::None;
 			pValue = nullptr;
+			UUID = 0;
+		}
+
+		operator bool () const
+		{
+			return !( pValue == nullptr );
 		}
 
 		template<typename Ty>
 		void Set( Ty& Value )
 		{
 			pValue = &Value;
+		}
+
+		template<typename Ty>
+		Ty* As()
+		{
+			return ( Ty* )pValue;
 		}
 
 		ShaderUniform& operator=( const ShaderUniform& other )

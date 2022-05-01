@@ -41,6 +41,7 @@ namespace Saturn {
 	{
 	public:
 		ImGuiDockspace();
+		~ImGuiDockspace();
 
 		void Draw();
 

@@ -46,15 +46,23 @@ namespace Saturn {
 		~MaterialSpec() 
 		{
 			Terminate();
+
+
 		}			
 		
 		void Terminate() 
 		{
-			//Albedo.Terminate();
-			//Normal.Terminate();
-			//Roughness.Terminate();
-			//Metallic.Terminate();
+			if( Albedo )
+				Albedo->Terminate();
 			
+			if( Normal )
+				Normal->Terminate();
+			
+			if( Metallic )
+				Metallic->Terminate();
+			
+			if( Roughness )
+				Roughness->Terminate();
 		}
 
 		MaterialSpec( 
@@ -65,14 +73,15 @@ namespace Saturn {
 			ShaderUniform& Metallic,
 			ShaderUniform& Roughness )
 		{
+			// Java be like...
+
 			this->Name = std::move( Name );
 			this->ID = ID;
 			
-			// Copy shader uniforms.
-			memcpy( &this->Albedo, &Albedo, sizeof( ShaderUniform ) );
-			memcpy( &this->Normal, &Normal, sizeof( ShaderUniform ) );
-			memcpy( &this->Metallic, &Metallic, sizeof( ShaderUniform ) );
-			memcpy( &this->Roughness, &Roughness, sizeof( ShaderUniform ) );
+			this->Albedo = &Albedo;
+			this->Normal = &Normal;
+			this->Metallic = &Metallic;
+			this->Roughness = &Roughness;
 		}
 		
 		// Copy
@@ -141,16 +150,16 @@ namespace Saturn {
 		
 		UUID ID = 0;
 
-		ShaderUniform Albedo;
-		ShaderUniform Normal;
-		ShaderUniform Metallic;
-		ShaderUniform Roughness;
+		ShaderUniform* Albedo;
+		ShaderUniform* Normal;
+		ShaderUniform* Metallic;
+		ShaderUniform* Roughness;
 	};
 
 	class Material
 	{
 	public:
-		 Material( const MaterialSpec& Spec );
+		 Material( MaterialSpec* Spec );
 		~Material();
 
 		void Bind( Ref<Shader> Shader );
@@ -163,6 +172,6 @@ namespace Saturn {
 		void SetRoughness( Ref<Texture2D> Roughness );
 
 	private:
-		MaterialSpec m_Spec;
+		MaterialSpec* m_Spec;
 	};
 }

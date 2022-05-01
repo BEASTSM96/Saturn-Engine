@@ -210,36 +210,37 @@ namespace Saturn {
 			
 			std::string MatName = std::string( name.C_Str() );
 
-			MaterialSpec Spec(
-				MatName, uuid, 
+			MaterialSpec* pSpec = new MaterialSpec(
+				MatName,
+				uuid,
 				m_MeshShader->FindUniform( "u_AlbedoTexture" ),
-				m_MeshShader->FindUniform( "u_NormalTexture" ), 
+				m_MeshShader->FindUniform( "u_NormalTexture" ),
 				m_MeshShader->FindUniform( "u_MetallicTexture" ),
-				m_MeshShader->FindUniform( "u_RoughnessTexture" )
-			// TEMP: We only use Albedo for now
-			);
-			
-			m_MeshMaterial = Ref<Material>::Create( Spec );
+				m_MeshShader->FindUniform( "u_RoughnessTexture" ) );
+
+			m_MeshMaterial = Ref<Material>::Create( pSpec );
 
 			// Albedo Texture
 			{
-				aiString AlbedoTexture;
-				if( material->GetTexture( aiTextureType_DIFFUSE, 0, &AlbedoTexture ) == AI_SUCCESS )
+				aiString AlbedoTexturePath;
+				if( material->GetTexture( aiTextureType_DIFFUSE, 0, &AlbedoTexturePath ) == AI_SUCCESS )
 				{
 					std::filesystem::path AlbedoPath = filename;
 					auto pp = AlbedoPath.parent_path();
 					
-					pp /= std::string( AlbedoTexture.data );
+					pp /= std::string( AlbedoTexturePath.data );
 					
 					auto AlbedoTexturePath = pp.string();
 
 					SAT_CORE_INFO( "MESH FOR ENTITY ID {0}: Albedo Map texture {1}", std::to_string( uuid ), AlbedoTexturePath );
 					
-					auto AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
+					Ref< Texture2D > AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
 
 					m_MeshMaterial->SetAlbedo( AlbedoTexture );	
 				}
 			}
+
+			
 		}
 	}
 
@@ -255,6 +256,8 @@ namespace Saturn {
 
 	Mesh::~Mesh()
 	{
+		m_MeshMaterial.Delete();
+
 		m_VertexBuffer.Delete();
 		m_IndexBuffer.Delete();
 

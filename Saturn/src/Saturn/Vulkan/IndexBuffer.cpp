@@ -118,9 +118,7 @@ namespace Saturn {
 
 	void IndexBuffer::Terminate()
 	{
-		// TODO: Terminate buffer.
-
-		m_pData = nullptr;
+		m_Buffer.Terminate();
 	}
 
 }

@@ -68,6 +68,18 @@ namespace Saturn {
 	{
 		s_ActiveScenes.erase( m_SceneID );
 
+		// Destroy all entities with mesh component.
+		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
+		
+		for ( const auto e : group )
+		{
+			Entity entity( e, this );
+
+			Ref< Mesh > mesh = entity.GetComponent<MeshComponent>().Mesh;
+
+			mesh.Delete();
+		}
+
 		m_Registry.clear();
 	}
 

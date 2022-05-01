@@ -53,6 +53,11 @@ namespace Saturn {
 		m_SceneHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( ImGuiDockspace::SelectionChanged ) );
 	}
 
+	ImGuiDockspace::~ImGuiDockspace()
+	{
+		m_Scene.Delete();
+	}
+
 	void ImGuiDockspace::Draw()
 	{
 		// imgui_demo.cpp

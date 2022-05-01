@@ -242,7 +242,7 @@ namespace Saturn {
 
 	void Texture2D::Terminate()
 	{
-		// Texture::Terminate
+		Texture::Terminate();
 	}
 
 	// Load and create a texture 2D for a file path.

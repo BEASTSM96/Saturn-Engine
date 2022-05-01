@@ -84,6 +84,8 @@ namespace Saturn {
 
 		m_Buffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 		
+		SetDebugUtilsObjectName( "Vertex Buffer", ( uint64_t ) m_Buffer.m_Buffer, VK_OBJECT_TYPE_BUFFER );
+
 		// Copy buffer
 		{
 			VkCommandBuffer CommandBuffer;
@@ -126,7 +128,7 @@ namespace Saturn {
 
 	void VertexBuffer::Terminate()
 	{
-		m_pData = nullptr;
+		m_Buffer.Terminate();
 	}
 
 	//////////////////////////////////////////////////////////////////////////
