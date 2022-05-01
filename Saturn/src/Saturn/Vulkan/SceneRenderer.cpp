@@ -468,8 +468,7 @@ namespace Saturn {
 
 		// Bind the descriptor sets.
 		vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ uuid ], 0, nullptr );
-
-		// No push constants for now.
+		
 
 		// Update uniform buffers.
 		VulkanContext::Get().UpdateUniformBuffers( entity.GetComponent<IdComponent>().ID, Application::Get().Time(), entity.GetComponent<TransformComponent>().GetTransform() );

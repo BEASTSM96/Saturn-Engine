@@ -100,12 +100,13 @@ namespace Saturn {
 	
 	void ImGuiVulkan::Terminate()
 	{
+		delete m_pDockspace;
+
 		if( m_DescriptorPool )
 			vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_DescriptorPool, nullptr );
 
 		m_DescriptorPool = nullptr;
 
-		delete m_pDockspace;
 
 		ImGui_ImplVulkan_Shutdown();
 	}

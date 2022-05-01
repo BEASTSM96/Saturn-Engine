@@ -9,15 +9,22 @@ layout(location = 4) in vec2 a_TexCoord;
 
 layout(location = 0) out vec2 v_FragTexCoord;
 
-layout(push_constant) uniform Push {
-	mat4 Transform;
-	mat4 VPM;
-} push;
-
 layout(binding = 0) uniform Matrices 
 {
     mat4 Transform;
     mat4 ViewProjection;
+	
+	bool UseAlbedoTexture;
+	bool UseMetallicTexture;
+	bool UseRoughnessTexture;
+	bool UseNormalTexture;
+
+	//
+
+	vec4 AlbedoColor;
+	vec4 MetallicColor;
+	vec4 RoughnessColor;
+
 } u_Matrices;
 
 layout(location = 1) out VertexOutput 
@@ -63,12 +70,25 @@ layout (binding = 2) uniform sampler2D u_NormalTexture;
 layout (binding = 3) uniform sampler2D u_MetallicTexture;
 layout (binding = 4) uniform sampler2D u_RoughnessTexture;
 
-layout (location = 0) out vec4 FinalColor;
+layout(binding = 0) uniform Matrices 
+{
+    mat4 Transform;
+    mat4 ViewProjection;
+	
+	bool UseAlbedoTexture;
+	bool UseMetallicTexture;
+	bool UseRoughnessTexture;
+	bool UseNormalTexture;
 
-layout(push_constant) uniform Push {
-	mat4 Transform;
-	mat4 VPM;
-} push;
+	//
+
+	vec4 AlbedoColor;
+	vec4 MetallicColor;
+	vec4 RoughnessColor;
+
+} u_Matrices;
+
+layout (location = 0) out vec4 FinalColor;
 
 layout(location = 1) in VertexOutput 
 {
@@ -81,5 +101,12 @@ layout(location = 1) in VertexOutput
 
 void main() 
 {
-	FinalColor = texture( u_AlbedoTexture, v_FragTexCoord );
+	if( u_Matrices.UseAlbedoTexture ) 
+	{
+		FinalColor = texture( u_AlbedoTexture, v_FragTexCoord );
+	}
+	else
+	{
+		FinalColor = vec4( 0, 0, 1, 1 );
+	}
 }

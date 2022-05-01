@@ -32,6 +32,7 @@
 #include "Saturn/Core/IO.h"
 
 #include "Saturn/Discord/DiscordRPC.h"
+#include "Saturn/Vulkan/VulkanContext.h"
 
 #include "imgui.h"
 
@@ -56,6 +57,10 @@ namespace Saturn {
 	ImGuiDockspace::~ImGuiDockspace()
 	{
 		m_Scene.Delete();
+
+		delete m_TitleBar;
+		delete m_SceneHierarchyPanel;
+		delete m_Viewport;
 	}
 
 	void ImGuiDockspace::Draw()
@@ -112,6 +117,17 @@ namespace Saturn {
 		ImGui::Begin( "Output" );
 
 		ImGui::Text( "%s", IO::Get().StdStreamBuffer().str().c_str() );
+
+		ImGui::End();
+
+		ImGui::Begin( "Renderer" );
+
+		for ( const auto& devices : VulkanContext::Get().GetPhysicalDeviceProperties() )
+		{
+			ImGui::Text( "Device Name: %s", devices.DeviceProps.deviceName );
+			ImGui::Text( "API Version: %i", devices.DeviceProps.apiVersion );
+			ImGui::Text( "Vendor ID: %i", devices.DeviceProps.vendorID );
+		}
 
 		ImGui::End();
 

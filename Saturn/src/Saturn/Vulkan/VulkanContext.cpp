@@ -237,12 +237,12 @@ namespace Saturn {
 		for ( int i = 0; i < PhysicalDevices.size(); i++ )
 		{
 			m_DeviceProps.push_back( {} );
-			vkGetPhysicalDeviceProperties( m_PhysicalDevice, &m_DeviceProps[ 0 ].DeviceProps );
+			vkGetPhysicalDeviceProperties( m_PhysicalDevice, &m_DeviceProps[ i ].DeviceProps );
 
 			SAT_CORE_INFO( "===== Vulkan Device {0} Properties ===== ", i );
-			SAT_CORE_INFO( " Device Name: {0}", m_DeviceProps[ 0 ].DeviceProps.deviceName );
-			SAT_CORE_INFO( " Driver Version: {0}", m_DeviceProps[ 0 ].DeviceProps.driverVersion );
-			SAT_CORE_INFO( " API Version: {0}", m_DeviceProps[ 0 ].DeviceProps.apiVersion );
+			SAT_CORE_INFO( " Device Name: {0}", m_DeviceProps[ i ].DeviceProps.deviceName );
+			SAT_CORE_INFO( " Driver Version: {0}", m_DeviceProps[ i ].DeviceProps.driverVersion );
+			SAT_CORE_INFO( " API Version: {0}", m_DeviceProps[ i ].DeviceProps.apiVersion );
 
 			{
 				uint32_t Count;
@@ -471,7 +471,7 @@ namespace Saturn {
 		BufferInfo.buffer = m_UniformBuffers[ uuid ].GetBuffer();
 		BufferInfo.offset = 0;
 		BufferInfo.range = sizeof( Matrices );
-		
+
 		VkDescriptorImageInfo ImageInfo ={};
 		ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		ImageInfo.imageView = rTexture->GetImageView();
@@ -526,6 +526,8 @@ namespace Saturn {
 		UBO.Transform = Transform;
 		UBO.ViewProjection = m_Camera.ViewProjection();
 		
+		UBO.UseAlbedoTexture = true;
+
 		void* Data;
 		
 		m_UniformBuffers[ uuid ].Map( &Data, sizeof( UBO ) );
@@ -587,13 +589,7 @@ namespace Saturn {
 	}
 
 	void VulkanContext::CreatePipeline()
-	{
-		
-		VkPushConstantRange PushConstantRage ={};
-		PushConstantRage.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-		PushConstantRage.offset = 0;
-		PushConstantRage.size = sizeof( PushConstant );
-
+	{		
 		PipelineSpecification Spec;
 		
 		Spec.Width = Window::Get().Width();
@@ -602,7 +598,6 @@ namespace Saturn {
 		Spec.RenderPass = m_RenderPass.GetRenderPass();
 		Spec.pShader = ShaderWorker::Get().GetShader( "Triangle/Shader" );
 		Spec.UseDepthTest = true;
-		Spec.Layout.PushConstants = { { PushConstantRage } };
 		Spec.Layout.SetLayouts = { { m_DescriptorSetLayouts }  };
 		// Because we have not fliped the mesh the back cull mode will be the front cull mode.
 		Spec.CullMode = VK_CULL_MODE_FRONT_BIT;

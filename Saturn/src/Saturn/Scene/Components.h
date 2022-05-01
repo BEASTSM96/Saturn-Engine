@@ -199,8 +199,8 @@ namespace Saturn {
 		bool DynamicSky = false;
 
 		float Turbidity = 2.0f;
-		float Azimuth = 1.0f;
-		float Inclination = 1.0f;
+		float Azimuth = -0.50;
+		float Inclination = 0.90f;
 
 		SkylightComponent() = default;
 		SkylightComponent( const SkylightComponent& other ) = default;

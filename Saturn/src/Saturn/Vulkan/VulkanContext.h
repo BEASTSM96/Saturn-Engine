@@ -51,16 +51,19 @@ namespace Saturn {
 		VkPhysicalDeviceProperties DeviceProps ={};
 	};
 
-	struct PushConstant
-	{
-		glm::mat4 Transfrom{ 1.f };
-		glm::mat4 VPM{ 1.f };
-	};
-
 	struct Matrices
 	{
 		glm::mat4 Transform;
 		glm::mat4 ViewProjection;
+
+		bool UseAlbedoTexture;
+		bool UseMetallicTexture;
+		bool UseRoughnessTexture;
+		bool UseNormalTexture;
+
+		glm::vec4 AlbedoColor;
+		glm::vec4 MetallicColor;
+		glm::vec4 RoughnessColor;
 	};
 
 	class VulkanContext
@@ -121,6 +124,9 @@ namespace Saturn {
 
 		VkFence& GetCurrentFlightFence() { return m_FlightFences[ m_FrameCount ]; }
 
+		std::vector< PhysicalDeviceProperties > GetPhysicalDeviceProperties() { return m_DeviceProps; }
+		std::vector< PhysicalDeviceProperties > const GetPhysicalDeviceProperties() const { return m_DeviceProps; }
+
 		void OnEvent( Event& e );
 
 		void SetWindowIconifed( bool inconifed ) { m_WindowIconifed = inconifed; }
@@ -141,7 +147,7 @@ namespace Saturn {
 
 		void UpdateUniformBuffers( UUID uuid, Timestep ts, glm::mat4 Transform );
 		void AddUniformBuffer( UUID uuid );
-		
+	
 		// Descriptor
 
 		void CreateDescriptorPool();
