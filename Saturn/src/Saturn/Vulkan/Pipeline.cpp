@@ -146,7 +146,7 @@ namespace Saturn {
 		VkPipelineRasterizationStateCreateInfo RasterizationState = { VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
 		RasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
 		RasterizationState.cullMode = m_Specification.CullMode;
-		RasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		RasterizationState.frontFace = m_Specification.FrontFace;
 		RasterizationState.lineWidth = 2.0f;
 
 		VkPipelineMultisampleStateCreateInfo PipelineMultisampleState = { VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };

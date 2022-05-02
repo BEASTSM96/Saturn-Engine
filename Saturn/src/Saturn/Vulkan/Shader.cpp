@@ -36,6 +36,12 @@
 
 #include <shaderc/shaderc.hpp>
 #include <shaderc/shaderc.h>
+
+#include <spirv/spirv.h>
+#include <spirv/spirv.hpp>
+#include <spirv/spirv_cross.hpp>
+#include <spirv/spirv_glsl.hpp>
+
 #include <cassert>
 
 namespace Saturn {
@@ -64,6 +70,7 @@ namespace Saturn {
 		//CompilerOptions.SetGenerateDebugInfo();
 	#endif
 		
+		/*
 		for( auto [key, src] : pShader->m_ShaderSources )
 		{
 			auto ShaderSrcCode = src.Source;
@@ -75,6 +82,7 @@ namespace Saturn {
 				ShaderSrcCode.c_str(),
 				CompilerOptions
 			);
+			
 			
 			SAT_CORE_INFO( "Shader Warings {0}", Result.GetNumWarnings() );
 			SAT_CORE_INFO( "Shader Error status {0}", Result.GetCompilationStatus() );
@@ -92,6 +100,8 @@ namespace Saturn {
 			// Save code for later if we need it.
 			std::vector<uint32_t> Code( AssembleResult.begin(), AssembleResult.end() );
 			
+			pShader->Reflect( Code );
+
 			//m_ShaderCodes.insert( { std::string( pShader->m_ShaderCodenames[] ) ), Code } );
 			
 			m_ShaderCodes.insert( { std::string( pShader->m_Name + "/" + ShaderTypeToString( src.Type ) + "/" + std::to_string( src.Index ) ), Code } );
@@ -99,6 +109,7 @@ namespace Saturn {
 			SAT_CORE_INFO("===== SHADER OUTPUT: =====\n{0}\n", ResultString.c_str() );
 			SAT_CORE_INFO( "==========================\n \n" );
 		}
+		*/
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -110,6 +121,14 @@ namespace Saturn {
 
 		ReadFile();
 		DetermineShaderTypes();
+		
+		CompileGlslToSpvAssembly();
+				
+		for ( auto&& [key, code] : m_SpvCode )
+		{
+			Reflect( code );
+		}
+
 		GetAvailableUniform();
 	}
 
@@ -324,6 +343,107 @@ namespace Saturn {
 				.m_Type = std::move( ShaderTypeToString( Shader_Type ) )
 			} );
 		}
+	}
+
+	void Shader::Reflect( const std::vector<uint32_t>& rShaderData )
+	{
+		spirv_cross::Compiler Compiler( rShaderData );
+		spirv_cross::ShaderResources Resources = Compiler.get_shader_resources();
+
+		SAT_CORE_INFO( "Shader Reflecting..." );
+		SAT_CORE_INFO( " {0} uniform buffers", Resources.uniform_buffers.size() );
+		SAT_CORE_INFO( " {0} push constants", Resources.push_constant_buffers.size() );
+		SAT_CORE_INFO( " {0} storage buffers", Resources.storage_buffers.size() );
+		SAT_CORE_INFO( " {0} sampled images", Resources.sampled_images.size() );
+		SAT_CORE_INFO( " {0} storage images", Resources.storage_images.size() );
+		SAT_CORE_INFO( " {0} sampled buffers", Resources.separate_images.size() );
+
+		SAT_CORE_INFO( "Uniform Buffers:" );
+		for( auto& UniformBuffer : Resources.uniform_buffers )
+		{
+			const auto& rBufferType = Compiler.get_type( UniformBuffer.base_type_id );
+			uint32_t Size = Compiler.get_declared_struct_size( rBufferType );
+			uint32_t Binding = Compiler.get_decoration( UniformBuffer.id, spv::DecorationBinding );
+			
+			int MemberCount = rBufferType.member_types.size();
+
+			SAT_CORE_INFO( "  {0}", UniformBuffer.name );
+			SAT_CORE_INFO( "   Binding: {0}", Binding );
+			SAT_CORE_INFO( "   Size: {0}", Size );
+			SAT_CORE_INFO( "   Member Count: {0}", MemberCount );
+		}
+
+		SAT_CORE_INFO( "Push Constant Buffer:" );
+		for( auto& PushConstantBuffer : Resources.push_constant_buffers )
+		{
+			const auto& rBufferType = Compiler.get_type( PushConstantBuffer.base_type_id );
+			uint32_t Size = Compiler.get_declared_struct_size( rBufferType );
+			uint32_t Binding = Compiler.get_decoration( PushConstantBuffer.id, spv::DecorationBinding );
+			
+			int MemberCount = rBufferType.member_types.size();
+
+			SAT_CORE_INFO( "  {0}", PushConstantBuffer.name );
+			SAT_CORE_INFO( "   Binding: {0}", Binding );
+			SAT_CORE_INFO( "   Size: {0}", Size );
+			SAT_CORE_INFO( "   Member Count: {0}", MemberCount );
+		}
+
+		SAT_CORE_INFO( "Storage Buffer:" );
+		for( auto& StorageBuffer : Resources.storage_buffers )
+		{
+			const auto& rBufferType = Compiler.get_type( StorageBuffer.base_type_id );
+			uint32_t Size = Compiler.get_declared_struct_size( rBufferType );
+			uint32_t Binding = Compiler.get_decoration( StorageBuffer.id, spv::DecorationBinding );
+
+			int MemberCount = rBufferType.member_types.size();
+
+			SAT_CORE_INFO( "  {0}", StorageBuffer.name );
+			SAT_CORE_INFO( "   Binding: {0}", Binding );
+			SAT_CORE_INFO( "   Size: {0}", Size );
+			SAT_CORE_INFO( "   Member Count: {0}", MemberCount );
+		}
+	}
+
+	void Shader::CompileGlslToSpvAssembly()
+	{
+		shaderc::Compiler       Compiler;
+		shaderc::CompileOptions CompilerOptions;
+		
+		CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_performance );
+		
+		CompilerOptions.SetTargetEnvironment( shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2 );
+
+		Timer CompileTimer;
+
+		for ( auto&& [key, src] : m_ShaderSources )
+		{
+			std::string& rShaderSrcCode = src.Source;
+
+			auto AssembleResult = Compiler.CompileGlslToSpvAssembly(
+				rShaderSrcCode.c_str(),
+				rShaderSrcCode.size(), 
+				src.Type == ShaderType::Vertex ? shaderc_shader_kind::shaderc_glsl_default_vertex_shader : shaderc_shader_kind::shaderc_glsl_default_fragment_shader,
+				rShaderSrcCode.c_str(),
+				CompilerOptions );
+
+			SAT_CORE_INFO( "Shader Warings {0}", AssembleResult.GetNumWarnings() );
+			SAT_CORE_INFO( "Shader Error status {0}", AssembleResult.GetCompilationStatus() );
+			SAT_CORE_INFO( "Shader Error messages {0}", AssembleResult.GetErrorMessage() );
+
+			std::string AssemblyCode( AssembleResult.begin(), AssembleResult.end() );
+
+			auto SpvBinarayResult = Compiler.AssembleToSpv( AssemblyCode.c_str(), AssemblyCode.size() );
+
+			SAT_CORE_INFO( "Spv Shader Warings {0}", SpvBinarayResult.GetNumWarnings() );
+			SAT_CORE_INFO( "Spv Shader Error status {0}", SpvBinarayResult.GetCompilationStatus() );
+			SAT_CORE_INFO( "Spv Shader Error messages {0}", SpvBinarayResult.GetErrorMessage() );
+
+			std::vector< uint32_t > SpvBinary( SpvBinarayResult.begin(), SpvBinarayResult.end() );
+
+			m_SpvCode[ key ] = SpvBinary;
+		}
+
+		SAT_CORE_INFO( "Shader Compilation took {0} ms", CompileTimer.ElapsedMilliseconds() );
 	}
 
 	ShaderType ShaderTypeFromString( std::string Str )

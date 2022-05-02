@@ -240,8 +240,13 @@ namespace Saturn {
 
 		void DetermineShaderTypes();
 		
+		void Reflect( const std::vector<uint32_t>& rShaderData );
+		
+		void CompileGlslToSpvAssembly();
+
 	private:
 		std::unordered_map< ShaderSourceKey, ShaderSource > m_ShaderSources;
+		std::unordered_map< ShaderSourceKey, std::vector< uint32_t > > m_SpvCode;
 
 		std::string m_FileContents = "";
 

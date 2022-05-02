@@ -70,6 +70,7 @@ namespace Saturn {
 		bool UseDepthTest = false;
 
 		VkCullModeFlagBits CullMode = VK_CULL_MODE_BACK_BIT;
+		VkFrontFace FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
 		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions = {};
 		std::vector< VkVertexInputBindingDescription > BindingDescriptions = {};

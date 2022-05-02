@@ -256,7 +256,8 @@ namespace Saturn {
 
 	Mesh::~Mesh()
 	{
-		m_MeshMaterial.Delete();
+		if( m_MeshMaterial )
+			m_MeshMaterial.Delete();
 
 		m_VertexBuffer.Delete();
 		m_IndexBuffer.Delete();

@@ -138,7 +138,7 @@ namespace Saturn {
 			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning ) 
 			{
 				m_RuntimeScene = nullptr;
-
+				
 				m_SceneHierarchyPanel->SetContext( m_EditorScene );
 			}
 		}

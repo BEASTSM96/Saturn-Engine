@@ -48,3 +48,4 @@
 
 #include <Saturn/Core/Log.h>
 #include <Saturn/Core/Base.h>
+#include <Saturn/Core/Timer.h>

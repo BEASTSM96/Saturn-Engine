@@ -145,8 +145,8 @@ namespace Saturn {
 		CheckValidationLayerSupport();
 
 		VkApplicationInfo AppInfo  ={ VK_STRUCTURE_TYPE_APPLICATION_INFO };
-		AppInfo.pApplicationName   = "Vulkan Engine";
-		AppInfo.pEngineName        = "Vulkan Engine";
+		AppInfo.pApplicationName = "Saturn Engine";
+		AppInfo.pEngineName        = "Saturn Engine";
 		AppInfo.applicationVersion = VK_MAKE_VERSION( 1, 0, 0 );
 		AppInfo.engineVersion      = VK_MAKE_VERSION( 1, 0, 0 );
 		AppInfo.apiVersion         = VK_API_VERSION_1_2;
