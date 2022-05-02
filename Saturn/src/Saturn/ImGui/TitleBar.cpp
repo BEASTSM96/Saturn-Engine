@@ -31,19 +31,31 @@
 
 #include "Saturn/Core/Window.h"
 
+#include "backends/imgui_impl_vulkan.h"
+
 namespace Saturn {
 
 	TitleBar::TitleBar()
 	{
+		m_pLogo = new Texture2D( "assets/Icons/SaturnLogov1.png", AddressingMode::Repeat );
 
+		m_LogoDescSet = ( VkDescriptorSet )ImGui_ImplVulkan_AddTexture( m_pLogo->GetSampler(), m_pLogo->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+	}
+
+	TitleBar::~TitleBar()
+	{
+		delete m_pLogo;	
 	}
 
 	void TitleBar::Draw()
 	{
-		ImGui::SetNextItemWidth( 25.0f );
+		//ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 0, 5 ) );
 
 		if( ImGui::BeginMainMenuBar() )
 		{
+			// Render logo
+			//ImGui::Image( m_LogoDescSet, ImVec2( 50.0f, 50.0f ) );
+
 			m_Height = ImGui::GetWindowHeight();
 
 			if( ImGui::BeginMenu( "File" ) )
@@ -54,7 +66,7 @@ namespace Saturn {
 			}
 
 			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + 30 );
-			ImGui::Text( "%.1f FPS", ImGui::GetIO().Framerate );
+			ImGui::Text( "%.2f FPS", ImGui::GetIO().Framerate );
 
 			// System buttons
 			{
@@ -142,6 +154,8 @@ namespace Saturn {
 
 			ImGui::EndMainMenuBar();
 		}
+
+		//ImGui::PopStyleVar();
 	}
 
 }

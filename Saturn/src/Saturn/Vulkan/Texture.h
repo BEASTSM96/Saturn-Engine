@@ -82,6 +82,9 @@ namespace Saturn {
 		VkImageView& GetImageView() { return m_ImageView; }
 		VkImage& GetImage() { return m_Image; }
 
+		int Width() { return m_Width; }
+		int Height() { return m_Height; }
+
 	public:
 
 		virtual void CreateTextureImage() = 0;

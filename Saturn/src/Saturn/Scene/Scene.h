@@ -68,8 +68,11 @@ namespace Saturn {
 		}
 
 		void OnUpdate( Timestep ts );
+
 		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
+		
 		Entity FindEntityByTag( const std::string& tag );
+
 		void CopyScene( Ref<Scene>& NewScene );
 
 		void SetName( const std::string& name ) { m_Name = name; }
@@ -79,6 +82,8 @@ namespace Saturn {
 
 		Entity LightEntity();
 		std::vector<Entity>& VisableEntities();
+		
+		bool m_RuntimeRunning = false;
 
 	private:
 

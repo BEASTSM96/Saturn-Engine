@@ -28,32 +28,34 @@
 
 #pragma once
 
-#include "Saturn/Core/App.h"
-
-#include "Saturn/Vulkan/Texture.h"
+#include "Saturn/Vulkan/VulkanContext.h"
 
 #include <imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include <imgui_internal.h>
+#include <backends/imgui_impl_vulkan.h>
 
 namespace Saturn {
 
-	class TitleBar
+	class Toolbar
 	{
 	public:
-		TitleBar();
-		~TitleBar();
+		 Toolbar();
+		~Toolbar();
 
 		void Draw();
 
-		float Height() const { return m_Height; }
+	public:
 
+		bool WantsToStartRuntime = false;
+		
 	private:
 
-		float m_Height;
+		Texture2D* m_pPlayImage;
+		Texture2D* m_pPauseImage;
+		Texture2D* m_pStopImage;
 
-		Texture2D* m_pLogo;
-		VkDescriptorSet m_LogoDescSet;
+		VkDescriptorSet m_pPlayDescSet;
+		VkDescriptorSet m_pPauseDescSet;
+		VkDescriptorSet m_pStopDescSet;
 	};
 
 }

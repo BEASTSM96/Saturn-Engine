@@ -34,7 +34,11 @@
 #include "Saturn/Discord/DiscordRPC.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
+#include "Toolbar.h"
+
 #include "imgui.h"
+
+// TODO: Massively improve this.
 
 namespace Saturn {
 
@@ -42,25 +46,26 @@ namespace Saturn {
 	{
 		IO::Get().StdStreamRedirect();
 
-		m_Scene = Ref<Scene>::Create();
-
-		DiscordRPC::Get().m_SceneName = m_Scene->Name();
+		m_EditorScene = Ref<Scene>::Create();
+		m_RuntimeScene = nullptr;
 
 		m_TitleBar = new TitleBar();
 		m_SceneHierarchyPanel = new SceneHierarchyPanel();
 		m_Viewport = new Viewport();
+		m_Toolbar = new Toolbar();
 
-		m_SceneHierarchyPanel->SetContext( m_Scene );
+		m_SceneHierarchyPanel->SetContext( m_EditorScene );
 		m_SceneHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( ImGuiDockspace::SelectionChanged ) );
 	}
 
 	ImGuiDockspace::~ImGuiDockspace()
 	{
-		m_Scene.Delete();
+		m_EditorScene.Delete();
 
 		delete m_TitleBar;
 		delete m_SceneHierarchyPanel;
 		delete m_Viewport;
+		delete m_Toolbar;
 	}
 
 	void ImGuiDockspace::Draw()
@@ -112,6 +117,31 @@ namespace Saturn {
 		m_SceneHierarchyPanel->Draw();
 		m_Viewport->Draw();
 		m_TitleBar->Draw();
+		m_Toolbar->Draw();
+
+		// Check if runtime started.
+		if( m_Toolbar->WantsToStartRuntime )
+		{
+			if( !m_RuntimeScene )
+			{
+				m_RuntimeScene = Ref<Scene>::Create();
+
+				m_EditorScene->CopyScene( m_RuntimeScene );
+
+				m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
+
+				m_RuntimeScene->m_RuntimeRunning = true;
+			}
+		}
+		else
+		{
+			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning ) 
+			{
+				m_RuntimeScene = nullptr;
+
+				m_SceneHierarchyPanel->SetContext( m_EditorScene );
+			}
+		}
 		
 		// TEMP
 		ImGui::Begin( "Output" );
@@ -136,7 +166,10 @@ namespace Saturn {
 
 	void ImGuiDockspace::TryRenderScene()
 	{
-		m_Scene->OnRenderEditor( Application::Get().Time() );
+		if( !m_RuntimeScene )
+			m_EditorScene->OnRenderEditor( Application::Get().Time() );
+		else
+			m_RuntimeScene->OnRenderEditor( Application::Get().Time() );
 	}
 
 	void ImGuiDockspace::SelectionChanged( Entity e )

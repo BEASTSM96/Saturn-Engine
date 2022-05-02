@@ -36,6 +36,8 @@
 #include "Saturn/Scene/Entity.h"
 
 namespace Saturn {
+	
+	class Toolbar;
 
 	class ImGuiDockspace
 	{
@@ -61,9 +63,12 @@ namespace Saturn {
 
 		TitleBar* m_TitleBar;
 		Viewport* m_Viewport;
+		Toolbar* m_Toolbar;
+
 		SceneHierarchyPanel* m_SceneHierarchyPanel;
 
-		Ref<Scene> m_Scene;
+		Ref< Scene > m_EditorScene;
+		Ref< Scene > m_RuntimeScene;
 
 		float m_Height;
 	};

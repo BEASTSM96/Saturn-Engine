@@ -90,30 +90,6 @@ namespace Saturn {
 
 	void Scene::OnRenderEditor( Timestep ts )
 	{
-	#if !defined( SAT_DONT_USE_GL )
-
-		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
-		Renderer::Get().BeginScene( this );
-
-		for ( const auto e : group )
-		{
-			Entity entity( e, this );
-
-		#if defined ( SAT_LINUX )
-			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
-		#else
-			auto& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
-		#endif
-
-			if( meshComponent.Mesh )
-			{
-				Renderer::Get().SubmitMesh( entity, meshComponent, transformComponent.GetTransform() );
-			}
-		}
-
-		Renderer::Get().EndScene();
-
-	#endif
 		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
 		
 		SceneRenderer::Get().SetCurrentScene( this );
@@ -145,9 +121,6 @@ namespace Saturn {
 
 		m_EntityIDMap[ IDcomponent.ID ] = entity;
 		
-		// Recreate pipeline as a new entity has been created.
-		//VulkanContext::Get().CreatePipeline();
-
 		return entity;
 	}
 
@@ -161,8 +134,9 @@ namespace Saturn {
 		if( !name.empty() )
 			entity.AddComponent<TagComponent>( name );
 
-		SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) == m_EntityIDMap.end(), "Entity has the same name!" );
+		SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) != m_EntityIDMap.end(), "Entity has the same name!" );
 		m_EntityIDMap[ uuid ] = entity;
+
 		return entity;
 	}
 
@@ -184,9 +158,56 @@ namespace Saturn {
 		m_Registry.destroy( entity.m_EntityHandle );
 	}
 
+	template<typename T>
+	static void CopyComponent( entt::registry& dstRegistry, entt::registry& srcRegistry, const std::unordered_map<UUID, entt::entity>& enttMap )
+	{
+		auto components = srcRegistry.view<T>();
+		for( auto srcEntity : components )
+		{
+			if( !srcRegistry.has<SceneComponent>( srcEntity ) )
+			{
+				SAT_CORE_INFO( "{0}", srcRegistry.get<IdComponent>( srcEntity ).ID );
+				entt::entity destEntity = enttMap.at( srcRegistry.get<IdComponent>( srcEntity ).ID );
+
+				auto& srcComponent = srcRegistry.get<T>( srcEntity );
+				auto& destComponent = dstRegistry.emplace_or_replace<T>( destEntity, srcComponent );
+			}
+		}
+	}
+
+	template<typename T>
+	static void CopyComponentIfExists( entt::entity dst, entt::entity src, entt::registry& rRegistry )
+	{
+		if( rRegistry.has<T>( src ) )
+		{
+			auto& srcComponent = rRegistry.get<T>( src );
+			rRegistry.emplace_or_replace<T>( dst, srcComponent );
+		}
+	}
+
 	void Scene::CopyScene( Ref<Scene>& NewScene )
 	{
+		NewScene->m_EntityIDMap = m_EntityIDMap;
+		NewScene->m_Name = m_Name;
 
+		std::unordered_map< UUID, entt::entity > EntityMap;
+		
+		auto IdComponents = m_Registry.view< IdComponent >();
+
+		for( auto entity : IdComponents )
+		{
+			auto uuid = m_Registry.get<IdComponent>( entity ).ID;
+			Entity e = NewScene->CreateEntityWithID( uuid );
+			EntityMap[ uuid ] = e.m_EntityHandle;
+		}
+
+		CopyComponent<TagComponent>( NewScene->m_Registry, m_Registry, EntityMap );
+		CopyComponent<VisibilityComponent>( NewScene->m_Registry, m_Registry, EntityMap );
+		//CopyComponent<IdComponent>( NewScene->m_Registry, m_Registry, EntityMap );
+		CopyComponent<TransformComponent>( NewScene->m_Registry, m_Registry, EntityMap );
+		
+		CopyComponent<MeshComponent>( NewScene->m_Registry, m_Registry, EntityMap );
+		CopyComponent<SkylightComponent>( NewScene->m_Registry, m_Registry, EntityMap );
 	}
 
 	Entity Scene::LightEntity()
