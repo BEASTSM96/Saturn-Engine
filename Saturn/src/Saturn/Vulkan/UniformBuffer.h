@@ -28,42 +28,36 @@
 
 #pragma once
 
-#include <vulkan.h>
+#include "Buffer.h"
 
 namespace Saturn {
 
-	class Buffer
+	class UniformBuffer
 	{
 	public:
-		 Buffer() {}
-		~Buffer();
-		
-		static void CopyBuffer( VkBuffer SrcBuffer, VkBuffer DstBuffer, VkDeviceSize Size );
-		void CopyBuffer( VkBuffer DstBuffer, VkDeviceSize Size );
-		void CopyBuffer( Buffer DstBuffer );
+		UniformBuffer() {}
+		UniformBuffer( void* pData, size_t Size );
 
-		void Create( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage, VkMemoryPropertyFlags MemProperties );
-		void Create( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage, VkMemoryPropertyFlags MemProperties, VkDeviceMemory& rMemory );
-		
-		void Terminate();
+		~UniformBuffer();
 
-		void Map( void** ppData, VkDeviceSize Size );
-		void Unmap();
+		template< typename Ty >
+		Ty* As()
+		{
+			return ( Ty* )m_pData;
+		}
 
-		VkBuffer& GetBuffer() { return m_Buffer; }
+		void Bind( VkCommandBuffer CommandBuffer, bool RecreateBuffer = false );
 
-		operator VkBuffer() const { return m_Buffer; }
-		operator VkBuffer&() { return m_Buffer; }
-
-	private:
-		VkBuffer m_Buffer = VK_NULL_HANDLE;
-		VkDeviceMemory m_Memory = VK_NULL_HANDLE;
-		VkDeviceSize m_Size = 0;
+		void Update( void* pData, size_t Size );
 
 	private:
 
-		friend class VertexBuffer;
-		friend class IndexBuffer;
-		friend class UniformBuffer;
+		void CreateBuffer( size_t Size );
+
+	private:
+
+		void* m_pData = nullptr;
+		
+		Buffer m_Buffer;
 	};
 }
