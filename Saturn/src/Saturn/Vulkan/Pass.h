@@ -33,25 +33,44 @@
 
 namespace Saturn {
 	
+	struct PassSpecification
+	{
+		std::vector< VkSubpassDependency > Dependencies = {};
+		std::vector< VkAttachmentDescription > Attachments = {};
+		VkAttachmentReference ColorAttachmentRef = {};
+		VkAttachmentReference DepthAttachmentRef = {};
+		
+		VkFormat ColorFormat = VK_FORMAT_UNDEFINED;
+		VkFormat DepthFormat = VK_FORMAT_UNDEFINED;
+
+		std::string Name = "";
+	};
+
 	class Pass
 	{
 	public:
 		 Pass() { }
-		 Pass( VkCommandBuffer CommandBuffer, std::string Name );
+		 Pass( PassSpecification PassSpec );
 		~Pass();
 		
 		void Terminate();
+		void Recreate();
 
-		void Recreate( VkCommandBuffer CommandBuffer = nullptr );
 
 		VkRenderPass& GetRenderPass() { return m_Pass; }
 
-		void BeginPass( VkCommandBuffer CommandBuffer = nullptr, VkSubpassContents Contents = VK_SUBPASS_CONTENTS_INLINE, uint32_t ImageIndex = 0 );
+		void BeginPass( VkCommandBuffer CommandBuffer, VkFramebuffer Framebuffer, VkExtent2D Extent );
+		
 		void EndPass();
 
 	private:
-		std::string m_Name = "";
-		
+
+		void Create( PassSpecification PassSpec );
+
+	private:
+
+		PassSpecification m_PassSpec;
+
 		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
 		VkRenderPass m_Pass = VK_NULL_HANDLE;
 	};
