@@ -124,53 +124,21 @@ namespace Saturn {
 
 	class Shader;
 
-	class ShaderWorker
+	class ShaderLibrary
 	{
-		SINGLETON( ShaderWorker );
-
+		SINGLETON( ShaderLibrary );
 	public:
-		ShaderWorker() { }
-		~ShaderWorker()
-		{
-			for( auto& [ ShaderName, pShader ] : m_Shaders )
-			{
-				delete pShader;
-				pShader = nullptr;
-			}
+		ShaderLibrary();
+		~ShaderLibrary();
 
-			m_Shaders.clear();
-			m_ShaderCodes.clear();
-		}
+		void Add( const Ref<Shader>& shader );
+		void Load( const std::string& path );
+		void Load( const std::string& name, const std::string& path );
 
-		void AddAndCompileShader( Shader* pShader );
-		void AddShader( Shader* pShader );
-
-		std::vector< uint32_t >& GetShaderCode( std::string Name )
-		{
-			if( m_ShaderCodes.find( Name ) != m_ShaderCodes.end() )
-			{
-				return m_ShaderCodes[ Name ];
-			}
-		}
-
-		Shader* GetShader( std::string Name )
-		{
-			if( m_Shaders.find( Name ) != m_Shaders.end() )
-			{
-				return m_Shaders[ Name ];
-			}
-		}
-
-		void CompileShader( Shader* pShader );
-
+		const Ref<Shader>& Get( const std::string& name ) const;
 	private:
-
-
-		// Not a list of all compiled shaders.
-		std::unordered_map< std::string, Shader* > m_Shaders;
-		std::unordered_map< std::string, std::vector<uint32_t> > m_ShaderCodes;
+		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
 	};
-
 
 	extern ShaderType ShaderTypeFromString( std::string Str );
 	extern std::string ShaderTypeToString( ShaderType Type );
@@ -231,6 +199,9 @@ namespace Saturn {
 
 			//return ShaderUniform( "", -1, ShaderDataType::None );
 		}
+
+		std::string& GetName() { return m_Name; }
+		const std::string& GetName() const { return m_Name; }
 
 	private:
 

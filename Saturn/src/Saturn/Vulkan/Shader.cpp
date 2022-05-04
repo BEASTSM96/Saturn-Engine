@@ -45,75 +45,51 @@
 #include <cassert>
 
 namespace Saturn {
-
-	void ShaderWorker::AddAndCompileShader( Shader* pShader )
+	
+	ShaderLibrary::ShaderLibrary()
 	{
-		AddShader( pShader );
-		CompileShader( pShader );
 	}
 
-	void ShaderWorker::AddShader( Shader* pShader )
+	ShaderLibrary::~ShaderLibrary()
 	{
-		m_Shaders[ pShader->GetName() ] = pShader;
-	}
-
-	void ShaderWorker::CompileShader( Shader* pShader )
-	{
-		shaderc::Compiler       Compiler;
-		shaderc::CompileOptions CompilerOptions;
-
-		shaderc::SpvCompilationResult ShaderResult;
-
-		CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_performance );
-		
-	#if defined( _DEBUG )
-		//CompilerOptions.SetGenerateDebugInfo();
-	#endif
-		
-		/*
-		for( auto [key, src] : pShader->m_ShaderSources )
+		for ( auto&& [ key, shader ] : m_Shaders )
 		{
-			auto ShaderSrcCode = src.Source;
-
-			auto Result = Compiler.CompileGlslToSpvAssembly( 
-				ShaderSrcCode.c_str(),
-				ShaderSrcCode.size(),
-				src.Type == ShaderType::Vertex ? shaderc_shader_kind::shaderc_glsl_default_vertex_shader : shaderc_shader_kind::shaderc_glsl_default_fragment_shader, 
-				ShaderSrcCode.c_str(),
-				CompilerOptions
-			);
-			
-			
-			SAT_CORE_INFO( "Shader Warings {0}", Result.GetNumWarnings() );
-			SAT_CORE_INFO( "Shader Error status {0}", Result.GetCompilationStatus() );
-			SAT_CORE_INFO( "Shader Error messages {0}", Result.GetErrorMessage() );
-
-			std::string ResultString( Result.begin(), Result.end() );
-			
-			auto AssembleResult = Compiler.AssembleToSpv( ResultString.c_str(), 4 * ResultString.size() );
-
-			if( AssembleResult.GetCompilationStatus() != shaderc_compilation_status_success )
-			{
-				assert( 0 ); // Shader compilation failed.
-			}
-
-			// Save code for later if we need it.
-			std::vector<uint32_t> Code( AssembleResult.begin(), AssembleResult.end() );
-			
-			pShader->Reflect( Code );
-
-			//m_ShaderCodes.insert( { std::string( pShader->m_ShaderCodenames[] ) ), Code } );
-			
-			m_ShaderCodes.insert( { std::string( pShader->m_Name + "/" + ShaderTypeToString( src.Type ) + "/" + std::to_string( src.Index ) ), Code } );
-
-			SAT_CORE_INFO("===== SHADER OUTPUT: =====\n{0}\n", ResultString.c_str() );
-			SAT_CORE_INFO( "==========================\n \n" );
+			shader.Delete();
 		}
-		*/
+	}
+
+	void ShaderLibrary::Add( const Ref<Shader>& shader )
+	{
+		auto& rName = shader->GetName();
+		
+		SAT_CORE_ASSERT( m_Shaders.find( rName ) == m_Shaders.end(), "Shader with name: {0} already exists!", shader->GetName() );
+
+		m_Shaders[ rName ] = shader;
+	}
+
+	void ShaderLibrary::Load( const std::string& path )
+	{
+		auto shader = Ref<Shader>::Create( path );
+	
+		Add( shader );
+	}
+
+	void ShaderLibrary::Load( const std::string& name, const std::string& path )
+	{
+		SAT_CORE_ASSERT( m_Shaders.find( rName ) == m_Shaders.end(), "Shader with name: {0} already exists!", shader->GetName() );
+
+		m_Shaders[ name ] = Ref<Shader>::Create( path );
+	}
+
+	const Ref<Shader>& ShaderLibrary::Get( const std::string& name ) const
+	{
+		SAT_CORE_ASSERT( m_Shaders.find( rName ) != m_Shaders.end(), "Shader with name: {0} does not exist!", name );
+
+		return m_Shaders.at( name );
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-
+	
 	Shader::Shader( std::string Name, std::filesystem::path Filepath )
 	{
 		m_Filepath = std::move( Filepath );
@@ -490,5 +466,4 @@ namespace Saturn {
 				break;
 		}
 	}
-
 }
