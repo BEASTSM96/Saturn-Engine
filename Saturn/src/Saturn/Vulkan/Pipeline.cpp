@@ -69,6 +69,11 @@ namespace Saturn {
 		Create();
 	}
 
+	void Pipeline::Bind( VkCommandBuffer CommandBuffer )
+	{
+		vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
+	}
+
 	void Pipeline::Create()
 	{
 		// Create the layout.

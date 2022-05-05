@@ -31,6 +31,7 @@
 
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
+#include "Renderer.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 
@@ -42,10 +43,27 @@ namespace Saturn {
 
 	void SceneRenderer::Init()
 	{
+		// Create command pool.
+
+		VkCommandPoolCreateInfo CommandPoolInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+		CommandPoolInfo.queueFamilyIndex = VulkanContext::Get().GetQueueFamilyIndices().GraphicsFamily.value();
+		CommandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		
+		VK_CHECK( vkCreateCommandPool( VulkanContext::Get().GetDevice(), &CommandPoolInfo, nullptr, &m_RendererData.CommandPool ) );
+		
+		//////////////////////////////////////////////////////////////////////////
+
 		// Create grid.
 		CreateGridComponents();
 
+		// Create skybox.
 		CreateSkyboxComponents();
+
+		//////////////////////////////////////////////////////////////////////////
+		// Geometry 
+		//////////////////////////////////////////////////////////////////////////
+
+		InitGeometryPass();
 	}
 
 	void SceneRenderer::Terminate()
@@ -60,6 +78,92 @@ namespace Saturn {
 		m_DrawList.clear();
 		
 		m_RendererData = {};
+	}
+
+	void SceneRenderer::InitGeometryPass()
+	{
+		// Create render pass.
+
+		// Start by creating the color res
+		{
+			Renderer::Get().CreateImage(
+				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.GeometryPassColor.Image, &m_RendererData.GeometryPassColor.Memory );
+
+			Renderer::Get().CreateImageView( m_RendererData.GeometryPassColor, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.GeometryPassColor.ImageView );
+
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassColor.Sampler );
+		}
+
+		// Then, create the depth res
+
+		{
+			Renderer::Get().CreateImage(
+				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.GeometryPassColor.Image, &m_RendererData.GeometryPassColor.Memory );
+
+			Renderer::Get().CreateImageView( m_RendererData.GeometryPassColor, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.GeometryPassColor.ImageView );
+
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassColor.Sampler );
+		}
+
+		PassSpecification PassSpec = {};
+		PassSpec.Name = "Geometry Pass";
+
+		PassSpec.Attachments = {
+			{
+				.flags = 0,
+				.format = VK_FORMAT_B8G8R8A8_UNORM,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+			},
+			{
+				.flags = 0,
+				.format = VK_FORMAT_D32_SFLOAT,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+			}
+		};
+
+		PassSpec.ColorAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		PassSpec.DepthAttachmentRef = { .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+
+		PassSpec.Dependencies = {
+			{
+				.srcSubpass = VK_SUBPASS_EXTERNAL,
+				.dstSubpass = 0,
+				.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+			},
+			{
+				.srcSubpass = 0,
+				.dstSubpass = VK_SUBPASS_EXTERNAL,
+				.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+			}
+		};
+
+		m_RendererData.GeometryPass = Pass( PassSpec );
+
+		// Create geometry framebuffer.
+
+		VkImageView Attachments[] = { m_RendererData.GeometryPassColor.ImageView, m_RendererData.GeometryPassDepth.ImageView };
+
+		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() }, Attachments, &m_RendererData.GeometryFramebuffer );
 	}
 
 	void SceneRenderer::RenderGrid()
@@ -177,9 +281,6 @@ namespace Saturn {
 		CreateFullscreenQuad( &m_RendererData.GridVertexBuffer, &m_RendererData.GridIndexBuffer );
 		
 		m_RendererData.GridShader = Ref< Shader >::Create( "Grid", "assets/shaders/Grid.glsl" );
-	
-		ShaderWorker::Get().AddShader( m_RendererData.GridShader.Pointer() );
-		ShaderWorker::Get().CompileShader( m_RendererData.GridShader.Pointer() );
 		
 		// Create uniform buffer.
 		VkDeviceSize BufferSize = sizeof( RendererData::GridMatricesObject );
@@ -302,9 +403,6 @@ namespace Saturn {
 		// Create skybox shader.
 		m_RendererData.SkyboxShader = Ref<Shader>::Create( "Skybox", "assets/shaders/Skybox.glsl" );
 
-		ShaderWorker::Get().AddShader( m_RendererData.SkyboxShader.Pointer() );
-		ShaderWorker::Get().CompileShader( m_RendererData.SkyboxShader.Pointer() );
-
 		// Create uniform buffer.
 		VkDeviceSize BufferSize = sizeof( RendererData::SkyboxMatricesObject );
 
@@ -408,7 +506,7 @@ namespace Saturn {
 		// Destroy descriptor pool.
 		vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxDescriptorPool, nullptr );
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////////
 
 	void SceneRenderer::CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer )
@@ -482,35 +580,81 @@ namespace Saturn {
 		m_DrawList.clear();
 	}
 
-	void SceneRenderer::RenderScene()
+	void SceneRenderer::GeometryPass()
 	{
-		if( m_DrawList.size() )
-		{
-			VulkanContext::Get().CreateDescriptorPool();
-			//VulkanContext::Get().CreateDescriptorSets();
-		}
+		VkExtent2D Extent = { Window::Get().Width(), Window::Get().Height() };
+
+		// Begin geometry pass.
+		m_RendererData.GeometryPass.BeginPass( m_RendererData.CommandBuffer, m_RendererData.GeometryFramebuffer, Extent );
 		
+		VkViewport Viewport = {};
+		Viewport.x = 0;
+		Viewport.y = 0;
+		Viewport.width = ( float ) Window::Get().Width();
+		Viewport.height = ( float ) Window::Get().Height();
+		Viewport.minDepth = 0.0f;
+		Viewport.maxDepth = 1.0f;
+		
+		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
+		
+		vkCmdSetViewport( m_RendererData.CommandBuffer, 0, 1, &Viewport );
+		vkCmdSetScissor( m_RendererData.CommandBuffer, 0, 1, &Scissor );
+
+		//////////////////////////////////////////////////////////////////////////
+		// Actual geometry pass.
+		//////////////////////////////////////////////////////////////////////////
+
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Skybox" );
 
 		RenderSkybox();
-		
+
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-		
+
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Grid" );
 
 		RenderGrid();
-		
+
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-		
+
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Static meshes" );
 
 		// Render static meshes.
-		for ( auto& Cmd : m_DrawList )
+		for( auto& Cmd : m_DrawList )
 		{
-			RenderDrawCommand( Cmd.entity, Cmd.Mesh, Cmd.Transform );	
+			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
+
+
+			UniformBuffer* pUBO;
+
+			Renderer::Get().RenderStaticMesh( m_RendererData.CommandBuffer, m_RendererData.GeometryPipeline, uuid, Cmd.Mesh, Cmd.Transform, pUBO );
 		}
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+
+		//////////////////////////////////////////////////////////////////////////
+		
+		m_RendererData.GeometryPass.EndPass();
+
+		// End geometry pass.
+	}
+
+	void SceneRenderer::RenderScene()
+	{
+		Renderer::Get().BeginFrame();
+
+		if( m_DrawList.size() )
+		{
+			VulkanContext::Get().CreateDescriptorPool();
+		}
+
+		// Allocate a default command buffer.
+		m_RendererData.CommandBuffer = Renderer::Get().AllocateCommandBuffer( m_RendererData.CommandPool );
+
+		GeometryPass();
+
+		Renderer::Get().EndFrame( m_RendererData.CommandBuffer );
+
+		vkFreeCommandBuffers( VulkanContext::Get().GetDevice(), m_RendererData.CommandPool, 1, &m_RendererData.CommandBuffer );
 
 		FlushDrawList();
 	}

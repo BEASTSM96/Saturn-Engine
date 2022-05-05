@@ -51,21 +51,6 @@ namespace Saturn {
 		VkPhysicalDeviceProperties DeviceProps ={};
 	};
 
-	struct Matrices
-	{
-		glm::mat4 Transform;
-		glm::mat4 ViewProjection;
-
-		bool UseAlbedoTexture;
-		bool UseMetallicTexture;
-		bool UseRoughnessTexture;
-		bool UseNormalTexture;
-
-		glm::vec4 AlbedoColor;
-		glm::vec4 MetallicColor;
-		glm::vec4 RoughnessColor;
-	};
-
 	class VulkanContext
 	{
 		SINGLETON( VulkanContext );
@@ -113,6 +98,7 @@ namespace Saturn {
 		VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
 
 		VkQueue& GetGraphicsQueue() { return m_GraphicsQueue; }
+		VkQueue& GetPresentQueue() { return m_PresentQueue; }
 
 		VkPhysicalDevice& GetPhysicalDevice() { return m_PhysicalDevice; }
 

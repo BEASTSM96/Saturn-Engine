@@ -28,79 +28,85 @@
 
 #pragma once
 
-#include "Shader.h"
-#include <vulkan.h>
+#include "VulkanContext.h"
+
+#include "UniformBuffer.h"
 
 namespace Saturn {
 
-	struct PipelineSetLayout
-	{
-		std::vector< VkDescriptorSetLayout > SetLayouts;
-	};
-	
-	struct PushConstantPipelineData
-	{
-		std::vector< VkPushConstantRange > PushConstantRanges;
-	};
-	
-	struct PipelineLayout
-	{
-		void Create();
-		void Terminate();
-
-		operator VkPipelineLayout() const { return Layout; }
-		operator VkPipelineLayout&()      { return Layout; }
-
-		VkPipelineLayout Layout = VK_NULL_HANDLE;
-		PushConstantPipelineData PushConstants = {};
-		PipelineSetLayout SetLayouts = {};
-	};
-
-	struct PipelineSpecification
-	{
-		void Terminate();
-
-		Shader* pShader = nullptr;
-		VkRenderPass RenderPass = VK_NULL_HANDLE;
-
-		PipelineLayout Layout = {};
-		
-		uint32_t Width = 0, Height = 0;
-		
-		bool UseDepthTest = false;
-
-		VkCullModeFlagBits CullMode = VK_CULL_MODE_BACK_BIT;
-		VkFrontFace FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-
-		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions = {};
-		std::vector< VkVertexInputBindingDescription > BindingDescriptions = {};
-
-		std::string Name = "Pipeline";
-	};
-
-	class Pipeline
+	// I don't want to use the class on a TextureXX, as I feel like there is really no point.
+	class Resource
 	{
 	public:
-		Pipeline() { }
-		Pipeline( PipelineSpecification Spec );
-		~Pipeline() {}
-		
-		void Bind( VkCommandBuffer CommandBuffer );
+		//void Create( const VkImageCreateInfo* ImageInfo, const VkImageViewCreateInfo* ImageViewCreateInfo, const VkSamplerCreateInfo* SamplerCreateInfo );
 
-		VkPipeline& GetPipeline() { return m_Pipeline; }
-		VkPipelineLayout& GetPipelineLayout() { return m_Specification.Layout.Layout; }
-		
-		operator VkPipeline() const { return m_Pipeline; }
-		operator VkPipeline&()      { return m_Pipeline; }
+		operator VkImage() const { return Image; }
+		operator VkImageView() const { return ImageView; }
+		operator VkSampler() const { return Sampler; }
+		operator VkDeviceMemory() const { return Memory; }
 
+	public:
+		
+		VkImage Image;
+		VkImageView ImageView;
+		VkSampler Sampler;
+		VkDeviceMemory Memory;
+	};
+
+	class Renderer
+	{
+		SINGLETON( Renderer );
+	public:
+		Renderer();
+		~Renderer();
+
+		void SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline );
+		void SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, VkDescriptorSet DescriptorSet, void* UBO );
+		
+		void SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, VkDescriptorSet DescriptorSet, UniformBuffer* UBO, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer );
+
+		// Render pass helpers.
+		void BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass );
+		void BeginRenderPass( VkCommandBuffer CommandBuffer);
+
+		void RenderMeshWithMaterial();
+
+		// Static mesh
+		void RenderStaticMesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, UUID uuid, Ref< Mesh > mesh, const glm::mat4 transform, UniformBuffer& rUBO );
+		
+		// Allocate command buffer.
+		VkCommandBuffer AllocateCommandBuffer( VkCommandPool CommandPool );
+
+		// Helpers.
+		void CreateFramebuffer( VkRenderPass RenderPass, VkExtent2D Extent, VkImageView* Attachments, VkFramebuffer* pFramebuffer );
+
+		void CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory );
+		
+		void CreateImageView( VkImage Image, VkFormat Format, VkImageAspectFlags Aspect, VkImageView* pImageView );
+
+		void CreateSampler( VkFilter Filter, VkSampler* pSampler );
+		
+		//////////////////////////////////////////////////////////////////////////
+		// FRAME BEGINGING AND ENDING.
+		//////////////////////////////////////////////////////////////////////////
+		
+		void BeginFrame();
+		void EndFrame( VkCommandBuffer CommandBuffer );
+
+	private:
+		
+		void Init();
 		void Terminate();
 
 	private:
 
-		void Create();
+		uint32_t m_ImageIndex;
+		uint32_t m_ImageCount;
+		uint32_t m_FrameCount = 0;
 
-		PipelineSpecification m_Specification = {};
+		std::vector<VkFence> m_FlightFences;
 		
-		VkPipeline m_Pipeline = VK_NULL_HANDLE;
+		VkSemaphore m_AcquireSemaphore;
+		VkSemaphore m_SubmitSemaphore;
 	};
 }

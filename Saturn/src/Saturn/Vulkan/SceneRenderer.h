@@ -57,14 +57,28 @@ namespace Saturn {
 
 		void End();
 	};
+	
+	class Resource;
 
 	struct RendererData
 	{
+		//////////////////////////////////////////////////////////////////////////
+		// COMMAND POOLS & BUFFERS
+		//////////////////////////////////////////////////////////////////////////
+		
+		VkCommandPool CommandPool;
 		VkCommandBuffer CommandBuffer;
+		
+		//////////////////////////////////////////////////////////////////////////
+
 		uint32_t FrameCount;
+
+		//////////////////////////////////////////////////////////////////////////
 
 		// Grid
 		Pipeline GridPipeline;
+
+		//////////////////////////////////////////////////////////////////////////
 
 		struct GridMatricesObject
 		{
@@ -75,6 +89,8 @@ namespace Saturn {
 			float Res;
 		};
 
+		//////////////////////////////////////////////////////////////////////////
+	
 		struct SkyboxMatricesObject
 		{
 			glm::mat4 View;
@@ -86,6 +102,25 @@ namespace Saturn {
 			float Inclination;
 		};
 
+		struct StaticMeshMatrices
+		{
+			glm::mat4 Transform;
+			glm::mat4 ViewProjection;
+
+			bool UseAlbedoTexture;
+			bool UseMetallicTexture;
+			bool UseRoughnessTexture;
+			bool UseNormalTexture;
+
+			glm::vec4 AlbedoColor;
+			glm::vec4 MetallicColor;
+			glm::vec4 RoughnessColor;
+		};
+
+		//////////////////////////////////////////////////////////////////////////
+
+		// GRID
+		
 		VkDescriptorSet GridDescriptorSet = nullptr;
 		VkDescriptorSetLayout GridDescriptorSetLayout = nullptr;
 		VkDescriptorPool GridDescriptorPool = nullptr;
@@ -93,6 +128,10 @@ namespace Saturn {
 		
 		VertexBuffer* GridVertexBuffer;
 		IndexBuffer* GridIndexBuffer;
+
+		//////////////////////////////////////////////////////////////////////////
+
+		// SKYBOX
 
 		// Skybox
 		Pipeline SkyboxPipeline;
@@ -105,8 +144,26 @@ namespace Saturn {
 		VertexBuffer* SkyboxVertexBuffer;
 		IndexBuffer* SkyboxIndexBuffer;
 
+		//////////////////////////////////////////////////////////////////////////
+
+		// Geometry
+		Pipeline GeometryPipeline;
+
+		Pass GeometryPass;
+		Resource GeometryPassDepth;
+		Resource GeometryPassColor;
+		
+		VkCommandPool GeometryCmdPool;
+		VkFramebuffer GeometryFramebuffer;
+
+
+		//////////////////////////////////////////////////////////////////////////
+
+		// SHADERS
+
 		Ref< Shader > GridShader = nullptr;
 		Ref< Shader > SkyboxShader = nullptr;
+		Ref< Shader > StaticMeshShader = nullptr;
 	};
 
 	class SceneRenderer
@@ -145,9 +202,15 @@ namespace Saturn {
 		void CreateSkyboxComponents();
 		void DestroySkyboxComponents();
 
+		void InitGeometryPass();
+
 		void CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
 		void CreateFullscreenQuad( float x, float y, float w, float h,
 			VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
+
+		void GeometryPass();
+
+	private:
 
 		RendererData m_RendererData;
 		std::vector< DrawCommand > m_DrawList;

@@ -23,8 +23,6 @@
 #include <iostream>
 #include <string>
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
-
 namespace Saturn {
 	
 	void VulkanContext::Init()

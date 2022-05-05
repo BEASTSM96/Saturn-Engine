@@ -56,12 +56,10 @@ namespace Saturn {
 		void Terminate();
 		void Recreate();
 
-
-		VkRenderPass& GetRenderPass() { return m_Pass; }
-
 		void BeginPass( VkCommandBuffer CommandBuffer, VkFramebuffer Framebuffer, VkExtent2D Extent );
-		
 		void EndPass();
+		
+		operator VkRenderPass&() { return m_Pass; }
 
 	private:
 
