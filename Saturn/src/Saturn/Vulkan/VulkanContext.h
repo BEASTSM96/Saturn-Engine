@@ -131,21 +131,6 @@ namespace Saturn {
 		std::unordered_map< UUID, VkDescriptorSet >& GetDescriptorSets() { return m_DescriptorSets; }
 		std::unordered_map< UUID, Buffer >& GetUniformBuffers() { return m_UniformBuffers; }
 
-		void UpdateUniformBuffers( UUID uuid, Timestep ts, glm::mat4 Transform );
-		void AddUniformBuffer( UUID uuid );
-	
-		// Descriptor
-
-		void CreateDescriptorPool();
-		void CreateDescriptorSet( UUID uuid, Ref< Texture > rTexture );
-		
-		void DestoryDescriptorPool();
-		void DestoryDescriptorSets();
-
-		// --
-		
-		void CreatePipeline();
-
 	private:
 		void Terminate();
 
@@ -154,25 +139,6 @@ namespace Saturn {
 		void PickPhysicalDevice();
 		void CreateLogicalDevice();
 		void CreateSwapChain();
-		void CreateCommandPool();
-		void CreateSyncObjects();
-		void CreateFramebuffers();
-		
-		// Descriptor
-		
-		void CreateDescriptorSetLayout();
-		
-		// --
-
-		void CreateDepthResources();
-
-		void CreateRenderpass();
-
-		bool CheckValidationLayerSupport();
-
-		// Offscreen rendering
-		void CreateOffscreenFramebuffer() {}
-		void CreateOffscreenImages();
 
 		VkInstance m_Instance;
 		VkSurfaceKHR m_Surface;

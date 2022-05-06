@@ -623,9 +623,6 @@ namespace Saturn {
 		{
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
 
-
-			UniformBuffer* pUBO;
-
 			Renderer::Get().RenderStaticMesh( m_RendererData.CommandBuffer, m_RendererData.GeometryPipeline, uuid, Cmd.Mesh, Cmd.Transform, pUBO );
 		}
 
