@@ -135,7 +135,7 @@ namespace Saturn {
 		void Load( const std::string& path );
 		void Load( const std::string& name, const std::string& path );
 
-		const Ref<Shader>& Get( const std::string& name ) const;
+		const Ref<Shader>& Find( const std::string& name ) const;
 	private:
 		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
 	};
@@ -146,13 +146,15 @@ namespace Saturn {
 	class Shader
 	{
 		using ShaderSourceMap = std::unordered_map< ShaderSourceKey, ShaderSource >;
+		using SpvSourceMap = std::unordered_map< ShaderSourceKey, std::vector< uint32_t > >;
 	public:
 		Shader() { }
 		Shader( std::string Name, std::filesystem::path Filepath );
+		Shader( std::filesystem::path Filepath );
+		Shader( std::string Filepath );
+
 		~Shader();
 
-		ShaderSourceMap& GetShaderSources() { return m_ShaderSources; }
-		
 		// Moves the uniform for the available uniforms to the uniforms list. So that we can use them. Also removes the uniform from the available uniforms.
 		void UseUniform( const std::string& rName ) 
 		{
@@ -202,6 +204,12 @@ namespace Saturn {
 		std::string& GetName() { return m_Name; }
 		const std::string& GetName() const { return m_Name; }
 
+		ShaderSourceMap& GetShaderSources() { return m_ShaderSources; }
+		const ShaderSourceMap& GetShaderSources() const { return m_ShaderSources; }
+
+		const SpvSourceMap& GetSpvCode() const { return m_SpvCode; }
+		SpvSourceMap& GetSpvCode() { return m_SpvCode; }
+
 	private:
 
 		void ReadFile();
@@ -214,11 +222,14 @@ namespace Saturn {
 		
 		void CompileGlslToSpvAssembly();
 
+		//void FindAndCreateUniformBlocks( spirv_cross::Compiler& rCompiler, spirv_cross::ShaderResources& rShaderResources );
+
 	private:
-		std::unordered_map< ShaderSourceKey, ShaderSource > m_ShaderSources;
-		std::unordered_map< ShaderSourceKey, std::vector< uint32_t > > m_SpvCode;
+		ShaderSourceMap m_ShaderSources;
+		SpvSourceMap m_SpvCode;
 
 		std::string m_FileContents = "";
+		size_t m_FileSize;
 
 		std::string m_Name = "";
 
