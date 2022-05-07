@@ -31,12 +31,14 @@ IncludeDir["rapidjson"] = "Saturn/vendor/rapidjson/include"
 IncludeDir["shaderc"] = "Saturn/vendor/shaderc/libshaderc/include"
 IncludeDir["glslc"] = "Saturn/vendor/shaderc/glslc/src"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/src/"
+IncludeDir["SPIRV_Reflect"] = "Saturn/vendor/SPIRV-Reflect/src/"
 
 group "Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/discord-rpc"
 	include "Saturn/vendor/SPIRV-Cross"
+	include "Saturn/vendor/SPIRV-Reflect"
 
 group "Engine"
 project "Saturn"
@@ -94,7 +96,8 @@ project "Saturn"
 		"%{IncludeDir.rapidjson}",
 		"%{IncludeDir.glslc}",
 		"%{IncludeDir.shaderc}",
-		"%{IncludeDir.SPIRV_Cross}"
+		"%{IncludeDir.SPIRV_Cross}",
+		"%{IncludeDir.SPIRV_Reflect}"
 	}
 
 	links 

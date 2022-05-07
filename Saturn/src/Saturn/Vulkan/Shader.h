@@ -151,7 +151,6 @@ namespace Saturn {
 		Shader( std::string Name, std::filesystem::path Filepath );
 		~Shader();
 
-		std::string& GetName() { return m_Name; }
 		ShaderSourceMap& GetShaderSources() { return m_ShaderSources; }
 		
 		// Moves the uniform for the available uniforms to the uniforms list. So that we can use them. Also removes the uniform from the available uniforms.

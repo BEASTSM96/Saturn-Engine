@@ -140,6 +140,8 @@ namespace Saturn {
 		void CreateLogicalDevice();
 		void CreateSwapChain();
 
+		bool CheckValidationLayerSupport();
+
 		VkInstance m_Instance;
 		VkSurfaceKHR m_Surface;
 		VkPhysicalDevice m_PhysicalDevice;
