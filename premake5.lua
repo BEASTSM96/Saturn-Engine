@@ -105,6 +105,7 @@ project "Saturn"
 		"GLFW",
 		"ImGui",
 		"SPIRV-Cross",
+		"SPIRV-Reflect",
 		"discord-rpc"
 	}
 

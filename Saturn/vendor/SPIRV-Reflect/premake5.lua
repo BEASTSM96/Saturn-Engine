@@ -1,6 +1,6 @@
 project "SPIRV-Reflect"
 	kind "StaticLib"
-	language "C++"
+	language "C"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -14,6 +14,7 @@ project "SPIRV-Reflect"
 	files
 	{
 		"src/**.cpp",
+		"src/**.c",
 		"src/**.h",
 		"src/**.hpp"
 	}

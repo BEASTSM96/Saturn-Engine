@@ -325,10 +325,10 @@ namespace Saturn {
 	{
 		shaderc::Compiler       Compiler;
 		shaderc::CompileOptions CompilerOptions;
-		
-		CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_performance );
-		
-		CompilerOptions.SetGenerateDebugInfo();
+
+		// We don use shaderc_optimization_level_zero, as will remove the uniform names, it took me 6 hours to figure out.
+		CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_zero );
+
 		CompilerOptions.SetWarningsAsErrors();
 
 		CompilerOptions.SetTargetEnvironment( shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2 );
@@ -356,17 +356,6 @@ namespace Saturn {
 			SAT_CORE_INFO( "Shader Error messages {0}", Res.GetErrorMessage() );
 
 			std::vector< uint32_t > SpvBinary( Res.begin(), Res.end() );
-			
-			// Save assembly code.
-			std::string name = "assets/shaders/" + m_Filepath.filename().string() + std::to_string( ( int ) key.Type ) + std::to_string( key.Index ) + ".spv";
-
-			std::ofstream AssemblyFile( name, std::ios::out | std::ios::binary );
-			
-			if ( AssemblyFile.is_open() )
-			{
-				AssemblyFile.write( (char *) SpvBinary.data(), SpvBinary.size() * sizeof( uint32_t ) );
-				AssemblyFile.close();
-			}
 
 			m_SpvCode[ key ] = SpvBinary;
 

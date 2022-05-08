@@ -9,7 +9,7 @@ layout(location = 4) in vec2 a_TexCoord;
 
 layout(location = 0) out vec2 v_FragTexCoord;
 
-layout(binding = 0) uniform Matrices 
+layout(set = 0, binding = 0) uniform Matrices 
 {
     mat4 Transform;
     mat4 ViewProjection;
@@ -64,13 +64,7 @@ void main()
 
 layout (location = 0) in vec2 v_FragTexCoord;
 
-// Textures
-layout (binding = 1) uniform sampler2D u_AlbedoTexture;
-layout (binding = 2) uniform sampler2D u_NormalTexture;
-layout (binding = 3) uniform sampler2D u_MetallicTexture;
-layout (binding = 4) uniform sampler2D u_RoughnessTexture;
-
-layout(binding = 0) uniform Matrices 
+layout(set = 0, binding = 0) uniform Matrices 
 {
     mat4 Transform;
     mat4 ViewProjection;
@@ -87,6 +81,12 @@ layout(binding = 0) uniform Matrices
 	vec4 RoughnessColor;
 
 } u_Matrices;
+
+// Textures
+layout (binding = 1) uniform sampler2D u_AlbedoTexture;
+layout (binding = 2) uniform sampler2D u_NormalTexture;
+layout (binding = 3) uniform sampler2D u_MetallicTexture;
+layout (binding = 4) uniform sampler2D u_RoughnessTexture;
 
 layout (location = 0) out vec4 FinalColor;
 

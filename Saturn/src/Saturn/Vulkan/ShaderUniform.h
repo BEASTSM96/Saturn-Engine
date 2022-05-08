@@ -69,8 +69,7 @@ namespace Saturn {
 				{
 					if( pValue != nullptr )
 					{
-						delete pValue;
-						pValue = nullptr;
+						pValue = 0;
 					}
 				} break;
 					

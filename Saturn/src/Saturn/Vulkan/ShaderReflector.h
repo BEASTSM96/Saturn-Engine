@@ -30,20 +30,14 @@
 
 #include "Shader.h"
 
+#include "spirv_reflect/spirv_reflect.h"
+
 #include <vulkan.h>
 
 #define SPV_REFLECT_CHECK( x )  \
 {\
 	SAT_CORE_ASSERT( x == SPV_REFLECT_RESULT_SUCCESS ) \
 }
-
-namespace spv_reflect {
-	class ShaderModule;
-}
-
-struct SpvReflectDescriptorBinding;
-struct SpvReflectTypeDescription;
-struct SpvReflectDescriptorType;
 
 namespace Saturn {
 
@@ -57,6 +51,16 @@ namespace Saturn {
 		std::string RawType = "";
 
 		ShaderDataType Type = ShaderDataType::None;
+
+		bool operator == ( const ReflectionDescriptorMember& other ) const
+		{
+			return Name == other.Name && Offset == other.Offset && Size == other.Size && RawType == other.RawType && Type == other.Type;
+		}
+		
+		bool operator != ( const ReflectionDescriptorMember& other ) const
+		{
+			return !( *this == other );
+		}
 	};
 
 	struct ReflectionDescriptor
@@ -69,6 +73,11 @@ namespace Saturn {
 		VkDescriptorType Type = VK_DESCRIPTOR_TYPE_MAX_ENUM; // i.e VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
 
 		std::vector< ReflectionDescriptorMember > Members;
+
+		bool operator == ( const ReflectionDescriptor& other ) const
+		{
+			return Name == other.Name && Set == other.Set && Binding == other.Binding && Count == other.Count && Accessed == other.Accessed && Type == other.Type && Members == other.Members;
+		}
 	};
 
 	struct ReflectOutput
@@ -88,10 +97,11 @@ namespace Saturn {
 		 ShaderReflector();
 		~ShaderReflector();
 
-		ReflectOutput ReflectShader( Ref< Shader > pShader );
+		ReflectOutput ReflectShader( const Ref< Shader >& pShader );
+		ReflectOutput ReflectShader( Shader* pShader );
 
 	private:
-		ReflectionDescriptor ReflectDescriptor( SpvReflectDescriptorBinding* pBinding, spv_reflect::ShaderModule& Module );
+		ReflectionDescriptor ReflectDescriptor( SpvReflectDescriptorBinding& rBinding, spv_reflect::ShaderModule& Module );
 
 		std::string ComponentTypeToString( const SpvReflectTypeDescription& rType, uint32_t Flags );
 		ShaderDataType ComponentTypeToShaderDataType( const SpvReflectTypeDescription& rType, uint32_t Flags );

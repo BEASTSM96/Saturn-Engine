@@ -26,9 +26,8 @@
 *********************************************************************************************
 */
 
+#include "sppch.h"
 #include "ShaderReflector.h"
-
-#include "spirv_reflect/spirv_reflect.h"
 
 namespace Saturn {
 
@@ -40,59 +39,74 @@ namespace Saturn {
 	{
 	}
 
-	ReflectOutput ShaderReflector::ReflectShader( Ref< Shader > pShader )
+	ReflectOutput ShaderReflector::ReflectShader( const Ref< Shader >& pShader )
 	{
-		ReflectOutput Out;
-		
-		spv_reflect::ShaderModule Module;
-		auto& SPVShaderModule = Module.GetShaderModule();
-
-		Out.EntryPoint = Module.GetEntryPointName();
-		Out.SourceLanguage = std::move( spvReflectSourceLanguage( SPVShaderModule.source_language ) );
-		Out.SourceVersion = std::move( SPVShaderModule.source_language_version );
-	
-		// Reflect over descriptors
-
-		std::vector< SpvReflectDescriptorBinding* > Bindings;
-
-		uint32_t Count = 0;
-		SPV_REFLECT_CHECK( Module.EnumerateDescriptorBindings( &Count, nullptr ) );
-
-		Bindings.resize( Count );
-
-		SPV_REFLECT_CHECK( Module.EnumerateDescriptorBindings( &Count, &Bindings.data() ) );
-
-		std::sort( std::begin( Bindings ), std::end( Bindings ), []( SpvReflectDescriptorBinding* pA, SpvReflectDescriptorBinding* pB ) -> bool
-		{
-			if( pA->set != pB->set )
-			{
-				return pA->set < pB->set;
-			}
-
-			return pA->binding < pB->binding;
-		} );
-
-		for( int i = 0; i < Bindings.size(); i++ )
-		{
-			ReflectDescriptor( Bindings[ i ], Module );
-		}
+		return ReflectShader( pShader );
 	}
 
-	ReflectionDescriptor ShaderReflector::ReflectDescriptor( SpvReflectDescriptorBinding* pBinding, spv_reflect::ShaderModule& Module )
+	ReflectOutput ShaderReflector::ReflectShader( Shader* pShader )
+	{
+		ReflectOutput Out;
+
+		for( auto&& [key, src] : pShader->GetSpvCode() )
+		{
+			std::vector< char > buffer;
+			buffer.resize( src.size() * sizeof( uint32_t ) );
+			memcpy( buffer.data(), ( char* )src.data(), src.size() );
+
+			//spv_reflect::ShaderModule Module( buffer.size(), src.data() );
+			spv_reflect::ShaderModule Module( src );
+
+			SpvReflectShaderModule SPVShaderModule = Module.GetShaderModule();
+
+			Out.EntryPoint = Module.GetEntryPointName();
+			Out.SourceLanguage = spvReflectSourceLanguage( SPVShaderModule.source_language );
+			Out.SourceVersion = SPVShaderModule.source_language_version;
+			
+			// Reflect over descriptors
+
+			std::vector< SpvReflectDescriptorBinding* > Bindings;
+
+			uint32_t Count = 0;
+			SPV_REFLECT_CHECK( Module.EnumerateDescriptorBindings( &Count, nullptr ) );
+
+			Bindings.resize( Count );
+
+			SPV_REFLECT_CHECK( Module.EnumerateDescriptorBindings( &Count, Bindings.data() ) );
+
+			std::sort( std::begin( Bindings ), std::end( Bindings ), []( SpvReflectDescriptorBinding* pA, SpvReflectDescriptorBinding* pB ) -> bool
+				{
+					if( pA->set != pB->set )
+					{
+						return pA->set < pB->set;
+					}
+					return pA->binding < pB->binding;
+				} );
+
+			for( int i = 0; i < Bindings.size(); i++ )
+			{
+				Out.Descriptors.push_back( ReflectDescriptor( *Bindings[ i ], Module ) );
+			}
+		}
+
+		return Out;
+	}
+
+	ReflectionDescriptor ShaderReflector::ReflectDescriptor( SpvReflectDescriptorBinding& rBinding, spv_reflect::ShaderModule& Module )
 	{
 		ReflectionDescriptor Out;
 
-		Out.Set = pBinding->set;
-		Out.Binding = pBinding->binding;
-		Out.Count = pBinding->count;
-		Out.Accessed = ( bool )pBinding->accessed;
-		Out.Name = std::move( pBinding->name );
-		Out.Type = DescriptorTypeToVulkan( pBinding->descriptor_type );
+		Out.Set = rBinding.set;
+		Out.Binding = rBinding.binding;
+		Out.Count = rBinding.count;
+		Out.Accessed = ( bool )rBinding.accessed;
+		Out.Name = std::move( rBinding.name == nullptr ? rBinding.type_description->type_name : rBinding.name );
+		Out.Type = DescriptorTypeToVulkan( rBinding.descriptor_type );
 
 		// Test if descriptor is a uniform buffer or a storage buffer.
-		if( pBinding->decoration_flags == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER || pBinding->decoration_flags == SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER )
+		//if( rBinding.decoration_flags == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER || rBinding.decoration_flags == SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER )
 		{
-			auto& rBlockValue = pBinding->block;
+			auto& rBlockValue = rBinding.block;
 
 			for( int i = 0; i < rBlockValue.member_count; i++ )
 			{
@@ -105,8 +119,11 @@ namespace Saturn {
 				Member.Size = rSPVMember.size;
 				Member.RawType = ComponentTypeToString( *rSPVMember.type_description, rSPVMember.decoration_flags );
 				Member.Type = ComponentTypeToShaderDataType( *rSPVMember.type_description, rSPVMember.decoration_flags );
-
-				Out.Members.push_back( Member );
+				
+				if( std::find( std::begin( Out.Members ), std::end( Out.Members ), Member ); == std::end( Out.Members ) )
+				{
+					Out.Members.push_back( Member );
+				}
 			}
 		}
 
