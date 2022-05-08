@@ -46,7 +46,7 @@ namespace Saturn {
 	void Material::Bind( Ref<Shader> Shader )
 	{
 		// Albedo Texture.
-		VulkanContext::Get().CreateDescriptorSet( m_Spec->ID, static_cast< Texture2D* >( ( Texture2D* )m_Spec->Albedo->pValue ) );
+		//VulkanContext::Get().CreateDescriptorSet( m_Spec->ID, static_cast< Texture2D* >( ( Texture2D* )m_Spec->Albedo->pValue ) );
 	}
 
 	void Material::Unbind()

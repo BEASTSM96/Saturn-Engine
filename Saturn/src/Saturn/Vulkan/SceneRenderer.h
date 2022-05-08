@@ -33,6 +33,8 @@
 #include "Saturn/Scene/Entity.h"
 #include "Mesh.h"
 
+#include "Renderer.h"
+
 #include "Pipeline.h"
 
 namespace Saturn {
@@ -57,8 +59,6 @@ namespace Saturn {
 
 		void End();
 	};
-	
-	class Resource;
 
 	struct RendererData
 	{

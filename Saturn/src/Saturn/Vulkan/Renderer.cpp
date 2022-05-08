@@ -100,7 +100,7 @@ namespace Saturn {
 
 	void Renderer::BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass )
 	{
-		rPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, m_ImageIndex );
+		//rPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, m_ImageIndex );
 	}
 
 	void Renderer::BeginRenderPass( VkCommandBuffer CommandBuffer )
@@ -130,7 +130,7 @@ namespace Saturn {
 		mesh->GetMaterial()->Bind( nullptr );
 
 		// Bind the descriptor sets.
-		vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline.GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ uuid ], 0, nullptr );
+		//vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline.GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ uuid ], 0, nullptr );
 
 		// Bind UBO
 		rUBO.Bind( CommandBuffer );

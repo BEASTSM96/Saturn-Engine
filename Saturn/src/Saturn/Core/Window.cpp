@@ -297,7 +297,7 @@ namespace Saturn {
 		m_Minimized = false;
 		m_Maximized = false;
 
-		VulkanContext::Get().SetWindowIconifed( m_Minimized );
+		//VulkanContext::Get().SetWindowIconifed( m_Minimized );
 
 		glfwRestoreWindow( m_Window );
 	}
@@ -321,7 +321,7 @@ namespace Saturn {
 		{
 			glfwIconifyWindow( m_Window );
 
-			VulkanContext::Get().SetWindowIconifed( m_Minimized );
+			//VulkanContext::Get().SetWindowIconifed( m_Minimized );
 
 			m_PendingMinimize = false;
 		}
@@ -330,7 +330,7 @@ namespace Saturn {
 		{
 			glfwMaximizeWindow( m_Window );
 
-			VulkanContext::Get().SetWindowIconifed( false );
+			//VulkanContext::Get().SetWindowIconifed( false );
 
 			m_PendingMaximized = false;
 		}

@@ -249,7 +249,7 @@ namespace Saturn {
 					m_SelectionContext.AddComponent<MeshComponent>();
 					
 					// Probably not the best place to put this.
-					VulkanContext::Get().AddUniformBuffer( entity.GetComponent<IdComponent>().ID );
+					//VulkanContext::Get().AddUniformBuffer( entity.GetComponent<IdComponent>().ID );
 
 					ImGui::CloseCurrentPopup();
 				}

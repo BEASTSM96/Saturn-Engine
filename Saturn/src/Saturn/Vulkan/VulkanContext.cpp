@@ -33,14 +33,12 @@ namespace Saturn {
 		PickPhysicalDevice();
 		CreateLogicalDevice();
 		CreateSwapChain();
-		CreateCommandPool();
-		CreateSyncObjects();
 
 		// Init a theoretical swap chain.
 		SwapchainCreationData Data = GetSwapchainCreationData();
 		Data ={};
 		
-		m_Camera = EditorCamera( glm::perspective( glm::radians( 45.0f ), ( float )Window::Get().Width() / ( float )Window::Get().Height(), 0.1f, 10000.0f ) );
+		Shader* pShader = new Shader( "shader_new", "assets/shaders/shader_new.glsl" );
 
 		m_pImGuiVulkan = new ImGuiVulkan();
 	}
@@ -51,11 +49,6 @@ namespace Saturn {
 
 		m_SwapChain.Terminate();
 		
-		for( auto& rFence : m_FlightFences )
-		{
-			vkDestroyFence( m_LogicalDevice, rFence, nullptr );
-		}
-
 		for( auto& rImageView : m_SwapChainImageViews )
 		{
 			vkDestroyImageView( m_LogicalDevice, rImageView, nullptr );
@@ -300,7 +293,6 @@ namespace Saturn {
 
 	void VulkanContext::OnEvent( Event& e )
 	{
-		m_Camera.OnEvent( e );
 	}
 
 	void VulkanContext::CreateSwapChain()
@@ -371,10 +363,6 @@ namespace Saturn {
 	bool VulkanContext::HasStencilComponent( VkFormat Format )
 	{
 		return Format == VK_FORMAT_D32_SFLOAT_S8_UINT || Format == VK_FORMAT_D24_UNORM_S8_UINT;
-	}
-
-	void VulkanContext::RenderDebugUUID( UUID UID )
-	{
 	}
 
 	VkCommandBuffer VulkanContext::BeginSingleTimeCommands()

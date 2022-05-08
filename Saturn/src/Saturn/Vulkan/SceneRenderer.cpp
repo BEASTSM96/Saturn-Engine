@@ -31,7 +31,6 @@
 
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
-#include "Renderer.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 
@@ -186,7 +185,7 @@ namespace Saturn {
 
 				RendererData::GridMatricesObject GridMatricesObject = {};
 				GridMatricesObject.Transform = trans;
-				GridMatricesObject.ViewProjection = VulkanContext::Get().GetEditorCamera().ViewProjection();
+				//GridMatricesObject.ViewProjection = VulkanContext::Get().GetEditorCamera().ViewProjection();
 
 				GridMatricesObject.Res = 0.025f;
 				GridMatricesObject.Scale = 16.025f;
@@ -244,8 +243,8 @@ namespace Saturn {
 			{
 				RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
 
-				SkyboxMatricesObject.View = VulkanContext::Get().GetEditorCamera().ViewMatrix();
-				SkyboxMatricesObject.Projection = VulkanContext::Get().GetEditorCamera().ProjectionMatrix();
+				//SkyboxMatricesObject.View = VulkanContext::Get().GetEditorCamera().ViewMatrix();
+				//SkyboxMatricesObject.Projection = VulkanContext::Get().GetEditorCamera().ProjectionMatrix();
 				SkyboxMatricesObject.Turbidity = Skylight.Turbidity;
 				SkyboxMatricesObject.Azimuth = Skylight.Azimuth;
 				SkyboxMatricesObject.Inclination = Skylight.Inclination;
@@ -356,7 +355,7 @@ namespace Saturn {
 		PipelineSpec.Name = "Grid";
 		PipelineSpec.pShader = m_RendererData.GridShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.GridDescriptorSetLayout } };
-		PipelineSpec.RenderPass = VulkanContext::Get().GetOffscreenRenderPass();
+		//PipelineSpec.RenderPass = VulkanContext::Get().GetOffscreenRenderPass();
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.UseDepthTest = true;
@@ -478,7 +477,7 @@ namespace Saturn {
 		PipelineSpec.Name = "Skybox";
 		PipelineSpec.pShader = m_RendererData.SkyboxShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SkyboxDescriptorSetLayout } };
-		PipelineSpec.RenderPass = VulkanContext::Get().GetOffscreenRenderPass();
+		//PipelineSpec.RenderPass = VulkanContext::Get().GetOffscreenRenderPass();
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
@@ -554,7 +553,7 @@ namespace Saturn {
 	{
 		auto& uuid = entity.GetComponent<IdComponent>().ID;
 
-		vkCmdBindPipeline( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipeline() );
+		//vkCmdBindPipeline( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipeline() );
 		
 		// Render a draw command.
 
@@ -565,11 +564,11 @@ namespace Saturn {
 		mesh->GetMaterial()->Bind( nullptr );
 
 		// Bind the descriptor sets.
-		vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ uuid ], 0, nullptr );
+		//vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, //VulkanContext::Get().GetPipeline().GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ uuid ], 0, nullptr );
 		
 
 		// Update uniform buffers.
-		VulkanContext::Get().UpdateUniformBuffers( entity.GetComponent<IdComponent>().ID, Application::Get().Time(), entity.GetComponent<TransformComponent>().GetTransform() );
+		//VulkanContext::Get().UpdateUniformBuffers( entity.GetComponent<IdComponent>().ID, Application::Get().Time(), entity.GetComponent<TransformComponent>().GetTransform() );
 
 		// Draw.
 		mesh->GetIndexBuffer()->Draw( m_RendererData.CommandBuffer );
@@ -623,7 +622,7 @@ namespace Saturn {
 		{
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
 
-			Renderer::Get().RenderStaticMesh( m_RendererData.CommandBuffer, m_RendererData.GeometryPipeline, uuid, Cmd.Mesh, Cmd.Transform, pUBO );
+			//Renderer::Get().RenderStaticMesh( m_RendererData.CommandBuffer, m_RendererData.GeometryPipeline, uuid, Cmd.Mesh, Cmd.Transform, pUBO );
 		}
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
@@ -641,7 +640,7 @@ namespace Saturn {
 
 		if( m_DrawList.size() )
 		{
-			VulkanContext::Get().CreateDescriptorPool();
+			//VulkanContext::Get().CreateDescriptorPool();
 		}
 
 		// Allocate a default command buffer.

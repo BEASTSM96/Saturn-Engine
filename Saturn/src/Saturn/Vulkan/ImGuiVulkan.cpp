@@ -80,7 +80,7 @@ namespace Saturn {
 
 		ImGuiInitInfo.CheckVkResultFn = _VkCheckResult;
 
-		ImGui_ImplVulkan_Init( &ImGuiInitInfo, VulkanContext::Get().GetRenderPass().GetRenderPass() );
+		//ImGui_ImplVulkan_Init( &ImGuiInitInfo, VulkanContext::Get().GetRenderPass().GetRenderPass() );
 
 		VkCommandBuffer CommandBuffer;
 		CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
@@ -93,7 +93,7 @@ namespace Saturn {
 
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 
-		m_OffscreenID = ImGui_ImplVulkan_AddTexture( VulkanContext::Get().GetOffscreenColorSampler(), VulkanContext::Get().GetOffscreenColorView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+		//m_OffscreenID = ImGui_ImplVulkan_AddTexture( VulkanContext::Get().GetOffscreenColorSampler(), VulkanContext::Get().GetOffscreenColorView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
 		m_pDockspace = new ImGuiDockspace();
 	}
@@ -141,7 +141,7 @@ namespace Saturn {
 
 	void ImGuiVulkan::RecreateImages()
 	{
-		m_OffscreenID = ImGui_ImplVulkan_AddTexture( VulkanContext::Get().GetOffscreenColorSampler(), VulkanContext::Get().GetOffscreenColorView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+		//m_OffscreenID = ImGui_ImplVulkan_AddTexture( VulkanContext::Get().GetOffscreenColorSampler(), VulkanContext::Get().GetOffscreenColorView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
 
 	void ImGuiVulkan::CreatePipeline()

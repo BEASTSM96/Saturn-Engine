@@ -68,7 +68,7 @@ namespace Saturn {
 			
 			Window::Get().OnUpdate();
 			
-			VulkanContext::Get().Render();
+			// Render
 
 			Window::Get().Render();
 		}

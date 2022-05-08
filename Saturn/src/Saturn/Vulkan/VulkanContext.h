@@ -59,12 +59,9 @@ namespace Saturn {
 		VulkanContext() { }
 		~VulkanContext() { Terminate(); }
 
-		void Render();
-
-		void CreateFramebuffer( VkFramebuffer* pFramebuffer );
-
 		void Init();
 		void ResizeEvent();
+
 		uint32_t GetMemoryType( uint32_t TypeFilter, VkMemoryPropertyFlags Properties );
 		
 	public:
@@ -73,9 +70,6 @@ namespace Saturn {
 		VkFormat FindDepthFormat();
 		bool HasStencilComponent( VkFormat Format );
 		
-		void ShowDebugUUID( bool show ) { m_ShowDebugUUID = show; }
-		void RenderDebugUUID( UUID UID );
-
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands( VkCommandBuffer CommandBuffer );
 
@@ -92,7 +86,6 @@ namespace Saturn {
 
 		QueueFamilyIndices& GetQueueFamilyIndices() { return m_Indices; };
 
-		Pass& GetRenderPass() { return m_RenderPass; }
 		VkCommandPool& GetCommandPool() { return m_CommandPool; }
 
 		VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
@@ -106,30 +99,10 @@ namespace Saturn {
 
 		ImGuiVulkan* GetImGuiVulkan() { return m_pImGuiVulkan; }
 
-		uint32_t GetImageCount() { return m_ImageCount; }
-
-		VkFence& GetCurrentFlightFence() { return m_FlightFences[ m_FrameCount ]; }
-
 		std::vector< PhysicalDeviceProperties > GetPhysicalDeviceProperties() { return m_DeviceProps; }
 		std::vector< PhysicalDeviceProperties > const GetPhysicalDeviceProperties() const { return m_DeviceProps; }
 
 		void OnEvent( Event& e );
-
-		void SetWindowIconifed( bool inconifed ) { m_WindowIconifed = inconifed; }
-		
-		VkImageView& GetOffscreenColorView() { return m_OffscreenColorImageView; }
-		VkImageView& GetOffscreenDepthView() { return m_OffscreenDepthImageView; }
-
-		VkSampler& GetOffscreenColorSampler() { return m_OffscreenColorSampler; }
-		VkSampler& GetOffscreenDepthSampler() { return m_OffscreenDepthSampler; }
-
-		VkRenderPass& GetOffscreenRenderPass() { return m_OffscreenPass; }
-
-		EditorCamera& GetEditorCamera() { return m_Camera; }
-
-		Pipeline& GetPipeline() { return m_Pipeline; }
-		std::unordered_map< UUID, VkDescriptorSet >& GetDescriptorSets() { return m_DescriptorSets; }
-		std::unordered_map< UUID, Buffer >& GetUniformBuffers() { return m_UniformBuffers; }
 
 	private:
 		void Terminate();
@@ -154,24 +127,7 @@ namespace Saturn {
 		
 		VkDescriptorSetLayout m_DescriptorSetLayouts;
 
-		Pipeline m_Pipeline;
-
-		VkImage m_DepthImage;
-		VkDeviceMemory m_DepthImageMemory;
-		VkImageView m_DepthImageView;
-		
-		Pass m_RenderPass;
-		VkRenderPass m_OffscreenPass;
-		VkFramebuffer m_OffscreenFramebuffer;
-
-		VkImage m_OffscreenColorImage, m_OffscreenDepthImage;
-		VkDeviceMemory m_OffscreenColorMem, m_OffscreenDepthMem;
-		VkImageView m_OffscreenColorImageView, m_OffscreenDepthImageView;
-		VkSampler m_OffscreenColorSampler, m_OffscreenDepthSampler;
-
 		VulkanDebugMessenger* m_pDebugMessenger;
-
-		VkSemaphore m_SubmitSemaphore, m_AcquireSemaphore;
 
 		VkQueue m_GraphicsQueue, m_PresentQueue;
 
@@ -179,38 +135,16 @@ namespace Saturn {
 
 		QueueFamilyIndices m_Indices;
 
-		EditorCamera m_Camera;
-
-		uint32_t m_ImageCount;
-		uint32_t m_FrameCount = 0;
-
-		bool m_WindowIconifed = false;
-
-		int m_DrawCalls;
-		
 		ImGuiVulkan* m_pImGuiVulkan = nullptr;
-
-		//////////////////////////////////////////////////////////////////////////
-		// UUID DEBUG
-		//////////////////////////////////////////////////////////////////////////
-		
-		bool m_ShowDebugUUID = false;
-
-		//////////////////////////////////////////////////////////////////////////
 
 		std::vector<VkImage>       m_SwapChainImages;
 		std::vector<VkImageView>   m_SwapChainImageViews;
 		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
 		
-		std::unordered_map< UUID, Buffer > m_UniformBuffers;
-
 		std::vector<PhysicalDeviceProperties> m_DeviceProps;
 
-		std::vector<VkFence> m_FlightFences;
-
-		std::unordered_map< UUID, VkDescriptorSet > m_DescriptorSets;
-
 		std::vector<const char*> DeviceExtensions  ={ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME };
+
 		std::vector<const char*> ValidationLayers ={ "VK_LAYER_KHRONOS_validation" };
 
 	private:

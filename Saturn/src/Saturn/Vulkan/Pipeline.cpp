@@ -84,22 +84,28 @@ namespace Saturn {
 
 		VkShaderModule VertexModule = VK_NULL_HANDLE;
 		VkShaderModule FragmentModule = VK_NULL_HANDLE;
-
-		std::string FragmentName = m_Specification.pShader->GetName() + "/Fragment" + "/0";
+		
 		std::string VertexName = m_Specification.pShader->GetName() + "/Vertex" + "/0";
+		std::string FragmentName = m_Specification.pShader->GetName() + "/Fragment" + "/0";
+		
+		// Shader object spirv code.
+		auto& SpvSrc = ShaderLibrary::Get().Find( VertexName )->GetSpvCode();
+
+		std::vector<uint32_t> VertexCode = SpvSrc.at( { ShaderType::Vertex, 0 } );
+		std::vector<uint32_t> FragmentCode = SpvSrc.at( { ShaderType::Fragment, 0 } );
 		
 		//{
 			VkShaderModuleCreateInfo CreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-			CreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( VertexName ).size();
-			CreateInfo.pCode = ( uint32_t* )ShaderWorker::Get().GetShaderCode( VertexName ).data();
+			CreateInfo.codeSize = 4 * VertexCode.size();
+			CreateInfo.pCode = ( uint32_t* ) VertexCode.data();
 
 			VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &CreateInfo, nullptr, &VertexModule ) );
 		//}
 
 		//{
 			VkShaderModuleCreateInfo FCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-			FCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( FragmentName ).size();
-			FCreateInfo.pCode = ( uint32_t* )ShaderWorker::Get().GetShaderCode( FragmentName ).data();
+			FCreateInfo.codeSize = 4 * FragmentCode.size();
+			FCreateInfo.pCode = ( uint32_t* ) FragmentCode.data();
 
 			VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &FCreateInfo, nullptr, &FragmentModule ) );
 		//}
