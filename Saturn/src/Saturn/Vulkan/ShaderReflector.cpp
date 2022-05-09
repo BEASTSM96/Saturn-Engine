@@ -85,7 +85,14 @@ namespace Saturn {
 
 			for( int i = 0; i < Bindings.size(); i++ )
 			{
-				Out.Descriptors.push_back( ReflectDescriptor( *Bindings[ i ], Module ) );
+				auto des = ReflectDescriptor( *Bindings[ i ], Module );
+
+				// Only add a new member if its not in the list already
+				if( std::find( std::begin( Out.Descriptors ), std::end( Out.Descriptors ), des ) == std::end( Out.Descriptors ) )
+				{
+					Out.Descriptors.push_back( des );
+				}
+
 			}
 		}
 
@@ -120,7 +127,7 @@ namespace Saturn {
 				Member.RawType = ComponentTypeToString( *rSPVMember.type_description, rSPVMember.decoration_flags );
 				Member.Type = ComponentTypeToShaderDataType( *rSPVMember.type_description, rSPVMember.decoration_flags );
 				
-				if( std::find( std::begin( Out.Members ), std::end( Out.Members ), Member ); == std::end( Out.Members ) )
+				//if( std::find( std::begin( Out.Members ), std::end( Out.Members ), Member ) == std::end( Out.Members ) )
 				{
 					Out.Members.push_back( Member );
 				}

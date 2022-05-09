@@ -37,10 +37,6 @@
 #include <shaderc/shaderc.hpp>
 #include <shaderc/shaderc.h>
 
-#include <spirv/spirv.h>
-#include <spirv/spirv.hpp>
-#include <spirv/spirv_cross.hpp>
-#include <spirv/spirv_glsl.hpp>
 #include "ShaderReflector.h"
 
 #include <cassert>
@@ -230,95 +226,41 @@ namespace Saturn {
 
 	void Shader::Reflect( const std::vector<uint32_t>& rShaderData )
 	{
-		//spirv_cross::Compiler Compiler( rShaderData );
-		//spirv_cross::ShaderResources Resources = Compiler.get_shader_resources();
-		
-#if 1
-		ReflectOutput Output = ShaderReflector::Get().ReflectShader( this );
-#else
+		Timer t;
+
 		SAT_CORE_INFO( "Shader Reflecting..." );
-		SAT_CORE_INFO( " {0} uniform buffers", Resources.uniform_buffers.size() );
-		SAT_CORE_INFO( " {0} push constants", Resources.push_constant_buffers.size() );
-		SAT_CORE_INFO( " {0} storage buffers", Resources.storage_buffers.size() );
-		SAT_CORE_INFO( " {0} sampled images", Resources.sampled_images.size() );
-		SAT_CORE_INFO( " {0} storage images", Resources.storage_images.size() );
-		SAT_CORE_INFO( " {0} sampled buffers", Resources.separate_images.size() );
+		
+		ReflectOutput Output = ShaderReflector::Get().ReflectShader( this );
 
-		SAT_CORE_INFO( "Uniform Buffers:" );
-		for( auto& UniformBuffer : Resources.uniform_buffers )
+		SAT_CORE_INFO( "Reflecting took: {0}", t.ElapsedMilliseconds() );
+		
+		SAT_CORE_INFO( " {0} Descriptors", Output.Descriptors.size() );
+
+		for( auto& rDescriptor : Output.Descriptors )
 		{
-			const auto& rBufferType = Compiler.get_type( UniformBuffer.base_type_id );
-			uint32_t Size = Compiler.get_declared_struct_size( rBufferType );
-			uint32_t Binding = Compiler.get_decoration( UniformBuffer.id, spv::DecorationBinding );
-
-			int MemberCount = rBufferType.member_types.size();
-
-			std::string name = Compiler.get_member_name( UniformBuffer.id, 0 );
-
-			SAT_CORE_INFO( "  {0}", UniformBuffer.name );
-			SAT_CORE_INFO( "   Binding: {0}", Binding );
-			SAT_CORE_INFO( "   Size: {0}", Size );
-			SAT_CORE_INFO( "   Member Count: {0}", MemberCount );
-
-			std::vector< ShaderUniform > Uniforms;
-
-			for( int i = 0; i < MemberCount; i++ )
+			// I know the for loop has a boolean condition, but I am still going to do this.
+			if( rDescriptor.Members.size() > 0 )
 			{
-				std::string name = Compiler.get_member_name( UniformBuffer.id, i );
+				SAT_CORE_INFO( " {0} Is a uniform block.", rDescriptor.Name );
 
-				const auto& rMemberType = Compiler.get_type( Compiler.get_type( UniformBuffer.base_type_id ).member_types[ i ] );
+				for( auto& rMember : rDescriptor.Members )
+				{
+					SAT_CORE_INFO( "  {0}", rMember.Name );
+					SAT_CORE_INFO( "   Offset {0}", rMember.Offset );
+					SAT_CORE_INFO( "   Size {0}", rMember.Size );
+					SAT_CORE_INFO( "   Type {0}", ShaderDataTypeToString( rMember.Type ) );
 
-				// Get member binding.
-				uint32_t MemberBinding = Compiler.get_member_decoration( UniformBuffer.id, i, spv::DecorationBinding );
-
-				//Uniforms.push_back( { name, MemberBinding,  ) } );
+					m_AvailableUniforms.push_back( { rMember.Name, rDescriptor.Binding, rMember.Type } );
+				}
 			}
+			else
+			{
+				SAT_CORE_INFO( " {0} Is a not uniform block.", rDescriptor.Name );
 
+				m_AvailableUniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ) } );
+			}
 		}
-
-		SAT_CORE_INFO( "Push Constant Buffer:" );
-		for( auto& PushConstantBuffer : Resources.push_constant_buffers )
-		{
-			const auto& rBufferType = Compiler.get_type( PushConstantBuffer.base_type_id );
-			uint32_t Size = Compiler.get_declared_struct_size( rBufferType );
-			uint32_t Binding = Compiler.get_decoration( PushConstantBuffer.id, spv::DecorationBinding );
-
-			int MemberCount = rBufferType.member_types.size();
-
-			SAT_CORE_INFO( "  {0}", PushConstantBuffer.name );
-			SAT_CORE_INFO( "   Binding: {0}", Binding );
-			SAT_CORE_INFO( "   Size: {0}", Size );
-			SAT_CORE_INFO( "   Member Count: {0}", MemberCount );
-		}
-
-		SAT_CORE_INFO( "Storage Buffer:" );
-		for( auto& StorageBuffer : Resources.storage_buffers )
-		{
-			const auto& rBufferType = Compiler.get_type( StorageBuffer.base_type_id );
-			uint32_t Size = Compiler.get_declared_struct_size( rBufferType );
-			uint32_t Binding = Compiler.get_decoration( StorageBuffer.id, spv::DecorationBinding );
-
-			int MemberCount = rBufferType.member_types.size();
-
-			SAT_CORE_INFO( "  {0}", StorageBuffer.name );
-			SAT_CORE_INFO( "   Binding: {0}", Binding );
-			SAT_CORE_INFO( "   Size: {0}", Size );
-			SAT_CORE_INFO( "   Member Count: {0}", MemberCount );
-		}
-
-		SAT_CORE_INFO( "Sampled Image:" );
-		for( auto& SampledImage : Resources.sampled_images )
-		{
-			const auto& rImageType = Compiler.get_type( SampledImage.base_type_id );
-
-			uint32_t Binding = Compiler.get_decoration( SampledImage.id, spv::DecorationBinding );
-
-			SAT_CORE_INFO( "  {0}", SampledImage.name );
-			SAT_CORE_INFO( "   Binding: {0}", Binding );
-
-			m_AvailableUniforms.push_back( { SampledImage.name, Binding, ShaderDataType::Sampler2D } );
-		}
-#endif
+		
 	}
 
 	void Shader::CompileGlslToSpvAssembly()
@@ -358,8 +300,6 @@ namespace Saturn {
 			std::vector< uint32_t > SpvBinary( Res.begin(), Res.end() );
 
 			m_SpvCode[ key ] = SpvBinary;
-
-			//SAT_CORE_INFO( "Spv Binrary: {0}", AssemblyCode );
 		}
 
 		SAT_CORE_INFO( "Shader Compilation took {0} ms", CompileTimer.ElapsedMilliseconds() );

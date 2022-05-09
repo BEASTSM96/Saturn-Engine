@@ -35,125 +35,48 @@
 
 namespace Saturn {
 
-	struct MaterialSpec
+	class MaterialSpec
 	{
 	public:
-		MaterialSpec() 
-		{
-			Name = "";
-		}
-		
-		~MaterialSpec() 
-		{
-			Terminate();
+		MaterialSpec();
 
+		MaterialSpec( std::string Name, UUID ID, std::vector< ShaderUniform* > Uniforms );
 
-		}			
-		
-		void Terminate() 
-		{
-			if( Albedo )
-				Albedo->Terminate();
-			
-			if( Normal )
-				Normal->Terminate();
-			
-			if( Metallic )
-				Metallic->Terminate();
-			
-			if( Roughness )
-				Roughness->Terminate();
-		}
+		MaterialSpec( std::string Name, UUID ID );
 
-		MaterialSpec( 
-			std::string Name, 
-			UUID ID, 
-			ShaderUniform& Albedo,
-			ShaderUniform& Normal,
-			ShaderUniform& Metallic,
-			ShaderUniform& Roughness )
-		{
-			// Java be like...
-
-			this->Name = std::move( Name );
-			this->ID = ID;
-			
-			this->Albedo = &Albedo;
-			this->Normal = &Normal;
-			this->Metallic = &Metallic;
-			this->Roughness = &Roughness;
-		}
-		
 		// Copy
-		MaterialSpec( const MaterialSpec& other )
-		{
-			Name = other.Name;
-			ID = other.ID;
-			
-			// Copy shader uniforms.
-			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
-			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
-			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
-			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
-		}
-
+		MaterialSpec( const MaterialSpec& other );
 		// Move
-		MaterialSpec( MaterialSpec&& other ) noexcept
-		{
-			Name = std::move( other.Name );
-			ID = other.ID;
-			
-			// Copy shader uniforms.
-			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
-			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
-			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
-			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
-		}
-		
-		// Copy assignment
-		MaterialSpec& operator=( const MaterialSpec& other )
-		{
-			Name = other.Name;
-			ID = other.ID;
-			
-			// Copy shader uniforms.
-			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
-			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
-			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
-			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
-			
-			return *this;
-		}
+		MaterialSpec( MaterialSpec&& other ) noexcept;
 
-		// Move assignment
-		MaterialSpec& operator=( MaterialSpec&& other ) noexcept
-		{
-			Name = std::move( other.Name );
-			ID = other.ID;
-			
-			// Copy shader uniforms.
-			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
-			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
-			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
-			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
-			
-			return *this;
-		}
+		~MaterialSpec();
+
+		void Terminate();
+
+		// Copy assignment
+		MaterialSpec& operator=( const MaterialSpec& other );
 		
-		bool operator==( MaterialSpec& rOther ) 
-		{
-			return ( ID == rOther.ID );
-		}
+		// Move assignment
+		MaterialSpec& operator=( MaterialSpec&& other ) noexcept;
+
+		bool operator==( MaterialSpec& rOther );
 
 	public:
-		std::string Name = "";
-		
-		UUID ID = 0;
 
-		ShaderUniform* Albedo;
-		ShaderUniform* Normal;
-		ShaderUniform* Metallic;
-		ShaderUniform* Roughness;
+		std::string& GetName() { return m_Name; }
+		const std::string& GetName() const { return m_Name; }
+
+		UUID& GetID() { return m_ID; }
+
+		std::vector< ShaderUniform* >& GetUniforms() { return m_Uniforms; }
+		const std::vector< ShaderUniform* >& GetUniforms() const { return m_Uniforms; }
+
+	private:
+		std::string m_Name = "";
+		
+		UUID m_ID = 0;
+
+		std::vector< ShaderUniform* > m_Uniforms;
 	};
 
 	class Material
@@ -171,7 +94,20 @@ namespace Saturn {
 		void SetMetallic( Ref<Texture2D> Metallic );
 		void SetRoughness( Ref<Texture2D> Roughness );
 
+		template< typename Ty >
+		void Set( std::string Name, Ty* Value ) 
+		{
+			for ( auto& rUniform : m_Spec->m_Uniforms )
+			{
+				if( rUniform->Name == Name ) 
+				{
+					rUniform->pValue = ( void* )Value;
+				}
+			}
+		}
+
 	private:
 		MaterialSpec* m_Spec;
 	};
+
 }

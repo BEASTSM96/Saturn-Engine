@@ -32,6 +32,69 @@
 #include "VulkanContext.h"
 
 namespace Saturn {
+	
+	MaterialSpec::MaterialSpec()
+	{
+	}
+	
+	MaterialSpec::MaterialSpec( std::string Name, UUID ID, std::vector< ShaderUniform* > Uniforms )
+		: m_Name( Name ), m_ID( ID ), m_Uniforms( Uniforms )
+	{
+	}
+
+	MaterialSpec::MaterialSpec( std::string Name, UUID ID ) : m_Name( Name ), m_ID( ID )
+	{
+
+	}
+	
+	MaterialSpec::MaterialSpec( const MaterialSpec& other ) : m_Name( other.m_Name ), m_ID( other.m_ID ), m_Uniforms( other.m_Uniforms )
+	{
+	}
+
+	MaterialSpec::MaterialSpec( MaterialSpec&& other ) noexcept : m_Name( std::move( other.m_Name ) ), m_ID( std::move( other.m_ID ) ), m_Uniforms( std::move( other.m_Uniforms ) )
+	{
+
+	}
+
+	MaterialSpec::~MaterialSpec()
+	{
+		Terminate();
+	}
+
+	void MaterialSpec::Terminate()
+	{
+		for ( auto& Uniform : m_Uniforms )
+		{
+			Uniform->Terminate();
+			delete Uniform;
+		}
+	}
+
+
+	bool MaterialSpec::operator==( MaterialSpec& rOther )
+	{
+		return ( m_Name == rOther.m_Name && m_ID == rOther.m_ID );
+	}
+
+	MaterialSpec& MaterialSpec::operator=( MaterialSpec&& other ) noexcept
+	{
+		m_ID = other.m_ID;
+		m_Name = other.m_Name;
+		m_Uniforms = other.m_Uniforms;
+
+		return *this;
+	}
+
+	MaterialSpec& MaterialSpec::operator=( const MaterialSpec& other )
+	{
+		m_ID = other.m_ID;
+		m_Name = other.m_Name;
+		m_Uniforms = other.m_Uniforms;
+		
+		return *this;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
 
 	Material::Material( MaterialSpec* Spec )
 	{
@@ -56,22 +119,45 @@ namespace Saturn {
 
 	void Material::SetAlbedo( Ref<Texture2D> Albedo )
 	{
-		m_Spec->Albedo->Set< Texture2D >( *Albedo.Pointer() );
+		for( auto& Uniform : m_Spec->GetUniforms() )
+		{
+			if( Uniform->Name == "Albedo" )
+			{
+				Uniform->pValue = ( void* )Albedo.Pointer();
+			}
+		}
 	}
 
 	void Material::SetNormal( Ref<Texture2D> Normal )
 	{
-		m_Spec->Normal->Set< Texture2D >( *Normal.Pointer() );
+		for( auto& Uniform : m_Spec->GetUniforms() )
+		{
+			if( Uniform->Name == "Albedo" )
+			{
+				Uniform->pValue = ( void* ) Normal.Pointer();
+			}
+		}
 	}
 
 	void Material::SetMetallic( Ref<Texture2D> Metallic )
 	{
-		m_Spec->Metallic->Set< Texture2D >( *Metallic.Pointer() );
+		for( auto& Uniform : m_Spec->GetUniforms() )
+		{
+			if( Uniform->Name == "Albedo" )
+			{
+				Uniform->pValue = ( void* ) Metallic.Pointer();
+			}
+		}
 	}
 
 	void Material::SetRoughness( Ref<Texture2D> Roughness )
 	{
-		m_Spec->Roughness->Set< Texture2D >( *Roughness.Pointer() );
+		for( auto& Uniform : m_Spec->GetUniforms() )
+		{
+			if( Uniform->Name == "Albedo" )
+			{
+				Uniform->pValue = ( void* ) Roughness.Pointer();
+			}
+		}
 	}
-
 }
