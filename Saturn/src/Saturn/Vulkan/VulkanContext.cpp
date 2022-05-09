@@ -33,12 +33,17 @@ namespace Saturn {
 		PickPhysicalDevice();
 		CreateLogicalDevice();
 		CreateSwapChain();
+		CreateCommandPool();
 
 		// Init a theoretical swap chain.
 		SwapchainCreationData Data = GetSwapchainCreationData();
 		Data ={};
 		
-		Shader* pShader = new Shader( "shader_new", "assets/shaders/shader_new.glsl" );
+		// Init Renderer.
+		Renderer::Get();
+
+		// Init Scene Renderer.
+		SceneRenderer::Get();
 
 		m_pImGuiVulkan = new ImGuiVulkan();
 	}
@@ -399,4 +404,14 @@ namespace Saturn {
 		// Free the command buffer.
 		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
 	}
+
+	void VulkanContext::CreateCommandPool()
+	{
+		VkCommandPoolCreateInfo PoolInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+		PoolInfo.queueFamilyIndex = m_Indices.GraphicsFamily.value();
+		PoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		
+		VK_CHECK( vkCreateCommandPool( m_LogicalDevice, &PoolInfo, nullptr, &m_CommandPool ) );
+	}
+
 }

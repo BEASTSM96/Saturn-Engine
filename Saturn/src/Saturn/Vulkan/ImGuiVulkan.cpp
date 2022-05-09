@@ -86,16 +86,16 @@ namespace Saturn {
 		CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
 
 		{
-			ImGui_ImplVulkan_CreateFontsTexture( CommandBuffer );
+			//ImGui_ImplVulkan_CreateFontsTexture( CommandBuffer );
 		}
 
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 
-		ImGui_ImplVulkan_DestroyFontUploadObjects();
+		//ImGui_ImplVulkan_DestroyFontUploadObjects();
 
 		//m_OffscreenID = ImGui_ImplVulkan_AddTexture( VulkanContext::Get().GetOffscreenColorSampler(), VulkanContext::Get().GetOffscreenColorView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
-		m_pDockspace = new ImGuiDockspace();
+		//m_pDockspace = new ImGuiDockspace();
 	}
 	
 	void ImGuiVulkan::Terminate()

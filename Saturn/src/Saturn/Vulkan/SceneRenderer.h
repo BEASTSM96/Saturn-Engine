@@ -34,6 +34,7 @@
 #include "Mesh.h"
 
 #include "Renderer.h"
+#include "DescriptorSet.h"
 
 #include "Pipeline.h"
 
@@ -48,16 +49,6 @@ namespace Saturn {
 		Entity entity;
 		Ref< Mesh > Mesh = nullptr;
 		glm::mat4 Transform;
-	};
-
-	struct RenderSection 
-	{
-		VkCommandBuffer CommandBuffer;
-		Saturn::Pipeline Pipeline;
-
-		void Begin();
-
-		void End();
 	};
 
 	struct RendererData
@@ -75,8 +66,8 @@ namespace Saturn {
 
 		//////////////////////////////////////////////////////////////////////////
 
-		// Grid
-		Pipeline GridPipeline;
+		Saturn::EditorCamera EditorCamera;
+		Saturn::Camera RuntimeCamera;
 
 		//////////////////////////////////////////////////////////////////////////
 
@@ -88,9 +79,7 @@ namespace Saturn {
 			float Scale;
 			float Res;
 		};
-
-		//////////////////////////////////////////////////////////////////////////
-	
+		
 		struct SkyboxMatricesObject
 		{
 			glm::mat4 View;
@@ -117,10 +106,33 @@ namespace Saturn {
 			glm::vec4 RoughnessColor;
 		};
 
+		// Geometry
 		//////////////////////////////////////////////////////////////////////////
 
-		// GRID
+		// Render pass for all grid, skybox and meshes.
+		Pass GeometryPass;
+		Resource GeometryPassDepth;
+		Resource GeometryPassColor;
+		VkFramebuffer GeometryFramebuffer;
+		DescriptorPool GeometryDescriptorPool;
+
+		// Static mesh geometry
+		UniformBuffer SM_MatricesUBO;
+		// Main geometry for static meshes
+		Pipeline StaticMeshPipeline;
 		
+		DescriptorSetLayout SM_DescriptorSetLayout;
+
+		std::vector< DescriptorSet > StaticMeshDescriptorSets;
+		
+		// Dynamic mesh geometry
+		// For animated meshes
+		Pipeline DynamicMeshPipeline;
+
+		// GRID
+
+		Pipeline GridPipeline;
+
 		VkDescriptorSet GridDescriptorSet = nullptr;
 		VkDescriptorSetLayout GridDescriptorSetLayout = nullptr;
 		VkDescriptorPool GridDescriptorPool = nullptr;
@@ -129,11 +141,8 @@ namespace Saturn {
 		VertexBuffer* GridVertexBuffer;
 		IndexBuffer* GridIndexBuffer;
 
-		//////////////////////////////////////////////////////////////////////////
-
 		// SKYBOX
 
-		// Skybox
 		Pipeline SkyboxPipeline;
 
 		VkDescriptorSet SkyboxDescriptorSet = nullptr;
@@ -145,18 +154,9 @@ namespace Saturn {
 		IndexBuffer* SkyboxIndexBuffer;
 
 		//////////////////////////////////////////////////////////////////////////
-
-		// Geometry
-		Pipeline GeometryPipeline;
-
-		Pass GeometryPass;
-		Resource GeometryPassDepth;
-		Resource GeometryPassColor;
 		
-		VkCommandPool GeometryCmdPool;
-		VkFramebuffer GeometryFramebuffer;
-
-
+		// End Geometry
+		 
 		//////////////////////////////////////////////////////////////////////////
 
 		// SHADERS
@@ -186,6 +186,13 @@ namespace Saturn {
 
 		void RenderScene();
 
+		// TODO: For every static mesh we need a descriptor set.
+		//		 Only adds a descriptor set for a static mesh if it doesn't exist.
+		void AddDescriptorSet( const DescriptorSet& rDescriptorSet );
+	
+		// Create static mesh pipeline.
+		DescriptorSet CreateSMDescriptorSet();
+		
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
 		void Terminate();

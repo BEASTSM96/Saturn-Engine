@@ -51,18 +51,18 @@ namespace Saturn {
 		VK_CHECK( vkCreateCommandPool( VulkanContext::Get().GetDevice(), &CommandPoolInfo, nullptr, &m_RendererData.CommandPool ) );
 		
 		//////////////////////////////////////////////////////////////////////////
+		// Geometry 
+		//////////////////////////////////////////////////////////////////////////
+
+		InitGeometryPass();
+
+		//////////////////////////////////////////////////////////////////////////
 
 		// Create grid.
 		CreateGridComponents();
 
 		// Create skybox.
 		CreateSkyboxComponents();
-
-		//////////////////////////////////////////////////////////////////////////
-		// Geometry 
-		//////////////////////////////////////////////////////////////////////////
-
-		InitGeometryPass();
 	}
 
 	void SceneRenderer::Terminate()
@@ -83,7 +83,7 @@ namespace Saturn {
 	{
 		// Create render pass.
 
-		// Start by creating the color res
+		// Start by creating the color resource
 		{
 			Renderer::Get().CreateImage(
 				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.GeometryPassColor.Image, &m_RendererData.GeometryPassColor.Memory );
@@ -93,21 +93,21 @@ namespace Saturn {
 			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassColor.Sampler );
 		}
 
-		// Then, create the depth res
-
+		// Then, create the depth resource
 		{
 			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.GeometryPassColor.Image, &m_RendererData.GeometryPassColor.Memory );
+				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.GeometryPassDepth.Image, &m_RendererData.GeometryPassDepth.Memory );
 
-			Renderer::Get().CreateImageView( m_RendererData.GeometryPassColor, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.GeometryPassColor.ImageView );
+			Renderer::Get().CreateImageView( m_RendererData.GeometryPassDepth, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.GeometryPassDepth.ImageView );
 
-			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassColor.Sampler );
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassDepth.Sampler );
 		}
 
 		PassSpecification PassSpec = {};
 		PassSpec.Name = "Geometry Pass";
 
 		PassSpec.Attachments = {
+			// Color
 			{
 				.flags = 0,
 				.format = VK_FORMAT_B8G8R8A8_UNORM,
@@ -119,6 +119,7 @@ namespace Saturn {
 				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 				.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 			},
+			// Depth
 			{
 				.flags = 0,
 				.format = VK_FORMAT_D32_SFLOAT,
@@ -160,9 +161,71 @@ namespace Saturn {
 
 		// Create geometry framebuffer.
 
-		VkImageView Attachments[] = { m_RendererData.GeometryPassColor.ImageView, m_RendererData.GeometryPassDepth.ImageView };
+		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() }, { m_RendererData.GeometryPassColor.ImageView, m_RendererData.GeometryPassDepth.ImageView }, &m_RendererData.GeometryFramebuffer );
 
-		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() }, Attachments, &m_RendererData.GeometryFramebuffer );
+		// Create the geometry pipeline.
+		// Load the shader
+		m_RendererData.StaticMeshShader = Ref< Shader >::Create( "shader_new", "assets/shaders/shader_new.glsl" );
+		ShaderLibrary::Get().Add( m_RendererData.StaticMeshShader );
+		
+		VertexBufferLayout Layout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal" },
+			{ ShaderDataType::Float3, "a_Tangent" },
+			{ ShaderDataType::Float3, "a_Bitangent" },
+			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
+
+		// Create the uniform buffer.
+		VkDeviceSize BufferSize = sizeof( RendererData::StaticMeshMatrices );
+		m_RendererData.SM_MatricesUBO = UniformBuffer();	
+
+		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
+		
+		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Position ) } );
+		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Normal ) } );
+		AttributeDescriptions.push_back( { 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Tangent ) } );
+		AttributeDescriptions.push_back( { 3, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Binormal ) } );
+		AttributeDescriptions.push_back( { 4, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( MeshVertex, Texcoord ) } );
+
+		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
+		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
+
+		std::vector< VkDescriptorPoolSize > PoolSizes;
+
+		// TODO: I want a nice API where I can use the same layout for the pool and the descriptor set layout.
+
+		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 1000 } );
+		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
+		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
+		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
+		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
+
+		m_RendererData.GeometryDescriptorPool = DescriptorPool( PoolSizes, 100000 );
+
+		// u_Matrices
+		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_ALL } );
+		
+		// u_AlbedoTexture, u_NormalTexture, u_MetallicTexture, u_RoughnessTexture
+		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
+		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
+		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
+		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
+
+		m_RendererData.SM_DescriptorSetLayout.Create();
+		
+		PipelineSpecification PipelineSpec = {};
+		PipelineSpec.Width = Window::Get().Width();
+		PipelineSpec.Height = Window::Get().Height();
+		PipelineSpec.Name = "Static Meshes";
+		PipelineSpec.pShader = m_RendererData.StaticMeshShader.Pointer();
+		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SM_DescriptorSetLayout.VulkanLayout } };
+		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
+		PipelineSpec.UseDepthTest = true;
+		PipelineSpec.BindingDescriptions = BindingDescriptions;
+		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
+		
+		m_RendererData.StaticMeshPipeline = Pipeline( PipelineSpec );
 	}
 
 	void SceneRenderer::RenderGrid()
@@ -281,6 +344,8 @@ namespace Saturn {
 		
 		m_RendererData.GridShader = Ref< Shader >::Create( "Grid", "assets/shaders/Grid.glsl" );
 		
+		ShaderLibrary::Get().Add( m_RendererData.GridShader );
+
 		// Create uniform buffer.
 		VkDeviceSize BufferSize = sizeof( RendererData::GridMatricesObject );
 		m_RendererData.GridUniformBuffer = Buffer();
@@ -355,7 +420,7 @@ namespace Saturn {
 		PipelineSpec.Name = "Grid";
 		PipelineSpec.pShader = m_RendererData.GridShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.GridDescriptorSetLayout } };
-		//PipelineSpec.RenderPass = VulkanContext::Get().GetOffscreenRenderPass();
+		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.UseDepthTest = true;
@@ -401,6 +466,8 @@ namespace Saturn {
 
 		// Create skybox shader.
 		m_RendererData.SkyboxShader = Ref<Shader>::Create( "Skybox", "assets/shaders/Skybox.glsl" );
+
+		ShaderLibrary::Get().Add( m_RendererData.SkyboxShader );
 
 		// Create uniform buffer.
 		VkDeviceSize BufferSize = sizeof( RendererData::SkyboxMatricesObject );
@@ -477,7 +544,7 @@ namespace Saturn {
 		PipelineSpec.Name = "Skybox";
 		PipelineSpec.pShader = m_RendererData.SkyboxShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SkyboxDescriptorSetLayout } };
-		//PipelineSpec.RenderPass = VulkanContext::Get().GetOffscreenRenderPass();
+		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
@@ -622,7 +689,21 @@ namespace Saturn {
 		{
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
 
-			//Renderer::Get().RenderStaticMesh( m_RendererData.CommandBuffer, m_RendererData.GeometryPipeline, uuid, Cmd.Mesh, Cmd.Transform, pUBO );
+			// Update uniform buffers.
+
+			RendererData::StaticMeshMatrices u_Matrices = {};
+			
+			u_Matrices.Transform = Cmd.Transform;
+			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
+			u_Matrices.UseAlbedoTexture = true;
+			
+			m_RendererData.SM_MatricesUBO.Update( &u_Matrices, sizeof( u_Matrices ) );
+
+			Renderer::Get().RenderStaticMesh( 
+				m_RendererData.CommandBuffer, 
+				m_RendererData.StaticMeshPipeline, 
+				uuid, Cmd.Mesh, Cmd.Transform, 
+				m_RendererData.SM_MatricesUBO );
 		}
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
@@ -638,11 +719,6 @@ namespace Saturn {
 	{
 		Renderer::Get().BeginFrame();
 
-		if( m_DrawList.size() )
-		{
-			//VulkanContext::Get().CreateDescriptorPool();
-		}
-
 		// Allocate a default command buffer.
 		m_RendererData.CommandBuffer = Renderer::Get().AllocateCommandBuffer( m_RendererData.CommandPool );
 
@@ -654,4 +730,16 @@ namespace Saturn {
 
 		FlushDrawList();
 	}
+
+	void SceneRenderer::AddDescriptorSet( const DescriptorSet& rDescriptorSet )
+	{
+		// Check if the descriptor set already exists.
+		auto res = std::find( std::begin( m_RendererData.StaticMeshDescriptorSets ), std::end( m_RendererData.StaticMeshDescriptorSets ), rDescriptorSet );
+	
+		if( res == std::end( m_RendererData.StaticMeshDescriptorSets ) )
+		{
+			m_RendererData.StaticMeshDescriptorSets.push_back( rDescriptorSet );
+		}
+	}
+
 }

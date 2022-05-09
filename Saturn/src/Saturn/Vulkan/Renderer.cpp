@@ -64,11 +64,21 @@ namespace Saturn {
 
 		SetDebugUtilsObjectName( "Acquire Semaphore", ( uint64_t ) m_AcquireSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
 		SetDebugUtilsObjectName( "Submit Semaphore", ( uint64_t ) m_SubmitSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
+
+		// Create the command pool.
+		VkCommandPoolCreateInfo CommandPoolCreateInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+		CommandPoolCreateInfo.queueFamilyIndex          = VulkanContext::Get().GetQueueFamilyIndices().GraphicsFamily.value();
+		CommandPoolCreateInfo.flags                     = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		
+		VK_CHECK( vkCreateCommandPool( VulkanContext::Get().GetDevice(), &CommandPoolCreateInfo, nullptr, &m_CommandPool ) );
 	}
 
 	void Renderer::Terminate()
 	{
-
+		vkDestroyCommandPool( VulkanContext::Get().GetDevice(), m_CommandPool, nullptr );
+		
+		vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_AcquireSemaphore, nullptr );
+		vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_SubmitSemaphore, nullptr );
 	}
 
 	void Renderer::SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline )
@@ -223,12 +233,12 @@ namespace Saturn {
 	// Helpers
 	//////////////////////////////////////////////////////////////////////////
 
-	void Renderer::CreateFramebuffer( VkRenderPass RenderPass, VkExtent2D Extent, VkImageView* Attachments, VkFramebuffer* pFramebuffer )
+	void Renderer::CreateFramebuffer( VkRenderPass RenderPass, VkExtent2D Extent, std::vector< VkImageView > Attachments, VkFramebuffer* pFramebuffer )
 	{
 		VkFramebufferCreateInfo FramebufferCreateInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		FramebufferCreateInfo.renderPass = RenderPass;
-		FramebufferCreateInfo.attachmentCount = ARRAYSIZE( Attachments );
-		FramebufferCreateInfo.pAttachments = Attachments;
+		FramebufferCreateInfo.attachmentCount = Attachments.size();
+		FramebufferCreateInfo.pAttachments = Attachments.data();
 		FramebufferCreateInfo.width = Extent.width;
 		FramebufferCreateInfo.height = Extent.height;
 		FramebufferCreateInfo.layers = 1;

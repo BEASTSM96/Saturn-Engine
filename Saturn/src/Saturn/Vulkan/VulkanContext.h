@@ -112,6 +112,7 @@ namespace Saturn {
 		void PickPhysicalDevice();
 		void CreateLogicalDevice();
 		void CreateSwapChain();
+		void CreateCommandPool();
 
 		bool CheckValidationLayerSupport();
 

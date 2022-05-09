@@ -78,7 +78,7 @@ namespace Saturn {
 		VkCommandBuffer AllocateCommandBuffer( VkCommandPool CommandPool );
 
 		// Helpers.
-		void CreateFramebuffer( VkRenderPass RenderPass, VkExtent2D Extent, VkImageView* Attachments, VkFramebuffer* pFramebuffer );
+		void CreateFramebuffer( VkRenderPass RenderPass, VkExtent2D Extent, std::vector<VkImageView> Attachments, VkFramebuffer* pFramebuffer );
 
 		void CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory );
 		
@@ -92,6 +92,10 @@ namespace Saturn {
 		
 		void BeginFrame();
 		void EndFrame( VkCommandBuffer CommandBuffer );
+		
+	public:
+
+		VkCommandPool GetCommandPool() { return m_CommandPool; };
 
 	private:
 		
@@ -108,5 +112,7 @@ namespace Saturn {
 		
 		VkSemaphore m_AcquireSemaphore;
 		VkSemaphore m_SubmitSemaphore;
+
+		VkCommandPool m_CommandPool;
 	};
 }

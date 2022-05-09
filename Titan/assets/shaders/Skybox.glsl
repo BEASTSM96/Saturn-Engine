@@ -21,7 +21,7 @@ layout(binding = 0) uniform Matrices
 
 layout(location = 1) out VertexOutput 
 {
-	vec3 TexCoord;
+	vec3 v_Position;
 } vs_Output;
 
 void main() 
@@ -34,9 +34,9 @@ void main()
 	vec4 position = vec4( a_Position.xy, 1.0, 1.0 );
 	
 	gl_Position = position;	
-	gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0;
+	gl_Position.z = ( gl_Position.z + gl_Position.w ) / 2.0;
 
-	vs_Output.TexCoord = ( InvViewProj * position ).xyz;
+	vs_Output.v_Position = ( InvViewProj * position ).xyz;
 }
 
 #type fragment
@@ -60,7 +60,7 @@ layout(binding = 0) uniform Matrices
 
 layout(location = 1) in VertexOutput 
 {
-	vec3 TexCoord;
+	vec3 v_Position;
 } vs_Input;
 
 float saturatedDot( in vec3 a, in vec3 b )
@@ -158,7 +158,7 @@ vec3 calculateSkyLuminanceRGB( in vec3 s, in vec3 e, in float t )
 
 void main() 
 {
-	vec2 uv = vs_Input.TexCoord.xy / 2.0 + 0.5;
+	vec2 uv = vs_Input.v_Position.xy / 2.0 + 0.5;
 	
 	float Inclination = u_Matrices.Inclination;
 	float Azimuth = u_Matrices.Azimuth;

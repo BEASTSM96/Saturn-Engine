@@ -89,7 +89,7 @@ namespace Saturn {
 		std::string FragmentName = m_Specification.pShader->GetName() + "/Fragment" + "/0";
 		
 		// Shader object spirv code.
-		auto& SpvSrc = ShaderLibrary::Get().Find( VertexName )->GetSpvCode();
+		auto& SpvSrc = ShaderLibrary::Get().Find( m_Specification.pShader->GetName() )->GetSpvCode();
 
 		std::vector<uint32_t> VertexCode = SpvSrc.at( { ShaderType::Vertex, 0 } );
 		std::vector<uint32_t> FragmentCode = SpvSrc.at( { ShaderType::Fragment, 0 } );

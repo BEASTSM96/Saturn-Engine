@@ -78,7 +78,7 @@ namespace Saturn {
 
 		// Create uniform buffer.
 
-		m_Buffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+		m_Buffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		// Preform copy buffer.
 		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
