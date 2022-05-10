@@ -29,6 +29,8 @@
 #pragma once
 
 #include "Base.h"
+
+#include "Layer.h"
 #include "Events.h"
 #include "Input.h"
 
@@ -49,16 +51,20 @@ namespace Saturn {
 
 		Timestep& Time() { return m_Timestep; }
 
-		std::pair< std::string, std::string > OpenFile( const char* filter ) const;
-		std::pair< std::string, std::string > SaveFile( const char* f ) const;
+		std::string OpenFile( const char* pFilter ) const;
+		std::string SaveFile( const char* pFilter ) const;
 
 	protected:
 
 		void OnEvent( Event& e );
 		bool OnWindowResize( WindowResizeEvent& e );
 
+		void RenderImGui();
+
 	private:
 		bool m_Running = true;
+		
+		ImGuiLayer* m_ImGuiLayer;
 
 		Timestep m_Timestep;
 		float m_LastFrameTime = 0.0f;

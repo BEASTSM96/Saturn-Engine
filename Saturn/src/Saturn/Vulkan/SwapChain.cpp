@@ -97,12 +97,12 @@ namespace Saturn {
 		{
 			std::vector< VkImageView > Attachments;
 			Attachments.push_back( m_ImageViews[ i ] );
-			//Attachments.push_back( VulkanContext::Get().m_DepthImageView );
+			Attachments.push_back( VulkanContext::Get().GetDepthImageView() );
 			
 			VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 			FramebufferCreateInfo.width = Window::Get().Width();
 			FramebufferCreateInfo.height = Window::Get().Height();
-			//FramebufferCreateInfo.renderPass = VulkanContext::Get().GetRenderPass().GetRenderPass();
+			FramebufferCreateInfo.renderPass = VulkanContext::Get().GetDefaultPass();
 			FramebufferCreateInfo.layers = 1;
 			FramebufferCreateInfo.pAttachments = Attachments.data();
 			FramebufferCreateInfo.attachmentCount = Attachments.size();

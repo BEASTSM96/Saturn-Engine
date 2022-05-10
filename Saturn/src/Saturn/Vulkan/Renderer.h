@@ -91,11 +91,14 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		
 		void BeginFrame();
-		void EndFrame( VkCommandBuffer CommandBuffer );
+		void EndFrame();
 		
+		uint32_t GetImageIndex() { return m_ImageIndex; }
+
 	public:
 
 		VkCommandPool GetCommandPool() { return m_CommandPool; };
+		VkCommandBuffer ActiveCommandBuffer() { return m_CommandBuffer; };
 
 	private:
 		
@@ -114,5 +117,6 @@ namespace Saturn {
 		VkSemaphore m_SubmitSemaphore;
 
 		VkCommandPool m_CommandPool;
+		VkCommandBuffer m_CommandBuffer;
 	};
 }

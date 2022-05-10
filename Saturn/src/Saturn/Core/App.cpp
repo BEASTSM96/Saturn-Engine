@@ -34,6 +34,7 @@
 #include "Saturn/Discord/DiscordRPC.h"
 
 #include "Saturn/Vulkan/VulkanContext.h"
+#include "Saturn/Vulkan/SceneRenderer.h"
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -58,6 +59,8 @@ namespace Saturn {
 
 		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
+		m_ImGuiLayer = new ImGuiLayer();
+	
 		while( m_Running )
 		{
 			float time = ( float )glfwGetTime(); //Platform::GetTime();
@@ -68,9 +71,27 @@ namespace Saturn {
 			
 			Window::Get().OnUpdate();
 			
-			// Render
+			if ( !Window::Get().IsMinimized() )
+			{
+				Window::Get().Render();
+			
+				Renderer::Get().BeginFrame();
+				
+				uint32_t ImageIndex = Renderer::Get().GetImageIndex();
 
-			Window::Get().Render();
+				// Do ui pass.
+				VulkanContext::Get().GetDefaultPass().BeginPass( Renderer::Get().ActiveCommandBuffer(), VulkanContext::Get().GetSwapchain().GetFramebuffers()[ ImageIndex ], { .width = (uint32_t)Window::Get().Width(), .height = ( uint32_t )Window::Get().Height() } );
+				
+				m_ImGuiLayer->Begin();
+				
+				ImGui::ShowDemoWindow();
+
+				m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
+
+				VulkanContext::Get().GetDefaultPass().EndPass();
+
+				Renderer::Get().EndFrame();
+			}
 		}
 	}
 
@@ -79,7 +100,7 @@ namespace Saturn {
 		m_Running = false;
 	}
 
-	std::pair< std::string, std::string > Application::OpenFile( const char* filter ) const
+	std::string Application::OpenFile( const char* pFilter ) const
 	{
 	#ifdef  SAT_PLATFORM_WINDOWS
 		OPENFILENAMEA ofn;       // common dialog box structure
@@ -91,27 +112,27 @@ namespace Saturn {
 		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* )Window::Get().NativeWindow() );
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof( szFile );
-		ofn.lpstrFilter = filter;
+		ofn.lpstrFilter = pFilter;
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 		if( GetOpenFileNameA( &ofn ) == TRUE )
 		{
-			return { ofn.lpstrFile,  ofn.lpstrFilter };
+			return ofn.lpstrFile;
 		}
-		return { std::string(), std::string() };
+		return std::string();
 	#endif
 
 	#ifdef  SAT_PLATFORM_LINUX
-		return { std::string(), std::string() };
+		return std::string();
 	#endif
 
-		return  { std::string(), std::string() };
+		return std::string();
 	}
 
-	std::pair< std::string, std::string > Application::SaveFile( const char* f ) const
+	std::string Application::SaveFile( const char* f ) const
 	{
-		return  { std::string(), std::string() };
+		return  "";
 	}
 
 	void Application::OnEvent( Event& e )
@@ -133,4 +154,14 @@ namespace Saturn {
 		
 		VulkanContext::Get().ResizeEvent();
 	}
+
+	void Application::RenderImGui()
+	{
+		m_ImGuiLayer->Begin();
+
+		
+
+		m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
+	}
+
 }

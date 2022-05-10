@@ -218,6 +218,11 @@ namespace Saturn {
 
 		SetDebugUtilsObjectName( m_Specification.Name, ( uint64_t )m_Pipeline, VK_OBJECT_TYPE_PIPELINE );
 
+		if( m_Specification.Name != "" )
+			SAT_CORE_WARN( "Created pipeline: {0}!", m_Specification.Name );
+		else				
+			SAT_CORE_WARN( "Created pipeline: {0}!", ( uint64_t )m_Pipeline );
+
 		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), VertexModule, nullptr );
 		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), FragmentModule, nullptr );
 	}

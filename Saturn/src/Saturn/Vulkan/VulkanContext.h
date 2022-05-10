@@ -73,6 +73,8 @@ namespace Saturn {
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands( VkCommandBuffer CommandBuffer );
 
+		Pass& GetDefaultPass() { return m_DefaultPass; }
+
 	public:
 		
 		VkInstance& GetInstance() { return m_Instance; }
@@ -88,8 +90,6 @@ namespace Saturn {
 
 		VkCommandPool& GetCommandPool() { return m_CommandPool; }
 
-		VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
-
 		VkQueue& GetGraphicsQueue() { return m_GraphicsQueue; }
 		VkQueue& GetPresentQueue() { return m_PresentQueue; }
 
@@ -98,6 +98,8 @@ namespace Saturn {
 		Swapchain& GetSwapchain() { return m_SwapChain; }
 
 		ImGuiVulkan* GetImGuiVulkan() { return m_pImGuiVulkan; }
+
+		VkImageView& GetDepthImageView() { return m_DepthImageView; }
 
 		std::vector< PhysicalDeviceProperties > GetPhysicalDeviceProperties() { return m_DeviceProps; }
 		std::vector< PhysicalDeviceProperties > const GetPhysicalDeviceProperties() const { return m_DeviceProps; }
@@ -113,6 +115,7 @@ namespace Saturn {
 		void CreateLogicalDevice();
 		void CreateSwapChain();
 		void CreateCommandPool();
+		void CreateDepthResources();
 
 		bool CheckValidationLayerSupport();
 
@@ -124,9 +127,12 @@ namespace Saturn {
 		VkDebugUtilsMessengerEXT m_DebugMessenger;
 		VkExtent2D m_SwapChainExtent;
 		VkCommandPool m_CommandPool;
-		VkDescriptorPool m_DescriptorPool;
-		
-		VkDescriptorSetLayout m_DescriptorSetLayouts;
+		VkCommandBuffer m_CommandBuffer;
+	
+		// Depth resources.
+		VkImage m_DepthImage;
+		VkDeviceMemory m_DepthImageMemory;
+		VkImageView m_DepthImageView;
 
 		VulkanDebugMessenger* m_pDebugMessenger;
 
@@ -137,6 +143,9 @@ namespace Saturn {
 		QueueFamilyIndices m_Indices;
 
 		ImGuiVulkan* m_pImGuiVulkan = nullptr;
+
+		// Default.
+		Pass m_DefaultPass;
 
 		std::vector<VkImage>       m_SwapChainImages;
 		std::vector<VkImageView>   m_SwapChainImageViews;

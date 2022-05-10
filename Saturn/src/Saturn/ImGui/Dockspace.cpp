@@ -115,9 +115,11 @@ namespace Saturn {
 		// Draw Widgets
 
 		m_SceneHierarchyPanel->Draw();
-		m_Viewport->Draw();
+		//m_Viewport->Draw();
 		m_TitleBar->Draw();
 		m_Toolbar->Draw();
+
+		m_EditorScene->OnRenderEditor( Application::Get().Time() );
 
 		// Check if runtime started.
 		if( m_Toolbar->WantsToStartRuntime )

@@ -364,7 +364,7 @@ namespace Saturn {
 				if( mc.Mesh )
 					mc.Mesh.Delete();
 
-				std::string file = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" ).first;
+				std::string file = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" );
 				if( !file.empty() )
 					mc.Mesh = Ref<Mesh>::Create( file, entity.GetComponent<IdComponent>().ID );
 			}
@@ -392,7 +392,7 @@ namespace Saturn {
 			{
 				if( ImGui::Button( "...##openenvmap", ImVec2( 50, 20 ) ) ) 
 				{
-					std::string file = Application::Get().OpenFile( "Environment map file (*.hdr)\0*.hdr;\0" ).first;
+					std::string file = Application::Get().OpenFile( "Environment map file (*.hdr)\0*.hdr;\0" );
 					
 					//skl.Map = { .Name = file, .Path = file, .Texture = nullptr };
 				}

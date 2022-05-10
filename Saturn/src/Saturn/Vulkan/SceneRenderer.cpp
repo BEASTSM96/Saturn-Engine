@@ -31,6 +31,7 @@
 
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
+#include "ImGuiVulkan.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 
@@ -56,13 +57,13 @@ namespace Saturn {
 
 		InitGeometryPass();
 
-		//////////////////////////////////////////////////////////////////////////
-
 		// Create grid.
 		CreateGridComponents();
 
 		// Create skybox.
 		CreateSkyboxComponents();
+
+		//////////////////////////////////////////////////////////////////////////
 	}
 
 	void SceneRenderer::Terminate()
@@ -277,6 +278,9 @@ namespace Saturn {
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 		
 		Entity SkylightEntity;
+
+		if( !m_pSence )
+			return;
 
 		auto view = m_pSence->GetAllEntitiesWith< SkylightComponent >();
 
@@ -710,21 +714,25 @@ namespace Saturn {
 
 		//////////////////////////////////////////////////////////////////////////
 		
-		m_RendererData.GeometryPass.EndPass();
-
 		// End geometry pass.
 	}
 
 	void SceneRenderer::RenderScene()
 	{
-		Renderer::Get().BeginFrame();
+		//Renderer::Get().BeginFrame();
 
 		// Allocate a default command buffer.
 		m_RendererData.CommandBuffer = Renderer::Get().AllocateCommandBuffer( m_RendererData.CommandPool );
 
+		// Passes
+
 		GeometryPass();
 
-		Renderer::Get().EndFrame( m_RendererData.CommandBuffer );
+		//
+		
+		m_RendererData.GeometryPass.EndPass();
+
+		//Renderer::Get().EndFrame( m_RendererData.CommandBuffer );
 
 		vkFreeCommandBuffers( VulkanContext::Get().GetDevice(), m_RendererData.CommandPool, 1, &m_RendererData.CommandBuffer );
 

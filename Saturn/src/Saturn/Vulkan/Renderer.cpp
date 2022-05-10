@@ -30,6 +30,7 @@
 #include "Renderer.h"
 
 #include "VulkanDebug.h"
+#include "ImGuiVulkan.h"
 
 namespace Saturn {
 
@@ -153,6 +154,7 @@ namespace Saturn {
 	{
 		VkCommandBufferAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 		AllocateInfo.commandPool = CommandPool;
+		AllocateInfo.commandBufferCount = 1;
 		AllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		
 		VkCommandBuffer CommandBuffer;
@@ -168,6 +170,8 @@ namespace Saturn {
 
 	void Renderer::BeginFrame()
 	{
+		m_CommandBuffer = AllocateCommandBuffer( m_CommandPool );
+
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
 
 		// Wait for last frame.
@@ -187,16 +191,21 @@ namespace Saturn {
 			SAT_CORE_ASSERT( false );
 	}
 
-	void Renderer::EndFrame( VkCommandBuffer CommandBuffer )
+	void Renderer::EndFrame()
 	{
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
+
+		// Do extra passes.
+		// UI Pass.
+		
+		VK_CHECK( vkEndCommandBuffer( m_CommandBuffer ) );
 
 		// Rendering Queue
 		VkPipelineStageFlags WaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 		VkSubmitInfo SubmitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
 		SubmitInfo.commandBufferCount = 1;
-		SubmitInfo.pCommandBuffers = &CommandBuffer;
+		SubmitInfo.pCommandBuffers = &m_CommandBuffer;
 		SubmitInfo.pWaitDstStageMask = &WaitStage;
 
 		// SIGNAL the SubmitSemaphore

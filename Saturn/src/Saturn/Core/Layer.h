@@ -28,98 +28,46 @@
 
 #pragma once
 
-#include "Base.h"
-
-#include "Saturn/ImGui/TitleBar.h"
-#include "Saturn/ImGui/Dockspace.h"
-
-#include <string>
-
-#if defined ( SAT_LINUX ) || defined ( SAT_MAC ) 
-#include <cstring>
-#endif
-
-#if defined( SAT_WINDOWS )
-#include <Windows.h>
-#endif
+#include "Timestep.h"
+#include "Events.h"
 
 #include <vulkan.h>
 
-struct GLFWwindow;
-
 namespace Saturn {
 
-	class Window
+	class Layer
 	{
-		SINGLETON( Window );
-
-		Window();
-		~Window();
-
 	public:
-		using EventCallbackFn = std::function<void( Event& )>;
-
-	public:
-
-		void OnUpdate();
-
-		void Maximize();
-		void Minimize();
-
-		void Restore();
-		void SetTitle( const std::string& title );
-
-		void Render();
-
-		void SetEventCallback( const EventCallbackFn& callback ) { m_EventCallback = callback; }
-
-		void* NativeWindow() const { return m_Window; }
-
-		void ImGuiInit();
-
-		std::vector<const char*> GetRequiredExtensions();
-
-		VkResult CreateWindowSurface( VkInstance& rInstance, VkSurfaceKHR* pSurface );
-
-	#if defined( _WIN32 )
-		HWND PlatformWindow();
-	#endif
-
-		int Width() { return m_Width; }
-		int Height() { return m_Height; }
-
-		void GetSize( uint32_t* pWidth, uint32_t* pHeight );
-
-		ImGuiDockspace* m_Dockspace = nullptr;
-
-		bool IsMinimized() { return m_Minimized; }
-
-	private:
-
-		static void SizeCallback( GLFWwindow* wind, int w, int h );
-
-	private:
-		GLFWwindow* m_Window = nullptr;
-
-		int m_Width  = 3440;
-		int m_Height = 1400;
-		std::string m_Title = "Saturn";
-
-		bool m_Minimized = false;
-		bool m_PendingMinimize = false;
+		Layer();
+		~Layer();
 		
-		bool m_Maximized = false;
-		bool m_PendingMaximized = false;
+		virtual void OnAttach() {}
+		virtual void OnDetach() {}
+		virtual void OnUpdate( Timestep time ) {}
+		virtual void OnImGuiRender() {}
+		virtual void OnEvent( Event& rEvent ) {}
 
-		EventCallbackFn m_EventCallback;
+	private:
 
-		// Widgets
+	};
 
-		bool m_Rendering = false;
+	class ImGuiLayer : public Layer
+	{
+	public:
+		ImGuiLayer();
+		~ImGuiLayer();
 
-	#if defined ( SAT_WINDOWS )
-		WNDPROC  m_WindowProc  = nullptr;
-		static LRESULT WindowProc( HWND handle, UINT msg, WPARAM WParam, LPARAM LParam );
-	#endif
+		void Begin();
+
+		void End( VkCommandBuffer CommandBuffer );
+
+		virtual void OnAttach( void ) override;
+		virtual void OnDetach( void ) override;
+		virtual void OnImGuiRender( void ) override;
+
+	private:
+
+		VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
+		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
 	};
 }

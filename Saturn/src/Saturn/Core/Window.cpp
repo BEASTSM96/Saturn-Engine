@@ -68,7 +68,6 @@
 
 namespace Saturn {
 
-	ImFont* s_DefualtFont;
 
 	void GLFWErrorCallback( int error, const char* desc )
 	{
@@ -88,7 +87,7 @@ namespace Saturn {
 		glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
 	#endif
 
-		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
+		//glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 
 		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
 
@@ -217,7 +216,7 @@ namespace Saturn {
 		HWND      windowHandle    = glfwGetWin32Window( m_Window );
 		HINSTANCE instance        = GetModuleHandle( nullptr );
 
-		SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
+		//SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
 
 		// Fix missing drop shadow
 		MARGINS shadowMargins;
@@ -225,8 +224,8 @@ namespace Saturn {
 		DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
 
 		// Override window procedure with custom one to allow native window moving behavior without a title bar
-		SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
-		m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
+		//SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
+		//m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
 
 	#endif
 	}
@@ -348,7 +347,7 @@ namespace Saturn {
 		//ImGui_ImplGlfw_NewFrame();
 		//ImGui::NewFrame();
 
-		//m_Dockspace->Draw();
+		
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
@@ -376,32 +375,7 @@ namespace Saturn {
 
 	void Window::ImGuiInit()
 	{
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGui::StyleColorsDark();
 
-		// ImGui Theme
-
-		ImGuiIO& io = ImGui::GetIO(); ( void )io;
-
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-		ImGuiStyle& style = ImGui::GetStyle();
-		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
-		{
-			style.WindowRounding = 0.0f;
-			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
-		}
-
-		s_DefualtFont = io.Fonts->AddFontFromFileTTF( "assets\\Fonts\\NotoSans-Regular.ttf", 18.0f );
-		io.FontDefault = io.Fonts->Fonts.back();
-
-		Styles::Dark();
-
-		//m_Dockspace = new ImGuiDockspace();
 	}
 
 	std::vector<const char*> Window::GetRequiredExtensions()

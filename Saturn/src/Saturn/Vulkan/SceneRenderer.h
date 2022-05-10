@@ -195,6 +195,9 @@ namespace Saturn {
 		
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
+		Pass& GetGeometryPass() { return m_RendererData.GeometryPass; }
+		const Pass& GetGeometryPass() const { return m_RendererData.GeometryPass; }
+
 		void Terminate();
 
 	private:

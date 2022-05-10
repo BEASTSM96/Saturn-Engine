@@ -44,8 +44,59 @@ namespace Saturn {
 
 		// Init Scene Renderer.
 		SceneRenderer::Get();
+		
+		//m_pImGuiVulkan = new ImGuiVulkan();
 
-		m_pImGuiVulkan = new ImGuiVulkan();
+		// Create default pass.
+		PassSpecification Specification = {};
+		Specification.Name = "Default Pass";
+		
+		Specification.Attachments = {
+			{
+				.flags = 0,
+				.format = m_SurfaceFormat.format,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+			},
+			{
+				.flags = 0,
+				.format = FindDepthFormat(),
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+			}
+		};
+
+		Specification.ColorAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		Specification.DepthAttachmentRef = { .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+
+		Specification.ColorFormat = m_SurfaceFormat.format;
+		Specification.DepthFormat = FindDepthFormat();
+
+		Specification.Dependencies = {
+			{
+				.srcSubpass = VK_SUBPASS_EXTERNAL,
+				.dstSubpass = 0,
+				.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+				.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
+			}
+		};
+
+		m_DefaultPass = Pass( Specification );
+
+		CreateDepthResources();
+
+		m_SwapChain.CreateFramebuffers();
 	}
 
 	void VulkanContext::Terminate()
@@ -412,6 +463,19 @@ namespace Saturn {
 		PoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		
 		VK_CHECK( vkCreateCommandPool( m_LogicalDevice, &PoolInfo, nullptr, &m_CommandPool ) );
+	}
+
+	void VulkanContext::CreateDepthResources()
+	{
+		VkFormat DepthFormat = FindDepthFormat();
+
+		CreateImage( Window::Get().Width(), Window::Get().Height(),
+			DepthFormat,
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_DepthImage, m_DepthImageMemory );
+
+		m_DepthImageView = CreateImageView( m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT );
 	}
 
 }

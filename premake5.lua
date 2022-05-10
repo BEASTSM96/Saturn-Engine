@@ -250,7 +250,8 @@ project "Titan"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.DiscordRPC}"
+		"%{IncludeDir.DiscordRPC}",
+		"Saturn/vendor/vulkan/include"
 	}
 
 	links
