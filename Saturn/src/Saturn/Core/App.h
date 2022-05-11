@@ -34,6 +34,8 @@
 #include "Events.h"
 #include "Input.h"
 
+#include "Saturn/Editor/EditorLayer.h"
+
 namespace Saturn {
 
 	class Application
@@ -54,6 +56,8 @@ namespace Saturn {
 		std::string OpenFile( const char* pFilter ) const;
 		std::string SaveFile( const char* pFilter ) const;
 
+		EditorLayer* GetEditorLayer() { return m_EditorLayer; }
+
 	protected:
 
 		void OnEvent( Event& e );
@@ -65,6 +69,7 @@ namespace Saturn {
 		bool m_Running = true;
 		
 		ImGuiLayer* m_ImGuiLayer;
+		EditorLayer* m_EditorLayer;
 
 		Timestep m_Timestep;
 		float m_LastFrameTime = 0.0f;

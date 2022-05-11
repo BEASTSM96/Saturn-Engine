@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Saturn/Core/Log.h"
+
 #include <vulkan.h>
 #include <iostream>
 #include <string>

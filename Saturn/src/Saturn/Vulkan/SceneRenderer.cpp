@@ -34,6 +34,7 @@
 #include "ImGuiVulkan.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
+#include <backends/imgui_impl_vulkan.h>
 
 #define M_PI 3.14159265358979323846
 
@@ -64,6 +65,11 @@ namespace Saturn {
 		CreateSkyboxComponents();
 
 		//////////////////////////////////////////////////////////////////////////
+	}
+
+	void SceneRenderer::CreateGeometryResult()
+	{
+		m_RendererData.RenderPassResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.GeometryPassColor.Sampler, m_RendererData.GeometryPassColor.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
 
 	void SceneRenderer::Terminate()
@@ -245,12 +251,13 @@ namespace Saturn {
 
 			// UPDATE UNIFORM BUFFERS
 			{
-				auto trans = glm::rotate( glm::mat4( 1.0f ), glm::radians( 90.0f ), glm::vec3( 1.0f, 0.0f, 0.0f ) ) * glm::scale( glm::mat4( 1.0f ), glm::vec3( 16.0f ) );
+				glm::mat4 trans = glm::rotate( glm::mat4( 1.0f ), glm::radians( 90.0f ), glm::vec3( 1.0f, 0.0f, 0.0f ) ) * glm::scale( glm::mat4( 1.0f ), glm::vec3( 16.0f ) );
 
 				RendererData::GridMatricesObject GridMatricesObject = {};
 				GridMatricesObject.Transform = trans;
-				//GridMatricesObject.ViewProjection = VulkanContext::Get().GetEditorCamera().ViewProjection();
-
+				GridMatricesObject.View = m_RendererData.EditorCamera.ViewMatrix();
+				GridMatricesObject.Projection = m_RendererData.EditorCamera.ProjectionMatrix();
+				
 				GridMatricesObject.Res = 0.025f;
 				GridMatricesObject.Scale = 16.025f;
 
@@ -289,12 +296,12 @@ namespace Saturn {
 			SkylightEntity = { e, m_pSence };
 		}
 
-		if( SkylightEntity )
+		//if( SkylightEntity )
 		{
-			auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
+			//auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
 			
-			if( !Skylight.DynamicSky )
-				return;
+			//if( !Skylight.DynamicSky )
+			//	return;
 
 			// BIND THE PIPELINE
 			{
@@ -310,11 +317,13 @@ namespace Saturn {
 			{
 				RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
 
-				//SkyboxMatricesObject.View = VulkanContext::Get().GetEditorCamera().ViewMatrix();
-				//SkyboxMatricesObject.Projection = VulkanContext::Get().GetEditorCamera().ProjectionMatrix();
-				SkyboxMatricesObject.Turbidity = Skylight.Turbidity;
-				SkyboxMatricesObject.Azimuth = Skylight.Azimuth;
-				SkyboxMatricesObject.Inclination = Skylight.Inclination;
+				auto vp = m_RendererData.EditorCamera.ViewMatrix() * m_RendererData.EditorCamera.ProjectionMatrix();
+
+				SkyboxMatricesObject.View = m_RendererData.EditorCamera.ViewMatrix();
+				SkyboxMatricesObject.Projection = m_RendererData.EditorCamera.ProjectionMatrix();
+				SkyboxMatricesObject.Turbidity = 2.0f;
+				SkyboxMatricesObject.Azimuth = -0.50;
+				SkyboxMatricesObject.Inclination = 0.90f;
 
 				void* Data;
 
@@ -659,9 +668,9 @@ namespace Saturn {
 		
 		VkViewport Viewport = {};
 		Viewport.x = 0;
-		Viewport.y = 0;
+		Viewport.y = ( float ) Window::Get().Height();
 		Viewport.width = ( float ) Window::Get().Width();
-		Viewport.height = ( float ) Window::Get().Height();
+		Viewport.height = -( float ) Window::Get().Height();
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
 		
@@ -715,28 +724,35 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		
 		// End geometry pass.
+		m_RendererData.GeometryPass.EndPass();
 	}
 
 	void SceneRenderer::RenderScene()
 	{
-		//Renderer::Get().BeginFrame();
+		if( !m_pSence )
+		{
+			FlushDrawList();
+			return;
+		}
 
-		// Allocate a default command buffer.
-		m_RendererData.CommandBuffer = Renderer::Get().AllocateCommandBuffer( m_RendererData.CommandPool );
+		m_RendererData.CommandBuffer = Renderer::Get().ActiveCommandBuffer();
 
 		// Passes
 
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Geometry" );
+		
 		GeometryPass();
+		
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		//
 		
-		m_RendererData.GeometryPass.EndPass();
-
-		//Renderer::Get().EndFrame( m_RendererData.CommandBuffer );
-
-		vkFreeCommandBuffers( VulkanContext::Get().GetDevice(), m_RendererData.CommandPool, 1, &m_RendererData.CommandBuffer );
-
 		FlushDrawList();
+	}
+
+	void SceneRenderer::SetEditorCamera( const EditorCamera& Camera )
+	{
+		m_RendererData.EditorCamera = Camera;
 	}
 
 	void SceneRenderer::AddDescriptorSet( const DescriptorSet& rDescriptorSet )

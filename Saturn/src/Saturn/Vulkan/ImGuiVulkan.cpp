@@ -30,6 +30,7 @@
 #include "ImGuiVulkan.h"
 
 #include "VulkanContext.h"
+#include "SceneRenderer.h"
 #include "VulkanDebug.h"
 #include "Texture.h"
 
@@ -79,28 +80,26 @@ namespace Saturn {
 		ImGuiInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
 		ImGuiInitInfo.CheckVkResultFn = _VkCheckResult;
-
-		//ImGui_ImplVulkan_Init( &ImGuiInitInfo, VulkanContext::Get().GetRenderPass().GetRenderPass() );
+		
+		ImGui_ImplVulkan_Init( &ImGuiInitInfo, SceneRenderer::Get().GetGeometryPass() );
 
 		VkCommandBuffer CommandBuffer;
 		CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
 
 		{
-			//ImGui_ImplVulkan_CreateFontsTexture( CommandBuffer );
+			ImGui_ImplVulkan_CreateFontsTexture( CommandBuffer );
 		}
 
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 
-		//ImGui_ImplVulkan_DestroyFontUploadObjects();
+		ImGui_ImplVulkan_DestroyFontUploadObjects();
 
 		//m_OffscreenID = ImGui_ImplVulkan_AddTexture( VulkanContext::Get().GetOffscreenColorSampler(), VulkanContext::Get().GetOffscreenColorView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
-		//m_pDockspace = new ImGuiDockspace();
 	}
 	
 	void ImGuiVulkan::Terminate()
 	{
-		delete m_pDockspace;
 
 		if( m_DescriptorPool )
 			vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_DescriptorPool, nullptr );
@@ -126,7 +125,6 @@ namespace Saturn {
 
 	void ImGuiVulkan::ImGuiRender()
 	{
-		m_pDockspace->Draw();
 	}
 
 	void ImGuiVulkan::EndImGuiRender()

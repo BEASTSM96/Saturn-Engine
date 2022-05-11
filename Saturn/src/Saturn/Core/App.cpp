@@ -60,15 +60,12 @@ namespace Saturn {
 		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
 		m_ImGuiLayer = new ImGuiLayer();
-	
+		m_EditorLayer = new EditorLayer();
+
+		SceneRenderer::Get().CreateGeometryResult();
+
 		while( m_Running )
 		{
-			float time = ( float )glfwGetTime(); //Platform::GetTime();
-
-			m_Timestep = time - m_LastFrameTime;
-
-			m_LastFrameTime = time;
-			
 			Window::Get().OnUpdate();
 			
 			if ( !Window::Get().IsMinimized() )
@@ -76,22 +73,29 @@ namespace Saturn {
 				Window::Get().Render();
 			
 				Renderer::Get().BeginFrame();
-				
-				uint32_t ImageIndex = Renderer::Get().GetImageIndex();
+				{
+					uint32_t ImageIndex = Renderer::Get().GetImageIndex();
 
-				// Do ui pass.
-				VulkanContext::Get().GetDefaultPass().BeginPass( Renderer::Get().ActiveCommandBuffer(), VulkanContext::Get().GetSwapchain().GetFramebuffers()[ ImageIndex ], { .width = (uint32_t)Window::Get().Width(), .height = ( uint32_t )Window::Get().Height() } );
-				
-				m_ImGuiLayer->Begin();
-				
-				ImGui::ShowDemoWindow();
+					// Do ui pass.
 
-				m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
+					VulkanContext::Get().GetDefaultPass().BeginPass( Renderer::Get().ActiveCommandBuffer(), VulkanContext::Get().GetSwapchain().GetFramebuffers()[ ImageIndex ], { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() } );
 
-				VulkanContext::Get().GetDefaultPass().EndPass();
+					{
+						RenderImGui();
+					}
 
+					VulkanContext::Get().GetDefaultPass().EndPass();
+
+					SceneRenderer::Get().RenderScene();
+				}
 				Renderer::Get().EndFrame();
 			}
+
+			float time = ( float ) glfwGetTime(); //Platform::GetTime();
+
+			m_Timestep = time - m_LastFrameTime;
+
+			m_LastFrameTime = time;
 		}
 	}
 
@@ -143,7 +147,8 @@ namespace Saturn {
 
 		VulkanContext::Get().OnEvent( e );
 
-		//Renderer::Get().OnEvent( e );
+		m_ImGuiLayer->OnEvent( e );
+		m_EditorLayer->OnEvent( e );
 	}
 
 	bool Application::OnWindowResize( WindowResizeEvent& e )
@@ -159,7 +164,9 @@ namespace Saturn {
 	{
 		m_ImGuiLayer->Begin();
 
-		
+		m_EditorLayer->OnUpdate( m_Timestep );
+
+		m_EditorLayer->OnImGuiRender();
 
 		m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
 	}

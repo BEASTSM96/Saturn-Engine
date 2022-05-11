@@ -70,10 +70,12 @@ namespace Saturn {
 		Saturn::Camera RuntimeCamera;
 
 		//////////////////////////////////////////////////////////////////////////
-
+	
 		struct GridMatricesObject
 		{
-			glm::mat4 ViewProjection;
+			glm::mat4 View;
+			glm::mat4 Projection;
+			
 			glm::mat4 Transform;
 
 			float Scale;
@@ -115,6 +117,8 @@ namespace Saturn {
 		Resource GeometryPassColor;
 		VkFramebuffer GeometryFramebuffer;
 		DescriptorPool GeometryDescriptorPool;
+
+		VkDescriptorSet RenderPassResult;
 
 		// Static mesh geometry
 		UniformBuffer SM_MatricesUBO;
@@ -170,33 +174,39 @@ namespace Saturn {
 	{
 		SINGLETON( SceneRenderer );
 	public:
-		 SceneRenderer() { Init(); }
-		 ~SceneRenderer() {}
-		
+		SceneRenderer() { Init(); }
+		~SceneRenderer() {}
+
 		void SetRendererData( RendererData Data ) { m_RendererData = Data; }
 		void SetCommandBuffer( VkCommandBuffer CommandBuffer ) { m_RendererData.CommandBuffer = CommandBuffer; }
 
 		void SetCurrentScene( Scene* pScene ) { m_pSence = pScene; }
 
 		void AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
-		
+
 		void RenderDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
-		
+
 		void FlushDrawList();
 
 		void RenderScene();
 
+		void SetEditorCamera( const EditorCamera& Camera );
+
 		// TODO: For every static mesh we need a descriptor set.
 		//		 Only adds a descriptor set for a static mesh if it doesn't exist.
 		void AddDescriptorSet( const DescriptorSet& rDescriptorSet );
-	
+
 		// Create static mesh pipeline.
 		DescriptorSet CreateSMDescriptorSet();
-		
+
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
 		Pass& GetGeometryPass() { return m_RendererData.GeometryPass; }
 		const Pass& GetGeometryPass() const { return m_RendererData.GeometryPass; }
+
+		VkDescriptorSet& GetGeometryResult() { return m_RendererData.RenderPassResult; }
+
+		void CreateGeometryResult();
 
 		void Terminate();
 
@@ -225,5 +235,8 @@ namespace Saturn {
 		RendererData m_RendererData;
 		std::vector< DrawCommand > m_DrawList;
 		Scene* m_pSence;
+
+	private:
+		friend class Scene;
 	};
 }

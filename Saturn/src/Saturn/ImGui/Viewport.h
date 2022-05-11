@@ -45,8 +45,6 @@ namespace Saturn {
 
 		void Draw();
 
-	private:
-
 		bool m_SendCameraEvents = false;
 	};
 }

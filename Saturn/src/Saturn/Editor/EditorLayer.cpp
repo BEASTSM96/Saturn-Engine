@@ -27,25 +27,16 @@
 */
 
 #include "sppch.h"
-#include "Dockspace.h"
+#include "EditorLayer.h"
 
-#include "Saturn/Core/IO.h"
-
-#include "Saturn/Discord/DiscordRPC.h"
-#include "Saturn/Vulkan/VulkanContext.h"
-
-#include "Toolbar.h"
-
-#include "imgui.h"
-
-// TODO: Massively improve this.
+#include "Saturn/ImGui/Toolbar.h"
+#include "Saturn/Vulkan/SceneRenderer.h"
+#include "Saturn/ImGui/TitleBar.h"
 
 namespace Saturn {
 
-	ImGuiDockspace::ImGuiDockspace()
+	EditorLayer::EditorLayer()
 	{
-		IO::Get().StdStreamRedirect();
-
 		m_EditorScene = Ref<Scene>::Create();
 		m_RuntimeScene = nullptr;
 
@@ -55,23 +46,56 @@ namespace Saturn {
 		m_Toolbar = new Toolbar();
 
 		m_SceneHierarchyPanel->SetContext( m_EditorScene );
-		m_SceneHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( ImGuiDockspace::SelectionChanged ) );
+		m_SceneHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
+		
+		m_EditorCamera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
+
+		m_EditorCamera.AllowEvents( true );
+		m_EditorCamera.SetActive( true );
+
 	}
 
-	ImGuiDockspace::~ImGuiDockspace()
+	void EditorLayer::OnUpdate( Timestep time )
 	{
-		m_EditorScene.Delete();
+		//m_EditorCamera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
+		
+		if( m_Viewport->m_SendCameraEvents )
+			m_EditorCamera.OnUpdate( time );
 
-		delete m_TitleBar;
-		delete m_SceneHierarchyPanel;
-		delete m_Viewport;
-		delete m_Toolbar;
+		SceneRenderer::Get().SetEditorCamera( m_EditorCamera );
+
+		if( m_Toolbar->WantsToStartRuntime ) 
+		{
+			if( !m_RuntimeScene )
+			{
+				m_RuntimeScene = Ref<Scene>::Create();
+				
+				m_EditorScene->CopyScene( m_RuntimeScene );
+
+				m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
+
+				m_RuntimeScene->m_RuntimeRunning = true;
+			}
+		}
+		else
+		{
+			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
+			{
+				m_RuntimeScene = nullptr;
+
+				m_SceneHierarchyPanel->SetContext( m_EditorScene );
+			}
+		}
+
+		if( m_RuntimeScene )
+			m_RuntimeScene->OnRenderEditor( m_EditorCamera, Application::Get().Time() );
+		else
+			m_EditorScene->OnRenderEditor( m_EditorCamera, Application::Get().Time() );
 	}
 
-	void ImGuiDockspace::Draw()
+	void EditorLayer::OnImGuiRender()
 	{
-		// imgui_demo.cpp
-
+		// Draw dockspace.
 		bool p_open = true;
 
 		static bool opt_fullscreen_persistant = true;
@@ -112,71 +136,38 @@ namespace Saturn {
 			ImGui::DockSpace( dockspace_id, ImVec2( 0.0f, 0.0f ), opt_flags );
 		}
 
-		// Draw Widgets
-
-		m_SceneHierarchyPanel->Draw();
-		//m_Viewport->Draw();
+		// Draw widgets.
 		m_TitleBar->Draw();
 		m_Toolbar->Draw();
-
-		m_EditorScene->OnRenderEditor( Application::Get().Time() );
-
-		// Check if runtime started.
-		if( m_Toolbar->WantsToStartRuntime )
-		{
-			if( !m_RuntimeScene )
-			{
-				m_RuntimeScene = Ref<Scene>::Create();
-
-				m_EditorScene->CopyScene( m_RuntimeScene );
-
-				m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
-
-				m_RuntimeScene->m_RuntimeRunning = true;
-			}
-		}
-		else
-		{
-			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning ) 
-			{
-				m_RuntimeScene = nullptr;
-				
-				m_SceneHierarchyPanel->SetContext( m_EditorScene );
-			}
-		}
-		
-		// TEMP
-		ImGui::Begin( "Output" );
-
-		ImGui::Text( "%s", IO::Get().StdStreamBuffer().str().c_str() );
-
-		ImGui::End();
+		m_SceneHierarchyPanel->Draw();
+		m_Viewport->Draw();
 
 		ImGui::Begin( "Renderer" );
 
-		for ( const auto& devices : VulkanContext::Get().GetPhysicalDeviceProperties() )
+		ImGui::Text( "Frame Time: %.2f ms", Application::Get().Time().Milliseconds() );
+
+		for( const auto& devices : VulkanContext::Get().GetPhysicalDeviceProperties() )
 		{
 			ImGui::Text( "Device Name: %s", devices.DeviceProps.deviceName );
 			ImGui::Text( "API Version: %i", devices.DeviceProps.apiVersion );
 			ImGui::Text( "Vendor ID: %i", devices.DeviceProps.vendorID );
 		}
-
+		
 		ImGui::End();
 
 		ImGui::End();
 	}
 
-	void ImGuiDockspace::TryRenderScene()
+	void EditorLayer::OnEvent( Event& rEvent )
 	{
-		if( !m_RuntimeScene )
-			m_EditorScene->OnRenderEditor( Application::Get().Time() );
+		if ( m_Viewport->m_SendCameraEvents )
+		{
+			m_EditorCamera.AllowEvents( true );
+			m_EditorCamera.OnEvent( rEvent );
+		}
 		else
-			m_RuntimeScene->OnRenderEditor( Application::Get().Time() );
-	}
-
-	void ImGuiDockspace::SelectionChanged( Entity e )
-	{
-
+			m_EditorCamera.AllowEvents( false );
+		
 	}
 
 }

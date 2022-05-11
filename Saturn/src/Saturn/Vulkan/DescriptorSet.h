@@ -28,46 +28,113 @@
 
 #pragma once
 
-#include "Pass.h"
-
-#include <vulkan.h>
+#include "VulkanContext.h"
+#include <vector>
 
 namespace Saturn {
 
-	class ImGuiVulkan
+	class DescriptorPool
 	{
 	public:
-		ImGuiVulkan() { Init(); }
-		~ImGuiVulkan() { Terminate(); }
+		DescriptorPool() {}
+		DescriptorPool( std::vector< VkDescriptorPoolSize > PoolSizes, uint32_t MaxSets );
+		~DescriptorPool();
 		
-		void BeginImGuiRender( VkCommandBuffer CommandBuffer );
-		void ImGuiRender();
-		void EndImGuiRender();
+		operator VkDescriptorPool&() { return m_Pool; }
+		operator const VkDescriptorPool&() const { return m_Pool; }
 
-		void RecreateImages();
+		// Copy assignment.
+		DescriptorPool& operator=( const DescriptorPool& other ) 
+		{
+			if( this == &other )
+				return *this;
+			
+			m_Pool = other.m_Pool;
 
-		VkCommandBuffer& GetCommandBuffer() { return m_CommandBuffer; }
-		VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
+			return *this;
+		}
 
-		void* GetOffscreenColorDescSet() { return m_OffscreenID; }
+		// Move assignment.
+		DescriptorPool& operator=( DescriptorPool&& other )
+		{
+			if( this == &other )
+				return *this;
 
+			m_Pool = other.m_Pool;
+
+			other.m_Pool = nullptr;
+
+			return *this;
+		}
+
+		// Copy constructor.
+		DescriptorPool( const DescriptorPool& other )
+		{
+			m_Pool = other.m_Pool;
+		}
+
+		// Move constructor.
+		DescriptorPool( DescriptorPool&& other )
+		{
+			m_Pool = other.m_Pool;
+			other.m_Pool = nullptr;
+		}
+
+	private:
+		VkDescriptorPool m_Pool = nullptr;
+	};	
+	
+	enum class DescriptorType
+	{
+		// Should match with vulkan's VkDescriptorType enum
+		UNKNOWN = -1,
+		SAMPLER = 0,
+		COMBINED_IMAGE_SAMPLER = 1,
+		SAMPLED_IMAGE = 2,
+		STORAGE_IMAGE = 3,
+		UNIFORM_BUFFER = 6,
+		STORAGE_BUFFER = 7,
+	};
+	
+	struct DescriptorSetLayout
+	{
+		void Create();
+
+		VkDescriptorSetLayout VulkanLayout;
+		std::vector< VkDescriptorSetLayoutBinding > Bindings;
+	};
+
+	struct DescriptorSetSpecification
+	{		
+		DescriptorSetSpecification() {}
+		~DescriptorSetSpecification() {}
+
+		DescriptorPool Pool;
+
+		DescriptorSetLayout Layout;
+	};
+
+	class DescriptorSet
+	{
+	public:
+		DescriptorSet( DescriptorSetSpecification Spec );
+		~DescriptorSet();
+
+		void Write( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo );
+
+		bool operator == ( const DescriptorSet& other ) const
+		{
+			return ( m_Set == other.m_Set );
+		}
+
+	private:
+		
+		void Allocate();
 
 	private:
 
-		VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
-		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
+		VkDescriptorSet m_Set = nullptr;
 		
-		Pass m_ImGuiPass;
-
-		// The current offscreen id, made from the color image and the color sampler.
-		void* m_OffscreenID;
-
-
-	private:
-
-		void Init();
-		void CreatePipeline();
-		void Terminate();
-
+		DescriptorSetSpecification m_Specification;
 	};
 }

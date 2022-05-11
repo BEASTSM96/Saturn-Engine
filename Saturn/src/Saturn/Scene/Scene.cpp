@@ -88,7 +88,7 @@ namespace Saturn {
 
 	}
 
-	void Scene::OnRenderEditor( Timestep ts )
+	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts )
 	{
 		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
 		
@@ -103,9 +103,11 @@ namespace Saturn {
 			if( meshComponent.Mesh )
 				SceneRenderer::Get().AddDrawCommand( entity, meshComponent.Mesh, transformComponent.GetTransform() );
 
+			
+			SceneRenderer::Get().SetEditorCamera( rCamera );
 		}
-
-		SceneRenderer::Get().RenderScene();
+		
+		// Scene rendering happens in App.cpp
 	}
 
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )

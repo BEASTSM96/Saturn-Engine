@@ -65,19 +65,10 @@ namespace Saturn {
 
 		SetDebugUtilsObjectName( "Acquire Semaphore", ( uint64_t ) m_AcquireSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
 		SetDebugUtilsObjectName( "Submit Semaphore", ( uint64_t ) m_SubmitSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
-
-		// Create the command pool.
-		VkCommandPoolCreateInfo CommandPoolCreateInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-		CommandPoolCreateInfo.queueFamilyIndex          = VulkanContext::Get().GetQueueFamilyIndices().GraphicsFamily.value();
-		CommandPoolCreateInfo.flags                     = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		
-		VK_CHECK( vkCreateCommandPool( VulkanContext::Get().GetDevice(), &CommandPoolCreateInfo, nullptr, &m_CommandPool ) );
 	}
 
 	void Renderer::Terminate()
 	{
-		vkDestroyCommandPool( VulkanContext::Get().GetDevice(), m_CommandPool, nullptr );
-		
 		vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_AcquireSemaphore, nullptr );
 		vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_SubmitSemaphore, nullptr );
 	}
@@ -153,7 +144,7 @@ namespace Saturn {
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )
 	{
 		VkCommandBufferAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-		AllocateInfo.commandPool = CommandPool;
+		AllocateInfo.commandPool = VulkanContext::Get().GetCommandPool();
 		AllocateInfo.commandBufferCount = 1;
 		AllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		
@@ -170,7 +161,7 @@ namespace Saturn {
 
 	void Renderer::BeginFrame()
 	{
-		m_CommandBuffer = AllocateCommandBuffer( m_CommandPool );
+		m_CommandBuffer = AllocateCommandBuffer( VulkanContext::Get().GetCommandPool() );
 
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
 
@@ -195,9 +186,6 @@ namespace Saturn {
 	{
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
 
-		// Do extra passes.
-		// UI Pass.
-		
 		VK_CHECK( vkEndCommandBuffer( m_CommandBuffer ) );
 
 		// Rendering Queue
@@ -234,6 +222,8 @@ namespace Saturn {
 		VK_CHECK( vkQueuePresentKHR( VulkanContext::Get().GetGraphicsQueue(), &PresentInfo ) );
 
 		VK_CHECK( vkQueueWaitIdle( VulkanContext::Get().GetPresentQueue() ) );
+
+		vkFreeCommandBuffers( LogicalDevice, VulkanContext::Get().GetCommandPool(), 1, &m_CommandBuffer );
 
 		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
 	}

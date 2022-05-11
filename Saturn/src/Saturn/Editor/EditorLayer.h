@@ -28,49 +28,47 @@
 
 #pragma once
 
-#include "TitleBar.h"
-#include "Viewport.h"
+#include "Saturn/ImGui/Viewport.h"
+#include "Saturn/ImGui/SceneHierarchyPanel.h"
 
-#include "SceneHierarchyPanel.h"
 #include "Saturn/Scene/Scene.h"
-#include "Saturn/Scene/Entity.h"
+#include "Saturn/Core/Layer.h"
 
 namespace Saturn {
 	
 	class Toolbar;
+	class TitleBar;
 
-	class ImGuiDockspace
+	class EditorLayer : public Layer
 	{
 	public:
-		ImGuiDockspace();
-		~ImGuiDockspace();
+		EditorLayer();
+		~EditorLayer() = default;
 
-		void Draw();
+		void OnUpdate( Timestep time ) override;
 
+		void OnImGuiRender() override;
+
+		void OnEvent( Event& rEvent ) override;
+		
 	public:
-
-		float Height() const { return m_Height; }
-
-		TitleBar& GetTitleBar() { return *m_TitleBar; }
-
-		void TryRenderScene();
-
-	protected:
-
-		void SelectionChanged( Entity e );
+		
+		TitleBar* GetTitleBar() { return m_TitleBar; }
 
 	private:
+		
+		void SelectionChanged( Entity e ) {}
 
+	private:
 		TitleBar* m_TitleBar;
 		Viewport* m_Viewport;
 		Toolbar* m_Toolbar;
-
+		
 		SceneHierarchyPanel* m_SceneHierarchyPanel;
+
+		EditorCamera m_EditorCamera;
 
 		Ref< Scene > m_EditorScene;
 		Ref< Scene > m_RuntimeScene;
-
-		float m_Height;
 	};
-
 }

@@ -247,10 +247,16 @@ project "Titan"
 		"Saturn/src",
 		"Saturn/vendor",
 		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.glm}",
-		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.assimp}",
 		"%{IncludeDir.DiscordRPC}",
+		"%{IncludeDir.rapidjson}",
+		"%{IncludeDir.glslc}",
+		"%{IncludeDir.shaderc}",
+		"%{IncludeDir.SPIRV_Cross}",
+		"%{IncludeDir.SPIRV_Reflect}",
 		"Saturn/vendor/vulkan/include"
 	}
 

@@ -30,6 +30,8 @@
 #include "Viewport.h"
 #include "Saturn/Core/App.h"
 
+#include "Saturn/Vulkan/SceneRenderer.h"
+
 #include "imgui.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -54,35 +56,24 @@ namespace Saturn {
 		
 		ImGui::Begin( "Viewport", 0, flags );
 
-		m_SendCameraEvents = ImGui::IsWindowFocused();
-
-	#if !defined( SAT_DONT_USE_GL ) 
-
-		Renderer::Get().RendererCamera().AllowEvents( m_SendCameraEvents );
-		Renderer::Get().RendererCamera().SetActive( m_SendCameraEvents );
-
-		Renderer::Get().RendererCamera().OnUpdate( Application::Get().Time() );
-
+		auto viewportOffset = ImGui::GetWindowPos(); // includes tab bar
 		auto viewportSize = ImGui::GetContentRegionAvail();
+		
+		auto windowSize = ImGui::GetWindowSize();
 
-		Renderer::Get().RendererCamera().SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), viewportSize.x, viewportSize.y, 0.1f, 10000.0f ) );
-		Renderer::Get().RendererCamera().SetViewportSize( viewportSize.x, viewportSize.y );
+		ImVec2 minBound = ImGui::GetWindowPos();
+		minBound.x += viewportOffset.x;
+		minBound.y += viewportOffset.y;
+
+		ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+
+		m_SendCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
+
+		SAT_CORE_INFO( "m_SendCameraEvents : {0}", m_SendCameraEvents );
 
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
-		ImGui::Image( ( void* )( Renderer::Get().GetFinalColorBufferRendererID() ), viewportSize, { 0, 1 }, { 1, 0 } );
+		ImGui::Image( SceneRenderer::Get().GetGeometryResult(), viewportSize );
 		ImGui::PopStyleVar();
-
-	#elif !defined( SAT_DONT_USE_DX )
-		//dx
-	#elif !defined( SAT_DONT_USE_VK )
-
-		auto viewportSize = ImGui::GetContentRegionAvail();
-
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
-		ImGui::Image( VulkanContext::Get().GetImGuiVulkan()->GetOffscreenColorDescSet(), viewportSize );
-		ImGui::PopStyleVar();
-
-	#endif
 
 		ImGui::End();
 

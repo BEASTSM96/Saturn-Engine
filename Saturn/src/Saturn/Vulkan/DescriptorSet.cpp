@@ -1,0 +1,108 @@
+/********************************************************************************************
+*                                                                                           *
+*                                                                                           *
+*                                                                                           *
+* MIT License                                                                               *
+*                                                                                           *
+* Copyright (c) 2020 - 2022 BEAST                                                           *
+*                                                                                           *
+* Permission is hereby granted, free of charge, to any person obtaining a copy              *
+* of this software and associated documentation files (the "Software"), to deal             *
+* in the Software without restriction, including without limitation the rights              *
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                 *
+* copies of the Software, and to permit persons to whom the Software is                     *
+* furnished to do so, subject to the following conditions:                                  *
+*                                                                                           *
+* The above copyright notice and this permission notice shall be included in all            *
+* copies or substantial portions of the Software.                                           *
+*                                                                                           *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                *
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                  *
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE               *
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                    *
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,             *
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE             *
+* SOFTWARE.                                                                                 *
+*********************************************************************************************
+*/
+
+#include "sppch.h"
+#include "DescriptorSet.h"
+
+namespace Saturn {
+
+	DescriptorPool::DescriptorPool( std::vector< VkDescriptorPoolSize > PoolSizes, uint32_t MaxSets )
+	{
+		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+		PoolCreateInfo.poolSizeCount = PoolSizes.size();
+		PoolCreateInfo.pPoolSizes = PoolSizes.data();
+		PoolCreateInfo.maxSets = MaxSets;
+		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+
+		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_Pool ) );
+	}
+
+	DescriptorPool::~DescriptorPool()
+	{
+		if( m_Pool )
+			vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_Pool, nullptr );
+
+		m_Pool = nullptr;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	
+	void DescriptorSetLayout::Create()
+	{
+		VkDescriptorSetLayoutCreateInfo LayoutCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+
+		LayoutCreateInfo.bindingCount = Bindings.size();
+		LayoutCreateInfo.pBindings = Bindings.data();
+
+		VK_CHECK( vkCreateDescriptorSetLayout( VulkanContext::Get().GetDevice(), &LayoutCreateInfo, nullptr, &VulkanLayout ) );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+
+	DescriptorSet::DescriptorSet( DescriptorSetSpecification Spec )
+	{
+		m_Specification = Spec;
+		
+		m_Specification.Layout.Create();
+
+		Allocate();
+	}
+
+	DescriptorSet::~DescriptorSet()
+	{
+		vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), m_Specification.Pool, 1, &m_Set );
+		
+		vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_Specification.Layout.VulkanLayout, nullptr );
+	}
+
+	void DescriptorSet::Write( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo )
+	{
+		VkWriteDescriptorSet WriteDescriptorSet = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+		WriteDescriptorSet.dstSet = m_Set;
+		WriteDescriptorSet.dstBinding = 0;
+		WriteDescriptorSet.dstArrayElement = 0;
+		WriteDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		WriteDescriptorSet.descriptorCount = 1;
+		WriteDescriptorSet.pBufferInfo = &BufferInfo;
+		WriteDescriptorSet.pImageInfo = &ImageInfo;
+
+		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &WriteDescriptorSet, 0, nullptr );
+	}
+
+	void DescriptorSet::Allocate()
+	{
+		SAT_CORE_INFO( "Allocating descriptor set..." );
+
+		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+		AllocateInfo.descriptorPool = m_Specification.Pool;
+		AllocateInfo.descriptorSetCount = 1;
+		AllocateInfo.pSetLayouts = &m_Specification.Layout.VulkanLayout;
+		
+		VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &AllocateInfo, &m_Set ) );
+	}
+}
