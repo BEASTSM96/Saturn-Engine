@@ -31,7 +31,6 @@
 #include "Base.h"
 
 #include "Saturn/ImGui/TitleBar.h"
-#include "Saturn/ImGui/Dockspace.h"
 
 #include <string>
 
@@ -89,8 +88,6 @@ namespace Saturn {
 		int Height() { return m_Height; }
 
 		void GetSize( uint32_t* pWidth, uint32_t* pHeight );
-
-		ImGuiDockspace* m_Dockspace = nullptr;
 
 		bool IsMinimized() { return m_Minimized; }
 

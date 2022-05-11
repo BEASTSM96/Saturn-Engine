@@ -81,13 +81,9 @@ namespace Saturn {
 		if( glfwInit() == GLFW_FALSE )
 			return;
 
-	#if defined ( SAT_DEBUG ) && !defined ( SAT_DONT_USE_GL )
-		glfwWindowHint( GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE );
-	#elif defined ( SAT_DONT_USE_GL ) && defined ( SAT_DONT_USE_DX ) && !defined ( SAT_DONT_USE_VK )
 		glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
-	#endif
 
-		//glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
+		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 
 		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
 
@@ -105,22 +101,7 @@ namespace Saturn {
 		m_Width = w / 2;
 		m_Height = h / 2;
 
-		//Maximize();
-
-		// Make Current before loading OpenGL
-		glfwMakeContextCurrent( m_Window );
-
-	#if !defined ( SAT_DONT_USE_GL )
-		int result = xGL::LoadGL();
-		if( result == 0 )
-		{
-			SAT_CORE_ERROR( "Failed to load OpenGL with xGL!" );
-		}
-		SAT_CORE_INFO( "OpenGL Renderer: {2}, {0}, {1}", glGetString( GL_VENDOR ), glGetString( GL_RENDERER ), glGetString( GL_VERSION ) );
-	#endif
-
 		glfwSetWindowUserPointer( m_Window, this );
-		glfwSwapInterval( GLFW_TRUE );
 
 		// Set GLFW events
 		glfwSetWindowCloseCallback( m_Window, []( GLFWwindow* window ) { Application::Get().Close(); } );
@@ -216,7 +197,7 @@ namespace Saturn {
 		HWND      windowHandle    = glfwGetWin32Window( m_Window );
 		HINSTANCE instance        = GetModuleHandle( nullptr );
 
-		//SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
+		SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
 
 		// Fix missing drop shadow
 		MARGINS shadowMargins;
@@ -224,8 +205,8 @@ namespace Saturn {
 		DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
 
 		// Override window procedure with custom one to allow native window moving behavior without a title bar
-		//SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
-		//m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
+		SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
+		m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
 
 	#endif
 	}
@@ -233,18 +214,6 @@ namespace Saturn {
 	Window::~Window()
 	{
 		ImGui_ImplGlfw_Shutdown();
-	#if !defined ( SAT_DONT_USE_GL )
-
-		ImGui_ImplOpenGL3_Shutdown();
-
-	#elif !defined ( SAT_DONT_USE_DX )
-
-		ImGui_ImplGlfw_Shutdown();
-		ImGui_ImplDX12_Shutdown();
-
-	#endif
-
-	//	ImGui_ImplVulkan_Shutdown();
 
 		glfwDestroyWindow( m_Window );
 	}
@@ -335,40 +304,8 @@ namespace Saturn {
 		}
 
 		m_Rendering = true;
-
-	#if !defined ( SAT_DONT_USE_GL )
-		ImGui_ImplOpenGL3_NewFrame();
-	#elif !defined( SAT_DONT_USE_DX )
-		//dx
-	#else
-		//ImGui_ImplVulkan_NewFrame();
-	#endif
-
-		//ImGui_ImplGlfw_NewFrame();
-		//ImGui::NewFrame();
-
-		
-
-		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
-
-		//ImGui::Render();
-
-	#if !defined ( SAT_DONT_USE_GL )
-		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
-	#else
-		//ImGui_ImplVulkan_RenderDrawData( ImGui::GetDrawData() );
-	#endif
-
-		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
-		{
-//			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-//			ImGui::UpdatePlatformWindows();
-//			ImGui::RenderPlatformWindowsDefault();
-//			glfwMakeContextCurrent( backup_current_context );
-		}
-
-		//glfwSwapBuffers( m_Window );
+				
+		// The window does a lot of rendering am I right?
 
 		m_Rendering = false;
 	}
@@ -466,9 +403,11 @@ namespace Saturn {
 					}
 					else
 					{
+						auto TitleBarHeight = Application::Get().GetEditorLayer()->GetTitleBar()->Height();
+						
 						// Drag the menu bar to move the window
-						//if( !self->m_Maximized && !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + self->m_Dockspace->GetTitleBar().Height() ) ) )
-						//	return HTCAPTION;
+						if( !self->m_Maximized && !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + TitleBarHeight ) ) )
+							return HTCAPTION;
 					}
 				}
 			} break;
