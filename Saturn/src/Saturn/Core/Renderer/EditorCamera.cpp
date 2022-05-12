@@ -48,8 +48,6 @@ namespace Saturn {
 	EditorCamera::EditorCamera( const glm::mat4& projectionMatrix )
 		: Camera( projectionMatrix )
 	{
-	#if 1
-		
 		m_Yaw = 3.0f * ( float )M_PI / 4.0f;
 		m_Pitch = M_PI / 4.0f;
 
@@ -73,33 +71,6 @@ namespace Saturn {
 		TranslationM = glm::translate( glm::mat4( 1.f ), Translation );
 		
 		m_ViewMatrix = TranslationM * RotationM;
-
-	#else
-		m_FocalPoint = glm::vec3( 0.0f );
-
-		glm::vec3 position ={ 5, -1.0f, 5 };
-		m_Distance = glm::distance( position, m_FocalPoint );
-
-		m_Yaw = 3.0f * ( float )M_PI / 4.0f;
-		m_Pitch = M_PI / 4.0f;
-
-		m_Position = CalculatePosition();
-
-		if( m_FlipY )
-			m_Position.y *= -1.0f;
-
-		const glm::quat orientation = Orientation();
-		m_WorldRotation = glm::eulerAngles( orientation ) * ( 180.0f / ( float )M_PI );
-
-		m_ViewMatrix = glm::translate( glm::mat4( 1.0f ), m_Position ) * glm::toMat4( orientation );
-		m_ViewMatrix = glm::inverse( m_ViewMatrix );
-
-		if( m_FlipY )
-		{
-			m_ViewMatrix[ 1 ][ 1 ] *= -1;
-			//m_Projection[ 1 ][ 1 ] *= -1;
-		}
-	#endif
 	}
 
 	static void SetMouseEnabled( const bool enable )
@@ -215,13 +186,6 @@ namespace Saturn {
 		m_FocalPoint = m_Position + ForwardDirection() * m_Distance;
 		m_Distance = glm::distance( m_Position, m_FocalPoint );
 		m_ViewMatrix = glm::lookAt( m_Position, lookAt, glm::vec3{ 0.f, m_FlipY ? -yawSign : yawSign, 0.f } );
-		
-		// print view matrix
-		std::cout << m_ViewMatrix[ 0 ][ 0 ] << " " << m_ViewMatrix[ 0 ][ 1 ] << " " << m_ViewMatrix[ 0 ][ 2 ] << " " << m_ViewMatrix[ 0 ][ 3 ] << std::endl;
-		std::cout << m_ViewMatrix[ 1 ][ 0 ] << " " << m_ViewMatrix[ 1 ][ 1 ] << " " << m_ViewMatrix[ 1 ][ 2 ] << " " << m_ViewMatrix[ 1 ][ 3 ] << std::endl;
-		std::cout << m_ViewMatrix[ 2 ][ 0 ] << " " << m_ViewMatrix[ 2 ][ 1 ] << " " << m_ViewMatrix[ 2 ][ 2 ] << " " << m_ViewMatrix[ 2 ][ 3 ] << std::endl;
-		std::cout << m_ViewMatrix[ 3 ][ 0 ] << " " << m_ViewMatrix[ 3 ][ 1 ] << " " << m_ViewMatrix[ 3 ][ 2 ] << " " << m_ViewMatrix[ 3 ][ 3 ] << std::endl;
-		std::cout << std::endl;
 			
 		//damping for smooth camera
 		m_YawDelta *= 0.6f;

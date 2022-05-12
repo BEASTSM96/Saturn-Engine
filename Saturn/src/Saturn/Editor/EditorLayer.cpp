@@ -57,8 +57,6 @@ namespace Saturn {
 
 	void EditorLayer::OnUpdate( Timestep time )
 	{
-		//m_EditorCamera = EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) );
-		
 		if( m_Viewport->m_SendCameraEvents )
 			m_EditorCamera.OnUpdate( time );
 
@@ -141,6 +139,8 @@ namespace Saturn {
 		m_Toolbar->Draw();
 		m_SceneHierarchyPanel->Draw();
 		m_Viewport->Draw();
+		
+		SceneRenderer::Get().ImGuiRender();
 
 		ImGui::Begin( "Renderer" );
 

@@ -50,7 +50,7 @@ namespace Saturn {
 		Ref< Mesh > Mesh = nullptr;
 		glm::mat4 Transform;
 	};
-
+	
 	struct RendererData
 	{
 		//////////////////////////////////////////////////////////////////////////
@@ -70,7 +70,14 @@ namespace Saturn {
 		Saturn::Camera RuntimeCamera;
 
 		//////////////////////////////////////////////////////////////////////////
+		// TIMERS
+		//////////////////////////////////////////////////////////////////////////
 	
+		Timer GeometryPassTimer;
+		float GeometryPassTime = 0.0f;
+
+		//////////////////////////////////////////////////////////////////////////
+
 		struct GridMatricesObject
 		{
 			glm::mat4 ViewProjection;
@@ -181,6 +188,8 @@ namespace Saturn {
 		void SetRendererData( RendererData Data ) { m_RendererData = Data; }
 		void SetCommandBuffer( VkCommandBuffer CommandBuffer ) { m_RendererData.CommandBuffer = CommandBuffer; }
 
+		void ImGuiRender();
+
 		void SetCurrentScene( Scene* pScene ) { m_pSence = pScene; }
 
 		void AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
@@ -240,4 +249,5 @@ namespace Saturn {
 	private:
 		friend class Scene;
 	};
+
 }

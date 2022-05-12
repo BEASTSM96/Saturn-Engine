@@ -31,6 +31,8 @@
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <unordered_map>
+#include <string>
 
 namespace Saturn {
 
@@ -60,4 +62,8 @@ namespace Saturn {
 	private:
 		std::chrono::time_point<std::chrono::high_resolution_clock> m_Start;
 	};
+
+	using TimerMap = std::unordered_map<std::string, Timer>;
+	
+	static TimerMap s_Timers;
 }

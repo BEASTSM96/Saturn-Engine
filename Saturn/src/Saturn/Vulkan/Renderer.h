@@ -95,6 +95,9 @@ namespace Saturn {
 		
 		uint32_t GetImageIndex() { return m_ImageIndex; }
 
+		std::pair< float, float > GetFrameTimings() { return std::make_pair( m_BeginFrameTime, m_EndFrameTime ); }
+		float GetQueuePresentTime() { return m_QueuePresentTime; }
+
 	public:
 
 		VkCommandBuffer ActiveCommandBuffer() { return m_CommandBuffer; };
@@ -116,5 +119,14 @@ namespace Saturn {
 		VkSemaphore m_SubmitSemaphore;
 
 		VkCommandBuffer m_CommandBuffer;
+
+		Timer m_BeginFrameTimer;
+		float m_BeginFrameTime;
+
+		Timer m_EndFrameTimer;
+		float m_EndFrameTime;
+
+		Timer m_QueuePresentTimer;
+		float m_QueuePresentTime;
 	};
 }

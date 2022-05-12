@@ -161,6 +161,8 @@ namespace Saturn {
 
 	void Renderer::BeginFrame()
 	{
+		m_BeginFrameTimer.Reset();
+
 		m_CommandBuffer = AllocateCommandBuffer( VulkanContext::Get().GetCommandPool() );
 
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
@@ -180,10 +182,14 @@ namespace Saturn {
 
 		if( ImageIndex == UINT32_MAX || ImageIndex == 3435973836 )
 			SAT_CORE_ASSERT( false );
+
+		m_BeginFrameTime = m_BeginFrameTimer.ElapsedMilliseconds();
 	}
 
 	void Renderer::EndFrame()
 	{
+		m_EndFrameTimer.Reset();
+
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
 
 		VK_CHECK( vkEndCommandBuffer( m_CommandBuffer ) );
@@ -218,14 +224,25 @@ namespace Saturn {
 		// WAIT for SubmitSemaphore
 		PresentInfo.pWaitSemaphores = &m_SubmitSemaphore;
 		PresentInfo.waitSemaphoreCount = 1;
+		
+		m_QueuePresentTimer.Reset();
+
+		// Current time using cpp
+		auto CurrentTime = std::chrono::high_resolution_clock::now();
 
 		VK_CHECK( vkQueuePresentKHR( VulkanContext::Get().GetGraphicsQueue(), &PresentInfo ) );
+
+		SAT_CORE_INFO( "QPKHR: {0}", std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::high_resolution_clock::now() - CurrentTime ).count() * 0.001f * 0.001f * 0.001f * 1000.0f );
+
+		m_QueuePresentTime = m_QueuePresentTimer.ElapsedMilliseconds();
 
 		VK_CHECK( vkQueueWaitIdle( VulkanContext::Get().GetPresentQueue() ) );
 
 		vkFreeCommandBuffers( LogicalDevice, VulkanContext::Get().GetCommandPool(), 1, &m_CommandBuffer );
 
 		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
+
+		m_EndFrameTime = m_EndFrameTimer.ElapsedMilliseconds() - m_QueuePresentTime;
 	}
 
 	//////////////////////////////////////////////////////////////////////////

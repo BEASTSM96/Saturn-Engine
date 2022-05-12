@@ -625,6 +625,25 @@ namespace Saturn {
 		*ppIndexBuffer = new IndexBuffer( indices, 6 );
 	}
 
+	void SceneRenderer::ImGuiRender()
+	{
+		ImGui::Begin( "Scene Renderer" );
+		
+		auto FrameTimings = Renderer::Get().GetFrameTimings();
+
+		ImGui::Text( "Renderer::BeginFrame: %.2f ms", FrameTimings.first );
+		
+		ImGui::Text( "SceneRenderer::GeometryPass: %.2f ms", m_RendererData.GeometryPassTime );
+
+		ImGui::Text( "Renderer::EndFrame - Queue Present: %.2f ms", Renderer::Get().GetQueuePresentTime() );
+
+		ImGui::Text( "Renderer::EndFrame: %.2f ms", FrameTimings.second );
+		
+		ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
+
+		ImGui::End();
+	}
+
 	void SceneRenderer::AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
 		m_DrawList.push_back( { entity, mesh, transform } );
@@ -662,6 +681,8 @@ namespace Saturn {
 
 	void SceneRenderer::GeometryPass()
 	{
+		m_RendererData.GeometryPassTimer.Reset();
+
 		VkExtent2D Extent = { Window::Get().Width(), Window::Get().Height() };
 
 		// Begin geometry pass.
@@ -726,6 +747,8 @@ namespace Saturn {
 		
 		// End geometry pass.
 		m_RendererData.GeometryPass.EndPass();
+
+		m_RendererData.GeometryPassTime = m_RendererData.GeometryPassTimer.ElapsedMilliseconds();
 	}
 
 	void SceneRenderer::RenderScene()
