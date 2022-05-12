@@ -255,8 +255,9 @@ namespace Saturn {
 
 				RendererData::GridMatricesObject GridMatricesObject = {};
 				GridMatricesObject.Transform = trans;
-				GridMatricesObject.View = m_RendererData.EditorCamera.ViewMatrix();
-				GridMatricesObject.Projection = m_RendererData.EditorCamera.ProjectionMatrix();
+				//GridMatricesObject.View = m_RendererData.EditorCamera.ViewMatrix();
+				//GridMatricesObject.Projection = m_RendererData.EditorCamera.ProjectionMatrix();
+				GridMatricesObject.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 				
 				GridMatricesObject.Res = 0.025f;
 				GridMatricesObject.Scale = 16.025f;

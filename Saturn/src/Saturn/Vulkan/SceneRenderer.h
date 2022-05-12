@@ -73,8 +73,9 @@ namespace Saturn {
 	
 		struct GridMatricesObject
 		{
-			glm::mat4 View;
-			glm::mat4 Projection;
+			glm::mat4 ViewProjection;
+			//glm::mat4 View;
+			//glm::mat4 Projection;
 			
 			glm::mat4 Transform;
 
