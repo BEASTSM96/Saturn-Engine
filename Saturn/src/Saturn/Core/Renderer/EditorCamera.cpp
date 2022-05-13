@@ -235,6 +235,11 @@ namespace Saturn {
 		dispatcher.Dispatch<KeyPressedEvent>( [this]( KeyPressedEvent& e ) { return OnKeyPressed( e ); } );
 	}
 
+	void EditorCamera::Reset()
+	{
+		EnableMouse();
+	}
+
 	bool EditorCamera::OnMouseScroll( MouseScrolledEvent& e )
 	{
 		if( m_IsActive )

@@ -44,14 +44,24 @@ namespace Saturn {
 			Reset();
 		}
 
+		void Stop() 
+		{
+			m_Stop = std::chrono::high_resolution_clock::now();
+			m_Stopped = true;
+		}
+
 		void Reset() 
 		{
 			m_Start = std::chrono::high_resolution_clock::now();
+			m_Stopped = false;
 		}
-
+		
 		float Elapsed() const
 		{
-			return std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::high_resolution_clock::now() - m_Start ).count() * 0.001f * 0.001f * 0.001f;
+			if( m_Stopped )
+				return std::chrono::duration_cast< std::chrono::nanoseconds >( m_Stop - m_Start ).count() * 0.001f * 0.001f * 0.001f;
+			else
+				return std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::high_resolution_clock::now() - m_Start ).count() * 0.001f * 0.001f * 0.001f;		
 		}
 		
 		float ElapsedMilliseconds() const
@@ -60,7 +70,10 @@ namespace Saturn {
 		}
 
 	private:
+		bool m_Stopped = false;
+
 		std::chrono::time_point<std::chrono::high_resolution_clock> m_Start;
+		std::chrono::time_point<std::chrono::high_resolution_clock> m_Stop;
 	};
 
 	using TimerMap = std::unordered_map<std::string, Timer>;

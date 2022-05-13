@@ -165,8 +165,22 @@ namespace Saturn {
 			m_EditorCamera.OnEvent( rEvent );
 		}
 		else
+		{	
+			// HACK, I'll come back to this later.
+			
+			if ( m_EditorCamera.HasEvents() )
+			{
+				m_EditorCamera.Reset();
+			}
+			
+			// Allow the camera to handle key released
+			if ( rEvent.GetEventType() == EventType::KeyReleased )
+			{
+				m_EditorCamera.OnEvent( rEvent );
+			}
+
 			m_EditorCamera.AllowEvents( false );
-		
+		}
 	}
 
 }

@@ -640,7 +640,7 @@ namespace Saturn {
 		ImGui::Text( "Renderer::EndFrame: %.2f ms", FrameTimings.second );
 		
 		ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
-
+		
 		ImGui::End();
 	}
 
