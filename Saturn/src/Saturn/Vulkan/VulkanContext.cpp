@@ -150,7 +150,7 @@ namespace Saturn {
 			InstanceInfo.ppEnabledLayerNames = ValidationLayers.data();
 
 			Helpers::CreateDebugMessengerInfo( &DebugCreateInfo );
-			InstanceInfo.pNext = ( VkDebugUtilsMessengerCreateInfoEXT* )&DebugCreateInfo;
+			InstanceInfo.pNext = ( VkDebugUtilsMessengerCreateInfoEXT* ) &DebugCreateInfo;
 		}
 
 		InstanceInfo.enabledExtensionCount = Extensions.size();

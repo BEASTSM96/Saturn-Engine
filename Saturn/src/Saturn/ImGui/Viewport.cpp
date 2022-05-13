@@ -68,9 +68,7 @@ namespace Saturn {
 		ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
 
 		m_SendCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
-
-		SAT_CORE_INFO( "m_SendCameraEvents : {0}", m_SendCameraEvents );
-
+		
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
 		ImGui::Image( SceneRenderer::Get().GetGeometryResult(), viewportSize );
 		ImGui::PopStyleVar();

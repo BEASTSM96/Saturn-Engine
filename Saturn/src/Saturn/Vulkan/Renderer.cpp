@@ -227,12 +227,7 @@ namespace Saturn {
 		
 		m_QueuePresentTimer.Reset();
 
-		// Current time using cpp
-		auto CurrentTime = std::chrono::high_resolution_clock::now();
-
 		VK_CHECK( vkQueuePresentKHR( VulkanContext::Get().GetGraphicsQueue(), &PresentInfo ) );
-
-		SAT_CORE_INFO( "QPKHR: {0}", std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::high_resolution_clock::now() - CurrentTime ).count() * 0.001f * 0.001f * 0.001f * 1000.0f );
 
 		m_QueuePresentTime = m_QueuePresentTimer.ElapsedMilliseconds();
 

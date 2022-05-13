@@ -633,7 +633,7 @@ namespace Saturn {
 
 		ImGui::Text( "Renderer::BeginFrame: %.2f ms", FrameTimings.first );
 		
-		ImGui::Text( "SceneRenderer::GeometryPass: %.2f ms", m_RendererData.GeometryPassTime );
+		ImGui::Text( "SceneRenderer::GeometryPass: %.2f ms", m_RendererData.GeometryPassTimer.ElapsedMilliseconds() );
 
 		ImGui::Text( "Renderer::EndFrame - Queue Present: %.2f ms", Renderer::Get().GetQueuePresentTime() );
 
@@ -748,7 +748,7 @@ namespace Saturn {
 		// End geometry pass.
 		m_RendererData.GeometryPass.EndPass();
 
-		m_RendererData.GeometryPassTime = m_RendererData.GeometryPassTimer.ElapsedMilliseconds();
+		m_RendererData.GeometryPassTimer.Stop();
 	}
 
 	void SceneRenderer::RenderScene()
