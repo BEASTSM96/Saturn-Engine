@@ -75,7 +75,7 @@ namespace Saturn {
 
 	DescriptorSet::~DescriptorSet()
 	{
-		vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), m_Specification.Pool, 1, &m_Set );
+		vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), *m_Specification.Pool.Pointer(), 1, &m_Set );
 		
 		vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_Specification.Layout.VulkanLayout, nullptr );
 	}
@@ -87,19 +87,32 @@ namespace Saturn {
 		WriteDescriptorSet.dstBinding = 0;
 		WriteDescriptorSet.dstArrayElement = 0;
 		WriteDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		WriteDescriptorSet.descriptorCount = 1;
-		WriteDescriptorSet.pBufferInfo = &BufferInfo;
-		WriteDescriptorSet.pImageInfo = &ImageInfo;
+		WriteDescriptorSet.descriptorCount = 1;		
+		
+		if( BufferInfo.buffer != VK_NULL_HANDLE )
+			WriteDescriptorSet.pBufferInfo = &BufferInfo;
+		else
+			WriteDescriptorSet.pBufferInfo = nullptr;
+
+		if( ImageInfo.imageView != VK_NULL_HANDLE )
+			WriteDescriptorSet.pImageInfo = &ImageInfo;
+		else
+			WriteDescriptorSet.pImageInfo = nullptr;
 
 		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &WriteDescriptorSet, 0, nullptr );
 	}
 
+	void DescriptorSet::Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout )
+	{
+		vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, PipelineLayout, 0, 1, &m_Set, 0, nullptr );
+	}
+
 	void DescriptorSet::Allocate()
 	{
-		SAT_CORE_INFO( "Allocating descriptor set..." );
+		SAT_CORE_WARN( "Allocating descriptor set..." );
 
 		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-		AllocateInfo.descriptorPool = m_Specification.Pool;
+		AllocateInfo.descriptorPool = *m_Specification.Pool.Pointer();
 		AllocateInfo.descriptorSetCount = 1;
 		AllocateInfo.pSetLayouts = &m_Specification.Layout.VulkanLayout;
 		

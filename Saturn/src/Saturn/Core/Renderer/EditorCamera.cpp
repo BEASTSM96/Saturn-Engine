@@ -176,12 +176,6 @@ namespace Saturn {
 		m_FocalPoint = m_Position + ForwardDirection() * m_Distance;
 		m_Distance = glm::distance( m_Position, m_FocalPoint );
 		m_ViewMatrix = glm::lookAt( m_Position, lookAt, glm::vec3{ 0.f, m_FlipY ? -yawSign : yawSign, 0.f } );
-		
-		// print view matrix
-		std::cout << m_ViewMatrix[0][0] << " " << m_ViewMatrix[0][1] << " " << m_ViewMatrix[0][2] << " " << m_ViewMatrix[0][3] << std::endl;
-		std::cout << m_ViewMatrix[1][0] << " " << m_ViewMatrix[1][1] << " " << m_ViewMatrix[1][2] << " " << m_ViewMatrix[1][3] << std::endl;
-		std::cout << m_ViewMatrix[2][0] << " " << m_ViewMatrix[2][1] << " " << m_ViewMatrix[2][2] << " " << m_ViewMatrix[2][3] << std::endl;
-		std::cout << m_ViewMatrix[3][0] << " " << m_ViewMatrix[3][1] << " " << m_ViewMatrix[3][2] << " " << m_ViewMatrix[3][3] << std::endl;
 
 		//damping for smooth camera
 		m_YawDelta *= 0.6f;

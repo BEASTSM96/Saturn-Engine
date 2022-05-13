@@ -55,7 +55,7 @@ namespace Saturn {
 		}
 
 		// Move assignment.
-		DescriptorPool& operator=( DescriptorPool&& other )
+		DescriptorPool& operator=( DescriptorPool&& other ) noexcept
 		{
 			if( this == &other )
 				return *this;
@@ -70,11 +70,11 @@ namespace Saturn {
 		// Copy constructor.
 		DescriptorPool( const DescriptorPool& other )
 		{
-			m_Pool = other.m_Pool;
+			m_Pool = other.m_Pool;	
 		}
 
 		// Move constructor.
-		DescriptorPool( DescriptorPool&& other )
+		DescriptorPool( DescriptorPool&& other ) noexcept
 		{
 			m_Pool = other.m_Pool;
 			other.m_Pool = nullptr;
@@ -100,7 +100,7 @@ namespace Saturn {
 	{
 		void Create();
 
-		VkDescriptorSetLayout VulkanLayout;
+		VkDescriptorSetLayout VulkanLayout = nullptr;
 		std::vector< VkDescriptorSetLayoutBinding > Bindings;
 	};
 
@@ -108,20 +108,22 @@ namespace Saturn {
 	{		
 		DescriptorSetSpecification() {}
 		~DescriptorSetSpecification() {}
-
-		DescriptorPool Pool;
-
+		
+		Ref< DescriptorPool > Pool;
 		DescriptorSetLayout Layout;
 	};
 
 	class DescriptorSet
 	{
 	public:
+		DescriptorSet() {}
 		DescriptorSet( DescriptorSetSpecification Spec );
 		~DescriptorSet();
 
 		void Write( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo );
 
+		void Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout );
+		
 		bool operator == ( const DescriptorSet& other ) const
 		{
 			return ( m_Set == other.m_Set );
@@ -135,6 +137,6 @@ namespace Saturn {
 
 		VkDescriptorSet m_Set = nullptr;
 		
-		DescriptorSetSpecification m_Specification;
+		DescriptorSetSpecification m_Specification = {};
 	};
 }

@@ -94,21 +94,21 @@ namespace Saturn {
 		std::vector<uint32_t> VertexCode = SpvSrc.at( { ShaderType::Vertex, 0 } );
 		std::vector<uint32_t> FragmentCode = SpvSrc.at( { ShaderType::Fragment, 0 } );
 		
-		//{
+		{
 			VkShaderModuleCreateInfo CreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
 			CreateInfo.codeSize = 4 * VertexCode.size();
 			CreateInfo.pCode = ( uint32_t* ) VertexCode.data();
 
 			VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &CreateInfo, nullptr, &VertexModule ) );
-		//}
+		}
 
-		//{
+		{
 			VkShaderModuleCreateInfo FCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
 			FCreateInfo.codeSize = 4 * FragmentCode.size();
 			FCreateInfo.pCode = ( uint32_t* ) FragmentCode.data();
 
 			VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &FCreateInfo, nullptr, &FragmentModule ) );
-		//}
+		}
 		
 		SetDebugUtilsObjectName( std::string( m_Specification.Name + "/" + VertexName ), ( uint64_t )VertexModule, VK_OBJECT_TYPE_SHADER_MODULE );
 		

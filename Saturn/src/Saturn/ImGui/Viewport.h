@@ -28,14 +28,6 @@
 
 #pragma once
 
-#if !defined ( SAT_DONT_USE_GL )
-#include "Saturn/OpenGL/Renderer.h"
-#elif !defined( SAT_DONT_USE_DX )
-// Dx
-#else !defined( SAT_DONT_USE_VK )
-// Vk
-#endif
-
 namespace Saturn {
 
 	class Viewport
@@ -45,6 +37,6 @@ namespace Saturn {
 
 		void Draw();
 
-		bool m_SendCameraEvents = false;
+		bool m_SendCameraEvents = true;
 	};
 }

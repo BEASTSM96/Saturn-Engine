@@ -51,7 +51,6 @@ namespace Saturn {
 
 		m_EditorCamera.AllowEvents( true );
 		m_EditorCamera.SetActive( true );
-
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )
@@ -166,8 +165,8 @@ namespace Saturn {
 		}
 		else
 		{	
-			// HACK, I'll come back to this later.
-			
+			// HACK, I'll come back to this later
+
 			if ( m_EditorCamera.HasEvents() )
 			{
 				m_EditorCamera.Reset();

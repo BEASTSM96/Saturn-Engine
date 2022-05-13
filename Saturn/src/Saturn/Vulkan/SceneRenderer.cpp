@@ -170,7 +170,7 @@ namespace Saturn {
 
 		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() }, { m_RendererData.GeometryPassColor.ImageView, m_RendererData.GeometryPassDepth.ImageView }, &m_RendererData.GeometryFramebuffer );
 
-		// Create the geometry pipeline.
+		// Create the static meshes pipeline.
 		// Load the shader
 		m_RendererData.StaticMeshShader = Ref< Shader >::Create( "shader_new", "assets/shaders/shader_new.glsl" );
 		ShaderLibrary::Get().Add( m_RendererData.StaticMeshShader );
@@ -232,7 +232,7 @@ namespace Saturn {
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		
-		m_RendererData.StaticMeshPipeline = Pipeline( PipelineSpec );
+		//m_RendererData.StaticMeshPipeline = Pipeline( PipelineSpec );
 	}
 
 	void SceneRenderer::RenderGrid()
@@ -246,7 +246,7 @@ namespace Saturn {
 
 			// BIND THE DESCRIPTOR SET
 			{
-				vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.GridPipeline.GetPipelineLayout(), 0, 1, &m_RendererData.GridDescriptorSet, 0, nullptr );
+				m_RendererData.GridDescriptorSet->Bind( m_RendererData.CommandBuffer, m_RendererData.GridPipeline.GetPipelineLayout() );
 			}
 
 			// UPDATE UNIFORM BUFFERS
@@ -255,8 +255,6 @@ namespace Saturn {
 
 				RendererData::GridMatricesObject GridMatricesObject = {};
 				GridMatricesObject.Transform = trans;
-				//GridMatricesObject.View = m_RendererData.EditorCamera.ViewMatrix();
-				//GridMatricesObject.Projection = m_RendererData.EditorCamera.ProjectionMatrix();
 				GridMatricesObject.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 				
 				GridMatricesObject.Res = 0.025f;
@@ -311,7 +309,7 @@ namespace Saturn {
 
 			// BIND THE DESCRIPTOR SET
 			{
-				vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.SkyboxPipeline.GetPipelineLayout(), 0, 1, &m_RendererData.SkyboxDescriptorSet, 0, nullptr );
+				m_RendererData.SkyboxDescriptorSet->Bind( CommandBuffer, m_RendererData.SkyboxPipeline.GetPipelineLayout() );
 			}
 
 			// UPDATE UNIFORM BUFFERS
@@ -367,55 +365,39 @@ namespace Saturn {
 		m_RendererData.GridUniformBuffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		
 		// Create descriptor set layout.
-		// TODO: Move to vulkan context.
-		VkDescriptorSetLayoutBinding UBOLayoutBinding = {};
-		UBOLayoutBinding.binding = 0;
-		UBOLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		UBOLayoutBinding.descriptorCount = 1;
-		UBOLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		
-		VkDescriptorSetLayoutCreateInfo LayoutCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-		LayoutCreateInfo.bindingCount = 1;
-		LayoutCreateInfo.pBindings = &UBOLayoutBinding;
-		
-		VK_CHECK( vkCreateDescriptorSetLayout( VulkanContext::Get().GetDevice(), &LayoutCreateInfo, nullptr, &m_RendererData.GridDescriptorSetLayout ) );
-
-		// Create descriptor pool.
-		// TODO: Move to vulkan context as we may only need one pool.
-		VkDescriptorPoolSize PoolSize = {};
+		VkDescriptorPoolSize PoolSize = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 };
 		PoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		PoolSize.descriptorCount = 1;
 		
-		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-		PoolCreateInfo.poolSizeCount = 1;
-		PoolCreateInfo.pPoolSizes = &PoolSize;
-		PoolCreateInfo.maxSets = 1;
-		
-		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_RendererData.GridDescriptorPool ) );
+		std::vector< VkDescriptorPoolSize > PoolSizes;
+		PoolSizes.push_back( PoolSize );
 
-		// Create descriptor set.
-		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-		AllocateInfo.descriptorPool = m_RendererData.GridDescriptorPool;
-		AllocateInfo.descriptorSetCount = 1;
-		AllocateInfo.pSetLayouts = &m_RendererData.GridDescriptorSetLayout;
+		m_RendererData.GridDescriptorPool = Ref< DescriptorPool >::Create( PoolSizes, 1 );
 		
-		VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &AllocateInfo, &m_RendererData.GridDescriptorSet ) );
+		DescriptorSetLayout LayoutDescriptorSet;
 		
-		// Create descriptor write.
+		VkDescriptorSetLayoutBinding BindingLayout = {};
+		BindingLayout.binding = 0;
+		BindingLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		BindingLayout.descriptorCount = 1;
+		BindingLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		LayoutDescriptorSet.Bindings = { { BindingLayout } };
+		LayoutDescriptorSet.Create();
+		
+		DescriptorSetSpecification Spec = {};
+		Spec.Layout = LayoutDescriptorSet;
+		Spec.Pool = m_RendererData.GridDescriptorPool;
+		
+		m_RendererData.GridDescriptorSet = Ref< DescriptorSet >::Create( Spec );
+
 		VkDescriptorBufferInfo BufferInfo = {};
 		BufferInfo.buffer = m_RendererData.GridUniformBuffer;
 		BufferInfo.offset = 0;
 		BufferInfo.range = BufferSize;
-		
-		VkWriteDescriptorSet Write = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-		Write.dstSet = m_RendererData.GridDescriptorSet;
-		Write.dstBinding = 0;
-		Write.dstArrayElement = 0;
-		Write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		Write.descriptorCount = 1;
-		Write.pBufferInfo = &BufferInfo;
-		
-		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &Write, 0, nullptr );
+
+		m_RendererData.GridDescriptorSet->Write( BufferInfo, {} );
 
 		// Gird shader attribute descriptions.
 		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
@@ -433,7 +415,7 @@ namespace Saturn {
 		PipelineSpec.Height = Window::Get().Height();
 		PipelineSpec.Name = "Grid";
 		PipelineSpec.pShader = m_RendererData.GridShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.GridDescriptorSetLayout } };
+		PipelineSpec.Layout.SetLayouts = { { LayoutDescriptorSet.VulkanLayout } };
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
@@ -457,10 +439,10 @@ namespace Saturn {
 		m_RendererData.GridVertexBuffer->Terminate();
 
 		// Destroy descriptor set layout.
-		vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_RendererData.GridDescriptorSetLayout, nullptr );
+		//vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_RendererData.GridDescriptorSetLayout, nullptr );
 
 		// Destroy descriptor pool.
-		vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.GridDescriptorPool, nullptr );
+		//vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.GridDescriptorPool, nullptr );
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -490,56 +472,38 @@ namespace Saturn {
 
 		m_RendererData.SkyboxUniformBuffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		
-		// Create descriptor set layout.
+		VkDescriptorPoolSize PoolSize = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 };
+		PoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		PoolSize.descriptorCount = 1;
+		
+		std::vector< VkDescriptorPoolSize  > PoolSizes;
+		PoolSizes.push_back( PoolSize );
+
+		m_RendererData.SkyboxDescriptorPool = Ref< DescriptorPool >::Create( PoolSizes, 1 );
+		
+		DescriptorSetLayout LayoutDescriptorSet;
+
 		VkDescriptorSetLayoutBinding BindingLayout = {};
 		BindingLayout.binding = 0;
 		BindingLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		BindingLayout.descriptorCount = 1;
 		BindingLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
-		std::vector< VkDescriptorSetLayoutBinding > Bindings = { BindingLayout };
+		LayoutDescriptorSet.Bindings = { { BindingLayout } };
+		LayoutDescriptorSet.Create();
 		
-		VkDescriptorSetLayoutCreateInfo LayoutInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-		LayoutInfo.bindingCount = Bindings.size();
-		LayoutInfo.pBindings = Bindings.data();
+		DescriptorSetSpecification Spec = {};
+		Spec.Layout = LayoutDescriptorSet;
+		Spec.Pool = m_RendererData.SkyboxDescriptorPool;
+
+		m_RendererData.SkyboxDescriptorSet = Ref< DescriptorSet >::Create( Spec );
 		
-		VK_CHECK( vkCreateDescriptorSetLayout( VulkanContext::Get().GetDevice(), &LayoutInfo, nullptr, &m_RendererData.SkyboxDescriptorSetLayout ) );
-
-		// Create descriptor pool.
-		VkDescriptorPoolSize PoolSize = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 };
-		PoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		PoolSize.descriptorCount = 1;
-
-		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-		PoolCreateInfo.poolSizeCount = 1;
-		PoolCreateInfo.pPoolSizes = &PoolSize;
-		PoolCreateInfo.maxSets = 1;
-		
-		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_RendererData.SkyboxDescriptorPool ) );
-
-		// Create descriptor set.
-		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-		AllocateInfo.descriptorPool = m_RendererData.SkyboxDescriptorPool;
-		AllocateInfo.descriptorSetCount = 1;
-		AllocateInfo.pSetLayouts = &m_RendererData.SkyboxDescriptorSetLayout;
-
-		VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &AllocateInfo, &m_RendererData.SkyboxDescriptorSet ) );
-
-		// Create descriptor write.
 		VkDescriptorBufferInfo BufferInfo = {};
 		BufferInfo.buffer = m_RendererData.SkyboxUniformBuffer;
 		BufferInfo.offset = 0;
 		BufferInfo.range = BufferSize;
-		
-		VkWriteDescriptorSet Write = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-		Write.dstSet = m_RendererData.SkyboxDescriptorSet;
-		Write.dstBinding = 0;
-		Write.dstArrayElement = 0;
-		Write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		Write.descriptorCount = 1;
-		Write.pBufferInfo = &BufferInfo;
-		
-		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &Write, 0, nullptr );
+
+		m_RendererData.SkyboxDescriptorSet->Write( BufferInfo, {} );
 		
 		// Gird shader attribute descriptions.
 		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
@@ -557,7 +521,7 @@ namespace Saturn {
 		PipelineSpec.Height = Window::Get().Height();
 		PipelineSpec.Name = "Skybox";
 		PipelineSpec.pShader = m_RendererData.SkyboxShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SkyboxDescriptorSetLayout } };
+		PipelineSpec.Layout.SetLayouts = { { LayoutDescriptorSet.VulkanLayout } };
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
@@ -581,10 +545,10 @@ namespace Saturn {
 		m_RendererData.SkyboxVertexBuffer->Terminate();
 
 		// Destroy descriptor set layout.
-		vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxDescriptorSetLayout, nullptr );
+		//vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxDescriptorSetLayout, nullptr );
 
 		// Destroy descriptor pool.
-		vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxDescriptorPool, nullptr );
+		//vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxDescriptorPool, nullptr );
 	}
 
 	//////////////////////////////////////////////////////////////////////////

@@ -80,8 +80,6 @@ namespace Saturn {
 		struct GridMatricesObject
 		{
 			glm::mat4 ViewProjection;
-			//glm::mat4 View;
-			//glm::mat4 Projection;
 			
 			glm::mat4 Transform;
 
@@ -144,9 +142,9 @@ namespace Saturn {
 
 		Pipeline GridPipeline;
 
-		VkDescriptorSet GridDescriptorSet = nullptr;
-		VkDescriptorSetLayout GridDescriptorSetLayout = nullptr;
-		VkDescriptorPool GridDescriptorPool = nullptr;
+		Ref< DescriptorSet > GridDescriptorSet;
+		Ref< DescriptorPool > GridDescriptorPool;
+
 		Buffer GridUniformBuffer;
 		
 		VertexBuffer* GridVertexBuffer;
@@ -156,9 +154,9 @@ namespace Saturn {
 
 		Pipeline SkyboxPipeline;
 
-		VkDescriptorSet SkyboxDescriptorSet = nullptr;
-		VkDescriptorSetLayout SkyboxDescriptorSetLayout = nullptr;
-		VkDescriptorPool SkyboxDescriptorPool = nullptr;
+		Ref< DescriptorSet > SkyboxDescriptorSet;
+		Ref< DescriptorPool > SkyboxDescriptorPool;
+		
 		Buffer SkyboxUniformBuffer;
 		
 		VertexBuffer* SkyboxVertexBuffer;
