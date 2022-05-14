@@ -121,7 +121,7 @@ namespace Saturn {
 	{
 		for( auto& Uniform : m_Spec->GetUniforms() )
 		{
-			if( Uniform->Name == "Albedo" )
+			if( Uniform->Name == "u_AlbedoTexture" )
 			{
 				Uniform->pValue = ( void* )Albedo.Pointer();
 			}

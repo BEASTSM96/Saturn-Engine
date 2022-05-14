@@ -120,7 +120,11 @@ namespace Saturn {
 		DescriptorSet( DescriptorSetSpecification Spec );
 		~DescriptorSet();
 
+		void Terminate();
+
 		void Write( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo );
+		void Write( std::vector< VkWriteDescriptorSet > WriteDescriptorSets );
+
 
 		void Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout );
 		
@@ -128,7 +132,12 @@ namespace Saturn {
 		{
 			return ( m_Set == other.m_Set );
 		}
+		
+		VkDescriptorSet GetVulkanSet() { return m_Set; }
 
+		operator VkDescriptorSet() { return m_Set; }
+		operator VkDescriptorSet&() { return m_Set; }
+		
 	private:
 		
 		void Allocate();

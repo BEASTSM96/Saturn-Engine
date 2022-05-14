@@ -126,6 +126,8 @@ namespace Saturn {
 
 		// Buffer image.
 		VkDescriptorSet RenderPassResult;
+		
+		// STATIC MESHES
 
 		// Static mesh geometry.
 		UniformBuffer SM_MatricesUBO;
@@ -205,8 +207,8 @@ namespace Saturn {
 		//		 Only adds a descriptor set for a static mesh if it doesn't exist.
 		void AddDescriptorSet( const DescriptorSet& rDescriptorSet );
 
-		// Create static mesh pipeline.
-		DescriptorSet CreateSMDescriptorSet();
+		Ref< DescriptorSet > CreateSMDescriptorSet( const Ref< Mesh >& rMesh );
+		void DestroySMDescriptorSet( UUID uuid );
 
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 

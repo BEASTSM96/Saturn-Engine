@@ -50,6 +50,8 @@ namespace Saturn {
 
 		void Update( void* pData, size_t Size );
 
+		operator VkBuffer() const { return m_Buffer; }
+
 	private:
 
 		void CreateBuffer( size_t Size );

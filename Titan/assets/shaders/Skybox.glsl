@@ -1,4 +1,5 @@
 // Preetham Skybox shader
+// Let's just slip this under the rug: https://www.shadertoy.com/view/llSSDR
 
 #type vertex
 #version 450

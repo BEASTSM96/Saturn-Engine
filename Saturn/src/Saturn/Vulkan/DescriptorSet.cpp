@@ -75,9 +75,21 @@ namespace Saturn {
 
 	DescriptorSet::~DescriptorSet()
 	{
-		vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), *m_Specification.Pool.Pointer(), 1, &m_Set );
+		Terminate();
+	}
+
+	void DescriptorSet::Terminate()
+	{
+		if( m_Set )
+			vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), *m_Specification.Pool.Pointer(), 1, &m_Set );
+
+		if( m_Specification.Layout.VulkanLayout )
+			vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_Specification.Layout.VulkanLayout, nullptr );
 		
-		vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_Specification.Layout.VulkanLayout, nullptr );
+		m_Set = nullptr;
+		m_Specification.Layout.VulkanLayout = nullptr;
+		m_Specification.Layout.Bindings.clear();
+		m_Specification = {};
 	}
 
 	void DescriptorSet::Write( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo )
@@ -100,6 +112,11 @@ namespace Saturn {
 			WriteDescriptorSet.pImageInfo = nullptr;
 
 		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &WriteDescriptorSet, 0, nullptr );
+	}
+
+	void DescriptorSet::Write( std::vector< VkWriteDescriptorSet > WriteDescriptorSets )
+	{
+		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), WriteDescriptorSets.size(), WriteDescriptorSets.data(), 0, nullptr );
 	}
 
 	void DescriptorSet::Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout )

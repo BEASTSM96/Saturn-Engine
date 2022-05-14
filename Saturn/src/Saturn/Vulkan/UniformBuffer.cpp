@@ -48,7 +48,7 @@ namespace Saturn {
 
 	void UniformBuffer::Bind( VkCommandBuffer CommandBuffer, bool RecreateBuffer /*= false */ )
 	{
-		void* pData = nullptr;
+		void* pData;
 
 		m_Buffer.Map( &pData, m_Buffer.m_Size );
 
@@ -59,6 +59,8 @@ namespace Saturn {
 
 	void UniformBuffer::Update( void* pData, size_t Size )
 	{
+		m_Buffer.Terminate();
+
 		m_pData = pData;
 		m_Buffer.m_Size = Size;
 
@@ -69,26 +71,7 @@ namespace Saturn {
 	{
 		VkDeviceSize BufferSize = Size;
 
-		// Create staging buffer.
-		Buffer StagingBuffer;
-
-		StagingBuffer.Create( m_pData, BufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
-
-		//////////////////////////////////////////////////////////////////////////
-
-		// Create uniform buffer.
-
-		m_Buffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
-
-		// Preform copy buffer.
-		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
-
-		VkBufferCopy CopyRegion = {};
-		CopyRegion.size = BufferSize;
-
-		vkCmdCopyBuffer( CommandBuffer, StagingBuffer.GetBuffer(), m_Buffer.GetBuffer(), 1, &CopyRegion );
-
-		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+		m_Buffer.Create( m_pData, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 	}
 
 }

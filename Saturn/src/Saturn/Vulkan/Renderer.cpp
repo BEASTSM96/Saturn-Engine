@@ -131,9 +131,6 @@ namespace Saturn {
 
 		mesh->GetMaterial()->Bind( nullptr );
 
-		// Bind the descriptor sets.
-		//vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline.GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ uuid ], 0, nullptr );
-
 		// Bind UBO
 		rUBO.Bind( CommandBuffer );
 

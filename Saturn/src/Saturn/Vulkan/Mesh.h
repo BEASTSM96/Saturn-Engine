@@ -110,7 +110,9 @@ namespace Saturn {
 
 		Ref<VertexBuffer>& GetVertexBuffer() { return m_VertexBuffer; }
 		Ref<IndexBuffer>& GetIndexBuffer() { return m_IndexBuffer; }
+		
 		Ref<Material>& GetMaterial() { return m_MeshMaterial; }
+		const Ref<Material>& GetMaterial() const { return m_MeshMaterial; }
 		
 
 		glm::mat4 GetTransform() const { return m_InverseTransform; }

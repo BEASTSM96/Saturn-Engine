@@ -97,11 +97,23 @@ namespace Saturn {
 		template< typename Ty >
 		void Set( std::string Name, Ty* Value ) 
 		{
-			for ( auto& rUniform : m_Spec->m_Uniforms )
+			for ( auto& rUniform : m_Spec->GetUniforms() )
 			{
 				if( rUniform->Name == Name ) 
 				{
 					rUniform->pValue = ( void* )Value;
+				}
+			}
+		}
+
+		template< typename Ty >
+		Ty Get( std::string Name )
+		{
+			for( auto& rUniform : m_Spec->GetUniforms() )
+			{
+				if( rUniform->Name == Name )
+				{
+					return ( Ty )rUniform->pValue;
 				}
 			}
 		}

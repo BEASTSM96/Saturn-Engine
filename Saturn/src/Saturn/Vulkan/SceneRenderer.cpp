@@ -32,6 +32,9 @@
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
 #include "ImGuiVulkan.h"
+#include "Texture.h"
+#include "Mesh.h"
+#include "Material.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 #include <backends/imgui_impl_vulkan.h>
@@ -295,12 +298,12 @@ namespace Saturn {
 			SkylightEntity = { e, m_pSence };
 		}
 
-		//if( SkylightEntity )
+		if( SkylightEntity )
 		{
-			//auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
+			auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
 			
-			//if( !Skylight.DynamicSky )
-			//	return;
+			if( !Skylight.DynamicSky )
+				return;
 
 			// BIND THE PIPELINE
 			{
@@ -698,6 +701,10 @@ namespace Saturn {
 			
 			m_RendererData.SM_MatricesUBO.Update( &u_Matrices, sizeof( u_Matrices ) );
 
+			m_RendererData.StaticMeshDescriptorSets[ uuid ] = CreateSMDescriptorSet( Cmd.Mesh );
+
+			m_RendererData.StaticMeshDescriptorSets[ uuid ]->Bind( m_RendererData.CommandBuffer, m_RendererData.StaticMeshPipeline.GetPipelineLayout() );
+
 			Renderer::Get().RenderStaticMesh( 
 				m_RendererData.CommandBuffer, 
 				m_RendererData.StaticMeshPipeline, 
@@ -721,6 +728,17 @@ namespace Saturn {
 		{
 			FlushDrawList();
 			return;
+		}
+
+		// Cleanup descriptor sets from last frame.
+		if ( m_RendererData.StaticMeshDescriptorSets.size() >= 1 )
+		{
+			for ( auto&& [uid, set] : m_RendererData.StaticMeshDescriptorSets )
+			{
+				DestroySMDescriptorSet( uid );
+			}
+
+			m_RendererData.StaticMeshDescriptorSets.clear();
 		}
 
 		m_RendererData.CommandBuffer = Renderer::Get().ActiveCommandBuffer();
@@ -752,6 +770,68 @@ namespace Saturn {
 		//{
 			//m_RendererData.StaticMeshDescriptorSets.push_back( rDescriptorSet );
 		//}
+	}
+
+	Ref< DescriptorSet > SceneRenderer::CreateSMDescriptorSet( const Ref<Mesh>& rMesh )
+	{
+		Ref< Material > rMaterial = rMesh->GetMaterial();
+
+		Texture2D* AlbedoTexture = rMaterial->Get<Texture2D*>( "u_AlbedoTexture" );
+
+		DescriptorSetSpecification Spec;
+		Spec.Layout = m_RendererData.SM_DescriptorSetLayout;
+		Spec.Pool = m_RendererData.GeometryDescriptorPool;
+
+		Ref< DescriptorSet > Set = Ref< DescriptorSet >::Create( Spec );
+		
+		// As this is a Static mesh (SM), descriptor set, we can hard-code the values.
+		
+		VkDescriptorBufferInfo MatricesBufferInfo = {};
+		MatricesBufferInfo.buffer = m_RendererData.SM_MatricesUBO;
+		MatricesBufferInfo.offset = 0;
+		MatricesBufferInfo.range = sizeof( RendererData::StaticMeshMatrices );
+		
+		VkDescriptorImageInfo ImageInfo = {};
+		ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		ImageInfo.imageView = AlbedoTexture->GetImageView();
+		ImageInfo.sampler = AlbedoTexture->GetSampler();
+
+		std::vector< VkWriteDescriptorSet > DescriptorWrites;
+
+		DescriptorWrites.push_back( {
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = nullptr,
+			.dstSet = Set->GetVulkanSet(),
+			.dstBinding = 0,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.pImageInfo = nullptr,
+			.pBufferInfo = &MatricesBufferInfo,
+			.pTexelBufferView = nullptr } );
+
+		DescriptorWrites.push_back( {
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = nullptr,
+			.dstSet = Set->GetVulkanSet(),
+			.dstBinding = 1,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.pImageInfo = &ImageInfo,
+			.pBufferInfo = nullptr,
+			.pTexelBufferView = nullptr } );
+
+		Set->Write( DescriptorWrites );
+
+		return Set;
+	}
+
+	void SceneRenderer::DestroySMDescriptorSet( UUID uuid )
+	{
+		SAT_CORE_INFO( "Terminating descriptor set!" );
+
+		m_RendererData.StaticMeshDescriptorSets[ uuid ]->Terminate();
 	}
 
 }

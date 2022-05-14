@@ -44,9 +44,7 @@ namespace Saturn {
 
 		// Init Scene Renderer.
 		SceneRenderer::Get();
-		
-		//m_pImGuiVulkan = new ImGuiVulkan();
-
+	
 		// Create default pass.
 		PassSpecification Specification = {};
 		Specification.Name = "Default Pass";
