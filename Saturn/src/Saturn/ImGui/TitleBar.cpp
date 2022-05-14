@@ -66,7 +66,7 @@ namespace Saturn {
 
 			if( ImGui::BeginMenu( "Acknowledgements" ) )
 			{
-				if( ImGui::MenuItem( "Restart" ) ) ShowAcknowledgements = true;
+				ShowAcknowledgements = true;
 				
 				ImGui::EndMenu();
 			}
