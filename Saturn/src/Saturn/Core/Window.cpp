@@ -82,24 +82,20 @@ namespace Saturn {
 			return;
 
 		glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
-
 		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 
-		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
-
-		// Get monitor width and height.
-
+		GLFWmonitor* pPrimary = glfwGetPrimaryMonitor();	
+		
 		int x, y, w, h;
-
-		GLFWmonitor* pPrimary = glfwGetPrimaryMonitor();
-
 		glfwGetMonitorWorkarea( pPrimary, &x, &y, &w, &h );
 
-		glfwSetWindowSize( m_Window, w / 2, h / 2 );
-		glfwSetWindowPos( m_Window, x / 2, y / 2 );
-
-		m_Width = w / 2;
-		m_Height = h / 2;
+		m_Width = 3 * w / 4;
+		m_Height = 3 * h / 4;
+		
+		//m_Width = w / 2;
+		//m_Height = h / 2;
+		
+		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
 
 		glfwSetWindowUserPointer( m_Window, this );
 
