@@ -208,7 +208,7 @@ namespace Saturn {
 		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
 		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
 
-		m_RendererData.GeometryDescriptorPool = DescriptorPool( PoolSizes, 100000 );
+		m_RendererData.GeometryDescriptorPool = Ref< DescriptorPool >::Create( PoolSizes, 100000 );
 
 		// u_Matrices
 		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_ALL } );
@@ -232,7 +232,7 @@ namespace Saturn {
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		
-		//m_RendererData.StaticMeshPipeline = Pipeline( PipelineSpec );
+		m_RendererData.StaticMeshPipeline = Pipeline( PipelineSpec );
 	}
 
 	void SceneRenderer::RenderGrid()
@@ -746,12 +746,12 @@ namespace Saturn {
 	void SceneRenderer::AddDescriptorSet( const DescriptorSet& rDescriptorSet )
 	{
 		// Check if the descriptor set already exists.
-		auto res = std::find( std::begin( m_RendererData.StaticMeshDescriptorSets ), std::end( m_RendererData.StaticMeshDescriptorSets ), rDescriptorSet );
+//		auto res = std::find( std::begin( m_RendererData.StaticMeshDescriptorSets ), std::end( m_RendererData.StaticMeshDescriptorSets ), rDescriptorSet );
 	
-		if( res == std::end( m_RendererData.StaticMeshDescriptorSets ) )
-		{
-			m_RendererData.StaticMeshDescriptorSets.push_back( rDescriptorSet );
-		}
+		//if( res == std::end( m_RendererData.StaticMeshDescriptorSets ) )
+		//{
+			//m_RendererData.StaticMeshDescriptorSets.push_back( rDescriptorSet );
+		//}
 	}
 
 }

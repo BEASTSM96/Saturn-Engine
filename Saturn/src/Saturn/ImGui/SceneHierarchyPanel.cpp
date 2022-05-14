@@ -47,30 +47,6 @@
 
 namespace Saturn {
 
-	std::string::value_type CharUpFunc( std::string::value_type val ) 
-	{
-		return std::use_facet< std::ctype< std::string::value_type > >( std::locale() ).toupper( val );
-	}
-
-	std::string ToUpper( const std::string& src ) 
-	{
-		std::string result;
-		std::transform( src.begin(), src.end(), std::back_inserter( result ), CharUpFunc );
-		return result;
-	}
-
-	std::string::value_type CharDownFunc( std::string::value_type val )
-	{
-		return std::use_facet< std::ctype< std::string::value_type > >( std::locale() ).tolower( val );
-	}
-
-	std::string ToLower( const std::string& src )
-	{
-		std::string result;
-		std::transform( src.begin(), src.end(), std::back_inserter( result ), CharDownFunc );
-		return result;
-	}
-
 	template<typename T, typename UIFunction>
 	static void DrawComponent( const std::string& name, Entity entity, UIFunction uiFunction )
 	{
@@ -80,7 +56,7 @@ namespace Saturn {
 
 			auto& component = entity.GetComponent<T>();
 
-			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, ToUpper( name ).c_str() );
+			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str() );
 
 			ImGui::SameLine();
 			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
@@ -135,23 +111,6 @@ namespace Saturn {
 	{
 		m_SelectionContext = entity;
 		m_Context->SetSelectedEntity( entity );
-
-		/*
-		if( m_Context->m_Registry.valid( entity ) ) 
-		{
-			if( entity.HasComponent<MeshComponent>() )
-			{
-				if( entity.GetComponent<MeshComponent>().Mesh ) 
-				{
-					VulkanContext::Get().RenderDebugUUID( entity.GetComponent< IdComponent >().ID );
-				}
-			}	
-		} 
-		else
-		{
-			VulkanContext::Get().ShowDebugUUID( false );
-		}
-		*/
 	}
 
 	void SceneHierarchyPanel::DrawEntities()
@@ -392,9 +351,7 @@ namespace Saturn {
 			{
 				if( ImGui::Button( "...##openenvmap", ImVec2( 50, 20 ) ) ) 
 				{
-					std::string file = Application::Get().OpenFile( "Environment map file (*.hdr)\0*.hdr;\0" );
-					
-					//skl.Map = { .Name = file, .Path = file, .Texture = nullptr };
+					std::string file = Application::Get().OpenFile( "Environment map file (*.hdr)\0*.hdr;\0" );	
 				}
 			}
 
