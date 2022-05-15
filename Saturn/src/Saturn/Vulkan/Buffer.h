@@ -52,6 +52,19 @@ namespace Saturn {
 
 		VkBuffer& GetBuffer() { return m_Buffer; }
 
+		// Copy assignment.
+		Buffer& operator=( const Buffer& rOther ) 
+		{
+			if( this == &rOther )
+				return *this;
+
+			m_Buffer = rOther.m_Buffer;
+			m_Memory = rOther.m_Memory;
+			m_Size = rOther.m_Size;
+
+			return *this;
+		}
+
 		operator VkBuffer() const { return m_Buffer; }
 		operator VkBuffer&() { return m_Buffer; }
 

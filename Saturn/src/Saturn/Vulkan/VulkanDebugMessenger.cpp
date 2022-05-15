@@ -37,8 +37,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCB(
 	void*                                              pUserData )
 {
 	if( MessageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT )
-		//SAT_CORE_ERROR( "{0}", pCallbackData->pMessage );
-		std::cout << pCallbackData->pMessage << "\n";
+		SAT_CORE_ERROR( "{0}", pCallbackData->pMessage );
 
 	return VK_TRUE;
 }

@@ -100,7 +100,6 @@ OStream& operator<<( OStream& os, glm::vec4& vec )
 	return os << '(' << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ')';
 }
 
-
 // Core log macros
 #define SAT_CORE_TRACE(...)				Saturn::Log::Get().CoreLogger()->trace(__VA_ARGS__)
 #define SAT_CORE_INFO(...)				Saturn::Log::Get().CoreLogger()->info(__VA_ARGS__)

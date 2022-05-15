@@ -215,6 +215,8 @@ namespace Saturn {
 
 		// u_Matrices
 		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_ALL } );
+
+		m_RendererData.SM_MatricesUBO.CreateBuffer( sizeof( RendererData::StaticMeshMatrices ) );
 		
 		// u_AlbedoTexture, u_NormalTexture, u_MetallicTexture, u_RoughnessTexture
 		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
@@ -234,6 +236,7 @@ namespace Saturn {
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
+		PipelineSpec.CullMode = VK_CULL_MODE_FRONT_BIT;
 		
 		m_RendererData.StaticMeshPipeline = Pipeline( PipelineSpec );
 	}
@@ -666,11 +669,17 @@ namespace Saturn {
 
 			RendererData::StaticMeshMatrices u_Matrices = {};
 			
+			SAT_CORE_INFO( "Command Transform [0]: {0} {1} {2}", Cmd.Transform[ 0 ].x, Cmd.Transform[ 0 ].y, Cmd.Transform[ 0 ].z );
+			SAT_CORE_INFO( "Command Transform [1]: {0} {1} {2}", Cmd.Transform[ 1 ].x, Cmd.Transform[ 1 ].y, Cmd.Transform[ 1 ].z );
+			SAT_CORE_INFO( "Command Transform [2]: {0} {1} {2}", Cmd.Transform[ 2 ].x, Cmd.Transform[ 2 ].y, Cmd.Transform[ 2 ].z );
+			SAT_CORE_INFO( "Command Transform [3]: {0} {1} {2}", Cmd.Transform[ 3 ].x, Cmd.Transform[ 3 ].y, Cmd.Transform[ 3 ].z );
+
+
 			u_Matrices.Transform = Cmd.Transform;
 			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 			u_Matrices.UseAlbedoTexture = true;
-			
-			m_RendererData.SM_MatricesUBO.Update( &u_Matrices, sizeof( u_Matrices ) );
+
+			m_RendererData.SM_MatricesUBO.UpdateData( &u_Matrices, sizeof( u_Matrices ) );
 
 			m_RendererData.StaticMeshDescriptorSets[ uuid ] = CreateSMDescriptorSet( Cmd.Mesh );
 

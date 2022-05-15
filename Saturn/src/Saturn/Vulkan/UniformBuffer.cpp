@@ -30,6 +30,7 @@
 #include "UniformBuffer.h"
 
 #include "VulkanContext.h"
+#include "VulkanDebug.h"
 
 namespace Saturn {
 
@@ -51,7 +52,7 @@ namespace Saturn {
 		m_Buffer.Terminate();
 	}
 
-	void UniformBuffer::Bind( VkCommandBuffer CommandBuffer, bool RecreateBuffer /*= false */ )
+	void UniformBuffer::Map( VkCommandBuffer CommandBuffer, bool RecreateBuffer /*= false */ )
 	{
 		void* pData;
 
@@ -62,21 +63,23 @@ namespace Saturn {
 		m_Buffer.Unmap();
 	}
 
-	void UniformBuffer::Update( void* pData, size_t Size )
+	void UniformBuffer::UpdateData( void* pData, size_t Size )
 	{
-		m_Buffer.Terminate();
-
 		m_pData = pData;
 		m_Buffer.m_Size = Size;
-
-		CreateBuffer( Size );
 	}
 
 	void UniformBuffer::CreateBuffer( size_t Size )
 	{
 		VkDeviceSize BufferSize = Size;
+		m_Buffer.m_Size = Size;
 
-		m_Buffer.Create( m_pData, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		if( m_pData  )
+			m_Buffer.Create( m_pData, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		else
+			m_Buffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+
+		SetDebugUtilsObjectName( "Uniform Buffer", ( uint64_t ) m_Buffer.GetBuffer(), VK_OBJECT_TYPE_BUFFER );
 	}
 
 }

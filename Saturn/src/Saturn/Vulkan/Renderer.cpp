@@ -91,7 +91,7 @@ namespace Saturn {
 		
 		// Update UBO
 		{
-			UBO->Bind( CommandBuffer );
+			UBO->Map( CommandBuffer );
 		}
 
 		pIndexBuffer->Bind( CommandBuffer );
@@ -131,7 +131,7 @@ namespace Saturn {
 		mesh->GetMaterial()->Bind( nullptr );
 
 		// Bind UBO
-		rUBO.Bind( CommandBuffer );
+		rUBO.Map( CommandBuffer );
 
 		// Draw.
 		mesh->GetIndexBuffer()->Draw( CommandBuffer );

@@ -35,7 +35,7 @@ namespace Saturn {
 	class UniformBuffer
 	{
 	public:
-		UniformBuffer() {}
+		UniformBuffer() : m_pData( nullptr ) {}
 		UniformBuffer( void* pData, size_t Size );
 
 		~UniformBuffer();
@@ -48,13 +48,25 @@ namespace Saturn {
 			return ( Ty* )m_pData;
 		}
 
-		void Bind( VkCommandBuffer CommandBuffer, bool RecreateBuffer = false );
+		void Map( VkCommandBuffer CommandBuffer, bool RecreateBuffer = false );
 
-		void Update( void* pData, size_t Size );
+		void UpdateData( void* pData, size_t Size );
 
 		operator VkBuffer() const { return m_Buffer; }
+	
+		// Copy assignment.
+		UniformBuffer& operator=( const UniformBuffer& Other ) 
+		{
+			if( this == &Other )
+				return *this;
 
-	private:
+			m_Buffer = Other.m_Buffer;
+			m_pData = Other.m_pData;
+
+			return *this;
+		}
+
+	//private:
 
 		void CreateBuffer( size_t Size );
 
