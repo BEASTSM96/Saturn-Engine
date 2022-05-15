@@ -32,6 +32,7 @@
 #include "VulkanContext.h"
 
 #include <stb_image.h>
+#include <backends/imgui_impl_vulkan.h>
 
 namespace Saturn {
 
@@ -358,6 +359,8 @@ namespace Saturn {
 		SamplerCreateInfo.maxLod = 0.0f;
 
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
+
+		m_DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_Sampler, m_ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
 
 	//////////////////////////////////////////////////////////////////////////

@@ -251,6 +251,8 @@ namespace Saturn {
 			if( rDescriptor.Members.size() > 0 )
 			{
 				SAT_CORE_INFO( " {0} Is a uniform block.", rDescriptor.Name );
+				
+				int i = 0;
 
 				for( auto& rMember : rDescriptor.Members )
 				{
@@ -259,7 +261,9 @@ namespace Saturn {
 					SAT_CORE_INFO( "   Size {0}", rMember.Size );
 					SAT_CORE_INFO( "   Type {0}", ShaderDataTypeToString( rMember.Type ) );
 
-					m_AvailableUniforms.push_back( { rMember.Name, rDescriptor.Binding, rMember.Type } );
+					m_AvailableUniforms.push_back( { rDescriptor.Name + "." + rMember.Name, i, rMember.Type } );
+
+					i++;
 				}
 			}
 			else

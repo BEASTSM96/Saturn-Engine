@@ -202,6 +202,8 @@ namespace Saturn {
 			m_MeshShader->UseUniform( "u_NormalTexture" );
 			m_MeshShader->UseUniform( "u_MetallicTexture" );
 			m_MeshShader->UseUniform( "u_RoughnessTexture" );
+			m_MeshShader->UseUniform( "u_Matrices.UseAlbedoTexture" );
+			m_MeshShader->UseUniform( "u_Matrices.AlbedoColor" );
 			
 			std::string MatName = std::string( name.C_Str() );
 
@@ -211,10 +213,12 @@ namespace Saturn {
 			Uniforms.push_back( &m_MeshShader->FindUniform( "u_NormalTexture" ) );
 			Uniforms.push_back( &m_MeshShader->FindUniform( "u_MetallicTexture" ) );
 			Uniforms.push_back( &m_MeshShader->FindUniform( "u_RoughnessTexture" ) );
+			Uniforms.push_back( &m_MeshShader->FindUniform( "u_Matrices.UseAlbedoTexture" ) );
+			Uniforms.push_back( &m_MeshShader->FindUniform( "u_Matrices.AlbedoColor" ) );
 			
 			MaterialSpec* pSpec = new MaterialSpec( MatName, uuid, Uniforms );
 
-			m_MeshMaterial = Ref<Material>::Create( pSpec );
+			m_MeshMaterial = Ref<Material>::Create( m_MeshShader, pSpec );
 
 			// Albedo Texture
 			{
@@ -223,17 +227,22 @@ namespace Saturn {
 				{
 					std::filesystem::path AlbedoPath = filename;
 					auto pp = AlbedoPath.parent_path();
-					
+
 					pp /= std::string( AlbedoTexturePath.data );
-					
+
 					auto AlbedoTexturePath = pp.string();
 
 					SAT_CORE_INFO( "MESH FOR ENTITY ID {0}: Albedo Map texture {1}", std::to_string( uuid ), AlbedoTexturePath );
-					
+
 					Ref< Texture2D > AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
 
-					m_MeshMaterial->SetAlbedo( AlbedoTexture );	
+					m_MeshMaterial->Set( "u_AlbedoTexture", AlbedoTexture );
+					m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", true );
 				}
+				else
+					m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", false );
+
+				m_MeshMaterial->Set( "u_Matrices.AlbedoColor", glm::vec4( 1.0f, 0.5f, 0.5f, 1.0f ) );
 			}
 
 			

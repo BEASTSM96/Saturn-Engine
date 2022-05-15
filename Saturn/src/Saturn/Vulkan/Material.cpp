@@ -38,8 +38,17 @@ namespace Saturn {
 	}
 	
 	MaterialSpec::MaterialSpec( std::string Name, UUID ID, std::vector< ShaderUniform* > Uniforms )
-		: m_Name( Name ), m_ID( ID ), m_Uniforms( Uniforms )
+		: m_Name( Name ), m_ID( ID )
 	{
+		for ( auto& Uniform : Uniforms )
+		{
+			if( Uniform->Type == ShaderDataType::Sampler2D )
+			{
+				m_Textures[ Uniform->Name ] = Uniform;
+			}
+			else
+				m_Uniforms.push_back( Uniform );
+		}
 	}
 
 	MaterialSpec::MaterialSpec( std::string Name, UUID ID ) : m_Name( Name ), m_ID( ID )
@@ -96,8 +105,9 @@ namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
 
-	Material::Material( MaterialSpec* Spec )
+	Material::Material( Ref< Saturn::Shader> Shader, MaterialSpec* Spec )
 	{
+		m_Shader = Shader;
 		m_Spec = Spec;
 	}
 
@@ -117,13 +127,13 @@ namespace Saturn {
 
 	}
 
-	void Material::SetAlbedo( Ref<Texture2D> Albedo )
+	void Material::SetAlbedo( const Texture2D& Albedo )
 	{
 		for( auto& Uniform : m_Spec->GetUniforms() )
 		{
 			if( Uniform->Name == "u_AlbedoTexture" )
 			{
-				Uniform->pValue = ( void* )Albedo.Pointer();
+				//Uniform->pValue = ( void* )Albedo;
 			}
 		}
 	}
@@ -132,7 +142,7 @@ namespace Saturn {
 	{
 		for( auto& Uniform : m_Spec->GetUniforms() )
 		{
-			if( Uniform->Name == "Albedo" )
+			if( Uniform->Name == "u_NormalTexture" )
 			{
 				Uniform->pValue = ( void* ) Normal.Pointer();
 			}
@@ -143,7 +153,7 @@ namespace Saturn {
 	{
 		for( auto& Uniform : m_Spec->GetUniforms() )
 		{
-			if( Uniform->Name == "Albedo" )
+			if( Uniform->Name == "u_MetallicTexture" )
 			{
 				Uniform->pValue = ( void* ) Metallic.Pointer();
 			}
@@ -154,7 +164,7 @@ namespace Saturn {
 	{
 		for( auto& Uniform : m_Spec->GetUniforms() )
 		{
-			if( Uniform->Name == "Albedo" )
+			if( Uniform->Name == "u_RoughnessTexture" )
 			{
 				Uniform->pValue = ( void* ) Roughness.Pointer();
 			}

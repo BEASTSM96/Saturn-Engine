@@ -51,6 +51,8 @@ namespace Saturn {
 
 		m_EditorCamera.AllowEvents( true );
 		m_EditorCamera.SetActive( true );
+		
+		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.png", AddressingMode::ClampToEdge );
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )
@@ -152,6 +154,55 @@ namespace Saturn {
 		}
 		
 		ImGui::End();
+
+		if( m_SceneHierarchyPanel->GetSelectionContext() )
+		{
+			auto& rSelection = m_SceneHierarchyPanel->GetSelectionContext();
+			
+			if( rSelection.HasComponent<MeshComponent>() )
+			{
+				auto& mesh = rSelection.GetComponent<MeshComponent>().Mesh;
+				
+				if( mesh )
+				{
+					Ref< Material > material = mesh->GetMaterial();
+
+					ImGui::Begin( "Materials" );
+
+					ImGui::Text( "Shader: %s", material->GetShader()->GetName().c_str() );
+
+					ImGui::Separator();
+
+					ImGui::Text( "Albedo" );
+					
+					ImGui::Separator();
+					
+					Ref< Texture2D > texture = material->GetResource< Texture2D >( "u_AlbedoTexture" );
+
+					//VkDescriptorSet AlbedoTexture = material->Get<Texture2D*>( "u_AlbedoTexture" )->GetDescriptorSet() == nullptr ? m_CheckerboardTexture->GetDescriptorSet() : material->Get<Texture2D*>( "u_AlbedoTexture" )->GetDescriptorSet();
+
+					ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+					
+					bool UseAlbedoTexture = ( bool )material->Get( "u_Matrices.UseAlbedoTexture" );
+
+					ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture );
+
+					material->Set( "u_Matrices.UseAlbedoTexture", UseAlbedoTexture );
+					
+					if( !UseAlbedoTexture )
+					{
+						glm::vec4 color = material->Get<glm::vec4>( "u_Matrices.AlbedoColor" );
+
+						float AlbedoColor[ 4 ] = { color.x, color.y, color.z, color.w};
+						ImGui::ColorEdit4( "Albedo Color", AlbedoColor );
+
+						material->Set< glm::vec4 >( "u_Matrices.AlbedoColor", glm::vec4( AlbedoColor[ 1 ], AlbedoColor[ 2 ], AlbedoColor[ 3 ], AlbedoColor[ 4 ] ) );
+					}
+
+					ImGui::End();
+				}
+			}
+		}
 
 		ImGui::End();
 	}

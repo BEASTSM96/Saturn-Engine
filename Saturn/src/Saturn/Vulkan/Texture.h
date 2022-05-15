@@ -81,6 +81,7 @@ namespace Saturn {
 		VkSampler& GetSampler() { return m_Sampler; }
 		VkImageView& GetImageView() { return m_ImageView; }
 		VkImage& GetImage() { return m_Image; }
+		VkDescriptorSet& GetDescriptorSet() { return m_DescriptorSet; }
 
 		int Width() { return m_Width; }
 		int Height() { return m_Height; }
@@ -97,7 +98,8 @@ namespace Saturn {
 		VkDeviceMemory m_ImageMemory = VK_NULL_HANDLE;
 		VkImageView m_ImageView = VK_NULL_HANDLE;
 		VkSampler m_Sampler = VK_NULL_HANDLE;
-		
+		VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
+
 		bool m_HDR = false;
 
 		AddressingMode m_AddressingMode = AddressingMode::Repeat;

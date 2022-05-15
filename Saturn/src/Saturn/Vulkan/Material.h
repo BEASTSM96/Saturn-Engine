@@ -40,7 +40,8 @@ namespace Saturn {
 	public:
 		MaterialSpec();
 
-		MaterialSpec( std::string Name, UUID ID, std::vector< ShaderUniform* > Uniforms );
+		MaterialSpec( 
+			std::string Name, UUID ID, std::vector< ShaderUniform* > Uniforms );
 
 		MaterialSpec( std::string Name, UUID ID );
 
@@ -70,6 +71,10 @@ namespace Saturn {
 
 		std::vector< ShaderUniform* >& GetUniforms() { return m_Uniforms; }
 		const std::vector< ShaderUniform* >& GetUniforms() const { return m_Uniforms; }
+		
+		std::unordered_map< std::string, ShaderUniform* >& GetTextures() { return m_Textures; }
+		
+		const std::unordered_map< std::string, ShaderUniform* > GetTextures() const { return m_Textures; }
 
 	private:
 		std::string m_Name = "";
@@ -77,23 +82,25 @@ namespace Saturn {
 		UUID m_ID = 0;
 
 		std::vector< ShaderUniform* > m_Uniforms;
+		std::unordered_map< std::string, ShaderUniform* > m_Textures;
 	};
 
 	class Material
 	{
 	public:
-		 Material( MaterialSpec* Spec );
+		 Material( Ref< Saturn::Shader> Shader, MaterialSpec* Spec );
 		~Material();
 
-		void Bind( Ref<Shader> Shader );
+		void Bind( Ref< Saturn::Shader > Shader );
 
 		void Unbind();
 
-		void SetAlbedo( Ref<Texture2D> Albedo );
+		void SetAlbedo( const Texture2D& Albedo );
 		void SetNormal( Ref<Texture2D> Normal );
 		void SetMetallic( Ref<Texture2D> Metallic );
 		void SetRoughness( Ref<Texture2D> Roughness );
 
+		/*
 		template< typename Ty >
 		void Set( std::string Name, Ty* Value ) 
 		{
@@ -105,21 +112,115 @@ namespace Saturn {
 				}
 			}
 		}
-
+		*/
+		
 		template< typename Ty >
-		Ty Get( std::string Name )
+		void Set( const std::string& Name, const Ty& Value )
 		{
 			for( auto& rUniform : m_Spec->GetUniforms() )
 			{
 				if( rUniform->Name == Name )
 				{
-					return ( Ty )rUniform->pValue;
+					rUniform->pValue = ( void* )&Value;
 				}
 			}
 		}
 
+		void Set( const std::string& Name, const Ref<Texture>& Value )
+		{
+			for( auto& rUniform : m_Spec->GetUniforms() )
+			{
+				if( rUniform->Name == Name )
+				{
+					rUniform->pValue = ( void* ) &Value;
+				}
+			}
+		}
+
+		void Set( std::string Name, bool Value )
+		{
+			for( auto& rUniform : m_Spec->GetUniforms() )
+			{
+				if( rUniform->Name == Name )
+				{
+					rUniform->pValue = ( void* ) Value;
+				}
+			}
+		}
+
+		void Set( std::string Name, glm::vec3 Value )
+		{
+			for( auto& rUniform : m_Spec->GetUniforms() )
+			{
+				if( rUniform->Name == Name )
+				{
+					rUniform->pValue = ( void* )&Value;
+				}
+			}
+		}
+		
+		void Set( std::string Name, glm::vec4 Value )
+		{
+			for( auto& rUniform : m_Spec->GetUniforms() )
+			{
+				if( rUniform->Name == Name )
+				{
+					rUniform->pValue = ( void* ) &Value;
+				}
+			}
+		}
+
+		void Set( std::string Name, glm::mat4 Value )
+		{
+			for( auto& rUniform : m_Spec->GetUniforms() )
+			{
+				if( rUniform->Name == Name )
+				{
+					rUniform->pValue = ( void* ) &Value;
+				}
+			}
+		}
+
+		template< typename Ty >
+		Ty& Get( const std::string& Name )
+		{
+			for( auto& rUniform : m_Spec->GetUniforms() )
+			{
+				if( rUniform->Name == Name )
+				{
+					return *( Ty* ) rUniform->pValue;
+				}
+			}
+		}
+
+		template< typename Ty >
+		Ref< Ty > GetResource( const std::string& Name )
+		{
+			for( auto& rUniform : m_Spec->GetTextures() )
+			{
+				if( rUniform->Name == Name )
+				{
+					return rUniform->pValue;
+				}
+			}
+		}
+
+		bool Get( std::string Name )
+		{
+			for( auto& rUniform : m_Spec->GetUniforms() )
+			{
+				if( rUniform->Name == Name )
+				{
+					return ( bool ) rUniform->pValue;
+				}
+			}
+		}
+		
+		Ref< Saturn::Shader >& GetShader() { return m_Shader; }
+
 	private:
 		MaterialSpec* m_Spec;
+		Ref< Saturn::Shader > m_Shader;
 	};
 
 }

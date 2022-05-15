@@ -664,20 +664,19 @@ namespace Saturn {
 		for( auto& Cmd : m_DrawList )
 		{
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
+			auto& rMaterial = Cmd.Mesh->GetMaterial();
 
 			// Update uniform buffers.
-
 			RendererData::StaticMeshMatrices u_Matrices = {};
-			
-			SAT_CORE_INFO( "Command Transform [0]: {0} {1} {2}", Cmd.Transform[ 0 ].x, Cmd.Transform[ 0 ].y, Cmd.Transform[ 0 ].z );
-			SAT_CORE_INFO( "Command Transform [1]: {0} {1} {2}", Cmd.Transform[ 1 ].x, Cmd.Transform[ 1 ].y, Cmd.Transform[ 1 ].z );
-			SAT_CORE_INFO( "Command Transform [2]: {0} {1} {2}", Cmd.Transform[ 2 ].x, Cmd.Transform[ 2 ].y, Cmd.Transform[ 2 ].z );
-			SAT_CORE_INFO( "Command Transform [3]: {0} {1} {2}", Cmd.Transform[ 3 ].x, Cmd.Transform[ 3 ].y, Cmd.Transform[ 3 ].z );
-
 
 			u_Matrices.Transform = Cmd.Transform;
 			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
-			u_Matrices.UseAlbedoTexture = true;
+			
+			u_Matrices.UseAlbedoTexture = rMaterial->Get( "u_Matrices.UseAlbedoTexture" );
+			u_Matrices.UseNormalTexture = rMaterial->Get( "u_Matrices.UseNormalTexture" );
+			u_Matrices.UseMetallicTexture = rMaterial->Get( "u_Matrices.UseMetallicTexture" );
+			u_Matrices.UseRoughnessTexture = rMaterial->Get( "u_Matrices.UseRoughnessTexture" );
+			
 
 			m_RendererData.SM_MatricesUBO.UpdateData( &u_Matrices, sizeof( u_Matrices ) );
 

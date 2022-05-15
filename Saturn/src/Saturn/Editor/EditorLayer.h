@@ -66,6 +66,8 @@ namespace Saturn {
 		
 		SceneHierarchyPanel* m_SceneHierarchyPanel;
 
+		Ref< Texture2D > m_CheckerboardTexture;
+
 		EditorCamera m_EditorCamera;
 
 		Ref< Scene > m_EditorScene;
