@@ -144,7 +144,7 @@ namespace Saturn {
 					}
 
 					if( pressed )
-						exit( 0 /* EXIT_SUCCESS */ );
+						Application::Get().Close();
 
 					buttonRect.Min.x -= buttonSize;
 					buttonRect.Max.x -= buttonSize;

@@ -145,7 +145,8 @@ namespace Saturn {
 
 	void ImGuiLayer::OnDetach( void )
 	{
-
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
 	}
 
 	void ImGuiLayer::Begin()

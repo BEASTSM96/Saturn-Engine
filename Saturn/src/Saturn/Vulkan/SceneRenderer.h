@@ -53,6 +53,8 @@ namespace Saturn {
 	
 	struct RendererData
 	{
+		void Terminate();
+		
 		//////////////////////////////////////////////////////////////////////////
 		// COMMAND POOLS & BUFFERS
 		//////////////////////////////////////////////////////////////////////////
@@ -249,6 +251,7 @@ namespace Saturn {
 
 	private:
 		friend class Scene;
+		friend class VulkanContext;
 	};
 
 }

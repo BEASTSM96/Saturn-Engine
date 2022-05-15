@@ -39,6 +39,8 @@ namespace Saturn {
 		UniformBuffer( void* pData, size_t Size );
 
 		~UniformBuffer();
+		
+		void Terminate();
 
 		template< typename Ty >
 		Ty* As()

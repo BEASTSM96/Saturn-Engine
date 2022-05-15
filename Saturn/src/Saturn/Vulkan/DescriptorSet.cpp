@@ -44,6 +44,11 @@ namespace Saturn {
 
 	DescriptorPool::~DescriptorPool()
 	{
+		Terminate();
+	}
+
+	void DescriptorPool::Terminate()
+	{
 		if( m_Pool )
 			vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_Pool, nullptr );
 

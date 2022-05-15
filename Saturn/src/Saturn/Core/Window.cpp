@@ -209,8 +209,6 @@ namespace Saturn {
 
 	Window::~Window()
 	{
-		ImGui_ImplGlfw_Shutdown();
-
 		glfwDestroyWindow( m_Window );
 	}
 

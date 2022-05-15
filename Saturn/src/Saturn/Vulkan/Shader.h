@@ -222,8 +222,6 @@ namespace Saturn {
 		
 		void CompileGlslToSpvAssembly();
 
-		//void FindAndCreateUniformBlocks( spirv_cross::Compiler& rCompiler, spirv_cross::ShaderResources& rShaderResources );
-
 	private:
 		ShaderSourceMap m_ShaderSources;
 		SpvSourceMap m_SpvCode;
@@ -235,11 +233,9 @@ namespace Saturn {
 
 		std::filesystem::path m_Filepath = "";
 		
-		std::vector< ShaderCodename > m_ShaderCodenames;
 		std::vector< ShaderUniform > m_AvailableUniforms;
 		std::vector< ShaderUniform > m_Uniforms;
 		
-
 	private:
 		friend class ShaderWorker;
 	};

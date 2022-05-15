@@ -98,6 +98,9 @@ namespace Saturn {
 
 			m_LastFrameTime = time;
 		}
+
+		delete m_ImGuiLayer;
+		delete m_EditorLayer;
 	}
 
 	void Application::Close()

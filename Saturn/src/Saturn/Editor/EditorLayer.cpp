@@ -182,4 +182,12 @@ namespace Saturn {
 		}
 	}
 
+	void EditorLayer::SelectionChanged( Entity e )
+	{
+		//if( m_RuntimeScene )
+		//	m_RuntimeScene->SelectionChanged( e );
+		//else
+		//	m_EditorScene->SelectionChanged( e );
+	}
+
 }

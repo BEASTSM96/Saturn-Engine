@@ -86,7 +86,7 @@ namespace Saturn {
 		
 		m_DrawList.clear();
 		
-		m_RendererData = {};
+		m_RendererData.Terminate();
 	}
 
 	void SceneRenderer::InitGeometryPass()
@@ -441,11 +441,9 @@ namespace Saturn {
 		// Destroy grid vertex buffer.
 		m_RendererData.GridVertexBuffer->Terminate();
 
-		// Destroy descriptor set layout.
-		//vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_RendererData.GridDescriptorSetLayout, nullptr );
+		m_RendererData.SkyboxDescriptorSet->Terminate();
 
-		// Destroy descriptor pool.
-		//vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.GridDescriptorPool, nullptr );
+		m_RendererData.SkyboxDescriptorPool->Terminate();
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -547,11 +545,9 @@ namespace Saturn {
 		// Destroy Skybox vertex buffer.
 		m_RendererData.SkyboxVertexBuffer->Terminate();
 
-		// Destroy descriptor set layout.
-		//vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxDescriptorSetLayout, nullptr );
+		m_RendererData.SkyboxDescriptorSet->Terminate();
 
-		// Destroy descriptor pool.
-		//vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.SkyboxDescriptorPool, nullptr );
+		m_RendererData.SkyboxDescriptorPool->Terminate();
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -614,31 +610,6 @@ namespace Saturn {
 	void SceneRenderer::AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
 		m_DrawList.push_back( { entity, mesh, transform } );
-	}
-
-	void SceneRenderer::RenderDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
-	{
-		auto& uuid = entity.GetComponent<IdComponent>().ID;
-
-		//vkCmdBindPipeline( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanContext::Get().GetPipeline().GetPipeline() );
-		
-		// Render a draw command.
-
-		// Bind vertex and index buffers.
-		mesh->GetVertexBuffer()->Bind( m_RendererData.CommandBuffer );
-		mesh->GetIndexBuffer()->Bind( m_RendererData.CommandBuffer );
-
-		mesh->GetMaterial()->Bind( nullptr );
-
-		// Bind the descriptor sets.
-		//vkCmdBindDescriptorSets( m_RendererData.CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, //VulkanContext::Get().GetPipeline().GetPipelineLayout(), 0, 1, &VulkanContext::Get().GetDescriptorSets()[ uuid ], 0, nullptr );
-		
-
-		// Update uniform buffers.
-		//VulkanContext::Get().UpdateUniformBuffers( entity.GetComponent<IdComponent>().ID, Application::Get().Time(), entity.GetComponent<TransformComponent>().GetTransform() );
-
-		// Draw.
-		mesh->GetIndexBuffer()->Draw( m_RendererData.CommandBuffer );
 	}
 
 	void SceneRenderer::FlushDrawList()
@@ -832,6 +803,47 @@ namespace Saturn {
 		SAT_CORE_INFO( "Terminating descriptor set!" );
 
 		m_RendererData.StaticMeshDescriptorSets[ uuid ]->Terminate();
+	}
+
+	void RendererData::Terminate()
+	{
+		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
+
+		GeometryPass.Terminate();
+		GeometryPassDepth.Terminate();
+		GeometryPassColor.Terminate();
+
+		vkDestroyFramebuffer( LogicalDevice, GeometryFramebuffer, nullptr );
+		GeometryFramebuffer = nullptr;
+
+		GeometryDescriptorPool->Terminate();
+
+		SM_MatricesUBO.Terminate();
+
+		StaticMeshPipeline.Terminate();
+
+		GridPipeline.Terminate();
+
+		GridDescriptorSet->Terminate();
+		GridDescriptorPool->Terminate();
+
+		GridUniformBuffer.Terminate();
+
+		GridVertexBuffer->Terminate();
+		GridIndexBuffer->Terminate();
+
+		SkyboxPipeline.Terminate();
+		SkyboxDescriptorSet->Terminate();
+		SkyboxDescriptorPool->Terminate();
+
+		SkyboxUniformBuffer.Terminate();
+
+		SkyboxVertexBuffer->Terminate();
+		SkyboxIndexBuffer->Terminate();
+
+		//GridShader.Delete();
+		//SkyboxShader.Delete();
+		//StaticMeshShader.Delete();
 	}
 
 }

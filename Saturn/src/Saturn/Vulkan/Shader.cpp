@@ -152,7 +152,22 @@ namespace Saturn {
 
 	Shader::~Shader()
 	{
+		m_SpvCode.clear();
+		m_ShaderSources.clear();
+		
+		for ( auto& uniform : m_AvailableUniforms )
+		{
+			uniform.Terminate();
+		}
+		
+		m_AvailableUniforms.clear();
+		
+		for( auto& uniform : m_Uniforms )
+		{
+			uniform.Terminate();
+		}
 
+		m_Uniforms.clear();
 	}
 
 	void Shader::ReadFile()
@@ -215,12 +230,6 @@ namespace Saturn {
 
 			ShaderSource src = ShaderSource( RawShaderCode, Shader_Type, Index );
 			m_ShaderSources[ ShaderSourceKey( Shader_Type, Index ) ] = src;
-			
-			m_ShaderCodenames.push_back( { 
-				.m_UUID = UUID(), 
-				.m_Filename = m_Filepath.filename().string(), 
-				.m_Type = std::move( ShaderTypeToString( Shader_Type ) )
-			} );
 		}
 	}
 

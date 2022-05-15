@@ -101,6 +101,9 @@ namespace Saturn {
 	{
 		delete m_pImGuiVulkan;
 
+		Renderer::Get().Terminate();
+		SceneRenderer::Get().Terminate();
+
 		m_SwapChain.Terminate();
 		
 		for( auto& rImageView : m_SwapChainImageViews )
@@ -112,6 +115,8 @@ namespace Saturn {
 		{
 			vkDestroyFramebuffer( m_LogicalDevice, rFramebuffer, nullptr );
 		}
+
+		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
 
 		vkDestroyDevice( m_LogicalDevice, nullptr );
 

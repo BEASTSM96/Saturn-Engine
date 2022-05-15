@@ -40,6 +40,8 @@ namespace Saturn {
 		DescriptorPool( std::vector< VkDescriptorPoolSize > PoolSizes, uint32_t MaxSets );
 		~DescriptorPool();
 		
+		void Terminate();
+
 		operator VkDescriptorPool&() { return m_Pool; }
 		operator const VkDescriptorPool&() const { return m_Pool; }
 

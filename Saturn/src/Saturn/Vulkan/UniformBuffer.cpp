@@ -43,6 +43,11 @@ namespace Saturn {
 
 	UniformBuffer::~UniformBuffer()
 	{
+		Terminate();
+	}
+
+	void UniformBuffer::Terminate()
+	{
 		m_Buffer.Terminate();
 	}
 

@@ -57,7 +57,7 @@ namespace Saturn {
 
 	private:
 		
-		void SelectionChanged( Entity e ) {}
+		void SelectionChanged( Entity e );
 
 	private:
 		TitleBar* m_TitleBar;

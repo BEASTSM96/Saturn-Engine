@@ -38,7 +38,7 @@ namespace Saturn {
 	class Resource
 	{
 	public:
-		//void Create( const VkImageCreateInfo* ImageInfo, const VkImageViewCreateInfo* ImageViewCreateInfo, const VkSamplerCreateInfo* SamplerCreateInfo );
+		void Terminate();
 
 		operator VkImage() const { return Image; }
 		operator VkImageView() const { return ImageView; }
@@ -128,5 +128,8 @@ namespace Saturn {
 
 		Timer m_QueuePresentTimer;
 		float m_QueuePresentTime;
+		
+	private:
+		friend class VulkanContext;
 	};
 }

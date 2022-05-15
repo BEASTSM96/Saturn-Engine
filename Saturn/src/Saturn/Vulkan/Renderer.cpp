@@ -102,7 +102,6 @@ namespace Saturn {
 
 	void Renderer::BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass )
 	{
-		//rPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, m_ImageIndex );
 	}
 
 	void Renderer::BeginRenderPass( VkCommandBuffer CommandBuffer )
@@ -311,6 +310,27 @@ namespace Saturn {
 		SamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, pSampler ) );
+	}
+
+	void Resource::Terminate()
+	{
+		if( Image )
+		{
+			vkDestroyImage( VulkanContext::Get().GetDevice(), Image, nullptr );
+			Image = nullptr;
+		}
+
+		if( Memory )
+		{
+			vkFreeMemory( VulkanContext::Get().GetDevice(), Memory, nullptr );
+			Memory = nullptr;
+		}
+
+		if( ImageView )
+		{
+			vkDestroyImageView( VulkanContext::Get().GetDevice(), ImageView, nullptr );
+			ImageView = nullptr;
+		}
 	}
 
 }
