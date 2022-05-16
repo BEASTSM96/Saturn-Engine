@@ -847,11 +847,15 @@ namespace Saturn {
 			u_Matrices.Transform = Cmd.Transform;
 			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 			
-			u_Matrices.UseAlbedoTexture = rMaterial->Get<bool>( "u_Matrices.UseAlbedoTexture" );
-			u_Matrices.UseNormalTexture = rMaterial->Get<bool>( "u_Matrices.UseNormalTexture" );
-			u_Matrices.UseMetallicTexture = rMaterial->Get<bool>( "u_Matrices.UseMetallicTexture" );
-			u_Matrices.UseRoughnessTexture = rMaterial->Get<bool>( "u_Matrices.UseRoughnessTexture" );
+			u_Matrices.UseAlbedoTexture = rMaterial->Get<float>( "u_Matrices.UseAlbedoTexture" ) ? 1.0f : 0.5f;
 			
+			u_Matrices.UseNormalTexture = rMaterial->Get<float>( "u_Matrices.UseNormalTexture" );
+			u_Matrices.UseMetallicTexture = rMaterial->Get<float>( "u_Matrices.UseMetallicTexture" );
+			u_Matrices.UseRoughnessTexture = rMaterial->Get<float>( "u_Matrices.UseRoughnessTexture" );
+			
+			u_Matrices.AlbedoColor = rMaterial->Get<glm::vec4>( "u_Matrices.AlbedoColor" );
+
+			SAT_CORE_INFO( "AlbedoColor : {0}", u_Matrices.AlbedoColor );
 
 			m_RendererData.SM_MatricesUBO.UpdateData( &u_Matrices, sizeof( u_Matrices ) );
 

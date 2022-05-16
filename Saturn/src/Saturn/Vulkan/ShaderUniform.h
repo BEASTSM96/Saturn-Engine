@@ -38,20 +38,31 @@ namespace Saturn {
 
 	struct ShaderUniform
 	{
-		ShaderUniform() {}
+		ShaderUniform() : pValue( nullptr ) { memset( pValue, 0, Size ); }
+		
 		~ShaderUniform()
 		{
 			Terminate();
 		}
 
-		ShaderUniform( const std::string& name, int location, ShaderDataType type )
-			: Name( name ), Location( location ), Type( type )
+		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size )
+			: Name( name ), Location( location ), Type( type ), pValue( nullptr ), Size( size )
 		{
+			delete[] pValue;
+			pValue = nullptr;
+
+			pValue = new uint8_t[ Size ];
+			
+			memset( pValue, 0, Size );
+
 			UUID = location * 2;
 		}
 
 		void Terminate()
 		{
+			//delete[] pValue;
+			//pValue = nullptr;
+
 			switch( Type )
 			{
 				case Saturn::ShaderDataType::None:
@@ -78,10 +89,11 @@ namespace Saturn {
 				{
 					// Ty = Texture2D
 					
-					if ( pValue )
-					{				
+					if( *( Ref< Texture2D >* )pValue )
+					{
 						Ref< Texture2D > Texture = *( Ref< Texture2D >* )pValue;
-						Texture->Terminate();
+						if( Texture )
+							Texture->Terminate();
 					}
 				} break;
 
@@ -91,19 +103,23 @@ namespace Saturn {
 			
 			Location = -1;
 			Type = ShaderDataType::None;
-			pValue = nullptr;
 			UUID = 0;
 		}
 
 		operator bool () const
 		{
-			return !( pValue == nullptr );
+			return pValue;
 		}
 
 		template<typename Ty>
-		void Set( Ty& Value )
+		void Set( const Ty& Value )
 		{
 			pValue = ( uint8_t* ) &Value;
+		}
+
+		void Set( void* Value, size_t Size )
+		{			
+			memcpy( pValue, Value, Size );
 		}
 
 		template<typename Ty>
@@ -115,7 +131,7 @@ namespace Saturn {
 		template<typename Ty>
 		Ty& Read()
 		{
-			return *( Ty* ) ( pValue );
+			return *( Ty* )pValue;
 		}
 
 		ShaderUniform& operator=( const ShaderUniform& other )
@@ -123,7 +139,16 @@ namespace Saturn {
 			Name = other.Name;
 			Location = other.Location;
 			Type = other.Type;
-			pValue = other.pValue;
+			
+			if ( other.pValue )
+			{
+				memcpy( pValue, other.pValue, sizeof( other.pValue ) );
+			}
+			else
+			{
+				pValue = nullptr;
+			}
+
 			return *this;
 		}
 
@@ -138,7 +163,8 @@ namespace Saturn {
 
 		int UUID;
 
-		uint8_t* pValue = nullptr;
+		uint8_t* pValue;
+		uint32_t Size;
 	};
 
 }

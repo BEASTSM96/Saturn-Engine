@@ -50,11 +50,12 @@ namespace Saturn {
 		template<typename Ty>
 		void Set( const std::string& Name, const Ty& Value ) 
 		{
+
 			for ( auto& Uniform : m_Uniforms )
 			{
 				if ( Uniform.Name == Name )
 				{
-					Uniform.Set( Value );
+					Uniform.Set( ( uint8_t* )&Value, sizeof( Ty ) );
 					return;
 				}
 			}

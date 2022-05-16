@@ -272,7 +272,7 @@ namespace Saturn {
 					
 					if( result == m_AvailableUniforms.end() )
 					{
-						m_AvailableUniforms.push_back( { rDescriptor.Name + "." + rMember.Name, i, rMember.Type } );
+						m_AvailableUniforms.push_back( { rDescriptor.Name + "." + rMember.Name, i, rMember.Type, rMember.Size } );
 					}
 
 					i++;
@@ -290,7 +290,7 @@ namespace Saturn {
 
 				if( result == m_AvailableUniforms.end() )
 				{
-					m_AvailableUniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ) } );
+					m_AvailableUniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ), sizeof( rDescriptor ) } );
 				}
 			}
 		}
