@@ -99,7 +99,7 @@ namespace Saturn {
 			float Azimuth;
 			float Inclination;
 		};
-
+		
 		struct StaticMeshMatrices
 		{
 			glm::mat4 Transform;
@@ -174,11 +174,34 @@ namespace Saturn {
 		 
 		//////////////////////////////////////////////////////////////////////////
 
+		// Begin Scene Composite
+		
+		Pass SceneComposite;
+		Resource SceneCompositeColor;
+		Resource SceneCompositeDepth;
+		VkFramebuffer SceneCompositeFramebuffer;
+
+		Pipeline SceneCompositePipeline;
+		
+		Ref< DescriptorSet > SC_DescriptorSet;
+		Ref< DescriptorPool > SC_DescriptorPool;
+		DescriptorSetLayout SC_DescriptorSetLayout;
+
+		VertexBuffer* SC_VertexBuffer;
+		IndexBuffer* SC_IndexBuffer;
+		
+		VkDescriptorSet SceneCompositeResult;
+
+		//////////////////////////////////////////////////////////////////////////
+		// End Scene Composite
+		//////////////////////////////////////////////////////////////////////////
+		
 		// SHADERS
 
 		Ref< Shader > GridShader = nullptr;
 		Ref< Shader > SkyboxShader = nullptr;
 		Ref< Shader > StaticMeshShader = nullptr;
+		Ref< Shader > SceneCompositeShader = nullptr;
 	};
 
 	class SceneRenderer
@@ -218,6 +241,7 @@ namespace Saturn {
 		const Pass& GetGeometryPass() const { return m_RendererData.GeometryPass; }
 
 		VkDescriptorSet& GetGeometryResult() { return m_RendererData.RenderPassResult; }
+		VkDescriptorSet& CompositeImage() { return m_RendererData.SceneCompositeResult; }
 
 		void CreateGeometryResult();
 
@@ -236,12 +260,14 @@ namespace Saturn {
 		void DestroySkyboxComponents();
 
 		void InitGeometryPass();
+		void InitSceneComposite();
 
 		void CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
 		void CreateFullscreenQuad( float x, float y, float w, float h,
 			VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
 
 		void GeometryPass();
+		void SceneCompositePass();
 
 	private:
 

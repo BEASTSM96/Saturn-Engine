@@ -174,6 +174,9 @@ namespace Saturn {
 	{
 		std::ifstream f( m_Filepath, std::ios::ate | std::ios::binary );
 
+		if( !std::filesystem::exists( m_Filepath ) )
+			return;
+
 		m_FileSize = static_cast< size_t >( f.tellg() );
 		std::vector<char> Buffer( m_FileSize );
 

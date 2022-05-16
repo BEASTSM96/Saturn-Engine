@@ -67,12 +67,16 @@ namespace Saturn {
 		// Create skybox.
 		CreateSkyboxComponents();
 
+		InitSceneComposite();
+
 		//////////////////////////////////////////////////////////////////////////
 	}
 
 	void SceneRenderer::CreateGeometryResult()
 	{
 		m_RendererData.RenderPassResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.GeometryPassColor.Sampler, m_RendererData.GeometryPassColor.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+
+		m_RendererData.SceneCompositeResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.SceneCompositeColor.Sampler, m_RendererData.SceneCompositeColor.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
 
 	void SceneRenderer::Terminate()
@@ -236,9 +240,176 @@ namespace Saturn {
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
-		PipelineSpec.CullMode = VK_CULL_MODE_FRONT_BIT;
+		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
+		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		
 		m_RendererData.StaticMeshPipeline = Pipeline( PipelineSpec );
+	}
+
+	void SceneRenderer::InitSceneComposite()
+	{
+		// Start by creating the color resource
+		{
+			Renderer::Get().CreateImage(
+				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.SceneCompositeColor.Image, &m_RendererData.SceneCompositeColor.Memory );
+
+			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeColor, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.SceneCompositeColor.ImageView );
+
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeColor.Sampler );
+		}
+
+		// Then, create the depth resource
+		{
+			Renderer::Get().CreateImage(
+				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.SceneCompositeDepth.Image, &m_RendererData.SceneCompositeDepth.Memory );
+
+			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeDepth, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.SceneCompositeDepth.ImageView );
+
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeDepth.Sampler );
+		}
+
+
+		// Create the scene composite render pass.
+		PassSpecification PassSpec = {};
+		PassSpec.Name = "Scene Composite";
+		
+		PassSpec.Attachments = {
+			// Color
+			{
+				.flags = 0,
+				.format = VK_FORMAT_B8G8R8A8_UNORM,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+			},
+			// Depth
+			{
+				.flags = 0,
+				.format = VK_FORMAT_D32_SFLOAT,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+			}
+		};
+		
+		PassSpec.ColorAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		PassSpec.DepthAttachmentRef = { .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+
+		PassSpec.Dependencies = {
+			{
+				.srcSubpass = VK_SUBPASS_EXTERNAL,
+				.dstSubpass = 0,
+				.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+			},
+			{
+				.srcSubpass = 0,
+				.dstSubpass = VK_SUBPASS_EXTERNAL,
+				.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+			}
+		};
+
+		m_RendererData.SceneComposite = Pass( PassSpec );
+		
+		Renderer::Get().CreateFramebuffer( 
+			m_RendererData.GeometryPass, 
+			{ .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() },
+			{ m_RendererData.SceneCompositeColor.ImageView, m_RendererData.SceneCompositeDepth.ImageView },
+			&m_RendererData.SceneCompositeFramebuffer );
+
+		/////////
+
+		// Create vertex buffer layout.
+		VertexBufferLayout Layout =
+		{
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" },
+		};
+		
+		// Create fullscreen quad.
+		CreateFullscreenQuad( &m_RendererData.SC_VertexBuffer, &m_RendererData.SC_IndexBuffer );
+
+		m_RendererData.SceneCompositeShader = Ref< Shader >::Create( "SceneComposite", "assets/shaders/SceneComposite.glsl" );
+
+		ShaderLibrary::Get().Add( m_RendererData.SceneCompositeShader );
+		
+		// Create the descriptor pool.
+		std::vector< VkDescriptorPoolSize > PoolSizes;
+		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1 } );
+		
+		m_RendererData.SC_DescriptorPool = Ref< DescriptorPool >::Create( PoolSizes, 1 );
+
+		// Textures
+		m_RendererData.SC_DescriptorSetLayout.Bindings.push_back( { 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
+		
+		m_RendererData.SC_DescriptorSetLayout.Create();
+
+		// Create the descriptor set.
+		DescriptorSetSpecification Spec;
+		Spec.Layout = m_RendererData.SC_DescriptorSetLayout;
+		Spec.Pool = m_RendererData.SC_DescriptorPool;
+
+		m_RendererData.SC_DescriptorSet = Ref< DescriptorSet >::Create( Spec );
+
+		VkDescriptorImageInfo GeometryPassImageInfo = {};
+		GeometryPassImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		GeometryPassImageInfo.imageView = m_RendererData.GeometryPassColor.ImageView;
+		GeometryPassImageInfo.sampler = m_RendererData.GeometryPassColor.Sampler;
+
+		std::vector< VkWriteDescriptorSet > DescriptorWrites;
+
+		DescriptorWrites.push_back( {
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = nullptr,
+			.dstSet = m_RendererData.SC_DescriptorSet->GetVulkanSet(),
+			.dstBinding = 0,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.pImageInfo = &GeometryPassImageInfo,
+			.pBufferInfo = nullptr,
+			.pTexelBufferView = nullptr } );
+
+		m_RendererData.SC_DescriptorSet->Write( DescriptorWrites );
+
+		// Create attribute descriptions & binding descriptions.
+		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
+		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
+
+		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( BaseVertex, Position ) } );
+		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( BaseVertex, Texcoord ) } );
+		
+		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
+
+		PipelineSpecification PipelineSpec = {};
+		PipelineSpec.Width = Window::Get().Width();
+		PipelineSpec.Height = Window::Get().Height();
+		PipelineSpec.Name = "Scene Composite";
+		PipelineSpec.pShader = m_RendererData.SceneCompositeShader.Pointer();
+		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SC_DescriptorSetLayout.VulkanLayout } };
+		PipelineSpec.RenderPass = m_RendererData.SceneComposite;
+		PipelineSpec.UseDepthTest = true;
+		PipelineSpec.BindingDescriptions = BindingDescriptions;
+		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
+		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
+		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+
+		m_RendererData.SceneCompositePipeline = Pipeline( PipelineSpec );
 	}
 
 	void SceneRenderer::RenderGrid()
@@ -326,9 +497,9 @@ namespace Saturn {
 
 				SkyboxMatricesObject.View = m_RendererData.EditorCamera.ViewMatrix();
 				SkyboxMatricesObject.Projection = m_RendererData.EditorCamera.ProjectionMatrix();
-				SkyboxMatricesObject.Turbidity = 2.0f;
-				SkyboxMatricesObject.Azimuth = -0.50;
-				SkyboxMatricesObject.Inclination = 0.90f;
+				SkyboxMatricesObject.Turbidity = Skylight.Turbidity;
+				SkyboxMatricesObject.Azimuth = Skylight.Azimuth;
+				SkyboxMatricesObject.Inclination = Skylight.Inclination;
 
 				void* Data;
 
@@ -408,8 +579,8 @@ namespace Saturn {
 		// Gird shader attribute descriptions.
 		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
 		
-		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( GridVertex, Position ) } );
-		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( GridVertex, Texcoord ) } );
+		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( BaseVertex, Position ) } );
+		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( BaseVertex, Texcoord ) } );
 
 		// Grid shader binding descriptions.
 		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
@@ -426,6 +597,8 @@ namespace Saturn {
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.UseDepthTest = true;
+		PipelineSpec.CullMode = VK_CULL_MODE_BACK_BIT;
+		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 		
 		m_RendererData.GridPipeline = Pipeline( PipelineSpec );
 	}
@@ -530,7 +703,9 @@ namespace Saturn {
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
-		
+		PipelineSpec.CullMode = VK_CULL_MODE_BACK_BIT;
+		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+
 		m_RendererData.SkyboxPipeline = Pipeline( PipelineSpec );
 	}
 
@@ -631,9 +806,9 @@ namespace Saturn {
 		
 		VkViewport Viewport = {};
 		Viewport.x = 0;
-		Viewport.y = ( float ) Window::Get().Height();
+		Viewport.y = 0;
 		Viewport.width = ( float ) Window::Get().Width();
-		Viewport.height = -( float ) Window::Get().Height();
+		Viewport.height = ( float ) Window::Get().Height();
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
 		
@@ -701,6 +876,42 @@ namespace Saturn {
 		m_RendererData.GeometryPassTimer.Stop();
 	}
 
+	void SceneRenderer::SceneCompositePass()
+	{
+		VkExtent2D Extent = { Window::Get().Width(), Window::Get().Height() };
+		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
+
+		// Begin scene composite pass.
+		m_RendererData.SceneComposite.BeginPass( CommandBuffer, m_RendererData.SceneCompositeFramebuffer, Extent );
+
+		VkViewport Viewport = {};
+		Viewport.x = 0;
+		Viewport.y = ( float ) Window::Get().Height();
+		Viewport.width = ( float ) Window::Get().Width();
+		Viewport.height = -( float ) Window::Get().Height();
+		Viewport.minDepth = 0.0f;
+		Viewport.maxDepth = 1.0f;
+
+		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
+
+		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
+		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
+		
+		// Actual scene composite pass.
+
+		vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.SceneCompositePipeline.GetPipeline() );
+
+		m_RendererData.SC_DescriptorSet->Bind( CommandBuffer, m_RendererData.SceneCompositePipeline.GetPipelineLayout() );
+
+		m_RendererData.SC_VertexBuffer->Bind( CommandBuffer );
+		m_RendererData.SC_IndexBuffer->Bind( CommandBuffer );
+
+		m_RendererData.SC_IndexBuffer->Draw( CommandBuffer );
+		
+		// End scene composite pass.
+		m_RendererData.SceneComposite.EndPass();
+	}
+
 	void SceneRenderer::RenderScene()
 	{
 		if( !m_pSence )
@@ -728,6 +939,12 @@ namespace Saturn {
 		
 		GeometryPass();
 		
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+		
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite 1st pass" );
+
+		SceneCompositePass();
+
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		//
@@ -812,6 +1029,10 @@ namespace Saturn {
 
 		m_RendererData.StaticMeshDescriptorSets[ uuid ]->Terminate();
 	}
+	
+	//////////////////////////////////////////////////////////////////////////
+	// RendererData
+	//////////////////////////////////////////////////////////////////////////
 
 	void RendererData::Terminate()
 	{

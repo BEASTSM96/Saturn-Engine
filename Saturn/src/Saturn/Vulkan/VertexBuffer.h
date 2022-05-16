@@ -49,12 +49,6 @@ namespace Saturn {
 		glm::vec2 Texcoord;
 	};
 
-	struct GridVertex : public BaseVertex
-	{
-		float Scale;
-		float Res;
-	};
-
 	struct MeshVertex : public BaseVertex
 	{
 		glm::vec3 Normal;
