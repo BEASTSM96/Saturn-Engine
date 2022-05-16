@@ -12,10 +12,10 @@ layout(set = 0, binding = 0) uniform Matrices
     mat4 Transform;
     mat4 ViewProjection;
 	
-	bool UseAlbedoTexture;
-	bool UseMetallicTexture;
-	bool UseRoughnessTexture;
-	bool UseNormalTexture;
+	float UseAlbedoTexture;
+	float UseMetallicTexture;
+	float UseRoughnessTexture;
+	float UseNormalTexture;
 
 	//
 
@@ -50,15 +50,19 @@ void main()
 #type fragment
 #version 450
 
+#define TRUE 1.0f
+#define FALSE 0.0f
+
+
 layout(set = 0, binding = 0) uniform Matrices 
 {
     mat4 Transform;
     mat4 ViewProjection;
 	
-	bool UseAlbedoTexture;
-	bool UseMetallicTexture;
-	bool UseRoughnessTexture;
-	bool UseNormalTexture;
+	float UseAlbedoTexture;
+	float UseMetallicTexture;
+	float UseRoughnessTexture;
+	float UseNormalTexture;
 
 	//
 
@@ -87,12 +91,12 @@ layout(location = 1) in VertexOutput
 
 void main() 
 {
-	if( u_Matrices.UseAlbedoTexture ) 
+	if( u_Matrices.UseAlbedoTexture != 0.5 ) 
 	{
 		FinalColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
 	}
 	else
 	{
-		FinalColor = vec4( 124.0, 139.0, 149.0, 1.0 );
+		FinalColor = u_Matrices.AlbedoColor;
 	}
 }

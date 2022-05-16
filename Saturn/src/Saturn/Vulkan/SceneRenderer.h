@@ -105,10 +105,10 @@ namespace Saturn {
 			glm::mat4 Transform;
 			glm::mat4 ViewProjection;
 
-			bool UseAlbedoTexture;
-			bool UseMetallicTexture;
-			bool UseRoughnessTexture;
-			bool UseNormalTexture;
+			float UseAlbedoTexture;
+			float UseMetallicTexture;
+			float UseRoughnessTexture;
+			float UseNormalTexture;
 
 			glm::vec4 AlbedoColor;
 			glm::vec4 MetallicColor;

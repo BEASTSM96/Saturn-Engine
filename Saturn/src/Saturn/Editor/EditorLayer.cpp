@@ -33,6 +33,8 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/ImGui/TitleBar.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace Saturn {
 
 	EditorLayer::EditorLayer() 
@@ -165,7 +167,7 @@ namespace Saturn {
 				
 				if( mesh )
 				{
-					Ref< Material > material = mesh->GetMaterial();
+					Ref< Material >& material = mesh->GetMaterial();
 
 					ImGui::Begin( "Materials" );
 
@@ -181,20 +183,20 @@ namespace Saturn {
 
 					ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
 					
-					bool UseAlbedoTexture = ( bool )material->Get< bool >( "u_Matrices.UseAlbedoTexture" );
-
-					ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture );
-
-					material->Set( "u_Matrices.UseAlbedoTexture", UseAlbedoTexture );
+					bool UseAlbedoTexture = material->Get< float >( "u_Matrices.UseAlbedoTexture" );
+			
+					if( ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture ) )
+						material->Set( "u_Matrices.UseAlbedoTexture", UseAlbedoTexture ? 1.0f : 0.0f );
 					
+					SAT_CORE_INFO( "u_Matrices.UseAlbedoTexture, {0}", UseAlbedoTexture );
+
 					if( !UseAlbedoTexture )
 					{
 						glm::vec4 color = material->Get<glm::vec4>( "u_Matrices.AlbedoColor" );
 
-						float AlbedoColor[ 4 ] = { color.x, color.y, color.z, color.w};
-						ImGui::ColorEdit4( "Albedo Color", AlbedoColor );
+						ImGui::ColorEdit4( "Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
 
-						material->Set< glm::vec4 >( "u_Matrices.AlbedoColor", glm::vec4( AlbedoColor[ 1 ], AlbedoColor[ 2 ], AlbedoColor[ 3 ], AlbedoColor[ 4 ] ) );
+						material->Set< glm::vec4 >( "u_Matrices.AlbedoColor", color );
 					}
 
 					ImGui::End();

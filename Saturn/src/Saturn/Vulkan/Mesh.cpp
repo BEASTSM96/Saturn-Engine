@@ -226,12 +226,12 @@ namespace Saturn {
 					Ref< Texture2D > AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
 
 					m_MeshMaterial->SetResource( "u_AlbedoTexture", AlbedoTexture );
-					m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", true );
+					m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", 1.0f );
 				}
 				else
-					m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", false );
+					m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", 0.0f );
 
-				m_MeshMaterial->Set( "u_Matrices.AlbedoColor", glm::vec4( 1.0f, 0.5f, 0.5f, 1.0f ) );
+				m_MeshMaterial->Set( "u_Matrices.AlbedoColor", glm::vec4( 124.0, 139.0, 149.0, 1.0 ) );
 			}
 
 			
