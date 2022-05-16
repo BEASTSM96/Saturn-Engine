@@ -264,7 +264,16 @@ namespace Saturn {
 					SAT_CORE_INFO( "   Size {0}", rMember.Size );
 					SAT_CORE_INFO( "   Type {0}", ShaderDataTypeToString( rMember.Type ) );
 
-					m_AvailableUniforms.push_back( { rDescriptor.Name + "." + rMember.Name, i, rMember.Type } );
+					// Check if the uniform already exists in list, if not add it.
+					auto result = std::find_if( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), [&]( const ShaderUniform& rUniform )
+					{
+						return rUniform.Name == rMember.Name;
+					} );
+					
+					if( result == m_AvailableUniforms.end() )
+					{
+						m_AvailableUniforms.push_back( { rDescriptor.Name + "." + rMember.Name, i, rMember.Type } );
+					}
 
 					i++;
 				}
@@ -272,8 +281,17 @@ namespace Saturn {
 			else
 			{
 				SAT_CORE_INFO( " {0} Is a not uniform block.", rDescriptor.Name );
+				
+				// Check if the uniform already exists in list, if not add it.
+				auto result = std::find_if( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), [&]( const ShaderUniform& rUniform )
+				{
+					return rUniform.Name == rDescriptor.Name;
+				} );
 
-				m_AvailableUniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ) } );
+				if( result == m_AvailableUniforms.end() )
+				{
+					m_AvailableUniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ) } );
+				}
 			}
 		}
 		

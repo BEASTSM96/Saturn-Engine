@@ -80,7 +80,7 @@ namespace Saturn {
 					
 					if ( pValue )
 					{				
-						Texture2D* Texture = ( Texture2D* )pValue;
+						Ref< Texture2D > Texture = *( Ref< Texture2D >* )pValue;
 						Texture->Terminate();
 					}
 				} break;
@@ -103,13 +103,19 @@ namespace Saturn {
 		template<typename Ty>
 		void Set( Ty& Value )
 		{
-			pValue = &Value;
+			pValue = ( uint8_t* ) &Value;
 		}
 
 		template<typename Ty>
 		Ty* As()
 		{
-			return ( Ty* )pValue;
+			return ( Ty* )( pValue );
+		}
+		
+		template<typename Ty>
+		Ty& Read()
+		{
+			return *( Ty* ) ( pValue );
 		}
 
 		ShaderUniform& operator=( const ShaderUniform& other )
@@ -132,7 +138,7 @@ namespace Saturn {
 
 		int UUID;
 
-		void* pValue = nullptr;
+		uint8_t* pValue = nullptr;
 	};
 
 }

@@ -210,6 +210,12 @@ namespace Saturn {
 		const SpvSourceMap& GetSpvCode() const { return m_SpvCode; }
 		SpvSourceMap& GetSpvCode() { return m_SpvCode; }
 
+		std::vector< ShaderUniform > GetUniforms() const { return m_Uniforms; }
+		std::vector< ShaderUniform >& GetUniforms() { return m_Uniforms; }
+		
+		std::vector< ShaderUniform > GetAvailableUniforms() const { return m_AvailableUniforms; }
+		std::vector< ShaderUniform >& GetAvailableUniforms() { return m_AvailableUniforms; }
+
 	private:
 
 		void ReadFile();

@@ -847,10 +847,10 @@ namespace Saturn {
 			u_Matrices.Transform = Cmd.Transform;
 			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 			
-			u_Matrices.UseAlbedoTexture = rMaterial->Get( "u_Matrices.UseAlbedoTexture" );
-			u_Matrices.UseNormalTexture = rMaterial->Get( "u_Matrices.UseNormalTexture" );
-			u_Matrices.UseMetallicTexture = rMaterial->Get( "u_Matrices.UseMetallicTexture" );
-			u_Matrices.UseRoughnessTexture = rMaterial->Get( "u_Matrices.UseRoughnessTexture" );
+			u_Matrices.UseAlbedoTexture = rMaterial->Get<bool>( "u_Matrices.UseAlbedoTexture" );
+			u_Matrices.UseNormalTexture = rMaterial->Get<bool>( "u_Matrices.UseNormalTexture" );
+			u_Matrices.UseMetallicTexture = rMaterial->Get<bool>( "u_Matrices.UseMetallicTexture" );
+			u_Matrices.UseRoughnessTexture = rMaterial->Get<bool>( "u_Matrices.UseRoughnessTexture" );
 			
 
 			m_RendererData.SM_MatricesUBO.UpdateData( &u_Matrices, sizeof( u_Matrices ) );
@@ -971,8 +971,8 @@ namespace Saturn {
 	Ref< DescriptorSet > SceneRenderer::CreateSMDescriptorSet( const Ref<Mesh>& rMesh )
 	{
 		Ref< Material > rMaterial = rMesh->GetMaterial();
-
-		Texture2D* AlbedoTexture = rMaterial->Get<Texture2D*>( "u_AlbedoTexture" );
+		
+		Ref< Texture2D > AlbedoTexture = rMaterial->GetResource( "u_AlbedoTexture" );
 
 		DescriptorSetSpecification Spec;
 		Spec.Layout = m_RendererData.SM_DescriptorSetLayout;

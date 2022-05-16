@@ -32,142 +32,45 @@
 #include "VulkanContext.h"
 
 namespace Saturn {
-	
-	MaterialSpec::MaterialSpec()
-	{
-	}
-	
-	MaterialSpec::MaterialSpec( std::string Name, UUID ID, std::vector< ShaderUniform* > Uniforms )
-		: m_Name( Name ), m_ID( ID )
-	{
-		for ( auto& Uniform : Uniforms )
-		{
-			if( Uniform->Type == ShaderDataType::Sampler2D )
-			{
-				m_Textures[ Uniform->Name ] = Uniform;
-			}
-			else
-				m_Uniforms.push_back( Uniform );
-		}
-	}
 
-	MaterialSpec::MaterialSpec( std::string Name, UUID ID ) : m_Name( Name ), m_ID( ID )
-	{
-
-	}
-	
-	MaterialSpec::MaterialSpec( const MaterialSpec& other ) : m_Name( other.m_Name ), m_ID( other.m_ID ), m_Uniforms( other.m_Uniforms )
-	{
-	}
-
-	MaterialSpec::MaterialSpec( MaterialSpec&& other ) noexcept : m_Name( std::move( other.m_Name ) ), m_ID( std::move( other.m_ID ) ), m_Uniforms( std::move( other.m_Uniforms ) )
-	{
-
-	}
-
-	MaterialSpec::~MaterialSpec()
-	{
-		Terminate();
-	}
-
-	void MaterialSpec::Terminate()
-	{
-		for ( auto& Uniform : m_Uniforms )
-		{
-			Uniform->Terminate();
-			delete Uniform;
-		}
-	}
-
-
-	bool MaterialSpec::operator==( MaterialSpec& rOther )
-	{
-		return ( m_Name == rOther.m_Name && m_ID == rOther.m_ID );
-	}
-
-	MaterialSpec& MaterialSpec::operator=( MaterialSpec&& other ) noexcept
-	{
-		m_ID = other.m_ID;
-		m_Name = other.m_Name;
-		m_Uniforms = other.m_Uniforms;
-
-		return *this;
-	}
-
-	MaterialSpec& MaterialSpec::operator=( const MaterialSpec& other )
-	{
-		m_ID = other.m_ID;
-		m_Name = other.m_Name;
-		m_Uniforms = other.m_Uniforms;
-		
-		return *this;
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-
-	Material::Material( Ref< Saturn::Shader> Shader, MaterialSpec* Spec )
+	Material::Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName )
 	{
 		m_Shader = Shader;
-		m_Spec = Spec;
+		m_Name = MateralName;
+
+		for ( auto& rUniform : m_Shader->GetUniforms() )
+		{
+			if( rUniform.Type >= ShaderDataType::Sampler2D )
+				continue;
+			else
+				m_Uniforms.push_back( rUniform );
+		}
 	}
 
 	Material::~Material()
 	{
-		delete m_Spec;
+		for ( auto& uniform : m_Uniforms )
+		{
+			uniform.Terminate();
+		}
 	}
 
 	void Material::Bind( Ref<Shader> Shader )
 	{
-		// Albedo Texture.
-		//VulkanContext::Get().CreateDescriptorSet( m_Spec->ID, static_cast< Texture2D* >( ( Texture2D* )m_Spec->Albedo->pValue ) );
 	}
 
 	void Material::Unbind()
 	{
-
 	}
 
-	void Material::SetAlbedo( const Texture2D& Albedo )
+	void Material::SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture )
 	{
-		for( auto& Uniform : m_Spec->GetUniforms() )
-		{
-			if( Uniform->Name == "u_AlbedoTexture" )
-			{
-				//Uniform->pValue = ( void* )Albedo;
-			}
-		}
+		m_Textures[ Name ] = Texture;
 	}
 
-	void Material::SetNormal( Ref<Texture2D> Normal )
+	Ref< Texture2D > Material::GetResource( const std::string& Name )
 	{
-		for( auto& Uniform : m_Spec->GetUniforms() )
-		{
-			if( Uniform->Name == "u_NormalTexture" )
-			{
-				Uniform->pValue = ( void* ) Normal.Pointer();
-			}
-		}
+		return m_Textures.at( Name );
 	}
 
-	void Material::SetMetallic( Ref<Texture2D> Metallic )
-	{
-		for( auto& Uniform : m_Spec->GetUniforms() )
-		{
-			if( Uniform->Name == "u_MetallicTexture" )
-			{
-				Uniform->pValue = ( void* ) Metallic.Pointer();
-			}
-		}
-	}
-
-	void Material::SetRoughness( Ref<Texture2D> Roughness )
-	{
-		for( auto& Uniform : m_Spec->GetUniforms() )
-		{
-			if( Uniform->Name == "u_RoughnessTexture" )
-			{
-				Uniform->pValue = ( void* ) Roughness.Pointer();
-			}
-		}
-	}
 }

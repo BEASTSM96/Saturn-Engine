@@ -205,20 +205,9 @@ namespace Saturn {
 			m_MeshShader->UseUniform( "u_Matrices.UseAlbedoTexture" );
 			m_MeshShader->UseUniform( "u_Matrices.AlbedoColor" );
 			
-			std::string MatName = std::string( name.C_Str() );
-
-			std::vector< ShaderUniform* > Uniforms;
+			std::string MaterialName = std::string( name.C_Str() );
 			
-			Uniforms.push_back( &m_MeshShader->FindUniform( "u_AlbedoTexture" ) );
-			Uniforms.push_back( &m_MeshShader->FindUniform( "u_NormalTexture" ) );
-			Uniforms.push_back( &m_MeshShader->FindUniform( "u_MetallicTexture" ) );
-			Uniforms.push_back( &m_MeshShader->FindUniform( "u_RoughnessTexture" ) );
-			Uniforms.push_back( &m_MeshShader->FindUniform( "u_Matrices.UseAlbedoTexture" ) );
-			Uniforms.push_back( &m_MeshShader->FindUniform( "u_Matrices.AlbedoColor" ) );
-			
-			MaterialSpec* pSpec = new MaterialSpec( MatName, uuid, Uniforms );
-
-			m_MeshMaterial = Ref<Material>::Create( m_MeshShader, pSpec );
+			m_MeshMaterial = Ref<Material>::Create( m_MeshShader, MaterialName );
 
 			// Albedo Texture
 			{
@@ -236,7 +225,7 @@ namespace Saturn {
 
 					Ref< Texture2D > AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
 
-					m_MeshMaterial->Set( "u_AlbedoTexture", AlbedoTexture );
+					m_MeshMaterial->SetResource( "u_AlbedoTexture", AlbedoTexture );
 					m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", true );
 				}
 				else

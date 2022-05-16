@@ -177,13 +177,11 @@ namespace Saturn {
 					
 					ImGui::Separator();
 					
-					Ref< Texture2D > texture = material->GetResource< Texture2D >( "u_AlbedoTexture" );
-
-					//VkDescriptorSet AlbedoTexture = material->Get<Texture2D*>( "u_AlbedoTexture" )->GetDescriptorSet() == nullptr ? m_CheckerboardTexture->GetDescriptorSet() : material->Get<Texture2D*>( "u_AlbedoTexture" )->GetDescriptorSet();
+					Ref< Texture2D > texture = material->GetResource( "u_AlbedoTexture" );
 
 					ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
 					
-					bool UseAlbedoTexture = ( bool )material->Get( "u_Matrices.UseAlbedoTexture" );
+					bool UseAlbedoTexture = ( bool )material->Get< bool >( "u_Matrices.UseAlbedoTexture" );
 
 					ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture );
 
