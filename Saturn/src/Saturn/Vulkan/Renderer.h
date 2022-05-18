@@ -47,10 +47,10 @@ namespace Saturn {
 
 	public:
 		
-		VkImage Image;
-		VkImageView ImageView;
-		VkSampler Sampler;
-		VkDeviceMemory Memory;
+		VkImage Image = nullptr;
+		VkImageView ImageView = nullptr;
+		VkSampler Sampler = nullptr;
+		VkDeviceMemory Memory = nullptr;
 	};
 
 	class Renderer
@@ -74,6 +74,8 @@ namespace Saturn {
 		// Static mesh
 		void RenderStaticMesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, UUID uuid, Ref< Mesh > mesh, const glm::mat4 transform, UniformBuffer& rUBO );
 		
+		void RenderSubmesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform, UniformBuffer& rUBO );
+
 		// Allocate command buffer.
 		VkCommandBuffer AllocateCommandBuffer( VkCommandPool CommandPool );
 
@@ -98,6 +100,8 @@ namespace Saturn {
 		std::pair< float, float > GetFrameTimings() { return std::make_pair( m_BeginFrameTime, m_EndFrameTime ); }
 		float GetQueuePresentTime() { return m_QueuePresentTime; }
 
+		void SubmitTerminateResource( std::function<void()>&& rrFunction );
+
 	public:
 
 		VkCommandBuffer ActiveCommandBuffer() { return m_CommandBuffer; };
@@ -114,6 +118,8 @@ namespace Saturn {
 		uint32_t m_FrameCount = 0;
 
 		std::vector<VkFence> m_FlightFences;
+		
+		std::vector< std::function<void()> > m_TerminateResourceFuncs;
 		
 		VkSemaphore m_AcquireSemaphore;
 		VkSemaphore m_SubmitSemaphore;

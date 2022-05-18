@@ -1751,3 +1751,25 @@ ImTextureID ImGui_ImplVulkan_AddTexture( VkSampler sampler, VkImageView image_vi
 
 	return ( ImTextureID )descriptor_set;
 }
+
+void ImGui_ImplVulkan_RemoveTexture( VkDescriptorSet descriptor_set )
+{
+	VkResult err;
+
+	ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+	ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+
+    //err = vkFreeDescriptorSets( v->Device, v->DescriptorPool, 1, &descriptor_set );
+    //check_vk_result( err );
+}
+
+void ImGui_ImplVulkan_RemoveTexture( ImTextureID texture_id )
+{
+	VkResult err;
+
+	ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+	ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+
+	err = vkFreeDescriptorSets( v->Device, v->DescriptorPool, 1, ( VkDescriptorSet* )&texture_id );
+	check_vk_result( err );
+}

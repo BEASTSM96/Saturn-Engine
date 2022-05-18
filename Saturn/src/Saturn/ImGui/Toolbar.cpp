@@ -38,10 +38,6 @@ namespace Saturn {
 		m_pPlayImage  = new Texture2D( "assets/textures/PlayButton.png", AddressingMode::Repeat );
 		m_pPauseImage = new Texture2D( "assets/textures/PauseButton.png", AddressingMode::Repeat );
 		m_pStopImage  = new Texture2D( "assets/textures/StopButton.png", AddressingMode::Repeat );
-
-		m_pPlayDescSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_pPlayImage->GetSampler(), m_pPlayImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-		m_pPauseDescSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_pPauseImage->GetSampler(), m_pPauseImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-		m_pStopDescSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_pStopImage->GetSampler(), m_pStopImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
 
 	Toolbar::~Toolbar()
@@ -58,7 +54,7 @@ namespace Saturn {
 		// Center the play button.
 		ImGui::SetCursorPosX( ImGui::GetWindowWidth() / 2 - m_pPlayImage->Width() / 2 );
 
-		VkDescriptorSet ImageSet = WantsToStartRuntime ? m_pStopDescSet : m_pPlayDescSet;
+		VkDescriptorSet ImageSet = WantsToStartRuntime ? m_pStopImage->GetDescriptorSet() : m_pPlayImage->GetDescriptorSet();
 
 		if( ImGui::ImageButton( ImageSet, ImVec2( 32, 32 ) ) )
 		{

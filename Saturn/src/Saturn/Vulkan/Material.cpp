@@ -53,6 +53,11 @@ namespace Saturn {
 		{
 			uniform.Terminate();
 		}
+		
+		for ( auto& [ key, texture ] : m_Textures )
+		{
+			texture->Terminate();
+		}
 	}
 
 	void Material::Bind( Ref<Shader> Shader )
@@ -70,7 +75,10 @@ namespace Saturn {
 
 	Ref< Texture2D > Material::GetResource( const std::string& Name )
 	{
-		return m_Textures.at( Name );
+		if( m_Textures.size() > 0 )
+			return m_Textures.at( Name );
+		else
+			return nullptr;
 	}
 
 }

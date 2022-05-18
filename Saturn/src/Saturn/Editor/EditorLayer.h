@@ -43,7 +43,7 @@ namespace Saturn {
 	{
 	public:
 		EditorLayer();
-		~EditorLayer() = default;
+		~EditorLayer();
 
 		void OnUpdate( Timestep time ) override;
 

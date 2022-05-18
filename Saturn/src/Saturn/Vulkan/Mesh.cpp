@@ -208,11 +208,22 @@ namespace Saturn {
 			std::string MaterialName = std::string( name.C_Str() );
 			
 			m_MeshMaterial = Ref<Material>::Create( m_MeshShader, MaterialName );
+			
+			uint32_t* pData = new uint32_t[ 64 * 64 ];
+			
+			for( uint32_t i = 0; i < 64 * 64; i++ )
+			{
+				pData[ i ] |= 0xffff00ff;
+			}
+
+			Ref< Texture2D > PinkTexture = Ref< Texture2D >::Create( 64, 64, VK_FORMAT_R8G8B8A8_SRGB, pData );
 
 			// Albedo Texture
 			{
 				aiString AlbedoTexturePath;
-				if( material->GetTexture( aiTextureType_DIFFUSE, 0, &AlbedoTexturePath ) == AI_SUCCESS )
+				bool HasAlbedoTexture = material->GetTexture( aiTextureType_DIFFUSE, 0, &AlbedoTexturePath ) == AI_SUCCESS;
+
+				if( HasAlbedoTexture )
 				{
 					std::filesystem::path AlbedoPath = filename;
 					auto pp = AlbedoPath.parent_path();
@@ -225,16 +236,28 @@ namespace Saturn {
 
 					Ref< Texture2D > AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
 
-					m_MeshMaterial->SetResource( "u_AlbedoTexture", AlbedoTexture );
-					m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", 1.0f );
+					if( AlbedoTexture )
+					{
+						m_MeshMaterial->SetResource( "u_AlbedoTexture", AlbedoTexture );
+						m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", 1.0f );
+					}
+					else
+					{
+						m_MeshMaterial->SetResource( "u_AlbedoTexture", PinkTexture );
+						m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", 0.0f );
+						m_MeshMaterial->Set( "u_Matrices.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
+					}
 				}
 				else
+				{
+					m_MeshMaterial->SetResource( "u_AlbedoTexture", PinkTexture );
 					m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", 0.0f );
-
-				m_MeshMaterial->Set( "u_Matrices.AlbedoColor", glm::vec4( 124.0, 139.0, 149.0, 1.0 ) );
+					m_MeshMaterial->Set( "u_Matrices.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
+					
+				}
 			}
-
-			
+		
+			free( pData );
 		}
 	}
 

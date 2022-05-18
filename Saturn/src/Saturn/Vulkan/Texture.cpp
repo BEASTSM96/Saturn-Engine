@@ -36,6 +36,12 @@
 
 namespace Saturn {
 
+	Texture::Texture( uint32_t width, uint32_t height, VkFormat Format, const void* pData )
+		: m_Width( width ), m_Height( height )
+	{
+		m_pData = ( void* )pData;
+	}
+
 	void Texture::Terminate()
 	{
 		if ( m_Image )
@@ -244,6 +250,9 @@ namespace Saturn {
 	void Texture2D::Terminate()
 	{
 		Texture::Terminate();
+
+		if( m_DescriptorSet )
+			ImGui_ImplVulkan_RemoveTexture( m_DescriptorSet );
 	}
 
 	// Load and create a texture 2D for a file path.
@@ -280,6 +289,8 @@ namespace Saturn {
 			return;
 		}
 
+		m_pData = pTextureData;
+		
 		m_Width = Width;
 		m_Height = Height;
 
@@ -287,7 +298,7 @@ namespace Saturn {
 
 		// Staging Buffer.
 		Buffer StagingBuffer;
-		StagingBuffer.Create( pTextureData, ImageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		StagingBuffer.Create( m_pData, ImageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 
 		stbi_image_free( pTextureData );
 
@@ -359,6 +370,101 @@ namespace Saturn {
 		SamplerCreateInfo.maxLod = 0.0f;
 
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
+
+		m_DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_Sampler, m_ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+	}
+
+	void Texture2D::SetData( const void* pData )
+	{
+		VkDeviceSize ImageSize = m_Width * m_Height * 4;
+
+		// Staging Buffer.
+		Buffer StagingBuffer;
+		StagingBuffer.Create( m_pData, ImageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+
+		// Create the image.
+		if( m_ImageMemory )
+			vkFreeMemory( VulkanContext::Get().GetDevice(), m_ImageMemory, nullptr );
+
+		if( m_Image )
+			vkDestroyImage( VulkanContext::Get().GetDevice(), m_Image, nullptr );
+
+		CreateImage( m_Width, m_Height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Image, m_ImageMemory );
+
+		TransitionImageLayout( VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
+
+		CopyBufferToImage( StagingBuffer );
+
+		TransitionImageLayout( VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+
+		// Create image views
+		if( m_ImageView )
+			vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageView, nullptr );
+
+		m_ImageView = CreateImageView( m_Image, VK_FORMAT_R8G8B8A8_SRGB );
+
+		// Create sampler
+		VkSamplerCreateInfo SamplerCreateInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+		SamplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+		SamplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		
+		switch( m_AddressingMode )
+		{
+			case AddressingMode::ClampToBorder:
+			{
+				SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+				SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+				SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+			} break;
+
+			case AddressingMode::Repeat:
+			{
+				SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+				SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+				SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			} break;
+
+			case AddressingMode::MirroredRepeat:
+			{
+				SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+				SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+				SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+			} break;
+
+			case AddressingMode::ClampToEdge:
+			{
+				SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+				SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+				SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			} break;
+		}
+
+		SamplerCreateInfo.anisotropyEnable = VK_TRUE;
+
+		// We don't know the max anisotropy level, so we'll need to get it from the properties of the physical device.
+		// We do this as this is the best way to get the max anisotropy level as it can be different on other devices.
+		VkPhysicalDeviceProperties Properties = {};
+		vkGetPhysicalDeviceProperties( VulkanContext::Get().GetPhysicalDevice(), &Properties );
+
+		SamplerCreateInfo.maxAnisotropy = Properties.limits.maxSamplerAnisotropy;
+
+		SamplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		SamplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+		SamplerCreateInfo.compareEnable = VK_FALSE;
+		SamplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		SamplerCreateInfo.mipLodBias = 0.0f;
+		SamplerCreateInfo.minLod = 0.0f;
+		SamplerCreateInfo.maxLod = 0.0f;
+		
+		if( m_Sampler )
+			vkDestroySampler( VulkanContext::Get().GetDevice(), m_Sampler, nullptr );
+
+		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
+
+		//if( m_DescriptorSet )
+		//	vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), VulkanContext::Get().GetDescriptorPool(), 1, &m_DescriptorSet );
 
 		m_DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_Sampler, m_ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}

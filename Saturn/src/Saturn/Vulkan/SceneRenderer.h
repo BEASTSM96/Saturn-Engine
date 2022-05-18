@@ -32,6 +32,7 @@
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Scene/Entity.h"
 #include "Mesh.h"
+#include "Saturn/Core/UUID.h"
 
 #include "Renderer.h"
 #include "DescriptorSet.h"
@@ -51,6 +52,41 @@ namespace Saturn {
 		glm::mat4 Transform;
 	};
 	
+	struct MeshDescriptorSet
+	{
+		bool operator ==( const MeshDescriptorSet& rOther )
+		{
+			return ( rOther.Owner == Owner );
+		}
+
+		void Terminate() 
+		{
+			for( Submesh& rSubmesh : Mesh->Submeshes() )
+			{
+				DescriptorSets[ rSubmesh ]->Terminate();
+			}
+
+			//DescriptorSets.clear();
+		}
+		
+		void BindAll( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout )
+		{
+			for( Submesh& rSubmesh : Mesh->Submeshes() )
+			{
+				DescriptorSets[ rSubmesh ]->Bind( CommandBuffer, PipelineLayout );
+			}
+		}
+
+		void Bind( Submesh& rSubmesh, VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout )
+		{
+			DescriptorSets[ rSubmesh ]->Bind( CommandBuffer, PipelineLayout );
+		}
+
+		UUID Owner;
+		Ref< Saturn::Mesh > Mesh;
+		std::unordered_map< Submesh, Ref< DescriptorSet > > DescriptorSets;
+	};
+
 	struct RendererData
 	{
 		void Terminate();
@@ -138,7 +174,7 @@ namespace Saturn {
 		
 		DescriptorSetLayout SM_DescriptorSetLayout;
 
-		std::unordered_map< UUID, Ref< DescriptorSet > > StaticMeshDescriptorSets;
+		std::unordered_map< UUID, MeshDescriptorSet > StaticMeshDescriptorSets;
 		
 		// Dynamic mesh geometry.
 		// For animated meshes.
@@ -232,7 +268,7 @@ namespace Saturn {
 		//		 Only adds a descriptor set for a static mesh if it doesn't exist.
 		void AddDescriptorSet( const DescriptorSet& rDescriptorSet );
 
-		Ref< DescriptorSet > CreateSMDescriptorSet( const Ref< Mesh >& rMesh );
+		MeshDescriptorSet CreateSMDescriptorSet( UUID& rUUID, const Ref< Mesh >& rMesh );
 		void DestroySMDescriptorSet( UUID uuid );
 
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
@@ -280,4 +316,16 @@ namespace Saturn {
 		friend class VulkanContext;
 	};
 
+}
+
+namespace std {
+	
+	template<>
+	struct hash< Saturn::MeshDescriptorSet >
+	{
+		size_t operator()( const Saturn::MeshDescriptorSet& rOther ) const
+		{
+			return rOther.Owner;
+		}
+	};
 }

@@ -40,7 +40,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Saturn/Vulkan/VulkanContext.h"
-#include "Saturn/Vulkan/ImGuiVulkan.h"
 
 namespace Saturn {
 

@@ -30,7 +30,6 @@
 #include "Renderer.h"
 
 #include "VulkanDebug.h"
-#include "ImGuiVulkan.h"
 
 namespace Saturn {
 
@@ -43,7 +42,7 @@ namespace Saturn {
 
 	Renderer::~Renderer()
 	{
-		Terminate();
+		//Terminate();
 	}
 
 	void Renderer::Init()
@@ -66,11 +65,35 @@ namespace Saturn {
 		SetDebugUtilsObjectName( "Acquire Semaphore", ( uint64_t ) m_AcquireSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
 		SetDebugUtilsObjectName( "Submit Semaphore", ( uint64_t ) m_SubmitSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
 	}
-
+	
 	void Renderer::Terminate()
 	{
-		vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_AcquireSemaphore, nullptr );
-		vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_SubmitSemaphore, nullptr );
+		// Terminate Semaphores.
+		SubmitTerminateResource( [AcquireSemaphore = m_AcquireSemaphore, SubmitSemaphore = m_SubmitSemaphore]()
+		{
+			if( AcquireSemaphore )
+				vkDestroySemaphore( VulkanContext::Get().GetDevice(), AcquireSemaphore, nullptr );
+			
+			if( SubmitSemaphore )
+				vkDestroySemaphore( VulkanContext::Get().GetDevice(), SubmitSemaphore, nullptr );
+		} );
+
+		m_AcquireSemaphore = nullptr;
+		m_SubmitSemaphore = nullptr;
+
+		if( m_FlightFences.size() )
+		{
+			for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+			{
+				SubmitTerminateResource( [ FlightFences = m_FlightFences, Index = i ]()
+				{
+					vkDestroyFence( VulkanContext::Get().GetDevice(), FlightFences.at( Index ), nullptr );
+				} );
+			}
+		}
+
+		for ( auto& rFunc : m_TerminateResourceFuncs )
+			rFunc();
 	}
 
 	void Renderer::SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline )
@@ -128,13 +151,42 @@ namespace Saturn {
 		mesh->GetVertexBuffer()->Bind( CommandBuffer );
 		mesh->GetIndexBuffer()->Bind( CommandBuffer );
 
+		// Bind UBO
+		rUBO.Map( CommandBuffer );
+		
+		// Bind material.
 		mesh->GetMaterial()->Bind( nullptr );
+
+		/*
+		for ( Submesh& rSubmesh : mesh->Submeshes() )
+		{
+			auto mat = mesh->GetMaterial();
+
+			// Bind material.
+			
+			// Draw.
+			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, 0, 0 );
+		}
+		*/
+
+		mesh->GetIndexBuffer()->Draw( CommandBuffer );
+	}
+
+	void Renderer::RenderSubmesh(
+		VkCommandBuffer CommandBuffer, 
+		Saturn::Pipeline Pipeline, 
+		Ref< Mesh > mesh,
+		Submesh& rSubmsh, const glm::mat4 transform, UniformBuffer& rUBO )
+	{
 
 		// Bind UBO
 		rUBO.Map( CommandBuffer );
 
+		// Bind material.
+		mesh->GetMaterial()->Bind( nullptr );
+
 		// Draw.
-		mesh->GetIndexBuffer()->Draw( CommandBuffer );
+		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, 0, 0 );
 	}
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )
@@ -236,6 +288,11 @@ namespace Saturn {
 		m_EndFrameTime = m_EndFrameTimer.ElapsedMilliseconds() - m_QueuePresentTime;
 	}
 
+	void Renderer::SubmitTerminateResource( std::function<void()>&& rrFunction )
+	{
+		m_TerminateResourceFuncs.push_back( rrFunction );
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// Helpers
 	//////////////////////////////////////////////////////////////////////////
@@ -330,6 +387,12 @@ namespace Saturn {
 		{
 			vkDestroyImageView( VulkanContext::Get().GetDevice(), ImageView, nullptr );
 			ImageView = nullptr;
+		}
+
+		if( Sampler )
+		{
+			vkDestroySampler( VulkanContext::Get().GetDevice(), Sampler, nullptr );
+			Sampler = nullptr;
 		}
 	}
 

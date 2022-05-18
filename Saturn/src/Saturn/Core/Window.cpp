@@ -56,8 +56,6 @@
 #include "backends/imgui_impl_vulkan.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
-#include "Saturn/Vulkan/ImGuiVulkan.h"
-
 #include <vulkan.h>
 #include <Saturn/Vulkan/Base.h>
 

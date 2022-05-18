@@ -119,20 +119,20 @@ namespace Saturn {
 
 		bool CheckValidationLayerSupport();
 
-		VkInstance m_Instance;
-		VkSurfaceKHR m_Surface;
-		VkPhysicalDevice m_PhysicalDevice;
-		VkDevice m_LogicalDevice;
+		VkInstance m_Instance = nullptr;
+		VkSurfaceKHR m_Surface = nullptr;
+		VkPhysicalDevice m_PhysicalDevice = nullptr;
+		VkDevice m_LogicalDevice = nullptr;
 		Swapchain m_SwapChain ={};
-		VkDebugUtilsMessengerEXT m_DebugMessenger;
-		VkExtent2D m_SwapChainExtent;
-		VkCommandPool m_CommandPool;
-		VkCommandBuffer m_CommandBuffer;
+		VkDebugUtilsMessengerEXT m_DebugMessenger = nullptr;
+		VkExtent2D m_SwapChainExtent = {};
+		VkCommandPool m_CommandPool = nullptr;
+		VkCommandBuffer m_CommandBuffer = nullptr;
 	
 		// Depth resources.
-		VkImage m_DepthImage;
-		VkDeviceMemory m_DepthImageMemory;
-		VkImageView m_DepthImageView;
+		VkImage m_DepthImage = nullptr;
+		VkDeviceMemory m_DepthImageMemory = nullptr;
+		VkImageView m_DepthImageView = nullptr;
 
 		VulkanDebugMessenger* m_pDebugMessenger;
 
@@ -147,6 +147,8 @@ namespace Saturn {
 		// Default.
 		Pass m_DefaultPass;
 
+		bool m_Terminated = false;
+
 		std::vector<VkImage>       m_SwapChainImages;
 		std::vector<VkImageView>   m_SwapChainImageViews;
 		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
@@ -160,5 +162,6 @@ namespace Saturn {
 	private:
 		friend class Swapchain;
 		friend class VulkanDebug;
+		friend class Application;
 	};
 }

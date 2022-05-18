@@ -101,6 +101,8 @@ namespace Saturn {
 
 		delete m_ImGuiLayer;
 		delete m_EditorLayer;
+
+		VulkanContext::Get().Terminate();
 	}
 
 	void Application::Close()

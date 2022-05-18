@@ -147,6 +147,8 @@ namespace Saturn {
 	{
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
+
+		vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_DescriptorPool, nullptr );
 	}
 
 	void ImGuiLayer::Begin()

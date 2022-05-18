@@ -77,6 +77,11 @@ namespace Saturn {
 		AABB BoundingBox;
 
 		std::string NodeName, MeshName;
+	public:
+		bool operator==( const Submesh& other ) const
+		{
+			return BaseVertex == other.BaseVertex && BaseIndex == other.BaseIndex && MaterialIndex == other.MaterialIndex && IndexCount == other.IndexCount && VertexCount == other.VertexCount && NodeName == other.NodeName && MeshName == other.MeshName;
+		}
 	};
 
 	class Mesh
@@ -148,4 +153,17 @@ namespace Saturn {
 
 		const aiScene* m_Scene;
 	};
+}
+
+namespace std {
+	
+	template<>
+	struct hash< Saturn::Submesh >
+	{
+		size_t operator()( const Saturn::Submesh& rOther ) const
+		{
+			return hash< std::string >()( rOther.NodeName );
+		}
+	};
+
 }

@@ -57,6 +57,14 @@ namespace Saturn {
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.png", AddressingMode::ClampToEdge );
 	}
 
+	EditorLayer::~EditorLayer()
+	{
+		delete m_TitleBar;
+		delete m_SceneHierarchyPanel;
+		delete m_Viewport;
+		delete m_Toolbar;
+	}
+
 	void EditorLayer::OnUpdate( Timestep time )
 	{
 		if( m_Viewport->m_SendCameraEvents )
@@ -179,12 +187,14 @@ namespace Saturn {
 					
 					ImGui::Separator();
 					
-					Ref< Texture2D > texture = material->GetResource( "u_AlbedoTexture" );
-
-					ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-					
 					bool UseAlbedoTexture = material->Get< float >( "u_Matrices.UseAlbedoTexture" );
-			
+					
+					if( UseAlbedoTexture )
+					{
+						Ref< Texture2D > texture = material->GetResource( "u_AlbedoTexture" );
+						ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+										}
+
 					if( ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture ) )
 						material->Set( "u_Matrices.UseAlbedoTexture", UseAlbedoTexture ? 1.0f : 0.0f );
 					

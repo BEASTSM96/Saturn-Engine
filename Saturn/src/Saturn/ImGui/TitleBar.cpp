@@ -40,8 +40,6 @@ namespace Saturn {
 	TitleBar::TitleBar()
 	{
 		m_pLogo = new Texture2D( "assets/Icons/SaturnLogov1.png", AddressingMode::Repeat );
-
-		m_LogoDescSet = ( VkDescriptorSet )ImGui_ImplVulkan_AddTexture( m_pLogo->GetSampler(), m_pLogo->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
 
 	TitleBar::~TitleBar()

@@ -67,6 +67,8 @@ namespace Saturn {
 	{
 	public:
 		Texture() {}
+		Texture( uint32_t width, uint32_t height, VkFormat Format, const void* pData );
+		
 		Texture( std::filesystem::path Path, AddressingMode Mode ) : m_Path( Path ), m_AddressingMode( Mode ) {}
 		~Texture() { Terminate(); }
 		
@@ -89,6 +91,7 @@ namespace Saturn {
 	public:
 
 		virtual void CreateTextureImage() = 0;
+		virtual void SetData( const void* pData ) = 0;
 
 	public:
 
@@ -101,6 +104,8 @@ namespace Saturn {
 		VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
 
 		bool m_HDR = false;
+		
+		void* m_pData = nullptr;
 
 		AddressingMode m_AddressingMode = AddressingMode::Repeat;
 
@@ -112,7 +117,13 @@ namespace Saturn {
 	{
 	public:
 		Texture2D() : Texture() {}
-		Texture2D( std::filesystem::path Path, AddressingMode Mode ) : Texture( Path, Mode ) { CreateTextureImage(); }
+
+		Texture2D( std::filesystem::path Path, AddressingMode Mode ) 
+			: Texture( Path, Mode ) { CreateTextureImage(); }
+
+		Texture2D( uint32_t width, uint32_t height, VkFormat Format, const void* pData ) 
+			: Texture( width, height, Format, pData ) { SetData( pData ); }
+		
 		~Texture2D() { Terminate(); }
 		
 		void Terminate() override;
@@ -120,6 +131,7 @@ namespace Saturn {
 	private:
 
 		void CreateTextureImage() override;
+		void SetData( const void* pData ) override;
 	};
 
 	class CubeMapTexture : public Texture

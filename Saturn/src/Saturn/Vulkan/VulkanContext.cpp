@@ -12,7 +12,6 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <backends/imgui_impl_glfw.h>
 
-#include "ImGuiVulkan.h"
 #include "SceneRenderer.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
@@ -98,11 +97,18 @@ namespace Saturn {
 	}
 
 	void VulkanContext::Terminate()
-	{
+	{		
+		if( m_Terminated )
+			return;
+
 		delete m_pImGuiVulkan;
 
+		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
+		
 		Renderer::Get().Terminate();
 		SceneRenderer::Get().Terminate();
+
+		m_DefaultPass.Terminate();
 
 		m_SwapChain.Terminate();
 		
@@ -116,15 +122,15 @@ namespace Saturn {
 			vkDestroyFramebuffer( m_LogicalDevice, rFramebuffer, nullptr );
 		}
 
-		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
-
-		vkDestroyDevice( m_LogicalDevice, nullptr );
-
 		delete m_pDebugMessenger;
 		m_pDebugMessenger = nullptr;
 
+		vkDestroyDevice( m_LogicalDevice, nullptr );
+
 		vkDestroySurfaceKHR( m_Instance, m_Surface, nullptr );
 		vkDestroyInstance( m_Instance, nullptr );
+
+		m_Terminated = true;
 	}
 
 	void VulkanContext::CreateInstance()
@@ -466,6 +472,8 @@ namespace Saturn {
 		PoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		
 		VK_CHECK( vkCreateCommandPool( m_LogicalDevice, &PoolInfo, nullptr, &m_CommandPool ) );
+
+		SetDebugUtilsObjectName( "Context Command Pool", (uint64_t)m_CommandPool, VK_OBJECT_TYPE_COMMAND_POOL );
 	}
 
 	void VulkanContext::CreateDepthResources()

@@ -38,7 +38,7 @@ namespace Saturn {
 
 	struct ShaderUniform
 	{
-		ShaderUniform() : pValue( nullptr ) { memset( pValue, 0, Size ); }
+		ShaderUniform() { memset( pValue, 0, Size ); }
 		
 		~ShaderUniform()
 		{
@@ -60,9 +60,6 @@ namespace Saturn {
 
 		void Terminate()
 		{
-			//delete[] pValue;
-			//pValue = nullptr;
-
 			switch( Type )
 			{
 				case Saturn::ShaderDataType::None:
@@ -83,20 +80,7 @@ namespace Saturn {
 						pValue = 0;
 					}
 				} break;
-					
-				case Saturn::ShaderDataType::SamplerCube:
-				case Saturn::ShaderDataType::Sampler2D:
-				{
-					// Ty = Texture2D
-					
-					if( *( Ref< Texture2D >* )pValue )
-					{
-						Ref< Texture2D > Texture = *( Ref< Texture2D >* )pValue;
-						if( Texture )
-							Texture->Terminate();
-					}
-				} break;
-
+				
 				default:
 					break;
 			}

@@ -131,8 +131,6 @@ namespace Saturn {
 
 	void DescriptorSet::Allocate()
 	{
-		SAT_CORE_WARN( "Allocating descriptor set..." );
-
 		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 		AllocateInfo.descriptorPool = *m_Specification.Pool.Pointer();
 		AllocateInfo.descriptorSetCount = 1;
