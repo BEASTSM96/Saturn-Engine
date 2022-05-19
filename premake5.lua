@@ -32,6 +32,7 @@ IncludeDir["shaderc"] = "Saturn/vendor/shaderc/libshaderc/include"
 IncludeDir["glslc"] = "Saturn/vendor/shaderc/glslc/src"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/src/"
 IncludeDir["SPIRV_Reflect"] = "Saturn/vendor/SPIRV-Reflect/src/"
+IncludeDir["vma"] = "Saturn/vendor/vma/include/"
 
 group "Dependencies"
 	include "Saturn/vendor/GLFW"
@@ -97,7 +98,8 @@ project "Saturn"
 		"%{IncludeDir.glslc}",
 		"%{IncludeDir.shaderc}",
 		"%{IncludeDir.SPIRV_Cross}",
-		"%{IncludeDir.SPIRV_Reflect}"
+		"%{IncludeDir.SPIRV_Reflect}",
+		"%{IncludeDir.vma}"
 	}
 
 	links 
