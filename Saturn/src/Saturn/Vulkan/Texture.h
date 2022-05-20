@@ -76,7 +76,7 @@ namespace Saturn {
 
 		void TransitionImageLayout( VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
 
-		void CopyBufferToImage( Buffer& rBuffer );
+		void CopyBufferToImage( VkBuffer Buffer );
 
 	public:
 		

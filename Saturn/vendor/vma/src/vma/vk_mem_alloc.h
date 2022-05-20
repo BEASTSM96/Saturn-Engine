@@ -127,7 +127,7 @@ extern "C" {
 #endif
 
 #ifndef VULKAN_H_
-    #include <vulkan/vulkan.h>
+    #include <vulkan.h>
 #endif
 
 // Define this macro to declare maximum supported Vulkan version in format AAABBBCCC,

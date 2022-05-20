@@ -103,7 +103,7 @@ namespace Saturn {
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 	}
 
-	void Texture::CopyBufferToImage( Buffer& rBuffer )
+	void Texture::CopyBufferToImage( VkBuffer Buffer )
 	{
 		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
 
@@ -120,7 +120,7 @@ namespace Saturn {
 		Region.imageOffset = { 0, 0, 0 };
 		Region.imageExtent ={ ( uint32_t )m_Width, ( uint32_t )m_Height, 1 };
 
-		vkCmdCopyBufferToImage( CommandBuffer, rBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &Region );
+		vkCmdCopyBufferToImage( CommandBuffer, Buffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &Region );
 
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 	}
@@ -295,10 +295,24 @@ namespace Saturn {
 		m_Height = Height;
 
 		VkDeviceSize ImageSize = Width * Height * 4;
+		
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		// Staging Buffer.
-		Buffer StagingBuffer;
-		StagingBuffer.Create( m_pData, ImageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		VkBuffer StagingBuffer;
+		
+		VkBufferCreateInfo BufferCreateInfo ={ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		BufferCreateInfo.size = ImageSize;
+		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		auto rBufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, &StagingBuffer );
+		
+		void* pDstData = pAllocator->MapMemory< void >( rBufferAlloc );
+		
+		memcpy( pDstData, pTextureData, ImageSize );
+		
+		pAllocator->UnmapMemory( rBufferAlloc );
 
 		stbi_image_free( pTextureData );
 
@@ -372,6 +386,8 @@ namespace Saturn {
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
 
 		m_DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_Sampler, m_ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+
+		pAllocator->DestroyBuffer( rBufferAlloc, StagingBuffer );
 	}
 
 	void Texture2D::SetData( const void* pData )

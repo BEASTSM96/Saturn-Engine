@@ -1,9 +1,38 @@
+/********************************************************************************************
+*                                                                                           *
+*                                                                                           *
+*                                                                                           *
+* MIT License                                                                               *
+*                                                                                           *
+* Copyright (c) 2020 - 2022 BEAST                                                           *
+*                                                                                           *
+* Permission is hereby granted, free of charge, to any person obtaining a copy              *
+* of this software and associated documentation files (the "Software"), to deal             *
+* in the Software without restriction, including without limitation the rights              *
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                 *
+* copies of the Software, and to permit persons to whom the Software is                     *
+* furnished to do so, subject to the following conditions:                                  *
+*                                                                                           *
+* The above copyright notice and this permission notice shall be included in all            *
+* copies or substantial portions of the Software.                                           *
+*                                                                                           *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                *
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                  *
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE               *
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                    *
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,             *
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE             *
+* SOFTWARE.                                                                                 *
+*********************************************************************************************
+*/
+
 #include "sppch.h"
 #include "VulkanContext.h"
 
 #include "VulkanDebugMessenger.h"
 
 #include "VulkanDebug.h"
+#include "VulkanAllocator.h"
 
 #include "Saturn/Core/Timer.h"
 
@@ -37,6 +66,8 @@ namespace Saturn {
 		// Init a theoretical swap chain.
 		SwapchainCreationData Data = GetSwapchainCreationData();
 		Data ={};
+		
+		m_pAllocator = new VulkanAllocator();
 		
 		// Init Renderer.
 		Renderer::Get();
@@ -94,6 +125,7 @@ namespace Saturn {
 		CreateDepthResources();
 
 		m_SwapChain.CreateFramebuffers();
+
 	}
 
 	void VulkanContext::Terminate()
@@ -101,13 +133,11 @@ namespace Saturn {
 		if( m_Terminated )
 			return;
 
-		delete m_pImGuiVulkan;
-
-		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
-		
 		Renderer::Get().Terminate();
 		SceneRenderer::Get().Terminate();
 
+		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
+		
 		m_DefaultPass.Terminate();
 
 		m_SwapChain.Terminate();
@@ -124,6 +154,8 @@ namespace Saturn {
 
 		delete m_pDebugMessenger;
 		m_pDebugMessenger = nullptr;
+
+		delete m_pAllocator;
 
 		vkDestroyDevice( m_LogicalDevice, nullptr );
 
@@ -143,7 +175,7 @@ namespace Saturn {
 		AppInfo.applicationVersion = VK_MAKE_VERSION( 1, 0, 0 );
 		AppInfo.engineVersion      = VK_MAKE_VERSION( 1, 0, 0 );
 		AppInfo.apiVersion         = VK_API_VERSION_1_2;
-
+		
 		auto Extensions = Window::Get().GetRequiredExtensions();
 		Extensions.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
 
@@ -274,7 +306,7 @@ namespace Saturn {
 		}
 
 		// Enable the device features.
-		// It's very unlikey for a modern GPU to not support 'samplerAnisotropy' but just in case we check.
+		// It's very unlikely for a modern GPU to not support 'samplerAnisotropy' but just in case we check.
 		VkPhysicalDeviceFeatures Features;
 		vkGetPhysicalDeviceFeatures( m_PhysicalDevice, &Features );
 

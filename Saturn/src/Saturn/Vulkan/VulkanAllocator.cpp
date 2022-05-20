@@ -58,7 +58,7 @@ namespace Saturn {
 
 		VmaAllocationCreateInfo AllocationInfo = {};
 		AllocationInfo.usage = MemoryUsage;
-	
+		
 		VK_CHECK( vmaCreateBuffer( m_Allocator, &BufferInfo, &AllocationInfo, pBuffer, &Allocation, nullptr ) );
 
 		return Allocation;
@@ -85,5 +85,4 @@ namespace Saturn {
 	{
 		vmaDestroyImage( m_Allocator, Image, Allocation );
 	}
-
 }

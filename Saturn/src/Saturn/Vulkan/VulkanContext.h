@@ -23,8 +23,8 @@
 
 namespace Saturn {
 
-	class ImGuiVulkan;
 	class VulkanDebugMessenger;
+	class VulkanAllocator;
 
 	struct QueueFamilyIndices
 	{
@@ -97,7 +97,7 @@ namespace Saturn {
 
 		Swapchain& GetSwapchain() { return m_SwapChain; }
 
-		ImGuiVulkan* GetImGuiVulkan() { return m_pImGuiVulkan; }
+		VulkanAllocator* GetVulkanAllocator() { return m_pAllocator; }
 
 		VkImageView& GetDepthImageView() { return m_DepthImageView; }
 
@@ -135,14 +135,13 @@ namespace Saturn {
 		VkImageView m_DepthImageView = nullptr;
 
 		VulkanDebugMessenger* m_pDebugMessenger;
+		VulkanAllocator* m_pAllocator;
 
 		VkQueue m_GraphicsQueue, m_PresentQueue;
 
 		VkSurfaceFormatKHR m_SurfaceFormat;
 
 		QueueFamilyIndices m_Indices;
-
-		ImGuiVulkan* m_pImGuiVulkan = nullptr;
 
 		// Default.
 		Pass m_DefaultPass;

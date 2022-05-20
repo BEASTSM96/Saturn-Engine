@@ -30,11 +30,10 @@
 
 #include <vulkan.h>
 
-#define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
 
 namespace Saturn {
-
+	
 	class VulkanAllocator
 	{
 	public:
@@ -55,18 +54,18 @@ namespace Saturn {
 
 	
 		template<typename Ty>
-		void* MapMemory( VmaAllocation Allocation ) 
+		void* MapMemory( const VmaAllocation& rAllocation )
 		{
 			void* pData = nullptr;
 
-			vmaMapMemory( m_Allocator, Allocation, pData );
-
+			vmaMapMemory( m_Allocator, rAllocation, &pData );
+			
 			return pData;
 		}
 
-		void UnmapMemory( VmaAllocation Allocation )
+		void UnmapMemory( const VmaAllocation& rAllocation )
 		{
-			vmaUnmapMemory( m_Allocator, Allocation );
+			vmaUnmapMemory( m_Allocator, rAllocation );
 		}
 
 	private:

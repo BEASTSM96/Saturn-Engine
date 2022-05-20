@@ -193,7 +193,7 @@ namespace Saturn {
 					{
 						Ref< Texture2D > texture = material->GetResource( "u_AlbedoTexture" );
 						ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-										}
+					}
 
 					if( ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture ) )
 						material->Set( "u_Matrices.UseAlbedoTexture", UseAlbedoTexture ? 1.0f : 0.0f );
