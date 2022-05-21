@@ -80,12 +80,22 @@ namespace Saturn {
 		}
 	};
 
+	struct ReflectionPushConstant
+	{
+		std::string Name = "";
+		size_t Size = 0;
+		
+		std::vector< ReflectionDescriptorMember > Members;
+	};
+
 	struct ReflectOutput
 	{
 		std::string SourceLanguage = "";
 		std::string EntryPoint = "";
 
 		int SourceVersion = 0;
+		
+		ReflectionPushConstant PushConstant;
 
 		std::vector< ReflectionDescriptor > Descriptors;
 	};
@@ -102,6 +112,7 @@ namespace Saturn {
 
 	private:
 		ReflectionDescriptor ReflectDescriptor( SpvReflectDescriptorBinding& rBinding, spv_reflect::ShaderModule& Module );
+		ReflectionPushConstant ReflectPushConstant( SpvReflectBlockVariable& rBinding, spv_reflect::ShaderModule& Module );
 
 		std::string ComponentTypeToString( const SpvReflectTypeDescription& rType, uint32_t Flags );
 		ShaderDataType ComponentTypeToShaderDataType( const SpvReflectTypeDescription& rType, uint32_t Flags );

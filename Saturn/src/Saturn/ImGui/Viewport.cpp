@@ -68,6 +68,9 @@ namespace Saturn {
 
 		m_SendCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
 		
+		//if( viewportSize.x > 0 && viewportSize.y > 0 )
+		//	SceneRenderer::Get().SetWidthAndHeight( viewportSize.x, viewportSize.y );
+
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 2, 2 ) );
 		ImGui::Image( SceneRenderer::Get().CompositeImage(), viewportSize );
 		ImGui::PopStyleVar();

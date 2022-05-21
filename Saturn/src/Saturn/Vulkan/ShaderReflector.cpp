@@ -88,11 +88,30 @@ namespace Saturn {
 				auto des = ReflectDescriptor( *Bindings[ i ], Module );
 
 				// Only add a new member if its not in the list already
-				if( std::find( std::begin( Out.Descriptors ), std::end( Out.Descriptors ), des ) == std::end( Out.Descriptors ) )
+				if( std::find_if( std::begin( Out.Descriptors ), std::end( Out.Descriptors ), [&des]( const auto& p ) -> bool
+				{
+					return p.Name == des.Name;
+				} ) == std::end( Out.Descriptors ) )
 				{
 					Out.Descriptors.push_back( des );
 				}
 
+			}
+
+			// Reflect over push constants
+			
+			std::vector< SpvReflectBlockVariable* > BlockBindings;
+			
+			Count = 0;
+			SPV_REFLECT_CHECK( Module.EnumeratePushConstantBlocks( &Count, nullptr ) );
+
+			BlockBindings.resize( Count );
+			
+			SPV_REFLECT_CHECK( Module.EnumeratePushConstantBlocks( &Count, BlockBindings.data() ) );
+
+			for( int i = 0; i < BlockBindings.size(); i++ )
+			{
+				Out.PushConstant = ReflectPushConstant( *BlockBindings[ i ], Module );
 			}
 		}
 
@@ -127,11 +146,37 @@ namespace Saturn {
 				Member.RawType = ComponentTypeToString( *rSPVMember.type_description, rSPVMember.decoration_flags );
 				Member.Type = ComponentTypeToShaderDataType( *rSPVMember.type_description, rSPVMember.decoration_flags );
 				
-				//if( std::find( std::begin( Out.Members ), std::end( Out.Members ), Member ) == std::end( Out.Members ) )
+				if( std::find( std::begin( Out.Members ), std::end( Out.Members ), Member ) == std::end( Out.Members ) )
 				{
 					Out.Members.push_back( Member );
 				}
 			}
+		}
+
+		return Out;
+	}
+
+	ReflectionPushConstant ShaderReflector::ReflectPushConstant( SpvReflectBlockVariable& rBinding, spv_reflect::ShaderModule& Module )
+	{
+		ReflectionPushConstant Out;
+		Out.Name = ( rBinding.name == nullptr ? rBinding.type_description->type_name : rBinding.name );
+		
+		auto& rMembers = rBinding.members;
+
+		for( int i = 0; i < rBinding.member_count; i++ )
+		{
+			ReflectionDescriptorMember Member;
+
+			SpvReflectBlockVariable& rSPVMember = rMembers[ i ];
+			
+			Member.Name = rSPVMember.name;
+			Member.Offset = rSPVMember.offset;
+			Member.Size = rSPVMember.size;
+			Member.RawType = ComponentTypeToString( *rSPVMember.type_description, rSPVMember.decoration_flags );
+			Member.Type = ComponentTypeToShaderDataType( *rSPVMember.type_description, rSPVMember.decoration_flags );
+			
+			if( std::find( std::begin( Out.Members ), std::end( Out.Members ), Member ) == std::end( Out.Members ) )
+				Out.Members.push_back( Member );
 		}
 
 		return Out;

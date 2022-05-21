@@ -111,6 +111,13 @@ namespace Saturn {
 		Saturn::Camera RuntimeCamera;
 
 		//////////////////////////////////////////////////////////////////////////
+		
+		uint32_t Width = 3440;
+		uint32_t Height = 1440;
+		
+		//////////////////////////////////////////////////////////////////////////
+
+		//////////////////////////////////////////////////////////////////////////
 		// TIMERS
 		//////////////////////////////////////////////////////////////////////////
 	
@@ -147,14 +154,14 @@ namespace Saturn {
 
 		struct StaticMeshMaterial
 		{
-			float UseAlbedoTexture;
-			float UseMetallicTexture;
-			float UseRoughnessTexture;
-			float UseNormalTexture;
+			alignas( 4 ) float UseAlbedoTexture;
+			alignas( 4 ) float UseMetallicTexture;
+			alignas( 4 ) float UseRoughnessTexture;
+			alignas( 4 ) float UseNormalTexture;
 
-			alignas( 32 ) glm::vec4 AlbedoColor;
-			alignas( 32 ) glm::vec4 MetallicColor;
-			alignas( 32 ) glm::vec4 RoughnessColor;
+			alignas( 16 ) glm::vec4 AlbedoColor;
+			alignas( 16 ) glm::vec4 MetallicColor;
+			alignas( 16 ) glm::vec4 RoughnessColor;
 		};
 
 		// Geometry
@@ -264,8 +271,12 @@ namespace Saturn {
 		void AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 
 		void RenderDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
+		
+		void SetWidthAndHeight( uint32_t w, uint32_t h ) { m_RendererData.Width = w; m_RendererData.Height = h; Recreate(); }
 
-		void FlushDrawList();
+		void FlushDrawList();		
+
+		void Recreate();
 
 		void RenderScene();
 

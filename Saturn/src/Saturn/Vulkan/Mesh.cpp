@@ -202,8 +202,8 @@ namespace Saturn {
 			m_MeshShader->UseUniform( "u_NormalTexture" );
 			m_MeshShader->UseUniform( "u_MetallicTexture" );
 			m_MeshShader->UseUniform( "u_RoughnessTexture" );
-			m_MeshShader->UseUniform( "u_Matrices.UseAlbedoTexture" );
-			m_MeshShader->UseUniform( "u_Matrices.AlbedoColor" );
+			m_MeshShader->UseUniform( "u_Materials.UseAlbedoTexture" );
+			m_MeshShader->UseUniform( "u_Materials.AlbedoColor" );
 			
 			std::string MaterialName = std::string( name.C_Str() );
 			
@@ -239,20 +239,20 @@ namespace Saturn {
 					if( AlbedoTexture )
 					{
 						m_MeshMaterial->SetResource( "u_AlbedoTexture", AlbedoTexture );
-						m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", 1.0f );
+						m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 1.0f );
 					}
 					else
 					{
 						m_MeshMaterial->SetResource( "u_AlbedoTexture", PinkTexture );
-						m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", 0.0f );
-						m_MeshMaterial->Set( "u_Matrices.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
+						m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 0.0f );
+						m_MeshMaterial->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
 					}
 				}
 				else
 				{
 					m_MeshMaterial->SetResource( "u_AlbedoTexture", PinkTexture );
-					m_MeshMaterial->Set( "u_Matrices.UseAlbedoTexture", 0.0f );
-					m_MeshMaterial->Set( "u_Matrices.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
+					m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 0.0f );
+					m_MeshMaterial->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
 					
 				}
 			}

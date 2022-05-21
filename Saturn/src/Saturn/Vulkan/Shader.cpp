@@ -97,10 +97,7 @@ namespace Saturn {
 		
 		CompileGlslToSpvAssembly();
 				
-		for ( auto&& [key, code] : m_SpvCode )
-		{
-			Reflect( code );
-		}
+		Reflect( {} );
 
 		GetAvailableUniform();
 	}
@@ -115,10 +112,7 @@ namespace Saturn {
 
 		CompileGlslToSpvAssembly();
 
-		for( auto&& [key, code] : m_SpvCode )
-		{
-			Reflect( code );
-		}
+		Reflect( {} );
 
 		GetAvailableUniform();
 	}
@@ -142,10 +136,7 @@ namespace Saturn {
 
 		CompileGlslToSpvAssembly();
 
-		for( auto&& [key, code] : m_SpvCode )
-		{
-			Reflect( code );
-		}
+		Reflect( {} );
 
 		GetAvailableUniform();
 	}
@@ -240,7 +231,7 @@ namespace Saturn {
 	{
 		Timer t;
 
-		SAT_CORE_INFO( "Shader Reflecting..." );
+		SAT_CORE_INFO( "Shader Reflecting, {0}", m_Name );
 		
 		ReflectOutput Output = ShaderReflector::Get().ReflectShader( this );
 
@@ -295,6 +286,27 @@ namespace Saturn {
 			}
 		}
 		
+		SAT_CORE_INFO( "Push constants:" );
+		SAT_CORE_INFO( " {0}:", Output.PushConstant.Name );
+
+		for ( auto& rPCMember : Output.PushConstant.Members )
+		{
+			SAT_CORE_INFO( "  {0}", rPCMember.Name );
+			SAT_CORE_INFO( "   Offset {0}", rPCMember.Offset );
+			SAT_CORE_INFO( "   Size {0}", rPCMember.Size );
+			SAT_CORE_INFO( "   Type {0}", ShaderDataTypeToString( rPCMember.Type ) );
+
+			// Check if the member already exists in list, if not add it.
+			auto result = std::find_if( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), [&]( const ShaderUniform& rUniform )
+			{
+				return rUniform.Name == rPCMember.Name;
+			} );
+
+			if( result == m_AvailableUniforms.end() )
+			{
+				m_AvailableUniforms.push_back( { Output.PushConstant.Name + "." + rPCMember.Name, rPCMember.Offset, rPCMember.Type, rPCMember.Size } );
+			}
+		}
 	}
 
 	void Shader::CompileGlslToSpvAssembly()

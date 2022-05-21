@@ -99,7 +99,7 @@ namespace Saturn {
 		// Start by creating the color resource
 		{
 			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.GeometryPassColor.Image, &m_RendererData.GeometryPassColor.Memory );
+				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.GeometryPassColor.Image, &m_RendererData.GeometryPassColor.Memory );
 
 			Renderer::Get().CreateImageView( m_RendererData.GeometryPassColor, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.GeometryPassColor.ImageView );
 
@@ -109,7 +109,7 @@ namespace Saturn {
 		// Then, create the depth resource
 		{
 			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.GeometryPassDepth.Image, &m_RendererData.GeometryPassDepth.Memory );
+				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.GeometryPassDepth.Image, &m_RendererData.GeometryPassDepth.Memory );
 
 			Renderer::Get().CreateImageView( m_RendererData.GeometryPassDepth, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.GeometryPassDepth.ImageView );
 
@@ -174,7 +174,7 @@ namespace Saturn {
 
 		// Create geometry framebuffer.
 
-		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() }, { m_RendererData.GeometryPassColor.ImageView, m_RendererData.GeometryPassDepth.ImageView }, &m_RendererData.GeometryFramebuffer );
+		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height }, { m_RendererData.GeometryPassColor.ImageView, m_RendererData.GeometryPassDepth.ImageView }, &m_RendererData.GeometryFramebuffer );
 		
 		//////////////////////////////////////////////////////////////////////////
 		// STATIC MESHES
@@ -237,8 +237,8 @@ namespace Saturn {
 		PushConstants.push_back( { .stageFlags = VK_SHADER_STAGE_ALL, .offset = 0, .size = sizeof( RendererData::StaticMeshMaterial ) } );
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = Window::Get().Width();
-		PipelineSpec.Height = Window::Get().Height();
+		PipelineSpec.Width =m_RendererData.Width;
+		PipelineSpec.Height =m_RendererData.Height;
 		PipelineSpec.Name = "Static Meshes";
 		PipelineSpec.pShader = m_RendererData.StaticMeshShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SM_DescriptorSetLayout.VulkanLayout } };
@@ -258,7 +258,7 @@ namespace Saturn {
 		// Start by creating the color resource
 		{
 			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.SceneCompositeColor.Image, &m_RendererData.SceneCompositeColor.Memory );
+				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.SceneCompositeColor.Image, &m_RendererData.SceneCompositeColor.Memory );
 
 			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeColor, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.SceneCompositeColor.ImageView );
 
@@ -268,7 +268,7 @@ namespace Saturn {
 		// Then, create the depth resource
 		{
 			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.SceneCompositeDepth.Image, &m_RendererData.SceneCompositeDepth.Memory );
+				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.SceneCompositeDepth.Image, &m_RendererData.SceneCompositeDepth.Memory );
 
 			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeDepth, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.SceneCompositeDepth.ImageView );
 
@@ -335,7 +335,7 @@ namespace Saturn {
 		
 		Renderer::Get().CreateFramebuffer( 
 			m_RendererData.GeometryPass, 
-			{ .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() },
+			{ .width = m_RendererData.Width, .height = m_RendererData.Height },
 			{ m_RendererData.SceneCompositeColor.ImageView, m_RendererData.SceneCompositeDepth.ImageView },
 			&m_RendererData.SceneCompositeFramebuffer );
 
@@ -404,8 +404,8 @@ namespace Saturn {
 		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = Window::Get().Width();
-		PipelineSpec.Height = Window::Get().Height();
+		PipelineSpec.Width = m_RendererData.Width;
+		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Scene Composite";
 		PipelineSpec.pShader = m_RendererData.SceneCompositeShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SC_DescriptorSetLayout.VulkanLayout } };
@@ -604,8 +604,8 @@ namespace Saturn {
 
 		// Grid pipeline spec.
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = Window::Get().Width();
-		PipelineSpec.Height = Window::Get().Height();
+		PipelineSpec.Width =m_RendererData.Width;
+		PipelineSpec.Height =m_RendererData.Height;
 		PipelineSpec.Name = "Grid";
 		PipelineSpec.pShader = m_RendererData.GridShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { LayoutDescriptorSet.VulkanLayout } };
@@ -717,8 +717,8 @@ namespace Saturn {
 		
 		// Create pipeline.
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = Window::Get().Width();
-		PipelineSpec.Height = Window::Get().Height();
+		PipelineSpec.Width = m_RendererData.Width;
+		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Skybox";
 		PipelineSpec.pShader = m_RendererData.SkyboxShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { LayoutDescriptorSet.VulkanLayout } };
@@ -820,11 +820,204 @@ namespace Saturn {
 		m_DrawList.clear();
 	}
 
+	void SceneRenderer::Recreate()
+	{
+		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
+
+		// Terminate render passes.
+		m_RendererData.GeometryPass.Terminate();
+		m_RendererData.SceneComposite.Terminate();
+
+		// Terminate resources.
+		m_RendererData.GeometryPassDepth.Terminate();
+		m_RendererData.GeometryPassColor.Terminate();
+		m_RendererData.SceneCompositeColor.Terminate();
+		m_RendererData.SceneCompositeDepth.Terminate();
+
+		vkDestroyFramebuffer( LogicalDevice, m_RendererData.GeometryFramebuffer, nullptr );
+		vkDestroyFramebuffer( LogicalDevice, m_RendererData.SceneCompositeFramebuffer, nullptr );
+
+		// Terminate Pipelines
+		m_RendererData.StaticMeshPipeline.Terminate();
+		m_RendererData.SceneCompositePipeline.Terminate();
+		m_RendererData.GridPipeline.Terminate();
+		m_RendererData.SkyboxPipeline.Terminate();
+
+		/*
+
+		// Create render passes.
+		// Start by creating the color resource
+		{
+			Renderer::Get().CreateImage(
+				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t ) m_RendererData.Width, .height = ( uint32_t ) m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.GeometryPassColor.Image, &m_RendererData.GeometryPassColor.Memory );
+
+			Renderer::Get().CreateImageView( m_RendererData.GeometryPassColor, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.GeometryPassColor.ImageView );
+
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassColor.Sampler );
+		}
+
+		// Then, create the depth resource
+		{
+			Renderer::Get().CreateImage(
+				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t ) m_RendererData.Width, .height = ( uint32_t ) m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.GeometryPassDepth.Image, &m_RendererData.GeometryPassDepth.Memory );
+
+			Renderer::Get().CreateImageView( m_RendererData.GeometryPassDepth, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.GeometryPassDepth.ImageView );
+
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassDepth.Sampler );
+		}
+
+		PassSpecification PassSpec = {};
+		PassSpec.Name = "Geometry Pass";
+
+		PassSpec.Attachments = {
+			// Color
+			{
+				.flags = 0,
+				.format = VK_FORMAT_B8G8R8A8_UNORM,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+			},
+			// Depth
+			{
+				.flags = 0,
+				.format = VK_FORMAT_D32_SFLOAT,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+			}
+		};
+
+		PassSpec.ColorAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		PassSpec.DepthAttachmentRef = { .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+
+		PassSpec.Dependencies = {
+			{
+				.srcSubpass = VK_SUBPASS_EXTERNAL,
+				.dstSubpass = 0,
+				.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+			},
+			{
+				.srcSubpass = 0,
+				.dstSubpass = VK_SUBPASS_EXTERNAL,
+				.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+			}
+		};
+
+		m_RendererData.GeometryPass = Pass( PassSpec );
+
+		//
+		// Start by creating the color resource
+		{
+			Renderer::Get().CreateImage(
+				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t ) m_RendererData.Width, .height = ( uint32_t ) m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.SceneCompositeColor.Image, &m_RendererData.SceneCompositeColor.Memory );
+
+			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeColor, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.SceneCompositeColor.ImageView );
+
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeColor.Sampler );
+		}
+
+		// Then, create the depth resource
+		{
+			Renderer::Get().CreateImage(
+				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t ) m_RendererData.Width, .height = ( uint32_t ) m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.SceneCompositeDepth.Image, &m_RendererData.SceneCompositeDepth.Memory );
+
+			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeDepth, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.SceneCompositeDepth.ImageView );
+
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeDepth.Sampler );
+		}
+
+		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t ) m_RendererData.Width, .height = ( uint32_t ) m_RendererData.Height }, { m_RendererData.GeometryPassColor.ImageView, m_RendererData.GeometryPassDepth.ImageView }, & m_RendererData.GeometryFramebuffer );
+
+
+		// Create the scene composite render pass.
+		PassSpecification PassSpec = {};
+		PassSpec.Name = "Scene Composite";
+
+		PassSpec.Attachments = {
+			// Color
+			{
+				.flags = 0,
+				.format = VK_FORMAT_B8G8R8A8_UNORM,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+			},
+			// Depth
+			{
+				.flags = 0,
+				.format = VK_FORMAT_D32_SFLOAT,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+			}
+		};
+
+		PassSpec.ColorAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		PassSpec.DepthAttachmentRef = { .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+
+		PassSpec.Dependencies = {
+			{
+				.srcSubpass = VK_SUBPASS_EXTERNAL,
+				.dstSubpass = 0,
+				.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+			},
+			{
+				.srcSubpass = 0,
+				.dstSubpass = VK_SUBPASS_EXTERNAL,
+				.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+			}
+		};
+
+		m_RendererData.SceneComposite = Pass( PassSpec );
+
+		Renderer::Get().CreateFramebuffer(
+			m_RendererData.GeometryPass,
+			{ .width = m_RendererData.Width, .height = m_RendererData.Height },
+			{ m_RendererData.SceneCompositeColor.ImageView, m_RendererData.SceneCompositeDepth.ImageView },
+			& m_RendererData.SceneCompositeFramebuffer );
+		
+		// Create pipelines
+		*/
+	}
+
 	void SceneRenderer::GeometryPass()
 	{
 		m_RendererData.GeometryPassTimer.Reset();
 
-		VkExtent2D Extent = { Window::Get().Width(), Window::Get().Height() };
+		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
 
 		// Begin geometry pass.
 		m_RendererData.GeometryPass.BeginPass( m_RendererData.CommandBuffer, m_RendererData.GeometryFramebuffer, Extent );
@@ -832,8 +1025,8 @@ namespace Saturn {
 		VkViewport Viewport = {};
 		Viewport.x = 0;
 		Viewport.y = 0;
-		Viewport.width = ( float ) Window::Get().Width();
-		Viewport.height = ( float ) Window::Get().Height();
+		Viewport.width = ( float )m_RendererData.Width;
+		Viewport.height = ( float )m_RendererData.Height;
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
 		
@@ -887,11 +1080,14 @@ namespace Saturn {
 				
 				// Write push constant data.
 				RendererData::StaticMeshMaterial u_Materials = {};
-				u_Materials.UseNormalTexture = rMaterial->Get<float>( "u_Matrices.UseNormalTexture" ) ? 1.0f : 0.5f;
-				u_Materials.UseMetallicTexture = rMaterial->Get<float>( "u_Matrices.UseMetallicTexture" ) ? 1.0f : 0.5f;
-				u_Materials.UseRoughnessTexture = rMaterial->Get<float>( "u_Matrices.UseRoughnessTexture" ) ? 1.0f : 0.5f;
+				u_Materials.UseNormalTexture = rMaterial->Get<float>( "u_Materials.UseNormalTexture" ) ? 1.0f : 0.5f;
+				u_Materials.UseMetallicTexture = rMaterial->Get<float>( "u_Materials.UseMetallicTexture" ) ? 1.0f : 0.5f;
+				u_Materials.UseRoughnessTexture = rMaterial->Get<float>( "u_Materials.UseRoughnessTexture" ) ? 1.0f : 0.5f;
+				u_Materials.UseAlbedoTexture = rMaterial->Get<float>( "u_Materials.UseAlbedoTexture" ) ? 1.0f : 0.5f;
 
-				u_Materials.AlbedoColor = rMaterial->Get<glm::vec4>( "u_Matrices.AlbedoColor" );
+				u_Materials.AlbedoColor = rMaterial->Get<glm::vec4>( "u_Materials.AlbedoColor" );
+				u_Materials.MetallicColor = glm::vec4( 0.0, 0.0, 0.0, 1.0 );
+				u_Materials.RoughnessColor = glm::vec4( 0.0, 0.0, 0.0, 1.0 );
 
 				vkCmdPushConstants( m_RendererData.CommandBuffer, m_RendererData.StaticMeshPipeline.GetPipelineLayout(), VK_SHADER_STAGE_ALL, 0, sizeof( u_Materials ), &u_Materials );
 				
@@ -914,7 +1110,7 @@ namespace Saturn {
 
 	void SceneRenderer::SceneCompositePass()
 	{
-		VkExtent2D Extent = { Window::Get().Width(), Window::Get().Height() };
+		VkExtent2D Extent = {m_RendererData.Width,m_RendererData.Height };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
 		// Begin scene composite pass.
@@ -922,9 +1118,9 @@ namespace Saturn {
 
 		VkViewport Viewport = {};
 		Viewport.x = 0;
-		Viewport.y = ( float ) Window::Get().Height();
-		Viewport.width = ( float ) Window::Get().Width();
-		Viewport.height = -( float ) Window::Get().Height();
+		Viewport.y = ( float )m_RendererData.Height;
+		Viewport.width = ( float )m_RendererData.Width;
+		Viewport.height = -( float )m_RendererData.Height;
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
 

@@ -187,7 +187,7 @@ namespace Saturn {
 					
 					ImGui::Separator();
 					
-					bool UseAlbedoTexture = material->Get< float >( "u_Matrices.UseAlbedoTexture" );
+					bool UseAlbedoTexture = material->Get< float >( "u_Materials.UseAlbedoTexture" );
 					
 					if( UseAlbedoTexture )
 					{
@@ -196,17 +196,15 @@ namespace Saturn {
 					}
 
 					if( ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture ) )
-						material->Set( "u_Matrices.UseAlbedoTexture", UseAlbedoTexture ? 1.0f : 0.0f );
+						material->Set( "u_Materials.UseAlbedoTexture", UseAlbedoTexture ? 1.0f : 0.0f );
 					
-					SAT_CORE_INFO( "u_Matrices.UseAlbedoTexture, {0}", UseAlbedoTexture );
-
 					if( !UseAlbedoTexture )
 					{
-						glm::vec4 color = material->Get<glm::vec4>( "u_Matrices.AlbedoColor" );
+						glm::vec4 color = material->Get<glm::vec4>( "u_Materials.AlbedoColor" );
 
 						ImGui::ColorEdit4( "Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
 
-						material->Set< glm::vec4 >( "u_Matrices.AlbedoColor", color );
+						material->Set< glm::vec4 >( "u_Materials.AlbedoColor", color );
 					}
 
 					ImGui::End();
