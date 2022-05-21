@@ -50,6 +50,11 @@ namespace Saturn {
 	void UniformBuffer::Terminate()
 	{
 		m_Buffer.Terminate();
+
+		//if( m_pData )
+		//	free( m_pData );
+
+		m_pData = nullptr;
 	}
 
 	void UniformBuffer::Map( VkCommandBuffer CommandBuffer, bool RecreateBuffer /*= false */ )
@@ -74,7 +79,9 @@ namespace Saturn {
 		VkDeviceSize BufferSize = Size;
 		m_Buffer.m_Size = Size;
 
-		if( m_pData  )
+		m_Buffer.Terminate();
+
+		if( m_pData )
 			m_Buffer.Create( m_pData, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 		else
 			m_Buffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );

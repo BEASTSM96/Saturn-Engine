@@ -52,6 +52,8 @@ namespace Saturn {
 
 		void UpdateData( void* pData, size_t Size );
 
+		VkBuffer GetBuffer() const { return m_Buffer; }
+
 		operator VkBuffer() const { return m_Buffer; }
 	
 		// Copy assignment.

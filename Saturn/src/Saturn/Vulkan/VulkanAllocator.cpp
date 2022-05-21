@@ -48,11 +48,13 @@ namespace Saturn {
 	}
 
 	VulkanAllocator::~VulkanAllocator()
-	{
+	{		
+		m_Allocations.clear();
+
 		vmaDestroyAllocator( m_Allocator );
 	}
 
-	VmaAllocation& VulkanAllocator::AllocateBuffer( VkBufferCreateInfo BufferInfo, VmaMemoryUsage MemoryUsage, VkBuffer* pBuffer )
+	VmaAllocation VulkanAllocator::AllocateBuffer( VkBufferCreateInfo BufferInfo, VmaMemoryUsage MemoryUsage, VkBuffer* pBuffer )
 	{
 		VmaAllocation Allocation;
 
@@ -61,10 +63,12 @@ namespace Saturn {
 		
 		VK_CHECK( vmaCreateBuffer( m_Allocator, &BufferInfo, &AllocationInfo, pBuffer, &Allocation, nullptr ) );
 
+		m_Allocations[ *pBuffer ] = Allocation;
+
 		return Allocation;
 	}
 
-	VmaAllocation& VulkanAllocator::AllocateImage( VkImageCreateInfo ImageInfo, VmaMemoryUsage MemoryUsage, VkImage* pImage )
+	VmaAllocation VulkanAllocator::AllocateImage( VkImageCreateInfo ImageInfo, VmaMemoryUsage MemoryUsage, VkImage* pImage )
 	{
 		VmaAllocation Allocation;
 
@@ -75,10 +79,11 @@ namespace Saturn {
 
 		return Allocation;
 	}
-
-	void VulkanAllocator::DestroyBuffer( VmaAllocation Allocation, VkBuffer Buffer )
+	
+	void VulkanAllocator::DestroyBuffer( VkBuffer Buffer )
 	{
-		vmaDestroyBuffer( m_Allocator, Buffer, Allocation );
+		vmaDestroyBuffer( m_Allocator, Buffer, m_Allocations[ Buffer ] );
+		m_Allocations.erase( Buffer );
 	}
 
 	void VulkanAllocator::DestroyImage( VmaAllocation Allocation, VkImage Image )

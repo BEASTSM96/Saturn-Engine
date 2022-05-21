@@ -162,14 +162,14 @@ namespace Saturn {
 			VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 		}
 
-		pAllocator->DestroyBuffer( rBufferAlloc, StagingBuffer );
+		pAllocator->DestroyBuffer( StagingBuffer );
 #endif
 	}
 
 	void VertexBuffer::Terminate()
 	{
 		if ( m_Buffer != nullptr )
-			VulkanContext::Get().GetVulkanAllocator()->DestroyBuffer( m_Allocation, m_Buffer );
+			VulkanContext::Get().GetVulkanAllocator()->DestroyBuffer( m_Buffer );
 		
 		m_Buffer = nullptr;
 	}

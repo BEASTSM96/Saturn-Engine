@@ -41,20 +41,19 @@ namespace Saturn {
 		~VulkanAllocator();
 		
 		// Allocate buffer
-		VmaAllocation& AllocateBuffer( VkBufferCreateInfo BufferInfo, VmaMemoryUsage MemoryUsage, VkBuffer* pBuffer );
+		VmaAllocation AllocateBuffer( VkBufferCreateInfo BufferInfo, VmaMemoryUsage MemoryUsage, VkBuffer* pBuffer );
 
 		// Allocate image
-		VmaAllocation& AllocateImage( VkImageCreateInfo ImageInfo, VmaMemoryUsage MemoryUsage, VkImage* pImage );
+		VmaAllocation AllocateImage( VkImageCreateInfo ImageInfo, VmaMemoryUsage MemoryUsage, VkImage* pImage );
 
 		// Destroy buffer
-		void DestroyBuffer( VmaAllocation Allocation, VkBuffer Buffer );
+		void DestroyBuffer( VkBuffer Buffer );
 		
 		// Destroy image
 		void DestroyImage( VmaAllocation Allocation, VkImage Image );
-
 	
 		template<typename Ty>
-		void* MapMemory( const VmaAllocation& rAllocation )
+		void* MapMemory( VmaAllocation rAllocation )
 		{
 			void* pData = nullptr;
 
@@ -63,12 +62,16 @@ namespace Saturn {
 			return pData;
 		}
 
-		void UnmapMemory( const VmaAllocation& rAllocation )
+		void UnmapMemory( VmaAllocation rAllocation )
 		{
 			vmaUnmapMemory( m_Allocator, rAllocation );
 		}
 
+		VmaAllocation GetAllocationFromBuffer( VkBuffer Buffer ) { return m_Allocations[ Buffer ]; }
+
 	private:
 		VmaAllocator m_Allocator = VK_NULL_HANDLE;
+
+		std::unordered_map< VkBuffer, VmaAllocation > m_Allocations;
 	};
 }

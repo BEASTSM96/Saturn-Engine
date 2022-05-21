@@ -387,7 +387,7 @@ namespace Saturn {
 
 		m_DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_Sampler, m_ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
-		pAllocator->DestroyBuffer( rBufferAlloc, StagingBuffer );
+		pAllocator->DestroyBuffer( StagingBuffer );
 	}
 
 	void Texture2D::SetData( const void* pData )

@@ -64,9 +64,11 @@ namespace Saturn {
 			for( Submesh& rSubmesh : Mesh->Submeshes() )
 			{
 				DescriptorSets[ rSubmesh ]->Terminate();
+				UniformBuffers[ rSubmesh ]->Terminate();
 			}
 
-			//DescriptorSets.clear();
+			DescriptorSets.clear();
+			UniformBuffers.clear();
 		}
 		
 		void BindAll( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout )
@@ -85,6 +87,7 @@ namespace Saturn {
 		UUID Owner;
 		Ref< Saturn::Mesh > Mesh;
 		std::unordered_map< Submesh, Ref< DescriptorSet > > DescriptorSets;
+		std::unordered_map< Submesh, Ref< UniformBuffer > > UniformBuffers;
 	};
 
 	struct RendererData
@@ -140,15 +143,18 @@ namespace Saturn {
 		{
 			glm::mat4 Transform;
 			glm::mat4 ViewProjection;
+		};
 
+		struct StaticMeshMaterial
+		{
 			float UseAlbedoTexture;
 			float UseMetallicTexture;
 			float UseRoughnessTexture;
 			float UseNormalTexture;
 
-			glm::vec4 AlbedoColor;
-			glm::vec4 MetallicColor;
-			glm::vec4 RoughnessColor;
+			alignas( 32 ) glm::vec4 AlbedoColor;
+			alignas( 32 ) glm::vec4 MetallicColor;
+			alignas( 32 ) glm::vec4 RoughnessColor;
 		};
 
 		// Geometry
@@ -187,8 +193,9 @@ namespace Saturn {
 		Ref< DescriptorSet > GridDescriptorSet;
 		Ref< DescriptorPool > GridDescriptorPool;
 
-		Buffer GridUniformBuffer;
-		
+		VkBuffer GridUniformBuffer;
+		VmaAllocation GridUBOAllocation;
+
 		VertexBuffer* GridVertexBuffer;
 		IndexBuffer* GridIndexBuffer;
 
@@ -199,7 +206,7 @@ namespace Saturn {
 		Ref< DescriptorSet > SkyboxDescriptorSet;
 		Ref< DescriptorPool > SkyboxDescriptorPool;
 		
-		Buffer SkyboxUniformBuffer;
+		VkBuffer SkyboxUniformBuffer;
 		
 		VertexBuffer* SkyboxVertexBuffer;
 		IndexBuffer* SkyboxIndexBuffer;

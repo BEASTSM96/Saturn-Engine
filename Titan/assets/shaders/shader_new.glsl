@@ -11,7 +11,10 @@ layout(set = 0, binding = 0) uniform Matrices
 {
     mat4 Transform;
     mat4 ViewProjection;
-	
+} u_Matrices;
+
+layout(push_constant) uniform Materials
+{
 	float UseAlbedoTexture;
 	float UseMetallicTexture;
 	float UseRoughnessTexture;
@@ -22,8 +25,7 @@ layout(set = 0, binding = 0) uniform Matrices
 	vec4 AlbedoColor;
 	vec4 MetallicColor;
 	vec4 RoughnessColor;
-
-} u_Matrices;
+} u_Materials;
 
 layout(location = 1) out VertexOutput 
 {
@@ -54,7 +56,10 @@ layout(set = 0, binding = 0) uniform Matrices
 {
     mat4 Transform;
     mat4 ViewProjection;
-	
+} u_Matrices;
+
+layout(push_constant) uniform Materials
+{
 	float UseAlbedoTexture;
 	float UseMetallicTexture;
 	float UseRoughnessTexture;
@@ -65,8 +70,7 @@ layout(set = 0, binding = 0) uniform Matrices
 	vec4 AlbedoColor;
 	vec4 MetallicColor;
 	vec4 RoughnessColor;
-
-} u_Matrices;
+} u_Materials;
 
 // Textures
 layout (binding = 1) uniform sampler2D u_AlbedoTexture;
@@ -87,12 +91,12 @@ layout(location = 1) in VertexOutput
 
 void main() 
 {
-	if( u_Matrices.UseAlbedoTexture != 0.5 ) 
+	if( u_Materials.UseAlbedoTexture != 0.5 ) 
 	{
 		FinalColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
 	}
 	else
 	{
-		FinalColor = u_Matrices.AlbedoColor;
+		FinalColor = u_Materials.AlbedoColor;
 	}
 }
