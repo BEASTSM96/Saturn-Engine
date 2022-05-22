@@ -223,8 +223,15 @@ namespace Saturn {
 		// u_Matrices
 		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_ALL } );
 
-		m_RendererData.SM_MatricesUBO.CreateBuffer( sizeof( RendererData::StaticMeshMatrices ) );
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 		
+		VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		BufferInfo.size = BufferSize;
+		BufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, &m_RendererData.SM_MatricesUBO );
+
 		// u_AlbedoTexture, u_NormalTexture, u_MetallicTexture, u_RoughnessTexture
 		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
 		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
@@ -548,7 +555,6 @@ namespace Saturn {
 
 		// Create uniform buffer.
 		VkDeviceSize BufferSize = sizeof( RendererData::GridMatricesObject );
-		m_RendererData.GridUniformBuffer = Buffer();
 
 		VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		BufferInfo.size = BufferSize;
@@ -1017,6 +1023,8 @@ namespace Saturn {
 	{
 		m_RendererData.GeometryPassTimer.Reset();
 
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+
 		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
 
 		// Begin geometry pass.
@@ -1058,17 +1066,23 @@ namespace Saturn {
 		{
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
 			auto& rMaterial = Cmd.Mesh->GetMaterial();
+			
+			// Update uniform buffers.
+			RendererData::StaticMeshMatrices u_Matrices = {};
+			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 
 			for ( Submesh& rSubmesh : Cmd.Mesh->Submeshes() )
 			{
-				// Update uniform buffers.
-				RendererData::StaticMeshMatrices u_Matrices = {};
-				u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
-				u_Matrices.Transform = Cmd.Transform * rSubmesh.Transform;
-
-				m_RendererData.StaticMeshDescriptorSets[ uuid ] = CreateSMDescriptorSet( uuid, Cmd.Mesh );
 				
-				m_RendererData.StaticMeshDescriptorSets[ uuid ].UniformBuffers[ rSubmesh ]->UpdateData( &u_Matrices, sizeof( u_Matrices ) );
+				auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_RendererData.SM_MatricesUBO );
+
+				void* pData = pAllocator->MapMemory< void >( bufferAloc );
+				
+				memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
+
+				pAllocator->UnmapMemory( bufferAloc );
+
+				m_RendererData.StaticMeshDescriptorSets[ uuid ] = CreateSMDescriptorSet( uuid, Cmd.Transform * rSubmesh.Transform, Cmd.Mesh );
 
 				// Bind vertex and index buffers.
 				Cmd.Mesh->GetVertexBuffer()->Bind( m_RendererData.CommandBuffer );
@@ -1080,21 +1094,21 @@ namespace Saturn {
 				
 				// Write push constant data.
 				RendererData::StaticMeshMaterial u_Materials = {};
+				u_Materials.Transform = Cmd.Transform * rSubmesh.Transform;
 				u_Materials.UseNormalTexture = rMaterial->Get<float>( "u_Materials.UseNormalTexture" ) ? 1.0f : 0.5f;
 				u_Materials.UseMetallicTexture = rMaterial->Get<float>( "u_Materials.UseMetallicTexture" ) ? 1.0f : 0.5f;
 				u_Materials.UseRoughnessTexture = rMaterial->Get<float>( "u_Materials.UseRoughnessTexture" ) ? 1.0f : 0.5f;
 				u_Materials.UseAlbedoTexture = rMaterial->Get<float>( "u_Materials.UseAlbedoTexture" ) ? 1.0f : 0.5f;
 
 				u_Materials.AlbedoColor = rMaterial->Get<glm::vec4>( "u_Materials.AlbedoColor" );
-				u_Materials.MetallicColor = glm::vec4( 0.0, 0.0, 0.0, 1.0 );
-				u_Materials.RoughnessColor = glm::vec4( 0.0, 0.0, 0.0, 1.0 );
+				u_Materials.MetallicColor = glm::vec4( 0.0f, 0.0f, 0.0f, 1.0f );
+				u_Materials.RoughnessColor = glm::vec4( 0.0f, 0.0f, 0.0f, 1.0f );
 
 				vkCmdPushConstants( m_RendererData.CommandBuffer, m_RendererData.StaticMeshPipeline.GetPipelineLayout(), VK_SHADER_STAGE_ALL, 0, sizeof( u_Materials ), &u_Materials );
 				
 				Renderer::Get().RenderSubmesh( m_RendererData.CommandBuffer, 
 					m_RendererData.StaticMeshPipeline, 
-					Cmd.Mesh, rSubmesh, u_Matrices.Transform,
-					m_RendererData.StaticMeshDescriptorSets[ uuid ].UniformBuffers[ rSubmesh ] );
+					Cmd.Mesh, rSubmesh, u_Materials.Transform );
 			}
 		}
 
@@ -1200,7 +1214,7 @@ namespace Saturn {
 		//}
 	}
 
-	MeshDescriptorSet SceneRenderer::CreateSMDescriptorSet( UUID& rUUID, const Ref<Mesh>& rMesh )
+	MeshDescriptorSet SceneRenderer::CreateSMDescriptorSet( UUID& rUUID, const glm::mat4 Transform, const Ref<Mesh>& rMesh )
 	{
 		Ref< Material > rMaterial = rMesh->GetMaterial();
 		
@@ -1211,34 +1225,30 @@ namespace Saturn {
 		Spec.Pool = m_RendererData.GeometryDescriptorPool;
 		
 		std::unordered_map< Submesh, Ref< DescriptorSet > > Sets;
-		std::unordered_map< Submesh, Ref< UniformBuffer > > UBOs;
 		
 		for( auto& submesh : rMesh->Submeshes() )
-		{			
-			Ref< UniformBuffer > UBO = Ref< UniformBuffer >::Create();
-			UBO->CreateBuffer( sizeof( RendererData::StaticMeshMatrices ) );
-
-			UBOs[ submesh ] = UBO;
-			
-			// Create descriptor set.
-			/////
-
+		{
 			Ref< DescriptorSet > Set = Ref< DescriptorSet >::Create( Spec );
 
 			// As this is a Static mesh (SM), descriptor set, we can hard-code the values.
 
 			VkDescriptorBufferInfo MatricesBufferInfo = {};
-			MatricesBufferInfo.buffer = UBOs[ submesh ]->GetBuffer();
+			MatricesBufferInfo.buffer = m_RendererData.SM_MatricesUBO;
 			MatricesBufferInfo.offset = 0;
 			MatricesBufferInfo.range = sizeof( RendererData::StaticMeshMatrices );
-
+			
 			VkDescriptorImageInfo ImageInfo = {};
 			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			ImageInfo.imageView = AlbedoTexture->GetImageView();
 			ImageInfo.sampler = AlbedoTexture->GetSampler();
 
-			std::vector< VkWriteDescriptorSet > DescriptorWrites;
+			// Create the uniform buffer data.
+			RendererData::StaticMeshMatrices u_Matrices = {};
+			//u_Matrices.Transform = Transform;
+			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 
+			std::vector< VkWriteDescriptorSet > DescriptorWrites;
+			
 			DescriptorWrites.push_back( {
 				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 				.pNext = nullptr,
@@ -1268,7 +1278,7 @@ namespace Saturn {
 			Sets[ submesh ] = Set;
 		}
 		
-		return { .Owner = rUUID, .Mesh = rMesh, .DescriptorSets = Sets, .UniformBuffers = UBOs };
+		return { .Owner = rUUID, .Mesh = rMesh, .DescriptorSets = Sets };
 	}
 
 	void SceneRenderer::DestroySMDescriptorSet( UUID uuid )
@@ -1283,6 +1293,8 @@ namespace Saturn {
 	void RendererData::Terminate()
 	{
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
+		
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		GeometryPass.Terminate();
 		GeometryPassDepth.Terminate();
@@ -1292,8 +1304,8 @@ namespace Saturn {
 		GeometryFramebuffer = nullptr;
 
 		GeometryDescriptorPool->Terminate();
-
-		SM_MatricesUBO.Terminate();
+		
+		pAllocator->DestroyBuffer( SM_MatricesUBO );
 
 		StaticMeshPipeline.Terminate();
 

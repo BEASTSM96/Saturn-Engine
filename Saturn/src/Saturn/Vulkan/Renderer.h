@@ -74,7 +74,7 @@ namespace Saturn {
 		// Static mesh
 		void RenderStaticMesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, UUID uuid, Ref< Mesh > mesh, const glm::mat4 transform, UniformBuffer& rUBO );
 		
-		void RenderSubmesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform, UniformBuffer& rUBO );
+		void RenderSubmesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
 
 		void RenderSubmesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform, Ref< UniformBuffer > UBO );
 

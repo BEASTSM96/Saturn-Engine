@@ -176,12 +176,8 @@ namespace Saturn {
 		VkCommandBuffer CommandBuffer, 
 		Saturn::Pipeline Pipeline, 
 		Ref< Mesh > mesh,
-		Submesh& rSubmsh, const glm::mat4 transform, UniformBuffer& rUBO )
+		Submesh& rSubmsh, const glm::mat4 transform )
 	{
-
-		// Bind UBO
-		rUBO.Map( CommandBuffer );
-
 		// Bind material.
 		mesh->GetMaterial()->Bind( nullptr );
 
@@ -203,7 +199,7 @@ namespace Saturn {
 		mesh->GetMaterial()->Bind( nullptr );
 
 		// Draw.
-		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, 0, 0 );
+		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, rSubmsh.BaseVertex, 0 );
 	}
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )

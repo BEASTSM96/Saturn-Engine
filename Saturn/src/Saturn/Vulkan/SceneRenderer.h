@@ -64,11 +64,9 @@ namespace Saturn {
 			for( Submesh& rSubmesh : Mesh->Submeshes() )
 			{
 				DescriptorSets[ rSubmesh ]->Terminate();
-				UniformBuffers[ rSubmesh ]->Terminate();
 			}
 
 			DescriptorSets.clear();
-			UniformBuffers.clear();
 		}
 		
 		void BindAll( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout )
@@ -87,7 +85,6 @@ namespace Saturn {
 		UUID Owner;
 		Ref< Saturn::Mesh > Mesh;
 		std::unordered_map< Submesh, Ref< DescriptorSet > > DescriptorSets;
-		std::unordered_map< Submesh, Ref< UniformBuffer > > UniformBuffers;
 	};
 
 	struct RendererData
@@ -148,12 +145,13 @@ namespace Saturn {
 		
 		struct StaticMeshMatrices
 		{
-			glm::mat4 Transform;
 			glm::mat4 ViewProjection;
 		};
 
 		struct StaticMeshMaterial
 		{
+			alignas( 16 ) glm::mat4 Transform;
+
 			alignas( 4 ) float UseAlbedoTexture;
 			alignas( 4 ) float UseMetallicTexture;
 			alignas( 4 ) float UseRoughnessTexture;
@@ -181,7 +179,7 @@ namespace Saturn {
 		// STATIC MESHES
 
 		// Static mesh geometry.
-		UniformBuffer SM_MatricesUBO;
+		VkBuffer SM_MatricesUBO;
 		// Main geometry for static meshes.
 		Pipeline StaticMeshPipeline;
 		
@@ -286,7 +284,7 @@ namespace Saturn {
 		//		 Only adds a descriptor set for a static mesh if it doesn't exist.
 		void AddDescriptorSet( const DescriptorSet& rDescriptorSet );
 
-		MeshDescriptorSet CreateSMDescriptorSet( UUID& rUUID, const Ref< Mesh >& rMesh );
+		MeshDescriptorSet CreateSMDescriptorSet( UUID& rUUID, const glm::mat4 Transform, const Ref< Mesh >& rMesh );
 		void DestroySMDescriptorSet( UUID uuid );
 
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }

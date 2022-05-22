@@ -259,6 +259,7 @@ namespace Saturn {
 			}
 		}
 		
+		
 		for ( int i = 0; i < PhysicalDevices.size(); i++ )
 		{
 			m_DeviceProps.push_back( {} );
@@ -315,7 +316,10 @@ namespace Saturn {
 		Features.samplerAnisotropy = VK_TRUE;
 
 		DeviceExtensions.push_back( VK_EXT_DEBUG_MARKER_EXTENSION_NAME );
-		//DeviceExtensions.push_back( "VK_EXT_debug_report" );
+		DeviceExtensions.push_back( VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME );
+
+		VkPhysicalDeviceInlineUniformBlockFeaturesEXT InlineUniformBlockFeatures = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT };
+		InlineUniformBlockFeatures.inlineUniformBlock = VK_TRUE;
 
 		VkDeviceCreateInfo DeviceInfo      ={ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		DeviceInfo.enabledExtensionCount   = DeviceExtensions.size();
@@ -323,6 +327,7 @@ namespace Saturn {
 		DeviceInfo.pQueueCreateInfos       = QueueCreateInfos.data();
 		DeviceInfo.queueCreateInfoCount    = QueueCreateInfos.size();
 		DeviceInfo.pEnabledFeatures = &Features;
+		DeviceInfo.pNext = &InlineUniformBlockFeatures;
 
 		VK_CHECK( vkCreateDevice( m_PhysicalDevice, &DeviceInfo, nullptr, &m_LogicalDevice ) );
 		SetDebugUtilsObjectName( "Physical Device", ( uint64_t )m_LogicalDevice, VK_OBJECT_TYPE_DEVICE );

@@ -97,8 +97,8 @@ inline std::string_view VulkanResultToStr( VkResult Result )
 		default:
 			return "VK_ERROR_UNKNOWN";
 	}
-
-	return std::to_string( Result );
+	
+	return "VK_ERROR_UNKNOWN";
 }
 
 inline void _VkCheckResult( VkResult Result )
