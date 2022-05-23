@@ -46,6 +46,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 #include <vulkan.h>
+#include <glfw/glfw3.h>
 #include <cassert>
 #include <set>
 #include <iostream>
@@ -77,7 +78,7 @@ namespace Saturn {
 	
 		// Create default pass.
 		PassSpecification Specification = {};
-		Specification.Name = "Default Pass";
+		Specification.Name = "Swapchain render pass";
 		
 		Specification.Attachments = {
 			{
@@ -167,13 +168,15 @@ namespace Saturn {
 
 	void VulkanContext::CreateInstance()
 	{
+		SAT_CORE_ASSERT( glfwVulkanSupported(), "GLFW must be able to support vulkan." );
+
 		CheckValidationLayerSupport();
 
 		VkApplicationInfo AppInfo  ={ VK_STRUCTURE_TYPE_APPLICATION_INFO };
 		AppInfo.pApplicationName = "Saturn Engine";
 		AppInfo.pEngineName        = "Saturn Engine";
-		AppInfo.applicationVersion = VK_MAKE_VERSION( 1, 0, 0 );
-		AppInfo.engineVersion      = VK_MAKE_VERSION( 1, 0, 0 );
+		AppInfo.applicationVersion = VK_MAKE_VERSION( 0, 0, 1 );
+		AppInfo.engineVersion      = VK_MAKE_VERSION( 0, 0, 1 );
 		AppInfo.apiVersion         = VK_API_VERSION_1_2;
 		
 		auto Extensions = Window::Get().GetRequiredExtensions();

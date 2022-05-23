@@ -1071,17 +1071,16 @@ namespace Saturn {
 			RendererData::StaticMeshMatrices u_Matrices = {};
 			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 
+			auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_RendererData.SM_MatricesUBO );
+
+			void* pData = pAllocator->MapMemory< void >( bufferAloc );
+
+			memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
+
+			pAllocator->UnmapMemory( bufferAloc );
+
 			for ( Submesh& rSubmesh : Cmd.Mesh->Submeshes() )
 			{
-				
-				auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_RendererData.SM_MatricesUBO );
-
-				void* pData = pAllocator->MapMemory< void >( bufferAloc );
-				
-				memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
-
-				pAllocator->UnmapMemory( bufferAloc );
-
 				m_RendererData.StaticMeshDescriptorSets[ uuid ] = CreateSMDescriptorSet( uuid, Cmd.Transform * rSubmesh.Transform, Cmd.Mesh );
 
 				// Bind vertex and index buffers.
