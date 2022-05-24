@@ -56,24 +56,10 @@ namespace Saturn {
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	
-	void DescriptorSetLayout::Create()
-	{
-		VkDescriptorSetLayoutCreateInfo LayoutCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-
-		LayoutCreateInfo.bindingCount = Bindings.size();
-		LayoutCreateInfo.pBindings = Bindings.data();
-
-		VK_CHECK( vkCreateDescriptorSetLayout( VulkanContext::Get().GetDevice(), &LayoutCreateInfo, nullptr, &VulkanLayout ) );
-	}
-
-	//////////////////////////////////////////////////////////////////////////
 
 	DescriptorSet::DescriptorSet( DescriptorSetSpecification Spec )
 	{
 		m_Specification = Spec;
-		
-		m_Specification.Layout.Create();
 
 		Allocate();
 	}
@@ -88,12 +74,7 @@ namespace Saturn {
 		if( m_Set )
 			vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), *m_Specification.Pool.Pointer(), 1, &m_Set );
 
-		if( m_Specification.Layout.VulkanLayout )
-			vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_Specification.Layout.VulkanLayout, nullptr );
-		
 		m_Set = nullptr;
-		m_Specification.Layout.VulkanLayout = nullptr;
-		m_Specification.Layout.Bindings.clear();
 		m_Specification = {};
 	}
 
@@ -134,7 +115,7 @@ namespace Saturn {
 		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 		AllocateInfo.descriptorPool = *m_Specification.Pool.Pointer();
 		AllocateInfo.descriptorSetCount = 1;
-		AllocateInfo.pSetLayouts = &m_Specification.Layout.VulkanLayout;
+		AllocateInfo.pSetLayouts = &m_Specification.Layout;
 		
 		VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &AllocateInfo, &m_Set ) );
 	}

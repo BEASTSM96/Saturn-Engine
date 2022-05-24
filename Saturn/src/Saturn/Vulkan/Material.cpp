@@ -40,10 +40,12 @@ namespace Saturn {
 
 		for ( auto& rUniform : m_Shader->GetUniforms() )
 		{
-			if( rUniform.Type >= ShaderDataType::Sampler2D )
-				continue;
-			else
-				m_Uniforms.push_back( rUniform );
+			m_Uniforms.push_back( rUniform );
+		}
+
+		for ( auto& [ stage, binding, name ] : m_Shader->GetTextures() )
+		{
+			m_Textures[ name ] = nullptr;
 		}
 	}
 

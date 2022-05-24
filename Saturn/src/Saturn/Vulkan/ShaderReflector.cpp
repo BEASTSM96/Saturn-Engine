@@ -128,6 +128,7 @@ namespace Saturn {
 		Out.Accessed = ( bool )rBinding.accessed;
 		Out.Name = std::move( rBinding.name == nullptr ? rBinding.type_description->type_name : rBinding.name );
 		Out.Type = DescriptorTypeToVulkan( rBinding.descriptor_type );
+		Out.StageFlags = Module.GetShaderStage();
 
 		// Test if descriptor is a uniform buffer or a storage buffer.
 		//if( rBinding.decoration_flags == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER || rBinding.decoration_flags == SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER )

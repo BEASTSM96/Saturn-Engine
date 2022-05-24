@@ -87,4 +87,50 @@ namespace Saturn {
 		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
 	};
 
+	class MaterialInstance
+	{
+	public:
+		MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName ) {}
+		~MaterialInstance() {}
+		
+		template<typename Ty>
+		void Set( const std::string& Name, const Ty& Value )
+		{
+
+			for( auto& Uniform : m_Uniforms )
+			{
+				if( Uniform.Name == Name )
+				{
+					Uniform.Set( ( uint8_t* ) &Value, sizeof( Ty ) );
+					return;
+				}
+			}
+		}
+
+		template<typename Ty>
+		Ty& Get( const std::string& Name )
+		{
+			for( auto& Uniform : m_Uniforms )
+			{
+				if( Uniform.Name == Name )
+				{
+					return Uniform.Read< Ty >();
+				}
+			}
+		}
+
+		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture ) {}
+		Ref< Texture2D > GetResource( const std::string& Name ) {}
+
+	private:
+		
+		std::string m_Name = "";
+		Ref< Material > m_Material;
+
+		std::vector< ShaderUniform > m_Uniforms;
+		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
+
+	private:
+		friend class Material;
+	};
 }

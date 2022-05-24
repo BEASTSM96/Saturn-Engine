@@ -189,6 +189,7 @@ namespace Saturn {
 		// Create material.
 		for( size_t m = 0; m < scene->mNumMaterials; m++ )
 		{
+			m_Materials.resize( scene->mNumMaterials );
 			aiMaterial* material = scene->mMaterials[ m ];
 
 			aiString name;
@@ -198,16 +199,13 @@ namespace Saturn {
 			material->Get( AI_MATKEY_COLOR_DIFFUSE, color );
 			
 			// Ask nicely to the shader if we can use the shader (and the shader will always say yes).
-			m_MeshShader->UseUniform( "u_AlbedoTexture" );
-			m_MeshShader->UseUniform( "u_NormalTexture" );
-			m_MeshShader->UseUniform( "u_MetallicTexture" );
-			m_MeshShader->UseUniform( "u_RoughnessTexture" );
 			m_MeshShader->UseUniform( "u_Materials.UseAlbedoTexture" );
+			m_MeshShader->UseUniform( "u_Materials.UseNormalTexture" );
 			m_MeshShader->UseUniform( "u_Materials.AlbedoColor" );
 			
 			std::string MaterialName = std::string( name.C_Str() );
 			
-			m_MeshMaterial = Ref<Material>::Create( m_MeshShader, MaterialName );
+			m_MeshMaterial = Ref< Material >::Create( m_MeshShader, MaterialName );
 			
 			uint32_t* pData = new uint32_t[ 64 * 64 ];
 			
@@ -231,10 +229,13 @@ namespace Saturn {
 					pp /= std::string( AlbedoTexturePath.data );
 
 					auto AlbedoTexturePath = pp.string();
+					
+					Ref< Texture2D > AlbedoTexture;
 
 					SAT_CORE_INFO( "MESH FOR ENTITY ID {0}: Albedo Map texture {1}", std::to_string( uuid ), AlbedoTexturePath );
 
-					Ref< Texture2D > AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
+					if( std::filesystem::exists( AlbedoTexturePath ) )
+						AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
 
 					if( AlbedoTexture )
 					{
@@ -256,9 +257,50 @@ namespace Saturn {
 					
 				}
 			}
+
+			// Normal Texture
+			{
+				aiString NormalTexturePath;
+				bool HasNormalTexture = material->GetTexture( aiTextureType_DIFFUSE, 0, &NormalTexturePath ) == AI_SUCCESS;
+
+				if( HasNormalTexture )
+				{
+					std::filesystem::path AlbedoPath = filename;
+					auto pp = AlbedoPath.parent_path();
+
+					pp /= std::string( NormalTexturePath.data );
+
+					auto NormalTexturePath = pp.string();
+
+					Ref< Texture2D > NormalTexture;
+
+					SAT_CORE_INFO( "MESH FOR ENTITY ID {0}: Normal Map texture {1}", std::to_string( uuid ), NormalTexturePath );
+
+					if( std::filesystem::exists( NormalTexturePath ) )
+						NormalTexture = Ref< Texture2D >::Create( NormalTexturePath, AddressingMode::Repeat );
+
+					if( NormalTexture )
+					{
+						m_MeshMaterial->SetResource( "u_NormalTexture", NormalTexture );
+						m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 1.0f );
+					}
+					else
+					{
+						m_MeshMaterial->SetResource( "u_NormalTexture", PinkTexture );
+						m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
+					}
+				}
+				else
+				{
+					m_MeshMaterial->SetResource( "u_NormalTexture", PinkTexture );
+					m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
+				}
+			}
 		
 			free( pData );
 		}
+
+		
 	}
 
 	Mesh::Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform ) : m_StaticVertices( vertices ), m_Indices( indices )

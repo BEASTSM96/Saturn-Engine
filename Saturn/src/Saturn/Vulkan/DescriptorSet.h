@@ -98,21 +98,13 @@ namespace Saturn {
 		STORAGE_BUFFER = 7,
 	};
 	
-	struct DescriptorSetLayout
-	{
-		void Create();
-
-		VkDescriptorSetLayout VulkanLayout = nullptr;
-		std::vector< VkDescriptorSetLayoutBinding > Bindings;
-	};
-
 	struct DescriptorSetSpecification
 	{		
 		DescriptorSetSpecification() {}
 		~DescriptorSetSpecification() {}
 		
 		Ref< DescriptorPool > Pool;
-		DescriptorSetLayout Layout;
+		VkDescriptorSetLayout Layout;
 	};
 
 	class DescriptorSet

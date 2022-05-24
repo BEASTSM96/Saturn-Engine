@@ -40,7 +40,7 @@
 }
 
 namespace Saturn {
-
+	
 	struct ReflectionDescriptorMember 
 	{
 		std::string Name = "";
@@ -71,6 +71,8 @@ namespace Saturn {
 		int Count = -1;
 		bool Accessed = false;
 		VkDescriptorType Type = VK_DESCRIPTOR_TYPE_MAX_ENUM; // i.e VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+		
+		VkShaderStageFlags StageFlags = 0;
 
 		std::vector< ReflectionDescriptorMember > Members;
 

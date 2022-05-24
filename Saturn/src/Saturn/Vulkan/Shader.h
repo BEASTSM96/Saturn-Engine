@@ -36,6 +36,7 @@
 #include <vector>
 #include <string>
 #include <filesystem>
+#include <vulkan.h>
 #include <unordered_map>
 
 namespace Saturn {
@@ -45,14 +46,21 @@ namespace Saturn {
 		Vertex = 0,
 		Fragment = 1,
 		Geometry = 2,
-		Compute = 3
+		Compute = 3,
+		All = 4
 	};
-
-	struct ShaderCodename
+	
+	// A shader uniform buffer represents a uniform buffer variable in a shader.
+	struct ShaderUniformBuffer
 	{
-		UUID m_UUID;
-		std::string m_Filename;
-		std::string m_Type;
+		std::string Name;
+		int Binding;
+		size_t Size;
+		ShaderType Location;
+		
+		VkBuffer Buffer;
+
+		std::vector< ShaderUniform > Members;
 	};
 
 	struct ShaderSource
@@ -122,7 +130,25 @@ namespace std {
 
 namespace Saturn {
 
+	static ShaderType VulkanStageToSaturn( VkShaderStageFlags Flags )
+	{
+		switch( Flags )
+		{
+			case VK_SHADER_STAGE_VERTEX_BIT:
+				return ShaderType::Vertex;
+			case VK_SHADER_STAGE_FRAGMENT_BIT:
+				return ShaderType::Fragment;
+			case VK_SHADER_STAGE_GEOMETRY_BIT:
+				return ShaderType::Geometry;
+			case VK_SHADER_STAGE_COMPUTE_BIT:
+				return ShaderType::Compute;
+			default:
+				return ShaderType::All;
+		}
+	}
+
 	class Shader;
+	class DescriptorPool;
 
 	class ShaderLibrary
 	{
@@ -147,6 +173,8 @@ namespace Saturn {
 	{
 		using ShaderSourceMap = std::unordered_map< ShaderSourceKey, ShaderSource >;
 		using SpvSourceMap = std::unordered_map< ShaderSourceKey, std::vector< uint32_t > >;
+		using ShaderUBMap = std::unordered_map< ShaderType, std::unordered_map< int, ShaderUniformBuffer > >;
+		//                                      ShaderType,                     Binding,   UniformBuffer
 	public:
 		Shader() { }
 		Shader( std::string Name, std::filesystem::path Filepath );
@@ -215,6 +243,16 @@ namespace Saturn {
 		
 		std::vector< ShaderUniform > GetAvailableUniforms() const { return m_AvailableUniforms; }
 		std::vector< ShaderUniform >& GetAvailableUniforms() { return m_AvailableUniforms; }
+		
+		ShaderUBMap& GetUniformBuffers() { return m_UniformBuffers; }
+		const ShaderUBMap& GetUniformBuffers() const { return m_UniformBuffers; }
+		
+		std::vector< std::tuple< ShaderType, int, std::string > >& GetTextures() { return m_Textures; }
+		
+		VkDescriptorSetLayout GetSetLayout() const { return m_SetLayout; }
+		
+		Ref< DescriptorPool >& GetDescriptorPool() { return m_SetPool; }
+		const Ref< DescriptorPool >& GetDescriptorPool() const { return m_SetPool; }
 
 	private:
 
@@ -241,7 +279,14 @@ namespace Saturn {
 		
 		std::vector< ShaderUniform > m_AvailableUniforms;
 		std::vector< ShaderUniform > m_Uniforms;
+
+		ShaderUBMap m_UniformBuffers;
+		// So here we saying that the shader might X amount of textures at X index and X shader stage. It's the materials job to create the textures.
+		std::vector< std::tuple< ShaderType, int, std::string > > m_Textures;
 		
+		VkDescriptorSetLayout m_SetLayout;
+		Ref< DescriptorPool > m_SetPool;
+
 	private:
 		friend class ShaderWorker;
 	};

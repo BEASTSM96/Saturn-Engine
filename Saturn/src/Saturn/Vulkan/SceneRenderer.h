@@ -170,8 +170,6 @@ namespace Saturn {
 		Resource GeometryPassDepth;
 		Resource GeometryPassColor;
 		VkFramebuffer GeometryFramebuffer;
-		
-		Ref< DescriptorPool > GeometryDescriptorPool;
 
 		// Buffer image.
 		VkDescriptorSet RenderPassResult;
@@ -183,8 +181,6 @@ namespace Saturn {
 		// Main geometry for static meshes.
 		Pipeline StaticMeshPipeline;
 		
-		DescriptorSetLayout SM_DescriptorSetLayout;
-
 		std::unordered_map< UUID, MeshDescriptorSet > StaticMeshDescriptorSets;
 		
 		// Dynamic mesh geometry.
@@ -196,7 +192,6 @@ namespace Saturn {
 		Pipeline GridPipeline;
 
 		Ref< DescriptorSet > GridDescriptorSet;
-		Ref< DescriptorPool > GridDescriptorPool;
 
 		VkBuffer GridUniformBuffer;
 		VmaAllocation GridUBOAllocation;
@@ -209,7 +204,6 @@ namespace Saturn {
 		Pipeline SkyboxPipeline;
 
 		Ref< DescriptorSet > SkyboxDescriptorSet;
-		Ref< DescriptorPool > SkyboxDescriptorPool;
 		
 		VkBuffer SkyboxUniformBuffer;
 		
@@ -233,7 +227,6 @@ namespace Saturn {
 		
 		Ref< DescriptorSet > SC_DescriptorSet;
 		Ref< DescriptorPool > SC_DescriptorPool;
-		DescriptorSetLayout SC_DescriptorSetLayout;
 
 		VertexBuffer* SC_VertexBuffer;
 		IndexBuffer* SC_IndexBuffer;

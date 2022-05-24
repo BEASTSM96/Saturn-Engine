@@ -30,6 +30,11 @@
 #include "sppch.h"
 #include "Shader.h"
 
+#include "DescriptorSet.h"
+
+#include "VulkanContext.h"
+#include "VulkanDebug.h"
+
 #include <istream>
 #include <fstream>
 #include <iostream>
@@ -159,6 +164,8 @@ namespace Saturn {
 		}
 
 		m_Uniforms.clear();
+
+		vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_SetLayout, nullptr );
 	}
 
 	void Shader::ReadFile()
@@ -247,6 +254,8 @@ namespace Saturn {
 				SAT_CORE_INFO( " {0} Is a uniform block.", rDescriptor.Name );
 				
 				int i = 0;
+				
+				std::vector< ShaderUniform > UBMembers;
 
 				for( auto& rMember : rDescriptor.Members )
 				{
@@ -256,18 +265,20 @@ namespace Saturn {
 					SAT_CORE_INFO( "   Type {0}", ShaderDataTypeToString( rMember.Type ) );
 
 					// Check if the uniform already exists in list, if not add it.
-					auto result = std::find_if( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), [&]( const ShaderUniform& rUniform )
+					auto result = std::find_if( UBMembers.begin(), UBMembers.end(), [&]( const ShaderUniform& rUniform )
 					{
 						return rUniform.Name == rMember.Name;
 					} );
 					
-					if( result == m_AvailableUniforms.end() )
+					if( result == UBMembers.end() )
 					{
-						m_AvailableUniforms.push_back( { rDescriptor.Name + "." + rMember.Name, i, rMember.Type, rMember.Size } );
+						UBMembers.push_back( { rDescriptor.Name + "." + rMember.Name, i, rMember.Type, rMember.Size } );
 					}
 
 					i++;
 				}
+			
+				m_UniformBuffers[ VulkanStageToSaturn( rDescriptor.StageFlags ) ][ rDescriptor.Binding ] = ShaderUniformBuffer( rDescriptor.Name, rDescriptor.Binding, 0, VulkanStageToSaturn( rDescriptor.StageFlags ), nullptr, UBMembers );
 			}
 			else
 			{
@@ -281,7 +292,16 @@ namespace Saturn {
 
 				if( result == m_AvailableUniforms.end() )
 				{
-					m_AvailableUniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ), sizeof( rDescriptor ) } );
+					if( rDescriptor.Type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER )
+					{
+						m_Textures.push_back( { VulkanStageToSaturn( rDescriptor.StageFlags ), rDescriptor.Binding, rDescriptor.Name } );
+						
+						SAT_CORE_INFO( "  At ({0}, {1}) texture is present.", ( int )VulkanStageToSaturn( rDescriptor.StageFlags ), rDescriptor.Binding );
+					}
+					else
+					{
+						m_AvailableUniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ), sizeof( rDescriptor ) } );
+					}
 				}
 			}
 		}
@@ -307,6 +327,52 @@ namespace Saturn {
 				m_AvailableUniforms.push_back( { Output.PushConstant.Name + "." + rPCMember.Name, rPCMember.Offset, rPCMember.Type, rPCMember.Size } );
 			}
 		}
+
+		// Create the descriptor set layout.
+		
+		std::vector< VkDescriptorSetLayoutBinding > Bindings;
+		std::vector< VkDescriptorPoolSize > PoolSizes;
+
+		// Iterate over uniform buffers
+		for( auto& [ stage, bindingsMap ] : m_UniformBuffers )
+		{
+			for ( auto& [ binding, buffer ] : bindingsMap )
+			{
+				VkDescriptorSetLayoutBinding Binding = {};
+				Binding.binding = binding;
+				Binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				Binding.descriptorCount = 1;
+				Binding.stageFlags = stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
+				Binding.pImmutableSamplers = nullptr;
+
+				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 1000 } );
+
+				Bindings.push_back( Binding );
+			}
+		}			
+
+		// Iterate over textures
+		for ( auto& [ stage, binding, name ] : m_Textures )
+		{
+			VkDescriptorSetLayoutBinding Binding = {};
+			Binding.binding = binding;
+			Binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			Binding.descriptorCount = 1;
+			Binding.stageFlags = stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
+			Binding.pImmutableSamplers = nullptr;
+
+			PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
+
+			Bindings.push_back( Binding );
+		}
+
+		VkDescriptorSetLayoutCreateInfo LayoutInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+		LayoutInfo.bindingCount = Bindings.size();
+		LayoutInfo.pBindings = Bindings.data();
+		
+		VK_CHECK( vkCreateDescriptorSetLayout( VulkanContext::Get().GetDevice(), &LayoutInfo, nullptr, &m_SetLayout ) );
+
+		m_SetPool = Ref< DescriptorPool >::Create( PoolSizes, 10000 );
 	}
 
 	void Shader::CompileGlslToSpvAssembly()

@@ -35,7 +35,8 @@
 #include "ShaderDataType.h"
 
 namespace Saturn {
-
+	
+	// A shader uniform represents a uniform variable in a shader.
 	struct ShaderUniform
 	{
 		ShaderUniform() { memset( pValue, 0, Size ); }
@@ -54,8 +55,6 @@ namespace Saturn {
 			pValue = new uint8_t[ Size ];
 			
 			memset( pValue, 0, Size );
-
-			UUID = location * 2;
 		}
 
 		void Terminate()
@@ -87,7 +86,6 @@ namespace Saturn {
 			
 			Location = -1;
 			Type = ShaderDataType::None;
-			UUID = 0;
 		}
 
 		operator bool () const
@@ -144,8 +142,6 @@ namespace Saturn {
 		std::string Name = "";
 		int Location = -1;
 		ShaderDataType Type = ShaderDataType::None;
-
-		int UUID;
 
 		uint8_t* pValue;
 		uint32_t Size;

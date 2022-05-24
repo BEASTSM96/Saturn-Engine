@@ -208,38 +208,19 @@ namespace Saturn {
 		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
 		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
 
-		std::vector< VkDescriptorPoolSize > PoolSizes;
-
-		// TODO: I want a nice API where I can use the same layout for the pool and the descriptor set layout.
-
-		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 1000 } );
-		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
-		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
-		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
-		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
-
-		m_RendererData.GeometryDescriptorPool = Ref< DescriptorPool >::Create( PoolSizes, 100000 );
-
-		// u_Matrices
-		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_ALL } );
 
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 		
-		VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-		BufferInfo.size = BufferSize;
-		BufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-		BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		{
+			VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+			BufferInfo.size = BufferSize;
+			BufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+			BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, &m_RendererData.SM_MatricesUBO );
+			pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, &m_RendererData.SM_MatricesUBO );
 
-		// u_AlbedoTexture, u_NormalTexture, u_MetallicTexture, u_RoughnessTexture
-		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
-		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
-		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
-		m_RendererData.SM_DescriptorSetLayout.Bindings.push_back( { 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
+		}
 
-		m_RendererData.SM_DescriptorSetLayout.Create();
-		
 		std::vector< VkPushConstantRange > PushConstants;
 		PushConstants.push_back( { .stageFlags = VK_SHADER_STAGE_ALL, .offset = 0, .size = sizeof( RendererData::StaticMeshMaterial ) } );
 
@@ -248,7 +229,7 @@ namespace Saturn {
 		PipelineSpec.Height =m_RendererData.Height;
 		PipelineSpec.Name = "Static Meshes";
 		PipelineSpec.pShader = m_RendererData.StaticMeshShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SM_DescriptorSetLayout.VulkanLayout } };
+		PipelineSpec.Layout.SetLayouts = { { m_RendererData.StaticMeshShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
@@ -362,21 +343,9 @@ namespace Saturn {
 
 		ShaderLibrary::Get().Add( m_RendererData.SceneCompositeShader );
 		
-		// Create the descriptor pool.
-		std::vector< VkDescriptorPoolSize > PoolSizes;
-		PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1 } );
-		
-		m_RendererData.SC_DescriptorPool = Ref< DescriptorPool >::Create( PoolSizes, 1 );
-
-		// Textures
-		m_RendererData.SC_DescriptorSetLayout.Bindings.push_back( { 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT } );
-		
-		m_RendererData.SC_DescriptorSetLayout.Create();
-
-		// Create the descriptor set.
 		DescriptorSetSpecification Spec;
-		Spec.Layout = m_RendererData.SC_DescriptorSetLayout;
-		Spec.Pool = m_RendererData.SC_DescriptorPool;
+		Spec.Layout = m_RendererData.SceneCompositeShader->GetSetLayout();
+		Spec.Pool = m_RendererData.SceneCompositeShader->GetDescriptorPool();
 
 		m_RendererData.SC_DescriptorSet = Ref< DescriptorSet >::Create( Spec );
 
@@ -415,7 +384,7 @@ namespace Saturn {
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Scene Composite";
 		PipelineSpec.pShader = m_RendererData.SceneCompositeShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SC_DescriptorSetLayout.VulkanLayout } };
+		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SceneCompositeShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.SceneComposite;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
@@ -562,32 +531,10 @@ namespace Saturn {
 		BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		
 		pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, &m_RendererData.GridUniformBuffer );
-		
-		// Create descriptor set layout.
-		
-		VkDescriptorPoolSize PoolSize = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 };
-		PoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		PoolSize.descriptorCount = 1;
-		
-		std::vector< VkDescriptorPoolSize > PoolSizes;
-		PoolSizes.push_back( PoolSize );
-
-		m_RendererData.GridDescriptorPool = Ref< DescriptorPool >::Create( PoolSizes, 1 );
-		
-		DescriptorSetLayout LayoutDescriptorSet;
-		
-		VkDescriptorSetLayoutBinding BindingLayout = {};
-		BindingLayout.binding = 0;
-		BindingLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		BindingLayout.descriptorCount = 1;
-		BindingLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		LayoutDescriptorSet.Bindings = { { BindingLayout } };
-		LayoutDescriptorSet.Create();
-		
+	
 		DescriptorSetSpecification Spec = {};
-		Spec.Layout = LayoutDescriptorSet;
-		Spec.Pool = m_RendererData.GridDescriptorPool;
+		Spec.Layout = m_RendererData.GridShader->GetSetLayout();
+		Spec.Pool = m_RendererData.GridShader->GetDescriptorPool();
 		
 		m_RendererData.GridDescriptorSet = Ref< DescriptorSet >::Create( Spec );
 
@@ -614,7 +561,7 @@ namespace Saturn {
 		PipelineSpec.Height =m_RendererData.Height;
 		PipelineSpec.Name = "Grid";
 		PipelineSpec.pShader = m_RendererData.GridShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { LayoutDescriptorSet.VulkanLayout } };
+		PipelineSpec.Layout.SetLayouts = { { m_RendererData.GridShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
@@ -642,8 +589,6 @@ namespace Saturn {
 		m_RendererData.GridVertexBuffer->Terminate();
 
 		m_RendererData.SkyboxDescriptorSet->Terminate();
-
-		m_RendererData.SkyboxDescriptorPool->Terminate();
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -678,29 +623,9 @@ namespace Saturn {
 
 		pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, &m_RendererData.SkyboxUniformBuffer );
 		
-		VkDescriptorPoolSize PoolSize = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 };
-		PoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		PoolSize.descriptorCount = 1;
-		
-		std::vector< VkDescriptorPoolSize  > PoolSizes;
-		PoolSizes.push_back( PoolSize );
-
-		m_RendererData.SkyboxDescriptorPool = Ref< DescriptorPool >::Create( PoolSizes, 1 );
-		
-		DescriptorSetLayout LayoutDescriptorSet;
-
-		VkDescriptorSetLayoutBinding BindingLayout = {};
-		BindingLayout.binding = 0;
-		BindingLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		BindingLayout.descriptorCount = 1;
-		BindingLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		LayoutDescriptorSet.Bindings = { { BindingLayout } };
-		LayoutDescriptorSet.Create();
-		
 		DescriptorSetSpecification Spec = {};
-		Spec.Layout = LayoutDescriptorSet;
-		Spec.Pool = m_RendererData.SkyboxDescriptorPool;
+		Spec.Layout = m_RendererData.SkyboxShader->GetSetLayout();
+		Spec.Pool = m_RendererData.SkyboxShader->GetDescriptorPool();
 
 		m_RendererData.SkyboxDescriptorSet = Ref< DescriptorSet >::Create( Spec );
 		
@@ -727,7 +652,7 @@ namespace Saturn {
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Skybox";
 		PipelineSpec.pShader = m_RendererData.SkyboxShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { LayoutDescriptorSet.VulkanLayout } };
+		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SkyboxShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
@@ -755,8 +680,6 @@ namespace Saturn {
 		m_RendererData.SkyboxVertexBuffer->Terminate();
 
 		m_RendererData.SkyboxDescriptorSet->Terminate();
-
-		m_RendererData.SkyboxDescriptorPool->Terminate();
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -1220,8 +1143,8 @@ namespace Saturn {
 		Ref< Texture2D > AlbedoTexture = rMaterial->GetResource( "u_AlbedoTexture" );
 
 		DescriptorSetSpecification Spec;
-		Spec.Layout = m_RendererData.SM_DescriptorSetLayout;
-		Spec.Pool = m_RendererData.GeometryDescriptorPool;
+		//Spec.Layout = m_RendererData.SM_DescriptorSetLayout;
+		//Spec.Pool = m_RendererData.GeometryDescriptorPool;
 		
 		std::unordered_map< Submesh, Ref< DescriptorSet > > Sets;
 		
@@ -1301,8 +1224,6 @@ namespace Saturn {
 
 		vkDestroyFramebuffer( LogicalDevice, GeometryFramebuffer, nullptr );
 		GeometryFramebuffer = nullptr;
-
-		GeometryDescriptorPool->Terminate();
 		
 		pAllocator->DestroyBuffer( SM_MatricesUBO );
 
@@ -1311,7 +1232,6 @@ namespace Saturn {
 		GridPipeline.Terminate();
 
 		GridDescriptorSet->Terminate();
-		GridDescriptorPool->Terminate();
 
 		//GridUniformBuffer.Terminate();
 
@@ -1320,7 +1240,6 @@ namespace Saturn {
 
 		SkyboxPipeline.Terminate();
 		SkyboxDescriptorSet->Terminate();
-		SkyboxDescriptorPool->Terminate();
 
 		//SkyboxUniformBuffer.Terminate();
 

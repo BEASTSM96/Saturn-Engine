@@ -127,6 +127,7 @@ namespace Saturn {
 		std::vector<MeshVertex> m_StaticVertices;
 
 		std::vector<Submesh> m_Submeshes;
+		std::vector<Ref<Material>> m_Materials;
 
 		std::vector<Index> m_Indices;
 		std::vector<uint32_t> m_RealIndices;
