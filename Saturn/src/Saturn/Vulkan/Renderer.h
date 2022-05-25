@@ -104,6 +104,8 @@ namespace Saturn {
 
 		void SubmitTerminateResource( std::function<void()>&& rrFunction );
 
+		Ref< Texture2D > GetPinkTexture() { return m_PinkTexture; }
+
 	public:
 
 		VkCommandBuffer ActiveCommandBuffer() { return m_CommandBuffer; };
@@ -137,6 +139,8 @@ namespace Saturn {
 		Timer m_QueuePresentTimer;
 		float m_QueuePresentTime;
 		
+		Ref< Texture2D > m_PinkTexture;
+
 	private:
 		friend class VulkanContext;
 	};

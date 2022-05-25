@@ -86,11 +86,25 @@ namespace Saturn {
 			for( int i = 0; i < Bindings.size(); i++ )
 			{
 				auto des = ReflectDescriptor( *Bindings[ i ], Module );
-
+				
+				// Find members in the list and check if one has the name if so add the shader stage to it.
+				for( auto&& member : Out.Descriptors )
+				{
+					if( member.Name == des.Name )
+					{
+						member.StageFlags = VK_SHADER_STAGE_ALL;
+					}
+				}
+				
 				// Only add a new member if its not in the list already
 				if( std::find_if( std::begin( Out.Descriptors ), std::end( Out.Descriptors ), [&des]( const auto& p ) -> bool
 				{
-					return p.Name == des.Name;
+					// Check if the name is the same and the stage is the same.
+					bool IsName = p.Name == des.Name;
+					bool IsStage = p.StageFlags == des.StageFlags;
+
+
+					return IsName;
 				} ) == std::end( Out.Descriptors ) )
 				{
 					Out.Descriptors.push_back( des );
@@ -150,6 +164,7 @@ namespace Saturn {
 				if( std::find( std::begin( Out.Members ), std::end( Out.Members ), Member ) == std::end( Out.Members ) )
 				{
 					Out.Members.push_back( Member );
+					Out.Size += Member.Size;
 				}
 			}
 		}

@@ -278,12 +278,21 @@ namespace Saturn {
 					i++;
 				}
 			
-				m_UniformBuffers[ VulkanStageToSaturn( rDescriptor.StageFlags ) ][ rDescriptor.Binding ] = ShaderUniformBuffer( rDescriptor.Name, rDescriptor.Binding, 0, VulkanStageToSaturn( rDescriptor.StageFlags ), nullptr, UBMembers );
+				m_UniformBuffers[ VulkanStageToSaturn( rDescriptor.StageFlags ) ][ rDescriptor.Binding ] = ShaderUniformBuffer( rDescriptor.Name, rDescriptor.Binding, rDescriptor.Size, VulkanStageToSaturn( rDescriptor.StageFlags ), nullptr, UBMembers );
 			}
 			else
 			{
 				SAT_CORE_INFO( " {0} Is a not uniform block.", rDescriptor.Name );
 				
+				// Add textures.
+
+				if( rDescriptor.Type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER )
+				{
+					m_Textures.push_back( { VulkanStageToSaturn( rDescriptor.StageFlags ), rDescriptor.Binding, rDescriptor.Name } );
+
+					SAT_CORE_INFO( "  At ({0}, {1}) texture is present.", ( int ) VulkanStageToSaturn( rDescriptor.StageFlags ), rDescriptor.Binding );
+				}
+
 				// Check if the uniform already exists in list, if not add it.
 				auto result = std::find_if( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), [&]( const ShaderUniform& rUniform )
 				{
@@ -292,16 +301,7 @@ namespace Saturn {
 
 				if( result == m_AvailableUniforms.end() )
 				{
-					if( rDescriptor.Type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER )
-					{
-						m_Textures.push_back( { VulkanStageToSaturn( rDescriptor.StageFlags ), rDescriptor.Binding, rDescriptor.Name } );
-						
-						SAT_CORE_INFO( "  At ({0}, {1}) texture is present.", ( int )VulkanStageToSaturn( rDescriptor.StageFlags ), rDescriptor.Binding );
-					}
-					else
-					{
-						m_AvailableUniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ), sizeof( rDescriptor ) } );
-					}
+					m_AvailableUniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ), sizeof( rDescriptor ) } );
 				}
 			}
 		}
@@ -333,6 +333,8 @@ namespace Saturn {
 		std::vector< VkDescriptorSetLayoutBinding > Bindings;
 		std::vector< VkDescriptorPoolSize > PoolSizes;
 
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+
 		// Iterate over uniform buffers
 		for( auto& [ stage, bindingsMap ] : m_UniformBuffers )
 		{
@@ -342,14 +344,33 @@ namespace Saturn {
 				Binding.binding = binding;
 				Binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				Binding.descriptorCount = 1;
-				Binding.stageFlags = stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
+				Binding.stageFlags = stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : stage == ShaderType::All ? VK_SHADER_STAGE_ALL : VK_SHADER_STAGE_FRAGMENT_BIT;
 				Binding.pImmutableSamplers = nullptr;
+
+				VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+				BufferInfo.size = buffer.Size;
+				BufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+				BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+				pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_AUTO, &buffer.Buffer );
 
 				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 1000 } );
 
 				Bindings.push_back( Binding );
+
+				m_DescriptorWrites[ stage ][ buffer.Name ]  = {
+				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				.pNext = nullptr,
+				.dstSet = nullptr,
+				.dstBinding = binding,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+				.pImageInfo = nullptr,
+				.pBufferInfo = nullptr,
+				.pTexelBufferView = nullptr };
 			}
-		}			
+		}
 
 		// Iterate over textures
 		for ( auto& [ stage, binding, name ] : m_Textures )
@@ -358,12 +379,24 @@ namespace Saturn {
 			Binding.binding = binding;
 			Binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			Binding.descriptorCount = 1;
-			Binding.stageFlags = stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
+			Binding.stageFlags = stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : stage == ShaderType::All ? VK_SHADER_STAGE_ALL : VK_SHADER_STAGE_FRAGMENT_BIT;
 			Binding.pImmutableSamplers = nullptr;
 
 			PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
 
 			Bindings.push_back( Binding );
+
+			m_DescriptorWrites[ stage ][ name ] = {
+				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				.pNext = nullptr,
+				.dstSet = nullptr,
+				.dstBinding = binding,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+				.pImageInfo = nullptr,
+				.pBufferInfo = nullptr,
+				.pTexelBufferView = nullptr };
 		}
 
 		VkDescriptorSetLayoutCreateInfo LayoutInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
@@ -380,7 +413,7 @@ namespace Saturn {
 		shaderc::Compiler       Compiler;
 		shaderc::CompileOptions CompilerOptions;
 
-		// We don use shaderc_optimization_level_zero, as will remove the uniform names, it took me 6 hours to figure out.
+		// We don't use shaderc_optimization_level_zero, as will remove the uniform names, it took me 6 hours to figure out.
 		CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_zero );
 
 		CompilerOptions.SetWarningsAsErrors();
@@ -402,12 +435,12 @@ namespace Saturn {
 
 			if( Res.GetCompilationStatus() != shaderc_compilation_status_success ) 
 			{
+				SAT_CORE_INFO( "Shader Error status {0}", Res.GetCompilationStatus() );
+				SAT_CORE_INFO( "Shader Error messages {0}", Res.GetErrorMessage() );
 				SAT_ASSERT( false, "Shader Compilation Failed" );
 			}
 
 			SAT_CORE_INFO( "Shader Warings {0}", Res.GetNumWarnings() );
-			SAT_CORE_INFO( "Shader Error status {0}", Res.GetCompilationStatus() );
-			SAT_CORE_INFO( "Shader Error messages {0}", Res.GetErrorMessage() );
 
 			std::vector< uint32_t > SpvBinary( Res.begin(), Res.end() );
 

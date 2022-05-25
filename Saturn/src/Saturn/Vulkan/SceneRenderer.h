@@ -176,17 +176,9 @@ namespace Saturn {
 		
 		// STATIC MESHES
 
-		// Static mesh geometry.
-		VkBuffer SM_MatricesUBO;
 		// Main geometry for static meshes.
 		Pipeline StaticMeshPipeline;
-		
-		std::unordered_map< UUID, MeshDescriptorSet > StaticMeshDescriptorSets;
-		
-		// Dynamic mesh geometry.
-		// For animated meshes.
-		Pipeline DynamicMeshPipeline;
-
+	
 		// GRID
 
 		Pipeline GridPipeline;
@@ -261,8 +253,6 @@ namespace Saturn {
 
 		void AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 
-		void RenderDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
-		
 		void SetWidthAndHeight( uint32_t w, uint32_t h ) { m_RendererData.Width = w; m_RendererData.Height = h; Recreate(); }
 
 		void FlushDrawList();		
@@ -272,13 +262,6 @@ namespace Saturn {
 		void RenderScene();
 
 		void SetEditorCamera( const EditorCamera& Camera );
-
-		// TODO: For every static mesh we need a descriptor set.
-		//		 Only adds a descriptor set for a static mesh if it doesn't exist.
-		void AddDescriptorSet( const DescriptorSet& rDescriptorSet );
-
-		MeshDescriptorSet CreateSMDescriptorSet( UUID& rUUID, const glm::mat4 Transform, const Ref< Mesh >& rMesh );
-		void DestroySMDescriptorSet( UUID uuid );
 
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 

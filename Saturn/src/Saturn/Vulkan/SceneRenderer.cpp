@@ -209,18 +209,6 @@ namespace Saturn {
 		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
 
 
-		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-		
-		{
-			VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-			BufferInfo.size = BufferSize;
-			BufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-			BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-			pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, &m_RendererData.SM_MatricesUBO );
-
-		}
-
 		std::vector< VkPushConstantRange > PushConstants;
 		PushConstants.push_back( { .stageFlags = VK_SHADER_STAGE_ALL, .offset = 0, .size = sizeof( RendererData::StaticMeshMaterial ) } );
 
@@ -985,16 +973,18 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Static meshes" );
 
 		// Render static meshes.
+		Ref< Shader > StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
 		for( auto& Cmd : m_DrawList )
 		{
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
 			auto& rMaterial = Cmd.Mesh->GetMaterial();
-			
-			// Update uniform buffers.
+			auto& UBs = StaticMeshShader->GetUniformBuffers();
+
+			// u_Matrices
 			RendererData::StaticMeshMatrices u_Matrices = {};
 			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 
-			auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_RendererData.SM_MatricesUBO );
+			auto bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::All ][ 0 ].Buffer );
 
 			void* pData = pAllocator->MapMemory< void >( bufferAloc );
 
@@ -1004,7 +994,7 @@ namespace Saturn {
 
 			for ( Submesh& rSubmesh : Cmd.Mesh->Submeshes() )
 			{
-				m_RendererData.StaticMeshDescriptorSets[ uuid ] = CreateSMDescriptorSet( uuid, Cmd.Transform * rSubmesh.Transform, Cmd.Mesh );
+				Ref< DescriptorSet > Set = Cmd.Mesh->GetDescriptorSets()[ rSubmesh ];
 
 				// Bind vertex and index buffers.
 				Cmd.Mesh->GetVertexBuffer()->Bind( m_RendererData.CommandBuffer );
@@ -1012,7 +1002,7 @@ namespace Saturn {
 
 				m_RendererData.StaticMeshPipeline.Bind( m_RendererData.CommandBuffer );
 
-				m_RendererData.StaticMeshDescriptorSets[ uuid ].Bind( rSubmesh, m_RendererData.CommandBuffer, m_RendererData.StaticMeshPipeline.GetPipelineLayout() );
+				Set->Bind( m_RendererData.CommandBuffer, m_RendererData.StaticMeshPipeline.GetPipelineLayout() );
 				
 				// Write push constant data.
 				RendererData::StaticMeshMaterial u_Materials = {};
@@ -1088,6 +1078,7 @@ namespace Saturn {
 			return;
 		}
 
+		/*
 		// Cleanup descriptor sets from last frame.
 		if ( m_RendererData.StaticMeshDescriptorSets.size() >= 1 )
 		{
@@ -1098,6 +1089,7 @@ namespace Saturn {
 
 			m_RendererData.StaticMeshDescriptorSets.clear();
 		}
+		*/
 
 		m_RendererData.CommandBuffer = Renderer::Get().ActiveCommandBuffer();
 
@@ -1124,89 +1116,6 @@ namespace Saturn {
 	{
 		m_RendererData.EditorCamera = Camera;
 	}
-
-	void SceneRenderer::AddDescriptorSet( const DescriptorSet& rDescriptorSet )
-	{
-		// Check if the descriptor set already exists.
-//		auto res = std::find( std::begin( m_RendererData.StaticMeshDescriptorSets ), std::end( m_RendererData.StaticMeshDescriptorSets ), rDescriptorSet );
-	
-		//if( res == std::end( m_RendererData.StaticMeshDescriptorSets ) )
-		//{
-			//m_RendererData.StaticMeshDescriptorSets.push_back( rDescriptorSet );
-		//}
-	}
-
-	MeshDescriptorSet SceneRenderer::CreateSMDescriptorSet( UUID& rUUID, const glm::mat4 Transform, const Ref<Mesh>& rMesh )
-	{
-		Ref< Material > rMaterial = rMesh->GetMaterial();
-		
-		Ref< Texture2D > AlbedoTexture = rMaterial->GetResource( "u_AlbedoTexture" );
-
-		DescriptorSetSpecification Spec;
-		//Spec.Layout = m_RendererData.SM_DescriptorSetLayout;
-		//Spec.Pool = m_RendererData.GeometryDescriptorPool;
-		
-		std::unordered_map< Submesh, Ref< DescriptorSet > > Sets;
-		
-		for( auto& submesh : rMesh->Submeshes() )
-		{
-			Ref< DescriptorSet > Set = Ref< DescriptorSet >::Create( Spec );
-
-			// As this is a Static mesh (SM), descriptor set, we can hard-code the values.
-
-			VkDescriptorBufferInfo MatricesBufferInfo = {};
-			MatricesBufferInfo.buffer = m_RendererData.SM_MatricesUBO;
-			MatricesBufferInfo.offset = 0;
-			MatricesBufferInfo.range = sizeof( RendererData::StaticMeshMatrices );
-			
-			VkDescriptorImageInfo ImageInfo = {};
-			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			ImageInfo.imageView = AlbedoTexture->GetImageView();
-			ImageInfo.sampler = AlbedoTexture->GetSampler();
-
-			// Create the uniform buffer data.
-			RendererData::StaticMeshMatrices u_Matrices = {};
-			//u_Matrices.Transform = Transform;
-			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
-
-			std::vector< VkWriteDescriptorSet > DescriptorWrites;
-			
-			DescriptorWrites.push_back( {
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.pNext = nullptr,
-				.dstSet = Set->GetVulkanSet(),
-				.dstBinding = 0,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-				.pImageInfo = nullptr,
-				.pBufferInfo = &MatricesBufferInfo,
-				.pTexelBufferView = nullptr } );
-
-			DescriptorWrites.push_back( {
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.pNext = nullptr,
-				.dstSet = Set->GetVulkanSet(),
-				.dstBinding = 1,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-				.pImageInfo = &ImageInfo,
-				.pBufferInfo = nullptr,
-				.pTexelBufferView = nullptr } );
-
-			Set->Write( DescriptorWrites );
-
-			Sets[ submesh ] = Set;
-		}
-		
-		return { .Owner = rUUID, .Mesh = rMesh, .DescriptorSets = Sets };
-	}
-
-	void SceneRenderer::DestroySMDescriptorSet( UUID uuid )
-	{
-		m_RendererData.StaticMeshDescriptorSets[ uuid ].Terminate();
-	}
 	
 	//////////////////////////////////////////////////////////////////////////
 	// RendererData
@@ -1224,8 +1133,6 @@ namespace Saturn {
 
 		vkDestroyFramebuffer( LogicalDevice, GeometryFramebuffer, nullptr );
 		GeometryFramebuffer = nullptr;
-		
-		pAllocator->DestroyBuffer( SM_MatricesUBO );
 
 		StaticMeshPipeline.Terminate();
 

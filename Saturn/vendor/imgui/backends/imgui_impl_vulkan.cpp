@@ -1721,6 +1721,12 @@ ImTextureID ImGui_ImplVulkan_AddTexture( VkSampler sampler, VkImageView image_vi
 	ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
 	ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
 
+    if( !bd )
+		return nullptr;
+
+    if( !v )
+        return nullptr;
+
 	VkDescriptorSet descriptor_set;
 	// Create Descriptor Set:
 	{

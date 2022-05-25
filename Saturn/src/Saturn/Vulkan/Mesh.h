@@ -84,6 +84,25 @@ namespace Saturn {
 		}
 	};
 
+}
+
+namespace std {
+
+	template<>
+	struct hash< Saturn::Submesh >
+	{
+		size_t operator()( const Saturn::Submesh& rOther ) const
+		{
+			return hash< std::string >()( rOther.NodeName );
+		}
+	};
+
+}
+
+namespace Saturn {
+
+	class DescriptorSet;
+
 	class Mesh
 	{
 	public:
@@ -96,6 +115,9 @@ namespace Saturn {
 		Ref<Shader> MeshShader() { return m_MeshShader; }
 		std::vector<Submesh>& Submeshes() { return m_Submeshes; }
 		const std::vector<Submesh>& Submeshes() const { return m_Submeshes; }
+
+		std::unordered_map< Submesh, Ref< DescriptorSet > >& GetDescriptorSets() { return m_DescriptorSets; }
+		const std::unordered_map< Submesh, Ref< DescriptorSet > >& GetDescriptorSets() const { return m_DescriptorSets; }
 
 		std::string& FilePath() { return m_FilePath; }
 		const std::string& FilePath() const { return m_FilePath; }
@@ -127,10 +149,12 @@ namespace Saturn {
 		std::vector<MeshVertex> m_StaticVertices;
 
 		std::vector<Submesh> m_Submeshes;
-		std::vector<Ref<Material>> m_Materials;
+		std::vector< Ref<Material> > m_Materials;
 
 		std::vector<Index> m_Indices;
 		std::vector<uint32_t> m_RealIndices;
+		
+		std::unordered_map< Submesh, Ref< DescriptorSet > > m_DescriptorSets;
 
 		std::unordered_map<uint32_t, std::vector<Triangle>> m_TriangleCache;
 
@@ -154,17 +178,4 @@ namespace Saturn {
 
 		const aiScene* m_Scene;
 	};
-}
-
-namespace std {
-	
-	template<>
-	struct hash< Saturn::Submesh >
-	{
-		size_t operator()( const Saturn::Submesh& rOther ) const
-		{
-			return hash< std::string >()( rOther.NodeName );
-		}
-	};
-
 }

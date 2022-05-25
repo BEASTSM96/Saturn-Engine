@@ -69,12 +69,6 @@ namespace Saturn {
 		Data ={};
 		
 		m_pAllocator = new VulkanAllocator();
-		
-		// Init Renderer.
-		Renderer::Get();
-
-		// Init Scene Renderer.
-		SceneRenderer::Get();
 	
 		// Create default pass.
 		PassSpecification Specification = {};
@@ -127,6 +121,11 @@ namespace Saturn {
 
 		m_SwapChain.CreateFramebuffers();
 
+		// Init Renderer.
+		Renderer::Get();
+
+		// Init Scene Renderer.
+		SceneRenderer::Get();
 	}
 
 	void VulkanContext::Terminate()

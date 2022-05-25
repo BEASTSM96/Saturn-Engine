@@ -9,12 +9,13 @@ layout(location = 4) in vec2 a_TexCoord;
 
 layout(set = 0, binding = 0) uniform Matrices 
 {
-    mat4 Transform;
     mat4 ViewProjection;
 } u_Matrices;
 
 layout(push_constant) uniform u_Materials
 {
+    mat4 Transform;
+
 	float UseAlbedoTexture;
 	float UseMetallicTexture;
 	float UseRoughnessTexture;
@@ -45,21 +46,21 @@ void main()
 	vs_Output.Position   = vec3( a_Position );
 	vs_Output.TexCoord   = vec2( a_TexCoord );
 
-	gl_Position = u_Matrices.ViewProjection * u_Matrices.Transform * vec4( a_Position, 1.0 );
+	gl_Position = u_Matrices.ViewProjection * pc_Materials.Transform * vec4( a_Position, 1.0 );
 }
 
 #type fragment
 #version 450
 
-
 layout(set = 0, binding = 0) uniform Matrices 
 {
-    mat4 Transform;
     mat4 ViewProjection;
 } u_Matrices;
 
+
 layout(push_constant) uniform u_Materials
 {
+    mat4 Transform;
 	float UseAlbedoTexture;
 	float UseMetallicTexture;
 	float UseRoughnessTexture;
@@ -91,6 +92,9 @@ layout(location = 1) in VertexOutput
 
 void main() 
 {
+	vec3 LightDir = vec3( -0.5, 10.0, -0.5 );
+	float LightIntensity = clamp( dot( LightDir, vs_Input.Normal ), 0.1, 1.0 );
+
 	if( pc_Materials.UseAlbedoTexture != 0.5 ) 
 	{
 		FinalColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
@@ -99,4 +103,6 @@ void main()
 	{
 		FinalColor = vec4( pc_Materials.AlbedoColor );
 	}
+	
+	FinalColor.rgb *= LightIntensity;
 }

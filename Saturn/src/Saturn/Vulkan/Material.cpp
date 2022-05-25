@@ -28,6 +28,7 @@
 
 #include "sppch.h"
 #include "Material.h"
+#include "Mesh.h"
 
 #include "VulkanContext.h"
 
@@ -61,9 +62,37 @@ namespace Saturn {
 			texture->Terminate();
 		}
 	}
-
-	void Material::Bind( Ref<Shader> Shader )
+	
+	void Material::Bind( const Ref< Mesh >& rMesh, Ref< Shader >& Shader )
 	{
+		for ( auto& [ ShaderStage, Sets ] : Shader->GetWriteDescriptors() )
+		{
+			for ( auto& [ Name, Set ] : Sets )
+			{
+				//Set.dstSet = rMesh->GetDescriptorSets();
+				
+				if( Set.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ) 
+				{
+					VkDescriptorImageInfo ImageInfo = {};
+					ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					ImageInfo.imageView = m_Textures[ Name ]->GetImageView();
+					ImageInfo.sampler = m_Textures[ Name ]->GetSampler();
+					
+					Set.pImageInfo = &ImageInfo;
+				}
+				else if ( Set.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER )
+				{
+					VkDescriptorBufferInfo BufferInfo = {};
+					BufferInfo.buffer = nullptr;
+					BufferInfo.offset = 0;
+					BufferInfo.range = 128;
+					
+					Set.pBufferInfo = &BufferInfo;
+				}
+
+				Shader->WriteDescriptor( ShaderStage, Name, Set );
+			}
+		}
 	}
 
 	void Material::Unbind()

@@ -173,8 +173,11 @@ namespace Saturn {
 	{
 		using ShaderSourceMap = std::unordered_map< ShaderSourceKey, ShaderSource >;
 		using SpvSourceMap = std::unordered_map< ShaderSourceKey, std::vector< uint32_t > >;
-		using ShaderUBMap = std::unordered_map< ShaderType, std::unordered_map< int, ShaderUniformBuffer > >;
+		using ShaderUBMap = std::unordered_map< ShaderType, std::unordered_map< uint32_t, ShaderUniformBuffer > >;
 		//                                      ShaderType,                     Binding,   UniformBuffer
+		
+		using ShaderWriteMap = std::unordered_map< ShaderType, std::unordered_map< std::string, VkWriteDescriptorSet > >;
+
 	public:
 		Shader() { }
 		Shader( std::string Name, std::filesystem::path Filepath );
@@ -247,12 +250,20 @@ namespace Saturn {
 		ShaderUBMap& GetUniformBuffers() { return m_UniformBuffers; }
 		const ShaderUBMap& GetUniformBuffers() const { return m_UniformBuffers; }
 		
-		std::vector< std::tuple< ShaderType, int, std::string > >& GetTextures() { return m_Textures; }
+		std::vector< std::tuple< ShaderType, uint32_t, std::string > >& GetTextures() { return m_Textures; }
 		
 		VkDescriptorSetLayout GetSetLayout() const { return m_SetLayout; }
 		
 		Ref< DescriptorPool >& GetDescriptorPool() { return m_SetPool; }
 		const Ref< DescriptorPool >& GetDescriptorPool() const { return m_SetPool; }
+		
+		ShaderWriteMap& GetWriteDescriptors() { return m_DescriptorWrites; }
+		const ShaderWriteMap& GetWriteDescriptors() const { return m_DescriptorWrites; }
+
+		void WriteDescriptor( ShaderType Type, const std::string& rName, VkWriteDescriptorSet& rWriteDescriptor )
+		{
+			m_DescriptorWrites[ Type ][ rName ] = rWriteDescriptor;
+		}
 
 	private:
 
@@ -282,12 +293,11 @@ namespace Saturn {
 
 		ShaderUBMap m_UniformBuffers;
 		// So here we saying that the shader might X amount of textures at X index and X shader stage. It's the materials job to create the textures.
-		std::vector< std::tuple< ShaderType, int, std::string > > m_Textures;
+		std::vector< std::tuple< ShaderType, uint32_t, std::string > > m_Textures;
 		
+		ShaderWriteMap m_DescriptorWrites;
+
 		VkDescriptorSetLayout m_SetLayout;
 		Ref< DescriptorPool > m_SetPool;
-
-	private:
-		friend class ShaderWorker;
 	};
 }

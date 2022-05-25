@@ -35,13 +35,15 @@
 
 namespace Saturn {
 
+	class Mesh;
+
 	class Material
 	{
 	public:
 		 Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName );
 		~Material();
 
-		void Bind( Ref< Saturn::Shader > Shader );
+		void Bind( const Ref< Mesh >& rMesh, Ref< Shader >& Shader );
 
 		void Unbind();
 		

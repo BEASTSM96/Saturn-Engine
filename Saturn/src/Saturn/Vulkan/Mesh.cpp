@@ -30,6 +30,8 @@
 #include "Mesh.h"
 
 #include "VulkanContext.h"
+#include "Renderer.h"
+#include "DescriptorSet.h"
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -102,7 +104,7 @@ namespace Saturn {
 			SAT_CORE_ERROR( "Failed to load mesh file: {0}", filename );
 
 		m_Scene = scene;
-		m_MeshShader = Ref<Shader>::Create( "Mesh/VertexShader", "assets\\shaders\\shader_new.glsl" );
+		m_MeshShader = ShaderLibrary::Get().Find( "shader_new" );
 		
 		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( scene->mRootNode->mTransformation ) );
 		
@@ -122,6 +124,8 @@ namespace Saturn {
 			submesh.MaterialIndex = mesh->mMaterialIndex;
 			submesh.IndexCount = mesh->mNumFaces * 3;
 			submesh.MeshName = mesh->mName.C_Str();
+
+			m_DescriptorSets[ submesh ] = nullptr;
 
 			vertexCount += mesh->mNumVertices;
 			submesh.VertexCount = vertexCount;
@@ -170,15 +174,6 @@ namespace Saturn {
 		
 		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
 
-		m_RealIndices.clear();
-
-		for( Index& rIndex : m_Indices )
-		{
-			m_RealIndices.push_back( rIndex.V1 );
-			m_RealIndices.push_back( rIndex.V2 );
-			m_RealIndices.push_back( rIndex.V3 );
-		}
-		
 		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() );
 		
 		m_VertexCount = vertexCount;
@@ -206,15 +201,6 @@ namespace Saturn {
 			std::string MaterialName = std::string( name.C_Str() );
 			
 			m_MeshMaterial = Ref< Material >::Create( m_MeshShader, MaterialName );
-			
-			uint32_t* pData = new uint32_t[ 64 * 64 ];
-			
-			for( uint32_t i = 0; i < 64 * 64; i++ )
-			{
-				pData[ i ] |= 0xffff00ff;
-			}
-
-			Ref< Texture2D > PinkTexture = Ref< Texture2D >::Create( 64, 64, VK_FORMAT_R8G8B8A8_SRGB, pData );
 
 			// Albedo Texture
 			{
@@ -244,14 +230,14 @@ namespace Saturn {
 					}
 					else
 					{
-						m_MeshMaterial->SetResource( "u_AlbedoTexture", PinkTexture );
+						m_MeshMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
 						m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 0.0f );
 						m_MeshMaterial->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
 					}
 				}
 				else
 				{
-					m_MeshMaterial->SetResource( "u_AlbedoTexture", PinkTexture );
+					m_MeshMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
 					m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 0.0f );
 					m_MeshMaterial->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
 					
@@ -261,7 +247,7 @@ namespace Saturn {
 			// Normal Texture
 			{
 				aiString NormalTexturePath;
-				bool HasNormalTexture = material->GetTexture( aiTextureType_DIFFUSE, 0, &NormalTexturePath ) == AI_SUCCESS;
+				bool HasNormalTexture = material->GetTexture( aiTextureType_NORMALS, 0, &NormalTexturePath ) == AI_SUCCESS;
 
 				if( HasNormalTexture )
 				{
@@ -286,21 +272,26 @@ namespace Saturn {
 					}
 					else
 					{
-						m_MeshMaterial->SetResource( "u_NormalTexture", PinkTexture );
+						m_MeshMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
 						m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
 					}
 				}
 				else
 				{
-					m_MeshMaterial->SetResource( "u_NormalTexture", PinkTexture );
+					m_MeshMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
 					m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
 				}
 			}
-		
-			free( pData );
 		}
 
+		DescriptorSetSpecification DescriptorSetSpec;
+		DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
+		DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
 		
+		for ( auto& [ submesh, Set ] : m_DescriptorSets )
+		{
+			Set = Ref< Saturn::DescriptorSet >::Create( DescriptorSetSpec );
+		}
 	}
 
 	Mesh::Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform ) : m_StaticVertices( vertices ), m_Indices( indices )

@@ -39,12 +39,12 @@ namespace Saturn {
 	Texture::Texture( uint32_t width, uint32_t height, VkFormat Format, const void* pData )
 		: m_Width( width ), m_Height( height )
 	{
-		m_pData = ( void* )pData;
+		m_pData = ( void* ) pData;
 	}
 
 	void Texture::Terminate()
 	{
-		if ( m_Image )
+		if( m_Image )
 			vkDestroyImage( VulkanContext::Get().GetDevice(), m_Image, nullptr );
 
 		if( m_ImageMemory )
@@ -69,7 +69,7 @@ namespace Saturn {
 		VkPipelineStageFlags SrcStage;
 		VkPipelineStageFlags DstStage;
 
-		VkImageMemoryBarrier ImageBarrier ={ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		VkImageMemoryBarrier ImageBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 		ImageBarrier.oldLayout = OldLayout;
 		ImageBarrier.newLayout = NewLayout;
 		ImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -85,11 +85,11 @@ namespace Saturn {
 		{
 			ImageBarrier.srcAccessMask = 0;
 			ImageBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		
+
 			SrcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 			DstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		}
-		else if( OldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && NewLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL ) 
+		else if( OldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && NewLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL )
 		{
 			ImageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 			ImageBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -118,7 +118,7 @@ namespace Saturn {
 		Region.imageSubresource.layerCount = 1;
 
 		Region.imageOffset = { 0, 0, 0 };
-		Region.imageExtent ={ ( uint32_t )m_Width, ( uint32_t )m_Height, 1 };
+		Region.imageExtent = { ( uint32_t ) m_Width, ( uint32_t ) m_Height, 1 };
 
 		vkCmdCopyBufferToImage( CommandBuffer, Buffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &Region );
 
@@ -129,16 +129,16 @@ namespace Saturn {
 	// GLOBAL HELPERS														//
 	//////////////////////////////////////////////////////////////////////////
 
-	void CreateImage( 
-		uint32_t Width, 
-		uint32_t Height, 
-		VkFormat Format, 
-		VkImageTiling Tiling, 
-		VkImageUsageFlags Usage, 
-		VkMemoryPropertyFlags MemProps, 
+	void CreateImage(
+		uint32_t Width,
+		uint32_t Height,
+		VkFormat Format,
+		VkImageTiling Tiling,
+		VkImageUsageFlags Usage,
+		VkMemoryPropertyFlags MemProps,
 		VkImage& rImage, VkDeviceMemory& rDeviceMemory )
 	{
-		VkImageCreateInfo ImageCreateInfo ={ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+		VkImageCreateInfo ImageCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 		ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
 		ImageCreateInfo.extent.width = Width;
 		ImageCreateInfo.extent.height = Height;
@@ -157,7 +157,7 @@ namespace Saturn {
 		VkMemoryRequirements MemReq;
 		vkGetImageMemoryRequirements( VulkanContext::Get().GetDevice(), rImage, &MemReq );
 
-		VkMemoryAllocateInfo AllocInfo ={ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+		VkMemoryAllocateInfo AllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		AllocInfo.allocationSize = MemReq.size;
 		AllocInfo.memoryTypeIndex = VulkanContext::Get().GetMemoryType( MemReq.memoryTypeBits, MemProps );
 
@@ -168,7 +168,7 @@ namespace Saturn {
 
 	VkImageView CreateImageView( VkImage Image, VkFormat Format )
 	{
-		VkImageViewCreateInfo ImageViewCreateInfo ={ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+		VkImageViewCreateInfo ImageViewCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 		ImageViewCreateInfo.image = Image;
 		ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		ImageViewCreateInfo.format = Format;
@@ -177,7 +177,7 @@ namespace Saturn {
 		ImageViewCreateInfo.subresourceRange.levelCount = 1;
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		ImageViewCreateInfo.subresourceRange.layerCount = 1;
-		
+
 		VkImageView ImageView;
 		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &ImageView ) );
 
@@ -186,7 +186,7 @@ namespace Saturn {
 
 	VkImageView CreateImageView( VkImage Image, VkFormat Format, VkImageAspectFlags AspectMask )
 	{
-		VkImageViewCreateInfo ImageViewCreateInfo ={ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+		VkImageViewCreateInfo ImageViewCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 		ImageViewCreateInfo.image = Image;
 		ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		ImageViewCreateInfo.format = Format;
@@ -195,13 +195,13 @@ namespace Saturn {
 		ImageViewCreateInfo.subresourceRange.levelCount = 1;
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		ImageViewCreateInfo.subresourceRange.layerCount = 1;
-		
+
 		VkImageView ImageView;
 		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &ImageView ) );
 
 		return ImageView;
 	}
-	
+
 	void TransitionImageLayout( VkImage Image, VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout )
 	{
 		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
@@ -209,7 +209,7 @@ namespace Saturn {
 		VkPipelineStageFlags SrcStage;
 		VkPipelineStageFlags DstStage;
 
-		VkImageMemoryBarrier ImageBarrier ={ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		VkImageMemoryBarrier ImageBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 		ImageBarrier.oldLayout = OldLayout;
 		ImageBarrier.newLayout = NewLayout;
 		ImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -265,7 +265,7 @@ namespace Saturn {
 		stbi_set_flip_vertically_on_load( true );
 
 		stbi_uc* pTextureData;
-		
+
 		if( stbi_is_hdr( m_Path.string().c_str() ) )
 		{
 			SAT_CORE_INFO( "Loading HDR texture {0}", m_Path.string() );
@@ -290,28 +290,28 @@ namespace Saturn {
 		}
 
 		m_pData = pTextureData;
-		
+
 		m_Width = Width;
 		m_Height = Height;
 
 		VkDeviceSize ImageSize = Width * Height * 4;
-		
+
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		// Staging Buffer.
 		VkBuffer StagingBuffer;
-		
-		VkBufferCreateInfo BufferCreateInfo ={ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+
+		VkBufferCreateInfo BufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		BufferCreateInfo.size = ImageSize;
 		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 		auto rBufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, &StagingBuffer );
-		
+
 		void* pDstData = pAllocator->MapMemory< void >( rBufferAlloc );
-		
+
 		memcpy( pDstData, pTextureData, ImageSize );
-		
+
 		pAllocator->UnmapMemory( rBufferAlloc );
 
 		stbi_image_free( pTextureData );
@@ -387,6 +387,11 @@ namespace Saturn {
 
 		m_DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_Sampler, m_ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
+		m_DescriptorImageInfo = {};
+		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		m_DescriptorImageInfo.imageView = m_ImageView;
+		m_DescriptorImageInfo.sampler = m_Sampler;
+		
 		pAllocator->DestroyBuffer( StagingBuffer );
 	}
 
@@ -424,7 +429,7 @@ namespace Saturn {
 		SamplerCreateInfo.magFilter = VK_FILTER_LINEAR;
 		SamplerCreateInfo.minFilter = VK_FILTER_LINEAR;
 		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		
+
 		switch( m_AddressingMode )
 		{
 			case AddressingMode::ClampToBorder:
@@ -473,139 +478,17 @@ namespace Saturn {
 		SamplerCreateInfo.mipLodBias = 0.0f;
 		SamplerCreateInfo.minLod = 0.0f;
 		SamplerCreateInfo.maxLod = 0.0f;
-		
+
 		if( m_Sampler )
 			vkDestroySampler( VulkanContext::Get().GetDevice(), m_Sampler, nullptr );
 
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
 
-		//if( m_DescriptorSet )
-		//	vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), VulkanContext::Get().GetDescriptorPool(), 1, &m_DescriptorSet );
+		m_DescriptorImageInfo = {};
+		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		m_DescriptorImageInfo.imageView = m_ImageView;
+		m_DescriptorImageInfo.sampler = m_Sampler;
 
 		m_DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_Sampler, m_ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// CubeMap Texture
-	//////////////////////////////////////////////////////////////////////////
-
-	void CubeMapTexture::Terminate()
-	{
-
-	}
-
-	// Loads a .hdr file
-	// Creates the cube map texture.
-	void CubeMapTexture::CreateTextureImage()
-	{
-		int Width, Height, Channels;
-
-		// Flip texture
-		stbi_set_flip_vertically_on_load( true );
-
-		stbi_uc* pTextureData = nullptr;
-
-		if( stbi_is_hdr( m_Path.string().c_str() ) ) 
-		{
-			SAT_CORE_INFO( "Loading HDR texture {0}", m_Path.string() );
-			pTextureData = ( uint8_t* )stbi_loadf( m_Path.string().c_str(), &Width, &Height, &Channels, 0 );
-		}
-		else
-		{
-			SAT_CORE_INFO( "Loading texture {0}", m_Path.string() );
-			
-			// Load the hdr texture.
-			pTextureData = stbi_load( m_Path.string().c_str(), &Width, &Height, &Channels, STBI_rgb_alpha );
-		}
-
-		if( !std::filesystem::exists( m_Path ) )
-		{
-			SAT_CORE_ERROR( "Failed to load texture image: {0}", m_Path.string() );
-			return;
-		}
-
-		m_Width = Width;
-		m_Height = Height;
-
-		VkDeviceSize ImageSize = Width * Height * 4;
-		
-		// Create staging buffer
-		Buffer StagingBuffer;
-		StagingBuffer.Create( pTextureData, ImageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
-		
-		stbi_image_free( pTextureData );
-
-		// Create the image.
-		CreateImage( Width, Height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Image, m_ImageMemory );
-
-		// Transition the image to the correct layout.
-		TransitionImageLayout( VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
-
-		// Copy the data to the image.
-		CopyBufferToImage( StagingBuffer );
-		
-		// Transition the image to the correct layout.
-		TransitionImageLayout( VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-
-		// Create image views
-		m_ImageView = CreateImageView( m_Image, VK_FORMAT_R8G8B8A8_SRGB );
-
-		// Create sampler
-		VkSamplerCreateInfo SamplerCreateInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
-		SamplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-		SamplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-
-		switch( m_AddressingMode )
-		{
-			case AddressingMode::ClampToBorder:
-			{
-				SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-				SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-				SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-			} break;
-
-			case AddressingMode::Repeat:
-			{
-				SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-				SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-				SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			} break;
-
-			case AddressingMode::MirroredRepeat:
-			{
-				SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-				SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-				SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-			} break;
-
-			case AddressingMode::ClampToEdge:
-			{
-				SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-				SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-				SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-			} break;
-		}
-
-		SamplerCreateInfo.anisotropyEnable = VK_TRUE;
-
-		// We don't know the max anisotropy level, so we'll need to get it from the properties of the physical device.
-		// We do this as this is the best way to get the max anisotropy level as it can be different on other devices.
-		VkPhysicalDeviceProperties Properties = {};
-		vkGetPhysicalDeviceProperties( VulkanContext::Get().GetPhysicalDevice(), &Properties );
-
-		SamplerCreateInfo.maxAnisotropy = Properties.limits.maxSamplerAnisotropy;
-
-		SamplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-		SamplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
-		SamplerCreateInfo.compareEnable = VK_FALSE;
-		SamplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		SamplerCreateInfo.mipLodBias = 0.0f;
-		SamplerCreateInfo.minLod = 0.0f;
-		SamplerCreateInfo.maxLod = 0.0f;
-
-		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
-	}
-
 }

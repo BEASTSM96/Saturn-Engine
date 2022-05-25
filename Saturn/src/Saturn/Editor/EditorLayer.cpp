@@ -164,18 +164,15 @@ namespace Saturn {
 		}
 		
 		ImGui::End();
-
-		if( m_SceneHierarchyPanel->GetSelectionContext() )
+		
+		if( auto& rSelection = m_SceneHierarchyPanel->GetSelectionContext() )
 		{
-			auto& rSelection = m_SceneHierarchyPanel->GetSelectionContext();
-			
 			if( rSelection.HasComponent<MeshComponent>() )
 			{
-				auto& mesh = rSelection.GetComponent<MeshComponent>().Mesh;
-				
-				if( mesh )
+				if( auto& mesh = rSelection.GetComponent<MeshComponent>().Mesh )
 				{
-					Ref< Material >& material = mesh->GetMaterial();
+					/*
+					Ref< Material > material = mesh->GetMaterial();
 
 					ImGui::Begin( "Materials" );
 
@@ -208,6 +205,7 @@ namespace Saturn {
 					}
 
 					ImGui::End();
+					*/
 				}
 			}
 		}

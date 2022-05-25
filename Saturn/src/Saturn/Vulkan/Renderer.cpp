@@ -64,6 +64,17 @@ namespace Saturn {
 
 		SetDebugUtilsObjectName( "Acquire Semaphore", ( uint64_t ) m_AcquireSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
 		SetDebugUtilsObjectName( "Submit Semaphore", ( uint64_t ) m_SubmitSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
+
+		uint32_t* pData = new uint32_t[ 64 * 64 ];
+
+		for( uint32_t i = 0; i < 64 * 64; i++ )
+		{
+			pData[ i ] |= 0xffff00ff;
+		}
+
+		m_PinkTexture = Ref< Texture2D >::Create( 64, 64, VK_FORMAT_R8G8B8A8_SRGB, pData );
+
+		free( pData );
 	}
 	
 	void Renderer::Terminate()
@@ -155,7 +166,7 @@ namespace Saturn {
 		rUBO.Map( CommandBuffer );
 		
 		// Bind material.
-		mesh->GetMaterial()->Bind( nullptr );
+		mesh->GetMaterial()->Bind( mesh, mesh->GetShader() );
 
 		/*
 		for ( Submesh& rSubmesh : mesh->Submeshes() )
@@ -179,7 +190,7 @@ namespace Saturn {
 		Submesh& rSubmsh, const glm::mat4 transform )
 	{
 		// Bind material.
-		mesh->GetMaterial()->Bind( nullptr );
+		mesh->GetMaterial()->Bind( mesh, mesh->GetShader() );
 
 		// Draw.
 		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, 0, 0 );
@@ -196,7 +207,7 @@ namespace Saturn {
 		UBO->Map( CommandBuffer );
 
 		// Bind material.
-		mesh->GetMaterial()->Bind( nullptr );
+		mesh->GetMaterial()->Bind( mesh, mesh->GetShader() );
 
 		// Draw.
 		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, rSubmsh.BaseVertex, 0 );

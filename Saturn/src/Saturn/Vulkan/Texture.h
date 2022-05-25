@@ -80,10 +80,11 @@ namespace Saturn {
 
 	public:
 		
-		VkSampler& GetSampler() { return m_Sampler; }
-		VkImageView& GetImageView() { return m_ImageView; }
-		VkImage& GetImage() { return m_Image; }
-		VkDescriptorSet& GetDescriptorSet() { return m_DescriptorSet; }
+		VkSampler GetSampler() { return m_Sampler; }
+		VkImageView GetImageView() { return m_ImageView; }
+		VkImage GetImage() { return m_Image; }
+		VkDescriptorSet GetDescriptorSet() { return m_DescriptorSet; }
+		VkDescriptorImageInfo& GetDescriptorInfo() { return m_DescriptorImageInfo; }
 
 		int Width() { return m_Width; }
 		int Height() { return m_Height; }
@@ -102,6 +103,7 @@ namespace Saturn {
 		VkImageView m_ImageView = VK_NULL_HANDLE;
 		VkSampler m_Sampler = VK_NULL_HANDLE;
 		VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
+		VkDescriptorImageInfo m_DescriptorImageInfo = {};
 
 		bool m_HDR = false;
 		
@@ -132,19 +134,5 @@ namespace Saturn {
 
 		void CreateTextureImage() override;
 		void SetData( const void* pData ) override;
-	};
-
-	class CubeMapTexture : public Texture
-	{
-	public:
-		CubeMapTexture() : Texture() {}
-		CubeMapTexture( std::filesystem::path Path, AddressingMode Mode ) : Texture( Path, Mode ) { CreateTextureImage(); }
-		~CubeMapTexture() { Terminate(); }
-
-		void Terminate() override;
-
-	private:
-
-		void CreateTextureImage() override;
 	};
 }
