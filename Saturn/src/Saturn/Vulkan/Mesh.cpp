@@ -113,6 +113,10 @@ namespace Saturn {
 		
 		std::vector<uint32_t> Indices;
 
+		DescriptorSetSpecification DescriptorSetSpec;
+		DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
+		DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
+
 		m_Submeshes.reserve( scene->mNumMeshes );
 		for( size_t m = 0; m < scene->mNumMeshes; m++ )
 		{
@@ -124,8 +128,6 @@ namespace Saturn {
 			submesh.MaterialIndex = mesh->mMaterialIndex;
 			submesh.IndexCount = mesh->mNumFaces * 3;
 			submesh.MeshName = mesh->mName.C_Str();
-
-			m_DescriptorSets[ submesh ] = nullptr;
 
 			vertexCount += mesh->mNumVertices;
 			submesh.VertexCount = vertexCount;
@@ -168,10 +170,11 @@ namespace Saturn {
 
 				m_TriangleCache[ m ].emplace_back( m_StaticVertices[ index.V1 + submesh.BaseVertex ], m_StaticVertices[ index.V2 + submesh.BaseVertex ], m_StaticVertices[ index.V3 + submesh.BaseVertex ] );
 			}
+
 		}
 
 		TraverseNodes( scene->mRootNode );
-		
+
 		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
 
 		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() );
@@ -283,15 +286,6 @@ namespace Saturn {
 				}
 			}
 		}
-
-		DescriptorSetSpecification DescriptorSetSpec;
-		DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
-		DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
-		
-		for ( auto& [ submesh, Set ] : m_DescriptorSets )
-		{
-			Set = Ref< Saturn::DescriptorSet >::Create( DescriptorSetSpec );
-		}
 	}
 
 	Mesh::Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform ) : m_StaticVertices( vertices ), m_Indices( indices )
@@ -326,6 +320,12 @@ namespace Saturn {
 			auto& submesh = m_Submeshes[ mesh ];
 			submesh.NodeName = node->mName.C_Str();
 			submesh.Transform = transform;
+
+			DescriptorSetSpecification DescriptorSetSpec;
+			DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
+			DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
+
+			m_DescriptorSets[ submesh ] = Ref< Saturn::DescriptorSet >::Create( DescriptorSetSpec );
 		}
 
 		for( uint32_t i = 0; i < node->mNumChildren; i++ )

@@ -149,6 +149,7 @@ namespace Saturn {
 
 	class Shader;
 	class DescriptorPool;
+	class DescriptorSet;
 
 	class ShaderLibrary
 	{
@@ -260,10 +261,10 @@ namespace Saturn {
 		ShaderWriteMap& GetWriteDescriptors() { return m_DescriptorWrites; }
 		const ShaderWriteMap& GetWriteDescriptors() const { return m_DescriptorWrites; }
 
-		void WriteDescriptor( ShaderType Type, const std::string& rName, VkWriteDescriptorSet& rWriteDescriptor )
-		{
-			m_DescriptorWrites[ Type ][ rName ] = rWriteDescriptor;
-		}
+		void WriteDescriptor( ShaderType Type, const std::string& rName, VkWriteDescriptorSet& rWriteDescriptor );
+
+		// Make sure all the buffers have data mapped to them!
+		void WriteAllUBs( const Ref< DescriptorSet >& rSet );
 
 	private:
 

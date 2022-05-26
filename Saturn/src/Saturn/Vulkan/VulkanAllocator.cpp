@@ -49,6 +49,11 @@ namespace Saturn {
 
 	VulkanAllocator::~VulkanAllocator()
 	{		
+		for ( auto& [ VulkanBuffer, Allocation ] : m_Allocations )
+		{
+			vmaDestroyBuffer( m_Allocator, VulkanBuffer, Allocation );
+		}
+
 		m_Allocations.clear();
 
 		vmaDestroyAllocator( m_Allocator );

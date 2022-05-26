@@ -78,7 +78,7 @@ namespace Saturn::Core {
 
 }
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
+const int MAX_FRAMES_IN_FLIGHT = 1;
 
 // Inject asserts
 #define __CORE_INCLUDED__

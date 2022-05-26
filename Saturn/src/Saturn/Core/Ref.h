@@ -83,7 +83,7 @@ namespace Saturn {
 	
 		Ref& operator=( std::nullptr_t ) 
 		{
-			//delete m_Pointer;
+			delete m_Pointer;
 			m_Pointer = nullptr;
 			return *this;
 		}

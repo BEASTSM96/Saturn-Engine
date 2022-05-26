@@ -54,10 +54,7 @@ namespace Saturn {
 
 	ShaderLibrary::~ShaderLibrary()
 	{
-		for ( auto&& [ key, shader ] : m_Shaders )
-		{
-			shader.Delete();
-		}
+		m_Shaders.clear();
 	}
 
 	void ShaderLibrary::Add( const Ref<Shader>& shader )
@@ -166,6 +163,38 @@ namespace Saturn {
 		m_Uniforms.clear();
 
 		vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_SetLayout, nullptr );
+		
+		m_SetPool = nullptr;
+	}
+
+	void Shader::WriteDescriptor( ShaderType Type, const std::string& rName, VkWriteDescriptorSet& rWriteDescriptor )
+	{
+		m_DescriptorWrites[ Type ][ rName ] = rWriteDescriptor;
+
+		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &rWriteDescriptor, 0, nullptr );
+	}
+
+	void Shader::WriteAllUBs( const Ref< DescriptorSet >& rSet )
+	{
+		// Iterate over uniform buffers
+		for( auto& [stage, bindingsMap] : m_UniformBuffers )
+		{
+			for( auto& [binding, buffer] : bindingsMap )
+			{
+				if( m_DescriptorWrites[ stage ][ buffer.Name ].descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER )
+					continue;
+				
+				VkDescriptorBufferInfo BufferInfo = {};
+				BufferInfo.buffer = buffer.Buffer;
+				BufferInfo.offset = 0;
+				BufferInfo.range = buffer.Size;
+
+				m_DescriptorWrites[ stage ][ buffer.Name ].dstSet = rSet->GetVulkanSet();
+				m_DescriptorWrites[ stage ][ buffer.Name ].pBufferInfo = &BufferInfo;
+				
+				vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &m_DescriptorWrites[ stage ][ buffer.Name ], 0, nullptr );
+			}
+		}
 	}
 
 	void Shader::ReadFile()
@@ -352,7 +381,7 @@ namespace Saturn {
 				BufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 				BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-				pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_AUTO, &buffer.Buffer );
+				pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, &buffer.Buffer );
 
 				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 1000 } );
 

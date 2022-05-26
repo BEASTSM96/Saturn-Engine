@@ -152,6 +152,9 @@ namespace Saturn {
 			vkDestroyFramebuffer( m_LogicalDevice, rFramebuffer, nullptr );
 		}
 
+		for( auto& rFunc : m_TerminateResourceFuncs )
+			rFunc();
+
 		delete m_pDebugMessenger;
 		m_pDebugMessenger = nullptr;
 

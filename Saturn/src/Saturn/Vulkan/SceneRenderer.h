@@ -218,7 +218,6 @@ namespace Saturn {
 		Pipeline SceneCompositePipeline;
 		
 		Ref< DescriptorSet > SC_DescriptorSet;
-		Ref< DescriptorPool > SC_DescriptorPool;
 
 		VertexBuffer* SC_VertexBuffer;
 		IndexBuffer* SC_IndexBuffer;

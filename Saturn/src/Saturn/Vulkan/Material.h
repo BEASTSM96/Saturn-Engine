@@ -36,6 +36,7 @@
 namespace Saturn {
 
 	class Mesh;
+	class Submesh;
 
 	class Material
 	{
@@ -43,7 +44,7 @@ namespace Saturn {
 		 Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName );
 		~Material();
 
-		void Bind( const Ref< Mesh >& rMesh, Ref< Shader >& Shader );
+		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
 
 		void Unbind();
 		

@@ -973,7 +973,7 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Static meshes" );
 
 		// Render static meshes.
-		Ref< Shader > StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
+		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
 		for( auto& Cmd : m_DrawList )
 		{
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
@@ -991,10 +991,11 @@ namespace Saturn {
 			memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
 
 			pAllocator->UnmapMemory( bufferAloc );
-
+			
 			for ( Submesh& rSubmesh : Cmd.Mesh->Submeshes() )
 			{
 				Ref< DescriptorSet > Set = Cmd.Mesh->GetDescriptorSets()[ rSubmesh ];
+				StaticMeshShader->WriteAllUBs( Set );
 
 				// Bind vertex and index buffers.
 				Cmd.Mesh->GetVertexBuffer()->Bind( m_RendererData.CommandBuffer );
@@ -1007,10 +1008,10 @@ namespace Saturn {
 				// Write push constant data.
 				RendererData::StaticMeshMaterial u_Materials = {};
 				u_Materials.Transform = Cmd.Transform * rSubmesh.Transform;
-				u_Materials.UseNormalTexture = rMaterial->Get<float>( "u_Materials.UseNormalTexture" ) ? 1.0f : 0.5f;
-				u_Materials.UseMetallicTexture = rMaterial->Get<float>( "u_Materials.UseMetallicTexture" ) ? 1.0f : 0.5f;
+				u_Materials.UseNormalTexture = rMaterial->Get<float>( "u_Materials.UseNormalTexture" ) ? 1.0f : 0.0f;
+				u_Materials.UseMetallicTexture = rMaterial->Get<float>( "u_Materials.UseMetallicTexture" ) ? 1.0f : 0.0f;
 				u_Materials.UseRoughnessTexture = rMaterial->Get<float>( "u_Materials.UseRoughnessTexture" ) ? 1.0f : 0.5f;
-				u_Materials.UseAlbedoTexture = rMaterial->Get<float>( "u_Materials.UseAlbedoTexture" ) ? 1.0f : 0.5f;
+				u_Materials.UseAlbedoTexture = rMaterial->Get<float>( "u_Materials.UseAlbedoTexture" ) ? 1.0f : 0.0f;
 
 				u_Materials.AlbedoColor = rMaterial->Get<glm::vec4>( "u_Materials.AlbedoColor" );
 				u_Materials.MetallicColor = glm::vec4( 0.0f, 0.0f, 0.0f, 1.0f );
@@ -1140,15 +1141,11 @@ namespace Saturn {
 
 		GridDescriptorSet->Terminate();
 
-		//GridUniformBuffer.Terminate();
-
 		GridVertexBuffer->Terminate();
 		GridIndexBuffer->Terminate();
 
 		SkyboxPipeline.Terminate();
 		SkyboxDescriptorSet->Terminate();
-
-		//SkyboxUniformBuffer.Terminate();
 
 		SkyboxVertexBuffer->Terminate();
 		SkyboxIndexBuffer->Terminate();
@@ -1161,17 +1158,16 @@ namespace Saturn {
 
 		SceneCompositePipeline.Terminate();
 		
-		SC_DescriptorSet.Delete();
-		SC_DescriptorPool.Delete();
-		
 		SC_VertexBuffer->Terminate();
 		SC_IndexBuffer->Terminate();
 
 		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
 		
-		//GridShader.Delete();
-		//SkyboxShader.Delete();
-		//StaticMeshShader.Delete();
+		ImGui_ImplVulkan_RemoveTexture( SceneCompositeResult );
+
+		GridShader = nullptr;
+		SkyboxShader = nullptr;
+		StaticMeshShader = nullptr;
 	}
 
 }

@@ -103,6 +103,8 @@ namespace Saturn {
 			}
 		}
 
+		m_PinkTexture = nullptr;
+
 		for ( auto& rFunc : m_TerminateResourceFuncs )
 			rFunc();
 	}
@@ -148,41 +150,6 @@ namespace Saturn {
 		// TODO:
 	}
 
-	void Renderer::RenderStaticMesh(
-		VkCommandBuffer CommandBuffer,
-		Saturn::Pipeline Pipeline,
-		UUID uuid, 
-		Ref< Mesh > mesh, 
-		const glm::mat4 transform, 
-		UniformBuffer& rUBO )
-	{
-		// Bind pipeline.
-		Pipeline.Bind( CommandBuffer );
-
-		mesh->GetVertexBuffer()->Bind( CommandBuffer );
-		mesh->GetIndexBuffer()->Bind( CommandBuffer );
-
-		// Bind UBO
-		rUBO.Map( CommandBuffer );
-		
-		// Bind material.
-		mesh->GetMaterial()->Bind( mesh, mesh->GetShader() );
-
-		/*
-		for ( Submesh& rSubmesh : mesh->Submeshes() )
-		{
-			auto mat = mesh->GetMaterial();
-
-			// Bind material.
-			
-			// Draw.
-			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, 0, 0 );
-		}
-		*/
-
-		mesh->GetIndexBuffer()->Draw( CommandBuffer );
-	}
-
 	void Renderer::RenderSubmesh(
 		VkCommandBuffer CommandBuffer, 
 		Saturn::Pipeline Pipeline, 
@@ -190,27 +157,10 @@ namespace Saturn {
 		Submesh& rSubmsh, const glm::mat4 transform )
 	{
 		// Bind material.
-		mesh->GetMaterial()->Bind( mesh, mesh->GetShader() );
+		mesh->GetMaterial()->Bind( mesh, rSubmsh, mesh->GetShader() );
 
 		// Draw.
 		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, 0, 0 );
-	}
-
-	void Renderer::RenderSubmesh(
-		VkCommandBuffer CommandBuffer,
-		Saturn::Pipeline Pipeline,
-		Ref< Mesh > mesh,
-		Submesh& rSubmsh, const glm::mat4 transform, Ref< UniformBuffer > UBO )
-	{
-
-		// Bind UBO
-		UBO->Map( CommandBuffer );
-
-		// Bind material.
-		mesh->GetMaterial()->Bind( mesh, mesh->GetShader() );
-
-		// Draw.
-		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, rSubmsh.BaseVertex, 0 );
 	}
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )

@@ -101,6 +101,9 @@ namespace Saturn {
 
 		VkImageView& GetDepthImageView() { return m_DepthImageView; }
 
+		// "rrFunction" will be called just before the device is destroyed.
+		void SubmitTerminateResource( std::function<void()>&& rrFunction ) { m_TerminateResourceFuncs.push_back( std::move( rrFunction ) ); }
+
 		std::vector< PhysicalDeviceProperties > GetPhysicalDeviceProperties() { return m_DeviceProps; }
 		std::vector< PhysicalDeviceProperties > const GetPhysicalDeviceProperties() const { return m_DeviceProps; }
 
@@ -153,6 +156,8 @@ namespace Saturn {
 		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
 		
 		std::vector<PhysicalDeviceProperties> m_DeviceProps;
+		
+		std::vector<std::function<void()>> m_TerminateResourceFuncs;
 
 		std::vector<const char*> DeviceExtensions  ={ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME };
 

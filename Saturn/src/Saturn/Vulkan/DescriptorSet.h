@@ -128,9 +128,10 @@ namespace Saturn {
 		}
 		
 		VkDescriptorSet GetVulkanSet() { return m_Set; }
+		const VkDescriptorSet GetVulkanSet() const { return m_Set; }
 
 		operator VkDescriptorSet() { return m_Set; }
-		operator VkDescriptorSet&() { return m_Set; }
+		operator const VkDescriptorSet&() { return m_Set; }
 		
 	private:
 		
