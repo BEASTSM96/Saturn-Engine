@@ -158,8 +158,8 @@ namespace Saturn {
 			alignas( 4 ) float UseNormalTexture;
 
 			alignas( 16 ) glm::vec4 AlbedoColor;
-			alignas( 16 ) glm::vec4 MetallicColor;
-			alignas( 16 ) glm::vec4 RoughnessColor;
+			alignas( 4 ) float Metalness;
+			alignas( 4 ) float Roughness;
 		};
 
 		// Geometry
@@ -288,10 +288,6 @@ namespace Saturn {
 
 		void InitGeometryPass();
 		void InitSceneComposite();
-
-		void CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
-		void CreateFullscreenQuad( float x, float y, float w, float h,
-			VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
 
 		void GeometryPass();
 		void SceneCompositePass();

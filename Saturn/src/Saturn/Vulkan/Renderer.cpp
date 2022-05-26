@@ -30,6 +30,7 @@
 #include "Renderer.h"
 
 #include "VulkanDebug.h"
+#include "DescriptorSet.h"
 
 namespace Saturn {
 
@@ -109,29 +110,17 @@ namespace Saturn {
 			rFunc();
 	}
 
-	void Renderer::SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline )
+	void Renderer::SubmitFullscrenQuad( 
+		VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, 
+		Ref< DescriptorSet >& rDescriptorSet, 
+		IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer )
 	{
-		// TODO
-	}
-
-	void Renderer::SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, VkDescriptorSet DescriptorSet, void* UBO )
-	{
-		// TODO
-	}
-
-	void Renderer::SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, VkDescriptorSet DescriptorSet, UniformBuffer* UBO, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer )
-	{
-		vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline.GetPipeline() );
-
-		vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline.GetPipelineLayout(), 0, 1, &DescriptorSet, 0, nullptr );
+		Pipeline.Bind( CommandBuffer );
 		
-		// Update UBO
-		{
-			UBO->Map( CommandBuffer );
-		}
+		rDescriptorSet->Bind( CommandBuffer, Pipeline.GetPipelineLayout() );
 
-		pIndexBuffer->Bind( CommandBuffer );
 		pVertexBuffer->Bind( CommandBuffer );
+		pIndexBuffer->Bind( CommandBuffer );
 
 		pIndexBuffer->Draw( CommandBuffer );
 	}
@@ -140,7 +129,7 @@ namespace Saturn {
 	{
 	}
 
-	void Renderer::BeginRenderPass( VkCommandBuffer CommandBuffer )
+	void Renderer::EndRenderPass( VkCommandBuffer CommandBuffer )
 	{
 		vkCmdEndRenderPass( CommandBuffer );
 	}
@@ -265,6 +254,36 @@ namespace Saturn {
 	void Renderer::SubmitTerminateResource( std::function<void()>&& rrFunction )
 	{
 		m_TerminateResourceFuncs.push_back( rrFunction );
+	}
+
+	void Renderer::CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer )
+	{
+		struct QuadVertex
+		{
+			glm::vec3 Position;
+			glm::vec2 TexCoord;
+		};
+
+		QuadVertex* data = new QuadVertex[ 4 ];
+
+		data[ 0 ].Position = glm::vec3( -1, -1, 0.1f );
+		data[ 0 ].TexCoord = glm::vec2( 0, 0 );
+
+		data[ 1 ].Position = glm::vec3( -1 + 2, -1, 0.1f );
+		data[ 1 ].TexCoord = glm::vec2( 1, 0 );
+
+		data[ 2 ].Position = glm::vec3( -1 + 2, -1 + 2, 0.1f );
+		data[ 2 ].TexCoord = glm::vec2( 1, 1 );
+
+		data[ 3 ].Position = glm::vec3( -1, -1 + 2, 0.1f );
+		data[ 3 ].TexCoord = glm::vec2( 0, 1 );
+
+		*ppVertexBuffer = new VertexBuffer( data, 4 * sizeof( QuadVertex ) );
+
+		uint32_t indices[ 6 ] = { 0, 1, 2,
+								  2, 3, 0, };
+
+		*ppIndexBuffer = new IndexBuffer( indices, 6 );
 	}
 
 	//////////////////////////////////////////////////////////////////////////

@@ -90,8 +90,8 @@ namespace Saturn {
 			SAT_CORE_WARN( "Assimp error: {0}", message );
 		}
 	};
-
-	Mesh::Mesh( const std::string& filename, UUID uuid ) : m_FilePath( filename )
+	
+	Mesh::Mesh( const std::string& filename ) : m_FilePath( filename )
 	{
 		LogStream::Initialize();
 
@@ -221,8 +221,8 @@ namespace Saturn {
 					
 					Ref< Texture2D > AlbedoTexture;
 
-					SAT_CORE_INFO( "MESH FOR ENTITY ID {0}: Albedo Map texture {1}", std::to_string( uuid ), AlbedoTexturePath );
-
+					SAT_CORE_INFO( "Albedo Map texture {0}", AlbedoTexturePath );
+					
 					if( std::filesystem::exists( AlbedoTexturePath ) )
 						AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
 
@@ -263,7 +263,7 @@ namespace Saturn {
 
 					Ref< Texture2D > NormalTexture;
 
-					SAT_CORE_INFO( "MESH FOR ENTITY ID {0}: Normal Map texture {1}", std::to_string( uuid ), NormalTexturePath );
+					SAT_CORE_INFO( "Normal Map texture {0}", NormalTexturePath );
 
 					if( std::filesystem::exists( NormalTexturePath ) )
 						NormalTexture = Ref< Texture2D >::Create( NormalTexturePath, AddressingMode::Repeat );
@@ -283,6 +283,57 @@ namespace Saturn {
 				{
 					m_MeshMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
 					m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
+				}
+			}
+
+			// Roughness map
+			{
+				aiString TexturePath;
+				bool HasTexture = material->GetTexture( aiTextureType_SHININESS, 0, &TexturePath ) == AI_SUCCESS;
+
+				if( HasTexture )
+				{					
+					std::filesystem::path AlbedoPath = filename;
+					auto pp = AlbedoPath.parent_path();
+
+					pp /= std::string( TexturePath.data );
+
+					auto RoughnessTexturePath = pp.string();
+
+					Ref< Texture2D > Texture;
+					
+					SAT_CORE_INFO( "Roughness Map texture {0}", RoughnessTexturePath );
+					
+					if( std::filesystem::exists( RoughnessTexturePath ) )
+						Texture = Ref< Texture2D >::Create( RoughnessTexturePath, AddressingMode::Repeat );
+					
+					if( Texture )
+					{
+						m_MeshMaterial->SetResource( "u_RoughnessTexture", Texture );
+						m_MeshMaterial->Set( "u_Materials.UseRoughnessTexture", 1.0f );
+						m_MeshMaterial->Set( "u_Materials.Roughness", 0.0f );
+					}
+					else
+					{						
+						m_MeshMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
+						m_MeshMaterial->Set( "u_Materials.UseRoughnessTexture", 1.0f );
+						m_MeshMaterial->Set( "u_Materials.Roughness", 0.0f );
+					}
+				}
+				else
+				{
+					float shininess, metalness;
+					if( material->Get( AI_MATKEY_SHININESS, shininess ) != aiReturn_SUCCESS )
+						shininess = 80.0f; // Default value
+
+					if( material->Get( AI_MATKEY_REFLECTIVITY, metalness ) != aiReturn_SUCCESS )
+						metalness = 0.0f;
+
+					float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
+
+					m_MeshMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
+					m_MeshMaterial->Set( "u_Materials.UseRoughnessTexture", 0.0f );
+					m_MeshMaterial->Set( "u_Materials.Roughness", roughness );
 				}
 			}
 		}

@@ -30,8 +30,6 @@
 
 #include "VulkanContext.h"
 
-#include "UniformBuffer.h"
-
 namespace Saturn {
 
 	// I don't want to use the class on a TextureXX, as I feel like there is really no point.
@@ -60,14 +58,11 @@ namespace Saturn {
 		Renderer();
 		~Renderer();
 
-		void SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline );
-		void SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, VkDescriptorSet DescriptorSet, void* UBO );
-		
-		void SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, VkDescriptorSet DescriptorSet, UniformBuffer* UBO, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer );
+		void SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< DescriptorSet >& rDescriptorSet, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer );
 
 		// Render pass helpers.
 		void BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass );
-		void BeginRenderPass( VkCommandBuffer CommandBuffer);
+		void EndRenderPass( VkCommandBuffer CommandBuffer );
 
 		void RenderMeshWithMaterial();
 
@@ -102,6 +97,8 @@ namespace Saturn {
 
 		Ref< Texture2D > GetPinkTexture() { return m_PinkTexture; }
 
+		void CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
+		
 	public:
 
 		VkCommandBuffer ActiveCommandBuffer() { return m_CommandBuffer; };

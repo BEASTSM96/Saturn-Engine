@@ -66,58 +66,6 @@ namespace Saturn {
 
 		VkDeviceSize BufferSize = m_Size * sizeof( uint32_t );
 
-#if 0
-		// Create staging buffer.
-		Buffer StagingBuffer;
-
-		StagingBuffer.Create( m_pData, BufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
-
-		//////////////////////////////////////////////////////////////////////////
-
-		// Create the index buffer.
-
-		m_Buffer.Create( nullptr, BufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
-
-		SetDebugUtilsObjectName( "Index Buffer", ( uint64_t ) m_Buffer.m_Buffer, VK_OBJECT_TYPE_BUFFER );
-
-		// Copy buffer
-		{
-			VkCommandBuffer CommandBuffer;
-
-			{
-				VkCommandBufferAllocateInfo BufferAllocInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-				BufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-				BufferAllocInfo.commandPool = VulkanContext::Get().GetCommandPool();
-				BufferAllocInfo.commandBufferCount = 1;
-
-				VK_CHECK( vkAllocateCommandBuffers( VulkanContext::Get().GetDevice(), &BufferAllocInfo, &CommandBuffer ) );
-
-				VkCommandBufferBeginInfo CommandBufferBeginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-				CommandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-				VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandBufferBeginInfo ) );
-			}
-
-			VkBufferCopy CopyRegion{};
-			CopyRegion.size = BufferSize;
-
-			vkCmdCopyBuffer( CommandBuffer, StagingBuffer, m_Buffer, 1, &CopyRegion );
-
-			{
-				vkEndCommandBuffer( CommandBuffer );
-
-				VkSubmitInfo SubmitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-				SubmitInfo.pCommandBuffers = &CommandBuffer;
-				SubmitInfo.commandBufferCount = 1;
-
-				VK_CHECK( vkQueueSubmit( VulkanContext::Get().GetGraphicsQueue(), 1, &SubmitInfo, VK_NULL_HANDLE ) );
-				VK_CHECK( vkQueueWaitIdle( VulkanContext::Get().GetGraphicsQueue() ) );
-
-				vkFreeCommandBuffers( VulkanContext::Get().GetDevice(), VulkanContext::Get().GetCommandPool(), 1, &CommandBuffer );
-			}
-
-		}
-#else
 		VkBuffer StagingBuffer;
 		
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
@@ -157,8 +105,6 @@ namespace Saturn {
 		}
 
 		pAllocator->DestroyBuffer( StagingBuffer );
-
-#endif
 	}
 
 	void IndexBuffer::Terminate()

@@ -206,10 +206,6 @@ namespace Saturn {
 				if( ImGui::Button( "Mesh" ) )
 				{
 					m_SelectionContext.AddComponent<MeshComponent>();
-					
-					// Probably not the best place to put this.
-					//VulkanContext::Get().AddUniformBuffer( entity.GetComponent<IdComponent>().ID );
-
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -325,7 +321,7 @@ namespace Saturn {
 
 				std::string file = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj)\0*.fbx; *.obj\0" );
 				if( !file.empty() )
-					mc.Mesh = Ref<Mesh>::Create( file, entity.GetComponent<IdComponent>().ID );
+					mc.Mesh = Ref<Mesh>::Create( file );
 			}
 
 			if( mc.Mesh )

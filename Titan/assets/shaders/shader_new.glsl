@@ -24,8 +24,8 @@ layout(push_constant) uniform u_Materials
 	//
 
 	vec4 AlbedoColor;
-	vec4 MetallicColor;
-	vec4 RoughnessColor;
+	float Metalness;
+	float Roughness;
 } pc_Materials;
 
 layout(location = 1) out VertexOutput 
@@ -72,8 +72,8 @@ layout(push_constant) uniform u_Materials
 	//
 
 	vec4 AlbedoColor;
-	vec4 MetallicColor;
-	vec4 RoughnessColor;
+	float Metalness;
+	float Roughness;
 } pc_Materials;
 
 // Textures
@@ -96,30 +96,8 @@ layout(location = 1) in VertexOutput
 
 void main() 
 {
-/*
-	vec3 Normal = normalize( vs_Input.Normal );
-	
-	if( pc_Materials.UseNormalTexture != 0.5 )
-	{
-		Normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
-		Normal = normalize( vs_Input.WorldNormals * Normal );
-	}
-	
-	float ambient = 0.3;
-
-	vec3 LightDir = vec3( -0.5, 0.5, -0.5 );
-	float LightIntensity = clamp( dot( LightDir, Normal ), 0.1, 1.0 ) + ambient;
-	
-	// AlbedoTexture
-	if( pc_Materials.UseAlbedoTexture != 0.5 )
-		FinalColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
-	else
-		FinalColor = vec4( pc_Materials.AlbedoColor );
-		
-	vec3 lighting = LightIntensity * FinalColor.rgb;
-
-	FinalColor =  vec4( lighting, FinalColor.a );
-*/
+	float Roughness = pc_Materials.UseRoughnessTexture > 0.5 ? texture( u_RoughnessTexture, vs_Input.TexCoord ).r : pc_Materials.Roughness;
+	Roughness = max( Roughness, 0.05 );
 
 	vec3 normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
 	normal = normalize( vs_Input.WorldNormals * normal );

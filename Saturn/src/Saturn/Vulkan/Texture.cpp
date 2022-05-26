@@ -397,11 +397,25 @@ namespace Saturn {
 
 	void Texture2D::SetData( const void* pData )
 	{
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+
 		VkDeviceSize ImageSize = m_Width * m_Height * 4;
 
 		// Staging Buffer.
-		Buffer StagingBuffer;
-		StagingBuffer.Create( m_pData, ImageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+		VkBuffer StagingBuffer;
+
+		VkBufferCreateInfo BufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		BufferCreateInfo.size = ImageSize;
+		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		auto rBufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, &StagingBuffer );
+
+		void* pDstData = pAllocator->MapMemory< void >( rBufferAlloc );
+
+		memcpy( pDstData, pData, ImageSize );
+
+		pAllocator->UnmapMemory( rBufferAlloc );
 
 		// Create the image.
 		if( m_ImageMemory )

@@ -106,7 +106,7 @@ namespace Saturn {
 	class Mesh
 	{
 	public:
-		Mesh( const std::string& filename, UUID uuid );
+		Mesh( const std::string& filename );
 		Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform );
 		~Mesh();
 
