@@ -25,19 +25,16 @@ IncludeDir["ImGui"] = "Saturn/vendor/imgui"
 IncludeDir["glm"] = "Saturn/vendor/glm"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
 IncludeDir["assimp"] = "Saturn/vendor/assimp/include"
-IncludeDir["DiscordRPC"] = "Saturn/vendor/discord-rpc/include"
-IncludeDir["discord-rpc"] = "Saturn/vendor/discord-rpc/include"
-IncludeDir["rapidjson"] = "Saturn/vendor/rapidjson/include"
 IncludeDir["shaderc"] = "Saturn/vendor/shaderc/libshaderc/include"
 IncludeDir["glslc"] = "Saturn/vendor/shaderc/glslc/src"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/src/"
 IncludeDir["SPIRV_Reflect"] = "Saturn/vendor/SPIRV-Reflect/src/"
 IncludeDir["vma"] = "Saturn/vendor/vma/src/"
+IncludeDir["ImGuizmo"] = "Saturn/vendor/ImGuizmo/src/"
 
 group "Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/imgui"
-	include "Saturn/vendor/discord-rpc"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/SPIRV-Reflect"
 
@@ -68,6 +65,8 @@ project "Saturn"
 		"%{prj.name}/vendor/vulkan/**.h",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl",
+		"%{prj.name}/vendor/ImGuizmo/src/**.cpp",
+		"%{prj.name}/vendor/ImGuizmo/src/**.h",
 	}
 
 	defines
@@ -77,10 +76,10 @@ project "Saturn"
 		"PX_GENERATE_STATIC_LIBRARIES",
 		"AL_LIBTYPE_STATIC",
 		"GLM_ENABLE_EXPERIMENTAL",
-		"GLM_FORCE_DEPTH_ZERO_TO_ONE",
-		"GLM_FORCE_RADIANS",
-		"GLM_FORCE_SWIZZLE",
-		"GLM_FORCE_LEFT_HANDED"
+		"GLM_FORCE_LEFT_HANDED",
+		"GLM_FORCE_RADIANS"
+		--"GLM_FORCE_DEPTH_ZERO_TO_ONE",
+		--"GLM_FORCE_SWIZZLE",
 	}
 
 	includedirs
@@ -101,7 +100,8 @@ project "Saturn"
 		"%{IncludeDir.shaderc}",
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.SPIRV_Reflect}",
-		"%{IncludeDir.vma}"
+		"%{IncludeDir.vma}",
+		"%{IncludeDir.ImGuizmo}"
 	}
 
 	links 
@@ -109,14 +109,15 @@ project "Saturn"
 		"GLFW",
 		"ImGui",
 		"SPIRV-Cross",
-		"SPIRV-Reflect",
-		"discord-rpc"
+		"SPIRV-Reflect"
 	}
+
+	filter "files:Saturn/vendor/ImGuizmo/src/ImGuizmo/**.cpp"
+		flags { "NoPCH" }
 
 	filter "system:not windows"
 		systemversion "latest"
 		cppdialect "C++2a"
-
 		
 	filter "system:linux"
 		systemversion "latest"
@@ -147,9 +148,6 @@ project "Saturn"
 		{
 			"dwmapi",
 			"opengl32.lib",
-			"d3d12.lib",
-			"dxgi.lib",
-			"d3dcompiler.lib",
 			"Saturn/vendor/vulkan/bin/vulkan-1.lib"
 		}
 
@@ -224,12 +222,16 @@ project "Saturn"
 group "Editor"
 project "Titan"
 	location "Titan"
-	-- kind "WindowedApp"
-	kind "ConsoleApp"
 	language "C++"
-	cppdialect "C++17"
+	cppdialect "C++20"
 	staticruntime "on"
 	warnings "Off"
+
+	filter "configurations:not Debug"
+		kind "WindowedApp"
+	
+	filter "configurations:Debug"
+		kind "ConsoleApp"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -322,29 +324,6 @@ project "Titan"
 			"X11",
 			"GLFW",
 			"ImGui"
-		}
-
-		filter "configurations:Debug"
-			defines "SAT_DEBUG"
-			runtime "Debug"
-			symbols "on"
-
-		filter "configurations:Release"
-			defines "SAT_RELEASE"
-			runtime "Release"
-			optimize "on"
-
-		filter "configurations:Dist"
-			defines "SAT_DIST"
-			runtime "Release"
-			optimize "on"
-
-	filter "system:macosx"
-		systemversion "latest"
-
-		defines
-		{
-			"SAT_PLATFORM_MAC"
 		}
 
 		filter "configurations:Debug"

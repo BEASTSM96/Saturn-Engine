@@ -54,7 +54,7 @@ namespace Saturn {
 		m_EditorCamera.AllowEvents( true );
 		m_EditorCamera.SetActive( true );
 		
-		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.png", AddressingMode::ClampToEdge );
+		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
 	}
 
 	EditorLayer::~EditorLayer()
@@ -72,12 +72,13 @@ namespace Saturn {
 
 		SceneRenderer::Get().SetEditorCamera( m_EditorCamera );
 
-		if( m_Toolbar->WantsToStartRuntime ) 
+		/*
+		if( m_Toolbar->WantsToStartRuntime )
 		{
 			if( !m_RuntimeScene )
 			{
 				m_RuntimeScene = Ref<Scene>::Create();
-				
+
 				m_EditorScene->CopyScene( m_RuntimeScene );
 
 				m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
@@ -94,6 +95,7 @@ namespace Saturn {
 				m_SceneHierarchyPanel->SetContext( m_EditorScene );
 			}
 		}
+		*/
 
 		if( m_RuntimeScene )
 			m_RuntimeScene->OnRenderEditor( m_EditorCamera, Application::Get().Time() );
@@ -165,16 +167,15 @@ namespace Saturn {
 		
 		ImGui::End();
 		
+		ImGui::Begin( "Materials" );
+
 		if( auto& rSelection = m_SceneHierarchyPanel->GetSelectionContext() )
 		{
 			if( rSelection.HasComponent<MeshComponent>() )
 			{
 				if( auto& mesh = rSelection.GetComponent<MeshComponent>().Mesh )
 				{
-					/*
 					Ref< Material > material = mesh->GetMaterial();
-
-					ImGui::Begin( "Materials" );
 
 					ImGui::Text( "Shader: %s", material->GetShader()->GetName().c_str() );
 
@@ -204,12 +205,26 @@ namespace Saturn {
 						material->Set< glm::vec4 >( "u_Materials.AlbedoColor", color );
 					}
 
-					ImGui::End();
-					*/
+					ImGui::Text( "Normal" );
+
+					ImGui::Separator();
+
+					bool UseNormalTexture = material->Get< float >( "u_Materials.UseNormalTexture" );
+
+					if( UseNormalTexture )
+					{
+						Ref< Texture2D > texture = material->GetResource( "u_NormalTexture" );
+						ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+					}
+
+					if( ImGui::Checkbox( "Use Normal Texture", &UseNormalTexture ) )
+						material->Set( "u_Materials.UseNormalTexture", UseNormalTexture ? 1.0f : 0.0f );
 				}
 			}
 		}
 
+		ImGui::End();
+		
 		ImGui::End();
 	}
 

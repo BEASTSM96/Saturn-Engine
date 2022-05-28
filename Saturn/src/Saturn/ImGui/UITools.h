@@ -31,8 +31,10 @@
 #include <string>
 #include <glm/glm.hpp>
 
+struct ImVec2;
+	
 namespace Saturn {
-
+	
 	extern bool DrawVec3Control( const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
 	extern bool DrawVec2Control( const std::string& label, glm::vec2& values, float resetValue = 0.0f, float columnWidth = 100.0f );
 
@@ -42,4 +44,7 @@ namespace Saturn {
 	extern bool DrawIntControl( const std::string& label, int& values, float columnWidth = 125.0f );
 	
 	extern bool DrawBoolControl( const std::string& label, bool& value, float columnWidth = 125.0f );
+
+	extern bool DrawOverlay( const std::string& label, ImVec2 Pos );
+	extern void EndOverlay();
 }

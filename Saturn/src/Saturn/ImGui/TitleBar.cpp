@@ -39,12 +39,10 @@ namespace Saturn {
 
 	TitleBar::TitleBar()
 	{
-		m_pLogo = new Texture2D( "assets/Icons/SaturnLogov1.png", AddressingMode::Repeat );
 	}
 
 	TitleBar::~TitleBar()
 	{
-		delete m_pLogo;	
 	}
 
 	void TitleBar::Draw()

@@ -1,4 +1,5 @@
 // Scene Composite shader
+// Really it's the texture pass.
 
 #type vertex
 #version 450

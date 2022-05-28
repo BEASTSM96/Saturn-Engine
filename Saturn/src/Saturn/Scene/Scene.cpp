@@ -77,7 +77,7 @@ namespace Saturn {
 
 			Ref< Mesh > mesh = entity.GetComponent<MeshComponent>().Mesh;
 
-			mesh.Delete();
+			mesh = nullptr;
 		}
 
 		m_Registry.clear();

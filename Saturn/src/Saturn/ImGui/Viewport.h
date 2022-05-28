@@ -28,15 +28,27 @@
 
 #pragma once
 
+#include "Saturn/Vulkan/Texture.h"
+
 namespace Saturn {
 
 	class Viewport
 	{
 	public:
 		Viewport();
+		~Viewport();
 
 		void Draw();
 
 		bool m_SendCameraEvents = true;
+
+	private:
+		Ref< Texture2D > m_CursorTexture;
+		Ref< Texture2D > m_MoveTexture;
+		Ref< Texture2D > m_ScaleTexture;
+		Ref< Texture2D > m_RotateTexture;
+
+		// Translate as default
+		int m_GizmoOperation = 7;
 	};
 }

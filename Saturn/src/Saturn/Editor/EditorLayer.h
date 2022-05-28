@@ -54,6 +54,8 @@ namespace Saturn {
 	public:
 		
 		TitleBar* GetTitleBar() { return m_TitleBar; }
+		SceneHierarchyPanel* GetSceneHierarchyPanel() { return m_SceneHierarchyPanel; }
+		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
 
 	private:
 		

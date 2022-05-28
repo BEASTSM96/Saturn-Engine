@@ -115,22 +115,6 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::DrawEntities()
 	{
-		
-		ImGui::Columns( 2, "Bar" );
-
-		ImGui::Columns( 2, "Key" );
-		{
-			ImGui::Text( "Name" );
-
-			ImGui::NextColumn();
-
-			ImGui::Text( "Visibility" );
-
-			ImGui::NextColumn();
-		}
-
-		ImGui::Separator();
-
 		m_Context->m_Registry.each( [&]( auto entity )
 		{
 			Entity e{ entity, m_Context.Pointer() };
@@ -159,33 +143,32 @@ namespace Saturn {
 				if( ImGui::MenuItem( "Create Empty Entity" ) )
 				{
 					auto Entity = m_Context->CreateEntity( "Empty Entity" );
+
 					SetSelected( Entity );
 				}
 
-				if( ImGui::MenuItem( "Skylight" ) )
+				auto components = m_Context->m_Registry.view<SkylightComponent>();
+				
+				if( components.empty() )
 				{
-					auto Entity = m_Context->CreateEntity( "Skylight" );
-					Entity.AddComponent<SkylightComponent>();
-					SetSelected( Entity );
+					if( ImGui::MenuItem( "Skylight" ) )
+					{
+						auto Entity = m_Context->CreateEntity( "Skylight" );
+						Entity.AddComponent<SkylightComponent>();
+						
+						SetSelected( Entity );
+					}
 				}
 
 				ImGui::EndPopup();
 			}
 
-			if( m_SelectionContext && m_SelectionContext.HasComponent<MeshComponent>() )
-			{
-				auto& mesh = m_SelectionContext.GetComponent<MeshComponent>().Mesh;
-
-				if( mesh )
-				{
-				}
-			}
-
-			ImGui::Begin( "Inspector" );
+			ImGui::Begin( "Inspector", nullptr, ImGuiWindowFlags_NoTitleBar );
 			if( m_SelectionContext )
 			{
 				DrawComponents( m_SelectionContext );
 			}
+
 			ImGui::End();
 		}
 
@@ -242,25 +225,6 @@ namespace Saturn {
 				if( m_SelectionChangedCallback )
 					m_SelectionChangedCallback( m_SelectionContext );
 			}
-
-			ImGui::NextColumn();
-			
-			{
-				auto& visibility = entity.GetComponent<VisibilityComponent>().visibility;
-
-				const char* visibilityStr = visibility == Visibility::Visible ? "Visible" : "Hidden";
-
-				ImGui::Selectable( visibilityStr );
-
-				if( ImGui::IsItemClicked() )
-				{
-					Visibility newVis = visibility == Visibility::Visible ? Visibility::Hidden : Visibility::Visible;
-
-					entity.GetComponent<VisibilityComponent>().visibility = newVis;
-				}
-			}
-
-			ImGui::NextColumn();
 		}
 	}
 
@@ -297,11 +261,9 @@ namespace Saturn {
 			auto& rotation = tc.Rotation;
 			auto& scale = tc.Scale;
 
-			bool updateTransform = false;
-			updateTransform |= DrawVec3Control( "Translation", tc.Position );
-
-			updateTransform |= DrawVec3Control( "Rotation", tc.Rotation );
-			updateTransform |= DrawVec3Control( "Scale", tc.Scale, 1.0f );
+			DrawVec3Control( "Translation", tc.Position )
+			DrawVec3Control( "Rotation", tc.Rotation );
+			DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 
 		DrawComponent<MeshComponent>( "Mesh", entity, [&]( auto& mc )

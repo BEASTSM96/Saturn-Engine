@@ -51,9 +51,6 @@ namespace Saturn {
 	private:
 
 		float m_Height;
-
-		Texture2D* m_pLogo;
-		VkDescriptorSet m_LogoDescSet;
 	};
 
 }
