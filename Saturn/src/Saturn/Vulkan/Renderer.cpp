@@ -117,7 +117,8 @@ namespace Saturn {
 	{
 		Pipeline.Bind( CommandBuffer );
 		
-		rDescriptorSet->Bind( CommandBuffer, Pipeline.GetPipelineLayout() );
+		if( rDescriptorSet )
+			rDescriptorSet->Bind( CommandBuffer, Pipeline.GetPipelineLayout() );
 
 		pVertexBuffer->Bind( CommandBuffer );
 		pIndexBuffer->Bind( CommandBuffer );

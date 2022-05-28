@@ -36,6 +36,9 @@ namespace Saturn {
 	class Resource
 	{
 	public:
+		Resource() {}
+		~Resource() { Terminate(); }
+
 		void Terminate();
 
 		operator VkImage() const { return Image; }

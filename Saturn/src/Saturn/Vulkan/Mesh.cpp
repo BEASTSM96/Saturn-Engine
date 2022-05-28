@@ -352,10 +352,10 @@ namespace Saturn {
 	Mesh::~Mesh()
 	{
 		if( m_MeshMaterial )
-			m_MeshMaterial.Delete();
+			m_MeshMaterial = nullptr;
 
-		m_VertexBuffer.Delete();
-		m_IndexBuffer.Delete();
+		m_VertexBuffer = nullptr;
+		m_IndexBuffer = nullptr;
 
 		m_Indices.clear();
 		m_StaticVertices.clear();

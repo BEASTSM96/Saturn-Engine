@@ -73,9 +73,9 @@ namespace Saturn {
 
 	void SceneRenderer::CreateGeometryResult()
 	{
-		m_RendererData.RenderPassResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.GeometryPassColor.Sampler, m_RendererData.GeometryPassColor.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+		m_RendererData.RenderPassResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.GeometryPassColor->Sampler, m_RendererData.GeometryPassColor->ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
-		m_RendererData.SceneCompositeResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.SceneCompositeColor.Sampler, m_RendererData.SceneCompositeColor.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+		m_RendererData.SceneCompositeResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.SceneCompositeColor->Sampler, m_RendererData.SceneCompositeColor->ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
 
 	void SceneRenderer::Terminate()
@@ -96,24 +96,29 @@ namespace Saturn {
 	{
 		// Create render pass.
 
+		m_RendererData.GeometryPassColor = Ref< Resource >::Create();
+		m_RendererData.GeometryPassDepth = Ref< Resource >::Create();
+
 		// Start by creating the color resource
 		{
 			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.GeometryPassColor.Image, &m_RendererData.GeometryPassColor.Memory );
+				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 },
+				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+				&m_RendererData.GeometryPassColor->Image, &m_RendererData.GeometryPassColor->Memory );
 
-			Renderer::Get().CreateImageView( m_RendererData.GeometryPassColor, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.GeometryPassColor.ImageView );
+			Renderer::Get().CreateImageView( m_RendererData.GeometryPassColor->Image, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.GeometryPassColor->ImageView );
 
-			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassColor.Sampler );
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassColor->Sampler );
 		}
 
 		// Then, create the depth resource
 		{
 			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.GeometryPassDepth.Image, &m_RendererData.GeometryPassDepth.Memory );
+				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.GeometryPassDepth->Image, &m_RendererData.GeometryPassDepth->Memory );
 
-			Renderer::Get().CreateImageView( m_RendererData.GeometryPassDepth, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.GeometryPassDepth.ImageView );
+			Renderer::Get().CreateImageView( m_RendererData.GeometryPassDepth->Image, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.GeometryPassDepth->ImageView );
 
-			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassDepth.Sampler );
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassDepth->Sampler );
 		}
 
 		PassSpecification PassSpec = {};
@@ -174,7 +179,7 @@ namespace Saturn {
 
 		// Create geometry framebuffer.
 
-		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height }, { m_RendererData.GeometryPassColor.ImageView, m_RendererData.GeometryPassDepth.ImageView }, &m_RendererData.GeometryFramebuffer );
+		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height }, { m_RendererData.GeometryPassColor->ImageView, m_RendererData.GeometryPassDepth->ImageView }, &m_RendererData.GeometryFramebuffer );
 		
 		//////////////////////////////////////////////////////////////////////////
 		// STATIC MESHES
@@ -231,30 +236,33 @@ namespace Saturn {
 
 	void SceneRenderer::InitSceneComposite()
 	{
+		m_RendererData.SceneCompositeColor = Ref< Resource >::Create();
+		m_RendererData.SceneCompositeDepth = Ref< Resource >::Create();
+
 		// Start by creating the color resource
 		{
 			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.SceneCompositeColor.Image, &m_RendererData.SceneCompositeColor.Memory );
+				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.SceneCompositeColor->Image, &m_RendererData.SceneCompositeColor->Memory );
 
-			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeColor, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.SceneCompositeColor.ImageView );
+			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeColor->Image, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.SceneCompositeColor->ImageView );
 
-			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeColor.Sampler );
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeColor->Sampler );
 		}
 
 		// Then, create the depth resource
 		{
 			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.SceneCompositeDepth.Image, &m_RendererData.SceneCompositeDepth.Memory );
+				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.SceneCompositeDepth->Image, &m_RendererData.SceneCompositeDepth->Memory );
 
-			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeDepth, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.SceneCompositeDepth.ImageView );
+			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeDepth->Image, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.SceneCompositeDepth->ImageView );
 
-			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeDepth.Sampler );
+			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeDepth->Sampler );
 		}
 
 
 		// Create the scene composite render pass.
 		PassSpecification PassSpec = {};
-		PassSpec.Name = "Scene Composite";
+		PassSpec.Name = "Texture pass";
 		
 		PassSpec.Attachments = {
 			// Color
@@ -312,7 +320,8 @@ namespace Saturn {
 		Renderer::Get().CreateFramebuffer( 
 			m_RendererData.GeometryPass, 
 			{ .width = m_RendererData.Width, .height = m_RendererData.Height },
-			{ m_RendererData.SceneCompositeColor.ImageView, m_RendererData.SceneCompositeDepth.ImageView },
+			{ m_RendererData.SceneCompositeColor->ImageView, 
+			m_RendererData.SceneCompositeDepth->ImageView },
 			&m_RendererData.SceneCompositeFramebuffer );
 
 		/////////
@@ -339,8 +348,8 @@ namespace Saturn {
 
 		VkDescriptorImageInfo GeometryPassImageInfo = {};
 		GeometryPassImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		GeometryPassImageInfo.imageView = m_RendererData.GeometryPassColor.ImageView;
-		GeometryPassImageInfo.sampler = m_RendererData.GeometryPassColor.Sampler;
+		GeometryPassImageInfo.imageView = m_RendererData.GeometryPassColor->ImageView;
+		GeometryPassImageInfo.sampler = m_RendererData.GeometryPassColor->Sampler;
 
 		std::vector< VkWriteDescriptorSet > DescriptorWrites;
 
@@ -517,7 +526,7 @@ namespace Saturn {
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = VK_CULL_MODE_BACK_BIT;
+		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 		
 		m_RendererData.GridPipeline = Pipeline( PipelineSpec );
@@ -773,7 +782,7 @@ namespace Saturn {
 
 	void SceneRenderer::SceneCompositePass()
 	{
-		VkExtent2D Extent = {m_RendererData.Width,m_RendererData.Height };
+		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
 		// Begin scene composite pass.
@@ -793,15 +802,11 @@ namespace Saturn {
 		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
 		
 		// Actual scene composite pass.
-
-		vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RendererData.SceneCompositePipeline.GetPipeline() );
-
-		m_RendererData.SC_DescriptorSet->Bind( CommandBuffer, m_RendererData.SceneCompositePipeline.GetPipelineLayout() );
-
-		m_RendererData.SC_VertexBuffer->Bind( CommandBuffer );
-		m_RendererData.SC_IndexBuffer->Bind( CommandBuffer );
-
-		m_RendererData.SC_IndexBuffer->Draw( CommandBuffer );
+		
+		Renderer::Get().SubmitFullscrenQuad( 
+			CommandBuffer, m_RendererData.SceneCompositePipeline, 
+			m_RendererData.SC_DescriptorSet, 
+			m_RendererData.SC_IndexBuffer, m_RendererData.SC_VertexBuffer );
 		
 		// End scene composite pass.
 		m_RendererData.SceneComposite.EndPass();
@@ -838,7 +843,7 @@ namespace Saturn {
 		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 		
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite 1st pass" );
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Texture pass" );
 
 		SceneCompositePass();
 
@@ -865,8 +870,8 @@ namespace Saturn {
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		GeometryPass.Terminate();
-		GeometryPassDepth.Terminate();
-		GeometryPassColor.Terminate();
+		GeometryPassDepth = nullptr;
+		GeometryPassColor = nullptr;
 
 		vkDestroyFramebuffer( LogicalDevice, GeometryFramebuffer, nullptr );
 		GeometryFramebuffer = nullptr;
@@ -887,8 +892,8 @@ namespace Saturn {
 		SkyboxIndexBuffer->Terminate();
 
 		SceneComposite.Terminate();
-		SceneCompositeDepth.Terminate();
-		SceneCompositeColor.Terminate();
+		SceneCompositeDepth = nullptr;
+		SceneCompositeColor = nullptr;
 
 		vkDestroyFramebuffer( LogicalDevice, SceneCompositeFramebuffer, nullptr );
 
@@ -900,6 +905,7 @@ namespace Saturn {
 		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
 		
 		ImGui_ImplVulkan_RemoveTexture( SceneCompositeResult );
+		ImGui_ImplVulkan_RemoveTexture( RenderPassResult );
 
 		GridShader = nullptr;
 		SkyboxShader = nullptr;

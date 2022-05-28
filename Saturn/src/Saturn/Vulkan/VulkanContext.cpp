@@ -143,24 +143,20 @@ namespace Saturn {
 		m_SwapChain.Terminate();
 		
 		for( auto& rImageView : m_SwapChainImageViews )
-		{
 			vkDestroyImageView( m_LogicalDevice, rImageView, nullptr );
-		}
 
 		for( auto& rFramebuffer : m_SwapChainFramebuffers )
-		{
 			vkDestroyFramebuffer( m_LogicalDevice, rFramebuffer, nullptr );
-		}
 
 		for( auto& rFunc : m_TerminateResourceFuncs )
 			rFunc();
 
-		delete m_pDebugMessenger;
-		m_pDebugMessenger = nullptr;
-
 		delete m_pAllocator;
 
 		vkDestroyDevice( m_LogicalDevice, nullptr );
+
+		delete m_pDebugMessenger;
+		m_pDebugMessenger = nullptr;
 
 		vkDestroySurfaceKHR( m_Instance, m_Surface, nullptr );
 		vkDestroyInstance( m_Instance, nullptr );

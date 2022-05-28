@@ -51,41 +51,6 @@ namespace Saturn {
 		Ref< Mesh > Mesh = nullptr;
 		glm::mat4 Transform;
 	};
-	
-	struct MeshDescriptorSet
-	{
-		bool operator ==( const MeshDescriptorSet& rOther )
-		{
-			return ( rOther.Owner == Owner );
-		}
-
-		void Terminate() 
-		{
-			for( Submesh& rSubmesh : Mesh->Submeshes() )
-			{
-				DescriptorSets[ rSubmesh ]->Terminate();
-			}
-
-			DescriptorSets.clear();
-		}
-		
-		void BindAll( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout )
-		{
-			for( Submesh& rSubmesh : Mesh->Submeshes() )
-			{
-				DescriptorSets[ rSubmesh ]->Bind( CommandBuffer, PipelineLayout );
-			}
-		}
-
-		void Bind( Submesh& rSubmesh, VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout )
-		{
-			DescriptorSets[ rSubmesh ]->Bind( CommandBuffer, PipelineLayout );
-		}
-
-		UUID Owner;
-		Ref< Saturn::Mesh > Mesh;
-		std::unordered_map< Submesh, Ref< DescriptorSet > > DescriptorSets;
-	};
 
 	struct RendererData
 	{
@@ -167,8 +132,8 @@ namespace Saturn {
 
 		// Render pass for all grid, skybox and meshes.
 		Pass GeometryPass;
-		Resource GeometryPassDepth;
-		Resource GeometryPassColor;
+		Ref< Resource > GeometryPassDepth;
+		Ref< Resource > GeometryPassColor;
 		VkFramebuffer GeometryFramebuffer;
 
 		// Buffer image.
@@ -211,8 +176,8 @@ namespace Saturn {
 		// Begin Scene Composite
 		
 		Pass SceneComposite;
-		Resource SceneCompositeColor;
-		Resource SceneCompositeDepth;
+		Ref< Resource > SceneCompositeColor;
+		Ref< Resource > SceneCompositeDepth;
 		VkFramebuffer SceneCompositeFramebuffer;
 
 		Pipeline SceneCompositePipeline;
@@ -301,18 +266,5 @@ namespace Saturn {
 	private:
 		friend class Scene;
 		friend class VulkanContext;
-	};
-
-}
-
-namespace std {
-	
-	template<>
-	struct hash< Saturn::MeshDescriptorSet >
-	{
-		size_t operator()( const Saturn::MeshDescriptorSet& rOther ) const
-		{
-			return rOther.Owner;
-		}
 	};
 }
