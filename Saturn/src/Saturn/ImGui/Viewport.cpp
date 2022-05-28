@@ -95,6 +95,7 @@ namespace Saturn {
 			DrawOverlay( "##GizmoOverlayControl", Pos );
 
 			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
 
 			if( ImGui::ImageButton( m_CursorTexture->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
 				m_GizmoOperation = -1;
@@ -114,7 +115,7 @@ namespace Saturn {
 			if( ImGui::ImageButton( m_ScaleTexture->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
 				m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
 
-			ImGui::PopStyleColor();
+			ImGui::PopStyleColor( 2 );
 
 			EndOverlay();
 		}

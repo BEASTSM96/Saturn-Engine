@@ -191,6 +191,19 @@ namespace Saturn {
 					{
 						Ref< Texture2D > texture = material->GetResource( "u_AlbedoTexture" );
 						ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+
+						ImGui::SameLine();
+						
+						if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
+						{
+							std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
+
+							if( !file.empty() )
+							{
+								texture = Ref<Texture2D>::Create( file, AddressingMode::Repeat );
+								material->SetResource( "u_AlbedoTexture", texture );
+							}
+						}
 					}
 
 					if( ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture ) )

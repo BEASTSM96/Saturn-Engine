@@ -111,6 +111,9 @@ namespace Saturn {
 
 	void Material::SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture )
 	{
+		if( m_Textures[ Name ] )
+			m_AnyValueChanged = true;
+
 		m_Textures[ Name ] = Texture;
 	}
 

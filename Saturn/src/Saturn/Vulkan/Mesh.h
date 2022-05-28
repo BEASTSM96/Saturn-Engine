@@ -140,9 +140,16 @@ namespace Saturn {
 		
 		Ref<Material>& GetMaterial() { return m_MeshMaterial; }
 		const Ref<Material>& GetMaterial() const { return m_MeshMaterial; }
-		
-
+	
 		glm::mat4 GetTransform() const { return m_InverseTransform; }
+
+	public:
+
+		void RefreshDescriptorSets();
+
+	private:
+		
+		void GetVetexAndIndexData();
 
 	private:
 

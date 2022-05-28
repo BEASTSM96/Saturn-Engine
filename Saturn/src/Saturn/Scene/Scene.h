@@ -80,9 +80,6 @@ namespace Saturn {
 		std::string& Name() { return m_Name; }
 		const std::string& Name() const { return m_Name; }
 
-		Entity LightEntity();
-		std::vector<Entity>& VisableEntities();
-		
 		bool m_RuntimeRunning = false;
 
 	private:
@@ -93,9 +90,9 @@ namespace Saturn {
 
 		EntityMap m_EntityIDMap;
 
-		entt::entity m_SceneEntity;
 		entt::registry m_Registry;
 
+		entt::entity m_SceneEntity;
 		entt::entity m_SelectedEntity;
 
 	private:

@@ -106,89 +106,19 @@ namespace Saturn {
 		m_Scene = scene;
 		m_MeshShader = ShaderLibrary::Get().Find( "shader_new" );
 		
-		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( scene->mRootNode->mTransformation ) );
+		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation ) );
 		
-		uint32_t vertexCount = 0;
-		uint32_t indexCount = 0;
+		// Get vertex and index data, also creates the vertex/index buffers.
+		GetVetexAndIndexData();
 		
-		std::vector<uint32_t> Indices;
-
-		DescriptorSetSpecification DescriptorSetSpec;
-		DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
-		DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
-
-		m_Submeshes.reserve( scene->mNumMeshes );
-		for( size_t m = 0; m < scene->mNumMeshes; m++ )
-		{
-			aiMesh* mesh = scene->mMeshes[ m ];
-
-			Submesh& submesh = m_Submeshes.emplace_back();
-			submesh.BaseVertex = vertexCount;
-			submesh.BaseIndex = indexCount;
-			submesh.MaterialIndex = mesh->mMaterialIndex;
-			submesh.IndexCount = mesh->mNumFaces * 3;
-			submesh.MeshName = mesh->mName.C_Str();
-
-			vertexCount += mesh->mNumVertices;
-			submesh.VertexCount = vertexCount;
-			indexCount += submesh.IndexCount;
-
-			SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );
-			SAT_CORE_ASSERT( mesh->HasNormals(), "Meshes require normals." );
-
-			// Vertices
-			for( size_t i = 0; i < mesh->mNumVertices; i++ )
-			{
-				MeshVertex vertex ={};
-				vertex.Position ={ mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
-				vertex.Normal ={ mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
-
-				if( mesh->HasTangentsAndBitangents() )
-				{
-					vertex.Tangent ={ mesh->mTangents[ i ].x, mesh->mTangents[ i ].y, mesh->mTangents[ i ].z };
-					vertex.Binormal ={ mesh->mBitangents[ i ].x, mesh->mBitangents[ i ].y, mesh->mBitangents[ i ].z };
-				}
-
-				if( mesh->HasTextureCoords( 0 ) )
-					vertex.Texcoord ={ mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
-
-				m_StaticVertices.push_back( vertex );
-			}
-
-			// Indices
-			for( size_t i = 0; i < mesh->mNumFaces; i++ )
-			{
-				SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
-
-				Index index ={ mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] };
-				m_Indices.push_back( index );
-				
-				Indices.push_back( mesh->mFaces[ i ].mIndices[ 0 ] );
-				Indices.push_back( mesh->mFaces[ i ].mIndices[ 1 ] );
-				Indices.push_back( mesh->mFaces[ i ].mIndices[ 2 ] );
-				
-
-				m_TriangleCache[ m ].emplace_back( m_StaticVertices[ index.V1 + submesh.BaseVertex ], m_StaticVertices[ index.V2 + submesh.BaseVertex ], m_StaticVertices[ index.V3 + submesh.BaseVertex ] );
-			}
-
-		}
-
-		TraverseNodes( scene->mRootNode );
-
-		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
-
-		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() );
-		
-		m_VertexCount = vertexCount;
-		m_TriangleCount = m_TriangleCache.size();
 		m_VerticesCount = m_StaticVertices.size();
 		m_IndicesCount = m_Indices.size();
 
 		// Create material.
-		for( size_t m = 0; m < scene->mNumMaterials; m++ )
+		for( size_t m = 0; m < m_Scene->mNumMaterials; m++ )
 		{
-			m_Materials.resize( scene->mNumMaterials );
-			aiMaterial* material = scene->mMaterials[ m ];
+			m_Materials.resize( m_Scene->mNumMaterials );
+			aiMaterial* material = m_Scene->mMaterials[ m ];
 
 			aiString name;
 			material->Get( AI_MATKEY_NAME, name );
@@ -372,6 +302,7 @@ namespace Saturn {
 			submesh.NodeName = node->mName.C_Str();
 			submesh.Transform = transform;
 
+			// Create a descriptor set for each submesh to use.
 			DescriptorSetSpecification DescriptorSetSpec;
 			DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
 			DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
@@ -382,4 +313,136 @@ namespace Saturn {
 		for( uint32_t i = 0; i < node->mNumChildren; i++ )
 			TraverseNodes( node->mChildren[ i ], transform, level + 1 );
 	}
+
+	void Mesh::RefreshDescriptorSets()
+	{
+		DescriptorSetSpecification DescriptorSetSpec;
+		DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
+		DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
+
+		for ( auto& rSubmesh : m_Submeshes )
+		{
+			m_DescriptorSets[ rSubmesh ]->Terminate();
+			m_DescriptorSets[ rSubmesh ] = nullptr;
+
+			m_DescriptorSets[ rSubmesh ] = Ref< DescriptorSet >::Create( DescriptorSetSpec );
+		}
+	}
+
+	void Mesh::GetVetexAndIndexData()
+	{
+		std::vector<uint32_t> Indices;
+
+		for( size_t m = 0; m < m_Scene->mNumMeshes; m++ )
+		{
+			aiMesh* mesh = m_Scene->mMeshes[ m ];
+
+			Submesh& submesh = m_Submeshes.emplace_back();
+			submesh.BaseVertex = m_VertexCount;
+			submesh.BaseIndex = m_IndicesCount;
+			submesh.MaterialIndex = mesh->mMaterialIndex;
+			submesh.IndexCount = mesh->mNumFaces * 3;
+			submesh.MeshName = mesh->mName.C_Str();
+
+			m_VertexCount += mesh->mNumVertices;
+			submesh.VertexCount = m_VertexCount;
+			m_IndicesCount += submesh.IndexCount;
+
+			SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );
+			SAT_CORE_ASSERT( mesh->HasNormals(), "Meshes require normals." );
+
+			// Vertices
+			for( size_t i = 0; i < mesh->mNumVertices; i++ )
+			{
+				MeshVertex vertex = {};
+				vertex.Position = { mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
+				vertex.Normal = { mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
+
+				if( mesh->HasTangentsAndBitangents() )
+				{
+					vertex.Tangent = { mesh->mTangents[ i ].x, mesh->mTangents[ i ].y, mesh->mTangents[ i ].z };
+					vertex.Binormal = { mesh->mBitangents[ i ].x, mesh->mBitangents[ i ].y, mesh->mBitangents[ i ].z };
+				}
+
+				if( mesh->HasTextureCoords( 0 ) )
+					vertex.Texcoord = { mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
+
+				m_StaticVertices.push_back( vertex );
+			}
+
+			// Indices
+			for( size_t i = 0; i < mesh->mNumFaces; i++ )
+			{
+				SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
+
+				Indices.push_back( mesh->mFaces[ i ].mIndices[ 0 ] );
+				Indices.push_back( mesh->mFaces[ i ].mIndices[ 1 ] );
+				Indices.push_back( mesh->mFaces[ i ].mIndices[ 2 ] );
+			}
+		}
+
+		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
+
+		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() );
+
+		TraverseNodes( m_Scene->mRootNode );
+	}
+
 }
+
+/*
+for( size_t m = 0; m < scene->mNumMeshes; m++ )
+{
+	aiMesh* mesh = scene->mMeshes[ m ];
+
+	Submesh& submesh = m_Submeshes.emplace_back();
+	submesh.BaseVertex = vertexCount;
+	submesh.BaseIndex = indexCount;
+	submesh.MaterialIndex = mesh->mMaterialIndex;
+	submesh.IndexCount = mesh->mNumFaces * 3;
+	submesh.MeshName = mesh->mName.C_Str();
+
+	vertexCount += mesh->mNumVertices;
+	submesh.VertexCount = vertexCount;
+	indexCount += submesh.IndexCount;
+
+	SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );
+	SAT_CORE_ASSERT( mesh->HasNormals(), "Meshes require normals." );
+
+	// Vertices
+	for( size_t i = 0; i < mesh->mNumVertices; i++ )
+	{
+		MeshVertex vertex = {};
+		vertex.Position = { mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
+		vertex.Normal = { mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
+
+		if( mesh->HasTangentsAndBitangents() )
+		{
+			vertex.Tangent = { mesh->mTangents[ i ].x, mesh->mTangents[ i ].y, mesh->mTangents[ i ].z };
+			vertex.Binormal = { mesh->mBitangents[ i ].x, mesh->mBitangents[ i ].y, mesh->mBitangents[ i ].z };
+		}
+
+		if( mesh->HasTextureCoords( 0 ) )
+			vertex.Texcoord = { mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
+
+		m_StaticVertices.push_back( vertex );
+	}
+
+	// Indices
+	for( size_t i = 0; i < mesh->mNumFaces; i++ )
+	{
+		SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
+
+		Index index = { mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] };
+		m_Indices.push_back( index );
+
+		Indices.push_back( mesh->mFaces[ i ].mIndices[ 0 ] );
+		Indices.push_back( mesh->mFaces[ i ].mIndices[ 1 ] );
+		Indices.push_back( mesh->mFaces[ i ].mIndices[ 2 ] );
+
+
+		m_TriangleCache[ m ].emplace_back( m_StaticVertices[ index.V1 + submesh.BaseVertex ], m_StaticVertices[ index.V2 + submesh.BaseVertex ], m_StaticVertices[ index.V3 + submesh.BaseVertex ] );
+	}
+
+}
+*/

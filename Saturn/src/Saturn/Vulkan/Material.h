@@ -53,13 +53,15 @@ namespace Saturn {
 		template<typename Ty>
 		void Set( const std::string& Name, const Ty& Value ) 
 		{
-
 			for ( auto& Uniform : m_Uniforms )
 			{
 				if ( Uniform.Name == Name )
 				{
 					Uniform.Set( ( uint8_t* )&Value, sizeof( Ty ) );
-					return;
+					
+					m_AnyValueChanged = true;
+
+					break;
 				}
 			}
 		}
@@ -78,6 +80,8 @@ namespace Saturn {
 		
 		Ref< Texture2D > GetResource( const std::string& Name );
 
+		bool HasAnyValueChanged() { return m_AnyValueChanged; };
+
 	public:
 
 		Ref< Saturn::Shader >& GetShader() { return m_Shader; }
@@ -85,6 +89,8 @@ namespace Saturn {
 	private:
 		std::string m_Name = "";
 		Ref< Saturn::Shader > m_Shader;
+
+		bool m_AnyValueChanged = false;
 
 		std::vector< ShaderUniform > m_Uniforms;
 		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;

@@ -261,7 +261,7 @@ namespace Saturn {
 			auto& rotation = tc.Rotation;
 			auto& scale = tc.Scale;
 
-			DrawVec3Control( "Translation", tc.Position )
+			DrawVec3Control( "Translation", tc.Position );
 			DrawVec3Control( "Rotation", tc.Rotation );
 			DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );

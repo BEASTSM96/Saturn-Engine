@@ -820,16 +820,14 @@ namespace Saturn {
 			return;
 		}
 
-		/*
 		// Cleanup descriptor sets from last frame.
-		if ( m_RendererData.StaticMeshDescriptorSets.size() >= 1 )
+		/*
+		for( auto& rDrawCommand : m_DrawList )
 		{
-			for ( auto&& [uid, set] : m_RendererData.StaticMeshDescriptorSets )
+			if( rDrawCommand.Mesh->GetMaterial()->HasAnyValueChanged() )
 			{
-				m_RendererData.StaticMeshDescriptorSets[ uid ].Terminate();
+				rDrawCommand.Mesh->RefreshDescriptorSets();
 			}
-
-			m_RendererData.StaticMeshDescriptorSets.clear();
 		}
 		*/
 

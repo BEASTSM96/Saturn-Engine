@@ -211,46 +211,4 @@ namespace Saturn {
 		CopyComponent<MeshComponent>( NewScene->m_Registry, m_Registry, EntityMap );
 		CopyComponent<SkylightComponent>( NewScene->m_Registry, m_Registry, EntityMap );
 	}
-
-	Entity Scene::LightEntity()
-	{
-		//std::vector<entt::entity> lights;
-
-		auto group = m_Registry.group<LightComponent>( entt::get<TransformComponent> );
-		
-		for ( auto& e : group )
-		{
-			//auto& [lightComponent, transformComponent] = group.get<LightComponent, TransformComponent>( e );
-			
-			//return Entity( e, this );
-
-			//lights.push_back( e );
-		}
-
-		return Entity{};
-	}
-
-	std::vector<Entity>& Scene::VisableEntities()
-	{
-		std::vector<Entity> entities;
-
-		auto view = m_Registry.view<VisibilityComponent>();
-
-		if ( view )
-		{
-			for( auto e : view )
-			{
-				auto& vis = view.get<VisibilityComponent>( e ).visibility;
-
-				Entity entity( e, this );
-
-				if( vis == Visibility::Visible )
-					entities.push_back( entity );
-
-			}
-		}
-
-		return entities;
-	}
-
 }
