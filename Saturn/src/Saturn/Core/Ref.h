@@ -93,6 +93,7 @@ namespace Saturn {
 		Ref& operator=( Ref<T>& other )
 		{
 			//delete m_Pointer;
+			//m_Pointer = nullptr;
 
 			m_Pointer = other.m_Pointer;
 
@@ -103,6 +104,7 @@ namespace Saturn {
 		Ref& operator=( Ref<T2>& other )
 		{
 			//delete m_Pointer;
+			//m_Pointer = nullptr;
 
 			m_Pointer = other.m_Pointer;
 
@@ -116,6 +118,7 @@ namespace Saturn {
 		Ref& operator=( const Ref<T>& other )
 		{
 			//delete m_Pointer;
+			//m_Pointer = nullptr;
 
 			m_Pointer = other.m_Pointer;
 
@@ -126,6 +129,7 @@ namespace Saturn {
 		Ref& operator=( const Ref<T2>& other )
 		{
 			//delete m_Pointer;
+			//m_Pointer = nullptr;
 
 			m_Pointer = other.m_Pointer;
 
