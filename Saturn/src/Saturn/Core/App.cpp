@@ -31,8 +31,6 @@
 
 #include "Window.h"
 
-#include "Saturn/Discord/DiscordRPC.h"
-
 #include "Saturn/Vulkan/VulkanContext.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
 

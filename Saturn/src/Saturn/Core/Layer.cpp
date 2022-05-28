@@ -33,6 +33,8 @@
 #include "Saturn/Vulkan/VulkanContext.h"
 #include "Window.h"
 
+#include "ImGuizmo/ImGuizmo.h"
+
 #include <imgui.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <backends/imgui_impl_glfw.h>
@@ -157,6 +159,7 @@ namespace Saturn {
 		ImGui_ImplGlfw_NewFrame();
 
 		ImGui::NewFrame();
+		ImGuizmo::BeginFrame();
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2( ( float ) Window::Get().Width(), ( float ) Window::Get().Height() );
