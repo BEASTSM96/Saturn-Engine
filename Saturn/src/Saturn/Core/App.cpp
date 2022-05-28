@@ -99,8 +99,13 @@ namespace Saturn {
 
 		VulkanContext::Get().SubmitTerminateResource( [&]() 
 		{
-			delete m_ImGuiLayer;
 			delete m_EditorLayer;
+
+			m_EditorLayer = nullptr;
+
+			delete m_ImGuiLayer;
+
+			m_ImGuiLayer = nullptr;
 		} );
 
 		VulkanContext::Get().Terminate();

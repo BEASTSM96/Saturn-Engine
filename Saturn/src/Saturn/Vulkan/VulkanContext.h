@@ -77,29 +77,29 @@ namespace Saturn {
 
 	public:
 		
-		VkInstance& GetInstance() { return m_Instance; }
+		VkInstance GetInstance() { return m_Instance; }
 
-		VkDevice& GetDevice() { return m_LogicalDevice; }
+		VkDevice GetDevice() { return m_LogicalDevice; }
 
-		VkSurfaceKHR& GetSurface() { return m_Surface; }
+		VkSurfaceKHR GetSurface() { return m_Surface; }
 		VkSurfaceFormatKHR& GetSurfaceFormat() { return m_SurfaceFormat; }
+
+		VkImageView GetDepthImageView() { return m_DepthImageView; }
 
 		SwapchainCreationData GetSwapchainCreationData();
 
 		QueueFamilyIndices& GetQueueFamilyIndices() { return m_Indices; };
 
-		VkCommandPool& GetCommandPool() { return m_CommandPool; }
+		VkCommandPool GetCommandPool() { return m_CommandPool; }
 
-		VkQueue& GetGraphicsQueue() { return m_GraphicsQueue; }
-		VkQueue& GetPresentQueue() { return m_PresentQueue; }
+		VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
+		VkQueue GetPresentQueue() { return m_PresentQueue; }
 
 		VkPhysicalDevice& GetPhysicalDevice() { return m_PhysicalDevice; }
 
 		Swapchain& GetSwapchain() { return m_SwapChain; }
 
 		VulkanAllocator* GetVulkanAllocator() { return m_pAllocator; }
-
-		VkImageView& GetDepthImageView() { return m_DepthImageView; }
 
 		// "rrFunction" will be called just before the device is destroyed.
 		void SubmitTerminateResource( std::function<void()>&& rrFunction ) { m_TerminateResourceFuncs.push_back( std::move( rrFunction ) ); }
@@ -151,10 +151,6 @@ namespace Saturn {
 
 		bool m_Terminated = false;
 
-		std::vector<VkImage>       m_SwapChainImages;
-		std::vector<VkImageView>   m_SwapChainImageViews;
-		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
-		
 		std::vector<PhysicalDeviceProperties> m_DeviceProps;
 		
 		std::vector<std::function<void()>> m_TerminateResourceFuncs;

@@ -109,7 +109,6 @@ namespace Saturn {
 			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 } );
 			PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 } );
 
-
 			VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 			PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 			PoolCreateInfo.maxSets = 1000;
@@ -151,6 +150,8 @@ namespace Saturn {
 		ImGui_ImplGlfw_Shutdown();
 
 		vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_DescriptorPool, nullptr );
+
+		m_DescriptorPool = nullptr;
 	}
 
 	void ImGuiLayer::Begin()

@@ -117,12 +117,12 @@ namespace Saturn {
 
 		m_DefaultPass = Pass( Specification );
 
+		// Init Renderer.
+		Renderer::Get();
+
 		CreateDepthResources();
 
 		m_SwapChain.CreateFramebuffers();
-
-		// Init Renderer.
-		Renderer::Get();
 
 		// Init Scene Renderer.
 		SceneRenderer::Get();
@@ -142,14 +142,13 @@ namespace Saturn {
 
 		m_SwapChain.Terminate();
 		
-		for( auto& rImageView : m_SwapChainImageViews )
-			vkDestroyImageView( m_LogicalDevice, rImageView, nullptr );
-
-		for( auto& rFramebuffer : m_SwapChainFramebuffers )
-			vkDestroyFramebuffer( m_LogicalDevice, rFramebuffer, nullptr );
-
 		for( auto& rFunc : m_TerminateResourceFuncs )
 			rFunc();
+		
+		vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
+		vkDestroyImage( m_LogicalDevice, m_DepthImage, nullptr );
+		vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
+		
 
 		delete m_pAllocator;
 
@@ -213,10 +212,7 @@ namespace Saturn {
 		uint32_t DeviceCount = 0;
 		VK_CHECK( vkEnumeratePhysicalDevices( m_Instance, &DeviceCount, nullptr ) );
 
-		if( DeviceCount == 0 )
-		{
-			assert( 0 ); // No device found that supports Vulkan.
-		}
+		SAT_CORE_ASSERT( DeviceCount != 0, "No device found that supports Vulkan." ); 
 
 		// Create a list of the physical devices.
 		std::vector< VkPhysicalDevice > PhysicalDevices( DeviceCount );
@@ -273,9 +269,9 @@ namespace Saturn {
 
 			{
 				uint32_t Count;
-				vkEnumerateInstanceExtensionProperties( nullptr, &Count, nullptr );
+				vkEnumerateDeviceExtensionProperties( m_PhysicalDevice, nullptr, &Count, nullptr );
 				std::vector<VkExtensionProperties> Extensions( Count );
-				vkEnumerateInstanceExtensionProperties( nullptr, &Count, Extensions.data() );
+				vkEnumerateDeviceExtensionProperties( m_PhysicalDevice, nullptr, &Count, Extensions.data() );
 
 				SAT_CORE_INFO( " Physical Device {0} has {1} extensions ", i, Count );
 				SAT_CORE_INFO( "  Available extensions:" );
@@ -518,13 +514,13 @@ namespace Saturn {
 	{
 		VkFormat DepthFormat = FindDepthFormat();
 
-		CreateImage( Window::Get().Width(), Window::Get().Height(),
-			DepthFormat,
-			VK_IMAGE_TILING_OPTIMAL,
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_DepthImage, m_DepthImageMemory );
+		Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT,
+			{ .width = ( uint32_t )Window::Get().Width(), .height = ( uint32_t )Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_DepthImage, &m_DepthImageMemory );
 
-		m_DepthImageView = CreateImageView( m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT );
+		Renderer::Get().CreateImageView( m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &m_DepthImageView );
+		
+		SetDebugUtilsObjectName( "Context Depth Image", (uint64_t)m_DepthImage, VK_OBJECT_TYPE_IMAGE );
+		SetDebugUtilsObjectName( "Context Depth Image View", (uint64_t)m_DepthImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
 	}
 
 }

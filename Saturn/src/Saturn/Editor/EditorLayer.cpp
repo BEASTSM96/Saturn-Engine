@@ -63,6 +63,16 @@ namespace Saturn {
 		delete m_SceneHierarchyPanel;
 		delete m_Viewport;
 		delete m_Toolbar;
+
+		m_EditorScene = nullptr;
+		m_RuntimeScene = nullptr;
+		
+		m_CheckerboardTexture = nullptr;
+		
+		m_TitleBar = nullptr;
+		m_SceneHierarchyPanel = nullptr;
+		m_Viewport = nullptr;
+		m_Toolbar = nullptr;
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )

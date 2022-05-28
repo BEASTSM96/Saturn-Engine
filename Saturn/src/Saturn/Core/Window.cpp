@@ -395,11 +395,18 @@ namespace Saturn {
 					}
 					else
 					{
-						auto TitleBarHeight = Application::Get().GetEditorLayer()->GetTitleBar()->Height();
-						
-						// Drag the menu bar to move the window
-						if( !self->m_Maximized && !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + TitleBarHeight ) ) )
-							return HTCAPTION;
+						if( Application::Get().GetEditorLayer() )
+						{
+							if( auto tb = Application::Get().GetEditorLayer()->GetTitleBar() )
+							{
+								auto TitleBarHeight = tb->Height();
+							
+								// Drag the menu bar to move the window
+								if( !self->m_Maximized && !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + TitleBarHeight ) ) )
+									return HTCAPTION;
+
+							}
+						}
 					}
 				}
 			} break;
