@@ -41,11 +41,15 @@ namespace Saturn {
 	{
 		m_Shader = Shader;
 		m_Name = MateralName;
-
-		for ( auto& rUniform : m_Shader->GetUniforms() )
+		
+		for ( auto uniform : m_Shader->GetUniforms() )
 		{
-			m_Uniforms.push_back( rUniform );
+			m_Uniforms.push_back( { uniform.Name, uniform.Location, uniform.Type, uniform.Size } );
 		}
+		
+		// Make sure to copy uniforms so we don't modify the original ones in the shader.
+		
+		bool UAT = Get< float >( "u_Materials.UseAlbedoTexture" );
 
 		for ( auto& [ stage, binding, name ] : m_Shader->GetTextures() )
 		{

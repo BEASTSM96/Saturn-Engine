@@ -125,12 +125,7 @@ namespace Saturn {
 
 			aiColor3D color;
 			material->Get( AI_MATKEY_COLOR_DIFFUSE, color );
-			
-			// Ask nicely to the shader if we can use the shader (and the shader will always say yes).
-			m_MeshShader->UseUniform( "u_Materials.UseAlbedoTexture" );
-			m_MeshShader->UseUniform( "u_Materials.UseNormalTexture" );
-			m_MeshShader->UseUniform( "u_Materials.AlbedoColor" );
-			
+					
 			std::string MaterialName = std::string( name.C_Str() );
 			
 			m_MeshMaterial = Ref< Material >::Create( m_MeshShader, MaterialName );

@@ -39,7 +39,7 @@ namespace Saturn {
 	// A shader uniform represents a uniform variable in a shader.
 	struct ShaderUniform
 	{
-		ShaderUniform() { memset( pValue, 0, Size ); }
+		ShaderUniform() { }
 		
 		~ShaderUniform()
 		{

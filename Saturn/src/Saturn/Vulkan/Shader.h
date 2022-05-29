@@ -167,7 +167,7 @@ namespace Saturn {
 		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
 	};
 
-	extern ShaderType ShaderTypeFromString( std::string Str );
+	extern ShaderType ShaderTypeFromString( const std::string& Str );
 	extern std::string ShaderTypeToString( ShaderType Type );
 
 	class Shader
@@ -187,52 +187,6 @@ namespace Saturn {
 
 		~Shader();
 
-		// Moves the uniform for the available uniforms to the uniforms list. So that we can use them. Also removes the uniform from the available uniforms.
-		void UseUniform( const std::string& rName ) 
-		{
-			for( auto& rUniform : m_AvailableUniforms )
-			{
-				if( rUniform.Name == rName )
-				{
-					m_Uniforms.push_back( rUniform );
-					m_AvailableUniforms.erase( std::remove( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), rUniform ) );
-					return;
-				}
-			}
-		}
-
-		// Moves the uniform for the uniforms to the available uniforms list. So that we can't use them. Also removes the uniform from the uniforms list.
-		void FreeUniform( ShaderUniform& rUniform ) 
-		{
-			m_Uniforms.erase( std::remove( m_Uniforms.begin(), m_Uniforms.end(), rUniform ) );
-			m_AvailableUniforms.push_back( rUniform );
-		}
-
-		// Moves the uniform for the uniforms to the available uniforms list. So that we can't use them. Also removes the uniform from the uniforms list.
-		void FreeUniform( const std::string& rName )
-		{
-			for( auto& rUniform : m_Uniforms )
-			{
-				if( rUniform.Name == rName )
-				{
-					m_Uniforms.erase( std::remove( m_Uniforms.begin(), m_Uniforms.end(), rUniform ) );
-					m_AvailableUniforms.push_back( rUniform );
-					return;
-				}
-			}
-		}
-		
-		ShaderUniform& FindUniform( const std::string& rName ) 
-		{
-			for ( auto& rUniform : m_Uniforms )
-			{
-				if( rUniform.Name == rName )
-					return rUniform;
-			}
-
-			//return ShaderUniform( "", -1, ShaderDataType::None );
-		}
-
 		std::string& GetName() { return m_Name; }
 		const std::string& GetName() const { return m_Name; }
 
@@ -241,12 +195,8 @@ namespace Saturn {
 
 		const SpvSourceMap& GetSpvCode() const { return m_SpvCode; }
 		SpvSourceMap& GetSpvCode() { return m_SpvCode; }
-
-		std::vector< ShaderUniform > GetUniforms() const { return m_Uniforms; }
-		std::vector< ShaderUniform >& GetUniforms() { return m_Uniforms; }
 		
-		std::vector< ShaderUniform > GetAvailableUniforms() const { return m_AvailableUniforms; }
-		std::vector< ShaderUniform >& GetAvailableUniforms() { return m_AvailableUniforms; }
+		const std::vector< ShaderUniform > GetUniforms() const { return m_Uniforms; }
 		
 		ShaderUBMap& GetUniformBuffers() { return m_UniformBuffers; }
 		const ShaderUBMap& GetUniformBuffers() const { return m_UniformBuffers; }
@@ -289,7 +239,6 @@ namespace Saturn {
 
 		std::filesystem::path m_Filepath = "";
 		
-		std::vector< ShaderUniform > m_AvailableUniforms;
 		std::vector< ShaderUniform > m_Uniforms;
 
 		ShaderUBMap m_UniformBuffers;

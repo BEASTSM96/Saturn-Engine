@@ -187,6 +187,14 @@ namespace Saturn {
 				{
 					Ref< Material > material = mesh->GetMaterial();
 
+					ImGui::TextDisabled( "%llx", rSelection.GetComponent<IdComponent>().ID );
+
+					ImGui::Separator();
+					
+					ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
+					
+					ImGui::Separator();
+
 					ImGui::Text( "Shader: %s", material->GetShader()->GetName().c_str() );
 
 					ImGui::Separator();

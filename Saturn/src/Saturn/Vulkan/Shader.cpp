@@ -89,6 +89,53 @@ namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
 	
+	ShaderType ShaderTypeFromString( const std::string& Str )
+	{
+		if( Str == "vertex" )
+		{
+			return ShaderType::Vertex;
+		}
+		else if( Str == "fragment" )
+		{
+			return ShaderType::Fragment;
+		}
+		else if( Str == "compute" )
+		{
+			return ShaderType::Compute;
+		}
+		else if( Str == "geometry" )
+		{
+			return ShaderType::Geometry;
+		}
+		else
+		{
+			return ShaderType::Vertex;
+		}
+	}
+
+	std::string ShaderTypeToString( ShaderType Type )
+	{
+		switch( Type )
+		{
+			case Saturn::ShaderType::Vertex:
+				return "Vertex";
+				break;
+			case Saturn::ShaderType::Fragment:
+				return "Fragment";
+				break;
+			case Saturn::ShaderType::Geometry:
+				return "Geometry";
+				break;
+			case Saturn::ShaderType::Compute:
+				return "Compute";
+				break;
+			default:
+				break;
+		}
+	}
+	
+	//////////////////////////////////////////////////////////////////////////
+
 	Shader::Shader( std::string Name, std::filesystem::path Filepath )
 	{
 		m_Filepath = std::move( Filepath );
@@ -148,12 +195,12 @@ namespace Saturn {
 		m_SpvCode.clear();
 		m_ShaderSources.clear();
 		
-		for ( auto& uniform : m_AvailableUniforms )
+		for ( auto& uniform : m_Uniforms )
 		{
 			uniform.Terminate();
 		}
 		
-		m_AvailableUniforms.clear();
+		m_Uniforms.clear();
 		
 		for( auto& uniform : m_Uniforms )
 		{
@@ -323,14 +370,14 @@ namespace Saturn {
 				}
 
 				// Check if the uniform already exists in list, if not add it.
-				auto result = std::find_if( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), [&]( const ShaderUniform& rUniform )
+				auto result = std::find_if( m_Uniforms.begin(), m_Uniforms.end(), [&]( const ShaderUniform& rUniform )
 				{
 					return rUniform.Name == rDescriptor.Name;
 				} );
 
-				if( result == m_AvailableUniforms.end() )
+				if( result == m_Uniforms.end() )
 				{
-					m_AvailableUniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ), sizeof( rDescriptor ) } );
+					m_Uniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ), sizeof( rDescriptor ) } );
 				}
 			}
 		}
@@ -346,14 +393,14 @@ namespace Saturn {
 			SAT_CORE_INFO( "   Type {0}", ShaderDataTypeToString( rPCMember.Type ) );
 
 			// Check if the member already exists in list, if not add it.
-			auto result = std::find_if( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), [&]( const ShaderUniform& rUniform )
+			auto result = std::find_if( m_Uniforms.begin(), m_Uniforms.end(), [&]( const ShaderUniform& rUniform )
 			{
 				return rUniform.Name == rPCMember.Name;
 			} );
 
-			if( result == m_AvailableUniforms.end() )
+			if( result == m_Uniforms.end() )
 			{
-				m_AvailableUniforms.push_back( { Output.PushConstant.Name + "." + rPCMember.Name, rPCMember.Offset, rPCMember.Type, rPCMember.Size } );
+				m_Uniforms.push_back( { Output.PushConstant.Name + "." + rPCMember.Name, rPCMember.Offset, rPCMember.Type, rPCMember.Size } );
 			}
 		}
 
@@ -477,50 +524,5 @@ namespace Saturn {
 		}
 
 		SAT_CORE_INFO( "Shader Compilation took {0} ms", CompileTimer.ElapsedMilliseconds() );
-	}
-
-	ShaderType ShaderTypeFromString( std::string Str )
-	{
-		if( Str == "vertex" )
-		{
-			return ShaderType::Vertex;
-		}
-		else if( Str == "fragment" )
-		{
-			return ShaderType::Fragment;
-		}
-		else if( Str == "compute" )
-		{
-			return ShaderType::Compute;
-		}
-		else if( Str == "geometry" )
-		{
-			return ShaderType::Geometry;
-		}
-		else
-		{
-			return ShaderType::Vertex;
-		}
-	}
-
-	std::string ShaderTypeToString( ShaderType Type )
-	{
-		switch( Type )
-		{
-			case Saturn::ShaderType::Vertex: 
-				return "Vertex";
-				break;
-			case Saturn::ShaderType::Fragment:
-				return "Fragment";
-				break;
-			case Saturn::ShaderType::Geometry:
-				return "Geometry";
-				break;
-			case Saturn::ShaderType::Compute:
-				return "Compute";
-				break;
-			default:
-				break;
-		}
 	}
 }

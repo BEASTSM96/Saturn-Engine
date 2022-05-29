@@ -60,7 +60,6 @@ layout(set = 0, binding = 0) uniform Matrices
     mat4 ViewProjection;
 } u_Matrices;
 
-
 layout(push_constant) uniform u_Materials
 {
     mat4 Transform;
