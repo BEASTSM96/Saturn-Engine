@@ -46,6 +46,9 @@ namespace Saturn {
 
 		void Draw();
 
+		void SaveFile();
+		void OpenFile();
+
 		float Height() const { return m_Height; }
 
 	private:

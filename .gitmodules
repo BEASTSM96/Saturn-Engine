@@ -7,3 +7,6 @@
 [submodule "Saturn/vendor/GLFW"]
 	path = Saturn/vendor/GLFW
 	url = https://github.com/BEASTSM96/glfw
+[submodule "Saturn/vendor/yaml-cpp"]
+	path = Saturn/vendor/yaml-cpp
+	url = https://github.com/TheCherno/yaml-cpp

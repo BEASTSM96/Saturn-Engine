@@ -249,7 +249,7 @@ namespace Saturn {
 
 	void Texture2D::Terminate()
 	{
-		//Texture::Terminate();
+		Texture::Terminate();
 
 		if( m_DescriptorSet )
 			ImGui_ImplVulkan_RemoveTexture( m_DescriptorSet );

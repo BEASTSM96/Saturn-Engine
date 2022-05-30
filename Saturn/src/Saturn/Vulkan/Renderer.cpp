@@ -317,6 +317,7 @@ namespace Saturn {
 		ImageCreateInfo.usage = Usage;
 
 		VK_CHECK( vkCreateImage( VulkanContext::Get().GetDevice(), &ImageCreateInfo, nullptr, pImage ) );
+		SetDebugUtilsObjectName( "Image", ( uint64_t ) *pImage, VK_OBJECT_TYPE_IMAGE  );
 
 		VkMemoryRequirements MemoryRequirements;
 		vkGetImageMemoryRequirements( VulkanContext::Get().GetDevice(), *pImage, &MemoryRequirements );
@@ -342,6 +343,7 @@ namespace Saturn {
 		ImageViewCreateInfo.subresourceRange.layerCount = 1;
 		
 		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, pImageView ) );
+		SetDebugUtilsObjectName( "Image View", ( uint64_t ) *pImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
 	}
 
 	void Renderer::CreateSampler( VkFilter Filter, VkSampler* pSampler )
@@ -361,6 +363,7 @@ namespace Saturn {
 		SamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, pSampler ) );
+		SetDebugUtilsObjectName( "Image View 1", ( uint64_t ) *pSampler, VK_OBJECT_TYPE_SAMPLER );
 	}
 
 	void Resource::Terminate()

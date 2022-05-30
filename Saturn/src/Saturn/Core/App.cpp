@@ -148,7 +148,32 @@ namespace Saturn {
 
 	std::string Application::SaveFile( const char* f ) const
 	{
-		return  "";
+#ifdef  SAT_PLATFORM_WINDOWS
+		OPENFILENAMEA ofn;       // common dialog box structure
+		CHAR szFile[ 260 ] = { 0 };       // if using TCHAR macros
+
+										// Initialize OPENFILENAME
+		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
+		ofn.lStructSize = sizeof( OPENFILENAME );
+		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
+		ofn.lpstrFile = szFile;
+		ofn.nMaxFile = sizeof( szFile );
+		ofn.lpstrFilter = f;
+		ofn.nFilterIndex = 1;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+		if( GetSaveFileNameA( &ofn ) == TRUE )
+		{
+			return ofn.lpstrFile;
+		}
+		return std::string();
+#endif
+
+#ifdef  SAT_PLATFORM_LINUX
+		return std::string();
+#endif
+
+		return std::string();
 	}
 
 	void Application::OnEvent( Event& e )

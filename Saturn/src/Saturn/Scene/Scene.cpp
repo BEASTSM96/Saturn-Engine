@@ -136,7 +136,7 @@ namespace Saturn {
 		if( !name.empty() )
 			entity.AddComponent<TagComponent>( name );
 
-		SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) != m_EntityIDMap.end(), "Entity has the same name!" );
+		SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) == m_EntityIDMap.end(), "Entity has the same name!" );
 		m_EntityIDMap[ uuid ] = entity;
 
 		return entity;

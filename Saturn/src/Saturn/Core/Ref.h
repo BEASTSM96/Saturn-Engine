@@ -117,8 +117,8 @@ namespace Saturn {
 
 		Ref& operator=( const Ref<T>& other )
 		{
-			//delete m_Pointer;
-			//m_Pointer = nullptr;
+			//if( m_Pointer )
+			//	delete m_Pointer;
 
 			m_Pointer = other.m_Pointer;
 
@@ -128,8 +128,8 @@ namespace Saturn {
 		template<typename T2>
 		Ref& operator=( const Ref<T2>& other )
 		{
-			//delete m_Pointer;
-			//m_Pointer = nullptr;
+			if( m_Pointer )
+				delete m_Pointer;
 
 			m_Pointer = other.m_Pointer;
 

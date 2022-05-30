@@ -51,6 +51,9 @@ namespace Saturn {
 
 		void OnEvent( Event& rEvent ) override;
 		
+		void SaveFile( const std::string& FileName );
+		void OpenFile( const std::string& FileName );
+
 	public:
 		
 		TitleBar* GetTitleBar() { return m_TitleBar; }

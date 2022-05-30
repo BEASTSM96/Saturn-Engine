@@ -31,12 +31,14 @@ IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/src/"
 IncludeDir["SPIRV_Reflect"] = "Saturn/vendor/SPIRV-Reflect/src/"
 IncludeDir["vma"] = "Saturn/vendor/vma/src/"
 IncludeDir["ImGuizmo"] = "Saturn/vendor/ImGuizmo/src/"
+IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include/"
 
 group "Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/SPIRV-Reflect"
+	include "Saturn/vendor/yaml-cpp"
 
 group "Engine"
 project "Saturn"
@@ -78,8 +80,6 @@ project "Saturn"
 		"GLM_ENABLE_EXPERIMENTAL",
 		"GLM_FORCE_LEFT_HANDED",
 		"GLM_FORCE_RADIANS"
-		--"GLM_FORCE_DEPTH_ZERO_TO_ONE",
-		--"GLM_FORCE_SWIZZLE",
 	}
 
 	includedirs
@@ -87,20 +87,18 @@ project "Saturn"
 		"%{prj.name}/src",
 		"%{prj.name}/vendor/stb/",
 		"%{prj.name}/vendor/spdlog/include",
-		"%{prj.name}/vendor/d3d12/",
 		"%{prj.name}/vendor/vulkan/include",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
-		"%{IncludeDir.DiscordRPC}",
-		"%{IncludeDir.rapidjson}",
 		"%{IncludeDir.glslc}",
 		"%{IncludeDir.shaderc}",
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.SPIRV_Reflect}",
 		"%{IncludeDir.vma}",
+		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ImGuizmo}"
 	}
 
@@ -109,7 +107,8 @@ project "Saturn"
 		"GLFW",
 		"ImGui",
 		"SPIRV-Cross",
-		"SPIRV-Reflect"
+		"SPIRV-Reflect",
+		"yaml-cpp"
 	}
 
 	filter "files:Saturn/vendor/ImGuizmo/src/ImGuizmo/**.cpp"

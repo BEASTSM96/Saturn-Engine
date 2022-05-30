@@ -56,11 +56,13 @@ namespace Saturn {
 			if( ImGui::BeginMenu( "File" ) )
 			{
 				if( ImGui::MenuItem( "Exit", "Alt+F4" ) ) exit( 0 /*EXIT_SUCCESS*/ );
+				if( ImGui::MenuItem( "Save", "Ctrl+S" ) ) SaveFile();
+				if( ImGui::MenuItem( "Open", "Ctrl+O" ) ) OpenFile();
 
 				ImGui::EndMenu();
 			}
 
-			if( ImGui::BeginMenu( "Acknowledgements" ) )
+			if( ImGui::BeginMenu( "Acknowledgments" ) )
 			{
 				ShowAcknowledgements = true;
 				
@@ -69,10 +71,10 @@ namespace Saturn {
 			
 			if( ShowAcknowledgements )
 			{
-				ImGui::OpenPopup( "Acknowledgements Modal" );
+				ImGui::OpenPopup( "Acknowledgments Modal" );
 			}
 
-			if( ImGui::BeginPopupModal( "Acknowledgements Modal", &ShowAcknowledgements ) )
+			if( ImGui::BeginPopupModal( "Acknowledgments Modal", &ShowAcknowledgements ) )
 			{
 				ImGui::TextWrapped( "Saturn Engine" );
 
@@ -91,7 +93,7 @@ namespace Saturn {
 				ImGui::TextWrapped( "entt, for a good and fast ECS." );
 				ImGui::TextWrapped( "GLFW, for windowing." );
 				ImGui::TextWrapped( "glm, for opengl math." );
-				ImGui::TextWrapped( "Dear Imgui, for an immediate mode gui." );
+				ImGui::TextWrapped( "Dear ImGui, for an immediate mode gui." );
 				ImGui::TextWrapped( "physx, for 3d Physics." );
 				ImGui::TextWrapped( "shaderc, for providing tools for tools for vulkan shader compilation." );
 				ImGui::TextWrapped( "spdlog, for providing an easy and fast logging system." );
@@ -201,6 +203,20 @@ namespace Saturn {
 		}
 
 		//ImGui::PopStyleVar();
+	}
+
+	void TitleBar::SaveFile()
+	{
+		std::string file = Application::Get().SaveFile( "Saturn Scene File (*.sc *.scene)\0*.scene; *.sc\0" );
+		
+		Application::Get().GetEditorLayer()->SaveFile( file );
+	}
+
+	void TitleBar::OpenFile()
+	{
+		std::string file = Application::Get().OpenFile( "Saturn Scene File (*.sc *.scene)\0*.scene; *.sc\0" );
+
+		Application::Get().GetEditorLayer()->OpenFile( file );
 	}
 
 }

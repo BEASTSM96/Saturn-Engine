@@ -28,123 +28,22 @@
 
 #pragma once
 
-#include <string>
-
-#include "Texture.h"
-
-#include "ShaderDataType.h"
+#include "Saturn/Scene/Scene.h"
 
 namespace Saturn {
-	
-	// A shader uniform represents a uniform variable in a shader.
-	struct ShaderUniform
+
+	class SceneSerialiser
 	{
-		ShaderUniform() { }
-		
-		~ShaderUniform()
-		{
-			Terminate();
-		}
+	public:
+		SceneSerialiser() = default;
+		SceneSerialiser( const Ref< Scene >& rScene );
 
-		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size )
-			: Name( name ), Location( location ), Type( type ), pValue( nullptr ), Size( size )
-		{
-			delete[] pValue;
-			pValue = nullptr;
+		~SceneSerialiser();
 
-			pValue = new uint8_t[ Size ];
-			
-			memset( pValue, 0, Size );
-		}
+		void Serialise( const std::string& rFilePath );
+		void Deserialise( const std::string& rFilePath );
 
-		void Terminate()
-		{
-			switch( Type )
-			{
-				case Saturn::ShaderDataType::None:
-				case Saturn::ShaderDataType::Float:
-				case Saturn::ShaderDataType::Float2:
-				case Saturn::ShaderDataType::Float3:
-				case Saturn::ShaderDataType::Float4:
-				case Saturn::ShaderDataType::Mat3:
-				case Saturn::ShaderDataType::Mat4:
-				case Saturn::ShaderDataType::Int:
-				case Saturn::ShaderDataType::Int2:
-				case Saturn::ShaderDataType::Int3:
-				case Saturn::ShaderDataType::Int4:
-				case Saturn::ShaderDataType::Bool:
-				{
-					if( pValue != nullptr )
-					{
-						pValue = 0;
-					}
-				} break;
-				
-				default:
-					break;
-			}
-			
-			Location = -1;
-			Type = ShaderDataType::None;
-		}
-
-		operator bool () const
-		{
-			return ( pValue != nullptr );
-		}
-
-		template<typename Ty>
-		void Set( const Ty& Value )
-		{
-			pValue = ( uint8_t* ) &Value;
-		}
-
-		void Set( void* Value, size_t Size )
-		{			
-			memcpy( pValue, Value, Size );
-		}
-
-		template<typename Ty>
-		Ty* As()
-		{
-			return ( Ty* )( pValue );
-		}
-		
-		template<typename Ty>
-		Ty& Read()
-		{
-			return *( Ty* )pValue;
-		}
-
-		ShaderUniform& operator=( const ShaderUniform& other )
-		{
-			Name = other.Name;
-			Location = other.Location;
-			Type = other.Type;
-			
-			if ( other.pValue )
-			{
-				memcpy( pValue, other.pValue, sizeof( other.pValue ) );
-			}
-			else
-			{
-				pValue = nullptr;
-			}
-
-			return *this;
-		}
-
-		bool operator==( const ShaderUniform& other )
-		{
-			return ( Name == other.Name && Location == other.Location && Type == other.Type );
-		}
-
-		std::string Name = "";
-		int Location = -1;
-		ShaderDataType Type = ShaderDataType::None;
-
-		uint8_t* pValue;
-		uint32_t Size;
+	private:
+		Ref< Scene > m_Scene;
 	};
-
 }

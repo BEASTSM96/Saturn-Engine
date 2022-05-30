@@ -33,6 +33,8 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/ImGui/TitleBar.h"
 
+#include "Saturn/Serialisation/SceneSerialiser.h"
+
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Saturn {
@@ -55,6 +57,9 @@ namespace Saturn {
 		m_EditorCamera.SetActive( true );
 		
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
+
+		SceneSerialiser serialiser( m_EditorScene );
+		serialiser.Deserialise( "assets/scenes/Test3.scene" );
 	}
 
 	EditorLayer::~EditorLayer()
@@ -283,6 +288,22 @@ namespace Saturn {
 
 			m_EditorCamera.AllowEvents( false );
 		}
+	}
+
+	void EditorLayer::SaveFile( const std::string& FileName )
+	{
+		SceneSerialiser serialiser( m_EditorScene );
+		serialiser.Serialise( FileName );
+	}
+
+	void EditorLayer::OpenFile( const std::string& FileName )
+	{
+		Ref<Scene> newScene = Ref<Scene>::Create();
+
+		SceneSerialiser serialiser( newScene );
+		serialiser.Deserialise( FileName );
+
+		m_EditorScene = newScene;
 	}
 
 	void EditorLayer::SelectionChanged( Entity e )
