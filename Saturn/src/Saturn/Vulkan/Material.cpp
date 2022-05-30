@@ -62,8 +62,10 @@ namespace Saturn {
 		
 		for ( auto& [ key, texture ] : m_Textures )
 		{
-			if( texture )
-				texture->Terminate();
+			if( !texture )
+				continue;
+
+			texture->Terminate();
 		}
 	}
 	

@@ -1,12 +1,5 @@
 Scene: Untitled Scene
 Entities:
-  - Entity: 5650375333812667173
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Position: [0, 10, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
   - Entity: 14652583070277578626
     TagComponent:
       Tag: Skylight
@@ -20,3 +13,12 @@ Entities:
         Turbidity: 2
         Azimuth: 0
         Inclination: 0.899999976
+  - Entity: 5650375333812667173
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Filepath: D:\dev\Sparky\vk-renderer-rework\Titan\assets\meshes\TransformTest.fbx

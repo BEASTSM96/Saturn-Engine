@@ -166,7 +166,7 @@ namespace Saturn {
 
 	public:
 
-		T* Null = nullptr;
+		//T* Null = nullptr;
 
 	private:
 

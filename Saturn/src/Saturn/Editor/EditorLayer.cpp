@@ -69,9 +69,6 @@ namespace Saturn {
 		delete m_Viewport;
 		delete m_Toolbar;
 
-		m_EditorScene = nullptr;
-		m_RuntimeScene = nullptr;
-		
 		m_CheckerboardTexture = nullptr;
 		
 		m_TitleBar = nullptr;
@@ -308,10 +305,6 @@ namespace Saturn {
 
 	void EditorLayer::SelectionChanged( Entity e )
 	{
-		//if( m_RuntimeScene )
-		//	m_RuntimeScene->SelectionChanged( e );
-		//else
-		//	m_EditorScene->SelectionChanged( e );
 	}
 
 }

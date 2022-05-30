@@ -106,11 +106,6 @@ uniform float u_NormalTexToggle;
 uniform float u_MetalnessTexToggle;
 uniform float u_RoughnessTexToggle;
 
-//Shadows
-uniform sampler2D u_ShadowMap;
-uniform vec3 u_LightPos;
-uniform vec3 u_ViewPos;
-
 // Gamma
 uniform float u_Gamma;
 
@@ -126,14 +121,6 @@ struct PBRParameters
 };
 
 PBRParameters m_Params;
-
-struct ShadowParameters
-{
-	vec4 LightSpace;
-	mat4 LightMatrix;
-};
-
-ShadowParameters m_ShadowParams;
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2
