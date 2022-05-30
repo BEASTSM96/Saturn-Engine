@@ -35,19 +35,26 @@
 #include "ShaderDataType.h"
 
 namespace Saturn {
-
+	
+	// A shader uniform represents a uniform variable in a shader.
 	struct ShaderUniform
 	{
-		ShaderUniform() {}
+		ShaderUniform() { }
+		
 		~ShaderUniform()
 		{
 			Terminate();
 		}
 
-		ShaderUniform( const std::string& name, int location, ShaderDataType type )
-			: Name( name ), Location( location ), Type( type )
+		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size )
+			: Name( name ), Location( location ), Type( type ), pValue( nullptr ), Size( size )
 		{
-			UUID = location * 2;
+			delete[] pValue;
+			pValue = nullptr;
+
+			pValue = new uint8_t[ Size ];
+			
+			memset( pValue, 0, Size );
 		}
 
 		void Terminate()
@@ -69,48 +76,44 @@ namespace Saturn {
 				{
 					if( pValue != nullptr )
 					{
-						delete pValue;
-						pValue = nullptr;
+						pValue = 0;
 					}
 				} break;
-					
-				case Saturn::ShaderDataType::SamplerCube:
-				case Saturn::ShaderDataType::Sampler2D:
-				{
-					// Ty = Texture2D
-					
-					if ( pValue )
-					{				
-						Texture2D* Texture = ( Texture2D* )pValue;
-						Texture->Terminate();
-					}
-				} break;
-
+				
 				default:
 					break;
 			}
 			
 			Location = -1;
 			Type = ShaderDataType::None;
-			pValue = nullptr;
-			UUID = 0;
 		}
 
 		operator bool () const
 		{
-			return !( pValue == nullptr );
+			return ( pValue != nullptr );
 		}
 
 		template<typename Ty>
-		void Set( Ty& Value )
+		void Set( const Ty& Value )
 		{
-			pValue = &Value;
+			pValue = ( uint8_t* ) &Value;
+		}
+
+		void Set( void* Value, size_t Size )
+		{			
+			memcpy( pValue, Value, Size );
 		}
 
 		template<typename Ty>
 		Ty* As()
 		{
-			return ( Ty* )pValue;
+			return ( Ty* )( pValue );
+		}
+		
+		template<typename Ty>
+		Ty& Read()
+		{
+			return *( Ty* )pValue;
 		}
 
 		ShaderUniform& operator=( const ShaderUniform& other )
@@ -118,7 +121,16 @@ namespace Saturn {
 			Name = other.Name;
 			Location = other.Location;
 			Type = other.Type;
-			pValue = other.pValue;
+			
+			if ( other.pValue )
+			{
+				memcpy( pValue, other.pValue, sizeof( other.pValue ) );
+			}
+			else
+			{
+				pValue = nullptr;
+			}
+
 			return *this;
 		}
 
@@ -131,9 +143,8 @@ namespace Saturn {
 		int Location = -1;
 		ShaderDataType Type = ShaderDataType::None;
 
-		int UUID;
-
-		void* pValue = nullptr;
+		uint8_t* pValue;
+		uint32_t Size;
 	};
 
 }

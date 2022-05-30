@@ -45,6 +45,7 @@ namespace Saturn {
 		}
 
 		void AllowEvents( bool allow ) { m_CanRunEvents = allow; }
+		bool HasEvents() { return m_CanRunEvents; }
 
 		virtual ~Camera() = default;
 

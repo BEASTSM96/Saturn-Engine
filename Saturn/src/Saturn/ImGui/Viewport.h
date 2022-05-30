@@ -28,13 +28,7 @@
 
 #pragma once
 
-#if !defined ( SAT_DONT_USE_GL )
-#include "Saturn/OpenGL/Renderer.h"
-#elif !defined( SAT_DONT_USE_DX )
-// Dx
-#else !defined( SAT_DONT_USE_VK )
-// Vk
-#endif
+#include "Saturn/Vulkan/Texture.h"
 
 namespace Saturn {
 
@@ -42,11 +36,19 @@ namespace Saturn {
 	{
 	public:
 		Viewport();
+		~Viewport();
 
 		void Draw();
 
-	private:
+		bool m_SendCameraEvents = true;
 
-		bool m_SendCameraEvents = false;
+	private:
+		Ref< Texture2D > m_CursorTexture;
+		Ref< Texture2D > m_MoveTexture;
+		Ref< Texture2D > m_ScaleTexture;
+		Ref< Texture2D > m_RotateTexture;
+
+		// Translate as default
+		int m_GizmoOperation = 7;
 	};
 }

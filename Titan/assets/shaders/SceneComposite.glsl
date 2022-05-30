@@ -1,59 +1,47 @@
-// Framebuffer shader
+// Scene Composite shader
+// Really it's the texture pass.
 
 #type vertex
-#version 430
+#version 450
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec2 a_TexCoord;
 
-out vec2 v_TexCoord;
+layout(location = 1) out VertexOutput 
+{
+	vec3 Position;
+	vec2 TexCoord;
+} vs_Output;
 
 void main()
 {
-	vec4 position = vec4(a_Position.xy, 0.0, 1.0);
-	v_TexCoord = a_TexCoord;
+	vs_Output.Position = a_Position;
+	vs_Output.TexCoord = a_TexCoord;
+
+	// Flip textures.
+	vs_Output.TexCoord = vec2( a_TexCoord.s, 1.0 - a_TexCoord.t );
+
+	vec4 position = vec4( a_Position.xy, 0.0, 1.0 );
+	
 	gl_Position = position;
+	gl_Position.y *= -1.0;
+	gl_Position.z = ( gl_Position.z + gl_Position.w ) / 2.0;
 }
 
 #type fragment
-#version 430
+#version 450
 
-layout(location = 0) out vec4 o_Color;
+layout (binding = 0) uniform sampler2D u_GeometryPassTexture;
 
-in vec2 v_TexCoord;
+layout(location = 0) out vec4 FinalColor;
 
-uniform sampler2DMS u_Texture;
-uniform float u_Exposure;
-uniform float u_Gamma;
-uniform int u_TextureSamples;
-
-vec4 MultiSampleTexture(sampler2DMS tex, ivec2 texCoord, int samples)
+layout(location = 1) in VertexOutput 
 {
-    vec4 result = vec4(0.0);
-    for (int i = 0; i < samples; i++)
-        result += texelFetch(tex, texCoord, i);
-
-    result /= float(samples);
-    return result;
-}
+	vec3 Position;
+	vec2 TexCoord;
+} vs_Input;
 
 void main()
 {
-	const float pureWhite = 1.0;
-
-	ivec2 texSize = textureSize(u_Texture);
-	ivec2 texCoord = ivec2(v_TexCoord * texSize);
-	vec4 msColor = MultiSampleTexture(u_Texture, texCoord, u_TextureSamples);
-
-	vec3 color = msColor.rgb * u_Exposure;//texture(u_Texture, v_TexCoord).rgb * u_Exposure;
-	// Reinhard tonemapping operator.
-	// see: "Photographic Tone Reproduction for Digital Images", eq. 4
-	float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
-	float mappedLuminance = (luminance * (1.0 + luminance / (pureWhite * pureWhite))) / (1.0 + luminance);
-
-	// Scale color by ratio of average luminances.
-	vec3 mappedColor = (mappedLuminance / luminance) * color;
-
-	// Gamma correction.
-	o_Color = vec4(pow(mappedColor, vec3(1.0 / u_Gamma)), 1.0);
+	FinalColor = texture( u_GeometryPassTexture, vs_Input.TexCoord );
 }

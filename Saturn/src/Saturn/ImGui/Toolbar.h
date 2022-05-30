@@ -52,10 +52,6 @@ namespace Saturn {
 		Texture2D* m_pPlayImage;
 		Texture2D* m_pPauseImage;
 		Texture2D* m_pStopImage;
-
-		VkDescriptorSet m_pPlayDescSet;
-		VkDescriptorSet m_pPauseDescSet;
-		VkDescriptorSet m_pStopDescSet;
 	};
 
 }

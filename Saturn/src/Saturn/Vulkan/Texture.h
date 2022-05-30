@@ -29,7 +29,6 @@
 #pragma once
 
 #include "Base.h"
-#include "Buffer.h"
 
 #include <filesystem>
 
@@ -67,6 +66,8 @@ namespace Saturn {
 	{
 	public:
 		Texture() {}
+		Texture( uint32_t width, uint32_t height, VkFormat Format, const void* pData );
+		
 		Texture( std::filesystem::path Path, AddressingMode Mode ) : m_Path( Path ), m_AddressingMode( Mode ) {}
 		~Texture() { Terminate(); }
 		
@@ -74,13 +75,15 @@ namespace Saturn {
 
 		void TransitionImageLayout( VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
 
-		void CopyBufferToImage( Buffer& rBuffer );
+		void CopyBufferToImage( VkBuffer Buffer );
 
 	public:
 		
-		VkSampler& GetSampler() { return m_Sampler; }
-		VkImageView& GetImageView() { return m_ImageView; }
-		VkImage& GetImage() { return m_Image; }
+		VkSampler GetSampler() { return m_Sampler; }
+		VkImageView GetImageView() { return m_ImageView; }
+		VkImage GetImage() { return m_Image; }
+		VkDescriptorSet GetDescriptorSet() { return m_DescriptorSet; }
+		VkDescriptorImageInfo& GetDescriptorInfo() { return m_DescriptorImageInfo; }
 
 		int Width() { return m_Width; }
 		int Height() { return m_Height; }
@@ -88,6 +91,7 @@ namespace Saturn {
 	public:
 
 		virtual void CreateTextureImage() = 0;
+		virtual void SetData( const void* pData ) = 0;
 
 	public:
 
@@ -97,8 +101,12 @@ namespace Saturn {
 		VkDeviceMemory m_ImageMemory = VK_NULL_HANDLE;
 		VkImageView m_ImageView = VK_NULL_HANDLE;
 		VkSampler m_Sampler = VK_NULL_HANDLE;
-		
+		VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
+		VkDescriptorImageInfo m_DescriptorImageInfo = {};
+
 		bool m_HDR = false;
+		
+		void* m_pData = nullptr;
 
 		AddressingMode m_AddressingMode = AddressingMode::Repeat;
 
@@ -110,7 +118,13 @@ namespace Saturn {
 	{
 	public:
 		Texture2D() : Texture() {}
-		Texture2D( std::filesystem::path Path, AddressingMode Mode ) : Texture( Path, Mode ) { CreateTextureImage(); }
+
+		Texture2D( std::filesystem::path Path, AddressingMode Mode ) 
+			: Texture( Path, Mode ) { CreateTextureImage(); }
+
+		Texture2D( uint32_t width, uint32_t height, VkFormat Format, const void* pData ) 
+			: Texture( width, height, Format, pData ) { SetData( pData ); }
+		
 		~Texture2D() { Terminate(); }
 		
 		void Terminate() override;
@@ -118,19 +132,6 @@ namespace Saturn {
 	private:
 
 		void CreateTextureImage() override;
-	};
-
-	class CubeMapTexture : public Texture
-	{
-	public:
-		CubeMapTexture() : Texture() {}
-		CubeMapTexture( std::filesystem::path Path, AddressingMode Mode ) : Texture( Path, Mode ) { CreateTextureImage(); }
-		~CubeMapTexture() { Terminate(); }
-
-		void Terminate() override;
-
-	private:
-
-		void CreateTextureImage() override;
+		void SetData( const void* pData ) override;
 	};
 }

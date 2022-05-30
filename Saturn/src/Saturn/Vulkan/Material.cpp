@@ -28,50 +28,103 @@
 
 #include "sppch.h"
 #include "Material.h"
+#include "Mesh.h"
+#include "DescriptorSet.h"
+#include "Renderer.h"
+#include "Texture.h"
 
 #include "VulkanContext.h"
 
 namespace Saturn {
 
-	Material::Material( MaterialSpec* Spec )
+	Material::Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName )
 	{
-		m_Spec = Spec;
+		m_Shader = Shader;
+		m_Name = MateralName;
+		
+		for ( auto uniform : m_Shader->GetUniforms() )
+		{
+			m_Uniforms.push_back( { uniform.Name, uniform.Location, uniform.Type, uniform.Size } );
+		}
+		
+		for ( auto& [ stage, binding, name ] : m_Shader->GetTextures() )
+		{
+			m_Textures[ name ] = nullptr;
+		}
 	}
 
 	Material::~Material()
 	{
-		delete m_Spec;
-	}
+		for ( auto& uniform : m_Uniforms )
+		{
+			uniform.Terminate();
+		}
+		
+		for ( auto& [ key, texture ] : m_Textures )
+		{
+			if( !texture )
+				continue;
 
-	void Material::Bind( Ref<Shader> Shader )
+			texture->Terminate();
+		}
+	}
+	
+	void Material::Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader )
 	{
-		// Albedo Texture.
-		VulkanContext::Get().CreateDescriptorSet( m_Spec->ID, static_cast< Texture2D* >( ( Texture2D* )m_Spec->Albedo->pValue ) );
+		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
+		
+		for ( auto& [ ShaderStage, Sets ] : Shader->GetWriteDescriptors() )
+		{
+			for ( auto& [ Name, Set ] : Sets )
+			{
+				Set.dstSet = CurrentSet->GetVulkanSet();
+				
+				if( Set.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ) 
+				{
+					VkDescriptorImageInfo ImageInfo = {};
+					ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					
+					if( !m_Textures[ Name ] )
+					{
+						ImageInfo.imageView = Renderer::Get().GetPinkTexture()->GetImageView();
+						ImageInfo.sampler = Renderer::Get().GetPinkTexture()->GetSampler();
+					}
+					else
+					{
+						ImageInfo.imageView = m_Textures[ Name ]->GetImageView();
+						ImageInfo.sampler = m_Textures[ Name ]->GetSampler();
+					}
+
+					Set.pImageInfo = &ImageInfo;
+				}
+				else if ( Set.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER )
+				{
+					break;
+				}
+
+				Shader->WriteDescriptor( ShaderStage, Name, Set );
+			}
+		}
 	}
 
 	void Material::Unbind()
 	{
-
 	}
 
-	void Material::SetAlbedo( Ref<Texture2D> Albedo )
+	void Material::SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture )
 	{
-		m_Spec->Albedo->Set< Texture2D >( *Albedo.Pointer() );
+		if( m_Textures[ Name ] )
+			m_AnyValueChanged = true;
+
+		m_Textures[ Name ] = Texture;
 	}
 
-	void Material::SetNormal( Ref<Texture2D> Normal )
+	Ref< Texture2D > Material::GetResource( const std::string& Name )
 	{
-		m_Spec->Normal->Set< Texture2D >( *Normal.Pointer() );
-	}
-
-	void Material::SetMetallic( Ref<Texture2D> Metallic )
-	{
-		m_Spec->Metallic->Set< Texture2D >( *Metallic.Pointer() );
-	}
-
-	void Material::SetRoughness( Ref<Texture2D> Roughness )
-	{
-		m_Spec->Roughness->Set< Texture2D >( *Roughness.Pointer() );
+		if( m_Textures.size() > 0 )
+			return m_Textures.at( Name );
+		else
+			return nullptr;
 	}
 
 }

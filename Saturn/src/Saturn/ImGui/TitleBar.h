@@ -46,14 +46,14 @@ namespace Saturn {
 
 		void Draw();
 
+		void SaveFile();
+		void OpenFile();
+
 		float Height() const { return m_Height; }
 
 	private:
 
 		float m_Height;
-
-		Texture2D* m_pLogo;
-		VkDescriptorSet m_LogoDescSet;
 	};
 
 }

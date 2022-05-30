@@ -55,6 +55,8 @@ namespace Saturn {
 		bool Active() const { return m_IsActive; }
 		void SetActive( bool active ) { m_IsActive = active; }
 		
+		void Reset();
+
 		void Flip( bool flip ) {  m_FlipY = flip; }
 
 		inline float Distance() const { return m_Distance; }

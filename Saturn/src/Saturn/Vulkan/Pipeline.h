@@ -85,6 +85,8 @@ namespace Saturn {
 		Pipeline( PipelineSpecification Spec );
 		~Pipeline() {}
 		
+		void Bind( VkCommandBuffer CommandBuffer );
+
 		VkPipeline& GetPipeline() { return m_Pipeline; }
 		VkPipelineLayout& GetPipelineLayout() { return m_Specification.Layout.Layout; }
 		

@@ -28,13 +28,13 @@
 
 #pragma once
 
+#include "Saturn/Core/Log.h"
+
 #include <vulkan.h>
 #include <iostream>
 #include <string>
 
-#define VK_CHECK( x ) _VkCheckResult( x );
-
-#define STR( x ) #x
+#define VK_CHECK( x ) _VkCheckResult( x )
 
 inline std::string_view VulkanResultToStr( VkResult Result )
 {
@@ -84,11 +84,21 @@ inline std::string_view VulkanResultToStr( VkResult Result )
 			return "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR";
 		case VK_ERROR_OUT_OF_DATE_KHR:
 			return "VK_ERROR_OUT_OF_DATE_KHR";
+		case VK_ERROR_INCOMPATIBLE_DISPLAY_KHR:
+			return "VK_ERROR_INCOMPATIBLE_DISPLAY_KHR";
+		case VK_ERROR_VALIDATION_FAILED_EXT:
+			return "VK_ERROR_VALIDATION_FAILED_EXT";
+		case VK_ERROR_INVALID_SHADER_NV:
+			return "VK_ERROR_INVALID_SHADER_NV";
+		case VK_ERROR_FRAGMENTATION_EXT:
+			return "VK_ERROR_FRAGMENTATION_EXT";
+		case VK_ERROR_NOT_PERMITTED_EXT:
+			return "VK_ERROR_NOT_PERMITTED_EXT";
 		default:
 			return "VK_ERROR_UNKNOWN";
 	}
-
-	return std::to_string( Result );
+	
+	return "VK_ERROR_UNKNOWN";
 }
 
 inline void _VkCheckResult( VkResult Result )

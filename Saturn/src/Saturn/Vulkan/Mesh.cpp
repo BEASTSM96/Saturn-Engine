@@ -30,6 +30,8 @@
 #include "Mesh.h"
 
 #include "VulkanContext.h"
+#include "Renderer.h"
+#include "DescriptorSet.h"
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -88,8 +90,8 @@ namespace Saturn {
 			SAT_CORE_WARN( "Assimp error: {0}", message );
 		}
 	};
-
-	Mesh::Mesh( const std::string& filename, UUID uuid ) : m_FilePath( filename )
+	
+	Mesh::Mesh( const std::string& filename ) : m_FilePath( filename )
 	{
 		LogStream::Initialize();
 
@@ -102,145 +104,163 @@ namespace Saturn {
 			SAT_CORE_ERROR( "Failed to load mesh file: {0}", filename );
 
 		m_Scene = scene;
-		m_MeshShader = Ref<Shader>::Create( "Mesh/VertexShader", "assets\\shaders\\shader_new.glsl" );
+		m_MeshShader = ShaderLibrary::Get().Find( "shader_new" );
 		
-		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( scene->mRootNode->mTransformation ) );
+		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation ) );
 		
-		uint32_t vertexCount = 0;
-		uint32_t indexCount = 0;
+		// Get vertex and index data, also creates the vertex/index buffers.
+		GetVetexAndIndexData();
 		
-		std::vector<uint32_t> Indices;
-
-		m_Submeshes.reserve( scene->mNumMeshes );
-		for( size_t m = 0; m < scene->mNumMeshes; m++ )
-		{
-			aiMesh* mesh = scene->mMeshes[ m ];
-
-			Submesh& submesh = m_Submeshes.emplace_back();
-			submesh.BaseVertex = vertexCount;
-			submesh.BaseIndex = indexCount;
-			submesh.MaterialIndex = mesh->mMaterialIndex;
-			submesh.IndexCount = mesh->mNumFaces * 3;
-			submesh.MeshName = mesh->mName.C_Str();
-
-			vertexCount += mesh->mNumVertices;
-			submesh.VertexCount = vertexCount;
-			indexCount += submesh.IndexCount;
-
-			SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );
-			SAT_CORE_ASSERT( mesh->HasNormals(), "Meshes require normals." );
-
-			// Vertices
-			for( size_t i = 0; i < mesh->mNumVertices; i++ )
-			{
-				MeshVertex vertex ={};
-				vertex.Position ={ mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
-				vertex.Normal ={ mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
-
-				if( mesh->HasTangentsAndBitangents() )
-				{
-					vertex.Tangent ={ mesh->mTangents[ i ].x, mesh->mTangents[ i ].y, mesh->mTangents[ i ].z };
-					vertex.Binormal ={ mesh->mBitangents[ i ].x, mesh->mBitangents[ i ].y, mesh->mBitangents[ i ].z };
-				}
-
-				if( mesh->HasTextureCoords( 0 ) )
-					vertex.Texcoord ={ mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
-
-				m_StaticVertices.push_back( vertex );
-			}
-
-			// Indices
-			for( size_t i = 0; i < mesh->mNumFaces; i++ )
-			{
-				SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
-
-				Index index ={ mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] };
-				m_Indices.push_back( index );
-				
-				Indices.push_back( mesh->mFaces[ i ].mIndices[ 0 ] );
-				Indices.push_back( mesh->mFaces[ i ].mIndices[ 1 ] );
-				Indices.push_back( mesh->mFaces[ i ].mIndices[ 2 ] );
-				
-
-				m_TriangleCache[ m ].emplace_back( m_StaticVertices[ index.V1 + submesh.BaseVertex ], m_StaticVertices[ index.V2 + submesh.BaseVertex ], m_StaticVertices[ index.V3 + submesh.BaseVertex ] );
-			}
-		}
-
-		TraverseNodes( scene->mRootNode );
-		
-		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
-
-		m_RealIndices.clear();
-
-		for( Index& rIndex : m_Indices )
-		{
-			m_RealIndices.push_back( rIndex.V1 );
-			m_RealIndices.push_back( rIndex.V2 );
-			m_RealIndices.push_back( rIndex.V3 );
-		}
-		
-		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() );
-		
-		m_VertexCount = vertexCount;
-		m_TriangleCount = m_TriangleCache.size();
 		m_VerticesCount = m_StaticVertices.size();
 		m_IndicesCount = m_Indices.size();
 
 		// Create material.
-		for( size_t m = 0; m < scene->mNumMaterials; m++ )
+		for( size_t m = 0; m < m_Scene->mNumMaterials; m++ )
 		{
-			aiMaterial* material = scene->mMaterials[ m ];
+			m_Materials.resize( m_Scene->mNumMaterials );
+			aiMaterial* material = m_Scene->mMaterials[ m ];
 
 			aiString name;
 			material->Get( AI_MATKEY_NAME, name );
 
 			aiColor3D color;
 			material->Get( AI_MATKEY_COLOR_DIFFUSE, color );
+					
+			std::string MaterialName = std::string( name.C_Str() );
 			
-			// Ask nicely to the shader if we can use the shader (and the shader will always say yes).
-			m_MeshShader->UseUniform( "u_AlbedoTexture" );
-			m_MeshShader->UseUniform( "u_NormalTexture" );
-			m_MeshShader->UseUniform( "u_MetallicTexture" );
-			m_MeshShader->UseUniform( "u_RoughnessTexture" );
-
-			//ShaderUniform Albedo    = 
-			//ShaderUniform Normal   =  
-			//ShaderUniform Metallic =  
-			//ShaderUniform Roughness = 
-			
-			std::string MatName = std::string( name.C_Str() );
-
-			MaterialSpec* pSpec = new MaterialSpec(
-				MatName,
-				uuid,
-				m_MeshShader->FindUniform( "u_AlbedoTexture" ),
-				m_MeshShader->FindUniform( "u_NormalTexture" ),
-				m_MeshShader->FindUniform( "u_MetallicTexture" ),
-				m_MeshShader->FindUniform( "u_RoughnessTexture" ) );
-
-			m_MeshMaterial = Ref<Material>::Create( pSpec );
+			m_MeshMaterial = Ref< Material >::Create( m_MeshShader, MaterialName );
 
 			// Albedo Texture
 			{
 				aiString AlbedoTexturePath;
-				if( material->GetTexture( aiTextureType_DIFFUSE, 0, &AlbedoTexturePath ) == AI_SUCCESS )
+				bool HasAlbedoTexture = material->GetTexture( aiTextureType_DIFFUSE, 0, &AlbedoTexturePath ) == AI_SUCCESS;
+
+				if( HasAlbedoTexture )
 				{
 					std::filesystem::path AlbedoPath = filename;
 					auto pp = AlbedoPath.parent_path();
-					
+
 					pp /= std::string( AlbedoTexturePath.data );
-					
+
 					auto AlbedoTexturePath = pp.string();
-
-					SAT_CORE_INFO( "MESH FOR ENTITY ID {0}: Albedo Map texture {1}", std::to_string( uuid ), AlbedoTexturePath );
 					
-					Ref< Texture2D > AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
+					Ref< Texture2D > AlbedoTexture;
 
-					m_MeshMaterial->SetAlbedo( AlbedoTexture );	
+					SAT_CORE_INFO( "Albedo Map texture {0}", AlbedoTexturePath );
+					
+					if( std::filesystem::exists( AlbedoTexturePath ) )
+						AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
+
+					if( AlbedoTexture )
+					{
+						m_MeshMaterial->SetResource( "u_AlbedoTexture", AlbedoTexture );
+						m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 1.0f );
+					}
+					else
+					{
+						m_MeshMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+						m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 0.0f );
+						m_MeshMaterial->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
+					}
+				}
+				else
+				{
+					m_MeshMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+					m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 0.0f );
+					m_MeshMaterial->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
+					
 				}
 			}
 
-			
+			// Normal Texture
+			{
+				aiString NormalTexturePath;
+				bool HasNormalTexture = material->GetTexture( aiTextureType_NORMALS, 0, &NormalTexturePath ) == AI_SUCCESS;
+
+				if( HasNormalTexture )
+				{
+					std::filesystem::path AlbedoPath = filename;
+					auto pp = AlbedoPath.parent_path();
+
+					pp /= std::string( NormalTexturePath.data );
+
+					auto NormalTexturePath = pp.string();
+
+					Ref< Texture2D > NormalTexture;
+
+					SAT_CORE_INFO( "Normal Map texture {0}", NormalTexturePath );
+
+					if( std::filesystem::exists( NormalTexturePath ) )
+						NormalTexture = Ref< Texture2D >::Create( NormalTexturePath, AddressingMode::Repeat );
+
+					if( NormalTexture )
+					{
+						m_MeshMaterial->SetResource( "u_NormalTexture", NormalTexture );
+						m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 1.0f );
+					}
+					else
+					{
+						m_MeshMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
+						m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
+					}
+				}
+				else
+				{
+					m_MeshMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
+					m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
+				}
+			}
+
+			// Roughness map
+			{
+				aiString TexturePath;
+				bool HasTexture = material->GetTexture( aiTextureType_SHININESS, 0, &TexturePath ) == AI_SUCCESS;
+
+				if( HasTexture )
+				{					
+					std::filesystem::path AlbedoPath = filename;
+					auto pp = AlbedoPath.parent_path();
+
+					pp /= std::string( TexturePath.data );
+
+					auto RoughnessTexturePath = pp.string();
+
+					Ref< Texture2D > Texture;
+					
+					SAT_CORE_INFO( "Roughness Map texture {0}", RoughnessTexturePath );
+					
+					if( std::filesystem::exists( RoughnessTexturePath ) )
+						Texture = Ref< Texture2D >::Create( RoughnessTexturePath, AddressingMode::Repeat );
+					
+					if( Texture )
+					{
+						m_MeshMaterial->SetResource( "u_RoughnessTexture", Texture );
+						m_MeshMaterial->Set( "u_Materials.UseRoughnessTexture", 1.0f );
+						m_MeshMaterial->Set( "u_Materials.Roughness", 0.0f );
+					}
+					else
+					{						
+						m_MeshMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
+						m_MeshMaterial->Set( "u_Materials.UseRoughnessTexture", 1.0f );
+						m_MeshMaterial->Set( "u_Materials.Roughness", 0.0f );
+					}
+				}
+				else
+				{
+					float shininess, metalness;
+					if( material->Get( AI_MATKEY_SHININESS, shininess ) != aiReturn_SUCCESS )
+						shininess = 80.0f; // Default value
+
+					if( material->Get( AI_MATKEY_REFLECTIVITY, metalness ) != aiReturn_SUCCESS )
+						metalness = 0.0f;
+
+					float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
+
+					m_MeshMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
+					m_MeshMaterial->Set( "u_Materials.UseRoughnessTexture", 0.0f );
+					m_MeshMaterial->Set( "u_Materials.Roughness", roughness );
+				}
+			}
 		}
 	}
 
@@ -257,10 +277,10 @@ namespace Saturn {
 	Mesh::~Mesh()
 	{
 		if( m_MeshMaterial )
-			m_MeshMaterial.Delete();
+			m_MeshMaterial = nullptr;
 
-		m_VertexBuffer.Delete();
-		m_IndexBuffer.Delete();
+		m_VertexBuffer = nullptr;
+		m_IndexBuffer = nullptr;
 
 		m_Indices.clear();
 		m_StaticVertices.clear();
@@ -276,9 +296,148 @@ namespace Saturn {
 			auto& submesh = m_Submeshes[ mesh ];
 			submesh.NodeName = node->mName.C_Str();
 			submesh.Transform = transform;
+
+			// Create a descriptor set for each submesh to use.
+			DescriptorSetSpecification DescriptorSetSpec;
+			DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
+			DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
+
+			m_DescriptorSets[ submesh ] = Ref< Saturn::DescriptorSet >::Create( DescriptorSetSpec );
 		}
 
 		for( uint32_t i = 0; i < node->mNumChildren; i++ )
 			TraverseNodes( node->mChildren[ i ], transform, level + 1 );
 	}
+
+	void Mesh::RefreshDescriptorSets()
+	{
+		DescriptorSetSpecification DescriptorSetSpec;
+		DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
+		DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
+
+		for ( auto& rSubmesh : m_Submeshes )
+		{
+			m_DescriptorSets[ rSubmesh ]->Terminate();
+			m_DescriptorSets[ rSubmesh ] = nullptr;
+
+			m_DescriptorSets[ rSubmesh ] = Ref< DescriptorSet >::Create( DescriptorSetSpec );
+		}
+	}
+
+	void Mesh::GetVetexAndIndexData()
+	{
+		std::vector<uint32_t> Indices;
+
+		for( size_t m = 0; m < m_Scene->mNumMeshes; m++ )
+		{
+			aiMesh* mesh = m_Scene->mMeshes[ m ];
+
+			Submesh& submesh = m_Submeshes.emplace_back();
+			submesh.BaseVertex = m_VertexCount;
+			submesh.BaseIndex = m_IndicesCount;
+			submesh.MaterialIndex = mesh->mMaterialIndex;
+			submesh.IndexCount = mesh->mNumFaces * 3;
+			submesh.MeshName = mesh->mName.C_Str();
+
+			m_VertexCount += mesh->mNumVertices;
+			submesh.VertexCount = m_VertexCount;
+			m_IndicesCount += submesh.IndexCount;
+
+			SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );
+			SAT_CORE_ASSERT( mesh->HasNormals(), "Meshes require normals." );
+
+			// Vertices
+			for( size_t i = 0; i < mesh->mNumVertices; i++ )
+			{
+				MeshVertex vertex = {};
+				vertex.Position = { mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
+				vertex.Normal = { mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
+
+				if( mesh->HasTangentsAndBitangents() )
+				{
+					vertex.Tangent = { mesh->mTangents[ i ].x, mesh->mTangents[ i ].y, mesh->mTangents[ i ].z };
+					vertex.Binormal = { mesh->mBitangents[ i ].x, mesh->mBitangents[ i ].y, mesh->mBitangents[ i ].z };
+				}
+
+				if( mesh->HasTextureCoords( 0 ) )
+					vertex.Texcoord = { mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
+
+				m_StaticVertices.push_back( vertex );
+			}
+
+			// Indices
+			for( size_t i = 0; i < mesh->mNumFaces; i++ )
+			{
+				SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
+
+				Indices.push_back( mesh->mFaces[ i ].mIndices[ 0 ] );
+				Indices.push_back( mesh->mFaces[ i ].mIndices[ 1 ] );
+				Indices.push_back( mesh->mFaces[ i ].mIndices[ 2 ] );
+			}
+		}
+
+		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
+
+		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() );
+
+		TraverseNodes( m_Scene->mRootNode );
+	}
+
 }
+
+/*
+for( size_t m = 0; m < scene->mNumMeshes; m++ )
+{
+	aiMesh* mesh = scene->mMeshes[ m ];
+
+	Submesh& submesh = m_Submeshes.emplace_back();
+	submesh.BaseVertex = vertexCount;
+	submesh.BaseIndex = indexCount;
+	submesh.MaterialIndex = mesh->mMaterialIndex;
+	submesh.IndexCount = mesh->mNumFaces * 3;
+	submesh.MeshName = mesh->mName.C_Str();
+
+	vertexCount += mesh->mNumVertices;
+	submesh.VertexCount = vertexCount;
+	indexCount += submesh.IndexCount;
+
+	SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );
+	SAT_CORE_ASSERT( mesh->HasNormals(), "Meshes require normals." );
+
+	// Vertices
+	for( size_t i = 0; i < mesh->mNumVertices; i++ )
+	{
+		MeshVertex vertex = {};
+		vertex.Position = { mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
+		vertex.Normal = { mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
+
+		if( mesh->HasTangentsAndBitangents() )
+		{
+			vertex.Tangent = { mesh->mTangents[ i ].x, mesh->mTangents[ i ].y, mesh->mTangents[ i ].z };
+			vertex.Binormal = { mesh->mBitangents[ i ].x, mesh->mBitangents[ i ].y, mesh->mBitangents[ i ].z };
+		}
+
+		if( mesh->HasTextureCoords( 0 ) )
+			vertex.Texcoord = { mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
+
+		m_StaticVertices.push_back( vertex );
+	}
+
+	// Indices
+	for( size_t i = 0; i < mesh->mNumFaces; i++ )
+	{
+		SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
+
+		Index index = { mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] };
+		m_Indices.push_back( index );
+
+		Indices.push_back( mesh->mFaces[ i ].mIndices[ 0 ] );
+		Indices.push_back( mesh->mFaces[ i ].mIndices[ 1 ] );
+		Indices.push_back( mesh->mFaces[ i ].mIndices[ 2 ] );
+
+
+		m_TriangleCache[ m ].emplace_back( m_StaticVertices[ index.V1 + submesh.BaseVertex ], m_StaticVertices[ index.V2 + submesh.BaseVertex ], m_StaticVertices[ index.V3 + submesh.BaseVertex ] );
+	}
+
+}
+*/

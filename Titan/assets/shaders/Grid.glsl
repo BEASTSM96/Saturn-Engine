@@ -7,6 +7,7 @@ layout(location = 1) in vec2 a_TexCoord;
 layout(binding = 0) uniform Matrices 
 {
 	mat4 ViewProjection;
+	
 	mat4 Transform;
 	float Scale;
 	float Res;
@@ -22,7 +23,6 @@ void main()
 	vs_Output.TexCoord = a_TexCoord;
 	
 	gl_Position = u_Matrices.ViewProjection * u_Matrices.Transform * vec4( a_Position, 1.0 );	
-	gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0;
 }
 
 #type fragment
@@ -33,6 +33,7 @@ layout(location = 0) out vec4 FinalColor;
 layout(binding = 0) uniform Matrices 
 {
 	mat4 ViewProjection;
+
 	mat4 Transform;
 	float Scale;
 	float Res;

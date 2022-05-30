@@ -344,4 +344,21 @@ namespace Saturn {
 		return modified;
 	}
 
+	bool DrawOverlay( const std::string& label, ImVec2 Pos )
+	{
+		ImGui::PushID( label.c_str() );
+
+		bool SkipItem = ImGui::Begin( label.c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus );
+
+		ImGui::SetWindowPos( Pos );
+
+		return SkipItem;
+	}
+
+	void EndOverlay()
+	{
+		ImGui::End();
+		ImGui::PopID();
+	}
+
 }

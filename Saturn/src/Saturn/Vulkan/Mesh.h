@@ -77,12 +77,36 @@ namespace Saturn {
 		AABB BoundingBox;
 
 		std::string NodeName, MeshName;
+	public:
+		bool operator==( const Submesh& other ) const
+		{
+			return BaseVertex == other.BaseVertex && BaseIndex == other.BaseIndex && MaterialIndex == other.MaterialIndex && IndexCount == other.IndexCount && VertexCount == other.VertexCount && NodeName == other.NodeName && MeshName == other.MeshName;
+		}
 	};
+
+}
+
+namespace std {
+
+	template<>
+	struct hash< Saturn::Submesh >
+	{
+		size_t operator()( const Saturn::Submesh& rOther ) const
+		{
+			return hash< std::string >()( rOther.NodeName );
+		}
+	};
+
+}
+
+namespace Saturn {
+
+	class DescriptorSet;
 
 	class Mesh
 	{
 	public:
-		Mesh( const std::string& filename, UUID uuid );
+		Mesh( const std::string& filename );
 		Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform );
 		~Mesh();
 
@@ -91,6 +115,9 @@ namespace Saturn {
 		Ref<Shader> MeshShader() { return m_MeshShader; }
 		std::vector<Submesh>& Submeshes() { return m_Submeshes; }
 		const std::vector<Submesh>& Submeshes() const { return m_Submeshes; }
+
+		std::unordered_map< Submesh, Ref< DescriptorSet > >& GetDescriptorSets() { return m_DescriptorSets; }
+		const std::unordered_map< Submesh, Ref< DescriptorSet > >& GetDescriptorSets() const { return m_DescriptorSets; }
 
 		std::string& FilePath() { return m_FilePath; }
 		const std::string& FilePath() const { return m_FilePath; }
@@ -110,19 +137,31 @@ namespace Saturn {
 
 		Ref<VertexBuffer>& GetVertexBuffer() { return m_VertexBuffer; }
 		Ref<IndexBuffer>& GetIndexBuffer() { return m_IndexBuffer; }
-		Ref<Material>& GetMaterial() { return m_MeshMaterial; }
 		
-
+		Ref<Material>& GetMaterial() { return m_MeshMaterial; }
+		const Ref<Material>& GetMaterial() const { return m_MeshMaterial; }
+	
 		glm::mat4 GetTransform() const { return m_InverseTransform; }
+
+	public:
+
+		void RefreshDescriptorSets();
+
+	private:
+		
+		void GetVetexAndIndexData();
 
 	private:
 
 		std::vector<MeshVertex> m_StaticVertices;
 
 		std::vector<Submesh> m_Submeshes;
+		std::vector< Ref<Material> > m_Materials;
 
 		std::vector<Index> m_Indices;
 		std::vector<uint32_t> m_RealIndices;
+		
+		std::unordered_map< Submesh, Ref< DescriptorSet > > m_DescriptorSets;
 
 		std::unordered_map<uint32_t, std::vector<Triangle>> m_TriangleCache;
 

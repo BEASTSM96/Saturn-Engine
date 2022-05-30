@@ -29,9 +29,10 @@
 #pragma once
 
 #include "Base.h"
-#include "Buffer.h"
 
 #include "ShaderDataType.h"
+
+#include "VulkanAllocator.h"
 
 #include <vulkan.h>
 #include <string>
@@ -42,17 +43,11 @@
 #include <glm/glm.hpp>
 
 namespace Saturn {
-
+	
 	struct BaseVertex
 	{
 		glm::vec3 Position;
 		glm::vec2 Texcoord;
-	};
-
-	struct GridVertex : public BaseVertex
-	{
-		float Scale;
-		float Res;
 	};
 
 	struct MeshVertex : public BaseVertex
@@ -168,9 +163,12 @@ namespace Saturn {
 	private:
 		
 		void* m_pData = nullptr;
+		size_t m_Size = 0;
 		
 		VertexBufferLayout Layout;
 	
-		Buffer m_Buffer;
+		VkBuffer m_Buffer;
+
+		VmaAllocation m_Allocation;
 	};
 }

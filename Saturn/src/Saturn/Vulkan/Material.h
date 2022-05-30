@@ -35,143 +35,111 @@
 
 namespace Saturn {
 
-	struct MaterialSpec
-	{
-	public:
-		MaterialSpec() 
-		{
-			Name = "";
-		}
-		
-		~MaterialSpec() 
-		{
-			Terminate();
-
-
-		}			
-		
-		void Terminate() 
-		{
-			if( Albedo )
-				Albedo->Terminate();
-			
-			if( Normal )
-				Normal->Terminate();
-			
-			if( Metallic )
-				Metallic->Terminate();
-			
-			if( Roughness )
-				Roughness->Terminate();
-		}
-
-		MaterialSpec( 
-			std::string Name, 
-			UUID ID, 
-			ShaderUniform& Albedo,
-			ShaderUniform& Normal,
-			ShaderUniform& Metallic,
-			ShaderUniform& Roughness )
-		{
-			// Java be like...
-
-			this->Name = std::move( Name );
-			this->ID = ID;
-			
-			this->Albedo = &Albedo;
-			this->Normal = &Normal;
-			this->Metallic = &Metallic;
-			this->Roughness = &Roughness;
-		}
-		
-		// Copy
-		MaterialSpec( const MaterialSpec& other )
-		{
-			Name = other.Name;
-			ID = other.ID;
-			
-			// Copy shader uniforms.
-			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
-			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
-			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
-			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
-		}
-
-		// Move
-		MaterialSpec( MaterialSpec&& other ) noexcept
-		{
-			Name = std::move( other.Name );
-			ID = other.ID;
-			
-			// Copy shader uniforms.
-			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
-			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
-			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
-			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
-		}
-		
-		// Copy assignment
-		MaterialSpec& operator=( const MaterialSpec& other )
-		{
-			Name = other.Name;
-			ID = other.ID;
-			
-			// Copy shader uniforms.
-			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
-			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
-			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
-			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
-			
-			return *this;
-		}
-
-		// Move assignment
-		MaterialSpec& operator=( MaterialSpec&& other ) noexcept
-		{
-			Name = std::move( other.Name );
-			ID = other.ID;
-			
-			// Copy shader uniforms.
-			memcpy( &Albedo, &other.Albedo, sizeof( ShaderUniform ) );
-			memcpy( &Normal, &other.Normal, sizeof( ShaderUniform ) );
-			memcpy( &Metallic, &other.Metallic, sizeof( ShaderUniform ) );
-			memcpy( &Roughness, &other.Roughness, sizeof( ShaderUniform ) );
-			
-			return *this;
-		}
-		
-		bool operator==( MaterialSpec& rOther ) 
-		{
-			return ( ID == rOther.ID );
-		}
-
-	public:
-		std::string Name = "";
-		
-		UUID ID = 0;
-
-		ShaderUniform* Albedo;
-		ShaderUniform* Normal;
-		ShaderUniform* Metallic;
-		ShaderUniform* Roughness;
-	};
+	class Mesh;
+	class Submesh;
 
 	class Material
 	{
 	public:
-		 Material( MaterialSpec* Spec );
+		 Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName );
 		~Material();
 
-		void Bind( Ref<Shader> Shader );
+		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
 
 		void Unbind();
+		
+		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture );
 
-		void SetAlbedo( Ref<Texture2D> Albedo );
-		void SetNormal( Ref<Texture2D> Normal );
-		void SetMetallic( Ref<Texture2D> Metallic );
-		void SetRoughness( Ref<Texture2D> Roughness );
+		template<typename Ty>
+		void Set( const std::string& Name, const Ty& Value ) 
+		{
+			for ( auto& Uniform : m_Uniforms )
+			{
+				if ( Uniform.Name == Name )
+				{
+					Uniform.Set( ( uint8_t* )&Value, sizeof( Ty ) );
+					
+					m_AnyValueChanged = true;
+
+					break;
+				}
+			}
+		}
+		
+		template<typename Ty>
+		Ty& Get( const std::string& Name ) 
+		{
+			for ( auto& Uniform : m_Uniforms )
+			{
+				if ( Uniform.Name == Name )
+				{
+					return Uniform.Read< Ty >();
+				}
+			}
+		}
+		
+		Ref< Texture2D > GetResource( const std::string& Name );
+
+		bool HasAnyValueChanged() { return m_AnyValueChanged; };
+
+	public:
+
+		Ref< Saturn::Shader >& GetShader() { return m_Shader; }
+		
+	private:
+		std::string m_Name = "";
+		Ref< Saturn::Shader > m_Shader;
+
+		bool m_AnyValueChanged = false;
+
+		std::vector< ShaderUniform > m_Uniforms;
+		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
+	};
+
+	class MaterialInstance
+	{
+	public:
+		MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName ) {}
+		~MaterialInstance() {}
+		
+		template<typename Ty>
+		void Set( const std::string& Name, const Ty& Value )
+		{
+
+			for( auto& Uniform : m_Uniforms )
+			{
+				if( Uniform.Name == Name )
+				{
+					Uniform.Set( ( uint8_t* ) &Value, sizeof( Ty ) );
+					return;
+				}
+			}
+		}
+
+		template<typename Ty>
+		Ty& Get( const std::string& Name )
+		{
+			for( auto& Uniform : m_Uniforms )
+			{
+				if( Uniform.Name == Name )
+				{
+					return Uniform.Read< Ty >();
+				}
+			}
+		}
+
+		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture ) {}
+		Ref< Texture2D > GetResource( const std::string& Name ) {}
 
 	private:
-		MaterialSpec* m_Spec;
+		
+		std::string m_Name = "";
+		Ref< Material > m_Material;
+
+		std::vector< ShaderUniform > m_Uniforms;
+		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
+
+	private:
+		friend class Material;
 	};
 }

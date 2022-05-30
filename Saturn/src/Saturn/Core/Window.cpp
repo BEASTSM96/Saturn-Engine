@@ -56,8 +56,6 @@
 #include "backends/imgui_impl_vulkan.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
-#include "Saturn/Vulkan/ImGuiVulkan.h"
-
 #include <vulkan.h>
 #include <Saturn/Vulkan/Base.h>
 
@@ -68,7 +66,6 @@
 
 namespace Saturn {
 
-	ImFont* s_DefualtFont;
 
 	void GLFWErrorCallback( int error, const char* desc )
 	{
@@ -82,46 +79,23 @@ namespace Saturn {
 		if( glfwInit() == GLFW_FALSE )
 			return;
 
-	#if defined ( SAT_DEBUG ) && !defined ( SAT_DONT_USE_GL )
-		glfwWindowHint( GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE );
-	#elif defined ( SAT_DONT_USE_GL ) && defined ( SAT_DONT_USE_DX ) && !defined ( SAT_DONT_USE_VK )
 		glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
-	#endif
-
 		glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 
-		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
-
-		// Get monitor width and height.
-
+		GLFWmonitor* pPrimary = glfwGetPrimaryMonitor();	
+		
 		int x, y, w, h;
-
-		GLFWmonitor* pPrimary = glfwGetPrimaryMonitor();
-
 		glfwGetMonitorWorkarea( pPrimary, &x, &y, &w, &h );
 
-		glfwSetWindowSize( m_Window, w / 2, h / 2 );
-		glfwSetWindowPos( m_Window, x / 2, y / 2 );
-
-		m_Width = w / 2;
-		m_Height = h / 2;
-
-		//Maximize();
-
-		// Make Current before loading OpenGL
-		glfwMakeContextCurrent( m_Window );
-
-	#if !defined ( SAT_DONT_USE_GL )
-		int result = xGL::LoadGL();
-		if( result == 0 )
-		{
-			SAT_CORE_ERROR( "Failed to load OpenGL with xGL!" );
-		}
-		SAT_CORE_INFO( "OpenGL Renderer: {2}, {0}, {1}", glGetString( GL_VENDOR ), glGetString( GL_RENDERER ), glGetString( GL_VERSION ) );
-	#endif
+		m_Width = 3 * w / 4;
+		m_Height = 3 * h / 4;
+		
+		//m_Width = w / 2;
+		//m_Height = h / 2;
+		
+		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
 
 		glfwSetWindowUserPointer( m_Window, this );
-		glfwSwapInterval( GLFW_TRUE );
 
 		// Set GLFW events
 		glfwSetWindowCloseCallback( m_Window, []( GLFWwindow* window ) { Application::Get().Close(); } );
@@ -233,20 +207,6 @@ namespace Saturn {
 
 	Window::~Window()
 	{
-		ImGui_ImplGlfw_Shutdown();
-	#if !defined ( SAT_DONT_USE_GL )
-
-		ImGui_ImplOpenGL3_Shutdown();
-
-	#elif !defined ( SAT_DONT_USE_DX )
-
-		ImGui_ImplGlfw_Shutdown();
-		ImGui_ImplDX12_Shutdown();
-
-	#endif
-
-	//	ImGui_ImplVulkan_Shutdown();
-
 		glfwDestroyWindow( m_Window );
 	}
 
@@ -297,7 +257,7 @@ namespace Saturn {
 		m_Minimized = false;
 		m_Maximized = false;
 
-		VulkanContext::Get().SetWindowIconifed( m_Minimized );
+		//VulkanContext::Get().SetWindowIconifed( m_Minimized );
 
 		glfwRestoreWindow( m_Window );
 	}
@@ -321,7 +281,7 @@ namespace Saturn {
 		{
 			glfwIconifyWindow( m_Window );
 
-			VulkanContext::Get().SetWindowIconifed( m_Minimized );
+			//VulkanContext::Get().SetWindowIconifed( m_Minimized );
 
 			m_PendingMinimize = false;
 		}
@@ -330,78 +290,21 @@ namespace Saturn {
 		{
 			glfwMaximizeWindow( m_Window );
 
-			VulkanContext::Get().SetWindowIconifed( false );
+			//VulkanContext::Get().SetWindowIconifed( false );
 
 			m_PendingMaximized = false;
 		}
 
 		m_Rendering = true;
-
-	#if !defined ( SAT_DONT_USE_GL )
-		ImGui_ImplOpenGL3_NewFrame();
-	#elif !defined( SAT_DONT_USE_DX )
-		//dx
-	#else
-		//ImGui_ImplVulkan_NewFrame();
-	#endif
-
-		//ImGui_ImplGlfw_NewFrame();
-		//ImGui::NewFrame();
-
-		//m_Dockspace->Draw();
-
-		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2( ( float )m_Width, ( float )m_Height );
-
-		//ImGui::Render();
-
-	#if !defined ( SAT_DONT_USE_GL )
-		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
-	#else
-		//ImGui_ImplVulkan_RenderDrawData( ImGui::GetDrawData() );
-	#endif
-
-		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
-		{
-//			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-//			ImGui::UpdatePlatformWindows();
-//			ImGui::RenderPlatformWindowsDefault();
-//			glfwMakeContextCurrent( backup_current_context );
-		}
-
-		//glfwSwapBuffers( m_Window );
+				
+		// The window does a lot of rendering am I right?
 
 		m_Rendering = false;
 	}
 
 	void Window::ImGuiInit()
 	{
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGui::StyleColorsDark();
 
-		// ImGui Theme
-
-		ImGuiIO& io = ImGui::GetIO(); ( void )io;
-
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-		ImGuiStyle& style = ImGui::GetStyle();
-		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
-		{
-			style.WindowRounding = 0.0f;
-			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
-		}
-
-		s_DefualtFont = io.Fonts->AddFontFromFileTTF( "assets\\Fonts\\NotoSans-Regular.ttf", 18.0f );
-		io.FontDefault = io.Fonts->Fonts.back();
-
-		Styles::Dark();
-
-		//m_Dockspace = new ImGuiDockspace();
 	}
 
 	std::vector<const char*> Window::GetRequiredExtensions()
@@ -492,9 +395,18 @@ namespace Saturn {
 					}
 					else
 					{
-						// Drag the menu bar to move the window
-						//if( !self->m_Maximized && !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + self->m_Dockspace->GetTitleBar().Height() ) ) )
-						//	return HTCAPTION;
+						if( Application::Get().GetEditorLayer() )
+						{
+							if( auto tb = Application::Get().GetEditorLayer()->GetTitleBar() )
+							{
+								auto TitleBarHeight = tb->Height();
+							
+								// Drag the menu bar to move the window
+								if( !self->m_Maximized && !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + TitleBarHeight ) ) )
+									return HTCAPTION;
+
+							}
+						}
 					}
 				}
 			} break;

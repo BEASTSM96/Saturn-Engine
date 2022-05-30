@@ -32,6 +32,10 @@
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Scene/Entity.h"
 #include "Mesh.h"
+#include "Saturn/Core/UUID.h"
+
+#include "Renderer.h"
+#include "DescriptorSet.h"
 
 #include "Pipeline.h"
 
@@ -48,33 +52,51 @@ namespace Saturn {
 		glm::mat4 Transform;
 	};
 
-	struct RenderSection 
-	{
-		VkCommandBuffer CommandBuffer;
-		Saturn::Pipeline Pipeline;
-
-		void Begin();
-
-		void End();
-	};
-
 	struct RendererData
 	{
+		void Terminate();
+		
+		//////////////////////////////////////////////////////////////////////////
+		// COMMAND POOLS & BUFFERS
+		//////////////////////////////////////////////////////////////////////////
+		
+		VkCommandPool CommandPool;
 		VkCommandBuffer CommandBuffer;
+		
+		//////////////////////////////////////////////////////////////////////////
+
 		uint32_t FrameCount;
 
-		// Grid
-		Pipeline GridPipeline;
+		//////////////////////////////////////////////////////////////////////////
+
+		Saturn::EditorCamera EditorCamera;
+		Saturn::Camera RuntimeCamera;
+
+		//////////////////////////////////////////////////////////////////////////
+		
+		uint32_t Width = 3440;
+		uint32_t Height = 1440;
+		
+		//////////////////////////////////////////////////////////////////////////
+
+		//////////////////////////////////////////////////////////////////////////
+		// TIMERS
+		//////////////////////////////////////////////////////////////////////////
+	
+		Timer GeometryPassTimer;
+
+		//////////////////////////////////////////////////////////////////////////
 
 		struct GridMatricesObject
 		{
 			glm::mat4 ViewProjection;
+			
 			glm::mat4 Transform;
 
 			float Scale;
 			float Res;
 		};
-
+		
 		struct SkyboxMatricesObject
 		{
 			glm::mat4 View;
@@ -85,51 +107,135 @@ namespace Saturn {
 			float Azimuth;
 			float Inclination;
 		};
-
-		VkDescriptorSet GridDescriptorSet = nullptr;
-		VkDescriptorSetLayout GridDescriptorSetLayout = nullptr;
-		VkDescriptorPool GridDescriptorPool = nullptr;
-		Buffer GridUniformBuffer;
 		
+		struct StaticMeshMatrices
+		{
+			glm::mat4 ViewProjection;
+		};
+
+		struct StaticMeshMaterial
+		{
+			alignas( 16 ) glm::mat4 Transform;
+
+			alignas( 4 ) float UseAlbedoTexture;
+			alignas( 4 ) float UseMetallicTexture;
+			alignas( 4 ) float UseRoughnessTexture;
+			alignas( 4 ) float UseNormalTexture;
+
+			alignas( 16 ) glm::vec4 AlbedoColor;
+			alignas( 4 ) float Metalness;
+			alignas( 4 ) float Roughness;
+		};
+
+		// Geometry
+		//////////////////////////////////////////////////////////////////////////
+
+		// Render pass for all grid, skybox and meshes.
+		Pass GeometryPass;
+		Ref< Resource > GeometryPassDepth;
+		Ref< Resource > GeometryPassColor;
+		VkFramebuffer GeometryFramebuffer;
+
+		// Buffer image.
+		VkDescriptorSet RenderPassResult;
+		
+		// STATIC MESHES
+
+		// Main geometry for static meshes.
+		Pipeline StaticMeshPipeline;
+	
+		// GRID
+
+		Pipeline GridPipeline;
+
+		Ref< DescriptorSet > GridDescriptorSet;
+
+		VkBuffer GridUniformBuffer;
+		VmaAllocation GridUBOAllocation;
+
 		VertexBuffer* GridVertexBuffer;
 		IndexBuffer* GridIndexBuffer;
 
-		// Skybox
+		// SKYBOX
+
 		Pipeline SkyboxPipeline;
 
-		VkDescriptorSet SkyboxDescriptorSet = nullptr;
-		VkDescriptorSetLayout SkyboxDescriptorSetLayout = nullptr;
-		VkDescriptorPool SkyboxDescriptorPool = nullptr;
-		Buffer SkyboxUniformBuffer;
+		Ref< DescriptorSet > SkyboxDescriptorSet;
+		
+		VkBuffer SkyboxUniformBuffer;
 		
 		VertexBuffer* SkyboxVertexBuffer;
 		IndexBuffer* SkyboxIndexBuffer;
 
+		//////////////////////////////////////////////////////////////////////////
+		
+		// End Geometry
+		 
+		//////////////////////////////////////////////////////////////////////////
+
+		// Begin Scene Composite
+		
+		Pass SceneComposite;
+		Ref< Resource > SceneCompositeColor;
+		Ref< Resource > SceneCompositeDepth;
+		VkFramebuffer SceneCompositeFramebuffer;
+
+		Pipeline SceneCompositePipeline;
+		
+		Ref< DescriptorSet > SC_DescriptorSet;
+
+		VertexBuffer* SC_VertexBuffer;
+		IndexBuffer* SC_IndexBuffer;
+		
+		VkDescriptorSet SceneCompositeResult;
+
+		//////////////////////////////////////////////////////////////////////////
+		// End Scene Composite
+		//////////////////////////////////////////////////////////////////////////
+		
+		// SHADERS
+
 		Ref< Shader > GridShader = nullptr;
 		Ref< Shader > SkyboxShader = nullptr;
+		Ref< Shader > StaticMeshShader = nullptr;
+		Ref< Shader > SceneCompositeShader = nullptr;
 	};
 
 	class SceneRenderer
 	{
 		SINGLETON( SceneRenderer );
 	public:
-		 SceneRenderer() { Init(); }
-		 ~SceneRenderer() {}
-		
+		SceneRenderer() { Init(); }
+		~SceneRenderer() {}
+
 		void SetRendererData( RendererData Data ) { m_RendererData = Data; }
 		void SetCommandBuffer( VkCommandBuffer CommandBuffer ) { m_RendererData.CommandBuffer = CommandBuffer; }
+
+		void ImGuiRender();
 
 		void SetCurrentScene( Scene* pScene ) { m_pSence = pScene; }
 
 		void AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
-		
-		void RenderDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
-		
-		void FlushDrawList();
+
+		void SetWidthAndHeight( uint32_t w, uint32_t h ) { m_RendererData.Width = w; m_RendererData.Height = h; Recreate(); }
+
+		void FlushDrawList();		
+
+		void Recreate();
 
 		void RenderScene();
 
+		void SetEditorCamera( const EditorCamera& Camera );
+
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
+
+		Pass& GetGeometryPass() { return m_RendererData.GeometryPass; }
+		const Pass& GetGeometryPass() const { return m_RendererData.GeometryPass; }
+
+		VkDescriptorSet& GetGeometryResult() { return m_RendererData.RenderPassResult; }
+		VkDescriptorSet& CompositeImage() { return m_RendererData.SceneCompositeResult; }
+
+		void CreateGeometryResult();
 
 		void Terminate();
 
@@ -145,12 +251,20 @@ namespace Saturn {
 		void CreateSkyboxComponents();
 		void DestroySkyboxComponents();
 
-		void CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
-		void CreateFullscreenQuad( float x, float y, float w, float h,
-			VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
+		void InitGeometryPass();
+		void InitSceneComposite();
+
+		void GeometryPass();
+		void SceneCompositePass();
+
+	private:
 
 		RendererData m_RendererData;
 		std::vector< DrawCommand > m_DrawList;
 		Scene* m_pSence;
+
+	private:
+		friend class Scene;
+		friend class VulkanContext;
 	};
 }

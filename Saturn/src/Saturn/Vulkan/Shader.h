@@ -36,6 +36,7 @@
 #include <vector>
 #include <string>
 #include <filesystem>
+#include <vulkan.h>
 #include <unordered_map>
 
 namespace Saturn {
@@ -45,14 +46,21 @@ namespace Saturn {
 		Vertex = 0,
 		Fragment = 1,
 		Geometry = 2,
-		Compute = 3
+		Compute = 3,
+		All = 4
 	};
-
-	struct ShaderCodename
+	
+	// A shader uniform buffer represents a uniform buffer variable in a shader.
+	struct ShaderUniformBuffer
 	{
-		UUID m_UUID;
-		std::string m_Filename;
-		std::string m_Type;
+		std::string Name;
+		int Binding;
+		size_t Size;
+		ShaderType Location;
+		
+		VkBuffer Buffer;
+
+		std::vector< ShaderUniform > Members;
 	};
 
 	struct ShaderSource
@@ -122,115 +130,91 @@ namespace std {
 
 namespace Saturn {
 
-	class Shader;
-
-	class ShaderWorker
+	static ShaderType VulkanStageToSaturn( VkShaderStageFlags Flags )
 	{
-		SINGLETON( ShaderWorker );
+		switch( Flags )
+		{
+			case VK_SHADER_STAGE_VERTEX_BIT:
+				return ShaderType::Vertex;
+			case VK_SHADER_STAGE_FRAGMENT_BIT:
+				return ShaderType::Fragment;
+			case VK_SHADER_STAGE_GEOMETRY_BIT:
+				return ShaderType::Geometry;
+			case VK_SHADER_STAGE_COMPUTE_BIT:
+				return ShaderType::Compute;
+			default:
+				return ShaderType::All;
+		}
+	}
 
+	class Shader;
+	class DescriptorPool;
+	class DescriptorSet;
+
+	class ShaderLibrary
+	{
+		SINGLETON( ShaderLibrary );
 	public:
-		ShaderWorker() { }
-		~ShaderWorker()
-		{
-			for( auto& [ ShaderName, pShader ] : m_Shaders )
-			{
-				delete pShader;
-				pShader = nullptr;
-			}
+		ShaderLibrary();
+		~ShaderLibrary();
 
-			m_Shaders.clear();
-			m_ShaderCodes.clear();
-		}
+		void Add( const Ref<Shader>& shader );
+		void Load( const std::string& path );
+		void Load( const std::string& name, const std::string& path );
 
-		void AddAndCompileShader( Shader* pShader );
-		void AddShader( Shader* pShader );
-
-		std::vector< uint32_t >& GetShaderCode( std::string Name )
-		{
-			if( m_ShaderCodes.find( Name ) != m_ShaderCodes.end() )
-			{
-				return m_ShaderCodes[ Name ];
-			}
-		}
-
-		Shader* GetShader( std::string Name )
-		{
-			if( m_Shaders.find( Name ) != m_Shaders.end() )
-			{
-				return m_Shaders[ Name ];
-			}
-		}
-
-		void CompileShader( Shader* pShader );
-
+		const Ref<Shader>& Find( const std::string& name ) const;
 	private:
-
-
-		// Not a list of all compiled shaders.
-		std::unordered_map< std::string, Shader* > m_Shaders;
-		std::unordered_map< std::string, std::vector<uint32_t> > m_ShaderCodes;
+		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
 	};
 
-
-	extern ShaderType ShaderTypeFromString( std::string Str );
+	extern ShaderType ShaderTypeFromString( const std::string& Str );
 	extern std::string ShaderTypeToString( ShaderType Type );
 
 	class Shader
 	{
 		using ShaderSourceMap = std::unordered_map< ShaderSourceKey, ShaderSource >;
+		using SpvSourceMap = std::unordered_map< ShaderSourceKey, std::vector< uint32_t > >;
+		using ShaderUBMap = std::unordered_map< ShaderType, std::unordered_map< uint32_t, ShaderUniformBuffer > >;
+		//                                      ShaderType,                     Binding,   UniformBuffer
+		
+		using ShaderWriteMap = std::unordered_map< ShaderType, std::unordered_map< std::string, VkWriteDescriptorSet > >;
+
 	public:
 		Shader() { }
 		Shader( std::string Name, std::filesystem::path Filepath );
+		Shader( std::filesystem::path Filepath );
+		Shader( std::string Filepath );
+
 		~Shader();
 
 		std::string& GetName() { return m_Name; }
+		const std::string& GetName() const { return m_Name; }
+
 		ShaderSourceMap& GetShaderSources() { return m_ShaderSources; }
+		const ShaderSourceMap& GetShaderSources() const { return m_ShaderSources; }
+
+		const SpvSourceMap& GetSpvCode() const { return m_SpvCode; }
+		SpvSourceMap& GetSpvCode() { return m_SpvCode; }
 		
-		// Moves the uniform for the available uniforms to the uniforms list. So that we can use them. Also removes the uniform from the available uniforms.
-		void UseUniform( const std::string& rName ) 
-		{
-			for( auto& rUniform : m_AvailableUniforms )
-			{
-				if( rUniform.Name == rName )
-				{
-					m_Uniforms.push_back( rUniform );
-					m_AvailableUniforms.erase( std::remove( m_AvailableUniforms.begin(), m_AvailableUniforms.end(), rUniform ) );
-					return;
-				}
-			}
-		}
-
-		// Moves the uniform for the uniforms to the available uniforms list. So that we can't use them. Also removes the uniform from the uniforms list.
-		void FreeUniform( ShaderUniform& rUniform ) 
-		{
-			m_Uniforms.erase( std::remove( m_Uniforms.begin(), m_Uniforms.end(), rUniform ) );
-			m_AvailableUniforms.push_back( rUniform );
-		}
-
-		// Moves the uniform for the uniforms to the available uniforms list. So that we can't use them. Also removes the uniform from the uniforms list.
-		void FreeUniform( const std::string& rName )
-		{
-			for( auto& rUniform : m_Uniforms )
-			{
-				if( rUniform.Name == rName )
-				{
-					m_Uniforms.erase( std::remove( m_Uniforms.begin(), m_Uniforms.end(), rUniform ) );
-					m_AvailableUniforms.push_back( rUniform );
-					return;
-				}
-			}
-		}
+		const std::vector< ShaderUniform > GetUniforms() const { return m_Uniforms; }
 		
-		ShaderUniform& FindUniform( const std::string& rName ) 
-		{
-			for ( auto& rUniform : m_Uniforms )
-			{
-				if( rUniform.Name == rName )
-					return rUniform;
-			}
+		ShaderUBMap& GetUniformBuffers() { return m_UniformBuffers; }
+		const ShaderUBMap& GetUniformBuffers() const { return m_UniformBuffers; }
+		
+		std::vector< std::tuple< ShaderType, uint32_t, std::string > >& GetTextures() { return m_Textures; }
+		
+		VkDescriptorSetLayout GetSetLayout() const { return m_SetLayout; }
+		
+		Ref< DescriptorPool >& GetDescriptorPool() { return m_SetPool; }
+		const Ref< DescriptorPool >& GetDescriptorPool() const { return m_SetPool; }
+		
+		ShaderWriteMap& GetWriteDescriptors() { return m_DescriptorWrites; }
+		const ShaderWriteMap& GetWriteDescriptors() const { return m_DescriptorWrites; }
 
-			//return ShaderUniform( "", -1, ShaderDataType::None );
-		}
+		void WriteDescriptor( ShaderType Type, const std::string& rName, VkWriteDescriptorSet& rWriteDescriptor );
+
+		// Make sure all the buffers have data mapped to them!
+		void WriteAllUBs( const Ref< DescriptorSet >& rSet );
 
 	private:
 
@@ -245,21 +229,25 @@ namespace Saturn {
 		void CompileGlslToSpvAssembly();
 
 	private:
-		std::unordered_map< ShaderSourceKey, ShaderSource > m_ShaderSources;
-		std::unordered_map< ShaderSourceKey, std::vector< uint32_t > > m_SpvCode;
+		ShaderSourceMap m_ShaderSources;
+		SpvSourceMap m_SpvCode;
 
 		std::string m_FileContents = "";
+		size_t m_FileSize;
 
 		std::string m_Name = "";
 
 		std::filesystem::path m_Filepath = "";
 		
-		std::vector< ShaderCodename > m_ShaderCodenames;
-		std::vector< ShaderUniform > m_AvailableUniforms;
 		std::vector< ShaderUniform > m_Uniforms;
-		
 
-	private:
-		friend class ShaderWorker;
+		ShaderUBMap m_UniformBuffers;
+		// So here we saying that the shader might X amount of textures at X index and X shader stage. It's the materials job to create the textures.
+		std::vector< std::tuple< ShaderType, uint32_t, std::string > > m_Textures;
+		
+		ShaderWriteMap m_DescriptorWrites;
+
+		VkDescriptorSetLayout m_SetLayout;
+		Ref< DescriptorPool > m_SetPool;
 	};
 }

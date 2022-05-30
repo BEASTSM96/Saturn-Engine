@@ -45,6 +45,8 @@
 
 #define GLFW_RESIZE_NESW_CURSOR 0x00036008
 
+#define ARRAYSIZE( x ) ( ( int ) ( sizeof( x ) / sizeof( *( x ) ) ) )
+
 // Line Ending for shaders
 
 #define __CR_LF__ "\r\n"
@@ -75,6 +77,8 @@ namespace Saturn::Core {
 	}
 
 }
+
+const int MAX_FRAMES_IN_FLIGHT = 2;
 
 // Inject asserts
 #define __CORE_INCLUDED__

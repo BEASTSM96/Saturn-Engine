@@ -59,7 +59,7 @@ namespace Saturn {
 
 		void DestroyEntity( Entity entity );
 
-		void OnRenderEditor( Timestep ts );
+		void OnRenderEditor( const EditorCamera& Camera, Timestep ts );
 
 		template<typename T>
 		auto GetAllEntitiesWith( void )
@@ -80,9 +80,6 @@ namespace Saturn {
 		std::string& Name() { return m_Name; }
 		const std::string& Name() const { return m_Name; }
 
-		Entity LightEntity();
-		std::vector<Entity>& VisableEntities();
-		
 		bool m_RuntimeRunning = false;
 
 	private:
@@ -93,14 +90,15 @@ namespace Saturn {
 
 		EntityMap m_EntityIDMap;
 
-		entt::entity m_SceneEntity;
 		entt::registry m_Registry;
 
+		entt::entity m_SceneEntity;
 		entt::entity m_SelectedEntity;
 
 	private:
 
 		friend class Entity;
 		friend class SceneHierarchyPanel;
+		friend class SceneSerialiser;
 	};
 }

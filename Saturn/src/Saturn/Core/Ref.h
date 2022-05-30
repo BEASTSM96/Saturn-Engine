@@ -83,7 +83,7 @@ namespace Saturn {
 	
 		Ref& operator=( std::nullptr_t ) 
 		{
-			//delete m_Pointer;
+			delete m_Pointer;
 			m_Pointer = nullptr;
 			return *this;
 		}
@@ -93,6 +93,7 @@ namespace Saturn {
 		Ref& operator=( Ref<T>& other )
 		{
 			//delete m_Pointer;
+			//m_Pointer = nullptr;
 
 			m_Pointer = other.m_Pointer;
 
@@ -103,6 +104,7 @@ namespace Saturn {
 		Ref& operator=( Ref<T2>& other )
 		{
 			//delete m_Pointer;
+			//m_Pointer = nullptr;
 
 			m_Pointer = other.m_Pointer;
 
@@ -115,7 +117,8 @@ namespace Saturn {
 
 		Ref& operator=( const Ref<T>& other )
 		{
-			//delete m_Pointer;
+			//if( m_Pointer )
+			//	delete m_Pointer;
 
 			m_Pointer = other.m_Pointer;
 
@@ -125,7 +128,8 @@ namespace Saturn {
 		template<typename T2>
 		Ref& operator=( const Ref<T2>& other )
 		{
-			//delete m_Pointer;
+			if( m_Pointer )
+				delete m_Pointer;
 
 			m_Pointer = other.m_Pointer;
 
@@ -137,10 +141,12 @@ namespace Saturn {
 		template<typename T2>
 		Ref& operator=( Ref<T2>&& other )
 		{
-			//delete m_Pointer;
+			delete m_Pointer;
+			m_Pointer = nullptr;
 
 			m_Pointer = other.m_Pointer;
 			other.m_Pointer = nullptr;
+
 			return *this;
 		}
 
@@ -160,7 +166,7 @@ namespace Saturn {
 
 	public:
 
-		T* Null = nullptr;
+		//T* Null = nullptr;
 
 	private:
 

@@ -71,13 +71,13 @@ namespace Saturn {
 		// Destroy all entities with mesh component.
 		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
 		
-		for ( const auto e : group )
+		for ( const auto& e : group )
 		{
 			Entity entity( e, this );
 
-			Ref< Mesh > mesh = entity.GetComponent<MeshComponent>().Mesh;
+			Ref< Mesh >& mesh = entity.GetComponent<MeshComponent>().Mesh;
 
-			mesh.Delete();
+			mesh = nullptr;
 		}
 
 		m_Registry.clear();
@@ -88,7 +88,7 @@ namespace Saturn {
 
 	}
 
-	void Scene::OnRenderEditor( Timestep ts )
+	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts )
 	{
 		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
 		
@@ -103,9 +103,11 @@ namespace Saturn {
 			if( meshComponent.Mesh )
 				SceneRenderer::Get().AddDrawCommand( entity, meshComponent.Mesh, transformComponent.GetTransform() );
 
+			
+			SceneRenderer::Get().SetEditorCamera( rCamera );
 		}
-
-		SceneRenderer::Get().RenderScene();
+		
+		// Scene rendering happens in App.cpp
 	}
 
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )
@@ -134,7 +136,7 @@ namespace Saturn {
 		if( !name.empty() )
 			entity.AddComponent<TagComponent>( name );
 
-		SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) != m_EntityIDMap.end(), "Entity has the same name!" );
+		SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) == m_EntityIDMap.end(), "Entity has the same name!" );
 		m_EntityIDMap[ uuid ] = entity;
 
 		return entity;
@@ -209,46 +211,4 @@ namespace Saturn {
 		CopyComponent<MeshComponent>( NewScene->m_Registry, m_Registry, EntityMap );
 		CopyComponent<SkylightComponent>( NewScene->m_Registry, m_Registry, EntityMap );
 	}
-
-	Entity Scene::LightEntity()
-	{
-		//std::vector<entt::entity> lights;
-
-		auto group = m_Registry.group<LightComponent>( entt::get<TransformComponent> );
-		
-		for ( auto& e : group )
-		{
-			//auto& [lightComponent, transformComponent] = group.get<LightComponent, TransformComponent>( e );
-			
-			//return Entity( e, this );
-
-			//lights.push_back( e );
-		}
-
-		return Entity{};
-	}
-
-	std::vector<Entity>& Scene::VisableEntities()
-	{
-		std::vector<Entity> entities;
-
-		auto view = m_Registry.view<VisibilityComponent>();
-
-		if ( view )
-		{
-			for( auto e : view )
-			{
-				auto& vis = view.get<VisibilityComponent>( e ).visibility;
-
-				Entity entity( e, this );
-
-				if( vis == Visibility::Visible )
-					entities.push_back( entity );
-
-			}
-		}
-
-		return entities;
-	}
-
 }

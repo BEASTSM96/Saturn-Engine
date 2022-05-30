@@ -69,6 +69,11 @@ namespace Saturn {
 		Create();
 	}
 
+	void Pipeline::Bind( VkCommandBuffer CommandBuffer )
+	{
+		vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
+	}
+
 	void Pipeline::Create()
 	{
 		// Create the layout.
@@ -79,25 +84,31 @@ namespace Saturn {
 
 		VkShaderModule VertexModule = VK_NULL_HANDLE;
 		VkShaderModule FragmentModule = VK_NULL_HANDLE;
-
-		std::string FragmentName = m_Specification.pShader->GetName() + "/Fragment" + "/0";
-		std::string VertexName = m_Specification.pShader->GetName() + "/Vertex" + "/0";
 		
-		//{
+		std::string VertexName = m_Specification.pShader->GetName() + "/Vertex" + "/0";
+		std::string FragmentName = m_Specification.pShader->GetName() + "/Fragment" + "/0";
+		
+		// Shader object spirv code.
+		auto& SpvSrc = ShaderLibrary::Get().Find( m_Specification.pShader->GetName() )->GetSpvCode();
+
+		std::vector<uint32_t> VertexCode = SpvSrc.at( { ShaderType::Vertex, 0 } );
+		std::vector<uint32_t> FragmentCode = SpvSrc.at( { ShaderType::Fragment, 0 } );
+		
+		{
 			VkShaderModuleCreateInfo CreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-			CreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( VertexName ).size();
-			CreateInfo.pCode = ( uint32_t* )ShaderWorker::Get().GetShaderCode( VertexName ).data();
+			CreateInfo.codeSize = 4 * VertexCode.size();
+			CreateInfo.pCode = ( uint32_t* ) VertexCode.data();
 
 			VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &CreateInfo, nullptr, &VertexModule ) );
-		//}
+		}
 
-		//{
+		{
 			VkShaderModuleCreateInfo FCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-			FCreateInfo.codeSize = 4 * ShaderWorker::Get().GetShaderCode( FragmentName ).size();
-			FCreateInfo.pCode = ( uint32_t* )ShaderWorker::Get().GetShaderCode( FragmentName ).data();
+			FCreateInfo.codeSize = 4 * FragmentCode.size();
+			FCreateInfo.pCode = ( uint32_t* ) FragmentCode.data();
 
 			VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &FCreateInfo, nullptr, &FragmentModule ) );
-		//}
+		}
 		
 		SetDebugUtilsObjectName( std::string( m_Specification.Name + "/" + VertexName ), ( uint64_t )VertexModule, VK_OBJECT_TYPE_SHADER_MODULE );
 		
@@ -206,6 +217,11 @@ namespace Saturn {
 		VK_CHECK( vkCreateGraphicsPipelines( VulkanContext::Get().GetDevice(), 0, 1, &PipelineCreateInfo, nullptr, &m_Pipeline ) );
 
 		SetDebugUtilsObjectName( m_Specification.Name, ( uint64_t )m_Pipeline, VK_OBJECT_TYPE_PIPELINE );
+
+		if( m_Specification.Name != "" )
+			SAT_CORE_WARN( "Created pipeline: {0}!", m_Specification.Name );
+		else				
+			SAT_CORE_WARN( "Created pipeline: {0}!", ( uint64_t )m_Pipeline );
 
 		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), VertexModule, nullptr );
 		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), FragmentModule, nullptr );

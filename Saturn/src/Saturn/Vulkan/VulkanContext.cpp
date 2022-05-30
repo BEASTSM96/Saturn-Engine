@@ -1,9 +1,38 @@
+/********************************************************************************************
+*                                                                                           *
+*                                                                                           *
+*                                                                                           *
+* MIT License                                                                               *
+*                                                                                           *
+* Copyright (c) 2020 - 2022 BEAST                                                           *
+*                                                                                           *
+* Permission is hereby granted, free of charge, to any person obtaining a copy              *
+* of this software and associated documentation files (the "Software"), to deal             *
+* in the Software without restriction, including without limitation the rights              *
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                 *
+* copies of the Software, and to permit persons to whom the Software is                     *
+* furnished to do so, subject to the following conditions:                                  *
+*                                                                                           *
+* The above copyright notice and this permission notice shall be included in all            *
+* copies or substantial portions of the Software.                                           *
+*                                                                                           *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                *
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                  *
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE               *
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                    *
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,             *
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE             *
+* SOFTWARE.                                                                                 *
+*********************************************************************************************
+*/
+
 #include "sppch.h"
 #include "VulkanContext.h"
 
 #include "VulkanDebugMessenger.h"
 
 #include "VulkanDebug.h"
+#include "VulkanAllocator.h"
 
 #include "Saturn/Core/Timer.h"
 
@@ -12,18 +41,16 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <backends/imgui_impl_glfw.h>
 
-#include "ImGuiVulkan.h"
 #include "SceneRenderer.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 
 #include <vulkan.h>
+#include <glfw/glfw3.h>
 #include <cassert>
 #include <set>
 #include <iostream>
 #include <string>
-
-const int MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace Saturn {
 	
@@ -36,100 +63,94 @@ namespace Saturn {
 		CreateLogicalDevice();
 		CreateSwapChain();
 		CreateCommandPool();
-		CreateSyncObjects();
 
 		// Init a theoretical swap chain.
 		SwapchainCreationData Data = GetSwapchainCreationData();
 		Data ={};
 		
-		CreateRenderpass();
-		CreateDepthResources();
-		CreateFramebuffers();
-
-		CreateDescriptorSetLayout();
-
-		ShaderWorker::Get();
+		m_pAllocator = new VulkanAllocator();
+	
+		// Create default pass.
+		PassSpecification Specification = {};
+		Specification.Name = "Swapchain render pass";
 		
-		Shader* pShader = new Shader( "Triangle/Shader", "assets/shaders/shader_new.glsl" );
+		Specification.Attachments = {
+			{
+				.flags = 0,
+				.format = m_SurfaceFormat.format,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+			},
+			{
+				.flags = 0,
+				.format = FindDepthFormat(),
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+			}
+		};
 
-		ShaderWorker::Get().AddShader( pShader );
-		ShaderWorker::Get().CompileShader( pShader );
+		Specification.ColorAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		Specification.DepthAttachmentRef = { .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 
-		m_Camera = EditorCamera( glm::perspective( glm::radians( 45.0f ), ( float )Window::Get().Width() / ( float )Window::Get().Height(), 0.1f, 10000.0f ) );
+		Specification.ColorFormat = m_SurfaceFormat.format;
+		Specification.DepthFormat = FindDepthFormat();
 
-		CreatePipeline();
-		CreateOffscreenImages();
+		Specification.Dependencies = {
+			{
+				.srcSubpass = VK_SUBPASS_EXTERNAL,
+				.dstSubpass = 0,
+				.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+				.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
+			}
+		};
 
-		m_pImGuiVulkan = new ImGuiVulkan();
+		m_DefaultPass = Pass( Specification );
+
+		// Init Renderer.
+		Renderer::Get();
+
+		CreateDepthResources();
+
+		m_SwapChain.CreateFramebuffers();
+
+		// Init Scene Renderer.
 		SceneRenderer::Get();
 	}
 
 	void VulkanContext::Terminate()
-	{
-		delete m_pImGuiVulkan;
+	{		
+		if( m_Terminated )
+			return;
+
+		Renderer::Get().Terminate();
+		SceneRenderer::Get().Terminate();
+
+		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
+		
+		m_DefaultPass.Terminate();
 
 		m_SwapChain.Terminate();
-		m_RenderPass.Terminate();
-	
-		if( m_UniformBuffers.size() > 1 ) 
-		{
-			for( auto& [uid, buffer] : m_UniformBuffers )
-			{
-				m_UniformBuffers[ uid ].Terminate();
-				m_UniformBuffers.erase( uid );
-			}
-		}
 		
-		m_UniformBuffers.clear();
+		for( auto& rFunc : m_TerminateResourceFuncs )
+			rFunc();
 		
-		vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
 		vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
 		vkDestroyImage( m_LogicalDevice, m_DepthImage, nullptr );
+		vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
 		
-		{
-			vkFreeMemory( m_LogicalDevice, m_OffscreenColorMem, nullptr );
-			vkFreeMemory( m_LogicalDevice, m_OffscreenDepthMem, nullptr );
 
-			vkDestroyImageView( m_LogicalDevice, m_OffscreenColorImageView, nullptr );
-			vkDestroyImageView( m_LogicalDevice, m_OffscreenDepthImageView, nullptr );
-
-			vkDestroyImage( m_LogicalDevice, m_OffscreenColorImage, nullptr );
-			vkDestroyImage( m_LogicalDevice, m_OffscreenDepthImage, nullptr );
-
-			vkDestroySampler( m_LogicalDevice, m_OffscreenColorSampler, nullptr );
-			vkDestroySampler( m_LogicalDevice, m_OffscreenDepthSampler, nullptr );
-
-			vkDestroyFramebuffer( m_LogicalDevice, m_OffscreenFramebuffer, nullptr );
-
-			vkDestroyRenderPass( m_LogicalDevice, m_OffscreenPass, nullptr );
-		}
-
-		vkDestroyDescriptorPool( m_LogicalDevice, m_DescriptorPool, nullptr );
-
-		vkDestroyDescriptorSetLayout( m_LogicalDevice, m_DescriptorSetLayouts, nullptr );
-		
-		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
-		vkDestroySemaphore( m_LogicalDevice, m_SubmitSemaphore, nullptr );
-		vkDestroySemaphore( m_LogicalDevice, m_AcquireSemaphore, nullptr );
-
-		for( auto& rFence : m_FlightFences )
-		{
-			vkDestroyFence( m_LogicalDevice, rFence, nullptr );
-		}
-
-		for( auto& rImageView : m_SwapChainImageViews )
-		{
-			vkDestroyImageView( m_LogicalDevice, rImageView, nullptr );
-		}
-
-		for( auto& rFramebuffer : m_SwapChainFramebuffers )
-		{
-			vkDestroyFramebuffer( m_LogicalDevice, rFramebuffer, nullptr );
-		}
-
-		m_Pipeline.Terminate();
-
-		SceneRenderer::Get().Terminate();
+		delete m_pAllocator;
 
 		vkDestroyDevice( m_LogicalDevice, nullptr );
 
@@ -138,19 +159,23 @@ namespace Saturn {
 
 		vkDestroySurfaceKHR( m_Instance, m_Surface, nullptr );
 		vkDestroyInstance( m_Instance, nullptr );
+
+		m_Terminated = true;
 	}
 
 	void VulkanContext::CreateInstance()
 	{
+		SAT_CORE_ASSERT( glfwVulkanSupported(), "GLFW must be able to support vulkan." );
+
 		CheckValidationLayerSupport();
 
 		VkApplicationInfo AppInfo  ={ VK_STRUCTURE_TYPE_APPLICATION_INFO };
 		AppInfo.pApplicationName = "Saturn Engine";
 		AppInfo.pEngineName        = "Saturn Engine";
-		AppInfo.applicationVersion = VK_MAKE_VERSION( 1, 0, 0 );
-		AppInfo.engineVersion      = VK_MAKE_VERSION( 1, 0, 0 );
+		AppInfo.applicationVersion = VK_MAKE_VERSION( 0, 0, 1 );
+		AppInfo.engineVersion      = VK_MAKE_VERSION( 0, 0, 1 );
 		AppInfo.apiVersion         = VK_API_VERSION_1_2;
-
+		
 		auto Extensions = Window::Get().GetRequiredExtensions();
 		Extensions.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
 
@@ -166,7 +191,7 @@ namespace Saturn {
 			InstanceInfo.ppEnabledLayerNames = ValidationLayers.data();
 
 			Helpers::CreateDebugMessengerInfo( &DebugCreateInfo );
-			InstanceInfo.pNext = ( VkDebugUtilsMessengerCreateInfoEXT* )&DebugCreateInfo;
+			InstanceInfo.pNext = ( VkDebugUtilsMessengerCreateInfoEXT* ) &DebugCreateInfo;
 		}
 
 		InstanceInfo.enabledExtensionCount = Extensions.size();
@@ -187,10 +212,7 @@ namespace Saturn {
 		uint32_t DeviceCount = 0;
 		VK_CHECK( vkEnumeratePhysicalDevices( m_Instance, &DeviceCount, nullptr ) );
 
-		if( DeviceCount == 0 )
-		{
-			assert( 0 ); // No device found that supports Vulkan.
-		}
+		SAT_CORE_ASSERT( DeviceCount != 0, "No device found that supports Vulkan." ); 
 
 		// Create a list of the physical devices.
 		std::vector< VkPhysicalDevice > PhysicalDevices( DeviceCount );
@@ -234,6 +256,7 @@ namespace Saturn {
 			}
 		}
 		
+		
 		for ( int i = 0; i < PhysicalDevices.size(); i++ )
 		{
 			m_DeviceProps.push_back( {} );
@@ -246,9 +269,9 @@ namespace Saturn {
 
 			{
 				uint32_t Count;
-				vkEnumerateInstanceExtensionProperties( nullptr, &Count, nullptr );
+				vkEnumerateDeviceExtensionProperties( m_PhysicalDevice, nullptr, &Count, nullptr );
 				std::vector<VkExtensionProperties> Extensions( Count );
-				vkEnumerateInstanceExtensionProperties( nullptr, &Count, Extensions.data() );
+				vkEnumerateDeviceExtensionProperties( m_PhysicalDevice, nullptr, &Count, Extensions.data() );
 
 				SAT_CORE_INFO( " Physical Device {0} has {1} extensions ", i, Count );
 				SAT_CORE_INFO( "  Available extensions:" );
@@ -281,7 +304,7 @@ namespace Saturn {
 		}
 
 		// Enable the device features.
-		// It's very unlikey for a modern GPU to not support 'samplerAnisotropy' but just in case we check.
+		// It's very unlikely for a modern GPU to not support 'samplerAnisotropy' but just in case we check.
 		VkPhysicalDeviceFeatures Features;
 		vkGetPhysicalDeviceFeatures( m_PhysicalDevice, &Features );
 
@@ -290,7 +313,10 @@ namespace Saturn {
 		Features.samplerAnisotropy = VK_TRUE;
 
 		DeviceExtensions.push_back( VK_EXT_DEBUG_MARKER_EXTENSION_NAME );
-		//DeviceExtensions.push_back( "VK_EXT_debug_report" );
+		DeviceExtensions.push_back( VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME );
+
+		VkPhysicalDeviceInlineUniformBlockFeaturesEXT InlineUniformBlockFeatures = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT };
+		InlineUniformBlockFeatures.inlineUniformBlock = VK_TRUE;
 
 		VkDeviceCreateInfo DeviceInfo      ={ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		DeviceInfo.enabledExtensionCount   = DeviceExtensions.size();
@@ -298,6 +324,7 @@ namespace Saturn {
 		DeviceInfo.pQueueCreateInfos       = QueueCreateInfos.data();
 		DeviceInfo.queueCreateInfoCount    = QueueCreateInfos.size();
 		DeviceInfo.pEnabledFeatures = &Features;
+		DeviceInfo.pNext = &InlineUniformBlockFeatures;
 
 		VK_CHECK( vkCreateDevice( m_PhysicalDevice, &DeviceInfo, nullptr, &m_LogicalDevice ) );
 		SetDebugUtilsObjectName( "Physical Device", ( uint64_t )m_LogicalDevice, VK_OBJECT_TYPE_DEVICE );
@@ -365,7 +392,6 @@ namespace Saturn {
 
 	void VulkanContext::OnEvent( Event& e )
 	{
-		m_Camera.OnEvent( e );
 	}
 
 	void VulkanContext::CreateSwapChain()
@@ -374,290 +400,8 @@ namespace Saturn {
 		m_SwapChain.Create();
 	}
 
-	void VulkanContext::CreateCommandPool()
-	{
-		VkCommandPoolCreateInfo CommandPoolInfo ={ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-		CommandPoolInfo.queueFamilyIndex = m_Indices.GraphicsFamily.value();
-
-		VK_CHECK( vkCreateCommandPool( m_LogicalDevice, &CommandPoolInfo, nullptr, &m_CommandPool ) );
-		SetDebugUtilsObjectName( "Command Pool", ( uint64_t )m_CommandPool, VK_OBJECT_TYPE_COMMAND_POOL );
-	}
-
-	void VulkanContext::CreateSyncObjects()
-	{
-		VkSemaphoreCreateInfo SemaphoreCreateInfo ={ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
-		VkFenceCreateInfo     FenceCreateInfo     ={ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
-		FenceCreateInfo.flags                     = VK_FENCE_CREATE_SIGNALED_BIT;
-
-		m_FlightFences.resize( MAX_FRAMES_IN_FLIGHT );
-
-		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
-		{
-			VK_CHECK( vkCreateFence( m_LogicalDevice, &FenceCreateInfo, nullptr, &m_FlightFences[ i ] ) );
-		}
-
-		VK_CHECK( vkCreateSemaphore( m_LogicalDevice, &SemaphoreCreateInfo, nullptr, &m_AcquireSemaphore ) );
-		VK_CHECK( vkCreateSemaphore( m_LogicalDevice, &SemaphoreCreateInfo, nullptr, &m_SubmitSemaphore ) );
-
-		SetDebugUtilsObjectName( "Semaphore", ( uint64_t )m_AcquireSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
-		SetDebugUtilsObjectName( "Semaphore", ( uint64_t )m_SubmitSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
-	}
-
-	void VulkanContext::CreateFramebuffers()
-	{
-		m_SwapChain.CreateFramebuffers();
-	}
-
-	void VulkanContext::CreateDescriptorSetLayout()
-	{
-		VkDescriptorSetLayoutBinding UBOLayoutBinding = {};
-		UBOLayoutBinding.binding = 0;
-		UBOLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		UBOLayoutBinding.descriptorCount = 1;
-		
-		UBOLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
-		UBOLayoutBinding.pImmutableSamplers = nullptr;
-		
-		VkDescriptorSetLayoutBinding SamplerLayoutBinding = {};
-		SamplerLayoutBinding.binding = 1;
-		SamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		SamplerLayoutBinding.descriptorCount = 1;
-		SamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
-
-		std::vector< VkDescriptorSetLayoutBinding > Bindings = { UBOLayoutBinding, SamplerLayoutBinding };
-
-		VkDescriptorSetLayoutCreateInfo LayoutCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-		LayoutCreateInfo.bindingCount = Bindings.size();
-		LayoutCreateInfo.pBindings = Bindings.data();	
-
-		VK_CHECK( vkCreateDescriptorSetLayout( m_LogicalDevice, &LayoutCreateInfo, nullptr, &m_DescriptorSetLayouts ) );
-	}
-
-	void VulkanContext::CreateDescriptorPool()
-	{
-		if( m_DescriptorPool )
-			return;
-
-		std::vector< VkDescriptorPoolSize > PoolSizes = {};
-		
-		//for( int i = 0; i < m_UniformBuffers.size(); i++ )
-		{
-			PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 1000 } );
-
-			PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
-		}
-
-		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-		PoolCreateInfo.poolSizeCount = PoolSizes.size();
-		PoolCreateInfo.pPoolSizes = PoolSizes.data();
-		PoolCreateInfo.maxSets = 100000;
-		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;		
-
-		VK_CHECK( vkCreateDescriptorPool( m_LogicalDevice, &PoolCreateInfo, nullptr, &m_DescriptorPool ) );
-	}
-
-	void VulkanContext::CreateDescriptorSet( UUID uuid, Ref< Texture > rTexture )
-	{
-		std::vector< VkDescriptorSetLayout > Layouts( m_UniformBuffers.size(), m_DescriptorSetLayouts );
-
-		VkDescriptorSetAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-		AllocateInfo.descriptorPool = m_DescriptorPool;
-		AllocateInfo.descriptorSetCount = m_UniformBuffers.size();
-		AllocateInfo.pSetLayouts = Layouts.data();
-
-		VK_CHECK( vkAllocateDescriptorSets( m_LogicalDevice, &AllocateInfo, &m_DescriptorSets[ uuid ] ) );
-
-		VkDescriptorBufferInfo BufferInfo ={};
-		BufferInfo.buffer = m_UniformBuffers[ uuid ].GetBuffer();
-		BufferInfo.offset = 0;
-		BufferInfo.range = sizeof( Matrices );
-
-		VkDescriptorImageInfo ImageInfo ={};
-		ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		ImageInfo.imageView = rTexture->GetImageView();
-		ImageInfo.sampler = rTexture->GetSampler();
-
-		std::vector< VkWriteDescriptorSet > DescriptorWrites;
-		
-		DescriptorWrites.push_back( {
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext = nullptr,
-			.dstSet = m_DescriptorSets[ uuid ],
-			.dstBinding = 1,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			.pImageInfo = &ImageInfo,
-			.pBufferInfo = nullptr,
-			.pTexelBufferView = nullptr } );
-
-		DescriptorWrites.push_back( {
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext = nullptr,
-			.dstSet = m_DescriptorSets[ uuid ],
-			.dstBinding = 0,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pImageInfo = nullptr,
-			.pBufferInfo = &BufferInfo,
-			.pTexelBufferView = nullptr } );
-
-		vkUpdateDescriptorSets( m_LogicalDevice, DescriptorWrites.size(), DescriptorWrites.data(), 0, nullptr );
-	}
-
-	void VulkanContext::DestoryDescriptorPool()
-	{
-		vkDestroyDescriptorPool( m_LogicalDevice, m_DescriptorPool, nullptr );
-	}
-
-	void VulkanContext::DestoryDescriptorSets()
-	{
-		if( !m_DescriptorSets.size() )
-			return;
-
-		vkDestroyDescriptorSetLayout( m_LogicalDevice, m_DescriptorSetLayouts, nullptr );
-	}
-
-	void VulkanContext::UpdateUniformBuffers( UUID uuid, Timestep ts, glm::mat4 Transform )
-	{
-		Matrices UBO ={};
-
-		UBO.Transform = Transform;
-		UBO.ViewProjection = m_Camera.ViewProjection();
-		
-		UBO.UseAlbedoTexture = true;
-
-		void* Data;
-		
-		m_UniformBuffers[ uuid ].Map( &Data, sizeof( UBO ) );
-
-		memcpy( Data, &UBO, sizeof( UBO ) );
-
-		m_UniformBuffers[ uuid ].Unmap();
-	}
-
-	void VulkanContext::AddUniformBuffer( UUID uuid )
-	{
-		VkDeviceSize BufferSize = sizeof( Matrices );
-
-		m_UniformBuffers[ uuid ].Create( nullptr, BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
-	}
-
-	void VulkanContext::CreateDepthResources()
-	{
-		vkDestroyImage( m_LogicalDevice, m_DepthImage, nullptr );
-		vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
-		vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
-		
-		VkFormat DepthFormat = FindDepthFormat();
-		
-		CreateImage( 
-			Window::Get().Width(), Window::Get().Height(),
-			DepthFormat, 
-			VK_IMAGE_TILING_OPTIMAL, 
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-			m_DepthImage, 
-			m_DepthImageMemory 
-		);
-		
-		m_DepthImageView = CreateImageView( m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT );
-	}
-
-	void VulkanContext::CreateFramebuffer( VkFramebuffer* pFramebuffer )
-	{
-		VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-		FramebufferCreateInfo.width = Window::Get().Width();
-		FramebufferCreateInfo.height = Window::Get().Height();
-		FramebufferCreateInfo.renderPass = m_RenderPass.GetRenderPass();
-		FramebufferCreateInfo.layers = 1;
-		FramebufferCreateInfo.attachmentCount = 1;
-
-		for( uint32_t i = 0; i < m_ImageCount; i++ )
-		{
-			FramebufferCreateInfo.pAttachments = &m_SwapChainImageViews[ i ];
-		}
-
-		VK_CHECK( vkCreateFramebuffer( m_LogicalDevice, &FramebufferCreateInfo, nullptr, pFramebuffer ) );
-		SetDebugUtilsObjectName( "Framebuffer", ( uint64_t )pFramebuffer, VK_OBJECT_TYPE_FRAMEBUFFER );
-	}
-
-	void VulkanContext::CreateRenderpass()
-	{
-		m_RenderPass = Pass( nullptr, "MainRenderPass");
-	}
-
-	void VulkanContext::CreatePipeline()
-	{		
-		PipelineSpecification Spec;
-		
-		Spec.Width = Window::Get().Width();
-		Spec.Height = Window::Get().Height();
-		Spec.Name = "Static Meshes";
-		Spec.RenderPass = m_RenderPass.GetRenderPass();
-		Spec.pShader = ShaderWorker::Get().GetShader( "Triangle/Shader" );
-		Spec.UseDepthTest = true;
-		Spec.Layout.SetLayouts = { { m_DescriptorSetLayouts }  };
-		// Because we have not fliped the mesh the back cull mode will be the front cull mode.
-		Spec.CullMode = VK_CULL_MODE_FRONT_BIT;
-
-		VertexBufferLayout Layout =
-		{
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal" },
-			{ ShaderDataType::Float3, "a_Tangent" },
-			{ ShaderDataType::Float3, "a_Bitangent" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-
-		// Gird shader attribute descriptions.
-		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
-		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Position ) } );
-		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Normal ) } );
-		AttributeDescriptions.push_back( { 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Tangent ) } );
-		AttributeDescriptions.push_back( { 3, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Binormal ) } );
-		AttributeDescriptions.push_back( { 4, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( MeshVertex, Texcoord ) } );
-
-		// Gird shader binding descriptions.
-		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
-		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
-
-		Spec.AttributeDescriptions = AttributeDescriptions;
-		Spec.BindingDescriptions = BindingDescriptions;
-		
-
-		m_Pipeline.Terminate();
-		m_Pipeline = Pipeline( Spec );
-	}
-
 	void VulkanContext::ResizeEvent()
 	{
-		if( m_WindowIconifed )
-			return;
-
-		vkDeviceWaitIdle( m_LogicalDevice );
-
-		//CreateRenderpass();
-		CreateDepthResources();
-		//CreateFramebuffers();
-
-		m_SwapChain.Recreate();
-
-		m_Pipeline.Terminate();
-		
-		CreateOffscreenImages();
-
-		m_pImGuiVulkan->RecreateImages();
-
-		CreatePipeline();
-//		CreateUniformBuffers();
-//		CreateCommandPool();
-//		CreateDescriptorPool();
-//		CreateDescriptorSetLayout();
-//		CreateDescriptorSets();
-		
-		m_Camera.SetViewportSize( Window::Get().Width(), Window::Get().Height() );
 	}
 
 	bool VulkanContext::CheckValidationLayerSupport()
@@ -720,10 +464,6 @@ namespace Saturn {
 		return Format == VK_FORMAT_D32_SFLOAT_S8_UINT || Format == VK_FORMAT_D24_UNORM_S8_UINT;
 	}
 
-	void VulkanContext::RenderDebugUUID( UUID UID )
-	{
-	}
-
 	VkCommandBuffer VulkanContext::BeginSingleTimeCommands()
 	{
 		VkCommandBufferAllocateInfo AllocInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
@@ -759,428 +499,28 @@ namespace Saturn {
 		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
 	}
 
-	void VulkanContext::CreateOffscreenImages()
+	void VulkanContext::CreateCommandPool()
 	{
-		if( m_OffscreenColorImage )
-			vkDestroyImage( m_LogicalDevice, m_OffscreenColorImage, nullptr );
-
-		if( m_OffscreenColorMem )
-			vkFreeMemory( m_LogicalDevice, m_OffscreenColorMem, nullptr );
+		VkCommandPoolCreateInfo PoolInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+		PoolInfo.queueFamilyIndex = m_Indices.GraphicsFamily.value();
+		PoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		
-		if( m_OffscreenDepthImage )
-			vkDestroyImage( m_LogicalDevice, m_OffscreenDepthImage, nullptr );
+		VK_CHECK( vkCreateCommandPool( m_LogicalDevice, &PoolInfo, nullptr, &m_CommandPool ) );
 
-		if( m_OffscreenDepthMem )
-			vkFreeMemory( m_LogicalDevice, m_OffscreenDepthMem, nullptr );
-		
-		if( m_OffscreenDepthImageView )
-			vkDestroyImageView( m_LogicalDevice, m_OffscreenDepthImageView, nullptr );
-		
-		if( m_OffscreenColorImageView )
-			vkDestroyImageView( m_LogicalDevice, m_OffscreenColorImageView, nullptr );
-
-		if( m_OffscreenColorSampler )
-			vkDestroySampler( m_LogicalDevice, m_OffscreenColorSampler, nullptr );
-		
-		if( m_OffscreenDepthSampler )
-			vkDestroySampler( m_LogicalDevice, m_OffscreenDepthSampler, nullptr );
-
-		if( m_OffscreenFramebuffer )
-			vkDestroyFramebuffer( m_LogicalDevice, m_OffscreenFramebuffer, nullptr );
-		
-		if( m_OffscreenPass )
-			vkDestroyRenderPass( m_LogicalDevice, m_OffscreenPass, nullptr );
-
-		// Create the color attachment.
-		VkFormat ColorFormat = FindSupportedFormat( { VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8A8_UNORM }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT );
-		VkFormat DepthFormat = FindSupportedFormat( { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT );
-
-		VkImageCreateInfo Image = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-		Image.imageType = VK_IMAGE_TYPE_2D;
-		Image.extent.width = Window::Get().Width();
-		Image.extent.height = Window::Get().Height();
-		Image.extent.depth = 1;
-		Image.mipLevels = 1;
-		Image.arrayLayers = 1;
-		Image.format = VK_FORMAT_B8G8R8A8_UNORM;
-		Image.samples = VK_SAMPLE_COUNT_1_BIT;
-		Image.tiling = VK_IMAGE_TILING_OPTIMAL;
-		Image.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		
-		VK_CHECK( vkCreateImage( m_LogicalDevice, &Image, nullptr, &m_OffscreenColorImage ) );
-
-		VkMemoryRequirements MemReqs;
-		vkGetImageMemoryRequirements( m_LogicalDevice, m_OffscreenColorImage, &MemReqs );
-	
-		VkMemoryAllocateInfo AllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-		AllocInfo.allocationSize = MemReqs.size;
-		AllocInfo.memoryTypeIndex = GetMemoryType( MemReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
-
-		VK_CHECK( vkAllocateMemory( m_LogicalDevice, &AllocInfo, nullptr, &m_OffscreenColorMem ) );
-		VK_CHECK( vkBindImageMemory( m_LogicalDevice, m_OffscreenColorImage, m_OffscreenColorMem, 0 ) );
-		
-		// Create the color attachment view.
-		VkImageViewCreateInfo ColorView = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-		ColorView.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		ColorView.format = VK_FORMAT_B8G8R8A8_UNORM;
-		ColorView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		ColorView.subresourceRange.baseMipLevel = 0;
-		ColorView.subresourceRange.levelCount = 1;
-		ColorView.subresourceRange.baseArrayLayer = 0;
-		ColorView.subresourceRange.layerCount = 1;
-		ColorView.image = m_OffscreenColorImage;
-		
-		VK_CHECK( vkCreateImageView( m_LogicalDevice, &ColorView, nullptr, &m_OffscreenColorImageView ) );
-
-		// Create sampler.
-		VkSamplerCreateInfo Sampler = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
-		Sampler.magFilter = VK_FILTER_LINEAR;
-		Sampler.minFilter = VK_FILTER_LINEAR;
-		Sampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		Sampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		Sampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		Sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		Sampler.mipLodBias = 0.0f;
-		Sampler.maxAnisotropy = 1.0f;
-		Sampler.minLod = 0.0f;
-		Sampler.maxLod = 1.0f;
-		Sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-		
-		VK_CHECK( vkCreateSampler( m_LogicalDevice, &Sampler, nullptr, &m_OffscreenColorSampler ) );
-
-		// Create the depth attachment.
-		Image.format = DepthFormat;
-		Image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-
-		VK_CHECK( vkCreateImage( m_LogicalDevice, &Image, nullptr, &m_OffscreenDepthImage ) );
-		
-		vkGetImageMemoryRequirements( m_LogicalDevice, m_OffscreenDepthImage, &MemReqs );
-		AllocInfo.allocationSize = MemReqs.size;
-		AllocInfo.memoryTypeIndex = GetMemoryType( MemReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
-		
-		VK_CHECK( vkAllocateMemory( m_LogicalDevice, &AllocInfo, nullptr, &m_OffscreenDepthMem ) );
-		VK_CHECK( vkBindImageMemory( m_LogicalDevice, m_OffscreenDepthImage, m_OffscreenDepthMem, 0 ) );
-
-		// Create the depth attachment view.
-		VkImageViewCreateInfo DepthView = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-		DepthView.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		DepthView.format = DepthFormat;
-		DepthView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-		DepthView.subresourceRange.baseMipLevel = 0;
-		DepthView.subresourceRange.levelCount = 1;
-		DepthView.subresourceRange.baseArrayLayer = 0;
-		DepthView.subresourceRange.layerCount = 1;
-		DepthView.image = m_OffscreenDepthImage;
-		
-		VK_CHECK( vkCreateImageView( m_LogicalDevice, &DepthView, nullptr, &m_OffscreenDepthImageView ) );
-
-		std::vector< VkAttachmentDescription > AttchmentDescriptions = {};
-	
-		// Color attachment.
-		AttchmentDescriptions.push_back( { 
-			.flags = 0, 
-			.format = VK_FORMAT_B8G8R8A8_UNORM,
-			.samples = VK_SAMPLE_COUNT_1_BIT, 
-			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR, 
-			.storeOp = VK_ATTACHMENT_STORE_OP_STORE, 
-			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, 
-			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE, 
-			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED, 
-			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL 
-		} );
-		
-		// Depth attachment.
-		AttchmentDescriptions.push_back( {
-			.flags = 0,
-			.format = DepthFormat,
-			.samples = VK_SAMPLE_COUNT_1_BIT,
-			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-		} );
-		
-		VkAttachmentReference ColorAttachmentRef = {};
-		ColorAttachmentRef.attachment = 0;
-		ColorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		
-		VkAttachmentReference DepthAttachmentRef = {};
-		DepthAttachmentRef.attachment = 1;
-		DepthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-		VkSubpassDescription Subpass = {};
-		Subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		Subpass.colorAttachmentCount = 1;
-		Subpass.pColorAttachments = &ColorAttachmentRef;
-		Subpass.pDepthStencilAttachment = &DepthAttachmentRef;
-		
-		std::vector< VkSubpassDependency > Dependencies ={};
-		
-		Dependencies.push_back( {
-			.srcSubpass = VK_SUBPASS_EXTERNAL,
-			.dstSubpass = 0,
-			.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
-			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-		} );
-
-		Dependencies.push_back( {
-			.srcSubpass = 0,
-			.dstSubpass = VK_SUBPASS_EXTERNAL,
-			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
-			.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-		} );
-
-		VkRenderPassCreateInfo RenderPassInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-		RenderPassInfo.attachmentCount = (uint32_t)AttchmentDescriptions.size();
-		RenderPassInfo.pAttachments = AttchmentDescriptions.data();
-		RenderPassInfo.subpassCount = 1;
-		RenderPassInfo.pSubpasses = &Subpass;
-		RenderPassInfo.dependencyCount = (uint32_t)Dependencies.size();
-		RenderPassInfo.pDependencies = Dependencies.data();
-		
-		VK_CHECK( vkCreateRenderPass( m_LogicalDevice, &RenderPassInfo, nullptr, &m_OffscreenPass ) );
-
-		// Create the framebuffer.
-
-		VkImageView Attachments[] = { m_OffscreenColorImageView, m_OffscreenDepthImageView };
-
-		VkFramebufferCreateInfo FramebufferInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-		FramebufferInfo.renderPass = m_OffscreenPass;
-		FramebufferInfo.attachmentCount = 2;
-		FramebufferInfo.pAttachments = Attachments;
-		FramebufferInfo.width = Window::Get().Width();
-		FramebufferInfo.height = Window::Get().Height();
-		FramebufferInfo.layers = 1;
-		
-		VK_CHECK( vkCreateFramebuffer( m_LogicalDevice, &FramebufferInfo, nullptr, &m_OffscreenFramebuffer ) );
+		SetDebugUtilsObjectName( "Context Command Pool", (uint64_t)m_CommandPool, VK_OBJECT_TYPE_COMMAND_POOL );
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// Render Loop
-	//////////////////////////////////////////////////////////////////////////
-
-	// Fence = CPU wait for GPU
-	// Semaphore = Can wait for other commands before running a command
-
-	void VulkanContext::Render()
+	void VulkanContext::CreateDepthResources()
 	{
-		// Wait for last frame.
-		VK_CHECK( vkWaitForFences( m_LogicalDevice, 1, &m_FlightFences[ m_FrameCount ], VK_TRUE, UINT32_MAX ) );
+		VkFormat DepthFormat = FindDepthFormat();
+
+		Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT,
+			{ .width = ( uint32_t )Window::Get().Width(), .height = ( uint32_t )Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_DepthImage, &m_DepthImageMemory );
+
+		Renderer::Get().CreateImageView( m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &m_DepthImageView );
 		
-		if( m_WindowIconifed )
-		{
-			SAT_CORE_INFO( "Window was inconfied... no longer presenting." );
-
-			return;
-		}
-
-		// Reset current fence.
-		VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FlightFences[ m_FrameCount ] ) );
-
-		// Acquire next image.
-		uint32_t ImageIndex;
-		if( !m_SwapChain.AcquireNextImage( UINT64_MAX, m_AcquireSemaphore, VK_NULL_HANDLE, &ImageIndex ) )
-			assert( 0 );
-
-		if( ImageIndex == UINT32_MAX || ImageIndex == 3435973836 )
-		{
-			assert( 0 ); // Unable to get ImageIndex
-		}
-
-		m_DrawCalls = 0;
-		
-		{
-			m_Camera.AllowEvents( true );
-			m_Camera.SetActive( true );
-			m_Camera.OnUpdate( Application::Get().Time() );
-		}
-
-		VkCommandBuffer CommandBuffer;
-
-		// Safe check just in case window was iconified. After the other check.
-		if( !m_WindowIconifed )
-		{
-			VkCommandBufferAllocateInfo AllocateInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-			AllocateInfo.commandBufferCount = 1;
-			AllocateInfo.commandPool = m_CommandPool;
-
-			VK_CHECK( vkAllocateCommandBuffers( m_LogicalDevice, &AllocateInfo, &CommandBuffer ) );
-			SetDebugUtilsObjectName( "CommandBuffer:Offscreen", ( uint64_t )CommandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER );
-
-			VkCommandBufferBeginInfo CommandPoolBeginInfo ={ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-			CommandPoolBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-			VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandPoolBeginInfo ) );
-			
-			CmdBeginDebugLabel( CommandBuffer, "Geometry pass" );
-
-			VkExtent2D Extent;
-			Window::Get().GetSize( &Extent.width, &Extent.height );
-			
-			uint32_t Width, Height;
-			Width = Window::Get().Width();
-			Height = Window::Get().Height();
-
-			// Begin Geometry pass timer.
-			Timer GeometryPassTimer;
-			
-			// First pass ~ geometry pass
-			// This is draw to the surface but will get cleared when we do our ImGui pass, we store the texture in a VkDescriptorSet to render later on.
-			{
-				VkClearValue ClearColors[ 2 ];
-				ClearColors[ 0 ].color ={ { 0.0f, 0.0f, 0.0f, 1.0f } };
-				ClearColors[ 1 ].depthStencil ={ 1.0f, 0 };
-
-				VkRenderPassBeginInfo RenderPassInfo ={ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-				RenderPassInfo.renderPass = m_OffscreenPass;
-				RenderPassInfo.framebuffer = m_OffscreenFramebuffer;
-				RenderPassInfo.renderArea.extent = Extent;
-				RenderPassInfo.clearValueCount = 2;
-				RenderPassInfo.pClearValues = ClearColors;	
-				
-				{
-					VkDebugMarkerMarkerInfoEXT MarkerInfo = { VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
-					float Color[ 4 ] = { 0.0f, 1.0f, 0.0f, 1.0f };
-					memcpy( MarkerInfo.color, &Color[ 0 ], sizeof( float ) * 4 );
-					MarkerInfo.pMarkerName = "Geometry render pass";
-
-					CmdDebugMarkerBegin( CommandBuffer, &MarkerInfo );
-				}	
-
-				vkCmdBeginRenderPass( CommandBuffer, &RenderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
-				
-				VkRect2D Scissor ={};
-				Scissor.extent = Extent;
-				
-				int negHeight = -Height;
-
-				// Flip the viewport.
-				VkViewport Viewport = {};
-				Viewport.x = 0;
-				Viewport.y = Height;
-				Viewport.width = Width;
-				Viewport.height = negHeight;
-				Viewport.minDepth = 0.0f;
-				Viewport.maxDepth = 1.0f;
-
-				vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
-				vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
-				
-				//////////////////////////////////////////////////////////////////////////
-			
-				SceneRenderer::Get().SetCommandBuffer( { CommandBuffer } );
-				
-				m_pImGuiVulkan->GetDockspace()->TryRenderScene();
-
-				//////////////////////////////////////////////////////////////////////////
-			
-				vkCmdEndRenderPass( CommandBuffer );
-				CmdDebugMarkerEnd( CommandBuffer );
-			}
-
-			CmdEndDebugLabel( CommandBuffer );
-			
-			SAT_CORE_INFO( "Geometry Pass took {0} ms", GeometryPassTimer.ElapsedMilliseconds() );
-
-			CmdBeginDebugLabel( CommandBuffer, "UI Pass" );
-
-			{
-				VkDebugMarkerMarkerInfoEXT MarkerInfo = { VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT };
-				float UIColor[ 4 ] = { 0.0f, 0.0f, 0.0f, 1.0f };
-				memcpy( MarkerInfo.color, &UIColor[ 0 ], sizeof( float ) * 4 );
-				MarkerInfo.pMarkerName = "ImGui Pass/present pass";
-
-				CmdDebugMarkerBegin( CommandBuffer, &MarkerInfo );
-			}
-
-			m_RenderPass.BeginPass( CommandBuffer, VK_SUBPASS_CONTENTS_INLINE, ImageIndex );
-
-			// ImGui Pass
-			{
-				m_pImGuiVulkan->BeginImGuiRender( CommandBuffer );
-
-				m_pImGuiVulkan->ImGuiRender();
-
-				m_pImGuiVulkan->EndImGuiRender();
-			}
-
-			m_RenderPass.EndPass();
-			
-			CmdDebugMarkerEnd( CommandBuffer );
-
-			CmdEndDebugLabel( CommandBuffer );
-		
-			VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
-
-			// Rendering Queue
-			VkPipelineStageFlags WaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-			VkSubmitInfo SubmitInfo ={ VK_STRUCTURE_TYPE_SUBMIT_INFO };
-			SubmitInfo.commandBufferCount = 1;
-			SubmitInfo.pCommandBuffers = &CommandBuffer;
-			SubmitInfo.pWaitDstStageMask = &WaitStage;
-
-			// SIGNAL the SubmitSemaphore
-			SubmitInfo.pSignalSemaphores = &m_SubmitSemaphore;
-			SubmitInfo.signalSemaphoreCount = 1;
-
-			// WAIT for AcquireSemaphore
-			SubmitInfo.pWaitSemaphores = &m_AcquireSemaphore;
-			SubmitInfo.waitSemaphoreCount = 1;
-
-			VK_CHECK( vkResetFences( m_LogicalDevice, 1, &m_FlightFences[ m_FrameCount ] ) );
-
-			// Use current fence to be signaled.
-			VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, m_FlightFences[ m_FrameCount ] ) );
-		}
-
-		// Present info.
-		VkPresentInfoKHR PresentInfo ={ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
-		PresentInfo.pSwapchains = &m_SwapChain.GetSwapchain();
-		PresentInfo.swapchainCount = 1;
-		PresentInfo.pImageIndices = &ImageIndex;
-
-		// WAIT for SubmitSemaphore
-		PresentInfo.pWaitSemaphores = &m_SubmitSemaphore;
-		PresentInfo.waitSemaphoreCount = 1;
-
-		VK_CHECK( vkQueuePresentKHR( m_GraphicsQueue, &PresentInfo ) );
-
-		// #TODO: This is bad.
-		VkResult Result = vkDeviceWaitIdle( m_LogicalDevice );
-		if( Result == VK_SUBOPTIMAL_KHR || Result == VK_ERROR_OUT_OF_DATE_KHR )
-		{
-			ResizeEvent();
-		}
-		else if( Result != VK_SUCCESS )
-		{
-			std::cout << "Failed to present swapchain image" << std::endl;
-		}
-
-		VK_CHECK( vkQueueWaitIdle( m_PresentQueue ) );
-
-		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
-		
-		//////////////////////////////////////////////////////////////////////////
-		// Destroy command sets & pools as we will recreate them.
-		
-		if( SceneRenderer::Get().GetDrawCmds().size() )
-		{
-			DestoryDescriptorSets();
-			DestoryDescriptorPool();
-		}
-
-		//////////////////////////////////////////////////////////////////////////
-
-		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
+		SetDebugUtilsObjectName( "Context Depth Image", (uint64_t)m_DepthImage, VK_OBJECT_TYPE_IMAGE );
+		SetDebugUtilsObjectName( "Context Depth Image View", (uint64_t)m_DepthImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
 	}
 
 }

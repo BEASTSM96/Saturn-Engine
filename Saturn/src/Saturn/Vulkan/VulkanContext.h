@@ -23,8 +23,8 @@
 
 namespace Saturn {
 
-	class ImGuiVulkan;
 	class VulkanDebugMessenger;
+	class VulkanAllocator;
 
 	struct QueueFamilyIndices
 	{
@@ -51,21 +51,6 @@ namespace Saturn {
 		VkPhysicalDeviceProperties DeviceProps ={};
 	};
 
-	struct Matrices
-	{
-		glm::mat4 Transform;
-		glm::mat4 ViewProjection;
-
-		bool UseAlbedoTexture;
-		bool UseMetallicTexture;
-		bool UseRoughnessTexture;
-		bool UseNormalTexture;
-
-		glm::vec4 AlbedoColor;
-		glm::vec4 MetallicColor;
-		glm::vec4 RoughnessColor;
-	};
-
 	class VulkanContext
 	{
 		SINGLETON( VulkanContext );
@@ -74,12 +59,9 @@ namespace Saturn {
 		VulkanContext() { }
 		~VulkanContext() { Terminate(); }
 
-		void Render();
-
-		void CreateFramebuffer( VkFramebuffer* pFramebuffer );
-
 		void Init();
 		void ResizeEvent();
+
 		uint32_t GetMemoryType( uint32_t TypeFilter, VkMemoryPropertyFlags Properties );
 		
 	public:
@@ -88,77 +70,44 @@ namespace Saturn {
 		VkFormat FindDepthFormat();
 		bool HasStencilComponent( VkFormat Format );
 		
-		void ShowDebugUUID( bool show ) { m_ShowDebugUUID = show; }
-		void RenderDebugUUID( UUID UID );
-
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands( VkCommandBuffer CommandBuffer );
 
+		Pass& GetDefaultPass() { return m_DefaultPass; }
+
 	public:
 		
-		VkInstance& GetInstance() { return m_Instance; }
+		VkInstance GetInstance() { return m_Instance; }
 
-		VkDevice& GetDevice() { return m_LogicalDevice; }
+		VkDevice GetDevice() { return m_LogicalDevice; }
 
-		VkSurfaceKHR& GetSurface() { return m_Surface; }
+		VkSurfaceKHR GetSurface() { return m_Surface; }
 		VkSurfaceFormatKHR& GetSurfaceFormat() { return m_SurfaceFormat; }
+
+		VkImageView GetDepthImageView() { return m_DepthImageView; }
 
 		SwapchainCreationData GetSwapchainCreationData();
 
 		QueueFamilyIndices& GetQueueFamilyIndices() { return m_Indices; };
 
-		Pass& GetRenderPass() { return m_RenderPass; }
-		VkCommandPool& GetCommandPool() { return m_CommandPool; }
+		VkCommandPool GetCommandPool() { return m_CommandPool; }
 
-		VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
-
-		VkQueue& GetGraphicsQueue() { return m_GraphicsQueue; }
+		VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
+		VkQueue GetPresentQueue() { return m_PresentQueue; }
 
 		VkPhysicalDevice& GetPhysicalDevice() { return m_PhysicalDevice; }
 
 		Swapchain& GetSwapchain() { return m_SwapChain; }
 
-		ImGuiVulkan* GetImGuiVulkan() { return m_pImGuiVulkan; }
+		VulkanAllocator* GetVulkanAllocator() { return m_pAllocator; }
 
-		uint32_t GetImageCount() { return m_ImageCount; }
-
-		VkFence& GetCurrentFlightFence() { return m_FlightFences[ m_FrameCount ]; }
+		// "rrFunction" will be called just before the device is destroyed.
+		void SubmitTerminateResource( std::function<void()>&& rrFunction ) { m_TerminateResourceFuncs.push_back( std::move( rrFunction ) ); }
 
 		std::vector< PhysicalDeviceProperties > GetPhysicalDeviceProperties() { return m_DeviceProps; }
 		std::vector< PhysicalDeviceProperties > const GetPhysicalDeviceProperties() const { return m_DeviceProps; }
 
 		void OnEvent( Event& e );
-
-		void SetWindowIconifed( bool inconifed ) { m_WindowIconifed = inconifed; }
-		
-		VkImageView& GetOffscreenColorView() { return m_OffscreenColorImageView; }
-		VkImageView& GetOffscreenDepthView() { return m_OffscreenDepthImageView; }
-
-		VkSampler& GetOffscreenColorSampler() { return m_OffscreenColorSampler; }
-		VkSampler& GetOffscreenDepthSampler() { return m_OffscreenDepthSampler; }
-
-		VkRenderPass& GetOffscreenRenderPass() { return m_OffscreenPass; }
-
-		EditorCamera& GetEditorCamera() { return m_Camera; }
-
-		Pipeline& GetPipeline() { return m_Pipeline; }
-		std::unordered_map< UUID, VkDescriptorSet >& GetDescriptorSets() { return m_DescriptorSets; }
-		std::unordered_map< UUID, Buffer >& GetUniformBuffers() { return m_UniformBuffers; }
-
-		void UpdateUniformBuffers( UUID uuid, Timestep ts, glm::mat4 Transform );
-		void AddUniformBuffer( UUID uuid );
-	
-		// Descriptor
-
-		void CreateDescriptorPool();
-		void CreateDescriptorSet( UUID uuid, Ref< Texture > rTexture );
-		
-		void DestoryDescriptorPool();
-		void DestoryDescriptorSets();
-
-		// --
-		
-		void CreatePipeline();
 
 	private:
 		void Terminate();
@@ -169,55 +118,27 @@ namespace Saturn {
 		void CreateLogicalDevice();
 		void CreateSwapChain();
 		void CreateCommandPool();
-		void CreateSyncObjects();
-		void CreateFramebuffers();
-		
-		// Descriptor
-		
-		void CreateDescriptorSetLayout();
-		
-		// --
-
 		void CreateDepthResources();
-
-		void CreateRenderpass();
 
 		bool CheckValidationLayerSupport();
 
-		// Offscreen rendering
-		void CreateOffscreenFramebuffer() {}
-		void CreateOffscreenImages();
-
-		VkInstance m_Instance;
-		VkSurfaceKHR m_Surface;
-		VkPhysicalDevice m_PhysicalDevice;
-		VkDevice m_LogicalDevice;
+		VkInstance m_Instance = nullptr;
+		VkSurfaceKHR m_Surface = nullptr;
+		VkPhysicalDevice m_PhysicalDevice = nullptr;
+		VkDevice m_LogicalDevice = nullptr;
 		Swapchain m_SwapChain ={};
-		VkDebugUtilsMessengerEXT m_DebugMessenger;
-		VkExtent2D m_SwapChainExtent;
-		VkCommandPool m_CommandPool;
-		VkDescriptorPool m_DescriptorPool;
-		
-		VkDescriptorSetLayout m_DescriptorSetLayouts;
-
-		Pipeline m_Pipeline;
-
-		VkImage m_DepthImage;
-		VkDeviceMemory m_DepthImageMemory;
-		VkImageView m_DepthImageView;
-		
-		Pass m_RenderPass;
-		VkRenderPass m_OffscreenPass;
-		VkFramebuffer m_OffscreenFramebuffer;
-
-		VkImage m_OffscreenColorImage, m_OffscreenDepthImage;
-		VkDeviceMemory m_OffscreenColorMem, m_OffscreenDepthMem;
-		VkImageView m_OffscreenColorImageView, m_OffscreenDepthImageView;
-		VkSampler m_OffscreenColorSampler, m_OffscreenDepthSampler;
+		VkDebugUtilsMessengerEXT m_DebugMessenger = nullptr;
+		VkExtent2D m_SwapChainExtent = {};
+		VkCommandPool m_CommandPool = nullptr;
+		VkCommandBuffer m_CommandBuffer = nullptr;
+	
+		// Depth resources.
+		VkImage m_DepthImage = nullptr;
+		VkDeviceMemory m_DepthImageMemory = nullptr;
+		VkImageView m_DepthImageView = nullptr;
 
 		VulkanDebugMessenger* m_pDebugMessenger;
-
-		VkSemaphore m_SubmitSemaphore, m_AcquireSemaphore;
+		VulkanAllocator* m_pAllocator;
 
 		VkQueue m_GraphicsQueue, m_PresentQueue;
 
@@ -225,42 +146,22 @@ namespace Saturn {
 
 		QueueFamilyIndices m_Indices;
 
-		EditorCamera m_Camera;
+		// Default.
+		Pass m_DefaultPass;
 
-		uint32_t m_ImageCount;
-		uint32_t m_FrameCount = 0;
-
-		bool m_WindowIconifed = false;
-
-		int m_DrawCalls;
-		
-		ImGuiVulkan* m_pImGuiVulkan = nullptr;
-
-		//////////////////////////////////////////////////////////////////////////
-		// UUID DEBUG
-		//////////////////////////////////////////////////////////////////////////
-		
-		bool m_ShowDebugUUID = false;
-
-		//////////////////////////////////////////////////////////////////////////
-
-		std::vector<VkImage>       m_SwapChainImages;
-		std::vector<VkImageView>   m_SwapChainImageViews;
-		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
-		
-		std::unordered_map< UUID, Buffer > m_UniformBuffers;
+		bool m_Terminated = false;
 
 		std::vector<PhysicalDeviceProperties> m_DeviceProps;
-
-		std::vector<VkFence> m_FlightFences;
-
-		std::unordered_map< UUID, VkDescriptorSet > m_DescriptorSets;
+		
+		std::vector<std::function<void()>> m_TerminateResourceFuncs;
 
 		std::vector<const char*> DeviceExtensions  ={ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME };
+
 		std::vector<const char*> ValidationLayers ={ "VK_LAYER_KHRONOS_validation" };
 
 	private:
 		friend class Swapchain;
 		friend class VulkanDebug;
+		friend class Application;
 	};
 }

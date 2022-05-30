@@ -29,7 +29,8 @@
 #pragma once
 
 #include "Base.h"
-#include "Buffer.h"
+
+#include "VulkanAllocator.h"
 
 #include <vulkan.h>
 #include <string>
@@ -66,7 +67,9 @@ namespace Saturn {
 	private:
 
 		void* m_pData = nullptr;
+		size_t m_Size = 0;
 
-		Buffer m_Buffer;
+		VkBuffer m_Buffer;
+		VmaAllocation m_Allocation;
 	};
 }

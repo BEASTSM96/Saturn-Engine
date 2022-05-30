@@ -31,9 +31,8 @@
 
 #include "Window.h"
 
-#include "Saturn/Discord/DiscordRPC.h"
-
 #include "Saturn/Vulkan/VulkanContext.h"
+#include "Saturn/Vulkan/SceneRenderer.h"
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -58,20 +57,58 @@ namespace Saturn {
 
 		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
+		m_ImGuiLayer = new ImGuiLayer();
+		m_EditorLayer = new EditorLayer();
+
+		SceneRenderer::Get().CreateGeometryResult();
+
 		while( m_Running )
 		{
-			float time = ( float )glfwGetTime(); //Platform::GetTime();
+			Window::Get().OnUpdate();
+			
+			if ( !Window::Get().IsMinimized() )
+			{
+				Window::Get().Render();
+			
+				Renderer::Get().BeginFrame();
+				{
+					uint32_t ImageIndex = Renderer::Get().GetImageIndex();
+
+					// Try to render scene.
+					SceneRenderer::Get().RenderScene();
+					
+					// Do ui pass.
+					VulkanContext::Get().GetDefaultPass().BeginPass( Renderer::Get().ActiveCommandBuffer(), VulkanContext::Get().GetSwapchain().GetFramebuffers()[ ImageIndex ], { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() } );
+
+					{
+						RenderImGui();
+					}
+
+					VulkanContext::Get().GetDefaultPass().EndPass();
+
+				}
+				Renderer::Get().EndFrame();
+			}
+
+			float time = ( float ) glfwGetTime(); //Platform::GetTime();
 
 			m_Timestep = time - m_LastFrameTime;
 
 			m_LastFrameTime = time;
-			
-			Window::Get().OnUpdate();
-			
-			VulkanContext::Get().Render();
-
-			Window::Get().Render();
 		}
+
+		VulkanContext::Get().SubmitTerminateResource( [&]() 
+		{
+			delete m_EditorLayer;
+
+			m_EditorLayer = nullptr;
+
+			delete m_ImGuiLayer;
+
+			m_ImGuiLayer = nullptr;
+		} );
+
+		VulkanContext::Get().Terminate();
 	}
 
 	void Application::Close()
@@ -79,7 +116,7 @@ namespace Saturn {
 		m_Running = false;
 	}
 
-	std::pair< std::string, std::string > Application::OpenFile( const char* filter ) const
+	std::string Application::OpenFile( const char* pFilter ) const
 	{
 	#ifdef  SAT_PLATFORM_WINDOWS
 		OPENFILENAMEA ofn;       // common dialog box structure
@@ -91,27 +128,52 @@ namespace Saturn {
 		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* )Window::Get().NativeWindow() );
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof( szFile );
-		ofn.lpstrFilter = filter;
+		ofn.lpstrFilter = pFilter;
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 		if( GetOpenFileNameA( &ofn ) == TRUE )
 		{
-			return { ofn.lpstrFile,  ofn.lpstrFilter };
+			return ofn.lpstrFile;
 		}
-		return { std::string(), std::string() };
+		return std::string();
 	#endif
 
 	#ifdef  SAT_PLATFORM_LINUX
-		return { std::string(), std::string() };
+		return std::string();
 	#endif
 
-		return  { std::string(), std::string() };
+		return std::string();
 	}
 
-	std::pair< std::string, std::string > Application::SaveFile( const char* f ) const
+	std::string Application::SaveFile( const char* f ) const
 	{
-		return  { std::string(), std::string() };
+#ifdef  SAT_PLATFORM_WINDOWS
+		OPENFILENAMEA ofn;       // common dialog box structure
+		CHAR szFile[ 260 ] = { 0 };       // if using TCHAR macros
+
+										// Initialize OPENFILENAME
+		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
+		ofn.lStructSize = sizeof( OPENFILENAME );
+		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
+		ofn.lpstrFile = szFile;
+		ofn.nMaxFile = sizeof( szFile );
+		ofn.lpstrFilter = f;
+		ofn.nFilterIndex = 1;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+		if( GetSaveFileNameA( &ofn ) == TRUE )
+		{
+			return ofn.lpstrFile;
+		}
+		return std::string();
+#endif
+
+#ifdef  SAT_PLATFORM_LINUX
+		return std::string();
+#endif
+
+		return std::string();
 	}
 
 	void Application::OnEvent( Event& e )
@@ -122,7 +184,8 @@ namespace Saturn {
 
 		VulkanContext::Get().OnEvent( e );
 
-		//Renderer::Get().OnEvent( e );
+		m_ImGuiLayer->OnEvent( e );
+		m_EditorLayer->OnEvent( e );
 	}
 
 	bool Application::OnWindowResize( WindowResizeEvent& e )
@@ -133,4 +196,16 @@ namespace Saturn {
 		
 		VulkanContext::Get().ResizeEvent();
 	}
+
+	void Application::RenderImGui()
+	{
+		m_ImGuiLayer->Begin();
+
+		m_EditorLayer->OnUpdate( m_Timestep );
+
+		m_EditorLayer->OnImGuiRender();
+
+		m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
+	}
+
 }

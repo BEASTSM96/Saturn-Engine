@@ -7,11 +7,22 @@ layout( location = 2 ) in vec3 a_Tangent;
 layout( location = 3 ) in vec3 a_Binormal;
 layout( location = 4 ) in vec2 a_TexCoord;
 
-uniform mat4 u_ViewProjectionMatrix;
-uniform mat4 u_Transform;
-uniform mat4 u_LightMatrix;
+layout(set = 0, binding = 0) uniform Matrices
+{
+    mat4 ViewProjectionMatrix;
+} u_Matrices;
 
-out VertexOutput
+layout(set = 0, binding = 1) uniform Transform
+{
+    mat4 Transform;
+} u_Transform;
+
+layout(set = 0, binding = 2) uniform LightMatrix
+{
+    mat4 LightMatrix;
+} u_LightMatrix;
+
+layout(location = 1) out VertexOutput
 {
 	vec3 WorldPosition;
 	vec3 Normal;
@@ -53,7 +64,7 @@ struct Light
 	float Multiplier;
 };
 
-in VertexOutput
+layout(location = 1) in VertexOutput
 {
 	vec3 WorldPosition;
 	vec3 Normal;
@@ -95,11 +106,6 @@ uniform float u_NormalTexToggle;
 uniform float u_MetalnessTexToggle;
 uniform float u_RoughnessTexToggle;
 
-//Shadows
-uniform sampler2D u_ShadowMap;
-uniform vec3 u_LightPos;
-uniform vec3 u_ViewPos;
-
 // Gamma
 uniform float u_Gamma;
 
@@ -115,14 +121,6 @@ struct PBRParameters
 };
 
 PBRParameters m_Params;
-
-struct ShadowParameters
-{
-	vec4 LightSpace;
-	mat4 LightMatrix;
-};
-
-ShadowParameters m_ShadowParams;
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2
@@ -298,26 +296,6 @@ vec3 IBL( vec3 F0, vec3 Lr )
 	return kd * diffuseIBL + specularIBL;
 }
 
-void CheckABlending()
-{
-}
-
-float CalcShadows( vec4 fragPos )
-{
-	// perform perspective divide
-	vec3 projCoords = fragPos.xyz / fragPos.w;
-	// transform to [0,1] range
-	projCoords = projCoords * 0.5 + 0.5;
-	// get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-	float closestDepth = texture( u_ShadowMap, projCoords.xy ).r;
-	// get depth of current fragment from light's perspective
-	float currentDepth = projCoords.z;
-	// check whether current frag pos is in shadow
-	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
-
-	return shadow;
-}
-
 void main()
 {
 	// Standard PBR inputs
@@ -350,16 +328,12 @@ void main()
 
 	vec3 ambient = 0.3 * vec3( lightContribution + iblContribution );
 
-	// Shadow
-
 	// diffuse
 	vec3 lightDir = normalize( u_LightPos - vs_Input.WorldPosition );
 	float diff = max( dot( lightDir, normalize( vs_Input.Normal ) ), 0.0 );
 	vec3 diffuse = diff * vec3( 0.3 );
 
-	float shadow = CalcShadows( vs_Input.LightSpace );
-
-	vec3 lighting = ( ambient + ( 1.0 - shadow ) * ( diffuse + m_Params.Metalness ) ) * m_Params.Albedo * vec3( lightContribution + iblContribution );
+	vec3 lighting = ( ambient + ( diffuse + m_Params.Metalness ) ) * m_Params.Albedo * vec3( lightContribution + iblContribution );
 
 	//color = vec4( lighting, 1.0f );
 
