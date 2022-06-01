@@ -56,8 +56,8 @@ namespace Saturn {
 
 	public:
 		
+		Viewport* GetViewport() { return m_Viewport; }
 		TitleBar* GetTitleBar() { return m_TitleBar; }
-		SceneHierarchyPanel* GetSceneHierarchyPanel() { return m_SceneHierarchyPanel; }
 		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
 
 	private:
@@ -65,12 +65,9 @@ namespace Saturn {
 		void SelectionChanged( Entity e );
 
 	private:
-		TitleBar* m_TitleBar;
 		Viewport* m_Viewport;
-		Toolbar* m_Toolbar;
+		TitleBar* m_TitleBar;
 		
-		SceneHierarchyPanel* m_SceneHierarchyPanel;
-
 		Ref< Texture2D > m_CheckerboardTexture;
 
 		EditorCamera m_EditorCamera;

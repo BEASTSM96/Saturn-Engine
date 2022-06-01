@@ -39,6 +39,7 @@
 #endif
 
 #include "Input.h"
+#include "Saturn/ImGui/Panel/PanelManager.h"
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -397,7 +398,8 @@ namespace Saturn {
 					{
 						if( Application::Get().GetEditorLayer() )
 						{
-							if( auto tb = Application::Get().GetEditorLayer()->GetTitleBar() )
+							/*
+							if( auto tb = ( Ref< TitleBar > )PanelManager::Get().GetPanel( "Title bar" ) )
 							{
 								auto TitleBarHeight = tb->Height();
 							
@@ -406,6 +408,7 @@ namespace Saturn {
 									return HTCAPTION;
 
 							}
+							*/
 						}
 					}
 				}

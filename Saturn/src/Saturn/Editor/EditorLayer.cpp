@@ -29,13 +29,17 @@
 #include "sppch.h"
 #include "EditorLayer.h"
 
-#include "Saturn/ImGui/Toolbar.h"
+#include "Saturn/ImGui/ViewportBar.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/ImGui/TitleBar.h"
+
+#include "Saturn/ImGui/Panel/Panel.h"
+#include "Saturn/ImGui/Panel/PanelManager.h"
 
 #include "Saturn/Serialisation/SceneSerialiser.h"
 
 #include <glm/gtc/type_ptr.hpp>
+
 
 namespace Saturn {
 
@@ -44,14 +48,20 @@ namespace Saturn {
 	{
 		m_EditorScene = Ref<Scene>::Create();
 		m_RuntimeScene = nullptr;
+		
+		// Create Panel Manager.
+		PanelManager::Get();
+		
+		PanelManager::Get().AddPanel( new SceneHierarchyPanel() );
+		PanelManager::Get().AddPanel( new ViewportBar() );
+		
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 
-		m_TitleBar = new TitleBar();
-		m_SceneHierarchyPanel = new SceneHierarchyPanel();
 		m_Viewport = new Viewport();
-		m_Toolbar = new Toolbar();
-
-		m_SceneHierarchyPanel->SetContext( m_EditorScene );
-		m_SceneHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
+		m_TitleBar = new TitleBar();
+		
+		pHierarchyPanel->SetContext( m_EditorScene );
+		pHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
 
 		m_EditorCamera.AllowEvents( true );
 		m_EditorCamera.SetActive( true );
@@ -64,17 +74,14 @@ namespace Saturn {
 
 	EditorLayer::~EditorLayer()
 	{
-		delete m_TitleBar;
-		delete m_SceneHierarchyPanel;
 		delete m_Viewport;
-		delete m_Toolbar;
+		delete m_TitleBar;
 
 		m_CheckerboardTexture = nullptr;
 		
-		m_TitleBar = nullptr;
-		m_SceneHierarchyPanel = nullptr;
 		m_Viewport = nullptr;
-		m_Toolbar = nullptr;
+
+		PanelManager::Get().Terminate();
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )
@@ -120,6 +127,7 @@ namespace Saturn {
 		// Draw dockspace.
 		bool p_open = true;
 
+#if 0
 		static bool opt_fullscreen_persistant = true;
 		static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
 		bool opt_fullscreen = opt_fullscreen_persistant;
@@ -157,13 +165,17 @@ namespace Saturn {
 			ImGuiID dockspace_id = ImGui::GetID( "MyDockspace" );
 			ImGui::DockSpace( dockspace_id, ImVec2( 0.0f, 0.0f ), opt_flags );
 		}
+#endif
+		ImGuiViewport* pViewport = ImGui::GetMainViewport();
+		ImGui::DockSpaceOverViewport( pViewport );
+		
+		m_TitleBar->Draw();
+
+		PanelManager::Get().DrawAllPanels();
 
 		// Draw widgets.
-		m_TitleBar->Draw();
-		m_Toolbar->Draw();
-		m_SceneHierarchyPanel->Draw();
 		m_Viewport->Draw();
-		
+
 		SceneRenderer::Get().ImGuiRender();
 
 		ImGui::Begin( "Renderer" );
@@ -181,7 +193,9 @@ namespace Saturn {
 		
 		ImGui::Begin( "Materials" );
 
-		if( auto& rSelection = m_SceneHierarchyPanel->GetSelectionContext() )
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+
+		if( auto& rSelection = pHierarchyPanel->GetSelectionContext() )
 		{
 			if( rSelection.HasComponent<MeshComponent>() )
 			{
@@ -256,9 +270,7 @@ namespace Saturn {
 			}
 		}
 
-		ImGui::End();
-		
-		ImGui::End();
+		ImGui::End();	
 	}
 
 	void EditorLayer::OnEvent( Event& rEvent )

@@ -32,11 +32,13 @@
 #include "Saturn/Scene/Entity.h"
 #include "Saturn/Scene/Scene.h"
 
+#include "Panel/Panel.h"
+
 #include <functional>
 
 namespace Saturn {
 
-	class SceneHierarchyPanel
+	class SceneHierarchyPanel : public Panel
 	{
 	public:
 		SceneHierarchyPanel();

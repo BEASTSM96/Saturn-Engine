@@ -28,34 +28,30 @@
 
 #pragma once
 
-#include "Saturn/Core/App.h"
+#include "Saturn/Core/Ref.h"
 
-#include "Saturn/Vulkan/Texture.h"
-
-#include "Panel/Panel.h"
-
-#include <imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include <imgui_internal.h>
+#include <string>
+#include <unordered_map>
 
 namespace Saturn {
+	
+	class Panel;
 
-	class TitleBar : public Panel
+	class PanelManager
 	{
+		SINGLETON( PanelManager );
 	public:
-		TitleBar();
-		~TitleBar();
+		PanelManager();
+		~PanelManager();
+		
+		void Terminate();
 
-		void Draw() override;
-
-		void SaveFile();
-		void OpenFile();
-
-		float Height() const { return m_Height; }
+		void DrawAllPanels();
+		
+		void AddPanel( Panel* pPanel );
+		Panel* GetPanel( const std::string& rPanel );
 
 	private:
-
-		float m_Height;
+		std::unordered_map<std::string, Panel*> m_Panels;
 	};
-
 }

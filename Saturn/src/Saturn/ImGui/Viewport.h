@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Saturn/Vulkan/Texture.h"
+#include <imgui.h>
 
 namespace Saturn {
 
@@ -39,6 +40,8 @@ namespace Saturn {
 		~Viewport();
 
 		void Draw();
+		
+		void SetOperation( int Operation ) { m_GizmoOperation = Operation; }
 
 		bool m_SendCameraEvents = true;
 
@@ -47,8 +50,13 @@ namespace Saturn {
 		Ref< Texture2D > m_MoveTexture;
 		Ref< Texture2D > m_ScaleTexture;
 		Ref< Texture2D > m_RotateTexture;
+		
+		ImVec2 m_WindowPos;
+		ImVec2 m_WindowSize;
 
 		// Translate as default
 		int m_GizmoOperation = 7;
+	private:
+		friend class ViewportBar;
 	};
 }

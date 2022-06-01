@@ -28,30 +28,23 @@
 
 #pragma once
 
-#include "Saturn/Vulkan/VulkanContext.h"
-
-#include <imgui.h>
-#include <backends/imgui_impl_vulkan.h>
+#include <string>
 
 namespace Saturn {
 
-	class Toolbar
+	class Panel
 	{
 	public:
-		 Toolbar();
-		~Toolbar();
+		Panel() = default;
+		Panel( const std::string& rName ) { m_Name = rName; }
+		virtual ~Panel() {}
 
-		void Draw();
+		virtual void Draw() {};
 
-	public:
+	protected:
+		std::string m_Name = "";
 
-		bool WantsToStartRuntime = false;
-		
 	private:
-
-		Texture2D* m_pPlayImage;
-		Texture2D* m_pPauseImage;
-		Texture2D* m_pStopImage;
+		friend class PanelManager;
 	};
-
 }

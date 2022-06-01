@@ -27,113 +27,100 @@
 */
 
 #include "sppch.h"
-#include "Viewport.h"
+#include "ViewportBar.h"
+
+#include "Saturn/Editor/EditorLayer.h"
 #include "Saturn/Core/App.h"
 
-#include "Saturn/Vulkan/SceneRenderer.h"
-
 #include "UITools.h"
-#include "Panel/PanelManager.h"
 
-#include "imgui.h"
+#include <imgui.h>
 #include "ImGuizmo/ImGuizmo.h"
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "Saturn/Vulkan/VulkanContext.h"
 
 namespace Saturn {
 
-	Viewport::Viewport()
+	ViewportBar::ViewportBar() : Panel( "Viewport Bar" )
 	{
+		m_PlayImage = Ref< Texture2D >::Create( "assets/textures/PlayButton.png", AddressingMode::Repeat );
+		m_PauseImage = Ref< Texture2D >::Create( "assets/textures/PauseButton.png", AddressingMode::Repeat );
+		m_StopImage = Ref< Texture2D >::Create( "assets/textures/StopButton.png", AddressingMode::Repeat );
+
 		m_CursorTexture = Ref< Texture2D >::Create( "assets/textures/editor/Cursor.png", AddressingMode::Repeat );
 		m_MoveTexture = Ref< Texture2D >::Create( "assets/textures/editor/Move.png", AddressingMode::Repeat );
 		m_RotateTexture = Ref< Texture2D >::Create( "assets/textures/editor/Rotate.png", AddressingMode::Repeat );
 		m_ScaleTexture = Ref< Texture2D >::Create( "assets/textures/editor/Scale.png", AddressingMode::Repeat );
+		m_SettingsTexture = Ref< Texture2D >::Create( "assets/textures/editor/Settings.png", AddressingMode::Repeat );
 	}
 
-	Viewport::~Viewport()
+	ViewportBar::~ViewportBar()
 	{
 		m_CursorTexture = nullptr;
 		m_MoveTexture = nullptr;
 		m_RotateTexture = nullptr;
 		m_ScaleTexture = nullptr;
+		m_PauseImage = nullptr;
+		m_PlayImage = nullptr;
+		m_StopImage = nullptr;
+		m_SettingsTexture = nullptr;
 	}
 
-	void Viewport::Draw()
+	void ViewportBar::Draw()
 	{
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
-
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+		auto Viewport = Application::Get().GetEditorLayer()->GetViewport();
+		auto ViewportPos = Viewport->m_WindowPos;
+		auto ViewportSize = Viewport->m_WindowSize;
 		
-		ImGui::Begin( "Viewport", 0, flags );
+		ImVec2 Pos;
+		Pos.x = ViewportPos.x + 5;
+		Pos.y = ViewportPos.y + 5;
 
-		m_WindowPos = ImGui::GetWindowPos(); // includes tab bar
-		m_WindowSize = ImGui::GetContentRegionAvail();
+		ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
+		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
+
+		DrawOverlay( "##GizmoOverlayControl", Pos );
+
+		if( ImGui::ImageButton( m_CursorTexture->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
+			Viewport->SetOperation( -1 );
+
+		ImGui::SameLine();
+
+		if( ImGui::ImageButton( m_MoveTexture->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
+			Viewport->SetOperation( ImGuizmo::OPERATION::TRANSLATE );
+
+		ImGui::SameLine();
+
+		if( ImGui::ImageButton( m_RotateTexture->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
+			Viewport->SetOperation( ImGuizmo::OPERATION::ROTATE );
+
+		ImGui::SameLine();
+
+		if( ImGui::ImageButton( m_ScaleTexture->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
+			Viewport->SetOperation( ImGuizmo::OPERATION::SCALE );
+
+		EndOverlay();
 		
-		auto windowSize = ImGui::GetWindowSize();
+		Pos.x = ViewportSize.x / 2 - m_PlayImage->Width() / 2;
 
-		ImVec2 minBound = ImGui::GetWindowPos();
-		minBound.x += m_WindowPos.x;
-		minBound.y += m_WindowPos.y;
+		DrawOverlay( "##RuntimeControl", Pos );
 
-		ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-
-		m_SendCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
-
-		ImGui::Image( SceneRenderer::Get().CompositeImage(), m_WindowSize );
+		if( ImGui::ImageButton( m_PlayImage->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
+			SAT_CORE_INFO( "Runtime..." );
 		
-		// Draw Gizmo
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+		EndOverlay();
+		
+		// make the window go to the far side of the viewport size
+		// 25 is some random number.
+		Pos.x = ViewportSize.x - m_SettingsTexture->Width() * 2;
 
-		Entity selectedEntity = pHierarchyPanel->GetSelectionContext();
+		DrawOverlay( "##ViewportSettings", Pos );
+		
+		// TEMP IMAGE
+		if( ImGui::ImageButton( m_SettingsTexture->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
+			SAT_CORE_INFO( "Settings" );
 
-		if( selectedEntity && m_GizmoOperation != -1 )
-		{
-			if( !selectedEntity.HasComponent<SkylightComponent>() )
-			{
-				ImGuizmo::SetOrthographic( false );
-				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetRect( m_WindowPos.x, m_WindowPos.y, m_WindowSize.x, m_WindowSize.y );
+		EndOverlay();
 
-				auto& tc = selectedEntity.GetComponent<TransformComponent>();
-
-				glm::mat4 transform = tc.GetTransform();
-
-				EditorCamera camera = Application::Get().GetEditorLayer()->GetEditorCamera();
-
-				const glm::mat4 Projection = camera.ProjectionMatrix();
-				const glm::mat4 View = camera.ViewMatrix();
-
-				ImGuizmo::Manipulate( glm::value_ptr( View ), glm::value_ptr( Projection ), (ImGuizmo::OPERATION)m_GizmoOperation, ImGuizmo::LOCAL, glm::value_ptr( transform ) );
-
-				if( ImGuizmo::IsUsing() )
-				{
-					glm::vec3 translation;
-					glm::quat Qrotation;
-					glm::vec3 scale;
-					glm::vec3 skew;
-					glm::vec4 perspective;
-
-					glm::decompose( transform, scale, Qrotation, translation, skew, perspective );
-
-					glm::vec3 rotation = glm::eulerAngles( Qrotation );
-					
-					glm::vec3 DeltaRotation = rotation - tc.Rotation;
-
-					tc.Position = translation;
-					tc.Rotation += DeltaRotation;
-					tc.Scale = scale;
-				}
-			}
-		}
-
-		ImGui::End();
-
-		ImGui::PopStyleVar();
+		ImGui::PopStyleColor( 2 );
 	}
 
 }

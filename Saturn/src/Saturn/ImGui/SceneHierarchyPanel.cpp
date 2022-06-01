@@ -92,8 +92,8 @@ namespace Saturn {
 			}
 		}
 	}
-
-	SceneHierarchyPanel::SceneHierarchyPanel()
+	
+	SceneHierarchyPanel::SceneHierarchyPanel() : Panel( "Scene Hierarchy Panel" )
 	{
 	}
 
@@ -163,7 +163,7 @@ namespace Saturn {
 				ImGui::EndPopup();
 			}
 
-			ImGui::Begin( "Inspector", nullptr, ImGuiWindowFlags_NoTitleBar );
+			ImGui::Begin( "Inspector", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse );
 			if( m_SelectionContext )
 			{
 				DrawComponents( m_SelectionContext );

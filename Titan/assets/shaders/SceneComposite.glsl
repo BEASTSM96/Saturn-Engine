@@ -41,7 +41,19 @@ layout(location = 1) in VertexOutput
 	vec2 TexCoord;
 } vs_Input;
 
+vec3 GammaCorrect( vec3 color, float gamma ) 
+{
+	return pow( color, vec3( 1.0f / gamma ) );
+}
+
 void main()
 {
-	FinalColor = texture( u_GeometryPassTexture, vs_Input.TexCoord );
+	float gamma = 2.2;
+
+	vec4 GeometryPassColor = texture( u_GeometryPassTexture, vs_Input.TexCoord );
+
+	// Gamma correction.
+	GeometryPassColor.rgb = GammaCorrect( GeometryPassColor.rgb, gamma );
+
+	FinalColor = GeometryPassColor;
 }

@@ -47,7 +47,8 @@ namespace Saturn {
 
 	void TitleBar::Draw()
 	{
-		//ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 0, 5 ) );
+		ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 5, 5 ) );
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 5, 5 ) );
 
 		if( ImGui::BeginMainMenuBar() )
 		{
@@ -80,7 +81,7 @@ namespace Saturn {
 
 				ImGui::Separator();
 
-				ImGui::TextWrapped( "This engine contains code from Nvidia Corporation." );
+				ImGui::TextWrapped( "This engine contains code from NVIDIA Corporation." );
 
 				ImGui::Separator();
 
@@ -94,17 +95,18 @@ namespace Saturn {
 				ImGui::TextWrapped( "GLFW, for windowing." );
 				ImGui::TextWrapped( "glm, for opengl math." );
 				ImGui::TextWrapped( "Dear ImGui, for an immediate mode gui." );
-				ImGui::TextWrapped( "physx, for 3d Physics." );
+				ImGui::TextWrapped( "NVIDIA physx, for 3d Physics." );
 				ImGui::TextWrapped( "shaderc, for providing tools for tools for vulkan shader compilation." );
 				ImGui::TextWrapped( "spdlog, for providing an easy and fast logging system." );
 				ImGui::TextWrapped( "SPIRV-Reflect, for proving a reflection tool for SPRIV shaders." );
 				ImGui::TextWrapped( "stbi, for loading PNG/TGA, etc. images." );
-				ImGui::TextWrapped( "vulkan, for vulkan headers." );
 
 				ImGui::Separator();
 
 				ImGui::TextWrapped( "https://vkguide.dev/" );
 				ImGui::TextWrapped( "https://vulkan-tutorial.com/" );
+
+				ImGui::Separator();				
 
 				if( ImGui::Button( "Close" ) )
 				{
@@ -201,8 +203,8 @@ namespace Saturn {
 
 			ImGui::EndMainMenuBar();
 		}
-
-		//ImGui::PopStyleVar();
+		
+		ImGui::PopStyleVar( 2 );
 	}
 
 	void TitleBar::SaveFile()

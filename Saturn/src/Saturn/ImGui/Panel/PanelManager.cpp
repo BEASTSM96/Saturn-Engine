@@ -26,36 +26,48 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "PanelManager.h"
 
-#include "Saturn/Core/App.h"
-
-#include "Saturn/Vulkan/Texture.h"
-
-#include "Panel/Panel.h"
-
-#include <imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include <imgui_internal.h>
+#include "Panel.h"
 
 namespace Saturn {
 
-	class TitleBar : public Panel
+	PanelManager::PanelManager()
 	{
-	public:
-		TitleBar();
-		~TitleBar();
+	}
 
-		void Draw() override;
+	PanelManager::~PanelManager()
+	{
+	}
 
-		void SaveFile();
-		void OpenFile();
+	void PanelManager::Terminate()
+	{
+		for( auto&& [name, panel] : m_Panels )
+		{
+			delete panel;
+			panel = nullptr;
+		}
 
-		float Height() const { return m_Height; }
+		m_Panels.clear();
+	}
 
-	private:
+	void PanelManager::DrawAllPanels()
+	{
+		for( auto&& [name, panel] : m_Panels )
+		{
+			panel->Draw();
+		}
+	}
 
-		float m_Height;
-	};
+	void PanelManager::AddPanel( Panel* pPanel )
+	{
+		m_Panels[ pPanel->m_Name ] = pPanel;
+	}
+
+	Panel* PanelManager::GetPanel( const std::string& rName )
+	{
+		return m_Panels.at( rName );
+	}
 
 }

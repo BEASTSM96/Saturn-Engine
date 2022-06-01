@@ -26,42 +26,31 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Toolbar.h"
+#pragma once
+
+#include "Panel/Panel.h"
+
+#include "Saturn/Core/Base.h"
+#include "Saturn/Vulkan/Texture.h"
 
 namespace Saturn {
 
-	Toolbar::Toolbar()
+	class ViewportBar : public Panel
 	{
-		// Create and load the images.
+	public:
+		ViewportBar();
+		~ViewportBar();
 		
-		m_pPlayImage  = new Texture2D( "assets/textures/PlayButton.png", AddressingMode::Repeat );
-		m_pPauseImage = new Texture2D( "assets/textures/PauseButton.png", AddressingMode::Repeat );
-		m_pStopImage  = new Texture2D( "assets/textures/StopButton.png", AddressingMode::Repeat );
-	}
+		virtual void Draw() override;
 
-	Toolbar::~Toolbar()
-	{
-		delete m_pPlayImage;
-		delete m_pPauseImage;
-		delete m_pStopImage;
-	}
-
-	void Toolbar::Draw()
-	{
-		ImGui::Begin( "Toolbar", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
-		
-		// Center the play button.
-		ImGui::SetCursorPosX( ImGui::GetWindowWidth() / 2 - m_pPlayImage->Width() / 2 );
-
-		VkDescriptorSet ImageSet = WantsToStartRuntime ? m_pStopImage->GetDescriptorSet() : m_pPlayImage->GetDescriptorSet();
-
-		if( ImGui::ImageButton( ImageSet, ImVec2( 32, 32 ) ) )
-		{
-			WantsToStartRuntime = !WantsToStartRuntime;
-		}
-		
-		ImGui::End();
-	}
-
+	private:
+		Ref< Texture2D > m_PlayImage;
+		Ref< Texture2D > m_PauseImage;
+		Ref< Texture2D > m_StopImage;
+		Ref< Texture2D > m_CursorTexture;
+		Ref< Texture2D > m_MoveTexture;
+		Ref< Texture2D > m_ScaleTexture;
+		Ref< Texture2D > m_RotateTexture;
+		Ref< Texture2D > m_SettingsTexture;
+	};
 }
