@@ -56,16 +56,14 @@ namespace Saturn {
 	Material::~Material()
 	{
 		for ( auto& uniform : m_Uniforms )
-		{
 			uniform.Terminate();
-		}
-		
-		for ( auto& [ key, texture ] : m_Textures )
-		{
-			if( !texture )
-				continue;
 
-			texture->Terminate();
+		for( auto& [key, texture] : m_Textures )
+		{
+			if( texture->IsRendererTexture() )
+				continue;
+			
+			texture = nullptr;
 		}
 	}
 	
@@ -84,10 +82,13 @@ namespace Saturn {
 					VkDescriptorImageInfo ImageInfo = {};
 					ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 					
+
 					if( !m_Textures[ Name ] )
 					{
-						ImageInfo.imageView = Renderer::Get().GetPinkTexture()->GetImageView();
-						ImageInfo.sampler = Renderer::Get().GetPinkTexture()->GetSampler();
+						m_Textures[ Name ] = Renderer::Get().GetPinkTexture();
+
+						ImageInfo.imageView = m_Textures[ Name ]->GetImageView();
+						ImageInfo.sampler = m_Textures[ Name ]->GetSampler();
 					}
 					else
 					{

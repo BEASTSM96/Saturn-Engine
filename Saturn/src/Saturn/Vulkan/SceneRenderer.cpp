@@ -75,6 +75,8 @@ namespace Saturn {
 	{
 		m_RendererData.RenderPassResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.GeometryPassColor->Sampler, m_RendererData.GeometryPassColor->ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
+		// TODO: This should not be created by ImGui.
+
 		m_RendererData.SceneCompositeResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.SceneCompositeColor->Sampler, m_RendererData.SceneCompositeColor->ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
 
@@ -892,6 +894,8 @@ namespace Saturn {
 		SceneComposite.Terminate();
 		SceneCompositeDepth = nullptr;
 		SceneCompositeColor = nullptr;
+		
+		SC_DescriptorSet = nullptr;
 
 		vkDestroyFramebuffer( LogicalDevice, SceneCompositeFramebuffer, nullptr );
 
@@ -901,13 +905,11 @@ namespace Saturn {
 		SC_IndexBuffer->Terminate();
 
 		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
-		
-		ImGui_ImplVulkan_RemoveTexture( SceneCompositeResult );
-		ImGui_ImplVulkan_RemoveTexture( RenderPassResult );
 
 		GridShader = nullptr;
 		SkyboxShader = nullptr;
 		StaticMeshShader = nullptr;
+		SceneCompositeShader = nullptr;
 	}
 
 }

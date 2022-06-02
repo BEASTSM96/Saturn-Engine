@@ -69,6 +69,7 @@ namespace Saturn {
 		Texture( uint32_t width, uint32_t height, VkFormat Format, const void* pData );
 		
 		Texture( std::filesystem::path Path, AddressingMode Mode ) : m_Path( Path ), m_AddressingMode( Mode ) {}
+
 		~Texture() { Terminate(); }
 		
 		virtual void Terminate() = 0;
@@ -92,7 +93,10 @@ namespace Saturn {
 
 		virtual void CreateTextureImage() = 0;
 		virtual void SetData( const void* pData ) = 0;
+		virtual void SetIsRendererTexture( bool RendererTexture ) { m_IsRendererTexture = RendererTexture; m_Path = "Renderer Pink Texture"; }
+		virtual void SetForceTerminate( bool ForceTerminate ) { m_ForceTerminate = ForceTerminate; }
 
+		virtual bool IsRendererTexture() { return m_IsRendererTexture; }
 	public:
 
 		std::filesystem::path m_Path = "";
@@ -105,6 +109,8 @@ namespace Saturn {
 		VkDescriptorImageInfo m_DescriptorImageInfo = {};
 
 		bool m_HDR = false;
+		bool m_IsRendererTexture = false;
+		bool m_ForceTerminate = false;
 		
 		void* m_pData = nullptr;
 

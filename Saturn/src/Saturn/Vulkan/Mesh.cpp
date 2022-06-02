@@ -201,11 +201,13 @@ namespace Saturn {
 					else
 					{
 						m_MeshMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
+						m_MeshMaterial->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
 						m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
 					}
 				}
 				else
 				{
+					m_MeshMaterial->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
 					m_MeshMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
 					m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
 				}
@@ -384,60 +386,3 @@ namespace Saturn {
 	}
 
 }
-
-/*
-for( size_t m = 0; m < scene->mNumMeshes; m++ )
-{
-	aiMesh* mesh = scene->mMeshes[ m ];
-
-	Submesh& submesh = m_Submeshes.emplace_back();
-	submesh.BaseVertex = vertexCount;
-	submesh.BaseIndex = indexCount;
-	submesh.MaterialIndex = mesh->mMaterialIndex;
-	submesh.IndexCount = mesh->mNumFaces * 3;
-	submesh.MeshName = mesh->mName.C_Str();
-
-	vertexCount += mesh->mNumVertices;
-	submesh.VertexCount = vertexCount;
-	indexCount += submesh.IndexCount;
-
-	SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );
-	SAT_CORE_ASSERT( mesh->HasNormals(), "Meshes require normals." );
-
-	// Vertices
-	for( size_t i = 0; i < mesh->mNumVertices; i++ )
-	{
-		MeshVertex vertex = {};
-		vertex.Position = { mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
-		vertex.Normal = { mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
-
-		if( mesh->HasTangentsAndBitangents() )
-		{
-			vertex.Tangent = { mesh->mTangents[ i ].x, mesh->mTangents[ i ].y, mesh->mTangents[ i ].z };
-			vertex.Binormal = { mesh->mBitangents[ i ].x, mesh->mBitangents[ i ].y, mesh->mBitangents[ i ].z };
-		}
-
-		if( mesh->HasTextureCoords( 0 ) )
-			vertex.Texcoord = { mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
-
-		m_StaticVertices.push_back( vertex );
-	}
-
-	// Indices
-	for( size_t i = 0; i < mesh->mNumFaces; i++ )
-	{
-		SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
-
-		Index index = { mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] };
-		m_Indices.push_back( index );
-
-		Indices.push_back( mesh->mFaces[ i ].mIndices[ 0 ] );
-		Indices.push_back( mesh->mFaces[ i ].mIndices[ 1 ] );
-		Indices.push_back( mesh->mFaces[ i ].mIndices[ 2 ] );
-
-
-		m_TriangleCache[ m ].emplace_back( m_StaticVertices[ index.V1 + submesh.BaseVertex ], m_StaticVertices[ index.V2 + submesh.BaseVertex ], m_StaticVertices[ index.V3 + submesh.BaseVertex ] );
-	}
-
-}
-*/

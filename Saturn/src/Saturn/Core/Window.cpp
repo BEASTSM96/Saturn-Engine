@@ -396,10 +396,9 @@ namespace Saturn {
 					}
 					else
 					{
-						if( Application::Get().GetEditorLayer() )
+						if( auto EditorLayer = Application::Get().GetEditorLayer() )
 						{
-							/*
-							if( auto tb = ( Ref< TitleBar > )PanelManager::Get().GetPanel( "Title bar" ) )
+							if( auto tb = EditorLayer->GetTitleBar() )
 							{
 								auto TitleBarHeight = tb->Height();
 							
@@ -408,7 +407,6 @@ namespace Saturn {
 									return HTCAPTION;
 
 							}
-							*/
 						}
 					}
 				}

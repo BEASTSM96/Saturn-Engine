@@ -74,6 +74,7 @@ namespace Saturn {
 		}
 
 		m_PinkTexture = Ref< Texture2D >::Create( 64, 64, VK_FORMAT_R8G8B8A8_SRGB, pData );
+		m_PinkTexture->SetIsRendererTexture( true );
 
 		free( pData );
 	}
@@ -104,10 +105,11 @@ namespace Saturn {
 			}
 		}
 
-		m_PinkTexture = nullptr;
-
 		for ( auto& rFunc : m_TerminateResourceFuncs )
 			rFunc();
+
+		m_PinkTexture->SetForceTerminate( true );
+		m_PinkTexture = nullptr;
 	}
 
 	void Renderer::SubmitFullscrenQuad( 
@@ -239,7 +241,16 @@ namespace Saturn {
 		
 		m_QueuePresentTimer.Reset();
 
-		VK_CHECK( vkQueuePresentKHR( VulkanContext::Get().GetGraphicsQueue(), &PresentInfo ) );
+		VkResult Result = vkQueuePresentKHR( VulkanContext::Get().GetGraphicsQueue(), &PresentInfo );
+
+		if( Result == VK_ERROR_OUT_OF_DATE_KHR ) 
+		{
+			VulkanContext::Get().GetSwapchain().Recreate();
+
+			PresentInfo.pSwapchains = &VulkanContext::Get().GetSwapchain().GetSwapchain();
+
+			VK_CHECK( vkQueuePresentKHR( VulkanContext::Get().GetGraphicsQueue(), &PresentInfo ) );
+		}
 
 		m_QueuePresentTime = m_QueuePresentTimer.ElapsedMilliseconds();
 

@@ -182,11 +182,13 @@ namespace Saturn {
 
 		Pipeline SceneCompositePipeline;
 		
+		// Input
 		Ref< DescriptorSet > SC_DescriptorSet;
 
 		VertexBuffer* SC_VertexBuffer;
 		IndexBuffer* SC_IndexBuffer;
 		
+		// Output texture i.e. the final image to be renderer in the viewport window.
 		VkDescriptorSet SceneCompositeResult;
 
 		//////////////////////////////////////////////////////////////////////////

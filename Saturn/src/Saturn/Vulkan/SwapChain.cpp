@@ -100,9 +100,9 @@ namespace Saturn {
 			Attachments.push_back( VulkanContext::Get().GetDepthImageView() );
 			
 			VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-			FramebufferCreateInfo.width = Window::Get().Width();
-			FramebufferCreateInfo.height = Window::Get().Height();
-			FramebufferCreateInfo.renderPass = VulkanContext::Get().GetDefaultPass();
+			FramebufferCreateInfo.width = SwapchainData.SurfaceCaps.currentExtent.width;
+			FramebufferCreateInfo.height = SwapchainData.SurfaceCaps.currentExtent.height;
+			FramebufferCreateInfo.renderPass = VulkanContext::Get().GetDefaultPass(); // Swap chain render pass
 			FramebufferCreateInfo.layers = 1;
 			FramebufferCreateInfo.pAttachments = Attachments.data();
 			FramebufferCreateInfo.attachmentCount = Attachments.size();

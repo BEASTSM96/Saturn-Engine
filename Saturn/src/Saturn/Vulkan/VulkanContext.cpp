@@ -133,9 +133,6 @@ namespace Saturn {
 		if( m_Terminated )
 			return;
 
-		Renderer::Get().Terminate();
-		SceneRenderer::Get().Terminate();
-
 		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
 		
 		m_DefaultPass.Terminate();
@@ -144,12 +141,14 @@ namespace Saturn {
 		
 		for( auto& rFunc : m_TerminateResourceFuncs )
 			rFunc();
-		
+
+		Renderer::Get().Terminate();
+		SceneRenderer::Get().Terminate();
+
 		vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
 		vkDestroyImage( m_LogicalDevice, m_DepthImage, nullptr );
 		vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
 		
-
 		delete m_pAllocator;
 
 		vkDestroyDevice( m_LogicalDevice, nullptr );
@@ -402,6 +401,9 @@ namespace Saturn {
 
 	void VulkanContext::ResizeEvent()
 	{
+		GetSwapchainCreationData();
+
+		CreateDepthResources();
 	}
 
 	bool VulkanContext::CheckValidationLayerSupport()
@@ -512,6 +514,17 @@ namespace Saturn {
 
 	void VulkanContext::CreateDepthResources()
 	{
+		if( m_DepthImage )
+		{
+			vkDestroyImage( m_LogicalDevice, m_DepthImage, nullptr );
+			vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
+		}
+
+		if( m_DepthImageView )
+		{
+			vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
+		}
+
 		VkFormat DepthFormat = FindDepthFormat();
 
 		Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT,

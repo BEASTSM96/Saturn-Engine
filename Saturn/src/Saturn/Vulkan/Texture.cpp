@@ -44,6 +44,9 @@ namespace Saturn {
 
 	void Texture::Terminate()
 	{
+		if( m_IsRendererTexture && !m_ForceTerminate )
+			return;
+
 		if( m_Image )
 			vkDestroyImage( VulkanContext::Get().GetDevice(), m_Image, nullptr );
 
@@ -249,8 +252,11 @@ namespace Saturn {
 
 	void Texture2D::Terminate()
 	{
-		Texture::Terminate();
+		if( m_IsRendererTexture && !m_ForceTerminate )
+			return;
 
+		Texture::Terminate();
+		
 		if( m_DescriptorSet )
 			ImGui_ImplVulkan_RemoveTexture( m_DescriptorSet );
 	}
