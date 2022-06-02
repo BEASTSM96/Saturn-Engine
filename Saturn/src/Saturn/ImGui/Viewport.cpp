@@ -76,6 +76,8 @@ namespace Saturn {
 		
 		auto windowSize = ImGui::GetWindowSize();
 
+		m_WindowSize = windowSize;
+
 		ImVec2 minBound = ImGui::GetWindowPos();
 		minBound.x += m_WindowPos.x;
 		minBound.y += m_WindowPos.y;

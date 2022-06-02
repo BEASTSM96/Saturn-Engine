@@ -95,10 +95,12 @@ namespace Saturn {
 	
 	SceneHierarchyPanel::SceneHierarchyPanel() : Panel( "Scene Hierarchy Panel" )
 	{
+		m_EditIcon = Ref<Texture2D>::Create( "assets/textures/editor/EditIcon.png", AddressingMode::Repeat );
 	}
 
 	SceneHierarchyPanel::~SceneHierarchyPanel()
 	{
+		m_EditIcon = nullptr;
 	}
 
 	void SceneHierarchyPanel::SetContext( const Ref<Scene>& scene )
@@ -233,6 +235,10 @@ namespace Saturn {
 		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
 		auto id = entity.GetComponent<IdComponent>().ID;
+		
+		ImGui::Image( m_EditIcon->GetDescriptorSet(), ImVec2( 30, 30 ) );
+
+		ImGui::SameLine();
 
 		if( entity.HasComponent<TagComponent>() )
 		{

@@ -33,6 +33,7 @@
 #include "Saturn/Scene/Scene.h"
 
 #include "Panel/Panel.h"
+#include "Saturn/Vulkan/Texture.h"
 
 #include <functional>
 
@@ -60,6 +61,8 @@ namespace Saturn {
 		void DrawEntities();
 
 	private:
+
+		Ref<Texture2D> m_EditIcon;
 
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext ={};

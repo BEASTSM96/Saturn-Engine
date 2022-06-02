@@ -1760,12 +1760,14 @@ ImTextureID ImGui_ImplVulkan_AddTexture( VkSampler sampler, VkImageView image_vi
 
 void ImGui_ImplVulkan_RemoveTexture( VkDescriptorSet descriptor_set )
 {
-	VkResult err;
+	VkResult err = VK_SUCCESS;
 
 	ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
 	ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
 
-    err = vkFreeDescriptorSets( v->Device, v->DescriptorPool, 1, &descriptor_set );
+    if( descriptor_set )
+        err = vkFreeDescriptorSets( v->Device, v->DescriptorPool, 1, &descriptor_set );
+
     check_vk_result( err );
 }
 
