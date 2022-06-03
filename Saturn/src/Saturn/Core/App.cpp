@@ -52,8 +52,6 @@ namespace Saturn {
 		VulkanContext::Get();
 		Window::Get().Maximize();
 
-		Window::Get().ImGuiInit();
-		
 		VulkanContext::Get().Init();
 
 		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
@@ -68,7 +66,7 @@ namespace Saturn {
 			Window::Get().OnUpdate();
 			Window::Get().Render();
 			
-			if ( !Window::Get().IsMinimized() )
+			if ( !Window::Get().Minimized() )
 			{
 				Renderer::Get().BeginFrame();
 				{

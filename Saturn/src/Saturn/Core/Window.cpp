@@ -369,8 +369,17 @@ namespace Saturn {
 	{
 		Window* window = ( Window* )glfwGetWindowUserPointer( wind );
 
+		if( w == 0 && h == 0 )
+		{
+			window->m_Minimized = true;
+			return;
+		}
+
 		window->m_Width = w;
 		window->m_Height = h;
+
+		WindowResizeEvent event( ( float ) w, ( float ) h );
+		window->m_EventCallback( event );
 	}
 
 #if defined ( SAT_WINDOWS )

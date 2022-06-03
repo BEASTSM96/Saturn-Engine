@@ -89,7 +89,7 @@ namespace Saturn {
 
 		void GetSize( uint32_t* pWidth, uint32_t* pHeight );
 
-		bool IsMinimized() { return m_Minimized; }
+		bool Minimized() { return m_Minimized; }
 
 	private:
 

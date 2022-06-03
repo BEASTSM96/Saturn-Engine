@@ -77,6 +77,8 @@ namespace Saturn {
 		delete m_Viewport;
 		delete m_TitleBar;
 
+		m_EditorScene = nullptr;
+		
 		m_CheckerboardTexture = nullptr;
 		
 		m_Viewport = nullptr;
