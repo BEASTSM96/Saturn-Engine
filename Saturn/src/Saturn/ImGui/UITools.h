@@ -45,6 +45,7 @@ namespace Saturn {
 	
 	extern bool DrawBoolControl( const std::string& label, bool& value, float columnWidth = 125.0f );
 	
+	extern bool DrawOverlay( const std::string& label, ImVec2 Pos );
 	extern bool DrawOverlay( const std::string& label );
 	extern void EndOverlay();
 }
