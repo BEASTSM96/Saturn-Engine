@@ -98,6 +98,12 @@ namespace Saturn {
 	{
 		// Create render pass.
 
+		if( m_RendererData.GeometryPassColor )
+			m_RendererData.GeometryPassColor = nullptr;
+		
+		if( m_RendererData.GeometryPassDepth )
+			m_RendererData.GeometryPassDepth = nullptr;
+
 		m_RendererData.GeometryPassColor = Ref< Resource >::Create();
 		m_RendererData.GeometryPassDepth = Ref< Resource >::Create();
 
@@ -122,6 +128,9 @@ namespace Saturn {
 
 			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassDepth->Sampler );
 		}
+
+		if( m_RendererData.GeometryPass )
+			m_RendererData.GeometryPass.Terminate();
 
 		PassSpecification PassSpec = {};
 		PassSpec.Name = "Geometry Pass";
@@ -181,6 +190,9 @@ namespace Saturn {
 
 		// Create geometry framebuffer.
 
+		if( m_RendererData.GeometryFramebuffer )
+			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_RendererData.GeometryFramebuffer, nullptr );
+
 		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height }, { m_RendererData.GeometryPassColor->ImageView, m_RendererData.GeometryPassDepth->ImageView }, &m_RendererData.GeometryFramebuffer );
 		
 		//////////////////////////////////////////////////////////////////////////
@@ -189,8 +201,11 @@ namespace Saturn {
 
 		// Create the static meshes pipeline.
 		// Load the shader
-		m_RendererData.StaticMeshShader = Ref< Shader >::Create( "shader_new", "assets/shaders/shader_new.glsl" );
-		ShaderLibrary::Get().Add( m_RendererData.StaticMeshShader );
+		if( !m_RendererData.StaticMeshShader ) 
+		{
+			m_RendererData.StaticMeshShader = Ref< Shader >::Create( "shader_new", "assets/shaders/shader_new.glsl" );
+			ShaderLibrary::Get().Add( m_RendererData.StaticMeshShader );
+		}			
 		
 		VertexBufferLayout Layout = {
 			{ ShaderDataType::Float3, "a_Position" },
@@ -199,10 +214,6 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Bitangent" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		};
-
-		// Create the uniform buffer.
-		VkDeviceSize BufferSize = sizeof( RendererData::StaticMeshMatrices );
-		//m_RendererData.SM_MatricesUBO = UniformBuffer();	
 
 		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
 		
@@ -215,9 +226,11 @@ namespace Saturn {
 		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
 		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
 
-
 		std::vector< VkPushConstantRange > PushConstants;
 		PushConstants.push_back( { .stageFlags = VK_SHADER_STAGE_ALL, .offset = 0, .size = sizeof( RendererData::StaticMeshMaterial ) } );
+
+		if( m_RendererData.StaticMeshPipeline )
+			m_RendererData.StaticMeshPipeline.Terminate();
 
 		PipelineSpecification PipelineSpec = {};
 		PipelineSpec.Width =m_RendererData.Width;
@@ -238,6 +251,16 @@ namespace Saturn {
 
 	void SceneRenderer::InitSceneComposite()
 	{
+		if( m_RendererData.SceneCompositeColor )
+			m_RendererData.SceneCompositeColor = nullptr;
+		
+		if( m_RendererData.SceneCompositeDepth )
+			m_RendererData.SceneCompositeDepth = nullptr;
+
+		if( m_RendererData.SceneCompositeFramebuffer )
+			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_RendererData.SceneCompositeFramebuffer, nullptr );
+
+
 		m_RendererData.SceneCompositeColor = Ref< Resource >::Create();
 		m_RendererData.SceneCompositeDepth = Ref< Resource >::Create();
 
@@ -261,6 +284,8 @@ namespace Saturn {
 			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeDepth->Sampler );
 		}
 
+		if( m_RendererData.SceneComposite )
+			m_RendererData.SceneComposite.Terminate();
 
 		// Create the scene composite render pass.
 		PassSpecification PassSpec = {};
@@ -337,16 +362,20 @@ namespace Saturn {
 		
 		// Create fullscreen quad.
 		Renderer::Get().CreateFullscreenQuad( &m_RendererData.SC_VertexBuffer, &m_RendererData.SC_IndexBuffer );
-
-		m_RendererData.SceneCompositeShader = Ref< Shader >::Create( "SceneComposite", "assets/shaders/SceneComposite.glsl" );
-
-		ShaderLibrary::Get().Add( m_RendererData.SceneCompositeShader );
+		
+		if( !m_RendererData.SceneCompositeShader )
+		{
+			m_RendererData.SceneCompositeShader = Ref< Shader >::Create( "SceneComposite", "assets/shaders/SceneComposite.glsl" );
+			
+			ShaderLibrary::Get().Add( m_RendererData.SceneCompositeShader );
+		}
 		
 		DescriptorSetSpecification Spec;
 		Spec.Layout = m_RendererData.SceneCompositeShader->GetSetLayout();
 		Spec.Pool = m_RendererData.SceneCompositeShader->GetDescriptorPool();
 
-		m_RendererData.SC_DescriptorSet = Ref< DescriptorSet >::Create( Spec );
+		if( !m_RendererData.SC_DescriptorSet )
+			m_RendererData.SC_DescriptorSet = Ref< DescriptorSet >::Create( Spec );
 
 		VkDescriptorImageInfo GeometryPassImageInfo = {};
 		GeometryPassImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -377,6 +406,9 @@ namespace Saturn {
 		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( BaseVertex, Texcoord ) } );
 		
 		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
+		
+		if( m_RendererData.SceneCompositePipeline )
+			m_RendererData.SceneCompositePipeline.Terminate();
 
 		PipelineSpecification PipelineSpec = {};
 		PipelineSpec.Width = m_RendererData.Width;
@@ -480,9 +512,11 @@ namespace Saturn {
 		// Create fullscreen quad.
 		Renderer::Get().CreateFullscreenQuad( &m_RendererData.GridVertexBuffer, &m_RendererData.GridIndexBuffer );
 		
-		m_RendererData.GridShader = Ref< Shader >::Create( "Grid", "assets/shaders/Grid.glsl" );
-		
-		ShaderLibrary::Get().Add( m_RendererData.GridShader );
+		if( !m_RendererData.GridShader )
+		{
+			m_RendererData.GridShader = Ref< Shader >::Create( "Grid", "assets/shaders/Grid.glsl" );
+			ShaderLibrary::Get().Add( m_RendererData.GridShader );
+		}
 
 		// Create uniform buffer.
 		VkDeviceSize BufferSize = sizeof( RendererData::GridMatricesObject );
@@ -498,7 +532,8 @@ namespace Saturn {
 		Spec.Layout = m_RendererData.GridShader->GetSetLayout();
 		Spec.Pool = m_RendererData.GridShader->GetDescriptorPool();
 		
-		m_RendererData.GridDescriptorSet = Ref< DescriptorSet >::Create( Spec );
+		if( !m_RendererData.GridDescriptorSet )
+			m_RendererData.GridDescriptorSet = Ref< DescriptorSet >::Create( Spec );
 
 		VkDescriptorBufferInfo DescriptorBufferInfo = {};
 		DescriptorBufferInfo.buffer = m_RendererData.GridUniformBuffer;
@@ -516,6 +551,9 @@ namespace Saturn {
 		// Grid shader binding descriptions.
 		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
 		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
+		
+		if( m_RendererData.GridPipeline )
+			m_RendererData.GridPipeline.Terminate();
 
 		// Grid pipeline spec.
 		PipelineSpecification PipelineSpec = {};
@@ -558,7 +596,7 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 
 	void SceneRenderer::CreateSkyboxComponents()
-	{		
+	{
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		VertexBufferLayout Layout = 
@@ -571,10 +609,13 @@ namespace Saturn {
 		Renderer::Get().CreateFullscreenQuad( &m_RendererData.SkyboxVertexBuffer, &m_RendererData.SkyboxIndexBuffer );
 
 		// Create skybox shader.
-		m_RendererData.SkyboxShader = Ref<Shader>::Create( "Skybox", "assets/shaders/Skybox.glsl" );
-
-		ShaderLibrary::Get().Add( m_RendererData.SkyboxShader );
-
+		
+		if( !m_RendererData.SkyboxShader )
+		{
+			m_RendererData.SkyboxShader = Ref<Shader>::Create( "Skybox", "assets/shaders/Skybox.glsl" );
+			ShaderLibrary::Get().Add( m_RendererData.SkyboxShader );
+		}
+		
 		// Create uniform buffer.
 		VkDeviceSize BufferSize = sizeof( RendererData::SkyboxMatricesObject );
 		
@@ -588,8 +629,9 @@ namespace Saturn {
 		DescriptorSetSpecification Spec = {};
 		Spec.Layout = m_RendererData.SkyboxShader->GetSetLayout();
 		Spec.Pool = m_RendererData.SkyboxShader->GetDescriptorPool();
-
-		m_RendererData.SkyboxDescriptorSet = Ref< DescriptorSet >::Create( Spec );
+		
+		if( !m_RendererData.SkyboxDescriptorSet )
+			m_RendererData.SkyboxDescriptorSet = Ref< DescriptorSet >::Create( Spec );
 		
 		VkDescriptorBufferInfo DescriptorBufferInfo = {};
 		DescriptorBufferInfo.buffer = m_RendererData.SkyboxUniformBuffer;
@@ -608,6 +650,9 @@ namespace Saturn {
 		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
 		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
 		
+		if( m_RendererData.SkyboxPipeline )
+			m_RendererData.SkyboxPipeline.Terminate();
+
 		// Create pipeline.
 		PipelineSpecification PipelineSpec = {};
 		PipelineSpec.Width = m_RendererData.Width;
@@ -675,6 +720,9 @@ namespace Saturn {
 
 	void SceneRenderer::Recreate()
 	{
+		InitGeometryPass();
+		CreateSkyboxComponents();
+		CreateGridComponents();
 	}
 
 	void SceneRenderer::GeometryPass()

@@ -149,7 +149,7 @@ namespace Saturn {
 		}
 		
 		ImGui::End();
-		
+	
 		ImGui::Begin( "Materials" );
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
@@ -229,7 +229,7 @@ namespace Saturn {
 			}
 		}
 
-		ImGui::End();	
+		ImGui::End();
 	}
 
 	void EditorLayer::OnEvent( Event& rEvent )

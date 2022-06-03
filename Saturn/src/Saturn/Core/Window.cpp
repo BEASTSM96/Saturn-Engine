@@ -67,7 +67,6 @@
 
 namespace Saturn {
 
-
 	void GLFWErrorCallback( int error, const char* desc )
 	{
 		SAT_CORE_ERROR( "GLFW Error {0}, {1}", error, desc );
@@ -91,9 +90,6 @@ namespace Saturn {
 		m_Width = 3 * w / 4;
 		m_Height = 3 * h / 4;
 		
-		//m_Width = w / 2;
-		//m_Height = h / 2;
-		
 		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
 
 		glfwSetWindowUserPointer( m_Window, this );
@@ -110,7 +106,18 @@ namespace Saturn {
 			WindowResizeEvent event( ( float )w, ( float )h );
 			win.m_EventCallback( event );
 		} );
+		
+		/*
+		glfwSetFramebufferSizeCallback( m_Window, []( GLFWwindow* window, int w, int h )
+		{
+			Window& win = *( Window* )glfwGetWindowUserPointer( window );
 
+			SizeCallback( window, w, h );
+
+			WindowResizeEvent event( ( float )w, ( float )h );
+			win.m_EventCallback( event );
+		} );
+		*/
 
 		glfwSetScrollCallback( m_Window, []( GLFWwindow* window, double xOffset, double yOffset )
 		{
@@ -118,6 +125,31 @@ namespace Saturn {
 
 			MouseScrolledEvent event( ( float )xOffset, ( float )yOffset );
 			win.m_EventCallback( event );
+		} );
+		
+		glfwSetTitlebarHitTestCallback( m_Window, []( GLFWwindow* window, int x, int y, int* pOut )
+		{
+			Window& win = *( Window* ) glfwGetWindowUserPointer( window );
+				
+			if( auto EditorLayer = Application::Get().GetEditorLayer() )
+			{
+				if( auto tb = EditorLayer->GetTitleBar() )
+				{
+					auto TitleBarHeight = tb->Height();
+					
+					RECT windowRect;
+					POINT mousePos;
+					GetClientRect( glfwGetWin32Window( win.m_Window ), &windowRect );
+
+					*pOut = 1;
+					
+					// Drag the menu bar to move the window
+					if( !win.m_Maximized && !ImGui::IsAnyItemHovered() && ( y < ( windowRect.top + TitleBarHeight ) ) )
+						*pOut = 1;
+					else
+						*pOut = 0;
+				}
+			}
 		} );
 
 		glfwSetCursorPosCallback( m_Window, []( GLFWwindow* window, double x, double y )
@@ -189,19 +221,19 @@ namespace Saturn {
 
 		// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
 
-		//HWND      windowHandle    = glfwGetWin32Window( m_Window );
-		//HINSTANCE instance        = GetModuleHandle( nullptr );
+		HWND      windowHandle    = glfwGetWin32Window( m_Window );
+		HINSTANCE instance        = GetModuleHandle( nullptr );
 
 		//SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
 
 		// Fix missing drop shadow
-		//MARGINS shadowMargins;
-		//shadowMargins = { 1, 1, 1, 1 };
-		//DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
+		MARGINS shadowMargins;
+		shadowMargins = { 1, 1, 1, 1 };
+		DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
 
 		// Override window procedure with custom one to allow native window moving behavior without a title bar
-		//SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
-		//m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
+		SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
+		m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
 
 	#endif
 	}
@@ -224,13 +256,6 @@ namespace Saturn {
 		{
 			m_PendingMinimize = false;
 			m_PendingMaximized = true;
-
-			//glfwMaximizeWindow( m_Window );
-
-			//m_Maximized = true;
-			//m_PendingMinimize = false;
-
-			//VulkanContext::Get().SetWindowIconifed( !m_Minimized );
 		}
 		else
 			Restore();
@@ -244,10 +269,6 @@ namespace Saturn {
 		{ 
 			m_PendingMinimize = true;
 			m_PendingMaximized = false;
-
-			//glfwIconifyWindow( m_Window ); 
-
-//			VulkanContext::Get().SetWindowIconifed( m_Minimized ); 
 		}
 		else 
 			Restore();
@@ -258,9 +279,7 @@ namespace Saturn {
 		m_Minimized = false;
 		m_Maximized = false;
 
-		//VulkanContext::Get().SetWindowIconifed( m_Minimized );
-
-		glfwRestoreWindow( m_Window );
+		m_PendingRestore = true;
 	}
 
 	void Window::SetTitle( const std::string& title )
@@ -282,7 +301,7 @@ namespace Saturn {
 		{
 			glfwIconifyWindow( m_Window );
 
-			//VulkanContext::Get().SetWindowIconifed( m_Minimized );
+			m_Minimized = true;
 
 			m_PendingMinimize = false;
 		}
@@ -290,10 +309,15 @@ namespace Saturn {
 		if ( m_PendingMaximized )
 		{
 			glfwMaximizeWindow( m_Window );
-
-			//VulkanContext::Get().SetWindowIconifed( false );
-
+			
+			m_Maximized = true;
 			m_PendingMaximized = false;
+		}
+		
+		if( m_PendingRestore ) 
+		{
+			glfwRestoreWindow( m_Window );
+			m_PendingRestore = false;
 		}
 
 		m_Rendering = true;
@@ -350,68 +374,13 @@ namespace Saturn {
 	}
 
 #if defined ( SAT_WINDOWS )
-
-	// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
-
+	
 	LRESULT Window::WindowProc( HWND handle, UINT msg, WPARAM WParam, LPARAM LParam )
 	{
 		Window* self = ( Window* )GetWindowLongPtr( handle, GWLP_USERDATA );
 		
 		switch( msg )
 		{
-			case WM_NCHITTEST:
-			{
-				POINT mousePos;
-				RECT  windowRect;
-
-				GetCursorPos( &mousePos );
-				GetWindowRect( handle, &windowRect );
-
-				if( !self->m_Maximized && PtInRect( &windowRect, mousePos ) )
-				{
-					const int borderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
-					const int borderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
-
-					if( mousePos.y < ( windowRect.top + borderY ) )
-					{
-						if( mousePos.x < ( windowRect.left + borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTTOPLEFT; }
-						else if( mousePos.x >= ( windowRect.right - borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTTOPRIGHT; }
-						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTTOP; }
-					}
-					else if( mousePos.y >= ( windowRect.bottom - borderY ) )
-					{
-						if( mousePos.x < ( windowRect.left + borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTBOTTOMLEFT; }
-						else if( mousePos.x >= ( windowRect.right - borderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTBOTTOMRIGHT; }
-						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTBOTTOM; }
-					}
-					else if( mousePos.x < ( windowRect.left + borderX ) )
-					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
-						return HTLEFT;
-					}
-					else if( mousePos.x >= ( windowRect.right - borderX ) )
-					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
-						return HTRIGHT;
-					}
-					else
-					{
-						if( auto EditorLayer = Application::Get().GetEditorLayer() )
-						{
-							if( auto tb = EditorLayer->GetTitleBar() )
-							{
-								auto TitleBarHeight = tb->Height();
-							
-								// Drag the menu bar to move the window
-								if( !self->m_Maximized && !ImGui::IsAnyItemHovered() && ( mousePos.y < ( windowRect.top + TitleBarHeight ) ) )
-									return HTCAPTION;
-
-							}
-						}
-					}
-				}
-			} break;
-
 			case WM_NCCALCSIZE:
 			{
 				if( WParam /* TRUE */ )
@@ -437,40 +406,23 @@ namespace Saturn {
 				return 0;
 			} break;
 
-			case WM_ENTERSIZEMOVE:
+			case WM_NCHITTEST: 
 			{
-				SetTimer( handle, 1, USER_TIMER_MINIMUM, NULL );
+				int ID;
+				glfwGetCornerID( self->m_Window, &ID );
+				
+				// left = 1, top = 2, right = 4, bottom = 8
+
+				if( ID & 2 && ID & 1 )	ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); // Top Left
+				if( ID & 2 && ID & 4 )	ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); // Top Right
+				if( ID & 8 && ID & 1 )	ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); // Bottom Left
+				if( ID & 8 && ID & 4 )	ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); // Bottom Right
+				if( ID & 1 )			ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW ); // Left
+				if( ID & 2 )			ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS ); // Top
+				if( ID & 4 )			ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW ); // Right
+				if( ID & 8 )			ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS ); // Bottom
+
 			} break;
-
-			case WM_EXITSIZEMOVE:
-			{
-				KillTimer( handle, 1 );
-			} break;
-
-			case WM_TIMER:
-			{
-				const UINT_PTR TimerID = ( UINT_PTR )WParam;
-
-				if( TimerID == 1 )
-				{
-					self->Render();
-				}
-			} break;
-
-			case WM_SIZE: 
-			{
-				RECT clientRect ={};
-				GetClientRect( handle, &clientRect );
-
-				self->SizeCallback( self->m_Window, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top );
-				self->Render();
-			} break;
-
-			case WM_MOVE:
-			{
-				self->Render();
-			} break;
-
 		}
 
 		return CallWindowProc( self->m_WindowProc, handle, msg, WParam, LParam );

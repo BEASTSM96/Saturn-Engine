@@ -50,6 +50,7 @@ namespace Saturn {
 	{
 		Window::Get();
 		VulkanContext::Get();
+		Window::Get().Maximize();
 
 		Window::Get().ImGuiInit();
 		
@@ -61,24 +62,25 @@ namespace Saturn {
 		m_EditorLayer = new EditorLayer();
 
 		SceneRenderer::Get().CreateGeometryResult();
-
+		
 		while( m_Running )
 		{
 			Window::Get().OnUpdate();
+			Window::Get().Render();
 			
 			if ( !Window::Get().IsMinimized() )
 			{
-				Window::Get().Render();
-			
 				Renderer::Get().BeginFrame();
 				{
 					uint32_t ImageIndex = Renderer::Get().GetImageIndex();
 
+					VkExtent2D CurrentExtent = { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() };
+					
 					// Try to render scene.
 					SceneRenderer::Get().RenderScene();
 					
 					// Do ui pass.
-					VulkanContext::Get().GetDefaultPass().BeginPass( Renderer::Get().ActiveCommandBuffer(), VulkanContext::Get().GetSwapchain().GetFramebuffers()[ ImageIndex ], { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() } );
+					VulkanContext::Get().GetDefaultPass().BeginPass( Renderer::Get().ActiveCommandBuffer(), VulkanContext::Get().GetSwapchain().GetFramebuffers()[ ImageIndex ], CurrentExtent );
 
 					{
 						RenderImGui();
@@ -191,7 +193,8 @@ namespace Saturn {
 	bool Application::OnWindowResize( WindowResizeEvent& e )
 	{
 		int width = e.Width(), height = e.Height();
-		if( width && height == 0 )
+		
+		if( width == 0 && height == 0 )
 			return false;
 		
 		VulkanContext::Get().ResizeEvent();

@@ -98,8 +98,8 @@ namespace Saturn {
 	private:
 		GLFWwindow* m_Window = nullptr;
 
-		int m_Width  = 3440;
-		int m_Height = 1400;
+		int m_Width  = 0;
+		int m_Height = 0;
 		std::string m_Title = "Saturn";
 
 		bool m_Minimized = false;
@@ -107,6 +107,8 @@ namespace Saturn {
 		
 		bool m_Maximized = false;
 		bool m_PendingMaximized = false;
+
+		bool m_PendingRestore = false;
 
 		EventCallbackFn m_EventCallback;
 

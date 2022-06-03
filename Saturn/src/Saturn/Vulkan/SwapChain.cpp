@@ -77,8 +77,11 @@ namespace Saturn {
 		SwapchainCreateInfo.presentMode    = VK_PRESENT_MODE_FIFO_KHR;
 		SwapchainCreateInfo.clipped        = true;
 
-		SwapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
-
+		if( m_Swapchain )
+			SwapchainCreateInfo.oldSwapchain = m_Swapchain;
+		else
+			SwapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+			
 		VK_CHECK( vkCreateSwapchainKHR( VulkanContext::Get().GetDevice(), &SwapchainCreateInfo, nullptr, &m_Swapchain ) );
 		
 		SetDebugUtilsObjectName( "Swap chain", ( uint64_t )m_Swapchain, VK_OBJECT_TYPE_SWAPCHAIN_KHR );
@@ -88,7 +91,6 @@ namespace Saturn {
 
 	void Swapchain::CreateFramebuffers()
 	{
-		//VulkanContext::Get().GetRenderPass().Recreate();
 		SwapchainCreationData SwapchainData = VulkanContext::Get().GetSwapchainCreationData();
 		
 		m_Framebuffers.resize( m_ImageViews.size() );
@@ -126,55 +128,12 @@ namespace Saturn {
 		{
 			vkDestroyImageView( VulkanContext::Get().GetDevice(), rImageView, nullptr );
 		}
-		
+
 		m_Framebuffers.clear();
 		m_ImageViews.clear();
+		m_Images.clear();
 
-		VkSwapchainKHR OldSwapchain = m_Swapchain;
-
-		SwapchainCreationData SwapchainData = VulkanContext::Get().GetSwapchainCreationData();
-
-		VkSwapchainCreateInfoKHR SwapchainCreateInfo ={ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
-		SwapchainCreateInfo.surface                     = VulkanContext::Get().GetSurface();
-		SwapchainCreateInfo.minImageCount        = SwapchainData.ImageCount;
-		SwapchainCreateInfo.imageFormat            = SwapchainData.CurrentFormat.format;
-		SwapchainCreateInfo.imageColorSpace      = SwapchainData.CurrentFormat.colorSpace;
-		SwapchainCreateInfo.imageExtent            = SwapchainData.SurfaceCaps.currentExtent;
-		SwapchainCreateInfo.imageArrayLayers    = 1;
-		SwapchainCreateInfo.imageUsage              = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-		auto& rQueueFamilyIndices = VulkanContext::Get().GetQueueFamilyIndices();
-		uint32_t _QueueFamilyIndices[] ={ rQueueFamilyIndices.GraphicsFamily.value(), rQueueFamilyIndices.PresentFamily.value() };
-
-		if( rQueueFamilyIndices.GraphicsFamily != rQueueFamilyIndices.PresentFamily )
-		{
-			SwapchainCreateInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
-			SwapchainCreateInfo.queueFamilyIndexCount = 2;
-			SwapchainCreateInfo.pQueueFamilyIndices   = _QueueFamilyIndices;
-		}
-		else
-		{
-			SwapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			SwapchainCreateInfo.queueFamilyIndexCount = 0;
-			SwapchainCreateInfo.pQueueFamilyIndices   = nullptr;
-		}
-
-		SwapchainCreateInfo.preTransform   = SwapchainData.SurfaceCaps.currentTransform;
-		SwapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // No alpha.
-		SwapchainCreateInfo.presentMode    = VK_PRESENT_MODE_FIFO_KHR;
-		SwapchainCreateInfo.clipped        = true;
-
-		vkDestroySwapchainKHR( VulkanContext::Get().GetDevice(), OldSwapchain, nullptr );
-		OldSwapchain = VK_NULL_HANDLE;
-
-		SwapchainCreateInfo.oldSwapchain = OldSwapchain;
-
-		VK_CHECK( vkCreateSwapchainKHR( VulkanContext::Get().GetDevice(), &SwapchainCreateInfo, nullptr, &m_Swapchain ) );
-		
-		SetDebugUtilsObjectName( "Swap chain", ( uint64_t )m_Swapchain, VK_OBJECT_TYPE_SWAPCHAIN_KHR );
-
-		// Recreate the framebuffers and image views that are linked to the new swapchain.
-		CreateImageViews();
+		Create();
 		CreateFramebuffers();
 	}
 

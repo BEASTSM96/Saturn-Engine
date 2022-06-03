@@ -370,7 +370,9 @@ namespace Saturn {
 			if( rFormat.format == VK_FORMAT_B8G8R8A8_UNORM && rFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR )
 			{
 				// Set context's format.
-				m_SurfaceFormat = rFormat;
+				if( m_SurfaceFormat.format != rFormat.format)
+					m_SurfaceFormat = rFormat;
+
 				Data.CurrentFormat = m_SurfaceFormat;
 				break;
 			}
@@ -404,6 +406,10 @@ namespace Saturn {
 		GetSwapchainCreationData();
 
 		CreateDepthResources();
+
+		m_SwapChain.Recreate();
+
+		m_DefaultPass.Recreate();
 	}
 
 	bool VulkanContext::CheckValidationLayerSupport()
