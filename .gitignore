@@ -92,3 +92,5 @@ Saturn/vendor/imgui/ImGui.txt
 .build-release/
 .build-rdist/
 .build-dist/
+**/obj
+**/build
