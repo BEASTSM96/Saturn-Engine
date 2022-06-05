@@ -786,6 +786,23 @@ namespace Saturn {
 			memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
 
 			pAllocator->UnmapMemory( bufferAloc );
+
+			// u_Camera
+			struct UBCamera
+			{
+				glm::vec3 CameraPosition;
+			};
+			
+			UBCamera u_Camera = {};
+			u_Camera.CameraPosition = m_RendererData.EditorCamera.Position();
+
+			bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::Fragment ][ 5 ].Buffer );
+			
+			pData = pAllocator->MapMemory< void >( bufferAloc );
+			
+			memcpy( pData, &u_Camera, sizeof( u_Camera ) );
+			
+			pAllocator->UnmapMemory( bufferAloc );
 			
 			for ( Submesh& rSubmesh : Cmd.Mesh->Submeshes() )
 			{

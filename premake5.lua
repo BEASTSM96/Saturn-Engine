@@ -225,12 +225,7 @@ project "Titan"
 	cppdialect "C++20"
 	staticruntime "on"
 	warnings "Off"
-
-	filter "configurations:not Debug"
-		kind "WindowedApp"
-	
-	filter "configurations:Debug"
-		kind "ConsoleApp"
+	kind "ConsoleApp"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -303,6 +298,7 @@ project "Titan"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
+		kind "WindowedApp"
 
 		postbuildcommands { '{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"' }
 

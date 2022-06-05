@@ -50,11 +50,6 @@ namespace Saturn {
 
 		for( auto&& [key, src] : pShader->GetSpvCode() )
 		{
-			std::vector< char > buffer;
-			buffer.resize( src.size() * sizeof( uint32_t ) );
-			memcpy( buffer.data(), ( char* )src.data(), src.size() );
-
-			//spv_reflect::ShaderModule Module( buffer.size(), src.data() );
 			spv_reflect::ShaderModule Module( src );
 
 			SpvReflectShaderModule SPVShaderModule = Module.GetShaderModule();

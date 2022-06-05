@@ -60,6 +60,11 @@ layout(set = 0, binding = 0) uniform Matrices
     mat4 ViewProjection;
 } u_Matrices;
 
+layout(set = 0, binding = 5) uniform Camera 
+{
+	uniform vec3 CameraPosition;
+} u_Camera;
+
 layout(push_constant) uniform u_Materials
 {
     mat4 Transform;
@@ -95,6 +100,8 @@ layout(location = 1) in VertexOutput
 
 void main() 
 {
+	float Ambient = 0.20;
+
 	float Roughness = pc_Materials.UseRoughnessTexture > 0.5 ? texture( u_RoughnessTexture, vs_Input.TexCoord ).r : pc_Materials.Roughness;
 	Roughness = max( Roughness, 0.05 );
 
@@ -103,14 +110,23 @@ void main()
 	
 	vec3 lightDir = vec3( -0.5, 0.5, -0.5 );
 	float lightIntensity = clamp( dot( lightDir, normal ), 0.1, 1.0 );
+	
+	float specularLight = 0.50;
+	
+	vec3 viewDirection = normalize( u_Camera.CameraPosition - vs_Input.Position );
+	vec3 reflectDir = reflect( -lightDir, normal );
 
-	vec4 texColor;
+	float specularAmount = pow( max( dot( viewDirection, reflectDir ), 0.0 ), 32.0 );
+	
+	float specular = specularLight * specularAmount;
+
+	vec4 AlbedoTextureColor;
 
 	if( pc_Materials.UseAlbedoTexture > 0.5 )
-		texColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
+		AlbedoTextureColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
 	else
-		texColor = pc_Materials.AlbedoColor;
+		AlbedoTextureColor = pc_Materials.AlbedoColor;
 	
-	FinalColor = texColor;
-	FinalColor.rgb *= lightIntensity;
+	FinalColor = AlbedoTextureColor;
+	FinalColor.rgb *= lightIntensity + Ambient;
 }

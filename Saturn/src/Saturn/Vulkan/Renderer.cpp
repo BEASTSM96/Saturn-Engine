@@ -245,6 +245,8 @@ namespace Saturn {
 
 		if( Result == VK_ERROR_OUT_OF_DATE_KHR ) 
 		{
+			SAT_CORE_INFO( "VK_ERROR_OUT_OF_DATE_KHR, Swapchain will be re-created" );
+
 			VulkanContext::Get().GetSwapchain().Recreate();
 
 			PresentInfo.pSwapchains = &VulkanContext::Get().GetSwapchain().GetSwapchain();

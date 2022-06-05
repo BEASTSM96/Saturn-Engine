@@ -32,12 +32,6 @@
 #include "App.h"
 #include "Saturn/ImGui/Styles.h"
 
-#if defined( SAT_DONT_USE_GL )
-// dx
-#else
-#include "Saturn/OpenGL/Renderer.h"
-#endif
-
 #include "Input.h"
 #include "Saturn/ImGui/Panel/PanelManager.h"
 
@@ -150,15 +144,15 @@ namespace Saturn {
 						*pOut = 0;
 				}
 			}
-		} );
+			} );
 
 		glfwSetCursorPosCallback( m_Window, []( GLFWwindow* window, double x, double y )
-		{
-			Window& win = *( Window* )glfwGetWindowUserPointer( window );
+			{
+				Window& win = *( Window* ) glfwGetWindowUserPointer( window );
 
-			MouseMovedEvent event( ( float )x, ( float )y );
-			win.m_EventCallback( event );
-		} );
+				MouseMovedEvent event( ( float ) x, ( float ) y );
+				win.m_EventCallback( event );
+			} );
 
 		glfwSetKeyCallback( m_Window, []( GLFWwindow* window, int key, int scancode, int action, int mods )
 		{
@@ -415,22 +409,23 @@ namespace Saturn {
 				return 0;
 			} break;
 
-			case WM_NCHITTEST: 
+			case WM_SIZE: 
 			{
-				int ID;
-				glfwGetCornerID( self->m_Window, &ID );
-				
-				// left = 1, top = 2, right = 4, bottom = 8
-
-				if( ID & 2 && ID & 1 )	ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); // Top Left
-				if( ID & 2 && ID & 4 )	ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); // Top Right
-				if( ID & 8 && ID & 1 )	ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); // Bottom Left
-				if( ID & 8 && ID & 4 )	ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); // Bottom Right
-				if( ID & 1 )			ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW ); // Left
-				if( ID & 2 )			ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS ); // Top
-				if( ID & 4 )			ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW ); // Right
-				if( ID & 8 )			ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS ); // Bottom
-
+				if( WParam == SIZE_RESTORED )
+				{
+					self->m_Minimized = false;
+					self->m_Maximized = false;
+				}
+				else if( SIZE_MAXIMIZED ) 
+				{
+					self->m_Minimized = false;
+					self->m_Maximized = true;
+				}
+				else if( SIZE_MINIMIZED )
+				{
+					self->m_Minimized = true;
+					self->m_Maximized = false;
+				}
 			} break;
 		}
 

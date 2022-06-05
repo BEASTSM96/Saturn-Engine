@@ -77,8 +77,12 @@ layout(location = 1) in VertexOutput
 
 layout( location = 0 ) out vec4 color;
 
+layout(set = 0, binding = 0) uniform Camera 
+{
+	vec3 CameraPosition;
+} u_Camera;
+
 uniform Light lights;
-uniform vec3 u_CameraPosition;
 
 // PBR texture inputs
 uniform sampler2D u_AlbedoTexture;
@@ -93,18 +97,22 @@ uniform samplerCube u_EnvIrradianceTex;
 // BRDF LUT
 uniform sampler2D u_BRDFLUTTexture;
 
-uniform vec3 u_AlbedoColor;
-uniform float u_Metalness;
-uniform float u_Roughness;
+layout(push_constant) uniform u_Materials 
+{
+	float UseAlbedoTexture;
+	float UseMetallicTexture;
+	float UseRoughnessTexture;
+	float UseNormalTexture;
+
+	//
+
+	vec4 AlbedoColor;
+	float Metalness;
+	float Roughness;
+	float RadiancePrefilter;
+} pc_Materials;
 
 uniform float u_EnvMapRotation;
-
-// Toggles
-uniform float u_RadiancePrefilter;
-uniform float u_AlbedoTexToggle;
-uniform float u_NormalTexToggle;
-uniform float u_MetalnessTexToggle;
-uniform float u_RoughnessTexToggle;
 
 // Gamma
 uniform float u_Gamma;
@@ -124,6 +132,7 @@ PBRParameters m_Params;
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2
+// From: https://learnopengl.com/PBR/Theory (at BRDF, Normal distribution function)
 float ndfGGX( float cosLh, float roughness )
 {
 	float alpha = roughness * roughness;
@@ -134,12 +143,14 @@ float ndfGGX( float cosLh, float roughness )
 }
 
 // Single term for separable Schlick-GGX below.
+// From: https://learnopengl.com/PBR/Theory (at BRDF, Fresnel equation)
 float gaSchlickG1( float cosTheta, float k )
 {
 	return cosTheta / ( cosTheta * ( 1.0 - k ) + k );
 }
 
 // Schlick-GGX approximation of geometric attenuation function using Smith's method.
+// From: https://learnopengl.com/PBR/Theory (at BRDF, Fresnel equation)
 float gaSchlickGGX( float cosLi, float NdotV, float roughness )
 {
 	float r = roughness + 1.0;
@@ -147,6 +158,7 @@ float gaSchlickGGX( float cosLi, float NdotV, float roughness )
 	return gaSchlickG1( cosLi, k ) * gaSchlickG1( NdotV, k );
 }
 
+// From: https://learnopengl.com/PBR/Theory (at BRDF, Fresnel equation)
 float GeometrySchlickGGX( float NdotV, float roughness )
 {
 	float r = ( roughness + 1.0 );
@@ -298,6 +310,8 @@ vec3 IBL( vec3 F0, vec3 Lr )
 
 void main()
 {
+	u_Gamma = 2.2;
+
 	// Standard PBR inputs
 	m_Params.Albedo = u_AlbedoTexToggle > 0.5 ? texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb : u_AlbedoColor;
 	m_Params.Metalness = u_MetalnessTexToggle > 0.5 ? texture( u_MetalnessTexture, vs_Input.TexCoord ).r : u_Metalness;
