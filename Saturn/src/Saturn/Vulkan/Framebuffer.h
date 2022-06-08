@@ -28,119 +28,99 @@
 
 #pragma once
 
-#include "VulkanContext.h"
-#include <vector>
+#include "Pass.h"
+#include "Renderer.h"
+
+#include <vulkan.h>
 
 namespace Saturn {
 
-	class DescriptorPool
+	enum class FramebufferTextureFormat
 	{
-	public:
-		DescriptorPool() {}
-		DescriptorPool( std::vector< VkDescriptorPoolSize > PoolSizes, uint32_t MaxSets );
-		~DescriptorPool();
-		
-		void Terminate();
+		None = 0,
 
-		operator VkDescriptorPool&() { return m_Pool; }
-		operator const VkDescriptorPool&() const { return m_Pool; }
+		// Color
+		RGBA8 = 1,
+		RGBA16F = 2,
+		RGBA32F = 3,
+		RGB32F = 4,
 
-		// Copy assignment.
-		DescriptorPool& operator=( const DescriptorPool& other ) 
-		{
-			if( this == &other )
-				return *this;
-			
-			m_Pool = other.m_Pool;
+		BGRA8 = 5,
 
-			return *this;
-		}
+		DEPTH32F = 6,
+		DEPTH24STENCIL8 = 7,
 
-		// Move assignment.
-		DescriptorPool& operator=( DescriptorPool&& other ) noexcept
-		{
-			if( this == &other )
-				return *this;
-
-			m_Pool = other.m_Pool;
-
-			other.m_Pool = nullptr;
-
-			return *this;
-		}
-
-		// Copy constructor.
-		DescriptorPool( const DescriptorPool& other )
-		{
-			m_Pool = other.m_Pool;	
-		}
-
-		// Move constructor.
-		DescriptorPool( DescriptorPool&& other ) noexcept
-		{
-			m_Pool = other.m_Pool;
-			other.m_Pool = nullptr;
-		}
-
-	private:
-		VkDescriptorPool m_Pool = nullptr;
-	};	
-	
-	enum class DescriptorType
-	{
-		// Should match with vulkan's VkDescriptorType enum
-		UNKNOWN = -1,
-		SAMPLER = 0,
-		COMBINED_IMAGE_SAMPLER = 1,
-		SAMPLED_IMAGE = 2,
-		STORAGE_IMAGE = 3,
-		UNIFORM_BUFFER = 6,
-		STORAGE_BUFFER = 7,
-	};
-	
-	struct DescriptorSetSpecification
-	{		
-		DescriptorSetSpecification() {}
-		~DescriptorSetSpecification() {}
-		
-		Ref< DescriptorPool > Pool = nullptr;
-		VkDescriptorSetLayout Layout = nullptr;
+		Depth = DEPTH32F
 	};
 
-	class DescriptorSet
+	struct FramebufferTextureSpecification
+	{
+		FramebufferTextureSpecification() = default;
+		FramebufferTextureSpecification( FramebufferTextureFormat format ) : TextureFormat( format ) { }
+
+		FramebufferTextureFormat TextureFormat;
+	};
+
+	struct FramebufferAttachmentSpecification
+	{
+		FramebufferAttachmentSpecification() = default;
+		FramebufferAttachmentSpecification( const std::initializer_list<FramebufferTextureSpecification>&attachments ) : Attachments( attachments ) {}
+
+		std::vector<FramebufferTextureSpecification> Attachments;
+	};
+
+	struct FramebufferSpecification
+	{
+		uint32_t Width;
+		uint32_t Height;
+
+		Ref< Pass > RenderPass = nullptr;
+		FramebufferAttachmentSpecification Attachments;
+	};
+
+	struct FramebufferAttachmentResource
+	{
+		VkImage Image =	nullptr;
+		VkImageView ImageView = nullptr;
+		VkSampler Sampler = nullptr;
+		VkDeviceMemory Memory = nullptr;
+		VkDescriptorSet DescriptorSet = nullptr;
+	};
+
+	class Framebuffer
 	{
 	public:
-		DescriptorSet() {}
-		DescriptorSet( DescriptorSetSpecification Spec );
-		~DescriptorSet();
-
-		void Terminate();
-
-		void Write( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo );
-		void Write( std::vector< VkWriteDescriptorSet > WriteDescriptorSets );
-
-
-		void Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout );
+		Framebuffer( const FramebufferSpecification& Specification );
+		~Framebuffer();
 		
-		bool operator == ( const DescriptorSet& other ) const
-		{
-			return ( m_Set == other.m_Set );
-		}
-		
-		VkDescriptorSet GetVulkanSet() { return m_Set; }
-		const VkDescriptorSet GetVulkanSet() const { return m_Set; }
+		void Recreate();
 
-		operator VkDescriptorSet() { return m_Set; }
-		operator const VkDescriptorSet&() { return m_Set; }
-		
-	private:
-		
-		void Allocate();
+		void CreateDescriptorSets();
+
+		operator VkFramebuffer() const { return m_Framebuffer; }
+
+		VkFramebuffer GetVulkanFramebuffer() { return m_Framebuffer; }
+
+		std::vector< FramebufferAttachmentResource >& GetColorAttachmentsResources() { return m_ColorAttachmentsResources; }
+		const std::vector< FramebufferAttachmentResource >& GetColorAttachmentsResources() const { return m_ColorAttachmentsResources; }
+
+		std::vector< FramebufferTextureFormat >& GetColorAttachmentsFormats() { return m_ColorAttachmentsFormats; }
+		const std::vector< FramebufferTextureFormat >& GetColorAttachmentsFormats() const { return m_ColorAttachmentsFormats; }
 
 	private:
+		void Create();
 
-		VkDescriptorSet m_Set = nullptr;
-		
-		DescriptorSetSpecification m_Specification = {};
+		VkFramebuffer m_Framebuffer = nullptr;
+
+		std::vector< VkDescriptorSet > m_FramebufferColorResults;
+		std::vector< FramebufferTextureFormat > m_ColorAttachmentsFormats;
+		std::vector< FramebufferAttachmentResource > m_ColorAttachmentsResources;
+
+		FramebufferTextureFormat m_DepthFormat;
+		FramebufferAttachmentResource m_DepthAttachmentResource;
+
+		std::vector< VkImageView > m_AttachmentImageViews;
+
+		FramebufferSpecification m_Specification;
 	};
 }

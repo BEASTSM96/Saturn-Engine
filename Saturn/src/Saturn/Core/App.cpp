@@ -59,8 +59,10 @@ namespace Saturn {
 		m_ImGuiLayer = new ImGuiLayer();
 		m_EditorLayer = new EditorLayer();
 
-		SceneRenderer::Get().CreateGeometryResult();
-		
+		// TODO: TEMP
+		// Note: Fucking remove this shit.
+		SceneRenderer::Get().CreateAllFBSets();
+
 		while( m_Running )
 		{
 			Window::Get().OnUpdate();

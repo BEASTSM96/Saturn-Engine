@@ -97,24 +97,13 @@ namespace Saturn {
 		if( ImGui::ImageButton( m_ScaleTexture->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
 			Viewport->SetOperation( ImGuizmo::OPERATION::SCALE );
 
-		EndOverlay();
-		
-		Pos.x = ViewportSize.x / 2 - m_PlayImage->Width() / 2;
-
-		DrawOverlay( "##RuntimeControl", Pos );
+		ImGui::SameLine();
 
 		if( ImGui::ImageButton( m_PlayImage->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
 			SAT_CORE_INFO( "Runtime..." );
-		
-		EndOverlay();
-		
-		// make the window go to the far side of the viewport size
-		// 25 is some random number.
-		Pos.x = ViewportSize.x - m_SettingsTexture->Width() * 2;
 
-		DrawOverlay( "##ViewportSettings", Pos );
-		
-		// TEMP IMAGE
+		ImGui::SameLine();
+
 		if( ImGui::ImageButton( m_SettingsTexture->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
 			SAT_CORE_INFO( "Settings" );
 

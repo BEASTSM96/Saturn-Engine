@@ -141,7 +141,9 @@ namespace Saturn {
 		template<typename T2>
 		Ref& operator=( Ref<T2>&& other )
 		{
-			delete m_Pointer;
+			if( m_Pointer )
+				delete m_Pointer;
+
 			m_Pointer = nullptr;
 
 			m_Pointer = other.m_Pointer;
