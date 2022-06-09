@@ -10,6 +10,7 @@ layout(location = 4) in vec2 a_TexCoord;
 layout(set = 0, binding = 0) uniform Matrices 
 {
     mat4 ViewProjection;
+	vec3 LightPosition;
 } u_Matrices;
 
 layout(push_constant) uniform u_Materials
@@ -36,7 +37,16 @@ layout(location = 1) out VertexOutput
 	vec3 Position;
 	vec2 TexCoord;
 	mat3 WorldNormals;
+	vec4 ShadowCoord;
+	mat4 LightSpace;
+	vec3 LightPositionVec;
 } vs_Output;
+
+const mat4 biasMat = mat4( 
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.5, 0.5, 0.0, 1.0 );
 
 void main()
 {
@@ -48,6 +58,8 @@ void main()
 	vs_Output.TexCoord   = vec2( a_TexCoord );
 
 	vs_Output.WorldNormals = mat3( pc_Materials.Transform ) * mat3( a_Normal, a_Tangent, a_Bitangent );
+	
+	vs_Output.ShadowCoord = ( biasMat * u_Matrices.ViewProjection * pc_Materials.Transform ) * vec4( vs_Output.Position, 1.0 );
 
 	gl_Position = u_Matrices.ViewProjection * pc_Materials.Transform * vec4( a_Position, 1.0 );
 }
@@ -55,15 +67,11 @@ void main()
 #type fragment
 #version 450
 
-layout(set = 0, binding = 0) uniform Matrices 
+layout(binding = 0) uniform Matrices 
 {
     mat4 ViewProjection;
+	vec3 LightPosition;
 } u_Matrices;
-
-layout(set = 0, binding = 5) uniform Camera 
-{
-	uniform vec3 CameraPosition;
-} u_Camera;
 
 layout(push_constant) uniform u_Materials
 {
@@ -96,6 +104,8 @@ layout(location = 1) in VertexOutput
 	vec3 Position;
 	vec2 TexCoord;
 	mat3 WorldNormals;
+	vec4 ShadowCoord;
+	mat4 LightSpace;
 } vs_Input;
 
 void main() 
@@ -112,13 +122,8 @@ void main()
 	float lightIntensity = clamp( dot( lightDir, normal ), 0.1, 1.0 );
 	
 	float specularLight = 0.50;
-	
-	vec3 viewDirection = normalize( u_Camera.CameraPosition - vs_Input.Position );
-	vec3 reflectDir = reflect( -lightDir, normal );
 
-	float specularAmount = pow( max( dot( viewDirection, reflectDir ), 0.0 ), 32.0 );
-	
-	float specular = specularLight * specularAmount;
+	//float shadow = textureProj( vs_Input.ShadowCoord / vs_Input.ShadowCoord.w, vec2( 0.0 ) );
 
 	vec4 AlbedoTextureColor;
 
@@ -126,6 +131,10 @@ void main()
 		AlbedoTextureColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
 	else
 		AlbedoTextureColor = pc_Materials.AlbedoColor;
+	
+	vec3 diffuse = max( dot( normal, lightDir ), Ambient ) * AlbedoTextureColor.rgb;
+	
+	//FinalColor = vec4( diffuse * shadow, 1.0 );
 	
 	FinalColor = AlbedoTextureColor;
 	FinalColor.rgb *= lightIntensity + Ambient;

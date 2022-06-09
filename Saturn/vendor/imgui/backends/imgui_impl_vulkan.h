@@ -77,8 +77,6 @@ IMGUI_IMPL_API ImTextureID ImGui_ImplVulkan_AddTexture( VkSampler sampler, VkIma
 IMGUI_IMPL_API void ImGui_ImplVulkan_RemoveTexture( VkDescriptorSet descriptor_set );
 IMGUI_IMPL_API void ImGui_ImplVulkan_RemoveTexture( ImTextureID descriptor_set );
 
-IMGUI_IMPL_API VkDescriptorSetLayout ImGui_ImplVulkan_GetDescriptorSetLayout();
-
 // Optional: load Vulkan functions with a custom function loader
 // This is only useful with IMGUI_IMPL_VULKAN_NO_PROTOTYPES / VK_NO_PROTOTYPES
 IMGUI_IMPL_API bool     ImGui_ImplVulkan_LoadFunctions(PFN_vkVoidFunction(*loader_func)(const char* function_name, void* user_data), void* user_data = NULL);

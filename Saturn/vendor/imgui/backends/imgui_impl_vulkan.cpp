@@ -1781,11 +1781,3 @@ void ImGui_ImplVulkan_RemoveTexture( ImTextureID texture_id )
 	err = vkFreeDescriptorSets( v->Device, v->DescriptorPool, 1, ( VkDescriptorSet* )&texture_id );
 	check_vk_result( err );
 }
-
-VkDescriptorSetLayout ImGui_ImplVulkan_GetDescriptorSetLayout()
-{
-	ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-	ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
-
-    return bd->DescriptorSetLayout;
-}

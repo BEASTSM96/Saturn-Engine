@@ -60,6 +60,9 @@ namespace Saturn {
 
 		for( auto& [key, texture] : m_Textures )
 		{
+			if( !texture )
+				continue;
+
 			if( texture->IsRendererTexture() )
 				continue;
 			
@@ -79,6 +82,9 @@ namespace Saturn {
 				
 				if( Set.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ) 
 				{
+					if( Name == "u_ShadowMapTexture" )
+						continue;
+
 					VkDescriptorImageInfo ImageInfo = {};
 					ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 					

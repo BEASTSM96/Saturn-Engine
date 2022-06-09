@@ -32,28 +32,6 @@
 
 namespace Saturn {
 
-	// I don't want to use the class on a TextureXX, as I feel like there is really no point.
-	class Resource
-	{
-	public:
-		Resource() {}
-		~Resource() { Terminate(); }
-
-		void Terminate();
-
-		operator VkImage() const { return Image; }
-		operator VkImageView() const { return ImageView; }
-		operator VkSampler() const { return Sampler; }
-		operator VkDeviceMemory() const { return Memory; }
-
-	public:
-		
-		VkImage Image = nullptr;
-		VkImageView ImageView = nullptr;
-		VkSampler Sampler = nullptr;
-		VkDeviceMemory Memory = nullptr;
-	};
-
 	class Renderer
 	{
 		SINGLETON( Renderer );

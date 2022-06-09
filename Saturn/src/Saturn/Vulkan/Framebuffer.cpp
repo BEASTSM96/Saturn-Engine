@@ -92,7 +92,24 @@ namespace Saturn {
 	Framebuffer::~Framebuffer()
 	{
 		if( m_Framebuffer )
-			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_Framebuffer, nullptr );	
+			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_Framebuffer, nullptr );
+
+		for( auto& resource : m_ColorAttachmentsResources )
+		{
+			vkDestroyImage( VulkanContext::Get().GetDevice(), resource.Image, nullptr );
+			vkDestroyImageView( VulkanContext::Get().GetDevice(), resource.ImageView, nullptr );
+			vkDestroySampler( VulkanContext::Get().GetDevice(), resource.Sampler, nullptr );
+			vkFreeMemory( VulkanContext::Get().GetDevice(), resource.Memory, nullptr );
+		}
+
+		vkDestroyImage( VulkanContext::Get().GetDevice(), m_DepthAttachmentResource.Image, nullptr );
+		vkDestroyImageView( VulkanContext::Get().GetDevice(), m_DepthAttachmentResource.ImageView, nullptr );
+		vkDestroySampler( VulkanContext::Get().GetDevice(), m_DepthAttachmentResource.Sampler, nullptr );
+		vkFreeMemory( VulkanContext::Get().GetDevice(), m_DepthAttachmentResource.Memory, nullptr );
+
+		m_ColorAttachmentsResources.clear();
+		m_ColorAttachmentsFormats.clear();
+		m_AttachmentImageViews.clear();
 	}
 
 	void Framebuffer::Recreate()
@@ -111,15 +128,9 @@ namespace Saturn {
 		for( auto& resource : m_ColorAttachmentsResources ) 
 		{
 			resource.DescriptorSet = ( VkDescriptorSet )ImGui_ImplVulkan_AddTexture( resource.Sampler, resource.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-
-			std::string name = "DescriptorSet: 0x" + std::to_string( (unsigned long)resource.DescriptorSet );
-			SetDebugUtilsObjectName( name, ( uint64_t )resource.DescriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET );
 		}
 
 		m_DepthAttachmentResource.DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_DepthAttachmentResource.Sampler, m_DepthAttachmentResource.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-
-		std::string name = "DescriptorSet: 0x" + std::to_string( ( unsigned long ) m_DepthAttachmentResource.DescriptorSet );
-		SetDebugUtilsObjectName( name, ( uint64_t ) m_DepthAttachmentResource.DescriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET );
 	}
 
 	void Framebuffer::Create()

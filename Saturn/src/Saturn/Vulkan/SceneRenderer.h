@@ -36,6 +36,7 @@
 
 #include "Renderer.h"
 #include "DescriptorSet.h"
+#include "Framebuffer.h"
 
 #include "Pipeline.h"
 
@@ -74,8 +75,8 @@ namespace Saturn {
 
 		//////////////////////////////////////////////////////////////////////////
 		
-		uint32_t Width = 3440;
-		uint32_t Height = 1440;
+		uint32_t Width = 0;
+		uint32_t Height = 0;
 		
 		//////////////////////////////////////////////////////////////////////////
 
@@ -111,6 +112,7 @@ namespace Saturn {
 		struct StaticMeshMatrices
 		{
 			glm::mat4 ViewProjection;
+			glm::vec3 LightPos;
 		};
 
 		struct StaticMeshMaterial
@@ -127,18 +129,23 @@ namespace Saturn {
 			alignas( 4 ) float Roughness;
 		};
 
+		// DirShadowMap
+		//////////////////////////////////////////////////////////////////////////
+		
+		// For each mesh create a descriptor set, using the shadow map shader.
+		std::vector<Ref<DescriptorSet>> DirShadowMapDescriptorSets;
+
+		Ref<Pass> DirShadowMapPass = nullptr;
+		Ref<Framebuffer> DirShadowMapFramebuffer = nullptr;
+		Pipeline DirShadowMapPipeline;
+
 		// Geometry
 		//////////////////////////////////////////////////////////////////////////
 
 		// Render pass for all grid, skybox and meshes.
-		Pass GeometryPass;
-		Ref< Resource > GeometryPassDepth;
-		Ref< Resource > GeometryPassColor;
-		VkFramebuffer GeometryFramebuffer;
+		Ref<Pass> GeometryPass = nullptr;
+		Ref<Framebuffer> GeometryFramebuffer = nullptr;
 
-		// Buffer image.
-		VkDescriptorSet RenderPassResult;
-		
 		// STATIC MESHES
 
 		// Main geometry for static meshes.
@@ -148,7 +155,7 @@ namespace Saturn {
 
 		Pipeline GridPipeline;
 
-		Ref< DescriptorSet > GridDescriptorSet;
+		Ref< DescriptorSet > GridDescriptorSet = nullptr;
 
 		VkBuffer GridUniformBuffer;
 		VmaAllocation GridUBOAllocation;
@@ -160,7 +167,7 @@ namespace Saturn {
 
 		Pipeline SkyboxPipeline;
 
-		Ref< DescriptorSet > SkyboxDescriptorSet;
+		Ref< DescriptorSet > SkyboxDescriptorSet = nullptr;
 		
 		VkBuffer SkyboxUniformBuffer;
 		
@@ -175,32 +182,31 @@ namespace Saturn {
 
 		// Begin Scene Composite
 		
-		Pass SceneComposite;
-		Ref< Resource > SceneCompositeColor;
-		Ref< Resource > SceneCompositeDepth;
-		VkFramebuffer SceneCompositeFramebuffer;
+		Ref<Pass> SceneComposite = nullptr;
+		Ref< Framebuffer > SceneCompositeFramebuffer = nullptr;
 
 		Pipeline SceneCompositePipeline;
 		
 		// Input
-		Ref< DescriptorSet > SC_DescriptorSet;
+		Ref< DescriptorSet > SC_DescriptorSet = nullptr;
 
 		VertexBuffer* SC_VertexBuffer;
 		IndexBuffer* SC_IndexBuffer;
 		
-		// Output texture i.e. the final image to be renderer in the viewport window.
-		VkDescriptorSet SceneCompositeResult;
-
 		//////////////////////////////////////////////////////////////////////////
 		// End Scene Composite
 		//////////////////////////////////////////////////////////////////////////
-		
+
+		// TEMP
+		glm::vec3 LightPos = glm::vec3( 0.5f, 0.5f, 0.5f );
+
 		// SHADERS
 
 		Ref< Shader > GridShader = nullptr;
 		Ref< Shader > SkyboxShader = nullptr;
 		Ref< Shader > StaticMeshShader = nullptr;
 		Ref< Shader > SceneCompositeShader = nullptr;
+		Ref< Shader > DirShadowMapShader = nullptr;
 	};
 
 	class SceneRenderer
@@ -231,13 +237,13 @@ namespace Saturn {
 
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
-		Pass& GetGeometryPass() { return m_RendererData.GeometryPass; }
-		const Pass& GetGeometryPass() const { return m_RendererData.GeometryPass; }
+		Ref<Pass> GetGeometryPass() { return m_RendererData.GeometryPass; }
+		const Ref<Pass> GetGeometryPass() const { return m_RendererData.GeometryPass; }
 
-		VkDescriptorSet& GetGeometryResult() { return m_RendererData.RenderPassResult; }
-		VkDescriptorSet& CompositeImage() { return m_RendererData.SceneCompositeResult; }
-
-		void CreateGeometryResult();
+		VkDescriptorSet CompositeImage() { return m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ].DescriptorSet; }
+		
+		// TEMP!!
+		void CreateAllFBSets();
 
 		void Terminate();
 
@@ -254,9 +260,11 @@ namespace Saturn {
 		void DestroySkyboxComponents();
 
 		void InitGeometryPass();
+		void InitDirShadowMap();
 		void InitSceneComposite();
 
 		void GeometryPass();
+		void DirShadowMapPass();
 		void SceneCompositePass();
 
 	private:

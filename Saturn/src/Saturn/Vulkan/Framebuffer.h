@@ -112,7 +112,6 @@ namespace Saturn {
 
 		VkFramebuffer m_Framebuffer = nullptr;
 
-		std::vector< VkDescriptorSet > m_FramebufferColorResults;
 		std::vector< FramebufferTextureFormat > m_ColorAttachmentsFormats;
 		std::vector< FramebufferAttachmentResource > m_ColorAttachmentsResources;
 

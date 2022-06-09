@@ -148,9 +148,6 @@ namespace Saturn {
 		const VkColorSpaceKHR SurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 
 		ImGui_ImplVulkanH_SelectSurfaceFormat( VulkanContext::Get().GetPhysicalDevice(), VulkanContext::Get().GetSurface(), SurfaceImageFormat, ( size_t )IM_ARRAYSIZE( SurfaceImageFormat ), SurfaceColorSpace );
-
-		// TEMP
-		m_DescriptorLayout = ImGui_ImplVulkan_GetDescriptorSetLayout();
 	}
 
 	void ImGuiLayer::OnDetach( void )

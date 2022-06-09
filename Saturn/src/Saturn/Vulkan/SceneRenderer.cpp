@@ -34,6 +34,7 @@
 #include "Texture.h"
 #include "Mesh.h"
 #include "Material.h"
+#include "Saturn/ImGui/UITools.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 #include <backends/imgui_impl_vulkan.h>
@@ -54,6 +55,13 @@ namespace Saturn {
 		
 		VK_CHECK( vkCreateCommandPool( VulkanContext::Get().GetDevice(), &CommandPoolInfo, nullptr, &m_RendererData.CommandPool ) );
 		
+		///
+		if( m_RendererData.Width == 0 && m_RendererData.Height == 0 )
+		{
+			m_RendererData.Width = Window::Get().Width();
+			m_RendererData.Height = Window::Get().Height();
+		}
+
 		//////////////////////////////////////////////////////////////////////////
 		// Geometry 
 		//////////////////////////////////////////////////////////////////////////
@@ -68,16 +76,16 @@ namespace Saturn {
 
 		InitSceneComposite();
 
+		InitDirShadowMap();
+
 		//////////////////////////////////////////////////////////////////////////
 	}
 
-	void SceneRenderer::CreateGeometryResult()
+	void SceneRenderer::CreateAllFBSets()
 	{
-		m_RendererData.RenderPassResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.GeometryPassColor->Sampler, m_RendererData.GeometryPassColor->ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-
-		// TODO: This should not be created by ImGui.
-
-		m_RendererData.SceneCompositeResult = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_RendererData.SceneCompositeColor->Sampler, m_RendererData.SceneCompositeColor->ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+		m_RendererData.DirShadowMapFramebuffer->CreateDescriptorSets();
+		m_RendererData.GeometryFramebuffer->CreateDescriptorSets();
+		m_RendererData.SceneCompositeFramebuffer->CreateDescriptorSets();
 	}
 
 	void SceneRenderer::Terminate()
@@ -97,40 +105,14 @@ namespace Saturn {
 	void SceneRenderer::InitGeometryPass()
 	{
 		// Create render pass.
-
-		if( m_RendererData.GeometryPassColor )
-			m_RendererData.GeometryPassColor = nullptr;
-		
-		if( m_RendererData.GeometryPassDepth )
-			m_RendererData.GeometryPassDepth = nullptr;
-
-		m_RendererData.GeometryPassColor = Ref< Resource >::Create();
-		m_RendererData.GeometryPassDepth = Ref< Resource >::Create();
-
-		// Start by creating the color resource
-		{
-			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 },
-				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-				&m_RendererData.GeometryPassColor->Image, &m_RendererData.GeometryPassColor->Memory );
-
-			Renderer::Get().CreateImageView( m_RendererData.GeometryPassColor->Image, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.GeometryPassColor->ImageView );
-
-			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassColor->Sampler );
-		}
-
-		// Then, create the depth resource
-		{
-			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.GeometryPassDepth->Image, &m_RendererData.GeometryPassDepth->Memory );
-
-			Renderer::Get().CreateImageView( m_RendererData.GeometryPassDepth->Image, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.GeometryPassDepth->ImageView );
-
-			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.GeometryPassDepth->Sampler );
-		}
-
 		if( m_RendererData.GeometryPass )
-			m_RendererData.GeometryPass.Terminate();
+			m_RendererData.GeometryPass = nullptr;
+
+		/*
+		* PassSpecification PassSpec = {};
+		* PassSpec.Attachments = { FramebufferTextureFormat::BGRA8, FramebufferTextureFormat::Depth };
+		* PassSpec.Dependencies = { FramebufferTextureFormat::BGRA8, FramebufferTextureFormat::Depth };
+		*/
 
 		PassSpecification PassSpec = {};
 		PassSpec.Name = "Geometry Pass";
@@ -186,15 +168,34 @@ namespace Saturn {
 			}
 		};
 
-		m_RendererData.GeometryPass = Pass( PassSpec );
+		m_RendererData.GeometryPass = Ref< Pass >::Create( PassSpec );
+
+		/*
+		* FramebufferSpecification spec;
+		* spec.Attachments = { RGBA8U, DEPTH32F };
+		* spec.RenderPass = GeometryPass;
+		* spec.Width = 6969;
+		* spec.Height = 6969;
+		*
+		* Ref<Framebuffer> FB;
+		* FB = Ref<Framebuffer>::Create( spec );
+		*/
 
 		// Create geometry framebuffer.
-
 		if( m_RendererData.GeometryFramebuffer )
-			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_RendererData.GeometryFramebuffer, nullptr );
+			m_RendererData.GeometryFramebuffer->Recreate();
+		else
+		{
+			FramebufferSpecification FBSpec = {};
+			FBSpec.RenderPass = m_RendererData.GeometryPass;
+			FBSpec.Width = m_RendererData.Width;
+			FBSpec.Height = m_RendererData.Height;
+			
+			FBSpec.Attachments = { FramebufferTextureFormat::BGRA8, FramebufferTextureFormat::Depth };
 
-		Renderer::Get().CreateFramebuffer( m_RendererData.GeometryPass, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height }, { m_RendererData.GeometryPassColor->ImageView, m_RendererData.GeometryPassDepth->ImageView }, &m_RendererData.GeometryFramebuffer );
-		
+			m_RendererData.GeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
+		}
+
 		//////////////////////////////////////////////////////////////////////////
 		// STATIC MESHES
 		//////////////////////////////////////////////////////////////////////////
@@ -238,7 +239,7 @@ namespace Saturn {
 		PipelineSpec.Name = "Static Meshes";
 		PipelineSpec.pShader = m_RendererData.StaticMeshShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.StaticMeshShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
+		PipelineSpec.RenderPass = m_RendererData.GeometryPass->GetVulkanPass();
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
@@ -249,43 +250,114 @@ namespace Saturn {
 		m_RendererData.StaticMeshPipeline = Pipeline( PipelineSpec );
 	}
 
+	void SceneRenderer::InitDirShadowMap()
+	{	
+		if( m_RendererData.DirShadowMapPass )
+			m_RendererData.DirShadowMapPass = nullptr;
+		
+		PassSpecification PassSpec = {};
+		PassSpec.Name = "Dir Shadow Map";
+		
+		PassSpec.Attachments = {
+			// Depth
+			{
+				.flags = 0,
+				.format = VK_FORMAT_D32_SFLOAT,
+				.samples = VK_SAMPLE_COUNT_1_BIT,
+				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
+			}
+		};
+
+		PassSpec.DepthAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+
+		PassSpec.Dependencies = {
+			{
+				.srcSubpass = VK_SUBPASS_EXTERNAL,
+				.dstSubpass = 0,
+				.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+			},
+			{
+				.srcSubpass = 0,
+				.dstSubpass = VK_SUBPASS_EXTERNAL,
+				.srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+				.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+			}
+		};
+		
+		m_RendererData.DirShadowMapPass = Ref<Pass>::Create( PassSpec );
+		
+		if( m_RendererData.DirShadowMapFramebuffer )
+			m_RendererData.DirShadowMapFramebuffer->Recreate();
+		else
+		{
+			FramebufferSpecification FBSpec = {};
+			FBSpec.RenderPass = m_RendererData.DirShadowMapPass;
+			FBSpec.Width = 2048;
+			FBSpec.Height = 2048;
+
+			FBSpec.Attachments = { FramebufferTextureFormat::Depth };
+
+			m_RendererData.DirShadowMapFramebuffer = Ref< Framebuffer >::Create( FBSpec );
+		}
+
+		if( !m_RendererData.DirShadowMapShader )
+		{
+			m_RendererData.DirShadowMapShader = Ref< Shader >::Create( "DirShadowMap", "assets/shaders/ShadowMap.glsl" );
+			ShaderLibrary::Get().Add( m_RendererData.DirShadowMapShader );
+		}
+
+		VertexBufferLayout Layout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal" },
+			{ ShaderDataType::Float3, "a_Tangent" },
+			{ ShaderDataType::Float3, "a_Bitangent" },
+			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
+
+		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
+
+		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Position ) } );
+		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Normal ) } );
+		AttributeDescriptions.push_back( { 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Tangent ) } );
+		AttributeDescriptions.push_back( { 3, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Binormal ) } );
+		AttributeDescriptions.push_back( { 4, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( MeshVertex, Texcoord ) } );
+
+		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
+		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
+	
+		PipelineSpecification PipelineSpec = {};
+		PipelineSpec.Width = 2048;
+		PipelineSpec.Height = 2048;
+		PipelineSpec.Name = "DirShadowMap";
+		PipelineSpec.pShader = m_RendererData.DirShadowMapShader.Pointer();
+		PipelineSpec.Layout.SetLayouts = { { m_RendererData.DirShadowMapShader->GetSetLayout() } };
+		PipelineSpec.RenderPass = m_RendererData.DirShadowMapPass->GetVulkanPass();
+		PipelineSpec.UseDepthTest = true;
+		PipelineSpec.BindingDescriptions = BindingDescriptions;
+		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
+		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
+		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		PipelineSpec.Layout.PushConstants = { };
+
+		m_RendererData.DirShadowMapPipeline = Pipeline( PipelineSpec );
+	}
+
 	void SceneRenderer::InitSceneComposite()
 	{
-		if( m_RendererData.SceneCompositeColor )
-			m_RendererData.SceneCompositeColor = nullptr;
-		
-		if( m_RendererData.SceneCompositeDepth )
-			m_RendererData.SceneCompositeDepth = nullptr;
-
-		if( m_RendererData.SceneCompositeFramebuffer )
-			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_RendererData.SceneCompositeFramebuffer, nullptr );
-
-
-		m_RendererData.SceneCompositeColor = Ref< Resource >::Create();
-		m_RendererData.SceneCompositeDepth = Ref< Resource >::Create();
-
-		// Start by creating the color resource
-		{
-			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_B8G8R8A8_UNORM, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &m_RendererData.SceneCompositeColor->Image, &m_RendererData.SceneCompositeColor->Memory );
-
-			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeColor->Image, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &m_RendererData.SceneCompositeColor->ImageView );
-
-			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeColor->Sampler );
-		}
-
-		// Then, create the depth resource
-		{
-			Renderer::Get().CreateImage(
-				VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT, { .width = ( uint32_t )m_RendererData.Width, .height = ( uint32_t )m_RendererData.Height, .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_RendererData.SceneCompositeDepth->Image, &m_RendererData.SceneCompositeDepth->Memory );
-
-			Renderer::Get().CreateImageView( m_RendererData.SceneCompositeDepth->Image, VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT, &m_RendererData.SceneCompositeDepth->ImageView );
-
-			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &m_RendererData.SceneCompositeDepth->Sampler );
-		}
-
 		if( m_RendererData.SceneComposite )
-			m_RendererData.SceneComposite.Terminate();
+			m_RendererData.SceneComposite = nullptr;
 
 		// Create the scene composite render pass.
 		PassSpecification PassSpec = {};
@@ -342,14 +414,21 @@ namespace Saturn {
 			}
 		};
 
-		m_RendererData.SceneComposite = Pass( PassSpec );
+		m_RendererData.SceneComposite = Ref< Pass >::Create( PassSpec );
 		
-		Renderer::Get().CreateFramebuffer( 
-			m_RendererData.GeometryPass, 
-			{ .width = m_RendererData.Width, .height = m_RendererData.Height },
-			{ m_RendererData.SceneCompositeColor->ImageView, 
-			m_RendererData.SceneCompositeDepth->ImageView },
-			&m_RendererData.SceneCompositeFramebuffer );
+		if( m_RendererData.SceneCompositeFramebuffer )
+			m_RendererData.SceneCompositeFramebuffer->Recreate();
+		else
+		{
+			FramebufferSpecification FBSpec = {};
+			FBSpec.RenderPass = m_RendererData.SceneComposite;
+			FBSpec.Width = m_RendererData.Width;
+			FBSpec.Height = m_RendererData.Height;
+
+			FBSpec.Attachments = { FramebufferTextureFormat::BGRA8, FramebufferTextureFormat::Depth };
+
+			m_RendererData.SceneCompositeFramebuffer = Ref< Framebuffer >::Create( FBSpec );
+		}
 
 		/////////
 
@@ -379,8 +458,8 @@ namespace Saturn {
 
 		VkDescriptorImageInfo GeometryPassImageInfo = {};
 		GeometryPassImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		GeometryPassImageInfo.imageView = m_RendererData.GeometryPassColor->ImageView;
-		GeometryPassImageInfo.sampler = m_RendererData.GeometryPassColor->Sampler;
+		GeometryPassImageInfo.imageView = m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ].ImageView;
+		GeometryPassImageInfo.sampler = m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ].Sampler;
 
 		std::vector< VkWriteDescriptorSet > DescriptorWrites;
 
@@ -416,7 +495,7 @@ namespace Saturn {
 		PipelineSpec.Name = "Scene Composite";
 		PipelineSpec.pShader = m_RendererData.SceneCompositeShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SceneCompositeShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.SceneComposite;
+		PipelineSpec.RenderPass = m_RendererData.SceneComposite->GetVulkanPass();
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
@@ -562,7 +641,7 @@ namespace Saturn {
 		PipelineSpec.Name = "Grid";
 		PipelineSpec.pShader = m_RendererData.GridShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.GridShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
+		PipelineSpec.RenderPass = m_RendererData.GeometryPass->GetVulkanPass();
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.UseDepthTest = true;
@@ -660,7 +739,7 @@ namespace Saturn {
 		PipelineSpec.Name = "Skybox";
 		PipelineSpec.pShader = m_RendererData.SkyboxShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SkyboxShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
+		PipelineSpec.RenderPass = m_RendererData.GeometryPass->GetVulkanPass();
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.BindingDescriptions = BindingDescriptions;
@@ -692,19 +771,27 @@ namespace Saturn {
 	void SceneRenderer::ImGuiRender()
 	{
 		ImGui::Begin( "Scene Renderer" );
-		
-		auto FrameTimings = Renderer::Get().GetFrameTimings();
 
-		ImGui::Text( "Renderer::BeginFrame: %.2f ms", FrameTimings.first );
-		
-		ImGui::Text( "SceneRenderer::GeometryPass: %.2f ms", m_RendererData.GeometryPassTimer.ElapsedMilliseconds() );
+		if( ImGui::CollapsingHeader( "Stats" ) )
+		{
+			auto FrameTimings = Renderer::Get().GetFrameTimings();
 
-		ImGui::Text( "Renderer::EndFrame - Queue Present: %.2f ms", Renderer::Get().GetQueuePresentTime() );
+			ImGui::Text( "Renderer::BeginFrame: %.2f ms", FrameTimings.first );
 
-		ImGui::Text( "Renderer::EndFrame: %.2f ms", FrameTimings.second );
-		
-		ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
-		
+			ImGui::Text( "SceneRenderer::GeometryPass: %.2f ms", m_RendererData.GeometryPassTimer.ElapsedMilliseconds() );
+
+			ImGui::Text( "Renderer::EndFrame - Queue Present: %.2f ms", Renderer::Get().GetQueuePresentTime() );
+
+			ImGui::Text( "Renderer::EndFrame: %.2f ms", FrameTimings.second );
+
+			ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
+		}
+
+		if( ImGui::CollapsingHeader( "Shadow Settings" ) )
+		{
+			DrawVec3Control( "Light Pos", m_RendererData.LightPos );
+		}
+
 		ImGui::End();
 	}
 
@@ -734,7 +821,7 @@ namespace Saturn {
 		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
 
 		// Begin geometry pass.
-		m_RendererData.GeometryPass.BeginPass( m_RendererData.CommandBuffer, m_RendererData.GeometryFramebuffer, Extent );
+		m_RendererData.GeometryPass->BeginPass( m_RendererData.CommandBuffer, m_RendererData.GeometryFramebuffer->GetVulkanFramebuffer(), Extent );
 		
 		VkViewport Viewport = {};
 		Viewport.x = 0;
@@ -778,6 +865,7 @@ namespace Saturn {
 			// u_Matrices
 			RendererData::StaticMeshMatrices u_Matrices = {};
 			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
+			u_Matrices.LightPos = m_RendererData.LightPos;
 
 			auto bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::All ][ 0 ].Buffer );
 
@@ -787,26 +875,10 @@ namespace Saturn {
 
 			pAllocator->UnmapMemory( bufferAloc );
 
-			// u_Camera
-			struct UBCamera
-			{
-				glm::vec3 CameraPosition;
-			};
-			
-			UBCamera u_Camera = {};
-			u_Camera.CameraPosition = m_RendererData.EditorCamera.Position();
-
-			bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::Fragment ][ 5 ].Buffer );
-			
-			pData = pAllocator->MapMemory< void >( bufferAloc );
-			
-			memcpy( pData, &u_Camera, sizeof( u_Camera ) );
-			
-			pAllocator->UnmapMemory( bufferAloc );
-			
 			for ( Submesh& rSubmesh : Cmd.Mesh->Submeshes() )
 			{
 				Ref< DescriptorSet > Set = Cmd.Mesh->GetDescriptorSets()[ rSubmesh ];
+				
 				StaticMeshShader->WriteAllUBs( Set );
 
 				// Bind vertex and index buffers.
@@ -842,9 +914,144 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		
 		// End geometry pass.
-		m_RendererData.GeometryPass.EndPass();
+		m_RendererData.GeometryPass->EndPass();
 
 		m_RendererData.GeometryPassTimer.Stop();
+	}
+
+	void SceneRenderer::DirShadowMapPass()
+	{
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+		VkExtent2D Extent = { 2048, 2048 };
+		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
+
+		std::array<VkClearValue, 2> ClearColors{};
+		ClearColors[ 0 ].depthStencil = { 1.0f, 0 };
+
+		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+		RenderPassBeginInfo.renderPass = m_RendererData.DirShadowMapPass->GetVulkanPass();
+		RenderPassBeginInfo.framebuffer = m_RendererData.DirShadowMapFramebuffer->GetVulkanFramebuffer();
+		RenderPassBeginInfo.renderArea.extent = Extent;
+		RenderPassBeginInfo.pClearValues = ClearColors.data();
+		RenderPassBeginInfo.clearValueCount = ClearColors.size();
+		
+		// Begin directional shadow map pass.
+		vkCmdBeginRenderPass( CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
+
+		VkViewport Viewport = {};
+		Viewport.x = 0;
+		Viewport.y = 0;
+		Viewport.width = 2048.0f;
+		Viewport.height = 2048.0f;
+		Viewport.minDepth = 0.0f;
+		Viewport.maxDepth = 1.0f;
+		
+		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
+		
+		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
+		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
+		
+		vkCmdSetDepthBias( CommandBuffer,
+			1.25f,
+			0.0f,
+			1.75f );
+
+		m_RendererData.DirShadowMapPipeline.Bind( CommandBuffer );
+
+		//////////////////////////////////////////////////////////////////////////
+		
+		if( m_RendererData.DirShadowMapDescriptorSets.size() > 0 )
+		{
+			for ( auto& set : m_RendererData.DirShadowMapDescriptorSets )
+			{
+				set = nullptr;
+			}
+
+			m_RendererData.DirShadowMapDescriptorSets.clear();
+		}
+
+		Ref< Shader > ShadowShader = m_RendererData.DirShadowMapShader;
+		
+		auto& UBs = ShadowShader->GetUniformBuffers();
+		
+		// u_Matrices
+		struct UB_Matrices
+		{
+			glm::mat4 ViewProjection;
+		} u_Matrices;
+		
+		// u_Transform
+		struct UB_RendererData
+		{
+			glm::mat4 Transform;
+		} u_Transform;
+
+		float ts = Application::Get().Time();
+		
+		m_RendererData.LightPos.x = cos( glm::radians( ts * 360.0f ) ) * 40.0f;
+		m_RendererData.LightPos.y = -50.0f + sin( glm::radians( ts * 360.0f ) ) * 20.0f;
+		m_RendererData.LightPos.z = 25.0f + sin( glm::radians( ts * 360.0f ) ) * 5.0f;
+
+		glm::mat4 Projection = glm::ortho( -15.0f, 15.0f, -15.0f, 15.0f, 0.1f, 100.0f );
+		glm::mat4 View = glm::lookAt( m_RendererData.LightPos, glm::vec3( 0.0f ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+
+		u_Matrices.ViewProjection = View * Projection;
+
+		// u_Matrices
+		auto bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::Vertex ][ 0 ].Buffer );
+		
+		void* pData = pAllocator->MapMemory< void >( bufferAloc );
+
+		memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
+
+		pAllocator->UnmapMemory( bufferAloc );
+
+		DescriptorSetSpecification SetSpec;
+		SetSpec.Layout = m_RendererData.DirShadowMapShader->GetSetLayout();
+		SetSpec.Pool = m_RendererData.DirShadowMapShader->GetDescriptorPool();
+
+		// Render Scene from light's point of view.
+		{
+			Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
+
+			for( auto& Cmd : m_DrawList ) 
+			{
+				auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
+				auto& rMaterial = Cmd.Mesh->GetMaterial();
+				
+				for( Submesh& rSubmesh : Cmd.Mesh->Submeshes() )
+				{
+					Ref<DescriptorSet> Set = Ref<DescriptorSet>::Create( SetSpec );
+					m_RendererData.DirShadowMapShader->WriteAllUBs( Set );
+
+					m_RendererData.DirShadowMapDescriptorSets.push_back( Set );
+					
+					u_Transform.Transform = Cmd.Transform * rSubmesh.Transform;
+					
+					// u_RendererData
+					{
+						bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::Vertex ][ 1 ].Buffer );
+
+						pData = pAllocator->MapMemory< void >( bufferAloc );
+
+						memcpy( pData, &u_Transform, sizeof( u_Transform ) );
+
+						pAllocator->UnmapMemory( bufferAloc );
+					}
+
+					Set->Bind( CommandBuffer, m_RendererData.DirShadowMapPipeline.GetPipelineLayout() );
+
+					Cmd.Mesh->GetVertexBuffer()->Bind( CommandBuffer );
+					Cmd.Mesh->GetIndexBuffer()->Bind( CommandBuffer );
+
+					Renderer::Get().RenderSubmesh( m_RendererData.CommandBuffer,
+						m_RendererData.DirShadowMapPipeline,
+						Cmd.Mesh, rSubmesh, Cmd.Transform * rSubmesh.Transform );
+				}
+			}
+		}
+
+		vkCmdEndRenderPass( CommandBuffer );
 	}
 
 	void SceneRenderer::SceneCompositePass()
@@ -853,7 +1060,7 @@ namespace Saturn {
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
 		// Begin scene composite pass.
-		m_RendererData.SceneComposite.BeginPass( CommandBuffer, m_RendererData.SceneCompositeFramebuffer, Extent );
+		m_RendererData.SceneComposite->BeginPass( CommandBuffer, m_RendererData.SceneCompositeFramebuffer->GetVulkanFramebuffer(), Extent );
 
 		VkViewport Viewport = {};
 		Viewport.x = 0;
@@ -876,7 +1083,7 @@ namespace Saturn {
 			m_RendererData.SC_IndexBuffer, m_RendererData.SC_VertexBuffer );
 		
 		// End scene composite pass.
-		m_RendererData.SceneComposite.EndPass();
+		m_RendererData.SceneComposite->EndPass();
 	}
 
 	void SceneRenderer::RenderScene()
@@ -901,6 +1108,13 @@ namespace Saturn {
 		m_RendererData.CommandBuffer = Renderer::Get().ActiveCommandBuffer();
 
 		// Passes
+
+		// DirShadowMap
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "DirShadowMap" );
+		
+		DirShadowMapPass();
+		
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Geometry" );
 		
@@ -932,49 +1146,57 @@ namespace Saturn {
 	{
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
 		
-		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-
-		GeometryPass.Terminate();
-		GeometryPassDepth = nullptr;
-		GeometryPassColor = nullptr;
-
-		vkDestroyFramebuffer( LogicalDevice, GeometryFramebuffer, nullptr );
-		GeometryFramebuffer = nullptr;
-
-		StaticMeshPipeline.Terminate();
-
-		GridPipeline.Terminate();
-
+		// DescriptorSets
 		GridDescriptorSet->Terminate();
-
-		GridVertexBuffer->Terminate();
-		GridIndexBuffer->Terminate();
-
-		SkyboxPipeline.Terminate();
 		SkyboxDescriptorSet->Terminate();
-
-		SkyboxVertexBuffer->Terminate();
-		SkyboxIndexBuffer->Terminate();
-
-		SceneComposite.Terminate();
-		SceneCompositeDepth = nullptr;
-		SceneCompositeColor = nullptr;
-		
 		SC_DescriptorSet = nullptr;
 
-		vkDestroyFramebuffer( LogicalDevice, SceneCompositeFramebuffer, nullptr );
+		for ( auto& set : DirShadowMapDescriptorSets )
+		{
+			if( set )
+				set = nullptr;
+		}
 
-		SceneCompositePipeline.Terminate();
-		
+		DirShadowMapDescriptorSets.clear();
+
+		// Vertex and Index buffers
+		GridVertexBuffer->Terminate();
+		GridIndexBuffer->Terminate();
+		SkyboxVertexBuffer->Terminate();
+		SkyboxIndexBuffer->Terminate();
 		SC_VertexBuffer->Terminate();
 		SC_IndexBuffer->Terminate();
 
-		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
+		// Framebuffers
+		GeometryFramebuffer = nullptr;
+		DirShadowMapFramebuffer = nullptr;
+		SceneCompositeFramebuffer = nullptr;
 
+		// Render Passes
+		DirShadowMapPass->Terminate();
+		GeometryPass->Terminate();
+		SceneComposite->Terminate();
+
+		DirShadowMapPass = nullptr;
+		GeometryPass = nullptr;
+		SceneComposite = nullptr;
+
+		// Pipelines
+		SceneCompositePipeline.Terminate();
+		DirShadowMapPipeline.Terminate();
+		StaticMeshPipeline.Terminate();
+		GridPipeline.Terminate();
+		SkyboxPipeline.Terminate();
+
+		// Shaders
 		GridShader = nullptr;
 		SkyboxShader = nullptr;
 		StaticMeshShader = nullptr;
 		SceneCompositeShader = nullptr;
+		DirShadowMapShader = nullptr;
+		
+		// Command Pools
+		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
 	}
 
 }

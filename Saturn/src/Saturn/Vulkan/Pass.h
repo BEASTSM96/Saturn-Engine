@@ -60,6 +60,7 @@ namespace Saturn {
 		void EndPass();
 		
 		operator VkRenderPass&() { return m_Pass; }
+		VkRenderPass GetVulkanPass() { return m_Pass; }
 
 	private:
 

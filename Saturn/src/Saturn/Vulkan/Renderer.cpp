@@ -354,7 +354,7 @@ namespace Saturn {
 		ImageViewCreateInfo.subresourceRange.levelCount = 1;
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		ImageViewCreateInfo.subresourceRange.layerCount = 1;
-		
+
 		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, pImageView ) );
 		SetDebugUtilsObjectName( "Image View", ( uint64_t ) *pImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
 	}
@@ -378,32 +378,4 @@ namespace Saturn {
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, pSampler ) );
 		SetDebugUtilsObjectName( "Image View 1", ( uint64_t ) *pSampler, VK_OBJECT_TYPE_SAMPLER );
 	}
-
-	void Resource::Terminate()
-	{
-		if( Image )
-		{
-			vkDestroyImage( VulkanContext::Get().GetDevice(), Image, nullptr );
-			Image = nullptr;
-		}
-
-		if( Memory )
-		{
-			vkFreeMemory( VulkanContext::Get().GetDevice(), Memory, nullptr );
-			Memory = nullptr;
-		}
-
-		if( ImageView )
-		{
-			vkDestroyImageView( VulkanContext::Get().GetDevice(), ImageView, nullptr );
-			ImageView = nullptr;
-		}
-
-		if( Sampler )
-		{
-			vkDestroySampler( VulkanContext::Get().GetDevice(), Sampler, nullptr );
-			Sampler = nullptr;
-		}
-	}
-
 }

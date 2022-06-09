@@ -36,8 +36,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCB(
 	const VkDebugUtilsMessengerCallbackDataEXT*        pCallbackData,
 	void*                                              pUserData )
 {
-	if( MessageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT )
+	if( MessageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
 		SAT_CORE_ERROR( "{0}", pCallbackData->pMessage );
+	else if( MessageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT )
+		SAT_CORE_WARN( "{0}", pCallbackData->pMessage );
+
 
 	return VK_FALSE;
 }

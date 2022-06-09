@@ -48,25 +48,27 @@ namespace Saturn {
 		m_PassSpec = PassSpec;
 
 		VkSubpassDescription DefaultSubpass = {};
-		DefaultSubpass.pColorAttachments = &m_PassSpec.ColorAttachmentRef;
-		DefaultSubpass.colorAttachmentCount = 1;
-		DefaultSubpass.pDepthStencilAttachment = &m_PassSpec.DepthAttachmentRef;
-		DefaultSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		
+		if( m_PassSpec.ColorAttachmentRef.layout != VK_IMAGE_LAYOUT_UNDEFINED )
+		{
+			DefaultSubpass.pColorAttachments = &m_PassSpec.ColorAttachmentRef;
+			DefaultSubpass.colorAttachmentCount = 1;
+		}
+		
+		if( m_PassSpec.DepthAttachmentRef.layout != VK_IMAGE_LAYOUT_UNDEFINED )
+		{			
+			DefaultSubpass.pDepthStencilAttachment = &m_PassSpec.DepthAttachmentRef;
+		}
 
-		VkSubpassDependency Dependency = {};
-		Dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		Dependency.dstSubpass = 0;
-		Dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		Dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		Dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		DefaultSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
 		VkRenderPassCreateInfo RenderPassCreateInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
 		RenderPassCreateInfo.pAttachments = m_PassSpec.Attachments.data();
 		RenderPassCreateInfo.attachmentCount = m_PassSpec.Attachments.size();
 		RenderPassCreateInfo.pSubpasses = &DefaultSubpass;
 		RenderPassCreateInfo.subpassCount = 1;
-		RenderPassCreateInfo.pDependencies = &Dependency;
-		RenderPassCreateInfo.dependencyCount = 1;
+		RenderPassCreateInfo.pDependencies = m_PassSpec.Dependencies.data();
+		RenderPassCreateInfo.dependencyCount = m_PassSpec.Dependencies.size();
 
 		VK_CHECK( vkCreateRenderPass( VulkanContext::Get().GetDevice(), &RenderPassCreateInfo, nullptr, &m_Pass ) );
 		SetDebugUtilsObjectName( m_PassSpec.Name, ( uint64_t ) m_Pass, VK_OBJECT_TYPE_RENDER_PASS );
