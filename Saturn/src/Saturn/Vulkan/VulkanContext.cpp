@@ -534,9 +534,9 @@ namespace Saturn {
 		VkFormat DepthFormat = FindDepthFormat();
 
 		Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT,
-			{ .width = ( uint32_t )Window::Get().Width(), .height = ( uint32_t )Window::Get().Height(), .depth = 1 }, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_DepthImage, &m_DepthImageMemory );
+			{ .width = ( uint32_t )Window::Get().Width(), .height = ( uint32_t )Window::Get().Height(), .depth = 1 }, 1, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_DepthImage, &m_DepthImageMemory );
 
-		Renderer::Get().CreateImageView( m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &m_DepthImageView );
+		Renderer::Get().CreateImageView( VK_IMAGE_VIEW_TYPE_2D, m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, &m_DepthImageView );
 		
 		SetDebugUtilsObjectName( "Context Depth Image", (uint64_t)m_DepthImage, VK_OBJECT_TYPE_IMAGE );
 		SetDebugUtilsObjectName( "Context Depth Image View", (uint64_t)m_DepthImageView, VK_OBJECT_TYPE_IMAGE_VIEW );

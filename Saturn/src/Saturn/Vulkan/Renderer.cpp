@@ -189,8 +189,6 @@ namespace Saturn {
 
 			Pipeline.Bind( CommandBuffer );
 
-			Set->Bind( CommandBuffer, Pipeline.GetPipelineLayout() );
-
 			PC_StaticMesh PushConstantData = {};
 			PushConstantData.Transform = transform * rSubmesh.Transform;
 			PushConstantData.UseNormalTexture = rMaterial->Get<float>( "u_Materials.UseNormalTexture" ) ? 1.0f : 0.0f;
@@ -205,6 +203,8 @@ namespace Saturn {
 			vkCmdPushConstants( CommandBuffer, Pipeline.GetPipelineLayout(), VK_SHADER_STAGE_ALL, 0, sizeof( PushConstantData ), &PushConstantData );
 
 			rMaterial->Bind( mesh, rSubmesh, StaticMeshShader );
+
+			Set->Bind( CommandBuffer, Pipeline.GetPipelineLayout() );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
@@ -372,14 +372,14 @@ namespace Saturn {
 		VK_CHECK( vkCreateFramebuffer( VulkanContext::Get().GetDevice(), &FramebufferCreateInfo, nullptr, pFramebuffer ) );
 	}
 
-	void Renderer::CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory )
+	void Renderer::CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, uint32_t ArrayLevels, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory )
 	{
 		VkImageCreateInfo ImageCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 		ImageCreateInfo.imageType = Type;
 		ImageCreateInfo.format = Format;
 		ImageCreateInfo.extent = Extent;
 		ImageCreateInfo.mipLevels = 1;
-		ImageCreateInfo.arrayLayers = 1;
+		ImageCreateInfo.arrayLayers = ArrayLevels;
 		ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		ImageCreateInfo.usage = Usage;
@@ -398,17 +398,17 @@ namespace Saturn {
 		VK_CHECK( vkBindImageMemory( VulkanContext::Get().GetDevice(), *pImage, *pMemory, 0 ) );
 	}
 
-	void Renderer::CreateImageView( VkImage Image, VkFormat Format, VkImageAspectFlags Aspect, VkImageView* pImageView )
+	void Renderer::CreateImageView( VkImageViewType Type, VkImage Image, VkFormat Format, VkImageAspectFlags Aspect, uint32_t LayerCount, VkImageView* pImageView )
 	{
 		VkImageViewCreateInfo ImageViewCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 		ImageViewCreateInfo.image = Image;
-		ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		ImageViewCreateInfo.viewType = Type;
 		ImageViewCreateInfo.format = Format;
 		ImageViewCreateInfo.subresourceRange.aspectMask = Aspect;
 		ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 		ImageViewCreateInfo.subresourceRange.levelCount = 1;
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-		ImageViewCreateInfo.subresourceRange.layerCount = 1;
+		ImageViewCreateInfo.subresourceRange.layerCount = LayerCount;
 
 		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, pImageView ) );
 		SetDebugUtilsObjectName( "Image View", ( uint64_t ) *pImageView, VK_OBJECT_TYPE_IMAGE_VIEW );

@@ -40,6 +40,8 @@
 
 #include "Pipeline.h"
 
+#define SHADOW_CASCADE_COUNT 4
+
 namespace Saturn {
 
 	struct DrawCommand
@@ -51,6 +53,15 @@ namespace Saturn {
 		Entity entity;
 		Ref< Mesh > Mesh = nullptr;
 		glm::mat4 Transform;
+	};
+
+	struct ShadowCascade
+	{
+		Ref< Framebuffer > Framebuffer = nullptr;
+		std::unordered_map< Submesh, Ref< DescriptorSet > > DescriptorSets;
+
+		float SplitDepth = 0.0f;
+		glm::mat4 ViewProjection;
 	};
 
 	struct RendererData
@@ -132,12 +143,12 @@ namespace Saturn {
 		// DirShadowMap
 		//////////////////////////////////////////////////////////////////////////
 		
-		// For each mesh create a descriptor set, using the shadow map shader.
-		std::vector<Ref<DescriptorSet>> DirShadowMapDescriptorSets;
-
 		Ref<Pass> DirShadowMapPass = nullptr;
-		Ref<Framebuffer> DirShadowMapFramebuffer = nullptr;
 		Pipeline DirShadowMapPipeline;
+
+		float CascadeSplitLambda = 0.95f;
+
+		std::vector< ShadowCascade > ShadowCascades;
 
 		// Geometry
 		//////////////////////////////////////////////////////////////////////////
@@ -255,6 +266,8 @@ namespace Saturn {
 
 		void RenderGrid();
 		void RenderSkybox();
+
+		void UpdateCascades();
 
 		void CreateGridComponents();
 		void DestroyGridComponents();

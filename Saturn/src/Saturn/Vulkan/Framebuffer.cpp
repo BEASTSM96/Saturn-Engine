@@ -143,10 +143,13 @@ namespace Saturn {
 			FramebufferAttachmentResource res = {};
 			
 			// Create image.
-			Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, FramebufferUtills::VulkanFormat( format ), Extent, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &res.Image, &res.Memory );
+			Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, FramebufferUtills::VulkanFormat( format ), Extent, m_Specification.ArrayLevels, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &res.Image, &res.Memory );
 
 			// Create image view.
-			Renderer::Get().CreateImageView( res.Image, FramebufferUtills::VulkanFormat( format ), VK_IMAGE_ASPECT_COLOR_BIT, &res.ImageView );
+			if( m_Specification.ArrayLevels > 1 )
+				Renderer::Get().CreateImageView( VK_IMAGE_VIEW_TYPE_2D_ARRAY, res.Image, FramebufferUtills::VulkanFormat( format ), VK_IMAGE_ASPECT_COLOR_BIT, m_Specification.ArrayLevels, &res.ImageView );
+			else
+				Renderer::Get().CreateImageView( VK_IMAGE_VIEW_TYPE_2D, res.Image, FramebufferUtills::VulkanFormat( format ), VK_IMAGE_ASPECT_COLOR_BIT, m_Specification.ArrayLevels, &res.ImageView );
 
 			// Create sampler.
 			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &res.Sampler );
@@ -158,10 +161,13 @@ namespace Saturn {
 		// Create depth resources
 		FramebufferAttachmentResource depth = {};
 
-		Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, FramebufferUtills::VulkanFormat( m_DepthFormat ), Extent, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &depth.Image, &depth.Memory );
+		Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, FramebufferUtills::VulkanFormat( m_DepthFormat ), Extent, m_Specification.ArrayLevels, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &depth.Image, &depth.Memory );
 
 		// Create image view.
-		Renderer::Get().CreateImageView( depth.Image, FramebufferUtills::VulkanFormat( m_DepthFormat ), VK_IMAGE_ASPECT_DEPTH_BIT, &depth.ImageView );
+		if( m_Specification.ArrayLevels > 1 )
+			Renderer::Get().CreateImageView( VK_IMAGE_VIEW_TYPE_2D_ARRAY, depth.Image, FramebufferUtills::VulkanFormat( m_DepthFormat ), VK_IMAGE_ASPECT_DEPTH_BIT, m_Specification.ArrayLevels, &depth.ImageView );
+		else
+			Renderer::Get().CreateImageView( VK_IMAGE_VIEW_TYPE_2D, depth.Image, FramebufferUtills::VulkanFormat( m_DepthFormat ), VK_IMAGE_ASPECT_DEPTH_BIT, m_Specification.ArrayLevels, &depth.ImageView );
 
 		// Create sampler.
 		Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &depth.Sampler );

@@ -58,9 +58,9 @@ namespace Saturn {
 		// Helpers.
 		void CreateFramebuffer( VkRenderPass RenderPass, VkExtent2D Extent, std::vector<VkImageView> Attachments, VkFramebuffer* pFramebuffer );
 
-		void CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory );
+		void CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, uint32_t ArrayLevels, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory );
 		
-		void CreateImageView( VkImage Image, VkFormat Format, VkImageAspectFlags Aspect, VkImageView* pImageView );
+		void CreateImageView( VkImageViewType Type, VkImage Image, VkFormat Format, VkImageAspectFlags Aspect, uint32_t LayerCount, VkImageView* pImageView );
 
 		void CreateSampler( VkFilter Filter, VkSampler* pSampler );
 		

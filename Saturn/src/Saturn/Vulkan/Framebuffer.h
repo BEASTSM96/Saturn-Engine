@@ -73,6 +73,7 @@ namespace Saturn {
 	{
 		uint32_t Width;
 		uint32_t Height;
+		uint32_t ArrayLevels = 1;
 
 		Ref< Pass > RenderPass = nullptr;
 		FramebufferAttachmentSpecification Attachments;
