@@ -66,7 +66,7 @@ namespace Saturn::Styles {
 		colors[ ImGuiCol_Header ]                 = ImVec4( ImColor( 47, 47, 46 ) );
 		colors[ ImGuiCol_HeaderHovered ]          = ImVec4( 0.469f, 0.469f, 0.469f, 1.000f );
 		colors[ ImGuiCol_HeaderActive ]           = colors[ ImGuiCol_Header ];
-		colors[ ImGuiCol_Separator ]			  = ImVec4( ImColor( 27, 27, 27 ) );
+		colors[ ImGuiCol_Separator ]			  = ImVec4( ImColor( 32, 32, 32 ) );
 		colors[ ImGuiCol_SeparatorHovered ]       = ImVec4( 0.391f, 0.391f, 0.391f, 1.000f );
 		colors[ ImGuiCol_SeparatorActive ]        = ImVec4( ImColor( 79, 121, 141 ) );
 		colors[ ImGuiCol_ResizeGrip ]             = ImVec4( 1.000f, 1.000f, 1.000f, 0.250f );

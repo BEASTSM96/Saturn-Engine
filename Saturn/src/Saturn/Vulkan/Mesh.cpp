@@ -32,6 +32,7 @@
 #include "VulkanContext.h"
 #include "Renderer.h"
 #include "DescriptorSet.h"
+#include "MaterialInstance.h"
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -105,6 +106,7 @@ namespace Saturn {
 
 		m_Scene = scene;
 		m_MeshShader = ShaderLibrary::Get().Find( "shader_new" );
+		m_BaseMaterial = Ref< Material >::Create( m_MeshShader, "Base Material");
 		
 		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation ) );
 		
@@ -115,9 +117,9 @@ namespace Saturn {
 		m_IndicesCount = m_Indices.size();
 
 		// Create material.
+		m_Materials.resize( m_Scene->mNumMaterials );
 		for( size_t m = 0; m < m_Scene->mNumMaterials; m++ )
 		{
-			m_Materials.resize( m_Scene->mNumMaterials );
 			aiMaterial* material = m_Scene->mMaterials[ m ];
 
 			aiString name;
@@ -127,9 +129,10 @@ namespace Saturn {
 			material->Get( AI_MATKEY_COLOR_DIFFUSE, color );
 					
 			std::string MaterialName = std::string( name.C_Str() );
-			
-			m_MeshMaterial = Ref< Material >::Create( m_MeshShader, MaterialName );
 
+			auto mat = Ref<MaterialInstance>::Create( m_BaseMaterial, name.data );
+			m_Materials[ m ] = mat;
+			
 			// Albedo Texture
 			{
 				aiString AlbedoTexturePath;
@@ -153,21 +156,21 @@ namespace Saturn {
 
 					if( AlbedoTexture )
 					{
-						m_MeshMaterial->SetResource( "u_AlbedoTexture", AlbedoTexture );
-						m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 1.0f );
+						mat->SetResource( "u_AlbedoTexture", AlbedoTexture );
+						mat->Set( "u_Materials.UseAlbedoTexture", 1.0f );
 					}
 					else
 					{
-						m_MeshMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
-						m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 0.0f );
-						m_MeshMaterial->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
+						mat->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+						mat->Set( "u_Materials.UseAlbedoTexture", 0.0f );
+						mat->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
 					}
 				}
 				else
 				{
-					m_MeshMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
-					m_MeshMaterial->Set( "u_Materials.UseAlbedoTexture", 0.0f );
-					m_MeshMaterial->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
+					mat->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+					mat->Set( "u_Materials.UseAlbedoTexture", 0.0f );
+					mat->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
 					
 				}
 			}
@@ -195,21 +198,21 @@ namespace Saturn {
 
 					if( NormalTexture )
 					{
-						m_MeshMaterial->SetResource( "u_NormalTexture", NormalTexture );
-						m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 1.0f );
+						mat->SetResource( "u_NormalTexture", NormalTexture );
+						mat->Set( "u_Materials.UseNormalTexture", 1.0f );
 					}
 					else
 					{
-						m_MeshMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
-						m_MeshMaterial->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
-						m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
+						mat->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
+						mat->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
+						mat->Set( "u_Materials.UseNormalTexture", 0.0f );
 					}
 				}
 				else
 				{
-					m_MeshMaterial->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
-					m_MeshMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
-					m_MeshMaterial->Set( "u_Materials.UseNormalTexture", 0.0f );
+					mat->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
+					mat->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
+					mat->Set( "u_Materials.UseNormalTexture", 0.0f );
 				}
 			}
 
@@ -236,15 +239,15 @@ namespace Saturn {
 					
 					if( Texture )
 					{
-						m_MeshMaterial->SetResource( "u_RoughnessTexture", Texture );
-						m_MeshMaterial->Set( "u_Materials.UseRoughnessTexture", 1.0f );
-						m_MeshMaterial->Set( "u_Materials.Roughness", 0.0f );
+						mat->SetResource( "u_RoughnessTexture", Texture );
+						mat->Set( "u_Materials.UseRoughnessTexture", 1.0f );
+						mat->Set( "u_Materials.Roughness", 0.0f );
 					}
 					else
 					{						
-						m_MeshMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
-						m_MeshMaterial->Set( "u_Materials.UseRoughnessTexture", 1.0f );
-						m_MeshMaterial->Set( "u_Materials.Roughness", 0.0f );
+						mat->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
+						mat->Set( "u_Materials.UseRoughnessTexture", 1.0f );
+						mat->Set( "u_Materials.Roughness", 0.0f );
 					}
 				}
 				else
@@ -258,9 +261,9 @@ namespace Saturn {
 
 					float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
 
-					m_MeshMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
-					m_MeshMaterial->Set( "u_Materials.UseRoughnessTexture", 0.0f );
-					m_MeshMaterial->Set( "u_Materials.Roughness", roughness );
+					mat->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
+					mat->Set( "u_Materials.UseRoughnessTexture", 0.0f );
+					mat->Set( "u_Materials.Roughness", roughness );
 				}
 			}
 		}
@@ -278,8 +281,8 @@ namespace Saturn {
 
 	Mesh::~Mesh()
 	{
-		if( m_MeshMaterial )
-			m_MeshMaterial = nullptr;
+		if( m_BaseMaterial )
+			m_BaseMaterial = nullptr;
 
 		m_VertexBuffer = nullptr;
 		m_IndexBuffer = nullptr;

@@ -107,6 +107,9 @@ namespace Saturn {
 		std::vector< FramebufferTextureFormat >& GetColorAttachmentsFormats() { return m_ColorAttachmentsFormats; }
 		const std::vector< FramebufferTextureFormat >& GetColorAttachmentsFormats() const { return m_ColorAttachmentsFormats; }
 
+		FramebufferAttachmentResource& GetDepthAttachmentsResource() { return m_DepthAttachmentResource; }
+		const FramebufferAttachmentResource& GetDepthAttachmentsResource() const { return m_DepthAttachmentResource; }
+
 	private:
 		void Create();
 

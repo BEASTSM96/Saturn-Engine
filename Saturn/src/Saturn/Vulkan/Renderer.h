@@ -39,7 +39,7 @@ namespace Saturn {
 		Renderer();
 		~Renderer();
 
-		void SubmitFullscrenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< DescriptorSet >& rDescriptorSet, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer );
+		void SubmitFullscreenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< DescriptorSet >& rDescriptorSet, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer );
 
 		// Render pass helpers.
 		void BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass );

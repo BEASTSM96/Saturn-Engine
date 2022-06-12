@@ -69,7 +69,7 @@ namespace Saturn {
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
 
 		SceneSerialiser serialiser( m_EditorScene );
-		serialiser.Deserialise( "assets/scenes/Test3.scene" );
+		serialiser.Deserialise( "assets/scenes/sponza.scene" );
 	}
 
 	EditorLayer::~EditorLayer()
@@ -156,13 +156,14 @@ namespace Saturn {
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 
+		/*
 		if( auto& rSelection = pHierarchyPanel->GetSelectionContext() )
 		{
 			if( rSelection.HasComponent<MeshComponent>() )
 			{
 				if( auto& mesh = rSelection.GetComponent<MeshComponent>().Mesh )
 				{
-					Ref< Material > material = mesh->GetMaterial();
+					Ref< Material > material = mesh->GetBaseMaterial();
 
 					ImGui::TextDisabled( "%llx", rSelection.GetComponent<IdComponent>().ID );
 
@@ -230,7 +231,7 @@ namespace Saturn {
 				}
 			}
 		}
-
+		*/
 		ImGui::End();
 	}
 

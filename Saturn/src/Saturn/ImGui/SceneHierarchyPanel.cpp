@@ -223,7 +223,8 @@ namespace Saturn {
 			if( ImGui::IsItemClicked() )
 			{
 				m_SelectionContext = entity;
-				
+				SetSelected( entity );
+
 				if( m_SelectionChangedCallback )
 					m_SelectionChangedCallback( m_SelectionContext );
 			}

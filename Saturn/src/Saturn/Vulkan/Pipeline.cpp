@@ -155,7 +155,7 @@ namespace Saturn {
 		
 		// Create the rasterization state.
 		VkPipelineRasterizationStateCreateInfo RasterizationState = { VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
-		RasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
+		RasterizationState.polygonMode = m_Specification.PolygonMode;
 		RasterizationState.cullMode = m_Specification.CullMode;
 		RasterizationState.frontFace = m_Specification.FrontFace;
 		RasterizationState.lineWidth = 2.0f;
@@ -169,7 +169,7 @@ namespace Saturn {
 		DepthStencilState.depthWriteEnable = VK_TRUE;
 		DepthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 		DepthStencilState.depthBoundsTestEnable = VK_FALSE;
-		DepthStencilState.stencilTestEnable = VK_FALSE;
+		DepthStencilState.stencilTestEnable = m_Specification.UseStencilTest;
 		
 		VkPipelineInputAssemblyStateCreateInfo AssemblyStateCreateInfo = {  VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
 		AssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;

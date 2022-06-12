@@ -102,6 +102,7 @@ namespace std {
 namespace Saturn {
 
 	class DescriptorSet;
+	class MaterialInstance;
 
 	class Mesh
 	{
@@ -124,10 +125,10 @@ namespace Saturn {
 
 		const std::vector<Triangle> TriangleCache( uint32_t index ) const { return m_TriangleCache.at( index ); }
 
-		const uint32_t& VertexCount() const { return m_VertexCount; }
-		const uint32_t& TriangleCount() const { return m_TriangleCount; }
-		const uint32_t& IndicesCount() const { return m_IndicesCount; }
-		const uint32_t& VerticesCount() const { return m_VerticesCount; }
+		const uint32_t VertexCount() const { return m_VertexCount; }
+		const uint32_t TriangleCount() const { return m_TriangleCount; }
+		const uint32_t IndicesCount() const { return m_IndicesCount; }
+		const uint32_t VerticesCount() const { return m_VerticesCount; }
 
 		const std::vector<Index>& Indices() const { return m_Indices; }
 		const std::vector<MeshVertex>& Vertices() const { return m_StaticVertices; }
@@ -138,9 +139,12 @@ namespace Saturn {
 		Ref<VertexBuffer>& GetVertexBuffer() { return m_VertexBuffer; }
 		Ref<IndexBuffer>& GetIndexBuffer() { return m_IndexBuffer; }
 		
-		Ref<Material>& GetMaterial() { return m_MeshMaterial; }
-		const Ref<Material>& GetMaterial() const { return m_MeshMaterial; }
+		Ref<Material>& GetBaseMaterial( ) { return m_BaseMaterial; }
+		const Ref<Material>& GetBaseMaterial() const { return m_BaseMaterial; }
 	
+		std::vector< Ref< MaterialInstance > >& GetMaterials() { return m_Materials; }
+		const std::vector< Ref< MaterialInstance > >& GetMaterials() const { return m_Materials; }
+
 		glm::mat4 GetTransform() const { return m_InverseTransform; }
 
 	public:
@@ -156,7 +160,8 @@ namespace Saturn {
 		std::vector<MeshVertex> m_StaticVertices;
 
 		std::vector<Submesh> m_Submeshes;
-		std::vector< Ref<Material> > m_Materials;
+
+		std::vector< Ref< MaterialInstance > > m_Materials;
 
 		std::vector<Index> m_Indices;
 		std::vector<uint32_t> m_RealIndices;
@@ -176,7 +181,7 @@ namespace Saturn {
 
 		Ref<Shader> m_MeshShader;
 		
-		Ref<Material> m_MeshMaterial;
+		Ref<Material> m_BaseMaterial;
 
 		uint32_t m_VertexCount = 0;
 		uint32_t m_TriangleCount = 0;

@@ -101,14 +101,18 @@ namespace Saturn {
 			
 			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
 			
-			if( meshComponent.Mesh )
-				SceneRenderer::Get().AddDrawCommand( entity, meshComponent.Mesh, transformComponent.GetTransform() );
+			if( meshComponent.Mesh ) 
+			{
+				if( m_SelectedEntity == e )
+					SceneRenderer::Get().SubmitSelectedMesh( entity, meshComponent.Mesh, transformComponent.GetTransform() );
+				else
+					SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transformComponent.GetTransform() );
+			}
 
-			
 			SceneRenderer::Get().SetEditorCamera( rCamera );
 		}
 		
-		// Scene rendering happens in App.cpp
+		// Scene rendering happens in App
 	}
 
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )

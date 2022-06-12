@@ -68,9 +68,11 @@ namespace Saturn {
 		uint32_t Width = 0, Height = 0;
 		
 		bool UseDepthTest = false;
+		bool UseStencilTest = false;
 
 		VkCullModeFlagBits CullMode = VK_CULL_MODE_BACK_BIT;
 		VkFrontFace FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		VkPolygonMode PolygonMode = VK_POLYGON_MODE_FILL;
 
 		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions = {};
 		std::vector< VkVertexInputBindingDescription > BindingDescriptions = {};

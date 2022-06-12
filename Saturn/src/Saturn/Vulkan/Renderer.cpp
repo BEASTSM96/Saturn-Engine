@@ -31,6 +31,7 @@
 
 #include "VulkanDebug.h"
 #include "DescriptorSet.h"
+#include "MaterialInstance.h"
 
 namespace Saturn {
 
@@ -112,7 +113,7 @@ namespace Saturn {
 		m_PinkTexture = nullptr;
 	}
 
-	void Renderer::SubmitFullscrenQuad( 
+	void Renderer::SubmitFullscreenQuad(
 		VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, 
 		Ref< DescriptorSet >& rDescriptorSet, 
 		IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer )
@@ -148,11 +149,14 @@ namespace Saturn {
 		Ref< Mesh > mesh,
 		Submesh& rSubmsh, const glm::mat4 transform )
 	{
+		auto& materials = mesh->GetMaterials();
+		auto& material = materials[ rSubmsh.MaterialIndex ];
+
 		// Bind material.
-		mesh->GetMaterial()->Bind( mesh, rSubmsh, mesh->GetShader() );
+		material->Bind( mesh, rSubmsh, mesh->GetShader() );
 
 		// Draw.
-		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, 0, 0 );
+		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, rSubmsh.BaseVertex, 0 );
 	}
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )
