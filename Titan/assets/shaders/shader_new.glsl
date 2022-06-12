@@ -108,6 +108,11 @@ layout(location = 1) in VertexOutput
 	mat4 LightSpace;
 } vs_Input;
 
+vec4 HandleAlbedo()
+{
+	return pc_Materials.UseAlbedoTexture > 0.5 ? texture( u_AlbedoTexture, vs_Input.TexCoord ) : pc_Materials.AlbedoColor; 
+}
+
 void main() 
 {
 	float Ambient = 0.20;
@@ -123,18 +128,7 @@ void main()
 	
 	float specularLight = 0.50;
 
-	//float shadow = textureProj( vs_Input.ShadowCoord / vs_Input.ShadowCoord.w, vec2( 0.0 ) );
-
-	vec4 AlbedoTextureColor;
-
-	if( pc_Materials.UseAlbedoTexture > 0.5 )
-		AlbedoTextureColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
-	else
-		AlbedoTextureColor = pc_Materials.AlbedoColor;
-	
-	vec3 diffuse = max( dot( normal, lightDir ), Ambient ) * AlbedoTextureColor.rgb;
-	
-	//FinalColor = vec4( diffuse * shadow, 1.0 );
+	vec4 AlbedoTextureColor = HandleAlbedo();
 	
 	FinalColor = AlbedoTextureColor;
 	FinalColor.rgb *= lightIntensity + Ambient;

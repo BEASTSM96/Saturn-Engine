@@ -159,6 +159,57 @@ namespace Saturn {
 		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, rSubmsh.BaseVertex, 0 );
 	}
 
+	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, const glm::mat4 transform )
+	{
+		struct PC_StaticMesh
+		{
+			alignas( 16 ) glm::mat4 Transform;
+
+			alignas( 4 ) float UseAlbedoTexture;
+			alignas( 4 ) float UseMetallicTexture;
+			alignas( 4 ) float UseRoughnessTexture;
+			alignas( 4 ) float UseNormalTexture;
+
+			alignas( 16 ) glm::vec4 AlbedoColor;
+			alignas( 4 ) float Metalness;
+			alignas( 4 ) float Roughness;
+		};
+
+		Ref<Shader> StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
+
+		for( Submesh& rSubmesh : mesh->Submeshes() )
+		{
+			auto& rMaterial = mesh->GetMaterials()[ rSubmesh.MaterialIndex ];
+			Ref< DescriptorSet > Set = mesh->GetDescriptorSets()[ rSubmesh ];
+
+			StaticMeshShader->WriteAllUBs( Set );
+
+			mesh->GetVertexBuffer()->Bind( CommandBuffer );
+			mesh->GetIndexBuffer()->Bind( CommandBuffer );
+
+			Pipeline.Bind( CommandBuffer );
+
+			Set->Bind( CommandBuffer, Pipeline.GetPipelineLayout() );
+
+			PC_StaticMesh PushConstantData = {};
+			PushConstantData.Transform = transform * rSubmesh.Transform;
+			PushConstantData.UseNormalTexture = rMaterial->Get<float>( "u_Materials.UseNormalTexture" ) ? 1.0f : 0.0f;
+			PushConstantData.UseMetallicTexture = rMaterial->Get<float>( "u_Materials.UseMetallicTexture" ) ? 1.0f : 0.0f;
+			PushConstantData.UseRoughnessTexture = rMaterial->Get<float>( "u_Materials.UseRoughnessTexture" ) ? 1.0f : 0.0f;
+			PushConstantData.UseAlbedoTexture = rMaterial->Get<float>( "u_Materials.UseAlbedoTexture" ) ? 1.0f : 0.0f;
+
+			PushConstantData.AlbedoColor = rMaterial->Get<glm::vec4>( "u_Materials.AlbedoColor" );
+			PushConstantData.Metalness = 0.0f;
+			PushConstantData.Roughness = 0.0f;
+
+			vkCmdPushConstants( CommandBuffer, Pipeline.GetPipelineLayout(), VK_SHADER_STAGE_ALL, 0, sizeof( PushConstantData ), &PushConstantData );
+
+			rMaterial->Bind( mesh, rSubmesh, StaticMeshShader );
+
+			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
+		}
+	}
+
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )
 	{
 		VkCommandBufferAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };

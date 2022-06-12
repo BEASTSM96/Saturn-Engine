@@ -146,6 +146,12 @@ namespace Saturn {
 		Ref<Pass> GeometryPass = nullptr;
 		Ref<Framebuffer> GeometryFramebuffer = nullptr;
 
+		// Selected Geometry
+		Ref<Pass> SelectedGeometryPass = nullptr;
+		Ref<Framebuffer> SelectedGeometryFramebuffer = nullptr;
+		Pipeline SelectedGeometryPipeline;
+		Ref<DescriptorSet> SelectedGeometrySet;
+
 		// STATIC MESHES
 
 		// Main geometry for static meshes.
@@ -157,9 +163,6 @@ namespace Saturn {
 
 		Ref< DescriptorSet > GridDescriptorSet = nullptr;
 
-		VkBuffer GridUniformBuffer;
-		VmaAllocation GridUBOAllocation;
-
 		VertexBuffer* GridVertexBuffer;
 		IndexBuffer* GridIndexBuffer;
 
@@ -168,9 +171,7 @@ namespace Saturn {
 		Pipeline SkyboxPipeline;
 
 		Ref< DescriptorSet > SkyboxDescriptorSet = nullptr;
-		
-		VkBuffer SkyboxUniformBuffer;
-		
+				
 		VertexBuffer* SkyboxVertexBuffer;
 		IndexBuffer* SkyboxIndexBuffer;
 
@@ -207,6 +208,7 @@ namespace Saturn {
 		Ref< Shader > StaticMeshShader = nullptr;
 		Ref< Shader > SceneCompositeShader = nullptr;
 		Ref< Shader > DirShadowMapShader = nullptr;
+		Ref< Shader > SelectedGeometryShader = nullptr;
 	};
 
 	class SceneRenderer
@@ -221,9 +223,10 @@ namespace Saturn {
 
 		void ImGuiRender();
 
-		void SetCurrentScene( Scene* pScene ) { m_pSence = pScene; }
+		void SetCurrentScene( Scene* pScene ) { m_pScene = pScene; }
 
-		void AddDrawCommand( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
+		void SubmitSelectedMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
+		void SubmitMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 
 		void SetWidthAndHeight( uint32_t w, uint32_t h ) { m_RendererData.Width = w; m_RendererData.Height = h; Recreate(); }
 
@@ -262,16 +265,19 @@ namespace Saturn {
 		void InitGeometryPass();
 		void InitDirShadowMap();
 		void InitSceneComposite();
+		void InitSelectedGeometryPass();
 
 		void GeometryPass();
 		void DirShadowMapPass();
 		void SceneCompositePass();
+		void SelectedGeometryPass();
 
 	private:
 
 		RendererData m_RendererData;
 		std::vector< DrawCommand > m_DrawList;
-		Scene* m_pSence;
+		std::vector< DrawCommand > m_SelectedMeshDrawList;
+		Scene* m_pScene;
 
 	private:
 		friend class Scene;

@@ -21,4 +21,4 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.00999999978, 0.00999999978, 0.00999999978]
     MeshComponent:
-      Filepath: \\nas-srv\dev\wr\Sparky\Saturn-Engine-v2-vk\Titan\assets\meshes\sponza\sponza.obj
+      Filepath: assets\meshes\sponza\sponza.obj

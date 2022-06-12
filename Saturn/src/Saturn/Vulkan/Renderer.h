@@ -50,6 +50,8 @@ namespace Saturn {
 		// Static mesh
 		void RenderSubmesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
 
+		void SubmitMesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, const glm::mat4 transform );
+
 		// Allocate command buffer.
 		VkCommandBuffer AllocateCommandBuffer( VkCommandPool CommandPool );
 
