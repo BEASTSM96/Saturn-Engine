@@ -149,6 +149,15 @@ namespace Saturn {
 					SetSelected( Entity );
 				}
 
+				if( ImGui::MenuItem( "Directional Light" ) )
+				{
+					auto Entity = m_Context->CreateEntity( "Directional Light" );
+					Entity.AddComponent<DirectionalLightComponent>();
+					Entity.GetComponent<TransformComponent>().Rotation = glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) );
+
+					SetSelected( Entity );
+				}
+
 				auto components = m_Context->m_Registry.view<SkylightComponent>();
 				
 				if( components.empty() )
@@ -200,6 +209,15 @@ namespace Saturn {
 				if( ImGui::Button( "Light" ) )
 				{
 					m_SelectionContext.AddComponent<LightComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			if( !m_SelectionContext.HasComponent<DirectionalLightComponent>() ) 
+			{
+				if( ImGui::Button( "Directional Light" ) )
+				{
+					m_SelectionContext.AddComponent<DirectionalLightComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -308,6 +326,12 @@ namespace Saturn {
 			DrawColorVec3Control( "Light Color", lc.Color, 150.0f );
 		
 			DrawFloatControl( "Light Intensity", lc.Intensity, 110.0f );
+		} );
+
+		DrawComponent<DirectionalLightComponent>( "Directional Light", entity, []( auto& dlc )
+		{
+			DrawFloatControl( "Intensity", dlc.Intensity, 110.0f );
+			DrawBoolControl( "Cast shadows", dlc.CastShadows );
 		} );
 
 		DrawComponent<SkylightComponent>( "Skylight", entity, []( auto& skl )

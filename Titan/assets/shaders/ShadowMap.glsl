@@ -9,7 +9,7 @@ layout(location = 2) in vec3 a_Tangent;
 layout(location = 3) in vec3 a_Bitangent;
 layout(location = 4) in vec2 a_TexCoord;
 
-#define SHADOW_CASCADE_COUNT 4
+#define SHADOW_CASCADE_COUNT 1
 
 layout(set = 0, binding = 0) uniform Matrices
 {
@@ -18,8 +18,8 @@ layout(set = 0, binding = 0) uniform Matrices
 
 layout(set = 0, binding = 1) uniform RendererData
 {
-	vec4 Position;
-} u_Position;
+	mat4 Transform;
+};
 
 layout(push_constant) uniform u_CascadeInfo 
 {
@@ -28,8 +28,7 @@ layout(push_constant) uniform u_CascadeInfo
 
 void main()
 {
-	vec3 Position = a_Position + u_Position.Position.xyz;
-	gl_Position = u_Matrices.ViewProjections[ pc_CascadeInfo.CascadeIndex ] * vec4( Position, 1.0 );
+	gl_Position = u_Matrices.ViewProjections[ pc_CascadeInfo.CascadeIndex ] * Transform * vec4( a_Position, 1.0 );
 }
 
 #type fragment

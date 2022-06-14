@@ -191,6 +191,12 @@ namespace Saturn {
 		operator glm::vec4 ( ) { return std::move( glm::vec4( Color.x, Color.z, Color.y, 1.0f ) ); }
 	};
 
+	struct DirectionalLightComponent
+	{
+		float Intensity = 1.0f;
+		bool CastShadows = true;
+	};
+
 	// Preetham sky
 	struct SkylightComponent 
 	{

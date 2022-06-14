@@ -44,7 +44,7 @@
 namespace Saturn {
 
 	EditorLayer::EditorLayer() 
-		: m_EditorCamera( glm::perspectiveFov( glm::degrees( glm::radians( 45.0f ) ), 1280.0f, 720.0f, 0.1f, 10000.0f ) )
+		: m_EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) )
 	{
 		m_EditorScene = Ref<Scene>::Create();
 		m_RuntimeScene = nullptr;
