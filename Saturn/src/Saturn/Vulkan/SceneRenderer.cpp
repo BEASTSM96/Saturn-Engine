@@ -1272,6 +1272,7 @@ namespace Saturn {
 			RenderPassBeginInfo.framebuffer = m_RendererData.ShadowCascades[ i ].Framebuffer->GetVulkanFramebuffer();
 
 			// Begin directional shadow map pass.
+			CmdBeginDebugLabel( CommandBuffer, "DirShadowMap" );
 			vkCmdBeginRenderPass( CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
 
 			// u_Matrices
@@ -1288,7 +1289,7 @@ namespace Saturn {
 			// Renderer Data
 			struct UB_RendererData
 			{
-				glm::vec4 Position;
+				glm::mat4 Transform;
 			} u_Position;
 
 			struct PC_CascadeInfo
@@ -1351,6 +1352,7 @@ namespace Saturn {
 			}
 
 			vkCmdEndRenderPass( CommandBuffer );
+			CmdEndDebugLabel( CommandBuffer );
 		}
 
 		UpdateCascades();
