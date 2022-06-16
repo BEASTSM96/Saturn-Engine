@@ -13,21 +13,10 @@ layout(set = 0, binding = 0) uniform Matrices
 	vec3 LightPosition;
 } u_Matrices;
 
-layout(push_constant) uniform u_Materials
+layout(push_constant) uniform u_Transform
 {
     mat4 Transform;
-
-	float UseAlbedoTexture;
-	float UseMetallicTexture;
-	float UseRoughnessTexture;
-	float UseNormalTexture;
-
-	//
-
-	vec4 AlbedoColor;
-	float Metalness;
-	float Roughness;
-} pc_Materials;
+};
 
 layout(location = 1) out VertexOutput 
 {
@@ -57,11 +46,11 @@ void main()
 	vs_Output.Position   = vec3( a_Position );
 	vs_Output.TexCoord   = vec2( a_TexCoord );
 
-	vs_Output.WorldNormals = mat3( pc_Materials.Transform ) * mat3( a_Normal, a_Tangent, a_Bitangent );
+	vs_Output.WorldNormals = mat3( Transform ) * mat3( a_Tangent, a_Bitangent, a_Normal );
 	
-	vs_Output.ShadowCoord = ( biasMat * u_Matrices.ViewProjection * pc_Materials.Transform ) * vec4( vs_Output.Position, 1.0 );
+	vs_Output.ShadowCoord = ( biasMat * u_Matrices.ViewProjection * Transform ) * vec4( vs_Output.Position, 1.0 );
 
-	gl_Position = u_Matrices.ViewProjection * pc_Materials.Transform * vec4( a_Position, 1.0 );
+	gl_Position = u_Matrices.ViewProjection * Transform * vec4( a_Position, 1.0 );
 }
 
 #type fragment
@@ -75,7 +64,6 @@ layout(binding = 0) uniform Matrices
 
 layout(push_constant) uniform u_Materials
 {
-    mat4 Transform;
 	float UseAlbedoTexture;
 	float UseMetallicTexture;
 	float UseRoughnessTexture;
@@ -83,7 +71,7 @@ layout(push_constant) uniform u_Materials
 
 	//
 
-	vec4 AlbedoColor;
+	layout(offset = 64) vec4 AlbedoColor;
 	float Metalness;
 	float Roughness;
 } pc_Materials;
