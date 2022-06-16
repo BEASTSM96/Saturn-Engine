@@ -120,7 +120,7 @@ namespace Saturn {
 
 			for( int i = 0; i < BlockBindings.size(); i++ )
 			{
-				Out.PushConstant = ReflectPushConstant( *BlockBindings[ i ], Module );
+				Out.PushConstants.push_back( ReflectPushConstant( *BlockBindings[ i ], Module ) );
 			}
 		}
 
@@ -171,7 +171,9 @@ namespace Saturn {
 	{
 		ReflectionPushConstant Out;
 		Out.Name = ( rBinding.name == nullptr ? rBinding.type_description->type_name : rBinding.name );
-		
+		Out.StageFlags = Module.GetShaderStage();
+		Out.Offset = rBinding.offset;
+
 		auto& rMembers = rBinding.members;
 
 		for( int i = 0; i < rBinding.member_count; i++ )
@@ -185,7 +187,7 @@ namespace Saturn {
 			Member.Size = rSPVMember.size;
 			Member.RawType = ComponentTypeToString( *rSPVMember.type_description, rSPVMember.decoration_flags );
 			Member.Type = ComponentTypeToShaderDataType( *rSPVMember.type_description, rSPVMember.decoration_flags );
-			
+
 			if( std::find( std::begin( Out.Members ), std::end( Out.Members ), Member ) == std::end( Out.Members ) )
 				Out.Members.push_back( Member );
 		}

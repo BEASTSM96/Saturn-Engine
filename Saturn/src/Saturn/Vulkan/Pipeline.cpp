@@ -34,11 +34,11 @@
 
 namespace Saturn {
 
-	void PipelineLayout::Create()
+	void PipelineLayout::Create( Shader* pShader )
 	{
 		VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-		PipelineLayoutCreateInfo.pushConstantRangeCount = PushConstants.PushConstantRanges.size();
-		PipelineLayoutCreateInfo.pPushConstantRanges = PushConstants.PushConstantRanges.data();
+		PipelineLayoutCreateInfo.pushConstantRangeCount = pShader->GetPushConstantRanges().size();
+		PipelineLayoutCreateInfo.pPushConstantRanges = pShader->GetPushConstantRanges().data();
 		PipelineLayoutCreateInfo.setLayoutCount = SetLayouts.SetLayouts.size();
 		PipelineLayoutCreateInfo.pSetLayouts = SetLayouts.SetLayouts.data();
 
@@ -62,10 +62,9 @@ namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
 
-	Pipeline::Pipeline( PipelineSpecification Spec )
+	Pipeline::Pipeline( const PipelineSpecification& Spec )
+		: m_Specification( Spec )
 	{
-		m_Specification = Spec;
-
 		Create();
 	}
 
@@ -78,7 +77,7 @@ namespace Saturn {
 	{
 		// Create the layout.
 
-		m_Specification.Layout.Create();
+		m_Specification.Layout.Create( m_Specification.pShader );
 
 		// Create shader modules
 
@@ -132,12 +131,33 @@ namespace Saturn {
 				.pName = "main"
 			} );
 		
-		VkPipelineVertexInputStateCreateInfo VertexInputState = { VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
-		VertexInputState.vertexBindingDescriptionCount = m_Specification.BindingDescriptions.size();
-		VertexInputState.pVertexBindingDescriptions = m_Specification.BindingDescriptions.data();
-		VertexInputState.vertexAttributeDescriptionCount = m_Specification.AttributeDescriptions.size();
-		VertexInputState.pVertexAttributeDescriptions = m_Specification.AttributeDescriptions.data();
+		/////
 		
+		std::vector< VkVertexInputAttributeDescription > VertexInputAttributes( m_Specification.VertexLayout.Count() );
+		
+		for ( uint32_t i = 0; i < m_Specification.VertexLayout.Count(); i++ )
+		{
+			auto element = m_Specification.VertexLayout.GetElements()[ i ];
+
+			VertexInputAttributes[i].binding = 0;
+			VertexInputAttributes[i].location = i;
+			VertexInputAttributes[i].format = ShaderDataTypeToVulkan( element.Type );
+			VertexInputAttributes[i].offset = element.Offset;
+		}
+
+		VkVertexInputBindingDescription VertexInputBinding = {};
+		VertexInputBinding.binding = 0;
+		VertexInputBinding.stride = m_Specification.VertexLayout.GetStride();
+		VertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		VkPipelineVertexInputStateCreateInfo VertexInputState = { VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
+		VertexInputState.vertexBindingDescriptionCount = 1;
+		VertexInputState.pVertexBindingDescriptions = &VertexInputBinding;
+		VertexInputState.vertexAttributeDescriptionCount = 1;
+		VertexInputState.pVertexAttributeDescriptions = VertexInputAttributes.data();
+		
+		/////
+
 		// Create the color blend attachment state.
 		VkPipelineColorBlendAttachmentState ColorBlendAttachmentState = {};
 		ColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;

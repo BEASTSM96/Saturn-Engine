@@ -128,8 +128,6 @@ namespace Saturn {
 
 		struct StaticMeshMaterial
 		{
-			alignas( 16 ) glm::mat4 Transform;
-
 			alignas( 4 ) float UseAlbedoTexture;
 			alignas( 4 ) float UseMetallicTexture;
 			alignas( 4 ) float UseRoughnessTexture;
@@ -144,7 +142,7 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		
 		Ref<Pass> DirShadowMapPass = nullptr;
-		Pipeline DirShadowMapPipeline;
+		Ref<Pipeline> DirShadowMapPipeline;
 
 		float CascadeSplitLambda = 0.95f;
 
@@ -160,17 +158,17 @@ namespace Saturn {
 		// Selected Geometry
 		Ref<Pass> SelectedGeometryPass = nullptr;
 		Ref<Framebuffer> SelectedGeometryFramebuffer = nullptr;
-		Pipeline SelectedGeometryPipeline;
+		Ref<Pipeline> SelectedGeometryPipeline;
 		Ref<DescriptorSet> SelectedGeometrySet;
 
 		// STATIC MESHES
 
 		// Main geometry for static meshes.
-		Pipeline StaticMeshPipeline;
+		Ref<Pipeline> StaticMeshPipeline;
 	
 		// GRID
 
-		Pipeline GridPipeline;
+		Ref<Pipeline> GridPipeline;
 
 		Ref< DescriptorSet > GridDescriptorSet = nullptr;
 
@@ -179,7 +177,7 @@ namespace Saturn {
 
 		// SKYBOX
 
-		Pipeline SkyboxPipeline;
+		Ref<Pipeline> SkyboxPipeline;
 
 		Ref< DescriptorSet > SkyboxDescriptorSet = nullptr;
 				
@@ -197,7 +195,7 @@ namespace Saturn {
 		Ref<Pass> SceneComposite = nullptr;
 		Ref< Framebuffer > SceneCompositeFramebuffer = nullptr;
 
-		Pipeline SceneCompositePipeline;
+		Ref<Pipeline> SceneCompositePipeline;
 		
 		// Input
 		Ref< DescriptorSet > SC_DescriptorSet = nullptr;
@@ -267,7 +265,7 @@ namespace Saturn {
 		void RenderGrid();
 		void RenderSkybox();
 
-		void UpdateCascades();
+		void UpdateCascades( glm::vec3 Direction );
 
 		void CreateGridComponents();
 		void DestroyGridComponents();

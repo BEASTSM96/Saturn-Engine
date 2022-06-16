@@ -87,6 +87,8 @@ namespace Saturn {
 	{
 		std::string Name = "";
 		size_t Size = 0;
+		uint32_t Offset = 0;
+		VkShaderStageFlags StageFlags = 0;
 		
 		std::vector< ReflectionDescriptorMember > Members;
 	};
@@ -98,7 +100,7 @@ namespace Saturn {
 
 		int SourceVersion = 0;
 		
-		ReflectionPushConstant PushConstant;
+		std::vector<ReflectionPushConstant> PushConstants;
 
 		std::vector< ReflectionDescriptor > Descriptors;
 	};

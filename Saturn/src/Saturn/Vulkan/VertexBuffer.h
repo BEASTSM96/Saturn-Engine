@@ -120,7 +120,7 @@ namespace Saturn {
 			return *this;
 		}
 
-		
+		uint32_t Count() { return (uint32_t)m_Elements.size(); }
 
 		inline const std::vector< VertexBufferElement >& GetElements() const { return m_Elements; }
 		inline uint32_t GetStride() const { return m_Stride; }

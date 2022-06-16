@@ -114,14 +114,14 @@ namespace Saturn {
 	}
 
 	void Renderer::SubmitFullscreenQuad(
-		VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, 
+		VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, 
 		Ref< DescriptorSet >& rDescriptorSet, 
 		IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer )
 	{
-		Pipeline.Bind( CommandBuffer );
+		Pipeline->Bind( CommandBuffer );
 		
 		if( rDescriptorSet )
-			rDescriptorSet->Bind( CommandBuffer, Pipeline.GetPipelineLayout() );
+			rDescriptorSet->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
 		pVertexBuffer->Bind( CommandBuffer );
 		pIndexBuffer->Bind( CommandBuffer );
@@ -138,14 +138,40 @@ namespace Saturn {
 		vkCmdEndRenderPass( CommandBuffer );
 	}
 
-	void Renderer::RenderMeshWithMaterial()
-	{
-		// TODO:
+	void Renderer::RenderMeshWithMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform )
+	{	
+		struct PC_StaticMeshF
+		{
+			alignas( 4 ) float UseAlbedoTexture;
+			alignas( 4 ) float UseMetallicTexture;
+			alignas( 4 ) float UseRoughnessTexture;
+			alignas( 4 ) float UseNormalTexture;
+
+			alignas( 16 ) glm::vec4 AlbedoColor;
+			alignas( 4 ) float Metalness;
+			alignas( 4 ) float Roughness;
+		};
+
+		//mesh->GetShader()->GetPushConstantData();
+
+		mesh->GetVertexBuffer()->Bind( CommandBuffer );
+		mesh->GetIndexBuffer()->Bind( CommandBuffer );
+
+		for ( auto& rSubmesh : mesh->Submeshes() )
+		{
+			Pipeline->Bind( CommandBuffer );
+
+			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
+
+			// Always assume that the vertex shader will have a push constant block containing the model matrix.
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
+		}
 	}
 
 	void Renderer::RenderSubmesh(
 		VkCommandBuffer CommandBuffer, 
-		Saturn::Pipeline Pipeline, 
+		Ref< Saturn::Pipeline > Pipeline,
 		Ref< Mesh > mesh,
 		Submesh& rSubmsh, const glm::mat4 transform )
 	{
@@ -158,13 +184,11 @@ namespace Saturn {
 		// Draw.
 		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, rSubmsh.BaseVertex, 0 );
 	}
-
-	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, const glm::mat4 transform )
+	
+	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
 		struct PC_StaticMesh
 		{
-			alignas( 16 ) glm::mat4 Transform;
-
 			alignas( 4 ) float UseAlbedoTexture;
 			alignas( 4 ) float UseMetallicTexture;
 			alignas( 4 ) float UseRoughnessTexture;
@@ -187,10 +211,11 @@ namespace Saturn {
 			mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			mesh->GetIndexBuffer()->Bind( CommandBuffer );
 
-			Pipeline.Bind( CommandBuffer );
+			Pipeline->Bind( CommandBuffer );
+
+			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
 
 			PC_StaticMesh PushConstantData = {};
-			PushConstantData.Transform = transform * rSubmesh.Transform;
 			PushConstantData.UseNormalTexture = rMaterial->Get<float>( "u_Materials.UseNormalTexture" ) ? 1.0f : 0.0f;
 			PushConstantData.UseMetallicTexture = rMaterial->Get<float>( "u_Materials.UseMetallicTexture" ) ? 1.0f : 0.0f;
 			PushConstantData.UseRoughnessTexture = rMaterial->Get<float>( "u_Materials.UseRoughnessTexture" ) ? 1.0f : 0.0f;
@@ -200,11 +225,12 @@ namespace Saturn {
 			PushConstantData.Metalness = 0.0f;
 			PushConstantData.Roughness = 0.0f;
 
-			vkCmdPushConstants( CommandBuffer, Pipeline.GetPipelineLayout(), VK_SHADER_STAGE_ALL, 0, sizeof( PushConstantData ), &PushConstantData );
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstantData ), &PushConstantData );
 
 			rMaterial->Bind( mesh, rSubmesh, StaticMeshShader );
 
-			Set->Bind( CommandBuffer, Pipeline.GetPipelineLayout() );
+			Set->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}

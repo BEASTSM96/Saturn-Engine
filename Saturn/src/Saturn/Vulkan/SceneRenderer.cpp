@@ -215,46 +215,28 @@ namespace Saturn {
 			ShaderLibrary::Get().Add( m_RendererData.StaticMeshShader );
 		}			
 		
-		VertexBufferLayout Layout = {
+		if( m_RendererData.StaticMeshPipeline )
+			m_RendererData.StaticMeshPipeline = nullptr;
+
+		PipelineSpecification PipelineSpec = {};
+		PipelineSpec.Width = m_RendererData.Width;
+		PipelineSpec.Height = m_RendererData.Height;
+		PipelineSpec.Name = "Static Meshes";
+		PipelineSpec.pShader = m_RendererData.StaticMeshShader.Pointer();
+		PipelineSpec.Layout.SetLayouts = { { m_RendererData.StaticMeshShader->GetSetLayout() } };
+		PipelineSpec.RenderPass = m_RendererData.GeometryPass->GetVulkanPass();
+		PipelineSpec.UseDepthTest = true;
+		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float3, "a_Normal" },
 			{ ShaderDataType::Float3, "a_Tangent" },
 			{ ShaderDataType::Float3, "a_Bitangent" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		};
-
-		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
-		
-		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Position ) } );
-		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Normal ) } );
-		AttributeDescriptions.push_back( { 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Tangent ) } );
-		AttributeDescriptions.push_back( { 3, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Binormal ) } );
-		AttributeDescriptions.push_back( { 4, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( MeshVertex, Texcoord ) } );
-
-		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
-		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
-
-		std::vector< VkPushConstantRange > PushConstants;
-		PushConstants.push_back( { .stageFlags = VK_SHADER_STAGE_ALL, .offset = 0, .size = sizeof( RendererData::StaticMeshMaterial ) } );
-
-		if( m_RendererData.StaticMeshPipeline )
-			m_RendererData.StaticMeshPipeline.Terminate();
-
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width =m_RendererData.Width;
-		PipelineSpec.Height =m_RendererData.Height;
-		PipelineSpec.Name = "Static Meshes";
-		PipelineSpec.pShader = m_RendererData.StaticMeshShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.StaticMeshShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.GeometryPass->GetVulkanPass();
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.BindingDescriptions = BindingDescriptions;
-		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		PipelineSpec.Layout.PushConstants = { PushConstants };
-
-		m_RendererData.StaticMeshPipeline = Pipeline( PipelineSpec );
+		
+		m_RendererData.StaticMeshPipeline = Ref< Pipeline >::Create( PipelineSpec );
 	}
 
 	void SceneRenderer::InitDirShadowMap()
@@ -325,56 +307,31 @@ namespace Saturn {
 			m_RendererData.DirShadowMapShader = Ref< Shader >::Create( "DirShadowMap", "assets/shaders/ShadowMap.glsl" );
 			ShaderLibrary::Get().Add( m_RendererData.DirShadowMapShader );
 		}
-
-		VertexBufferLayout Layout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal" },
-			{ ShaderDataType::Float3, "a_T" },
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-
-		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
-
-		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Position ) } );
-		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Normal ) } );
-		AttributeDescriptions.push_back( { 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Tangent ) } );
-		AttributeDescriptions.push_back( { 3, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( MeshVertex, Binormal ) } );
-		AttributeDescriptions.push_back( { 4, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( MeshVertex, Texcoord ) } );
-
-		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
-		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
 	
 		struct PC_ShadowMap
 		{
 			alignas( 4 ) uint32_t CascadeIndex;
 		};
 
-		std::vector< VkPushConstantRange > PushConstants;
-		PushConstants.push_back( { .stageFlags = VK_SHADER_STAGE_VERTEX_BIT, .offset = 0, .size = sizeof( PC_ShadowMap ) } );
-
 		PipelineSpecification PipelineSpec = {};
 		PipelineSpec.Width = 2048;
 		PipelineSpec.Height = 2048;
 		PipelineSpec.Name = "DirShadowMap";
 		PipelineSpec.pShader = m_RendererData.DirShadowMapShader.Pointer();
-		PipelineSpec.Layout.PushConstants = { PushConstants };
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.DirShadowMapShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.DirShadowMapPass->GetVulkanPass();
 		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.BindingDescriptions = BindingDescriptions;
-		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
+		PipelineSpec.VertexLayout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal" },
+			{ ShaderDataType::Float3, "a_Tanget" },
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
 		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
-		m_RendererData.DirShadowMapPipeline = Pipeline( PipelineSpec );
-
-		//////////////////////////////////////////////////////////////////////////
-		// Update Cascade
-		//////////////////////////////////////////////////////////////////////////
-
-		// Calculate frustum split depths and matrices for the shadow map cascades.
-		UpdateCascades();
+		m_RendererData.DirShadowMapPipeline = Ref< Pipeline >::Create( PipelineSpec );
 	}
 
 	void SceneRenderer::InitSceneComposite()
@@ -455,13 +412,6 @@ namespace Saturn {
 
 		/////////
 
-		// Create vertex buffer layout.
-		VertexBufferLayout Layout =
-		{
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-		
 		// Create fullscreen quad.
 		Renderer::Get().CreateFullscreenQuad( &m_RendererData.SC_VertexBuffer, &m_RendererData.SC_IndexBuffer );
 		
@@ -499,18 +449,9 @@ namespace Saturn {
 			.pTexelBufferView = nullptr } );
 
 		m_RendererData.SC_DescriptorSet->Write( DescriptorWrites );
-
-		// Create attribute descriptions & binding descriptions.
-		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
-		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
-
-		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( BaseVertex, Position ) } );
-		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( BaseVertex, Texcoord ) } );
-		
-		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
 		
 		if( m_RendererData.SceneCompositePipeline )
-			m_RendererData.SceneCompositePipeline.Terminate();
+			m_RendererData.SceneCompositePipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
 		PipelineSpec.Width = m_RendererData.Width;
@@ -520,12 +461,14 @@ namespace Saturn {
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SceneCompositeShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.SceneComposite->GetVulkanPass();
 		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.BindingDescriptions = BindingDescriptions;
-		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+		PipelineSpec.VertexLayout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" },
+		};
 
-		m_RendererData.SceneCompositePipeline = Pipeline( PipelineSpec );
+		m_RendererData.SceneCompositePipeline = Ref<Pipeline>::Create( PipelineSpec );
 	}
 
 	void SceneRenderer::InitSelectedGeometryPass()
@@ -602,15 +545,8 @@ namespace Saturn {
 
 			m_RendererData.SelectedGeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
 		}
-
+		
 		//////
-
-		VertexBufferLayout Layout =
-		{
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-
 		if( !m_RendererData.SelectedGeometryShader )
 		{
 			m_RendererData.SelectedGeometryShader = Ref< Shader >::Create( "Selected Geometry Shader", "assets/shaders/Outline.glsl" );
@@ -625,18 +561,8 @@ namespace Saturn {
 		}
 
 		//////
-
-		// Create attribute descriptions & binding descriptions.
-		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
-		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
-
-		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( BaseVertex, Position ) } );
-		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( BaseVertex, Texcoord ) } );
-
-		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
-
 		if( m_RendererData.SelectedGeometryPipeline )
-			m_RendererData.SelectedGeometryPipeline.Terminate();
+			m_RendererData.SelectedGeometryPipeline = nullptr;
 
 		std::vector< VkPushConstantRange > PushConstants;
 		PushConstants.push_back( { .stageFlags = VK_SHADER_STAGE_ALL, .offset = 0, .size = sizeof( RendererData::StaticMeshMaterial ) } );
@@ -650,12 +576,14 @@ namespace Saturn {
 		PipelineSpec.RenderPass = m_RendererData.SelectedGeometryPass->GetVulkanPass();
 		PipelineSpec.UseDepthTest = false;
 		PipelineSpec.UseStencilTest = true;
-		PipelineSpec.BindingDescriptions = BindingDescriptions;
-		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
 		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+		PipelineSpec.VertexLayout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" },
+		};
 
-		m_RendererData.SelectedGeometryPipeline = Pipeline( PipelineSpec );
+		m_RendererData.SelectedGeometryPipeline = Ref<Pipeline>::Create( PipelineSpec );
 	}
 
 	void SceneRenderer::RenderGrid()
@@ -733,7 +661,12 @@ namespace Saturn {
 		}
 	}
 
-	void SceneRenderer::UpdateCascades()
+	struct FrustumBounds
+	{
+		float r, l, b, t, f, n;
+	};
+
+	void SceneRenderer::UpdateCascades( glm::vec3 Direction )
 	{
 #if 0
 		float CascadeSplits[ SHADOW_CASCADE_COUNT ];
@@ -826,7 +759,7 @@ namespace Saturn {
 
 			LastSplitDist = CascadeSplits[ i ];
 		}
-#else
+#elif vks
 		float cascadeSplits[ SHADOW_CASCADE_COUNT ];
 
 		float nearClip = 0.5f;
@@ -906,6 +839,119 @@ namespace Saturn {
 
 			lastSplitDist = cascadeSplits[ i ];
 		}
+#else
+FrustumBounds frustumBounds[ 3 ];
+
+auto viewProjection = m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix();
+
+const int SHADOW_MAP_CASCADE_COUNT = 1;
+float cascadeSplits[ SHADOW_MAP_CASCADE_COUNT ];
+
+// TODO: less hard-coding!
+float nearClip = 0.1f;
+float farClip = 1000.0f;
+float clipRange = farClip - nearClip;
+
+float minZ = nearClip;
+float maxZ = nearClip + clipRange;
+
+float range = maxZ - minZ;
+float ratio = maxZ / minZ;
+
+// Calculate split depths based on view camera frustum
+// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
+for( uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++ )
+{
+	float p = ( i + 1 ) / static_cast< float >( SHADOW_MAP_CASCADE_COUNT );
+	float log = minZ * std::pow( ratio, p );
+	float uniform = minZ + range * p;
+	float d = m_RendererData.CascadeSplitLambda * ( log - uniform ) + uniform;
+	cascadeSplits[ i ] = ( d - nearClip ) / clipRange;
+}
+
+cascadeSplits[ 3 ] = 0.3f;
+
+// Manually set cascades here
+// cascadeSplits[0] = 0.05f;
+// cascadeSplits[1] = 0.15f;
+// cascadeSplits[2] = 0.3f;
+// cascadeSplits[3] = 1.0f;
+
+// Calculate orthographic projection matrix for each cascade
+float lastSplitDist = 0.0;
+for( uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++ )
+{
+	float splitDist = cascadeSplits[ i ];
+
+	glm::vec3 frustumCorners[ 8 ] =
+	{
+		glm::vec3( -1.0f,  1.0f, -1.0f ),
+		glm::vec3( 1.0f,  1.0f, -1.0f ),
+		glm::vec3( 1.0f, -1.0f, -1.0f ),
+		glm::vec3( -1.0f, -1.0f, -1.0f ),
+		glm::vec3( -1.0f,  1.0f,  1.0f ),
+		glm::vec3( 1.0f,  1.0f,  1.0f ),
+		glm::vec3( 1.0f, -1.0f,  1.0f ),
+		glm::vec3( -1.0f, -1.0f,  1.0f ),
+	};
+
+	// Project frustum corners into world space
+	glm::mat4 invCam = glm::inverse( viewProjection );
+	for( uint32_t i = 0; i < 8; i++ )
+	{
+		glm::vec4 invCorner = invCam * glm::vec4( frustumCorners[ i ], 1.0f );
+		frustumCorners[ i ] = invCorner / invCorner.w;
+	}
+
+	for( uint32_t i = 0; i < 4; i++ )
+	{
+		glm::vec3 dist = frustumCorners[ i + 4 ] - frustumCorners[ i ];
+		frustumCorners[ i + 4 ] = frustumCorners[ i ] + ( dist * splitDist );
+		frustumCorners[ i ] = frustumCorners[ i ] + ( dist * lastSplitDist );
+	}
+
+	// Get frustum center
+	glm::vec3 frustumCenter = glm::vec3( 0.0f );
+	for( uint32_t i = 0; i < 8; i++ )
+		frustumCenter += frustumCorners[ i ];
+
+	frustumCenter /= 8.0f;
+
+	//frustumCenter *= 0.01f;
+
+	float radius = 0.0f;
+	for( uint32_t i = 0; i < 8; i++ )
+	{
+		float distance = glm::length( frustumCorners[ i ] - frustumCenter );
+		radius = glm::max( radius, distance );
+	}
+	radius = std::ceil( radius * 16.0f ) / 16.0f;
+
+	glm::vec3 maxExtents = glm::vec3( radius );
+	glm::vec3 minExtents = -maxExtents;
+
+	glm::vec3 lightDir = Direction;
+	glm::mat4 lightViewMatrix = glm::lookAt( frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+	glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + -15.0f, maxExtents.z - minExtents.z + 15.0f );
+
+	// Offset to texel space to avoid shimmering (from https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
+	glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
+	const float ShadowMapResolution = 4096.0f;
+	glm::vec4 shadowOrigin = ( shadowMatrix * glm::vec4( 0.0f, 0.0f, 0.0f, 1.0f ) ) * ShadowMapResolution / 2.0f;
+	glm::vec4 roundedOrigin = glm::round( shadowOrigin );
+	glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+	roundOffset = roundOffset * 2.0f / ShadowMapResolution;
+	roundOffset.z = 0.0f;
+	roundOffset.w = 0.0f;
+
+	lightOrthoMatrix[ 3 ] += roundOffset;
+
+	// Store split distance and matrix in cascade
+	m_RendererData.ShadowCascades[ i ].SplitDepth = ( nearClip + splitDist * clipRange ) * -1.0f;
+	m_RendererData.ShadowCascades[ i ].ViewProjection = lightOrthoMatrix * lightViewMatrix;
+
+	lastSplitDist = cascadeSplits[ i ];
+}
 #endif
 	}
 
@@ -955,7 +1001,7 @@ namespace Saturn {
 		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
 		
 		if( m_RendererData.GridPipeline )
-			m_RendererData.GridPipeline.Terminate();
+			m_RendererData.GridPipeline = nullptr;
 
 		// Grid pipeline spec.
 		PipelineSpecification PipelineSpec = {};
@@ -965,19 +1011,21 @@ namespace Saturn {
 		PipelineSpec.pShader = m_RendererData.GridShader.Pointer();
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.GridShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass->GetVulkanPass();
-		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
-		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+		PipelineSpec.Layout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" },
+		};
 		
-		m_RendererData.GridPipeline = Pipeline( PipelineSpec );
+		m_RendererData.GridPipeline = Ref< Pipeline >::Create( PipelineSpec );
 	}
 
 	void SceneRenderer::DestroyGridComponents()
 	{
 		// Destroy grid pipeline.
-		m_RendererData.GridPipeline.Terminate();
+		m_RendererData.GridPipeline = nullptr;
 
 		// Destroy grid index buffer.
 		m_RendererData.GridIndexBuffer->Terminate();
@@ -995,12 +1043,6 @@ namespace Saturn {
 	void SceneRenderer::CreateSkyboxComponents()
 	{
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-
-		VertexBufferLayout Layout = 
-		{
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
 
 		// Create fullscreen quad.
 		Renderer::Get().CreateFullscreenQuad( &m_RendererData.SkyboxVertexBuffer, &m_RendererData.SkyboxIndexBuffer );
@@ -1030,18 +1072,8 @@ namespace Saturn {
 
 		m_RendererData.SkyboxDescriptorSet->Write( DescriptorBufferInfo, {} );
 		
-		// Gird shader attribute descriptions.
-		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
-
-		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( BaseVertex, Position ) } );
-		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( BaseVertex, Texcoord ) } );
-		
-		// Grid shader binding descriptions.
-		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
-		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
-		
 		if( m_RendererData.SkyboxPipeline )
-			m_RendererData.SkyboxPipeline.Terminate();
+			m_RendererData.SkyboxPipeline = nullptr;
 
 		// Create pipeline.
 		PipelineSpecification PipelineSpec = {};
@@ -1052,18 +1084,20 @@ namespace Saturn {
 		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SkyboxShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass->GetVulkanPass();
 		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.AttributeDescriptions = AttributeDescriptions;
-		PipelineSpec.BindingDescriptions = BindingDescriptions;
 		PipelineSpec.CullMode = VK_CULL_MODE_BACK_BIT;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+		PipelineSpec.VertexLayout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
 
-		m_RendererData.SkyboxPipeline = Pipeline( PipelineSpec );
+		m_RendererData.SkyboxPipeline = Ref<Pipeline>::Create( PipelineSpec );
 	}
 
 	void SceneRenderer::DestroySkyboxComponents()
 	{
 		// Destroy Skybox pipeline.
-		m_RendererData.SkyboxPipeline.Terminate();
+		m_RendererData.SkyboxPipeline = nullptr;
 
 		// Destroy Skybox index buffer.
 		m_RendererData.SkyboxIndexBuffer->Terminate();
@@ -1241,7 +1275,7 @@ namespace Saturn {
 		//	0.0f,
 		//	1.75f );
 
-		m_RendererData.DirShadowMapPipeline.Bind( CommandBuffer );
+		m_RendererData.DirShadowMapPipeline->Bind( CommandBuffer );
 
 		//////////////////////////////////////////////////////////////////////////
 		
@@ -1267,6 +1301,8 @@ namespace Saturn {
 			m_RendererData.ShadowCascades[ i ].DescriptorSets.clear();
 		}
 
+		UpdateCascades( m_pScene->m_DirectionalLight[ 0 ].Direction );
+
 		for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 		{
 			RenderPassBeginInfo.framebuffer = m_RendererData.ShadowCascades[ i ].Framebuffer->GetVulkanFramebuffer();
@@ -1278,14 +1314,11 @@ namespace Saturn {
 			// u_Matrices
 			struct UB_Matrices
 			{
-				glm::mat4 ViewProjection[ SHADOW_CASCADE_COUNT ];
+				glm::mat4 ViewProjection;
 			} u_Matrices;
 
-			for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
-			{
-				u_Matrices.ViewProjection[ i ] = m_RendererData.ShadowCascades[ i ].ViewProjection;
-			}
-
+			u_Matrices.ViewProjection = m_RendererData.ShadowCascades[ 0 ].ViewProjection;
+			
 			// Renderer Data
 			struct UB_RendererData
 			{
@@ -1323,17 +1356,7 @@ namespace Saturn {
 
 					pData = pAllocator->MapMemory< void >( bufferAloc );
 
-					glm::vec3 translation;
-					glm::vec3 SubmeshTranslation;
-					glm::quat Qrotation;
-					glm::vec3 scale;
-					glm::vec3 skew;
-					glm::vec4 perspective;
-
-					glm::decompose( Cmd.Transform, scale, Qrotation, translation, skew, perspective );
-					glm::decompose( rSubmesh.Transform, scale, Qrotation, SubmeshTranslation, skew, perspective );
-
-					u_Position.Position = glm::vec4( translation * SubmeshTranslation, 0.0f );
+					u_Position.Transform = Cmd.Transform * rSubmesh.Transform;
 
 					memcpy( pData, &u_Position, sizeof( u_Position ) );
 
@@ -1342,10 +1365,11 @@ namespace Saturn {
 					Cmd.Mesh->GetVertexBuffer()->Bind( CommandBuffer );
 					Cmd.Mesh->GetIndexBuffer()->Bind( CommandBuffer );
 
-					vkCmdPushConstants( CommandBuffer, m_RendererData.DirShadowMapPipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( pc_CascadeInfo ), &pc_CascadeInfo );
+					vkCmdPushConstants( CommandBuffer, m_RendererData.DirShadowMapPipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( pc_CascadeInfo ), &pc_CascadeInfo );
 
 					ShadowShader->WriteAllUBs( m_RendererData.ShadowCascades[ i ].DescriptorSets[ rSubmesh ] );
-					m_RendererData.ShadowCascades[ i ].DescriptorSets[ rSubmesh ]->Bind( CommandBuffer, m_RendererData.DirShadowMapPipeline.GetPipelineLayout() );
+
+					m_RendererData.ShadowCascades[ i ].DescriptorSets[ rSubmesh ]->Bind( CommandBuffer, m_RendererData.DirShadowMapPipeline->GetPipelineLayout() );
 
 					vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 				}
@@ -1354,8 +1378,6 @@ namespace Saturn {
 			vkCmdEndRenderPass( CommandBuffer );
 			CmdEndDebugLabel( CommandBuffer );
 		}
-
-		UpdateCascades();
 	}
 
 	void SceneRenderer::SceneCompositePass()
@@ -1413,7 +1435,7 @@ namespace Saturn {
 			vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
 			vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
 
-			m_RendererData.SelectedGeometryPipeline.Bind( m_RendererData.CommandBuffer );
+			m_RendererData.SelectedGeometryPipeline->Bind( m_RendererData.CommandBuffer );
 
 			for( auto& Cmd : m_SelectedMeshDrawList )
 			{
@@ -1437,7 +1459,7 @@ namespace Saturn {
 
 				m_RendererData.SelectedGeometryShader->WriteAllUBs( m_RendererData.SelectedGeometrySet );
 
-				m_RendererData.SelectedGeometrySet->Bind( m_RendererData.CommandBuffer, m_RendererData.SelectedGeometryPipeline.GetPipelineLayout() );
+				m_RendererData.SelectedGeometrySet->Bind( m_RendererData.CommandBuffer, m_RendererData.SelectedGeometryPipeline->GetPipelineLayout() );
 
 				Cmd.Mesh->GetVertexBuffer()->Bind( m_RendererData.CommandBuffer );
 				Cmd.Mesh->GetIndexBuffer()->Bind( m_RendererData.CommandBuffer );
@@ -1475,19 +1497,19 @@ namespace Saturn {
 		*/
 
 		m_RendererData.CommandBuffer = Renderer::Get().ActiveCommandBuffer();
-
+		
 		// Passes
 
 		// DirShadowMap
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "DirShadowMap" );
+		//CmdBeginDebugLabel( m_RendererData.CommandBuffer, "DirShadowMap" );
 		
-		DirShadowMapPass();
+		//DirShadowMapPass();
 		
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+		//CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Selected Geometry" );
 
-		SelectedGeometryPass();
+		//SelectedGeometryPass();
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
@@ -1559,11 +1581,11 @@ namespace Saturn {
 		SceneComposite = nullptr;
 
 		// Pipelines
-		SceneCompositePipeline.Terminate();
-		DirShadowMapPipeline.Terminate();
-		StaticMeshPipeline.Terminate();
-		GridPipeline.Terminate();
-		SkyboxPipeline.Terminate();
+		SceneCompositePipeline = nullptr;
+		DirShadowMapPipeline = nullptr;
+		StaticMeshPipeline = nullptr;
+		GridPipeline = nullptr;
+		SkyboxPipeline = nullptr;
 
 		// Shaders
 		GridShader = nullptr;

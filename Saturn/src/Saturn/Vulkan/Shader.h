@@ -210,6 +210,9 @@ namespace Saturn {
 		
 		ShaderWriteMap& GetWriteDescriptors() { return m_DescriptorWrites; }
 		const ShaderWriteMap& GetWriteDescriptors() const { return m_DescriptorWrites; }
+		
+		std::vector< VkPushConstantRange >& GetPushConstantRanges() { return m_PushConstantRanges; }
+		const std::vector< VkPushConstantRange >& GetPushConstantRanges() const { return m_PushConstantRanges; }
 
 		void WriteDescriptor( ShaderType Type, const std::string& rName, VkWriteDescriptorSet& rWriteDescriptor );
 
@@ -245,6 +248,8 @@ namespace Saturn {
 		// So here we saying that the shader might X amount of textures at X index and X shader stage. It's the materials job to create the textures.
 		std::vector< std::tuple< ShaderType, uint32_t, std::string > > m_Textures;
 		
+		std::vector< VkPushConstantRange > m_PushConstantRanges;
+
 		ShaderWriteMap m_DescriptorWrites;
 
 		VkDescriptorSetLayout m_SetLayout;

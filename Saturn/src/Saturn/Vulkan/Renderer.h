@@ -39,18 +39,18 @@ namespace Saturn {
 		Renderer();
 		~Renderer();
 
-		void SubmitFullscreenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< DescriptorSet >& rDescriptorSet, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer );
+		void SubmitFullscreenQuad( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< DescriptorSet >& rDescriptorSet, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer );
 
 		// Render pass helpers.
 		void BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass );
 		void EndRenderPass( VkCommandBuffer CommandBuffer );
 
-		void RenderMeshWithMaterial();
+		void RenderMeshWithMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform );
 
 		// Static mesh
-		void RenderSubmesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
+		void RenderSubmesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
 
-		void SubmitMesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, const glm::mat4 transform );
+		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< Mesh > mesh, const glm::mat4 transform );
 
 		// Allocate command buffer.
 		VkCommandBuffer AllocateCommandBuffer( VkCommandPool CommandPool );

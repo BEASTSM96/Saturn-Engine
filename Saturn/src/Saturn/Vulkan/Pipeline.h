@@ -38,26 +38,26 @@ namespace Saturn {
 		std::vector< VkDescriptorSetLayout > SetLayouts;
 	};
 	
-	struct PushConstantPipelineData
-	{
-		std::vector< VkPushConstantRange > PushConstantRanges;
-	};
-	
 	struct PipelineLayout
 	{
-		void Create();
+		PipelineLayout() {}
+		~PipelineLayout() {}
+
+		void Create( Shader* pShader );
 		void Terminate();
 
 		operator VkPipelineLayout() const { return Layout; }
 		operator VkPipelineLayout&()      { return Layout; }
 
 		VkPipelineLayout Layout = VK_NULL_HANDLE;
-		PushConstantPipelineData PushConstants = {};
 		PipelineSetLayout SetLayouts = {};
 	};
 
 	struct PipelineSpecification
 	{
+		PipelineSpecification() {}
+		~PipelineSpecification() {}
+
 		void Terminate();
 
 		Shader* pShader = nullptr;
@@ -74,8 +74,7 @@ namespace Saturn {
 		VkFrontFace FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		VkPolygonMode PolygonMode = VK_POLYGON_MODE_FILL;
 
-		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions = {};
-		std::vector< VkVertexInputBindingDescription > BindingDescriptions = {};
+		VertexBufferLayout VertexLayout = {};
 
 		std::string Name = "Pipeline";
 	};
@@ -84,7 +83,7 @@ namespace Saturn {
 	{
 	public:
 		Pipeline() { }
-		Pipeline( PipelineSpecification Spec );
+		Pipeline( const PipelineSpecification& Spec );
 		~Pipeline() {}
 		
 		void Bind( VkCommandBuffer CommandBuffer );

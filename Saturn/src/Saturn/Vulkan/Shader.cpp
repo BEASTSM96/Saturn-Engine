@@ -383,24 +383,29 @@ namespace Saturn {
 		}
 		
 		SAT_CORE_INFO( "Push constants:" );
-		SAT_CORE_INFO( " {0}:", Output.PushConstant.Name );
-
-		for ( auto& rPCMember : Output.PushConstant.Members )
+		for ( auto& PushConstant : Output.PushConstants )
 		{
-			SAT_CORE_INFO( "  {0}", rPCMember.Name );
-			SAT_CORE_INFO( "   Offset {0}", rPCMember.Offset );
-			SAT_CORE_INFO( "   Size {0}", rPCMember.Size );
-			SAT_CORE_INFO( "   Type {0}", ShaderDataTypeToString( rPCMember.Type ) );
+			SAT_CORE_INFO( " {0}:", PushConstant.Name );
 
-			// Check if the member already exists in list, if not add it.
-			auto result = std::find_if( m_Uniforms.begin(), m_Uniforms.end(), [&]( const ShaderUniform& rUniform )
-			{
-				return rUniform.Name == rPCMember.Name;
-			} );
+			m_PushConstantRanges.push_back( { .stageFlags = PushConstant.StageFlags, .offset = PushConstant.Offset, .size = (uint32_t)PushConstant.Size } );
 
-			if( result == m_Uniforms.end() )
+			for( auto& rPCMember : PushConstant.Members )
 			{
-				m_Uniforms.push_back( { Output.PushConstant.Name + "." + rPCMember.Name, rPCMember.Offset, rPCMember.Type, rPCMember.Size } );
+				SAT_CORE_INFO( "  {0}", rPCMember.Name );
+				SAT_CORE_INFO( "   Offset {0}", rPCMember.Offset );
+				SAT_CORE_INFO( "   Size {0}", rPCMember.Size );
+				SAT_CORE_INFO( "   Type {0}", ShaderDataTypeToString( rPCMember.Type ) );
+
+				// Check if the member already exists in list, if not add it.
+				auto result = std::find_if( m_Uniforms.begin(), m_Uniforms.end(), [&]( const ShaderUniform& rUniform )
+					{
+						return rUniform.Name == rPCMember.Name;
+					} );
+
+				if( result == m_Uniforms.end() )
+				{
+					m_Uniforms.push_back( { PushConstant.Name + "." + rPCMember.Name, rPCMember.Offset, rPCMember.Type, rPCMember.Size } );
+				}
 			}
 		}
 
