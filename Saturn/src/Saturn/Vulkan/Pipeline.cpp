@@ -29,43 +29,53 @@
 #include "sppch.h"
 #include "Pipeline.h"
 
+#include "Pass.h"
+
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
 
 namespace Saturn {
 
-	void PipelineLayout::Create( Shader* pShader )
-	{
-		VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-		PipelineLayoutCreateInfo.pushConstantRangeCount = pShader->GetPushConstantRanges().size();
-		PipelineLayoutCreateInfo.pPushConstantRanges = pShader->GetPushConstantRanges().data();
-		PipelineLayoutCreateInfo.setLayoutCount = SetLayouts.SetLayouts.size();
-		PipelineLayoutCreateInfo.pSetLayouts = SetLayouts.SetLayouts.data();
-
-		VK_CHECK( vkCreatePipelineLayout( VulkanContext::Get().GetDevice(), &PipelineLayoutCreateInfo, nullptr, &Layout ) );
-	}
-
-	void PipelineLayout::Terminate()
-	{
-		if( Layout )
-			vkDestroyPipelineLayout( VulkanContext::Get().GetDevice(), Layout, nullptr );
-
-		Layout = nullptr;
-	}
-
 	//////////////////////////////////////////////////////////////////////////
 	
-	void PipelineSpecification::Terminate()
+	static VkCullModeFlagBits CullModeToVulkan( CullMode mode ) 
 	{
-		Layout.Terminate();
+		switch( mode )
+		{
+			case Saturn::CullMode::None:
+				return VK_CULL_MODE_NONE;
+			case Saturn::CullMode::Front:
+				return VK_CULL_MODE_FRONT_BIT;
+			case Saturn::CullMode::Back:
+				return VK_CULL_MODE_BACK_BIT;
+			case Saturn::CullMode::FrontAndBack:
+				return VK_CULL_MODE_FRONT_AND_BACK;
+			default:
+				return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
+		}
+
+		return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 
-	Pipeline::Pipeline( const PipelineSpecification& Spec )
-		: m_Specification( Spec )
+	Pipeline::Pipeline( PipelineSpecification Spec )
 	{
+		m_Specification = Spec;
+
 		Create();
+	}
+
+	void Pipeline::Terminate()
+	{
+		if( m_PipelineLayout )
+			vkDestroyPipelineLayout( VulkanContext::Get().GetDevice(), m_PipelineLayout, nullptr );
+
+		if( m_Pipeline )
+			vkDestroyPipeline( VulkanContext::Get().GetDevice(), m_Pipeline, nullptr );
+
+		m_Pipeline = nullptr;
+		m_PipelineLayout = nullptr;
 	}
 
 	void Pipeline::Bind( VkCommandBuffer CommandBuffer )
@@ -77,18 +87,28 @@ namespace Saturn {
 	{
 		// Create the layout.
 
-		m_Specification.Layout.Create( m_Specification.pShader );
+		VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
+		if( m_Specification.Shader->GetPushConstantRanges().size() > 0 )
+		{
+			PipelineLayoutCreateInfo.pushConstantRangeCount = m_Specification.Shader->GetPushConstantRanges().size();
+			PipelineLayoutCreateInfo.pPushConstantRanges = m_Specification.Shader->GetPushConstantRanges().data();
+		}
+
+		PipelineLayoutCreateInfo.pSetLayouts = m_Specification.SetLayouts.data();
+		PipelineLayoutCreateInfo.setLayoutCount = 1;
+		
+		VK_CHECK( vkCreatePipelineLayout( VulkanContext::Get().GetDevice(), &PipelineLayoutCreateInfo, nullptr, &m_PipelineLayout ) );
 
 		// Create shader modules
 
 		VkShaderModule VertexModule = VK_NULL_HANDLE;
 		VkShaderModule FragmentModule = VK_NULL_HANDLE;
 		
-		std::string VertexName = m_Specification.pShader->GetName() + "/Vertex" + "/0";
-		std::string FragmentName = m_Specification.pShader->GetName() + "/Fragment" + "/0";
+		std::string VertexName = m_Specification.Shader->GetName() + "/Vertex" + "/0";
+		std::string FragmentName = m_Specification.Shader->GetName() + "/Fragment" + "/0";
 		
 		// Shader object spirv code.
-		auto& SpvSrc = ShaderLibrary::Get().Find( m_Specification.pShader->GetName() )->GetSpvCode();
+		auto& SpvSrc = ShaderLibrary::Get().Find( m_Specification.Shader->GetName() )->GetSpvCode();
 
 		std::vector<uint32_t> VertexCode = SpvSrc.at( { ShaderType::Vertex, 0 } );
 		std::vector<uint32_t> FragmentCode = SpvSrc.at( { ShaderType::Fragment, 0 } );
@@ -153,7 +173,7 @@ namespace Saturn {
 		VkPipelineVertexInputStateCreateInfo VertexInputState = { VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 		VertexInputState.vertexBindingDescriptionCount = 1;
 		VertexInputState.pVertexBindingDescriptions = &VertexInputBinding;
-		VertexInputState.vertexAttributeDescriptionCount = 1;
+		VertexInputState.vertexAttributeDescriptionCount = VertexInputAttributes.size();
 		VertexInputState.pVertexAttributeDescriptions = VertexInputAttributes.data();
 		
 		/////
@@ -176,7 +196,7 @@ namespace Saturn {
 		// Create the rasterization state.
 		VkPipelineRasterizationStateCreateInfo RasterizationState = { VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
 		RasterizationState.polygonMode = m_Specification.PolygonMode;
-		RasterizationState.cullMode = m_Specification.CullMode;
+		RasterizationState.cullMode = CullModeToVulkan( m_Specification.CullMode );
 		RasterizationState.frontFace = m_Specification.FrontFace;
 		RasterizationState.lineWidth = 2.0f;
 
@@ -221,8 +241,8 @@ namespace Saturn {
 		
 		// Create the pipeline.
 		VkGraphicsPipelineCreateInfo PipelineCreateInfo = { VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
-		PipelineCreateInfo.layout              = m_Specification.Layout;
-		PipelineCreateInfo.renderPass          = m_Specification.RenderPass;
+		PipelineCreateInfo.layout              = m_PipelineLayout;
+		PipelineCreateInfo.renderPass          = m_Specification.RenderPass->GetVulkanPass();
 		PipelineCreateInfo.pVertexInputState   = &VertexInputState;
 		PipelineCreateInfo.pInputAssemblyState = &AssemblyStateCreateInfo;
 		PipelineCreateInfo.pRasterizationState = &RasterizationState;
@@ -245,15 +265,5 @@ namespace Saturn {
 
 		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), VertexModule, nullptr );
 		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), FragmentModule, nullptr );
-	}
-
-	void Pipeline::Terminate()
-	{
-		m_Specification.Terminate();
-
-		if( m_Pipeline )
-			vkDestroyPipeline( VulkanContext::Get().GetDevice(), m_Pipeline, nullptr );
-
-		m_Pipeline = nullptr;
 	}
 }

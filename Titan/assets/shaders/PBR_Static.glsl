@@ -12,15 +12,15 @@ layout(set = 0, binding = 0) uniform Matrices
     mat4 ViewProjectionMatrix;
 } u_Matrices;
 
-layout(set = 0, binding = 1) uniform Transform
-{
-    mat4 Transform;
-} u_Transform;
-
-layout(set = 0, binding = 2) uniform LightMatrix
+layout(set = 0, binding = 1) uniform LightMatrix
 {
     mat4 LightMatrix;
 } u_LightMatrix;
+
+layout(push_constant) uniform Transform
+{
+    mat4 u_Transform;
+};
 
 layout(location = 1) out VertexOutput
 {

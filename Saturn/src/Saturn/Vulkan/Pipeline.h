@@ -29,79 +29,91 @@
 #pragma once
 
 #include "Shader.h"
+#include "VertexBuffer.h"
+
 #include <vulkan.h>
 
 namespace Saturn {
-
-	struct PipelineSetLayout
-	{
-		std::vector< VkDescriptorSetLayout > SetLayouts;
-	};
 	
-	struct PipelineLayout
+	class Pass;
+
+	enum class CullMode 
 	{
-		PipelineLayout() {}
-		~PipelineLayout() {}
-
-		void Create( Shader* pShader );
-		void Terminate();
-
-		operator VkPipelineLayout() const { return Layout; }
-		operator VkPipelineLayout&()      { return Layout; }
-
-		VkPipelineLayout Layout = VK_NULL_HANDLE;
-		PipelineSetLayout SetLayouts = {};
+		None,
+		Front,
+		Back,
+		FrontAndBack
 	};
 
 	struct PipelineSpecification
 	{
+		// TODO: Remove this.
 		PipelineSpecification() {}
 		~PipelineSpecification() {}
-
-		void Terminate();
-
-		Shader* pShader = nullptr;
-		VkRenderPass RenderPass = VK_NULL_HANDLE;
-
-		PipelineLayout Layout = {};
 		
+		PipelineSpecification(const PipelineSpecification& other)
+		{
+			*this = other;
+		}
+
+		PipelineSpecification& operator=( const PipelineSpecification& other )
+		{
+			if( this == &other )
+				return *this;
+
+			Shader = other.Shader;
+			RenderPass = other.RenderPass;
+			Name = other.Name;
+			VertexLayout = other.VertexLayout;
+			CullMode = other.CullMode;
+			UseDepthTest = other.UseDepthTest;
+			UseStencilTest = other.UseStencilTest;
+			FrontFace = other.FrontFace;
+			PolygonMode = other.PolygonMode;
+			SetLayouts = other.SetLayouts;
+			Width = other.Width;
+			Height = other.Height;
+
+			return *this;
+		}
+
+		//////
+
+		Ref<Shader> Shader;
+		Ref<Pass> RenderPass;
+		std::string Name = "Pipeline";
+		VertexBufferLayout VertexLayout;
+		std::vector< VkDescriptorSetLayout > SetLayouts;
 		uint32_t Width = 0, Height = 0;
-		
 		bool UseDepthTest = false;
 		bool UseStencilTest = false;
-
-		VkCullModeFlagBits CullMode = VK_CULL_MODE_BACK_BIT;
+		CullMode CullMode = CullMode::Back;
 		VkFrontFace FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		VkPolygonMode PolygonMode = VK_POLYGON_MODE_FILL;
-
-		VertexBufferLayout VertexLayout = {};
-
-		std::string Name = "Pipeline";
 	};
 
 	class Pipeline
 	{
 	public:
 		Pipeline() { }
-		Pipeline( const PipelineSpecification& Spec );
-		~Pipeline() {}
+		Pipeline( PipelineSpecification Spec );
+		~Pipeline() { Terminate(); }
 		
 		void Bind( VkCommandBuffer CommandBuffer );
 
-		VkPipeline& GetPipeline() { return m_Pipeline; }
-		VkPipelineLayout& GetPipelineLayout() { return m_Specification.Layout.Layout; }
+		VkPipeline GetPipeline() { return m_Pipeline; }
+		VkPipelineLayout GetPipelineLayout() { return m_PipelineLayout; }
 		
 		operator VkPipeline() const { return m_Pipeline; }
-		operator VkPipeline&()      { return m_Pipeline; }
 
 		void Terminate();
-
 	private:
 
 		void Create();
 
 		PipelineSpecification m_Specification = {};
 		
+		VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
 		VkPipeline m_Pipeline = VK_NULL_HANDLE;
 	};
 }

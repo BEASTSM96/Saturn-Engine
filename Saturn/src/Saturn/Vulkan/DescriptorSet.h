@@ -42,8 +42,8 @@ namespace Saturn {
 		
 		void Terminate();
 
-		operator VkDescriptorPool&() { return m_Pool; }
-		operator const VkDescriptorPool&() const { return m_Pool; }
+		operator VkDescriptorPool() { return m_Pool; }
+		operator const VkDescriptorPool() const { return m_Pool; }
 
 		// Copy assignment.
 		DescriptorPool& operator=( const DescriptorPool& other ) 

@@ -189,12 +189,13 @@ namespace Saturn {
 	{
 		struct PC_StaticMesh
 		{
+			alignas( 16 ) glm::vec4 AlbedoColor;
+			
 			alignas( 4 ) float UseAlbedoTexture;
 			alignas( 4 ) float UseMetallicTexture;
 			alignas( 4 ) float UseRoughnessTexture;
 			alignas( 4 ) float UseNormalTexture;
 
-			alignas( 16 ) glm::vec4 AlbedoColor;
 			alignas( 4 ) float Metalness;
 			alignas( 4 ) float Roughness;
 		};
@@ -226,7 +227,8 @@ namespace Saturn {
 			PushConstantData.Roughness = 0.0f;
 
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstantData ), &PushConstantData );
+			
+			//vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstantData ), &PushConstantData );
 
 			rMaterial->Bind( mesh, rSubmesh, StaticMeshShader );
 

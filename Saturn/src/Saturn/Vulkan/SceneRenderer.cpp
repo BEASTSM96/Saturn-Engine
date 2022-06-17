@@ -222,9 +222,9 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Static Meshes";
-		PipelineSpec.pShader = m_RendererData.StaticMeshShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.StaticMeshShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.GeometryPass->GetVulkanPass();
+		PipelineSpec.Shader = m_RendererData.StaticMeshShader.Pointer();
+		PipelineSpec.SetLayouts = { { m_RendererData.StaticMeshShader->GetSetLayout() } };
+		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
@@ -233,7 +233,7 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Bitangent" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		};
-		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
+		PipelineSpec.CullMode = CullMode::Back;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		
 		m_RendererData.StaticMeshPipeline = Ref< Pipeline >::Create( PipelineSpec );
@@ -317,9 +317,9 @@ namespace Saturn {
 		PipelineSpec.Width = 2048;
 		PipelineSpec.Height = 2048;
 		PipelineSpec.Name = "DirShadowMap";
-		PipelineSpec.pShader = m_RendererData.DirShadowMapShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.DirShadowMapShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.DirShadowMapPass->GetVulkanPass();
+		PipelineSpec.Shader = m_RendererData.DirShadowMapShader.Pointer();
+		PipelineSpec.SetLayouts = { { m_RendererData.DirShadowMapShader->GetSetLayout() } };
+		PipelineSpec.RenderPass = m_RendererData.DirShadowMapPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
@@ -328,7 +328,7 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		};
-		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
+		PipelineSpec.CullMode = CullMode::None;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
 		m_RendererData.DirShadowMapPipeline = Ref< Pipeline >::Create( PipelineSpec );
@@ -457,11 +457,11 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Scene Composite";
-		PipelineSpec.pShader = m_RendererData.SceneCompositeShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SceneCompositeShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.SceneComposite->GetVulkanPass();
+		PipelineSpec.Shader = m_RendererData.SceneCompositeShader.Pointer();
+		PipelineSpec.SetLayouts = { { m_RendererData.SceneCompositeShader->GetSetLayout() } };
+		PipelineSpec.RenderPass = m_RendererData.SceneComposite;
 		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
+		PipelineSpec.CullMode = CullMode::None;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
@@ -571,12 +571,12 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Selected Geometry";
-		PipelineSpec.pShader = m_RendererData.SelectedGeometryShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SelectedGeometryShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.SelectedGeometryPass->GetVulkanPass();
+		PipelineSpec.Shader = m_RendererData.SelectedGeometryShader.Pointer();
+		PipelineSpec.SetLayouts = { { m_RendererData.SelectedGeometryShader->GetSetLayout() } };
+		PipelineSpec.RenderPass = m_RendererData.SelectedGeometryPass;
 		PipelineSpec.UseDepthTest = false;
 		PipelineSpec.UseStencilTest = true;
-		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
+		PipelineSpec.CullMode = CullMode::None;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
@@ -1008,13 +1008,13 @@ for( uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++ )
 		PipelineSpec.Width =m_RendererData.Width;
 		PipelineSpec.Height =m_RendererData.Height;
 		PipelineSpec.Name = "Grid";
-		PipelineSpec.pShader = m_RendererData.GridShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.GridShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.GeometryPass->GetVulkanPass();
+		PipelineSpec.Shader = m_RendererData.GridShader.Pointer();
+		PipelineSpec.SetLayouts = { { m_RendererData.GridShader->GetSetLayout() } };
+		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = VK_CULL_MODE_NONE;
+		PipelineSpec.CullMode = CullMode::None;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.Layout = {
+		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float2, "a_TexCoord" },
 		};
@@ -1080,11 +1080,11 @@ for( uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++ )
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Skybox";
-		PipelineSpec.pShader = m_RendererData.SkyboxShader.Pointer();
-		PipelineSpec.Layout.SetLayouts = { { m_RendererData.SkyboxShader->GetSetLayout() } };
-		PipelineSpec.RenderPass = m_RendererData.GeometryPass->GetVulkanPass();
+		PipelineSpec.Shader = m_RendererData.SkyboxShader.Pointer();
+		PipelineSpec.SetLayouts = { { m_RendererData.SkyboxShader->GetSetLayout() } };
+		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = VK_CULL_MODE_BACK_BIT;
+		PipelineSpec.CullMode = CullMode::None;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },

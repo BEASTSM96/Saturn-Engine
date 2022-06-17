@@ -13,28 +13,27 @@ layout(location = 4) in vec2 a_TexCoord;
 
 layout(set = 0, binding = 0) uniform Matrices
 {
-	mat4[SHADOW_CASCADE_COUNT] ViewProjections;
+	mat4 ViewProjection;
 } u_Matrices;
 
 layout(set = 0, binding = 1) uniform RendererData
 {
 	mat4 Transform;
-};
+} u_Transform;
 
 layout(push_constant) uniform u_CascadeInfo 
 {
+	mat4 Transform;
 	uint CascadeIndex;
 } pc_CascadeInfo;
 
 void main()
 {
-	gl_Position = u_Matrices.ViewProjections[ pc_CascadeInfo.CascadeIndex ] * Transform * vec4( a_Position, 1.0 );
+	gl_Position = u_Matrices.ViewProjection * u_Transform.Transform * vec4( a_Position, 1.0 );
 }
 
 #type fragment
 #version 430
-
-layout( location = 0 ) out vec4 FinalColor;
 
 void main()
 {

@@ -59,7 +59,7 @@ namespace Saturn {
 		void BeginPass( VkCommandBuffer CommandBuffer, VkFramebuffer Framebuffer, VkExtent2D Extent );
 		void EndPass();
 		
-		operator VkRenderPass&() { return m_Pass; }
+		operator VkRenderPass() { return m_Pass; }
 		VkRenderPass GetVulkanPass() { return m_Pass; }
 
 	private:

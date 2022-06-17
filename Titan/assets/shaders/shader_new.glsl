@@ -64,6 +64,8 @@ layout(binding = 0) uniform Matrices
 
 layout(push_constant) uniform u_Materials
 {
+	layout(offset = 64) vec4 AlbedoColor;
+	
 	float UseAlbedoTexture;
 	float UseMetallicTexture;
 	float UseRoughnessTexture;
@@ -71,7 +73,6 @@ layout(push_constant) uniform u_Materials
 
 	//
 
-	layout(offset = 64) vec4 AlbedoColor;
 	float Metalness;
 	float Roughness;
 } pc_Materials;
@@ -103,6 +104,7 @@ vec4 HandleAlbedo()
 
 void main() 
 {
+/*
 	float Ambient = 0.20;
 
 	float Roughness = pc_Materials.UseRoughnessTexture > 0.5 ? texture( u_RoughnessTexture, vs_Input.TexCoord ).r : pc_Materials.Roughness;
@@ -120,4 +122,6 @@ void main()
 	
 	FinalColor = AlbedoTextureColor;
 	FinalColor.rgb *= lightIntensity + Ambient;
+*/
+	FinalColor = vec4( 1.0, 0.0, 0.0, 1.0 );
 }

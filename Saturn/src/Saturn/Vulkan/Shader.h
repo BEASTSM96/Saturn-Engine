@@ -203,7 +203,7 @@ namespace Saturn {
 		
 		std::vector< std::tuple< ShaderType, uint32_t, std::string > >& GetTextures() { return m_Textures; }
 		
-		VkDescriptorSetLayout GetSetLayout() const { return m_SetLayout; }
+		VkDescriptorSetLayout GetSetLayout() { return m_SetLayout; }
 		
 		Ref< DescriptorPool >& GetDescriptorPool() { return m_SetPool; }
 		const Ref< DescriptorPool >& GetDescriptorPool() const { return m_SetPool; }

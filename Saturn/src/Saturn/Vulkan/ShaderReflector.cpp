@@ -190,6 +190,8 @@ namespace Saturn {
 
 			if( std::find( std::begin( Out.Members ), std::end( Out.Members ), Member ) == std::end( Out.Members ) )
 				Out.Members.push_back( Member );
+
+			Out.Size += Member.Size;
 		}
 
 		return Out;
