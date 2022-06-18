@@ -38,6 +38,8 @@
 
 #include "Saturn/Serialisation/SceneSerialiser.h"
 
+#include "Saturn/Vulkan/MaterialInstance.h"
+
 #include <glm/gtc/type_ptr.hpp>
 
 
@@ -69,7 +71,7 @@ namespace Saturn {
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
 
 		SceneSerialiser serialiser( m_EditorScene );
-		serialiser.Deserialise( "assets/scenes/sponza.scene" );
+		//serialiser.Deserialise( "assets/scenes/sponza.scene" );
 	}
 
 	EditorLayer::~EditorLayer()
@@ -156,82 +158,85 @@ namespace Saturn {
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 
-		/*
 		if( auto& rSelection = pHierarchyPanel->GetSelectionContext() )
 		{
 			if( rSelection.HasComponent<MeshComponent>() )
 			{
 				if( auto& mesh = rSelection.GetComponent<MeshComponent>().Mesh )
 				{
-					Ref< Material > material = mesh->GetBaseMaterial();
-
 					ImGui::TextDisabled( "%llx", rSelection.GetComponent<IdComponent>().ID );
 
 					ImGui::Separator();
-					
-					ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
-					
-					ImGui::Separator();
 
-					ImGui::Text( "Shader: %s", material->GetShader()->GetName().c_str() );
-
-					ImGui::Separator();
-
-					ImGui::Text( "Albedo" );
-					
-					ImGui::Separator();
-					
-					bool UseAlbedoTexture = material->Get< float >( "u_Materials.UseAlbedoTexture" );
-					
-					if( UseAlbedoTexture )
+					for ( auto& rMaterial : mesh->GetMaterials() )
 					{
-						Ref< Texture2D > texture = material->GetResource( "u_AlbedoTexture" );
-						ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-
-						ImGui::SameLine();
-						
-						if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
+						if( ImGui::CollapsingHeader( rMaterial->GetName().c_str() ) ) 
 						{
-							std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
+							ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
 
-							if( !file.empty() )
+							ImGui::Separator();
+
+							ImGui::Text( "Shader: %s", rMaterial->GetShader()->GetName().c_str() );
+
+							ImGui::Separator();
+
+							ImGui::Text( "Albedo" );
+
+							ImGui::Separator();
+
+							bool UseAlbedoTexture = rMaterial->Get< float >( "u_Materials.UseAlbedoTexture" );
+
+							if( UseAlbedoTexture )
 							{
-								texture = Ref<Texture2D>::Create( file, AddressingMode::Repeat );
-								material->SetResource( "u_AlbedoTexture", texture );
+								Ref< Texture2D > texture = rMaterial->GetResource( "u_AlbedoTexture" );
+								ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+
+								ImGui::SameLine();
+
+								if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
+								{
+									std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
+
+									if( !file.empty() )
+									{
+										texture = Ref<Texture2D>::Create( file, AddressingMode::Repeat );
+										rMaterial->SetResource( "u_AlbedoTexture", texture );
+									}
+								}
 							}
+
+							if( ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture ) )
+								rMaterial->Set( "u_Materials.UseAlbedoTexture", UseAlbedoTexture ? 1.0f : 0.0f );
+
+							if( !UseAlbedoTexture )
+							{
+								glm::vec4 color = rMaterial->Get<glm::vec4>( "u_Materials.AlbedoColor" );
+
+								ImGui::ColorEdit4( "Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
+
+								rMaterial->Set< glm::vec4 >( "u_Materials.AlbedoColor", color );
+							}
+
+							ImGui::Text( "Normal" );
+
+							ImGui::Separator();
+
+							bool UseNormalTexture = rMaterial->Get< float >( "u_Materials.UseNormalTexture" );
+
+							if( UseNormalTexture )
+							{
+								Ref< Texture2D > texture = rMaterial->GetResource( "u_NormalTexture" );
+								ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+							}
+
+							if( ImGui::Checkbox( "Use Normal Texture", &UseNormalTexture ) )
+								rMaterial->Set( "u_Materials.UseNormalTexture", UseNormalTexture ? 1.0f : 0.0f );
 						}
 					}
-
-					if( ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture ) )
-						material->Set( "u_Materials.UseAlbedoTexture", UseAlbedoTexture ? 1.0f : 0.0f );
-					
-					if( !UseAlbedoTexture )
-					{
-						glm::vec4 color = material->Get<glm::vec4>( "u_Materials.AlbedoColor" );
-
-						ImGui::ColorEdit4( "Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
-
-						material->Set< glm::vec4 >( "u_Materials.AlbedoColor", color );
-					}
-
-					ImGui::Text( "Normal" );
-
-					ImGui::Separator();
-
-					bool UseNormalTexture = material->Get< float >( "u_Materials.UseNormalTexture" );
-
-					if( UseNormalTexture )
-					{
-						Ref< Texture2D > texture = material->GetResource( "u_NormalTexture" );
-						ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-					}
-
-					if( ImGui::Checkbox( "Use Normal Texture", &UseNormalTexture ) )
-						material->Set( "u_Materials.UseNormalTexture", UseNormalTexture ? 1.0f : 0.0f );
 				}
 			}
 		}
-		*/
+
 		ImGui::End();
 	}
 

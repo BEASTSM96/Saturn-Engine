@@ -28,84 +28,105 @@
 
 #pragma once
 
-#include <string>
-
-#include "Texture.h"
-
-#include "ShaderDataType.h"
-
-#include "Saturn/Core/Memory/Buffer.h"
+#include <stdint.h>
+#include <cstring>
 
 namespace Saturn {
-	
-	// A shader uniform represents a uniform variable in a shader.
-	class ShaderUniform
+
+	class Buffer
 	{
 	public:
-		ShaderUniform() { m_Data = Buffer(); }
+		Buffer() : Size( 0 ), Data( nullptr ) {}
+		Buffer( size_t size, uint8_t* pData ) : Size( size ), Data( pData ) {}
 		
-		~ShaderUniform()
+		void Zero_Memory()
 		{
-			Terminate();
+			if( Data )
+				memset( Data, 0, Size );
 		}
 
-		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size, uint32_t offset, bool isPushConstantData = false )
-			: m_Name( name ), m_Location( location ), m_Type( type ), m_IsPushConstantData( isPushConstantData ), m_Size( size ), m_Offset( offset )
+		void Free() 
 		{
-			m_Data.Allocate( size );
-			m_Data.Zero_Memory();
-		}
-
-		void Terminate()
-		{
-			switch( m_Type )
+			if( Data )
 			{
-				case Saturn::ShaderDataType::None:
-				case Saturn::ShaderDataType::Float:
-				case Saturn::ShaderDataType::Float2:
-				case Saturn::ShaderDataType::Float3:
-				case Saturn::ShaderDataType::Float4:
-				case Saturn::ShaderDataType::Mat3:
-				case Saturn::ShaderDataType::Mat4:
-				case Saturn::ShaderDataType::Int:
-				case Saturn::ShaderDataType::Int2:
-				case Saturn::ShaderDataType::Int3:
-				case Saturn::ShaderDataType::Int4:
-				case Saturn::ShaderDataType::Bool:
-				{
-					//if( m_Data )
-					//	m_Data.Free();
-				} break;
-				
-				default:
-					break;
+				delete[] Data;
+				Data = nullptr;
+				Size = 0;
 			}
-			
-			m_Location = -1;
-			m_Type = ShaderDataType::None;
 		}
 
-		const std::string& GetName() const { return m_Name; }
-		int GetLocation() const { return m_Location; }
-		ShaderDataType GetType() const { return m_Type; }
-		bool GetIsPushConstantData() const { return m_IsPushConstantData; }
+		template<typename Ty>
+		Ty& Read( uint32_t Offset = 0 ) 
+		{
+			return *( Ty* ) ( Data + Offset );
+		}
 
-		Buffer& GetBuffer() { return m_Data; }
-		const Buffer& GetBuffer() const { return m_Data; }
+		template<typename Ty>
+		Ty* As() 
+		{
+			return ( Ty* ) Data;
+		}
 
-		uint32_t GetOffset() { return m_Offset; }
-		size_t GetSize() { return m_Size; }
+		void Write( uint32_t Offset, const void* pData, size_t size )
+		{
+			memcpy( Data + Offset, pData, size );
+		}
+		
+		// Clears the original buffer, then copies the old data into a new larger buffer.
+		void Reallocate( size_t size ) 
+		{	
+			// Make sure to retain the original size & buffer.
+			size_t OriginalSize = Size;
+			uint8_t* OriginalData = Data;
 
-	private:
-		std::string m_Name = "";
-		int m_Location = -1;
-		ShaderDataType m_Type = ShaderDataType::None;
-		bool m_IsPushConstantData = false;
+			Free();
 
-		uint32_t m_Offset = 0;
-		uint32_t m_Size = 0;
+			// Add new size onto the original size.
+			uint8_t* NewData = new uint8_t[ OriginalSize + size ];
+			
+			// Copy the original data into the new buffer.
+			memcpy( NewData, OriginalData, OriginalSize );
 
-		Buffer m_Data;
+			delete[] OriginalData;
+
+			// Set the new size and data.
+			Data = NewData;
+			Size = OriginalSize + size;
+			
+			delete[] NewData;
+		}
+
+		// Clears the buffer and then reallocates it to the specified size.
+		void Allocate( size_t size )
+		{
+			delete[] Data;
+			Data = nullptr;
+
+			if( size == 0 )
+				return;
+
+			Data = new uint8_t[ size ];
+			Size = size;
+		}
+
+		static Buffer Copy( const void* pData, size_t size )
+		{
+			Buffer buffer;
+			
+			// Allocate the buffer
+			buffer.Allocate( size );
+
+			memcpy( buffer.Data, pData, size );
+
+			return buffer;
+		}
+
+		operator bool() { return Data != nullptr; }
+		uint8_t& operator [] ( uint32_t Offset ) { return Data[ Offset ]; }
+		uint8_t operator [] ( uint32_t Offset ) const { return Data[ Offset ]; }
+		
+	public:
+		size_t Size;
+		uint8_t* Data;
 	};
-
 }

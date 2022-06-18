@@ -69,6 +69,7 @@ namespace Saturn {
 		int Set = -1;
 		int Binding = -1;
 		int Count = -1;
+		uint32_t Offset = -1;
 		size_t Size = 0;
 		bool Accessed = false;
 		VkDescriptorType Type = VK_DESCRIPTOR_TYPE_MAX_ENUM; // i.e VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER

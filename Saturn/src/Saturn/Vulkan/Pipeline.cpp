@@ -153,18 +153,23 @@ namespace Saturn {
 		
 		/////
 		
+
 		std::vector< VkVertexInputAttributeDescription > VertexInputAttributes( m_Specification.VertexLayout.Count() );
 		
-		for ( uint32_t i = 0; i < m_Specification.VertexLayout.Count(); i++ )
+		uint32_t i = 0;
+		
+		for ( auto element : m_Specification.VertexLayout )
 		{
-			auto element = m_Specification.VertexLayout.GetElements()[ i ];
+			VertexInputAttributes[ i ].binding = 0;
+			VertexInputAttributes[ i ].location = i;
+			VertexInputAttributes[ i ].format = ShaderDataTypeToVulkan( element.Type );
+			VertexInputAttributes[ i ].offset = element.Offset;
+			
+			SAT_CORE_INFO( "Offset: {0}", VertexInputAttributes[ i ].offset );
 
-			VertexInputAttributes[i].binding = 0;
-			VertexInputAttributes[i].location = i;
-			VertexInputAttributes[i].format = ShaderDataTypeToVulkan( element.Type );
-			VertexInputAttributes[i].offset = element.Offset;
+			i++;
 		}
-
+		
 		VkVertexInputBindingDescription VertexInputBinding = {};
 		VertexInputBinding.binding = 0;
 		VertexInputBinding.stride = m_Specification.VertexLayout.GetStride();

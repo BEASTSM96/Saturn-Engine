@@ -187,19 +187,6 @@ namespace Saturn {
 	
 	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
-		struct PC_StaticMesh
-		{
-			alignas( 16 ) glm::vec4 AlbedoColor;
-			
-			alignas( 4 ) float UseAlbedoTexture;
-			alignas( 4 ) float UseMetallicTexture;
-			alignas( 4 ) float UseRoughnessTexture;
-			alignas( 4 ) float UseNormalTexture;
-
-			alignas( 4 ) float Metalness;
-			alignas( 4 ) float Roughness;
-		};
-
 		Ref<Shader> StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
 
 		for( Submesh& rSubmesh : mesh->Submeshes() )
@@ -216,19 +203,10 @@ namespace Saturn {
 
 			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
 
-			PC_StaticMesh PushConstantData = {};
-			PushConstantData.UseNormalTexture = rMaterial->Get<float>( "u_Materials.UseNormalTexture" ) ? 1.0f : 0.0f;
-			PushConstantData.UseMetallicTexture = rMaterial->Get<float>( "u_Materials.UseMetallicTexture" ) ? 1.0f : 0.0f;
-			PushConstantData.UseRoughnessTexture = rMaterial->Get<float>( "u_Materials.UseRoughnessTexture" ) ? 1.0f : 0.0f;
-			PushConstantData.UseAlbedoTexture = rMaterial->Get<float>( "u_Materials.UseAlbedoTexture" ) ? 1.0f : 0.0f;
-
-			PushConstantData.AlbedoColor = rMaterial->Get<glm::vec4>( "u_Materials.AlbedoColor" );
-			PushConstantData.Metalness = 0.0f;
-			PushConstantData.Roughness = 0.0f;
-
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
 			
-			//vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( PushConstantData ), &PushConstantData );
+			// Set the offset to be the size of the vertex push constant.
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), sizeof( rMaterial->GetPushConstantData().Size ), rMaterial->GetPushConstantData().Data );
 
 			rMaterial->Bind( mesh, rSubmesh, StaticMeshShader );
 

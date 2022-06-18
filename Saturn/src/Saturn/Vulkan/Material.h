@@ -56,9 +56,16 @@ namespace Saturn {
 		{
 			for ( auto& Uniform : m_Uniforms )
 			{
-				if ( Uniform.Name == Name )
+				if ( Uniform.GetName() == Name )
 				{
-					Uniform.Set( ( uint8_t* )&Value, sizeof( Ty ) );
+					if( !Uniform.GetIsPushConstantData() )
+					{
+						Uniform.GetBuffer().Write( Uniform.GetOffset(), ( uint8_t* )&Value, sizeof( Ty ) );
+					}
+					else
+					{
+						m_PushConstantData.Write( Uniform.GetOffset(), ( uint8_t* ) &Value, sizeof( Ty ) );
+					}
 					
 					m_AnyValueChanged = true;
 
@@ -72,9 +79,16 @@ namespace Saturn {
 		{
 			for ( auto& Uniform : m_Uniforms )
 			{
-				if ( Uniform.Name == Name )
+				if ( Uniform.GetName() == Name )
 				{
-					return Uniform.Read< Ty >();
+					if ( !Uniform.GetIsPushConstantData() )
+					{
+						return Uniform.GetBuffer().Read< Ty >( Uniform.GetOffset() );
+					}
+					else
+					{
+						return m_PushConstantData.Read< Ty >( Uniform.GetOffset() );
+					}
 				}
 			}
 		}
@@ -93,6 +107,8 @@ namespace Saturn {
 
 		bool m_AnyValueChanged = false;
 
+		Buffer m_PushConstantData;
+		
 		std::vector< ShaderUniform > m_Uniforms;
 		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
 

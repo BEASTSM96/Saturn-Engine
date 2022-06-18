@@ -40,7 +40,7 @@
 
 #include "Pipeline.h"
 
-#define SHADOW_CASCADE_COUNT 1
+#define SHADOW_CASCADE_COUNT 4
 
 namespace Saturn {
 

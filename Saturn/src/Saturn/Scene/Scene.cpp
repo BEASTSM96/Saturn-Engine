@@ -95,6 +95,23 @@ namespace Saturn {
 		
 		SceneRenderer::Get().SetCurrentScene( this );
 
+		// Lights
+		{
+			auto lights = m_Registry.group<DirectionalLightComponent>( entt::get<TransformComponent> );
+			uint32_t lightCount = 0;
+			for( const auto& e : lights )
+			{
+				auto [transformComponent, lightComponent] = lights.get<TransformComponent, DirectionalLightComponent>( e );
+				
+				glm::vec3 direction = -glm::normalize( glm::mat3( transformComponent.GetTransform() ) * glm::vec3( 1.0f ) );
+				
+				SAT_CORE_INFO( "direction, {0}", direction );
+
+				// 
+				m_DirectionalLight[ lightCount++ ] = { direction, lightComponent.Intensity };
+			}
+		}
+
 		for( const auto e : group )
 		{
 			Entity entity( e, this );
@@ -110,9 +127,7 @@ namespace Saturn {
 			}
 
 			SceneRenderer::Get().SetEditorCamera( rCamera );
-		}
-		
-		// Scene rendering happens in App
+		}	
 	}
 
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )

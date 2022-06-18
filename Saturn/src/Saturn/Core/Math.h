@@ -28,84 +28,9 @@
 
 #pragma once
 
-#include <string>
+#include <glm/glm.hpp>
 
-#include "Texture.h"
+namespace Saturn::Math {
 
-#include "ShaderDataType.h"
-
-#include "Saturn/Core/Memory/Buffer.h"
-
-namespace Saturn {
-	
-	// A shader uniform represents a uniform variable in a shader.
-	class ShaderUniform
-	{
-	public:
-		ShaderUniform() { m_Data = Buffer(); }
-		
-		~ShaderUniform()
-		{
-			Terminate();
-		}
-
-		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size, uint32_t offset, bool isPushConstantData = false )
-			: m_Name( name ), m_Location( location ), m_Type( type ), m_IsPushConstantData( isPushConstantData ), m_Size( size ), m_Offset( offset )
-		{
-			m_Data.Allocate( size );
-			m_Data.Zero_Memory();
-		}
-
-		void Terminate()
-		{
-			switch( m_Type )
-			{
-				case Saturn::ShaderDataType::None:
-				case Saturn::ShaderDataType::Float:
-				case Saturn::ShaderDataType::Float2:
-				case Saturn::ShaderDataType::Float3:
-				case Saturn::ShaderDataType::Float4:
-				case Saturn::ShaderDataType::Mat3:
-				case Saturn::ShaderDataType::Mat4:
-				case Saturn::ShaderDataType::Int:
-				case Saturn::ShaderDataType::Int2:
-				case Saturn::ShaderDataType::Int3:
-				case Saturn::ShaderDataType::Int4:
-				case Saturn::ShaderDataType::Bool:
-				{
-					//if( m_Data )
-					//	m_Data.Free();
-				} break;
-				
-				default:
-					break;
-			}
-			
-			m_Location = -1;
-			m_Type = ShaderDataType::None;
-		}
-
-		const std::string& GetName() const { return m_Name; }
-		int GetLocation() const { return m_Location; }
-		ShaderDataType GetType() const { return m_Type; }
-		bool GetIsPushConstantData() const { return m_IsPushConstantData; }
-
-		Buffer& GetBuffer() { return m_Data; }
-		const Buffer& GetBuffer() const { return m_Data; }
-
-		uint32_t GetOffset() { return m_Offset; }
-		size_t GetSize() { return m_Size; }
-
-	private:
-		std::string m_Name = "";
-		int m_Location = -1;
-		ShaderDataType m_Type = ShaderDataType::None;
-		bool m_IsPushConstantData = false;
-
-		uint32_t m_Offset = 0;
-		uint32_t m_Size = 0;
-
-		Buffer m_Data;
-	};
-
+	bool DecomposeTransform( const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale );
 }

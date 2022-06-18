@@ -50,7 +50,7 @@ namespace Saturn {
 		All = 4
 	};
 	
-	// A shader uniform buffer represents a uniform buffer variable in a shader.
+	// A shader uniform buffer represents a uniform buffer block in a shader.
 	struct ShaderUniformBuffer
 	{
 		std::string Name;
@@ -243,7 +243,8 @@ namespace Saturn {
 		std::filesystem::path m_Filepath = "";
 		
 		std::vector< ShaderUniform > m_Uniforms;
-
+		std::vector< ShaderUniform > m_PushConstantUniforms;
+		
 		ShaderUBMap m_UniformBuffers;
 		// So here we saying that the shader might X amount of textures at X index and X shader stage. It's the materials job to create the textures.
 		std::vector< std::tuple< ShaderType, uint32_t, std::string > > m_Textures;

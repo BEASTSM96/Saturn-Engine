@@ -280,14 +280,16 @@ namespace Saturn {
 		ImGui::TextDisabled( "%llx", id );
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
-		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )
+		DrawComponent<TransformComponent>( "Transform", entity, [&]( auto& tc )
 		{
 			auto& translation = tc.Position;
-			auto& rotation = tc.Rotation;
+			glm::vec3 rotation = glm::degrees( tc.Rotation );
 			auto& scale = tc.Scale;
 
 			DrawVec3Control( "Translation", tc.Position );
-			DrawVec3Control( "Rotation", tc.Rotation );
+			
+			DrawVec3Control( "Rotation", rotation );
+			tc.Rotation = glm::radians( rotation );
 			DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 

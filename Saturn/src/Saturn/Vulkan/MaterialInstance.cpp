@@ -33,24 +33,32 @@
 #include "Renderer.h"
 #include "DescriptorSet.h"
 
+// VUID-VkPushConstantRange-offset-00294, 128
+#define MAX_PUSH_CONSTANT_SIZE 128
+
+// TODO: Come up with a proper way of handling uniforms and textures so we don't have to copy them.
+// TODO: When we have an asset manager, this needs to be re-worked!
+// SELF: Please create a material instance viewer!
+
 namespace Saturn {
 
 	MaterialInstance::MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName )
 	{
 		m_Material = rMaterial;
 		m_Name = rName;
-
-		// TODO: Come up with a proper way of handling uniforms and textures so we don't have to copy them.
-
-		for ( auto& uniform : m_Material->m_Uniforms )
-		{
-			m_Uniforms.push_back( { uniform.Name, uniform.Location, uniform.Type, uniform.Size }  );
-		}
-
-		for( auto& [ name, texture ] : m_Material->m_Textures )
+		
+		m_PushConstantData.Allocate( MAX_PUSH_CONSTANT_SIZE );
+		m_PushConstantData.Zero_Memory();
+		
+		for( auto&& [ name, texture ] : m_Material->m_Textures )
 		{
 			m_Textures[ name ] = nullptr;
 		}
+
+		for( auto rUniform : m_Material->m_Uniforms )
+		{
+			m_Uniforms.push_back( { rUniform.GetName(), rUniform.GetLocation(), rUniform.GetType(), rUniform.GetSize(), rUniform.GetOffset(), rUniform.GetIsPushConstantData() } );
+		}	
 	}
 
 	MaterialInstance::~MaterialInstance()

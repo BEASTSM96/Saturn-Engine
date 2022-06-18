@@ -38,6 +38,8 @@
 #include "imgui.h"
 #include "ImGuizmo/ImGuizmo.h"
 
+#include "Saturn/Core/Math.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -115,15 +117,11 @@ namespace Saturn {
 				if( ImGuizmo::IsUsing() )
 				{
 					glm::vec3 translation;
-					glm::quat Qrotation;
+					glm::vec3 rotation;
 					glm::vec3 scale;
-					glm::vec3 skew;
-					glm::vec4 perspective;
 
-					glm::decompose( transform, scale, Qrotation, translation, skew, perspective );
+					Math::DecomposeTransform( transform, translation, rotation, scale );
 
-					glm::vec3 rotation = glm::eulerAngles( Qrotation );
-					
 					glm::vec3 DeltaRotation = rotation - tc.Rotation;
 
 					tc.Position = translation;

@@ -10,7 +10,6 @@ layout(location = 4) in vec2 a_TexCoord;
 layout(set = 0, binding = 0) uniform Matrices 
 {
     mat4 ViewProjection;
-	vec3 LightPosition;
 } u_Matrices;
 
 layout(push_constant) uniform u_Transform
@@ -26,9 +25,6 @@ layout(location = 1) out VertexOutput
 	vec3 Position;
 	vec2 TexCoord;
 	mat3 WorldNormals;
-	vec4 ShadowCoord;
-	mat4 LightSpace;
-	vec3 LightPositionVec;
 } vs_Output;
 
 const mat4 biasMat = mat4( 
@@ -48,19 +44,11 @@ void main()
 
 	vs_Output.WorldNormals = mat3( Transform ) * mat3( a_Tangent, a_Bitangent, a_Normal );
 	
-	vs_Output.ShadowCoord = ( biasMat * u_Matrices.ViewProjection * Transform ) * vec4( vs_Output.Position, 1.0 );
-
 	gl_Position = u_Matrices.ViewProjection * Transform * vec4( a_Position, 1.0 );
 }
 
 #type fragment
 #version 450
-
-layout(binding = 0) uniform Matrices 
-{
-    mat4 ViewProjection;
-	vec3 LightPosition;
-} u_Matrices;
 
 layout(push_constant) uniform u_Materials
 {
@@ -76,6 +64,7 @@ layout(push_constant) uniform u_Materials
 	float Metalness;
 	float Roughness;
 } pc_Materials;
+
 
 // Textures
 layout (binding = 1) uniform sampler2D u_AlbedoTexture;
@@ -93,35 +82,25 @@ layout(location = 1) in VertexOutput
 	vec3 Position;
 	vec2 TexCoord;
 	mat3 WorldNormals;
-	vec4 ShadowCoord;
-	mat4 LightSpace;
 } vs_Input;
 
 vec4 HandleAlbedo()
 {
-	return pc_Materials.UseAlbedoTexture > 0.5 ? texture( u_AlbedoTexture, vs_Input.TexCoord ) : pc_Materials.AlbedoColor; 
+	return texture( u_AlbedoTexture, vs_Input.TexCoord ); 
 }
 
 void main() 
 {
-/*
 	float Ambient = 0.20;
-
-	float Roughness = pc_Materials.UseRoughnessTexture > 0.5 ? texture( u_RoughnessTexture, vs_Input.TexCoord ).r : pc_Materials.Roughness;
-	Roughness = max( Roughness, 0.05 );
 
 	vec3 normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
 	normal = normalize( vs_Input.WorldNormals * normal );
 	
 	vec3 lightDir = vec3( -0.5, 0.5, -0.5 );
 	float lightIntensity = clamp( dot( lightDir, normal ), 0.1, 1.0 );
-	
-	float specularLight = 0.50;
 
 	vec4 AlbedoTextureColor = HandleAlbedo();
 	
 	FinalColor = AlbedoTextureColor;
 	FinalColor.rgb *= lightIntensity + Ambient;
-*/
-	FinalColor = vec4( 1.0, 0.0, 0.0, 1.0 );
 }

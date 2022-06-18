@@ -49,11 +49,13 @@ namespace Saturn {
 		glm::vec2 Texcoord;
 	};
 
-	struct MeshVertex : public BaseVertex
+	struct MeshVertex
 	{
+		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec3 Tangent;
 		glm::vec3 Binormal;
+		glm::vec2 Texcoord;
 	};
 	
 	struct VertexBufferElement

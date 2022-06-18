@@ -26,86 +26,84 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "Math.h"
 
-#include <string>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/matrix_decompose.hpp>
 
-#include "Texture.h"
+#include <glm/gtx/norm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
-#include "ShaderDataType.h"
+namespace Saturn::Math {
 
-#include "Saturn/Core/Memory/Buffer.h"
-
-namespace Saturn {
-	
-	// A shader uniform represents a uniform variable in a shader.
-	class ShaderUniform
+	bool DecomposeTransform( const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale )
 	{
-	public:
-		ShaderUniform() { m_Data = Buffer(); }
-		
-		~ShaderUniform()
+		using namespace glm;
+		using T = float;
+
+		mat4 LocalMatrix( transform );
+
+		// Normalize the matrix.
+		if( epsilonEqual( LocalMatrix[ 3 ][ 3 ], static_cast< float >( 0 ), epsilon<T>() ) )
+			return false;
+
+		// First, isolate perspective.  This is the messiest.
+		if(
+			epsilonNotEqual( LocalMatrix[ 0 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) ||
+			epsilonNotEqual( LocalMatrix[ 1 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) ||
+			epsilonNotEqual( LocalMatrix[ 2 ][ 3 ], static_cast< T >( 0 ), epsilon<T>() ) )
 		{
-			Terminate();
+			// Clear the perspective partition
+			LocalMatrix[ 0 ][ 3 ] = LocalMatrix[ 1 ][ 3 ] = LocalMatrix[ 2 ][ 3 ] = static_cast< T >( 0 );
+			LocalMatrix[ 3 ][ 3 ] = static_cast< T >( 1 );
 		}
 
-		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size, uint32_t offset, bool isPushConstantData = false )
-			: m_Name( name ), m_Location( location ), m_Type( type ), m_IsPushConstantData( isPushConstantData ), m_Size( size ), m_Offset( offset )
-		{
-			m_Data.Allocate( size );
-			m_Data.Zero_Memory();
-		}
+		// Next take care of translation (easy).
+		translation = vec3( LocalMatrix[ 3 ] );
+		LocalMatrix[ 3 ] = vec4( 0, 0, 0, LocalMatrix[ 3 ].w );
 
-		void Terminate()
+		vec3 Row[ 3 ], Pdum3;
+
+		// Now get scale and shear.
+		for( length_t i = 0; i < 3; ++i )
+			for( length_t j = 0; j < 3; ++j )
+				Row[ i ][ j ] = LocalMatrix[ i ][ j ];
+
+		// Compute X scale factor and normalize first row.
+		scale.x = length( Row[ 0 ] );
+		Row[ 0 ] = detail::scale( Row[ 0 ], static_cast< T >( 1 ) );
+		scale.y = length( Row[ 1 ] );
+		Row[ 1 ] = detail::scale( Row[ 1 ], static_cast< T >( 1 ) );
+		scale.z = length( Row[ 2 ] );
+		Row[ 2 ] = detail::scale( Row[ 2 ], static_cast< T >( 1 ) );
+
+		// At this point, the matrix (in rows[]) is orthonormal.
+		// Check for a coordinate system flip.  If the determinant
+		// is -1, then negate the matrix and the scaling factors.
+#if 0
+		Pdum3 = cross( Row[ 1 ], Row[ 2 ] ); // v3Cross(row[1], row[2], Pdum3);
+		if( dot( Row[ 0 ], Pdum3 ) < 0 )
 		{
-			switch( m_Type )
+			for( length_t i = 0; i < 3; i++ )
 			{
-				case Saturn::ShaderDataType::None:
-				case Saturn::ShaderDataType::Float:
-				case Saturn::ShaderDataType::Float2:
-				case Saturn::ShaderDataType::Float3:
-				case Saturn::ShaderDataType::Float4:
-				case Saturn::ShaderDataType::Mat3:
-				case Saturn::ShaderDataType::Mat4:
-				case Saturn::ShaderDataType::Int:
-				case Saturn::ShaderDataType::Int2:
-				case Saturn::ShaderDataType::Int3:
-				case Saturn::ShaderDataType::Int4:
-				case Saturn::ShaderDataType::Bool:
-				{
-					//if( m_Data )
-					//	m_Data.Free();
-				} break;
-				
-				default:
-					break;
+				scale[ i ] *= static_cast< T >( -1 );
+				Row[ i ] *= static_cast< T >( -1 );
 			}
-			
-			m_Location = -1;
-			m_Type = ShaderDataType::None;
+		}
+#endif
+
+		rotation.y = asin( -Row[ 0 ][ 2 ] );
+		if( cos( rotation.y ) != 0 ) {
+			rotation.x = atan2( Row[ 1 ][ 2 ], Row[ 2 ][ 2 ] );
+			rotation.z = atan2( Row[ 0 ][ 1 ], Row[ 0 ][ 0 ] );
+		}
+		else {
+			rotation.x = atan2( -Row[ 2 ][ 0 ], Row[ 1 ][ 1 ] );
+			rotation.z = 0;
 		}
 
-		const std::string& GetName() const { return m_Name; }
-		int GetLocation() const { return m_Location; }
-		ShaderDataType GetType() const { return m_Type; }
-		bool GetIsPushConstantData() const { return m_IsPushConstantData; }
 
-		Buffer& GetBuffer() { return m_Data; }
-		const Buffer& GetBuffer() const { return m_Data; }
-
-		uint32_t GetOffset() { return m_Offset; }
-		size_t GetSize() { return m_Size; }
-
-	private:
-		std::string m_Name = "";
-		int m_Location = -1;
-		ShaderDataType m_Type = ShaderDataType::None;
-		bool m_IsPushConstantData = false;
-
-		uint32_t m_Offset = 0;
-		uint32_t m_Size = 0;
-
-		Buffer m_Data;
-	};
-
+		return true;
+	}
 }

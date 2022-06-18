@@ -343,12 +343,16 @@ namespace Saturn {
 					// Check if the uniform already exists in list, if not add it.
 					auto result = std::find_if( UBMembers.begin(), UBMembers.end(), [&]( const ShaderUniform& rUniform )
 					{
-						return rUniform.Name == rMember.Name;
+						return rUniform.GetName() == rMember.Name;
 					} );
 					
 					if( result == UBMembers.end() )
 					{
-						UBMembers.push_back( { rDescriptor.Name + "." + rMember.Name, i, rMember.Type, rMember.Size } );
+						ShaderUniform Uniform = ShaderUniform( rDescriptor.Name + "." + rMember.Name, i, rMember.Type, rMember.Size, ( uint32_t ) rMember.Offset );
+
+						UBMembers.push_back( Uniform );
+
+						Uniform.Terminate();
 					}
 
 					i++;
@@ -372,12 +376,14 @@ namespace Saturn {
 				// Check if the uniform already exists in list, if not add it.
 				auto result = std::find_if( m_Uniforms.begin(), m_Uniforms.end(), [&]( const ShaderUniform& rUniform )
 				{
-					return rUniform.Name == rDescriptor.Name;
+					return rUniform.GetName() == rDescriptor.Name;
 				} );
 
 				if( result == m_Uniforms.end() )
 				{
-					m_Uniforms.push_back( { rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ), sizeof( rDescriptor ) } );
+					ShaderUniform Uniform = ShaderUniform( rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ), sizeof( rDescriptor ), ( uint32_t ) rDescriptor.Offset );
+
+					m_Uniforms.push_back( Uniform );
 				}
 			}
 		}
@@ -386,25 +392,34 @@ namespace Saturn {
 		for ( auto& PushConstant : Output.PushConstants )
 		{
 			SAT_CORE_INFO( " {0}:", PushConstant.Name );
+			SAT_CORE_INFO( "  Offset: {0}", PushConstant.Offset );
+			SAT_CORE_INFO( "  Size: {0}", PushConstant.Size );
 
-			m_PushConstantRanges.push_back( { .stageFlags = PushConstant.StageFlags, .offset = PushConstant.Offset, .size = (uint32_t)PushConstant.Size } );
+			uint32_t Offset = 0;
+			
+			if( m_PushConstantRanges.size() )
+				Offset = m_PushConstantRanges.back().offset + m_PushConstantRanges.back().size;
+
+			m_PushConstantRanges.push_back( { .stageFlags = PushConstant.StageFlags, .offset = Offset, .size = (uint32_t)PushConstant.Size } );
 
 			for( auto& rPCMember : PushConstant.Members )
 			{
-				SAT_CORE_INFO( "  {0}", rPCMember.Name );
-				SAT_CORE_INFO( "   Offset {0}", rPCMember.Offset );
-				SAT_CORE_INFO( "   Size {0}", rPCMember.Size );
-				SAT_CORE_INFO( "   Type {0}", ShaderDataTypeToString( rPCMember.Type ) );
+				SAT_CORE_INFO( "   {0}", rPCMember.Name );
+				SAT_CORE_INFO( "    Offset {0}", rPCMember.Offset );
+				SAT_CORE_INFO( "    Size {0}", rPCMember.Size );
+				SAT_CORE_INFO( "    Type {0}", ShaderDataTypeToString( rPCMember.Type ) );
 
-				// Check if the member already exists in list, if not add it.
 				auto result = std::find_if( m_Uniforms.begin(), m_Uniforms.end(), [&]( const ShaderUniform& rUniform )
 					{
-						return rUniform.Name == rPCMember.Name;
+						return rUniform.GetName() == rPCMember.Name;
 					} );
 
 				if( result == m_Uniforms.end() )
 				{
-					m_Uniforms.push_back( { PushConstant.Name + "." + rPCMember.Name, rPCMember.Offset, rPCMember.Type, rPCMember.Size } );
+					ShaderUniform Uniform = ShaderUniform( PushConstant.Name + "." + rPCMember.Name, ( int ) rPCMember.Offset, rPCMember.Type, rPCMember.Size, ( uint32_t ) rPCMember.Offset, true );
+
+					// Reason why we pass in the offset twice is because that is kind of the location in the push constant buffer.
+					m_Uniforms.push_back( Uniform );
 				}
 			}
 		}
