@@ -128,17 +128,21 @@ namespace Saturn {
 			aiString name;
 			material->Get( AI_MATKEY_NAME, name );
 
-			aiColor3D color;
-			material->Get( AI_MATKEY_COLOR_DIFFUSE, color );
-			
 			SAT_CORE_INFO( "Material: {0}", name.C_Str() );
-			SAT_CORE_INFO( " Albedo color: {0}", glm::vec3( color.r, color.g, color.g ) );
-
+			
 			std::string MaterialName = std::string( name.C_Str() );
+
+			Ref<Texture2D> PinkTexture = Renderer::Get().GetPinkTexture();
 
 			auto mat = Ref<MaterialInstance>::Create( m_BaseMaterial, name.data );
 			m_Materials[ m ] = mat;
 			
+			aiColor3D color;
+			if( material->Get( AI_MATKEY_COLOR_DIFFUSE, color ) == AI_SUCCESS );
+				mat->Set( "u_Materials.AlbedoColor", glm::vec3( color.r, color.g, color.b ) );
+
+			SAT_CORE_INFO( " Albedo color: {0}", glm::vec3( color.r, color.g, color.g ) );
+
 			// Albedo Texture
 			{
 				aiString AlbedoTexturePath;
@@ -163,22 +167,18 @@ namespace Saturn {
 					if( AlbedoTexture )
 					{
 						mat->SetResource( "u_AlbedoTexture", AlbedoTexture );
-						mat->Set( "u_Materials.AlbedoColor", glm::vec3( color.r, color.g, color.b ) );
 						//mat->Set( "u_Materials.UseAlbedoTexture", 1.0f );
 					}
 					else
 					{
-						mat->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+						mat->SetResource( "u_AlbedoTexture", PinkTexture );
 						//mat->Set( "u_Materials.UseAlbedoTexture", 1.0f );
-						mat->Set( "u_Materials.AlbedoColor", glm::vec3( color.r, color.g, color.b ) );
 					}
 				}
 				else
 				{
-					mat->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+					mat->SetResource( "u_AlbedoTexture", PinkTexture );
 					//mat->Set( "u_Materials.UseAlbedoTexture", 0.0f );
-					mat->Set( "u_Materials.AlbedoColor", glm::vec3( color.r, color.g, color.b ) );
-					
 				}
 			}
 
@@ -210,13 +210,13 @@ namespace Saturn {
 					}
 					else
 					{
-						mat->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
+						mat->SetResource( "u_NormalTexture", PinkTexture );
 						//mat->Set( "u_Materials.UseNormalTexture", 0.0f );
 					}
 				}
 				else
 				{
-					mat->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
+					mat->SetResource( "u_NormalTexture", PinkTexture );
 					//mat->Set( "u_Materials.UseNormalTexture", 0.0f );
 				}
 			}

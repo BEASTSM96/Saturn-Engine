@@ -51,13 +51,13 @@ namespace Saturn {
 				{
 					if( !Uniform.GetIsPushConstantData() )
 					{
-						Uniform.GetBuffer().Write( Uniform.GetOffset(), ( uint8_t* ) &Value, Uniform.GetSize() );
+						Uniform.GetBuffer().Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
 					}
 					else
 					{
 						SAT_CORE_INFO( "Pushing Push Constant data {0}, Value {1}", Name, Value );
 						
-						m_PushConstantData.Write( Uniform.GetOffset(), ( uint8_t* ) &Value, Uniform.GetSize() );
+						m_PushConstantData.Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
 					}
 					
 					break;
@@ -89,7 +89,7 @@ namespace Saturn {
 
 		Ref< Saturn::Shader >& GetShader() { return m_Material->m_Shader; }
 		
-		Buffer GetPushConstantData() { return m_PushConstantData; }
+		Buffer& GetPushConstantData() { return m_PushConstantData; }
 
 		const std::string& GetName() const { return m_Name; }
 

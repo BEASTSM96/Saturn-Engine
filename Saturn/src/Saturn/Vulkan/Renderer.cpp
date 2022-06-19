@@ -180,14 +180,14 @@ namespace Saturn {
 	
 	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
-		Ref<Shader> StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
+		Ref<Shader> Shader = Pipeline->GetShader();
 
 		for( Submesh& rSubmesh : mesh->Submeshes() )
 		{
 			auto& rMaterial = mesh->GetMaterials()[ rSubmesh.MaterialIndex ];
 			Ref< DescriptorSet > Set = mesh->GetDescriptorSets()[ rSubmesh ];
 
-			StaticMeshShader->WriteAllUBs( Set );
+			Shader->WriteAllUBs( Set );
 
 			mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			mesh->GetIndexBuffer()->Bind( CommandBuffer );
@@ -199,9 +199,19 @@ namespace Saturn {
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
 			
 			// Set the offset to be the size of the vertex push constant.
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterial->GetPushConstantData().Size, rMaterial->GetPushConstantData().Data );
+			//vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterial->GetPushConstantData().Size, rMaterial->GetPushConstantData().Data );
+			
+			// TODO: HACK
+			glm::vec3 DiffuseColor = glm::vec3( rMaterial->Get< glm::vec3 >( "u_Materials.AlbedoColor" ) );
 
-			rMaterial->Bind( mesh, rSubmesh, StaticMeshShader );
+			void* data = ( uint8_t*)&DiffuseColor;
+			void* offsetData = ( uint8_t* ) data + 64;
+
+			Buffer& rPc = rMaterial->GetPushConstantData();
+
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rPc.Size, rPc.Data );
+
+			rMaterial->Bind( mesh, rSubmesh, Shader );
 
 			Set->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 

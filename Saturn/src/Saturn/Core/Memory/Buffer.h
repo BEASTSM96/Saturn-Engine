@@ -67,14 +67,9 @@ namespace Saturn {
 			return ( Ty* ) Data;
 		}
 
-		void Write( uint32_t Offset, const void* pData, size_t size )
+		void Write( const void* pData, size_t size, uint32_t Offset )
 		{
-			// Check of buffer overflow
-			if( Offset + size <= Size ) 
-			{
-				SAT_CORE_ERROR( "A buffer overflow was triggerd, offset {0}, size {1}", Offset, size );
-				SAT_CORE_ASSERT( false );
-			}
+			SAT_CORE_ASSERT( Offset + size <= Size );
 
 			memcpy( Data + Offset, pData, size );
 		}

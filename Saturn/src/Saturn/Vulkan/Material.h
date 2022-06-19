@@ -60,11 +60,11 @@ namespace Saturn {
 				{
 					if( !Uniform.GetIsPushConstantData() )
 					{
-						Uniform.GetBuffer().Write( Uniform.GetOffset(), ( uint8_t* )&Value, Uniform.GetSize() );
+						Uniform.GetBuffer().Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
 					}
 					else
 					{
-						m_PushConstantData.Write( Uniform.GetOffset(), ( uint8_t* ) &Value, Uniform.GetSize() );
+						m_PushConstantData.Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
 					}
 					
 					m_AnyValueChanged = true;

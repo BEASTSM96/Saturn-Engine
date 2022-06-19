@@ -440,7 +440,7 @@ namespace Saturn {
 					if( PushConstant.StageFlags == VK_SHADER_STAGE_FRAGMENT_BIT )
 						PushConstantData = true;
 
-					ShaderUniform Uniform = ShaderUniform( PushConstant.Name + "." + rPCMember.Name, ( int ) rPCMember.Offset, rPCMember.Type, rPCMember.Size, ( uint32_t ) rPCMember.Offset, PushConstantData );
+					ShaderUniform Uniform = ShaderUniform( PushConstant.Name + "." + rPCMember.Name, ( int ) rPCMember.Offset, rPCMember.Type, rPCMember.Size, ( uint32_t ) rPCMember.Offset - Offset, PushConstantData );
 						
 
 					// Reason why we pass in the offset twice is because that is kind of the location in the push constant buffer.

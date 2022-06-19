@@ -53,6 +53,13 @@ void main()
 layout(push_constant) uniform u_Materials
 {
 	layout(offset = 64) vec3 AlbedoColor;
+	float Metalness;
+	float Roughness;
+	
+	float AmbientOcclusion;
+
+	bool UseAlbedoMap;
+
 } pc_Materials;
 
 // Textures

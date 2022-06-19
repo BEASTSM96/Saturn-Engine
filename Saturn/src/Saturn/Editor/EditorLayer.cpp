@@ -204,13 +204,11 @@ namespace Saturn {
 								}
 							}
 
-							glm::vec3 color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
+							glm::vec3& color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
 
 							ImGui::PushID( rMaterial->GetName().c_str() );
 							ImGui::ColorEdit3( "##Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
 							ImGui::PopID();
-
-							rMaterial->Set< glm::vec3 >( "u_Materials.AlbedoColor", color );
 
 							/*
 							ImGui::Text( "Normal" );
