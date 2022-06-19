@@ -34,6 +34,8 @@
 
 #include "Saturn/Vulkan/EnvironmentMap.h"
 
+#include "Saturn/Vulkan/Mesh.h"
+
 #include "Saturn/Core/UUID.h"
 
 #include "EntityVisibility.h"
@@ -161,9 +163,6 @@ namespace Saturn {
 	*
 	* @endcode
 	*/
-
-	class Mesh;
-
 	struct MeshComponent
 	{
 		Ref<Saturn::Mesh> Mesh;

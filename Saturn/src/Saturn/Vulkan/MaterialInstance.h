@@ -34,7 +34,7 @@
 
 namespace Saturn {
 
-	class MaterialInstance
+	class MaterialInstance : public CountedObj
 	{
 	public:
 		MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName );
@@ -55,6 +55,8 @@ namespace Saturn {
 					}
 					else
 					{
+						SAT_CORE_INFO( "Pushing Push Constant data {0}, Value {1}", Name, Value );
+						
 						m_PushConstantData.Write( Uniform.GetOffset(), ( uint8_t* ) &Value, Uniform.GetSize() );
 					}
 					

@@ -298,11 +298,6 @@ namespace Saturn {
 			ShaderLibrary::Get().Add( m_RendererData.DirShadowMapShader );
 		}
 	
-		struct PC_ShadowMap
-		{
-			alignas( 4 ) uint32_t CascadeIndex;
-		};
-
 		PipelineSpecification PipelineSpec = {};
 		PipelineSpec.Width = SHADOW_MAP_SIZE;
 		PipelineSpec.Height = SHADOW_MAP_SIZE;
@@ -1039,13 +1034,11 @@ namespace Saturn {
 			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 			u_Matrices.LightPos = m_RendererData.LightPos;
 
-			auto bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::Vertex ][ 0 ].Buffer );
-
-			void* pData = pAllocator->MapMemory< void >( bufferAloc );
+			auto pData = StaticMeshShader->MapUB( ShaderType::Vertex, 0 );
 
 			memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
 
-			pAllocator->UnmapMemory( bufferAloc );
+			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0 );
 
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
 				m_RendererData.StaticMeshPipeline, 
@@ -1076,7 +1069,7 @@ namespace Saturn {
 		RenderPassBeginInfo.renderArea.extent = Extent;
 		RenderPassBeginInfo.pClearValues = ClearColors.data();
 		RenderPassBeginInfo.clearValueCount = ClearColors.size();
-		
+
 		VkViewport Viewport = {};
 		Viewport.x = 0;
 		Viewport.y = 0;
@@ -1084,16 +1077,11 @@ namespace Saturn {
 		Viewport.height = SHADOW_MAP_SIZE;
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
-		
+
 		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
 		
 		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
 		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
-		
-		vkCmdSetDepthBias( CommandBuffer,
-			1.25f,
-			0.0f,
-			1.75f );
 
 		m_RendererData.DirShadowMapPipeline->Bind( CommandBuffer );
 
@@ -1101,28 +1089,8 @@ namespace Saturn {
 		
 		Ref< Shader > ShadowShader = m_RendererData.DirShadowMapShader;
 
-		DescriptorSetSpecification DescriptorSetSpec;
-		DescriptorSetSpec.Pool = ShadowShader->GetDescriptorPool();
-		DescriptorSetSpec.Layout = ShadowShader->GetSetLayout();
-
-		for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
-		{
-			for( auto& Cmd : m_DrawList )
-			{
-				for( Submesh& rSubmesh : Cmd.Mesh->Submeshes() )
-				{
-					if( m_RendererData.ShadowCascades[ i ].DescriptorSets[ rSubmesh ] )
-						m_RendererData.ShadowCascades[ i ].DescriptorSets[ rSubmesh ]->Terminate();
-
-					m_RendererData.ShadowCascades[ i ].DescriptorSets[ rSubmesh ] = nullptr;
-				}
-			}
-
-			m_RendererData.ShadowCascades[ i ].DescriptorSets.clear();
-		}
-		
 		UpdateCascades( m_pScene->m_DirectionalLight[ 0 ].Direction );
-
+		
 		for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 		{
 			RenderPassBeginInfo.framebuffer = m_RendererData.ShadowCascades[ i ].Framebuffer->GetVulkanFramebuffer();
@@ -1131,53 +1099,25 @@ namespace Saturn {
 			CmdBeginDebugLabel( CommandBuffer, "DirShadowMap" );
 			vkCmdBeginRenderPass( CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
 
-			// u_Matrices
-			struct UB_Matrices
-			{
-				glm::mat4 ViewProjection;
-			} u_Matrices;
-
-			struct PC_Transform
-			{
-				glm::mat4 Transform;
-			} u_Transform;
-
-
-			u_Matrices.ViewProjection = m_RendererData.ShadowCascades[ i ].ViewProjection;
-
 			auto& UBs = ShadowShader->GetUniformBuffers();
-
-			auto bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::Vertex ][ 0 ].Buffer );
-
-			void* pData = pAllocator->MapMemory< void >( bufferAloc );
-
-			memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
-
-			pAllocator->UnmapMemory( bufferAloc );
 
 			for( auto& Cmd : m_DrawList )
 			{
-				for( Submesh& rSubmesh : Cmd.Mesh->Submeshes() )
+				// u_Matrices
+				struct UB_Matrices
 				{
-					////
-					m_RendererData.ShadowCascades[ i ].DescriptorSets[ rSubmesh ] = Ref<DescriptorSet>::Create( DescriptorSetSpec );
-					////
+					glm::mat4 ViewProjection;
+				} u_Matrices;
 
-					Cmd.Mesh->GetVertexBuffer()->Bind( CommandBuffer );
-					Cmd.Mesh->GetIndexBuffer()->Bind( CommandBuffer );
-					
-					glm::mat4 Transform = Cmd.Transform * rSubmesh.Transform;
+				u_Matrices.ViewProjection = m_RendererData.ShadowCascades[ i ].ViewProjection;
 
-					u_Transform.Transform = Transform;
+				auto pData = m_RendererData.DirShadowMapShader->MapUB( ShaderType::Vertex, 0 );
 
-					vkCmdPushConstants( CommandBuffer, m_RendererData.DirShadowMapPipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &u_Transform );
+				memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );				
 
-					ShadowShader->WriteAllUBs( m_RendererData.ShadowCascades[ i ].DescriptorSets[ rSubmesh ] );
+				m_RendererData.DirShadowMapShader->UnmapUB( ShaderType::Vertex, 0 );
 
-					m_RendererData.ShadowCascades[ i ].DescriptorSets[ rSubmesh ]->Bind( CommandBuffer, m_RendererData.DirShadowMapPipeline->GetPipelineLayout() );
-
-					vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
-				}
+				//Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipeline, Cmd.Mesh, Cmd.Transform, m_RendererData.ShadowCascades[ i ].DescriptorSets[ Cmd ] );
 			}
 
 			vkCmdEndRenderPass( CommandBuffer );
@@ -1308,7 +1248,7 @@ namespace Saturn {
 		// DirShadowMap
 		//CmdBeginDebugLabel( m_RendererData.CommandBuffer, "DirShadowMap" );
 		
-		//DirShadowMapPass();
+		DirShadowMapPass();
 		
 		//CmdEndDebugLabel( m_RendererData.CommandBuffer );
 

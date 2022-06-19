@@ -92,7 +92,7 @@ namespace Saturn {
 		VkPolygonMode PolygonMode = VK_POLYGON_MODE_FILL;
 	};
 
-	class Pipeline
+	class Pipeline : public CountedObj
 	{
 	public:
 		Pipeline() { }
@@ -105,6 +105,8 @@ namespace Saturn {
 		VkPipelineLayout GetPipelineLayout() { return m_PipelineLayout; }
 		
 		operator VkPipeline() const { return m_Pipeline; }
+
+		Ref<Shader>& GetShader() { return m_Specification.Shader; }
 
 		void Terminate();
 	private:

@@ -71,7 +71,7 @@ namespace Saturn {
 
 		for( uint32_t i = 0; i < 64 * 64; i++ )
 		{
-			pData[ i ] |= 0xffff00ff;
+			pData[ i ] |= 0xffffffff;
 		}
 
 		m_PinkTexture = Ref< Texture2D >::Create( 64, 64, VK_FORMAT_R8G8B8A8_SRGB, pData );
@@ -138,34 +138,27 @@ namespace Saturn {
 		vkCmdEndRenderPass( CommandBuffer );
 	}
 
-	void Renderer::RenderMeshWithMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform )
+	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform, Ref<DescriptorSet> Set )
 	{	
-		struct PC_StaticMeshF
-		{
-			alignas( 4 ) float UseAlbedoTexture;
-			alignas( 4 ) float UseMetallicTexture;
-			alignas( 4 ) float UseRoughnessTexture;
-			alignas( 4 ) float UseNormalTexture;
-
-			alignas( 16 ) glm::vec4 AlbedoColor;
-			alignas( 4 ) float Metalness;
-			alignas( 4 ) float Roughness;
-		};
-
-		//mesh->GetShader()->GetPushConstantData();
-
-		mesh->GetVertexBuffer()->Bind( CommandBuffer );
-		mesh->GetIndexBuffer()->Bind( CommandBuffer );
-
 		for ( auto& rSubmesh : mesh->Submeshes() )
 		{
+			mesh->GetVertexBuffer()->Bind( CommandBuffer );
+			mesh->GetIndexBuffer()->Bind( CommandBuffer );
+
 			Pipeline->Bind( CommandBuffer );
 
-			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
+			// TODO: Bind descriptor set
+			if( Set )
+				Set->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
+			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
+			
 			// Always assume that the vertex shader will have a push constant block containing the model matrix.
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
+			
+			Pipeline->GetShader()->WriteAllUBs( Set );
+
+			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
 	}
 
@@ -206,7 +199,7 @@ namespace Saturn {
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
 			
 			// Set the offset to be the size of the vertex push constant.
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), sizeof( rMaterial->GetPushConstantData().Size ), rMaterial->GetPushConstantData().Data );
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterial->GetPushConstantData().Size, rMaterial->GetPushConstantData().Data );
 
 			rMaterial->Bind( mesh, rSubmesh, StaticMeshShader );
 

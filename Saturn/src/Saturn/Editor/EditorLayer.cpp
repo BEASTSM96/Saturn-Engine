@@ -184,39 +184,35 @@ namespace Saturn {
 
 							ImGui::Separator();
 
-							bool UseAlbedoTexture = rMaterial->Get< float >( "u_Materials.UseAlbedoTexture" );
-
-							if( UseAlbedoTexture )
-							{
-								Ref< Texture2D > texture = rMaterial->GetResource( "u_AlbedoTexture" );
+							Ref< Texture2D > texture = rMaterial->GetResource( "u_AlbedoTexture" );
+								
+							if( texture && texture->GetDescriptorSet() )
 								ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+							else
+								ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
 
-								ImGui::SameLine();
+							ImGui::SameLine();
 
-								if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
+							if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
+							{
+								std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
+								
+								if( !file.empty() )
 								{
-									std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
-
-									if( !file.empty() )
-									{
-										texture = Ref<Texture2D>::Create( file, AddressingMode::Repeat );
-										rMaterial->SetResource( "u_AlbedoTexture", texture );
-									}
+									texture = Ref<Texture2D>::Create( file, AddressingMode::Repeat );
+									rMaterial->SetResource( "u_AlbedoTexture", texture );
 								}
 							}
 
-							if( ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture ) )
-								rMaterial->Set( "u_Materials.UseAlbedoTexture", UseAlbedoTexture ? 1.0f : 0.0f );
+							glm::vec3 color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
 
-							if( !UseAlbedoTexture )
-							{
-								glm::vec4 color = rMaterial->Get<glm::vec4>( "u_Materials.AlbedoColor" );
+							ImGui::PushID( rMaterial->GetName().c_str() );
+							ImGui::ColorEdit3( "##Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
+							ImGui::PopID();
 
-								ImGui::ColorEdit4( "Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
+							rMaterial->Set< glm::vec3 >( "u_Materials.AlbedoColor", color );
 
-								rMaterial->Set< glm::vec4 >( "u_Materials.AlbedoColor", color );
-							}
-
+							/*
 							ImGui::Text( "Normal" );
 
 							ImGui::Separator();
@@ -226,11 +222,16 @@ namespace Saturn {
 							if( UseNormalTexture )
 							{
 								Ref< Texture2D > texture = rMaterial->GetResource( "u_NormalTexture" );
-								ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								
+								if( texture && texture->GetDescriptorSet() )
+									ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								else
+									ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
 							}
 
 							if( ImGui::Checkbox( "Use Normal Texture", &UseNormalTexture ) )
 								rMaterial->Set( "u_Materials.UseNormalTexture", UseNormalTexture ? 1.0f : 0.0f );
+							*/
 						}
 					}
 				}

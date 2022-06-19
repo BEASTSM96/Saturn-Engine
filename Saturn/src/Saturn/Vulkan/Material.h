@@ -39,7 +39,7 @@ namespace Saturn {
 	class Submesh;
 	class MaterialInstance;
 
-	class Material
+	class Material : public CountedObj
 	{
 	public:
 		 Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName );
@@ -60,11 +60,11 @@ namespace Saturn {
 				{
 					if( !Uniform.GetIsPushConstantData() )
 					{
-						Uniform.GetBuffer().Write( Uniform.GetOffset(), ( uint8_t* )&Value, sizeof( Ty ) );
+						Uniform.GetBuffer().Write( Uniform.GetOffset(), ( uint8_t* )&Value, Uniform.GetSize() );
 					}
 					else
 					{
-						m_PushConstantData.Write( Uniform.GetOffset(), ( uint8_t* ) &Value, sizeof( Ty ) );
+						m_PushConstantData.Write( Uniform.GetOffset(), ( uint8_t* ) &Value, Uniform.GetSize() );
 					}
 					
 					m_AnyValueChanged = true;

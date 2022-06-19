@@ -220,7 +220,7 @@ namespace Saturn {
 		Ref< Shader > SelectedGeometryShader = nullptr;
 	};
 
-	class SceneRenderer
+	class SceneRenderer : public CountedObj
 	{
 		SINGLETON( SceneRenderer );
 	public:

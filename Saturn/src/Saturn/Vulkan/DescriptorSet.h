@@ -28,12 +28,12 @@
 
 #pragma once
 
-#include "VulkanContext.h"
+#include <vulkan.h>
 #include <vector>
 
 namespace Saturn {
 
-	class DescriptorPool
+	class DescriptorPool : public CountedObj
 	{
 	public:
 		DescriptorPool() {}
@@ -107,7 +107,7 @@ namespace Saturn {
 		VkDescriptorSetLayout Layout = nullptr;
 	};
 
-	class DescriptorSet
+	class DescriptorSet : public CountedObj
 	{
 	public:
 		DescriptorSet() {}

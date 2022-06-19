@@ -52,19 +52,8 @@ void main()
 
 layout(push_constant) uniform u_Materials
 {
-	layout(offset = 64) vec4 AlbedoColor;
-	
-	float UseAlbedoTexture;
-	float UseMetallicTexture;
-	float UseRoughnessTexture;
-	float UseNormalTexture;
-
-	//
-
-	float Metalness;
-	float Roughness;
+	layout(offset = 64) vec3 AlbedoColor;
 } pc_Materials;
-
 
 // Textures
 layout (binding = 1) uniform sampler2D u_AlbedoTexture;
@@ -84,23 +73,29 @@ layout(location = 1) in VertexOutput
 	mat3 WorldNormals;
 } vs_Input;
 
-vec4 HandleAlbedo()
+struct PBRParameters 
 {
-	return texture( u_AlbedoTexture, vs_Input.TexCoord ); 
-}
+	vec3 Albedo;
+	float Roughness;
+	float Metalness;
+};
+
+PBRParameters m_Params;
 
 void main() 
 {
+	m_Params.Albedo = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb * pc_Materials.AlbedoColor;
+	
 	float Ambient = 0.20;
 
+	/*
 	vec3 normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
 	normal = normalize( vs_Input.WorldNormals * normal );
 	
 	vec3 lightDir = vec3( -0.5, 0.5, -0.5 );
 	float lightIntensity = clamp( dot( lightDir, normal ), 0.1, 1.0 );
+	*/
 
-	vec4 AlbedoTextureColor = HandleAlbedo();
-	
-	FinalColor = AlbedoTextureColor;
-	FinalColor.rgb *= lightIntensity + Ambient;
+	FinalColor = vec4( m_Params.Albedo, 1.0 );
+	//FinalColor.rgb *= Ambient;
 }

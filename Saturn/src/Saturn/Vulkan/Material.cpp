@@ -35,9 +35,6 @@
 
 #include "VulkanContext.h"
 
-// VUID-VkPushConstantRange-offset-00294, 128
-#define MAX_PUSH_CONSTANT_SIZE 128
-
 // TODO: When we have an asset manager, this needs to be re-worked!
 
 namespace Saturn {
@@ -46,9 +43,6 @@ namespace Saturn {
 	{
 		m_Shader = Shader;
 		m_Name = MateralName;
-
-		m_PushConstantData.Allocate( MAX_PUSH_CONSTANT_SIZE );
-		m_PushConstantData.Zero_Memory();
 
 		for ( auto&& [type, stage, name] : m_Shader->GetTextures() )
 		{
@@ -59,6 +53,19 @@ namespace Saturn {
 		{
 			m_Uniforms.push_back( { rUniform.GetName(), rUniform.GetLocation(), rUniform.GetType(), rUniform.GetSize(), rUniform.GetOffset(), rUniform.GetIsPushConstantData() } );
 		}
+
+		uint32_t Size = 0;
+		
+		for ( auto& rUniform : m_Uniforms )
+		{
+			if( rUniform.GetIsPushConstantData() ) 
+			{
+				Size += rUniform.GetSize();
+			}
+		}
+		
+		m_PushConstantData.Allocate( Size );
+		m_PushConstantData.Zero_Memory();
 	}
 
 	Material::~Material()

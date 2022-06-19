@@ -244,6 +244,24 @@ namespace Saturn {
 		}
 	}
 
+	void* Shader::MapUB( ShaderType Type, uint32_t Binding )
+	{
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+
+		auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_UniformBuffers[ Type ][ Binding ].Buffer );
+		
+		return pAllocator->MapMemory< void >( bufferAloc );
+	}
+
+	void Shader::UnmapUB( ShaderType Type, uint32_t Binding )
+	{
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+		
+		auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_UniformBuffers[ Type ][ Binding ].Buffer );
+		
+		pAllocator->UnmapMemory( bufferAloc );
+	}
+
 	void Shader::ReadFile()
 	{
 		std::ifstream f( m_Filepath, std::ios::ate | std::ios::binary );
@@ -416,7 +434,14 @@ namespace Saturn {
 
 				if( result == m_Uniforms.end() )
 				{
-					ShaderUniform Uniform = ShaderUniform( PushConstant.Name + "." + rPCMember.Name, ( int ) rPCMember.Offset, rPCMember.Type, rPCMember.Size, ( uint32_t ) rPCMember.Offset, true );
+					// Although this is still push constant data we only want push constant data in the fragment because push constant data in the vertex shader is not important.
+					bool PushConstantData = false;
+					
+					if( PushConstant.StageFlags == VK_SHADER_STAGE_FRAGMENT_BIT )
+						PushConstantData = true;
+
+					ShaderUniform Uniform = ShaderUniform( PushConstant.Name + "." + rPCMember.Name, ( int ) rPCMember.Offset, rPCMember.Type, rPCMember.Size, ( uint32_t ) rPCMember.Offset, PushConstantData );
+						
 
 					// Reason why we pass in the offset twice is because that is kind of the location in the push constant buffer.
 					m_Uniforms.push_back( Uniform );

@@ -88,7 +88,7 @@ namespace Saturn {
 		VkDescriptorSet DescriptorSet = nullptr;
 	};
 
-	class Framebuffer
+	class Framebuffer : public CountedObj
 	{
 	public:
 		Framebuffer( const FramebufferSpecification& Specification );

@@ -37,7 +37,7 @@
 
 namespace Saturn {
 
-	class Swapchain
+	class Swapchain : public CountedObj
 	{
 	public:
 		Swapchain();

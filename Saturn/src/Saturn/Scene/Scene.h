@@ -54,7 +54,7 @@ namespace Saturn {
 		float Intensity = 1.0f;
 	};
 
-	class Scene
+	class Scene : public CountedObj
 	{
 	public:
 		Scene();

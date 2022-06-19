@@ -106,7 +106,7 @@ namespace Saturn {
 		std::vector< ReflectionDescriptor > Descriptors;
 	};
 
-	class ShaderReflector
+	class ShaderReflector : public CountedObj
 	{
 		SINGLETON( ShaderReflector );
 	public:

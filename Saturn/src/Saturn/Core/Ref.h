@@ -32,18 +32,37 @@
 
 namespace Saturn {
 
+	class CountedObj
+	{
+	public:
+		void AddRef() const
+		{
+			m_RefCount--;
+		}
+
+		void RemoveRef() const
+		{
+			m_RefCount--;
+		}
+		
+		uint32_t GetRefCount() const { return m_RefCount; }
+
+	private:
+		mutable int m_RefCount = 0;
+	};
+	
 	template<typename T>
 	class Ref
 	{
 	public:
 		Ref() : m_Pointer( nullptr ) {}
 		Ref( std::nullptr_t nullptrr ) : m_Pointer( nullptr ) {}
-		Ref( T* pointer ) : m_Pointer( pointer ) {}
+		Ref( T* pointer ) : m_Pointer( pointer ) { static_assert( std::is_base_of<CountedObj, T>::value, "T must be a child of CountObj class!" ); AddRef(); }
 
 		template<typename T2>
-		Ref( const Ref<T2>& other ) { m_Pointer = ( T* )other.m_Pointer; }
+		Ref( const Ref<T2>& other ) { m_Pointer = ( T* ) other.m_Pointer; AddRef(); }
 
-		Ref( const Ref<T>& other ) { m_Pointer = ( T* )other.m_Pointer; }
+		Ref( const Ref<T>& other ) { m_Pointer = ( T* ) other.m_Pointer; AddRef(); }
 
 		template<typename T2>
 		Ref( Ref<T2>&& other )
@@ -54,22 +73,18 @@ namespace Saturn {
 
 		~Ref() 
 		{ 
-			/*
-			if( m_Pointer ) 
-				delete m_Pointer; 
-
-			m_Pointer = nullptr; 
-			*/
+			RemoveRef();
 		}
 
 		void Delete() 
 		{
-			delete m_Pointer;
-			m_Pointer = nullptr;
+			RemoveRef();
 		}
 
 		void Reset()
 		{
+			RemoveRef();
+
 			m_Pointer = nullptr;
 		}
 
@@ -83,8 +98,8 @@ namespace Saturn {
 	
 		Ref& operator=( std::nullptr_t ) 
 		{
-			delete m_Pointer;
-			m_Pointer = nullptr;
+			RemoveRef();
+
 			return *this;
 		}
 
@@ -92,8 +107,8 @@ namespace Saturn {
 
 		Ref& operator=( Ref<T>& other )
 		{
-			//delete m_Pointer;
-			//m_Pointer = nullptr;
+			other.AddRef();
+			RemoveRef();
 
 			m_Pointer = other.m_Pointer;
 
@@ -103,8 +118,8 @@ namespace Saturn {
 		template<typename T2>
 		Ref& operator=( Ref<T2>& other )
 		{
-			//delete m_Pointer;
-			//m_Pointer = nullptr;
+			other.AddRef();
+			RemoveRef();
 
 			m_Pointer = other.m_Pointer;
 
@@ -117,8 +132,8 @@ namespace Saturn {
 
 		Ref& operator=( const Ref<T>& other )
 		{
-			//if( m_Pointer )
-			//	delete m_Pointer;
+			other.AddRef();
+			RemoveRef();
 
 			m_Pointer = other.m_Pointer;
 
@@ -128,8 +143,8 @@ namespace Saturn {
 		template<typename T2>
 		Ref& operator=( const Ref<T2>& other )
 		{
-			if( m_Pointer )
-				delete m_Pointer;
+			other.AddRef();
+			RemoveRef();
 
 			m_Pointer = other.m_Pointer;
 
@@ -141,10 +156,7 @@ namespace Saturn {
 		template<typename T2>
 		Ref& operator=( Ref<T2>&& other )
 		{
-			if( m_Pointer )
-				delete m_Pointer;
-
-			m_Pointer = nullptr;
+			RemoveRef();
 
 			m_Pointer = other.m_Pointer;
 			other.m_Pointer = nullptr;
@@ -166,9 +178,23 @@ namespace Saturn {
 		T* Pointer()             { return m_Pointer; }
 		const T* Pointer() const { return m_Pointer; }
 
-	public:
+	private:
 
-		//T* Null = nullptr;
+		void AddRef() const
+		{
+			if( m_Pointer )
+				m_Pointer->AddRef();
+		}
+
+		void RemoveRef() const
+		{
+			if( m_Pointer ) 
+			{
+				m_Pointer->RemoveRef();
+				if( m_Pointer->GetRefCount() == 0 )
+					delete m_Pointer;
+			}
+		}
 
 	private:
 

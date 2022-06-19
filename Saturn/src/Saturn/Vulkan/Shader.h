@@ -31,6 +31,7 @@
 #include "Saturn/Core/UUID.h"
 
 #include "ShaderUniform.h"
+#include "DescriptorSet.h"
 
 #include "Base.h"
 #include <vector>
@@ -146,31 +147,11 @@ namespace Saturn {
 				return ShaderType::All;
 		}
 	}
-
-	class Shader;
-	class DescriptorPool;
-	class DescriptorSet;
-
-	class ShaderLibrary
-	{
-		SINGLETON( ShaderLibrary );
-	public:
-		ShaderLibrary();
-		~ShaderLibrary();
-
-		void Add( const Ref<Shader>& shader );
-		void Load( const std::string& path );
-		void Load( const std::string& name, const std::string& path );
-
-		const Ref<Shader>& Find( const std::string& name ) const;
-	private:
-		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
-	};
-
+	
 	extern ShaderType ShaderTypeFromString( const std::string& Str );
 	extern std::string ShaderTypeToString( ShaderType Type );
 
-	class Shader
+	class Shader : public CountedObj
 	{
 		using ShaderSourceMap = std::unordered_map< ShaderSourceKey, ShaderSource >;
 		using SpvSourceMap = std::unordered_map< ShaderSourceKey, std::vector< uint32_t > >;
@@ -219,6 +200,9 @@ namespace Saturn {
 		// Make sure all the buffers have data mapped to them!
 		void WriteAllUBs( const Ref< DescriptorSet >& rSet );
 
+		void* MapUB( ShaderType Type, uint32_t Binding );
+		void UnmapUB( ShaderType Type, uint32_t Binding );
+
 	private:
 
 		void ReadFile();
@@ -255,5 +239,21 @@ namespace Saturn {
 
 		VkDescriptorSetLayout m_SetLayout;
 		Ref< DescriptorPool > m_SetPool;
+	};
+
+	class ShaderLibrary : public CountedObj
+	{
+		SINGLETON( ShaderLibrary );
+	public:
+		ShaderLibrary();
+		~ShaderLibrary();
+
+		void Add( const Ref<Shader>& shader );
+		void Load( const std::string& path );
+		void Load( const std::string& name, const std::string& path );
+
+		const Ref<Shader>& Find( const std::string& name ) const;
+	private:
+		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
 	};
 }

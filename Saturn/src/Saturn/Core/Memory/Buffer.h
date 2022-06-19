@@ -69,31 +69,14 @@ namespace Saturn {
 
 		void Write( uint32_t Offset, const void* pData, size_t size )
 		{
+			// Check of buffer overflow
+			if( Offset + size <= Size ) 
+			{
+				SAT_CORE_ERROR( "A buffer overflow was triggerd, offset {0}, size {1}", Offset, size );
+				SAT_CORE_ASSERT( false );
+			}
+
 			memcpy( Data + Offset, pData, size );
-		}
-		
-		// Clears the original buffer, then copies the old data into a new larger buffer.
-		void Reallocate( size_t size ) 
-		{	
-			// Make sure to retain the original size & buffer.
-			size_t OriginalSize = Size;
-			uint8_t* OriginalData = Data;
-
-			Free();
-
-			// Add new size onto the original size.
-			uint8_t* NewData = new uint8_t[ OriginalSize + size ];
-			
-			// Copy the original data into the new buffer.
-			memcpy( NewData, OriginalData, OriginalSize );
-
-			delete[] OriginalData;
-
-			// Set the new size and data.
-			Data = NewData;
-			Size = OriginalSize + size;
-			
-			delete[] NewData;
 		}
 
 		// Clears the buffer and then reallocates it to the specified size.

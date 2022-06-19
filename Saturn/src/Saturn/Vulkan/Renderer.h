@@ -32,7 +32,7 @@
 
 namespace Saturn {
 
-	class Renderer
+	class Renderer : public CountedObj
 	{
 		SINGLETON( Renderer );
 	public:
@@ -45,7 +45,7 @@ namespace Saturn {
 		void BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass );
 		void EndRenderPass( VkCommandBuffer CommandBuffer );
 
-		void RenderMeshWithMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform );
+		void RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform, Ref<DescriptorSet> Set );
 
 		// Static mesh
 		void RenderSubmesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );

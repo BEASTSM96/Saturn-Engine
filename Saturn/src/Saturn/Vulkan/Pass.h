@@ -46,7 +46,7 @@ namespace Saturn {
 		std::string Name = "";
 	};
 
-	class Pass
+	class Pass : public CountedObj
 	{
 	public:
 		 Pass() { }
