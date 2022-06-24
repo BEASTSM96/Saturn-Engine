@@ -58,7 +58,7 @@ namespace Saturn {
 	struct ShadowCascade
 	{
 		Ref< Framebuffer > Framebuffer = nullptr;
-		std::unordered_map< Submesh, Ref< DescriptorSet > > DescriptorSets;
+		//std::unordered_map< Submesh, Ref< DescriptorSet > > DescriptorSets;
 
 		float SplitDepth = 0.0f;
 		glm::mat4 ViewProjection;
@@ -252,7 +252,7 @@ namespace Saturn {
 		Ref<Pass> GetGeometryPass() { return m_RendererData.GeometryPass; }
 		const Ref<Pass> GetGeometryPass() const { return m_RendererData.GeometryPass; }
 
-		VkDescriptorSet CompositeImage() { return m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ].DescriptorSet; }
+		Ref<Image2D> CompositeImage() { return m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ]; }
 		
 		// TEMP!!
 		void CreateAllFBSets();

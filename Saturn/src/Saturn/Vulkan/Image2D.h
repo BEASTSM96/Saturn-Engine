@@ -28,44 +28,55 @@
 
 #pragma once
 
-#include "Base.h"
-#include <vector>
-#include <string>
-#include <filesystem>
-#include <unordered_map>
 #include <vulkan.h>
 
 namespace Saturn {
 
-	class Swapchain : public CountedObj
+	enum class ImageFormat
+	{
+		None = 0,
+
+		// Color
+		RGBA8 = 1,
+		RGBA16F = 2,
+		RGBA32F = 3,
+		RGB32F = 4,
+
+		BGRA8 = 5,
+
+		DEPTH32F = 6,
+		DEPTH24STENCIL8 = 7,
+
+		Depth = DEPTH32F
+	};
+
+	class Image2D : public CountedObj
 	{
 	public:
-		Swapchain();
-		~Swapchain();
+		Image2D( ImageFormat Format, uint32_t Width, uint32_t Height );
+		~Image2D();
 
-		void Create();
-		void CreateFramebuffers();
-		void Recreate();
+		void Resize( uint32_t Width, uint32_t Height );
 
-		void Terminate();
+		VkDescriptorImageInfo& GetDescriptorInfo() { return m_DescriptorImageInfo; }
 
-		bool AcquireNextImage( uint32_t Timeout, VkSemaphore Semaphore, VkFence Fence, uint32_t* pImageIndex );
+		VkImage GetImage() { return m_Image; }
+		VkImageView GetImageView() { return m_ImageView; }
+		VkSampler GetSampler() { return m_Sampler; }
 
-		VkSwapchainKHR& GetSwapchain() { return m_Swapchain; }
-		std::vector< VkFramebuffer >& GetFramebuffers() { return m_Framebuffers; }
 	private:
+		void Create();
 
-		void CreateImageViews();
+		uint32_t m_Width;
+		uint32_t m_Height;
 
-		VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
+		ImageFormat m_Format;
 
-		uint32_t m_ImageIndex = 0;
-		
-		VkSemaphore m_PresentSemaphore;
+		VkImage m_Image;
+		VkImageView m_ImageView;
+		VkSampler m_Sampler;
+		VkDeviceMemory m_Memory;
 
-		std::vector< VkFence > m_Fences;
-		std::vector< VkImage > m_Images;
-		std::vector< VkImageView > m_ImageViews;
-		std::vector< VkFramebuffer > m_Framebuffers;
+		VkDescriptorImageInfo m_DescriptorImageInfo;
 	};
 }

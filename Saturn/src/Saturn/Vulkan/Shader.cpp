@@ -136,49 +136,13 @@ namespace Saturn {
 	
 	//////////////////////////////////////////////////////////////////////////
 
-	Shader::Shader( std::string Name, std::filesystem::path Filepath )
-	{
-		m_Filepath = std::move( Filepath );
-		m_Name = std::move( Name );
-
-		ReadFile();
-		DetermineShaderTypes();
-		
-		CompileGlslToSpvAssembly();
-				
-		Reflect( {} );
-
-		GetAvailableUniform();
-	}
-
 	Shader::Shader( std::filesystem::path Filepath )
 	{
 		m_Filepath = std::move( Filepath );
-		m_Name = std::move( Filepath.filename().string() );
+		m_Name = m_Filepath.filename().string();
 
-		ReadFile();
-		DetermineShaderTypes();
-
-		CompileGlslToSpvAssembly();
-
-		Reflect( {} );
-
-		GetAvailableUniform();
-	}
-
-	Shader::Shader( std::string Filepath )
-	{
-		m_Filepath = std::move( Filepath );
-		
-		// Strip the extension from the filename
-		auto name = m_Filepath.filename().string();
-		auto pos = name.find_last_of( '.' );
-		if ( pos != std::string::npos )
-		{
-			name = name.substr( 0, pos );
-		}
-
-		m_Name = std::move( name );
+		// Remove the extension from the name
+		m_Name.erase( m_Name.find_last_of( '.' ) );
 
 		ReadFile();
 		DetermineShaderTypes();
@@ -216,6 +180,9 @@ namespace Saturn {
 
 	void Shader::WriteDescriptor( ShaderType Type, const std::string& rName, VkWriteDescriptorSet& rWriteDescriptor )
 	{
+		if( rName == "u_ShadowMap" )
+			return;
+
 		m_DescriptorWrites[ Type ][ rName ] = rWriteDescriptor;
 
 		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &rWriteDescriptor, 0, nullptr );
@@ -490,6 +457,8 @@ namespace Saturn {
 				.pImageInfo = nullptr,
 				.pBufferInfo = nullptr,
 				.pTexelBufferView = nullptr };
+
+				m_DescriptorSetCount++;
 			}
 		}
 

@@ -44,11 +44,12 @@ namespace Saturn {
 	
 	enum class ShaderType : uint32_t
 	{
-		Vertex = 0,
-		Fragment = 1,
-		Geometry = 2,
-		Compute = 3,
-		All = 4
+		None = 0,
+		Vertex = 1,
+		Fragment = 2,
+		Geometry = 3,
+		Compute = 4,
+		All = 5
 	};
 	
 	// A shader uniform buffer represents a uniform buffer block in a shader.
@@ -161,10 +162,7 @@ namespace Saturn {
 		using ShaderWriteMap = std::unordered_map< ShaderType, std::unordered_map< std::string, VkWriteDescriptorSet > >;
 
 	public:
-		Shader() { }
-		Shader( std::string Name, std::filesystem::path Filepath );
 		Shader( std::filesystem::path Filepath );
-		Shader( std::string Filepath );
 
 		~Shader();
 
@@ -202,6 +200,8 @@ namespace Saturn {
 
 		void* MapUB( ShaderType Type, uint32_t Binding );
 		void UnmapUB( ShaderType Type, uint32_t Binding );
+		
+		uint32_t GetDescriptorSetCount() { return m_DescriptorSetCount; }
 
 	private:
 
@@ -236,6 +236,8 @@ namespace Saturn {
 		std::vector< VkPushConstantRange > m_PushConstantRanges;
 
 		ShaderWriteMap m_DescriptorWrites;
+
+		uint32_t m_DescriptorSetCount = -1;
 
 		VkDescriptorSetLayout m_SetLayout;
 		Ref< DescriptorPool > m_SetPool;

@@ -37,7 +37,7 @@ namespace Saturn {
 	public:
 		void AddRef() const
 		{
-			m_RefCount--;
+			m_RefCount++;
 		}
 
 		void RemoveRef() const

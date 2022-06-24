@@ -76,6 +76,16 @@ namespace Saturn {
 
 		m_Pipeline = nullptr;
 		m_PipelineLayout = nullptr;
+
+		for ( auto& [ stage, Map ] : m_DescriptorSets )
+		{
+			for ( auto&& [ Index, set ] : Map )
+			{
+				set = nullptr;
+			}
+		}
+
+		m_DescriptorSets.clear();
 	}
 
 	void Pipeline::Bind( VkCommandBuffer CommandBuffer )
@@ -151,8 +161,7 @@ namespace Saturn {
 				.pName = "main"
 			} );
 		
-		/////
-		
+		///// Vertex input state.
 
 		std::vector< VkVertexInputAttributeDescription > VertexInputAttributes( m_Specification.VertexLayout.Count() );
 		
@@ -181,6 +190,57 @@ namespace Saturn {
 		VertexInputState.vertexAttributeDescriptionCount = VertexInputAttributes.size();
 		VertexInputState.pVertexAttributeDescriptions = VertexInputAttributes.data();
 		
+		///// Descriptor sets
+		
+		if( m_Specification.RequestDescriptorSets.SetIndex == -1 && m_Specification.RequestDescriptorSets.Stage == ShaderType::None )
+		{
+			// No descriptor set requested.
+		}
+		else
+		{
+			auto CurrentStage = m_Specification.RequestDescriptorSets.Stage;
+			auto Index = m_Specification.RequestDescriptorSets.SetIndex;
+
+			if( Index == -1 && CurrentStage == ShaderType::All )
+			{
+				SAT_CORE_ERROR( "You requested a descriptor set at index {0}, and at shader stage {1}, but index is -1!\n In order to use -1 as a binding point you must have your shader type is 'All'!", Index, (int) CurrentStage );
+
+				SAT_CORE_ASSERT( false );
+			}
+		
+			switch( CurrentStage )
+			{
+				case ShaderType::All:
+				{
+					DescriptorSetSpecification SetSpec = {};
+					SetSpec.Layout = m_Specification.Shader->GetSetLayout();
+					SetSpec.Pool = m_Specification.Shader->GetDescriptorPool();
+
+					if( Index == -1 )
+					{
+						for( int i = 0; i < m_Specification.Shader->GetDescriptorSetCount(); i++ )
+						{
+							m_DescriptorSets[ CurrentStage ][ Index ] = Ref<DescriptorSet>::Create( SetSpec );
+						}
+					} 
+					else
+					{
+						m_DescriptorSets[ CurrentStage ][ Index ] = Ref<DescriptorSet>::Create( SetSpec );
+					}
+				} break;
+
+				case ShaderType::Vertex:
+				case ShaderType::Fragment:
+				{
+					DescriptorSetSpecification SetSpec = {};
+					SetSpec.Layout = m_Specification.Shader->GetSetLayout();
+					SetSpec.Pool = m_Specification.Shader->GetDescriptorPool();
+
+					m_DescriptorSets[ CurrentStage ][ Index ] =  Ref<DescriptorSet>::Create( SetSpec );
+				} break;
+			}
+		}
+
 		/////
 
 		// Create the color blend attachment state.

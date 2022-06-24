@@ -85,6 +85,7 @@ namespace Saturn {
 		}
 
 		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture );
+
 		Ref< Texture2D > GetResource( const std::string& Name );
 
 		Ref< Saturn::Shader >& GetShader() { return m_Material->m_Shader; }

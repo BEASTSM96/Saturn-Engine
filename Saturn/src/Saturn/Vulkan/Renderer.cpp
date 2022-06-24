@@ -138,25 +138,33 @@ namespace Saturn {
 		vkCmdEndRenderPass( CommandBuffer );
 	}
 
-	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform, Ref<DescriptorSet> Set )
+	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform )
 	{	
+		static bool bFirst = true;
+		
+		if( bFirst )
+		{
+			Pipeline->GetShader()->WriteAllUBs( Pipeline->GetDescriptorSet( ShaderType::Vertex, 0 ) );
+			bFirst = false;
+		}
+		
+		VkDescriptorSet DescriptorSet =
+		{ Pipeline->GetVulkanSet( ShaderType::Vertex, 0 ) };
+
 		for ( auto& rSubmesh : mesh->Submeshes() )
 		{
+
 			mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			mesh->GetIndexBuffer()->Bind( CommandBuffer );
 
 			Pipeline->Bind( CommandBuffer );
-
-			// TODO: Bind descriptor set
-			if( Set )
-				Set->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
 			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
 			
 			// Always assume that the vertex shader will have a push constant block containing the model matrix.
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
 			
-			Pipeline->GetShader()->WriteAllUBs( Set );
+			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline->GetPipelineLayout(), 0, 1, &DescriptorSet, 0, nullptr );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
@@ -197,18 +205,9 @@ namespace Saturn {
 			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
 
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
-			
+						
 			// Set the offset to be the size of the vertex push constant.
-			//vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterial->GetPushConstantData().Size, rMaterial->GetPushConstantData().Data );
-			
-			// TODO: HACK
-			glm::vec3 DiffuseColor = glm::vec3( rMaterial->Get< glm::vec3 >( "u_Materials.AlbedoColor" ) );
-
-			void* data = ( uint8_t*)&DiffuseColor;
-			void* offsetData = ( uint8_t* ) data + 64;
-
 			Buffer& rPc = rMaterial->GetPushConstantData();
-
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rPc.Size, rPc.Data );
 
 			rMaterial->Bind( mesh, rSubmesh, Shader );

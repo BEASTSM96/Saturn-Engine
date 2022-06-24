@@ -188,7 +188,7 @@ namespace Saturn {
 			FBSpec.Width = m_RendererData.Width;
 			FBSpec.Height = m_RendererData.Height;
 			
-			FBSpec.Attachments = { FramebufferTextureFormat::BGRA8, FramebufferTextureFormat::Depth };
+			FBSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
 			m_RendererData.GeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
 		}
@@ -201,7 +201,7 @@ namespace Saturn {
 		// Load the shader
 		if( !m_RendererData.StaticMeshShader ) 
 		{
-			m_RendererData.StaticMeshShader = Ref< Shader >::Create( "shader_new", "assets/shaders/shader_new.glsl" );
+			m_RendererData.StaticMeshShader = Ref< Shader >::Create( "assets/shaders/shader_new.glsl" );
 			ShaderLibrary::Get().Add( m_RendererData.StaticMeshShader );
 		}			
 		
@@ -287,14 +287,14 @@ namespace Saturn {
 			FBSpec.Height = SHADOW_MAP_SIZE;
 			FBSpec.ArrayLevels = SHADOW_CASCADE_COUNT;
 
-			FBSpec.Attachments = { FramebufferTextureFormat::Depth };
+			FBSpec.Attachments = { ImageFormat::Depth };
 
 			m_RendererData.ShadowCascades[ i ].Framebuffer = Ref<Framebuffer>::Create( FBSpec );
 		}
 
 		if( !m_RendererData.DirShadowMapShader )
 		{
-			m_RendererData.DirShadowMapShader = Ref< Shader >::Create( "DirShadowMap", "assets/shaders/ShadowMap.glsl" );
+			m_RendererData.DirShadowMapShader = Ref< Shader >::Create( "assets/shaders/ShadowMap.glsl" );
 			ShaderLibrary::Get().Add( m_RendererData.DirShadowMapShader );
 		}
 	
@@ -315,6 +315,7 @@ namespace Saturn {
 		};
 		PipelineSpec.CullMode = CullMode::None;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		PipelineSpec.RequestDescriptorSets = { ShaderType::Vertex, 0 };
 
 		m_RendererData.DirShadowMapPipeline = Ref< Pipeline >::Create( PipelineSpec );
 	}
@@ -390,7 +391,7 @@ namespace Saturn {
 			FBSpec.Width = m_RendererData.Width;
 			FBSpec.Height = m_RendererData.Height;
 
-			FBSpec.Attachments = { FramebufferTextureFormat::BGRA8, FramebufferTextureFormat::Depth };
+			FBSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
 			m_RendererData.SceneCompositeFramebuffer = Ref< Framebuffer >::Create( FBSpec );
 		}
@@ -402,7 +403,7 @@ namespace Saturn {
 		
 		if( !m_RendererData.SceneCompositeShader )
 		{
-			m_RendererData.SceneCompositeShader = Ref< Shader >::Create( "SceneComposite", "assets/shaders/SceneComposite.glsl" );
+			m_RendererData.SceneCompositeShader = Ref< Shader >::Create( "assets/shaders/SceneComposite.glsl" );
 			
 			ShaderLibrary::Get().Add( m_RendererData.SceneCompositeShader );
 		}
@@ -416,8 +417,8 @@ namespace Saturn {
 
 		VkDescriptorImageInfo GeometryPassImageInfo = {};
 		GeometryPassImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		GeometryPassImageInfo.imageView = m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ].ImageView;
-		GeometryPassImageInfo.sampler = m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ].Sampler;
+		GeometryPassImageInfo.imageView = m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ]->GetImageView();
+		GeometryPassImageInfo.sampler = m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ]->GetSampler();
 
 		std::vector< VkWriteDescriptorSet > DescriptorWrites;
 
@@ -526,7 +527,7 @@ namespace Saturn {
 			FBSpec.Width = m_RendererData.Width;
 			FBSpec.Height = m_RendererData.Height;
 
-			FBSpec.Attachments = { FramebufferTextureFormat::BGRA8, FramebufferTextureFormat::Depth };
+			FBSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
 			m_RendererData.SelectedGeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
 		}
@@ -534,7 +535,7 @@ namespace Saturn {
 		//////
 		if( !m_RendererData.SelectedGeometryShader )
 		{
-			m_RendererData.SelectedGeometryShader = Ref< Shader >::Create( "Selected Geometry Shader", "assets/shaders/Outline.glsl" );
+			m_RendererData.SelectedGeometryShader = Ref< Shader >::Create( "assets/shaders/Outline.glsl" );
 
 			ShaderLibrary::Get().Add( m_RendererData.SelectedGeometryShader );
 
@@ -785,7 +786,7 @@ namespace Saturn {
 		
 		if( !m_RendererData.GridShader )
 		{
-			m_RendererData.GridShader = Ref< Shader >::Create( "Grid", "assets/shaders/Grid.glsl" );
+			m_RendererData.GridShader = Ref< Shader >::Create( "assets/shaders/Grid.glsl" );
 			ShaderLibrary::Get().Add( m_RendererData.GridShader );
 		}
 	
@@ -866,7 +867,7 @@ namespace Saturn {
 		
 		if( !m_RendererData.SkyboxShader )
 		{
-			m_RendererData.SkyboxShader = Ref<Shader>::Create( "Skybox", "assets/shaders/Skybox.glsl" );
+			m_RendererData.SkyboxShader = Ref<Shader>::Create( "assets/shaders/Skybox.glsl" );
 			ShaderLibrary::Get().Add( m_RendererData.SkyboxShader );
 		}
 		
@@ -950,7 +951,7 @@ namespace Saturn {
 
 			for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 			{
-				ImGui::Image( m_RendererData.ShadowCascades[i].Framebuffer->GetDepthAttachmentsResource().DescriptorSet, ImVec2( 100, 100 ) );
+				//ImGui::Image( m_RendererData.ShadowCascades[i].Framebuffer->GetDepthAttachmentsResource()->, ImVec2( 100, 100 ) );
 			}
 		}
 
@@ -1026,6 +1027,13 @@ namespace Saturn {
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
 		for( auto& Cmd : m_DrawList )
 		{
+			for ( auto& submesh : Cmd.Mesh->Submeshes() )
+			{
+				auto& Material = Cmd.Mesh->GetMaterials()[ submesh.MaterialIndex ];
+				
+				Material->SetResource( "u_ShadowMap", m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource() );
+			}
+			
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
 			auto& UBs = StaticMeshShader->GetUniformBuffers();
 
@@ -1034,11 +1042,24 @@ namespace Saturn {
 			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 			u_Matrices.LightPos = m_RendererData.LightPos;
 
+			struct
+			{
+				glm::mat4 LightMatrix;
+			} u_LightData;
+
+			u_LightData.LightMatrix = m_RendererData.ShadowCascades[ 0 ].ViewProjection;
+
 			auto pData = StaticMeshShader->MapUB( ShaderType::Vertex, 0 );
 
 			memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
 
 			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0 );
+
+			pData = StaticMeshShader->MapUB( ShaderType::Vertex, 1 );
+
+			memcpy( pData, &u_LightData, sizeof( u_LightData ) );
+
+			StaticMeshShader->UnmapUB( ShaderType::Vertex, 1 );
 
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
 				m_RendererData.StaticMeshPipeline, 
@@ -1109,6 +1130,8 @@ namespace Saturn {
 					glm::mat4 ViewProjection;
 				} u_Matrices;
 
+				u_Matrices = {};
+
 				u_Matrices.ViewProjection = m_RendererData.ShadowCascades[ i ].ViewProjection;
 
 				auto pData = m_RendererData.DirShadowMapShader->MapUB( ShaderType::Vertex, 0 );
@@ -1117,7 +1140,7 @@ namespace Saturn {
 
 				m_RendererData.DirShadowMapShader->UnmapUB( ShaderType::Vertex, 0 );
 
-				//Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipeline, Cmd.Mesh, Cmd.Transform, m_RendererData.ShadowCascades[ i ].DescriptorSets[ Cmd ] );
+				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipeline, Cmd.Mesh, Cmd.Transform );
 			}
 
 			vkCmdEndRenderPass( CommandBuffer );
@@ -1230,27 +1253,12 @@ namespace Saturn {
 			return;
 		}
 
-		// Cleanup descriptor sets from last frame.
-		/*
-		for( auto& rDrawCommand : m_DrawList )
-		{
-			if( rDrawCommand.Mesh->GetMaterial()->HasAnyValueChanged() )
-			{
-				rDrawCommand.Mesh->RefreshDescriptorSets();
-			}
-		}
-		*/
-
 		m_RendererData.CommandBuffer = Renderer::Get().ActiveCommandBuffer();
 		
 		// Passes
 
 		// DirShadowMap
-		//CmdBeginDebugLabel( m_RendererData.CommandBuffer, "DirShadowMap" );
-		
 		DirShadowMapPass();
-		
-		//CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Selected Geometry" );
 

@@ -30,35 +30,18 @@
 
 #include "Pass.h"
 #include "Renderer.h"
+#include "Image2D.h"
 
 #include <vulkan.h>
 
 namespace Saturn {
 
-	enum class FramebufferTextureFormat
-	{
-		None = 0,
-
-		// Color
-		RGBA8 = 1,
-		RGBA16F = 2,
-		RGBA32F = 3,
-		RGB32F = 4,
-
-		BGRA8 = 5,
-
-		DEPTH32F = 6,
-		DEPTH24STENCIL8 = 7,
-
-		Depth = DEPTH32F
-	};
-
 	struct FramebufferTextureSpecification
 	{
 		FramebufferTextureSpecification() = default;
-		FramebufferTextureSpecification( FramebufferTextureFormat format ) : TextureFormat( format ) { }
+		FramebufferTextureSpecification( ImageFormat format ) : TextureFormat( format ) { }
 
-		FramebufferTextureFormat TextureFormat;
+		ImageFormat TextureFormat;
 	};
 
 	struct FramebufferAttachmentSpecification
@@ -79,15 +62,6 @@ namespace Saturn {
 		FramebufferAttachmentSpecification Attachments;
 	};
 
-	struct FramebufferAttachmentResource
-	{
-		VkImage Image =	nullptr;
-		VkImageView ImageView = nullptr;
-		VkSampler Sampler = nullptr;
-		VkDeviceMemory Memory = nullptr;
-		VkDescriptorSet DescriptorSet = nullptr;
-	};
-
 	class Framebuffer : public CountedObj
 	{
 	public:
@@ -102,25 +76,25 @@ namespace Saturn {
 
 		VkFramebuffer GetVulkanFramebuffer() { return m_Framebuffer; }
 
-		std::vector< FramebufferAttachmentResource >& GetColorAttachmentsResources() { return m_ColorAttachmentsResources; }
-		const std::vector< FramebufferAttachmentResource >& GetColorAttachmentsResources() const { return m_ColorAttachmentsResources; }
+		std::vector< Ref<Image2D> >& GetColorAttachmentsResources() { return m_ColorAttachmentsResources; }
+		const std::vector< Ref<Image2D> >& GetColorAttachmentsResources() const { return m_ColorAttachmentsResources; }
 
-		std::vector< FramebufferTextureFormat >& GetColorAttachmentsFormats() { return m_ColorAttachmentsFormats; }
-		const std::vector< FramebufferTextureFormat >& GetColorAttachmentsFormats() const { return m_ColorAttachmentsFormats; }
+		std::vector< ImageFormat >& GetColorAttachmentsFormats() { return m_ColorAttachmentsFormats; }
+		const std::vector< ImageFormat >& GetColorAttachmentsFormats() const { return m_ColorAttachmentsFormats; }
 
-		FramebufferAttachmentResource& GetDepthAttachmentsResource() { return m_DepthAttachmentResource; }
-		const FramebufferAttachmentResource& GetDepthAttachmentsResource() const { return m_DepthAttachmentResource; }
+		Ref<Image2D>& GetDepthAttachmentsResource() { return m_DepthAttachmentResource; }
+		const Ref<Image2D>& GetDepthAttachmentsResource() const { return m_DepthAttachmentResource; }
 
 	private:
 		void Create();
 
 		VkFramebuffer m_Framebuffer = nullptr;
 
-		std::vector< FramebufferTextureFormat > m_ColorAttachmentsFormats;
-		std::vector< FramebufferAttachmentResource > m_ColorAttachmentsResources;
+		std::vector< ImageFormat > m_ColorAttachmentsFormats;
+		std::vector< Ref<Image2D> > m_ColorAttachmentsResources;
 
-		FramebufferTextureFormat m_DepthFormat;
-		FramebufferAttachmentResource m_DepthAttachmentResource;
+		ImageFormat m_DepthFormat;
+		Ref<Image2D> m_DepthAttachmentResource;
 
 		std::vector< VkImageView > m_AttachmentImageViews;
 

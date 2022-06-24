@@ -31,6 +31,8 @@
 #include "Shader.h"
 #include "VertexBuffer.h"
 
+#include "DescriptorSet.h"
+
 #include <vulkan.h>
 
 namespace Saturn {
@@ -45,6 +47,12 @@ namespace Saturn {
 		FrontAndBack
 	};
 
+	struct RequestDescriptorSetInfo
+	{
+		ShaderType Stage = ShaderType::None;
+		uint32_t SetIndex = -1;
+	};
+
 	struct PipelineSpecification
 	{
 		// TODO: Remove this.
@@ -56,6 +64,9 @@ namespace Saturn {
 			*this = other;
 		}
 
+		// TODO: Remove this.
+		// Could be a C++20/23 thing but I don't know.
+		// Don't really think we need this.
 		PipelineSpecification& operator=( const PipelineSpecification& other )
 		{
 			if( this == &other )
@@ -73,6 +84,7 @@ namespace Saturn {
 			SetLayouts = other.SetLayouts;
 			Width = other.Width;
 			Height = other.Height;
+			RequestDescriptorSets = other.RequestDescriptorSets;
 
 			return *this;
 		}
@@ -90,6 +102,8 @@ namespace Saturn {
 		CullMode CullMode = CullMode::Back;
 		VkFrontFace FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		VkPolygonMode PolygonMode = VK_POLYGON_MODE_FILL;
+
+		RequestDescriptorSetInfo RequestDescriptorSets;
 	};
 
 	class Pipeline : public CountedObj
@@ -108,6 +122,10 @@ namespace Saturn {
 
 		Ref<Shader>& GetShader() { return m_Specification.Shader; }
 
+		Ref<DescriptorSet>& GetDescriptorSet( ShaderType Stage, uint32_t SetIndex ) { return m_DescriptorSets[Stage][SetIndex]; }
+		
+		VkDescriptorSet GetVulkanSet( ShaderType Stage, uint32_t SetIndex ) { return m_DescriptorSets[Stage][SetIndex]->GetVulkanSet(); }
+
 		void Terminate();
 	private:
 
@@ -115,6 +133,9 @@ namespace Saturn {
 
 		PipelineSpecification m_Specification = {};
 		
+		// STAGE -> SET INDEX -> DESCRIPTOR SET
+		std::unordered_map< ShaderType, std::unordered_map< uint32_t, Ref< DescriptorSet > > > m_DescriptorSets;
+
 		VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
 		VkPipeline m_Pipeline = VK_NULL_HANDLE;
 	};

@@ -31,6 +31,7 @@ layout(location = 1) out VertexOutput
 	mat3 WorldTransform;
 	vec3 Binormal;
 	vec4 LightSpace;
+	vec4 ShadowMapCoordsBiased;
 } vs_Output;
 
 void main()
@@ -41,7 +42,10 @@ void main()
 	vs_Output.WorldNormals = mat3( u_Transform ) * mat3( a_Tangent, a_Binormal, a_Normal );
 	vs_Output.WorldTransform = mat3( u_Transform );
 	vs_Output.Binormal = a_Binormal;
-	vs_Output.LightSpace = u_LightMatrix * vec4( vs_Output.WorldPosition, 1.0 );
+	
+	vs_Output.LightSpace = u_LightMatrix.LightMatrix * vec4( vs_Output.WorldPosition, 1.0 );
+	
+	vs_Output.ShadowMapCoordsBiased = u_LightMatrix.LightMatrix * vec4( vs_Output.WorldPosition, 1.0 );
 
 	gl_Position = u_ViewProjectionMatrix * u_Transform * vec4( a_Position, 1.0 );
 }
@@ -73,6 +77,7 @@ layout(location = 1) in VertexOutput
 	mat3 WorldTransform;
 	vec3 Binormal;
 	vec4 LightSpace;
+	vec4 ShadowMapCoordsBiased;
 } vs_Input;
 
 layout( location = 0 ) out vec4 color;
