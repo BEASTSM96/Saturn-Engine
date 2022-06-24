@@ -116,65 +116,9 @@ namespace Saturn {
 		if( m_RendererData.GeometryPass )
 			m_RendererData.GeometryPass = nullptr;
 
-		/*
-		* PassSpecification PassSpec = {};
-		* PassSpec.Attachments = { FramebufferTextureFormat::BGRA8, FramebufferTextureFormat::Depth };
-		* PassSpec.Dependencies = { FramebufferTextureFormat::BGRA8, FramebufferTextureFormat::Depth };
-		*/
-
 		PassSpecification PassSpec = {};
 		PassSpec.Name = "Geometry Pass";
-
-		PassSpec.Attachments = {
-			// Color
-			{
-				.flags = 0,
-				.format = VK_FORMAT_B8G8R8A8_UNORM,
-				.samples = VK_SAMPLE_COUNT_1_BIT,
-				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-				.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-			},
-			// Depth
-			{
-				.flags = 0,
-				.format = VK_FORMAT_D32_SFLOAT,
-				.samples = VK_SAMPLE_COUNT_1_BIT,
-				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-			}
-		};
-
-		PassSpec.ColorAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-		PassSpec.DepthAttachmentRef = { .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
-
-		PassSpec.Dependencies = {
-			{
-				.srcSubpass = VK_SUBPASS_EXTERNAL,
-				.dstSubpass = 0,
-				.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
-				.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-			},
-			{
-				.srcSubpass = 0,
-				.dstSubpass = VK_SUBPASS_EXTERNAL,
-				.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
-				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-			}
-		};
+		PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
 		m_RendererData.GeometryPass = Ref< Pass >::Create( PassSpec );
 
@@ -239,44 +183,8 @@ namespace Saturn {
 		PassSpecification PassSpec = {};
 		PassSpec.Name = "Dir Shadow Map";
 		
-		PassSpec.Attachments = {
-			// Depth
-			{
-				.flags = 0,
-				.format = VK_FORMAT_D32_SFLOAT,
-				.samples = VK_SAMPLE_COUNT_1_BIT,
-				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
-			}
-		};
+		PassSpec.Attachments = { ImageFormat::Depth };
 
-		PassSpec.DepthAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
-
-		PassSpec.Dependencies = {
-			{
-				.srcSubpass = VK_SUBPASS_EXTERNAL,
-				.dstSubpass = 0,
-				.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
-				.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-			},
-			{
-				.srcSubpass = 0,
-				.dstSubpass = VK_SUBPASS_EXTERNAL,
-				.srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
-				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-			}
-		};
-		
 		m_RendererData.DirShadowMapPass = Ref<Pass>::Create( PassSpec );
 		
 		for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
@@ -329,57 +237,8 @@ namespace Saturn {
 		PassSpecification PassSpec = {};
 		PassSpec.Name = "Texture pass";
 		
-		PassSpec.Attachments = {
-			// Color
-			{
-				.flags = 0,
-				.format = VK_FORMAT_B8G8R8A8_UNORM,
-				.samples = VK_SAMPLE_COUNT_1_BIT,
-				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-				.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-			},
-			// Depth
-			{
-				.flags = 0,
-				.format = VK_FORMAT_D32_SFLOAT,
-				.samples = VK_SAMPLE_COUNT_1_BIT,
-				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-			}
-		};
+		PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 		
-		PassSpec.ColorAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-		PassSpec.DepthAttachmentRef = { .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
-
-		PassSpec.Dependencies = {
-			{
-				.srcSubpass = VK_SUBPASS_EXTERNAL,
-				.dstSubpass = 0,
-				.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
-				.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-			},
-			{
-				.srcSubpass = 0,
-				.dstSubpass = VK_SUBPASS_EXTERNAL,
-				.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
-				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-			}
-		};
-
 		m_RendererData.SceneComposite = Ref< Pass >::Create( PassSpec );
 		
 		if( m_RendererData.SceneCompositeFramebuffer )
@@ -465,56 +324,7 @@ namespace Saturn {
 		// Create the selected geometry render pass.
 		PassSpecification PassSpec = {};
 		PassSpec.Name = "Selected Geometry";
-		PassSpec.Attachments = {
-			// Color
-			{
-				.flags = 0,
-				.format = VK_FORMAT_B8G8R8A8_UNORM,
-				.samples = VK_SAMPLE_COUNT_1_BIT,
-				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-				.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-			},
-			// Depth
-			{
-				.flags = 0,
-				.format = VK_FORMAT_D32_SFLOAT,
-				.samples = VK_SAMPLE_COUNT_1_BIT,
-				.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-				.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-			}
-		};
-
-		PassSpec.ColorAttachmentRef = { .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-		PassSpec.DepthAttachmentRef = { .attachment = 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
-
-		PassSpec.Dependencies = {
-			{
-				.srcSubpass = VK_SUBPASS_EXTERNAL,
-				.dstSubpass = 0,
-				.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
-				.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-			},
-			{
-				.srcSubpass = 0,
-				.dstSubpass = VK_SUBPASS_EXTERNAL,
-				.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-				.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
-				.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-			}
-		};
+		PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
 		m_RendererData.SelectedGeometryPass = Ref< Pass >::Create( PassSpec );
 
