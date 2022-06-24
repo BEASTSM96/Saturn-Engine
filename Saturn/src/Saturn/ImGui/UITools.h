@@ -28,11 +28,14 @@
 
 #pragma once
 
+#include "Saturn/Vulkan/Image2D.h"
+
 #include <string>
 #include <glm/glm.hpp>
 
-struct ImVec2;
-	
+#include <imgui.h>
+#include <imgui_internal.h>	
+
 namespace Saturn {
 	
 	extern bool DrawVec3Control( const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
@@ -48,4 +51,6 @@ namespace Saturn {
 	extern bool DrawOverlay( const std::string& label, ImVec2 Pos );
 	extern bool DrawOverlay( const std::string& label );
 	extern void EndOverlay();
+
+	extern void Image( Ref< Image2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 0 ), const ImVec2& UV1 = ImVec2( 1, 1 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ), const ImVec4& BorderColor = ImVec4( 0, 0, 0, 0 ) );
 }

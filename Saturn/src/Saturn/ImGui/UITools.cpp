@@ -29,8 +29,7 @@
 #include "sppch.h"
 #include "UITools.h"
 
-#include <imgui.h>
-#include <imgui_internal.h>
+#include <backends/imgui_impl_vulkan.h>
 
 namespace Saturn {
 
@@ -368,6 +367,13 @@ namespace Saturn {
 	{
 		ImGui::End();
 		ImGui::PopID();
+	}
+
+	void Image( Ref<Image2D> Image, const ImVec2& Size, const ImVec2& UV0, const ImVec2& UV1, const ImVec4& TintColor, const ImVec4& BorderColor )
+	{
+		void* TextureID = ImGui_ImplVulkan_AddTexture( Image->GetSampler(), Image->GetImageView(), Image->GetDescriptorInfo().imageLayout );
+
+		ImGui::Image( TextureID, Size, UV0, UV1, TintColor, BorderColor );
 	}
 
 }
