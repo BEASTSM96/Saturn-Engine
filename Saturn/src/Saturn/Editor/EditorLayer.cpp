@@ -71,7 +71,7 @@ namespace Saturn {
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
 
 		SceneSerialiser serialiser( m_EditorScene );
-		serialiser.Deserialise( "assets/scenes/basic.scene" );
+		//serialiser.Deserialise( "assets/scenes/basic.scene" );
 	}
 
 	EditorLayer::~EditorLayer()

@@ -457,17 +457,15 @@ namespace Saturn {
 		float r, l, b, t, f, n;
 	};
 
-	void SceneRenderer::UpdateCascades( glm::vec3 Direction )
+	void SceneRenderer::UpdateCascades( const glm::vec3& Direction )
 	{
+		SAT_CORE_INFO( "direction: {0}", Direction );
+		
 		FrustumBounds frustumBounds[ 3 ];
 
 		auto viewProjection = m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix();
-
-		const int SHADOW_MAP_CASCADE_COUNT = 4;
-		const float FAR_PLANE = 15.0f;
-		const float NEAR_PLANE = -15.0f;
 		
-		float cascadeSplits[ SHADOW_MAP_CASCADE_COUNT ];
+		float cascadeSplits[ SHADOW_CASCADE_COUNT ];
 
 		// TODO: less hard-coding!
 		float nearClip = 0.1f;
@@ -482,9 +480,9 @@ namespace Saturn {
 
 		// Calculate split depths based on view camera frustum
 		// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
-		for( uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++ )
+		for( uint32_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 		{
-			float p = ( i + 1 ) / static_cast< float >( SHADOW_MAP_CASCADE_COUNT );
+			float p = ( i + 1 ) / static_cast< float >( SHADOW_CASCADE_COUNT );
 			float log = minZ * std::pow( ratio, p );
 			float uniform = minZ + range * p;
 			float d = m_RendererData.CascadeSplitLambda * ( log - uniform ) + uniform;
@@ -494,14 +492,14 @@ namespace Saturn {
 		cascadeSplits[ 3 ] = 0.3f;
 
 		// Manually set cascades here
-		// cascadeSplits[0] = 0.05f;
-		// cascadeSplits[1] = 0.15f;
-		// cascadeSplits[2] = 0.3f;
-		// cascadeSplits[3] = 1.0f;
+		//cascadeSplits[ 0 ] = 0.05f;
+		//cascadeSplits[ 1 ] = 0.15f;
+		//cascadeSplits[ 2 ] = 0.3f;
+		//cascadeSplits[ 3 ] = 1.0f;
 
 		// Calculate orthographic projection matrix for each cascade
 		float lastSplitDist = 0.0;
-		for( uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++ )
+		for( uint32_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 		{
 			float splitDist = cascadeSplits[ i ];
 
@@ -860,10 +858,8 @@ namespace Saturn {
 
 		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
 		
-		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
-		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
-
-		m_RendererData.DirShadowMapPipeline->Bind( CommandBuffer );
+		//vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
+		//vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
 
 		//////////////////////////////////////////////////////////////////////////
 		
@@ -879,24 +875,29 @@ namespace Saturn {
 			CmdBeginDebugLabel( CommandBuffer, "DirShadowMap" );
 			vkCmdBeginRenderPass( CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
 
+			vkCmdSetViewport( m_RendererData.CommandBuffer, 0, 1, &Viewport );
+			vkCmdSetScissor( m_RendererData.CommandBuffer, 0, 1, &Scissor );
+			
+			// u_Matrices
+			struct UB_Matrices
+			{
+				glm::mat4 ViewProjection;
+			} u_Matrices;
+
+			u_Matrices = {};
+
+			u_Matrices.ViewProjection = m_RendererData.ShadowCascades[ i ].ViewProjection;
+
+			auto pData = m_RendererData.DirShadowMapShader->MapUB( ShaderType::Vertex, 0, 0 );
+
+			memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
+
+			m_RendererData.DirShadowMapShader->UnmapUB( ShaderType::Vertex, 0, 0 );
+
+			m_RendererData.DirShadowMapPipeline->GetShader()->WriteAllUBs( m_RendererData.DirShadowMapPipeline->GetDescriptorSet( ShaderType::Vertex, 0 ) );
+
 			for( auto& Cmd : m_DrawList )
 			{
-				// u_Matrices
-				struct UB_Matrices
-				{
-					glm::mat4 ViewProjection;
-				} u_Matrices;
-
-				u_Matrices = {};
-
-				u_Matrices.ViewProjection = m_RendererData.ShadowCascades[ i ].ViewProjection;
-
-				auto pData = m_RendererData.DirShadowMapShader->MapUB( ShaderType::Vertex, 0, 0 );
-
-				memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );				
-
-				m_RendererData.DirShadowMapShader->UnmapUB( ShaderType::Vertex, 0, 0 );
-
 				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipeline, Cmd.Mesh, Cmd.Transform );
 			}
 

@@ -40,7 +40,7 @@
 
 #include "Pipeline.h"
 
-#define SHADOW_CASCADE_COUNT 4
+#define SHADOW_CASCADE_COUNT 1
 
 namespace Saturn {
 
@@ -265,7 +265,7 @@ namespace Saturn {
 		void RenderGrid();
 		void RenderSkybox();
 
-		void UpdateCascades( glm::vec3 Direction );
+		void UpdateCascades( const glm::vec3& Direction );
 
 		void CreateGridComponents();
 		void DestroyGridComponents();

@@ -150,17 +150,6 @@ namespace Saturn {
 
 	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform )
 	{	
-		static bool bFirst = false;
-		
-		if( !bFirst )
-		{
-			Pipeline->GetShader()->WriteAllUBs( Pipeline->GetDescriptorSet( ShaderType::Vertex, 0 ) );
-			bFirst = true;
-		}
-		
-		VkDescriptorSet DescriptorSet =
-		{ Pipeline->GetVulkanSet( ShaderType::Vertex, 0 ) };
-
 		for ( auto& rSubmesh : mesh->Submeshes() )
 		{
 			mesh->GetVertexBuffer()->Bind( CommandBuffer );
@@ -173,7 +162,7 @@ namespace Saturn {
 			// Always assume that the vertex shader will have a push constant block containing the model matrix.
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
 			
-			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline->GetPipelineLayout(), 0, 1, &DescriptorSet, 0, nullptr );
+			Pipeline->GetDescriptorSet( ShaderType::Vertex, 0 )->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
@@ -229,8 +218,6 @@ namespace Saturn {
 
 			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 				Pipeline->GetPipelineLayout(), 0, DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
-
-			//Set->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
