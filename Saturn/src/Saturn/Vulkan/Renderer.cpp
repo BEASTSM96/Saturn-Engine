@@ -32,6 +32,7 @@
 #include "VulkanDebug.h"
 #include "DescriptorSet.h"
 #include "MaterialInstance.h"
+#include "Shader.h"
 
 namespace Saturn {
 
@@ -77,31 +78,44 @@ namespace Saturn {
 		m_PinkTexture = Ref< Texture2D >::Create( 64, 64, VK_FORMAT_R8G8B8A8_SRGB, pData );
 		m_PinkTexture->SetIsRendererTexture( true );
 
-		free( pData );
+		delete[] pData;
+
+		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
+
+		DescriptorSetSpecification Spec;
+		Spec.Layout = shader->GetSetLayout();
+		Spec.Pool = shader->GetDescriptorPool();
+
+		m_RendererDescriptorSet = Ref<DescriptorSet>::Create( Spec );
 	}
 	
 	void Renderer::Terminate()
 	{
 		// Terminate Semaphores.
-		SubmitTerminateResource( [AcquireSemaphore = m_AcquireSemaphore, SubmitSemaphore = m_SubmitSemaphore]()
+		SubmitTerminateResource( [&]()
 		{
-			if( AcquireSemaphore )
-				vkDestroySemaphore( VulkanContext::Get().GetDevice(), AcquireSemaphore, nullptr );
+			if( m_AcquireSemaphore )
+				vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_AcquireSemaphore, nullptr );
 			
-			if( SubmitSemaphore )
-				vkDestroySemaphore( VulkanContext::Get().GetDevice(), SubmitSemaphore, nullptr );
+			if( m_SubmitSemaphore )
+				vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_SubmitSemaphore, nullptr );
+
+			m_AcquireSemaphore = nullptr;
+			m_SubmitSemaphore = nullptr;
 		} );
 
-		m_AcquireSemaphore = nullptr;
-		m_SubmitSemaphore = nullptr;
+		SubmitTerminateResource( [&]() 
+		{
+			m_RendererDescriptorSet = nullptr;
+		} );
 
 		if( m_FlightFences.size() )
 		{
 			for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
 			{
-				SubmitTerminateResource( [ FlightFences = m_FlightFences, Index = i ]()
+				SubmitTerminateResource( [ & ]()
 				{
-					vkDestroyFence( VulkanContext::Get().GetDevice(), FlightFences.at( Index ), nullptr );
+					vkDestroyFence( VulkanContext::Get().GetDevice(), m_FlightFences[ i ], nullptr );
 				} );
 			}
 		}
@@ -140,12 +154,12 @@ namespace Saturn {
 
 	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform )
 	{	
-		static bool bFirst = true;
+		static bool bFirst = false;
 		
-		if( bFirst )
+		if( !bFirst )
 		{
 			Pipeline->GetShader()->WriteAllUBs( Pipeline->GetDescriptorSet( ShaderType::Vertex, 0 ) );
-			bFirst = false;
+			bFirst = true;
 		}
 		
 		VkDescriptorSet DescriptorSet =
@@ -153,7 +167,6 @@ namespace Saturn {
 
 		for ( auto& rSubmesh : mesh->Submeshes() )
 		{
-
 			mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			mesh->GetIndexBuffer()->Bind( CommandBuffer );
 
@@ -207,14 +220,50 @@ namespace Saturn {
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
 						
 			// Set the offset to be the size of the vertex push constant.
-			Buffer& rPc = rMaterial->GetPushConstantData();
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rPc.Size, rPc.Data );
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterial->GetPushConstantData().Size, rMaterial->GetPushConstantData().Data );
 
 			rMaterial->Bind( mesh, rSubmesh, Shader );
+
+			// DescriptorSet 0, for material texture data.
+			// DescriptorSet 1, for environment data.
+			std::array<VkDescriptorSet, 2> DescriptorSets = {
+				Set->GetVulkanSet(),
+				m_RendererDescriptorSet->GetVulkanSet()
+			};
+
+			//vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			//	Pipeline->GetPipelineLayout(), 0, DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
 
 			Set->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
+		}
+	}
+
+	void Renderer::Begin( Ref<Image2D> ShadowMap )
+	{
+		VkWriteDescriptorSet WriteDescriptor;
+		
+		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
+
+		for( auto& [ShaderStage, Sets] : shader->GetWriteDescriptors() )
+		{
+			for( auto& [Name, Set] : Sets )
+			{
+				if( Set.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER )
+				{
+					if( Name != "u_ShadowMap" )
+						continue;
+
+					WriteDescriptor.dstSet = m_RendererDescriptorSet->GetVulkanSet();
+					WriteDescriptor.pImageInfo = &ShadowMap->GetDescriptorInfo();
+
+					shader->WriteDescriptor( ShaderStage, Name, Set );
+				}
+				else
+					break;
+
+			}
 		}
 	}
 

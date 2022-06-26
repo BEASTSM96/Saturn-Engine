@@ -103,7 +103,8 @@ namespace Saturn {
 		
 		std::vector<ReflectionPushConstant> PushConstants;
 
-		std::vector< ReflectionDescriptor > Descriptors;
+		// Set, Descriptor
+		std::unordered_map< uint32_t, ReflectionDescriptor > Descriptors;
 	};
 
 	class ShaderReflector : public CountedObj

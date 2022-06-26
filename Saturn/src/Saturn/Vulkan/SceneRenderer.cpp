@@ -157,7 +157,6 @@ namespace Saturn {
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Static Meshes";
 		PipelineSpec.Shader = m_RendererData.StaticMeshShader.Pointer();
-		PipelineSpec.SetLayouts = { { m_RendererData.StaticMeshShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.VertexLayout = {
@@ -211,7 +210,6 @@ namespace Saturn {
 		PipelineSpec.Height = SHADOW_MAP_SIZE;
 		PipelineSpec.Name = "DirShadowMap";
 		PipelineSpec.Shader = m_RendererData.DirShadowMapShader.Pointer();
-		PipelineSpec.SetLayouts = { { m_RendererData.DirShadowMapShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.DirShadowMapPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.VertexLayout = {
@@ -303,7 +301,6 @@ namespace Saturn {
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Scene Composite";
 		PipelineSpec.Shader = m_RendererData.SceneCompositeShader.Pointer();
-		PipelineSpec.SetLayouts = { { m_RendererData.SceneCompositeShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.SceneComposite;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::None;
@@ -368,7 +365,6 @@ namespace Saturn {
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Selected Geometry";
 		PipelineSpec.Shader = m_RendererData.SelectedGeometryShader.Pointer();
-		PipelineSpec.SetLayouts = { { m_RendererData.SelectedGeometryShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.SelectedGeometryPass;
 		PipelineSpec.UseDepthTest = false;
 		PipelineSpec.UseStencilTest = true;
@@ -385,7 +381,6 @@ namespace Saturn {
 	void SceneRenderer::RenderGrid()
 	{
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-		auto& UBs = m_RendererData.GridShader->GetUniformBuffers();
 
 		// Set UB Data.
 
@@ -398,13 +393,13 @@ namespace Saturn {
 		GridMatricesObject.Res = 0.025f;
 		GridMatricesObject.Scale = 16.025f;
 
-		auto bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::All ][ 0 ].Buffer );
+		auto Data = m_RendererData.GridShader->MapUB( ShaderType::All, 0 );
 
-		void* dstData = pAllocator->MapMemory< void >( bufferAloc );
+		memcpy( Data, &GridMatricesObject, sizeof( GridMatricesObject ) );
 
-		memcpy( dstData, &GridMatricesObject, sizeof( GridMatricesObject ) );
+		m_RendererData.GridShader->UnmapUB( ShaderType::All, 0 );
 
-		pAllocator->UnmapMemory( bufferAloc );
+		m_RendererData.GridShader->WriteAllUBs( m_RendererData.GridDescriptorSet );
 		
 		Renderer::Get().SubmitFullscreenQuad( 
 			m_RendererData.CommandBuffer, m_RendererData.GridPipeline, m_RendererData.GridDescriptorSet, m_RendererData.GridIndexBuffer, m_RendererData.GridVertexBuffer );
@@ -415,7 +410,7 @@ namespace Saturn {
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-		auto& UBs = m_RendererData.SkyboxShader->GetUniformBuffers();
+		auto& UBs = m_RendererData.SkyboxDescriptorSet;
 
 		Entity SkylightEntity;
 
@@ -444,14 +439,14 @@ namespace Saturn {
 			SkyboxMatricesObject.Azimuth = Skylight.Azimuth;
 			SkyboxMatricesObject.Inclination = Skylight.Inclination;
 
-			auto bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::All ][ 0 ].Buffer );
-
-			void* Data = pAllocator->MapMemory< void >( bufferAloc );
+			auto Data = m_RendererData.SkyboxShader->MapUB( ShaderType::All, 0 );
 
 			memcpy( Data, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
 
-			pAllocator->UnmapMemory( bufferAloc );
+			m_RendererData.SkyboxShader->UnmapUB( ShaderType::All, 0 );
 
+			m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
+			
 			Renderer::Get().SubmitFullscreenQuad( 
 				CommandBuffer, m_RendererData.SkyboxPipeline, m_RendererData.SkyboxDescriptorSet, m_RendererData.SkyboxIndexBuffer, m_RendererData.SkyboxVertexBuffer );
 		}
@@ -585,12 +580,6 @@ namespace Saturn {
 	{
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
-		VertexBufferLayout Layout =
-		{
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-
 		// Create fullscreen quad.
 		Renderer::Get().CreateFullscreenQuad( &m_RendererData.GridVertexBuffer, &m_RendererData.GridIndexBuffer );
 		
@@ -600,42 +589,20 @@ namespace Saturn {
 			ShaderLibrary::Get().Add( m_RendererData.GridShader );
 		}
 	
-		DescriptorSetSpecification Spec = {};
-		Spec.Layout = m_RendererData.GridShader->GetSetLayout();
-		Spec.Pool = m_RendererData.GridShader->GetDescriptorPool();
-		
 		if( !m_RendererData.GridDescriptorSet )
-			m_RendererData.GridDescriptorSet = Ref< DescriptorSet >::Create( Spec );
+			m_RendererData.GridDescriptorSet = m_RendererData.GridShader->CreateDescriptorSet( 0, ShaderType::All );
 
-		auto& UBs = m_RendererData.GridShader->GetUniformBuffers();
+		m_RendererData.GridShader->WriteAllUBs( m_RendererData.GridDescriptorSet );
 
-		VkDescriptorBufferInfo DescriptorBufferInfo = {};
-		DescriptorBufferInfo.buffer = UBs[ ShaderType::All ][ 0 ].Buffer;
-		DescriptorBufferInfo.offset = 0;
-		DescriptorBufferInfo.range = UBs[ ShaderType::All ][ 0 ].Size;
-
-		m_RendererData.GridDescriptorSet->Write( DescriptorBufferInfo, {} );
-
-		// Gird shader attribute descriptions.
-		std::vector< VkVertexInputAttributeDescription > AttributeDescriptions;
-		
-		AttributeDescriptions.push_back( { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof( BaseVertex, Position ) } );
-		AttributeDescriptions.push_back( { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof( BaseVertex, Texcoord ) } );
-
-		// Grid shader binding descriptions.
-		std::vector< VkVertexInputBindingDescription > BindingDescriptions;
-		BindingDescriptions.push_back( { 0, Layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX } );
-		
 		if( m_RendererData.GridPipeline )
 			m_RendererData.GridPipeline = nullptr;
 
 		// Grid pipeline spec.
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width =m_RendererData.Width;
-		PipelineSpec.Height =m_RendererData.Height;
+		PipelineSpec.Width = m_RendererData.Width;
+		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Grid";
 		PipelineSpec.Shader = m_RendererData.GridShader.Pointer();
-		PipelineSpec.SetLayouts = { { m_RendererData.GridShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::None;
@@ -681,22 +648,10 @@ namespace Saturn {
 			ShaderLibrary::Get().Add( m_RendererData.SkyboxShader );
 		}
 		
-		auto& UBs = m_RendererData.SkyboxShader->GetUniformBuffers();
-
-		// Create uniform buffer.		
-		DescriptorSetSpecification Spec = {};
-		Spec.Layout = m_RendererData.SkyboxShader->GetSetLayout();
-		Spec.Pool = m_RendererData.SkyboxShader->GetDescriptorPool();
-		
 		if( !m_RendererData.SkyboxDescriptorSet )
-			m_RendererData.SkyboxDescriptorSet = Ref< DescriptorSet >::Create( Spec );
-		
-		VkDescriptorBufferInfo DescriptorBufferInfo = {};
-		DescriptorBufferInfo.buffer = UBs[ ShaderType::All ][ 0 ].Buffer;
-		DescriptorBufferInfo.offset = 0;
-		DescriptorBufferInfo.range = UBs[ ShaderType::All ][ 0 ].Size;
+			m_RendererData.SkyboxDescriptorSet = m_RendererData.SkyboxShader->CreateDescriptorSet( 0, ShaderType::All );
 
-		m_RendererData.SkyboxDescriptorSet->Write( DescriptorBufferInfo, {} );
+		m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
 		
 		if( m_RendererData.SkyboxPipeline )
 			m_RendererData.SkyboxPipeline = nullptr;
@@ -707,7 +662,6 @@ namespace Saturn {
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Skybox";
 		PipelineSpec.Shader = m_RendererData.SkyboxShader.Pointer();
-		PipelineSpec.SetLayouts = { { m_RendererData.SkyboxShader->GetSetLayout() } };
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::None;
@@ -833,17 +787,13 @@ namespace Saturn {
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Static meshes" );
 
+		Renderer::Get().Begin( m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource() );
+
 		// Render static meshes.
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
+		/*
 		for( auto& Cmd : m_DrawList )
 		{
-			for ( auto& submesh : Cmd.Mesh->Submeshes() )
-			{
-				auto& Material = Cmd.Mesh->GetMaterials()[ submesh.MaterialIndex ];
-				
-				Material->SetResource( "u_ShadowMap", m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource() );
-			}
-			
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
 			auto& UBs = StaticMeshShader->GetUniformBuffers();
 
@@ -871,11 +821,11 @@ namespace Saturn {
 
 			StaticMeshShader->UnmapUB( ShaderType::Vertex, 1 );
 
-			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
-				m_RendererData.StaticMeshPipeline, 
-				Cmd.Mesh, Cmd.Transform );
+			//Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
+			//	m_RendererData.StaticMeshPipeline, 
+			//	Cmd.Mesh, Cmd.Transform );
 		}
-
+		*/
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		//////////////////////////////////////////////////////////////////////////
@@ -929,8 +879,6 @@ namespace Saturn {
 			// Begin directional shadow map pass.
 			CmdBeginDebugLabel( CommandBuffer, "DirShadowMap" );
 			vkCmdBeginRenderPass( CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
-
-			auto& UBs = ShadowShader->GetUniformBuffers();
 
 			for( auto& Cmd : m_DrawList )
 			{
@@ -995,64 +943,6 @@ namespace Saturn {
 		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-
-		if( m_SelectedMeshDrawList.size() > 0 )
-		{
-			m_RendererData.SelectedGeometryPass->BeginPass( CommandBuffer, m_RendererData.SelectedGeometryFramebuffer->GetVulkanFramebuffer(), Extent );
-
-			VkViewport Viewport = {};
-			Viewport.x = 0;
-			Viewport.y = 0;
-			Viewport.width = ( float ) m_RendererData.Width;
-			Viewport.height = ( float ) m_RendererData.Height;
-			Viewport.minDepth = 0.0f;
-			Viewport.maxDepth = 1.0f;
-
-			VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
-
-			vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
-			vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
-
-			m_RendererData.SelectedGeometryPipeline->Bind( m_RendererData.CommandBuffer );
-
-			for( auto& Cmd : m_SelectedMeshDrawList )
-			{
-				auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
-				auto& rMaterial = Cmd.Mesh->GetBaseMaterial();
-				auto& UBs = m_RendererData.SelectedGeometryShader->GetUniformBuffers();
-
-				struct UB_Matrices
-				{
-					glm::mat4 ViewProjection;
-					glm::mat4 Transform;
-				} Matrices;
-
-				Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
-				Matrices.Transform = Cmd.Transform;
-
-				auto bufferAloc = pAllocator->GetAllocationFromBuffer( UBs[ ShaderType::Vertex ][ 0 ].Buffer );
-				void* dstData = pAllocator->MapMemory< void >( bufferAloc );
-				memcpy( dstData, &Matrices, sizeof( Matrices ) );
-				pAllocator->UnmapMemory( bufferAloc );
-
-				m_RendererData.SelectedGeometryShader->WriteAllUBs( m_RendererData.SelectedGeometrySet );
-
-				m_RendererData.SelectedGeometrySet->Bind( m_RendererData.CommandBuffer, m_RendererData.SelectedGeometryPipeline->GetPipelineLayout() );
-
-				Cmd.Mesh->GetVertexBuffer()->Bind( m_RendererData.CommandBuffer );
-				Cmd.Mesh->GetIndexBuffer()->Bind( m_RendererData.CommandBuffer );
-
-				glm::mat4 Transform = Cmd.Transform;
-
-				//Cmd.Mesh->GetIndexBuffer()->Draw( CommandBuffer );
-
-				//Renderer::Get().RenderSubmesh( m_RendererData.CommandBuffer,
-				//	m_RendererData.SelectedGeometryPipeline,
-				//	Cmd.Mesh, rSubmesh, Transform );
-			}
-
-			m_RendererData.SelectedGeometryPass->EndPass();
-		}
 	}
 
 	void SceneRenderer::RenderScene()
@@ -1068,7 +958,7 @@ namespace Saturn {
 		// Passes
 
 		// DirShadowMap
-		DirShadowMapPass();
+		//DirShadowMapPass();
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Selected Geometry" );
 

@@ -7,12 +7,12 @@ layout(location = 2) in vec3 a_Tangent;
 layout(location = 3) in vec3 a_Bitangent;
 layout(location = 4) in vec2 a_TexCoord;
 
-layout(set = 0, binding = 0) uniform Matrices 
+layout(binding = 0) uniform Matrices 
 {
     mat4 ViewProjection;
 } u_Matrices;
 
-layout(set = 0, binding = 1) uniform LightData
+layout(binding = 1) uniform LightData
 {
     mat4 LightMatrix;
 };
@@ -54,17 +54,20 @@ void main()
 #type fragment
 #version 450
 
-layout(push_constant) uniform u_Materials
+layout(push_constant) uniform pc_Materials
 {
 	layout(offset = 64) vec3 AlbedoColor;
-} pc_Materials;
+} u_Materials; 
 
 // Textures
-layout (binding = 2) uniform sampler2D u_AlbedoTexture;
-layout (binding = 3) uniform sampler2D u_NormalTexture;
-layout (binding = 4) uniform sampler2D u_MetallicTexture;
-layout (binding = 5) uniform sampler2D u_RoughnessTexture;
-layout (binding = 6) uniform sampler2DArray u_ShadowMap;
+layout (set = 0, binding = 2) uniform sampler2D u_AlbedoTexture;
+layout (set = 0, binding = 3) uniform sampler2D u_NormalTexture;
+layout (set = 0, binding = 4) uniform sampler2D u_MetallicTexture;
+layout (set = 0, binding = 5) uniform sampler2D u_RoughnessTexture;
+
+// Set 1, owned by renderer, environment settings.
+
+layout (set = 1, binding = 6) uniform sampler2D u_ShadowMap;
 
 layout (location = 0) out vec4 FinalColor;
 
@@ -91,7 +94,7 @@ PBRParameters m_Params;
 
 void main() 
 {
-	m_Params.Albedo = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb * pc_Materials.AlbedoColor;
+	m_Params.Albedo = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb * u_Materials.AlbedoColor;
 	
 	float Ambient = 0.20;
 

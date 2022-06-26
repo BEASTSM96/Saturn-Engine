@@ -105,6 +105,7 @@ namespace Saturn {
 		
 		Ref< DescriptorPool > Pool = nullptr;
 		VkDescriptorSetLayout Layout = nullptr;
+		uint32_t SetIndex = -1;
 	};
 
 	class DescriptorSet : public CountedObj
@@ -119,14 +120,16 @@ namespace Saturn {
 		void Write( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo );
 		void Write( std::vector< VkWriteDescriptorSet > WriteDescriptorSets );
 
-
 		void Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout );
 		
+		uint32_t GetSetIndex() const { return m_Specification.SetIndex; }
+
 		bool operator == ( const DescriptorSet& other ) const
 		{
 			return ( m_Set == other.m_Set );
 		}
 		
+
 		VkDescriptorSet GetVulkanSet() { return m_Set; }
 		const VkDescriptorSet GetVulkanSet() const { return m_Set; }
 

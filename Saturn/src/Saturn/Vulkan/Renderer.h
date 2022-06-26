@@ -52,6 +52,9 @@ namespace Saturn {
 
 		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< Mesh > mesh, const glm::mat4 transform );
 
+		// DOES NOT BEGIN THE FRAME, CALL BeginFrame for that.
+		void Begin( Ref<Image2D> ShadowMap );
+
 		// Allocate command buffer.
 		VkCommandBuffer AllocateCommandBuffer( VkCommandPool CommandPool );
 
@@ -116,6 +119,8 @@ namespace Saturn {
 		float m_QueuePresentTime;
 		
 		Ref< Texture2D > m_PinkTexture;
+
+		Ref< DescriptorSet > m_RendererDescriptorSet;
 
 	private:
 		friend class VulkanContext;

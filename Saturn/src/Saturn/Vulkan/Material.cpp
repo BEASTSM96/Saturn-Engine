@@ -44,6 +44,7 @@ namespace Saturn {
 		m_Shader = Shader;
 		m_Name = MateralName;
 
+		/*
 		for ( auto&& [type, stage, name] : m_Shader->GetTextures() )
 		{
 			m_Textures[ name ] = nullptr;
@@ -53,6 +54,7 @@ namespace Saturn {
 		{
 			m_Uniforms.push_back( { rUniform.GetName(), rUniform.GetLocation(), rUniform.GetType(), rUniform.GetSize(), rUniform.GetOffset(), rUniform.GetIsPushConstantData() } );
 		}
+		*/
 
 		uint32_t Size = 0;
 		
@@ -97,7 +99,7 @@ namespace Saturn {
 				
 				if( Set.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ) 
 				{
-					if( Name == "u_ShadowMapTexture" )
+					if( Name == "u_ShadowMap" )
 						continue;
 
 					VkDescriptorImageInfo ImageInfo = {};

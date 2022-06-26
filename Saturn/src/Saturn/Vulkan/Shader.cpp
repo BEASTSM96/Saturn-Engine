@@ -43,11 +43,57 @@
 #include <shaderc/shaderc.h>
 
 #include "ShaderReflector.h"
+#include <spirv/spirv_glsl.hpp>
 
 #include <cassert>
 
 namespace Saturn {
 	
+	VkShaderStageFlags ShaderTypeToVulkan( ShaderType type ) 
+	{
+		switch( type )
+		{
+			case Saturn::ShaderType::None:
+				return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+			case Saturn::ShaderType::Vertex:
+				return VK_SHADER_STAGE_VERTEX_BIT;
+			case Saturn::ShaderType::Fragment:
+				return VK_SHADER_STAGE_FRAGMENT_BIT;
+			case Saturn::ShaderType::Geometry:
+				return VK_SHADER_STAGE_COMPUTE_BIT;
+			case Saturn::ShaderType::Compute:
+				return VK_SHADER_STAGE_COMPUTE_BIT;
+			case Saturn::ShaderType::All:
+				return VK_SHADER_STAGE_ALL;
+		}
+
+		return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+	}
+
+	ShaderDataType SpvToSaturn( spirv_cross::SPIRType type )
+	{
+		switch( type.basetype )
+		{
+			case spirv_cross::SPIRType::Boolean: return ShaderDataType::Bool;
+			case spirv_cross::SPIRType::Int: return ShaderDataType::Int;
+
+			case spirv_cross::SPIRType::Float: 
+			{
+				if( type.vecsize == 1 ) return ShaderDataType::Int;
+				if( type.vecsize == 2 ) return ShaderDataType::Int2;
+				if( type.vecsize == 3 ) return ShaderDataType::Int3;
+				if( type.vecsize == 4 ) return ShaderDataType::Int4;
+
+				if( type.columns == 3 ) return ShaderDataType::Mat3;
+				if( type.columns == 4 ) return ShaderDataType::Mat4;
+			} break;
+
+			case spirv_cross::SPIRType::SampledImage: return ShaderDataType::Sampler2D;
+		}
+
+		return ShaderDataType::None;
+	}
+
 	ShaderLibrary::ShaderLibrary()
 	{
 	}
@@ -149,7 +195,12 @@ namespace Saturn {
 
 		CompileGlslToSpvAssembly();
 
-		Reflect( {} );
+		for ( const auto& [k, data] : m_SpvCode )
+		{
+			Reflect( k.Type, data );
+		}
+
+		CreateDescriptors();
 
 		GetAvailableUniform();
 	}
@@ -165,16 +216,14 @@ namespace Saturn {
 		}
 		
 		m_Uniforms.clear();
-		
-		for( auto& uniform : m_Uniforms )
+
+		for ( auto& [ set, descriptorSet ] : m_DescriptorSets )
 		{
-			uniform.Terminate();
+			vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), descriptorSet.SetLayout, nullptr );
 		}
 
-		m_Uniforms.clear();
+		m_SetLayouts.clear();
 
-		vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_SetLayout, nullptr );
-		
 		m_SetPool = nullptr;
 	}
 
@@ -191,22 +240,19 @@ namespace Saturn {
 	void Shader::WriteAllUBs( const Ref< DescriptorSet >& rSet )
 	{
 		// Iterate over uniform buffers
-		for( auto& [stage, bindingsMap] : m_UniformBuffers )
+		for( auto& [set, descriptorSet] : m_DescriptorSets )
 		{
-			for( auto& [binding, buffer] : bindingsMap )
+			for( auto& [binding, ub] : descriptorSet.UniformBuffers )
 			{
-				if( m_DescriptorWrites[ stage ][ buffer.Name ].descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER )
-					continue;
-				
 				VkDescriptorBufferInfo BufferInfo = {};
-				BufferInfo.buffer = buffer.Buffer;
+				BufferInfo.buffer = ub.Buffer;
 				BufferInfo.offset = 0;
-				BufferInfo.range = buffer.Size;
-
-				m_DescriptorWrites[ stage ][ buffer.Name ].dstSet = rSet->GetVulkanSet();
-				m_DescriptorWrites[ stage ][ buffer.Name ].pBufferInfo = &BufferInfo;
+				BufferInfo.range = ub.Size;
 				
-				vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &m_DescriptorWrites[ stage ][ buffer.Name ], 0, nullptr );
+				descriptorSet.WriteDescriptorSets[ binding ].pBufferInfo = &BufferInfo;
+				descriptorSet.WriteDescriptorSets[ binding ].dstSet = rSet->GetVulkanSet();
+
+				vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ binding ], 0, nullptr );
 			}
 		}
 	}
@@ -215,7 +261,7 @@ namespace Saturn {
 	{
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
-		auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_UniformBuffers[ Type ][ Binding ].Buffer );
+		auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_DescriptorSets[ Binding ].UniformBuffers[ Binding ].Buffer );
 		
 		return pAllocator->MapMemory< void >( bufferAloc );
 	}
@@ -224,9 +270,19 @@ namespace Saturn {
 	{
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 		
-		auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_UniformBuffers[ Type ][ Binding ].Buffer );
+		auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_DescriptorSets[ Binding ].UniformBuffers[ Binding ].Buffer );
 		
 		pAllocator->UnmapMemory( bufferAloc );
+	}
+
+	Ref<DescriptorSet> Shader::CreateDescriptorSet( uint32_t set, ShaderType Stage )
+	{
+		DescriptorSetSpecification Specification;
+		Specification.Layout = m_DescriptorSets[ set ].SetLayout;
+		Specification.Pool = m_SetPool;
+		Specification.SetIndex = set;
+
+		return Ref<DescriptorSet>::Create( Specification );
 	}
 
 	void Shader::ReadFile()
@@ -295,205 +351,245 @@ namespace Saturn {
 		}
 	}
 
-	void Shader::Reflect( const std::vector<uint32_t>& rShaderData )
+	void Shader::Reflect( ShaderType shaderType, const std::vector<uint32_t>& rShaderData )
 	{
-		Timer t;
+		spirv_cross::Compiler Compiler( rShaderData );
+		auto Resources = Compiler.get_shader_resources();
 
-		SAT_CORE_INFO( "Shader Reflecting, {0}", m_Name );
-		
-		ReflectOutput Output = ShaderReflector::Get().ReflectShader( this );
-
-		SAT_CORE_INFO( "Reflecting took: {0}", t.ElapsedMilliseconds() );
-		
-		SAT_CORE_INFO( " {0} Descriptors", Output.Descriptors.size() );
-
-		for( auto& rDescriptor : Output.Descriptors )
+		// Sort the descriptors by set and binding.
+		auto Fn = [&]( const auto& a, const auto& b ) -> bool
 		{
-			// I know the for loop has a boolean condition, but I am still going to do this.
-			if( rDescriptor.Members.size() > 0 )
+			auto aSet = Compiler.get_decoration( a.id, spv::DecorationDescriptorSet );
+			auto bSet = Compiler.get_decoration( b.id, spv::DecorationDescriptorSet );
+
+			if( aSet == bSet )
 			{
-				SAT_CORE_INFO( " {0} Is a uniform block.", rDescriptor.Name );
-				
-				int i = 0;
-				
-				std::vector< ShaderUniform > UBMembers;
+				uint32_t aBinding = Compiler.get_decoration( a.id, spv::DecorationBinding );
+				uint32_t bBinding = Compiler.get_decoration( b.id, spv::DecorationBinding );
 
-				for( auto& rMember : rDescriptor.Members )
-				{
-					SAT_CORE_INFO( "  {0}", rMember.Name );
-					SAT_CORE_INFO( "   Offset {0}", rMember.Offset );
-					SAT_CORE_INFO( "   Size {0}", rMember.Size );
-					SAT_CORE_INFO( "   Type {0}", ShaderDataTypeToString( rMember.Type ) );
-
-					// Check if the uniform already exists in list, if not add it.
-					auto result = std::find_if( UBMembers.begin(), UBMembers.end(), [&]( const ShaderUniform& rUniform )
-					{
-						return rUniform.GetName() == rMember.Name;
-					} );
-					
-					if( result == UBMembers.end() )
-					{
-						ShaderUniform Uniform = ShaderUniform( rDescriptor.Name + "." + rMember.Name, i, rMember.Type, rMember.Size, ( uint32_t ) rMember.Offset );
-
-						UBMembers.push_back( Uniform );
-
-						Uniform.Terminate();
-					}
-
-					i++;
-				}
-			
-				m_UniformBuffers[ VulkanStageToSaturn( rDescriptor.StageFlags ) ][ rDescriptor.Binding ] = ShaderUniformBuffer( rDescriptor.Name, rDescriptor.Binding, rDescriptor.Size, VulkanStageToSaturn( rDescriptor.StageFlags ), nullptr, UBMembers );
+				return aBinding < bBinding;
 			}
-			else
+
+			return aSet < bSet;
+		};
+
+		std::sort( Resources.uniform_buffers.begin(), Resources.uniform_buffers.end(), Fn );
+
+		for ( const auto& ub : Resources.uniform_buffers )
+		{
+			const auto& Name = ub.name;
+			auto& BufferType = Compiler.get_type( ub.base_type_id );
+			int MemberCount = BufferType.member_types.size();
+			uint32_t Binding = Compiler.get_decoration( ub.id, spv::DecorationBinding );
+			uint32_t Set = Compiler.get_decoration( ub.id, spv::DecorationDescriptorSet );
+
+			uint32_t Size = Compiler.get_declared_struct_size( BufferType );
+
+			SAT_CORE_INFO( "Uniform Buffer: {0}", Name );
+			SAT_CORE_INFO( " Size: {0}", Size );
+			SAT_CORE_INFO( " Binding: {0}", Binding );
+			SAT_CORE_INFO( " Set: {0}", Set);
+
+			if( m_DescriptorSets[ Set ].Set == -1 )
+				m_DescriptorSets[ Set ] = { .Set = Set };
+
+			ShaderUniformBuffer Uniform;
+			Uniform.Binding = Binding;
+			Uniform.Size = Size;
+			Uniform.Location = shaderType;
+			Uniform.Name = Name;
+
+			auto& UniformBuffers = m_DescriptorSets[ Set ].UniformBuffers;
+
+			// Check if the same element already exists if so the stage "All"
+			// is used to represent all stages.
+			auto It = std::find_if( UniformBuffers.begin(), UniformBuffers.end(), [&]( const auto& a )
 			{
-				SAT_CORE_INFO( " {0} Is a not uniform block.", rDescriptor.Name );
-				
-				// Add textures.
+				auto&& [k, v] = a;
 
-				if( rDescriptor.Type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER )
-				{
-					m_Textures.push_back( { VulkanStageToSaturn( rDescriptor.StageFlags ), rDescriptor.Binding, rDescriptor.Name } );
+				return v == Uniform;
+			} );
+			
+			if( It != std::end( UniformBuffers ) )
+			{
+				auto&& [Binding, ub] = ( *It );
 
-					SAT_CORE_INFO( "  At ({0}, {1}) texture is present.", ( int ) VulkanStageToSaturn( rDescriptor.StageFlags ), rDescriptor.Binding );
-				}
+				ub.Location = ShaderType::All;
 
-				// Check if the uniform already exists in list, if not add it.
-				auto result = std::find_if( m_Uniforms.begin(), m_Uniforms.end(), [&]( const ShaderUniform& rUniform )
-				{
-					return rUniform.GetName() == rDescriptor.Name;
-				} );
+				continue;
+			}
 
-				if( result == m_Uniforms.end() )
-				{
-					ShaderUniform Uniform = ShaderUniform( rDescriptor.Name, rDescriptor.Binding, VulkanDescriptorToShaderDataType( rDescriptor.Type ), sizeof( rDescriptor ), ( uint32_t ) rDescriptor.Offset );
+			m_DescriptorSets[ Set ].UniformBuffers[ Binding ] = Uniform;
 
-					m_Uniforms.push_back( Uniform );
-				}
+			for( int i = 0; i < MemberCount; i++ )
+			{
+				auto type = Compiler.get_type( BufferType.member_types[i] );
+				const auto& memberName = Compiler.get_member_name( BufferType.self, i );
+				size_t size = Compiler.get_declared_struct_member_size( BufferType, i );
+				auto offset = Compiler.type_struct_member_offset( BufferType, i );
+
+				std::string MemberName = Name + "." + memberName;
+
+				SAT_CORE_INFO( "  {0}", memberName );
+				SAT_CORE_INFO( "   Size: {0}", size );
+				SAT_CORE_INFO( "   Offset: {0}", offset );
+
+				// Use Binding as location it does not matter.
+				m_Uniforms.push_back( { MemberName, (int)Binding, SpvToSaturn( type ), size, offset } );
 			}
 		}
-		
-		SAT_CORE_INFO( "Push constants:" );
-		for ( auto& PushConstant : Output.PushConstants )
-		{
-			SAT_CORE_INFO( " {0}:", PushConstant.Name );
-			SAT_CORE_INFO( "  Offset: {0}", PushConstant.Offset );
-			SAT_CORE_INFO( "  Size: {0}", PushConstant.Size );
 
+		for ( const auto& pc : Resources.push_constant_buffers )
+		{
+			const auto& Name = pc.name;
+			auto& BufferType = Compiler.get_type( pc.base_type_id );
+			int MemberCount = BufferType.member_types.size();
+			uint32_t set = Compiler.get_decoration( pc.id, spv::DecorationDescriptorSet );
+
+			uint32_t Size = Compiler.get_declared_struct_size( BufferType );
 			uint32_t Offset = 0;
-			
+
+			// Make sure the buffer offset is size + offset for because that's what vulkan needs when we render.
 			if( m_PushConstantRanges.size() )
 				Offset = m_PushConstantRanges.back().offset + m_PushConstantRanges.back().size;
 
-			m_PushConstantRanges.push_back( { .stageFlags = PushConstant.StageFlags, .offset = Offset, .size = (uint32_t)PushConstant.Size } );
+			m_PushConstantRanges.push_back( { .stageFlags = ShaderTypeToVulkan( shaderType ), .offset = Offset , .size = ( uint32_t )Size } );
 
-			for( auto& rPCMember : PushConstant.Members )
+			SAT_CORE_INFO( "Push constant buffer: {0}", Name );
+			SAT_CORE_INFO( " Size: {0}", Size );
+			SAT_CORE_INFO( " Offset: {0}", Offset );
+			SAT_CORE_INFO( " Set: {0}", ( uint32_t )set );
+			SAT_CORE_INFO( " Stage: {0}", ( uint32_t )shaderType );
+
+			for( int i = 0; i < MemberCount; i++ )
 			{
-				SAT_CORE_INFO( "   {0}", rPCMember.Name );
-				SAT_CORE_INFO( "    Offset {0}", rPCMember.Offset );
-				SAT_CORE_INFO( "    Size {0}", rPCMember.Size );
-				SAT_CORE_INFO( "    Type {0}", ShaderDataTypeToString( rPCMember.Type ) );
+				auto type = Compiler.get_type( BufferType.member_types[ i ] );
+				const auto& memberName = Compiler.get_member_name( BufferType.self, i );
+				size_t size = Compiler.get_declared_struct_member_size( BufferType, i );
+				auto offset = Compiler.type_struct_member_offset( BufferType, i );
+				
+				std::string MemberName;
 
-				auto result = std::find_if( m_Uniforms.begin(), m_Uniforms.end(), [&]( const ShaderUniform& rUniform )
-					{
-						return rUniform.GetName() == rPCMember.Name;
-					} );
+				if( Name.empty() )
+					MemberName = memberName;
+				else
+					MemberName = Name + "." + memberName;
 
-				if( result == m_Uniforms.end() )
-				{
-					// Although this is still push constant data we only want push constant data in the fragment because push constant data in the vertex shader is not important.
-					bool PushConstantData = false;
-					
-					if( PushConstant.StageFlags == VK_SHADER_STAGE_FRAGMENT_BIT )
-						PushConstantData = true;
+				bool PushConstantData = false;
 
-					ShaderUniform Uniform = ShaderUniform( PushConstant.Name + "." + rPCMember.Name, ( int ) rPCMember.Offset, rPCMember.Type, rPCMember.Size, ( uint32_t ) rPCMember.Offset - Offset, PushConstantData );
-						
+				if( shaderType == ShaderType::Fragment )
+					PushConstantData = true;
 
-					// Reason why we pass in the offset twice is because that is kind of the location in the push constant buffer.
-					m_Uniforms.push_back( Uniform );
-				}
+				SAT_CORE_INFO( "  {0}", memberName );
+				SAT_CORE_INFO( "  Size: {0}", size );
+				SAT_CORE_INFO( "  Offset: {0}", offset );
+
+				// Use Binding as location it does not matter.
+				m_Uniforms.push_back( { MemberName, ( int ) offset, SpvToSaturn( type ), size, offset - Offset, PushConstantData } );
 			}
 		}
 
+		for( const auto& Resource : Resources.sampled_images )
+		{
+			const auto& Name = Resource.name;
+			auto& BufferType = Compiler.get_type( Resource.base_type_id );
+			uint32_t binding = Compiler.get_decoration( Resource.id, spv::DecorationBinding );
+			uint32_t set = Compiler.get_decoration( Resource.id, spv::DecorationDescriptorSet );
+
+			SAT_CORE_INFO( "Sampled image: {0}", Name );
+			SAT_CORE_INFO( " Binding: {0}", binding );
+			SAT_CORE_INFO( " Set: {0}", set );
+
+			m_DescriptorSets[ set ].SampledImages.push_back( { Name, shaderType, set, binding } );
+		}
+	}
+
+	void Shader::CreateDescriptors()
+	{
 		// Create the descriptor set layout.
-		
-		std::vector< VkDescriptorSetLayoutBinding > Bindings;
+
 		std::vector< VkDescriptorPoolSize > PoolSizes;
 
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
-		// Iterate over uniform buffers
-		for( auto& [ stage, bindingsMap ] : m_UniformBuffers )
+		// Iterate over descriptor sets
+		for( auto& [ set, descriptorSet ] : m_DescriptorSets )
 		{
-			for ( auto& [ binding, buffer ] : bindingsMap )
+			std::vector< VkDescriptorSetLayoutBinding > Bindings;
+
+			// Iterate over uniform buffers
+			for( auto& [ Binding, ub ] : descriptorSet.UniformBuffers )
 			{
 				VkDescriptorSetLayoutBinding Binding = {};
-				Binding.binding = binding;
+				Binding.binding = ub.Binding;
 				Binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				Binding.descriptorCount = 1;
-				Binding.stageFlags = stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : stage == ShaderType::All ? VK_SHADER_STAGE_ALL : VK_SHADER_STAGE_FRAGMENT_BIT;
+				Binding.stageFlags = ub.Location == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : ub.Location == ShaderType::All ? VK_SHADER_STAGE_ALL : VK_SHADER_STAGE_FRAGMENT_BIT;
 				Binding.pImmutableSamplers = nullptr;
 
 				VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-				BufferInfo.size = buffer.Size;
+				BufferInfo.size = ub.Size;
 				BufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 				BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-				pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, &buffer.Buffer );
+				pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, &ub.Buffer );
 
-				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 1000 } );
+				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 250 } );
 
 				Bindings.push_back( Binding );
 
-				m_DescriptorWrites[ stage ][ buffer.Name ]  = {
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.pNext = nullptr,
-				.dstSet = nullptr,
-				.dstBinding = binding,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-				.pImageInfo = nullptr,
-				.pBufferInfo = nullptr,
-				.pTexelBufferView = nullptr };
-
-				m_DescriptorSetCount++;
+				descriptorSet.WriteDescriptorSets[ ub.Binding ] =
+				{
+					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+					.pNext = nullptr,
+					.dstSet = nullptr,
+					.dstBinding = ub.Binding,
+					.dstArrayElement = 0,
+					.descriptorCount = 1,
+					.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+					.pImageInfo = nullptr,
+					.pBufferInfo = nullptr,
+					.pTexelBufferView = nullptr
+				};
 			}
+
+			// Iterate over textures
+			for( auto& texture : descriptorSet.SampledImages )
+			{
+				VkDescriptorSetLayoutBinding Binding = {};
+				Binding.binding = texture.Binding;
+				Binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				Binding.descriptorCount = 1;
+				Binding.stageFlags = texture.Stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : texture.Stage == ShaderType::All ? VK_SHADER_STAGE_ALL : VK_SHADER_STAGE_FRAGMENT_BIT;
+				Binding.pImmutableSamplers = nullptr;
+
+				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 250 } );
+
+				Bindings.push_back( Binding );
+
+				descriptorSet.WriteDescriptorSets[ texture.Binding ] =
+				{
+					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+					.pNext = nullptr,
+					.dstSet = nullptr,
+					.dstBinding = texture.Binding,
+					.dstArrayElement = 0,
+					.descriptorCount = 1,
+					.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+					.pImageInfo = nullptr,
+					.pBufferInfo = nullptr,
+					.pTexelBufferView = nullptr
+				};
+			}
+
+			VkDescriptorSetLayoutCreateInfo LayoutInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+			LayoutInfo.bindingCount = Bindings.size();
+			LayoutInfo.pBindings = Bindings.data();
+
+			VK_CHECK( vkCreateDescriptorSetLayout( VulkanContext::Get().GetDevice(), &LayoutInfo, nullptr, &descriptorSet.SetLayout ) );
+
+			m_SetLayouts.push_back( descriptorSet.SetLayout );
 		}
-
-		// Iterate over textures
-		for ( auto& [ stage, binding, name ] : m_Textures )
-		{
-			VkDescriptorSetLayoutBinding Binding = {};
-			Binding.binding = binding;
-			Binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			Binding.descriptorCount = 1;
-			Binding.stageFlags = stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : stage == ShaderType::All ? VK_SHADER_STAGE_ALL : VK_SHADER_STAGE_FRAGMENT_BIT;
-			Binding.pImmutableSamplers = nullptr;
-
-			PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1000 } );
-
-			Bindings.push_back( Binding );
-
-			m_DescriptorWrites[ stage ][ name ] = {
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.pNext = nullptr,
-				.dstSet = nullptr,
-				.dstBinding = binding,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-				.pImageInfo = nullptr,
-				.pBufferInfo = nullptr,
-				.pTexelBufferView = nullptr };
-		}
-
-		VkDescriptorSetLayoutCreateInfo LayoutInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-		LayoutInfo.bindingCount = Bindings.size();
-		LayoutInfo.pBindings = Bindings.data();
-		
-		VK_CHECK( vkCreateDescriptorSetLayout( VulkanContext::Get().GetDevice(), &LayoutInfo, nullptr, &m_SetLayout ) );
 
 		m_SetPool = Ref< DescriptorPool >::Create( PoolSizes, 10000 );
 	}

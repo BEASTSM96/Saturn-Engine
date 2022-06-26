@@ -79,15 +79,13 @@ namespace Saturn {
 
 		m_DefaultPass = Pass( Specification );
 
-		// Init Renderer.
+		// Init Renderers.
+		SceneRenderer::Get();
 		Renderer::Get();
 
 		CreateDepthResources();
 
 		m_SwapChain.CreateFramebuffers();
-
-		// Init Scene Renderer.
-		SceneRenderer::Get();
 	}
 
 	void VulkanContext::Terminate()

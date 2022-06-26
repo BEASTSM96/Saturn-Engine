@@ -56,13 +56,39 @@ namespace Saturn {
 	struct ShaderUniformBuffer
 	{
 		std::string Name;
-		int Binding;
+		uint32_t Binding;
 		size_t Size;
 		ShaderType Location;
 		
 		VkBuffer Buffer;
 
+		bool operator==( const ShaderUniformBuffer& rOther ) 
+		{
+			return Binding == rOther.Binding && Name == rOther.Name && Size == rOther.Size;
+		}
+
+		auto operator<=>( const ShaderUniformBuffer& rOther ) const = default;
+
 		std::vector< ShaderUniform > Members;
+	};
+
+	struct ShaderSampledImage
+	{
+		std::string Name;
+		ShaderType Stage;
+		uint32_t Set;
+		uint32_t Binding;
+	};
+
+	struct ShaderDescriptorSet
+	{
+		uint32_t Set = -1;
+
+		VkDescriptorSetLayout SetLayout;
+		
+		std::unordered_map< uint32_t, VkWriteDescriptorSet > WriteDescriptorSets;
+		std::vector< ShaderSampledImage > SampledImages;
+		std::unordered_map< uint32_t, ShaderUniformBuffer > UniformBuffers;
 	};
 
 	struct ShaderSource
@@ -177,12 +203,7 @@ namespace Saturn {
 		
 		const std::vector< ShaderUniform > GetUniforms() const { return m_Uniforms; }
 		
-		ShaderUBMap& GetUniformBuffers() { return m_UniformBuffers; }
-		const ShaderUBMap& GetUniformBuffers() const { return m_UniformBuffers; }
-		
-		std::vector< std::tuple< ShaderType, uint32_t, std::string > >& GetTextures() { return m_Textures; }
-		
-		VkDescriptorSetLayout GetSetLayout() { return m_SetLayout; }
+		std::vector< ShaderSampledImage >& GetTextures() { return m_Textures; }
 		
 		Ref< DescriptorPool >& GetDescriptorPool() { return m_SetPool; }
 		const Ref< DescriptorPool >& GetDescriptorPool() const { return m_SetPool; }
@@ -203,6 +224,11 @@ namespace Saturn {
 		
 		uint32_t GetDescriptorSetCount() { return m_DescriptorSetCount; }
 
+		Ref<DescriptorSet> CreateDescriptorSet( uint32_t set, ShaderType Stage );
+
+		std::vector< VkDescriptorSetLayout >& GetSetLayouts() { return m_SetLayouts; }
+		VkDescriptorSetLayout GetSetLayout( uint32_t set = 0 ) { return m_SetLayouts[ set ]; }
+
 	private:
 
 		void ReadFile();
@@ -211,8 +237,10 @@ namespace Saturn {
 
 		void DetermineShaderTypes();
 		
-		void Reflect( const std::vector<uint32_t>& rShaderData );
+		void Reflect( ShaderType shaderType, const std::vector<uint32_t>& rShaderData );
 		
+		void CreateDescriptors();
+
 		void CompileGlslToSpvAssembly();
 
 	private:
@@ -230,16 +258,20 @@ namespace Saturn {
 		std::vector< ShaderUniform > m_PushConstantUniforms;
 		
 		ShaderUBMap m_UniformBuffers;
-		// So here we saying that the shader might X amount of textures at X index and X shader stage. It's the materials job to create the textures.
-		std::vector< std::tuple< ShaderType, uint32_t, std::string > > m_Textures;
+
+		std::vector< ShaderSampledImage > m_Textures;
 		
 		std::vector< VkPushConstantRange > m_PushConstantRanges;
+
+		// Set -> Binding -> ShaderDescriptorSet
+		std::unordered_map< uint32_t, ShaderDescriptorSet > m_DescriptorSets;
 
 		ShaderWriteMap m_DescriptorWrites;
 
 		uint32_t m_DescriptorSetCount = -1;
 
-		VkDescriptorSetLayout m_SetLayout;
+		std::vector< VkDescriptorSetLayout > m_SetLayouts;
+
 		Ref< DescriptorPool > m_SetPool;
 	};
 

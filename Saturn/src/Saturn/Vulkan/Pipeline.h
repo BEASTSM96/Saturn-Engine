@@ -81,7 +81,6 @@ namespace Saturn {
 			UseStencilTest = other.UseStencilTest;
 			FrontFace = other.FrontFace;
 			PolygonMode = other.PolygonMode;
-			SetLayouts = other.SetLayouts;
 			Width = other.Width;
 			Height = other.Height;
 			RequestDescriptorSets = other.RequestDescriptorSets;
@@ -95,7 +94,6 @@ namespace Saturn {
 		Ref<Pass> RenderPass;
 		std::string Name = "Pipeline";
 		VertexBufferLayout VertexLayout;
-		std::vector< VkDescriptorSetLayout > SetLayouts;
 		uint32_t Width = 0, Height = 0;
 		bool UseDepthTest = false;
 		bool UseStencilTest = false;

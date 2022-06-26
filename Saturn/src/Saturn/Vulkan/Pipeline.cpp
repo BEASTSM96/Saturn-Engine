@@ -104,8 +104,8 @@ namespace Saturn {
 			PipelineLayoutCreateInfo.pPushConstantRanges = m_Specification.Shader->GetPushConstantRanges().data();
 		}
 
-		PipelineLayoutCreateInfo.pSetLayouts = m_Specification.SetLayouts.data();
-		PipelineLayoutCreateInfo.setLayoutCount = 1;
+		PipelineLayoutCreateInfo.setLayoutCount = m_Specification.Shader->GetSetLayouts().size();
+		PipelineLayoutCreateInfo.pSetLayouts = m_Specification.Shader->GetSetLayouts().data();
 		
 		VK_CHECK( vkCreatePipelineLayout( VulkanContext::Get().GetDevice(), &PipelineLayoutCreateInfo, nullptr, &m_PipelineLayout ) );
 

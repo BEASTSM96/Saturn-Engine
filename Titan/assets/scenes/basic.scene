@@ -1,5 +1,30 @@
 Scene: Untitled Scene
 Entities:
+  - Entity: 133700862785044703
+    TagComponent:
+      Tag: Directional Light
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [1.39626336, 0.17453292, 0]
+      Scale: [1, 1, 1]
+  - Entity: 5814649520238425518
+    TagComponent:
+      Tag: Cube
+    TransformComponent:
+      Position: [0, 9.04714203, 0]
+      Rotation: [-4.49995071e-07, 0.84693718, -0.766135275]
+      Scale: [4.99999523, 4.99999571, 5.00000429]
+    MeshComponent:
+      Filepath: assets\meshes\Factory\Cube.fbx
+  - Entity: 13203352448887731577
+    TagComponent:
+      Tag: Floor
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [32, 32, 32]
+    MeshComponent:
+      Filepath: assets\meshes\Factory\Plane.fbx
   - Entity: 8926405761033616236
     TagComponent:
       Tag: Skylight
@@ -12,22 +37,4 @@ Entities:
       Preetham Settings:
         Turbidity: 2
         Azimuth: -3
-        Inclination: 3
-  - Entity: 13203352448887731577
-    TagComponent:
-      Tag: Floor
-    TransformComponent:
-      Position: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [32, 32, 32]
-    MeshComponent:
-      Filepath: D:\dev\Sparky\vk-cms\Titan\assets\meshes\Factory\Plane.fbx
-  - Entity: 5814649520238425518
-    TagComponent:
-      Tag: Cube
-    TransformComponent:
-      Position: [0, 9.04714203, 0]
-      Rotation: [-4.49995071e-07, 0.84693718, -0.766135275]
-      Scale: [4.99999523, 4.99999571, 5.00000429]
-    MeshComponent:
-      Filepath: D:\dev\Sparky\vk-cms\Titan\assets\meshes\Factory\Cube.fbx
+        Inclination: 3 
