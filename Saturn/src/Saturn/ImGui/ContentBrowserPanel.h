@@ -28,52 +28,34 @@
 
 #pragma once
 
-#include "Saturn/ImGui/Viewport.h"
-#include "Saturn/ImGui/SceneHierarchyPanel.h"
-#include "Saturn/ImGui/ContentBrowserPanel.h"
+#include "Panel/Panel.h"
 
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Core/Layer.h"
+#include "Saturn/Vulkan/Texture.h"
+
+#include <imgui.h>
+#include <filesystem>
+#include <functional>
 
 namespace Saturn {
 	
-	class Toolbar;
-	class TitleBar;
-
-	class EditorLayer : public Layer
+	class ContentBrowserPanel : public Panel
 	{
 	public:
-		EditorLayer();
-		~EditorLayer();
+		ContentBrowserPanel();
+		~ContentBrowserPanel() = default;
 
-		void OnUpdate( Timestep time ) override;
-
-		void OnImGuiRender() override;
-
-		void OnEvent( Event& rEvent ) override;
-		
-		void SaveFile( const std::string& FileName );
-		void OpenFile( const std::string& FileName );
-
-	public:
-		
-		Viewport* GetViewport() { return m_Viewport; }
-		TitleBar* GetTitleBar() { return m_TitleBar; }
-		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
+		virtual void Draw() override;
 
 	private:
-		
-		void SelectionChanged( Entity e );
 
+		void RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, bool excludeFiles = true );
+				
+		void OnDirectorySelected( std::filesystem::path& rPath, bool IsFile = false );
 	private:
-		Viewport* m_Viewport;
-		TitleBar* m_TitleBar;
-		
-		Ref< Texture2D > m_CheckerboardTexture;
+		std::filesystem::path m_CurrentPath;
+		std::filesystem::path m_FirstFolder;
 
-		EditorCamera m_EditorCamera;
-
-		Ref< Scene > m_EditorScene;
-		Ref< Scene > m_RuntimeScene;
+		Ref< Texture2D > m_DirectoryIcon;
+		Ref< Texture2D > m_FileIcon;
 	};
 }

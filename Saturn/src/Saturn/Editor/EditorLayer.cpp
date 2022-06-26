@@ -55,9 +55,11 @@ namespace Saturn {
 		PanelManager::Get();
 		
 		PanelManager::Get().AddPanel( new SceneHierarchyPanel() );
+		PanelManager::Get().AddPanel( new ContentBrowserPanel() );
 		PanelManager::Get().AddPanel( new ViewportBar() );
 		
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+		ContentBrowserPanel* pContentBrowserPanel = ( ContentBrowserPanel*)PanelManager::Get().GetPanel( "Content Browser Panel" );
 
 		m_Viewport = new Viewport();
 		m_TitleBar = new TitleBar();
@@ -69,9 +71,6 @@ namespace Saturn {
 		m_EditorCamera.SetActive( true );
 		
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
-
-		SceneSerialiser serialiser( m_EditorScene );
-		//serialiser.Deserialise( "assets/scenes/basic.scene" );
 	}
 
 	EditorLayer::~EditorLayer()

@@ -459,8 +459,6 @@ namespace Saturn {
 
 	void SceneRenderer::UpdateCascades( const glm::vec3& Direction )
 	{
-		SAT_CORE_INFO( "direction: {0}", Direction );
-		
 		FrustumBounds frustumBounds[ 3 ];
 
 		auto viewProjection = m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix();

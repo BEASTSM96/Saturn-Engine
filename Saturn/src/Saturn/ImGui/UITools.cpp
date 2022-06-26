@@ -376,4 +376,18 @@ namespace Saturn {
 		ImGui::Image( TextureID, Size, UV0, UV1, TintColor, BorderColor );
 	}
 
+	bool ImageButton( Ref< Image2D > Image, const ImVec2& Size, const ImVec2& UV0, const ImVec2& UV1, int FramePadding, const ImVec4& BackgroundColor, const ImVec4& TintColor )
+	{
+		void* TextureID = ImGui_ImplVulkan_AddTexture( Image->GetSampler(), Image->GetImageView(), Image->GetDescriptorInfo().imageLayout );
+
+		return ImGui::ImageButton( TextureID, Size, UV0, UV1, FramePadding, BackgroundColor, TintColor );
+	}
+
+	bool ImageButton( Ref< Texture2D > Image, const ImVec2& Size, const ImVec2& UV0, const ImVec2& UV1, int FramePadding, const ImVec4& BackgroundColor, const ImVec4& TintColor )
+	{
+		void* TextureID = ImGui_ImplVulkan_AddTexture( Image->GetSampler(), Image->GetImageView(), Image->GetDescriptorInfo().imageLayout );
+
+		return ImGui::ImageButton( TextureID, Size, UV0, UV1, FramePadding, BackgroundColor, TintColor );
+	}
+
 }
