@@ -227,14 +227,38 @@ namespace Saturn {
 		m_SetPool = nullptr;
 	}
 
-	void Shader::WriteDescriptor( ShaderType Type, const std::string& rName, VkWriteDescriptorSet& rWriteDescriptor )
+	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorImageInfo& rImageInfo, VkDescriptorSet desSet )
 	{
-		if( rName == "u_ShadowMap" )
-			return;
+		for( auto& [set, descriptorSet] : m_DescriptorSets )
+		{
+			for( auto& texture : descriptorSet.SampledImages )
+			{
+				if( texture.Name == rName )
+				{
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = &rImageInfo;
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
+					
+					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
+				}
+			}
+		}
+	}
 
-		m_DescriptorWrites[ Type ][ rName ] = rWriteDescriptor;
+	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, VkDescriptorSet desSet )
+	{
+		for( auto& [set, descriptorSet] : m_DescriptorSets )
+		{
+			for( auto& [ binding, ub ] : descriptorSet.UniformBuffers )
+			{
+				if( ub.Name == rName )
+				{
+					descriptorSet.WriteDescriptorSets[ binding ].pBufferInfo = &rBufferInfo;
+					descriptorSet.WriteDescriptorSets[ binding ].dstSet = desSet;
 
-		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &rWriteDescriptor, 0, nullptr );
+					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ binding ], 0, nullptr );
+				}
+			}
+		}
 	}
 
 	void Shader::WriteAllUBs( const Ref< DescriptorSet >& rSet )
@@ -257,25 +281,25 @@ namespace Saturn {
 		}
 	}
 
-	void* Shader::MapUB( ShaderType Type, uint32_t Binding )
+	void* Shader::MapUB( ShaderType Type, uint32_t Set, uint32_t Binding )
 	{
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
-		auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_DescriptorSets[ Binding ].UniformBuffers[ Binding ].Buffer );
+		auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_DescriptorSets[ Set ].UniformBuffers[ Binding ].Buffer );
 		
 		return pAllocator->MapMemory< void >( bufferAloc );
 	}
 
-	void Shader::UnmapUB( ShaderType Type, uint32_t Binding )
+	void Shader::UnmapUB( ShaderType Type, uint32_t Set, uint32_t Binding )
 	{
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 		
-		auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_DescriptorSets[ Binding ].UniformBuffers[ Binding ].Buffer );
+		auto bufferAloc = pAllocator->GetAllocationFromBuffer( m_DescriptorSets[ Set ].UniformBuffers[ Binding ].Buffer );
 		
 		pAllocator->UnmapMemory( bufferAloc );
 	}
-
-	Ref<DescriptorSet> Shader::CreateDescriptorSet( uint32_t set, ShaderType Stage )
+	
+	Ref<DescriptorSet> Shader::CreateDescriptorSet( uint32_t set )
 	{
 		DescriptorSetSpecification Specification;
 		Specification.Layout = m_DescriptorSets[ set ].SetLayout;

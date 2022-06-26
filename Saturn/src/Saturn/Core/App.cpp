@@ -50,7 +50,6 @@ namespace Saturn {
 	{
 		Window::Get();
 		VulkanContext::Get();
-		//Window::Get().Maximize();
 
 		VulkanContext::Get().Init();
 

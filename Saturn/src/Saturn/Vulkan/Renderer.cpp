@@ -81,12 +81,8 @@ namespace Saturn {
 		delete[] pData;
 
 		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
-
-		DescriptorSetSpecification Spec;
-		Spec.Layout = shader->GetSetLayout();
-		Spec.Pool = shader->GetDescriptorPool();
-
-		m_RendererDescriptorSet = Ref<DescriptorSet>::Create( Spec );
+		// Set 1 is for enviroment data.
+		m_RendererDescriptorSet = shader->CreateDescriptorSet( 1 );
 	}
 	
 	void Renderer::Terminate()
@@ -231,10 +227,10 @@ namespace Saturn {
 				m_RendererDescriptorSet->GetVulkanSet()
 			};
 
-			//vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			//	Pipeline->GetPipelineLayout(), 0, DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
+			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+				Pipeline->GetPipelineLayout(), 0, DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
 
-			Set->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
+			//Set->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
@@ -243,28 +239,10 @@ namespace Saturn {
 	void Renderer::Begin( Ref<Image2D> ShadowMap )
 	{
 		VkWriteDescriptorSet WriteDescriptor;
-		
+
 		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
 
-		for( auto& [ShaderStage, Sets] : shader->GetWriteDescriptors() )
-		{
-			for( auto& [Name, Set] : Sets )
-			{
-				if( Set.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER )
-				{
-					if( Name != "u_ShadowMap" )
-						continue;
-
-					WriteDescriptor.dstSet = m_RendererDescriptorSet->GetVulkanSet();
-					WriteDescriptor.pImageInfo = &ShadowMap->GetDescriptorInfo();
-
-					shader->WriteDescriptor( ShaderStage, Name, Set );
-				}
-				else
-					break;
-
-			}
-		}
+		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
 	}
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )

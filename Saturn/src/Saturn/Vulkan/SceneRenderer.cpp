@@ -393,11 +393,11 @@ namespace Saturn {
 		GridMatricesObject.Res = 0.025f;
 		GridMatricesObject.Scale = 16.025f;
 
-		auto Data = m_RendererData.GridShader->MapUB( ShaderType::All, 0 );
+		auto Data = m_RendererData.GridShader->MapUB( ShaderType::All, 0, 0 );
 
 		memcpy( Data, &GridMatricesObject, sizeof( GridMatricesObject ) );
-
-		m_RendererData.GridShader->UnmapUB( ShaderType::All, 0 );
+		
+		m_RendererData.GridShader->UnmapUB( ShaderType::All, 0, 0 );
 
 		m_RendererData.GridShader->WriteAllUBs( m_RendererData.GridDescriptorSet );
 		
@@ -439,11 +439,11 @@ namespace Saturn {
 			SkyboxMatricesObject.Azimuth = Skylight.Azimuth;
 			SkyboxMatricesObject.Inclination = Skylight.Inclination;
 
-			auto Data = m_RendererData.SkyboxShader->MapUB( ShaderType::All, 0 );
+			auto Data = m_RendererData.SkyboxShader->MapUB( ShaderType::All, 0, 0 );
 
 			memcpy( Data, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
 
-			m_RendererData.SkyboxShader->UnmapUB( ShaderType::All, 0 );
+			m_RendererData.SkyboxShader->UnmapUB( ShaderType::All, 0, 0 );
 
 			m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
 			
@@ -590,7 +590,7 @@ namespace Saturn {
 		}
 	
 		if( !m_RendererData.GridDescriptorSet )
-			m_RendererData.GridDescriptorSet = m_RendererData.GridShader->CreateDescriptorSet( 0, ShaderType::All );
+			m_RendererData.GridDescriptorSet = m_RendererData.GridShader->CreateDescriptorSet( 0 );
 
 		m_RendererData.GridShader->WriteAllUBs( m_RendererData.GridDescriptorSet );
 
@@ -649,7 +649,7 @@ namespace Saturn {
 		}
 		
 		if( !m_RendererData.SkyboxDescriptorSet )
-			m_RendererData.SkyboxDescriptorSet = m_RendererData.SkyboxShader->CreateDescriptorSet( 0, ShaderType::All );
+			m_RendererData.SkyboxDescriptorSet = m_RendererData.SkyboxShader->CreateDescriptorSet( 0 );
 
 		m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
 		
@@ -791,11 +791,10 @@ namespace Saturn {
 
 		// Render static meshes.
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
-		/*
+
 		for( auto& Cmd : m_DrawList )
 		{
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
-			auto& UBs = StaticMeshShader->GetUniformBuffers();
 
 			// u_Matrices
 			RendererData::StaticMeshMatrices u_Matrices = {};
@@ -809,23 +808,23 @@ namespace Saturn {
 
 			u_LightData.LightMatrix = m_RendererData.ShadowCascades[ 0 ].ViewProjection;
 
-			auto pData = StaticMeshShader->MapUB( ShaderType::Vertex, 0 );
+			auto pData = StaticMeshShader->MapUB( ShaderType::Vertex, 0, 0 );
 
 			memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
 
-			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0 );
+			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0, 0 );
 
-			pData = StaticMeshShader->MapUB( ShaderType::Vertex, 1 );
+			pData = StaticMeshShader->MapUB( ShaderType::Vertex, 0, 1 );
 
 			memcpy( pData, &u_LightData, sizeof( u_LightData ) );
 
-			StaticMeshShader->UnmapUB( ShaderType::Vertex, 1 );
+			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0, 1 );
 
-			//Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
-			//	m_RendererData.StaticMeshPipeline, 
-			//	Cmd.Mesh, Cmd.Transform );
+			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
+				m_RendererData.StaticMeshPipeline, 
+				Cmd.Mesh, Cmd.Transform );
 		}
-		*/
+		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		//////////////////////////////////////////////////////////////////////////
@@ -892,11 +891,11 @@ namespace Saturn {
 
 				u_Matrices.ViewProjection = m_RendererData.ShadowCascades[ i ].ViewProjection;
 
-				auto pData = m_RendererData.DirShadowMapShader->MapUB( ShaderType::Vertex, 0 );
+				auto pData = m_RendererData.DirShadowMapShader->MapUB( ShaderType::Vertex, 0, 0 );
 
 				memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );				
 
-				m_RendererData.DirShadowMapShader->UnmapUB( ShaderType::Vertex, 0 );
+				m_RendererData.DirShadowMapShader->UnmapUB( ShaderType::Vertex, 0, 0 );
 
 				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipeline, Cmd.Mesh, Cmd.Transform );
 			}
@@ -958,7 +957,7 @@ namespace Saturn {
 		// Passes
 
 		// DirShadowMap
-		//DirShadowMapPass();
+		DirShadowMapPass();
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Selected Geometry" );
 

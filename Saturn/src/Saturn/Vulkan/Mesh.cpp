@@ -257,11 +257,8 @@ namespace Saturn {
 			submesh.Transform = transform;
 
 			// Create a descriptor set for each submesh to use.
-			DescriptorSetSpecification DescriptorSetSpec;
-			DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
-			DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
-
-			m_DescriptorSets[ submesh ] = Ref< Saturn::DescriptorSet >::Create( DescriptorSetSpec );
+			// Set 0 = material data and vertex data.
+			m_DescriptorSets[ submesh ] = m_MeshShader->CreateDescriptorSet( 0 );
 		}
 
 		for( uint32_t i = 0; i < node->mNumChildren; i++ )
@@ -270,17 +267,7 @@ namespace Saturn {
 
 	void Mesh::RefreshDescriptorSets()
 	{
-		DescriptorSetSpecification DescriptorSetSpec;
-		DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
-		DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
-
-		for ( auto& rSubmesh : m_Submeshes )
-		{
-			m_DescriptorSets[ rSubmesh ]->Terminate();
-			m_DescriptorSets[ rSubmesh ] = nullptr;
-
-			m_DescriptorSets[ rSubmesh ] = Ref< DescriptorSet >::Create( DescriptorSetSpec );
-		}
+		SAT_CORE_ASSERT( false, "Not added!" );
 	}
 
 	void Mesh::GetVetexAndIndexData()

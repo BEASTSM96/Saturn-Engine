@@ -91,40 +91,15 @@ namespace Saturn {
 	{
 		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
 
-		for( auto& [ShaderStage, Sets] : Shader->GetWriteDescriptors() )
+		for( auto& [name, texture] : m_Textures )
 		{
-			for( auto& [Name, Set] : Sets )
-			{
-				Set.dstSet = CurrentSet->GetVulkanSet();
+			VkDescriptorImageInfo ImageInfo = {};
+			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-				if( Set.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER )
-				{
-					VkDescriptorImageInfo ImageInfo = {};
-					ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			ImageInfo.imageView = m_Textures[ name ]->GetImageView();
+			ImageInfo.sampler = m_Textures[ name ]->GetSampler();
 
-
-					if( !m_Textures[ Name ] )
-					{
-						m_Textures[ Name ] = Renderer::Get().GetPinkTexture();
-
-						ImageInfo.imageView = m_Textures[ Name ]->GetImageView();
-						ImageInfo.sampler = m_Textures[ Name ]->GetSampler();
-					}
-					else
-					{
-						ImageInfo.imageView = m_Textures[ Name ]->GetImageView();
-						ImageInfo.sampler = m_Textures[ Name ]->GetSampler();
-					}
-
-					Set.pImageInfo = &ImageInfo;
-				}
-				else if( Set.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER )
-				{
-					break;
-				}
-
-				Shader->WriteDescriptor( ShaderStage, Name, Set );
-			}
+			Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
 		}
 	}
 

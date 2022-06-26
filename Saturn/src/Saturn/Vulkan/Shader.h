@@ -192,6 +192,7 @@ namespace Saturn {
 
 		~Shader();
 
+		
 		std::string& GetName() { return m_Name; }
 		const std::string& GetName() const { return m_Name; }
 
@@ -214,17 +215,18 @@ namespace Saturn {
 		std::vector< VkPushConstantRange >& GetPushConstantRanges() { return m_PushConstantRanges; }
 		const std::vector< VkPushConstantRange >& GetPushConstantRanges() const { return m_PushConstantRanges; }
 
-		void WriteDescriptor( ShaderType Type, const std::string& rName, VkWriteDescriptorSet& rWriteDescriptor );
+		void WriteDescriptor( const std::string& rName, VkDescriptorImageInfo& rImageInfo, VkDescriptorSet desSet );
+		void WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, VkDescriptorSet desSet );
 
 		// Make sure all the buffers have data mapped to them!
 		void WriteAllUBs( const Ref< DescriptorSet >& rSet );
 
-		void* MapUB( ShaderType Type, uint32_t Binding );
-		void UnmapUB( ShaderType Type, uint32_t Binding );
+		void* MapUB( ShaderType Type, uint32_t Set, uint32_t Binding );
+		void UnmapUB( ShaderType Type, uint32_t Set, uint32_t Binding );
 		
 		uint32_t GetDescriptorSetCount() { return m_DescriptorSetCount; }
 
-		Ref<DescriptorSet> CreateDescriptorSet( uint32_t set, ShaderType Stage );
+		Ref<DescriptorSet> CreateDescriptorSet( uint32_t set );
 
 		std::vector< VkDescriptorSetLayout >& GetSetLayouts() { return m_SetLayouts; }
 		VkDescriptorSetLayout GetSetLayout( uint32_t set = 0 ) { return m_SetLayouts[ set ]; }
