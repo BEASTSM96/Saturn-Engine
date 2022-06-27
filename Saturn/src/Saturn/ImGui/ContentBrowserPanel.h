@@ -38,6 +38,25 @@
 
 namespace Saturn {
 	
+	enum class AssetType 
+	{
+		Folder,
+		Texture,
+		StaticMesh,
+		SkeletalMesh,
+		Material,
+		MaterialInstance,
+		Shader,
+		Text_Like_File,
+		Audio,
+		Scene,
+		Prefab,
+		Script,
+		Font,
+		Unknown,
+		COUNT,
+	};
+
 	class ContentBrowserPanel : public Panel
 	{
 	public:
@@ -48,7 +67,7 @@ namespace Saturn {
 
 	private:
 
-		void RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, bool excludeFiles = true );
+		void RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles = true );
 				
 		void OnDirectorySelected( std::filesystem::path& rPath, bool IsFile = false );
 	private:

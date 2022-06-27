@@ -82,6 +82,8 @@ namespace Saturn {
 
 		InitSelectedGeometryPass();
 
+		Ref<Shader> shader = Ref<Shader>::Create( "assets/shaders/PBR_Static.glsl" );
+
 		//////////////////////////////////////////////////////////////////////////
 	}
 

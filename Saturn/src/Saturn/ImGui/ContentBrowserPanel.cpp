@@ -94,7 +94,6 @@ namespace Saturn {
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
 
 		int i = 0;
-		// Foreach folder in the current path draw a small button then draw a forward slash keep doing this until the last path.
 		for( auto& pFolder : m_CurrentPath )
 		{
 			i++;
@@ -115,17 +114,18 @@ namespace Saturn {
 		}
 
 		ImGui::PopStyleColor( 2 );
-		
+
 		ImGui::EndChild();
 
 		ImGui::Separator();
-
+		
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
 
 		static float padding = 16.0f;
-		static float thumbnailSize = 128.0f;
-		float cellSize = thumbnailSize + padding;
+		static float thumbnailSizeX = 180;
+		static float thumbnailSizeY = 180;
+		float cellSize = thumbnailSizeX + padding;
 		float panelWidth = ImGui::GetContentRegionAvail().x;
 		
 		int columnCount = (int)panelWidth / cellSize;
@@ -136,10 +136,10 @@ namespace Saturn {
 		ImGui::Columns( columnCount, 0, false );
 
 		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
-			RenderEntry( rEntry, { thumbnailSize, thumbnailSize }, true );
+			RenderEntry( rEntry, { thumbnailSizeX, thumbnailSizeY }, padding, true );
 		
 		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
-			RenderEntry( rEntry, { thumbnailSize, thumbnailSize }, false );
+			RenderEntry( rEntry, { thumbnailSizeX, thumbnailSizeY }, padding, false );
 
 		// Get the first folder in the current directory.
 		m_FirstFolder = "";
@@ -153,18 +153,17 @@ namespace Saturn {
 		}
 		
 		ImGui::Columns( 1 );
-		
-		ImGui::SliderFloat( "Thumbnail Size", &thumbnailSize, 64, 512 );
-		ImGui::SliderFloat( "Padding", &padding, 0, 32 );
 
 		ImGui::PopStyleColor( 2 );
 		ImGui::End();
 	}
 
-	void ContentBrowserPanel::RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, bool excludeFiles /*= true */ )
+	void ContentBrowserPanel::RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles /*= true */ )
 	{
 		if( !rEntry.is_directory() && excludeFiles || rEntry.is_directory() && !excludeFiles )
 			return;
+		
+		auto* pDrawList = ImGui::GetWindowDrawList();
 
 		std::string path = std::filesystem::relative( rEntry.path(), s_pAssetsDirectory ).string();
 		std::string filename = rEntry.path().filename().string();
@@ -173,19 +172,100 @@ namespace Saturn {
 
 		Ref<Texture2D> Icon = excludeFiles ? m_DirectoryIcon : m_FileIcon;
 
-		ImageButton( Icon, ThumbnailSize, { 0, 1 }, { 1, 0 } );
+#if NORMAL
+		// Draw background.
+		const ImVec2 TopLeft = ImGui::GetCursorScreenPos();
+		const ImVec2 InfoBottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y );
+		const ImVec2 InfoTopLeft = ImVec2( TopLeft.x, TopLeft.y + ThumbnailSize.y );
+		const ImVec2 BottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y + ImGui::GetTextLineHeightWithSpacing() );
 
-		if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+		pDrawList->AddRectFilled( TopLeft, InfoBottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawCornerFlags_All );
+
+		// Check if the mouse is over the button.
+		if( ImGui::IsMouseHoveringRect( TopLeft, InfoBottomRight ) )
 		{
-			if( rEntry.is_directory() )
-				m_CurrentPath /= rEntry.path().filename();
-			
-			OnDirectorySelected( m_CurrentPath, rEntry.is_directory() );
+			// Draw a highlight on the button.
+			pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawCornerFlags_All );
+
+			if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+			{
+				if( rEntry.is_directory() )
+					m_CurrentPath /= rEntry.path().filename();
+
+				OnDirectorySelected( m_CurrentPath, rEntry.is_directory() );
+			}
 		}
 
-		ImGui::TextWrapped( filename.c_str() );
+		// Draw icon.
+		pDrawList->AddImage( Icon->GetDescriptorSet(), TopLeft, ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y ), { 0, 1 }, { 1, 0 } );
+
+		// Draw filename make it centered under the icon.
+		ImGui::Text( filename.c_str() );
 
 		ImGui::NextColumn();
+#else // lets try an unreal engine style
+		
+		// Draw background.
+		const float EdgeOffset = 4.0f;
+		const float TextLineHeight = ImGui::GetTextLineHeightWithSpacing() * 2.0f + EdgeOffset * 2.0f;
+		const float InfoPanelHeight = glm::max( ThumbnailSize.x * 0.5f, TextLineHeight );
+		const ImVec2 TopLeft = ImGui::GetCursorScreenPos();
+		const ImVec2 ThumbnailBottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y );
+		const ImVec2 InfoTopLeft = ImVec2( TopLeft.x, TopLeft.y + ThumbnailSize.y );
+		const ImVec2 BottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y + InfoPanelHeight );
+		
+		ImGui::PushID( path.c_str() );
+		
+		if( rEntry.is_directory() )
+		{
+			bool Hovered = false;
+			bool Clicked = false;
+
+			ImGui::ButtonBehavior( ImRect( TopLeft, BottomRight ), ImGui::GetID( path.c_str() ), &Hovered, &Clicked );
+
+			pDrawList->AddRectFilled( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawCornerFlags_All );
+
+			if( Hovered )
+			{
+				// Draw a highlight on the button.
+				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawCornerFlags_All );
+
+				if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) ) 
+				{
+					m_CurrentPath /= rEntry.path().filename();
+					OnDirectorySelected( m_CurrentPath, rEntry.is_directory() );
+				}
+			}
+		}
+		else
+		{
+			// Fill background.
+			pDrawList->AddRectFilled( TopLeft, ThumbnailBottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawCornerFlags_Top );
+			// Fill Info area
+			pDrawList->AddRectFilled( InfoTopLeft, BottomRight, IM_COL32( 47, 47, 47, 255 ), 5.0f, ImDrawCornerFlags_Bot );
+
+			// Draw line between thumbnail and info.
+			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.0f );
+		}
+
+		// Draw icon.
+		pDrawList->AddImage( Icon->GetDescriptorSet(), TopLeft, ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y ), { 0, 1 }, { 1, 0 } );
+	
+		ImGui::SetCursorScreenPos( ImVec2( TopLeft.x + 2.0f, TopLeft.y + ThumbnailSize.y ) );
+
+		if( rEntry.is_directory() ) 
+		{
+			// Centre align the text.
+			ImGui::SetCursorPosX( TopLeft.x + ThumbnailSize.x / 2.0f - EdgeOffset - 2.0f );
+			ImGui::Text( filename.c_str() );
+		}
+		else
+			ImGui::Text( filename.c_str() );		
+
+		ImGui::PopID();
+
+		ImGui::NextColumn();
+#endif
 	}
 
 	void ContentBrowserPanel::OnDirectorySelected( std::filesystem::path& rPath, bool IsFile /*= false */ )

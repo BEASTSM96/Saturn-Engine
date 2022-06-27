@@ -149,6 +149,7 @@ namespace Saturn {
 			ImGui::Text( "Device Name: %s", devices.DeviceProps.deviceName );
 			ImGui::Text( "API Version: %i", devices.DeviceProps.apiVersion );
 			ImGui::Text( "Vendor ID: %i", devices.DeviceProps.vendorID );
+			ImGui::Text( "Vulkan Version: 1.2.128" );
 		}
 		
 		ImGui::End();
