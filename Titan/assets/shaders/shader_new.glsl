@@ -37,7 +37,7 @@ layout(location = 1) out VertexOutput
 void main()
 {
 	// Init members of vs_Output
-	vs_Output.Normal     = vec3( a_Normal );
+	vs_Output.Normal     = mat3( Transform ) * a_Normal;
 	vs_Output.Tangent    = vec3( a_Tangent );
 	vs_Output.Bitangent  = vec3( a_Bitangent );
 	vs_Output.TexCoord   = vec2( a_TexCoord );
@@ -97,14 +97,15 @@ void main()
 	m_Params.Albedo = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb * u_Materials.AlbedoColor;
 	
 	float Ambient = 0.20;
+	
+	// Normals (either from vertex or map)
+	vec3 normal = normalize( vs_Input.Normal );
 
-	/*
-	vec3 normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
+	normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
 	normal = normalize( vs_Input.WorldNormals * normal );
 	
 	vec3 lightDir = vec3( -0.5, 0.5, -0.5 );
-	float lightIntensity = clamp( dot( lightDir, normal ), 0.1, 1.0 );
-	*/
+	float lightIntensity = max( dot( lightDir, normal ), 0.0 );
 
 	vec3 ShadowMapCoords = ( vs_Input.ShadowMapCoords.xyz / vs_Input.ShadowMapCoords.w );
 	vec3 ShadowMapCoordsBiased = ( vs_Input.ShadowMapCoordsBiased.xyz / vs_Input.ShadowMapCoordsBiased.w );
@@ -113,5 +114,5 @@ void main()
 	float ShadowAmount = 0.0;
 
 	FinalColor = vec4( m_Params.Albedo, 1.0 );
-	//FinalColor.rgb *= Ambient;
+	FinalColor.rgb *= lightIntensity + Ambient;
 }

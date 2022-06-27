@@ -80,47 +80,39 @@ layout(location = 1) in VertexOutput
 	vec4 ShadowMapCoordsBiased;
 } vs_Input;
 
-layout( location = 0 ) out vec4 color;
+// Final Color output
+layout( location = 0 ) out vec4 FinalColor;
 
-layout(set = 0, binding = 0) uniform Camera 
+layout(set = 0, binding = 3) uniform Camera 
 {
 	vec3 CameraPosition;
+	Light Light;
 } u_Camera;
 
-uniform Light lights;
-
 // PBR texture inputs
-uniform sampler2D u_AlbedoTexture;
-uniform sampler2D u_NormalTexture;
-uniform sampler2D u_MetalnessTexture;
-uniform sampler2D u_RoughnessTexture;
+layout (set = 0, binding = 4) uniform sampler2D u_AlbedoTexture;
+layout (set = 0, binding = 5) uniform sampler2D u_NormalTexture;
+layout (set = 0, binding = 6) uniform sampler2D u_MetalnessTexture;
+layout (set = 0, binding = 7) uniform sampler2D u_RoughnessTexture;
 
 // Environment maps
-uniform samplerCube u_EnvRadianceTex;
-uniform samplerCube u_EnvIrradianceTex;
+layout(set = 1, binding = 8) uniform samplerCube u_EnvRadianceTex;
+layout(set = 1, binding = 9) uniform samplerCube u_EnvIrradianceTex;
 
 // BRDF LUT
-uniform sampler2D u_BRDFLUTTexture;
+layout(set = 1, binding = 10) uniform sampler2D u_BRDFLUTTexture;
+
+// Shadow
+layout(set = 1, binding = 11) uniform sampler2D u_ShadowMap;
 
 layout(push_constant) uniform u_Materials 
 {
-	float UseAlbedoTexture;
-	float UseMetallicTexture;
-	float UseRoughnessTexture;
-	float UseNormalTexture;
-
-	//
-
-	vec4 AlbedoColor;
+	vec3 AlbedoColor;
 	float Metalness;
 	float Roughness;
-	float RadiancePrefilter;
+
+	float EnvMapRotation;
 } pc_Materials;
-
-uniform float u_EnvMapRotation;
-
-// Gamma
-uniform float u_Gamma;
 
 struct PBRParameters
 {
@@ -315,25 +307,18 @@ vec3 IBL( vec3 F0, vec3 Lr )
 
 void main()
 {
-	u_Gamma = 2.2;
-
 	// Standard PBR inputs
-	m_Params.Albedo = u_AlbedoTexToggle > 0.5 ? texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb : u_AlbedoColor;
-	m_Params.Metalness = u_MetalnessTexToggle > 0.5 ? texture( u_MetalnessTexture, vs_Input.TexCoord ).r : u_Metalness;
-	m_Params.Roughness = u_RoughnessTexToggle > 0.5 ? texture( u_RoughnessTexture, vs_Input.TexCoord ).r : u_Roughness;
+	m_Params.Albedo = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb * pc_Materials.AlbedoColor;
+	m_Params.Metalness = texture( u_MetalnessTexture, vs_Input.TexCoord ).r * pc_Materials.Metalness;
+	m_Params.Roughness = texture( u_RoughnessTexture, vs_Input.TexCoord ).r * pc_Materials.Roughness;
 	m_Params.Roughness = max( m_Params.Roughness, 0.05 ); // Minimum roughness of 0.05 to keep specular highlight
-
-	m_ShadowParams.LightSpace = vs_Input.LightSpace;
 
 	// Normals (either from vertex or map)
 	m_Params.Normal = normalize( vs_Input.Normal );
-	if( u_NormalTexToggle > 0.5 )
-	{
-		m_Params.Normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
-		m_Params.Normal = normalize( vs_Input.WorldNormals * m_Params.Normal );
-	}
+	m_Params.Normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
+	m_Params.Normal = normalize( vs_Input.WorldNormals * m_Params.Normal );
 
-	m_Params.View = normalize( u_CameraPosition - vs_Input.WorldPosition );
+	m_Params.View = normalize( u_Camera.CameraPosition - vs_Input.WorldPosition );
 	m_Params.NdotV = max( dot( m_Params.Normal, m_Params.View ), 0.0 );
 
 	// Specular reflection vector
@@ -345,16 +330,5 @@ void main()
 	vec3 lightContribution = Lighting( F0 );
 	vec3 iblContribution = IBL( F0, Lr );
 
-	vec3 ambient = 0.3 * vec3( lightContribution + iblContribution );
-
-	// diffuse
-	vec3 lightDir = normalize( u_LightPos - vs_Input.WorldPosition );
-	float diff = max( dot( lightDir, normalize( vs_Input.Normal ) ), 0.0 );
-	vec3 diffuse = diff * vec3( 0.3 );
-
-	vec3 lighting = ( ambient + ( diffuse + m_Params.Metalness ) ) * m_Params.Albedo * vec3( lightContribution + iblContribution );
-
-	//color = vec4( lighting, 1.0f );
-
-	color = texture( u_AlbedoTexture, vs_Input.TexCoord );
+	FinalColor = vec4( lightContribution + iblContribution, 1.0 );
 }
