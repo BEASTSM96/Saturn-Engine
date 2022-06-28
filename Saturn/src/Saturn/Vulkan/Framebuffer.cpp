@@ -111,6 +111,29 @@ namespace Saturn {
 		if( m_Framebuffer )
 			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_Framebuffer, nullptr );
 
+		m_Framebuffer = nullptr;
+
+		for( auto& resource : m_ColorAttachmentsResources )
+		{
+			resource = nullptr;
+		}
+
+		m_ColorAttachmentsResources.clear();
+		m_DepthAttachmentResource = nullptr;
+
+		m_ColorAttachmentsFormats.clear();
+		m_AttachmentImageViews.clear();
+		
+		////
+
+		for( auto format : m_Specification.Attachments.Attachments )
+		{
+			if( FramebufferUtills::IsDepthFormat( format.TextureFormat ) )
+				m_DepthFormat = format.TextureFormat;
+			else
+				m_ColorAttachmentsFormats.push_back( format.TextureFormat );
+		}
+
 		Create();
 	}
 
@@ -123,9 +146,10 @@ namespace Saturn {
 		// Create Attachment resources
 		// Color
 		VkExtent3D Extent = { m_Specification.Width, m_Specification.Height, 1 };
+
 		for( auto format : m_ColorAttachmentsFormats )
 		{
-			auto image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height );
+			Ref<Image2D> image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height );
 
 			m_ColorAttachmentsResources.push_back( image );
 

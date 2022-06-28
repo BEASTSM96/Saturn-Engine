@@ -57,6 +57,8 @@ namespace Saturn {
 
 		// Allocate command buffer.
 		VkCommandBuffer AllocateCommandBuffer( VkCommandPool CommandPool );
+		VkCommandBuffer AllocateCommandBuffer( VkCommandBufferLevel CmdLevel );
+
 
 		// Helpers.
 		void CreateFramebuffer( VkRenderPass RenderPass, VkExtent2D Extent, std::vector<VkImageView> Attachments, VkFramebuffer* pFramebuffer );

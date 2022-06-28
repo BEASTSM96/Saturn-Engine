@@ -129,12 +129,6 @@ namespace Saturn {
 
 		DefaultSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
-		std::vector< VkAttachmentReference > Attachments;
-		// Add one for the depth attachment.
-		Attachments.reserve( m_ColorAttacments.size() + 1 );
-		Attachments.insert( Attachments.end(), m_ColorAttacments.begin(), m_ColorAttacments.end() );
-		Attachments.emplace_back( m_DepthAttacment );
-
 		// Dependencies
 		std::vector< VkSubpassDependency > Dependencies;
 
@@ -219,7 +213,7 @@ namespace Saturn {
 	void Pass::Recreate()
 	{
 		Terminate();
-
+		
 		Create( m_PassSpec );
 	}
 

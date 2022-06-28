@@ -51,6 +51,8 @@ namespace Saturn {
 
 		bool AcquireNextImage( uint32_t Timeout, VkSemaphore Semaphore, VkFence Fence, uint32_t* pImageIndex );
 
+		uint32_t GetImageIndex() { return m_ImageIndex; }
+
 		VkSwapchainKHR& GetSwapchain() { return m_Swapchain; }
 		std::vector< VkFramebuffer >& GetFramebuffers() { return m_Framebuffers; }
 	private:

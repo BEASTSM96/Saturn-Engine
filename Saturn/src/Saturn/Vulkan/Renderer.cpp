@@ -107,12 +107,9 @@ namespace Saturn {
 
 		if( m_FlightFences.size() )
 		{
-			for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+			for( int i = 0; i < m_FlightFences.size(); i++ )
 			{
-				SubmitTerminateResource( [ & ]()
-				{
-					vkDestroyFence( VulkanContext::Get().GetDevice(), m_FlightFences[ i ], nullptr );
-				} );
+				vkDestroyFence( VulkanContext::Get().GetDevice(), m_FlightFences[ i ], nullptr );
 			}
 		}
 
@@ -225,8 +222,6 @@ namespace Saturn {
 
 	void Renderer::Begin( Ref<Image2D> ShadowMap )
 	{
-		VkWriteDescriptorSet WriteDescriptor;
-
 		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
 
 		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
@@ -246,6 +241,19 @@ namespace Saturn {
 		CommandPoolBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandPoolBeginInfo ) );
+
+		return CommandBuffer;
+	}
+
+	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandBufferLevel CmdLevel )
+	{
+		VkCommandBufferAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+		AllocateInfo.commandPool = VulkanContext::Get().GetCommandPool();
+		AllocateInfo.commandBufferCount = 1;
+		AllocateInfo.level = CmdLevel;
+
+		VkCommandBuffer CommandBuffer;
+		VK_CHECK( vkAllocateCommandBuffers( VulkanContext::Get().GetDevice(), &AllocateInfo, &CommandBuffer ) );
 
 		return CommandBuffer;
 	}
