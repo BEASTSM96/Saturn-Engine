@@ -40,7 +40,7 @@
 
 #include "Pipeline.h"
 
-#define SHADOW_CASCADE_COUNT 1
+#define SHADOW_CASCADE_COUNT 4
 
 namespace Saturn {
 
@@ -89,6 +89,8 @@ namespace Saturn {
 		uint32_t Width = 0;
 		uint32_t Height = 0;
 		
+		bool Resized = false;
+
 		//////////////////////////////////////////////////////////////////////////
 
 		//////////////////////////////////////////////////////////////////////////
@@ -123,7 +125,6 @@ namespace Saturn {
 		struct StaticMeshMatrices
 		{
 			glm::mat4 ViewProjection;
-			glm::vec3 LightPos;
 		};
 
 		struct StaticMeshMaterial
@@ -144,7 +145,7 @@ namespace Saturn {
 		Ref<Pass> DirShadowMapPass = nullptr;
 		Ref<Pipeline> DirShadowMapPipeline;
 
-		float CascadeSplitLambda = 0.95f;
+		float CascadeSplitLambda = 0.91f;
 
 		std::vector< ShadowCascade > ShadowCascades;
 
@@ -154,12 +155,6 @@ namespace Saturn {
 		// Render pass for all grid, skybox and meshes.
 		Ref<Pass> GeometryPass = nullptr;
 		Ref<Framebuffer> GeometryFramebuffer = nullptr;
-
-		// Selected Geometry
-		Ref<Pass> SelectedGeometryPass = nullptr;
-		Ref<Framebuffer> SelectedGeometryFramebuffer = nullptr;
-		Ref<Pipeline> SelectedGeometryPipeline;
-		Ref<DescriptorSet> SelectedGeometrySet;
 
 		// STATIC MESHES
 
@@ -237,7 +232,7 @@ namespace Saturn {
 		void SubmitSelectedMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 		void SubmitMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 
-		void SetWidthAndHeight( uint32_t w, uint32_t h ) { m_RendererData.Width = w; m_RendererData.Height = h; Recreate(); }
+		void SetWidthAndHeight( uint32_t w, uint32_t h );
 
 		void FlushDrawList();		
 
@@ -268,20 +263,16 @@ namespace Saturn {
 		void UpdateCascades( const glm::vec3& Direction );
 
 		void CreateGridComponents();
-		void DestroyGridComponents();
 
 		void CreateSkyboxComponents();
-		void DestroySkyboxComponents();
 
 		void InitGeometryPass();
 		void InitDirShadowMap();
 		void InitSceneComposite();
-		void InitSelectedGeometryPass();
 
 		void GeometryPass();
 		void DirShadowMapPass();
 		void SceneCompositePass();
-		void SelectedGeometryPass();
 
 	private:
 

@@ -31,7 +31,6 @@ layout(location = 1) out VertexOutput
 	vec2 TexCoord;
 	mat3 WorldNormals;
 	vec4 ShadowMapCoords;
-	vec4 ShadowMapCoordsBiased;
 } vs_Output;
 
 void main()
@@ -46,7 +45,6 @@ void main()
 	vs_Output.WorldNormals = mat3( Transform ) * mat3( a_Tangent, a_Bitangent, a_Normal );
 
 	vs_Output.ShadowMapCoords = LightMatrix * vec4( vs_Output.Position, 1.0 );
-	vs_Output.ShadowMapCoordsBiased = LightMatrix * vec4( vs_Output.Position, 1.0 );
 	
 	gl_Position = u_Matrices.ViewProjection * Transform * vec4( a_Position, 1.0 );
 }
@@ -54,20 +52,38 @@ void main()
 #type fragment
 #version 450
 
+const float PI = 3.141592;
+const float Epsilon = 0.00001;
+
+const int LightCount = 1;
+
+struct Light
+{
+	vec3 Direction;
+	vec3 Radiance;
+	float Multiplier;
+};
+
 layout(push_constant) uniform pc_Materials
 {
 	layout(offset = 64) vec3 AlbedoColor;
 } u_Materials; 
 
+layout(set = 0, binding = 2) uniform Camera 
+{
+	Light Lights;
+	vec3 CameraPosition;
+} u_Camera;
+
 // Textures
-layout (set = 0, binding = 2) uniform sampler2D u_AlbedoTexture;
-layout (set = 0, binding = 3) uniform sampler2D u_NormalTexture;
-layout (set = 0, binding = 4) uniform sampler2D u_MetallicTexture;
-layout (set = 0, binding = 5) uniform sampler2D u_RoughnessTexture;
+layout (set = 0, binding = 3) uniform sampler2D u_AlbedoTexture;
+layout (set = 0, binding = 4) uniform sampler2D u_NormalTexture;
+layout (set = 0, binding = 5) uniform sampler2D u_MetallicTexture;
+layout (set = 0, binding = 6) uniform sampler2D u_RoughnessTexture;
 
 // Set 1, owned by renderer, environment settings.
 
-layout (set = 1, binding = 6) uniform sampler2D u_ShadowMap;
+layout (set = 1, binding = 7) uniform sampler2D u_ShadowMap;
 
 layout (location = 0) out vec4 FinalColor;
 
@@ -80,17 +96,32 @@ layout(location = 1) in VertexOutput
 	vec2 TexCoord;
 	mat3 WorldNormals;
 	vec4 ShadowMapCoords;
-	vec4 ShadowMapCoordsBiased;
 } vs_Input;
 
 struct PBRParameters 
 {
 	vec3 Albedo;
+	vec3 Normal;
+	
 	float Roughness;
 	float Metalness;
 };
 
 PBRParameters m_Params;
+
+float GetShadowBias() 
+{
+	const float MINIMUM_SHADOW_BIAS = 0.002;
+	float bias = max( MINIMUM_SHADOW_BIAS * ( 1.0 - dot( m_Params.Normal, u_Camera.Lights.Direction ) ), MINIMUM_SHADOW_BIAS );
+	return bias;
+}
+
+float HardShadows( sampler2D ShadowMap, vec3 ShadowCoords ) 
+{
+	float bias = GetShadowBias();
+	float map = texture( ShadowMap, ShadowCoords.xy * 0.5 + 0.5 ).x;
+	return step( ShadowCoords.z, map + bias ) * 1.0;
+}
 
 void main() 
 {
@@ -99,20 +130,14 @@ void main()
 	float Ambient = 0.20;
 	
 	// Normals (either from vertex or map)
-	vec3 normal = normalize( vs_Input.Normal );
+	m_Params.Normal = normalize( vs_Input.Normal );
 
-	normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
-	normal = normalize( vs_Input.WorldNormals * normal );
+	// SHADOWS
+
+	vec3 ShadowCoords = (vs_Input.ShadowMapCoords.xyz / vs_Input.ShadowMapCoords.w);
 	
-	vec3 lightDir = vec3( -0.5, 0.5, -0.5 );
-	float lightIntensity = max( dot( lightDir, normal ), 0.0 );
+	float ShadowAmount = HardShadows( u_ShadowMap, ShadowCoords );
 
-	vec3 ShadowMapCoords = ( vs_Input.ShadowMapCoords.xyz / vs_Input.ShadowMapCoords.w );
-	vec3 ShadowMapCoordsBiased = ( vs_Input.ShadowMapCoordsBiased.xyz / vs_Input.ShadowMapCoordsBiased.w );
-
-	float LightSize = 0.5;
-	float ShadowAmount = 0.0;
-
-	FinalColor = vec4( m_Params.Albedo, 1.0 );
-	FinalColor.rgb *= lightIntensity + Ambient;
+	// OUTPUT
+	FinalColor = vec4( m_Params.Albedo * ShadowAmount, 1.0 );
 }
