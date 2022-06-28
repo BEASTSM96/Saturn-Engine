@@ -31,6 +31,8 @@
 
 #include "Saturn/ImGui/Styles.h"
 #include "Saturn/Vulkan/VulkanContext.h"
+#include "Saturn/Vulkan/Renderer.h"
+#include "Saturn/Vulkan/VulkanDebug.h"
 #include "Window.h"
 
 #include "ImGuizmo/ImGuizmo.h"
@@ -143,11 +145,6 @@ namespace Saturn {
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
-
-		const VkFormat SurfaceImageFormat[] = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
-		const VkColorSpaceKHR SurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-
-		ImGui_ImplVulkanH_SelectSurfaceFormat( VulkanContext::Get().GetPhysicalDevice(), VulkanContext::Get().GetSurface(), SurfaceImageFormat, ( size_t )IM_ARRAYSIZE( SurfaceImageFormat ), SurfaceColorSpace );
 	}
 
 	void ImGuiLayer::OnDetach( void )
@@ -174,12 +171,51 @@ namespace Saturn {
 
 	void ImGuiLayer::End( VkCommandBuffer CommandBuffer )
 	{
+		Swapchain& rSwapchain = VulkanContext::Get().GetSwapchain();
+		
 		ImGui::Render();
+		
+		VkClearValue ClearColor[ 2 ];
+		ClearColor[ 0 ].color = { { 0.1f, 0.1f, 0.1f, 1.0f } };
+		ClearColor[ 1 ].depthStencil = { 1.0f, 0 };
+		
+		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+		RenderPassBeginInfo.renderPass = VulkanContext::Get().GetDefaultPass();
+		RenderPassBeginInfo.framebuffer = rSwapchain.GetFramebuffers()[ Renderer::Get().GetImageIndex() ];
+		RenderPassBeginInfo.renderArea.offset = { 0, 0 };
+		RenderPassBeginInfo.renderArea.extent = { ( uint32_t ) Window::Get().Width(), ( uint32_t ) Window::Get().Height() };
+		RenderPassBeginInfo.clearValueCount = 2;
+		RenderPassBeginInfo.pClearValues = ClearColor;
+		
+		CmdBeginDebugLabel( CommandBuffer, "Swap chain pass" );
+
+		// Begin swap chain pass
+		vkCmdBeginRenderPass( CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
+		
+		VkViewport Viewport = {};
+		Viewport.x = 0;
+		Viewport.y = 0;
+		Viewport.width = ( float ) Window::Get().Width();
+		Viewport.height = ( float ) Window::Get().Height();
+		Viewport.minDepth = 0.0f;
+		Viewport.maxDepth = 1.0f;
+
+		VkRect2D Scissor = { { 0, 0 }, { ( uint32_t ) Window::Get().Width(), ( uint32_t ) Window::Get().Height() } };
+		
+		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
+		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
 
 		ImGui_ImplVulkan_RenderDrawData( ImGui::GetDrawData(), CommandBuffer );
+		
+		vkCmdEndRenderPass( CommandBuffer );
+		CmdEndDebugLabel( CommandBuffer );
 
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();	
+		ImGuiIO& rIO = ImGui::GetIO();
+		if( rIO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
+		{
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
 	}
 
 	void ImGuiLayer::OnImGuiRender( void )

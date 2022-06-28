@@ -265,6 +265,9 @@ namespace Saturn {
 	// Create a texture 2D
 	void Texture2D::CreateTextureImage()
 	{
+		if( !std::filesystem::exists( m_Path ) )
+			SAT_CORE_ASSERT( false, "Path does not exist!" );
+
 		int Width, Height, Channels;
 
 		// Flip texture

@@ -51,6 +51,8 @@ namespace Saturn {
 	struct DirectionalLight
 	{
 		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
+
 		float Intensity = 1.0f;
 	};
 

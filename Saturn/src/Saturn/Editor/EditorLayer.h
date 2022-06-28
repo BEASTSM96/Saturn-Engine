@@ -64,6 +64,7 @@ namespace Saturn {
 	private:
 		
 		void SelectionChanged( Entity e );
+		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
 
 	private:
 		Viewport* m_Viewport;

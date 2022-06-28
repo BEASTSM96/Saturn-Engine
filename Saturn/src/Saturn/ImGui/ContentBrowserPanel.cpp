@@ -244,8 +244,16 @@ namespace Saturn {
 			// Fill Info area
 			pDrawList->AddRectFilled( InfoTopLeft, BottomRight, IM_COL32( 47, 47, 47, 255 ), 5.0f, ImDrawCornerFlags_Bot );
 
+			// Check if the mouse is over the button.
+			if( ImGui::IsMouseHoveringRect( TopLeft, BottomRight ) )
+			{
+				// Draw a highlight on the button.
+				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawCornerFlags_All );
+			}
+
 			// Draw line between thumbnail and info.
 			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.0f );
+
 		}
 
 		// Draw icon.
@@ -256,7 +264,8 @@ namespace Saturn {
 		if( rEntry.is_directory() ) 
 		{
 			// Centre align the text.
-			ImGui::SetCursorPosX( TopLeft.x + ThumbnailSize.x / 2.0f - EdgeOffset - 2.0f );
+			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + ( ThumbnailSize.x - ImGui::CalcTextSize( filename.c_str() ).x ) * 0.5f - EdgeOffset );
+
 			ImGui::Text( filename.c_str() );
 		}
 		else

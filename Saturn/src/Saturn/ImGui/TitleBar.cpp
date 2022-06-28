@@ -30,6 +30,7 @@
 #include "TitleBar.h"
 
 #include "Saturn/Core/Window.h"
+#include "UITools.h"
 
 #include "backends/imgui_impl_vulkan.h"
 
@@ -39,6 +40,7 @@ namespace Saturn {
 
 	TitleBar::TitleBar()
 	{
+		m_Logo = Ref<Texture2D>::Create( "assets/Icons/SaturnLogov1.png", AddressingMode::Repeat );
 	}
 
 	TitleBar::~TitleBar()
@@ -47,8 +49,8 @@ namespace Saturn {
 
 	void TitleBar::Draw()
 	{
-		ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 5, 5 ) );
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 5, 5 ) );
+		ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 15, 15 ) );
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 15, 15 ) );
 
 		if( ImGui::BeginMainMenuBar() )
 		{
@@ -61,60 +63,6 @@ namespace Saturn {
 				if( ImGui::MenuItem( "Open", "Ctrl+O" ) ) OpenFile();
 
 				ImGui::EndMenu();
-			}
-
-			if( ImGui::BeginMenu( "Acknowledgments" ) )
-			{
-				ShowAcknowledgements = true;
-				
-				ImGui::EndMenu();
-			}
-			
-			if( ShowAcknowledgements )
-			{
-				ImGui::OpenPopup( "Acknowledgments Modal" );
-			}
-
-			if( ImGui::BeginPopupModal( "Acknowledgments Modal", &ShowAcknowledgements ) )
-			{
-				ImGui::TextWrapped( "Saturn Engine" );
-
-				ImGui::Separator();
-
-				ImGui::TextWrapped( "This engine contains code from NVIDIA Corporation." );
-
-				ImGui::Separator();
-
-				ImGui::TextWrapped( "Yan Chernikov (Cherno), for providing his game engine series." );
-				ImGui::TextWrapped( "Sebastian Kylander (Gaztin), for providing code for to allow for a native window to move without a title bar." );
-
-				ImGui::Separator();
-
-				ImGui::TextWrapped( "assimp, for loading models." );
-				ImGui::TextWrapped( "entt, for a good and fast ECS." );
-				ImGui::TextWrapped( "GLFW, for windowing." );
-				ImGui::TextWrapped( "glm, for opengl math." );
-				ImGui::TextWrapped( "Dear ImGui, for an immediate mode gui." );
-				ImGui::TextWrapped( "NVIDIA physx, for 3d Physics." );
-				ImGui::TextWrapped( "shaderc, for providing tools for tools for vulkan shader compilation." );
-				ImGui::TextWrapped( "spdlog, for providing an easy and fast logging system." );
-				ImGui::TextWrapped( "SPIRV-Reflect, for proving a reflection tool for SPRIV shaders." );
-				ImGui::TextWrapped( "stbi, for loading PNG/TGA, etc. images." );
-
-				ImGui::Separator();
-
-				ImGui::TextWrapped( "https://vkguide.dev/" );
-				ImGui::TextWrapped( "https://vulkan-tutorial.com/" );
-
-				ImGui::Separator();				
-
-				if( ImGui::Button( "Close" ) )
-				{
-					ShowAcknowledgements = false;
-					ImGui::CloseCurrentPopup();
-				}
-
-				ImGui::EndPopup();
 			}
 
 			// System buttons

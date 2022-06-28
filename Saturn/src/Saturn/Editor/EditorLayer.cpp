@@ -46,7 +46,7 @@
 namespace Saturn {
 
 	EditorLayer::EditorLayer() 
-		: m_EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 10000.0f ) )
+		: m_EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 1000.0f ) )
 	{
 		m_EditorScene = Ref<Scene>::Create();
 		m_RuntimeScene = nullptr;
@@ -59,11 +59,17 @@ namespace Saturn {
 		PanelManager::Get().AddPanel( new ViewportBar() );
 		
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
-		ContentBrowserPanel* pContentBrowserPanel = ( ContentBrowserPanel*)PanelManager::Get().GetPanel( "Content Browser Panel" );
 
 		m_Viewport = new Viewport();
 		m_TitleBar = new TitleBar();
-		
+
+		m_Viewport->AddViewportSizeFunction( [&]( uint32_t w, uint32_t h ) -> void
+		{
+			//SceneRenderer::Get().SetWidthAndHeight( w, h );
+			m_EditorCamera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), (float)w, (float)h, 0.1f, 1000.0f ) );
+			m_EditorCamera.SetViewportSize( w, h );
+		} );
+
 		pHierarchyPanel->SetContext( m_EditorScene );
 		pHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
 
@@ -283,6 +289,11 @@ namespace Saturn {
 
 	void EditorLayer::SelectionChanged( Entity e )
 	{
+	}
+
+	void EditorLayer::ViewportSizeCallback( uint32_t Width, uint32_t Height )
+	{
+
 	}
 
 }

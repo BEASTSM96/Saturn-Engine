@@ -1,5 +1,5 @@
 ﻿#type vertex
-#version 430 core
+#version 450
 
 layout( location = 0 ) in vec3 a_Position;
 layout( location = 1 ) in vec3 a_Normal;
@@ -47,11 +47,11 @@ void main()
 	
 	vs_Output.ShadowMapCoordsBiased = u_LightMatrix.LightMatrix * vec4( vs_Output.WorldPosition, 1.0 );
 
-	gl_Position = u_ViewProjectionMatrix * u_Transform * vec4( a_Position, 1.0 );
+	gl_Position = u_Matrices.ViewProjectionMatrix * u_Transform * vec4( a_Position, 1.0 );
 }
 
 #type fragment
-#version 430 core
+#version 450
 
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
@@ -85,8 +85,8 @@ layout( location = 0 ) out vec4 FinalColor;
 
 layout(set = 0, binding = 3) uniform Camera 
 {
+	Light Lights;
 	vec3 CameraPosition;
-	Light Light;
 } u_Camera;
 
 // PBR texture inputs
@@ -105,14 +105,14 @@ layout(set = 1, binding = 10) uniform sampler2D u_BRDFLUTTexture;
 // Shadow
 layout(set = 1, binding = 11) uniform sampler2D u_ShadowMap;
 
-layout(push_constant) uniform u_Materials 
+layout(push_constant) uniform pc_Materials 
 {
 	vec3 AlbedoColor;
 	float Metalness;
 	float Roughness;
 
 	float EnvMapRotation;
-} pc_Materials;
+} u_Materials;
 
 struct PBRParameters
 {
@@ -263,8 +263,8 @@ vec3 Lighting( vec3 F0 )
 	vec3 result = vec3( 0.0 );
 	for( int i = 0; i < LightCount; i++ )
 	{
-		vec3 Li = -lights.Direction;
-		vec3 Lradiance = lights.Radiance * lights.Multiplier;
+		vec3 Li = -u_Camera.Lights.Direction;
+		vec3 Lradiance = u_Camera.Lights.Radiance * u_Camera.Lights.Multiplier;
 		vec3 Lh = normalize( Li + m_Params.View );
 
 		// Calculate angles between surface normal and various light vectors.
@@ -296,7 +296,7 @@ vec3 IBL( vec3 F0, vec3 Lr )
 	int u_EnvRadianceTexLevels = textureQueryLevels( u_EnvRadianceTex );
 	float NoV = clamp( m_Params.NdotV, 0.0, 1.0 );
 	vec3 R = 2.0 * dot( m_Params.View, m_Params.Normal ) * m_Params.Normal - m_Params.View;
-	vec3 specularIrradiance = textureLod( u_EnvRadianceTex, RotateVectorAboutY( u_EnvMapRotation, Lr ), ( m_Params.Roughness ) * u_EnvRadianceTexLevels ).rgb;
+	vec3 specularIrradiance = textureLod( u_EnvRadianceTex, RotateVectorAboutY( u_Materials.EnvMapRotation, Lr ), ( m_Params.Roughness ) * u_EnvRadianceTexLevels ).rgb;
 
 	// Sample BRDF Lut, 1.0 - roughness for y-coord because texture was generated (in Sparky) for gloss model
 	vec2 specularBRDF = texture( u_BRDFLUTTexture, vec2( m_Params.NdotV, 1.0 - m_Params.Roughness ) ).rg;
@@ -308,9 +308,9 @@ vec3 IBL( vec3 F0, vec3 Lr )
 void main()
 {
 	// Standard PBR inputs
-	m_Params.Albedo = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb * pc_Materials.AlbedoColor;
-	m_Params.Metalness = texture( u_MetalnessTexture, vs_Input.TexCoord ).r * pc_Materials.Metalness;
-	m_Params.Roughness = texture( u_RoughnessTexture, vs_Input.TexCoord ).r * pc_Materials.Roughness;
+	m_Params.Albedo = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb * u_Materials.AlbedoColor;
+	m_Params.Metalness = texture( u_MetalnessTexture, vs_Input.TexCoord ).r * u_Materials.Metalness;
+	m_Params.Roughness = texture( u_RoughnessTexture, vs_Input.TexCoord ).r * u_Materials.Roughness;
 	m_Params.Roughness = max( m_Params.Roughness, 0.05 ); // Minimum roughness of 0.05 to keep specular highlight
 
 	// Normals (either from vertex or map)

@@ -88,7 +88,10 @@ namespace Saturn {
 
 		m_SendCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
 
-		Image( SceneRenderer::Get().CompositeImage(), m_WindowSize );
+		for( auto&& rrFunc : m_CallbackFunctions )
+			rrFunc( ( uint32_t ) m_WindowSize.x, ( uint32_t ) m_WindowSize.y );
+
+		Image( SceneRenderer::Get().CompositeImage(), m_WindowSize, { 0, 0 }, { 1, 1 } );
 		
 		// Draw Gizmo
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );

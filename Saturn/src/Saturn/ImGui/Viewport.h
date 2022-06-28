@@ -43,6 +43,8 @@ namespace Saturn {
 		
 		void SetOperation( int Operation ) { m_GizmoOperation = Operation; }
 
+		void AddViewportSizeFunction( std::function<void( uint32_t, uint32_t )>&& rrFunction ) { m_CallbackFunctions.push_back( std::move( rrFunction ) ); }
+
 		bool m_SendCameraEvents = true;
 
 	private:
@@ -56,6 +58,8 @@ namespace Saturn {
 
 		// Translate as default
 		int m_GizmoOperation = 7;
+
+		std::vector< std::function<void( uint32_t, uint32_t )> > m_CallbackFunctions;
 	private:
 		friend class ViewportBar;
 	};

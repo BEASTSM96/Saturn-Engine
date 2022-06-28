@@ -105,10 +105,7 @@ namespace Saturn {
 				
 				glm::vec3 direction = -glm::normalize( glm::mat3( transformComponent.GetTransform() ) * glm::vec3( 1.0f ) );
 				
-				SAT_CORE_INFO( "direction, {0}", direction );
-
-				// 
-				m_DirectionalLight[ lightCount++ ] = { direction, lightComponent.Intensity };
+				m_DirectionalLight[ lightCount++ ] = { direction, lightComponent.Radiance, lightComponent.Intensity };
 			}
 		}
 

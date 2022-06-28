@@ -79,13 +79,13 @@ namespace Saturn {
 					SceneRenderer::Get().RenderScene();
 					
 					// Do ui pass.
-					VulkanContext::Get().GetDefaultPass().BeginPass( Renderer::Get().ActiveCommandBuffer(), VulkanContext::Get().GetSwapchain().GetFramebuffers()[ ImageIndex ], CurrentExtent );
+					//VulkanContext::Get().GetDefaultPass().BeginPass( Renderer::Get().ActiveCommandBuffer(), VulkanContext::Get().GetSwapchain().GetFramebuffers()[ ImageIndex ], CurrentExtent );
 
 					{
 						RenderImGui();
 					}
 
-					VulkanContext::Get().GetDefaultPass().EndPass();
+					//VulkanContext::Get().GetDefaultPass().EndPass();
 
 				}
 				Renderer::Get().EndFrame();
