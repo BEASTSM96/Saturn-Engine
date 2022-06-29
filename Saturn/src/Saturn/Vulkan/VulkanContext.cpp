@@ -75,6 +75,7 @@ namespace Saturn {
 		Specification.Name = "Swapchain render pass";
 		Specification.IsSwapchainTarget = true;
 		
+		// BGRA8 will be VK_IMAGE_LAYOUT_PRESENT_SRC_KHR as this is the swapchain target.
 		Specification.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
 		m_DefaultPass = Pass( Specification );

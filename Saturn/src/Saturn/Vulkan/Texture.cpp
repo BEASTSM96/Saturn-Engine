@@ -257,8 +257,8 @@ namespace Saturn {
 
 		Texture::Terminate();
 		
-		if( m_DescriptorSet )
-			ImGui_ImplVulkan_RemoveTexture( m_DescriptorSet );
+		//if( m_DescriptorSet )
+		//	ImGui_ImplVulkan_RemoveTexture( m_DescriptorSet );
 	}
 
 	// Load and create a texture 2D for a file path.

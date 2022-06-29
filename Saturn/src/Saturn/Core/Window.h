@@ -70,6 +70,9 @@ namespace Saturn {
 
 		void Render();
 
+		void Show();
+		void RemoveBorder();
+
 		void SetEventCallback( const EventCallbackFn& callback ) { m_EventCallback = callback; }
 
 		void* NativeWindow() const { return m_Window; }

@@ -202,9 +202,6 @@ namespace Saturn {
 		// End Scene Composite
 		//////////////////////////////////////////////////////////////////////////
 
-		// TEMP
-		glm::vec3 LightPos = glm::vec3( 0.5f, 0.5f, 0.5f );
-
 		// SHADERS
 
 		Ref< Shader > GridShader = nullptr;
@@ -249,9 +246,6 @@ namespace Saturn {
 
 		Ref<Image2D> CompositeImage() { return m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ]; }
 		
-		// TEMP!!
-		void CreateAllFBSets();
-
 		void Terminate();
 
 	private:

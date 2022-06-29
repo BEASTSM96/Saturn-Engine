@@ -99,6 +99,8 @@ namespace Saturn {
 		Ref& operator=( std::nullptr_t ) 
 		{
 			RemoveRef();
+			
+			m_Pointer = nullptr;
 
 			return *this;
 		}
@@ -191,14 +193,18 @@ namespace Saturn {
 			if( m_Pointer ) 
 			{
 				m_Pointer->RemoveRef();
-				if( m_Pointer->GetRefCount() == 0 )
+
+				if( m_Pointer->GetRefCount() == 0 ) 
+				{
 					delete m_Pointer;
+					m_Pointer = nullptr;
+				}
 			}
 		}
 
 	private:
 
-		T* m_Pointer;
+		mutable T* m_Pointer;
 
 	private:
 		// Fix cannot access private member declared in class

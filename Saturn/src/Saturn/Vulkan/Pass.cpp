@@ -207,6 +207,8 @@ namespace Saturn {
 		if( m_Pass )
 			vkDestroyRenderPass( VulkanContext::Get().GetDevice(), m_Pass, nullptr );
 
+		m_ColorAttacments.clear();
+
 		m_Pass = nullptr;
 	}
 	

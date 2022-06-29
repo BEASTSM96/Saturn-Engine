@@ -70,8 +70,6 @@ namespace Saturn {
 		
 		void Recreate();
 
-		void CreateDescriptorSets();
-
 		operator VkFramebuffer() const { return m_Framebuffer; }
 
 		VkFramebuffer GetVulkanFramebuffer() { return m_Framebuffer; }

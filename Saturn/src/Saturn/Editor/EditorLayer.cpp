@@ -89,6 +89,7 @@ namespace Saturn {
 		m_CheckerboardTexture = nullptr;
 		
 		m_Viewport = nullptr;
+		m_TitleBar = nullptr;
 
 		PanelManager::Get().Terminate();
 	}

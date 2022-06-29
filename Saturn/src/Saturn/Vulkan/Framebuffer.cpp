@@ -137,10 +137,6 @@ namespace Saturn {
 		Create();
 	}
 
-	void Framebuffer::CreateDescriptorSets()
-	{
-	}
-
 	void Framebuffer::Create()
 	{
 		// Create Attachment resources

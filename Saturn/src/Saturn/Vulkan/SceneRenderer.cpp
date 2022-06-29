@@ -80,29 +80,11 @@ namespace Saturn {
 
 		InitDirShadowMap();
 
-		Ref<Shader> shader = Ref<Shader>::Create( "assets/shaders/PBR_Static.glsl" );
-
 		//////////////////////////////////////////////////////////////////////////
-	}
-
-	void SceneRenderer::CreateAllFBSets()
-	{
-		for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
-		{
-			m_RendererData.ShadowCascades[i].Framebuffer->CreateDescriptorSets();
-		}
-
-		m_RendererData.GeometryFramebuffer->CreateDescriptorSets();
-		m_RendererData.SceneCompositeFramebuffer->CreateDescriptorSets();
 	}
 
 	void SceneRenderer::Terminate()
 	{
-		// Destroy grid.
-		DestroyGridComponents();
-
-		DestroySkyboxComponents();
-
 		m_pScene = nullptr;
 		
 		m_DrawList.clear();
@@ -145,9 +127,9 @@ namespace Saturn {
 		// Load the shader
 		if( !m_RendererData.StaticMeshShader ) 
 		{
-			m_RendererData.StaticMeshShader = Ref< Shader >::Create( "assets/shaders/shader_new.glsl" );
-			ShaderLibrary::Get().Add( m_RendererData.StaticMeshShader );
-		}			
+			ShaderLibrary::Get().Load( "assets/shaders/shader_new.glsl" );
+			m_RendererData.StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
+		}
 		
 		if( m_RendererData.StaticMeshPipeline )
 			m_RendererData.StaticMeshPipeline = nullptr;
@@ -201,8 +183,8 @@ namespace Saturn {
 
 		if( !m_RendererData.DirShadowMapShader )
 		{
-			m_RendererData.DirShadowMapShader = Ref< Shader >::Create( "assets/shaders/ShadowMap.glsl" );
-			ShaderLibrary::Get().Add( m_RendererData.DirShadowMapShader );
+			ShaderLibrary::Get().Load( "assets/shaders/ShadowMap.glsl" );
+			m_RendererData.DirShadowMapShader = ShaderLibrary::Get().Find( "ShadowMap" );
 		}
 	
 		PipelineSpecification PipelineSpec = {};
@@ -260,9 +242,8 @@ namespace Saturn {
 		
 		if( !m_RendererData.SceneCompositeShader )
 		{
-			m_RendererData.SceneCompositeShader = Ref< Shader >::Create( "assets/shaders/SceneComposite.glsl" );
-			
-			ShaderLibrary::Get().Add( m_RendererData.SceneCompositeShader );
+			ShaderLibrary::Get().Load( "assets/shaders/SceneComposite.glsl" );
+			m_RendererData.SceneCompositeShader = ShaderLibrary::Get().Find( "SceneComposite" );
 		}
 		
 		if( !m_RendererData.SC_DescriptorSet )
@@ -497,8 +478,8 @@ namespace Saturn {
 		
 		if( !m_RendererData.GridShader )
 		{
-			m_RendererData.GridShader = Ref< Shader >::Create( "assets/shaders/Grid.glsl" );
-			ShaderLibrary::Get().Add( m_RendererData.GridShader );
+			ShaderLibrary::Get().Load( "assets/shaders/Grid.glsl" );
+			m_RendererData.GridShader = ShaderLibrary::Get().Find( "Grid" );
 		}
 	
 		if( !m_RendererData.GridDescriptorSet ) 
@@ -542,8 +523,8 @@ namespace Saturn {
 		
 		if( !m_RendererData.SkyboxShader )
 		{
-			m_RendererData.SkyboxShader = Ref<Shader>::Create( "assets/shaders/Skybox.glsl" );
-			ShaderLibrary::Get().Add( m_RendererData.SkyboxShader );
+			ShaderLibrary::Get().Load( "assets/shaders/Skybox.glsl" );
+			m_RendererData.SkyboxShader = ShaderLibrary::Get().Find( "Skybox" );
 		}
 		
 		if( !m_RendererData.SkyboxDescriptorSet ) 
@@ -593,8 +574,6 @@ namespace Saturn {
 
 		if( ImGui::CollapsingHeader( "Shadow Settings" ) )
 		{
-			DrawVec3Control( "Light Pos", m_RendererData.LightPos );
-
 			ImGui::Separator();
 
 			Image( m_RendererData.ShadowCascades[0].Framebuffer->GetDepthAttachmentsResource(), ImVec2( 100, 100 ) );
@@ -910,19 +889,9 @@ namespace Saturn {
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
 		
 		// DescriptorSets
-		GridDescriptorSet->Terminate();
-		SkyboxDescriptorSet->Terminate();
+		GridDescriptorSet = nullptr;
+		SkyboxDescriptorSet = nullptr;
 		SC_DescriptorSet = nullptr;
-
-		/*
-		for ( auto& set : DirShadowMapDescriptorSets )
-		{
-			if( set )
-				set = nullptr;
-		}
-
-		DirShadowMapDescriptorSets.clear();
-		*/
 
 		// Vertex and Index buffers
 		GridVertexBuffer->Terminate();
@@ -934,8 +903,14 @@ namespace Saturn {
 
 		// Framebuffers
 		GeometryFramebuffer = nullptr;
-		//DirShadowMapFramebuffer = nullptr;
 		SceneCompositeFramebuffer = nullptr;
+
+		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+		{
+			ShadowCascades[ i ].Framebuffer = nullptr;
+		}
+		
+		ShadowCascades.clear();
 
 		// Render Passes
 		DirShadowMapPass->Terminate();
@@ -960,6 +935,8 @@ namespace Saturn {
 		SceneCompositeShader = nullptr;
 		DirShadowMapShader = nullptr;
 		
+		ShaderLibrary::Get().Shutdown();
+
 		// Command Pools
 		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
 	}
