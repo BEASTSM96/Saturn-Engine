@@ -96,17 +96,19 @@ namespace Saturn {
 	{
 		// Create render pass.
 		if( m_RendererData.GeometryPass )
-			m_RendererData.GeometryPass = nullptr;
+			m_RendererData.GeometryPass->Recreate();
+		else
+		{
+			PassSpecification PassSpec = {};
+			PassSpec.Name = "Geometry Pass";
+			PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
-		PassSpecification PassSpec = {};
-		PassSpec.Name = "Geometry Pass";
-		PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
-
-		m_RendererData.GeometryPass = Ref< Pass >::Create( PassSpec );
+			m_RendererData.GeometryPass = Ref< Pass >::Create( PassSpec );
+		}
 
 		// Create geometry framebuffer.
 		if( m_RendererData.GeometryFramebuffer )
-			m_RendererData.GeometryFramebuffer->Recreate();
+			m_RendererData.GeometryFramebuffer->Recreate( m_RendererData.Width, m_RendererData.Height );
 		else
 		{
 			FramebufferSpecification FBSpec = {};
@@ -211,18 +213,20 @@ namespace Saturn {
 	void SceneRenderer::InitSceneComposite()
 	{
 		if( m_RendererData.SceneComposite )
-			m_RendererData.SceneComposite = nullptr;
+			m_RendererData.SceneComposite->Recreate();
+		else
+		{
+			// Create the scene composite render pass.
+			PassSpecification PassSpec = {};
+			PassSpec.Name = "Texture pass";
 
-		// Create the scene composite render pass.
-		PassSpecification PassSpec = {};
-		PassSpec.Name = "Texture pass";
-		
-		PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
-		
-		m_RendererData.SceneComposite = Ref< Pass >::Create( PassSpec );
-		
+			PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
+
+			m_RendererData.SceneComposite = Ref< Pass >::Create( PassSpec );
+		}
+
 		if( m_RendererData.SceneCompositeFramebuffer )
-			m_RendererData.SceneCompositeFramebuffer->Recreate();
+			m_RendererData.SceneCompositeFramebuffer->Recreate( m_RendererData.Width, m_RendererData.Height );
 		else
 		{
 			FramebufferSpecification FBSpec = {};
@@ -446,9 +450,10 @@ namespace Saturn {
 			glm::vec3 minExtents = -maxExtents;
 
 			glm::vec3 lightDir = -Direction;
-			glm::mat4 lightViewMatrix = glm::lookAt( frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3( 0.0f, 0.0f, 1.0f ) );
-			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + CascadeNearPlaneOffset, maxExtents.z - minExtents.z + CascadeFarPlaneOffset );
+			glm::mat4 lightViewMatrix = glm::lookAt( frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z );
 
+			/*
 			// Offset to texel space to avoid shimmering (from https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
 			glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
 			const float ShadowMapResolution = SHADOW_MAP_SIZE;
@@ -460,6 +465,7 @@ namespace Saturn {
 			roundOffset.w = 0.0f;
 
 			lightOrthoMatrix[ 3 ] += roundOffset;
+			*/
 
 			// Store split distance and matrix in cascade
 			m_RendererData.ShadowCascades[ i ].SplitDepth = ( nearClip + splitDist * clipRange ) * -1.0f;
@@ -556,6 +562,8 @@ namespace Saturn {
 	void SceneRenderer::ImGuiRender()
 	{
 		ImGui::Begin( "Scene Renderer" );
+		
+		ImGui::Text( "Viewport size, %i, %i", ( int )m_RendererData.Width, ( int ) m_RendererData.Height );
 
 		if( ImGui::CollapsingHeader( "Stats" ) )
 		{
@@ -576,13 +584,43 @@ namespace Saturn {
 		{
 			ImGui::Separator();
 
-			Image( m_RendererData.ShadowCascades[0].Framebuffer->GetDepthAttachmentsResource(), ImVec2( 100, 100 ) );
-			
-			/*
-			for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+			float size = ImGui::GetContentRegionAvailWidth();			
+
+			Image( m_RendererData.ShadowCascades[0].Framebuffer->GetDepthAttachmentsResource(), ImVec2( size, size ) );
+		}
+
+		if( TreeNode( "Scene renderer data", true ) )
+		{
+			if( TreeNode( "Shadow settings", true ) )
 			{
+				ImGui::InputFloat( "Cascade Split Lambda", &m_RendererData.CascadeSplitLambda, 0.01f, 1.0f );
+				
+				ImGui::Text( "Shadow Map Pass: %p", m_RendererData.DirShadowMapPass->GetVulkanPass() );
+				ImGui::Text( "Shadow Map Pipeline: %p", m_RendererData.DirShadowMapPipeline->GetPipeline() );
+
+				if( TreeNode( "Cascade data", false ) )
+				{
+					for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+					{
+						std::string text = "Cascade " + std::to_string( i );
+						
+						if( TreeNode( text.c_str(), false ) )
+						{
+							ImGui::Text( "Framebuffer: %p", m_RendererData.ShadowCascades[ i ].Framebuffer->GetVulkanFramebuffer() );
+							ImGui::Text( "Split depth: %f", m_RendererData.ShadowCascades[ i ].SplitDepth );
+							
+							EndTreeNode();
+						}
+
+					}
+
+					EndTreeNode();
+				}
+
+				EndTreeNode();
 			}
-			*/
+			
+			EndTreeNode();
 		}
 
 		ImGui::End();
@@ -602,6 +640,8 @@ namespace Saturn {
 	{
 		if( m_RendererData.Width != w && m_RendererData.Width != h )
 		{
+			SAT_CORE_INFO( "Resizing scene renderer to {0}x{1}", w, h );
+
 			m_RendererData.Width = w;
 			m_RendererData.Height = h;
 			m_RendererData.Resized = true;
@@ -852,6 +892,8 @@ namespace Saturn {
 		if( m_RendererData.Resized )
 		{
 			Recreate();
+
+			m_RendererData.Resized = false;
 		}
 
 		m_RendererData.CommandBuffer = Renderer::Get().ActiveCommandBuffer();

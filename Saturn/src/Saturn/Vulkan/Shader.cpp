@@ -100,7 +100,6 @@ namespace Saturn {
 
 	ShaderLibrary::~ShaderLibrary()
 	{
-		m_Shaders.clear();
 	}
 
 	void ShaderLibrary::Add( const Ref<Shader>& shader )
@@ -114,7 +113,7 @@ namespace Saturn {
 
 	void ShaderLibrary::Load( const std::string& path )
 	{
-		auto shader = Ref<Shader>::Create( path );
+		Ref<Shader> shader = Ref<Shader>::Create( path );
 	
 		Add( shader );
 	}
@@ -124,6 +123,23 @@ namespace Saturn {
 		SAT_CORE_ASSERT( m_Shaders.find( name ) == m_Shaders.end() );
 
 		m_Shaders[ name ] = Ref<Shader>::Create( path );
+	}
+
+	void ShaderLibrary::Remove( const Ref<Shader>& shader )
+	{
+		m_Shaders[ shader->GetName() ] = nullptr;
+		m_Shaders.erase( shader->GetName() );
+	}
+
+	void ShaderLibrary::Shutdown()
+	{
+		for ( auto& [name, shader] : m_Shaders )
+		{
+			if( shader )
+				shader = nullptr;
+		}
+
+		m_Shaders.clear();
 	}
 
 	const Ref<Shader>& ShaderLibrary::Find( const std::string& name ) const

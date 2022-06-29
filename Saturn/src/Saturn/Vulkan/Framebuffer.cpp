@@ -106,7 +106,7 @@ namespace Saturn {
 		m_AttachmentImageViews.clear();
 	}
 
-	void Framebuffer::Recreate()
+	void Framebuffer::Recreate( uint32_t Width, uint32_t Height )
 	{
 		if( m_Framebuffer )
 			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_Framebuffer, nullptr );
@@ -123,8 +123,11 @@ namespace Saturn {
 
 		m_ColorAttachmentsFormats.clear();
 		m_AttachmentImageViews.clear();
-		
+
 		////
+
+		m_Specification.Width = Width;
+		m_Specification.Height = Height;
 
 		for( auto format : m_Specification.Attachments.Attachments )
 		{

@@ -277,16 +277,20 @@ namespace Saturn {
 		Ref< DescriptorPool > m_SetPool;
 	};
 
+	// The shader library will hold shaders
 	class ShaderLibrary : public CountedObj
 	{
 		SINGLETON( ShaderLibrary );
 	public:
 		ShaderLibrary();
 		~ShaderLibrary();
-
+		
 		void Add( const Ref<Shader>& shader );
 		void Load( const std::string& path );
 		void Load( const std::string& name, const std::string& path );
+		void Remove( const Ref<Shader>& shader );
+
+		void Shutdown();
 
 		const Ref<Shader>& Find( const std::string& name ) const;
 	private:

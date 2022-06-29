@@ -65,7 +65,7 @@ namespace Saturn {
 
 		m_Viewport->AddViewportSizeFunction( [&]( uint32_t w, uint32_t h ) -> void
 		{
-			//SceneRenderer::Get().SetWidthAndHeight( w, h );
+			SceneRenderer::Get().SetWidthAndHeight( w, h );
 			m_EditorCamera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), (float)w, (float)h, 0.1f, 1000.0f ) );
 			m_EditorCamera.SetViewportSize( w, h );
 		} );
@@ -179,6 +179,8 @@ namespace Saturn {
 					{
 						if( ImGui::CollapsingHeader( rMaterial->GetName().c_str() ) ) 
 						{
+							ImGui::PushID( rMaterial->GetName().c_str() );
+
 							ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
 
 							ImGui::Separator();
@@ -213,18 +215,15 @@ namespace Saturn {
 
 							glm::vec3& color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
 
-							ImGui::PushID( rMaterial->GetName().c_str() );
 							ImGui::ColorEdit3( "##Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
-							ImGui::PopID();
 
-							/*
 							ImGui::Text( "Normal" );
 
 							ImGui::Separator();
 
-							bool UseNormalTexture = rMaterial->Get< float >( "u_Materials.UseNormalTexture" );
+							bool UseNormalMap = rMaterial->Get< float >( "u_Materials.UseNormalMap" );
 
-							if( UseNormalTexture )
+							if( UseNormalMap )
 							{
 								Ref< Texture2D > texture = rMaterial->GetResource( "u_NormalTexture" );
 								
@@ -234,9 +233,59 @@ namespace Saturn {
 									ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
 							}
 
-							if( ImGui::Checkbox( "Use Normal Texture", &UseNormalTexture ) )
-								rMaterial->Set( "u_Materials.UseNormalTexture", UseNormalTexture ? 1.0f : 0.0f );
-							*/
+							if( ImGui::Checkbox( "Use Normal Map", &UseNormalMap ) )
+								rMaterial->Set( "u_Materials.UseNormalMap", UseNormalMap ? 1.0f : 0.0f );
+							
+							ImGui::Text( "Roughness" );
+							
+							ImGui::Separator();
+							
+							float Roughness = rMaterial->Get< float >( "u_Materials.Roughness" );
+
+							ImGui::DragFloat( "Roughness", &Roughness, 0.01f, 0.0f, 1.0f );
+
+							if( Roughness != rMaterial->Get< float >( "u_Materials.Roughness" ) )
+								rMaterial->Set( "u_Materials.Roughness", Roughness );
+
+							// Roughness map
+							{
+								Ref< Texture2D > texture = rMaterial->GetResource( "u_RoughnessTexture" );
+
+								if( texture )
+								{
+									if( texture && texture->GetDescriptorSet() )
+										ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+									else
+										ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								}
+							}
+
+							ImGui::Text( "Metalness" );
+
+							ImGui::Separator();
+
+							float Metallic = rMaterial->Get< float >( "u_Materials.Metalness" );
+							
+							ImGui::DragFloat( "Metalness", &Metallic, 0.01f, 0.0f, 1.0f );
+
+							if( Metallic != rMaterial->Get< float >( "u_Materials.Metalness" ) )
+								rMaterial->Set( "u_Materials.Metalness", Metallic );
+							
+							// Metalness map
+							{
+
+								Ref< Texture2D > texture = rMaterial->GetResource( "u_MetallicTexture" );
+
+								if( texture )
+								{
+									if( texture && texture->GetDescriptorSet() )
+										ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+									else
+										ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								}
+							}
+
+							ImGui::PopID();
 						}
 					}
 				}

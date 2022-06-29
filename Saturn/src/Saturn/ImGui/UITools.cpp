@@ -397,4 +397,19 @@ namespace Saturn {
 		return ImGui::ImageButton( TextureID, Size, UV0, UV1, FramePadding, BackgroundColor, TintColor );
 	}
 
+	bool TreeNode( const std::string& label, bool open /*= true */ )
+	{
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
+
+		if( open )
+			flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+		return ImGui::TreeNodeEx( label.c_str(), flags );
+	}
+
+	void EndTreeNode()
+	{
+		ImGui::TreePop();
+	}
+
 }

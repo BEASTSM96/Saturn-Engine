@@ -96,8 +96,18 @@ namespace Saturn {
 			VkDescriptorImageInfo ImageInfo = {};
 			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			ImageInfo.imageView = m_Textures[ name ]->GetImageView();
-			ImageInfo.sampler = m_Textures[ name ]->GetSampler();
+			if( m_Textures[ name ] )
+			{
+				ImageInfo.imageView = m_Textures[ name ]->GetImageView();
+				ImageInfo.sampler = m_Textures[ name ]->GetSampler();
+			}
+			else
+			{
+				auto PinkTexture = Renderer::Get().GetPinkTexture();
+
+				ImageInfo.imageView = PinkTexture->GetImageView();
+				ImageInfo.sampler = PinkTexture->GetSampler();
+			}
 
 			Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
 		}

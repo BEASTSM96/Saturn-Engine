@@ -55,6 +55,7 @@ namespace Saturn {
 		
 		ImVec2 m_WindowPos;
 		ImVec2 m_WindowSize;
+		ImVec2 m_OldWindowSize;
 
 		// Translate as default
 		int m_GizmoOperation = 7;

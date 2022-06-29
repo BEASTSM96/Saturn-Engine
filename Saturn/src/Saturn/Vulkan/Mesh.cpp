@@ -143,6 +143,16 @@ namespace Saturn {
 
 			SAT_CORE_INFO( " Albedo color: {0}", glm::vec3( color.r, color.g, color.g ) );
 
+			float shininess, metalness;
+			if( material->Get( AI_MATKEY_SHININESS, shininess ) == aiReturn_SUCCESS )
+				shininess = 80.0f;
+
+			if( material->Get( AI_MATKEY_REFLECTIVITY, metalness ) == aiReturn_SUCCESS )
+				metalness = 80.0f;
+
+			float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
+			SAT_CORE_INFO( " Roughness: {0}", roughness );
+
 			// Albedo Texture
 			{
 				aiString AlbedoTexturePath;
@@ -167,18 +177,15 @@ namespace Saturn {
 					if( AlbedoTexture )
 					{
 						mat->SetResource( "u_AlbedoTexture", AlbedoTexture );
-						//mat->Set( "u_Materials.UseAlbedoTexture", 1.0f );
 					}
 					else
 					{
 						mat->SetResource( "u_AlbedoTexture", PinkTexture );
-						//mat->Set( "u_Materials.UseAlbedoTexture", 1.0f );
 					}
 				}
 				else
 				{
 					mat->SetResource( "u_AlbedoTexture", PinkTexture );
-					//mat->Set( "u_Materials.UseAlbedoTexture", 0.0f );
 				}
 			}
 
@@ -189,8 +196,8 @@ namespace Saturn {
 
 				if( HasNormalTexture )
 				{
-					std::filesystem::path AlbedoPath = filename;
-					auto pp = AlbedoPath.parent_path();
+					std::filesystem::path Path = filename;
+					auto pp = Path.parent_path();
 
 					pp /= std::string( NormalTexturePath.data );
 
@@ -206,18 +213,86 @@ namespace Saturn {
 					if( NormalTexture )
 					{
 						mat->SetResource( "u_NormalTexture", NormalTexture );
-						//mat->Set( "u_Materials.UseNormalTexture", 1.0f );
+						mat->Set( "u_Materials.UseNormalMap", 1.0f );
 					}
 					else
 					{
 						mat->SetResource( "u_NormalTexture", PinkTexture );
-						//mat->Set( "u_Materials.UseNormalTexture", 0.0f );
+						mat->Set( "u_Materials.UseNormalMap", 0.0f );
 					}
 				}
 				else
 				{
 					mat->SetResource( "u_NormalTexture", PinkTexture );
-					//mat->Set( "u_Materials.UseNormalTexture", 0.0f );
+					mat->Set( "u_Materials.UseNormalMap", 0.0f );
+				}
+			}
+
+			// Roughness texture
+			{
+				aiString RoughnessTexturePath;
+				bool HasRoughnessTexture = material->GetTexture( aiTextureType_SHININESS, 0, &RoughnessTexturePath ) == AI_SUCCESS;
+
+				mat->Set( "u_Materials.Roughness", 1.0f );
+
+				if( HasRoughnessTexture ) 
+				{
+					std::filesystem::path Path = filename;
+					auto pp = Path.parent_path();
+
+					pp /= std::string( RoughnessTexturePath.data );
+
+					auto TexturePath = pp.string();
+
+					Ref< Texture2D > RoughnessTexture;
+
+					if( std::filesystem::exists( TexturePath ) )
+						RoughnessTexture = Ref< Texture2D >::Create( TexturePath, AddressingMode::Repeat );
+
+					if( RoughnessTexture )
+					{
+						mat->SetResource( "u_RoughnessTexture", RoughnessTexture );
+					}
+				}
+			}
+
+			// Metalness
+			{
+				for( uint32_t i = 0; i < material->mNumProperties; i++ )
+				{
+					auto prop = material->mProperties[ i ];
+
+					bool FoundMetalness = false;
+
+					if( prop->mType == aiPTI_String )
+					{
+						uint32_t StringLen = *( uint32_t* ) prop->mData;
+						std::string String( prop->mData + 4, StringLen );
+
+						std::string Key = prop->mKey.data;
+						if( Key == "$raw.ReflectionFactor|file" )
+						{
+							FoundMetalness = true;
+
+							std::filesystem::path Path = filename;
+							auto pp = Path.parent_path();
+
+							pp /= String;
+
+							auto TexturePath = pp.string();
+
+							Ref< Texture2D > MetalnessTexture;
+
+							if( MetalnessTexture ) 
+							{
+								mat->SetResource( "u_MetallicTexture", MetalnessTexture );
+							}
+
+							mat->Set( "u_Materials.Metalness", metalness );
+
+							break;
+						}
+					}
 				}
 			}
 		}

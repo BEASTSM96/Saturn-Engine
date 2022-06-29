@@ -68,7 +68,7 @@ namespace Saturn {
 		Framebuffer( const FramebufferSpecification& Specification );
 		~Framebuffer();
 		
-		void Recreate();
+		void Recreate( uint32_t Width, uint32_t  Height );
 
 		operator VkFramebuffer() const { return m_Framebuffer; }
 
