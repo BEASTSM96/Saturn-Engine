@@ -1,4 +1,14 @@
-﻿#type vertex
+﻿// PBR Shader:
+// Based on: 	PBR: A Practical Model for Physically Based Rendering
+// 				http://www.cs.utah.edu/~boulos/cs3505/papers/pbr.pdf
+//				Michał Siejak, Physically Based Shading
+//				https://www.siejak.pl/projects/pbr
+//				Learn OpenGL
+//				https://learnopengl.com
+//				Yan Chernikov's (TheCherno) hazel engine
+//				https://www.youtube.com/c/TheChernoProject
+
+#type vertex
 #version 450
 
 layout( location = 0 ) in vec3 a_Position;
@@ -112,6 +122,7 @@ layout(push_constant) uniform pc_Materials
 	float Roughness;
 
 	float EnvMapRotation;
+	float UseNormalMap;
 } u_Materials;
 
 struct PBRParameters

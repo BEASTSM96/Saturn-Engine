@@ -1,3 +1,6 @@
+// PBR Shader test
+// Based on PBR_Static, but with my one stuff
+
 #type vertex
 #version 450
 
@@ -9,17 +12,17 @@ layout(location = 4) in vec2 a_TexCoord;
 
 layout(binding = 0) uniform Matrices 
 {
-    mat4 ViewProjection;
+	mat4 ViewProjection;
 } u_Matrices;
 
 layout(binding = 1) uniform LightData
 {
-    mat4 LightMatrix;
+	mat4 LightMatrix;
 };
 
 layout(push_constant) uniform u_Transform
 {
-    mat4 Transform;
+	mat4 Transform;
 };
 
 layout(location = 1) out VertexOutput 
@@ -57,6 +60,8 @@ const float Epsilon = 0.00001;
 
 const int LightCount = 1;
 
+const vec3 Fdielectric = vec3( 0.04 );
+
 struct Light
 {
 	vec3 Direction;
@@ -67,6 +72,11 @@ struct Light
 layout(push_constant) uniform pc_Materials
 {
 	layout(offset = 64) vec3 AlbedoColor;
+	float UseNormalMap;
+	
+	float Metalness;
+	float Roughness;
+
 } u_Materials; 
 
 layout(set = 0, binding = 2) uniform Camera 
@@ -98,16 +108,21 @@ layout(location = 1) in VertexOutput
 	vec4 ShadowMapCoords;
 } vs_Input;
 
-struct PBRParameters 
+struct PBRParameters
 {
 	vec3 Albedo;
-	vec3 Normal;
-	
 	float Roughness;
 	float Metalness;
+
+	vec3 Normal;
+	vec3 View;
+	float NdotV;
 };
 
 PBRParameters m_Params;
+
+//////////////////////////////////////////////////////////////////////////
+// SHADOWS
 
 float GetShadowBias() 
 {
@@ -123,14 +138,90 @@ float HardShadows( sampler2D ShadowMap, vec3 ShadowCoords )
 	return step( ShadowCoords.z, map + bias ) * 1.0;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// LIGHTING
+
+// Shlick's approximation of the Fresnel factor.
+vec3 FresnelSchlick( vec3 F0, float cosTheta ) 
+{
+	return F0 + ( 1.0 - F0 ) * pow( 1.0 - cosTheta, 5.0 );
+}
+
+float NDFGGX( float cosLh, float r ) 
+{	
+	// alpha = roughness^2;
+	float a = r * r;
+	float a2 = a * a;
+
+	float denom = ( cosLh * cosLh ) * ( a2 - 1.0 ) + 1.0;
+	return a2 / ( PI * denom * denom );
+}
+
+float gaSchlickG1( float cosTheta, float k )
+{
+	return cosTheta / ( cosTheta * ( 1.0 - k ) + k );
+}
+
+float gaSchlickGGX( float cosLi, float NdotV, float roughness ) 
+{
+	float r = roughness + 1.0;
+	float k = ( r * r ) / 8.0; // Epic suggests using this roughness remapping for analytic lights.
+	return gaSchlickG1( cosLi, k ) * gaSchlickG1( NdotV, k );
+}
+
+vec3 Lighting( vec3 F0 ) 
+{
+	vec3 result = vec3( 0.0 );
+	
+	for( int i = 0; i < LightCount; i++ )
+	{
+		vec3 Li = u_Camera.Lights.Direction;
+		vec3 Lradiance = u_Camera.Lights.Radiance * u_Camera.Lights.Multiplier;
+		vec3 Lh = normalize( Li + m_Params.View );
+
+		// Calculate angles between surface normal and various light vectors.
+		float cosLi = max( 0.0, dot( m_Params.Normal, Li ) );
+		float cosLh = max( 0.0, dot( m_Params.Normal, Lh ) );
+
+		vec3 F = FresnelSchlick( F0, max( 0.0, dot( Lh, m_Params.View ) ) );
+		float D = NDFGGX( cosLh, m_Params.Roughness );
+		float G = gaSchlickGGX( cosLi, m_Params.NdotV, m_Params.Roughness );
+
+		vec3 kd = ( 1.0 - F ) * ( 1.0 - m_Params.Metalness );
+		vec3 DiffuseBRDF = kd * m_Params.Albedo;
+
+		vec3 SpecularBRDF = ( F * D * G ) / max( Epsilon, 4.0 * cosLi * m_Params.NdotV );
+		result += ( DiffuseBRDF + SpecularBRDF ) * Lradiance * cosLi;
+	}
+	return result;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 void main() 
 {
 	m_Params.Albedo = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb * u_Materials.AlbedoColor;
-	
+	m_Params.Metalness = texture( u_MetallicTexture, vs_Input.TexCoord ).r * u_Materials.Metalness;
+	m_Params.Roughness = texture( u_RoughnessTexture, vs_Input.TexCoord ).r * u_Materials.Roughness;
+	m_Params.Roughness = max( m_Params.Roughness, 0.05 ); // Minimum roughness of 0.05 to keep specular highlight
+
 	float Ambient = 0.20;
 	
 	// Normals (either from vertex or map)
 	m_Params.Normal = normalize( vs_Input.Normal );
+	
+	if( u_Materials.UseNormalMap > 0.5 )
+	{
+		m_Params.Normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
+		m_Params.Normal = normalize( vs_Input.WorldNormals * m_Params.Normal );
+	}
+
+	m_Params.View = normalize( u_Camera.CameraPosition - vs_Input.Position );
+	m_Params.NdotV = max( dot( m_Params.Normal, m_Params.View ), 0.0 );
+
+	vec3 Lr = 2.0 * m_Params.NdotV * m_Params.Normal - m_Params.View;
+
+	vec3 F0 = mix( Fdielectric, m_Params.Albedo, m_Params.Metalness );
 
 	// SHADOWS
 
@@ -139,5 +230,7 @@ void main()
 	float ShadowAmount = HardShadows( u_ShadowMap, ShadowCoords );
 
 	// OUTPUT
-	FinalColor = vec4( m_Params.Albedo * ShadowAmount, 1.0 );
+	vec3 Lighting = Lighting( F0 ) * ShadowAmount;
+
+	FinalColor = vec4( Lighting, 1.0 );
 }
