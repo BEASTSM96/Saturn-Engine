@@ -565,6 +565,8 @@ namespace Saturn {
 		
 		ImGui::Text( "Viewport size, %i, %i", ( int )m_RendererData.Width, ( int ) m_RendererData.Height );
 
+		ImGui::Text( "FPS: %.1f", ImGui::GetIO().Framerate );
+
 		if( ImGui::CollapsingHeader( "Stats" ) )
 		{
 			auto FrameTimings = Renderer::Get().GetFrameTimings();
@@ -609,6 +611,12 @@ namespace Saturn {
 							ImGui::Text( "Framebuffer: %p", m_RendererData.ShadowCascades[ i ].Framebuffer->GetVulkanFramebuffer() );
 							ImGui::Text( "Split depth: %f", m_RendererData.ShadowCascades[ i ].SplitDepth );
 							
+							ImGui::Separator();
+
+							float size = ImGui::GetContentRegionAvailWidth();
+
+							Image( m_RendererData.ShadowCascades[ i ].Framebuffer->GetDepthAttachmentsResource(), ImVec2( size, size ) );
+
 							EndTreeNode();
 						}
 

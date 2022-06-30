@@ -130,15 +130,14 @@ namespace Saturn {
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )
 	{
 		Entity entity ={ m_Registry.create(), this };
+		
+		auto& idComponent = entity.AddComponent<IdComponent>().ID = {};
 		entity.AddComponent<TransformComponent>();
-		auto& tag = entity.AddComponent<TagComponent>();
-		tag.Tag = name.empty() ? "Unmanned Entity" : name;
+		auto& tagComponent = entity.AddComponent<TagComponent>( name.empty() ? "Empty Entity" : name );
 
-		auto& IDcomponent = entity.AddComponent<IdComponent>();
 		entity.AddComponent<VisibilityComponent>();
-		entity.GetComponent<IdComponent>().ID ={};
-
-		m_EntityIDMap[ IDcomponent.ID ] = entity;
+		
+		m_EntityIDMap[ idComponent ] = entity;
 		
 		return entity;
 	}
@@ -202,6 +201,20 @@ namespace Saturn {
 			auto& srcComponent = rRegistry.get<T>( src );
 			rRegistry.emplace_or_replace<T>( dst, srcComponent );
 		}
+	}
+
+	void Scene::DuplicateEntity( Entity entity )
+	{
+		Entity newEntity;
+
+		newEntity = CreateEntity( entity.GetComponent<TagComponent>().Tag );
+
+		CopyComponentIfExists<TransformComponent>( newEntity, entity, m_Registry );
+		CopyComponentIfExists<VisibilityComponent>( newEntity, entity, m_Registry );
+		CopyComponentIfExists<MeshComponent>( newEntity, entity, m_Registry );
+		CopyComponentIfExists<SkylightComponent>( newEntity, entity, m_Registry );
+		CopyComponentIfExists<LightComponent>( newEntity, entity, m_Registry );
+		CopyComponentIfExists<DirectionalLightComponent>( newEntity, entity, m_Registry );
 	}
 
 	void Scene::CopyScene( Ref<Scene>& NewScene )

@@ -253,16 +253,24 @@ namespace Saturn {
 					{
 						mat->SetResource( "u_RoughnessTexture", RoughnessTexture );
 					}
+					else
+					{
+						mat->SetResource( "u_RoughnessTexture", PinkTexture );
+					}
+				}
+				else
+				{
+					mat->SetResource( "u_RoughnessTexture", PinkTexture );
 				}
 			}
 
 			// Metalness
 			{
+				bool FoundMetalness = false;
+				
 				for( uint32_t i = 0; i < material->mNumProperties; i++ )
 				{
 					auto prop = material->mProperties[ i ];
-
-					bool FoundMetalness = false;
 
 					if( prop->mType == aiPTI_String )
 					{
@@ -287,12 +295,21 @@ namespace Saturn {
 							{
 								mat->SetResource( "u_MetallicTexture", MetalnessTexture );
 							}
+							else
+							{
+								mat->SetResource( "u_MetallicTexture", PinkTexture );
+							}
 
 							mat->Set( "u_Materials.Metalness", metalness );
 
 							break;
 						}
 					}
+				}
+
+				if( !FoundMetalness )
+				{
+					mat->SetResource( "u_MetallicTexture", PinkTexture );
 				}
 			}
 		}

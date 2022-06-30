@@ -297,6 +297,9 @@ namespace Saturn {
 
 	void EditorLayer::OnEvent( Event& rEvent )
 	{
+		EventDispatcher dispatcher( rEvent );
+		dispatcher.Dispatch<KeyPressedEvent>( SAT_BIND_EVENT_FN( EditorLayer::OnKeyPressed ) );
+
 		if ( m_Viewport->m_SendCameraEvents )
 		{
 			m_EditorCamera.AllowEvents( true );
@@ -344,6 +347,31 @@ namespace Saturn {
 	void EditorLayer::ViewportSizeCallback( uint32_t Width, uint32_t Height )
 	{
 
+	}
+
+	bool EditorLayer::OnKeyPressed( KeyPressedEvent& rEvent )
+	{
+		if( Input::Get().KeyPressed( Key::LeftControl ) )
+		{
+			switch( rEvent.KeyCode() )
+			{
+				case Key::D:
+				{
+					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+					
+					if( pHierarchyPanel ) 
+					{
+						if( auto& rEntity = pHierarchyPanel->GetSelectionContext() )
+						{
+							m_EditorScene->DuplicateEntity( rEntity );
+						}
+					}
+
+				} break;
+			}
+		}
+
+		return true;
 	}
 
 }
