@@ -148,7 +148,7 @@ namespace Saturn {
 				shininess = 80.0f;
 
 			if( material->Get( AI_MATKEY_REFLECTIVITY, metalness ) == aiReturn_SUCCESS )
-				metalness = 80.0f;
+				metalness = 0.0f;
 
 			float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
 			SAT_CORE_INFO( " Roughness: {0}", roughness );

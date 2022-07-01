@@ -93,6 +93,30 @@ namespace Saturn {
 
 		for( auto& [name, texture] : m_Textures )
 		{
+			// Check if the texture even exists in the cache.
+			if( m_TextureCache.find( name ) == m_TextureCache.end() )
+			{
+				m_TextureCache[ name ] = texture->GetDescriptorInfo();
+			}
+			else
+			{
+				VkDescriptorImageInfo ImageInfo = m_TextureCache.at( name );
+
+				if( m_TextureCache.at( name ).imageView == ImageInfo.imageView ) 
+				{
+					// No need to update the descriptor set -- its the same.
+					continue;
+				}
+				else // If the image view has changed, update the cache.
+				{
+					m_TextureCache[ name ] = texture->GetDescriptorInfo();
+					Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
+					
+					continue;
+				}
+			}
+
+			// Fallback, just write the descriptor.
 			VkDescriptorImageInfo ImageInfo = {};
 			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 

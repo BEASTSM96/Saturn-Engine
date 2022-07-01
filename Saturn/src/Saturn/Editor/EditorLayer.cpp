@@ -208,8 +208,7 @@ namespace Saturn {
 								
 								if( !file.empty() )
 								{
-									texture = Ref<Texture2D>::Create( file, AddressingMode::Repeat );
-									rMaterial->SetResource( "u_AlbedoTexture", texture );
+									rMaterial->SetResource( "u_AlbedoTexture", Ref<Texture2D>::Create( file, AddressingMode::Repeat ) );
 								}
 							}
 

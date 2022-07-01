@@ -364,8 +364,8 @@ namespace Saturn {
 
 		float cascadeSplits[ SHADOW_CASCADE_COUNT ];
 
-		float CascadeFarPlaneOffset = 15.0f;
-		float CascadeNearPlaneOffset = -15.0f;
+		float CascadeFarPlaneOffset = 50.0f;
+		float CascadeNearPlaneOffset = -50.0f;
 
 		// TODO: less hard-coding!
 		float nearClip = 0.1f;
@@ -450,8 +450,8 @@ namespace Saturn {
 			glm::vec3 minExtents = -maxExtents;
 
 			glm::vec3 lightDir = -Direction;
-			glm::mat4 lightViewMatrix = glm::lookAt( frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3( 0.0f, 1.0f, 0.0f ) );
-			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z );
+			glm::mat4 lightViewMatrix = glm::lookAt( frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + CascadeNearPlaneOffset, maxExtents.z - minExtents.z + CascadeFarPlaneOffset );
 
 			/*
 			// Offset to texel space to avoid shimmering (from https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)

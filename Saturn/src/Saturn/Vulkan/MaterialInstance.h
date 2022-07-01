@@ -105,6 +105,9 @@ namespace Saturn {
 		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
 
 		std::unordered_set< std::string > m_OverriddenValues;
+		
+		std::unordered_map< std::string, VkDescriptorImageInfo > m_TextureCache;
+
 	private:
 		friend class Material;
 	};
