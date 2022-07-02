@@ -42,7 +42,6 @@
 #include <shaderc/shaderc.hpp>
 #include <shaderc/shaderc.h>
 
-#include "ShaderReflector.h"
 #include <spirv/spirv_glsl.hpp>
 
 #include <cassert>
