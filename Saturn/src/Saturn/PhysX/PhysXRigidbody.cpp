@@ -39,29 +39,6 @@
 
 namespace Saturn {
 
-	static physx::PxQuat GLMToPhysXQuat( const glm::quat& quat )
-	{
-		return physx::PxQuat( quat.x, quat.y, quat.z, quat.w );
-	}
-
-	static physx::PxVec3 GLMToPhysXVec( const glm::vec3& vec )
-	{
-		return *( physx::PxVec3* ) &vec;
-	}
-
-	static glm::quat PxQuatToGLM( physx::PxQuat quat )
-	{
-		return *( glm::quat* ) &quat;
-	}
-	
-	static physx::PxTransform glmTransformToPx( const glm::mat4& mat )
-	{
-		physx::PxQuat r = GLMToPhysXQuat( glm::normalize( glm::quat( mat ) ) );
-		physx::PxVec3 p = GLMToPhysXVec( glm::vec3( mat[ 3 ] ) );
-
-		return physx::PxTransform( p, r );
-	}
-
 	PhysXRigidbody::PhysXRigidbody( Entity& Owner, glm::vec3& Position, glm::vec3& Rotation )
 		: m_Owner( Owner )
 	{

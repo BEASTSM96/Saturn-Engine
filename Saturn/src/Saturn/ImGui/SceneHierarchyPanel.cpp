@@ -236,6 +236,7 @@ namespace Saturn {
 				if( ImGui::Button( "Rigidbody" ) )
 				{
 					m_SelectionContext.AddComponent<PhysXRigidbodyComponent>();
+					m_SelectionContext.AddComponent<PhysXMaterialComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 			}

@@ -277,6 +277,7 @@ namespace Saturn {
 		
 		CopyComponent<PhysXBoxColliderComponent>( NewScene->m_Registry, m_Registry, EntityMap );
 		CopyComponent<PhysXRigidbodyComponent>( NewScene->m_Registry, m_Registry, EntityMap );
+		CopyComponent<PhysXMaterialComponent>( NewScene->m_Registry, m_Registry, EntityMap );
 	}
 
 	void Scene::OnRuntimeStart()

@@ -248,5 +248,5 @@ namespace Saturn {
 	template<typename... V>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, MeshComponent, LightComponent, DirectionalLightComponent, SkylightComponent, PhysXBoxColliderComponent, PhysXMaterialComponent>;
+	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, MeshComponent, LightComponent, DirectionalLightComponent, SkylightComponent, PhysXBoxColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent>;
 }

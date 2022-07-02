@@ -238,6 +238,51 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
+		// Box collider
+		if( entity.HasComponent<PhysXBoxColliderComponent>() )
+		{
+			rEmitter << YAML::Key << "PhysXBoxColliderComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& bcc = entity.GetComponent< PhysXBoxColliderComponent >();
+			
+			rEmitter << YAML::Key << "Extents" << YAML::Value << bcc.Extents;
+			rEmitter << YAML::Key << "Offset" << YAML::Value << bcc.Offset;
+			rEmitter << YAML::Key << "IsTrigger" << YAML::Value << bcc.IsTrigger;
+			
+			rEmitter << YAML::EndMap;
+		}
+
+		// Rigid body
+		if( entity.HasComponent<PhysXRigidbodyComponent>() )
+		{
+			rEmitter << YAML::Key << "PhysXRigidbodyComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& rbc = entity.GetComponent< PhysXRigidbodyComponent >();
+
+			rEmitter << YAML::Key << "IsKinematic" << YAML::Value << rbc.IsKinematic;
+			rEmitter << YAML::Key << "CCD" << YAML::Value << rbc.UseCCD;
+			rEmitter << YAML::Key << "Mass" << YAML::Value << rbc.Mass;
+
+			rEmitter << YAML::EndMap;
+		}
+		
+		// Physics material
+		if( entity.HasComponent<PhysXMaterialComponent>() )
+		{
+			rEmitter << YAML::Key << "PhysXMaterialComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& pmc = entity.GetComponent< PhysXMaterialComponent >();
+			
+			rEmitter << YAML::Key << "StaticFriction" << YAML::Value << pmc.StaticFriction;
+			rEmitter << YAML::Key << "DynamicFriction" << YAML::Value << pmc.DynamicFriction;
+			rEmitter << YAML::Key << "Restitution" << YAML::Value << pmc.Restitution;
+			
+			rEmitter << YAML::EndMap;
+		}
+
 		rEmitter << YAML::EndMap;
 	}
 
@@ -355,6 +400,36 @@ namespace Saturn {
 				d.Radiance = dlc["Radiance"].as< glm::vec3 >();
 				d.Intensity = dlc["Intensity"].as< float >();
 				d.CastShadows = dlc["CastShadows"].as< bool >();
+			}
+
+			auto bcc = entity[ "PhysXBoxColliderComponent" ];
+			if( bcc )
+			{
+				auto& b = DeserialisedEntity.AddComponent< PhysXBoxColliderComponent >();
+
+				b.Extents = bcc["Extents"].as< glm::vec3 >();
+				b.Offset = bcc["Offset"].as< glm::vec3 >();
+				b.IsTrigger = bcc["IsTrigger"].as< bool >();
+			}
+
+			auto rbc = entity[ "PhysXRigidbodyComponent" ];
+			if( rbc )
+			{
+				auto& rb = DeserialisedEntity.AddComponent< PhysXRigidbodyComponent >();
+
+				rb.IsKinematic = rbc["IsKinematic"].as< bool >();
+				rb.UseCCD = rbc["CCD"].as< bool >();
+				rb.Mass = rbc["Mass"].as< int >();
+			}
+
+			auto pmc = entity[ "PhysXMaterialComponent" ];
+			if( pmc )
+			{
+				auto& m = DeserialisedEntity.AddComponent< PhysXMaterialComponent >();
+
+				m.StaticFriction = pmc["StaticFriction"].as< float >();
+				m.DynamicFriction = pmc["DynamicFriction"].as< float >();
+				m.Restitution = pmc["Restitution"].as< float >();
 			}
 		}
 	}
