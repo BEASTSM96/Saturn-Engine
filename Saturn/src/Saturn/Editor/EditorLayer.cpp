@@ -37,6 +37,7 @@
 #include "Saturn/ImGui/Panel/PanelManager.h"
 
 #include "Saturn/Serialisation/SceneSerialiser.h"
+#include "Saturn/PhysX/PhysXFnd.h"
 
 #include "Saturn/Vulkan/MaterialInstance.h"
 
@@ -77,6 +78,8 @@ namespace Saturn {
 		m_EditorCamera.SetActive( true );
 		
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
+
+		PhysXFnd::Get();
 	}
 
 	EditorLayer::~EditorLayer()
@@ -112,6 +115,8 @@ namespace Saturn {
 
 				m_EditorScene->CopyScene( m_RuntimeScene );
 
+				m_RuntimeScene->OnRuntimeStart();
+
 				pHierarchyPanel->SetContext( m_RuntimeScene );
 
 				m_RuntimeScene->m_RuntimeRunning = true;
@@ -121,16 +126,24 @@ namespace Saturn {
 		{
 			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
 			{
+				m_RuntimeScene->OnRuntimeEnd();
+
 				m_RuntimeScene = nullptr;
 
 				pHierarchyPanel->SetContext( m_EditorScene );
 			}
 		}
 
-		if( m_RuntimeScene )
+		if( m_RuntimeScene ) 
+		{
+			m_RuntimeScene->OnUpdate( Application::Get().Time() );
 			m_RuntimeScene->OnRenderEditor( m_EditorCamera, Application::Get().Time() );
-		else
+		}
+		else 
+		{
+			m_EditorScene->OnUpdate( Application::Get().Time() );
 			m_EditorScene->OnRenderEditor( m_EditorCamera, Application::Get().Time() );
+		}
 	}
 
 	void EditorLayer::OnImGuiRender()

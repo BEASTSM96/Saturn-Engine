@@ -28,16 +28,15 @@ IncludeDir["assimp"] = "Saturn/vendor/assimp/include"
 IncludeDir["shaderc"] = "Saturn/vendor/shaderc/libshaderc/include"
 IncludeDir["glslc"] = "Saturn/vendor/shaderc/glslc/src"
 IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/src/"
-IncludeDir["SPIRV_Reflect"] = "Saturn/vendor/SPIRV-Reflect/src/"
 IncludeDir["vma"] = "Saturn/vendor/vma/src/"
 IncludeDir["ImGuizmo"] = "Saturn/vendor/ImGuizmo/src/"
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include/"
+IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 
 group "Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/SPIRV-Cross"
-	include "Saturn/vendor/SPIRV-Reflect"
 	include "Saturn/vendor/yaml-cpp"
 
 group "Engine"
@@ -63,7 +62,6 @@ project "Saturn"
 		"%{prj.name}/vendor/stb/**.h",	
 		"%{prj.name}/vendor/vma/src/**.cpp",
 		"%{prj.name}/vendor/vma/src/**.h",
-		"%{prj.name}/vendor/d3d12/**.h",
 		"%{prj.name}/vendor/vulkan/**.h",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl",
@@ -79,7 +77,6 @@ project "Saturn"
 		"AL_LIBTYPE_STATIC",
 		"GLM_ENABLE_EXPERIMENTAL",
 		"GLM_FORCE_LEFT_HANDED"
-		--"GLM_FORCE_RADIANS"
 	}
 
 	includedirs
@@ -96,18 +93,19 @@ project "Saturn"
 		"%{IncludeDir.glslc}",
 		"%{IncludeDir.shaderc}",
 		"%{IncludeDir.SPIRV_Cross}",
-		"%{IncludeDir.SPIRV_Reflect}",
 		"%{IncludeDir.vma}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.ImGuizmo}"
+		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx"
 	}
 
 	links 
-	{ 
+	{
 		"GLFW",
 		"ImGui",
 		"SPIRV-Cross",
-		"SPIRV-Reflect",
 		"yaml-cpp"
 	}
 
@@ -163,6 +161,22 @@ project "Saturn"
 
 			links 
 			{
+				-- Link PhysX
+				"Saturn/vendor/physx/bin/Debug/LowLevel_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/LowLevelAABB_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/LowLevelDynamics_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysX_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXCharacterKinematic_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXCommon_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXCooking_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXExtensions_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXPvdSDK_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXTask_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXVehicle_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/SceneQuery_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/SimulationController_static_64.lib",
+
 				"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
 				"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc.lib",
 				"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc_util.lib",
@@ -173,6 +187,10 @@ project "Saturn"
 
 			postbuildcommands 
 			{
+				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
 				'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"'
 			}
 
@@ -183,6 +201,22 @@ project "Saturn"
 
 			links 
 			{
+				-- Link PhysX
+				"Saturn/vendor/physx/bin/Release/LowLevel_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/LowLevelAABB_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/LowLevelDynamics_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysX_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXCharacterKinematic_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXCommon_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXCooking_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXExtensions_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXFoundation_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXPvdSDK_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXTask_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXVehicle_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/SceneQuery_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/SimulationController_static_64.lib",
+
 				"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",
@@ -193,6 +227,10 @@ project "Saturn"
 
 			postbuildcommands 
 			{
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
 				'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
 			}
 
@@ -256,8 +294,10 @@ project "Titan"
 		"%{IncludeDir.glslc}",
 		"%{IncludeDir.shaderc}",
 		"%{IncludeDir.SPIRV_Cross}",
-		"%{IncludeDir.SPIRV_Reflect}",
 		"%{IncludeDir.vma}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx",
 		"Saturn/vendor/vulkan/include"
 	}
 
@@ -286,14 +326,30 @@ project "Titan"
 		runtime "Debug"
 		symbols "on"
 
-		postbuildcommands { '{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"' }
+		postbuildcommands 
+		{ 
+			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+			-- Copy PhysX
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"' 
+		}
 
 	filter "configurations:Release"
 		defines "SAT_RELEASE"
 		runtime "Release"
 		optimize "on"
 
-		postbuildcommands { '{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"' }
+		postbuildcommands 
+		{ 
+			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			-- Copy PhysX
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
+		}
 
 	filter "configurations:Dist"
 		defines "SAT_DIST"

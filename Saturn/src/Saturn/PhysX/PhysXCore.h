@@ -28,99 +28,39 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
+#include "glm/glm.hpp"
 
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
+#include <stdint.h>
 
 namespace Saturn {
 
-	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-	struct SceneComponent
+	enum ForceMode
 	{
-		UUID SceneID;
+		Force,
+		Impulse,
+		VelocityChange,
+		Acceleration
 	};
 
-	struct DirectionalLight
+	enum BroadphaseType
 	{
-		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
-
-		float Intensity = 1.0f;
+		SaP, // Sweep and Prune
+		AbP, // Auto Box Prune 
+		MbP // Multi-Box Prune
 	};
 
-	class PhysXRuntime;
-
-	class Scene : public CountedObj
+	enum FrictionType
 	{
-	public:
-		Scene();
-		~Scene();
+		Patch,
+		OneDirectinal,
+		TwoDirectinal
+	};
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
-
-		void DestroyEntity( Entity entity );
-
-		void OnRenderEditor( const EditorCamera& Camera, Timestep ts );
-
-		void DuplicateEntity( Entity entity );
-		void DeleteEntity( Entity entity );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		void OnUpdate( Timestep ts );
-		void OnUpdatePhysics( Timestep ts );
-
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		
-		Entity FindEntityByTag( const std::string& tag );
-
-		void CopyScene( Ref<Scene>& NewScene );
-
-		void SetName( const std::string& name ) { m_Name = name; }
-
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
-
-		bool m_RuntimeRunning = false;
-
-		void OnRuntimeStart();
-		void OnRuntimeEnd();
-
-	private:
-
-		UUID m_SceneID;
-
-		std::string m_Name;
-
-		EntityMap m_EntityIDMap;
-
-		entt::registry m_Registry;
-
-		entt::entity m_SceneEntity;
-		entt::entity m_SelectedEntity;
-
-		DirectionalLight m_DirectionalLight[ 4 ];
-
-		PhysXRuntime* m_PhysXRuntime;
-
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-		friend class SceneSerialiser;
-		friend class SceneRenderer;
+	struct RaycastResult
+	{
+		uint64_t EntityID;
+		float Distance;
+		glm::vec3 Position;
+		glm::vec3 Normal;
 	};
 }

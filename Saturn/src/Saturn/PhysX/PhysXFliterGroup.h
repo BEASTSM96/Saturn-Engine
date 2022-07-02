@@ -28,99 +28,15 @@
 
 #pragma once
 
+#include <PxPhysicsAPI.h>
 #include "Saturn/Core/Base.h"
-
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
 
 namespace Saturn {
 
-	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-	struct SceneComponent
+	enum class FilterGroup
 	{
-		UUID SceneID;
+		Static = BIT( 0 ),
+		Kinematic = BIT( 1 ),
 	};
 
-	struct DirectionalLight
-	{
-		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
-
-		float Intensity = 1.0f;
-	};
-
-	class PhysXRuntime;
-
-	class Scene : public CountedObj
-	{
-	public:
-		Scene();
-		~Scene();
-
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
-
-		void DestroyEntity( Entity entity );
-
-		void OnRenderEditor( const EditorCamera& Camera, Timestep ts );
-
-		void DuplicateEntity( Entity entity );
-		void DeleteEntity( Entity entity );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		void OnUpdate( Timestep ts );
-		void OnUpdatePhysics( Timestep ts );
-
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		
-		Entity FindEntityByTag( const std::string& tag );
-
-		void CopyScene( Ref<Scene>& NewScene );
-
-		void SetName( const std::string& name ) { m_Name = name; }
-
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
-
-		bool m_RuntimeRunning = false;
-
-		void OnRuntimeStart();
-		void OnRuntimeEnd();
-
-	private:
-
-		UUID m_SceneID;
-
-		std::string m_Name;
-
-		EntityMap m_EntityIDMap;
-
-		entt::registry m_Registry;
-
-		entt::entity m_SceneEntity;
-		entt::entity m_SelectedEntity;
-
-		DirectionalLight m_DirectionalLight[ 4 ];
-
-		PhysXRuntime* m_PhysXRuntime;
-
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-		friend class SceneSerialiser;
-		friend class SceneRenderer;
-	};
 }

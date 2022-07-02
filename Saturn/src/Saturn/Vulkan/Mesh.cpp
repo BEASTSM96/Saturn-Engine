@@ -323,6 +323,10 @@ namespace Saturn {
 		submesh.IndexCount = indices.size() * 3;
 		submesh.Transform = transform;
 		m_Submeshes.push_back( submesh );
+
+		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
+
+		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() );
 	}
 
 	Mesh::~Mesh()

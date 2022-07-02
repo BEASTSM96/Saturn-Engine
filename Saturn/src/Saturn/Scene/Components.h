@@ -33,6 +33,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Saturn/Vulkan/EnvironmentMap.h"
+#include "Saturn/PhysX/PhysXRigidBody.h"
 
 #include "Saturn/Vulkan/Mesh.h"
 
@@ -213,8 +214,39 @@ namespace Saturn {
 		SkylightComponent( const SkylightComponent& other ) = default;
 	};
 
+	struct PhysXBoxColliderComponent
+	{
+		glm::vec3 Extents = { 1.0f, 1.0f, 1.0f };
+		glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+
+		bool IsTrigger = false;
+
+		PhysXBoxColliderComponent() = default;
+		PhysXBoxColliderComponent( const glm::vec3& extents ) : Extents( extents ) { }
+	};
+
+	class PhysXRigidbody;
+	struct PhysXRigidbodyComponent
+	{
+		bool IsKinematic;
+		bool UseCCD;
+		int Mass = 2;
+
+		PhysXRigidbody* m_Rigidbody;
+
+		PhysXRigidbodyComponent() = default;
+		PhysXRigidbodyComponent( bool isKinematic ) : IsKinematic( isKinematic ) { }
+	};
+
+	struct PhysXMaterialComponent
+	{
+		float StaticFriction = 0.6f;
+		float DynamicFriction = 0.6f;
+		float Restitution = 0.0f;
+	};
+
 	template<typename... V>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, MeshComponent, LightComponent, DirectionalLightComponent, SkylightComponent>;
+	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, MeshComponent, LightComponent, DirectionalLightComponent, SkylightComponent, PhysXBoxColliderComponent, PhysXMaterialComponent>;
 }

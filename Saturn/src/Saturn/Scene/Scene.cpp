@@ -32,6 +32,9 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
+#include "Saturn/PhysX/PhysXRuntime.h"
+#include "Saturn/PhysX/PhysXRigidBody.h"
+
 #include "Entity.h"
 #include "Components.h"
 
@@ -86,7 +89,32 @@ namespace Saturn {
 
 	void Scene::OnUpdate( Timestep ts )
 	{
+		if( m_RuntimeRunning ) 
+		{
+			auto view = m_Registry.view<PhysXRigidbodyComponent>();
 
+			for( auto entity : view )
+			{
+				Entity e{ entity, this };
+				auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
+				rb.m_Rigidbody->SetUserData( e );
+			}
+
+			m_PhysXRuntime->Update( ts, *this );
+		}
+	}
+
+	void Scene::OnUpdatePhysics( Timestep ts )
+	{
+		auto PhysXView = m_Registry.view<TransformComponent, PhysXRigidbodyComponent>();
+		
+		for ( const auto& entity : PhysXView )
+		{
+			auto [tc, rb] = PhysXView.get<TransformComponent, PhysXRigidbodyComponent>( entity );
+			
+			tc.Position = rb.m_Rigidbody->GetPosition();
+			rb.m_Rigidbody->GetPosition() = tc.Position;
+		}
 	}
 
 	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts )
@@ -246,5 +274,31 @@ namespace Saturn {
 		CopyComponent<MeshComponent>( NewScene->m_Registry, m_Registry, EntityMap );
 		CopyComponent<SkylightComponent>( NewScene->m_Registry, m_Registry, EntityMap );
 		CopyComponent<DirectionalLightComponent>( NewScene->m_Registry, m_Registry, EntityMap );
+		
+		CopyComponent<PhysXBoxColliderComponent>( NewScene->m_Registry, m_Registry, EntityMap );
+		CopyComponent<PhysXRigidbodyComponent>( NewScene->m_Registry, m_Registry, EntityMap );
 	}
+
+	void Scene::OnRuntimeStart()
+	{
+		m_PhysXRuntime = new PhysXRuntime();
+		m_PhysXRuntime->CreateScene();
+
+		auto view = m_Registry.view<PhysXRigidbodyComponent>();
+		
+		for( auto entity : view )
+		{
+			Entity e{ entity, this };
+			m_PhysXRuntime->AddRigidbody( e );
+			auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
+			rb.m_Rigidbody->AddActorToScene();
+		}
+	}
+
+	void Scene::OnRuntimeEnd()
+	{
+		m_PhysXRuntime->Clear();
+		delete m_PhysXRuntime;
+	}
+
 }

@@ -30,97 +30,46 @@
 
 #include "Saturn/Core/Base.h"
 
-#include "Saturn/Core/Renderer/EditorCamera.h"
+#include "PhysXCore.h"
 
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-#include "entt.hpp"
+#include <PxPhysicsAPI.h>
 
 namespace Saturn {
 
 	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-	struct SceneComponent
-	{
-		UUID SceneID;
-	};
-
-	struct DirectionalLight
-	{
-		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
-
-		float Intensity = 1.0f;
-	};
-
-	class PhysXRuntime;
-
-	class Scene : public CountedObj
+	class PhysXRigidbody : CountedObj
 	{
 	public:
-		Scene();
-		~Scene();
+		PhysXRigidbody( Entity& Owner, glm::vec3& Position, glm::vec3& Rotation );
+		~PhysXRigidbody();
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
+		void Create();
 
-		void DestroyEntity( Entity entity );
+		void SetKinematic( bool kinematic );
+		void ApplyForce( glm::vec3 ForceAmount, ForceMode Type );
+		void SetUserData( Entity& rEntity );
+		void UseCCD( bool ccd );
+		void SetMass( float mass );
+		void Rotate( glm::vec3 rotation );
+		void AddActorToScene();
+		bool IsKinematic() { return m_Kinematic; }
+		bool AttachShape( physx::PxShape& rShape );
+		glm::vec3 GetPosition();
+		glm::vec3 GetRotation();
+		glm::mat4 GetTransform();
 
-		void OnRenderEditor( const EditorCamera& Camera, Timestep ts );
-
-		void DuplicateEntity( Entity entity );
-		void DeleteEntity( Entity entity );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		void OnUpdate( Timestep ts );
-		void OnUpdatePhysics( Timestep ts );
-
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		
-		Entity FindEntityByTag( const std::string& tag );
-
-		void CopyScene( Ref<Scene>& NewScene );
-
-		void SetName( const std::string& name ) { m_Name = name; }
-
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
-
-		bool m_RuntimeRunning = false;
-
-		void OnRuntimeStart();
-		void OnRuntimeEnd();
-
+		physx::PxRigidActor* GetActor() { return m_Body; }
 	private:
+		physx::PxRigidActor* m_Body;
 
-		UUID m_SceneID;
+		int m_Mas = 1.0;
+		bool m_UseCCD = false;
+		bool m_Kinematic = false;
 
-		std::string m_Name;
-
-		EntityMap m_EntityIDMap;
-
-		entt::registry m_Registry;
-
-		entt::entity m_SceneEntity;
-		entt::entity m_SelectedEntity;
-
-		DirectionalLight m_DirectionalLight[ 4 ];
-
-		PhysXRuntime* m_PhysXRuntime;
-
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-		friend class SceneSerialiser;
-		friend class SceneRenderer;
+		Entity& m_Owner;
 	};
 }

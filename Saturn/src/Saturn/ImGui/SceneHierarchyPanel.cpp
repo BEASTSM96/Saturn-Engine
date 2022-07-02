@@ -221,6 +221,33 @@ namespace Saturn {
 					ImGui::CloseCurrentPopup();
 				}
 			}
+			
+			if( !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>() )
+			{
+				if( ImGui::Button( "Box Collider" ) )
+				{
+					m_SelectionContext.AddComponent<PhysXBoxColliderComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			if( !m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() )
+			{
+				if( ImGui::Button( "Rigidbody" ) )
+				{
+					m_SelectionContext.AddComponent<PhysXRigidbodyComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			if( !m_SelectionContext.HasComponent<PhysXMaterialComponent>() )
+			{
+				if( ImGui::Button( "Physics material" ) )
+				{
+					m_SelectionContext.AddComponent<PhysXMaterialComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
 
 			ImGui::EndPopup();
 		}
@@ -355,6 +382,24 @@ namespace Saturn {
 				DrawFloatControl( "Azimuth", skl.Azimuth );
 				DrawFloatControl( "Inclination", skl.Inclination );
 			}
+		} );
+		
+		DrawComponent<PhysXBoxColliderComponent>( "Box Collider", entity, []( auto& bc )
+		{
+			DrawVec3Control( "Extent", bc.Extents );
+			DrawVec3Control( "Offset", bc.Offset );
+			
+			DrawBoolControl( "IsTrigger", bc.IsTrigger );
+		} );
+
+		DrawComponent<PhysXRigidbodyComponent>( "Rigidbody", entity, []( auto& rb )
+		{
+			DrawBoolControl( "Is Kinematic", rb.IsKinematic );
+			DrawBoolControl( "Use CCD", rb.UseCCD );
+			
+			DrawIntControl( "Mass", rb.Mass );
+
+			//rb.m_Rigidbody->SetMass( rb.Mass );
 		} );
 
 	}

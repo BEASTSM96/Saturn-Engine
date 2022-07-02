@@ -28,99 +28,65 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
+#include "Saturn/Scene/Entity.h"
+#include "Saturn/Scene/Components.h"
 
-#include "Saturn/Core/Renderer/EditorCamera.h"
+#include "PhysXCore.h"
 
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
+#include "PxPhysicsAPI.h"
 
-#include "entt.hpp"
-
+#include <stdint.h>
+	
 namespace Saturn {
 
-	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-	struct SceneComponent
-	{
-		UUID SceneID;
-	};
-
-	struct DirectionalLight
-	{
-		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
-
-		float Intensity = 1.0f;
-	};
-
-	class PhysXRuntime;
-
-	class Scene : public CountedObj
+	class PhysXContact : public physx::PxSimulationEventCallback, public CountedObj
 	{
 	public:
-		Scene();
-		~Scene();
+		void onConstraintBreak( physx::PxConstraintInfo* pConstraints, physx::PxU32 Count ) override;
+		void onWake( physx::PxActor** ppActors, physx::PxU32 Count ) override;
+		void onSleep( physx::PxActor** ppActors, physx::PxU32 Count ) override;
+		void onContact( const physx::PxContactPairHeader& rPairHeader, const physx::PxContactPair* pPairs, physx::PxU32 Pairs ) override;
+		void onTrigger( physx::PxTriggerPair* pPairs, physx::PxU32 Count ) override;
+		void onAdvance( const physx::PxRigidBody* const* pBodyBuffer, const physx::PxTransform* PoseBuffer, const physx::PxU32 Count ) override;
+	};
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
+	class PhysXAssertCallback : public physx::PxAssertHandler, public CountedObj
+	{
+	public:
+		virtual void operator()( const char* pError, const char* pFile, int Line, bool& rIngore ) override;
+	};
 
-		void DestroyEntity( Entity entity );
+	class PhysXErrorCallback : public physx::PxErrorCallback, public CountedObj 
+	{
+	public:
+		void reportError( physx::PxErrorCode::Enum ErrorCode, const char* pErrorString, const char* pFile, int Line ) override;
+	};
 
-		void OnRenderEditor( const EditorCamera& Camera, Timestep ts );
+	using PhysXShapeMap = std::vector<physx::PxShape*>;
 
-		void DuplicateEntity( Entity entity );
-		void DeleteEntity( Entity entity );
+	class PhysXFnd
+	{
+		SINGLETON( PhysXFnd );
+	public:
+		PhysXFnd() { Init(); }
+		~PhysXFnd() { Terminate(); }
 
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		void OnUpdate( Timestep ts );
-		void OnUpdatePhysics( Timestep ts );
-
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
+		void CreateBoxCollider( Entity& rEntity, physx::PxRigidActor& rActor );
+		void CreateSphereCollider( Entity& rEntity, physx::PxRigidActor& rActor );
+		void CreateCapsuleCollider( Entity& rEntity, physx::PxRigidActor& rActor );
+		void CreateMeshCollider( Entity& rEntity, physx::PxRigidActor& rActor );
 		
-		Entity FindEntityByTag( const std::string& tag );
+		void AddRigidBody( Entity& entity );
 
-		void CopyScene( Ref<Scene>& NewScene );
+		physx::PxScene* CreateScene();
 
-		void SetName( const std::string& name ) { m_Name = name; }
-
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
-
-		bool m_RuntimeRunning = false;
-
-		void OnRuntimeStart();
-		void OnRuntimeEnd();
+		bool Raycast( glm::vec3& Origin, glm::vec3& Direction, float Distance, RaycastResult* pResult );
+		
+		physx::PxPhysics* GetPhysics();
+		physx::PxAllocatorCallback& GetAllocator();
 
 	private:
-
-		UUID m_SceneID;
-
-		std::string m_Name;
-
-		EntityMap m_EntityIDMap;
-
-		entt::registry m_Registry;
-
-		entt::entity m_SceneEntity;
-		entt::entity m_SelectedEntity;
-
-		DirectionalLight m_DirectionalLight[ 4 ];
-
-		PhysXRuntime* m_PhysXRuntime;
-
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-		friend class SceneSerialiser;
-		friend class SceneRenderer;
+		void Init();
+		void Terminate();
 	};
 }
