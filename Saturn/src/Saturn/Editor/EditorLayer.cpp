@@ -101,8 +101,10 @@ namespace Saturn {
 
 		SceneRenderer::Get().SetEditorCamera( m_EditorCamera );
 
-		/*
-		if( m_Toolbar->WantsToStartRuntime )
+		ViewportBar* pViewportBar = ( ViewportBar* ) PanelManager::Get().GetPanel( "Viewport Bar" );
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+		
+		if( pViewportBar->RequestedStartRuntime() )
 		{
 			if( !m_RuntimeScene )
 			{
@@ -110,7 +112,7 @@ namespace Saturn {
 
 				m_EditorScene->CopyScene( m_RuntimeScene );
 
-				m_SceneHierarchyPanel->SetContext( m_RuntimeScene );
+				pHierarchyPanel->SetContext( m_RuntimeScene );
 
 				m_RuntimeScene->m_RuntimeRunning = true;
 			}
@@ -121,10 +123,9 @@ namespace Saturn {
 			{
 				m_RuntimeScene = nullptr;
 
-				m_SceneHierarchyPanel->SetContext( m_EditorScene );
+				pHierarchyPanel->SetContext( m_EditorScene );
 			}
 		}
-		*/
 
 		if( m_RuntimeScene )
 			m_RuntimeScene->OnRenderEditor( m_EditorCamera, Application::Get().Time() );

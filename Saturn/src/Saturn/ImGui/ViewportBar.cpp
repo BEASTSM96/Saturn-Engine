@@ -98,14 +98,10 @@ namespace Saturn {
 			Viewport->SetOperation( ImGuizmo::OPERATION::SCALE );
 
 		ImGui::SameLine();
-		ImGui::Separator();
-		ImGui::SameLine();
 
 		if( ImGui::ImageButton( m_PlayImage->GetDescriptorSet(), ImVec2( 30, 30 ) ) )
-			SAT_CORE_INFO( "Runtime..." );
+			m_WantsToStartRuntime = !m_WantsToStartRuntime;
 
-		ImGui::SameLine();
-		ImGui::Separator();
 		ImGui::SameLine();
 
 		if( ImGui::ImageButton( m_SettingsTexture->GetDescriptorSet(), ImVec2( 30, 30 ) ) )

@@ -43,7 +43,11 @@ namespace Saturn {
 		
 		virtual void Draw() override;
 
+		bool RequestedStartRuntime() { return m_WantsToStartRuntime; }
+
 	private:
+		bool m_WantsToStartRuntime = false;
+
 		Ref< Texture2D > m_PlayImage;
 		Ref< Texture2D > m_PauseImage;
 		Ref< Texture2D > m_StopImage;
