@@ -50,18 +50,17 @@ namespace Saturn {
 	{
 		Window::Get();
 		VulkanContext::Get();
-		//Window::Get().Maximize();
 
 		VulkanContext::Get().Init();
-
+		
 		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
+		
+		Window::Get().RemoveBorder();
+		Window::Get().Show();
+
 
 		m_ImGuiLayer = new ImGuiLayer();
 		m_EditorLayer = new EditorLayer();
-
-		// TODO: TEMP
-		// Note: Fucking remove this shit.
-		SceneRenderer::Get().CreateAllFBSets();
 
 		while( m_Running )
 		{
@@ -72,27 +71,20 @@ namespace Saturn {
 			{
 				Renderer::Get().BeginFrame();
 				{
-					uint32_t ImageIndex = Renderer::Get().GetImageIndex();
-
-					VkExtent2D CurrentExtent = { .width = ( uint32_t ) Window::Get().Width(), .height = ( uint32_t ) Window::Get().Height() };
-					
 					// Try to render scene.
 					SceneRenderer::Get().RenderScene();
-					
-					// Do ui pass.
-					VulkanContext::Get().GetDefaultPass().BeginPass( Renderer::Get().ActiveCommandBuffer(), VulkanContext::Get().GetSwapchain().GetFramebuffers()[ ImageIndex ], CurrentExtent );
 
+					// Render UI
+					// TODO: Make new threads.
+					//       One for rendering and one for UI.
 					{
 						RenderImGui();
 					}
-
-					VulkanContext::Get().GetDefaultPass().EndPass();
-
 				}
 				Renderer::Get().EndFrame();
 			}
 
-			float time = ( float ) glfwGetTime(); //Platform::GetTime();
+			float time = ( float ) glfwGetTime();
 
 			m_Timestep = time - m_LastFrameTime;
 
@@ -186,8 +178,11 @@ namespace Saturn {
 
 		VulkanContext::Get().OnEvent( e );
 
-		m_ImGuiLayer->OnEvent( e );
-		m_EditorLayer->OnEvent( e );
+		if( m_ImGuiLayer )
+			m_ImGuiLayer->OnEvent( e );
+		
+		if( m_EditorLayer )
+			m_EditorLayer->OnEvent( e );
 	}
 
 	bool Application::OnWindowResize( WindowResizeEvent& e )

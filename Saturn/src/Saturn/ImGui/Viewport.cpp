@@ -35,17 +35,27 @@
 #include "UITools.h"
 #include "Panel/PanelManager.h"
 
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "ImGuizmo/ImGuizmo.h"
 
+#include "Saturn/Core/Math.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Saturn/Vulkan/VulkanContext.h"
 
+// Enable imgui math functions
+
 namespace Saturn {
+
+	static inline bool operator==(const ImVec2& lhs, const ImVec2& rhs) { return lhs.x == rhs.x && lhs.y == rhs.y; }
+	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
 	Viewport::Viewport()
 	{
@@ -68,25 +78,30 @@ namespace Saturn {
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		
+
 		ImGui::Begin( "Viewport", 0, flags );
 
 		m_WindowPos = ImGui::GetWindowPos(); // includes tab bar
-		m_WindowSize = ImGui::GetContentRegionAvail();
+
+		// Check if the windows size has changed
+		if( m_WindowSize != ImGui::GetContentRegionAvail() )
+		{
+			SAT_CORE_INFO( "Size changed!" );
+			m_WindowSize = ImGui::GetContentRegionAvail();
+			
+			for( auto&& rrFunc : m_CallbackFunctions )
+				rrFunc( ( uint32_t ) m_WindowSize.x, ( uint32_t ) m_WindowSize.y );
+		}
+
+		Image( SceneRenderer::Get().CompositeImage(), m_WindowSize, { 0, 0 }, { 1, 1 } );
 		
-		auto windowSize = ImGui::GetWindowSize();
-
-		m_WindowSize = windowSize;
-
 		ImVec2 minBound = ImGui::GetWindowPos();
 		minBound.x += m_WindowPos.x;
 		minBound.y += m_WindowPos.y;
-
-		ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+		
+		ImVec2 maxBound = { minBound.x + m_WindowSize.x, minBound.y + m_WindowSize.y };
 
 		m_SendCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
-
-		ImGui::Image( SceneRenderer::Get().CompositeImage(), m_WindowSize );
 		
 		// Draw Gizmo
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
@@ -110,20 +125,16 @@ namespace Saturn {
 				const glm::mat4 Projection = camera.ProjectionMatrix();
 				const glm::mat4 View = camera.ViewMatrix();
 
-				ImGuizmo::Manipulate( glm::value_ptr( View ), glm::value_ptr( Projection ), (ImGuizmo::OPERATION)m_GizmoOperation, ImGuizmo::LOCAL, glm::value_ptr( transform ) );
+				ImGuizmo::Manipulate( glm::value_ptr( View ), glm::value_ptr( Projection ), ( ImGuizmo::OPERATION ) m_GizmoOperation, ImGuizmo::LOCAL, glm::value_ptr( transform ) );
 
 				if( ImGuizmo::IsUsing() )
 				{
 					glm::vec3 translation;
-					glm::quat Qrotation;
+					glm::vec3 rotation;
 					glm::vec3 scale;
-					glm::vec3 skew;
-					glm::vec4 perspective;
 
-					glm::decompose( transform, scale, Qrotation, translation, skew, perspective );
+					Math::DecomposeTransform( transform, translation, rotation, scale );
 
-					glm::vec3 rotation = glm::eulerAngles( Qrotation );
-					
 					glm::vec3 DeltaRotation = rotation - tc.Rotation;
 
 					tc.Position = translation;

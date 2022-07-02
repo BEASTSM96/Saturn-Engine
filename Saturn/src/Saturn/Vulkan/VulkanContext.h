@@ -95,7 +95,7 @@ namespace Saturn {
 		VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
 		VkQueue GetPresentQueue() { return m_PresentQueue; }
 
-		VkPhysicalDevice& GetPhysicalDevice() { return m_PhysicalDevice; }
+		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
 
 		Swapchain& GetSwapchain() { return m_SwapChain; }
 

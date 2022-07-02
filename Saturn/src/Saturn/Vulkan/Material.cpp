@@ -35,22 +35,37 @@
 
 #include "VulkanContext.h"
 
+// TODO: When we have an asset manager, this needs to be re-worked!
+
 namespace Saturn {
 
 	Material::Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName )
 	{
 		m_Shader = Shader;
 		m_Name = MateralName;
-		
-		for ( auto uniform : m_Shader->GetUniforms() )
+
+		for ( auto&& texture : m_Shader->GetTextures() )
 		{
-			m_Uniforms.push_back( { uniform.Name, uniform.Location, uniform.Type, uniform.Size } );
+			m_Textures[ texture.Name ] = nullptr;
+		}
+
+		for ( auto rUniform : m_Shader->GetUniforms())
+		{
+			m_Uniforms.push_back( { rUniform.GetName(), rUniform.GetLocation(), rUniform.GetType(), rUniform.GetSize(), rUniform.GetOffset(), rUniform.GetIsPushConstantData() } );
+		}
+
+		uint32_t Size = 0;
+		
+		for ( auto& rUniform : m_Uniforms )
+		{
+			if( rUniform.GetIsPushConstantData() ) 
+			{
+				Size += rUniform.GetSize();
+			}
 		}
 		
-		for ( auto& [ stage, binding, name ] : m_Shader->GetTextures() )
-		{
-			m_Textures[ name ] = nullptr;
-		}
+		m_PushConstantData.Allocate( Size );
+		m_PushConstantData.Zero_Memory();
 	}
 
 	Material::~Material()
@@ -74,15 +89,25 @@ namespace Saturn {
 	{
 		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
 		
+		for ( auto& [name, texture] : m_Textures )
+		{
+			VkDescriptorImageInfo ImageInfo = {};
+			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			ImageInfo.imageView = m_Textures[ name ]->GetImageView();
+			ImageInfo.sampler = m_Textures[ name ]->GetSampler();
+
+			Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
+		}
+
+		/*
 		for ( auto& [ ShaderStage, Sets ] : Shader->GetWriteDescriptors() )
 		{
 			for ( auto& [ Name, Set ] : Sets )
 			{
-				Set.dstSet = CurrentSet->GetVulkanSet();
-				
 				if( Set.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ) 
 				{
-					if( Name == "u_ShadowMapTexture" )
+					if( Name == "u_ShadowMap" )
 						continue;
 
 					VkDescriptorImageInfo ImageInfo = {};
@@ -102,16 +127,16 @@ namespace Saturn {
 						ImageInfo.sampler = m_Textures[ Name ]->GetSampler();
 					}
 
-					Set.pImageInfo = &ImageInfo;
+					
 				}
 				else if ( Set.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER )
 				{
 					break;
 				}
 
-				Shader->WriteDescriptor( ShaderStage, Name, Set );
 			}
 		}
+		*/
 	}
 
 	void Material::Unbind()

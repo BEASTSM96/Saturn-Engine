@@ -33,24 +33,39 @@
 #include "Renderer.h"
 #include "DescriptorSet.h"
 
+// TODO: Come up with a proper way of handling uniforms and textures so we don't have to copy them.
+// TODO: When we have an asset manager, this needs to be re-worked!
+// SELF: Please create a material instance viewer!
+
 namespace Saturn {
 
 	MaterialInstance::MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName )
 	{
 		m_Material = rMaterial;
 		m_Name = rName;
-
-		// TODO: Come up with a proper way of handling uniforms and textures so we don't have to copy them.
-
-		for ( auto& uniform : m_Material->m_Uniforms )
-		{
-			m_Uniforms.push_back( { uniform.Name, uniform.Location, uniform.Type, uniform.Size }  );
-		}
-
-		for( auto& [ name, texture ] : m_Material->m_Textures )
+		
+		for( auto&& [ name, texture ] : m_Material->m_Textures )
 		{
 			m_Textures[ name ] = nullptr;
 		}
+
+		for( auto rUniform : m_Material->m_Uniforms )
+		{
+			m_Uniforms.push_back( { rUniform.GetName(), rUniform.GetLocation(), rUniform.GetType(), rUniform.GetSize(), rUniform.GetOffset(), rUniform.GetIsPushConstantData() } );
+		}	
+		
+		uint32_t Size = 0;
+
+		for( auto& rUniform : m_Uniforms )
+		{
+			if( rUniform.GetIsPushConstantData() )
+			{
+				Size += rUniform.GetSize();
+			}
+		}
+
+		m_PushConstantData.Allocate( Size );
+		m_PushConstantData.Zero_Memory();
 	}
 
 	MaterialInstance::~MaterialInstance()
@@ -76,43 +91,49 @@ namespace Saturn {
 	{
 		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
 
-		for( auto& [ShaderStage, Sets] : Shader->GetWriteDescriptors() )
+		for( auto& [name, texture] : m_Textures )
 		{
-			for( auto& [Name, Set] : Sets )
+			// Check if the texture even exists in the cache.
+			if( m_TextureCache.find( name ) == m_TextureCache.end() )
 			{
-				Set.dstSet = CurrentSet->GetVulkanSet();
-
-				if( Set.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER )
-				{
-					if( Name == "u_ShadowMapTexture" )
-						continue;
-
-					VkDescriptorImageInfo ImageInfo = {};
-					ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-
-					if( !m_Textures[ Name ] )
-					{
-						m_Textures[ Name ] = Renderer::Get().GetPinkTexture();
-
-						ImageInfo.imageView = m_Textures[ Name ]->GetImageView();
-						ImageInfo.sampler = m_Textures[ Name ]->GetSampler();
-					}
-					else
-					{
-						ImageInfo.imageView = m_Textures[ Name ]->GetImageView();
-						ImageInfo.sampler = m_Textures[ Name ]->GetSampler();
-					}
-
-					Set.pImageInfo = &ImageInfo;
-				}
-				else if( Set.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER )
-				{
-					break;
-				}
-
-				Shader->WriteDescriptor( ShaderStage, Name, Set );
+				m_TextureCache[ name ] = texture->GetDescriptorInfo();
 			}
+			else
+			{
+				VkDescriptorImageInfo ImageInfo = m_TextureCache.at( name );
+
+				if( m_TextureCache.at( name ).imageView == ImageInfo.imageView ) 
+				{
+					// No need to update the descriptor set -- its the same.
+					continue;
+				}
+				else // If the image view has changed, update the cache.
+				{
+					m_TextureCache[ name ] = texture->GetDescriptorInfo();
+					Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
+					
+					continue;
+				}
+			}
+
+			// Fallback, just write the descriptor.
+			VkDescriptorImageInfo ImageInfo = {};
+			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			if( m_Textures[ name ] )
+			{
+				ImageInfo.imageView = m_Textures[ name ]->GetImageView();
+				ImageInfo.sampler = m_Textures[ name ]->GetSampler();
+			}
+			else
+			{
+				auto PinkTexture = Renderer::Get().GetPinkTexture();
+
+				ImageInfo.imageView = PinkTexture->GetImageView();
+				ImageInfo.sampler = PinkTexture->GetSampler();
+			}
+
+			Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
 		}
 	}
 

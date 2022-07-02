@@ -31,6 +31,7 @@
 #include "Saturn/Core/UUID.h"
 
 #include "ShaderUniform.h"
+#include "DescriptorSet.h"
 
 #include "Base.h"
 #include <vector>
@@ -43,24 +44,51 @@ namespace Saturn {
 	
 	enum class ShaderType : uint32_t
 	{
-		Vertex = 0,
-		Fragment = 1,
-		Geometry = 2,
-		Compute = 3,
-		All = 4
+		None = 0,
+		Vertex = 1,
+		Fragment = 2,
+		Geometry = 3,
+		Compute = 4,
+		All = 5
 	};
 	
-	// A shader uniform buffer represents a uniform buffer variable in a shader.
+	// A shader uniform buffer represents a uniform buffer block in a shader.
 	struct ShaderUniformBuffer
 	{
 		std::string Name;
-		int Binding;
+		uint32_t Binding;
 		size_t Size;
 		ShaderType Location;
 		
 		VkBuffer Buffer;
 
+		bool operator==( const ShaderUniformBuffer& rOther ) 
+		{
+			return Binding == rOther.Binding && Name == rOther.Name && Size == rOther.Size;
+		}
+
+		auto operator<=>( const ShaderUniformBuffer& rOther ) const = default;
+
 		std::vector< ShaderUniform > Members;
+	};
+
+	struct ShaderSampledImage
+	{
+		std::string Name;
+		ShaderType Stage;
+		uint32_t Set;
+		uint32_t Binding;
+	};
+
+	struct ShaderDescriptorSet
+	{
+		uint32_t Set = -1;
+
+		VkDescriptorSetLayout SetLayout;
+		
+		std::unordered_map< uint32_t, VkWriteDescriptorSet > WriteDescriptorSets;
+		std::vector< ShaderSampledImage > SampledImages;
+		std::unordered_map< uint32_t, ShaderUniformBuffer > UniformBuffers;
 	};
 
 	struct ShaderSource
@@ -146,31 +174,11 @@ namespace Saturn {
 				return ShaderType::All;
 		}
 	}
-
-	class Shader;
-	class DescriptorPool;
-	class DescriptorSet;
-
-	class ShaderLibrary
-	{
-		SINGLETON( ShaderLibrary );
-	public:
-		ShaderLibrary();
-		~ShaderLibrary();
-
-		void Add( const Ref<Shader>& shader );
-		void Load( const std::string& path );
-		void Load( const std::string& name, const std::string& path );
-
-		const Ref<Shader>& Find( const std::string& name ) const;
-	private:
-		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
-	};
-
+	
 	extern ShaderType ShaderTypeFromString( const std::string& Str );
 	extern std::string ShaderTypeToString( ShaderType Type );
 
-	class Shader
+	class Shader : public CountedObj
 	{
 		using ShaderSourceMap = std::unordered_map< ShaderSourceKey, ShaderSource >;
 		using SpvSourceMap = std::unordered_map< ShaderSourceKey, std::vector< uint32_t > >;
@@ -180,13 +188,11 @@ namespace Saturn {
 		using ShaderWriteMap = std::unordered_map< ShaderType, std::unordered_map< std::string, VkWriteDescriptorSet > >;
 
 	public:
-		Shader() { }
-		Shader( std::string Name, std::filesystem::path Filepath );
 		Shader( std::filesystem::path Filepath );
-		Shader( std::string Filepath );
 
 		~Shader();
 
+		
 		std::string& GetName() { return m_Name; }
 		const std::string& GetName() const { return m_Name; }
 
@@ -198,23 +204,32 @@ namespace Saturn {
 		
 		const std::vector< ShaderUniform > GetUniforms() const { return m_Uniforms; }
 		
-		ShaderUBMap& GetUniformBuffers() { return m_UniformBuffers; }
-		const ShaderUBMap& GetUniformBuffers() const { return m_UniformBuffers; }
-		
-		std::vector< std::tuple< ShaderType, uint32_t, std::string > >& GetTextures() { return m_Textures; }
-		
-		VkDescriptorSetLayout GetSetLayout() const { return m_SetLayout; }
+		std::vector< ShaderSampledImage >& GetTextures() { return m_Textures; }
 		
 		Ref< DescriptorPool >& GetDescriptorPool() { return m_SetPool; }
 		const Ref< DescriptorPool >& GetDescriptorPool() const { return m_SetPool; }
 		
 		ShaderWriteMap& GetWriteDescriptors() { return m_DescriptorWrites; }
 		const ShaderWriteMap& GetWriteDescriptors() const { return m_DescriptorWrites; }
+		
+		std::vector< VkPushConstantRange >& GetPushConstantRanges() { return m_PushConstantRanges; }
+		const std::vector< VkPushConstantRange >& GetPushConstantRanges() const { return m_PushConstantRanges; }
 
-		void WriteDescriptor( ShaderType Type, const std::string& rName, VkWriteDescriptorSet& rWriteDescriptor );
+		void WriteDescriptor( const std::string& rName, VkDescriptorImageInfo& rImageInfo, VkDescriptorSet desSet );
+		void WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, VkDescriptorSet desSet );
 
 		// Make sure all the buffers have data mapped to them!
 		void WriteAllUBs( const Ref< DescriptorSet >& rSet );
+
+		void* MapUB( ShaderType Type, uint32_t Set, uint32_t Binding );
+		void UnmapUB( ShaderType Type, uint32_t Set, uint32_t Binding );
+		
+		uint32_t GetDescriptorSetCount() { return m_DescriptorSetCount; }
+
+		Ref<DescriptorSet> CreateDescriptorSet( uint32_t set );
+
+		std::vector< VkDescriptorSetLayout >& GetSetLayouts() { return m_SetLayouts; }
+		VkDescriptorSetLayout GetSetLayout( uint32_t set = 0 ) { return m_SetLayouts[ set ]; }
 
 	private:
 
@@ -224,8 +239,10 @@ namespace Saturn {
 
 		void DetermineShaderTypes();
 		
-		void Reflect( const std::vector<uint32_t>& rShaderData );
+		void Reflect( ShaderType shaderType, const std::vector<uint32_t>& rShaderData );
 		
+		void CreateDescriptors();
+
 		void CompileGlslToSpvAssembly();
 
 	private:
@@ -240,14 +257,43 @@ namespace Saturn {
 		std::filesystem::path m_Filepath = "";
 		
 		std::vector< ShaderUniform > m_Uniforms;
-
-		ShaderUBMap m_UniformBuffers;
-		// So here we saying that the shader might X amount of textures at X index and X shader stage. It's the materials job to create the textures.
-		std::vector< std::tuple< ShaderType, uint32_t, std::string > > m_Textures;
+		std::vector< ShaderUniform > m_PushConstantUniforms;
 		
+		ShaderUBMap m_UniformBuffers;
+
+		std::vector< ShaderSampledImage > m_Textures;
+		
+		std::vector< VkPushConstantRange > m_PushConstantRanges;
+
+		// Set -> Binding -> ShaderDescriptorSet
+		std::unordered_map< uint32_t, ShaderDescriptorSet > m_DescriptorSets;
+
 		ShaderWriteMap m_DescriptorWrites;
 
-		VkDescriptorSetLayout m_SetLayout;
+		uint32_t m_DescriptorSetCount = -1;
+
+		std::vector< VkDescriptorSetLayout > m_SetLayouts;
+
 		Ref< DescriptorPool > m_SetPool;
+	};
+
+	// The shader library will hold shaders
+	class ShaderLibrary : public CountedObj
+	{
+		SINGLETON( ShaderLibrary );
+	public:
+		ShaderLibrary();
+		~ShaderLibrary();
+		
+		void Add( const Ref<Shader>& shader );
+		void Load( const std::string& path );
+		void Load( const std::string& name, const std::string& path );
+		void Remove( const Ref<Shader>& shader );
+
+		void Shutdown();
+
+		const Ref<Shader>& Find( const std::string& name ) const;
+	private:
+		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
 	};
 }

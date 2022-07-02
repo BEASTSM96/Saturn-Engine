@@ -257,6 +257,7 @@ project "Titan"
 		"%{IncludeDir.shaderc}",
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.SPIRV_Reflect}",
+		"%{IncludeDir.vma}",
 		"Saturn/vendor/vulkan/include"
 	}
 

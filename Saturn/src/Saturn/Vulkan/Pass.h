@@ -31,22 +31,18 @@
 #include "Base.h"
 #include "Saturn/Core/Base.h"
 
+#include "Image2D.h"
+
 namespace Saturn {
 	
 	struct PassSpecification
 	{
-		std::vector< VkSubpassDependency > Dependencies = {};
-		std::vector< VkAttachmentDescription > Attachments = {};
-		VkAttachmentReference ColorAttachmentRef = {};
-		VkAttachmentReference DepthAttachmentRef = {};
-		
-		VkFormat ColorFormat = VK_FORMAT_UNDEFINED;
-		VkFormat DepthFormat = VK_FORMAT_UNDEFINED;
-
+		std::vector< ImageFormat > Attachments = {};
 		std::string Name = "";
+		bool IsSwapchainTarget = false;
 	};
 
-	class Pass
+	class Pass : public CountedObj
 	{
 	public:
 		 Pass() { }
@@ -59,7 +55,7 @@ namespace Saturn {
 		void BeginPass( VkCommandBuffer CommandBuffer, VkFramebuffer Framebuffer, VkExtent2D Extent );
 		void EndPass();
 		
-		operator VkRenderPass&() { return m_Pass; }
+		operator VkRenderPass() { return m_Pass; }
 		VkRenderPass GetVulkanPass() { return m_Pass; }
 
 	private:
@@ -67,8 +63,10 @@ namespace Saturn {
 		void Create( PassSpecification PassSpec );
 
 	private:
-
 		PassSpecification m_PassSpec;
+
+		VkAttachmentReference m_DepthAttacment;
+		std::vector< VkAttachmentReference > m_ColorAttacments;
 
 		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
 		VkRenderPass m_Pass = VK_NULL_HANDLE;

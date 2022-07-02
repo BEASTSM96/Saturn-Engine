@@ -28,12 +28,12 @@
 
 #pragma once
 
-#include "VulkanContext.h"
+#include <vulkan.h>
 #include <vector>
 
 namespace Saturn {
 
-	class DescriptorPool
+	class DescriptorPool : public CountedObj
 	{
 	public:
 		DescriptorPool() {}
@@ -42,8 +42,8 @@ namespace Saturn {
 		
 		void Terminate();
 
-		operator VkDescriptorPool&() { return m_Pool; }
-		operator const VkDescriptorPool&() const { return m_Pool; }
+		operator VkDescriptorPool() { return m_Pool; }
+		operator const VkDescriptorPool() const { return m_Pool; }
 
 		// Copy assignment.
 		DescriptorPool& operator=( const DescriptorPool& other ) 
@@ -105,9 +105,10 @@ namespace Saturn {
 		
 		Ref< DescriptorPool > Pool = nullptr;
 		VkDescriptorSetLayout Layout = nullptr;
+		uint32_t SetIndex = -1;
 	};
 
-	class DescriptorSet
+	class DescriptorSet : public CountedObj
 	{
 	public:
 		DescriptorSet() {}
@@ -119,14 +120,16 @@ namespace Saturn {
 		void Write( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo );
 		void Write( std::vector< VkWriteDescriptorSet > WriteDescriptorSets );
 
-
 		void Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout );
 		
+		uint32_t GetSetIndex() const { return m_Specification.SetIndex; }
+
 		bool operator == ( const DescriptorSet& other ) const
 		{
 			return ( m_Set == other.m_Set );
 		}
 		
+
 		VkDescriptorSet GetVulkanSet() { return m_Set; }
 		const VkDescriptorSet GetVulkanSet() const { return m_Set; }
 

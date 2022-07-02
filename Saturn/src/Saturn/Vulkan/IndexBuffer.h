@@ -46,7 +46,7 @@ namespace Saturn {
 		uint32_t V1, V2, V3;
 	};
 
-	class IndexBuffer
+	class IndexBuffer : public CountedObj
 	{
 	public:
 		IndexBuffer() { }

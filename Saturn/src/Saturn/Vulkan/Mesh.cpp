@@ -128,14 +128,31 @@ namespace Saturn {
 			aiString name;
 			material->Get( AI_MATKEY_NAME, name );
 
-			aiColor3D color;
-			material->Get( AI_MATKEY_COLOR_DIFFUSE, color );
-					
+			SAT_CORE_INFO( "Material: {0}", name.C_Str() );
+			
 			std::string MaterialName = std::string( name.C_Str() );
+
+			Ref<Texture2D> PinkTexture = Renderer::Get().GetPinkTexture();
 
 			auto mat = Ref<MaterialInstance>::Create( m_BaseMaterial, name.data );
 			m_Materials[ m ] = mat;
 			
+			aiColor3D color;
+			if( material->Get( AI_MATKEY_COLOR_DIFFUSE, color ) == AI_SUCCESS );
+				mat->Set( "u_Materials.AlbedoColor", glm::vec3( color.r, color.g, color.b ) );
+
+			SAT_CORE_INFO( " Albedo color: {0}", glm::vec3( color.r, color.g, color.g ) );
+
+			float shininess, metalness;
+			if( material->Get( AI_MATKEY_SHININESS, shininess ) == aiReturn_SUCCESS )
+				shininess = 80.0f;
+
+			if( material->Get( AI_MATKEY_REFLECTIVITY, metalness ) == aiReturn_SUCCESS )
+				metalness = 0.0f;
+
+			float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
+			SAT_CORE_INFO( " Roughness: {0}", roughness );
+
 			// Albedo Texture
 			{
 				aiString AlbedoTexturePath;
@@ -152,7 +169,7 @@ namespace Saturn {
 					
 					Ref< Texture2D > AlbedoTexture;
 
-					SAT_CORE_INFO( "Albedo Map texture {0}", AlbedoTexturePath );
+					SAT_CORE_INFO( " Albedo Map texture {0}", AlbedoTexturePath );
 					
 					if( std::filesystem::exists( AlbedoTexturePath ) )
 						AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
@@ -160,21 +177,15 @@ namespace Saturn {
 					if( AlbedoTexture )
 					{
 						mat->SetResource( "u_AlbedoTexture", AlbedoTexture );
-						mat->Set( "u_Materials.UseAlbedoTexture", 1.0f );
 					}
 					else
 					{
-						mat->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
-						mat->Set( "u_Materials.UseAlbedoTexture", 0.0f );
-						mat->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
+						mat->SetResource( "u_AlbedoTexture", PinkTexture );
 					}
 				}
 				else
 				{
-					mat->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
-					mat->Set( "u_Materials.UseAlbedoTexture", 0.0f );
-					mat->Set( "u_Materials.AlbedoColor", glm::vec4{ color.r, color.g, color.b, 1.0f } );
-					
+					mat->SetResource( "u_AlbedoTexture", PinkTexture );
 				}
 			}
 
@@ -185,8 +196,8 @@ namespace Saturn {
 
 				if( HasNormalTexture )
 				{
-					std::filesystem::path AlbedoPath = filename;
-					auto pp = AlbedoPath.parent_path();
+					std::filesystem::path Path = filename;
+					auto pp = Path.parent_path();
 
 					pp /= std::string( NormalTexturePath.data );
 
@@ -194,7 +205,7 @@ namespace Saturn {
 
 					Ref< Texture2D > NormalTexture;
 
-					SAT_CORE_INFO( "Normal Map texture {0}", NormalTexturePath );
+					SAT_CORE_INFO( " Normal Map texture {0}", NormalTexturePath );
 
 					if( std::filesystem::exists( NormalTexturePath ) )
 						NormalTexture = Ref< Texture2D >::Create( NormalTexturePath, AddressingMode::Repeat );
@@ -202,71 +213,103 @@ namespace Saturn {
 					if( NormalTexture )
 					{
 						mat->SetResource( "u_NormalTexture", NormalTexture );
-						mat->Set( "u_Materials.UseNormalTexture", 1.0f );
+						mat->Set( "u_Materials.UseNormalMap", 1.0f );
 					}
 					else
 					{
-						mat->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
-						mat->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
-						mat->Set( "u_Materials.UseNormalTexture", 0.0f );
+						mat->SetResource( "u_NormalTexture", PinkTexture );
+						mat->Set( "u_Materials.UseNormalMap", 0.0f );
 					}
 				}
 				else
 				{
-					mat->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
-					mat->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
-					mat->Set( "u_Materials.UseNormalTexture", 0.0f );
+					mat->SetResource( "u_NormalTexture", PinkTexture );
+					mat->Set( "u_Materials.UseNormalMap", 0.0f );
 				}
 			}
 
-			// Roughness map
+			// Roughness texture
 			{
-				aiString TexturePath;
-				bool HasTexture = material->GetTexture( aiTextureType_SHININESS, 0, &TexturePath ) == AI_SUCCESS;
+				aiString RoughnessTexturePath;
+				bool HasRoughnessTexture = material->GetTexture( aiTextureType_SHININESS, 0, &RoughnessTexturePath ) == AI_SUCCESS;
 
-				if( HasTexture )
-				{					
-					std::filesystem::path AlbedoPath = filename;
-					auto pp = AlbedoPath.parent_path();
+				mat->Set( "u_Materials.Roughness", 1.0f );
 
-					pp /= std::string( TexturePath.data );
+				if( HasRoughnessTexture ) 
+				{
+					std::filesystem::path Path = filename;
+					auto pp = Path.parent_path();
 
-					auto RoughnessTexturePath = pp.string();
+					pp /= std::string( RoughnessTexturePath.data );
 
-					Ref< Texture2D > Texture;
-					
-					SAT_CORE_INFO( "Roughness Map texture {0}", RoughnessTexturePath );
-					
-					if( std::filesystem::exists( RoughnessTexturePath ) )
-						Texture = Ref< Texture2D >::Create( RoughnessTexturePath, AddressingMode::Repeat );
-					
-					if( Texture )
+					auto TexturePath = pp.string();
+
+					Ref< Texture2D > RoughnessTexture;
+
+					if( std::filesystem::exists( TexturePath ) )
+						RoughnessTexture = Ref< Texture2D >::Create( TexturePath, AddressingMode::Repeat );
+
+					if( RoughnessTexture )
 					{
-						mat->SetResource( "u_RoughnessTexture", Texture );
-						mat->Set( "u_Materials.UseRoughnessTexture", 1.0f );
-						mat->Set( "u_Materials.Roughness", 0.0f );
+						mat->SetResource( "u_RoughnessTexture", RoughnessTexture );
 					}
 					else
-					{						
-						mat->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
-						mat->Set( "u_Materials.UseRoughnessTexture", 1.0f );
-						mat->Set( "u_Materials.Roughness", 0.0f );
+					{
+						mat->SetResource( "u_RoughnessTexture", PinkTexture );
 					}
 				}
 				else
 				{
-					float shininess, metalness;
-					if( material->Get( AI_MATKEY_SHININESS, shininess ) != aiReturn_SUCCESS )
-						shininess = 80.0f; // Default value
+					mat->SetResource( "u_RoughnessTexture", PinkTexture );
+				}
+			}
 
-					if( material->Get( AI_MATKEY_REFLECTIVITY, metalness ) != aiReturn_SUCCESS )
-						metalness = 0.0f;
+			// Metalness
+			{
+				bool FoundMetalness = false;
+				
+				for( uint32_t i = 0; i < material->mNumProperties; i++ )
+				{
+					auto prop = material->mProperties[ i ];
 
-					float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
+					if( prop->mType == aiPTI_String )
+					{
+						uint32_t StringLen = *( uint32_t* ) prop->mData;
+						std::string String( prop->mData + 4, StringLen );
 
-					mat->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
-					mat->Set( "u_Materials.UseRoughnessTexture", 0.0f );
-					mat->Set( "u_Materials.Roughness", roughness );
+						std::string Key = prop->mKey.data;
+						if( Key == "$raw.ReflectionFactor|file" )
+						{
+							FoundMetalness = true;
+
+							std::filesystem::path Path = filename;
+							auto pp = Path.parent_path();
+
+							pp /= String;
+
+							auto TexturePath = pp.string();
+
+							Ref< Texture2D > MetalnessTexture;
+
+							if( MetalnessTexture ) 
+							{
+								mat->SetResource( "u_MetallicTexture", MetalnessTexture );
+							}
+							else
+							{
+								mat->SetResource( "u_MetallicTexture", PinkTexture );
+							}
+
+							mat->Set( "u_Materials.Metalness", metalness );
+
+							break;
+						}
+					}
+				}
+
+				if( !FoundMetalness )
+				{
+					mat->SetResource( "u_MetallicTexture", PinkTexture );
 				}
 			}
 		}
@@ -306,11 +349,8 @@ namespace Saturn {
 			submesh.Transform = transform;
 
 			// Create a descriptor set for each submesh to use.
-			DescriptorSetSpecification DescriptorSetSpec;
-			DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
-			DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
-
-			m_DescriptorSets[ submesh ] = Ref< Saturn::DescriptorSet >::Create( DescriptorSetSpec );
+			// Set 0 = material data and vertex data.
+			m_DescriptorSets[ submesh ] = m_MeshShader->CreateDescriptorSet( 0 );
 		}
 
 		for( uint32_t i = 0; i < node->mNumChildren; i++ )
@@ -319,17 +359,7 @@ namespace Saturn {
 
 	void Mesh::RefreshDescriptorSets()
 	{
-		DescriptorSetSpecification DescriptorSetSpec;
-		DescriptorSetSpec.Layout = m_MeshShader->GetSetLayout();
-		DescriptorSetSpec.Pool = m_MeshShader->GetDescriptorPool();
-
-		for ( auto& rSubmesh : m_Submeshes )
-		{
-			m_DescriptorSets[ rSubmesh ]->Terminate();
-			m_DescriptorSets[ rSubmesh ] = nullptr;
-
-			m_DescriptorSets[ rSubmesh ] = Ref< DescriptorSet >::Create( DescriptorSetSpec );
-		}
+		SAT_CORE_ASSERT( false, "Not added!" );
 	}
 
 	void Mesh::GetVetexAndIndexData()

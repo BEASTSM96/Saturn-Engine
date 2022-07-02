@@ -69,6 +69,7 @@ namespace Saturn {
 		int Set = -1;
 		int Binding = -1;
 		int Count = -1;
+		uint32_t Offset = -1;
 		size_t Size = 0;
 		bool Accessed = false;
 		VkDescriptorType Type = VK_DESCRIPTOR_TYPE_MAX_ENUM; // i.e VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
@@ -87,6 +88,8 @@ namespace Saturn {
 	{
 		std::string Name = "";
 		size_t Size = 0;
+		uint32_t Offset = 0;
+		VkShaderStageFlags StageFlags = 0;
 		
 		std::vector< ReflectionDescriptorMember > Members;
 	};
@@ -98,12 +101,13 @@ namespace Saturn {
 
 		int SourceVersion = 0;
 		
-		ReflectionPushConstant PushConstant;
+		std::vector<ReflectionPushConstant> PushConstants;
 
-		std::vector< ReflectionDescriptor > Descriptors;
+		// Set, Descriptor
+		std::unordered_map< uint32_t, ReflectionDescriptor > Descriptors;
 	};
 
-	class ShaderReflector
+	class ShaderReflector : public CountedObj
 	{
 		SINGLETON( ShaderReflector );
 	public:

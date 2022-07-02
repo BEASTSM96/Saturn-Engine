@@ -49,6 +49,7 @@ namespace Saturn {
 		: Camera( projectionMatrix )
 	{	
 		m_FocalPoint = glm::vec3( 0.0f );
+		m_WorldRotation = glm::vec3( 90.0f, 0.0f, 0.0f );
 
 		glm::vec3 position = { -5, 5, 5 };
 		m_Distance = glm::distance( position, m_FocalPoint );
@@ -175,7 +176,7 @@ namespace Saturn {
 		m_WorldRotation = glm::normalize( m_FocalPoint - m_Position );
 		m_FocalPoint = m_Position + ForwardDirection() * m_Distance;
 		m_Distance = glm::distance( m_Position, m_FocalPoint );
-		m_ViewMatrix = glm::lookAt( m_Position, lookAt, glm::vec3{ 0.f, m_FlipY ? -yawSign : yawSign, 0.f } );
+		m_ViewMatrix = glm::lookAt( m_Position, lookAt, glm::vec3{ 0.f, -yawSign, 0.f } );
 
 		//damping for smooth camera
 		m_YawDelta *= 0.6f;
@@ -316,10 +317,7 @@ namespace Saturn {
 
 	glm::vec3 EditorCamera::UpDirection() const
 	{
-		if( m_FlipY )
-			return glm::rotate( Orientation(), glm::vec3( 0.0f, -1.0f, 0.0f ) );
-		else
-			return glm::rotate( Orientation(), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+		return glm::rotate( Orientation(), glm::vec3( 0.0f, -1.0f, 0.0f ) );
 	}
 
 	glm::vec3 EditorCamera::RightDirection() const

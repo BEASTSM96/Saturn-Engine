@@ -34,7 +34,7 @@
 
 namespace Saturn {
 
-	class MaterialInstance
+	class MaterialInstance : public CountedObj
 	{
 	public:
 		MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName );
@@ -47,10 +47,20 @@ namespace Saturn {
 		{
 			for( auto& Uniform : m_Uniforms )
 			{
-				if( Uniform.Name == Name )
+				if( Uniform.GetName() == Name )
 				{
-					Uniform.Set( ( uint8_t* ) &Value, sizeof( Ty ) );
-					return;
+					if( !Uniform.GetIsPushConstantData() )
+					{
+						Uniform.GetBuffer().Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
+					}
+					else
+					{
+						SAT_CORE_INFO( "Pushing Push Constant data {0}, Value {1}", Name, Value );
+						
+						m_PushConstantData.Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
+					}
+					
+					break;
 				}
 			}
 		}
@@ -60,27 +70,44 @@ namespace Saturn {
 		{
 			for( auto& Uniform : m_Uniforms )
 			{
-				if( Uniform.Name == Name )
+				if( Uniform.GetName() == Name )
 				{
-					return Uniform.Read< Ty >();
+					if( !Uniform.GetIsPushConstantData() )
+					{
+						return Uniform.GetBuffer().Read< Ty >( Uniform.GetOffset() );
+					}
+					else
+					{
+						return m_PushConstantData.Read< Ty >( Uniform.GetOffset() );
+					}
 				}
 			}
 		}
 
 		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture );
+
 		Ref< Texture2D > GetResource( const std::string& Name );
 
 		Ref< Saturn::Shader >& GetShader() { return m_Material->m_Shader; }
+		
+		Buffer& GetPushConstantData() { return m_PushConstantData; }
+
+		const std::string& GetName() const { return m_Name; }
 
 	private:
 
 		std::string m_Name = "";
 		Ref< Material > m_Material;
 
+		Buffer m_PushConstantData;
+
 		std::vector< ShaderUniform > m_Uniforms;
 		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
 
 		std::unordered_set< std::string > m_OverriddenValues;
+		
+		std::unordered_map< std::string, VkDescriptorImageInfo > m_TextureCache;
+
 	private:
 		friend class Material;
 	};

@@ -34,32 +34,31 @@
 
 #include "ShaderDataType.h"
 
+#include "Saturn/Core/Memory/Buffer.h"
+
 namespace Saturn {
 	
 	// A shader uniform represents a uniform variable in a shader.
-	struct ShaderUniform
+	class ShaderUniform : public CountedObj
 	{
-		ShaderUniform() { }
+	public:
+		ShaderUniform() { m_Data = Buffer(); }
 		
 		~ShaderUniform()
 		{
 			Terminate();
 		}
 
-		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size )
-			: Name( name ), Location( location ), Type( type ), pValue( nullptr ), Size( size )
+		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size, uint32_t offset, bool isPushConstantData = false )
+			: m_Name( name ), m_Location( location ), m_Type( type ), m_IsPushConstantData( isPushConstantData ), m_Size( size ), m_Offset( offset )
 		{
-			delete[] pValue;
-			pValue = nullptr;
-
-			pValue = new uint8_t[ Size ];
-			
-			memset( pValue, 0, Size );
+			m_Data.Allocate( size );
+			m_Data.Zero_Memory();
 		}
 
 		void Terminate()
 		{
-			switch( Type )
+			switch( m_Type )
 			{
 				case Saturn::ShaderDataType::None:
 				case Saturn::ShaderDataType::Float:
@@ -74,77 +73,39 @@ namespace Saturn {
 				case Saturn::ShaderDataType::Int4:
 				case Saturn::ShaderDataType::Bool:
 				{
-					if( pValue != nullptr )
-					{
-						pValue = 0;
-					}
+					//if( m_Data )
+					//	m_Data.Free();
 				} break;
 				
 				default:
 					break;
 			}
 			
-			Location = -1;
-			Type = ShaderDataType::None;
+			m_Location = -1;
+			m_Type = ShaderDataType::None;
 		}
 
-		operator bool () const
-		{
-			return ( pValue != nullptr );
-		}
+		const std::string& GetName() const { return m_Name; }
+		int GetLocation() const { return m_Location; }
+		ShaderDataType GetType() const { return m_Type; }
+		bool GetIsPushConstantData() const { return m_IsPushConstantData; }
 
-		template<typename Ty>
-		void Set( const Ty& Value )
-		{
-			pValue = ( uint8_t* ) &Value;
-		}
+		Buffer& GetBuffer() { return m_Data; }
+		const Buffer& GetBuffer() const { return m_Data; }
 
-		void Set( void* Value, size_t Size )
-		{			
-			memcpy( pValue, Value, Size );
-		}
+		uint32_t GetOffset() { return m_Offset; }
+		size_t GetSize() { return m_Size; }
 
-		template<typename Ty>
-		Ty* As()
-		{
-			return ( Ty* )( pValue );
-		}
-		
-		template<typename Ty>
-		Ty& Read()
-		{
-			return *( Ty* )pValue;
-		}
+	private:
+		std::string m_Name = "";
+		int m_Location = -1;
+		ShaderDataType m_Type = ShaderDataType::None;
+		bool m_IsPushConstantData = false;
 
-		ShaderUniform& operator=( const ShaderUniform& other )
-		{
-			Name = other.Name;
-			Location = other.Location;
-			Type = other.Type;
-			
-			if ( other.pValue )
-			{
-				memcpy( pValue, other.pValue, sizeof( other.pValue ) );
-			}
-			else
-			{
-				pValue = nullptr;
-			}
+		uint32_t m_Offset = 0;
+		uint32_t m_Size = 0;
 
-			return *this;
-		}
-
-		bool operator==( const ShaderUniform& other )
-		{
-			return ( Name == other.Name && Location == other.Location && Type == other.Type );
-		}
-
-		std::string Name = "";
-		int Location = -1;
-		ShaderDataType Type = ShaderDataType::None;
-
-		uint8_t* pValue;
-		uint32_t Size;
+		Buffer m_Data;
 	};
 
 }

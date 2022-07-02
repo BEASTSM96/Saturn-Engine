@@ -28,40 +28,55 @@
 
 #pragma once
 
-#include "Saturn/Vulkan/Texture.h"
-#include <imgui.h>
+#include <vulkan.h>
 
 namespace Saturn {
 
-	class Viewport
+	enum class ImageFormat
+	{
+		None = 0,
+
+		// Color
+		RGBA8 = 1,
+		RGBA16F = 2,
+		RGBA32F = 3,
+		RGB32F = 4,
+
+		BGRA8 = 5,
+
+		DEPTH32F = 6,
+		DEPTH24STENCIL8 = 7,
+
+		Depth = DEPTH32F
+	};
+
+	class Image2D : public CountedObj
 	{
 	public:
-		Viewport();
-		~Viewport();
+		Image2D( ImageFormat Format, uint32_t Width, uint32_t Height );
+		~Image2D();
 
-		void Draw();
-		
-		void SetOperation( int Operation ) { m_GizmoOperation = Operation; }
+		void Resize( uint32_t Width, uint32_t Height );
 
-		void AddViewportSizeFunction( std::function<void( uint32_t, uint32_t )>&& rrFunction ) { m_CallbackFunctions.push_back( std::move( rrFunction ) ); }
+		VkDescriptorImageInfo& GetDescriptorInfo() { return m_DescriptorImageInfo; }
 
-		bool m_SendCameraEvents = true;
+		VkImage GetImage() { return m_Image; }
+		VkImageView GetImageView() { return m_ImageView; }
+		VkSampler GetSampler() { return m_Sampler; }
 
 	private:
-		Ref< Texture2D > m_CursorTexture;
-		Ref< Texture2D > m_MoveTexture;
-		Ref< Texture2D > m_ScaleTexture;
-		Ref< Texture2D > m_RotateTexture;
-		
-		ImVec2 m_WindowPos;
-		ImVec2 m_WindowSize;
-		ImVec2 m_OldWindowSize;
+		void Create();
 
-		// Translate as default
-		int m_GizmoOperation = 7;
+		uint32_t m_Width;
+		uint32_t m_Height;
 
-		std::vector< std::function<void( uint32_t, uint32_t )> > m_CallbackFunctions;
-	private:
-		friend class ViewportBar;
+		ImageFormat m_Format;
+
+		VkImage m_Image;
+		VkImageView m_ImageView;
+		VkSampler m_Sampler;
+		VkDeviceMemory m_Memory;
+
+		VkDescriptorImageInfo m_DescriptorImageInfo;
 	};
 }

@@ -55,6 +55,8 @@ namespace Saturn {
 
 	private:
 
+		Ref< Texture2D > m_Logo;
+
 		float m_Height;
 	};
 

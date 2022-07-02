@@ -38,13 +38,15 @@
 
 #include "Saturn/Serialisation/SceneSerialiser.h"
 
+#include "Saturn/Vulkan/MaterialInstance.h"
+
 #include <glm/gtc/type_ptr.hpp>
 
 
 namespace Saturn {
 
 	EditorLayer::EditorLayer() 
-		: m_EditorCamera( glm::perspectiveFov( glm::degrees( glm::radians( 45.0f ) ), 1280.0f, 720.0f, 0.1f, 10000.0f ) )
+		: m_EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 1000.0f ) )
 	{
 		m_EditorScene = Ref<Scene>::Create();
 		m_RuntimeScene = nullptr;
@@ -53,13 +55,21 @@ namespace Saturn {
 		PanelManager::Get();
 		
 		PanelManager::Get().AddPanel( new SceneHierarchyPanel() );
+		PanelManager::Get().AddPanel( new ContentBrowserPanel() );
 		PanelManager::Get().AddPanel( new ViewportBar() );
 		
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 
 		m_Viewport = new Viewport();
 		m_TitleBar = new TitleBar();
-		
+
+		m_Viewport->AddViewportSizeFunction( [&]( uint32_t w, uint32_t h ) -> void
+		{
+			SceneRenderer::Get().SetWidthAndHeight( w, h );
+			m_EditorCamera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), (float)w, (float)h, 0.1f, 1000.0f ) );
+			m_EditorCamera.SetViewportSize( w, h );
+		} );
+
 		pHierarchyPanel->SetContext( m_EditorScene );
 		pHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
 
@@ -67,9 +77,6 @@ namespace Saturn {
 		m_EditorCamera.SetActive( true );
 		
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
-
-		SceneSerialiser serialiser( m_EditorScene );
-		serialiser.Deserialise( "assets/scenes/sponza.scene" );
 	}
 
 	EditorLayer::~EditorLayer()
@@ -82,6 +89,7 @@ namespace Saturn {
 		m_CheckerboardTexture = nullptr;
 		
 		m_Viewport = nullptr;
+		m_TitleBar = nullptr;
 
 		PanelManager::Get().Terminate();
 	}
@@ -148,6 +156,7 @@ namespace Saturn {
 			ImGui::Text( "Device Name: %s", devices.DeviceProps.deviceName );
 			ImGui::Text( "API Version: %i", devices.DeviceProps.apiVersion );
 			ImGui::Text( "Vendor ID: %i", devices.DeviceProps.vendorID );
+			ImGui::Text( "Vulkan Version: 1.2.128" );
 		}
 		
 		ImGui::End();
@@ -156,87 +165,140 @@ namespace Saturn {
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 
-		/*
 		if( auto& rSelection = pHierarchyPanel->GetSelectionContext() )
 		{
 			if( rSelection.HasComponent<MeshComponent>() )
 			{
 				if( auto& mesh = rSelection.GetComponent<MeshComponent>().Mesh )
 				{
-					Ref< Material > material = mesh->GetBaseMaterial();
-
 					ImGui::TextDisabled( "%llx", rSelection.GetComponent<IdComponent>().ID );
 
 					ImGui::Separator();
-					
-					ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
-					
-					ImGui::Separator();
 
-					ImGui::Text( "Shader: %s", material->GetShader()->GetName().c_str() );
-
-					ImGui::Separator();
-
-					ImGui::Text( "Albedo" );
-					
-					ImGui::Separator();
-					
-					bool UseAlbedoTexture = material->Get< float >( "u_Materials.UseAlbedoTexture" );
-					
-					if( UseAlbedoTexture )
+					for ( auto& rMaterial : mesh->GetMaterials() )
 					{
-						Ref< Texture2D > texture = material->GetResource( "u_AlbedoTexture" );
-						ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-
-						ImGui::SameLine();
-						
-						if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
+						if( ImGui::CollapsingHeader( rMaterial->GetName().c_str() ) ) 
 						{
-							std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
+							ImGui::PushID( rMaterial->GetName().c_str() );
 
-							if( !file.empty() )
+							ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
+
+							ImGui::Separator();
+
+							ImGui::Text( "Shader: %s", rMaterial->GetShader()->GetName().c_str() );
+
+							ImGui::Separator();
+
+							ImGui::Text( "Albedo" );
+
+							ImGui::Separator();
+
+							Ref< Texture2D > texture = rMaterial->GetResource( "u_AlbedoTexture" );
+								
+							if( texture && texture->GetDescriptorSet() )
+								ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+							else
+								ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+
+							ImGui::SameLine();
+
+							if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
 							{
-								texture = Ref<Texture2D>::Create( file, AddressingMode::Repeat );
-								material->SetResource( "u_AlbedoTexture", texture );
+								std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
+								
+								if( !file.empty() )
+								{
+									rMaterial->SetResource( "u_AlbedoTexture", Ref<Texture2D>::Create( file, AddressingMode::Repeat ) );
+								}
 							}
+
+							glm::vec3& color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
+
+							ImGui::ColorEdit3( "##Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
+
+							ImGui::Text( "Normal" );
+
+							ImGui::Separator();
+
+							bool UseNormalMap = rMaterial->Get< float >( "u_Materials.UseNormalMap" );
+
+							if( UseNormalMap )
+							{
+								Ref< Texture2D > texture = rMaterial->GetResource( "u_NormalTexture" );
+								
+								if( texture && texture->GetDescriptorSet() )
+									ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								else
+									ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+							}
+
+							if( ImGui::Checkbox( "Use Normal Map", &UseNormalMap ) )
+								rMaterial->Set( "u_Materials.UseNormalMap", UseNormalMap ? 1.0f : 0.0f );
+							
+							ImGui::Text( "Roughness" );
+							
+							ImGui::Separator();
+							
+							float Roughness = rMaterial->Get< float >( "u_Materials.Roughness" );
+
+							ImGui::DragFloat( "Roughness", &Roughness, 0.01f, 0.0f, 1.0f );
+
+							if( Roughness != rMaterial->Get< float >( "u_Materials.Roughness" ) )
+								rMaterial->Set( "u_Materials.Roughness", Roughness );
+
+							// Roughness map
+							{
+								Ref< Texture2D > texture = rMaterial->GetResource( "u_RoughnessTexture" );
+
+								if( texture )
+								{
+									if( texture && texture->GetDescriptorSet() )
+										ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+									else
+										ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								}
+							}
+
+							ImGui::Text( "Metalness" );
+
+							ImGui::Separator();
+
+							float Metallic = rMaterial->Get< float >( "u_Materials.Metalness" );
+							
+							ImGui::DragFloat( "Metalness", &Metallic, 0.01f, 0.0f, 1.0f );
+
+							if( Metallic != rMaterial->Get< float >( "u_Materials.Metalness" ) )
+								rMaterial->Set( "u_Materials.Metalness", Metallic );
+							
+							// Metalness map
+							{
+
+								Ref< Texture2D > texture = rMaterial->GetResource( "u_MetallicTexture" );
+
+								if( texture )
+								{
+									if( texture && texture->GetDescriptorSet() )
+										ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+									else
+										ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								}
+							}
+
+							ImGui::PopID();
 						}
 					}
-
-					if( ImGui::Checkbox( "Use Albedo Texture", &UseAlbedoTexture ) )
-						material->Set( "u_Materials.UseAlbedoTexture", UseAlbedoTexture ? 1.0f : 0.0f );
-					
-					if( !UseAlbedoTexture )
-					{
-						glm::vec4 color = material->Get<glm::vec4>( "u_Materials.AlbedoColor" );
-
-						ImGui::ColorEdit4( "Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
-
-						material->Set< glm::vec4 >( "u_Materials.AlbedoColor", color );
-					}
-
-					ImGui::Text( "Normal" );
-
-					ImGui::Separator();
-
-					bool UseNormalTexture = material->Get< float >( "u_Materials.UseNormalTexture" );
-
-					if( UseNormalTexture )
-					{
-						Ref< Texture2D > texture = material->GetResource( "u_NormalTexture" );
-						ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-					}
-
-					if( ImGui::Checkbox( "Use Normal Texture", &UseNormalTexture ) )
-						material->Set( "u_Materials.UseNormalTexture", UseNormalTexture ? 1.0f : 0.0f );
 				}
 			}
 		}
-		*/
+
 		ImGui::End();
 	}
 
 	void EditorLayer::OnEvent( Event& rEvent )
 	{
+		EventDispatcher dispatcher( rEvent );
+		dispatcher.Dispatch<KeyPressedEvent>( SAT_BIND_EVENT_FN( EditorLayer::OnKeyPressed ) );
+
 		if ( m_Viewport->m_SendCameraEvents )
 		{
 			m_EditorCamera.AllowEvents( true );
@@ -279,6 +341,36 @@ namespace Saturn {
 
 	void EditorLayer::SelectionChanged( Entity e )
 	{
+	}
+
+	void EditorLayer::ViewportSizeCallback( uint32_t Width, uint32_t Height )
+	{
+
+	}
+
+	bool EditorLayer::OnKeyPressed( KeyPressedEvent& rEvent )
+	{
+		if( Input::Get().KeyPressed( Key::LeftControl ) )
+		{
+			switch( rEvent.KeyCode() )
+			{
+				case Key::D:
+				{
+					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+					
+					if( pHierarchyPanel ) 
+					{
+						if( auto& rEntity = pHierarchyPanel->GetSelectionContext() )
+						{
+							m_EditorScene->DuplicateEntity( rEntity );
+						}
+					}
+
+				} break;
+			}
+		}
+
+		return true;
 	}
 
 }

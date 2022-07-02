@@ -83,7 +83,7 @@ namespace Saturn {
 				auto des = ReflectDescriptor( *Bindings[ i ], Module );
 				
 				// Find members in the list and check if one has the name if so add the shader stage to it.
-				for( auto&& member : Out.Descriptors )
+				for( auto&& [set, member] : Out.Descriptors )
 				{
 					if( member.Name == des.Name )
 					{
@@ -91,20 +91,7 @@ namespace Saturn {
 					}
 				}
 				
-				// Only add a new member if its not in the list already
-				if( std::find_if( std::begin( Out.Descriptors ), std::end( Out.Descriptors ), [&des]( const auto& p ) -> bool
-				{
-					// Check if the name is the same and the stage is the same.
-					bool IsName = p.Name == des.Name;
-					bool IsStage = p.StageFlags == des.StageFlags;
-
-
-					return IsName;
-				} ) == std::end( Out.Descriptors ) )
-				{
-					Out.Descriptors.push_back( des );
-				}
-
+				Out.Descriptors[ des.Set ] = des;
 			}
 
 			// Reflect over push constants
@@ -120,7 +107,7 @@ namespace Saturn {
 
 			for( int i = 0; i < BlockBindings.size(); i++ )
 			{
-				Out.PushConstant = ReflectPushConstant( *BlockBindings[ i ], Module );
+				Out.PushConstants.push_back( ReflectPushConstant( *BlockBindings[ i ], Module ) );
 			}
 		}
 
@@ -138,6 +125,7 @@ namespace Saturn {
 		Out.Name = std::move( rBinding.name == nullptr ? rBinding.type_description->type_name : rBinding.name );
 		Out.Type = DescriptorTypeToVulkan( rBinding.descriptor_type );
 		Out.StageFlags = Module.GetShaderStage();
+		Out.Offset = 0;
 
 		// Test if descriptor is a uniform buffer or a storage buffer.
 		//if( rBinding.decoration_flags == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER || rBinding.decoration_flags == SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER )
@@ -171,7 +159,9 @@ namespace Saturn {
 	{
 		ReflectionPushConstant Out;
 		Out.Name = ( rBinding.name == nullptr ? rBinding.type_description->type_name : rBinding.name );
-		
+		Out.StageFlags = Module.GetShaderStage();
+		Out.Offset = rBinding.offset;
+
 		auto& rMembers = rBinding.members;
 
 		for( int i = 0; i < rBinding.member_count; i++ )
@@ -185,9 +175,11 @@ namespace Saturn {
 			Member.Size = rSPVMember.size;
 			Member.RawType = ComponentTypeToString( *rSPVMember.type_description, rSPVMember.decoration_flags );
 			Member.Type = ComponentTypeToShaderDataType( *rSPVMember.type_description, rSPVMember.decoration_flags );
-			
+
 			if( std::find( std::begin( Out.Members ), std::end( Out.Members ), Member ) == std::end( Out.Members ) )
 				Out.Members.push_back( Member );
+
+			Out.Size += Member.Size;
 		}
 
 		return Out;

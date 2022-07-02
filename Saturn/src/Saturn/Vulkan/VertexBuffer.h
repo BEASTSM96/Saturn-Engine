@@ -49,11 +49,13 @@ namespace Saturn {
 		glm::vec2 Texcoord;
 	};
 
-	struct MeshVertex : public BaseVertex
+	struct MeshVertex
 	{
+		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec3 Tangent;
 		glm::vec3 Binormal;
+		glm::vec2 Texcoord;
 	};
 	
 	struct VertexBufferElement
@@ -94,7 +96,7 @@ namespace Saturn {
 		}
 	};
 
-	class VertexBufferLayout
+	class VertexBufferLayout : public CountedObj
 	{
 	public:
 		VertexBufferLayout() { }
@@ -110,17 +112,36 @@ namespace Saturn {
 				offset += element.Size;
 				m_Stride += element.Size;
 			}
-		}	
-		
-		inline VertexBufferLayout& operator=( VertexBufferLayout&& rrOther ) noexcept
+		}
+
+		VertexBufferLayout( const VertexBufferLayout& other )
+			: m_Elements( other.m_Elements ), m_Stride( other.m_Stride )
 		{
+		}
+		
+		constexpr VertexBufferLayout& operator=( VertexBufferLayout&& rrOther ) noexcept
+		{
+			if( this == &rrOther )
+				return *this;
+			
 			m_Elements = std::move( rrOther.m_Elements );
 			m_Stride = rrOther.m_Stride;
 			
 			return *this;
 		}
-
 		
+		constexpr VertexBufferLayout& operator=( const VertexBufferLayout& rOther ) noexcept
+		{
+			if( this == &rOther )
+				return *this;
+			
+			m_Elements = rOther.m_Elements;
+			m_Stride = rOther.m_Stride;
+			
+			return *this;
+		}
+
+		uint32_t Count() { return (uint32_t)m_Elements.size(); }
 
 		inline const std::vector< VertexBufferElement >& GetElements() const { return m_Elements; }
 		inline uint32_t GetStride() const { return m_Stride; }
@@ -138,7 +159,7 @@ namespace Saturn {
 	};
 	
 	// A vulkan vertex buffer.
-	class VertexBuffer
+	class VertexBuffer : public CountedObj
 	{
 	public:
 		VertexBuffer() : m_pData( nullptr ) { }

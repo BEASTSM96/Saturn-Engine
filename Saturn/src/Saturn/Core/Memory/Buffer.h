@@ -28,40 +28,83 @@
 
 #pragma once
 
-#include "Saturn/Vulkan/Texture.h"
-#include <imgui.h>
+#include <stdint.h>
+#include <cstring>
 
 namespace Saturn {
 
-	class Viewport
+	class Buffer
 	{
 	public:
-		Viewport();
-		~Viewport();
-
-		void Draw();
+		Buffer() : Size( 0 ), Data( nullptr ) {}
+		Buffer( size_t size, uint8_t* pData ) : Size( size ), Data( pData ) {}
 		
-		void SetOperation( int Operation ) { m_GizmoOperation = Operation; }
+		void Zero_Memory()
+		{
+			if( Data )
+				memset( Data, 0, Size );
+		}
 
-		void AddViewportSizeFunction( std::function<void( uint32_t, uint32_t )>&& rrFunction ) { m_CallbackFunctions.push_back( std::move( rrFunction ) ); }
+		void Free() 
+		{
+			if( Data )
+			{
+				delete[] Data;
+				Data = nullptr;
+				Size = 0;
+			}
+		}
 
-		bool m_SendCameraEvents = true;
+		template<typename Ty>
+		Ty& Read( uint32_t Offset = 0 ) 
+		{
+			return *( Ty* ) ( Data + Offset );
+		}
 
-	private:
-		Ref< Texture2D > m_CursorTexture;
-		Ref< Texture2D > m_MoveTexture;
-		Ref< Texture2D > m_ScaleTexture;
-		Ref< Texture2D > m_RotateTexture;
+		template<typename Ty>
+		Ty* As() 
+		{
+			return ( Ty* ) Data;
+		}
+
+		void Write( const void* pData, size_t size, uint32_t Offset )
+		{
+			SAT_CORE_ASSERT( Offset + size <= Size );
+
+			memcpy( Data + Offset, pData, size );
+		}
+
+		// Clears the buffer and then reallocates it to the specified size.
+		void Allocate( size_t size )
+		{
+			delete[] Data;
+			Data = nullptr;
+
+			if( size == 0 )
+				return;
+
+			Data = new uint8_t[ size ];
+			Size = size;
+		}
+
+		static Buffer Copy( const void* pData, size_t size )
+		{
+			Buffer buffer;
+			
+			// Allocate the buffer
+			buffer.Allocate( size );
+
+			memcpy( buffer.Data, pData, size );
+
+			return buffer;
+		}
+
+		operator bool() { return Data != nullptr; }
+		uint8_t& operator [] ( uint32_t Offset ) { return Data[ Offset ]; }
+		uint8_t operator [] ( uint32_t Offset ) const { return Data[ Offset ]; }
 		
-		ImVec2 m_WindowPos;
-		ImVec2 m_WindowSize;
-		ImVec2 m_OldWindowSize;
-
-		// Translate as default
-		int m_GizmoOperation = 7;
-
-		std::vector< std::function<void( uint32_t, uint32_t )> > m_CallbackFunctions;
-	private:
-		friend class ViewportBar;
+	public:
+		size_t Size;
+		uint8_t* Data;
 	};
 }

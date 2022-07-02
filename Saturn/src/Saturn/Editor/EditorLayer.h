@@ -30,6 +30,7 @@
 
 #include "Saturn/ImGui/Viewport.h"
 #include "Saturn/ImGui/SceneHierarchyPanel.h"
+#include "Saturn/ImGui/ContentBrowserPanel.h"
 
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Core/Layer.h"
@@ -63,6 +64,8 @@ namespace Saturn {
 	private:
 		
 		void SelectionChanged( Entity e );
+		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
+		bool OnKeyPressed( KeyPressedEvent& rEvent );
 
 	private:
 		Viewport* m_Viewport;

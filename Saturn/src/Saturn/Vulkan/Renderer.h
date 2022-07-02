@@ -32,35 +32,40 @@
 
 namespace Saturn {
 
-	class Renderer
+	class Renderer : public CountedObj
 	{
 		SINGLETON( Renderer );
 	public:
 		Renderer();
 		~Renderer();
 
-		void SubmitFullscreenQuad( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< DescriptorSet >& rDescriptorSet, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer );
+		void SubmitFullscreenQuad( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< DescriptorSet >& rDescriptorSet, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer );
 
 		// Render pass helpers.
 		void BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass );
 		void EndRenderPass( VkCommandBuffer CommandBuffer );
 
-		void RenderMeshWithMaterial();
+		void RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform );
 
 		// Static mesh
-		void RenderSubmesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
+		void RenderSubmesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
 
-		void SubmitMesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, const glm::mat4 transform );
+		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< Mesh > mesh, const glm::mat4 transform );
+
+		// DOES NOT BEGIN THE FRAME, CALL BeginFrame for that.
+		void Begin( Ref<Image2D> ShadowMap );
 
 		// Allocate command buffer.
 		VkCommandBuffer AllocateCommandBuffer( VkCommandPool CommandPool );
+		VkCommandBuffer AllocateCommandBuffer( VkCommandBufferLevel CmdLevel );
+
 
 		// Helpers.
 		void CreateFramebuffer( VkRenderPass RenderPass, VkExtent2D Extent, std::vector<VkImageView> Attachments, VkFramebuffer* pFramebuffer );
 
-		void CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory );
+		void CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, uint32_t ArrayLevels, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory );
 		
-		void CreateImageView( VkImage Image, VkFormat Format, VkImageAspectFlags Aspect, VkImageView* pImageView );
+		void CreateImageView( VkImageViewType Type, VkImage Image, VkFormat Format, VkImageAspectFlags Aspect, uint32_t LayerCount, VkImageView* pImageView );
 
 		void CreateSampler( VkFilter Filter, VkSampler* pSampler );
 		
@@ -116,6 +121,8 @@ namespace Saturn {
 		float m_QueuePresentTime;
 		
 		Ref< Texture2D > m_PinkTexture;
+
+		Ref< DescriptorSet > m_RendererDescriptorSet;
 
 	private:
 		friend class VulkanContext;

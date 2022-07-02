@@ -104,7 +104,7 @@ namespace Saturn {
 	class DescriptorSet;
 	class MaterialInstance;
 
-	class Mesh
+	class Mesh : public CountedObj
 	{
 	public:
 		Mesh( const std::string& filename );

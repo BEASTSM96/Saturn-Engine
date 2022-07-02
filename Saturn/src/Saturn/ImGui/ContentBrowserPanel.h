@@ -28,40 +28,53 @@
 
 #pragma once
 
+#include "Panel/Panel.h"
+
 #include "Saturn/Vulkan/Texture.h"
+
 #include <imgui.h>
+#include <filesystem>
+#include <functional>
 
 namespace Saturn {
+	
+	enum class AssetType 
+	{
+		Folder,
+		Texture,
+		StaticMesh,
+		SkeletalMesh,
+		Material,
+		MaterialInstance,
+		Shader,
+		Text_Like_File,
+		Audio,
+		Scene,
+		Prefab,
+		Script,
+		Font,
+		Unknown,
+		COUNT,
+	};
 
-	class Viewport
+	class ContentBrowserPanel : public Panel
 	{
 	public:
-		Viewport();
-		~Viewport();
+		ContentBrowserPanel();
+		~ContentBrowserPanel() = default;
 
-		void Draw();
-		
-		void SetOperation( int Operation ) { m_GizmoOperation = Operation; }
-
-		void AddViewportSizeFunction( std::function<void( uint32_t, uint32_t )>&& rrFunction ) { m_CallbackFunctions.push_back( std::move( rrFunction ) ); }
-
-		bool m_SendCameraEvents = true;
+		virtual void Draw() override;
 
 	private:
-		Ref< Texture2D > m_CursorTexture;
-		Ref< Texture2D > m_MoveTexture;
-		Ref< Texture2D > m_ScaleTexture;
-		Ref< Texture2D > m_RotateTexture;
-		
-		ImVec2 m_WindowPos;
-		ImVec2 m_WindowSize;
-		ImVec2 m_OldWindowSize;
 
-		// Translate as default
-		int m_GizmoOperation = 7;
-
-		std::vector< std::function<void( uint32_t, uint32_t )> > m_CallbackFunctions;
+		void RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles = true );
+				
+		void OnDirectorySelected( std::filesystem::path& rPath, bool IsFile = false );
 	private:
-		friend class ViewportBar;
+		std::filesystem::path m_CurrentPath;
+		std::filesystem::path m_FirstFolder;
+
+		Ref< Texture2D > m_DirectoryIcon;
+		Ref< Texture2D > m_FileIcon;
 	};
 }

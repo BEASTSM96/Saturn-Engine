@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "DescriptorSet.h"
 
+#include "VulkanContext.h"
+
 namespace Saturn {
 
 	DescriptorPool::DescriptorPool( std::vector< VkDescriptorPoolSize > PoolSizes, uint32_t MaxSets )

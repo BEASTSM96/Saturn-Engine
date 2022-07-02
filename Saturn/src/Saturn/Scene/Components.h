@@ -34,6 +34,8 @@
 
 #include "Saturn/Vulkan/EnvironmentMap.h"
 
+#include "Saturn/Vulkan/Mesh.h"
+
 #include "Saturn/Core/UUID.h"
 
 #include "EntityVisibility.h"
@@ -161,9 +163,6 @@ namespace Saturn {
 	*
 	* @endcode
 	*/
-
-	class Mesh;
-
 	struct MeshComponent
 	{
 		Ref<Saturn::Mesh> Mesh;
@@ -189,6 +188,14 @@ namespace Saturn {
 		LightComponent( const LightComponent& other ) = default;
 
 		operator glm::vec4 ( ) { return std::move( glm::vec4( Color.x, Color.z, Color.y, 1.0f ) ); }
+	};
+
+	struct DirectionalLightComponent
+	{
+		glm::vec3 Radiance = { 1.0f, 1.0f, 1.0f };
+		
+		float Intensity = 1.0f;
+		bool CastShadows = true;
 	};
 
 	// Preetham sky

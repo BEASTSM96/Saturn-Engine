@@ -28,40 +28,9 @@
 
 #pragma once
 
-#include "Saturn/Vulkan/Texture.h"
-#include <imgui.h>
+#include <glm/glm.hpp>
 
-namespace Saturn {
+namespace Saturn::Math {
 
-	class Viewport
-	{
-	public:
-		Viewport();
-		~Viewport();
-
-		void Draw();
-		
-		void SetOperation( int Operation ) { m_GizmoOperation = Operation; }
-
-		void AddViewportSizeFunction( std::function<void( uint32_t, uint32_t )>&& rrFunction ) { m_CallbackFunctions.push_back( std::move( rrFunction ) ); }
-
-		bool m_SendCameraEvents = true;
-
-	private:
-		Ref< Texture2D > m_CursorTexture;
-		Ref< Texture2D > m_MoveTexture;
-		Ref< Texture2D > m_ScaleTexture;
-		Ref< Texture2D > m_RotateTexture;
-		
-		ImVec2 m_WindowPos;
-		ImVec2 m_WindowSize;
-		ImVec2 m_OldWindowSize;
-
-		// Translate as default
-		int m_GizmoOperation = 7;
-
-		std::vector< std::function<void( uint32_t, uint32_t )> > m_CallbackFunctions;
-	private:
-		friend class ViewportBar;
-	};
+	bool DecomposeTransform( const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale );
 }

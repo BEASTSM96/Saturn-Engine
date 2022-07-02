@@ -149,6 +149,15 @@ namespace Saturn {
 					SetSelected( Entity );
 				}
 
+				if( ImGui::MenuItem( "Directional Light" ) )
+				{
+					auto Entity = m_Context->CreateEntity( "Directional Light" );
+					Entity.AddComponent<DirectionalLightComponent>();
+					Entity.GetComponent<TransformComponent>().Rotation = glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) );
+
+					SetSelected( Entity );
+				}
+
 				auto components = m_Context->m_Registry.view<SkylightComponent>();
 				
 				if( components.empty() )
@@ -200,6 +209,15 @@ namespace Saturn {
 				if( ImGui::Button( "Light" ) )
 				{
 					m_SelectionContext.AddComponent<LightComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			if( !m_SelectionContext.HasComponent<DirectionalLightComponent>() ) 
+			{
+				if( ImGui::Button( "Directional Light" ) )
+				{
+					m_SelectionContext.AddComponent<DirectionalLightComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -262,14 +280,16 @@ namespace Saturn {
 		ImGui::TextDisabled( "%llx", id );
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
-		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )
+		DrawComponent<TransformComponent>( "Transform", entity, [&]( auto& tc )
 		{
 			auto& translation = tc.Position;
-			auto& rotation = tc.Rotation;
+			glm::vec3 rotation = glm::degrees( tc.Rotation );
 			auto& scale = tc.Scale;
 
 			DrawVec3Control( "Translation", tc.Position );
-			DrawVec3Control( "Rotation", tc.Rotation );
+			
+			DrawVec3Control( "Rotation", rotation );
+			tc.Rotation = glm::radians( rotation );
 			DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 
@@ -308,6 +328,12 @@ namespace Saturn {
 			DrawColorVec3Control( "Light Color", lc.Color, 150.0f );
 		
 			DrawFloatControl( "Light Intensity", lc.Intensity, 110.0f );
+		} );
+
+		DrawComponent<DirectionalLightComponent>( "Directional Light", entity, []( auto& dlc )
+		{
+			DrawFloatControl( "Intensity", dlc.Intensity, 110.0f );
+			DrawBoolControl( "Cast shadows", dlc.CastShadows );
 		} );
 
 		DrawComponent<SkylightComponent>( "Skylight", entity, []( auto& skl )

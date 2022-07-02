@@ -74,6 +74,7 @@ namespace Saturn {
 			return;
 
 		glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
+		glfwWindowHint( GLFW_VISIBLE, GLFW_FALSE );
 		glfwWindowHint( GLFW_TITLEBAR, GLFW_FALSE );
 
 		GLFWmonitor* pPrimary = glfwGetPrimaryMonitor();	
@@ -84,7 +85,9 @@ namespace Saturn {
 		m_Width = 3 * w / 4;
 		m_Height = 3 * h / 4;
 		
-		m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str(), nullptr, nullptr );
+		// Create a 10x10 base window, the when we call "RemoveBorder" we resize the window to the actual size
+		// Kind of a hack
+		m_Window = glfwCreateWindow( 10, 10, m_Title.c_str(), nullptr, nullptr );
 
 		glfwSetWindowUserPointer( m_Window, this );
 
@@ -93,25 +96,13 @@ namespace Saturn {
 
 		glfwSetWindowSizeCallback( m_Window, []( GLFWwindow* window, int w, int h )
 		{
-			Window& win = *( Window* )glfwGetWindowUserPointer( window );
+			Window& win = *( Window* ) glfwGetWindowUserPointer( window );
 
 			SizeCallback( window, w, h );
 
-			WindowResizeEvent event( ( float )w, ( float )h );
+			WindowResizeEvent event( ( float ) w, ( float ) h );
 			win.m_EventCallback( event );
 		} );
-		
-		/*
-		glfwSetFramebufferSizeCallback( m_Window, []( GLFWwindow* window, int w, int h )
-		{
-			Window& win = *( Window* )glfwGetWindowUserPointer( window );
-
-			SizeCallback( window, w, h );
-
-			WindowResizeEvent event( ( float )w, ( float )h );
-			win.m_EventCallback( event );
-		} );
-		*/
 
 		glfwSetScrollCallback( m_Window, []( GLFWwindow* window, double xOffset, double yOffset )
 		{
@@ -213,12 +204,8 @@ namespace Saturn {
 
 	#if defined ( SAT_WINDOWS )
 
-		// Thanks to Geno for this code https://github.com/Geno-IDE/Geno
-
 		HWND      windowHandle    = glfwGetWin32Window( m_Window );
 		HINSTANCE instance        = GetModuleHandle( nullptr );
-
-		//SetWindowLong( windowHandle, GWL_STYLE, GetWindowLong( windowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX  );
 
 		// Fix missing drop shadow
 		MARGINS shadowMargins;
@@ -319,6 +306,16 @@ namespace Saturn {
 		// The window does a lot of rendering am I right?
 
 		m_Rendering = false;
+	}
+
+	void Window::Show()
+	{
+		glfwShowWindow( m_Window );
+	}
+
+	void Window::RemoveBorder()
+	{
+		glfwSetWindowSize( m_Window, m_Width, m_Height );
 	}
 
 	void Window::ImGuiInit()

@@ -257,14 +257,17 @@ namespace Saturn {
 
 		Texture::Terminate();
 		
-		if( m_DescriptorSet )
-			ImGui_ImplVulkan_RemoveTexture( m_DescriptorSet );
+		//if( m_DescriptorSet )
+		//	ImGui_ImplVulkan_RemoveTexture( m_DescriptorSet );
 	}
 
 	// Load and create a texture 2D for a file path.
 	// Create a texture 2D
 	void Texture2D::CreateTextureImage()
 	{
+		if( !std::filesystem::exists( m_Path ) )
+			SAT_CORE_ASSERT( false, "Path does not exist!" );
+
 		int Width, Height, Channels;
 
 		// Flip texture

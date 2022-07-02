@@ -48,7 +48,15 @@ namespace Saturn {
 		UUID SceneID;
 	};
 
-	class Scene
+	struct DirectionalLight
+	{
+		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
+
+		float Intensity = 1.0f;
+	};
+
+	class Scene : public CountedObj
 	{
 	public:
 		Scene();
@@ -60,6 +68,8 @@ namespace Saturn {
 		void DestroyEntity( Entity entity );
 
 		void OnRenderEditor( const EditorCamera& Camera, Timestep ts );
+
+		void DuplicateEntity( Entity entity );
 
 		template<typename T>
 		auto GetAllEntitiesWith( void )
@@ -95,10 +105,13 @@ namespace Saturn {
 		entt::entity m_SceneEntity;
 		entt::entity m_SelectedEntity;
 
+		DirectionalLight m_DirectionalLight[ 4 ];
+
 	private:
 
 		friend class Entity;
 		friend class SceneHierarchyPanel;
 		friend class SceneSerialiser;
+		friend class SceneRenderer;
 	};
 }

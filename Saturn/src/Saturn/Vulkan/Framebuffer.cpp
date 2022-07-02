@@ -37,36 +37,36 @@ namespace Saturn {
 
 	namespace FramebufferUtills {
 
-		static bool IsDepthFormat( FramebufferTextureFormat format )
+		static bool IsDepthFormat( ImageFormat format )
 		{
 			switch( format )
 			{
-				case Saturn::FramebufferTextureFormat::DEPTH32F:
-				case Saturn::FramebufferTextureFormat::DEPTH24STENCIL8:
+				case Saturn::ImageFormat::DEPTH32F:
+				case Saturn::ImageFormat::DEPTH24STENCIL8:
 					return true;
 			}
 
 			return false;
 		}
 
-		static VkFormat VulkanFormat( FramebufferTextureFormat format ) 
+		static VkFormat VulkanFormat( ImageFormat format )
 		{
 			switch( format )
 			{
-				case Saturn::FramebufferTextureFormat::RGBA8:
+				case Saturn::ImageFormat::RGBA8:
 					return VK_FORMAT_R8G8B8A8_UNORM;
 
-				case Saturn::FramebufferTextureFormat::RGBA16F:
+				case Saturn::ImageFormat::RGBA16F:
 					return VK_FORMAT_R16G16B16A16_UNORM;
 
-				case Saturn::FramebufferTextureFormat::RGBA32F:
+				case Saturn::ImageFormat::RGBA32F:
 					return VK_FORMAT_R32G32B32A32_SFLOAT;
 
-				case FramebufferTextureFormat::BGRA8:
+				case ImageFormat::BGRA8:
 					return VK_FORMAT_B8G8R8A8_UNORM;
 
-				case Saturn::FramebufferTextureFormat::DEPTH24STENCIL8:
-				case Saturn::FramebufferTextureFormat::DEPTH32F:
+				case Saturn::ImageFormat::DEPTH24STENCIL8:
+				case Saturn::ImageFormat::DEPTH32F:
 					return VK_FORMAT_D32_SFLOAT;
 			}
 
@@ -96,41 +96,48 @@ namespace Saturn {
 
 		for( auto& resource : m_ColorAttachmentsResources )
 		{
-			vkDestroyImage( VulkanContext::Get().GetDevice(), resource.Image, nullptr );
-			vkDestroyImageView( VulkanContext::Get().GetDevice(), resource.ImageView, nullptr );
-			vkDestroySampler( VulkanContext::Get().GetDevice(), resource.Sampler, nullptr );
-			vkFreeMemory( VulkanContext::Get().GetDevice(), resource.Memory, nullptr );
+			resource = nullptr;
 		}
-
-		vkDestroyImage( VulkanContext::Get().GetDevice(), m_DepthAttachmentResource.Image, nullptr );
-		vkDestroyImageView( VulkanContext::Get().GetDevice(), m_DepthAttachmentResource.ImageView, nullptr );
-		vkDestroySampler( VulkanContext::Get().GetDevice(), m_DepthAttachmentResource.Sampler, nullptr );
-		vkFreeMemory( VulkanContext::Get().GetDevice(), m_DepthAttachmentResource.Memory, nullptr );
+		
+		m_DepthAttachmentResource = nullptr;
 
 		m_ColorAttachmentsResources.clear();
 		m_ColorAttachmentsFormats.clear();
 		m_AttachmentImageViews.clear();
 	}
 
-	void Framebuffer::Recreate()
+	void Framebuffer::Recreate( uint32_t Width, uint32_t Height )
 	{
 		if( m_Framebuffer )
 			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_Framebuffer, nullptr );
 
-		Create();
-	}
+		m_Framebuffer = nullptr;
 
-	void Framebuffer::CreateDescriptorSets()
-	{
-		// This is all for ImGui.
-		// TEMP
-		// WE SHOULD NEVER USE IMGUI TO CREATE THE TEXTURES, but because this is really for debug, as in real runtime, we'll never use imgui.
-		for( auto& resource : m_ColorAttachmentsResources ) 
+		for( auto& resource : m_ColorAttachmentsResources )
 		{
-			resource.DescriptorSet = ( VkDescriptorSet )ImGui_ImplVulkan_AddTexture( resource.Sampler, resource.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+			resource = nullptr;
 		}
 
-		m_DepthAttachmentResource.DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_DepthAttachmentResource.Sampler, m_DepthAttachmentResource.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+		m_ColorAttachmentsResources.clear();
+		m_DepthAttachmentResource = nullptr;
+
+		m_ColorAttachmentsFormats.clear();
+		m_AttachmentImageViews.clear();
+
+		////
+
+		m_Specification.Width = Width;
+		m_Specification.Height = Height;
+
+		for( auto format : m_Specification.Attachments.Attachments )
+		{
+			if( FramebufferUtills::IsDepthFormat( format.TextureFormat ) )
+				m_DepthFormat = format.TextureFormat;
+			else
+				m_ColorAttachmentsFormats.push_back( format.TextureFormat );
+		}
+
+		Create();
 	}
 
 	void Framebuffer::Create()
@@ -138,36 +145,18 @@ namespace Saturn {
 		// Create Attachment resources
 		// Color
 		VkExtent3D Extent = { m_Specification.Width, m_Specification.Height, 1 };
+
 		for( auto format : m_ColorAttachmentsFormats )
 		{
-			FramebufferAttachmentResource res = {};
-			
-			// Create image.
-			Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, FramebufferUtills::VulkanFormat( format ), Extent, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &res.Image, &res.Memory );
+			Ref<Image2D> image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height );
 
-			// Create image view.
-			Renderer::Get().CreateImageView( res.Image, FramebufferUtills::VulkanFormat( format ), VK_IMAGE_ASPECT_COLOR_BIT, &res.ImageView );
+			m_ColorAttachmentsResources.push_back( image );
 
-			// Create sampler.
-			Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &res.Sampler );
-
-			m_ColorAttachmentsResources.push_back( res );
-			m_AttachmentImageViews.push_back( res.ImageView );
+			m_AttachmentImageViews.push_back( image->GetImageView() );
 		}
 
-		// Create depth resources
-		FramebufferAttachmentResource depth = {};
-
-		Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, FramebufferUtills::VulkanFormat( m_DepthFormat ), Extent, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &depth.Image, &depth.Memory );
-
-		// Create image view.
-		Renderer::Get().CreateImageView( depth.Image, FramebufferUtills::VulkanFormat( m_DepthFormat ), VK_IMAGE_ASPECT_DEPTH_BIT, &depth.ImageView );
-
-		// Create sampler.
-		Renderer::Get().CreateSampler( VK_FILTER_LINEAR, &depth.Sampler );
-
-		m_DepthAttachmentResource = depth;
-		m_AttachmentImageViews.push_back( depth.ImageView );
+		m_DepthAttachmentResource = Ref<Image2D>::Create( ImageFormat::Depth, m_Specification.Width, m_Specification.Height );
+		m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView() );
 
 		VkFramebufferCreateInfo FramebufferCreateInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		FramebufferCreateInfo.renderPass = m_Specification.RenderPass->GetVulkanPass();

@@ -32,6 +32,7 @@
 #include "VulkanDebug.h"
 #include "DescriptorSet.h"
 #include "MaterialInstance.h"
+#include "Shader.h"
 
 namespace Saturn {
 
@@ -71,38 +72,44 @@ namespace Saturn {
 
 		for( uint32_t i = 0; i < 64 * 64; i++ )
 		{
-			pData[ i ] |= 0xffff00ff;
+			pData[ i ] |= 0xffffffff;
 		}
 
 		m_PinkTexture = Ref< Texture2D >::Create( 64, 64, VK_FORMAT_R8G8B8A8_SRGB, pData );
 		m_PinkTexture->SetIsRendererTexture( true );
 
-		free( pData );
+		delete[] pData;
+
+		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
+		// Set 1 is for enviroment data.
+		m_RendererDescriptorSet = shader->CreateDescriptorSet( 1 );
 	}
 	
 	void Renderer::Terminate()
 	{
 		// Terminate Semaphores.
-		SubmitTerminateResource( [AcquireSemaphore = m_AcquireSemaphore, SubmitSemaphore = m_SubmitSemaphore]()
+		SubmitTerminateResource( [&]()
 		{
-			if( AcquireSemaphore )
-				vkDestroySemaphore( VulkanContext::Get().GetDevice(), AcquireSemaphore, nullptr );
+			if( m_AcquireSemaphore )
+				vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_AcquireSemaphore, nullptr );
 			
-			if( SubmitSemaphore )
-				vkDestroySemaphore( VulkanContext::Get().GetDevice(), SubmitSemaphore, nullptr );
+			if( m_SubmitSemaphore )
+				vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_SubmitSemaphore, nullptr );
+
+			m_AcquireSemaphore = nullptr;
+			m_SubmitSemaphore = nullptr;
 		} );
 
-		m_AcquireSemaphore = nullptr;
-		m_SubmitSemaphore = nullptr;
+		SubmitTerminateResource( [&]() 
+		{
+			m_RendererDescriptorSet = nullptr;
+		} );
 
 		if( m_FlightFences.size() )
 		{
-			for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+			for( int i = 0; i < m_FlightFences.size(); i++ )
 			{
-				SubmitTerminateResource( [ FlightFences = m_FlightFences, Index = i ]()
-				{
-					vkDestroyFence( VulkanContext::Get().GetDevice(), FlightFences.at( Index ), nullptr );
-				} );
+				vkDestroyFence( VulkanContext::Get().GetDevice(), m_FlightFences[ i ], nullptr );
 			}
 		}
 
@@ -114,14 +121,14 @@ namespace Saturn {
 	}
 
 	void Renderer::SubmitFullscreenQuad(
-		VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, 
+		VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, 
 		Ref< DescriptorSet >& rDescriptorSet, 
 		IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer )
 	{
-		Pipeline.Bind( CommandBuffer );
+		Pipeline->Bind( CommandBuffer );
 		
 		if( rDescriptorSet )
-			rDescriptorSet->Bind( CommandBuffer, Pipeline.GetPipelineLayout() );
+			rDescriptorSet->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
 		pVertexBuffer->Bind( CommandBuffer );
 		pIndexBuffer->Bind( CommandBuffer );
@@ -138,14 +145,29 @@ namespace Saturn {
 		vkCmdEndRenderPass( CommandBuffer );
 	}
 
-	void Renderer::RenderMeshWithMaterial()
-	{
-		// TODO:
+	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform )
+	{	
+		for ( auto& rSubmesh : mesh->Submeshes() )
+		{
+			mesh->GetVertexBuffer()->Bind( CommandBuffer );
+			mesh->GetIndexBuffer()->Bind( CommandBuffer );
+
+			Pipeline->Bind( CommandBuffer );
+
+			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
+			
+			// Always assume that the vertex shader will have a push constant block containing the model matrix.
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
+			
+			Pipeline->GetDescriptorSet( ShaderType::Vertex, 0 )->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
+
+			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
+		}
 	}
 
 	void Renderer::RenderSubmesh(
 		VkCommandBuffer CommandBuffer, 
-		Saturn::Pipeline Pipeline, 
+		Ref< Saturn::Pipeline > Pipeline,
 		Ref< Mesh > mesh,
 		Submesh& rSubmsh, const glm::mat4 transform )
 	{
@@ -158,56 +180,51 @@ namespace Saturn {
 		// Draw.
 		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, rSubmsh.BaseVertex, 0 );
 	}
-
-	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Saturn::Pipeline Pipeline, Ref< Mesh > mesh, const glm::mat4 transform )
+	
+	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
-		struct PC_StaticMesh
-		{
-			alignas( 16 ) glm::mat4 Transform;
-
-			alignas( 4 ) float UseAlbedoTexture;
-			alignas( 4 ) float UseMetallicTexture;
-			alignas( 4 ) float UseRoughnessTexture;
-			alignas( 4 ) float UseNormalTexture;
-
-			alignas( 16 ) glm::vec4 AlbedoColor;
-			alignas( 4 ) float Metalness;
-			alignas( 4 ) float Roughness;
-		};
-
-		Ref<Shader> StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
+		Ref<Shader> Shader = Pipeline->GetShader();
 
 		for( Submesh& rSubmesh : mesh->Submeshes() )
 		{
 			auto& rMaterial = mesh->GetMaterials()[ rSubmesh.MaterialIndex ];
 			Ref< DescriptorSet > Set = mesh->GetDescriptorSets()[ rSubmesh ];
 
-			StaticMeshShader->WriteAllUBs( Set );
+			Shader->WriteAllUBs( Set );
 
 			mesh->GetVertexBuffer()->Bind( CommandBuffer );
 			mesh->GetIndexBuffer()->Bind( CommandBuffer );
 
-			Pipeline.Bind( CommandBuffer );
+			Pipeline->Bind( CommandBuffer );
 
-			Set->Bind( CommandBuffer, Pipeline.GetPipelineLayout() );
+			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
 
-			PC_StaticMesh PushConstantData = {};
-			PushConstantData.Transform = transform * rSubmesh.Transform;
-			PushConstantData.UseNormalTexture = rMaterial->Get<float>( "u_Materials.UseNormalTexture" ) ? 1.0f : 0.0f;
-			PushConstantData.UseMetallicTexture = rMaterial->Get<float>( "u_Materials.UseMetallicTexture" ) ? 1.0f : 0.0f;
-			PushConstantData.UseRoughnessTexture = rMaterial->Get<float>( "u_Materials.UseRoughnessTexture" ) ? 1.0f : 0.0f;
-			PushConstantData.UseAlbedoTexture = rMaterial->Get<float>( "u_Materials.UseAlbedoTexture" ) ? 1.0f : 0.0f;
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
+						
+			// Set the offset to be the size of the vertex push constant.
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterial->GetPushConstantData().Size, rMaterial->GetPushConstantData().Data );
 
-			PushConstantData.AlbedoColor = rMaterial->Get<glm::vec4>( "u_Materials.AlbedoColor" );
-			PushConstantData.Metalness = 0.0f;
-			PushConstantData.Roughness = 0.0f;
+			rMaterial->Bind( mesh, rSubmesh, Shader );
 
-			vkCmdPushConstants( CommandBuffer, Pipeline.GetPipelineLayout(), VK_SHADER_STAGE_ALL, 0, sizeof( PushConstantData ), &PushConstantData );
+			// DescriptorSet 0, for material texture data.
+			// DescriptorSet 1, for environment data.
+			std::array<VkDescriptorSet, 2> DescriptorSets = {
+				Set->GetVulkanSet(),
+				m_RendererDescriptorSet->GetVulkanSet()
+			};
 
-			rMaterial->Bind( mesh, rSubmesh, StaticMeshShader );
+			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+				Pipeline->GetPipelineLayout(), 0, DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
+	}
+
+	void Renderer::Begin( Ref<Image2D> ShadowMap )
+	{
+		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
+
+		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
 	}
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )
@@ -224,6 +241,19 @@ namespace Saturn {
 		CommandPoolBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &CommandPoolBeginInfo ) );
+
+		return CommandBuffer;
+	}
+
+	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandBufferLevel CmdLevel )
+	{
+		VkCommandBufferAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+		AllocateInfo.commandPool = VulkanContext::Get().GetCommandPool();
+		AllocateInfo.commandBufferCount = 1;
+		AllocateInfo.level = CmdLevel;
+
+		VkCommandBuffer CommandBuffer;
+		VK_CHECK( vkAllocateCommandBuffers( VulkanContext::Get().GetDevice(), &AllocateInfo, &CommandBuffer ) );
 
 		return CommandBuffer;
 	}
@@ -372,14 +402,14 @@ namespace Saturn {
 		VK_CHECK( vkCreateFramebuffer( VulkanContext::Get().GetDevice(), &FramebufferCreateInfo, nullptr, pFramebuffer ) );
 	}
 
-	void Renderer::CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory )
+	void Renderer::CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, uint32_t ArrayLevels, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory )
 	{
 		VkImageCreateInfo ImageCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 		ImageCreateInfo.imageType = Type;
 		ImageCreateInfo.format = Format;
 		ImageCreateInfo.extent = Extent;
 		ImageCreateInfo.mipLevels = 1;
-		ImageCreateInfo.arrayLayers = 1;
+		ImageCreateInfo.arrayLayers = ArrayLevels;
 		ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		ImageCreateInfo.usage = Usage;
@@ -398,17 +428,17 @@ namespace Saturn {
 		VK_CHECK( vkBindImageMemory( VulkanContext::Get().GetDevice(), *pImage, *pMemory, 0 ) );
 	}
 
-	void Renderer::CreateImageView( VkImage Image, VkFormat Format, VkImageAspectFlags Aspect, VkImageView* pImageView )
+	void Renderer::CreateImageView( VkImageViewType Type, VkImage Image, VkFormat Format, VkImageAspectFlags Aspect, uint32_t LayerCount, VkImageView* pImageView )
 	{
 		VkImageViewCreateInfo ImageViewCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 		ImageViewCreateInfo.image = Image;
-		ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		ImageViewCreateInfo.viewType = Type;
 		ImageViewCreateInfo.format = Format;
 		ImageViewCreateInfo.subresourceRange.aspectMask = Aspect;
 		ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 		ImageViewCreateInfo.subresourceRange.levelCount = 1;
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-		ImageViewCreateInfo.subresourceRange.layerCount = 1;
+		ImageViewCreateInfo.subresourceRange.layerCount = LayerCount;
 
 		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, pImageView ) );
 		SetDebugUtilsObjectName( "Image View", ( uint64_t ) *pImageView, VK_OBJECT_TYPE_IMAGE_VIEW );

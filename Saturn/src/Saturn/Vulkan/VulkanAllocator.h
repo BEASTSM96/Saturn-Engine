@@ -29,8 +29,7 @@
 #pragma once
 
 #include <vulkan.h>
-
-#include "vma/vk_mem_alloc.h"
+#include <vma/vk_mem_alloc.h>
 
 namespace Saturn {
 	
@@ -53,18 +52,18 @@ namespace Saturn {
 		void DestroyImage( VmaAllocation Allocation, VkImage Image );
 	
 		template<typename Ty>
-		void* MapMemory( VmaAllocation rAllocation )
+		void* MapMemory( VmaAllocation Allocation )
 		{
 			void* pData = nullptr;
 
-			vmaMapMemory( m_Allocator, rAllocation, &pData );
+			vmaMapMemory( m_Allocator, Allocation, &pData );
 			
 			return pData;
 		}
 
-		void UnmapMemory( VmaAllocation rAllocation )
+		void UnmapMemory( VmaAllocation Allocation )
 		{
-			vmaUnmapMemory( m_Allocator, rAllocation );
+			vmaUnmapMemory( m_Allocator, Allocation );
 		}
 
 		VmaAllocation GetAllocationFromBuffer( VkBuffer Buffer ) { return m_Allocations[ Buffer ]; }

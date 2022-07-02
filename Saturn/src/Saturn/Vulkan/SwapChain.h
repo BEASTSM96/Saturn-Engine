@@ -37,7 +37,7 @@
 
 namespace Saturn {
 
-	class Swapchain
+	class Swapchain : public CountedObj
 	{
 	public:
 		Swapchain();
@@ -51,6 +51,8 @@ namespace Saturn {
 
 		bool AcquireNextImage( uint32_t Timeout, VkSemaphore Semaphore, VkFence Fence, uint32_t* pImageIndex );
 
+		uint32_t GetImageIndex() { return m_ImageIndex; }
+
 		VkSwapchainKHR& GetSwapchain() { return m_Swapchain; }
 		std::vector< VkFramebuffer >& GetFramebuffers() { return m_Framebuffers; }
 	private:
@@ -59,6 +61,11 @@ namespace Saturn {
 
 		VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
 
+		uint32_t m_ImageIndex = 0;
+		
+		VkSemaphore m_PresentSemaphore;
+
+		std::vector< VkFence > m_Fences;
 		std::vector< VkImage > m_Images;
 		std::vector< VkImageView > m_ImageViews;
 		std::vector< VkFramebuffer > m_Framebuffers;

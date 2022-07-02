@@ -40,6 +40,8 @@
 
 #include "Pipeline.h"
 
+#define SHADOW_CASCADE_COUNT 4
+
 namespace Saturn {
 
 	struct DrawCommand
@@ -51,6 +53,15 @@ namespace Saturn {
 		Entity entity;
 		Ref< Mesh > Mesh = nullptr;
 		glm::mat4 Transform;
+	};
+
+	struct ShadowCascade
+	{
+		Ref< Framebuffer > Framebuffer = nullptr;
+		//std::unordered_map< Submesh, Ref< DescriptorSet > > DescriptorSets;
+
+		float SplitDepth = 0.0f;
+		glm::mat4 ViewProjection;
 	};
 
 	struct RendererData
@@ -78,6 +89,8 @@ namespace Saturn {
 		uint32_t Width = 0;
 		uint32_t Height = 0;
 		
+		bool Resized = false;
+
 		//////////////////////////////////////////////////////////////////////////
 
 		//////////////////////////////////////////////////////////////////////////
@@ -112,13 +125,10 @@ namespace Saturn {
 		struct StaticMeshMatrices
 		{
 			glm::mat4 ViewProjection;
-			glm::vec3 LightPos;
 		};
 
 		struct StaticMeshMaterial
 		{
-			alignas( 16 ) glm::mat4 Transform;
-
 			alignas( 4 ) float UseAlbedoTexture;
 			alignas( 4 ) float UseMetallicTexture;
 			alignas( 4 ) float UseRoughnessTexture;
@@ -132,12 +142,12 @@ namespace Saturn {
 		// DirShadowMap
 		//////////////////////////////////////////////////////////////////////////
 		
-		// For each mesh create a descriptor set, using the shadow map shader.
-		std::vector<Ref<DescriptorSet>> DirShadowMapDescriptorSets;
-
 		Ref<Pass> DirShadowMapPass = nullptr;
-		Ref<Framebuffer> DirShadowMapFramebuffer = nullptr;
-		Pipeline DirShadowMapPipeline;
+		Ref<Pipeline> DirShadowMapPipeline;
+
+		float CascadeSplitLambda = 0.91f;
+
+		std::vector< ShadowCascade > ShadowCascades;
 
 		// Geometry
 		//////////////////////////////////////////////////////////////////////////
@@ -146,20 +156,14 @@ namespace Saturn {
 		Ref<Pass> GeometryPass = nullptr;
 		Ref<Framebuffer> GeometryFramebuffer = nullptr;
 
-		// Selected Geometry
-		Ref<Pass> SelectedGeometryPass = nullptr;
-		Ref<Framebuffer> SelectedGeometryFramebuffer = nullptr;
-		Pipeline SelectedGeometryPipeline;
-		Ref<DescriptorSet> SelectedGeometrySet;
-
 		// STATIC MESHES
 
 		// Main geometry for static meshes.
-		Pipeline StaticMeshPipeline;
+		Ref<Pipeline> StaticMeshPipeline;
 	
 		// GRID
 
-		Pipeline GridPipeline;
+		Ref<Pipeline> GridPipeline;
 
 		Ref< DescriptorSet > GridDescriptorSet = nullptr;
 
@@ -168,7 +172,7 @@ namespace Saturn {
 
 		// SKYBOX
 
-		Pipeline SkyboxPipeline;
+		Ref<Pipeline> SkyboxPipeline;
 
 		Ref< DescriptorSet > SkyboxDescriptorSet = nullptr;
 				
@@ -186,7 +190,7 @@ namespace Saturn {
 		Ref<Pass> SceneComposite = nullptr;
 		Ref< Framebuffer > SceneCompositeFramebuffer = nullptr;
 
-		Pipeline SceneCompositePipeline;
+		Ref<Pipeline> SceneCompositePipeline;
 		
 		// Input
 		Ref< DescriptorSet > SC_DescriptorSet = nullptr;
@@ -198,9 +202,6 @@ namespace Saturn {
 		// End Scene Composite
 		//////////////////////////////////////////////////////////////////////////
 
-		// TEMP
-		glm::vec3 LightPos = glm::vec3( 0.5f, 0.5f, 0.5f );
-
 		// SHADERS
 
 		Ref< Shader > GridShader = nullptr;
@@ -211,7 +212,7 @@ namespace Saturn {
 		Ref< Shader > SelectedGeometryShader = nullptr;
 	};
 
-	class SceneRenderer
+	class SceneRenderer : public CountedObj
 	{
 		SINGLETON( SceneRenderer );
 	public:
@@ -228,7 +229,7 @@ namespace Saturn {
 		void SubmitSelectedMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 		void SubmitMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 
-		void SetWidthAndHeight( uint32_t w, uint32_t h ) { m_RendererData.Width = w; m_RendererData.Height = h; Recreate(); }
+		void SetWidthAndHeight( uint32_t w, uint32_t h );
 
 		void FlushDrawList();		
 
@@ -243,11 +244,8 @@ namespace Saturn {
 		Ref<Pass> GetGeometryPass() { return m_RendererData.GeometryPass; }
 		const Ref<Pass> GetGeometryPass() const { return m_RendererData.GeometryPass; }
 
-		VkDescriptorSet CompositeImage() { return m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ].DescriptorSet; }
+		Ref<Image2D> CompositeImage() { return m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ]; }
 		
-		// TEMP!!
-		void CreateAllFBSets();
-
 		void Terminate();
 
 	private:
@@ -256,21 +254,19 @@ namespace Saturn {
 		void RenderGrid();
 		void RenderSkybox();
 
+		void UpdateCascades( const glm::vec3& Direction );
+
 		void CreateGridComponents();
-		void DestroyGridComponents();
 
 		void CreateSkyboxComponents();
-		void DestroySkyboxComponents();
 
 		void InitGeometryPass();
 		void InitDirShadowMap();
 		void InitSceneComposite();
-		void InitSelectedGeometryPass();
 
 		void GeometryPass();
 		void DirShadowMapPass();
 		void SceneCompositePass();
-		void SelectedGeometryPass();
 
 	private:
 
