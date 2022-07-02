@@ -331,12 +331,18 @@ namespace Saturn {
 
 	void EditorLayer::OpenFile( const std::string& FileName )
 	{
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 		Ref<Scene> newScene = Ref<Scene>::Create();
 
 		SceneSerialiser serialiser( newScene );
 		serialiser.Deserialise( FileName );
 
-		m_EditorScene = newScene;
+		newScene->CopyScene( m_EditorScene );
+
+		newScene = nullptr;
+		
+		pHierarchyPanel->SetContext( m_EditorScene );
+		pHierarchyPanel->SetSelected( {} );
 	}
 
 	void EditorLayer::SelectionChanged( Entity e )

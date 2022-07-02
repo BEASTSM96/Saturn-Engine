@@ -177,7 +177,7 @@ namespace Saturn {
 			auto& tc = entity.GetComponent< TransformComponent >();
 
 			rEmitter << YAML::Key << "Position" << YAML::Value << tc.Position;
-			rEmitter << YAML::Key << "Rotation" << YAML::Value << tc.Rotation;
+			rEmitter << YAML::Key << "Rotation" << YAML::Value << glm::degrees( tc.Rotation );
 			rEmitter << YAML::Key << "Scale" << YAML::Value << tc.Scale;
 
 			rEmitter << YAML::EndMap;
@@ -190,7 +190,7 @@ namespace Saturn {
 			rEmitter << YAML::BeginMap;
 
 			auto& mc = entity.GetComponent< MeshComponent >();
-
+			
 			rEmitter << YAML::Key << "Filepath" << YAML::Value << mc.Mesh->FilePath();
 
 			rEmitter << YAML::EndMap;
@@ -219,6 +219,21 @@ namespace Saturn {
 			}
 			else
 				rEmitter << YAML::Key << "Environment Map" << YAML::Value << slc.Map.Path.string();
+
+			rEmitter << YAML::EndMap;
+		}
+
+		// Directional Light Component
+		if( entity.HasComponent<DirectionalLightComponent>() ) 
+		{
+			rEmitter << YAML::Key << "DirectionalLightComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& dlc = entity.GetComponent< DirectionalLightComponent >();
+			
+			rEmitter << YAML::Key << "Radiance" << YAML::Value << dlc.Radiance;
+			rEmitter << YAML::Key << "Intensity" << YAML::Value << dlc.Intensity;
+			rEmitter << YAML::Key << "CastShadows" << YAML::Value << dlc.CastShadows;
 
 			rEmitter << YAML::EndMap;
 		}
@@ -299,7 +314,7 @@ namespace Saturn {
 				auto& t = DeserialisedEntity.GetComponent< TransformComponent >();
 
 				t.Position = tc["Position"].as< glm::vec3 >();
-				t.Rotation = tc["Rotation"].as< glm::vec3 >();
+				t.Rotation = glm::radians( tc["Rotation"].as< glm::vec3 >() );
 				t.Scale = tc["Scale"].as< glm::vec3 >();
 			}
 
@@ -330,6 +345,16 @@ namespace Saturn {
 				{
 					// TODO...
 				}
+			}
+
+			auto dlc = entity[ "DirectionalLightComponent" ];
+			if( dlc )
+			{
+				auto& d = DeserialisedEntity.AddComponent< DirectionalLightComponent >();
+
+				d.Radiance = dlc["Radiance"].as< glm::vec3 >();
+				d.Intensity = dlc["Intensity"].as< float >();
+				d.CastShadows = dlc["CastShadows"].as< bool >();
 			}
 		}
 	}

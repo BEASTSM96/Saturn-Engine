@@ -55,8 +55,6 @@ namespace Saturn {
 					}
 					else
 					{
-						SAT_CORE_INFO( "Pushing Push Constant data {0}, Value {1}", Name, Value );
-						
 						m_PushConstantData.Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
 					}
 					

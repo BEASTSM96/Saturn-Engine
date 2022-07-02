@@ -266,10 +266,10 @@ namespace Saturn {
 			// Centre align the text.
 			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + ( ThumbnailSize.x - ImGui::CalcTextSize( filename.c_str() ).x ) * 0.5f - EdgeOffset );
 
-			ImGui::Text( filename.c_str() );
+			ImGui::TextWrapped( filename.c_str() );
 		}
 		else
-			ImGui::Text( filename.c_str() );		
+			ImGui::TextWrapped( filename.c_str() );
 
 		ImGui::PopID();
 

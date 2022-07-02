@@ -334,6 +334,7 @@ namespace Saturn {
 		{
 			DrawFloatControl( "Intensity", dlc.Intensity, 110.0f );
 			DrawBoolControl( "Cast shadows", dlc.CastShadows );
+			DrawColorVec3Control( "Radiance", dlc.Radiance, 1.0f );
 		} );
 
 		DrawComponent<SkylightComponent>( "Skylight", entity, []( auto& skl )
