@@ -357,6 +357,23 @@ namespace Saturn {
 
 	bool EditorLayer::OnKeyPressed( KeyPressedEvent& rEvent )
 	{
+		switch( rEvent.KeyCode() )
+		{
+			case Key::Delete:
+			{
+				SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+
+				if( pHierarchyPanel )
+				{
+					if( auto& rEntity = pHierarchyPanel->GetSelectionContext() )
+					{
+						m_EditorScene->DeleteEntity( rEntity );
+						pHierarchyPanel->SetSelected( {} );
+					}
+				}
+			} break;
+		}
+
 		if( Input::Get().KeyPressed( Key::LeftControl ) )
 		{
 			switch( rEvent.KeyCode() )

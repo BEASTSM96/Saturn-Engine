@@ -212,4 +212,9 @@ namespace Saturn {
 		SkylightComponent() = default;
 		SkylightComponent( const SkylightComponent& other ) = default;
 	};
+
+	template<typename... V>
+	struct ComponentGroup {};
+
+	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, MeshComponent, LightComponent, DirectionalLightComponent, SkylightComponent>;
 }

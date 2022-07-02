@@ -70,6 +70,7 @@ namespace Saturn {
 		void OnRenderEditor( const EditorCamera& Camera, Timestep ts );
 
 		void DuplicateEntity( Entity entity );
+		void DeleteEntity( Entity entity );
 
 		template<typename T>
 		auto GetAllEntitiesWith( void )

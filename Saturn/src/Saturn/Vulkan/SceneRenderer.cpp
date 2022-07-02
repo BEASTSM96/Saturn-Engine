@@ -717,9 +717,12 @@ namespace Saturn {
 		// Render static meshes.
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
 
-
 		for( auto& Cmd : m_DrawList )
 		{
+			// Entity may of been deleted.
+			if( !Cmd.entity )
+				continue;
+
 			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
 
 			// u_Matrices
@@ -847,6 +850,10 @@ namespace Saturn {
 
 			for( auto& Cmd : m_DrawList )
 			{
+				// Entity may of been deleted.
+				if( !Cmd.entity )
+					continue;
+
 				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipeline, Cmd.Mesh, Cmd.Transform );
 			}
 

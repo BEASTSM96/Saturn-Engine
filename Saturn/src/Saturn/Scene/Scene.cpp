@@ -217,6 +217,11 @@ namespace Saturn {
 		CopyComponentIfExists<DirectionalLightComponent>( newEntity, entity, m_Registry );
 	}
 
+	void Scene::DeleteEntity( Entity entity )
+	{
+		m_Registry.destroy( entity );
+	}
+
 	void Scene::CopyScene( Ref<Scene>& NewScene )
 	{
 		NewScene->m_EntityIDMap = m_EntityIDMap;
