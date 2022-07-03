@@ -204,31 +204,48 @@ namespace Saturn {
 		m_Registry.destroy( entity.m_EntityHandle );
 	}
 
-	template<typename T>
+	template<typename ...V>
 	static void CopyComponent( entt::registry& dstRegistry, entt::registry& srcRegistry, const std::unordered_map<UUID, entt::entity>& enttMap )
 	{
-		auto components = srcRegistry.view<T>();
-		for( auto srcEntity : components )
+		( [&]() 
 		{
-			if( !srcRegistry.has<SceneComponent>( srcEntity ) )
+			auto components = srcRegistry.view<V>();
+			for( auto srcEntity : components )
 			{
-				SAT_CORE_INFO( "{0}", srcRegistry.get<IdComponent>( srcEntity ).ID );
-				entt::entity destEntity = enttMap.at( srcRegistry.get<IdComponent>( srcEntity ).ID );
+				if( !srcRegistry.has<SceneComponent>( srcEntity ) )
+				{
+					entt::entity destEntity = enttMap.at( srcRegistry.get<IdComponent>( srcEntity ).ID );
 
-				auto& srcComponent = srcRegistry.get<T>( srcEntity );
-				auto& destComponent = dstRegistry.emplace_or_replace<T>( destEntity, srcComponent );
+					auto& srcComponent = srcRegistry.get<V>( srcEntity );
+					auto& destComponent = dstRegistry.emplace_or_replace<V>( destEntity, srcComponent );
+				}
 			}
-		}
+		}( ), ... );
 	}
 
-	template<typename T>
+	template<typename ...V>
+	static void CopyComponent( ComponentGroup<V...>, entt::registry& dstRegistry, entt::registry& srcRegistry, const std::unordered_map<UUID, entt::entity>& enttMap )
+	{
+		CopyComponent<V...>( dstRegistry, srcRegistry, enttMap );
+	}
+	
+	template<typename... V>
 	static void CopyComponentIfExists( entt::entity dst, entt::entity src, entt::registry& rRegistry )
 	{
-		if( rRegistry.has<T>( src ) )
+		([&]()
 		{
-			auto& srcComponent = rRegistry.get<T>( src );
-			rRegistry.emplace_or_replace<T>( dst, srcComponent );
-		}
+			if( rRegistry.has<V>( src ) )
+			{
+				auto& srcComponent = rRegistry.get<V>( src );
+				rRegistry.emplace_or_replace<V>( dst, srcComponent );
+			}
+		}(), ... );
+	}
+	
+	template<typename... V>
+	static void CopyComponentIfExists( ComponentGroup<V...>, entt::entity dst, entt::entity src, entt::registry& rRegistry )
+	{
+		CopyComponentIfExists<V...>( dst, src, rRegistry );
 	}
 
 	void Scene::DuplicateEntity( Entity entity )
@@ -237,12 +254,7 @@ namespace Saturn {
 
 		newEntity = CreateEntity( entity.GetComponent<TagComponent>().Tag );
 
-		CopyComponentIfExists<TransformComponent>( newEntity, entity, m_Registry );
-		CopyComponentIfExists<VisibilityComponent>( newEntity, entity, m_Registry );
-		CopyComponentIfExists<MeshComponent>( newEntity, entity, m_Registry );
-		CopyComponentIfExists<SkylightComponent>( newEntity, entity, m_Registry );
-		CopyComponentIfExists<LightComponent>( newEntity, entity, m_Registry );
-		CopyComponentIfExists<DirectionalLightComponent>( newEntity, entity, m_Registry );
+		CopyComponentIfExists( AllComponents{}, newEntity, entity, m_Registry );
 	}
 
 	void Scene::DeleteEntity( Entity entity )
@@ -266,18 +278,7 @@ namespace Saturn {
 			EntityMap[ uuid ] = e.m_EntityHandle;
 		}
 
-		CopyComponent<TagComponent>( NewScene->m_Registry, m_Registry, EntityMap );
-		CopyComponent<VisibilityComponent>( NewScene->m_Registry, m_Registry, EntityMap );
-		//CopyComponent<IdComponent>( NewScene->m_Registry, m_Registry, EntityMap );
-		CopyComponent<TransformComponent>( NewScene->m_Registry, m_Registry, EntityMap );
-		
-		CopyComponent<MeshComponent>( NewScene->m_Registry, m_Registry, EntityMap );
-		CopyComponent<SkylightComponent>( NewScene->m_Registry, m_Registry, EntityMap );
-		CopyComponent<DirectionalLightComponent>( NewScene->m_Registry, m_Registry, EntityMap );
-		
-		CopyComponent<PhysXBoxColliderComponent>( NewScene->m_Registry, m_Registry, EntityMap );
-		CopyComponent<PhysXRigidbodyComponent>( NewScene->m_Registry, m_Registry, EntityMap );
-		CopyComponent<PhysXMaterialComponent>( NewScene->m_Registry, m_Registry, EntityMap );
+		CopyComponent( AllComponents{}, NewScene->m_Registry, m_Registry, EntityMap );
 	}
 
 	void Scene::OnRuntimeStart()

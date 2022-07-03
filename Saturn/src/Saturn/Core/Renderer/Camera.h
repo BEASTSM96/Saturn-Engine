@@ -39,7 +39,7 @@ namespace Saturn {
 		Camera() = default;
 
 		Camera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane )
-			: m_Projection( glm::perspectiveFov( glm::radians( Fov ), Width, Height, FarPlane, NearPlane ) )
+			: m_Projection( glm::perspectiveFov( glm::radians( Fov ), Width, Height, NearPlane, FarPlane ) )
 		{
 			AllowEvents( true );
 		}

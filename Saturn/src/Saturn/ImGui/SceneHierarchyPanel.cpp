@@ -231,6 +231,24 @@ namespace Saturn {
 				}
 			}
 
+			if( !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>() )
+			{
+				if( ImGui::Button( "Sphere Collider" ) )
+				{
+					m_SelectionContext.AddComponent<PhysXSphereColliderComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			if( !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>() )
+			{
+				if( ImGui::Button( "Capsule Collider" ) )
+				{
+					m_SelectionContext.AddComponent<PhysXCapsuleColliderComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
 			if( !m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() )
 			{
 				if( ImGui::Button( "Rigidbody" ) )
@@ -391,6 +409,24 @@ namespace Saturn {
 			DrawVec3Control( "Offset", bc.Offset );
 			
 			DrawBoolControl( "IsTrigger", bc.IsTrigger );
+		} );
+
+		DrawComponent<PhysXSphereColliderComponent>( "Sphere Collider", entity, []( auto& sc )
+		{
+			DrawVec3Control( "Offset", sc.Offset );
+			DrawFloatControl( "Radius", sc.Radius );
+
+			DrawBoolControl( "IsTrigger", sc.IsTrigger );
+		} );
+
+		DrawComponent<PhysXCapsuleColliderComponent>( "Capsule Collider", entity, []( auto& cc )
+		{
+			DrawVec3Control( "Offset", cc.Offset );
+
+			DrawFloatControl( "Radius", cc.Radius );
+			DrawFloatControl( "Height", cc.Height );
+
+			DrawBoolControl( "IsTrigger", cc.IsTrigger );
 		} );
 
 		DrawComponent<PhysXRigidbodyComponent>( "Rigidbody", entity, []( auto& rb )

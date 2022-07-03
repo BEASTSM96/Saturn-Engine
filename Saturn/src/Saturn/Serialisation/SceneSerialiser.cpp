@@ -253,6 +253,37 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
+		// Sphere collider
+		if( entity.HasComponent<PhysXSphereColliderComponent>() )
+		{
+			rEmitter << YAML::Key << "PhysXSphereColliderComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& scc = entity.GetComponent< PhysXSphereColliderComponent >();
+
+			rEmitter << YAML::Key << "Radius" << YAML::Value << scc.Radius;
+			rEmitter << YAML::Key << "Offset" << YAML::Value << scc.Offset;
+			rEmitter << YAML::Key << "IsTrigger" << YAML::Value << scc.IsTrigger;
+
+			rEmitter << YAML::EndMap;
+		}
+		
+		// Box collider
+		if( entity.HasComponent<PhysXCapsuleColliderComponent>() )
+		{
+			rEmitter << YAML::Key << "PhysXCapsuleColliderComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& ccc = entity.GetComponent< PhysXCapsuleColliderComponent >();
+
+			rEmitter << YAML::Key << "Height" << YAML::Value << ccc.Height;
+			rEmitter << YAML::Key << "Radius" << YAML::Value << ccc.Radius;
+			rEmitter << YAML::Key << "Offset" << YAML::Value << ccc.Offset;
+			rEmitter << YAML::Key << "IsTrigger" << YAML::Value << ccc.IsTrigger;
+
+			rEmitter << YAML::EndMap;
+		}
+
 		// Rigid body
 		if( entity.HasComponent<PhysXRigidbodyComponent>() )
 		{
@@ -410,6 +441,27 @@ namespace Saturn {
 				b.Extents = bcc["Extents"].as< glm::vec3 >();
 				b.Offset = bcc["Offset"].as< glm::vec3 >();
 				b.IsTrigger = bcc["IsTrigger"].as< bool >();
+			}
+
+			auto scc = entity[ "PhysXSphereColliderComponent" ];
+			if( scc )
+			{
+				auto& s = DeserialisedEntity.AddComponent< PhysXSphereColliderComponent >();
+
+				s.Radius = scc[ "Radius" ].as< float >();
+				s.Offset = scc[ "Offset" ].as< glm::vec3 >();
+				s.IsTrigger = scc[ "IsTrigger" ].as< bool >();
+			}
+			
+			auto ccc = entity[ "PhysXCapsuleColliderComponent" ];
+			if( ccc )
+			{
+				auto& c = DeserialisedEntity.AddComponent< PhysXCapsuleColliderComponent >();
+
+				c.Height = ccc[ "Height" ].as< float >();
+				c.Radius = ccc[ "Radius" ].as< float >();
+				c.Offset = ccc[ "Offset" ].as< glm::vec3 >();
+				c.IsTrigger = ccc[ "IsTrigger" ].as< bool >();
 			}
 
 			auto rbc = entity[ "PhysXRigidbodyComponent" ];

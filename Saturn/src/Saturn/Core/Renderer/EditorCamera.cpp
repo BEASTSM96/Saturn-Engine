@@ -173,7 +173,7 @@ namespace Saturn {
 			m_PitchDelta = 0.f;
 
 		const glm::vec3 lookAt = m_Position + ForwardDirection();
-		m_WorldRotation = glm::normalize( m_FocalPoint - m_Position );
+		m_WorldRotation = glm::normalize( lookAt - m_Position );
 		m_FocalPoint = m_Position + ForwardDirection() * m_Distance;
 		m_Distance = glm::distance( m_Position, m_FocalPoint );
 		m_ViewMatrix = glm::lookAt( m_Position, lookAt, glm::vec3{ 0.f, -yawSign, 0.f } );

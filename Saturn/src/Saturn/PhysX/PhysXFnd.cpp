@@ -205,12 +205,50 @@ namespace Saturn {
 
 	void PhysXFnd::CreateSphereCollider( Entity& rEntity, physx::PxRigidActor& rActor )
 	{
+		auto& comp = rEntity.GetComponent<PhysXSphereColliderComponent>();
+		auto& rb = rEntity.GetComponent<PhysXRigidbodyComponent>();
+		auto& trans = rEntity.GetComponent<TransformComponent>();
+		auto& mat = rEntity.GetComponent<PhysXMaterialComponent>();
+		auto& mesh = rEntity.GetComponent<MeshComponent>();
+		
+		float size = comp.Radius;
+		glm::vec3 entitySize = trans.Scale;
 
+		if( entitySize.x != 0.0f )
+			size *= entitySize.x;
+		
+		physx::PxSphereGeometry SphereGeometry( size / 2.0f );
+		
+		physx::PxShape* pShape = physx::PxRigidActorExt::createExclusiveShape( rActor, SphereGeometry, *s_Physics->createMaterial( mat.StaticFriction, mat.DynamicFriction, mat.Restitution ) );
+		pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
+		pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
 	}
 
 	void PhysXFnd::CreateCapsuleCollider( Entity& rEntity, physx::PxRigidActor& rActor )
 	{
+		auto& comp = rEntity.GetComponent<PhysXCapsuleColliderComponent>();
+		auto& rb = rEntity.GetComponent<PhysXRigidbodyComponent>();
+		auto& trans = rEntity.GetComponent<TransformComponent>();
+		auto& mat = rEntity.GetComponent<PhysXMaterialComponent>();
+		auto& mesh = rEntity.GetComponent<MeshComponent>();
 
+		float size = comp.Radius;
+		float height = comp.Height;
+
+		glm::vec3 entitySize = trans.Scale;
+
+		if( entitySize.x != 0.0f )
+			size *= ( entitySize.x );
+
+		if( entitySize.y != 0.0f )
+			height *= ( entitySize.y );
+		
+		physx::PxCapsuleGeometry CapsuleGeometry( size, height / 2.0f );
+
+		physx::PxShape* pShape = physx::PxRigidActorExt::createExclusiveShape( rActor, CapsuleGeometry, *s_Physics->createMaterial( mat.StaticFriction, mat.DynamicFriction, mat.Restitution ) );
+		pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
+		pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
+		pShape->setLocalPose( physx::PxTransform( physx::PxQuat( physx::PxHalfPi, physx::PxVec3( 0, 0, 1 ) ) ) );
 	}
 
 	void PhysXFnd::CreateMeshCollider( Entity& rEntity, physx::PxRigidActor& rActor )

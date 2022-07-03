@@ -225,6 +225,30 @@ namespace Saturn {
 		PhysXBoxColliderComponent( const glm::vec3& extents ) : Extents( extents ) { }
 	};
 
+	struct PhysXSphereColliderComponent
+	{
+		glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+		float Radius = 1.0f;
+
+		bool IsTrigger = false;
+
+		PhysXSphereColliderComponent() = default;
+		PhysXSphereColliderComponent( float radius ) : Radius( radius ) { }
+	};
+
+	struct PhysXCapsuleColliderComponent
+	{
+		glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+
+		float Radius = 1.0f;
+		float Height = 1.0f;
+
+		bool IsTrigger = false;
+
+		PhysXCapsuleColliderComponent() = default;
+		PhysXCapsuleColliderComponent( float radius ) : Radius( radius ) { }
+	};
+
 	class PhysXRigidbody;
 	struct PhysXRigidbodyComponent
 	{
@@ -248,5 +272,7 @@ namespace Saturn {
 	template<typename... V>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, MeshComponent, LightComponent, DirectionalLightComponent, SkylightComponent, PhysXBoxColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent>;
+	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, 
+		MeshComponent, LightComponent, DirectionalLightComponent, SkylightComponent, 
+		PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent>;
 }
