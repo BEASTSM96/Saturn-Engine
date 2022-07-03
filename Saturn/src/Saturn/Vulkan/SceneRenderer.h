@@ -125,6 +125,7 @@ namespace Saturn {
 		struct StaticMeshMatrices
 		{
 			glm::mat4 ViewProjection;
+			glm::mat4 View;
 		};
 
 		struct StaticMeshMaterial
@@ -145,7 +146,9 @@ namespace Saturn {
 		Ref<Pass> DirShadowMapPass = nullptr;
 		Ref<Pipeline> DirShadowMapPipeline;
 
-		float CascadeSplitLambda = 0.91f;
+		float CascadeSplitLambda = 0.92f;
+		float CascadeFarPlaneOffset = 50.0f;
+		float CascadeNearPlaneOffset = -50.0f;
 
 		std::vector< ShadowCascade > ShadowCascades;
 

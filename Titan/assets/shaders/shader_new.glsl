@@ -13,11 +13,12 @@ layout(location = 4) in vec2 a_TexCoord;
 layout(binding = 0) uniform Matrices 
 {
 	mat4 ViewProjection;
+	mat4 View;
 } u_Matrices;
 
 layout(binding = 1) uniform LightData
 {
-	mat4 LightMatrix;
+	mat4 LightMatrix[4];
 };
 
 layout(push_constant) uniform u_Transform
@@ -25,7 +26,7 @@ layout(push_constant) uniform u_Transform
 	mat4 Transform;
 };
 
-layout(location = 1) out VertexOutput 
+struct VertexOutput 
 {
 	vec3 Normal;
 	vec3 Tangent;
@@ -33,8 +34,12 @@ layout(location = 1) out VertexOutput
 	vec3 Position;
 	vec2 TexCoord;
 	mat3 WorldNormals;
-	vec4 ShadowMapCoords;
-} vs_Output;
+
+	vec4 ShadowMapCoords[4];
+	vec3 ViewPosition;
+};
+
+layout( location = 1 ) out VertexOutput vs_Output;
 
 void main()
 {
@@ -47,7 +52,12 @@ void main()
 
 	vs_Output.WorldNormals = mat3( Transform ) * mat3( a_Tangent, a_Bitangent, a_Normal );
 
-	vs_Output.ShadowMapCoords = LightMatrix * vec4( vs_Output.Position, 1.0 );
+	vs_Output.ShadowMapCoords[0] = LightMatrix[0] * vec4( vs_Output.Position, 1.0 );
+	vs_Output.ShadowMapCoords[1] = LightMatrix[1] * vec4( vs_Output.Position, 1.0 );
+	vs_Output.ShadowMapCoords[2] = LightMatrix[2] * vec4( vs_Output.Position, 1.0 );
+	vs_Output.ShadowMapCoords[3] = LightMatrix[3] * vec4( vs_Output.Position, 1.0 );
+	
+	vs_Output.ViewPosition = vec3( u_Matrices.View * vec4( vs_Output.Position, 1.0 ) );
 	
 	gl_Position = u_Matrices.ViewProjection * Transform * vec4( a_Position, 1.0 );
 }
@@ -85,19 +95,24 @@ layout(set = 0, binding = 2) uniform Camera
 	vec3 CameraPosition;
 } u_Camera;
 
+layout(set = 0, binding = 3) uniform ShadowData 
+{
+	vec4 CascadeSplits;
+};
+
 // Textures
-layout (set = 0, binding = 3) uniform sampler2D u_AlbedoTexture;
-layout (set = 0, binding = 4) uniform sampler2D u_NormalTexture;
-layout (set = 0, binding = 5) uniform sampler2D u_MetallicTexture;
-layout (set = 0, binding = 6) uniform sampler2D u_RoughnessTexture;
+layout (set = 0, binding = 4) uniform sampler2D u_AlbedoTexture;
+layout (set = 0, binding = 5) uniform sampler2D u_NormalTexture;
+layout (set = 0, binding = 6) uniform sampler2D u_MetallicTexture;
+layout (set = 0, binding = 7) uniform sampler2D u_RoughnessTexture;
 
 // Set 1, owned by renderer, environment settings.
 
-layout (set = 1, binding = 7) uniform sampler2D u_ShadowMap;
+layout (set = 1, binding = 8) uniform sampler2DArray u_ShadowMap;
 
 layout (location = 0) out vec4 FinalColor;
 
-layout(location = 1) in VertexOutput 
+struct VertexOutput 
 {
 	vec3 Normal;
 	vec3 Tangent;
@@ -105,8 +120,12 @@ layout(location = 1) in VertexOutput
 	vec3 Position;
 	vec2 TexCoord;
 	mat3 WorldNormals;
-	vec4 ShadowMapCoords;
-} vs_Input;
+
+	vec4 ShadowMapCoords[4];
+	vec3 ViewPosition;
+};
+
+layout( location = 1 ) in VertexOutput vs_Input;
 
 struct PBRParameters
 {
@@ -131,10 +150,10 @@ float GetShadowBias()
 	return bias;
 }
 
-float HardShadows( sampler2D ShadowMap, vec3 ShadowCoords ) 
+float HardShadows( sampler2DArray ShadowMap, vec3 ShadowCoords, uint index ) 
 {
 	float bias = GetShadowBias();
-	float map = texture( ShadowMap, ShadowCoords.xy * 0.5 + 0.5 ).x;
+	float map = texture( ShadowMap, vec3( ShadowCoords.xy * 0.5 + 0.5, index ) ).x;
 	return step( ShadowCoords.z, map + bias ) * 1.0;
 }
 
@@ -225,9 +244,19 @@ void main()
 
 	// SHADOWS
 
-	vec3 ShadowCoords = (vs_Input.ShadowMapCoords.xyz / vs_Input.ShadowMapCoords.w);
+	uint cascadeIndex = 0;
 	
-	float ShadowAmount = HardShadows( u_ShadowMap, ShadowCoords );
+	const uint SHADOW_MAP_CASCADES = 4;
+	
+	for( uint i = 0; i < SHADOW_MAP_CASCADES - 1; i++ )
+	{
+		if( vs_Input.ViewPosition.z < CascadeSplits[ i ] )
+			cascadeIndex = i + 1;
+	}
+
+	vec3 ShadowCoords = (vs_Input.ShadowMapCoords[cascadeIndex].xyz / vs_Input.ShadowMapCoords[cascadeIndex].w);
+	
+	float ShadowAmount = HardShadows( u_ShadowMap, ShadowCoords, cascadeIndex );
 
 	// OUTPUT
 	vec3 Lighting = Lighting( F0 ) * ShadowAmount;

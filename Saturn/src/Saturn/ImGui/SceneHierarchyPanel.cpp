@@ -399,8 +399,6 @@ namespace Saturn {
 			DrawBoolControl( "Use CCD", rb.UseCCD );
 			
 			DrawIntControl( "Mass", rb.Mass );
-
-			//rb.m_Rigidbody->SetMass( rb.Mass );
 		} );
 
 	}

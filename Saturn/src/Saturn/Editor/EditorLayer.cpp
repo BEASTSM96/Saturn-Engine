@@ -47,7 +47,7 @@
 namespace Saturn {
 
 	EditorLayer::EditorLayer() 
-		: m_EditorCamera( glm::perspectiveFov( glm::radians( 45.0f ), 1280.0f, 720.0f, 0.1f, 1000.0f ) )
+		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
 	{
 		m_EditorScene = Ref<Scene>::Create();
 		m_RuntimeScene = nullptr;
@@ -67,7 +67,7 @@ namespace Saturn {
 		m_Viewport->AddViewportSizeFunction( [&]( uint32_t w, uint32_t h ) -> void
 		{
 			SceneRenderer::Get().SetWidthAndHeight( w, h );
-			m_EditorCamera.SetProjectionMatrix( glm::perspectiveFov( glm::radians( 45.0f ), (float)w, (float)h, 0.1f, 1000.0f ) );
+			m_EditorCamera.SetProjectionMatrix( 45.0f, (float)w, (float)h, 0.1f, 1000.0f );
 			m_EditorCamera.SetViewportSize( w, h );
 		} );
 

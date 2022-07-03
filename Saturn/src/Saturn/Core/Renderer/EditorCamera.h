@@ -35,7 +35,6 @@
 
 namespace Saturn {
 
-
 	enum class CameraMode
 	{
 		NONE, FLYCAM, ARCBALL
@@ -44,9 +43,8 @@ namespace Saturn {
 	class EditorCamera : public Camera
 	{
 	public:
-
 		EditorCamera() = default;
-		EditorCamera( const glm::mat4& projectionMatrix );
+		EditorCamera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane );
 
 		void Focus( const glm::vec3& focusPoint );
 		void OnUpdate( Timestep ts );

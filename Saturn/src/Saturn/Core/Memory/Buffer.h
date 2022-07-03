@@ -37,7 +37,8 @@ namespace Saturn {
 	{
 	public:
 		Buffer() : Size( 0 ), Data( nullptr ) {}
-		Buffer( size_t size, uint8_t* pData ) : Size( size ), Data( pData ) {}
+		Buffer( uint32_t size, uint8_t* pData ) : Size( size ), Data( pData ) {}
+		Buffer( uint32_t size, void* pData ) : Size( size ), Data( (uint8_t*)pData ) {}
 		
 		void Zero_Memory()
 		{

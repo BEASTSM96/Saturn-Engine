@@ -663,8 +663,9 @@ namespace Saturn {
 
 			if( Res.GetCompilationStatus() != shaderc_compilation_status_success ) 
 			{
-				SAT_CORE_INFO( "Shader Error status {0}", Res.GetCompilationStatus() );
-				SAT_CORE_INFO( "Shader Error messages {0}", Res.GetErrorMessage() );
+				SAT_CORE_ERROR( "Shader Error status {0}", Res.GetCompilationStatus() );
+				SAT_CORE_ERROR( "Shader Error at shader stage: {0}", ShaderTypeToString( key.Type ) );
+				SAT_CORE_ERROR( "Shader Error messages {0}", Res.GetErrorMessage() );
 				SAT_ASSERT( false, "Shader Compilation Failed" );
 			}
 

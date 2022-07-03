@@ -44,10 +44,10 @@
 #define M_PI 3.14159f
 
 namespace Saturn {
-
-	EditorCamera::EditorCamera( const glm::mat4& projectionMatrix )
-		: Camera( projectionMatrix )
-	{	
+	
+	EditorCamera::EditorCamera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane )
+		: Camera( Fov, Width, Height, NearPlane, FarPlane )
+	{
 		m_FocalPoint = glm::vec3( 0.0f );
 		m_WorldRotation = glm::vec3( 90.0f, 0.0f, 0.0f );
 

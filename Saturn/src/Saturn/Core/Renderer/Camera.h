@@ -28,8 +28,8 @@
 
 #pragma once
 
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 
 namespace Saturn {
 
@@ -37,21 +37,24 @@ namespace Saturn {
 	{
 	public:
 		Camera() = default;
-		Camera( const glm::mat4 & projection )
-			: m_Projection( projection )
+
+		Camera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane )
+			: m_Projection( glm::perspectiveFov( glm::radians( Fov ), Width, Height, FarPlane, NearPlane ) )
 		{
 			AllowEvents( true );
 		}
 
+		virtual ~Camera() = default;
+
 		void AllowEvents( bool allow ) { m_CanRunEvents = allow; }
 		bool HasEvents() { return m_CanRunEvents; }
 
-		virtual ~Camera() = default;
-
 		const glm::mat4& ProjectionMatrix() const { return m_Projection; }
-		void SetProjectionMatrix( const glm::mat4& projection ) { m_Projection = projection; }
+		void SetProjectionMatrix( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane ) { m_Projection = glm::perspectiveFov( glm::radians( Fov ), Width, Height, NearPlane, FarPlane ); }
+		
 	protected:
 		glm::mat4 m_Projection = glm::mat4( 1.0f );
+
 		bool m_CanRunEvents = true;
 	};
 }

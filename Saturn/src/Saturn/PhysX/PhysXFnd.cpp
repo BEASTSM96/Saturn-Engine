@@ -197,6 +197,7 @@ namespace Saturn {
 		
 		physx::PxBoxGeometry BoxGeometry = physx::PxBoxGeometry( size.x / 2.0f, size.y / 2.0f, size.z / 2.0f );
 		physx::PxShape* pShape = physx::PxRigidActorExt::createExclusiveShape( rActor, BoxGeometry, *s_Physics->createMaterial( mat.StaticFriction, mat.DynamicFriction, mat.Restitution ) );
+		
 		pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !comp.IsTrigger );
 		pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, comp.IsTrigger );
 		pShape->setLocalPose( glmTransformToPx( glm::translate( glm::mat4( 1.0f ), comp.Offset ) ) );

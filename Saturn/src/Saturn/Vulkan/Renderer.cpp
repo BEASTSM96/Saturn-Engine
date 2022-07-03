@@ -144,9 +144,15 @@ namespace Saturn {
 	{
 		vkCmdEndRenderPass( CommandBuffer );
 	}
-
-	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform )
+	
+	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform, Buffer additionalData )
 	{	
+		Buffer PushConstant;
+		// sizeof glm::mat4 becuase we have the model matrix in the push constant plus any additional data.
+		PushConstant.Allocate( sizeof( glm::mat4 ) + additionalData.Size );
+		if( additionalData.Size > 0 )
+			PushConstant.Write( additionalData.Data, additionalData.Size, sizeof( glm::mat4 ) ); // Make sure the additional data is always after the model matrix.
+
 		for ( auto& rSubmesh : mesh->Submeshes() )
 		{
 			mesh->GetVertexBuffer()->Bind( CommandBuffer );
@@ -156,13 +162,18 @@ namespace Saturn {
 
 			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
 			
+			PushConstant.Write( &ModelMatrix, sizeof( glm::mat4 ), 0 );
+
 			// Always assume that the vertex shader will have a push constant block containing the model matrix.
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, PushConstant.Size, PushConstant.Data );
 			
 			Pipeline->GetDescriptorSet( ShaderType::Vertex, 0 )->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
+
+		PushConstant.Free();
+		PushConstant.Zero_Memory();
 	}
 
 	void Renderer::RenderSubmesh(
@@ -461,6 +472,6 @@ namespace Saturn {
 		SamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, pSampler ) );
-		SetDebugUtilsObjectName( "Image View 1", ( uint64_t ) *pSampler, VK_OBJECT_TYPE_SAMPLER );
+		SetDebugUtilsObjectName( "Sampler", ( uint64_t ) *pSampler, VK_OBJECT_TYPE_SAMPLER );
 	}
 }

@@ -13,17 +13,18 @@ layout(location = 4) in vec2 a_TexCoord;
 
 layout(set = 0, binding = 0) uniform Matrices
 {
-	mat4 ViewProjection;
+	mat4 ViewProjection[4];
 } u_Matrices;
 
 layout(push_constant) uniform u_Transform
 {
 	mat4 Transform;
+	uint CascadeIndex;
 };
 
 void main()
 {
-	gl_Position = u_Matrices.ViewProjection * Transform * vec4( a_Position, 1.0 );
+	gl_Position = u_Matrices.ViewProjection[ CascadeIndex ] * Transform * vec4( a_Position, 1.0 );
 }
 
 #type fragment
