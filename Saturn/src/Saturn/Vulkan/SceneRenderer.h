@@ -146,8 +146,8 @@ namespace Saturn {
 		Ref<Pipeline> DirShadowMapPipeline;
 
 		float CascadeSplitLambda = 0.92f;
-		float CascadeFarPlaneOffset = 50.0f;
-		float CascadeNearPlaneOffset = -50.0f;
+		float CascadeFarPlaneOffset = 100.0f;
+		float CascadeNearPlaneOffset = -150.0f;
 		
 		bool ViewShadowCascades = false;
 

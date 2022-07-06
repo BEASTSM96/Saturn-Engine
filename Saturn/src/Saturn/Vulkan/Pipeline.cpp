@@ -244,19 +244,23 @@ namespace Saturn {
 		/////
 
 		// Create the color blend attachment state.
-		VkPipelineColorBlendAttachmentState ColorBlendAttachmentState = {};
-		ColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		ColorBlendAttachmentState.blendEnable = VK_TRUE;
-		ColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-		ColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-		ColorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
-		ColorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		ColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-		ColorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
-
 		VkPipelineColorBlendStateCreateInfo ColorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
-		ColorBlendState.attachmentCount = 1;
-		ColorBlendState.pAttachments = &ColorBlendAttachmentState;
+		
+		if( m_Specification.HasColorAttachment )
+		{
+			VkPipelineColorBlendAttachmentState ColorBlendAttachmentState = {};
+			ColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+			ColorBlendAttachmentState.blendEnable = VK_TRUE;
+			ColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			ColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			ColorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
+			ColorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			ColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+			ColorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
+
+			ColorBlendState.attachmentCount = 1;
+			ColorBlendState.pAttachments = &ColorBlendAttachmentState;
+		}
 		
 		// Create the rasterization state.
 		VkPipelineRasterizationStateCreateInfo RasterizationState = { VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
@@ -264,6 +268,10 @@ namespace Saturn {
 		RasterizationState.cullMode = CullModeToVulkan( m_Specification.CullMode );
 		RasterizationState.frontFace = m_Specification.FrontFace;
 		RasterizationState.lineWidth = 2.0f;
+		RasterizationState.depthBiasEnable = VK_TRUE;
+		RasterizationState.depthClampEnable = VK_FALSE;
+		RasterizationState.rasterizerDiscardEnable = VK_FALSE;
+		RasterizationState.depthBiasEnable = VK_FALSE;
 
 		VkPipelineMultisampleStateCreateInfo PipelineMultisampleState = { VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
 		PipelineMultisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;

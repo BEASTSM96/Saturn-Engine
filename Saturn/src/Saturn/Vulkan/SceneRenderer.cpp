@@ -210,6 +210,7 @@ namespace Saturn {
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		};
 		PipelineSpec.CullMode = CullMode::None;
+		PipelineSpec.HasColorAttachment = false;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		PipelineSpec.RequestDescriptorSets = { ShaderType::Vertex, 0 };
 
@@ -431,29 +432,10 @@ namespace Saturn {
 			glm::vec3 maxExtents = glm::vec3( radius );
 			glm::vec3 minExtents = -maxExtents;
 
-			float minX = std::numeric_limits<float>::max();
-			float maxX = std::numeric_limits<float>::min();
-			float minY = std::numeric_limits<float>::max();
-			float maxY = std::numeric_limits<float>::min();
-			float minZ = std::numeric_limits<float>::max();
-			float maxZ = std::numeric_limits<float>::min();
-
-			for( int i = 0; i < 8; ++i )
-			{
-				minX = std::min( minX, frustumCorners[ i ].x );
-				maxX = std::max( maxX, frustumCorners[ i ].x );
-				minY = std::min( minY, frustumCorners[ i ].y );
-				maxY = std::max( maxY, frustumCorners[ i ].y );
-				minZ = std::min( minZ, frustumCorners[ i ].z );
-				maxZ = std::max( maxZ, frustumCorners[ i ].z );
-			}
-
 			glm::vec3 lightDir = -Direction;
 			glm::vec3 lightPos = frustumCenter + lightDir * ( farClip - nearClip );
 
-			//glm::mat4 lightOrthoMatrix = glm::ortho( minX, maxX, minY, maxY, nearClip, maxZ - minZ );
-			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z );
-			//glm::mat4 lightViewMatrix = glm::lookAt( lightPos, frustumCenter, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + m_RendererData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_RendererData.CascadeFarPlaneOffset );
 			glm::mat4 lightViewMatrix = glm::lookAt( frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3( 0.0f, 0.0f, 1.0f ) );
 
 			// Store split distance and matrix in cascade

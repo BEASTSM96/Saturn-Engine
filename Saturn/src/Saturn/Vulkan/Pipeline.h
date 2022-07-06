@@ -84,6 +84,7 @@ namespace Saturn {
 			Width = other.Width;
 			Height = other.Height;
 			RequestDescriptorSets = other.RequestDescriptorSets;
+			HasColorAttachment = other.HasColorAttachment;
 
 			return *this;
 		}
@@ -97,6 +98,7 @@ namespace Saturn {
 		uint32_t Width = 0, Height = 0;
 		bool UseDepthTest = false;
 		bool UseStencilTest = false;
+		bool HasColorAttachment = true;
 		CullMode CullMode = CullMode::Back;
 		VkFrontFace FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		VkPolygonMode PolygonMode = VK_POLYGON_MODE_FILL;
