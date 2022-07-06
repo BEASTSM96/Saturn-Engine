@@ -53,7 +53,7 @@ namespace Saturn {
 	class Image2D : public CountedObj
 	{
 	public:
-		Image2D( ImageFormat Format, uint32_t Width, uint32_t Height );
+		Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels = 1 );
 		~Image2D();
 
 		void Resize( uint32_t Width, uint32_t Height );
@@ -76,6 +76,8 @@ namespace Saturn {
 		VkImageView m_ImageView;
 		VkSampler m_Sampler;
 		VkDeviceMemory m_Memory;
+
+		uint32_t m_ArrayLevels;
 
 		VkDescriptorImageInfo m_DescriptorImageInfo;
 	};

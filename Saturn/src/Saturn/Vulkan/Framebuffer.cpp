@@ -148,14 +148,14 @@ namespace Saturn {
 
 		for( auto format : m_ColorAttachmentsFormats )
 		{
-			Ref<Image2D> image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height );
+			Ref<Image2D> image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
 
 			m_ColorAttachmentsResources.push_back( image );
 
 			m_AttachmentImageViews.push_back( image->GetImageView() );
 		}
-
-		m_DepthAttachmentResource = Ref<Image2D>::Create( ImageFormat::Depth, m_Specification.Width, m_Specification.Height );
+		
+		m_DepthAttachmentResource = Ref<Image2D>::Create( ImageFormat::Depth, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
 		m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView() );
 
 		VkFramebufferCreateInfo FramebufferCreateInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };

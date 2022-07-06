@@ -185,7 +185,7 @@ namespace Saturn {
 
 		ImGui::End();
 	}
-
+	
 	void SceneHierarchyPanel::DrawComponents( Entity entity )
 	{
 		DrawEntityComponents( m_SelectionContext );

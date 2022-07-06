@@ -85,8 +85,8 @@ namespace Saturn {
 		return false;
 	}
 
-	Image2D::Image2D( ImageFormat Format, uint32_t Width, uint32_t Height )
-		: m_Format( Format ), m_Width( Width ), m_Height( Height )
+	Image2D::Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels )
+		: m_Format( Format ), m_Width( Width ), m_Height( Height ), m_ArrayLevels( ArrayLevels )
 	{
 		Create();
 	}
@@ -126,7 +126,7 @@ namespace Saturn {
 		ImageCreateInfo.extent = { .width = m_Width, .height = m_Height, .depth = 1 };
 		// TODO: Get mip levels
 		ImageCreateInfo.mipLevels = 1;
-		ImageCreateInfo.arrayLayers = 1;
+		ImageCreateInfo.arrayLayers = m_ArrayLevels;
 		ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 
@@ -151,7 +151,12 @@ namespace Saturn {
 		// Create image view.
 		VkImageViewCreateInfo ImageViewCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 		ImageViewCreateInfo.image = m_Image;
-		ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		
+		if( m_ArrayLevels > 1 )
+			ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+		else
+			ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+
 		ImageViewCreateInfo.format = VulkanFormat( m_Format );
 
 		if( IsColorFormat( m_Format ) )

@@ -9,8 +9,6 @@ layout(location = 2) in vec3 a_Tangent;
 layout(location = 3) in vec3 a_Bitangent;
 layout(location = 4) in vec2 a_TexCoord;
 
-#define SHADOW_CASCADE_COUNT 1
-
 layout(set = 0, binding = 0) uniform Matrices
 {
 	mat4 ViewProjection[4];

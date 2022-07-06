@@ -58,7 +58,6 @@ namespace Saturn {
 		Window::Get().RemoveBorder();
 		Window::Get().Show();
 
-
 		m_ImGuiLayer = new ImGuiLayer();
 		m_EditorLayer = new EditorLayer();
 
