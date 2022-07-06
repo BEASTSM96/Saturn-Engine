@@ -32,6 +32,8 @@
 #include "Saturn/Core/Window.h"
 #include "UITools.h"
 
+#include "Saturn/Core/EnvironmentVariables.h"
+
 #include "backends/imgui_impl_vulkan.h"
 
 namespace Saturn {
@@ -61,6 +63,21 @@ namespace Saturn {
 				if( ImGui::MenuItem( "Exit", "Alt+F4" ) ) exit( 0 /*EXIT_SUCCESS*/ );
 				if( ImGui::MenuItem( "Save", "Ctrl+S" ) ) SaveFile();
 				if( ImGui::MenuItem( "Open", "Ctrl+O" ) ) OpenFile();
+
+				ImGui::EndMenu();
+			}
+
+			if( ImGui::BeginMenu( "Saturn" ) )
+			{
+				if( ImGui::MenuItem( "Environment Variables" ) ) 
+				{
+					if( ImGui::BeginPopupModal( "##Saturn", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
+					{
+						ImGui::EndPopup();
+					}
+
+					ImGui::OpenPopup( "##Saturn" );
+				}
 
 				ImGui::EndMenu();
 			}

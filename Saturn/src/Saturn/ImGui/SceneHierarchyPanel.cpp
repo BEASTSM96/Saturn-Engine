@@ -354,7 +354,7 @@ namespace Saturn {
 				if( mc.Mesh )
 					mc.Mesh.Delete();
 
-				std::string file = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj *.glb *.glft)\0*.fbx; *.obj; *.gltf\0" );
+				std::string file = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj *.glb *.gltf)\0*.fbx; *.obj; *.gltf\0" );
 				if( !file.empty() )
 					mc.Mesh = Ref<Mesh>::Create( file );
 			}

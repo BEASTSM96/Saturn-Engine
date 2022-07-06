@@ -41,6 +41,8 @@
 
 #include "Saturn/Vulkan/MaterialInstance.h"
 
+#include "Saturn/Core/EnvironmentVariables.h"
+
 #include <glm/gtc/type_ptr.hpp>
 
 
@@ -80,6 +82,41 @@ namespace Saturn {
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
 
 		PhysXFnd::Get();
+
+		if( !HasEnvironmentVariable( "SATURN_PREMAKE_PATH" ) )
+		{
+			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
+			{
+				ImGui::Text( "The environment variable SATURN_PREMAKE_PATH is not set." );
+				ImGui::Text( "This is required in order to build projects." );
+
+				ImGui::Separator();
+
+				static std::string path = "";
+
+				if( path.empty() )
+					path = "";
+
+				ImGui::InputText( "##path", ( char* ) path.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
+				ImGui::SameLine();
+				if( ImGui::Button( "..." ) )
+					path = Application::Get().OpenFile( ".exe\0*.exe;\0" );
+
+				if( !path.empty() )
+				{
+					if( ImGui::Button( "Close" ) )
+					{
+						ImGui::CloseCurrentPopup();
+
+						Saturn::SetEnvironmentVariable( "SATURN_PREMAKE_PATH", path.c_str() );
+					}
+				}
+
+				ImGui::EndPopup();
+			}
+
+			ImGui::OpenPopup( "Missing Environment Variable" );
+		}
 	}
 
 	EditorLayer::~EditorLayer()
@@ -151,7 +188,7 @@ namespace Saturn {
 		// Draw dockspace.
 		ImGuiViewport* pViewport = ImGui::GetMainViewport();
 		ImGui::DockSpaceOverViewport( pViewport );
-		
+
 		m_TitleBar->Draw();
 
 		PanelManager::Get().DrawAllPanels();
