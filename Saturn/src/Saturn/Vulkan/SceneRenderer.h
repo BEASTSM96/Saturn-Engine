@@ -58,8 +58,7 @@ namespace Saturn {
 	struct ShadowCascade
 	{
 		Ref< Framebuffer > Framebuffer = nullptr;
-		//std::unordered_map< Submesh, Ref< DescriptorSet > > DescriptorSets;
-
+		
 		float SplitDepth = 0.0f;
 		glm::mat4 ViewProjection;
 	};
@@ -149,6 +148,8 @@ namespace Saturn {
 		float CascadeSplitLambda = 0.92f;
 		float CascadeFarPlaneOffset = 50.0f;
 		float CascadeNearPlaneOffset = -50.0f;
+		
+		bool ViewShadowCascades = false;
 
 		std::vector< ShadowCascade > ShadowCascades;
 
@@ -247,7 +248,7 @@ namespace Saturn {
 		Ref<Pass> GetGeometryPass() { return m_RendererData.GeometryPass; }
 		const Ref<Pass> GetGeometryPass() const { return m_RendererData.GeometryPass; }
 
-		Ref<Image2D> CompositeImage() { return m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ]; }
+		Ref<Image2D> CompositeImage();
 		
 		void Terminate();
 

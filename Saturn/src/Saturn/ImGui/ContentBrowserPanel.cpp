@@ -165,10 +165,8 @@ namespace Saturn {
 		
 		auto* pDrawList = ImGui::GetWindowDrawList();
 
-		std::string path = std::filesystem::relative( rEntry.path(), s_pAssetsDirectory ).string();
+		auto path = std::filesystem::relative( rEntry.path(), s_pAssetsDirectory ).string();
 		std::string filename = rEntry.path().filename().string();
-
-		std::filesystem::relative( rEntry.path(), s_pAssetsDirectory );
 
 		Ref<Texture2D> Icon = excludeFiles ? m_DirectoryIcon : m_FileIcon;
 

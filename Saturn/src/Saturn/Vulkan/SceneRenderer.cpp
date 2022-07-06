@@ -84,6 +84,11 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 	}
 
+	Ref<Image2D> SceneRenderer::CompositeImage()
+	{
+		return m_RendererData.ViewShadowCascades ? m_RendererData.ShadowCascades[0].Framebuffer->GetDepthAttachmentsResource() : m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[0];
+	}
+
 	void SceneRenderer::Terminate()
 	{
 		m_pScene = nullptr;
@@ -354,7 +359,7 @@ namespace Saturn {
 
 	void SceneRenderer::UpdateCascades( const glm::vec3& Direction )
 	{
-		auto viewProjection = m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix();
+		const auto& viewProjection = m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix();
 
 		float cascadeSplits[ SHADOW_CASCADE_COUNT ];
 
@@ -380,16 +385,12 @@ namespace Saturn {
 			cascadeSplits[ i ] = ( d - nearClip ) / clipRange;
 		}
 
-		cascadeSplits[ 3 ] = 0.3f;
-
 		// Calculate orthographic projection matrix for each cascade
 		float lastSplitDist = 0.0;
-		for( uint32_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
-		{
+		for( uint32_t i = 0; i < SHADOW_CASCADE_COUNT; i++ ) {
 			float splitDist = cascadeSplits[ i ];
 
-			glm::vec3 frustumCorners[ 8 ] =
-			{
+			glm::vec3 frustumCorners[ 8 ] = {
 				glm::vec3( -1.0f,  1.0f, -1.0f ),
 				glm::vec3( 1.0f,  1.0f, -1.0f ),
 				glm::vec3( 1.0f, -1.0f, -1.0f ),
@@ -402,14 +403,12 @@ namespace Saturn {
 
 			// Project frustum corners into world space
 			glm::mat4 invCam = glm::inverse( viewProjection );
-			for( uint32_t i = 0; i < 8; i++ )
-			{
+			for( uint32_t i = 0; i < 8; i++ ) {
 				glm::vec4 invCorner = invCam * glm::vec4( frustumCorners[ i ], 1.0f );
 				frustumCorners[ i ] = invCorner / invCorner.w;
 			}
 
-			for( uint32_t i = 0; i < 4; i++ )
-			{
+			for( uint32_t i = 0; i < 4; i++ ) {
 				glm::vec3 dist = frustumCorners[ i + 4 ] - frustumCorners[ i ];
 				frustumCorners[ i + 4 ] = frustumCorners[ i ] + ( dist * splitDist );
 				frustumCorners[ i ] = frustumCorners[ i ] + ( dist * lastSplitDist );
@@ -417,16 +416,13 @@ namespace Saturn {
 
 			// Get frustum center
 			glm::vec3 frustumCenter = glm::vec3( 0.0f );
-			for( uint32_t i = 0; i < 8; i++ )
+			for( uint32_t i = 0; i < 8; i++ ) {
 				frustumCenter += frustumCorners[ i ];
-
+			}
 			frustumCenter /= 8.0f;
 
-			//frustumCenter *= 0.01f;
-
 			float radius = 0.0f;
-			for( uint32_t i = 0; i < 8; i++ )
-			{
+			for( uint32_t i = 0; i < 8; i++ ) {
 				float distance = glm::length( frustumCorners[ i ] - frustumCenter );
 				radius = glm::max( radius, distance );
 			}
@@ -435,9 +431,30 @@ namespace Saturn {
 			glm::vec3 maxExtents = glm::vec3( radius );
 			glm::vec3 minExtents = -maxExtents;
 
+			float minX = std::numeric_limits<float>::max();
+			float maxX = std::numeric_limits<float>::min();
+			float minY = std::numeric_limits<float>::max();
+			float maxY = std::numeric_limits<float>::min();
+			float minZ = std::numeric_limits<float>::max();
+			float maxZ = std::numeric_limits<float>::min();
+
+			for( int i = 0; i < 8; ++i )
+			{
+				minX = std::min( minX, frustumCorners[ i ].x );
+				maxX = std::max( maxX, frustumCorners[ i ].x );
+				minY = std::min( minY, frustumCorners[ i ].y );
+				maxY = std::max( maxY, frustumCorners[ i ].y );
+				minZ = std::min( minZ, frustumCorners[ i ].z );
+				maxZ = std::max( maxZ, frustumCorners[ i ].z );
+			}
+
 			glm::vec3 lightDir = -Direction;
+			glm::vec3 lightPos = frustumCenter + lightDir * ( farClip - nearClip );
+
+			//glm::mat4 lightOrthoMatrix = glm::ortho( minX, maxX, minY, maxY, nearClip, maxZ - minZ );
+			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z );
+			//glm::mat4 lightViewMatrix = glm::lookAt( lightPos, frustumCenter, glm::vec3( 0.0f, 1.0f, 0.0f ) );
 			glm::mat4 lightViewMatrix = glm::lookAt( frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3( 0.0f, 0.0f, 1.0f ) );
-			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + m_RendererData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_RendererData.CascadeFarPlaneOffset );
 
 			// Store split distance and matrix in cascade
 			m_RendererData.ShadowCascades[ i ].SplitDepth = ( nearClip + splitDist * clipRange ) * -1.0f;
@@ -539,7 +556,7 @@ namespace Saturn {
 
 		ImGui::Text( "FPS: %.1f", ImGui::GetIO().Framerate );
 
-		if( ImGui::CollapsingHeader( "Stats" ) )
+		if( TreeNode( "Stats", true ) )
 		{
 			auto FrameTimings = Renderer::Get().GetFrameTimings();
 
@@ -552,15 +569,26 @@ namespace Saturn {
 			ImGui::Text( "Renderer::EndFrame: %.2f ms", FrameTimings.second );
 
 			ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
+			
+			EndTreeNode();
 		}
 
-		if( ImGui::CollapsingHeader( "Shadow Settings" ) )
+		if( TreeNode( "Shadow Settings", false ) )
 		{
 			ImGui::Separator();
 
 			float size = ImGui::GetContentRegionAvailWidth();			
 		
 			Image( m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource(), ImVec2( size, size ) );
+
+			EndTreeNode();
+		}
+
+		if( TreeNode( "Visualization", true ) ) 
+		{
+			ImGui::Checkbox( "View Shadow Cascades", &m_RendererData.ViewShadowCascades );
+
+			EndTreeNode();
 		}
 
 		if( TreeNode( "Scene renderer data", true ) )
@@ -569,8 +597,8 @@ namespace Saturn {
 			{
 				ImGui::DragFloat( "Cascade Split Lambda", &m_RendererData.CascadeSplitLambda, 1.0f, 0.01f, 1.0f );
 				ImGui::DragFloat( "Cascade Near plane", &m_RendererData.CascadeNearPlaneOffset, 1.0f, -1000.0f, 1000.0f );
-				ImGui::DragFloat( "Cascade Far plane", &m_RendererData.CascadeFarPlaneOffset, 1.0f, -1000.0f, 1000.0f );
-				
+				ImGui::DragFloat( "Cascade Far plane", &m_RendererData.CascadeFarPlaneOffset, 1.0f, -1000.0f, 1000.0f );	
+
 				ImGui::Text( "Shadow Map Pass: %p", m_RendererData.DirShadowMapPass->GetVulkanPass() );
 				ImGui::Text( "Shadow Map Pipeline: %p", m_RendererData.DirShadowMapPipeline->GetPipeline() );
 
@@ -686,6 +714,7 @@ namespace Saturn {
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Static meshes" );
 
+		// Set environment resource.
 		Renderer::Get().Begin( m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource() );
 
 		// Render static meshes.

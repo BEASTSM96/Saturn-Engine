@@ -137,11 +137,13 @@ namespace Saturn {
 		AppInfo.apiVersion         = VK_API_VERSION_1_2;
 		
 		auto Extensions = Window::Get().GetRequiredExtensions();
-		Extensions.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
 
 		VkInstanceCreateInfo InstanceInfo ={ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 		InstanceInfo.pApplicationInfo = &AppInfo;
 
+#if !defined( SAT_DIST )
+		Extensions.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
+		
 		// Make sure its outside of the scope or it will be destroyed before vkCreateInstance is called.
 		VkDebugUtilsMessengerCreateInfoEXT DebugCreateInfo{};
 
@@ -153,6 +155,7 @@ namespace Saturn {
 			Helpers::CreateDebugMessengerInfo( &DebugCreateInfo );
 			InstanceInfo.pNext = ( VkDebugUtilsMessengerCreateInfoEXT* ) &DebugCreateInfo;
 		}
+#endif
 
 		InstanceInfo.enabledExtensionCount = Extensions.size();
 		InstanceInfo.ppEnabledExtensionNames = Extensions.data();
@@ -272,7 +275,10 @@ namespace Saturn {
 
 		Features.samplerAnisotropy = VK_TRUE;
 
+#if !defined( SAT_DIST )
 		DeviceExtensions.push_back( VK_EXT_DEBUG_MARKER_EXTENSION_NAME );
+#endif
+
 		DeviceExtensions.push_back( VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME );
 
 		VkPhysicalDeviceInlineUniformBlockFeaturesEXT InlineUniformBlockFeatures = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT };
