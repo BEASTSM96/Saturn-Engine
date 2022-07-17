@@ -26,56 +26,21 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "EntryPoint.h"
 
-#include "Base.h"
-
-#include "Layer.h"
-#include "Events.h"
-#include "Input.h"
-
-#include "Saturn/Editor/EditorLayer.h"
+#include "Core/App.h"
 
 namespace Saturn {
 
-	class Application
+	int _SATURN_MAIN_( int count, char** args )
 	{
-	public:
-		Application()  {}
-		~Application() {}
-
-		void Run();
-		void Close();
-
-		bool Running() { return m_Running; }
-
-		Timestep& Time() { return m_Timestep; }
-
-		std::string OpenFile( const char* pFilter ) const;
-		std::string SaveFile( const char* pFilter ) const;
-
-		EditorLayer* GetEditorLayer() { return m_EditorLayer; }
-
-		static inline Application& Get() { return *s_Instance; }
+		Saturn::Application* pApp = new Saturn::Application();
 		
-	protected:
-
-		void OnEvent( Event& e );
-		bool OnWindowResize( WindowResizeEvent& e );
-
-		void RenderImGui();
-
-	private:
-		bool m_Running = true;
+		pApp->Run();
 		
-		ImGuiLayer* m_ImGuiLayer = nullptr;
-		EditorLayer* m_EditorLayer = nullptr;
+		delete pApp;
 
-		Timestep m_Timestep;
-		float m_LastFrameTime = 0.0f;
-
-	private:
-		static Application* s_Instance;
-	};
-
+		return 0;
+	}
 }

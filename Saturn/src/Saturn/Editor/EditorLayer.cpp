@@ -341,7 +341,7 @@ namespace Saturn {
 
 			ImGui::OpenPopup( "Missing Environment Variable" );
 		}
-
+		
 		ImGui::End();
 	}
 

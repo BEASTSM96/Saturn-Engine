@@ -28,54 +28,9 @@
 
 #pragma once
 
-#include "Base.h"
-
-#include "Layer.h"
-#include "Events.h"
-#include "Input.h"
-
-#include "Saturn/Editor/EditorLayer.h"
-
 namespace Saturn {
 
-	class Application
-	{
-	public:
-		Application()  {}
-		~Application() {}
-
-		void Run();
-		void Close();
-
-		bool Running() { return m_Running; }
-
-		Timestep& Time() { return m_Timestep; }
-
-		std::string OpenFile( const char* pFilter ) const;
-		std::string SaveFile( const char* pFilter ) const;
-
-		EditorLayer* GetEditorLayer() { return m_EditorLayer; }
-
-		static inline Application& Get() { return *s_Instance; }
-		
-	protected:
-
-		void OnEvent( Event& e );
-		bool OnWindowResize( WindowResizeEvent& e );
-
-		void RenderImGui();
-
-	private:
-		bool m_Running = true;
-		
-		ImGuiLayer* m_ImGuiLayer = nullptr;
-		EditorLayer* m_EditorLayer = nullptr;
-
-		Timestep m_Timestep;
-		float m_LastFrameTime = 0.0f;
-
-	private:
-		static Application* s_Instance;
-	};
-
+	inline int _SATURN_MAIN_( int count, char** args );
 }
+
+int _main( int count, char** args ) { return Saturn::_SATURN_MAIN_( count, args ); }

@@ -45,9 +45,15 @@
 #define APP_BIND_EVENT_FN(_) std::bind(&Application::_, this, std::placeholders::_1)
 
 namespace Saturn {
+	
+	Application* Application::s_Instance = nullptr;
 
 	void Application::Run()
 	{
+		SAT_CORE_ASSERT( !s_Instance, "An app was alreay created!" );
+
+		s_Instance = this;
+
 		Window::Get();
 		VulkanContext::Get();
 
@@ -177,10 +183,10 @@ namespace Saturn {
 
 		VulkanContext::Get().OnEvent( e );
 
-		if( m_ImGuiLayer )
+		if( m_ImGuiLayer != nullptr )
 			m_ImGuiLayer->OnEvent( e );
 		
-		if( m_EditorLayer )
+		if( m_EditorLayer != nullptr )
 			m_EditorLayer->OnEvent( e );
 	}
 
