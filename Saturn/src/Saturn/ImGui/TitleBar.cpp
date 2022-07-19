@@ -176,14 +176,14 @@ namespace Saturn {
 	{
 		std::string file = Application::Get().SaveFile( "Saturn Scene File (*.sc *.scene)\0*.scene; *.sc\0" );
 		
-		Application::Get().GetEditorLayer()->SaveFile( file );
+		//Application::Get().GetEditorLayer()->SaveFile( file );
 	}
 
 	void TitleBar::OpenFile()
 	{
 		std::string file = Application::Get().OpenFile( "Saturn Scene File (*.sc *.scene)\0*.scene; *.sc\0" );
 
-		Application::Get().GetEditorLayer()->OpenFile( file );
+		//Application::Get().GetEditorLayer()->OpenFile( file );
 	}
 
 }

@@ -74,15 +74,18 @@ namespace Saturn {
 		{
 			pData[ i ] |= 0xffffffff;
 		}
-
+		
 		m_PinkTexture = Ref< Texture2D >::Create( 64, 64, VK_FORMAT_R8G8B8A8_SRGB, pData );
 		m_PinkTexture->SetIsRendererTexture( true );
 
 		delete[] pData;
 
-		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
-		// Set 1 is for enviroment data.
-		m_RendererDescriptorSet = shader->CreateDescriptorSet( 1 );
+		if( Application::Get().GetSpecification().CreateSceneRenderer )
+		{
+			Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
+			// Set 1 is for enviroment data.
+			m_RendererDescriptorSet = shader->CreateDescriptorSet( 1 );
+		}
 	}
 	
 	void Renderer::Terminate()
