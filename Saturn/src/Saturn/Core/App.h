@@ -34,14 +34,25 @@
 #include "Events.h"
 #include "Input.h"
 
-#include "Saturn/Editor/EditorLayer.h"
+#include <vector>
 
 namespace Saturn {
+
+	struct ApplicationSpecification
+	{
+		bool CreateSceneRenderer = true;
+		bool UIOnly = false;
+		
+		uint32_t WindowWidth = 1280;
+		uint32_t WindowHeight = 720;
+	};
 
 	class Application
 	{
 	public:
-		Application()  {}
+		Application( const ApplicationSpecification& spec )
+			: m_Specification( spec ) {}
+
 		~Application() {}
 
 		void Run();
@@ -54,9 +65,14 @@ namespace Saturn {
 		std::string OpenFile( const char* pFilter ) const;
 		std::string SaveFile( const char* pFilter ) const;
 
-		EditorLayer* GetEditorLayer() { return m_EditorLayer; }
-
 		static inline Application& Get() { return *s_Instance; }
+		ApplicationSpecification& GetSpecification() { return m_Specification; }
+
+		void PushLayer( Layer* pLayer );
+		void PopLayer( Layer* pLayer );
+
+		virtual void OnInit() {}
+		virtual void OnShutdown() {}
 		
 	protected:
 
@@ -69,13 +85,17 @@ namespace Saturn {
 		bool m_Running = true;
 		
 		ImGuiLayer* m_ImGuiLayer = nullptr;
-		EditorLayer* m_EditorLayer = nullptr;
 
 		Timestep m_Timestep;
 		float m_LastFrameTime = 0.0f;
+		
+		ApplicationSpecification m_Specification;
+
+		std::vector<Layer*> m_Layers;
 
 	private:
 		static Application* s_Instance;
 	};
 
+	Application* CreateApplication( int argc, char** argv );
 }

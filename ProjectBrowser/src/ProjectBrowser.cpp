@@ -26,24 +26,39 @@
 *********************************************************************************************
 */
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#endif // SAT_WINDOWS
+#include "Saturn/Core/App.h"
 
-// Saturn client main:
-extern int _main( int, char** );
+#include "ProjectBrowserLayer.h"
 
-int main( int count, char** args )
+class ProjectBrowserApplication : public Saturn::Application
 {
-	// Hand if off to Saturn:
-	return _main( count, args );
-}
+public:
+	ProjectBrowserApplication( const Saturn::ApplicationSpecification& spec )
+		: Application( spec )
+	{
+	}
 
-#if defined ( _WIN32 )
+	virtual void OnInit() override
+	{
+		m_ProjectBrowserLayer = new Saturn::ProjectBrowserLayer();
 
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
+		PushLayer( m_ProjectBrowserLayer );
+	}
+
+	virtual void OnShutdown() override
+	{
+
+	}
+
+private:
+	Saturn::ProjectBrowserLayer* m_ProjectBrowserLayer;
+};
+
+Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
 {
-	return main( __argc, __argv );
-}
+	Saturn::ApplicationSpecification spec;
+	spec.CreateSceneRenderer = false;
+	spec.UIOnly = true;
 
-#endif // _WIN32
+	return new ProjectBrowserApplication( spec );
+}

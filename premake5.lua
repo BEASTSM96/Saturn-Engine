@@ -392,3 +392,117 @@ project "Titan"
 			defines "SAT_DIST"
 			runtime "Release"
 			optimize "on"
+
+
+group "Tools"
+project "ProjectBrowser"
+	location "ProjectBrowser"
+	language "C++"
+	cppdialect "C++20"
+	staticruntime "on"
+	warnings "Off"
+	kind "ConsoleApp"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS"
+	}
+
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp"
+	}
+
+	includedirs
+	{
+		"Saturn/vendor/spdlog/include",
+		"Saturn/src",
+		"Saturn/vendor",
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.assimp}",
+		"%{IncludeDir.DiscordRPC}",
+		"%{IncludeDir.rapidjson}",
+		"%{IncludeDir.glslc}",
+		"%{IncludeDir.shaderc}",
+		"%{IncludeDir.SPIRV_Cross}",
+		"%{IncludeDir.vma}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx",
+		"Saturn/vendor/vulkan/include"
+	}
+
+	links
+	{
+		"Saturn"
+	}
+
+	postbuildcommands 
+	{
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"SAT_PLATFORM_WINDOWS",
+			"GLFW_INCLUDE_NONE"
+		}
+
+		filter "configurations:Debug"
+			defines "SAT_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "SAT_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+		filter "configurations:Dist"
+			defines "SAT_DIST"
+			runtime "Release"
+			optimize "on"
+			kind "WindowedApp"
+
+	filter "system:linux"
+		systemversion "latest"
+
+		defines
+		{
+			"SAT_PLATFORM_LINUX"
+		}
+
+		links 
+		{
+			"stdc++fs",
+			"pthread",
+			"dl",
+			"GL",
+			"X11",
+			"GLFW",
+			"ImGui"
+		}
+
+		filter "configurations:Debug"
+			defines "SAT_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "SAT_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+		filter "configurations:Dist"
+			defines "SAT_DIST"
+			runtime "Release"
+			optimize "on"

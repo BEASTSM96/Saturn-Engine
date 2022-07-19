@@ -27,3 +27,35 @@
 */
 
 #pragma once
+
+// --- Core
+#include "Saturn/Core/App.h"
+#include "Saturn/Core/Base.h"
+#include "Saturn/Core/EnvironmentVariables.h"
+#include "Saturn/Core/Events.h"
+#include "Saturn/Core/Input.h"
+#include "Saturn/Core/IO.h"
+#include "Saturn/Core/Layer.h"
+#include "Saturn/Core/MouseButton.h"
+#include "Saturn/Core/Timer.h"
+#include "Saturn/Core/Timestep.h"
+#include "Saturn/Core/UUID.h"
+#include "Saturn/Core/Memory/Buffer.h"
+#include "Saturn/Core/AABB/AABB.h"
+
+// --- ImGui
+#include "Saturn/ImGui/ContentBrowserPanel.h"
+#include "Saturn/ImGui/SceneHierarchyPanel.h"
+#include "Saturn/ImGui/Styles.h"
+#include "Saturn/ImGui/Viewport.h"
+#include "Saturn/ImGui/ViewportBar.h"
+#include "Saturn/ImGui/UITools.h"
+#include "Saturn/ImGui/Panel/Panel.h"
+
+// --- Don't include any rendering files as the user shouldn't need them.
+// --- Rendering
+
+// --- Scene
+#include "Saturn/Scene/Components.h"
+#include "Saturn/Scene/Entity.h"
+#include "Saturn/Scene/Scene.h"

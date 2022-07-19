@@ -47,7 +47,7 @@
 namespace Saturn {
 	
 	Application* Application::s_Instance = nullptr;
-
+	
 	void Application::Run()
 	{
 		SAT_CORE_ASSERT( !s_Instance, "An app was alreay created!" );
@@ -65,8 +65,10 @@ namespace Saturn {
 		Window::Get().Show();
 
 		m_ImGuiLayer = new ImGuiLayer();
-		m_EditorLayer = new EditorLayer();
-
+		
+		// Tell children to create what ever they need.
+		OnInit();
+		
 		while( m_Running )
 		{
 			Window::Get().OnUpdate();
@@ -98,14 +100,17 @@ namespace Saturn {
 
 		VulkanContext::Get().SubmitTerminateResource( [&]() 
 		{
-			delete m_EditorLayer;
-
-			m_EditorLayer = nullptr;
+			for ( auto& layer : m_Layers )
+			{
+				delete layer;
+			}
 
 			delete m_ImGuiLayer;
 
 			m_ImGuiLayer = nullptr;
 		} );
+		
+		OnShutdown();
 
 		VulkanContext::Get().Terminate();
 	}
@@ -175,6 +180,23 @@ namespace Saturn {
 		return std::string();
 	}
 
+	void Application::PushLayer( Layer* pLayer )
+	{
+		m_Layers.push_back( pLayer );
+		pLayer->OnAttach();
+	}
+
+	void Application::PopLayer( Layer* pLayer )
+	{
+		// Find the layer in the layer stack.
+		auto it = std::find( m_Layers.begin(), m_Layers.end(), pLayer );
+		if( it != m_Layers.end() )
+		{
+			m_Layers.erase( it );
+			pLayer->OnDetach();
+		}
+	}
+
 	void Application::OnEvent( Event& e )
 	{
 		EventDispatcher dispatcher( e );
@@ -186,8 +208,10 @@ namespace Saturn {
 		if( m_ImGuiLayer != nullptr )
 			m_ImGuiLayer->OnEvent( e );
 		
-		if( m_EditorLayer != nullptr )
-			m_EditorLayer->OnEvent( e );
+		for( auto& layer : m_Layers )
+		{
+			layer->OnEvent( e );
+		}
 	}
 
 	bool Application::OnWindowResize( WindowResizeEvent& e )
@@ -204,9 +228,11 @@ namespace Saturn {
 	{
 		m_ImGuiLayer->Begin();
 
-		m_EditorLayer->OnUpdate( m_Timestep );
-
-		m_EditorLayer->OnImGuiRender();
+		for( auto& layer : m_Layers )
+		{
+			layer->OnUpdate( m_Timestep );
+			layer->OnImGuiRender();
+		}
 
 		m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
 	}

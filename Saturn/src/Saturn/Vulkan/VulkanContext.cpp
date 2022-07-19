@@ -79,9 +79,9 @@ namespace Saturn {
 		Specification.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
 		m_DefaultPass = Pass( Specification );
-
-		// Init Renderers.
+		
 		SceneRenderer::Get();
+
 		Renderer::Get();
 
 		CreateDepthResources();

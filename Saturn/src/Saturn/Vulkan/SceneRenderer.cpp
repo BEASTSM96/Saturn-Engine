@@ -69,6 +69,9 @@ namespace Saturn {
 		// Geometry 
 		//////////////////////////////////////////////////////////////////////////
 
+		if( !Application::Get().GetSpecification().CreateSceneRenderer )
+			return;
+			
 		InitGeometryPass();
 
 		// Create grid.
@@ -952,6 +955,12 @@ namespace Saturn {
 	{
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
 		
+		// Command Pools
+		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
+
+		if( !Application::Get().GetSpecification().CreateSceneRenderer )
+			return;
+	
 		// DescriptorSets
 		GridDescriptorSet = nullptr;
 		SkyboxDescriptorSet = nullptr;
@@ -1000,9 +1009,6 @@ namespace Saturn {
 		DirShadowMapShader = nullptr;
 		
 		ShaderLibrary::Get().Shutdown();
-
-		// Command Pools
-		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
 	}
 
 }

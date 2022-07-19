@@ -31,11 +31,17 @@
 
 #include "Core/App.h"
 
+extern Saturn::Application* Saturn::CreateApplication( int argc, char** argv );
+
 namespace Saturn {
 
 	int _SATURN_MAIN_( int count, char** args )
 	{
-		Saturn::Application* pApp = new Saturn::Application();
+		Saturn::ApplicationSpecification DefualtSpec;
+		
+		DefualtSpec.CreateSceneRenderer = true;
+		
+		Saturn::Application* pApp = Saturn::CreateApplication( count, args );
 		
 		pApp->Run();
 		
