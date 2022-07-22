@@ -367,9 +367,8 @@ namespace Saturn {
 
 		float cascadeSplits[ SHADOW_CASCADE_COUNT ];
 
-		// Same as the camera's near and far plane.
-		float nearClip = 0.1f;
-		float farClip = 1000.0f;
+		float nearClip = m_RendererData.EditorCamera.GetNearClip();
+		float farClip = m_RendererData.EditorCamera.GetFarClip();
 		float clipRange = farClip - nearClip;
 
 		float minZ = nearClip;
@@ -388,6 +387,8 @@ namespace Saturn {
 			float d = m_RendererData.CascadeSplitLambda * ( log - uniform ) + uniform;
 			cascadeSplits[ i ] = ( d - nearClip ) / clipRange;
 		}
+
+		cascadeSplits[ 3 ] = 0.3f;
 
 		// Calculate orthographic projection matrix for each cascade
 		float lastSplitDist = 0.0;
@@ -438,8 +439,8 @@ namespace Saturn {
 			glm::vec3 lightDir = -Direction;
 			glm::vec3 lightPos = frustumCenter + lightDir * ( farClip - nearClip );
 
-			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + m_RendererData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_RendererData.CascadeFarPlaneOffset );
 			glm::mat4 lightViewMatrix = glm::lookAt( frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + m_RendererData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_RendererData.CascadeFarPlaneOffset );
 
 			// Store split distance and matrix in cascade
 			m_RendererData.ShadowCascades[ i ].SplitDepth = ( nearClip + splitDist * clipRange ) * -1.0f;

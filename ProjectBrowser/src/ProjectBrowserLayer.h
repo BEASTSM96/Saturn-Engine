@@ -33,6 +33,8 @@
 
 namespace Saturn {
 	
+	class TitleBar;
+
 	class ProjectBrowserLayer : public Layer
 	{
 	public:
@@ -44,10 +46,17 @@ namespace Saturn {
 		void OnImGuiRender() override;
 
 		void OnEvent( Event& rEvent ) override;
+
+		void OnAttach() override;
+
+
+		void OnDetach() override;
+
 	private:
 
 		bool OnKeyPressed( KeyPressedEvent& rEvent );
 
 	private:
+		TitleBar* m_TilteBar;
 	};
 }
