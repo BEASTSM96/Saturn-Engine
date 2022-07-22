@@ -42,20 +42,22 @@ namespace Saturn {
 
 	class TitleBar : public Panel
 	{
+		using MenuBarFunction = std::function<void()>;
 	public:
 		TitleBar();
 		~TitleBar();
 
 		void Draw() override;
 
-		void SaveFile();
-		void OpenFile();
-
 		float Height() const { return m_Height; }
 
+		void AddMenuBarFunction( MenuBarFunction&& rrFunc );
+		
 	private:
 
 		Ref< Texture2D > m_Logo;
+
+		std::vector<MenuBarFunction> m_MenuBarFunctions;
 
 		float m_Height;
 	};

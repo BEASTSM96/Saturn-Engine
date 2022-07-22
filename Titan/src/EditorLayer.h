@@ -55,6 +55,9 @@ namespace Saturn {
 		void SaveFile( const std::string& FileName );
 		void OpenFile( const std::string& FileName );
 
+		void SaveFile();
+		void OpenFile();
+
 	public:
 		
 		Viewport* GetViewport() { return m_Viewport; }
