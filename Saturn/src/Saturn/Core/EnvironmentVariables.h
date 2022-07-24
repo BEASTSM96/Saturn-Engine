@@ -26,24 +26,14 @@
 *********************************************************************************************
 */
 
-#if defined( _WIN32 )
+#pragma once
+
+#include <string>
 #include <Windows.h>
-#endif // SAT_WINDOWS
 
-// Saturn client main:
-extern int _main( int, char** );
-
-int main( int count, char** args )
-{
-	// Hand if off to Saturn:
-	return _main( count, args );
+namespace Saturn {
+	
+	extern bool HasEnvironmentVariable( const std::string& rKey );
+	extern std::string GetEnvironmentVariable( const std::string& rKey );
+	extern void SetEnvironmentVariable( const std::string& rKey, const std::string& rValue );
 }
-
-#if defined ( _WIN32 )
-
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
-{
-	return main( __argc, __argv );
-}
-
-#endif // _WIN32

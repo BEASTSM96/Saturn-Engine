@@ -233,7 +233,7 @@ namespace Saturn {
 		void SubmitSelectedMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 		void SubmitMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform );
 
-		void SetWidthAndHeight( uint32_t w, uint32_t h );
+		void SetViewportSize( uint32_t w, uint32_t h );
 
 		void FlushDrawList();		
 

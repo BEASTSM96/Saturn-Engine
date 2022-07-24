@@ -26,56 +26,39 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "Saturn/Core/App.h"
 
-#include "Saturn/ImGui/Viewport.h"
-#include "Saturn/ImGui/SceneHierarchyPanel.h"
-#include "Saturn/ImGui/ContentBrowserPanel.h"
+#include "ProjectBrowserLayer.h"
 
-#include "Saturn/Scene/Scene.h"
-#include "Saturn/Core/Layer.h"
-
-namespace Saturn {
-	
-	class Toolbar;
-	class TitleBar;
-
-	class EditorLayer : public Layer
+class ProjectBrowserApplication : public Saturn::Application
+{
+public:
+	ProjectBrowserApplication( const Saturn::ApplicationSpecification& spec )
+		: Application( spec )
 	{
-	public:
-		EditorLayer();
-		~EditorLayer();
+	}
 
-		void OnUpdate( Timestep time ) override;
+	virtual void OnInit() override
+	{
+		m_ProjectBrowserLayer = new Saturn::ProjectBrowserLayer();
 
-		void OnImGuiRender() override;
+		PushLayer( m_ProjectBrowserLayer );
+	}
 
-		void OnEvent( Event& rEvent ) override;
-		
-		void SaveFile( const std::string& FileName );
-		void OpenFile( const std::string& FileName );
+	virtual void OnShutdown() override
+	{
 
-	public:
-		
-		Viewport* GetViewport() { return m_Viewport; }
-		TitleBar* GetTitleBar() { return m_TitleBar; }
-		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
+	}
 
-	private:
-		
-		void SelectionChanged( Entity e );
-		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
-		bool OnKeyPressed( KeyPressedEvent& rEvent );
+private:
+	Saturn::ProjectBrowserLayer* m_ProjectBrowserLayer;
+};
 
-	private:
-		Viewport* m_Viewport;
-		TitleBar* m_TitleBar;
-		
-		Ref< Texture2D > m_CheckerboardTexture;
+Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
+{
+	Saturn::ApplicationSpecification spec;
+	spec.CreateSceneRenderer = false;
+	spec.UIOnly = true;
 
-		EditorCamera m_EditorCamera;
-
-		Ref< Scene > m_EditorScene;
-		Ref< Scene > m_RuntimeScene;
-	};
+	return new ProjectBrowserApplication( spec );
 }

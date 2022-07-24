@@ -26,24 +26,35 @@
 *********************************************************************************************
 */
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#endif // SAT_WINDOWS
+#include "Saturn/Core/App.h"
 
-// Saturn client main:
-extern int _main( int, char** );
+#include "EditorLayer.h"
 
-int main( int count, char** args )
+class EditorApplication : public Saturn::Application
 {
-	// Hand if off to Saturn:
-	return _main( count, args );
-}
+public:
+	EditorApplication( const Saturn::ApplicationSpecification& spec )
+		: Application( spec )
+	{
+	}
 
-#if defined ( _WIN32 )
+	virtual void OnInit() override
+	{
+		m_EditorLayer = new Saturn::EditorLayer();
 
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
+		PushLayer( m_EditorLayer );
+	}
+
+	virtual void OnShutdown() override
+	{
+
+	}
+
+private:
+	Saturn::EditorLayer* m_EditorLayer;
+};
+
+Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
 {
-	return main( __argc, __argv );
+	return new EditorApplication( {} );
 }
-
-#endif // _WIN32

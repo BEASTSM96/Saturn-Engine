@@ -26,24 +26,59 @@
 *********************************************************************************************
 */
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#endif // SAT_WINDOWS
+#pragma once
 
-// Saturn client main:
-extern int _main( int, char** );
+#include <Saturn/ImGui/Viewport.h>
+#include <Saturn/ImGui/SceneHierarchyPanel.h>
+#include <Saturn/ImGui/ContentBrowserPanel.h>
 
-int main( int count, char** args )
-{
-	// Hand if off to Saturn:
-	return _main( count, args );
+#include <Saturn/Scene/Scene.h>
+#include <Saturn/Core/Layer.h>
+
+namespace Saturn {
+	
+	class Toolbar;
+	class TitleBar;
+
+	class EditorLayer : public Layer
+	{
+	public:
+		EditorLayer();
+		~EditorLayer();
+
+		void OnUpdate( Timestep time ) override;
+
+		void OnImGuiRender() override;
+
+		void OnEvent( Event& rEvent ) override;
+		
+		void SaveFile( const std::string& FileName );
+		void OpenFile( const std::string& FileName );
+
+		void SaveFile();
+		void OpenFile();
+
+	public:
+		
+		Viewport* GetViewport() { return m_Viewport; }
+		TitleBar* GetTitleBar() { return m_TitleBar; }
+		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
+
+	private:
+		
+		void SelectionChanged( Entity e );
+		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
+		bool OnKeyPressed( KeyPressedEvent& rEvent );
+
+	private:
+		Viewport* m_Viewport;
+		TitleBar* m_TitleBar;
+		
+		Ref< Texture2D > m_CheckerboardTexture;
+
+		EditorCamera m_EditorCamera;
+
+		Ref< Scene > m_EditorScene;
+		Ref< Scene > m_RuntimeScene;
+	};
 }
-
-#if defined ( _WIN32 )
-
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
-{
-	return main( __argc, __argv );
-}
-
-#endif // _WIN32

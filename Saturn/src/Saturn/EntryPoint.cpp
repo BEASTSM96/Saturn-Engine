@@ -26,24 +26,23 @@
 *********************************************************************************************
 */
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#endif // SAT_WINDOWS
+#include "sppch.h"
+#include "EntryPoint.h"
 
-// Saturn client main:
-extern int _main( int, char** );
+#include "Core/App.h"
 
-int main( int count, char** args )
-{
-	// Hand if off to Saturn:
-	return _main( count, args );
+extern Saturn::Application* Saturn::CreateApplication( int argc, char** argv );
+
+namespace Saturn {
+
+	int _SATURN_MAIN_( int count, char** args )
+	{
+		Saturn::Application* pApp = Saturn::CreateApplication( count, args );
+		
+		pApp->Run();
+		
+		delete pApp;
+
+		return 0;
+	}
 }
-
-#if defined ( _WIN32 )
-
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
-{
-	return main( __argc, __argv );
-}
-
-#endif // _WIN32

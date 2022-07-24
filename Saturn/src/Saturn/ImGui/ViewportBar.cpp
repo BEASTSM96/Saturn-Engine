@@ -29,7 +29,6 @@
 #include "sppch.h"
 #include "ViewportBar.h"
 
-#include "Saturn/Editor/EditorLayer.h"
 #include "Saturn/Core/App.h"
 
 #include "UITools.h"
@@ -66,6 +65,7 @@ namespace Saturn {
 
 	void ViewportBar::Draw()
 	{
+		/*
 		auto Viewport = Application::Get().GetEditorLayer()->GetViewport();
 		auto ViewportPos = Viewport->m_WindowPos;
 		auto ViewportSize = Viewport->m_WindowSize;
@@ -110,6 +110,7 @@ namespace Saturn {
 		EndOverlay();
 
 		ImGui::PopStyleColor( 2 );
+		*/
 	}
 
 }

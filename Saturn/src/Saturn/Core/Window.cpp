@@ -115,7 +115,8 @@ namespace Saturn {
 		glfwSetTitlebarHitTestCallback( m_Window, []( GLFWwindow* window, int x, int y, int* pOut )
 		{
 			Window& win = *( Window* ) glfwGetWindowUserPointer( window );
-				
+			
+			/*
 			if( auto EditorLayer = Application::Get().GetEditorLayer() )
 			{
 				if( auto tb = EditorLayer->GetTitleBar() )
@@ -135,7 +136,9 @@ namespace Saturn {
 						*pOut = 0;
 				}
 			}
-			} );
+			*/
+			*pOut = 0;
+		} );
 
 		glfwSetCursorPosCallback( m_Window, []( GLFWwindow* window, double x, double y )
 			{

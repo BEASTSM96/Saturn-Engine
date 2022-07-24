@@ -34,6 +34,7 @@
 
 #include "UITools.h"
 #include "Panel/PanelManager.h"
+#include "SceneHierarchyPanel.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
@@ -106,6 +107,7 @@ namespace Saturn {
 
 		Entity selectedEntity = pHierarchyPanel->GetSelectionContext();
 
+		/*
 		if( selectedEntity && m_GizmoOperation != -1 )
 		{
 			if( !selectedEntity.HasComponent<SkylightComponent>() )
@@ -141,6 +143,8 @@ namespace Saturn {
 				}
 			}
 		}
+
+		*/
 
 		ImGui::End();
 

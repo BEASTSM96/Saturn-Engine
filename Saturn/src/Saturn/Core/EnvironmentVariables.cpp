@@ -26,24 +26,76 @@
 *********************************************************************************************
 */
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#endif // SAT_WINDOWS
+#include "sppch.h"
+#include "EnvironmentVariables.h"
 
-// Saturn client main:
-extern int _main( int, char** );
+namespace Saturn {
 
-int main( int count, char** args )
-{
-	// Hand if off to Saturn:
-	return _main( count, args );
+	bool HasEnvironmentVariable( const std::string& rKey )
+	{
+		HKEY hKey;
+		LONG lResult = RegOpenKeyExA( HKEY_CURRENT_USER, "Environment", 0, KEY_READ, &hKey );
+		
+		if( lResult == ERROR_SUCCESS )
+		{
+			DWORD dwType = REG_SZ;
+			DWORD dwSize = 0;
+			lResult = RegQueryValueExA( hKey, rKey.c_str(), NULL, &dwType, NULL, &dwSize );
+			RegCloseKey( hKey );
+			return lResult == ERROR_SUCCESS;
+		}
+
+		return lResult == ERROR_SUCCESS;
+	}
+
+	std::string GetEnvironmentVariable( const std::string& rKey )
+	{
+		HKEY hKey;
+		DWORD dwKeyWasCreated;
+		LONG lResult = RegCreateKeyExA( HKEY_CURRENT_USER, "Environment", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, &dwKeyWasCreated );
+		
+		if( lResult == ERROR_SUCCESS )
+		{
+			DWORD dwType = REG_SZ;
+			DWORD dwSize = 0;
+			
+			char* pBuffer = new char[dwSize];
+
+			lResult = RegQueryValueExA( hKey, rKey.c_str(), NULL, &dwType, (PBYTE)pBuffer, &dwSize );
+			
+			RegCloseKey( hKey );
+
+			if( lResult == ERROR_SUCCESS )
+			{
+				std::string res( pBuffer );
+				
+				delete[] pBuffer;
+				
+				return res;
+			}
+		}
+
+		return "";
+	}
+
+	void SetEnvironmentVariable( const std::string& rKey, const std::string& rValue )
+	{
+		HKEY hKey;
+		DWORD dwKeyWasCreated;
+		LONG lResult = RegCreateKeyExA( HKEY_CURRENT_USER, "Environment", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, &dwKeyWasCreated );
+		
+		if( lResult == ERROR_SUCCESS )
+		{
+			lResult = RegSetValueExA( hKey, rKey.c_str(), 0, REG_SZ, (PBYTE)rValue.c_str(), rValue.size() + 1 );
+			RegCloseKey( hKey );
+
+			if( lResult == ERROR_SUCCESS )
+			{
+				SendMessageTimeoutA( HWND_BROADCAST, WM_SETTINGCHANGE, 0, (LPARAM)"Environment", SMTO_BLOCK, 100, NULL );
+				
+				return;
+			}
+		}
+	}
+
 }
-
-#if defined ( _WIN32 )
-
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
-{
-	return main( __argc, __argv );
-}
-
-#endif // _WIN32

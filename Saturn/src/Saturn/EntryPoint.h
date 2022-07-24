@@ -26,24 +26,11 @@
 *********************************************************************************************
 */
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#endif // SAT_WINDOWS
+#pragma once
 
-// Saturn client main:
-extern int _main( int, char** );
+namespace Saturn {
 
-int main( int count, char** args )
-{
-	// Hand if off to Saturn:
-	return _main( count, args );
+	inline int _SATURN_MAIN_( int count, char** args );
 }
 
-#if defined ( _WIN32 )
-
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
-{
-	return main( __argc, __argv );
-}
-
-#endif // _WIN32
+int _main( int count, char** args ) { return Saturn::_SATURN_MAIN_( count, args ); }

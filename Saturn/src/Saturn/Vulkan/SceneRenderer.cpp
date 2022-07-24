@@ -58,17 +58,19 @@ namespace Saturn {
 		
 		VK_CHECK( vkCreateCommandPool( VulkanContext::Get().GetDevice(), &CommandPoolInfo, nullptr, &m_RendererData.CommandPool ) );
 		
-		///
 		if( m_RendererData.Width == 0 && m_RendererData.Height == 0 )
 		{
 			m_RendererData.Width = Window::Get().Width();
 			m_RendererData.Height = Window::Get().Height();
 		}
-		
+
 		//////////////////////////////////////////////////////////////////////////
 		// Geometry 
 		//////////////////////////////////////////////////////////////////////////
 
+		if( !Application::Get().GetSpecification().CreateSceneRenderer )
+			return;
+			
 		InitGeometryPass();
 
 		// Create grid.
@@ -364,9 +366,8 @@ namespace Saturn {
 
 		float cascadeSplits[ SHADOW_CASCADE_COUNT ];
 
-		// Same as the camera's near and far plane.
-		float nearClip = 0.1f;
-		float farClip = 1000.0f;
+		float nearClip = m_RendererData.EditorCamera.GetNearClip();
+		float farClip = m_RendererData.EditorCamera.GetFarClip();
 		float clipRange = farClip - nearClip;
 
 		float minZ = nearClip;
@@ -385,6 +386,8 @@ namespace Saturn {
 			float d = m_RendererData.CascadeSplitLambda * ( log - uniform ) + uniform;
 			cascadeSplits[ i ] = ( d - nearClip ) / clipRange;
 		}
+
+		cascadeSplits[ 3 ] = 0.3f;
 
 		// Calculate orthographic projection matrix for each cascade
 		float lastSplitDist = 0.0;
@@ -435,8 +438,8 @@ namespace Saturn {
 			glm::vec3 lightDir = -Direction;
 			glm::vec3 lightPos = frustumCenter + lightDir * ( farClip - nearClip );
 
-			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + m_RendererData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_RendererData.CascadeFarPlaneOffset );
 			glm::mat4 lightViewMatrix = glm::lookAt( frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + m_RendererData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_RendererData.CascadeFarPlaneOffset );
 
 			// Store split distance and matrix in cascade
 			m_RendererData.ShadowCascades[ i ].SplitDepth = ( nearClip + splitDist * clipRange ) * -1.0f;
@@ -628,12 +631,10 @@ namespace Saturn {
 		m_DrawList.push_back( { entity, mesh, transform } );
 	}
 
-	void SceneRenderer::SetWidthAndHeight( uint32_t w, uint32_t h )
+	void SceneRenderer::SetViewportSize( uint32_t w, uint32_t h )
 	{
 		if( m_RendererData.Width != w && m_RendererData.Width != h )
 		{
-			SAT_CORE_INFO( "Resizing scene renderer to {0}x{1}", w, h );
-
 			m_RendererData.Width = w;
 			m_RendererData.Height = h;
 			m_RendererData.Resized = true;
@@ -952,6 +953,12 @@ namespace Saturn {
 	{
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
 		
+		// Command Pools
+		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
+
+		if( !Application::Get().GetSpecification().CreateSceneRenderer )
+			return;
+	
 		// DescriptorSets
 		GridDescriptorSet = nullptr;
 		SkyboxDescriptorSet = nullptr;
@@ -1000,9 +1007,6 @@ namespace Saturn {
 		DirShadowMapShader = nullptr;
 		
 		ShaderLibrary::Get().Shutdown();
-
-		// Command Pools
-		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
 	}
 
 }

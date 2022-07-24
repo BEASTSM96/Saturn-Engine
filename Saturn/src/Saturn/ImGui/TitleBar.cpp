@@ -32,6 +32,8 @@
 #include "Saturn/Core/Window.h"
 #include "UITools.h"
 
+#include "Saturn/Core/EnvironmentVariables.h"
+
 #include "backends/imgui_impl_vulkan.h"
 
 namespace Saturn {
@@ -56,13 +58,10 @@ namespace Saturn {
 		{
 			m_Height = ImGui::GetWindowHeight();
 
-			if( ImGui::BeginMenu( "File" ) )
+			for( auto&& rrFunc : m_MenuBarFunctions )
 			{
-				if( ImGui::MenuItem( "Exit", "Alt+F4" ) ) exit( 0 /*EXIT_SUCCESS*/ );
-				if( ImGui::MenuItem( "Save", "Ctrl+S" ) ) SaveFile();
-				if( ImGui::MenuItem( "Open", "Ctrl+O" ) ) OpenFile();
-
-				ImGui::EndMenu();
+				if( rrFunc )
+					rrFunc();
 			}
 
 			// System buttons
@@ -155,18 +154,8 @@ namespace Saturn {
 		ImGui::PopStyleVar( 2 );
 	}
 
-	void TitleBar::SaveFile()
+	void TitleBar::AddMenuBarFunction( MenuBarFunction&& rrFunc )
 	{
-		std::string file = Application::Get().SaveFile( "Saturn Scene File (*.sc *.scene)\0*.scene; *.sc\0" );
-		
-		Application::Get().GetEditorLayer()->SaveFile( file );
+		m_MenuBarFunctions.push_back( rrFunc );
 	}
-
-	void TitleBar::OpenFile()
-	{
-		std::string file = Application::Get().OpenFile( "Saturn Scene File (*.sc *.scene)\0*.scene; *.sc\0" );
-
-		Application::Get().GetEditorLayer()->OpenFile( file );
-	}
-
 }

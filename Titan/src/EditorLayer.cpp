@@ -29,17 +29,19 @@
 #include "sppch.h"
 #include "EditorLayer.h"
 
-#include "Saturn/ImGui/ViewportBar.h"
-#include "Saturn/Vulkan/SceneRenderer.h"
-#include "Saturn/ImGui/TitleBar.h"
+#include <Saturn/ImGui/ViewportBar.h>
+#include <Saturn/Vulkan/SceneRenderer.h>
+#include <Saturn/ImGui/TitleBar.h>
 
-#include "Saturn/ImGui/Panel/Panel.h"
-#include "Saturn/ImGui/Panel/PanelManager.h"
+#include <Saturn/ImGui/Panel/Panel.h>
+#include <Saturn/ImGui/Panel/PanelManager.h>
 
-#include "Saturn/Serialisation/SceneSerialiser.h"
-#include "Saturn/PhysX/PhysXFnd.h"
+#include <Saturn/Serialisation/SceneSerialiser.h>
+#include <Saturn/PhysX/PhysXFnd.h>
 
-#include "Saturn/Vulkan/MaterialInstance.h"
+#include <Saturn/Vulkan/MaterialInstance.h>
+
+#include <Saturn/Core/EnvironmentVariables.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -47,7 +49,7 @@
 namespace Saturn {
 
 	EditorLayer::EditorLayer() 
-		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
+		: m_EditorCamera( glm::radians( 45.0f ), 1280.0f / 720.0f, 0.1f, 1000.0f )
 	{
 		m_EditorScene = Ref<Scene>::Create();
 		m_RuntimeScene = nullptr;
@@ -64,10 +66,40 @@ namespace Saturn {
 		m_Viewport = new Viewport();
 		m_TitleBar = new TitleBar();
 
+		m_TitleBar->AddMenuBarFunction( [&]() 
+		{
+			if( ImGui::BeginMenu( "File" ) )
+			{
+				if( ImGui::MenuItem( "Exit", "Alt+F4" ) ) Application::Get().Close();
+				if( ImGui::MenuItem( "Save", "Ctrl+S" ) ) SaveFile();
+				if( ImGui::MenuItem( "Open", "Ctrl+O" ) ) OpenFile();
+
+				ImGui::EndMenu();
+			}
+		} );
+		
+		m_TitleBar->AddMenuBarFunction( []()
+		{
+			if( ImGui::BeginMenu( "Saturn" ) )
+			{
+				if( ImGui::MenuItem( "Environment Variables" ) )
+				{
+					if( ImGui::BeginPopupModal( "##Saturn", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
+					{
+						ImGui::EndPopup();
+					}
+
+					ImGui::OpenPopup( "##Saturn" );
+				}
+
+				ImGui::EndMenu();
+			}
+		} );
+
 		m_Viewport->AddViewportSizeFunction( [&]( uint32_t w, uint32_t h ) -> void
 		{
-			SceneRenderer::Get().SetWidthAndHeight( w, h );
-			m_EditorCamera.SetProjectionMatrix( 45.0f, (float)w, (float)h, 0.1f, 1000.0f );
+			SceneRenderer::Get().SetViewportSize( w, h );
+
 			m_EditorCamera.SetViewportSize( w, h );
 		} );
 
@@ -149,7 +181,7 @@ namespace Saturn {
 	void EditorLayer::OnImGuiRender()
 	{
 		// Draw dockspace.
-		ImGuiViewport* pViewport = ImGui::GetMainViewport();
+		ImGuiViewport* pViewport = ImGui::GetWindowViewport();
 		ImGui::DockSpaceOverViewport( pViewport );
 		
 		m_TitleBar->Draw();
@@ -305,6 +337,41 @@ namespace Saturn {
 			}
 		}
 
+		if( !HasEnvironmentVariable( "SATURN_PREMAKE_PATH" ) )
+		{
+			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
+			{
+				ImGui::Text( "The environment variable SATURN_PREMAKE_PATH is not set." );
+				ImGui::Text( "This is required in order to build projects." );
+
+				ImGui::Separator();
+
+				static std::string path = "";
+
+				if( path.empty() )
+					path = "";
+
+				ImGui::InputText( "##path", ( char* ) path.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
+				ImGui::SameLine();
+				if( ImGui::Button( "..." ) )
+					path = Application::Get().OpenFile( ".exe\0*.exe;\0" );
+
+				if( !path.empty() )
+				{
+					if( ImGui::Button( "Close" ) )
+					{
+						ImGui::CloseCurrentPopup();
+						
+						Saturn::SetEnvironmentVariable( "SATURN_PREMAKE_PATH", path.c_str() );
+					}
+				}
+
+				ImGui::EndPopup();
+			}
+
+			ImGui::OpenPopup( "Missing Environment Variable" );
+		}
+		
 		ImGui::End();
 	}
 
@@ -324,7 +391,7 @@ namespace Saturn {
 
 			if ( m_EditorCamera.HasEvents() )
 			{
-				m_EditorCamera.Reset();
+				//m_EditorCamera.Reset();
 			}
 			
 			// Allow the camera to handle key released
@@ -343,6 +410,10 @@ namespace Saturn {
 		serialiser.Serialise( FileName );
 	}
 
+	void EditorLayer::SaveFile()
+	{
+	}
+
 	void EditorLayer::OpenFile( const std::string& FileName )
 	{
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
@@ -357,6 +428,10 @@ namespace Saturn {
 		
 		pHierarchyPanel->SetContext( m_EditorScene );
 		pHierarchyPanel->SetSelected( {} );
+	}
+
+	void EditorLayer::OpenFile()
+	{
 	}
 
 	void EditorLayer::SelectionChanged( Entity e )

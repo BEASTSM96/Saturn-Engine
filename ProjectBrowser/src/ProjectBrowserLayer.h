@@ -26,24 +26,37 @@
 *********************************************************************************************
 */
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#endif // SAT_WINDOWS
+#pragma once
 
-// Saturn client main:
-extern int _main( int, char** );
+#include <Saturn/Scene/Scene.h>
+#include <Saturn/Core/Layer.h>
 
-int main( int count, char** args )
-{
-	// Hand if off to Saturn:
-	return _main( count, args );
+namespace Saturn {
+	
+	class TitleBar;
+
+	class ProjectBrowserLayer : public Layer
+	{
+	public:
+		ProjectBrowserLayer();
+		~ProjectBrowserLayer();
+
+		void OnUpdate( Timestep time ) override;
+
+		void OnImGuiRender() override;
+
+		void OnEvent( Event& rEvent ) override;
+
+		void OnAttach() override;
+
+
+		void OnDetach() override;
+
+	private:
+
+		bool OnKeyPressed( KeyPressedEvent& rEvent );
+
+	private:
+		TitleBar* m_TilteBar;
+	};
 }
-
-#if defined ( _WIN32 )
-
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
-{
-	return main( __argc, __argv );
-}
-
-#endif // _WIN32

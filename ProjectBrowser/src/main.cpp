@@ -41,9 +41,9 @@ int main( int count, char** args )
 
 #if defined ( _WIN32 )
 
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
+int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd )
 {
 	return main( __argc, __argv );
 }
 
-#endif // _WIN32
+#endif // SAT_WINDOWS
