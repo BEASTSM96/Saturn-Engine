@@ -58,13 +58,12 @@ namespace Saturn {
 		
 		VK_CHECK( vkCreateCommandPool( VulkanContext::Get().GetDevice(), &CommandPoolInfo, nullptr, &m_RendererData.CommandPool ) );
 		
-		///
 		if( m_RendererData.Width == 0 && m_RendererData.Height == 0 )
 		{
 			m_RendererData.Width = Window::Get().Width();
 			m_RendererData.Height = Window::Get().Height();
 		}
-		
+
 		//////////////////////////////////////////////////////////////////////////
 		// Geometry 
 		//////////////////////////////////////////////////////////////////////////
@@ -632,12 +631,10 @@ namespace Saturn {
 		m_DrawList.push_back( { entity, mesh, transform } );
 	}
 
-	void SceneRenderer::SetWidthAndHeight( uint32_t w, uint32_t h )
+	void SceneRenderer::SetViewportSize( uint32_t w, uint32_t h )
 	{
 		if( m_RendererData.Width != w && m_RendererData.Width != h )
 		{
-			SAT_CORE_INFO( "Resizing scene renderer to {0}x{1}", w, h );
-
 			m_RendererData.Width = w;
 			m_RendererData.Height = h;
 			m_RendererData.Resized = true;

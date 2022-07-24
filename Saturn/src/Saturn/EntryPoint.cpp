@@ -37,10 +37,6 @@ namespace Saturn {
 
 	int _SATURN_MAIN_( int count, char** args )
 	{
-		Saturn::ApplicationSpecification DefualtSpec;
-		
-		DefualtSpec.CreateSceneRenderer = true;
-		
 		Saturn::Application* pApp = Saturn::CreateApplication( count, args );
 		
 		pApp->Run();

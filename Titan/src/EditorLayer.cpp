@@ -98,7 +98,7 @@ namespace Saturn {
 
 		m_Viewport->AddViewportSizeFunction( [&]( uint32_t w, uint32_t h ) -> void
 		{
-			SceneRenderer::Get().SetWidthAndHeight( w, h );
+			SceneRenderer::Get().SetViewportSize( w, h );
 
 			m_EditorCamera.SetViewportSize( w, h );
 		} );
