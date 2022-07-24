@@ -59,16 +59,6 @@ namespace Saturn {
 		VkCommandBuffer AllocateCommandBuffer( VkCommandPool CommandPool );
 		VkCommandBuffer AllocateCommandBuffer( VkCommandBufferLevel CmdLevel );
 
-
-		// Helpers.
-		void CreateFramebuffer( VkRenderPass RenderPass, VkExtent2D Extent, std::vector<VkImageView> Attachments, VkFramebuffer* pFramebuffer );
-
-		void CreateImage( VkImageType Type, VkFormat Format, VkExtent3D Extent, uint32_t ArrayLevels, VkImageUsageFlags Usage, VkImage* pImage, VkDeviceMemory* pMemory );
-		
-		void CreateImageView( VkImageViewType Type, VkImage Image, VkFormat Format, VkImageAspectFlags Aspect, uint32_t LayerCount, VkImageView* pImageView );
-
-		void CreateSampler( VkFilter Filter, VkSampler* pSampler );
-		
 		//////////////////////////////////////////////////////////////////////////
 		// FRAME BEGINGING AND ENDING.
 		//////////////////////////////////////////////////////////////////////////

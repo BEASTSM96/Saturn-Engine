@@ -35,13 +35,13 @@
 #include "VulkanAllocator.h"
 
 #include "Saturn/Core/Timer.h"
+#include "SceneRenderer.h"
+#include "Helpers.h"
 
 // ImGui
 #include <imgui.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <backends/imgui_impl_glfw.h>
-
-#include "SceneRenderer.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 
@@ -62,12 +62,9 @@ namespace Saturn {
 		PickPhysicalDevice();
 		CreateLogicalDevice();
 		CreateSwapChain();
+		CreateDepthResources();
 		CreateCommandPool();
 
-		// Init a theoretical swap chain.
-		SwapchainCreationData Data = GetSwapchainCreationData();
-		Data ={};
-		
 		m_pAllocator = new VulkanAllocator();
 	
 		// Create default pass.
@@ -79,14 +76,11 @@ namespace Saturn {
 		Specification.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
 		m_DefaultPass = Pass( Specification );
+		m_SwapChain.CreateFramebuffers();
 		
 		SceneRenderer::Get();
 
 		Renderer::Get();
-
-		CreateDepthResources();
-
-		m_SwapChain.CreateFramebuffers();
 	}
 
 	void VulkanContext::Terminate()
@@ -500,10 +494,10 @@ namespace Saturn {
 
 		VkFormat DepthFormat = FindDepthFormat();
 
-		Renderer::Get().CreateImage( VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT,
+		Helpers::CreateImage( VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT,
 			{ .width = ( uint32_t )Window::Get().Width(), .height = ( uint32_t )Window::Get().Height(), .depth = 1 }, 1, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_DepthImage, &m_DepthImageMemory );
 
-		Renderer::Get().CreateImageView( VK_IMAGE_VIEW_TYPE_2D, m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, &m_DepthImageView );
+		Helpers::CreateImageView( VK_IMAGE_VIEW_TYPE_2D, m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, &m_DepthImageView );
 		
 		SetDebugUtilsObjectName( "Context Depth Image", (uint64_t)m_DepthImage, VK_OBJECT_TYPE_IMAGE );
 		SetDebugUtilsObjectName( "Context Depth Image View", (uint64_t)m_DepthImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
