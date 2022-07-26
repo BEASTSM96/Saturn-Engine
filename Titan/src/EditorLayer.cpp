@@ -39,11 +39,16 @@
 #include <Saturn/ImGui/Panel/PanelManager.h>
 
 #include <Saturn/Serialisation/SceneSerialiser.h>
+#include <Saturn/Serialisation/ProjectSerialiser.h>
+
 #include <Saturn/PhysX/PhysXFnd.h>
 
 #include <Saturn/Vulkan/MaterialInstance.h>
 
 #include <Saturn/Core/EnvironmentVariables.h>
+
+#include <glfw/glfw3.h>
+#include <glfw/glfw3native.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -73,19 +78,22 @@ namespace Saturn {
 		m_Viewport = new Viewport();
 		m_TitleBar = new TitleBar();
 
-		m_TitleBar->AddMenuBarFunction( [&]() 
+		m_TitleBar->AddMenuBarFunction( [&]() -> void
 		{
 			if( ImGui::BeginMenu( "File" ) )
 			{
-				if( ImGui::MenuItem( "Exit", "Alt+F4" ) ) Application::Get().Close();
-				if( ImGui::MenuItem( "Save", "Ctrl+S" ) ) SaveFile();
-				if( ImGui::MenuItem( "Open", "Ctrl+O" ) ) OpenFile();
+				if( ImGui::MenuItem( "Exit", "Alt+F4" ) )          Application::Get().Close();
+				if( ImGui::MenuItem( "Save", "Ctrl+S" ) )          SaveFile();
+				if( ImGui::MenuItem( "Save As", "Ctrl+Shift+S" ) ) SaveFileAs();
+				if( ImGui::MenuItem( "Open", "Ctrl+O" ) )          OpenFile();
+				
+				if( ImGui::MenuItem( "Save Project" ) )            SaveProject();
 
 				ImGui::EndMenu();
 			}
 		} );
 		
-		m_TitleBar->AddMenuBarFunction( []()
+		m_TitleBar->AddMenuBarFunction( []() -> void
 		{
 			if( ImGui::BeginMenu( "Saturn" ) )
 			{
@@ -109,6 +117,31 @@ namespace Saturn {
 
 			m_EditorCamera.SetViewportSize( w, h );
 		} );
+		
+		m_TitleBar->AddMenuBarFunction( [&]() -> void
+		{
+			if( ImGui::BeginMenu( "Settings" ) )
+			{
+				if( ImGui::MenuItem( "User settings", "Ctrl+Shift+Alt+S" ) ) m_ShowUserSettings = !m_ShowUserSettings;
+
+				ImGui::EndMenu();
+			}
+		} );
+
+		Window::Get().SetTitlebarHitTest( [ & ]( int x, int y ) -> bool
+		{
+			auto TitleBarHeight = m_TitleBar->Height();
+
+			RECT windowRect;
+			POINT mousePos;
+			GetClientRect( glfwGetWin32Window( (GLFWwindow*)Window::Get().NativeWindow() ), &windowRect );
+
+			// Drag the menu bar to move the window
+			if( !Window::Get().Maximized() && !ImGui::IsAnyItemHovered() && ( y < ( windowRect.top + TitleBarHeight ) ) )
+				return true;
+			else
+				return false;
+		} );
 
 		pHierarchyPanel->SetContext( m_EditorScene );
 		pHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
@@ -126,6 +159,8 @@ namespace Saturn {
 
 	EditorLayer::~EditorLayer()
 	{
+		Window::Get().SetTitlebarHitTest( [&]( int x, int y ) -> bool { return false; } );
+		
 		delete m_Viewport;
 		delete m_TitleBar;
 
@@ -135,7 +170,7 @@ namespace Saturn {
 		
 		m_Viewport = nullptr;
 		m_TitleBar = nullptr;
-
+	
 		PanelManager::Get().Terminate();
 	}
 
@@ -202,6 +237,9 @@ namespace Saturn {
 		m_Viewport->Draw();
 
 		SceneRenderer::Get().ImGuiRender();
+		
+		if( m_ShowUserSettings )
+			UI_Titlebar_UserSettings();
 
 		ImGui::Begin( "Renderer" );
 
@@ -424,8 +462,6 @@ namespace Saturn {
 			{
 				if( ImGui::Button( "Create" ) ) ShowCreationModal = true;
 				ImGui::SameLine();
-				if( ImGui::Button( "Find" ) ) ImGui::CloseCurrentPopup();
-				ImGui::SameLine();
 				if( ImGui::Button( "Close" ) ) ImGui::CloseCurrentPopup();
 				ImGui::SameLine();
 
@@ -470,10 +506,12 @@ namespace Saturn {
 		}
 	}
 
-	void EditorLayer::SaveFile( const std::string& FileName )
+	void EditorLayer::SaveFileAs()
 	{
+		auto res = Application::Get().SaveFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
+
 		SceneSerialiser serialiser( m_EditorScene );
-		serialiser.Serialise( FileName );
+		serialiser.Serialise( res );
 	}
 
 	void EditorLayer::SaveFile()
@@ -498,6 +536,15 @@ namespace Saturn {
 
 	void EditorLayer::OpenFile()
 	{
+		auto res = Application::Get().OpenFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
+		
+		OpenFile( res );
+	}
+
+	void EditorLayer::SaveProject()
+	{
+		ProjectSerialiser ps( Project::GetActiveProject() );
+		ps.Serialise( Project::GetActiveProject()->m_Config.Path );
 	}
 
 	void EditorLayer::SelectionChanged( Entity e )
@@ -549,6 +596,33 @@ namespace Saturn {
 		}
 
 		return true;
+	}
+
+	void EditorLayer::UI_Titlebar_UserSettings()
+	{
+		static std::string s_StartupProjectPath;
+
+		ImGuiIO& rIO = ImGui::GetIO();
+
+		ImGui::SetNextWindowPos( ImVec2( rIO.DisplaySize.x * 0.5f - 150.0f, rIO.DisplaySize.y * 0.5f - 150.0f ), ImGuiCond_Once );
+
+		ImGui::Begin( "User settings" );
+
+		ImGui::SetCursorPosX( ImGui::GetWindowContentRegionWidth() * 0.5f - ImGui::CalcTextSize( "User settings" ).x * 0.5f );
+		ImGui::Text( "User settings" );
+
+		ImGui::Separator();
+
+		ImGui::Text( "Startup project:" );
+		ImGui::SameLine();
+		s_StartupProjectPath.empty() ?  ImGui::Text( "None" ) : ImGui::Text( s_StartupProjectPath.c_str() );
+		ImGui::SameLine();
+		if( ImGui::Button( "...##openprj" ) )
+		{
+			s_StartupProjectPath = Application::Get().OpenFile( "Saturn project file (*.scene) (*.sc)\0*.scene\0" );
+		}
+		
+		ImGui::End();
 	}
 
 }

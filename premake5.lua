@@ -254,6 +254,10 @@ project "Saturn"
 				'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
 			}
 
+
+	filter "configurations:Release or configurations:Dist"
+		defines "NDEBUG" -- For PhysX
+
 ---------------------------------------------------------------------------------------------------------------------------
 
 group "Editor"
@@ -392,6 +396,9 @@ project "Titan"
 			defines "SAT_DIST"
 			runtime "Release"
 			optimize "on"
+	
+	filter "configurations:Release or configurations:Dist"
+		defines "NDEBUG" -- For PhysX
 
 
 group "Tools"
@@ -461,6 +468,27 @@ project "ProjectBrowser"
 			defines "SAT_DEBUG"
 			runtime "Debug"
 			symbols "on"
+
+			postbuildcommands 
+			{
+				'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+				
+				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
+			}
+			
+		filter "configurations:Release or configurations:Dist"
+			postbuildcommands 
+			{ 
+				'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
+			}
 
 		filter "configurations:Release"
 			defines "SAT_RELEASE"

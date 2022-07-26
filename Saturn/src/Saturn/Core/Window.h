@@ -43,6 +43,7 @@
 #endif
 
 #include <vulkan.h>
+#include <functional>
 
 struct GLFWwindow;
 
@@ -82,6 +83,8 @@ namespace Saturn {
 		std::vector<const char*> GetRequiredExtensions();
 
 		VkResult CreateWindowSurface( VkInstance& rInstance, VkSurfaceKHR* pSurface );
+		
+		void SetTitlebarHitTest( std::function<bool( int, int )>&& rrFunc );
 
 	#if defined( _WIN32 )
 		HWND PlatformWindow();
@@ -93,6 +96,7 @@ namespace Saturn {
 		void GetSize( uint32_t* pWidth, uint32_t* pHeight );
 
 		bool Minimized() { return m_Minimized; }
+		bool Maximized() { return m_Maximized; }
 
 	private:
 
@@ -115,7 +119,7 @@ namespace Saturn {
 
 		EventCallbackFn m_EventCallback;
 
-		// Widgets
+		std::function<bool( int, int )> m_TitlebarHitTest;
 
 		bool m_Rendering = false;
 

@@ -26,68 +26,15 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "ProjectBrowserLayer.h"
+#pragma once
 
-#include <Saturn/ImGui/Panel/Panel.h>
-#include <Saturn/ImGui/Panel/PanelManager.h>
-#include <Saturn/ImGui/TitleBar.h>
-
-#include <Saturn/Core/Window.h>
-
-#include <glm/gtc/type_ptr.hpp>
-
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include <imgui.h> 
-#include <imgui_internal.h>
+#include <string>
 
 namespace Saturn {
 
-	ProjectBrowserLayer::ProjectBrowserLayer()
+	struct UserSettings
 	{
-	}
-
-	void ProjectBrowserLayer::OnAttach()
-	{
-		m_TilteBar = new TitleBar();
-	}
-
-	ProjectBrowserLayer::~ProjectBrowserLayer()
-	{
-
-	}
-	
-	void ProjectBrowserLayer::OnDetach()
-	{
-		delete m_TilteBar;
-	}
-
-	void ProjectBrowserLayer::OnUpdate( Timestep time )
-	{
-
-	}
-
-	void ProjectBrowserLayer::OnImGuiRender()
-	{
-		ImGuiViewport* pViewport = ImGui::GetMainViewport();
-		ImGui::DockSpaceOverViewport( pViewport );
-
-		// --- Title bar
-		
-		m_TilteBar->Draw();
-
-		// ---
-
-	}
-
-	void ProjectBrowserLayer::OnEvent( Event& rEvent )
-	{
-
-	}
-
-	bool ProjectBrowserLayer::OnKeyPressed( KeyPressedEvent& rEvent )
-	{
-		return true;
-	}
+		std::string StartupProject;
+	};
 
 }

@@ -52,11 +52,13 @@ namespace Saturn {
 
 		void OnEvent( Event& rEvent ) override;
 		
-		void SaveFile( const std::string& FileName );
+		void SaveFileAs();
 		void OpenFile( const std::string& FileName );
 
 		void SaveFile();
 		void OpenFile();
+
+		void SaveProject();
 
 	public:
 		
@@ -69,6 +71,10 @@ namespace Saturn {
 		void SelectionChanged( Entity e );
 		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
 		bool OnKeyPressed( KeyPressedEvent& rEvent );
+
+		// UI Functions.
+		void UI_Titlebar_UserSettings();
+		bool m_ShowUserSettings = false;
 
 	private:
 		Viewport* m_Viewport;

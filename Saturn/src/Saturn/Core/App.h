@@ -33,6 +33,7 @@
 #include "Layer.h"
 #include "Events.h"
 #include "Input.h"
+#include "UserSettings.h"
 
 #include <vector>
 

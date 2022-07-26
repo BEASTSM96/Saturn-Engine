@@ -116,28 +116,7 @@ namespace Saturn {
 		{
 			Window& win = *( Window* ) glfwGetWindowUserPointer( window );
 			
-			/*
-			if( auto EditorLayer = Application::Get().GetEditorLayer() )
-			{
-				if( auto tb = EditorLayer->GetTitleBar() )
-				{
-					auto TitleBarHeight = tb->Height();
-					
-					RECT windowRect;
-					POINT mousePos;
-					GetClientRect( glfwGetWin32Window( win.m_Window ), &windowRect );
-
-					*pOut = 1;
-					
-					// Drag the menu bar to move the window
-					if( !win.m_Maximized && !ImGui::IsAnyItemHovered() && ( y < ( windowRect.top + TitleBarHeight ) ) )
-						*pOut = 1;
-					else
-						*pOut = 0;
-				}
-			}
-			*/
-			*pOut = 0;
+			*pOut = win.m_TitlebarHitTest( x, y );
 		} );
 
 		glfwSetCursorPosCallback( m_Window, []( GLFWwindow* window, double x, double y )
@@ -343,6 +322,11 @@ namespace Saturn {
 	VkResult Window::CreateWindowSurface( VkInstance& rInstance, VkSurfaceKHR* pSurface )
 	{
 		return glfwCreateWindowSurface( rInstance, m_Window, nullptr, pSurface );
+	}
+
+	void Window::SetTitlebarHitTest( std::function<bool( int, int )>&& rrFunc )
+	{
+		m_TitlebarHitTest = std::move( rrFunc );
 	}
 
 #if defined( _WIN32 )
