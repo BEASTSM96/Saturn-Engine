@@ -55,8 +55,6 @@
 
 namespace Saturn {
 
-	static bool s_HasActiveProject = false;
-	
 	static char* s_ProjectNameBuffer = new char[ 1024 ];
 	static char* s_ProjectFilePathBuffer = new char[ 1024 ];
 
@@ -159,7 +157,7 @@ namespace Saturn {
 
 	EditorLayer::~EditorLayer()
 	{
-		Window::Get().SetTitlebarHitTest( [&]( int x, int y ) -> bool { return false; } );
+		Window::Get().SetTitlebarHitTest( nullptr );
 		
 		delete m_Viewport;
 		delete m_TitleBar;
@@ -385,7 +383,7 @@ namespace Saturn {
 			}
 		}
 
-		if( !HasEnvironmentVariable( "SATURN_PREMAKE_PATH" ) )
+		if( Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" ) )
 		{
 			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
 			{
@@ -410,7 +408,7 @@ namespace Saturn {
 					{
 						ImGui::CloseCurrentPopup();
 						
-						Saturn::SetEnvironmentVariable( "SATURN_PREMAKE_PATH", path.c_str() );
+						Auxiliary::SetEnvironmentVariable( "SATURN_PREMAKE_PATH", path.c_str() );
 					}
 				}
 
@@ -418,60 +416,6 @@ namespace Saturn {
 			}
 
 			ImGui::OpenPopup( "Missing Environment Variable" );
-		}
-
-		if( !s_HasActiveProject )
-		{
-			static bool ShowCreationModal = false;
-			
-			if( ShowCreationModal )
-			{
-				if( ImGui::BeginPopupModal( "Create a project", NULL, ImGuiWindowFlags_AlwaysAutoResize ) ) 
-				{
-					ImGui::Text( "Enter a name for your project." );
-					ImGui::Separator();
-					
-					ImGui::InputText( "##name", s_ProjectNameBuffer, 1024 );
-					ImGui::SameLine();
-					ImGui::InputText( "##path", s_ProjectFilePathBuffer, 1024 );
-					
-					if( ImGui::Button( "Create" ) )
-					{
-						Ref<Project> project = Ref<Project>::Create();
-						
-						auto fullPath = std::string( s_ProjectFilePathBuffer ) + "\\" + std::string( s_ProjectNameBuffer );
-						
-						CreateProjectResources( project, std::string( s_ProjectNameBuffer ), fullPath );
-
-						Project::SetActiveProject( project );
-						s_HasActiveProject = true;
-					}
-					
-					ImGui::SameLine();
-					
-					if( ImGui::Button( "Cancel" ) )
-					{
-						ShowCreationModal = false;
-						ImGui::CloseCurrentPopup();
-					}
-					
-					ImGui::EndPopup();
-				}
-			}
-			else if( ImGui::BeginPopupModal( "No Active Project", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
-			{
-				if( ImGui::Button( "Create" ) ) ShowCreationModal = true;
-				ImGui::SameLine();
-				if( ImGui::Button( "Close" ) ) ImGui::CloseCurrentPopup();
-				ImGui::SameLine();
-
-				ImGui::EndPopup();
-			}
-
-			if( !ShowCreationModal )
-				ImGui::OpenPopup( "No Active Project" );
-			else
-				ImGui::OpenPopup( "Create a project" );
 		}
 
 		ImGui::End();

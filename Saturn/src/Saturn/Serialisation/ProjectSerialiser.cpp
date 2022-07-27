@@ -26,17 +26,41 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "ProjectSerialiser.h"
 
-#include <string>
-#include <Windows.h>
+#include <fstream>
+#include <yaml-cpp/yaml.h>
 
 namespace Saturn {
-	
-	namespace Auxiliary {
-		extern bool HasEnvironmentVariable( const std::string& rKey );
-		extern std::string GetEnvironmentVariable( const std::string& rKey );
-		extern void SetEnvironmentVariable( const std::string& rKey, const std::string& rValue );
+
+	ProjectSerialiser::ProjectSerialiser( const Ref< Project >& rProject )
+		: m_Project( rProject )
+	{
+
+	}
+
+	ProjectSerialiser::~ProjectSerialiser()
+	{
+	}
+
+	void ProjectSerialiser::Serialise( const std::string& rFilePath )
+	{
+		YAML::Emitter out;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "Project" << YAML::Value << "MyProject";
+
+		out << YAML::EndMap;
+
+		std::ofstream file( rFilePath + ".sproject" );
+		file << out.c_str();
+	}
+
+	void ProjectSerialiser::Deserialise( const std::string& rFilePath )
+	{
+
 	}
 
 }

@@ -29,9 +29,13 @@
 #include "sppch.h"
 #include "Project.h"
 
+#include "Saturn/Serialisation/ProjectSerialiser.h"
+
 namespace Saturn {
 	
 	static Ref<Project> s_ActiveProject;
+
+	static std::vector< Ref< Project > > s_RecentProjects;
 
 	Project::Project()
 	{
@@ -54,33 +58,11 @@ namespace Saturn {
 
 	std::filesystem::path Project::GetAssetPath()
 	{
-		return std::filesystem::path( GetActiveProject()->GetConfig().Path ) / "Content" / "Assets";
+		return std::filesystem::path( GetActiveProject()->GetConfig().Path ) / "Assets";
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-
-	void CreateProjectResources( Ref<Project>& rProject, const std::string& Name, const std::string& Path )
+	const std::string& Project::GetName() const
 	{
-		std::filesystem::path ProjectPath = Path;
-		std::filesystem::path ProjectContentPath = ProjectPath / "Content";
-		
-		if( !std::filesystem::exists( ProjectContentPath ) )
-			std::filesystem::create_directories( ProjectContentPath );
-
-		std::filesystem::create_directory( ProjectContentPath );
-		std::filesystem::create_directory( ProjectContentPath / "Assets" );
-
-		std::filesystem::create_directories( ProjectContentPath / "Assets" / "Shaders" );
-		std::filesystem::create_directories( ProjectContentPath / "Assets" / "Textures" );
-		std::filesystem::create_directories( ProjectContentPath / "Assets" / "Meshes" );
-		std::filesystem::create_directories( ProjectContentPath / "Assets" / "Materials" );
-		std::filesystem::create_directories( ProjectContentPath / "Assets" / "Scenes" );
-		std::filesystem::create_directories( ProjectContentPath / "Assets" / "Sound" );
-		std::filesystem::create_directories( ProjectContentPath / "Assets" / "Sound" / "Source" );
-		std::filesystem::create_directory( ProjectContentPath / "Scripts" );
-
-		rProject->m_Config.Name = Name;
-		rProject->m_Config.Path = Path;
+		return GetActiveProject()->GetConfig().Name;
 	}
-
 }

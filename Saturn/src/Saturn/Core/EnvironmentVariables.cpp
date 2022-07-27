@@ -31,71 +31,133 @@
 
 namespace Saturn {
 
-	bool HasEnvironmentVariable( const std::string& rKey )
-	{
-		HKEY hKey;
-		LONG lResult = RegOpenKeyExA( HKEY_CURRENT_USER, "Environment", 0, KEY_READ, &hKey );
+	namespace Auxiliary {
 		
-		if( lResult == ERROR_SUCCESS )
+		bool HasEnvironmentVariable( const std::string& rKey )
 		{
-			DWORD dwType = REG_SZ;
-			DWORD dwSize = 0;
-			lResult = RegQueryValueExA( hKey, rKey.c_str(), NULL, &dwType, NULL, &dwSize );
-			RegCloseKey( hKey );
+			HKEY hKey;
+			LONG lResult = RegOpenKeyExA( HKEY_CURRENT_USER, "Environment", 0, KEY_READ, &hKey );
+
+			if( lResult == ERROR_SUCCESS )
+			{
+				DWORD dwType = REG_SZ;
+				DWORD dwSize = 0;
+				lResult = RegQueryValueExA( hKey, rKey.c_str(), NULL, &dwType, NULL, &dwSize );
+				RegCloseKey( hKey );
+				return lResult == ERROR_SUCCESS;
+			}
+
 			return lResult == ERROR_SUCCESS;
 		}
 
-		return lResult == ERROR_SUCCESS;
-	}
-
-	std::string GetEnvironmentVariable( const std::string& rKey )
-	{
-		HKEY hKey;
-		DWORD dwKeyWasCreated;
-		LONG lResult = RegCreateKeyExA( HKEY_CURRENT_USER, "Environment", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, &dwKeyWasCreated );
-		
-		if( lResult == ERROR_SUCCESS )
+		std::string GetEnvironmentVariable( const std::string& rKey )
 		{
-			DWORD dwType = REG_SZ;
-			DWORD dwSize = 0;
-			
-			char* pBuffer = new char[dwSize];
-
-			lResult = RegQueryValueExA( hKey, rKey.c_str(), NULL, &dwType, (PBYTE)pBuffer, &dwSize );
-			
-			RegCloseKey( hKey );
+			HKEY hKey;
+			LPCSTR keyPath = "Environment";
+			DWORD dwKeyWasCreated;
+			LSTATUS lResult = RegCreateKeyExA( HKEY_CURRENT_USER, keyPath, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, &dwKeyWasCreated );
 
 			if( lResult == ERROR_SUCCESS )
 			{
-				std::string res( pBuffer );
+				DWORD dwType;
+				char* pBuffer = new char[ 512 ];
+				DWORD dwSize = 512;
 				
-				delete[] pBuffer;
-				
-				return res;
+				lResult = RegGetValueA( hKey, NULL, rKey.c_str(), RRF_RT_ANY, &dwType, ( PBYTE ) pBuffer, &dwSize );
+
+				RegCloseKey( hKey );
+
+				if( lResult == ERROR_SUCCESS )
+				{
+					std::string res( pBuffer );
+
+					delete[] pBuffer;
+
+					return res;
+				}
+				else
+				{
+					DWORD ErrorCode = GetLastError();
+					LPTSTR Error = NULL;
+
+					FormatMessage(
+						FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
+						NULL,
+						lResult,
+						MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
+						( LPTSTR ) &Error,
+						0,
+						NULL
+					);
+
+					SAT_CORE_ASSERT( false, "HResult failed." );
+
+					LocalFree( Error );
+					Error = NULL;
+				}
 			}
+
+			return "";
 		}
 
-		return "";
-	}
-
-	void SetEnvironmentVariable( const std::string& rKey, const std::string& rValue )
-	{
-		HKEY hKey;
-		DWORD dwKeyWasCreated;
-		LONG lResult = RegCreateKeyExA( HKEY_CURRENT_USER, "Environment", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, &dwKeyWasCreated );
-		
-		if( lResult == ERROR_SUCCESS )
+		void SetEnvironmentVariable( const std::string& rKey, const std::string& rValue )
 		{
-			lResult = RegSetValueExA( hKey, rKey.c_str(), 0, REG_SZ, (PBYTE)rValue.c_str(), rValue.size() + 1 );
-			RegCloseKey( hKey );
+			HKEY hKey;
+			DWORD dwKeyWasCreated;
+			LONG lResult = RegCreateKeyExA( HKEY_CURRENT_USER, "Environment", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, &dwKeyWasCreated );
 
 			if( lResult == ERROR_SUCCESS )
 			{
-				SendMessageTimeoutA( HWND_BROADCAST, WM_SETTINGCHANGE, 0, (LPARAM)"Environment", SMTO_BLOCK, 100, NULL );
-				
-				return;
+				lResult = RegSetValueExA( hKey, rKey.c_str(), 0, REG_SZ, ( PBYTE ) rValue.c_str(), rValue.size() + 1 );
+				RegCloseKey( hKey );
+
+				if( lResult == ERROR_SUCCESS )
+				{
+					SendMessageTimeoutA( HWND_BROADCAST, WM_SETTINGCHANGE, 0, ( LPARAM ) "Environment", SMTO_BLOCK, 100, NULL );
+
+					return;
+				}
+				else
+				{
+					DWORD ErrorCode = GetLastError();
+					LPTSTR Error = NULL;
+
+					FormatMessage(
+						FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
+						NULL,
+						lResult,
+						MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
+						( LPTSTR ) &Error,
+						0,
+						NULL
+					);
+
+					SAT_CORE_ASSERT( false, "HResult failed." );
+
+					LocalFree( Error );
+					Error = NULL;
+				}
+			}
+			else
+			{
+				DWORD ErrorCode = GetLastError();
+				LPTSTR Error = NULL;
+
+				FormatMessage(
+					FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
+					NULL,
+					lResult,
+					MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
+					( LPTSTR ) &Error,
+					0,
+					NULL
+				);
+
+				SAT_CORE_ASSERT( false, "HResult failed." );
+
+				LocalFree( Error );
+				Error = NULL;
 			}
 		}
 	}
-
 }

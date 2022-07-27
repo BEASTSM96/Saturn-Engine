@@ -28,15 +28,22 @@
 
 #pragma once
 
-#include <string>
-#include <Windows.h>
+#include "Saturn/Project/Project.h"
 
 namespace Saturn {
 	
-	namespace Auxiliary {
-		extern bool HasEnvironmentVariable( const std::string& rKey );
-		extern std::string GetEnvironmentVariable( const std::string& rKey );
-		extern void SetEnvironmentVariable( const std::string& rKey, const std::string& rValue );
-	}
+	class ProjectSerialiser
+	{
+	public:
+		ProjectSerialiser() = default;
+		ProjectSerialiser( const Ref< Project >& rProject );
 
+		~ProjectSerialiser();
+
+		void Serialise( const std::string& rFilePath );
+		void Deserialise( const std::string& rFilePath );
+
+	private:
+		Ref< Project > m_Project;
+	};
 }

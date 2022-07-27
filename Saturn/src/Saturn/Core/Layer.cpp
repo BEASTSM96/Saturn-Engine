@@ -58,12 +58,10 @@ namespace Saturn {
 
 	ImGuiLayer::ImGuiLayer()
 	{
-		OnAttach();
 	}
 
 	ImGuiLayer::~ImGuiLayer()
 	{
-		OnDetach();
 	}
 
 	void ImGuiLayer::OnAttach( void )

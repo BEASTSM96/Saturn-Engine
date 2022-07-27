@@ -41,6 +41,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#if defined( SAT_WINDOWS )
+#include <ShObjIdl.h>
+#endif
 
 #define APP_BIND_EVENT_FN(_) std::bind(&Application::_, this, std::placeholders::_1)
 
@@ -65,6 +68,7 @@ namespace Saturn {
 		Window::Get().Show();
 
 		m_ImGuiLayer = new ImGuiLayer();
+		m_ImGuiLayer->OnAttach();
 		
 		// Tell children to create what ever they need.
 		OnInit();
@@ -98,6 +102,8 @@ namespace Saturn {
 			m_LastFrameTime = time;
 		}
 
+		OnShutdown();
+		
 		VulkanContext::Get().SubmitTerminateResource( [&]() 
 		{
 			for ( auto& layer : m_Layers )
@@ -105,13 +111,13 @@ namespace Saturn {
 				delete layer;
 			}
 
+			m_ImGuiLayer->OnDetach();
+			
 			delete m_ImGuiLayer;
 
 			m_ImGuiLayer = nullptr;
 		} );
 		
-		OnShutdown();
-
 		VulkanContext::Get().Terminate();
 	}
 
@@ -175,6 +181,65 @@ namespace Saturn {
 
 #ifdef  SAT_PLATFORM_LINUX
 		return std::string();
+#endif
+
+		return std::string();
+	}
+
+	std::string Application::OpenFolder() const
+	{
+#ifdef  SAT_PLATFORM_WINDOWS
+		IFileOpenDialog* pFileOpen;
+		PWSTR pszFilePath;
+		std::string path;
+		
+		CoInitialize( nullptr );
+
+		// Create the object.
+		HRESULT hr = CoCreateInstance( CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, (void**)&pFileOpen );
+
+		if( SUCCEEDED( hr ) )
+		{
+			DWORD dwOptions;
+			pFileOpen->GetOptions( &dwOptions );
+			pFileOpen->SetOptions( dwOptions | FOS_PICKFOLDERS );
+
+			// Show the dialog.
+			hr = pFileOpen->Show( NULL );
+
+			// Get the file name from the dialog.
+			if( SUCCEEDED( hr ) )
+			{
+				IShellItem* pItem;
+				hr = pFileOpen->GetResult( &pItem );
+
+				if( SUCCEEDED( hr ) )
+				{
+					hr = pItem->GetDisplayName( SIGDN_DESKTOPABSOLUTEPARSING, &pszFilePath );
+					auto wstr = std::wstring( pszFilePath );
+					path = std::string( wstr.begin(), wstr.end() );
+					
+					CoTaskMemFree( pszFilePath );
+				}
+
+				pItem->Release();
+			}
+			else
+			{
+				SAT_CORE_ASSERT( false );
+			}
+
+			pFileOpen->Release();
+			pFileOpen = NULL;
+		}
+		else
+		{
+			SAT_CORE_ASSERT( false );
+		}
+		
+		//std::replace( path.begin(), path.end(), '\\', '/' );
+
+		return path;
 #endif
 
 		return std::string();

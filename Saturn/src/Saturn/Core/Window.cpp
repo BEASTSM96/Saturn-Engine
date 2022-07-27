@@ -116,7 +116,8 @@ namespace Saturn {
 		{
 			Window& win = *( Window* ) glfwGetWindowUserPointer( window );
 			
-			*pOut = win.m_TitlebarHitTest( x, y );
+			if( win.m_TitlebarHitTest )
+				*pOut = win.m_TitlebarHitTest( x, y );
 		} );
 
 		glfwSetCursorPosCallback( m_Window, []( GLFWwindow* window, double x, double y )

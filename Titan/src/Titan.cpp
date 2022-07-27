@@ -33,9 +33,12 @@
 class EditorApplication : public Saturn::Application
 {
 public:
-	EditorApplication( const Saturn::ApplicationSpecification& spec )
-		: Application( spec )
+	EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
+		: Application( spec ), m_ProjectPath( rProjectPath )
 	{
+		m_UserSettings = {};
+
+		m_UserSettings.StartupProject = rProjectPath;
 	}
 
 	virtual void OnInit() override
@@ -47,14 +50,22 @@ public:
 
 	virtual void OnShutdown() override
 	{
-
+		PopLayer( m_EditorLayer );
+		delete m_EditorLayer;
 	}
 
 private:
 	Saturn::EditorLayer* m_EditorLayer;
+	Saturn::UserSettings m_UserSettings;
+	std::string m_ProjectPath;
 };
 
 Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
 {
-	return new EditorApplication( {} );
+	std::string projectPath = "";
+
+	if( argc > 1 )
+		projectPath = argv[1];
+
+	return new EditorApplication( {}, projectPath );
 }
