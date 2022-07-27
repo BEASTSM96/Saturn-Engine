@@ -33,6 +33,10 @@
 #include <Saturn/ImGui/Panel/PanelManager.h>
 #include <Saturn/ImGui/TitleBar.h>
 
+#include <Saturn/Core/EnvironmentVariables.h>
+
+#include <Saturn/Serialisation/ProjectSerialiser.h>
+
 #include <Saturn/Core/Window.h>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -41,15 +45,68 @@
 #include <imgui.h> 
 #include <imgui_internal.h>
 
+#include <glfw/glfw3.h>
+#include <glfw/glfw3native.h>
+
 namespace Saturn {
+
+	static char* s_SaturnDirBuffer = new char[ 1024 ];
+	static std::string s_SaturnDir = "";
+
+	static char* s_ProjectNameBuffer = new char[ 1024 ];
+	static char* s_ProjectFilePathBuffer = new char[ 1024 ];
+
+	static bool s_ShowNewProjectPopup = false;
+
+	static void ReplaceToken( std::string& str, const char* token, const std::string& value )
+	{
+		size_t pos = 0;
+		while( ( pos = str.find( token, pos ) ) != std::string::npos )
+		{
+			str.replace( pos, strlen( token ), value );
+			pos += strlen( token );
+		}
+	}
 
 	ProjectBrowserLayer::ProjectBrowserLayer()
 	{
+		m_HasSaturnDir = Auxiliary::HasEnvironmentVariable( "SATURN_DIR" );
+
+		if( m_HasSaturnDir ) 
+		{
+			s_SaturnDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
+		}
+
+		memset( s_SaturnDirBuffer, 0, 1024 );
+
+		memset( s_ProjectFilePathBuffer, 0, 1024 );
+		memset( s_ProjectNameBuffer, 0, 1024 );
 	}
 
 	void ProjectBrowserLayer::OnAttach()
 	{
-		m_TilteBar = new TitleBar();
+		m_TitleBar = new TitleBar();
+		
+		// This is still not perfect.
+		// Why does the project browser need to do this?
+		Window::Get().SetTitlebarHitTest( [&]( int x, int y ) -> bool
+		{
+			if( !m_TitleBar )
+				return false;
+
+			auto TitleBarHeight = m_TitleBar->Height();
+
+			RECT windowRect;
+			POINT mousePos;
+			GetClientRect( glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() ), &windowRect );
+
+				// Drag the menu bar to move the window
+			if( !Window::Get().Maximized() && !ImGui::IsAnyItemHovered() && ( y < ( windowRect.top + TitleBarHeight ) ) )
+				return true;
+			else
+				return false;
+		} );
+
 	}
 
 	ProjectBrowserLayer::~ProjectBrowserLayer()
@@ -59,7 +116,9 @@ namespace Saturn {
 	
 	void ProjectBrowserLayer::OnDetach()
 	{
-		delete m_TilteBar;
+		Window::Get().SetTitlebarHitTest( [&]( int x, int y ) -> bool { return false; } );
+
+		delete m_TitleBar;
 	}
 
 	void ProjectBrowserLayer::OnUpdate( Timestep time )
@@ -74,10 +133,178 @@ namespace Saturn {
 
 		// --- Title bar
 		
-		m_TilteBar->Draw();
+		m_TitleBar->Draw();
 
-		// ---
+		// --- Check if Saturn directory is set, if not show prompt to set it
+		if( !m_HasSaturnDir )
+		{
+			if( ImGui::BeginPopupModal( "Saturn directory not set", NULL, ImGuiWindowFlags_AlwaysAutoResize ) ) 
+			{
+				ImGui::Text( "No Saturn directory set. Please set the SATURN_DIR environment variable." );
+				
+				ImGui::InputText( "", ( char* )s_SaturnDir.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
+				ImGui::SameLine();
+				if( ImGui::Button( "...##dir" ) )
+				{
+					auto res = Application::Get().OpenFolder();
+					s_SaturnDir = res;
+				}
+				
+				if( !s_SaturnDir.empty() && std::filesystem::exists( s_SaturnDir ) )
+				{
+					if( ImGui::Button( "Set" ) )
+					{
+						Auxiliary::SetEnvironmentVariable( "SATURN_DIR", s_SaturnDir.c_str() );
+						m_HasSaturnDir = true;
+						ImGui::CloseCurrentPopup();
+					}
+				}
 
+				ImGui::EndPopup();
+			}
+
+			ImGui::OpenPopup( "Saturn directory not set" );
+		}
+		
+		// Begin main project browser.
+		ImGui::SetNextWindowSize( pViewport->WorkSize, ImGuiCond_Always );
+		ImGui::Begin( "##project_browser", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove );
+
+		ImGui::Columns( 2 );
+		ImGui::SetColumnWidth( 0, pViewport->WorkSize.x / 1.5f );
+
+		ImGui::SetWindowSize( { pViewport->WorkSize.x / 1.5f / 2, pViewport->WorkPos.y } );
+
+		// Recent projects.
+		ImGui::BeginChild( "##prj_center_window" );
+		{
+		}
+		ImGui::EndChild();
+
+		ImGui::NextColumn();
+
+		ImGui::BeginChild( "##prj_right_window" );
+		{
+			if( ImGui::Button( "Create a project" ) )
+			{
+				s_ShowNewProjectPopup = true;
+			}
+		}
+		ImGui::EndChild();
+
+		if( s_ShowNewProjectPopup )
+		{
+			ImGui::OpenPopup( "New project" );
+			s_ShowNewProjectPopup = false;
+		}
+
+		auto center = pViewport->GetCenter();
+
+		ImGui::SetNextWindowPos( center, ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+
+		if( ImGui::BeginPopupModal( "New project", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
+		{
+			ImGui::InputTextWithHint( "##project_name", "Project name", s_ProjectNameBuffer, 1024 );
+
+			ImGui::SameLine();
+			ImGui::Text( ".sproject" );
+
+			ImGui::InputTextWithHint( "##project_loc", "Project location", s_ProjectFilePathBuffer, 1024 );
+			ImGui::SameLine();
+
+			if( ImGui::SmallButton( "...##location" ) )
+			{
+				auto res = Application::Get().OpenFolder();
+				memcpy( s_ProjectFilePathBuffer, res.data(), res.size() );
+			}
+
+			ImGui::Separator();
+
+			auto drawDisabledBtn = [&]( const char* n ) 
+			{
+				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+				ImGui::Button( n );
+				ImGui::PopStyleVar( 1 );
+				ImGui::PopItemFlag();
+			};
+
+			auto createButtonFunc = [&]
+			{
+				if( s_ProjectNameBuffer == nullptr && s_ProjectFilePathBuffer == nullptr )
+				{
+					drawDisabledBtn( "Create" );
+				}
+				else if( !std::filesystem::exists( s_ProjectFilePathBuffer ) )
+				{
+					drawDisabledBtn( "Create" );
+				}
+				else 
+				{
+					if( ImGui::Button( "Create" ) ) 
+					{
+						std::string path = std::string( s_ProjectFilePathBuffer ) + "/" + std::string( s_ProjectNameBuffer );
+
+						CreateProject( path );
+
+						ImGui::CloseCurrentPopup();
+					}
+				}
+			};
+
+			createButtonFunc();
+
+			ImGui::SameLine();
+
+			if( ImGui::Button( "Cancel" ) )
+				ImGui::CloseCurrentPopup();
+
+			ImGui::EndPopup();
+		}
+
+		ImGui::End();
+	}
+
+	void ProjectBrowserLayer::CreateProject( const std::string& rPath )
+	{
+		std::filesystem::path ProjectPath = rPath;
+		std::filesystem::path ProjectName = rPath + ".sproject";
+
+		if( !std::filesystem::exists( ProjectPath ) )
+			std::filesystem::create_directories( ProjectPath );
+
+		// Copy files.
+		std::filesystem::copy( s_SaturnDir + "/Titan/assets/Templates/Base", ProjectPath, std::filesystem::copy_options::recursive );
+
+		// Project file
+		{
+			std::ifstream stream( ProjectPath / "Project.sproject" );
+			std::stringstream ss;
+			ss << stream.rdbuf();
+			stream.close();
+
+			std::string str = ss.str();
+			ReplaceToken( str, "/REPLACE_WITH_PROJECT_NAME/", s_ProjectNameBuffer );
+
+			std::ofstream out( ProjectPath / "Project.sproject" );
+			out << str;
+			out.close();
+
+			std::string name = std::string( s_ProjectNameBuffer ) + ".sproject";
+
+			std::filesystem::rename( ProjectPath / "Project.sproject", ProjectPath / name );
+		}
+
+		std::filesystem::create_directory( ProjectPath / "Assets" );
+
+		std::filesystem::create_directories( ProjectPath / "Assets" / "Shaders" );
+		std::filesystem::create_directories( ProjectPath / "Assets" / "Textures" );
+		std::filesystem::create_directories( ProjectPath / "Assets" / "Meshes" );
+		std::filesystem::create_directories( ProjectPath / "Assets" / "Materials" );
+		std::filesystem::create_directories( ProjectPath / "Assets" / "Scenes" );
+		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" );
+		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" / "Source" );
+		std::filesystem::create_directory( ProjectPath / "Scripts" );
 	}
 
 	void ProjectBrowserLayer::OnEvent( Event& rEvent )

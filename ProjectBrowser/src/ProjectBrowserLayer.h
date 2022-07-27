@@ -49,14 +49,17 @@ namespace Saturn {
 
 		void OnAttach() override;
 
-
 		void OnDetach() override;
+
+		void CreateProject( const std::string& rPath );
 
 	private:
 
 		bool OnKeyPressed( KeyPressedEvent& rEvent );
 
 	private:
-		TitleBar* m_TilteBar;
+		TitleBar* m_TitleBar = nullptr;
+
+		bool m_HasSaturnDir = false;
 	};
 }
