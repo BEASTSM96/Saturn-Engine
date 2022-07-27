@@ -32,8 +32,6 @@ bin-int/
 **/assets/tex
 
 assets/**
-Titan/*.json
-Titan/dna.txt
 Saturn/vendor/imgui/examples/example_allegro5
 Saturn/vendor/imgui/examples/example_apple_metal
 Saturn/vendor/imgui/examples/example_apple_opengl2
@@ -50,11 +48,9 @@ Saturn/vendor/imgui/examples/example_apple_opengl2
 !Saturn/vendor/physx/bin/*
 !Saturn/vendor/mono/bin/*
 !vender/bin/premake
-Titan/assets/testtemp.sc
 Saturn/vendor/**/Makefile
 Saturn/Makefile
 Makefile
-Titan/rp3d_log_Test.html
 *.csproj
 *.csproj.user
 Titan/assets/assembly/SaturnScript.pdb
@@ -70,23 +66,16 @@ Output-Build.txt
 *.project
 **/.codelite/
 *.workspace
-
 premake5
-
 Titan/Titan.txt
-
 Saturn/Saturn.txt
-
 Saturn/vendor/Glad/Glad.txt
-
 Saturn/vendor/imgui/ImGui.txt
-
 **/.build-*/**.**
 **/.build-debug/**.**
 **/.build-release/**.**
 **/.build-rdist/**.**
 **/.build-dist/**.**
-
 .build-*/**.**
 .build-debug/
 .build-release/
