@@ -53,6 +53,8 @@ namespace Saturn {
 
 		void CreateProject( const std::string& rPath );
 
+		void OpenProject( const std::string& rPath );
+
 	private:
 
 		bool OnKeyPressed( KeyPressedEvent& rEvent );

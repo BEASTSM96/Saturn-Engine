@@ -28,37 +28,20 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-
-#include <string>
-#include <filesystem>
+#include "Saturn/Core/App.h"
 
 namespace Saturn {
 	
-	struct ProjectConfig
-	{
-		std::string Name;
-		std::string StartupScenePath;
-
-		std::string Path;
-	};
-
-	class Project : public CountedObj
+	class UserSettingsSerialiser
 	{
 	public:
-		Project();
-		~Project();
+		UserSettingsSerialiser();
+		~UserSettingsSerialiser();
 
-		const ProjectConfig& GetConfig() const { return m_Config; }
+		void Serialise( const UserSettings& rSettings );
+		void Deserialise( UserSettings& rSettings );
 
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
+	private:
 
-		std::filesystem::path GetAssetPath();
-		const std::string& GetName() const;
-		
-		// TEMP
-		//    Until we have a proper project system
-		ProjectConfig m_Config;
 	};
 }

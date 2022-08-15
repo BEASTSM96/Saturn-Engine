@@ -38,8 +38,8 @@ namespace Saturn {
 	public:
 		Camera() = default;
 
-		Camera( const glm::mat4& projectionMatrix )
-			: m_Projection( projectionMatrix )
+		Camera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane )
+			: m_Projection( glm::perspectiveFov( glm::radians( Fov ), Width, Height, NearPlane, FarPlane ) )
 		{
 			AllowEvents( true );
 		}
@@ -50,7 +50,7 @@ namespace Saturn {
 		bool HasEvents() { return m_CanRunEvents; }
 
 		const glm::mat4& ProjectionMatrix() const { return m_Projection; }
-		void SetProjectionMatrix( const glm::mat4& projection ) { m_Projection = projection; }
+		void SetProjectionMatrix( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane ) { m_Projection = glm::perspectiveFov( glm::radians( Fov ), Width, Height, NearPlane, FarPlane ); }
 		
 	protected:
 		glm::mat4 m_Projection = glm::mat4( 1.0f );

@@ -35,7 +35,7 @@ extern Saturn::Application* Saturn::CreateApplication( int argc, char** argv );
 
 namespace Saturn {
 
-	int _SATURN_MAIN_( int count, char** args )
+	int SaturnMain( int count, char** args )
 	{
 		Saturn::Application* pApp = Saturn::CreateApplication( count, args );
 		

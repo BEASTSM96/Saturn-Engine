@@ -44,43 +44,47 @@ namespace Saturn {
 	{
 	public:
 		EditorCamera() = default;
-		EditorCamera( float FOV, float aspectRatio, float nearClip, float farClip );
+		EditorCamera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane );
 
 		void Focus( const glm::vec3& focusPoint );
 		void OnUpdate( Timestep ts );
 		void OnEvent( Event& e );
 
-		bool IsActive() const { return m_IsActive; }
+		bool Active() const { return m_IsActive; }
 		void SetActive( bool active ) { m_IsActive = active; }
 
-		inline float GetDistance() const { return m_Distance; }
+		void Reset();
+
+		void Flip( bool flip ) { m_FlipY = flip; }
+
+		inline float Distance() const { return m_Distance; }
 		inline void SetDistance( float distance ) { m_Distance = distance; }
 
-		const glm::vec3& GetFocalPoint() const { return m_FocalPoint; }
+		const glm::vec3& FocalPoint() const { return m_FocalPoint; }
 
-		void SetViewportSize( uint32_t width, uint32_t height );
+		inline void SetViewportSize( uint32_t width, uint32_t height ) { m_ViewportWidth = width; m_ViewportHeight = height; }
 
 		const glm::mat4& ViewMatrix() const { return m_ViewMatrix; }
 		glm::mat4 ViewProjection() const { return m_Projection * m_ViewMatrix; }
 
-		glm::vec3 GetUpDirection() const;
-		glm::vec3 GetRightDirection() const;
-		glm::vec3 GetForwardDirection() const;
+		glm::vec3 UpDirection() const;
+		glm::vec3 RightDirection() const;
+		glm::vec3 ForwardDirection() const;
 
 		const glm::vec3& Position() const { return m_Position; }
 
-		glm::quat GetOrientation() const;
+		glm::quat Orientation() const;
 
-		float GetPitch() const { return m_Pitch; }
-		float GetYaw() const { return m_Yaw; }
-		float& GetCameraSpeed() { return m_Speed; }
-		float GetCameraSpeed() const { return m_Speed; }
+		float Pitch() const { return m_Pitch; }
+		float Yaw() const { return m_Yaw; }
+		float& CameraSpeed() { return m_Speed; }
+		float CameraSpeed() const { return m_Speed; }
+		
+		float GetNearClip() { return m_NearPlane; }
+		float GetFarClip() { return m_FarPlane; }
 
-		float GetVerticalFOV() const { return m_VerticalFOV; }
-		float GetAspectRatio() const { return m_AspectRatio; }
-		float GetNearClip() const { return m_NearClip; }
-		float GetFarClip() const { return m_FarClip; }
 	private:
+
 		void UpdateCameraView();
 
 		bool OnMouseScroll( MouseScrolledEvent& e );
@@ -96,12 +100,13 @@ namespace Saturn {
 		std::pair<float, float> PanSpeed() const;
 		float RotationSpeed() const;
 		float ZoomSpeed() const;
+
 	private:
+
 		glm::mat4 m_ViewMatrix;
 		glm::vec3 m_Position, m_WorldRotation, m_FocalPoint;
 
-		// Perspective projection params
-		float m_VerticalFOV, m_AspectRatio, m_NearClip, m_FarClip;
+		glm::vec4 m_ViewPos;
 
 		bool m_IsActive = false;
 		bool m_Panning, m_Rotating;
@@ -117,12 +122,19 @@ namespace Saturn {
 		glm::vec3 m_PositionDelta{};
 		glm::vec3 m_RightDirection{};
 
+		float m_NearPlane;
+		float m_FarPlane;
+
+		bool m_FlipY = true;
+
 		CameraMode m_CameraMode{ CameraMode::ARCBALL };
 
 		float m_MinFocusDistance = 100.0f;
 
 		uint32_t m_ViewportWidth = 1280, m_ViewportHeight = 720;
+
+	private:
+
 		friend class EditorLayer;
 	};
-
 }

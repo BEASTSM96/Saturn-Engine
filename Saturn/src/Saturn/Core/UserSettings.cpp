@@ -26,39 +26,18 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/Core/Base.h"
-
-#include <string>
-#include <filesystem>
+#include "sppch.h"
+#include "UserSettings.h"
 
 namespace Saturn {
-	
-	struct ProjectConfig
+
+	static UserSettings* s_UserSettings;
+
+	UserSettings& GetUserSettings() 
 	{
-		std::string Name;
-		std::string StartupScenePath;
+		if( s_UserSettings == nullptr )
+			s_UserSettings = new UserSettings();
 
-		std::string Path;
-	};
-
-	class Project : public CountedObj
-	{
-	public:
-		Project();
-		~Project();
-
-		const ProjectConfig& GetConfig() const { return m_Config; }
-
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
-
-		std::filesystem::path GetAssetPath();
-		const std::string& GetName() const;
-		
-		// TEMP
-		//    Until we have a proper project system
-		ProjectConfig m_Config;
-	};
+		return *(s_UserSettings);
+	}
 }

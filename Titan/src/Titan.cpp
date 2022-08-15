@@ -28,7 +28,11 @@
 
 #include "Saturn/Core/App.h"
 
+#include "Saturn/Core/UserSettings.h"
+
 #include "EditorLayer.h"
+
+#include "Saturn/Serialisation/UserSettingsSerialiser.h"
 
 class EditorApplication : public Saturn::Application
 {
@@ -36,9 +40,7 @@ public:
 	EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
 		: Application( spec ), m_ProjectPath( rProjectPath )
 	{
-		m_UserSettings = {};
-
-		m_UserSettings.StartupProject = rProjectPath;
+		Saturn::GetUserSettings().StartupProject = rProjectPath;
 	}
 
 	virtual void OnInit() override
@@ -56,7 +58,6 @@ public:
 
 private:
 	Saturn::EditorLayer* m_EditorLayer;
-	Saturn::UserSettings m_UserSettings;
 	std::string m_ProjectPath;
 };
 

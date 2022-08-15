@@ -31,11 +31,13 @@
 
 #include "UITools.h"
 
+#include "Saturn/Project/Project.h"
+
 #include <imgui_internal.h>
 
 namespace Saturn {
 	
-	static const std::filesystem::path s_pAssetsDirectory = "assets";
+	static std::filesystem::path s_pAssetsDirectory = "assets";
 	
 	ContentBrowserPanel::ContentBrowserPanel()
 		: Panel( "Content Browser Panel" ), m_CurrentPath( s_pAssetsDirectory ), m_FirstFolder( s_pAssetsDirectory )
@@ -156,6 +158,13 @@ namespace Saturn {
 
 		ImGui::PopStyleColor( 2 );
 		ImGui::End();
+	}
+
+	void ContentBrowserPanel::SetPath( const std::filesystem::path& rPath )
+	{
+		s_pAssetsDirectory = rPath;
+		m_CurrentPath = rPath;
+		m_FirstFolder = rPath;
 	}
 
 	void ContentBrowserPanel::RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles /*= true */ )

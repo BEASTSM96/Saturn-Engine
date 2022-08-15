@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "ProjectBrowserLayer.h"
 
+#include <Saturn/Core/StringUtills.h>
+
 #include <Saturn/ImGui/Panel/Panel.h>
 #include <Saturn/ImGui/Panel/PanelManager.h>
 #include <Saturn/ImGui/TitleBar.h>
@@ -36,6 +38,7 @@
 #include <Saturn/Core/EnvironmentVariables.h>
 
 #include <Saturn/Serialisation/ProjectSerialiser.h>
+#include <Saturn/Serialisation/UserSettingsSerialiser.h>
 
 #include <Saturn/Core/Window.h>
 
@@ -57,6 +60,11 @@ namespace Saturn {
 	static char* s_ProjectFilePathBuffer = new char[ 1024 ];
 
 	static bool s_ShowNewProjectPopup = false;
+	static bool s_ShouldThreadTerminate = false;
+	
+	static std::thread s_RecentProjectThread;
+	
+	static std::vector< std::filesystem::path > s_RecentProjects;
 
 	static void ReplaceToken( std::string& str, const char* token, const std::string& value )
 	{
@@ -72,7 +80,7 @@ namespace Saturn {
 	{
 		m_HasSaturnDir = Auxiliary::HasEnvironmentVariable( "SATURN_DIR" );
 
-		if( m_HasSaturnDir ) 
+		if( m_HasSaturnDir )
 		{
 			s_SaturnDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
 		}
@@ -81,6 +89,55 @@ namespace Saturn {
 
 		memset( s_ProjectFilePathBuffer, 0, 1024 );
 		memset( s_ProjectNameBuffer, 0, 1024 );
+
+		auto& userSettings = GetUserSettings();
+		
+		UserSettingsSerialiser userSettingsSerialiser;
+		userSettingsSerialiser.Deserialise( userSettings );
+
+		s_RecentProjects = userSettings.RecentProjects;
+
+		s_RecentProjectThread = std::thread( []() 
+		{
+			while( !s_ShouldThreadTerminate )
+			{
+				auto& userSettings = GetUserSettings();
+				
+				std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
+		
+				for( auto& path : userSettings.RecentProjects )
+				{
+					// Check if the path exists in out recent projects list.
+					
+					bool exists = false;
+					
+					for ( auto& recentProject : s_RecentProjects )
+					{
+						if( recentProject == path )
+						{
+							exists = true;
+							break;
+						}
+					}
+
+					if( !exists )
+					{
+						s_RecentProjects.push_back( path );
+					}
+
+					exists = std::filesystem::exists( path );
+					
+					if( !exists )
+					{
+						auto it = std::find( s_RecentProjects.begin(), s_RecentProjects.end(), path );
+						if( it != s_RecentProjects.end() )
+						{
+							s_RecentProjects.erase( it );
+						}
+					}
+				}
+			}
+		} );
 	}
 
 	void ProjectBrowserLayer::OnAttach()
@@ -111,7 +168,10 @@ namespace Saturn {
 
 	ProjectBrowserLayer::~ProjectBrowserLayer()
 	{
-
+		if( s_RecentProjectThread.joinable() )
+		{
+			s_RecentProjectThread.join();
+		}
 	}
 	
 	void ProjectBrowserLayer::OnDetach()
@@ -178,6 +238,17 @@ namespace Saturn {
 		// Recent projects.
 		ImGui::BeginChild( "##prj_center_window" );
 		{
+			for ( auto& rPath : s_RecentProjects )
+			{
+				if( ImGui::Selectable( rPath.string().c_str(), false ) )
+				{
+					OpenProject( rPath.string() );
+					
+					s_ShouldThreadTerminate = true;
+
+					Application::Get().Close();
+				}
+			}
 		}
 		ImGui::EndChild();
 
@@ -244,8 +315,13 @@ namespace Saturn {
 					if( ImGui::Button( "Create" ) ) 
 					{
 						std::string path = std::string( s_ProjectFilePathBuffer ) + "/" + std::string( s_ProjectNameBuffer );
+						
+						std::filesystem::path p( path );
 
 						CreateProject( path );
+						
+						auto& us = GetUserSettings();
+						us.RecentProjects.push_back( p );
 
 						ImGui::CloseCurrentPopup();
 					}
@@ -305,6 +381,36 @@ namespace Saturn {
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" );
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" / "Source" );
 		std::filesystem::create_directory( ProjectPath / "Scripts" );
+	}
+
+	void ProjectBrowserLayer::OpenProject( const std::string& rPath )
+	{
+		// Create saturn process
+		STARTUPINFOA StartupInfo = {};
+		StartupInfo.cb = sizeof( StartupInfo );
+
+		PROCESS_INFORMATION ProcessInfo;
+		
+		std::string RootDir = s_SaturnDir;
+
+		std::replace( RootDir.begin(), RootDir.end(), '\\', '/' );
+		std::string WorkingDir = RootDir + "/Titan";
+#if defined( _DEBUG )
+		RootDir += "/bin/Debug-windows-x86_64/Titan/Titan.exe";
+#else
+		RootDir += "/bin/Release-windows-x86_64/Titan/Titan.exe";
+#endif
+		RootDir += " " + rPath;
+		
+		bool res = CreateProcessA( nullptr, RootDir.data(), nullptr, nullptr, FALSE, DETACHED_PROCESS, nullptr, WorkingDir.data(), &StartupInfo, &ProcessInfo );
+		
+		if( !res )
+		{
+			SAT_CORE_ERROR( "Unable to start saturn process" );
+		}
+
+		CloseHandle( ProcessInfo.hThread );
+		CloseHandle( ProcessInfo.hProcess );
 	}
 
 	void ProjectBrowserLayer::OnEvent( Event& rEvent )

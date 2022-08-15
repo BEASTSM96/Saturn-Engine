@@ -38,6 +38,8 @@ public:
 	{
 	}
 
+	~ProjectBrowserApplication() {}
+
 	virtual void OnInit() override
 	{
 		m_ProjectBrowserLayer = new Saturn::ProjectBrowserLayer();
@@ -47,11 +49,12 @@ public:
 
 	virtual void OnShutdown() override
 	{
-
+		PopLayer( m_ProjectBrowserLayer );
+		delete m_ProjectBrowserLayer;
 	}
 
 private:
-	Saturn::ProjectBrowserLayer* m_ProjectBrowserLayer;
+	Saturn::ProjectBrowserLayer* m_ProjectBrowserLayer = nullptr;
 };
 
 Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 

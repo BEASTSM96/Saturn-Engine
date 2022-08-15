@@ -30,7 +30,7 @@
 
 namespace Saturn {
 
-	inline int _SATURN_MAIN_( int count, char** args );
+	inline int SaturnMain( int count, char** args );
 }
 
-int _main( int count, char** args ) { return Saturn::_SATURN_MAIN_( count, args ); }
+int _main( int count, char** args ) { return Saturn::SaturnMain( count, args ); }

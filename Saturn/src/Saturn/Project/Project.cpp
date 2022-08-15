@@ -29,13 +29,14 @@
 #include "sppch.h"
 #include "Project.h"
 
+#include "Saturn/Core/UserSettings.h"
+#include "Saturn/Serialisation/UserSettingsSerialiser.h"
+
 #include "Saturn/Serialisation/ProjectSerialiser.h"
 
 namespace Saturn {
 	
 	static Ref<Project> s_ActiveProject;
-
-	static std::vector< Ref< Project > > s_RecentProjects;
 
 	Project::Project()
 	{

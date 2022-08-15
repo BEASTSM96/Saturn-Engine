@@ -26,39 +26,93 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "UserSettingsSerialiser.h"
 
-#include "Saturn/Core/Base.h"
-
-#include <string>
+#include <fstream>
+#include <yaml-cpp/yaml.h>
 #include <filesystem>
 
+namespace YAML {
+
+	template <>
+	struct convert<std::filesystem::path> 
+	{
+		static Node encode( std::filesystem::path rhs ) 
+		{ 
+			return Node( rhs.string() ); 
+		}
+
+		static bool decode( const Node& node, std::filesystem::path& rhs )
+		{
+			rhs = node.as<std::string>();
+			
+			return true;
+		}
+	};
+
+}
+
 namespace Saturn {
-	
-	struct ProjectConfig
+
+	UserSettingsSerialiser::UserSettingsSerialiser()
 	{
-		std::string Name;
-		std::string StartupScenePath;
+	}
 
-		std::string Path;
-	};
-
-	class Project : public CountedObj
+	UserSettingsSerialiser::~UserSettingsSerialiser()
 	{
-	public:
-		Project();
-		~Project();
+	}
 
-		const ProjectConfig& GetConfig() const { return m_Config; }
+	void UserSettingsSerialiser::Serialise( const UserSettings& rSettings )
+	{
+		YAML::Emitter out;
 
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
+		out << YAML::BeginMap;
 
-		std::filesystem::path GetAssetPath();
-		const std::string& GetName() const;
+		//out << YAML::Key << "Startup Project" << YAML::Value << rSettings.StartupProject;
 		
-		// TEMP
-		//    Until we have a proper project system
-		ProjectConfig m_Config;
-	};
+		out << YAML::Key << "Recent Projects";
+		
+		out << YAML::BeginSeq;
+		
+		for( auto& rPath : rSettings.RecentProjects )
+		{
+			auto p = rPath.string();
+
+			std::replace( p.begin(), p.end(), '\\', '/' );
+
+			out << YAML::Key << YAML::Value << p;
+		}
+
+		out << YAML::EndSeq;
+
+		out << YAML::EndMap;
+
+		std::ofstream file( "assets/UserSettings.yaml" );
+		file << out.c_str();
+	}
+
+	void UserSettingsSerialiser::Deserialise( UserSettings& rSettings )
+	{
+		std::string FilePath = "assets/UserSettings.yaml";
+
+		std::ifstream FileIn( FilePath );
+		std::stringstream ss;
+		ss << FileIn.rdbuf();
+
+		YAML::Node data = YAML::Load( ss.str() );
+
+		if( data.IsNull() )
+			return;
+
+		auto p = data[ "Recent Projects" ];
+
+		for ( auto project : p )
+		{
+			auto path = project.as<std::filesystem::path>();
+			
+			rSettings.RecentProjects.push_back( path );
+		}
+	}
+
 }

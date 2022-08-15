@@ -60,7 +60,16 @@ namespace Saturn {
 
 	void ProjectSerialiser::Deserialise( const std::string& rFilePath )
 	{
+		std::ifstream FileIn( rFilePath );
+		std::stringstream ss;
+		ss << FileIn.rdbuf();
 
+		YAML::Node data = YAML::Load( ss.str() );
+
+		if( data.IsNull() )
+			return;
+
+		
 	}
 
 }

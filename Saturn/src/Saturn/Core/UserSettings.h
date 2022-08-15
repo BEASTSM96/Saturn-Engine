@@ -29,12 +29,17 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <filesystem>
 
 namespace Saturn {
 
 	struct UserSettings
 	{
 		std::string StartupProject;
+
+		std::vector< std::filesystem::path > RecentProjects;
 	};
 
+	extern UserSettings& GetUserSettings();
 }

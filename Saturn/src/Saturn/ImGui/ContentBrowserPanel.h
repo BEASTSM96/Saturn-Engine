@@ -65,6 +65,8 @@ namespace Saturn {
 
 		virtual void Draw() override;
 
+		void SetPath( const std::filesystem::path& rPath );
+
 	private:
 
 		void RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles = true );

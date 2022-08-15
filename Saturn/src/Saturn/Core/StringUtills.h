@@ -35,21 +35,24 @@
 
 namespace Saturn {
 
-	inline std::wstring ConvertString( const std::string& str )
-	{
+	namespace Auxiliary {
+
+		inline std::wstring ConvertString( const std::string& str )
+		{
 #if defined( SAT_WINDOWS )
-		
-		int len;
-		int slength = ( int )str.length() + 1;
-		len = MultiByteToWideChar( CP_ACP, 0, str.c_str(), slength, 0, 0 );
-		std::wstring buf;
-		buf.resize( len );
-		MultiByteToWideChar( CP_ACP, 0, str.c_str(), slength,
-			   const_cast< wchar_t* >( buf.c_str() ), len );
-		return buf;
-		
+
+			int len;
+			int slength = ( int ) str.length() + 1;
+			len = MultiByteToWideChar( CP_ACP, 0, str.c_str(), slength, 0, 0 );
+			std::wstring buf;
+			buf.resize( len );
+			MultiByteToWideChar( CP_ACP, 0, str.c_str(), slength,
+				const_cast< wchar_t* >( buf.c_str() ), len );
+			return buf;
+
 #else
-		return L"";
+			return L"";
 #endif
+		}
 	}
 }
