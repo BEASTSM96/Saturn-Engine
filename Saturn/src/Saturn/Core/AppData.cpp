@@ -27,40 +27,25 @@
 */
 
 #include "sppch.h"
-#include "Log.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include <spdlog/sinks/basic_file_sink.h>
+#include "AppData.h"
 
-namespace Saturn {
+#include <ShlObj.h>
 
-	std::shared_ptr< spdlog::logger > Log::s_CoreLogger;
-	std::shared_ptr< spdlog::logger > Log::s_ClientLogger;
+namespace Saturn::Auxiliary {
 
-	void Log::Init( void )
+	AppData::AppData()
 	{
-		spdlog::set_automatic_registration( true );
+		PWSTR Path;
 
-		std::vector<spdlog::sink_ptr> logSinks;
-		logSinks.emplace_back( std::make_shared< spdlog::sinks::stdout_color_sink_mt >() );
+		if( SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &Path ) != S_OK )
+			SAT_CORE_ASSERT( false, "Failed to find Roaming app data" );
 
-		logSinks[ 0 ]->set_pattern( "%^[%T] %n: %v%$" );
+		std::wstring filepath = Path;
+		std::replace( filepath.begin(), filepath.end(), L'\\', L'/' );
 
-		s_CoreLogger = std::make_shared< spdlog::logger >( "Saturn", begin( logSinks ), end( logSinks ) );
+		m_Path = filepath + L"/Saturn";
 
-		s_ClientLogger = std::make_shared< spdlog::logger >( "App", begin( logSinks ), end( logSinks ) );
-
-		// configure the loggers
-		spdlog::set_pattern( "%^[%T] %n: %v%$" );
-		s_CoreLogger->set_level( spdlog::level::trace );
-		s_ClientLogger->set_level( spdlog::level::trace );
+		if( !std::filesystem::exists( m_Path ) )
+			std::filesystem::create_directory( m_Path );
 	}
-
-	void Log::Clear( void )
-	{
-		s_CoreLogger = nullptr;
-		s_ClientLogger = nullptr;
-
-		spdlog::shutdown();
-	}
-
 }

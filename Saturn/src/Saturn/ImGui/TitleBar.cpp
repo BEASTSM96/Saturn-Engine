@@ -90,8 +90,14 @@ namespace Saturn {
 						drawList->AddLine( buttonRect.Min + ImVec2( buttonRect.GetWidth() - iconMargin, iconMargin ), buttonRect.Max - ImVec2( buttonRect.GetWidth() - iconMargin, iconMargin ), Color, 1.0f );
 					}
 
-					if( pressed )
+					if( pressed ) 
+					{
+						// Process on exit events to whatever layer owns this.
+						if( m_OnExitFunction )
+							m_OnExitFunction();
+
 						Application::Get().Close();
+					}
 
 					buttonRect.Min.x -= buttonSize;
 					buttonRect.Max.x -= buttonSize;
@@ -158,4 +164,10 @@ namespace Saturn {
 	{
 		m_MenuBarFunctions.push_back( rrFunc );
 	}
+
+	void TitleBar::AddOnExitFunction( std::function<void()>&& rrFunc )
+	{
+		m_OnExitFunction = std::move( rrFunc );
+	}
+
 }

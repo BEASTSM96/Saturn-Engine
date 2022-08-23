@@ -149,7 +149,14 @@ namespace Saturn {
 		
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
 
+		// Init PhysX
 		PhysXFnd::Get();
+
+		ContentBrowserPanel* pContentBrowserPanel = ( ContentBrowserPanel* ) PanelManager::Get().GetPanel( "Content Browser Panel" );
+
+		auto& rUserSettings = GetUserSettings();
+
+		pContentBrowserPanel->SetPath( rUserSettings.StartupProject );
 
 		memset( s_ProjectFilePathBuffer, 0, 1024 );
 		memset( s_ProjectNameBuffer, 0, 1024 );	

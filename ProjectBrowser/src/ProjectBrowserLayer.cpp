@@ -29,12 +29,12 @@
 #include "sppch.h"
 #include "ProjectBrowserLayer.h"
 
-#include <Saturn/Core/StringUtills.h>
-
 #include <Saturn/ImGui/Panel/Panel.h>
 #include <Saturn/ImGui/Panel/PanelManager.h>
 #include <Saturn/ImGui/TitleBar.h>
 
+#include <Saturn/Core/StringUtills.h>
+#include <Saturn/Core/AppData.h>
 #include <Saturn/Core/EnvironmentVariables.h>
 
 #include <Saturn/Serialisation/ProjectSerialiser.h>
@@ -95,23 +95,24 @@ namespace Saturn {
 		UserSettingsSerialiser userSettingsSerialiser;
 		userSettingsSerialiser.Deserialise( userSettings );
 
-		s_RecentProjects = userSettings.RecentProjects;
-
+		for ( auto&& path : userSettings.RecentProjects )
+		{
+			s_RecentProjects.push_back( path );
+		}
+		
 		s_RecentProjectThread = std::thread( []() 
 		{
-			while( !s_ShouldThreadTerminate )
+			do
 			{
 				auto& userSettings = GetUserSettings();
-				
-				std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
-		
+
 				for( auto& path : userSettings.RecentProjects )
 				{
 					// Check if the path exists in out recent projects list.
-					
+
 					bool exists = false;
-					
-					for ( auto& recentProject : s_RecentProjects )
+
+					for( auto& recentProject : s_RecentProjects )
 					{
 						if( recentProject == path )
 						{
@@ -126,7 +127,7 @@ namespace Saturn {
 					}
 
 					exists = std::filesystem::exists( path );
-					
+
 					if( !exists )
 					{
 						auto it = std::find( s_RecentProjects.begin(), s_RecentProjects.end(), path );
@@ -136,7 +137,7 @@ namespace Saturn {
 						}
 					}
 				}
-			}
+			} while ( !s_ShouldThreadTerminate );
 		} );
 	}
 
@@ -164,14 +165,20 @@ namespace Saturn {
 				return false;
 		} );
 
+		m_TitleBar->AddOnExitFunction( []() 
+		{
+			s_ShouldThreadTerminate = true;
+
+			using namespace std::literals::chrono_literals;
+
+			std::this_thread::sleep_for( 1ms );
+
+			s_RecentProjectThread.join();
+		} );	
 	}
 
 	ProjectBrowserLayer::~ProjectBrowserLayer()
 	{
-		if( s_RecentProjectThread.joinable() )
-		{
-			s_RecentProjectThread.join();
-		}
 	}
 	
 	void ProjectBrowserLayer::OnDetach()
@@ -245,6 +252,7 @@ namespace Saturn {
 					OpenProject( rPath.string() );
 					
 					s_ShouldThreadTerminate = true;
+					s_RecentProjectThread.join();
 
 					Application::Get().Close();
 				}
@@ -322,6 +330,9 @@ namespace Saturn {
 						
 						auto& us = GetUserSettings();
 						us.RecentProjects.push_back( p );
+						
+						UserSettingsSerialiser uss;
+						uss.Serialise( us );
 
 						ImGui::CloseCurrentPopup();
 					}

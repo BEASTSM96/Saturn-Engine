@@ -26,41 +26,25 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Log.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include <spdlog/sinks/basic_file_sink.h>
+#pragma once
 
-namespace Saturn {
+#include "Base.h"
 
-	std::shared_ptr< spdlog::logger > Log::s_CoreLogger;
-	std::shared_ptr< spdlog::logger > Log::s_ClientLogger;
+#include <filesystem>
+#include <string>
 
-	void Log::Init( void )
+namespace Saturn::Auxiliary {
+
+	class AppData
 	{
-		spdlog::set_automatic_registration( true );
+		SINGLETON( AppData );
 
-		std::vector<spdlog::sink_ptr> logSinks;
-		logSinks.emplace_back( std::make_shared< spdlog::sinks::stdout_color_sink_mt >() );
+		AppData();
 
-		logSinks[ 0 ]->set_pattern( "%^[%T] %n: %v%$" );
+	public:
+		const std::filesystem::path& GetPath() const { return m_Path; }
+	private:
 
-		s_CoreLogger = std::make_shared< spdlog::logger >( "Saturn", begin( logSinks ), end( logSinks ) );
-
-		s_ClientLogger = std::make_shared< spdlog::logger >( "App", begin( logSinks ), end( logSinks ) );
-
-		// configure the loggers
-		spdlog::set_pattern( "%^[%T] %n: %v%$" );
-		s_CoreLogger->set_level( spdlog::level::trace );
-		s_ClientLogger->set_level( spdlog::level::trace );
-	}
-
-	void Log::Clear( void )
-	{
-		s_CoreLogger = nullptr;
-		s_ClientLogger = nullptr;
-
-		spdlog::shutdown();
-	}
-
+		std::filesystem::path m_Path;
+	};
 }

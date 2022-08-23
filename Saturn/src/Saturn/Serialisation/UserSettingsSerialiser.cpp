@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "UserSettingsSerialiser.h"
 
+#include "Saturn/Core/AppData.h"
+
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include <filesystem>
@@ -69,7 +71,8 @@ namespace Saturn {
 
 		out << YAML::BeginMap;
 
-		//out << YAML::Key << "Startup Project" << YAML::Value << rSettings.StartupProject;
+		if( !rSettings.StartupProject.empty() )
+			out << YAML::Key << "Startup Project" << YAML::Value << rSettings.StartupProject;
 		
 		out << YAML::Key << "Recent Projects";
 		
@@ -87,16 +90,18 @@ namespace Saturn {
 		out << YAML::EndSeq;
 
 		out << YAML::EndMap;
+		
+		auto userSettingsPath = Auxiliary::AppData::Get().GetPath() / "UserSettings.yaml";
 
-		std::ofstream file( "assets/UserSettings.yaml" );
+		std::ofstream file( userSettingsPath );
 		file << out.c_str();
 	}
 
 	void UserSettingsSerialiser::Deserialise( UserSettings& rSettings )
 	{
-		std::string FilePath = "assets/UserSettings.yaml";
+		auto userSettingsPath = Auxiliary::AppData::Get().GetPath() / "UserSettings.yaml";
 
-		std::ifstream FileIn( FilePath );
+		std::ifstream FileIn( userSettingsPath );
 		std::stringstream ss;
 		ss << FileIn.rdbuf();
 

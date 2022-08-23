@@ -52,12 +52,14 @@ namespace Saturn {
 		float Height() const { return m_Height; }
 
 		void AddMenuBarFunction( MenuBarFunction&& rrFunc );
+		void AddOnExitFunction( std::function<void()>&& rrFunc );
 		
 	private:
 
 		Ref< Texture2D > m_Logo;
 
 		std::vector<MenuBarFunction> m_MenuBarFunctions;
+		std::function<void()> m_OnExitFunction;
 
 		float m_Height;
 	};

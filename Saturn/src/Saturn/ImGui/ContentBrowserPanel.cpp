@@ -162,9 +162,10 @@ namespace Saturn {
 
 	void ContentBrowserPanel::SetPath( const std::filesystem::path& rPath )
 	{
-		s_pAssetsDirectory = rPath;
-		m_CurrentPath = rPath;
-		m_FirstFolder = rPath;
+		s_pAssetsDirectory = rPath / "Assets";
+
+		m_CurrentPath = rPath / "Assets";
+		m_FirstFolder = rPath / "Assets";
 	}
 
 	void ContentBrowserPanel::RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles /*= true */ )
@@ -178,39 +179,6 @@ namespace Saturn {
 		std::string filename = rEntry.path().filename().string();
 
 		Ref<Texture2D> Icon = excludeFiles ? m_DirectoryIcon : m_FileIcon;
-
-#if NORMAL
-		// Draw background.
-		const ImVec2 TopLeft = ImGui::GetCursorScreenPos();
-		const ImVec2 InfoBottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y );
-		const ImVec2 InfoTopLeft = ImVec2( TopLeft.x, TopLeft.y + ThumbnailSize.y );
-		const ImVec2 BottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y + ImGui::GetTextLineHeightWithSpacing() );
-
-		pDrawList->AddRectFilled( TopLeft, InfoBottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawCornerFlags_All );
-
-		// Check if the mouse is over the button.
-		if( ImGui::IsMouseHoveringRect( TopLeft, InfoBottomRight ) )
-		{
-			// Draw a highlight on the button.
-			pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawCornerFlags_All );
-
-			if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
-			{
-				if( rEntry.is_directory() )
-					m_CurrentPath /= rEntry.path().filename();
-
-				OnDirectorySelected( m_CurrentPath, rEntry.is_directory() );
-			}
-		}
-
-		// Draw icon.
-		pDrawList->AddImage( Icon->GetDescriptorSet(), TopLeft, ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y ), { 0, 1 }, { 1, 0 } );
-
-		// Draw filename make it centered under the icon.
-		ImGui::Text( filename.c_str() );
-
-		ImGui::NextColumn();
-#else // lets try an unreal engine style
 		
 		// Draw background.
 		const float EdgeOffset = 4.0f;
@@ -281,7 +249,6 @@ namespace Saturn {
 		ImGui::PopID();
 
 		ImGui::NextColumn();
-#endif
 	}
 
 	void ContentBrowserPanel::OnDirectorySelected( std::filesystem::path& rPath, bool IsFile /*= false */ )
