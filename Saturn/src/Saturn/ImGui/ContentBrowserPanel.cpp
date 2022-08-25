@@ -37,7 +37,7 @@
 
 namespace Saturn {
 	
-	static std::filesystem::path s_pAssetsDirectory = "assets";
+	static std::filesystem::path s_pAssetsDirectory = "Assets";
 	
 	ContentBrowserPanel::ContentBrowserPanel()
 		: Panel( "Content Browser Panel" ), m_CurrentPath( s_pAssetsDirectory ), m_FirstFolder( s_pAssetsDirectory )
@@ -98,9 +98,12 @@ namespace Saturn {
 		int i = 0;
 		for( auto& pFolder : m_CurrentPath )
 		{
+			if( i == 0 && pFolder != "Assets" )
+				continue;
+
 			i++;
 
-			if( pFolder != "assets" )
+			if( pFolder != "Assets" )
 			{
 				ImGui::Text( "/" );
 			}

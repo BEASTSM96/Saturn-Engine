@@ -97,7 +97,8 @@ namespace Saturn {
 
 		for ( auto&& path : userSettings.RecentProjects )
 		{
-			s_RecentProjects.push_back( path );
+			if( std::filesystem::exists( path ) )
+				s_RecentProjects.push_back( path );
 		}
 		
 		s_RecentProjectThread = std::thread( []() 
@@ -123,18 +124,8 @@ namespace Saturn {
 
 					if( !exists )
 					{
-						s_RecentProjects.push_back( path );
-					}
-
-					exists = std::filesystem::exists( path );
-
-					if( !exists )
-					{
-						auto it = std::find( s_RecentProjects.begin(), s_RecentProjects.end(), path );
-						if( it != s_RecentProjects.end() )
-						{
-							s_RecentProjects.erase( it );
-						}
+						if( !path.empty() )
+							s_RecentProjects.push_back( path );
 					}
 				}
 			} while ( !s_ShouldThreadTerminate );
@@ -363,6 +354,9 @@ namespace Saturn {
 		// Copy files.
 		std::filesystem::copy( s_SaturnDir + "/Titan/assets/Templates/Base", ProjectPath, std::filesystem::copy_options::recursive );
 
+		// New Project ref
+		Ref<Project> newProject = Ref<Project>::Create();
+
 		// Project file
 		{
 			std::ifstream stream( ProjectPath / "Project.sproject" );
@@ -377,7 +371,11 @@ namespace Saturn {
 			out << str;
 			out.close();
 
+			newProject->m_Config.Name = std::string( s_ProjectNameBuffer );
+
 			std::string name = std::string( s_ProjectNameBuffer ) + ".sproject";
+
+			newProject->m_Config.Path = ProjectPath.string();
 
 			std::filesystem::rename( ProjectPath / "Project.sproject", ProjectPath / name );
 		}
@@ -392,6 +390,13 @@ namespace Saturn {
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" );
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" / "Source" );
 		std::filesystem::create_directory( ProjectPath / "Scripts" );
+
+		Project::SetActiveProject( newProject );
+
+		ProjectSerialiser ps;
+		ps.Serialise( newProject->m_Config.Path + "\\" + newProject->m_Config.Name );
+
+		Project::SetActiveProject( nullptr );
 	}
 
 	void ProjectBrowserLayer::OpenProject( const std::string& rPath )

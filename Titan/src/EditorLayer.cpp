@@ -158,6 +158,9 @@ namespace Saturn {
 
 		pContentBrowserPanel->SetPath( rUserSettings.StartupProject );
 
+		ProjectSerialiser ps;
+		ps.Deserialise( rUserSettings.StartupProject );
+
 		memset( s_ProjectFilePathBuffer, 0, 1024 );
 		memset( s_ProjectNameBuffer, 0, 1024 );	
 	}
@@ -551,7 +554,8 @@ namespace Saturn {
 
 	void EditorLayer::UI_Titlebar_UserSettings()
 	{
-		static std::string s_StartupProjectPath;
+		auto& userSettings = GetUserSettings();
+		auto& startupProject = userSettings.StartupProject;
 
 		ImGuiIO& rIO = ImGui::GetIO();
 
@@ -566,11 +570,11 @@ namespace Saturn {
 
 		ImGui::Text( "Startup project:" );
 		ImGui::SameLine();
-		s_StartupProjectPath.empty() ?  ImGui::Text( "None" ) : ImGui::Text( s_StartupProjectPath.c_str() );
+		startupProject.empty() ?  ImGui::Text( "None" ) : ImGui::Text( startupProject.c_str() );
 		ImGui::SameLine();
 		if( ImGui::Button( "...##openprj" ) )
 		{
-			s_StartupProjectPath = Application::Get().OpenFile( "Saturn project file (*.scene) (*.sc)\0*.scene\0" );
+			startupProject = Application::Get().OpenFile( "Saturn project file (*.scene) (*.sc)\0*.scene\0" );
 		}
 		
 		ImGui::End();
