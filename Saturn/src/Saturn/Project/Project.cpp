@@ -53,13 +53,13 @@ namespace Saturn {
 
 	void Project::SetActiveProject( const Ref<Project>& rProject )
 	{
-		SAT_CORE_ASSERT( rProject, "Project must be not be null!" );
+		//SAT_CORE_ASSERT( rProject, "Project must be not be null!" );
 		s_ActiveProject = rProject;
 	}
 
 	std::filesystem::path Project::GetAssetPath()
 	{
-		return std::filesystem::path( GetActiveProject()->GetConfig().Path ) / "Assets";
+		return GetActiveProject()->GetConfig().Path;
 	}
 
 	const std::string& Project::GetName() const

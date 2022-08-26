@@ -52,11 +52,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-
 namespace Saturn {
-
-	static char* s_ProjectNameBuffer = new char[ 1024 ];
-	static char* s_ProjectFilePathBuffer = new char[ 1024 ];
 
 	EditorLayer::EditorLayer() 
 		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
@@ -159,10 +155,7 @@ namespace Saturn {
 		pContentBrowserPanel->SetPath( rUserSettings.StartupProject );
 
 		ProjectSerialiser ps;
-		ps.Deserialise( rUserSettings.StartupProject );
-
-		memset( s_ProjectFilePathBuffer, 0, 1024 );
-		memset( s_ProjectNameBuffer, 0, 1024 );	
+		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 	}
 
 	EditorLayer::~EditorLayer()

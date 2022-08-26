@@ -37,6 +37,8 @@ namespace Saturn {
 	struct UserSettings
 	{
 		std::string StartupProject;
+		std::string StartupProjectName;
+		std::filesystem::path FullStartupProjPath;
 
 		std::vector< std::filesystem::path > RecentProjects;
 	};

@@ -116,7 +116,8 @@ namespace Saturn {
 		{
 			auto path = project.as<std::filesystem::path>();
 			
-			rSettings.RecentProjects.push_back( path );
+			if( std::filesystem::exists( path ) )
+				rSettings.RecentProjects.push_back( path );
 		}
 	}
 

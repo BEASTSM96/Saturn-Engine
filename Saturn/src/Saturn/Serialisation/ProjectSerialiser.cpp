@@ -32,6 +32,30 @@
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 
+namespace YAML {
+
+	template <>
+	struct convert<std::filesystem::path>
+	{
+		static Node encode( std::filesystem::path rhs )
+		{
+			return Node( rhs.string() );
+		}
+
+		static bool decode( const Node& node, std::filesystem::path& rhs )
+		{
+			rhs = node.as<std::string>();
+
+			return true;
+		}
+	};
+
+	inline Emitter& operator<<( Emitter& emitter, const std::filesystem::path& v ) 
+	{
+		return emitter.Write( v.string() );
+	}
+}
+
 namespace Saturn {
 
 	ProjectSerialiser::ProjectSerialiser( const Ref< Project >& rProject )
@@ -46,11 +70,24 @@ namespace Saturn {
 
 	void ProjectSerialiser::Serialise( const std::string& rFilePath )
 	{
+		Ref<Project> rProject = Project::GetActiveProject();
+
 		YAML::Emitter out;
 
 		out << YAML::BeginMap;
 
-		out << YAML::Key << "Project" << YAML::Value << "MyProject";
+		out << YAML::Key << "Project" << YAML::Value;
+
+		out << YAML::BeginMap;
+
+		{
+			out << YAML::Key << "Name" << YAML::Value << rProject->GetName();
+			out << YAML::Key << "AssetPath" << YAML::Value << rProject->GetAssetPath();
+			out << YAML::Key << "AssetBase" << YAML::Value << "Assets"; // TODO
+			out << YAML::Key << "StartupScene" << YAML::Value << rProject->m_Config.StartupScenePath;
+		}
+
+		out << YAML::EndMap;
 
 		out << YAML::EndMap;
 
@@ -61,15 +98,25 @@ namespace Saturn {
 	void ProjectSerialiser::Deserialise( const std::string& rFilePath )
 	{
 		std::ifstream FileIn( rFilePath );
+
 		std::stringstream ss;
 		ss << FileIn.rdbuf();
 
 		YAML::Node data = YAML::Load( ss.str() );
 
 		if( data.IsNull() )
-			return;
+			return;	
 
-		
+		auto project = data[ "Project" ];
+
+		Ref<Project> newProject = Ref<Project>::Create();
+		{
+			newProject->m_Config.Name = project[ "Name" ].as<std::string>();
+			newProject->m_Config.Path = project[ "AssetPath" ].as<std::string>();
+			newProject->m_Config.StartupScenePath = project[ "StartupScene" ].as<std::string>();
+		}
+
+		Project::SetActiveProject( newProject );
 	}
 
 }

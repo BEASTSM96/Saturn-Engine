@@ -43,6 +43,11 @@ public:
 		auto& settings = Saturn::GetUserSettings();
 		settings.StartupProject = m_ProjectPath;
 
+		size_t found = m_ProjectPath.find_last_of( "/\\" );
+		settings.StartupProjectName = m_ProjectPath.substr( found + 1 );
+
+		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
+
 		settings = Saturn::GetUserSettings();
 	}
 

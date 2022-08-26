@@ -50,6 +50,39 @@ namespace Saturn {
 	{
 		ImGui::Begin( "Content Browser" );
 
+		ImGui::BeginChild( "##CB_TopBar_Actions", ImVec2( 0, 30 ) );
+
+		if( ImGui::Button( "Add assets" ) )
+		{
+			ImGui::OpenPopup( "Add_Assets_Popup" );
+		}
+
+		if( ImGui::IsItemHovered() ) 
+		{
+			ImGui::SetTooltip( "Add extra assets..." );
+		}
+
+		if( ImGui::BeginPopup( "Add_Assets_Popup" ) ) 
+		{
+			if( ImGui::Button( "Import assets" ) )
+			{
+				// TODO:
+			}
+
+			if( ImGui::Button( "Starter assets" ) )
+			{
+				auto ActiveProject = Project::GetActiveProject();
+				auto AssetPath = ActiveProject->GetAssetPath();
+
+				std::filesystem::copy_file( "assets/Templates/Meshes/Cube.fbx", AssetPath / "Meshes" / "Cube.fbx" );
+				std::filesystem::copy_file( "assets/Templates/Meshes/Plane.fbx", AssetPath / "Meshes" / "Plane.fbx" );
+			}
+
+			ImGui::EndPopup();
+		}
+
+		ImGui::EndChild();
+
 		ImGui::BeginChild( "##CB_TopBar", ImVec2( 0, 30 ) );
 
 		if( m_CurrentPath != s_pAssetsDirectory )
@@ -86,10 +119,6 @@ namespace Saturn {
 			ImGui::PopItemFlag();
 		}
 		
-		ImGui::SameLine();
-		
-		ImGui::Separator();
-
 		ImGui::SameLine();
 		
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
