@@ -94,6 +94,7 @@ namespace Saturn {
 		int Height() { return m_Height; }
 
 		void GetSize( uint32_t* pWidth, uint32_t* pHeight );
+		void Resize( uint32_t Width, uint32_t Height );
 
 		bool Minimized() { return m_Minimized; }
 		bool Maximized() { return m_Maximized; }

@@ -44,8 +44,8 @@ namespace Saturn {
 		bool CreateSceneRenderer = true;
 		bool UIOnly = false;
 		
-		uint32_t WindowWidth = 1280;
-		uint32_t WindowHeight = 720;
+		uint32_t WindowWidth = 0;
+		uint32_t WindowHeight = 0;
 	};
 
 	class Application

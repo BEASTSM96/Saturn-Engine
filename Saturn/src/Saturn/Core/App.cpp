@@ -67,6 +67,9 @@ namespace Saturn {
 		Window::Get().RemoveBorder();
 		Window::Get().Show();
 
+		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
+			Window::Get().Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
+
 		m_ImGuiLayer = new ImGuiLayer();
 		m_ImGuiLayer->OnAttach();
 		

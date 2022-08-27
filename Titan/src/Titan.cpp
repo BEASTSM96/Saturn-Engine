@@ -75,6 +75,8 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 
 	if( argc > 1 )
 		projectPath = argv[1];
+	else
+		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
 
 	return new EditorApplication( {}, projectPath );
 }

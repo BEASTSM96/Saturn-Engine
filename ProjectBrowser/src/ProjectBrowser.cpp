@@ -62,6 +62,8 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 	Saturn::ApplicationSpecification spec;
 	spec.CreateSceneRenderer = false;
 	spec.UIOnly = true;
+	spec.WindowWidth = 1200;
+	spec.WindowHeight = 780;
 
 	return new ProjectBrowserApplication( spec );
 }
