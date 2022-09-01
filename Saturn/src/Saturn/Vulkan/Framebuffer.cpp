@@ -146,6 +146,14 @@ namespace Saturn {
 		// Color
 		VkExtent3D Extent = { m_Specification.Width, m_Specification.Height, 1 };
 
+		if( m_Specification.ExistingImage )
+		{
+			if( FramebufferUtills::IsDepthFormat( m_Specification.ExistingImage->GetImageFormat() ) )
+				m_DepthAttachmentResource = m_Specification.ExistingImage;
+			else
+				m_ColorAttachmentsResources.push_back( m_Specification.ExistingImage );
+		}
+
 		for( auto format : m_ColorAttachmentsFormats )
 		{
 			Ref<Image2D> image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
@@ -155,8 +163,10 @@ namespace Saturn {
 			m_AttachmentImageViews.push_back( image->GetImageView() );
 		}
 		
-		m_DepthAttachmentResource = Ref<Image2D>::Create( ImageFormat::Depth, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
-		m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView() );
+		if( !m_DepthAttachmentResource )
+			m_DepthAttachmentResource = Ref<Image2D>::Create( ImageFormat::Depth, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
+
+		m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView( m_Specification.ExistingImageLayer ) );
 
 		VkFramebufferCreateInfo FramebufferCreateInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		FramebufferCreateInfo.renderPass = m_Specification.RenderPass->GetVulkanPass();

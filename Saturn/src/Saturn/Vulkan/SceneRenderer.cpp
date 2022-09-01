@@ -123,7 +123,7 @@ namespace Saturn {
 			FBSpec.RenderPass = m_RendererData.GeometryPass;
 			FBSpec.Width = m_RendererData.Width;
 			FBSpec.Height = m_RendererData.Height;
-			
+
 			FBSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
 			m_RendererData.GeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
@@ -158,7 +158,7 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Bitangent" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		};
-		PipelineSpec.CullMode = CullMode::Back;
+		PipelineSpec.CullMode = CullMode::None;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		
 		m_RendererData.StaticMeshPipeline = Ref< Pipeline >::Create( PipelineSpec );
@@ -167,42 +167,20 @@ namespace Saturn {
 	void SceneRenderer::InitDirShadowMap()
 	{	
 		m_RendererData.ShadowCascades.resize( SHADOW_CASCADE_COUNT );
-
-		if( m_RendererData.DirShadowMapPass )
-			m_RendererData.DirShadowMapPass = nullptr;
-		
-		PassSpecification PassSpec = {};
-		PassSpec.Name = "Dir Shadow Map";
-		
-		PassSpec.Attachments = { ImageFormat::Depth };
-
-		m_RendererData.DirShadowMapPass = Ref<Pass>::Create( PassSpec );
-		
-		for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
-		{
-			FramebufferSpecification FBSpec = {};
-			FBSpec.RenderPass = m_RendererData.DirShadowMapPass;
-			FBSpec.Width = SHADOW_MAP_SIZE;
-			FBSpec.Height = SHADOW_MAP_SIZE;
-			FBSpec.ArrayLevels = SHADOW_CASCADE_COUNT;
-
-			FBSpec.Attachments = { ImageFormat::Depth };
-
-			m_RendererData.ShadowCascades[ i ].Framebuffer = Ref<Framebuffer>::Create( FBSpec );
-		}
+		m_RendererData.DirShadowMapPasses.resize( SHADOW_CASCADE_COUNT );
+		m_RendererData.DirShadowMapPipelines.resize( SHADOW_CASCADE_COUNT );
 
 		if( !m_RendererData.DirShadowMapShader )
 		{
 			ShaderLibrary::Get().Load( "assets/shaders/ShadowMap.glsl" );
 			m_RendererData.DirShadowMapShader = ShaderLibrary::Get().Find( "ShadowMap" );
 		}
-	
+
 		PipelineSpecification PipelineSpec = {};
 		PipelineSpec.Width = SHADOW_MAP_SIZE;
 		PipelineSpec.Height = SHADOW_MAP_SIZE;
 		PipelineSpec.Name = "DirShadowMap";
 		PipelineSpec.Shader = m_RendererData.DirShadowMapShader.Pointer();
-		PipelineSpec.RenderPass = m_RendererData.DirShadowMapPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
@@ -216,7 +194,35 @@ namespace Saturn {
 		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		PipelineSpec.RequestDescriptorSets = { ShaderType::Vertex, 0 };
 
-		m_RendererData.DirShadowMapPipeline = Ref< Pipeline >::Create( PipelineSpec );
+		// Layered image
+		Ref<Image2D> shadowImage = Ref<Image2D>::Create( ImageFormat::DEPTH32F, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 4 );
+		shadowImage->SetDebugName( "Layered shadow image" );
+
+		FramebufferSpecification FBSpec = {};
+		FBSpec.Width = SHADOW_MAP_SIZE;
+		FBSpec.Height = SHADOW_MAP_SIZE;
+		FBSpec.ArrayLevels = SHADOW_CASCADE_COUNT;
+		FBSpec.Attachments = { ImageFormat::Depth };
+		FBSpec.ExistingImage = shadowImage;
+
+		PassSpecification PassSpec = {};
+		PassSpec.Name = "Dir Shadow Map";
+		PassSpec.Attachments = { ImageFormat::Depth };
+
+		for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+		{			
+			m_RendererData.DirShadowMapPasses[ i ] = Ref<Pass>::Create( PassSpec );
+
+			FBSpec.RenderPass = m_RendererData.DirShadowMapPasses[ i ];
+			FBSpec.ExistingImageLayer = i;
+
+			PipelineSpec.RenderPass = m_RendererData.DirShadowMapPasses[i];
+
+			m_RendererData.ShadowCascades[ i ].Framebuffer = Ref<Framebuffer>::Create( FBSpec );
+
+			m_RendererData.DirShadowMapPipelines[i] = Ref< Pipeline >::Create( PipelineSpec );
+		}
+
 	}
 
 	void SceneRenderer::InitSceneComposite()
@@ -364,10 +370,11 @@ namespace Saturn {
 	{
 		const auto& viewProjection = m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix();
 
-		float cascadeSplits[ SHADOW_CASCADE_COUNT ];
+		const int SHADOW_MAP_CASCADE_COUNT = 4;
+		float cascadeSplits[ SHADOW_MAP_CASCADE_COUNT ];
 
-		float nearClip = m_RendererData.EditorCamera.GetNearClip();
-		float farClip = m_RendererData.EditorCamera.GetFarClip();
+		float nearClip = 0.1F;
+		float farClip = 1000.0F;
 		float clipRange = farClip - nearClip;
 
 		float minZ = nearClip;
@@ -378,9 +385,9 @@ namespace Saturn {
 
 		// Calculate split depths based on view camera frustum
 		// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
-		for( uint32_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+		for( uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++ )
 		{
-			float p = ( i + 1 ) / static_cast< float >( SHADOW_CASCADE_COUNT );
+			float p = ( i + 1 ) / static_cast< float >( SHADOW_MAP_CASCADE_COUNT );
 			float log = minZ * std::pow( ratio, p );
 			float uniform = minZ + range * p;
 			float d = m_RendererData.CascadeSplitLambda * ( log - uniform ) + uniform;
@@ -391,10 +398,12 @@ namespace Saturn {
 
 		// Calculate orthographic projection matrix for each cascade
 		float lastSplitDist = 0.0;
-		for( uint32_t i = 0; i < SHADOW_CASCADE_COUNT; i++ ) {
+		for( uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++ )
+		{
 			float splitDist = cascadeSplits[ i ];
 
-			glm::vec3 frustumCorners[ 8 ] = {
+			glm::vec3 frustumCorners[ 8 ] =
+			{
 				glm::vec3( -1.0f,  1.0f, -1.0f ),
 				glm::vec3( 1.0f,  1.0f, -1.0f ),
 				glm::vec3( 1.0f, -1.0f, -1.0f ),
@@ -407,12 +416,14 @@ namespace Saturn {
 
 			// Project frustum corners into world space
 			glm::mat4 invCam = glm::inverse( viewProjection );
-			for( uint32_t i = 0; i < 8; i++ ) {
+			for( uint32_t i = 0; i < 8; i++ )
+			{
 				glm::vec4 invCorner = invCam * glm::vec4( frustumCorners[ i ], 1.0f );
 				frustumCorners[ i ] = invCorner / invCorner.w;
 			}
 
-			for( uint32_t i = 0; i < 4; i++ ) {
+			for( uint32_t i = 0; i < 4; i++ )
+			{
 				glm::vec3 dist = frustumCorners[ i + 4 ] - frustumCorners[ i ];
 				frustumCorners[ i + 4 ] = frustumCorners[ i ] + ( dist * splitDist );
 				frustumCorners[ i ] = frustumCorners[ i ] + ( dist * lastSplitDist );
@@ -420,13 +431,16 @@ namespace Saturn {
 
 			// Get frustum center
 			glm::vec3 frustumCenter = glm::vec3( 0.0f );
-			for( uint32_t i = 0; i < 8; i++ ) {
+			for( uint32_t i = 0; i < 8; i++ )
 				frustumCenter += frustumCorners[ i ];
-			}
+
 			frustumCenter /= 8.0f;
 
+			//frustumCenter *= 0.01f;
+
 			float radius = 0.0f;
-			for( uint32_t i = 0; i < 8; i++ ) {
+			for( uint32_t i = 0; i < 8; i++ )
+			{
 				float distance = glm::length( frustumCorners[ i ] - frustumCenter );
 				radius = glm::max( radius, distance );
 			}
@@ -436,10 +450,20 @@ namespace Saturn {
 			glm::vec3 minExtents = -maxExtents;
 
 			glm::vec3 lightDir = -Direction;
-			glm::vec3 lightPos = frustumCenter + lightDir * ( farClip - nearClip );
-
 			glm::mat4 lightViewMatrix = glm::lookAt( frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3( 0.0f, 0.0f, 1.0f ) );
-			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + m_RendererData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_RendererData.CascadeFarPlaneOffset );
+			glm::mat4 lightOrthoMatrix = glm::ortho( minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + -15.0f, maxExtents.z - minExtents.z + 15.0f );
+
+			// Offset to texel space to avoid shimmering (from https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
+			glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
+			float ShadowMapResolution = SHADOW_MAP_SIZE;
+			glm::vec4 shadowOrigin = ( shadowMatrix * glm::vec4( 0.0f, 0.0f, 0.0f, 1.0f ) ) * ShadowMapResolution / 2.0f;
+			glm::vec4 roundedOrigin = glm::round( shadowOrigin );
+			glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+			roundOffset = roundOffset * 2.0f / ShadowMapResolution;
+			roundOffset.z = 0.0f;
+			roundOffset.w = 0.0f;
+
+			lightOrthoMatrix[ 3 ] += roundOffset;
 
 			// Store split distance and matrix in cascade
 			m_RendererData.ShadowCascades[ i ].SplitDepth = ( nearClip + splitDist * clipRange ) * -1.0f;
@@ -571,7 +595,7 @@ namespace Saturn {
 
 		if( TreeNode( "Visualization", true ) ) 
 		{
-			ImGui::Checkbox( "View Shadow Cascades", &m_RendererData.ViewShadowCascades );
+		//	ImGui::Checkbox( "View Shadow Cascades", &m_RendererData.ViewShadowCascades );
 
 			EndTreeNode();
 		}
@@ -584,33 +608,14 @@ namespace Saturn {
 				ImGui::DragFloat( "Cascade Near plane", &m_RendererData.CascadeNearPlaneOffset, 1.0f, -1000.0f, 1000.0f );
 				ImGui::DragFloat( "Cascade Far plane", &m_RendererData.CascadeFarPlaneOffset, 1.0f, -1000.0f, 1000.0f );	
 
-				ImGui::Text( "Shadow Map Pass: %p", m_RendererData.DirShadowMapPass->GetVulkanPass() );
-				ImGui::Text( "Shadow Map Pipeline: %p", m_RendererData.DirShadowMapPipeline->GetPipeline() );
+				static int index = 0;
+				auto framebuffer = m_RendererData.ShadowCascades[ index ].Framebuffer->GetDepthAttachmentsResource();
 
-				if( TreeNode( "Cascade data", false ) )
-				{
-					for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
-					{
-						std::string text = "Cascade " + std::to_string( i );
-						
-						if( TreeNode( text.c_str(), false ) )
-						{
-							ImGui::Text( "Framebuffer: %p", m_RendererData.ShadowCascades[ i ].Framebuffer->GetVulkanFramebuffer() );
-							ImGui::Text( "Split depth: %f", m_RendererData.ShadowCascades[ i ].SplitDepth );
-							
-							ImGui::Separator();
+				float size = ImGui::GetContentRegionAvail().x;
 
-							float size = ImGui::GetContentRegionAvailWidth();
+				ImGui::SliderInt( "##cascade_dt", &index, 0, 3 );
 
-							Image( m_RendererData.ShadowCascades[ i ].Framebuffer->GetDepthAttachmentsResource(), ImVec2( size, size ) );
-
-							EndTreeNode();
-						}
-
-					}
-
-					EndTreeNode();
-				}
+				Image( framebuffer, (uint32_t)index, { size, size }, { 0, 1 }, { 1, 0 } );
 
 				EndTreeNode();
 			}
@@ -698,6 +703,7 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Static meshes" );
 
 		// Set environment resource.
+		// TODO: Come back to.
 		Renderer::Get().Begin( m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource() );
 
 		// Render static meshes.
@@ -713,8 +719,8 @@ namespace Saturn {
 
 			// u_Matrices
 			RendererData::StaticMeshMatrices u_Matrices = {};
-			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
 			u_Matrices.View = m_RendererData.EditorCamera.ViewMatrix();
+			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix();
 
 			struct
 			{
@@ -742,7 +748,7 @@ namespace Saturn {
 
 			auto dirLight = m_pScene->m_DirectionalLight[ 0 ];
 			
-			u_SceneData.CameraPosition = m_RendererData.EditorCamera.Position();
+			u_SceneData.CameraPosition = m_RendererData.EditorCamera.GetPosition();
 			u_SceneData.Lights = { .Direction = dirLight.Direction, .Radiance = dirLight.Radiance, .Multiplier = dirLight.Intensity };
 
 			for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
@@ -800,7 +806,6 @@ namespace Saturn {
 		ClearColors[ 0 ].depthStencil = { 1.0f, 0 };
 
 		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-		RenderPassBeginInfo.renderPass = m_RendererData.DirShadowMapPass->GetVulkanPass();
 		RenderPassBeginInfo.renderArea.extent = Extent;
 		RenderPassBeginInfo.pClearValues = ClearColors.data();
 		RenderPassBeginInfo.clearValueCount = ClearColors.size();
@@ -840,11 +845,11 @@ namespace Saturn {
 
 		m_RendererData.DirShadowMapShader->UnmapUB( ShaderType::Vertex, 0, 0 );
 
-		m_RendererData.DirShadowMapPipeline->GetShader()->WriteAllUBs( m_RendererData.DirShadowMapPipeline->GetDescriptorSet( ShaderType::Vertex, 0 ) );
-
 		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 		{
 			RenderPassBeginInfo.framebuffer = m_RendererData.ShadowCascades[ i ].Framebuffer->GetVulkanFramebuffer();
+			RenderPassBeginInfo.renderPass = m_RendererData.DirShadowMapPasses[ i ]->GetVulkanPass();
+			m_RendererData.DirShadowMapPipelines[ i ]->GetShader()->WriteAllUBs( m_RendererData.DirShadowMapPipelines[ i ]->GetDescriptorSet( ShaderType::Vertex, 0 ) );
 
 			// Begin directional shadow map pass.
 			CmdBeginDebugLabel( CommandBuffer, "DirShadowMap" );
@@ -862,7 +867,7 @@ namespace Saturn {
 				// Pass in the cascade index.
 				Buffer AdditionalData( sizeof(uint32_t), &i );
 
-				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipeline, Cmd.Mesh, Cmd.Transform, AdditionalData );
+				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipelines[ i ], Cmd.Mesh, Cmd.Transform, AdditionalData );
 			}
 
 			vkCmdEndRenderPass( CommandBuffer );
@@ -880,9 +885,9 @@ namespace Saturn {
 
 		VkViewport Viewport = {};
 		Viewport.x = 0;
-		Viewport.y = ( float )m_RendererData.Height;
+		Viewport.y = 0;
 		Viewport.width = ( float )m_RendererData.Width;
-		Viewport.height = -( float )m_RendererData.Height;
+		Viewport.height = ( float )m_RendererData.Height;
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
 
@@ -977,24 +982,26 @@ namespace Saturn {
 		SceneCompositeFramebuffer = nullptr;
 
 		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
-		{
 			ShadowCascades[ i ].Framebuffer = nullptr;
-		}
 		
 		ShadowCascades.clear();
 
 		// Render Passes
-		DirShadowMapPass->Terminate();
+		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+			DirShadowMapPasses[ i ]->Terminate();
+
 		GeometryPass->Terminate();
 		SceneComposite->Terminate();
 
-		DirShadowMapPass = nullptr;
 		GeometryPass = nullptr;
 		SceneComposite = nullptr;
 
 		// Pipelines
 		SceneCompositePipeline = nullptr;
-		DirShadowMapPipeline = nullptr;
+
+		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+			DirShadowMapPipelines[ i ] = nullptr;
+
 		StaticMeshPipeline = nullptr;
 		GridPipeline = nullptr;
 		SkyboxPipeline = nullptr;

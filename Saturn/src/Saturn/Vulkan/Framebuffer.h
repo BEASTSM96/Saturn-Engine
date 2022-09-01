@@ -57,6 +57,9 @@ namespace Saturn {
 		uint32_t Width;
 		uint32_t Height;
 		uint32_t ArrayLevels = 1;
+		uint32_t ExistingImageLayer = 0;
+
+		Ref< Image2D > ExistingImage = nullptr;
 
 		Ref< Pass > RenderPass = nullptr;
 		FramebufferAttachmentSpecification Attachments;

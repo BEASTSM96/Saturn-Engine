@@ -262,4 +262,21 @@ void main()
 	vec3 Lighting = Lighting( F0 ) * ShadowAmount;
 
 	FinalColor = vec4( Lighting, 1.0 );
+
+	switch(cascadeIndex)
+	{
+	case 0:
+		FinalColor.rgb *= vec3(1.0f, 0.25f, 0.25f);
+		break;
+	case 1:
+		FinalColor.rgb *= vec3(0.25f, 1.0f, 0.25f);
+		break;
+	case 2:
+		FinalColor.rgb *= vec3(0.25f, 0.25f, 1.0f);
+		break;
+	case 3:
+		FinalColor.rgb *= vec3(1.0f, 1.0f, 0.25f);
+		break;
+	}
+
 }

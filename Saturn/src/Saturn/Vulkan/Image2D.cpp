@@ -88,28 +88,43 @@ namespace Saturn {
 	Image2D::Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels )
 		: m_Format( Format ), m_Width( Width ), m_Height( Height ), m_ArrayLevels( ArrayLevels )
 	{
+		m_ImageViewes.resize( m_ArrayLevels );
+
 		Create();
 	}
 
 	Image2D::~Image2D()
 	{
 		vkDestroyImage( VulkanContext::Get().GetDevice(), m_Image, nullptr );
-		vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageView, nullptr );
 		vkDestroySampler( VulkanContext::Get().GetDevice(), m_Sampler, nullptr );
 		vkFreeMemory( VulkanContext::Get().GetDevice(), m_Memory, nullptr );
+		vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageView, nullptr );
+
+		for( int i = 0; i < m_ArrayLevels; i++ )
+		{
+			vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageViewes[ i ], nullptr );
+			m_ImageViewes[ i ] = nullptr;
+		}
 
 		m_Image = nullptr;
-		m_ImageView = nullptr;
 		m_Sampler = nullptr;
 		m_Memory = nullptr;
+	}
+
+	void Image2D::SetDebugName( const std::string& rName )
+	{
+		SetDebugUtilsObjectName( rName, ( uint64_t ) m_Image, VK_OBJECT_TYPE_IMAGE );
 	}
 
 	void Image2D::Resize( uint32_t Width, uint32_t Height )
 	{
 		vkDestroyImage( VulkanContext::Get().GetDevice(), m_Image, nullptr );
-		vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageView, nullptr );
 		vkDestroySampler( VulkanContext::Get().GetDevice(), m_Sampler, nullptr );
+		vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageView, nullptr );
 		vkFreeMemory( VulkanContext::Get().GetDevice(), m_Memory, nullptr );
+
+		for( int i = 0; i < m_ArrayLevels; i++ )
+			vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageViewes[ i ], nullptr );
 
 		m_Width = Width;
 		m_Height = Height;
@@ -148,15 +163,10 @@ namespace Saturn {
 		VK_CHECK( vkAllocateMemory( VulkanContext::Get().GetDevice(), &MemoryAllocateInfo, nullptr, &m_Memory ) );
 		VK_CHECK( vkBindImageMemory( VulkanContext::Get().GetDevice(), m_Image, m_Memory, 0 ) );
 
-		// Create image view.
+		// Create base image view & sampler.
 		VkImageViewCreateInfo ImageViewCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 		ImageViewCreateInfo.image = m_Image;
-		
-		if( m_ArrayLevels > 1 )
-			ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-		else
-			ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-
+		ImageViewCreateInfo.viewType = m_ArrayLevels > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D;
 		ImageViewCreateInfo.format = VulkanFormat( m_Format );
 
 		if( IsColorFormat( m_Format ) )
@@ -167,10 +177,10 @@ namespace Saturn {
 		ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 		ImageViewCreateInfo.subresourceRange.levelCount = 1;
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-		ImageViewCreateInfo.subresourceRange.layerCount = 1;
+		ImageViewCreateInfo.subresourceRange.layerCount = m_ArrayLevels;
 
-		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageView ) );
-		SetDebugUtilsObjectName( "Image view", ( uint64_t ) m_ImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
+		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageView) );
+		SetDebugUtilsObjectName( "Base image view layer", ( uint64_t ) m_ImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
 
 		// Create sampler.
 		VkSamplerCreateInfo SamplerCreateInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
@@ -188,7 +198,7 @@ namespace Saturn {
 		SamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
-		SetDebugUtilsObjectName( "Sampler", ( uint64_t ) m_Sampler, VK_OBJECT_TYPE_SAMPLER );
+		SetDebugUtilsObjectName( "Base image sampler", ( uint64_t ) m_Sampler, VK_OBJECT_TYPE_SAMPLER );
 
 		if( IsColorFormat( m_Format ) )
 			m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -197,6 +207,29 @@ namespace Saturn {
 
 		m_DescriptorImageInfo.sampler = m_Sampler;
 		m_DescriptorImageInfo.imageView = m_ImageView;
+
+		m_ImageViewes.resize( m_ArrayLevels );
+		for( int i = 0; i < m_ArrayLevels; i++ )
+		{
+			// Create image view.
+			VkImageViewCreateInfo ImageViewCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+			ImageViewCreateInfo.image = m_Image;
+			ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			ImageViewCreateInfo.format = VulkanFormat( m_Format );
+
+			if( IsColorFormat( m_Format ) )
+				ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			else
+				ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+			ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+			ImageViewCreateInfo.subresourceRange.levelCount = 1;
+			ImageViewCreateInfo.subresourceRange.baseArrayLayer = i;
+			ImageViewCreateInfo.subresourceRange.layerCount = 1;
+
+			VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageViewes[ i ] ) );
+			SetDebugUtilsObjectName( fmt::format( "Image view layer {}", i ), ( uint64_t ) m_ImageViewes[ i ], VK_OBJECT_TYPE_IMAGE_VIEW );
+		}
 	}
 
 }

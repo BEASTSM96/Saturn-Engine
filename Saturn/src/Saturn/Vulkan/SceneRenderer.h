@@ -142,8 +142,8 @@ namespace Saturn {
 		// DirShadowMap
 		//////////////////////////////////////////////////////////////////////////
 		
-		Ref<Pass> DirShadowMapPass = nullptr;
-		Ref<Pipeline> DirShadowMapPipeline;
+		std::vector< Ref< Pass > > DirShadowMapPasses;
+		std::vector< Ref< Pipeline > > DirShadowMapPipelines;
 
 		float CascadeSplitLambda = 0.92f;
 		float CascadeFarPlaneOffset = 100.0f;

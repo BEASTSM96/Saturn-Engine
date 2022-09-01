@@ -36,6 +36,8 @@
 	#endif
 #endif
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
 #include <memory>
 #include <vector>
 #include <string>

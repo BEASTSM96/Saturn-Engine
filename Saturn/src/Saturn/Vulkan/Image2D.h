@@ -56,13 +56,17 @@ namespace Saturn {
 		Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels = 1 );
 		~Image2D();
 
+		void SetDebugName( const std::string& rName );
+
 		void Resize( uint32_t Width, uint32_t Height );
 
 		VkDescriptorImageInfo& GetDescriptorInfo() { return m_DescriptorImageInfo; }
 
 		VkImage GetImage() { return m_Image; }
-		VkImageView GetImageView() { return m_ImageView; }
+		VkImageView GetImageView( size_t index = 0 ) { return m_ImageViewes[ index ]; }
 		VkSampler GetSampler() { return m_Sampler; }
+
+		ImageFormat GetImageFormat() { return m_Format; }
 
 	private:
 		void Create();
@@ -71,6 +75,8 @@ namespace Saturn {
 		uint32_t m_Height;
 
 		ImageFormat m_Format;
+
+		std::vector<VkImageView> m_ImageViewes;
 
 		VkImage m_Image;
 		VkImageView m_ImageView;
