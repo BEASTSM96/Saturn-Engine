@@ -302,7 +302,8 @@ project "Titan"
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
-		"Saturn/vendor/vulkan/include"
+		"Saturn/vendor/vulkan/include",
+		"%{IncludeDir.ImGuizmo}"
 	}
 
 	links

@@ -49,6 +49,10 @@
 
 #include <Saturn/Core/EnvironmentVariables.h>
 
+#include <ImGuizmo/ImGuizmo.h>
+
+#include <Saturn/Core/Math.h>
+
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
 
@@ -471,6 +475,42 @@ namespace Saturn {
 
 		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
 
+		Entity selectedEntity = pHierarchyPanel->GetSelectionContext();
+
+		if( selectedEntity && m_GizmoOperation != -1 )
+		{
+			if( !selectedEntity.HasComponent<SkylightComponent>() )
+			{
+				ImGuizmo::SetOrthographic( false );
+				ImGuizmo::SetDrawlist();
+				ImGuizmo::SetRect( minBound.x, minBound.y, m_ViewportSize.x, m_ViewportSize.y );
+
+				auto& tc = selectedEntity.GetComponent<TransformComponent>();
+
+				glm::mat4 transform = tc.GetTransform();
+
+				const glm::mat4 Projection = m_EditorCamera.ProjectionMatrix();
+				const glm::mat4 View = m_EditorCamera.ViewMatrix();
+
+				ImGuizmo::Manipulate( glm::value_ptr( View ), glm::value_ptr( Projection ), ( ImGuizmo::OPERATION ) m_GizmoOperation, ImGuizmo::LOCAL, glm::value_ptr( transform ) );
+
+				if( ImGuizmo::IsUsing() )
+				{
+					glm::vec3 translation;
+					glm::vec3 rotation;
+					glm::vec3 scale;
+
+					Math::DecomposeTransform( transform, translation, rotation, scale );
+
+					glm::vec3 DeltaRotation = rotation - tc.Rotation;
+
+					tc.Position = translation;
+					tc.Rotation += DeltaRotation;
+					tc.Scale = scale;
+				}
+			}
+		}
+
 		ImGui::End();
 
 		ImGui::PopStyleVar();
@@ -552,6 +592,19 @@ namespace Saturn {
 					}
 				}
 			} break;
+
+			case Key::Q:
+				m_GizmoOperation = -1;
+				break;
+			case Key::W:
+				m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+				break;
+			case Key::E:
+				m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
+				break;
+			case Key::R:
+				m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
+				break;
 		}
 
 		if( Input::Get().KeyPressed( Key::LeftControl ) )

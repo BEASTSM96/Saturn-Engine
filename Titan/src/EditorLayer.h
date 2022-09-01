@@ -88,6 +88,9 @@ namespace Saturn {
 		bool m_ViewportFocused = false;
 		bool m_MouseOverViewport = false;
 
+		// Translate as default
+		int m_GizmoOperation = 7;
+
 		ImVec2 m_ViewportSize;
 
 		Ref< Scene > m_EditorScene;
