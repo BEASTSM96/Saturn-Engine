@@ -46,20 +46,17 @@
 namespace Saturn {
 	
 	EditorCamera::EditorCamera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane )
-		: Camera( Fov, Width, Height, NearPlane, FarPlane ), m_NearPlane( NearPlane ), m_FarPlane( FarPlane )
+		: Camera( Fov, Width, Height, NearPlane, FarPlane ), m_FocalPoint( 0.0f )
 	{
-		m_FocalPoint = glm::vec3( 0.0f );
-		m_WorldRotation = glm::vec3( 90.0f, 0.0f, 0.0f );
-
-		glm::vec3 position = { -5, 5, 5 };
+		const glm::vec3 position = { -5, 5, 5 };
 		m_Distance = glm::distance( position, m_FocalPoint );
 
 		m_Yaw = 3.0f * ( float ) M_PI / 4.0f;
 		m_Pitch = M_PI / 4.0f;
 
 		m_Position = CalculatePosition();
-		const glm::quat orientation = ( glm::quat( glm::vec3( -m_Pitch - m_PitchDelta, -m_Yaw - m_YawDelta, 0.0f ) ) );
-		m_WorldRotation = glm::eulerAngles( orientation ) * ( 180.0f / ( float ) M_PI );
+		const glm::quat orientation = GetOrientation();
+		m_Rotation = glm::eulerAngles( orientation ) * ( 180.0f / ( float ) M_PI );
 		m_ViewMatrix = glm::translate( glm::mat4( 1.0f ), m_Position ) * glm::toMat4( orientation );
 		m_ViewMatrix = glm::inverse( m_ViewMatrix );
 	}
@@ -89,71 +86,77 @@ namespace Saturn {
 		const glm::vec2& mouse{ Input::Get().MouseX(), Input::Get().MouseY() };
 		const glm::vec2 delta = ( mouse - m_InitialMousePosition ) * 0.002f;
 
-		if( m_IsActive )
+		if( !m_IsActive )
 		{
-			if( Input::Get().MouseButtonPressed( Mouse::Right ) && !Input::Get().KeyPressed( Key::LeftAlt ) )
+			EnableMouse();
+
+			return;
+		}
+
+		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !Input::Get().KeyPressed( Key::LeftAlt ) )
+		{
+			m_CameraMode = CameraMode::FLYCAM;
+			DisableMouse();
+			const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
+
+			const float speed = GetCameraSpeed();
+
+			if( Input::Get().KeyPressed( Key::Q ) )
+				m_PositionDelta -= ts.Milliseconds() * speed * glm::vec3{ 0.f, yawSign, 0.f };
+			if( Input::Get().KeyPressed( Key::E ) )
+				m_PositionDelta += ts.Milliseconds() * speed * glm::vec3{ 0.f, yawSign, 0.f };
+			if( Input::Get().KeyPressed( Key::S ) )
+				m_PositionDelta -= ts.Milliseconds() * speed * m_Rotation;
+			if( Input::Get().KeyPressed( Key::W ) )
+				m_PositionDelta += ts.Milliseconds() * speed * m_Rotation;
+			if( Input::Get().KeyPressed( Key::A ) )
+				m_PositionDelta -= ts.Milliseconds() * speed * m_RightDirection;
+			if( Input::Get().KeyPressed( Key::D ) )
+				m_PositionDelta += ts.Milliseconds() * speed * m_RightDirection;
+
+			constexpr float maxRate{ 0.12f };
+			m_YawDelta += glm::clamp( yawSign * delta.x, -maxRate, maxRate );
+			m_PitchDelta += glm::clamp( delta.y, -maxRate, maxRate );
+
+			m_RightDirection = glm::cross( m_Rotation, glm::vec3{ 0.f, yawSign, 0.f } );
+
+			m_Rotation = glm::rotate( glm::normalize( glm::cross( glm::angleAxis( -m_PitchDelta, m_RightDirection ),
+				glm::angleAxis( -m_YawDelta, glm::vec3{ 0.f, yawSign, 0.f } ) ) ), m_Rotation );
+
+			const float distance = glm::distance( m_FocalPoint, m_Position );
+			m_FocalPoint = m_Position + GetForwardDirection() * distance;
+			m_Distance = distance;
+		}
+		else if( Input::Get().KeyPressed( Key::LeftAlt ) )
+		{
+			m_CameraMode = CameraMode::ARCBALL;
+
+			if( Input::Get().MouseButtonPressed( Mouse::Middle ) )
 			{
-				m_CameraMode = CameraMode::FLYCAM;
 				DisableMouse();
-				const float yawSign = UpDirection().y < 0 ? -1.0f : 1.0f;
-
-				if( Input::Get().KeyPressed( Key::Q ) )
-					m_PositionDelta -= ts.Milliseconds() * m_Speed * glm::vec3{ 0.f, yawSign, 0.f };
-				if( Input::Get().KeyPressed( Key::E ) )
-					m_PositionDelta += ts.Milliseconds() * m_Speed * glm::vec3{ 0.f, yawSign, 0.f };
-
-				if( Input::Get().KeyPressed( Key::S ) )
-					m_PositionDelta -= ts.Milliseconds() * m_Speed * m_WorldRotation;
-				if( Input::Get().KeyPressed( Key::W ) )
-					m_PositionDelta += ts.Milliseconds() * m_Speed * m_WorldRotation;
-
-				if( Input::Get().KeyPressed( Key::A ) )
-					m_PositionDelta -= ts.Milliseconds() * m_Speed * m_RightDirection;
-				
-				if( Input::Get().KeyPressed( Key::D ) )
-					m_PositionDelta += ts.Milliseconds() * m_Speed * m_RightDirection;
-
-				constexpr float maxRate{ 0.12f };
-				m_YawDelta += glm::clamp( yawSign * delta.x, -maxRate, maxRate );
-				m_PitchDelta += glm::clamp( delta.y, -maxRate, maxRate );
-
-				m_RightDirection = glm::cross( m_WorldRotation, glm::vec3{ 0.f, yawSign, 0.f } );
-
-				m_WorldRotation = glm::rotate( glm::normalize( glm::cross( glm::angleAxis( m_PitchDelta, m_RightDirection ),
-					glm::angleAxis( -m_YawDelta, glm::vec3{ 0.f, yawSign, 0.f } ) ) ), m_WorldRotation );
+				MousePan( delta );
 			}
-			else if( Input::Get().KeyPressed( Key::LeftAlt ) )
+			else if( Input::Get().MouseButtonPressed( Mouse::Left ) )
 			{
-				m_CameraMode = CameraMode::ARCBALL;
-
-
-				if( Input::Get().MouseButtonPressed( Mouse::Middle ) )
-				{
-					DisableMouse();
-					MousePan( delta );
-				}
-				else if( Input::Get().MouseButtonPressed( Mouse::Left ) )
-				{
-					DisableMouse();
-					MouseRotate( delta );
-				}
-				else if( Input::Get().MouseButtonPressed( Mouse::Right ) )
-				{
-					DisableMouse();
-					MouseZoom( delta.x + delta.y );
-				}
-				else
-					EnableMouse();
+				DisableMouse();
+				MouseRotate( delta );
+			}
+			else if( Input::Get().MouseButtonPressed( Mouse::Right ) )
+			{
+				DisableMouse();
+				MouseZoom( delta.x + delta.y );
 			}
 			else
-			{
 				EnableMouse();
-			}
 		}
+		else
+		{
+			EnableMouse();
+		}
+
 		m_InitialMousePosition = mouse;
 
 		m_Position += m_PositionDelta;
-
 		m_Yaw += m_YawDelta;
 		m_Pitch += m_PitchDelta;
 
@@ -163,20 +166,30 @@ namespace Saturn {
 		UpdateCameraView();
 	}
 
+	float EditorCamera::GetCameraSpeed() const
+	{
+		float speed = m_NormalSpeed;
+		if( Input::Get().KeyPressed( Key::LeftControl ) )
+			speed /= 2 - glm::log( m_NormalSpeed );
+		if( Input::Get().KeyPressed( Key::LeftShift ) )
+			speed *= 2 - glm::log( m_NormalSpeed );
+
+		return glm::clamp( speed, MIN_SPEED, MAX_SPEED );
+	}
+
 	void EditorCamera::UpdateCameraView()
 	{
-		const float yawSign = UpDirection().y < 0 ? -1.0f : 1.0f;
+		const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
 
 		// Extra step to handle the problem when the camera direction is the same as the up vector
-		const float cosAngle = glm::dot( ForwardDirection(), UpDirection() );
+		const float cosAngle = glm::dot( GetForwardDirection(), GetUpDirection() );
 		if( cosAngle * yawSign > 0.99f )
 			m_PitchDelta = 0.f;
 
-		const glm::vec3 lookAt = m_Position + ForwardDirection();
-		m_WorldRotation = glm::normalize( lookAt - m_Position );
-		m_FocalPoint = m_Position + ForwardDirection() * m_Distance;
+		const glm::vec3 lookAt = m_Position + GetForwardDirection();
+		m_Rotation = glm::normalize( lookAt - m_Position );
 		m_Distance = glm::distance( m_Position, m_FocalPoint );
-		m_ViewMatrix = glm::lookAt( m_Position, lookAt, glm::vec3{ 0.f, -yawSign, 0.f } );
+		m_ViewMatrix = glm::lookAt( m_Position, lookAt, glm::vec3{ 0.f, yawSign, 0.f } );
 
 		//damping for smooth camera
 		m_YawDelta *= 0.6f;
@@ -187,22 +200,22 @@ namespace Saturn {
 	void EditorCamera::Focus( const glm::vec3& focusPoint )
 	{
 		m_FocalPoint = focusPoint;
+		m_CameraMode = CameraMode::FLYCAM;
 		if( m_Distance > m_MinFocusDistance )
 		{
-			const float distance = m_Distance - m_MinFocusDistance;
-			MouseZoom( distance / ZoomSpeed() );
-			m_CameraMode = CameraMode::ARCBALL;
+			m_Distance -= m_Distance - m_MinFocusDistance;
+			m_Position = m_FocalPoint - GetForwardDirection() * m_Distance;
 		}
-		m_Position = m_FocalPoint - ForwardDirection() * m_Distance;
+		m_Position = m_FocalPoint - GetForwardDirection() * m_Distance;
 		UpdateCameraView();
 	}
 
 	std::pair<float, float> EditorCamera::PanSpeed() const
 	{
-		const float x = std::min( float( m_ViewportWidth ) / 1000.0f, 2.4f ); // max = 2.4f
+		const float x = glm::min( float( m_ViewportWidth ) / 1000.0f, 2.4f ); // max = 2.4f
 		const float xFactor = 0.0366f * ( x * x ) - 0.1778f * x + 0.3021f;
 
-		const float y = std::min( float( m_ViewportHeight ) / 1000.0f, 2.4f ); // max = 2.4f
+		const float y = glm::min( float( m_ViewportHeight ) / 1000.0f, 2.4f ); // max = 2.4f
 		const float yFactor = 0.0366f * ( y * y ) - 0.1778f * y + 0.3021f;
 
 		return { xFactor, yFactor };
@@ -216,9 +229,9 @@ namespace Saturn {
 	float EditorCamera::ZoomSpeed() const
 	{
 		float distance = m_Distance * 0.2f;
-		distance = std::max( distance, 0.0f );
+		distance = glm::max( distance, 0.0f );
 		float speed = distance * distance;
-		speed = std::min( speed, 100.0f ); // max speed = 100
+		speed = glm::min( speed, 50.0f ); // max speed = 50
 		return speed;
 	}
 
@@ -226,78 +239,34 @@ namespace Saturn {
 	{
 		EventDispatcher dispatcher( event );
 		dispatcher.Dispatch<MouseScrolledEvent>( [this]( MouseScrolledEvent& e ) { return OnMouseScroll( e ); } );
-		dispatcher.Dispatch<KeyReleasedEvent>( [this]( KeyReleasedEvent& e ) { return OnKeyReleased( e ); } );
-		dispatcher.Dispatch<KeyPressedEvent>( [this]( KeyPressedEvent& e ) { return OnKeyPressed( e ); } );
-	}
-
-	void EditorCamera::Reset()
-	{
-		EnableMouse();
 	}
 
 	bool EditorCamera::OnMouseScroll( MouseScrolledEvent& e )
 	{
-		if( m_IsActive )
+		if( Input::Get().MouseButtonPressed( Mouse::Right ) )
 		{
-			if( Input::Get().MouseButtonPressed( Mouse::Right ) )
-			{
-				e.YOffset() > 0 ? m_Speed += 0.3f * m_Speed : m_Speed -= 0.3f * m_Speed;
-				m_Speed = std::clamp( m_Speed, 0.0005f, 2.f );
-			}
-			else
-			{
-				MouseZoom( e.YOffset() * 0.1f );
-				UpdateCameraView();
-			}
+			m_NormalSpeed += e.YOffset() * 0.3f * m_NormalSpeed;
+			m_NormalSpeed = std::clamp( m_NormalSpeed, MIN_SPEED, MAX_SPEED );
+		}
+		else
+		{
+			MouseZoom( e.YOffset() * 0.1f );
+			UpdateCameraView();
 		}
 
-		return false;
-	}
-
-	bool EditorCamera::OnKeyPressed( KeyPressedEvent& e )
-	{
-		if( m_LastSpeed == 0.0f )
-		{
-			if( e.KeyCode() == Key::LeftShift )
-			{
-				m_LastSpeed = m_Speed;
-				m_Speed *= 2.0f - glm::log( m_Speed );
-			}
-			if( e.KeyCode() == Key::LeftControl )
-			{
-				m_LastSpeed = m_Speed;
-				m_Speed /= 2.0f - glm::log( m_Speed );
-			}
-
-			m_Speed = glm::clamp( m_Speed, 0.0005f, 2.0f );
-		}
-		return true;
-	}
-
-	bool EditorCamera::OnKeyReleased( KeyReleasedEvent& e )
-	{
-		if( e.KeyCode() == Key::LeftShift || e.KeyCode() == Key::LeftControl )
-		{
-			if( m_LastSpeed != 0.0f )
-			{
-				m_Speed = m_LastSpeed;
-				m_LastSpeed = 0.0f;
-			}
-			m_Speed = glm::clamp( m_Speed, 0.0005f, 2.0f );
-		}
 		return true;
 	}
 
 	void EditorCamera::MousePan( const glm::vec2& delta )
 	{
 		auto [xSpeed, ySpeed] = PanSpeed();
-		m_FocalPoint += -RightDirection() * delta.x * xSpeed * m_Distance;
-		m_FocalPoint += UpDirection() * delta.y * ySpeed * m_Distance;
+		m_FocalPoint -= GetRightDirection() * delta.x * xSpeed * m_Distance;
+		m_FocalPoint += GetUpDirection() * delta.y * ySpeed * m_Distance;
 	}
 
 	void EditorCamera::MouseRotate( const glm::vec2& delta )
 	{
-		const float yawSign = UpDirection().y < 0.0f ? -1.0f : 1.0f;
+		const float yawSign = GetUpDirection().y < 0.0f ? -1.0f : 1.0f;
 		m_YawDelta += yawSign * delta.x * RotationSpeed();
 		m_PitchDelta += delta.y * RotationSpeed();
 	}
@@ -305,38 +274,40 @@ namespace Saturn {
 	void EditorCamera::MouseZoom( float delta )
 	{
 		m_Distance -= delta * ZoomSpeed();
-		m_Position = m_FocalPoint - ForwardDirection() * m_Distance;
-		const glm::vec3 forwardDir = ForwardDirection();
+		const glm::vec3 forwardDir = GetForwardDirection();
+		m_Position = m_FocalPoint - forwardDir * m_Distance;
 		if( m_Distance < 1.0f )
 		{
-			m_FocalPoint += forwardDir;
+			m_FocalPoint += forwardDir * m_Distance;
 			m_Distance = 1.0f;
 		}
 		m_PositionDelta += delta * ZoomSpeed() * forwardDir;
 	}
 
-	glm::vec3 EditorCamera::UpDirection() const
+	glm::vec3 EditorCamera::GetUpDirection() const
 	{
-		return glm::rotate( Orientation(), glm::vec3( 0.0f, -1.0f, 0.0f ) );
+		return glm::rotate( GetOrientation(), glm::vec3( 0.0f, 1.0f, 0.0f ) );
 	}
 
-	glm::vec3 EditorCamera::RightDirection() const
+	glm::vec3 EditorCamera::GetRightDirection() const
 	{
-		return glm::rotate( Orientation(), glm::vec3( 1.f, 0.f, 0.f ) );
+		return glm::rotate( GetOrientation(), glm::vec3( 1.f, 0.f, 0.f ) );
 	}
 
-	glm::vec3 EditorCamera::ForwardDirection() const
+	glm::vec3 EditorCamera::GetForwardDirection() const
 	{
-		return glm::rotate( Orientation(), glm::vec3( 0.0f, 0.0f, -1.0f ) );
+		return glm::rotate( GetOrientation(), glm::vec3( 0.0f, 0.0f, -1.0f ) );
 	}
 
 	glm::vec3 EditorCamera::CalculatePosition() const
 	{
-		return m_FocalPoint - ForwardDirection() * m_Distance + m_PositionDelta;
+		return m_FocalPoint - GetForwardDirection() * m_Distance + m_PositionDelta;
 	}
 
-	glm::quat EditorCamera::Orientation() const
+	glm::quat EditorCamera::GetOrientation() const
 	{
 		return glm::quat( glm::vec3( -m_Pitch - m_PitchDelta, -m_Yaw - m_YawDelta, 0.0f ) );
 	}
+
+
 }

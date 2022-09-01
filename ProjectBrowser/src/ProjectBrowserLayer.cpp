@@ -128,7 +128,7 @@ namespace Saturn {
 							s_RecentProjects.push_back( path );
 					}
 				}
-			} while ( !s_ShouldThreadTerminate );
+			} while( !s_ShouldThreadTerminate );
 		} );
 	}
 

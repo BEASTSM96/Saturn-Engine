@@ -52,7 +52,7 @@ namespace Saturn {
 
 		ImGui::BeginChild( "##CB_TopBar_Actions", ImVec2( 0, 30 ) );
 
-		if( ImGui::Button( "Add assets" ) )
+		if( ImGui::Button( "Add" ) )
 		{
 			ImGui::OpenPopup( "Add_Assets_Popup" );
 		}

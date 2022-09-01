@@ -74,10 +74,12 @@ namespace Saturn {
 
 	void Viewport::Draw()
 	{
+		/*
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
 
+	
 		ImGui::Begin( "Viewport", 0, flags );
 
 		m_WindowPos = ImGui::GetWindowPos(); // includes tab bar
@@ -100,7 +102,7 @@ namespace Saturn {
 		
 		ImVec2 maxBound = { minBound.x + m_WindowSize.x, minBound.y + m_WindowSize.y };
 
-		m_SendCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound );
+		m_SendCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && ImGui::IsWindowFocused();
 		
 		// Draw Gizmo
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
@@ -144,11 +146,11 @@ namespace Saturn {
 			}
 		}
 
-		*/
 
 		ImGui::End();
 
 		ImGui::PopStyleVar();
+		*/
 	}
 
 }

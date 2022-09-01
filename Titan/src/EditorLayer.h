@@ -83,6 +83,12 @@ namespace Saturn {
 		Ref< Texture2D > m_CheckerboardTexture;
 
 		EditorCamera m_EditorCamera;
+		bool m_AllowCameraEvents = false;
+		bool m_StartedRightClickInViewport = false;
+		bool m_ViewportFocused = false;
+		bool m_MouseOverViewport = false;
+
+		ImVec2 m_ViewportSize;
 
 		Ref< Scene > m_EditorScene;
 		Ref< Scene > m_RuntimeScene;

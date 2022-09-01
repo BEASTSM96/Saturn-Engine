@@ -31,6 +31,8 @@
 
 #include <Saturn/Project/Project.h>
 
+#include <Saturn/ImGui/UITools.h>
+
 #include <Saturn/ImGui/ViewportBar.h>
 #include <Saturn/Vulkan/SceneRenderer.h>
 #include <Saturn/ImGui/TitleBar.h>
@@ -53,6 +55,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Saturn {
+
+	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
+	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
 	EditorLayer::EditorLayer() 
 		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
@@ -140,7 +145,6 @@ namespace Saturn {
 		pHierarchyPanel->SetContext( m_EditorScene );
 		pHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
 
-		m_EditorCamera.AllowEvents( true );
 		m_EditorCamera.SetActive( true );
 		
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
@@ -177,8 +181,8 @@ namespace Saturn {
 
 	void EditorLayer::OnUpdate( Timestep time )
 	{
-		if( m_Viewport->m_SendCameraEvents )
-			m_EditorCamera.OnUpdate( time );
+		m_EditorCamera.SetActive( m_AllowCameraEvents );
+		m_EditorCamera.OnUpdate( time );
 
 		SceneRenderer::Get().SetEditorCamera( m_EditorCamera );
 
@@ -222,14 +226,32 @@ namespace Saturn {
 			m_EditorScene->OnUpdate( Application::Get().Time() );
 			m_EditorScene->OnRenderEditor( m_EditorCamera, Application::Get().Time() );
 		}
+
+		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
+			m_StartedRightClickInViewport = true;
+
+		if(!Input::Get().MouseButtonPressed( Mouse::Right ))
+			m_StartedRightClickInViewport = false;
 	}
 
 	void EditorLayer::OnImGuiRender()
 	{
 		// Draw dockspace.
+		ImGuiIO& io = ImGui::GetIO();
 		ImGuiViewport* pViewport = ImGui::GetWindowViewport();
 		ImGui::DockSpaceOverViewport( pViewport );
 		
+		if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) || ( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) && !m_StartedRightClickInViewport ) )
+		{
+			if( !m_RuntimeScene )
+			{
+				ImGui::FocusWindow( GImGui->HoveredWindow );
+				Input::Get().SetCursorMode( CursorMode::Normal );
+			}
+		}
+
+		io.ConfigWindowsResizeFromEdges = io.BackendFlags & ImGuiBackendFlags_HasMouseCursors;
+
 		m_TitleBar->Draw();
 
 		PanelManager::Get().DrawAllPanels();
@@ -422,6 +444,36 @@ namespace Saturn {
 		}
 
 		ImGui::End();
+
+		// Viewport
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+
+		ImGui::Begin( "Viewport", 0, flags );
+
+		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
+		{
+			m_ViewportSize = ImGui::GetContentRegionAvail();
+
+			SceneRenderer::Get().SetViewportSize( m_ViewportSize.x, m_ViewportSize.y );
+			m_EditorCamera.SetViewportSize( m_ViewportSize.x, m_ViewportSize.y );
+		}
+
+		// In the editor we only should flip the image UV, we don't have to flip anything else.
+		Image( SceneRenderer::Get().CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
+
+		ImVec2 minBound = ImGui::GetWindowPos();
+		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
+
+		m_ViewportFocused = ImGui::IsWindowFocused();
+		m_MouseOverViewport = ImGui::IsWindowHovered();
+
+		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
+
+		ImGui::End();
+
+		ImGui::PopStyleVar();
 	}
 
 	void EditorLayer::OnEvent( Event& rEvent )
@@ -429,28 +481,8 @@ namespace Saturn {
 		EventDispatcher dispatcher( rEvent );
 		dispatcher.Dispatch<KeyPressedEvent>( SAT_BIND_EVENT_FN( EditorLayer::OnKeyPressed ) );
 
-		if ( m_Viewport->m_SendCameraEvents )
-		{
-			m_EditorCamera.AllowEvents( true );
+		if( m_MouseOverViewport )
 			m_EditorCamera.OnEvent( rEvent );
-		}
-		else
-		{	
-			// HACK, I'll come back to this later
-
-			if ( m_EditorCamera.HasEvents() )
-			{
-				//m_EditorCamera.Reset();
-			}
-			
-			// Allow the camera to handle key released
-			if ( rEvent.GetEventType() == EventType::KeyReleased )
-			{
-				m_EditorCamera.OnEvent( rEvent );
-			}
-
-			m_EditorCamera.AllowEvents( false );
-		}
 	}
 
 	void EditorLayer::SaveFileAs()
