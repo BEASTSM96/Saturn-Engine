@@ -193,7 +193,7 @@ namespace Saturn {
 		ViewportBar* pViewportBar = ( ViewportBar* ) PanelManager::Get().GetPanel( "Viewport Bar" );
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 		
-		if( pViewportBar->RequestedStartRuntime() )
+		if( m_RequestRuntime )
 		{
 			if( !m_RuntimeScene )
 			{
@@ -511,9 +511,23 @@ namespace Saturn {
 			}
 		}
 
+		ImGui::PopStyleVar();
 		ImGui::End();
 
-		ImGui::PopStyleVar();
+		ImGuiWindowFlags TBFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+
+		ImGui::Begin( "##toolbar", NULL, TBFlags );
+
+		const char* text = m_RequestRuntime == false ? "Start Runtime" : "Stop Runtime";
+
+		if( ImGui::Button( text ) ) m_RequestRuntime ^= 1; ImGui::SameLine();
+		if( ImGui::Button( "None" ) ) m_GizmoOperation = -1; ImGui::SameLine();
+		if( ImGui::Button( "Translate" ) ) m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE; ImGui::SameLine();
+		if( ImGui::Button( "Rotate" ) ) m_GizmoOperation = ImGuizmo::OPERATION::ROTATE; ImGui::SameLine();
+		if( ImGui::Button( "Scale" ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
+
+		ImGui::End();
+
 	}
 
 	void EditorLayer::OnEvent( Event& rEvent )

@@ -88,6 +88,8 @@ namespace Saturn {
 		bool m_ViewportFocused = false;
 		bool m_MouseOverViewport = false;
 
+		bool m_RequestRuntime = false;
+
 		// Translate as default
 		int m_GizmoOperation = 7;
 
