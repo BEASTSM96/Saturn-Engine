@@ -205,15 +205,15 @@ namespace Saturn {
 
 		ImGui_ImplVulkan_RenderDrawData( ImGui::GetDrawData(), CommandBuffer );
 		
-		vkCmdEndRenderPass( CommandBuffer );
-		CmdEndDebugLabel( CommandBuffer );
-
 		ImGuiIO& rIO = ImGui::GetIO();
 		if( rIO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
 		{
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 		}
+
+		vkCmdEndRenderPass( CommandBuffer );
+		CmdEndDebugLabel( CommandBuffer );
 	}
 
 	void ImGuiLayer::OnImGuiRender( void )

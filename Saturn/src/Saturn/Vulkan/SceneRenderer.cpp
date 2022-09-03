@@ -582,17 +582,6 @@ namespace Saturn {
 			EndTreeNode();
 		}
 
-		if( TreeNode( "Shadow Settings", false ) )
-		{
-			ImGui::Separator();
-
-			float size = ImGui::GetContentRegionAvailWidth();			
-		
-			Image( m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource(), ImVec2( size, size ) );
-
-			EndTreeNode();
-		}
-
 		if( TreeNode( "Visualization", true ) ) 
 		{
 		//	ImGui::Checkbox( "View Shadow Cascades", &m_RendererData.ViewShadowCascades );

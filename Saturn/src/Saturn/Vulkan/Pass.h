@@ -65,7 +65,7 @@ namespace Saturn {
 	private:
 		PassSpecification m_PassSpec;
 
-		VkAttachmentReference m_DepthAttacment;
+		VkAttachmentReference m_DepthAttacment = {};
 		std::vector< VkAttachmentReference > m_ColorAttacments;
 
 		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;

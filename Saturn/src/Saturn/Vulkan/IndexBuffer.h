@@ -68,7 +68,7 @@ namespace Saturn {
 		void* m_pData = nullptr;
 		size_t m_Size = 0;
 
-		VkBuffer m_Buffer;
-		VmaAllocation m_Allocation;
+		VkBuffer m_Buffer = nullptr ;
+		VmaAllocation m_Allocation = nullptr;
 	};
 }

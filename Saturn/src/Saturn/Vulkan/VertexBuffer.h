@@ -187,8 +187,8 @@ namespace Saturn {
 		
 		VertexBufferLayout Layout;
 	
-		VkBuffer m_Buffer;
+		VkBuffer m_Buffer = nullptr;
 
-		VmaAllocation m_Allocation;
+		VmaAllocation m_Allocation = nullptr;
 	};
 }

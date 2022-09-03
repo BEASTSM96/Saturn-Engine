@@ -71,12 +71,12 @@ namespace Saturn {
 		// COMMAND POOLS & BUFFERS
 		//////////////////////////////////////////////////////////////////////////
 		
-		VkCommandPool CommandPool;
-		VkCommandBuffer CommandBuffer;
+		VkCommandPool CommandPool = nullptr;
+		VkCommandBuffer CommandBuffer = nullptr;
 		
 		//////////////////////////////////////////////////////////////////////////
 
-		uint32_t FrameCount;
+		uint32_t FrameCount = 0;
 
 		//////////////////////////////////////////////////////////////////////////
 
@@ -163,7 +163,7 @@ namespace Saturn {
 		// STATIC MESHES
 
 		// Main geometry for static meshes.
-		Ref<Pipeline> StaticMeshPipeline;
+		Ref<Pipeline> StaticMeshPipeline = nullptr;
 	
 		// GRID
 
@@ -171,17 +171,17 @@ namespace Saturn {
 
 		Ref< DescriptorSet > GridDescriptorSet = nullptr;
 
-		VertexBuffer* GridVertexBuffer;
-		IndexBuffer* GridIndexBuffer;
+		VertexBuffer* GridVertexBuffer = nullptr;
+		IndexBuffer* GridIndexBuffer = nullptr;
 
 		// SKYBOX
 
-		Ref<Pipeline> SkyboxPipeline;
+		Ref<Pipeline> SkyboxPipeline = nullptr;
 
 		Ref< DescriptorSet > SkyboxDescriptorSet = nullptr;
 				
-		VertexBuffer* SkyboxVertexBuffer;
-		IndexBuffer* SkyboxIndexBuffer;
+		VertexBuffer* SkyboxVertexBuffer = nullptr;
+		IndexBuffer* SkyboxIndexBuffer = nullptr;
 
 		//////////////////////////////////////////////////////////////////////////
 		
@@ -194,13 +194,13 @@ namespace Saturn {
 		Ref<Pass> SceneComposite = nullptr;
 		Ref< Framebuffer > SceneCompositeFramebuffer = nullptr;
 
-		Ref<Pipeline> SceneCompositePipeline;
+		Ref<Pipeline> SceneCompositePipeline = nullptr;
 		
 		// Input
 		Ref< DescriptorSet > SC_DescriptorSet = nullptr;
 
-		VertexBuffer* SC_VertexBuffer;
-		IndexBuffer* SC_IndexBuffer;
+		VertexBuffer* SC_VertexBuffer = nullptr;
+		IndexBuffer* SC_IndexBuffer = nullptr;
 		
 		//////////////////////////////////////////////////////////////////////////
 		// End Scene Composite

@@ -219,7 +219,9 @@ namespace Saturn {
 				if( SUCCEEDED( hr ) )
 				{
 					hr = pItem->GetDisplayName( SIGDN_DESKTOPABSOLUTEPARSING, &pszFilePath );
+
 					auto wstr = std::wstring( pszFilePath );
+
 					path = std::string( wstr.begin(), wstr.end() );
 					
 					CoTaskMemFree( pszFilePath );
