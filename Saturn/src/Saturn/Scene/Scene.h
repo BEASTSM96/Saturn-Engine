@@ -94,6 +94,8 @@ namespace Saturn {
 		std::string& Name() { return m_Name; }
 		const std::string& Name() const { return m_Name; }
 
+		const std::string& Filepath() { return m_Filepath; }
+
 		bool m_RuntimeRunning = false;
 
 		void OnRuntimeStart();
@@ -104,6 +106,7 @@ namespace Saturn {
 		UUID m_SceneID;
 
 		std::string m_Name;
+		std::string m_Filepath;
 
 		EntityMap m_EntityIDMap;
 

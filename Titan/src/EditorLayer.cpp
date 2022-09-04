@@ -524,7 +524,8 @@ namespace Saturn {
 		if( ImGui::Button( "None" ) ) m_GizmoOperation = -1; ImGui::SameLine();
 		if( ImGui::Button( "Translate" ) ) m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE; ImGui::SameLine();
 		if( ImGui::Button( "Rotate" ) ) m_GizmoOperation = ImGuizmo::OPERATION::ROTATE; ImGui::SameLine();
-		if( ImGui::Button( "Scale" ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
+		if( ImGui::Button( "Scale" ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE; ImGui::SameLine();
+		if( ImGui::Button( "Save" ) ) SaveFile();
 
 		ImGui::End();
 
@@ -549,6 +550,15 @@ namespace Saturn {
 
 	void EditorLayer::SaveFile()
 	{
+		if( std::filesystem::exists( m_EditorScene->Filepath() ) )
+		{
+			SceneSerialiser ss( m_EditorScene );
+			ss.Serialise( m_EditorScene->Filepath() );
+		}
+		else
+		{
+			SaveFileAs();
+		}
 	}
 
 	void EditorLayer::OpenFile( const std::string& FileName )

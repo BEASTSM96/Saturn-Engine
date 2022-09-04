@@ -266,6 +266,7 @@ namespace Saturn {
 	{
 		NewScene->m_EntityIDMap = m_EntityIDMap;
 		NewScene->m_Name = m_Name;
+		NewScene->m_Filepath = m_Filepath;
 
 		std::unordered_map< UUID, entt::entity > EntityMap;
 		

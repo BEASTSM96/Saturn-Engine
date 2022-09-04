@@ -325,6 +325,10 @@ namespace Saturn {
 
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled Scene";
 
+		out << YAML::Key << "FilePath" << YAML::Value << rFilePath;
+
+		m_Scene->m_Filepath = rFilePath;
+
 		out << YAML::Key << "Entities";
 
 		out << YAML::BeginSeq;
@@ -365,6 +369,8 @@ namespace Saturn {
 
 		std::string sceneName = data["Scene"].as< std::string >();
 		SAT_CORE_INFO( "Deserialising scene '{0}'", sceneName );
+
+		m_Scene->m_Filepath = rFilePath;
 
 		auto entities = data["Entities"];
 
