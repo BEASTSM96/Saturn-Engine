@@ -243,6 +243,10 @@ namespace Saturn {
 		// Draw dockspace.
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiViewport* pViewport = ImGui::GetWindowViewport();
+		auto Height = ImGui::GetFrameHeight();
+
+		pViewport->WorkSize.y -= Height;
+
 		ImGui::DockSpaceOverViewport( pViewport );
 		
 		if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) || ( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) && !m_StartedRightClickInViewport ) )
@@ -310,16 +314,38 @@ namespace Saturn {
 
 							ImGui::Separator();
 
+							auto drawItemValue = [&]( const char* name, const char* property )
+							{
+								ImGui::Text( name );
+
+								ImGui::Separator();
+
+								float v = rMaterial->Get< float >( property );
+
+								ImGui::DragFloat( name, &v, 0.01f, 0.0f, 1.0f );
+
+								if( v != rMaterial->Get<float>( property ) )
+									rMaterial->Set( property, v );
+							};
+
+							auto displayItemMap = [&]( const char* property ) 
+							{
+								Ref< Texture2D > v = rMaterial->GetResource( property );
+
+								if( v )
+								{
+									if( v && v->GetDescriptorSet() )
+										ImGui::Image( v->GetDescriptorSet(), ImVec2( 100, 100 ) );
+									else
+										ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								}
+							};
+
 							ImGui::Text( "Albedo" );
 
 							ImGui::Separator();
 
-							Ref< Texture2D > texture = rMaterial->GetResource( "u_AlbedoTexture" );
-								
-							if( texture && texture->GetDescriptorSet() )
-								ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-							else
-								ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+							displayItemMap( "u_AlbedoTexture" );
 
 							ImGui::SameLine();
 
@@ -344,66 +370,22 @@ namespace Saturn {
 							bool UseNormalMap = rMaterial->Get< float >( "u_Materials.UseNormalMap" );
 
 							if( UseNormalMap )
-							{
-								Ref< Texture2D > texture = rMaterial->GetResource( "u_NormalTexture" );
-								
-								if( texture && texture->GetDescriptorSet() )
-									ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-								else
-									ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-							}
+								displayItemMap( "u_NormalTexture" );
 
 							if( ImGui::Checkbox( "Use Normal Map", &UseNormalMap ) )
 								rMaterial->Set( "u_Materials.UseNormalMap", UseNormalMap ? 1.0f : 0.0f );
 							
-							ImGui::Text( "Roughness" );
-							
-							ImGui::Separator();
-							
-							float Roughness = rMaterial->Get< float >( "u_Materials.Roughness" );
-
-							ImGui::DragFloat( "Roughness", &Roughness, 0.01f, 0.0f, 1.0f );
-
-							if( Roughness != rMaterial->Get< float >( "u_Materials.Roughness" ) )
-								rMaterial->Set( "u_Materials.Roughness", Roughness );
+							// Roughness Value
+							drawItemValue( "Roughness", "u_Materials.Roughness" );
 
 							// Roughness map
-							{
-								Ref< Texture2D > texture = rMaterial->GetResource( "u_RoughnessTexture" );
+							displayItemMap( "u_RoughnessTexture" );
 
-								if( texture )
-								{
-									if( texture && texture->GetDescriptorSet() )
-										ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-									else
-										ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-								}
-							}
-
-							ImGui::Text( "Metalness" );
-
-							ImGui::Separator();
-
-							float Metallic = rMaterial->Get< float >( "u_Materials.Metalness" );
-							
-							ImGui::DragFloat( "Metalness", &Metallic, 0.01f, 0.0f, 1.0f );
-
-							if( Metallic != rMaterial->Get< float >( "u_Materials.Metalness" ) )
-								rMaterial->Set( "u_Materials.Metalness", Metallic );
+							// Metalness value
+							drawItemValue( "Metalness", "u_Materials.Metalness" );
 							
 							// Metalness map
-							{
-
-								Ref< Texture2D > texture = rMaterial->GetResource( "u_MetallicTexture" );
-
-								if( texture )
-								{
-									if( texture && texture->GetDescriptorSet() )
-										ImGui::Image( texture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-									else
-										ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-								}
-							}
+							displayItemMap( "u_MetallicTexture" );
 
 							ImGui::PopID();
 						}
@@ -528,7 +510,6 @@ namespace Saturn {
 		if( ImGui::Button( "Save" ) ) SaveFile();
 
 		ImGui::End();
-
 	}
 
 	void EditorLayer::OnEvent( Event& rEvent )
