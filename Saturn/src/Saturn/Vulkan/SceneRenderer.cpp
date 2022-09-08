@@ -569,9 +569,27 @@ namespace Saturn {
 		{
 			auto FrameTimings = Renderer::Get().GetFrameTimings();
 
+			float shadowPassTime = 0;
+
+			for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+			{
+				shadowPassTime += m_RendererData.ShadowMapTimers[ i ].ElapsedMilliseconds();
+			}
+
 			ImGui::Text( "Renderer::BeginFrame: %.2f ms", FrameTimings.first );
 
 			ImGui::Text( "SceneRenderer::GeometryPass: %.2f ms", m_RendererData.GeometryPassTimer.ElapsedMilliseconds() );
+
+			ImGui::Text( "SceneRenderer::ShadowMapPass: %.2f ms", shadowPassTime );
+			if( TreeNode( "Shadow map per pass", false ) )
+			{
+				ImGui::Text( "Pass 1 %.2f ms", m_RendererData.ShadowMapTimers[ 0 ].ElapsedMilliseconds() );
+				ImGui::Text( "Pass 2 %.2f ms", m_RendererData.ShadowMapTimers[ 1 ].ElapsedMilliseconds() );
+				ImGui::Text( "Pass 3 %.2f ms", m_RendererData.ShadowMapTimers[ 2 ].ElapsedMilliseconds() );
+				ImGui::Text( "Pass 4 %.2f ms", m_RendererData.ShadowMapTimers[ 3 ].ElapsedMilliseconds() );
+
+				EndTreeNode();
+			}
 
 			ImGui::Text( "Renderer::EndFrame - Queue Present: %.2f ms", Renderer::Get().GetQueuePresentTime() );
 
@@ -596,6 +614,8 @@ namespace Saturn {
 				ImGui::DragFloat( "Cascade Split Lambda", &m_RendererData.CascadeSplitLambda, 1.0f, 0.01f, 1.0f );
 				ImGui::DragFloat( "Cascade Near plane", &m_RendererData.CascadeNearPlaneOffset, 1.0f, -1000.0f, 1000.0f );
 				ImGui::DragFloat( "Cascade Far plane", &m_RendererData.CascadeFarPlaneOffset, 1.0f, -1000.0f, 1000.0f );	
+
+				ImGui::Checkbox( "Enable shadows", &m_RendererData.EnableShadows );
 
 				static int index = 0;
 				auto framebuffer = m_RendererData.ShadowCascades[ index ].Framebuffer->GetDepthAttachmentsResource();
@@ -740,10 +760,13 @@ namespace Saturn {
 			u_SceneData.CameraPosition = m_RendererData.EditorCamera.GetPosition();
 			u_SceneData.Lights = { .Direction = dirLight.Direction, .Radiance = dirLight.Radiance, .Multiplier = dirLight.Intensity };
 
-			for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+			if( m_RendererData.EnableShadows )
 			{
-				u_ShadowData.CascadeSplits[ i ] = m_RendererData.ShadowCascades[ i ].SplitDepth;
-				u_LightData.LightMatrix[ i ] = m_RendererData.ShadowCascades[ i ].ViewProjection;
+				for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+				{
+					u_ShadowData.CascadeSplits[ i ] = m_RendererData.ShadowCascades[ i ].SplitDepth;
+					u_LightData.LightMatrix[ i ] = m_RendererData.ShadowCascades[ i ].ViewProjection;
+				}
 			}
 
 			auto pData = StaticMeshShader->MapUB( ShaderType::Vertex, 0, 0 );
@@ -787,6 +810,9 @@ namespace Saturn {
 
 	void SceneRenderer::DirShadowMapPass()
 	{
+		if( !m_RendererData.EnableShadows )
+			return;
+
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 		VkExtent2D Extent = { SHADOW_MAP_SIZE, SHADOW_MAP_SIZE };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
@@ -810,7 +836,7 @@ namespace Saturn {
 		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
 		
 		//////////////////////////////////////////////////////////////////////////
-		
+
 		Ref< Shader > ShadowShader = m_RendererData.DirShadowMapShader;
 
 		UpdateCascades( m_pScene->m_DirectionalLight[ 0 ].Direction );
@@ -836,6 +862,8 @@ namespace Saturn {
 
 		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 		{
+			m_RendererData.ShadowMapTimers[ i ].Reset();
+
 			RenderPassBeginInfo.framebuffer = m_RendererData.ShadowCascades[ i ].Framebuffer->GetVulkanFramebuffer();
 			RenderPassBeginInfo.renderPass = m_RendererData.DirShadowMapPasses[ i ]->GetVulkanPass();
 			m_RendererData.DirShadowMapPipelines[ i ]->GetShader()->WriteAllUBs( m_RendererData.DirShadowMapPipelines[ i ]->GetDescriptorSet( ShaderType::Vertex, 0 ) );
@@ -861,6 +889,8 @@ namespace Saturn {
 
 			vkCmdEndRenderPass( CommandBuffer );
 			CmdEndDebugLabel( CommandBuffer );
+
+			m_RendererData.ShadowMapTimers[ i ].Stop();
 		}
 	}
 

@@ -149,18 +149,23 @@ namespace Saturn {
 					SetSelected( Entity );
 				}
 
-				if( ImGui::MenuItem( "Directional Light" ) )
-				{
-					auto Entity = m_Context->CreateEntity( "Directional Light" );
-					Entity.AddComponent<DirectionalLightComponent>();
-					Entity.GetComponent<TransformComponent>().Rotation = glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) );
+				auto components = m_Context->m_Registry.view<DirectionalLightComponent>();
 
-					SetSelected( Entity );
+				if( components.empty() )
+				{
+					if( ImGui::MenuItem( "Directional Light" ) )
+					{
+						auto Entity = m_Context->CreateEntity( "Directional Light" );
+						Entity.AddComponent<DirectionalLightComponent>();
+						Entity.GetComponent<TransformComponent>().Rotation = glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) );
+
+						SetSelected( Entity );
+					}
 				}
 
-				auto components = m_Context->m_Registry.view<SkylightComponent>();
+				auto SkylightComponents = m_Context->m_Registry.view<SkylightComponent>();
 				
-				if( components.empty() )
+				if( SkylightComponents.empty() )
 				{
 					if( ImGui::MenuItem( "Skylight" ) )
 					{

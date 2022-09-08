@@ -245,8 +245,6 @@ namespace Saturn {
 		ImGuiViewport* pViewport = ImGui::GetWindowViewport();
 		auto Height = ImGui::GetFrameHeight();
 
-		pViewport->WorkSize.y -= Height;
-
 		ImGui::DockSpaceOverViewport( pViewport );
 		
 		if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) || ( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) && !m_StartedRightClickInViewport ) )

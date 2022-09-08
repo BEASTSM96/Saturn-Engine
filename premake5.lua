@@ -4,17 +4,9 @@ workspace "Saturn"
 	targetdir "build"
 	warnings "Off"
 
-	configurations
-	{
-		"Debug",
-		"Release",
-		"Dist"
-	}
-	
-	flags
-	{
-		"MultiProcessorCompile"
-	}
+	configurations { "Debug", "Release", "Dist" }
+
+	flags { "MultiProcessorCompile" }
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
@@ -185,20 +177,18 @@ project "Saturn"
 				"Saturn/vendor/shaderc/bin/Debug-Windows/glslc.lib"
 			}
 
-			postbuildcommands 
-			{
-				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"'
-			}
-
 		filter "configurations:Release"
 			defines "SAT_RELEASE"
 			runtime "Release"
 			optimize "on"
 
+		filter "configurations:Dist"
+			defines "SAT_DIST"
+			runtime "Release"
+			optimize "on"
+			symbols "Off"
+
+		filter "configurations:Release or configurations:Dist"
 			links 
 			{
 				-- Link PhysX
@@ -216,7 +206,6 @@ project "Saturn"
 				"Saturn/vendor/physx/bin/Release/PhysXVehicle_static_64.lib",
 				"Saturn/vendor/physx/bin/Release/SceneQuery_static_64.lib",
 				"Saturn/vendor/physx/bin/Release/SimulationController_static_64.lib",
-
 				"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",
@@ -224,39 +213,6 @@ project "Saturn"
 				"Saturn/vendor/shaderc/bin/Release-Windows/SPIRV-Tools.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/glslc.lib"
 			}
-
-			postbuildcommands 
-			{
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
-			}
-
-		filter "configurations:Dist"
-			defines "SAT_DIST"
-			runtime "Release"
-			optimize "on"
-
-			links
-			{ 
-				"Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.lib",
-				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc.lib",
-				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",
-				"Saturn/vendor/shaderc/bin/Release-Windows/glslang.lib",
-				"Saturn/vendor/shaderc/bin/Release-Windows/SPIRV-Tools.lib",
-				"Saturn/vendor/shaderc/bin/Release-Windows/glslc.lib"
-			}
-
-			postbuildcommands 
-			{
-				'{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
-			}
-
-
-	filter "configurations:Release or configurations:Dist"
-		defines "NDEBUG" -- For PhysX
 
 ---------------------------------------------------------------------------------------------------------------------------
 
@@ -311,12 +267,6 @@ project "Titan"
 		"Saturn"
 	}
 
-	postbuildcommands 
-	{
-	--	'{COPY} "../Titan/assets" "%{cfg.targetdir}/assets"',
-	--	'{COPY} "../Titan/imgui.ini" "%{cfg.targetdir}/imgui.ini"'
-	}
-
 	filter "system:windows"
 		systemversion "latest"
 
@@ -346,6 +296,13 @@ project "Titan"
 		runtime "Release"
 		optimize "on"
 
+	filter "configurations:Dist"
+		defines "SAT_DIST"
+		runtime "Release"
+		optimize "on"
+		kind "WindowedApp"
+
+	filter "configurations:Dist or configurations:Release"
 		postbuildcommands 
 		{ 
 			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
@@ -355,14 +312,6 @@ project "Titan"
 			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
 		}
-
-	filter "configurations:Dist"
-		defines "SAT_DIST"
-		runtime "Release"
-		optimize "on"
-		kind "WindowedApp"
-
-		postbuildcommands { '{COPY} "../Saturn/vendor/assimp/bin/Dist/assimp-vc142-mt.dll" "%{cfg.targetdir}"' }
 
 	filter "system:linux"
 		systemversion "latest"
@@ -397,9 +346,6 @@ project "Titan"
 			defines "SAT_DIST"
 			runtime "Release"
 			optimize "on"
-	
-	filter "configurations:Release or configurations:Dist"
-		defines "NDEBUG" -- For PhysX
 
 
 group "Tools"
@@ -479,17 +425,6 @@ project "ProjectBrowser"
 				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
 				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
 			}
-			
-		filter "configurations:Release or configurations:Dist"
-			postbuildcommands 
-			{ 
-				'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
-
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
-			}
 
 		filter "configurations:Release"
 			defines "SAT_RELEASE"
@@ -501,6 +436,17 @@ project "ProjectBrowser"
 			runtime "Release"
 			optimize "on"
 			kind "WindowedApp"
+
+		filter "configurations:Release or configurations:Dist"
+			postbuildcommands 
+			{ 
+				'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
+			}
 
 	filter "system:linux"
 		systemversion "latest"

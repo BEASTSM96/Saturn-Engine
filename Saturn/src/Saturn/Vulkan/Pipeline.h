@@ -50,44 +50,13 @@ namespace Saturn {
 	struct RequestDescriptorSetInfo
 	{
 		ShaderType Stage = ShaderType::None;
-		uint32_t SetIndex = -1;
+		uint32_t SetIndex;
 	};
 
 	struct PipelineSpecification
 	{
-		// TODO: Remove this.
 		PipelineSpecification() {}
 		~PipelineSpecification() {}
-		
-		PipelineSpecification(const PipelineSpecification& other)
-		{
-			*this = other;
-		}
-
-		// TODO: Remove this.
-		// Could be a C++20/23 thing but I don't know.
-		// Don't really think we need this.
-		PipelineSpecification& operator=( const PipelineSpecification& other )
-		{
-			if( this == &other )
-				return *this;
-
-			Shader = other.Shader;
-			RenderPass = other.RenderPass;
-			Name = other.Name;
-			VertexLayout = other.VertexLayout;
-			CullMode = other.CullMode;
-			UseDepthTest = other.UseDepthTest;
-			UseStencilTest = other.UseStencilTest;
-			FrontFace = other.FrontFace;
-			PolygonMode = other.PolygonMode;
-			Width = other.Width;
-			Height = other.Height;
-			RequestDescriptorSets = other.RequestDescriptorSets;
-			HasColorAttachment = other.HasColorAttachment;
-
-			return *this;
-		}
 
 		//////
 
@@ -103,14 +72,14 @@ namespace Saturn {
 		VkFrontFace FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		VkPolygonMode PolygonMode = VK_POLYGON_MODE_FILL;
 
-		RequestDescriptorSetInfo RequestDescriptorSets;
+		RequestDescriptorSetInfo RequestDescriptorSets = {};
 	};
 
 	class Pipeline : public CountedObj
 	{
 	public:
 		Pipeline() { }
-		Pipeline( PipelineSpecification Spec );
+		Pipeline( const PipelineSpecification& Spec );
 		~Pipeline() { Terminate(); }
 		
 		void Bind( VkCommandBuffer CommandBuffer );
@@ -122,7 +91,7 @@ namespace Saturn {
 
 		Ref<Shader>& GetShader() { return m_Specification.Shader; }
 
-		Ref<DescriptorSet>& GetDescriptorSet( ShaderType Stage, uint32_t SetIndex ) { return m_DescriptorSets[Stage][SetIndex]; }
+		[[ nodiscard ]] Ref<DescriptorSet>& GetDescriptorSet( ShaderType Stage, uint32_t SetIndex ) { return m_DescriptorSets[Stage][SetIndex]; }
 		
 		VkDescriptorSet GetVulkanSet( ShaderType Stage, uint32_t SetIndex ) { return m_DescriptorSets[Stage][SetIndex]->GetVulkanSet(); }
 
