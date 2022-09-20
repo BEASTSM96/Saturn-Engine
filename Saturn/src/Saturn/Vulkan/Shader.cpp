@@ -257,6 +257,21 @@ namespace Saturn {
 				}
 			}
 		}
+
+		for( auto& [set, descriptorSet] : m_DescriptorSets )
+		{
+			for( auto& texture : descriptorSet.StorageImages )
+			{
+				if( texture.Name == rName )
+				{
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = &rImageInfo;
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
+
+					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
+				}
+			}
+		}
+
 	}
 
 	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, VkDescriptorSet desSet )
@@ -544,6 +559,20 @@ namespace Saturn {
 
 			m_DescriptorSets[ set ].SampledImages.push_back( { Name, shaderType, set, binding } );
 		}
+
+		for ( const auto& Resource : Resources.storage_images )
+		{
+			const auto& Name = Resource.name;
+			auto& BufferType = Compiler.get_type( Resource.base_type_id );
+			uint32_t binding = Compiler.get_decoration( Resource.id, spv::DecorationBinding );
+			uint32_t set = Compiler.get_decoration( Resource.id, spv::DecorationDescriptorSet );
+
+			SAT_CORE_INFO( "Storage image: {0}", Name );
+			SAT_CORE_INFO( " Binding: {0}", binding );
+			SAT_CORE_INFO( " Set: {0}", set );
+
+			m_DescriptorSets[ set ].StorageImages.push_back( { Name, shaderType, set, binding } );
+		}
 	}
 
 	void Shader::CreateDescriptors()
@@ -566,7 +595,7 @@ namespace Saturn {
 				Binding.binding = ub.Binding;
 				Binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				Binding.descriptorCount = 1;
-				Binding.stageFlags = ub.Location == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : ub.Location == ShaderType::All ? VK_SHADER_STAGE_ALL : VK_SHADER_STAGE_FRAGMENT_BIT;
+				Binding.stageFlags = ub.Location == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : ub.Location == ShaderType::All ? VK_SHADER_STAGE_ALL : ub.Location == ShaderType::Compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
 				Binding.pImmutableSamplers = nullptr;
 
 				VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
@@ -602,7 +631,7 @@ namespace Saturn {
 				Binding.binding = texture.Binding;
 				Binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				Binding.descriptorCount = 1;
-				Binding.stageFlags = texture.Stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : texture.Stage == ShaderType::All ? VK_SHADER_STAGE_ALL : VK_SHADER_STAGE_FRAGMENT_BIT;
+				Binding.stageFlags = texture.Stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : ( texture.Stage == ShaderType::All ? VK_SHADER_STAGE_ALL : ( texture.Stage == ShaderType::Compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_FRAGMENT_BIT ) );
 				Binding.pImmutableSamplers = nullptr;
 
 				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 250 } );
@@ -618,6 +647,35 @@ namespace Saturn {
 					.dstArrayElement = 0,
 					.descriptorCount = 1,
 					.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+					.pImageInfo = nullptr,
+					.pBufferInfo = nullptr,
+					.pTexelBufferView = nullptr
+				};
+			}
+
+			// Storage images
+			for( auto& texture : descriptorSet.StorageImages )
+			{
+				VkDescriptorSetLayoutBinding Binding = {};
+				Binding.binding = texture.Binding;
+				Binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+				Binding.descriptorCount = 1;
+				Binding.stageFlags = texture.Stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : ( texture.Stage == ShaderType::All ? VK_SHADER_STAGE_ALL : ( texture.Stage == ShaderType::Compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_FRAGMENT_BIT ) );
+				Binding.pImmutableSamplers = nullptr;
+
+				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .descriptorCount = 250 } );
+
+				Bindings.push_back( Binding );
+
+				descriptorSet.WriteDescriptorSets[ texture.Binding ] =
+				{
+					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+					.pNext = nullptr,
+					.dstSet = nullptr,
+					.dstBinding = texture.Binding,
+					.dstArrayElement = 0,
+					.descriptorCount = 1,
+					.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
 					.pImageInfo = nullptr,
 					.pBufferInfo = nullptr,
 					.pTexelBufferView = nullptr
@@ -657,7 +715,7 @@ namespace Saturn {
 
 			const auto Res = Compiler.CompileGlslToSpv(
 				rShaderSrcCode,
-				src.Type == ShaderType::Vertex ? shaderc_shader_kind::shaderc_glsl_default_vertex_shader : shaderc_shader_kind::shaderc_glsl_default_fragment_shader,
+				src.Type == ShaderType::Vertex ? shaderc_shader_kind::shaderc_glsl_default_vertex_shader : src.Type == ShaderType::Compute ? shaderc_shader_kind::shaderc_glsl_default_compute_shader : shaderc_shader_kind::shaderc_glsl_default_fragment_shader,
 				m_Filepath.string().c_str(),
 				CompilerOptions );
 

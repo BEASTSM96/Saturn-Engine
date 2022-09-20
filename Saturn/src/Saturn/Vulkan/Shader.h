@@ -88,6 +88,7 @@ namespace Saturn {
 		
 		std::unordered_map< uint32_t, VkWriteDescriptorSet > WriteDescriptorSets;
 		std::vector< ShaderSampledImage > SampledImages;
+		std::vector< ShaderSampledImage > StorageImages;
 		std::unordered_map< uint32_t, ShaderUniformBuffer > UniformBuffers;
 	};
 
