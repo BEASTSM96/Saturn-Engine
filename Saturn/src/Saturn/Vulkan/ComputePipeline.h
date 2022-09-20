@@ -28,49 +28,36 @@
 
 #pragma once
 
+#include "Shader.h"
+
 #include <vulkan.h>
-#include <vma/vk_mem_alloc.h>
+#include <vector>
 
 namespace Saturn {
-	
-	class VulkanAllocator
+
+	class ComputePipeline : public CountedObj
 	{
 	public:
-		VulkanAllocator();
-		~VulkanAllocator();
-		
-		// Allocate buffer
-		VmaAllocation AllocateBuffer( VkBufferCreateInfo BufferInfo, VmaMemoryUsage MemoryUsage, VkBuffer* pBuffer );
+		ComputePipeline( Ref<Shader> ComputeShader );
+		~ComputePipeline();
 
-		// Allocate image
-		VmaAllocation AllocateImage( VkImageCreateInfo ImageInfo, VmaMemoryUsage MemoryUsage, VkImage* pImage );
+		void Bind( VkCommandBuffer CommandBuffer );
 
-		// Destroy buffer
-		void DestroyBuffer( VkBuffer Buffer );
-		
-		// Destroy image
-		void DestroyImage( VmaAllocation Allocation, VkImage Image );
-	
-		template<typename Ty>
-		Ty* MapMemory( VmaAllocation Allocation )
-		{
-			Ty* pData = nullptr;
-			
-			vmaMapMemory( m_Allocator, Allocation, (void**)&pData );
-			
-			return pData;
-		}
+		void Execute( VkDescriptorSet DescriptorSet, uint32_t X, uint32_t Y, uint32_t Z );
 
-		void UnmapMemory( VmaAllocation Allocation )
-		{
-			vmaUnmapMemory( m_Allocator, Allocation );
-		}
+		void AddPushConstant( const void* pData, uint32_t Offset = 0, size_t Size = 1 );
 
-		VmaAllocation GetAllocationFromBuffer( VkBuffer Buffer ) { return m_Allocations[ Buffer ]; }
+		void Unbind();
 
 	private:
-		VmaAllocator m_Allocator = VK_NULL_HANDLE;
+		void Create();
 
-		std::unordered_map< VkBuffer, VmaAllocation > m_Allocations;
+	private:
+		VkPipeline m_Pipeline;
+		VkPipelineLayout m_PipelineLayout;
+
+		Ref<Shader> m_ComputeShader;
+
+		VkCommandBuffer m_CommandBuffer;
 	};
 }

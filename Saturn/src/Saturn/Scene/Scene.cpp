@@ -145,10 +145,7 @@ namespace Saturn {
 			
 			if( meshComponent.Mesh ) 
 			{
-				if( m_SelectedEntity == e )
-					SceneRenderer::Get().SubmitSelectedMesh( entity, meshComponent.Mesh, transformComponent.GetTransform() );
-				else
-					SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transformComponent.GetTransform() );
+				SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transformComponent.GetTransform() );
 			}
 
 			SceneRenderer::Get().SetEditorCamera( rCamera );

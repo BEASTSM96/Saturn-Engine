@@ -217,8 +217,6 @@ namespace Saturn {
 
 				rEmitter << YAML::EndMap;
 			}
-			else
-				rEmitter << YAML::Key << "Environment Map" << YAML::Value << slc.Map.Path.string();
 
 			rEmitter << YAML::EndMap;
 		}

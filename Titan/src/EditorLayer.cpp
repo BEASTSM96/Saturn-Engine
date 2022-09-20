@@ -320,7 +320,7 @@ namespace Saturn {
 
 								float v = rMaterial->Get< float >( property );
 
-								ImGui::DragFloat( name, &v, 0.01f, 0.0f, 1.0f );
+								ImGui::DragFloat( name, &v, 0.01f, 0.0f, 10000.0f );
 
 								if( v != rMaterial->Get<float>( property ) )
 									rMaterial->Set( property, v );

@@ -119,6 +119,7 @@ namespace Saturn {
 		{
 		}
 		
+		/*
 		constexpr VertexBufferLayout& operator=( VertexBufferLayout&& rrOther ) noexcept
 		{
 			if( this == &rrOther )
@@ -140,6 +141,7 @@ namespace Saturn {
 			
 			return *this;
 		}
+		*/
 
 		uint32_t Count() { return (uint32_t)m_Elements.size(); }
 
@@ -148,10 +150,10 @@ namespace Saturn {
 		
 		// Vector helpers.
 
-		std::vector< VertexBufferElement >::iterator begin() { return m_Elements.begin(); }
-		std::vector< VertexBufferElement >::iterator end() { return m_Elements.end(); }
-		std::vector< VertexBufferElement >::const_iterator begin() const { return m_Elements.begin(); }
-		std::vector< VertexBufferElement >::const_iterator end() const { return m_Elements.end(); }
+		[[nodiscard]] std::vector< VertexBufferElement >::iterator begin() { return m_Elements.begin(); }
+		[[nodiscard]] std::vector< VertexBufferElement >::iterator end() { return m_Elements.end(); }
+		[[nodiscard]] std::vector< VertexBufferElement >::const_iterator begin() const { return m_Elements.begin(); }
+		[[nodiscard]] std::vector< VertexBufferElement >::const_iterator end() const { return m_Elements.end(); }
 
 	private:
 		std::vector< VertexBufferElement> m_Elements;

@@ -137,17 +137,20 @@ namespace Saturn {
 
 #if !defined( SAT_DIST )
 		Extensions.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
-		
-		// Make sure its outside of the scope or it will be destroyed before vkCreateInstance is called.
-		VkDebugUtilsMessengerCreateInfoEXT DebugCreateInfo{};
 
 		{
 			// Include validation layer names and count.
 			InstanceInfo.enabledLayerCount = static_cast< uint32_t >( ValidationLayers.size() );
 			InstanceInfo.ppEnabledLayerNames = ValidationLayers.data();
 
-			Helpers::CreateDebugMessengerInfo( &DebugCreateInfo );
-			InstanceInfo.pNext = ( VkDebugUtilsMessengerCreateInfoEXT* ) &DebugCreateInfo;
+			VkValidationFeatureEnableEXT Enabled[] = { VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT };
+			VkValidationFeaturesEXT      Features{ VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT };
+			Features.disabledValidationFeatureCount = 0;
+			Features.enabledValidationFeatureCount = 1;
+			Features.pDisabledValidationFeatures = nullptr;
+			Features.pEnabledValidationFeatures = Enabled;
+
+			InstanceInfo.pNext = &Features;
 		}
 #endif
 

@@ -48,12 +48,12 @@ float grid( vec2 st )
 {
 	float res = u_Matrices.Res;
 	
-	vec2 grid = fract( ( st / 2 ) );
+	vec2 grid = fract( st / 2 );
 
-	return step( res, grid.x * 1 ) * step( res, grid.y * 1 );
+	return step( res, grid.x ) * step( res, grid.y );
 }
 
-void main() 
+void main()
 {
 	float scale = u_Matrices.Scale;
 	float res = u_Matrices.Res;
@@ -61,9 +61,8 @@ void main()
 	float x = grid( vs_Input.TexCoord * scale );
 	
 	vec4 Color = vec4( vec3( 0.2 ), 0.5 ) * ( 1.0 - x );
-	
-	if( Color.a < 0.01 )
-		discard;
-
 	FinalColor = Color;
+	
+	if( Color.a == 0.0 )
+		discard;
 }

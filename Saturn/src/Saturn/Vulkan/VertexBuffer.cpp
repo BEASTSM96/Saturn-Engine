@@ -58,10 +58,9 @@ namespace Saturn {
 
 	void VertexBuffer::Bind( VkCommandBuffer CommandBuffer )
 	{
-		VkBuffer Buffers[] ={ m_Buffer };
 		VkDeviceSize Offsets[] ={ 0 };
 
-		vkCmdBindVertexBuffers( CommandBuffer, 0, 1, Buffers, Offsets );
+		vkCmdBindVertexBuffers( CommandBuffer, 0, 1, &m_Buffer, Offsets );
 	}
 
 	void VertexBuffer::Draw( VkCommandBuffer CommandBuffer )
@@ -84,7 +83,7 @@ namespace Saturn {
 		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		auto rBufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, &StagingBuffer );
+		auto rBufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, &StagingBuffer );
 		
 		void* dstData = pAllocator->MapMemory< void >( rBufferAlloc );
 
@@ -95,9 +94,11 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		
 		// Create the vertex buffer.
-		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		VkBufferCreateInfo VertexBufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		VertexBufferCreateInfo.size = BufferSize;
+		VertexBufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 		
-		m_Allocation = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, &m_Buffer );
+		m_Allocation = pAllocator->AllocateBuffer( VertexBufferCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, &m_Buffer );
 		SetDebugUtilsObjectName( "Vertex Buffer", ( uint64_t ) m_Buffer, VK_OBJECT_TYPE_BUFFER );
 
 		// Copy buffer
