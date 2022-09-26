@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Base.h"
+#include "Image2D.h"
 
 #include <filesystem>
 
@@ -38,10 +39,11 @@ namespace Saturn {
 						uint32_t Width, 
 						uint32_t Height,
 						VkFormat Format, 
+						VkImageType ImageType,
 						VkImageTiling Tiling,
 						VkImageUsageFlags Usage, 
 						VkMemoryPropertyFlags MemProps,
-						VkImage& rImage, VkDeviceMemory& rDeviceMemory );
+						VkImage& rImage, VkDeviceMemory& rDeviceMemory, uint32_t MipLevels = 1, uint32_t ArrayLevels = 1, VkImageCreateFlags Flags = 0 );
 
 	extern VkImageView CreateImageView( 
 						VkImage Image, 
@@ -75,6 +77,9 @@ namespace Saturn {
 		virtual void Terminate() = 0;
 
 		void TransitionImageLayout( VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
+		void TransitionImageLayout( VkImageSubresourceRange& rCommand, VkImageLayout OldLayout, VkImageLayout NewLayout );
+
+		uint32_t GetMipMapLevels();
 
 		void CopyBufferToImage( VkBuffer Buffer );
 
@@ -91,12 +96,14 @@ namespace Saturn {
 
 	public:
 
-		virtual void CreateTextureImage() = 0;
+		virtual void CreateTextureImage( bool flip ) = 0;
 		virtual void SetData( const void* pData ) = 0;
 		virtual void SetIsRendererTexture( bool RendererTexture ) { m_IsRendererTexture = RendererTexture; m_Path = "Renderer Pink Texture"; }
 		virtual void SetForceTerminate( bool ForceTerminate ) { m_ForceTerminate = ForceTerminate; }
 
 		virtual bool IsRendererTexture() { return m_IsRendererTexture; }
+
+		virtual void CreateMips() = 0;
 	public:
 
 		std::filesystem::path m_Path = "";
@@ -107,6 +114,7 @@ namespace Saturn {
 		VkSampler m_Sampler = VK_NULL_HANDLE;
 		VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
 		VkDescriptorImageInfo m_DescriptorImageInfo = {};
+		VkFormat m_ImageFormat;
 
 		bool m_HDR = false;
 		bool m_IsRendererTexture = false;
@@ -125,8 +133,8 @@ namespace Saturn {
 	public:
 		Texture2D() : Texture() {}
 
-		Texture2D( std::filesystem::path Path, AddressingMode Mode ) 
-			: Texture( Path, Mode ) { CreateTextureImage(); }
+		Texture2D( std::filesystem::path Path, AddressingMode Mode, bool flip = true ) 
+			: Texture( Path, Mode ) { CreateTextureImage( flip ); }
 
 		Texture2D( uint32_t width, uint32_t height, VkFormat Format, const void* pData ) 
 			: Texture( width, height, Format, pData ) { SetData( pData ); }
@@ -137,7 +145,32 @@ namespace Saturn {
 
 	private:
 
-		void CreateTextureImage() override;
+		void CreateTextureImage( bool flip ) override;
+		void SetData( const void* pData ) override;
+		void CreateMips() override;
+	};
+
+	class TextureCube : public Texture
+	{
+	public:
+		TextureCube() : Texture() {}
+
+		TextureCube( std::filesystem::path Path, AddressingMode Mode )
+			: Texture( Path, Mode )
+		{
+			CreateTextureImage( false );
+		}
+
+		TextureCube( ImageFormat Format, uint32_t width, uint32_t height, const void* pData = nullptr );
+
+		~TextureCube() { Terminate(); }
+
+		void CreateMips() override;
+
+		void Terminate() override;
+	private:
+
+		void CreateTextureImage(bool flip) override;
 		void SetData( const void* pData ) override;
 	};
 }

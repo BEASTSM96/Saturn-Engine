@@ -36,12 +36,16 @@
 
 namespace Saturn {
 
-	struct EnvironmentMap
+	class EnvironmentMap : public CountedObj
 	{
-		std::string Name = "";
-		std::filesystem::path Path;
-		
-		Ref< Texture > Texture;
+	public:
+		Ref< TextureCube > RadianceMap;
+		Ref< TextureCube > IrradianceMap;
+
+		// These values should idealy match up to the ones in the skylight entity.
+		float Turbidity;
+		float Azimuth;
+		float Inclination;
 	};
 
 }

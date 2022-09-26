@@ -102,7 +102,7 @@ namespace Saturn {
 			{
 				VkDescriptorImageInfo ImageInfo = m_TextureCache.at( name );
 
-				if( m_TextureCache.at( name ).imageView == ImageInfo.imageView ) 
+				if( m_TextureCache.at( name ).imageView == ImageInfo.imageView || m_TextureCache.at( name ).sampler == ImageInfo.sampler )
 				{
 					// No need to update the descriptor set -- its the same.
 					continue;

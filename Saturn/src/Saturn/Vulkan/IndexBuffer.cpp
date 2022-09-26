@@ -57,14 +57,14 @@ namespace Saturn {
 
 	void IndexBuffer::Draw( VkCommandBuffer CommandBuffer )
 	{
-		vkCmdDrawIndexed( CommandBuffer, m_Size, 1, 0, 0, 0 );
+		vkCmdDrawIndexed( CommandBuffer, m_Size / sizeof(uint32_t), 1, 0, 0, 0 );
 	}
 
 	void IndexBuffer::CreateBuffer()
 	{
 		assert( m_Size >= 3 && "Index count must be above 3!" );
 
-		VkDeviceSize BufferSize = m_Size * sizeof( uint32_t );
+		uint32_t BufferSize = m_Size;
 
 		VkBuffer StagingBuffer;
 		
@@ -72,12 +72,12 @@ namespace Saturn {
 
 		VkBufferCreateInfo BufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		BufferCreateInfo.size = BufferSize;
-		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		auto rBufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, &StagingBuffer );
+		auto rBufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, &StagingBuffer );
 
-		void* dstData = pAllocator->MapMemory< void >( rBufferAlloc );
+		uint8_t* dstData = pAllocator->MapMemory< uint8_t >( rBufferAlloc );
 
 		memcpy( dstData, m_pData, BufferSize );
 
@@ -86,9 +86,11 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 
 		// Create the vertex buffer.
-		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		VkBufferCreateInfo IndexBufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		IndexBufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		IndexBufferCreateInfo.size = BufferSize;
 
-		m_Allocation = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, &m_Buffer );
+		m_Allocation = pAllocator->AllocateBuffer( IndexBufferCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, &m_Buffer );
 		
 		SetDebugUtilsObjectName( "Index Buffer", ( uint64_t ) m_Buffer, VK_OBJECT_TYPE_BUFFER );
 

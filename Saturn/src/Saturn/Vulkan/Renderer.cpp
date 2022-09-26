@@ -68,14 +68,15 @@ namespace Saturn {
 		SetDebugUtilsObjectName( "Acquire Semaphore", ( uint64_t ) m_AcquireSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
 		SetDebugUtilsObjectName( "Submit Semaphore", ( uint64_t ) m_SubmitSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
 
-		uint32_t* pData = new uint32_t[ 64 * 64 ];
+		uint32_t* pData = new uint32_t[ 1 * 1 ];
 
-		for( uint32_t i = 0; i < 64 * 64; i++ )
+		for( uint32_t i = 0; i < 1 * 1; i++ )
 		{
 			pData[ i ] |= 0xffffffff;
 		}
 		
-		m_PinkTexture = Ref< Texture2D >::Create( 64, 64, VK_FORMAT_R8G8B8A8_SRGB, pData );
+		// It's really a white texture...
+		m_PinkTexture = Ref< Texture2D >::Create( 1, 1, VK_FORMAT_R8G8B8A8_UNORM, pData );
 		m_PinkTexture->SetIsRendererTexture( true );
 
 		delete[] pData;
@@ -195,21 +196,20 @@ namespace Saturn {
 		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, rSubmsh.BaseVertex, 0 );
 	}
 	
-	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, const glm::mat4 transform )
+	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, const glm::mat4 transform, uint32_t SubmeshIndex )
 	{
 		Ref<Shader> Shader = Pipeline->GetShader();
 
-		for( Submesh& rSubmesh : mesh->Submeshes() )
+		mesh->GetVertexBuffer()->Bind( CommandBuffer );
+		mesh->GetIndexBuffer()->Bind( CommandBuffer );
+		Pipeline->Bind( CommandBuffer );
+
+		Submesh& rSubmesh = mesh->Submeshes()[ SubmeshIndex ];
 		{
 			auto& rMaterial = mesh->GetMaterials()[ rSubmesh.MaterialIndex ];
 			Ref< DescriptorSet > Set = mesh->GetDescriptorSets()[ rSubmesh ];
 
 			Shader->WriteAllUBs( Set );
-
-			mesh->GetVertexBuffer()->Bind( CommandBuffer );
-			mesh->GetIndexBuffer()->Bind( CommandBuffer );
-
-			Pipeline->Bind( CommandBuffer );
 
 			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
 
@@ -220,8 +220,8 @@ namespace Saturn {
 
 			rMaterial->Bind( mesh, rSubmesh, Shader );
 
-			// DescriptorSet 0, for material texture data.
-			// DescriptorSet 1, for environment data.
+			// Descriptor set 0, for material texture data.
+			// Descriptor set 1, for environment data.
 			std::array<VkDescriptorSet, 2> DescriptorSets = {
 				Set->GetVulkanSet(),
 				m_RendererDescriptorSet->GetVulkanSet()
@@ -234,11 +234,18 @@ namespace Saturn {
 		}
 	}
 
-	void Renderer::Begin( Ref<Image2D> ShadowMap )
+	void Renderer::SetSceneEnvironment( Ref<Image2D> ShadowMap, Ref<EnvironmentMap> Environment, Ref<Texture2D> BDRF )
 	{
 		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
 
 		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
+		shader->WriteDescriptor( "u_BRDFLUTTexture", BDRF->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
+
+		if( Environment && Environment->RadianceMap && Environment->IrradianceMap )
+		{
+			shader->WriteDescriptor( "u_EnvRadianceTex", Environment->RadianceMap->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
+			shader->WriteDescriptor( "u_EnvIrradianceTex", Environment->IrradianceMap->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
+		}
 	}
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )
@@ -377,18 +384,23 @@ namespace Saturn {
 			glm::vec2 TexCoord;
 		};
 
+		float x = -1;
+		float y = -1;
+
+		float width = 2, height = 2;
+
 		QuadVertex* data = new QuadVertex[ 4 ];
 
-		data[ 0 ].Position = glm::vec3( -1, -1, 0.1f );
+		data[ 0 ].Position = glm::vec3( x, y, 0.0f );
 		data[ 0 ].TexCoord = glm::vec2( 0, 0 );
 
-		data[ 1 ].Position = glm::vec3( -1 + 2, -1, 0.1f );
+		data[ 1 ].Position = glm::vec3( x + width, y, 0.0f );
 		data[ 1 ].TexCoord = glm::vec2( 1, 0 );
 
-		data[ 2 ].Position = glm::vec3( -1 + 2, -1 + 2, 0.1f );
+		data[ 2 ].Position = glm::vec3( x + width, y + height, 0.0f );
 		data[ 2 ].TexCoord = glm::vec2( 1, 1 );
 
-		data[ 3 ].Position = glm::vec3( -1, -1 + 2, 0.1f );
+		data[ 3 ].Position = glm::vec3( x, y + height, 0.0f );
 		data[ 3 ].TexCoord = glm::vec2( 0, 1 );
 
 		*ppVertexBuffer = new VertexBuffer( data, 4 * sizeof( QuadVertex ) );
@@ -396,6 +408,6 @@ namespace Saturn {
 		uint32_t indices[ 6 ] = { 0, 1, 2,
 								  2, 3, 0, };
 
-		*ppIndexBuffer = new IndexBuffer( indices, 6 );
+		*ppIndexBuffer = new IndexBuffer( indices, 6 * sizeof( uint32_t ) );
 	}
 }

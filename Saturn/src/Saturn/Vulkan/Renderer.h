@@ -29,6 +29,7 @@
 #pragma once
 
 #include "VulkanContext.h"
+#include "EnvironmentMap.h"
 
 namespace Saturn {
 
@@ -50,10 +51,9 @@ namespace Saturn {
 		// Static mesh
 		void RenderSubmesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
 
-		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< Mesh > mesh, const glm::mat4 transform );
+		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, const glm::mat4 transform, uint32_t SubmeshIndex );
 
-		// DOES NOT BEGIN THE FRAME, CALL BeginFrame for that.
-		void Begin( Ref<Image2D> ShadowMap );
+		void SetSceneEnvironment( Ref<Image2D> ShadowMap, Ref<EnvironmentMap> Environment, Ref<Texture2D> BDRF );
 
 		// Allocate command buffer.
 		VkCommandBuffer AllocateCommandBuffer( VkCommandPool CommandPool );

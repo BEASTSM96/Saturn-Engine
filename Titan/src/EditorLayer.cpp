@@ -627,6 +627,16 @@ namespace Saturn {
 					}
 
 				} break;
+
+				case Key::F:
+				{
+					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+
+					if( auto& selectedEntity = pHierarchyPanel->GetSelectionContext() ) 
+					{
+						m_EditorCamera.Focus( selectedEntity.GetComponent<TransformComponent>().Position );
+					}
+				} break;
 			}
 		}
 
