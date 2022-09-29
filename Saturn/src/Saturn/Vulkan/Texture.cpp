@@ -169,6 +169,14 @@ namespace Saturn {
 			SrcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			DstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		}
+		else if( OldLayout == VK_IMAGE_LAYOUT_UNDEFINED && NewLayout == VK_IMAGE_LAYOUT_GENERAL )
+		{
+			ImageBarrier.srcAccessMask = 0;
+			ImageBarrier.dstAccessMask = 0;
+
+			SrcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+			DstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+		}
 
 		vkCmdPipelineBarrier( CommandBuffer, SrcStage, DstStage, 0, 0, nullptr, 0, nullptr, 1, &ImageBarrier );
 
@@ -647,6 +655,8 @@ namespace Saturn {
 		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+
+		m_MipsCreated = true;
 	}
 
 	void Texture2D::SetData( const void* pData )
@@ -760,89 +770,46 @@ namespace Saturn {
 		CreateTextureImage( false );
 	}
 
-	void TextureCube::CreateMips()
-	{
-		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
-
-		uint32_t mips = GetMipMapLevels();
-		for( uint32_t i = 0; i < 6; i++ )
-		{
-			VkImageSubresourceRange range =
-			{
-				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-				.baseMipLevel = 0,
-				.levelCount = 1,
-				.baseArrayLayer = i,
-				.layerCount = 1
-			};
-
-			ImagePipelineBarrier( CommandBuffer, m_Image, 0, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, range );
-		}
-
-		for( int32_t i = 1; i < mips; i++ )
-		{
-			for( uint32_t j = 0; j < 6; j++ )
-			{
-				VkImageBlit imageBlit{};
-
-				imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				imageBlit.srcSubresource.layerCount = 1;
-				imageBlit.srcSubresource.mipLevel = i - 1;
-				imageBlit.srcSubresource.baseArrayLayer = j;
-				imageBlit.srcOffsets[ 1 ].x = int32_t( m_Width >> ( i - 1 ) );
-				imageBlit.srcOffsets[ 1 ].y = int32_t( m_Height >> ( i - 1 ) );
-				imageBlit.srcOffsets[ 1 ].z = 1;
-
-				imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				imageBlit.dstSubresource.layerCount = 1;
-				imageBlit.dstSubresource.mipLevel = i;
-				imageBlit.dstSubresource.baseArrayLayer = j;
-				imageBlit.dstOffsets[ 1 ].x = int32_t( m_Width >> i );
-				imageBlit.dstOffsets[ 1 ].y = int32_t( m_Height >> i );
-				imageBlit.dstOffsets[ 1 ].z = 1;
-
-				VkImageSubresourceRange mipSubRange = {};
-				mipSubRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				mipSubRange.baseMipLevel = i;
-				mipSubRange.baseArrayLayer = j;
-				mipSubRange.levelCount = 1;
-				mipSubRange.layerCount = 1;
-
-				ImagePipelineBarrier( CommandBuffer, m_Image, 0, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, mipSubRange );
-
-				vkCmdBlitImage( CommandBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit, VK_FILTER_LINEAR );
-
-				ImagePipelineBarrier( CommandBuffer, m_Image, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, mipSubRange );
-			}
-		}
-
-		VkImageSubresourceRange range = 
-		{
-			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-			.baseMipLevel = 0,
-			.levelCount = mips,
-			.baseArrayLayer = 0,
-			.layerCount = 6
-		};
-
-		ImagePipelineBarrier( CommandBuffer, m_Image, VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, range );
-
-		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
-
-		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	}
-
-	void TextureCube::Terminate()
-	{
-		Texture::Terminate();
-	}
-
 	void TextureCube::CreateTextureImage( bool flip )
 	{
 		// Create the image.
-		CreateImage( m_Width, m_Height, m_ImageFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Image, m_ImageMemory, GetMipMapLevels(), 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT );
+		//CreateImage( m_Width, m_Height, m_ImageFormat,
+		//	VK_IMAGE_TYPE_2D, 
+		//	VK_IMAGE_TILING_OPTIMAL, 
+		//	VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | //VK_IMAGE_USAGE_STORAGE_BIT, 
+		//	VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+		//	m_Image, m_ImageMemory, GetMipMapLevels(), 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT );
+
+		VkImageCreateInfo ImageCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+		ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+		ImageCreateInfo.extent.width = m_Width;
+		ImageCreateInfo.extent.height = m_Height;
+		ImageCreateInfo.extent.depth = 1;
+		ImageCreateInfo.mipLevels = GetMipMapLevels();
+		ImageCreateInfo.arrayLayers = 6;
+		ImageCreateInfo.format = m_ImageFormat;
+		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		ImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+		ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		ImageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
 		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+		VK_CHECK( vkCreateImage( VulkanContext::Get().GetDevice(), &ImageCreateInfo, nullptr, &m_Image ) );
+
+		VkMemoryRequirements MemReq;
+		vkGetImageMemoryRequirements( VulkanContext::Get().GetDevice(), m_Image, &MemReq );
+
+		VkMemoryAllocateInfo AllocInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+		AllocInfo.allocationSize = MemReq.size;
+		AllocInfo.memoryTypeIndex = VulkanContext::Get().GetMemoryType( MemReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+
+		VK_CHECK( vkAllocateMemory( VulkanContext::Get().GetDevice(), &AllocInfo, nullptr, &m_ImageMemory ) );
+
+		vkBindImageMemory( VulkanContext::Get().GetDevice(), m_Image, m_ImageMemory, 0 );
+
+		//////////////////////////////////////////////////////////////////////////
 
 		VkImageSubresourceRange subresourceRange = {};
 		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -850,6 +817,7 @@ namespace Saturn {
 		subresourceRange.levelCount = GetMipMapLevels();
 		subresourceRange.layerCount = 6;
 
+		// No need to transition image layout as the image layout will become VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while creating mips
 		TransitionImageLayout( subresourceRange, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL );
 
 		// Create image sampler.
@@ -890,6 +858,115 @@ namespace Saturn {
 
 		m_DescriptorImageInfo.sampler = m_Sampler;
 		m_DescriptorImageInfo.imageView = m_ImageView;
+	}
+
+	void TextureCube::CreateMips()
+	{
+		if( m_MipsCreated )
+			return;
+
+		SAT_CORE_INFO( "Creating mip maps..." );
+		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginNewCommandBuffer();
+
+		SAT_CORE_INFO( "Transitioning current mip to VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL..." );
+
+		uint32_t mipLevels = GetMipMapLevels();
+		for( uint32_t face = 0; face < 6; face++ )
+		{
+			VkImageSubresourceRange mipSubRange = {};
+			mipSubRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			mipSubRange.baseMipLevel = 0;
+			mipSubRange.baseArrayLayer = face;
+			mipSubRange.levelCount = 1;
+			mipSubRange.layerCount = 1;
+
+			// Prepare current mip level as image blit destination
+			ImagePipelineBarrier( CommandBuffer, m_Image,
+				0, VK_ACCESS_TRANSFER_WRITE_BIT,
+				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+				mipSubRange );
+		}
+
+		for( uint32_t i = 1; i < mipLevels; i++ )
+		{
+			for( uint32_t face = 0; face < 6; face++ )
+			{
+				VkImageBlit imageBlit{};
+
+				// Source
+				imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				imageBlit.srcSubresource.layerCount = 1;
+				imageBlit.srcSubresource.mipLevel = i - 1;
+				imageBlit.srcSubresource.baseArrayLayer = face;
+				imageBlit.srcOffsets[ 1 ].x = int32_t( m_Width >> ( i - 1 ) );
+				imageBlit.srcOffsets[ 1 ].y = int32_t( m_Height >> ( i - 1 ) );
+				imageBlit.srcOffsets[ 1 ].z = 1;
+
+				// Destination
+				imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				imageBlit.dstSubresource.layerCount = 1;
+				imageBlit.dstSubresource.mipLevel = i;
+				imageBlit.dstSubresource.baseArrayLayer = face;
+				imageBlit.dstOffsets[ 1 ].x = int32_t( m_Width >> i );
+				imageBlit.dstOffsets[ 1 ].y = int32_t( m_Height >> i );
+				imageBlit.dstOffsets[ 1 ].z = 1;
+
+				VkImageSubresourceRange mipSubRange = {};
+				mipSubRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				mipSubRange.baseMipLevel = i;
+				mipSubRange.baseArrayLayer = face;
+				mipSubRange.levelCount = 1;
+				mipSubRange.layerCount = 1;
+
+				// Prepare current mip level as image blit destination
+				ImagePipelineBarrier( CommandBuffer, m_Image,
+					0, VK_ACCESS_TRANSFER_WRITE_BIT,
+					VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+					VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+					mipSubRange );
+
+				SAT_CORE_INFO( "Blit image from mip level {0}, face {1}", i, face );
+
+				// Blit from previous level
+				vkCmdBlitImage(
+					CommandBuffer,
+					m_Image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+					m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+					1, &imageBlit,
+					VK_FILTER_LINEAR );
+
+				// Prepare current mip level as image blit source for next level
+				ImagePipelineBarrier( CommandBuffer, m_Image,
+					VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+					VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+					mipSubRange );
+			}
+		}
+
+		// After the loop, all mip layers are in TRANSFER_SRC layout, so transition all to GENERAL
+		VkImageSubresourceRange subresourceRange = {};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.layerCount = 6;
+		subresourceRange.levelCount = mipLevels;
+
+		ImagePipelineBarrier( CommandBuffer, m_Image,
+			VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_READ_BIT,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			subresourceRange );
+
+		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+
+		m_MipsCreated = true;
+	}
+
+	void TextureCube::Terminate()
+	{
+		Texture::Terminate();
 	}
 
 	void TextureCube::SetData( const void* pData )

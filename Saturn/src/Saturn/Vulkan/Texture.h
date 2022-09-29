@@ -119,6 +119,7 @@ namespace Saturn {
 		bool m_HDR = false;
 		bool m_IsRendererTexture = false;
 		bool m_ForceTerminate = false;
+		bool m_MipsCreated = false;
 		
 		void* m_pData = nullptr;
 
@@ -158,7 +159,6 @@ namespace Saturn {
 		TextureCube( std::filesystem::path Path, AddressingMode Mode )
 			: Texture( Path, Mode )
 		{
-			CreateTextureImage( false );
 		}
 
 		TextureCube( ImageFormat Format, uint32_t width, uint32_t height, const void* pData = nullptr );

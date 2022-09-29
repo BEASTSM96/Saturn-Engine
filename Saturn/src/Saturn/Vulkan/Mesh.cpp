@@ -73,7 +73,9 @@ namespace Saturn {
 		aiProcess_GenNormals |              // Make sure we have legit normals
 		aiProcess_GenUVCoords |             // Convert UVs if required 
 		aiProcess_OptimizeMeshes |          // Batch draws where possible
-		aiProcess_ValidateDataStructure;
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_GlobalScale |             // e.g. convert cm to m for fbx import (and other formats where cm is native)
+		aiProcess_ValidateDataStructure;    // Validation
 
 	struct LogStream : public Assimp::LogStream
 	{
@@ -144,14 +146,16 @@ namespace Saturn {
 			SAT_CORE_INFO( " Albedo color: {0}", glm::vec3( color.r, color.g, color.g ) );
 
 			float shininess, metalness;
-			if( material->Get( AI_MATKEY_SHININESS, shininess ) == aiReturn_SUCCESS )
+			if( material->Get( AI_MATKEY_SHININESS, shininess ) != aiReturn_SUCCESS )
 				shininess = 80.0f;
 
-			if( material->Get( AI_MATKEY_REFLECTIVITY, metalness ) == aiReturn_SUCCESS )
+			if( material->Get( AI_MATKEY_REFLECTIVITY, metalness ) != aiReturn_SUCCESS )
 				metalness = 0.0f;
 
 			float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
 			SAT_CORE_INFO( " Roughness: {0}", roughness );
+			SAT_CORE_INFO( " shininess: {0}", shininess );
+			SAT_CORE_INFO( " metalness: {0}", metalness );
 
 			// Albedo Texture
 			{
@@ -172,7 +176,7 @@ namespace Saturn {
 					SAT_CORE_INFO( " Albedo Map texture {0}", AlbedoTexturePath );
 					
 					if( std::filesystem::exists( AlbedoTexturePath ) )
-						AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat );
+						AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat, false );
 
 					if( AlbedoTexture )
 					{
@@ -208,7 +212,7 @@ namespace Saturn {
 					SAT_CORE_INFO( " Normal Map texture {0}", NormalTexturePath );
 
 					if( std::filesystem::exists( NormalTexturePath ) )
-						NormalTexture = Ref< Texture2D >::Create( NormalTexturePath, AddressingMode::Repeat );
+						NormalTexture = Ref< Texture2D >::Create( NormalTexturePath, AddressingMode::Repeat, false );
 
 					if( NormalTexture )
 					{
@@ -233,7 +237,7 @@ namespace Saturn {
 				aiString RoughnessTexturePath;
 				bool HasRoughnessTexture = material->GetTexture( aiTextureType_SHININESS, 0, &RoughnessTexturePath ) == AI_SUCCESS;
 
-				mat->Set( "u_Materials.Roughness", 1.0f );
+				mat->Set( "u_Materials.Roughness", roughness );
 
 				if( HasRoughnessTexture ) 
 				{
@@ -247,7 +251,7 @@ namespace Saturn {
 					Ref< Texture2D > RoughnessTexture;
 
 					if( std::filesystem::exists( TexturePath ) )
-						RoughnessTexture = Ref< Texture2D >::Create( TexturePath, AddressingMode::Repeat );
+						RoughnessTexture = Ref< Texture2D >::Create( TexturePath, AddressingMode::Repeat, false );
 
 					if( RoughnessTexture )
 					{
@@ -280,8 +284,6 @@ namespace Saturn {
 						std::string Key = prop->mKey.data;
 						if( Key == "$raw.ReflectionFactor|file" )
 						{
-							FoundMetalness = true;
-
 							std::filesystem::path Path = filename;
 							auto pp = Path.parent_path();
 
@@ -291,8 +293,12 @@ namespace Saturn {
 
 							Ref< Texture2D > MetalnessTexture;
 
+							if( std::filesystem::exists( Path ) )
+								MetalnessTexture = Ref<Texture2D>::Create( TexturePath, AddressingMode::Repeat, false );
+
 							if( MetalnessTexture ) 
 							{
+								FoundMetalness = true;
 								mat->SetResource( "u_MetallicTexture", MetalnessTexture );
 							}
 							else
@@ -300,7 +306,7 @@ namespace Saturn {
 								mat->SetResource( "u_MetallicTexture", PinkTexture );
 							}
 
-							mat->Set( "u_Materials.Metalness", metalness );
+							mat->Set( "u_Materials.Metalness", 1.0f );
 
 							break;
 						}
@@ -310,6 +316,7 @@ namespace Saturn {
 				if( !FoundMetalness )
 				{
 					mat->SetResource( "u_MetallicTexture", PinkTexture );
+					mat->Set( "u_Materials.Metalness", metalness );
 				}
 			}
 		}
@@ -326,7 +333,7 @@ namespace Saturn {
 
 		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
 
-		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() );
+		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
 	}
 
 	Mesh::~Mesh()
@@ -368,9 +375,10 @@ namespace Saturn {
 
 	void Mesh::GetVetexAndIndexData()
 	{
-		std::vector<uint32_t> Indices;
+		std::vector<Index> Indices;
 
-		for( size_t m = 0; m < m_Scene->mNumMeshes; m++ )
+		m_Submeshes.reserve( m_Scene->mNumMeshes );
+		for( unsigned m = 0; m < m_Scene->mNumMeshes; m++ )
 		{
 			aiMesh* mesh = m_Scene->mMeshes[ m ];
 
@@ -378,11 +386,11 @@ namespace Saturn {
 			submesh.BaseVertex = m_VertexCount;
 			submesh.BaseIndex = m_IndicesCount;
 			submesh.MaterialIndex = mesh->mMaterialIndex;
+			submesh.VertexCount = mesh->mNumVertices;
 			submesh.IndexCount = mesh->mNumFaces * 3;
 			submesh.MeshName = mesh->mName.C_Str();
 
 			m_VertexCount += mesh->mNumVertices;
-			submesh.VertexCount = m_VertexCount;
 			m_IndicesCount += submesh.IndexCount;
 
 			SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );
@@ -391,7 +399,7 @@ namespace Saturn {
 			// Vertices
 			for( size_t i = 0; i < mesh->mNumVertices; i++ )
 			{
-				MeshVertex vertex = {};
+				MeshVertex vertex;
 				vertex.Position = { mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
 				vertex.Normal = { mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
 
@@ -412,15 +420,15 @@ namespace Saturn {
 			{
 				SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
 
-				Indices.push_back( mesh->mFaces[ i ].mIndices[ 0 ] );
-				Indices.push_back( mesh->mFaces[ i ].mIndices[ 1 ] );
-				Indices.push_back( mesh->mFaces[ i ].mIndices[ 2 ] );
+				Indices.push_back( { mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] } );
 			}
 		}
 
-		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
+		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), (uint32_t)(m_StaticVertices.size() * sizeof( MeshVertex ) ) );
 
-		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() );
+		m_Indices = Indices;
+
+		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() * sizeof( Index ) );
 
 		TraverseNodes( m_Scene->mRootNode );
 	}
