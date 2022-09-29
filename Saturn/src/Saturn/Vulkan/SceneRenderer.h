@@ -35,6 +35,7 @@
 #include "Saturn/Core/UUID.h"
 
 #include "Renderer.h"
+#include "EnvironmentMap.h"
 #include "DescriptorSet.h"
 #include "Framebuffer.h"
 
@@ -46,13 +47,10 @@ namespace Saturn {
 
 	struct DrawCommand
 	{
-		DrawCommand( Entity e, Ref< Mesh > mesh, glm::mat4 trans ) : entity( e ), Mesh( mesh ), Transform( trans )
-		{
-		}
-
 		Entity entity;
 		Ref< Mesh > Mesh = nullptr;
 		glm::mat4 Transform;
+		uint32_t SubmeshIndex;
 	};
 
 	struct ShadowCascade
@@ -113,13 +111,7 @@ namespace Saturn {
 		
 		struct SkyboxMatricesObject
 		{
-			glm::mat4 View;
-			glm::mat4 Projection;
-			glm::vec4 ViewPos;
-			
-			float Turbidity;
-			float Azimuth;
-			float Inclination;
+			glm::mat4 InverseVP;
 		};
 		
 		struct StaticMeshMatrices
@@ -179,9 +171,12 @@ namespace Saturn {
 
 		// SKYBOX
 
+		Ref<EnvironmentMap> SceneEnvironment = nullptr;
+
 		Ref<Pipeline> SkyboxPipeline = nullptr;
 
 		Ref< DescriptorSet > SkyboxDescriptorSet = nullptr;
+		Ref< DescriptorSet > PreethamDescriptorSet = nullptr;
 				
 		VertexBuffer* SkyboxVertexBuffer = nullptr;
 		IndexBuffer* SkyboxIndexBuffer = nullptr;
@@ -209,10 +204,23 @@ namespace Saturn {
 		// End Scene Composite
 		//////////////////////////////////////////////////////////////////////////
 
+		// OTHERS
+
+		// Debug
+		bool st_EnableDebugSettings;
+		bool st_OnlyNormal;
+		bool st_OnlyAlbedo;
+		bool st_EnableIBL = true;
+		bool st_EnablePBR = true;
+
+		// BDRF Lut
+		Ref<Texture2D> BRDFLUT_Texture;
+
 		// SHADERS
 
 		Ref< Shader > GridShader = nullptr;
 		Ref< Shader > SkyboxShader = nullptr;
+		Ref< Shader > PreethamShader = nullptr;
 		Ref< Shader > StaticMeshShader = nullptr;
 		Ref< Shader > SceneCompositeShader = nullptr;
 		Ref< Shader > DirShadowMapShader = nullptr;
@@ -222,6 +230,9 @@ namespace Saturn {
 	class SceneRenderer : public CountedObj
 	{
 		SINGLETON( SceneRenderer );
+
+		using ScheduledFunc = std::function<void()>;
+
 	public:
 		SceneRenderer() { Init(); }
 		~SceneRenderer() {}
@@ -252,6 +263,7 @@ namespace Saturn {
 		const Ref<Pass> GetGeometryPass() const { return m_RendererData.GeometryPass; }
 
 		Ref<Image2D> CompositeImage();
+		Ref<TextureCube> CreateDymanicSky();
 		
 		void Terminate();
 
@@ -260,6 +272,7 @@ namespace Saturn {
 
 		void RenderGrid();
 		void RenderSkybox();
+		void PrepareSkybox();
 
 		void UpdateCascades( const glm::vec3& Direction );
 
@@ -275,12 +288,18 @@ namespace Saturn {
 		void DirShadowMapPass();
 		void SceneCompositePass();
 
+		void AddScheduledFunction( ScheduledFunc&& rrFunc );
+
 	private:
 
 		RendererData m_RendererData;
-		std::vector< DrawCommand > m_DrawList;
-		std::vector< DrawCommand > m_SelectedMeshDrawList;
 		Scene* m_pScene;
+
+		std::vector< DrawCommand > m_DrawList;
+		std::vector< DrawCommand > m_ShadowMapDrawList;
+		std::vector< DrawCommand > m_SelectedMeshDrawList;
+
+		std::vector< ScheduledFunc > m_ScheduledFunctions;
 
 	private:
 		friend class Scene;

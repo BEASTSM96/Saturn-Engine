@@ -7,7 +7,7 @@
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec3 a_Tangent;
-layout(location = 3) in vec3 a_Bitangent;
+layout(location = 3) in vec3 a_Binormal;
 layout(location = 4) in vec2 a_TexCoord;
 
 layout(binding = 0) uniform Matrices 
@@ -29,8 +29,7 @@ layout(push_constant) uniform u_Transform
 struct VertexOutput 
 {
 	vec3 Normal;
-	vec3 Tangent;
-	vec3 Bitangent;
+	vec3 Bionormal;
 	vec3 Position;
 	vec2 TexCoord;
 	mat3 WorldNormals;
@@ -39,31 +38,34 @@ struct VertexOutput
 	vec3 ViewPosition;
 };
 
+
 layout( location = 1 ) out VertexOutput vs_Output;
 
 void main()
 {
-	// Init members of vs_Output
-	vs_Output.Normal     = mat3( Transform ) * a_Normal;
-	vs_Output.Tangent    = vec3( a_Tangent );
-	vs_Output.Bitangent  = vec3( a_Bitangent );
-	vs_Output.TexCoord   = vec2( a_TexCoord );
-	vs_Output.Position = vec3( Transform * vec4( a_Position, 1.0 ) );
+	vec4 WorldPos = Transform * vec4( a_Position, 1.0 );
 
-	vs_Output.WorldNormals = mat3( Transform ) * mat3( a_Tangent, a_Bitangent, a_Normal );
+	vs_Output.Position   = WorldPos.xyz;
+	vs_Output.TexCoord   = vec2( a_TexCoord.x, 1.0 - a_TexCoord.y );
+	vs_Output.Normal = mat3( Transform ) * a_Normal;
 
+	vs_Output.WorldNormals = mat3( Transform ) * mat3( a_Tangent, a_Binormal, a_Normal );
+
+	vs_Output.Bionormal = a_Binormal;
+
+	// Shadow Map Coords
 	vs_Output.ShadowMapCoords[0] = LightMatrix[0] * vec4( vs_Output.Position, 1.0 );
 	vs_Output.ShadowMapCoords[1] = LightMatrix[1] * vec4( vs_Output.Position, 1.0 );
 	vs_Output.ShadowMapCoords[2] = LightMatrix[2] * vec4( vs_Output.Position, 1.0 );
 	vs_Output.ShadowMapCoords[3] = LightMatrix[3] * vec4( vs_Output.Position, 1.0 );
-	
+
 	vs_Output.ViewPosition = vec3( u_Matrices.View * vec4( vs_Output.Position, 1.0 ) );
-	
+
 	gl_Position = u_Matrices.ViewProjection * Transform * vec4( a_Position, 1.0 );
 }
 
 #type fragment
-#version 450
+#version 450 core
 
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
@@ -100,6 +102,16 @@ layout(set = 0, binding = 3) uniform ShadowData
 	vec4 CascadeSplits;
 };
 
+layout(set = 0, binding = 12) uniform DebugData 
+{
+	float EnableDebugSettings;
+
+	float OnlyNormal;
+	float OnlyAlbedo;
+	float EnableIBL;
+	float EnablePBR;
+} u_DebugData;
+
 // Textures
 layout (set = 0, binding = 4) uniform sampler2D u_AlbedoTexture;
 layout (set = 0, binding = 5) uniform sampler2D u_NormalTexture;
@@ -107,16 +119,17 @@ layout (set = 0, binding = 6) uniform sampler2D u_MetallicTexture;
 layout (set = 0, binding = 7) uniform sampler2D u_RoughnessTexture;
 
 // Set 1, owned by renderer, environment settings.
-
 layout (set = 1, binding = 8) uniform sampler2DArray u_ShadowMap;
+layout (set = 1, binding = 9) uniform samplerCube u_EnvRadianceTex;
+layout (set = 1, binding = 10) uniform samplerCube u_EnvIrradianceTex;
+layout (set = 1, binding = 11) uniform sampler2D u_BRDFLUTTexture;
 
 layout (location = 0) out vec4 FinalColor;
 
 struct VertexOutput 
 {
 	vec3 Normal;
-	vec3 Tangent;
-	vec3 Bitangent;
+	vec3 Bionormal;
 	vec3 Position;
 	vec2 TexCoord;
 	mat3 WorldNormals;
@@ -142,7 +155,6 @@ PBRParameters m_Params;
 
 //////////////////////////////////////////////////////////////////////////
 // SHADOWS
-
 float GetShadowBias() 
 {
 	const float MINIMUM_SHADOW_BIAS = 0.002;
@@ -158,36 +170,61 @@ float HardShadows( sampler2DArray ShadowMap, vec3 ShadowCoords, uint index )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// LIGHTING
-
-// Shlick's approximation of the Fresnel factor.
-vec3 FresnelSchlick( vec3 F0, float cosTheta ) 
+// PBR
+float NDFGGX(float cosLh, float r)
 {
-	return F0 + ( 1.0 - F0 ) * pow( 1.0 - cosTheta, 5.0 );
-}
-
-float NDFGGX( float cosLh, float r ) 
-{	
-	// alpha = roughness^2;
 	float a = r * r;
-	float a2 = a * a;
+	float alphaSq = a * a;
 
-	float denom = ( cosLh * cosLh ) * ( a2 - 1.0 ) + 1.0;
-	return a2 / ( PI * denom * denom );
+	float denom = (cosLh * cosLh) * (alphaSq - 1.0) + 1.0;
+	return alphaSq / (PI * denom * denom);
 }
 
-float gaSchlickG1( float cosTheta, float k )
+float GaSchlickG1(float cosTheta, float k)
 {
-	return cosTheta / ( cosTheta * ( 1.0 - k ) + k );
+	return cosTheta / (cosTheta * (1.0 - k) + k);
 }
 
-float gaSchlickGGX( float cosLi, float NdotV, float roughness ) 
+float GaSchlickGGX(float cosLi, float NdotV, float roughness)
 {
 	float r = roughness + 1.0;
-	float k = ( r * r ) / 8.0; // Epic suggests using this roughness remapping for analytic lights.
-	return gaSchlickG1( cosLi, k ) * gaSchlickG1( NdotV, k );
+	float k = (r * r) / 8.0; // Epic suggests using this roughness remapping for analytic lights.
+	return GaSchlickG1(cosLi, k) * GaSchlickG1(NdotV, k);
 }
 
+float GeometrySchlickGGX(float NdotV, float R)
+{
+	float r = (R + 1.0);
+	float k = (r * r) / 8.0;
+
+	float nom = NdotV;
+	float denom = NdotV * (1.0 - k) + k;
+
+	return nom / denom;
+}
+
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+	float NdotV = max(dot(N, V), 0.0);
+	float NdotL = max(dot(N, L), 0.0);
+	float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+	float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+
+	return ggx1 * ggx2;
+}
+
+vec3 FresnelSchlick(vec3 F0, float cosTheta)
+{
+	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 FresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
+{
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// PBR-Main
 vec3 Lighting( vec3 F0 ) 
 {
 	vec3 result = vec3( 0.0 );
@@ -204,7 +241,7 @@ vec3 Lighting( vec3 F0 )
 
 		vec3 F = FresnelSchlick( F0, max( 0.0, dot( Lh, m_Params.View ) ) );
 		float D = NDFGGX( cosLh, m_Params.Roughness );
-		float G = gaSchlickGGX( cosLi, m_Params.NdotV, m_Params.Roughness );
+		float G = GaSchlickGGX( cosLi, m_Params.NdotV, m_Params.Roughness );
 
 		vec3 kd = ( 1.0 - F ) * ( 1.0 - m_Params.Metalness );
 		vec3 DiffuseBRDF = kd * m_Params.Albedo;
@@ -216,22 +253,70 @@ vec3 Lighting( vec3 F0 )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// IBL
+vec3 RotateVectorAboutY(float angle, vec3 vec)
+{
+    angle = radians(angle);
+    mat3x3 rotationMatrix ={vec3(cos(angle),0.0,sin(angle)),
+                            vec3(0.0,1.0,0.0),
+                            vec3(-sin(angle),0.0,cos(angle))};
+    return rotationMatrix * vec;
+}
+
+vec3 IBL(vec3 F0, vec3 Lr)
+{
+	vec3 irradiance = texture(u_EnvIrradianceTex, m_Params.Normal).rgb;
+
+	vec3 F = FresnelSchlickRoughness(F0, m_Params.NdotV, m_Params.Roughness);
+	vec3 kd = (1.0 - F) * (1.0 - m_Params.Metalness);
+	vec3 diffuseIBL = m_Params.Albedo * irradiance;
+	
+	int envRadianceTexLevels = textureQueryLevels(u_EnvRadianceTex);
+	float NoV = clamp(m_Params.NdotV, 0.0, 1.0);
+	vec3 R = 2.0 * dot(m_Params.View, m_Params.Normal) * m_Params.Normal - m_Params.View;
+	vec3 specularIrradiance = textureLod(u_EnvRadianceTex, RotateVectorAboutY(0.0, Lr), (m_Params.Roughness) * envRadianceTexLevels).rgb;
+	
+	// Sample BRDF Lut, 1.0 - roughness for y-coord because texture was generated (in Sparky) for gloss model
+	vec2 specularBRDF = texture(u_BRDFLUTTexture, vec2(m_Params.NdotV, 1.0 - m_Params.Roughness)).rg;
+	vec3 specularIBL = specularIrradiance * (F0 * specularBRDF.x + specularBRDF.y);
+	
+	return kd * diffuseIBL + specularIBL;
+}
+
+vec3 FinalChecks( vec3 lastOut ) 
+{
+	vec3 result = vec3( 0.0 );	
+
+	// Check debug settings.
+
+	if( u_DebugData.EnableDebugSettings > 0.5 )
+	{
+		if( u_DebugData.OnlyAlbedo > 0.5 ) 
+			result = m_Params.Albedo;
+		else if( u_DebugData.OnlyNormal > 0.5 )
+			result = m_Params.Normal;
+		else
+			result = lastOut;
+	}
+	else
+		result = lastOut;
+
+	return result;
+}
 
 void main() 
 {
-	m_Params.Albedo = texture( u_AlbedoTexture, vs_Input.TexCoord ).rgb * u_Materials.AlbedoColor;
+	vec4 AlbedoColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
+	m_Params.Albedo = AlbedoColor.rgb * u_Materials.AlbedoColor;
+
 	m_Params.Metalness = texture( u_MetallicTexture, vs_Input.TexCoord ).r * u_Materials.Metalness;
 	m_Params.Roughness = texture( u_RoughnessTexture, vs_Input.TexCoord ).r * u_Materials.Roughness;
 	m_Params.Roughness = max( m_Params.Roughness, 0.05 ); // Minimum roughness of 0.05 to keep specular highlight
 
-	float Ambient = 0.20;
-	
-	// Normals (either from vertex or map)
 	m_Params.Normal = normalize( vs_Input.Normal );
-	
-	if( u_Materials.UseNormalMap > 0.5 )
+	if( u_Materials.UseNormalMap > 0.5 ) 
 	{
-		m_Params.Normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0 );
+		m_Params.Normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0);
 		m_Params.Normal = normalize( vs_Input.WorldNormals * m_Params.Normal );
 	}
 
@@ -242,8 +327,8 @@ void main()
 
 	vec3 F0 = mix( Fdielectric, m_Params.Albedo, m_Params.Metalness );
 
+	//////////////////////////////////////////////////////////////////////////
 	// SHADOWS
-
 	uint cascadeIndex = 0;
 	
 	const uint SHADOW_MAP_CASCADES = 4;
@@ -258,8 +343,16 @@ void main()
 	
 	float ShadowAmount = HardShadows( u_ShadowMap, ShadowCoords, cascadeIndex );
 
-	// OUTPUT
-	vec3 Lighting = Lighting( F0 ) * ShadowAmount;
+	//////////////////////////////////////////////////////////////////////////
+	// Output
 
-	FinalColor = vec4( Lighting, 1.0 );
+	vec3 LightingContribution;
+	vec3 iblContribution;
+
+	LightingContribution = Lighting( F0 ) * ShadowAmount;
+	iblContribution = IBL( F0, Lr );
+
+	FinalColor = vec4( iblContribution + LightingContribution, 1.0 );
+	//FinalColor = vec4( m_Params.Normal, 1.0 );
+	//FinalColor = vec4( texture( u_EnvIrradianceTex, m_Params.Normal ).rgb, 1.0 );
 }

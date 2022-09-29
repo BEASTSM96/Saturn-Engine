@@ -35,6 +35,7 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "MaterialInstance.h"
+#include "ComputePipeline.h"
 #include "Saturn/ImGui/UITools.h"
 #include "Saturn/Core/Memory/Buffer.h"
 
@@ -63,7 +64,7 @@ namespace Saturn {
 			m_RendererData.Width = Window::Get().Width();
 			m_RendererData.Height = Window::Get().Height();
 		}
-
+		
 		//////////////////////////////////////////////////////////////////////////
 		// Geometry 
 		//////////////////////////////////////////////////////////////////////////
@@ -83,6 +84,10 @@ namespace Saturn {
 
 		InitDirShadowMap();
 
+		m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
+
+		m_RendererData.BRDFLUT_Texture = Ref<Texture2D>::Create( "assets/textures/BRDF_LUT.tga", AddressingMode::Repeat, false );
+
 		//////////////////////////////////////////////////////////////////////////
 	}
 
@@ -96,6 +101,7 @@ namespace Saturn {
 		m_pScene = nullptr;
 		
 		m_DrawList.clear();
+		m_ShadowMapDrawList.clear();
 		
 		m_RendererData.Terminate();
 	}
@@ -109,7 +115,7 @@ namespace Saturn {
 		{
 			PassSpecification PassSpec = {};
 			PassSpec.Name = "Geometry Pass";
-			PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
+			PassSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
 
 			m_RendererData.GeometryPass = Ref< Pass >::Create( PassSpec );
 		}
@@ -124,7 +130,7 @@ namespace Saturn {
 			FBSpec.Width = m_RendererData.Width;
 			FBSpec.Height = m_RendererData.Height;
 
-			FBSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
+			FBSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
 
 			m_RendererData.GeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
 		}
@@ -155,13 +161,13 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float3, "a_Normal" },
 			{ ShaderDataType::Float3, "a_Tangent" },
-			{ ShaderDataType::Float3, "a_Bitangent" },
+			{ ShaderDataType::Float3, "a_Binormal" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		};
-		PipelineSpec.CullMode = CullMode::None;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		PipelineSpec.CullMode = CullMode::Back;
+		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 		
-		m_RendererData.StaticMeshPipeline = Ref< Pipeline >::Create( PipelineSpec );
+		m_RendererData.StaticMeshPipeline = Ref< Pipeline >::Create( PipelineSpec ); 
 	}
 
 	void SceneRenderer::InitDirShadowMap()
@@ -189,9 +195,9 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		};
-		PipelineSpec.CullMode = CullMode::None;
+		PipelineSpec.CullMode = CullMode::Back;
 		PipelineSpec.HasColorAttachment = false;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 		PipelineSpec.RequestDescriptorSets = { ShaderType::Vertex, 0 };
 
 		// Layered image
@@ -257,7 +263,8 @@ namespace Saturn {
 		/////////
 
 		// Create fullscreen quad.
-		Renderer::Get().CreateFullscreenQuad( &m_RendererData.SC_VertexBuffer, &m_RendererData.SC_IndexBuffer );
+		if( m_RendererData.SC_VertexBuffer == nullptr && m_RendererData.SC_IndexBuffer == nullptr )
+			Renderer::Get().CreateFullscreenQuad( &m_RendererData.SC_VertexBuffer, &m_RendererData.SC_IndexBuffer );
 		
 		if( !m_RendererData.SceneCompositeShader )
 		{
@@ -341,28 +348,62 @@ namespace Saturn {
 		if( SkylightEntity )
 		{
 			auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
+
+			if( !Skylight.DynamicSky )
+				return;
 			
+			RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
+			SkyboxMatricesObject.InverseVP = glm::inverse( m_RendererData.EditorCamera.ViewProjection() );
+
+			auto Data = m_RendererData.SkyboxShader->MapUB( ShaderType::Vertex, 0, 0 );
+
+			memcpy( Data, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
+			
+			m_RendererData.SkyboxShader->UnmapUB( ShaderType::Vertex, 0, 0 );
+
+			m_RendererData.SkyboxShader->WriteDescriptor( "u_CubeTexture", m_RendererData.SceneEnvironment->IrradianceMap->GetDescriptorInfo(), m_RendererData.SkyboxDescriptorSet->GetVulkanSet() );
+
+			m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
+
+			Renderer::Get().SubmitFullscreenQuad( 
+				CommandBuffer, m_RendererData.SkyboxPipeline, m_RendererData.SkyboxDescriptorSet, m_RendererData.SkyboxIndexBuffer, m_RendererData.SkyboxVertexBuffer );
+		}
+	}
+
+	void SceneRenderer::PrepareSkybox()
+	{
+		if( !m_pScene )
+			return;
+
+		Entity SkylightEntity;
+
+		auto view = m_pScene->GetAllEntitiesWith< SkylightComponent >();
+
+		for( const auto e : view )
+		{
+			SkylightEntity = { e, m_pScene };
+		}
+
+		if( SkylightEntity )
+		{
+			auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
+
 			if( !Skylight.DynamicSky )
 				return;
 
-			RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
+			if( Skylight.DynamicSky && !m_RendererData.SceneEnvironment->IrradianceMap && !m_RendererData.SceneEnvironment->IrradianceMap )
+			{
+				m_RendererData.SceneEnvironment->Turbidity = Skylight.Turbidity;
+				m_RendererData.SceneEnvironment->Azimuth = Skylight.Azimuth;
+				m_RendererData.SceneEnvironment->Inclination = Skylight.Inclination;
 
-			SkyboxMatricesObject.View = m_RendererData.EditorCamera.ViewMatrix();
-			SkyboxMatricesObject.Projection = m_RendererData.EditorCamera.ProjectionMatrix();
-			SkyboxMatricesObject.Turbidity = Skylight.Turbidity;
-			SkyboxMatricesObject.Azimuth = Skylight.Azimuth;
-			SkyboxMatricesObject.Inclination = Skylight.Inclination;
+				Ref<TextureCube> map = CreateDymanicSky();
 
-			auto Data = m_RendererData.SkyboxShader->MapUB( ShaderType::All, 0, 0 );
-
-			memcpy( Data, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
-
-			m_RendererData.SkyboxShader->UnmapUB( ShaderType::All, 0, 0 );
+				m_RendererData.SceneEnvironment->IrradianceMap = map;
+				m_RendererData.SceneEnvironment->RadianceMap = map;
+			}
 
 			m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
-			
-			Renderer::Get().SubmitFullscreenQuad( 
-				CommandBuffer, m_RendererData.SkyboxPipeline, m_RendererData.SkyboxDescriptorSet, m_RendererData.SkyboxIndexBuffer, m_RendererData.SkyboxVertexBuffer );
 		}
 	}
 
@@ -521,21 +562,29 @@ namespace Saturn {
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		// Create fullscreen quad.
-		Renderer::Get().CreateFullscreenQuad( &m_RendererData.SkyboxVertexBuffer, &m_RendererData.SkyboxIndexBuffer );
+		if( m_RendererData.SkyboxVertexBuffer == nullptr && m_RendererData.SkyboxIndexBuffer == nullptr )
+			Renderer::Get().CreateFullscreenQuad( &m_RendererData.SkyboxVertexBuffer, &m_RendererData.SkyboxIndexBuffer );
 
 		// Create skybox shader.
 		
-		if( !m_RendererData.SkyboxShader )
+		if( !m_RendererData.SkyboxShader && !m_RendererData.PreethamShader )
 		{
 			ShaderLibrary::Get().Load( "assets/shaders/Skybox.glsl" );
+			ShaderLibrary::Get().Load( "assets/shaders/Skybox_Compute.glsl" );
+
 			m_RendererData.SkyboxShader = ShaderLibrary::Get().Find( "Skybox" );
+			m_RendererData.PreethamShader = ShaderLibrary::Get().Find( "Skybox_Compute" );
 		}
-		
+				
 		if( !m_RendererData.SkyboxDescriptorSet ) 
 			m_RendererData.SkyboxDescriptorSet = m_RendererData.SkyboxShader->CreateDescriptorSet( 0 );
 
+		if( !m_RendererData.PreethamDescriptorSet )
+			m_RendererData.PreethamDescriptorSet = m_RendererData.PreethamShader->CreateDescriptorSet( 0 );
+
 		m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
-		
+		m_RendererData.PreethamShader->WriteAllUBs( m_RendererData.PreethamDescriptorSet );
+
 		if( m_RendererData.SkyboxPipeline )
 			m_RendererData.SkyboxPipeline = nullptr;
 
@@ -547,7 +596,7 @@ namespace Saturn {
 		PipelineSpec.Shader = m_RendererData.SkyboxShader.Pointer();
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::None;
+		PipelineSpec.CullMode = CullMode::Back;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
@@ -571,9 +620,12 @@ namespace Saturn {
 
 			float shadowPassTime = 0;
 
-			for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+			if( m_RendererData.EnableShadows )
 			{
-				shadowPassTime += m_RendererData.ShadowMapTimers[ i ].ElapsedMilliseconds();
+				for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+				{
+					shadowPassTime += m_RendererData.ShadowMapTimers[ i ].ElapsedMilliseconds();
+				}
 			}
 
 			ImGui::Text( "Renderer::BeginFrame: %.2f ms", FrameTimings.first );
@@ -581,15 +633,6 @@ namespace Saturn {
 			ImGui::Text( "SceneRenderer::GeometryPass: %.2f ms", m_RendererData.GeometryPassTimer.ElapsedMilliseconds() );
 
 			ImGui::Text( "SceneRenderer::ShadowMapPass: %.2f ms", shadowPassTime );
-			if( TreeNode( "Shadow map per pass", false ) )
-			{
-				ImGui::Text( "Pass 1 %.2f ms", m_RendererData.ShadowMapTimers[ 0 ].ElapsedMilliseconds() );
-				ImGui::Text( "Pass 2 %.2f ms", m_RendererData.ShadowMapTimers[ 1 ].ElapsedMilliseconds() );
-				ImGui::Text( "Pass 3 %.2f ms", m_RendererData.ShadowMapTimers[ 2 ].ElapsedMilliseconds() );
-				ImGui::Text( "Pass 4 %.2f ms", m_RendererData.ShadowMapTimers[ 3 ].ElapsedMilliseconds() );
-
-				EndTreeNode();
-			}
 
 			ImGui::Text( "Renderer::EndFrame - Queue Present: %.2f ms", Renderer::Get().GetQueuePresentTime() );
 
@@ -600,9 +643,22 @@ namespace Saturn {
 			EndTreeNode();
 		}
 
-		if( TreeNode( "Visualization", true ) ) 
+		if( TreeNode( "Debug", true ) ) 
 		{
-		//	ImGui::Checkbox( "View Shadow Cascades", &m_RendererData.ViewShadowCascades );
+			if( TreeNode( "Static mesh shader", false ) )
+			{
+				ImGui::Checkbox( "Enable Debug settings", &m_RendererData.st_EnableDebugSettings );
+
+				if( m_RendererData.st_EnableDebugSettings )
+				{
+					ImGui::Checkbox( "Only Normal", &m_RendererData.st_OnlyNormal );
+					ImGui::Checkbox( "Only Albedo", &m_RendererData.st_OnlyAlbedo );
+					ImGui::Checkbox( "Enable PBR", &m_RendererData.st_EnablePBR );
+					ImGui::Checkbox( "Enable IBL", &m_RendererData.st_EnableIBL );
+				}
+
+				EndTreeNode();
+			}
 
 			EndTreeNode();
 		}
@@ -637,12 +693,20 @@ namespace Saturn {
 
 	void SceneRenderer::SubmitSelectedMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
-		m_DrawList.push_back( { entity, mesh, transform } );
+		auto& submeshes = mesh->Submeshes();
+		for( size_t i = 0; i < submeshes.size(); i++ )
+			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) i } );
+
+		m_ShadowMapDrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) 0 } );
 	}
 
 	void SceneRenderer::SubmitMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
-		m_DrawList.push_back( { entity, mesh, transform } );
+		auto& submeshes = mesh->Submeshes();
+		for( size_t i = 0; i < submeshes.size(); i++ )
+			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = (uint32_t)i } );
+
+		m_ShadowMapDrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) 0 } );
 	}
 
 	void SceneRenderer::SetViewportSize( uint32_t w, uint32_t h )
@@ -653,11 +717,6 @@ namespace Saturn {
 			m_RendererData.Height = h;
 			m_RendererData.Resized = true;
 		}
-	}
-
-	void SceneRenderer::FlushDrawList()
-	{
-		m_DrawList.clear();
 	}
 
 	void SceneRenderer::Recreate()
@@ -676,6 +735,9 @@ namespace Saturn {
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
+
+		// Prepare skybox
+		PrepareSkybox();
 
 		// Begin geometry pass.
 		m_RendererData.GeometryPass->BeginPass( m_RendererData.CommandBuffer, m_RendererData.GeometryFramebuffer->GetVulkanFramebuffer(), Extent );
@@ -712,8 +774,7 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Static meshes" );
 
 		// Set environment resource.
-		// TODO: Come back to.
-		Renderer::Get().Begin( m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource() );
+		Renderer::Get().SetSceneEnvironment( m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource(), m_RendererData.SceneEnvironment, m_RendererData.BRDFLUT_Texture );
 
 		// Render static meshes.
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
@@ -755,6 +816,21 @@ namespace Saturn {
 				glm::vec4 CascadeSplits;
 			} u_ShadowData = {};
 
+			struct DebugData
+			{
+				float EnableDebugSettings;
+				float OnlyNormal;
+				float OnlyAlbedo;
+				float EnableIBL;
+				float EnablePBR;
+			} u_DebugData = {};
+
+			u_DebugData.EnableDebugSettings = ( float ) m_RendererData.st_EnableDebugSettings;
+			u_DebugData.OnlyAlbedo = ( float ) m_RendererData.st_OnlyAlbedo;
+			u_DebugData.OnlyNormal = ( float ) m_RendererData.st_OnlyNormal;
+			u_DebugData.EnableIBL = ( float ) m_RendererData.st_EnableIBL;
+			u_DebugData.EnablePBR = ( float ) m_RendererData.st_EnablePBR;
+
 			auto dirLight = m_pScene->m_DirectionalLight[ 0 ];
 			
 			u_SceneData.CameraPosition = m_RendererData.EditorCamera.GetPosition();
@@ -793,9 +869,16 @@ namespace Saturn {
 
 			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0, 3 );
 
+			pData = StaticMeshShader->MapUB( ShaderType::Fragment, 0, 12 );
+
+			memcpy( pData, &u_DebugData, sizeof( u_DebugData ) );
+
+			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0, 12 );
+
+			// Render
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
 				m_RendererData.StaticMeshPipeline, 
-				Cmd.Mesh, Cmd.Transform );
+				Cmd.Mesh, Cmd.Transform, Cmd.SubmeshIndex );
 		}
 		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
@@ -875,7 +958,7 @@ namespace Saturn {
 			vkCmdSetViewport( m_RendererData.CommandBuffer, 0, 1, &Viewport );
 			vkCmdSetScissor( m_RendererData.CommandBuffer, 0, 1, &Scissor );
 
-			for( auto& Cmd : m_DrawList )
+			for( auto& Cmd : m_ShadowMapDrawList )
 			{
 				// Entity may of been deleted.
 				if( !Cmd.entity )
@@ -928,6 +1011,37 @@ namespace Saturn {
 		m_RendererData.SceneComposite->EndPass();
 	}
 
+	void SceneRenderer::AddScheduledFunction( ScheduledFunc&& rrFunc )
+	{
+		m_ScheduledFunctions.push_back( rrFunc );
+	}
+
+	Ref<TextureCube> SceneRenderer::CreateDymanicSky()
+	{
+		const uint32_t cubemapSize = 512;
+		const uint32_t irradianceMap = 32;
+
+		Ref<TextureCube> Environment = Ref<TextureCube>::Create( ImageFormat::RGBA32F, cubemapSize, cubemapSize );
+
+		Ref<Shader> skyShader = ShaderLibrary::Get().Find( "Skybox_Compute" );
+		Ref<ComputePipeline> pipeline = Ref<ComputePipeline>::Create( skyShader );
+
+		glm::vec3 params = { m_RendererData.SceneEnvironment->Turbidity, m_RendererData.SceneEnvironment->Azimuth, m_RendererData.SceneEnvironment->Inclination };
+
+		skyShader->WriteDescriptor( "o_CubeMap", Environment->GetDescriptorInfo(), m_RendererData.PreethamDescriptorSet->GetVulkanSet() );
+
+		auto CommandBuffer = m_RendererData.CommandBuffer;
+
+		pipeline->Bind();
+		pipeline->AddPushConstant( &params, 0, sizeof( glm::vec3 ) );
+		pipeline->Execute( m_RendererData.PreethamDescriptorSet->GetVulkanSet(), cubemapSize / 32, cubemapSize / 32, 6 );
+		pipeline->Unbind();
+
+		Environment->CreateMips();
+
+		return Environment;
+	}
+
 	void SceneRenderer::RenderScene()
 	{
 		if( !m_pScene )
@@ -952,6 +1066,9 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Geometry" );
 
 		GeometryPass();
+
+		for( auto&& func : m_ScheduledFunctions )
+			func();
 		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 		
@@ -962,6 +1079,13 @@ namespace Saturn {
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		FlushDrawList();
+	}
+
+	void SceneRenderer::FlushDrawList()
+	{
+		m_DrawList.clear();
+		m_ShadowMapDrawList.clear();
+		m_ScheduledFunctions.clear();
 	}
 
 	void SceneRenderer::SetEditorCamera( const EditorCamera& Camera )
@@ -987,6 +1111,7 @@ namespace Saturn {
 		GridDescriptorSet = nullptr;
 		SkyboxDescriptorSet = nullptr;
 		SC_DescriptorSet = nullptr;
+		PreethamDescriptorSet = nullptr;
 
 		// Vertex and Index buffers
 		GridVertexBuffer->Terminate();
@@ -1031,7 +1156,13 @@ namespace Saturn {
 		StaticMeshShader = nullptr;
 		SceneCompositeShader = nullptr;
 		DirShadowMapShader = nullptr;
+		PreethamShader = nullptr;
+
+		// Textures
+		BRDFLUT_Texture = nullptr;
 		
+		SceneEnvironment = nullptr;
+
 		ShaderLibrary::Get().Shutdown();
 	}
 
