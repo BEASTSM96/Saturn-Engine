@@ -33,6 +33,7 @@
 #include "VulkanDebug.h"
 
 namespace Saturn {
+	static VkFence s_ComputeFence;
 
 	ComputePipeline::ComputePipeline( Ref<Shader> ComputeShader )
 		: m_ComputeShader( ComputeShader )
@@ -44,25 +45,67 @@ namespace Saturn {
 
 	ComputePipeline::~ComputePipeline()
 	{
-		//vkDestroyPipeline( VulkanContext::Get().GetDevice(), m_Pipeline, nullptr );
-		//vkDestroyPipelineLayout( VulkanContext::Get().GetDevice(), m_PipelineLayout, nullptr );
-		//
-		//m_Pipeline = nullptr;
-		//m_PipelineLayout = nullptr;
+		vkDestroyFence( VulkanContext::Get().GetDevice(), s_ComputeFence, nullptr );
 	}
 
-	void ComputePipeline::Bind( VkCommandBuffer CommandBuffer )
+	void ComputePipeline::Bind()
 	{
-		m_CommandBuffer = CommandBuffer;
+		m_CommandBuffer = VulkanContext::Get().CreateComputeCommandBuffer();
 
 		vkCmdBindPipeline( m_CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_Pipeline );
 	}
 
+
 	void ComputePipeline::Execute( VkDescriptorSet DescriptorSet, uint32_t X, uint32_t Y, uint32_t Z )
 	{
+		/*
+		auto LogicalDevice = VulkanContext::Get().GetDevice();
+
+		auto ComputeQueue = VulkanContext::Get().GetComputeQueue();
+
+		// We would use the renderer for this however don't know what stage in the pipeline this is.
+		//auto CommandBuffer = VulkanContext::Get().CreateComputeCommandBuffer();
+
+		vkCmdBindPipeline( m_CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_Pipeline );
+
 		vkCmdBindDescriptorSets( m_CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_PipelineLayout, 0, 1, &DescriptorSet, 0, nullptr );
+
 		vkCmdDispatch( m_CommandBuffer, X, Y, Z );
+
+		vkEndCommandBuffer( m_CommandBuffer );
+
+		if( !s_ComputeFence )
+		{
+			VkFenceCreateInfo FenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+			FenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+			VK_CHECK( vkCreateFence( LogicalDevice, &FenceCreateInfo, nullptr, &s_ComputeFence ) );
+		}
+
+		vkWaitForFences( LogicalDevice, 1, &s_ComputeFence, VK_TRUE, UINT64_MAX );
+		vkResetFences( LogicalDevice, 1, &s_ComputeFence );
+
+		VkSubmitInfo Info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		Info.commandBufferCount = 1;
+		Info.pCommandBuffers = &m_CommandBuffer;
+
+		VK_CHECK( vkQueueSubmit( ComputeQueue, 1, &Info, s_ComputeFence ) );
+
+		Timer timer;
+		timer.Reset();
+
+		vkWaitForFences( LogicalDevice, 1, &s_ComputeFence, VK_TRUE, UINT64_MAX );
+
+		timer.Stop();
+
+		SAT_CORE_INFO( "COMPUTE PIPELINE TOOK, {0}ms", timer.ElapsedMilliseconds() );
+
 		SAT_CORE_INFO( "DISPACTED COMPUTE PIPELINE" );
+		*/
+
+		vkCmdBindDescriptorSets( m_CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_PipelineLayout, 0, 1, &DescriptorSet, 0, nullptr );
+
+		vkCmdDispatch( m_CommandBuffer, X, Y, Z );
 	}
 
 	void ComputePipeline::AddPushConstant( const void* pData, uint32_t Offset, size_t Size )
@@ -72,6 +115,31 @@ namespace Saturn {
 
 	void ComputePipeline::Unbind()
 	{
+		auto LogicalDevice = VulkanContext::Get().GetDevice();
+
+		auto ComputeQueue = VulkanContext::Get().GetComputeQueue();
+
+		vkEndCommandBuffer( m_CommandBuffer );
+
+		if( !s_ComputeFence )
+		{
+			VkFenceCreateInfo FenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+			FenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+			VK_CHECK( vkCreateFence( LogicalDevice, &FenceCreateInfo, nullptr, &s_ComputeFence ) );
+		}
+
+		vkWaitForFences( LogicalDevice, 1, &s_ComputeFence, VK_TRUE, UINT64_MAX );
+		vkResetFences( LogicalDevice, 1, &s_ComputeFence );
+
+		VkSubmitInfo Info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		Info.commandBufferCount = 1;
+		Info.pCommandBuffers = &m_CommandBuffer;
+
+		VK_CHECK( vkQueueSubmit( ComputeQueue, 1, &Info, s_ComputeFence ) );
+
+		vkWaitForFences( LogicalDevice, 1, &s_ComputeFence, VK_TRUE, UINT64_MAX );
+
 		m_CommandBuffer = nullptr;
 	}
 

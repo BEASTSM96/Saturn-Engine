@@ -41,7 +41,7 @@ namespace Saturn {
 		ComputePipeline( Ref<Shader> ComputeShader );
 		~ComputePipeline();
 
-		void Bind( VkCommandBuffer CommandBuffer );
+		void Bind();
 
 		void Execute( VkDescriptorSet DescriptorSet, uint32_t X, uint32_t Y, uint32_t Z );
 

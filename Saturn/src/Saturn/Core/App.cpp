@@ -81,7 +81,7 @@ namespace Saturn {
 			Window::Get().OnUpdate();
 			Window::Get().Render();
 			
-			if ( !Window::Get().Minimized() )
+			if( !Window::Get().Minimized() )
 			{
 				Renderer::Get().BeginFrame();
 				{
@@ -100,8 +100,10 @@ namespace Saturn {
 
 			float time = ( float ) glfwGetTime();
 
-			m_Timestep = time - m_LastFrameTime;
+			float frametime = time - m_LastFrameTime;
 
+			m_Timestep = std::min<float>( frametime, 0.0333f );
+			
 			m_LastFrameTime = time;
 		}
 
