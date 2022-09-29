@@ -32,6 +32,7 @@
 #include "Saturn/Core/App.h"
 #include "Saturn/Vulkan/Mesh.h"
 #include "Saturn/Scene/Entity.h"
+#include "Saturn/Vulkan/SceneRenderer.h"
 #include "UITools.h"
 
 #include "Saturn/Vulkan/VulkanContext.h"
@@ -357,7 +358,7 @@ namespace Saturn {
 			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
 			{
 				if( mc.Mesh )
-					mc.Mesh.Delete();
+					mc.Mesh = nullptr;
 
 				std::string file = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj *.glb *.gltf)\0*.fbx; *.obj; *.gltf\0" );
 				if( !file.empty() )
@@ -400,11 +401,17 @@ namespace Saturn {
 
 			DrawBoolControl( "Dynamic Sky", skl.DynamicSky );
 
+			bool changed = false;
+
 			if ( skl.DynamicSky )
 			{
-				DrawFloatControl( "Turbidity", skl.Turbidity );
-				DrawFloatControl( "Azimuth", skl.Azimuth );
-				DrawFloatControl( "Inclination", skl.Inclination );
+				changed = DrawFloatControl( "Turbidity", skl.Turbidity );
+				changed |= DrawFloatControl( "Azimuth", skl.Azimuth );
+				changed |= DrawFloatControl( "Inclination", skl.Inclination );
+
+				if( changed )
+					SceneRenderer::Get().CreateDymanicSky();
+
 			}
 		} );
 		

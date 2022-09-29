@@ -30,8 +30,9 @@ namespace Saturn {
 	{
 		std::optional<uint32_t> GraphicsFamily;
 		std::optional<uint32_t> PresentFamily;
+		std::optional<uint32_t> ComputeFamily;
 
-		bool Complete() { return GraphicsFamily.has_value() && PresentFamily.has_value(); }
+		bool Complete() { return GraphicsFamily.has_value() && PresentFamily.has_value() && ComputeFamily.has_value(); }
 	};
 
 	struct SwapchainCreationData
@@ -71,6 +72,10 @@ namespace Saturn {
 		bool HasStencilComponent( VkFormat Format );
 		
 		VkCommandBuffer BeginSingleTimeCommands();
+		VkCommandBuffer BeginNewCommandBuffer();
+
+		VkCommandBuffer CreateComputeCommandBuffer();
+
 		void EndSingleTimeCommands( VkCommandBuffer CommandBuffer );
 
 		Pass& GetDefaultPass() { return m_DefaultPass; }
@@ -96,6 +101,8 @@ namespace Saturn {
 		VkQueue GetPresentQueue() { return m_PresentQueue; }
 
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
+
+		VkQueue GetComputeQueue() { return m_ComputeQueue; }
 
 		Swapchain& GetSwapchain() { return m_SwapChain; }
 
@@ -130,6 +137,7 @@ namespace Saturn {
 		VkDebugUtilsMessengerEXT m_DebugMessenger = nullptr;
 		VkExtent2D m_SwapChainExtent = {};
 		VkCommandPool m_CommandPool = nullptr;
+		VkCommandPool m_ComputeCommandPool = nullptr;
 		VkCommandBuffer m_CommandBuffer = nullptr;
 	
 		// Depth resources.
@@ -140,7 +148,7 @@ namespace Saturn {
 		VulkanDebugMessenger* m_pDebugMessenger;
 		VulkanAllocator* m_pAllocator;
 
-		VkQueue m_GraphicsQueue, m_PresentQueue;
+		VkQueue m_GraphicsQueue, m_PresentQueue, m_ComputeQueue;
 
 		VkSurfaceFormatKHR m_SurfaceFormat;
 

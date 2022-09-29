@@ -78,9 +78,9 @@ namespace Saturn {
 		m_DefaultPass = Pass( Specification );
 		m_SwapChain.CreateFramebuffers();
 		
-		SceneRenderer::Get();
-
 		Renderer::Get();
+
+		SceneRenderer::Get();
 	}
 
 	void VulkanContext::Terminate()
@@ -89,6 +89,7 @@ namespace Saturn {
 			return;
 
 		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
+		vkDestroyCommandPool( m_LogicalDevice, m_ComputeCommandPool, nullptr );
 		
 		m_DefaultPass.Terminate();
 
@@ -199,6 +200,12 @@ namespace Saturn {
 					m_Indices.GraphicsFamily = i;
 				}
 
+				if( QueueProps[ i ].queueFlags & VK_QUEUE_COMPUTE_BIT )
+				{
+					// Save this bit as we need this to do compute operations on.
+					m_Indices.ComputeFamily = i;
+				}
+
 				// Check if we can present images to the surface.
 				VkBool32 PresentSupport = false;
 				VK_CHECK( vkGetPhysicalDeviceSurfaceSupportKHR( rDevice, i, m_Surface, &PresentSupport ) );
@@ -252,7 +259,7 @@ namespace Saturn {
 		float QueuePriority = 1.0f;
 
 		std::vector<VkDeviceQueueCreateInfo> QueueCreateInfos;
-		std::set<uint32_t> UniqueQueueFamilies ={ m_Indices.GraphicsFamily.value(), m_Indices.PresentFamily.value() };
+		std::set<uint32_t> UniqueQueueFamilies ={ m_Indices.GraphicsFamily.value(), m_Indices.PresentFamily.value(), m_Indices.ComputeFamily.value() };
 
 		for( uint32_t QueueFamily : UniqueQueueFamilies )
 		{
@@ -295,6 +302,7 @@ namespace Saturn {
 		// Assign a queue to each family.
 		vkGetDeviceQueue( m_LogicalDevice, m_Indices.GraphicsFamily.value(), 0, &m_GraphicsQueue );
 		vkGetDeviceQueue( m_LogicalDevice, m_Indices.PresentFamily.value(), 0, &m_PresentQueue );
+		vkGetDeviceQueue( m_LogicalDevice, m_Indices.ComputeFamily.value(), 0, &m_ComputeQueue );
 	}
 
 	// Get memory type.
@@ -455,8 +463,48 @@ namespace Saturn {
 		return CommandBuffer;
 	}
 
+	VkCommandBuffer VulkanContext::BeginNewCommandBuffer()
+	{
+		VkCommandBufferAllocateInfo cmdBufAllocateInfo = {};
+		cmdBufAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		cmdBufAllocateInfo.commandPool = m_CommandPool;
+		cmdBufAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		cmdBufAllocateInfo.commandBufferCount = 1;
+
+		VkCommandBuffer CommandBuffer;
+		VK_CHECK( vkAllocateCommandBuffers( m_LogicalDevice, &cmdBufAllocateInfo, &CommandBuffer ) );
+
+		// If requested, also start the new command buffer
+		VkCommandBufferBeginInfo cmdBufferBeginInfo{};
+		cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &cmdBufferBeginInfo ) );
+
+		return CommandBuffer;
+	}
+
+	VkCommandBuffer VulkanContext::CreateComputeCommandBuffer()
+	{
+		VkCommandBufferAllocateInfo cmdBufAllocateInfo = {};
+		cmdBufAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		cmdBufAllocateInfo.commandPool = m_ComputeCommandPool;
+		cmdBufAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		cmdBufAllocateInfo.commandBufferCount = 1;
+
+		VkCommandBuffer CommandBuffer;
+		VK_CHECK( vkAllocateCommandBuffers( m_LogicalDevice, &cmdBufAllocateInfo, &CommandBuffer ) );
+
+		// If requested, also start the new command buffer
+		VkCommandBufferBeginInfo cmdBufferBeginInfo{};
+		cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &cmdBufferBeginInfo ) );
+
+		return CommandBuffer;
+	}
+
 	void VulkanContext::EndSingleTimeCommands( VkCommandBuffer CommandBuffer )
 	{
+		const uint64_t FENCE_TIMEOUT = 100000000000;
+
 		VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
 
 		// Submit the command buffer.
@@ -464,10 +512,18 @@ namespace Saturn {
 		SubmitInfo.commandBufferCount = 1;
 		SubmitInfo.pCommandBuffers = &CommandBuffer;
 
-		VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, VK_NULL_HANDLE ) );
-		VK_CHECK( vkQueueWaitIdle( m_GraphicsQueue ) );
+		VkFenceCreateInfo FenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+		FenceCreateInfo.flags = 0;
+
+		VkFence Fence;
+		VK_CHECK( vkCreateFence( m_LogicalDevice, &FenceCreateInfo, nullptr, &Fence ) );
+
+		VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, Fence ) );
+
+		VK_CHECK( vkWaitForFences( m_LogicalDevice, 1, &Fence, VK_TRUE, FENCE_TIMEOUT ) );
 
 		// Free the command buffer.
+		vkDestroyFence( m_LogicalDevice, Fence, nullptr );
 		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
 	}
 
@@ -479,7 +535,11 @@ namespace Saturn {
 		
 		VK_CHECK( vkCreateCommandPool( m_LogicalDevice, &PoolInfo, nullptr, &m_CommandPool ) );
 
+		PoolInfo.queueFamilyIndex = m_Indices.ComputeFamily.value();
+		VK_CHECK( vkCreateCommandPool( m_LogicalDevice, &PoolInfo, nullptr, &m_ComputeCommandPool) );
+
 		SetDebugUtilsObjectName( "Context Command Pool", (uint64_t)m_CommandPool, VK_OBJECT_TYPE_COMMAND_POOL );
+		SetDebugUtilsObjectName( "Context Compute Command Pool", (uint64_t)m_CommandPool, VK_OBJECT_TYPE_COMMAND_POOL );
 	}
 
 	void VulkanContext::CreateDepthResources()

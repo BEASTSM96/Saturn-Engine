@@ -80,13 +80,6 @@ namespace Saturn {
 		m_PinkTexture->SetIsRendererTexture( true );
 
 		delete[] pData;
-
-		if( Application::Get().GetSpecification().CreateSceneRenderer )
-		{
-			Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
-			// Set 1 is for enviroment data.
-			m_RendererDescriptorSet = shader->CreateDescriptorSet( 1 );
-		}
 	}
 	
 	void Renderer::Terminate()
@@ -237,6 +230,9 @@ namespace Saturn {
 	void Renderer::SetSceneEnvironment( Ref<Image2D> ShadowMap, Ref<EnvironmentMap> Environment, Ref<Texture2D> BDRF )
 	{
 		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
+
+		if( m_RendererDescriptorSet == nullptr )
+			m_RendererDescriptorSet = shader->CreateDescriptorSet( 1 );
 
 		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
 		shader->WriteDescriptor( "u_BRDFLUTTexture", BDRF->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
