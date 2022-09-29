@@ -171,6 +171,9 @@ namespace Saturn {
 		operator bool()       { return m_Pointer != nullptr; }
 		operator bool() const { return m_Pointer != nullptr; }
 
+		bool operator ==( const Ref<T>& rOther ) const { return m_Pointer == rOther.m_Pointer; }
+		bool operator !=( const Ref<T>& rOther ) const { return m_Pointer != rOther.m_Pointer; }
+
 		T* operator->()             { return m_Pointer; }
 		const T* operator->() const { return m_Pointer; }
 
