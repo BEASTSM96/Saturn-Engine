@@ -1039,7 +1039,32 @@ namespace Saturn {
 
 		Environment->CreateMips();
 
+		pipeline = nullptr;
+
 		return Environment;
+	}
+
+	void SceneRenderer::SetDynamicSky( float Turbidity, float Azimuth, float Inclination )
+	{
+		float turbidity = Turbidity;
+		float azimuth = Azimuth;
+		float inclination = Inclination;
+
+		AddScheduledFunction( [&, turbidity, azimuth, inclination]()
+		{
+			m_RendererData.SceneEnvironment->Turbidity = turbidity;
+			m_RendererData.SceneEnvironment->Azimuth = azimuth;
+			m_RendererData.SceneEnvironment->Inclination = inclination;
+
+			m_RendererData.SceneEnvironment->IrradianceMap = nullptr;
+			m_RendererData.SceneEnvironment->RadianceMap = nullptr;
+
+			Ref<TextureCube> map = CreateDymanicSky();
+
+			m_RendererData.SceneEnvironment->IrradianceMap = map;
+			m_RendererData.SceneEnvironment->RadianceMap = map;
+
+		} );
 	}
 
 	void SceneRenderer::RenderScene()
@@ -1059,6 +1084,9 @@ namespace Saturn {
 
 		m_RendererData.CommandBuffer = Renderer::Get().ActiveCommandBuffer();
 		
+		for( auto&& func : m_ScheduledFunctions )
+			func();
+
 		// Passes
 
 		DirShadowMapPass();
@@ -1066,9 +1094,6 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Geometry" );
 
 		GeometryPass();
-
-		for( auto&& func : m_ScheduledFunctions )
-			func();
 		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 		

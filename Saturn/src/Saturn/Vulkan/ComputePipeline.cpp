@@ -45,7 +45,8 @@ namespace Saturn {
 
 	ComputePipeline::~ComputePipeline()
 	{
-		vkDestroyFence( VulkanContext::Get().GetDevice(), s_ComputeFence, nullptr );
+		vkDestroyPipeline( VulkanContext::Get().GetDevice(), m_Pipeline, nullptr );
+		vkDestroyPipelineLayout( VulkanContext::Get().GetDevice(), m_PipelineLayout, nullptr );
 	}
 
 	void ComputePipeline::Bind()
@@ -141,6 +142,9 @@ namespace Saturn {
 		vkWaitForFences( LogicalDevice, 1, &s_ComputeFence, VK_TRUE, UINT64_MAX );
 
 		m_CommandBuffer = nullptr;
+
+		vkDestroyFence( VulkanContext::Get().GetDevice(), s_ComputeFence, nullptr );
+		s_ComputeFence = nullptr;
 	}
 
 	void ComputePipeline::Create()
@@ -173,6 +177,7 @@ namespace Saturn {
 
 		VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &ShaderModuleCreateInfo, nullptr, &ShaderModule ) );
 
+
 		SetDebugUtilsObjectName( "Compute shader module", ( uint64_t ) ShaderModule, VK_OBJECT_TYPE_SHADER_MODULE );
 
 		// Shader stage
@@ -191,7 +196,8 @@ namespace Saturn {
 		ComputePipelineCreateInfo.stage = ShaderStage;
 
 		VK_CHECK( vkCreateComputePipelines( VulkanContext::Get().GetDevice(), nullptr, 1, &ComputePipelineCreateInfo, nullptr, &m_Pipeline ) );
-		SAT_CORE_INFO( "Created compute pipeline" );
+
+		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), ShaderModule, nullptr );
 
 		SetDebugUtilsObjectName( "Compute Pipeline", ( uint64_t ) m_Pipeline, VK_OBJECT_TYPE_PIPELINE );
 	}

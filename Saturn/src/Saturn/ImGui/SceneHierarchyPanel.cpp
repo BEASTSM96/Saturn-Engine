@@ -410,8 +410,7 @@ namespace Saturn {
 				changed |= DrawFloatControl( "Inclination", skl.Inclination );
 
 				if( changed )
-					SceneRenderer::Get().CreateDymanicSky();
-
+					SceneRenderer::Get().SetDynamicSky( skl.Turbidity, skl.Azimuth, skl.Inclination );
 			}
 		} );
 		

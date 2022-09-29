@@ -865,10 +865,7 @@ namespace Saturn {
 		if( m_MipsCreated )
 			return;
 
-		SAT_CORE_INFO( "Creating mip maps..." );
 		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginNewCommandBuffer();
-
-		SAT_CORE_INFO( "Transitioning current mip to VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL..." );
 
 		uint32_t mipLevels = GetMipMapLevels();
 		for( uint32_t face = 0; face < 6; face++ )
@@ -925,8 +922,6 @@ namespace Saturn {
 					VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 					VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
 					mipSubRange );
-
-				SAT_CORE_INFO( "Blit image from mip level {0}, face {1}", i, face );
 
 				// Blit from previous level
 				vkCmdBlitImage(

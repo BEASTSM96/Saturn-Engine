@@ -263,7 +263,8 @@ namespace Saturn {
 		const Ref<Pass> GetGeometryPass() const { return m_RendererData.GeometryPass; }
 
 		Ref<Image2D> CompositeImage();
-		Ref<TextureCube> CreateDymanicSky();
+
+		void SetDynamicSky( float Turbidity, float Azimuth, float Inclination );
 		
 		void Terminate();
 
@@ -290,6 +291,7 @@ namespace Saturn {
 
 		void AddScheduledFunction( ScheduledFunc&& rrFunc );
 
+		Ref<TextureCube> CreateDymanicSky();
 	private:
 
 		RendererData m_RendererData;
