@@ -89,6 +89,8 @@ namespace Saturn {
 
 		out << YAML::EndSeq;
 
+		out << YAML::Key << "Startup Scene" << YAML::Value << rSettings.StartupScene;
+
 		out << YAML::EndMap;
 		
 		auto userSettingsPath = Auxiliary::AppData::Get().GetPath() / "UserSettings.yaml";
@@ -119,6 +121,10 @@ namespace Saturn {
 			if( std::filesystem::exists( path ) )
 				rSettings.RecentProjects.push_back( path );
 		}
+
+		auto scene = data[ "Startup Scene" ];
+
+		rSettings.StartupScene = scene.as<std::string>();
 	}
 
 }

@@ -42,6 +42,7 @@
 
 #include <Saturn/Serialisation/SceneSerialiser.h>
 #include <Saturn/Serialisation/ProjectSerialiser.h>
+#include <Saturn/Serialisation/UserSettingsSerialiser.h>
 
 #include <Saturn/PhysX/PhysXFnd.h>
 
@@ -52,6 +53,10 @@
 #include <ImGuizmo/ImGuizmo.h>
 
 #include <Saturn/Core/Math.h>
+
+#include <Saturn/Core/StringUtills.h>
+
+#include <Saturn/Core/UserSettings.h>
 
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
@@ -164,6 +169,8 @@ namespace Saturn {
 
 		ProjectSerialiser ps;
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
+
+		OpenFile( rUserSettings.StartupScene );
 	}
 
 	EditorLayer::~EditorLayer()
@@ -445,7 +452,22 @@ namespace Saturn {
 		}
 
 		// In the editor we only should flip the image UV, we don't have to flip anything else.
+		ImGui::PushID( "VIEWPORT_IMAGE" );
+
 		Image( SceneRenderer::Get().CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
+
+		if( ImGui::BeginDragDropTarget() )
+		{
+			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM" ) )
+			{
+				const wchar_t* path = ( const wchar_t* ) payload->Data;
+				OpenFile( path );
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
+		ImGui::PopID();
 
 		ImVec2 minBound = ImGui::GetWindowPos();
 		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
@@ -540,20 +562,24 @@ namespace Saturn {
 		}
 	}
 
-	void EditorLayer::OpenFile( const std::string& FileName )
+	void EditorLayer::OpenFile( const std::filesystem::path& rFilepath )
 	{
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+
 		Ref<Scene> newScene = Ref<Scene>::Create();
 
-		SceneSerialiser serialiser( newScene );
-		serialiser.Deserialise( FileName );
+		pHierarchyPanel->SetSelected( {} );
 
-		newScene->CopyScene( m_EditorScene );
+		SceneSerialiser serialiser( newScene );
+		serialiser.Deserialise( rFilepath.string() );
+
+		m_EditorScene = newScene;
 
 		newScene = nullptr;
-		
+
 		pHierarchyPanel->SetContext( m_EditorScene );
-		pHierarchyPanel->SetSelected( {} );
+
+		SceneRenderer::Get().SetCurrentScene( m_EditorScene.Pointer() );
 	}
 
 	void EditorLayer::OpenFile()
@@ -646,7 +672,9 @@ namespace Saturn {
 	void EditorLayer::UI_Titlebar_UserSettings()
 	{
 		auto& userSettings = GetUserSettings();
+
 		auto& startupProject = userSettings.StartupProject;
+		auto& startupScene = userSettings.StartupScene;
 
 		ImGuiIO& rIO = ImGui::GetIO();
 
@@ -666,6 +694,27 @@ namespace Saturn {
 		if( ImGui::Button( "...##openprj" ) )
 		{
 			startupProject = Application::Get().OpenFile( "Saturn project file (*.scene) (*.sc)\0*.scene\0" );
+		}
+
+		ImGui::Text( "Startup Scene:" );
+		ImGui::SameLine();
+		startupScene.empty() ? ImGui::Text( "None" ) : ImGui::Text( startupScene.c_str() );
+		ImGui::SameLine();
+		
+		ImGui::InputText( "##scene", ( char* ) startupScene.c_str(), 256 );
+
+		if( ImGui::BeginDragDropTarget() )
+		{
+			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM" ) )
+			{
+				const wchar_t* path = ( const wchar_t* ) payload->Data;
+
+				std::wstring ws = path;
+
+				startupScene = Auxiliary::ConvertWString( ws );
+			}
+
+			ImGui::EndDragDropTarget();
 		}
 		
 		ImGui::End();

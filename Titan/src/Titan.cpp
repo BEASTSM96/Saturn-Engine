@@ -49,6 +49,9 @@ public:
 		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
 
 		settings = Saturn::GetUserSettings();
+
+		Saturn::UserSettingsSerialiser uss;
+		uss.Deserialise( settings );
 	}
 
 	virtual void OnInit() override
@@ -60,6 +63,9 @@ public:
 
 	virtual void OnShutdown() override
 	{
+		Saturn::UserSettingsSerialiser uss;
+		uss.Serialise( Saturn::GetUserSettings() );
+
 		PopLayer( m_EditorLayer );
 		delete m_EditorLayer;
 	}

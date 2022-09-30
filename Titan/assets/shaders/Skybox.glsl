@@ -37,7 +37,12 @@ layout(location = 0) in vec3 v_Position;
 
 layout(binding = 1) uniform samplerCube u_CubeTexture;
 
+layout(binding = 2) uniform Data 
+{
+	float SkyboxLod;
+} u_Data;
+
 void main() 
 {
-	FinalColor = texture( u_CubeTexture, v_Position );
+	FinalColor = textureLod( u_CubeTexture, v_Position, u_Data.SkyboxLod );
 }

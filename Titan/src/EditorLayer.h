@@ -53,7 +53,7 @@ namespace Saturn {
 		void OnEvent( Event& rEvent ) override;
 		
 		void SaveFileAs();
-		void OpenFile( const std::string& FileName );
+		void OpenFile( const std::filesystem::path& rFilepath );
 
 		void SaveFile();
 		void OpenFile();

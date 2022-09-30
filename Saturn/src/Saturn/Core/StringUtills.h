@@ -31,7 +31,8 @@
 #include "Base.h"
 
 #include <string>
-#include <Windows.h>
+#include <locale>
+#include <codecvt>
 
 namespace Saturn {
 
@@ -39,20 +40,21 @@ namespace Saturn {
 
 		inline std::wstring ConvertString( const std::string& str )
 		{
-#if defined( SAT_WINDOWS )
+			using type = std::codecvt_utf8<wchar_t>;
 
-			int len;
-			int slength = ( int ) str.length() + 1;
-			len = MultiByteToWideChar( CP_ACP, 0, str.c_str(), slength, 0, 0 );
-			std::wstring buf;
-			buf.resize( len );
-			MultiByteToWideChar( CP_ACP, 0, str.c_str(), slength,
-				const_cast< wchar_t* >( buf.c_str() ), len );
-			return buf;
+			std::wstring_convert<type, wchar_t> converter;
 
-#else
-			return L"";
-#endif
+			return converter.from_bytes( str );
 		}
+
+		inline std::string ConvertWString( const std::wstring& str ) 
+		{
+			using type = std::codecvt_utf8<wchar_t>;
+
+			std::wstring_convert<type, wchar_t> converter;
+
+			return converter.to_bytes( str );
+		}
+
 	}
 }

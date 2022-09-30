@@ -262,8 +262,14 @@ namespace Saturn {
 	void Scene::CopyScene( Ref<Scene>& NewScene )
 	{
 		NewScene->m_EntityIDMap = m_EntityIDMap;
+
 		NewScene->m_Name = m_Name;
 		NewScene->m_Filepath = m_Filepath;
+
+		NewScene->m_DirectionalLight[ 0 ] = m_DirectionalLight[ 0 ];
+		NewScene->m_DirectionalLight[ 1 ] = m_DirectionalLight[ 1 ];
+		NewScene->m_DirectionalLight[ 2 ] = m_DirectionalLight[ 2 ];
+		NewScene->m_DirectionalLight[ 3 ] = m_DirectionalLight[ 3 ];
 
 		std::unordered_map< UUID, entt::entity > EntityMap;
 		

@@ -352,7 +352,5 @@ void main()
 	LightingContribution = Lighting( F0 ) * ShadowAmount;
 	iblContribution = IBL( F0, Lr );
 
-	FinalColor = vec4( iblContribution + LightingContribution, 1.0 );
-	//FinalColor = vec4( m_Params.Normal, 1.0 );
-	//FinalColor = vec4( texture( u_EnvIrradianceTex, m_Params.Normal ).rgb, 1.0 );
+	FinalColor = vec4( FinalChecks( iblContribution + LightingContribution ), 1.0 );
 }

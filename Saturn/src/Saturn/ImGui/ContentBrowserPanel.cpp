@@ -204,10 +204,12 @@ namespace Saturn {
 	{
 		if( !rEntry.is_directory() && excludeFiles || rEntry.is_directory() && !excludeFiles )
 			return;
-		
+
 		auto* pDrawList = ImGui::GetWindowDrawList();
 
-		auto path = std::filesystem::relative( rEntry.path(), s_pAssetsDirectory ).string();
+		auto RelativePath = std::filesystem::relative( rEntry.path(), s_pAssetsDirectory );
+		auto path = RelativePath.string();
+
 		std::string filename = rEntry.path().filename().string();
 
 		Ref<Texture2D> Icon = excludeFiles ? m_DirectoryIcon : m_FileIcon;
@@ -248,6 +250,7 @@ namespace Saturn {
 		{
 			// Fill background.
 			pDrawList->AddRectFilled( TopLeft, ThumbnailBottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawCornerFlags_Top );
+
 			// Fill Info area
 			pDrawList->AddRectFilled( InfoTopLeft, BottomRight, IM_COL32( 47, 47, 47, 255 ), 5.0f, ImDrawCornerFlags_Bot );
 
@@ -265,7 +268,7 @@ namespace Saturn {
 
 		// Draw icon.
 		pDrawList->AddImage( Icon->GetDescriptorSet(), TopLeft, ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y ), { 0, 1 }, { 1, 0 } );
-	
+
 		ImGui::SetCursorScreenPos( ImVec2( TopLeft.x + 2.0f, TopLeft.y + ThumbnailSize.y ) );
 
 		if( rEntry.is_directory() ) 
@@ -277,6 +280,19 @@ namespace Saturn {
 		}
 		else
 			ImGui::TextWrapped( filename.c_str() );
+
+		// TODO: Once we have an asset system, this can be way better.
+		if( !excludeFiles && rEntry.path().filename().extension() == ".scene" )
+		{
+			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
+			{
+				const wchar_t* c = rEntry.path().c_str();
+
+				ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+
+				ImGui::EndDragDropSource();
+			}
+		}
 
 		ImGui::PopID();
 
