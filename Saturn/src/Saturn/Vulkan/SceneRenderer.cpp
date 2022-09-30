@@ -355,13 +355,19 @@ namespace Saturn {
 			RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
 			SkyboxMatricesObject.InverseVP = glm::inverse( m_RendererData.EditorCamera.ViewProjection() );
 
-			auto Data = m_RendererData.SkyboxShader->MapUB( ShaderType::Vertex, 0, 0 );
-
-			memcpy( Data, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
-			
-			m_RendererData.SkyboxShader->UnmapUB( ShaderType::Vertex, 0, 0 );
+			m_RendererData.SkyboxShader->UploadUB( ShaderType::Vertex, 0, 0, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
 
 			m_RendererData.SkyboxShader->WriteDescriptor( "u_CubeTexture", m_RendererData.SceneEnvironment->IrradianceMap->GetDescriptorInfo(), m_RendererData.SkyboxDescriptorSet->GetVulkanSet() );
+
+			struct ub_Data
+			{
+				float SkyboxLod;
+			} u_Data;
+
+			u_Data = {};
+			u_Data.SkyboxLod = m_RendererData.SkyboxLod;
+
+			m_RendererData.SkyboxShader->UploadUB( ShaderType::Fragment, 0, 2, &u_Data, sizeof( u_Data ) );
 
 			m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
 
@@ -643,7 +649,14 @@ namespace Saturn {
 			EndTreeNode();
 		}
 
-		if( TreeNode( "Debug", true ) ) 
+		if( TreeNode( "Environment", false ) )
+		{
+			ImGui::DragFloat( "Skybox Lod", &m_RendererData.SkyboxLod, 0.1f, 0.0f, 1000.0f );
+
+			EndTreeNode();
+		}
+
+		if( TreeNode( "Debug", false ) )
 		{
 			if( TreeNode( "Static mesh shader", false ) )
 			{
@@ -845,35 +858,12 @@ namespace Saturn {
 				}
 			}
 
-			auto pData = StaticMeshShader->MapUB( ShaderType::Vertex, 0, 0 );
+			StaticMeshShader->UploadUB( ShaderType::Vertex, 0, 0, &u_Matrices, sizeof( u_Matrices ) );
+			StaticMeshShader->UploadUB( ShaderType::Vertex, 0, 1, &u_LightData, sizeof( u_LightData ) );
 
-			memcpy( pData, &u_Matrices, sizeof( u_Matrices ) );
-
-			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0, 0 );
-
-			pData = StaticMeshShader->MapUB( ShaderType::Vertex, 0, 1 );
-
-			memcpy( pData, &u_LightData, sizeof( u_LightData ) );
-
-			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0, 1 );
-
-			pData = StaticMeshShader->MapUB( ShaderType::Fragment, 0, 2 );
-
-			memcpy( pData, &u_SceneData, sizeof( u_SceneData ) );
-
-			StaticMeshShader->UnmapUB( ShaderType::Fragment, 0, 2 );
-
-			pData = StaticMeshShader->MapUB( ShaderType::Fragment, 0, 3 );
-
-			memcpy( pData, &u_ShadowData, sizeof( u_ShadowData ) );
-
-			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0, 3 );
-
-			pData = StaticMeshShader->MapUB( ShaderType::Fragment, 0, 12 );
-
-			memcpy( pData, &u_DebugData, sizeof( u_DebugData ) );
-
-			StaticMeshShader->UnmapUB( ShaderType::Vertex, 0, 12 );
+			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 2, &u_SceneData, sizeof( u_SceneData ) );
+			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 3, &u_ShadowData, sizeof( u_ShadowData ) );
+			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 12, &u_DebugData, sizeof( u_DebugData ) );
 
 			// Render
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,

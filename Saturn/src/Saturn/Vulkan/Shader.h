@@ -225,6 +225,8 @@ namespace Saturn {
 		void* MapUB( ShaderType Type, uint32_t Set, uint32_t Binding );
 		void UnmapUB( ShaderType Type, uint32_t Set, uint32_t Binding );
 		
+		void UploadUB( ShaderType Type, uint32_t Set, uint32_t Binding, void* pData, size_t Size );
+
 		uint32_t GetDescriptorSetCount() { return m_DescriptorSetCount; }
 
 		Ref<DescriptorSet> CreateDescriptorSet( uint32_t set );

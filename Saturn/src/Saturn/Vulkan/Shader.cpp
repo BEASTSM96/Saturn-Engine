@@ -332,6 +332,15 @@ namespace Saturn {
 		pAllocator->UnmapMemory( bufferAloc );
 	}
 	
+	void Shader::UploadUB( ShaderType Type, uint32_t Set, uint32_t Binding, void* pData, size_t Size )
+	{
+		auto bufferData = MapUB( Type, Set, Binding );
+
+		memcpy( bufferData, pData, Size );
+
+		UnmapUB( Type, Set, Binding );
+	}
+
 	Ref<DescriptorSet> Shader::CreateDescriptorSet( uint32_t set )
 	{
 		DescriptorSetSpecification Specification;

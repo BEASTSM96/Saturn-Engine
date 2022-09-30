@@ -181,6 +181,8 @@ namespace Saturn {
 		VertexBuffer* SkyboxVertexBuffer = nullptr;
 		IndexBuffer* SkyboxIndexBuffer = nullptr;
 
+		float SkyboxLod;
+
 		//////////////////////////////////////////////////////////////////////////
 		
 		// End Geometry
