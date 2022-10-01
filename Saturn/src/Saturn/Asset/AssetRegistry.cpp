@@ -26,78 +26,57 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Project.h"
-
-#include "Saturn/Core/UserSettings.h"
-
-#include "Saturn/Serialisation/UserSettingsSerialiser.h"
-#include "Saturn/Serialisation/ProjectSerialiser.h"
-#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
-
-#include "Saturn/Asset/AssetRegistry.h"
+#include <sppch.h>
+#include "AssetRegistry.h"
 
 namespace Saturn {
-	
-	static Ref<Project> s_ActiveProject;
 
-	Project::Project()
+	AssetRegistry::AssetRegistry()
 	{
+
 	}
 
-	Project::~Project()
+	AssetRegistry::~AssetRegistry()
 	{
+
 	}
 
-	Ref<Project> Project::GetActiveProject()
+	AssetID AssetRegistry::CreateAsset( AssetType type )
 	{
-		return s_ActiveProject;
+		Ref<Asset> asset = Ref<Asset>::Create();
+		asset->SetAssetType( type );
+
+		m_Assets[ asset->GetAssetID() ] = asset;
+
+		return asset->GetAssetID();
 	}
 
-	void Project::SetActiveProject( const Ref<Project>& rProject )
+	Ref<Asset> AssetRegistry::FindAsset( AssetID id )
 	{
-		//SAT_CORE_ASSERT( rProject, "Project must be not be null!" );
-		s_ActiveProject = rProject;
+		return m_Assets[ id ];
 	}
 
-	void Project::CheckMissingAssetRefs()
+	Ref<Asset> AssetRegistry::FindAsset( const std::filesystem::path& rPath )
 	{
-		auto AssetPath = GetAssetPath();
-
-		for( auto& rEntry : std::filesystem::recursive_directory_iterator( AssetPath ) ) 
+		for ( const auto& [id, asset] : m_Assets )
 		{
-			if( rEntry.is_directory() )
-				continue;
-
-			std::filesystem::path filepath = rEntry.path();
-
-			if( filepath.extension() == ".sreg" )
-				continue;
-
-			Ref<Asset> asset = AssetRegistry::Get().FindAsset( filepath );
-
-			if( asset == nullptr ) 
-			{
-				SAT_CORE_INFO( "Found an asset with no asset ref, creating new asset..." );
-
-				auto id = AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( filepath.extension().string() ) );
-				asset = AssetRegistry::Get().FindAsset( id );
-
-				asset->SetPath( filepath );
-			}
+			if( asset->GetPath() == rPath )
+				return asset;
 		}
 
-		AssetRegistrySerialiser ars;
-		ars.Serialise();
+		return nullptr;
 	}
 
-	std::filesystem::path Project::GetAssetPath()
+	void AssetRegistry::SaveAssetRegistry()
 	{
-		return GetActiveProject()->GetConfig().Path;
+
 	}
 
-	const std::string& Project::GetName() const
+	void AssetRegistry::AddAsset( AssetID id )
 	{
-		return GetActiveProject()->GetConfig().Name;
+		SAT_CORE_ASSERT( m_Assets.find( id ) == m_Assets.end(), "Asset already exists!" );
+
+		m_Assets[ id ] = Ref<Asset>::Create();
 	}
+
 }

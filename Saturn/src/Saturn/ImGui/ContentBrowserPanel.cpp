@@ -32,6 +32,10 @@
 #include "UITools.h"
 
 #include "Saturn/Project/Project.h"
+#include "Saturn/Core/App.h"
+#include "Saturn/Asset/AssetRegistry.h"
+
+#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
 #include <imgui_internal.h>
 
@@ -189,6 +193,31 @@ namespace Saturn {
 		ImGui::Columns( 1 );
 
 		ImGui::PopStyleColor( 2 );
+
+		if( ImGui::BeginPopupContextWindow( 0, 1, false ) )	
+		{
+			if( ImGui::MenuItem( "Import" ) ) 
+			{
+				auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg\0" );
+
+				std::filesystem::path path = result;
+
+				if( path.extension() == ".png" || path.extension() == ".tga" || path.extension() == ".jpeg" || path.extension() == ".jpg" ) 
+				{
+					auto id = AssetRegistry::Get().CreateAsset( AssetType::Texture );
+
+					auto asset = AssetRegistry::Get().FindAsset( id );
+
+					asset->SetPath( path );
+
+					AssetRegistrySerialiser ars;
+					ars.Serialise();
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+
 		ImGui::End();
 	}
 
@@ -209,6 +238,9 @@ namespace Saturn {
 
 		auto RelativePath = std::filesystem::relative( rEntry.path(), s_pAssetsDirectory );
 		auto path = RelativePath.string();
+
+		if( RelativePath.extension() == ".sreg" )
+			return;
 
 		std::string filename = rEntry.path().filename().string();
 

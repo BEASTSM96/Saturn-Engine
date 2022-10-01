@@ -26,78 +26,42 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Project.h"
+#pragma once
 
-#include "Saturn/Core/UserSettings.h"
+#include "Asset.h"
 
-#include "Saturn/Serialisation/UserSettingsSerialiser.h"
-#include "Saturn/Serialisation/ProjectSerialiser.h"
-#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
-
-#include "Saturn/Asset/AssetRegistry.h"
+#include <unordered_map>
+#include <unordered_set>
 
 namespace Saturn {
-	
-	static Ref<Project> s_ActiveProject;
 
-	Project::Project()
+	using AssetMap = std::unordered_map< AssetID, Ref<Asset> >;
+
+	class AssetRegistry
 	{
-	}
+		SINGLETON( AssetRegistry );
+	public:
+		AssetRegistry();
+		~AssetRegistry();
 
-	Project::~Project()
-	{
-	}
+		AssetID CreateAsset( AssetType type );
 
-	Ref<Project> Project::GetActiveProject()
-	{
-		return s_ActiveProject;
-	}
+		Ref<Asset> FindAsset( AssetID id );
+		
+		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
 
-	void Project::SetActiveProject( const Ref<Project>& rProject )
-	{
-		//SAT_CORE_ASSERT( rProject, "Project must be not be null!" );
-		s_ActiveProject = rProject;
-	}
+		void SaveAssetRegistry();
 
-	void Project::CheckMissingAssetRefs()
-	{
-		auto AssetPath = GetAssetPath();
+		const AssetMap& GetAssetMap() const { return m_Assets; }
 
-		for( auto& rEntry : std::filesystem::recursive_directory_iterator( AssetPath ) ) 
-		{
-			if( rEntry.is_directory() )
-				continue;
+	private:
+		AssetMap m_Assets;
 
-			std::filesystem::path filepath = rEntry.path();
+	private:
 
-			if( filepath.extension() == ".sreg" )
-				continue;
+		void AddAsset( AssetID id );
 
-			Ref<Asset> asset = AssetRegistry::Get().FindAsset( filepath );
-
-			if( asset == nullptr ) 
-			{
-				SAT_CORE_INFO( "Found an asset with no asset ref, creating new asset..." );
-
-				auto id = AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( filepath.extension().string() ) );
-				asset = AssetRegistry::Get().FindAsset( id );
-
-				asset->SetPath( filepath );
-			}
-		}
-
-		AssetRegistrySerialiser ars;
-		ars.Serialise();
-	}
-
-	std::filesystem::path Project::GetAssetPath()
-	{
-		return GetActiveProject()->GetConfig().Path;
-	}
-
-	const std::string& Project::GetName() const
-	{
-		return GetActiveProject()->GetConfig().Name;
-	}
+	private:
+		friend class AssetRegistrySerialiser;
+	};
 }

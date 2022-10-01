@@ -26,78 +26,18 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Project.h"
-
-#include "Saturn/Core/UserSettings.h"
-
-#include "Saturn/Serialisation/UserSettingsSerialiser.h"
-#include "Saturn/Serialisation/ProjectSerialiser.h"
-#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
-
-#include "Saturn/Asset/AssetRegistry.h"
+#pragma once
 
 namespace Saturn {
-	
-	static Ref<Project> s_ActiveProject;
 
-	Project::Project()
+	class AssetRegistrySerialiser
 	{
-	}
+	public:
+		AssetRegistrySerialiser() = default;
+		~AssetRegistrySerialiser() = default;
 
-	Project::~Project()
-	{
-	}
+		void Serialise();
+		void Deserialise();
+	};
 
-	Ref<Project> Project::GetActiveProject()
-	{
-		return s_ActiveProject;
-	}
-
-	void Project::SetActiveProject( const Ref<Project>& rProject )
-	{
-		//SAT_CORE_ASSERT( rProject, "Project must be not be null!" );
-		s_ActiveProject = rProject;
-	}
-
-	void Project::CheckMissingAssetRefs()
-	{
-		auto AssetPath = GetAssetPath();
-
-		for( auto& rEntry : std::filesystem::recursive_directory_iterator( AssetPath ) ) 
-		{
-			if( rEntry.is_directory() )
-				continue;
-
-			std::filesystem::path filepath = rEntry.path();
-
-			if( filepath.extension() == ".sreg" )
-				continue;
-
-			Ref<Asset> asset = AssetRegistry::Get().FindAsset( filepath );
-
-			if( asset == nullptr ) 
-			{
-				SAT_CORE_INFO( "Found an asset with no asset ref, creating new asset..." );
-
-				auto id = AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( filepath.extension().string() ) );
-				asset = AssetRegistry::Get().FindAsset( id );
-
-				asset->SetPath( filepath );
-			}
-		}
-
-		AssetRegistrySerialiser ars;
-		ars.Serialise();
-	}
-
-	std::filesystem::path Project::GetAssetPath()
-	{
-		return GetActiveProject()->GetConfig().Path;
-	}
-
-	const std::string& Project::GetName() const
-	{
-		return GetActiveProject()->GetConfig().Name;
-	}
 }

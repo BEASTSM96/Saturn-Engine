@@ -456,6 +456,21 @@ namespace Saturn {
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 	}
 
+	void* LoadTextureData( const std::filesystem::path& rPath )
+	{
+		int w, h, c;
+
+		stbi_uc* data;
+
+		data = stbi_load( rPath.string().c_str(), &w, &h, &c, 4 );
+
+		auto rd = data;
+
+		stbi_image_free( data );
+
+		return rd;
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// TEXTURE 2D															//
 	//////////////////////////////////////////////////////////////////////////

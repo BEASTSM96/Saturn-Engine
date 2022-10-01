@@ -32,31 +32,14 @@
 
 #include "Saturn/Vulkan/Texture.h"
 
+#include "Saturn/Asset/Asset.h"
+
 #include <imgui.h>
 #include <filesystem>
 #include <functional>
 
 namespace Saturn {
 	
-	enum class AssetType 
-	{
-		Folder,
-		Texture,
-		StaticMesh,
-		SkeletalMesh,
-		Material,
-		MaterialInstance,
-		Shader,
-		Text_Like_File,
-		Audio,
-		Scene,
-		Prefab,
-		Script,
-		Font,
-		Unknown,
-		COUNT,
-	};
-
 	class ContentBrowserPanel : public Panel
 	{
 	public:
@@ -78,5 +61,13 @@ namespace Saturn {
 
 		Ref< Texture2D > m_DirectoryIcon;
 		Ref< Texture2D > m_FileIcon;
+
+		struct AssetInfo
+		{
+			AssetType Type;
+			std::filesystem::path Path;
+		};
+
+		bool m_RenderCreateWindow = false;
 	};
 }
