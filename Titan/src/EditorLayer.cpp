@@ -43,6 +43,7 @@
 #include <Saturn/Serialisation/SceneSerialiser.h>
 #include <Saturn/Serialisation/ProjectSerialiser.h>
 #include <Saturn/Serialisation/UserSettingsSerialiser.h>
+#include <Saturn/Serialisation/AssetRegistrySerialiser.h>
 
 #include <Saturn/PhysX/PhysXFnd.h>
 
@@ -58,6 +59,9 @@
 
 #include <Saturn/Core/UserSettings.h>
 
+#include <Saturn/Asset/FilesystemWatcher.h>
+#include <Saturn/Asset/AssetRegistry.h>
+
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
 
@@ -67,6 +71,8 @@ namespace Saturn {
 
 	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
 	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
+
+	static bool s_ShowDemoWindow = false;
 
 	EditorLayer::EditorLayer() 
 		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
@@ -132,6 +138,8 @@ namespace Saturn {
 			{
 				if( ImGui::MenuItem( "User settings", "Ctrl+Shift+Alt+S" ) ) m_ShowUserSettings = !m_ShowUserSettings;
 
+				if( ImGui::MenuItem( "Demo", "" ) ) s_ShowDemoWindow ^= 1;
+
 				ImGui::EndMenu();
 			}
 		} );
@@ -171,6 +179,13 @@ namespace Saturn {
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 
 		OpenFile( rUserSettings.StartupScene );
+
+		FilesystemWatcher::Get();
+
+		AssetRegistrySerialiser ars;
+		ars.Deserialise();
+
+		Project::GetActiveProject()->CheckMissingAssetRefs();
 	}
 
 	EditorLayer::~EditorLayer()
@@ -271,6 +286,8 @@ namespace Saturn {
 
 		// Draw widgets.
 		m_Viewport->Draw();
+
+		ImGui::ShowDemoWindow( &s_ShowDemoWindow );
 
 		SceneRenderer::Get().ImGuiRender();
 		
@@ -458,10 +475,20 @@ namespace Saturn {
 
 		if( ImGui::BeginDragDropTarget() )
 		{
-			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM" ) )
+			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE" ) )
 			{
 				const wchar_t* path = ( const wchar_t* ) payload->Data;
 				OpenFile( path );
+			}
+
+			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL" ) )
+			{
+				const wchar_t* path = ( const wchar_t* ) payload->Data;
+				
+				std::filesystem::path p = path;
+
+				auto entity = m_EditorScene->CreateEntity( p.filename().string() );
+				entity.AddComponent<MeshComponent>().Mesh = Ref<Mesh>::Create( p.string() );
 			}
 
 			ImGui::EndDragDropTarget();
@@ -705,7 +732,7 @@ namespace Saturn {
 
 		if( ImGui::BeginDragDropTarget() )
 		{
-			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM" ) )
+			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE" ) )
 			{
 				const wchar_t* path = ( const wchar_t* ) payload->Data;
 

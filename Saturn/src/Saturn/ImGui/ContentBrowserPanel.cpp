@@ -210,8 +210,49 @@ namespace Saturn {
 
 					asset->SetPath( path );
 
+					std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
+
 					AssetRegistrySerialiser ars;
 					ars.Serialise();
+				}
+
+				// Meshes
+				if( path.extension() == ".fbx" || path.extension() == ".gltf" ) 
+				{
+					/*
+					auto id = AssetRegistry::Get().CreateAsset( AssetType::StaticMesh );
+
+					auto asset = AssetRegistry::Get().FindAsset( id );
+
+					asset->SetPath( path );
+
+					std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
+					*/
+
+					if( path.extension() == ".gltf" ) 
+					{
+						auto filename = path.filename().string();
+
+						size_t pos = filename.find_last_of( "/\\" );
+						
+						filename = filename.substr( pos + 1 );
+
+						pos = filename.find_last_of( "." );
+
+						filename = filename.substr( 0, pos );
+
+						auto binaryFile = path.parent_path() / filename += ".bin";
+						auto binaryFileTo = m_CurrentPath / filename += ".bin";
+
+						if( !std::filesystem::exists( binaryFile ) )
+							binaryFile = path.parent_path() / filename += ".glb";
+
+						if( std::filesystem::exists( binaryFile ) )
+							std::filesystem::copy_file( binaryFile, binaryFileTo );
+					}
+
+					//AssetRegistrySerialiser ars;
+					//ars.Serialise();
 				}
 			}
 
@@ -320,7 +361,18 @@ namespace Saturn {
 			{
 				const wchar_t* c = rEntry.path().c_str();
 
-				ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+				ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+
+				ImGui::EndDragDropSource();
+			}
+		}
+		else if( !excludeFiles && rEntry.path().filename().extension() == ".fbx" || rEntry.path().filename().extension() == ".gltf" )
+		{
+			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
+			{
+				const wchar_t* c = rEntry.path().c_str();
+
+				ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
 
 				ImGui::EndDragDropSource();
 			}
