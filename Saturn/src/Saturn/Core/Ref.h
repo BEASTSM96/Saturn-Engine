@@ -183,6 +183,12 @@ namespace Saturn {
 		T* Pointer()             { return m_Pointer; }
 		const T* Pointer() const { return m_Pointer; }
 
+		template <typename T2>
+		Ref<T2> As() const
+		{
+			return Ref<T2>( *this );
+		}
+
 	private:
 
 		void AddRef() const
