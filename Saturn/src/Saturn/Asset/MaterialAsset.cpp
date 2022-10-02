@@ -199,21 +199,29 @@ namespace Saturn {
 
 	void MaterialAsset::SetAlbeoMap( Ref<Texture2D>& rTexture )
 	{
+		m_ValuesChanged = true;
+
 		m_Material->SetResource( "u_AlbedoTexture", rTexture );
 	}
 
 	void MaterialAsset::SetNormalMap( Ref<Texture2D>& rTexture )
 	{
+		m_ValuesChanged = true;
+
 		m_Material->SetResource( "u_NormalTexture", rTexture );
 	}
 
 	void MaterialAsset::SetMetallicMap( Ref<Texture2D>& rTexture )
 	{
+		m_ValuesChanged = true;
+
 		m_Material->SetResource( "u_MetallicTexture", rTexture );
 	}
 
 	void MaterialAsset::SetRoughnessMap( Ref<Texture2D>& rTexture )
 	{
+		m_ValuesChanged = true;
+
 		m_Material->SetResource( "u_RoughnessTexture", rTexture );
 	}
 }
