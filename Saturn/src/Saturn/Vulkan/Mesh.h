@@ -36,6 +36,8 @@
 #include "IndexBuffer.h"
 #include "Material.h"
 
+#include "Saturn/Asset/MaterialAsset.h"
+
 #include <vector>
 #include <string>
 #include <utility>
@@ -145,7 +147,11 @@ namespace Saturn {
 		std::vector< Ref< MaterialInstance > >& GetMaterials() { return m_Materials; }
 		const std::vector< Ref< MaterialInstance > >& GetMaterials() const { return m_Materials; }
 
-		glm::mat4 GetTransform() const { return m_InverseTransform; }
+		std::vector< Ref< MaterialAsset > >& GetMaterialAssets() { return m_MaterialsAssets; }
+		const std::vector< Ref< MaterialAsset > >& GetMaterialAssets() const { return m_MaterialsAssets; }
+
+		glm::mat4 GetInverseTransform() const { return m_InverseTransform; }
+		glm::mat4 GetTransform() const { return m_Transform; }
 
 	public:
 
@@ -162,6 +168,7 @@ namespace Saturn {
 		std::vector<Submesh> m_Submeshes;
 
 		std::vector< Ref< MaterialInstance > > m_Materials;
+		std::vector< Ref< MaterialAsset > > m_MaterialsAssets;
 
 		std::vector<Index> m_Indices;
 		std::vector<uint32_t> m_RealIndices;
@@ -175,6 +182,7 @@ namespace Saturn {
 		std::string m_FilePath;
 
 		glm::mat4 m_InverseTransform;
+		glm::mat4 m_Transform;
 
 		Ref<VertexBuffer> m_VertexBuffer;
 		Ref<IndexBuffer> m_IndexBuffer;

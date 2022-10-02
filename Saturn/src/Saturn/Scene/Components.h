@@ -35,6 +35,8 @@
 #include "Saturn/Vulkan/EnvironmentMap.h"
 #include "Saturn/PhysX/PhysXRigidBody.h"
 
+#include "Saturn/Core/Math.h"
+
 #include "Saturn/Vulkan/Mesh.h"
 
 #include "Saturn/Core/UUID.h"
@@ -89,6 +91,11 @@ namespace Saturn {
 				* glm::scale( glm::mat4( 1.0f ), Scale );
 		}
 		
+		void SetTransform( const glm::mat4& rTransfrom )
+		{
+			Math::DecomposeTransform( rTransfrom, Position, Rotation, Scale );
+		}
+
 		operator glm::mat4 ( ) { return GetTransform(); }
 		operator const glm::mat4& ( ) const { return GetTransform(); }
 	};

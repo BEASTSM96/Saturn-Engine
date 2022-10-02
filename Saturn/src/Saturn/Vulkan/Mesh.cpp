@@ -34,6 +34,13 @@
 #include "DescriptorSet.h"
 #include "MaterialInstance.h"
 
+#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
+#include "Saturn/Serialisation/AssetSerialisers.h"
+
+#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/Asset.h"
+#include "Saturn/Asset/MaterialAsset.h"
+
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -114,6 +121,7 @@ namespace Saturn {
 		m_BaseMaterial = Ref< Material >::Create( m_MeshShader, "Base Material");
 		
 		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation ) );
+		m_Transform		   = Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation );
 		
 		// Get vertex and index data, also creates the vertex/index buffers.
 		GetVetexAndIndexData();
@@ -123,6 +131,8 @@ namespace Saturn {
 
 		// Create material.
 		m_Materials.resize( m_Scene->mNumMaterials );
+		m_MaterialsAssets.resize( m_Scene->mNumMaterials );
+
 		for( size_t m = 0; m < m_Scene->mNumMaterials; m++ )
 		{
 			aiMaterial* material = m_Scene->mMaterials[ m ];
@@ -137,13 +147,25 @@ namespace Saturn {
 			Ref<Texture2D> PinkTexture = Renderer::Get().GetPinkTexture();
 
 			auto mat = Ref<MaterialInstance>::Create( m_BaseMaterial, name.data );
+			auto asset = Ref<MaterialAsset>::Create( Ref<Material>::Create( m_MeshShader, name.data ) );
+
+			auto assetPath = std::filesystem::path( m_FilePath ).parent_path();
+
+			assetPath /= name.data;
+			assetPath += ".smaterial";
+
+			asset->SetPath( assetPath );
+
 			m_Materials[ m ] = mat;
-			
+			m_MaterialsAssets[ m ] = asset;
+
 			aiColor3D color;
 			if( material->Get( AI_MATKEY_COLOR_DIFFUSE, color ) == AI_SUCCESS );
 				mat->Set( "u_Materials.AlbedoColor", glm::vec3( color.r, color.g, color.b ) );
 
-			SAT_CORE_INFO( " Albedo color: {0}", glm::vec3( color.r, color.g, color.g ) );
+			asset->SetAlbeoColor( glm::vec3( color.r, color.g, color.b ) );
+
+			SAT_CORE_INFO( " Albedo color: {0}", glm::vec3( color.r, color.g, color.b ) );
 
 			float shininess, metalness;
 			if( material->Get( AI_MATKEY_SHININESS, shininess ) != aiReturn_SUCCESS )
@@ -181,6 +203,7 @@ namespace Saturn {
 					if( AlbedoTexture )
 					{
 						mat->SetResource( "u_AlbedoTexture", AlbedoTexture );
+						asset->SetAlbeoMap( AlbedoTexture );
 					}
 					else
 					{
@@ -218,6 +241,9 @@ namespace Saturn {
 					{
 						mat->SetResource( "u_NormalTexture", NormalTexture );
 						mat->Set( "u_Materials.UseNormalMap", 1.0f );
+
+						asset->SetNormalMap( NormalTexture );
+						asset->UseNormalMap( 1.0f );
 					}
 					else
 					{
@@ -239,6 +265,8 @@ namespace Saturn {
 
 				mat->Set( "u_Materials.Roughness", roughness );
 
+				asset->SetRoughness( roughness );
+
 				if( HasRoughnessTexture ) 
 				{
 					std::filesystem::path Path = filename;
@@ -256,6 +284,7 @@ namespace Saturn {
 					if( RoughnessTexture )
 					{
 						mat->SetResource( "u_RoughnessTexture", RoughnessTexture );
+						asset->SetRoughnessMap( RoughnessTexture );
 					}
 					else
 					{
@@ -300,6 +329,7 @@ namespace Saturn {
 							{
 								FoundMetalness = true;
 								mat->SetResource( "u_MetallicTexture", MetalnessTexture );
+								asset->SetMetallicMap( MetalnessTexture );
 							}
 							else
 							{
@@ -307,6 +337,7 @@ namespace Saturn {
 							}
 
 							mat->Set( "u_Materials.Metalness", 1.0f );
+							asset->SetMetalness( 1.0f );
 
 							break;
 						}
@@ -317,9 +348,16 @@ namespace Saturn {
 				{
 					mat->SetResource( "u_MetallicTexture", PinkTexture );
 					mat->Set( "u_Materials.Metalness", metalness );
+					asset->SetMetalness( metalness );
 				}
+
+				MaterialAssetSerialiser mas;
+				mas.Serialise( asset );
 			}
 		}
+
+		AssetRegistrySerialiser ars;
+		ars.Serialise();
 	}
 
 	Mesh::Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform ) : m_StaticVertices( vertices ), m_Indices( indices )

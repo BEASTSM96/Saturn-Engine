@@ -30,6 +30,7 @@
 
 #include "Saturn/Core/UUID.h"
 #include "Saturn/Core/Ref.h"
+#include "Saturn/Core/Memory/Buffer.h"
 
 #include <filesystem>
 
@@ -119,6 +120,11 @@ namespace Saturn {
 			return AssetType::Unknown;
 	}
 
+	struct AssetData
+	{
+		Buffer DataBuffer;
+	};
+
 	class Asset : public CountedObj
 	{
 	public:
@@ -133,6 +139,11 @@ namespace Saturn {
 		const AssetID& GetAssetID() const { return m_ID; }
 		
 		void SetPath( std::filesystem::path p ) { m_Path = p; }
+
+		void AssignAssetData( AssetData& rData ) { m_AssetData = std::move( rData ); }
+
+		AssetData& GetAssetData() { return m_AssetData; }
+		const AssetData& GetAssetData() const { return m_AssetData; }
 		
 		std::filesystem::path& GetPath() { return m_Path; }
 		const std::filesystem::path& GetPath() const { return m_Path; }
@@ -140,6 +151,8 @@ namespace Saturn {
 	protected:
 		AssetID m_ID;
 		AssetType m_AssetType;
+
+		AssetData m_AssetData;
 
 		std::filesystem::path m_Path;
 	};

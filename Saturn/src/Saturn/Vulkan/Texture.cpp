@@ -456,7 +456,7 @@ namespace Saturn {
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 	}
 
-	void* LoadTextureData( const std::filesystem::path& rPath )
+	Saturn::Buffer LoadTextureData( const std::filesystem::path& rPath )
 	{
 		int w, h, c;
 
@@ -464,11 +464,11 @@ namespace Saturn {
 
 		data = stbi_load( rPath.string().c_str(), &w, &h, &c, 4 );
 
-		auto rd = data;
+		Saturn::Buffer bf = Buffer( sizeof( data ) / sizeof( *data ) , data );
 
 		stbi_image_free( data );
 
-		return rd;
+		return bf;
 	}
 
 	//////////////////////////////////////////////////////////////////////////

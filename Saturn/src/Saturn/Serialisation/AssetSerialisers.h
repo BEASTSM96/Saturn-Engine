@@ -28,86 +28,21 @@
 
 #pragma once
 
-#include "Material.h"
-
-#include <unordered_set>
+#include "Saturn/Asset/Asset.h"
 
 namespace Saturn {
 
-	class MaterialInstance : public CountedObj
+	class AssetSerialiser
 	{
 	public:
-		MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName );
-		~MaterialInstance();
-
-		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
-
-		template<typename Ty>
-		void Set( const std::string& Name, const Ty& Value )
-		{
-			for( auto& Uniform : m_Uniforms )
-			{
-				if( Uniform.GetName() == Name )
-				{
-					if( Uniform.IsPushConstantData() )
-					{
-						m_PushConstantData.Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
-					}
-					else
-					{
-						Uniform.GetBuffer().Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
-					}
-					
-					break;
-				}
-			}
-		}
-
-		template<typename Ty>
-		Ty& Get( const std::string& Name )
-		{
-			for( auto& Uniform : m_Uniforms )
-			{
-				if( Uniform.GetName() == Name )
-				{
-					if( Uniform.IsPushConstantData() )
-					{
-						return m_PushConstantData.Read< Ty >( Uniform.GetOffset() );
-					}
-					else
-					{
-						return Uniform.GetBuffer().Read< Ty >( Uniform.GetOffset() );
-					}
-				}
-			}
-		}
-
-		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture );
-
-		Ref< Texture2D > GetResource( const std::string& Name );
-
-		Ref< Saturn::Shader >& GetShader() { return m_Material->m_Shader; }
-		
-		Buffer& GetPushConstantData() { return m_PushConstantData; }
-
-		const std::string& GetName() const { return m_Name; }
-
-	private:
-
-		std::string m_Name = "";
-		Ref< Material > m_Material;
-
-		Buffer m_PushConstantData;
-
-		std::vector< ShaderUniform > m_Uniforms;
-		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
-
-		std::unordered_set< std::string > m_OverriddenValues;
-		
-		std::unordered_map< std::string, VkDescriptorImageInfo > m_TextureCache;
-
-	private:
-		friend class Material;
+		virtual void Serialise( const Ref<Asset>& rAsset ) const = 0;
+		virtual void Derialise( const Ref<Asset>& rAsset ) const = 0;
 	};
 
+	class MaterialAssetSerialiser : public AssetSerialiser
+	{
+	public:
+		virtual void Serialise( const Ref<Asset>& rAsset ) const override;
+		virtual void Derialise( const Ref<Asset>& rAsset ) const override;
+	};
 }

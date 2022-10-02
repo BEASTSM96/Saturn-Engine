@@ -30,6 +30,7 @@
 
 #include "Base.h"
 #include "Image2D.h"
+#include "Saturn/Core/Memory/Buffer.h"
 
 #include <filesystem>
 
@@ -56,7 +57,7 @@ namespace Saturn {
 
 	extern void TransitionImageLayout( VkImage Image, VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
 
-	extern void* LoadTextureData( const std::filesystem::path& rPath );
+	extern Saturn::Buffer LoadTextureData( const std::filesystem::path& rPath );
 
 	enum class AddressingMode
 	{
@@ -92,6 +93,8 @@ namespace Saturn {
 		VkImage GetImage() { return m_Image; }
 		VkDescriptorSet GetDescriptorSet() { return m_DescriptorSet; }
 		VkDescriptorImageInfo& GetDescriptorInfo() { return m_DescriptorImageInfo; }
+
+		std::filesystem::path GetPath() { return m_Path; }
 
 		int Width() { return m_Width; }
 		int Height() { return m_Height; }

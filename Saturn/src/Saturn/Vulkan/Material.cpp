@@ -51,14 +51,14 @@ namespace Saturn {
 
 		for ( auto rUniform : m_Shader->GetUniforms())
 		{
-			m_Uniforms.push_back( { rUniform.GetName(), rUniform.GetLocation(), rUniform.GetType(), rUniform.GetSize(), rUniform.GetOffset(), rUniform.GetIsPushConstantData() } );
+			m_Uniforms.push_back( { rUniform.GetName(), rUniform.GetLocation(), rUniform.GetType(), rUniform.GetSize(), rUniform.GetOffset(), rUniform.IsPushConstantData() } );
 		}
 
 		uint32_t Size = 0;
 		
 		for ( auto& rUniform : m_Uniforms )
 		{
-			if( rUniform.GetIsPushConstantData() ) 
+			if( rUniform.IsPushConstantData() ) 
 			{
 				Size += rUniform.GetSize();
 			}
@@ -99,44 +99,6 @@ namespace Saturn {
 
 			Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
 		}
-
-		/*
-		for ( auto& [ ShaderStage, Sets ] : Shader->GetWriteDescriptors() )
-		{
-			for ( auto& [ Name, Set ] : Sets )
-			{
-				if( Set.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ) 
-				{
-					if( Name == "u_ShadowMap" )
-						continue;
-
-					VkDescriptorImageInfo ImageInfo = {};
-					ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					
-
-					if( !m_Textures[ Name ] )
-					{
-						m_Textures[ Name ] = Renderer::Get().GetPinkTexture();
-
-						ImageInfo.imageView = m_Textures[ Name ]->GetImageView();
-						ImageInfo.sampler = m_Textures[ Name ]->GetSampler();
-					}
-					else
-					{
-						ImageInfo.imageView = m_Textures[ Name ]->GetImageView();
-						ImageInfo.sampler = m_Textures[ Name ]->GetSampler();
-					}
-
-					
-				}
-				else if ( Set.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER )
-				{
-					break;
-				}
-
-			}
-		}
-		*/
 	}
 
 	void Material::Unbind()

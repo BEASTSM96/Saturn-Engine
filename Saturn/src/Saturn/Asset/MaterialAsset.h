@@ -28,86 +28,75 @@
 
 #pragma once
 
-#include "Material.h"
+#include "Saturn/Vulkan/Material.h"
 
-#include <unordered_set>
+#include "Asset.h"
 
 namespace Saturn {
 
-	class MaterialInstance : public CountedObj
+	class MaterialAsset : public Asset
 	{
 	public:
-		MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName );
-		~MaterialInstance();
+		MaterialAsset( Ref<Material> material );
+		~MaterialAsset();
+
+		// Texture
+		Ref<Texture2D> GetAlbeoMap();
+		Ref<Texture2D> GetNormalMap();
+		Ref<Texture2D> GetMetallicMap();
+		Ref<Texture2D> GetRoughnessMap();
+
+		// Colors and values
+
+		glm::vec3 GetAlbeoColor();
+		float IsUsingNormalMap();
+		float GetRoughness();
+		float GetMetalness();
+
+		std::string& GetName() { return m_Material->GetName(); }
+		const std::string& GetName() const { return m_Material->GetName(); }
+
+		void SetAlbeoMap( Ref<Texture2D>& rTexture );
+		void SetNormalMap( Ref<Texture2D>& rTexture );
+		void SetMetallicMap( Ref<Texture2D>& rTexture );
+		void SetRoughnessMap( Ref<Texture2D>& rTexture );
+
+		void SetAlbeoColor( glm::vec3 color );
+		void UseNormalMap( bool val );
+		void SetRoughness( float val );
+		void SetMetalness( float val );
+
+		Ref<Texture2D> GetResource( const std::string& rName );
+		void SetResource( const std::string& rName, const Ref<Texture2D>& rTexture );
+
+		template<typename Ty>
+		Ty& Get( const std::string& rName ) 
+		{
+			return m_Material->Get< Ty >( rName );
+		}
+
+		template<typename Ty>
+		void Set( const std::string& rName, const Ty& rValue )
+		{
+			m_ValuesChanged = true;
+
+			return m_Material->Set( rName, rValue );
+		}
 
 		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
 
-		template<typename Ty>
-		void Set( const std::string& Name, const Ty& Value )
-		{
-			for( auto& Uniform : m_Uniforms )
-			{
-				if( Uniform.GetName() == Name )
-				{
-					if( Uniform.IsPushConstantData() )
-					{
-						m_PushConstantData.Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
-					}
-					else
-					{
-						Uniform.GetBuffer().Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
-					}
-					
-					break;
-				}
-			}
-		}
-
-		template<typename Ty>
-		Ty& Get( const std::string& Name )
-		{
-			for( auto& Uniform : m_Uniforms )
-			{
-				if( Uniform.GetName() == Name )
-				{
-					if( Uniform.IsPushConstantData() )
-					{
-						return m_PushConstantData.Read< Ty >( Uniform.GetOffset() );
-					}
-					else
-					{
-						return Uniform.GetBuffer().Read< Ty >( Uniform.GetOffset() );
-					}
-				}
-			}
-		}
-
-		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture );
-
-		Ref< Texture2D > GetResource( const std::string& Name );
-
-		Ref< Saturn::Shader >& GetShader() { return m_Material->m_Shader; }
-		
-		Buffer& GetPushConstantData() { return m_PushConstantData; }
-
-		const std::string& GetName() const { return m_Name; }
+		Buffer GetPushConstantData() { return m_Material->m_PushConstantData; }
 
 	private:
 
-		std::string m_Name = "";
-		Ref< Material > m_Material;
+		void Default();
 
-		Buffer m_PushConstantData;
+	private:
+		Ref<Material> m_Material;
 
-		std::vector< ShaderUniform > m_Uniforms;
-		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
+		bool m_ValuesChanged = false;
 
-		std::unordered_set< std::string > m_OverriddenValues;
-		
 		std::unordered_map< std::string, VkDescriptorImageInfo > m_TextureCache;
-
-	private:
-		friend class Material;
 	};
 
 }

@@ -28,86 +28,131 @@
 
 #pragma once
 
-#include "Material.h"
+#include <yaml-cpp/yaml.h>
 
-#include <unordered_set>
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <filesystem>
 
-namespace Saturn {
+namespace YAML {
 
-	class MaterialInstance : public CountedObj
+	template<>
+	struct convert<glm::vec3>
 	{
-	public:
-		MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName );
-		~MaterialInstance();
-
-		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
-
-		template<typename Ty>
-		void Set( const std::string& Name, const Ty& Value )
+		static Node encode( const glm::vec3& rhs )
 		{
-			for( auto& Uniform : m_Uniforms )
-			{
-				if( Uniform.GetName() == Name )
-				{
-					if( Uniform.IsPushConstantData() )
-					{
-						m_PushConstantData.Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
-					}
-					else
-					{
-						Uniform.GetBuffer().Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
-					}
-					
-					break;
-				}
-			}
+			Node node;
+
+			node.push_back( rhs.x );
+			node.push_back( rhs.y );
+			node.push_back( rhs.z );
+
+			return node;
 		}
 
-		template<typename Ty>
-		Ty& Get( const std::string& Name )
+		static bool decode( const Node& node, glm::vec3& rhs )
 		{
-			for( auto& Uniform : m_Uniforms )
-			{
-				if( Uniform.GetName() == Name )
-				{
-					if( Uniform.IsPushConstantData() )
-					{
-						return m_PushConstantData.Read< Ty >( Uniform.GetOffset() );
-					}
-					else
-					{
-						return Uniform.GetBuffer().Read< Ty >( Uniform.GetOffset() );
-					}
-				}
-			}
+			if( !node.IsSequence() || node.size() != 3 )
+				return false;
+
+			rhs.x = node[ 0 ].as<float>();
+			rhs.y = node[ 1 ].as<float>();
+			rhs.z = node[ 2 ].as<float>();
+
+			return true;
 		}
-
-		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture );
-
-		Ref< Texture2D > GetResource( const std::string& Name );
-
-		Ref< Saturn::Shader >& GetShader() { return m_Material->m_Shader; }
-		
-		Buffer& GetPushConstantData() { return m_PushConstantData; }
-
-		const std::string& GetName() const { return m_Name; }
-
-	private:
-
-		std::string m_Name = "";
-		Ref< Material > m_Material;
-
-		Buffer m_PushConstantData;
-
-		std::vector< ShaderUniform > m_Uniforms;
-		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
-
-		std::unordered_set< std::string > m_OverriddenValues;
-		
-		std::unordered_map< std::string, VkDescriptorImageInfo > m_TextureCache;
-
-	private:
-		friend class Material;
 	};
 
+	template<>
+	struct convert<glm::vec4>
+	{
+		static Node encode( const glm::vec4& rhs )
+		{
+			Node node;
+
+			node.push_back( rhs.x );
+			node.push_back( rhs.y );
+			node.push_back( rhs.z );
+			node.push_back( rhs.w );
+
+			return node;
+		}
+
+		static bool decode( const Node& node, glm::vec4& rhs )
+		{
+			if( !node.IsSequence() || node.size() != 4 )
+				return false;
+
+			rhs.x = node[ 0 ].as<float>();
+			rhs.y = node[ 1 ].as<float>();
+			rhs.z = node[ 2 ].as<float>();
+			rhs.w = node[ 3 ].as<float>();
+
+			return true;
+		}
+	};
+
+	template<>
+	struct convert<glm::quat>
+	{
+		static Node encode( const glm::quat& rhs )
+		{
+			Node node;
+
+			node.push_back( rhs.x );
+			node.push_back( rhs.y );
+			node.push_back( rhs.z );
+			node.push_back( rhs.w );
+
+			return node;
+		}
+
+		static bool decode( const Node& node, glm::quat& rhs )
+		{
+			if( !node.IsSequence() || node.size() != 4 )
+				return false;
+
+			rhs.x = node[ 0 ].as<float>();
+			rhs.y = node[ 1 ].as<float>();
+			rhs.z = node[ 2 ].as<float>();
+			rhs.w = node[ 3 ].as<float>();
+
+			return true;
+		}
+	};
+
+	template <>
+	struct convert<std::filesystem::path>
+	{
+		static Node encode( std::filesystem::path rhs )
+		{
+			return Node( rhs.string() );
+		}
+
+		static bool decode( const Node& node, std::filesystem::path& rhs )
+		{
+			rhs = node.as<std::string>();
+
+			return true;
+		}
+	};
+
+	inline Emitter& operator<<( Emitter& emitter, const std::filesystem::path& v )
+	{
+		return emitter.Write( v.string() );
+	}
+
+	inline Emitter& operator<<( Emitter& out, const glm::vec3& vec )
+	{
+		out << Flow;
+		out << BeginSeq << vec.x << vec.y << vec.z << EndSeq;
+		return out;
+	}
+
+	inline Emitter& operator<<( Emitter& out, const glm::vec4& vec )
+	{
+		out << Flow;
+		out << BeginSeq << vec.x << vec.y << vec.z << vec.w << EndSeq;
+		return out;
+	}
 }

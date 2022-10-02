@@ -50,8 +50,6 @@ namespace Saturn {
 		
 		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
 
-		void SaveAssetRegistry();
-
 		const AssetMap& GetAssetMap() const { return m_Assets; }
 
 	private:

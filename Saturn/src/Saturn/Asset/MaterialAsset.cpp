@@ -27,71 +27,108 @@
 */
 
 #include "sppch.h"
-#include "MaterialInstance.h"
+#include "MaterialAsset.h"
 
-#include "Mesh.h"
-#include "Renderer.h"
-#include "DescriptorSet.h"
-
-// TODO: Come up with a proper way of handling uniforms and textures so we don't have to copy them.
-// TODO: When we have an asset manager, this needs to be re-worked!
-// SELF: Please create a material instance viewer!
+#include "Saturn/Vulkan/Renderer.h"
+#include "Saturn/Serialisation/AssetSerialisers.h"
 
 namespace Saturn {
 
-	MaterialInstance::MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName )
+	MaterialAsset::MaterialAsset( Ref<Material> material )
+		: m_Material( material )
 	{
-		m_Material = rMaterial;
-		m_Name = rName;
-		
-		for( auto&& [ name, texture ] : m_Material->m_Textures )
-		{
-			m_Textures[ name ] = nullptr;
-		}
-
-		for( auto rUniform : m_Material->m_Uniforms )
-		{
-			m_Uniforms.push_back( { rUniform.GetName(), rUniform.GetLocation(), rUniform.GetType(), rUniform.GetSize(), rUniform.GetOffset(), rUniform.IsPushConstantData() } );
-		}
-		
-		uint32_t Size = 0;
-
-		for( auto& rUniform : m_Uniforms )
-		{
-			if( rUniform.IsPushConstantData() )
-			{
-				Size += rUniform.GetSize();
-			}
-		}
-
-		m_PushConstantData.Allocate( Size );
-		m_PushConstantData.Zero_Memory();
+		Default();
 	}
 
-	MaterialInstance::~MaterialInstance()
+	MaterialAsset::~MaterialAsset()
 	{
-		for( auto& uniform : m_Uniforms )
-			uniform.Terminate();
-
-		for( auto& [key, texture] : m_Textures )
-		{
-			if( !texture )
-				continue;
-
-			if( texture->IsRendererTexture() )
-				continue;
-
-			texture = nullptr;
-		}
-
-		m_Material = nullptr;
 	}
 
-	void MaterialInstance::Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader )
+	void MaterialAsset::Default()
+	{
+		m_Material->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+		m_Material->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
+		m_Material->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
+		m_Material->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
+
+		m_Material->Set<glm::vec3>( "u_Materials.AlbedoColor", { 1.0f, 1.0f, 1.0f } );
+		m_Material->Set<float>( "u_Materials.Metalness", 1.0f );
+		m_Material->Set<float>( "u_Materials.Roughness", 1.0f );
+		m_Material->Set<float>( "u_Materials.UseNormalMap", 0.0f );
+	}
+
+	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetAlbeoMap()
+	{
+		return m_Material->GetResource( "u_AlbedoTexture" );
+	}
+
+	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetNormalMap()
+	{
+		return m_Material->GetResource( "u_NormalTexture" );
+	}
+
+	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetMetallicMap()
+	{
+		return m_Material->GetResource( "u_MetallicTexture" );
+	}
+
+	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetRoughnessMap()
+	{
+		return m_Material->GetResource( "u_RoughnessTexture" );
+	}
+
+	glm::vec3 MaterialAsset::GetAlbeoColor()
+	{
+		return m_Material->Get<glm::vec3>( "u_Materials.AlbedoColor" );
+	}
+
+	void MaterialAsset::SetAlbeoColor( glm::vec3 color )
+	{
+		m_ValuesChanged = true;
+
+		m_Material->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
+	}
+
+	void MaterialAsset::UseNormalMap( bool val )
+	{
+		m_ValuesChanged = true;
+
+		m_Material->Set<float>( "u_Materials.UseNormalMap", val );
+	}
+
+	void MaterialAsset::SetRoughness( float val )
+	{
+		m_ValuesChanged = true;
+
+		m_Material->Set<float>( "u_Materials.Roughness", val );
+	}
+
+	void MaterialAsset::SetMetalness( float val )
+	{
+		m_ValuesChanged = true;
+
+		m_Material->Set<float>( "u_Materials.Metalness", val );
+	}
+
+	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetResource( const std::string& rName )
+	{
+		return m_Material->GetResource( rName );
+	}
+
+	void MaterialAsset::SetResource( const std::string& rName, const Ref<Texture2D>& rTexture )
+	{
+		m_ValuesChanged = true;
+
+		m_Material->SetResource( rName, rTexture );
+	}
+
+	void MaterialAsset::Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader )
 	{
 		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
 
-		for( auto& [name, texture] : m_Textures )
+		auto& textures = m_Material->GetTextures();
+
+		for( auto& [name, texture] : textures )
 		{
 			// Check if the texture even exists in the cache.
 			if( m_TextureCache.find( name ) == m_TextureCache.end() )
@@ -111,7 +148,7 @@ namespace Saturn {
 				{
 					m_TextureCache[ name ] = texture->GetDescriptorInfo();
 					Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
-					
+
 					continue;
 				}
 			}
@@ -120,10 +157,10 @@ namespace Saturn {
 			VkDescriptorImageInfo ImageInfo = {};
 			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			if( m_Textures[ name ] )
+			if( textures[ name ] )
 			{
-				ImageInfo.imageView = m_Textures[ name ]->GetImageView();
-				ImageInfo.sampler = m_Textures[ name ]->GetSampler();
+				ImageInfo.imageView = textures[ name ]->GetImageView();
+				ImageInfo.sampler = textures[ name ]->GetSampler();
 			}
 			else
 			{
@@ -135,16 +172,48 @@ namespace Saturn {
 
 			Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
 		}
+
+		if( m_ValuesChanged ) 
+		{
+			MaterialAssetSerialiser mas;
+			mas.Serialise( this );
+
+			m_ValuesChanged = false;
+		}
 	}
 
-	void MaterialInstance::SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture )
+	float MaterialAsset::IsUsingNormalMap()
 	{
-		m_Textures[ Name ] = Texture;
+		return m_Material->Get<float>( "u_Materials.UseNormalMap");
 	}
 
-	Saturn::Ref< Saturn::Texture2D > MaterialInstance::GetResource( const std::string& Name )
+	float MaterialAsset::GetRoughness()
 	{
-		return m_Textures[ Name ];
+		return m_Material->Get<float>( "u_Materials.Roughness");
 	}
 
+	float MaterialAsset::GetMetalness()
+	{
+		return m_Material->Get<float>( "u_Materials.Metalness");
+	}
+
+	void MaterialAsset::SetAlbeoMap( Ref<Texture2D>& rTexture )
+	{
+		m_Material->SetResource( "u_AlbedoTexture", rTexture );
+	}
+
+	void MaterialAsset::SetNormalMap( Ref<Texture2D>& rTexture )
+	{
+		m_Material->SetResource( "u_NormalTexture", rTexture );
+	}
+
+	void MaterialAsset::SetMetallicMap( Ref<Texture2D>& rTexture )
+	{
+		m_Material->SetResource( "u_MetallicTexture", rTexture );
+	}
+
+	void MaterialAsset::SetRoughnessMap( Ref<Texture2D>& rTexture )
+	{
+		m_Material->SetResource( "u_RoughnessTexture", rTexture );
+	}
 }

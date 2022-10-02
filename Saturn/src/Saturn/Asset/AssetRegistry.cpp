@@ -67,11 +67,6 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	void AssetRegistry::SaveAssetRegistry()
-	{
-
-	}
-
 	void AssetRegistry::AddAsset( AssetID id )
 	{
 		SAT_CORE_ASSERT( m_Assets.find( id ) == m_Assets.end(), "Asset already exists!" );

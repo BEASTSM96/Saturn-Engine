@@ -27,141 +27,95 @@
 */
 
 #include "sppch.h"
-#include "AssetRegistrySerialiser.h"
-#include "Saturn/Asset/AssetRegistry.h"
+#include "AssetSerialisers.h"
 
-#include "Saturn/Project/Project.h"
+#include "YamlAux.h"
 
-#include <fstream>
+#include "Saturn/Asset/MaterialAsset.h"
+
 #include <yaml-cpp/yaml.h>
-
-namespace YAML {
-
-	template <>
-	struct convert<std::filesystem::path>
-	{
-		static Node encode( std::filesystem::path rhs )
-		{
-			return Node( rhs.string() );
-		}
-
-		static bool decode( const Node& node, std::filesystem::path& rhs )
-		{
-			rhs = node.as<std::string>();
-
-			return true;
-		}
-	};
-
-	inline Emitter& operator<<( Emitter& emitter, const std::filesystem::path& v )
-	{
-		return emitter.Write( v.string() );
-	}
-
-	template <>
-	struct convert<uint8_t*>
-	{
-		static Node encode( uint8_t* rhs )
-		{
-			return Node( rhs );
-		}
-
-		static bool decode( const Node& node, uint8_t* rhs )
-		{
-			rhs = node.as<uint8_t*>();
-			return true;
-		}
-	};
-
-	inline Emitter& operator<<( Emitter& emitter, uint8_t* v )
-	{
-		return emitter.Write( (char)v );
-	}
-}
+#include <fstream>
 
 namespace Saturn {
 
-	void AssetRegistrySerialiser::Serialise()
-	{
-		YAML::Emitter out;
+	//////////////////////////////////////////////////////////////////////////
+	// MATERIAL
 
-		auto& Assets = AssetRegistry::Get().GetAssetMap();
+	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
+	{
+		auto materialAsset = rAsset.As<MaterialAsset>();
+
+		YAML::Emitter out;
 
 		out << YAML::BeginMap;
 
-		out << YAML::Key << "Assets";
+		out << YAML::Key << "Material" << YAML::Value;
 
-		out << YAML::BeginSeq;
+		out << YAML::BeginMap;
 
-		for( const auto& [id, asset] : Assets )
-		{
-			out << YAML::BeginMap;
+		out << YAML::Key << "AlbedoColor" << YAML::Value << materialAsset->GetAlbeoColor();
+		out << YAML::Key << "AlbedoPath" << YAML::Value << materialAsset->GetAlbeoMap()->GetPath();
 
-			out << YAML::Key << "Asset" << YAML::Value << id;
+		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
+		out << YAML::Key << "NormalPath" << YAML::Value << materialAsset->GetNormalMap()->GetPath();
 
-			out << YAML::Key << "Path" << YAML::Value << asset->GetPath();
+		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
+		out << YAML::Key << "MetalnessPath" << YAML::Value << materialAsset->GetMetallicMap()->GetPath();
 
-			out << YAML::Key << "Type" << YAML::Value << AssetTypeToString( asset->GetAssetType() );
-
-			/*
-			out << YAML::Key << "AssetData";
-
-			out << YAML::BeginMap;
-
-			out << YAML::Key << "Size" << YAML::Value << data.DataBuffer.Size;
-
-			out << YAML::Key << "Data" << YAML::Value << data.DataBuffer.Data;
-
-			out << YAML::EndMap;
-			*/
-
-			out << YAML::EndMap;
-		}
-
-		out << YAML::EndSeq;
+		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
+		out << YAML::Key << "RoughnessPath" << YAML::Value << materialAsset->GetRoughnessMap()->GetPath();
 
 		out << YAML::EndMap;
+		out << YAML::EndMap;
 
-		auto project = Project::GetActiveProject();
-
-		auto assetDir = project->GetAssetPath();
-
-		std::ofstream stream( assetDir /= "AssetRegistry.sreg" );
-		stream << out.c_str();
+		std::ofstream file( rAsset->GetPath() );
+		file << out.c_str();
 	}
 
-	void AssetRegistrySerialiser::Deserialise()
+	void MaterialAssetSerialiser::Derialise( const Ref<Asset>& rAsset ) const
 	{
-		auto project = Project::GetActiveProject();
-		auto assetDir = project->GetAssetPath();
-		assetDir /= "AssetRegistry.sreg";
+		auto materialAsset = rAsset.As<MaterialAsset>();
 
-		std::ifstream FileIn( assetDir );
+		std::ifstream FileIn( rAsset->GetPath() );
+
 		std::stringstream ss;
 		ss << FileIn.rdbuf();
 
 		YAML::Node data = YAML::Load( ss.str() );
 
-		auto assets = data[ "Assets" ];
-
-		if( assets.IsNull() )
+		if( data.IsNull() )
 			return;
 
-		for( auto asset : assets )
-		{
-			UUID assetID = asset[ "Asset" ].as< uint64_t >();
+		auto materialData = data[ "Material" ];
 
-			auto path = asset[ "Path" ].as< std::filesystem::path >();
+		auto albedoColor = materialData[ "AlbedoColor" ].as<glm::vec3>();
+		auto albedoPath  = materialData[ "AlbedoPath" ].as<std::filesystem::path>();
 
-			auto type = asset[ "Type" ].as< std::string >();
+		auto texture = Ref<Texture2D>::Create( albedoPath, AddressingMode::Repeat );
 
-			AssetRegistry::Get().AddAsset( assetID );
+		materialAsset->SetAlbeoColor( albedoColor );
+		materialAsset->SetAlbeoMap( texture );
 
-			Ref<Asset> DeserialisedAsset = AssetRegistry::Get().FindAsset( assetID );
+		auto useNormal = materialData[ "UseNormal" ].as<bool>();
+		auto normalPath = materialData[ "NormalPath" ].as<std::filesystem::path>();
 
-			DeserialisedAsset->SetPath( path );
-			DeserialisedAsset->SetAssetType( AssetTypeFromString( type ) );
-		}
+		texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat );
+		materialAsset->UseNormalMap( useNormal );
+		materialAsset->SetNormalMap( texture );
+
+		auto metalness = materialData[ "Metalness" ].as<float>();
+		auto metallicPath = materialData[ "MetalnessPath" ].as<std::filesystem::path>();
+
+		texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat );
+		materialAsset->SetMetalness( metalness);
+		materialAsset->SetMetallicMap( texture );
+
+		auto val = materialData[ "Roughness" ].as<float>();
+		auto roughnessPath = materialData[ "RoughnessPath" ].as<std::filesystem::path>();
+
+		texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat );
+		materialAsset->SetRoughness( val );
+		materialAsset->SetRoughnessMap( texture );
 	}
 
 }

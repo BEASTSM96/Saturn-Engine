@@ -208,9 +208,19 @@ namespace Saturn {
 
 					auto asset = AssetRegistry::Get().FindAsset( id );
 
-					asset->SetPath( path );
-
 					std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
+
+					asset->SetPath( m_CurrentPath / path.filename() );
+
+					/*
+					AssetData d = {};
+
+					auto TextureData = LoadTextureData( path );
+
+					d.DataBuffer = TextureData;
+
+					asset->AssignAssetData( d );
+					*/
 
 					AssetRegistrySerialiser ars;
 					ars.Serialise();
@@ -219,15 +229,13 @@ namespace Saturn {
 				// Meshes
 				if( path.extension() == ".fbx" || path.extension() == ".gltf" ) 
 				{
-					/*
 					auto id = AssetRegistry::Get().CreateAsset( AssetType::StaticMesh );
 
 					auto asset = AssetRegistry::Get().FindAsset( id );
 
-					asset->SetPath( path );
-
 					std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
-					*/
+
+					asset->SetPath( m_CurrentPath / path.filename() );
 
 					if( path.extension() == ".gltf" ) 
 					{
@@ -251,9 +259,25 @@ namespace Saturn {
 							std::filesystem::copy_file( binaryFile, binaryFileTo );
 					}
 
-					//AssetRegistrySerialiser ars;
-					//ars.Serialise();
+					AssetRegistrySerialiser ars;
+					ars.Serialise();
 				}
+			}
+
+			if( ImGui::BeginMenu( "Create" ) ) 
+			{
+				if( ImGui::MenuItem( "Material" ) ) 
+				{
+					auto id = AssetRegistry::Get().CreateAsset( AssetType::Material );
+					auto asset = AssetRegistry::Get().FindAsset( id );
+
+					asset->SetPath( m_CurrentPath / "Untitled Material.smaterial" );
+
+					AssetRegistrySerialiser urs;
+					urs.Serialise();
+				}
+
+				ImGui::EndMenu();
 			}
 
 			ImGui::EndPopup();

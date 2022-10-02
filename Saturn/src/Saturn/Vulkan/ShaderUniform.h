@@ -88,7 +88,7 @@ namespace Saturn {
 		const std::string& GetName() const { return m_Name; }
 		int GetLocation() const { return m_Location; }
 		ShaderDataType GetType() const { return m_Type; }
-		bool GetIsPushConstantData() const { return m_IsPushConstantData; }
+		bool IsPushConstantData() const { return m_IsPushConstantData; }
 
 		Buffer& GetBuffer() { return m_Data; }
 		const Buffer& GetBuffer() const { return m_Data; }

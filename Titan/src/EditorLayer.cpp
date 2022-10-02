@@ -59,7 +59,6 @@
 
 #include <Saturn/Core/UserSettings.h>
 
-#include <Saturn/Asset/FilesystemWatcher.h>
 #include <Saturn/Asset/AssetRegistry.h>
 
 #include <glfw/glfw3.h>
@@ -179,8 +178,6 @@ namespace Saturn {
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 
 		OpenFile( rUserSettings.StartupScene );
-
-		FilesystemWatcher::Get();
 
 		AssetRegistrySerialiser ars;
 		ars.Deserialise();
@@ -322,17 +319,13 @@ namespace Saturn {
 
 					ImGui::Separator();
 
-					for ( auto& rMaterial : mesh->GetMaterials() )
+					for ( auto& rMaterial : mesh->GetMaterialAssets() )
 					{
 						if( ImGui::CollapsingHeader( rMaterial->GetName().c_str() ) ) 
 						{
 							ImGui::PushID( rMaterial->GetName().c_str() );
 
 							ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
-
-							ImGui::Separator();
-
-							ImGui::Text( "Shader: %s", rMaterial->GetShader()->GetName().c_str() );
 
 							ImGui::Separator();
 

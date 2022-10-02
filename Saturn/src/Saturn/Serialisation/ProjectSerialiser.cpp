@@ -29,32 +29,10 @@
 #include "sppch.h"
 #include "ProjectSerialiser.h"
 
+#include "YamlAux.h"
+
 #include <fstream>
 #include <yaml-cpp/yaml.h>
-
-namespace YAML {
-
-	template <>
-	struct convert<std::filesystem::path>
-	{
-		static Node encode( std::filesystem::path rhs )
-		{
-			return Node( rhs.string() );
-		}
-
-		static bool decode( const Node& node, std::filesystem::path& rhs )
-		{
-			rhs = node.as<std::string>();
-
-			return true;
-		}
-	};
-
-	inline Emitter& operator<<( Emitter& emitter, const std::filesystem::path& v ) 
-	{
-		return emitter.Write( v.string() );
-	}
-}
 
 namespace Saturn {
 
