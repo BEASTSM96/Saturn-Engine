@@ -80,7 +80,7 @@ namespace Saturn {
 		{
 			m_ValuesChanged = true;
 
-			return m_Material->Set( rName, rValue );
+			m_Material->Set( rName, rValue );
 		}
 
 		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );

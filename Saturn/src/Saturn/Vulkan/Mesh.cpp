@@ -146,18 +146,37 @@ namespace Saturn {
 
 			Ref<Texture2D> PinkTexture = Renderer::Get().GetPinkTexture();
 
-			auto mat = Ref<MaterialInstance>::Create( m_BaseMaterial, name.data );
-			auto asset = Ref<MaterialAsset>::Create( Ref<Material>::Create( m_MeshShader, name.data ) );
-
 			auto assetPath = std::filesystem::path( m_FilePath ).parent_path();
 
 			assetPath /= name.data;
 			assetPath += ".smaterial";
 
+			Ref<MaterialAsset> asset = nullptr;
+
+			auto mat = Ref<MaterialInstance>::Create( m_BaseMaterial, name.data );
+			m_Materials[ m ] = mat;
+
+			asset = Ref<MaterialAsset>::Create( Ref<Material>::Create( m_MeshShader, name.data ) );
+
+			// Check if our material assets already exists in the registry 
+			if( AssetRegistry::Get().FindAsset( assetPath ) ) 
+			{
+				asset->SetPath( assetPath );
+				asset->SetAssetType( AssetType::Material );
+
+				MaterialAssetSerialiser mas;
+				mas.Derialise( asset );
+
+				m_MaterialsAssets[ m ] = asset;
+				continue;
+			}
+			else
+			{
+				m_MaterialsAssets[ m ] = asset;
+			}
+
 			asset->SetPath( assetPath );
 
-			m_Materials[ m ] = mat;
-			m_MaterialsAssets[ m ] = asset;
 
 			aiColor3D color;
 			if( material->Get( AI_MATKEY_COLOR_DIFFUSE, color ) == AI_SUCCESS );

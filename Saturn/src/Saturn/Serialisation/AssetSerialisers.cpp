@@ -32,6 +32,7 @@
 #include "YamlAux.h"
 
 #include "Saturn/Asset/MaterialAsset.h"
+#include "Saturn/Vulkan/Renderer.h"
 
 #include <yaml-cpp/yaml.h>
 #include <fstream>
@@ -91,29 +92,38 @@ namespace Saturn {
 		auto albedoColor = materialData[ "AlbedoColor" ].as<glm::vec3>();
 		auto albedoPath  = materialData[ "AlbedoPath" ].as<std::filesystem::path>();
 
-		auto texture = Ref<Texture2D>::Create( albedoPath, AddressingMode::Repeat );
+		Ref<Texture2D> texture = Renderer::Get().GetPinkTexture();
+
+		if( albedoPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( albedoPath, AddressingMode::Repeat );
 
 		materialAsset->SetAlbeoColor( albedoColor );
 		materialAsset->SetAlbeoMap( texture );
 
-		auto useNormal = materialData[ "UseNormal" ].as<bool>();
+		auto useNormal = materialData[ "UseNormal" ].as<float>();
 		auto normalPath = materialData[ "NormalPath" ].as<std::filesystem::path>();
 
-		texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat );
+		if( normalPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat );
+
 		materialAsset->UseNormalMap( useNormal );
 		materialAsset->SetNormalMap( texture );
 
 		auto metalness = materialData[ "Metalness" ].as<float>();
 		auto metallicPath = materialData[ "MetalnessPath" ].as<std::filesystem::path>();
 
-		texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat );
+		if( metallicPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat );
+
 		materialAsset->SetMetalness( metalness);
 		materialAsset->SetMetallicMap( texture );
 
 		auto val = materialData[ "Roughness" ].as<float>();
 		auto roughnessPath = materialData[ "RoughnessPath" ].as<std::filesystem::path>();
 
-		texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat );
+		if( roughnessPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat );
+
 		materialAsset->SetRoughness( val );
 		materialAsset->SetRoughnessMap( texture );
 	}

@@ -116,6 +116,8 @@ namespace Saturn {
 			return AssetType::Audio;
 		else if( str == ".scene" )
 			return AssetType::Scene;
+		else if( str == ".smaterial" )
+			return AssetType::Material;
 		else
 			return AssetType::Unknown;
 	}
