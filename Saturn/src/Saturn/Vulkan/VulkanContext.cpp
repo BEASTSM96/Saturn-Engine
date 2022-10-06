@@ -363,6 +363,23 @@ namespace Saturn {
 		return Data;
 	}
 
+	VkSampleCountFlagBits VulkanContext::GetMaxUsableMSAASamples()
+	{
+		VkPhysicalDeviceProperties props;
+		vkGetPhysicalDeviceProperties( m_PhysicalDevice, &props );
+
+		VkSampleCountFlags counts = props.limits.framebufferColorSampleCounts & props.limits.framebufferDepthSampleCounts;
+
+		if( counts & VK_SAMPLE_COUNT_64_BIT ) { return VK_SAMPLE_COUNT_64_BIT; }
+		if( counts & VK_SAMPLE_COUNT_32_BIT ) { return VK_SAMPLE_COUNT_32_BIT; }
+		if( counts & VK_SAMPLE_COUNT_16_BIT ) { return VK_SAMPLE_COUNT_16_BIT; }
+		if( counts & VK_SAMPLE_COUNT_8_BIT ) { return VK_SAMPLE_COUNT_8_BIT; }
+		if( counts & VK_SAMPLE_COUNT_4_BIT ) { return VK_SAMPLE_COUNT_4_BIT; }
+		if( counts & VK_SAMPLE_COUNT_2_BIT ) { return VK_SAMPLE_COUNT_2_BIT; }
+
+		return VK_SAMPLE_COUNT_1_BIT;
+	}
+
 	void VulkanContext::OnEvent( Event& e )
 	{
 	}

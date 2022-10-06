@@ -114,6 +114,8 @@ namespace Saturn {
 		std::vector< PhysicalDeviceProperties > GetPhysicalDeviceProperties() { return m_DeviceProps; }
 		std::vector< PhysicalDeviceProperties > const GetPhysicalDeviceProperties() const { return m_DeviceProps; }
 
+		VkSampleCountFlagBits GetMaxUsableMSAASamples();
+
 		void OnEvent( Event& e );
 
 	private:

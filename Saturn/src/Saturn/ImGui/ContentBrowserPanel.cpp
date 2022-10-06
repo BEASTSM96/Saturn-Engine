@@ -30,10 +30,15 @@
 #include "ContentBrowserPanel.h"
 
 #include "UITools.h"
+#include "Saturn/Asset/MaterialAsset.h"
+#include "Saturn/Serialisation/AssetSerialisers.h"
+
+#include "Saturn/ImGui/AssetViewer.h"
 
 #include "Saturn/Project/Project.h"
 #include "Saturn/Core/App.h"
 #include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Vulkan/Mesh.h"
 
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
@@ -249,8 +254,8 @@ namespace Saturn {
 
 						filename = filename.substr( 0, pos );
 
-						auto binaryFile = path.parent_path() / filename += ".bin";
-						auto binaryFileTo = m_CurrentPath / filename += ".bin";
+						auto& binaryFile = path.parent_path() / filename += ".bin";
+						auto& binaryFileTo = m_CurrentPath / filename += ".bin";
 
 						if( !std::filesystem::exists( binaryFile ) )
 							binaryFile = path.parent_path() / filename += ".glb";
@@ -258,6 +263,10 @@ namespace Saturn {
 						if( std::filesystem::exists( binaryFile ) )
 							std::filesystem::copy_file( binaryFile, binaryFileTo );
 					}
+
+					// Create the mesh so we can copy over the texture (if any).
+					auto mesh = Ref<MeshSource>::Create( path, m_CurrentPath );
+					mesh = nullptr;
 
 					AssetRegistrySerialiser ars;
 					ars.Serialise();
@@ -273,6 +282,11 @@ namespace Saturn {
 
 					asset->SetPath( m_CurrentPath / "Untitled Material.smaterial" );
 
+					auto materialAsset = asset.As<MaterialAsset>();
+
+					MaterialAssetSerialiser mas;
+					mas.Serialise( materialAsset );
+						
 					AssetRegistrySerialiser urs;
 					urs.Serialise();
 				}
@@ -351,16 +365,78 @@ namespace Saturn {
 			// Fill Info area
 			pDrawList->AddRectFilled( InfoTopLeft, BottomRight, IM_COL32( 47, 47, 47, 255 ), 5.0f, ImDrawCornerFlags_Bot );
 
-			// Check if the mouse is over the button.
-			if( ImGui::IsMouseHoveringRect( TopLeft, BottomRight ) )
-			{
-				// Draw a highlight on the button.
-				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawCornerFlags_All );
-			}
-
 			// Draw line between thumbnail and info.
-			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.0f );
+			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.5f );
 
+			bool Clicked = false;
+
+			Clicked = ButtonRd( "##CONTENT_BROWSER_ITEM_BTN", ImRect( TopLeft, BottomRight ), true );
+
+			if( !excludeFiles )
+			{
+				auto assetType = AssetTypeFromExtension( rEntry.path().filename().extension().string() );
+
+				if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
+				{
+					const wchar_t* c = rEntry.path().c_str();
+
+					switch( assetType )
+					{
+						case Saturn::AssetType::Texture:
+							break;
+						case Saturn::AssetType::StaticMesh:
+						{
+							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+						}	break;
+						case Saturn::AssetType::SkeletalMesh:
+						case Saturn::AssetType::Material:
+						case Saturn::AssetType::MaterialInstance:
+						case Saturn::AssetType::Audio:
+							break;
+						case Saturn::AssetType::Scene:
+						{
+							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+						}	break;
+						case Saturn::AssetType::Prefab:
+						case Saturn::AssetType::Script:
+						case Saturn::AssetType::Unknown:
+						case Saturn::AssetType::COUNT:
+						default:
+							break;
+					}
+
+					ImGui::EndDragDropSource();
+				}
+
+				if( Clicked )
+				{
+					Clicked = false;
+
+					switch( assetType )
+					{
+						case Saturn::AssetType::Texture:
+							break;
+						case Saturn::AssetType::StaticMesh:
+							break;
+						case Saturn::AssetType::SkeletalMesh:
+							break;
+						case Saturn::AssetType::Material:
+						{
+							// TODO
+						} break;
+						case Saturn::AssetType::MaterialInstance:
+							break;
+						case Saturn::AssetType::Audio:
+						case Saturn::AssetType::Scene:
+						case Saturn::AssetType::Prefab:
+						case Saturn::AssetType::Script:
+						case Saturn::AssetType::Unknown:
+						case Saturn::AssetType::COUNT:
+						default:
+							break;
+					}
+				}
+			}
 		}
 
 		// Draw icon.
@@ -377,30 +453,6 @@ namespace Saturn {
 		}
 		else
 			ImGui::TextWrapped( filename.c_str() );
-
-		// TODO: Once we have an asset system, this can be way better.
-		if( !excludeFiles && rEntry.path().filename().extension() == ".scene" )
-		{
-			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
-			{
-				const wchar_t* c = rEntry.path().c_str();
-
-				ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-
-				ImGui::EndDragDropSource();
-			}
-		}
-		else if( !excludeFiles && rEntry.path().filename().extension() == ".fbx" || rEntry.path().filename().extension() == ".gltf" )
-		{
-			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
-			{
-				const wchar_t* c = rEntry.path().c_str();
-
-				ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-
-				ImGui::EndDragDropSource();
-			}
-		}
 
 		ImGui::PopID();
 

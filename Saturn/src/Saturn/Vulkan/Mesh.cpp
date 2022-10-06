@@ -177,7 +177,6 @@ namespace Saturn {
 
 			asset->SetPath( assetPath );
 
-
 			aiColor3D color;
 			if( material->Get( AI_MATKEY_COLOR_DIFFUSE, color ) == AI_SUCCESS );
 				mat->Set( "u_Materials.AlbedoColor", glm::vec3( color.r, color.g, color.b ) );
@@ -216,8 +215,15 @@ namespace Saturn {
 
 					SAT_CORE_INFO( " Albedo Map texture {0}", AlbedoTexturePath );
 					
-					if( std::filesystem::exists( AlbedoTexturePath ) )
-						AlbedoTexture = Ref< Texture2D >::Create( AlbedoTexturePath, AddressingMode::Repeat, false );
+					auto localTexturePath = assetPath.parent_path();
+
+					localTexturePath /= pp.filename();
+
+					if( !std::filesystem::exists( localTexturePath ) )
+						std::filesystem::copy_file( AlbedoTexturePath, localTexturePath );
+
+					if( std::filesystem::exists( localTexturePath ) )
+							AlbedoTexture = Ref< Texture2D >::Create( localTexturePath, AddressingMode::Repeat, false );
 
 					if( AlbedoTexture )
 					{
@@ -253,8 +259,15 @@ namespace Saturn {
 
 					SAT_CORE_INFO( " Normal Map texture {0}", NormalTexturePath );
 
-					if( std::filesystem::exists( NormalTexturePath ) )
-						NormalTexture = Ref< Texture2D >::Create( NormalTexturePath, AddressingMode::Repeat, false );
+					auto localTexturePath = assetPath.parent_path();
+
+					localTexturePath /= pp.filename();
+
+					if( !std::filesystem::exists( localTexturePath ) )
+						std::filesystem::copy_file( NormalTexturePath, localTexturePath );
+
+					if( std::filesystem::exists( localTexturePath ) )
+						NormalTexture = Ref< Texture2D >::Create( localTexturePath, AddressingMode::Repeat, false );
 
 					if( NormalTexture )
 					{
@@ -297,8 +310,15 @@ namespace Saturn {
 
 					Ref< Texture2D > RoughnessTexture;
 
-					if( std::filesystem::exists( TexturePath ) )
-						RoughnessTexture = Ref< Texture2D >::Create( TexturePath, AddressingMode::Repeat, false );
+					auto localTexturePath = assetPath.parent_path();
+
+					localTexturePath /= pp.filename();
+
+					if( !std::filesystem::exists( localTexturePath ) )
+						std::filesystem::copy_file( TexturePath, localTexturePath );
+
+					if( std::filesystem::exists( localTexturePath ) )
+						RoughnessTexture = Ref< Texture2D >::Create( localTexturePath, AddressingMode::Repeat, false );
 
 					if( RoughnessTexture )
 					{
@@ -341,8 +361,15 @@ namespace Saturn {
 
 							Ref< Texture2D > MetalnessTexture;
 
-							if( std::filesystem::exists( Path ) )
-								MetalnessTexture = Ref<Texture2D>::Create( TexturePath, AddressingMode::Repeat, false );
+							auto localTexturePath = assetPath.parent_path();
+
+							localTexturePath /= pp.filename();
+
+							if( !std::filesystem::exists( localTexturePath ) )
+								std::filesystem::copy_file( TexturePath, localTexturePath );
+
+							if( std::filesystem::exists( localTexturePath ) )
+								MetalnessTexture = Ref< Texture2D >::Create( localTexturePath, AddressingMode::Repeat, false );
 
 							if( MetalnessTexture ) 
 							{
@@ -488,6 +515,147 @@ namespace Saturn {
 		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() * sizeof( Index ) );
 
 		TraverseNodes( m_Scene->mRootNode );
+	}
+
+	void Mesh::CopyTextures()
+	{
+
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+
+	MeshSource::MeshSource( const std::filesystem::path& rPath, const std::filesystem::path& rDstPath )
+	{
+		LogStream::Initialize();
+
+		m_Importer = std::make_unique<Assimp::Importer>();
+
+		const aiScene* scene = m_Importer->ReadFile( rPath.string(), s_MeshImportFlags );
+
+		m_Scene = scene;
+		
+		for( size_t m = 0; m < m_Scene->mNumMaterials; m++ )
+		{
+			aiMaterial* material = m_Scene->mMaterials[ m ];
+
+			aiString name;
+			material->Get( AI_MATKEY_NAME, name );
+
+			std::string MaterialName = std::string( name.C_Str() );
+
+			// Albedo Texture
+			{
+				aiString AlbedoTexturePath;
+				bool HasAlbedoTexture = material->GetTexture( aiTextureType_DIFFUSE, 0, &AlbedoTexturePath ) == AI_SUCCESS;
+
+				if( HasAlbedoTexture )
+				{
+					auto pp = rPath.parent_path();
+
+					pp /= std::string( AlbedoTexturePath.data );
+
+					auto AlbedoTexturePath = pp.string();
+
+					auto LocalPath = rDstPath;
+
+					LocalPath /= pp.filename();
+
+					if( !std::filesystem::exists( LocalPath ) )
+						std::filesystem::copy_file( AlbedoTexturePath, LocalPath );
+				}
+			}
+
+			// Normal Texture
+			{
+				aiString TexturePath;
+				bool HasTexture = material->GetTexture( aiTextureType_NORMALS, 0, &TexturePath ) == AI_SUCCESS;
+
+				if( HasTexture )
+				{
+					auto pp = rPath.parent_path();
+
+					pp /= std::string( TexturePath.data );
+
+					auto NormalTexturePath = pp.string();
+
+					auto LocalPath = rDstPath;
+
+					LocalPath /= pp.filename();
+
+					if( !std::filesystem::exists( LocalPath ) )
+						std::filesystem::copy_file( NormalTexturePath, LocalPath );
+				}
+			}
+
+			// Normal Texture
+			{
+				aiString TexturePath;
+				bool HasTexture = material->GetTexture( aiTextureType_SHININESS, 0, &TexturePath ) == AI_SUCCESS;
+
+				if( HasTexture )
+				{
+					auto pp = rPath.parent_path();
+
+					pp /= std::string( TexturePath.data );
+
+					auto RoughnessTexturePath = pp.string();
+
+					auto LocalPath = rDstPath;
+
+					LocalPath /= pp.filename();
+
+					if( !std::filesystem::exists( LocalPath ) )
+						std::filesystem::copy_file( RoughnessTexturePath, LocalPath );
+				}
+			}
+
+			// Metalness
+			{
+				bool FoundMetalness = false;
+
+				for( uint32_t i = 0; i < material->mNumProperties; i++ )
+				{
+					auto prop = material->mProperties[ i ];
+
+					if( prop->mType == aiPTI_String )
+					{
+						uint32_t StringLen = *( uint32_t* ) prop->mData;
+						std::string String( prop->mData + 4, StringLen );
+
+						std::string Key = prop->mKey.data;
+						if( Key == "$raw.ReflectionFactor|file" )
+						{
+							auto pp = rPath.parent_path();
+
+							pp /= String;
+
+							auto TexturePath = pp.string();
+
+							Ref< Texture2D > MetalnessTexture;
+
+							auto localTexturePath = rDstPath;
+
+							localTexturePath /= pp.filename();
+
+							if( !std::filesystem::exists( localTexturePath ) )
+								std::filesystem::copy_file( TexturePath, localTexturePath );
+
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	MeshSource::~MeshSource()
+	{
+
+	}
+
+	void MeshSource::TraverseNodes( aiNode* node, const glm::mat4& parentTransform /*= glm::mat4( 1.0f )*/, uint32_t level /*= 0 */ )
+	{
+
 	}
 
 }

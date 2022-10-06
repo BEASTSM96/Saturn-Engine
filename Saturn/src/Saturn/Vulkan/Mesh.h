@@ -161,6 +161,8 @@ namespace Saturn {
 		
 		void GetVetexAndIndexData();
 
+		void CopyTextures();
+
 	private:
 
 		std::vector<MeshVertex> m_StaticVertices;
@@ -195,6 +197,31 @@ namespace Saturn {
 		uint32_t m_TriangleCount = 0;
 		uint32_t m_IndicesCount = 0;
 		uint32_t m_VerticesCount = 0;
+
+		const aiScene* m_Scene;
+	};
+
+	struct MeshInformation
+	{
+		uint32_t TriangleCount = 0;
+		uint32_t IndicesCount = 0;
+		uint32_t VerticesCount = 0;
+		uint32_t Submeshes = 0;
+	};
+
+	// A mesh source class only exists to get information about a mesh, use the mesh class to render meshes.
+	class MeshSource : public CountedObj
+	{
+	public:
+		MeshSource( const std::filesystem::path& rPath, const std::filesystem::path& rDstPath );
+		~MeshSource();
+
+	private:
+		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
+
+		MeshInformation m_MeshInformation;
+
+		std::unique_ptr<Assimp::Importer> m_Importer;
 
 		const aiScene* m_Scene;
 	};

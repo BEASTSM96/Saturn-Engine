@@ -28,43 +28,20 @@
 
 #pragma once
 
-#include "Saturn/Vulkan/Image2D.h"
-#include "Saturn/Vulkan/Texture.h"
-
-#include <string>
-#include <glm/glm.hpp>
-
-#include <imgui.h>
-#include <imgui_internal.h>	
+#include "AssetViewer.h"
+#include "Saturn/Asset/MaterialAsset.h"
 
 namespace Saturn {
-	
-	extern bool DrawVec3Control( const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
-	extern bool DrawVec2Control( const std::string& label, glm::vec2& values, float resetValue = 0.0f, float columnWidth = 100.0f );
 
-	extern bool DrawColorVec3Control( const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
+	class MaterialAssetViewer : public AssetViewer
+	{
+	public:
+		MaterialAssetViewer( Ref<MaterialAsset>& rMaterialAsset );
+		~MaterialAssetViewer() {}
 
-	extern bool DrawFloatControl( const std::string& label, float& values, float columnWidth = 125.0f );
-	extern bool DrawIntControl( const std::string& label, int& values, float columnWidth = 125.0f );
-	
-	extern bool DrawBoolControl( const std::string& label, bool& value, float columnWidth = 125.0f );
-	
-	extern bool DrawOverlay( const std::string& label, ImVec2 Pos );
-	extern bool DrawOverlay( const std::string& label );
-	extern void EndOverlay();
+		virtual void Draw() override;
 
-	extern void Image( Ref< Image2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ), const ImVec4& BorderColor = ImVec4( 0, 0, 0, 0 ) );
-	
-	extern void Image( Ref< Texture2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ), const ImVec4& BorderColor = ImVec4( 0, 0, 0, 0 ) );
-	
-	extern void Image( Ref<Image2D> Image, uint32_t ImageLayer, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1), const ImVec2& UV1 = ImVec2( 1, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ), const ImVec4& BorderColor = ImVec4( 0, 0, 0, 0 ) );
-
-	extern bool ImageButton( Ref< Image2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), int FramePadding = -1, const ImVec4& BackgroundColor = ImVec4( 0, 0, 0, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ) );
-	
-	extern bool ImageButton( Ref< Texture2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), int FramePadding = -1, const ImVec4& BackgroundColor = ImVec4( 0, 0, 0, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ) );
-
-	extern bool TreeNode( const std::string& label, bool open = true );
-	extern void EndTreeNode();
-
-	extern bool ButtonRd( const char* label, const ImRect& bb, bool rounded = false );
+	private:
+		Ref<MaterialAsset> m_MaterialAsset;
+	};
 }

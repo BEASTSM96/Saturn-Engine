@@ -30,6 +30,7 @@
 #include "UITools.h"
 
 #include <backends/imgui_impl_vulkan.h>
+#include <imgui_internal.h>
 
 namespace Saturn {
 
@@ -417,6 +418,67 @@ namespace Saturn {
 	void EndTreeNode()
 	{
 		ImGui::TreePop();
+	}
+
+	static inline ImVec2 operator+( const ImVec2& lhs, const ImVec2& rhs ) { return ImVec2( lhs.x + rhs.x, lhs.y + rhs.y ); }
+	static inline ImVec2 operator-( const ImVec2& lhs, const ImVec2& rhs ) { return ImVec2( lhs.x - rhs.x, lhs.y - rhs.y ); }
+
+	bool ButtonRd( const char* label, const ImRect& bb, bool rounded /*= false */ )
+	{
+		using namespace ImGui;
+
+		ImGuiButtonFlags flags = ImGuiButtonFlags_None;
+
+		ImGuiWindow* window = GetCurrentWindow();
+		if( window->SkipItems )
+			return false;
+
+		ImGuiContext& g = *GImGui;
+		const ImGuiStyle& style = g.Style;
+		const ImGuiID id = window->GetID( label );
+		const ImVec2 label_size = CalcTextSize( label, NULL, true );
+
+		ImVec2 pos = window->DC.CursorPos;
+		if( ( flags & ImGuiButtonFlags_AlignTextBaseLine ) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset ) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+			pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
+
+		ImVec2 size = CalcItemSize( bb.Min, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f );
+
+		ItemSize( size, style.FramePadding.y );
+		if( !ItemAdd( bb, id ) )
+			return false;
+
+		if( g.LastItemData.InFlags & ImGuiItemFlags_ButtonRepeat )
+			flags |= ImGuiButtonFlags_Repeat;
+
+		bool hovered, held;
+		bool pressed = ButtonBehavior( bb, id, &hovered, &held, flags );
+
+		// Render
+		const ImU32 col = GetColorU32( ( held && hovered ) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button );
+		RenderNavHighlight( bb, id );
+
+		// RenderFrame
+		{
+			if( rounded )
+			{
+				window->DrawList->AddRect( bb.Min, bb.Max, col, 5.0f, ImDrawFlags_RoundCornersAll );
+				const float BORDER_SIZE = g.Style.FrameBorderSize;
+			}
+			else
+				RenderFrame( bb.Min, bb.Max, col, true, style.FrameRounding );
+		}
+
+		if( g.LogEnabled )
+			LogSetNextTextDecoration( "[", "]" );
+		RenderTextClipped( bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb );
+
+		// Automatically close popups
+		//if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
+		//    CloseCurrentPopup();
+
+		IMGUI_TEST_ENGINE_ITEM_INFO( id, label, g.LastItemData.StatusFlags );
+		return pressed;
 	}
 
 }

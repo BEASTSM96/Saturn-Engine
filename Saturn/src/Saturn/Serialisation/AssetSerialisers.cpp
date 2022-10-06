@@ -46,6 +46,8 @@ namespace Saturn {
 	{
 		auto materialAsset = rAsset.As<MaterialAsset>();
 
+		auto basePath = rAsset->GetPath();
+
 		YAML::Emitter out;
 
 		out << YAML::BeginMap;
@@ -105,6 +107,8 @@ namespace Saturn {
 
 		if( normalPath != "Renderer Pink Texture" )
 			texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat );
+		else
+			texture = Renderer::Get().GetPinkTexture();
 
 		materialAsset->UseNormalMap( useNormal );
 		materialAsset->SetNormalMap( texture );
@@ -114,6 +118,8 @@ namespace Saturn {
 
 		if( metallicPath != "Renderer Pink Texture" )
 			texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat );
+		else
+			texture = Renderer::Get().GetPinkTexture();
 
 		materialAsset->SetMetalness( metalness);
 		materialAsset->SetMetallicMap( texture );
@@ -123,6 +129,8 @@ namespace Saturn {
 
 		if( roughnessPath != "Renderer Pink Texture" )
 			texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat );
+		else
+			texture = Renderer::Get().GetPinkTexture();
 
 		materialAsset->SetRoughness( val );
 		materialAsset->SetRoughnessMap( texture );
