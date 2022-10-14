@@ -165,7 +165,7 @@ namespace Saturn {
 		
 		std::vector<std::function<void()>> m_TerminateResourceFuncs;
 
-		std::vector<const char*> DeviceExtensions  ={ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME, VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME };
+		std::vector<const char*> DeviceExtensions  ={ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME };
 
 		std::vector<const char*> ValidationLayers ={ "VK_LAYER_KHRONOS_validation" };
 
