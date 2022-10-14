@@ -177,6 +177,9 @@ namespace Saturn {
 		ProjectSerialiser ps;
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 
+		if( !Project::GetActiveProject() )
+			SAT_CORE_ASSERT( false, "No project was given." );
+
 		OpenFile( rUserSettings.StartupScene );
 
 		AssetRegistrySerialiser ars;
@@ -412,6 +415,7 @@ namespace Saturn {
 			}
 		}
 
+		/*
 		if( Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" ) )
 		{
 			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
@@ -446,6 +450,7 @@ namespace Saturn {
 
 			ImGui::OpenPopup( "Missing Environment Variable" );
 		}
+		*/
 
 		ImGui::End();
 
