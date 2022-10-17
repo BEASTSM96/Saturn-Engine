@@ -35,13 +35,18 @@ namespace Saturn {
 
 	class MaterialAssetViewer : public AssetViewer
 	{
+		SINGLETON( MaterialAssetViewer );
 	public:
-		MaterialAssetViewer( Ref<MaterialAsset>& rMaterialAsset );
+		MaterialAssetViewer();
 		~MaterialAssetViewer() {}
 
 		virtual void Draw() override;
 
+		void AddMaterialAsset( Ref<MaterialAsset>& rMaterialAsset );
+
 	private:
-		Ref<MaterialAsset> m_MaterialAsset;
+		void DrawInternal( Ref<MaterialAsset>& rMaterialAsset );
+	private:
+		std::vector<Ref<MaterialAsset>> m_MaterialAssets;
 	};
 }

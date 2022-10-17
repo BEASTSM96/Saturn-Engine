@@ -36,6 +36,7 @@
 #include <Saturn/ImGui/ViewportBar.h>
 #include <Saturn/Vulkan/SceneRenderer.h>
 #include <Saturn/ImGui/TitleBar.h>
+#include <Saturn/ImGui/MaterialAssetViewer.h>
 
 #include <Saturn/ImGui/Panel/Panel.h>
 #include <Saturn/ImGui/Panel/PanelManager.h>
@@ -414,6 +415,9 @@ namespace Saturn {
 				}
 			}
 		}
+
+		// Asset viewers
+		MaterialAssetViewer::Get().Draw();
 
 		/*
 		if( Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" ) )

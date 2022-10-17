@@ -40,6 +40,8 @@
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Vulkan/Mesh.h"
 
+#include "MaterialAssetViewer.h"
+
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
 #include <imgui_internal.h>
@@ -216,17 +218,7 @@ namespace Saturn {
 					std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
 
 					asset->SetPath( m_CurrentPath / path.filename() );
-
-					/*
-					AssetData d = {};
-
-					auto TextureData = LoadTextureData( path );
-
-					d.DataBuffer = TextureData;
-
-					asset->AssignAssetData( d );
-					*/
-
+					
 					AssetRegistrySerialiser ars;
 					ars.Serialise();
 				}
@@ -286,7 +278,7 @@ namespace Saturn {
 
 					MaterialAssetSerialiser mas;
 					mas.Serialise( materialAsset );
-						
+					
 					AssetRegistrySerialiser urs;
 					urs.Serialise();
 				}
@@ -422,7 +414,12 @@ namespace Saturn {
 							break;
 						case Saturn::AssetType::Material:
 						{
-							// TODO
+							Ref<Asset> asset = AssetRegistry::Get().FindAsset( rEntry.path().string() );
+
+							// We have to create the material asset as the when we load the mesh, it creates it. However we are not loading a mesh, so we will have to create it ourself.
+							Ref<MaterialAsset> materialAsset = Ref<MaterialAsset>::Create( nullptr );
+
+							MaterialAssetViewer::Get().AddMaterialAsset( materialAsset );
 						} break;
 						case Saturn::AssetType::MaterialInstance:
 							break;

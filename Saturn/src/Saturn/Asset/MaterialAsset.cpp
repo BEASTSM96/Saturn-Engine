@@ -46,6 +46,9 @@ namespace Saturn {
 
 	void MaterialAsset::Default()
 	{
+		if( m_Material == nullptr )
+			return;
+
 		m_Material->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
 		m_Material->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
 		m_Material->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
@@ -55,6 +58,18 @@ namespace Saturn {
 		m_Material->Set<float>( "u_Materials.Metalness", 1.0f );
 		m_Material->Set<float>( "u_Materials.Roughness", 1.0f );
 		m_Material->Set<float>( "u_Materials.UseNormalMap", 0.0f );
+	}
+
+	void MaterialAsset::BeginViewingSession()
+	{
+		auto staticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
+
+		m_Material = Ref<Material>::Create( staticMeshShader, "Internal Viewing material" );
+	}
+
+	void MaterialAsset::EndViewingSession()
+	{
+		m_Material = nullptr;
 	}
 
 	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetAlbeoMap()

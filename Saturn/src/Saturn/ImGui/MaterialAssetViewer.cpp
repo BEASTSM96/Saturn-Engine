@@ -33,19 +33,40 @@
 
 namespace Saturn {
 
-	MaterialAssetViewer::MaterialAssetViewer( Ref<MaterialAsset>& rMaterialAsset )
-		: m_MaterialAsset( rMaterialAsset )
+	MaterialAssetViewer::MaterialAssetViewer()
 	{
 		m_AssetType = AssetType::Material;
 	}
 
 	void MaterialAssetViewer::Draw()
 	{
-		ImGui::Begin( "Material Asset Viewer" );
+		for( auto& asset : m_MaterialAssets )
+			DrawInternal( asset );
+	}
+
+	void MaterialAssetViewer::AddMaterialAsset( Ref<MaterialAsset>& rMaterialAsset )
+	{
+		m_MaterialAssets.push_back( rMaterialAsset );
+	}
+
+	void MaterialAssetViewer::DrawInternal( Ref<MaterialAsset>& rMaterialAsset )
+	{
+		rMaterialAsset->BeginViewingSession();
+
+		ImGui::PushID( rMaterialAsset->GetAssetID() );
+
+		std::string name = "Material##";
+		name += std::to_string( rMaterialAsset->GetAssetID() );
+
+		ImGui::Begin( name.c_str() );
 
 		// TODO: Node editor...
 
 		ImGui::End();
+
+		ImGui::PopID();
+
+		rMaterialAsset->EndViewingSession();
 	}
 
 }

@@ -91,12 +91,19 @@ namespace Saturn {
 
 		void Default();
 
+		// Only used for material asset viewer. As we need an internal material to apply the values.
+		void BeginViewingSession();
+		void EndViewingSession();
+
 	private:
 		Ref<Material> m_Material;
 
 		bool m_ValuesChanged = false;
 
 		std::unordered_map< std::string, VkDescriptorImageInfo > m_TextureCache;
+
+	private:
+		friend class MaterialAssetViewer;
 	};
 
 }
