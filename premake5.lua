@@ -24,6 +24,7 @@ IncludeDir["vma"] = "Saturn/vendor/vma/src/"
 IncludeDir["ImGuizmo"] = "Saturn/vendor/ImGuizmo/src/"
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include/"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
+IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
 
 group "Dependencies"
 	include "Saturn/vendor/GLFW"
@@ -90,7 +91,8 @@ project "Saturn"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.PhysX}/pxshared",
-		"%{IncludeDir.PhysX}/physx"
+		"%{IncludeDir.PhysX}/physx",
+		"%{IncludeDir.ImguiNodeEditor}"
 	}
 
 	links 
@@ -206,6 +208,7 @@ project "Saturn"
 				"Saturn/vendor/physx/bin/Release/PhysXVehicle_static_64.lib",
 				"Saturn/vendor/physx/bin/Release/SceneQuery_static_64.lib",
 				"Saturn/vendor/physx/bin/Release/SimulationController_static_64.lib",
+
 				"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",

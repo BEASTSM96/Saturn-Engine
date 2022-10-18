@@ -83,3 +83,4 @@ Saturn/vendor/imgui/ImGui.txt
 .build-dist/
 **/obj
 **/build
+Titan/NodeEditor.json
