@@ -42,17 +42,17 @@ namespace Saturn::Styles {
 		colors[ ImGuiCol_Text ]                   = ImVec4( 1.000f, 1.000f, 1.000f, 1.000f );
 		colors[ ImGuiCol_TextDisabled ]           = ImVec4( 0.500f, 0.500f, 0.500f, 1.000f );
 		
-		colors[ ImGuiCol_WindowBg ]               = ImVec4( ImColor( 21, 21, 21 ) );
-		colors[ ImGuiCol_ChildBg ]                = ImVec4( ImColor( 34, 34, 34 ) );
+		colors[ ImGuiCol_WindowBg ]               = ImVec4( 0.0823529437f, 0.0823529437f, 0.0823529437f, 1.0f );
+		colors[ ImGuiCol_ChildBg ]                = ImVec4( 0.133333340f, 0.133333340f, 0.133333340f, 1.0f );
 		colors[ ImGuiCol_PopupBg ]				  = colors[ ImGuiCol_ChildBg ];
-		colors[ ImGuiCol_Border ]                 = ImVec4( ImColor( 31, 31, 31 ) );
+		colors[ ImGuiCol_Border ]                 = ImVec4( 0.121568635f, 0.121568635f, 0.121568635f, 1.0f );
 		colors[ ImGuiCol_BorderShadow ]           = ImVec4( 0.000f, 0.000f, 0.000f, 0.000f );
 		
-		colors[ ImGuiCol_FrameBg ]                = ImVec4( ImColor( 20, 20, 20 ) );
+		colors[ ImGuiCol_FrameBg ]                = ImVec4( 0.0784313753f, 0.0784313753f, 0.0784313753f, 1.0f );
 		colors[ ImGuiCol_FrameBgHovered ]         = ImVec4( 0.200f, 0.200f, 0.200f, 1.000f );
 		colors[ ImGuiCol_FrameBgActive ]		  = colors[ ImGuiCol_FrameBg ];
 
-		colors[ ImGuiCol_TitleBg ]                = ImVec4( ImColor( 21, 21, 21 ) );
+		colors[ ImGuiCol_TitleBg ]               = colors[ ImGuiCol_WindowBg ];
 		colors[ ImGuiCol_TitleBgActive ]          = colors[ ImGuiCol_FrameBg ];
 		colors[ ImGuiCol_TitleBgCollapsed ]		  = colors[ ImGuiCol_FrameBg ];
 
@@ -65,25 +65,25 @@ namespace Saturn::Styles {
 		colors[ ImGuiCol_SliderGrab ]             = ImVec4( 0.391f, 0.391f, 0.391f, 1.000f );
 		colors[ ImGuiCol_SliderGrabActive ]       = ImVec4( 1.000f, 0.391f, 0.000f, 1.000f );
 		
-		colors[ ImGuiCol_Button ]                 = ImVec4( ImColor( 58, 58, 58 ) );
+		colors[ ImGuiCol_Button ]                 = ImVec4( 0.227450997f, 0.227450997f, 0.227450997f, 1.0f );
 		colors[ ImGuiCol_ButtonHovered ]          = ImVec4( 1.000f, 1.000f, 1.000f, 0.156f );
 		colors[ ImGuiCol_ButtonActive ]           = ImVec4( 1.000f, 1.000f, 1.000f, 0.391f );
 		
-		colors[ ImGuiCol_Header ]                 = ImVec4( ImColor( 47, 47, 46 ) );
+		colors[ ImGuiCol_Header ]                 = ImVec4( 0.184313729f, 0.184313729f, 0.180392161f, 1.0f );
 		colors[ ImGuiCol_HeaderHovered ]          = ImVec4( 0.469f, 0.469f, 0.469f, 1.000f );
 		colors[ ImGuiCol_HeaderActive ]           = colors[ ImGuiCol_Header ];
 		
-		colors[ ImGuiCol_Separator ]			  = ImVec4( ImColor( 21, 21, 21 ) );
+		colors[ ImGuiCol_Separator ]			  = colors[ ImGuiCol_WindowBg ];
 		colors[ ImGuiCol_SeparatorHovered ]       = ImVec4( 0.391f, 0.391f, 0.391f, 1.000f );
-		colors[ ImGuiCol_SeparatorActive ]        = ImVec4( ImColor( 79, 121, 141 ) );
-		
+		colors[ ImGuiCol_SeparatorActive ]        = ImVec4(  0.309803933f, 0.474509835f, 0.552941203f, 1.0f );
+
 		colors[ ImGuiCol_ResizeGrip ]             = ImVec4( 1.000f, 1.000f, 1.000f, 0.250f );
 		colors[ ImGuiCol_ResizeGripHovered ]      = ImVec4( 1.000f, 1.000f, 1.000f, 0.670f );
 		colors[ ImGuiCol_ResizeGripActive ]       = ImVec4( 1.000f, 0.391f, 0.000f, 1.000f );
 		
 		colors[ ImGuiCol_Tab ]                    = colors[ ImGuiCol_ChildBg ];
 		colors[ ImGuiCol_TabHovered ]             = ImVec4( 0.352f, 0.352f, 0.352f, 1.000f );
-		colors[ ImGuiCol_TabActive ]              = ImVec4( ImColor( 76, 69, 47 ) );
+		colors[ ImGuiCol_TabActive ]              = ImVec4( 0.298039228f, 0.270588249f, 0.184313729f, 1.0f );
 		colors[ ImGuiCol_TabUnfocused ]           = ImVec4( 0.098f, 0.098f, 0.098f, 1.000f );
 		colors[ ImGuiCol_TabUnfocusedActive ]     = ImVec4( 0.195f, 0.195f, 0.195f, 1.000f );
 

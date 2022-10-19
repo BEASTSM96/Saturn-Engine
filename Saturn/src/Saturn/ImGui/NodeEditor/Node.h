@@ -26,94 +26,88 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "MaterialAssetViewer.h"
+#pragma once
 
-#include <imgui.h>
+#include <string>
+#include <vector>
 #include <imgui_node_editor.h>
 
 namespace ed = ax::NodeEditor;
 
 namespace Saturn {
 
-	static ed::EditorContext* s_Context = nullptr;
-
-	MaterialAssetViewer::MaterialAssetViewer()
+	enum class PinType
 	{
-		m_AssetType = AssetType::Material;
+		Flow,
+		Bool,
+		Int,
+		Float,
+		String,
+		Object,
+		Function,
+		Delegate,
+	};
 
-		ed::Config config = {};
-		s_Context = ed::CreateEditor( &config );
-	}
-
-	void MaterialAssetViewer::Draw()
+	enum class PinKind
 	{
-		for( auto& asset : m_MaterialAssets )
-			DrawInternal( asset );
-	}
+		Output,
+		Input
+	};
 
-	void MaterialAssetViewer::AddMaterialAsset( Ref<MaterialAsset>& rMaterialAsset )
+	enum class NodeType
 	{
-		m_MaterialAssets.push_back( rMaterialAsset );
-	}
+		Blueprint,
+		Simple,
+		Comment
+	};
 
-	void MaterialAssetViewer::DrawInternal( Ref<MaterialAsset>& rMaterialAsset )
+	struct Node;
+
+	struct Pin
 	{
-		rMaterialAsset->BeginViewingSession();
+		ed::PinId	ID;
+		Node*		Node;
+		std::string Name;
+		PinType     Type;
+		PinKind     Kind;
 
-		ImGui::PushID( rMaterialAsset->GetAssetID() );
+		Pin( int id, const char* name, PinType type ) :
+			ID( id ), Node( nullptr ), Name( name ), Type( type ), Kind( PinKind::Input )
+		{
+		}
+	};
 
-		std::string name = "Material##";
-		name += std::to_string( rMaterialAsset->GetAssetID() );
+	struct Node
+	{
+		ed::NodeId ID;
+		std::string Name;
+		std::vector<Pin> Inputs;
+		std::vector<Pin> Outputs;
+		ImColor Color;
+		NodeType Type;
+		ImVec2 Size;
 
-		ImGui::Begin( name.c_str() );
+		std::string State;
+		std::string SavedState;
 
-		ImGui::Separator();
+		Node( int id, const char* name, ImColor color = ImColor( 255, 255, 255 ) ) :
+			ID( id ), Name( name ), Color( color ), Type( NodeType::Blueprint ), Size( 0, 0 )
+		{
+		}
+	};
 
-		ed::SetCurrentEditor( s_Context );
+	struct Link
+	{
+		ed::LinkId ID;
 
-		ed::Begin( "Material editor", ImVec2(0.0f, 0.0f) );
+		ed::PinId StartPinID;
+		ed::PinId EndPinID;
 
-		int uniqueId = 1;
-		// Start drawing nodes.
-		ed::BeginNode( uniqueId++ );
-		ImGui::Text( "Node A" );
-		ed::BeginPin( uniqueId++, ed::PinKind::Input );
-		ImGui::Text( "-> In" );
-		ed::EndPin();
-		ImGui::SameLine();
-		ed::BeginPin( uniqueId++, ed::PinKind::Output );
-		ImGui::Text( "Out ->" );
-		ed::EndPin();
-		ed::EndNode();
+		ImColor Color;
 
-		ed::BeginNode( uniqueId++ );
-		ImGui::Text( "Material Output" );
-		ed::BeginPin( uniqueId++, ed::PinKind::Input );
-		ImGui::Text( "-> Albedo Texture" );
-		ed::EndPin();
-		ed::BeginPin( uniqueId++, ed::PinKind::Input );
-		ImGui::Text( "-> Base Color" );
-		ed::EndPin();
-		ed::BeginPin( uniqueId++, ed::PinKind::Input );
-		ImGui::Text( "-> Normal Texture" );
-		ed::EndPin();
-		ed::BeginPin( uniqueId++, ed::PinKind::Input );
-		ImGui::Text( "-> Roughness Texture" );
-		ed::EndPin();
-		ed::BeginPin( uniqueId++, ed::PinKind::Input );
-		ImGui::Text( "-> Metalness Texture" );
-		ed::EndPin();
-		ed::EndNode();
-
-		ed::End();
-		ed::SetCurrentEditor( nullptr );
-
-		ImGui::End();
-
-		ImGui::PopID();
-
-		rMaterialAsset->EndViewingSession();
-	}
-
+		Link( ed::LinkId id, ed::PinId startPinId, ed::PinId endPinId ) :
+			ID( id ), StartPinID( startPinId ), EndPinID( endPinId ), Color( 255, 255, 255 )
+		{
+		}
+	};
 }

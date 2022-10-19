@@ -68,7 +68,6 @@ namespace Saturn {
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGui::StyleColorsDark();
 
 		// ImGui Theme
 

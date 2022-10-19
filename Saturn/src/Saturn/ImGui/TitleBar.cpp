@@ -75,7 +75,9 @@ namespace Saturn {
 				{
 					bool hovered = false;
 					bool held    = false;
-					bool pressed = ImGui::ButtonBehavior( buttonRect, ImGui::GetID( "EXIT" ), &hovered, &held, 0 );
+					bool pressed = false;
+
+					pressed = ImGui::ButtonBehavior( buttonRect, ImGui::GetID( "EXIT" ), &hovered, &held, ImGuiButtonFlags_PressedOnClick );
 
 					if( hovered )
 					{
@@ -107,7 +109,7 @@ namespace Saturn {
 				{
 					bool hovered = false;
 					bool held    = false;
-					bool pressed = ImGui::ButtonBehavior( buttonRect, ImGui::GetID( "MAXIMIZE" ), &hovered, &held, 0 );
+					bool pressed = ImGui::ButtonBehavior( buttonRect, ImGui::GetID( "MAXIMIZE" ), &hovered, &held, ImGuiButtonFlags_PressedOnClick );
 
 					if( hovered )
 					{
@@ -132,7 +134,7 @@ namespace Saturn {
 				{
 					bool hovered = false;
 					bool held    = false;
-					bool pressed = ImGui::ButtonBehavior( buttonRect, ImGui::GetID( "MINIMIZE" ), &hovered, &held, 0 );
+					bool pressed = ImGui::ButtonBehavior( buttonRect, ImGui::GetID( "MINIMIZE" ), &hovered, &held, ImGuiButtonFlags_PressedOnClick );
 
 					if( hovered )
 					{
