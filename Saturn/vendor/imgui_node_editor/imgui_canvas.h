@@ -71,6 +71,11 @@ struct CanvasView
     {
         *this = CanvasView(origin, scale);
     }
+
+    void SetZoom( float zoom ) 
+    {
+        InvScale = zoom;
+    }
 };
 
 // Canvas widget represent view over infinite plane.
