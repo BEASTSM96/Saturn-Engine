@@ -28,6 +28,7 @@
 
 #include "sppch.h"
 #include "MaterialAssetViewer.h"
+#include "NodeEditor/NodeEditor.h"
 
 #include <imgui.h>
 #include <imgui_node_editor.h>
@@ -37,6 +38,7 @@ namespace ed = ax::NodeEditor;
 namespace Saturn {
 
 	static ed::EditorContext* s_Context = nullptr;
+	static NodeEditor* s_NodeEditor = nullptr;
 
 	MaterialAssetViewer::MaterialAssetViewer()
 	{
@@ -44,6 +46,8 @@ namespace Saturn {
 
 		ed::Config config = {};
 		s_Context = ed::CreateEditor( &config );
+
+		s_NodeEditor = new NodeEditor();
 	}
 
 	void MaterialAssetViewer::Draw()
@@ -61,6 +65,9 @@ namespace Saturn {
 	{
 		rMaterialAsset->BeginViewingSession();
 
+		s_NodeEditor->Draw();
+
+		/*
 		ImGui::PushID( rMaterialAsset->GetAssetID() );
 
 		std::string name = "Material##";
@@ -112,6 +119,9 @@ namespace Saturn {
 		ImGui::End();
 
 		ImGui::PopID();
+		*/
+
+
 
 		rMaterialAsset->EndViewingSession();
 	}
