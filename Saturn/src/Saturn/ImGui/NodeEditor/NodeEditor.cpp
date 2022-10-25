@@ -33,12 +33,16 @@
 
 // imgui_node_editor
 #include "builders.h"
+#include "Saturn/Vendor/widgets.h"
+#include "Saturn/Vendor/Drawing.h"
 
 #include <backends/imgui_impl_vulkan.h>
 
 namespace util = ax::NodeEditor::Utilities;
 
 namespace Saturn {
+
+	static inline ImVec2 operator+( const ImVec2& lhs, const ImVec2& rhs ) { return ImVec2( lhs.x + rhs.x, lhs.y + rhs.y ); }
 
 	static int s_ID = -1;
 
@@ -74,20 +78,6 @@ namespace Saturn {
 		s_BlueprintBackground = Ref<Texture2D>::Create( "assets/textures/BlueprintBackground.png", AddressingMode::Repeat );
 
 		s_BlueprintBackgroundID = ImGui_ImplVulkan_AddTexture( s_BlueprintBackground->GetSampler(), s_BlueprintBackground->GetImageView(), s_BlueprintBackground->GetDescriptorInfo().imageLayout );
-
-		NodeSpecification spec;
-		spec.Color = ImColor( 255, 128, 128 );
-		spec.Name = "Test BP Node";
-
-		PinSpecification pinSpec = {};
-		pinSpec.Name = "Hello";
-		pinSpec.Type = PinType::String;
-
-		spec.Inputs.push_back( pinSpec );
-		pinSpec.Name = "World";
-		spec.Outputs.push_back( pinSpec );
-
-		AddNode( spec );
 	}
 
 	NodeEditor::~NodeEditor()
@@ -133,9 +123,55 @@ namespace Saturn {
 		return true;
 	}
 
+	ImColor GetIconColor( PinType type )
+	{
+		switch( type )
+		{
+			default:
+			case PinType::Flow:     return ImColor( 255, 255, 255 );
+			case PinType::Bool:     return ImColor( 220, 48, 48 );
+			case PinType::Int:      return ImColor( 68, 201, 156 );
+			case PinType::Float:    return ImColor( 147, 226, 74 );
+			case PinType::String:   return ImColor( 124, 21, 153 );
+			case PinType::Object:   return ImColor( 51, 150, 215 );
+			case PinType::Function: return ImColor( 218, 0, 183 );
+			case PinType::Delegate: return ImColor( 255, 48, 48 );
+		}
+	}
+
 	void DrawPinIcon( const Pin& pin, bool connected, int alpha )
 	{
-		// TODO
+		ax::Drawing::IconType type;
+		ImColor color = GetIconColor( pin.Type );
+		color.Value.w = alpha / 255.0f;
+
+		switch( pin.Type )
+		{
+			case PinType::Flow:     type = ax::Drawing::IconType::Flow;   break;
+			case PinType::Bool:     type = ax::Drawing::IconType::Circle; break;
+			case PinType::Int:      type = ax::Drawing::IconType::Circle; break;
+			case PinType::Float:    type = ax::Drawing::IconType::Circle; break;
+			case PinType::String:   type = ax::Drawing::IconType::Circle; break;
+			case PinType::Object:   type = ax::Drawing::IconType::Circle; break;
+			case PinType::Function: type = ax::Drawing::IconType::Circle; break;
+			case PinType::Delegate: type = ax::Drawing::IconType::Square; break;
+			default:
+				return;
+		}
+
+		const float PIN_ICON_SIZE = 24;
+
+		auto size = ImVec2( static_cast< float >( PIN_ICON_SIZE ), static_cast< float >( PIN_ICON_SIZE ) );
+
+		if( ImGui::IsRectVisible( size ) ) 
+		{
+			auto cursorPos = ImGui::GetCursorScreenPos();
+			auto drawList  = ImGui::GetWindowDrawList();
+
+			ax::Drawing::DrawIcon( drawList, cursorPos, cursorPos + size, type, connected, color, ImColor( 32, 32, 32, alpha ) );
+		}
+
+		ImGui::Dummy( size );
 	}
 
 	void NodeEditor::Draw()
@@ -179,13 +215,19 @@ namespace Saturn {
 
 				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
 
-				DrawPinIcon( input, IsPinLinked( input.ID ), alpha );
+				DrawPinIcon( input, IsPinLinked( input.ID ), (int)(alpha * 255) );
 
 				ImGui::Spring( 0 );
 
 				if( !input.Name.empty() )
 				{
 					ImGui::TextUnformatted( input.Name.c_str() );
+					ImGui::Spring( 0 );
+				}
+
+				if( input.Type == PinType::Bool ) 
+				{
+					ImGui::Button( "Hello" );
 					ImGui::Spring( 0 );
 				}
 
@@ -223,8 +265,10 @@ namespace Saturn {
 					ImGui::TextUnformatted( output.Name.c_str() );
 				}
 
-				builder.EndOutput();
+				ImGui::Spring( 0 );
+				DrawPinIcon( output, IsPinLinked( output.ID ), ( int ) ( alpha * 255 ) );
 
+				builder.EndOutput();
 				ImGui::PopStyleVar();
 			}
 
