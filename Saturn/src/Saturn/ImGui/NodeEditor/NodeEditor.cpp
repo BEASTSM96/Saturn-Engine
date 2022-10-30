@@ -481,6 +481,8 @@ namespace Saturn {
 		ed::End();
 
 		ImGui::Begin( "Details##NODE_INFO_PANEL" );
+
+		for ( auto& rNode : m_Nodes )
 		{
 			if( !ed::IsNodeSelected( rNode.ID ) )
 				continue;
