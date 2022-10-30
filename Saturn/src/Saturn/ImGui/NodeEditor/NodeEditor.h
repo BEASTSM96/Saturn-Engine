@@ -46,11 +46,32 @@ namespace Saturn {
 
 		bool IsPinLinked( ed::PinId id );
 		bool CanCreateLink( Pin* a, Pin* b );
+		Pin* FindPin( ed::PinId id );
+		Link* FindLink( ed::LinkId id );
+		Node* FindNode( ed::NodeId id );
 
 		void Draw() override;
 
+		void SetDetailsFunction( std::function<void( Node )>&& rrDetailsFunction )
+		{
+			m_DetailsFunction = std::move( rrDetailsFunction );
+		}
+
+		// Happens when the user clicks on the empty space.
+		void SetCreateNewNodeFunction( std::function<Node*()>&& rrCreateNewNodeFunction )
+		{
+			m_CreateNewNodeFunction = std::move( rrCreateNewNodeFunction );
+		}
+
 	private:
 		ed::EditorContext* m_Editor;
+
+		bool m_CreateNewNode = false;
+		Pin* m_NewLinkPin = nullptr;
+		Pin* m_NewNodeLinkPin = nullptr;
+
+		std::function<void( Node )> m_DetailsFunction;
+		std::function<Node*()> m_CreateNewNodeFunction;
 
 		std::vector<Node> m_Nodes;
 		std::vector<Link> m_Links;

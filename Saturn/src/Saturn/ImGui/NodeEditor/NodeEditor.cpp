@@ -43,8 +43,9 @@ namespace util = ax::NodeEditor::Utilities;
 namespace Saturn {
 
 	static inline ImVec2 operator+( const ImVec2& lhs, const ImVec2& rhs ) { return ImVec2( lhs.x + rhs.x, lhs.y + rhs.y ); }
+	static inline ImVec2 operator-( const ImVec2& lhs, const ImVec2& rhs ) { return ImVec2( lhs.x - rhs.x, lhs.y - rhs.y ); }
 
-	static int s_ID = -1;
+	static int s_ID = 1;
 
 	static Ref<Texture2D> s_BlueprintBackground;
 	static ImTextureID s_BlueprintBackgroundID;
@@ -82,7 +83,7 @@ namespace Saturn {
 
 	NodeEditor::~NodeEditor()
 	{
-
+		s_BlueprintBackground = nullptr;
 	}
 
 	Node* NodeEditor::AddNode( NodeSpecification& spec, ImVec2 position )
@@ -123,12 +124,45 @@ namespace Saturn {
 		return true;
 	}
 
+	Pin* NodeEditor::FindPin( ed::PinId id )
+	{
+		if( !id )
+			return nullptr;
+
+		for( auto& node : m_Nodes )
+		{
+			for( auto& pin : node.Inputs )
+				if( pin.ID == id )
+					return &pin;
+
+			for( auto& pin : node.Outputs )
+				if( pin.ID == id )
+					return &pin;
+		}
+
+		return nullptr;
+	}
+
+	Link* NodeEditor::FindLink( ed::LinkId id )
+	{
+		for( auto& link : m_Links )
+			if( link.ID == id )
+				return &link;
+	}
+
+	Node* NodeEditor::FindNode( ed::NodeId id )
+	{
+		for( auto& node : m_Nodes )
+			if( node.ID == id )
+				return &node;
+	}
+
 	ImColor GetIconColor( PinType type )
 	{
 		switch( type )
 		{
 			default:
-			case PinType::Flow:     return ImColor( 255, 255, 255 );
+			case PinType::Flow:     return ImColor( 255, 255, 255 ); // Same as Material_Sampler2D
 			case PinType::Bool:     return ImColor( 220, 48, 48 );
 			case PinType::Int:      return ImColor( 68, 201, 156 );
 			case PinType::Float:    return ImColor( 147, 226, 74 );
@@ -147,14 +181,15 @@ namespace Saturn {
 
 		switch( pin.Type )
 		{
-			case PinType::Flow:     type = ax::Drawing::IconType::Flow;   break;
-			case PinType::Bool:     type = ax::Drawing::IconType::Circle; break;
-			case PinType::Int:      type = ax::Drawing::IconType::Circle; break;
-			case PinType::Float:    type = ax::Drawing::IconType::Circle; break;
-			case PinType::String:   type = ax::Drawing::IconType::Circle; break;
-			case PinType::Object:   type = ax::Drawing::IconType::Circle; break;
-			case PinType::Function: type = ax::Drawing::IconType::Circle; break;
-			case PinType::Delegate: type = ax::Drawing::IconType::Square; break;
+			case PinType::Flow:				  type = ax::Drawing::IconType::Flow;   break;
+			case PinType::Bool:				  type = ax::Drawing::IconType::Circle; break;
+			case PinType::Int:				  type = ax::Drawing::IconType::Circle; break;
+			case PinType::Float:			  type = ax::Drawing::IconType::Circle; break;
+			case PinType::String:			  type = ax::Drawing::IconType::Circle; break;
+			case PinType::Object:			  type = ax::Drawing::IconType::Circle; break;
+			case PinType::Function:			  type = ax::Drawing::IconType::Circle; break;
+			case PinType::Material_Sampler2D: type = ax::Drawing::IconType::Circle; break;
+			case PinType::Delegate:           type = ax::Drawing::IconType::Square; break;
 			default:
 				return;
 		}
@@ -180,6 +215,21 @@ namespace Saturn {
 		ed::SetCurrentEditor( m_Editor );
 
 		ImGui::Begin( "##NODE_EDITOR" );
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar;
+
+		ImGui::Begin( "##NODE_EDITOR_TOPBAR", (bool*)0, flags );
+		ImGui::BeginHorizontal( "##TopbarItems" );
+
+		if( ImGui::Button( "Zoom to content" ) )
+			ed::NavigateToContent( false );
+
+		if( ImGui::Button( "Show flow" ) )
+			for( auto& link : m_Links )
+				ed::Flow( link.ID );
+
+		ImGui::EndHorizontal();
+		ImGui::End();
 
 		ed::Begin( "Node Editor" );
 
@@ -252,8 +302,8 @@ namespace Saturn {
 
 				auto alpha = ImGui::GetStyle().Alpha;
 
-				//if( newLinkPin && !CanCreateLink( newLinkPin, &output ) && &output != newLinkPin )
-				//	alpha = alpha * ( 48.0f / 255.0f );
+				if( m_NewLinkPin && !CanCreateLink( m_NewLinkPin, &output ) && &output != m_NewLinkPin )
+					alpha = alpha * ( 48.0f / 255.0f );
 
 				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
 
@@ -279,9 +329,169 @@ namespace Saturn {
 		for( auto& link : m_Links )
 			ed::Link( link.ID, link.StartPinID, link.EndPinID, link.Color, 2.0f );
 
+		if( !m_CreateNewNode )
+		{
+			if( ed::BeginCreate( ImColor( 255, 255, 255 ), 2.0f ) )
+			{
+				auto showLabel = []( const char* label, ImColor color )
+				{
+					ImGui::SetCursorPosY( ImGui::GetCursorPosY() - ImGui::GetTextLineHeight() );
+					auto size = ImGui::CalcTextSize( label );
+
+					auto padding = ImGui::GetStyle().FramePadding;
+					auto spacing = ImGui::GetStyle().ItemSpacing;
+
+					ImGui::SetCursorPos( ImGui::GetCursorPos() + ImVec2( spacing.x, -spacing.y ) );
+
+					auto rectMin = ImGui::GetCursorScreenPos() - padding;
+					auto rectMax = ImGui::GetCursorScreenPos() + size + padding;
+
+					auto drawList = ImGui::GetWindowDrawList();
+					drawList->AddRectFilled( rectMin, rectMax, color, size.y * 0.15f );
+					ImGui::TextUnformatted( label );
+				};
+
+				ed::PinId StartPinId = 0;
+				ed::PinId EndPinId = 0;
+
+				if( ed::QueryNewLink( &StartPinId, &EndPinId ) )
+				{
+					Pin* StartPin = nullptr; 
+					Pin* EndPin   = nullptr;
+
+					StartPin = FindPin( StartPinId );
+					EndPin = FindPin( EndPinId );
+
+					m_NewLinkPin = StartPin ? StartPin : EndPin;
+
+					if( StartPin->Kind == PinKind::Input ) 
+					{
+						std::swap( StartPin, EndPin );
+						std::swap( StartPinId, EndPinId );
+					}
+
+					if( StartPin && EndPin )
+					{
+						// Pin is the same, reject.
+						if( EndPin == StartPin )
+						{
+							ed::RejectNewItem( ImColor( 225, 0, 0 ), 2.0f );
+						}
+						else if( EndPin->Kind == StartPin->Kind )  // Same kind, input/output into input/output.
+						{
+							showLabel( "x Incompatible Pin Kind, input/output into input/output", ImColor( 45, 32, 32, 180 ) );
+
+							ed::RejectNewItem( ImColor( 225, 0, 0 ), 2.0f );
+						}
+						else if( EndPin->Type != StartPin->Type )
+						{
+							showLabel( "x Incompatible Pin Type", ImColor( 45, 32, 32, 180 ) );
+
+							ed::RejectNewItem( ImColor( 225, 128, 128 ), 2.0f );
+						}
+						else // Vaild type, accept
+						{
+							showLabel( "+ Create Link", ImColor( 32, 45, 32, 180 ) );
+							if( ed::AcceptNewItem( ImColor( 128, 255, 128 ), 4.0f ) )
+							{
+								m_Links.emplace_back( Link( GetNextID(), StartPinId, EndPinId ) );
+								m_Links.back().Color = GetIconColor( StartPin->Type );
+							}
+						}
+					}
+				}
+			
+				// If the link is not connected, user maybe want to create a new node rather than link it.
+				ed::PinId id = 0;
+				if( ed::QueryNewNode( &id ) ) 
+				{
+					m_NewLinkPin = FindPin( id );
+
+					if( m_NewLinkPin  )
+						showLabel( "+ Create Node", ImColor( 32, 45, 32, 180 ) );
+
+					if( ed::AcceptNewItem() ) 
+					{
+						m_CreateNewNode = true;
+						
+						m_NewNodeLinkPin = FindPin( id );
+						m_NewLinkPin = nullptr;
+
+						ed::Suspend();
+						ImGui::OpenPopup( "Create New Node" );
+						ed::Resume();
+					}
+				}
+			}
+			else
+				m_NewLinkPin = nullptr;
+
+			ed::EndCreate();
+		}
+
+		ed::Suspend();
+		if( ed::ShowBackgroundContextMenu() )
+		{
+			ImGui::OpenPopup( "Create New Node" );
+			m_NewNodeLinkPin = nullptr;
+		}
+
+		if( ImGui::BeginPopup( "Create New Node" ) )
+		{
+			Node* node = nullptr;
+
+			if( m_CreateNewNodeFunction )
+				node = m_CreateNewNodeFunction();
+
+			if( node )
+			{
+				BuildNode( node );
+
+				ed::SetNodePosition( node->ID, ImGui::GetMousePos() );
+
+				if( auto startPin = m_NewNodeLinkPin ) 
+				{
+					auto& pins = startPin->Kind == PinKind::Input ? node->Outputs : node->Inputs;
+
+					for( Pin& pin : pins ) 
+					{
+						if( CanCreateLink( startPin, &pin ) )
+						{
+							auto endPin = &pin;
+
+							if( startPin->Kind == PinKind::Input )
+								std::swap( startPin, endPin );
+
+							m_Links.emplace_back( Link( GetNextID(), startPin->ID, endPin->ID ) );
+							m_Links.back().Color = GetIconColor( startPin->Type );
+
+							break;
+						}
+					}
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+		else
+			m_CreateNewNode = false;
+
+		ed::Resume();
+
 		ed::End();
 
+		ImGui::Begin( "Details##NODE_INFO_PANEL" );
+		{
+			if( !ed::IsNodeSelected( rNode.ID ) )
+				continue;
+
+			if( m_DetailsFunction )
+				m_DetailsFunction( rNode );
+		}
+
 		ImGui::End();
+
+		ImGui::End(); // NODE_EDITOR
 	}
 
 }

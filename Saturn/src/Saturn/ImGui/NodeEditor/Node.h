@@ -46,6 +46,7 @@ namespace Saturn {
 		Object,
 		Function,
 		Delegate,
+		Material_Sampler2D
 	};
 
 	enum class PinKind
@@ -101,12 +102,16 @@ namespace Saturn {
 		NodeType Type;
 		ImVec2 Size;
 
+		// Any other extra data that should be stored in the node.
+		Buffer ExtraData;
+
 		std::string State;
 		std::string SavedState;
 
 		Node( int id, const char* name, ImColor color = ImColor( 255, 255, 255 ) ) :
 			ID( id ), Name( name ), Color( color ), Type( NodeType::Blueprint ), Size( 0, 0 )
 		{
+			ExtraData = Buffer();
 		}
 	};
 

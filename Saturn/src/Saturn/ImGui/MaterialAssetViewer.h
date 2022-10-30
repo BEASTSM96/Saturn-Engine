@@ -38,7 +38,7 @@ namespace Saturn {
 		SINGLETON( MaterialAssetViewer );
 	public:
 		MaterialAssetViewer();
-		~MaterialAssetViewer() {}
+		~MaterialAssetViewer();
 
 		virtual void Draw() override;
 
