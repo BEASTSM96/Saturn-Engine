@@ -136,6 +136,8 @@ namespace Saturn {
 		pin.Name = "Roughness";
 		node.Inputs.push_back( pin );
 
+		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->AddNode( node );
+
 		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->SetCreateNewNodeFunction( 
 			[&, rMaterialAsset ]() -> Node*
 			{

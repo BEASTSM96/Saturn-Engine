@@ -345,9 +345,11 @@ namespace Saturn {
 					// Check if output has is an AssetHandle
 					if( output.Type == PinType::AssetHandle ) 
 					{
+						auto& rSavedUUID = node.ExtraData.Read<UUID>( 0 );
+
 						const char* name = s_SelectAssetInfo.AssetName.empty() ? "Select Asset" : s_SelectAssetInfo.AssetName.c_str();
 
-						if( ImGui::Button( name ) )
+						if( ImGui::Button( rSavedUUID != 0 ? std::to_string( rSavedUUID ).c_str() : name ) )
 						{
 							OpenAssetPopup = true;
 							s_SelectAssetInfo.ID     = output.ID;
@@ -387,6 +389,26 @@ namespace Saturn {
 						s_SelectAssetInfo.Asset = assetID;
 						s_SelectAssetInfo.AssetName = rAsset->GetName();
 
+						Node* pNode = nullptr;
+
+						for( auto& rNode : m_Nodes )
+						{
+							if( rNode.ID == s_SelectAssetInfo.NodeID )
+							{
+								pNode = &rNode;
+								break;
+							}
+						}
+
+						if( pNode )
+						{
+							pNode->ExtraData.Write( ( uint8_t* ) &assetID, sizeof( UUID ), 0 );
+
+							auto& uuid = pNode->ExtraData.Read<UUID>( 0 );
+
+							SAT_CORE_INFO("UUID: {0}, Saved UUID: {1}", uuid, assetID );
+						}
+
 						PopupModified = true;
 					}
 
@@ -397,10 +419,15 @@ namespace Saturn {
 				ImGui::EndListBox();
 			}
 
-			//		node.ExtraData.Write( ( uint8_t* ) &assetID, sizeof( UUID ), 0 );
-
 			if( PopupModified )
+			{
 				ImGui::CloseCurrentPopup();
+
+				s_SelectAssetInfo.Asset     = 0;
+				s_SelectAssetInfo.ID        = 0;
+				s_SelectAssetInfo.NodeID    = 0;
+				s_SelectAssetInfo.AssetName = "";
+			}
 
 			ImGui::EndPopup();
 		}
