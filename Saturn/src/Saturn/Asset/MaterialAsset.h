@@ -95,6 +95,11 @@ namespace Saturn {
 		void BeginViewingSession();
 		void EndViewingSession();
 
+		void SetAlbeoMap( const std::filesystem::path& rPath );
+		void SetNormalMap( const std::filesystem::path& rPath );
+		void SetMetallicMap( const std::filesystem::path& rPath );
+		void SetRoughnessMap( const std::filesystem::path& rPath );
+
 	private:
 		Ref<Material> m_Material;
 

@@ -53,7 +53,7 @@ namespace Saturn {
 
 	Ref<Asset> AssetRegistry::FindAsset( AssetID id )
 	{
-		return m_Assets[ id ];
+		return m_Assets.at( id );
 	}
 
 	Ref<Asset> AssetRegistry::FindAsset( const std::filesystem::path& rPath )
@@ -67,11 +67,25 @@ namespace Saturn {
 		return nullptr;
 	}
 
+	const std::vector<AssetID>& AssetRegistry::FindAssetsWithType( AssetType type ) const
+	{
+		std::vector<AssetID> result;
+
+		// There is a better way of doing this however we'll just keep it for now.
+		for( const auto& [id, asset] : m_Assets )
+		{
+			if( asset->GetAssetType() == type )
+				result.push_back( id );
+		}
+
+		return result;
+	}
+
 	void AssetRegistry::AddAsset( AssetID id )
 	{
 		SAT_CORE_ASSERT( m_Assets.find( id ) == m_Assets.end(), "Asset already exists!" );
 
-		m_Assets[ id ] = Ref<Asset>::Create();
+		m_Assets[ id ] = Ref<Asset>::Create( id );
 	}
 
 }

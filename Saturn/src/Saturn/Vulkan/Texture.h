@@ -86,6 +86,8 @@ namespace Saturn {
 
 		void CopyBufferToImage( VkBuffer Buffer );
 
+		void SetPath( const std::filesystem::path& rPath ) { m_Path = rPath; };
+
 	public:
 		
 		VkSampler GetSampler() { return m_Sampler; }

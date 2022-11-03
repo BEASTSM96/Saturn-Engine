@@ -50,7 +50,16 @@ namespace Saturn {
 		Link* FindLink( ed::LinkId id );
 		Node* FindNode( ed::NodeId id );
 
+		const std::vector<Node>& GetNodes() const { return m_Nodes; }
+		std::vector<Node>& GetNodes() { return m_Nodes; }
+
+		const std::vector<Link>& GetLinks() const { return m_Links; }
+		std::vector<Link>& GetLinks() { return m_Links; }
+
 		void Draw() override;
+
+		void Open( bool open ) { m_Open = open; }
+		bool IsOpen() { return m_Open; }
 
 		void SetDetailsFunction( std::function<void( Node )>&& rrDetailsFunction )
 		{
@@ -63,8 +72,15 @@ namespace Saturn {
 			m_CreateNewNodeFunction = std::move( rrCreateNewNodeFunction );
 		}
 
+		void SetCompileFunction( std::function<void()>&& rrCompileFunction )
+		{
+			m_OnCompile = std::move( rrCompileFunction );
+		}
+
 	private:
 		ed::EditorContext* m_Editor;
+
+		bool m_Open = false;
 
 		bool m_CreateNewNode = false;
 		Pin* m_NewLinkPin = nullptr;
@@ -72,6 +88,7 @@ namespace Saturn {
 
 		std::function<void( Node )> m_DetailsFunction;
 		std::function<Node*()> m_CreateNewNodeFunction;
+		std::function<void()> m_OnCompile;
 
 		std::vector<Node> m_Nodes;
 		std::vector<Link> m_Links;

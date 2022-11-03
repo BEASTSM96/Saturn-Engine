@@ -46,6 +46,27 @@ namespace Saturn {
 
 	static std::unordered_map<AssetID, NodeEditor*> s_NodeEditors;
 
+	// TOOD: Create default nodes class
+	Node* SpawnNewGetAssetNode( NodeEditor* pNodeEditor )
+	{
+		PinSpecification pin;
+		pin.Name = "Asset ID";
+		pin.Type = PinType::AssetHandle;
+
+		NodeSpecification node;
+		node.Color = ImColor( 30, 117, 217 );
+		node.Name = "Get Asset";
+
+		node.Outputs.push_back( pin );
+
+		Node* pNode = pNodeEditor->AddNode( node );
+
+		pNode->ExtraData.Allocate( 1024 );
+		pNode->ExtraData.Zero_Memory();
+
+		return pNode;
+	}
+
 	Node* SpawnNewSampler2D( NodeEditor* pNodeEditor )
 	{
 		PinSpecification pin;
@@ -66,6 +87,10 @@ namespace Saturn {
 		node.Outputs.push_back( pin );
 		pin.Name = "A";
 		node.Outputs.push_back( pin );
+
+		pin.Name = "Asset";
+		pin.Type = PinType::AssetHandle;
+		node.Inputs.push_back( pin );
 
 		return pNodeEditor->AddNode( node );
 	}
@@ -111,25 +136,6 @@ namespace Saturn {
 		pin.Name = "Roughness";
 		node.Inputs.push_back( pin );
 
-		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->AddNode( node );
-
-		pin.Name = "RGBA";
-		node.Outputs.push_back( pin );
-		pin.Name = "R";
-		node.Outputs.push_back( pin );
-		pin.Name = "G";
-		node.Outputs.push_back( pin );
-		pin.Name = "B";
-		node.Outputs.push_back( pin );
-		pin.Name = "A";
-		node.Outputs.push_back( pin );
-
-		node.Inputs.clear();
-		node.Color = ImColor( 0, 255, 0 );
-		node.Name = "Sampler2D";
-
-		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->AddNode( node );
-
 		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->SetCreateNewNodeFunction( 
 			[&, rMaterialAsset ]() -> Node*
 			{
@@ -137,108 +143,59 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Texture Sampler2D" ) )
 					node = SpawnNewSampler2D( s_NodeEditors[ rMaterialAsset->GetAssetID() ] );
+				
+				if( ImGui::MenuItem( "Get Asset" ) )
+					node = SpawnNewGetAssetNode( s_NodeEditors[ rMaterialAsset->GetAssetID() ] );
 
 				return node;
 			} );
 
 		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->SetDetailsFunction(
-			[&]( Node node ) -> void
+			[&, rMaterialAsset]( Node node ) -> void
 			{
-				// TEMP
-				// For now lets just check if we have a Material output, if we do then assume it's a texture sampler
-
-				bool HasTextureOutput = false;
-
-				for( auto& outs : node.Outputs )
-				{
-					if( outs.Type == PinType::Material_Sampler2D )
-					{
-						HasTextureOutput = true;
-						break;
-					}
-				}
-
-				// Texture sampler node
-				if( HasTextureOutput )
-				{
-					const char* items[] = { "Albedo", "Normal", "Metalness" };
-					static const char* current_item = NULL;
-
-					if( ImGui::BeginCombo( "##combo", current_item ) )
-					{
-						for( size_t i = 0; i < IM_ARRAYSIZE( items ); i++ )
-						{
-							bool Selected = ( current_item == items[ i ] );
-
-							if( ImGui::Selectable( items[ i ], Selected ) )
-								current_item = items[ i ];
-
-							if( Selected )
-								ImGui::SetItemDefaultFocus();
-						}
-
-						ImGui::EndCombo();
-					}
-
-					auto opened = TreeNode( "Texture", true );
-
-					if( opened )
-					{
-						ImGui::Text( "Select texture" );
-						ImGui::SameLine();
-
-						static Ref<Texture2D> PreviewTexture = Renderer::Get().GetPinkTexture();
-
-						static bool ShowTextureAssets = false;
-
-						if( ImageButton( PreviewTexture, ImVec2( 100, 100 ) ) )
-						{
-							ShowTextureAssets = !ShowTextureAssets;
-						}
-
-						if( ShowTextureAssets )
-						{
-							std::vector<Ref<Asset>> result;
-
-							for( const auto& [id, asset] : AssetRegistry::Get().GetAssetMap() )
-							{
-								if( asset->GetAssetType() == AssetType::Texture )
-									result.push_back( asset );
-							}
-
-							static AssetID pCurrentItemAssetName = NULL;
-
-							if( ImGui::BeginCombo( "##combo", std::to_string( pCurrentItemAssetName ).c_str() ) )
-							{
-								for( size_t i = 0; i < result.size(); i++ )
-								{
-									bool Selected = ( pCurrentItemAssetName == result[ i ] );
-
-									if( ImGui::Selectable( std::to_string( result[ i ]->GetAssetID() ).c_str(), Selected ) )
-										pCurrentItemAssetName = result[ i ]->GetAssetID();
-
-									if( Selected )
-									{
-										ImGui::SetItemDefaultFocus();
-									}
-								}
-
-								ImGui::EndCombo();
-							}
-						}
-					}
-
-					EndTreeNode();
-				}
 			}
 		);
+
+		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->SetCompileFunction( 
+			[ rMaterialAsset ]() 
+			{
+				auto editor = s_NodeEditors[ rMaterialAsset->GetAssetID() ];
+
+				Node* MaterialOutputNode = nullptr;
+
+				for( auto& rNode : editor->GetNodes() )
+				{
+					if( MaterialOutputNode )
+						continue;
+
+					 for ( auto& rOutput : rNode.Outputs )
+					 {
+						 if( MaterialOutputNode )
+							 continue;
+
+						 bool HasAlbedoOut = false;
+
+						 if( rOutput.Name == "Albedo" && rOutput.Type == PinType::Material_Sampler2D )
+							 HasAlbedoOut = true;
+
+						 if( HasAlbedoOut )
+							 MaterialOutputNode = &rNode;
+					 }
+				}
+
+				Ref<MaterialAsset> materialAsset = rMaterialAsset;
+				//materialAsset->SetAlbeoMap();
+			} );
+
+		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->Open( true );
 	}
 
 	void MaterialAssetViewer::DrawInternal( Ref<MaterialAsset>& rMaterialAsset )
 	{
 		rMaterialAsset->BeginViewingSession();
 
-		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->Draw();
+		if( s_NodeEditors[ rMaterialAsset->GetAssetID() ]->IsOpen() )
+			s_NodeEditors[ rMaterialAsset->GetAssetID() ]->Draw();
 
 		rMaterialAsset->EndViewingSession();
 	}

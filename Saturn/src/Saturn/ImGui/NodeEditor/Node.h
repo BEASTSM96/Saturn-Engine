@@ -46,7 +46,8 @@ namespace Saturn {
 		Object,
 		Function,
 		Delegate,
-		Material_Sampler2D
+		Material_Sampler2D,
+		AssetHandle
 	};
 
 	enum class PinKind

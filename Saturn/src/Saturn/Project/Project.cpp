@@ -64,6 +64,8 @@ namespace Saturn {
 	{
 		auto AssetPath = GetAssetPath();
 
+		bool FileChanged = false;
+
 		for( auto& rEntry : std::filesystem::recursive_directory_iterator( AssetPath ) ) 
 		{
 			if( rEntry.is_directory() )
@@ -76,19 +78,29 @@ namespace Saturn {
 
 			Ref<Asset> asset = AssetRegistry::Get().FindAsset( filepath );
 
+			const auto& assetReg = AssetRegistry::Get().GetAssetMap();
 			if( asset == nullptr ) 
 			{
+				// Search the asset asset registry
+				//if( assetReg.at( asset->GetAssetID() )->GetPath() == filepath )
+				//	continue;
+
 				SAT_CORE_INFO( "Found an asset with no asset ref, creating new asset..." );
 
 				auto id = AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( filepath.extension().string() ) );
 				asset = AssetRegistry::Get().FindAsset( id );
 
 				asset->SetPath( filepath );
+
+				FileChanged = true;
 			}
 		}
 
-		AssetRegistrySerialiser ars;
-		ars.Serialise();
+		if( FileChanged )
+		{
+			AssetRegistrySerialiser ars;
+			ars.Serialise();
+		}
 	}
 
 	std::filesystem::path Project::GetAssetPath()

@@ -50,6 +50,8 @@ namespace Saturn {
 		
 		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
 
+		const std::vector<AssetID>& FindAssetsWithType( AssetType type ) const;
+
 		const AssetMap& GetAssetMap() const { return m_Assets; }
 
 	private:

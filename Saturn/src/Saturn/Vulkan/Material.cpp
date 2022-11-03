@@ -42,7 +42,16 @@ namespace Saturn {
 	Material::Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName )
 	{
 		m_Shader = Shader;
-		m_Name = MateralName;
+
+		if( MateralName.empty() )
+		{
+			std::string NewName = Shader->GetName();
+			NewName += " Unknown Material " + std::to_string( UUID() );
+
+			m_Name = NewName;
+		}
+		else
+			m_Name = MateralName;
 
 		for ( auto&& texture : m_Shader->GetTextures() )
 		{

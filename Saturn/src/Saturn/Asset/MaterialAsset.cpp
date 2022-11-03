@@ -219,11 +219,24 @@ namespace Saturn {
 		m_Material->SetResource( "u_AlbedoTexture", rTexture );
 	}
 
+	void MaterialAsset::SetAlbeoMap( const std::filesystem::path& rPath )
+	{
+		m_Material->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+
+		auto texture = m_Material->GetResource( "u_AlbedoTexture" );
+		texture->SetPath( rPath );
+	}
+
 	void MaterialAsset::SetNormalMap( Ref<Texture2D>& rTexture )
 	{
 		m_ValuesChanged = true;
 
 		m_Material->SetResource( "u_NormalTexture", rTexture );
+	}
+
+	void MaterialAsset::SetNormalMap( const std::filesystem::path& rPath )
+	{
+
 	}
 
 	void MaterialAsset::SetMetallicMap( Ref<Texture2D>& rTexture )
@@ -233,10 +246,21 @@ namespace Saturn {
 		m_Material->SetResource( "u_MetallicTexture", rTexture );
 	}
 
+	void MaterialAsset::SetMetallicMap( const std::filesystem::path& rPath )
+	{
+
+	}
+
 	void MaterialAsset::SetRoughnessMap( Ref<Texture2D>& rTexture )
 	{
 		m_ValuesChanged = true;
 
 		m_Material->SetResource( "u_RoughnessTexture", rTexture );
 	}
+
+	void MaterialAsset::SetRoughnessMap( const std::filesystem::path& rPath )
+	{
+
+	}
+
 }

@@ -30,6 +30,7 @@
 #include "NodeEditor.h"
 #include "Saturn/Vulkan/Image2D.h"
 #include "Saturn/Vulkan/Texture.h"
+#include "Saturn/Asset/AssetRegistry.h"
 
 // imgui_node_editor
 #include "builders.h"
@@ -69,6 +70,16 @@ namespace Saturn {
 			output.Kind = PinKind::Output;
 		}
 	}
+
+	struct SelectAssetInfo
+	{
+		ed::PinId   ID = 0;
+		ed::NodeId  NodeID = 0;
+		AssetID     Asset = 0;
+		std::string AssetName = "";
+	};
+
+	static SelectAssetInfo s_SelectAssetInfo;
 
 	NodeEditor::NodeEditor()
 	{
@@ -170,6 +181,7 @@ namespace Saturn {
 			case PinType::Object:   return ImColor( 51, 150, 215 );
 			case PinType::Function: return ImColor( 218, 0, 183 );
 			case PinType::Delegate: return ImColor( 255, 48, 48 );
+			case PinType::AssetHandle: return ImColor( 0, 0, 255 );
 		}
 	}
 
@@ -189,6 +201,7 @@ namespace Saturn {
 			case PinType::Object:			  type = ax::Drawing::IconType::Circle; break;
 			case PinType::Function:			  type = ax::Drawing::IconType::Circle; break;
 			case PinType::Material_Sampler2D: type = ax::Drawing::IconType::Circle; break;
+			case PinType::AssetHandle:        type = ax::Drawing::IconType::Circle; break;
 			case PinType::Delegate:           type = ax::Drawing::IconType::Square; break;
 			default:
 				return;
@@ -214,7 +227,10 @@ namespace Saturn {
 		// Safety
 		ed::SetCurrentEditor( m_Editor );
 
-		ImGui::Begin( "##NODE_EDITOR" );
+		if( !m_Open )
+			return;
+
+		ImGui::Begin( "##NODE_EDITOR", &m_Open );
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar;
 
@@ -228,12 +244,24 @@ namespace Saturn {
 			for( auto& link : m_Links )
 				ed::Flow( link.ID );
 
+		if( ImGui::Button( "Compile" ) )
+			if( m_OnCompile )
+				m_OnCompile();
+			else
+				SAT_CORE_ASSERT( false, "A compile callback function must be set!" );
+
 		ImGui::EndHorizontal();
 		ImGui::End();
 
+		ImGui::SameLine( 0.0f, 12.0f );
+
 		ed::Begin( "Node Editor" );
 
+		auto cursorTopLeft = ImGui::GetCursorScreenPos();
+
 		util::BlueprintNodeBuilder builder( s_BlueprintBackgroundID, s_BlueprintBackground->Width(), s_BlueprintBackground->Height() );
+
+		bool OpenAssetPopup = false;
 
 		for( auto& node : m_Nodes )
 		{
@@ -313,6 +341,19 @@ namespace Saturn {
 				{
 					ImGui::Spring( 0 );
 					ImGui::TextUnformatted( output.Name.c_str() );
+
+					// Check if output has is an AssetHandle
+					if( output.Type == PinType::AssetHandle ) 
+					{
+						const char* name = s_SelectAssetInfo.AssetName.empty() ? "Select Asset" : s_SelectAssetInfo.AssetName.c_str();
+
+						if( ImGui::Button( name ) )
+						{
+							OpenAssetPopup = true;
+							s_SelectAssetInfo.ID     = output.ID;
+							s_SelectAssetInfo.NodeID = node.ID;
+						}
+					}
 				}
 
 				ImGui::Spring( 0 );
@@ -324,6 +365,47 @@ namespace Saturn {
 
 			builder.End();
 		}
+
+		ed::Suspend();
+
+		if( OpenAssetPopup )
+			ImGui::OpenPopup( "AssetFinderPopup" );
+
+		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
+		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+		{
+			bool PopupModified = false;
+
+			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
+			{
+				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
+				{
+					bool Selected = ( s_SelectAssetInfo.Asset == assetID );
+
+					if( ImGui::Selectable( rAsset->GetName().c_str() ) )
+					{
+						s_SelectAssetInfo.Asset = assetID;
+						s_SelectAssetInfo.AssetName = rAsset->GetName();
+
+						PopupModified = true;
+					}
+
+					if( Selected )
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndListBox();
+			}
+
+			//		node.ExtraData.Write( ( uint8_t* ) &assetID, sizeof( UUID ), 0 );
+
+			if( PopupModified )
+				ImGui::CloseCurrentPopup();
+
+			ImGui::EndPopup();
+		}
+
+		ed::Resume();
 
 		// Link the links
 		for( auto& link : m_Links )
@@ -427,17 +509,53 @@ namespace Saturn {
 				m_NewLinkPin = nullptr;
 
 			ed::EndCreate();
+
+			if( ed::BeginDelete() )
+			{
+				ed::LinkId linkId = 0;
+				while( ed::QueryDeletedLink( &linkId ) )
+				{
+					if( ed::AcceptDeletedItem() )
+					{
+						auto id = std::find_if( m_Links.begin(), m_Links.end(), [linkId]( auto& link ) { return link.ID == linkId; } );
+						if( id != m_Links.end() )
+							m_Links.erase( id );
+					}
+				}
+
+				ed::NodeId nodeId = 0;
+				while( ed::QueryDeletedNode( &nodeId ) )
+				{
+					if( ed::AcceptDeletedItem() )
+					{
+						auto id = std::find_if( m_Nodes.begin(), m_Nodes.end(), [nodeId]( auto& node ) { return node.ID == nodeId; } );
+						if( id != m_Nodes.end() )
+							m_Nodes.erase( id );
+					}
+				}
+			}
+			ed::EndDelete();
 		}
 
+		ImGui::SetCursorScreenPos( cursorTopLeft );
+
 		ed::Suspend();
+
+		auto openPopupPosition = ImGui::GetMousePos();
 		if( ed::ShowBackgroundContextMenu() )
 		{
 			ImGui::OpenPopup( "Create New Node" );
 			m_NewNodeLinkPin = nullptr;
 		}
+		ed::Resume();
 
+		ed::Suspend();
+
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 8, 8 ) );
 		if( ImGui::BeginPopup( "Create New Node" ) )
 		{
+			auto mousePos = ed::ScreenToCanvas( ImGui::GetMousePosOnOpeningCurrentPopup() );
+
 			Node* node = nullptr;
 
 			if( m_CreateNewNodeFunction )
@@ -447,7 +565,9 @@ namespace Saturn {
 			{
 				BuildNode( node );
 
-				ed::SetNodePosition( node->ID, ImGui::GetMousePos() );
+				m_CreateNewNode = false;
+
+				ed::SetNodePosition( node->ID, mousePos );
 
 				if( auto startPin = m_NewNodeLinkPin ) 
 				{
@@ -476,13 +596,23 @@ namespace Saturn {
 		else
 			m_CreateNewNode = false;
 
+		ImGui::PopStyleVar();
 		ed::Resume();
 
 		ed::End();
 
 		ImGui::Begin( "Details##NODE_INFO_PANEL" );
 
-		for ( auto& rNode : m_Nodes )
+		/*
+		std::vector<ed::NodeId> selectedNodes;
+
+		selectedNodes.resize( ed::GetSelectedObjectCount() );
+
+		int nodes = ed::GetSelectedNodes( selectedNodes.data(), static_cast< int >( selectedNodes.size() ) );
+		selectedNodes.resize( nodes );
+		*/
+
+		for( auto& rNode : m_Nodes )
 		{
 			if( !ed::IsNodeSelected( rNode.ID ) )
 				continue;

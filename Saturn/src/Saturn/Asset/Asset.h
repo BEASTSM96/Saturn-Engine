@@ -131,6 +131,7 @@ namespace Saturn {
 	{
 	public:
 		Asset() {}
+		Asset( AssetID ID ) : m_ID( ID ) {}
 
 		void SetAssetType( AssetType type ) { if( m_AssetType != AssetType::Unknown ) m_AssetType = type; }
 
@@ -140,15 +141,24 @@ namespace Saturn {
 		const AssetType GetAssetType() const { return m_AssetType; }
 		const AssetID& GetAssetID() const { return m_ID; }
 		
-		void SetPath( std::filesystem::path p ) { m_Path = p; }
+		void SetPath( std::filesystem::path p ) 
+		{
+			m_Path = p; 
 
-		void AssignAssetData( AssetData& rData ) { m_AssetData = std::move( rData ); }
+			auto CopyPath = m_Path;
+			m_Name = CopyPath.replace_extension().filename().string();
+		}
+
+		void AssignAssetData( AssetData& rData ) { m_AssetData = rData; }
 
 		AssetData& GetAssetData() { return m_AssetData; }
 		const AssetData& GetAssetData() const { return m_AssetData; }
 		
 		std::filesystem::path& GetPath() { return m_Path; }
 		const std::filesystem::path& GetPath() const { return m_Path; }
+
+		std::string& GetName() { return m_Name; }
+		const std::string& GetName() const { return m_Name; }
 
 	protected:
 		AssetID m_ID;
@@ -157,5 +167,8 @@ namespace Saturn {
 		AssetData m_AssetData;
 
 		std::filesystem::path m_Path;
+		std::string m_Name;
+		friend class AssetRegistrySerialiser;
+		friend class AssetRegistry;
 	};
 }
