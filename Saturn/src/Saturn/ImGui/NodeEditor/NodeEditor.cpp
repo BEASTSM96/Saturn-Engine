@@ -81,11 +81,73 @@ namespace Saturn {
 
 	static SelectAssetInfo s_SelectAssetInfo;
 
+	size_t _LoadSettings( char* data, void* userPointer )
+	{
+		return 0;
+	}
+
 	NodeEditor::NodeEditor()
 	{
-		m_Editor = ed::CreateEditor( {} );
+		ed::Config config;
+		config.SettingsFile = nullptr;
+		config.UserPointer = this;
+
+		config.SaveSettings = []( const char* pData, size_t size, ed::SaveReasonFlags reason, void* pUserPointer ) -> bool
+		{
+			auto* pThis = static_cast< NodeEditor* >( pUserPointer );
+
+			pThis->m_NodeEditorState = pData;
+
+			return true;
+		};
+
+		config.LoadSettings = []( char* pData, void* pUserData ) -> size_t
+		{
+			auto* pThis = static_cast< NodeEditor* >( pUserData );
+
+			const auto& State = pThis->m_NodeEditorState;
+
+			if( !pData )
+			{
+				return State.size();
+			}
+			else
+			{
+				memcpy( pData, State.data(), State.size() );
+			}
+		};
+
+		config.LoadNodeSettings = []( ed::NodeId nodeId, char* pData, void* pUserPointer ) -> size_t
+		{
+			auto* pThis = static_cast< NodeEditor* >( pUserPointer );
+
+			auto pNode = pThis->FindNode( nodeId );
+
+			if( !pNode )
+				return 0;
+
+			if( pData != nullptr )
+				memcpy( pData, pNode->State.data(), pNode->State.size() );
+
+			return pNode->State.size();
+		};
+
+		config.SaveNodeSettings = []( ed::NodeId nodeId, const char* pData, size_t size, ed::SaveReasonFlags reason, void* pUserPointer ) -> bool
+		{
+			auto* pThis = static_cast< NodeEditor* >( pUserPointer );
+
+			auto pNode = pThis->FindNode( nodeId );
+
+			if( !pNode )
+				return false;
+
+			pNode->State.assign( pData, size );
+
+			return true;
+		};
+
+		m_Editor = ed::CreateEditor( &config );
 		ed::SetCurrentEditor( m_Editor );
-		ed::NavigateToContent();
 
 		s_BlueprintBackground = Ref<Texture2D>::Create( "assets/textures/BlueprintBackground.png", AddressingMode::Repeat );
 

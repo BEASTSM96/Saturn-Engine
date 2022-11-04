@@ -393,6 +393,9 @@ struct Node final: Object
     bool     m_RestoreState;
     bool     m_CenterOnScreen;
 
+    bool     m_Hovered = false;
+    bool     m_Clicked = false;
+
     Node(EditorContext* editor, NodeId id)
         : Object(editor)
         , m_ID(id)

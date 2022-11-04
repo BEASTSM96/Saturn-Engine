@@ -80,6 +80,8 @@ namespace Saturn {
 	private:
 		ed::EditorContext* m_Editor;
 
+		std::string m_NodeEditorState;
+
 		bool m_Open = false;
 
 		bool m_CreateNewNode = false;
