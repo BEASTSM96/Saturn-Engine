@@ -26,68 +26,28 @@
 *********************************************************************************************
 */
 
-#include <sppch.h>
-#include "AssetRegistry.h"
+#include "sppch.h"
+#include "AssetImporter.h"
 
 namespace Saturn {
 
-	AssetRegistry::AssetRegistry()
+	AssetImporter::~AssetImporter()
 	{
 
 	}
 
-	AssetRegistry::~AssetRegistry()
+	void AssetImporter::Init()
 	{
-
+		m_AssetSerialisers[ AssetType::Material ] = std::make_unique<MaterialAssetSerialiser>();
 	}
 
-	AssetID AssetRegistry::CreateAsset( AssetType type )
+	void AssetImporter::Import( const Ref<Asset>& rAsset )
 	{
-		Ref<Asset> asset = Ref<Asset>::Create();
-		asset->Type = type;
-		asset->ID = UUID();
-
-		m_Assets[ asset->GetAssetID() ] = asset;
-
-		return asset->GetAssetID();
+		m_AssetSerialisers[ rAsset->GetAssetType() ]->Derialise( rAsset );
 	}
 
-	Ref<Asset> AssetRegistry::FindAsset( AssetID id )
+	void AssetImporter::TryLoadData( Ref<Asset>& rAsset )
 	{
-		return m_Assets.at( id );
+		m_AssetSerialisers[ rAsset->GetAssetType() ]->TryLoadData( rAsset );
 	}
-
-	Ref<Asset> AssetRegistry::FindAsset( const std::filesystem::path& rPath )
-	{
-		for( const auto& [id, asset] : m_Assets )
-		{
-			if( asset->GetPath() == rPath )
-				return asset;
-		}
-
-		return nullptr;
-	}
-
-	const std::vector<AssetID>& AssetRegistry::FindAssetsWithType( AssetType type ) const
-	{
-		std::vector<AssetID> result;
-
-		// There is a better way of doing this however we'll just keep it for now.
-		for( const auto& [id, asset] : m_Assets )
-		{
-			if( asset->GetAssetType() == type )
-				result.push_back( id );
-		}
-
-		return result;
-	}
-
-	void AssetRegistry::AddAsset( AssetID id )
-	{
-		SAT_CORE_ASSERT( m_Assets.find( id ) == m_Assets.end(), "Asset already exists!" );
-
-		m_Assets[ id ] = Ref<Asset>::Create();
-		m_Assets[ id ]->ID = id;
-	}
-
 }

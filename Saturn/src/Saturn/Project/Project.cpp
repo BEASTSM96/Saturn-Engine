@@ -85,7 +85,7 @@ namespace Saturn {
 				//if( assetReg.at( asset->GetAssetID() )->GetPath() == filepath )
 				//	continue;
 
-				SAT_CORE_INFO( "Found an asset with no asset ref, creating new asset..." );
+				SAT_CORE_INFO( "Found an asset that exists in the system filesystem, however not in the asset registry, creating new asset." );
 
 				auto id = AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( filepath.extension().string() ) );
 				asset = AssetRegistry::Get().FindAsset( id );
@@ -101,6 +101,12 @@ namespace Saturn {
 			AssetRegistrySerialiser ars;
 			ars.Serialise();
 		}
+	}
+
+	void Project::LoadAssetRegistry()
+	{
+		AssetRegistrySerialiser ars;
+		ars.Deserialise();
 	}
 
 	std::filesystem::path Project::GetAssetPath()

@@ -34,9 +34,15 @@
 
 namespace Saturn {
 
+	static Ref<Material> s_ViewingMaterial;
+	static bool s_IsInViewingMode = false;
+
 	MaterialAsset::MaterialAsset( Ref<Material> material )
 		: m_Material( material )
 	{
+		if( !m_Material )
+			m_Material = Ref<Material>::Create( ShaderLibrary::Get().Find( "shader_new" ), "New Material" );
+
 		Default();
 	}
 
@@ -58,43 +64,70 @@ namespace Saturn {
 		m_Material->Set<float>( "u_Materials.Metalness", 1.0f );
 		m_Material->Set<float>( "u_Materials.Roughness", 1.0f );
 		m_Material->Set<float>( "u_Materials.UseNormalMap", 0.0f );
+
+		s_ViewingMaterial = m_Material;
 	}
 
 	void MaterialAsset::BeginViewingSession()
 	{
-		auto staticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
+		auto& StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
 
-		m_Material = Ref<Material>::Create( staticMeshShader, "Internal Viewing material" );
+		s_ViewingMaterial = Ref<Material>::Create( StaticMeshShader, "Viewing material" );
+
+		s_ViewingMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+		s_ViewingMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
+		s_ViewingMaterial->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
+		s_ViewingMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
+
+		s_ViewingMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", { 1.0f, 1.0f, 1.0f } );
+		s_ViewingMaterial->Set<float>( "u_Materials.Metalness", 1.0f );
+		s_ViewingMaterial->Set<float>( "u_Materials.Roughness", 1.0f );
+		s_ViewingMaterial->Set<float>( "u_Materials.UseNormalMap", 0.0f );
+
+		s_IsInViewingMode = true;
 	}
 
 	void MaterialAsset::EndViewingSession()
 	{
-		m_Material = nullptr;
+		s_IsInViewingMode = false;
+
+		if( s_ViewingMaterial == nullptr )
+			return;
+
+		s_ViewingMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+		s_ViewingMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
+		s_ViewingMaterial->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
+		s_ViewingMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
+
+		s_ViewingMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", { 1.0f, 1.0f, 1.0f } );
+		s_ViewingMaterial->Set<float>( "u_Materials.Metalness", 1.0f );
+		s_ViewingMaterial->Set<float>( "u_Materials.Roughness", 1.0f );
+		s_ViewingMaterial->Set<float>( "u_Materials.UseNormalMap", 0.0f );
 	}
 
 	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetAlbeoMap()
 	{
-		return m_Material->GetResource( "u_AlbedoTexture" );
+		return s_IsInViewingMode ? s_ViewingMaterial->GetResource( "u_AlbedoTexture" ) : m_Material->GetResource( "u_AlbedoTexture" );
 	}
 
 	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetNormalMap()
 	{
-		return m_Material->GetResource( "u_NormalTexture" );
+		return s_IsInViewingMode ? s_ViewingMaterial->GetResource( "u_NormalTexture" ) : m_Material->GetResource( "u_NormalTexture" );
 	}
 
 	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetMetallicMap()
 	{
-		return m_Material->GetResource( "u_MetallicTexture" );
+		return s_IsInViewingMode ? s_ViewingMaterial->GetResource( "u_MetallicTexture" ) : m_Material->GetResource( "u_MetallicTexture" );
 	}
 
 	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetRoughnessMap()
 	{
-		return m_Material->GetResource( "u_RoughnessTexture" );
+		return s_IsInViewingMode ? s_ViewingMaterial->GetResource( "u_RoughnessTexture" ) : m_Material->GetResource( "u_RoughnessTexture" );
 	}
 
 	glm::vec3 MaterialAsset::GetAlbeoColor()
 	{
-		return m_Material->Get<glm::vec3>( "u_Materials.AlbedoColor" );
+		return s_IsInViewingMode ? s_ViewingMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" ) : m_Material->Get<glm::vec3>( "u_Materials.AlbedoColor" );
 	}
 
 	void MaterialAsset::SetAlbeoColor( glm::vec3 color )
@@ -197,19 +230,24 @@ namespace Saturn {
 		}
 	}
 
+	bool MaterialAsset::IsInViewingMode()
+	{
+		return s_IsInViewingMode;
+	}
+
 	float MaterialAsset::IsUsingNormalMap()
 	{
-		return m_Material->Get<float>( "u_Materials.UseNormalMap");
+		return s_IsInViewingMode ? s_ViewingMaterial->Get<float>( "u_Materials.UseNormalMap" ) : m_Material->Get<float>( "u_Materials.UseNormalMap" );
 	}
 
 	float MaterialAsset::GetRoughness()
 	{
-		return m_Material->Get<float>( "u_Materials.Roughness");
+		return s_IsInViewingMode ? s_ViewingMaterial->Get<float>( "u_Materials.Roughness" ) : m_Material->Get<float>( "u_Materials.Roughness" );
 	}
 
 	float MaterialAsset::GetMetalness()
 	{
-		return m_Material->Get<float>( "u_Materials.Metalness");
+		return s_IsInViewingMode ? s_ViewingMaterial->Get<float>( "u_Materials.Metalness" ) : m_Material->Get<float>( "u_Materials.Metalness" );
 	}
 
 	void MaterialAsset::SetAlbeoMap( Ref<Texture2D>& rTexture )
@@ -221,9 +259,9 @@ namespace Saturn {
 
 	void MaterialAsset::SetAlbeoMap( const std::filesystem::path& rPath )
 	{
-		m_Material->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
+		s_ViewingMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
 
-		auto texture = m_Material->GetResource( "u_AlbedoTexture" );
+		auto texture = s_ViewingMaterial->GetResource( "u_AlbedoTexture" );
 		texture->SetPath( rPath );
 	}
 
@@ -236,7 +274,10 @@ namespace Saturn {
 
 	void MaterialAsset::SetNormalMap( const std::filesystem::path& rPath )
 	{
+		s_ViewingMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
 
+		auto texture = s_ViewingMaterial->GetResource( "u_NormalTexture" );
+		texture->SetPath( rPath );
 	}
 
 	void MaterialAsset::SetMetallicMap( Ref<Texture2D>& rTexture )
@@ -248,7 +289,10 @@ namespace Saturn {
 
 	void MaterialAsset::SetMetallicMap( const std::filesystem::path& rPath )
 	{
+		s_ViewingMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
 
+		auto texture = s_ViewingMaterial->GetResource( "u_NormalTexture" );
+		texture->SetPath( rPath );
 	}
 
 	void MaterialAsset::SetRoughnessMap( Ref<Texture2D>& rTexture )
@@ -260,7 +304,10 @@ namespace Saturn {
 
 	void MaterialAsset::SetRoughnessMap( const std::filesystem::path& rPath )
 	{
+		s_ViewingMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
 
+		auto texture = s_ViewingMaterial->GetResource( "u_RoughnessTexture" );
+		texture->SetPath( rPath );
 	}
 
 }

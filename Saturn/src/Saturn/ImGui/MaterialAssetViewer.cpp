@@ -34,6 +34,7 @@
 #include "Saturn/Vulkan/Renderer.h"
 
 #include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Serialisation/AssetSerialisers.h"
 
 #include <imgui.h>
 #include <imgui_node_editor.h>
@@ -41,8 +42,6 @@
 namespace ed = ax::NodeEditor;
 
 namespace Saturn {
-
-	static ed::EditorContext* s_Context = nullptr;
 
 	static std::unordered_map<AssetID, NodeEditor*> s_NodeEditors;
 
@@ -98,9 +97,6 @@ namespace Saturn {
 	MaterialAssetViewer::MaterialAssetViewer()
 	{
 		m_AssetType = AssetType::Material;
-
-		ed::Config config = {};
-		s_Context = ed::CreateEditor( &config );
 	}
 
 	MaterialAssetViewer::~MaterialAssetViewer()
@@ -113,11 +109,13 @@ namespace Saturn {
 			DrawInternal( asset );
 	}
 
-	void MaterialAssetViewer::AddMaterialAsset( Ref<MaterialAsset>& rMaterialAsset )
+	void MaterialAssetViewer::AddMaterialAsset( Ref<Asset>& rAsset )
 	{
-		m_MaterialAssets.push_back( rMaterialAsset );
-	
-		s_NodeEditors[ rMaterialAsset->GetAssetID() ] = new NodeEditor();
+		Ref<MaterialAsset> materialAsset = rAsset.As<MaterialAsset>();
+
+		m_MaterialAssets.push_back( materialAsset );
+
+		s_NodeEditors[ rAsset->GetAssetID() ] = new NodeEditor( rAsset->GetAssetID() );
 
 		// Add material output node.
 		PinSpecification pin;
@@ -136,60 +134,75 @@ namespace Saturn {
 		pin.Name = "Roughness";
 		node.Inputs.push_back( pin );
 
-		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->AddNode( node );
+		s_NodeEditors[ rAsset->GetAssetID() ]->AddNode( node );
 
-		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->SetCreateNewNodeFunction( 
-			[&, rMaterialAsset ]() -> Node*
+		s_NodeEditors[ rAsset->GetAssetID() ]->SetCreateNewNodeFunction(
+			[&, rAsset ]() -> Node*
 			{
 				Node* node = nullptr;
 
 				if( ImGui::MenuItem( "Texture Sampler2D" ) )
-					node = SpawnNewSampler2D( s_NodeEditors[ rMaterialAsset->GetAssetID() ] );
+					node = SpawnNewSampler2D( s_NodeEditors[ rAsset->GetAssetID() ] );
 				
 				if( ImGui::MenuItem( "Get Asset" ) )
-					node = SpawnNewGetAssetNode( s_NodeEditors[ rMaterialAsset->GetAssetID() ] );
+					node = SpawnNewGetAssetNode( s_NodeEditors[ rAsset->GetAssetID() ] );
 
 				return node;
 			} );
 
-		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->SetDetailsFunction(
-			[&, rMaterialAsset]( Node node ) -> void
+		s_NodeEditors[ rAsset->GetAssetID() ]->SetDetailsFunction(
+			[]( Node node ) -> void
 			{
 			}
 		);
 
-		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->SetCompileFunction( 
-			[ rMaterialAsset ]() 
+		auto& rNodeEditor = s_NodeEditors[ rAsset->GetAssetID() ];
+
+		s_NodeEditors[ rAsset->GetAssetID() ]->SetCompileFunction(
+			[ &, rAsset, rNodeEditor ]()
 			{
-				auto editor = s_NodeEditors[ rMaterialAsset->GetAssetID() ];
+				// Material assets from the editor.
+				std::vector<Ref<Asset>> TextureAssets;
 
 				Node* MaterialOutputNode = nullptr;
 
-				for( auto& rNode : editor->GetNodes() )
+				for( auto& rNode : rNodeEditor->GetNodes() )
 				{
-					if( MaterialOutputNode )
-						continue;
+					if( rNode.Name == "Get Asset" )
+					{
+						auto& IDOutput = rNode.ExtraData.Read<UUID>( 0 );
 
-					 for ( auto& rOutput : rNode.Outputs )
-					 {
-						 if( MaterialOutputNode )
-							 continue;
-
-						 bool HasAlbedoOut = false;
-
-						 if( rOutput.Name == "Albedo" && rOutput.Type == PinType::Material_Sampler2D )
-							 HasAlbedoOut = true;
-
-						 if( HasAlbedoOut )
-							 MaterialOutputNode = &rNode;
-					 }
+						TextureAssets.push_back( AssetRegistry::Get().FindAsset( IDOutput ) );
+					}
+					else if( rNode.Name == "Material Output" ) 
+					{
+						MaterialOutputNode = &rNode;
+					}
 				}
 
-				Ref<MaterialAsset> materialAsset = rMaterialAsset;
-				//materialAsset->SetAlbeoMap();
+				Ref<MaterialAsset> materialAsset = rAsset.As<MaterialAsset>();
+
+				int i = 0;
+				for( auto& rTexture : TextureAssets )
+				{
+					if( i == 0 )
+						materialAsset->SetAlbeoMap( rTexture->GetPath() );
+					else if( i == 1 )
+						materialAsset->SetNormalMap( rTexture->GetPath() );
+					else if( i == 2 )
+						materialAsset->SetMetallicMap( rTexture->GetPath() );
+					else if( i == 3 )
+						materialAsset->SetRoughnessMap( rTexture->GetPath() );
+
+					i++;
+				}
+				
+				MaterialAssetSerialiser mas;
+				mas.Serialise( rAsset );
+
 			} );
 
-		s_NodeEditors[ rMaterialAsset->GetAssetID() ]->Open( true );
+		s_NodeEditors[ rAsset->GetAssetID() ]->Open( true );
 	}
 
 	void MaterialAssetViewer::DrawInternal( Ref<MaterialAsset>& rMaterialAsset )

@@ -55,6 +55,7 @@ namespace Saturn {
 		static void SetActiveProject( const Ref<Project>& rProject );
 
 		void CheckMissingAssetRefs();
+		void LoadAssetRegistry();
 
 		std::filesystem::path GetAssetPath();
 		const std::string& GetName() const;

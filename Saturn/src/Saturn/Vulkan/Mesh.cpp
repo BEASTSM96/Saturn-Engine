@@ -162,7 +162,7 @@ namespace Saturn {
 			if( AssetRegistry::Get().FindAsset( assetPath ) ) 
 			{
 				asset->SetPath( assetPath );
-				asset->SetAssetType( AssetType::Material );
+				asset->Type = AssetType::Material;
 
 				MaterialAssetSerialiser mas;
 				mas.Derialise( asset );

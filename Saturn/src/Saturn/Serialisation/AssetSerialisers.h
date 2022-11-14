@@ -35,14 +35,16 @@ namespace Saturn {
 	class AssetSerialiser
 	{
 	public:
-		virtual void Serialise( const Ref<Asset>& rAsset ) const = 0;
-		virtual void Derialise( const Ref<Asset>& rAsset ) const = 0;
+		virtual void Serialise  ( const Ref<Asset>& rAsset ) const = 0;
+		virtual void Derialise  ( const Ref<Asset>& rAsset ) const = 0;
+		virtual void TryLoadData(       Ref<Asset>& rAsset ) const = 0;
 	};
 
 	class MaterialAssetSerialiser : public AssetSerialiser
 	{
 	public:
-		virtual void Serialise( const Ref<Asset>& rAsset ) const override;
-		virtual void Derialise( const Ref<Asset>& rAsset ) const override;
+		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
+		virtual void Derialise  ( const Ref<Asset>& rAsset ) const override;
+		virtual void TryLoadData(       Ref<Asset>& rAsset ) const override;
 	};
 }

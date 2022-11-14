@@ -183,9 +183,7 @@ namespace Saturn {
 
 		OpenFile( rUserSettings.StartupScene );
 
-		AssetRegistrySerialiser ars;
-		ars.Deserialise();
-
+		Project::GetActiveProject()->LoadAssetRegistry();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 	}
 

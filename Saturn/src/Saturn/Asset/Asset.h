@@ -130,44 +130,34 @@ namespace Saturn {
 	class Asset : public CountedObj
 	{
 	public:
-		Asset() {}
-		Asset( AssetID ID ) : m_ID( ID ) {}
+		AssetID ID = 0;
+		AssetType Type = AssetType::Unknown;
 
-		void SetAssetType( AssetType type ) { if( m_AssetType != AssetType::Unknown ) m_AssetType = type; }
+		std::filesystem::path Path;
+		std::string Name;
 
-		AssetType GetAssetType() { return m_AssetType; }
-		AssetID GetAssetID() { return m_ID; }
+	public:
+		AssetType GetAssetType() { return Type; }
+		AssetID GetAssetID() { return ID; }
 
-		const AssetType GetAssetType() const { return m_AssetType; }
-		const AssetID& GetAssetID() const { return m_ID; }
+		const AssetType GetAssetType() const { return Type; }
+		const AssetID& GetAssetID() const { return ID; }
 		
 		void SetPath( std::filesystem::path p ) 
 		{
-			m_Path = p; 
+			Path = p; 
 
-			auto CopyPath = m_Path;
-			m_Name = CopyPath.replace_extension().filename().string();
+			auto CopyPath = Path;
+			Name = CopyPath.replace_extension().filename().string();
 		}
 
-		void AssignAssetData( AssetData& rData ) { m_AssetData = rData; }
+		std::filesystem::path& GetPath() { return Path; }
+		const std::filesystem::path& GetPath() const { return Path; }
 
-		AssetData& GetAssetData() { return m_AssetData; }
-		const AssetData& GetAssetData() const { return m_AssetData; }
-		
-		std::filesystem::path& GetPath() { return m_Path; }
-		const std::filesystem::path& GetPath() const { return m_Path; }
+		std::string& GetName() { return Name; }
+		const std::string& GetName() const { return Name; }
 
-		std::string& GetName() { return m_Name; }
-		const std::string& GetName() const { return m_Name; }
-
-	protected:
-		AssetID m_ID;
-		AssetType m_AssetType;
-
-		AssetData m_AssetData;
-
-		std::filesystem::path m_Path;
-		std::string m_Name;
+	private:
 		friend class AssetRegistrySerialiser;
 		friend class AssetRegistry;
 	};

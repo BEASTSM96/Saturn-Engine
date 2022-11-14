@@ -160,7 +160,7 @@ namespace Saturn {
 			Ref<Asset> DeserialisedAsset = AssetRegistry::Get().FindAsset( assetID );
 
 			DeserialisedAsset->SetPath( path );
-			DeserialisedAsset->SetAssetType( AssetTypeFromString( type ) );
+			DeserialisedAsset->Type = AssetTypeFromString( type );
 		}
 	}
 

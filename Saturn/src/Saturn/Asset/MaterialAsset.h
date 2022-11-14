@@ -87,6 +87,8 @@ namespace Saturn {
 
 		Buffer GetPushConstantData() { return m_Material->m_PushConstantData; }
 
+		bool IsInViewingMode();
+
 	private:
 
 		void Default();

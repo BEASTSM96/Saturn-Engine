@@ -44,9 +44,9 @@ namespace Saturn {
 
 	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
 	{
-		auto materialAsset = rAsset.As<MaterialAsset>();
-
 		auto basePath = rAsset->GetPath();
+
+		auto materialAsset = rAsset.As<MaterialAsset>();
 
 		YAML::Emitter out;
 
@@ -134,6 +134,87 @@ namespace Saturn {
 
 		materialAsset->SetRoughness( val );
 		materialAsset->SetRoughnessMap( texture );
+	}
+
+	void MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
+	{
+		auto materialAsset = Ref<MaterialAsset>::Create( nullptr );
+
+		std::ifstream FileIn( rAsset->GetPath() );
+
+		std::stringstream ss;
+		ss << FileIn.rdbuf();
+
+		YAML::Node data = YAML::Load( ss.str() );
+
+		if( data.IsNull() )
+			return;
+
+		auto materialData = data[ "Material" ];
+
+		auto albedoColor = materialData[ "AlbedoColor" ].as<glm::vec3>();
+		auto albedoPath = materialData[ "AlbedoPath" ].as<std::filesystem::path>();
+
+		Ref<Texture2D> texture = Renderer::Get().GetPinkTexture();
+
+		if( albedoPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( albedoPath, AddressingMode::Repeat );
+
+		materialAsset->SetAlbeoColor( albedoColor );
+		materialAsset->SetAlbeoMap( texture );
+
+		auto useNormal = materialData[ "UseNormal" ].as<float>();
+		auto normalPath = materialData[ "NormalPath" ].as<std::filesystem::path>();
+
+		if( normalPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat );
+		else
+			texture = Renderer::Get().GetPinkTexture();
+
+		materialAsset->UseNormalMap( useNormal );
+		materialAsset->SetNormalMap( texture );
+
+		auto metalness = materialData[ "Metalness" ].as<float>();
+		auto metallicPath = materialData[ "MetalnessPath" ].as<std::filesystem::path>();
+
+		if( metallicPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat );
+		else
+			texture = Renderer::Get().GetPinkTexture();
+
+		materialAsset->SetMetalness( metalness );
+		materialAsset->SetMetallicMap( texture );
+
+		auto val = materialData[ "Roughness" ].as<float>();
+		auto roughnessPath = materialData[ "RoughnessPath" ].as<std::filesystem::path>();
+
+		if( roughnessPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat );
+		else
+			texture = Renderer::Get().GetPinkTexture();
+
+		materialAsset->SetRoughness( val );
+		materialAsset->SetRoughnessMap( texture );
+
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID   = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = materialAsset;
+		rAsset->ID = rAsset->ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
+
 	}
 
 }

@@ -26,68 +26,36 @@
 *********************************************************************************************
 */
 
-#include <sppch.h>
-#include "AssetRegistry.h"
+#pragma once
+
+#include <Saturn/Serialisation/AssetSerialisers.h>
+#include <Saturn/Core/Base.h>
+#include <unordered_map>
+
+// AssetImporter::Import( AssetType::Material, path );
+// -> MaterialAssetSerialiser::Serialise();
+// 
+// AssetImporter::Import( AssetType::Mesh, path );
+// -> Mesh::Mesh( path );
 
 namespace Saturn {
 
-	AssetRegistry::AssetRegistry()
+	class AssetImporter
 	{
+		SINGLETON( AssetImporter );
 
-	}
+		AssetImporter() { Init(); }
+		~AssetImporter();
+	public:
 
-	AssetRegistry::~AssetRegistry()
-	{
+		// Serialise
+		void Import     ( const Ref<Asset>& rAsset );
+		void TryLoadData(       Ref<Asset>& rAsset );
 
-	}
+	private:
+		void Init();
 
-	AssetID AssetRegistry::CreateAsset( AssetType type )
-	{
-		Ref<Asset> asset = Ref<Asset>::Create();
-		asset->Type = type;
-		asset->ID = UUID();
-
-		m_Assets[ asset->GetAssetID() ] = asset;
-
-		return asset->GetAssetID();
-	}
-
-	Ref<Asset> AssetRegistry::FindAsset( AssetID id )
-	{
-		return m_Assets.at( id );
-	}
-
-	Ref<Asset> AssetRegistry::FindAsset( const std::filesystem::path& rPath )
-	{
-		for( const auto& [id, asset] : m_Assets )
-		{
-			if( asset->GetPath() == rPath )
-				return asset;
-		}
-
-		return nullptr;
-	}
-
-	const std::vector<AssetID>& AssetRegistry::FindAssetsWithType( AssetType type ) const
-	{
-		std::vector<AssetID> result;
-
-		// There is a better way of doing this however we'll just keep it for now.
-		for( const auto& [id, asset] : m_Assets )
-		{
-			if( asset->GetAssetType() == type )
-				result.push_back( id );
-		}
-
-		return result;
-	}
-
-	void AssetRegistry::AddAsset( AssetID id )
-	{
-		SAT_CORE_ASSERT( m_Assets.find( id ) == m_Assets.end(), "Asset already exists!" );
-
-		m_Assets[ id ] = Ref<Asset>::Create();
-		m_Assets[ id ]->ID = id;
-	}
-
+		// TODO: Maybe change to Ref?
+		std::unordered_map<AssetType, std::unique_ptr<AssetSerialiser>> m_AssetSerialisers;
+	};
 }

@@ -42,7 +42,7 @@ namespace Saturn {
 
 		virtual void Draw() override;
 
-		void AddMaterialAsset( Ref<MaterialAsset>& rMaterialAsset );
+		void AddMaterialAsset( Ref<Asset>& rAsset );
 
 	private:
 		void DrawInternal( Ref<MaterialAsset>& rMaterialAsset );

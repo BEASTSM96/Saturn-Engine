@@ -32,6 +32,7 @@
 #include "UITools.h"
 #include "Saturn/Asset/MaterialAsset.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
+#include "Saturn/Asset/AssetImporter.h"
 
 #include "Saturn/ImGui/AssetViewer.h"
 
@@ -414,12 +415,12 @@ namespace Saturn {
 							break;
 						case Saturn::AssetType::Material:
 						{
+							// Find the asset.
 							Ref<Asset> asset = AssetRegistry::Get().FindAsset( rEntry.path().string() );
 
-							// We have to create the material asset as the when we load the mesh, it creates it. However we are not loading a mesh, so we will have to create it ourself.
-							Ref<MaterialAsset> materialAsset = Ref<MaterialAsset>::Create( nullptr );
+							AssetImporter::Get().TryLoadData( asset );
 
-							MaterialAssetViewer::Get().AddMaterialAsset( materialAsset );
+							MaterialAssetViewer::Get().AddMaterialAsset( asset );
 						} break;
 						case Saturn::AssetType::MaterialInstance:
 							break;

@@ -39,7 +39,7 @@ namespace Saturn {
 	class NodeEditor : public AssetViewer
 	{
 	public:
-		NodeEditor();
+		NodeEditor( AssetID ID );
 		~NodeEditor();
 
 		Node* AddNode( NodeSpecification& spec, ImVec2 position = ImVec2( 0.0f, 0.0f ) );
@@ -77,6 +77,8 @@ namespace Saturn {
 			m_OnCompile = std::move( rrCompileFunction );
 		}
 
+		AssetID GetAssetID() { return m_AssetID; }
+
 	private:
 		ed::EditorContext* m_Editor;
 
@@ -94,5 +96,7 @@ namespace Saturn {
 
 		std::vector<Node> m_Nodes;
 		std::vector<Link> m_Links;
+
+		AssetID m_AssetID;
 	};
 }

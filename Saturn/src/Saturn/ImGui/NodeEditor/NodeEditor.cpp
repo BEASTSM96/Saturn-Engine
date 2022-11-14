@@ -81,12 +81,8 @@ namespace Saturn {
 
 	static SelectAssetInfo s_SelectAssetInfo;
 
-	size_t _LoadSettings( char* data, void* userPointer )
-	{
-		return 0;
-	}
-
-	NodeEditor::NodeEditor()
+	NodeEditor::NodeEditor( AssetID ID )
+		: m_AssetID( ID )
 	{
 		ed::Config config;
 		config.SettingsFile = nullptr;
@@ -114,6 +110,7 @@ namespace Saturn {
 			else
 			{
 				memcpy( pData, State.data(), State.size() );
+				SAT_CORE_INFO( "Assigned Node editor data is: {0}", State );
 			}
 		};
 
@@ -142,6 +139,8 @@ namespace Saturn {
 				return false;
 
 			pNode->State.assign( pData, size );
+
+			SAT_CORE_INFO( "Assigned Node data is: {0}", pNode->State );
 
 			return true;
 		};
@@ -306,7 +305,7 @@ namespace Saturn {
 			for( auto& link : m_Links )
 				ed::Flow( link.ID );
 
-		if( ImGui::Button( "Compile" ) )
+		if( ImGui::Button( "Compile & Save" ) )
 			if( m_OnCompile )
 				m_OnCompile();
 			else
