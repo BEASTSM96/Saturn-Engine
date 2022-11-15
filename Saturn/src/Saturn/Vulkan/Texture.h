@@ -97,6 +97,7 @@ namespace Saturn {
 		VkDescriptorImageInfo& GetDescriptorInfo() { return m_DescriptorImageInfo; }
 
 		std::filesystem::path GetPath() { return m_Path; }
+		const std::filesystem::path& GetPath() const { return m_Path; }
 
 		int Width() { return m_Width; }
 		int Height() { return m_Height; }

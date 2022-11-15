@@ -61,6 +61,9 @@ namespace Saturn {
 		void Open( bool open ) { m_Open = open; }
 		bool IsOpen() { return m_Open; }
 
+		// Only use this when creating a node that needs to link automatically.
+		void LinkPin( ed::PinId Start, ed::PinId End );
+
 		void SetDetailsFunction( std::function<void( Node )>&& rrDetailsFunction )
 		{
 			m_DetailsFunction = std::move( rrDetailsFunction );

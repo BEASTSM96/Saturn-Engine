@@ -407,15 +407,34 @@ namespace Saturn {
 					if( output.Type == PinType::AssetHandle ) 
 					{
 						auto& rSavedUUID = node.ExtraData.Read<UUID>( 0 );
+						auto& rSavedPath = node.ExtraData.Read<std::filesystem::path>( sizeof( UUID ) );
 
 						const char* name = s_SelectAssetInfo.AssetName.empty() ? "Select Asset" : s_SelectAssetInfo.AssetName.c_str();
 
-						if( ImGui::Button( rSavedUUID != 0 ? std::to_string( rSavedUUID ).c_str() : name ) )
+						if( ImGui::Button( rSavedUUID != 0 ? rSavedPath.string().c_str() : name ) )
 						{
 							OpenAssetPopup = true;
 							s_SelectAssetInfo.ID     = output.ID;
 							s_SelectAssetInfo.NodeID = node.ID;
 						}
+					}
+					else if( node.Name == "Color Picker" && output.Type == PinType::Material_Sampler2D ) 
+					{
+						static ImVec4 color = ImVec4( 114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f );
+
+						ImGui::Spring( 0 );
+
+						ImGui::BeginHorizontal( "##PickerH" );
+						ImGui::Spring( 0 );
+						ImGui::BeginVertical( "##PickerV" );
+
+						ImGui::Spring( 0 );
+						ImGui::ColorPicker3( "##MyColor1", (float*)&color );
+
+						ImGui::Spring( 0 );
+						ImGui::EndVertical();
+						ImGui::Spring( 0 );
+						ImGui::EndHorizontal();
 					}
 				}
 
@@ -712,6 +731,14 @@ namespace Saturn {
 		ImGui::End();
 
 		ImGui::End(); // NODE_EDITOR
+	}
+
+	void NodeEditor::LinkPin( ed::PinId Start, ed::PinId End )
+	{
+		Pin* pin = FindPin( Start );
+
+		m_Links.emplace_back( Link( GetNextID(), Start, End ) );
+		m_Links.back().Color = GetIconColor( pin->Type );
 	}
 
 }

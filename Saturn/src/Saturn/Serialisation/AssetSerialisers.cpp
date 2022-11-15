@@ -210,7 +210,7 @@ namespace Saturn {
 		OldAssetData.Name = rAsset->Name;
 
 		rAsset = materialAsset;
-		rAsset->ID = rAsset->ID;
+		rAsset->ID   = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
