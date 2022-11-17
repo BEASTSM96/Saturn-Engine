@@ -33,6 +33,7 @@
 
 #include "Saturn/Asset/MaterialAsset.h"
 #include "Saturn/Vulkan/Renderer.h"
+#include "Saturn/ImGui/NodeEditor/NodeEditor.h"
 
 #include <yaml-cpp/yaml.h>
 #include <fstream>
@@ -69,6 +70,129 @@ namespace Saturn {
 		out << YAML::Key << "RoughnessPath" << YAML::Value << materialAsset->GetRoughnessMap()->GetPath();
 
 		out << YAML::EndMap;
+		out << YAML::EndMap;
+
+		std::ofstream file( rAsset->GetPath() );
+		file << out.c_str();
+	}
+
+	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset, NodeEditor* pNodeEditor ) const
+	{
+		auto basePath = rAsset->GetPath();
+
+		auto materialAsset = rAsset.As<MaterialAsset>();
+
+		YAML::Emitter out;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "Material" << YAML::Value;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "AlbedoColor" << YAML::Value << materialAsset->GetAlbeoColor();
+		out << YAML::Key << "AlbedoPath" << YAML::Value << materialAsset->GetAlbeoMap()->GetPath();
+
+		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
+		out << YAML::Key << "NormalPath" << YAML::Value << materialAsset->GetNormalMap()->GetPath();
+
+		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
+		out << YAML::Key << "MetalnessPath" << YAML::Value << materialAsset->GetMetallicMap()->GetPath();
+
+		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
+		out << YAML::Key << "RoughnessPath" << YAML::Value << materialAsset->GetRoughnessMap()->GetPath();
+
+		out << YAML::EndMap;
+
+		if( pNodeEditor )
+		{
+			out << YAML::Key << "NodeEditor" << YAML::Value;
+			out << YAML::BeginMap;
+
+			out << YAML::Key << "State" << YAML::Value << pNodeEditor->GetEditorState();
+
+			out << YAML::Key << "Nodes" << YAML::Value;
+
+			out << YAML::BeginSeq;
+
+			for( auto& rNode : pNodeEditor->GetNodes() )
+			{
+				out << YAML::BeginMap;
+
+				out << YAML::Key << "Node" << YAML::Value << ( size_t ) rNode.ID;
+				out << YAML::Key << "Name" << YAML::Value << rNode.Name;
+				out << YAML::Key << "Color" << YAML::Value << rNode.Color;
+				out << YAML::Key << "Size" << YAML::Value << glm::vec2( rNode.Size.x, rNode.Size.y );
+
+				out << YAML::Key << "Inputs" << YAML::Value;
+				out << YAML::BeginSeq;
+				for ( auto& rInput : rNode.Inputs )
+				{
+					out << YAML::BeginMap;
+
+					out << YAML::Key << "Input" << YAML::Value << ( size_t )rInput.ID;
+					out << YAML::Key << "Name" << YAML::Value << rInput.Name;
+
+					out << YAML::Key << "Node" << YAML::Value << ( size_t )rInput.Node->ID;
+
+					out << YAML::Key << "Kind" << YAML::Value << ( int )rInput.Kind;
+					out << YAML::Key << "Type" << YAML::Value << PinTypeToString( rInput.Type );
+
+					out << YAML::EndMap;
+				}
+				out << YAML::EndSeq;
+
+				out << YAML::Key << "Outputs" << YAML::Value;
+				out << YAML::BeginSeq;
+				for( auto& rOutput : rNode.Outputs )
+				{
+					out << YAML::BeginMap;
+
+					out << YAML::Key << "Output" << YAML::Value << ( size_t ) rOutput.ID;
+					out << YAML::Key << "Name" << YAML::Value << rOutput.Name;
+
+					out << YAML::Key << "Node" << YAML::Value << ( size_t ) rOutput.Node->ID;
+
+					out << YAML::Key << "Kind" << YAML::Value << ( int ) rOutput.Kind;
+					out << YAML::Key << "Type" << YAML::Value << PinTypeToString( rOutput.Type );
+
+					out << YAML::EndMap;
+				}
+				out << YAML::EndSeq;
+
+				out << YAML::Key << "State" << YAML::Value << rNode.State;
+
+				if( rNode.ExtraData.Data && rNode.ExtraData.Size > 0 )
+				{
+					out << YAML::Key << "ED" << YAML::Value << (char*)rNode.ExtraData.Data;
+					out << YAML::Key << "ED_Size" << YAML::Value << rNode.ExtraData.Size;
+				}
+
+				out << YAML::EndMap;
+			}
+
+			out << YAML::EndSeq;
+
+			out << YAML::Key << "Links" << YAML::Value;
+
+			out << YAML::BeginSeq;
+			for( auto& rLink : pNodeEditor->GetLinks() )
+			{
+				out << YAML::BeginMap;
+
+				out << YAML::Key << "Link" << YAML::Value << ( size_t ) rLink.ID;
+				out << YAML::Key << "Color" << YAML::Value << rLink.Color;
+
+				out << YAML::Key << "Start" << YAML::Value << ( size_t ) rLink.StartPinID;
+				out << YAML::Key << "End" << YAML::Value << ( size_t ) rLink.EndPinID;
+
+				out << YAML::EndMap;
+			}
+
+			out << YAML::EndSeq;
+			out << YAML::EndMap;
+		}
+
 		out << YAML::EndMap;
 
 		std::ofstream file( rAsset->GetPath() );

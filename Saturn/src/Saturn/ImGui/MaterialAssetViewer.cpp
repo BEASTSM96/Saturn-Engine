@@ -249,6 +249,7 @@ namespace Saturn {
 		s_NodeEditors[ rAsset->GetAssetID() ]->SetCompileFunction(
 			[ &, rAsset, rNodeEditor ]()
 			{
+				/*
 				// Material assets from the editor.
 				std::vector<Ref<Asset>> TextureAssets;
 
@@ -265,11 +266,13 @@ namespace Saturn {
 					else if( rNode.Name == "Material Output" ) 
 						MaterialOutputNode = &rNode;
 				}
+				*/
 
 				Ref<MaterialAsset> materialAsset = rAsset.As<MaterialAsset>();
-				
+				materialAsset->ApplyChanges();
+
 				MaterialAssetSerialiser mas;
-				mas.Serialise( rAsset );
+				mas.Serialise( rAsset, rNodeEditor );
 
 			} );
 

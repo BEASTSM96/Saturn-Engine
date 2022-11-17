@@ -32,6 +32,8 @@
 
 namespace Saturn {
 
+	class NodeEditor;
+
 	class AssetSerialiser
 	{
 	public:
@@ -43,6 +45,7 @@ namespace Saturn {
 	class MaterialAssetSerialiser : public AssetSerialiser
 	{
 	public:
+		virtual void Serialise  ( const Ref<Asset>& rAsset, NodeEditor* pNodeEditor ) const;
 		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
 		virtual void Derialise  ( const Ref<Asset>& rAsset ) const override;
 		virtual void TryLoadData(       Ref<Asset>& rAsset ) const override;

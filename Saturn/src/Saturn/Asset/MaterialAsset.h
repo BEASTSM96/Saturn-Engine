@@ -89,6 +89,8 @@ namespace Saturn {
 
 		bool IsInViewingMode();
 
+		void ApplyChanges();
+
 	private:
 
 		void Default();

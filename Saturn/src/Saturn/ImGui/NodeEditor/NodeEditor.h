@@ -82,6 +82,8 @@ namespace Saturn {
 
 		AssetID GetAssetID() { return m_AssetID; }
 
+		const std::string& GetEditorState() { return m_NodeEditorState; }
+
 	private:
 		ed::EditorContext* m_Editor;
 

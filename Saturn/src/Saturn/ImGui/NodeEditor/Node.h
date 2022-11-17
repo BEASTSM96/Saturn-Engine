@@ -50,6 +50,37 @@ namespace Saturn {
 		AssetHandle
 	};
 
+	inline const std::string_view& PinTypeToString( PinType type )
+	{
+		switch( type )
+		{
+			case Saturn::PinType::Flow:
+				return "Flow";
+			case Saturn::PinType::Bool:
+				return "Bool";
+			case Saturn::PinType::Int:
+				return "Int";
+			case Saturn::PinType::Float:
+				return "Float";
+			case Saturn::PinType::String:
+				return "String";
+			case Saturn::PinType::Object:
+				return "Object";
+			case Saturn::PinType::Function:
+				return "Function";
+			case Saturn::PinType::Delegate:
+				return "Delegate";
+			case Saturn::PinType::Material_Sampler2D:
+				return "Material_Sampler2D";
+			case Saturn::PinType::AssetHandle:
+				return "AssetHandle";
+			default:
+				break;
+		}
+
+		return "???";
+	} 
+
 	enum class PinKind
 	{
 		Output,

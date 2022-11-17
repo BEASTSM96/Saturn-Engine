@@ -235,6 +235,23 @@ namespace Saturn {
 		return s_IsInViewingMode;
 	}
 
+	void MaterialAsset::ApplyChanges()
+	{
+		m_Material->SetResource( "u_AlbedoTexture", s_ViewingMaterial->GetResource( "u_AlbedoTexture" ) );
+		m_Material->SetResource( "u_NormalTexture", s_ViewingMaterial->GetResource( "u_NormalTexture" ) );
+		m_Material->SetResource( "u_MetallicTexture", s_ViewingMaterial->GetResource( "u_MetallicTexture" ) );
+		m_Material->SetResource( "u_RoughnessTexture", s_ViewingMaterial->GetResource( "u_RoughnessTexture" ) );
+
+		m_Material->Set<glm::vec3>( "u_Materials.AlbedoColor", s_ViewingMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" ) );
+
+		m_Material->Set<float>( "u_Materials.Metalness", s_ViewingMaterial->Get<float>( "u_Materials.Metalness" ) );
+		m_Material->Set<float>( "u_Materials.Roughness", s_ViewingMaterial->Get<float>( "u_Materials.Roughness" ) );
+		m_Material->Set<float>( "u_Materials.UseNormalMap", s_ViewingMaterial->Get<float>( "u_Materials.UseNormalMap" ) );
+
+		// MAYBE??
+		//s_ViewingMaterial = nullptr;
+	}
+
 	float MaterialAsset::IsUsingNormalMap()
 	{
 		return s_IsInViewingMode ? s_ViewingMaterial->Get<float>( "u_Materials.UseNormalMap" ) : m_Material->Get<float>( "u_Materials.UseNormalMap" );
