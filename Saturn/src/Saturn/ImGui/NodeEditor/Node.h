@@ -79,7 +79,31 @@ namespace Saturn {
 		}
 
 		return "???";
-	} 
+	}
+
+	inline PinType StringToPinType( const std::string& rString )
+	{
+		if( rString == "Flow" )
+			return PinType::Flow;
+		else if( rString == "Bool" )
+			return PinType::Bool;
+		else if( rString == "Int" )
+			return PinType::Int;
+		else if( rString == "Float" )
+			return PinType::Float;
+		else if( rString == "String" )
+			return PinType::String;
+		else if( rString == "Object" )
+			return PinType::Object;
+		else if( rString == "Function" )
+			return PinType::Function;
+		else if( rString == "Material_Sampler2D" )
+			return PinType::Material_Sampler2D;
+		else if( rString == "AssetHandle" )
+			return PinType::AssetHandle;
+		else
+			return PinType::Object;
+	}
 
 	enum class PinKind
 	{

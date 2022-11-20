@@ -28,92 +28,12 @@
 
 #pragma once
 
-#include "Saturn/Vulkan/Material.h"
-
-#include "Asset.h"
-
 namespace Saturn {
 
-	class MaterialAsset : public Asset
+	enum class NodeEditorCompilationStatus
 	{
-	public:
-		MaterialAsset( Ref<Material> material );
-		~MaterialAsset();
-
-		// Texture
-		Ref<Texture2D> GetAlbeoMap();
-		Ref<Texture2D> GetNormalMap();
-		Ref<Texture2D> GetMetallicMap();
-		Ref<Texture2D> GetRoughnessMap();
-
-		// Colors and values
-
-		glm::vec3 GetAlbeoColor();
-		float IsUsingNormalMap();
-		float GetRoughness();
-		float GetMetalness();
-
-		std::string& GetName() { return m_Material->GetName(); }
-		const std::string& GetName() const { return m_Material->GetName(); }
-
-		void SetAlbeoMap( Ref<Texture2D>& rTexture );
-		void SetNormalMap( Ref<Texture2D>& rTexture );
-		void SetMetallicMap( Ref<Texture2D>& rTexture );
-		void SetRoughnessMap( Ref<Texture2D>& rTexture );
-
-		void SetAlbeoColor( glm::vec3 color );
-		void UseNormalMap( bool val );
-		void SetRoughness( float val );
-		void SetMetalness( float val );
-
-		Ref<Texture2D> GetResource( const std::string& rName );
-		void SetResource( const std::string& rName, const Ref<Texture2D>& rTexture );
-
-		template<typename Ty>
-		Ty& Get( const std::string& rName ) 
-		{
-			return m_Material->Get< Ty >( rName );
-		}
-
-		template<typename Ty>
-		void Set( const std::string& rName, const Ty& rValue )
-		{
-			m_ValuesChanged = true;
-
-			m_Material->Set( rName, rValue );
-		}
-
-		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
-
-		Buffer GetPushConstantData() { return m_Material->m_PushConstantData; }
-
-		bool IsInViewingMode();
-
-		void ApplyChanges();
-
-	private:
-
-		void Default();
-
-		// Only used for material asset viewer. As we need an internal material to apply the values.
-		void BeginViewingSession();
-		void SaveViewingSession();
-		void EndViewingSession();
-
-		void SetAlbeoMap( const std::filesystem::path& rPath );
-		void SetNormalMap( const std::filesystem::path& rPath );
-		void SetMetallicMap( const std::filesystem::path& rPath );
-		void SetRoughnessMap( const std::filesystem::path& rPath );
-
-	private:
-		Ref<Material> m_Material;
-
-		bool m_ValuesChanged = false;
-
-		std::unordered_map< std::string, VkDescriptorImageInfo > m_TextureCache;
-
-	private:
-		friend class MaterialAssetViewer;
+		Success,
+		Failed
 	};
 
 }

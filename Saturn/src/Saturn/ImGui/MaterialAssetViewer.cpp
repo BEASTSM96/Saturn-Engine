@@ -58,12 +58,7 @@ namespace Saturn {
 
 		node.Outputs.push_back( pin );
 
-		Node* pNode = pNodeEditor->AddNode( node );
-
-		pNode->ExtraData.Allocate( 1024 );
-		pNode->ExtraData.Zero_Memory();
-
-		return pNode;
+		return pNodeEditor->AddNode( node );
 	}
 
 	Node* SpawnNewSampler2D( NodeEditor* pNodeEditor )
@@ -109,6 +104,21 @@ namespace Saturn {
 		return pNodeEditor->AddNode( node );
 	}
 
+	Node* FindOtherNodeByPin( ed::PinId id, NodeEditor* pNodeEditor ) 
+	{
+		// The other end of the link.
+		ed::PinId OtherPinID;
+
+		Link* pLink = pNodeEditor->FindLinkByPin( id );
+
+		if( pLink->EndPinID == id )
+			OtherPinID = pLink->StartPinID;
+		else
+			OtherPinID = pLink->EndPinID;
+
+		return pNodeEditor->FindPin( OtherPinID )->Node;
+	}
+
 	MaterialAssetViewer::MaterialAssetViewer()
 	{
 		m_AssetType = AssetType::Material;
@@ -150,6 +160,8 @@ namespace Saturn {
 		node.Inputs.push_back( pin );
 
 		auto* OutputNode = s_NodeEditors[ rAsset->GetAssetID() ]->AddNode( node );
+
+		m_OutputNodeID = (size_t)OutputNode->ID;
 
 		// Read the material data, and create some nodes based of the info.
 		
@@ -193,17 +205,34 @@ namespace Saturn {
 
 				// TODO: FIX THE LINKING!!!
 
+				auto* pOutNode = s_NodeEditors[ rAsset->GetAssetID() ]->FindNode( m_OutputNodeID );
+
 				// Link the get asset node with the texture node.
-				//s_NodeEditors[ rAsset->GetAssetID() ]->LinkPin( AssetNode->Outputs[ 0 ].ID, Sampler2DNode->Inputs[ 0 ].ID );
+				s_NodeEditors[ rAsset->GetAssetID() ]->LinkPin( AssetNode->Outputs[ 0 ].ID, Sampler2DNode->Inputs[ 0 ].ID );
 
 				// Link the texture node with the corresponding input in the material output.
-				//s_NodeEditors[ rAsset->GetAssetID() ]->LinkPin( Sampler2DNode->Outputs[ 0 ].ID, OutputNode->Inputs[ Index ].ID );
+				s_NodeEditors[ rAsset->GetAssetID() ]->LinkPin( Sampler2DNode->Outputs[ 0 ].ID, pOutNode->Inputs[ Index ].ID );
 			}
+			else if( Index == 0 )
+			{
+				Node* node = SpawnNewColorNode( s_NodeEditors[ rAsset->GetAssetID() ] );
+
+				auto albedoColor = materialAsset->Get<glm::vec3>( "u_Materials.AlbedoColor" );
+				ImVec4 color = ImVec4( albedoColor.x, albedoColor.y, albedoColor.z, 1.0f );
+
+				node->ExtraData.Write( ( uint8_t* ) &color, sizeof( ImVec4 ), 0 );
+
+				auto* pNode = s_NodeEditors[ rAsset->GetAssetID() ]->FindNode( m_OutputNodeID );
+
+				s_NodeEditors[ rAsset->GetAssetID() ]->LinkPin( node->Outputs[ Index ].ID, pNode->Inputs[ Index ].ID );
+			}
+
 		};
 
 		// Albedo
 		{
 			Fn( materialAsset->GetAlbeoMap(), 0 );
+
 		}
 
 		// Normal
@@ -247,33 +276,65 @@ namespace Saturn {
 		auto& rNodeEditor = s_NodeEditors[ rAsset->GetAssetID() ];
 
 		s_NodeEditors[ rAsset->GetAssetID() ]->SetCompileFunction(
-			[ &, rAsset, rNodeEditor ]()
+			[ &, rAsset, rNodeEditor ]() -> NodeEditorCompilationStatus
 			{
-				/*
-				// Material assets from the editor.
-				std::vector<Ref<Asset>> TextureAssets;
-
-				Node* MaterialOutputNode = nullptr;
-
-				for( auto& rNode : rNodeEditor->GetNodes() )
-				{
-					if( rNode.Name == "Get Asset" )
-					{
-						auto& IDOutput = rNode.ExtraData.Read<UUID>( 0 );
-
-						TextureAssets.push_back( AssetRegistry::Get().FindAsset( IDOutput ) );
-					}
-					else if( rNode.Name == "Material Output" ) 
-						MaterialOutputNode = &rNode;
-				}
-				*/
-
 				Ref<MaterialAsset> materialAsset = rAsset.As<MaterialAsset>();
+				Node* OutputNode = rNodeEditor->FindNode( m_OutputNodeID );
+
+				// Check if we have a link in the first input (albedo) as that must be set.
+				if( rNodeEditor->IsPinLinked( OutputNode->Inputs[ 0 ].ID ) )
+				{
+					auto PinID = OutputNode->Inputs[ 0 ].ID;
+					Node* pOtherNode = FindOtherNodeByPin( PinID, rNodeEditor );
+
+					// Now, we can check what type of node we have.
+					if( pOtherNode->Name == "Color Picker" ) 
+					{
+						auto& rColor = pOtherNode->ExtraData.Read<ImVec4>( 0 );
+
+						materialAsset->SetAlbeoColor( glm::vec4( rColor.x, rColor.y, rColor.z, rColor.w ) );
+					}
+					else if( pOtherNode->Name == "Sampler2D" ) 
+					{
+						Node* pAssetNode = nullptr;
+						Ref<Asset> TextureAsset = nullptr;
+						UUID AssetID;
+						
+						if( rNodeEditor->IsPinLinked( pOtherNode->Inputs[ 0 ].ID ) ) 
+							pAssetNode = FindOtherNodeByPin( pOtherNode->Inputs[ 0 ].ID, rNodeEditor );
+						else
+							return rNodeEditor->ThrowError( "A texture sampler requires an asset to be linked!" );
+
+						AssetID = pAssetNode->ExtraData.Read<UUID>( 0 );
+						TextureAsset = AssetRegistry::Get().FindAsset( AssetID );
+
+						// This wont load the texture until we apply it.
+						materialAsset->SetAlbeoMap( TextureAsset->Path );
+					}
+				}
+				else
+				{
+					return rNodeEditor->ThrowError( "Albedo must be linked to texture sampler or a color node!" );
+				}
+
+				// Next, Normals
+				if( CheckOutputNodeInput( rNodeEditor, ( size_t ) OutputNode->Inputs[ 1 ].ID, false, "", 1, false, materialAsset ) == NodeEditorCompilationStatus::Failed )
+					return NodeEditorCompilationStatus::Failed;
+
+				// Then, Metallic
+				if( CheckOutputNodeInput( rNodeEditor, ( size_t )OutputNode->Inputs[ 2 ].ID, false, "", 2, false, materialAsset ) == NodeEditorCompilationStatus::Failed )
+					return NodeEditorCompilationStatus::Failed;
+
+				// Then, Roughness
+				if( CheckOutputNodeInput( rNodeEditor, ( size_t ) OutputNode->Inputs[ 3 ].ID, false, "", 3, false, materialAsset ) == NodeEditorCompilationStatus::Failed )
+					return NodeEditorCompilationStatus::Failed;
+
 				materialAsset->ApplyChanges();
 
 				MaterialAssetSerialiser mas;
 				mas.Serialise( rAsset, rNodeEditor );
 
+				return NodeEditorCompilationStatus::Success;
 			} );
 
 		s_NodeEditors[ rAsset->GetAssetID() ]->Open( true );
@@ -286,7 +347,65 @@ namespace Saturn {
 		if( s_NodeEditors[ rMaterialAsset->GetAssetID() ]->IsOpen() )
 			s_NodeEditors[ rMaterialAsset->GetAssetID() ]->Draw();
 
-		rMaterialAsset->EndViewingSession();
+		// Disable viewing mode, when we close the editor it will end the session.
+		rMaterialAsset->SaveViewingSession();
 	}
 
+	NodeEditorCompilationStatus MaterialAssetViewer::CheckOutputNodeInput( NodeEditor* pNodeEditor, int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker, Ref<MaterialAsset>& rMaterialAsset )
+	{
+		if( pNodeEditor->IsPinLinked( PinID ) )
+		{
+			Node* pOtherNode = FindOtherNodeByPin( PinID, pNodeEditor );
+
+			// Color picker is only for albedo.
+			if( AllowColorPicker )
+			{
+				if( pOtherNode->Name == "Color Picker" )
+				{
+					auto& rColor = pOtherNode->ExtraData.Read<ImVec4>( 0 );
+
+					rMaterialAsset->SetAlbeoColor( glm::vec4( rColor.x, rColor.y, rColor.z, rColor.w ) );
+				}
+			}
+
+			if( pOtherNode->Name == "Sampler2D" )
+			{
+				Node* pAssetNode = nullptr;
+				Ref<Asset> TextureAsset = nullptr;
+				UUID AssetID;
+
+				if( pNodeEditor->IsPinLinked( pOtherNode->Inputs[ 0 ].ID ) )
+					pAssetNode = FindOtherNodeByPin( pOtherNode->Inputs[ 0 ].ID, pNodeEditor );
+				else 
+				{
+					return pNodeEditor->ThrowError( "A texture sampler requires an asset to be linked!" );
+				}
+
+				AssetID = pAssetNode->ExtraData.Read<UUID>( 0 );
+				TextureAsset = AssetRegistry::Get().FindAsset( AssetID );
+
+				// This wont load the texture until we apply it.
+				if( Index == 0 )
+					rMaterialAsset->SetAlbeoMap( TextureAsset->Path );
+				else if( Index == 1 )
+					rMaterialAsset->SetNormalMap( TextureAsset->Path );
+				else if( Index == 2 )
+					rMaterialAsset->SetMetallicMap( TextureAsset->Path );
+				else if( Index == 3 )
+					rMaterialAsset->SetRoughnessMap( TextureAsset->Path );
+			}
+		}
+		else
+		{
+			if( ThrowIfNotLinked )
+			{
+				// TODO: Make a better message.
+				return pNodeEditor->ThrowError( rErrorMessage );
+			}
+
+			pNodeEditor->ThrowWarning( "Pin was not linked, this may result in errors in the material." );
+		}
+
+		return NodeEditorCompilationStatus::Success;
+	}
 }

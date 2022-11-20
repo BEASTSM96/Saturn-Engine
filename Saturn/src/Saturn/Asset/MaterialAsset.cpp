@@ -87,6 +87,11 @@ namespace Saturn {
 		s_IsInViewingMode = true;
 	}
 
+	void MaterialAsset::SaveViewingSession()
+	{
+		s_IsInViewingMode = false;
+	}
+
 	void MaterialAsset::EndViewingSession()
 	{
 		s_IsInViewingMode = false;
@@ -134,7 +139,10 @@ namespace Saturn {
 	{
 		m_ValuesChanged = true;
 
-		m_Material->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
+		if( s_IsInViewingMode )
+			s_ViewingMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
+		else
+			m_Material->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
 	}
 
 	void MaterialAsset::UseNormalMap( bool val )
@@ -237,7 +245,9 @@ namespace Saturn {
 
 	void MaterialAsset::ApplyChanges()
 	{
-		m_Material->SetResource( "u_AlbedoTexture", s_ViewingMaterial->GetResource( "u_AlbedoTexture" ) );
+		auto texture = s_ViewingMaterial->GetResource( "u_AlbedoTexture" );
+
+		m_Material->SetResource( "u_AlbedoTexture", texture );
 		m_Material->SetResource( "u_NormalTexture", s_ViewingMaterial->GetResource( "u_NormalTexture" ) );
 		m_Material->SetResource( "u_MetallicTexture", s_ViewingMaterial->GetResource( "u_MetallicTexture" ) );
 		m_Material->SetResource( "u_RoughnessTexture", s_ViewingMaterial->GetResource( "u_RoughnessTexture" ) );

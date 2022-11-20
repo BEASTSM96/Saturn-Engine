@@ -481,4 +481,28 @@ namespace Saturn {
 		return pressed;
 	}
 
+	void DrawColoredRect( const ImVec2& size, const ImVec4& color )
+	{
+		// Context
+		ImGuiContext& g = *GImGui;
+
+		const float DefualtSize = ImGui::GetFrameHeight();
+		const ImVec2 RealSize( size.x == 0.0f ? DefualtSize : size.x, size.y == 0.0f ? DefualtSize : size.y );
+
+		const ImRect BoundingBox( ImGui::GetCursorPos(), ImGui::GetCursorPos() + size );
+
+ 		ImGui::ItemSize( BoundingBox, (size.y >= DefualtSize) ? g.Style.FramePadding.y : 0.0f );
+ 		ImGui::ItemAdd( BoundingBox, ImGui::GetID( "colored_rect" ) );
+
+		float grid_step = ImMin( size.x, size.y ) / 2.99f;
+		float rounding = ImMin( g.Style.FrameRounding, grid_step * 0.5f );
+
+		// Draw the rect
+
+		ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+
+		ImVec4 ColorNoAlpha = ImVec4( color.x, color.y, color.z, 1.0f );
+		pDrawList->AddRectFilled( BoundingBox.Min, BoundingBox.Max, ImGui::GetColorU32( ColorNoAlpha ), rounding );
+	}
+
 }

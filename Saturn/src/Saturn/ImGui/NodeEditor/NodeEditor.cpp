@@ -32,6 +32,8 @@
 #include "Saturn/Vulkan/Texture.h"
 #include "Saturn/Asset/AssetRegistry.h"
 
+#include "Saturn/ImGui/UITools.h"
+
 // imgui_node_editor
 #include "builders.h"
 #include "Saturn/Vendor/widgets.h"
@@ -173,6 +175,9 @@ namespace Saturn {
 		if( position.x != 0.0f && position.y != 0.0f )
 			ed::SetNodePosition( node.ID, position );
 
+		node.ExtraData.Allocate( 1024 );
+		node.ExtraData.Zero_Memory();
+
 		return &m_Nodes.back();
 	}
 
@@ -227,6 +232,29 @@ namespace Saturn {
 		for( auto& node : m_Nodes )
 			if( node.ID == id )
 				return &node;
+	}
+
+	Link* NodeEditor::FindLinkByPin( ed::PinId id )
+	{
+		if( !id )
+			return nullptr;
+
+		if( !IsPinLinked( id ) )
+			return nullptr;
+
+		for( auto& link : m_Links )
+			if( link.StartPinID == id || link.EndPinID == id )
+				return &link;
+
+		return nullptr;
+	}
+
+	Node* NodeEditor::FindNodeByPin( ed::PinId id )
+	{
+		Pin* pPin = FindPin( id );
+		Link* pLink = FindLinkByPin( id );
+
+		return pPin->Node;
 	}
 
 	ImColor GetIconColor( PinType type )
@@ -323,6 +351,7 @@ namespace Saturn {
 		util::BlueprintNodeBuilder builder( s_BlueprintBackgroundID, s_BlueprintBackground->Width(), s_BlueprintBackground->Height() );
 
 		bool OpenAssetPopup = false;
+		bool OpenAssetColorPicker = false;
 
 		for( auto& node : m_Nodes )
 		{
@@ -420,20 +449,18 @@ namespace Saturn {
 					}
 					else if( node.Name == "Color Picker" && output.Type == PinType::Material_Sampler2D ) 
 					{
-						static ImVec4 color = ImVec4( 114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f );
+						ImGui::BeginHorizontal( "PickerH" );
 
-						ImGui::Spring( 0 );
+						if( ImGui::Button( "Color" ) ) 
+						{
+							OpenAssetColorPicker = true;
 
-						ImGui::BeginHorizontal( "##PickerH" );
-						ImGui::Spring( 0 );
-						ImGui::BeginVertical( "##PickerV" );
+							s_SelectAssetInfo.ID = output.ID;
+							s_SelectAssetInfo.NodeID = node.ID;
+						}
 
-						ImGui::Spring( 0 );
-						ImGui::ColorPicker3( "##MyColor1", (float*)&color );
-
-						ImGui::Spring( 0 );
-						ImGui::EndVertical();
-						ImGui::Spring( 0 );
+						DrawColoredRect( { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() }, node.ExtraData.Read<ImVec4>( 0 ) );
+						
 						ImGui::EndHorizontal();
 					}
 				}
@@ -452,6 +479,9 @@ namespace Saturn {
 
 		if( OpenAssetPopup )
 			ImGui::OpenPopup( "AssetFinderPopup" );
+
+		if( OpenAssetColorPicker )
+			ImGui::OpenPopup( "AssetColorPicker" );
 
 		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
 		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
@@ -508,6 +538,55 @@ namespace Saturn {
 				s_SelectAssetInfo.NodeID    = 0;
 				s_SelectAssetInfo.AssetName = "";
 			}
+
+			ImGui::EndPopup();
+		}
+
+		ImGui::SetNextWindowSize( { 350.0f, 0.0f } );
+		if( ImGui::BeginPopup( "AssetColorPicker", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+		{
+			bool PopupModified = false;
+
+			ImVec4 color = ImVec4( 114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f );
+
+			Node* pNode = nullptr;
+			pNode = FindNode( s_SelectAssetInfo.NodeID );
+
+			color = pNode->ExtraData.Read<ImVec4>( 0 );
+
+			if( color.x == 0 && color.y == 0 && color.z == 0  && color.w == 0 )
+				color = ImVec4( 114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f );
+
+			if( ImGui::ColorPicker3( "Color Picker", (float*)&color ) ) 
+			{
+				pNode->ExtraData.Write( (uint8_t*)&color, sizeof( ImVec4 ), 0 );
+
+				PopupModified = true;
+			}
+			else
+			{
+				if( PopupModified )
+				{
+					ImGui::CloseCurrentPopup();
+
+					s_SelectAssetInfo.Asset = 0;
+					s_SelectAssetInfo.ID = 0;
+					s_SelectAssetInfo.NodeID = 0;
+					s_SelectAssetInfo.AssetName = "";
+				}
+			}
+
+			/*
+			if( PopupModified )
+			{
+				ImGui::CloseCurrentPopup();
+
+				s_SelectAssetInfo.Asset = 0;
+				s_SelectAssetInfo.ID = 0;
+				s_SelectAssetInfo.NodeID = 0;
+				s_SelectAssetInfo.AssetName = "";
+			}
+			*/
 
 			ImGui::EndPopup();
 		}
@@ -739,6 +818,18 @@ namespace Saturn {
 
 		m_Links.emplace_back( Link( GetNextID(), Start, End ) );
 		m_Links.back().Color = GetIconColor( pin->Type );
+	}
+
+	NodeEditorCompilationStatus NodeEditor::ThrowError( const std::string & rMessage )
+	{
+		SAT_CORE_ERROR( rMessage );
+
+		return NodeEditorCompilationStatus::Failed;
+	}
+
+	void NodeEditor::ThrowWarning( const std::string& rMessage )
+	{
+		SAT_CORE_WARN( rMessage );
 	}
 
 }

@@ -30,8 +30,11 @@
 
 #include "AssetViewer.h"
 #include "Saturn/Asset/MaterialAsset.h"
+#include "NodeEditor/NodeEditorCompilationStatus.h"
 
 namespace Saturn {
+
+	class NodeEditor;
 
 	class MaterialAssetViewer : public AssetViewer
 	{
@@ -46,7 +49,12 @@ namespace Saturn {
 
 	private:
 		void DrawInternal( Ref<MaterialAsset>& rMaterialAsset );
+
+		NodeEditorCompilationStatus CheckOutputNodeInput( NodeEditor* pNodeEditor, int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker, Ref<MaterialAsset>& rMaterialAsset );
+
 	private:
 		std::vector<Ref<MaterialAsset>> m_MaterialAssets;
+
+		int m_OutputNodeID = 0;
 	};
 }

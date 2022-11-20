@@ -32,6 +32,8 @@
 #include "Node.h"
 #include "imgui_node_editor.h"
 
+#include "NodeEditorCompilationStatus.h"
+
 namespace ed = ax::NodeEditor;
 
 namespace Saturn {
@@ -49,6 +51,8 @@ namespace Saturn {
 		Pin* FindPin( ed::PinId id );
 		Link* FindLink( ed::LinkId id );
 		Node* FindNode( ed::NodeId id );
+		Link* FindLinkByPin( ed::PinId id );
+		Node* FindNodeByPin( ed::PinId id );
 
 		const std::vector<Node>& GetNodes() const { return m_Nodes; }
 		std::vector<Node>& GetNodes() { return m_Nodes; }
@@ -75,7 +79,7 @@ namespace Saturn {
 			m_CreateNewNodeFunction = std::move( rrCreateNewNodeFunction );
 		}
 
-		void SetCompileFunction( std::function<void()>&& rrCompileFunction )
+		void SetCompileFunction( std::function<NodeEditorCompilationStatus()>&& rrCompileFunction )
 		{
 			m_OnCompile = std::move( rrCompileFunction );
 		}
@@ -83,6 +87,11 @@ namespace Saturn {
 		AssetID GetAssetID() { return m_AssetID; }
 
 		const std::string& GetEditorState() { return m_NodeEditorState; }
+		
+		void SetEditorState( const std::string& rState ) { m_NodeEditorState = rState; }
+
+		NodeEditorCompilationStatus ThrowError( const std::string& rMessage );
+		void ThrowWarning( const std::string& rMessage );
 
 	private:
 		ed::EditorContext* m_Editor;
@@ -97,7 +106,7 @@ namespace Saturn {
 
 		std::function<void( Node )> m_DetailsFunction;
 		std::function<Node*()> m_CreateNewNodeFunction;
-		std::function<void()> m_OnCompile;
+		std::function<NodeEditorCompilationStatus()> m_OnCompile;
 
 		std::vector<Node> m_Nodes;
 		std::vector<Link> m_Links;

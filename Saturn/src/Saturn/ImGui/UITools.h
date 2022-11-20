@@ -67,4 +67,6 @@ namespace Saturn {
 	extern void EndTreeNode();
 
 	extern bool ButtonRd( const char* label, const ImRect& bb, bool rounded = false );
+
+	extern void DrawColoredRect( const ImVec2& size, const ImVec4& color );
 }
