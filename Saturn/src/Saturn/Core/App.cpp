@@ -224,7 +224,11 @@ namespace Saturn {
 
 					auto wstr = std::wstring( pszFilePath );
 
-					path = std::string( wstr.begin(), wstr.end() );
+					std::transform( wstr.begin(), wstr.end(), std::back_inserter( path ), []( wchar_t c )
+					{
+						return ( char ) c;
+					} );
+
 					
 					CoTaskMemFree( pszFilePath );
 				}
