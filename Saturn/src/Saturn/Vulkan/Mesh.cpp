@@ -157,9 +157,7 @@ namespace Saturn {
 
 			Ref<Asset> realAsset = AssetRegistry::Get().FindAsset( assetPath );
 
-			AssetImporter::Get().TryLoadData( realAsset );
-
-			Ref<MaterialAsset> asset = realAsset.As<MaterialAsset>();
+			Ref<MaterialAsset> asset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( realAsset->GetAssetID() );
 			m_MaterialsAssets[ m ] = asset;
 
 			continue;
