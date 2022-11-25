@@ -45,6 +45,7 @@
 #include <Saturn/Serialisation/ProjectSerialiser.h>
 #include <Saturn/Serialisation/UserSettingsSerialiser.h>
 #include <Saturn/Serialisation/AssetRegistrySerialiser.h>
+#include <Saturn/Serialisation/AssetSerialisers.h>
 
 #include <Saturn/PhysX/PhysXFnd.h>
 
@@ -321,13 +322,23 @@ namespace Saturn {
 
 					ImGui::Separator();
 
-					for ( auto& rMaterial : mesh->GetMaterialAssets() )
+					for( auto& rMaterial : mesh->GetMaterialAssets() )
 					{
 						if( ImGui::CollapsingHeader( rMaterial->GetName().c_str() ) ) 
 						{
-							ImGui::PushID( rMaterial->GetName().c_str() );
+							ImGui::PushID( rMaterial->GetAssetID() );
 
 							ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
+							ImGui::Text( "Asset ID: %llu", (uint64_t)rMaterial->GetAssetID() );
+							
+							ImGui::Separator();
+
+							UUID id = rMaterial->GetAssetID();
+							DrawAssetDragDropTarget<MaterialAsset>( "Change asset", rMaterial->GetName().c_str(), id, 
+								[rMaterial](Ref<MaterialAsset> asset) mutable
+								{
+									rMaterial->SetMaterial( asset->GetMaterial() );
+								} );
 
 							ImGui::Separator();
 

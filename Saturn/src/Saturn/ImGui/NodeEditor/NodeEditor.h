@@ -84,6 +84,11 @@ namespace Saturn {
 			m_OnCompile = std::move( rrCompileFunction );
 		}
 
+		void SetCloseFunction( std::function<void()>&& rrCloseFunction )
+		{
+			m_OnClose = std::move( rrCloseFunction );
+		}
+
 		AssetID GetAssetID() { return m_AssetID; }
 
 		const std::string& GetEditorState() { return m_NodeEditorState; }
@@ -92,6 +97,14 @@ namespace Saturn {
 
 		NodeEditorCompilationStatus ThrowError( const std::string& rMessage );
 		void ThrowWarning( const std::string& rMessage );
+
+		void Reload();
+
+		void SetWindowName( const std::string& rName ) { m_Name = rName; }
+
+	private:
+
+		void Close();
 
 	private:
 		ed::EditorContext* m_Editor;
@@ -107,9 +120,12 @@ namespace Saturn {
 		std::function<void( Node )> m_DetailsFunction;
 		std::function<Node*()> m_CreateNewNodeFunction;
 		std::function<NodeEditorCompilationStatus()> m_OnCompile;
+		std::function<void()> m_OnClose;
 
 		std::vector<Node> m_Nodes;
 		std::vector<Link> m_Links;
+
+		std::string m_Name;
 
 		AssetID m_AssetID;
 	};

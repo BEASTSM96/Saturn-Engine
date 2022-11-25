@@ -91,6 +91,10 @@ namespace Saturn {
 
 		void ApplyChanges();
 
+		Ref<Material> GetMaterial() const { return m_Material; }
+
+		void SetMaterial( const Ref<Material>& rMaterial ) { m_Material = nullptr; m_Material = rMaterial; }
+
 	private:
 
 		void Default();
@@ -106,7 +110,7 @@ namespace Saturn {
 		void SetRoughnessMap( const std::filesystem::path& rPath );
 
 	private:
-		Ref<Material> m_Material;
+		Ref<Material> m_Material = nullptr;
 
 		bool m_ValuesChanged = false;
 

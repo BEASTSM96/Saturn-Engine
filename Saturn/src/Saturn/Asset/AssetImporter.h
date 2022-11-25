@@ -50,7 +50,7 @@ namespace Saturn {
 
 		// Serialise
 		void Import     ( const Ref<Asset>& rAsset );
-		void TryLoadData(       Ref<Asset>& rAsset );
+		bool TryLoadData(       Ref<Asset>& rAsset );
 
 	private:
 		void Init();

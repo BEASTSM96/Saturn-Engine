@@ -30,6 +30,10 @@
 
 #include "Saturn/Asset/Asset.h"
 
+namespace YAML {
+	class Node;
+}
+
 namespace Saturn {
 
 	class NodeEditor;
@@ -39,7 +43,7 @@ namespace Saturn {
 	public:
 		virtual void Serialise  ( const Ref<Asset>& rAsset ) const = 0;
 		virtual void Derialise  ( const Ref<Asset>& rAsset ) const = 0;
-		virtual void TryLoadData(       Ref<Asset>& rAsset ) const = 0;
+		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const = 0;
 	};
 
 	class MaterialAssetSerialiser : public AssetSerialiser
@@ -48,6 +52,11 @@ namespace Saturn {
 		virtual void Serialise  ( const Ref<Asset>& rAsset, NodeEditor* pNodeEditor ) const;
 		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
 		virtual void Derialise  ( const Ref<Asset>& rAsset ) const override;
-		virtual void TryLoadData(       Ref<Asset>& rAsset ) const override;
+		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
+
+		void TryLoadData        (       Ref<Asset>& rAsset, bool LoadNodeEditorData, NodeEditor* pNodeEditor ) const;
+
+	private:
+		void LoadMaterialData( YAML::Node& rNode, Ref<Asset>& rAsset ) const;
 	};
 }

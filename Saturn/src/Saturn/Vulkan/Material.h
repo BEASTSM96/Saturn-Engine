@@ -45,6 +45,8 @@ namespace Saturn {
 		 Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName );
 		~Material();
 
+		void Copy( Ref<Material>& rOther );
+
 		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
 
 		void Unbind();
@@ -123,5 +125,24 @@ namespace Saturn {
 	private:
 		friend class MaterialInstance;
 		friend class MaterialAsset;
+	};
+
+	class MaterialTable
+	{
+		using MaterialTableList = std::unordered_map< std::string, Ref<Material> >;
+
+		SINGLETON( MaterialTable );
+	public:
+		MaterialTable() {}
+		~MaterialTable();
+
+		void InsertMaterial( const Ref<Material>& rMaterial );
+		void RemoveMaterial( const std::string& rName );
+
+		// Apply changes to all materials with the same name.
+		void ApplyChanges( const std::string& rMaterialName, Ref<Material>& rSourceMaterial );
+
+	private:
+		MaterialTableList m_Materials;
 	};
 }

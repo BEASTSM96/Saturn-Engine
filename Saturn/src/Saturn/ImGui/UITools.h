@@ -31,6 +31,8 @@
 #include "Saturn/Vulkan/Image2D.h"
 #include "Saturn/Vulkan/Texture.h"
 
+#include "Saturn/Asset/AssetRegistry.h"
+
 #include <string>
 #include <glm/glm.hpp>
 
@@ -69,4 +71,41 @@ namespace Saturn {
 	extern bool ButtonRd( const char* label, const ImRect& bb, bool rounded = false );
 
 	extern void DrawColoredRect( const ImVec2& size, const ImVec4& color );
+
+	template<typename Ty, typename Fn>
+	bool DrawAssetDragDropTarget( const char* label, const char* assetName, UUID& returnID, Fn&& function ) 
+	{
+		bool changed = false;
+
+		ImGui::Text( label );
+
+		std::string ButtonName = "";
+
+		if( auto asset = AssetRegistry::Get().FindAsset( returnID ) )
+			ButtonName = asset->GetName();
+		else
+			ButtonName = "Unknown";
+
+		ImGui::Button( ButtonName.c_str() );
+
+		if( ImGui::BeginDragDropTarget() )
+		{
+			auto data = ImGui::AcceptDragDropPayload( "asset_playload" );
+
+			if( data )
+			{
+				const wchar_t* path = ( const wchar_t* ) data->Data;
+
+				Ref<Asset> asset = AssetRegistry::Get().GetAssetAs<Asset>( AssetRegistry::Get().PathToID( path ) );
+
+				if( asset )
+				{
+					function( asset.As<Ty>() );
+					changed = true;
+				}
+			}
+		}
+
+		return changed;
+	}
 }

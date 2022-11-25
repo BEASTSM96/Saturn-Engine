@@ -82,6 +82,20 @@ namespace Saturn {
 		return result;
 	}
 
+	AssetID AssetRegistry::PathToID( const std::filesystem::path& rPath )
+	{
+		for( const auto& [id, asset] : m_Assets )
+		{
+			if( asset->GetPath() == rPath )
+				return id;
+		}
+	}
+
+	bool AssetRegistry::IsAssetLoaded( AssetID id )
+	{
+		return m_LoadedAssets.find( id ) != m_LoadedAssets.end();
+	}
+
 	void AssetRegistry::AddAsset( AssetID id )
 	{
 		SAT_CORE_ASSERT( m_Assets.find( id ) == m_Assets.end(), "Asset already exists!" );

@@ -116,7 +116,9 @@ namespace Saturn {
 		else
 			OtherPinID = pLink->EndPinID;
 
-		return pNodeEditor->FindPin( OtherPinID )->Node;
+		Pin* p = pNodeEditor->FindPin( OtherPinID );
+
+		return p->Node;
 	}
 
 	MaterialAssetViewer::MaterialAssetViewer()
@@ -130,17 +132,21 @@ namespace Saturn {
 
 	void MaterialAssetViewer::Draw()
 	{
+		if( s_NodeEditors.size() < 1 )
+			return;
+
 		for( auto& asset : m_MaterialAssets )
 			DrawInternal( asset );
 	}
 
 	void MaterialAssetViewer::AddMaterialAsset( Ref<Asset>& rAsset )
 	{
-		Ref<MaterialAsset> materialAsset = rAsset.As<MaterialAsset>();
+		s_NodeEditors[ rAsset->GetAssetID() ] = new NodeEditor( rAsset->GetAssetID() );
+		s_NodeEditors[ rAsset->GetAssetID() ]->SetWindowName( rAsset->GetName() );
+
+		Ref<MaterialAsset> materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
 
 		m_MaterialAssets.push_back( materialAsset );
-
-		s_NodeEditors[ rAsset->GetAssetID() ] = new NodeEditor( rAsset->GetAssetID() );
 
 		// Add material output node.
 		PinSpecification pin;
@@ -170,7 +176,6 @@ namespace Saturn {
 			const auto& rPath = rTexture->GetPath();
 
 			bool InternalTexture = ( rPath == "Renderer Pink Texture" );
-			// TODO: Create color node.
 
 			if( !InternalTexture )
 			{
@@ -208,7 +213,7 @@ namespace Saturn {
 				auto* pOutNode = s_NodeEditors[ rAsset->GetAssetID() ]->FindNode( m_OutputNodeID );
 
 				// Link the get asset node with the texture node.
-				s_NodeEditors[ rAsset->GetAssetID() ]->LinkPin( AssetNode->Outputs[ 0 ].ID, Sampler2DNode->Inputs[ 0 ].ID );
+				//s_NodeEditors[ rAsset->GetAssetID() ]->LinkPin( AssetNode->Outputs[ 0 ].ID, Sampler2DNode->Inputs[ 0 ].ID );
 
 				// Link the texture node with the corresponding input in the material output.
 				s_NodeEditors[ rAsset->GetAssetID() ]->LinkPin( Sampler2DNode->Outputs[ 0 ].ID, pOutNode->Inputs[ Index ].ID );
@@ -278,7 +283,7 @@ namespace Saturn {
 		s_NodeEditors[ rAsset->GetAssetID() ]->SetCompileFunction(
 			[ &, rAsset, rNodeEditor ]() -> NodeEditorCompilationStatus
 			{
-				Ref<MaterialAsset> materialAsset = rAsset.As<MaterialAsset>();
+				Ref<MaterialAsset> materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
 				Node* OutputNode = rNodeEditor->FindNode( m_OutputNodeID );
 
 				// Check if we have a link in the first input (albedo) as that must be set.
@@ -337,6 +342,9 @@ namespace Saturn {
 				return NodeEditorCompilationStatus::Success;
 			} );
 
+		// Maybe in the future we would want to do some stuff here.
+		s_NodeEditors[ rAsset->GetAssetID() ]->SetCloseFunction( []() -> void {} );
+
 		s_NodeEditors[ rAsset->GetAssetID() ]->Open( true );
 	}
 
@@ -344,8 +352,17 @@ namespace Saturn {
 	{
 		rMaterialAsset->BeginViewingSession();
 
-		if( s_NodeEditors[ rMaterialAsset->GetAssetID() ]->IsOpen() )
-			s_NodeEditors[ rMaterialAsset->GetAssetID() ]->Draw();
+		if( s_NodeEditors.at( rMaterialAsset->GetAssetID() )->IsOpen() )
+			s_NodeEditors.at( rMaterialAsset->GetAssetID() )->Draw();
+		else 
+		{
+			delete s_NodeEditors[ rMaterialAsset->GetAssetID() ];
+			s_NodeEditors[ rMaterialAsset->GetAssetID() ] = nullptr;
+
+			s_NodeEditors.erase( rMaterialAsset->GetAssetID() );
+
+			rMaterialAsset->EndViewingSession();
+		}
 
 		// Disable viewing mode, when we close the editor it will end the session.
 		rMaterialAsset->SaveViewingSession();

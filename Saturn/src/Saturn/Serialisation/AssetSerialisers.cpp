@@ -121,7 +121,10 @@ namespace Saturn {
 
 				out << YAML::Key << "Node" << YAML::Value << ( size_t ) rNode.ID;
 				out << YAML::Key << "Name" << YAML::Value << rNode.Name;
-				out << YAML::Key << "Color" << YAML::Value << rNode.Color;
+
+				ImVec4 colorVec4 = rNode.Color;
+
+				out << YAML::Key << "Color" << YAML::Value << glm::vec4( colorVec4.x, colorVec4.y, colorVec4.z, 1.0f );
 				out << YAML::Key << "Size" << YAML::Value << glm::vec2( rNode.Size.x, rNode.Size.y );
 
 				out << YAML::Key << "Inputs" << YAML::Value;
@@ -260,7 +263,7 @@ namespace Saturn {
 		materialAsset->SetRoughnessMap( texture );
 	}
 
-	void MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
+	void MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, bool LoadNodeEditorData, NodeEditor* pNodeEditor ) const
 	{
 		auto materialAsset = Ref<MaterialAsset>::Create( nullptr );
 
@@ -320,6 +323,80 @@ namespace Saturn {
 		materialAsset->SetRoughness( val );
 		materialAsset->SetRoughnessMap( texture );
 
+		if( LoadNodeEditorData )
+		{
+			// Node Editor data
+			if( auto neData = data[ "NodeEditor" ] )
+			{
+				auto State = neData[ "State" ].as<std::string>();
+
+				pNodeEditor->SetEditorState( State );
+
+				auto nodes = neData[ "Nodes" ];
+				for( auto node : nodes )
+				{
+					if( node.IsNull() )
+						continue;
+
+					size_t nodeID = node["Node"].as<size_t>();
+					std::string name = node["Name"].as<std::string>();
+
+					glm::vec4 colorVec4 = node["Color"].as<glm::vec4>();
+					ImColor color = ImColor( ImVec4( colorVec4.x, colorVec4.y, colorVec4.z, colorVec4.w ) );
+
+					glm::vec2 size = node["Size"].as<glm::vec2>();
+
+					Node* pNewNode = new Node( (int)nodeID, name.c_str(), color );
+					pNewNode->State = node[ "State" ].as<std::string>();
+					pNewNode->Size = ImVec2( size.x, size.y );
+
+					for( auto input : node["Inputs"] )
+					{
+						if( input.IsNull() )
+							continue;
+
+						std::string name = input[ "Name" ].as<std::string>();
+						size_t pinID = input[ "Input" ].as<size_t>();
+
+						// No need to do this right now.
+						//ed::NodeId nodeID = node[ "Node" ].as<ed::NodeId>();
+
+						PinKind kind = (PinKind) input[ "Kind" ].as<int>();
+						PinType type = StringToPinType( input[ "Type" ].as<std::string>() );
+
+						Pin pin( pinID, name.c_str(), type );
+						pin.Kind = kind;
+						pin.Node = pNewNode;
+
+						pNewNode->Inputs.push_back( pin );
+					}
+
+					for( auto output : node[ "Outputs" ] )
+					{
+						if( output.IsNull() )
+							continue;
+
+						int pinID = output[ "Output" ].as<int>();
+						std::string name = output[ "Name" ].as<std::string>();
+
+						// No need to do this right now.
+						//ed::NodeId nodeID = node[ "Node" ].as<ed::NodeId>();
+
+						PinKind kind = ( PinKind ) output[ "Kind" ].as<int>();
+						PinType type = StringToPinType( output[ "Type" ].as<std::string>() );
+
+						Pin pin( pinID, name.c_str(), type );
+						pin.Kind = kind;
+						pin.Node = pNewNode;
+
+						pNewNode->Outputs.push_back( pin );
+					}
+				}
+			}
+
+			pNodeEditor->Reload();
+		}
+
 		struct
 		{
 			UUID ID;
@@ -338,7 +415,89 @@ namespace Saturn {
 		rAsset->Type = OldAssetData.Type;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
-
 	}
 
+	bool MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
+	{
+		std::ifstream FileIn( rAsset->GetPath() );
+
+		std::stringstream ss;
+		ss << FileIn.rdbuf();
+
+		YAML::Node data = YAML::Load( ss.str() );
+
+		if( data.IsNull() )
+			return false;
+
+		//LoadMaterialData( data, rAsset );
+
+		auto materialAsset = Ref<MaterialAsset>::Create( nullptr );
+
+		auto materialData = data[ "Material" ];
+
+		auto albedoColor = materialData[ "AlbedoColor" ].as<glm::vec3>();
+		auto albedoPath = materialData[ "AlbedoPath" ].as<std::filesystem::path>();
+
+		Ref<Texture2D> texture = Renderer::Get().GetPinkTexture();
+
+		if( albedoPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( albedoPath, AddressingMode::Repeat );
+
+		materialAsset->SetAlbeoColor( albedoColor );
+		materialAsset->SetAlbeoMap( texture );
+
+		auto useNormal = materialData[ "UseNormal" ].as<float>();
+		auto normalPath = materialData[ "NormalPath" ].as<std::filesystem::path>();
+
+		if( normalPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat );
+		else
+			texture = Renderer::Get().GetPinkTexture();
+
+		materialAsset->UseNormalMap( useNormal );
+		materialAsset->SetNormalMap( texture );
+
+		auto metalness = materialData[ "Metalness" ].as<float>();
+		auto metallicPath = materialData[ "MetalnessPath" ].as<std::filesystem::path>();
+
+		if( metallicPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat );
+		else
+			texture = Renderer::Get().GetPinkTexture();
+
+		materialAsset->SetMetalness( metalness );
+		materialAsset->SetMetallicMap( texture );
+
+		auto val = materialData[ "Roughness" ].as<float>();
+		auto roughnessPath = materialData[ "RoughnessPath" ].as<std::filesystem::path>();
+
+		if( roughnessPath != "Renderer Pink Texture" )
+			texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat );
+		else
+			texture = Renderer::Get().GetPinkTexture();
+
+		materialAsset->SetRoughness( val );
+		materialAsset->SetRoughnessMap( texture );
+
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = materialAsset;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
+
+		return true;
+	}
 }

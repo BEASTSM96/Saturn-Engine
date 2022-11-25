@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "MaterialAsset.h"
 
+#include "AssetRegistry.h"
+
 #include "Saturn/Vulkan/Renderer.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
@@ -36,14 +38,15 @@ namespace Saturn {
 
 	static Ref<Material> s_ViewingMaterial;
 	static bool s_IsInViewingMode = false;
+	
+	static std::vector< AssetID > s_Materials;
 
 	MaterialAsset::MaterialAsset( Ref<Material> material )
-		: m_Material( material )
 	{
-		if( !m_Material )
+		if( material == nullptr )
 			m_Material = Ref<Material>::Create( ShaderLibrary::Get().Find( "shader_new" ), "New Material" );
-
-		Default();
+		else
+			m_Material->Copy( material );
 	}
 
 	MaterialAsset::~MaterialAsset()
@@ -231,8 +234,8 @@ namespace Saturn {
 
 		if( m_ValuesChanged ) 
 		{
-			MaterialAssetSerialiser mas;
-			mas.Serialise( this );
+			//MaterialAssetSerialiser mas;
+			//mas.Serialise( this );
 
 			m_ValuesChanged = false;
 		}

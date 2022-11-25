@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "UITools.h"
 
+#include "Saturn/Asset/AssetRegistry.h"
+
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui_internal.h>
 
@@ -491,8 +493,8 @@ namespace Saturn {
 
 		const ImRect BoundingBox( ImGui::GetCursorPos(), ImGui::GetCursorPos() + size );
 
- 		ImGui::ItemSize( BoundingBox, (size.y >= DefualtSize) ? g.Style.FramePadding.y : 0.0f );
- 		ImGui::ItemAdd( BoundingBox, ImGui::GetID( "colored_rect" ) );
+		ImGui::ItemSize( BoundingBox, (size.y >= DefualtSize) ? g.Style.FramePadding.y : 0.0f );
+		ImGui::ItemAdd( BoundingBox, ImGui::GetID( "colored_rect" ) );
 
 		float grid_step = ImMin( size.x, size.y ) / 2.99f;
 		float rounding = ImMin( g.Style.FrameRounding, grid_step * 0.5f );
@@ -504,5 +506,4 @@ namespace Saturn {
 		ImVec4 ColorNoAlpha = ImVec4( color.x, color.y, color.z, 1.0f );
 		pDrawList->AddRectFilled( BoundingBox.Min, BoundingBox.Max, ImGui::GetColorU32( ColorNoAlpha ), rounding );
 	}
-
 }

@@ -40,6 +40,7 @@
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Asset/Asset.h"
 #include "Saturn/Asset/MaterialAsset.h"
+#include "Saturn/Asset/AssetImporter.h"
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -151,31 +152,17 @@ namespace Saturn {
 			assetPath /= name.data;
 			assetPath += ".smaterial";
 
-			Ref<MaterialAsset> asset = nullptr;
-
 			auto mat = Ref<MaterialInstance>::Create( m_BaseMaterial, name.data );
 			m_Materials[ m ] = mat;
 
-			asset = Ref<MaterialAsset>::Create( Ref<Material>::Create( m_MeshShader, name.data ) );
+			Ref<Asset> realAsset = AssetRegistry::Get().FindAsset( assetPath );
 
-			// Check if our material assets already exists in the registry 
-			if( AssetRegistry::Get().FindAsset( assetPath ) ) 
-			{
-				asset->SetPath( assetPath );
-				asset->Type = AssetType::Material;
+			AssetImporter::Get().TryLoadData( realAsset );
 
-				MaterialAssetSerialiser mas;
-				mas.Derialise( asset );
+			Ref<MaterialAsset> asset = realAsset.As<MaterialAsset>();
+			m_MaterialsAssets[ m ] = asset;
 
-				m_MaterialsAssets[ m ] = asset;
-				continue;
-			}
-			else
-			{
-				m_MaterialsAssets[ m ] = asset;
-			}
-
-			asset->SetPath( assetPath );
+			continue;
 
 			aiColor3D color;
 			if( material->Get( AI_MATKEY_COLOR_DIFFUSE, color ) == AI_SUCCESS );

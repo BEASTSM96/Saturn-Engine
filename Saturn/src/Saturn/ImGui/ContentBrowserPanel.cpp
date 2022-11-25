@@ -383,6 +383,9 @@ namespace Saturn {
 						}	break;
 						case Saturn::AssetType::SkeletalMesh:
 						case Saturn::AssetType::Material:
+						{
+							ImGui::SetDragDropPayload( "asset_playload", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+						}	break;
 						case Saturn::AssetType::MaterialInstance:
 						case Saturn::AssetType::Audio:
 							break;
@@ -417,9 +420,8 @@ namespace Saturn {
 						{
 							// Find the asset.
 							Ref<Asset> asset = AssetRegistry::Get().FindAsset( rEntry.path().string() );
-
-							AssetImporter::Get().TryLoadData( asset );
-
+							
+							// Importing the asset will happen in this function.
 							MaterialAssetViewer::Get().AddMaterialAsset( asset );
 						} break;
 						case Saturn::AssetType::MaterialInstance:

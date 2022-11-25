@@ -366,9 +366,9 @@ namespace Saturn {
 			}
 
 			if( mc.Mesh )
-				ImGui::InputText( "##meshfilepath", ( char* )mc.Mesh->FilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->FilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 			else
-				ImGui::InputText( "##meshfilepath", ( char* )"", 256, ImGuiInputTextFlags_ReadOnly );
+				ImGui::InputText( "##meshfilepath", ( char* ) "", 256, ImGuiInputTextFlags_ReadOnly );
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();

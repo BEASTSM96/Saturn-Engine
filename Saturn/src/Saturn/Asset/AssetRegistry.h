@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Asset.h"
+#include "AssetImporter.h"
 
 #include <unordered_map>
 #include <unordered_set>
@@ -36,6 +37,7 @@
 namespace Saturn {
 
 	using AssetMap = std::unordered_map< AssetID, Ref<Asset> >;
+	using AssetIDVector = std::vector< AssetID >;
 
 	class AssetRegistry
 	{
@@ -48,14 +50,38 @@ namespace Saturn {
 
 		Ref<Asset> FindAsset( AssetID id );
 		
+		template<typename Ty> 
+		Ref<Ty> GetAssetAs( AssetID id ) 
+		{
+			Ref<Asset> asset = m_Assets.at( id );
+
+			if( !IsAssetLoaded( id ) )
+			{
+				bool loaded = AssetImporter::Get().TryLoadData( asset );
+				if( !loaded )
+					return nullptr;
+
+				m_LoadedAssets[ id ] = asset;
+			}
+			else
+				asset = m_LoadedAssets.at( id );
+
+			return asset.As<Ty>();
+		}
+
 		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
 
 		const std::vector<AssetID>& FindAssetsWithType( AssetType type ) const;
 
 		const AssetMap& GetAssetMap() const { return m_Assets; }
 
+		AssetID PathToID( const std::filesystem::path& rPath );
+
 	private:
 		AssetMap m_Assets;
+		AssetMap m_LoadedAssets;
+
+		bool IsAssetLoaded( AssetID id );
 
 	private:
 
