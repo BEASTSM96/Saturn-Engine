@@ -95,6 +95,8 @@ namespace Saturn {
 
 		void SetMaterial( const Ref<Material>& rMaterial ) { m_Material = nullptr; m_Material = rMaterial; }
 
+		void SetName( const std::string& rName ) { return m_Material->SetName( rName ); }
+
 	private:
 
 		void Default();

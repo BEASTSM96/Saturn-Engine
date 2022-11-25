@@ -99,6 +99,8 @@ namespace Saturn {
 
 		bool HasAnyValueChanged() { return m_AnyValueChanged; };
 
+		void SetName( const std::string& rName ) { m_Name = rName; }
+
 	public:
 
 		Ref< Saturn::Shader >& GetShader() { return m_Shader; }

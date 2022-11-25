@@ -429,8 +429,6 @@ namespace Saturn {
 		if( data.IsNull() )
 			return false;
 
-		//LoadMaterialData( data, rAsset );
-
 		auto materialAsset = Ref<MaterialAsset>::Create( nullptr );
 
 		auto materialData = data[ "Material" ];
@@ -497,6 +495,8 @@ namespace Saturn {
 		rAsset->Type = OldAssetData.Type;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
+
+		materialAsset->SetName( rAsset->Name );
 
 		return true;
 	}
