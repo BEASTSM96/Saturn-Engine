@@ -123,13 +123,14 @@ namespace Saturn {
 	struct Pin
 	{
 		ed::PinId	ID;
+		ed::NodeId  NodeID;
 		Node*		Node;
 		std::string Name;
 		PinType     Type;
 		PinKind     Kind;
 
-		Pin( int id, const char* name, PinType type ) :
-			ID( id ), Node( nullptr ), Name( name ), Type( type ), Kind( PinKind::Input )
+		Pin( int id, const char* name, PinType type, ed::NodeId nodeID ) :
+			ID( id ), Node( nullptr ), Name( name ), Type( type ), Kind( PinKind::Input ), NodeID( nodeID )
 		{
 		}
 	};

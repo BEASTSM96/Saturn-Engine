@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "AssetSerialisers.h"
 
+#include "Saturn/Asset/AssetRegistry.h"
+
 #include "YamlAux.h"
 
 #include "Saturn/Asset/MaterialAsset.h"
@@ -80,7 +82,7 @@ namespace Saturn {
 	{
 		auto basePath = rAsset->GetPath();
 
-		auto materialAsset = rAsset.As<MaterialAsset>();
+		auto materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
 
 		YAML::Emitter out;
 
@@ -364,7 +366,7 @@ namespace Saturn {
 						PinKind kind = (PinKind) input[ "Kind" ].as<int>();
 						PinType type = StringToPinType( input[ "Type" ].as<std::string>() );
 
-						Pin pin( pinID, name.c_str(), type );
+						Pin pin( pinID, name.c_str(), type, pNewNode->ID );
 						pin.Kind = kind;
 						pin.Node = pNewNode;
 
@@ -385,7 +387,7 @@ namespace Saturn {
 						PinKind kind = ( PinKind ) output[ "Kind" ].as<int>();
 						PinType type = StringToPinType( output[ "Type" ].as<std::string>() );
 
-						Pin pin( pinID, name.c_str(), type );
+						Pin pin( pinID, name.c_str(), type, pNewNode->ID );
 						pin.Kind = kind;
 						pin.Node = pNewNode;
 

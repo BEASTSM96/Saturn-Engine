@@ -248,12 +248,24 @@ namespace Saturn {
 
 	void MaterialAsset::ApplyChanges()
 	{
-		auto texture = s_ViewingMaterial->GetResource( "u_AlbedoTexture" );
+		// Load texture (auto assume we have not loaded them).
+		Ref<Texture2D> texture = nullptr;
 
+		// Albedo
+		texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 0 ], AddressingMode::Repeat );
 		m_Material->SetResource( "u_AlbedoTexture", texture );
-		m_Material->SetResource( "u_NormalTexture", s_ViewingMaterial->GetResource( "u_NormalTexture" ) );
-		m_Material->SetResource( "u_MetallicTexture", s_ViewingMaterial->GetResource( "u_MetallicTexture" ) );
-		m_Material->SetResource( "u_RoughnessTexture", s_ViewingMaterial->GetResource( "u_RoughnessTexture" ) );
+
+		// Normal
+		texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 1 ], AddressingMode::Repeat );
+		m_Material->SetResource( "u_NormalTexture", texture );
+
+		// Normal
+		texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 2 ], AddressingMode::Repeat );
+		m_Material->SetResource( "u_MetallicTexture", texture );
+
+		// Normal
+		texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 3 ], AddressingMode::Repeat );
+		m_Material->SetResource( "u_RoughnessTexture", texture );
 
 		m_Material->Set<glm::vec3>( "u_Materials.AlbedoColor", s_ViewingMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" ) );
 
@@ -289,10 +301,7 @@ namespace Saturn {
 
 	void MaterialAsset::SetAlbeoMap( const std::filesystem::path& rPath )
 	{
-		s_ViewingMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
-
-		auto texture = s_ViewingMaterial->GetResource( "u_AlbedoTexture" );
-		texture->SetPath( rPath );
+		m_PendingTextureChanges[ 0 ] = rPath;
 	}
 
 	void MaterialAsset::SetNormalMap( Ref<Texture2D>& rTexture )
@@ -304,10 +313,7 @@ namespace Saturn {
 
 	void MaterialAsset::SetNormalMap( const std::filesystem::path& rPath )
 	{
-		s_ViewingMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
-
-		auto texture = s_ViewingMaterial->GetResource( "u_NormalTexture" );
-		texture->SetPath( rPath );
+		m_PendingTextureChanges[ 1 ] = rPath;
 	}
 
 	void MaterialAsset::SetMetallicMap( Ref<Texture2D>& rTexture )
@@ -319,10 +325,7 @@ namespace Saturn {
 
 	void MaterialAsset::SetMetallicMap( const std::filesystem::path& rPath )
 	{
-		s_ViewingMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
-
-		auto texture = s_ViewingMaterial->GetResource( "u_NormalTexture" );
-		texture->SetPath( rPath );
+		m_PendingTextureChanges[ 2 ] = rPath;
 	}
 
 	void MaterialAsset::SetRoughnessMap( Ref<Texture2D>& rTexture )
@@ -334,10 +337,7 @@ namespace Saturn {
 
 	void MaterialAsset::SetRoughnessMap( const std::filesystem::path& rPath )
 	{
-		s_ViewingMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
-
-		auto texture = s_ViewingMaterial->GetResource( "u_RoughnessTexture" );
-		texture->SetPath( rPath );
+		m_PendingTextureChanges[ 3 ] = rPath;
 	}
 
 }

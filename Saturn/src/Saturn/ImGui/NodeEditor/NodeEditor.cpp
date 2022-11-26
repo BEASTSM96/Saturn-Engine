@@ -165,10 +165,10 @@ namespace Saturn {
 		auto& node = m_Nodes.emplace_back( GetNextID(), spec.Name.c_str(), spec.Color );
 		
 		for ( auto& rOutput : spec.Outputs )
-			m_Nodes.back().Outputs.push_back( { GetNextID(), rOutput.Name.c_str(), rOutput.Type } );
+			m_Nodes.back().Outputs.push_back( { GetNextID(), rOutput.Name.c_str(), rOutput.Type, node.ID } );
 
 		for( auto& rInput : spec.Inputs )
-			m_Nodes.back().Inputs.push_back( { GetNextID(), rInput.Name.c_str(), rInput.Type } );
+			m_Nodes.back().Inputs.push_back( { GetNextID(), rInput.Name.c_str(), rInput.Type, node.ID } );
 
 		BuildNode( &m_Nodes.back() );
 
@@ -209,12 +209,18 @@ namespace Saturn {
 		for( auto& node : m_Nodes )
 		{
 			for( auto& pin : node.Inputs )
-				if( pin.ID == id )
+				if( pin.ID == id ) 
+				{
+					SAT_CORE_INFO( ( size_t ) id.Get() );
 					return &pin;
+				}
 
 			for( auto& pin : node.Outputs )
-				if( pin.ID == id )
+				if( pin.ID == id ) 
+				{
+					SAT_CORE_INFO( ( size_t )id.AsPointer() );
 					return &pin;
+				}
 		}
 
 		return nullptr;
@@ -518,6 +524,7 @@ namespace Saturn {
 						if( pNode )
 						{
 							pNode->ExtraData.Write( ( uint8_t* ) &assetID, sizeof( UUID ), 0 );
+							pNode->ExtraData.Write( ( uint8_t* ) &rAsset->GetPath(), sizeof( std::filesystem::path ), sizeof( UUID ) );
 
 							auto& uuid = pNode->ExtraData.Read<UUID>( 0 );
 
@@ -722,6 +729,8 @@ namespace Saturn {
 						auto id = std::find_if( m_Nodes.begin(), m_Nodes.end(), [nodeId]( auto& node ) { return node.ID == nodeId; } );
 						if( id != m_Nodes.end() )
 							m_Nodes.erase( id );
+
+						DeleteDeadLinks( nodeId );
 					}
 				}
 			}
@@ -903,6 +912,21 @@ namespace Saturn {
 		m_NodeEditorState = "";
 
 		m_OnClose();
+	}
+
+	void NodeEditor::DeleteDeadLinks( ed::NodeId id )
+	{
+		auto wasConnectedToTheNode = [&]( const Link& link )
+		{
+			return ( !FindPin( link.StartPinID ) ) || ( !FindPin( link.EndPinID ) )
+				|| FindPin( link.StartPinID )->Node->ID == id
+				|| FindPin( link.EndPinID )->Node->ID == id;
+		};
+
+		auto removeIt = std::remove_if( m_Links.begin(), m_Links.end(), wasConnectedToTheNode );
+		const bool linkRemoved = removeIt != m_Links.end();
+
+		m_Links.erase( removeIt, m_Links.end() );
 	}
 
 }

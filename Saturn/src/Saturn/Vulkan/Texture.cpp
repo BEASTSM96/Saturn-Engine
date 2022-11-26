@@ -486,6 +486,24 @@ namespace Saturn {
 		//	ImGui_ImplVulkan_RemoveTexture( m_DescriptorSet );
 	}
 
+	void Texture2D::Copy( Ref<Texture2D> rOther )
+	{
+		m_Image = rOther->m_Image;
+		m_ImageMemory = rOther->m_ImageMemory;
+		m_ImageView = rOther->m_ImageView;
+		m_Sampler = rOther->m_Sampler;
+		m_DescriptorImageInfo = rOther->m_DescriptorImageInfo;
+		m_ImageFormat = rOther->m_ImageFormat;
+
+		m_HDR = rOther->m_HDR;
+		m_MipsCreated = rOther->m_MipsCreated;
+		m_AddressingMode = rOther->m_AddressingMode;
+
+		m_Path = rOther->m_Path;
+
+		m_DescriptorSet = rOther->m_DescriptorSet;
+	}
+
 	// Load and create a texture 2D for a file path.
 	// Create a texture 2D
 	void Texture2D::CreateTextureImage( bool flip )

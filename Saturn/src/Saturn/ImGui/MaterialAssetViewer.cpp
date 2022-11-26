@@ -121,6 +121,23 @@ namespace Saturn {
 		return p->Node;
 	}
 
+	ed::NodeId FindOtherNodeIDByPin( ed::PinId id, NodeEditor* pNodeEditor ) 
+	{
+		// The other end of the link.
+		ed::PinId OtherPinID;
+
+		Link* pLink = pNodeEditor->FindLinkByPin( id );
+
+		if( pLink->EndPinID == id )
+			OtherPinID = pLink->StartPinID;
+		else
+			OtherPinID = pLink->EndPinID;
+
+		Pin* p = pNodeEditor->FindPin( OtherPinID );
+
+		return p->NodeID;
+	}
+
 	MaterialAssetViewer::MaterialAssetViewer()
 	{
 		m_AssetType = AssetType::Material;
@@ -141,10 +158,13 @@ namespace Saturn {
 
 	void MaterialAssetViewer::AddMaterialAsset( Ref<Asset>& rAsset )
 	{
+		Ref<MaterialAsset> materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
+
+		if( std::find( m_MaterialAssets.begin(), m_MaterialAssets.end(), materialAsset ) != m_MaterialAssets.end() )
+			return;
+
 		s_NodeEditors[ rAsset->GetAssetID() ] = new NodeEditor( rAsset->GetAssetID() );
 		s_NodeEditors[ rAsset->GetAssetID() ]->SetWindowName( rAsset->GetName() );
-
-		Ref<MaterialAsset> materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
 
 		m_MaterialAssets.push_back( materialAsset );
 
@@ -290,7 +310,11 @@ namespace Saturn {
 				if( rNodeEditor->IsPinLinked( OutputNode->Inputs[ 0 ].ID ) )
 				{
 					auto PinID = OutputNode->Inputs[ 0 ].ID;
-					Node* pOtherNode = FindOtherNodeByPin( PinID, rNodeEditor );
+					ed::NodeId OtherNodeID;
+
+					OtherNodeID = FindOtherNodeIDByPin( PinID, rNodeEditor );
+
+					Node* pOtherNode = rNodeEditor->FindNode( OtherNodeID );
 
 					// Now, we can check what type of node we have.
 					if( pOtherNode->Name == "Color Picker" ) 
@@ -301,14 +325,18 @@ namespace Saturn {
 					}
 					else if( pOtherNode->Name == "Sampler2D" ) 
 					{
+						ed::NodeId NodeId;
 						Node* pAssetNode = nullptr;
+
 						Ref<Asset> TextureAsset = nullptr;
 						UUID AssetID;
 						
 						if( rNodeEditor->IsPinLinked( pOtherNode->Inputs[ 0 ].ID ) ) 
-							pAssetNode = FindOtherNodeByPin( pOtherNode->Inputs[ 0 ].ID, rNodeEditor );
+							NodeId = FindOtherNodeIDByPin( pOtherNode->Inputs[ 0 ].ID, rNodeEditor );
 						else
 							return rNodeEditor->ThrowError( "A texture sampler requires an asset to be linked!" );
+
+						pAssetNode = rNodeEditor->FindNode( NodeId );
 
 						AssetID = pAssetNode->ExtraData.Read<UUID>( 0 );
 						TextureAsset = AssetRegistry::Get().FindAsset( AssetID );
@@ -335,6 +363,7 @@ namespace Saturn {
 					return NodeEditorCompilationStatus::Failed;
 
 				materialAsset->ApplyChanges();
+				materialAsset->SaveViewingSession();
 
 				MaterialAssetSerialiser mas;
 				mas.Serialise( rAsset, rNodeEditor );
@@ -361,6 +390,8 @@ namespace Saturn {
 
 			s_NodeEditors.erase( rMaterialAsset->GetAssetID() );
 
+			m_MaterialAssets.erase( std::remove( m_MaterialAssets.begin(), m_MaterialAssets.end(), rMaterialAsset ), m_MaterialAssets.end() );
+
 			rMaterialAsset->EndViewingSession();
 		}
 
@@ -372,7 +403,8 @@ namespace Saturn {
 	{
 		if( pNodeEditor->IsPinLinked( PinID ) )
 		{
-			Node* pOtherNode = FindOtherNodeByPin( PinID, pNodeEditor );
+			ed::NodeId nodeId = FindOtherNodeIDByPin( PinID, pNodeEditor );
+			Node* pOtherNode = pNodeEditor->FindNode( nodeId );
 
 			// Color picker is only for albedo.
 			if( AllowColorPicker )
@@ -387,16 +419,19 @@ namespace Saturn {
 
 			if( pOtherNode->Name == "Sampler2D" )
 			{
+				ed::NodeId id;
 				Node* pAssetNode = nullptr;
 				Ref<Asset> TextureAsset = nullptr;
 				UUID AssetID;
 
 				if( pNodeEditor->IsPinLinked( pOtherNode->Inputs[ 0 ].ID ) )
-					pAssetNode = FindOtherNodeByPin( pOtherNode->Inputs[ 0 ].ID, pNodeEditor );
+					id = FindOtherNodeIDByPin( pOtherNode->Inputs[ 0 ].ID, pNodeEditor );
 				else 
 				{
 					return pNodeEditor->ThrowError( "A texture sampler requires an asset to be linked!" );
 				}
+
+				pAssetNode = pNodeEditor->FindNode( id );
 
 				AssetID = pAssetNode->ExtraData.Read<UUID>( 0 );
 				TextureAsset = AssetRegistry::Get().FindAsset( AssetID );

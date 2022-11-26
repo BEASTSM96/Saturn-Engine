@@ -479,7 +479,6 @@ namespace Saturn {
 
 			ImGui::PopTextWrapPos();
 
-
 			ImGui::Spring();
 			ImGui::EndHorizontal();
 			ImGui::Spring();

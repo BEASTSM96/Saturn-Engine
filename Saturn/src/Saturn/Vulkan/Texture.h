@@ -152,6 +152,8 @@ namespace Saturn {
 		
 		void Terminate() override;
 
+		void Copy( Ref<Texture2D> rOther );
+
 	private:
 
 		void CreateTextureImage( bool flip ) override;
