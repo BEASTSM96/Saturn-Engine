@@ -118,6 +118,7 @@ namespace Saturn {
 
 		std::unordered_map< std::string, VkDescriptorImageInfo > m_TextureCache;
 
+		std::unordered_map< uint32_t, std::filesystem::path > m_PendingTextureChanges;
 	private:
 		friend class MaterialAssetViewer;
 	};
