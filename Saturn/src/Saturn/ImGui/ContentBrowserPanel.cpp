@@ -172,12 +172,10 @@ namespace Saturn {
 		static float thumbnailSizeX = 180;
 		static float thumbnailSizeY = 180;
 		float cellSize = thumbnailSizeX + padding;
-		float panelWidth = ImGui::GetContentRegionAvail().x;
+		float panelWidth = ImGui::GetContentRegionAvail().x - 20.0f + ImGui::GetStyle().ScrollbarSize;
 		
-		int columnCount = (int)panelWidth / cellSize;
-
-		if( columnCount < 1 )
-			columnCount = 1;
+		int columnCount = ( int ) ( panelWidth / cellSize );
+		if( columnCount < 1 ) columnCount = 1;
 
 		ImGui::Columns( columnCount, 0, false );
 
@@ -321,14 +319,17 @@ namespace Saturn {
 		// Draw background.
 		const float EdgeOffset = 4.0f;
 		const float TextLineHeight = ImGui::GetTextLineHeightWithSpacing() * 2.0f + EdgeOffset * 2.0f;
-		const float InfoPanelHeight = glm::max( ThumbnailSize.x * 0.5f, TextLineHeight );
+		const float InfoPanelHeight = std::max( ThumbnailSize.x * 0.5f, TextLineHeight );
 		const ImVec2 TopLeft = ImGui::GetCursorScreenPos();
 		const ImVec2 ThumbnailBottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y );
 		const ImVec2 InfoTopLeft = ImVec2( TopLeft.x, TopLeft.y + ThumbnailSize.y );
 		const ImVec2 BottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y + InfoPanelHeight );
 		
 		ImGui::PushID( path.c_str() );
-		
+		ImGui::BeginGroup();
+
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 0.0f, 0.0f ) );
+
 		if( rEntry.is_directory() )
 		{
 			bool Hovered = false;
@@ -338,12 +339,17 @@ namespace Saturn {
 
 			pDrawList->AddRectFilled( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawCornerFlags_All );
 
+			ImGuiStyle& style = ImGui::GetStyle();
+
+			ImGui::ItemSize( ThumbnailSize, style.FramePadding.y );
+			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( path.c_str() ) );
+
 			if( Hovered )
 			{
 				// Draw a highlight on the button.
 				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawCornerFlags_All );
 
-				if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) ) 
+				if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 				{
 					m_CurrentPath /= rEntry.path().filename();
 					OnDirectorySelected( m_CurrentPath, rEntry.is_directory() );
@@ -352,6 +358,8 @@ namespace Saturn {
 		}
 		else
 		{
+			ImGuiStyle& style = ImGui::GetStyle();
+
 			// Fill background.
 			pDrawList->AddRectFilled( TopLeft, ThumbnailBottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawCornerFlags_Top );
 
@@ -361,9 +369,11 @@ namespace Saturn {
 			// Draw line between thumbnail and info.
 			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.5f );
 
-			bool Clicked = false;
+			ImGui::ItemSize( ImRect( TopLeft, BottomRight ).Min, style.FramePadding.y );
+			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( path.c_str() ) );
 
-			Clicked = ButtonRd( "##CONTENT_BROWSER_ITEM_BTN", ImRect( TopLeft, BottomRight ), true );
+			bool ItemClicked = false;
+			ItemClicked = ButtonRd( "##CONTENT_BROWSER_ITEM_BTN", ImRect( TopLeft, BottomRight ), true );
 
 			if( !excludeFiles )
 			{
@@ -404,9 +414,9 @@ namespace Saturn {
 					ImGui::EndDragDropSource();
 				}
 
-				if( Clicked )
+				if( ItemClicked )
 				{
-					Clicked = false;
+					ItemClicked = false;
 
 					switch( assetType )
 					{
@@ -439,24 +449,69 @@ namespace Saturn {
 			}
 		}
 
+		ImGui::EndGroup();
+
 		// Draw icon.
 		pDrawList->AddImage( Icon->GetDescriptorSet(), TopLeft, ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y ), { 0, 1 }, { 1, 0 } );
 
 		ImGui::SetCursorScreenPos( ImVec2( TopLeft.x + 2.0f, TopLeft.y + ThumbnailSize.y ) );
 
+		// Filename 
+
+		ImVec2 cursor = ImGui::GetCursorPos();
+		ImGui::SetCursorPos( ImVec2( cursor.x + EdgeOffset + 5.0f, cursor.y + EdgeOffset + 5.0f ) );
+
 		if( rEntry.is_directory() ) 
 		{
-			// Centre align the text.
+			ImGui::BeginVertical( "FILENAME_PANEL", ImVec2( ThumbnailSize.x - EdgeOffset * 2.0f, InfoPanelHeight - EdgeOffset ) );
+
+			ImGui::BeginHorizontal( filename.c_str(), ImVec2( ThumbnailSize.x - 2.0f, 0.0f ) );
+			
+			ImGui::PushTextWrapPos( ImGui::GetCursorPosX() + ( ThumbnailSize.x - EdgeOffset * 3.0f ) );
+
+			float textWidth = std::min( ImGui::CalcTextSize( filename.c_str() ).x, ThumbnailSize.x );
+
+			ImGui::SetNextItemWidth( textWidth );
+
 			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + ( ThumbnailSize.x - ImGui::CalcTextSize( filename.c_str() ).x ) * 0.5f - EdgeOffset );
 
-			ImGui::TextWrapped( filename.c_str() );
+			ImGui::Text( filename.c_str() );
+
+			ImGui::PopTextWrapPos();
+
+
+			ImGui::Spring();
+			ImGui::EndHorizontal();
+			ImGui::Spring();
+			ImGui::EndVertical();
 		}
 		else
-			ImGui::TextWrapped( filename.c_str() );
+		{
+			ImGui::BeginVertical( "FILENAME_PANEL", ImVec2( ThumbnailSize.x - EdgeOffset * 3.0f, InfoPanelHeight - EdgeOffset ) );
 
-		ImGui::PopID();
+			ImGui::BeginHorizontal( "FILENAME_PANEL_HOR", ImVec2( 0.0f, 0.0f ) );
+
+			ImGui::SuspendLayout();
+
+			ImGui::PushTextWrapPos( ImGui::GetCursorPosX() + ( ThumbnailSize.x - EdgeOffset * 3.0f ) );
+
+			ImGui::Text( filename.c_str() );
+
+			ImGui::PopTextWrapPos();
+			ImGui::ResumeLayout();
+
+			ImGui::Spring();
+
+			ImGui::EndHorizontal();
+
+			ImGui::Spring();
+			ImGui::EndVertical();
+		}
+
+		ImGui::PopStyleVar();
 
 		ImGui::NextColumn();
+		ImGui::PopID();
 	}
 
 	void ContentBrowserPanel::OnDirectorySelected( std::filesystem::path& rPath, bool IsFile /*= false */ )

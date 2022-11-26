@@ -228,8 +228,7 @@ namespace Saturn {
 					{
 						return ( char ) c;
 					} );
-
-					
+										
 					CoTaskMemFree( pszFilePath );
 				}
 
