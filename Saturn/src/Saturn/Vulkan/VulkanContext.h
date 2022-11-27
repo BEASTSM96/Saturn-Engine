@@ -78,7 +78,8 @@ namespace Saturn {
 
 		void EndSingleTimeCommands( VkCommandBuffer CommandBuffer );
 
-		Pass& GetDefaultPass() { return m_DefaultPass; }
+		Ref<Pass> GetDefaultPass() { return m_DefaultPass; }
+		VkRenderPass GetDefaultVulkanPass() { return m_DefaultPass->GetVulkanPass(); }
 
 	public:
 		
@@ -157,7 +158,7 @@ namespace Saturn {
 		QueueFamilyIndices m_Indices;
 
 		// Default.
-		Pass m_DefaultPass;
+		Ref<Pass> m_DefaultPass;
 
 		bool m_Terminated = false;
 

@@ -34,6 +34,8 @@ struct VertexOutput
 	vec2 TexCoord;
 	mat3 WorldNormals;
 
+	mat3 CameraView;
+
 	vec4 ShadowMapCoords[4];
 	vec3 ViewPosition;
 };
@@ -52,6 +54,8 @@ void main()
 	vs_Output.WorldNormals = mat3( Transform ) * mat3( a_Tangent, a_Binormal, a_Normal );
 
 	vs_Output.Bionormal = a_Binormal;
+
+	vs_Output.CameraView = mat3( u_Matrices.View );
 
 	// Shadow Map Coords
 	vs_Output.ShadowMapCoords[0] = LightMatrix[0] * vec4( vs_Output.Position, 1.0 );
@@ -125,6 +129,7 @@ layout (set = 1, binding = 10) uniform samplerCube u_EnvIrradianceTex;
 layout (set = 1, binding = 11) uniform sampler2D u_BRDFLUTTexture;
 
 layout (location = 0) out vec4 FinalColor;
+layout (location = 1) out vec4 OutViewNormals;
 
 struct VertexOutput 
 {
@@ -133,6 +138,8 @@ struct VertexOutput
 	vec3 Position;
 	vec2 TexCoord;
 	mat3 WorldNormals;
+	
+	mat3 CameraView;
 
 	vec4 ShadowMapCoords[4];
 	vec3 ViewPosition;
@@ -319,6 +326,8 @@ void main()
 		m_Params.Normal = normalize( 2.0 * texture( u_NormalTexture, vs_Input.TexCoord ).rgb - 1.0);
 		m_Params.Normal = normalize( vs_Input.WorldNormals * m_Params.Normal );
 	}
+
+	OutViewNormals = vec4( vs_Input.CameraView * m_Params.Normal, 1.0 );
 
 	m_Params.View = normalize( u_Camera.CameraPosition - vs_Input.Position );
 	m_Params.NdotV = max( dot( m_Params.Normal, m_Params.View ), 0.0 );

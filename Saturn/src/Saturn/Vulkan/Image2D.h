@@ -41,11 +41,12 @@ namespace Saturn {
 		RGBA16F = 2,
 		RGBA32F = 3,
 		RGB32F = 4,
-
 		BGRA8 = 5,
+		RED8 = 6,
 
-		DEPTH32F = 6,
-		DEPTH24STENCIL8 = 7,
+		// Depth
+		DEPTH32F = 7,
+		DEPTH24STENCIL8 = 8,
 
 		Depth = DEPTH32F
 	};

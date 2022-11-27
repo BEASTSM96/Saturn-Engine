@@ -59,6 +59,8 @@ namespace Saturn {
 		uint32_t ArrayLevels = 1;
 		uint32_t ExistingImageLayer = 0;
 
+		bool CreateDepth = true;
+
 		Ref< Image2D > ExistingImage = nullptr;
 
 		Ref< Pass > RenderPass = nullptr;

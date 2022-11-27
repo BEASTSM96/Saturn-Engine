@@ -72,6 +72,11 @@ namespace Saturn {
 		VkFrontFace FrontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		VkPolygonMode PolygonMode = VK_POLYGON_MODE_FILL;
 
+		// SpecializationInfo
+		VkSpecializationInfo SpecializationInfo = {};
+		bool UseSpecializationInfo = false;
+		ShaderType SpecializationStage = ShaderType::None;
+
 		RequestDescriptorSetInfo RequestDescriptorSets = {};
 	};
 

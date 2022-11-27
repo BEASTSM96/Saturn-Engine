@@ -106,7 +106,7 @@ namespace Saturn {
 			FramebufferCreateInfo.width = SwapchainData.SurfaceCaps.currentExtent.width;
 			FramebufferCreateInfo.height = SwapchainData.SurfaceCaps.currentExtent.height;
 
-			FramebufferCreateInfo.renderPass = VulkanContext::Get().GetDefaultPass(); // Swap chain render pass
+			FramebufferCreateInfo.renderPass = VulkanContext::Get().GetDefaultVulkanPass(); // Swap chain render pass
 			FramebufferCreateInfo.layers = 1;
 			FramebufferCreateInfo.pAttachments = Attachments.data();
 			FramebufferCreateInfo.attachmentCount = Attachments.size();

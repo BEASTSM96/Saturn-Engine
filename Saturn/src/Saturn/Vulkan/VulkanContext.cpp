@@ -75,7 +75,7 @@ namespace Saturn {
 		// BGRA8 will be VK_IMAGE_LAYOUT_PRESENT_SRC_KHR as this is the swapchain target.
 		Specification.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
-		m_DefaultPass = Pass( Specification );
+		m_DefaultPass = Ref<Pass>::Create( Specification );
 		m_SwapChain.CreateFramebuffers();
 		
 		Renderer::Get();
@@ -91,7 +91,7 @@ namespace Saturn {
 		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
 		vkDestroyCommandPool( m_LogicalDevice, m_ComputeCommandPool, nullptr );
 		
-		m_DefaultPass.Terminate();
+		m_DefaultPass = nullptr;
 
 		m_SwapChain.Terminate();
 		
@@ -398,7 +398,7 @@ namespace Saturn {
 
 		m_SwapChain.Recreate();
 
-		m_DefaultPass.Recreate();
+		m_DefaultPass->Recreate();
 	}
 
 	bool VulkanContext::CheckValidationLayerSupport()

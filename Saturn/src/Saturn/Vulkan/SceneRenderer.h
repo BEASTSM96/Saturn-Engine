@@ -206,6 +206,31 @@ namespace Saturn {
 		// End Scene Composite
 		//////////////////////////////////////////////////////////////////////////
 
+		//////////////////////////////////////////////////////////////////////////
+		// AO
+		//////////////////////////////////////////////////////////////////////////
+
+		// Screen-Space AO
+
+		int SSAO_KERNEL_SIZE = 32;
+		float SSAO_RADIUS    = 0.3F;
+		float SSAO_NOISE_DIM = 4.0F;
+
+		Ref<Image2D> SSAONoiseImage = nullptr;
+
+		Ref<Pipeline> SSAOPipeline;
+		Ref<Pipeline> SSAOBlurPipeline;
+
+		Ref<Pass> SSAORenderPass;
+		Ref<Pass> SSAOBlurRenderPass;
+
+		Ref<Framebuffer> SSAOFramebuffer;
+		Ref<Framebuffer> SSAOBlurFramebuffer;
+
+		Ref< DescriptorSet > SSAO_DescriptorSet = nullptr;
+		VertexBuffer* SSAO_VertexBuffer = nullptr;
+		IndexBuffer* SSAO_IndexBuffer = nullptr;
+
 		// OTHERS
 
 		// Debug
@@ -227,6 +252,8 @@ namespace Saturn {
 		Ref< Shader > SceneCompositeShader = nullptr;
 		Ref< Shader > DirShadowMapShader = nullptr;
 		Ref< Shader > SelectedGeometryShader = nullptr;
+		Ref< Shader > SSAOShader = nullptr;
+		Ref< Shader > SSAOBlurShader = nullptr;
 	};
 
 	class SceneRenderer : public CountedObj
@@ -286,10 +313,12 @@ namespace Saturn {
 		void InitGeometryPass();
 		void InitDirShadowMap();
 		void InitSceneComposite();
+		void InitAO();
 
 		void GeometryPass();
 		void DirShadowMapPass();
 		void SceneCompositePass();
+		void AOPass();
 
 		void AddScheduledFunction( ScheduledFunc&& rrFunc );
 

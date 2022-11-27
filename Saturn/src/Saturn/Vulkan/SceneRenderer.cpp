@@ -84,6 +84,8 @@ namespace Saturn {
 
 		InitDirShadowMap();
 
+		InitAO();
+
 		m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
 
 		m_RendererData.BRDFLUT_Texture = Ref<Texture2D>::Create( "assets/textures/BRDF_LUT.tga", AddressingMode::Repeat, false );
@@ -115,7 +117,7 @@ namespace Saturn {
 		{
 			PassSpecification PassSpec = {};
 			PassSpec.Name = "Geometry Pass";
-			PassSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
+			PassSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::Depth };
 
 			m_RendererData.GeometryPass = Ref< Pass >::Create( PassSpec );
 		}
@@ -130,7 +132,7 @@ namespace Saturn {
 			FBSpec.Width = m_RendererData.Width;
 			FBSpec.Height = m_RendererData.Height;
 
-			FBSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
+			FBSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::Depth };
 
 			m_RendererData.GeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
 		}
@@ -297,6 +299,96 @@ namespace Saturn {
 		};
 
 		m_RendererData.SceneCompositePipeline = Ref<Pipeline>::Create( PipelineSpec );
+	}
+
+	void SceneRenderer::InitAO()
+	{
+		PassSpecification PassSpec = {};
+		PassSpec.Name = "SSAO";
+		PassSpec.Attachments = { ImageFormat::RED8 };
+
+		m_RendererData.SSAORenderPass = Ref<Pass>::Create( PassSpec );
+
+		PassSpec.Name = "SSAO-Blur";
+		m_RendererData.SSAOBlurRenderPass = Ref<Pass>::Create( PassSpec );
+
+		FramebufferSpecification FBSpec = {};
+		FBSpec.RenderPass = m_RendererData.SSAORenderPass;
+		FBSpec.Width = m_RendererData.Width;
+		FBSpec.Height = m_RendererData.Height;
+		FBSpec.CreateDepth = false;
+
+		FBSpec.Attachments = { ImageFormat::RED8 };
+
+		m_RendererData.SSAOFramebuffer = Ref<Framebuffer>::Create( FBSpec );
+
+		FBSpec.RenderPass = m_RendererData.SSAOBlurRenderPass;
+
+		m_RendererData.SSAOBlurFramebuffer = Ref<Framebuffer>::Create( FBSpec );
+
+		if( !m_RendererData.SSAOShader )
+		{
+			ShaderLibrary::Get().Load( "assets/shaders/SSAO.glsl" );
+			m_RendererData.SSAOShader = ShaderLibrary::Get().Find( "SSAO" );
+		}
+
+		if( !m_RendererData.SSAOBlurShader )
+		{
+			ShaderLibrary::Get().Load( "assets/shaders/SSAO-Blur.glsl" );
+			m_RendererData.SSAOBlurShader = ShaderLibrary::Get().Find( "SSAO-Blur" );
+		}
+
+		PipelineSpecification PipelineSpec = {};
+		PipelineSpec.Width = m_RendererData.Width;
+		PipelineSpec.Height = m_RendererData.Height;
+		PipelineSpec.Name = "SSAO";
+		PipelineSpec.Shader = m_RendererData.SSAOShader.Pointer();
+		PipelineSpec.RenderPass = m_RendererData.SSAORenderPass;
+		PipelineSpec.UseDepthTest = false;
+		PipelineSpec.CullMode = CullMode::None;
+		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+		PipelineSpec.VertexLayout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" },
+		};
+		PipelineSpec.UseSpecializationInfo = true;
+		PipelineSpec.SpecializationStage = ShaderType::Fragment;
+
+		struct SpecializationInfo
+		{
+			uint32_t krnlSize = 32;
+			float    radius = 0.3F;
+		} _SpecializationInfo;
+
+		VkSpecializationMapEntry a = { 0, offsetof( SpecializationInfo, krnlSize ), sizeof( SpecializationInfo::krnlSize ) };
+		VkSpecializationMapEntry b = { 1, offsetof( SpecializationInfo, radius ), sizeof( SpecializationInfo::radius ) };
+
+		std::array<VkSpecializationMapEntry, 2> SpecializationEntries = 
+		{
+			a,
+			b
+		};
+
+		VkSpecializationInfo info = {};
+		info.mapEntryCount = 2;
+		info.pMapEntries = SpecializationEntries.data();
+		info.dataSize = sizeof( _SpecializationInfo );
+		info.pData = &_SpecializationInfo;
+
+		PipelineSpec.SpecializationInfo = info;
+
+		m_RendererData.SSAOPipeline = Ref<Pipeline>::Create( PipelineSpec );
+
+		PipelineSpec.Name = "SSAO-Blur";
+		PipelineSpec.Shader = m_RendererData.SSAOBlurShader;
+		PipelineSpec.RenderPass = m_RendererData.SSAORenderPass;
+		PipelineSpec.SpecializationInfo = {};
+		PipelineSpec.UseSpecializationInfo = false;
+		PipelineSpec.SpecializationStage = ShaderType::None;
+
+		m_RendererData.SSAOBlurPipeline = Ref<Pipeline>::Create( PipelineSpec );
+
+		Renderer::Get().CreateFullscreenQuad( &m_RendererData.SSAO_VertexBuffer, &m_RendererData.SSAO_IndexBuffer );
 	}
 
 	void SceneRenderer::RenderGrid()
@@ -1001,6 +1093,31 @@ namespace Saturn {
 		m_RendererData.SceneComposite->EndPass();
 	}
 
+	void SceneRenderer::AOPass()
+	{
+		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
+		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
+
+		m_RendererData.SSAORenderPass->BeginPass( CommandBuffer, m_RendererData.SSAOFramebuffer->GetVulkanFramebuffer(), Extent );
+
+		VkViewport Viewport = {};
+		Viewport.x = 0;
+		Viewport.y = 0;
+		Viewport.width = ( float ) m_RendererData.Width;
+		Viewport.height = ( float ) m_RendererData.Height;
+		Viewport.minDepth = 0.0f;
+		Viewport.maxDepth = 1.0f;
+
+		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
+
+		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
+		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
+
+		m_RendererData.SSAOPipeline->Bind( CommandBuffer );
+
+		m_RendererData.SSAORenderPass->EndPass();
+	}
+
 	void SceneRenderer::AddScheduledFunction( ScheduledFunc&& rrFunc )
 	{
 		m_ScheduledFunctions.push_back( rrFunc );
@@ -1087,6 +1204,20 @@ namespace Saturn {
 		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 		
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "AO" );
+
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Screen-Space AO" );
+
+		AOPass();
+
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Screen-Space AO Blur" );
+
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Texture pass" );
 
 		SceneCompositePass();

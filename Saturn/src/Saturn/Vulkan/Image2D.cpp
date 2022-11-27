@@ -50,6 +50,9 @@ namespace Saturn {
 			case ImageFormat::BGRA8:
 				return VK_FORMAT_B8G8R8A8_UNORM;
 
+			case ImageFormat::RED8:
+				return VK_FORMAT_R8_UNORM;
+
 			case Saturn::ImageFormat::DEPTH24STENCIL8:
 			case Saturn::ImageFormat::DEPTH32F:
 				return VK_FORMAT_D32_SFLOAT;
@@ -67,6 +70,7 @@ namespace Saturn {
 			case Saturn::ImageFormat::RGBA32F:
 			case Saturn::ImageFormat::RGB32F:
 			case Saturn::ImageFormat::BGRA8:
+			case Saturn::ImageFormat::RED8:
 				return true;
 		}
 

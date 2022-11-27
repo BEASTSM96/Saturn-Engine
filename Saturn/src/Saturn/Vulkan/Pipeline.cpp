@@ -138,14 +138,14 @@ namespace Saturn {
 
 			VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &FCreateInfo, nullptr, &FragmentModule ) );
 		}
-		
+
 		SetDebugUtilsObjectName( std::string( m_Specification.Name + "/" + VertexName ), ( uint64_t )VertexModule, VK_OBJECT_TYPE_SHADER_MODULE );
 		
 		SetDebugUtilsObjectName( std::string( m_Specification.Name + "/" + FragmentName ), ( uint64_t )FragmentModule, VK_OBJECT_TYPE_SHADER_MODULE );
 
 		std::vector< VkPipelineShaderStageCreateInfo > ShaderStages;
 		
-		ShaderStages.push_back( 
+		ShaderStages.push_back(
 			{
 				.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 				.stage = VK_SHADER_STAGE_VERTEX_BIT,
@@ -161,6 +161,34 @@ namespace Saturn {
 				.pName = "main"
 			} );
 		
+		switch( m_Specification.SpecializationStage )
+		{
+			case ShaderType::Vertex:
+			{
+				if( m_Specification.UseSpecializationInfo ) 
+				{
+					ShaderStages[ 0 ].pSpecializationInfo = &m_Specification.SpecializationInfo;
+				}
+			} break;
+
+			case ShaderType::Fragment:
+			{
+				if( m_Specification.UseSpecializationInfo )
+				{
+					ShaderStages[ 1 ].pSpecializationInfo = &m_Specification.SpecializationInfo;
+				}
+			} break;
+
+			case ShaderType::All:
+			{
+				if( m_Specification.UseSpecializationInfo )
+				{
+					ShaderStages[ 0 ].pSpecializationInfo = &m_Specification.SpecializationInfo;
+					ShaderStages[ 1 ].pSpecializationInfo = &m_Specification.SpecializationInfo;
+				}
+			} break;
+		}
+
 		///// Vertex input state.
 
 		std::vector< VkVertexInputAttributeDescription > VertexInputAttributes( m_Specification.VertexLayout.Count() );
@@ -246,20 +274,27 @@ namespace Saturn {
 		// Create the color blend attachment state.
 		VkPipelineColorBlendStateCreateInfo ColorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
 		
-		VkPipelineColorBlendAttachmentState ColorBlendAttachmentState = {};
-		ColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		ColorBlendAttachmentState.blendEnable = VK_TRUE;
-		ColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-		ColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-		ColorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
-		ColorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		ColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-		ColorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
+		std::vector<VkPipelineColorBlendAttachmentState> ColorBlendAttachmentStates;
+		
+		for( size_t i = 0; i < m_Specification.RenderPass->GetColorAttachmetSize(); i++ )
+		{
+			VkPipelineColorBlendAttachmentState ColorBlendAttachmentState = {};
+			ColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+			ColorBlendAttachmentState.blendEnable = VK_TRUE;
+			ColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			ColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			ColorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
+			ColorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			ColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+			ColorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
+
+			ColorBlendAttachmentStates.push_back( ColorBlendAttachmentState );
+		}
 
 		if( m_Specification.HasColorAttachment )
 		{
-			ColorBlendState.attachmentCount = 1;
-			ColorBlendState.pAttachments = &ColorBlendAttachmentState;
+			ColorBlendState.attachmentCount = ColorBlendAttachmentStates.size();
+			ColorBlendState.pAttachments = ColorBlendAttachmentStates.data();
 		}
 		
 		// Create the rasterization state.

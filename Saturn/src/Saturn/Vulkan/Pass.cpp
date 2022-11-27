@@ -50,6 +50,9 @@ namespace Saturn {
 			case ImageFormat::BGRA8:
 				return VK_FORMAT_B8G8R8A8_UNORM;
 
+			case Saturn::ImageFormat::RED8:
+				return VK_FORMAT_R8_UNORM;
+
 			case Saturn::ImageFormat::DEPTH24STENCIL8:
 			case Saturn::ImageFormat::DEPTH32F:
 				return VK_FORMAT_D32_SFLOAT;
@@ -67,6 +70,7 @@ namespace Saturn {
 			case Saturn::ImageFormat::RGBA32F:
 			case Saturn::ImageFormat::RGB32F:
 			case Saturn::ImageFormat::BGRA8:
+			case Saturn::ImageFormat::RED8:
 				return true;
 		}
 
@@ -99,6 +103,8 @@ namespace Saturn {
 		m_PassSpec = PassSpec;
 		VkSubpassDescription DefaultSubpass = {};
 
+		m_ClearValues.resize( m_PassSpec.Attachments.size() );
+
 		int i = 0;
 		for ( auto attachment : m_PassSpec.Attachments )
 		{
@@ -107,16 +113,25 @@ namespace Saturn {
 				VkAttachmentReference Attachment = { .attachment = ( uint32_t ) i, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 
 				m_ColorAttacments.push_back( Attachment );
+
+				m_ClearValues[ i ].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
 			}
-			else
+			else 
+			{
 				m_DepthAttacment = { .attachment = ( uint32_t ) i, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+				m_ClearValues[ i ].depthStencil = { 1.0f, 0 };
+			}
 
 			i++;
 		}
 
-		if ( m_DepthAttacment.layout == VK_IMAGE_LAYOUT_UNDEFINED || m_DepthAttacment.layout == VK_IMAGE_LAYOUT_MAX_ENUM )
+		if ( m_DepthAttacment.layout == VK_IMAGE_LAYOUT_UNDEFINED || m_DepthAttacment.layout == VK_IMAGE_LAYOUT_MAX_ENUM || m_DepthAttacment.layout ==VK_IMAGE_LAYOUT_UNDEFINED )
 		{
-			SAT_CORE_ASSERT( false, "Render pass must have a depth attachment!" );
+			DefaultSubpass.pDepthStencilAttachment = nullptr;
+		}
+		else
+		{
+			DefaultSubpass.pDepthStencilAttachment = &m_DepthAttacment;
 		}
 
 		if( m_ColorAttacments.size() ) 
@@ -124,8 +139,6 @@ namespace Saturn {
 			DefaultSubpass.pColorAttachments = m_ColorAttacments.data();
 			DefaultSubpass.colorAttachmentCount = m_ColorAttacments.size();
 		}
-
-		DefaultSubpass.pDepthStencilAttachment = &m_DepthAttacment;
 
 		DefaultSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
@@ -223,16 +236,12 @@ namespace Saturn {
 	{
 		m_CommandBuffer = CommandBuffer;
 		
-		std::array<VkClearValue, 2> ClearColors{};
-		ClearColors[ 0 ].color ={ { 0.0f, 0.0f, 0.0f, 1.0f } };
-		ClearColors[ 1 ].depthStencil ={ 1.0f, 0 };
-
 		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		RenderPassBeginInfo.renderPass = m_Pass;
 		RenderPassBeginInfo.framebuffer = Framebuffer;
 		RenderPassBeginInfo.renderArea.extent = Extent;
-		RenderPassBeginInfo.pClearValues = ClearColors.data();
-		RenderPassBeginInfo.clearValueCount = ClearColors.size();
+		RenderPassBeginInfo.pClearValues = m_ClearValues.data();
+		RenderPassBeginInfo.clearValueCount = m_ClearValues.size();
 		
 		vkCmdBeginRenderPass( m_CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
 	}
