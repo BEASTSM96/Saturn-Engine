@@ -54,7 +54,7 @@ namespace Saturn {
 	class Image2D : public CountedObj
 	{
 	public:
-		Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels = 1 );
+		Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels = 1, void* pData = nullptr, size_t = 0 );
 		~Image2D();
 
 		void SetDebugName( const std::string& rName );
@@ -71,6 +71,8 @@ namespace Saturn {
 
 	private:
 		void Create();
+		void CopyBufferToImage( VkBuffer Buffer );
+		void TransitionImageLayout( VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
 
 		uint32_t m_Width;
 		uint32_t m_Height;
@@ -85,6 +87,9 @@ namespace Saturn {
 		VkDeviceMemory m_Memory;
 
 		uint32_t m_ArrayLevels;
+
+		void* m_pData;
+		size_t m_DataSize;
 
 		VkDescriptorImageInfo m_DescriptorImageInfo;
 	};

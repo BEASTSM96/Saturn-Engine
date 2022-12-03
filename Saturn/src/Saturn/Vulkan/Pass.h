@@ -40,6 +40,7 @@ namespace Saturn {
 		std::vector< ImageFormat > Attachments = {};
 		std::string Name = "";
 		bool IsSwapchainTarget = false;
+		bool LoadOpLoad = false;
 	};
 
 	class Pass : public CountedObj
@@ -59,6 +60,9 @@ namespace Saturn {
 		VkRenderPass GetVulkanPass() { return m_Pass; }
 
 		size_t GetColorAttachmetSize() { return m_ColorAttacments.size(); }
+
+		std::string& GetName() { return m_PassSpec.Name; }
+		const std::string& GetName() const { return m_PassSpec.Name; }
 
 	private:
 

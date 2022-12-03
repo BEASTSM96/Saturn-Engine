@@ -87,6 +87,13 @@ namespace Saturn::Helpers {
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		ImageViewCreateInfo.subresourceRange.layerCount = LayerCount;
 
+		/*
+		if( Format >= VK_FORMAT_D16_UNORM_S8_UINT ) 
+		{
+			ImageViewCreateInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
+		*/
+
 		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, pImageView ) );
 		SetDebugUtilsObjectName( "Image View", ( uint64_t ) *pImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
 	}

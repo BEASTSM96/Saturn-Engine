@@ -473,7 +473,7 @@ namespace Saturn {
 
 			ImGui::SetNextItemWidth( textWidth );
 
-			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + ( ThumbnailSize.x - ImGui::CalcTextSize( filename.c_str() ).x ) * 0.5f - EdgeOffset );
+			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + ( ThumbnailSize.x - ImGui::CalcTextSize( filename.c_str() ).x ) * 0.5f - EdgeOffset - 5.0f );
 
 			ImGui::Text( filename.c_str() );
 
@@ -492,7 +492,7 @@ namespace Saturn {
 
 			ImGui::SuspendLayout();
 
-			ImGui::PushTextWrapPos( ImGui::GetCursorPosX() + ( ThumbnailSize.x - EdgeOffset * 3.0f ) );
+			ImGui::PushTextWrapPos( ImGui::GetCursorPosX() + ( ThumbnailSize.x - EdgeOffset - 5.0f * 3.0f ) );
 
 			ImGui::Text( filename.c_str() );
 

@@ -574,7 +574,7 @@ namespace Saturn {
 
 		VkFormat DepthFormat = FindDepthFormat();
 
-		Helpers::CreateImage( VK_IMAGE_TYPE_2D, VK_FORMAT_D32_SFLOAT,
+		Helpers::CreateImage( VK_IMAGE_TYPE_2D, DepthFormat,
 			{ .width = ( uint32_t )Window::Get().Width(), .height = ( uint32_t )Window::Get().Height(), .depth = 1 }, 1, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_DepthImage, &m_DepthImageMemory );
 
 		Helpers::CreateImageView( VK_IMAGE_VIEW_TYPE_2D, m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, &m_DepthImageView );

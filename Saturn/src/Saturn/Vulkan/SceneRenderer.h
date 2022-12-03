@@ -96,6 +96,8 @@ namespace Saturn {
 	
 		Timer GeometryPassTimer;
 		Timer ShadowMapTimers[SHADOW_CASCADE_COUNT];
+		Timer SSAOPassTimer;
+		Timer AOCompositeTimer;
 
 		//////////////////////////////////////////////////////////////////////////
 
@@ -210,11 +212,20 @@ namespace Saturn {
 		// AO
 		//////////////////////////////////////////////////////////////////////////
 
+		// AO-Composite
+
+		Ref< DescriptorSet > AO_DescriptorSet = nullptr;
+		Ref<Pipeline> AOCompositePipeline;
+		Ref<Pass> AOComposite;
+		Ref<Framebuffer> AOCompositeFramebuffer;
+
 		// Screen-Space AO
 
 		int SSAO_KERNEL_SIZE = 32;
 		float SSAO_RADIUS    = 0.3F;
 		float SSAO_NOISE_DIM = 4.0F;
+
+		std::vector<glm::vec4> SSAOKernel;
 
 		Ref<Image2D> SSAONoiseImage = nullptr;
 
@@ -230,6 +241,8 @@ namespace Saturn {
 		Ref< DescriptorSet > SSAO_DescriptorSet = nullptr;
 		VertexBuffer* SSAO_VertexBuffer = nullptr;
 		IndexBuffer* SSAO_IndexBuffer = nullptr;
+
+		Ref< Image2D > SSAO_NoiseImage;
 
 		// OTHERS
 
@@ -254,6 +267,7 @@ namespace Saturn {
 		Ref< Shader > SelectedGeometryShader = nullptr;
 		Ref< Shader > SSAOShader = nullptr;
 		Ref< Shader > SSAOBlurShader = nullptr;
+		Ref< Shader > AOCompositeShader = nullptr;
 	};
 
 	class SceneRenderer : public CountedObj
@@ -314,11 +328,13 @@ namespace Saturn {
 		void InitDirShadowMap();
 		void InitSceneComposite();
 		void InitAO();
+		void InitAOComposite();
 
 		void GeometryPass();
 		void DirShadowMapPass();
 		void SceneCompositePass();
 		void AOPass();
+		void AOCompositePass();
 
 		void AddScheduledFunction( ScheduledFunc&& rrFunc );
 

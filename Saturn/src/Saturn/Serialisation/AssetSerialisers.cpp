@@ -441,7 +441,7 @@ namespace Saturn {
 		Ref<Texture2D> texture = Renderer::Get().GetPinkTexture();
 
 		if( albedoPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( albedoPath, AddressingMode::Repeat );
+			texture = Ref<Texture2D>::Create( albedoPath, AddressingMode::Repeat, false );
 
 		materialAsset->SetAlbeoColor( albedoColor );
 		materialAsset->SetAlbeoMap( texture );
@@ -450,7 +450,7 @@ namespace Saturn {
 		auto normalPath = materialData[ "NormalPath" ].as<std::filesystem::path>();
 
 		if( normalPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat );
+			texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat, false );
 		else
 			texture = Renderer::Get().GetPinkTexture();
 
@@ -461,7 +461,7 @@ namespace Saturn {
 		auto metallicPath = materialData[ "MetalnessPath" ].as<std::filesystem::path>();
 
 		if( metallicPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat );
+			texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat, false );
 		else
 			texture = Renderer::Get().GetPinkTexture();
 
@@ -472,7 +472,7 @@ namespace Saturn {
 		auto roughnessPath = materialData[ "RoughnessPath" ].as<std::filesystem::path>();
 
 		if( roughnessPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat );
+			texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat, false );
 		else
 			texture = Renderer::Get().GetPinkTexture();
 

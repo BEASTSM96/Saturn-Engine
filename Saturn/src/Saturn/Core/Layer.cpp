@@ -130,7 +130,7 @@ namespace Saturn {
 
 		ImGuiInitInfo.CheckVkResultFn = _VkCheckResult;
 
-		ImGui_ImplVulkan_Init( &ImGuiInitInfo, VulkanContext::Get().GetDefaultPass() );
+		ImGui_ImplVulkan_Init( &ImGuiInitInfo, VulkanContext::Get().GetDefaultVulkanPass() );
 		
 		VkCommandBuffer CommandBuffer;
 		CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
@@ -177,7 +177,7 @@ namespace Saturn {
 		ClearColor[ 1 ].depthStencil = { 1.0f, 0 };
 		
 		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-		RenderPassBeginInfo.renderPass = VulkanContext::Get().GetDefaultPass();
+		RenderPassBeginInfo.renderPass = VulkanContext::Get().GetDefaultVulkanPass();
 		RenderPassBeginInfo.framebuffer = rSwapchain.GetFramebuffers()[ Renderer::Get().GetImageIndex() ];
 		RenderPassBeginInfo.renderArea.offset = { 0, 0 };
 		RenderPassBeginInfo.renderArea.extent = { ( uint32_t ) Window::Get().Width(), ( uint32_t ) Window::Get().Height() };

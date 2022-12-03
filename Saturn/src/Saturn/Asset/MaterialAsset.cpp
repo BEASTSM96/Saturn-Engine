@@ -251,21 +251,25 @@ namespace Saturn {
 		// Load texture (auto assume we have not loaded them).
 		Ref<Texture2D> texture = nullptr;
 
-		// Albedo
-		texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 0 ], AddressingMode::Repeat );
-		m_Material->SetResource( "u_AlbedoTexture", texture );
+		if( m_PendingTextureChanges.size() > 1)
+		{
+			// Albedo
+			texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 0 ], AddressingMode::Repeat, false );
+			m_Material->SetResource( "u_AlbedoTexture", texture );
 
-		// Normal
-		texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 1 ], AddressingMode::Repeat );
-		m_Material->SetResource( "u_NormalTexture", texture );
+			// Normal
+			texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 1 ], AddressingMode::Repeat, false );
+			m_Material->SetResource( "u_NormalTexture", texture );
 
-		// Normal
-		texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 2 ], AddressingMode::Repeat );
-		m_Material->SetResource( "u_MetallicTexture", texture );
+			// Normal
+			texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 2 ], AddressingMode::Repeat, false );
+			m_Material->SetResource( "u_MetallicTexture", texture );
 
-		// Normal
-		texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 3 ], AddressingMode::Repeat );
-		m_Material->SetResource( "u_RoughnessTexture", texture );
+			// Normal
+			texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 3 ], AddressingMode::Repeat, false );
+			m_Material->SetResource( "u_RoughnessTexture", texture );
+
+		}
 
 		m_Material->Set<glm::vec3>( "u_Materials.AlbedoColor", s_ViewingMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" ) );
 

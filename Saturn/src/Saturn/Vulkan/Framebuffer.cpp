@@ -156,14 +156,20 @@ namespace Saturn {
 				m_DepthAttachmentResource = m_Specification.ExistingImage;
 				m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView( m_Specification.ExistingImageLayer ) );
 			}
-			else
+			else 
+			{
 				m_ColorAttachmentsResources.push_back( m_Specification.ExistingImage );
-
+				m_AttachmentImageViews.push_back( m_Specification.ExistingImage->GetImageView() );
+			}
 		}
 
 		for( auto format : m_ColorAttachmentsFormats )
 		{
 			Ref<Image2D> image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
+
+			std::string name = "Color Attachment for framebuffer " + m_Specification.RenderPass->GetName();
+
+			SetDebugUtilsObjectName( name.c_str(), (uint64_t)image->GetImage(), VK_OBJECT_TYPE_IMAGE );
 
 			m_ColorAttachmentsResources.push_back( image );
 
@@ -176,8 +182,6 @@ namespace Saturn {
 
 			m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView( m_Specification.ExistingImageLayer ) );
 		}
-
-
 
 		VkFramebufferCreateInfo FramebufferCreateInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		FramebufferCreateInfo.renderPass = m_Specification.RenderPass->GetVulkanPass();

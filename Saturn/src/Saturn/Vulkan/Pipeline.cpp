@@ -318,7 +318,9 @@ namespace Saturn {
 		DepthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 		DepthStencilState.depthBoundsTestEnable = VK_FALSE;
 		DepthStencilState.stencilTestEnable = m_Specification.UseStencilTest;
-		
+		DepthStencilState.front.compareOp = VK_COMPARE_OP_NEVER;
+		DepthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
+
 		VkPipelineInputAssemblyStateCreateInfo AssemblyStateCreateInfo = {  VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
 		AssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		AssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;

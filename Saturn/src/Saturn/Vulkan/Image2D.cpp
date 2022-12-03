@@ -77,6 +77,21 @@ namespace Saturn {
 		return false;
 	}
 
+	static bool IsColorFormat( VkFormat format )
+	{
+		switch( format )
+		{
+			case VK_FORMAT_R32G32B32A32_SFLOAT:
+			case VK_FORMAT_R8G8B8A8_UNORM:
+			case VK_FORMAT_R16G16B16A16_UNORM:
+			case VK_FORMAT_B8G8R8A8_UNORM:
+			case VK_FORMAT_R8_UNORM:
+				return true;
+		}
+
+		return false;
+	}
+
 	static bool IsDepthFormat( ImageFormat format ) 
 	{
 		switch( format )
@@ -89,8 +104,8 @@ namespace Saturn {
 		return false;
 	}
 
-	Image2D::Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels )
-		: m_Format( Format ), m_Width( Width ), m_Height( Height ), m_ArrayLevels( ArrayLevels )
+	Image2D::Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels, void* pData, size_t size )
+		: m_Format( Format ), m_Width( Width ), m_Height( Height ), m_ArrayLevels( ArrayLevels ), m_pData( pData ), m_DataSize( size )
 	{
 		m_ImageViewes.resize( m_ArrayLevels );
 
@@ -150,9 +165,9 @@ namespace Saturn {
 		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 
 		if( IsColorFormat( m_Format ) )
-			ImageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			ImageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		else
-			ImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			ImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 		VK_CHECK( vkCreateImage( VulkanContext::Get().GetDevice(), &ImageCreateInfo, nullptr, &m_Image ) );
 		SetDebugUtilsObjectName( "Image", ( uint64_t ) m_Image, VK_OBJECT_TYPE_IMAGE );
@@ -166,6 +181,38 @@ namespace Saturn {
 
 		VK_CHECK( vkAllocateMemory( VulkanContext::Get().GetDevice(), &MemoryAllocateInfo, nullptr, &m_Memory ) );
 		VK_CHECK( vkBindImageMemory( VulkanContext::Get().GetDevice(), m_Image, m_Memory, 0 ) );
+
+		TransitionImageLayout( VulkanFormat( m_Format ), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
+
+		if( m_pData ) 
+		{
+			VkBuffer ImgBuffer;
+
+			VkDeviceSize ImageSize = m_Width * m_Height * 4;
+
+			VkBufferCreateInfo BufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+			BufferCreateInfo.size = m_DataSize;
+			BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+			BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+			auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+			auto BufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, &ImgBuffer );
+
+			void* pDstData = pAllocator->MapMemory<void*>( BufferAlloc );
+
+			memcpy( pDstData, m_pData, m_DataSize );
+
+			pAllocator->UnmapMemory( BufferAlloc );
+
+			CopyBufferToImage( ImgBuffer );
+		}
+
+		if( IsColorFormat( m_Format ) )
+			m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		else
+			m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+		TransitionImageLayout( VulkanFormat( m_Format ), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_DescriptorImageInfo.imageLayout );
 
 		// Create base image view & sampler.
 		VkImageViewCreateInfo ImageViewCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
@@ -182,6 +229,11 @@ namespace Saturn {
 		ImageViewCreateInfo.subresourceRange.levelCount = 1;
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		ImageViewCreateInfo.subresourceRange.layerCount = m_ArrayLevels;
+
+		if( VulkanFormat( m_Format ) >= VK_FORMAT_D16_UNORM_S8_UINT )
+		{
+			ImageViewCreateInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
 
 		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageView) );
 		SetDebugUtilsObjectName( "Base image view layer", ( uint64_t ) m_ImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
@@ -203,11 +255,6 @@ namespace Saturn {
 
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
 		SetDebugUtilsObjectName( "Base image sampler", ( uint64_t ) m_Sampler, VK_OBJECT_TYPE_SAMPLER );
-
-		if( IsColorFormat( m_Format ) )
-			m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		else
-			m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
 		m_DescriptorImageInfo.sampler = m_Sampler;
 		m_DescriptorImageInfo.imageView = m_ImageView;
@@ -234,6 +281,95 @@ namespace Saturn {
 			VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageViewes[ i ] ) );
 			SetDebugUtilsObjectName( fmt::format( "Image view layer {}", i ), ( uint64_t ) m_ImageViewes[ i ], VK_OBJECT_TYPE_IMAGE_VIEW );
 		}
+	}
+
+	void Image2D::CopyBufferToImage( VkBuffer Buffer )
+	{
+		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
+
+		VkBufferImageCopy Region = {};
+		Region.bufferOffset = 0;
+		Region.bufferRowLength = 0;
+		Region.bufferImageHeight = 0;
+
+		Region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		Region.imageSubresource.mipLevel = 0;
+		Region.imageSubresource.baseArrayLayer = 0;
+		Region.imageSubresource.layerCount = 1;
+
+		Region.imageOffset = { 0, 0, 0 };
+		Region.imageExtent = { ( uint32_t ) m_Width, ( uint32_t ) m_Height, 1 };
+
+		vkCmdCopyBufferToImage( CommandBuffer, Buffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &Region );
+
+		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+	}
+
+	void Image2D::TransitionImageLayout( VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout )
+	{
+		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
+
+		VkPipelineStageFlags SrcStage;
+		VkPipelineStageFlags DstStage;
+
+		VkImageMemoryBarrier ImageBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		ImageBarrier.oldLayout = OldLayout;
+		ImageBarrier.newLayout = NewLayout;
+		ImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		ImageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		ImageBarrier.image = m_Image;
+		ImageBarrier.subresourceRange.aspectMask = IsColorFormat( Format ) ? VK_IMAGE_ASPECT_COLOR_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
+		ImageBarrier.subresourceRange.baseMipLevel = 0;
+		ImageBarrier.subresourceRange.levelCount = 1;
+		ImageBarrier.subresourceRange.baseArrayLayer = 0;
+		ImageBarrier.subresourceRange.layerCount = 1;
+
+		if( OldLayout == VK_IMAGE_LAYOUT_UNDEFINED && NewLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL )
+		{
+			ImageBarrier.srcAccessMask = 0;
+			ImageBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			SrcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			DstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if( OldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && NewLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL )
+		{
+			ImageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			ImageBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			SrcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			DstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if( OldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && NewLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL )
+		{
+			ImageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+			ImageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			ImageBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			SrcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			DstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+		}
+		else if( OldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && NewLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL )
+		{
+			ImageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			ImageBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+			SrcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			DstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if( OldLayout == VK_IMAGE_LAYOUT_UNDEFINED && NewLayout == VK_IMAGE_LAYOUT_GENERAL )
+		{
+			ImageBarrier.srcAccessMask = 0;
+			ImageBarrier.dstAccessMask = 0;
+
+			SrcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+			DstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+		}
+
+		vkCmdPipelineBarrier( CommandBuffer, SrcStage, DstStage, 0, 0, nullptr, 0, nullptr, 1, &ImageBarrier );
+
+		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 	}
 
 }
