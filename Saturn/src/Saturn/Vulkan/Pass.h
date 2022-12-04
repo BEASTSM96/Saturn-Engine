@@ -40,7 +40,9 @@ namespace Saturn {
 		std::vector< ImageFormat > Attachments = {};
 		std::string Name = "";
 		bool IsSwapchainTarget = false;
-		bool LoadOpLoad = false;
+
+		bool LoadColor = false;
+		bool LoadDepth = false;
 	};
 
 	class Pass : public CountedObj

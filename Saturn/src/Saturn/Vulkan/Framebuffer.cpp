@@ -151,18 +151,29 @@ namespace Saturn {
 
 		if( m_Specification.ExistingImage )
 		{
+			if( m_Specification.Attachments.Attachments.size() > 1 )
+				m_AttachmentImageViews.resize( m_Specification.Attachments.Attachments.size() + 1 );
+			else
+				m_AttachmentImageViews.resize( m_Specification.Attachments.Attachments.size() );
+
 			if( FramebufferUtills::IsDepthFormat( m_Specification.ExistingImage->GetImageFormat() ) ) 
-			{
 				m_DepthAttachmentResource = m_Specification.ExistingImage;
-				m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView( m_Specification.ExistingImageLayer ) );
-			}
 			else 
 			{
-				m_ColorAttachmentsResources.push_back( m_Specification.ExistingImage );
-				m_AttachmentImageViews.push_back( m_Specification.ExistingImage->GetImageView() );
+				if( m_ColorAttachmentsResources.size() )
+					m_ColorAttachmentsResources[ m_Specification.ExistingImageIndex ] = m_Specification.ExistingImage;
+				else
+					m_ColorAttachmentsResources.push_back( m_Specification.ExistingImage );
 			}
+
+			if( m_AttachmentImageViews.size() )
+				m_AttachmentImageViews[ m_Specification.ExistingImageIndex ] = m_Specification.ExistingImage->GetImageView( m_Specification.ExistingImageLayer );
+			else
+				m_AttachmentImageViews.push_back( m_Specification.ExistingImage->GetImageView( m_Specification.ExistingImageLayer ) );
+
 		}
 
+		int i = 0;
 		for( auto format : m_ColorAttachmentsFormats )
 		{
 			Ref<Image2D> image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
@@ -173,7 +184,13 @@ namespace Saturn {
 
 			m_ColorAttachmentsResources.push_back( image );
 
-			m_AttachmentImageViews.push_back( image->GetImageView() );
+			if( m_AttachmentImageViews.size() )
+				m_AttachmentImageViews[ i ] = image->GetImageView();
+			else
+				m_AttachmentImageViews.push_back( image->GetImageView() );
+
+
+			i++;
 		}
 		
 		if( !m_DepthAttachmentResource && m_Specification.CreateDepth ) 

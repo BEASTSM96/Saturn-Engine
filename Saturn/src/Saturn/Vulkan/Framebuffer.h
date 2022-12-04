@@ -62,6 +62,7 @@ namespace Saturn {
 		bool CreateDepth = true;
 
 		Ref< Image2D > ExistingImage = nullptr;
+		uint32_t ExistingImageIndex = 0;
 
 		Ref< Pass > RenderPass = nullptr;
 		FramebufferAttachmentSpecification Attachments;

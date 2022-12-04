@@ -74,6 +74,8 @@ namespace Saturn {
 		if( !Application::Get().GetSpecification().CreateSceneRenderer )
 			return;
 			
+		InitPreDepth();
+
 		InitGeometryPass();
 
 		// Create grid.
@@ -89,8 +91,6 @@ namespace Saturn {
 		InitAOComposite();
 
 		InitSceneComposite();
-
-		InitPreDepth();
 
 		m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
 
@@ -124,24 +124,26 @@ namespace Saturn {
 			PassSpecification PassSpec = {};
 			PassSpec.Name = "Geometry Pass";
 			PassSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
+			PassSpec.LoadDepth = true;
 
 			m_RendererData.GeometryPass = Ref< Pass >::Create( PassSpec );
 		}
 
 		// Create geometry framebuffer.
 		if( m_RendererData.GeometryFramebuffer )
-			m_RendererData.GeometryFramebuffer->Recreate( m_RendererData.Width, m_RendererData.Height );
-		else
-		{
-			FramebufferSpecification FBSpec = {};
-			FBSpec.RenderPass = m_RendererData.GeometryPass;
-			FBSpec.Width = m_RendererData.Width;
-			FBSpec.Height = m_RendererData.Height;
+			m_RendererData.GeometryFramebuffer = nullptr;
 
-			FBSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
+		FramebufferSpecification FBSpec = {};
+		FBSpec.RenderPass = m_RendererData.GeometryPass;
+		FBSpec.Width = m_RendererData.Width;
+		FBSpec.Height = m_RendererData.Height;
+		FBSpec.ExistingImage = m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource();
+		FBSpec.ExistingImageIndex = 3;
+		// Depth will be the PreDepth image.
+		FBSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F };
 
-			m_RendererData.GeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
-		}
+		m_RendererData.GeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
+		
 
 		//////////////////////////////////////////////////////////////////////////
 		// STATIC MESHES
@@ -514,7 +516,7 @@ namespace Saturn {
 		PassSpecification PassSpec = {};
 		PassSpec.Name = "AO-Composite";
 		PassSpec.Attachments = { ImageFormat::RGBA32F };
-		PassSpec.LoadOpLoad = true;
+		PassSpec.LoadColor = true;
 
 		if( m_RendererData.AOComposite )
 			m_RendererData.AOComposite->Recreate();
@@ -1021,13 +1023,13 @@ namespace Saturn {
 
 	void SceneRenderer::Recreate()
 	{
+		InitPreDepth();
+
 		InitGeometryPass();
 		InitSceneComposite();
 
 		InitAO();
 		InitAOComposite();
-
-		InitPreDepth();
 
 		CreateSkyboxComponents();
 		CreateGridComponents();
@@ -1537,7 +1539,7 @@ namespace Saturn {
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
-		AOCompositePass();
+		//AOCompositePass();
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Texture pass" );
 
