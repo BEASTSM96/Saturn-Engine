@@ -150,6 +150,14 @@ namespace Saturn {
 
 		std::vector< ShadowCascade > ShadowCascades;
 
+		// PreDepth
+		//////////////////////////////////////////////////////////////////////////
+
+		Ref<Pass> PreDepthPass = nullptr;
+		Ref<Pipeline> PreDepthPipeline = nullptr;
+		Ref<Framebuffer> PreDepthFramebuffer = nullptr;
+		//Ref< DescriptorSet > PreDepthDescriptorSet = nullptr;
+
 		// Geometry
 		//////////////////////////////////////////////////////////////////////////
 
@@ -268,6 +276,7 @@ namespace Saturn {
 		Ref< Shader > SSAOShader = nullptr;
 		Ref< Shader > SSAOBlurShader = nullptr;
 		Ref< Shader > AOCompositeShader = nullptr;
+		Ref< Shader > PreDepthShader = nullptr;
 	};
 
 	class SceneRenderer : public CountedObj
@@ -326,12 +335,14 @@ namespace Saturn {
 
 		void InitGeometryPass();
 		void InitDirShadowMap();
+		void InitPreDepth();
 		void InitSceneComposite();
 		void InitAO();
 		void InitAOComposite();
 
-		void GeometryPass();
 		void DirShadowMapPass();
+		void PreDepthPass();
+		void GeometryPass();
 		void SceneCompositePass();
 		void AOPass();
 		void AOCompositePass();

@@ -130,6 +130,7 @@ layout (set = 1, binding = 11) uniform sampler2D u_BRDFLUTTexture;
 
 layout (location = 0) out vec4 FinalColor;
 layout (location = 1) out vec4 OutViewNormals;
+layout (location = 2) out vec4 OutAlbedo;
 
 struct VertexOutput 
 {
@@ -362,4 +363,5 @@ void main()
 	iblContribution = IBL( F0, Lr );
 
 	FinalColor = vec4( FinalChecks( iblContribution + LightingContribution ), 1.0 );
+	OutAlbedo = vec4( m_Params.Albedo, 1.0 );
 }

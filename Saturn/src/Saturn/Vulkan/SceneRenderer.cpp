@@ -82,13 +82,15 @@ namespace Saturn {
 		// Create skybox.
 		CreateSkyboxComponents();
 
-		InitSceneComposite();
-
 		InitDirShadowMap();
 
 		InitAO();
 
 		InitAOComposite();
+
+		InitSceneComposite();
+
+		InitPreDepth();
 
 		m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
 
@@ -121,7 +123,7 @@ namespace Saturn {
 		{
 			PassSpecification PassSpec = {};
 			PassSpec.Name = "Geometry Pass";
-			PassSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::Depth };
+			PassSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
 
 			m_RendererData.GeometryPass = Ref< Pass >::Create( PassSpec );
 		}
@@ -136,7 +138,7 @@ namespace Saturn {
 			FBSpec.Width = m_RendererData.Width;
 			FBSpec.Height = m_RendererData.Height;
 
-			FBSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::Depth };
+			FBSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
 
 			m_RendererData.GeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
 		}
@@ -235,6 +237,62 @@ namespace Saturn {
 			m_RendererData.DirShadowMapPipelines[i] = Ref< Pipeline >::Create( PipelineSpec );
 		}
 
+	}
+
+	void SceneRenderer::InitPreDepth()
+	{
+		if( m_RendererData.PreDepthPass )
+			m_RendererData.PreDepthPass->Recreate();
+		else
+		{
+			PassSpecification PassSpec = {};
+			PassSpec.Name = "PreDepth";
+			PassSpec.Attachments = { ImageFormat::Depth };
+
+			m_RendererData.PreDepthPass = Ref<Pass>::Create( PassSpec );
+		}
+
+		if( m_RendererData.PreDepthFramebuffer )
+			m_RendererData.PreDepthFramebuffer->Recreate( m_RendererData.Width, m_RendererData.Height );
+		else
+		{
+			FramebufferSpecification FBSpec = {};
+			FBSpec.Width = m_RendererData.Width;
+			FBSpec.Height = m_RendererData.Height;
+			FBSpec.RenderPass = m_RendererData.PreDepthPass;
+			FBSpec.Attachments = { ImageFormat::Depth };
+
+			m_RendererData.PreDepthFramebuffer = Ref<Framebuffer>::Create( FBSpec );
+		}
+
+		if( !m_RendererData.PreDepthShader ) 
+		{
+			ShaderLibrary::Get().Load( "assets/shaders/PreDepth.glsl" );
+			m_RendererData.PreDepthShader = ShaderLibrary::Get().Find( "PreDepth" );
+		}
+
+		if( m_RendererData.PreDepthPipeline )
+			m_RendererData.PreDepthPipeline = nullptr;
+
+		PipelineSpecification PipelineSpec = {};
+		PipelineSpec.Width = m_RendererData.Width;
+		PipelineSpec.Height = m_RendererData.Height;
+		PipelineSpec.Name = "PreDepth";
+		PipelineSpec.Shader = m_RendererData.PreDepthShader.Pointer();
+		PipelineSpec.RenderPass = m_RendererData.PreDepthPass;
+		PipelineSpec.UseDepthTest = true;
+		PipelineSpec.CullMode = CullMode::None;
+		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+		PipelineSpec.RequestDescriptorSets = { ShaderType::Vertex, 0 };
+		PipelineSpec.VertexLayout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal" },
+			{ ShaderDataType::Float3, "a_Tanget" },
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
+
+		m_RendererData.PreDepthPipeline = Ref<Pipeline>::Create( PipelineSpec );
 	}
 
 	void SceneRenderer::InitSceneComposite()
@@ -469,6 +527,7 @@ namespace Saturn {
 		FBSpec.Height = m_RendererData.Height;
 		FBSpec.CreateDepth = false;
 		FBSpec.ExistingImage = m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ];
+		//FBSpec.Attachments = { ImageFormat::RGBA32F };
 
 		//if( m_RendererData.AOCompositeFramebuffer )
 		//	m_RendererData.AOCompositeFramebuffer->Recreate( m_RendererData.Width, m_RendererData.Height );
@@ -485,7 +544,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "AO-Composite";
-		PipelineSpec.Shader = m_RendererData.AOCompositeShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.AOCompositeShader;
 		PipelineSpec.RenderPass = m_RendererData.AOComposite;
 		PipelineSpec.UseDepthTest = false;
 		PipelineSpec.CullMode = CullMode::None;
@@ -504,6 +563,10 @@ namespace Saturn {
 			m_RendererData.AO_DescriptorSet = m_RendererData.AOCompositeShader->CreateDescriptorSet( 0 );
 
 		m_RendererData.AOCompositeShader->WriteDescriptor( "u_AOTexture", m_RendererData.SSAOFramebuffer->GetColorAttachmentsResources()[ 0 ]->GetDescriptorInfo(), m_RendererData.AO_DescriptorSet->GetVulkanSet() );
+
+		m_RendererData.AOCompositeShader->WriteDescriptor( "u_AlbedoTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 2 ]->GetDescriptorInfo(), m_RendererData.AO_DescriptorSet->GetVulkanSet() );
+
+		m_RendererData.AOCompositeShader->WriteDescriptor( "u_TestTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ]->GetDescriptorInfo(), m_RendererData.AO_DescriptorSet->GetVulkanSet() );
 
 		m_RendererData.AOCompositeShader->WriteAllUBs( m_RendererData.AO_DescriptorSet );
 	}
@@ -964,6 +1027,8 @@ namespace Saturn {
 		InitAO();
 		InitAOComposite();
 
+		InitPreDepth();
+
 		CreateSkyboxComponents();
 		CreateGridComponents();
 	}
@@ -1194,6 +1259,51 @@ namespace Saturn {
 		}
 	}
 
+	void SceneRenderer::PreDepthPass()
+	{
+		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
+		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
+
+		m_RendererData.PreDepthPass->BeginPass( CommandBuffer, m_RendererData.PreDepthFramebuffer->GetVulkanFramebuffer(), Extent );
+
+		VkViewport Viewport = {};
+		Viewport.x = 0;
+		Viewport.y = 0;
+		Viewport.width = ( float ) m_RendererData.Width;
+		Viewport.height = ( float ) m_RendererData.Height;
+		Viewport.minDepth = 0.0f;
+		Viewport.maxDepth = 1.0f;
+
+		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
+
+		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
+		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
+
+		// u_Matrices
+		struct UB_Matrices
+		{
+			glm::mat4 ViewProjection;
+		} u_Matrices;
+
+		u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
+
+		m_RendererData.PreDepthShader->UploadUB( ShaderType::Vertex, 0, 0, &u_Matrices, sizeof( u_Matrices ) );
+
+		m_RendererData.PreDepthShader->WriteAllUBs( m_RendererData.PreDepthPipeline->GetDescriptorSet( ShaderType::Vertex, 0 ) );
+
+		// We can use the shadow map draw list for pre depth.
+		for( auto& Cmd : m_ShadowMapDrawList )
+		{
+			// Entity may of been deleted.
+			if( !Cmd.entity )
+				continue;
+
+			Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.PreDepthPipeline, Cmd.Mesh, Cmd.Transform );
+		}
+
+		m_RendererData.PreDepthPass->EndPass();
+	}
+
 	void SceneRenderer::SceneCompositePass()
 	{
 		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
@@ -1400,6 +1510,12 @@ namespace Saturn {
 		// Passes
 
 		DirShadowMapPass();
+
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "PreDepth" );
+
+		PreDepthPass();
+
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Geometry" );
 
