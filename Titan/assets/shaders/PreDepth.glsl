@@ -22,10 +22,3 @@ void main()
 {
 	gl_Position = u_Matrices.ViewProjection * Transform * vec4( a_Position, 1.0 );
 }
-
-#type fragment
-#version 450
-
-void main() 
-{
-}

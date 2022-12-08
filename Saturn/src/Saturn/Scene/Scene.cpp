@@ -125,15 +125,52 @@ namespace Saturn {
 
 		// Lights
 		{
-			auto lights = m_Registry.group<DirectionalLightComponent>( entt::get<TransformComponent> );
-			uint32_t lightCount = 0;
-			for( const auto& e : lights )
+			m_Lights = Lights();
+
+			// Directional Lights
 			{
-				auto [transformComponent, lightComponent] = lights.get<TransformComponent, DirectionalLightComponent>( e );
-				
-				glm::vec3 direction = -glm::normalize( glm::mat3( transformComponent.GetTransform() ) * glm::vec3( 1.0f ) );
-				
-				m_DirectionalLight[ lightCount++ ] = { direction, lightComponent.Radiance, lightComponent.Intensity };
+				auto lights = m_Registry.group<DirectionalLightComponent>( entt::get<TransformComponent> );
+				uint32_t lightCount = 0;
+				for( const auto& e : lights )
+				{
+					auto [transformComponent, lightComponent] = lights.get<TransformComponent, DirectionalLightComponent>( e );
+
+					glm::vec3 direction = -glm::normalize( glm::mat3( transformComponent.GetTransform() ) * glm::vec3( 1.0f ) );
+
+					m_Lights.DirectionalLights[ lightCount++ ] = { direction, lightComponent.Radiance, lightComponent.Intensity };
+				}
+			}
+
+			// Point lights
+			{
+				auto points = m_Registry.group<PointLightComponent>( entt::get<TransformComponent> );
+
+				for( const auto& e : points )
+				{
+					auto [transformComponent, lightComponent] = points.get<TransformComponent, PointLightComponent>( e );
+
+					/*
+						glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
+						glm::vec3 Radiance = { 1.0f, 1.0f, 1.0f };
+						float Intensity = 1.0f;
+						float Multiplier = 1.0f;
+						float LightSize = 0.5f;
+						float Radius = 10.0f;
+						float MinRadius = 1.0f;
+						float Falloff = 1.0f;
+					*/
+
+					PointLight pl = { .Position = transformComponent.Position,
+						.Radiance = lightComponent.Radiance,
+						.Intensity = lightComponent.Intensity,
+						.Multiplier = lightComponent.Multiplier,
+						.LightSize = lightComponent.LightSize,
+						.Radius = lightComponent.Radius,
+						.MinRadius = lightComponent.MinRadius,
+						.Falloff = lightComponent.Falloff };
+
+					m_Lights.PointLights.push_back( pl );
+				}
 			}
 		}
 
@@ -144,9 +181,7 @@ namespace Saturn {
 			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
 			
 			if( meshComponent.Mesh ) 
-			{
 				SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transformComponent.GetTransform() );
-			}
 
 			SceneRenderer::Get().SetEditorCamera( rCamera );
 		}	
@@ -266,10 +301,7 @@ namespace Saturn {
 		NewScene->m_Name = m_Name;
 		NewScene->m_Filepath = m_Filepath;
 
-		NewScene->m_DirectionalLight[ 0 ] = m_DirectionalLight[ 0 ];
-		NewScene->m_DirectionalLight[ 1 ] = m_DirectionalLight[ 1 ];
-		NewScene->m_DirectionalLight[ 2 ] = m_DirectionalLight[ 2 ];
-		NewScene->m_DirectionalLight[ 3 ] = m_DirectionalLight[ 3 ];
+		NewScene->m_Lights = m_Lights;
 
 		std::unordered_map< UUID, entt::entity > EntityMap;
 		

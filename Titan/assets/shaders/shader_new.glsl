@@ -78,11 +78,23 @@ const int LightCount = 1;
 
 const vec3 Fdielectric = vec3( 0.04 );
 
-struct Light
+struct DirLight
 {
 	vec3 Direction;
 	vec3 Radiance;
 	float Multiplier;
+};
+
+struct PointLight
+{
+	vec3 Position;
+	vec3 Radiance;
+
+	float Multiplier;
+	float LightSize;
+	float Radius;
+	float MinRadius;
+	float Falloff;
 };
 
 layout(push_constant) uniform pc_Materials
@@ -97,7 +109,7 @@ layout(push_constant) uniform pc_Materials
 
 layout(set = 0, binding = 2) uniform Camera 
 {
-	Light Lights;
+	DirLight DirectionalLight;
 	vec3 CameraPosition;
 } u_Camera;
 
@@ -115,6 +127,13 @@ layout(set = 0, binding = 12) uniform DebugData
 	float EnableIBL;
 	float EnablePBR;
 } u_DebugData;
+
+// TODO: Change number of lights...
+layout(set = 0, binding = 13) uniform Lights 
+{
+	uint nbLights;
+	PointLight Lights[1024];
+} u_Lights;
 
 // Textures
 layout (set = 0, binding = 4) uniform sampler2D u_AlbedoTexture;
@@ -166,7 +185,7 @@ PBRParameters m_Params;
 float GetShadowBias() 
 {
 	const float MINIMUM_SHADOW_BIAS = 0.002;
-	float bias = max( MINIMUM_SHADOW_BIAS * ( 1.0 - dot( m_Params.Normal, u_Camera.Lights.Direction ) ), MINIMUM_SHADOW_BIAS );
+	float bias = max( MINIMUM_SHADOW_BIAS * ( 1.0 - dot( m_Params.Normal, u_Camera.DirectionalLight.Direction ) ), MINIMUM_SHADOW_BIAS );
 	return bias;
 }
 
@@ -239,8 +258,8 @@ vec3 Lighting( vec3 F0 )
 	
 	for( int i = 0; i < LightCount; i++ )
 	{
-		vec3 Li = u_Camera.Lights.Direction;
-		vec3 Lradiance = u_Camera.Lights.Radiance * u_Camera.Lights.Multiplier;
+		vec3 Li = u_Camera.DirectionalLight.Direction;
+		vec3 Lradiance = u_Camera.DirectionalLight.Radiance * u_Camera.DirectionalLight.Multiplier;
 		vec3 Lh = normalize( Li + m_Params.View );
 
 		// Calculate angles between surface normal and various light vectors.
@@ -314,6 +333,8 @@ vec3 FinalChecks( vec3 lastOut )
 
 void main() 
 {
+	vec2 pixelCoord = vec2( gl_FragCoord.x, gl_FragCoord.y );
+
 	vec4 AlbedoColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
 	m_Params.Albedo = AlbedoColor.rgb * u_Materials.AlbedoColor;
 

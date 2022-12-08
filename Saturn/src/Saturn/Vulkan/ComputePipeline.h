@@ -49,6 +49,8 @@ namespace Saturn {
 
 		void Unbind();
 
+		VkCommandBuffer GetCommandBuffer() { return m_CommandBuffer; }
+
 	private:
 		void Create();
 

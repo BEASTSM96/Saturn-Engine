@@ -270,6 +270,7 @@ namespace Saturn {
 		if( !m_RendererData.PreDepthShader ) 
 		{
 			ShaderLibrary::Get().Load( "assets/shaders/PreDepth.glsl" );
+			ShaderLibrary::Get().Load( "assets/shaders/LightCulling.glsl" );
 			m_RendererData.PreDepthShader = ShaderLibrary::Get().Find( "PreDepth" );
 		}
 
@@ -286,6 +287,8 @@ namespace Saturn {
 		PipelineSpec.CullMode = CullMode::None;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 		PipelineSpec.RequestDescriptorSets = { ShaderType::Vertex, 0 };
+		PipelineSpec.DepthCompareOp = VK_COMPARE_OP_LESS;
+		PipelineSpec.HasColorAttachment = false;
 		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float3, "a_Normal" },
@@ -295,6 +298,15 @@ namespace Saturn {
 		};
 
 		m_RendererData.PreDepthPipeline = Ref<Pipeline>::Create( PipelineSpec );
+
+		// Light culling
+		Ref<Shader> lightCullingShader;
+		lightCullingShader = ShaderLibrary::Get().Find( "LightCulling" );
+
+		m_RendererData.LightCullingPipeline = Ref<ComputePipeline>::Create( lightCullingShader );
+
+		if( !m_RendererData.LightCullingDescriptorSet )
+			m_RendererData.LightCullingDescriptorSet = lightCullingShader->CreateDescriptorSet( 0 );
 	}
 
 	void SceneRenderer::InitSceneComposite()
@@ -1112,6 +1124,18 @@ namespace Saturn {
 				float Multiplier;
 			};
 			
+			// We don't need a Point light struct, Scene already has one. However we need a struct to match the one in the shader.
+			struct
+			{
+				uint32_t nbLights;
+				PointLight Lights[ 1024 ];
+			} u_Lights;
+
+			u_Lights.nbLights = m_pScene->m_Lights.PointLights.size();
+
+			for( uint32_t i = 0; i < u_Lights.nbLights; i++ )
+				u_Lights.Lights[ i ] = m_pScene->m_Lights.PointLights[ i ];
+
 			struct SceneData
 			{
 				Light Lights;
@@ -1138,7 +1162,7 @@ namespace Saturn {
 			u_DebugData.EnableIBL = ( float ) m_RendererData.st_EnableIBL;
 			u_DebugData.EnablePBR = ( float ) m_RendererData.st_EnablePBR;
 
-			auto dirLight = m_pScene->m_DirectionalLight[ 0 ];
+			auto dirLight = m_pScene->m_Lights.DirectionalLights[ 0 ];
 			
 			u_SceneData.CameraPosition = m_RendererData.EditorCamera.GetPosition();
 			u_SceneData.Lights = { .Direction = dirLight.Direction, .Radiance = dirLight.Radiance, .Multiplier = dirLight.Intensity };
@@ -1158,6 +1182,8 @@ namespace Saturn {
 			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 2, &u_SceneData, sizeof( u_SceneData ) );
 			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 3, &u_ShadowData, sizeof( u_ShadowData ) );
 			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 12, &u_DebugData, sizeof( u_DebugData ) );
+
+			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, sizeof( u_Lights ) );
 
 			// Render
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
@@ -1206,7 +1232,7 @@ namespace Saturn {
 
 		Ref< Shader > ShadowShader = m_RendererData.DirShadowMapShader;
 
-		UpdateCascades( m_pScene->m_DirectionalLight[ 0 ].Direction );
+		UpdateCascades( m_pScene->m_Lights.DirectionalLights[ 0 ].Direction );
 		
 		// u_Matrices
 		struct UB_Matrices
@@ -1431,6 +1457,106 @@ namespace Saturn {
 		m_RendererData.AOComposite->EndPass();
 
 		m_RendererData.AOCompositeTimer.Stop();
+	}
+
+	void SceneRenderer::LightCullingPass()
+	{
+		constexpr uint32_t TILE_SIZE = 16;
+		glm::uvec2 Viewport = { m_RendererData.Width, m_RendererData.Height };
+		glm::uvec2 Size = Viewport;
+		Size += TILE_SIZE - Viewport % TILE_SIZE;
+		
+		m_RendererData.LightCullingWorkGroups = { Size / TILE_SIZE, 1 };
+
+		Ref<Shader> lightCullingShader = ShaderLibrary::Get().Find( "LightCulling" );
+
+		lightCullingShader->WriteDescriptor( "u_PreDepth", m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.LightCullingDescriptorSet->GetVulkanSet() );
+
+		// UBs
+		struct 
+		{
+			uint32_t nbLights;
+			PointLight Lights[ 1024 ];
+		} u_Lights;
+
+		struct
+		{
+			int Indices[];
+		} u_Indices;
+
+		struct 
+		{
+			glm::vec2 FullResolution;
+		} u_ScreenData;
+
+		struct 
+		{
+			glm::mat4 ViewProjection;
+			glm::mat4 View;
+		} u_Matrices;
+
+		struct
+		{
+			glm::vec2 DepthUnpack;
+		} u_Camera;
+
+		u_Matrices.ViewProjection   = m_RendererData.EditorCamera.ViewProjection();
+		u_Matrices.View             = m_RendererData.EditorCamera.ViewMatrix();
+		u_ScreenData.FullResolution = { m_RendererData.Width, m_RendererData.Height };
+
+		auto projection = m_RendererData.EditorCamera.ProjectionMatrix();
+
+		float depthLinearizeMul = ( -projection[ 3 ][ 2 ] );
+		float depthLinearizeAdd = ( projection[ 2 ][ 2 ] );
+
+		if( depthLinearizeMul * depthLinearizeAdd < 0 )
+			depthLinearizeAdd = -depthLinearizeAdd;
+
+		u_Camera.DepthUnpack = { depthLinearizeAdd, depthLinearizeMul };
+
+		u_Lights.nbLights = m_pScene->m_Lights.PointLights.size();
+
+		for( uint32_t i = 0; i < u_Lights.nbLights; i++ )
+			u_Lights.Lights[ i ] = m_pScene->m_Lights.PointLights[ i ];
+
+		lightCullingShader->UploadUB( ShaderType::Compute, 0, 0, &u_Lights, sizeof( u_Lights ) );
+		lightCullingShader->UploadUB( ShaderType::Compute, 0, 3, &u_ScreenData, sizeof( u_ScreenData ) );
+		lightCullingShader->UploadUB( ShaderType::Compute, 0, 4, &u_Matrices, sizeof( u_Matrices ) );
+		lightCullingShader->UploadUB( ShaderType::Compute, 0, 5, &u_Camera, sizeof( u_Camera ) );
+
+		lightCullingShader->WriteAllUBs( m_RendererData.LightCullingDescriptorSet );
+
+		// Light culling here
+		// Do the culling "next" frame.
+
+		auto CommandBuffer = m_RendererData.CommandBuffer;
+		auto& CullingPipeline = m_RendererData.LightCullingPipeline;
+
+		AddScheduledFunction( [&, CommandBuffer, CullingPipeline]() mutable
+			{
+				CullingPipeline->Bind();
+
+				CullingPipeline->Execute( 
+					m_RendererData.LightCullingDescriptorSet->GetVulkanSet(), 
+					m_RendererData.LightCullingWorkGroups.x, 
+					m_RendererData.LightCullingWorkGroups.y, 
+					m_RendererData.LightCullingWorkGroups.z );
+
+				VkMemoryBarrier barrier = {};
+				barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+				barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+				barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+				vkCmdPipelineBarrier( CullingPipeline->GetCommandBuffer(),
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+					0,
+					1, &barrier,
+					0, nullptr,
+					0, nullptr );
+
+				CullingPipeline->Unbind();
+			} );
 	}
 
 	void SceneRenderer::AddScheduledFunction( ScheduledFunc&& rrFunc )

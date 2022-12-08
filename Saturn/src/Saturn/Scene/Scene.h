@@ -56,6 +56,26 @@ namespace Saturn {
 		float Intensity = 1.0f;
 	};
 
+	struct PointLight
+	{
+		glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 Radiance = { 1.0f, 1.0f, 1.0f };
+		float Intensity = 1.0f;
+		float Multiplier = 1.0f;
+		float LightSize = 0.5f;
+		float Radius = 10.0f;
+		float MinRadius = 1.0f;
+		float Falloff = 1.0f;
+	};
+
+	struct Lights
+	{
+		DirectionalLight DirectionalLights[ 4 ];
+		std::vector<PointLight> PointLights;
+
+		uint32_t GetPointLightSize() { return ( uint32_t ) PointLights.size() * sizeof( PointLight ); };
+	};
+
 	class PhysXRuntime;
 
 	class Scene : public CountedObj
@@ -115,7 +135,7 @@ namespace Saturn {
 		entt::entity m_SceneEntity;
 		entt::entity m_SelectedEntity;
 
-		DirectionalLight m_DirectionalLight[ 4 ];
+		Lights m_Lights;
 
 		PhysXRuntime* m_PhysXRuntime;
 

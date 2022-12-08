@@ -20,16 +20,21 @@ void main()
 #version 450
 
 layout( set = 0, binding = 1 ) uniform sampler2D u_AOTexture;
+layout( set = 0, binding = 2 ) uniform sampler2D u_AlbedoTexture;
+layout( set = 0, binding = 3 ) uniform sampler2D u_TestTexture;
 
 layout( location = 0 ) in vec2 o_TexCoord;
 layout( location = 0 ) out vec4 FinalColor;
 
 void main() 
 {
-	vec4 beforeAO = FinalColor;
-
 	float x = texture( u_AOTexture, o_TexCoord ).r;
 
-	FinalColor.rgb = x.rrr;
-	FinalColor.rgb *= beforeAO.rgb;
+	vec3 a = texture( u_AlbedoTexture, o_TexCoord ).rgb;
+
+	vec3 d = vec3( 0.3 * a * x );
+
+	vec4 z = texture( u_TestTexture, o_TexCoord );
+
+	//FinalColor = vec4( d, 1.0 );
 }

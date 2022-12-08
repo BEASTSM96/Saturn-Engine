@@ -276,10 +276,21 @@ namespace Saturn {
 		float Restitution = 0.0f;
 	};
 
+	struct PointLightComponent
+	{
+		glm::vec3 Radiance = { 1.0f, 1.0f, 1.0f };
+		float Intensity = 1.0f;
+		float Multiplier = 1.0f;
+		float LightSize = 0.5f;
+		float Radius = 10.0f;
+		float MinRadius = 1.0f;
+		float Falloff = 1.0f;
+	};
+
 	template<typename... V>
 	struct ComponentGroup {};
 
 	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, 
 		MeshComponent, LightComponent, DirectionalLightComponent, SkylightComponent, 
-		PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent>;
+		PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent, PointLightComponent>;
 }

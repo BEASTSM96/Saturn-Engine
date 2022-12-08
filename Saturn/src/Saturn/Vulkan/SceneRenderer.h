@@ -38,6 +38,7 @@
 #include "EnvironmentMap.h"
 #include "DescriptorSet.h"
 #include "Framebuffer.h"
+#include "ComputePipeline.h"
 
 #include "Pipeline.h"
 
@@ -150,13 +151,17 @@ namespace Saturn {
 
 		std::vector< ShadowCascade > ShadowCascades;
 
-		// PreDepth
+		// PreDepth + Light culling
 		//////////////////////////////////////////////////////////////////////////
 
 		Ref<Pass> PreDepthPass = nullptr;
 		Ref<Pipeline> PreDepthPipeline = nullptr;
 		Ref<Framebuffer> PreDepthFramebuffer = nullptr;
 		//Ref< DescriptorSet > PreDepthDescriptorSet = nullptr;
+
+		Ref< ComputePipeline > LightCullingPipeline;
+		Ref< DescriptorSet > LightCullingDescriptorSet = nullptr;
+		glm::vec3 LightCullingWorkGroups;
 
 		// Geometry
 		//////////////////////////////////////////////////////////////////////////
@@ -346,6 +351,7 @@ namespace Saturn {
 		void SceneCompositePass();
 		void AOPass();
 		void AOCompositePass();
+		void LightCullingPass();
 
 		void AddScheduledFunction( ScheduledFunc&& rrFunc );
 

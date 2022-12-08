@@ -210,11 +210,11 @@ namespace Saturn {
 				}
 			}
 
-			if( !m_SelectionContext.HasComponent<LightComponent>() )
+			if( !m_SelectionContext.HasComponent<PointLightComponent>() )
 			{
 				if( ImGui::Button( "Light" ) )
 				{
-					m_SelectionContext.AddComponent<LightComponent>();
+					m_SelectionContext.AddComponent<PointLightComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -375,11 +375,12 @@ namespace Saturn {
 
 		} );
 
-		DrawComponent<LightComponent>( "Light", entity, []( auto& lc )
+		DrawComponent<PointLightComponent>( "Light", entity, []( auto& plc )
 		{
-			DrawColorVec3Control( "Light Color", lc.Color, 150.0f );
-		
-			DrawFloatControl( "Light Intensity", lc.Intensity, 110.0f );
+			DrawColorVec3Control( "Light Color", plc.Radiance, 150.0f );
+			DrawFloatControl( "Light Intensity", plc.Multiplier, 500.0f );
+			DrawFloatControl( "Radius", plc.Radius, FLT_MAX );
+			DrawFloatControl( "Falloff", plc.Falloff, 1.0f );
 		} );
 
 		DrawComponent<DirectionalLightComponent>( "Directional Light", entity, []( auto& dlc )

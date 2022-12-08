@@ -121,7 +121,6 @@ namespace Saturn {
 		auto& SpvSrc = ShaderLibrary::Get().Find( m_Specification.Shader->GetName() )->GetSpvCode();
 
 		std::vector<uint32_t> VertexCode = SpvSrc.at( { ShaderType::Vertex, 0 } );
-		std::vector<uint32_t> FragmentCode = SpvSrc.at( { ShaderType::Fragment, 0 } );
 		
 		{
 			VkShaderModuleCreateInfo CreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
@@ -131,17 +130,22 @@ namespace Saturn {
 			VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &CreateInfo, nullptr, &VertexModule ) );
 		}
 
+		if( SpvSrc.size() > 1 )
 		{
-			VkShaderModuleCreateInfo FCreateInfo ={ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-			FCreateInfo.codeSize = 4 * FragmentCode.size();
-			FCreateInfo.pCode = ( uint32_t* ) FragmentCode.data();
+			std::vector<uint32_t> FragmentCode = SpvSrc.at( { ShaderType::Fragment, 0 } );
+			{
+				VkShaderModuleCreateInfo FCreateInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+				FCreateInfo.codeSize = 4 * FragmentCode.size();
+				FCreateInfo.pCode = ( uint32_t* ) FragmentCode.data();
 
-			VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &FCreateInfo, nullptr, &FragmentModule ) );
+				VK_CHECK( vkCreateShaderModule( VulkanContext::Get().GetDevice(), &FCreateInfo, nullptr, &FragmentModule ) );
+			}
+
+			SetDebugUtilsObjectName( std::string( m_Specification.Name + "/" + FragmentName ), ( uint64_t )FragmentModule, VK_OBJECT_TYPE_SHADER_MODULE );
 		}
 
 		SetDebugUtilsObjectName( std::string( m_Specification.Name + "/" + VertexName ), ( uint64_t )VertexModule, VK_OBJECT_TYPE_SHADER_MODULE );
 		
-		SetDebugUtilsObjectName( std::string( m_Specification.Name + "/" + FragmentName ), ( uint64_t )FragmentModule, VK_OBJECT_TYPE_SHADER_MODULE );
 
 		std::vector< VkPipelineShaderStageCreateInfo > ShaderStages;
 		
@@ -153,13 +157,17 @@ namespace Saturn {
 				.pName = "main"
 			} );
 
-		ShaderStages.push_back(
-			{
-				.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-				.stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-				.module = FragmentModule,
-				.pName = "main"
-			} );
+
+		if( FragmentModule != nullptr )
+		{
+			ShaderStages.push_back(
+				{
+					.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+					.stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+					.module = FragmentModule,
+					.pName = "main"
+				} );
+		}
 		
 		switch( m_Specification.SpecializationStage )
 		{
@@ -315,7 +323,7 @@ namespace Saturn {
 		VkPipelineDepthStencilStateCreateInfo DepthStencilState = { VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
 		DepthStencilState.depthTestEnable = m_Specification.UseDepthTest ? VK_TRUE : VK_FALSE;
 		DepthStencilState.depthWriteEnable = VK_TRUE;
-		DepthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+		DepthStencilState.depthCompareOp = m_Specification.DepthCompareOp;
 		DepthStencilState.depthBoundsTestEnable = VK_FALSE;
 		DepthStencilState.stencilTestEnable = m_Specification.UseStencilTest;
 		DepthStencilState.front.compareOp = VK_COMPARE_OP_NEVER;
@@ -356,7 +364,7 @@ namespace Saturn {
 		PipelineCreateInfo.pVertexInputState   = &VertexInputState;
 		PipelineCreateInfo.pInputAssemblyState = &AssemblyStateCreateInfo;
 		PipelineCreateInfo.pRasterizationState = &RasterizationState;
-		PipelineCreateInfo.pColorBlendState    = &ColorBlendState;
+		PipelineCreateInfo.pColorBlendState    = m_Specification.HasColorAttachment ? &ColorBlendState : nullptr;
 		PipelineCreateInfo.pMultisampleState   = &PipelineMultisampleState;
 		PipelineCreateInfo.pViewportState      = &PipelineViewportState;
 		PipelineCreateInfo.pDepthStencilState  = &DepthStencilState;
