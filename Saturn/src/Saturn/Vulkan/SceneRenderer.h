@@ -39,6 +39,7 @@
 #include "DescriptorSet.h"
 #include "Framebuffer.h"
 #include "ComputePipeline.h"
+#include "StorageBufferSet.h"
 
 #include "Pipeline.h"
 
@@ -134,6 +135,9 @@ namespace Saturn {
 			alignas( 4 ) float Metalness;
 			alignas( 4 ) float Roughness;
 		};
+
+		//////////////////////////////////////////////////////////////////////////
+		Ref<StorageBufferSet> StorageBufferSet;
 
 		// DirShadowMap
 		//////////////////////////////////////////////////////////////////////////
@@ -366,6 +370,8 @@ namespace Saturn {
 		std::vector< DrawCommand > m_SelectedMeshDrawList;
 
 		std::vector< ScheduledFunc > m_ScheduledFunctions;
+
+		ScheduledFunc m_LightCullingFunction;
 
 	private:
 		friend class Scene;

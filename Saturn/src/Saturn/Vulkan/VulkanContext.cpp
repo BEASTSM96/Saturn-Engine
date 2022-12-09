@@ -513,6 +513,7 @@ namespace Saturn {
 		// If requested, also start the new command buffer
 		VkCommandBufferBeginInfo cmdBufferBeginInfo{};
 		cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		cmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &cmdBufferBeginInfo ) );
 
 		return CommandBuffer;

@@ -22,7 +22,8 @@ layout(std140, set = 0, binding = 0) uniform PointLightData
 	PointLight Lights[1024];
 } u_Lights;
 
-layout(std430, set = 0, binding = 2) buffer VisiblePointLightIndicesBuffer
+// Must match with static meshes
+layout(std430, set = 0, binding = 14) buffer VisiblePointLightIndicesBuffer
 {
 	int Indices[];
 } s_VisiblePointLightIndicesBuffer;

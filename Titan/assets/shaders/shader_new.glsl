@@ -126,6 +126,9 @@ layout(set = 0, binding = 12) uniform DebugData
 	float OnlyAlbedo;
 	float EnableIBL;
 	float EnablePBR;
+
+	// Very temp.
+	int TilesCountX;
 } u_DebugData;
 
 // TODO: Change number of lights...
@@ -134,6 +137,11 @@ layout(set = 0, binding = 13) uniform Lights
 	uint nbLights;
 	PointLight Lights[1024];
 } u_Lights;
+
+layout(std430, set = 0, binding = 14) buffer VisiblePointLightIndicesBuffer
+{
+	int Indices[];
+} s_VisiblePointLightIndicesBuffer;
 
 // Textures
 layout (set = 0, binding = 4) uniform sampler2D u_AlbedoTexture;
@@ -283,11 +291,11 @@ vec3 Lighting( vec3 F0 )
 // IBL
 vec3 RotateVectorAboutY(float angle, vec3 vec)
 {
-    angle = radians(angle);
-    mat3x3 rotationMatrix ={vec3(cos(angle),0.0,sin(angle)),
-                            vec3(0.0,1.0,0.0),
-                            vec3(-sin(angle),0.0,cos(angle))};
-    return rotationMatrix * vec;
+	angle = radians(angle);
+	mat3x3 rotationMatrix ={vec3(cos(angle),0.0,sin(angle)),
+							vec3(0.0,1.0,0.0),
+							vec3(-sin(angle),0.0,cos(angle))};
+	return rotationMatrix * vec;
 }
 
 vec3 IBL(vec3 F0, vec3 Lr)
@@ -329,6 +337,55 @@ vec3 FinalChecks( vec3 lastOut )
 		result = lastOut;
 
 	return result;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Forward+
+int GetPointLightBufferIndex(int i)
+{
+	ivec2 tileID = ivec2(gl_FragCoord) / ivec2(16, 16);
+	uint index = tileID.y * u_DebugData.TilesCountX + tileID.x;
+
+	uint offset = index * 1024;
+	return s_VisiblePointLightIndicesBuffer.Indices[offset + i];
+}
+
+int GetPointLightCount()
+{
+	int result = 0;
+	for (int i = 0; i < u_Lights.nbLights; i++)
+	{
+		uint lightIndex = GetPointLightBufferIndex(i);
+		if (lightIndex == -1)
+			break;
+
+		result++;
+	}
+
+	return result;
+}
+
+vec3 GetGradient(float value)
+{
+	vec3 zero = vec3(0.0, 0.0, 0.0);
+	vec3 white = vec3(0.0, 0.1, 0.9);
+	vec3 red = vec3(0.2, 0.9, 0.4);
+	vec3 blue = vec3(0.8, 0.8, 0.3);
+	vec3 green = vec3(0.9, 0.2, 0.3);
+
+	float step0 = 0.0f;
+	float step1 = 2.0f;
+	float step2 = 4.0f;
+	float step3 = 8.0f;
+	float step4 = 16.0f;
+
+	vec3 color = mix(zero, white, smoothstep(step0, step1, value));
+	color = mix(color, white, smoothstep(step1, step2, value));
+	color = mix(color, red, smoothstep(step1, step2, value));
+	color = mix(color, blue, smoothstep(step2, step3, value));
+	color = mix(color, green, smoothstep(step3, step4, value));
+
+	return color;
 }
 
 void main() 
@@ -385,4 +442,26 @@ void main()
 
 	FinalColor = vec4( FinalChecks( iblContribution + LightingContribution ), 1.0 );
 	OutAlbedo = vec4( m_Params.Albedo, 1.0 );
+
+//	int plCount = GetPo intLightCount();
+//	float val = float(plCount);
+//	FinalColor.rgb = ( FinalColor.rgb * 0.2 ) + GetGradient(val);
+
+	ivec2 tileID = ivec2(gl_FragCoord) / ivec2(16, 16);
+	uint index = tileID.y * u_DebugData.TilesCountX + tileID.x;
+
+	float heat = s_VisiblePointLightIndicesBuffer.Indices[ index ];
+
+	if(heat <= 20.f)
+	{
+		FinalColor = vec4( 0.f, 0.f, heat / 20.f, 1.f );
+	}
+	else if(heat <= 40.f) 
+	{
+		FinalColor = vec4( 0.f, (heat - 20.f) / 20.0f, 1.f, 1.f );
+	}
+	else 
+	{
+		FinalColor = vec4( (heat - 40.f) / 20.f, 1.f, 1.f, 1.f );
+	}
 }

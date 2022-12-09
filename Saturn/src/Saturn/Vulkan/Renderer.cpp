@@ -189,7 +189,7 @@ namespace Saturn {
 		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, rSubmsh.BaseVertex, 0 );
 	}
 	
-	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, const glm::mat4 transform, uint32_t SubmeshIndex )
+	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex )
 	{
 		Ref<Shader> Shader = Pipeline->GetShader();
 
@@ -202,6 +202,10 @@ namespace Saturn {
 			auto& rMaterial = mesh->GetMaterials()[ rSubmesh.MaterialIndex ];
 			auto& rMaterialAsset = mesh->GetMaterialAssets()[ rSubmesh.MaterialIndex ];
 			Ref< DescriptorSet > Set = mesh->GetDescriptorSets()[ rSubmesh ];
+
+			auto& rSB = rStorageBufferSet->Get( 0, 14 );
+			VkDescriptorBufferInfo Info = { .buffer = rSB.Buffer, .offset = 0, .range = rSB.Size };
+			Shader->WriteSB( 0, 14, Info, Set );
 
 			Shader->WriteAllUBs( Set );
 

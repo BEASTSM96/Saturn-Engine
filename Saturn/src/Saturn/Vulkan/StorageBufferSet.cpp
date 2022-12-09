@@ -26,124 +26,45 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/Core/Base.h"
-
-#include "Saturn/Core/Renderer/EditorCamera.h"
-
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Timestep.h"
-
-#include "entt.hpp"
+#include "sppch.h"
+#include "StorageBufferSet.h"
 
 namespace Saturn {
 
-	class Entity;
-
-	using EntityMap = std::unordered_map<UUID, Entity>;
-
-	struct SceneComponent
+	StorageBufferSet::StorageBufferSet( uint32_t size, uint32_t binding )
 	{
-		UUID SceneID;
-	};
 
-	struct DirectionalLight
+	}
+
+	StorageBufferSet::~StorageBufferSet()
 	{
-		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
 
-		float Intensity = 1.0f;
-	};
+	}
 
-	struct PointLight
+	void StorageBufferSet::Create( uint32_t set, uint32_t binding )
 	{
-		alignas( 16 ) glm::vec3 Position;
-		alignas( 16 ) glm::vec3 Radiance;
+		ShaderStorageBuffer ssb;
+		ssb.Size = 1;
+		ssb.Size = set;
+		ssb.Binding = binding;
+		ssb.Buffer = nullptr;
 
-		alignas( 4 ) float Multiplier;
-		alignas( 4 ) float LightSize;
-		alignas( 4 ) float Radius;
-		alignas( 4 ) float MinRadius;
-		alignas( 4 ) float Falloff;
-	};
+		Set( ssb, set, binding );
+	}
 
-	struct Lights
+	void StorageBufferSet::Set( const ShaderStorageBuffer& rBuffer, uint32_t set, uint32_t binding )
 	{
-		DirectionalLight DirectionalLights[ 4 ];
-		std::vector<PointLight> PointLights;
+		m_Buffers[ set ][ binding ] = rBuffer;
+	}
 
-		uint32_t GetPointLightSize() { return ( uint32_t ) PointLights.size() * sizeof( PointLight ); };
-	};
-
-	class PhysXRuntime;
-
-	class Scene : public CountedObj
+	void StorageBufferSet::Resize( uint32_t set, uint32_t binding, size_t newSize )
 	{
-	public:
-		Scene();
-		~Scene();
+		m_Buffers.at( set ).at( binding ).ResizeStorageBuffer( newSize );
+	}
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
+	ShaderStorageBuffer& StorageBufferSet::Get( uint32_t set, uint32_t binding )
+	{
+		return m_Buffers.at( set ).at( binding );
+	}
 
-		void DestroyEntity( Entity entity );
-
-		void OnRenderEditor( const EditorCamera& Camera, Timestep ts );
-
-		void DuplicateEntity( Entity entity );
-		void DeleteEntity( Entity entity );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		void OnUpdate( Timestep ts );
-		void OnUpdatePhysics( Timestep ts );
-
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
-		
-		Entity FindEntityByTag( const std::string& tag );
-
-		void CopyScene( Ref<Scene>& NewScene );
-
-		void SetName( const std::string& name ) { m_Name = name; }
-
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
-
-		const std::string& Filepath() { return m_Filepath; }
-
-		bool m_RuntimeRunning = false;
-
-		void OnRuntimeStart();
-		void OnRuntimeEnd();
-
-	private:
-
-		UUID m_SceneID;
-
-		std::string m_Name;
-		std::string m_Filepath;
-
-		EntityMap m_EntityIDMap;
-
-		entt::registry m_Registry;
-
-		entt::entity m_SceneEntity;
-		entt::entity m_SelectedEntity;
-
-		Lights m_Lights;
-
-		PhysXRuntime* m_PhysXRuntime;
-
-	private:
-
-		friend class Entity;
-		friend class SceneHierarchyPanel;
-		friend class SceneSerialiser;
-		friend class SceneRenderer;
-	};
 }

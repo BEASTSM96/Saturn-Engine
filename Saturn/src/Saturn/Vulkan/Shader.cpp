@@ -311,7 +311,30 @@ namespace Saturn {
 
 				vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ binding ], 0, nullptr );
 			}
+
+			/*
+			for( auto& [binding, sb] : descriptorSet.StorageBuffers )
+			{
+				VkDescriptorBufferInfo BufferInfo = {};
+				BufferInfo.buffer = sb.Buffer;
+				BufferInfo.offset = 0;
+				BufferInfo.range = sb.Size;
+
+				descriptorSet.WriteDescriptorSets[ binding ].pBufferInfo = &BufferInfo;
+				descriptorSet.WriteDescriptorSets[ binding ].dstSet = rSet->GetVulkanSet();
+
+				vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ binding ], 0, nullptr );
+			}
+			*/
 		}
+	}
+
+	void Shader::WriteSB( uint32_t set, uint32_t binding, VkDescriptorBufferInfo& rInfo, Ref<DescriptorSet>& rSet )
+	{
+		m_DescriptorSets[ set ].WriteDescriptorSets[ binding ].pBufferInfo = &rInfo;
+		m_DescriptorSets[ set ].WriteDescriptorSets[ binding ].dstSet = rSet->GetVulkanSet();
+
+		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &m_DescriptorSets[ set ].WriteDescriptorSets[ binding ], 0, nullptr );
 	}
 
 	void* Shader::MapUB( ShaderType Type, uint32_t Set, uint32_t Binding )
@@ -349,6 +372,40 @@ namespace Saturn {
 		Specification.SetIndex = set;
 
 		return Ref<DescriptorSet>::Create( Specification );
+	}
+
+	void Shader::ResizeStorageBuffer( uint32_t set, uint32_t binding, uint32_t newSize )
+	{
+		auto& storage = m_DescriptorSets[ set ].StorageBuffers[ binding ];
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+
+		if( storage.Size == newSize )
+			return;
+
+		storage.Size = newSize;
+
+		pAllocator->DestroyBuffer( storage.Buffer );
+
+		VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		BufferInfo.size = newSize;
+		BufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_GPU_ONLY, &storage.Buffer );
+	}
+
+	void Shader::SetSBData( uint32_t set, uint32_t binding, const void* pData, size_t size )
+	{
+		auto& storage = m_DescriptorSets[ set ].StorageBuffers[ binding ];
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+
+		auto allocation = pAllocator->GetAllocationFromBuffer( storage.Buffer );
+
+		auto dstData = pAllocator->MapMemory<void*>( allocation );
+
+		memcpy( dstData, pData, size );
+
+		pAllocator->UnmapMemory( allocation );
 	}
 
 	void Shader::ReadFile()
@@ -440,6 +497,71 @@ namespace Saturn {
 		};
 
 		std::sort( Resources.uniform_buffers.begin(), Resources.uniform_buffers.end(), Fn );
+		std::sort( Resources.storage_buffers.begin(), Resources.storage_buffers.end(), Fn );
+
+		for( const auto& sb : Resources.storage_buffers )
+		{
+			const auto& Name = sb.name;
+			auto& BufferType = Compiler.get_type( sb.base_type_id );
+			int MemberCount = BufferType.member_types.size();
+			uint32_t Binding = Compiler.get_decoration( sb.id, spv::DecorationBinding );
+			uint32_t Set = Compiler.get_decoration( sb.id, spv::DecorationDescriptorSet );
+
+			uint32_t Size = Compiler.get_declared_struct_size( BufferType );
+
+			SAT_CORE_INFO( "Storage Buffer: {0}", Name );
+			SAT_CORE_INFO( " Size: {0}", Size );
+			SAT_CORE_INFO( " Binding: {0}", Binding );
+			SAT_CORE_INFO( " Set: {0}", Set );
+
+			if( m_DescriptorSets[ Set ].Set == -1 )
+				m_DescriptorSets[ Set ] = { .Set = Set };
+
+			ShaderStorageBuffer Storage;
+			Storage.Binding = Binding;
+			Storage.Size = 1;
+			Storage.Location = shaderType;
+			Storage.Name = Name;
+
+			auto& storageBuffers = m_DescriptorSets[ Set ].StorageBuffers;
+
+			// Check if the same element already exists if so the stage "All"
+			// is used to represent all stages.
+			auto It = std::find_if( storageBuffers.begin(), storageBuffers.end(), [&]( const auto& a )
+				{
+					auto&& [k, v] = a;
+
+					return v == Storage;
+				} );
+
+			if( It != std::end( storageBuffers ) )
+			{
+				auto&& [Binding, sb] = ( *It );
+
+				sb.Location = ShaderType::All;
+
+				continue;
+			}
+
+			m_DescriptorSets[ Set ].StorageBuffers[ Binding ] = Storage;
+
+			for( int i = 0; i < MemberCount; i++ )
+			{
+				auto type = Compiler.get_type( BufferType.member_types[ i ] );
+				const auto& memberName = Compiler.get_member_name( BufferType.self, i );
+				size_t size = Compiler.get_declared_struct_member_size( BufferType, i );
+				auto offset = Compiler.type_struct_member_offset( BufferType, i );
+
+				std::string MemberName = Name + "." + memberName;
+
+				SAT_CORE_INFO( "  {0}", memberName );
+				SAT_CORE_INFO( "   Size: {0}", size );
+				SAT_CORE_INFO( "   Offset: {0}", offset );
+
+				// Use Binding as location it does not matter.
+				m_Uniforms.push_back( { MemberName, ( int ) Binding, SpvToSaturn( type ), size, offset } );
+			}
+		}
 
 		for ( const auto& ub : Resources.uniform_buffers )
 		{
@@ -633,6 +755,42 @@ namespace Saturn {
 				};
 			}
 
+			// Iterate over storage buffers
+			for( auto& [Binding, sb] : descriptorSet.StorageBuffers )
+			{
+				VkDescriptorSetLayoutBinding Binding = {};
+				Binding.binding = sb.Binding;
+				Binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				Binding.descriptorCount = 1;
+				Binding.stageFlags = sb.Location == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : sb.Location == ShaderType::All ? VK_SHADER_STAGE_ALL : sb.Location == ShaderType::Compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
+				Binding.pImmutableSamplers = nullptr;
+
+				VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+				BufferInfo.size = 1;
+				BufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+				BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+				pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_GPU_ONLY, &sb.Buffer );
+
+				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 250 } );
+
+				Bindings.push_back( Binding );
+
+				descriptorSet.WriteDescriptorSets[ sb.Binding ] =
+				{
+					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+					.pNext = nullptr,
+					.dstSet = nullptr,
+					.dstBinding = sb.Binding,
+					.dstArrayElement = 0,
+					.descriptorCount = 1,
+					.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+					.pImageInfo = nullptr,
+					.pBufferInfo = nullptr,
+					.pTexelBufferView = nullptr
+				};
+			}
+
 			// Iterate over textures
 			for( auto& texture : descriptorSet.SampledImages )
 			{
@@ -745,4 +903,23 @@ namespace Saturn {
 
 		SAT_CORE_INFO( "Shader Compilation took {0} ms", CompileTimer.ElapsedMilliseconds() );
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+
+	void ShaderStorageBuffer::ResizeStorageBuffer( uint32_t newSize )
+	{
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+
+		pAllocator->DestroyBuffer( Buffer );
+
+		VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		BufferInfo.size = newSize;
+		BufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_GPU_ONLY, &Buffer );
+
+		Size = newSize;
+	}
+
 }

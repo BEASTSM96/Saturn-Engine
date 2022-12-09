@@ -160,9 +160,9 @@ namespace Saturn {
 						float Falloff = 1.0f;
 					*/
 
-					PointLight pl = { .Position = transformComponent.Position,
+					PointLight pl = { 
+						.Position = transformComponent.Position,
 						.Radiance = lightComponent.Radiance,
-						.Intensity = lightComponent.Intensity,
 						.Multiplier = lightComponent.Multiplier,
 						.LightSize = lightComponent.LightSize,
 						.Radius = lightComponent.Radius,

@@ -72,6 +72,27 @@ namespace Saturn {
 		std::vector< ShaderUniform > Members;
 	};
 
+	struct ShaderStorageBuffer
+	{
+		std::string Name;
+		uint32_t Binding;
+		size_t Size;
+		ShaderType Location;
+
+		VkBuffer Buffer;
+
+		bool operator==( const ShaderStorageBuffer& rOther )
+		{
+			return Binding == rOther.Binding && Name == rOther.Name && Size == rOther.Size;
+		}
+
+		auto operator<=>( const ShaderStorageBuffer& rOther ) const = default;
+
+		std::vector< ShaderUniform > Members;
+
+		void ResizeStorageBuffer( uint32_t newSize );
+	};
+
 	struct ShaderSampledImage
 	{
 		std::string Name;
@@ -90,6 +111,7 @@ namespace Saturn {
 		std::vector< ShaderSampledImage > SampledImages;
 		std::vector< ShaderSampledImage > StorageImages;
 		std::unordered_map< uint32_t, ShaderUniformBuffer > UniformBuffers;
+		std::unordered_map< uint32_t, ShaderStorageBuffer > StorageBuffers;
 	};
 
 	struct ShaderSource
@@ -221,6 +243,7 @@ namespace Saturn {
 
 		// Make sure all the buffers have data mapped to them!
 		void WriteAllUBs( const Ref< DescriptorSet >& rSet );
+		void WriteSB( uint32_t set, uint32_t binding, VkDescriptorBufferInfo& rInfo, Ref<DescriptorSet>& rSet );
 
 		void* MapUB( ShaderType Type, uint32_t Set, uint32_t Binding );
 		void UnmapUB( ShaderType Type, uint32_t Set, uint32_t Binding );
@@ -233,6 +256,9 @@ namespace Saturn {
 
 		std::vector< VkDescriptorSetLayout >& GetSetLayouts() { return m_SetLayouts; }
 		VkDescriptorSetLayout GetSetLayout( uint32_t set = 0 ) { return m_SetLayouts[ set ]; }
+
+		void ResizeStorageBuffer( uint32_t set, uint32_t binding, uint32_t newSize );
+		void SetSBData( uint32_t set, uint32_t binding, const void* pData, size_t size );
 
 	private:
 

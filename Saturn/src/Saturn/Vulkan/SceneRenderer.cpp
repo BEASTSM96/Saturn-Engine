@@ -74,6 +74,8 @@ namespace Saturn {
 		if( !Application::Get().GetSpecification().CreateSceneRenderer )
 			return;
 			
+		m_RendererData.StorageBufferSet = Ref<StorageBufferSet>::Create(0,0);
+
 		InitPreDepth();
 
 		InitGeometryPass();
@@ -307,6 +309,10 @@ namespace Saturn {
 
 		if( !m_RendererData.LightCullingDescriptorSet )
 			m_RendererData.LightCullingDescriptorSet = lightCullingShader->CreateDescriptorSet( 0 );
+
+		lightCullingShader->WriteDescriptor( "u_PreDepth", m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.LightCullingDescriptorSet->GetVulkanSet() );
+
+		m_RendererData.StorageBufferSet->Create( 0, 14 );
 	}
 
 	void SceneRenderer::InitSceneComposite()
@@ -1133,8 +1139,13 @@ namespace Saturn {
 
 			u_Lights.nbLights = m_pScene->m_Lights.PointLights.size();
 
-			for( uint32_t i = 0; i < u_Lights.nbLights; i++ )
-				u_Lights.Lights[ i ] = m_pScene->m_Lights.PointLights[ i ];
+			// We need a better way...
+			for( uint32_t i = 0; i < u_Lights.nbLights; i++ ) 
+			{
+				auto& rLight = m_pScene->m_Lights.PointLights[ i ];
+
+				u_Lights.Lights[ i ] = { rLight.Position, rLight.Radiance, rLight.Multiplier, rLight.LightSize, rLight.Radius, rLight.MinRadius, rLight.Falloff };
+			}
 
 			struct SceneData
 			{
@@ -1154,6 +1165,8 @@ namespace Saturn {
 				float OnlyAlbedo;
 				float EnableIBL;
 				float EnablePBR;
+
+				int TilesCountX;
 			} u_DebugData = {};
 
 			u_DebugData.EnableDebugSettings = ( float ) m_RendererData.st_EnableDebugSettings;
@@ -1161,6 +1174,7 @@ namespace Saturn {
 			u_DebugData.OnlyNormal = ( float ) m_RendererData.st_OnlyNormal;
 			u_DebugData.EnableIBL = ( float ) m_RendererData.st_EnableIBL;
 			u_DebugData.EnablePBR = ( float ) m_RendererData.st_EnablePBR;
+			u_DebugData.TilesCountX = m_RendererData.LightCullingWorkGroups.x;
 
 			auto dirLight = m_pScene->m_Lights.DirectionalLights[ 0 ];
 			
@@ -1188,7 +1202,7 @@ namespace Saturn {
 			// Render
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
 				m_RendererData.StaticMeshPipeline, 
-				Cmd.Mesh, Cmd.Transform, Cmd.SubmeshIndex );
+				Cmd.Mesh, m_RendererData.StorageBufferSet, Cmd.Transform, Cmd.SubmeshIndex );
 		}
 		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
@@ -1459,6 +1473,12 @@ namespace Saturn {
 		m_RendererData.AOCompositeTimer.Stop();
 	}
 
+	struct UBLights
+	{
+		uint32_t nbLights;
+		PointLight Lights[ 1024 ];
+	};
+
 	void SceneRenderer::LightCullingPass()
 	{
 		constexpr uint32_t TILE_SIZE = 16;
@@ -1470,19 +1490,10 @@ namespace Saturn {
 
 		Ref<Shader> lightCullingShader = ShaderLibrary::Get().Find( "LightCulling" );
 
-		lightCullingShader->WriteDescriptor( "u_PreDepth", m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.LightCullingDescriptorSet->GetVulkanSet() );
+		m_RendererData.StorageBufferSet->Resize( 0, 14, m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4 * 1024 );
 
 		// UBs
-		struct 
-		{
-			uint32_t nbLights;
-			PointLight Lights[ 1024 ];
-		} u_Lights;
-
-		struct
-		{
-			int Indices[];
-		} u_Indices;
+		UBLights u_Lights;
 
 		struct 
 		{
@@ -1526,37 +1537,38 @@ namespace Saturn {
 
 		lightCullingShader->WriteAllUBs( m_RendererData.LightCullingDescriptorSet );
 
-		// Light culling here
-		// Do the culling "next" frame.
+		// Write sb
+		auto& rSB = m_RendererData.StorageBufferSet->Get( 0, 14 );
 
-		auto CommandBuffer = m_RendererData.CommandBuffer;
+		VkDescriptorBufferInfo Info = { .buffer = rSB.Buffer, .offset = 0, .range = rSB.Size };
+
+		lightCullingShader->WriteSB( 0, 14, Info, m_RendererData.LightCullingDescriptorSet );
+
+		// Light culling here
 		auto& CullingPipeline = m_RendererData.LightCullingPipeline;
 
-		AddScheduledFunction( [&, CommandBuffer, CullingPipeline]() mutable
-			{
-				CullingPipeline->Bind();
+		CullingPipeline->BindWithCommandBuffer( m_RendererData.CommandBuffer );
 
-				CullingPipeline->Execute( 
-					m_RendererData.LightCullingDescriptorSet->GetVulkanSet(), 
-					m_RendererData.LightCullingWorkGroups.x, 
-					m_RendererData.LightCullingWorkGroups.y, 
-					m_RendererData.LightCullingWorkGroups.z );
+		CullingPipeline->Execute(
+			m_RendererData.LightCullingDescriptorSet->GetVulkanSet(),
+			m_RendererData.LightCullingWorkGroups.x,
+			m_RendererData.LightCullingWorkGroups.y,
+			m_RendererData.LightCullingWorkGroups.z );
 
-				VkMemoryBarrier barrier = {};
-				barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-				barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-				barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		VkMemoryBarrier barrier = {};
+		barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+		barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-				vkCmdPipelineBarrier( CullingPipeline->GetCommandBuffer(),
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-					0,
-					1, &barrier,
-					0, nullptr,
-					0, nullptr );
+		vkCmdPipelineBarrier( CullingPipeline->GetCommandBuffer(),
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				0,
+				1, &barrier,
+				0, nullptr,
+				0, nullptr );
 
-				CullingPipeline->Unbind();
-			} );
+		CullingPipeline->Unbind();
 	}
 
 	void SceneRenderer::AddScheduledFunction( ScheduledFunc&& rrFunc )
@@ -1632,8 +1644,8 @@ namespace Saturn {
 
 		m_RendererData.CommandBuffer = Renderer::Get().ActiveCommandBuffer();
 		
-		for( auto&& func : m_ScheduledFunctions )
-			func();
+		//for( auto&& func : m_ScheduledFunctions )
+		//	func();
 
 		// Passes
 
@@ -1645,12 +1657,19 @@ namespace Saturn {
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "LightCulling" );
+
+		LightCullingPass();
+
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Geometry" );
 
 		GeometryPass();
 		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 		
+		/*
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "AO" );
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Screen-Space AO" );
@@ -1664,6 +1683,7 @@ namespace Saturn {
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+		*/
 
 		//AOCompositePass();
 
