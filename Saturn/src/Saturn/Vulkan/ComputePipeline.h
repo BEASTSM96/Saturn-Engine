@@ -42,6 +42,7 @@ namespace Saturn {
 		~ComputePipeline();
 
 		void Bind();
+		void BindWithCommandBuffer( VkCommandBuffer CommandBuffer );
 
 		void Execute( VkDescriptorSet DescriptorSet, uint32_t X, uint32_t Y, uint32_t Z );
 
@@ -59,6 +60,8 @@ namespace Saturn {
 		VkPipelineLayout m_PipelineLayout;
 
 		Ref<Shader> m_ComputeShader;
+
+		bool m_UseGraphicsQueue = false;
 
 		VkCommandBuffer m_CommandBuffer;
 	};
