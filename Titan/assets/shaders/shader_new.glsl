@@ -388,6 +388,48 @@ vec3 GetGradient(float value)
 	return color;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Forward+, Point Lights
+vec3 CalculatePointLights(in vec3 F0, vec3 WorldPosition)
+{
+	vec3 result = vec3(0.0);
+
+	ivec2 tileID = ivec2(gl_FragCoord) / ivec2(16, 16);
+	uint index = tileID.y * u_DebugData.TilesCountX + tileID.x;
+
+	uint offset = index * 1024;
+	for (int i = 0; i < u_Lights.nbLights && s_VisiblePointLightIndicesBuffer.Indices[offset + i] != -1; i++)
+	{
+		uint lightIndex = s_VisiblePointLightIndicesBuffer.Indices[offset + i];
+
+		PointLight light = u_Lights.Lights[lightIndex];
+
+		vec3 Li = normalize(light.Position - WorldPosition);
+		float lightDistance = length(light.Position - WorldPosition);
+		vec3 Lh = normalize(Li + m_Params.View);
+		float attenuation = clamp(1.0 - lightDistance * lightDistance / (light.Radius * light.Radius), 0.0, 1.0);
+		attenuation *= attenuation;
+
+		vec3 Lradiance = light.Radiance * light.Multiplier * attenuation;
+
+		// Calculate angles between surface normal and various light vectors.
+		float cosLi = max(0.0, dot(m_Params.Normal, Li));
+		float cosLh = max(0.0, dot(m_Params.Normal, Lh));
+
+		vec3 F = FresnelSchlick(F0, max(0.0, dot(Lh, m_Params.View)));
+		float D = NDFGGX(cosLh, m_Params.Roughness);
+		float G = GaSchlickGGX(cosLi, m_Params.NdotV, m_Params.Roughness);
+
+		vec3 kd = (1.0 - F) * (1.0 - m_Params.Metalness);
+		vec3 diffuseBRDF = kd * m_Params.Albedo;
+
+		// Cook-Torrance
+		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * m_Params.NdotV);
+		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
+	}
+	return result;
+}
+
 void main() 
 {
 	vec2 pixelCoord = vec2( gl_FragCoord.x, gl_FragCoord.y );
@@ -439,6 +481,7 @@ void main()
 
 	LightingContribution = Lighting( F0 ) * ShadowAmount;
 	iblContribution = IBL( F0, Lr );
+	LightingContribution += CalculatePointLights( F0, vs_Input.Position );
 
 	FinalColor = vec4( FinalChecks( iblContribution + LightingContribution ), 1.0 );
 	OutAlbedo = vec4( m_Params.Albedo, 1.0 );
@@ -447,6 +490,7 @@ void main()
 //	float val = float(plCount);
 //	FinalColor.rgb = ( FinalColor.rgb * 0.2 ) + GetGradient(val);
 
+/*
 	ivec2 tileID = ivec2(gl_FragCoord) / ivec2(16, 16);
 	uint index = tileID.y * u_DebugData.TilesCountX + tileID.x;
 
@@ -464,4 +508,5 @@ void main()
 	{
 		FinalColor = vec4( (heat - 40.f) / 20.f, 1.f, 1.f, 1.f );
 	}
+*/
 }
