@@ -89,7 +89,7 @@ void main()
 	vec2 tc = vec2( location ) / u_ScreenInfo.FullResolution;
 
 	float depth = texture(u_PreDepth, tc).r;
-	depth = ( 0.5 * u_Matrices.Projection[3][2] ) / ( depth + 0.5 * u_Matrices.Projection[2][2] - 0.5 );
+	depth = 2.0f *( 0.5 * u_Matrices.Projection[3][2] ) / ( depth + 0.5 * u_Matrices.Projection[2][2] - 0.5 );
 
 	// Convert depth to uint so we can do atomic min and max comparisons between the threads
 	uint depthInt = floatBitsToUint(depth);

@@ -33,6 +33,7 @@
 #include "VulkanDebug.h"
 
 namespace Saturn {
+
 	static VkFence s_ComputeFence;
 
 	ComputePipeline::ComputePipeline( Ref<Shader> ComputeShader )
