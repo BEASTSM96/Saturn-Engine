@@ -135,6 +135,25 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
+		// Point Light Component
+		if( entity.HasComponent<PointLightComponent>() )
+		{
+			rEmitter << YAML::Key << "PointLightComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& plc = entity.GetComponent< PointLightComponent >();
+
+			rEmitter << YAML::Key << "Radiance" << YAML::Value << plc.Radiance;
+			rEmitter << YAML::Key << "Intensity" << YAML::Value << plc.Intensity;
+			rEmitter << YAML::Key << "Falloff" << YAML::Value << plc.Falloff;
+			rEmitter << YAML::Key << "LightSize" << YAML::Value << plc.LightSize;
+			rEmitter << YAML::Key << "MinRadius" << YAML::Value << plc.MinRadius;
+			rEmitter << YAML::Key << "Multiplier" << YAML::Value << plc.Multiplier;
+			rEmitter << YAML::Key << "Radius" << YAML::Value << plc.Radius;
+
+			rEmitter << YAML::EndMap;
+		}
+
 		// Box collider
 		if( entity.HasComponent<PhysXBoxColliderComponent>() )
 		{
@@ -334,6 +353,20 @@ namespace Saturn {
 				d.Radiance = dlc["Radiance"].as< glm::vec3 >();
 				d.Intensity = dlc["Intensity"].as< float >();
 				d.CastShadows = dlc["CastShadows"].as< bool >();
+			}
+
+			auto plc = entity[ "PointLightComponent" ];
+			if( plc )
+			{
+				auto& p = DeserialisedEntity.AddComponent< PointLightComponent >();
+
+				p.Radiance = plc[ "Radiance" ].as< glm::vec3 >();
+				p.Intensity = plc[ "Intensity" ].as< float >();
+				p.Multiplier = plc[ "Multiplier" ].as< float >();
+				p.LightSize = plc[ "LightSize" ].as< float >();
+				p.Radius = plc[ "Radius" ].as< float >();
+				p.MinRadius = plc[ "MinRadius" ].as< float >();
+				p.Falloff = plc[ "Falloff" ].as< float >();
 			}
 
 			auto bcc = entity[ "PhysXBoxColliderComponent" ];
