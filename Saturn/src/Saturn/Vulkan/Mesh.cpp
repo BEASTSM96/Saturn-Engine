@@ -157,10 +157,57 @@ namespace Saturn {
 
 			Ref<Asset> realAsset = AssetRegistry::Get().FindAsset( assetPath );
 
-			Ref<MaterialAsset> asset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( realAsset->GetAssetID() );
-			m_MaterialsAssets[ m ] = asset;
+			Ref<MaterialAsset> asset;
 
-			continue;
+			if( realAsset == nullptr )
+			{
+				// Create a new material asset.
+				realAsset = AssetRegistry::Get().FindAsset( AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( assetPath.extension().string() ) ) );
+
+				realAsset->SetPath( assetPath );
+
+				// Try load
+				asset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( realAsset->GetAssetID() );
+
+				if( asset == nullptr ) 
+				{
+					asset = Ref<MaterialAsset>::Create( nullptr );
+				}
+
+				// Write to disk, create file.
+				struct
+				{
+					UUID ID;
+					AssetType Type;
+					std::filesystem::path Path;
+					std::string Name;
+				} OldAssetData = {};
+
+				OldAssetData.ID   = realAsset->ID;
+				OldAssetData.Type = realAsset->Type;
+				OldAssetData.Path = realAsset->Path;
+				OldAssetData.Name = realAsset->Name;
+
+				realAsset = asset;
+				realAsset->ID = OldAssetData.ID;
+				realAsset->Type = OldAssetData.Type;
+				realAsset->Path = OldAssetData.Path;
+				realAsset->Name = OldAssetData.Name;
+
+				MaterialAssetSerialiser mas;
+				mas.Serialise( realAsset );
+
+				asset->SetName( MaterialName );
+
+				m_MaterialsAssets[ m ] = asset;
+			}
+			else
+			{
+				asset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( realAsset->GetAssetID() );
+				m_MaterialsAssets[ m ] = asset;
+
+				continue;
+			}
 
 			aiColor3D color;
 			if( material->Get( AI_MATKEY_COLOR_DIFFUSE, color ) == AI_SUCCESS );
@@ -383,7 +430,7 @@ namespace Saturn {
 				}
 
 				MaterialAssetSerialiser mas;
-				mas.Serialise( asset );
+				mas.Serialise( asset, nullptr );
 			}
 		}
 

@@ -46,7 +46,8 @@ namespace Saturn {
 
 	extern bool DrawColorVec3Control( const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
 
-	extern bool DrawFloatControl( const std::string& label, float& values, float columnWidth = 125.0f );
+	extern bool DrawFloatControl( const std::string& label, float& values, float min = 0.0f, float max = 500.0f, float columnWidth = 125.0f );
+
 	extern bool DrawIntControl( const std::string& label, int& values, float columnWidth = 125.0f );
 	
 	extern bool DrawBoolControl( const std::string& label, bool& value, float columnWidth = 125.0f );

@@ -36,6 +36,7 @@ layout(std140, binding = 3) uniform ScreenData
 layout(set = 0, binding = 4) uniform Matrices 
 {
 	mat4 ViewProjection;
+	mat4 Projection;
 	mat4 View;
 } u_Matrices;
 
@@ -86,10 +87,12 @@ void main()
 
 	// Step 1: Calculate the minimum and maximum depth values (from the depth buffer) for this group's tile
 	vec2 tc = vec2( location ) / u_ScreenInfo.FullResolution;
-	float linearDepth = ScreenSpaceToViewSpaceDepth(textureLod(u_PreDepth, tc, 0).r);
+
+	float depth = texture(u_PreDepth, tc).r;
+	depth = ( 0.5 * u_Matrices.Projection[3][2] ) / ( depth + 0.5 * u_Matrices.Projection[2][2] - 0.5 );
 
 	// Convert depth to uint so we can do atomic min and max comparisons between the threads
-	uint depthInt = floatBitsToUint(linearDepth);
+	uint depthInt = floatBitsToUint(depth);
 	atomicMin(minDepthInt, depthInt);
 	atomicMax(maxDepthInt, depthInt);
 

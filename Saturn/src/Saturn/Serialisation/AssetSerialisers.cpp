@@ -45,6 +45,7 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL
 
+	// Serialise without node editor info
 	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
 	{
 		auto basePath = rAsset->GetPath();

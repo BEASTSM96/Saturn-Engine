@@ -100,6 +100,8 @@ namespace Saturn {
 		Timer ShadowMapTimers[SHADOW_CASCADE_COUNT];
 		Timer SSAOPassTimer;
 		Timer AOCompositeTimer;
+		Timer PreDepthTimer;
+		Timer LightCullingTimer;
 
 		//////////////////////////////////////////////////////////////////////////
 
@@ -166,6 +168,9 @@ namespace Saturn {
 		Ref< ComputePipeline > LightCullingPipeline;
 		Ref< DescriptorSet > LightCullingDescriptorSet = nullptr;
 		glm::vec3 LightCullingWorkGroups;
+
+		bool ShowLightCulling = false;
+		bool ShowLightComplexity = false;
 
 		// Geometry
 		//////////////////////////////////////////////////////////////////////////
@@ -261,18 +266,11 @@ namespace Saturn {
 
 		Ref< Image2D > SSAO_NoiseImage;
 
-		// OTHERS
-
-		// Debug
-		bool st_EnableDebugSettings;
-		bool st_OnlyNormal;
-		bool st_OnlyAlbedo;
-		bool st_EnableIBL = true;
-		bool st_EnablePBR = true;
-
+		//////////////////////////////////////////////////////////////////////////
 		// BDRF Lut
 		Ref<Texture2D> BRDFLUT_Texture;
 
+		//////////////////////////////////////////////////////////////////////////
 		// SHADERS
 
 		Ref< Shader > GridShader = nullptr;

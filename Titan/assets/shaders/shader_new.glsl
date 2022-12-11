@@ -71,6 +71,9 @@ void main()
 #type fragment
 #version 450 core
 
+#define TRUE 1
+#define FALSE 0
+
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
 
@@ -120,12 +123,8 @@ layout(set = 0, binding = 3) uniform ShadowData
 
 layout(set = 0, binding = 12) uniform DebugData 
 {
-	float EnableDebugSettings;
-
-	float OnlyNormal;
-	float OnlyAlbedo;
-	float EnableIBL;
-	float EnablePBR;
+	float ShowLightComplexity;
+	float ShowLightCulling;
 
 	// Very temp.
 	int TilesCountX;
@@ -318,27 +317,6 @@ vec3 IBL(vec3 F0, vec3 Lr)
 	return kd * diffuseIBL + specularIBL;
 }
 
-vec3 FinalChecks( vec3 lastOut ) 
-{
-	vec3 result = vec3( 0.0 );	
-
-	// Check debug settings.
-
-	if( u_DebugData.EnableDebugSettings > 0.5 )
-	{
-		if( u_DebugData.OnlyAlbedo > 0.5 ) 
-			result = m_Params.Albedo;
-		else if( u_DebugData.OnlyNormal > 0.5 )
-			result = m_Params.Normal;
-		else
-			result = lastOut;
-	}
-	else
-		result = lastOut;
-
-	return result;
-}
-
 //////////////////////////////////////////////////////////////////////////
 // Forward+
 int GetPointLightBufferIndex(int i)
@@ -432,8 +410,6 @@ vec3 CalculatePointLights(in vec3 F0, vec3 WorldPosition)
 
 void main() 
 {
-	vec2 pixelCoord = vec2( gl_FragCoord.x, gl_FragCoord.y );
-
 	vec4 AlbedoColor = texture( u_AlbedoTexture, vs_Input.TexCoord );
 	m_Params.Albedo = AlbedoColor.rgb * u_Materials.AlbedoColor;
 
@@ -483,30 +459,13 @@ void main()
 	iblContribution = IBL( F0, Lr );
 	LightingContribution += CalculatePointLights( F0, vs_Input.Position );
 
-	FinalColor = vec4( FinalChecks( iblContribution + LightingContribution ), 1.0 );
+	FinalColor = vec4( iblContribution + LightingContribution, 1.0 );
 	OutAlbedo = vec4( m_Params.Albedo, 1.0 );
 
-//	int plCount = GetPo intLightCount();
-//	float val = float(plCount);
-//	FinalColor.rgb = ( FinalColor.rgb * 0.2 ) + GetGradient(val);
-
-/*
-	ivec2 tileID = ivec2(gl_FragCoord) / ivec2(16, 16);
-	uint index = tileID.y * u_DebugData.TilesCountX + tileID.x;
-
-	float heat = s_VisiblePointLightIndicesBuffer.Indices[ index ];
-
-	if(heat <= 20.f)
+	if( u_DebugData.ShowLightComplexity == TRUE )
 	{
-		FinalColor = vec4( 0.f, 0.f, heat / 20.f, 1.f );
+		int plCount = GetPointLightCount();
+		float val = float(plCount);
+		FinalColor.rgb = ( FinalColor.rgb * 0.2 ) + GetGradient(val);
 	}
-	else if(heat <= 40.f) 
-	{
-		FinalColor = vec4( 0.f, (heat - 20.f) / 20.0f, 1.f, 1.f );
-	}
-	else 
-	{
-		FinalColor = vec4( (heat - 40.f) / 20.f, 1.f, 1.f, 1.f );
-	}
-*/
 }

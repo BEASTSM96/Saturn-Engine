@@ -88,15 +88,21 @@ namespace Saturn {
 
 		InitDirShadowMap();
 
-		InitAO();
+		//InitAO();
 
-		InitAOComposite();
+		//InitAOComposite();
 
 		InitSceneComposite();
 
 		m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
 
 		m_RendererData.BRDFLUT_Texture = Ref<Texture2D>::Create( "assets/textures/BRDF_LUT.tga", AddressingMode::Repeat, false );
+
+		m_RendererData.SSAOPassTimer.Reset();
+		m_RendererData.SSAOPassTimer.Stop();
+
+		m_RendererData.AOCompositeTimer.Reset();
+		m_RendererData.AOCompositeTimer.Stop();
 
 		//////////////////////////////////////////////////////////////////////////
 	}
@@ -928,7 +934,11 @@ namespace Saturn {
 
 			ImGui::Text( "Renderer::BeginFrame: %.2f ms", FrameTimings.first );
 
+			ImGui::Text( "SceneRenderer::PreDepthPass: %.2f ms", m_RendererData.PreDepthTimer.ElapsedMilliseconds() );
+
 			ImGui::Text( "SceneRenderer::ShadowMapPass: %.2f ms", shadowPassTime );
+
+			ImGui::Text( "SceneRenderer::LightCulling: %.4f ms", m_RendererData.LightCullingTimer.ElapsedMilliseconds() );
 
 			ImGui::Text( "SceneRenderer::GeometryPass: %.2f ms", m_RendererData.GeometryPassTimer.ElapsedMilliseconds() );
 
@@ -948,26 +958,6 @@ namespace Saturn {
 		if( TreeNode( "Environment", false ) )
 		{
 			ImGui::DragFloat( "Skybox Lod", &m_RendererData.SkyboxLod, 0.1f, 0.0f, 1000.0f );
-
-			EndTreeNode();
-		}
-
-		if( TreeNode( "Debug", false ) )
-		{
-			if( TreeNode( "Static mesh shader", false ) )
-			{
-				ImGui::Checkbox( "Enable Debug settings", &m_RendererData.st_EnableDebugSettings );
-
-				if( m_RendererData.st_EnableDebugSettings )
-				{
-					ImGui::Checkbox( "Only Normal", &m_RendererData.st_OnlyNormal );
-					ImGui::Checkbox( "Only Albedo", &m_RendererData.st_OnlyAlbedo );
-					ImGui::Checkbox( "Enable PBR", &m_RendererData.st_EnablePBR );
-					ImGui::Checkbox( "Enable IBL", &m_RendererData.st_EnableIBL );
-				}
-
-				EndTreeNode();
-			}
 
 			EndTreeNode();
 		}
@@ -994,6 +984,7 @@ namespace Saturn {
 				EndTreeNode();
 			}
 
+			/*
 			if( TreeNode( "SSAO", true ) )
 			{
 				auto framebuffer = m_RendererData.SSAOFramebuffer->GetColorAttachmentsResources()[ 0 ];
@@ -1001,6 +992,15 @@ namespace Saturn {
 				float size = ImGui::GetContentRegionAvail().x;
 
 				Image( framebuffer, { size, size }, { 0, 1 }, { 1, 0 } );
+
+				EndTreeNode();
+			}
+			*/
+
+			if( TreeNode( "Forward+", true ) )
+			{
+				ImGui::Checkbox( "Show Light Complexity", &m_RendererData.ShowLightComplexity );
+				ImGui::Checkbox( "Show Light Culling", &m_RendererData.ShowLightCulling );
 
 				EndTreeNode();
 			}
@@ -1046,8 +1046,8 @@ namespace Saturn {
 		InitGeometryPass();
 		InitSceneComposite();
 
-		InitAO();
-		InitAOComposite();
+		//InitAO();
+		//InitAOComposite();
 
 		CreateSkyboxComponents();
 		CreateGridComponents();
@@ -1160,20 +1160,15 @@ namespace Saturn {
 
 			struct DebugData
 			{
-				float EnableDebugSettings;
-				float OnlyNormal;
-				float OnlyAlbedo;
-				float EnableIBL;
-				float EnablePBR;
+				float ShowLightComplexity;
+				float ShowLightCulling;
 
 				int TilesCountX;
 			} u_DebugData = {};
 
-			u_DebugData.EnableDebugSettings = ( float ) m_RendererData.st_EnableDebugSettings;
-			u_DebugData.OnlyAlbedo = ( float ) m_RendererData.st_OnlyAlbedo;
-			u_DebugData.OnlyNormal = ( float ) m_RendererData.st_OnlyNormal;
-			u_DebugData.EnableIBL = ( float ) m_RendererData.st_EnableIBL;
-			u_DebugData.EnablePBR = ( float ) m_RendererData.st_EnablePBR;
+			u_DebugData.ShowLightComplexity = ( float ) m_RendererData.ShowLightComplexity;
+			u_DebugData.ShowLightCulling = ( float ) m_RendererData.ShowLightCulling;
+
 			u_DebugData.TilesCountX = m_RendererData.LightCullingWorkGroups.x;
 
 			auto dirLight = m_pScene->m_Lights.DirectionalLights[ 0 ];
@@ -1303,6 +1298,8 @@ namespace Saturn {
 
 	void SceneRenderer::PreDepthPass()
 	{
+		m_RendererData.PreDepthTimer.Reset();
+
 		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
@@ -1344,6 +1341,8 @@ namespace Saturn {
 		}
 
 		m_RendererData.PreDepthPass->EndPass();
+
+		m_RendererData.PreDepthTimer.Stop();
 	}
 
 	void SceneRenderer::SceneCompositePass()
@@ -1481,6 +1480,8 @@ namespace Saturn {
 
 	void SceneRenderer::LightCullingPass()
 	{
+		m_RendererData.LightCullingTimer.Reset();
+
 		constexpr uint32_t TILE_SIZE = 16;
 		glm::uvec2 Viewport = { m_RendererData.Width, m_RendererData.Height };
 		glm::uvec2 Size = Viewport;
@@ -1503,6 +1504,7 @@ namespace Saturn {
 		struct 
 		{
 			glm::mat4 ViewProjection;
+			glm::mat4 Projection;
 			glm::mat4 View;
 		} u_Matrices;
 
@@ -1512,7 +1514,9 @@ namespace Saturn {
 		} u_Camera;
 
 		u_Matrices.ViewProjection   = m_RendererData.EditorCamera.ViewProjection();
+		u_Matrices.Projection       = m_RendererData.EditorCamera.ProjectionMatrix();
 		u_Matrices.View             = m_RendererData.EditorCamera.ViewMatrix();
+
 		u_ScreenData.FullResolution = { m_RendererData.Width, m_RendererData.Height };
 
 		auto projection = m_RendererData.EditorCamera.ProjectionMatrix();
@@ -1569,6 +1573,8 @@ namespace Saturn {
 				0, nullptr );
 
 		CullingPipeline->Unbind();
+
+		m_RendererData.LightCullingTimer.Stop();
 	}
 
 	void SceneRenderer::AddScheduledFunction( ScheduledFunc&& rrFunc )
@@ -1727,6 +1733,7 @@ namespace Saturn {
 		SkyboxDescriptorSet = nullptr;
 		SC_DescriptorSet = nullptr;
 		PreethamDescriptorSet = nullptr;
+		LightCullingDescriptorSet = nullptr;
 
 		// Vertex and Index buffers
 		GridVertexBuffer->Terminate();
@@ -1739,6 +1746,7 @@ namespace Saturn {
 		// Framebuffers
 		GeometryFramebuffer = nullptr;
 		SceneCompositeFramebuffer = nullptr;
+		PreDepthFramebuffer = nullptr;
 
 		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 			ShadowCascades[ i ].Framebuffer = nullptr;
@@ -1755,6 +1763,8 @@ namespace Saturn {
 		GeometryPass = nullptr;
 		SceneComposite = nullptr;
 
+		PreDepthPass->Terminate();
+
 		// Pipelines
 		SceneCompositePipeline = nullptr;
 
@@ -1764,6 +1774,7 @@ namespace Saturn {
 		StaticMeshPipeline = nullptr;
 		GridPipeline = nullptr;
 		SkyboxPipeline = nullptr;
+		PreDepthPipeline = nullptr;
 
 		// Shaders
 		GridShader = nullptr;
@@ -1772,6 +1783,10 @@ namespace Saturn {
 		SceneCompositeShader = nullptr;
 		DirShadowMapShader = nullptr;
 		PreethamShader = nullptr;
+		SSAOShader = nullptr;
+		SSAOBlurShader = nullptr;
+		AOCompositeShader = nullptr;
+		PreDepthShader = nullptr;
 
 		// Textures
 		BRDFLUT_Texture = nullptr;

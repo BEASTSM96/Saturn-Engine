@@ -43,8 +43,11 @@ namespace Saturn {
 
 	MaterialAsset::MaterialAsset( Ref<Material> material )
 	{
-		if( material == nullptr )
+		if( material == nullptr ) 
+		{
 			m_Material = Ref<Material>::Create( ShaderLibrary::Get().Find( "shader_new" ), "New Material" );
+			Default();
+		}
 		else
 			m_Material->Copy( material );
 	}

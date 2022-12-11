@@ -378,9 +378,11 @@ namespace Saturn {
 		DrawComponent<PointLightComponent>( "Light", entity, []( auto& plc )
 		{
 			DrawColorVec3Control( "Light Color", plc.Radiance, 150.0f );
-			DrawFloatControl( "Light Intensity", plc.Multiplier, 500.0f );
-			DrawFloatControl( "Radius", plc.Radius, FLT_MAX );
-			DrawFloatControl( "Falloff", plc.Falloff, 1.0f );
+
+
+			DrawFloatControl( "Light Intensity", plc.Multiplier, 0.0f, 500.0f );
+			DrawFloatControl( "Radius", plc.Radius, 0.0f, FLT_MAX );
+			DrawFloatControl( "Falloff", plc.Falloff, 0.0f, 1.0f );
 		} );
 
 		DrawComponent<DirectionalLightComponent>( "Directional Light", entity, []( auto& dlc )
