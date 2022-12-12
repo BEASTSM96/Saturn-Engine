@@ -279,7 +279,9 @@ namespace Saturn {
 		{
 			ShaderLibrary::Get().Load( "assets/shaders/PreDepth.glsl" );
 			ShaderLibrary::Get().Load( "assets/shaders/LightCulling.glsl" );
+
 			m_RendererData.PreDepthShader = ShaderLibrary::Get().Find( "PreDepth" );
+			m_RendererData.LightCullingShader = ShaderLibrary::Get().Find( "LightCulling" );
 		}
 
 		if( m_RendererData.PreDepthPipeline )
@@ -308,15 +310,12 @@ namespace Saturn {
 		m_RendererData.PreDepthPipeline = Ref<Pipeline>::Create( PipelineSpec );
 
 		// Light culling
-		Ref<Shader> lightCullingShader;
-		lightCullingShader = ShaderLibrary::Get().Find( "LightCulling" );
-
-		m_RendererData.LightCullingPipeline = Ref<ComputePipeline>::Create( lightCullingShader );
+		m_RendererData.LightCullingPipeline = Ref<ComputePipeline>::Create( m_RendererData.LightCullingShader );
 
 		if( !m_RendererData.LightCullingDescriptorSet )
-			m_RendererData.LightCullingDescriptorSet = lightCullingShader->CreateDescriptorSet( 0 );
+			m_RendererData.LightCullingDescriptorSet = m_RendererData.LightCullingShader->CreateDescriptorSet( 0 );
 
-		lightCullingShader->WriteDescriptor( "u_PreDepth", m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.LightCullingDescriptorSet->GetVulkanSet() );
+		m_RendererData.LightCullingShader->WriteDescriptor( "u_PreDepth", m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.LightCullingDescriptorSet->GetVulkanSet() );
 
 		m_RendererData.StorageBufferSet->Create( 0, 14 );
 	}
@@ -1489,8 +1488,6 @@ namespace Saturn {
 		
 		m_RendererData.LightCullingWorkGroups = { Size / TILE_SIZE, 1 };
 
-		Ref<Shader> lightCullingShader = ShaderLibrary::Get().Find( "LightCulling" );
-
 		m_RendererData.StorageBufferSet->Resize( 0, 14, m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4 * 1024 );
 
 		// UBs
@@ -1534,19 +1531,19 @@ namespace Saturn {
 		for( uint32_t i = 0; i < u_Lights.nbLights; i++ )
 			u_Lights.Lights[ i ] = m_pScene->m_Lights.PointLights[ i ];
 
-		lightCullingShader->UploadUB( ShaderType::Compute, 0, 0, &u_Lights, sizeof( u_Lights ) );
-		lightCullingShader->UploadUB( ShaderType::Compute, 0, 3, &u_ScreenData, sizeof( u_ScreenData ) );
-		lightCullingShader->UploadUB( ShaderType::Compute, 0, 4, &u_Matrices, sizeof( u_Matrices ) );
-		lightCullingShader->UploadUB( ShaderType::Compute, 0, 5, &u_Camera, sizeof( u_Camera ) );
+		m_RendererData.LightCullingShader->UploadUB( ShaderType::Compute, 0, 0, &u_Lights, sizeof( u_Lights ) );
+		m_RendererData.LightCullingShader->UploadUB( ShaderType::Compute, 0, 3, &u_ScreenData, sizeof( u_ScreenData ) );
+		m_RendererData.LightCullingShader->UploadUB( ShaderType::Compute, 0, 4, &u_Matrices, sizeof( u_Matrices ) );
+		m_RendererData.LightCullingShader->UploadUB( ShaderType::Compute, 0, 5, &u_Camera, sizeof( u_Camera ) );
 
-		lightCullingShader->WriteAllUBs( m_RendererData.LightCullingDescriptorSet );
+		m_RendererData.LightCullingShader->WriteAllUBs( m_RendererData.LightCullingDescriptorSet );
 
 		// Write sb
 		auto& rSB = m_RendererData.StorageBufferSet->Get( 0, 14 );
 
 		VkDescriptorBufferInfo Info = { .buffer = rSB.Buffer, .offset = 0, .range = rSB.Size };
 
-		lightCullingShader->WriteSB( 0, 14, Info, m_RendererData.LightCullingDescriptorSet );
+		m_RendererData.LightCullingShader->WriteSB( 0, 14, Info, m_RendererData.LightCullingDescriptorSet );
 
 		// Light culling here
 		auto& CullingPipeline = m_RendererData.LightCullingPipeline;
@@ -1775,6 +1772,7 @@ namespace Saturn {
 		GridPipeline = nullptr;
 		SkyboxPipeline = nullptr;
 		PreDepthPipeline = nullptr;
+		LightCullingPipeline = nullptr;
 
 		// Shaders
 		GridShader = nullptr;
@@ -1787,6 +1785,7 @@ namespace Saturn {
 		SSAOBlurShader = nullptr;
 		AOCompositeShader = nullptr;
 		PreDepthShader = nullptr;
+		LightCullingShader = nullptr;
 
 		// Textures
 		BRDFLUT_Texture = nullptr;

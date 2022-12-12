@@ -284,6 +284,7 @@ namespace Saturn {
 		Ref< Shader > SSAOBlurShader = nullptr;
 		Ref< Shader > AOCompositeShader = nullptr;
 		Ref< Shader > PreDepthShader = nullptr;
+		Ref< Shader > LightCullingShader = nullptr;
 	};
 
 	class SceneRenderer : public CountedObj

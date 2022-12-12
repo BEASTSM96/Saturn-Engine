@@ -91,6 +91,7 @@ namespace Saturn {
 		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
 		vkDestroyCommandPool( m_LogicalDevice, m_ComputeCommandPool, nullptr );
 		
+		m_DefaultPass->Terminate();
 		m_DefaultPass = nullptr;
 
 		m_SwapChain.Terminate();
