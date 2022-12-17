@@ -184,7 +184,7 @@ namespace Saturn {
 		m_Material->SetResource( rName, rTexture );
 	}
 
-	void MaterialAsset::Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader )
+	void MaterialAsset::Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, bool Force /*=false*/ )
 	{
 		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
 
@@ -197,7 +197,7 @@ namespace Saturn {
 			{
 				m_TextureCache[ name ] = texture->GetDescriptorInfo();
 			}
-			else
+			else if( !Force )
 			{
 				VkDescriptorImageInfo ImageInfo = m_TextureCache.at( name );
 

@@ -83,7 +83,7 @@ namespace Saturn {
 			m_Material->Set( rName, rValue );
 		}
 
-		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
+		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, bool Force = false );
 
 		Buffer GetPushConstantData() { return m_Material->m_PushConstantData; }
 

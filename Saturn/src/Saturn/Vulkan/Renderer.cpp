@@ -216,7 +216,7 @@ namespace Saturn {
 			// Set the offset to be the size of the vertex push constant.
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
 
-			rMaterialAsset->Bind( mesh, rSubmesh, Shader );
+			rMaterialAsset->Bind( mesh, rSubmesh, Shader, true );
 
 			// Descriptor set 0, for material texture data.
 			// Descriptor set 1, for environment data.
