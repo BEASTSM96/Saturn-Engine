@@ -491,9 +491,8 @@ namespace Saturn {
 
 	void Mesh::GetVetexAndIndexData()
 	{
-		std::vector<Index> Indices;
-
 		m_Submeshes.reserve( m_Scene->mNumMeshes );
+
 		for( unsigned m = 0; m < m_Scene->mNumMeshes; m++ )
 		{
 			aiMesh* mesh = m_Scene->mMeshes[ m ];
@@ -536,15 +535,13 @@ namespace Saturn {
 			{
 				SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
 
-				Indices.push_back( { mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] } );
+				m_Indices.push_back( { mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] } );
 			}
 		}
 
 		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), (uint32_t)(m_StaticVertices.size() * sizeof( MeshVertex ) ) );
 
-		m_Indices = Indices;
-
-		m_IndexBuffer = Ref<IndexBuffer>::Create( Indices.data(), Indices.size() * sizeof( Index ) );
+		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
 
 		TraverseNodes( m_Scene->mRootNode );
 	}

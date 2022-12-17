@@ -123,7 +123,13 @@ namespace Saturn {
 	{
 		SAT_CORE_ASSERT( glfwVulkanSupported(), "GLFW must be able to support vulkan." );
 
+#if !defined( SAT_DIST )
+
+		if( !CheckValidationLayerSupport() )
+			SAT_CORE_ASSERT( "Unable to find validation layer, please use DIST build if you want to run the app." );
+#else
 		CheckValidationLayerSupport();
+#endif
 
 		VkApplicationInfo AppInfo  ={ VK_STRUCTURE_TYPE_APPLICATION_INFO };
 		AppInfo.pApplicationName = "Saturn Engine";

@@ -53,6 +53,7 @@ namespace Saturn {
 				return VK_FORMAT_B8G8R8A8_UNORM;
 
 			case Saturn::ImageFormat::DEPTH24STENCIL8:
+				return VK_FORMAT_D32_SFLOAT_S8_UINT;
 			case Saturn::ImageFormat::DEPTH32F:
 				return VK_FORMAT_D32_SFLOAT;
 		}
