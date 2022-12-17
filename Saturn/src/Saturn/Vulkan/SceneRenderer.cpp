@@ -88,10 +88,6 @@ namespace Saturn {
 
 		InitDirShadowMap();
 
-		//InitAO();
-
-		//InitAOComposite();
-
 		InitSceneComposite();
 
 		m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
@@ -131,7 +127,7 @@ namespace Saturn {
 		{
 			PassSpecification PassSpec = {};
 			PassSpec.Name = "Geometry Pass";
-			PassSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
+			PassSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::DEPTH24STENCIL8 };
 			PassSpec.LoadDepth = true;
 
 			m_RendererData.GeometryPass = Ref< Pass >::Create( PassSpec );
@@ -257,7 +253,7 @@ namespace Saturn {
 		{
 			PassSpecification PassSpec = {};
 			PassSpec.Name = "PreDepth";
-			PassSpec.Attachments = { ImageFormat::Depth };
+			PassSpec.Attachments = { ImageFormat::DEPTH24STENCIL8 };
 
 			m_RendererData.PreDepthPass = Ref<Pass>::Create( PassSpec );
 		}
@@ -270,7 +266,7 @@ namespace Saturn {
 			FBSpec.Width = m_RendererData.Width;
 			FBSpec.Height = m_RendererData.Height;
 			FBSpec.RenderPass = m_RendererData.PreDepthPass;
-			FBSpec.Attachments = { ImageFormat::Depth };
+			FBSpec.Attachments = { ImageFormat::DEPTH24STENCIL8 };
 
 			m_RendererData.PreDepthFramebuffer = Ref<Framebuffer>::Create( FBSpec );
 		}
@@ -388,152 +384,6 @@ namespace Saturn {
 		m_RendererData.SceneCompositePipeline = Ref<Pipeline>::Create( PipelineSpec );
 	}
 
-	void SceneRenderer::InitAO()
-	{
-		PassSpecification PassSpec = {};
-		PassSpec.Name = "SSAO";
-		PassSpec.Attachments = { ImageFormat::RED8 };
-
-		if( m_RendererData.SSAORenderPass )
-			m_RendererData.SSAORenderPass->Recreate();
-		else
-			m_RendererData.SSAORenderPass = Ref<Pass>::Create( PassSpec );
-
-		PassSpec.Name = "SSAO-Blur";
-
-		if( m_RendererData.SSAOBlurRenderPass )
-			m_RendererData.SSAOBlurRenderPass->Recreate();
-		else
-			m_RendererData.SSAOBlurRenderPass = Ref<Pass>::Create( PassSpec );
-
-		FramebufferSpecification FBSpec = {};
-		FBSpec.RenderPass = m_RendererData.SSAORenderPass;
-		FBSpec.Width = m_RendererData.Width;
-		FBSpec.Height = m_RendererData.Height;
-		FBSpec.CreateDepth = false;
-
-		FBSpec.Attachments = { ImageFormat::RED8 };
-
-		m_RendererData.SSAOFramebuffer = Ref<Framebuffer>::Create( FBSpec );
-
-		FBSpec.RenderPass = m_RendererData.SSAOBlurRenderPass;
-
-		m_RendererData.SSAOBlurFramebuffer = Ref<Framebuffer>::Create( FBSpec );
-
-		if( !m_RendererData.SSAOShader )
-		{
-			ShaderLibrary::Get().Load( "assets/shaders/SSAO.glsl" );
-			m_RendererData.SSAOShader = ShaderLibrary::Get().Find( "SSAO" );
-		}
-
-		if( !m_RendererData.SSAOBlurShader )
-		{
-			ShaderLibrary::Get().Load( "assets/shaders/SSAO-Blur.glsl" );
-			m_RendererData.SSAOBlurShader = ShaderLibrary::Get().Find( "SSAO-Blur" );
-		}
-
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
-		PipelineSpec.Name = "SSAO";
-		PipelineSpec.Shader = m_RendererData.SSAOShader.Pointer();
-		PipelineSpec.RenderPass = m_RendererData.SSAORenderPass;
-		PipelineSpec.UseDepthTest = false;
-		PipelineSpec.CullMode = CullMode::None;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-
-		struct SpecializationInfo
-		{
-			uint32_t krnlSize = 32;
-			float    radius = 0.3F;
-		} _SpecializationInfo;
-
-		VkSpecializationMapEntry a = { 0, offsetof( SpecializationInfo, krnlSize ), sizeof( SpecializationInfo::krnlSize ) };
-		VkSpecializationMapEntry b = { 1, offsetof( SpecializationInfo, radius ), sizeof( SpecializationInfo::radius ) };
-
-		std::array<VkSpecializationMapEntry, 2> SpecializationEntries = 
-		{
-			a,
-			b
-		};
-
-		VkSpecializationInfo info = {};
-		info.mapEntryCount = 2;
-		info.pMapEntries = SpecializationEntries.data();
-		info.dataSize = sizeof( _SpecializationInfo );
-		info.pData = &_SpecializationInfo;
-
-		//PipelineSpec.SpecializationInfo = info;
-		//PipelineSpec.UseSpecializationInfo = true;
-		//PipelineSpec.SpecializationStage = ShaderType::Fragment;
-
-		if( m_RendererData.SSAOPipeline )
-			m_RendererData.SSAOPipeline = nullptr;
-
-		if( m_RendererData.SSAOBlurPipeline )
-			m_RendererData.SSAOPipeline = nullptr;
-
-		m_RendererData.SSAOPipeline = Ref<Pipeline>::Create( PipelineSpec );
-
-		if( !m_RendererData.SSAO_DescriptorSet )
-			m_RendererData.SSAO_DescriptorSet = m_RendererData.SSAOShader->CreateDescriptorSet( 0 );
-
-		m_RendererData.SSAOShader->WriteDescriptor( "u_ViewNormalTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ]->GetDescriptorInfo(), m_RendererData.SSAO_DescriptorSet->GetVulkanSet() );
-
-		m_RendererData.SSAOShader->WriteDescriptor( "u_DepthTexture", m_RendererData.ShadowCascades[0].Framebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.SSAO_DescriptorSet->GetVulkanSet() );
-
-		m_RendererData.SSAOShader->WriteAllUBs( m_RendererData.SSAO_DescriptorSet );
-
-		PipelineSpec.Name = "SSAO-Blur";
-		PipelineSpec.Shader = m_RendererData.SSAOBlurShader;
-		PipelineSpec.RenderPass = m_RendererData.SSAORenderPass;
-		PipelineSpec.SpecializationInfo = {};
-		PipelineSpec.UseSpecializationInfo = false;
-		PipelineSpec.SpecializationStage = ShaderType::None;
-
-		m_RendererData.SSAOBlurPipeline = Ref<Pipeline>::Create( PipelineSpec );
-
-		if( !m_RendererData.SSAO_VertexBuffer && !m_RendererData.SSAO_IndexBuffer )
-			Renderer::Get().CreateFullscreenQuad( &m_RendererData.SSAO_VertexBuffer, &m_RendererData.SSAO_IndexBuffer );
-
-		// Create noise texture for SSAO
-		std::default_random_engine rndEngine( time( nullptr ) );
-		std::uniform_real_distribution<float> rndDist( 0.0f, 1.0f );
-
-		std::vector<glm::vec4> ssaoNoise( m_RendererData.SSAO_NOISE_DIM* m_RendererData.SSAO_NOISE_DIM );
-		for( uint32_t i = 0; i < static_cast< uint32_t >( ssaoNoise.size() ); i++ )
-		{
-			ssaoNoise[ i ] = glm::vec4( rndDist( rndEngine ) * 2.0f - 1.0f, rndDist( rndEngine ) * 2.0f - 1.0f, 0.0f, 0.0f );
-		}
-
-		m_RendererData.SSAO_NoiseImage = Ref<Image2D>::Create( ImageFormat::RGBA32F, 4, 4, 1, ssaoNoise.data(), ssaoNoise.size() * sizeof( glm::vec4 ) );
-
-		auto lerp = []( float a, float b, float f )
-		{
-			return a + f * ( b - a );
-		};
-
-		m_RendererData.SSAOKernel.resize( m_RendererData.SSAO_KERNEL_SIZE );
-
-		for( uint32_t i = 0; i < m_RendererData.SSAO_KERNEL_SIZE; i++ )
-		{
-			glm::vec3 sample( rndDist( rndEngine ) * 2.0 - 1.0, rndDist( rndEngine ) * 2.0 - 1.0, rndDist( rndEngine ) );
-			sample = glm::normalize( sample );
-			sample *= rndDist( rndEngine );
-			float scale = float( i ) / float( m_RendererData.SSAO_KERNEL_SIZE );
-			scale = lerp( 0.1f, 1.0f, scale * scale );
-			m_RendererData.SSAOKernel[ i ] = glm::vec4( sample * scale, 0.0f );
-		}
-
-		m_RendererData.SSAOShader->WriteDescriptor( "u_NoiseTexture", m_RendererData.SSAO_NoiseImage->GetDescriptorInfo(), m_RendererData.SSAO_DescriptorSet->GetVulkanSet() );
-
-		m_RendererData.SSAOShader->WriteAllUBs( m_RendererData.SSAO_DescriptorSet );
-	}
-
 	void SceneRenderer::InitAOComposite()
 	{
 		PassSpecification PassSpec = {};
@@ -586,8 +436,6 @@ namespace Saturn {
 
 		if( !m_RendererData.AO_DescriptorSet )
 			m_RendererData.AO_DescriptorSet = m_RendererData.AOCompositeShader->CreateDescriptorSet( 0 );
-
-		m_RendererData.AOCompositeShader->WriteDescriptor( "u_AOTexture", m_RendererData.SSAOFramebuffer->GetColorAttachmentsResources()[ 0 ]->GetDescriptorInfo(), m_RendererData.AO_DescriptorSet->GetVulkanSet() );
 
 		m_RendererData.AOCompositeShader->WriteDescriptor( "u_AlbedoTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 2 ]->GetDescriptorInfo(), m_RendererData.AO_DescriptorSet->GetVulkanSet() );
 
@@ -1378,67 +1226,6 @@ namespace Saturn {
 		m_RendererData.SceneComposite->EndPass();
 	}
 
-	void SceneRenderer::AOPass()
-	{
-		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
-		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
-
-		m_RendererData.SSAORenderPass->BeginPass( CommandBuffer, m_RendererData.SSAOFramebuffer->GetVulkanFramebuffer(), Extent );
-
-		m_RendererData.SSAOPassTimer.Reset();
-
-		VkViewport Viewport = {};
-		Viewport.x = 0;
-		Viewport.y = 0;
-		Viewport.width = ( float ) m_RendererData.Width;
-		Viewport.height = ( float ) m_RendererData.Height;
-		Viewport.minDepth = 0.0f;
-		Viewport.maxDepth = 1.0f;
-
-		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
-
-		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
-		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
-
-		struct Matrices
-		{
-			glm::mat4 ViewProjection;
-			glm::mat4 VP;
-		} u_Matrices;
-
-		u_Matrices.ViewProjection = glm::inverse( m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix() );
-
-		u_Matrices.VP = m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix();
-
-		struct SSAOData
-		{
-			glm::vec4 Samples[ 32 ];
-			float SSAORadius;
-		} u_Data;
-
-		m_RendererData.SSAOShader->WriteDescriptor( "u_ViewNormalTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 1 ]->GetDescriptorInfo(), m_RendererData.SSAO_DescriptorSet->GetVulkanSet() );
-
-		m_RendererData.SSAOShader->WriteDescriptor( "u_DepthTexture", m_RendererData.GeometryFramebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.SSAO_DescriptorSet->GetVulkanSet() );
-
-		u_Data.SSAORadius = (float)m_RendererData.SSAO_RADIUS;
-
-		for( int i = 0; i < m_RendererData.SSAO_KERNEL_SIZE; i++ )
-			u_Data.Samples[ i ] = m_RendererData.SSAOKernel[ i ];
-
-		m_RendererData.SSAOShader->UploadUB( ShaderType::Fragment, 0, 0, &u_Matrices, sizeof( u_Matrices ) );
-		m_RendererData.SSAOShader->UploadUB( ShaderType::Fragment, 0, 1, &u_Data, sizeof( u_Data ) );
-
-		m_RendererData.SSAOShader->WriteAllUBs( m_RendererData.SSAO_DescriptorSet );
-
-		// Draw
-		Renderer::Get().SubmitFullscreenQuad(
-			m_RendererData.CommandBuffer, m_RendererData.SSAOPipeline, m_RendererData.SSAO_DescriptorSet, m_RendererData.SSAO_IndexBuffer, m_RendererData.SSAO_VertexBuffer );
-
-		m_RendererData.SSAORenderPass->EndPass();
-
-		m_RendererData.SSAOPassTimer.Stop();
-	}
-
 	void SceneRenderer::AOCompositePass()
 	{
 		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
@@ -1463,8 +1250,8 @@ namespace Saturn {
 
 		// Draw
 		// We can use the SSAO vertex and index buffers.
-		Renderer::Get().SubmitFullscreenQuad(
-			m_RendererData.CommandBuffer, m_RendererData.AOCompositePipeline, m_RendererData.AO_DescriptorSet, m_RendererData.SSAO_IndexBuffer, m_RendererData.SSAO_VertexBuffer );
+		//Renderer::Get().SubmitFullscreenQuad(
+		//	m_RendererData.CommandBuffer, m_RendererData.AOCompositePipeline, m_RendererData.AO_DescriptorSet, m_RendererData.SSAO_IndexBuffer, m_RendererData.SSAO_VertexBuffer );
 
 		m_RendererData.AOComposite->EndPass();
 
@@ -1672,24 +1459,6 @@ namespace Saturn {
 		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 		
-		/*
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "AO" );
-
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Screen-Space AO" );
-
-		AOPass();
-
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Screen-Space AO Blur" );
-
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-		*/
-
-		//AOCompositePass();
-
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Texture pass" );
 
 		SceneCompositePass();
@@ -1781,8 +1550,6 @@ namespace Saturn {
 		SceneCompositeShader = nullptr;
 		DirShadowMapShader = nullptr;
 		PreethamShader = nullptr;
-		SSAOShader = nullptr;
-		SSAOBlurShader = nullptr;
 		AOCompositeShader = nullptr;
 		PreDepthShader = nullptr;
 		LightCullingShader = nullptr;

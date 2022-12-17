@@ -69,6 +69,7 @@ namespace Saturn {
 					return VK_FORMAT_R8_UNORM;
 
 				case Saturn::ImageFormat::DEPTH24STENCIL8:
+					return VK_FORMAT_D32_SFLOAT_S8_UINT;
 				case Saturn::ImageFormat::DEPTH32F:
 					return VK_FORMAT_D32_SFLOAT;
 			}
@@ -157,7 +158,10 @@ namespace Saturn {
 				m_AttachmentImageViews.resize( m_Specification.Attachments.Attachments.size() );
 
 			if( FramebufferUtills::IsDepthFormat( m_Specification.ExistingImage->GetImageFormat() ) ) 
+			{
 				m_DepthAttachmentResource = m_Specification.ExistingImage;
+				m_DepthFormat = m_Specification.ExistingImage->GetImageFormat();
+			}
 			else 
 			{
 				if( m_ColorAttachmentsResources.size() )
@@ -195,7 +199,7 @@ namespace Saturn {
 		
 		if( !m_DepthAttachmentResource && m_Specification.CreateDepth ) 
 		{
-			m_DepthAttachmentResource = Ref<Image2D>::Create( ImageFormat::Depth, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
+			m_DepthAttachmentResource = Ref<Image2D>::Create( m_DepthFormat, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
 
 			m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView( m_Specification.ExistingImageLayer ) );
 		}

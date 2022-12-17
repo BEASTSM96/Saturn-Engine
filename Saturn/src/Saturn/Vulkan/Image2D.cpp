@@ -54,6 +54,7 @@ namespace Saturn {
 				return VK_FORMAT_R8_UNORM;
 
 			case Saturn::ImageFormat::DEPTH24STENCIL8:
+				return VK_FORMAT_D32_SFLOAT_S8_UINT;
 			case Saturn::ImageFormat::DEPTH32F:
 				return VK_FORMAT_D32_SFLOAT;
 		}
@@ -182,10 +183,11 @@ namespace Saturn {
 		VK_CHECK( vkAllocateMemory( VulkanContext::Get().GetDevice(), &MemoryAllocateInfo, nullptr, &m_Memory ) );
 		VK_CHECK( vkBindImageMemory( VulkanContext::Get().GetDevice(), m_Image, m_Memory, 0 ) );
 
-		TransitionImageLayout( VulkanFormat( m_Format ), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
 
 		if( m_pData ) 
 		{
+			TransitionImageLayout( VulkanFormat( m_Format ), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
+
 			VkBuffer ImgBuffer;
 
 			VkDeviceSize ImageSize = m_Width * m_Height * 4;
@@ -205,14 +207,14 @@ namespace Saturn {
 			pAllocator->UnmapMemory( BufferAlloc );
 
 			CopyBufferToImage( ImgBuffer );
+
+			TransitionImageLayout( VulkanFormat( m_Format ), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_DescriptorImageInfo.imageLayout );
 		}
 
 		if( IsColorFormat( m_Format ) )
 			m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		else
 			m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-
-		TransitionImageLayout( VulkanFormat( m_Format ), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_DescriptorImageInfo.imageLayout );
 
 		// Create base image view & sampler.
 		VkImageViewCreateInfo ImageViewCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
@@ -230,10 +232,8 @@ namespace Saturn {
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		ImageViewCreateInfo.subresourceRange.layerCount = m_ArrayLevels;
 
-		if( VulkanFormat( m_Format ) >= VK_FORMAT_D16_UNORM_S8_UINT )
-		{
+		if( m_Format == ImageFormat::DEPTH24STENCIL8 )
 			ImageViewCreateInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-		}
 
 		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageView) );
 		SetDebugUtilsObjectName( "Base image view layer", ( uint64_t ) m_ImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
@@ -272,6 +272,9 @@ namespace Saturn {
 				ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			else
 				ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+			if( m_Format == ImageFormat::DEPTH24STENCIL8 )
+				ImageViewCreateInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
 			ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 			ImageViewCreateInfo.subresourceRange.levelCount = 1;
@@ -323,6 +326,9 @@ namespace Saturn {
 		ImageBarrier.subresourceRange.levelCount = 1;
 		ImageBarrier.subresourceRange.baseArrayLayer = 0;
 		ImageBarrier.subresourceRange.layerCount = 1;
+
+		if( Format == VK_FORMAT_D32_SFLOAT_S8_UINT )
+			ImageBarrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
 		if( OldLayout == VK_IMAGE_LAYOUT_UNDEFINED && NewLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL )
 		{

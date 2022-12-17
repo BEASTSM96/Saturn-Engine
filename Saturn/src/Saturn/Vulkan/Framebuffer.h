@@ -97,7 +97,7 @@ namespace Saturn {
 		std::vector< ImageFormat > m_ColorAttachmentsFormats;
 		std::vector< Ref<Image2D> > m_ColorAttachmentsResources;
 
-		ImageFormat m_DepthFormat;
+		ImageFormat m_DepthFormat = ImageFormat::Depth;
 		Ref<Image2D> m_DepthAttachmentResource;
 
 		std::vector< VkImageView > m_AttachmentImageViews;

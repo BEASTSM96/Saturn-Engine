@@ -241,30 +241,6 @@ namespace Saturn {
 		Ref<Pass> AOComposite;
 		Ref<Framebuffer> AOCompositeFramebuffer;
 
-		// Screen-Space AO
-
-		int SSAO_KERNEL_SIZE = 32;
-		float SSAO_RADIUS    = 0.3F;
-		float SSAO_NOISE_DIM = 4.0F;
-
-		std::vector<glm::vec4> SSAOKernel;
-
-		Ref<Image2D> SSAONoiseImage = nullptr;
-
-		Ref<Pipeline> SSAOPipeline;
-		Ref<Pipeline> SSAOBlurPipeline;
-
-		Ref<Pass> SSAORenderPass;
-		Ref<Pass> SSAOBlurRenderPass;
-
-		Ref<Framebuffer> SSAOFramebuffer;
-		Ref<Framebuffer> SSAOBlurFramebuffer;
-
-		Ref< DescriptorSet > SSAO_DescriptorSet = nullptr;
-		VertexBuffer* SSAO_VertexBuffer = nullptr;
-		IndexBuffer* SSAO_IndexBuffer = nullptr;
-
-		Ref< Image2D > SSAO_NoiseImage;
 
 		//////////////////////////////////////////////////////////////////////////
 		// BDRF Lut
@@ -280,8 +256,6 @@ namespace Saturn {
 		Ref< Shader > SceneCompositeShader = nullptr;
 		Ref< Shader > DirShadowMapShader = nullptr;
 		Ref< Shader > SelectedGeometryShader = nullptr;
-		Ref< Shader > SSAOShader = nullptr;
-		Ref< Shader > SSAOBlurShader = nullptr;
 		Ref< Shader > AOCompositeShader = nullptr;
 		Ref< Shader > PreDepthShader = nullptr;
 		Ref< Shader > LightCullingShader = nullptr;
@@ -345,14 +319,12 @@ namespace Saturn {
 		void InitDirShadowMap();
 		void InitPreDepth();
 		void InitSceneComposite();
-		void InitAO();
 		void InitAOComposite();
 
 		void DirShadowMapPass();
 		void PreDepthPass();
 		void GeometryPass();
 		void SceneCompositePass();
-		void AOPass();
 		void AOCompositePass();
 		void LightCullingPass();
 
