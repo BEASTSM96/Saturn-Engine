@@ -212,7 +212,7 @@ namespace Saturn {
 
 			if( !m_SelectionContext.HasComponent<PointLightComponent>() )
 			{
-				if( ImGui::Button( "Light" ) )
+				if( ImGui::Button( "Point Light" ) )
 				{
 					m_SelectionContext.AddComponent<PointLightComponent>();
 					ImGui::CloseCurrentPopup();
@@ -375,7 +375,7 @@ namespace Saturn {
 
 		} );
 
-		DrawComponent<PointLightComponent>( "Light", entity, []( auto& plc )
+		DrawComponent<PointLightComponent>( "Point Light", entity, []( auto& plc )
 		{
 			DrawColorVec3Control( "Light Color", plc.Radiance, 150.0f );
 
