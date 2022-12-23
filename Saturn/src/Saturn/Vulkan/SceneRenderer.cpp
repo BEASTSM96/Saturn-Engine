@@ -290,7 +290,7 @@ namespace Saturn {
 		PipelineSpec.Shader = m_RendererData.PreDepthShader.Pointer();
 		PipelineSpec.RenderPass = m_RendererData.PreDepthPass;
 		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::None;
+		PipelineSpec.CullMode = CullMode::Back;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 		PipelineSpec.RequestDescriptorSets = { ShaderType::Vertex, 0 };
 		PipelineSpec.DepthCompareOp = VK_COMPARE_OP_LESS;
