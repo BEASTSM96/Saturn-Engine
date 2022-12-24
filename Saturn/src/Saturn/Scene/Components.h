@@ -283,8 +283,8 @@ namespace Saturn {
 		float Multiplier = 1.0f;
 		float LightSize = 0.5f;
 		float Radius = 10.0f;
-		float MinRadius = 1.0f;
-		float Falloff = 1.0f;
+		float MinRadius = 1.f;
+		float Falloff = 1.f;
 	};
 
 	template<typename... V>

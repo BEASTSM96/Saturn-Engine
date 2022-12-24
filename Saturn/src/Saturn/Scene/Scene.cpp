@@ -145,6 +145,10 @@ namespace Saturn {
 			{
 				auto points = m_Registry.group<PointLightComponent>( entt::get<TransformComponent> );
 
+				//m_Lights.PointLights.resize( points.size() );
+
+				uint32_t plIndex = 0;
+
 				for( const auto& e : points )
 				{
 					auto [transformComponent, lightComponent] = points.get<TransformComponent, PointLightComponent>( e );
@@ -169,7 +173,27 @@ namespace Saturn {
 						.MinRadius = lightComponent.MinRadius,
 						.Falloff = lightComponent.Falloff };
 
+					//m_Lights.PointLights.push_back( {
+					//	.Position = transformComponent.Position,
+					//	.Radiance = lightComponent.Radiance,
+					//	.Multiplier = lightComponent.Multiplier,
+					//	.LightSize = lightComponent.LightSize,
+					//	.Radius = lightComponent.Radius,
+					//	.MinRadius = lightComponent.MinRadius,
+					//	.Falloff = lightComponent.Falloff } );
+
+					SAT_CORE_INFO( "Point Light Info:" );
+					SAT_CORE_INFO( " Position: {0}", pl.Position );
+					SAT_CORE_INFO( " Radiance: {0}", pl.Radiance );
+					SAT_CORE_INFO( " Multiplier: {0}", pl.Multiplier );
+					SAT_CORE_INFO( " LightSize: {0}", pl.LightSize );
+					SAT_CORE_INFO( " Radius: {0}", pl.Radius );
+					SAT_CORE_INFO( " MinRadius: {0}", pl.MinRadius );
+					SAT_CORE_INFO( " Falloff: {0}", pl.Falloff );
+
 					m_Lights.PointLights.push_back( pl );
+
+					plIndex++;
 				}
 			}
 		}

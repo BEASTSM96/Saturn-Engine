@@ -969,34 +969,15 @@ namespace Saturn {
 				glm::mat4 LightMatrix[4];
 			} u_LightData = {};
 
-			struct Light
-			{
-				glm::vec3 Direction;
-				float Padding = 0.0f;
-				glm::vec3 Radiance;
-				float Multiplier;
-			};
-			
-			// We don't need a Point light struct, Scene already has one. However we need a struct to match the one in the shader.
-			struct
-			{
-				uint32_t nbLights;
-				PointLight Lights[ 1024 ];
-			} u_Lights;
+			RendererData::PointLights u_Lights;
 
-			u_Lights.nbLights = m_pScene->m_Lights.PointLights.size();
+			u_Lights.nbLights = int( m_pScene->m_Lights.PointLights.size() );
 
-			// We need a better way...
-			for( uint32_t i = 0; i < u_Lights.nbLights; i++ ) 
-			{
-				auto& rLight = m_pScene->m_Lights.PointLights[ i ];
-
-				u_Lights.Lights[ i ] = { rLight.Position, rLight.Radiance, rLight.Multiplier, rLight.LightSize, rLight.Radius, rLight.MinRadius, rLight.Falloff };
-			}
+			std::memcpy( u_Lights.Lights, m_pScene->m_Lights.PointLights.data(), m_pScene->m_Lights.GetPointLightSize() );
 
 			struct SceneData
 			{
-				Light Lights;
+				DirLight Lights;
 				glm::vec3 CameraPosition;
 			} u_SceneData = {};
 			
@@ -1039,7 +1020,8 @@ namespace Saturn {
 			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 3, &u_ShadowData, sizeof( u_ShadowData ) );
 			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 12, &u_DebugData, sizeof( u_DebugData ) );
 
-			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, sizeof( u_Lights ) );
+			//StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, sizeof( u_Lights ) );
+			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, 16ull + sizeof( PointLight ) * u_Lights.nbLights );
 
 			// Render
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,

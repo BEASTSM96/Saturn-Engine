@@ -58,14 +58,14 @@ namespace Saturn {
 
 	struct PointLight
 	{
-		alignas( 16 ) glm::vec3 Position;
-		alignas( 16 ) glm::vec3 Radiance;
+		alignas( 16 ) glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
+		alignas( 16 ) glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
 
-		alignas( 4 ) float Multiplier;
-		alignas( 4 ) float LightSize;
-		alignas( 4 ) float Radius;
-		alignas( 4 ) float MinRadius;
-		alignas( 4 ) float Falloff;
+		alignas( 4 ) float Multiplier = 1.0f;
+		alignas( 4 ) float LightSize = 0.5f;
+		alignas( 4 ) float Radius = 10.0f;
+		alignas( 4 ) float MinRadius = 0.001f;
+		alignas( 4 ) float Falloff = 1.f;
 	};
 
 	struct Lights
@@ -73,7 +73,7 @@ namespace Saturn {
 		DirectionalLight DirectionalLights[ 4 ];
 		std::vector<PointLight> PointLights;
 
-		uint32_t GetPointLightSize() { return ( uint32_t ) PointLights.size() * sizeof( PointLight ); };
+		[[nodiscard]] uint32_t GetPointLightSize() { return sizeof( PointLight ) * PointLights.size(); };
 	};
 
 	class PhysXRuntime;

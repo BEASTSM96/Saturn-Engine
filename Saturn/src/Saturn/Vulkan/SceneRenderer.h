@@ -63,6 +63,16 @@ namespace Saturn {
 		glm::mat4 ViewProjection;
 	};
 
+	// Most of theses structs MUST (most of the time) match the structs in the shader.
+	// DirLight
+	struct DirLight
+	{
+		glm::vec3 Direction;
+		float Padding = 0.0f;
+		glm::vec3 Radiance;
+		float Multiplier;
+	};
+
 	struct RendererData
 	{
 		void Terminate();
@@ -136,6 +146,12 @@ namespace Saturn {
 			alignas( 16 ) glm::vec4 AlbedoColor;
 			alignas( 4 ) float Metalness;
 			alignas( 4 ) float Roughness;
+		};
+
+		struct PointLights
+		{
+			uint32_t nbLights = 0;
+			PointLight Lights[ 1024 ]{};
 		};
 
 		//////////////////////////////////////////////////////////////////////////

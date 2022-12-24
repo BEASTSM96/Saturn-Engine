@@ -359,7 +359,7 @@ namespace Saturn {
 	{
 		auto bufferData = MapUB( Type, Set, Binding );
 
-		memcpy( bufferData, pData, Size );
+		memcpy( bufferData, (const uint8_t*)pData, Size );
 
 		UnmapUB( Type, Set, Binding );
 	}
