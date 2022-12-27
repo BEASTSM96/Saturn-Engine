@@ -25,12 +25,14 @@ IncludeDir["ImGuizmo"] = "Saturn/vendor/ImGuizmo/src/"
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include/"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
+IncludeDir["rttr"] = "Saturn/vendor/rttr/src"
 
 group "Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
+	include "Saturn/vendor/rttr"
 
 group "Engine"
 project "Saturn"
@@ -92,7 +94,8 @@ project "Saturn"
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
-		"%{IncludeDir.ImguiNodeEditor}"
+		"%{IncludeDir.ImguiNodeEditor}",
+		"%{IncludeDir.rttr}"
 	}
 
 	links 
@@ -100,7 +103,8 @@ project "Saturn"
 		"GLFW",
 		"ImGui",
 		"SPIRV-Cross",
-		"yaml-cpp"
+		"yaml-cpp",
+		"rttr"
 	}
 
 	filter "files:Saturn/vendor/ImGuizmo/src/ImGuizmo/**.cpp"
@@ -262,7 +266,8 @@ project "Titan"
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
 		"Saturn/vendor/vulkan/include",
-		"%{IncludeDir.ImGuizmo}"
+		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.rttr}"
 	}
 
 	links

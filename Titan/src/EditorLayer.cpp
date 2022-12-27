@@ -63,6 +63,9 @@
 
 #include <Saturn/Asset/AssetRegistry.h>
 
+#include <rttr/type>
+#include <rttr/registration.h>
+
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
 
@@ -74,6 +77,32 @@ namespace Saturn {
 	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
 	static bool s_ShowDemoWindow = false;
+
+	class Test
+	{
+	public:
+		Test() {}
+
+		~Test() 
+		{
+			SAT_CORE_INFO( "~Test" );
+		}
+
+		void Testing() 
+		{
+			SAT_CORE_INFO( "Test was called" );
+		}
+
+	private:
+
+	};
+
+	RTTR_REGISTRATION
+	{
+		rttr::registration::class_<Test>( "Test" )
+			 .constructor<>()
+			 .method( "Testing", &Test::Testing );
+	}
 
 	EditorLayer::EditorLayer() 
 		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
@@ -186,6 +215,20 @@ namespace Saturn {
 
 		Project::GetActiveProject()->LoadAssetRegistry();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
+
+		// RTTR Test
+		rttr::type t = rttr::type::get_by_name( "Test" );
+		rttr::variant v = t.create();
+
+		// call constructor
+		rttr::constructor ctor = t.get_constructor();
+		//	v = ctor.invoke();
+
+		rttr::method x = t.get_method( "Testing" );
+
+		x.invoke( v );
+
+		t.destroy( v );
 	}
 
 	EditorLayer::~EditorLayer()

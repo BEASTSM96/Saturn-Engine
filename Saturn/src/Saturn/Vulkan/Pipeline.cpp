@@ -210,8 +210,6 @@ namespace Saturn {
 			VertexInputAttributes[ i ].format = ShaderDataTypeToVulkan( element.Type );
 			VertexInputAttributes[ i ].offset = element.Offset;
 			
-			SAT_CORE_INFO( "Offset: {0}", VertexInputAttributes[ i ].offset );
-
 			i++;
 		}
 		
