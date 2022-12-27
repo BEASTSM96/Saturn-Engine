@@ -55,6 +55,7 @@
 
 #define SAT_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
+// Lazy load... TODO: Change this.
 #define SINGLETON( x )                    \
 public:                                   \
 static x& Get() { static x _; return _; } \

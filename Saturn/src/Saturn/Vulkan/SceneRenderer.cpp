@@ -1265,26 +1265,29 @@ namespace Saturn {
 		struct 
 		{
 			glm::vec2 FullResolution;
-		} u_ScreenData;
+		} u_ScreenData{};
 
 		struct 
 		{
 			glm::mat4 ViewProjection;
 			glm::mat4 Projection;
 			glm::mat4 View;
-		} u_Matrices;
+			glm::mat4 InvP;
+		} u_Matrices{};
 
 		struct
 		{
 			glm::vec2 DepthUnpack;
-		} u_Camera;
+		} u_Camera{};
 
 		u_Matrices.ViewProjection   = m_RendererData.EditorCamera.ViewProjection();
 		u_Matrices.Projection       = m_RendererData.EditorCamera.ProjectionMatrix();
-		u_Matrices.View             = m_RendererData.EditorCamera.ViewMatrix();
+		u_Matrices.View             = glm::inverse( m_RendererData.EditorCamera.ViewMatrix() );
+		u_Matrices.InvP				= glm::inverse( u_Matrices.Projection );
 
 		u_ScreenData.FullResolution = { m_RendererData.Width, m_RendererData.Height };
 
+		/*
 		auto projection = m_RendererData.EditorCamera.ProjectionMatrix();
 
 		float depthLinearizeMul = ( -projection[ 3 ][ 2 ] );
@@ -1294,6 +1297,7 @@ namespace Saturn {
 			depthLinearizeAdd = -depthLinearizeAdd;
 
 		u_Camera.DepthUnpack = { depthLinearizeAdd, depthLinearizeMul };
+		*/
 
 		u_Lights.nbLights = m_pScene->m_Lights.PointLights.size();
 
