@@ -51,13 +51,12 @@ namespace Saturn {
 
 	class Window
 	{
-		SINGLETON( Window );
-
-		Window();
-		~Window();
-
 	public:
 		using EventCallbackFn = std::function<void( Event& )>;
+
+	public:
+		Window();
+		~Window();
 
 	public:
 
@@ -99,6 +98,8 @@ namespace Saturn {
 		bool Minimized() { return m_Minimized; }
 		bool Maximized() { return m_Maximized; }
 
+		static inline Window& Get() { return *s_Instance; }
+
 	private:
 
 		static void SizeCallback( GLFWwindow* wind, int w, int h );
@@ -128,5 +129,7 @@ namespace Saturn {
 		WNDPROC  m_WindowProc  = nullptr;
 		static LRESULT WindowProc( HWND handle, UINT msg, WPARAM WParam, LPARAM LParam );
 	#endif
+	private:
+		static Window* s_Instance;
 	};
 }

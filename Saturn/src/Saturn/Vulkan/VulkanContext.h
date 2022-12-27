@@ -54,10 +54,8 @@ namespace Saturn {
 
 	class VulkanContext
 	{
-		SINGLETON( VulkanContext );
-
 	public:
-		VulkanContext() { }
+		VulkanContext();
 		~VulkanContext() { Terminate(); }
 
 		void Init();
@@ -80,6 +78,8 @@ namespace Saturn {
 
 		Ref<Pass> GetDefaultPass() { return m_DefaultPass; }
 		VkRenderPass GetDefaultVulkanPass() { return m_DefaultPass->GetVulkanPass(); }
+
+		static VulkanContext& Get() { return *s_Instance; }
 
 	public:
 		
@@ -176,5 +176,7 @@ namespace Saturn {
 		friend class Swapchain;
 		friend class VulkanDebug;
 		friend class Application;
+	private:
+		static VulkanContext* s_Instance;
 	};
 }

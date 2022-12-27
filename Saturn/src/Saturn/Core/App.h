@@ -51,8 +51,7 @@ namespace Saturn {
 	class Application
 	{
 	public:
-		Application( const ApplicationSpecification& spec )
-			: m_Specification( spec ) {}
+		Application( const ApplicationSpecification& spec );
 
 		~Application() {}
 

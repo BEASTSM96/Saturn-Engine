@@ -66,8 +66,14 @@ namespace Saturn {
 		SAT_CORE_ERROR( "GLFW Error {0}, {1}", error, desc );
 	}
 
+	Window* Window::s_Instance = nullptr;
+
 	Window::Window()
 	{
+		SAT_CORE_ASSERT( !s_Instance, "A window already exists." );
+
+		s_Instance = this;
+
 		glfwSetErrorCallback( GLFWErrorCallback );
 
 		if( glfwInit() == GLFW_FALSE )

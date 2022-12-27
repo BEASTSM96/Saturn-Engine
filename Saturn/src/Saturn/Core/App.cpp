@@ -51,31 +51,36 @@ namespace Saturn {
 	
 	Application* Application::s_Instance = nullptr;
 	
-	void Application::Run()
+	Application::Application( const ApplicationSpecification& spec )
+		: m_Specification( spec )
 	{
-		SAT_CORE_ASSERT( !s_Instance, "An app was alreay created!" );
+		SAT_CORE_ASSERT( !s_Instance, "An app was already created!" );
 
 		s_Instance = this;
 
-		Window::Get();
-		VulkanContext::Get();
+		// This may not be the best way... but its better than lazy loading.
+		Window* pWindow = new Window();
+		VulkanContext* pVkContext = new VulkanContext();
 
-		VulkanContext::Get().Init();
-		
-		Window::Get().SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
-		
-		Window::Get().RemoveBorder();
-		Window::Get().Show();
+		pVkContext->Init();
+
+		pWindow->SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
+
+		pWindow->RemoveBorder();
+		pWindow->Show();
 
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
-			Window::Get().Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
+			pWindow->Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
 
 		m_ImGuiLayer = new ImGuiLayer();
 		m_ImGuiLayer->OnAttach();
-		
+	}
+
+	void Application::Run()
+	{
 		// Tell children to create what ever they need.
 		OnInit();
-		
+
 		while( m_Running )
 		{
 			Window::Get().OnUpdate();
@@ -122,8 +127,6 @@ namespace Saturn {
 
 			m_ImGuiLayer = nullptr;
 		} );
-		
-		VulkanContext::Get().Terminate();
 	}
 
 	void Application::Close()

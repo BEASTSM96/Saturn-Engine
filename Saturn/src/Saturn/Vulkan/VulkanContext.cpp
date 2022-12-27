@@ -54,6 +54,15 @@
 
 namespace Saturn {
 	
+	VulkanContext* VulkanContext::s_Instance = nullptr;
+
+	VulkanContext::VulkanContext()
+	{
+		SAT_CORE_ASSERT( !s_Instance, "A vulkan context already exists." );
+
+		s_Instance = this;
+	}
+
 	void VulkanContext::Init()
 	{
 		CreateInstance();
