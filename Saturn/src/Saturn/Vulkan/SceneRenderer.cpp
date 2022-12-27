@@ -1275,11 +1275,6 @@ namespace Saturn {
 			glm::mat4 InvP;
 		} u_Matrices{};
 
-		struct
-		{
-			glm::vec2 DepthUnpack;
-		} u_Camera{};
-
 		u_Matrices.ViewProjection   = m_RendererData.EditorCamera.ViewProjection();
 		u_Matrices.Projection       = m_RendererData.EditorCamera.ProjectionMatrix();
 		u_Matrices.View             = glm::inverse( m_RendererData.EditorCamera.ViewMatrix() );
@@ -1287,27 +1282,13 @@ namespace Saturn {
 
 		u_ScreenData.FullResolution = { m_RendererData.Width, m_RendererData.Height };
 
-		/*
-		auto projection = m_RendererData.EditorCamera.ProjectionMatrix();
-
-		float depthLinearizeMul = ( -projection[ 3 ][ 2 ] );
-		float depthLinearizeAdd = ( projection[ 2 ][ 2 ] );
-
-		if( depthLinearizeMul * depthLinearizeAdd < 0 )
-			depthLinearizeAdd = -depthLinearizeAdd;
-
-		u_Camera.DepthUnpack = { depthLinearizeAdd, depthLinearizeMul };
-		*/
-
 		u_Lights.nbLights = m_pScene->m_Lights.PointLights.size();
 
-		for( uint32_t i = 0; i < u_Lights.nbLights; i++ )
-			u_Lights.Lights[ i ] = m_pScene->m_Lights.PointLights[ i ];
+		std::memcpy( u_Lights.Lights, m_pScene->m_Lights.PointLights.data(), m_pScene->m_Lights.GetPointLightSize() );
 
-		m_RendererData.LightCullingShader->UploadUB( ShaderType::Compute, 0, 0, &u_Lights, sizeof( u_Lights ) );
+		m_RendererData.LightCullingShader->UploadUB( ShaderType::Compute, 0, 0, &u_Lights, 16ull + sizeof PointLight * u_Lights.nbLights );
 		m_RendererData.LightCullingShader->UploadUB( ShaderType::Compute, 0, 3, &u_ScreenData, sizeof( u_ScreenData ) );
 		m_RendererData.LightCullingShader->UploadUB( ShaderType::Compute, 0, 4, &u_Matrices, sizeof( u_Matrices ) );
-		m_RendererData.LightCullingShader->UploadUB( ShaderType::Compute, 0, 5, &u_Camera, sizeof( u_Camera ) );
 
 		m_RendererData.LightCullingShader->WriteAllUBs( m_RendererData.LightCullingDescriptorSet );
 
@@ -1445,7 +1426,7 @@ namespace Saturn {
 		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 		
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Texture pass" );
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Post Processing" );
 
 		SceneCompositePass();
 		
