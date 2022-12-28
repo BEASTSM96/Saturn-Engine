@@ -27,43 +27,79 @@
 */
 
 #include "sppch.h"
-#include "Premake.h"
+#include "SourceManager.h"
 
-#include "Saturn/Core/EnvironmentVariables.h"
+#include "Saturn/Project/Project.h"
 
 namespace Saturn {
 
-	bool Premake::Launch( const std::string& rWorkingDir )
+	SourceManager::SourceManager()
 	{
-		std::string PremakePath = Auxiliary::GetEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 
-		STARTUPINFOA StartupInfo = {};
-		StartupInfo.cb = sizeof( StartupInfo );
-		StartupInfo.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
-		StartupInfo.dwFlags = STARTF_USESTDHANDLES;
-
-		PROCESS_INFORMATION ProcessInfo;
-
-		std::replace( PremakePath.begin(), PremakePath.end(), '\\', '/' );
-
-		PremakePath += " vs2022";
-
-		bool res = CreateProcessA( nullptr, PremakePath.data(), nullptr, nullptr, FALSE, 0, nullptr, rWorkingDir.data(), &StartupInfo, &ProcessInfo );
-
-		if( !res )
-			SAT_CORE_ERROR( "Unable to start premake process" );
-
-		WaitForSingleObject( ProcessInfo.hProcess, INFINITE );
-
-		CloseHandle( ProcessInfo.hThread );
-		CloseHandle( ProcessInfo.hProcess );
-
-		return res;
 	}
 
-	void Premake::SetArgs( std::string args )
+	SourceManager::~SourceManager()
 	{
 
+	}
+
+	void SourceManager::CreateEntitySourceFiles( const std::filesystem::path& rPath, const char* pName )
+	{
+		auto prjRootDir = Project::GetActiveProject()->GetRootDir();
+
+		// Copy entity code from templates.
+		std::filesystem::copy_file( "assets/Templates/entity_code.cpp", rPath / "entity_code.cpp" );
+		std::filesystem::copy_file( "assets/Templates/entity_code.h", rPath / "entity_code.h" );
+
+		std::filesystem::path src = rPath.string();
+		src.append( pName );
+		src.replace_extension( ".cpp" );
+
+		std::filesystem::path header = rPath.string();
+		header.append( pName );
+		header.replace_extension( ".h" );
+
+		std::filesystem::rename( rPath / "entity_code.cpp", src );
+		std::filesystem::rename( rPath / "entity_code.h", header );
+
+		using namespace std::chrono_literals;
+
+		// Wait for rename:
+		std::this_thread::sleep_for( 1ms );
+
+		auto loadFn = [&](bool IsHeader) 
+		{
+			std::string fileData;
+
+			std::ifstream stream( IsHeader ? header : src );
+
+			// Load the file.
+
+			if( stream )
+			{
+				stream.seekg( 0, std::ios_base::end );
+				auto size = static_cast< size_t >( stream.tellg() );
+				stream.seekg( 0, std::ios_base::beg );
+
+				fileData.reserve( size );
+				fileData.assign( std::istreambuf_iterator<char>( stream ), std::istreambuf_iterator<char>() );
+			}
+
+			size_t pos = fileData.find( "__FILE_NAME__" );
+
+			while( pos != std::string::npos )
+			{
+				fileData.replace( pos, 13, pName );
+
+				pos = fileData.find( "__FILE_NAME__" );
+			}
+
+			std::ofstream fout( IsHeader ? header : src );
+			fout << fileData;
+		};
+
+		loadFn( false );
+		loadFn( true );
 	}
 
 }

@@ -73,12 +73,12 @@
 
 namespace Saturn {
 
+	bool s_HasPremakePath = false;
+
 	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
 	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
-	static bool s_ShowDemoWindow = false;
-
-	class Test
+	class Test : public Entity
 	{
 	public:
 		Test() {}
@@ -88,9 +88,10 @@ namespace Saturn {
 			SAT_CORE_INFO( "~Test" );
 		}
 
-		void Testing() 
+		void OnUpdate() 
 		{
 			SAT_CORE_INFO( "Test was called" );
+			//SAT_CORE_INFO( "Entity ID: {0}", GetComponent<IdComponent>().ID );
 		}
 
 	private:
@@ -101,7 +102,7 @@ namespace Saturn {
 	{
 		rttr::registration::class_<Test>( "Test" )
 			 .constructor<>()
-			 .method( "Testing", &Test::Testing );
+			 .method( "OnUpdate", &Test::OnUpdate );
 	}
 
 	EditorLayer::EditorLayer() 
@@ -168,8 +169,6 @@ namespace Saturn {
 			{
 				if( ImGui::MenuItem( "User settings", "Ctrl+Shift+Alt+S" ) ) m_ShowUserSettings = !m_ShowUserSettings;
 
-				if( ImGui::MenuItem( "Demo", "" ) ) s_ShowDemoWindow ^= 1;
-
 				ImGui::EndMenu();
 			}
 		} );
@@ -224,11 +223,13 @@ namespace Saturn {
 		rttr::constructor ctor = t.get_constructor();
 		//	v = ctor.invoke();
 
-		rttr::method x = t.get_method( "Testing" );
+		rttr::method x = t.get_method( "OnUpdate" );
 
 		x.invoke( v );
 
 		t.destroy( v );
+
+		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 	}
 
 	EditorLayer::~EditorLayer()
@@ -329,8 +330,6 @@ namespace Saturn {
 
 		// Draw widgets.
 		m_Viewport->Draw();
-
-		ImGui::ShowDemoWindow( &s_ShowDemoWindow );
 
 		SceneRenderer::Get().ImGuiRender();
 		
@@ -471,8 +470,7 @@ namespace Saturn {
 		// Asset viewers
 		MaterialAssetViewer::Get().Draw();
 
-		/*
-		if( Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" ) )
+		if( !s_HasPremakePath )
 		{
 			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
 			{
@@ -498,6 +496,8 @@ namespace Saturn {
 						ImGui::CloseCurrentPopup();
 						
 						Auxiliary::SetEnvironmentVariable( "SATURN_PREMAKE_PATH", path.c_str() );
+
+						s_HasPremakePath = true;
 					}
 				}
 
@@ -506,7 +506,6 @@ namespace Saturn {
 
 			ImGui::OpenPopup( "Missing Environment Variable" );
 		}
-		*/
 
 		ImGui::End();
 

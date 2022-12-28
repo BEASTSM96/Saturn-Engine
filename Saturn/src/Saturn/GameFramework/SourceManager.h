@@ -26,44 +26,25 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Premake.h"
+#pragma once
 
-#include "Saturn/Core/EnvironmentVariables.h"
+#include "Saturn/Core/Base.h"
+
+#include <filesystem>
 
 namespace Saturn {
 
-	bool Premake::Launch( const std::string& rWorkingDir )
+	class SourceManager
 	{
-		std::string PremakePath = Auxiliary::GetEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+		SINGLETON( SourceManager );
+	public:
+		SourceManager();
+		~SourceManager();
 
-		STARTUPINFOA StartupInfo = {};
-		StartupInfo.cb = sizeof( StartupInfo );
-		StartupInfo.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
-		StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+		// Copy string...
+		void CreateEntitySourceFiles( const std::filesystem::path& rPath, const char* pName );
 
-		PROCESS_INFORMATION ProcessInfo;
+	private:
 
-		std::replace( PremakePath.begin(), PremakePath.end(), '\\', '/' );
-
-		PremakePath += " vs2022";
-
-		bool res = CreateProcessA( nullptr, PremakePath.data(), nullptr, nullptr, FALSE, 0, nullptr, rWorkingDir.data(), &StartupInfo, &ProcessInfo );
-
-		if( !res )
-			SAT_CORE_ERROR( "Unable to start premake process" );
-
-		WaitForSingleObject( ProcessInfo.hProcess, INFINITE );
-
-		CloseHandle( ProcessInfo.hThread );
-		CloseHandle( ProcessInfo.hProcess );
-
-		return res;
-	}
-
-	void Premake::SetArgs( std::string args )
-	{
-
-	}
-
+	};
 }

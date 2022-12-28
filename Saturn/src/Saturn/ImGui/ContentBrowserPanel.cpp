@@ -46,6 +46,7 @@
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
 #include "Saturn/Premake/Premake.h"
+#include "Saturn/GameFramework/SourceManager.h"
 
 #include <imgui_internal.h>
 
@@ -418,8 +419,13 @@ namespace Saturn {
 					Project::GetActiveProject()->CreatePremakeFile();
 				}
 
+				// Update or create the project files.
 				Premake* pPremake = new Premake();
 				pPremake->Launch( Project::GetActiveProject()->GetRootDir().string() );
+
+				// Next, create the source files.
+				// Right now the only script type we support is an entity type.
+				SourceManager::Get().CreateEntitySourceFiles( m_CurrentPath, n.c_str() );
 			}
 
 			ImGui::EndPopup();

@@ -18,7 +18,6 @@ IncludeDir["Saturn"] = "__SATURN_DIR__"
 
 group "Game"
 project "__PROJECT_NAME__"
-	location "__PROJECT_NAME__"
 	kind "SharedLib"
 	language "C++"
 	cppdialect "C++20"
@@ -29,8 +28,8 @@ project "__PROJECT_NAME__"
 
 	files
 	{
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
+		"%{prj.name}/Scripts/**.h",
+		"%{prj.name}/Scripts/**.cpp"
 	}
 
 	defines
@@ -40,7 +39,7 @@ project "__PROJECT_NAME__"
 
 	includedirs
 	{
-		"%{prj.name}/src",
+		"%{prj.name}/Scripts",
 		"%{IncludeDir.Saturn}"
 	}
 
