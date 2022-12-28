@@ -118,6 +118,8 @@ namespace Saturn {
 			return AssetType::Scene;
 		else if( str == ".smaterial" )
 			return AssetType::Material;
+		else if( str == ".cpp" || str == ".h" )
+			return AssetType::Script;
 		else
 			return AssetType::Unknown;
 	}

@@ -31,43 +31,19 @@
 #include "Saturn/Core/Base.h"
 
 #include <string>
-#include <filesystem>
 
 namespace Saturn {
-	
-	struct ProjectConfig
-	{
-		std::string Name;
-		std::string StartupScenePath;
 
-		std::string Path;
-	};
-
-	class Project : public CountedObj
+	class Premake
 	{
 	public:
-		Project();
-		~Project();
+		Premake() {}
+		~Premake() {}
 
-		const ProjectConfig& GetConfig() const { return m_Config; }
+		bool Launch( const std::string& rWorkingDir );
 
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
+		void SetArgs( std::string args );
 
-		void CheckMissingAssetRefs();
-		void LoadAssetRegistry();
-
-		std::filesystem::path GetAssetPath();
-		const std::string& GetName() const;
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-
-		bool HasPremakeFile();
-		void CreatePremakeFile();
-
-		// TEMP
-		//    Until we have a proper project system
-		ProjectConfig m_Config;
+	private:
 	};
 }

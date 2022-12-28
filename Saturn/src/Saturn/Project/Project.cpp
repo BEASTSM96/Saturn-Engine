@@ -37,6 +37,8 @@
 
 #include "Saturn/Asset/AssetRegistry.h"
 
+#include "Saturn/Core/EnvironmentVariables.h"
+
 namespace Saturn {
 	
 	static Ref<Project> s_ActiveProject;
@@ -118,4 +120,71 @@ namespace Saturn {
 	{
 		return GetActiveProject()->GetConfig().Name;
 	}
+
+	std::filesystem::path Project::GetPremakeFile()
+	{
+		return GetAssetPath().parent_path() / "premake5.lua";
+	}
+
+	std::filesystem::path Project::GetRootDir()
+	{
+		return GetAssetPath().parent_path();
+	}
+
+	bool Project::HasPremakeFile()
+	{
+		return std::filesystem::exists( GetAssetPath().parent_path() / "premake5.lua" );
+	}
+
+	void Project::CreatePremakeFile()
+	{
+		auto PremakePath = GetAssetPath().parent_path() / "premake5.lua";
+
+		std::filesystem::copy( "assets/Templates/premake5.lua", PremakePath );
+
+		std::ifstream ifs( PremakePath );
+
+		// Replace __PROJECT_NAME__ with the project name.
+
+		std::string fileData;
+
+		if( ifs )
+		{
+			ifs.seekg( 0, std::ios_base::end );
+			auto size = static_cast< size_t >( ifs.tellg() );
+			ifs.seekg( 0, std::ios_base::beg );
+
+			fileData.reserve( size );
+			fileData.assign( std::istreambuf_iterator<char>( ifs ), std::istreambuf_iterator<char>() );
+		}
+
+		size_t pos = fileData.find( "__SATURN_DIR__" );
+
+		if( pos != std::string::npos )
+		{
+			std::filesystem::path rootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
+			rootDir /= "Saturn/src/";
+
+			auto rootDirString = rootDir.string();
+
+			std::replace( rootDirString.begin(), rootDirString.end(), '\\', '/' );
+
+			fileData.replace( pos, 14, rootDirString);
+		}
+
+		pos = 0;
+		pos = fileData.find( "__PROJECT_NAME__" );
+
+		while( pos != std::string::npos )
+		{
+			fileData.replace( pos, 16, GetName().c_str() );
+
+			pos = fileData.find( "__PROJECT_NAME__" );
+		}
+
+		std::ofstream fout( PremakePath );
+
+		fout << fileData;
+	}
+
 }

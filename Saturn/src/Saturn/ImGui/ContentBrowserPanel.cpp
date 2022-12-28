@@ -45,6 +45,8 @@
 
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
+#include "Saturn/Premake/Premake.h"
+
 #include <imgui_internal.h>
 
 namespace Saturn {
@@ -53,6 +55,8 @@ namespace Saturn {
 	static std::filesystem::path s_pScriptsDirectory = "Scripts";
 
 	static std::filesystem::path s_pMainDirectory = "Scripts";
+
+	static bool s_OpenScriptsPopup = false;
 	
 	ContentBrowserPanel::ContentBrowserPanel()
 		: Panel( "Content Browser Panel" ), m_CurrentPath( s_pAssetsDirectory ), m_FirstFolder( s_pAssetsDirectory ), m_ScriptPath( s_pScriptsDirectory )
@@ -372,11 +376,50 @@ namespace Saturn {
 				{
 					if( ImGui::MenuItem( "Script" ) )
 					{
-
+						s_OpenScriptsPopup = true;
 					}
 
 					ImGui::EndMenu();
 				}
+			}
+
+			ImGui::EndPopup();
+		}
+
+		if( s_OpenScriptsPopup )
+			ImGui::OpenPopup( "Create A Script##Create_Script" );
+
+		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
+		if( ImGui::BeginPopupModal( "Create A Script##Create_Script", &s_OpenScriptsPopup, ImGuiWindowFlags_NoMove ) )
+		{
+			static std::string n;
+
+			bool PopupModified = false;
+
+			ImGui::BeginVertical( "##inputv" );
+
+			ImGui::Text( "Name:" );
+
+			ImGui::InputText( "##n", ( char* ) n.c_str(), 1024 );
+
+			ImGui::EndVertical();
+
+			if( PopupModified )
+			{
+				ImGui::CloseCurrentPopup();
+
+				s_OpenScriptsPopup = false;
+			}
+
+			if( ImGui::Button( "Create" ) )
+			{
+				if( !Project::GetActiveProject()->HasPremakeFile() )
+				{
+					Project::GetActiveProject()->CreatePremakeFile();
+				}
+
+				Premake* pPremake = new Premake();
+				pPremake->Launch( Project::GetActiveProject()->GetRootDir().string() );
 			}
 
 			ImGui::EndPopup();

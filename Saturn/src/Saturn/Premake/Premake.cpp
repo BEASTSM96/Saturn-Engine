@@ -26,48 +26,44 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "Premake.h"
 
-#include "Saturn/Core/Base.h"
-
-#include <string>
-#include <filesystem>
+#include "Saturn/Core/EnvironmentVariables.h"
 
 namespace Saturn {
-	
-	struct ProjectConfig
+
+	bool Premake::Launch( const std::string& rWorkingDir )
 	{
-		std::string Name;
-		std::string StartupScenePath;
+		std::string PremakePath = Auxiliary::GetEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 
-		std::string Path;
-	};
+		STARTUPINFOA StartupInfo = {};
+		StartupInfo.cb = sizeof( StartupInfo );
+		StartupInfo.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
+		StartupInfo.dwFlags = STARTF_USESTDHANDLES;
 
-	class Project : public CountedObj
+		PROCESS_INFORMATION ProcessInfo;
+
+		std::replace( PremakePath.begin(), PremakePath.end(), '\\', '/' );
+
+		PremakePath += " vs2022";
+
+		bool res = CreateProcessA( nullptr, PremakePath.data(), nullptr, nullptr, FALSE, DETACHED_PROCESS, nullptr, rWorkingDir.data(), &StartupInfo, &ProcessInfo );
+
+		if( !res )
+			SAT_CORE_ERROR( "Unable to start premake process" );
+
+		WaitForSingleObject( ProcessInfo.hProcess, INFINITE );
+
+		CloseHandle( ProcessInfo.hThread );
+		CloseHandle( ProcessInfo.hProcess );
+
+		return res;
+	}
+
+	void Premake::SetArgs( std::string args )
 	{
-	public:
-		Project();
-		~Project();
 
-		const ProjectConfig& GetConfig() const { return m_Config; }
+	}
 
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
-
-		void CheckMissingAssetRefs();
-		void LoadAssetRegistry();
-
-		std::filesystem::path GetAssetPath();
-		const std::string& GetName() const;
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-
-		bool HasPremakeFile();
-		void CreatePremakeFile();
-
-		// TEMP
-		//    Until we have a proper project system
-		ProjectConfig m_Config;
-	};
 }
