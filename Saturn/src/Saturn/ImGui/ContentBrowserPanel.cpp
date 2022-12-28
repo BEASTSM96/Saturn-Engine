@@ -50,12 +50,16 @@
 namespace Saturn {
 	
 	static std::filesystem::path s_pAssetsDirectory = "Assets";
+	static std::filesystem::path s_pScriptsDirectory = "Scripts";
+
+	static std::filesystem::path s_pMainDirectory = "Scripts";
 	
 	ContentBrowserPanel::ContentBrowserPanel()
-		: Panel( "Content Browser Panel" ), m_CurrentPath( s_pAssetsDirectory ), m_FirstFolder( s_pAssetsDirectory )
+		: Panel( "Content Browser Panel" ), m_CurrentPath( s_pAssetsDirectory ), m_FirstFolder( s_pAssetsDirectory ), m_ScriptPath( s_pScriptsDirectory )
 	{
 		m_DirectoryIcon = Ref<Texture2D>::Create( "assets/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
 		m_FileIcon      = Ref<Texture2D>::Create( "assets/textures/editor/FileIcon.png", AddressingMode::Repeat );
+		m_ViewMode      = CBViewMode::Assets;
 	}
 	
 	void ContentBrowserPanel::Draw()
@@ -63,6 +67,30 @@ namespace Saturn {
 		ImGui::Begin( "Content Browser" );
 
 		ImGui::BeginChild( "##CB_TopBar_Actions", ImVec2( 0, 30 ) );
+
+		if( ImGui::Button( "Swap View Mode" ) )
+		{
+			switch( m_ViewMode )
+			{
+				case Saturn::CBViewMode::Assets:
+				{
+					m_ViewMode = CBViewMode::Scripts;
+
+					// The Scripts path is always one dir back.
+					SetPath( s_pAssetsDirectory.parent_path() );
+				} break;
+					
+					
+				case Saturn::CBViewMode::Scripts:
+				{
+					m_ViewMode = CBViewMode::Assets;
+
+					SetPath( s_pScriptsDirectory.parent_path() );
+				} break;
+			}
+		}
+
+		ImGui::SameLine();
 
 		if( ImGui::Button( "Add" ) )
 		{
@@ -76,18 +104,21 @@ namespace Saturn {
 
 		if( ImGui::BeginPopup( "Add_Assets_Popup" ) ) 
 		{
-			if( ImGui::Button( "Import assets" ) )
+			if ( m_ViewMode == CBViewMode::Assets )
 			{
-				// TODO:
-			}
+				if( ImGui::Button( "Import assets" ) )
+				{
+					// TODO:
+				}
 
-			if( ImGui::Button( "Starter assets" ) )
-			{
-				auto ActiveProject = Project::GetActiveProject();
-				auto AssetPath = ActiveProject->GetAssetPath();
+				if( ImGui::Button( "Starter assets" ) )
+				{
+					auto ActiveProject = Project::GetActiveProject();
+					auto AssetPath = ActiveProject->GetAssetPath();
 
-				std::filesystem::copy_file( "assets/Templates/Meshes/Cube.fbx", AssetPath / "Meshes" / "Cube.fbx" );
-				std::filesystem::copy_file( "assets/Templates/Meshes/Plane.fbx", AssetPath / "Meshes" / "Plane.fbx" );
+					std::filesystem::copy_file( "assets/Templates/Meshes/Cube.fbx", AssetPath / "Meshes" / "Cube.fbx" );
+					std::filesystem::copy_file( "assets/Templates/Meshes/Plane.fbx", AssetPath / "Meshes" / "Plane.fbx" );
+				}
 			}
 
 			ImGui::EndPopup();
@@ -97,6 +128,51 @@ namespace Saturn {
 
 		ImGui::BeginChild( "##CB_TopBar", ImVec2( 0, 30 ) );
 
+		switch( m_ViewMode )
+		{
+			case Saturn::CBViewMode::Assets: 
+			{
+				if( m_CurrentPath != s_pAssetsDirectory )
+				{
+					if( ImGui::Button( "<-" ) )
+					{
+						m_CurrentPath = m_CurrentPath.parent_path();
+					}
+				}
+				else
+				{
+					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+					ImGui::Button( "<-" );
+					ImGui::PopStyleVar( 1 );
+					ImGui::PopItemFlag();
+				}
+			} break;
+
+			case Saturn::CBViewMode::Scripts: 
+			{
+				if( m_CurrentPath != s_pScriptsDirectory )
+				{
+					if( ImGui::Button( "<-" ) )
+					{
+						m_CurrentPath = m_CurrentPath.parent_path();
+					}
+				}
+				else
+				{
+					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+					ImGui::Button( "<-" );
+					ImGui::PopStyleVar( 1 );
+					ImGui::PopItemFlag();
+				}
+			} break;
+		
+			default:
+				break;
+		}
+
+		/*
 		if( m_CurrentPath != s_pAssetsDirectory )
 		{
 			if( ImGui::Button( "<-" ) )
@@ -112,14 +188,15 @@ namespace Saturn {
 			ImGui::PopStyleVar( 1 );
 			ImGui::PopItemFlag();
 		}
-		
+		*/
+
 		ImGui::SameLine();
 
 		if( std::filesystem::exists( m_FirstFolder ) )
 		{
 			if( ImGui::Button( "->" ) )
 			{
-				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_pAssetsDirectory );
+				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_pMainDirectory );
 			}
 		}
 		else
@@ -139,12 +216,14 @@ namespace Saturn {
 		int i = 0;
 		for( auto& pFolder : m_CurrentPath )
 		{
-			if( i == 0 && pFolder != "Assets" )
+			const char* name = m_ViewMode == CBViewMode::Assets ? "Assets" : "Scripts";
+
+			if( i == 0 && pFolder != name )
 				continue;
 
 			i++;
 
-			if( pFolder != "Assets" )
+			if( pFolder != name )
 			{
 				ImGui::Text( "/" );
 			}
@@ -202,87 +281,102 @@ namespace Saturn {
 
 		if( ImGui::BeginPopupContextWindow( 0, 1, false ) )	
 		{
-			if( ImGui::MenuItem( "Import" ) ) 
+			if( m_ViewMode == CBViewMode::Assets ) 
 			{
-				auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg\0" );
-
-				std::filesystem::path path = result;
-
-				if( path.extension() == ".png" || path.extension() == ".tga" || path.extension() == ".jpeg" || path.extension() == ".jpg" ) 
+				if( ImGui::MenuItem( "Import" ) )
 				{
-					auto id = AssetRegistry::Get().CreateAsset( AssetType::Texture );
+					auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg\0" );
 
-					auto asset = AssetRegistry::Get().FindAsset( id );
+					std::filesystem::path path = result;
 
-					std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
-
-					asset->SetPath( m_CurrentPath / path.filename() );
-					
-					AssetRegistrySerialiser ars;
-					ars.Serialise();
-				}
-
-				// Meshes
-				if( path.extension() == ".fbx" || path.extension() == ".gltf" ) 
-				{
-					auto id = AssetRegistry::Get().CreateAsset( AssetType::StaticMesh );
-
-					auto asset = AssetRegistry::Get().FindAsset( id );
-
-					std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
-
-					asset->SetPath( m_CurrentPath / path.filename() );
-
-					if( path.extension() == ".gltf" ) 
+					if( path.extension() == ".png" || path.extension() == ".tga" || path.extension() == ".jpeg" || path.extension() == ".jpg" )
 					{
-						auto filename = path.filename().string();
+						auto id = AssetRegistry::Get().CreateAsset( AssetType::Texture );
 
-						size_t pos = filename.find_last_of( "/\\" );
-						
-						filename = filename.substr( pos + 1 );
+						auto asset = AssetRegistry::Get().FindAsset( id );
 
-						pos = filename.find_last_of( "." );
+						std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
 
-						filename = filename.substr( 0, pos );
+						asset->SetPath( m_CurrentPath / path.filename() );
 
-						auto& binaryFile = path.parent_path() / filename += ".bin";
-						auto& binaryFileTo = m_CurrentPath / filename += ".bin";
-
-						if( !std::filesystem::exists( binaryFile ) )
-							binaryFile = path.parent_path() / filename += ".glb";
-
-						if( std::filesystem::exists( binaryFile ) )
-							std::filesystem::copy_file( binaryFile, binaryFileTo );
+						AssetRegistrySerialiser ars;
+						ars.Serialise();
 					}
 
-					// Create the mesh so we can copy over the texture (if any).
-					auto mesh = Ref<MeshSource>::Create( path, m_CurrentPath );
-					mesh = nullptr;
+					// Meshes
+					if( path.extension() == ".fbx" || path.extension() == ".gltf" )
+					{
+						auto id = AssetRegistry::Get().CreateAsset( AssetType::StaticMesh );
 
-					AssetRegistrySerialiser ars;
-					ars.Serialise();
+						auto asset = AssetRegistry::Get().FindAsset( id );
+
+						std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
+
+						asset->SetPath( m_CurrentPath / path.filename() );
+
+						if( path.extension() == ".gltf" )
+						{
+							auto filename = path.filename().string();
+
+							size_t pos = filename.find_last_of( "/\\" );
+
+							filename = filename.substr( pos + 1 );
+
+							pos = filename.find_last_of( "." );
+
+							filename = filename.substr( 0, pos );
+
+							auto& binaryFile = path.parent_path() / filename += ".bin";
+							auto& binaryFileTo = m_CurrentPath / filename += ".bin";
+
+							if( !std::filesystem::exists( binaryFile ) )
+								binaryFile = path.parent_path() / filename += ".glb";
+
+							if( std::filesystem::exists( binaryFile ) )
+								std::filesystem::copy_file( binaryFile, binaryFileTo );
+						}
+
+						// Create the mesh so we can copy over the texture (if any).
+						auto mesh = Ref<MeshSource>::Create( path, m_CurrentPath );
+						mesh = nullptr;
+
+						AssetRegistrySerialiser ars;
+						ars.Serialise();
+					}
+				}
+
+				if( ImGui::BeginMenu( "Create" ) )
+				{
+					if( ImGui::MenuItem( "Material" ) )
+					{
+						auto id = AssetRegistry::Get().CreateAsset( AssetType::Material );
+						auto asset = AssetRegistry::Get().FindAsset( id );
+
+						asset->SetPath( m_CurrentPath / "Untitled Material.smaterial" );
+
+						auto materialAsset = asset.As<MaterialAsset>();
+
+						MaterialAssetSerialiser mas;
+						mas.Serialise( materialAsset );
+
+						AssetRegistrySerialiser urs;
+						urs.Serialise();
+					}
+
+					ImGui::EndMenu();
 				}
 			}
-
-			if( ImGui::BeginMenu( "Create" ) ) 
+			else
 			{
-				if( ImGui::MenuItem( "Material" ) ) 
+				if( ImGui::BeginMenu( "Create" ) )
 				{
-					auto id = AssetRegistry::Get().CreateAsset( AssetType::Material );
-					auto asset = AssetRegistry::Get().FindAsset( id );
+					if( ImGui::MenuItem( "Script" ) )
+					{
 
-					asset->SetPath( m_CurrentPath / "Untitled Material.smaterial" );
+					}
 
-					auto materialAsset = asset.As<MaterialAsset>();
-
-					MaterialAssetSerialiser mas;
-					mas.Serialise( materialAsset );
-					
-					AssetRegistrySerialiser urs;
-					urs.Serialise();
+					ImGui::EndMenu();
 				}
-
-				ImGui::EndMenu();
 			}
 
 			ImGui::EndPopup();
@@ -293,10 +387,33 @@ namespace Saturn {
 
 	void ContentBrowserPanel::SetPath( const std::filesystem::path& rPath )
 	{
-		s_pAssetsDirectory = rPath / "Assets";
+		switch( m_ViewMode )
+		{
+			case Saturn::CBViewMode::Assets: 
+			{
+				s_pAssetsDirectory = rPath / "Assets";
 
-		m_CurrentPath = rPath / "Assets";
-		m_FirstFolder = rPath / "Assets";
+				m_CurrentPath = rPath / "Assets";
+				m_FirstFolder = rPath / "Assets";
+
+				s_pMainDirectory = s_pAssetsDirectory;
+			} break;
+
+			case Saturn::CBViewMode::Scripts: 
+			{
+				s_pScriptsDirectory = rPath / "Scripts";
+
+				m_CurrentPath = rPath / "Scripts";
+				m_FirstFolder = rPath / "Scripts";
+
+				s_pMainDirectory = s_pScriptsDirectory;
+			} break;
+		}
+	}
+
+	void ContentBrowserPanel::SwapViewMode( CBViewMode newMode )
+	{
+		m_ViewMode = newMode;
 	}
 
 	void ContentBrowserPanel::RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles /*= true */ )

@@ -40,6 +40,12 @@
 
 namespace Saturn {
 	
+	enum class CBViewMode 
+	{
+		Assets,
+		Scripts
+	};
+
 	class ContentBrowserPanel : public Panel
 	{
 	public:
@@ -50,14 +56,19 @@ namespace Saturn {
 
 		void SetPath( const std::filesystem::path& rPath );
 
+		void SwapViewMode( CBViewMode newMode );
+
 	private:
 
 		void RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles = true );
 				
 		void OnDirectorySelected( std::filesystem::path& rPath, bool IsFile = false );
+
 	private:
 		std::filesystem::path m_CurrentPath;
 		std::filesystem::path m_FirstFolder;
+
+		std::filesystem::path m_ScriptPath;
 
 		Ref< Texture2D > m_DirectoryIcon;
 		Ref< Texture2D > m_FileIcon;
@@ -67,6 +78,8 @@ namespace Saturn {
 			AssetType Type;
 			std::filesystem::path Path;
 		};
+
+		CBViewMode m_ViewMode;
 
 		bool m_RenderCreateWindow = false;
 	};
