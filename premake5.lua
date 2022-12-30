@@ -32,7 +32,7 @@ group "Dependencies"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
-	include "Saturn/vendor/rttr"
+--	include "Saturn/vendor/rttr"
 
 group "Engine"
 project "Saturn"
@@ -103,8 +103,7 @@ project "Saturn"
 		"GLFW",
 		"ImGui",
 		"SPIRV-Cross",
-		"yaml-cpp",
-		"rttr"
+		"yaml-cpp"
 	}
 
 	filter "files:Saturn/vendor/ImGuizmo/src/ImGuizmo/**.cpp"
@@ -180,7 +179,10 @@ project "Saturn"
 				"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc_util.lib",
 				"Saturn/vendor/shaderc/bin/Debug-Windows/glslangd.lib",
 				"Saturn/vendor/shaderc/bin/Debug-Windows/SPIRV-Tools.lib",
-				"Saturn/vendor/shaderc/bin/Debug-Windows/glslc.lib"
+				"Saturn/vendor/shaderc/bin/Debug-Windows/glslc.lib",
+
+				-- RTTR
+				"Saturn/vendor/rttr/bin/Debug-Windows/rttr_core_lib_s_d.lib"
 			}
 
 		filter "configurations:Release"
@@ -296,7 +298,10 @@ project "Titan"
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"' 
+			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
+
+			-- Copy rttr
+			--'{COPY} "../Saturn/vendor/rttr/bin/Debug-Windows/rttr_core_d.dll" "%{cfg.targetdir}"' 
 		}
 
 	filter "configurations:Release"

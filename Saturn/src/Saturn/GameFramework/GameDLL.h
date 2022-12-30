@@ -28,48 +28,25 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-
-#include <string>
-#include <filesystem>
+#include <Windows.h>
 
 namespace Saturn {
-	
-	struct ProjectConfig
-	{
-		std::string Name;
-		std::string StartupScenePath;
 
-		std::string Path;
-	};
-
-	class Project : public CountedObj
+	class GameDLL
 	{
 	public:
-		Project();
-		~Project();
+		GameDLL();
+		~GameDLL() {}
 
-		const ProjectConfig& GetConfig() const { return m_Config; }
+		void Load();
+		void Unload();
 
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
+		static GameDLL& Get() { return *s_Instance; }
 
-		void CheckMissingAssetRefs();
-		void LoadAssetRegistry();
+	private:
+		static GameDLL* s_Instance;
 
-		std::filesystem::path GetAssetPath();
-		const std::string& GetName() const;
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-
-		std::filesystem::path GetBinDir();
-
-		bool HasPremakeFile();
-		void CreatePremakeFile();
-
-		// TEMP
-		//    Until we have a proper project system
-		ProjectConfig m_Config;
+		HMODULE m_DLLInstance = nullptr;
 	};
+
 }

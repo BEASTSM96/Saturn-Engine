@@ -26,50 +26,54 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "GameDLL.h"
 
-#include "Saturn/Core/Base.h"
+#include "Saturn/Project/Project.h"
 
-#include <string>
-#include <filesystem>
+#include <rttr/type>
+#include <rttr/registration.h>
 
 namespace Saturn {
-	
-	struct ProjectConfig
+
+	GameDLL* GameDLL::s_Instance;
+
+	GameDLL::GameDLL()
 	{
-		std::string Name;
-		std::string StartupScenePath;
+		SAT_CORE_ASSERT( !s_Instance, "GameDLL was already created." );
 
-		std::string Path;
-	};
+		s_Instance = this;
+	}
 
-	class Project : public CountedObj
+	void GameDLL::Load()
 	{
-	public:
-		Project();
-		~Project();
+		auto binDir = Project::GetActiveProject()->GetBinDir();
 
-		const ProjectConfig& GetConfig() const { return m_Config; }
+		auto DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
 
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
+		/*
+		typedef void ( *__rttr_auto_register_reflection_function_ )( );
 
-		void CheckMissingAssetRefs();
-		void LoadAssetRegistry();
+		m_DLLInstance = LoadLibraryEx( DllPath.wstring().c_str(), nullptr, DLL_PROCESS_ATTACH  
+			| LOAD_WITH_ALTERED_SEARCH_PATH );
+		//m_DLLInstance = LoadLibrary( DllPath.wstring().c_str() );
 
-		std::filesystem::path GetAssetPath();
-		const std::string& GetName() const;
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
+		//__rttr_auto_register_reflection_function_ _rttr_auto_register_reflection_function_ = ( __rttr_auto_register_reflection_function_ ) GetProcAddress( m_DLLInstance, "rttr_auto_register_reflection_function_" );
 
-		std::filesystem::path GetBinDir();
+		//_rttr_auto_register_reflection_function_();
 
-		bool HasPremakeFile();
-		void CreatePremakeFile();
+		SAT_CORE_ASSERT( m_DLLInstance, "Failed to load game dll file!" );
+		*/
+		
+		rttr::library lib( DllPath.string() );
 
-		// TEMP
-		//    Until we have a proper project system
-		ProjectConfig m_Config;
-	};
+		lib.load();
+
+		SAT_CORE_INFO( "Loaded game dll!" );
+	}
+
+	void GameDLL::Unload()
+	{
+		FreeLibrary( m_DLLInstance );
+	}
 }

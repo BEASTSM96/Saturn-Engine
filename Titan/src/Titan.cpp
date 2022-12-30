@@ -34,6 +34,8 @@
 
 #include "Saturn/Serialisation/UserSettingsSerialiser.h"
 
+#include "Saturn/GameFramework/GameDLL.h"
+
 class EditorApplication : public Saturn::Application
 {
 public:

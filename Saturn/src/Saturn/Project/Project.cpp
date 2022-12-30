@@ -131,6 +131,24 @@ namespace Saturn {
 		return GetAssetPath().parent_path();
 	}
 
+	std::filesystem::path Project::GetBinDir()
+	{
+		auto rootDir = GetRootDir();
+		rootDir /= "bin";
+
+#if defined( SAT_DEBUG )
+		rootDir /= "Debug-windows-x86_64";
+#elif defined( SAT_RELEASE )
+		rootDir /= "Release-windows-x86_64";
+#else // SAT_DIST
+		rootDir /= "Dist-windows-x86_64";
+#endif
+
+		rootDir /= GetName();
+
+		return rootDir;
+	}
+
 	bool Project::HasPremakeFile()
 	{
 		return std::filesystem::exists( GetAssetPath().parent_path() / "premake5.lua" );

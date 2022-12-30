@@ -15,6 +15,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
 IncludeDir["Saturn"] = "__SATURN_DIR__"
+IncludeDir["rttr"] = "__SATURN_DIR__/Saturn/vendor/rttr/src"
 
 group "Game"
 project "__PROJECT_NAME__"
@@ -40,7 +41,8 @@ project "__PROJECT_NAME__"
 	includedirs
 	{
 		"%{prj.name}/Scripts",
-		"%{IncludeDir.Saturn}"
+		"%{IncludeDir.Saturn}",
+		"%{IncludeDir.rttr}",
 	}
 
 	links 

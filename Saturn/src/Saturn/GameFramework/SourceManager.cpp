@@ -67,7 +67,7 @@ namespace Saturn {
 		// Wait for rename:
 		std::this_thread::sleep_for( 1ms );
 
-		auto loadFn = [&](bool IsHeader) 
+		auto loadFn = [&]( bool IsHeader ) 
 		{
 			std::string fileData;
 

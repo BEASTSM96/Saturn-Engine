@@ -29,6 +29,9 @@
 #include "sppch.h"
 #include "EditorLayer.h"
 
+#include <rttr/type>
+#include <rttr/registration.h>
+
 #include <Saturn/Project/Project.h>
 
 #include <Saturn/ImGui/UITools.h>
@@ -63,13 +66,14 @@
 
 #include <Saturn/Asset/AssetRegistry.h>
 
-#include <rttr/type>
-#include <rttr/registration.h>
+#include <Saturn/GameFramework/GameDLL.h>
 
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
 
 #include <glm/gtc/type_ptr.hpp>
+
+using namespace rttr;
 
 namespace Saturn {
 
@@ -78,36 +82,42 @@ namespace Saturn {
 	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
 	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
-	class Test : public Entity
+	class Player
 	{
 	public:
-		Test() {}
-
-		~Test() 
+		Player()
 		{
-			SAT_CORE_INFO( "~Test" );
+			std::cout << "Created" << "\n";
 		}
 
-		void OnUpdate() 
+		~Player() {}
+
+		void Move()
 		{
-			SAT_CORE_INFO( "Test was called" );
-			//SAT_CORE_INFO( "Entity ID: {0}", GetComponent<IdComponent>().ID );
 		}
 
-	private:
-
+	public:
+		float HP = 0.0F;
 	};
 
+	/*
 	RTTR_REGISTRATION
 	{
-		rttr::registration::class_<Test>( "Test" )
-			 .constructor<>()
-			 .method( "OnUpdate", &Test::OnUpdate );
+		 rttr::registration::class_<Player>( "Player" )
+			.constructor<>()
+			.method( "Move", &Player::Move )
+			.property( "HP", &Player::HP )
+		;
 	}
+		*/
+
 
 	EditorLayer::EditorLayer() 
 		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
 	{
+//		GameDLL* pGDLL = new GameDLL();
+//		pGDLL->Load();
+
 		m_EditorScene = Ref<Scene>::Create();
 		m_RuntimeScene = nullptr;
 		
@@ -215,21 +225,21 @@ namespace Saturn {
 		Project::GetActiveProject()->LoadAssetRegistry();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
-		// RTTR Test
-		rttr::type t = rttr::type::get_by_name( "Test" );
-		rttr::variant v = t.create();
+		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 
-		// call constructor
-		rttr::constructor ctor = t.get_constructor();
-		//	v = ctor.invoke();
+		GameDLL* pGameDLL = new GameDLL();
+		pGameDLL->Load();
+
+		using namespace std::chrono_literals;
+
+		std::this_thread::sleep_for( 1ms );
+
+		rttr::type t = rttr::type::get_by_name( "Farmer" );
+		rttr::variant v = t.create();
 
 		rttr::method x = t.get_method( "OnUpdate" );
 
 		x.invoke( v );
-
-		t.destroy( v );
-
-		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 	}
 
 	EditorLayer::~EditorLayer()
