@@ -262,9 +262,9 @@ namespace Saturn {
 		// BLOOM
 		//////////////////////////////////////////////////////////////////////////
 
-		Ref<ComputePipeline> m_BloomComputePipeline = nullptr;
-		Ref<Texture2D> m_BloomTextures[ 3 ];
-		Ref<Texture2D> m_BloomDirtTexture = nullptr;
+		Ref<ComputePipeline> BloomComputePipeline = nullptr;
+		Ref<Texture2D> BloomTextures[ 3 ];
+		Ref<Texture2D> BloomDirtTexture = nullptr;
 		Ref< DescriptorSet > BloomDS = nullptr;
 
 		uint32_t m_BloomWorkSize = 4;

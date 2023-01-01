@@ -363,7 +363,7 @@ namespace Saturn {
 			m_RendererData.SC_DescriptorSet = m_RendererData.SceneCompositeShader->CreateDescriptorSet( 0 );
 
 		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_GeometryPassTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[0]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
-		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomTexture", m_RendererData.m_BloomTextures[ 2 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
+		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomTexture", m_RendererData.BloomTextures[ 2 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 
 		m_RendererData.SceneCompositeShader->WriteAllUBs( m_RendererData.SC_DescriptorSet );
 
@@ -455,21 +455,21 @@ namespace Saturn {
 			m_RendererData.BloomShader = ShaderLibrary::Get().Find( "Bloom" );
 		}
 
-		m_RendererData.m_BloomComputePipeline = Ref<ComputePipeline>::Create( m_RendererData.BloomShader );
+		m_RendererData.BloomComputePipeline = Ref<ComputePipeline>::Create( m_RendererData.BloomShader );
 
 		for( size_t i = 0; i < 3; i++ ) 
 		{
-			m_RendererData.m_BloomTextures[ i ] = Ref<Texture2D>::Create( ImageFormat::RGBA32F, 1, 1, nullptr, true );
-			m_RendererData.m_BloomTextures[ i ]->SetDebugName( "Bloom Texture: " + std::to_string( i ) );
+			m_RendererData.BloomTextures[ i ] = Ref<Texture2D>::Create( ImageFormat::RGBA32F, 1, 1, nullptr, true );
+			m_RendererData.BloomTextures[ i ]->SetDebugName( "Bloom Texture: " + std::to_string( i ) );
 		}
 
-		m_RendererData.m_BloomDirtTexture = Renderer::Get().GetPinkTexture();
+		m_RendererData.BloomDirtTexture = Renderer::Get().GetPinkTexture();
 
 		m_RendererData.BloomDS = m_RendererData.BloomShader->CreateDescriptorSet( 0 );
 
 		m_RendererData.BloomShader->WriteAllUBs( m_RendererData.BloomDS );
 
-		m_RendererData.m_BloomDirtTexture = Ref<Texture2D>::Create( "assets/textures/BloomDirtTextureUE.png" );
+		m_RendererData.BloomDirtTexture = Ref<Texture2D>::Create( "assets/textures/BloomDirtTextureUE.png", AddressingMode::Repeat );
 
 		VkDescriptorPoolSize PoolSizes[] = 
 		{
@@ -881,7 +881,7 @@ namespace Saturn {
 			{
 				static int index = 0;
 				static int MipIndex = 0;
-				auto& img = m_RendererData.m_BloomTextures[ index ];
+				auto& img = m_RendererData.BloomTextures[ index ];
 
 				ImGui::SliderInt( "##bloom_tex", &index, 0, 2 );
 				ImGui::SliderInt( "##mip", &MipIndex, 0, img->GetMipMapLevels() );
@@ -963,13 +963,13 @@ namespace Saturn {
 
 		for( uint32_t i = 0; i < 3; i++ )
 		{
-			m_RendererData.m_BloomTextures[ i ]->Terminate();
+			m_RendererData.BloomTextures[ i ]->Terminate();
 
-			m_RendererData.m_BloomTextures[ i ] = Ref<Texture2D>::Create( ImageFormat::RGBA32F, bs.x, bs.y, nullptr, true );
-			m_RendererData.m_BloomTextures[ i ]->SetDebugName( "Bloom Texture: " + std::to_string( i ) );
+			m_RendererData.BloomTextures[ i ] = Ref<Texture2D>::Create( ImageFormat::RGBA32F, bs.x, bs.y, nullptr, true );
+			m_RendererData.BloomTextures[ i ]->SetDebugName( "Bloom Texture: " + std::to_string( i ) );
 		}
 
-		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomTexture", m_RendererData.m_BloomTextures[ 2 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
+		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomTexture", m_RendererData.BloomTextures[ 2 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 
 		//InitBloom();
 
@@ -1432,7 +1432,7 @@ namespace Saturn {
 		pc_Settings.QK = pc_Settings.Knee / 0.25f;
 
 		auto& shader = m_RendererData.BloomShader;
-		auto& pipeline = m_RendererData.m_BloomComputePipeline;
+		auto& pipeline = m_RendererData.BloomComputePipeline;
 
 		DescriptorSetSpecification spec;
 		spec.Layout = shader->GetSetLayout();
@@ -1449,7 +1449,7 @@ namespace Saturn {
 
 		glm::vec2 workgrps{};
 
-		uint32_t mips = m_RendererData.m_BloomTextures[ 0 ]->GetMipMapLevels();
+		uint32_t mips = m_RendererData.BloomTextures[ 0 ]->GetMipMapLevels();
 
 		if( mips == 1 )
 			return;
@@ -1472,13 +1472,13 @@ namespace Saturn {
 			shader->WriteDescriptor( "u_InputTexture", InputImg->GetDescriptorInfo(), descriptorSet );
 			shader->WriteDescriptor( "u_BloomTexture", InputImg->GetDescriptorInfo(), descriptorSet );
 
-			auto descriptorInfo = m_RendererData.m_BloomTextures[ 0 ]->GetDescriptorInfo();
-			descriptorInfo.imageView = m_RendererData.m_BloomTextures[ 0 ]->GetOrCreateMipImageView( 0 );
+			auto descriptorInfo = m_RendererData.BloomTextures[ 0 ]->GetDescriptorInfo();
+			descriptorInfo.imageView = m_RendererData.BloomTextures[ 0 ]->GetOrCreateMipImageView( 0 );
 
 			shader->WriteDescriptor( "o_Image", descriptorInfo, descriptorSet );
 
-			workgrps.x = m_RendererData.m_BloomTextures[ 0 ]->Width() / m_RendererData.m_BloomWorkSize;
-			workgrps.y = m_RendererData.m_BloomTextures[ 0 ]->Height() / m_RendererData.m_BloomWorkSize;
+			workgrps.x = m_RendererData.BloomTextures[ 0 ]->Width() / m_RendererData.m_BloomWorkSize;
+			workgrps.y = m_RendererData.BloomTextures[ 0 ]->Height() / m_RendererData.m_BloomWorkSize;
 
 			pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
 			pipeline->Execute( descriptorSet, workgrps.x, workgrps.y, 1 );
@@ -1492,18 +1492,18 @@ namespace Saturn {
 		pc_Settings.Stage = 0;
 		for( uint32_t i = 1; i < mips; i++ )
 		{
-			auto [w, h] = m_RendererData.m_BloomTextures[ 0 ]->GetMipSize( i );
+			auto [w, h] = m_RendererData.BloomTextures[ 0 ]->GetMipSize( i );
 
 			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.m_BloomWorkSize );
 			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.m_BloomWorkSize );
 
 			{
-				auto descriptorInfo = m_RendererData.m_BloomTextures[ 1 ]->GetDescriptorInfo();
-				descriptorInfo.imageView = m_RendererData.m_BloomTextures[ 1 ]->GetOrCreateMipImageView( i );
+				auto descriptorInfo = m_RendererData.BloomTextures[ 1 ]->GetDescriptorInfo();
+				descriptorInfo.imageView = m_RendererData.BloomTextures[ 1 ]->GetOrCreateMipImageView( i );
 
 				VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &info, &descriptorSet ) );
 
-				shader->WriteDescriptor( "u_InputTexture", m_RendererData.m_BloomTextures[ 0 ]->GetDescriptorInfo(), descriptorSet );
+				shader->WriteDescriptor( "u_InputTexture", m_RendererData.BloomTextures[ 0 ]->GetDescriptorInfo(), descriptorSet );
 				shader->WriteDescriptor( "u_BloomTexture", InputImg->GetDescriptorInfo(), descriptorSet );
 
 				shader->WriteDescriptor( "o_Image", descriptorInfo, descriptorSet );
@@ -1520,11 +1520,11 @@ namespace Saturn {
 			{
 				VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &info, &descriptorSet ) );
 
-				shader->WriteDescriptor( "u_InputTexture", m_RendererData.m_BloomTextures[ 1 ]->GetDescriptorInfo(), descriptorSet );
+				shader->WriteDescriptor( "u_InputTexture", m_RendererData.BloomTextures[ 1 ]->GetDescriptorInfo(), descriptorSet );
 				shader->WriteDescriptor( "u_BloomTexture", InputImg->GetDescriptorInfo(), descriptorSet );
 
-				auto descriptorInfo = m_RendererData.m_BloomTextures[ 0 ]->GetDescriptorInfo();
-				descriptorInfo.imageView = m_RendererData.m_BloomTextures[ 0 ]->GetOrCreateMipImageView( i );
+				auto descriptorInfo = m_RendererData.BloomTextures[ 0 ]->GetDescriptorInfo();
+				descriptorInfo.imageView = m_RendererData.BloomTextures[ 0 ]->GetOrCreateMipImageView( i );
 
 				shader->WriteDescriptor( "o_Image", descriptorInfo, descriptorSet );
 
@@ -1547,17 +1547,17 @@ namespace Saturn {
 		{
 			VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &info, &descriptorSet ) );
 
-			shader->WriteDescriptor( "u_InputTexture", m_RendererData.m_BloomTextures[ 0 ]->GetDescriptorInfo(), descriptorSet );
+			shader->WriteDescriptor( "u_InputTexture", m_RendererData.BloomTextures[ 0 ]->GetDescriptorInfo(), descriptorSet );
 			shader->WriteDescriptor( "u_BloomTexture", InputImg->GetDescriptorInfo(), descriptorSet );
 
-			auto info = m_RendererData.m_BloomTextures[ 0 ]->GetDescriptorInfo();
-			info.imageView = m_RendererData.m_BloomTextures[ 2 ]->GetOrCreateMipImageView( mips - 2 );
+			auto info = m_RendererData.BloomTextures[ 0 ]->GetDescriptorInfo();
+			info.imageView = m_RendererData.BloomTextures[ 2 ]->GetOrCreateMipImageView( mips - 2 );
 
 			shader->WriteDescriptor( "o_Image", info, descriptorSet );
 
 			pc_Settings.LOD--;
 
-			auto [w, h] = m_RendererData.m_BloomTextures[ 2 ]->GetMipSize( mips - 2 );
+			auto [w, h] = m_RendererData.BloomTextures[ 2 ]->GetMipSize( mips - 2 );
 
 			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.m_BloomWorkSize );
 			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.m_BloomWorkSize );
@@ -1574,7 +1574,7 @@ namespace Saturn {
 		pc_Settings.Stage = 1;
 		for( int32_t mip = mips - 3; mip >= 0; mip-- )
 		{
-			auto [w, h] = m_RendererData.m_BloomTextures[ 2 ]->GetMipSize( mip );
+			auto [w, h] = m_RendererData.BloomTextures[ 2 ]->GetMipSize( mip );
 
 			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.m_BloomWorkSize );
 			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.m_BloomWorkSize );
@@ -1582,11 +1582,11 @@ namespace Saturn {
 			VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &info, &descriptorSet ) );
 
 			{
-				shader->WriteDescriptor( "u_InputTexture", m_RendererData.m_BloomTextures[ 0 ]->GetDescriptorInfo(), descriptorSet );
-				shader->WriteDescriptor( "u_BloomTexture", m_RendererData.m_BloomTextures[ 2 ]->GetDescriptorInfo(), descriptorSet );
+				shader->WriteDescriptor( "u_InputTexture", m_RendererData.BloomTextures[ 0 ]->GetDescriptorInfo(), descriptorSet );
+				shader->WriteDescriptor( "u_BloomTexture", m_RendererData.BloomTextures[ 2 ]->GetDescriptorInfo(), descriptorSet );
 
-				auto info = m_RendererData.m_BloomTextures[ 0 ]->GetDescriptorInfo();
-				info.imageView = m_RendererData.m_BloomTextures[ 2 ]->GetOrCreateMipImageView( mip );
+				auto info = m_RendererData.BloomTextures[ 0 ]->GetDescriptorInfo();
+				info.imageView = m_RendererData.BloomTextures[ 2 ]->GetOrCreateMipImageView( mip );
 
 				shader->WriteDescriptor( "o_Image", info, descriptorSet );
 
