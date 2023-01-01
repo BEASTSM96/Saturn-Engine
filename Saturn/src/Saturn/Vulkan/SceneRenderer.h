@@ -112,6 +112,7 @@ namespace Saturn {
 		Timer AOCompositeTimer;
 		Timer PreDepthTimer;
 		Timer LightCullingTimer;
+		Timer BloomTimer;
 
 		//////////////////////////////////////////////////////////////////////////
 
@@ -257,10 +258,22 @@ namespace Saturn {
 		Ref<Pass> AOComposite;
 		Ref<Framebuffer> AOCompositeFramebuffer;
 
+		//////////////////////////////////////////////////////////////////////////
+		// BLOOM
+		//////////////////////////////////////////////////////////////////////////
+
+		Ref<ComputePipeline> m_BloomComputePipeline = nullptr;
+		Ref<Texture2D> m_BloomTextures[ 3 ];
+		Ref<Texture2D> m_BloomDirtTexture = nullptr;
+		Ref< DescriptorSet > BloomDS = nullptr;
+
+		uint32_t m_BloomWorkSize = 4;
+
+		VkDescriptorPool BloomDescriptorPool;
 
 		//////////////////////////////////////////////////////////////////////////
 		// BDRF Lut
-		Ref<Texture2D> BRDFLUT_Texture;
+		Ref<Texture2D> BRDFLUT_Texture = nullptr;
 
 		//////////////////////////////////////////////////////////////////////////
 		// SHADERS
@@ -275,6 +288,7 @@ namespace Saturn {
 		Ref< Shader > AOCompositeShader = nullptr;
 		Ref< Shader > PreDepthShader = nullptr;
 		Ref< Shader > LightCullingShader = nullptr;
+		Ref< Shader > BloomShader = nullptr;
 	};
 
 	class SceneRenderer : public CountedObj
@@ -336,6 +350,7 @@ namespace Saturn {
 		void InitPreDepth();
 		void InitSceneComposite();
 		void InitAOComposite();
+		void InitBloom();
 
 		void DirShadowMapPass();
 		void PreDepthPass();
@@ -343,6 +358,7 @@ namespace Saturn {
 		void SceneCompositePass();
 		void AOCompositePass();
 		void LightCullingPass();
+		void BloomPass();
 
 		void AddScheduledFunction( ScheduledFunc&& rrFunc );
 
@@ -359,6 +375,7 @@ namespace Saturn {
 		std::vector< ScheduledFunc > m_ScheduledFunctions;
 
 		ScheduledFunc m_LightCullingFunction;
+		ScheduledFunc m_BloomComputeFunction;
 
 	private:
 		friend class Scene;

@@ -30,6 +30,7 @@
 #include "Texture.h"
 
 #include "VulkanContext.h"
+#include "VulkanDebug.h"
 
 #include <stb_image.h>
 #include <backends/imgui_impl_vulkan.h>
@@ -80,6 +81,11 @@ namespace Saturn {
 		return VK_SAMPLER_ADDRESS_MODE_MAX_ENUM;
 	}
 
+	static bool VulkanIsDepth( VkFormat format ) 
+	{
+		return ( format == VK_FORMAT_D32_SFLOAT || VK_FORMAT_D32_SFLOAT_S8_UINT );
+	}
+
 	static void ImagePipelineBarrier( 
 		VkCommandBuffer CommandBuffer, VkImage Image, VkAccessFlags SrcMask, VkAccessFlags DstMask, VkImageLayout OldImageLayout, VkImageLayout NewImageLayout, VkPipelineStageFlags SrcStage, VkPipelineStageFlags DstStage, VkImageSubresourceRange Range )
 	{
@@ -125,6 +131,11 @@ namespace Saturn {
 		m_ImageMemory = nullptr;
 		m_ImageView = nullptr;
 		m_Sampler = nullptr;
+
+		for ( auto&& [mip, view] : m_MipToImageViewMap )
+			vkDestroyImageView( VulkanContext::Get().GetDevice(), view, nullptr );
+
+		m_MipToImageViewMap.clear();
 	}
 
 	void Texture::TransitionImageLayout( VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout )
@@ -178,6 +189,22 @@ namespace Saturn {
 			SrcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 			DstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 		}
+		else if( OldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && NewLayout == VK_IMAGE_LAYOUT_GENERAL )
+		{
+			ImageBarrier.srcAccessMask = 0;
+			ImageBarrier.dstAccessMask = 0;
+
+			SrcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+			DstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+		}
+		else if( OldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && NewLayout == VK_IMAGE_LAYOUT_GENERAL )
+		{
+			ImageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			ImageBarrier.dstAccessMask = 0;
+
+			SrcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+			DstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+		}
 
 		vkCmdPipelineBarrier( CommandBuffer, SrcStage, DstStage, 0, 0, nullptr, 0, nullptr, 1, &ImageBarrier );
 
@@ -198,71 +225,6 @@ namespace Saturn {
 		ImageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		ImageBarrier.image = m_Image;
 		ImageBarrier.subresourceRange = rCommand;
-
-		/*
-		switch( OldLayout )
-		{
-			case VK_IMAGE_LAYOUT_UNDEFINED:
-				ImageBarrier.srcAccessMask = 0;
-				break;
-			case VK_IMAGE_LAYOUT_GENERAL:
-			case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-			case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-			case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-			case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-			case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-				break;
-			case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-				ImageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-				break;
-			case VK_IMAGE_LAYOUT_PREINITIALIZED:
-			case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
-			case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
-			case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL:
-			case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL:
-			case VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL:
-			case VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL:
-			case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-			case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
-			case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
-			case VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR:
-			case VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR:
-			case VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR:
-				break;
-		}
-
-		switch( NewLayout )
-		{
-			case VK_IMAGE_LAYOUT_UNDEFINED:
-			case VK_IMAGE_LAYOUT_GENERAL:
-			case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-			case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-			case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-				break;
-			case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-				ImageBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-				break;
-			case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-				break;
-			case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-				ImageBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-				break;
-			case VK_IMAGE_LAYOUT_PREINITIALIZED:
-			case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
-			case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
-			case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL:
-			case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL:
-			case VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL:
-			case VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL:
-			case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-			case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
-			case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
-			case VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR:
-			case VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR:
-			case VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR:
-				break;
-		}
-		*/
 
 		if( OldLayout == VK_IMAGE_LAYOUT_UNDEFINED && NewLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL )
 		{
@@ -297,6 +259,20 @@ namespace Saturn {
 	{
 		// Based from https://www.oreilly.com/library/view/opengl-programming-guide/9780132748445/ch06lev2sec20.html
 		return std::floor( std::log2( glm::min( m_Width, m_Height ) ) ) + 1;
+	}
+
+	std::pair<uint32_t, uint32_t> Texture::GetMipSize( uint32_t mip ) const
+	{
+		uint32_t width = m_Width;
+		uint32_t height = m_Height;
+		while( mip != 0 )
+		{
+			width /= 2;
+			height /= 2;
+			mip--;
+		}
+
+		return { width, height };
 	}
 
 	void Texture::CopyBufferToImage( VkBuffer Buffer )
@@ -470,6 +446,14 @@ namespace Saturn {
 		stbi_image_free( data );
 
 		return bf;
+	}
+
+	Texture2D::Texture2D( ImageFormat format, uint32_t width, uint32_t height, const void* pData, bool storage )
+		: Texture( width, height, VulkanFormat( format ), pData )
+	{
+		m_Storage = storage;
+
+		SetData( pData );
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -684,13 +668,48 @@ namespace Saturn {
 			.layerCount = 1
 		};
 
-		ImagePipelineBarrier( CommandBuffer, m_Image, VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, range );
+		if( !m_Storage )
+		{
+			ImagePipelineBarrier( CommandBuffer, m_Image, VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, range );
 
-		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		}
+		else
+		{
+			ImagePipelineBarrier( CommandBuffer, m_Image, VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, range );
+		}
 
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 
 		m_MipsCreated = true;
+	}
+
+	VkImageView Texture2D::GetOrCreateMipImageView( uint32_t mip )
+	{
+		if( m_MipToImageViewMap.find( mip ) == m_MipToImageViewMap.end() ) 
+		{
+			VkImageView view;
+
+			VkImageSubresourceRange range{};
+			range.aspectMask = !VulkanIsDepth( m_ImageFormat ) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+			range.baseMipLevel = mip;
+			range.layerCount = 1;
+			range.baseArrayLayer = 0;
+			range.levelCount = 1;
+
+			view = CreateImageView( range, m_Image, m_ImageFormat );
+
+			m_MipToImageViewMap[ mip ] = view;
+		}
+
+		return m_MipToImageViewMap.at( mip );
+	}
+
+	void Texture2D::SetDebugName( const std::string& rName )
+	{
+		SetDebugUtilsObjectName( rName.c_str(), (uint64_t)m_Image, VK_OBJECT_TYPE_IMAGE );
+		SetDebugUtilsObjectName( rName.c_str(), (uint64_t)m_ImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
+		SetDebugUtilsObjectName( rName.c_str(), (uint64_t)m_Sampler, VK_OBJECT_TYPE_SAMPLER );
 	}
 
 	void Texture2D::SetData( const void* pData )
@@ -704,18 +723,21 @@ namespace Saturn {
 		// Staging Buffer.
 		VkBuffer StagingBuffer;
 
-		VkBufferCreateInfo BufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-		BufferCreateInfo.size = ImageSize;
-		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		if( pData )
+		{
+			VkBufferCreateInfo BufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+			BufferCreateInfo.size = ImageSize;
+			BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+			BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		auto rBufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, &StagingBuffer );
+			auto rBufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, &StagingBuffer );
 
-		void* pDstData = pAllocator->MapMemory< void* >( rBufferAlloc );
+			void* pDstData = pAllocator->MapMemory< void* >( rBufferAlloc );
 
-		memcpy( pDstData, pData, ImageSize );
+			memcpy( pDstData, pData, ImageSize );
 
-		pAllocator->UnmapMemory( rBufferAlloc );
+			pAllocator->UnmapMemory( rBufferAlloc );
+		}
 
 		// Create the image.
 		if( m_ImageMemory )
@@ -724,16 +746,27 @@ namespace Saturn {
 		if( m_Image )
 			vkDestroyImage( VulkanContext::Get().GetDevice(), m_Image, nullptr );
 
-		CreateImage( m_Width, m_Height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Image, m_ImageMemory, MipCount, 1 );
+		VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
-		TransitionImageLayout( VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
+		if( m_Storage )
+			usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
-		CopyBufferToImage( StagingBuffer );
+		CreateImage( m_Width, m_Height, m_ImageFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Image, m_ImageMemory, MipCount, 1 );
+
+		//if( m_Storage )
+		//	TransitionImageLayout( m_ImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL );
+		//else
+			TransitionImageLayout( m_ImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
+
+		if( m_pData )
+			CopyBufferToImage( StagingBuffer );
 
 		if( MipCount > 1 )
-			TransitionImageLayout( VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL );
+			TransitionImageLayout( m_ImageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL );
+		else if( !m_Storage )
+			TransitionImageLayout( m_ImageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 		else
-			TransitionImageLayout( VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+			TransitionImageLayout( m_ImageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL );
 
 		// Create image views
 		if( m_ImageView )
@@ -746,7 +779,7 @@ namespace Saturn {
 		range.layerCount = 1;
 		range.levelCount = MipCount;
 
-		m_ImageView = CreateImageView( range, m_Image, VK_FORMAT_R8G8B8A8_UNORM );
+		m_ImageView = CreateImageView( range, m_Image, m_ImageFormat );
 
 		// Create sampler
 		VkSamplerCreateInfo SamplerCreateInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
@@ -782,11 +815,11 @@ namespace Saturn {
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
 
 		m_DescriptorImageInfo = {};
-		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		m_DescriptorImageInfo.imageLayout = m_Storage ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Sampler;
 
-		m_DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_Sampler, m_ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+		m_DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_Sampler, m_ImageView, m_Storage ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
 		if( MipCount > 1 )
 			CreateMips();
@@ -996,6 +1029,11 @@ namespace Saturn {
 	void TextureCube::Terminate()
 	{
 		Texture::Terminate();
+	}
+
+	VkImageView TextureCube::GetOrCreateMipImageView( uint32_t mip )
+	{
+		return nullptr;
 	}
 
 	void TextureCube::SetData( const void* pData )

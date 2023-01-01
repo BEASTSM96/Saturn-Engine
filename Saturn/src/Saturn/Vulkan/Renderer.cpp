@@ -76,7 +76,7 @@ namespace Saturn {
 		}
 		
 		// It's really a white texture...
-		m_PinkTexture = Ref< Texture2D >::Create( 1, 1, VK_FORMAT_R8G8B8A8_UNORM, pData );
+		m_PinkTexture = Ref< Texture2D >::Create( ImageFormat::RGBA8, 1, 1, pData );
 		m_PinkTexture->SetIsRendererTexture( true );
 
 		delete[] pData;

@@ -84,6 +84,8 @@ namespace Saturn {
 
 		uint32_t GetMipMapLevels();
 
+		std::pair<uint32_t, uint32_t> GetMipSize( uint32_t mip ) const;
+
 		void CopyBufferToImage( VkBuffer Buffer );
 
 		void SetPath( const std::filesystem::path& rPath ) { m_Path = rPath; };
@@ -112,6 +114,8 @@ namespace Saturn {
 		virtual bool IsRendererTexture() { return m_IsRendererTexture; }
 
 		virtual void CreateMips() = 0;
+
+		virtual VkImageView GetOrCreateMipImageView( uint32_t mip ) = 0;
 	public:
 
 		std::filesystem::path m_Path = "";
@@ -133,8 +137,12 @@ namespace Saturn {
 
 		AddressingMode m_AddressingMode = AddressingMode::Repeat;
 
+		std::unordered_map<uint32_t, VkImageView> m_MipToImageViewMap;
+
 		int m_Width = 0;
 		int m_Height = 0;
+
+		bool m_Storage = false;
 	};
 	
 	class Texture2D : public Texture
@@ -145,14 +153,17 @@ namespace Saturn {
 		Texture2D( std::filesystem::path Path, AddressingMode Mode, bool flip = true ) 
 			: Texture( Path, Mode ) { CreateTextureImage( flip ); }
 
-		Texture2D( uint32_t width, uint32_t height, VkFormat Format, const void* pData ) 
-			: Texture( width, height, Format, pData ) { SetData( pData ); }
+		Texture2D( ImageFormat format, uint32_t width, uint32_t height, const void* pData, bool storage = false );
 		
 		~Texture2D() { Terminate(); }
 		
 		void Terminate() override;
 
 		void Copy( Ref<Texture2D> rOther );
+
+		VkImageView GetOrCreateMipImageView( uint32_t mip ) override;
+
+		void SetDebugName( const std::string& rName );
 
 	private:
 
@@ -178,6 +189,8 @@ namespace Saturn {
 		void CreateMips() override;
 
 		void Terminate() override;
+
+		VkImageView GetOrCreateMipImageView( uint32_t mip ) override;
 	private:
 
 		void CreateTextureImage(bool flip) override;
