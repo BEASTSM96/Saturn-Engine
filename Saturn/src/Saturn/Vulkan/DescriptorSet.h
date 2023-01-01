@@ -42,6 +42,8 @@ namespace Saturn {
 		
 		void Terminate();
 
+		VkDescriptorPool GetVulkanPool() { return m_Pool; }
+
 		operator VkDescriptorPool() { return m_Pool; }
 		operator const VkDescriptorPool() const { return m_Pool; }
 

@@ -51,23 +51,9 @@ namespace Saturn {
 
 		auto DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
 
-		/*
-		typedef void ( *__rttr_auto_register_reflection_function_ )( );
-
-		m_DLLInstance = LoadLibraryEx( DllPath.wstring().c_str(), nullptr, DLL_PROCESS_ATTACH  
-			| LOAD_WITH_ALTERED_SEARCH_PATH );
-		//m_DLLInstance = LoadLibrary( DllPath.wstring().c_str() );
-
-		//__rttr_auto_register_reflection_function_ _rttr_auto_register_reflection_function_ = ( __rttr_auto_register_reflection_function_ ) GetProcAddress( m_DLLInstance, "rttr_auto_register_reflection_function_" );
-
-		//_rttr_auto_register_reflection_function_();
-
-		SAT_CORE_ASSERT( m_DLLInstance, "Failed to load game dll file!" );
-		*/
-		
 		rttr::library lib( DllPath.string() );
 
-		lib.load();
+		//lib.load();
 
 		SAT_CORE_INFO( "Loaded game dll!" );
 	}

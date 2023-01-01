@@ -60,6 +60,8 @@ namespace Saturn {
 	
 	extern void Image( Ref< Texture2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ), const ImVec4& BorderColor = ImVec4( 0, 0, 0, 0 ) );
 	
+	extern void Image( Ref< Texture2D > Image, uint32_t Mip, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ), const ImVec4& BorderColor = ImVec4( 0, 0, 0, 0 ) );
+
 	extern void Image( Ref<Image2D> Image, uint32_t ImageLayer, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1), const ImVec2& UV1 = ImVec2( 1, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ), const ImVec4& BorderColor = ImVec4( 0, 0, 0, 0 ) );
 
 	extern bool ImageButton( Ref< Image2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), int FramePadding = -1, const ImVec4& BackgroundColor = ImVec4( 0, 0, 0, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ) );
