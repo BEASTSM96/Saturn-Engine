@@ -364,6 +364,7 @@ namespace Saturn {
 
 		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_GeometryPassTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[0]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomTexture", m_RendererData.BloomTextures[ 2 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
+		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomDirtTexture", m_RendererData.BloomDirtTexture->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 
 		m_RendererData.SceneCompositeShader->WriteAllUBs( m_RendererData.SC_DescriptorSet );
 
@@ -884,11 +885,13 @@ namespace Saturn {
 				auto& img = m_RendererData.BloomTextures[ index ];
 
 				ImGui::SliderInt( "##bloom_tex", &index, 0, 2 );
-				ImGui::SliderInt( "##mip", &MipIndex, 0, img->GetMipMapLevels() );
+				ImGui::SliderInt( "##mip", &MipIndex, 0, img->GetMipMapLevels() - 2 );
 
 				float size = ImGui::GetContentRegionAvail().x;
 
 				Image( img, MipIndex, { size, size }, { 0, 1 }, { 1, 0 } );
+
+				ImGui::SliderFloat( "##dirtint", &m_RendererData.BloomDirtIntensity, 0, 1000.0f );
 
 				EndTreeNode();
 			}
@@ -959,7 +962,7 @@ namespace Saturn {
 		//InitAOComposite();
 
 		glm::uvec2 bs = ( glm::uvec2( m_RendererData.Width, m_RendererData.Height ) + 1u ) / 2u;
-		bs += m_RendererData.m_BloomWorkSize - bs % m_RendererData.m_BloomWorkSize;
+		bs += m_RendererData.BloomWorkSize - bs % m_RendererData.BloomWorkSize;
 
 		for( uint32_t i = 0; i < 3; i++ )
 		{
@@ -1464,7 +1467,7 @@ namespace Saturn {
 
 		// Step 0.5: Prefilter.
 		// Here we are just getting anything that is brighter than the bloom threshold.
-		pc_Settings.Stage = -1;
+		pc_Settings.Stage = (float)BloomStage::Prefilter;
 
 		{
 			VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &info, &descriptorSet ) );
@@ -1477,8 +1480,8 @@ namespace Saturn {
 
 			shader->WriteDescriptor( "o_Image", descriptorInfo, descriptorSet );
 
-			workgrps.x = m_RendererData.BloomTextures[ 0 ]->Width() / m_RendererData.m_BloomWorkSize;
-			workgrps.y = m_RendererData.BloomTextures[ 0 ]->Height() / m_RendererData.m_BloomWorkSize;
+			workgrps.x = m_RendererData.BloomTextures[ 0 ]->Width() / m_RendererData.BloomWorkSize;
+			workgrps.y = m_RendererData.BloomTextures[ 0 ]->Height() / m_RendererData.BloomWorkSize;
 
 			pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
 			pipeline->Execute( descriptorSet, workgrps.x, workgrps.y, 1 );
@@ -1489,13 +1492,13 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Downsample" );
 
 		// Step 1: Downsample.
-		pc_Settings.Stage = 0;
+		pc_Settings.Stage = ( float ) BloomStage::Downsample;
 		for( uint32_t i = 1; i < mips; i++ )
 		{
 			auto [w, h] = m_RendererData.BloomTextures[ 0 ]->GetMipSize( i );
 
-			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.m_BloomWorkSize );
-			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.m_BloomWorkSize );
+			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.BloomWorkSize );
+			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.BloomWorkSize );
 
 			{
 				auto descriptorInfo = m_RendererData.BloomTextures[ 1 ]->GetDescriptorInfo();
@@ -1540,7 +1543,7 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "First Upsample" );
 
 		// Step 2: First upsample.
-		pc_Settings.Stage = -2;
+		pc_Settings.Stage = ( float ) BloomStage::FirstUpsample;
 		workgrps.x *= 2;
 		workgrps.y *= 2;
 
@@ -1559,8 +1562,8 @@ namespace Saturn {
 
 			auto [w, h] = m_RendererData.BloomTextures[ 2 ]->GetMipSize( mips - 2 );
 
-			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.m_BloomWorkSize );
-			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.m_BloomWorkSize );
+			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.BloomWorkSize );
+			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.BloomWorkSize );
 
 			pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
 			pipeline->Execute( descriptorSet, workgrps.x, workgrps.y, 1 );
@@ -1571,13 +1574,13 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Upsample" );
 
 		// Step 3: Upsample.
-		pc_Settings.Stage = 1;
+		pc_Settings.Stage = ( float ) BloomStage::Upsample;
 		for( int32_t mip = mips - 3; mip >= 0; mip-- )
 		{
 			auto [w, h] = m_RendererData.BloomTextures[ 2 ]->GetMipSize( mip );
 
-			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.m_BloomWorkSize );
-			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.m_BloomWorkSize );
+			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.BloomWorkSize );
+			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.BloomWorkSize );
 
 			VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &info, &descriptorSet ) );
 
@@ -1706,8 +1709,6 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Bloom" );
 
 		BloomPass();
-
-		//m_BloomComputeFunction();
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 

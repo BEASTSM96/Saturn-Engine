@@ -73,6 +73,15 @@ namespace Saturn {
 		float Multiplier;
 	};
 
+	// -1 = Prefilter, 0 = Downsample, 1 = Upsample
+	enum class BloomStage
+	{
+		FirstUpsample = -2,
+		Prefilter = -1,
+		Downsample,
+		Upsample
+	};
+
 	struct RendererData
 	{
 		void Terminate();
@@ -267,7 +276,9 @@ namespace Saturn {
 		Ref<Texture2D> BloomDirtTexture = nullptr;
 		Ref< DescriptorSet > BloomDS = nullptr;
 
-		uint32_t m_BloomWorkSize = 4;
+		uint32_t BloomWorkSize = 4;
+
+		float BloomDirtIntensity = 20.0f;
 
 		VkDescriptorPool BloomDescriptorPool;
 
@@ -375,7 +386,6 @@ namespace Saturn {
 		std::vector< ScheduledFunc > m_ScheduledFunctions;
 
 		ScheduledFunc m_LightCullingFunction;
-		ScheduledFunc m_BloomComputeFunction;
 
 	private:
 		friend class Scene;

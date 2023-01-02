@@ -153,17 +153,6 @@ namespace Saturn {
 				{
 					auto [transformComponent, lightComponent] = points.get<TransformComponent, PointLightComponent>( e );
 
-					/*
-						glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
-						glm::vec3 Radiance = { 1.0f, 1.0f, 1.0f };
-						float Intensity = 1.0f;
-						float Multiplier = 1.0f;
-						float LightSize = 0.5f;
-						float Radius = 10.0f;
-						float MinRadius = 1.0f;
-						float Falloff = 1.0f;
-					*/
-
 					PointLight pl = { 
 						.Position = transformComponent.Position,
 						.Radiance = lightComponent.Radiance,
@@ -181,15 +170,6 @@ namespace Saturn {
 					//	.Radius = lightComponent.Radius,
 					//	.MinRadius = lightComponent.MinRadius,
 					//	.Falloff = lightComponent.Falloff } );
-
-					SAT_CORE_INFO( "Point Light Info:" );
-					SAT_CORE_INFO( " Position: {0}", pl.Position );
-					SAT_CORE_INFO( " Radiance: {0}", pl.Radiance );
-					SAT_CORE_INFO( " Multiplier: {0}", pl.Multiplier );
-					SAT_CORE_INFO( " LightSize: {0}", pl.LightSize );
-					SAT_CORE_INFO( " Radius: {0}", pl.Radius );
-					SAT_CORE_INFO( " MinRadius: {0}", pl.MinRadius );
-					SAT_CORE_INFO( " Falloff: {0}", pl.Falloff );
 
 					m_Lights.PointLights.push_back( pl );
 
