@@ -70,6 +70,7 @@ namespace Saturn {
 		m_Material->Set<float>( "u_Materials.Metalness", 1.0f );
 		m_Material->Set<float>( "u_Materials.Roughness", 1.0f );
 		m_Material->Set<float>( "u_Materials.UseNormalMap", 0.0f );
+		m_Material->Set<float>( "u_Materials.Emissive", 0.0f );
 
 		s_ViewingMaterial = m_Material;
 	}
@@ -170,6 +171,13 @@ namespace Saturn {
 		m_ValuesChanged = true;
 
 		m_Material->Set<float>( "u_Materials.Metalness", val );
+	}
+
+	void MaterialAsset::SetEmissive( float val )
+	{
+		m_ValuesChanged = true;
+
+		m_Material->Set<float>( "u_Materials.Emissive", val );
 	}
 
 	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetResource( const std::string& rName )
@@ -297,6 +305,11 @@ namespace Saturn {
 	float MaterialAsset::GetMetalness()
 	{
 		return s_IsInViewingMode ? s_ViewingMaterial->Get<float>( "u_Materials.Metalness" ) : m_Material->Get<float>( "u_Materials.Metalness" );
+	}
+
+	float MaterialAsset::GetEmissive()
+	{
+		return s_IsInViewingMode ? s_ViewingMaterial->Get<float>( "u_Materials.Emissive" ) : m_Material->Get<float>( "u_Materials.Emissive" );
 	}
 
 	void MaterialAsset::SetAlbeoMap( Ref<Texture2D>& rTexture )

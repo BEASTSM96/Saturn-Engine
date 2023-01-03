@@ -52,6 +52,7 @@ namespace Saturn {
 		float IsUsingNormalMap();
 		float GetRoughness();
 		float GetMetalness();
+		float GetEmissive();
 
 		std::string& GetName() { return m_Material->GetName(); }
 		const std::string& GetName() const { return m_Material->GetName(); }
@@ -65,6 +66,7 @@ namespace Saturn {
 		void UseNormalMap( bool val );
 		void SetRoughness( float val );
 		void SetMetalness( float val );
+		void SetEmissive( float val );
 
 		Ref<Texture2D> GetResource( const std::string& rName );
 		void SetResource( const std::string& rName, const Ref<Texture2D>& rTexture );

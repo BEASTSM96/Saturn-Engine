@@ -402,7 +402,11 @@ namespace Saturn {
 
 								float v = rMaterial->Get< float >( property );
 
-								ImGui::DragFloat( name, &v, 0.01f, 0.0f, 10000.0f );
+								ImGui::PushID( name );
+
+								ImGui::DragFloat( "##drgflt", &v, 0.01f, 0.0f, 10000.0f );
+
+								ImGui::PopID();
 
 								if( v != rMaterial->Get<float>( property ) )
 									rMaterial->Set( property, v );
@@ -445,6 +449,8 @@ namespace Saturn {
 
 							if( changed )
 								rMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
+
+							drawItemValue( "Emissive", "u_Materials.Emissive" );
 
 							ImGui::Text( "Normal" );
 

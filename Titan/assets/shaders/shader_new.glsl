@@ -107,6 +107,7 @@ layout(push_constant) uniform pc_Materials
 	
 	float Metalness;
 	float Roughness;
+	float Emissive;
 
 } u_Materials; 
 
@@ -515,6 +516,7 @@ void main()
 	LightingContribution = Lighting( F0 ) * ShadowAmount;
 	iblContribution = IBL( F0, Lr );
 	LightingContribution += CalculatePointLights( F0, vs_Input.Position );
+	LightingContribution += m_Params.Albedo * u_Materials.Emissive;
 
 	FinalColor = vec4( iblContribution + LightingContribution, 1.0 );
 	OutAlbedo = vec4( m_Params.Albedo, 1.0 );
