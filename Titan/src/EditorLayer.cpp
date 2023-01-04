@@ -67,6 +67,8 @@
 #include <Saturn/Asset/AssetRegistry.h>
 
 #include <Saturn/GameFramework/GameDLL.h>
+#include <Saturn/GameFramework/GameManager.h>
+#include <Saturn/GameFramework/ScriptManager.h>
 
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
@@ -230,16 +232,11 @@ namespace Saturn {
 		GameDLL* pGameDLL = new GameDLL();
 		pGameDLL->Load();
 
-		using namespace std::chrono_literals;
+		GameManager* pGameManager = new GameManager();
 
-		std::this_thread::sleep_for( 1ms );
-
-		rttr::type t = rttr::type::get_by_name( "Farmer" );
-		rttr::variant v = t.create();
-
-		rttr::method x = t.get_method( "OnUpdate" );
-
-		x.invoke( v );
+		ScriptManager::Get().RegisterScript( "Farmer" );
+		ScriptManager::Get().CreateAllScripts();
+		ScriptManager::Get().BeginPlay();
 	}
 
 	EditorLayer::~EditorLayer()
@@ -312,6 +309,8 @@ namespace Saturn {
 
 		if(!Input::Get().MouseButtonPressed( Mouse::Right ))
 			m_StartedRightClickInViewport = false;
+
+		ScriptManager::Get().UpdateAllScripts();
 	}
 
 	void EditorLayer::OnImGuiRender()

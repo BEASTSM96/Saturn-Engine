@@ -47,6 +47,9 @@ namespace Saturn {
 		static GameDLL* s_Instance;
 
 		HMODULE m_DLLInstance = nullptr;
+
+	private:
+		friend class ScriptManager;
 	};
 
 }

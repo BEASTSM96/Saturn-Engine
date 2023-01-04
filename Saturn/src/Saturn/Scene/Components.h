@@ -287,10 +287,17 @@ namespace Saturn {
 		float Falloff = 1.f;
 	};
 
+	struct ScriptComponent
+	{
+		std::string ScriptName;
+	};
+
 	template<typename... V>
 	struct ComponentGroup {};
 
 	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, 
-		MeshComponent, LightComponent, DirectionalLightComponent, SkylightComponent, 
-		PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent, PointLightComponent>;
+		MeshComponent, 
+		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
+		PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent, 
+		ScriptComponent>;
 }

@@ -274,6 +274,15 @@ namespace Saturn {
 				}
 			}
 
+			if( !m_SelectionContext.HasComponent<ScriptComponent>() )
+			{
+				if( ImGui::Button( "Script" ) )
+				{
+					m_SelectionContext.AddComponent<ScriptComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
 			ImGui::EndPopup();
 		}
 
@@ -343,6 +352,11 @@ namespace Saturn {
 			DrawVec3Control( "Rotation", rotation );
 			tc.Rotation = glm::radians( rotation );
 			DrawVec3Control( "Scale", tc.Scale, 1.0f );
+		} );
+
+		DrawComponent<ScriptComponent>( "Script Component", entity, []( auto& sc )
+		{
+			ImGui::InputText( "##name", ( char* ) sc.ScriptName.c_str(), 1024, 0 );
 		} );
 
 		DrawComponent<MeshComponent>( "Mesh", entity, [&]( auto& mc )

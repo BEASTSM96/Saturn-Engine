@@ -26,57 +26,28 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "GameDLL.h"
+#pragma once
 
-#include "Saturn/Project/Project.h"
-
-#include "GameScript.h"
-
-#include <rttr/type>
-#include <rttr/registration.h>
+#include "Saturn/Scene/Entity.h"
 
 namespace Saturn {
 
-	GameDLL* GameDLL::s_Instance;
-
-	GameDLL::GameDLL()
+	class SClass
 	{
-		SAT_CORE_ASSERT( !s_Instance, "GameDLL was already created." );
+	public:
+		SClass() {}
+		~SClass() {}
 
-		s_Instance = this;
-	}
+		virtual void BeginPlay() = 0;
+		virtual void OnUpdate() = 0;
 
-	void GameDLL::Load()
-	{
-		auto binDir = Project::GetActiveProject()->GetBinDir();
+	protected:
+		Entity* m_Owner;
 
-		auto DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
+	private:
+		void SetOwner( Entity* pOwner ) { m_Owner = pOwner; }
+	private:
+		friend class ScriptManager;
+	};
 
-		m_DLLInstance = LoadLibraryA( DllPath.string().c_str() );
-
-		/*
-		typedef void ( *barn_blew_up )( );
-		typedef SClass* ( __stdcall* class_script_reg )( );
-
-		barn_blew_up fn = ( barn_blew_up )GetProcAddress( m_DLLInstance, "barn_blew_up" );
-		class_script_reg regfn = ( class_script_reg )GetProcAddress( m_DLLInstance, "CreateScriptClassFarmer_18" );
-
-		ScriptMap[ "Farmer" ] = regfn;
-
-		fn();
-
-		SClass* clazz = ScriptMap[ "Farmer" ]();
-
-		clazz->BeginPlay();
-		clazz->OnUpdate();
-		*/
-
-		SAT_CORE_INFO( "Loaded Game DLL!" );
-	}
-
-	void GameDLL::Unload()
-	{
-		FreeLibrary( m_DLLInstance );
-	}
 }

@@ -27,56 +27,57 @@
 */
 
 #include "sppch.h"
-#include "GameDLL.h"
-
-#include "Saturn/Project/Project.h"
+#include "ScriptManager.h"
 
 #include "GameScript.h"
-
-#include <rttr/type>
-#include <rttr/registration.h>
+#include "GameDLL.h"
 
 namespace Saturn {
 
-	GameDLL* GameDLL::s_Instance;
+	ScriptManager* ScriptManager::s_Instance;
 
-	GameDLL::GameDLL()
+	ScriptManager::ScriptManager()
 	{
-		SAT_CORE_ASSERT( !s_Instance, "GameDLL was already created." );
+		SAT_CORE_ASSERT( !s_Instance, "Script manager already created!" )
 
 		s_Instance = this;
 	}
 
-	void GameDLL::Load()
+	ScriptManager::~ScriptManager()
 	{
-		auto binDir = Project::GetActiveProject()->GetBinDir();
-
-		auto DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
-
-		m_DLLInstance = LoadLibraryA( DllPath.string().c_str() );
-
-		/*
-		typedef void ( *barn_blew_up )( );
-		typedef SClass* ( __stdcall* class_script_reg )( );
-
-		barn_blew_up fn = ( barn_blew_up )GetProcAddress( m_DLLInstance, "barn_blew_up" );
-		class_script_reg regfn = ( class_script_reg )GetProcAddress( m_DLLInstance, "CreateScriptClassFarmer_18" );
-
-		ScriptMap[ "Farmer" ] = regfn;
-
-		fn();
-
-		SClass* clazz = ScriptMap[ "Farmer" ]();
-
-		clazz->BeginPlay();
-		clazz->OnUpdate();
-		*/
-
-		SAT_CORE_INFO( "Loaded Game DLL!" );
+		for( auto&& [name, func] : m_ScriptFunctions )
+			delete m_Scripts[ name ];
 	}
 
-	void GameDLL::Unload()
+	void ScriptManager::RegisterScript( const std::string& rName )
 	{
-		FreeLibrary( m_DLLInstance );
+		auto module = GameDLL::Get().m_DLLInstance;
+
+		typedef SClass* ( __stdcall* funcptr )();
+
+		std::string funcName = "CreateScriptClass" + rName + "_";
+
+		funcptr regfn = ( funcptr ) GetProcAddress( module, funcName.c_str() );
+		
+		m_ScriptFunctions[ rName ] = regfn;
 	}
+
+	void ScriptManager::BeginPlay()
+	{
+		for( auto&& [name, script] : m_Scripts )
+			script->BeginPlay();
+	}
+
+	void ScriptManager::UpdateAllScripts()
+	{
+		for( auto&& [name, script] : m_Scripts )
+			script->OnUpdate();
+	}
+
+	void ScriptManager::CreateAllScripts()
+	{
+		for( auto&& [ name, func ] : m_ScriptFunctions )
+			m_Scripts[ name ] = func();
+	}
+
 }

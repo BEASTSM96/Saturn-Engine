@@ -26,57 +26,36 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "GameDLL.h"
-
-#include "Saturn/Project/Project.h"
+#pragma once
 
 #include "GameScript.h"
-
-#include <rttr/type>
-#include <rttr/registration.h>
+#include <unordered_map>
 
 namespace Saturn {
 
-	GameDLL* GameDLL::s_Instance;
-
-	GameDLL::GameDLL()
+	class ScriptManager
 	{
-		SAT_CORE_ASSERT( !s_Instance, "GameDLL was already created." );
+	public:
+		ScriptManager();
+		~ScriptManager();
 
-		s_Instance = this;
-	}
+		void RegisterScript( const std::string& rName );
 
-	void GameDLL::Load()
-	{
-		auto binDir = Project::GetActiveProject()->GetBinDir();
+		void BeginPlay();
+		void UpdateAllScripts();
+		void CreateAllScripts();
 
-		auto DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
+		static ScriptManager& Get() { return *s_Instance; }
 
-		m_DLLInstance = LoadLibraryA( DllPath.string().c_str() );
+	private:
 
-		/*
-		typedef void ( *barn_blew_up )( );
-		typedef SClass* ( __stdcall* class_script_reg )( );
+		// The register function defined in the game dll. i.e. SATURN_REGISTER_SCRIPT( MyClass )
+		std::unordered_map< std::string, SClass* ( __stdcall* )() > m_ScriptFunctions;
 
-		barn_blew_up fn = ( barn_blew_up )GetProcAddress( m_DLLInstance, "barn_blew_up" );
-		class_script_reg regfn = ( class_script_reg )GetProcAddress( m_DLLInstance, "CreateScriptClassFarmer_18" );
+		// TODO: Maybe remove the raw ptr?
+		std::unordered_map< std::string, SClass* > m_Scripts;
 
-		ScriptMap[ "Farmer" ] = regfn;
-
-		fn();
-
-		SClass* clazz = ScriptMap[ "Farmer" ]();
-
-		clazz->BeginPlay();
-		clazz->OnUpdate();
-		*/
-
-		SAT_CORE_INFO( "Loaded Game DLL!" );
-	}
-
-	void GameDLL::Unload()
-	{
-		FreeLibrary( m_DLLInstance );
-	}
+	private:
+		static ScriptManager* s_Instance;
+	};
 }
