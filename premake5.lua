@@ -27,6 +27,8 @@ IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
 IncludeDir["rttr"] = "Saturn/vendor/rttr/src"
 
+IncludeDir["SingletonStorage"] = "SingletonStorage/src"
+
 group "Dependencies"
 	include "Saturn/vendor/GLFW"
 	include "Saturn/vendor/imgui"
@@ -71,6 +73,7 @@ project "Saturn"
 		"PX_GENERATE_STATIC_LIBRARIES",
 		"AL_LIBTYPE_STATIC",
 		"GLM_ENABLE_EXPERIMENTAL",
+		"SATURN_SS_IMPORT"
 		--"GLM_FORCE_LEFT_HANDED"
 	}
 
@@ -95,7 +98,9 @@ project "Saturn"
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
 		"%{IncludeDir.ImguiNodeEditor}",
-		"%{IncludeDir.rttr}"
+		"%{IncludeDir.rttr}",
+
+		"%{IncludeDir.SingletonStorage}"
 	}
 
 	links 
@@ -103,7 +108,8 @@ project "Saturn"
 		"GLFW",
 		"ImGui",
 		"SPIRV-Cross",
-		"yaml-cpp"
+		"yaml-cpp",
+		"SingletonStorage"
 	}
 
 	filter "files:Saturn/vendor/ImGuizmo/src/ImGuizmo/**.cpp"
@@ -269,7 +275,8 @@ project "Titan"
 		"%{IncludeDir.PhysX}/physx",
 		"Saturn/vendor/vulkan/include",
 		"%{IncludeDir.ImGuizmo}",
-		"%{IncludeDir.rttr}"
+		"%{IncludeDir.rttr}",
+		"%{IncludeDir.SingletonStorage}"
 	}
 
 	links
@@ -283,7 +290,8 @@ project "Titan"
 		defines
 		{
 			"SAT_PLATFORM_WINDOWS",
-			"GLFW_INCLUDE_NONE"
+			"GLFW_INCLUDE_NONE",
+			"SATURN_SS_IMPORT"
 		}
 
 	filter "configurations:Debug"
@@ -299,6 +307,7 @@ project "Titan"
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
+			'{COPY} "../bin/Debug-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
 
 			-- Copy rttr
 			--'{COPY} "../Saturn/vendor/rttr/bin/Debug-Windows/rttr_core_d.dll" "%{cfg.targetdir}"' 
@@ -494,3 +503,51 @@ project "ProjectBrowser"
 			defines "SAT_DIST"
 			runtime "Release"
 			optimize "on"
+
+group "Tools"
+project "SingletonStorage"
+	location "SingletonStorage"
+	kind "SharedLib"
+	language "C++"
+	cppdialect "C++20"
+	staticruntime "on"
+	warnings "Off"
+		
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp"
+	}
+		
+	defines
+	{
+	}
+		
+	includedirs
+	{
+		"%{prj.name}/src",
+	}
+		
+	links 
+	{
+	}
+	
+	filter "system:windows"
+		systemversion "latest"
+		
+		filter "configurations:Debug"
+			runtime "Debug"
+			symbols "on"
+
+		
+		filter "configurations:Release"
+			runtime "Release"
+			optimize "on"
+		
+		filter "configurations:Dist"
+			runtime "Release"
+			optimize "on"
+			symbols "Off"
