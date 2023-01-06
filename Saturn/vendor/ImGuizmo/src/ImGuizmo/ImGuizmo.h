@@ -44,6 +44,8 @@
 
 #pragma once
 
+#include "imgui.h"
+
 #ifdef USE_IMGUI_API
 #include "imconfig.h"
 #endif
@@ -51,11 +53,7 @@
 #define IMGUI_API
 #endif
 
-#ifndef IMGUIZMO_NAMESPACE
-#define IMGUIZMO_NAMESPACE ImGuizmo
-#endif
-
-namespace IMGUIZMO_NAMESPACE
+namespace ImGuizmo
 {
    // call inside your own window and before Manipulate() in order to draw gizmo to that window.
    // Or pass a specific ImDrawList to draw to (e.g. ImGui::GetForegroundDrawList()).
