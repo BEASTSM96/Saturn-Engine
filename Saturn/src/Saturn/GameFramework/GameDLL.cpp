@@ -33,6 +33,8 @@
 
 #include "GameScript.h"
 
+#include "SourceManager.h"
+
 #include <rttr/type>
 #include <rttr/registration.h>
 
@@ -55,22 +57,7 @@ namespace Saturn {
 
 		m_DLLInstance = LoadLibraryA( DllPath.string().c_str() );
 
-		/*
-		typedef void ( *barn_blew_up )( );
-		typedef SClass* ( __stdcall* class_script_reg )( );
-
-		barn_blew_up fn = ( barn_blew_up )GetProcAddress( m_DLLInstance, "barn_blew_up" );
-		class_script_reg regfn = ( class_script_reg )GetProcAddress( m_DLLInstance, "CreateScriptClassFarmer_18" );
-
-		ScriptMap[ "Farmer" ] = regfn;
-
-		fn();
-
-		SClass* clazz = ScriptMap[ "Farmer" ]();
-
-		clazz->BeginPlay();
-		clazz->OnUpdate();
-		*/
+		SourceManager::Get();
 
 		SAT_CORE_INFO( "Loaded Game DLL!" );
 	}

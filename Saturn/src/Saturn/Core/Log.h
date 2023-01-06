@@ -38,51 +38,49 @@ namespace Saturn {
 
 	class Log
 	{
-		SINGLETON( Log );
-
+	public:
 		Log() { Init(); }
 		~Log() { Clear(); }
 
 		void Init();
 		void Clear();
 
-	public:
+		std::shared_ptr<spdlog::logger>& CoreLogger() { return m_CoreLogger; }
+		std::shared_ptr<spdlog::logger>& ClientLogger() { return m_ClientLogger; }
 
-		static inline std::shared_ptr<spdlog::logger>& CoreLogger() { return s_CoreLogger; }
-		static inline std::shared_ptr<spdlog::logger>& ClientLogger() { return s_ClientLogger; }
+		static inline Log& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<Log>(); }
 
 	private:
-
-		static std::shared_ptr<spdlog::logger> s_CoreLogger;
-		static std::shared_ptr<spdlog::logger> s_ClientLogger;
+		std::shared_ptr<spdlog::logger> m_CoreLogger;
+		std::shared_ptr<spdlog::logger> m_ClientLogger;
 	};
 
 	template<typename T>
-	static void Info( const T& msg )
+	static void LogInfo( const T& msg )
 	{
 		Log::Get().CoreLogger()->info( msg );
 	}
 
 	template<typename T>
-	static void Trace( const T& msg )
+	static void LogTrace( const T& msg )
 	{
 		Log::Get().CoreLogger()->trace( msg );
 	}
 
 	template<typename T>
-	static void Warn( const T& msg )
+	static void LogWarn( const T& msg )
 	{
 		Log::Get().CoreLogger()->warn( msg );
 	}
 
 	template<typename T>
-	static void Error( const T& msg )
+	static void LogError( const T& msg )
 	{
 		Log::Get().CoreLogger()->error( msg );
 	}
 
 	template<typename T>
-	static void Fatal( const T& msg )
+	static void LogFatal( const T& msg )
 	{
 		Log::Get().CoreLogger()->critical( msg );
 	}

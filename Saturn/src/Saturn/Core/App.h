@@ -35,6 +35,8 @@
 #include "Input.h"
 #include "UserSettings.h"
 
+#include "SingletonStorage.h"
+
 #include <vector>
 
 namespace Saturn {
@@ -66,7 +68,7 @@ namespace Saturn {
 		std::string SaveFile( const char* pFilter ) const;
 		std::string OpenFolder() const;
 
-		static inline Application& Get() { return *s_Instance; }
+		static inline Application& Get() { return *SingletonStorage::Get().GetSingleton<Application>(); }
 		ApplicationSpecification& GetSpecification() { return m_Specification; }
 
 		void PushLayer( Layer* pLayer );
@@ -95,7 +97,7 @@ namespace Saturn {
 		std::vector<Layer*> m_Layers;
 
 	private:
-		static Application* s_Instance;
+		//static Application* s_Instance;
 	};
 
 	Application* CreateApplication( int argc, char** argv );

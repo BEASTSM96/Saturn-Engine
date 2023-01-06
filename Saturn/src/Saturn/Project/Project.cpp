@@ -162,8 +162,6 @@ namespace Saturn {
 
 		std::ifstream ifs( PremakePath );
 
-		// Replace __PROJECT_NAME__ with the project name.
-
 		std::string fileData;
 
 		if( ifs )
@@ -178,7 +176,7 @@ namespace Saturn {
 
 		size_t pos = fileData.find( "__SATURN_DIR__" );
 
-		if( pos != std::string::npos )
+		while( pos != std::string::npos )
 		{
 			std::filesystem::path rootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
 			rootDir /= "Saturn/src/";
@@ -188,6 +186,48 @@ namespace Saturn {
 			std::replace( rootDirString.begin(), rootDirString.end(), '\\', '/' );
 
 			fileData.replace( pos, 14, rootDirString);
+
+			pos = fileData.find( "__SATURN_DIR__" );
+		}
+
+		pos = fileData.find( "__SATURN_VENDOR__" );
+
+		while( pos != std::string::npos )
+		{
+			std::filesystem::path rootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
+			rootDir /= "Saturn/vendor/";
+
+			auto rootDirString = rootDir.string();
+
+			std::replace( rootDirString.begin(), rootDirString.end(), '\\', '/' );
+
+			fileData.replace( pos, 17, rootDirString );
+
+			pos = fileData.find( "__SATURN_VENDOR__" );
+		}
+
+		pos = fileData.find( "__SATURN_BIN_DIR__" );
+
+		while( pos != std::string::npos )
+		{
+			std::filesystem::path rootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
+			rootDir /= "bin/";
+
+#if defined( SAT_DEBUG )
+			rootDir /= "Debug-windows-x86_64/Saturn";
+#elif defined( SAT_RELEASE )
+			rootDir /= "Release-windows-x86_64/Saturn";
+#else
+			rootDir /= "Dist-windows-x86_64/Saturn";
+#endif
+
+			auto rootDirString = rootDir.string();
+
+			std::replace( rootDirString.begin(), rootDirString.end(), '\\', '/' );
+
+			fileData.replace( pos, 18, rootDirString );
+
+			pos = fileData.find( "__SATURN_BIN_DIR__" );
 		}
 
 		pos = 0;

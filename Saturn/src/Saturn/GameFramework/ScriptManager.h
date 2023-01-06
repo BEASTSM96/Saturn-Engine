@@ -32,6 +32,8 @@
 #include <unordered_map>
 
 namespace Saturn {
+	
+	class Entity;
 
 	class ScriptManager
 	{
@@ -44,6 +46,10 @@ namespace Saturn {
 		void BeginPlay();
 		void UpdateAllScripts();
 		void CreateAllScripts();
+
+		SClass* CreateScript( const std::string& rName );
+
+		void SetScriptOwner( const std::string& rName, Entity* rOwner );
 
 		static ScriptManager& Get() { return *s_Instance; }
 

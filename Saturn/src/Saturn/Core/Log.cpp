@@ -33,11 +33,10 @@
 
 namespace Saturn {
 
-	std::shared_ptr< spdlog::logger > Log::s_CoreLogger;
-	std::shared_ptr< spdlog::logger > Log::s_ClientLogger;
-
 	void Log::Init( void )
 	{
+		SingletonStorage::Get().AddSingleton( this );
+
 		spdlog::set_automatic_registration( true );
 
 		std::vector<spdlog::sink_ptr> logSinks;
@@ -45,20 +44,20 @@ namespace Saturn {
 
 		logSinks[ 0 ]->set_pattern( "%^[%T] %n: %v%$" );
 
-		s_CoreLogger = std::make_shared< spdlog::logger >( "Saturn", begin( logSinks ), end( logSinks ) );
+		m_CoreLogger = std::make_shared< spdlog::logger >( "Saturn", begin( logSinks ), end( logSinks ) );
 
-		s_ClientLogger = std::make_shared< spdlog::logger >( "App", begin( logSinks ), end( logSinks ) );
+		m_ClientLogger = std::make_shared< spdlog::logger >( "App", begin( logSinks ), end( logSinks ) );
 
 		// configure the loggers
 		spdlog::set_pattern( "%^[%T] %n: %v%$" );
-		s_CoreLogger->set_level( spdlog::level::trace );
-		s_ClientLogger->set_level( spdlog::level::trace );
+		m_CoreLogger->set_level( spdlog::level::trace );
+		m_ClientLogger->set_level( spdlog::level::trace );
 	}
 
 	void Log::Clear( void )
 	{
-		s_CoreLogger = nullptr;
-		s_ClientLogger = nullptr;
+		m_CoreLogger = nullptr;
+		m_ClientLogger = nullptr;
 
 		spdlog::shutdown();
 	}

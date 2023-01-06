@@ -37,6 +37,8 @@
 
 #include "Saturn/Vulkan/VulkanContext.h"
 
+#include "Saturn/GameFramework/ScriptManager.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -121,7 +123,7 @@ namespace Saturn {
 		m_Context->m_Registry.each( [&]( auto entity )
 		{
 			Entity e{ entity, m_Context.Pointer() };
-			if( !m_Context->m_Registry.has<SceneComponent>( entity ) || !e ) 
+			if( !m_Context->m_Registry.any_of<SceneComponent>( entity ) || !e ) 
 			{
 				DrawEntityNode( e );
 			}
@@ -279,6 +281,7 @@ namespace Saturn {
 				if( ImGui::Button( "Script" ) )
 				{
 					m_SelectionContext.AddComponent<ScriptComponent>();
+
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -354,9 +357,35 @@ namespace Saturn {
 			DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 
-		DrawComponent<ScriptComponent>( "Script Component", entity, []( auto& sc )
+		DrawComponent<ScriptComponent>( "Script Component", entity, [&]( auto& sc )
 		{
-			ImGui::InputText( "##name", ( char* ) sc.ScriptName.c_str(), 1024, 0 );
+			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
+			{
+				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
+				{
+					if( rAsset->GetAssetType() != AssetType::Script )
+						continue;
+
+					// Only use the source files and not the header ones.
+					if( rAsset->GetPath().extension() == ".h" )
+						continue;
+
+					bool Selected = ( sc.AssetID == assetID );
+
+					if( ImGui::Selectable( rAsset->GetName().c_str() ) )
+					{
+						sc.AssetID = assetID;
+						sc.ScriptName = rAsset->GetName();
+
+						ScriptManager::Get().RegisterScript( sc.ScriptName );
+						ScriptManager::Get().CreateScript( sc.ScriptName );
+					}
+
+					if( Selected )
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndListBox();
+			}
 		} );
 
 		DrawComponent<MeshComponent>( "Mesh", entity, [&]( auto& mc )

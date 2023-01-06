@@ -10,7 +10,14 @@ __FILE_NAME__::~__FILE_NAME__()
 
 }
 
-void __FILE_NAME__::OnUpdate( Saturn::Timestep ts )
+// Called every frame.
+void __FILE_NAME__::OnUpdate()
+{
+
+}
+
+// Called Once, at the start of runtime.
+void __FILE_NAME__::BeginPlay()
 {
 
 }

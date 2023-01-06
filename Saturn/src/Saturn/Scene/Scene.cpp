@@ -35,6 +35,8 @@
 #include "Saturn/PhysX/PhysXRuntime.h"
 #include "Saturn/PhysX/PhysXRigidBody.h"
 
+#include "Saturn/GameFramework/ScriptManager.h"
+
 #include "Entity.h"
 #include "Components.h"
 
@@ -101,6 +103,8 @@ namespace Saturn {
 			}
 
 			m_PhysXRuntime->Update( ts, *this );
+
+			ScriptManager::Get().UpdateAllScripts();
 		}
 	}
 
@@ -178,6 +182,21 @@ namespace Saturn {
 			}
 		}
 
+		// Scripts
+		{
+			auto scriptGroup = m_Registry.group<ScriptComponent>( entt::get<TransformComponent> );
+
+			for ( const auto& e : scriptGroup )
+			{
+				Entity entity( e, this );
+
+				auto [scriptComponent, trans] = scriptGroup.get<ScriptComponent, TransformComponent>( e );
+
+				// TODO: Come back to.
+				//ScriptManager::Get().SetScriptOwner( scriptComponent.ScriptName, &entity );
+			}
+		}
+
 		for( const auto e : group )
 		{
 			Entity entity( e, this );
@@ -248,7 +267,7 @@ namespace Saturn {
 			auto components = srcRegistry.view<V>();
 			for( auto srcEntity : components )
 			{
-				if( !srcRegistry.has<SceneComponent>( srcEntity ) )
+				if( !srcRegistry.any_of<SceneComponent>( srcEntity ) )
 				{
 					entt::entity destEntity = enttMap.at( srcRegistry.get<IdComponent>( srcEntity ).ID );
 
@@ -270,7 +289,7 @@ namespace Saturn {
 	{
 		([&]()
 		{
-			if( rRegistry.has<V>( src ) )
+			if( rRegistry.any_of<V>( src ) )
 			{
 				auto& srcComponent = rRegistry.get<V>( src );
 				rRegistry.emplace_or_replace<V>( dst, srcComponent );
@@ -335,6 +354,19 @@ namespace Saturn {
 			auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
 			rb.m_Rigidbody->AddActorToScene();
 		}
+
+		auto ScriptView = m_Registry.view<ScriptComponent>();
+
+		for( auto entity : ScriptView )
+		{
+			Entity e( entity, this );
+
+			auto& sc = e.GetComponent<ScriptComponent>();
+
+			ScriptManager::Get().SetScriptOwner( sc.ScriptName, &e );
+		}
+
+		ScriptManager::Get().BeginPlay();
 	}
 
 	void Scene::OnRuntimeEnd()

@@ -31,6 +31,7 @@
 
 #include "GameScript.h"
 #include "GameDLL.h"
+#include "Saturn/Scene/Entity.h"
 
 namespace Saturn {
 
@@ -51,6 +52,9 @@ namespace Saturn {
 
 	void ScriptManager::RegisterScript( const std::string& rName )
 	{
+		if( m_ScriptFunctions.find( rName ) != m_ScriptFunctions.end() )
+			return;
+
 		auto module = GameDLL::Get().m_DLLInstance;
 
 		typedef SClass* ( __stdcall* funcptr )();
@@ -80,4 +84,15 @@ namespace Saturn {
 			m_Scripts[ name ] = func();
 	}
 
+	Saturn::SClass* ScriptManager::CreateScript( const std::string& rName )
+	{
+		SAT_CORE_INFO( "Created a new script: {0}", rName );
+
+		return m_Scripts[ rName ] = m_ScriptFunctions[ rName ]();
+	}
+
+	void ScriptManager::SetScriptOwner( const std::string& rName, Entity* rOwner )
+	{
+		m_Scripts[ rName ]->SetOwner( rOwner );
+	}
 }

@@ -405,13 +405,6 @@ namespace Saturn {
 
 			ImGui::EndVertical();
 
-			if( PopupModified )
-			{
-				ImGui::CloseCurrentPopup();
-
-				s_OpenScriptsPopup = false;
-			}
-
 			if( ImGui::Button( "Create" ) )
 			{
 				if( !Project::GetActiveProject()->HasPremakeFile() )
@@ -426,6 +419,18 @@ namespace Saturn {
 				// Next, create the source files.
 				// Right now the only script type we support is an entity type.
 				SourceManager::Get().CreateEntitySourceFiles( m_CurrentPath, n.c_str() );
+				
+				AssetRegistrySerialiser ars;
+				ars.Serialise();
+
+				PopupModified = true;
+			}
+
+			if( PopupModified )
+			{
+				s_OpenScriptsPopup = false;
+
+				ImGui::CloseCurrentPopup();
 			}
 
 			ImGui::EndPopup();

@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "EntryPoint.h"
 
+#include "SingletonStorage.h"
+
 #include "Core/App.h"
 
 extern Saturn::Application* Saturn::CreateApplication( int argc, char** argv );
@@ -37,6 +39,8 @@ namespace Saturn {
 
 	int SaturnMain( int count, char** args )
 	{
+		SingletonStorage* pSingletonStorage = new SingletonStorage();
+
 		Saturn::Application* pApp = Saturn::CreateApplication( count, args );
 		
 		pApp->Run();

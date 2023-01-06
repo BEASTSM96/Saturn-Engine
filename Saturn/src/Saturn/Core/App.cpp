@@ -49,14 +49,12 @@
 
 namespace Saturn {
 	
-	Application* Application::s_Instance = nullptr;
+	//Application* Application::s_Instance = nullptr;
 	
 	Application::Application( const ApplicationSpecification& spec )
 		: m_Specification( spec )
 	{
-		SAT_CORE_ASSERT( !s_Instance, "An app was already created!" );
-
-		s_Instance = this;
+		SingletonStorage::Get().AddSingleton( this );
 
 		// This may not be the best way... but its better than lazy loading.
 		Window* pWindow = new Window();

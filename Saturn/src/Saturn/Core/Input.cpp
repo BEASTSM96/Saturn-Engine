@@ -36,9 +36,14 @@
 
 namespace Saturn {
 
+	Input::Input()
+	{
+		SingletonStorage::Get().AddSingleton( this );
+	}
+
 	bool Input::KeyPressed( KeyCode key )
 	{
-		auto& window = static_cast< Window& >( Window::Get() );
+		auto& window = Window::Get();
 		auto state = glfwGetKey( static_cast< GLFWwindow* >( window.NativeWindow() ), static_cast< int32_t >( key ) );
 
 		return state == GLFW_PRESS || state == GLFW_REPEAT;

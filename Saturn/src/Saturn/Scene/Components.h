@@ -290,6 +290,7 @@ namespace Saturn {
 	struct ScriptComponent
 	{
 		std::string ScriptName;
+		UUID AssetID;
 	};
 
 	template<typename... V>

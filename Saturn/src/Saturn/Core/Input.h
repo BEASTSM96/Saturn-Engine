@@ -49,12 +49,10 @@ namespace Saturn {
 
 	class Input
 	{
-		SINGLETON( Input );
-
-		Input() { }
+	public:
+		Input();
 		~Input() { }
 
-	public:
 		bool KeyPressed( KeyCode key );
 		bool MouseButtonPressed( MouseButton button );
 
@@ -64,5 +62,7 @@ namespace Saturn {
 
 		void SetCursorMode( CursorMode mode );
 		CursorMode GetCursorMode();
+
+		static inline Input& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<Input>(); }
 	};
 }

@@ -70,6 +70,8 @@
 #include <Saturn/GameFramework/GameManager.h>
 #include <Saturn/GameFramework/ScriptManager.h>
 
+#include <typeindex>
+
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
 
@@ -80,46 +82,24 @@ using namespace rttr;
 namespace Saturn {
 
 	bool s_HasPremakePath = false;
+	bool OpenAssetRegistryDebug = false;
 
 	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
 	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
-	class Player
+	class MyTest
 	{
 	public:
-		Player()
-		{
-			std::cout << "Created" << "\n";
-		}
+		MyTest() {}
+		~MyTest() {}
 
-		~Player() {}
+	private:
 
-		void Move()
-		{
-		}
-
-	public:
-		float HP = 0.0F;
 	};
-
-	/*
-	RTTR_REGISTRATION
-	{
-		 rttr::registration::class_<Player>( "Player" )
-			.constructor<>()
-			.method( "Move", &Player::Move )
-			.property( "HP", &Player::HP )
-		;
-	}
-		*/
-
 
 	EditorLayer::EditorLayer() 
 		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
 	{
-//		GameDLL* pGDLL = new GameDLL();
-//		pGDLL->Load();
-
 		m_EditorScene = Ref<Scene>::Create();
 		m_RuntimeScene = nullptr;
 		
@@ -180,6 +160,7 @@ namespace Saturn {
 			if( ImGui::BeginMenu( "Settings" ) )
 			{
 				if( ImGui::MenuItem( "User settings", "Ctrl+Shift+Alt+S" ) ) m_ShowUserSettings = !m_ShowUserSettings;
+				if( ImGui::MenuItem( "OpenAssetRegistryDebug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
 
 				ImGui::EndMenu();
 			}
@@ -234,9 +215,8 @@ namespace Saturn {
 
 		GameManager* pGameManager = new GameManager();
 
-		ScriptManager::Get().RegisterScript( "Farmer" );
-		ScriptManager::Get().CreateAllScripts();
-		ScriptManager::Get().BeginPlay();
+//		ScriptManager::Get().RegisterScript( "Farmer" );
+//		ScriptManager::Get().CreateAllScripts();
 	}
 
 	EditorLayer::~EditorLayer()
@@ -279,6 +259,9 @@ namespace Saturn {
 				pHierarchyPanel->SetContext( m_RuntimeScene );
 
 				m_RuntimeScene->m_RuntimeRunning = true;
+
+				// Begin Play
+				//ScriptManager::Get().BeginPlay();
 			}
 		}
 		else
@@ -309,8 +292,6 @@ namespace Saturn {
 
 		if(!Input::Get().MouseButtonPressed( Mouse::Right ))
 			m_StartedRightClickInViewport = false;
-
-		ScriptManager::Get().UpdateAllScripts();
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -344,6 +325,32 @@ namespace Saturn {
 		
 		if( m_ShowUserSettings )
 			UI_Titlebar_UserSettings();
+
+		if( OpenAssetRegistryDebug ) 
+		{
+			if( ImGui::Begin( "AssetRegistry", &OpenAssetRegistryDebug ) )
+			{
+				static ImGuiTextFilter Filter;
+
+				ImGui::Text( "Search" );
+				ImGui::SameLine();
+				Filter.Draw( "##search" );
+
+				for ( auto&& [id, asset] : AssetRegistry::Get().GetAssetMap() )
+				{
+					if( !Filter.PassFilter( asset->GetName().c_str() ) )
+						continue;
+
+					ImGui::Selectable( asset->GetName().c_str(), false );
+					ImGui::SameLine();
+					ImGui::Selectable( std::to_string( id ).c_str(), false );
+					ImGui::SameLine();
+					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+				}
+
+				ImGui::End();
+			}
+		}
 
 		ImGui::Begin( "Renderer" );
 

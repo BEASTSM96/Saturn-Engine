@@ -87,3 +87,4 @@ const int MAX_FRAMES_IN_FLIGHT = 2;
 // Common includes
 #include "Timestep.h"
 #include "Ref.h"
+#include "SingletonStorage.h"

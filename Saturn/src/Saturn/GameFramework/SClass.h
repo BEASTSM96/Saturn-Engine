@@ -41,8 +41,32 @@ namespace Saturn {
 		virtual void BeginPlay() = 0;
 		virtual void OnUpdate() = 0;
 
+		template<typename Ty>
+		Ty& AddComponent()
+		{
+			return m_Owner->AddComponent<Ty>();
+		}
+
+		template<typename Ty>
+		Ty& GetComponent() 
+		{
+			return m_Owner->GetComponent<Ty>();
+		}
+
+		template<typename Ty>
+		bool HasComponent()
+		{
+			return m_Owner->HasComponent<Ty>();
+		}
+
+		template<typename Ty>
+		void RemoveComponent()
+		{
+			m_Owner->RemoveComponent<Ty>();
+		}
+
 	protected:
-		Entity* m_Owner;
+		Entity* m_Owner = nullptr;
 
 	private:
 		void SetOwner( Entity* pOwner ) { m_Owner = pOwner; }
