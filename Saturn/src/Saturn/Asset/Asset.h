@@ -120,6 +120,8 @@ namespace Saturn {
 			return AssetType::Material;
 		else if( str == ".cpp" || str == ".h" )
 			return AssetType::Script;
+		else if( str == ".prefab" )
+			return AssetType::Prefab;
 		else
 			return AssetType::Unknown;
 	}
@@ -139,6 +141,8 @@ namespace Saturn {
 		std::string Name;
 
 	public:
+		Asset() {}
+
 		AssetType GetAssetType() { return Type; }
 		AssetID GetAssetID() { return ID; }
 

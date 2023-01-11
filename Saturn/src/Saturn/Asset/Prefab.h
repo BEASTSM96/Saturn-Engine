@@ -28,67 +28,30 @@
 
 #pragma once
 
+#include "Saturn/Scene/Entity.h"
 #include "Asset.h"
-#include "AssetImporter.h"
-
-#include <unordered_map>
-#include <unordered_set>
 
 namespace Saturn {
 
-	using AssetMap = std::unordered_map< AssetID, Ref<Asset> >;
-	using AssetIDVector = std::vector< AssetID >;
-
-	class AssetRegistry
+	class Prefab : public Asset
 	{
-		SINGLETON( AssetRegistry );
 	public:
-		AssetRegistry();
-		~AssetRegistry();
+		Prefab();
+		~Prefab();
 
-		AssetID CreateAsset( AssetType type );
+		void Create( Entity& srcEntity );
 
-		Ref<Asset> FindAsset( AssetID id );
+		Entity PrefabToEntity( Ref<Scene> Scene );
+
+	private:
+		void CreateFromEntity( Entity& srcEntity );
+	private:
+		Entity m_Entity;
 		
-		template<typename Ty> 
-		Ref<Ty> GetAssetAs( AssetID id ) 
-		{
-			Ref<Asset> asset = m_Assets.at( id );
-
-			if( !IsAssetLoaded( id ) )
-			{
-				bool loaded = AssetImporter::Get().TryLoadData( asset );
-				if( !loaded )
-					return nullptr;
-
-				m_LoadedAssets[ id ] = asset;
-			}
-			else
-				asset = m_LoadedAssets.at( id );
-
-			return asset.As<Ty>();
-		}
-
-		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
-
-		const std::vector<AssetID>& FindAssetsWithType( AssetType type ) const;
-
-		const AssetMap& GetAssetMap() const { return m_Assets; }
-		const AssetMap& GetLoadedAssetsMap() const { return m_LoadedAssets; }
-
-		AssetID PathToID( const std::filesystem::path& rPath );
+		// We need a scene to create entities in the prefab.
+		Ref<Scene> m_Scene = nullptr;
 
 	private:
-		AssetMap m_Assets;
-		AssetMap m_LoadedAssets;
-
-		bool IsAssetLoaded( AssetID id );
-
-	private:
-
-		void AddAsset( AssetID id );
-
-	private:
-		friend class AssetRegistrySerialiser;
+		friend class PrefabSerialiser;
 	};
 }

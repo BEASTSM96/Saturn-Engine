@@ -32,17 +32,19 @@
 #include "Scene.h"
 #include "EntityVisibility.h"
 
+#include "Saturn/GameFramework/SClass.h"
+
 #include <glm/glm.hpp>
 #include "entt.hpp"
 
 namespace Saturn {
 
-	class Entity
+	class Entity : public SClass
 	{
 	public:
 		Entity() = default;
 		Entity( entt::entity handle, Scene* scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
-		Entity( const Entity & other ) = default;
+		Entity( const Entity& other ) = default;
 
 		template<typename T, typename... Args>
 		T& AddComponent( Args&&... args )
@@ -87,9 +89,12 @@ namespace Saturn {
 		glm::mat4 Transform() { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ).GetTransform(); }
 		//const glm::mat4& Transform() const { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ); }
 
+		const std::string& Tag() const { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }
+		std::string& Tag() { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }
+
 		operator bool() const { return m_EntityHandle != entt::null && m_Scene != nullptr && m_Scene->m_Registry.valid( m_EntityHandle ); }
 		operator entt::entity() const { return m_EntityHandle; }
-		operator uint32_t () const { return ( uint32_t )m_EntityHandle; }
+		operator uint32_t () const { return ( uint32_t ) m_EntityHandle; }
 
 		bool operator==( const Entity& other ) const
 		{
@@ -101,8 +106,12 @@ namespace Saturn {
 			return !( *this == other );
 		}
 
-
 		UUID GetUUID() { return GetComponent<IdComponent>().ID; }
+
+		void BeginPlay() override {}
+		void OnUpdate( Saturn::Timestep ts ) override {}
+
+		virtual void __create_entity( Entity* e ) {};
 
 	protected:
 

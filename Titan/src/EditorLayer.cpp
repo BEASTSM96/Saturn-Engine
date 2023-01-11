@@ -35,12 +35,10 @@
 #include <Saturn/Project/Project.h>
 
 #include <Saturn/ImGui/UITools.h>
-
 #include <Saturn/ImGui/ViewportBar.h>
 #include <Saturn/Vulkan/SceneRenderer.h>
 #include <Saturn/ImGui/TitleBar.h>
 #include <Saturn/ImGui/MaterialAssetViewer.h>
-
 #include <Saturn/ImGui/Panel/Panel.h>
 #include <Saturn/ImGui/Panel/PanelManager.h>
 
@@ -65,6 +63,7 @@
 #include <Saturn/Core/UserSettings.h>
 
 #include <Saturn/Asset/AssetRegistry.h>
+#include <Saturn/Asset/Prefab.h>
 
 #include <Saturn/GameFramework/GameDLL.h>
 #include <Saturn/GameFramework/GameManager.h>
@@ -83,6 +82,7 @@ namespace Saturn {
 
 	bool s_HasPremakePath = false;
 	bool OpenAssetRegistryDebug = false;
+	bool OpenLoadedAssetDebug = false;
 
 	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
 	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
@@ -153,6 +153,24 @@ namespace Saturn {
 			SceneRenderer::Get().SetViewportSize( w, h );
 
 			m_EditorCamera.SetViewportSize( w, h );
+
+			if( m_RuntimeScene )
+			{
+				auto cameraEntity = m_RuntimeScene->GetMainCameraEntity();
+				auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+
+				if( cameraEntity )
+					camera.SetViewportSize( w, h );
+			}
+			else
+			{
+				auto cameraEntity = m_RuntimeScene->GetMainCameraEntity();
+				auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+
+				if( cameraEntity )
+					camera.SetViewportSize( w, h );
+			}
+
 		} );
 		
 		m_TitleBar->AddMenuBarFunction( [&]() -> void
@@ -160,7 +178,8 @@ namespace Saturn {
 			if( ImGui::BeginMenu( "Settings" ) )
 			{
 				if( ImGui::MenuItem( "User settings", "Ctrl+Shift+Alt+S" ) ) m_ShowUserSettings = !m_ShowUserSettings;
-				if( ImGui::MenuItem( "OpenAssetRegistryDebug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
+				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
+				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug = !OpenLoadedAssetDebug;
 
 				ImGui::EndMenu();
 			}
@@ -238,11 +257,6 @@ namespace Saturn {
 
 	void EditorLayer::OnUpdate( Timestep time )
 	{
-		m_EditorCamera.SetActive( m_AllowCameraEvents );
-		m_EditorCamera.OnUpdate( time );
-
-		SceneRenderer::Get().SetEditorCamera( m_EditorCamera );
-
 		ViewportBar* pViewportBar = ( ViewportBar* ) PanelManager::Get().GetPanel( "Viewport Bar" );
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 		
@@ -279,10 +293,15 @@ namespace Saturn {
 		if( m_RuntimeScene ) 
 		{
 			m_RuntimeScene->OnUpdate( Application::Get().Time() );
-			m_RuntimeScene->OnRenderEditor( m_EditorCamera, Application::Get().Time() );
+			m_RuntimeScene->OnRenderRuntime( Application::Get().Time() );
 		}
 		else 
 		{
+			m_EditorCamera.SetActive( m_AllowCameraEvents );
+			m_EditorCamera.OnUpdate( time );
+
+			SceneRenderer::Get().SetCamera( { m_EditorCamera, m_EditorCamera.ViewMatrix() } );
+
 			m_EditorScene->OnUpdate( Application::Get().Time() );
 			m_EditorScene->OnRenderEditor( m_EditorCamera, Application::Get().Time() );
 		}
@@ -337,6 +356,32 @@ namespace Saturn {
 				Filter.Draw( "##search" );
 
 				for ( auto&& [id, asset] : AssetRegistry::Get().GetAssetMap() )
+				{
+					if( !Filter.PassFilter( asset->GetName().c_str() ) )
+						continue;
+
+					ImGui::Selectable( asset->GetName().c_str(), false );
+					ImGui::SameLine();
+					ImGui::Selectable( std::to_string( id ).c_str(), false );
+					ImGui::SameLine();
+					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+				}
+
+				ImGui::End();
+			}
+		}
+
+		if( OpenLoadedAssetDebug ) 
+		{
+			if( ImGui::Begin( "Loaded Assets", &OpenLoadedAssetDebug ) )
+			{
+				static ImGuiTextFilter Filter;
+
+				ImGui::Text( "Search" );
+				ImGui::SameLine();
+				Filter.Draw( "##search" );
+
+				for( auto&& [id, asset] : AssetRegistry::Get().GetLoadedAssetsMap() )
 				{
 					if( !Filter.PassFilter( asset->GetName().c_str() ) )
 						continue;
@@ -546,9 +591,9 @@ namespace Saturn {
 			m_EditorCamera.SetViewportSize( m_ViewportSize.x, m_ViewportSize.y );
 		}
 
-		// In the editor we only should flip the image UV, we don't have to flip anything else.
 		ImGui::PushID( "VIEWPORT_IMAGE" );
 
+		// In the editor we only should flip the image UV, we don't have to flip anything else.
 		Image( SceneRenderer::Get().CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
 
 		if( ImGui::BeginDragDropTarget() )
@@ -557,6 +602,24 @@ namespace Saturn {
 			{
 				const wchar_t* path = ( const wchar_t* ) payload->Data;
 				OpenFile( path );
+			}
+
+			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_SCRIPT" ) )
+			{
+				const wchar_t* path = ( const wchar_t* ) payload->Data;
+				// TODO:
+			}
+
+			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB" ) )
+			{
+				const wchar_t* path = ( const wchar_t* ) payload->Data;
+
+				std::filesystem::path p = path;
+
+				Ref<Asset> asset = AssetRegistry::Get().FindAsset( p );
+				Ref<Prefab> prefabAsset = AssetRegistry::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
+
+				prefabAsset->PrefabToEntity( m_EditorScene );
 			}
 
 			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL" ) )

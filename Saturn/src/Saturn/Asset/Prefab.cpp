@@ -26,69 +26,68 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "Prefab.h"
 
-#include "Asset.h"
-#include "AssetImporter.h"
-
-#include <unordered_map>
-#include <unordered_set>
+#include "Saturn/Scene/Scene.h"
 
 namespace Saturn {
 
-	using AssetMap = std::unordered_map< AssetID, Ref<Asset> >;
-	using AssetIDVector = std::vector< AssetID >;
-
-	class AssetRegistry
+	template<typename... V>
+	static void CopyComponentIfExists( entt::entity dst, entt::entity src, entt::registry& rRegistry, entt::registry& rDstRegistry )
 	{
-		SINGLETON( AssetRegistry );
-	public:
-		AssetRegistry();
-		~AssetRegistry();
-
-		AssetID CreateAsset( AssetType type );
-
-		Ref<Asset> FindAsset( AssetID id );
-		
-		template<typename Ty> 
-		Ref<Ty> GetAssetAs( AssetID id ) 
-		{
-			Ref<Asset> asset = m_Assets.at( id );
-
-			if( !IsAssetLoaded( id ) )
+		( [&]()
 			{
-				bool loaded = AssetImporter::Get().TryLoadData( asset );
-				if( !loaded )
-					return nullptr;
+				SAT_CORE_INFO( "Trying Copying {0}", typeid( V ).name() );
 
-				m_LoadedAssets[ id ] = asset;
-			}
-			else
-				asset = m_LoadedAssets.at( id );
+				if( rRegistry.any_of<V>( src ) )
+				{
+					SAT_CORE_INFO( "Copied {0}", typeid( V ).name() );
 
-			return asset.As<Ty>();
-		}
+					auto& srcComponent = rRegistry.get<V>( src );
+					rDstRegistry.emplace_or_replace<V>( dst, srcComponent );
+				}
+			}( ), ... );
+	}
 
-		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
+	template<typename... V>
+	static void CopyComponentIfExists( ComponentGroup<V...>, entt::entity dst, entt::entity src, entt::registry& rRegistry, entt::registry& rDstRegistry )
+	{
+		CopyComponentIfExists<V...>( dst, src, rRegistry, rDstRegistry );
+	}
 
-		const std::vector<AssetID>& FindAssetsWithType( AssetType type ) const;
+	Prefab::Prefab()
+	{
+		m_Scene = Ref<Scene>::Create();
+	}
 
-		const AssetMap& GetAssetMap() const { return m_Assets; }
-		const AssetMap& GetLoadedAssetsMap() const { return m_LoadedAssets; }
+	Prefab::~Prefab()
+	{
+	}
 
-		AssetID PathToID( const std::filesystem::path& rPath );
+	void Prefab::Create( Entity& srcEntity )
+	{
+		m_Scene = Ref<Scene>::Create();
 
-	private:
-		AssetMap m_Assets;
-		AssetMap m_LoadedAssets;
+		m_Scene->SetName( "Prefab scene" );
 
-		bool IsAssetLoaded( AssetID id );
+		CreateFromEntity( srcEntity );
+	}
 
-	private:
+	Entity Prefab::PrefabToEntity( Ref<Scene> Scene )
+	{
+		Entity e;
 
-		void AddAsset( AssetID id );
+		// TODO:
 
-	private:
-		friend class AssetRegistrySerialiser;
-	};
+		return e;
+	}
+
+	void Prefab::CreateFromEntity( Entity& srcEntity )
+	{
+		m_Entity = m_Scene->CreateEntity( srcEntity.GetComponent<TagComponent>().Tag );
+
+		CopyComponentIfExists( AllComponents{}, m_Entity, srcEntity, srcEntity.GetScene().m_Registry, m_Scene->m_Registry );
+	}
+
 }

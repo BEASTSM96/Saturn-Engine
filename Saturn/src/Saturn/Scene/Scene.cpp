@@ -89,6 +89,19 @@ namespace Saturn {
 		m_Registry.clear();
 	}
 
+	Entity Scene::GetMainCameraEntity()
+	{
+		auto view = GetAllEntitiesWith<CameraComponent>();
+
+		for ( const auto& entity : view )
+		{
+			if( m_Registry.get<CameraComponent>( entity ).MainCamera )
+				return Entity( entity, this );
+		}
+
+		return {};
+	}
+
 	void Scene::OnUpdate( Timestep ts )
 	{
 		if( m_RuntimeRunning ) 
@@ -104,7 +117,17 @@ namespace Saturn {
 
 			m_PhysXRuntime->Update( ts, *this );
 
-			ScriptManager::Get().UpdateAllScripts();
+			auto ScriptView = GetAllEntitiesWith<ScriptComponent>();
+			for( auto entity : ScriptView )
+			{
+				Entity e( entity, this );
+
+				auto& sc = e.GetComponent<ScriptComponent>();
+
+				ScriptManager::Get().SetScriptOwner( sc.ScriptName, &e );
+			}
+
+			ScriptManager::Get().UpdateAllScripts( ts );
 		}
 	}
 
@@ -182,21 +205,6 @@ namespace Saturn {
 			}
 		}
 
-		// Scripts
-		{
-			auto scriptGroup = m_Registry.group<ScriptComponent>( entt::get<TransformComponent> );
-
-			for ( const auto& e : scriptGroup )
-			{
-				Entity entity( e, this );
-
-				auto [scriptComponent, trans] = scriptGroup.get<ScriptComponent, TransformComponent>( e );
-
-				// TODO: Come back to.
-				//ScriptManager::Get().SetScriptOwner( scriptComponent.ScriptName, &entity );
-			}
-		}
-
 		for( const auto e : group )
 		{
 			Entity entity( e, this );
@@ -205,9 +213,92 @@ namespace Saturn {
 			
 			if( meshComponent.Mesh ) 
 				SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transformComponent.GetTransform() );
-
-			SceneRenderer::Get().SetEditorCamera( rCamera );
 		}	
+
+		SceneRenderer::Get().SetCamera( { rCamera, rCamera.ViewMatrix() } );
+	}
+
+	void Scene::OnRenderRuntime( Timestep ts )
+	{
+		// Camera
+		Entity cameraEntity = GetMainCameraEntity();
+
+		if( !cameraEntity )
+			return;
+
+		auto view = glm::inverse( cameraEntity.GetComponent<TransformComponent>().GetTransform() );
+		SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+	
+		SceneRenderer::Get().SetCurrentScene( this );
+
+		// Lights
+		{
+			m_Lights = Lights();
+
+			// Directional Lights
+			{
+				auto lights = m_Registry.group<DirectionalLightComponent>( entt::get<TransformComponent> );
+				uint32_t lightCount = 0;
+				for( const auto& e : lights )
+				{
+					auto [transformComponent, lightComponent] = lights.get<TransformComponent, DirectionalLightComponent>( e );
+
+					glm::vec3 direction = -glm::normalize( glm::mat3( transformComponent.GetTransform() ) * glm::vec3( 1.0f ) );
+
+					m_Lights.DirectionalLights[ lightCount++ ] = { direction, lightComponent.Radiance, lightComponent.Intensity };
+				}
+			}
+
+			// Point lights
+			{
+				auto points = m_Registry.group<PointLightComponent>( entt::get<TransformComponent> );
+
+				//m_Lights.PointLights.resize( points.size() );
+
+				uint32_t plIndex = 0;
+
+				for( const auto& e : points )
+				{
+					auto [transformComponent, lightComponent] = points.get<TransformComponent, PointLightComponent>( e );
+
+					PointLight pl = {
+						.Position = transformComponent.Position,
+						.Radiance = lightComponent.Radiance,
+						.Multiplier = lightComponent.Multiplier,
+						.LightSize = lightComponent.LightSize,
+						.Radius = lightComponent.Radius,
+						.MinRadius = lightComponent.MinRadius,
+						.Falloff = lightComponent.Falloff };
+
+					//m_Lights.PointLights.push_back( {
+					//	.Position = transformComponent.Position,
+					//	.Radiance = lightComponent.Radiance,
+					//	.Multiplier = lightComponent.Multiplier,
+					//	.LightSize = lightComponent.LightSize,
+					//	.Radius = lightComponent.Radius,
+					//	.MinRadius = lightComponent.MinRadius,
+					//	.Falloff = lightComponent.Falloff } );
+
+					m_Lights.PointLights.push_back( pl );
+
+					plIndex++;
+				}
+			}
+		}
+
+		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
+		for( const auto e : group )
+		{
+			Entity entity( e, this );
+
+			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
+
+			if( meshComponent.Mesh )
+				SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transformComponent.GetTransform() );
+		}
+
+		camera.SetViewportSize( SceneRenderer::Get().Width(), SceneRenderer::Get().Height() );
+		SceneRenderer::Get().SetCamera( { camera, view } );
 	}
 
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )

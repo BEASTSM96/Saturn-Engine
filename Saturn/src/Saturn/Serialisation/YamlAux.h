@@ -34,6 +34,9 @@
 #include <glm/gtx/quaternion.hpp>
 #include <filesystem>
 
+#include "Saturn/Scene/Entity.h"
+#include "Saturn/Scene/Components.h"
+
 namespace YAML {
 
 	template<>
@@ -187,4 +190,11 @@ namespace YAML {
 		out << BeginSeq << vec.x << vec.y << vec.z << vec.w << EndSeq;
 		return out;
 	}
+}
+
+namespace Saturn {
+
+	extern void SerialiseEntity( YAML::Emitter& rEmitter, Entity entity );
+
+	extern void DeserialiseEntites( YAML::Node& rNode, Ref<Scene> scene );
 }

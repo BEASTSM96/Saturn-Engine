@@ -82,6 +82,12 @@ namespace Saturn {
 		Upsample
 	};
 
+	struct RendererCamera
+	{
+		Camera Camera;
+		glm::mat4 ViewMatrix;
+	};
+
 	struct RendererData
 	{
 		void Terminate();
@@ -99,8 +105,7 @@ namespace Saturn {
 
 		//////////////////////////////////////////////////////////////////////////
 
-		Saturn::EditorCamera EditorCamera;
-		Saturn::Camera RuntimeCamera;
+		RendererCamera CurrentCamera;
 
 		//////////////////////////////////////////////////////////////////////////
 		
@@ -330,7 +335,7 @@ namespace Saturn {
 
 		void RenderScene();
 
-		void SetEditorCamera( const EditorCamera& Camera );
+		void SetCamera( const RendererCamera& Camera );
 
 		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
@@ -342,6 +347,9 @@ namespace Saturn {
 		void SetDynamicSky( float Turbidity, float Azimuth, float Inclination );
 		
 		void Terminate();
+
+		uint32_t Width() { return m_RendererData.Width; }
+		uint32_t Height() { return m_RendererData.Height; }
 
 	private:
 		void Init();

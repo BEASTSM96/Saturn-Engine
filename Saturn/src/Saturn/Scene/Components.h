@@ -43,6 +43,8 @@
 
 #include "EntityVisibility.h"
 
+#include "Saturn/Core/Renderer/SceneCamera.h"
+
 #include <string>
 
 namespace Saturn {
@@ -206,6 +208,12 @@ namespace Saturn {
 		bool CastShadows = true;
 	};
 
+	struct CameraComponent
+	{
+		SceneCamera Camera;
+		bool MainCamera;
+	};
+
 	// Preetham sky
 	struct SkylightComponent 
 	{
@@ -299,6 +307,7 @@ namespace Saturn {
 	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, 
 		MeshComponent, 
 		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
+		CameraComponent,
 		PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent, 
 		ScriptComponent>;
 }

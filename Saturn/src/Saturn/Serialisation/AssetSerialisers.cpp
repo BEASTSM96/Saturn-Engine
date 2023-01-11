@@ -30,6 +30,7 @@
 #include "AssetSerialisers.h"
 
 #include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/Prefab.h"
 
 #include "YamlAux.h"
 
@@ -205,7 +206,7 @@ namespace Saturn {
 		file << out.c_str();
 	}
 
-	void MaterialAssetSerialiser::Derialise( const Ref<Asset>& rAsset ) const
+	void MaterialAssetSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
 	{
 		auto materialAsset = rAsset.As<MaterialAsset>();
 
@@ -503,4 +504,89 @@ namespace Saturn {
 
 		return true;
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// PREFAB
+
+	void PrefabSerialiser::Serialise( const Ref<Asset>& rAsset ) const
+	{
+		auto prefabAsset = rAsset.As<Prefab>();
+
+		auto basePath = rAsset->GetPath();
+
+		YAML::Emitter out;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "Prefab" << YAML::Value << prefabAsset->GetAssetID();
+
+		out << YAML::Key << "Entities";
+
+		out << YAML::BeginSeq;
+
+		prefabAsset->m_Scene->GetRegistry().each( [ & ]( auto ID )
+		{
+			Entity e = { ID, prefabAsset->m_Scene.Pointer() };
+
+			if( !e )
+				return;
+
+			if( e.HasComponent<SceneComponent>() )
+				return;
+
+			SerialiseEntity( out, e );
+		});
+
+		out << YAML::EndSeq;
+		out << YAML::EndMap;
+
+		std::ofstream fout( rAsset->GetPath() );
+		fout << out.c_str();
+	}
+
+	void PrefabSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
+	{
+
+	}
+
+	bool PrefabSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
+	{
+		auto prefabAsset = Ref<Prefab>::Create();
+
+		std::ifstream FileIn( rAsset->GetPath() );
+
+		std::stringstream ss;
+		ss << FileIn.rdbuf();
+
+		YAML::Node data = YAML::Load( ss.str() );
+
+		if( data.IsNull() )
+			return false;
+
+		auto entities = data[ "Entities" ];
+
+		DeserialiseEntites( entities, prefabAsset->m_Scene );
+
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = prefabAsset;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
+
+		return true;
+	}
+
 }

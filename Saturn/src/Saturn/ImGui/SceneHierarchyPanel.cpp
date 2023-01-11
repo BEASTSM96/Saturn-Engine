@@ -212,6 +212,26 @@ namespace Saturn {
 				}
 			}
 
+			if( !m_SelectionContext.HasComponent<ScriptComponent>() )
+			{
+				if( ImGui::Button( "Script" ) )
+				{
+					m_SelectionContext.AddComponent<ScriptComponent>();
+
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			if( !m_SelectionContext.HasComponent<CameraComponent>() )
+			{
+				if( ImGui::Button( "Camera" ) )
+				{
+					m_SelectionContext.AddComponent<CameraComponent>();
+
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
 			if( !m_SelectionContext.HasComponent<PointLightComponent>() )
 			{
 				if( ImGui::Button( "Point Light" ) )
@@ -276,16 +296,6 @@ namespace Saturn {
 				}
 			}
 
-			if( !m_SelectionContext.HasComponent<ScriptComponent>() )
-			{
-				if( ImGui::Button( "Script" ) )
-				{
-					m_SelectionContext.AddComponent<ScriptComponent>();
-
-					ImGui::CloseCurrentPopup();
-				}
-			}
-
 			ImGui::EndPopup();
 		}
 
@@ -301,6 +311,13 @@ namespace Saturn {
 			flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
 			ImGui::Selectable( tag.c_str(), m_SelectionContext && m_SelectionContext == entity ? true : false );
+
+			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) ) 
+			{
+				ImGui::SetDragDropPayload( "SCENE_HIERARCHY_PANEL_CPREFAB", &entity, sizeof( Entity ), ImGuiCond_Once );
+
+				ImGui::EndDragDropSource();
+			}
 
 			if( ImGui::IsItemClicked() )
 			{
@@ -416,6 +433,11 @@ namespace Saturn {
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
+		} );
+
+		DrawComponent<CameraComponent>( "Camera", entity, [&]( auto& cc )
+		{
+			ImGui::Checkbox( "Main Camera", &cc.MainCamera );
 		} );
 
 		DrawComponent<PointLightComponent>( "Point Light", entity, []( auto& plc )

@@ -45,6 +45,8 @@
 
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
+#include "Saturn/Asset/Prefab.h"
+
 #include "Saturn/Premake/Premake.h"
 #include "Saturn/GameFramework/SourceManager.h"
 
@@ -70,6 +72,34 @@ namespace Saturn {
 	void ContentBrowserPanel::Draw()
 	{
 		ImGui::Begin( "Content Browser" );
+
+		if( ImGui::BeginDragDropTarget() )
+		{
+			auto data = ImGui::AcceptDragDropPayload( "SCENE_HIERARCHY_PANEL_CPREFAB" );
+
+			if( data )
+			{
+				const Entity* payload = ( const Entity* ) data->Data;
+
+				AssetID id = AssetRegistry::Get().CreateAsset( AssetType::Prefab );
+				auto asset = AssetRegistry::Get().FindAsset( id );
+
+				auto PrefabAsset = asset.As<Prefab>();
+				PrefabAsset->Create( (Entity&)*payload );
+
+				auto& tag = payload->Tag();
+
+				std::filesystem::path path = m_CurrentPath / tag;
+				path.replace_extension( ".prefab" );
+
+				asset->SetPath( path );
+
+				PrefabSerialiser ps;
+				ps.Serialise( PrefabAsset );
+			}
+
+			ImGui::EndDragDropTarget();
+		}
 
 		ImGui::BeginChild( "##CB_TopBar_Actions", ImVec2( 0, 30 ) );
 
@@ -279,7 +309,7 @@ namespace Saturn {
 				break;
 			}
 		}
-		
+
 		ImGui::Columns( 1 );
 
 		ImGui::PopStyleColor( 2 );
@@ -573,9 +603,18 @@ namespace Saturn {
 						case Saturn::AssetType::Scene:
 						{
 							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-						}	break;
-						case Saturn::AssetType::Prefab:
-						case Saturn::AssetType::Script:
+						} break;
+
+						case Saturn::AssetType::Prefab: 
+						{	
+							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+						} break;
+
+						case Saturn::AssetType::Script: 
+						{	
+							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCRIPT", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+						} break;
+
 						case Saturn::AssetType::Unknown:
 						case Saturn::AssetType::COUNT:
 						default:

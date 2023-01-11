@@ -499,7 +499,7 @@ namespace Saturn {
 
 		RendererData::GridMatricesObject GridMatricesObject = {};
 		GridMatricesObject.Transform = trans;
-		GridMatricesObject.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
+		GridMatricesObject.ViewProjection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
 
 		GridMatricesObject.Res = 0.025f;
 		GridMatricesObject.Scale = 16.025f;
@@ -543,7 +543,7 @@ namespace Saturn {
 				return;
 			
 			RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
-			SkyboxMatricesObject.InverseVP = glm::inverse( m_RendererData.EditorCamera.ViewProjection() );
+			SkyboxMatricesObject.InverseVP = glm::inverse( m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix );
 
 			m_RendererData.SkyboxShader->UploadUB( ShaderType::Vertex, 0, 0, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
 
@@ -605,7 +605,7 @@ namespace Saturn {
 
 	void SceneRenderer::UpdateCascades( const glm::vec3& Direction )
 	{
-		const auto& viewProjection = m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix();
+		const auto& viewProjection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
 
 		const int SHADOW_MAP_CASCADE_COUNT = 4;
 		float cascadeSplits[ SHADOW_MAP_CASCADE_COUNT ];
@@ -1041,8 +1041,8 @@ namespace Saturn {
 
 			// u_Matrices
 			RendererData::StaticMeshMatrices u_Matrices = {};
-			u_Matrices.View = m_RendererData.EditorCamera.ViewMatrix();
-			u_Matrices.ViewProjection = m_RendererData.EditorCamera.ProjectionMatrix() * m_RendererData.EditorCamera.ViewMatrix();
+			u_Matrices.View = m_RendererData.CurrentCamera.ViewMatrix;
+			u_Matrices.ViewProjection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
 
 			struct
 			{
@@ -1081,7 +1081,9 @@ namespace Saturn {
 
 			auto dirLight = m_pScene->m_Lights.DirectionalLights[ 0 ];
 			
-			u_SceneData.CameraPosition = m_RendererData.EditorCamera.GetPosition();
+			auto invView = glm::inverse( u_Matrices.View );
+
+			u_SceneData.CameraPosition = invView[3];
 			u_SceneData.Lights = { .Direction = dirLight.Direction, .Radiance = dirLight.Radiance, .Multiplier = dirLight.Intensity };
 
 			if( m_RendererData.EnableShadows )
@@ -1233,7 +1235,7 @@ namespace Saturn {
 			glm::mat4 ViewProjection;
 		} u_Matrices;
 
-		u_Matrices.ViewProjection = m_RendererData.EditorCamera.ViewProjection();
+		u_Matrices.ViewProjection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
 
 		m_RendererData.PreDepthShader->UploadUB( ShaderType::Vertex, 0, 0, &u_Matrices, sizeof( u_Matrices ) );
 
@@ -1355,9 +1357,9 @@ namespace Saturn {
 			glm::mat4 InvP;
 		} u_Matrices{};
 
-		u_Matrices.ViewProjection   = m_RendererData.EditorCamera.ViewProjection();
-		u_Matrices.Projection       = m_RendererData.EditorCamera.ProjectionMatrix();
-		u_Matrices.View             = glm::inverse( m_RendererData.EditorCamera.ViewMatrix() );
+		u_Matrices.ViewProjection   = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
+		u_Matrices.Projection       = m_RendererData.CurrentCamera.Camera.ProjectionMatrix();
+		u_Matrices.View             = glm::inverse( m_RendererData.CurrentCamera.ViewMatrix );
 		u_Matrices.InvP				= glm::inverse( u_Matrices.Projection );
 
 		u_ScreenData.FullResolution = { m_RendererData.Width, m_RendererData.Height };
@@ -1728,9 +1730,9 @@ namespace Saturn {
 		m_ScheduledFunctions.clear();
 	}
 
-	void SceneRenderer::SetEditorCamera( const EditorCamera& Camera )
+	void SceneRenderer::SetCamera( const RendererCamera& Camera )
 	{
-		m_RendererData.EditorCamera = Camera;
+		m_RendererData.CurrentCamera = Camera;
 	}
 	
 	//////////////////////////////////////////////////////////////////////////

@@ -90,6 +90,7 @@ namespace Saturn {
 		void DestroyEntity( Entity entity );
 
 		void OnRenderEditor( const EditorCamera& Camera, Timestep ts );
+		void OnRenderRuntime( Timestep ts );
 
 		void DuplicateEntity( Entity entity );
 		void DeleteEntity( Entity entity );
@@ -99,6 +100,8 @@ namespace Saturn {
 		{
 			return m_Registry.view<T>();
 		}
+
+		Entity GetMainCameraEntity();
 
 		void OnUpdate( Timestep ts );
 		void OnUpdatePhysics( Timestep ts );
@@ -121,6 +124,9 @@ namespace Saturn {
 		void OnRuntimeStart();
 		void OnRuntimeEnd();
 
+		entt::registry& GetRegistry() { return m_Registry; }
+		const entt::registry& GetRegistry() const { return m_Registry; }
+
 	private:
 
 		UUID m_SceneID;
@@ -142,6 +148,7 @@ namespace Saturn {
 	private:
 
 		friend class Entity;
+		friend class Prefab;
 		friend class SceneHierarchyPanel;
 		friend class SceneSerialiser;
 		friend class SceneRenderer;
