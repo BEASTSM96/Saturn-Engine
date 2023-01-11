@@ -73,7 +73,8 @@ project "Saturn"
 		"PX_GENERATE_STATIC_LIBRARIES",
 		"AL_LIBTYPE_STATIC",
 		"GLM_ENABLE_EXPERIMENTAL",
-		"SATURN_SS_IMPORT"
+		"SATURN_SS_IMPORT",
+		"GLFW_DLL"
 		--"GLM_FORCE_LEFT_HANDED"
 	}
 
@@ -308,6 +309,7 @@ project "Titan"
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../bin/Debug-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
 
 			-- Copy rttr
 			--'{COPY} "../Saturn/vendor/rttr/bin/Debug-Windows/rttr_core_d.dll" "%{cfg.targetdir}"' 
