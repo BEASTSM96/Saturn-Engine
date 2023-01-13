@@ -38,6 +38,8 @@
 #include <algorithm>
 #include <utility>
 
+#include <glm/glm.hpp>
+
 namespace Saturn {
 
 	enum class CursorMode
@@ -58,7 +60,8 @@ namespace Saturn {
 
 		float MouseX();
 		float MouseY();
-		std::pair<float, float> MousePosition();
+
+		glm::vec2 MousePosition();
 
 		void SetCursorMode( CursorMode mode );
 		CursorMode GetCursorMode();

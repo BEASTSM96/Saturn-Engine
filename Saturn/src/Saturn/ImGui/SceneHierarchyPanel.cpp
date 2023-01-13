@@ -123,7 +123,11 @@ namespace Saturn {
 		m_Context->m_Registry.each( [&]( auto entity )
 		{
 			Entity e{ entity, m_Context.Pointer() };
-			if( !m_Context->m_Registry.any_of<SceneComponent>( entity ) || !e ) 
+
+			if( !e )
+				return;
+
+			if( !m_Context->m_Registry.any_of<SceneComponent>( entity ) && !e.HasParent() )
 			{
 				DrawEntityNode( e );
 			}
@@ -133,6 +137,18 @@ namespace Saturn {
 	void SceneHierarchyPanel::Draw()
 	{
 		ImGui::Begin( "Scene Hierarchy" );
+
+		if( ImGui::BeginDragDropTarget() ) 
+		{
+			const ImGuiPayload* pPayload = ImGui::AcceptDragDropPayload( "ENTITY_PARENT_SCHPANEL" );
+
+			if( pPayload ) 
+			{
+
+			}
+
+			ImGui::EndDragDropTarget();
+		}
 
 		if( m_Context )
 		{	
@@ -305,19 +321,12 @@ namespace Saturn {
 	{
 		if( entity.HasComponent<TagComponent>() )
 		{
-			auto& tag = entity.GetComponent<TagComponent>().Tag;
+			auto& rTag = entity.GetComponent<TagComponent>().Tag;
 
-			ImGuiTreeNodeFlags flags = ( ( m_SelectionContext == entity ) ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
-			flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+			ImGuiTreeNodeFlags Flags = ( ( m_SelectionContext == entity ) ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
+			Flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-			ImGui::Selectable( tag.c_str(), m_SelectionContext && m_SelectionContext == entity ? true : false );
-
-			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) ) 
-			{
-				ImGui::SetDragDropPayload( "SCENE_HIERARCHY_PANEL_CPREFAB", &entity, sizeof( Entity ), ImGuiCond_Once );
-
-				ImGui::EndDragDropSource();
-			}
+			bool Clicked = ImGui::TreeNodeEx( (void*)(uint32_t)entity, Flags, rTag.c_str() );
 
 			if( ImGui::IsItemClicked() )
 			{
@@ -326,6 +335,69 @@ namespace Saturn {
 
 				if( m_SelectionChangedCallback )
 					m_SelectionChangedCallback( m_SelectionContext );
+			}
+
+			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) ) 
+			{
+				ImGui::Text( rTag.c_str() );
+
+				//ImGui::SetDragDropPayload( "SCENE_HIERARCHY_PANEL_CPREFAB", &entity, sizeof( Entity ), ImGuiCond_Once );
+
+				auto& entityID = entity.GetComponent<IdComponent>().ID;
+
+				ImGui::SetDragDropPayload( "ENTITY_PARENT_SCHPANEL", &entityID, sizeof( UUID ), ImGuiCond_Once );
+
+				ImGui::EndDragDropSource();
+			}
+
+			if( ImGui::BeginDragDropTarget() )
+			{
+				const ImGuiPayload* pPayload = ImGui::AcceptDragDropPayload( "ENTITY_PARENT_SCHPANEL" );
+
+				if( pPayload )
+				{
+					UUID id = *( UUID* ) pPayload->Data;
+					Entity e = m_Context->FindEntityByID( id );
+					Entity previousParent = m_Context->FindEntityByID( e.GetParent() );
+
+					// If a child is trying to parent it's parent.
+					bool ParentToParent = false;
+					for( auto& child : e.GetChildren() )
+					{
+						if( child == entity.GetUUID() )
+						{
+							ParentToParent = true;
+							break;
+						}
+					}
+
+					if( !ParentToParent )
+					{
+						if( previousParent )
+						{
+							auto& children = previousParent.GetChildren();
+							children.erase( std::remove( children.begin(), children.end(), id ), children.end() );
+						}
+
+						e.SetParent( entity.GetComponent<IdComponent>().ID );
+						auto& children = entity.GetChildren();
+						children.push_back( id );
+					}
+				}
+
+				ImGui::EndDragDropTarget();
+			}
+
+			if( Clicked ) 
+			{
+				for ( auto& child : entity.GetChildren() )
+				{
+					Entity e = m_Context->FindEntityByID( child );
+					if( e )
+						DrawEntityNode( e );
+				}
+
+				ImGui::TreePop();
 			}
 		}
 	}

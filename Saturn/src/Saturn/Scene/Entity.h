@@ -111,6 +111,21 @@ namespace Saturn {
 		void BeginPlay() override {}
 		void OnUpdate( Saturn::Timestep ts ) override {}
 
+		void SetParent( const UUID& rID ) 
+		{
+			GetComponent<RelationshipComponent>().Parent = rID;
+		}
+
+		UUID GetParent()
+		{
+			return GetComponent<RelationshipComponent>().Parent;
+		}
+
+		std::vector<UUID>& GetChildren()             { return GetComponent<RelationshipComponent>().ChildrenID; }
+		//const std::vector<UUID>& GetChildren() const { return GetComponent<RelationshipComponent>().ChildrenID; }
+
+		bool HasParent() { return GetComponent<RelationshipComponent>().Parent != 0; }
+
 		virtual void __create_entity( Entity* e ) {};
 
 	protected:

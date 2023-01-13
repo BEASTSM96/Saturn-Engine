@@ -109,6 +109,7 @@ namespace Saturn {
 		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
 		
 		Entity FindEntityByTag( const std::string& tag );
+		Entity FindEntityByID( const UUID& id );
 
 		void CopyScene( Ref<Scene>& NewScene );
 

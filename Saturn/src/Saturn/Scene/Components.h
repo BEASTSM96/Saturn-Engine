@@ -301,10 +301,21 @@ namespace Saturn {
 		UUID AssetID;
 	};
 
+	struct RelationshipComponent
+	{
+		UUID Parent = 0;
+
+		std::vector<UUID> ChildrenID;
+
+		RelationshipComponent() = default;
+		RelationshipComponent( RelationshipComponent& other ) = default;
+		RelationshipComponent( UUID parent ) : Parent( parent ) {  }
+	};
+
 	template<typename... V>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, 
+	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, RelationshipComponent,
 		MeshComponent, 
 		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 		CameraComponent,

@@ -79,7 +79,8 @@ namespace Saturn {
 	{
 		auto& StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
 
-		s_ViewingMaterial = Ref<Material>::Create( StaticMeshShader, "Viewing material" );
+		if( !s_IsInViewingMode )
+			s_ViewingMaterial = Ref<Material>::Create( StaticMeshShader, "Viewing material" );
 
 		s_ViewingMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
 		s_ViewingMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );

@@ -310,6 +310,7 @@ namespace Saturn {
 		auto& tagComponent = entity.AddComponent<TagComponent>( name.empty() ? "Empty Entity" : name );
 
 		entity.AddComponent<VisibilityComponent>();
+		entity.AddComponent<RelationshipComponent>();
 		
 		m_EntityIDMap[ idComponent ] = entity;
 		
@@ -329,6 +330,8 @@ namespace Saturn {
 		//SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) == m_EntityIDMap.end(), "Entity has the same name!" );
 		m_EntityIDMap[ uuid ] = entity;
 
+		entity.AddComponent<RelationshipComponent>();
+
 		return entity;
 	}
 
@@ -339,6 +342,19 @@ namespace Saturn {
 		{
 			const auto& canditate = view.get<TagComponent>( entity ).Tag;
 			if( canditate == tag )
+				return Entity( entity, this );
+		}
+
+		return Entity{};
+	}
+
+	Entity Scene::FindEntityByID( const UUID& id )
+	{
+		auto view = m_Registry.view<IdComponent>();
+		for( auto entity : view )
+		{
+			const auto& canditate = view.get<IdComponent>( entity ).ID;
+			if( canditate == id )
 				return Entity( entity, this );
 		}
 

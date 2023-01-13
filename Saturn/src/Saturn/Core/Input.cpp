@@ -59,17 +59,15 @@ namespace Saturn {
 
 	float Input::MouseX()
 	{
-		auto [x, y] = MousePosition();
-		return ( float )x;
+		return MousePosition().x;
 	}
 
 	float Input::MouseY()
 	{
-		auto [x, y] = MousePosition();
-		return ( float )y;
+		return MousePosition().y;
 	}
 
-	std::pair<float, float> Input::MousePosition()
+	glm::vec2 Input::MousePosition()
 	{
 		auto& window = static_cast< Window& >( Window::Get() );
 
@@ -77,7 +75,8 @@ namespace Saturn {
 		double y = 0;
 
 		glfwGetCursorPos( static_cast< GLFWwindow* >( window.NativeWindow() ), &x, &y );
-		return { ( float )x, ( float )y };
+
+		return { ( float ) x, ( float ) y };
 	}
 
 	void Input::SetCursorMode( CursorMode mode )
