@@ -657,7 +657,7 @@ namespace Saturn {
 
 				auto& tc = selectedEntity.GetComponent<TransformComponent>();
 
-				glm::mat4 transform = tc.GetTransform();
+				glm::mat4 transform = m_RuntimeScene ? m_RuntimeScene->GetTransformRelativeToParent( selectedEntity ) : m_EditorScene->GetTransformRelativeToParent( selectedEntity );
 
 				const glm::mat4 Projection = m_EditorCamera.ProjectionMatrix();
 				const glm::mat4 View = m_EditorCamera.ViewMatrix();

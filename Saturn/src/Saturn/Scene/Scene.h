@@ -111,6 +111,8 @@ namespace Saturn {
 		Entity FindEntityByTag( const std::string& tag );
 		Entity FindEntityByID( const UUID& id );
 
+		glm::mat4 GetTransformRelativeToParent( Entity entity );
+
 		void CopyScene( Ref<Scene>& NewScene );
 
 		void SetName( const std::string& name ) { m_Name = name; }

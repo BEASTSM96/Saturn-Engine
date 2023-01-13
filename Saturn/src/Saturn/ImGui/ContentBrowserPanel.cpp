@@ -73,9 +73,11 @@ namespace Saturn {
 	{
 		ImGui::Begin( "Content Browser" );
 
-		if( ImGui::BeginDragDropTarget() )
+		//ImRect windowRect = { ImGui::GetWindowContentRegionMin(), ImGui::GetWindowContentRegionMax() };
+
+		if( ImGui::BeginDragDropTarget( ) )
 		{
-			auto data = ImGui::AcceptDragDropPayload( "SCENE_HIERARCHY_PANEL_CPREFAB" );
+			auto data = ImGui::AcceptDragDropPayload( "ENTITY_PARENT_SCHPANEL" );
 
 			if( data )
 			{
@@ -85,7 +87,7 @@ namespace Saturn {
 				auto asset = AssetRegistry::Get().FindAsset( id );
 
 				auto PrefabAsset = asset.As<Prefab>();
-				PrefabAsset->Create( (Entity&)*payload );
+				PrefabAsset->Create( ( Entity& ) *payload );
 
 				auto& tag = payload->Tag();
 
@@ -96,10 +98,14 @@ namespace Saturn {
 
 				PrefabSerialiser ps;
 				ps.Serialise( PrefabAsset );
+
+				AssetRegistrySerialiser ars;
+				ars.Serialise();
 			}
 
 			ImGui::EndDragDropTarget();
 		}
+
 
 		ImGui::BeginChild( "##CB_TopBar_Actions", ImVec2( 0, 30 ) );
 

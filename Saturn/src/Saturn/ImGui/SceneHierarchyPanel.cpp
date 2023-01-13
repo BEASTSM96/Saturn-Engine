@@ -326,7 +326,9 @@ namespace Saturn {
 			ImGuiTreeNodeFlags Flags = ( ( m_SelectionContext == entity ) ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
 			Flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-			bool Clicked = ImGui::TreeNodeEx( (void*)(uint32_t)entity, Flags, rTag.c_str() );
+			bool Clicked;
+
+			Clicked = ImGui::TreeNodeEx( (void*)(uint32_t)entity, Flags, rTag.c_str() );
 
 			if( ImGui::IsItemClicked() )
 			{
@@ -341,11 +343,7 @@ namespace Saturn {
 			{
 				ImGui::Text( rTag.c_str() );
 
-				//ImGui::SetDragDropPayload( "SCENE_HIERARCHY_PANEL_CPREFAB", &entity, sizeof( Entity ), ImGuiCond_Once );
-
-				auto& entityID = entity.GetComponent<IdComponent>().ID;
-
-				ImGui::SetDragDropPayload( "ENTITY_PARENT_SCHPANEL", &entityID, sizeof( UUID ), ImGuiCond_Once );
+				ImGui::SetDragDropPayload( "ENTITY_PARENT_SCHPANEL", &entity, sizeof( Entity ), ImGuiCond_Once );
 
 				ImGui::EndDragDropSource();
 			}
@@ -356,8 +354,7 @@ namespace Saturn {
 
 				if( pPayload )
 				{
-					UUID id = *( UUID* ) pPayload->Data;
-					Entity e = m_Context->FindEntityByID( id );
+					Entity& e = *( Entity* ) pPayload->Data;
 					Entity previousParent = m_Context->FindEntityByID( e.GetParent() );
 
 					// If a child is trying to parent it's parent.
@@ -376,12 +373,12 @@ namespace Saturn {
 						if( previousParent )
 						{
 							auto& children = previousParent.GetChildren();
-							children.erase( std::remove( children.begin(), children.end(), id ), children.end() );
+							children.erase( std::remove( children.begin(), children.end(), e.GetComponent<IdComponent>().ID ), children.end() );
 						}
 
 						e.SetParent( entity.GetComponent<IdComponent>().ID );
 						auto& children = entity.GetChildren();
-						children.push_back( id );
+						children.push_back( e.GetComponent<IdComponent>().ID );
 					}
 				}
 

@@ -124,7 +124,8 @@ namespace Saturn {
 		std::vector<UUID>& GetChildren()             { return GetComponent<RelationshipComponent>().ChildrenID; }
 		//const std::vector<UUID>& GetChildren() const { return GetComponent<RelationshipComponent>().ChildrenID; }
 
-		bool HasParent() { return GetComponent<RelationshipComponent>().Parent != 0; }
+		bool HasParent()   { return GetComponent<RelationshipComponent>().Parent != 0; }
+		bool HasChildren() { return GetComponent<RelationshipComponent>().ChildrenID.size() > 1; }
 
 		virtual void __create_entity( Entity* e ) {};
 

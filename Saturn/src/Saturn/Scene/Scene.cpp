@@ -211,8 +211,10 @@ namespace Saturn {
 			
 			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
 			
+			auto transform = GetTransformRelativeToParent( entity );
+
 			if( meshComponent.Mesh ) 
-				SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transformComponent.GetTransform() );
+				SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transform );
 		}	
 
 		SceneRenderer::Get().SetCamera( { rCamera, rCamera.ViewMatrix() } );
@@ -226,7 +228,7 @@ namespace Saturn {
 		if( !cameraEntity )
 			return;
 
-		auto view = glm::inverse( cameraEntity.GetComponent<TransformComponent>().GetTransform() );
+		auto view = glm::inverse( GetTransformRelativeToParent( cameraEntity ) );
 		SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
 	
 		SceneRenderer::Get().SetCurrentScene( this );
@@ -293,8 +295,10 @@ namespace Saturn {
 
 			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
 
+			auto transform = GetTransformRelativeToParent( entity );
+
 			if( meshComponent.Mesh )
-				SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transformComponent.GetTransform() );
+				SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transform );
 		}
 
 		camera.SetViewportSize( SceneRenderer::Get().Width(), SceneRenderer::Get().Height() );
@@ -359,6 +363,17 @@ namespace Saturn {
 		}
 
 		return Entity{};
+	}
+
+	glm::mat4 Scene::GetTransformRelativeToParent( Entity entity )
+	{
+		glm::mat4 transform( 1.0f );
+
+		Entity parent = FindEntityByID( entity.GetParent() );
+		if( parent )
+			transform = GetTransformRelativeToParent( parent );
+
+		return transform * entity.GetComponent<TransformComponent>().GetTransform();
 	}
 
 	void Scene::DestroyEntity( Entity entity )
