@@ -40,6 +40,8 @@
 #include "Entity.h"
 #include "Components.h"
 
+#include "Saturn/Asset/Prefab.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -436,6 +438,13 @@ namespace Saturn {
 
 	void Scene::DeleteEntity( Entity entity )
 	{
+		for ( auto& rChild : entity.GetChildren() )
+		{
+			auto child = FindEntityByID( rChild );
+
+			m_Registry.destroy( child );
+		}
+
 		m_Registry.destroy( entity );
 	}
 
@@ -495,6 +504,15 @@ namespace Saturn {
 	{
 		m_PhysXRuntime->Clear();
 		delete m_PhysXRuntime;
+	}
+
+	Entity Scene::CreatePrefab( Ref<Prefab> prefabAsset )
+	{
+		Entity prefabEntity;
+
+		prefabEntity = prefabAsset->PrefabToEntity( this, prefabEntity );
+
+		return prefabEntity;
 	}
 
 }

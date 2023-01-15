@@ -565,6 +565,8 @@ namespace Saturn {
 
 		auto entities = data[ "Entities" ];
 
+		prefabAsset->m_Scene = Ref<Scene>::Create();
+
 		DeserialiseEntites( entities, prefabAsset->m_Scene );
 
 		struct

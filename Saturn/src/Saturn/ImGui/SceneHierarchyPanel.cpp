@@ -377,6 +377,7 @@ namespace Saturn {
 						}
 
 						e.SetParent( entity.GetComponent<IdComponent>().ID );
+
 						auto& children = entity.GetChildren();
 						children.push_back( e.GetComponent<IdComponent>().ID );
 					}

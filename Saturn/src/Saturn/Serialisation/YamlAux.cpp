@@ -62,6 +62,33 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
+		// Relationship Component
+		if( entity.HasComponent<RelationshipComponent>() )
+		{
+			rEmitter << YAML::Key << "RelationshipComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& rc = entity.GetComponent< RelationshipComponent >();
+
+			rEmitter << YAML::Key << "Parent" << YAML::Value << rc.Parent;
+
+			rEmitter << YAML::Key << "Children";
+			rEmitter << YAML::BeginSeq;
+
+			for( const auto& id : rc.ChildrenID )
+			{
+				rEmitter << YAML::BeginMap;
+
+				rEmitter << YAML::Key << "ID" << YAML::Value << id;
+
+				rEmitter << YAML::EndMap;
+			}
+
+			rEmitter << YAML::EndSeq;
+
+			rEmitter << YAML::EndMap;
+		}
+
 		// Mesh Component
 		if( entity.HasComponent<MeshComponent>() )
 		{
@@ -247,6 +274,20 @@ namespace Saturn {
 				auto& m = DeserialisedEntity.AddComponent< MeshComponent >();
 
 				m.Mesh = Ref<Mesh>::Create( mc[ "Filepath" ].as<std::string>() );
+			}
+
+			auto rcNode = entity[ "RelationshipComponent" ];
+			auto& rc = DeserialisedEntity.GetComponent<RelationshipComponent>();
+			rc.Parent = rcNode[ "Parent" ] ? rcNode[ "Parent" ].as<uint64_t>() : 0;
+
+			auto rcChildren = rcNode[ "Children" ];
+			if( rcChildren )
+			{
+				for( auto child : rcChildren )
+				{
+					uint64_t id = child[ "ID" ].as<uint64_t>();
+					rc.ChildrenID.push_back( id );
+				}
 			}
 
 			auto slc = entity[ "SkyLightComponent" ];

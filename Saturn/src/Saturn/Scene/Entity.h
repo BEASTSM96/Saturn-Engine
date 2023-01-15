@@ -137,5 +137,6 @@ namespace Saturn {
 	private:
 
 		friend class Scene;
+		friend class Prefab;
 	};
 }

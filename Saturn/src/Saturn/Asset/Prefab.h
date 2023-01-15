@@ -33,6 +33,8 @@
 
 namespace Saturn {
 
+	class Scene;
+
 	class Prefab : public Asset
 	{
 	public:
@@ -41,10 +43,11 @@ namespace Saturn {
 
 		void Create( Entity& srcEntity );
 
-		Entity PrefabToEntity( Ref<Scene> Scene );
+		Entity PrefabToEntity( Ref<Scene> Scene, Entity entity );
 
 	private:
-		void CreateFromEntity( Entity& srcEntity );
+		Entity CreateFromEntity( Entity srcEntity );
+		Entity CreateChildren( Entity parent, Ref<Scene> Scene );
 	private:
 		Entity m_Entity;
 		

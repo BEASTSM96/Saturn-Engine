@@ -40,6 +40,7 @@
 namespace Saturn {
 
 	class Entity;
+	class Prefab;
 
 	using EntityMap = std::unordered_map<UUID, Entity>;
 
@@ -129,6 +130,8 @@ namespace Saturn {
 
 		entt::registry& GetRegistry() { return m_Registry; }
 		const entt::registry& GetRegistry() const { return m_Registry; }
+
+		Entity CreatePrefab( Ref<Prefab> prefabAsset );
 
 	private:
 

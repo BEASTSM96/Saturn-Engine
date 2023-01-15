@@ -309,7 +309,7 @@ namespace Saturn {
 		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
 			m_StartedRightClickInViewport = true;
 
-		if(!Input::Get().MouseButtonPressed( Mouse::Right ))
+		if( !Input::Get().MouseButtonPressed( Mouse::Right ) )
 			m_StartedRightClickInViewport = false;
 	}
 
@@ -617,9 +617,10 @@ namespace Saturn {
 				std::filesystem::path p = path;
 
 				Ref<Asset> asset = AssetRegistry::Get().FindAsset( p );
+				// Make sure to load the prefab.
 				Ref<Prefab> prefabAsset = AssetRegistry::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
 
-				prefabAsset->PrefabToEntity( m_EditorScene );
+				m_EditorScene->CreatePrefab( prefabAsset );
 			}
 
 			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL" ) )
