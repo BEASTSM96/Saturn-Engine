@@ -507,6 +507,30 @@ project "ProjectBrowser"
 			optimize "on"
 
 group "Tools"
+project "SaturnBuildTool"
+	location "SaturnBuildTool"
+	language "C#"
+	kind "ConsoleApp"
+	nuget { "YamlDotNet:12.3.1", "System.Xml.ReaderWriter:4.3.1", "System:4.0.0" }
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"%{prj.name}/src/**.cs"
+	}
+
+	filter { "configurations:Debug" }
+		symbols "On"
+
+ 	filter { "configurations:Release" }
+		optimize "On"
+
+	filter { "configurations:Release" }
+		optimize "On"
+
+group "Tools"
 project "SingletonStorage"
 	location "SingletonStorage"
 	kind "SharedLib"

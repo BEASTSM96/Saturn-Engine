@@ -74,7 +74,7 @@ namespace Saturn {
 		if( !Application::Get().GetSpecification().CreateSceneRenderer )
 			return;
 			
-		m_RendererData.StorageBufferSet = Ref<StorageBufferSet>::Create(0,0);
+		m_RendererData.StorageBufferSet = Ref<StorageBufferSet>::Create( 0, 0 );
 
 		InitPreDepth();
 
