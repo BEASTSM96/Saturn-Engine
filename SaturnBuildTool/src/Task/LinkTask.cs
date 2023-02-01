@@ -48,7 +48,7 @@ namespace BuildTool
                     }
                     break;
             }
-            
+
             processStart.CreateNoWindow = false;
             processStart.RedirectStandardOutput = true;
             processStart.RedirectStandardError = true;
@@ -58,8 +58,6 @@ namespace BuildTool
             clProcess.StartInfo = processStart;
 
             Args.Add(" /NOLOGO");
-
-            Args.Add(string.Format(" /SUBSYSTEM:CONSOLE /OUT:\"{0}\"", TargetToBuild.GetBinDir() ) );
 
             // std libraries
             string sdkLibPath = WindowsSDK.GetLibraryPaths();
@@ -72,20 +70,56 @@ namespace BuildTool
             Args.Add(string.Format(" /LIBPATH:\"{0}\"", sdkLibPath + "/um" + "/x64"));
             Args.Add(string.Format(" /LIBPATH:\"{0}\"", sdkLibPath + "/ucrt" + "/x64"));
 
+            foreach (string links in TargetToBuild.LibraryPaths)
+            {
+                Args.Add(string.Format(" /LIBPATH:\"{0}\"", links));
+            }
+            
+            Args.Add(" /INCREMENTAL");
+            Args.Add(" /MACHINE:x64");
+            Args.Add(" /DEBUG:FULL" );
+
+            switch (TargetToBuild.OutputType) 
+            {
+                case LinkerOutput.Executable:
+                    {
+                        Args.Add(string.Format(" /SUBSYSTEM:CONSOLE /OUT:\"{0}\"", TargetToBuild.GetBinDir()));
+                    } break;
+
+
+                case LinkerOutput.StaticLibrary:
+                    {
+                        Args.Add(string.Format(" /LIB /OUT:\"{0}\"", TargetToBuild.GetBinDir()));
+                    }
+                    break;
+
+                case LinkerOutput.SharedLibrary:
+                    {
+                        Args.Add(string.Format(" /DLL /OUT:\"{0}\"", TargetToBuild.GetBinDir()));
+                    }
+                    break;
+            }
+
+            string ilkPath = Path.Combine( TargetToBuild.OutputPath, TargetToBuild.ProjectName );
+            ilkPath = Path.ChangeExtension( ilkPath, ".ilk" );
+
+            Args.Add( string.Format( " /ILK:\"{0}\"", ilkPath ) );
+
+            foreach (string links in TargetToBuild.Links)
+            {
+                Args.Add(string.Format(" \"{0}\"", links ));
+            }
+
             // Object files
             foreach (string file in TargetToBuild.GetIntermediateFiles())
             {
                 Args.Add(string.Format(" \"{0}\"", file));
             }
 
-            Args.Add(" /INCREMENTAL");
-            Args.Add(" /MACHINE:x64");
-            Args.Add(" /DEBUG:FULL" );
-
-            string ilkPath = Path.Combine( TargetToBuild.OutputPath, TargetToBuild.ProjectName );
-            ilkPath = Path.ChangeExtension( ilkPath, ".ilk" );
-
-            Args.Add( string.Format( " /ILK:\"{0}\"", ilkPath ) );
+            foreach (string arg in Args) 
+            {
+                Console.WriteLine( arg );
+            }
 
             // Start the link...
             Console.WriteLine("Linking");
@@ -93,8 +127,20 @@ namespace BuildTool
             clProcess.EnableRaisingEvents = true;
 
             processStart.Arguments = string.Join("", Args);
-            clProcess.Start();
 
+            clProcess.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
+            {
+                Console.WriteLine(e.Data);
+            });
+
+            clProcess.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
+            {
+                Console.WriteLine(e.Data);
+            });
+
+            clProcess.Start();
+            clProcess.BeginErrorReadLine();
+            clProcess.BeginOutputReadLine();
             clProcess.WaitForExit();
 
             Console.WriteLine( clProcess.StandardOutput.ReadToEnd().Trim() );

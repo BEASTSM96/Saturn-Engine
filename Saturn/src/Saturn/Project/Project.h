@@ -67,6 +67,7 @@ namespace Saturn {
 
 		bool HasPremakeFile();
 		void CreatePremakeFile();
+		void CreateBuildFile();
 
 		// TEMP
 		//    Until we have a proper project system

@@ -11,18 +11,36 @@ namespace BuildTool
 {
 	class EntryPoint
 	{
-        static void Main(string[] Args)
+		// Args:
+		// 0: The Action, BUILD, REBULD, CLEAN. TODO
+		// 1: The project name
+		// 2: The target, Win64
+		// 3: The configuration, Debug, Release, Dist
+		// 4: The project location
+		static void Main(string[] Args)
 		{
 			Console.WriteLine("==== Saturn Build Tool v0.0.1 ====");
 
-			// Find the src of the current project we are trying to build.
-			string OurDir = Directory.GetCurrentDirectory();
-			OurDir = Directory.GetParent( OurDir ).ToString();
-			OurDir = Directory.GetParent( OurDir ).ToString();
+			int index = Args[4].IndexOf('/');
 
-			OurDir += Args[1];
+			string ProjectDir = Args[4].Substring( index + 1 );
 
-			OurDir = OurDir.Replace( "/", "\\" );
+			ProjectDir = ProjectDir.Replace("/", "\\");
+
+			string SourceDir = Path.Combine(ProjectDir, "Scripts");
+
+			// We know if we are the game that we source is in the same dir as the project.
+			// However if it does not exist then we are the engine.
+			if ( !Directory.Exists( SourceDir ) ) 
+			{
+				SourceDir = Path.Combine( ProjectDir, Args[1] );
+
+				SourceDir = Path.Combine( SourceDir, "src" );
+
+				SourceDir = Path.Combine( SourceDir, Args[1] );
+			}
+
+			SourceDir = SourceDir.Replace("/", "\\");
 
 			Target.Instance.TargetName = Args[2];
 
@@ -32,21 +50,22 @@ namespace BuildTool
 			BuildConfig.Instance.ConfigName = BuildConfig.Instance.ConfigName.Replace( "/", string.Empty );
 
 			//
-			string BuildFile = OurDir + "\\src";
+			string BuildFile = SourceDir;
 			BuildFile += Args[1];
 			BuildFile += ".Build.cs";
 			BuildFile = BuildFile.Replace("/", "\\");
 
 			UserTarget target = UserTarget.SetupUserTarget(BuildFile);
 			target.ProjectName = Args[1];
+			target.ProjectName = target.ProjectName.Replace( "/", string.Empty );
 
 			//
 			MVSCToolchain Toolchain = new MVSCToolchain(target);
 
-			string cacheLocation = OurDir + "\\filecache.fc";
+			string cacheLocation = ProjectDir + "\\filecache.fc";
 			FileCache fileCache = FileCache.Load( cacheLocation );
 
-			List<string> sourceFiles = DirectoryTools.DirSearch( OurDir, true );
+			List<string> sourceFiles = DirectoryTools.DirSearch( SourceDir, true );
 
 			bool HasCompiledAnyFile = false;
 

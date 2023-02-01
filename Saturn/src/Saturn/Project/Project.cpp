@@ -158,6 +158,9 @@ namespace Saturn {
 	{
 		auto PremakePath = GetAssetPath().parent_path() / "premake5.lua";
 
+		if( std::filesystem::exists( PremakePath ) )
+			std::filesystem::remove( PremakePath );
+
 		std::filesystem::copy( "assets/Templates/premake5.lua", PremakePath );
 
 		std::ifstream ifs( PremakePath );
@@ -240,9 +243,40 @@ namespace Saturn {
 			pos = fileData.find( "__PROJECT_NAME__" );
 		}
 
-		std::ofstream fout( PremakePath );
+		pos = 0;
+		pos = fileData.find( "__SATURN_BT_DIR__" );
 
+		while( pos != std::string::npos )
+		{
+			std::filesystem::path rootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
+			rootDir /= "bin/";
+
+#if defined( SAT_DEBUG )
+			rootDir /= "Debug-windows-x86_64/SaturnBuildTool";
+#elif defined( SAT_RELEASE )
+			rootDir /= "Release-windows-x86_64/SaturnBuildTool";
+#else
+			rootDir /= "Dist-windows-x86_64/SaturnBuildTool";
+#endif
+			auto rootDirString = rootDir.string();
+			std::replace( rootDirString.begin(), rootDirString.end(), '\\', '/' );
+
+			fileData.replace( pos, 17, rootDirString );
+
+			pos = fileData.find( "__SATURN_BT_DIR__" );
+		}
+
+		std::ofstream fout( PremakePath );
 		fout << fileData;
+	}
+
+	void Project::CreateBuildFile()
+	{
+		auto BuildFilePath = GetAssetPath().parent_path() / "Scripts";
+		BuildFilePath /= GetName() + ".Build.cs";
+
+		if( !std::filesystem::exists( BuildFilePath ) )
+			std::filesystem::copy( "assets/Templates/%PROJECT_NAME%.Build.cs", BuildFilePath );
 	}
 
 }

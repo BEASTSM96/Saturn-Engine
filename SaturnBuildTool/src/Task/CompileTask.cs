@@ -71,6 +71,14 @@ namespace BuildTool
             // Compile for C++
             Args.Add(" /std:c++latest /D _HAS_EXCEPTIONS=0");
 
+            // Unwind semantics.
+            Args.Add(" /EHsc");
+
+            if(TargetToBuild.CurrentConfig == ConfigKind.Debug)
+                Args.Add(" /MTd" );
+            else
+                Args.Add(" /MT" );
+
             // Out
             string outFile = string.Format("{0}\\{1}", TargetToBuild.OutputPath, Path.GetFileName(Path.ChangeExtension(InputFile, ".obj")));
 

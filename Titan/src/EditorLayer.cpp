@@ -69,6 +69,8 @@
 #include <Saturn/GameFramework/GameManager.h>
 #include <Saturn/GameFramework/ScriptManager.h>
 
+#include <Saturn/Premake/Premake.h>
+
 #include <typeindex>
 
 #include <glfw/glfw3.h>
@@ -142,6 +144,19 @@ namespace Saturn {
 					}
 
 					ImGui::OpenPopup( "##Saturn" );
+				}
+
+				ImGui::EndMenu();
+			}
+
+			if( ImGui::BeginMenu( "Project" ) )
+			{
+				if( ImGui::MenuItem( "Recreate project files" ) )
+				{
+					Project::GetActiveProject()->CreatePremakeFile();
+
+					Premake* pPremake = new Premake();
+					pPremake->Launch( Project::GetActiveProject()->GetRootDir().string() );
 				}
 
 				ImGui::EndMenu();

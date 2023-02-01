@@ -42,6 +42,9 @@ namespace BuildTool.Cache
             {
                 if(!fileCache.FilesInCache.ContainsKey( file.Key ))
                 {
+                    if (Path.GetExtension(file.Key) != ".cpp" || Path.GetExtension(file.Key) != ".h")
+                        continue;
+
                     fileCache.FilesInCache.Add( file );
                 }
             }
@@ -83,7 +86,6 @@ namespace BuildTool.Cache
 
             var yaml = deserializer.Deserialize<FileCache>(textReader);
 
-            textReader.Close();
 
             if (yaml != null)
             {
@@ -92,9 +94,11 @@ namespace BuildTool.Cache
             }
             else 
             {
+                textReader.Close();
                 return fc;
             }
 
+            textReader.Close();
             return yaml;
         }
     }

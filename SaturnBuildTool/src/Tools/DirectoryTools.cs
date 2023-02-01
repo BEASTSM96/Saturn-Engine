@@ -64,7 +64,7 @@ namespace BuildTool.Tools
                 foreach (string d in Directory.GetDirectories(sDir))
                 {
                     if (isSourceOnly)
-                        if (!d.EndsWith("src"))
+                        if (!d.EndsWith("src") || d.EndsWith("Scripts"))
                             continue;
 
                     foreach (string f in Directory.GetFiles(d))
@@ -72,6 +72,11 @@ namespace BuildTool.Tools
                         strings.Add(f);
                     }
                     DirSearch(d, isSourceOnly);
+                }
+
+                foreach (string f in Directory.GetFiles(sDir))
+                {
+                    strings.Add(f);
                 }
             }
             catch (System.Exception excpt)

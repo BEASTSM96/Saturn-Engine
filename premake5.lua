@@ -302,6 +302,8 @@ project "Titan"
 
 		postbuildcommands 
 		{ 
+			'dir',
+
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 			-- Copy PhysX
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
@@ -511,7 +513,8 @@ project "SaturnBuildTool"
 	location "SaturnBuildTool"
 	language "C#"
 	kind "ConsoleApp"
-	nuget { "YamlDotNet:12.3.1", "System.Xml.ReaderWriter:4.3.1", "System:4.0.0" }
+	nuget { "YamlDotNet:12.3.1", "System.Xml.ReaderWriter:4.3.1" }
+	links { "System" }
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -521,15 +524,21 @@ project "SaturnBuildTool"
 		"%{prj.name}/src/**.cs"
 	}
 
+	postbuildcommands
+	{
+		'{COPY} "../../../SaturnBuildTool/RT" "RT"'
+	}
+
 	filter { "configurations:Debug" }
 		symbols "On"
 
  	filter { "configurations:Release" }
 		optimize "On"
 
-	filter { "configurations:Release" }
+	filter { "configurations:Dist" }
 		optimize "On"
 
+		
 group "Tools"
 project "SingletonStorage"
 	location "SingletonStorage"
