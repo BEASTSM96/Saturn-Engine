@@ -146,7 +146,7 @@ namespace SaturnBuildTool.Tools
 
                 streamWriter.WriteLine("#pragma once\r\n");
 
-                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Macros.h"));
+                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
 
                 while ((line = sr.ReadLine()) != null)
                 {

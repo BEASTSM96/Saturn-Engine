@@ -72,10 +72,10 @@ namespace Saturn {
 			script->BeginPlay();
 	}
 
-	void ScriptManager::UpdateAllScripts()
+	void ScriptManager::UpdateAllScripts( Saturn::Timestep ts )
 	{
 		for( auto&& [name, script] : m_Scripts )
-			script->OnUpdate();
+			script->OnUpdate( ts );
 	}
 
 	void ScriptManager::CreateAllScripts()
@@ -93,6 +93,7 @@ namespace Saturn {
 
 	void ScriptManager::SetScriptOwner( const std::string& rName, Entity* rOwner )
 	{
-		m_Scripts[ rName ]->SetOwner( rOwner );
+		Entity* e = ( Entity* ) m_Scripts[ rName ];
+		e->__create_entity( rOwner );
 	}
 }

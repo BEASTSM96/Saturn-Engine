@@ -44,7 +44,7 @@ namespace Saturn {
 		void RegisterScript( const std::string& rName );
 
 		void BeginPlay();
-		void UpdateAllScripts();
+		void UpdateAllScripts( Saturn::Timestep ts );
 		void CreateAllScripts();
 
 		SClass* CreateScript( const std::string& rName );
