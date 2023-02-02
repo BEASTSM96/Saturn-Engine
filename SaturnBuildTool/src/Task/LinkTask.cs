@@ -5,10 +5,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using BuildTool.Toolchain;
-using BuildTool.Tools;
+using SaturnBuildTool.Toolchain;
+using SaturnBuildTool.Tools;
 
-namespace BuildTool
+namespace SaturnBuildTool
 {
     public enum LinkerOutput
     {
@@ -110,15 +110,23 @@ namespace BuildTool
                 Args.Add(string.Format(" \"{0}\"", links ));
             }
 
+            // Dynamic base
+            if( TargetToBuild.DynamicBase.Count > 0 )
+            {
+                List<string> bases = new List<string>();
+
+                foreach ( string file in TargetToBuild.DynamicBase )
+                {
+                    bases.Add(string.Format(" \"{0}\"", file));
+                }
+
+                Args.Add( string.Format( " /DYNAMICBASE{0}", string.Join("", bases) ) );
+            }
+
             // Object files
             foreach (string file in TargetToBuild.GetIntermediateFiles())
             {
                 Args.Add(string.Format(" \"{0}\"", file));
-            }
-
-            foreach (string arg in Args) 
-            {
-                Console.WriteLine( arg );
             }
 
             // Start the link...

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace BuildTool.Tools
+namespace SaturnBuildTool.Tools
 {
     internal class VSWhere
     {

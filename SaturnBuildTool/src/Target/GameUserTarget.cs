@@ -1,8 +1,8 @@
-﻿using BuildTool;
+﻿using SaturnBuildTool;
 using System;
 using System.IO;
 
-namespace BuildTool
+namespace SaturnBuildTool
 {
     public class GameUserTarget : UserTarget
     {
@@ -53,24 +53,29 @@ namespace BuildTool
             Includes.Add( Path.Combine(saturnSingletonDir, "src") );
 
             string saturnBinDir = saturnRootDir;
+            string ssBinDir = saturnRootDir;
             saturnBinDir = Path.Combine(saturnBinDir, "bin" );
+            ssBinDir = Path.Combine(ssBinDir, "bin" );
 
             switch ( CurrentConfig ) 
             {
                 case ConfigKind.Debug: 
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Debug-windows-x86_64\\Saturn" );
+                        ssBinDir = Path.Combine(ssBinDir, "Debug-windows-x86_64\\SingletonStorage" );
                     } break;
 
                 case ConfigKind.Release:
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Release-windows-x86_64\\Saturn");
+                        ssBinDir = Path.Combine(ssBinDir, "Release-windows-x86_64\\SingletonStorage");
                     }
                     break;
 
                 case ConfigKind.Dist:
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Dist-windows-x86_64\\Saturn");
+                        ssBinDir = Path.Combine(ssBinDir, "Dist-windows-x86_64\\SingletonStorage");
                     }
                     break;
             }
@@ -79,8 +84,28 @@ namespace BuildTool
 
             // Link to saturn
             Links.Add("Saturn.lib");
+            Links.Add("SingletonStorage.lib");
+
+            PreprocessorDefines.Add("SATURN_SS_IMPORT");
+
+            //DynamicBase.Add("SingletonStorage.lib");
 
             LibraryPaths.Add( libPath );
+            LibraryPaths.Add( ssBinDir );
+
+            for ( int i = 0; i < Enum.GetNames(typeof(VendorProject)).Length; i++ ) 
+            {
+                string path = VendorBinaries.GetBinPath( (VendorProject)i, this );
+
+                LibraryPaths.Add(path);
+            }
+
+            // Vendor
+            Links.Add("GLFW.lib");
+            Links.Add("ImGui.lib");
+            Links.Add("shaderc.lib");
+            Links.Add("SPIRV-Cross.lib");
+            Links.Add("yaml-cpp.lib");
         }
     }
 }

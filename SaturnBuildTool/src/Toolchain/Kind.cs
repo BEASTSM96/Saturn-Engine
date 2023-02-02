@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BuildTool
+namespace SaturnBuildTool
 {
     enum Kind 
     {

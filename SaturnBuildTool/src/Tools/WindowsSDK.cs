@@ -2,7 +2,7 @@
 using System.IO;
 using System;
 
-namespace BuildTool.Tools
+namespace SaturnBuildTool.Tools
 {
     public static class WindowsSDK
     {

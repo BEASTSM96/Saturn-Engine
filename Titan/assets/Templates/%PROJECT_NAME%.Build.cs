@@ -1,4 +1,4 @@
-using BuildTool;
+using SaturnBuildTool;
 using System;
 
 public class GameTarget : GameUserTarget

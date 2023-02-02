@@ -448,6 +448,8 @@ namespace Saturn {
 					Project::GetActiveProject()->CreatePremakeFile();
 				}
 
+				Project::GetActiveProject()->CreateBuildFile();
+
 				// Update or create the project files.
 				Premake* pPremake = new Premake();
 				pPremake->Launch( Project::GetActiveProject()->GetRootDir().string() );

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace BuildTool.Tools
+namespace SaturnBuildTool.Tools
 {
     internal class HeaderTool
     {

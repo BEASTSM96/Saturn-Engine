@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace BuildTool.Tools
+namespace SaturnBuildTool.Tools
 {
     internal class ProjectTools
     {

@@ -5,10 +5,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using BuildTool.Toolchain;
-using BuildTool.Tools;
+using SaturnBuildTool.Toolchain;
+using SaturnBuildTool.Tools;
 
-namespace BuildTool
+namespace SaturnBuildTool
 {
     internal class CompileTask : AsyncTask
     {

@@ -5,7 +5,7 @@ using System.Linq;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace BuildTool.Cache
+namespace SaturnBuildTool.Cache
 {
     internal class FileCache
     {

@@ -3,11 +3,11 @@ using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
 
-using BuildTool.Tools;
-using BuildTool.Toolchain;
-using BuildTool.Cache;
+using SaturnBuildTool.Tools;
+using SaturnBuildTool.Toolchain;
+using SaturnBuildTool.Cache;
 
-namespace BuildTool
+namespace SaturnBuildTool
 {
 	class EntryPoint
 	{

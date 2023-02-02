@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BuildTool.Tools
+namespace SaturnBuildTool.Tools
 {
     internal static class DirectoryTools
     {

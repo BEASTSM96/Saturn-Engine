@@ -3,6 +3,8 @@
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/GameFramework/GameScript.h"
 
+#include "__FILE_NAME__.Gen.h"
+
 class __FILE_NAME__ : public Saturn::SClass
 {
 public:

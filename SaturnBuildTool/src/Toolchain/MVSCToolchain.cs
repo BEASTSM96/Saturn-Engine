@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 
-using BuildTool.Tools;
+using SaturnBuildTool.Tools;
 using System.Xml;
 
-namespace BuildTool.Toolchain
+namespace SaturnBuildTool.Toolchain
 {
     internal class MVSCToolchain
     {

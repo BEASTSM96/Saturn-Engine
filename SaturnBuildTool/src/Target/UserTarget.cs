@@ -5,9 +5,9 @@ using System.CodeDom.Compiler;
 using System.Linq;
 using System.IO;
 
-using BuildTool.Tools;
+using SaturnBuildTool.Tools;
 
-namespace BuildTool
+namespace SaturnBuildTool
 {
     public class UserTarget
     {
@@ -29,6 +29,8 @@ namespace BuildTool
         public List<string> PreprocessorDefines = new List<string>();
 
         public List<string> Links = new List<string>();
+
+        public List<string> DynamicBase = new List<string>();
 
         public List<string> LibraryPaths = new List<string>();
 
