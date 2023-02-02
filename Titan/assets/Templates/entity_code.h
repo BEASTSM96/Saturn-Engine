@@ -5,8 +5,12 @@
 
 #include "__FILE_NAME__.Gen.h"
 
-class __FILE_NAME__ : public Saturn::SClass
+using namespace Saturn;
+
+SCLASS()
+class __FILE_NAME__ : public SClass
 {
+	GENERATED_BODY()
 public:
 	__FILE_NAME__();
 	~__FILE_NAME__();
