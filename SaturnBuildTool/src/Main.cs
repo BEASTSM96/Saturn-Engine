@@ -19,6 +19,8 @@ namespace SaturnBuildTool
 		// 4: The project location
 		static void Main(string[] Args)
 		{
+			Stopwatch time = Stopwatch.StartNew();
+
 			Console.WriteLine("==== Saturn Build Tool v0.0.1 ====");
 
 			int index = Args[4].IndexOf('/');
@@ -73,7 +75,12 @@ namespace SaturnBuildTool
 
 			foreach ( string file in sourceFiles ) 
 			{
-				if (!fileCache.IsFileInCache(file))
+				// We are only building c++ files.
+				// This does check for .h files however the toolchain will not compile them.
+				if (!fileCache.IsCppSourceFile(file))
+					continue;
+
+				if (!fileCache.IsFileInCache(file)) 
 					fileCache.CacheFile(file);
 
 				// Only compile the file if it has not be changed.
@@ -101,7 +108,7 @@ namespace SaturnBuildTool
 				FileCache.RT_WriteCache( fileCache );
 			}
 
-			Console.WriteLine("Done building");
+			Console.WriteLine("Done building in {0}", time.Elapsed);
 		}
     }
 }

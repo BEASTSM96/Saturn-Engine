@@ -138,20 +138,20 @@ namespace SaturnBuildTool
 
             clProcess.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
             {
-                Console.WriteLine(e.Data);
+                if( e.Data != null )
+                    Console.WriteLine(e.Data);
             });
 
             clProcess.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
             {
-                Console.WriteLine(e.Data);
+                if (e.Data != null)
+                    Console.WriteLine(e.Data);
             });
 
             clProcess.Start();
             clProcess.BeginErrorReadLine();
             clProcess.BeginOutputReadLine();
             clProcess.WaitForExit();
-
-            Console.WriteLine( clProcess.StandardOutput.ReadToEnd().Trim() );
 
             return clProcess.ExitCode;
         }

@@ -13,7 +13,7 @@ namespace SaturnBuildTool.Cache
         public IDictionary<string, DateTime> FilesInCache { get; set; }
 
         private string m_Location;
-        public FileCache(string CacheLocation) 
+        public FileCache(string CacheLocation)
         {
             FilesToCache = new Dictionary<string, DateTime>();
             FilesInCache = new Dictionary<string, DateTime>();
@@ -21,20 +21,29 @@ namespace SaturnBuildTool.Cache
             m_Location = CacheLocation;
         }
 
-        public FileCache() 
+        public FileCache()
         {
             FilesToCache = new Dictionary<string, DateTime>();
             FilesInCache = new Dictionary<string, DateTime>();
 
             m_Location = "";
-        } 
+        }
 
         public void CacheFile(string Filepath)
         {
-            FilesToCache.Add( Filepath, File.GetLastWriteTime( Filepath ) );
+            if( IsCppSourceFile(Filepath) )
+                FilesToCache.Add(Filepath, File.GetLastWriteTime(Filepath));
         }
 
-        public bool IsFileInCache(string Filepath) { return FilesToCache.ContainsKey(Filepath); }
+        public bool IsCppSourceFile( string Filepath )
+        {
+            return Path.GetExtension(Filepath) == ".cpp" || Path.GetExtension(Filepath) == ".h";
+        }
+
+        public bool IsFileInCache(string Filepath) 
+        {
+            return FilesToCache.ContainsKey(Filepath);
+        }
 
         public static void RT_WriteCache( FileCache fileCache ) 
         {
@@ -42,10 +51,7 @@ namespace SaturnBuildTool.Cache
             {
                 if(!fileCache.FilesInCache.ContainsKey( file.Key ))
                 {
-                    if (Path.GetExtension(file.Key) != ".cpp" || Path.GetExtension(file.Key) != ".h")
-                        continue;
-
-                    fileCache.FilesInCache.Add( file );
+                    fileCache.FilesInCache.Add(file);
                 }
             }
 

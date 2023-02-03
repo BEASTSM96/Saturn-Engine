@@ -35,7 +35,7 @@
 #define BODY_MACRO_COMBINE_INNER(A,B,C,D) A##B##C##D
 #define BODY_MACRO_COMBINE(A,B,C,D) BODY_MACRO_COMBINE_INNER(A,B,C,D)
 
-// Include a empty macro, this will be defined when SHT has be ran.
+// Include a empty macro, this will be defined when SHT has been ran.
 #define CURRENT_FILE_ID
 #define GENERATED_BODY(...) BODY_MACRO_COMBINE(CURRENT_FILE_ID,_,__LINE__,_GENERATED_BODY);
 
@@ -56,9 +56,6 @@ public: \
 		return new x(); \
 	}
 
-
-namespace Saturn {
-
 #define SATURN_REG_FUNC_NAME(x, a) x##a
 #define SATURN_REG_FUNC(x, a) SATURN_REG_FUNC_NAME( x, a )
 
@@ -66,5 +63,3 @@ namespace Saturn {
 #define SATURN_REGISTER_SCRIPT(x) extern "C" { __declspec(dllexport) Saturn::SClass* SATURN_REG_FUNC(CreateScriptClass, x##_ )() { return new x(); }  }
 //-- Entity
 #define SATURN_REGISTER_ENTITY(x) extern "C" { __declspec(dllexport) Saturn::Entity* SATURN_REG_FUNC(CreateScriptClass, x##_ )() { return new x(); }  }
-
-}
