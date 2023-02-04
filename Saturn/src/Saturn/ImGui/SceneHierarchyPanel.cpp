@@ -195,6 +195,15 @@ namespace Saturn {
 					}
 				}
 
+				ImGui::Separator();
+
+				for( const auto& rName : ScriptManager::Get().GetVisibleScripts() )
+				{
+					if( ImGui::MenuItem( rName.c_str() ) )
+					{
+					}
+				}
+
 				ImGui::EndPopup();
 			}
 

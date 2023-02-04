@@ -25,7 +25,7 @@ namespace SaturnBuildTool.Toolchain
             CompileTask compileTask = new CompileTask( InputFile, TargetToBuild );
 
             HeaderTool.Instance.GenerateHeader( InputFile );
-            //HeaderTool.Instance.GenerateSource( InputFile );
+            HeaderTool.Instance.GenerateSource( InputFile );
 
             int result = -1;
 

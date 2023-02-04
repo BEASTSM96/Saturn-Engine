@@ -51,7 +51,7 @@ namespace SaturnBuildTool
 			BuildConfig.Instance.ConfigName = Args[3];
 			BuildConfig.Instance.ConfigName = BuildConfig.Instance.ConfigName.Replace( "/", string.Empty );
 
-			//
+			// Build.cs file
 			string BuildFile = SourceDir;
 			BuildFile += Args[1];
 			BuildFile += ".Build.cs";
@@ -61,7 +61,7 @@ namespace SaturnBuildTool
 			target.ProjectName = Args[1];
 			target.ProjectName = target.ProjectName.Replace( "/", string.Empty );
 
-			//
+			// MSVC toolchain
 			MVSCToolchain Toolchain = new MVSCToolchain(target);
 
 			string cacheLocation = ProjectDir + "\\filecache.fc";
@@ -70,7 +70,6 @@ namespace SaturnBuildTool
 			List<string> sourceFiles = DirectoryTools.DirSearch( SourceDir, true );
 
 			bool HasCompiledAnyFile = false;
-
 			int NumTaskFailed = 0;
 
 			foreach ( string file in sourceFiles ) 

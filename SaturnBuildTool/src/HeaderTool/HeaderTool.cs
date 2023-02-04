@@ -6,11 +6,20 @@ namespace SaturnBuildTool.Tools
 {
     internal class HeaderTool
     {
+        public struct CurrentGenFile 
+        {
+            public SC SClassInfo;
+            public string ClassName;
+        }
+
         public HeaderTool() 
         {
         }
 
         public static readonly HeaderTool Instance = new HeaderTool();
+
+        // This should only be set when parsing the header, as we are only paring the header.
+        private CurrentGenFile CurrentFile = new CurrentGenFile();
 
         private bool IsFilepathGeneratedH(string Filepath) 
         {
@@ -43,6 +52,18 @@ namespace SaturnBuildTool.Tools
             }
 
             // regex: "(?<=class\s)[\w]+(?=\s:)"
+
+            return "";
+        }
+
+        private string GetClassName(string Line)
+        {
+            Match match = Regex.Match(Line, "class (\\w+)");
+
+            if (match.Success) 
+            {
+                return match.Groups[1].Value;
+            }
 
             return "";
         }
@@ -148,9 +169,29 @@ namespace SaturnBuildTool.Tools
 
                 streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
 
+                streamWriter.WriteLine("\r\n");
+
                 while ((line = sr.ReadLine()) != null)
                 {
                     lineNumber++;
+
+                    if (line.Contains("SCLASS")) 
+                    {
+                        if (line.Contains("Spawnable"))
+                        {
+                            CurrentFile.SClassInfo |= SC.Spawnable;
+                        }
+
+                        if (line.Contains("VisibleInEditor"))
+                        {
+                            CurrentFile.SClassInfo |= SC.VisibleInEditor;
+                        }
+                    }
+
+                    if ( line.Contains("class") && CurrentFile.ClassName == null) 
+                    {
+                        CurrentFile.ClassName = GetClassName(line);
+                    }
 
                     if (line.Contains("GENERATED_BODY"))
                     {
@@ -194,8 +235,6 @@ namespace SaturnBuildTool.Tools
 
                         streamWriter.WriteLine("\r\n");
                         streamWriter.WriteLine(idGeneratedBody);
-
-                        break;
                     }
                 }
 
@@ -216,7 +255,94 @@ namespace SaturnBuildTool.Tools
         {
             bool Result = false;
 
+            FileStream fs = new FileStream(GenSourcePath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+            fs.SetLength(0);
 
+            StreamWriter streamWriter = new StreamWriter(fs);
+
+            string GenWarning = "/* Generated code, DO NOT modify! */";
+
+            try
+            {
+                StreamReader sr = new StreamReader(SourcePath);
+
+                string line;
+                int lineNumber = 0;
+
+                streamWriter.WriteLine(GenWarning);
+
+                streamWriter.WriteLine(string.Format("#include \"{0}\"", string.Format( "{0}.Gen.h", CurrentFile.ClassName ) ));
+
+                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
+                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/ScriptManager.h"));
+                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/Scene/Entity.h"));
+
+                streamWriter.WriteLine(string.Format("#include \"{0}\"\r\n", string.Format( "{0}.h", CurrentFile.ClassName )));
+
+                while ((line = sr.ReadLine()) != null)
+                {
+                    lineNumber++;
+
+                    // Check if this class is spawnable
+                    if ( ( CurrentFile.SClassInfo & SC.Spawnable ) == SC.Spawnable) 
+                    {
+                        // If our class in spawnable we can now create the spawn function.
+
+                        string cExternBeg = "extern \"C\" {\r\n";
+                        string cExternEnd = "}\r\n";
+
+                        streamWriter.WriteLine( cExternBeg );
+
+                        string function = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
+                        function += CurrentFile.ClassName;
+                        function += "()\r\n";
+                        function += "{\r\n";
+                        function += "\t return ";
+                        function += CurrentFile.ClassName;
+                        function += "::Spawn();\r\n";
+                        function += "}\r\n";
+
+                        streamWriter.WriteLine( function );
+
+                        streamWriter.WriteLine( cExternEnd );
+                    }
+
+                    if ((CurrentFile.SClassInfo & SC.VisibleInEditor) == SC.VisibleInEditor)
+                    {
+                        // If our class in spawnable we can now create the spawn function.
+
+                        string func = string.Format("static void _RT_Z_Add{0}ToEditor()\r\n", CurrentFile.ClassName);
+                        func += "{\r\n";
+                        func += string.Format("\t Saturn::ScriptManager::Get().RT_AddToEditor(\"{0}\");\r\n", CurrentFile.ClassName);
+                        func += "}\r\n";
+
+                        string call = string.Format("struct _Z_{0}_RT_Editor\r\n", CurrentFile.ClassName);
+                        call += "{\r\n";
+                        call += string.Format("\t_Z_{0}_RT_Editor()\r\n", CurrentFile.ClassName);
+                        call += "\t{\r\n";
+                        call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
+                        call += "\t}\r\n";
+                        call += "};\r\n";
+                        call += "\r\n";
+                        call += string.Format("static _Z_{0}_RT_Editor _Z_RT_{0};", CurrentFile.ClassName);
+
+                        streamWriter.WriteLine(func);
+                        streamWriter.WriteLine(call);
+                    }
+
+                    break; // Only do this once
+                }
+
+                sr.Close();
+            }
+            catch (Exception e) 
+            {
+                Console.WriteLine("The file could not be read:");
+                Console.WriteLine(e.Message);
+            }
+
+            streamWriter.Close();
+            fs.Close();
 
             return Result;
         }
@@ -241,14 +367,15 @@ namespace SaturnBuildTool.Tools
                 return false;
 
             // Safe to create the file.
-            //if (!File.Exists(GenFilepath))
-            //      File.Create(GenFilepath);
+            if (!File.Exists(GenFilepath))
+                  File.Create(GenFilepath);
 
             bool Result = false;
 
             try
             {
-                Result = GenerateSource(GenFilepath, SourcePath);
+                // We want to read the header.
+                Result = GenerateSource(GenFilepath, HeaderFilepath);
             }
             catch (Exception e)
             {
@@ -286,7 +413,7 @@ namespace SaturnBuildTool.Tools
 
             try
             {
-                Result = GenerateHeader( GenFilepath, HeaderFilepath );  
+                Result = GenerateHeader( GenFilepath, HeaderFilepath );
             }
             catch (Exception e)
             {

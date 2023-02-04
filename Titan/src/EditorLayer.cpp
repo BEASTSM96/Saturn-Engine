@@ -244,6 +244,10 @@ namespace Saturn {
 
 		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 
+		// Lazy load.
+		// TODO: We should no lazy load something this important.
+		ScriptManager::Get();
+
 		GameDLL* pGameDLL = new GameDLL();
 		pGameDLL->Load();
 

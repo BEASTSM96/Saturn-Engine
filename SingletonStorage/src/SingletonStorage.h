@@ -71,7 +71,8 @@ namespace Saturn {
 		{
 			std::type_index Index = typeid( Ty );
 
-			m_Singletons[ Index ] = type;
+			if( m_Singletons.find( Index ) == m_Singletons.end() )
+				m_Singletons[ Index ] = type;
 		}
 
 		static inline SingletonStorage& Get()

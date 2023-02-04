@@ -127,8 +127,6 @@ namespace Saturn {
 		bool HasParent()   { return GetComponent<RelationshipComponent>().Parent != 0; }
 		bool HasChildren() { return GetComponent<RelationshipComponent>().ChildrenID.size() > 1; }
 
-		virtual void __create_entity( Entity* e ) {};
-
 	protected:
 
 		entt::entity m_EntityHandle{ entt::null };

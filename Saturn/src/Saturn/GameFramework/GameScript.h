@@ -51,9 +51,11 @@ public: \
 	{ \
 		return nullptr; \
 	} \
-	static x* Spawn() \
+	extern "C" { \
+	__declspec(dllexport) static x* Spawn() \
 	{ \
 		return new x(); \
+	}\
 	}
 
 #define SATURN_REG_FUNC_NAME(x, a) x##a

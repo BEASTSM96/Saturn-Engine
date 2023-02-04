@@ -38,6 +38,8 @@ namespace Saturn {
 	class ScriptManager
 	{
 	public:
+		static ScriptManager& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<ScriptManager>(); }
+	public:
 		ScriptManager();
 		~ScriptManager();
 
@@ -51,7 +53,10 @@ namespace Saturn {
 
 		void SetScriptOwner( const std::string& rName, Entity* rOwner );
 
-		static ScriptManager& Get() { return *s_Instance; }
+		void RT_AddToEditor( const std::string& rName );
+
+		std::vector<std::string>& GetVisibleScripts() { return m_VisibleScripts; }
+		const std::vector<std::string>& GetVisibleScripts() const { return m_VisibleScripts; }
 
 	private:
 
@@ -60,6 +65,8 @@ namespace Saturn {
 
 		// TODO: Maybe remove the raw ptr?
 		std::unordered_map< std::string, SClass* > m_Scripts;
+
+		std::vector< std::string > m_VisibleScripts;
 
 	private:
 		static ScriptManager* s_Instance;

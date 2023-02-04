@@ -35,13 +35,9 @@
 
 namespace Saturn {
 
-	ScriptManager* ScriptManager::s_Instance;
-
 	ScriptManager::ScriptManager()
 	{
-		SAT_CORE_ASSERT( !s_Instance, "Script manager already created!" )
-
-		s_Instance = this;
+		SingletonStorage::Get().AddSingleton( this );
 	}
 
 	ScriptManager::~ScriptManager()
@@ -59,7 +55,7 @@ namespace Saturn {
 
 		typedef SClass* ( __stdcall* funcptr )();
 
-		std::string funcName = "CreateScriptClass" + rName + "_";
+		std::string funcName = "_Z_Create_" + rName;
 
 		funcptr regfn = ( funcptr ) GetProcAddress( module, funcName.c_str() );
 		
@@ -86,14 +82,16 @@ namespace Saturn {
 
 	Saturn::SClass* ScriptManager::CreateScript( const std::string& rName )
 	{
-		SAT_CORE_INFO( "Created a new script: {0}", rName );
-
-		return m_Scripts[ rName ] = m_ScriptFunctions[ rName ]();
+		return m_ScriptFunctions[ rName ]();
 	}
 
 	void ScriptManager::SetScriptOwner( const std::string& rName, Entity* rOwner )
 	{
-		Entity* e = ( Entity* ) m_Scripts[ rName ];
-		e->__create_entity( rOwner );
 	}
+
+	void ScriptManager::RT_AddToEditor( const std::string& rName )
+	{
+		m_VisibleScripts.push_back( rName );
+	}
+
 }
