@@ -49,9 +49,9 @@ namespace Saturn {
 		void UpdateAllScripts( Saturn::Timestep ts );
 		void CreateAllScripts();
 
-		SClass* CreateScript( const std::string& rName );
+		Saturn::SClass* CreateScript( const std::string& rName, SClass* Base );
 
-		void SetScriptOwner( const std::string& rName, Entity* rOwner );
+		void SetScriptOwner( const std::string& rName, SClass* rOwner );
 
 		void RT_AddToEditor( const std::string& rName );
 
@@ -61,7 +61,7 @@ namespace Saturn {
 	private:
 
 		// The register function defined in the game dll. i.e. SATURN_REGISTER_SCRIPT( MyClass )
-		std::unordered_map< std::string, SClass* ( __stdcall* )() > m_ScriptFunctions;
+		std::unordered_map< std::string, SClass* ( __stdcall* )( SClass* ) > m_ScriptFunctions;
 
 		// TODO: Maybe remove the raw ptr?
 		std::unordered_map< std::string, SClass* > m_Scripts;

@@ -51,12 +51,9 @@ public: \
 	{ \
 		return nullptr; \
 	} \
-	extern "C" { \
-	__declspec(dllexport) static x* Spawn() \
-	{ \
-		return new x(); \
-	}\
-	}
+	__declspec(dllexport) static x* Spawn() { return new x(); } \
+public: \
+	x() : Super() {} 
 
 #define SATURN_REG_FUNC_NAME(x, a) x##a
 #define SATURN_REG_FUNC(x, a) SATURN_REG_FUNC_NAME( x, a )
@@ -65,3 +62,15 @@ public: \
 #define SATURN_REGISTER_SCRIPT(x) extern "C" { __declspec(dllexport) Saturn::SClass* SATURN_REG_FUNC(CreateScriptClass, x##_ )() { return new x(); }  }
 //-- Entity
 #define SATURN_REGISTER_ENTITY(x) extern "C" { __declspec(dllexport) Saturn::Entity* SATURN_REG_FUNC(CreateScriptClass, x##_ )() { return new x(); }  }
+
+
+template<typename Ty>
+inline Ty* SpawnEntityFromClass()
+{
+	const char* index = typeid( Ty ).name();
+
+	Saturn::Entity entity = Saturn::Scene::GetActiveScene()->CreateEntity( index );
+	Ty* ty = new Ty( entity );
+
+	return ty;
+}

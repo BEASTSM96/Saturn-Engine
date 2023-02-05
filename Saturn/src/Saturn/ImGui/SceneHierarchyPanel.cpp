@@ -201,6 +201,12 @@ namespace Saturn {
 				{
 					if( ImGui::MenuItem( rName.c_str() ) )
 					{
+						ScriptManager::Get().RegisterScript( rName );
+
+						Entity* e = new Entity( m_Context->CreateEntity( rName ) );
+						//e->AddComponent<ScriptComponent>().ScriptName = rName;
+
+						SClass* sclass = ScriptManager::Get().CreateScript( rName, e );
 					}
 				}
 
@@ -451,37 +457,6 @@ namespace Saturn {
 			DrawVec3Control( "Rotation", rotation );
 			tc.Rotation = glm::radians( rotation );
 			DrawVec3Control( "Scale", tc.Scale, 1.0f );
-		} );
-
-		DrawComponent<ScriptComponent>( "Script Component", entity, [&]( auto& sc )
-		{
-			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
-			{
-				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
-				{
-					if( rAsset->GetAssetType() != AssetType::Script )
-						continue;
-
-					// Only use the source files and not the header ones.
-					if( rAsset->GetPath().extension() == ".h" )
-						continue;
-
-					bool Selected = ( sc.AssetID == assetID );
-
-					if( ImGui::Selectable( rAsset->GetName().c_str() ) )
-					{
-						sc.AssetID = assetID;
-						sc.ScriptName = rAsset->GetName();
-
-						ScriptManager::Get().RegisterScript( sc.ScriptName );
-						ScriptManager::Get().CreateScript( sc.ScriptName );
-					}
-
-					if( Selected )
-						ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndListBox();
-			}
 		} );
 
 		DrawComponent<MeshComponent>( "Mesh", entity, [&]( auto& mc )

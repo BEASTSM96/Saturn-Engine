@@ -309,7 +309,8 @@ namespace Saturn {
 	// The shader library will hold shaders
 	class ShaderLibrary : public CountedObj
 	{
-		SINGLETON( ShaderLibrary );
+	public:
+		static inline ShaderLibrary& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<ShaderLibrary>(); }
 	public:
 		ShaderLibrary();
 		~ShaderLibrary();
@@ -320,6 +321,7 @@ namespace Saturn {
 		void Remove( const Ref<Shader>& shader );
 
 		void Shutdown();
+
 
 		const Ref<Shader>& Find( const std::string& name ) const;
 	private:

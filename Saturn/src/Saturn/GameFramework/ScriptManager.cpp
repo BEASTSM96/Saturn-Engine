@@ -54,10 +54,13 @@ namespace Saturn {
 		auto module = GameDLL::Get().m_DLLInstance;
 
 		typedef SClass* ( __stdcall* funcptr )();
+		typedef SClass* ( __stdcall* funBaseptr )( SClass* TBase );
 
 		std::string funcName = "_Z_Create_" + rName;
 
-		funcptr regfn = ( funcptr ) GetProcAddress( module, funcName.c_str() );
+		std::string funcNameTBase = "_Z_Create_" + rName + "_FromBase";
+
+		funBaseptr regfn = ( funBaseptr ) GetProcAddress( module, funcNameTBase.c_str() );
 		
 		m_ScriptFunctions[ rName ] = regfn;
 	}
@@ -76,17 +79,18 @@ namespace Saturn {
 
 	void ScriptManager::CreateAllScripts()
 	{
-		for( auto&& [ name, func ] : m_ScriptFunctions )
-			m_Scripts[ name ] = func();
+		//for( auto&& [ name, func ] : m_ScriptFunctions )
+		//	m_Scripts[ name ] = func();
 	}
 
-	Saturn::SClass* ScriptManager::CreateScript( const std::string& rName )
+	Saturn::SClass* ScriptManager::CreateScript( const std::string& rName, SClass* Base )
 	{
-		return m_ScriptFunctions[ rName ]();
+		return m_Scripts[ rName ] = m_ScriptFunctions[ rName ]( Base );
 	}
 
-	void ScriptManager::SetScriptOwner( const std::string& rName, Entity* rOwner )
+	void ScriptManager::SetScriptOwner( const std::string& rName, SClass* rOwner )
 	{
+		m_Scripts[ rName ] = (SClass*)rOwner;
 	}
 
 	void ScriptManager::RT_AddToEditor( const std::string& rName )

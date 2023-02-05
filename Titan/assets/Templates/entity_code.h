@@ -7,12 +7,12 @@
 
 using namespace Saturn;
 
-SCLASS()
-class __FILE_NAME__ : public SClass
+SCLASS( Spawnable, VisibleInEditor )
+class __FILE_NAME__ : public Entity
 {
 	GENERATED_BODY()
 public:
-	__FILE_NAME__();
+	__FILE_NAME__( Entity pSuper );
 	~__FILE_NAME__();
 
 	virtual void BeginPlay() override;
@@ -21,5 +21,3 @@ public:
 private:
 
 };
-
-SATURN_REGISTER_SCRIPT( __FILE_NAME__ );

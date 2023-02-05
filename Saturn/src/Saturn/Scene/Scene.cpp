@@ -515,4 +515,16 @@ namespace Saturn {
 		return prefabEntity;
 	}
 
+	static Scene* s_ActiveScene = nullptr;
+
+	void Scene::SetActiveScene( Scene* pScene )
+	{
+		s_ActiveScene = pScene;
+	}
+
+	Scene* Scene::GetActiveScene()
+	{
+		return s_ActiveScene;
+	}
+
 }

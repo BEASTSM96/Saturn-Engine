@@ -133,6 +133,9 @@ namespace Saturn {
 
 		Entity CreatePrefab( Ref<Prefab> prefabAsset );
 
+		static void   SetActiveScene( Scene* pScene );
+		static Scene* GetActiveScene();
+
 	private:
 
 		UUID m_SceneID;

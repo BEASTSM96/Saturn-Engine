@@ -10,6 +10,7 @@ namespace SaturnBuildTool.Tools
         {
             public SC SClassInfo;
             public string ClassName;
+            public string BaseClass;
         }
 
         public HeaderTool() 
@@ -155,6 +156,7 @@ namespace SaturnBuildTool.Tools
             string GenWarning = "/* Generated code, DO NOT modify! */";
 
             string FirstBaseClass = GetFirstBaseClass( HeaderPath );
+            CurrentFile.BaseClass = FirstBaseClass;
 
             try
             {
@@ -303,6 +305,18 @@ namespace SaturnBuildTool.Tools
                         function += "}\r\n";
 
                         streamWriter.WriteLine( function );
+
+                        string functionBaseClass = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
+                        functionBaseClass += CurrentFile.ClassName;
+                        functionBaseClass += "_FromBase";
+                        functionBaseClass += string.Format( "({0}* Ty)\r\n", CurrentFile.BaseClass );
+                        functionBaseClass += "{\r\n";
+                        functionBaseClass += "\t return new ";
+                        functionBaseClass += CurrentFile.ClassName;
+                        functionBaseClass += "(*Ty);\r\n";
+                        functionBaseClass += "}\r\n";
+
+                        streamWriter.WriteLine( functionBaseClass );
 
                         streamWriter.WriteLine( cExternEnd );
                     }
