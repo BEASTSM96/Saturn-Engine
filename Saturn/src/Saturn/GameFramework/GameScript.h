@@ -65,11 +65,11 @@ public: \
 
 
 template<typename Ty>
-inline Ty* SpawnEntityFromClass()
+inline Ty* SpawnEntityFromClass( Saturn::Scene* scene )
 {
 	const char* index = typeid( Ty ).name();
 
-	Saturn::Entity entity = Saturn::Scene::GetActiveScene()->CreateEntity( index );
+	Saturn::Entity entity = scene->CreateEntity( index );
 	Ty* ty = new Ty( entity );
 
 	return ty;

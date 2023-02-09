@@ -26,38 +26,52 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "PrefabViewer.h"
 
-#include "Saturn/Scene/Entity.h"
-#include "Asset.h"
+#include "Saturn/Asset/AssetRegistry.h"
+
+#include <imgui.h>
 
 namespace Saturn {
 
-	class Scene;
-
-	class Prefab : public Asset
+	PrefabViewer::PrefabViewer()
 	{
-	public:
-		Prefab();
-		~Prefab();
+		m_SceneHierarchyPanel = Ref<SceneHierarchyPanel>::Create();
+		m_SceneHierarchyPanel->SetIsPrefabScene( true );
+	}
 
-		void Create( Entity& srcEntity );
+	PrefabViewer::~PrefabViewer()
+	{
 
-		Entity PrefabToEntity( Ref<Scene> Scene, Entity entity );
+	}
 
-		Ref<Scene>& GetScene() { return m_Scene; }
-		const Ref<Scene>& GetScene() const { return m_Scene; }
+	void PrefabViewer::Draw()
+	{
+		for( auto& prefab : m_Prefabs )
+			DrawInternal( prefab );
+	}
 
-	private:
-		Entity CreateFromEntity( Entity srcEntity );
-		Entity CreateChildren( Entity parent, Ref<Scene> Scene );
-	private:
-		Entity m_Entity;
-		
-		// We need a scene to create entities in the prefab.
-		Ref<Scene> m_Scene = nullptr;
+	void PrefabViewer::AddPrefab( Ref<Asset>& rAsset )
+	{
+		Ref<Prefab> prefab = AssetRegistry::Get().GetAssetAs<Prefab>( rAsset->GetAssetID() );
 
-	private:
-		friend class PrefabSerialiser;
-	};
+		m_Prefabs.push_back( prefab );
+	}
+
+	void PrefabViewer::DrawInternal( Ref<Prefab>& rPrefab )
+	{
+		ImGui::PushID( rPrefab->ID );
+
+		ImGui::Begin( rPrefab->Name.c_str() );
+
+		m_SceneHierarchyPanel->SetContext( rPrefab->GetScene() );
+
+		m_SceneHierarchyPanel->Draw();
+
+		ImGui::End();
+
+		ImGui::PopID();
+	}
+
 }

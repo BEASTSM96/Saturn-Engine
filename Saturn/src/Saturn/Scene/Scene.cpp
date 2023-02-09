@@ -35,7 +35,7 @@
 #include "Saturn/PhysX/PhysXRuntime.h"
 #include "Saturn/PhysX/PhysXRigidBody.h"
 
-#include "Saturn/GameFramework/ScriptManager.h"
+#include "Saturn/GameFramework/EntityScriptManager.h"
 
 #include "Entity.h"
 #include "Components.h"
@@ -119,17 +119,7 @@ namespace Saturn {
 
 			m_PhysXRuntime->Update( ts, *this );
 
-			auto ScriptView = GetAllEntitiesWith<ScriptComponent>();
-			for( auto entity : ScriptView )
-			{
-				Entity e( entity, this );
-
-				auto& sc = e.GetComponent<ScriptComponent>();
-
-				ScriptManager::Get().SetScriptOwner( sc.ScriptName, &e );
-			}
-
-			ScriptManager::Get().UpdateAllScripts( ts );
+			EntityScriptManager::Get().UpdateAllScripts( ts );
 		}
 	}
 
@@ -486,18 +476,7 @@ namespace Saturn {
 			rb.m_Rigidbody->AddActorToScene();
 		}
 
-		auto ScriptView = m_Registry.view<ScriptComponent>();
-
-		for( auto entity : ScriptView )
-		{
-			Entity e( entity, this );
-
-			auto& sc = e.GetComponent<ScriptComponent>();
-
-			ScriptManager::Get().SetScriptOwner( sc.ScriptName, &e );
-		}
-
-		ScriptManager::Get().BeginPlay();
+		EntityScriptManager::Get().BeginPlay();
 	}
 
 	void Scene::OnRuntimeEnd()

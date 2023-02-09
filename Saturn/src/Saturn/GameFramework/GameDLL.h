@@ -49,7 +49,7 @@ namespace Saturn {
 		HMODULE m_DLLInstance = nullptr;
 
 	private:
-		friend class ScriptManager;
+		friend class EntityScriptManager;
 	};
 
 }

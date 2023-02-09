@@ -39,6 +39,7 @@
 #include <Saturn/Vulkan/SceneRenderer.h>
 #include <Saturn/ImGui/TitleBar.h>
 #include <Saturn/ImGui/MaterialAssetViewer.h>
+#include <Saturn/ImGui/PrefabViewer.h>
 #include <Saturn/ImGui/Panel/Panel.h>
 #include <Saturn/ImGui/Panel/PanelManager.h>
 
@@ -67,7 +68,7 @@
 
 #include <Saturn/GameFramework/GameDLL.h>
 #include <Saturn/GameFramework/GameManager.h>
-#include <Saturn/GameFramework/ScriptManager.h>
+#include <Saturn/GameFramework/EntityScriptManager.h>
 
 #include <Saturn/Premake/Premake.h>
 
@@ -238,7 +239,8 @@ namespace Saturn {
 
 		// Lazy load.
 		// TODO: We should no lazy load something this important.
-		ScriptManager::Get();
+		EntityScriptManager::Get();
+		EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
 
 		GameDLL* pGameDLL = new GameDLL();
 		pGameDLL->Load();
@@ -279,6 +281,9 @@ namespace Saturn {
 
 				m_EditorScene->CopyScene( m_RuntimeScene );
 
+				EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
+				EntityScriptManager::Get().TransferEntities( m_EditorScene );
+
 				m_RuntimeScene->OnRuntimeStart();
 
 				pHierarchyPanel->SetContext( m_RuntimeScene );
@@ -293,12 +298,14 @@ namespace Saturn {
 			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
 			{
 				m_RuntimeScene->OnRuntimeEnd();
+				EntityScriptManager::Get().DestroyEntityInScene( m_RuntimeScene );
 
 				m_RuntimeScene = nullptr;
 
 				pHierarchyPanel->SetContext( m_EditorScene );
 
 				Scene::SetActiveScene( m_EditorScene.Pointer() );
+				EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
 			}
 		}
 
@@ -548,6 +555,7 @@ namespace Saturn {
 
 		// Asset viewers
 		MaterialAssetViewer::Get().Draw();
+		PrefabViewer::Get().Draw();
 
 		if( !s_HasPremakePath )
 		{

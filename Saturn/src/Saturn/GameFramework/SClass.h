@@ -44,7 +44,7 @@ namespace Saturn {
 		virtual void OnUpdate( Saturn::Timestep ts ) = 0;
 
 	private:
-		friend class ScriptManager;
+		friend class EntityScriptManager;
 	};
 
 }

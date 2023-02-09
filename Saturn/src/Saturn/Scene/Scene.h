@@ -133,6 +133,9 @@ namespace Saturn {
 
 		Entity CreatePrefab( Ref<Prefab> prefabAsset );
 
+		UUID GetId() { return m_SceneID; }
+		const UUID GetId() const { return m_SceneID; }
+
 		static void   SetActiveScene( Scene* pScene );
 		static Scene* GetActiveScene();
 
@@ -162,4 +165,27 @@ namespace Saturn {
 		friend class SceneSerialiser;
 		friend class SceneRenderer;
 	};
+}
+
+namespace std {
+
+	template <>
+	struct hash<Saturn::Scene>
+	{
+		std::size_t operator()( const Saturn::Scene& scene) const
+		{
+			return hash<uint64_t>()( ( uint64_t ) scene.GetId() );
+		}
+
+		std::size_t operator()( Saturn::Scene* scene ) const
+		{
+			return hash<uint64_t>()( ( uint64_t ) scene->GetId() );
+		}
+
+		std::size_t operator()( Saturn::Ref<Saturn::Scene> scene ) const
+		{
+			return hash<uint64_t>()( ( uint64_t ) scene->GetId() );
+		}
+	};
+
 }

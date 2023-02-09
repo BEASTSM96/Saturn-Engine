@@ -30,7 +30,7 @@
 #include "GameManager.h"
 
 #include "GameScript.h"
-#include "ScriptManager.h"
+#include "EntityScriptManager.h"
 
 namespace Saturn {
 
@@ -43,7 +43,7 @@ namespace Saturn {
 		s_Instance = this;
 
 		// We want the game manager to own this class.
-		ScriptManager* pScriptManager = new ScriptManager();
+		EntityScriptManager* pScriptManager = new EntityScriptManager();
 	}
 
 	GameManager::~GameManager()

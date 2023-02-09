@@ -26,49 +26,99 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "EntityScriptManager.h"
 
 #include "GameScript.h"
-#include <unordered_map>
+#include "GameDLL.h"
+#include "Saturn/Scene/Entity.h"
 
 namespace Saturn {
-	
-	class Entity;
 
-	class ScriptManager
+	EntityScriptManager::EntityScriptManager()
 	{
-	public:
-		static ScriptManager& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<ScriptManager>(); }
-	public:
-		ScriptManager();
-		~ScriptManager();
+		SingletonStorage::Get().AddSingleton( this );
+	}
 
-		void RegisterScript( const std::string& rName );
+	EntityScriptManager::~EntityScriptManager()
+	{
+		for( auto&& [name, func] : m_ScriptFunctions )
+			delete m_Scripts[ m_CurrentScene->GetId() ][ name ];
+	}
 
-		void BeginPlay();
-		void UpdateAllScripts( Saturn::Timestep ts );
-		void CreateAllScripts();
+	void EntityScriptManager::TransferEntities( const Ref<Scene>& rOldScene )
+	{
+		for( auto&& [name, script] : m_Scripts[ rOldScene->GetId() ] )
+		{
+			auto ScriptComponents = m_CurrentScene->GetAllEntitiesWith<ScriptComponent>();
 
-		Saturn::SClass* CreateScript( const std::string& rName, SClass* Base );
+			for( auto entity : ScriptComponents )
+			{
+				auto& scriptName = m_CurrentScene->GetRegistry().get<ScriptComponent>( entity ).ScriptName;
+				
+				if( scriptName == name ) 
+				{
+					Entity e{ entity, m_CurrentScene.Pointer() };
 
-		void SetScriptOwner( const std::string& rName, SClass* rOwner );
+					// We can always assume the class has a base class ctor.
+					m_Scripts[ m_CurrentScene->GetId() ].insert( { scriptName, CreateScript( scriptName, ( SClass* ) &e ) } );
+				}
+			}
+		}
+	}
 
-		void RT_AddToEditor( const std::string& rName );
+	void EntityScriptManager::RegisterScript( const std::string& rName )
+	{
+		if( m_ScriptFunctions.find( rName ) != m_ScriptFunctions.end() )
+			return;
 
-		std::vector<std::string>& GetVisibleScripts() { return m_VisibleScripts; }
-		const std::vector<std::string>& GetVisibleScripts() const { return m_VisibleScripts; }
+		auto module = GameDLL::Get().m_DLLInstance;
 
-	private:
+		typedef SClass* ( __stdcall* func )( SClass* TBase );
 
-		// The register function defined in the game dll. i.e. SATURN_REGISTER_SCRIPT( MyClass )
-		std::unordered_map< std::string, SClass* ( __stdcall* )( SClass* ) > m_ScriptFunctions;
+		std::string funcNameTBase = "_Z_Create_" + rName + "_FromBase";
 
-		// TODO: Maybe remove the raw ptr?
-		std::unordered_map< std::string, SClass* > m_Scripts;
+		func regfn = ( func ) GetProcAddress( module, funcNameTBase.c_str() );
+		
+		m_ScriptFunctions[ rName ] = regfn;
+	}
 
-		std::vector< std::string > m_VisibleScripts;
+	void EntityScriptManager::BeginPlay()
+	{
+		for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
+			script->BeginPlay();
+	}
 
-	private:
-		static ScriptManager* s_Instance;
-	};
+	void EntityScriptManager::UpdateAllScripts( Saturn::Timestep ts )
+	{
+		for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
+			script->OnUpdate( ts );
+	}
+
+	void EntityScriptManager::CreateAllScripts()
+	{
+		//for( auto&& [ name, func ] : m_ScriptFunctions )
+		//	m_Scripts[ name ] = func();
+	}
+
+	void EntityScriptManager::DestroyEntityInScene( const Ref<Scene>& rScene )
+	{
+		for( auto&& [name, script] : m_Scripts[ rScene->GetId() ] )
+			delete script;
+
+		m_Scripts[ rScene->GetId() ].clear();
+
+		m_Scripts.erase( rScene->GetId() );
+	}
+
+	Saturn::SClass* EntityScriptManager::CreateScript( const std::string& rName, SClass* Base )
+	{
+		return m_Scripts[ m_CurrentScene->GetId() ][ rName ] = m_ScriptFunctions[ rName ]( Base );
+	}
+
+	void EntityScriptManager::RT_AddToEditor( const std::string& rName )
+	{
+		m_VisibleScripts.push_back( rName );
+	}
+
 }

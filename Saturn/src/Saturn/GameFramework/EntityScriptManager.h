@@ -28,36 +28,52 @@
 
 #pragma once
 
-#include "Saturn/Scene/Entity.h"
-#include "Asset.h"
+#include "GameScript.h"
+#include <unordered_map>
 
 namespace Saturn {
+	
+	class Entity;
 
-	class Scene;
-
-	class Prefab : public Asset
+	class EntityScriptManager
 	{
 	public:
-		Prefab();
-		~Prefab();
+		static EntityScriptManager& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<EntityScriptManager>(); }
+	public:
+		EntityScriptManager();
+		~EntityScriptManager();
 
-		void Create( Entity& srcEntity );
+		void SetCurrentScene( const Ref<Scene>& rScene ) { m_CurrentScene = rScene; }
+		void TransferEntities( const Ref<Scene>& rOldScene );
 
-		Entity PrefabToEntity( Ref<Scene> Scene, Entity entity );
+		void RegisterScript( const std::string& rName );
 
-		Ref<Scene>& GetScene() { return m_Scene; }
-		const Ref<Scene>& GetScene() const { return m_Scene; }
+		void BeginPlay();
+		void UpdateAllScripts( Saturn::Timestep ts );
+		void CreateAllScripts();
+
+		void DestroyEntityInScene( const Ref<Scene>& rScene );
+
+		Saturn::SClass* CreateScript( const std::string& rName, SClass* Base );
+
+		void RT_AddToEditor( const std::string& rName );
+
+		std::vector<std::string>& GetVisibleScripts() { return m_VisibleScripts; }
+		const std::vector<std::string>& GetVisibleScripts() const { return m_VisibleScripts; }
 
 	private:
-		Entity CreateFromEntity( Entity srcEntity );
-		Entity CreateChildren( Entity parent, Ref<Scene> Scene );
-	private:
-		Entity m_Entity;
-		
-		// We need a scene to create entities in the prefab.
-		Ref<Scene> m_Scene = nullptr;
+
+		// The register function defined in the game dll. i.e. _Z_Create_MyClass
+		std::unordered_map< std::string, SClass* ( __stdcall* )( SClass* ) > m_ScriptFunctions;
+
+		std::unordered_map< UUID, std::unordered_map< std::string, SClass* >> m_Scripts;
+		std::vector< Ref<Scene> > m_Scenes;
+
+		std::vector< std::string > m_VisibleScripts;
+
+		Ref<Scene> m_CurrentScene;
 
 	private:
-		friend class PrefabSerialiser;
+		static EntityScriptManager* s_Instance;
 	};
 }

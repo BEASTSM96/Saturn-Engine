@@ -53,6 +53,8 @@ namespace Saturn {
 
 		void Draw();
 
+		void SetIsPrefabScene( bool value ) { m_IsPrefabScene = value; }
+
 	protected:
 
 		void DrawComponents( Entity entity );
@@ -61,6 +63,8 @@ namespace Saturn {
 		void DrawEntities();
 
 	private:
+
+		bool m_IsPrefabScene = false;
 
 		Ref<Texture2D> m_EditIcon;
 

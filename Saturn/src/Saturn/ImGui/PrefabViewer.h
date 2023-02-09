@@ -26,76 +26,32 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "ScriptManager.h"
+#pragma once
 
-#include "GameScript.h"
-#include "GameDLL.h"
-#include "Saturn/Scene/Entity.h"
+#include "AssetViewer.h"
+#include "Saturn/Asset/Prefab.h"
+
+#include "SceneHierarchyPanel.h"
 
 namespace Saturn {
 
-	ScriptManager::ScriptManager()
+	class PrefabViewer : public AssetViewer
 	{
-		SingletonStorage::Get().AddSingleton( this );
-	}
+	public:
+		static PrefabViewer& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<PrefabViewer>(); };
+	public:
+		PrefabViewer();
+		~PrefabViewer();
 
-	ScriptManager::~ScriptManager()
-	{
-		for( auto&& [name, func] : m_ScriptFunctions )
-			delete m_Scripts[ name ];
-	}
+		virtual void Draw() override;
 
-	void ScriptManager::RegisterScript( const std::string& rName )
-	{
-		if( m_ScriptFunctions.find( rName ) != m_ScriptFunctions.end() )
-			return;
+		void AddPrefab( Ref<Asset>& rAsset );
 
-		auto module = GameDLL::Get().m_DLLInstance;
+	private:
+		void DrawInternal( Ref<Prefab>& rPrefab );
+	private:
+		std::vector<Ref<Prefab>> m_Prefabs;
 
-		typedef SClass* ( __stdcall* funcptr )();
-		typedef SClass* ( __stdcall* funBaseptr )( SClass* TBase );
-
-		std::string funcName = "_Z_Create_" + rName;
-
-		std::string funcNameTBase = "_Z_Create_" + rName + "_FromBase";
-
-		funBaseptr regfn = ( funBaseptr ) GetProcAddress( module, funcNameTBase.c_str() );
-		
-		m_ScriptFunctions[ rName ] = regfn;
-	}
-
-	void ScriptManager::BeginPlay()
-	{
-		for( auto&& [name, script] : m_Scripts )
-			script->BeginPlay();
-	}
-
-	void ScriptManager::UpdateAllScripts( Saturn::Timestep ts )
-	{
-		for( auto&& [name, script] : m_Scripts )
-			script->OnUpdate( ts );
-	}
-
-	void ScriptManager::CreateAllScripts()
-	{
-		//for( auto&& [ name, func ] : m_ScriptFunctions )
-		//	m_Scripts[ name ] = func();
-	}
-
-	Saturn::SClass* ScriptManager::CreateScript( const std::string& rName, SClass* Base )
-	{
-		return m_Scripts[ rName ] = m_ScriptFunctions[ rName ]( Base );
-	}
-
-	void ScriptManager::SetScriptOwner( const std::string& rName, SClass* rOwner )
-	{
-		m_Scripts[ rName ] = (SClass*)rOwner;
-	}
-
-	void ScriptManager::RT_AddToEditor( const std::string& rName )
-	{
-		m_VisibleScripts.push_back( rName );
-	}
-
+		Ref<SceneHierarchyPanel> m_SceneHierarchyPanel;
+	};
 }

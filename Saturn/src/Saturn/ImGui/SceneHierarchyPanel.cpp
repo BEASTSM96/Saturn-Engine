@@ -37,7 +37,7 @@
 
 #include "Saturn/Vulkan/VulkanContext.h"
 
-#include "Saturn/GameFramework/ScriptManager.h"
+#include "Saturn/GameFramework/EntityScriptManager.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -136,7 +136,10 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::Draw()
 	{
-		ImGui::Begin( "Scene Hierarchy" );
+		ImGui::PushID( m_Context->GetId() );
+
+		if( !m_IsPrefabScene )
+			ImGui::Begin( "Scene Hierarchy" );
 
 		if( ImGui::BeginDragDropTarget() ) 
 		{
@@ -197,32 +200,42 @@ namespace Saturn {
 
 				ImGui::Separator();
 
-				for( const auto& rName : ScriptManager::Get().GetVisibleScripts() )
+				for( const auto& rName : EntityScriptManager::Get().GetVisibleScripts() )
 				{
 					if( ImGui::MenuItem( rName.c_str() ) )
 					{
-						ScriptManager::Get().RegisterScript( rName );
+						EntityScriptManager::Get().RegisterScript( rName );
 
 						Entity* e = new Entity( m_Context->CreateEntity( rName ) );
-						//e->AddComponent<ScriptComponent>().ScriptName = rName;
+						e->AddComponent<ScriptComponent>().ScriptName = rName;
 
-						SClass* sclass = ScriptManager::Get().CreateScript( rName, e );
+						SClass* sclass = EntityScriptManager::Get().CreateScript( rName, e );
 					}
 				}
 
 				ImGui::EndPopup();
 			}
 
-			ImGui::Begin( "Inspector", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse );
+			if( !m_IsPrefabScene )
+				ImGui::Begin( "Inspector", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse );
+			else
+				ImGui::BeginChild( "Inspector" );
+
 			if( m_SelectionContext )
 			{
 				DrawComponents( m_SelectionContext );
 			}
 
-			ImGui::End();
+			if( !m_IsPrefabScene )
+				ImGui::End();
+			else
+				ImGui::EndChild();
 		}
 
-		ImGui::End();
+		if( !m_IsPrefabScene )
+			ImGui::End();
+
+		ImGui::PopID();
 	}
 	
 	void SceneHierarchyPanel::DrawComponents( Entity entity )
@@ -329,7 +342,6 @@ namespace Saturn {
 
 			ImGui::EndPopup();
 		}
-
 	}
 
 	void SceneHierarchyPanel::DrawEntityNode( Entity entity )

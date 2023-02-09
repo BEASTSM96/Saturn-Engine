@@ -276,7 +276,7 @@ namespace SaturnBuildTool.Tools
                 streamWriter.WriteLine(string.Format("#include \"{0}\"", string.Format( "{0}.Gen.h", CurrentFile.ClassName ) ));
 
                 streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
-                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/ScriptManager.h"));
+                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/EntityScriptManager.h"));
                 streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/Scene/Entity.h"));
 
                 streamWriter.WriteLine(string.Format("#include \"{0}\"\r\n", string.Format( "{0}.h", CurrentFile.ClassName )));
@@ -327,7 +327,7 @@ namespace SaturnBuildTool.Tools
 
                         string func = string.Format("static void _RT_Z_Add{0}ToEditor()\r\n", CurrentFile.ClassName);
                         func += "{\r\n";
-                        func += string.Format("\t Saturn::ScriptManager::Get().RT_AddToEditor(\"{0}\");\r\n", CurrentFile.ClassName);
+                        func += string.Format("\t Saturn::EntityScriptManager::Get().RT_AddToEditor(\"{0}\");\r\n", CurrentFile.ClassName);
                         func += "}\r\n";
 
                         string call = string.Format("struct _Z_{0}_RT_Editor\r\n", CurrentFile.ClassName);

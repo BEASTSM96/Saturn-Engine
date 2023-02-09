@@ -35,6 +35,7 @@
 #include "Saturn/Asset/AssetImporter.h"
 
 #include "Saturn/ImGui/AssetViewer.h"
+#include "Saturn/ImGui/PrefabViewer.h"
 
 #include "Saturn/Project/Project.h"
 #include "Saturn/Core/App.h"
@@ -654,9 +655,16 @@ namespace Saturn {
 						} break;
 						case Saturn::AssetType::MaterialInstance:
 							break;
-						case Saturn::AssetType::Audio:
+
+						case Saturn::AssetType::Prefab: 
+						{
+							Ref<Asset> asset = AssetRegistry::Get().FindAsset( rEntry.path().string() );
+
+							PrefabViewer::Get().AddPrefab( asset );
+						} break;
+
 						case Saturn::AssetType::Scene:
-						case Saturn::AssetType::Prefab:
+						case Saturn::AssetType::Audio:
 						case Saturn::AssetType::Script:
 						case Saturn::AssetType::Unknown:
 						case Saturn::AssetType::COUNT:
