@@ -97,7 +97,10 @@ namespace Saturn {
 
 			auto& mc = entity.GetComponent< MeshComponent >();
 
-			rEmitter << YAML::Key << "Filepath" << YAML::Value << mc.Mesh->FilePath();
+			if(mc.Mesh)
+				rEmitter << YAML::Key << "Filepath" << YAML::Value << mc.Mesh->FilePath();
+			else
+				rEmitter << YAML::Key << "Filepath" << YAML::Value << "Null";
 
 			rEmitter << YAML::EndMap;
 		}
@@ -273,7 +276,8 @@ namespace Saturn {
 			{
 				auto& m = DeserialisedEntity.AddComponent< MeshComponent >();
 
-				m.Mesh = Ref<Mesh>::Create( mc[ "Filepath" ].as<std::string>() );
+				if(mc["Filepath"].as<std::string>() != "Null")
+					m.Mesh = Ref<Mesh>::Create( mc[ "Filepath" ].as<std::string>() );
 			}
 
 			auto rcNode = entity[ "RelationshipComponent" ];

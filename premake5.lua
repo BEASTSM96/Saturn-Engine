@@ -302,8 +302,6 @@ project "Titan"
 
 		postbuildcommands 
 		{ 
-			'dir',
-
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 			-- Copy PhysX
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',

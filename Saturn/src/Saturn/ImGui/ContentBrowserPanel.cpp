@@ -50,6 +50,8 @@
 
 #include "Saturn/Premake/Premake.h"
 #include "Saturn/GameFramework/SourceManager.h"
+#include "Saturn/GameFramework/GamePrefabList.h"
+#include "Saturn/GameFramework/EntityScriptManager.h"
 
 #include <imgui_internal.h>
 
@@ -403,6 +405,47 @@ namespace Saturn {
 
 						AssetRegistrySerialiser urs;
 						urs.Serialise();
+					}
+
+					auto& names = GamePrefabList::Get().GetNames();
+
+					for ( auto& name : names )
+					{
+						if( ImGui::MenuItem( name.c_str() ) )
+						{
+							// In order to create this, we will need to create the class the user wants then we can create the prefab from it.
+
+							// Create the prefab asset
+							AssetID id = AssetRegistry::Get().CreateAsset( AssetType::Prefab );
+							auto asset = AssetRegistry::Get().FindAsset( id );
+
+							auto PrefabAsset = asset.As<Prefab>();
+							PrefabAsset->Create();
+
+							// Create the user class
+							// Try register
+							EntityScriptManager::Get().RegisterScript( name );
+
+							Entity* e = new Entity( PrefabAsset->GetScene()->CreateEntity( name ) );
+							e->AddComponent<ScriptComponent>().ScriptName = name;
+
+							SClass* sclass = EntityScriptManager::Get().CreateScript( name, e );
+
+							PrefabAsset->SetEntity( *(Entity*)&e );
+
+							// Set asset path
+							std::filesystem::path path = m_CurrentPath / name;
+							path.replace_extension( ".prefab" );
+
+							asset->SetPath( path );
+
+							// Serialise
+							PrefabSerialiser ps;
+							ps.Serialise( PrefabAsset );
+
+							AssetRegistrySerialiser ars;
+							ars.Serialise();
+						}
 					}
 
 					ImGui::EndMenu();

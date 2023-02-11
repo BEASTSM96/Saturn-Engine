@@ -26,64 +26,29 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "PrefabViewer.h"
+#pragma once
 
-#include "Saturn/Asset/AssetRegistry.h"
-
-#include <imgui.h>
+#include "SingletonStorage.h"
+#include <string>
+#include <vector>
 
 namespace Saturn {
 
-	PrefabViewer::PrefabViewer()
+	class GamePrefabList
 	{
-		m_SceneHierarchyPanel = Ref<SceneHierarchyPanel>::Create();
-		m_SceneHierarchyPanel->SetIsPrefabScene( true );
-	}
+	public:
+		static inline GamePrefabList& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<GamePrefabList>(); }
+	public:
+		GamePrefabList() {}
 
-	PrefabViewer::~PrefabViewer()
-	{
+		~GamePrefabList() {}
 
-	}
+		void Add( const std::string& rName ) { m_Names.push_back( rName ); }
 
-	void PrefabViewer::Draw()
-	{
-		for( auto& prefab : m_Prefabs )
-			DrawInternal( prefab );
-	}
+		std::vector<std::string>& GetNames() { return m_Names; }
+		const std::vector<std::string>& GetNames() const { return m_Names; }
 
-	void PrefabViewer::AddPrefab( Ref<Asset>& rAsset )
-	{
-		Ref<Prefab> prefab = AssetRegistry::Get().GetAssetAs<Prefab>( rAsset->GetAssetID() );
-
-		m_SceneHierarchyPanel->SetContext( prefab->GetScene() );
-
-		m_Prefabs.push_back( prefab );
-
-		m_OpenPrefabs[ prefab->ID ] = true;
-	}
-
-	void PrefabViewer::DrawInternal( Ref<Prefab>& rPrefab )
-	{
-		ImGui::PushID( rPrefab->ID );
-
-		ImGui::Begin( rPrefab->Name.c_str(), &m_OpenPrefabs.at( rPrefab->ID ) );
-
-		m_SceneHierarchyPanel->Draw();
-
-		ImGui::End();
-
-		ImGui::PopID();
-
-		if( !m_OpenPrefabs.at( rPrefab->ID ) )
-		{
-			m_OpenPrefabs.erase( rPrefab->ID );
-
-			m_Prefabs.erase( std::remove( m_Prefabs.begin(), m_Prefabs.end(), rPrefab ), m_Prefabs.end() );
-
-			PrefabSerialiser ps;
-			ps.Serialise( rPrefab );
-		}
-	}
-
+	private:
+		std::vector<std::string> m_Names;
+	};
 }

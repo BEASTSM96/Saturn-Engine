@@ -276,6 +276,7 @@ namespace SaturnBuildTool.Tools
                 streamWriter.WriteLine(string.Format("#include \"{0}\"", string.Format( "{0}.Gen.h", CurrentFile.ClassName ) ));
 
                 streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
+                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GamePrefabList.h"));
                 streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/EntityScriptManager.h"));
                 streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/Scene/Entity.h"));
 
@@ -330,17 +331,27 @@ namespace SaturnBuildTool.Tools
                         func += string.Format("\t Saturn::EntityScriptManager::Get().RT_AddToEditor(\"{0}\");\r\n", CurrentFile.ClassName);
                         func += "}\r\n";
 
+                        string prefab = string.Format("static void _RT_Z_AddPrefab_{0}()\r\n", CurrentFile.ClassName);
+                        prefab += "{\r\n";
+                        prefab += string.Format("\t Saturn::GamePrefabList::Get().Add(\"{0}\");\r\n", CurrentFile.ClassName);
+                        prefab += "}\r\n";
+
+                        Random random = new Random();
+                        int randomNumber = random.Next();
+
                         string call = string.Format("struct _Z_{0}_RT_Editor\r\n", CurrentFile.ClassName);
                         call += "{\r\n";
                         call += string.Format("\t_Z_{0}_RT_Editor()\r\n", CurrentFile.ClassName);
                         call += "\t{\r\n";
                         call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
+                        call += string.Format("\t\t_RT_Z_AddPrefab_{0}();\r\n", CurrentFile.ClassName);
                         call += "\t}\r\n";
                         call += "};\r\n";
                         call += "\r\n";
-                        call += string.Format("static _Z_{0}_RT_Editor _Z_RT_{0};", CurrentFile.ClassName);
+                        call += string.Format("static _Z_{0}_RT_Editor _Z_RT_{0}_{1};", CurrentFile.ClassName, randomNumber);
 
                         streamWriter.WriteLine(func);
+                        streamWriter.WriteLine(prefab);
                         streamWriter.WriteLine(call);
                     }
 

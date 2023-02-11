@@ -51,6 +51,7 @@ namespace Saturn {
 		void DrawInternal( Ref<Prefab>& rPrefab );
 	private:
 		std::vector<Ref<Prefab>> m_Prefabs;
+		std::unordered_map<UUID, bool> m_OpenPrefabs;
 
 		Ref<SceneHierarchyPanel> m_SceneHierarchyPanel;
 	};

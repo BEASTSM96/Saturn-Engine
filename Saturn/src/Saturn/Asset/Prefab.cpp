@@ -67,7 +67,15 @@ namespace Saturn {
 
 		m_Scene->SetName( "Prefab scene" );
 
-		m_Entity = CreateFromEntity( srcEntity );
+		if( srcEntity.Vaild() )
+			m_Entity = CreateFromEntity( srcEntity );
+	}
+
+	void Prefab::Create()
+	{
+		m_Scene = Ref<Scene>::Create();
+
+		m_Scene->SetName( "Prefab scene" );
 	}
 
 	Entity Prefab::PrefabToEntity( Ref<Scene> Scene, Entity entity )
@@ -107,6 +115,12 @@ namespace Saturn {
 		}
 
 		return e;
+	}
+
+	void Prefab::CreateScene()
+	{
+		m_Scene = nullptr;
+		m_Scene = Ref<Scene>::Create();
 	}
 
 	Entity Prefab::CreateFromEntity( Entity srcEntity )

@@ -42,11 +42,16 @@ namespace Saturn {
 		~Prefab();
 
 		void Create( Entity& srcEntity );
+		void Create();
 
 		Entity PrefabToEntity( Ref<Scene> Scene, Entity entity );
 
 		Ref<Scene>& GetScene() { return m_Scene; }
 		const Ref<Scene>& GetScene() const { return m_Scene; }
+
+		// Only used when create a prefab of a game class.
+		void SetEntity( Entity entity ) { m_Entity = entity; }
+		void CreateScene();
 
 	private:
 		Entity CreateFromEntity( Entity srcEntity );
