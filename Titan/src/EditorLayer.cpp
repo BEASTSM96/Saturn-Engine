@@ -29,9 +29,6 @@
 #include "sppch.h"
 #include "EditorLayer.h"
 
-#include <rttr/type>
-#include <rttr/registration.h>
-
 #include <Saturn/Project/Project.h>
 
 #include <Saturn/ImGui/UITools.h>
@@ -78,8 +75,6 @@
 #include <glfw/glfw3native.h>
 
 #include <glm/gtc/type_ptr.hpp>
-
-using namespace rttr;
 
 namespace Saturn {
 

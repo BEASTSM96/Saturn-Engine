@@ -25,7 +25,6 @@ IncludeDir["ImGuizmo"] = "Saturn/vendor/ImGuizmo/src/"
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include/"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
-IncludeDir["rttr"] = "Saturn/vendor/rttr/src"
 
 IncludeDir["SingletonStorage"] = "SingletonStorage/src"
 
@@ -34,7 +33,6 @@ group "Dependencies"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
---	include "Saturn/vendor/rttr"
 
 group "Engine"
 project "Saturn"
@@ -99,7 +97,6 @@ project "Saturn"
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
 		"%{IncludeDir.ImguiNodeEditor}",
-		"%{IncludeDir.rttr}",
 
 		"%{IncludeDir.SingletonStorage}"
 	}
@@ -186,10 +183,7 @@ project "Saturn"
 				"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc_util.lib",
 				"Saturn/vendor/shaderc/bin/Debug-Windows/glslangd.lib",
 				"Saturn/vendor/shaderc/bin/Debug-Windows/SPIRV-Tools.lib",
-				"Saturn/vendor/shaderc/bin/Debug-Windows/glslc.lib",
-
-				-- RTTR
-				"Saturn/vendor/rttr/bin/Debug-Windows/rttr_core_lib_s_d.lib"
+				"Saturn/vendor/shaderc/bin/Debug-Windows/glslc.lib"
 			}
 
 		filter "configurations:Release"
@@ -276,7 +270,6 @@ project "Titan"
 		"%{IncludeDir.PhysX}/physx",
 		"Saturn/vendor/vulkan/include",
 		"%{IncludeDir.ImGuizmo}",
-		"%{IncludeDir.rttr}",
 		"%{IncludeDir.SingletonStorage}"
 	}
 
@@ -310,9 +303,6 @@ project "Titan"
 			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../bin/Debug-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
-
-			-- Copy rttr
-			--'{COPY} "../Saturn/vendor/rttr/bin/Debug-Windows/rttr_core_d.dll" "%{cfg.targetdir}"' 
 		}
 
 	filter "configurations:Release"

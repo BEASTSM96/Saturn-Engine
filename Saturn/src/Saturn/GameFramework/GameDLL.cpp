@@ -35,9 +35,6 @@
 
 #include "SourceManager.h"
 
-#include <rttr/type>
-#include <rttr/registration.h>
-
 namespace Saturn {
 
 	GameDLL* GameDLL::s_Instance;
