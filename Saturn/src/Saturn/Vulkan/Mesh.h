@@ -111,6 +111,7 @@ namespace Saturn {
 	public:
 		Mesh( const std::string& filename );
 		Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform );
+		Mesh( AssetID ID ); // Think of this as a fake ctor it will not create/load the mesh, it used for prefabs so we can set the filepath.
 		~Mesh();
 
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );

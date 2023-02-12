@@ -134,6 +134,20 @@ namespace Saturn {
 		} );
 	}
 
+	template<typename Ty>
+	void SceneHierarchyPanel::DrawAddComponents( const char* pName, Entity entity )
+	{
+		if( !m_SelectionContext.HasComponent<Ty>() )
+		{
+			if( ImGui::Button( pName ) )
+			{
+				m_SelectionContext.AddComponent<Ty>();
+
+				ImGui::CloseCurrentPopup();
+			}
+		}
+	}
+
 	void SceneHierarchyPanel::Draw()
 	{
 		ImGui::PushID( m_Context->GetId() );
@@ -242,103 +256,70 @@ namespace Saturn {
 	{
 		DrawEntityComponents( m_SelectionContext );
 
+		if( m_OpenAssetFinderPopup )
+			ImGui::OpenPopup( "AssetFinderPopup" );
+
+		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
+		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+		{
+			bool PopupModified = false;
+
+			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
+			{
+				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
+				{
+					bool Selected = ( m_CurrentAssetID == assetID );
+
+					if( rAsset->GetAssetType() == m_CurrentFinderType || m_CurrentFinderType == AssetType::Unknown )
+					{
+						if( ImGui::Selectable( rAsset->GetName().c_str() ) )
+						{
+							m_CurrentAssetID = assetID;
+							PopupModified = true;
+						}
+					}
+
+					if( Selected )
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndListBox();
+			}
+
+			if( PopupModified )
+			{
+				m_OpenAssetFinderPopup = false;
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
 		if( ImGui::Button( "Add Component" ) )
 			ImGui::OpenPopup( "AddComponentPanel" );
 
 		if( ImGui::BeginPopup( "AddComponentPanel" ) )
 		{
-			if( !m_SelectionContext.HasComponent<MeshComponent>() )
-			{
-				if( ImGui::Button( "Mesh" ) )
-				{
-					m_SelectionContext.AddComponent<MeshComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
+			DrawAddComponents<MeshComponent>( "Mesh", m_SelectionContext );
 
-			if( !m_SelectionContext.HasComponent<ScriptComponent>() )
-			{
-				if( ImGui::Button( "Script" ) )
-				{
-					m_SelectionContext.AddComponent<ScriptComponent>();
+			DrawAddComponents<ScriptComponent>( "Script", m_SelectionContext );
 
-					ImGui::CloseCurrentPopup();
-				}
-			}
+			DrawAddComponents<CameraComponent>( "Camera", m_SelectionContext );
 
-			if( !m_SelectionContext.HasComponent<CameraComponent>() )
-			{
-				if( ImGui::Button( "Camera" ) )
-				{
-					m_SelectionContext.AddComponent<CameraComponent>();
+			DrawAddComponents<PointLightComponent>( "Point Light", m_SelectionContext );
 
-					ImGui::CloseCurrentPopup();
-				}
-			}
+			DrawAddComponents<DirectionalLightComponent>( "Directional Light", m_SelectionContext );
 
-			if( !m_SelectionContext.HasComponent<PointLightComponent>() )
-			{
-				if( ImGui::Button( "Point Light" ) )
-				{
-					m_SelectionContext.AddComponent<PointLightComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
+			DrawAddComponents<PhysXBoxColliderComponent>( "Box Collider", m_SelectionContext );
 
-			if( !m_SelectionContext.HasComponent<DirectionalLightComponent>() ) 
-			{
-				if( ImGui::Button( "Directional Light" ) )
-				{
-					m_SelectionContext.AddComponent<DirectionalLightComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-			
-			if( !m_SelectionContext.HasComponent<PhysXBoxColliderComponent>() )
-			{
-				if( ImGui::Button( "Box Collider" ) )
-				{
-					m_SelectionContext.AddComponent<PhysXBoxColliderComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
+			DrawAddComponents<PhysXSphereColliderComponent>( "Sphere Collider", m_SelectionContext );
 
-			if( !m_SelectionContext.HasComponent<PhysXSphereColliderComponent>() )
-			{
-				if( ImGui::Button( "Sphere Collider" ) )
-				{
-					m_SelectionContext.AddComponent<PhysXSphereColliderComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
+			DrawAddComponents<PhysXCapsuleColliderComponent>( "Capsule Collider", m_SelectionContext );
 
-			if( !m_SelectionContext.HasComponent<PhysXCapsuleColliderComponent>() )
-			{
-				if( ImGui::Button( "Capsule Collider" ) )
-				{
-					m_SelectionContext.AddComponent<PhysXCapsuleColliderComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
+			DrawAddComponents<PhysXRigidbodyComponent>( "Rigidbody", m_SelectionContext );
 
-			if( !m_SelectionContext.HasComponent<PhysXRigidbodyComponent>() )
-			{
-				if( ImGui::Button( "Rigidbody" ) )
-				{
-					m_SelectionContext.AddComponent<PhysXRigidbodyComponent>();
-					m_SelectionContext.AddComponent<PhysXMaterialComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-
-			if( !m_SelectionContext.HasComponent<PhysXMaterialComponent>() )
-			{
-				if( ImGui::Button( "Physics material" ) )
-				{
-					m_SelectionContext.AddComponent<PhysXMaterialComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
+			DrawAddComponents<PhysXMaterialComponent>( "Physics material", m_SelectionContext );
 
 			ImGui::EndPopup();
 		}
@@ -483,14 +464,10 @@ namespace Saturn {
 
 			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
 			{
-				if( mc.Mesh )
-					mc.Mesh = nullptr;
-
-				std::string file = Application::Get().OpenFile( "ObjectFile (*.fbx *.obj *.glb *.gltf)\0*.fbx; *.obj; *.gltf\0" );
-				if( !file.empty() )
-					mc.Mesh = Ref<Mesh>::Create( file );
+				m_OpenAssetFinderPopup = !m_OpenAssetFinderPopup;
+				m_CurrentFinderType = AssetType::StaticMesh;
 			}
-
+			
 			if( mc.Mesh )
 				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->FilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 			else

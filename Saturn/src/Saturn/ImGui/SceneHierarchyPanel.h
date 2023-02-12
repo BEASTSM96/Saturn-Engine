@@ -62,11 +62,19 @@ namespace Saturn {
 		void DrawEntityComponents( Entity entity );
 		void DrawEntities();
 
+		template<typename Ty>
+		void DrawAddComponents( const char* pName, Entity entity );
+
 	private:
 
 		bool m_IsPrefabScene = false;
 
 		Ref<Texture2D> m_EditIcon;
+
+		bool m_OpenAssetFinderPopup = false;
+		AssetID m_CurrentAssetID;
+
+		AssetType m_CurrentFinderType = AssetType::Unknown;
 
 		Ref<Scene> m_Context;
 		Entity m_SelectionContext ={};

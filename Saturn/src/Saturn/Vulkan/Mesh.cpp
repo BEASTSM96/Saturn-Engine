@@ -452,6 +452,11 @@ namespace Saturn {
 		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
 	}
 
+	Mesh::Mesh( AssetID ID )
+	{
+		m_FilePath = AssetRegistry::Get().FindAsset( ID )->Path.string();
+	}
+
 	Mesh::~Mesh()
 	{
 		if( m_BaseMaterial )
