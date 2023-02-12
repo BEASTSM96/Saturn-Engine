@@ -256,46 +256,6 @@ namespace Saturn {
 	{
 		DrawEntityComponents( m_SelectionContext );
 
-		if( m_OpenAssetFinderPopup )
-			ImGui::OpenPopup( "AssetFinderPopup" );
-
-		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
-		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
-		{
-			bool PopupModified = false;
-
-			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
-			{
-				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
-				{
-					bool Selected = ( m_CurrentAssetID == assetID );
-
-					if( rAsset->GetAssetType() == m_CurrentFinderType || m_CurrentFinderType == AssetType::Unknown )
-					{
-						if( ImGui::Selectable( rAsset->GetName().c_str() ) )
-						{
-							m_CurrentAssetID = assetID;
-							PopupModified = true;
-						}
-					}
-
-					if( Selected )
-						ImGui::SetItemDefaultFocus();
-				}
-
-				ImGui::EndListBox();
-			}
-
-			if( PopupModified )
-			{
-				m_OpenAssetFinderPopup = false;
-
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndPopup();
-		}
-
 		if( ImGui::Button( "Add Component" ) )
 			ImGui::OpenPopup( "AddComponentPanel" );
 
@@ -454,6 +414,8 @@ namespace Saturn {
 
 		DrawComponent<MeshComponent>( "Mesh", entity, [&]( auto& mc )
 		{
+			static AssetID id;
+
 			ImGui::Columns( 3 );
 			ImGui::SetColumnWidth( 0, 100 );
 			ImGui::SetColumnWidth( 1, 300 );
@@ -468,6 +430,47 @@ namespace Saturn {
 				m_CurrentFinderType = AssetType::StaticMesh;
 			}
 			
+			if( m_OpenAssetFinderPopup )
+				ImGui::OpenPopup( "AssetFinderPopup" );
+
+			ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
+			if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+			{
+				bool PopupModified = false;
+
+				if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
+				{
+					for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
+					{
+						bool Selected = ( id == assetID );
+
+						if( rAsset->GetAssetType() == m_CurrentFinderType || m_CurrentFinderType == AssetType::Unknown )
+						{
+							if( ImGui::Selectable( rAsset->GetName().c_str() ) )
+							{
+								mc.Mesh = Ref<Mesh>::Create( assetID );
+
+								PopupModified = true;
+							}
+						}
+
+						if( Selected )
+							ImGui::SetItemDefaultFocus();
+					}
+
+					ImGui::EndListBox();
+				}
+
+				if( PopupModified )
+				{
+					m_OpenAssetFinderPopup = false;
+
+					ImGui::CloseCurrentPopup();
+				}
+
+				ImGui::EndPopup();
+			}
+
 			if( mc.Mesh )
 				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->FilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 			else
