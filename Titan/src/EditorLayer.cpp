@@ -91,6 +91,8 @@ namespace Saturn {
 		m_EditorScene = Ref<Scene>::Create();
 		Scene::SetActiveScene( m_EditorScene.Pointer() );
 
+		AssetRegistry* ar = new AssetRegistry();
+
 		m_RuntimeScene = nullptr;
 		
 		// Create Panel Manager.
@@ -241,9 +243,6 @@ namespace Saturn {
 		pGameDLL->Load();
 
 		GameManager* pGameManager = new GameManager();
-
-//		ScriptManager::Get().RegisterScript( "Farmer" );
-//		ScriptManager::Get().CreateAllScripts();
 	}
 
 	EditorLayer::~EditorLayer()

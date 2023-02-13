@@ -97,8 +97,6 @@ namespace Saturn {
 
 	void EntityScriptManager::CreateAllScripts()
 	{
-		//for( auto&& [ name, func ] : m_ScriptFunctions )
-		//	m_Scripts[ name ] = func();
 	}
 
 	void EntityScriptManager::DestroyEntityInScene( const Ref<Scene>& rScene )

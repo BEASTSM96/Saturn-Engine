@@ -485,9 +485,10 @@ namespace Saturn {
 		delete m_PhysXRuntime;
 	}
 
-	Entity Scene::CreatePrefab( Ref<Prefab> prefabAsset )
+	std::pair<Entity, SClass*> Scene::CreatePrefab( Ref<Prefab> prefabAsset )
 	{
 		Entity prefabEntity;
+		SClass* sc = nullptr;
 
 		prefabEntity = prefabAsset->PrefabToEntity( this, prefabEntity );
 
@@ -496,10 +497,10 @@ namespace Saturn {
 			// Try register
 			EntityScriptManager::Get().RegisterScript( prefabEntity.GetComponent<ScriptComponent>().ScriptName );
 
-			EntityScriptManager::Get().CreateScript( prefabEntity.GetComponent<ScriptComponent>().ScriptName, (SClass*)&prefabEntity );
+			sc = EntityScriptManager::Get().CreateScript( prefabEntity.GetComponent<ScriptComponent>().ScriptName, (SClass*)&prefabEntity );
 		}
 
-		return prefabEntity;
+		return { prefabEntity, sc };
 	}
 
 	static Scene* s_ActiveScene = nullptr;

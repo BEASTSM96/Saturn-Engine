@@ -33,7 +33,7 @@ namespace Saturn {
 
 	AssetRegistry::AssetRegistry()
 	{
-
+		SingletonStorage::Get().AddSingleton( this );
 	}
 
 	AssetRegistry::~AssetRegistry()
@@ -62,6 +62,17 @@ namespace Saturn {
 		for( const auto& [id, asset] : m_Assets )
 		{
 			if( asset->GetPath() == rPath )
+				return asset;
+		}
+
+		return nullptr;
+	}
+
+	Ref<Asset> AssetRegistry::FindAsset( const std::string& rName, AssetType type )
+	{
+		for( const auto& [id, asset] : m_Assets )
+		{
+			if( asset->Name == rName && asset->GetAssetType() == type )
 				return asset;
 		}
 

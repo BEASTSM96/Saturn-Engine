@@ -41,7 +41,8 @@ namespace Saturn {
 
 	class AssetRegistry
 	{
-		SINGLETON( AssetRegistry );
+	public:
+		static inline AssetRegistry& Get() { return *SingletonStorage::Get().GetSingleton<AssetRegistry>(); }
 	public:
 		AssetRegistry();
 		~AssetRegistry();
@@ -49,8 +50,10 @@ namespace Saturn {
 		AssetID CreateAsset( AssetType type );
 
 		Ref<Asset> FindAsset( AssetID id );
-		
-		template<typename Ty> 
+		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
+		Ref<Asset> FindAsset( const std::string& rName, AssetType type );
+	
+		template<typename Ty>
 		Ref<Ty> GetAssetAs( AssetID id ) 
 		{
 			Ref<Asset> asset = m_Assets.at( id );
@@ -68,8 +71,6 @@ namespace Saturn {
 
 			return asset.As<Ty>();
 		}
-
-		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
 
 		const std::vector<AssetID>& FindAssetsWithType( AssetType type ) const;
 

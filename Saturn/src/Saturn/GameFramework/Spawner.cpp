@@ -26,31 +26,23 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "Spawner.h"
 
-#include "Saturn/Scene/Entity.h"
+#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/Prefab.h"
 
-#define SCLASS(...)
+namespace Saturn {
 
-#define BODY_MACRO_COMBINE_INNER(A,B,C,D) A##B##C##D
-#define BODY_MACRO_COMBINE(A,B,C,D) BODY_MACRO_COMBINE_INNER(A,B,C,D)
+	/*
+	template<typename Ty>
+	Ty* Spawner::SpawnEntityFromClass( const char* pName, Scene* scene )
+	{
+		Ref<Asset> asset = AssetRegistry::Get().FindAsset( pName, AssetType::Prefab );
+		// Make sure to load the prefab.
+		Ref<Prefab> prefabAsset = AssetRegistry::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
 
-// Include a empty macro, this will be defined when SHT has been ran.
-#define CURRENT_FILE_ID
-#define GENERATED_BODY(...) BODY_MACRO_COMBINE(CURRENT_FILE_ID,_,__LINE__,_GENERATED_BODY);
-
-#define DECLARE_CLASS( x, BaseClass ) \
-private: \
-	x& operator=(x&&); \
-	x& operator=(const x&); \
-	static Saturn::SClass* _PrvStatic() {} \
-public: \
-	typedef x ThisClass; \
-	typedef BaseClass Super; \
-	inline static Saturn::SClass* StaticClass() \
-	{ \
-		return nullptr; \
-	} \
-	__declspec(dllexport) static x* Spawn() { return new x(); } \
-public: \
-	x() : Super() {} 
+		return ( Ty* ) scene->CreatePrefab( prefabAsset ).second;
+	}
+	*/
+}

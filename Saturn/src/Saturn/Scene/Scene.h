@@ -78,6 +78,7 @@ namespace Saturn {
 	};
 
 	class PhysXRuntime;
+	class SClass;
 
 	class Scene : public CountedObj
 	{
@@ -131,7 +132,7 @@ namespace Saturn {
 		entt::registry& GetRegistry() { return m_Registry; }
 		const entt::registry& GetRegistry() const { return m_Registry; }
 
-		Entity CreatePrefab( Ref<Prefab> prefabAsset );
+		std::pair<Entity, SClass*> CreatePrefab( Ref<Prefab> prefabAsset );
 
 		UUID GetId() { return m_SceneID; }
 		const UUID GetId() const { return m_SceneID; }

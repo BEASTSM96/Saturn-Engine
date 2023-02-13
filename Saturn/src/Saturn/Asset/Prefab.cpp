@@ -92,8 +92,6 @@ namespace Saturn {
 		{
 			Entity ent( entity, m_Scene.Pointer() );
 
-			SAT_CORE_INFO( "entity ID: {0}", ent.GetComponent<IdComponent>().ID );
-
 			if( ent.GetComponent<RelationshipComponent>().Parent != 0 )
 				continue;
 
@@ -101,14 +99,17 @@ namespace Saturn {
 				continue;
 
 			RootEntity = ent;
-
-			SAT_CORE_INFO( "Found Root entity ID: {0}", RootEntity.GetComponent<IdComponent>().ID );
 		}
 
 		if( !RootEntity )
 			RootEntity = m_Entity;
 
+		auto id = e.GetComponent<IdComponent>().ID;
+
 		CopyComponentIfExists( AllComponents{}, e, RootEntity, m_Scene->m_Registry, Scene->m_Registry );
+
+		// We don't want the same id, what if we spawn this prefab and it has the same id?
+		e.GetComponent<IdComponent>().ID = id;
 
 		for( auto& childId : RootEntity.GetChildren() )
 		{
