@@ -38,7 +38,7 @@ namespace Saturn {
 	{
 	public:
 		SClass() {}
-		~SClass() {}
+		virtual ~SClass() = default;
 
 		virtual void BeginPlay() = 0;
 		virtual void OnUpdate( Saturn::Timestep ts ) = 0;

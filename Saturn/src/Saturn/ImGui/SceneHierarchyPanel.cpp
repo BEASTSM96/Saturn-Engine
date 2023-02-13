@@ -155,18 +155,6 @@ namespace Saturn {
 		if( !m_IsPrefabScene )
 			ImGui::Begin( "Scene Hierarchy" );
 
-		if( ImGui::BeginDragDropTarget() ) 
-		{
-			const ImGuiPayload* pPayload = ImGui::AcceptDragDropPayload( "ENTITY_PARENT_SCHPANEL" );
-
-			if( pPayload ) 
-			{
-
-			}
-
-			ImGui::EndDragDropTarget();
-		}
-
 		if( m_Context )
 		{	
 			DrawEntities();

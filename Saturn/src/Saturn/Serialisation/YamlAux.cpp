@@ -105,6 +105,20 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
+		// Script Component
+		if( entity.HasComponent<ScriptComponent>() )
+		{
+			rEmitter << YAML::Key << "ScriptComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& sc = entity.GetComponent< ScriptComponent >();
+
+			rEmitter << YAML::Key << "Name" << YAML::Value << sc.ScriptName;
+			rEmitter << YAML::Key << "ID" << YAML::Value << sc.AssetID;
+
+			rEmitter << YAML::EndMap;
+		}
+
 		// Sky light component
 		if( entity.HasComponent<SkylightComponent>() )
 		{
@@ -292,6 +306,15 @@ namespace Saturn {
 					uint64_t id = child[ "ID" ].as<uint64_t>();
 					rc.ChildrenID.push_back( id );
 				}
+			}
+
+			auto srcc = entity[ "ScriptComponent" ];
+			if( srcc )
+			{
+				auto& s = DeserialisedEntity.AddComponent< ScriptComponent >();
+
+				s.ScriptName = srcc[ "Name" ].as< std::string >();
+				s.AssetID = srcc[ "ID" ].as< uint64_t >();
 			}
 
 			auto slc = entity[ "SkyLightComponent" ];

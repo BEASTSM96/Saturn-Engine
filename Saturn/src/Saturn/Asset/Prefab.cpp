@@ -97,13 +97,16 @@ namespace Saturn {
 			if( ent.GetComponent<RelationshipComponent>().Parent != 0 )
 				continue;
 
-			if( ent.GetChildren().size() < 1 )
+			if( ent.GetChildren().size() > 1 )
 				continue;
 
 			RootEntity = ent;
 
 			SAT_CORE_INFO( "Found Root entity ID: {0}", RootEntity.GetComponent<IdComponent>().ID );
 		}
+
+		if( !RootEntity )
+			RootEntity = m_Entity;
 
 		CopyComponentIfExists( AllComponents{}, e, RootEntity, m_Scene->m_Registry, Scene->m_Registry );
 

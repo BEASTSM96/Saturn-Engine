@@ -491,6 +491,14 @@ namespace Saturn {
 
 		prefabEntity = prefabAsset->PrefabToEntity( this, prefabEntity );
 
+		if( prefabEntity.HasComponent<ScriptComponent>() ) 
+		{
+			// Try register
+			EntityScriptManager::Get().RegisterScript( prefabEntity.GetComponent<ScriptComponent>().ScriptName );
+
+			EntityScriptManager::Get().CreateScript( prefabEntity.GetComponent<ScriptComponent>().ScriptName, (SClass*)&prefabEntity );
+		}
+
 		return prefabEntity;
 	}
 

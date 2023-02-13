@@ -569,6 +569,26 @@ namespace Saturn {
 
 		DeserialiseEntites( entities, prefabAsset->m_Scene );
 
+		auto view = prefabAsset->m_Scene->GetAllEntitiesWith<RelationshipComponent>();
+
+		// Find root entity
+		Entity RootEntity;
+
+		for( auto& entity : view )
+		{
+			Entity ent( entity, prefabAsset->m_Scene.Pointer() );
+
+			if( ent.GetComponent<RelationshipComponent>().Parent != 0 )
+				continue;
+
+			if( ent.GetChildren().size() > 0 )
+				continue;
+
+			RootEntity = ent;
+		}
+
+		prefabAsset->m_Entity = RootEntity;
+
 		struct
 		{
 			UUID ID;

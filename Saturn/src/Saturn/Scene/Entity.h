@@ -49,8 +49,10 @@ namespace Saturn {
 		template<typename T, typename... Args>
 		T& AddComponent( Args&&... args )
 		{
-			SAT_CORE_ASSERT( !HasComponent<T>(), "Entity already has component!" );
-			return m_Scene->m_Registry.emplace<T>( m_EntityHandle, std::forward<Args>( args )... );
+			if( !HasComponent<T>() )
+				return m_Scene->m_Registry.emplace<T>( m_EntityHandle, std::forward<Args>( args )... );
+			else
+				return GetComponent<T>();
 		}
 
 		template<typename T>
