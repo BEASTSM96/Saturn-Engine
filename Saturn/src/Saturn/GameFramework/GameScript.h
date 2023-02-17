@@ -31,11 +31,12 @@
 #include "Saturn/Scene/Entity.h"
 
 #define SCLASS(...)
+#define SPROPERTY(...)
 
 #define BODY_MACRO_COMBINE_INNER(A,B,C,D) A##B##C##D
 #define BODY_MACRO_COMBINE(A,B,C,D) BODY_MACRO_COMBINE_INNER(A,B,C,D)
 
-// Include a empty macro, this will be defined when SHT has been ran.
+// Include a empty macro, this will be defined when the header tool is running.
 #define CURRENT_FILE_ID
 #define GENERATED_BODY(...) BODY_MACRO_COMBINE(CURRENT_FILE_ID,_,__LINE__,_GENERATED_BODY);
 

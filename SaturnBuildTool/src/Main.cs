@@ -75,8 +75,7 @@ namespace SaturnBuildTool
 			foreach ( string file in sourceFiles ) 
 			{
 				// We are only building c++ files.
-				// This does check for .h files however the toolchain will not compile them.
-				if (!fileCache.IsCppSourceFile(file))
+				if (!fileCache.IsCppFile(file))
 					continue;
 
 				if (!fileCache.IsFileInCache(file)) 
@@ -86,8 +85,17 @@ namespace SaturnBuildTool
 				DateTime LastTime;
 				fileCache.FilesInCache.TryGetValue(file, out LastTime);
 
-                if( LastTime != File.GetLastWriteTime(file) )
-                {
+				if (Args[0] == "/REBUILD")
+				{
+					int exitCode = Toolchain.Compile(file);
+
+					if (exitCode == 0)
+						HasCompiledAnyFile = true;
+					else
+						NumTaskFailed++;
+				}
+				else if (Args[0] == "/BUILD" && (LastTime != File.GetLastWriteTime(file))) 
+				{
                     int exitCode = Toolchain.Compile(file);
 
                     if (exitCode == 0)

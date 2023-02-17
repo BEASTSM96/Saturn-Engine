@@ -190,7 +190,6 @@ namespace Saturn {
 		auto& rb = rEntity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = rEntity.GetComponent<TransformComponent>();
 		auto& mat = rEntity.GetComponent<PhysXMaterialComponent>();
-		auto& mesh = rEntity.GetComponent<MeshComponent>();
 
 		glm::vec3 size = comp.Extents;
 		glm::vec3 scale = trans.Scale;
@@ -209,7 +208,6 @@ namespace Saturn {
 		auto& rb = rEntity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = rEntity.GetComponent<TransformComponent>();
 		auto& mat = rEntity.GetComponent<PhysXMaterialComponent>();
-		auto& mesh = rEntity.GetComponent<MeshComponent>();
 		
 		float size = comp.Radius;
 		glm::vec3 entitySize = trans.Scale;
@@ -230,7 +228,6 @@ namespace Saturn {
 		auto& rb = rEntity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = rEntity.GetComponent<TransformComponent>();
 		auto& mat = rEntity.GetComponent<PhysXMaterialComponent>();
-		auto& mesh = rEntity.GetComponent<MeshComponent>();
 
 		float size = comp.Radius;
 		float height = comp.Height;

@@ -31,13 +31,18 @@ namespace SaturnBuildTool.Cache
 
         public void CacheFile(string Filepath)
         {
-            if( IsCppSourceFile(Filepath) )
+            if( IsCppFile(Filepath) )
                 FilesToCache.Add(Filepath, File.GetLastWriteTime(Filepath));
         }
 
-        public bool IsCppSourceFile( string Filepath )
+        public bool IsCppFile( string Filepath )
         {
             return Path.GetExtension(Filepath) == ".cpp" || Path.GetExtension(Filepath) == ".h";
+        }
+
+        public bool IsSourceFile(string Filepath)
+        {
+            return Path.GetExtension(Filepath) == ".cpp";
         }
 
         public bool IsFileInCache(string Filepath) 
@@ -47,14 +52,27 @@ namespace SaturnBuildTool.Cache
 
         public static void RT_WriteCache( FileCache fileCache ) 
         {
-            foreach (KeyValuePair<string, DateTime> file in fileCache.FilesToCache) 
+            foreach (KeyValuePair<string, DateTime> kv in fileCache.FilesToCache) 
             {
-                if(!fileCache.FilesInCache.ContainsKey( file.Key ))
+                DateTime time;
+                fileCache.FilesInCache.TryGetValue(kv.Key, out time);
+
+                // Has the file been updated?
+                if(time != kv.Value)
                 {
-                    fileCache.FilesInCache.Add(file);
+                    // Yes, lets try to add it in the cache
+
+                    if(fileCache.FilesInCache.ContainsKey(kv.Key))
+                    {
+                        fileCache.FilesInCache[kv.Key] = kv.Value;
+                    }
+                    else
+                    {
+                        fileCache.FilesInCache.Add(kv);
+                    }
                 }
             }
-
+            
             fileCache.FilesToCache.Clear();
 
             var serializer = new SerializerBuilder()
