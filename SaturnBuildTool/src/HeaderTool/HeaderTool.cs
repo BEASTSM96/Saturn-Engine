@@ -460,7 +460,7 @@ namespace SaturnBuildTool.Tools
                     Property property = kv.Value;
 
                     propfunc += string.Format("\t// [_Zp_Public_Prop] {0} of type {1}\r\n", property.Name.ToUpper(), property.Type.ToUpper());
-                    propfunc += string.Format("\tSaturn::EntityScriptManager::Get().AddProperty( \"{0}\", \"{1}\", (void*)&{2}::{1});\r\n", CurrentFile.ClassName, property.Name, CurrentFile.ClassName);
+                    propfunc += string.Format("\t//Saturn::EntityScriptManager::Get().AddProperty( \"{0}\", \"{1}\", (void*)&{2}::{1});\r\n", CurrentFile.ClassName, property.Name, CurrentFile.ClassName);
                 }
 
                 propfunc += "}\r\n";
@@ -481,7 +481,6 @@ namespace SaturnBuildTool.Tools
                 call += string.Format("\t\t_RT_Z_AddPrefab_{0}();\r\n", CurrentFile.ClassName);
                 call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", CurrentFile.ClassName);
                 call += "\r\n";
-                call += string.Format("\t\tSaturn::EntityScriptManager::Get().RegisterScript(\"{0}\");\r\n", CurrentFile.ClassName);
                 call += "\t}\r\n";
                 call += "};\r\n";
                 call += "\r\n";

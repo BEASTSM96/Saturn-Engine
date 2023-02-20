@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 
 namespace SaturnBuildTool.Tools
 {
@@ -22,7 +23,25 @@ namespace SaturnBuildTool.Tools
             vswhere.StartInfo = vswinfo;
             vswhere.Start();
 
+            vswhere.WaitForExit();
+
             return vswhere.StandardOutput.ReadToEnd().Trim();
+        }
+
+        public static string FindMSVCToolsDir()
+        {
+            string VSWherePath = FindVSRootDir();
+            string CLLocation = Path.Combine( VSWherePath, "VC\\Tools\\MSVC\\" );
+
+            // Go up by one dir, as we don't know the what the version is.
+
+            foreach (string d in Directory.GetDirectories(CLLocation))
+            {
+                // There is only one folder (most likely), so we can just return the first one as it should be the best version.
+                return d;
+            }
+
+            return "";
         }
     }
 }

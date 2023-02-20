@@ -26,7 +26,7 @@ namespace SaturnBuildTool
             if( Path.GetExtension( InputFile ) != ".cpp" )
                 return 0;
 
-            string VSLocation = VSWhere.FindVSRootDir();
+            string CLLocation = VSWhere.FindMSVCToolsDir();
 
             var Args = new List<string>();
 
@@ -37,13 +37,13 @@ namespace SaturnBuildTool
             {
                 case TargetKind.Win64:
                     {
-                        processStart.FileName = VSLocation + "/VC/Tools/MSVC/14.32.31326/bin/Hostx64/x64/cl.exe";
+                        processStart.FileName = CLLocation + "/bin/Hostx64/x64/cl.exe";
                     }
                     break;
 
                 case TargetKind.Win86:
                     {
-                        processStart.FileName = VSLocation + "/VC/Tools/MSVC/14.32.31326/bin/Hostx64/x86/cl.exe";
+                        processStart.FileName = CLLocation + "/bin/Hostx64/x86/cl.exe";
                     }
                     break;
             }
@@ -99,7 +99,7 @@ namespace SaturnBuildTool
                 Args.Add(string.Format(" /I\"{0}\"", include));
             }
 
-            Args.Add(string.Format(" /I\"{0}\"", VSLocation + "/VC/Tools/MSVC/14.32.31326/include"));
+            Args.Add(string.Format(" /I\"{0}\"", CLLocation + "/include"));
 
             // Windows SDK
             string includeSDKFolder = WindowsSDK.GetIncludePaths();

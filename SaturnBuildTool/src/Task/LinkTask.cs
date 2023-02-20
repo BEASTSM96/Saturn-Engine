@@ -29,7 +29,9 @@ namespace SaturnBuildTool
         public override int Execute()
         {
             var Args = new List<string>();
+
             string VSLocation = VSWhere.FindVSRootDir();
+            string LinkLocation = VSWhere.FindMSVCToolsDir();
 
             ProcessStartInfo processStart = new ProcessStartInfo();
             processStart.CreateNoWindow = true;
@@ -38,13 +40,13 @@ namespace SaturnBuildTool
             {
                 case TargetKind.Win64:
                     {
-                        processStart.FileName = VSLocation + "/VC/Tools/MSVC/14.32.31326/bin/Hostx64/x64/link.exe";
+                        processStart.FileName = LinkLocation + "/bin/Hostx64/x64/link.exe";
                     }
                     break;
 
                 case TargetKind.Win86:
                     {
-                        processStart.FileName = VSLocation + "/VC/Tools/MSVC/14.32.31326/bin/Hostx64/x86/link.exe";
+                        processStart.FileName = LinkLocation + "/bin/Hostx64/x86/link.exe";
                     }
                     break;
             }
@@ -158,24 +160,24 @@ namespace SaturnBuildTool
 
         private string GetMSVCLibraryPath()
         {
-            string VSLocation = VSWhere.FindVSRootDir();
+            string CLLocation = VSWhere.FindMSVCToolsDir();
 
             switch (Target.Instance.GetTargetKind())
             {
                 case TargetKind.Win64:
                     {
-                        VSLocation += "/VC/Tools/MSVC/14.32.31326/lib/x64";
+                        CLLocation += "/lib/x64";
                     }
                     break;
 
                 case TargetKind.Win86:
                     {
-                        VSLocation += "/VC/Tools/MSVC/14.32.31326/lib/x64";
+                        CLLocation += "/lib/x86";
                     }
                     break;
             }
 
-            return VSLocation;
+            return CLLocation;
         }
     }
 }
