@@ -28,81 +28,16 @@
 
 #pragma once
 
-#include "Base.h"
+#define SAT_PROFILER_ENABLE !SAT_DIST
 
-#include "Layer.h"
-#include "Events.h"
-#include "Input.h"
-#include "UserSettings.h"
-
-#include "SingletonStorage.h"
-
+#if defined (SAT_PROFILER_ENABLE)
 #include <optick/optick.h>
 
-#include <vector>
-
-namespace Saturn {
-
-	struct ApplicationSpecification
-	{
-		bool CreateSceneRenderer = true;
-		bool UIOnly = false;
-		
-		uint32_t WindowWidth = 0;
-		uint32_t WindowHeight = 0;
-	};
-
-	class Application
-	{
-	public:
-		Application( const ApplicationSpecification& spec );
-
-		~Application() {}
-
-		void Run();
-		void Close();
-
-		bool Running() { return m_Running; }
-
-		Timestep& Time() { return m_Timestep; }
-
-		std::string OpenFile( const char* pFilter ) const;
-		std::string SaveFile( const char* pFilter ) const;
-		std::string OpenFolder() const;
-
-		const char* GetPlatformName();
-
-		static inline Application& Get() { return *SingletonStorage::Get().GetSingleton<Application>(); }
-		ApplicationSpecification& GetSpecification() { return m_Specification; }
-
-		void PushLayer( Layer* pLayer );
-		void PopLayer( Layer* pLayer );
-
-		virtual void OnInit() {}
-		virtual void OnShutdown() {}
-		
-	protected:
-
-		void OnEvent( Event& e );
-		bool OnWindowResize( WindowResizeEvent& e );
-
-		void RenderImGui();
-
-	private:
-		bool m_Running = true;
-		
-		ImGuiLayer* m_ImGuiLayer = nullptr;
-
-		Timestep m_Timestep;
-		float m_LastFrameTime = 0.0f;
-		
-		ApplicationSpecification m_Specification;
-
-		std::vector<Layer*> m_Layers;
-
-	private:
-		//static Application* s_Instance;
-	};
-
-	Application* CreateApplication( int argc, char** argv );
-}
+#define SAT_PF_EVENT(...)    OPTICK_EVENT(__VA_ARGS__)
+#define SAT_PF_FRAME(...)    OPTICK_FRAME(__VA_ARGS__)
+#define SAT_PF_SCOPE(x, ...) OPTICK_EVENT_DYNAMIC(x, __VA_ARGS__)
+#else 
+#define SAT_PF_EVENT(...)
+#define SAT_PF_FRAME(...)
+#define SAT_PF_SCOPE(x, ...)
+#endif

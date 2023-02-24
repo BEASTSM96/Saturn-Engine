@@ -42,6 +42,8 @@
 
 #include "Saturn/Asset/Prefab.h"
 
+#include "Saturn/Core/OptickProfiler.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -106,6 +108,8 @@ namespace Saturn {
 
 	void Scene::OnUpdate( Timestep ts )
 	{
+		SAT_PF_EVENT();
+
 		if( m_RuntimeRunning ) 
 		{
 			auto view = m_Registry.view<PhysXRigidbodyComponent>();
@@ -125,6 +129,8 @@ namespace Saturn {
 
 	void Scene::OnUpdatePhysics( Timestep ts )
 	{
+		SAT_PF_EVENT();
+
 		auto PhysXView = m_Registry.view<TransformComponent, PhysXRigidbodyComponent>();
 		
 		for ( const auto& entity : PhysXView )
@@ -138,6 +144,8 @@ namespace Saturn {
 
 	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts )
 	{
+		SAT_PF_EVENT();
+
 		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
 		
 		SceneRenderer::Get().SetCurrentScene( this );
@@ -214,6 +222,8 @@ namespace Saturn {
 
 	void Scene::OnRenderRuntime( Timestep ts )
 	{
+		SAT_PF_EVENT();
+
 		// Camera
 		Entity cameraEntity = GetMainCameraEntity();
 

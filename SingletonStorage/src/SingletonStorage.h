@@ -31,11 +31,7 @@
 #include <typeindex>
 #include <unordered_map>
 
-#if defined( SATURN_SS_IMPORT )
-#define SS_API __declspec(dllimport)
-#else
-#define SS_API __declspec(dllexport)
-#endif
+#include "SSBase.h"
 
 namespace Saturn {
 

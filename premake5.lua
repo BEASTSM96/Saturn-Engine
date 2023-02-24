@@ -25,6 +25,7 @@ IncludeDir["ImGuizmo"] = "Saturn/vendor/ImGuizmo/src/"
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include/"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
+IncludeDir["Optick"] = "Saturn/vendor/optick/src"
 
 IncludeDir["SingletonStorage"] = "SingletonStorage/src"
 
@@ -33,6 +34,7 @@ group "Dependencies"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
+	include "Saturn/vendor/optick"
 
 group "Engine"
 project "Saturn"
@@ -97,6 +99,7 @@ project "Saturn"
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
 		"%{IncludeDir.ImguiNodeEditor}",
+		"%{IncludeDir.Optick}",
 
 		"%{IncludeDir.SingletonStorage}"
 	}
@@ -107,6 +110,7 @@ project "Saturn"
 		"ImGui",
 		"SPIRV-Cross",
 		"yaml-cpp",
+		"optick",
 		"SingletonStorage"
 	}
 
@@ -268,6 +272,7 @@ project "Titan"
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
+		"%{IncludeDir.Optick}",
 		"Saturn/vendor/vulkan/include",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.SingletonStorage}"
@@ -404,6 +409,8 @@ project "ProjectBrowser"
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
+		"%{IncludeDir.Optick}",
+		"%{IncludeDir.SingletonStorage}",
 		"Saturn/vendor/vulkan/include"
 	}
 

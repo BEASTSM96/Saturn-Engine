@@ -34,6 +34,8 @@
 #include "MaterialInstance.h"
 #include "Shader.h"
 
+#include "Saturn/Core/OptickProfiler.h"
+
 namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
@@ -122,6 +124,8 @@ namespace Saturn {
 		Ref< DescriptorSet >& rDescriptorSet, 
 		IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer )
 	{
+		SAT_PF_EVENT();
+
 		Pipeline->Bind( CommandBuffer );
 		
 		if( rDescriptorSet )
@@ -144,6 +148,8 @@ namespace Saturn {
 	
 	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform, Buffer additionalData )
 	{	
+		SAT_PF_EVENT();
+
 		Buffer PushConstant;
 		// sizeof glm::mat4 becuase we have the model matrix in the push constant plus any additional data.
 		PushConstant.Allocate( sizeof( glm::mat4 ) + additionalData.Size );
@@ -179,6 +185,8 @@ namespace Saturn {
 		Ref< Mesh > mesh,
 		Submesh& rSubmsh, const glm::mat4 transform )
 	{
+		SAT_PF_EVENT();
+
 		auto& materials = mesh->GetMaterials();
 		auto& material = materials[ rSubmsh.MaterialIndex ];
 
@@ -191,6 +199,8 @@ namespace Saturn {
 	
 	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex )
 	{
+		SAT_PF_EVENT();
+
 		Ref<Shader> Shader = Pipeline->GetShader();
 
 		mesh->GetVertexBuffer()->Bind( CommandBuffer );
@@ -282,6 +292,8 @@ namespace Saturn {
 
 	void Renderer::BeginFrame()
 	{
+		SAT_PF_EVENT();
+
 		m_BeginFrameTimer.Reset();
 
 		m_CommandBuffer = AllocateCommandBuffer( VulkanContext::Get().GetCommandPool() );
@@ -309,6 +321,8 @@ namespace Saturn {
 
 	void Renderer::EndFrame()
 	{
+		SAT_PF_EVENT();
+
 		m_EndFrameTimer.Reset();
 
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
@@ -347,6 +361,8 @@ namespace Saturn {
 		PresentInfo.waitSemaphoreCount = 1;
 		
 		m_QueuePresentTimer.Reset();
+
+		SAT_PF_EVENT("Queue Present");
 
 		VkResult Result = vkQueuePresentKHR( VulkanContext::Get().GetGraphicsQueue(), &PresentInfo );
 

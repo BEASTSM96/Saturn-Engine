@@ -33,6 +33,8 @@
 
 #include "Core/App.h"
 
+#include <optick/optick.h>
+
 extern Saturn::Application* Saturn::CreateApplication( int argc, char** argv );
 
 namespace Saturn {

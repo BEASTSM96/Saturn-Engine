@@ -34,6 +34,8 @@
 #include "Saturn/Vulkan/VulkanContext.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
 
+#include "OptickProfiler.h"
+
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
@@ -49,11 +51,15 @@
 
 namespace Saturn {
 	
-	//Application* Application::s_Instance = nullptr;
-	
+	bool OnOptickStateChanged( Optick::State::Type state );
+
 	Application::Application( const ApplicationSpecification& spec )
 		: m_Specification( spec )
 	{
+		OPTICK_SET_STATE_CHANGED_CALLBACK( OnOptickStateChanged );
+
+		OPTICK_EVENT();
+
 		SingletonStorage::Get().AddSingleton( this );
 
 		// This may not be the best way... but its better than lazy loading.
@@ -81,6 +87,8 @@ namespace Saturn {
 
 		while( m_Running )
 		{
+			SAT_PF_FRAME("Master Thread");
+
 			Window::Get().OnUpdate();
 			Window::Get().Render();
 			
@@ -125,6 +133,8 @@ namespace Saturn {
 
 			m_ImGuiLayer = nullptr;
 		} );
+
+		OPTICK_SHUTDOWN();
 	}
 
 	void Application::Close()
@@ -256,6 +266,18 @@ namespace Saturn {
 		return std::string();
 	}
 
+	const char* Application::GetPlatformName()
+	{
+#if defined(SAT_DEBUG)
+		return "Debug";
+#elif defined(SAT_RELEASE)
+		return "Release";
+#elif defined(SAT_DIST)
+		return "Dist";
+#endif
+		return "Unknown";
+	}
+
 	void Application::PushLayer( Layer* pLayer )
 	{
 		m_Layers.push_back( pLayer );
@@ -302,6 +324,8 @@ namespace Saturn {
 
 	void Application::RenderImGui()
 	{
+		SAT_PF_EVENT();
+
 		m_ImGuiLayer->Begin();
 
 		for( auto& layer : m_Layers )
@@ -311,6 +335,34 @@ namespace Saturn {
 		}
 
 		m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
+	}
+
+	bool OnOptickStateChanged( Optick::State::Type state )
+	{
+		switch( state )
+		{
+			case Optick::State::DUMP_CAPTURE: 
+			{
+				Optick::AttachSummary( "Version", "0.0.1" );
+				Optick::AttachSummary( "Build", __DATE__ " " __TIME__ );
+
+				for( const auto& devices : VulkanContext::Get().GetPhysicalDeviceProperties() )
+				{
+					Optick::AttachSummary( "Device Name", devices.DeviceProps.deviceName );
+					Optick::AttachSummary( "Vulkan Version", "1.2.128" );
+				}
+
+				Optick::AttachSummary( "Configuration", Application::Get().GetPlatformName() );
+			} break;
+
+			case Optick::State::START_CAPTURE:
+			case Optick::State::STOP_CAPTURE:
+			case Optick::State::CANCEL_CAPTURE:
+			default:
+				break;
+		}
+
+		return true;
 	}
 
 }

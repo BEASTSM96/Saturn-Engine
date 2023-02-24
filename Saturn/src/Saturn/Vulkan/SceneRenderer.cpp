@@ -39,6 +39,8 @@
 #include "Saturn/ImGui/UITools.h"
 #include "Saturn/Core/Memory/Buffer.h"
 
+#include "Saturn/Core/OptickProfiler.h"
+
 #include <glm/gtx/matrix_decompose.hpp>
 #include <backends/imgui_impl_vulkan.h>
 
@@ -491,6 +493,8 @@ namespace Saturn {
 
 	void SceneRenderer::RenderGrid()
 	{
+		SAT_PF_EVENT();
+
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		// Set UB Data.
@@ -518,6 +522,8 @@ namespace Saturn {
 
 	void SceneRenderer::RenderSkybox()
 	{
+		SAT_PF_EVENT();
+
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
@@ -804,6 +810,8 @@ namespace Saturn {
 
 	void SceneRenderer::ImGuiRender()
 	{
+		SAT_PF_EVENT();
+
 		ImGui::Begin( "Scene Renderer" );
 		
 		ImGui::Text( "Viewport size, %i, %i", ( int )m_RendererData.Width, ( int ) m_RendererData.Height );
@@ -925,6 +933,8 @@ namespace Saturn {
 
 	void SceneRenderer::SubmitSelectedMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
+		SAT_PF_EVENT();
+
 		auto& submeshes = mesh->Submeshes();
 		for( size_t i = 0; i < submeshes.size(); i++ )
 			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) i } );
@@ -934,6 +944,8 @@ namespace Saturn {
 
 	void SceneRenderer::SubmitMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
 	{
+		SAT_PF_EVENT();
+
 		auto& submeshes = mesh->Submeshes();
 		for( size_t i = 0; i < submeshes.size(); i++ )
 			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = (uint32_t)i } );
@@ -982,6 +994,8 @@ namespace Saturn {
 
 	void SceneRenderer::GeometryPass()
 	{
+		SAT_PF_EVENT();
+
 		m_RendererData.GeometryPassTimer.Reset();
 
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
@@ -1123,6 +1137,8 @@ namespace Saturn {
 
 	void SceneRenderer::DirShadowMapPass()
 	{
+		SAT_PF_EVENT();
+
 		if( !m_RendererData.EnableShadows )
 			return;
 
@@ -1209,6 +1225,8 @@ namespace Saturn {
 
 	void SceneRenderer::PreDepthPass()
 	{
+		SAT_PF_EVENT();
+
 		m_RendererData.PreDepthTimer.Reset();
 
 		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
@@ -1258,6 +1276,8 @@ namespace Saturn {
 
 	void SceneRenderer::SceneCompositePass()
 	{
+		SAT_PF_EVENT();
+
 		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
@@ -1292,6 +1312,8 @@ namespace Saturn {
 
 	void SceneRenderer::AOCompositePass()
 	{
+		SAT_PF_EVENT();
+
 		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
@@ -1330,6 +1352,8 @@ namespace Saturn {
 
 	void SceneRenderer::LightCullingPass()
 	{
+		SAT_PF_EVENT();
+
 		m_RendererData.LightCullingTimer.Reset();
 
 		constexpr uint32_t TILE_SIZE = 16;
@@ -1412,6 +1436,8 @@ namespace Saturn {
 
 	void SceneRenderer::BloomPass()
 	{
+		SAT_PF_EVENT();
+
 		// Reset the descriptor pool.
 		VK_CHECK( vkResetDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.BloomDescriptorPool, 0 ) );
 
@@ -1668,6 +1694,8 @@ namespace Saturn {
 
 	void SceneRenderer::RenderScene()
 	{
+		SAT_PF_EVENT();
+
 		if( !m_pScene )
 		{
 			FlushDrawList();
