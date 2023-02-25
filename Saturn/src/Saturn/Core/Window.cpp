@@ -79,7 +79,7 @@ namespace Saturn {
 		glfwWindowHint( GLFW_VISIBLE, GLFW_FALSE );
 		glfwWindowHint( GLFW_TITLEBAR, GLFW_FALSE );
 
-		GLFWmonitor* pPrimary = glfwGetPrimaryMonitor();	
+		GLFWmonitor* pPrimary = glfwGetPrimaryMonitor();
 		
 		int x, y, w, h;
 		glfwGetMonitorWorkarea( pPrimary, &x, &y, &w, &h );
@@ -88,7 +88,6 @@ namespace Saturn {
 		m_Height = 3 * h / 4;
 		
 		// Create a 10x10 base window, the when we call "RemoveBorder" we resize the window to the actual size
-		// Kind of a hack
 		m_Window = glfwCreateWindow( 10, 10, m_Title.c_str(), nullptr, nullptr );
 
 		glfwSetWindowUserPointer( m_Window, this );
