@@ -27,6 +27,72 @@
 */
 
 #include "sppch.h"
+#include "GameThread.h"
 
-#include "backends/imgui_impl_vulkan.cpp"
-#include "backends/imgui_impl_glfw.cpp"
+#include "Saturn/Core/OptickProfiler.h"
+
+namespace Saturn {
+
+	GameThread::GameThread()
+	{
+		m_Running = std::make_shared<std::atomic_bool>();
+		m_Running->store( true );
+
+		m_Thread = std::thread( &GameThread::ThreadRun, this );
+	}
+
+	GameThread::~GameThread()
+	{
+	}
+
+	void GameThread::Terminate()
+	{
+		if( m_Thread.joinable() )
+		{
+			{
+				std::lock_guard<std::mutex> lock( m_Mutex );
+
+				m_Running->store( false );
+
+				m_Cond.notify_all();
+			}
+
+			while( m_Running->load() )
+			{
+				std::this_thread::yield();
+			}
+
+			m_Thread.join();
+		}
+	}
+
+	void GameThread::ThreadRun()
+	{
+		SetThreadDescription( GetCurrentThread(), L"Game Thread" );
+
+		while( true )
+		{
+			SAT_PF_FRAME("Game Thread");
+
+			std::unique_lock<std::mutex> Lock( m_Mutex );
+			m_Cond.wait( Lock, 
+				[this] 
+				{ 
+					return !m_Running->load() || !m_CommandBuffer.empty();
+				} );
+
+			if( !m_Running->load() ) { break; }
+
+			Lock.unlock();
+
+			for( auto& rFunc : m_CommandBuffer )
+				rFunc();
+
+			m_CommandBuffer.clear();
+
+		}
+
+		m_Running->store( false );
+	}
+
+}

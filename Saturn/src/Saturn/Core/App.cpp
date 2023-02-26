@@ -36,6 +36,8 @@
 
 #include "OptickProfiler.h"
 
+#include "Saturn/GameFramework/GameThread.h"
+
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
@@ -91,7 +93,7 @@ namespace Saturn {
 
 			Window::Get().OnUpdate();
 			Window::Get().Render();
-			
+		
 			if( !Window::Get().Minimized() )
 			{
 				Renderer::Get().BeginFrame();
@@ -120,6 +122,8 @@ namespace Saturn {
 
 		OnShutdown();
 		
+		GameThread::Get().Terminate();
+
 		VulkanContext::Get().SubmitTerminateResource( [&]() 
 		{
 			for ( auto& layer : m_Layers )

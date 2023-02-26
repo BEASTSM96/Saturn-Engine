@@ -177,39 +177,7 @@ namespace Saturn {
 			fileData.assign( std::istreambuf_iterator<char>( ifs ), std::istreambuf_iterator<char>() );
 		}
 
-		size_t pos = fileData.find( "__SATURN_DIR__" );
-
-		while( pos != std::string::npos )
-		{
-			std::filesystem::path rootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
-			rootDir /= "Saturn/src/";
-
-			auto rootDirString = rootDir.string();
-
-			std::replace( rootDirString.begin(), rootDirString.end(), '\\', '/' );
-
-			fileData.replace( pos, 14, rootDirString);
-
-			pos = fileData.find( "__SATURN_DIR__" );
-		}
-
-		pos = fileData.find( "__SATURN_VENDOR__" );
-
-		while( pos != std::string::npos )
-		{
-			std::filesystem::path rootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
-			rootDir /= "Saturn/vendor/";
-
-			auto rootDirString = rootDir.string();
-
-			std::replace( rootDirString.begin(), rootDirString.end(), '\\', '/' );
-
-			fileData.replace( pos, 17, rootDirString );
-
-			pos = fileData.find( "__SATURN_VENDOR__" );
-		}
-
-		pos = fileData.find( "__SATURN_BIN_DIR__" );
+		size_t pos = fileData.find( "__SATURN_BIN_DIR__" );
 
 		while( pos != std::string::npos )
 		{

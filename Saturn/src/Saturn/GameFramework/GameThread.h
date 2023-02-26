@@ -26,7 +26,44 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
+#pragma once
 
-#include "backends/imgui_impl_vulkan.cpp"
-#include "backends/imgui_impl_glfw.cpp"
+#include <thread>
+#include <functional>
+#include <mutex>
+#include <condition_variable>
+
+namespace Saturn {
+
+	class GameThread
+	{
+	public:
+		static inline GameThread& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<GameThread>(); }
+	public:
+		GameThread();
+		~GameThread();
+
+		template<typename Fn, typename... Args>
+		void Submit( Fn&& rrFunc, Args&&... rrArgs ) 
+		{
+			std::unique_lock<std::mutex> Lock( m_Mutex );
+			m_Cond.notify_one();
+
+			m_CommandBuffer.push_back( rrFunc );
+		}
+
+		void Terminate();
+
+	private:
+		void ThreadRun();
+	private:
+		std::thread m_Thread;
+		std::mutex m_Mutex;
+		std::condition_variable m_Cond;
+
+		std::vector<std::function<void()>> m_CommandBuffer;
+
+		bool m_ExecuteAll = false;
+		std::shared_ptr<std::atomic_bool> m_Running;
+	};
+}

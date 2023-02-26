@@ -31,6 +31,7 @@
 
 #include "GameScript.h"
 #include "EntityScriptManager.h"
+#include "GameThread.h"
 
 namespace Saturn {
 
@@ -44,6 +45,7 @@ namespace Saturn {
 
 		// We want the game manager to own this class.
 		EntityScriptManager* pScriptManager = new EntityScriptManager();
+		GameThread::Get();
 	}
 
 	GameManager::~GameManager()

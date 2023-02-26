@@ -31,6 +31,8 @@
 
 #include "GameScript.h"
 #include "GameDLL.h"
+#include "GameThread.h"
+
 #include "Saturn/Scene/Entity.h"
 #include "Saturn/Core/OptickProfiler.h"
 
@@ -87,16 +89,27 @@ namespace Saturn {
 	void EntityScriptManager::BeginPlay()
 	{
 		SAT_PF_EVENT();
-		for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
-			script->BeginPlay();
+
+		GameThread::Get().Submit( [&]() 
+			{
+				SAT_PF_EVENT("Saturn::EntityScriptManager::BeginPlay - Submit");
+
+				for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
+					script->BeginPlay();
+			} );
 	}
 
 	void EntityScriptManager::UpdateAllScripts( Saturn::Timestep ts )
 	{
 		SAT_PF_EVENT();
 
-		for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
-			script->OnUpdate( ts );
+		GameThread::Get().Submit( [&]()
+			{
+				SAT_PF_EVENT("Saturn::EntityScriptManager::UpdateAllScripts - Submit");
+
+				for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
+					script->OnUpdate( ts );
+			} );
 	}
 
 	void EntityScriptManager::CreateAllScripts()

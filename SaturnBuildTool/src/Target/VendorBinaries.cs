@@ -14,7 +14,8 @@ namespace SaturnBuildTool
         YAML_CPP,
         IMGUI,
         SPIRVCROSS,
-        SHADERC
+        SHADERC,
+        OPTICK
     }
 
     internal class VendorBinaries
@@ -118,6 +119,16 @@ namespace SaturnBuildTool
                             binPath = Path.Combine(binPath, "Debug-Windows");
                         else
                             binPath = Path.Combine(binPath, "Release-Windows");
+                    }
+                    break;
+
+                case VendorProject.OPTICK:
+                    {
+                        binPath = Path.Combine(binPath, "optick\\bin\\");
+
+                        binPath = GetRootBinPath(binPath, target);
+
+                        binPath = Path.Combine(binPath, "optick");
                     }
                     break;
             }
