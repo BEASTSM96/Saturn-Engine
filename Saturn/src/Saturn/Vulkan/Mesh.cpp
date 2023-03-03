@@ -85,14 +85,14 @@ namespace Saturn {
 		aiProcess_ValidateDataStructure;    // Validation
 		//aiProcess_GlobalScale |             // e.g. convert cm to m for fbx import (and other formats where cm is native)
 
-	struct LogStream : public Assimp::LogStream
+	struct AssimpLog : public Assimp::LogStream
 	{
 		static void Initialize()
 		{
 			if( Assimp::DefaultLogger::isNullLogger() )
 			{
 				Assimp::DefaultLogger::create( "", Assimp::Logger::VERBOSE );
-				Assimp::DefaultLogger::get()->attachStream( new LogStream, Assimp::Logger::Err | Assimp::Logger::Warn );
+				Assimp::DefaultLogger::get()->attachStream( new AssimpLog, Assimp::Logger::Err | Assimp::Logger::Warn );
 			}
 		}
 
@@ -102,36 +102,120 @@ namespace Saturn {
 		}
 	};
 	
-	Mesh::Mesh( const std::string& filename ) : m_FilePath( filename )
-	{
-		LogStream::Initialize();
+	//////////////////////////////////////////////////////////////////////////
 
-		SAT_CORE_INFO( "Loading mesh: {0}", filename.c_str() );
+	StaticMesh::StaticMesh( const std::string& rFilepath )
+		: m_FilePath( rFilepath )
+	{
+		AssimpLog::Initialize();
 
 		if( !std::filesystem::exists( m_FilePath ) )
-			SAT_CORE_ERROR( "Failed to load mesh file: {0}", filename );
+			SAT_CORE_ERROR( "Failed to load mesh file: {0}", m_FilePath );
+
+		SAT_CORE_INFO( "Loading mesh: {0}", m_FilePath.c_str() );
 
 		m_Importer = std::make_unique<Assimp::Importer>();
 
-		const aiScene* scene = m_Importer->ReadFile( filename, s_MeshImportFlags );
+		const aiScene* scene = m_Importer->ReadFile( m_FilePath, s_MeshImportFlags );
 		if( scene == nullptr || !scene->HasMeshes() )
-			SAT_CORE_ERROR( "Failed to load mesh file: {0}", filename );
+			SAT_CORE_ERROR( "Failed to load mesh file: {0}", m_FilePath );
 
 		m_Scene = scene;
+		// Shader new is the static mesh pbr shader.
 		m_MeshShader = ShaderLibrary::Get().Find( "shader_new" );
-		m_BaseMaterial = Ref< Material >::Create( m_MeshShader, "Base Material");
-		
-		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation ) );
-		m_Transform		   = Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation );
-		
-		// Get vertex and index data, also creates the vertex/index buffers.
-		GetVetexAndIndexData();
-		
-		m_VerticesCount = m_StaticVertices.size();
-		m_IndicesCount = m_Indices.size();
+		m_BaseMaterial = Ref< Material >::Create( m_MeshShader, "Base Material" );
 
-		// Create material.
-		m_Materials.resize( m_Scene->mNumMaterials );
+		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation ) );
+		m_Transform = Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation );
+
+		CreateVertices();
+		CreateMaterials();
+	}
+
+	StaticMesh::~StaticMesh()
+	{
+
+	}
+
+	void StaticMesh::CreateVertices()
+	{
+		m_Submeshes.reserve( m_Scene->mNumMeshes );
+
+		// Iterate over all meshes in the scene.
+		for( unsigned m = 0; m < m_Scene->mNumMeshes; m++ )
+		{
+			aiMesh* mesh = m_Scene->mMeshes[ m ];
+
+			Submesh& submesh = m_Submeshes.emplace_back();
+			submesh.BaseVertex = m_VertexCount;
+			submesh.BaseIndex = m_IndicesCount;
+			submesh.MaterialIndex = mesh->mMaterialIndex;
+			submesh.VertexCount = mesh->mNumVertices;
+			submesh.IndexCount = mesh->mNumFaces * 3;
+			submesh.MeshName = mesh->mName.C_Str();
+
+			m_VertexCount += mesh->mNumVertices;
+			m_IndicesCount += submesh.IndexCount;
+
+			SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );
+			SAT_CORE_ASSERT( mesh->HasNormals(), "Meshes require normals." );
+
+			// Vertices
+			for( size_t i = 0; i < mesh->mNumVertices; i++ )
+			{
+				StaticVertex vertex;
+				vertex.Position = { mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
+				vertex.Normal = { mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
+
+				if( mesh->HasTangentsAndBitangents() )
+				{
+					vertex.Tangent = { mesh->mTangents[ i ].x, mesh->mTangents[ i ].y, mesh->mTangents[ i ].z };
+					vertex.Binormal = { mesh->mBitangents[ i ].x, mesh->mBitangents[ i ].y, mesh->mBitangents[ i ].z };
+				}
+
+				if( mesh->HasTextureCoords( 0 ) )
+					vertex.Texcoord = { mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
+
+				m_Vertices.push_back( vertex );
+			}
+
+			// Indices
+			for( size_t i = 0; i < mesh->mNumFaces; i++ )
+			{
+				SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
+
+				m_Indices.push_back( { mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] } );
+			}
+		}
+
+		m_VertexBuffer = Ref<VertexBuffer>::Create( m_Vertices.data(), ( uint32_t ) ( m_Vertices.size() * sizeof( StaticVertex ) ) );
+		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
+
+		TraverseNodes( m_Scene->mRootNode );
+	}
+
+	void StaticMesh::TraverseNodes( aiNode* node, const glm::mat4& parentTransform /*= glm::mat4( 1.0f )*/, uint32_t level /*= 0 */ )
+	{
+		glm::mat4 transform = parentTransform * Mat4FromAssimpMat4( node->mTransformation );
+
+		for( uint32_t i = 0; i < node->mNumMeshes; i++ )
+		{
+			uint32_t mesh = node->mMeshes[ i ];
+			auto& submesh = m_Submeshes[ mesh ];
+			submesh.NodeName = node->mName.C_Str();
+			submesh.Transform = transform;
+
+			// Create a descriptor set for each submesh to use.
+			// Set 0 = material data and vertex data.
+			m_DescriptorSets[ submesh ] = m_MeshShader->CreateDescriptorSet( 0 );
+		}
+
+		for( uint32_t i = 0; i < node->mNumChildren; i++ )
+			TraverseNodes( node->mChildren[ i ], transform, level + 1 );
+	}
+
+	void StaticMesh::CreateMaterials()
+	{
 		m_MaterialsAssets.resize( m_Scene->mNumMaterials );
 
 		for( size_t m = 0; m < m_Scene->mNumMaterials; m++ )
@@ -141,37 +225,31 @@ namespace Saturn {
 			aiString name;
 			material->Get( AI_MATKEY_NAME, name );
 
-			SAT_CORE_INFO( "Material: {0}", name.C_Str() );
-			
 			std::string MaterialName = std::string( name.C_Str() );
 
 			Ref<Texture2D> PinkTexture = Renderer::Get().GetPinkTexture();
 
+			// This is more of a hack, as we use parent_path just so we can add the material on to it.
 			auto assetPath = std::filesystem::path( m_FilePath ).parent_path();
-
 			assetPath /= name.data;
 			assetPath += ".smaterial";
 
-			auto mat = Ref<MaterialInstance>::Create( m_BaseMaterial, name.data );
-			m_Materials[ m ] = mat;
+			Ref<Asset> asset = AssetRegistry::Get().FindAsset( assetPath );
+			Ref<MaterialAsset> materialAsset;
 
-			Ref<Asset> realAsset = AssetRegistry::Get().FindAsset( assetPath );
-
-			Ref<MaterialAsset> asset;
-
-			if( realAsset == nullptr )
+			if( !asset ) 
 			{
-				// Create a new material asset.
-				realAsset = AssetRegistry::Get().FindAsset( AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( assetPath.extension().string() ) ) );
+				// Create the new asset
+				asset = AssetRegistry::Get().FindAsset( AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( assetPath.extension().string() ) ) );
 
-				realAsset->SetPath( assetPath );
+				asset->SetPath( assetPath );
 
-				// Try load
-				asset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( realAsset->GetAssetID() );
+				materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( asset->GetAssetID() );
 
-				if( asset == nullptr ) 
+				// material is still null, must likey a new material.
+				if( materialAsset == nullptr ) 
 				{
-					asset = Ref<MaterialAsset>::Create( nullptr );
+					materialAsset = Ref<MaterialAsset>::Create( nullptr );
 				}
 
 				// Write to disk, create file.
@@ -183,39 +261,39 @@ namespace Saturn {
 					std::string Name;
 				} OldAssetData = {};
 
-				OldAssetData.ID   = realAsset->ID;
-				OldAssetData.Type = realAsset->Type;
-				OldAssetData.Path = realAsset->Path;
-				OldAssetData.Name = realAsset->Name;
+				OldAssetData.ID = asset->ID;
+				OldAssetData.Type = asset->Type;
+				OldAssetData.Path = asset->Path;
+				OldAssetData.Name = asset->Name;
 
-				realAsset = asset;
-				realAsset->ID = OldAssetData.ID;
-				realAsset->Type = OldAssetData.Type;
-				realAsset->Path = OldAssetData.Path;
-				realAsset->Name = OldAssetData.Name;
+				asset = materialAsset;
+				asset->ID = OldAssetData.ID;
+				asset->Type = OldAssetData.Type;
+				asset->Path = OldAssetData.Path;
+				asset->Name = OldAssetData.Name;
 
 				MaterialAssetSerialiser mas;
-				mas.Serialise( realAsset );
+				mas.Serialise( materialAsset );
 
-				asset->SetName( MaterialName );
+				materialAsset->SetName( MaterialName );
 
-				m_MaterialsAssets[ m ] = asset;
+				m_MaterialsAssets[ m ] = materialAsset;
 			}
 			else
 			{
-				asset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( realAsset->GetAssetID() );
-				m_MaterialsAssets[ m ] = asset;
+				// Asset was already loaded.
+				materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( asset->GetAssetID() );
+				m_MaterialsAssets[ m ] = materialAsset;
 
 				continue;
 			}
 
+			// Set the material data (only for new materials)/
+			
+			// Albedo Color
 			aiColor3D color;
-			if( material->Get( AI_MATKEY_COLOR_DIFFUSE, color ) == AI_SUCCESS );
-				mat->Set( "u_Materials.AlbedoColor", glm::vec3( color.r, color.g, color.b ) );
-
-			asset->SetAlbeoColor( glm::vec3( color.r, color.g, color.b ) );
-
-			SAT_CORE_INFO( " Albedo color: {0}", glm::vec3( color.r, color.g, color.b ) );
+			if( material->Get( AI_MATKEY_COLOR_DIFFUSE, color ) == AI_SUCCESS )
+				materialAsset->SetAlbeoColor( glm::vec3( color.r, color.g, color.b ) );
 
 			float shininess, metalness;
 			if( material->Get( AI_MATKEY_SHININESS, shininess ) != aiReturn_SUCCESS )
@@ -225,9 +303,6 @@ namespace Saturn {
 				metalness = 0.0f;
 
 			float roughness = 1.0f - glm::sqrt( shininess / 100.0f );
-			SAT_CORE_INFO( " Roughness: {0}", roughness );
-			SAT_CORE_INFO( " shininess: {0}", shininess );
-			SAT_CORE_INFO( " metalness: {0}", metalness );
 
 			// Albedo Texture
 			{
@@ -236,17 +311,17 @@ namespace Saturn {
 
 				if( HasAlbedoTexture )
 				{
-					std::filesystem::path AlbedoPath = filename;
+					std::filesystem::path AlbedoPath = m_FilePath;
 					auto pp = AlbedoPath.parent_path();
 
 					pp /= std::string( AlbedoTexturePath.data );
 
 					auto AlbedoTexturePath = pp.string();
-					
+
 					Ref< Texture2D > AlbedoTexture;
 
 					SAT_CORE_INFO( " Albedo Map texture {0}", AlbedoTexturePath );
-					
+
 					auto localTexturePath = assetPath.parent_path();
 
 					localTexturePath /= pp.filename();
@@ -255,21 +330,20 @@ namespace Saturn {
 						std::filesystem::copy_file( AlbedoTexturePath, localTexturePath );
 
 					if( std::filesystem::exists( localTexturePath ) )
-							AlbedoTexture = Ref< Texture2D >::Create( localTexturePath, AddressingMode::Repeat, false );
+						AlbedoTexture = Ref< Texture2D >::Create( localTexturePath, AddressingMode::Repeat, false );
 
 					if( AlbedoTexture )
 					{
-						mat->SetResource( "u_AlbedoTexture", AlbedoTexture );
-						asset->SetAlbeoMap( AlbedoTexture );
+						materialAsset->SetAlbeoMap( AlbedoTexture );
 					}
 					else
 					{
-						mat->SetResource( "u_AlbedoTexture", PinkTexture );
+						materialAsset->SetAlbeoMap( PinkTexture );
 					}
 				}
 				else
 				{
-					mat->SetResource( "u_AlbedoTexture", PinkTexture );
+					materialAsset->SetAlbeoMap( PinkTexture );
 				}
 			}
 
@@ -280,7 +354,7 @@ namespace Saturn {
 
 				if( HasNormalTexture )
 				{
-					std::filesystem::path Path = filename;
+					std::filesystem::path Path = m_FilePath;
 					auto pp = Path.parent_path();
 
 					pp /= std::string( NormalTexturePath.data );
@@ -303,22 +377,19 @@ namespace Saturn {
 
 					if( NormalTexture )
 					{
-						mat->SetResource( "u_NormalTexture", NormalTexture );
-						mat->Set( "u_Materials.UseNormalMap", 1.0f );
-
-						asset->SetNormalMap( NormalTexture );
-						asset->UseNormalMap( 1.0f );
+						materialAsset->SetNormalMap( NormalTexture );
+						materialAsset->UseNormalMap( 1.0f );
 					}
 					else
 					{
-						mat->SetResource( "u_NormalTexture", PinkTexture );
-						mat->Set( "u_Materials.UseNormalMap", 0.0f );
+						materialAsset->SetNormalMap( PinkTexture );
+						materialAsset->UseNormalMap( 0.0f );
 					}
 				}
 				else
 				{
-					mat->SetResource( "u_NormalTexture", PinkTexture );
-					mat->Set( "u_Materials.UseNormalMap", 0.0f );
+					materialAsset->SetNormalMap( PinkTexture );
+					materialAsset->UseNormalMap( 0.0f );
 				}
 			}
 
@@ -327,13 +398,13 @@ namespace Saturn {
 				aiString RoughnessTexturePath;
 				bool HasRoughnessTexture = material->GetTexture( aiTextureType_SHININESS, 0, &RoughnessTexturePath ) == AI_SUCCESS;
 
-				mat->Set( "u_Materials.Roughness", roughness );
+				materialAsset->Set( "u_Materials.Roughness", roughness );
 
-				asset->SetRoughness( roughness );
+				materialAsset->SetRoughness( roughness );
 
-				if( HasRoughnessTexture ) 
+				if( HasRoughnessTexture )
 				{
-					std::filesystem::path Path = filename;
+					std::filesystem::path Path = m_FilePath;
 					auto pp = Path.parent_path();
 
 					pp /= std::string( RoughnessTexturePath.data );
@@ -354,24 +425,23 @@ namespace Saturn {
 
 					if( RoughnessTexture )
 					{
-						mat->SetResource( "u_RoughnessTexture", RoughnessTexture );
-						asset->SetRoughnessMap( RoughnessTexture );
+						materialAsset->SetRoughnessMap( RoughnessTexture );
 					}
 					else
 					{
-						mat->SetResource( "u_RoughnessTexture", PinkTexture );
+						materialAsset->SetRoughnessMap( PinkTexture );
 					}
 				}
 				else
 				{
-					mat->SetResource( "u_RoughnessTexture", PinkTexture );
+					materialAsset->SetRoughnessMap( PinkTexture );
 				}
 			}
 
 			// Metalness
 			{
 				bool FoundMetalness = false;
-				
+
 				for( uint32_t i = 0; i < material->mNumProperties; i++ )
 				{
 					auto prop = material->mProperties[ i ];
@@ -384,7 +454,7 @@ namespace Saturn {
 						std::string Key = prop->mKey.data;
 						if( Key == "$raw.ReflectionFactor|file" )
 						{
-							std::filesystem::path Path = filename;
+							std::filesystem::path Path = m_FilePath;
 							auto pp = Path.parent_path();
 
 							pp /= String;
@@ -403,19 +473,18 @@ namespace Saturn {
 							if( std::filesystem::exists( localTexturePath ) )
 								MetalnessTexture = Ref< Texture2D >::Create( localTexturePath, AddressingMode::Repeat, false );
 
-							if( MetalnessTexture ) 
+							if( MetalnessTexture )
 							{
 								FoundMetalness = true;
-								mat->SetResource( "u_MetallicTexture", MetalnessTexture );
-								asset->SetMetallicMap( MetalnessTexture );
+
+								materialAsset->SetMetallicMap( MetalnessTexture );
 							}
 							else
 							{
-								mat->SetResource( "u_MetallicTexture", PinkTexture );
+								materialAsset->SetMetallicMap( PinkTexture );
 							}
 
-							mat->Set( "u_Materials.Metalness", 1.0f );
-							asset->SetMetalness( 1.0f );
+							materialAsset->SetMetalness( 1.0f );
 
 							break;
 						}
@@ -424,150 +493,32 @@ namespace Saturn {
 
 				if( !FoundMetalness )
 				{
-					mat->SetResource( "u_MetallicTexture", PinkTexture );
-					mat->Set( "u_Materials.Metalness", metalness );
-					asset->SetMetalness( metalness );
+					materialAsset->SetMetallicMap( PinkTexture );
+					materialAsset->SetMetalness( metalness );
 				}
 
 				MaterialAssetSerialiser mas;
-				mas.Serialise( asset, nullptr );
+				mas.Serialise( materialAsset, nullptr );
 			}
 		}
 
+		// Serialise the asset registry to save any new materials.
 		AssetRegistrySerialiser ars;
 		ars.Serialise();
-	}
-
-	Mesh::Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform ) : m_StaticVertices( vertices ), m_Indices( indices )
-	{
-		Submesh submesh;
-		submesh.BaseVertex = 0;
-		submesh.BaseIndex = 0;
-		submesh.IndexCount = indices.size() * 3;
-		submesh.Transform = transform;
-		m_Submeshes.push_back( submesh );
-
-		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), m_StaticVertices.size() * sizeof( MeshVertex ) );
-
-		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
-	}
-
-	Mesh::Mesh( AssetID ID )
-	{
-		m_FilePath = AssetRegistry::Get().FindAsset( ID )->Path.string();
-	}
-
-	Mesh::~Mesh()
-	{
-		if( m_BaseMaterial )
-			m_BaseMaterial = nullptr;
-
-		m_VertexBuffer = nullptr;
-		m_IndexBuffer = nullptr;
-
-		m_Indices.clear();
-		m_StaticVertices.clear();
-	}
-
-	void Mesh::TraverseNodes( aiNode* node, const glm::mat4& parentTransform, uint32_t level ) 
-	{
-		glm::mat4 transform = parentTransform * Mat4FromAssimpMat4( node->mTransformation );
-
-		for( uint32_t i = 0; i < node->mNumMeshes; i++ )
-		{
-			uint32_t mesh = node->mMeshes[ i ];
-			auto& submesh = m_Submeshes[ mesh ];
-			submesh.NodeName = node->mName.C_Str();
-			submesh.Transform = transform;
-
-			// Create a descriptor set for each submesh to use.
-			// Set 0 = material data and vertex data.
-			m_DescriptorSets[ submesh ] = m_MeshShader->CreateDescriptorSet( 0 );
-		}
-
-		for( uint32_t i = 0; i < node->mNumChildren; i++ )
-			TraverseNodes( node->mChildren[ i ], transform, level + 1 );
-	}
-
-	void Mesh::RefreshDescriptorSets()
-	{
-		SAT_CORE_ASSERT( false, "Not added!" );
-	}
-
-	void Mesh::GetVetexAndIndexData()
-	{
-		m_Submeshes.reserve( m_Scene->mNumMeshes );
-
-		for( unsigned m = 0; m < m_Scene->mNumMeshes; m++ )
-		{
-			aiMesh* mesh = m_Scene->mMeshes[ m ];
-
-			Submesh& submesh = m_Submeshes.emplace_back();
-			submesh.BaseVertex = m_VertexCount;
-			submesh.BaseIndex = m_IndicesCount;
-			submesh.MaterialIndex = mesh->mMaterialIndex;
-			submesh.VertexCount = mesh->mNumVertices;
-			submesh.IndexCount = mesh->mNumFaces * 3;
-			submesh.MeshName = mesh->mName.C_Str();
-
-			m_VertexCount += mesh->mNumVertices;
-			m_IndicesCount += submesh.IndexCount;
-
-			SAT_CORE_ASSERT( mesh->HasPositions(), "Meshes require positions." );
-			SAT_CORE_ASSERT( mesh->HasNormals(), "Meshes require normals." );
-
-			// Vertices
-			for( size_t i = 0; i < mesh->mNumVertices; i++ )
-			{
-				MeshVertex vertex;
-				vertex.Position = { mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
-				vertex.Normal = { mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
-
-				if( mesh->HasTangentsAndBitangents() )
-				{
-					vertex.Tangent = { mesh->mTangents[ i ].x, mesh->mTangents[ i ].y, mesh->mTangents[ i ].z };
-					vertex.Binormal = { mesh->mBitangents[ i ].x, mesh->mBitangents[ i ].y, mesh->mBitangents[ i ].z };
-				}
-
-				if( mesh->HasTextureCoords( 0 ) )
-					vertex.Texcoord = { mesh->mTextureCoords[ 0 ][ i ].x, mesh->mTextureCoords[ 0 ][ i ].y };
-
-				m_StaticVertices.push_back( vertex );
-			}
-
-			// Indices
-			for( size_t i = 0; i < mesh->mNumFaces; i++ )
-			{
-				SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
-
-				m_Indices.push_back( { mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] } );
-			}
-		}
-
-		m_VertexBuffer = Ref<VertexBuffer>::Create( m_StaticVertices.data(), (uint32_t)(m_StaticVertices.size() * sizeof( MeshVertex ) ) );
-
-		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
-
-		TraverseNodes( m_Scene->mRootNode );
-	}
-
-	void Mesh::CopyTextures()
-	{
-
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 
 	MeshSource::MeshSource( const std::filesystem::path& rPath, const std::filesystem::path& rDstPath )
 	{
-		LogStream::Initialize();
+		AssimpLog::Initialize();
 
 		m_Importer = std::make_unique<Assimp::Importer>();
 
 		const aiScene* scene = m_Importer->ReadFile( rPath.string(), s_MeshImportFlags );
 
 		m_Scene = scene;
-		
+
 		for( size_t m = 0; m < m_Scene->mNumMaterials; m++ )
 		{
 			aiMaterial* material = m_Scene->mMaterials[ m ];

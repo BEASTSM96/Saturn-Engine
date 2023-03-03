@@ -146,7 +146,7 @@ namespace Saturn {
 		vkCmdEndRenderPass( CommandBuffer );
 	}
 	
-	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform, Buffer additionalData )
+	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<StaticMesh> mesh, const glm::mat4 transform, Buffer additionalData )
 	{	
 		SAT_PF_EVENT();
 
@@ -182,22 +182,12 @@ namespace Saturn {
 	void Renderer::RenderSubmesh(
 		VkCommandBuffer CommandBuffer, 
 		Ref< Saturn::Pipeline > Pipeline,
-		Ref< Mesh > mesh,
+		Ref< StaticMesh > mesh,
 		Submesh& rSubmsh, const glm::mat4 transform )
 	{
-		SAT_PF_EVENT();
-
-		auto& materials = mesh->GetMaterials();
-		auto& material = materials[ rSubmsh.MaterialIndex ];
-
-		// Bind material.
-		material->Bind( mesh, rSubmsh, mesh->GetShader() );
-
-		// Draw.
-		vkCmdDrawIndexed( CommandBuffer, rSubmsh.IndexCount, 1, rSubmsh.BaseIndex, rSubmsh.BaseVertex, 0 );
 	}
 	
-	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex )
+	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex )
 	{
 		SAT_PF_EVENT();
 
@@ -209,7 +199,6 @@ namespace Saturn {
 
 		Submesh& rSubmesh = mesh->Submeshes()[ SubmeshIndex ];
 		{
-			auto& rMaterial = mesh->GetMaterials()[ rSubmesh.MaterialIndex ];
 			auto& rMaterialAsset = mesh->GetMaterialAssets()[ rSubmesh.MaterialIndex ];
 			Ref< DescriptorSet > Set = mesh->GetDescriptorSets()[ rSubmesh ];
 

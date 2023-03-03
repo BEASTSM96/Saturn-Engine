@@ -49,24 +49,6 @@
 
 namespace Saturn {
 
-	/** @brief A TransformComponent.
-	*
-	* @code
-	*
-	* glm::mat4 Transform (default 1.0f)
-	*
-	* TransformComponent()
-	* TransformComponent(const TransformComponent&)
-	* TransformComponent(const glm::mat4 & Transform)
-	*
-	*
-	*	operator glm::mat4& ()
-	*
-	*	operator const glm::mat4& ()
-	*
-	* @endcode
-	*/
-
 	struct TransformComponent
 	{
 		glm::vec3  Position ={ 0.0f , 0.0f, 0.0f };
@@ -102,26 +84,6 @@ namespace Saturn {
 		operator const glm::mat4& ( ) const { return GetTransform(); }
 	};
 
-	struct VisibilityComponent
-	{
-		Visibility visibility = Visibility::Visible;
-
-		VisibilityComponent() = default;
-		VisibilityComponent( const VisibilityComponent& other ) = default;
-	};
-
-	/** @brief A TagComponent.
-	*
-	* @code
-	*
-	* std::string Tag;
-	*
-	* TagComponent()
-	* TagComponent(const TagComponent&) = default
-	* TagComponent(const std::string& tag)
-	*
-	* @endcode
-	*/
 	struct TagComponent
 	{
 		std::string Tag;
@@ -135,18 +97,6 @@ namespace Saturn {
 		}
 	};
 
-	/** @brief A IdComponent.
-	*
-	* @code
-	*
-	* UUID ID;
-	*
-	* IdComponent()
-	* IdComponent(const IdComponent&) = default
-	* IdComponent(const UUID& uuid)
-	*
-	* @endcode
-	*/
 	struct IdComponent
 	{
 		UUID ID;
@@ -159,32 +109,19 @@ namespace Saturn {
 		}
 	};
 
-	/** @brief A MeshComponent.
-	*
-	* @code
-	*
-	* Ref of type Mesh
-	*
-	*
-	* MeshComponent()
-	* MeshComponent(const MeshComponent&) = default
-	* MeshComponent( Ref of type Mesh )
-	*
-	*
-	* @endcode
-	*/
-	struct MeshComponent
+	struct StaticMeshComponent
 	{
-		Ref<Saturn::Mesh> Mesh;
+		// TODO: Change to Asset ID
+		Ref<Saturn::StaticMesh> Mesh;
 
-		MeshComponent() = default;
-		MeshComponent( const MeshComponent& other ) = default;
-		MeshComponent( Ref<Saturn::Mesh>& model )
-			: Mesh( model )
+		StaticMeshComponent() = default;
+		StaticMeshComponent( const StaticMeshComponent& other ) = default;
+		StaticMeshComponent( Ref<Saturn::StaticMesh>& rMesh )
+			: Mesh( rMesh )
 		{
 		}
 
-		operator Ref<Saturn::Mesh>() { return Mesh; }
+		operator Ref<Saturn::StaticMesh>() { return Mesh; }
 	};
 
 	struct LightComponent
@@ -315,8 +252,8 @@ namespace Saturn {
 	template<typename... V>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<TransformComponent, VisibilityComponent, TagComponent, IdComponent, RelationshipComponent,
-		MeshComponent, 
+	using AllComponents = ComponentGroup<TransformComponent, TagComponent, IdComponent, RelationshipComponent,
+		StaticMeshComponent, 
 		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 		CameraComponent,
 		PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent,

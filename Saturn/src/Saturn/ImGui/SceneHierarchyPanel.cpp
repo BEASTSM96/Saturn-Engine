@@ -249,7 +249,7 @@ namespace Saturn {
 
 		if( ImGui::BeginPopup( "AddComponentPanel" ) )
 		{
-			DrawAddComponents<MeshComponent>( "Mesh", m_SelectionContext );
+			DrawAddComponents<StaticMeshComponent>( "Static Mesh", m_SelectionContext );
 
 			DrawAddComponents<ScriptComponent>( "Script", m_SelectionContext );
 
@@ -400,7 +400,7 @@ namespace Saturn {
 			DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 
-		DrawComponent<MeshComponent>( "Mesh", entity, [&]( auto& mc )
+		DrawComponent<StaticMeshComponent>( "Static Mesh", entity, [&]( auto& mc )
 		{
 			static AssetID id;
 
@@ -436,7 +436,7 @@ namespace Saturn {
 						{
 							if( ImGui::Selectable( rAsset->GetName().c_str() ) )
 							{
-								mc.Mesh = Ref<Mesh>::Create( assetID );
+								//mc.Mesh = Ref<StaticMesh>::Create( assetID );
 
 								PopupModified = true;
 							}

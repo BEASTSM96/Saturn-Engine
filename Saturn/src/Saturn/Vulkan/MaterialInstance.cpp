@@ -87,7 +87,7 @@ namespace Saturn {
 		m_Material = nullptr;
 	}
 
-	void MaterialInstance::Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader )
+	void MaterialInstance::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader )
 	{
 		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
 

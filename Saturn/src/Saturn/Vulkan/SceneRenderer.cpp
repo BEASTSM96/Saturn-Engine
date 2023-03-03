@@ -931,7 +931,7 @@ namespace Saturn {
 		ImGui::End();
 	}
 
-	void SceneRenderer::SubmitSelectedMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
+	void SceneRenderer::SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4 transform )
 	{
 		SAT_PF_EVENT();
 
@@ -942,13 +942,13 @@ namespace Saturn {
 		m_ShadowMapDrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) 0 } );
 	}
 
-	void SceneRenderer::SubmitMesh( Entity entity, Ref< Mesh > mesh, const glm::mat4 transform )
+	void SceneRenderer::SubmitSelectedMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4 transform )
 	{
 		SAT_PF_EVENT();
 
 		auto& submeshes = mesh->Submeshes();
 		for( size_t i = 0; i < submeshes.size(); i++ )
-			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = (uint32_t)i } );
+			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) i } );
 
 		m_ShadowMapDrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) 0 } );
 	}

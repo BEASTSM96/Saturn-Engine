@@ -46,10 +46,14 @@ namespace Saturn {
 		template<typename Fn, typename... Args>
 		void Submit( Fn&& rrFunc, Args&&... rrArgs ) 
 		{
+#if defined(SAT_ENABLE_GAMETHREAD)
 			std::unique_lock<std::mutex> Lock( m_Mutex );
 			m_Cond.notify_one();
 
 			m_CommandBuffer.push_back( rrFunc );
+#else
+			rrFunc();
+#endif
 		}
 
 		void Terminate();

@@ -193,7 +193,7 @@ namespace Saturn {
 		m_Material->SetResource( rName, rTexture );
 	}
 
-	void MaterialAsset::Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, bool Force /*=false*/ )
+	void MaterialAsset::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, bool Force /*=false*/ )
 	{
 		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
 

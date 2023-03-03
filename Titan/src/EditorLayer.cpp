@@ -430,9 +430,9 @@ namespace Saturn {
 
 		if( auto& rSelection = pHierarchyPanel->GetSelectionContext() )
 		{
-			if( rSelection.HasComponent<MeshComponent>() )
+			if( rSelection.HasComponent<StaticMeshComponent>() )
 			{
-				if( auto& mesh = rSelection.GetComponent<MeshComponent>().Mesh )
+				if( auto& mesh = rSelection.GetComponent<StaticMeshComponent>().Mesh )
 				{
 					ImGui::TextDisabled( "%llx", rSelection.GetComponent<IdComponent>().ID );
 
@@ -644,7 +644,7 @@ namespace Saturn {
 				std::filesystem::path p = path;
 
 				auto entity = m_EditorScene->CreateEntity( p.filename().string() );
-				entity.AddComponent<MeshComponent>().Mesh = Ref<Mesh>::Create( p.string() );
+				entity.AddComponent<StaticMeshComponent>().Mesh = Ref<StaticMesh>::Create( p.string() );
 			}
 
 			ImGui::EndDragDropTarget();

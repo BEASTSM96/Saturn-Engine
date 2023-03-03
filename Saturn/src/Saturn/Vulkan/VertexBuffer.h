@@ -48,7 +48,7 @@ namespace Saturn {
 		glm::vec2 Texcoord;
 	};
 
-	struct MeshVertex
+	struct StaticVertex
 	{
 		glm::vec3 Position;
 		glm::vec3 Normal;

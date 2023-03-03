@@ -37,13 +37,9 @@
 
 namespace Saturn {
 
-	GameDLL* GameDLL::s_Instance;
-
 	GameDLL::GameDLL()
 	{
-		SAT_CORE_ASSERT( !s_Instance, "GameDLL was already created." );
-
-		s_Instance = this;
+		SingletonStorage::Get().AddSingleton( this );
 	}
 
 	void GameDLL::Load()

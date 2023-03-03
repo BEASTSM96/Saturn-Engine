@@ -35,7 +35,7 @@
 
 namespace Saturn {
 
-	class Mesh;
+	class StaticMesh;
 	class Submesh;
 	class MaterialInstance;
 
@@ -47,7 +47,7 @@ namespace Saturn {
 
 		void Copy( Ref<Material>& rOther );
 
-		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
+		void Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
 
 		void Unbind();
 		

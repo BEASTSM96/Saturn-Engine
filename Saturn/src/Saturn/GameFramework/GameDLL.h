@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "SingletonStorage.h"
+
 #include <Windows.h>
 
 namespace Saturn {
@@ -35,17 +37,15 @@ namespace Saturn {
 	class GameDLL
 	{
 	public:
+		static GameDLL& Get() { return *SingletonStorage::Get().GetSingleton<GameDLL>(); }
+	public:
 		GameDLL();
 		~GameDLL() {}
 
 		void Load();
 		void Unload();
 
-		static GameDLL& Get() { return *s_Instance; }
-
 	private:
-		static GameDLL* s_Instance;
-
 		HMODULE m_DLLInstance = nullptr;
 
 	private:

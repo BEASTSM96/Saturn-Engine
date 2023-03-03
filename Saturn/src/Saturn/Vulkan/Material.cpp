@@ -109,7 +109,7 @@ namespace Saturn {
 		m_PushConstantData = rOther->m_PushConstantData;
 	}
 
-	void Material::Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader )
+	void Material::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader )
 	{
 		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
 		

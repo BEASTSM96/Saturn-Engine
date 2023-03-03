@@ -56,16 +56,6 @@ namespace Assimp {
 
 namespace Saturn {
 
-	struct Triangle
-	{
-		MeshVertex V0, V1, V2;
-
-		Triangle( const MeshVertex& v0, const MeshVertex& v1, const MeshVertex& v2 )
-			: V0( v0 ), V1( v1 ), V2( v2 )
-		{
-		}
-	};
-
 	class Submesh
 	{
 	public:
@@ -106,100 +96,62 @@ namespace Saturn {
 	class DescriptorSet;
 	class MaterialInstance;
 
-	class Mesh : public CountedObj
+	class StaticMesh : public CountedObj
 	{
+		using DescriptorSetMap = std::unordered_map< Submesh, Ref< DescriptorSet > >;
 	public:
-		Mesh( const std::string& filename );
-		Mesh( const std::vector<MeshVertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform );
-		Mesh( AssetID ID ); // Think of this as a fake ctor it will not create/load the mesh, it used for prefabs so we can set the filepath.
-		~Mesh();
-
-		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
-
-		Ref<Shader> MeshShader() { return m_MeshShader; }
-		std::vector<Submesh>& Submeshes() { return m_Submeshes; }
-		const std::vector<Submesh>& Submeshes() const { return m_Submeshes; }
-
-		std::unordered_map< Submesh, Ref< DescriptorSet > >& GetDescriptorSets() { return m_DescriptorSets; }
-		const std::unordered_map< Submesh, Ref< DescriptorSet > >& GetDescriptorSets() const { return m_DescriptorSets; }
+		StaticMesh( const std::string& rFilepath );
+		~StaticMesh();
 
 		std::string& FilePath() { return m_FilePath; }
 		const std::string& FilePath() const { return m_FilePath; }
 
-		const std::vector<Triangle> TriangleCache( uint32_t index ) const { return m_TriangleCache.at( index ); }
-
-		const uint32_t VertexCount() const { return m_VertexCount; }
-		const uint32_t TriangleCount() const { return m_TriangleCount; }
-		const uint32_t IndicesCount() const { return m_IndicesCount; }
-		const uint32_t VerticesCount() const { return m_VerticesCount; }
-
-		const std::vector<Index>& Indices() const { return m_Indices; }
-		const std::vector<MeshVertex>& Vertices() const { return m_StaticVertices; }
-
-		const Ref<Shader>& GetShader() const { return m_MeshShader; }
-		Ref<Shader>& GetShader() { return m_MeshShader; }
-
-		Ref<VertexBuffer>& GetVertexBuffer() { return m_VertexBuffer; }
-		Ref<IndexBuffer>& GetIndexBuffer() { return m_IndexBuffer; }
-		
-		Ref<Material>& GetBaseMaterial( ) { return m_BaseMaterial; }
-		const Ref<Material>& GetBaseMaterial() const { return m_BaseMaterial; }
-	
-		std::vector< Ref< MaterialInstance > >& GetMaterials() { return m_Materials; }
-		const std::vector< Ref< MaterialInstance > >& GetMaterials() const { return m_Materials; }
+		glm::mat4 GetInverseTransform() const { return m_InverseTransform; }
+		glm::mat4 GetTransform() const { return m_Transform; }
 
 		std::vector< Ref< MaterialAsset > >& GetMaterialAssets() { return m_MaterialsAssets; }
 		const std::vector< Ref< MaterialAsset > >& GetMaterialAssets() const { return m_MaterialsAssets; }
 
-		glm::mat4 GetInverseTransform() const { return m_InverseTransform; }
-		glm::mat4 GetTransform() const { return m_Transform; }
+		DescriptorSetMap& GetDescriptorSets() { return m_DescriptorSets; }
+		const DescriptorSetMap& GetDescriptorSets() const { return m_DescriptorSets; }
 
-	public:
+		std::vector<Submesh>& Submeshes() { return m_Submeshes; }
+		const std::vector<Submesh>& Submeshes() const { return m_Submeshes; }
 
-		void RefreshDescriptorSets();
+		Ref<VertexBuffer> GetVertexBuffer() { return m_VertexBuffer; }
+		Ref<IndexBuffer> GetIndexBuffer() { return m_IndexBuffer; }
 
-	private:
-		
-		void GetVetexAndIndexData();
-
-		void CopyTextures();
+		Ref<Shader> GetShader() { return m_MeshShader; }
 
 	private:
+		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
+		void CreateVertices();
+		void CreateMaterials();
+	private:
+		Ref<VertexBuffer> m_VertexBuffer;
+		Ref<IndexBuffer> m_IndexBuffer;
 
-		std::vector<MeshVertex> m_StaticVertices;
-
-		std::vector<Submesh> m_Submeshes;
-
-		std::vector< Ref< MaterialInstance > > m_Materials;
-		std::vector< Ref< MaterialAsset > > m_MaterialsAssets;
-
-		std::vector<Index> m_Indices;
-		std::vector<uint32_t> m_RealIndices;
-		
 		std::unordered_map< Submesh, Ref< DescriptorSet > > m_DescriptorSets;
 
-		std::unordered_map<uint32_t, std::vector<Triangle>> m_TriangleCache;
-
-		std::unique_ptr<Assimp::Importer> m_Importer;
+		std::vector<StaticVertex> m_Vertices;
+		std::vector<Submesh> m_Submeshes;
 
 		std::string m_FilePath;
+
+		std::vector<Index> m_Indices;
 
 		glm::mat4 m_InverseTransform;
 		glm::mat4 m_Transform;
 
-		Ref<VertexBuffer> m_VertexBuffer;
-		Ref<IndexBuffer> m_IndexBuffer;
+		uint32_t m_IndicesCount = 0;
+		uint32_t m_VertexCount = 0;
 
 		Ref<Shader> m_MeshShader;
-		
 		Ref<Material> m_BaseMaterial;
+		std::vector< Ref< MaterialAsset > > m_MaterialsAssets;
 
-		uint32_t m_VertexCount = 0;
-		uint32_t m_TriangleCount = 0;
-		uint32_t m_IndicesCount = 0;
-		uint32_t m_VerticesCount = 0;
-
-		const aiScene* m_Scene;
+		std::unique_ptr<Assimp::Importer> m_Importer;
+		const aiScene* m_Scene = nullptr;
 	};
 
 	struct MeshInformation

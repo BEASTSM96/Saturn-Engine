@@ -35,10 +35,12 @@ namespace Saturn {
 
 	GameThread::GameThread()
 	{
+#if defined(SAT_ENABLE_GAMETHREAD)
 		m_Running = std::make_shared<std::atomic_bool>();
 		m_Running->store( true );
 
 		m_Thread = std::thread( &GameThread::ThreadRun, this );
+#endif
 	}
 
 	GameThread::~GameThread()
@@ -47,6 +49,7 @@ namespace Saturn {
 
 	void GameThread::Terminate()
 	{
+#if defined(SAT_ENABLE_GAMETHREAD)
 		if( m_Thread.joinable() )
 		{
 			{
@@ -64,10 +67,12 @@ namespace Saturn {
 
 			m_Thread.join();
 		}
+#endif
 	}
 
 	void GameThread::ThreadRun()
 	{
+#if defined(SAT_ENABLE_GAMETHREAD)
 		SetThreadDescription( GetCurrentThread(), L"Game Thread" );
 
 		while( true )
@@ -93,6 +98,7 @@ namespace Saturn {
 		}
 
 		m_Running->store( false );
+#endif
 	}
 
 }

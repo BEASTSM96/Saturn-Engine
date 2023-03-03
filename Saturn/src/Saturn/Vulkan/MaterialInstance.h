@@ -40,7 +40,7 @@ namespace Saturn {
 		MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName );
 		~MaterialInstance();
 
-		void Bind( const Ref< Mesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
+		void Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
 
 		template<typename Ty>
 		void Set( const std::string& Name, const Ty& Value )

@@ -78,13 +78,13 @@ namespace Saturn {
 		s_ActiveScenes.erase( m_SceneID );
 
 		// Destroy all entities with mesh component.
-		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
+		auto group = m_Registry.group<StaticMeshComponent>( entt::get<TransformComponent> );
 		
 		for ( const auto& e : group )
 		{
 			Entity entity( e, this );
 
-			Ref< Mesh >& mesh = entity.GetComponent<MeshComponent>().Mesh;
+			Ref< StaticMesh >& mesh = entity.GetComponent<StaticMeshComponent>().Mesh;
 
 			if( mesh )
 				mesh = nullptr;
@@ -146,7 +146,7 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
+		auto group = m_Registry.group<StaticMeshComponent>( entt::get<TransformComponent> );
 		
 		SceneRenderer::Get().SetCurrentScene( this );
 
@@ -205,17 +205,20 @@ namespace Saturn {
 			}
 		}
 
-		for( const auto e : group )
+		// Static meshes
 		{
-			Entity entity( e, this );
-			
-			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
-			
-			auto transform = GetTransformRelativeToParent( entity );
+			for( const auto e : group )
+			{
+				Entity entity( e, this );
 
-			if( meshComponent.Mesh ) 
-				SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transform );
-		}	
+				auto [meshComponent, transformComponent] = group.get<StaticMeshComponent, TransformComponent>( entity );
+
+				auto transform = GetTransformRelativeToParent( entity );
+
+				if( meshComponent.Mesh )
+					SceneRenderer::Get().SubmitStaticMesh( entity, meshComponent.Mesh, transform );
+			}
+		}
 
 		SceneRenderer::Get().SetCamera( { rCamera, rCamera.ViewMatrix() } );
 	}
@@ -290,17 +293,20 @@ namespace Saturn {
 			}
 		}
 
-		auto group = m_Registry.group<MeshComponent>( entt::get<TransformComponent> );
-		for( const auto e : group )
+		// Static meshes
 		{
-			Entity entity( e, this );
+			auto group = m_Registry.group<StaticMeshComponent>( entt::get<TransformComponent> );
+			for( const auto e : group )
+			{
+				Entity entity( e, this );
 
-			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>( entity );
+				auto [meshComponent, transformComponent] = group.get<StaticMeshComponent, TransformComponent>( entity );
 
-			auto transform = GetTransformRelativeToParent( entity );
+				auto transform = GetTransformRelativeToParent( entity );
 
-			if( meshComponent.Mesh )
-				SceneRenderer::Get().SubmitMesh( entity, meshComponent.Mesh, transform );
+				if( meshComponent.Mesh )
+					SceneRenderer::Get().SubmitStaticMesh( entity, meshComponent.Mesh, transform );
+			}
 		}
 
 		camera.SetViewportSize( SceneRenderer::Get().Width(), SceneRenderer::Get().Height() );
@@ -310,13 +316,11 @@ namespace Saturn {
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )
 	{
 		Entity entity ={ m_Registry.create(), this };
+		entity.AddComponent<RelationshipComponent>();
+		entity.AddComponent<TransformComponent>();
 		
 		auto& idComponent = entity.AddComponent<IdComponent>().ID = {};
-		entity.AddComponent<TransformComponent>();
 		auto& tagComponent = entity.AddComponent<TagComponent>( name.empty() ? "Empty Entity" : name );
-
-		entity.AddComponent<VisibilityComponent>();
-		entity.AddComponent<RelationshipComponent>();
 		
 		m_EntityIDMap[ idComponent ] = entity;
 		

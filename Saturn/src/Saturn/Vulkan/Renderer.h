@@ -47,12 +47,12 @@ namespace Saturn {
 		void BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass );
 		void EndRenderPass( VkCommandBuffer CommandBuffer );
 
-		void RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<Mesh> mesh, const glm::mat4 transform, Buffer additionalData = Buffer() );
+		void RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<StaticMesh> mesh, const glm::mat4 transform, Buffer additionalData = Buffer() );
 
 		// Static mesh
-		void RenderSubmesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< Mesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
+		void RenderSubmesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< StaticMesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
 
-		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< Mesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex );
+		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex );
 
 		void SetSceneEnvironment( Ref<Image2D> ShadowMap, Ref<EnvironmentMap> Environment, Ref<Texture2D> BDRF );
 

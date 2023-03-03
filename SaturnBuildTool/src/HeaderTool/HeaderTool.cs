@@ -185,8 +185,14 @@ namespace SaturnBuildTool.Tools
 
             string GenWarning = "/* Generated code, DO NOT modify! */";
 
+            // Reset.
             string FirstBaseClass = GetFirstBaseClass( HeaderPath );
             CurrentFile.BaseClass = FirstBaseClass;
+
+            // Reset the class name.
+            CurrentFile.ClassName = null;
+
+            Console.WriteLine( FirstBaseClass );
 
             try
             {
@@ -245,9 +251,10 @@ namespace SaturnBuildTool.Tools
                         }
                     }
 
-                    if ( line.Contains("class") && CurrentFile.ClassName == null && LineIsNotComment( line ) ) 
+                    if( line.Contains("class") && CurrentFile.ClassName == null && LineIsNotComment( line ) ) 
                     {
                         CurrentFile.ClassName = GetClassName(line);
+                        Console.WriteLine(CurrentFile.ClassName);
                     }
 
                     if (line.Contains("GENERATED_BODY") && LineIsNotComment(line))
