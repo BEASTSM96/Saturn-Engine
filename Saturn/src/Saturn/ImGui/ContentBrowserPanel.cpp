@@ -356,7 +356,10 @@ namespace Saturn {
 
 						std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
 
-						asset->SetPath( m_CurrentPath / path.filename() );
+						auto assetPath = m_CurrentPath / path.filename();
+						assetPath.replace_extension( ".stmesh" );
+
+						asset->SetPath( assetPath );
 
 						if( path.extension() == ".gltf" )
 						{
@@ -383,6 +386,19 @@ namespace Saturn {
 						// Create the mesh so we can copy over the texture (if any).
 						auto mesh = Ref<MeshSource>::Create( path, m_CurrentPath );
 						mesh = nullptr;
+
+						// Create the static mesh asset
+						auto staticMesh = asset.As<StaticMesh>();
+						staticMesh = Ref<StaticMesh>::Create();
+						staticMesh->ID = asset->ID;
+						staticMesh->Path = asset->Path;
+
+						staticMesh->SetFilepath( std::filesystem::path( m_CurrentPath / path.filename() ).string() );
+
+						StaticMeshAssetSerialiser sma;
+						sma.Serialise( staticMesh );
+
+						staticMesh->SetPath( assetPath );
 
 						AssetRegistrySerialiser ars;
 						ars.Serialise();

@@ -611,4 +611,73 @@ namespace Saturn {
 		return true;
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// STATIC MESH
+
+	void StaticMeshAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
+	{
+		auto mesh = rAsset.As<StaticMesh>();
+		
+		YAML::Emitter out;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "StaticMesh" << YAML::Value;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "Filepath" << YAML::Value << mesh->FilePath();
+
+		out << YAML::EndMap;
+
+		out << YAML::EndMap;
+
+		std::ofstream fout( rAsset->GetPath() );
+		fout << out.c_str();
+	}
+
+	void StaticMeshAssetSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
+	{
+
+	}
+
+	bool StaticMeshAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
+	{
+		std::ifstream FileIn( rAsset->GetPath() );
+
+		std::stringstream ss;
+		ss << FileIn.rdbuf();
+
+		YAML::Node data = YAML::Load( ss.str() );
+
+		if( data.IsNull() )
+			return false;
+
+		auto meshData = data[ "StaticMesh" ];
+		auto filepath = meshData[ "Filepat" ].as<std::string>();
+
+		auto mesh = Ref<StaticMesh>::Create( filepath );
+
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = mesh;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
+
+		return true;
+	}
+
 }

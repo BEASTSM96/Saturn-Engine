@@ -122,6 +122,8 @@ namespace Saturn {
 			return AssetType::Script;
 		else if( str == ".prefab" )
 			return AssetType::Prefab;
+		else if( str == ".stmesh" )
+			return AssetType::StaticMesh;
 		else
 			return AssetType::Unknown;
 	}

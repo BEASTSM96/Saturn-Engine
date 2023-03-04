@@ -436,7 +436,7 @@ namespace Saturn {
 						{
 							if( ImGui::Selectable( rAsset->GetName().c_str() ) )
 							{
-								//mc.Mesh = Ref<StaticMesh>::Create( assetID );
+								mc.Mesh = AssetRegistry::Get().GetAssetAs<StaticMesh>( assetID );
 
 								PopupModified = true;
 							}

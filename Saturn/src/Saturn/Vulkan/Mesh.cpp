@@ -51,7 +51,6 @@
 
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <assimp/Importer.hpp>
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
 
@@ -516,6 +515,9 @@ namespace Saturn {
 		m_Importer = std::make_unique<Assimp::Importer>();
 
 		const aiScene* scene = m_Importer->ReadFile( rPath.string(), s_MeshImportFlags );
+
+		if( scene == nullptr || !scene->HasMeshes() )
+			SAT_CORE_ERROR( "Failed to load mesh file: {0}", rPath.string() );
 
 		m_Scene = scene;
 

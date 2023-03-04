@@ -45,14 +45,12 @@
 #include <unordered_map>
 #include <glm/glm.hpp>
 
+#include <assimp/Importer.hpp>
+
 struct aiNode;
 struct aiAnimation;
 struct aiNodeAnim;
 struct aiScene;
-
-namespace Assimp {
-	class Importer;
-}
 
 namespace Saturn {
 
@@ -96,15 +94,18 @@ namespace Saturn {
 	class DescriptorSet;
 	class MaterialInstance;
 
-	class StaticMesh : public CountedObj
+	class StaticMesh : public Asset
 	{
 		using DescriptorSetMap = std::unordered_map< Submesh, Ref< DescriptorSet > >;
 	public:
+		StaticMesh() {}
 		StaticMesh( const std::string& rFilepath );
 		~StaticMesh();
 
 		std::string& FilePath() { return m_FilePath; }
 		const std::string& FilePath() const { return m_FilePath; }
+
+		void SetFilepath( const std::string& rFilepath ) { m_FilePath = rFilepath; }
 
 		glm::mat4 GetInverseTransform() const { return m_InverseTransform; }
 		glm::mat4 GetTransform() const { return m_Transform; }

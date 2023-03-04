@@ -67,4 +67,12 @@ namespace Saturn {
 		virtual void Deserialise ( const Ref<Asset>& rAsset ) const override;
 		virtual bool TryLoadData ( Ref<Asset>& rAsset ) const override;
 	};
+
+	class StaticMeshAssetSerialiser : public AssetSerialiser
+	{
+	public:
+		virtual void Serialise( const Ref<Asset>& rAsset ) const override;
+		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
+	};
 }
