@@ -192,8 +192,6 @@ namespace SaturnBuildTool.Tools
             // Reset the class name.
             CurrentFile.ClassName = null;
 
-            Console.WriteLine( FirstBaseClass );
-
             try
             {
                 StreamReader sr = new StreamReader(HeaderPath);
@@ -254,7 +252,6 @@ namespace SaturnBuildTool.Tools
                     if( line.Contains("class") && CurrentFile.ClassName == null && LineIsNotComment( line ) ) 
                     {
                         CurrentFile.ClassName = GetClassName(line);
-                        Console.WriteLine(CurrentFile.ClassName);
                     }
 
                     if (line.Contains("GENERATED_BODY") && LineIsNotComment(line))

@@ -113,6 +113,9 @@ namespace Saturn {
 		void BeginPlay() override {}
 		void OnUpdate( Saturn::Timestep ts ) override {}
 
+		virtual void OnCollisionBegin( Entity Other ) {}
+		virtual void OnCollisionEnd( Entity Other ) {}
+
 		void SetParent( const UUID& rID ) 
 		{
 			GetComponent<RelationshipComponent>().Parent = rID;

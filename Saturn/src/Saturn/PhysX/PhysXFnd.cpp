@@ -55,7 +55,22 @@ namespace Saturn {
 
 	void PhysXContact::onContact( const physx::PxContactPairHeader& rPairHeader, const physx::PxContactPair* pPairs, physx::PxU32 Pairs )
 	{
-		SAT_CORE_INFO( "onContact" );
+		Entity A = *( Entity* )rPairHeader.actors[ 0 ]->userData;
+		Entity B = *( Entity* )rPairHeader.actors[ 1 ]->userData;
+
+		if( !A || !B )
+			return;
+
+		if( pPairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH )
+		{
+			A.OnCollisionBegin( B );
+			B.OnCollisionBegin( A );
+		}
+		else if( pPairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH ) 
+		{
+			A.OnCollisionEnd( B );
+			B.OnCollisionEnd( A );
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
