@@ -654,7 +654,7 @@ namespace Saturn {
 			return false;
 
 		auto meshData = data[ "StaticMesh" ];
-		auto filepath = meshData[ "Filepat" ].as<std::string>();
+		auto filepath = meshData[ "Filepath" ].as<std::string>();
 
 		auto mesh = Ref<StaticMesh>::Create( filepath );
 

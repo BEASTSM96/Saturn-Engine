@@ -643,8 +643,13 @@ namespace Saturn {
 				
 				std::filesystem::path p = path;
 
-				auto entity = m_EditorScene->CreateEntity( p.filename().string() );
-				entity.AddComponent<StaticMeshComponent>().Mesh = Ref<StaticMesh>::Create( p.string() );
+				// We have now that path to the *.stmesh but we need to path to the fbx/gltf.
+
+				Ref<Asset> asset = AssetRegistry::Get().FindAsset( p );
+				Ref<StaticMesh> meshAsset = AssetRegistry::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
+				
+				auto entity = m_EditorScene->CreateEntity( asset->Name );
+				entity.AddComponent<StaticMeshComponent>().Mesh = meshAsset;
 			}
 
 			ImGui::EndDragDropTarget();

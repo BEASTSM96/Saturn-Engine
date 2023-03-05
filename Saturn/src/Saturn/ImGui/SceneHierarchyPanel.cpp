@@ -418,6 +418,8 @@ namespace Saturn {
 				m_CurrentFinderType = AssetType::StaticMesh;
 			}
 			
+			ImGui::SameLine();
+
 			if( m_OpenAssetFinderPopup )
 				ImGui::OpenPopup( "AssetFinderPopup" );
 
@@ -460,7 +462,7 @@ namespace Saturn {
 			}
 
 			if( mc.Mesh )
-				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->FilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->Name.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 			else
 				ImGui::InputText( "##meshfilepath", ( char* ) "", 256, ImGuiInputTextFlags_ReadOnly );
 
