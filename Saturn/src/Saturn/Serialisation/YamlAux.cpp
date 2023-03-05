@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "YamlAux.h"
 
+#include "Saturn/Asset/AssetRegistry.h"
+
 namespace Saturn {
 
 	void SerialiseEntity( YAML::Emitter& rEmitter, Entity entity )
@@ -98,9 +100,9 @@ namespace Saturn {
 			auto& mc = entity.GetComponent< StaticMeshComponent >();
 
 			if(mc.Mesh)
-				rEmitter << YAML::Key << "Filepath" << YAML::Value << mc.Mesh->FilePath();
+				rEmitter << YAML::Key << "Asset" << YAML::Value << mc.Mesh->ID;
 			else
-				rEmitter << YAML::Key << "Filepath" << YAML::Value << "Null";
+				rEmitter << YAML::Key << "Asset" << YAML::Value << 0;
 
 			rEmitter << YAML::EndMap;
 		}
@@ -254,6 +256,19 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
+		// Camera Component
+		if ( entity.HasComponent<CameraComponent>() )
+		{
+			rEmitter << YAML::Key << "CameraComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& cc = entity.GetComponent< CameraComponent >();
+
+			rEmitter << YAML::Key << "MainCamera" << YAML::Value << cc.MainCamera;
+
+			rEmitter << YAML::EndMap;
+		}
+
 		rEmitter << YAML::EndMap;
 	}
 
@@ -290,8 +305,14 @@ namespace Saturn {
 			{
 				auto& m = DeserialisedEntity.AddComponent< StaticMeshComponent >();
 
-				if(mc["Filepath"].as<std::string>() != "Null")
-					m.Mesh = Ref<StaticMesh>::Create( mc[ "Filepath" ].as<std::string>() );
+				auto id = mc[ "Asset" ].as<uint64_t>();
+
+				if( id != 0 ) 
+				{
+					auto mesh = AssetRegistry::Get().GetAssetAs<StaticMesh>( id );
+
+					m.Mesh = mesh;
+				}
 			}
 
 			auto rcNode = entity[ "RelationshipComponent" ];
@@ -411,6 +432,14 @@ namespace Saturn {
 				m.StaticFriction = pmc[ "StaticFriction" ].as< float >();
 				m.DynamicFriction = pmc[ "DynamicFriction" ].as< float >();
 				m.Restitution = pmc[ "Restitution" ].as< float >();
+			}
+
+			auto cc = entity[ "CameraComponent" ];
+			if( cc )
+			{
+				auto& c = DeserialisedEntity.AddComponent< CameraComponent >();
+
+				c.MainCamera = cc[ "MainCamrea" ].as< bool >();
 			}
 		}
 	}

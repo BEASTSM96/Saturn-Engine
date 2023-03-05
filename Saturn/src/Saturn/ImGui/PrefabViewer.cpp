@@ -75,7 +75,7 @@ namespace Saturn {
 
 		ImGui::PopID();
 
-		if( !m_OpenPrefabs.at( rPrefab->ID ) )
+		if( m_OpenPrefabs.at( rPrefab->ID ) == false )
 		{
 			m_OpenPrefabs.erase( rPrefab->ID );
 
