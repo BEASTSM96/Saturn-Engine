@@ -439,7 +439,7 @@ namespace Saturn {
 			{
 				auto& c = DeserialisedEntity.AddComponent< CameraComponent >();
 
-				c.MainCamera = cc[ "MainCamrea" ].as< bool >();
+				c.MainCamera = cc[ "MainCamera" ].as< bool >();
 			}
 		}
 	}
