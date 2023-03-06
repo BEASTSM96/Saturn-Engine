@@ -26,6 +26,7 @@ IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include/"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
 IncludeDir["Optick"] = "Saturn/vendor/optick/src"
+IncludeDir["Filewatch"] = "Saturn/vendor/Filewatch/src"
 
 IncludeDir["SingletonStorage"] = "SingletonStorage/src"
 
@@ -100,6 +101,7 @@ project "Saturn"
 		"%{IncludeDir.PhysX}/physx",
 		"%{IncludeDir.ImguiNodeEditor}",
 		"%{IncludeDir.Optick}",
+		"%{IncludeDir.Filewatch}",
 
 		"%{IncludeDir.SingletonStorage}"
 	}
@@ -275,6 +277,7 @@ project "Titan"
 		"%{IncludeDir.Optick}",
 		"Saturn/vendor/vulkan/include",
 		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.Filewatch}",
 		"%{IncludeDir.SingletonStorage}"
 	}
 

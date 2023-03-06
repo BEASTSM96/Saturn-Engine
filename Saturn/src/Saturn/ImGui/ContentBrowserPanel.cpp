@@ -109,6 +109,12 @@ namespace Saturn {
 			ImGui::EndDragDropTarget();
 		}
 
+		if( m_ChangeDirectory )
+		{
+			UpdateFiles( true );
+
+			m_ChangeDirectory = false;
+		}
 
 		ImGui::BeginChild( "##CB_TopBar_Actions", ImVec2( 0, 30 ) );
 
@@ -181,6 +187,8 @@ namespace Saturn {
 					if( ImGui::Button( "<-" ) )
 					{
 						m_CurrentPath = m_CurrentPath.parent_path();
+
+						UpdateFiles( true );
 					}
 				}
 				else
@@ -200,6 +208,8 @@ namespace Saturn {
 					if( ImGui::Button( "<-" ) )
 					{
 						m_CurrentPath = m_CurrentPath.parent_path();
+
+						UpdateFiles( true );
 					}
 				}
 				else
@@ -241,6 +251,8 @@ namespace Saturn {
 			if( ImGui::Button( "->" ) )
 			{
 				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_pMainDirectory );
+
+				UpdateFiles( true );
 			}
 		}
 		else
@@ -302,11 +314,8 @@ namespace Saturn {
 
 		ImGui::Columns( columnCount, 0, false );
 
-		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
-			RenderEntry( rEntry, { thumbnailSizeX, thumbnailSizeY }, padding, true );
-		
-		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
-			RenderEntry( rEntry, { thumbnailSizeX, thumbnailSizeY }, padding, false );
+		for( auto& rEntry : m_Files )
+			RenderEntry( rEntry, { thumbnailSizeX, thumbnailSizeY }, padding );
 
 		// Get the first folder in the current directory.
 		m_FirstFolder = "";
@@ -561,6 +570,15 @@ namespace Saturn {
 				s_pMainDirectory = s_pScriptsDirectory;
 			} break;
 		}
+
+		UpdateFiles( true );
+
+		m_Watcher = new filewatch::FileWatch<std::string>( 
+			m_CurrentPath.string(),
+			[](const std::string& rPath, const filewatch::Event Event) 
+			{
+
+			} );
 	}
 
 	void ContentBrowserPanel::SwapViewMode( CBViewMode newMode )
@@ -570,20 +588,22 @@ namespace Saturn {
 
 	void ContentBrowserPanel::RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles /*= true */ )
 	{
-		if( !rEntry.is_directory() && excludeFiles || rEntry.is_directory() && !excludeFiles )
-			return;
+		//if( !rEntry.is_directory() && excludeFiles || rEntry.is_directory() && !excludeFiles )
+		//	return;
 
 		auto* pDrawList = ImGui::GetWindowDrawList();
 
-		auto RelativePath = std::filesystem::relative( rEntry.path(), s_pAssetsDirectory );
-		auto path = RelativePath.string();
+		//auto RelativePath = std::filesystem::relative( rEntry.path(), s_pAssetsDirectory );
+		auto path = rEntry.path().string();
 
-		if( RelativePath.extension() == ".sreg" )
+		if( rEntry.path().extension() == ".sreg" )
 			return;
 
 		std::string filename = rEntry.path().filename().string();
 
-		Ref<Texture2D> Icon = excludeFiles ? m_DirectoryIcon : m_FileIcon;
+		bool isFile = !rEntry.is_directory();
+
+		Ref<Texture2D> Icon = isFile ? m_FileIcon : m_DirectoryIcon;
 		
 		// Draw background.
 		const float EdgeOffset = 4.0f;
@@ -644,7 +664,7 @@ namespace Saturn {
 			bool ItemClicked = false;
 			ItemClicked = ButtonRd( "##CONTENT_BROWSER_ITEM_BTN", ImRect( TopLeft, BottomRight ), true );
 
-			if( !excludeFiles )
+			//if( !excludeFiles )
 			{
 				auto assetType = AssetTypeFromExtension( rEntry.path().filename().extension().string() );
 
@@ -800,7 +820,39 @@ namespace Saturn {
 
 	void ContentBrowserPanel::OnDirectorySelected( std::filesystem::path& rPath, bool IsFile /*= false */ )
 	{
-		// TODO:
+		m_ChangeDirectory = true;
+	}
+
+	void ContentBrowserPanel::UpdateFiles( bool clear /*= false */ )
+	{
+		if( clear )
+			m_Files.clear();
+
+		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
+		{
+			if( std::find( m_Files.begin(), m_Files.end(), rEntry ) != m_Files.end() )
+				continue;
+
+			m_Files.push_back( rEntry );
+			m_FilesNeedSorting = true;
+		}
+
+		if( m_FilesNeedSorting )
+		{
+			auto Fn = []( const auto& a, const auto& b ) -> bool
+			{
+				if( a.is_directory() && !b.is_directory() )
+					return true; // a is a directory sort first.
+				else if( !a.is_directory() && b.is_directory() )
+					return false;
+				else
+					return a.path().filename() < b.path().filename();
+			};
+
+			std::sort( m_Files.begin(), m_Files.end(), Fn );
+
+			m_FilesNeedSorting = false;
+		}
 	}
 
 }

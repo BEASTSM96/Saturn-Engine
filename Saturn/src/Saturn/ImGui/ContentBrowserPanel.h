@@ -38,6 +38,8 @@
 #include <filesystem>
 #include <functional>
 
+#include <filewatch/filewatch.h>
+
 namespace Saturn {
 	
 	enum class CBViewMode 
@@ -64,6 +66,8 @@ namespace Saturn {
 				
 		void OnDirectorySelected( std::filesystem::path& rPath, bool IsFile = false );
 
+		void UpdateFiles( bool clear = false );
+
 	private:
 		std::filesystem::path m_CurrentPath;
 		std::filesystem::path m_FirstFolder;
@@ -81,6 +85,13 @@ namespace Saturn {
 
 		CBViewMode m_ViewMode;
 
+		// Files and folder, sorted by folders then files.
+		std::vector<std::filesystem::directory_entry> m_Files;
+
+		bool m_FilesNeedSorting = false;
 		bool m_RenderCreateWindow = false;
+		bool m_ChangeDirectory = false;
+
+		filewatch::FileWatch<std::string>* m_Watcher;
 	};
 }
