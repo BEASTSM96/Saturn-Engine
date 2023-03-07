@@ -245,7 +245,7 @@ namespace Saturn {
 
 				materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( asset->GetAssetID() );
 
-				// material is still null, must likey a new material.
+				// material is still null, must likely a new material.
 				if( materialAsset == nullptr ) 
 				{
 					materialAsset = Ref<MaterialAsset>::Create( nullptr );

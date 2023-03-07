@@ -142,38 +142,6 @@ namespace Saturn {
 
 		ImGui::SameLine();
 
-		if( ImGui::Button( "Add" ) )
-		{
-			ImGui::OpenPopup( "Add_Assets_Popup" );
-		}
-
-		if( ImGui::IsItemHovered() ) 
-		{
-			ImGui::SetTooltip( "Add extra assets..." );
-		}
-
-		if( ImGui::BeginPopup( "Add_Assets_Popup" ) ) 
-		{
-			if ( m_ViewMode == CBViewMode::Assets )
-			{
-				if( ImGui::Button( "Import assets" ) )
-				{
-					// TODO:
-				}
-
-				if( ImGui::Button( "Starter assets" ) )
-				{
-					auto ActiveProject = Project::GetActiveProject();
-					auto AssetPath = ActiveProject->GetAssetPath();
-
-					std::filesystem::copy_file( "assets/Templates/Meshes/Cube.fbx", AssetPath / "Meshes" / "Cube.fbx" );
-					std::filesystem::copy_file( "assets/Templates/Meshes/Plane.fbx", AssetPath / "Meshes" / "Plane.fbx" );
-				}
-			}
-
-			ImGui::EndPopup();
-		}
-
 		ImGui::EndChild();
 
 		ImGui::BeginChild( "##CB_TopBar", ImVec2( 0, 30 ) );
@@ -336,6 +304,15 @@ namespace Saturn {
 		{
 			if( m_ViewMode == CBViewMode::Assets ) 
 			{
+				if( ImGui::MenuItem( "Starter Assets" ) )
+				{
+					auto ActiveProject = Project::GetActiveProject();
+					auto AssetPath = ActiveProject->GetAssetPath();
+
+					std::filesystem::copy_file( "assets/Templates/Meshes/Cube.fbx", AssetPath / "Meshes" / "Cube.fbx" );
+					std::filesystem::copy_file( "assets/Templates/Meshes/Plane.fbx", AssetPath / "Meshes" / "Plane.fbx" );
+				}
+
 				if( ImGui::MenuItem( "Import" ) )
 				{
 					auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg\0" );
