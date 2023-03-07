@@ -78,9 +78,6 @@ namespace SaturnBuildTool
 				if (!fileCache.IsCppFile(file))
 					continue;
 
-				if (!fileCache.IsFileInCache(file)) 
-					fileCache.CacheFile(file);
-
 				// Only compile the file if it has not be changed.
 				DateTime LastTime;
 				fileCache.FilesInCache.TryGetValue(file, out LastTime);
@@ -89,8 +86,13 @@ namespace SaturnBuildTool
 				{
 					int exitCode = Toolchain.Compile(file);
 
-					if (exitCode == 0)
+					if (exitCode == 0) 
+					{
 						HasCompiledAnyFile = true;
+
+                        if (!fileCache.IsFileInCache(file))
+                            fileCache.CacheFile(file);
+                    }
 					else
 						NumTaskFailed++;
 				}
@@ -99,7 +101,12 @@ namespace SaturnBuildTool
                     int exitCode = Toolchain.Compile(file);
 
                     if (exitCode == 0)
+                    {
                         HasCompiledAnyFile = true;
+
+                        if (!fileCache.IsFileInCache(file))
+                            fileCache.CacheFile(file);
+                    }
                     else
                         NumTaskFailed++;
                 }
