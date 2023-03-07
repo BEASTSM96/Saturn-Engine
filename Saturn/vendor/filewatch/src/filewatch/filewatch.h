@@ -491,6 +491,8 @@ namespace filewatch {
 
         void monitor_directory()
         {
+            SetThreadDescription( GetCurrentThread(), L"FileWatcher Monitor Thread" );
+
             std::vector<BYTE> buffer( _buffer_size );
             DWORD bytes_returned = 0;
             OVERLAPPED overlapped_buffer{ 0 };
@@ -572,7 +574,6 @@ namespace filewatch {
 #endif // WIN32
 
 #if __unix__
-
         bool is_file( const StringType& path ) const
         {
             struct stat statbuf = {};
@@ -616,6 +617,9 @@ namespace filewatch {
 
         void monitor_directory()
         {
+			char threadName[ 16 ] = "MonitorThrd";
+			pthread_setname_np( pthread_self(), threadName, 16 );
+
             std::vector<char> buffer( _buffer_size );
 
             _running.set_value();
@@ -1206,6 +1210,9 @@ namespace filewatch {
         }
 
         void monitor_directory() {
+			char threadName[ 16 ] = "MonitorThrd";
+			pthread_setname_np( pthread_self(), threadName, 16 );
+
             _run_loop = CFRunLoopGetCurrent();
             FSEventStreamScheduleWithRunLoop( _directory,
                 _run_loop,
@@ -1218,6 +1225,13 @@ namespace filewatch {
 
         void callback_thread()
         {
+#if FILEWATCH_PLATFORM_MAC || __unix__
+            char threadName[ 16 ] = "CallbackThread";
+            pthread_setname_np( pthread_self(), threadName, 16 );
+#elif _WIN32
+            SetThreadDescription( GetCurrentThread(), L"FileWatcher Callback Thread" );
+#endif
+
             while( _destory == false ) {
                 std::unique_lock<std::mutex> lock( _callback_mutex );
                 if( _callback_information.empty() && _destory == false ) {
