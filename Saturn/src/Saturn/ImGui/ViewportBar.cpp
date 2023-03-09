@@ -40,15 +40,15 @@ namespace Saturn {
 
 	ViewportBar::ViewportBar() : Panel( "Viewport Bar" )
 	{
-		m_PlayImage = Ref< Texture2D >::Create( "assets/textures/PlayButton.png", AddressingMode::Repeat );
-		m_PauseImage = Ref< Texture2D >::Create( "assets/textures/PauseButton.png", AddressingMode::Repeat );
-		m_StopImage = Ref< Texture2D >::Create( "assets/textures/StopButton.png", AddressingMode::Repeat );
-
-		m_CursorTexture = Ref< Texture2D >::Create( "assets/textures/editor/Cursor.png", AddressingMode::Repeat );
-		m_MoveTexture = Ref< Texture2D >::Create( "assets/textures/editor/Move.png", AddressingMode::Repeat );
-		m_RotateTexture = Ref< Texture2D >::Create( "assets/textures/editor/Rotate.png", AddressingMode::Repeat );
-		m_ScaleTexture = Ref< Texture2D >::Create( "assets/textures/editor/Scale.png", AddressingMode::Repeat );
-		m_SettingsTexture = Ref< Texture2D >::Create( "assets/textures/editor/Settings.png", AddressingMode::Repeat );
+		//m_PlayImage = Ref< Texture2D >::Create( "assets/textures/PlayButton.png", AddressingMode::Repeat );
+		//m_PauseImage = Ref< Texture2D >::Create( "assets/textures/PauseButton.png", AddressingMode::Repeat );
+		//m_StopImage = Ref< Texture2D >::Create( "assets/textures/StopButton.png", AddressingMode::Repeat );
+		//
+		//m_CursorTexture = Ref< Texture2D >::Create( "assets/textures/editor/Cursor.png", AddressingMode::Repeat );
+		//m_MoveTexture = Ref< Texture2D >::Create( "assets/textures/editor/Move.png", AddressingMode::Repeat );
+		//m_RotateTexture = Ref< Texture2D >::Create( "assets/textures/editor/Rotate.png", AddressingMode::Repeat );
+		//m_ScaleTexture = Ref< Texture2D >::Create( "assets/textures/editor/Scale.png", AddressingMode::Repeat );
+		//m_SettingsTexture = Ref< Texture2D >::Create( "assets/textures/editor/Settings.png", AddressingMode::Repeat );
 	}
 
 	ViewportBar::~ViewportBar()

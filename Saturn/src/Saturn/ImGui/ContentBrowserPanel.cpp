@@ -68,7 +68,9 @@ namespace Saturn {
 		: Panel( "Content Browser Panel" ), m_CurrentPath( s_pAssetsDirectory ), m_FirstFolder( s_pAssetsDirectory ), m_ScriptPath( s_pScriptsDirectory )
 	{
 		m_DirectoryIcon = Ref<Texture2D>::Create( "assets/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
-		m_FileIcon      = Ref<Texture2D>::Create( "assets/textures/editor/FileIcon.png", AddressingMode::Repeat );
+		m_FileIcon      = Ref<Texture2D>::Create( "assets/textures/editor/FileIcon.png", AddressingMode::Repeat      );
+		m_SwapViewIcon  = Ref<Texture2D>::Create( "assets/textures/editor/Swap.png", AddressingMode::Repeat          );
+
 		m_ViewMode      = CBViewMode::Assets;
 	}
 	
@@ -116,9 +118,13 @@ namespace Saturn {
 			m_ChangeDirectory = false;
 		}
 
-		ImGui::BeginChild( "##CB_TopBar_Actions", ImVec2( 0, 30 ) );
+		ImGui::SameLine();
 
-		if( ImGui::Button( "Swap View Mode" ) )
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
+
+		ImGui::BeginChild( "##CB_TopBar", ImVec2( 0, 30 ) );
+
+		if( ImageButton( m_SwapViewIcon, { 24, 24 } ) )
 		{
 			switch( m_ViewMode )
 			{
@@ -129,8 +135,8 @@ namespace Saturn {
 					// The Scripts path is always one dir back.
 					SetPath( s_pAssetsDirectory.parent_path() );
 				} break;
-					
-					
+
+
 				case Saturn::CBViewMode::Scripts:
 				{
 					m_ViewMode = CBViewMode::Assets;
@@ -142,17 +148,13 @@ namespace Saturn {
 
 		ImGui::SameLine();
 
-		ImGui::EndChild();
-
-		ImGui::BeginChild( "##CB_TopBar", ImVec2( 0, 30 ) );
-
 		switch( m_ViewMode )
 		{
 			case Saturn::CBViewMode::Assets: 
 			{
 				if( m_CurrentPath != s_pAssetsDirectory )
 				{
-					if( ImGui::Button( "<-" ) )
+					if( ImGui::Button( "<-", { 24, 24 } ) )
 					{
 						m_CurrentPath = m_CurrentPath.parent_path();
 
@@ -163,7 +165,7 @@ namespace Saturn {
 				{
 					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-					ImGui::Button( "<-" );
+					ImGui::Button( "<-", { 24, 24 } );
 					ImGui::PopStyleVar( 1 );
 					ImGui::PopItemFlag();
 				}
@@ -173,7 +175,7 @@ namespace Saturn {
 			{
 				if( m_CurrentPath != s_pScriptsDirectory )
 				{
-					if( ImGui::Button( "<-" ) )
+					if( ImGui::Button( "<-", { 24, 24 } ) )
 					{
 						m_CurrentPath = m_CurrentPath.parent_path();
 
@@ -184,7 +186,7 @@ namespace Saturn {
 				{
 					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-					ImGui::Button( "<-" );
+					ImGui::Button( "<-", { 24, 24 } );
 					ImGui::PopStyleVar( 1 );
 					ImGui::PopItemFlag();
 				}
@@ -194,29 +196,11 @@ namespace Saturn {
 				break;
 		}
 
-		/*
-		if( m_CurrentPath != s_pAssetsDirectory )
-		{
-			if( ImGui::Button( "<-" ) )
-			{
-				m_CurrentPath = m_CurrentPath.parent_path();
-			}
-		}
-		else
-		{
-			ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-			ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-			ImGui::Button( "<-" );
-			ImGui::PopStyleVar( 1 );
-			ImGui::PopItemFlag();
-		}
-		*/
-
 		ImGui::SameLine();
 
 		if( std::filesystem::exists( m_FirstFolder ) )
 		{
-			if( ImGui::Button( "->" ) )
+			if( ImGui::Button( "->", { 24, 24 } ) )
 			{
 				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_pMainDirectory );
 
@@ -227,7 +211,7 @@ namespace Saturn {
 		{
 			ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 			ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-			ImGui::Button( "->" );
+			ImGui::Button( "->", { 24, 24 } );
 			ImGui::PopStyleVar( 1 );
 			ImGui::PopItemFlag();
 		}
@@ -256,13 +240,12 @@ namespace Saturn {
 
 			float size = strlen( pFolder.string().c_str() ) + ImGui::CalcTextSize( pFolder.string().c_str() ).x;
 
-			if( ImGui::Selectable( pFolder.string().c_str(), false, 0, ImVec2( size, 22.0f ) ) )
-			{				
-			}
+			ImGui::Selectable( pFolder.string().c_str(), false, 0, ImVec2( size, 22.0f ) );
+
 			ImGui::SameLine();
 		}
 
-		ImGui::PopStyleColor( 2 );
+		ImGui::PopStyleColor( 3 );
 
 		ImGui::EndChild();
 
@@ -549,13 +532,6 @@ namespace Saturn {
 		}
 
 		UpdateFiles( true );
-
-		m_Watcher = new filewatch::FileWatch<std::string>( 
-			m_CurrentPath.string(),
-			[](const std::string& rPath, const filewatch::Event Event) 
-			{
-
-			} );
 	}
 
 	void ContentBrowserPanel::SwapViewMode( CBViewMode newMode )
@@ -808,7 +784,12 @@ namespace Saturn {
 		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
 		{
 			if( std::find( m_Files.begin(), m_Files.end(), rEntry ) != m_Files.end() )
+			{
+				if( !std::filesystem::exists( rEntry ) )
+					m_Files.erase( std::remove( m_Files.begin(), m_Files.end(), rEntry ), m_Files.end() );
+
 				continue;
+			}
 
 			m_Files.push_back( rEntry );
 			m_FilesNeedSorting = true;

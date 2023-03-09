@@ -76,6 +76,7 @@ namespace Saturn {
 
 		Ref< Texture2D > m_DirectoryIcon;
 		Ref< Texture2D > m_FileIcon;
+		Ref< Texture2D > m_SwapViewIcon;
 
 		struct AssetInfo
 		{
@@ -92,6 +93,6 @@ namespace Saturn {
 		bool m_RenderCreateWindow = false;
 		bool m_ChangeDirectory = false;
 
-		filewatch::FileWatch<std::string>* m_Watcher;
+		filewatch::FileWatch<std::string>* m_Watcher = nullptr;
 	};
 }
