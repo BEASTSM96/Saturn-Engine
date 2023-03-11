@@ -42,10 +42,10 @@ namespace Saturn {
 		Ref< TextureCube > RadianceMap;
 		Ref< TextureCube > IrradianceMap;
 
-		// These values should idealy match up to the ones in the skylight entity.
-		float Turbidity;
-		float Azimuth;
-		float Inclination;
+		// These values should ideally match up to the ones in the skylight entity.
+		float Turbidity = 0.0f;
+		float Azimuth = 0.0f;
+		float Inclination = 0.0f;
 	};
 
 }

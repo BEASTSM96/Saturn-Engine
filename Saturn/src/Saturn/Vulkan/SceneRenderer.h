@@ -217,7 +217,7 @@ namespace Saturn {
 	
 		// GRID
 
-		Ref<Pipeline> GridPipeline;
+		Ref<Pipeline> GridPipeline = nullptr;
 
 		Ref< DescriptorSet > GridDescriptorSet = nullptr;
 
@@ -236,7 +236,7 @@ namespace Saturn {
 		VertexBuffer* SkyboxVertexBuffer = nullptr;
 		IndexBuffer* SkyboxIndexBuffer = nullptr;
 
-		float SkyboxLod;
+		float SkyboxLod = 0.0f;
 
 		//////////////////////////////////////////////////////////////////////////
 		
@@ -268,9 +268,9 @@ namespace Saturn {
 		// AO-Composite
 
 		Ref< DescriptorSet > AO_DescriptorSet = nullptr;
-		Ref<Pipeline> AOCompositePipeline;
-		Ref<Pass> AOComposite;
-		Ref<Framebuffer> AOCompositeFramebuffer;
+		Ref<Pipeline> AOCompositePipeline = nullptr;
+		Ref<Pass> AOComposite = nullptr;
+		Ref<Framebuffer> AOCompositeFramebuffer = nullptr;
 
 		//////////////////////////////////////////////////////////////////////////
 		// BLOOM

@@ -904,19 +904,6 @@ namespace Saturn {
 				EndTreeNode();
 			}
 
-			/*
-			if( TreeNode( "SSAO", true ) )
-			{
-				auto framebuffer = m_RendererData.SSAOFramebuffer->GetColorAttachmentsResources()[ 0 ];
-
-				float size = ImGui::GetContentRegionAvail().x;
-
-				Image( framebuffer, { size, size }, { 0, 1 }, { 1, 0 } );
-
-				EndTreeNode();
-			}
-			*/
-
 			if( TreeNode( "Forward+", true ) )
 			{
 				ImGui::Checkbox( "Show Light Complexity", &m_RendererData.ShowLightComplexity );

@@ -141,8 +141,8 @@ namespace Saturn {
 
 		std::vector<Index> m_Indices;
 
-		glm::mat4 m_InverseTransform;
-		glm::mat4 m_Transform;
+		glm::mat4 m_InverseTransform = {};
+		glm::mat4 m_Transform = {};
 
 		uint32_t m_IndicesCount = 0;
 		uint32_t m_VertexCount = 0;

@@ -81,6 +81,7 @@ namespace Saturn {
 	bool s_HasPremakePath = false;
 	bool OpenAssetRegistryDebug = false;
 	bool OpenLoadedAssetDebug = false;
+	bool OpenAttributions = false;
 
 	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
 	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
@@ -126,14 +127,9 @@ namespace Saturn {
 		{
 			if( ImGui::BeginMenu( "Saturn" ) )
 			{
-				if( ImGui::MenuItem( "Environment Variables" ) )
+				if( ImGui::MenuItem( "Attributions" ) )
 				{
-					if( ImGui::BeginPopupModal( "##Saturn", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
-					{
-						ImGui::EndPopup();
-					}
-
-					ImGui::OpenPopup( "##Saturn" );
+					OpenAttributions = true;
 				}
 
 				ImGui::EndMenu();
@@ -405,6 +401,16 @@ namespace Saturn {
 					ImGui::SameLine();
 					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
 				}
+
+				ImGui::End();
+			}
+		}
+
+		if( OpenAttributions )
+		{
+			if( ImGui::Begin( "Attributions", &OpenAttributions ) )
+			{
+				ImGui::Text("All icons in the engine are provided by icons8 via https://icons8.com/\nUsing the Tanah Basah set.");
 
 				ImGui::End();
 			}

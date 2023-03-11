@@ -68,8 +68,10 @@ namespace Saturn {
 		: Panel( "Content Browser Panel" ), m_CurrentPath( s_pAssetsDirectory ), m_FirstFolder( s_pAssetsDirectory ), m_ScriptPath( s_pScriptsDirectory )
 	{
 		m_DirectoryIcon = Ref<Texture2D>::Create( "assets/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
-		m_FileIcon      = Ref<Texture2D>::Create( "assets/textures/editor/FileIcon.png", AddressingMode::Repeat      );
-		m_SwapViewIcon  = Ref<Texture2D>::Create( "assets/textures/editor/Swap.png", AddressingMode::Repeat          );
+		m_FileIcon      = Ref<Texture2D>::Create( "assets/textures/editor/FileIcon.png",      AddressingMode::Repeat );
+		m_SwapViewIcon  = Ref<Texture2D>::Create( "assets/textures/editor/Swap.png",          AddressingMode::Repeat );
+		m_BackIcon      = Ref<Texture2D>::Create( "assets/textures/editor/Left.png",          AddressingMode::Repeat );
+		m_ForwardIcon   = Ref<Texture2D>::Create( "assets/textures/editor/Right.png",         AddressingMode::Repeat );
 
 		m_ViewMode      = CBViewMode::Assets;
 	}
@@ -154,7 +156,7 @@ namespace Saturn {
 			{
 				if( m_CurrentPath != s_pAssetsDirectory )
 				{
-					if( ImGui::Button( "<-", { 24, 24 } ) )
+					if( ImageButton( m_BackIcon, { 24, 24 } ) )
 					{
 						m_CurrentPath = m_CurrentPath.parent_path();
 
@@ -165,7 +167,7 @@ namespace Saturn {
 				{
 					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-					ImGui::Button( "<-", { 24, 24 } );
+					ImageButton( m_BackIcon, { 24, 24 } );
 					ImGui::PopStyleVar( 1 );
 					ImGui::PopItemFlag();
 				}
@@ -175,7 +177,7 @@ namespace Saturn {
 			{
 				if( m_CurrentPath != s_pScriptsDirectory )
 				{
-					if( ImGui::Button( "<-", { 24, 24 } ) )
+					if( ImageButton( m_BackIcon, { 24, 24 } ) )
 					{
 						m_CurrentPath = m_CurrentPath.parent_path();
 
@@ -186,7 +188,7 @@ namespace Saturn {
 				{
 					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-					ImGui::Button( "<-", { 24, 24 } );
+					ImageButton( m_BackIcon, { 24, 24 } );
 					ImGui::PopStyleVar( 1 );
 					ImGui::PopItemFlag();
 				}
@@ -200,7 +202,7 @@ namespace Saturn {
 
 		if( std::filesystem::exists( m_FirstFolder ) )
 		{
-			if( ImGui::Button( "->", { 24, 24 } ) )
+			if( ImageButton( m_ForwardIcon, { 24, 24 } ) )
 			{
 				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_pMainDirectory );
 
@@ -211,7 +213,7 @@ namespace Saturn {
 		{
 			ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 			ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-			ImGui::Button( "->", { 24, 24 } );
+			ImageButton( m_ForwardIcon, { 24, 24 } );
 			ImGui::PopStyleVar( 1 );
 			ImGui::PopItemFlag();
 		}
