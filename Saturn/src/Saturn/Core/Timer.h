@@ -59,14 +59,14 @@ namespace Saturn {
 		float Elapsed() const
 		{
 			if( m_Stopped )
-				return std::chrono::duration_cast< std::chrono::nanoseconds >( m_Stop - m_Start ).count() * 0.001f * 0.001f * 0.001f;
+				return std::chrono::duration< double, std::milli >( m_Stop - m_Start ).count();
 			else
-				return std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::high_resolution_clock::now() - m_Start ).count() * 0.001f * 0.001f * 0.001f;		
+				return std::chrono::duration< double, std::milli >( std::chrono::high_resolution_clock::now() - m_Start ).count();
 		}
 		
 		float ElapsedMilliseconds() const
 		{
-			return Elapsed() * 1000.0f;
+			return Elapsed();
 		}
 
 	private:
