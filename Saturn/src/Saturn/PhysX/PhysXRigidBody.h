@@ -31,6 +31,7 @@
 #include "Saturn/Core/Base.h"
 
 #include "PhysXCore.h"
+#include "PhysXRigidBodyBase.h"
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -40,14 +41,14 @@
 
 namespace Saturn {
 
-	class Entity;
-	class PhysXRigidbody : CountedObj
+	class PhysXRigidbody : public PhysXRigidBodyBase
 	{
+		using CollisionCB = std::function<void( Entity& rOther )>;
 	public:
-		PhysXRigidbody( Entity& Owner, glm::vec3& Position, glm::vec3& Rotation );
+		PhysXRigidbody( Entity entity, glm::vec3& Position, glm::vec3& Rotation );
 		~PhysXRigidbody();
 
-		void Create();
+		virtual void Create() override;
 
 		void SetKinematic( bool kinematic );
 		void ApplyForce( glm::vec3 ForceAmount, ForceMode Type );
@@ -56,20 +57,30 @@ namespace Saturn {
 		void SetMass( float mass );
 		void Rotate( glm::vec3 rotation );
 		void AddActorToScene();
+		void SetLinearVelocity( glm::vec3 linearVelocity );
 		bool IsKinematic() { return m_Kinematic; }
 		bool AttachShape( physx::PxShape& rShape );
 		glm::vec3 GetPosition();
 		glm::vec3 GetRotation();
 		glm::mat4 GetTransform();
+		glm::vec3 GetLinearVelocity();
 
 		physx::PxRigidActor* GetActor() { return m_Body; }
+
+		void SetOnCollisionBegin( std::function<void( Entity rOther )>&& rrFunc ) { OnCollisionBegin = rrFunc; }
+		void SetOnCollisionEnd( std::function<void( Entity rOther )>&& rrFunc ) { OnCollisionEnd = rrFunc; }
+
+		void SyncTransfrom();
+
+	public:
+		std::function<void( Entity rOther )> OnCollisionBegin;
+		std::function<void( Entity rOther )> OnCollisionEnd;
+
 	private:
 		physx::PxRigidActor* m_Body;
 
-		int m_Mas = 1.0;
+		int m_Mass = 1.0;
 		bool m_UseCCD = false;
 		bool m_Kinematic = false;
-
-		Entity& m_Owner;
 	};
 }

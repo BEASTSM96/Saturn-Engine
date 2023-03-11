@@ -112,14 +112,16 @@ namespace Saturn {
 
 		if( m_RuntimeRunning ) 
 		{
+			/*
 			auto view = m_Registry.view<PhysXRigidbodyComponent>();
 
 			for( auto entity : view )
 			{
 				Entity e{ entity, this };
 				auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
-				rb.m_Rigidbody->SetUserData( e );
+				rb.Rigidbody->SetUserData( e );
 			}
+			*/
 
 			m_PhysXRuntime->Update( ts, *this );
 
@@ -136,9 +138,7 @@ namespace Saturn {
 		for ( const auto& entity : PhysXView )
 		{
 			auto [tc, rb] = PhysXView.get<TransformComponent, PhysXRigidbodyComponent>( entity );
-			
-			tc.Position = rb.m_Rigidbody->GetPosition();
-			rb.m_Rigidbody->GetPosition() = tc.Position;
+			rb.Rigidbody->SyncTransfrom();
 		}
 	}
 
@@ -487,7 +487,8 @@ namespace Saturn {
 			Entity e{ entity, this };
 			m_PhysXRuntime->AddRigidbody( e );
 			auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
-			rb.m_Rigidbody->AddActorToScene();
+			rb.Rigidbody->AddActorToScene();
+			rb.Rigidbody->SetUserData( e );
 		}
 
 		EntityScriptManager::Get().BeginPlay();

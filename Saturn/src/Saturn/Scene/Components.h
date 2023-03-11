@@ -33,7 +33,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Saturn/Vulkan/EnvironmentMap.h"
-#include "Saturn/PhysX/PhysXRigidBody.h"
 
 #include "Saturn/Core/Math.h"
 
@@ -204,11 +203,11 @@ namespace Saturn {
 	class PhysXRigidbody;
 	struct PhysXRigidbodyComponent
 	{
-		bool IsKinematic;
-		bool UseCCD;
+		bool IsKinematic = false;
+		bool UseCCD = false;
 		int Mass = 2;
 
-		PhysXRigidbody* m_Rigidbody;
+		PhysXRigidbody* Rigidbody = nullptr;
 
 		PhysXRigidbodyComponent() = default;
 		PhysXRigidbodyComponent( bool isKinematic ) : IsKinematic( isKinematic ) { }

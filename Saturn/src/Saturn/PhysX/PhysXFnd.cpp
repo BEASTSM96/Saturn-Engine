@@ -55,21 +55,40 @@ namespace Saturn {
 
 	void PhysXContact::onContact( const physx::PxContactPairHeader& rPairHeader, const physx::PxContactPair* pPairs, physx::PxU32 Pairs )
 	{
-		Entity A = *( Entity* )rPairHeader.actors[ 0 ]->userData;
-		Entity B = *( Entity* )rPairHeader.actors[ 1 ]->userData;
+		//Entity A = *( Entity* )rPairHeader.actors[ 0 ]->userData;
+		//Entity B = *( Entity* )rPairHeader.actors[ 1 ]->userData;
+		
+		PhysXRigidbody* A = ( PhysXRigidbody* ) rPairHeader.actors[ 0 ]->userData;
+		PhysXRigidbody* B = ( PhysXRigidbody* ) rPairHeader.actors[ 1 ]->userData;
 
 		if( !A || !B )
 			return;
 
+		auto callCollisonBeginMethod = []( PhysXRigidbody* A, PhysXRigidbody* B )
+		{
+			if( A->OnCollisionBegin )
+				A->OnCollisionBegin( B->GetEntity() );
+
+			if( B->OnCollisionBegin )
+				B->OnCollisionBegin( A->GetEntity() );
+		};
+
+		auto callCollisonEndMethod = []( PhysXRigidbody* A, PhysXRigidbody* B )
+		{
+			if( A->OnCollisionEnd )
+				A->OnCollisionEnd( B->GetEntity() );
+
+			if( B->OnCollisionEnd )
+				B->OnCollisionEnd( A->GetEntity() );
+		};
+
 		if( pPairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH )
 		{
-			A.OnCollisionBegin( B );
-			B.OnCollisionBegin( A );
+			callCollisonBeginMethod( A, B );
 		}
 		else if( pPairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH ) 
 		{
-			A.OnCollisionEnd( B );
-			B.OnCollisionEnd( A );
+			callCollisonEndMethod( A, B );
 		}
 	}
 
@@ -273,8 +292,8 @@ namespace Saturn {
 		auto& rb = entity.GetComponent<PhysXRigidbodyComponent>();
 		auto& trans = entity.GetComponent<TransformComponent>();
 
-		rb.m_Rigidbody = new PhysXRigidbody( entity, trans.Position, trans.Rotation );
-		rb.m_Rigidbody->Create();
+		rb.Rigidbody = new PhysXRigidbody( entity, trans.Position, trans.Rotation );
+		rb.Rigidbody->Create();
 	}
 
 	bool PhysXFnd::Raycast( glm::vec3& Origin, glm::vec3& Direction, float Distance, RaycastResult* pResult )

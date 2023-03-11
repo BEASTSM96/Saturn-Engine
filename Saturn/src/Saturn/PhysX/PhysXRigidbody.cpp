@@ -39,11 +39,12 @@
 
 namespace Saturn {
 
-	PhysXRigidbody::PhysXRigidbody( Entity& Owner, glm::vec3& Position, glm::vec3& Rotation )
-		: m_Owner( Owner )
+	PhysXRigidbody::PhysXRigidbody( Entity entity, glm::vec3& Position, glm::vec3& Rotation )
 	{
-		auto& rb = Owner.GetComponent<PhysXRigidbodyComponent>();
-		auto& trans = Owner.GetComponent<TransformComponent>();
+		m_Entity = entity;
+
+		auto& rb = m_Entity.GetComponent<PhysXRigidbodyComponent>();
+		auto& trans = m_Entity.GetComponent<TransformComponent>();
 
 		physx::PxRigidDynamic* pActor = PhysXFnd::Get().GetPhysics()->createRigidDynamic( glmTransformToPx( trans.GetTransform() ) );
 
@@ -60,10 +61,16 @@ namespace Saturn {
 
 	void PhysXRigidbody::Create()
 	{
-		auto& rb = m_Owner.GetComponent<PhysXRigidbodyComponent>();
+		auto& rb = m_Entity.GetComponent<PhysXRigidbodyComponent>();
 		
-		if( m_Owner.HasComponent<PhysXBoxColliderComponent>() )
-			PhysXFnd::Get().CreateBoxCollider( m_Owner, *m_Body );
+		if( m_Entity.HasComponent<PhysXBoxColliderComponent>() )
+			PhysXFnd::Get().CreateBoxCollider( m_Entity, *m_Body );
+
+		if( m_Entity.HasComponent<PhysXSphereColliderComponent>() )
+			PhysXFnd::Get().CreateSphereCollider( m_Entity, *m_Body );
+
+		if( m_Entity.HasComponent<PhysXCapsuleColliderComponent>() )
+			PhysXFnd::Get().CreateCapsuleCollider( m_Entity, *m_Body );
 
 		physx::PxAllocatorCallback& rAllocator = PhysXFnd::Get().GetAllocator();
 
@@ -84,7 +91,7 @@ namespace Saturn {
 
 		rAllocator.deallocate( shapes );
 
-		m_Body->userData = &m_Owner;
+		m_Body->userData = this;
 		SetKinematic( rb.IsKinematic );
 	}
 
@@ -98,12 +105,13 @@ namespace Saturn {
 
 	void PhysXRigidbody::ApplyForce( glm::vec3 ForceAmount, ForceMode Type )
 	{
+		physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
 
+		pActor->addForce( GLMToPhysXVec( ForceAmount ), ( physx::PxForceMode::Enum ) Type );
 	}
 
 	void PhysXRigidbody::SetUserData( Entity& rEntity )
 	{
-		m_Body->userData = &rEntity;
 	}
 
 	void PhysXRigidbody::UseCCD( bool ccd )
@@ -113,7 +121,6 @@ namespace Saturn {
 	void PhysXRigidbody::SetMass( float mass )
 	{
 		physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
-
 		pActor->setMass( mass );	
 	}
 
@@ -132,6 +139,12 @@ namespace Saturn {
 	{
 		physx::PxScene* pScene = static_cast< physx::PxScene* >( PhysXRuntime::GetScene() );
 		pScene->addActor( *m_Body );
+	}
+
+	void PhysXRigidbody::SetLinearVelocity( glm::vec3 linearVelocity )
+	{
+		physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
+		pActor->setLinearVelocity(  GLMToPhysXVec( linearVelocity ) );
 	}
 
 	bool PhysXRigidbody::AttachShape( physx::PxShape& rShape )
@@ -161,7 +174,7 @@ namespace Saturn {
 		auto zq = m_Body->getGlobalPose().q.z;
 		auto wq = m_Body->getGlobalPose().q.w;
 
-		glm::vec3 q;
+		glm::vec3 q = {};
 		q.x = xq;
 		q.y = yq;
 		q.z = zq;
@@ -183,6 +196,22 @@ namespace Saturn {
 		auto rot = glm::mat4( xpos * yq * zq );
 
 		return glm::mat4( pos * rot );
+	}
+
+	glm::vec3 PhysXRigidbody::GetLinearVelocity()
+	{
+		physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
+		return PxVecToGLM( pActor->getLinearVelocity() );
+	}
+
+	void PhysXRigidbody::SyncTransfrom()
+	{
+		TransformComponent& ts = m_Entity.GetComponent<TransformComponent>();
+		//physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
+		physx::PxTransform actorPose = m_Body->getGlobalPose();
+
+		ts.Position = PxVecToGLM( actorPose.p );
+		ts.Rotation = glm::eulerAngles( PxQuatToGLM( actorPose.q ) );
 	}
 
 }

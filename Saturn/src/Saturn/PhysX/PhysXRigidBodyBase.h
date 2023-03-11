@@ -28,72 +28,22 @@
 
 #pragma once
 
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "PxPhysicsAPI.h"
-
-#include <stdint.h>
+#include "Saturn/Scene/Entity.h"
 
 namespace Saturn {
 
-	enum ForceMode
+	class PhysXRigidBodyBase : public CountedObj
 	{
-		Force,
-		Impulse,
-		VelocityChange,
-		Acceleration
+	public:
+		PhysXRigidBodyBase() {}
+		~PhysXRigidBodyBase() {}
+
+		virtual void Create() = 0;
+
+		Entity GetEntity() { return m_Entity; }
+
+	protected:
+		Entity m_Entity;
 	};
-
-	enum BroadphaseType
-	{
-		SaP, // Sweep and Prune
-		AbP, // Auto Box Prune 
-		MbP // Multi-Box Prune
-	};
-
-	enum FrictionType
-	{
-		Patch,
-		OneDirectinal,
-		TwoDirectinal
-	};
-
-	struct RaycastResult
-	{
-		uint64_t EntityID;
-		float Distance;
-		glm::vec3 Position;
-		glm::vec3 Normal;
-	};
-
-	static physx::PxQuat GLMToPhysXQuat( const glm::quat& quat )
-	{
-		return physx::PxQuat( quat.x, quat.y, quat.z, quat.w );
-	}
-
-	static physx::PxVec3 GLMToPhysXVec( const glm::vec3& vec )
-	{
-		return *( physx::PxVec3* ) &vec;
-	}
-
-	static glm::vec3 PxVecToGLM( physx::PxVec3 vec )
-	{
-		return *( glm::vec3* ) &vec;
-	}
-
-	static glm::quat PxQuatToGLM( physx::PxQuat quat )
-	{
-		return *( glm::quat* ) &quat;
-	}
-
-	static physx::PxTransform glmTransformToPx( const glm::mat4& mat )
-	{
-		physx::PxQuat r = GLMToPhysXQuat( glm::normalize( glm::quat( mat ) ) );
-		physx::PxVec3 p = GLMToPhysXVec( glm::vec3( mat[ 3 ] ) );
-
-		return physx::PxTransform( p, r );
-	}
 
 }

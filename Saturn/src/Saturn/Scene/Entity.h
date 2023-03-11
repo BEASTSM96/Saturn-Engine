@@ -89,8 +89,7 @@ namespace Saturn {
 		}
 
 		glm::mat4 Transform() { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ).GetTransform(); }
-		//const glm::mat4& Transform() const { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ); }
-
+		
 		const std::string& Tag() const { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }
 		std::string& Tag() { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }
 
@@ -113,9 +112,6 @@ namespace Saturn {
 		void BeginPlay() override {}
 		void OnUpdate( Saturn::Timestep ts ) override {}
 
-		virtual void OnCollisionBegin( Entity Other ) {}
-		virtual void OnCollisionEnd( Entity Other ) {}
-
 		void SetParent( const UUID& rID ) 
 		{
 			GetComponent<RelationshipComponent>().Parent = rID;
@@ -127,8 +123,7 @@ namespace Saturn {
 		}
 
 		std::vector<UUID>& GetChildren()             { return GetComponent<RelationshipComponent>().ChildrenID; }
-		//const std::vector<UUID>& GetChildren() const { return GetComponent<RelationshipComponent>().ChildrenID; }
-
+		
 		bool HasParent()   { return GetComponent<RelationshipComponent>().Parent != 0; }
 		bool HasChildren() { return GetComponent<RelationshipComponent>().ChildrenID.size() > 1; }
 
