@@ -200,7 +200,9 @@ namespace Saturn {
 		Submesh& rSubmesh = mesh->Submeshes()[ SubmeshIndex ];
 		{
 			auto& rMaterialAsset = mesh->GetMaterialAssets()[ rSubmesh.MaterialIndex ];
-			Ref< DescriptorSet > Set = mesh->GetDescriptorSets()[ rSubmesh ];
+			rMaterialAsset->Bind( mesh, rSubmesh, Shader, true );
+
+			Ref<DescriptorSet> Set = rMaterialAsset->GetMaterial()->GetDescriptorSet();
 
 			auto& rSB = rStorageBufferSet->Get( 0, 14 );
 			VkDescriptorBufferInfo Info = { .buffer = rSB.Buffer, .offset = 0, .range = rSB.Size };
@@ -214,8 +216,6 @@ namespace Saturn {
 						
 			// Set the offset to be the size of the vertex push constant.
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
-
-			rMaterialAsset->Bind( mesh, rSubmesh, Shader, true );
 
 			// Descriptor set 0, for material texture data.
 			// Descriptor set 1, for environment data.

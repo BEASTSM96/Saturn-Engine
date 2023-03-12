@@ -48,9 +48,10 @@ namespace Saturn {
 		void Copy( Ref<Material>& rOther );
 
 		void Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
-
-		void Unbind();
 		
+		void RN_Update();
+		void RN_Clean();
+
 		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture );
 
 		template<typename Ty>
@@ -97,6 +98,8 @@ namespace Saturn {
 		
 		Ref< Texture2D > GetResource( const std::string& Name );
 
+		Ref< DescriptorSet > GetDescriptorSet() { return m_DescriptorSet; }
+
 		bool HasAnyValueChanged() { return m_AnyValueChanged; };
 
 		void SetName( const std::string& rName ) { m_Name = rName; }
@@ -123,6 +126,8 @@ namespace Saturn {
 		
 		std::vector< ShaderUniform > m_Uniforms;
 		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
+
+		Ref<DescriptorSet> m_DescriptorSet;
 
 	private:
 		friend class MaterialInstance;

@@ -111,9 +111,14 @@ namespace Saturn {
 
 	void Material::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader )
 	{
-		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
-		
-		for ( auto& [name, texture] : m_Textures )
+	}
+
+	void Material::RN_Update()
+	{
+		// Set 0, is for material data.
+		m_DescriptorSet = m_Shader->CreateDescriptorSet( 0 );
+
+		for( auto& [name, texture] : m_Textures )
 		{
 			VkDescriptorImageInfo ImageInfo = {};
 			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -121,12 +126,13 @@ namespace Saturn {
 			ImageInfo.imageView = m_Textures[ name ]->GetImageView();
 			ImageInfo.sampler = m_Textures[ name ]->GetSampler();
 
-			Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
+			m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSet->GetVulkanSet() );
 		}
 	}
 
-	void Material::Unbind()
+	void Material::RN_Clean()
 	{
+		m_DescriptorSet->Terminate();
 	}
 
 	void Material::SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture )

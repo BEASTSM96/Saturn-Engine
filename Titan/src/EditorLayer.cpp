@@ -434,6 +434,7 @@ namespace Saturn {
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 
+		/*
 		if( auto& rSelection = pHierarchyPanel->GetSelectionContext() )
 		{
 			if( rSelection.HasComponent<StaticMeshComponent>() )
@@ -552,7 +553,8 @@ namespace Saturn {
 				}
 			}
 		}
-
+		*/
+		
 		// Asset viewers
 		MaterialAssetViewer::Get().Draw();
 		PrefabViewer::Get().Draw();

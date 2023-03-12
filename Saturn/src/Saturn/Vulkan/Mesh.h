@@ -96,7 +96,6 @@ namespace Saturn {
 
 	class StaticMesh : public Asset
 	{
-		using DescriptorSetMap = std::unordered_map< Submesh, Ref< DescriptorSet > >;
 	public:
 		StaticMesh() {}
 		StaticMesh( const std::string& rFilepath );
@@ -113,9 +112,6 @@ namespace Saturn {
 		std::vector< Ref< MaterialAsset > >& GetMaterialAssets() { return m_MaterialsAssets; }
 		const std::vector< Ref< MaterialAsset > >& GetMaterialAssets() const { return m_MaterialsAssets; }
 
-		DescriptorSetMap& GetDescriptorSets() { return m_DescriptorSets; }
-		const DescriptorSetMap& GetDescriptorSets() const { return m_DescriptorSets; }
-
 		std::vector<Submesh>& Submeshes() { return m_Submeshes; }
 		const std::vector<Submesh>& Submeshes() const { return m_Submeshes; }
 
@@ -131,8 +127,6 @@ namespace Saturn {
 	private:
 		Ref<VertexBuffer> m_VertexBuffer;
 		Ref<IndexBuffer> m_IndexBuffer;
-
-		std::unordered_map< Submesh, Ref< DescriptorSet > > m_DescriptorSets;
 
 		std::vector<StaticVertex> m_Vertices;
 		std::vector<Submesh> m_Submeshes;

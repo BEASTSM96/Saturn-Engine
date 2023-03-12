@@ -195,7 +195,9 @@ namespace Saturn {
 
 	void MaterialAsset::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, bool Force /*=false*/ )
 	{
-		Ref< DescriptorSet > CurrentSet = rMesh->GetDescriptorSets().at( rSubmsh );
+		m_Material->RN_Update();
+
+		Ref< DescriptorSet > CurrentSet = m_Material->m_DescriptorSet;
 
 		auto& textures = m_Material->GetTextures();
 
@@ -251,6 +253,11 @@ namespace Saturn {
 
 			m_ValuesChanged = false;
 		}
+	}
+
+	void MaterialAsset::Clean()
+	{
+		m_Material->RN_Clean();
 	}
 
 	bool MaterialAsset::IsInViewingMode()

@@ -203,10 +203,6 @@ namespace Saturn {
 			auto& submesh = m_Submeshes[ mesh ];
 			submesh.NodeName = node->mName.C_Str();
 			submesh.Transform = transform;
-
-			// Create a descriptor set for each submesh to use.
-			// Set 0 = material data and vertex data.
-			m_DescriptorSets[ submesh ] = m_MeshShader->CreateDescriptorSet( 0 );
 		}
 
 		for( uint32_t i = 0; i < node->mNumChildren; i++ )
