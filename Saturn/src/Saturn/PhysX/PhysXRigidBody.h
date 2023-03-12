@@ -65,6 +65,9 @@ namespace Saturn {
 		glm::mat4 GetTransform();
 		glm::vec3 GetLinearVelocity();
 
+		void SetLockFlag( LockFlags flags, bool value );
+		bool HasLockFlag( LockFlags flag ) { return m_LockFlags & flag; }
+
 		physx::PxRigidActor* GetActor() { return m_Body; }
 
 		void SetOnCollisionBegin( std::function<void( Entity rOther )>&& rrFunc ) { OnCollisionBegin = rrFunc; }

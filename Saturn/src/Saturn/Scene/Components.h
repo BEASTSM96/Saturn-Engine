@@ -207,6 +207,8 @@ namespace Saturn {
 		bool UseCCD = false;
 		int Mass = 2;
 
+		uint32_t LockFlags;
+
 		PhysXRigidbody* Rigidbody = nullptr;
 
 		PhysXRigidbodyComponent() = default;

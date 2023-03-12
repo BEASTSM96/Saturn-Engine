@@ -93,6 +93,10 @@ namespace Saturn {
 
 		m_Body->userData = this;
 		SetKinematic( rb.IsKinematic );
+
+		m_LockFlags = rb.LockFlags;
+		physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
+		pActor->setRigidDynamicLockFlags( ( physx::PxRigidDynamicLockFlags ) m_LockFlags );
 	}
 
 	void PhysXRigidbody::SetKinematic( bool kinematic )
@@ -204,11 +208,21 @@ namespace Saturn {
 		return PxVecToGLM( pActor->getLinearVelocity() );
 	}
 
+	void PhysXRigidbody::SetLockFlag( LockFlags flags, bool value )
+	{
+		value ? m_LockFlags |= ( uint32_t ) flags : m_LockFlags &= ~( uint32_t ) flags;
+
+		physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
+		pActor->setRigidDynamicLockFlags( ( physx::PxRigidDynamicLockFlags ) m_LockFlags );
+
+		m_Entity.GetComponent<PhysXRigidbodyComponent>().LockFlags = m_LockFlags;
+	}
+
 	void PhysXRigidbody::SyncTransfrom()
 	{
 		TransformComponent& ts = m_Entity.GetComponent<TransformComponent>();
-		//physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
-		physx::PxTransform actorPose = m_Body->getGlobalPose();
+		physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
+		physx::PxTransform actorPose = pActor->getGlobalPose();
 
 		ts.Position = PxVecToGLM( actorPose.p );
 		ts.Rotation = glm::eulerAngles( PxQuatToGLM( actorPose.q ) );

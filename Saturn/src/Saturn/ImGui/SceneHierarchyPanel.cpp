@@ -35,6 +35,8 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "UITools.h"
 
+#include "Saturn/PhysX/PhysXRigidBodyBase.h"
+
 #include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Saturn/GameFramework/EntityScriptManager.h"
@@ -218,20 +220,20 @@ namespace Saturn {
 				ImGui::EndPopup();
 			}
 
-			if( !m_IsPrefabScene )
+			//if( !m_IsPrefabScene )
 				ImGui::Begin( "Inspector", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse );
-			else
-				ImGui::BeginChild( "Inspector" );
+			//else
+			//	ImGui::BeginChild( "Inspector" );
 
 			if( m_SelectionContext )
 			{
 				DrawComponents( m_SelectionContext );
 			}
 
-			if( !m_IsPrefabScene )
+			//if( !m_IsPrefabScene )
 				ImGui::End();
-			else
-				ImGui::EndChild();
+			//else
+			//	ImGui::EndChild();
 		}
 
 		if( !m_IsPrefabScene )
@@ -395,8 +397,9 @@ namespace Saturn {
 
 			DrawVec3Control( "Translation", tc.Position );
 			
-			DrawVec3Control( "Rotation", rotation );
-			tc.Rotation = glm::radians( rotation );
+			if( DrawVec3Control( "Rotation", rotation ) )
+				tc.Rotation = glm::radians( rotation );
+
 			DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 
@@ -550,6 +553,44 @@ namespace Saturn {
 			DrawBoolControl( "Use CCD", rb.UseCCD );
 			
 			DrawIntControl( "Mass", rb.Mass );
+
+			// Lock Flags
+			bool locationX = rb.LockFlags & LockFlags::LockLocationX;
+			bool locationY = rb.LockFlags & LockFlags::LockLocationY;
+			bool locationZ = rb.LockFlags & LockFlags::LockLocationZ;
+			bool rotationX = rb.LockFlags & LockFlags::LockRotationX;
+			bool rotationY = rb.LockFlags & LockFlags::LockRotationY;
+			bool rotationZ = rb.LockFlags & LockFlags::LockRotationZ;
+
+			if( DrawBoolControl( "Lock Location X", locationX ) ) 
+			{
+				locationX ? rb.LockFlags |= ( uint32_t ) LockFlags::LockLocationX : rb.LockFlags &= ~( uint32_t ) LockFlags::LockLocationX;
+			}
+
+			if( DrawBoolControl( "Lock Location Y", locationY ) )
+			{
+				locationY ? rb.LockFlags |= ( uint32_t ) LockFlags::LockLocationY : rb.LockFlags &= ~( uint32_t ) LockFlags::LockLocationY;
+			}
+
+			if( DrawBoolControl( "Lock Location Z", locationZ ) )
+			{
+				locationZ ? rb.LockFlags |= ( uint32_t ) LockFlags::LockLocationZ : rb.LockFlags &= ~( uint32_t ) LockFlags::LockLocationZ;
+			}
+
+			if( DrawBoolControl( "Lock Rotation X", rotationX ) )
+			{
+				rotationX ? rb.LockFlags |= ( uint32_t ) LockFlags::LockRotationX : rb.LockFlags &= ~( uint32_t ) LockFlags::LockRotationX;
+			}
+
+			if( DrawBoolControl( "Lock Rotation Y", rotationY ) )
+			{
+				rotationX ? rb.LockFlags |= ( uint32_t ) LockFlags::LockRotationY : rb.LockFlags &= ~( uint32_t ) LockFlags::LockRotationY;
+			}
+
+			if( DrawBoolControl( "Lock Rotation Z", rotationZ ) )
+			{
+				rotationZ ? rb.LockFlags |= ( uint32_t ) LockFlags::LockRotationZ : rb.LockFlags &= ~( uint32_t ) LockFlags::LockRotationZ;
+			}
 		} );
 
 	}

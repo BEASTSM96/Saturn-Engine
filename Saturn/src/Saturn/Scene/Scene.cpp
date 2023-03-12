@@ -112,17 +112,6 @@ namespace Saturn {
 
 		if( m_RuntimeRunning ) 
 		{
-			/*
-			auto view = m_Registry.view<PhysXRigidbodyComponent>();
-
-			for( auto entity : view )
-			{
-				Entity e{ entity, this };
-				auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
-				rb.Rigidbody->SetUserData( e );
-			}
-			*/
-
 			m_PhysXRuntime->Update( ts, *this );
 
 			EntityScriptManager::Get().UpdateAllScripts( ts );

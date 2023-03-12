@@ -32,6 +32,16 @@
 
 namespace Saturn {
 
+	enum LockFlags
+	{
+		LockLocationX = BIT( 0 ),
+		LockLocationY = BIT( 1 ),
+		LockLocationZ = BIT( 2 ),
+		LockRotationX = BIT( 3 ),
+		LockRotationY = BIT( 4 ),
+		LockRotationZ = BIT( 5 )
+	};
+
 	class PhysXRigidBodyBase : public CountedObj
 	{
 	public:
@@ -44,6 +54,7 @@ namespace Saturn {
 
 	protected:
 		Entity m_Entity;
+		uint32_t m_LockFlags = -1;
 	};
 
 }
