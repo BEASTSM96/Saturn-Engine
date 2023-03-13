@@ -2,7 +2,7 @@ workspace "Saturn"
 	architecture "x64"
 	startproject "Titan"
 	targetdir "build"
-	warnings "On"
+	warnings "Default"
 
 	configurations { "Debug", "Release", "Dist" }
 
@@ -44,7 +44,7 @@ project "Saturn"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-	warnings "On"
+	warnings "Default"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -238,7 +238,7 @@ project "Titan"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-	warnings "On"
+	warnings "Default"
 	kind "ConsoleApp"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -376,7 +376,7 @@ project "ProjectBrowser"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-	warnings "On"
+	warnings "Default"
 	kind "ConsoleApp"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -558,7 +558,7 @@ project "SingletonStorage"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-	warnings "On"
+	warnings "Default"
 		
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
