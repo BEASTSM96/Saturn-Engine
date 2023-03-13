@@ -30,7 +30,6 @@ namespace SaturnBuildTool
         {
             var Args = new List<string>();
 
-            string VSLocation = VSWhere.FindVSRootDir();
             string LinkLocation = VSWhere.FindMSVCToolsDir();
 
             ProcessStartInfo processStart = new ProcessStartInfo();
@@ -48,6 +47,9 @@ namespace SaturnBuildTool
                     {
                         processStart.FileName = LinkLocation + "/bin/Hostx64/x86/link.exe";
                     }
+                    break;
+
+                default:
                     break;
             }
 
@@ -100,6 +102,9 @@ namespace SaturnBuildTool
                         Args.Add(string.Format(" /DLL /OUT:\"{0}\"", TargetToBuild.GetBinDir()));
                     }
                     break;
+
+                default:
+                    break;
             }
 
             string ilkPath = Path.Combine( TargetToBuild.OutputPath, TargetToBuild.ProjectName );
@@ -140,14 +145,18 @@ namespace SaturnBuildTool
 
             clProcess.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
             {
-                if( e.Data != null )
+                if (e.Data != null) 
+                {
                     Console.WriteLine(e.Data);
+                }
             });
 
             clProcess.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
             {
-                if (e.Data != null)
+                if (e.Data != null) 
+                {
                     Console.WriteLine(e.Data);
+                }
             });
 
             clProcess.Start();
@@ -174,6 +183,9 @@ namespace SaturnBuildTool
                     {
                         CLLocation += "/lib/x86";
                     }
+                    break;
+
+                default:
                     break;
             }
 

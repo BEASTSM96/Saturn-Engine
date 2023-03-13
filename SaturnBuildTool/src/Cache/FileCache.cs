@@ -31,8 +31,10 @@ namespace SaturnBuildTool.Cache
 
         public void CacheFile(string Filepath)
         {
-            if( IsCppFile(Filepath) )
+            if (IsCppFile(Filepath)) 
+            {
                 FilesToCache.Add(Filepath, File.GetLastWriteTime(Filepath));
+            }
         }
 
         public bool IsCppFile( string Filepath )

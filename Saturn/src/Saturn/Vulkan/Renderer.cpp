@@ -71,6 +71,7 @@ namespace Saturn {
 		SetDebugUtilsObjectName( "Submit Semaphore", ( uint64_t ) m_SubmitSemaphore, VK_OBJECT_TYPE_SEMAPHORE );
 
 		uint32_t* pData = new uint32_t[ 1 * 1 ];
+		memset( pData, 0, sizeof( uint32_t ) * 1 * 1 );
 
 		for( uint32_t i = 0; i < 1 * 1; i++ )
 		{

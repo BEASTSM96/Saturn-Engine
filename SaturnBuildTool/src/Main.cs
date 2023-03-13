@@ -75,8 +75,10 @@ namespace SaturnBuildTool
 			foreach ( string file in sourceFiles ) 
 			{
 				// We are only building c++ files.
-				if (!fileCache.IsCppFile(file))
+				if (!fileCache.IsCppFile(file)) 
+				{
 					continue;
+				}
 
 				// Only compile the file if it has not be changed.
 				DateTime LastTime;

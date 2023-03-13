@@ -293,7 +293,7 @@ namespace Saturn {
 			} );
 
 		s_NodeEditors[ rAsset->GetAssetID() ]->SetDetailsFunction(
-			[]( Node node ) -> void
+			[]( const Node& rNode ) -> void
 			{
 			}
 		);

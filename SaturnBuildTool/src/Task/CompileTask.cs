@@ -23,7 +23,7 @@ namespace SaturnBuildTool
 
         public override int Execute()
         {
-            if( Path.GetExtension( InputFile ) != ".cpp" )
+            if (Path.GetExtension(InputFile) != ".cpp")
                 return 0;
 
             string CLLocation = VSWhere.FindMSVCToolsDir();
@@ -46,6 +46,9 @@ namespace SaturnBuildTool
                         processStart.FileName = CLLocation + "/bin/Hostx64/x86/cl.exe";
                     }
                     break;
+
+                default:
+                    break;
             }
 
             processStart.CreateNoWindow = true;
@@ -61,10 +64,10 @@ namespace SaturnBuildTool
 
             // Compile
             Args.Add(" /c");
-            
+
             Args.Add(" /errorreport:prompt");
             Args.Add(" /verbosity:quiet");
-            
+
             // Debugging.
             Args.Add(" /ZI");
 
@@ -74,10 +77,14 @@ namespace SaturnBuildTool
             // Unwind semantics.
             Args.Add(" /EHsc");
 
-            if(TargetToBuild.CurrentConfig == ConfigKind.Debug)
-                Args.Add(" /MTd" );
-            else
+            if (TargetToBuild.CurrentConfig == ConfigKind.Debug)
+            {
+                Args.Add(" /MTd");
+            }
+            else 
+            {
                 Args.Add(" /MT" );
+            }
 
             // Out
             string outFile = string.Format("{0}\\{1}", TargetToBuild.OutputPath, Path.GetFileName(Path.ChangeExtension(InputFile, ".obj")));

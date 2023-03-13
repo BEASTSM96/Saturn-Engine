@@ -37,8 +37,6 @@ namespace SaturnBuildTool
 
         public LinkerOutput OutputType = LinkerOutput.Executable;
 
-        //bool IsGame = false;
-
         public virtual void Init() 
         {
             Links.Add("dwmapi.lib");
@@ -84,6 +82,9 @@ namespace SaturnBuildTool
                         BinDir = Path.Combine(BinDir, "Dist-windows-x86_64");
                     }
                     break;
+
+                default:
+                    break;
             }
 
             BinDir = Path.Combine( BinDir, ProjectName );
@@ -109,6 +110,9 @@ namespace SaturnBuildTool
                         BinDir = Path.Combine(BinDir, ProjectName);
                         BinDir = Path.ChangeExtension(BinDir, ".exe");
                     }
+                    break;
+
+                default:
                     break;
             }
 
@@ -191,6 +195,9 @@ namespace SaturnBuildTool
                                 outDir = Path.Combine(outDir, "bin-int");
                                 outDir = Path.Combine(outDir, "Dist-windows-x86_64");
                             }
+                            break;
+
+                        default:
                             break;
                     }
 

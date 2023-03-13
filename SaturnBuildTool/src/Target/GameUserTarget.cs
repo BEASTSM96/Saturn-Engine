@@ -89,8 +89,6 @@ namespace SaturnBuildTool
 
             PreprocessorDefines.Add("SATURN_SS_IMPORT");
 
-            //DynamicBase.Add("SingletonStorage.lib");
-
             LibraryPaths.Add( libPath );
             LibraryPaths.Add( ssBinDir );
 

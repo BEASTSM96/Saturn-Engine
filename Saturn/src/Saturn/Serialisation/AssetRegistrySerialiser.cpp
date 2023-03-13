@@ -57,26 +57,6 @@ namespace YAML {
 	{
 		return emitter.Write( v.string() );
 	}
-
-	template <>
-	struct convert<uint8_t*>
-	{
-		static Node encode( uint8_t* rhs )
-		{
-			return Node( rhs );
-		}
-
-		static bool decode( const Node& node, uint8_t* rhs )
-		{
-			rhs = node.as<uint8_t*>();
-			return true;
-		}
-	};
-
-	inline Emitter& operator<<( Emitter& emitter, uint8_t* v )
-	{
-		return emitter.Write( (char)v );
-	}
 }
 
 namespace Saturn {

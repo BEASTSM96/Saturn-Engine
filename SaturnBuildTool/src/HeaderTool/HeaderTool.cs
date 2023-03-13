@@ -331,7 +331,7 @@ namespace SaturnBuildTool.Tools
             return Result;
         }
 
-        private bool GenerateSource(string GenSourcePath, string SourcePath) 
+        private bool GenerateSourceI(string GenSourcePath) 
         {
             bool Result = false;
 
@@ -460,7 +460,6 @@ namespace SaturnBuildTool.Tools
 
                 foreach (KeyValuePair<int, Property> kv in CurrentFile.Properties)
                 {
-                    int ln = kv.Key;
                     Property property = kv.Value;
 
                     propfunc += string.Format("\t// [_Zp_Public_Prop] {0} of type {1}\r\n", property.Name.ToUpper(), property.Type.ToUpper());
@@ -534,7 +533,7 @@ namespace SaturnBuildTool.Tools
             try
             {
                 // We want to read the header.
-                Result = GenerateSource(GenFilepath, HeaderFilepath);
+                Result = GenerateSourceI(GenFilepath);
             }
             catch (Exception e)
             {

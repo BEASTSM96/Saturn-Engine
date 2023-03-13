@@ -2,7 +2,7 @@ workspace "Saturn"
 	architecture "x64"
 	startproject "Titan"
 	targetdir "build"
-	warnings "Off"
+	warnings "On"
 
 	configurations { "Debug", "Release", "Dist" }
 
@@ -44,7 +44,7 @@ project "Saturn"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-	warnings "Off"
+	warnings "On"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -238,7 +238,7 @@ project "Titan"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-	warnings "Off"
+	warnings "On"
 	kind "ConsoleApp"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -376,7 +376,7 @@ project "ProjectBrowser"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-	warnings "Off"
+	warnings "On"
 	kind "ConsoleApp"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -384,7 +384,8 @@ project "ProjectBrowser"
 
 	defines
 	{
-		"_CRT_SECURE_NO_WARNINGS"
+		"_CRT_SECURE_NO_WARNINGS",
+		"SATURN_SS_IMPORT"
 	}
 
 	files
@@ -413,8 +414,10 @@ project "ProjectBrowser"
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
 		"%{IncludeDir.Optick}",
-		"%{IncludeDir.SingletonStorage}",
-		"Saturn/vendor/vulkan/include"
+		"Saturn/vendor/vulkan/include",
+		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.Filewatch}",
+		"%{IncludeDir.SingletonStorage}"
 	}
 
 	links
@@ -448,6 +451,7 @@ project "ProjectBrowser"
 				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
 				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
 				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
+				'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 			}
 
 		filter "configurations:Release"
@@ -455,11 +459,21 @@ project "ProjectBrowser"
 			runtime "Release"
 			optimize "on"
 
+			postbuildcommands 
+			{ 
+				'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+			}
+
 		filter "configurations:Dist"
 			defines "SAT_DIST"
 			runtime "Release"
 			optimize "on"
 			kind "WindowedApp"
+
+			postbuildcommands 
+			{ 
+				'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+			}
 
 		filter "configurations:Release or configurations:Dist"
 			postbuildcommands 
@@ -544,7 +558,7 @@ project "SingletonStorage"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-	warnings "Off"
+	warnings "On"
 		
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")

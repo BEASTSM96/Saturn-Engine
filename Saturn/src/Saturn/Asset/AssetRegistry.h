@@ -72,7 +72,7 @@ namespace Saturn {
 			return asset.As<Ty>();
 		}
 
-		const std::vector<AssetID>& FindAssetsWithType( AssetType type ) const;
+		std::vector<AssetID> FindAssetsWithType( AssetType type ) const;
 
 		const AssetMap& GetAssetMap() const { return m_Assets; }
 		const AssetMap& GetLoadedAssetsMap() const { return m_LoadedAssets; }

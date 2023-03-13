@@ -131,6 +131,9 @@ namespace SaturnBuildTool
                         binPath = Path.Combine(binPath, "optick");
                     }
                     break;
+
+                default:
+                    break;
             }
 
             return binPath;

@@ -79,7 +79,7 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	const std::vector<AssetID>& AssetRegistry::FindAssetsWithType( AssetType type ) const
+	std::vector<AssetID> AssetRegistry::FindAssetsWithType( AssetType type ) const
 	{
 		std::vector<AssetID> result;
 
