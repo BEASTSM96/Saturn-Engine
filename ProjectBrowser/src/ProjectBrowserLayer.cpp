@@ -103,6 +103,8 @@ namespace Saturn {
 		
 		s_RecentProjectThread = std::thread( []() 
 		{
+			SetThreadDescription( GetCurrentThread(), L"RecentProjectThread" );
+
 			do
 			{
 				auto& userSettings = GetUserSettings();

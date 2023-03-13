@@ -41,9 +41,6 @@ namespace Saturn {
 		~Premake() {}
 
 		bool Launch( const std::string& rWorkingDir );
-
-		void SetArgs( std::string args );
-
 	private:
 	};
 }

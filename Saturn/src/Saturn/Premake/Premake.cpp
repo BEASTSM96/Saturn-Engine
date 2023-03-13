@@ -60,10 +60,4 @@ namespace Saturn {
 
 		return res;
 	}
-
-	void Premake::SetArgs( std::string args )
-	{
-
-	}
-
 }

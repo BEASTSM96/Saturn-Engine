@@ -82,9 +82,6 @@ namespace SaturnBuildTool
                         BinDir = Path.Combine(BinDir, "Dist-windows-x86_64");
                     }
                     break;
-
-                default:
-                    break;
             }
 
             BinDir = Path.Combine( BinDir, ProjectName );

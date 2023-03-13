@@ -90,18 +90,18 @@ namespace Saturn {
 		return false;
 	}
 
-	Pass::Pass( PassSpecification PassSpec )
+	Pass::Pass( const PassSpecification& rPassSpec )
 	{
-		Create( PassSpec );
+		Create( rPassSpec );
 	}
 
 	Pass::~Pass()
 	{
 	}
 
-	void Pass::Create( PassSpecification PassSpec )
+	void Pass::Create( const PassSpecification& rPassSpec )
 	{
-		m_PassSpec = PassSpec;
+		m_PassSpec = rPassSpec;
 		VkSubpassDescription DefaultSubpass = {};
 
 		m_ClearValues.resize( m_PassSpec.Attachments.size() );

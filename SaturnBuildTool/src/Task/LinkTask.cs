@@ -48,9 +48,6 @@ namespace SaturnBuildTool
                         processStart.FileName = LinkLocation + "/bin/Hostx64/x86/link.exe";
                     }
                     break;
-
-                default:
-                    break;
             }
 
             processStart.CreateNoWindow = false;

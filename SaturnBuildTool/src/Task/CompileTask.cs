@@ -46,9 +46,6 @@ namespace SaturnBuildTool
                         processStart.FileName = CLLocation + "/bin/Hostx64/x86/cl.exe";
                     }
                     break;
-
-                default:
-                    break;
             }
 
             processStart.CreateNoWindow = true;

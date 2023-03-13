@@ -49,7 +49,7 @@ namespace Saturn {
 	{
 	public:
 		 Pass() { }
-		 Pass( PassSpecification PassSpec );
+		 Pass( const PassSpecification& rPassSpec );
 		~Pass();
 		
 		void Terminate();
@@ -68,7 +68,7 @@ namespace Saturn {
 
 	private:
 
-		void Create( PassSpecification PassSpec );
+		void Create( const PassSpecification& rPassSpec );
 
 	private:
 		PassSpecification m_PassSpec;
