@@ -193,6 +193,8 @@ namespace Saturn {
 			default:
 				break;
 		}
+
+		return "";
 	}
 	
 	//////////////////////////////////////////////////////////////////////////
@@ -244,6 +246,8 @@ namespace Saturn {
 
 	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorImageInfo& rImageInfo, VkDescriptorSet desSet )
 	{
+		SAT_CORE_INFO( "Updating : {0}", rName );
+
 		for( auto& [set, descriptorSet] : m_DescriptorSets )
 		{
 			for( auto& texture : descriptorSet.SampledImages )

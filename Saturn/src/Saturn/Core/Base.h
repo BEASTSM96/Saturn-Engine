@@ -45,7 +45,7 @@
 
 #define GLFW_RESIZE_NESW_CURSOR 0x00036008
 
-#define ARRAYSIZE( x ) ( ( int ) ( sizeof( x ) / sizeof( *( x ) ) ) )
+#define SAT_ARRAYSIZE( x ) ( ( int ) ( sizeof( x ) / sizeof( *( x ) ) ) )
 
 // Line Ending for shaders
 

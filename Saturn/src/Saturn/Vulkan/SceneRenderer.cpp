@@ -924,7 +924,7 @@ namespace Saturn {
 
 		auto& submeshes = mesh->Submeshes();
 		for( size_t i = 0; i < submeshes.size(); i++ )
-			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) i } );
+			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = (uint32_t)i } );
 
 		m_ShadowMapDrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) 0 } );
 	}
@@ -1032,7 +1032,7 @@ namespace Saturn {
 		// Render static meshes.
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
 
-		for( auto& Cmd : m_DrawList )
+		for( auto& Cmd : m_ShadowMapDrawList )
 		{
 			// Entity may of been deleted.
 			if( !Cmd.entity )

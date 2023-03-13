@@ -42,7 +42,7 @@ namespace Saturn {
 	Material::Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName )
 	{
 		m_Shader = Shader;
-
+		
 		if( MateralName.empty() )
 		{
 			std::string NewName = Shader->GetName();
@@ -115,24 +115,35 @@ namespace Saturn {
 
 	void Material::RN_Update()
 	{
-		// Set 0, is for material data.
-		m_DescriptorSet = m_Shader->CreateDescriptorSet( 0 );
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
-		for( auto& [name, texture] : m_Textures )
+		//RN_Clean();
+
+		if( m_AnyValueChanged )
 		{
-			VkDescriptorImageInfo ImageInfo = {};
-			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			if( m_DescriptorSets[ frame ] == nullptr ) 
+			{
+				m_DescriptorSets[ frame ] = m_Shader->CreateDescriptorSet( 0 );
 
-			ImageInfo.imageView = m_Textures[ name ]->GetImageView();
-			ImageInfo.sampler = m_Textures[ name ]->GetSampler();
+				for( auto& [name, texture] : m_Textures )
+				{
+					VkDescriptorImageInfo ImageInfo = {};
+					ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSet->GetVulkanSet() );
+					ImageInfo.imageView = m_Textures[ name ]->GetImageView();
+					ImageInfo.sampler = m_Textures[ name ]->GetSampler();
+
+					m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSets[ Renderer::Get().GetCurrentFrame() ]->GetVulkanSet() );
+				}
+			}
 		}
 	}
 
 	void Material::RN_Clean()
 	{
-		m_DescriptorSet->Terminate();
+		m_DescriptorSets[ 0 ]->Terminate();
+		m_DescriptorSets[ 1 ]->Terminate();
+		m_DescriptorSets[ 2 ]->Terminate();
 	}
 
 	void Material::SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture )

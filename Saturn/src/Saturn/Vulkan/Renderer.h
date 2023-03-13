@@ -68,6 +68,7 @@ namespace Saturn {
 		void EndFrame();
 		
 		uint32_t GetImageIndex() { return m_ImageIndex; }
+		uint32_t GetCurrentFrame() { return m_FrameCount; }
 
 		std::pair< float, float > GetFrameTimings() { return std::make_pair( m_BeginFrameTime, m_EndFrameTime ); }
 		float GetQueuePresentTime() { return m_QueuePresentTime; }
@@ -113,7 +114,7 @@ namespace Saturn {
 		
 		Ref< Texture2D > m_PinkTexture;
 
-		Ref< DescriptorSet > m_RendererDescriptorSet;
+		Ref< DescriptorSet > m_RendererDescriptorSets[MAX_FRAMES_IN_FLIGHT];
 
 	private:
 		friend class VulkanContext;

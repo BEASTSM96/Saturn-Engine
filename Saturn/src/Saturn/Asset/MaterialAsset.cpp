@@ -197,7 +197,9 @@ namespace Saturn {
 	{
 		m_Material->RN_Update();
 
-		Ref< DescriptorSet > CurrentSet = m_Material->m_DescriptorSet;
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
+
+		Ref<DescriptorSet> CurrentSet = m_Material->GetDescriptorSet( frame );
 
 		auto& textures = m_Material->GetTextures();
 
@@ -208,19 +210,23 @@ namespace Saturn {
 			{
 				m_TextureCache[ name ] = texture->GetDescriptorInfo();
 			}
-			else if( !Force )
+			else
 			{
 				VkDescriptorImageInfo ImageInfo = m_TextureCache.at( name );
 
 				if( m_TextureCache.at( name ).imageView == ImageInfo.imageView || m_TextureCache.at( name ).sampler == ImageInfo.sampler )
 				{
+					SAT_CORE_INFO( "No need to update the descriptor set -- its the same" );
+
 					// No need to update the descriptor set -- its the same.
 					continue;
 				}
 				else // If the image view has changed, update the cache.
 				{
+					SAT_CORE_INFO( "Image view has changed, updating the cache." );
+
 					m_TextureCache[ name ] = texture->GetDescriptorInfo();
-					Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
+					Shader->WriteDescriptor( name, ImageInfo, m_Material->m_DescriptorSets[ frame ]->GetVulkanSet() );
 
 					continue;
 				}
@@ -243,8 +249,12 @@ namespace Saturn {
 				ImageInfo.sampler = PinkTexture->GetSampler();
 			}
 
-			Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
+			SAT_CORE_INFO( "Material Asset updaing {0}...", name );
+
+			Shader->WriteDescriptor( name, ImageInfo, m_Material->m_DescriptorSets[ frame ]->GetVulkanSet() );
 		}
+
+		Shader->WriteAllUBs( m_Material->m_DescriptorSets[ frame ] );
 
 		if( m_ValuesChanged ) 
 		{

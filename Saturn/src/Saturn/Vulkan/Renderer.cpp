@@ -102,7 +102,9 @@ namespace Saturn {
 
 		SubmitTerminateResource( [&]() 
 		{
-			m_RendererDescriptorSet = nullptr;
+			m_RendererDescriptorSets[0] = nullptr;
+			m_RendererDescriptorSets[1] = nullptr;
+			m_RendererDescriptorSets[2] = nullptr;
 		} );
 
 		if( m_FlightFences.size() )
@@ -198,35 +200,33 @@ namespace Saturn {
 		mesh->GetIndexBuffer()->Bind( CommandBuffer );
 		Pipeline->Bind( CommandBuffer );
 
-		Submesh& rSubmesh = mesh->Submeshes()[ SubmeshIndex ];
+		for( Submesh& rSubmesh : mesh->Submeshes() )
 		{
 			auto& rMaterialAsset = mesh->GetMaterialAssets()[ rSubmesh.MaterialIndex ];
 			rMaterialAsset->Bind( mesh, rSubmesh, Shader, true );
 
-			Ref<DescriptorSet> Set = rMaterialAsset->GetMaterial()->GetDescriptorSet();
+			Ref<DescriptorSet>& Set = rMaterialAsset->GetMaterial()->GetDescriptorSet( m_FrameCount );
 
 			auto& rSB = rStorageBufferSet->Get( 0, 14 );
 			VkDescriptorBufferInfo Info = { .buffer = rSB.Buffer, .offset = 0, .range = rSB.Size };
 			Shader->WriteSB( 0, 14, Info, Set );
 
-			Shader->WriteAllUBs( Set );
-
 			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
-
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
-						
-			// Set the offset to be the size of the vertex push constant.
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
 
 			// Descriptor set 0, for material texture data.
 			// Descriptor set 1, for environment data.
 			std::array<VkDescriptorSet, 2> DescriptorSets = {
 				Set->GetVulkanSet(),
-				m_RendererDescriptorSet->GetVulkanSet()
+				m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet()
 			};
 
 			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 				Pipeline->GetPipelineLayout(), 0, DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
+
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
+
+			// Set the offset to be the size of the vertex push constant.
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
@@ -236,16 +236,16 @@ namespace Saturn {
 	{
 		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
 
-		if( m_RendererDescriptorSet == nullptr )
-			m_RendererDescriptorSet = shader->CreateDescriptorSet( 1 );
+		if( m_RendererDescriptorSets[ m_FrameCount ] == nullptr )
+			m_RendererDescriptorSets[ m_FrameCount ] = shader->CreateDescriptorSet( 1 );
 
-		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
-		shader->WriteDescriptor( "u_BRDFLUTTexture", BDRF->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
+		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet() );
+		shader->WriteDescriptor( "u_BRDFLUTTexture", BDRF->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet() );
 
 		if( Environment && Environment->RadianceMap && Environment->IrradianceMap )
 		{
-			shader->WriteDescriptor( "u_EnvRadianceTex", Environment->RadianceMap->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
-			shader->WriteDescriptor( "u_EnvIrradianceTex", Environment->IrradianceMap->GetDescriptorInfo(), m_RendererDescriptorSet->GetVulkanSet() );
+			shader->WriteDescriptor( "u_EnvRadianceTex", Environment->RadianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet() );
+			shader->WriteDescriptor( "u_EnvIrradianceTex", Environment->IrradianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet() );
 		}
 	}
 
@@ -374,6 +374,8 @@ namespace Saturn {
 		vkFreeCommandBuffers( LogicalDevice, VulkanContext::Get().GetCommandPool(), 1, &m_CommandBuffer );
 
 		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
+
+		SAT_CORE_INFO( "m_FrameCount {0}", m_FrameCount );
 
 		m_EndFrameTime = m_EndFrameTimer.ElapsedMilliseconds() - m_QueuePresentTime;
 	}
