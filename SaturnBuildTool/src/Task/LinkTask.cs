@@ -99,9 +99,6 @@ namespace SaturnBuildTool
                         Args.Add(string.Format(" /DLL /OUT:\"{0}\"", TargetToBuild.GetBinDir()));
                     }
                     break;
-
-                default:
-                    break;
             }
 
             string ilkPath = Path.Combine( TargetToBuild.OutputPath, TargetToBuild.ProjectName );

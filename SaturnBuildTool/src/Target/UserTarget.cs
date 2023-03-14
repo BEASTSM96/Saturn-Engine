@@ -108,9 +108,6 @@ namespace SaturnBuildTool
                         BinDir = Path.ChangeExtension(BinDir, ".exe");
                     }
                     break;
-
-                default:
-                    break;
             }
 
             return BinDir;

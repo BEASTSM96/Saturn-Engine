@@ -79,9 +79,6 @@ namespace SaturnBuildTool
                         ssBinDir = Path.Combine(ssBinDir, "Dist-windows-x86_64\\SingletonStorage");
                     }
                     break;
-
-                default:
-                    break;
             }
 
             string libPath = saturnBinDir;

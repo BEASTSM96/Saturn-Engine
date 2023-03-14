@@ -40,9 +40,6 @@ namespace SaturnBuildTool
                         path = Path.Combine(path, "Dist-windows-x86_64");
                     }
                     break;
-                
-                default:
-                    break;
             }
 
             return path;
