@@ -1,5 +1,4 @@
 // PBR Shader test
-// Based on PBR_Static, but with my one stuff
 
 #type vertex
 #version 450

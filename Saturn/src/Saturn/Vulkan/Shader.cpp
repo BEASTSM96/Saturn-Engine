@@ -200,8 +200,8 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 
 	Shader::Shader( std::filesystem::path Filepath )
+		: m_Filepath( std::move( Filepath ) )
 	{
-		m_Filepath = std::move( Filepath );
 		m_Name = m_Filepath.filename().string();
 
 		// Remove the extension from the name
@@ -246,8 +246,6 @@ namespace Saturn {
 
 	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorImageInfo& rImageInfo, VkDescriptorSet desSet )
 	{
-		SAT_CORE_INFO( "Updating : {0}", rName );
-
 		for( auto& [set, descriptorSet] : m_DescriptorSets )
 		{
 			for( auto& texture : descriptorSet.SampledImages )
@@ -280,6 +278,8 @@ namespace Saturn {
 
 	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, VkDescriptorSet desSet )
 	{
+		SAT_CORE_INFO( "Updating : {0}", rName );
+
 		for( auto& [set, descriptorSet] : m_DescriptorSets )
 		{
 			for( auto& [ binding, ub ] : descriptorSet.UniformBuffers )

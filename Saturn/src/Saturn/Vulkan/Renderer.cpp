@@ -209,9 +209,16 @@ namespace Saturn {
 
 			auto& rSB = rStorageBufferSet->Get( 0, 14 );
 			VkDescriptorBufferInfo Info = { .buffer = rSB.Buffer, .offset = 0, .range = rSB.Size };
-			Shader->WriteSB( 0, 14, Info, Set );
+			//Shader->WriteSB( 0, 14, Info, Set );
+
+			//rMaterialAsset->SetSB( 0, 14, Info );
 
 			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
+
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
+
+			// Set the offset to be the size of the vertex push constant.
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
 
 			// Descriptor set 0, for material texture data.
 			// Descriptor set 1, for environment data.
@@ -222,11 +229,6 @@ namespace Saturn {
 
 			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 				Pipeline->GetPipelineLayout(), 0, DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
-
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
-
-			// Set the offset to be the size of the vertex push constant.
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
@@ -374,8 +376,6 @@ namespace Saturn {
 		vkFreeCommandBuffers( LogicalDevice, VulkanContext::Get().GetCommandPool(), 1, &m_CommandBuffer );
 
 		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
-
-		SAT_CORE_INFO( "m_FrameCount {0}", m_FrameCount );
 
 		m_EndFrameTime = m_EndFrameTimer.ElapsedMilliseconds() - m_QueuePresentTime;
 	}

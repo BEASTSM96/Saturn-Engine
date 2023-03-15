@@ -190,11 +190,31 @@ namespace Saturn {
 	{
 		m_ValuesChanged = true;
 
-		m_Material->SetResource( rName, rTexture );
+		m_PendingTextureChanges[ rName ] = rTexture;
 	}
 
 	void MaterialAsset::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, bool Force /*=false*/ )
 	{
+		for( auto& [name, texture] : m_PendingTextureChanges )
+		{
+			// Check if the pending texture is already in the cache.
+			if( m_TextureCache.find( name ) != m_TextureCache.end() )
+			{
+				if( m_TextureCache.at( name ).imageView == texture->GetDescriptorInfo().imageView )
+				{
+					continue;
+				}
+
+				// Update it.
+				m_TextureCache[ name ] = texture->GetDescriptorInfo();
+				m_Material->SetResource( name, texture );
+			}
+
+			// Does not exists, add and update
+			m_TextureCache[ name ] = texture->GetDescriptorInfo();
+			m_Material->SetResource( name, texture );
+		}
+
 		m_Material->RN_Update();
 
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
@@ -216,15 +236,11 @@ namespace Saturn {
 
 				if( m_TextureCache.at( name ).imageView == ImageInfo.imageView || m_TextureCache.at( name ).sampler == ImageInfo.sampler )
 				{
-					SAT_CORE_INFO( "No need to update the descriptor set -- its the same" );
-
 					// No need to update the descriptor set -- its the same.
 					continue;
 				}
 				else // If the image view has changed, update the cache.
 				{
-					SAT_CORE_INFO( "Image view has changed, updating the cache." );
-
 					m_TextureCache[ name ] = texture->GetDescriptorInfo();
 					Shader->WriteDescriptor( name, ImageInfo, m_Material->m_DescriptorSets[ frame ]->GetVulkanSet() );
 
@@ -249,18 +265,11 @@ namespace Saturn {
 				ImageInfo.sampler = PinkTexture->GetSampler();
 			}
 
-			SAT_CORE_INFO( "Material Asset updaing {0}...", name );
-
 			Shader->WriteDescriptor( name, ImageInfo, m_Material->m_DescriptorSets[ frame ]->GetVulkanSet() );
 		}
 
-		Shader->WriteAllUBs( m_Material->m_DescriptorSets[ frame ] );
-
 		if( m_ValuesChanged ) 
 		{
-			//MaterialAssetSerialiser mas;
-			//mas.Serialise( this );
-
 			m_ValuesChanged = false;
 		}
 	}
@@ -280,22 +289,22 @@ namespace Saturn {
 		// Load texture (auto assume we have not loaded them).
 		Ref<Texture2D> texture = nullptr;
 
-		if( m_PendingTextureChanges.size() > 1)
+		if( m_VPendingTextureChanges.size() > 1)
 		{
 			// Albedo
-			texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 0 ], AddressingMode::Repeat, false );
+			texture = Ref<Texture2D>::Create( m_VPendingTextureChanges[ 0 ], AddressingMode::Repeat, false );
 			m_Material->SetResource( "u_AlbedoTexture", texture );
 
 			// Normal
-			texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 1 ], AddressingMode::Repeat, false );
+			texture = Ref<Texture2D>::Create( m_VPendingTextureChanges[ 1 ], AddressingMode::Repeat, false );
 			m_Material->SetResource( "u_NormalTexture", texture );
 
 			// Normal
-			texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 2 ], AddressingMode::Repeat, false );
+			texture = Ref<Texture2D>::Create( m_VPendingTextureChanges[ 2 ], AddressingMode::Repeat, false );
 			m_Material->SetResource( "u_MetallicTexture", texture );
 
 			// Normal
-			texture = Ref<Texture2D>::Create( m_PendingTextureChanges[ 3 ], AddressingMode::Repeat, false );
+			texture = Ref<Texture2D>::Create( m_VPendingTextureChanges[ 3 ], AddressingMode::Repeat, false );
 			m_Material->SetResource( "u_RoughnessTexture", texture );
 
 		}
@@ -334,48 +343,48 @@ namespace Saturn {
 	{
 		m_ValuesChanged = true;
 
-		m_Material->SetResource( "u_AlbedoTexture", rTexture );
+		m_PendingTextureChanges[ "u_AlbedoTexture" ] = rTexture;
 	}
 
 	void MaterialAsset::SetAlbeoMap( const std::filesystem::path& rPath )
 	{
-		m_PendingTextureChanges[ 0 ] = rPath;
+		m_VPendingTextureChanges[ 0 ] = rPath;
 	}
 
 	void MaterialAsset::SetNormalMap( Ref<Texture2D>& rTexture )
 	{
 		m_ValuesChanged = true;
 
-		m_Material->SetResource( "u_NormalTexture", rTexture );
+		m_PendingTextureChanges[ "u_NormalTexture" ] = rTexture;
 	}
 
 	void MaterialAsset::SetNormalMap( const std::filesystem::path& rPath )
 	{
-		m_PendingTextureChanges[ 1 ] = rPath;
+		m_VPendingTextureChanges[ 1 ] = rPath;
 	}
 
 	void MaterialAsset::SetMetallicMap( Ref<Texture2D>& rTexture )
 	{
 		m_ValuesChanged = true;
 
-		m_Material->SetResource( "u_MetallicTexture", rTexture );
+		m_PendingTextureChanges[ "u_MetallicTexture" ] = rTexture;
 	}
 
 	void MaterialAsset::SetMetallicMap( const std::filesystem::path& rPath )
 	{
-		m_PendingTextureChanges[ 2 ] = rPath;
+		m_VPendingTextureChanges[ 2 ] = rPath;
 	}
 
 	void MaterialAsset::SetRoughnessMap( Ref<Texture2D>& rTexture )
 	{
 		m_ValuesChanged = true;
 
-		m_Material->SetResource( "u_RoughnessTexture", rTexture );
+		m_PendingTextureChanges[ "u_RoughnessTexture" ] = rTexture;
 	}
 
 	void MaterialAsset::SetRoughnessMap( const std::filesystem::path& rPath )
 	{
-		m_PendingTextureChanges[ 3 ] = rPath;
+		m_VPendingTextureChanges[ 3 ] = rPath;
 	}
 
 }

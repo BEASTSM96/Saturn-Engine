@@ -117,25 +117,25 @@ namespace Saturn {
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
-		//RN_Clean();
-
 		if( m_AnyValueChanged )
 		{
-			if( m_DescriptorSets[ frame ] == nullptr ) 
+			m_DescriptorSets[ frame ] = m_Shader->CreateDescriptorSet( 0 );
+
+			for( auto& [name, texture] : m_Textures )
 			{
-				m_DescriptorSets[ frame ] = m_Shader->CreateDescriptorSet( 0 );
+				VkDescriptorImageInfo ImageInfo = {};
+				ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-				for( auto& [name, texture] : m_Textures )
-				{
-					VkDescriptorImageInfo ImageInfo = {};
-					ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				ImageInfo.imageView = m_Textures[ name ]->GetImageView();
+				ImageInfo.sampler = m_Textures[ name ]->GetSampler();
 
-					ImageInfo.imageView = m_Textures[ name ]->GetImageView();
-					ImageInfo.sampler = m_Textures[ name ]->GetSampler();
-
-					m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSets[ Renderer::Get().GetCurrentFrame() ]->GetVulkanSet() );
-				}
+				m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSets[ Renderer::Get().GetCurrentFrame() ]->GetVulkanSet() );
 			}
+
+			m_Shader->WriteAllUBs( m_DescriptorSets[ frame ] );
+
+			if( m_DescriptorSets[ 0 ] && m_DescriptorSets[ 1 ] && m_DescriptorSets[ 2 ] )
+				m_AnyValueChanged = false;
 		}
 	}
 
