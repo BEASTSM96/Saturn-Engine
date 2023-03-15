@@ -40,9 +40,8 @@
 namespace Saturn {
 
 	MaterialInstance::MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName )
+		: m_Material( rMaterial ), m_Name( rName )
 	{
-		m_Material = rMaterial;
-		m_Name = rName;
 		
 		for( auto&& [ name, texture ] : m_Material->m_Textures )
 		{

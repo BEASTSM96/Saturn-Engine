@@ -42,8 +42,8 @@
 namespace Saturn {
 
 	SceneSerialiser::SceneSerialiser( const Ref< Scene >& rScene )
+		: m_Scene( rScene )
 	{
-		m_Scene = rScene;
 	}
 
 	SceneSerialiser::~SceneSerialiser()

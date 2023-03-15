@@ -60,9 +60,8 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 
 	DescriptorSet::DescriptorSet( DescriptorSetSpecification Spec )
+		: m_Specification( Spec )
 	{
-		m_Specification = Spec;
-
 		Allocate();
 	}
 

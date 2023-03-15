@@ -60,8 +60,8 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 
 	Pipeline::Pipeline( const PipelineSpecification& Spec )
+		: m_Specification( Spec )
 	{
-		m_Specification = Spec;
 
 		Create();
 	}

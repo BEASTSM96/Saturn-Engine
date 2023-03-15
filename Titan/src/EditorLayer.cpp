@@ -87,9 +87,8 @@ namespace Saturn {
 	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
 	EditorLayer::EditorLayer() 
-		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
+		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f ), m_EditorScene( Ref<Scene>::Create() )
 	{
-		m_EditorScene = Ref<Scene>::Create();
 		Scene::SetActiveScene( m_EditorScene.Pointer() );
 
 		AssetRegistry* ar = new AssetRegistry();

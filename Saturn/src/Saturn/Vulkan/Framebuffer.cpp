@@ -79,8 +79,8 @@ namespace Saturn {
 	}
 
 	Framebuffer::Framebuffer( const FramebufferSpecification& Specification )
+		: m_Specification( Specification )
 	{
-		m_Specification = Specification;
 
 		for( auto format : m_Specification.Attachments.Attachments )
 		{
