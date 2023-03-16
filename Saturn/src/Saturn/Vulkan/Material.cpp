@@ -119,6 +119,9 @@ namespace Saturn {
 
 		if( m_AnyValueChanged )
 		{
+			if( m_DescriptorSets[ frame ] != nullptr )
+				m_DescriptorSets[ frame ]->Terminate();
+
 			m_DescriptorSets[ frame ] = m_Shader->CreateDescriptorSet( 0 );
 
 			for( auto& [name, texture] : m_Textures )

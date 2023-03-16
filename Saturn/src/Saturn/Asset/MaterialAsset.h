@@ -96,7 +96,7 @@ namespace Saturn {
 
 		Ref<Material> GetMaterial() const { return m_Material; }
 
-		void SetMaterial( const Ref<Material>& rMaterial ) { m_Material = nullptr; m_Material = rMaterial; }
+		void SetMaterial( const Ref<Material>& rMaterial );
 
 		void SetName( const std::string& rName ) { return m_Material->SetName( rName ); }
 
@@ -120,6 +120,8 @@ namespace Saturn {
 		bool m_ValuesChanged = false;
 
 		std::unordered_map< std::string, VkDescriptorImageInfo > m_TextureCache;
+
+		Ref<Material> m_PendingMaterialChange = nullptr;
 
 		std::unordered_map< std::string, Ref<Texture2D> > m_PendingTextureChanges;
 		std::unordered_map< uint32_t, std::filesystem::path > m_VPendingTextureChanges;

@@ -195,6 +195,15 @@ namespace Saturn {
 
 	void MaterialAsset::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, bool Force /*=false*/ )
 	{
+		if( m_PendingMaterialChange )
+		{
+			m_Material = nullptr;
+
+			m_Material = m_PendingMaterialChange;
+
+			m_PendingMaterialChange = nullptr;
+		}
+
 		for( auto& [name, texture] : m_PendingTextureChanges )
 		{
 			// Check if the pending texture is already in the cache.
@@ -214,6 +223,9 @@ namespace Saturn {
 			m_TextureCache[ name ] = texture->GetDescriptorInfo();
 			m_Material->SetResource( name, texture );
 		}
+
+		if( m_PendingTextureChanges.size() )
+			m_PendingTextureChanges.clear();
 
 		m_Material->RN_Update();
 
@@ -317,6 +329,11 @@ namespace Saturn {
 
 		// MAYBE??
 		//s_ViewingMaterial = nullptr;
+	}
+
+	void MaterialAsset::SetMaterial( const Ref<Material>& rMaterial )
+	{
+		m_PendingMaterialChange = rMaterial;
 	}
 
 	float MaterialAsset::IsUsingNormalMap()
