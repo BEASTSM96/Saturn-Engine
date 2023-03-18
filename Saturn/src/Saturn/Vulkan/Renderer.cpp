@@ -197,12 +197,11 @@ namespace Saturn {
 		
 		if( m_StorageBufferSets.find( m_FrameCount ) != m_StorageBufferSets.end() ) 
 		{
-			auto buffersInFrame = m_StorageBufferSets[ m_FrameCount ];
+			auto& buffersInFrame = m_StorageBufferSets[ m_FrameCount ];
 
 			if( buffersInFrame.find( shaderName ) != buffersInFrame.end() )
 			{
-				auto& wd = buffersInFrame[ shaderName ];
-				return wd;
+				return buffersInFrame[ shaderName ];
 			}
 		}
 
@@ -247,14 +246,9 @@ namespace Saturn {
 
 			const auto& StorageWriteDescriptors = GetStorageBufferWriteDescriptors( rStorageBufferSet, rMaterialAsset );
 
-			if( StorageWriteDescriptors.size() > 1 )
-				rMaterialAsset->Bind( mesh, rSubmesh, Shader, StorageWriteDescriptors[m_FrameCount] );
-			else
-				rMaterialAsset->Bind( mesh, rSubmesh, Shader );
+			rMaterialAsset->Bind( mesh, rSubmesh, Shader, StorageWriteDescriptors[m_FrameCount] );
 
 			Ref<DescriptorSet>& Set = rMaterialAsset->GetMaterial()->GetDescriptorSet( m_FrameCount );
-
-			//rStorageBufferSet->Write( Shader, Set, 0, 14, m_FrameCount );
 
 			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
 
