@@ -190,6 +190,47 @@ namespace Saturn {
 	{
 	}
 	
+	const std::vector<VkWriteDescriptorSet>& Renderer::GetStorageBufferWriteDescriptors( Ref<StorageBufferSet>& rStorageBufferSet, Ref<MaterialAsset>& rMaterialAsset )
+	{
+		Ref<Shader> shader = rMaterialAsset->GetMaterial()->GetShader();
+		std::string shaderName = shader->GetName();
+		
+		if( m_StorageBufferSets.find( m_FrameCount ) != m_StorageBufferSets.end() ) 
+		{
+			auto buffersInFrame = m_StorageBufferSets[ m_FrameCount ];
+
+			if( buffersInFrame.find( shaderName ) != buffersInFrame.end() )
+			{
+				auto& wd = buffersInFrame[ shaderName ];
+				return wd;
+			}
+		}
+
+		// Does not exist, add and create.
+		auto& descriptorSet = shader->GetShaderDescriptorSet( 0 );
+
+		for( auto&& [binding, sb] : descriptorSet.StorageBuffers )
+		{
+			auto& wd = m_StorageBufferSets[ m_FrameCount ][ shaderName ];
+
+			for( size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+			{
+				Ref<StorageBuffer> sb = rStorageBufferSet->Get( 0, binding, m_FrameCount );
+				
+				VkWriteDescriptorSet wds = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+				wds.descriptorCount = 1;
+				wds.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				wds.pBufferInfo = &sb->GetBufferInfo();
+				wds.dstBinding = sb->GetBinding();
+				// We don't know the descriptor set yet so we don't set it. It will be updated when we bind the material.
+
+				wd.push_back( wds );
+			}
+		}
+
+		return m_StorageBufferSets[ m_FrameCount ][ shaderName ];
+	}
+
 	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex )
 	{
 		SAT_PF_EVENT();
@@ -203,22 +244,26 @@ namespace Saturn {
 		for( Submesh& rSubmesh : mesh->Submeshes() )
 		{
 			auto& rMaterialAsset = mesh->GetMaterialAssets()[ rSubmesh.MaterialIndex ];
-			rMaterialAsset->Bind( mesh, rSubmesh, Shader, true );
+
+			const auto& StorageWriteDescriptors = GetStorageBufferWriteDescriptors( rStorageBufferSet, rMaterialAsset );
+
+			if( StorageWriteDescriptors.size() > 1 )
+				rMaterialAsset->Bind( mesh, rSubmesh, Shader, StorageWriteDescriptors[m_FrameCount] );
+			else
+				rMaterialAsset->Bind( mesh, rSubmesh, Shader );
 
 			Ref<DescriptorSet>& Set = rMaterialAsset->GetMaterial()->GetDescriptorSet( m_FrameCount );
 
-			auto& rSB = rStorageBufferSet->Get( 0, 14 );
-			VkDescriptorBufferInfo Info = { .buffer = rSB.Buffer, .offset = 0, .range = rSB.Size };
-			//Shader->WriteSB( 0, 14, Info, Set );
-
-			//rMaterialAsset->SetSB( 0, 14, Info );
+			//rStorageBufferSet->Write( Shader, Set, 0, 14, m_FrameCount );
 
 			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
 
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof( glm::mat4 ), &ModelMatrix );
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, 
+				sizeof( glm::mat4 ), &ModelMatrix );
 
 			// Set the offset to be the size of the vertex push constant.
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof( glm::mat4 ), rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 
+				sizeof( glm::mat4 ), rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
 
 			// Descriptor set 0, for material texture data.
 			// Descriptor set 1, for environment data.
@@ -378,6 +423,9 @@ namespace Saturn {
 		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
 
 		m_EndFrameTime = m_EndFrameTimer.ElapsedMilliseconds() - m_QueuePresentTime;
+
+		// This is a hack, but for now we will do this as in the LightCulling pass we resize the buffer every frame meaning we have to update out cache.
+		m_StorageBufferSets.clear();
 	}
 
 	void Renderer::SubmitTerminateResource( std::function<void()>&& rrFunction )

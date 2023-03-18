@@ -132,7 +132,7 @@ namespace Saturn {
 				ImageInfo.imageView = m_Textures[ name ]->GetImageView();
 				ImageInfo.sampler = m_Textures[ name ]->GetSampler();
 
-				m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSets[ Renderer::Get().GetCurrentFrame() ]->GetVulkanSet() );
+				m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSets[ frame ]->GetVulkanSet() );
 			}
 
 			m_Shader->WriteAllUBs( m_DescriptorSets[ frame ] );
@@ -163,6 +163,14 @@ namespace Saturn {
 			return m_Textures.at( Name );
 		else
 			return nullptr;
+	}
+
+	void Material::WriteDescriptor( VkWriteDescriptorSet& rWDS )
+	{
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
+		rWDS.dstSet = m_DescriptorSets[ frame ]->GetVulkanSet();
+
+		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &rWDS, 0, nullptr );
 	}
 
 	//////////////////////////////////////////////////////////////////////////

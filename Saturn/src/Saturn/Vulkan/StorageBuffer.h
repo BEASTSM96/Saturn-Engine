@@ -26,25 +26,36 @@
 *********************************************************************************************
 */
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#include <stdio.h>
-#endif // SAT_WINDOWS
+#pragma once
 
-// Saturn client main:
-extern int _main( int, char** );
+#include "Saturn/Core/Base.h"
+#include <vulkan.h>
 
-int main( int count, char** args )
-{
-	// Hand it off to Saturn:
-	return _main( count, args );
+namespace Saturn {
+
+	class StorageBuffer : public CountedObj
+	{
+	public:
+		StorageBuffer(uint32_t set, uint32_t binding);
+		~StorageBuffer();
+
+		void Resize( uint32_t newSize );
+
+		VkBuffer GetBuffer() { return m_Buffer; }
+
+		const VkDescriptorBufferInfo& GetBufferInfo() { return m_BufferInfo; }
+
+		uint32_t GetBinding() { return m_Binding; }
+
+	private:
+		void Create();
+	private:
+		VkDescriptorBufferInfo m_BufferInfo{};
+		size_t m_Size;
+
+		VkBuffer m_Buffer = VK_NULL_HANDLE;
+
+		uint32_t m_Binding;
+		uint32_t m_Set;
+	};
 }
-
-#if defined ( _WIN32 )
-
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
-{
-	return main( __argc, __argv );
-}
-
-#endif // _WIN32

@@ -484,7 +484,7 @@ namespace Saturn {
 
 		VkDescriptorPoolCreateInfo PoolCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 		PoolCreateInfo.maxSets = 10000;
-		PoolCreateInfo.poolSizeCount = IM_ARRAYSIZE(PoolSizes);
+		PoolCreateInfo.poolSizeCount = IM_ARRAYSIZE( PoolSizes );
 		PoolCreateInfo.pPoolSizes = PoolSizes;
 		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
@@ -1386,11 +1386,9 @@ namespace Saturn {
 		m_RendererData.LightCullingShader->WriteAllUBs( m_RendererData.LightCullingDescriptorSet );
 
 		// Write sb
-		auto& rSB = m_RendererData.StorageBufferSet->Get( 0, 14 );
-
-		VkDescriptorBufferInfo Info = { .buffer = rSB.Buffer, .offset = 0, .range = rSB.Size };
-
-		m_RendererData.LightCullingShader->WriteSB( 0, 14, Info, m_RendererData.LightCullingDescriptorSet );
+		Ref<StorageBuffer> SB = m_RendererData.StorageBufferSet->Get( 0, 14, Renderer::Get().GetCurrentFrame() );
+		
+		m_RendererData.LightCullingShader->WriteSB( 0, 14, SB->GetBufferInfo(), m_RendererData.LightCullingDescriptorSet );
 
 		// Light culling here
 		auto& CullingPipeline = m_RendererData.LightCullingPipeline;

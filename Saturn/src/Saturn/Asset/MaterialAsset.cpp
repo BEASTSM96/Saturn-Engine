@@ -38,12 +38,12 @@ namespace Saturn {
 
 	static Ref<Material> s_ViewingMaterial;
 	static bool s_IsInViewingMode = false;
-	
+
 	static std::vector< AssetID > s_Materials;
 
 	MaterialAsset::MaterialAsset( Ref<Material> material )
 	{
-		if( material == nullptr ) 
+		if( material == nullptr )
 		{
 			m_Material = Ref<Material>::Create( ShaderLibrary::Get().Find( "shader_new" ), "New Material" );
 			Default();
@@ -193,7 +193,12 @@ namespace Saturn {
 		m_PendingTextureChanges[ rName ] = rTexture;
 	}
 
-	void MaterialAsset::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, bool Force /*=false*/ )
+	void MaterialAsset::RT_Bind( const std::vector<std::vector<VkWriteDescriptorSet>>& rStorageBufferWDS )
+	{
+		m_Material->RN_Update();
+	}
+
+	void MaterialAsset::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, const VkWriteDescriptorSet& rStorageBufferWDS )
 	{
 		if( m_PendingMaterialChange )
 		{
@@ -206,17 +211,9 @@ namespace Saturn {
 
 		for( auto& [name, texture] : m_PendingTextureChanges )
 		{
-			// Check if the pending texture is already in the cache.
-			if( m_TextureCache.find( name ) != m_TextureCache.end() )
+			if( m_TextureCache[ name ].imageView == texture->GetDescriptorInfo().imageView )
 			{
-				if( m_TextureCache.at( name ).imageView == texture->GetDescriptorInfo().imageView )
-				{
-					continue;
-				}
-
-				// Update it.
-				m_TextureCache[ name ] = texture->GetDescriptorInfo();
-				m_Material->SetResource( name, texture );
+				continue;
 			}
 
 			// Does not exists, add and update
@@ -233,8 +230,8 @@ namespace Saturn {
 
 		Ref<DescriptorSet> CurrentSet = m_Material->GetDescriptorSet( frame );
 
+		// Update material textures.
 		auto& textures = m_Material->GetTextures();
-
 		for( auto& [name, texture] : textures )
 		{
 			// Check if the texture even exists in the cache.
@@ -280,6 +277,12 @@ namespace Saturn {
 			Shader->WriteDescriptor( name, ImageInfo, m_Material->m_DescriptorSets[ frame ]->GetVulkanSet() );
 		}
 
+		if( rStorageBufferWDS.dstBinding != 0 )
+		{
+			auto wds = rStorageBufferWDS;
+			m_Material->WriteDescriptor( wds );
+		}
+		
 		if( m_ValuesChanged ) 
 		{
 			m_ValuesChanged = false;

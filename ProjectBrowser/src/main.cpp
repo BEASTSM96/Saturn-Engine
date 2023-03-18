@@ -35,7 +35,7 @@ extern int _main( int, char** );
 
 int main( int count, char** args )
 {
-	// Hand if off to Saturn:
+	// Hand it off to Saturn:
 	return _main( count, args );
 }
 

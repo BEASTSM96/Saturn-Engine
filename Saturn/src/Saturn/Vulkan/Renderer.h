@@ -54,6 +54,8 @@ namespace Saturn {
 
 		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex );
 
+		const std::vector<VkWriteDescriptorSet>& GetStorageBufferWriteDescriptors( Ref<StorageBufferSet>& rStorageBufferSet, Ref<MaterialAsset>& rMaterialAsset );
+
 		void SetSceneEnvironment( Ref<Image2D> ShadowMap, Ref<EnvironmentMap> Environment, Ref<Texture2D> BDRF );
 
 		// Allocate command buffer.
@@ -115,6 +117,12 @@ namespace Saturn {
 		Ref< Texture2D > m_PinkTexture;
 
 		Ref< DescriptorSet > m_RendererDescriptorSets[MAX_FRAMES_IN_FLIGHT];
+
+		// frame -> shader name -> set
+		std::unordered_map< uint32_t, std::unordered_map< std::string, std::vector<VkWriteDescriptorSet>>> m_StorageBufferSets;
+
+		// StorageBufferSet -> frame -> shader -> set
+		//std::unordered_map < Ref<StorageBufferSet>, std::unordered_map<uint32_t, std::unordered_map< Ref<Shader>, std::vector<VkWriteDescriptorSet>>>> a;
 
 	private:
 		friend class VulkanContext;

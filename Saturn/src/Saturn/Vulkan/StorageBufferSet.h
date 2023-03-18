@@ -30,6 +30,9 @@
 
 #include "Saturn/Core/Ref.h"
 #include "Shader.h"
+
+#include "StorageBuffer.h"
+
 #include <unordered_map>
 
 namespace Saturn {
@@ -42,12 +45,16 @@ namespace Saturn {
 
 		void Create( uint32_t set, uint32_t binding );
 
-		void Set( const ShaderStorageBuffer& rBuffer, uint32_t set, uint32_t binding );
+		void Resize( uint32_t set, uint32_t binding, uint32_t frame, size_t newSize );
 		void Resize( uint32_t set, uint32_t binding, size_t newSize );
-		ShaderStorageBuffer& Get( uint32_t set, uint32_t binding );
+
+		Ref<StorageBuffer> Get( uint32_t set, uint32_t binding, uint32_t frame );
+		
+	private:
+		void Set( Ref<StorageBuffer>& rBuffer, uint32_t set, uint32_t binding );
 
 	private:
-		// Set, Binding, Buffer
-		std::unordered_map < uint32_t, std::unordered_map<uint32_t, ShaderStorageBuffer>> m_Buffers;
+		// Set, Binding, Frame, Buffer
+		std::unordered_map< uint32_t, std::unordered_map<uint32_t, std::unordered_map< uint32_t, Ref<StorageBuffer> >>> m_Buffers;
 	};
 }

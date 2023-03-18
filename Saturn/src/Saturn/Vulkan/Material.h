@@ -116,6 +116,8 @@ namespace Saturn {
 		std::unordered_map< std::string, Ref<Texture2D> >& GetTextures() { return m_Textures; }
 		const std::unordered_map< std::string, Ref<Texture2D> >& GetTextures() const { return m_Textures; }
 
+		void WriteDescriptor( VkWriteDescriptorSet& rWDS );
+
 	private:
 		std::string m_Name = "";
 		Ref< Saturn::Shader > m_Shader;

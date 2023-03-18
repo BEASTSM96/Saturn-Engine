@@ -43,28 +43,34 @@ namespace Saturn {
 
 	void StorageBufferSet::Create( uint32_t set, uint32_t binding )
 	{
-		ShaderStorageBuffer ssb;
-		ssb.Size = 1;
-		ssb.Size = set;
-		ssb.Binding = binding;
-		ssb.Buffer = nullptr;
+		Ref<StorageBuffer> sb = Ref<StorageBuffer>::Create( set, binding );
 
-		Set( ssb, set, binding );
+		Set( sb, set, binding );
 	}
 
-	void StorageBufferSet::Set( const ShaderStorageBuffer& rBuffer, uint32_t set, uint32_t binding )
+	void StorageBufferSet::Set( Ref<StorageBuffer>& rBuffer, uint32_t set, uint32_t binding )
 	{
-		m_Buffers[ set ][ binding ] = rBuffer;
+		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		{
+			m_Buffers[ set ][ binding ][ i ] = rBuffer;
+		}
+	}
+
+	void StorageBufferSet::Resize( uint32_t set, uint32_t binding, uint32_t frame, size_t newSize )
+	{
+		m_Buffers.at( set ).at( binding ).at( frame )->Resize( newSize );
 	}
 
 	void StorageBufferSet::Resize( uint32_t set, uint32_t binding, size_t newSize )
 	{
-		m_Buffers.at( set ).at( binding ).ResizeStorageBuffer( newSize );
+		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		{
+			m_Buffers.at( set ).at( binding ).at( i )->Resize( newSize );
+		}
 	}
 
-	ShaderStorageBuffer& StorageBufferSet::Get( uint32_t set, uint32_t binding )
+	Ref<StorageBuffer> StorageBufferSet::Get( uint32_t set, uint32_t binding, uint32_t frame )
 	{
-		return m_Buffers.at( set ).at( binding );
+		return m_Buffers.at( set ).at( binding ).at( frame );
 	}
-
 }

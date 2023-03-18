@@ -84,8 +84,14 @@ namespace Saturn {
 
 			m_Material->Set( rName, rValue );
 		}
+		
+		//void Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, const VkWriteDescriptorSet& rStorageBufferWDS );
 
-		void Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, bool Force = false );
+		// Updates Uniform buffers, texture and storage buffers.
+		void Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, const VkWriteDescriptorSet& rStorageBufferWDS = VkWriteDescriptorSet{} );
+
+		void RT_Bind( const std::vector<std::vector<VkWriteDescriptorSet>>& rStorageBufferWDS = std::vector<std::vector<VkWriteDescriptorSet>>() );
+
 		void Clean();
 
 		Buffer GetPushConstantData() { return m_Material->m_PushConstantData; }

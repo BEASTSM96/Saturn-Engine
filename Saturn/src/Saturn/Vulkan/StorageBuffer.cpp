@@ -26,25 +26,52 @@
 *********************************************************************************************
 */
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#include <stdio.h>
-#endif // SAT_WINDOWS
+#include "sppch.h"
+#include "StorageBuffer.h"
 
-// Saturn client main:
-extern int _main( int, char** );
+#include "VulkanContext.h"
 
-int main( int count, char** args )
-{
-	// Hand it off to Saturn:
-	return _main( count, args );
+namespace Saturn {
+
+	StorageBuffer::StorageBuffer( uint32_t set, uint32_t binding )
+		: m_Set( set ), m_Binding( binding )
+	{
+		Create();
+	}
+
+	StorageBuffer::~StorageBuffer()
+	{
+
+	}
+
+	void StorageBuffer::Create()
+	{
+		// Create the buffer however leave the size at zero.
+		VkBufferCreateInfo BufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		BufferInfo.size = 1;
+		BufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		BufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+		pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_GPU_ONLY, &m_Buffer );
+	}
+
+	void StorageBuffer::Resize( uint32_t newSize )
+	{
+		m_Size = newSize;
+
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+
+		pAllocator->DestroyBuffer( m_Buffer );
+
+		VkBufferCreateInfo BufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		BufferCreateInfo.size = newSize;
+		BufferCreateInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, &m_Buffer );
+
+		m_BufferInfo.buffer = m_Buffer;
+		m_BufferInfo.range = m_Size;
+	}
 }
-
-#if defined ( _WIN32 )
-
-int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd ) 
-{
-	return main( __argc, __argv );
-}
-
-#endif // _WIN32
