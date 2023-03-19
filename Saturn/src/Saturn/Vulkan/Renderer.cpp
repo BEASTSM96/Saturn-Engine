@@ -81,8 +81,25 @@ namespace Saturn {
 		// It's really a white texture...
 		m_PinkTexture = Ref< Texture2D >::Create( ImageFormat::RGBA8, 1, 1, pData );
 		m_PinkTexture->SetIsRendererTexture( true );
-
 		delete[] pData;
+
+		std::vector<VkDescriptorPoolSize> PoolSizes;
+
+		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 } );
+		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 } );
+		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 } );
+		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 } );
+		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 } );
+		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 } );
+		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 } );
+		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 } );
+		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 } );
+		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 } );
+
+		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		{
+			m_RendererDescriptorPools[i] = Ref<DescriptorPool>::Create( PoolSizes, 100000 );
+		}
 	}
 	
 	void Renderer::Terminate()
@@ -197,11 +214,12 @@ namespace Saturn {
 		
 		if( m_StorageBufferSets.find( m_FrameCount ) != m_StorageBufferSets.end() ) 
 		{
-			auto& buffersInFrame = m_StorageBufferSets[ m_FrameCount ];
+			const auto& buffersInFrame = m_StorageBufferSets.at( m_FrameCount );
 
 			if( buffersInFrame.find( shaderName ) != buffersInFrame.end() )
 			{
-				return buffersInFrame[ shaderName ];
+				const auto& wd = buffersInFrame.at( shaderName );
+				return wd;
 			}
 		}
 
@@ -248,7 +266,7 @@ namespace Saturn {
 
 			rMaterialAsset->Bind( mesh, rSubmesh, Shader, StorageWriteDescriptors[ m_FrameCount ] );
 
-			Ref<DescriptorSet>& Set = rMaterialAsset->GetMaterial()->GetDescriptorSet( m_FrameCount );
+			VkDescriptorSet Set = rMaterialAsset->GetMaterial()->GetDescriptorSet( m_FrameCount );
 
 			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
 
@@ -262,7 +280,7 @@ namespace Saturn {
 			// Descriptor set 0, for material texture data.
 			// Descriptor set 1, for environment data.
 			std::array<VkDescriptorSet, 2> DescriptorSets = {
-				Set->GetVulkanSet(),
+				Set,
 				m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet()
 			};
 
@@ -325,11 +343,13 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
+		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
+
 		m_BeginFrameTimer.Reset();
 
-		m_CommandBuffer = AllocateCommandBuffer( VulkanContext::Get().GetCommandPool() );
+		vkResetDescriptorPool( LogicalDevice, m_RendererDescriptorPools[ m_FrameCount ]->GetVulkanPool(), 0 );
 
-		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
+		m_CommandBuffer = AllocateCommandBuffer( VulkanContext::Get().GetCommandPool() );
 
 		// Wait for last frame.
 		VK_CHECK( vkWaitForFences( LogicalDevice, 1, &m_FlightFences[ m_FrameCount ], VK_TRUE, UINT32_MAX ) );

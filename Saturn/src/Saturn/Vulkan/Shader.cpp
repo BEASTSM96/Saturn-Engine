@@ -34,6 +34,7 @@
 
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
+#include "Renderer.h"
 
 #include <istream>
 #include <fstream>
@@ -315,21 +316,26 @@ namespace Saturn {
 
 				vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ binding ], 0, nullptr );
 			}
+		}
+	}
 
-			/*
-			for( auto& [binding, sb] : descriptorSet.StorageBuffers )
+	void Shader::WriteAllUBs( VkDescriptorSet Set )
+	{
+		// Iterate over uniform buffers
+		for( auto& [set, descriptorSet] : m_DescriptorSets )
+		{
+			for( auto& [binding, ub] : descriptorSet.UniformBuffers )
 			{
 				VkDescriptorBufferInfo BufferInfo = {};
-				BufferInfo.buffer = sb.Buffer;
+				BufferInfo.buffer = ub.Buffer;
 				BufferInfo.offset = 0;
-				BufferInfo.range = sb.Size;
+				BufferInfo.range = ub.Size;
 
 				descriptorSet.WriteDescriptorSets[ binding ].pBufferInfo = &BufferInfo;
-				descriptorSet.WriteDescriptorSets[ binding ].dstSet = rSet->GetVulkanSet();
+				descriptorSet.WriteDescriptorSets[ binding ].dstSet = Set;
 
 				vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ binding ], 0, nullptr );
 			}
-			*/
 		}
 	}
 
@@ -376,6 +382,20 @@ namespace Saturn {
 		Specification.SetIndex = set;
 
 		return Ref<DescriptorSet>::Create( Specification );
+	}
+
+	VkDescriptorSet Shader::AllocateDescriptorSet( uint32_t set, bool UseRendererPool /*= false */ )
+	{
+		VkDescriptorSet Set = VK_NULL_HANDLE;
+
+		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+		AllocateInfo.descriptorPool = UseRendererPool ? Renderer::Get().GetDescriptorPool()->GetVulkanPool() : m_SetPool->GetVulkanPool();
+		AllocateInfo.descriptorSetCount = 1;
+		AllocateInfo.pSetLayouts = &m_DescriptorSets[ set ].SetLayout;
+
+		VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &AllocateInfo, &Set ) );
+
+		return Set;
 	}
 
 	void Shader::ReadFile()

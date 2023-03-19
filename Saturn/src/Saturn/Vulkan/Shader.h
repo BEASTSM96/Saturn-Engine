@@ -240,6 +240,8 @@ namespace Saturn {
 
 		// Make sure all the buffers have data mapped to them!
 		void WriteAllUBs( const Ref< DescriptorSet >& rSet );
+		void WriteAllUBs( VkDescriptorSet Set );
+
 		void WriteSB( uint32_t set, uint32_t binding, const VkDescriptorBufferInfo& rInfo, Ref<DescriptorSet>& rSet );
 
 		void* MapUB( ShaderType Type, uint32_t Set, uint32_t Binding );
@@ -250,6 +252,7 @@ namespace Saturn {
 		uint32_t GetDescriptorSetCount() { return m_DescriptorSetCount; }
 
 		Ref<DescriptorSet> CreateDescriptorSet( uint32_t set );
+		VkDescriptorSet AllocateDescriptorSet( uint32_t set, bool UseRendererPool = false );
 
 		ShaderDescriptorSet& GetShaderDescriptorSet( uint32_t set ) { return m_DescriptorSets[ set ]; }
 

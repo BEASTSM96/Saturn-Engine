@@ -81,6 +81,8 @@ namespace Saturn {
 
 		void CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
 		
+		Ref<DescriptorPool> GetDescriptorPool() { return m_RendererDescriptorPools[ m_FrameCount ]; }
+
 	public:
 
 		VkCommandBuffer ActiveCommandBuffer() { return m_CommandBuffer; };
@@ -117,6 +119,8 @@ namespace Saturn {
 		Ref< Texture2D > m_PinkTexture;
 
 		Ref< DescriptorSet > m_RendererDescriptorSets[MAX_FRAMES_IN_FLIGHT];
+
+		Ref< DescriptorPool > m_RendererDescriptorPools[ MAX_FRAMES_IN_FLIGHT ];
 
 		// frame -> shader name -> set
 		std::unordered_map< uint32_t, std::unordered_map< std::string, std::vector<VkWriteDescriptorSet>>> m_StorageBufferSets;

@@ -117,36 +117,24 @@ namespace Saturn {
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
-		if( m_AnyValueChanged )
+		m_DescriptorSets[ frame ] = m_Shader->AllocateDescriptorSet( 0, true );
+
+		for( auto& [name, texture] : m_Textures )
 		{
-			if( m_DescriptorSets[ frame ] != nullptr )
-				m_DescriptorSets[ frame ]->Terminate();
+			VkDescriptorImageInfo ImageInfo = {};
+			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			m_DescriptorSets[ frame ] = m_Shader->CreateDescriptorSet( 0 );
+			ImageInfo.imageView = m_Textures[ name ]->GetImageView();
+			ImageInfo.sampler = m_Textures[ name ]->GetSampler();
 
-			for( auto& [name, texture] : m_Textures )
-			{
-				VkDescriptorImageInfo ImageInfo = {};
-				ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-				ImageInfo.imageView = m_Textures[ name ]->GetImageView();
-				ImageInfo.sampler = m_Textures[ name ]->GetSampler();
-
-				m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSets[ frame ]->GetVulkanSet() );
-			}
-
-			m_Shader->WriteAllUBs( m_DescriptorSets[ frame ] );
-
-			if( m_DescriptorSets[ 0 ] && m_DescriptorSets[ 1 ] && m_DescriptorSets[ 2 ] )
-				m_AnyValueChanged = false;
+			m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSets[ frame ] );
 		}
+
+		m_Shader->WriteAllUBs( m_DescriptorSets[ frame ] );
 	}
 
 	void Material::RN_Clean()
 	{
-		m_DescriptorSets[ 0 ]->Terminate();
-		m_DescriptorSets[ 1 ]->Terminate();
-		m_DescriptorSets[ 2 ]->Terminate();
 	}
 
 	void Material::SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture )
@@ -168,7 +156,7 @@ namespace Saturn {
 	void Material::WriteDescriptor( VkWriteDescriptorSet& rWDS )
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
-		rWDS.dstSet = m_DescriptorSets[ frame ]->GetVulkanSet();
+		rWDS.dstSet = m_DescriptorSets[ frame ];
 
 		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &rWDS, 0, nullptr );
 	}
