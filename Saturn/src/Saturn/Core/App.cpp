@@ -324,6 +324,8 @@ namespace Saturn {
 			return false;
 		
 		VulkanContext::Get().ResizeEvent();
+
+		return true;
 	}
 
 	void Application::RenderImGui()

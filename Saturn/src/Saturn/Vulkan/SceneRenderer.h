@@ -67,10 +67,10 @@ namespace Saturn {
 	// DirLight
 	struct DirLight
 	{
-		glm::vec3 Direction;
+		glm::vec3 Direction {};
 		float Padding = 0.0f;
-		glm::vec3 Radiance;
-		float Multiplier;
+		glm::vec3 Radiance {};
+		float Multiplier = 0.0f;
 	};
 
 	// -1 = Prefilter, 0 = Downsample, 1 = Upsample
@@ -85,7 +85,7 @@ namespace Saturn {
 	struct RendererCamera
 	{
 		Camera Camera;
-		glm::mat4 ViewMatrix;
+		glm::mat4 ViewMatrix{};
 	};
 
 	struct RendererData
@@ -196,9 +196,9 @@ namespace Saturn {
 		Ref<Framebuffer> PreDepthFramebuffer = nullptr;
 		//Ref< DescriptorSet > PreDepthDescriptorSet = nullptr;
 
-		Ref< ComputePipeline > LightCullingPipeline;
+		Ref< ComputePipeline > LightCullingPipeline = nullptr;
 		Ref< DescriptorSet > LightCullingDescriptorSet = nullptr;
-		glm::vec3 LightCullingWorkGroups;
+		glm::vec3 LightCullingWorkGroups{};
 
 		bool ShowLightCulling = false;
 		bool ShowLightComplexity = false;
@@ -285,7 +285,7 @@ namespace Saturn {
 
 		float BloomDirtIntensity = 20.0f;
 
-		VkDescriptorPool BloomDescriptorPool;
+		VkDescriptorPool BloomDescriptorPool = nullptr;
 
 		//////////////////////////////////////////////////////////////////////////
 		// BDRF Lut

@@ -77,7 +77,7 @@ namespace Saturn {
 
 	void ComputePipeline::AddPushConstant( const void* pData, uint32_t Offset, size_t Size )
 	{
-		vkCmdPushConstants( m_CommandBuffer, m_PipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, Size, pData );
+		vkCmdPushConstants( m_CommandBuffer, m_PipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, (uint32_t)Size, pData );
 	}
 
 	void ComputePipeline::Unbind()
@@ -122,11 +122,11 @@ namespace Saturn {
 		VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
 		if( m_ComputeShader->GetPushConstantRanges().size() > 0 ) 
 		{
-			PipelineLayoutCreateInfo.pushConstantRangeCount = m_ComputeShader->GetPushConstantRanges().size();
+			PipelineLayoutCreateInfo.pushConstantRangeCount = (uint32_t)m_ComputeShader->GetPushConstantRanges().size();
 			PipelineLayoutCreateInfo.pPushConstantRanges = m_ComputeShader->GetPushConstantRanges().data();
 		}
 
-		PipelineLayoutCreateInfo.setLayoutCount = m_ComputeShader->GetSetLayouts().size();
+		PipelineLayoutCreateInfo.setLayoutCount = (uint32_t)m_ComputeShader->GetSetLayouts().size();
 		PipelineLayoutCreateInfo.pSetLayouts = m_ComputeShader->GetSetLayouts().data();
 
 		VK_CHECK( vkCreatePipelineLayout( VulkanContext::Get().GetDevice(), &PipelineLayoutCreateInfo, nullptr, &m_PipelineLayout ) );

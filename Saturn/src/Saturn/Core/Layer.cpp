@@ -112,7 +112,7 @@ namespace Saturn {
 			VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 			PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 			PoolCreateInfo.maxSets = 1000;
-			PoolCreateInfo.poolSizeCount = PoolSizes.size();
+			PoolCreateInfo.poolSizeCount = ( uint32_t ) PoolSizes.size();
 			PoolCreateInfo.pPoolSizes = PoolSizes.data();
 
 			VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_DescriptorPool ) );

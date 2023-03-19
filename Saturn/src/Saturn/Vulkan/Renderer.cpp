@@ -171,7 +171,7 @@ namespace Saturn {
 			PushConstant.Write( &ModelMatrix, sizeof( glm::mat4 ), 0 );
 
 			// Always assume that the vertex shader will have a push constant block containing the model matrix.
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, PushConstant.Size, PushConstant.Data );
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, ( uint32_t ) PushConstant.Size, PushConstant.Data );
 			
 			Pipeline->GetDescriptorSet( ShaderType::Vertex, 0 )->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
@@ -246,7 +246,7 @@ namespace Saturn {
 
 			const auto& StorageWriteDescriptors = GetStorageBufferWriteDescriptors( rStorageBufferSet, rMaterialAsset );
 
-			rMaterialAsset->Bind( mesh, rSubmesh, Shader, StorageWriteDescriptors[m_FrameCount] );
+			rMaterialAsset->Bind( mesh, rSubmesh, Shader, StorageWriteDescriptors[ m_FrameCount ] );
 
 			Ref<DescriptorSet>& Set = rMaterialAsset->GetMaterial()->GetDescriptorSet( m_FrameCount );
 
@@ -257,7 +257,7 @@ namespace Saturn {
 
 			// Set the offset to be the size of the vertex push constant.
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 
-				sizeof( glm::mat4 ), rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
+				sizeof( glm::mat4 ), ( uint32_t ) rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
 
 			// Descriptor set 0, for material texture data.
 			// Descriptor set 1, for environment data.
@@ -267,7 +267,7 @@ namespace Saturn {
 			};
 
 			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-				Pipeline->GetPipelineLayout(), 0, DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
+				Pipeline->GetPipelineLayout(), 0, ( uint32_t ) DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
@@ -339,7 +339,7 @@ namespace Saturn {
 
 		// Acquire next image.
 		uint32_t ImageIndex;
-		if( !VulkanContext::Get().GetSwapchain().AcquireNextImage( UINT64_MAX, m_AcquireSemaphore, VK_NULL_HANDLE, &ImageIndex ) )
+		if( !VulkanContext::Get().GetSwapchain().AcquireNextImage( UINT32_MAX, m_AcquireSemaphore, VK_NULL_HANDLE, &ImageIndex ) )
 			SAT_CORE_ASSERT( false );
 
 		m_ImageIndex = ImageIndex;

@@ -57,14 +57,14 @@ namespace Saturn {
 
 	void IndexBuffer::Draw( VkCommandBuffer CommandBuffer )
 	{
-		vkCmdDrawIndexed( CommandBuffer, m_Size / sizeof(uint32_t), 1, 0, 0, 0 );
+		vkCmdDrawIndexed( CommandBuffer, (uint32_t)m_Size / sizeof(uint32_t), 1, 0, 0, 0 );
 	}
 
 	void IndexBuffer::CreateBuffer()
 	{
 		assert( m_Size >= 3 && "Index count must be above 3!" );
 
-		uint32_t BufferSize = m_Size;
+		uint32_t BufferSize = (uint32_t)m_Size;
 
 		VkBuffer StagingBuffer;
 		

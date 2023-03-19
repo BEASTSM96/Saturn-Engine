@@ -473,11 +473,11 @@ namespace Saturn {
 		{
 			const auto& Name = sb.name;
 			auto& BufferType = Compiler.get_type( sb.base_type_id );
-			int MemberCount = BufferType.member_types.size();
+			int MemberCount = (int)BufferType.member_types.size();
 			uint32_t Binding = Compiler.get_decoration( sb.id, spv::DecorationBinding );
 			uint32_t Set = Compiler.get_decoration( sb.id, spv::DecorationDescriptorSet );
 
-			uint32_t Size = Compiler.get_declared_struct_size( BufferType );
+			uint32_t Size = ( uint32_t ) Compiler.get_declared_struct_size( BufferType );
 
 			SAT_CORE_INFO( "Storage Buffer: {0}", Name );
 			SAT_CORE_INFO( " Size: {0}", Size );
@@ -537,11 +537,11 @@ namespace Saturn {
 		{
 			const auto& Name = ub.name;
 			auto& BufferType = Compiler.get_type( ub.base_type_id );
-			int MemberCount = BufferType.member_types.size();
+			int MemberCount = ( int ) BufferType.member_types.size();
 			uint32_t Binding = Compiler.get_decoration( ub.id, spv::DecorationBinding );
 			uint32_t Set = Compiler.get_decoration( ub.id, spv::DecorationDescriptorSet );
 
-			uint32_t Size = Compiler.get_declared_struct_size( BufferType );
+			uint32_t Size = ( uint32_t ) Compiler.get_declared_struct_size( BufferType );
 
 			SAT_CORE_INFO( "Uniform Buffer: {0}", Name );
 			SAT_CORE_INFO( " Size: {0}", Size );
@@ -601,10 +601,10 @@ namespace Saturn {
 		{
 			const auto& Name = pc.name;
 			auto& BufferType = Compiler.get_type( pc.base_type_id );
-			int MemberCount = BufferType.member_types.size();
+			int MemberCount = ( int )BufferType.member_types.size();
 			uint32_t set = Compiler.get_decoration( pc.id, spv::DecorationDescriptorSet );
 
-			uint32_t Size = Compiler.get_declared_struct_size( BufferType );
+			uint32_t Size = ( uint32_t ) Compiler.get_declared_struct_size( BufferType );
 			uint32_t Offset = 0;
 
 			// Make sure the buffer offset is size + offset for because that's what vulkan needs when we render.
@@ -813,7 +813,7 @@ namespace Saturn {
 			}
 
 			VkDescriptorSetLayoutCreateInfo LayoutInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-			LayoutInfo.bindingCount = Bindings.size();
+			LayoutInfo.bindingCount = ( uint32_t ) Bindings.size();
 			LayoutInfo.pBindings = Bindings.data();
 
 			VK_CHECK( vkCreateDescriptorSetLayout( VulkanContext::Get().GetDevice(), &LayoutInfo, nullptr, &descriptorSet.SetLayout ) );

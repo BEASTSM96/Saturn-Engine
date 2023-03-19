@@ -102,7 +102,7 @@ namespace Saturn {
 	{
 		uint32_t Set = -1;
 
-		VkDescriptorSetLayout SetLayout;
+		VkDescriptorSetLayout SetLayout = nullptr;
 		
 		std::unordered_map< uint32_t, VkWriteDescriptorSet > WriteDescriptorSets;
 		std::vector< ShaderSampledImage > SampledImages;

@@ -38,7 +38,6 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <glm/glm.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -101,7 +100,7 @@ namespace Saturn {
 
 			SizeCallback( window, w, h );
 
-			WindowResizeEvent event( ( float ) w, ( float ) h );
+			WindowResizeEvent event( ( unsigned int ) w, ( unsigned int ) h );
 			win.m_EventCallback( event );
 		} );
 
@@ -363,7 +362,7 @@ namespace Saturn {
 		window->m_Width = w;
 		window->m_Height = h;
 
-		WindowResizeEvent event( ( float ) w, ( float ) h );
+		WindowResizeEvent event( ( unsigned int ) w, ( unsigned int ) h );
 		window->m_EventCallback( event );
 	}
 

@@ -53,7 +53,7 @@ namespace Saturn {
 	{
 		Bind( CommandBuffer );
 
-		vkCmdDraw( CommandBuffer, ( size_t )m_Size, 1, 0, 0 );
+		vkCmdDraw( CommandBuffer, ( uint32_t )m_Size, 1, 0, 0 );
 	}
 
 	void VertexBuffer::Bind( VkCommandBuffer CommandBuffer )
@@ -65,7 +65,7 @@ namespace Saturn {
 
 	void VertexBuffer::Draw( VkCommandBuffer CommandBuffer )
 	{
-		vkCmdDraw( CommandBuffer, ( size_t )m_Size, 1, 0, 0 );
+		vkCmdDraw( CommandBuffer, ( uint32_t )m_Size, 1, 0, 0 );
 	}
 
 	void VertexBuffer::CreateBuffer()

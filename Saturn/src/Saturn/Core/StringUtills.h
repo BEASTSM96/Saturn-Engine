@@ -29,10 +29,8 @@
 #pragma once
 
 #include "Base.h"
-
 #include <string>
 #include <locale>
-#include <codecvt>
 
 namespace Saturn {
 
@@ -40,21 +38,24 @@ namespace Saturn {
 
 		inline std::wstring ConvertString( const std::string& str )
 		{
-			using type = std::codecvt_utf8<wchar_t>;
+			int len = MultiByteToWideChar( CP_UTF8, 0, str.c_str(), -1, NULL, 0 );
 
-			std::wstring_convert<type, wchar_t> converter;
+			std::wstring result( len, L'\0' );
 
-			return converter.from_bytes( str );
+			MultiByteToWideChar( CP_UTF8, 0, str.c_str(), -1, &result[ 0 ], len );
+
+			return result;
 		}
 
 		inline std::string ConvertWString( const std::wstring& str ) 
 		{
-			using type = std::codecvt_utf8<wchar_t>;
+			int len = WideCharToMultiByte( CP_UTF8, 0, str.c_str(), -1, NULL, 0, NULL, NULL );
 
-			std::wstring_convert<type, wchar_t> converter;
+			std::string result( len, '\0' );
 
-			return converter.to_bytes( str );
+			WideCharToMultiByte( CP_UTF8, 0, str.c_str(), -1, &result[ 0 ], len, NULL, NULL );
+
+			return result;
 		}
-
 	}
 }

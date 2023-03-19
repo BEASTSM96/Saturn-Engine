@@ -100,11 +100,11 @@ namespace Saturn {
 		VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
 		if( m_Specification.Shader->GetPushConstantRanges().size() > 0 )
 		{
-			PipelineLayoutCreateInfo.pushConstantRangeCount = m_Specification.Shader->GetPushConstantRanges().size();
+			PipelineLayoutCreateInfo.pushConstantRangeCount = ( uint32_t ) m_Specification.Shader->GetPushConstantRanges().size();
 			PipelineLayoutCreateInfo.pPushConstantRanges = m_Specification.Shader->GetPushConstantRanges().data();
 		}
 
-		PipelineLayoutCreateInfo.setLayoutCount = m_Specification.Shader->GetSetLayouts().size();
+		PipelineLayoutCreateInfo.setLayoutCount = ( uint32_t ) m_Specification.Shader->GetSetLayouts().size();
 		PipelineLayoutCreateInfo.pSetLayouts = m_Specification.Shader->GetSetLayouts().data();
 		
 		VK_CHECK( vkCreatePipelineLayout( VulkanContext::Get().GetDevice(), &PipelineLayoutCreateInfo, nullptr, &m_PipelineLayout ) );
@@ -221,7 +221,7 @@ namespace Saturn {
 		VkPipelineVertexInputStateCreateInfo VertexInputState = { VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 		VertexInputState.vertexBindingDescriptionCount = 1;
 		VertexInputState.pVertexBindingDescriptions = &VertexInputBinding;
-		VertexInputState.vertexAttributeDescriptionCount = VertexInputAttributes.size();
+		VertexInputState.vertexAttributeDescriptionCount = ( uint32_t ) VertexInputAttributes.size();
 		VertexInputState.pVertexAttributeDescriptions = VertexInputAttributes.data();
 		
 		///// Descriptor sets
@@ -252,7 +252,7 @@ namespace Saturn {
 
 					if( Index == -1 )
 					{
-						for( int i = 0; i < m_Specification.Shader->GetDescriptorSetCount(); i++ )
+						for( size_t i = 0; i < m_Specification.Shader->GetDescriptorSetCount(); i++ )
 						{
 							m_DescriptorSets[ CurrentStage ][ Index ] = Ref<DescriptorSet>::Create( SetSpec );
 						}
@@ -299,7 +299,7 @@ namespace Saturn {
 
 		if( m_Specification.HasColorAttachment )
 		{
-			ColorBlendState.attachmentCount = ColorBlendAttachmentStates.size();
+			ColorBlendState.attachmentCount = ( uint32_t ) ColorBlendAttachmentStates.size();
 			ColorBlendState.pAttachments = ColorBlendAttachmentStates.data();
 		}
 		
@@ -347,7 +347,7 @@ namespace Saturn {
 		
 		VkPipelineDynamicStateCreateInfo PipelineDynamicStateCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
 		PipelineDynamicStateCreateInfo.pDynamicStates = DynamicStates.data();
-		PipelineDynamicStateCreateInfo.dynamicStateCount = DynamicStates.size();
+		PipelineDynamicStateCreateInfo.dynamicStateCount = ( uint32_t ) DynamicStates.size();
 		
 		VkPipelineViewportStateCreateInfo PipelineViewportState = { VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
 		PipelineViewportState.pViewports = &Viewport;
@@ -368,7 +368,7 @@ namespace Saturn {
 		PipelineCreateInfo.pDepthStencilState  = &DepthStencilState;
 		PipelineCreateInfo.pDynamicState       = &PipelineDynamicStateCreateInfo;
 		PipelineCreateInfo.pStages             = ShaderStages.data();
-		PipelineCreateInfo.stageCount          = ShaderStages.size();
+		PipelineCreateInfo.stageCount          = ( uint32_t ) ShaderStages.size();
 		
 		VK_CHECK( vkCreateGraphicsPipelines( VulkanContext::Get().GetDevice(), 0, 1, &PipelineCreateInfo, nullptr, &m_Pipeline ) );
 

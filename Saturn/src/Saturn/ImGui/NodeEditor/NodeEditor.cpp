@@ -114,6 +114,8 @@ namespace Saturn {
 				memcpy( pData, State.data(), State.size() );
 				SAT_CORE_INFO( "Assigned Node editor data is: {0}", State );
 			}
+
+			return 0;
 		};
 
 		config.LoadNodeSettings = []( ed::NodeId nodeId, char* pData, void* pUserPointer ) -> size_t
@@ -231,6 +233,8 @@ namespace Saturn {
 		for( auto& link : m_Links )
 			if( link.ID == id )
 				return &link;
+
+		return nullptr;
 	}
 
 	Node* NodeEditor::FindNode( ed::NodeId id )
@@ -238,6 +242,8 @@ namespace Saturn {
 		for( auto& node : m_Nodes )
 			if( node.ID == id )
 				return &node;
+
+		return nullptr;
 	}
 
 	Link* NodeEditor::FindLinkByPin( ed::PinId id )
@@ -863,6 +869,8 @@ namespace Saturn {
 				memcpy( pData, State.data(), State.size() );
 				SAT_CORE_INFO( "Assigned Node editor data is: {0}", State );
 			}
+			
+			return 0;
 		};
 
 		config.LoadNodeSettings = []( ed::NodeId nodeId, char* pData, void* pUserPointer ) -> size_t

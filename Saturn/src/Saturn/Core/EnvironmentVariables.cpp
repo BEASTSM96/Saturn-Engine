@@ -108,7 +108,7 @@ namespace Saturn {
 
 			if( lResult == ERROR_SUCCESS )
 			{
-				lResult = RegSetValueExA( hKey, rKey.c_str(), 0, REG_SZ, ( PBYTE ) rValue.c_str(), rValue.size() + 1 );
+				lResult = RegSetValueExA( hKey, rKey.c_str(), 0, REG_SZ, ( PBYTE ) rValue.c_str(), (DWORD) rValue.size() + 1 );
 				RegCloseKey( hKey );
 
 				if( lResult == ERROR_SUCCESS )

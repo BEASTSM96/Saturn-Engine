@@ -94,6 +94,8 @@ namespace Saturn {
 					}
 				}
 			}
+
+			return *( Ty* )nullptr;
 		}
 		
 		Ref< Texture2D > GetResource( const std::string& Name );

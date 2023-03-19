@@ -65,7 +65,7 @@ namespace Saturn {
 
 	void PrefabViewer::DrawInternal( Ref<Prefab>& rPrefab )
 	{
-		ImGui::PushID( rPrefab->ID );
+		ImGui::PushID( static_cast<int>( rPrefab->ID ) );
 
 		ImGui::Begin( rPrefab->Name.c_str(), &m_OpenPrefabs.at( rPrefab->ID ) );
 

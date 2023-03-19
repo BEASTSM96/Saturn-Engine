@@ -109,7 +109,7 @@ namespace Saturn {
 			FramebufferCreateInfo.renderPass = VulkanContext::Get().GetDefaultVulkanPass(); // Swap chain render pass
 			FramebufferCreateInfo.layers = 1;
 			FramebufferCreateInfo.pAttachments = Attachments.data();
-			FramebufferCreateInfo.attachmentCount = Attachments.size();
+			FramebufferCreateInfo.attachmentCount = ( uint32_t ) Attachments.size();
 
 			VK_CHECK( vkCreateFramebuffer( VulkanContext::Get().GetDevice(), &FramebufferCreateInfo, nullptr, &m_Framebuffers[ i ] ) );
 
@@ -205,7 +205,7 @@ namespace Saturn {
 
 		m_ImageViews.resize( SwapchainData.ImageCount );
 
-		for( int i = 0; i < SwapchainData.ImageCount; i++ )
+		for( size_t i = 0; i < SwapchainData.ImageCount; i++ )
 		{
 			ImageViewCreateInfo.image = m_Images[ i ];
 

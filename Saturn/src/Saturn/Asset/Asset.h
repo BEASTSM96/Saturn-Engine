@@ -80,6 +80,8 @@ namespace Saturn {
 			default:
 				break;
 		}
+
+		return "";
 	}
 
 	inline AssetType AssetTypeFromString( const std::string& str )

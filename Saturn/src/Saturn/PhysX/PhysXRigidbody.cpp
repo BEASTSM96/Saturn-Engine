@@ -51,7 +51,7 @@ namespace Saturn {
 		if( !rb.IsKinematic )
 			pActor->setRigidBodyFlag( physx::PxRigidBodyFlag::eENABLE_CCD, rb.UseCCD );
 
-		physx::PxRigidBodyExt::setMassAndUpdateInertia( *pActor, rb.Mass );
+		physx::PxRigidBodyExt::setMassAndUpdateInertia( *pActor, (physx::PxReal)rb.Mass );
 		m_Body = pActor;
 	}
 

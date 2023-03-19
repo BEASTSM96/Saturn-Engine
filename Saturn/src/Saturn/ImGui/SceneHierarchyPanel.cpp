@@ -41,7 +41,6 @@
 
 #include "Saturn/GameFramework/EntityScriptManager.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -152,7 +151,7 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::Draw()
 	{
-		ImGui::PushID( m_Context->GetId() );
+		ImGui::PushID( static_cast<int>( m_Context->GetId() ) );
 
 		if( !m_IsPrefabScene )
 			ImGui::Begin( "Scene Hierarchy" );

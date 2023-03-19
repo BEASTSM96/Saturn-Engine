@@ -238,7 +238,7 @@ namespace Saturn {
 
 		ImGui::PushMultiItemsWidths( 3, ImGui::CalcItemWidth() );
 
-		modified |= ImGui::DragInt( "##intx", &values, 0.0f, 5000, 0.0f, "%.2f" );
+		modified |= ImGui::DragInt( "##intx", &values, 0.0f, 5000, 0, "%.2f" );
 
 		ImGui::PopItemWidth();
 

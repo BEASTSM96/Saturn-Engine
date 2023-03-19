@@ -167,7 +167,7 @@ namespace Saturn {
 		}
 #endif
 
-		InstanceInfo.enabledExtensionCount = Extensions.size();
+		InstanceInfo.enabledExtensionCount = ( uint32_t ) Extensions.size();
 		InstanceInfo.ppEnabledExtensionNames = Extensions.data();
 
 		VK_CHECK( vkCreateInstance( &InstanceInfo, nullptr, &m_Instance ) );
@@ -301,10 +301,10 @@ namespace Saturn {
 		InlineUniformBlockFeatures.inlineUniformBlock = VK_TRUE;
 
 		VkDeviceCreateInfo DeviceInfo      ={ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
-		DeviceInfo.enabledExtensionCount   = DeviceExtensions.size();
+		DeviceInfo.enabledExtensionCount   = ( uint32_t ) DeviceExtensions.size();
 		DeviceInfo.ppEnabledExtensionNames = DeviceExtensions.data();
 		DeviceInfo.pQueueCreateInfos       = QueueCreateInfos.data();
-		DeviceInfo.queueCreateInfoCount    = QueueCreateInfos.size();
+		DeviceInfo.queueCreateInfoCount    = ( uint32_t ) QueueCreateInfos.size();
 		DeviceInfo.pEnabledFeatures = &Features;
 		DeviceInfo.pNext = &InlineUniformBlockFeatures;
 
@@ -459,6 +459,8 @@ namespace Saturn {
 				return Format;
 			}
 		}
+
+		return VK_FORMAT_UNDEFINED;
 	}
 
 	VkFormat VulkanContext::FindDepthFormat()

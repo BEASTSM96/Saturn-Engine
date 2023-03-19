@@ -138,7 +138,7 @@ namespace Saturn {
 		if( m_ColorAttacments.size() ) 
 		{
 			DefaultSubpass.pColorAttachments = m_ColorAttacments.data();
-			DefaultSubpass.colorAttachmentCount = m_ColorAttacments.size();
+			DefaultSubpass.colorAttachmentCount = (uint32_t)m_ColorAttacments.size();
 		}
 
 		DefaultSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -209,11 +209,11 @@ namespace Saturn {
 
 		VkRenderPassCreateInfo RenderPassCreateInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
 		RenderPassCreateInfo.pAttachments = AttachmentDescriptions.data();
-		RenderPassCreateInfo.attachmentCount = AttachmentDescriptions.size();
+		RenderPassCreateInfo.attachmentCount = ( uint32_t ) AttachmentDescriptions.size();
 		RenderPassCreateInfo.pSubpasses = &DefaultSubpass;
 		RenderPassCreateInfo.subpassCount = 1;
 		RenderPassCreateInfo.pDependencies = Dependencies.data();
-		RenderPassCreateInfo.dependencyCount =Dependencies.size();
+		RenderPassCreateInfo.dependencyCount = ( uint32_t ) Dependencies.size();
 
 		VK_CHECK( vkCreateRenderPass( VulkanContext::Get().GetDevice(), &RenderPassCreateInfo, nullptr, &m_Pass ) );
 		SetDebugUtilsObjectName( m_PassSpec.Name, ( uint64_t ) m_Pass, VK_OBJECT_TYPE_RENDER_PASS );
@@ -245,7 +245,7 @@ namespace Saturn {
 		RenderPassBeginInfo.framebuffer = Framebuffer;
 		RenderPassBeginInfo.renderArea.extent = Extent;
 		RenderPassBeginInfo.pClearValues = m_ClearValues.data();
-		RenderPassBeginInfo.clearValueCount = m_ClearValues.size();
+		RenderPassBeginInfo.clearValueCount = ( uint32_t )m_ClearValues.size();
 		
 		vkCmdBeginRenderPass( m_CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
 	}

@@ -82,7 +82,7 @@ namespace Saturn {
 	private:
 		physx::PxRigidActor* m_Body;
 
-		int m_Mass = 1.0;
+		int m_Mass = 1;
 		bool m_UseCCD = false;
 		bool m_Kinematic = false;
 	};

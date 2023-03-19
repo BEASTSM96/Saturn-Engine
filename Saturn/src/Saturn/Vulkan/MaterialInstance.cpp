@@ -59,7 +59,7 @@ namespace Saturn {
 		{
 			if( rUniform.IsPushConstantData() )
 			{
-				Size += rUniform.GetSize();
+				Size += (uint32_t)rUniform.GetSize();
 			}
 		}
 

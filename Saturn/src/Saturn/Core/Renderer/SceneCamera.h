@@ -45,6 +45,6 @@ namespace Saturn {
 	private:
 		float m_Fov = 45.0f;
 		float m_Far = 1000.0f;
-		float m_Near = 0.1;
+		float m_Near = 0.1f;
 	};
 }

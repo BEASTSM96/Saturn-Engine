@@ -44,7 +44,6 @@
 
 #include "Saturn/Core/OptickProfiler.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -161,8 +160,6 @@ namespace Saturn {
 			{
 				auto points = m_Registry.group<PointLightComponent>( entt::get<TransformComponent> );
 
-				//m_Lights.PointLights.resize( points.size() );
-
 				uint32_t plIndex = 0;
 
 				for( const auto& e : points )
@@ -177,15 +174,6 @@ namespace Saturn {
 						.Radius = lightComponent.Radius,
 						.MinRadius = lightComponent.MinRadius,
 						.Falloff = lightComponent.Falloff };
-
-					//m_Lights.PointLights.push_back( {
-					//	.Position = transformComponent.Position,
-					//	.Radiance = lightComponent.Radiance,
-					//	.Multiplier = lightComponent.Multiplier,
-					//	.LightSize = lightComponent.LightSize,
-					//	.Radius = lightComponent.Radius,
-					//	.MinRadius = lightComponent.MinRadius,
-					//	.Falloff = lightComponent.Falloff } );
 
 					m_Lights.PointLights.push_back( pl );
 

@@ -147,7 +147,7 @@ namespace Saturn {
 	struct CameraComponent
 	{
 		SceneCamera Camera;
-		bool MainCamera;
+		bool MainCamera = false;
 	};
 
 	// Preetham sky
@@ -207,7 +207,7 @@ namespace Saturn {
 		bool UseCCD = false;
 		int Mass = 2;
 
-		uint32_t LockFlags;
+		uint32_t LockFlags = -1;
 
 		PhysXRigidbody* Rigidbody = nullptr;
 

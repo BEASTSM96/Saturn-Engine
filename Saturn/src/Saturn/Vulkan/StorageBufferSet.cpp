@@ -58,14 +58,14 @@ namespace Saturn {
 
 	void StorageBufferSet::Resize( uint32_t set, uint32_t binding, uint32_t frame, size_t newSize )
 	{
-		m_Buffers.at( set ).at( binding ).at( frame )->Resize( newSize );
+		m_Buffers.at( set ).at( binding ).at( frame )->Resize( ( uint32_t ) newSize );
 	}
 
 	void StorageBufferSet::Resize( uint32_t set, uint32_t binding, size_t newSize )
 	{
 		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
 		{
-			m_Buffers.at( set ).at( binding ).at( i )->Resize( newSize );
+			m_Buffers.at( set ).at( binding ).at( i )->Resize( ( uint32_t ) newSize );
 		}
 	}
 

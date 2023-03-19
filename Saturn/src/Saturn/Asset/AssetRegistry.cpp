@@ -100,6 +100,8 @@ namespace Saturn {
 			if( asset->GetPath() == rPath )
 				return id;
 		}
+
+		return 0;
 	}
 
 	bool AssetRegistry::IsAssetLoaded( AssetID id )

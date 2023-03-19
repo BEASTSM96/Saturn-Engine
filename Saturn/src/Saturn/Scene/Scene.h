@@ -74,7 +74,7 @@ namespace Saturn {
 		DirectionalLight DirectionalLights[ 4 ];
 		std::vector<PointLight> PointLights;
 
-		[[nodiscard]] uint32_t GetPointLightSize() { return sizeof( PointLight ) * PointLights.size(); };
+		[[nodiscard]] uint32_t GetPointLightSize() { return static_cast<uint32_t>( sizeof( PointLight ) * PointLights.size() ); };
 	};
 
 	class PhysXRuntime;

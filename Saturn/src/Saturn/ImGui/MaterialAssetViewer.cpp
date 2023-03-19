@@ -187,7 +187,7 @@ namespace Saturn {
 
 		auto* OutputNode = s_NodeEditors[ rAsset->GetAssetID() ]->AddNode( node );
 
-		m_OutputNodeID = (size_t)OutputNode->ID;
+		m_OutputNodeID = (int)(size_t)OutputNode->ID;
 
 		// Read the material data, and create some nodes based of the info.
 		

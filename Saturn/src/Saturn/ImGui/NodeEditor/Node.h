@@ -50,7 +50,7 @@ namespace Saturn {
 		AssetHandle
 	};
 
-	inline const std::string_view& PinTypeToString( PinType type )
+	inline std::string_view PinTypeToString( PinType type )
 	{
 		switch( type )
 		{
@@ -78,7 +78,7 @@ namespace Saturn {
 				break;
 		}
 
-		return "???";
+		return "";
 	}
 
 	inline PinType StringToPinType( const std::string& rString )

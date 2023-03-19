@@ -190,7 +190,6 @@ namespace Saturn {
 			auto TitleBarHeight = m_TitleBar->Height();
 
 			RECT windowRect;
-			POINT mousePos;
 			GetClientRect( glfwGetWin32Window( (GLFWwindow*)Window::Get().NativeWindow() ), &windowRect );
 
 			// Drag the menu bar to move the window
@@ -447,7 +446,7 @@ namespace Saturn {
 					{
 						if( ImGui::CollapsingHeader( rMaterial->GetName().c_str() ) ) 
 						{
-							ImGui::PushID( rMaterial->GetAssetID() );
+							ImGui::PushID( static_cast<int>( rMaterial->GetAssetID() ) );
 
 							ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
 							ImGui::Text( "Asset ID: %llu", (uint64_t)rMaterial->GetAssetID() );
@@ -606,8 +605,8 @@ namespace Saturn {
 		{
 			m_ViewportSize = ImGui::GetContentRegionAvail();
 
-			SceneRenderer::Get().SetViewportSize( m_ViewportSize.x, m_ViewportSize.y );
-			m_EditorCamera.SetViewportSize( m_ViewportSize.x, m_ViewportSize.y );
+			SceneRenderer::Get().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
+			m_EditorCamera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 		}
 
 		ImGui::PushID( "VIEWPORT_IMAGE" );

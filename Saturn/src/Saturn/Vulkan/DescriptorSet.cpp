@@ -36,7 +36,7 @@ namespace Saturn {
 	DescriptorPool::DescriptorPool( std::vector< VkDescriptorPoolSize > PoolSizes, uint32_t MaxSets )
 	{
 		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-		PoolCreateInfo.poolSizeCount = PoolSizes.size();
+		PoolCreateInfo.poolSizeCount = (uint32_t)PoolSizes.size();
 		PoolCreateInfo.pPoolSizes = PoolSizes.data();
 		PoolCreateInfo.maxSets = MaxSets;
 		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
@@ -103,7 +103,7 @@ namespace Saturn {
 
 	void DescriptorSet::Write( std::vector< VkWriteDescriptorSet > WriteDescriptorSets )
 	{
-		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), WriteDescriptorSets.size(), WriteDescriptorSets.data(), 0, nullptr );
+		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), (uint32_t)WriteDescriptorSets.size(), WriteDescriptorSets.data(), 0, nullptr );
 	}
 
 	void DescriptorSet::Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout )

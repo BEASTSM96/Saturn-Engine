@@ -258,7 +258,7 @@ namespace Saturn {
 	uint32_t Texture::GetMipMapLevels()
 	{
 		// Based from https://www.oreilly.com/library/view/opengl-programming-guide/9780132748445/ch06lev2sec20.html
-		return std::floor( std::log2( glm::min( m_Width, m_Height ) ) ) + 1;
+		return static_cast<uint32_t>( std::floor( std::log2( glm::min( m_Width, m_Height ) ) ) + 1 );
 	}
 
 	std::pair<uint32_t, uint32_t> Texture::GetMipSize( uint32_t mip ) const
@@ -601,7 +601,7 @@ namespace Saturn {
 		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		SamplerCreateInfo.mipLodBias = 0.0f;
 		SamplerCreateInfo.minLod = 0.0f;
-		SamplerCreateInfo.maxLod = MipCount;
+		SamplerCreateInfo.maxLod = ( float ) MipCount;
 
 		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
 
@@ -634,21 +634,21 @@ namespace Saturn {
 
 			imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			imageBlit.srcSubresource.layerCount = 1;
-			imageBlit.srcSubresource.mipLevel = i - 1;
+			imageBlit.srcSubresource.mipLevel = ( uint32_t ) i - 1;
 			imageBlit.srcOffsets[ 1 ].x = int32_t( m_Width >> ( i - 1 ) );
 			imageBlit.srcOffsets[ 1 ].y = int32_t( m_Height >> ( i - 1 ) );
 			imageBlit.srcOffsets[ 1 ].z = 1;
 
 			imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			imageBlit.dstSubresource.layerCount = 1;
-			imageBlit.dstSubresource.mipLevel = i;
+			imageBlit.dstSubresource.mipLevel = ( uint32_t ) i;
 			imageBlit.dstOffsets[ 1 ].x = int32_t( m_Width >> i );
 			imageBlit.dstOffsets[ 1 ].y = int32_t( m_Height >> i );
 			imageBlit.dstOffsets[ 1 ].z = 1;
 
 			VkImageSubresourceRange mipSubRange = {};
 			mipSubRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			mipSubRange.baseMipLevel = i;
+			mipSubRange.baseMipLevel = ( uint32_t ) i;
 			mipSubRange.levelCount = 1;
 			mipSubRange.layerCount = 1;
 
@@ -807,7 +807,7 @@ namespace Saturn {
 		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		SamplerCreateInfo.mipLodBias = 0.0f;
 		SamplerCreateInfo.minLod = 0.0f;
-		SamplerCreateInfo.maxLod = MipCount;
+		SamplerCreateInfo.maxLod = ( float ) MipCount;
 
 		if( m_Sampler )
 			vkDestroySampler( VulkanContext::Get().GetDevice(), m_Sampler, nullptr );
@@ -899,7 +899,7 @@ namespace Saturn {
 		SamplerCreateInfo.mipLodBias = 0.0f;
 		SamplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
 		SamplerCreateInfo.minLod = 0.0f;
-		SamplerCreateInfo.maxLod = GetMipMapLevels();
+		SamplerCreateInfo.maxLod = ( float ) GetMipMapLevels();
 		SamplerCreateInfo.anisotropyEnable = VK_FALSE;
 		SamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 

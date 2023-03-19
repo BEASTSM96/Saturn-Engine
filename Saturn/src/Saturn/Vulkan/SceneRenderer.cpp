@@ -201,8 +201,8 @@ namespace Saturn {
 		}
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = SHADOW_MAP_SIZE;
-		PipelineSpec.Height = SHADOW_MAP_SIZE;
+		PipelineSpec.Width = ( uint32_t ) SHADOW_MAP_SIZE;
+		PipelineSpec.Height = ( uint32_t ) SHADOW_MAP_SIZE;
 		PipelineSpec.Name = "DirShadowMap";
 		PipelineSpec.Shader = m_RendererData.DirShadowMapShader.Pointer();
 		PipelineSpec.UseDepthTest = true;
@@ -219,12 +219,12 @@ namespace Saturn {
 		PipelineSpec.RequestDescriptorSets = { ShaderType::Vertex, 0 };
 
 		// Layered image
-		Ref<Image2D> shadowImage = Ref<Image2D>::Create( ImageFormat::DEPTH32F, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 4 );
+		Ref<Image2D> shadowImage = Ref<Image2D>::Create( ImageFormat::DEPTH32F, ( uint32_t ) SHADOW_MAP_SIZE, ( uint32_t ) SHADOW_MAP_SIZE, 4 );
 		shadowImage->SetDebugName( "Layered shadow image" );
 
 		FramebufferSpecification FBSpec = {};
-		FBSpec.Width = SHADOW_MAP_SIZE;
-		FBSpec.Height = SHADOW_MAP_SIZE;
+		FBSpec.Width = ( uint32_t ) SHADOW_MAP_SIZE;
+		FBSpec.Height = ( uint32_t ) SHADOW_MAP_SIZE;
 		FBSpec.ArrayLevels = SHADOW_CASCADE_COUNT;
 		FBSpec.Attachments = { ImageFormat::Depth };
 		FBSpec.ExistingImage = shadowImage;
@@ -238,7 +238,7 @@ namespace Saturn {
 			m_RendererData.DirShadowMapPasses[ i ] = Ref<Pass>::Create( PassSpec );
 
 			FBSpec.RenderPass = m_RendererData.DirShadowMapPasses[ i ];
-			FBSpec.ExistingImageLayer = i;
+			FBSpec.ExistingImageLayer = ( uint32_t ) i;
 
 			PipelineSpec.RenderPass = m_RendererData.DirShadowMapPasses[i];
 
@@ -1078,7 +1078,7 @@ namespace Saturn {
 			u_DebugData.ShowLightComplexity = ( float ) m_RendererData.ShowLightComplexity;
 			u_DebugData.ShowLightCulling = ( float ) m_RendererData.ShowLightCulling;
 
-			u_DebugData.TilesCountX = m_RendererData.LightCullingWorkGroups.x;
+			u_DebugData.TilesCountX = ( int ) m_RendererData.LightCullingWorkGroups.x;
 
 			auto dirLight = m_pScene->m_Lights.DirectionalLights[ 0 ];
 			
@@ -1130,7 +1130,7 @@ namespace Saturn {
 			return;
 
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-		VkExtent2D Extent = { SHADOW_MAP_SIZE, SHADOW_MAP_SIZE };
+		VkExtent2D Extent = { ( uint32_t ) SHADOW_MAP_SIZE, ( uint32_t ) SHADOW_MAP_SIZE };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
 		std::array<VkClearValue, 2> ClearColors{};
@@ -1139,7 +1139,7 @@ namespace Saturn {
 		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		RenderPassBeginInfo.renderArea.extent = Extent;
 		RenderPassBeginInfo.pClearValues = ClearColors.data();
-		RenderPassBeginInfo.clearValueCount = ClearColors.size();
+		RenderPassBeginInfo.clearValueCount = ( uint32_t ) ClearColors.size();
 
 		VkViewport Viewport = {};
 		Viewport.x = 0;
@@ -1165,7 +1165,7 @@ namespace Saturn {
 
 		u_Matrices = {};
 
-		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+		for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 		{
 			u_Matrices.ViewProjection[ i ] = m_RendererData.ShadowCascades[ i ].ViewProjection;
 		}
@@ -1350,7 +1350,7 @@ namespace Saturn {
 		
 		m_RendererData.LightCullingWorkGroups = { Size / TILE_SIZE, 1 };
 
-		m_RendererData.StorageBufferSet->Resize( 0, 14, m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4 * 1024 );
+		m_RendererData.StorageBufferSet->Resize( 0, 14, ( size_t ) m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4 * 1024 );
 
 		// UBs
 		UBLights u_Lights;
@@ -1375,7 +1375,7 @@ namespace Saturn {
 
 		u_ScreenData.FullResolution = { m_RendererData.Width, m_RendererData.Height };
 
-		u_Lights.nbLights = m_pScene->m_Lights.PointLights.size();
+		u_Lights.nbLights = ( uint32_t ) m_pScene->m_Lights.PointLights.size();
 
 		std::memcpy( u_Lights.Lights, m_pScene->m_Lights.PointLights.data(), m_pScene->m_Lights.GetPointLightSize() );
 
@@ -1397,9 +1397,9 @@ namespace Saturn {
 
 		CullingPipeline->Execute(
 			m_RendererData.LightCullingDescriptorSet->GetVulkanSet(),
-			m_RendererData.LightCullingWorkGroups.x,
-			m_RendererData.LightCullingWorkGroups.y,
-			m_RendererData.LightCullingWorkGroups.z );
+			( uint32_t ) m_RendererData.LightCullingWorkGroups.x,
+			( uint32_t ) m_RendererData.LightCullingWorkGroups.y,
+			( uint32_t ) m_RendererData.LightCullingWorkGroups.z );
 
 		VkMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
@@ -1493,11 +1493,11 @@ namespace Saturn {
 
 			shader->WriteDescriptor( "o_Image", descriptorInfo, descriptorSet );
 
-			workgrps.x = m_RendererData.BloomTextures[ 0 ]->Width() / m_RendererData.BloomWorkSize;
-			workgrps.y = m_RendererData.BloomTextures[ 0 ]->Height() / m_RendererData.BloomWorkSize;
+			workgrps.x = ( float ) m_RendererData.BloomTextures[ 0 ]->Width() / m_RendererData.BloomWorkSize;
+			workgrps.y = ( float ) m_RendererData.BloomTextures[ 0 ]->Height() / m_RendererData.BloomWorkSize;
 
 			pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
-			pipeline->Execute( descriptorSet, workgrps.x, workgrps.y, 1 );
+			pipeline->Execute( descriptorSet, ( uint32_t ) workgrps.x, ( uint32_t ) workgrps.y, 1 );
 		}
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
@@ -1510,8 +1510,8 @@ namespace Saturn {
 		{
 			auto [w, h] = m_RendererData.BloomTextures[ 0 ]->GetMipSize( i );
 
-			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.BloomWorkSize );
-			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.BloomWorkSize );
+			workgrps.x = glm::ceil( ( float ) w / m_RendererData.BloomWorkSize );
+			workgrps.y = glm::ceil( ( float ) h / m_RendererData.BloomWorkSize );
 
 			{
 				auto descriptorInfo = m_RendererData.BloomTextures[ 1 ]->GetDescriptorInfo();
@@ -1528,7 +1528,10 @@ namespace Saturn {
 
 				// Step 1.5: Set push constants & Execute the compute shader.
 				pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
-				pipeline->Execute( descriptorSet, workgrps.x, workgrps.y, 1 );
+				pipeline->Execute( descriptorSet,
+					( uint32_t ) workgrps.x,
+					( uint32_t ) workgrps.y,
+					( uint32_t ) 1 );
 			}
 
 			// Now we do the same again.
@@ -1544,10 +1547,13 @@ namespace Saturn {
 
 				shader->WriteDescriptor( "o_Image", descriptorInfo, descriptorSet );
 
-				pc_Settings.LOD = i;
+				pc_Settings.LOD = ( float ) i;
 
 				pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
-				pipeline->Execute( descriptorSet, workgrps.x, workgrps.y, 1 );
+				pipeline->Execute( descriptorSet, 
+					( uint32_t ) workgrps.x, 
+					( uint32_t ) workgrps.y, 
+					( uint32_t ) 1 );
 			}
 		}
 
@@ -1575,11 +1581,14 @@ namespace Saturn {
 
 			auto [w, h] = m_RendererData.BloomTextures[ 2 ]->GetMipSize( mips - 2 );
 
-			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.BloomWorkSize );
-			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.BloomWorkSize );
+			workgrps.x = glm::ceil( ( float ) w / m_RendererData.BloomWorkSize );
+			workgrps.y = glm::ceil( ( float ) h / m_RendererData.BloomWorkSize );
 
 			pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
-			pipeline->Execute( descriptorSet, workgrps.x, workgrps.y, 1 );
+			pipeline->Execute( descriptorSet, 
+				( uint32_t )workgrps.x, 
+				( uint32_t )workgrps.y, 
+				( uint32_t )1 );
 		}
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
@@ -1592,8 +1601,8 @@ namespace Saturn {
 		{
 			auto [w, h] = m_RendererData.BloomTextures[ 2 ]->GetMipSize( mip );
 
-			workgrps.x = ( uint32_t ) glm::ceil( ( float ) w / m_RendererData.BloomWorkSize );
-			workgrps.y = ( uint32_t ) glm::ceil( ( float ) h / m_RendererData.BloomWorkSize );
+			workgrps.x = glm::ceil( ( float ) w / m_RendererData.BloomWorkSize );
+			workgrps.y = glm::ceil( ( float ) h / m_RendererData.BloomWorkSize );
 
 			VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &info, &descriptorSet ) );
 
@@ -1606,11 +1615,14 @@ namespace Saturn {
 
 				shader->WriteDescriptor( "o_Image", info, descriptorSet );
 
-				pc_Settings.LOD = mip;
+				pc_Settings.LOD = ( float )mip;
 
 				// Step 2.5: Set push constants & Execute the compute shader.
 				pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
-				pipeline->Execute( descriptorSet, workgrps.x, workgrps.y, 1 );
+				pipeline->Execute( descriptorSet, 
+					( uint32_t ) workgrps.x,
+					( uint32_t ) workgrps.y, 
+					( uint32_t ) 1 );
 			}
 		}
 

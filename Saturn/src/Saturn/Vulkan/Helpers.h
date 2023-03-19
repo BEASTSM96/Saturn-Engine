@@ -40,7 +40,7 @@ namespace Saturn::Helpers {
 	{
 		VkFramebufferCreateInfo FramebufferCreateInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		FramebufferCreateInfo.renderPass = RenderPass;
-		FramebufferCreateInfo.attachmentCount = Attachments.size();
+		FramebufferCreateInfo.attachmentCount = ( uint32_t ) Attachments.size();
 		FramebufferCreateInfo.pAttachments = Attachments.data();
 		FramebufferCreateInfo.width = Extent.width;
 		FramebufferCreateInfo.height = Extent.height;

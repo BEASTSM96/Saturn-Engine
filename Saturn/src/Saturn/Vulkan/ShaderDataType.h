@@ -97,6 +97,8 @@ namespace Saturn {
 			default:
 				break;
 		}
+
+		return VK_FORMAT_UNDEFINED;
 	}
 
 	static ShaderDataType VulkanToShaderDataType( VkFormat Type )
