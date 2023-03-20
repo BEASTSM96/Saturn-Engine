@@ -81,6 +81,12 @@ namespace Saturn {
 		TitleBar* m_TitleBar;
 		
 		Ref< Texture2D > m_CheckerboardTexture;
+		Ref< Texture2D > m_StartRuntimeTexture;
+		Ref< Texture2D > m_EndRuntimeTexture;
+
+		Ref< Texture2D > m_TranslationTexture;
+		Ref< Texture2D > m_RotationTexture;
+		Ref< Texture2D > m_ScaleTexture;
 
 		EditorCamera m_EditorCamera;
 		bool m_AllowCameraEvents = false;

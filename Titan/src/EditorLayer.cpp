@@ -206,6 +206,13 @@ namespace Saturn {
 		
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
 
+		m_StartRuntimeTexture = Ref< Texture2D >::Create( "assets/textures/editor/Play.png", AddressingMode::Repeat );
+		m_EndRuntimeTexture   = Ref< Texture2D >::Create( "assets/textures/editor/Stop.png", AddressingMode::Repeat );
+
+		m_TranslationTexture  = Ref< Texture2D >::Create( "assets/textures/editor/Move.png", AddressingMode::Repeat );
+		m_RotationTexture     = Ref< Texture2D >::Create( "assets/textures/editor/Rotate.png", AddressingMode::Repeat );
+		m_ScaleTexture        = Ref< Texture2D >::Create( "assets/textures/editor/Scale.png", AddressingMode::Repeat );
+
 		// Init PhysX
 		PhysXFnd::Get();
 
@@ -664,6 +671,40 @@ namespace Saturn {
 		ImVec2 minBound = ImGui::GetWindowPos();
 		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
 
+		// Viewport Gizmo toolbar
+		ImGui::PushID( "VP_GIZMO" );
+		
+		const float windowHeight = 32.0f;
+		const float windowWidth = 160.0f;
+
+		ImGui::SetNextWindowPos ( ImVec2( minBound.x + 5.0f, minBound.y + 5.0f ) );
+		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
+		ImGui::Begin( "##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking );
+
+		ImGui::BeginVertical  ( "##v_gizmoV", { windowWidth, ImGui::GetContentRegionAvail().y } );
+		ImGui::BeginHorizontal( "##v_gizmoH", { windowWidth, ImGui::GetContentRegionAvail().y } );
+
+		ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f } );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 4.0f * 2.0f, 0 ) );
+
+		const Ref<Texture2D>& texture = m_RequestRuntime == false ? m_StartRuntimeTexture : m_EndRuntimeTexture;
+		if( ImageButton( texture, { 24.0f, 24.0f } ) ) m_RequestRuntime ^= 1;
+		if( ImageButton( m_TranslationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+		if( ImageButton( m_RotationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
+		if( ImageButton( m_ScaleTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
+
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
+
+		ImGui::Spring();
+		ImGui::EndHorizontal();
+		ImGui::Spring();
+		ImGui::EndVertical();
+
+		ImGui::End();
+
+		ImGui::PopID();
+
 		m_ViewportFocused = ImGui::IsWindowFocused();
 		m_MouseOverViewport = ImGui::IsWindowHovered();
 
@@ -706,21 +747,6 @@ namespace Saturn {
 		}
 
 		ImGui::PopStyleVar();
-		ImGui::End();
-
-		ImGuiWindowFlags TBFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-
-		ImGui::Begin( "##toolbar", NULL, TBFlags );
-
-		const char* text = m_RequestRuntime == false ? "Start Runtime" : "Stop Runtime";
-
-		if( ImGui::Button( text ) ) m_RequestRuntime ^= 1; ImGui::SameLine();
-		if( ImGui::Button( "None" ) ) m_GizmoOperation = -1; ImGui::SameLine();
-		if( ImGui::Button( "Translate" ) ) m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE; ImGui::SameLine();
-		if( ImGui::Button( "Rotate" ) ) m_GizmoOperation = ImGuizmo::OPERATION::ROTATE; ImGui::SameLine();
-		if( ImGui::Button( "Scale" ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE; ImGui::SameLine();
-		if( ImGui::Button( "Save" ) ) SaveFile();
-
 		ImGui::End();
 	}
 
