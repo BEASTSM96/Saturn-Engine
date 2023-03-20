@@ -12,7 +12,7 @@ __FILE_NAME__::~__FILE_NAME__()
 }
 
 // Called every frame.
-void __FILE_NAME__::OnUpdate()
+void __FILE_NAME__::OnUpdate( Saturn::Timestep ts )
 {
 
 }

@@ -1,5 +1,6 @@
-// FROM: https://github.com/bcrusco/Forward-Plus-Renderer/blob/master/Forward-Plus/Forward-Plus/source/shaders/light_culling.comp.glsl
-// ALSO: https://github.com/WindyDarian/Vulkan-Forward-Plus-Renderer/blob/master/src/shaders/light_culling.comp.glsl
+// Light Culling shader
+// Based from https://github.com/bcrusco/Forward-Plus-Renderer/blob/master/Forward-Plus/Forward-Plus/source/shaders/light_culling.comp.glsl
+//			  https://github.com/WindyDarian/Vulkan-Forward-Plus-Renderer/blob/master/src/shaders/light_culling.comp.glsl
 
 #type compute
 #version 450 core
@@ -22,7 +23,7 @@ layout(set = 0, binding = 0) uniform PointLightData
 	PointLight Lights[1024];
 } u_Lights;
 
-// Must match with static meshes
+// Must match with static meshes shader.
 layout(std430, set = 0, binding = 14) buffer VisiblePointLightIndicesBuffer
 {
 	int Indices[];

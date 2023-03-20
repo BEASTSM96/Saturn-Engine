@@ -1,4 +1,12 @@
 // PBR Shader test
+// Based on: 	PBR: A Practical Model for Physically Based Rendering (dead link)
+// 				http://www.cs.utah.edu/~boulos/cs3505/papers/pbr.pdf
+//				Michal Siejak, Physically Based Shading
+//				https://www.siejak.pl/projects/pbr
+//				Learn OpenGL
+//				https://learnopengl.com
+//				Yan Chernikov's (TheCherno) hazel engine
+//				https://www.youtube.com/c/TheChernoProject
 
 #type vertex
 #version 450
@@ -385,47 +393,6 @@ vec3 GetGradient(float value)
 
 //////////////////////////////////////////////////////////////////////////
 // Forward+, Point Lights
-/*
-vec3 CalculatePointLights(in vec3 F0, vec3 WorldPosition)
-{
-	vec3 result = vec3(0.0);
-
-	ivec2 tileID = ivec2(gl_FragCoord) / ivec2(16, 16);
-	uint index = tileID.y * u_DebugData.TilesCountX + tileID.x;
-
-	uint offset = index * 1024;
-	for (int i = 0; i < u_Lights.nbLights && s_VisiblePointLightIndicesBuffer.Indices[offset + i] != -1; i++)
-	{
-		uint lightIndex = s_VisiblePointLightIndicesBuffer.Indices[offset + i];
-
-		PointLight light = u_Lights.Lights[lightIndex];
-
-		vec3 Li = normalize(light.Position - WorldPosition);
-		float lightDistance = length(light.Position - WorldPosition);
-		vec3 Lh = normalize(Li + m_Params.View);
-		float attenuation = clamp(1.0 - lightDistance * lightDistance / (light.Radius * light.Radius), 0.0, 1.0);
-		attenuation *= mix( attenuation, 1.0, light.Falloff );
-
-		vec3 Lradiance = light.Radiance * light.Multiplier * attenuation;
-
-		// Calculate angles between surface normal and various light vectors.
-		float cosLi = max(0.0, dot(m_Params.Normal, Li));
-		float cosLh = max(0.0, dot(m_Params.Normal, Lh));
-
-		vec3 F = FresnelSchlick(F0, max(0.0, dot(Lh, m_Params.View)));
-		float D = NDFGGX(cosLh, m_Params.Roughness);
-		float G = GaSchlickGGX(cosLi, m_Params.NdotV, m_Params.Roughness);
-
-		vec3 kd = (1.0 - F) * (1.0 - m_Params.Metalness);
-		vec3 diffuseBRDF = kd * m_Params.Albedo;
-
-		// Cook-Torrance
-		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * m_Params.NdotV);
-		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
-	}
-	return result;
-}
-*/
 
 vec3 CalculatePointLights(in vec3 F0, vec3 worldPos)
 {

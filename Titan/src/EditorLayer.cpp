@@ -32,7 +32,6 @@
 #include <Saturn/Project/Project.h>
 
 #include <Saturn/ImGui/UITools.h>
-#include <Saturn/ImGui/ViewportBar.h>
 #include <Saturn/Vulkan/SceneRenderer.h>
 #include <Saturn/ImGui/TitleBar.h>
 #include <Saturn/ImGui/MaterialAssetViewer.h>
@@ -100,11 +99,9 @@ namespace Saturn {
 		
 		PanelManager::Get().AddPanel( new SceneHierarchyPanel() );
 		PanelManager::Get().AddPanel( new ContentBrowserPanel() );
-		PanelManager::Get().AddPanel( new ViewportBar() );
-		
+
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 
-		m_Viewport = new Viewport();
 		m_TitleBar = new TitleBar();
 
 		m_TitleBar->AddMenuBarFunction( [&]() -> void
@@ -146,31 +143,6 @@ namespace Saturn {
 
 				ImGui::EndMenu();
 			}
-		} );
-
-		m_Viewport->AddViewportSizeFunction( [&]( uint32_t w, uint32_t h ) -> void
-		{
-			SceneRenderer::Get().SetViewportSize( w, h );
-
-			m_EditorCamera.SetViewportSize( w, h );
-
-			if( m_RuntimeScene )
-			{
-				auto cameraEntity = m_RuntimeScene->GetMainCameraEntity();
-				auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-
-				if( cameraEntity )
-					camera.SetViewportSize( w, h );
-			}
-			else
-			{
-				auto cameraEntity = m_RuntimeScene->GetMainCameraEntity();
-				auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-
-				if( cameraEntity )
-					camera.SetViewportSize( w, h );
-			}
-
 		} );
 		
 		m_TitleBar->AddMenuBarFunction( [&]() -> void
@@ -236,7 +208,7 @@ namespace Saturn {
 		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 
 		// Lazy load.
-		// TODO: We should no lazy load something this important.
+		// TODO: We should not lazy load something this important.
 		EntityScriptManager::Get();
 		EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
 
@@ -250,14 +222,12 @@ namespace Saturn {
 	{
 		Window::Get().SetTitlebarHitTest( nullptr );
 		
-		delete m_Viewport;
 		delete m_TitleBar;
 
 		m_EditorScene = nullptr;
 		
 		m_CheckerboardTexture = nullptr;
 		
-		m_Viewport = nullptr;
 		m_TitleBar = nullptr;
 	
 		PanelManager::Get().Terminate();
@@ -265,7 +235,6 @@ namespace Saturn {
 
 	void EditorLayer::OnUpdate( Timestep time )
 	{
-		ViewportBar* pViewportBar = ( ViewportBar* ) PanelManager::Get().GetPanel( "Viewport Bar" );
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 		
 		if( m_RequestRuntime )
@@ -350,10 +319,6 @@ namespace Saturn {
 		m_TitleBar->Draw();
 
 		PanelManager::Get().DrawAllPanels();
-
-		// Draw widgets.
-		m_Viewport->Draw();
-
 		SceneRenderer::Get().ImGuiRender();
 		
 		if( m_ShowUserSettings )

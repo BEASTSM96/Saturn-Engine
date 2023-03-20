@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include <Saturn/ImGui/Viewport.h>
 #include <Saturn/ImGui/SceneHierarchyPanel.h>
 #include <Saturn/ImGui/ContentBrowserPanel.h>
 
@@ -62,7 +61,6 @@ namespace Saturn {
 
 	public:
 		
-		Viewport* GetViewport() { return m_Viewport; }
 		TitleBar* GetTitleBar() { return m_TitleBar; }
 		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
 
@@ -77,7 +75,6 @@ namespace Saturn {
 		bool m_ShowUserSettings = false;
 
 	private:
-		Viewport* m_Viewport;
 		TitleBar* m_TitleBar;
 		
 		Ref< Texture2D > m_CheckerboardTexture;

@@ -1,5 +1,6 @@
 // Preetham Skybox shader
 // Let's just slip this under the rug: https://www.shadertoy.com/view/llSSDR
+// Also based from: http://www.cs.utah.edu/~shirley/papers/sunsky/sunsky.pdf (dead link)
 
 #type compute
 #version 450 core
