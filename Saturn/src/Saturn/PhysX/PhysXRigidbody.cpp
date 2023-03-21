@@ -218,6 +218,11 @@ namespace Saturn {
 		m_Entity.GetComponent<PhysXRigidbodyComponent>().LockFlags = m_LockFlags;
 	}
 
+	bool PhysXRigidbody::AllRotationLocked()
+	{
+		return m_LockFlags & LockFlags::LockRotationX && m_LockFlags & LockFlags::LockRotationY && m_LockFlags & LockFlags::LockRotationZ;
+	}
+
 	void PhysXRigidbody::SyncTransfrom()
 	{
 		TransformComponent& ts = m_Entity.GetComponent<TransformComponent>();
@@ -225,7 +230,9 @@ namespace Saturn {
 		physx::PxTransform actorPose = pActor->getGlobalPose();
 
 		ts.Position = PxVecToGLM( actorPose.p );
-		ts.Rotation = glm::eulerAngles( PxQuatToGLM( actorPose.q ) );
+
+		if( !AllRotationLocked() )
+			ts.Rotation = glm::eulerAngles( PxQuatToGLM( actorPose.q ) );
 	}
 
 }

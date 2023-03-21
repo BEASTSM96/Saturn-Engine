@@ -67,6 +67,7 @@ namespace Saturn {
 
 		void SetLockFlag( LockFlags flags, bool value );
 		bool HasLockFlag( LockFlags flag ) { return m_LockFlags & flag; }
+		bool AllRotationLocked();
 
 		physx::PxRigidActor* GetActor() { return m_Body; }
 
