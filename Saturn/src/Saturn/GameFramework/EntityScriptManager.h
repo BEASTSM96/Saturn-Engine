@@ -56,12 +56,7 @@ namespace Saturn {
 
 		Saturn::SClass* CreateScript( const std::string& rName, SClass* Base );
 
-		void RT_AddToEditor( const std::string& rName );
 		void AddProperty( const std::string& rClassName, const std::string& rName, void* ppRawProp );
-
-		std::vector<std::string>& GetVisibleScripts() { return m_VisibleScripts; }
-		const std::vector<std::string>& GetVisibleScripts() const { return m_VisibleScripts; }
-
 	private:
 
 		// The register function defined in the game dll. i.e. _Z_Create_MyClass
@@ -69,8 +64,6 @@ namespace Saturn {
 
 		std::unordered_map< UUID, std::unordered_map< std::string, SClass* >> m_Scripts;
 		std::vector< Ref<Scene> > m_Scenes;
-
-		std::vector< std::string > m_VisibleScripts;
 
 		Ref<Scene> m_CurrentScene;
 

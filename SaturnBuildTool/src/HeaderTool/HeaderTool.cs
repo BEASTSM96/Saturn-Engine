@@ -423,27 +423,12 @@ namespace SaturnBuildTool.Tools
                     streamWriter.WriteLine("//^^^ NO Spawnable\r\n");
                 }
 
-                if ((CurrentFile.SClassInfo & SC.VisibleInEditor) == SC.VisibleInEditor)
-                {
-                    // If our class in spawnable we can now create the spawn function.
+                string vfunc = string.Format("static void _RT_Z_Add{0}ToEditor()\r\n", CurrentFile.ClassName);
+                vfunc += "{\r\n";
+                vfunc += "}\r\n";
+                vfunc += "//^^^ NO VisibleInEditor\r\n";
 
-                    string vfunc = string.Format("static void _RT_Z_Add{0}ToEditor()\r\n", CurrentFile.ClassName);
-                    vfunc += "{\r\n";
-                    vfunc += string.Format("\t Saturn::EntityScriptManager::Get().RT_AddToEditor(\"{0}\");\r\n", CurrentFile.ClassName);
-                    vfunc += "}\r\n";
-                    vfunc += "//^^^ VisibleInEditor\r\n";
-
-                    streamWriter.WriteLine(vfunc);
-                }
-                else
-                {
-                    string vfunc = string.Format("static void _RT_Z_Add{0}ToEditor()\r\n", CurrentFile.ClassName);
-                    vfunc += "{\r\n";
-                    vfunc += "}\r\n";
-                    vfunc += "//^^^ NO VisibleInEditor\r\n";
-
-                    streamWriter.WriteLine(vfunc);
-                }
+                streamWriter.WriteLine(vfunc);
 
                 // Add to prefab list
                 string prefab = string.Format("static void _RT_Z_AddPrefab_{0}()\r\n", CurrentFile.ClassName);
@@ -480,7 +465,7 @@ namespace SaturnBuildTool.Tools
                 call += "{\r\n";
                 call += string.Format("\t_Z_{0}_RT_Editor()\r\n", CurrentFile.ClassName);
                 call += "\t{\r\n";
-                call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
+                //call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
                 call += string.Format("\t\t_RT_Z_AddPrefab_{0}();\r\n", CurrentFile.ClassName);
                 call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", CurrentFile.ClassName);
                 call += "\r\n";

@@ -201,21 +201,6 @@ namespace Saturn {
 					}
 				}
 
-				ImGui::Separator();
-
-				for( const auto& rName : EntityScriptManager::Get().GetVisibleScripts() )
-				{
-					if( ImGui::MenuItem( rName.c_str() ) )
-					{
-						EntityScriptManager::Get().RegisterScript( rName );
-
-						Entity* e = new Entity( m_Context->CreateEntity( rName ) );
-						e->AddComponent<ScriptComponent>().ScriptName = rName;
-
-						SClass* sclass = EntityScriptManager::Get().CreateScript( rName, e );
-					}
-				}
-
 				ImGui::EndPopup();
 			}
 

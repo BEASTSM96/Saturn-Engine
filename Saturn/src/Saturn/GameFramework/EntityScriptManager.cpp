@@ -131,9 +131,4 @@ namespace Saturn {
 		return m_Scripts[ m_CurrentScene->GetId() ][ rName ] = m_ScriptFunctions[ rName ]( Base );
 	}
 
-	void EntityScriptManager::RT_AddToEditor( const std::string& rName )
-	{
-		m_VisibleScripts.push_back( rName );
-	}
-
 }

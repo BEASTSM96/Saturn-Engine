@@ -594,12 +594,6 @@ namespace Saturn {
 				OpenFile( path );
 			}
 
-			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_SCRIPT" ) )
-			{
-				const wchar_t* path = ( const wchar_t* ) payload->Data;
-				// TODO:
-			}
-
 			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB" ) )
 			{
 				const wchar_t* path = ( const wchar_t* ) payload->Data;
