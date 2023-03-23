@@ -568,7 +568,7 @@ namespace Saturn {
 
 			if( DrawBoolControl( "Lock Rotation Y", rotationY ) )
 			{
-				rotationX ? rb.LockFlags |= ( uint32_t ) LockFlags::LockRotationY : rb.LockFlags &= ~( uint32_t ) LockFlags::LockRotationY;
+				rotationY ? rb.LockFlags |= ( uint32_t ) LockFlags::LockRotationY : rb.LockFlags &= ~( uint32_t ) LockFlags::LockRotationY;
 			}
 
 			if( DrawBoolControl( "Lock Rotation Z", rotationZ ) )
