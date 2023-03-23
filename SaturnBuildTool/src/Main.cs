@@ -51,11 +51,7 @@ namespace SaturnBuildTool
 			BuildConfig.Instance.ConfigName = Args[3];
 			BuildConfig.Instance.ConfigName = BuildConfig.Instance.ConfigName.Replace( "/", string.Empty );
 
-			// Build.cs file
-			string BuildFile = SourceDir;
-			BuildFile += Args[1];
-			BuildFile += ".Build.cs";
-			BuildFile = BuildFile.Replace("/", "\\");
+			string BuildFile = BuildTargetFile.GetBuildFile(SourceDir, Args[1]);
 
 			UserTarget target = UserTarget.SetupUserTarget(BuildFile);
 			target.ProjectName = Args[1];

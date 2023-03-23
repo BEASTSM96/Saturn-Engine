@@ -82,6 +82,25 @@ namespace SaturnBuildTool
                         BinDir = Path.Combine(BinDir, "Dist-windows-x86_64");
                     }
                     break;
+
+                case ConfigKind.DistDebug:
+                    {
+                        BinDir = Path.Combine(BinDir, "RTDebug-windows-x86_64");
+                    }
+                    break;
+
+                case ConfigKind.DistRelease:
+                    {
+                        BinDir = Path.Combine(BinDir, "RTRelease-windows-x86_64");
+                    }
+                    break;
+
+                case ConfigKind.DistFull:
+                    {
+                        // TODO: Because this will be the final exe, we may want to change this name.
+                        BinDir = Path.Combine(BinDir, "RTDist-windows-x86_64");
+                    }
+                    break;
             }
 
             BinDir = Path.Combine( BinDir, ProjectName );
@@ -188,6 +207,28 @@ namespace SaturnBuildTool
                             {
                                 outDir = Path.Combine(outDir, "bin-int");
                                 outDir = Path.Combine(outDir, "Dist-windows-x86_64");
+                            }
+                            break;
+
+                        case ConfigKind.DistDebug:
+                            {
+                                outDir = Path.Combine(outDir, "bin-int");
+                                outDir = Path.Combine(outDir, "RTDebug-windows-x86_64");
+                            }
+                            break;
+
+                        case ConfigKind.DistRelease:
+                            {
+                                outDir = Path.Combine(outDir, "bin-int");
+                                outDir = Path.Combine(outDir, "RTRelease-windows-x86_64");
+                            }
+                            break;
+
+                        case ConfigKind.DistFull:
+                            {
+                                // TODO: Because this will be the final exe, we may want to change this name.
+                                outDir = Path.Combine(outDir, "bin-int");
+                                outDir = Path.Combine(outDir, "RTDist-windows-x86_64");
                             }
                             break;
 

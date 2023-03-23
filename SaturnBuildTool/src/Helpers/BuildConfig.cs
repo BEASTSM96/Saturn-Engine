@@ -6,7 +6,10 @@ namespace SaturnBuildTool
     {
         Debug,
         Release,
-        Dist, // Saturn Only
+        Dist,
+        DistDebug,
+        DistRelease,
+        DistFull,
     }
 
     internal class BuildConfig

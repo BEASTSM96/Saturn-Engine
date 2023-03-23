@@ -6,6 +6,11 @@ namespace SaturnBuildTool
 {
     public class GameUserTarget : UserTarget
     {
+        public string SaturnRootDir = "";
+        public string SaturnSingletonDir = "";
+        public string SaturnSourceDir = "";
+        public string SaturnVenderDir = "";
+
         public override void Init() 
         {
             base.Init();
@@ -13,59 +18,54 @@ namespace SaturnBuildTool
             // Always use x64
             Architectures = new[] { TargetKind.Win64 };
 
-            BuildConfigs = new[] { ConfigKind.Debug, ConfigKind.Release, ConfigKind.Dist };
-
-            // Games are DLLs in the editor
-            // TODO: Allow for games to be an exe.
-            OutputType = LinkerOutput.SharedLibrary;
-
             // Include source.
-            Includes.Add( "src" );
+            Includes.Add( "Scripts" );
 
             // Saturn:
-            string saturnRootDir = Environment.GetEnvironmentVariable( "SATURN_DIR" );
+            SaturnRootDir = Environment.GetEnvironmentVariable( "SATURN_DIR" );
 
-            string saturnSingletonDir = saturnRootDir;
-            saturnSingletonDir = Path.Combine(saturnSingletonDir, "SingletonStorage" );
+            SaturnSingletonDir = Path.Combine(SaturnSingletonDir, "SingletonStorage" );
 
-            string saturnVendor = Path.Combine( saturnRootDir, "Saturn\\vendor" );
-            string saturnSrc = Path.Combine( saturnRootDir, "Saturn\\src" );
+            SaturnVenderDir = Path.Combine(SaturnRootDir, "Saturn\\vendor" );
+            SaturnSourceDir = Path.Combine(SaturnRootDir, "Saturn\\src" );
 
-            Includes.Add( saturnSrc );
+            Includes.Add(SaturnSourceDir);
 
             // Saturn Vendor
-            Includes.Add( Path.Combine(saturnVendor, "spdlog\\include") );
-            Includes.Add( Path.Combine(saturnVendor, "vulkan\\include") );
-            Includes.Add( Path.Combine(saturnVendor, "glm") );
-            Includes.Add( Path.Combine(saturnVendor, "GLFW\\include") );
-            Includes.Add( Path.Combine(saturnVendor, "imgui") );
-            Includes.Add( Path.Combine(saturnVendor, "entt\\include") );
-            Includes.Add( Path.Combine(saturnVendor, "assimp\\include") );
-            Includes.Add( Path.Combine(saturnVendor, "shaderc\\libshaderc\\include") );
-            Includes.Add( Path.Combine(saturnVendor, "SPRIV-Cross\\src") );
-            Includes.Add( Path.Combine(saturnVendor, "vma\\src") );
-            Includes.Add( Path.Combine(saturnVendor, "ImGuizmo\\src") );
-            Includes.Add( Path.Combine(saturnVendor, "yaml-cpp\\include") );
-            Includes.Add( Path.Combine(saturnVendor, "imgui_node_editor") );
-            Includes.Add( Path.Combine(saturnVendor, "physx\\include") );
-            Includes.Add( Path.Combine(saturnVendor, "physx\\include\\pxshared") );
-            Includes.Add( Path.Combine(saturnVendor, "physx\\include\\physx") );
-            Includes.Add( Path.Combine(saturnVendor, "optick\\src") );
-            Includes.Add( Path.Combine(saturnSingletonDir, "src") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "spdlog\\include") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "vulkan\\include") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "glm") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "GLFW\\include") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "imgui") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "entt\\include") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "assimp\\include") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "shaderc\\libshaderc\\include") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "SPRIV-Cross\\src") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "vma\\src") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "ImGuizmo\\src") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "yaml-cpp\\include") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "imgui_node_editor") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include\\pxshared") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include\\physx") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "optick\\src") );
+            Includes.Add( Path.Combine(SaturnSingletonDir, "src") );
 
-            string saturnBinDir = saturnRootDir;
-            string ssBinDir = saturnRootDir;
+            string saturnBinDir = SaturnRootDir;
+            string ssBinDir = SaturnRootDir;
             saturnBinDir = Path.Combine(saturnBinDir, "bin" );
             ssBinDir = Path.Combine(ssBinDir, "bin" );
 
             switch ( CurrentConfig ) 
             {
+                case ConfigKind.DistDebug:
                 case ConfigKind.Debug: 
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Debug-windows-x86_64\\Saturn" );
                         ssBinDir = Path.Combine(ssBinDir, "Debug-windows-x86_64\\SingletonStorage" );
                     } break;
 
+                case ConfigKind.DistRelease:
                 case ConfigKind.Release:
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Release-windows-x86_64\\Saturn");
@@ -73,6 +73,7 @@ namespace SaturnBuildTool
                     }
                     break;
 
+                case ConfigKind.DistFull:
                 case ConfigKind.Dist:
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Dist-windows-x86_64\\Saturn");

@@ -1,7 +1,7 @@
 using SaturnBuildTool;
 using System;
 
-public class GameTarget : EditorGameTarget
+public class GameTarget : RTGameTarget
 {
     public override void Init()
     {

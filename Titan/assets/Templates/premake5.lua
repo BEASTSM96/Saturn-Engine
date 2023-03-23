@@ -6,7 +6,7 @@ workspace "__PROJECT_NAME__"
 	startproject "__PROJECT_NAME__"
 	warnings "Off"
 
-	configurations { "Debug", "Release", "Dist" }
+	configurations { "Debug", "Release", "Dist", "Dist-Debug", "Dist-Release", "Dist-Full" }
 
 	flags { "MultiProcessorCompile" }
 
@@ -85,8 +85,7 @@ project "__PROJECT_NAME__"
 
 		filter "configurations:Dist"
 			runtime "Release"
-			optimize "on"
-			symbols "Off"
+			symbols "on"
 
 			buildcommands
 			{
@@ -101,4 +100,63 @@ project "__PROJECT_NAME__"
 			cleancommands
 			{
 				"__SATURN_BT_DIR__/RT/Run.bat /CLEAN /%{prj.name} /Win64 /Dist /%{prj.location}"
+			}
+
+		filter "configurations:Dist-Debug"
+			runtime "Debug"
+			optimize "on"
+			symbols "Off"
+
+			buildcommands
+			{
+				"__SATURN_BT_DIR__/RT/Run.bat /BUILD /%{prj.name} /Win64 /DDebug /%{prj.location}"
+			}
+
+			rebuildcommands 
+			{
+				"__SATURN_BT_DIR__/RT/Run.bat /REBUILD /%{prj.name} /Win64 /DDebug /%{prj.location}"
+			}
+
+			cleancommands
+			{
+				"__SATURN_BT_DIR__/RT/Run.bat /CLEAN /%{prj.name} /Win64 /DDebug /%{prj.location}"
+			}
+
+		filter "configurations:Dist-Release"
+			runtime "Release"
+			optimize "on"
+
+			buildcommands
+			{
+				"__SATURN_BT_DIR__/RT/Run.bat /BUILD /%{prj.name} /Win64 /DRelease /%{prj.location}"
+			}
+
+			rebuildcommands 
+			{
+				"__SATURN_BT_DIR__/RT/Run.bat /REBUILD /%{prj.name} /Win64 /DRelease /%{prj.location}"
+			}
+
+			cleancommands
+			{
+				"__SATURN_BT_DIR__/RT/Run.bat /CLEAN /%{prj.name} /Win64 /DRelease /%{prj.location}"
+			}
+
+		filter "configurations:Dist-Full"
+			runtime "Release"
+			optimize "on"
+			symbols "on"
+
+			buildcommands
+			{
+				"__SATURN_BT_DIR__/RT/Run.bat /BUILD /%{prj.name} /Win64 /DF /%{prj.location}"
+			}
+
+			rebuildcommands 
+			{
+				"__SATURN_BT_DIR__/RT/Run.bat /REBUILD /%{prj.name} /Win64 /DF /%{prj.location}"
+			}
+
+			cleancommands
+			{
+				"__SATURN_BT_DIR__/RT/Run.bat /CLEAN /%{prj.name} /Win64 /DF /%{prj.location}"
 			}
