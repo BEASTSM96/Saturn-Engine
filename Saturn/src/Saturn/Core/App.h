@@ -46,6 +46,7 @@ namespace Saturn {
 	struct ApplicationSpecification
 	{
 		bool CreateSceneRenderer = true;
+		bool Titlebar = false;
 		bool UIOnly = false;
 		
 		uint32_t WindowWidth = 0;

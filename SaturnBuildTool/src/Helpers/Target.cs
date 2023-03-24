@@ -19,6 +19,12 @@ namespace SaturnBuildTool
 
         public string TargetName { get; set; }
 
+        public void Init(string targetName) 
+        {
+            TargetName = targetName;
+            TargetName = TargetName.Replace("/", string.Empty);
+        }
+
         public TargetKind GetTargetKind() 
         {
             if( TargetName == "Win64" )
@@ -30,10 +36,5 @@ namespace SaturnBuildTool
         }
 
         public Target() { }
-
-        public Target(string target) 
-        {
-            TargetName = target;
-        }
     }
 }

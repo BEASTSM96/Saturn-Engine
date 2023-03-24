@@ -76,7 +76,7 @@ namespace Saturn {
 
 		glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
 		glfwWindowHint( GLFW_VISIBLE, GLFW_FALSE );
-		glfwWindowHint( GLFW_TITLEBAR, GLFW_FALSE );
+		glfwWindowHint( GLFW_TITLEBAR, Application::Get().GetSpecification().Titlebar );
 
 		GLFWmonitor* pPrimary = glfwGetPrimaryMonitor();
 		
@@ -187,17 +187,21 @@ namespace Saturn {
 
 	#if defined ( SAT_WINDOWS )
 
-		HWND      windowHandle    = glfwGetWin32Window( m_Window );
-		HINSTANCE instance        = GetModuleHandle( nullptr );
+		if( !Application::Get().GetSpecification().Titlebar )
+		{
 
-		// Fix missing drop shadow
-		MARGINS shadowMargins;
-		shadowMargins = { 1, 1, 1, 1 };
-		DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
+			HWND      windowHandle = glfwGetWin32Window( m_Window );
+			HINSTANCE instance = GetModuleHandle( nullptr );
 
-		// Override window procedure with custom one to allow native window moving behavior without a title bar
-		SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR )this );
-		m_WindowProc = ( WNDPROC )SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR )WindowProc );
+			// Fix missing drop shadow
+			MARGINS shadowMargins;
+			shadowMargins = { 1, 1, 1, 1 };
+			DwmExtendFrameIntoClientArea( windowHandle, &shadowMargins );
+
+			// Override window procedure with custom one to allow native window moving behavior without a title bar
+			SetWindowLongPtr( windowHandle, GWLP_USERDATA, ( LONG_PTR ) this );
+			m_WindowProc = ( WNDPROC ) SetWindowLongPtr( windowHandle, GWLP_WNDPROC, ( LONG_PTR ) WindowProc );
+		}
 
 	#endif
 	}

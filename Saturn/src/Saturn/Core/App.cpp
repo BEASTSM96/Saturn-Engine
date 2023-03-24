@@ -60,8 +60,6 @@ namespace Saturn {
 	{
 		OPTICK_SET_STATE_CHANGED_CALLBACK( OnOptickStateChanged );
 
-		OPTICK_EVENT();
-
 		SingletonStorage::Get().AddSingleton( this );
 
 		// This may not be the best way... but its better than lazy loading.

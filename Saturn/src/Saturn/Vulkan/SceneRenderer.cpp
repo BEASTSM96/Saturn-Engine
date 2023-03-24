@@ -491,6 +491,41 @@ namespace Saturn {
 		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_RendererData.BloomDescriptorPool ) );
 	}
 
+	void SceneRenderer::InitTexturePass()
+	{
+		if( !m_RendererData.TexturePassShader )
+		{
+			ShaderLibrary::Get().Load( "assets/shaders/TexturePass.glsl" );
+			m_RendererData.TexturePassShader = ShaderLibrary::Get().Find( "TexturePass" );
+		}
+
+		if( !m_RendererData.TexturePassDescriptorSet )
+			m_RendererData.TexturePassDescriptorSet = m_RendererData.TexturePassShader->CreateDescriptorSet( 0 );
+
+		m_RendererData.TexturePassShader->WriteDescriptor( "u_InputTexture", m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ]->GetDescriptorInfo(), m_RendererData.TexturePassDescriptorSet->GetVulkanSet() );
+
+		m_RendererData.TexturePassShader->WriteAllUBs( m_RendererData.TexturePassDescriptorSet );
+
+		if( m_RendererData.TexturePassPipeline )
+			m_RendererData.TexturePassPipeline = nullptr;
+
+		PipelineSpecification PipelineSpec = {};
+		PipelineSpec.Width = m_RendererData.Width;
+		PipelineSpec.Height = m_RendererData.Height;
+		PipelineSpec.Name = "Texture Pass";
+		PipelineSpec.Shader = m_RendererData.TexturePassShader.Pointer();
+		PipelineSpec.RenderPass = VulkanContext::Get().GetDefaultPass();
+		PipelineSpec.UseDepthTest = true;
+		PipelineSpec.CullMode = CullMode::None;
+		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+		PipelineSpec.VertexLayout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" },
+		};
+
+		m_RendererData.TexturePassPipeline = Ref<Pipeline>::Create( PipelineSpec );
+	}
+
 	void SceneRenderer::RenderGrid()
 	{
 		SAT_PF_EVENT();
@@ -1295,6 +1330,45 @@ namespace Saturn {
 		
 		// End scene composite pass.
 		m_RendererData.SceneComposite->EndPass();
+	}
+
+	void SceneRenderer::TexturePass()
+	{
+		SAT_PF_EVENT();
+
+		Ref<Pass> pass = VulkanContext::Get().GetDefaultPass();
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
+
+		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
+		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
+
+		// Begin scene composite pass.
+		pass->BeginPass( CommandBuffer, VulkanContext::Get().GetSwapchain().GetFramebuffers()[ frame ], Extent );
+
+		VkViewport Viewport = {};
+		Viewport.x = 0;
+		Viewport.y = 0;
+		Viewport.width = ( float ) m_RendererData.Width;
+		Viewport.height = ( float ) m_RendererData.Height;
+		Viewport.minDepth = 0.0f;
+		Viewport.maxDepth = 1.0f;
+
+		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
+
+		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
+		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
+
+		// Actual scene composite pass.
+
+		m_RendererData.TexturePassShader->WriteAllUBs( m_RendererData.TexturePassDescriptorSet );
+
+		Renderer::Get().SubmitFullscreenQuad(
+			CommandBuffer, m_RendererData.TexturePassPipeline,
+			m_RendererData.TexturePassDescriptorSet,
+			m_RendererData.SC_IndexBuffer, m_RendererData.SC_VertexBuffer );
+
+		// End scene composite pass.
+		pass->EndPass();
 	}
 
 	void SceneRenderer::AOCompositePass()

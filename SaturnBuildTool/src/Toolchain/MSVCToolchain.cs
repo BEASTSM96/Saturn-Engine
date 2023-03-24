@@ -1,26 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.IO;
 
 using SaturnBuildTool.Tools;
-using System.Xml;
 
-namespace SaturnBuildTool.Toolchain
+namespace SaturnBuildTool
 {
-    internal class MVSCToolchain
+    internal class MSVCToolchain : Toolchain
     {
-        private UserTarget TargetToBuild;
-
-        public MVSCToolchain(UserTarget target)
+        public MSVCToolchain(UserTarget target)
         {
             TargetToBuild = target;
         }
 
-        public int Compile(string InputFile)
+        public override int Compile(string InputFile)
         {
             CompileTask compileTask = new CompileTask( InputFile, TargetToBuild );
 
@@ -41,7 +32,7 @@ namespace SaturnBuildTool.Toolchain
             return result;
         }
 
-        public int Link()
+        public override int Link()
         {
             LinkTask link = new LinkTask(TargetToBuild);
 

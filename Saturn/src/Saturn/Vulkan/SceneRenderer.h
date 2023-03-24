@@ -258,6 +258,13 @@ namespace Saturn {
 		IndexBuffer* SC_IndexBuffer = nullptr;
 		
 		//////////////////////////////////////////////////////////////////////////
+		// Texture pass
+		Ref<Pass> TexturePass = nullptr;
+		Ref<Pipeline> TexturePassPipeline = nullptr;
+		// Input
+		Ref< DescriptorSet > TexturePassDescriptorSet = nullptr;
+
+		//////////////////////////////////////////////////////////////////////////
 		// End Scene Composite
 		//////////////////////////////////////////////////////////////////////////
 
@@ -299,6 +306,7 @@ namespace Saturn {
 		Ref< Shader > PreethamShader = nullptr;
 		Ref< Shader > StaticMeshShader = nullptr;
 		Ref< Shader > SceneCompositeShader = nullptr;
+		Ref< Shader > TexturePassShader = nullptr;
 		Ref< Shader > DirShadowMapShader = nullptr;
 		Ref< Shader > SelectedGeometryShader = nullptr;
 		Ref< Shader > AOCompositeShader = nullptr;
@@ -370,14 +378,16 @@ namespace Saturn {
 		void InitSceneComposite();
 		void InitAOComposite();
 		void InitBloom();
+		void InitTexturePass();
 
 		void DirShadowMapPass();
 		void PreDepthPass();
-		void GeometryPass();
-		void SceneCompositePass();
-		void AOCompositePass();
 		void LightCullingPass();
+		void GeometryPass();
 		void BloomPass();
+		void AOCompositePass();
+		void SceneCompositePass();
+		void TexturePass();
 
 		void AddScheduledFunction( ScheduledFunc&& rrFunc );
 

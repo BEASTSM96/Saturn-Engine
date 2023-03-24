@@ -24,17 +24,20 @@ namespace SaturnBuildTool
         {
             switch (target.CurrentConfig) 
             {
+                case ConfigKind.DistDebug: 
                 case ConfigKind.Debug: 
                     {
                         path = Path.Combine(path, "Debug-windows-x86_64");
                     } break;
 
+                case ConfigKind.DistRelease: 
                 case ConfigKind.Release:
                     {
                         path = Path.Combine(path, "Release-windows-x86_64");
                     }
                     break;
 
+                case ConfigKind.DistFull: 
                 case ConfigKind.Dist:
                     {
                         path = Path.Combine(path, "Dist-windows-x86_64");

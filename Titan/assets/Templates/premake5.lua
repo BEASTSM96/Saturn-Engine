@@ -35,13 +35,7 @@ project "__PROJECT_NAME__"
 		"**.Gen.cpp", 
 		"**.Gen.h" 
 	}
-
-	-- Right now we are always going to link from the debug, when we build the engine in Dist maybe with change to be Dist.
-	links
-	{
-		"__SATURN_BIN_DIR__/Saturn.lib"
-	}
-
+	
 	filter "system:windows"
 		systemversion "latest"
 

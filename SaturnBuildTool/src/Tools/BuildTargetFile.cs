@@ -1,46 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+
 
 namespace SaturnBuildTool.Tools
 {
-    internal static class BuildTargetFile
+    internal class BuildTargetFile
     {
-        public static string GetBuildFile( string SourceDir, string TargetName )
+        public static readonly BuildTargetFile Instance = new BuildTargetFile();
+
+        public string BuildFile { get; set; }
+
+        public void InitBuildFile(string SourceDir, string TargetName)
         {
             ConfigKind config = BuildConfig.Instance.GetTargetConfig();
 
-            switch (config) 
+            switch (config)
             {
                 case ConfigKind.Debug:
                 case ConfigKind.Release:
-                case ConfigKind.Dist: 
+                case ConfigKind.Dist:
                     {
-                        string BuildFile = SourceDir;
+                        BuildFile = SourceDir;
                         BuildFile += TargetName;
                         BuildFile += ".Build.cs";
                         BuildFile = BuildFile.Replace("/", "\\");
-
-                        return BuildFile;
-                    }
+                    } break;
 
                 case ConfigKind.DistDebug:
                 case ConfigKind.DistRelease:
                 case ConfigKind.DistFull:
                     {
-                        string BuildFile = SourceDir;
+                        BuildFile = SourceDir;
                         BuildFile += TargetName;
                         BuildFile += ".RT_Build.cs";
                         BuildFile = BuildFile.Replace("/", "\\");
-
-                        return BuildFile;
-                    }
+                    } break;
             }
-
-            return "";
         }
 
+        public void CreateBuildFile()
+        {
+            FileStream fs = null;
+
+            if (!File.Exists(BuildFile))
+                fs = File.Create(BuildFile);
+
+            if(fs != null)
+                fs.Close();
+        }
     }
 }

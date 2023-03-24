@@ -24,7 +24,7 @@ namespace SaturnBuildTool
             // Saturn:
             SaturnRootDir = Environment.GetEnvironmentVariable( "SATURN_DIR" );
 
-            SaturnSingletonDir = Path.Combine(SaturnSingletonDir, "SingletonStorage" );
+            SaturnSingletonDir = Path.Combine(SaturnRootDir, "SingletonStorage" );
 
             SaturnVenderDir = Path.Combine(SaturnRootDir, "Saturn\\vendor" );
             SaturnSourceDir = Path.Combine(SaturnRootDir, "Saturn\\src" );

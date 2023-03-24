@@ -24,15 +24,24 @@ namespace SaturnBuildTool
                 return ConfigKind.Debug;
             else if (ConfigName == "Release")
                 return ConfigKind.Release;
-            else // Assume is Dist
+            else if (ConfigName == "Dist")
+                return ConfigKind.Dist;
+            else if (ConfigName == "DDebug")
+                return ConfigKind.DistDebug;
+            else if (ConfigName == "DRelease")
+                return ConfigKind.DistRelease;
+            else if (ConfigName == "DF")
+                return ConfigKind.DistFull;
+            else 
                 return ConfigKind.Dist;
         }
 
-        public BuildConfig() { }
-
-        public BuildConfig(string target)
+        public void Init(string config) 
         {
-            ConfigName = target;
+            ConfigName = config;
+            ConfigName = ConfigName.Replace("/", string.Empty);
         }
+
+        public BuildConfig() { }
     }
 }

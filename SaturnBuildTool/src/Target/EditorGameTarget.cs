@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace SaturnBuildTool.Target
+namespace SaturnBuildTool
 {
-    internal class EditorGameTarget : GameUserTarget
+    public class EditorGameTarget : GameUserTarget
     {
         public override void Init() 
         {

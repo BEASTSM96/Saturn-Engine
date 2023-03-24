@@ -1,39 +1,39 @@
 ﻿using System;
-using System.IO;
-using System.Diagnostics;
-using System.Collections.Generic;
-
-using SaturnBuildTool.Tools;
-using SaturnBuildTool.Toolchain;
-using SaturnBuildTool.Cache;
 
 namespace SaturnBuildTool
 {
 	class EntryPoint
 	{
-		// Args:
-		// 0: The Action, BUILD, REBULD, CLEAN. TODO
-		// 1: The project name
-		// 2: The target, Win64
-		// 3: The configuration, Debug, Release, Dist
-		// 4: The project location
-		static void Main(string[] Args)
+        // Args:
+        // 0: The Action, BUILD, REBULD, CLEAN. TODO
+        // 1: The project name
+        // 2: The target, Win64
+        // 3: The configuration, Debug, Release, Dist
+        // 4: The project location
+        static void Main(string[] args)
 		{
+			Application app = new Application(args);
+
+			app.Run();
+
+			app = null;
+
+			/*
 			Stopwatch time = Stopwatch.StartNew();
 
 			Console.WriteLine("==== Saturn Build Tool v0.0.1 ====");
 
-			int index = Args[4].IndexOf('/');
+            int index = Args[4].IndexOf('/');
 
-			string ProjectDir = Args[4].Substring( index + 1 );
+            string ProjectDir = Args[4].Substring(index + 1);
 
-			ProjectDir = ProjectDir.Replace("/", "\\");
+            ProjectDir = ProjectDir.Replace("/", "\\");
 
-			string SourceDir = Path.Combine(ProjectDir, "Scripts");
+            string SourceDir = Path.Combine(ProjectDir, "Scripts");
 
-			// We know if we are the game that we source is in the same dir as the project.
-			// However if it does not exist then we are the engine.
-			if ( !Directory.Exists( SourceDir ) ) 
+            // We know if we are the game that we source is in the same dir as the project.
+            // However if it does not exist then we are the engine.
+            if ( !Directory.Exists( SourceDir ) ) 
 			{
 				SourceDir = Path.Combine( ProjectDir, Args[1] );
 
@@ -51,14 +51,15 @@ namespace SaturnBuildTool
 			BuildConfig.Instance.ConfigName = Args[3];
 			BuildConfig.Instance.ConfigName = BuildConfig.Instance.ConfigName.Replace( "/", string.Empty );
 
-			string BuildFile = BuildTargetFile.GetBuildFile(SourceDir, Args[1]);
+			BuildTargetFile.Instance.InitBuildFile(SourceDir, Args[1]);
+			BuildTargetFile.Instance.CreateBuildFile();
 
-			UserTarget target = UserTarget.SetupUserTarget(BuildFile);
+			UserTarget target = UserTarget.SetupUserTarget(BuildTargetFile.Instance.BuildFile);
 			target.ProjectName = Args[1];
 			target.ProjectName = target.ProjectName.Replace( "/", string.Empty );
 
 			// MSVC toolchain
-			MVSCToolchain Toolchain = new MVSCToolchain(target);
+			MSVCToolchain Toolchain = new MSVCToolchain(target);
 
 			string cacheLocation = ProjectDir + "\\filecache.fc";
 			FileCache fileCache = FileCache.Load( cacheLocation );
@@ -121,6 +122,7 @@ namespace SaturnBuildTool
 			}
 
 			Console.WriteLine("Done building in {0}", time.Elapsed);
+			*/
 		}
     }
 }

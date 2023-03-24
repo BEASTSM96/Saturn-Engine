@@ -3,7 +3,7 @@
 namespace SaturnBuildTool
 {
     // Usage for Dist-Debug, Dist-Release and Dist-Full.
-    internal class RTGameTarget : GameUserTarget
+    public class RTGameTarget : GameUserTarget
     {
         public override void Init()
         {
