@@ -31,7 +31,6 @@
 #include "Saturn/Core/UserSettings.h"
 
 #include "EditorLayer.h"
-#include "Saturn/Runtime/RuntimeLayer.h"
 
 #include "Saturn/Serialisation/UserSettingsSerialiser.h"
 
@@ -60,10 +59,8 @@ public:
 	virtual void OnInit() override
 	{
 		m_EditorLayer = new Saturn::EditorLayer();
-		//m_RuntimeLayer = new Saturn::RuntimeLayer();
 
 		PushLayer( m_EditorLayer );
-		//PushLayer( m_RuntimeLayer );
 	}
 
 	virtual void OnShutdown() override
@@ -73,14 +70,10 @@ public:
 
 		PopLayer( m_EditorLayer );
 		delete m_EditorLayer;
-
-		PopLayer( m_RuntimeLayer );
-		delete m_RuntimeLayer;
 	}
 
 private:
 	Saturn::EditorLayer* m_EditorLayer = nullptr;
-	Saturn::RuntimeLayer* m_RuntimeLayer = nullptr;
 
 	std::string m_ProjectPath = "";
 };
@@ -95,8 +88,6 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
 
 	ApplicationSpecification spec;
-	//spec.GameDist = true;
-	//spec.Titlebar = true;
 
 	return new EditorApplication( spec, projectPath );
 }
