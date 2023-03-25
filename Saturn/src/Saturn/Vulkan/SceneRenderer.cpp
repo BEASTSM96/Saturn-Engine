@@ -94,6 +94,8 @@ namespace Saturn {
 
 		InitSceneComposite();
 
+		InitTexturePass();
+
 		m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
 
 		m_RendererData.BRDFLUT_Texture = Ref<Texture2D>::Create( "assets/textures/BRDF_LUT.tga", AddressingMode::Repeat, false );
@@ -992,6 +994,8 @@ namespace Saturn {
 		InitGeometryPass();
 		InitSceneComposite();
 
+		InitTexturePass();
+
 		//InitAO();
 		//InitAOComposite();
 
@@ -1339,7 +1343,7 @@ namespace Saturn {
 		Ref<Pass> pass = VulkanContext::Get().GetDefaultPass();
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
-		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
+		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
 		// Begin scene composite pass.
@@ -1347,9 +1351,9 @@ namespace Saturn {
 
 		VkViewport Viewport = {};
 		Viewport.x = 0;
-		Viewport.y = 0;
+		Viewport.y = m_RendererData.Height;
 		Viewport.width = ( float ) m_RendererData.Width;
-		Viewport.height = ( float ) m_RendererData.Height;
+		Viewport.height = -( float ) m_RendererData.Height;
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
 
@@ -1818,6 +1822,15 @@ namespace Saturn {
 		SceneCompositePass();
 		
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+
+		if( m_RendererData.IsSwapchainTarget )
+		{
+			CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Texture Pass" );
+
+			TexturePass();
+
+			CmdEndDebugLabel( m_RendererData.CommandBuffer );
+		}
 
 		FlushDrawList();
 	}

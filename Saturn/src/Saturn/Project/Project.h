@@ -69,6 +69,8 @@ namespace Saturn {
 		void CreatePremakeFile();
 		void CreateBuildFile();
 
+		void PrepForDist();
+
 		// TEMP
 		//    Until we have a proper project system
 		ProjectConfig m_Config;

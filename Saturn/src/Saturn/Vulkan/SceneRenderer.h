@@ -109,6 +109,10 @@ namespace Saturn {
 
 		//////////////////////////////////////////////////////////////////////////
 		
+		bool IsSwapchainTarget = false;
+
+		//////////////////////////////////////////////////////////////////////////
+
 		uint32_t Width = 0;
 		uint32_t Height = 0;
 		
@@ -354,6 +358,8 @@ namespace Saturn {
 
 		void SetDynamicSky( float Turbidity, float Azimuth, float Inclination );
 		
+		void SetSwapchainTarget( bool target ) { m_RendererData.IsSwapchainTarget = target; }
+
 		void Terminate();
 
 		uint32_t Width() { return m_RendererData.Width; }

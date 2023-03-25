@@ -29,8 +29,10 @@
 // Game client main.
 // DO NOT MODIFY
 
+#include <Windows.h>
+
 #include <Saturn/Core/App.h>
-#include <Saturn/ImGui/RuntimeLayer.h>
+#include <Saturn/Runtime/RuntimeLayer.h>
 #include <Saturn/Serialisation/UserSettingsSerialiser.h>
 
 static std::string s_ProjectPath = "%PROJECT_PATH%";
@@ -38,7 +40,7 @@ static std::string s_ProjectPath = "%PROJECT_PATH%";
 // Saturn client main:
 extern int _main( int, char** );
 
-int main()
+int main(int count, char** args)
 {
 	// Hand it off to Saturn:
 	return _main( count, args );
@@ -57,6 +59,7 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 // Client default app.
 class __GameApplication : public Saturn::Application
 {
+public:
 	__GameApplication(const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
 		: Saturn::Application( spec ), m_ProjectPath( rProjectPath )
 	{
@@ -91,12 +94,13 @@ class __GameApplication : public Saturn::Application
 private:
 	Saturn::RuntimeLayer* m_RuntimeLayer = nullptr;
 	std::string m_ProjectPath = "";
-}
+};
 
 Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
 {
 	ApplicationSpecification spec {};
 	spec.Titlebar = true;	
+	spec.GameDist = true;
 
 	return new __GameApplication( spec, s_ProjectPath );
 }

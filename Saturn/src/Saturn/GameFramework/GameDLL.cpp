@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "GameDLL.h"
 
+#include "Saturn/Core/App.h"
+
 #include "Saturn/Project/Project.h"
 
 #include "GameScript.h"
@@ -44,19 +46,32 @@ namespace Saturn {
 
 	void GameDLL::Load()
 	{
-		auto binDir = Project::GetActiveProject()->GetBinDir();
+		if( !Application::Get().GetSpecification().GameDist )
+		{
+			// We are the editor
 
-		auto DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
+			auto binDir = Project::GetActiveProject()->GetBinDir();
 
-		m_DLLInstance = LoadLibraryA( DllPath.string().c_str() );
+			auto DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
 
-		SourceManager::Get();
+			m_DLLInstance = LoadLibraryA( DllPath.string().c_str() );
 
-		SAT_CORE_INFO( "Loaded Game DLL!" );
+			SourceManager::Get();
+
+			SAT_CORE_INFO( "Loaded Game DLL!" );
+		}
+		else // We are the game
+		{
+			m_DLLInstance = GetModuleHandle( NULL );
+			SourceManager::Get();
+		}
 	}
 
 	void GameDLL::Unload()
 	{
-		FreeLibrary( m_DLLInstance );
+		if( !Application::Get().GetSpecification().GameDist )
+		{
+			FreeLibrary( m_DLLInstance );
+		}
 	}
 }

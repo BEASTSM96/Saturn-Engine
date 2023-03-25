@@ -355,15 +355,15 @@ namespace SaturnBuildTool.Tools
 
                 streamWriter.WriteLine(string.Format("#include \"{0}\"\r\n", string.Format( "{0}.h", CurrentFile.ClassName )));
 
+                string cExternBeg = "extern \"C\" {\r\n";
+                string cExternEnd = "}\r\n";
+
+                streamWriter.WriteLine(cExternBeg);
+
                 // Check if this class is spawnable
                 if ((CurrentFile.SClassInfo & SC.Spawnable) == SC.Spawnable)
                 {
                     // If our class in spawnable we can now create the spawn function.
-
-                    string cExternBeg = "extern \"C\" {\r\n";
-                    string cExternEnd = "}\r\n";
-
-                    streamWriter.WriteLine(cExternBeg);
 
                     string function = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
                     function += CurrentFile.ClassName;
@@ -388,17 +388,10 @@ namespace SaturnBuildTool.Tools
 
                     streamWriter.WriteLine(functionBaseClass);
 
-                    streamWriter.WriteLine(cExternEnd);
-
                     streamWriter.WriteLine("//^^^ Spawnable\r\n");
                 }
                 else 
                 {
-                    string cExternBeg = "extern \"C\" {\r\n";
-                    string cExternEnd = "}\r\n";
-
-                    streamWriter.WriteLine(cExternBeg);
-
                     string function = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
                     function += CurrentFile.ClassName;
                     function += "()\r\n";
@@ -418,17 +411,10 @@ namespace SaturnBuildTool.Tools
 
                     streamWriter.WriteLine(functionBaseClass);
 
-                    streamWriter.WriteLine(cExternEnd);
-
                     streamWriter.WriteLine("//^^^ NO Spawnable\r\n");
                 }
 
-                string vfunc = string.Format("static void _RT_Z_Add{0}ToEditor()\r\n", CurrentFile.ClassName);
-                vfunc += "{\r\n";
-                vfunc += "}\r\n";
-                vfunc += "//^^^ NO VisibleInEditor\r\n";
-
-                streamWriter.WriteLine(vfunc);
+                streamWriter.WriteLine(cExternEnd);
 
                 // Add to prefab list
                 string prefab = string.Format("static void _RT_Z_AddPrefab_{0}()\r\n", CurrentFile.ClassName);
@@ -456,27 +442,33 @@ namespace SaturnBuildTool.Tools
 
                 streamWriter.WriteLine(propfunc);
 
-                // Auto-Registration
+                // Auto-Registration (DLL only).
+                if (BuildConfig.Instance.GetTargetConfig() < ConfigKind.DistDebug)
+                {
+                    Random random = new Random();
+                    int randomNumber = random.Next();
 
-                Random random = new Random();
-                int randomNumber = random.Next();
+                    string call = string.Format("struct _Z_{0}_RT_Editor\r\n", CurrentFile.ClassName);
+                    call += "{\r\n";
+                    call += string.Format("\t_Z_{0}_RT_Editor()\r\n", CurrentFile.ClassName);
+                    call += "\t{\r\n";
+                    //call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
+                    call += string.Format("\t\t_RT_Z_AddPrefab_{0}();\r\n", CurrentFile.ClassName);
+                    call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", CurrentFile.ClassName);
+                    call += "\r\n";
+                    call += "\t}\r\n";
+                    call += "};\r\n";
+                    call += "\r\n";
+                    call += string.Format("static _Z_{0}_RT_Editor _Z_RT_{0}_{1};", CurrentFile.ClassName, randomNumber);
 
-                string call = string.Format("struct _Z_{0}_RT_Editor\r\n", CurrentFile.ClassName);
-                call += "{\r\n";
-                call += string.Format("\t_Z_{0}_RT_Editor()\r\n", CurrentFile.ClassName);
-                call += "\t{\r\n";
-                //call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
-                call += string.Format("\t\t_RT_Z_AddPrefab_{0}();\r\n", CurrentFile.ClassName);
-                call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", CurrentFile.ClassName);
-                call += "\r\n";
-                call += "\t}\r\n";
-                call += "};\r\n";
-                call += "\r\n";
-                call += string.Format("static _Z_{0}_RT_Editor _Z_RT_{0}_{1};", CurrentFile.ClassName, randomNumber);
-
-                streamWriter.WriteLine(call);
-                streamWriter.WriteLine("//^^^ Auto-Registration\r\n");
-
+                    streamWriter.WriteLine(call);
+                    streamWriter.WriteLine("//^^^ Auto-Registration\r\n");
+                }
+                else
+                {
+                    string call = "// No Auto-Registration Game is exe.\r\n";
+                    streamWriter.WriteLine(call);
+                }
             }
             catch (Exception e) 
             {

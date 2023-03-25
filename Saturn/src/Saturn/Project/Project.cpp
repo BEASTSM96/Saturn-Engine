@@ -247,4 +247,49 @@ namespace Saturn {
 			std::filesystem::copy( "assets/Templates/%PROJECT_NAME%.Build.cs", BuildFilePath );
 	}
 
+	void Project::PrepForDist()
+	{
+		// Copy over the client main file
+
+		auto BuildPath = GetAssetPath().parent_path() / "Build";
+		BuildPath /= GetName() + "Main.cpp";
+
+		if( std::filesystem::exists( BuildPath ) )
+			std::filesystem::remove( BuildPath );
+
+		std::filesystem::create_directory( GetAssetPath().parent_path() / "Build" );
+
+		std::filesystem::copy( "assets/Templates/%PROJECT_NAME%Main.cpp", BuildPath );
+
+		std::ifstream ifs( BuildPath );
+
+		std::string fileData;
+
+		if( ifs )
+		{
+			ifs.seekg( 0, std::ios_base::end );
+			auto size = static_cast< size_t >( ifs.tellg() );
+			ifs.seekg( 0, std::ios_base::beg );
+
+			fileData.reserve( size );
+			fileData.assign( std::istreambuf_iterator<char>( ifs ), std::istreambuf_iterator<char>() );
+		}
+
+		size_t pos = fileData.find( "%PROJECT_PATH%" );
+
+		while( pos != std::string::npos )
+		{
+			UserSettings& rUserSetting = GetUserSettings();
+			std::string projectPath = rUserSetting.FullStartupProjPath.string();
+			std::replace( projectPath.begin(), projectPath.end(), '\\', '/' );
+
+			fileData.replace( pos, 14, projectPath );
+
+			pos = fileData.find( "%PROJECT_PATH%" );
+		}
+
+		std::ofstream fout( BuildPath );
+		fout << fileData;
+	}
+
 }

@@ -48,6 +48,7 @@ namespace Saturn {
 		bool CreateSceneRenderer = true;
 		bool Titlebar = false;
 		bool UIOnly = false;
+		bool GameDist = false;
 		
 		uint32_t WindowWidth = 0;
 		uint32_t WindowHeight = 0;

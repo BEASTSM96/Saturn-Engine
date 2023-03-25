@@ -141,6 +141,11 @@ namespace Saturn {
 					pPremake->Launch( Project::GetActiveProject()->GetRootDir().string() );
 				}
 
+				if( ImGui::MenuItem( "Prepare Project for Distribution" ) )
+				{
+					Project::GetActiveProject()->PrepForDist();
+				}
+
 				ImGui::EndMenu();
 			}
 		} );

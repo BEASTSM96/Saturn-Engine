@@ -26,77 +26,110 @@
 *********************************************************************************************
 */
 
-#include "Saturn/Core/App.h"
+#include "sppch.h"
+#include "RuntimeLayer.h"
 
-#include "Saturn/Core/UserSettings.h"
+#include "Saturn/Project/Project.h"
 
-#include "EditorLayer.h"
-#include "Saturn/Runtime/RuntimeLayer.h"
-
+#include "Saturn/Serialisation/SceneSerialiser.h"
+#include "Saturn/Serialisation/ProjectSerialiser.h"
 #include "Saturn/Serialisation/UserSettingsSerialiser.h"
+#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
+#include "Saturn/Serialisation/AssetSerialisers.h"
 
 #include "Saturn/GameFramework/GameDLL.h"
+#include "Saturn/GameFramework/GameManager.h"
+#include "Saturn/GameFramework/EntityScriptManager.h"
 
-class EditorApplication : public Saturn::Application
-{
-public:
-	EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
-		: Application( spec ), m_ProjectPath( rProjectPath )
+#include "Saturn/Vulkan/SceneRenderer.h"
+
+#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/Prefab.h"
+
+#include "Saturn/PhysX/PhysXFnd.h"
+
+namespace Saturn {
+
+	RuntimeLayer::RuntimeLayer()
+		: m_RuntimeScene( Ref<Scene>::Create() )
 	{
-		auto& settings = Saturn::GetUserSettings();
-		settings.StartupProject = m_ProjectPath;
+		Scene::SetActiveScene( m_RuntimeScene.Pointer() );
 
-		size_t found = m_ProjectPath.find_last_of( "/\\" );
-		settings.StartupProjectName = m_ProjectPath.substr( found + 1 );
+		AssetRegistry* ar = new AssetRegistry();
 
-		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
+		// Init PhysX
+		PhysXFnd::Get();
 
-		settings = Saturn::GetUserSettings();
+		auto& rUserSettings = GetUserSettings();
 
-		Saturn::UserSettingsSerialiser uss;
-		uss.Deserialise( settings );
+		ProjectSerialiser ps;
+		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
+
+		if( !Project::GetActiveProject() )
+			SAT_CORE_ASSERT( false, "No project was given." );
+
+		OpenFile( rUserSettings.StartupScene );
+
+		Project::GetActiveProject()->LoadAssetRegistry();
+		Project::GetActiveProject()->CheckMissingAssetRefs();
+
+		EntityScriptManager::Get();
+		EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
+
+		GameDLL* pGameDLL = new GameDLL();
+		pGameDLL->Load();
+
+		GameManager* pGameManager = new GameManager();
+
+		m_RuntimeScene->OnRuntimeStart();
+		m_RuntimeScene->m_RuntimeRunning = true;
 	}
 
-	virtual void OnInit() override
+	RuntimeLayer::~RuntimeLayer()
 	{
-		m_EditorLayer = new Saturn::EditorLayer();
-		//m_RuntimeLayer = new Saturn::RuntimeLayer();
-
-		PushLayer( m_EditorLayer );
-		//PushLayer( m_RuntimeLayer );
+		m_RuntimeScene->OnRuntimeEnd();
+		m_RuntimeScene = nullptr;
 	}
 
-	virtual void OnShutdown() override
+	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )
 	{
-		Saturn::UserSettingsSerialiser uss;
-		uss.Serialise( Saturn::GetUserSettings() );
+		Ref<Scene> newScene = Ref<Scene>::Create();
 
-		PopLayer( m_EditorLayer );
-		delete m_EditorLayer;
+		SceneSerialiser serialiser( newScene );
+		serialiser.Deserialise( rFilepath.string() );
 
-		PopLayer( m_RuntimeLayer );
-		delete m_RuntimeLayer;
+		m_RuntimeScene = newScene;
+
+		newScene = nullptr;
+
+		SceneRenderer::Get().SetCurrentScene( m_RuntimeScene.Pointer() );
 	}
 
-private:
-	Saturn::EditorLayer* m_EditorLayer = nullptr;
-	Saturn::RuntimeLayer* m_RuntimeLayer = nullptr;
+	void RuntimeLayer::OnUpdate( Timestep time )
+	{
+		m_RuntimeScene->OnUpdate( Application::Get().Time() );
+		m_RuntimeScene->OnRenderRuntime( Application::Get().Time() );
+	}
 
-	std::string m_ProjectPath = "";
-};
+	void RuntimeLayer::OnImGuiRender()
+	{
+	}
 
-Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
-{
-	std::string projectPath = "";
+	void RuntimeLayer::OnEvent( Event& rEvent )
+	{
+		EventDispatcher dispatcher( rEvent );
+		dispatcher.Dispatch< WindowResizeEvent >( SAT_BIND_EVENT_FN( OnWindowResize ) );
+	}
 
-	if( argc > 1 )
-		projectPath = argv[1];
-	else
-		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
+	bool RuntimeLayer::OnWindowResize( WindowResizeEvent& e )
+	{
+		int width = e.Width(), height = e.Height();
 
-	ApplicationSpecification spec;
-	//spec.GameDist = true;
-	//spec.Titlebar = true;
+		if( width == 0 && height == 0 )
+			return false;
 
-	return new EditorApplication( spec, projectPath );
+		SceneRenderer::Get().SetViewportSize( ( uint32_t ) width, ( uint32_t ) height );
+
+		return true;
+	}
 }

@@ -11,7 +11,7 @@ namespace SaturnBuildTool
             TargetToBuild = target;
         }
 
-        public override int Compile(string InputFile)
+        public override int Compile(string InputFile, bool RunHeaderTool = true)
         {
             CompileTask compileTask = new CompileTask(InputFile, TargetToBuild);
 

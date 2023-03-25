@@ -11,12 +11,15 @@ namespace SaturnBuildTool
             TargetToBuild = target;
         }
 
-        public override int Compile(string InputFile)
+        public override int Compile(string InputFile, bool RunHeaderTool = true)
         {
             CompileTask compileTask = new CompileTask( InputFile, TargetToBuild );
 
-            HeaderTool.Instance.GenerateHeader( InputFile );
-            HeaderTool.Instance.GenerateSource( InputFile );
+            if( RunHeaderTool ) 
+            {
+                HeaderTool.Instance.GenerateHeader(InputFile);
+                HeaderTool.Instance.GenerateSource(InputFile);
+            }
 
             int result = -1;
 

@@ -86,6 +86,8 @@ namespace Saturn {
 		Renderer::Get();
 
 		SceneRenderer::Get();
+
+		SceneRenderer::Get().SetSwapchainTarget( Application::Get().GetSpecification().GameDist );
 	}
 
 	void VulkanContext::Terminate()

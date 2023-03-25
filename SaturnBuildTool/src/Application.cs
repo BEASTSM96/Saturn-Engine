@@ -17,6 +17,8 @@ namespace SaturnBuildTool
 
         public string SourceDir { get; set; }
 
+        public string BuildDir { get; set; }
+
         public string ProjectDir { get; set; }
 
         public string[] Args;
@@ -45,6 +47,13 @@ namespace SaturnBuildTool
             SourceDir = SourceDir.Replace("/", "\\");
         }
 
+        private void FindBuildFolder()
+        {
+            BuildDir = Path.Combine(ProjectDir, "Build");
+
+            BuildDir = BuildDir.Replace("/", "\\");
+        }
+
         private void FindProjectDir()
         {
             int index = Args[4].IndexOf('/');
@@ -58,6 +67,7 @@ namespace SaturnBuildTool
             Args = args;
 
             FindProjectDir();
+            FindBuildFolder();
             FindSourceDir();
 
             Target.Instance.Init( Args[2] );
@@ -95,6 +105,7 @@ namespace SaturnBuildTool
             Console.WriteLine("==== Saturn Build Tool v0.0.1 ====");
 
             List<string> sourceFiles = DirectoryTools.DirSearch(SourceDir, true);
+            List<string> sourceBuildFiles = DirectoryTools.DirSearch(BuildDir);
 
             bool HasCompiledAnyFile = false;
             int NumTaskFailed = 0;
@@ -134,6 +145,27 @@ namespace SaturnBuildTool
 
                         if (!FileCache.IsFileInCache(file))
                             FileCache.CacheFile(file);
+                    }
+                    else
+                        NumTaskFailed++;
+                }
+            }
+
+            if( BuildConfig.Instance.GetTargetConfig() >= ConfigKind.DistDebug )
+            {
+                foreach (string file in sourceBuildFiles)
+                {
+                    // We are only building c++ files.
+                    if (!FileCache.IsCppFile(file))
+                    {
+                        continue;
+                    }
+
+                    int exitCode = Toolchain.Compile(file, false);
+
+                    if (exitCode == 0)
+                    {
+                        HasCompiledAnyFile = true;
                     }
                     else
                         NumTaskFailed++;

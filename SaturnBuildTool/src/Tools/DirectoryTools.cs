@@ -19,10 +19,14 @@ namespace SaturnBuildTool.Tools
                 {
                     foreach (string f in Directory.GetFiles(d))
                     {
-                        Console.WriteLine(f);
                         strings.Add(f);
                     }
                     DirSearch(d);
+                }
+
+                foreach (string f in Directory.GetFiles(sDir))
+                {
+                    strings.Add(f);
                 }
             }
             catch (System.Exception excpt)

@@ -26,97 +26,27 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "RuntimeLayer.h"
+#pragma once
 
-#include "Saturn/Project/Project.h"
-
-#include "Saturn/Serialisation/SceneSerialiser.h"
-#include "Saturn/Serialisation/ProjectSerialiser.h"
-#include "Saturn/Serialisation/UserSettingsSerialiser.h"
-#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
-#include "Saturn/Serialisation/AssetSerialisers.h"
-
-#include "Saturn/GameFramework/GameDLL.h"
-#include "Saturn/GameFramework/GameManager.h"
-#include "Saturn/GameFramework/EntityScriptManager.h"
-
-#include "Saturn/Vulkan/SceneRenderer.h"
-
-#include "Saturn/Asset/AssetRegistry.h"
-#include "Saturn/Asset/Prefab.h"
-
-#include "Saturn/PhysX/PhysXFnd.h"
+#include "Saturn/Core/Layer.h"
+#include "Saturn/Scene/Scene.h"
 
 namespace Saturn {
 
-	RuntimeLayer::RuntimeLayer()
-		: m_RuntimeScene( Ref<Scene>::Create() )
+	class RuntimeLayer : public Layer
 	{
-		Scene::SetActiveScene( m_RuntimeScene.Pointer() );
+	public:
+		RuntimeLayer();
+		~RuntimeLayer();
 
-		AssetRegistry* ar = new AssetRegistry();
+		void OnUpdate( Timestep time ) override;
+		void OnImGuiRender() override;
+		void OnEvent( Event& rEvent ) override;
+		bool OnWindowResize( WindowResizeEvent& e );
 
-		// Init PhysX
-		PhysXFnd::Get();
-
-		auto& rUserSettings = GetUserSettings();
-
-		ProjectSerialiser ps;
-		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
-
-		if( !Project::GetActiveProject() )
-			SAT_CORE_ASSERT( false, "No project was given." );
-
-		OpenFile( rUserSettings.StartupScene );
-
-		Project::GetActiveProject()->LoadAssetRegistry();
-		Project::GetActiveProject()->CheckMissingAssetRefs();
-
-		EntityScriptManager::Get();
-		EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
-
-		GameDLL* pGameDLL = new GameDLL();
-		pGameDLL->Load();
-
-		GameManager* pGameManager = new GameManager();
-
-		m_RuntimeScene->OnRuntimeStart();
-		m_RuntimeScene->m_RuntimeRunning = true;
-	}
-
-	RuntimeLayer::~RuntimeLayer()
-	{
-		m_RuntimeScene->OnRuntimeEnd();
-		m_RuntimeScene = nullptr;
-	}
-
-	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )
-	{
-		Ref<Scene> newScene = Ref<Scene>::Create();
-
-		SceneSerialiser serialiser( newScene );
-		serialiser.Deserialise( rFilepath.string() );
-
-		m_RuntimeScene = newScene;
-
-		newScene = nullptr;
-
-		SceneRenderer::Get().SetCurrentScene( m_RuntimeScene.Pointer() );
-	}
-
-	void RuntimeLayer::OnUpdate( Timestep time )
-	{
-		m_RuntimeScene->OnUpdate( Application::Get().Time() );
-		m_RuntimeScene->OnRenderRuntime( Application::Get().Time() );
-	}
-
-	void RuntimeLayer::OnImGuiRender()
-	{
-	}
-
-	void RuntimeLayer::OnEvent( Event& rEvent )
-	{
-	}
-
+	private:
+		void OpenFile( const std::filesystem::path& rFilepath );
+	private:
+		Ref< Scene > m_RuntimeScene;
+	};
 }

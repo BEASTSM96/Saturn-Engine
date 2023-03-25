@@ -74,7 +74,7 @@ namespace SaturnBuildTool
             Args.Add(" /EHsc");
 
             // I would of included DistDebug to be in here, however DistDebug will always Dist bins of the engine.
-            if (TargetToBuild.CurrentConfig == ConfigKind.Debug)
+            if (TargetToBuild.CurrentConfig == ConfigKind.Debug || TargetToBuild.CurrentConfig == ConfigKind.DistDebug)
             {
                 Args.Add(" /MTd");
             }

@@ -156,6 +156,9 @@ namespace Saturn {
 
 	void ImGuiLayer::Begin()
 	{
+		if( Application::Get().GetSpecification().GameDist )
+			return;
+
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 
@@ -168,6 +171,9 @@ namespace Saturn {
 
 	void ImGuiLayer::End( VkCommandBuffer CommandBuffer )
 	{
+		if( Application::Get().GetSpecification().GameDist )
+			return;
+
 		Swapchain& rSwapchain = VulkanContext::Get().GetSwapchain();
 		
 		ImGui::Render();
