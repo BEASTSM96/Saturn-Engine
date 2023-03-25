@@ -68,10 +68,10 @@ namespace Saturn {
 		if( !Project::GetActiveProject() )
 			SAT_CORE_ASSERT( false, "No project was given." );
 
-		OpenFile( rUserSettings.StartupScene );
-
 		Project::GetActiveProject()->LoadAssetRegistry();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
+
+		OpenFile( rUserSettings.StartupScene );
 
 		EntityScriptManager::Get();
 		EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
