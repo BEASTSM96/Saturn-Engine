@@ -85,7 +85,7 @@ namespace Saturn {
 			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
 		}
 
-		auto* pFont = io.Fonts->AddFontFromFileTTF( "assets\\Fonts\\NotoSans-Regular.ttf", 18.0f );
+		auto* pFont = io.Fonts->AddFontFromFileTTF( "content\\Fonts\\NotoSans-Regular.ttf", 18.0f );
 		
 		io.FontDefault = io.Fonts->Fonts.back();
 

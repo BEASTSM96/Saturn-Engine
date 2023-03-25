@@ -42,7 +42,7 @@ namespace Saturn {
 
 	TitleBar::TitleBar()
 	{
-		m_Logo = Ref<Texture2D>::Create( "assets/Icons/SaturnLogov1.png", AddressingMode::Repeat );
+		m_Logo = Ref<Texture2D>::Create( "content/Icons/SaturnLogov1.png", AddressingMode::Repeat );
 	}
 
 	TitleBar::~TitleBar()

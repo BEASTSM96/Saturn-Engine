@@ -67,11 +67,11 @@ namespace Saturn {
 	ContentBrowserPanel::ContentBrowserPanel()
 		: Panel( "Content Browser Panel" ), m_CurrentPath( s_pAssetsDirectory ), m_FirstFolder( s_pAssetsDirectory ), m_ScriptPath( s_pScriptsDirectory )
 	{
-		m_DirectoryIcon = Ref<Texture2D>::Create( "assets/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
-		m_FileIcon      = Ref<Texture2D>::Create( "assets/textures/editor/FileIcon.png",      AddressingMode::Repeat );
-		m_SwapViewIcon  = Ref<Texture2D>::Create( "assets/textures/editor/Swap.png",          AddressingMode::Repeat );
-		m_BackIcon      = Ref<Texture2D>::Create( "assets/textures/editor/Left.png",          AddressingMode::Repeat );
-		m_ForwardIcon   = Ref<Texture2D>::Create( "assets/textures/editor/Right.png",         AddressingMode::Repeat );
+		m_DirectoryIcon = Ref<Texture2D>::Create( "content/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
+		m_FileIcon      = Ref<Texture2D>::Create( "content/textures/editor/FileIcon.png",      AddressingMode::Repeat );
+		m_SwapViewIcon  = Ref<Texture2D>::Create( "content/textures/editor/Swap.png",          AddressingMode::Repeat );
+		m_BackIcon      = Ref<Texture2D>::Create( "content/textures/editor/Left.png",          AddressingMode::Repeat );
+		m_ForwardIcon   = Ref<Texture2D>::Create( "content/textures/editor/Right.png",         AddressingMode::Repeat );
 
 		m_ViewMode      = CBViewMode::Assets;
 	}
@@ -294,8 +294,8 @@ namespace Saturn {
 					auto ActiveProject = Project::GetActiveProject();
 					auto AssetPath = ActiveProject->GetAssetPath();
 
-					std::filesystem::copy_file( "assets/Templates/Meshes/Cube.fbx", AssetPath / "Meshes" / "Cube.fbx" );
-					std::filesystem::copy_file( "assets/Templates/Meshes/Plane.fbx", AssetPath / "Meshes" / "Plane.fbx" );
+					std::filesystem::copy_file( "content/Templates/Meshes/Cube.fbx", AssetPath / "Meshes" / "Cube.fbx" );
+					std::filesystem::copy_file( "content/Templates/Meshes/Plane.fbx", AssetPath / "Meshes" / "Plane.fbx" );
 				}
 
 				if( ImGui::MenuItem( "Import" ) )

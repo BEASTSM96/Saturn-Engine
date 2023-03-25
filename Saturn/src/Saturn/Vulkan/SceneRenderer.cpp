@@ -98,7 +98,7 @@ namespace Saturn {
 
 		m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
 
-		m_RendererData.BRDFLUT_Texture = Ref<Texture2D>::Create( "assets/textures/BRDF_LUT.tga", AddressingMode::Repeat, false );
+		m_RendererData.BRDFLUT_Texture = Ref<Texture2D>::Create( "content/textures/BRDF_LUT.tga", AddressingMode::Repeat, false );
 
 		m_RendererData.SSAOPassTimer.Reset();
 		m_RendererData.SSAOPassTimer.Stop();
@@ -163,7 +163,7 @@ namespace Saturn {
 		// Load the shader
 		if( !m_RendererData.StaticMeshShader ) 
 		{
-			ShaderLibrary::Get().Load( "assets/shaders/shader_new.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/shader_new.glsl" );
 			m_RendererData.StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
 		}
 		
@@ -198,7 +198,7 @@ namespace Saturn {
 
 		if( !m_RendererData.DirShadowMapShader )
 		{
-			ShaderLibrary::Get().Load( "assets/shaders/ShadowMap.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/ShadowMap.glsl" );
 			m_RendererData.DirShadowMapShader = ShaderLibrary::Get().Find( "ShadowMap" );
 		}
 
@@ -279,8 +279,8 @@ namespace Saturn {
 
 		if( !m_RendererData.PreDepthShader ) 
 		{
-			ShaderLibrary::Get().Load( "assets/shaders/PreDepth.glsl" );
-			ShaderLibrary::Get().Load( "assets/shaders/LightCulling.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/PreDepth.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/LightCulling.glsl" );
 
 			m_RendererData.PreDepthShader = ShaderLibrary::Get().Find( "PreDepth" );
 			m_RendererData.LightCullingShader = ShaderLibrary::Get().Find( "LightCulling" );
@@ -359,7 +359,7 @@ namespace Saturn {
 		
 		if( !m_RendererData.SceneCompositeShader )
 		{
-			ShaderLibrary::Get().Load( "assets/shaders/SceneComposite.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/SceneComposite.glsl" );
 			m_RendererData.SceneCompositeShader = ShaderLibrary::Get().Find( "SceneComposite" );
 		}
 		
@@ -419,7 +419,7 @@ namespace Saturn {
 
 		if( !m_RendererData.AOCompositeShader )
 		{
-			ShaderLibrary::Get().Load( "assets/shaders/AO-Composite.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/AO-Composite.glsl" );
 			m_RendererData.AOCompositeShader = ShaderLibrary::Get().Find( "AO-Composite" );
 		}
 
@@ -456,7 +456,7 @@ namespace Saturn {
 	{
 		if( !m_RendererData.BloomShader )
 		{
-			ShaderLibrary::Get().Load( "assets/shaders/Bloom.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/Bloom.glsl" );
 			m_RendererData.BloomShader = ShaderLibrary::Get().Find( "Bloom" );
 		}
 
@@ -474,7 +474,7 @@ namespace Saturn {
 
 		m_RendererData.BloomShader->WriteAllUBs( m_RendererData.BloomDS );
 
-		m_RendererData.BloomDirtTexture = Ref<Texture2D>::Create( "assets/textures/BloomDirtTextureUE.png", AddressingMode::Repeat );
+		m_RendererData.BloomDirtTexture = Ref<Texture2D>::Create( "content/textures/BloomDirtTextureUE.png", AddressingMode::Repeat );
 
 		VkDescriptorPoolSize PoolSizes[] = 
 		{
@@ -497,7 +497,7 @@ namespace Saturn {
 	{
 		if( !m_RendererData.TexturePassShader )
 		{
-			ShaderLibrary::Get().Load( "assets/shaders/TexturePass.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/TexturePass.glsl" );
 			m_RendererData.TexturePassShader = ShaderLibrary::Get().Find( "TexturePass" );
 		}
 
@@ -762,7 +762,7 @@ namespace Saturn {
 		
 		if( !m_RendererData.GridShader )
 		{
-			ShaderLibrary::Get().Load( "assets/shaders/Grid.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/Grid.glsl" );
 			m_RendererData.GridShader = ShaderLibrary::Get().Find( "Grid" );
 		}
 	
@@ -808,8 +808,8 @@ namespace Saturn {
 		
 		if( !m_RendererData.SkyboxShader && !m_RendererData.PreethamShader )
 		{
-			ShaderLibrary::Get().Load( "assets/shaders/Skybox.glsl" );
-			ShaderLibrary::Get().Load( "assets/shaders/Skybox_Compute.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/Skybox.glsl" );
+			ShaderLibrary::Get().Load( "content/shaders/Skybox_Compute.glsl" );
 
 			m_RendererData.SkyboxShader = ShaderLibrary::Get().Find( "Skybox" );
 			m_RendererData.PreethamShader = ShaderLibrary::Get().Find( "Skybox_Compute" );

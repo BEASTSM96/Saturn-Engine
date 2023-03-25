@@ -49,8 +49,8 @@ namespace Saturn {
 		auto prjRootDir = Project::GetActiveProject()->GetRootDir();
 
 		// Copy entity code from templates.
-		std::filesystem::copy_file( "assets/Templates/entity_code.cpp", rPath / "entity_code.cpp" );
-		std::filesystem::copy_file( "assets/Templates/entity_code.h", rPath / "entity_code.h" );
+		std::filesystem::copy_file( "content/Templates/entity_code.cpp", rPath / "entity_code.cpp" );
+		std::filesystem::copy_file( "content/Templates/entity_code.h", rPath / "entity_code.h" );
 
 		std::filesystem::path src = rPath.string();
 		src.append( pName );

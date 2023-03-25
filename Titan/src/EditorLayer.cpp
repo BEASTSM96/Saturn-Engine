@@ -181,14 +181,14 @@ namespace Saturn {
 
 		m_EditorCamera.SetActive( true );
 		
-		m_CheckerboardTexture = Ref< Texture2D >::Create( "assets/textures/editor/checkerboard.tga", AddressingMode::Repeat );
+		m_CheckerboardTexture = Ref< Texture2D >::Create( "content/textures/editor/checkerboard.tga", AddressingMode::Repeat );
 
-		m_StartRuntimeTexture = Ref< Texture2D >::Create( "assets/textures/editor/Play.png", AddressingMode::Repeat );
-		m_EndRuntimeTexture   = Ref< Texture2D >::Create( "assets/textures/editor/Stop.png", AddressingMode::Repeat );
+		m_StartRuntimeTexture = Ref< Texture2D >::Create( "content/textures/editor/Play.png", AddressingMode::Repeat );
+		m_EndRuntimeTexture   = Ref< Texture2D >::Create( "content/textures/editor/Stop.png", AddressingMode::Repeat );
 
-		m_TranslationTexture  = Ref< Texture2D >::Create( "assets/textures/editor/Move.png", AddressingMode::Repeat );
-		m_RotationTexture     = Ref< Texture2D >::Create( "assets/textures/editor/Rotate.png", AddressingMode::Repeat );
-		m_ScaleTexture        = Ref< Texture2D >::Create( "assets/textures/editor/Scale.png", AddressingMode::Repeat );
+		m_TranslationTexture  = Ref< Texture2D >::Create( "content/textures/editor/Move.png", AddressingMode::Repeat );
+		m_RotationTexture     = Ref< Texture2D >::Create( "content/textures/editor/Rotate.png", AddressingMode::Repeat );
+		m_ScaleTexture        = Ref< Texture2D >::Create( "content/textures/editor/Scale.png", AddressingMode::Repeat );
 
 		// Init PhysX
 		PhysXFnd::Get();
