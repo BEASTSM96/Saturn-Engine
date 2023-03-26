@@ -250,10 +250,15 @@ namespace Saturn {
 		RelationshipComponent( UUID parent ) : Parent( parent ) {  }
 	};
 
+	struct PrefabComponent
+	{
+		UUID AssetID;
+	};
+
 	template<typename... V>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<TransformComponent, TagComponent, IdComponent, RelationshipComponent,
+	using AllComponents = ComponentGroup<TransformComponent, TagComponent, IdComponent, RelationshipComponent, PrefabComponent,
 		StaticMeshComponent, 
 		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 		CameraComponent,

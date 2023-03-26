@@ -31,6 +31,8 @@
 
 #include "Saturn/Asset/AssetRegistry.h"
 
+#include "Saturn/GameFramework/EntityScriptManager.h"
+
 namespace Saturn {
 
 	void SerialiseEntity( YAML::Emitter& rEmitter, Entity entity )
@@ -87,6 +89,17 @@ namespace Saturn {
 			}
 
 			rEmitter << YAML::EndSeq;
+
+			rEmitter << YAML::EndMap;
+		}
+
+		// Prefab Component
+		if( entity.HasComponent<PrefabComponent>() )
+		{
+			rEmitter << YAML::Key << "PrefabComponent";
+			rEmitter << YAML::BeginMap;
+
+			rEmitter << YAML::Key << "AssetID" << YAML::Value << entity.GetComponent< PrefabComponent >().AssetID;
 
 			rEmitter << YAML::EndMap;
 		}
@@ -328,14 +341,13 @@ namespace Saturn {
 					rc.ChildrenID.push_back( id );
 				}
 			}
-
-			auto srcc = entity[ "ScriptComponent" ];
-			if( srcc )
+			
+			auto pc = entity["PrefabComponent" ];
+			if( pc )
 			{
-				auto& s = DeserialisedEntity.AddComponent< ScriptComponent >();
+				auto& p = DeserialisedEntity.AddComponent< PrefabComponent >();
 
-				s.ScriptName = srcc[ "Name" ].as< std::string >();
-				s.AssetID = srcc[ "ID" ].as< uint64_t >();
+				p.AssetID = pc[ "AssetID" ].as< uint64_t >();
 			}
 
 			auto slc = entity[ "SkyLightComponent" ];
@@ -440,6 +452,19 @@ namespace Saturn {
 				auto& c = DeserialisedEntity.AddComponent< CameraComponent >();
 
 				c.MainCamera = cc[ "MainCamera" ].as< bool >();
+			}
+
+			auto srcc = entity[ "ScriptComponent" ];
+			if( srcc )
+			{
+				auto& s = DeserialisedEntity.AddComponent< ScriptComponent >();
+
+				s.ScriptName = srcc[ "Name" ].as< std::string >();
+				s.AssetID = srcc[ "ID" ].as< uint64_t >();
+
+				// Create the script class
+				EntityScriptManager::Get().RegisterScript( s.ScriptName );
+				SClass* sclass = EntityScriptManager::Get().CreateScript( s.ScriptName, ( SClass* ) &DeserialisedEntity );
 			}
 		}
 	}

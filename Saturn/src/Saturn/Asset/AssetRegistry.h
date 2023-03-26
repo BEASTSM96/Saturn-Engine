@@ -47,6 +47,19 @@ namespace Saturn {
 		AssetRegistry();
 		~AssetRegistry();
 
+		template<typename Ty, typename... Args>
+		Ref<Asset> CreateAsset( AssetType type, Args&&... rrArgs )
+		{
+			// This might not be the best way, first we create the "real" asset and add it to the registry, then create the template asset.
+			auto id = CreateAsset( type );
+
+			Ref<Ty> asset = Ref<Ty>::Create( std::forward<Args>( rrArgs )... );
+			asset->ID = id;
+			asset->Type = type;
+
+			return asset;
+		}
+
 		AssetID CreateAsset( AssetType type );
 
 		Ref<Asset> FindAsset( AssetID id );

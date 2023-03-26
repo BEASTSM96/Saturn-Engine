@@ -90,11 +90,8 @@ namespace Saturn {
 			{
 				const Entity* payload = ( const Entity* ) data->Data;
 
-				AssetID id = AssetRegistry::Get().CreateAsset( AssetType::Prefab );
-				auto asset = AssetRegistry::Get().FindAsset( id );
-
-				auto PrefabAsset = asset.As<Prefab>();
-				PrefabAsset->Create( ( Entity& ) *payload );
+				Ref<Prefab> asset = AssetRegistry::Get().CreateAsset<Prefab>( AssetType::Prefab );
+				asset->Create( ( Entity& ) *payload );
 
 				auto& tag = payload->Tag();
 
@@ -104,7 +101,7 @@ namespace Saturn {
 				asset->SetPath( path );
 
 				PrefabSerialiser ps;
-				ps.Serialise( PrefabAsset );
+				ps.Serialise( asset );
 
 				AssetRegistrySerialiser ars;
 				ars.Serialise();
@@ -392,6 +389,8 @@ namespace Saturn {
 
 						AssetRegistrySerialiser urs;
 						urs.Serialise();
+
+						UpdateFiles( true );
 					}
 
 					auto& names = GamePrefabList::Get().GetNames();
@@ -432,6 +431,8 @@ namespace Saturn {
 
 							AssetRegistrySerialiser ars;
 							ars.Serialise();
+
+							UpdateFiles( true );
 						}
 					}
 

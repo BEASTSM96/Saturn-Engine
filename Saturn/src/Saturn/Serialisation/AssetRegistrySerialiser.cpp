@@ -83,18 +83,6 @@ namespace Saturn {
 
 			out << YAML::Key << "Type" << YAML::Value << AssetTypeToString( asset->GetAssetType() );
 
-			/*
-			out << YAML::Key << "AssetData";
-
-			out << YAML::BeginMap;
-
-			out << YAML::Key << "Size" << YAML::Value << data.DataBuffer.Size;
-
-			out << YAML::Key << "Data" << YAML::Value << data.DataBuffer.Data;
-
-			out << YAML::EndMap;
-			*/
-
 			out << YAML::EndMap;
 		}
 

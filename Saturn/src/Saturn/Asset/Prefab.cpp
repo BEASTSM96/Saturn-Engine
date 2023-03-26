@@ -81,6 +81,7 @@ namespace Saturn {
 	Entity Prefab::PrefabToEntity( Ref<Scene> Scene, Entity entity )
 	{
 		Entity e = Scene->CreateEntity();
+		e.AddComponent<PrefabComponent>().AssetID = ID;
 
 		// Now we need to find the root entity of the prefab.
 
@@ -92,13 +93,11 @@ namespace Saturn {
 		{
 			Entity ent( entity, m_Scene.Pointer() );
 
-			if( ent.GetComponent<RelationshipComponent>().Parent != 0 )
-				continue;
-
-			if( ent.GetChildren().size() > 1 )
-				continue;
-
-			RootEntity = ent;
+			if( ent.GetParent() == 0 )
+			{
+				RootEntity = ent;
+				break;
+			}
 		}
 
 		if( !RootEntity )
@@ -130,7 +129,8 @@ namespace Saturn {
 	Entity Prefab::CreateFromEntity( Entity srcEntity )
 	{
 		Entity result = m_Scene->CreateEntity();
-
+		result.AddComponent<PrefabComponent>().AssetID = ID;
+		
 		auto& rc = srcEntity.GetComponent<RelationshipComponent>();
 
 		CopyComponentIfExists( AllComponents{}, result, srcEntity, srcEntity.m_Scene->m_Registry, m_Scene->m_Registry );

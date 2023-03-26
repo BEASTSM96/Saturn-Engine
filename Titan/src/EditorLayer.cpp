@@ -205,22 +205,21 @@ namespace Saturn {
 		if( !Project::GetActiveProject() )
 			SAT_CORE_ASSERT( false, "No project was given." );
 
-		OpenFile( rUserSettings.StartupScene );
-
 		Project::GetActiveProject()->LoadAssetRegistry();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
-
-		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 
 		// Lazy load.
 		// TODO: We should not lazy load something this important.
 		EntityScriptManager::Get();
-		EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
 
 		GameDLL* pGameDLL = new GameDLL();
 		pGameDLL->Load();
 
 		GameManager* pGameManager = new GameManager();
+
+		OpenFile( rUserSettings.StartupScene );
+
+		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 	}
 
 	EditorLayer::~EditorLayer()
@@ -749,6 +748,7 @@ namespace Saturn {
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
+		EntityScriptManager::Get().SetCurrentScene( newScene );
 
 		pHierarchyPanel->SetSelected( {} );
 
@@ -756,6 +756,10 @@ namespace Saturn {
 		serialiser.Deserialise( rFilepath.string() );
 
 		m_EditorScene = newScene;
+
+		// We maybe don't need to transfer the entities but just to be sure we will do it.
+		EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
+		EntityScriptManager::Get().TransferEntities( newScene );
 
 		newScene = nullptr;
 

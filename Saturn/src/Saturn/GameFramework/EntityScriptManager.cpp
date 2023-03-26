@@ -79,17 +79,6 @@ namespace Saturn {
 
 		auto module = GameDLL::Get().m_DLLInstance;
 
-		/*
-		// If we are the game call some boilerplate registration function.
-		if( Application::Get().GetSpecification().GameDist )
-		{
-			std::string name = "__Auto_Reg_Barn_"''
-
-			typedef void ( __stdcall* reg )( );
-			reg regfn = ( reg ) GetProcAddress( module, "" );
-		}
-		*/
-
 		typedef SClass* ( __stdcall* func )( SClass* TBase );
 
 		std::string funcNameTBase = "_Z_Create_" + rName + "_FromBase";
