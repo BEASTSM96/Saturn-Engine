@@ -92,6 +92,9 @@ namespace SaturnBuildTool
                     {
                         Toolchain = new MSVCToolchain(TargetToBuild);
                     } break;
+
+                default:
+                    break;
             }
 
             CacheLocation = ProjectDir + "\\filecache.fc";
@@ -161,14 +164,37 @@ namespace SaturnBuildTool
                         continue;
                     }
 
-                    int exitCode = Toolchain.Compile(file, false);
+                    // Only compile the file if it has not be changed.
+                    FileCache.FilesInCache.TryGetValue(file, out DateTime LastTime);
 
-                    if (exitCode == 0)
+                    if (Args[0] == "/REBUILD")
                     {
-                        HasCompiledAnyFile = true;
+                        int exitCode = Toolchain.Compile(file, false);
+
+                        if (exitCode == 0)
+                        {
+                            HasCompiledAnyFile = true;
+
+                            if (!FileCache.IsFileInCache(file))
+                                FileCache.CacheFile(file);
+                        }
+                        else
+                            NumTaskFailed++;
                     }
-                    else
-                        NumTaskFailed++;
+                    else if (Args[0] == "/BUILD" && (LastTime != File.GetLastWriteTime(file)))
+                    {
+                        int exitCode = Toolchain.Compile(file, false);
+
+                        if (exitCode == 0)
+                        {
+                            HasCompiledAnyFile = true;
+
+                            if (!FileCache.IsFileInCache(file))
+                                FileCache.CacheFile(file);
+                        }
+                        else
+                            NumTaskFailed++;
+                    }
                 }
             }
 

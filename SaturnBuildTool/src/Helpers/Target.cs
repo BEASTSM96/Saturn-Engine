@@ -34,7 +34,5 @@ namespace SaturnBuildTool
 
             return TargetKind.Unknown;
         }
-
-        public Target() { }
     }
 }

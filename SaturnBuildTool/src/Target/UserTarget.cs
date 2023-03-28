@@ -243,15 +243,6 @@ namespace SaturnBuildTool
 
                     outDir = outDir.Substring( 0, index );
 
-                    /*
-                    FileStream fs = null;
-                    if (!File.Exists(outDir))
-                        fs = File.Create(outDir);
-
-                    if(fs != null)
-                        fs.Close();
-                    */
-
                     target.OutputPath = outDir;
 
                     // Init the target.
