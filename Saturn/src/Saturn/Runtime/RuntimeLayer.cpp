@@ -78,7 +78,7 @@ namespace Saturn {
 
 		GameManager* pGameManager = new GameManager();
 
-		//OpenFile( rUserSettings.StartupScene );
+		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
 		m_RuntimeScene->OnRuntimeStart();
 		m_RuntimeScene->m_RuntimeRunning = true;
@@ -95,8 +95,9 @@ namespace Saturn {
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		EntityScriptManager::Get().SetCurrentScene( newScene );
 
+		auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
 		SceneSerialiser serialiser( newScene );
-		serialiser.Deserialise( rFilepath.string() );
+		serialiser.Deserialise( fullPath.string() );
 
 		m_RuntimeScene = newScene;
 
