@@ -152,7 +152,7 @@ namespace Saturn {
 		m_Editor = ed::CreateEditor( &config );
 		ed::SetCurrentEditor( m_Editor );
 
-		s_BlueprintBackground = Ref<Texture2D>::Create( "assets/textures/BlueprintBackground.png", AddressingMode::Repeat );
+		s_BlueprintBackground = Ref<Texture2D>::Create( "content/textures/BlueprintBackground.png", AddressingMode::Repeat );
 
 		s_BlueprintBackgroundID = ImGui_ImplVulkan_AddTexture( s_BlueprintBackground->GetSampler(), s_BlueprintBackground->GetImageView(), s_BlueprintBackground->GetDescriptorInfo().imageLayout );
 	}
@@ -210,19 +210,23 @@ namespace Saturn {
 
 		for( auto& node : m_Nodes )
 		{
-			for( auto& pin : node.Inputs )
-				if( pin.ID == id ) 
+			for( auto& pin : node.Inputs ) 
+			{
+				if( pin.ID == id )
 				{
 					SAT_CORE_INFO( ( size_t ) id.Get() );
 					return &pin;
 				}
+			}
 
-			for( auto& pin : node.Outputs )
-				if( pin.ID == id ) 
+			for( auto& pin : node.Outputs ) 
+			{
+				if( pin.ID == id )
 				{
-					SAT_CORE_INFO( ( size_t )id.AsPointer() );
+					SAT_CORE_INFO( ( size_t ) id.AsPointer() );
 					return &pin;
 				}
+			}
 		}
 
 		return nullptr;

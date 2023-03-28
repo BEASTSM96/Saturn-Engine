@@ -626,7 +626,8 @@ namespace Saturn {
 
 				if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
 				{
-					const wchar_t* c = rEntry.path().c_str();
+					auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
+					const wchar_t* c = path.c_str();
 
 					switch( assetType )
 					{
@@ -682,8 +683,10 @@ namespace Saturn {
 							break;
 						case Saturn::AssetType::Material:
 						{
+							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
+
 							// Find the asset.
-							Ref<Asset> asset = AssetRegistry::Get().FindAsset( rEntry.path().string() );
+							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
 							
 							// Importing the asset will happen in this function.
 							MaterialAssetViewer::Get().AddMaterialAsset( asset );
@@ -693,7 +696,9 @@ namespace Saturn {
 
 						case Saturn::AssetType::Prefab: 
 						{
-							Ref<Asset> asset = AssetRegistry::Get().FindAsset( rEntry.path().string() );
+							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
+
+							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
 
 							PrefabViewer::Get().AddPrefab( asset );
 						} break;
