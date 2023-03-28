@@ -217,7 +217,7 @@ namespace Saturn {
 
 		GameManager* pGameManager = new GameManager();
 
-		OpenFile( rUserSettings.StartupScene );
+		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
 		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 	}
@@ -752,8 +752,10 @@ namespace Saturn {
 
 		pHierarchyPanel->SetSelected( {} );
 
+		auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
+
 		SceneSerialiser serialiser( newScene );
-		serialiser.Deserialise( rFilepath.string() );
+		serialiser.Deserialise( fullPath.string() );
 
 		m_EditorScene = newScene;
 
@@ -855,12 +857,15 @@ namespace Saturn {
 		return true;
 	}
 
+	static bool s_OpenAssetFinderPopup = false;
+	static AssetID s_AssetFinderID = 0;
+
 	void EditorLayer::UI_Titlebar_UserSettings()
 	{
 		auto& userSettings = GetUserSettings();
 
 		auto& startupProject = userSettings.StartupProject;
-		auto& startupScene = userSettings.StartupScene;
+		auto& startupScene = Project::GetActiveProject()->m_Config.StartupScenePath;
 
 		ImGuiIO& rIO = ImGui::GetIO();
 
@@ -883,24 +888,56 @@ namespace Saturn {
 		}
 
 		ImGui::Text( "Startup Scene:" );
+		
+		if( s_OpenAssetFinderPopup )
+			ImGui::OpenPopup( "AssetFinderPopup" );
+		
 		ImGui::SameLine();
 		startupScene.empty() ? ImGui::Text( "None" ) : ImGui::Text( startupScene.c_str() );
 		ImGui::SameLine();
 		
-		ImGui::InputText( "##scene", ( char* ) startupScene.c_str(), 256 );
+		if( ImGui::Button( "...##scene" ) )
+			s_OpenAssetFinderPopup = true;
 
-		if( ImGui::BeginDragDropTarget() )
+		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
+		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 		{
-			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE" ) )
+			bool PopupModified = false;
+
+			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
 			{
-				const wchar_t* path = ( const wchar_t* ) payload->Data;
+				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
+				{
+					bool Selected = ( s_AssetFinderID == assetID );
 
-				std::wstring ws = path;
+					if( rAsset->GetAssetType() == AssetType::Scene || rAsset->GetAssetType() == AssetType::Unknown )
+					{
+						if( ImGui::Selectable( rAsset->GetName().c_str() ) )
+						{
+							Project::GetActiveProject()->m_Config.StartupScenePath = std::filesystem::relative( rAsset->GetPath(), Project::GetActiveProject()->GetRootDir() ).string();
+							
+							PopupModified = true;
+						}
+					}
 
-				startupScene = Auxiliary::ConvertWString( ws );
+					if( Selected )
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndListBox();
 			}
 
-			ImGui::EndDragDropTarget();
+			if( PopupModified )
+			{
+				s_OpenAssetFinderPopup = false;
+
+				ProjectSerialiser ps;
+				ps.Serialise( Project::GetActiveProject()->GetRootDir().string() );
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
 		}
 		
 		ImGui::End();

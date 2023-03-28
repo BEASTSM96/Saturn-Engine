@@ -92,7 +92,7 @@ namespace Saturn {
 
 		auto project = Project::GetActiveProject();
 
-		auto assetDir = project->GetAssetPath();
+		auto assetDir = project->GetFullAssetPath();
 
 		std::ofstream stream( assetDir /= "AssetRegistry.sreg" );
 		stream << out.c_str();
@@ -101,7 +101,7 @@ namespace Saturn {
 	void AssetRegistrySerialiser::Deserialise()
 	{
 		auto project = Project::GetActiveProject();
-		auto assetDir = project->GetAssetPath();
+		auto assetDir = project->GetFullAssetPath();
 		assetDir /= "AssetRegistry.sreg";
 
 		std::ifstream FileIn( assetDir );
@@ -120,14 +120,14 @@ namespace Saturn {
 			UUID assetID = asset[ "Asset" ].as< uint64_t >();
 
 			auto path = asset[ "Path" ].as< std::filesystem::path >();
-
 			auto type = asset[ "Type" ].as< std::string >();
 
 			AssetRegistry::Get().AddAsset( assetID );
 
 			Ref<Asset> DeserialisedAsset = AssetRegistry::Get().FindAsset( assetID );
 
-			DeserialisedAsset->SetPath( path );
+			DeserialisedAsset->Path = path;
+			DeserialisedAsset->Name = path.filename().replace_extension().string();
 			DeserialisedAsset->Type = AssetTypeFromString( type );
 		}
 	}

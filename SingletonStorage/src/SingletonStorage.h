@@ -30,6 +30,7 @@
 
 #include <typeindex>
 #include <unordered_map>
+#include <mutex>
 
 #include "SSBase.h"
 
@@ -78,6 +79,7 @@ namespace Saturn {
 
 	private:
 		std::unordered_map<std::type_index, void*> m_Singletons;
+		std::mutex m_Mutex;
 
 		static SingletonStorage* s_Instance;
 	};

@@ -58,13 +58,38 @@ namespace Saturn {
 
 	void Project::SetActiveProject( const Ref<Project>& rProject )
 	{
-		//SAT_CORE_ASSERT( rProject, "Project must be not be null!" );
 		s_ActiveProject = rProject;
+	}
+
+	std::string Project::FindProjectDir( const std::string& rName )
+	{
+		std::string fullName = rName + ".sproject";
+		std::string res = "";
+
+		for( auto& rEntry : std::filesystem::recursive_directory_iterator( std::filesystem::current_path() ) )
+		{
+			if( rEntry.is_directory() )
+				continue;
+
+			std::filesystem::path filepath = rEntry.path();
+
+			if( filepath.extension() == ".sproject" )
+			{
+				if( filepath.filename() == fullName ) 
+				{
+					res = filepath.string();
+
+					break;
+				}
+			}
+		}
+
+		return res;
 	}
 
 	void Project::CheckMissingAssetRefs()
 	{
-		auto AssetPath = GetAssetPath();
+		auto AssetPath = GetFullAssetPath();
 
 		bool FileChanged = false;
 
@@ -73,7 +98,7 @@ namespace Saturn {
 			if( rEntry.is_directory() )
 				continue;
 
-			std::filesystem::path filepath = rEntry.path();
+			std::filesystem::path filepath = std::filesystem::relative( rEntry.path(), GetRootDir() );
 
 			if( filepath.extension() == ".sreg" )
 				continue;
@@ -92,7 +117,7 @@ namespace Saturn {
 				auto id = AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( filepath.extension().string() ) );
 				asset = AssetRegistry::Get().FindAsset( id );
 
-				asset->SetPath( filepath );
+				asset->SetPath( rEntry.path() );
 
 				FileChanged = true;
 			}
@@ -113,7 +138,17 @@ namespace Saturn {
 
 	std::filesystem::path Project::GetAssetPath()
 	{
-		return GetActiveProject()->GetConfig().Path;
+		std::filesystem::path asset = GetActiveProject()->GetConfig().AssetPath;
+		return std::filesystem::relative( asset, asset.parent_path() );
+	}
+
+	std::filesystem::path Project::GetFullAssetPath()
+	{
+		// Root dir
+		auto rootDir = std::filesystem::path( GetActiveProject()->GetConfig().Path ).parent_path();
+		rootDir /= "Assets";
+
+		return rootDir;
 	}
 
 	const std::string& Project::GetName() const
@@ -128,7 +163,7 @@ namespace Saturn {
 
 	std::filesystem::path Project::GetRootDir()
 	{
-		return GetAssetPath().parent_path();
+		return GetFullAssetPath().parent_path();
 	}
 
 	std::filesystem::path Project::GetBinDir()
@@ -149,6 +184,19 @@ namespace Saturn {
 		return rootDir;
 	}
 
+	std::filesystem::path Project::GetPath()
+	{
+		return GetActiveProject()->GetConfig().Path;
+	}
+
+	std::filesystem::path Project::FilepathAbs( const std::filesystem::path& rPath )
+	{
+		auto rootDir = std::filesystem::path( GetActiveProject()->GetConfig().Path ).parent_path();
+		rootDir /= rPath;
+
+		return rootDir;
+	}
+
 	bool Project::HasPremakeFile()
 	{
 		return std::filesystem::exists( GetAssetPath().parent_path() / "premake5.lua" );
@@ -161,7 +209,7 @@ namespace Saturn {
 		if( std::filesystem::exists( PremakePath ) )
 			std::filesystem::remove( PremakePath );
 
-		std::filesystem::copy( "assets/Templates/premake5.lua", PremakePath );
+		std::filesystem::copy( "content/Templates/premake5.lua", PremakePath );
 
 		std::ifstream ifs( PremakePath );
 
@@ -244,13 +292,12 @@ namespace Saturn {
 		BuildFilePath /= GetName() + ".Build.cs";
 
 		if( !std::filesystem::exists( BuildFilePath ) )
-			std::filesystem::copy( "assets/Templates/%PROJECT_NAME%.Build.cs", BuildFilePath );
+			std::filesystem::copy( "content/Templates/%PROJECT_NAME%.Build.cs", BuildFilePath );
 	}
 
 	void Project::PrepForDist()
 	{
 		// Copy over the client main file
-
 		auto BuildPath = GetAssetPath().parent_path() / "Build";
 		BuildPath /= GetName() + "Main.cpp";
 
@@ -259,7 +306,7 @@ namespace Saturn {
 
 		std::filesystem::create_directory( GetAssetPath().parent_path() / "Build" );
 
-		std::filesystem::copy( "assets/Templates/%PROJECT_NAME%Main.cpp", BuildPath );
+		std::filesystem::copy( "content/Templates/%PROJECT_NAME%Main.cpp", BuildPath );
 
 		std::ifstream ifs( BuildPath );
 
@@ -275,17 +322,16 @@ namespace Saturn {
 			fileData.assign( std::istreambuf_iterator<char>( ifs ), std::istreambuf_iterator<char>() );
 		}
 
-		size_t pos = fileData.find( "%PROJECT_PATH%" );
+		size_t pos = fileData.find( "%PROJECT_NAME%" );
 
 		while( pos != std::string::npos )
 		{
-			UserSettings& rUserSetting = GetUserSettings();
-			std::string projectPath = rUserSetting.FullStartupProjPath.string();
+			std::string projectPath = GetName();
 			std::replace( projectPath.begin(), projectPath.end(), '\\', '/' );
 
 			fileData.replace( pos, 14, projectPath );
 
-			pos = fileData.find( "%PROJECT_PATH%" );
+			pos = fileData.find( "%PROJECT_NAME%" );
 		}
 
 		std::ofstream fout( BuildPath );

@@ -35,7 +35,7 @@
 #include <Saturn/Runtime/RuntimeLayer.h>
 #include <Saturn/Serialisation/UserSettingsSerialiser.h>
 
-static std::string s_ProjectPath = "%PROJECT_PATH%";
+static std::string s_ProjectPath = "";
 
 // Saturn client main:
 extern int _main( int, char** );
@@ -101,6 +101,8 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 	ApplicationSpecification spec {};
 	spec.Titlebar = true;	
 	spec.GameDist = true;
+
+	s_ProjectPath = Saturn::Project::FindProjectDir( "%PROJECT_NAME%" );
 
 	return new __GameApplication( spec, s_ProjectPath );
 }

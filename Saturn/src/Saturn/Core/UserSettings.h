@@ -40,9 +40,6 @@ namespace Saturn {
 		std::string StartupProjectName;
 		std::filesystem::path FullStartupProjPath;
 
-		std::string StartupScene;
-		std::filesystem::path StartupSceneFullPath;
-
 		std::vector< std::filesystem::path > RecentProjects;
 	};
 

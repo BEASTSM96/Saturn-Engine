@@ -71,15 +71,14 @@ namespace Saturn {
 		Project::GetActiveProject()->LoadAssetRegistry();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
-		OpenFile( rUserSettings.StartupScene );
-
 		EntityScriptManager::Get();
-		EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
 
 		GameDLL* pGameDLL = new GameDLL();
 		pGameDLL->Load();
 
 		GameManager* pGameManager = new GameManager();
+
+		//OpenFile( rUserSettings.StartupScene );
 
 		m_RuntimeScene->OnRuntimeStart();
 		m_RuntimeScene->m_RuntimeRunning = true;
@@ -94,11 +93,15 @@ namespace Saturn {
 	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )
 	{
 		Ref<Scene> newScene = Ref<Scene>::Create();
+		EntityScriptManager::Get().SetCurrentScene( newScene );
 
 		SceneSerialiser serialiser( newScene );
 		serialiser.Deserialise( rFilepath.string() );
 
 		m_RuntimeScene = newScene;
+
+		EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
+		EntityScriptManager::Get().TransferEntities( newScene );
 
 		newScene = nullptr;
 

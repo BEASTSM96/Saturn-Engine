@@ -251,6 +251,8 @@ namespace Saturn {
 			rEmitter << YAML::Key << "CCD" << YAML::Value << rbc.UseCCD;
 			rEmitter << YAML::Key << "Mass" << YAML::Value << rbc.Mass;
 
+			rEmitter << YAML::Key << "LockFlags" << YAML::Value << (int)rbc.LockFlags;
+
 			rEmitter << YAML::EndMap;
 		}
 
@@ -434,6 +436,17 @@ namespace Saturn {
 				rb.IsKinematic = rbc[ "IsKinematic" ].as< bool >();
 				rb.UseCCD = rbc[ "CCD" ].as< bool >();
 				rb.Mass = rbc[ "Mass" ].as< int >();
+
+				auto lockNode = rbc[ "LockFlags" ];
+
+				if ( lockNode )
+				{
+					rb.LockFlags = lockNode.as< int >(0);
+				}
+				else
+				{
+					rb.LockFlags = 0;
+				}
 			}
 
 			auto pmc = entity[ "PhysXMaterialComponent" ];

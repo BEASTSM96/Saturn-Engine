@@ -40,7 +40,8 @@ namespace Saturn {
 		std::string Name;
 		std::string StartupScenePath;
 
-		std::string Path;
+		std::string AssetPath; // Relative path
+		std::string Path; // Absolute path
 	};
 
 	class Project : public CountedObj
@@ -54,16 +55,24 @@ namespace Saturn {
 		static Ref<Project> GetActiveProject();
 		static void SetActiveProject( const Ref<Project>& rProject );
 
+		// Only to be used by the Game.
+		static std::string FindProjectDir( const std::string& rName );
+
 		void CheckMissingAssetRefs();
 		void LoadAssetRegistry();
 
 		std::filesystem::path GetAssetPath();
+		std::filesystem::path GetFullAssetPath();
 		const std::string& GetName() const;
 	
 		std::filesystem::path GetPremakeFile();
 		std::filesystem::path GetRootDir();
 
 		std::filesystem::path GetBinDir();
+
+		std::filesystem::path GetPath();
+
+		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
 
 		bool HasPremakeFile();
 		void CreatePremakeFile();

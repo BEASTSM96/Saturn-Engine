@@ -61,7 +61,6 @@ namespace Saturn {
 		{
 			out << YAML::Key << "Name" << YAML::Value << rProject->GetName();
 			out << YAML::Key << "AssetPath" << YAML::Value << rProject->GetAssetPath();
-			out << YAML::Key << "AssetBase" << YAML::Value << "Assets"; // TODO
 			out << YAML::Key << "StartupScene" << YAML::Value << rProject->m_Config.StartupScenePath;
 		}
 
@@ -89,10 +88,12 @@ namespace Saturn {
 
 		Ref<Project> newProject = Ref<Project>::Create();
 		{
-			newProject->m_Config.Name = project[ "Name" ].as<std::string>();
-			newProject->m_Config.Path = project[ "AssetPath" ].as<std::string>();
+			newProject->m_Config.Name      = project[ "Name" ].as<std::string>();
+			newProject->m_Config.AssetPath = project[ "AssetPath" ].as<std::string>();
 			newProject->m_Config.StartupScenePath = project[ "StartupScene" ].as<std::string>();
 		}
+
+		newProject->m_Config.Path = rFilePath;
 
 		Project::SetActiveProject( newProject );
 	}

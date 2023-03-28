@@ -32,6 +32,8 @@
 #include "Saturn/Core/Ref.h"
 #include "Saturn/Core/Memory/Buffer.h"
 
+#include "Saturn/Project/Project.h"
+
 #include <filesystem>
 
 namespace Saturn {
@@ -153,9 +155,10 @@ namespace Saturn {
 		const AssetType GetAssetType() const { return Type; }
 		const AssetID& GetAssetID() const { return ID; }
 		
-		void SetPath( std::filesystem::path p ) 
+		void SetPath( std::filesystem::path p )
 		{
-			Path = p; 
+			auto base = Project::GetActiveProject()->GetRootDir();
+			Path = std::filesystem::relative( p, base );
 
 			auto CopyPath = Path;
 			Name = CopyPath.replace_extension().filename().string();

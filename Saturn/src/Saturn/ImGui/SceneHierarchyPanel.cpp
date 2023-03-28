@@ -421,6 +421,8 @@ namespace Saturn {
 					{
 						bool Selected = ( id == assetID );
 
+						ImGui::PushID( assetID );
+
 						if( rAsset->GetAssetType() == m_CurrentFinderType || m_CurrentFinderType == AssetType::Unknown )
 						{
 							if( ImGui::Selectable( rAsset->GetName().c_str() ) )
@@ -430,6 +432,8 @@ namespace Saturn {
 								PopupModified = true;
 							}
 						}
+
+						ImGui::PopID();
 
 						if( Selected )
 							ImGui::SetItemDefaultFocus();
