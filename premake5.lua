@@ -447,6 +447,8 @@ project "ProjectBrowser"
 			{
 				'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 				
+				'{COPY} "../bin/Debug-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
+
 				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
 				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
 				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
@@ -461,7 +463,8 @@ project "ProjectBrowser"
 
 			postbuildcommands 
 			{ 
-				'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+				'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
+				'{COPY} "../bin/Release-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"'
 			}
 
 		filter "configurations:Dist"
@@ -472,7 +475,8 @@ project "ProjectBrowser"
 
 			postbuildcommands 
 			{ 
-				'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+				'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
+				'{COPY} "../bin/Release-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"'
 			}
 
 		filter "configurations:Release or configurations:Dist"

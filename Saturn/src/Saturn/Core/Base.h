@@ -66,6 +66,10 @@ x& operator=( const x& ) = delete
 
 #define BIT( x ) (1 << x)
 
+#define SAT_CURRENT_VERISON 0.1.0
+#define SAT_CURRENT_VERISON_STRING "0.1.0"
+#define SAT_FULL_BUILD_PATH "/saturn/build/++alpha/mvp/++0.1"
+
 namespace Saturn::Core {
 
 	inline void BreakDebug()
