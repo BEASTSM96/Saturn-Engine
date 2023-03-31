@@ -128,6 +128,8 @@ namespace Saturn {
 			auto [tc, rb] = PhysXView.get<TransformComponent, PhysXRigidbodyComponent>( entity );
 			rb.Rigidbody->SyncTransfrom();
 		}
+
+		EntityScriptManager::Get().OnPhysicsUpdate( ts );
 	}
 
 	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts )
@@ -254,15 +256,6 @@ namespace Saturn {
 						.MinRadius = lightComponent.MinRadius,
 						.Falloff = lightComponent.Falloff };
 
-					//m_Lights.PointLights.push_back( {
-					//	.Position = transformComponent.Position,
-					//	.Radiance = lightComponent.Radiance,
-					//	.Multiplier = lightComponent.Multiplier,
-					//	.LightSize = lightComponent.LightSize,
-					//	.Radius = lightComponent.Radius,
-					//	.MinRadius = lightComponent.MinRadius,
-					//	.Falloff = lightComponent.Falloff } );
-
 					m_Lights.PointLights.push_back( pl );
 
 					plIndex++;
@@ -357,6 +350,16 @@ namespace Saturn {
 			transform = GetTransformRelativeToParent( parent );
 
 		return transform * entity.GetComponent<TransformComponent>().GetTransform();
+	}
+
+	TransformComponent Scene::GetWorldSpaceTransform( Entity entity )
+	{
+		TransformComponent tc;
+
+		glm::mat4 worldSpace = GetTransformRelativeToParent( entity );
+		Math::DecomposeTransform( worldSpace, tc.Position, tc.Rotation, tc.Scale );
+
+		return tc;
 	}
 
 	void Scene::DestroyEntity( Entity entity )

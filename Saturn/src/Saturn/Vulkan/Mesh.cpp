@@ -228,7 +228,9 @@ namespace Saturn {
 			assetPath /= name.data;
 			assetPath += ".smaterial";
 
-			Ref<Asset> asset = AssetRegistry::Get().FindAsset( assetPath );
+			auto realPath = std::filesystem::relative( assetPath, Project::GetActiveProject()->GetRootDir() );
+
+			Ref<Asset> asset = AssetRegistry::Get().FindAsset( realPath );
 			Ref<MaterialAsset> materialAsset;
 
 			if( !asset ) 
@@ -282,7 +284,7 @@ namespace Saturn {
 				continue;
 			}
 
-			// Set the material data (only for new materials)/
+			// Set the material data (only for new materials).
 			
 			// Albedo Color
 			aiColor3D color;

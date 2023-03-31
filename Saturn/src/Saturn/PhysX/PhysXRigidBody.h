@@ -55,11 +55,14 @@ namespace Saturn {
 		void SetUserData( Entity& rEntity );
 		void UseCCD( bool ccd );
 		void SetMass( float mass );
-		void Rotate( glm::vec3 rotation );
+		void Rotate( const glm::vec3& rRotation );
 		void AddActorToScene();
 		void SetLinearVelocity( glm::vec3 linearVelocity );
+		void SetLinearDrag( float value );
 		bool IsKinematic() { return m_Kinematic; }
 		bool AttachShape( physx::PxShape& rShape );
+		
+		float GetLinearDrag();
 		glm::vec3 GetPosition();
 		glm::vec3 GetRotation();
 		glm::mat4 GetTransform();

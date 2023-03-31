@@ -41,6 +41,7 @@ namespace Saturn {
 
 	class Entity;
 	class Prefab;
+	struct TransformComponent;
 
 	using EntityMap = std::unordered_map<UUID, Entity>;
 
@@ -114,6 +115,7 @@ namespace Saturn {
 		Entity FindEntityByID( const UUID& id );
 
 		glm::mat4 GetTransformRelativeToParent( Entity entity );
+		TransformComponent GetWorldSpaceTransform( Entity entity );
 
 		void CopyScene( Ref<Scene>& NewScene );
 

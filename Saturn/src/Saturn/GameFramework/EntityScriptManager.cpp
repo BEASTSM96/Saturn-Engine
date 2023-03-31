@@ -114,6 +114,19 @@ namespace Saturn {
 			} );
 	}
 
+	void EntityScriptManager::OnPhysicsUpdate( Saturn::Timestep ts )
+	{
+		SAT_PF_EVENT();
+
+		GameThread::Get().Submit( [&]()
+			{
+				SAT_PF_EVENT( "Saturn::EntityScriptManager::OnPhysicsUpdate - Submit" );
+
+				for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
+					script->OnPhysicsUpdate( ts );
+			} );
+	}
+
 	void EntityScriptManager::CreateAllScripts()
 	{
 	}

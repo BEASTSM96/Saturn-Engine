@@ -111,6 +111,7 @@ namespace Saturn {
 
 		void BeginPlay() override {}
 		void OnUpdate( Saturn::Timestep ts ) override {}
+		void OnPhysicsUpdate( Saturn::Timestep ts ) override {}
 
 		void SetParent( const UUID& rID ) 
 		{

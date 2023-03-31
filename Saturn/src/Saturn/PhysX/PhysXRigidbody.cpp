@@ -97,6 +97,8 @@ namespace Saturn {
 		m_LockFlags = rb.LockFlags;
 		physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
 		pActor->setRigidDynamicLockFlags( ( physx::PxRigidDynamicLockFlags ) m_LockFlags );
+
+		SetLinearDrag( rb.LinearDrag );
 	}
 
 	void PhysXRigidbody::SetKinematic( bool kinematic )
@@ -128,13 +130,13 @@ namespace Saturn {
 		pActor->setMass( mass );	
 	}
 
-	void PhysXRigidbody::Rotate( glm::vec3 rotation )
+	void PhysXRigidbody::Rotate( const glm::vec3& rRotation )
 	{
 		physx::PxTransform trans = m_Body->getGlobalPose();
 
-		trans.q *= ( physx::PxQuat( glm::radians( rotation.x ), { 1.0f, 0.0f, 0.0f } )
-			* physx::PxQuat( glm::radians( rotation.y ), { 0.0F, 1.0F, 0.0F } )
-			* physx::PxQuat( glm::radians( rotation.z ), { 0.0F, 0.0F, 1.0F } ) );
+		trans.q *= ( physx::PxQuat( glm::radians( rRotation.x ), { 1.0f, 0.0f, 0.0f } )
+			* physx::PxQuat( glm::radians( rRotation.y ), { 0.0f, 1.0f, 0.0f } )
+			* physx::PxQuat( glm::radians( rRotation.z ), { 0.0f, 0.0f, 1.0f } ) );
 
 		m_Body->setGlobalPose( trans );
 	}
@@ -154,6 +156,18 @@ namespace Saturn {
 	bool PhysXRigidbody::AttachShape( physx::PxShape& rShape )
 	{
 		return m_Body->attachShape( rShape );
+	}
+
+	void PhysXRigidbody::SetLinearDrag( float value )
+	{
+		physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
+		pActor->setLinearDamping( value );
+	}
+
+	float PhysXRigidbody::GetLinearDrag()
+	{
+		physx::PxRigidDynamic* pActor = ( physx::PxRigidDynamic* ) m_Body;
+		return pActor->getLinearDamping();
 	}
 
 	glm::vec3 PhysXRigidbody::GetPosition()

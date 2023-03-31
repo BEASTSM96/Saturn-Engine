@@ -206,6 +206,7 @@ namespace Saturn {
 		bool IsKinematic = false;
 		bool UseCCD = false;
 		int Mass = 2;
+		float LinearDrag = 1.0f;
 
 		uint32_t LockFlags;
 

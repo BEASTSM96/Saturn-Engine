@@ -35,9 +35,12 @@ namespace Saturn {
 	
 	void PhysXRuntime::Update( Timestep ts, Scene& scene )
 	{
-		s_Scene->simulate( ts );
+		float FixedTimestep = 1.0f / 100.0f;
+
+		s_Scene->simulate( FixedTimestep );
 		s_Scene->fetchResults( true );
-		scene.OnUpdatePhysics( ts );
+
+		scene.OnUpdatePhysics( FixedTimestep );
 	}
 
 	void PhysXRuntime::Clear()

@@ -50,6 +50,8 @@ namespace Saturn {
 
 		void BeginPlay();
 		void UpdateAllScripts( Saturn::Timestep ts );
+		void OnPhysicsUpdate( Saturn::Timestep ts );
+
 		void CreateAllScripts();
 
 		void DestroyEntityInScene( const Ref<Scene>& rScene );

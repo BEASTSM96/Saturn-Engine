@@ -42,6 +42,7 @@ namespace Saturn {
 
 		virtual void BeginPlay() = 0;
 		virtual void OnUpdate( Saturn::Timestep ts ) = 0;
+		virtual void OnPhysicsUpdate( Saturn::Timestep ts ) = 0;
 
 	private:
 		friend class EntityScriptManager;
