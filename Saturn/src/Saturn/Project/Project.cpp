@@ -43,6 +43,14 @@ namespace Saturn {
 	
 	static Ref<Project> s_ActiveProject;
 
+	static std::vector<std::string> s_DisallowedAssetExtensions
+	{
+		{ ".fbx" },  // Already in the static mesh asset
+		{ ".gltf" }, // Already in the static mesh asset
+		{ ".bin" },  // Already in the static mesh asset
+		{ ".glb" },  // Already in the static mesh asset
+	};
+
 	Project::Project()
 	{
 	}
@@ -99,22 +107,23 @@ namespace Saturn {
 				continue;
 
 			std::filesystem::path filepath = std::filesystem::relative( rEntry.path(), GetRootDir() );
+			auto filepathString = filepath.extension().string();
 
 			if( filepath.extension() == ".sreg" )
 				continue;
 
 			Ref<Asset> asset = AssetRegistry::Get().FindAsset( filepath );
 
+			if( std::find( s_DisallowedAssetExtensions.begin(), s_DisallowedAssetExtensions.end(), filepathString ) != s_DisallowedAssetExtensions.end() )
+				continue; // Extension is forbidden.
+
 			const auto& assetReg = AssetRegistry::Get().GetAssetMap();
 			if( asset == nullptr ) 
 			{
-				// Search the asset asset registry
-				//if( assetReg.at( asset->GetAssetID() )->GetPath() == filepath )
-				//	continue;
-
 				SAT_CORE_INFO( "Found an asset that exists in the system filesystem, however not in the asset registry, creating new asset." );
 
-				auto id = AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( filepath.extension().string() ) );
+				auto type = AssetTypeFromExtension( filepathString );
+				auto id = AssetRegistry::Get().CreateAsset( type );
 				asset = AssetRegistry::Get().FindAsset( id );
 
 				asset->SetPath( rEntry.path() );

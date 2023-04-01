@@ -80,6 +80,9 @@ namespace Saturn {
 		Ref< Texture2D > m_BackIcon;
 		Ref< Texture2D > m_ForwardIcon;
 
+		bool m_ShowMeshImport = false;
+		std::filesystem::path m_ImportMeshPath;
+
 		struct AssetInfo
 		{
 			AssetType Type;

@@ -33,8 +33,6 @@
 #include <mutex>
 #include <condition_variable>
 
-#define SAT_ENABLE_GAMETHREAD
-
 namespace Saturn {
 
 	class GameThread

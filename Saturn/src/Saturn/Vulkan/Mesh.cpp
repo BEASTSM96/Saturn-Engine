@@ -221,11 +221,16 @@ namespace Saturn {
 
 			std::string MaterialName = std::string( name.C_Str() );
 
+			if( MaterialName.empty() ) 
+			{
+				MaterialName = "Unnamed Material" + std::to_string( rand() );
+			}
+
 			Ref<Texture2D> PinkTexture = Renderer::Get().GetPinkTexture();
 
 			// This is more of a hack, as we use parent_path just so we can add the material on to it.
 			auto assetPath = std::filesystem::path( m_FilePath ).parent_path();
-			assetPath /= name.data;
+			assetPath /= MaterialName;
 			assetPath += ".smaterial";
 
 			auto realPath = std::filesystem::relative( assetPath, Project::GetActiveProject()->GetRootDir() );
@@ -240,9 +245,17 @@ namespace Saturn {
 
 				asset->SetPath( assetPath );
 
-				materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( asset->GetAssetID() );
+				// Does not exists, mesh source did not copy it?
+				if( !std::filesystem::exists( assetPath ) )
+				{
+					materialAsset = Ref<MaterialAsset>::Create( nullptr );
+				}
+				else
+				{
+					materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( asset->GetAssetID() );
+				}
 
-				// material is still null, must likely a new material.
+				// Material is still null but exists, likely a new material.
 				if( materialAsset == nullptr ) 
 				{
 					materialAsset = Ref<MaterialAsset>::Create( nullptr );
@@ -527,6 +540,11 @@ namespace Saturn {
 
 			std::string MaterialName = std::string( name.C_Str() );
 
+			if( MaterialName.empty() )
+			{
+				MaterialName = "Unnamed Material " + std::to_string( rand() );
+			}
+
 			// Albedo Texture
 			{
 				aiString AlbedoTexturePath;
@@ -539,8 +557,8 @@ namespace Saturn {
 					pp /= std::string( AlbedoTexturePath.data );
 
 					auto AlbedoTexturePath = pp.string();
-
 					auto LocalPath = rDstPath;
+
 
 					LocalPath /= pp.filename();
 

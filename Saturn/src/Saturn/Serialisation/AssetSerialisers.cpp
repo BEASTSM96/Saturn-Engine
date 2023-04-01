@@ -624,7 +624,7 @@ namespace Saturn {
 	void StaticMeshAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
 	{
 		auto mesh = rAsset.As<StaticMesh>();
-		
+
 		YAML::Emitter out;
 
 		out << YAML::BeginMap;
@@ -633,7 +633,7 @@ namespace Saturn {
 
 		out << YAML::BeginMap;
 
-		out << YAML::Key << "Filepath" << YAML::Value << mesh->FilePath();
+		out << YAML::Key << "Filepath" << YAML::Value << std::filesystem::relative( mesh->FilePath(), Project::GetActiveProject()->GetRootDir() );
 
 		out << YAML::EndMap;
 
@@ -667,7 +667,8 @@ namespace Saturn {
 		auto meshData = data[ "StaticMesh" ];
 		auto filepath = meshData[ "Filepath" ].as<std::string>();
 
-		auto mesh = Ref<StaticMesh>::Create( filepath );
+		auto realMeshPath = Project::GetActiveProject()->FilepathAbs( filepath );
+		auto mesh = Ref<StaticMesh>::Create( realMeshPath.string() );
 
 		struct
 		{

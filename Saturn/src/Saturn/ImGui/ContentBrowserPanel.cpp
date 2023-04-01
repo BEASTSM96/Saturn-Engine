@@ -318,58 +318,8 @@ namespace Saturn {
 					// Meshes
 					if( path.extension() == ".fbx" || path.extension() == ".gltf" )
 					{
-						auto id = AssetRegistry::Get().CreateAsset( AssetType::StaticMesh );
-
-						auto asset = AssetRegistry::Get().FindAsset( id );
-
-						std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
-
-						auto assetPath = m_CurrentPath / path.filename();
-						assetPath.replace_extension( ".stmesh" );
-
-						asset->SetPath( assetPath );
-
-						if( path.extension() == ".gltf" )
-						{
-							auto filename = path.filename().string();
-
-							size_t pos = filename.find_last_of( "/\\" );
-
-							filename = filename.substr( pos + 1 );
-
-							pos = filename.find_last_of( "." );
-
-							filename = filename.substr( 0, pos );
-
-							auto& binaryFile = path.parent_path() / filename += ".bin";
-							auto& binaryFileTo = m_CurrentPath / filename += ".bin";
-
-							if( !std::filesystem::exists( binaryFile ) )
-								binaryFile = path.parent_path() / filename += ".glb";
-
-							if( std::filesystem::exists( binaryFile ) )
-								std::filesystem::copy_file( binaryFile, binaryFileTo );
-						}
-
-						// Create the mesh so we can copy over the texture (if any).
-						auto mesh = Ref<MeshSource>::Create( path, m_CurrentPath );
-						mesh = nullptr;
-
-						// Create the static mesh asset
-						auto staticMesh = asset.As<StaticMesh>();
-						staticMesh = Ref<StaticMesh>::Create();
-						staticMesh->ID = asset->ID;
-						staticMesh->Path = asset->Path;
-
-						staticMesh->SetFilepath( std::filesystem::path( m_CurrentPath / path.filename() ).string() );
-
-						StaticMeshAssetSerialiser sma;
-						sma.Serialise( staticMesh );
-
-						staticMesh->SetPath( assetPath );
-
-						AssetRegistrySerialiser ars;
-						ars.Serialise();
+						m_ShowMeshImport = true;
+						m_ImportMeshPath = path;
 					}
 				}
 
@@ -450,6 +400,126 @@ namespace Saturn {
 
 					ImGui::EndMenu();
 				}
+			}
+
+			ImGui::EndPopup();
+		}
+
+		if( m_ShowMeshImport )
+			ImGui::OpenPopup( "Import Mesh##IMPORT_MESH" );
+
+		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
+		if( ImGui::BeginPopupModal( "Import Mesh##IMPORT_MESH", &m_ShowMeshImport, ImGuiWindowFlags_NoMove ) )
+		{
+			static std::filesystem::path s_GLTFBinPath = "";
+			static bool s_UseBinFile = false;
+
+			bool PopupModified = false;
+
+			ImGui::BeginVertical( "##inputv" );
+
+			ImGui::Text( "Path:" );
+
+			ImGui::BeginHorizontal( "##inputH" );
+
+			ImGui::InputText( "##path", (char*) m_ImportMeshPath.string().c_str(), 1024 );
+
+			if( ImGui::Button( "Browse" ) ) 
+			{
+				m_ImportMeshPath = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb)\0*.fbx; *.gltf; *.glb\0" );
+			}
+
+			ImGui::EndHorizontal();
+
+			ImGui::EndVertical();
+
+			// If the path a GLTF file then we need to file the bin file.
+			if( m_ImportMeshPath.extension() == ".gltf" || m_ImportMeshPath.extension() == ".glb" )
+			{
+				// We can assume the bin file has the same name as the mesh.
+				if( s_GLTFBinPath == "" ) 
+				{
+					s_GLTFBinPath = m_ImportMeshPath;
+					s_GLTFBinPath.replace_extension( ".glb" );
+				}
+
+				ImGui::BeginVertical( "##gltfinput" );
+
+				ImGui::Text( "GLTF binary file path:" );
+
+				ImGui::BeginHorizontal( "##gltfinputH" );
+
+				ImGui::InputText( "##binpath", ( char* ) s_GLTFBinPath.string().c_str(), 1024 );
+
+				if( ImGui::Button( "Browse" ) )
+				{
+					s_GLTFBinPath = Application::Get().OpenFile( "Supported asset types (*.glb *.bin)\0*.glb; *.bin\0" );
+				}
+				
+				ImGui::EndHorizontal();
+
+				ImGui::Checkbox( "Use Binary File", &s_UseBinFile );
+
+				ImGui::EndVertical();
+			}
+			
+			ImGui::BeginHorizontal( "##actionsH" );
+
+			if( ImGui::Button( "Create" ) )
+			{
+				auto id = AssetRegistry::Get().CreateAsset( AssetType::StaticMesh );
+				auto asset = AssetRegistry::Get().FindAsset( id );
+
+				// Copy the mesh source.
+				std::filesystem::copy_file( m_ImportMeshPath, m_CurrentPath / m_ImportMeshPath.filename() );
+
+				if( s_UseBinFile )
+					std::filesystem::copy_file( s_GLTFBinPath, m_CurrentPath / s_GLTFBinPath.filename() );
+
+				auto assetPath = m_CurrentPath / m_ImportMeshPath.filename();
+				assetPath.replace_extension( ".stmesh" );
+
+				asset->SetPath( assetPath );
+
+				// TODO: This is bad.
+				// Create the mesh so we can copy over the texture (if any).
+				auto mesh = Ref<MeshSource>::Create( m_ImportMeshPath, m_CurrentPath );
+				mesh = nullptr;
+
+				// Create the mesh asset.
+				auto staticMesh = asset.As<StaticMesh>();
+				staticMesh = Ref<StaticMesh>::Create();
+				staticMesh->ID = asset->ID;
+				staticMesh->Path = asset->Path;
+				
+				auto& meshPath = assetPath.replace_extension( m_ImportMeshPath.extension() );
+				staticMesh->SetFilepath( meshPath.string() );
+
+				// Save the mesh asset
+				StaticMeshAssetSerialiser sma;
+				sma.Serialise( staticMesh );
+
+				staticMesh->SetPath( assetPath );
+
+				AssetRegistrySerialiser ars;
+				ars.Serialise();
+
+				PopupModified = true;
+			}
+
+			if( ImGui::Button( "Cancel" ) )
+			{
+				m_ShowMeshImport = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndHorizontal();
+
+			if( PopupModified )
+			{
+				m_ShowMeshImport = false;
+
+				ImGui::CloseCurrentPopup();
 			}
 
 			ImGui::EndPopup();
@@ -797,6 +867,12 @@ namespace Saturn {
 					m_Files.erase( std::remove( m_Files.begin(), m_Files.end(), rEntry ), m_Files.end() );
 
 				continue;
+			}
+
+			if( !rEntry.is_directory() ) 
+			{
+				if( AssetTypeFromExtension( rEntry.path().extension().string() ) == AssetType::Unknown )
+					continue;
 			}
 
 			m_Files.push_back( rEntry );
