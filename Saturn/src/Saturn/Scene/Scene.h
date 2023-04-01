@@ -37,6 +37,8 @@
 
 #include "entt.hpp"
 
+#include <shared_mutex>
+
 namespace Saturn {
 
 	class Entity;
@@ -144,6 +146,53 @@ namespace Saturn {
 
 	private:
 
+		//////////////////////////////////////////////////////////////////////////
+		// TODO: Rework this is as locking a mutex every frame can be bad for performance.
+
+		template<typename Ty, typename... Args>
+		Ty& AddComponent(entt::entity entity, Args&&... args )
+		{
+#if defined( SAT_ENABLE_GAMETHREAD )
+			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
+#endif
+			if( !HasComponent<Ty>( entity ) )
+				return m_Registry.emplace<Ty>( entity, std::forward<Args>( args )... );
+			else
+				return GetComponent<Ty>( entity );
+		}
+
+		template<typename Ty>
+		bool HasComponent( entt::entity entity )
+		{
+#if defined( SAT_ENABLE_GAMETHREAD )
+			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
+#endif
+			return m_Registry.any_of<Ty>( entity );
+		}
+
+		template<typename Ty>
+		void RemoveComponent( entt::entity entity )
+		{
+#if defined( SAT_ENABLE_GAMETHREAD )
+			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
+#endif
+			if( HasComponent<Ty>( entity ) )
+				m_Registry.remove<Ty>( entity );
+		}
+
+		template<typename Ty>
+		Ty& GetComponent( entt::entity entity )
+		{
+#if defined( SAT_ENABLE_GAMETHREAD )
+			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
+#endif
+			SAT_CORE_ASSERT( HasComponent<Ty>( entity ), "Entity does not have component!" );
+
+			return m_Registry.get<Ty>( entity );
+		}
+
+	private:
+
 		UUID m_SceneID;
 
 		std::string m_Name;
@@ -157,6 +206,8 @@ namespace Saturn {
 		entt::entity m_SelectedEntity;
 
 		Lights m_Lights;
+
+		std::mutex m_Mutex;
 
 		PhysXRuntime* m_PhysXRuntime;
 

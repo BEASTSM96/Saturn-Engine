@@ -532,6 +532,9 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
+		if( Application::Get().GetSpecification().GameDist )
+			return;
+
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		// Set UB Data.
@@ -1351,7 +1354,7 @@ namespace Saturn {
 
 		VkViewport Viewport = {};
 		Viewport.x = 0;
-		Viewport.y = m_RendererData.Height;
+		Viewport.y = ( float ) m_RendererData.Height;
 		Viewport.width = ( float ) m_RendererData.Width;
 		Viewport.height = -( float ) m_RendererData.Height;
 		Viewport.minDepth = 0.0f;

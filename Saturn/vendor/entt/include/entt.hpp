@@ -40,6 +40,7 @@
 #    define ENTT_CATCH if(false)
 #endif
 
+#define ENTT_USE_ATOMIC
 #ifdef ENTT_USE_ATOMIC
 #    include <atomic>
 #    define ENTT_MAYBE_ATOMIC(Type) std::atomic<Type>

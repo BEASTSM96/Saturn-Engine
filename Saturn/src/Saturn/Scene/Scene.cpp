@@ -94,6 +94,8 @@ namespace Saturn {
 
 	Entity Scene::GetMainCameraEntity()
 	{
+		std::unique_lock Lock( m_Mutex, std::try_to_lock );
+
 		auto view = GetAllEntitiesWith<CameraComponent>();
 
 		for ( const auto& entity : view )

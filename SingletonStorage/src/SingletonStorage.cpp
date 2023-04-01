@@ -31,7 +31,7 @@
 namespace Saturn {
 
 	Saturn::SingletonStorage* SingletonStorage::s_Instance;
-
+	
 	SingletonStorage::SingletonStorage() 
 	{
 		// Yes, we should check if its already been created but, no.

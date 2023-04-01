@@ -94,7 +94,6 @@ namespace Saturn {
 				rFunc();
 
 			m_CommandBuffer.clear();
-
 		}
 
 		m_Running->store( false );
