@@ -392,66 +392,6 @@ namespace Saturn {
 		m_RendererData.SceneCompositePipeline = Ref<Pipeline>::Create( PipelineSpec );
 	}
 
-	void SceneRenderer::InitAOComposite()
-	{
-		PassSpecification PassSpec = {};
-		PassSpec.Name = "AO-Composite";
-		PassSpec.Attachments = { ImageFormat::RGBA32F };
-		PassSpec.LoadColor = true;
-
-		if( m_RendererData.AOComposite )
-			m_RendererData.AOComposite->Recreate();
-		else
-			m_RendererData.AOComposite = Ref<Pass>::Create( PassSpec );
-
-		FramebufferSpecification FBSpec = {};
-		FBSpec.RenderPass = m_RendererData.AOComposite;
-		FBSpec.Width = m_RendererData.Width;
-		FBSpec.Height = m_RendererData.Height;
-		FBSpec.CreateDepth = false;
-		FBSpec.ExistingImage = m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ];
-		//FBSpec.Attachments = { ImageFormat::RGBA32F };
-
-		//if( m_RendererData.AOCompositeFramebuffer )
-		//	m_RendererData.AOCompositeFramebuffer->Recreate( m_RendererData.Width, m_RendererData.Height );
-		//else
-			m_RendererData.AOCompositeFramebuffer = Ref<Framebuffer>::Create( FBSpec );
-
-		if( !m_RendererData.AOCompositeShader )
-		{
-			ShaderLibrary::Get().Load( "content/shaders/AO-Composite.glsl" );
-			m_RendererData.AOCompositeShader = ShaderLibrary::Get().Find( "AO-Composite" );
-		}
-
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
-		PipelineSpec.Name = "AO-Composite";
-		PipelineSpec.Shader = m_RendererData.AOCompositeShader;
-		PipelineSpec.RenderPass = m_RendererData.AOComposite;
-		PipelineSpec.UseDepthTest = false;
-		PipelineSpec.CullMode = CullMode::None;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-
-		if( m_RendererData.AOCompositePipeline )
-			m_RendererData.AOCompositePipeline = nullptr;
-
-		m_RendererData.AOCompositePipeline = Ref<Pipeline>::Create( PipelineSpec );
-
-		if( !m_RendererData.AO_DescriptorSet )
-			m_RendererData.AO_DescriptorSet = m_RendererData.AOCompositeShader->CreateDescriptorSet( 0 );
-
-		m_RendererData.AOCompositeShader->WriteDescriptor( "u_AlbedoTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 2 ]->GetDescriptorInfo(), m_RendererData.AO_DescriptorSet->GetVulkanSet() );
-
-		m_RendererData.AOCompositeShader->WriteDescriptor( "u_TestTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ]->GetDescriptorInfo(), m_RendererData.AO_DescriptorSet->GetVulkanSet() );
-
-		m_RendererData.AOCompositeShader->WriteAllUBs( m_RendererData.AO_DescriptorSet );
-	}
-
 	void SceneRenderer::InitBloom()
 	{
 		if( !m_RendererData.BloomShader )
@@ -1376,40 +1316,6 @@ namespace Saturn {
 
 		// End scene composite pass.
 		pass->EndPass();
-	}
-
-	void SceneRenderer::AOCompositePass()
-	{
-		SAT_PF_EVENT();
-
-		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
-		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
-
-		m_RendererData.AOComposite->BeginPass( CommandBuffer, m_RendererData.AOCompositeFramebuffer->GetVulkanFramebuffer(), Extent );
-
-		m_RendererData.AOCompositeTimer.Reset();
-
-		VkViewport Viewport = {};
-		Viewport.x = 0;
-		Viewport.y = 0;
-		Viewport.width = ( float ) m_RendererData.Width;
-		Viewport.height = ( float ) m_RendererData.Height;
-		Viewport.minDepth = 0.0f;
-		Viewport.maxDepth = 1.0f;
-
-		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
-
-		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
-		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
-
-		// Draw
-		// We can use the SSAO vertex and index buffers.
-		//Renderer::Get().SubmitFullscreenQuad(
-		//	m_RendererData.CommandBuffer, m_RendererData.AOCompositePipeline, m_RendererData.AO_DescriptorSet, m_RendererData.SSAO_IndexBuffer, m_RendererData.SSAO_VertexBuffer );
-
-		m_RendererData.AOComposite->EndPass();
-
-		m_RendererData.AOCompositeTimer.Stop();
 	}
 
 	struct UBLights

@@ -273,17 +273,6 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 
 		//////////////////////////////////////////////////////////////////////////
-		// AO
-		//////////////////////////////////////////////////////////////////////////
-
-		// AO-Composite
-
-		Ref< DescriptorSet > AO_DescriptorSet = nullptr;
-		Ref<Pipeline> AOCompositePipeline = nullptr;
-		Ref<Pass> AOComposite = nullptr;
-		Ref<Framebuffer> AOCompositeFramebuffer = nullptr;
-
-		//////////////////////////////////////////////////////////////////////////
 		// BLOOM
 		//////////////////////////////////////////////////////////////////////////
 
@@ -382,7 +371,6 @@ namespace Saturn {
 		void InitDirShadowMap();
 		void InitPreDepth();
 		void InitSceneComposite();
-		void InitAOComposite();
 		void InitBloom();
 		void InitTexturePass();
 
@@ -391,7 +379,6 @@ namespace Saturn {
 		void LightCullingPass();
 		void GeometryPass();
 		void BloomPass();
-		void AOCompositePass();
 		void SceneCompositePass();
 		void TexturePass();
 
