@@ -259,6 +259,16 @@ namespace Saturn {
 	template<typename... V>
 	struct ComponentGroup {};
 
+	// Where T is the component and V is the target ComponentGroup.
+	template<typename T, typename... V>
+	struct ExcludeComponent;
+
+	template<typename T, typename... V>
+	struct ExcludeComponent<T, ComponentGroup<V...>>
+	{
+		using type = ComponentGroup<std::conditional_t<std::is_same_v<T, V>, T, V>...>;
+	};
+
 	using AllComponents = ComponentGroup<TransformComponent, TagComponent, IdComponent, RelationshipComponent, PrefabComponent,
 		StaticMeshComponent, 
 		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,

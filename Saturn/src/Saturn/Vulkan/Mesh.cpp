@@ -58,10 +58,6 @@
 
 namespace Saturn {
 
-#if defined( SAT_DEBUG )
-	std::thread s_DebugThread;
-#endif
-
 	glm::mat4 Mat4FromAssimpMat4( const aiMatrix4x4& matrix )
 	{
 		glm::mat4 result;

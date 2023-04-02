@@ -419,7 +419,15 @@ namespace Saturn {
 
 		newEntity = CreateEntity( entity.GetComponent<TagComponent>().Tag );
 
-		CopyComponentIfExists( AllComponents{}, newEntity, entity, m_Registry );
+		// Without TagComponent and IdComponent
+		using DesiredComponents = ComponentGroup<TransformComponent, RelationshipComponent, PrefabComponent,
+			StaticMeshComponent,
+			LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
+			CameraComponent,
+			PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent,
+			ScriptComponent>;
+
+		CopyComponentIfExists( DesiredComponents{}, newEntity, entity, m_Registry );
 	}
 
 	void Scene::DeleteEntity( Entity entity )
