@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 
+// This file does need a rework.
+// When we compile we should have the Worker thread generate the file information, but we make sure that we don't write the to file.
 namespace SaturnBuildTool.Tools
 {
     internal class HeaderTool
@@ -26,9 +29,8 @@ namespace SaturnBuildTool.Tools
             public Dictionary<int, Property> Properties;
         }
 
-        public HeaderTool() 
+        public HeaderTool()
         {
-            CurrentFile.Properties = new Dictionary<int, Property>();
         }
 
         public static readonly HeaderTool Instance = new HeaderTool();
@@ -36,8 +38,24 @@ namespace SaturnBuildTool.Tools
         // If the last line had a SPROPERTY macro.
         public bool LastLineHadSP;
 
-        // This should only be set when parsing the header, as we are only paring the header.
-        private CurrentGenFile CurrentFile = new CurrentGenFile();
+        public enum CommandType 
+        {
+            Header,
+            Source
+        }
+
+        public struct Command
+        {
+            public StringBuilder GeneratedHeader;
+            public StringBuilder GeneratedSource;
+
+            public CurrentGenFile CurrentFile;
+            public CommandType Type;
+            public string GenFilepath;
+        }
+
+        // Filepath, Command
+        private Dictionary<string, Command> CommandQueue = new Dictionary<string, Command>();
 
         public bool IsFilepathGeneratedH(string Filepath) 
         {
@@ -125,9 +143,6 @@ namespace SaturnBuildTool.Tools
                 Console.WriteLine(ex.Message);
             }
 
-            if(!AnyReflectiveCodeFound)
-                Console.WriteLine("No reflective code was found for " + Path.GetFileName(HeaderPath) );
-
             return AnyReflectiveCodeFound;
         }
 
@@ -180,17 +195,23 @@ namespace SaturnBuildTool.Tools
 
             FileStream fs = new FileStream(GenHeaderPath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
             fs.SetLength(0);
-
-            StreamWriter streamWriter = new StreamWriter(fs);
+            fs.Close();
 
             string GenWarning = "/* Generated code, DO NOT modify! */";
 
+            Command cmd;
+            CommandQueue.TryGetValue(HeaderPath, out cmd);
+            cmd.CurrentFile = new CurrentGenFile();
+
             // Reset.
             string FirstBaseClass = GetFirstBaseClass( HeaderPath );
-            CurrentFile.BaseClass = FirstBaseClass;
+            cmd.CurrentFile.BaseClass = FirstBaseClass;
 
             // Reset the class name.
-            CurrentFile.ClassName = null;
+            cmd.CurrentFile.ClassName = null;
+            cmd.CurrentFile.Properties = new Dictionary<int, Property>();
+
+            cmd.GeneratedHeader = new StringBuilder();
 
             try
             {
@@ -199,13 +220,13 @@ namespace SaturnBuildTool.Tools
                 string line;
                 int lineNumber = 0;
 
-                streamWriter.WriteLine(GenWarning);
+                cmd.GeneratedHeader.AppendLine(GenWarning);
 
-                streamWriter.WriteLine("#pragma once\r\n");
+                cmd.GeneratedHeader.AppendLine("#pragma once\r\n");
 
-                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
+                cmd.GeneratedHeader.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
 
-                streamWriter.WriteLine("\r\n");
+                cmd.GeneratedHeader.AppendLine("\r\n");
 
                 while ((line = sr.ReadLine()) != null)
                 {
@@ -222,36 +243,44 @@ namespace SaturnBuildTool.Tools
                         {
                             string type = m.Groups["type"].Value;
                             string name = m.Groups["name"].Value;
-                            
-                            Property p = new Property 
+
+                            Property p = new Property
                             {
                                 Name = name,
                                 Type = type,
                                 Line = lineNumber
                             };
 
-                            CurrentFile.Properties[lineNumber] = p;
+                            if (cmd.CurrentFile.Properties.ContainsKey(lineNumber))
+                            {
+                                cmd.CurrentFile.Properties.TryGetValue(lineNumber, out Property oldProp);
+                                oldProp = p;
+                            }
+                            else
+                            {
+                                cmd.CurrentFile.Properties[lineNumber] = p;
+                            }
                         }
 
                         LastLineHadSP = false;
                     }
 
-                    if (line.Contains("SCLASS") && LineIsNotComment( line ) ) 
+                    if (line.Contains("SCLASS") && LineIsNotComment(line))
                     {
                         if (line.Contains("Spawnable"))
                         {
-                            CurrentFile.SClassInfo |= SC.Spawnable;
+                            cmd.CurrentFile.SClassInfo |= SC.Spawnable;
                         }
 
                         if (line.Contains("VisibleInEditor"))
                         {
-                            CurrentFile.SClassInfo |= SC.VisibleInEditor;
+                            cmd.CurrentFile.SClassInfo |= SC.VisibleInEditor;
                         }
                     }
 
-                    if( line.Contains("class") && CurrentFile.ClassName == null && LineIsNotComment( line ) ) 
+                    if (line.Contains("class") && cmd.CurrentFile.ClassName == null && LineIsNotComment(line))
                     {
-                        CurrentFile.ClassName = GetClassName(line);
+                        cmd.CurrentFile.ClassName = GetClassName(line);
                     }
 
                     if (line.Contains("GENERATED_BODY") && LineIsNotComment(line))
@@ -266,9 +295,9 @@ namespace SaturnBuildTool.Tools
                         CFI += Path.GetFileNameWithoutExtension(HeaderPath);
                         CFI += "_h"; // always end with _h
 
-                        streamWriter.WriteLine("\r\n");
+                        cmd.GeneratedHeader.AppendLine("\r\n");
 
-                        streamWriter.WriteLine(CFI);
+                        cmd.GeneratedHeader.AppendLine(CFI);
 
                         // Now we define the real, GENERATED_BODY macro.
                         string idGeneratedBody = "#define ";
@@ -288,14 +317,14 @@ namespace SaturnBuildTool.Tools
                         classDeclarations += ") \\\r\n";
                         classDeclarations += "public:";
 
-                        streamWriter.WriteLine("\r\n");
-                        streamWriter.WriteLine(classDeclarations);
+                        cmd.GeneratedHeader.AppendLine("\r\n");
+                        cmd.GeneratedHeader.AppendLine(classDeclarations);
 
                         idGeneratedBody += baseFileId;
                         idGeneratedBody += "_CLASSDECLS \r\n";
 
-                        streamWriter.WriteLine("\r\n");
-                        streamWriter.WriteLine(idGeneratedBody);
+                        cmd.GeneratedHeader.AppendLine("\r\n");
+                        cmd.GeneratedHeader.AppendLine(idGeneratedBody);
                     }
 
                     if (line.Contains("SPROPERTY") && LineIsNotComment(line))
@@ -307,225 +336,246 @@ namespace SaturnBuildTool.Tools
                             Line = lineNumber + 1
                         };
 
-                        CurrentFile.Properties.Add(p.Line, p);
+                        if (!cmd.CurrentFile.Properties.ContainsKey(p.Line) || !cmd.CurrentFile.Properties.ContainsValue(p))
+                        {
+                            cmd.CurrentFile.Properties.Add(p.Line, p);
+                        }
 
                         if (line.Contains("VisibleInEditor"))
                         {
                             p.Flags |= SP.VisibleInEditor;
                         }
                     }
-
-
                 }
-
-                sr.Close();
             }
-            catch (Exception e)
+            catch(Exception e) 
             {
-                Console.WriteLine("The file could not be read:");
-                Console.WriteLine(e.Message);
+               Console.WriteLine("Error when trying to generate header:");
+               Console.WriteLine( e.Message );
             }
 
-            streamWriter.Close();
+            WriteGeneratedHeader(GenHeaderPath, cmd.GeneratedHeader);
+
+            CommandQueue[HeaderPath] = cmd;
 
             return Result;
         }
 
-        private bool GenerateSourceI(string GenSourcePath) 
+        private bool GenerateSource(string GenSourcePath, string HeaderPath) 
         {
             bool Result = false;
 
             FileStream fs = new FileStream(GenSourcePath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
             fs.SetLength(0);
-
-            StreamWriter streamWriter = new StreamWriter(fs);
+            fs.Close();
 
             string GenWarning = "/* Generated code, DO NOT modify! */";
 
+            Command cmd;
+            CommandQueue.TryGetValue(HeaderPath, out cmd);
+            cmd.GeneratedSource = new StringBuilder();
+
             try
             {
-                streamWriter.WriteLine(GenWarning);
+                cmd.GeneratedSource.AppendLine(GenWarning);
 
-                streamWriter.WriteLine(string.Format("#include \"{0}\"", string.Format( "{0}.Gen.h", CurrentFile.ClassName ) ));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", string.Format( "{0}.Gen.h", cmd.CurrentFile.ClassName ) ));
 
-                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
-                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GamePrefabList.h"));
-                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/EntityScriptManager.h"));
-                streamWriter.WriteLine(string.Format("#include \"{0}\"", "Saturn/Scene/Entity.h"));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GamePrefabList.h"));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/EntityScriptManager.h"));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/Scene/Entity.h"));
 
-                streamWriter.WriteLine(string.Format("#include \"{0}\"\r\n", string.Format( "{0}.h", CurrentFile.ClassName )));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"\r\n", string.Format( "{0}.h", cmd.CurrentFile.ClassName )));
 
                 string cExternBeg = "extern \"C\" {\r\n";
                 string cExternEnd = "}\r\n";
 
-                streamWriter.WriteLine(cExternBeg);
+                cmd.GeneratedSource.AppendLine(cExternBeg);
 
                 // Check if this class is spawnable
-                if ((CurrentFile.SClassInfo & SC.Spawnable) == SC.Spawnable)
+                if ((cmd.CurrentFile.SClassInfo & SC.Spawnable) == SC.Spawnable)
                 {
                     // If our class in spawnable we can now create the spawn function.
 
                     string function = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
-                    function += CurrentFile.ClassName;
+                    function += cmd.CurrentFile.ClassName;
                     function += "()\r\n";
                     function += "{\r\n";
                     function += "\t return ";
-                    function += CurrentFile.ClassName;
+                    function += cmd.CurrentFile.ClassName;
                     function += "::Spawn();\r\n";
                     function += "}\r\n";
 
-                    streamWriter.WriteLine(function);
+                    cmd.GeneratedSource.AppendLine(function);
 
                     string functionBaseClass = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
-                    functionBaseClass += CurrentFile.ClassName;
+                    functionBaseClass += cmd.CurrentFile.ClassName;
                     functionBaseClass += "_FromBase";
-                    functionBaseClass += string.Format("({0}* Ty)\r\n", CurrentFile.BaseClass);
+                    functionBaseClass += string.Format("({0}* Ty)\r\n", cmd.CurrentFile.BaseClass);
                     functionBaseClass += "{\r\n";
                     functionBaseClass += "\t return new ";
-                    functionBaseClass += CurrentFile.ClassName;
+                    functionBaseClass += cmd.CurrentFile.ClassName;
                     functionBaseClass += "(*Ty);\r\n";
                     functionBaseClass += "}\r\n";
 
-                    streamWriter.WriteLine(functionBaseClass);
+                    cmd.GeneratedSource.AppendLine(functionBaseClass);
 
-                    streamWriter.WriteLine("//^^^ Spawnable\r\n");
+                    cmd.GeneratedSource.AppendLine("//^^^ Spawnable\r\n");
                 }
                 else 
                 {
                     string function = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
-                    function += CurrentFile.ClassName;
+                    function += cmd.CurrentFile.ClassName;
                     function += "()\r\n";
                     function += "{\r\n";
                     function += "\treturn nullptr;\r\n";
                     function += "}\r\n";
 
-                    streamWriter.WriteLine(function);
+                    cmd.GeneratedSource.AppendLine(function);
 
                     string functionBaseClass = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
-                    functionBaseClass += CurrentFile.ClassName;
+                    functionBaseClass += cmd.CurrentFile.ClassName;
                     functionBaseClass += "_FromBase";
-                    functionBaseClass += string.Format("({0}* Ty)\r\n", CurrentFile.BaseClass);
+                    functionBaseClass += string.Format("({0}* Ty)\r\n", cmd.CurrentFile.BaseClass);
                     functionBaseClass += "{\r\n";
                     functionBaseClass += "\treturn nullptr;\r\n";
                     functionBaseClass += "}\r\n";
 
-                    streamWriter.WriteLine(functionBaseClass);
+                    cmd.GeneratedSource.AppendLine(functionBaseClass);
 
-                    streamWriter.WriteLine("//^^^ NO Spawnable\r\n");
+                    cmd.GeneratedSource.AppendLine("//^^^ NO Spawnable\r\n");
                 }
 
-                streamWriter.WriteLine(cExternEnd);
+                cmd.GeneratedSource.AppendLine(cExternEnd);
 
                 // Add to prefab list
-                string prefab = string.Format("static void _RT_Z_AddPrefab_{0}()\r\n", CurrentFile.ClassName);
+                string prefab = string.Format("static void _RT_Z_AddPrefab_{0}()\r\n", cmd.CurrentFile.ClassName);
                 prefab += "{\r\n";
-                prefab += string.Format("\t Saturn::GamePrefabList::Get().Add(\"{0}\");\r\n", CurrentFile.ClassName);
+                prefab += string.Format("\t Saturn::GamePrefabList::Get().Add(\"{0}\");\r\n", cmd.CurrentFile.ClassName);
                 prefab += "}\r\n";
                 prefab += "//^^^ Type is prefab...\r\n";
 
-                streamWriter.WriteLine(prefab);
+                cmd.GeneratedSource.AppendLine(prefab);
 
                 // Properties
-                string propfunc = string.Format("static void _Zp_{0}_Reg_Props()\r\n", CurrentFile.ClassName);
+                string propfunc = string.Format("static void _Zp_{0}_Reg_Props()\r\n", cmd.CurrentFile.ClassName);
                 propfunc += "{\r\n";
 
-                foreach (KeyValuePair<int, Property> kv in CurrentFile.Properties)
+                foreach (KeyValuePair<int, Property> kv in cmd.CurrentFile.Properties)
                 {
                     Property property = kv.Value;
 
+                    if (property.Name == null)
+                        continue;
+
                     propfunc += string.Format("\t// [_Zp_Public_Prop] {0} of type {1}\r\n", property.Name.ToUpper(), property.Type.ToUpper());
-                    propfunc += string.Format("\t//Saturn::EntityScriptManager::Get().AddProperty( \"{0}\", \"{1}\", (void*)&{2}::{1});\r\n", CurrentFile.ClassName, property.Name, CurrentFile.ClassName);
+                    propfunc += string.Format("\t//Saturn::EntityScrviptManager::Get().AddProperty( \"{0}\", \"{1}\", (void*)&{2}::{1});\r\n", cmd.CurrentFile.ClassName, property.Name, cmd.CurrentFile.ClassName);
                 }
 
                 propfunc += "}\r\n";
                 propfunc += "//^^^ Public Properties\r\n";
 
-                streamWriter.WriteLine(propfunc);
+                cmd.GeneratedSource.AppendLine(propfunc);
 
                 // Auto-Registration (DLL only).
                 if (BuildConfig.Instance.GetTargetConfig() < ConfigKind.DistDebug)
                 {
                     Random random = new Random();
                     int randomNumber = random.Next();
-
-                    string call = string.Format("struct _Z_{0}_RT_Editor\r\n", CurrentFile.ClassName);
+                        
+                    string call = string.Format("struct _Z_{0}_RT_Editor\r\n", cmd.CurrentFile.ClassName);
                     call += "{\r\n";
-                    call += string.Format("\t_Z_{0}_RT_Editor()\r\n", CurrentFile.ClassName);
+                    call += string.Format("\t_Z_{0}_RT_Editor()\r\n", cmd.CurrentFile.ClassName);
                     call += "\t{\r\n";
                     //call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
-                    call += string.Format("\t\t_RT_Z_AddPrefab_{0}();\r\n", CurrentFile.ClassName);
-                    call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", CurrentFile.ClassName);
+                    call += string.Format("\t\t_RT_Z_AddPrefab_{0}();\r\n", cmd.CurrentFile.ClassName);
+                    call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", cmd.CurrentFile.ClassName);
                     call += "\r\n";
                     call += "\t}\r\n";
                     call += "};\r\n";
                     call += "\r\n";
-                    call += string.Format("static _Z_{0}_RT_Editor _Z_RT_{0}_{1};", CurrentFile.ClassName, randomNumber);
+                    call += string.Format("static _Z_{0}_RT_Editor _Z_RT_{0}_{1};", cmd.CurrentFile.ClassName, randomNumber);
 
-                    streamWriter.WriteLine(call);
-                    streamWriter.WriteLine("//^^^ Auto-Registration\r\n");
+                    cmd.GeneratedSource.AppendLine(call);
+                    cmd.GeneratedSource.AppendLine("//^^^ Auto-Registration\r\n");
                 }
                 else
                 {
                     string call = "// No Auto-Registration Game is exe.\r\n";
-                    streamWriter.WriteLine(call);
+                    cmd.GeneratedSource.AppendLine(call);
                 }
             }
             catch (Exception e) 
             {
-                Console.WriteLine("The file could not be read:");
+                Console.WriteLine("Error when generating source:");
                 Console.WriteLine(e.Message);
             }
+  
+            WriteGeneratedSource(GenSourcePath, cmd.GeneratedSource);
 
-            streamWriter.Close();
-            fs.Close();
+            CommandQueue[HeaderPath] = cmd;
 
             return Result;
         }
 
         public bool GenerateSource(string SourcePath)
         {
+            // Assume the Filepath is a source file
             string GenFilepath = Path.ChangeExtension(SourcePath, ".Gen.cpp");
-
             string HeaderFilepath = Path.ChangeExtension(SourcePath, ".h");
 
-            if (!File.Exists(SourcePath))
+            if (!File.Exists(HeaderFilepath))
                 return false;
 
-            if (IsFilepathGeneratedS(SourcePath))
+            if (IsFilepathGeneratedS(HeaderFilepath))
                 return false;
 
-            // If the header can be reflected so can the source.
             if (!CanFileBeReflected(HeaderFilepath))
                 return false;
 
-            if (NoReflectInFile(SourcePath))
+            if (NoReflectInFile(HeaderFilepath))
                 return false;
 
-            // Safe to create the file.
+            if (!CommandQueue.ContainsKey(HeaderFilepath))
+            {
+                Command cmd = new Command
+                {
+                    Type = CommandType.Source,
+                    GenFilepath = GenFilepath
+                };
+
+                try
+                {
+                    CommandQueue.Add(HeaderFilepath, cmd);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+            else
+            {
+                Command cmd;
+                CommandQueue.TryGetValue(HeaderFilepath, out cmd);
+
+                cmd.Type |= CommandType.Source;
+
+                CommandQueue[HeaderFilepath] = cmd;
+            }
+
             if (!File.Exists(GenFilepath))
-                  File.Create(GenFilepath);
+                File.Create(GenFilepath).Close();
 
-            bool Result = false;
+            GenerateSource(GenFilepath, HeaderFilepath);
 
-            try
-            {
-                // We want to read the header.
-                Result = GenerateSourceI(GenFilepath);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("The file could not be read:");
-                Console.WriteLine(e.Message);
-            }
-
-            return Result;
+            return false;
         }
 
-        public bool GenerateHeader(string Filepath) 
+        public bool GenerateHeader(string Filepath)
         {
             // Assume the Filepath is a source file
             string HeaderFilepath = Path.ChangeExtension(Filepath, ".h");
-
             string GenFilepath = Path.ChangeExtension(HeaderFilepath, ".Gen.h");
 
             if (!File.Exists(HeaderFilepath))
@@ -540,23 +590,145 @@ namespace SaturnBuildTool.Tools
             if (NoReflectInFile(HeaderFilepath))
                 return false;
 
-            // Safe to create the file.
-            if (!File.Exists(GenFilepath))
-                File.Create(GenFilepath);
-
-            bool Result = false;
-
-            try
+            if (!CommandQueue.ContainsKey(HeaderFilepath))
             {
-                Result = GenerateHeader( GenFilepath, HeaderFilepath );
+                Command cmd = new Command
+                {
+                    Type = CommandType.Header,
+                    GenFilepath = GenFilepath
+                };
+
+                try
+                {
+                    CommandQueue.Add(HeaderFilepath, cmd);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine("The file could not be read:");
-                Console.WriteLine(e.Message);
             }
 
-            return Result;
+            if (!File.Exists(GenFilepath)) 
+                File.Create(GenFilepath).Close();
+
+            GenerateHeader( GenFilepath, HeaderFilepath);
+
+            return false;
+        }
+
+        public void ExecuteAll() 
+        {
+            foreach (KeyValuePair<string, Command> kv in CommandQueue) 
+            {
+                string Filepath = kv.Key;
+                Command cmd = kv.Value;
+
+                switch (cmd.Type) 
+                {
+                    case CommandType.Source:
+                        {
+                            string GenFilepath = Path.ChangeExtension(cmd.GenFilepath, ".Gen.cpp");
+
+                            // Safe to create the file.
+                            FileStream fs = null;
+                            if (!File.Exists(GenFilepath))
+                                fs = File.Create(GenFilepath);
+
+                            if (fs != null)
+                                fs.Close();
+
+                            GenerateSource(Filepath, GenFilepath);
+                        } break;
+
+                    case CommandType.Header:
+                        {
+                            // Safe to create the file.
+                            FileStream fs = null;
+                            if (!File.Exists(cmd.GenFilepath))
+                                fs = File.Create(cmd.GenFilepath);
+
+                            if (fs != null)
+                                fs.Close();
+
+                            GenerateHeader(cmd.GenFilepath, Filepath);
+                        } break;
+                }
+            }
+        }
+
+        private void WriteGeneratedHeader(string Filepath, StringBuilder Contents) 
+        {
+            //string GenFilepath = Path.ChangeExtension( Filepath, ".Gen.h" );
+
+            FileStream fs = new FileStream(Filepath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite );
+            fs.SetLength(0);
+
+            StreamWriter streamWriter = new StreamWriter(fs);
+
+            streamWriter.WriteLine(Contents.ToString());
+
+            streamWriter.Close();
+            fs.Close();
+        }
+
+        private void WriteGeneratedSource(string Filepath, StringBuilder Contents)
+        {
+            //string GenFilepath = Path.ChangeExtension(Filepath, ".Gen.cpp");
+
+            FileStream fs = new FileStream(Filepath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+            fs.SetLength(0);
+
+            StreamWriter streamWriter = new StreamWriter(fs);
+
+            streamWriter.WriteLine(Contents.ToString());
+
+            streamWriter.Close();
+            fs.Close();
+        }
+
+        private void WriteGeneratedFile(string Path, Command command) 
+        {
+            switch (command.Type) 
+            {
+                case CommandType.Header:
+                    {
+                        WriteGeneratedHeader(Path, command.GeneratedHeader);
+                    } break;
+
+                case CommandType.Source:
+                    {
+                        WriteGeneratedSource(Path, command.GeneratedSource);
+                    }
+                    break;
+            }
+        }
+
+        public void WriteGeneratedFiles()
+        {
+            foreach (KeyValuePair<string, Command> kv in CommandQueue)
+            {
+                string filepath = kv.Key;
+                Command cmd = kv.Value;
+
+                WriteGeneratedFile(filepath, cmd);
+            }
+        }
+
+        public List<string> GetAllGeneratedFiles()
+        {
+            List<string> generatedFiles = new List<string>();
+
+            foreach (KeyValuePair<string, Command> kv in CommandQueue)
+            {
+                Command cmd = kv.Value;
+
+                generatedFiles.Add(cmd.GenFilepath);
+            }
+            
+            return generatedFiles;
         }
     }
 }

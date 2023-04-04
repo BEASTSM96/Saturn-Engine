@@ -73,6 +73,9 @@ namespace SaturnBuildTool
             // Unwind semantics.
             Args.Add(" /EHsc");
 
+            // Allow for multiple CL.exes to write to the same pdb file.
+            Args.Add(" /FS");
+
             // I would of included DistDebug to be in here, however DistDebug will always Dist bins of the engine.
             if (TargetToBuild.CurrentConfig == ConfigKind.Debug || TargetToBuild.CurrentConfig == ConfigKind.DistDebug)
             {

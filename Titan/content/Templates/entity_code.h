@@ -17,6 +17,7 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void OnUpdate( Saturn::Timestep ts ) override;
+	virtual void OnPhysicsUpdate( Saturn::Timestep ts ) override;
 
 private:
 

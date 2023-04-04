@@ -75,12 +75,14 @@ namespace SaturnBuildTool.Tools
                     {
                         strings.Add(f);
                     }
+
                     DirSearch(d, isSourceOnly);
                 }
 
                 foreach (string f in Directory.GetFiles(sDir))
                 {
-                    strings.Add(f);
+                   // if( !f.Contains(".Gen.") )
+                        strings.Add(f);
                 }
             }
             catch (System.Exception excpt)

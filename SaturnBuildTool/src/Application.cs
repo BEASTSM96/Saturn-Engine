@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using SaturnBuildTool.Cache;
@@ -29,6 +30,16 @@ namespace SaturnBuildTool
 
         private FileCache FileCache = null;
 
+        private bool HasCompiledAnyFile = false;
+
+        private int NumTasksFailed = 0;
+
+        private List<string> FilesCompiling = new List<string>();
+        private List<bool> ThreadsCompleted = new List<bool>();
+
+        private bool IsRebuild = false;
+
+        List<string> SourceFiles = null;
         private void FindSourceDir()
         {
             SourceDir = Path.Combine(ProjectDir, "Scripts");
@@ -101,30 +112,25 @@ namespace SaturnBuildTool
             FileCache = FileCache.Load(CacheLocation);
         }
 
-        public void Run() 
+        private void CompileFiles_ForThread(object state) 
         {
-            Stopwatch time = Stopwatch.StartNew();
-
-            Console.WriteLine("==== Saturn Build Tool v0.0.1 ====");
-
-            List<string> sourceFiles = DirectoryTools.DirSearch(SourceDir, true);
-            List<string> sourceBuildFiles = DirectoryTools.DirSearch(BuildDir);
-
-            bool HasCompiledAnyFile = false;
-            int NumTaskFailed = 0;
-
-            foreach (string file in sourceFiles)
+            foreach (string file in SourceFiles)
             {
+                if (FilesCompiling.Contains(file))
+                    continue;
+
                 // We are only building c++ files.
                 if (!FileCache.IsCppFile(file))
                 {
                     continue;
                 }
 
+                FilesCompiling.Add(file);
+
                 // Only compile the file if it has not be changed.
                 FileCache.FilesInCache.TryGetValue(file, out DateTime LastTime);
 
-                if (Args[0] == "/REBUILD")
+                if (IsRebuild)
                 {
                     int exitCode = Toolchain.Compile(file);
 
@@ -136,9 +142,9 @@ namespace SaturnBuildTool
                             FileCache.CacheFile(file);
                     }
                     else
-                        NumTaskFailed++;
+                        NumTasksFailed++;
                 }
-                else if (Args[0] == "/BUILD" && (LastTime != File.GetLastWriteTime(file)))
+                else if (LastTime != File.GetLastWriteTime(file))
                 {
                     int exitCode = Toolchain.Compile(file);
 
@@ -150,9 +156,86 @@ namespace SaturnBuildTool
                             FileCache.CacheFile(file);
                     }
                     else
-                        NumTaskFailed++;
+                        NumTasksFailed++;
                 }
             }
+
+            ThreadsCompleted.Add(true);
+        }
+
+        private bool CompileFiles() 
+        {
+            SourceFiles = DirectoryTools.DirSearch(SourceDir, true);
+
+            int threadCount = 0;
+            threadCount = (int)Math.Ceiling((double)SourceFiles.Count / (Environment.ProcessorCount / 2));
+
+            if (threadCount > 1)
+            {
+                ThreadPool.SetMaxThreads(threadCount, threadCount);
+
+                for (int i = 0; i < threadCount; i++)
+                {
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(CompileFiles_ForThread));
+                }
+
+                while (ThreadsCompleted.Count < threadCount)
+                {
+                    // Wait
+                }
+            }
+            else 
+            {
+                CompileFiles_ForThread(null);
+            }
+
+            /*
+            // Compiling of the main files done, compile the generated files.
+            Console.WriteLine("Generating files... (One Thread)");
+
+            Stopwatch time = Stopwatch.StartNew();
+            //HeaderTool.Instance.WriteGeneratedFiles();
+
+            Console.WriteLine("Done in {0}", time.Elapsed);
+
+            // Compiling of the main files done, compile the generated files.
+            Console.WriteLine("Compiling generated files... (One Thread)");
+
+            List<string> files = HeaderTool.Instance.GetAllGeneratedFiles();
+
+            foreach (string file in files) 
+            {
+                FileCache.FilesInCache.TryGetValue(file, out DateTime LastTime);
+
+                if (IsRebuild)
+                {
+                    Toolchain.Compile(file, false);
+                }
+                else if(LastTime != File.GetLastWriteTime(file))
+                {
+                    Toolchain.Compile(file, false);
+                }
+
+                if (!FileCache.IsFileInCache(file))
+                    FileCache.CacheFile(file);
+            }
+            */
+
+            return NumTasksFailed == 0;
+        }
+
+        public void Run() 
+        {
+            Thread.Sleep(5000);
+
+            Stopwatch time = Stopwatch.StartNew();
+
+            Console.WriteLine("==== Saturn Build Tool v0.0.1 ====");
+
+            IsRebuild = Args[0] == "/REBUILD";
+
+            List<string> sourceBuildFiles = DirectoryTools.DirSearch(BuildDir);
+            CompileFiles();
 
             if( BuildConfig.Instance.GetTargetConfig() >= ConfigKind.DistDebug )
             {
@@ -179,7 +262,7 @@ namespace SaturnBuildTool
                                 FileCache.CacheFile(file);
                         }
                         else
-                            NumTaskFailed++;
+                            NumTasksFailed++;
                     }
                     else if (Args[0] == "/BUILD" && (LastTime != File.GetLastWriteTime(file)))
                     {
@@ -193,14 +276,14 @@ namespace SaturnBuildTool
                                 FileCache.CacheFile(file);
                         }
                         else
-                            NumTaskFailed++;
+                            NumTasksFailed++;
                     }
                 }
             }
 
-            Console.WriteLine(string.Format("{0} task(s) failed.", NumTaskFailed));
+            Console.WriteLine(string.Format("{0} task(s) failed.", NumTasksFailed));
 
-            if (HasCompiledAnyFile && NumTaskFailed == 0)
+            if (HasCompiledAnyFile && NumTasksFailed == 0)
                 Toolchain.Link();
 
             if (HasCompiledAnyFile)
