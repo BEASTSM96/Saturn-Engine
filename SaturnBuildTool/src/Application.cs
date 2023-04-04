@@ -226,8 +226,6 @@ namespace SaturnBuildTool
 
         public void Run() 
         {
-            Thread.Sleep(5000);
-
             Stopwatch time = Stopwatch.StartNew();
 
             Console.WriteLine("==== Saturn Build Tool v0.0.1 ====");
