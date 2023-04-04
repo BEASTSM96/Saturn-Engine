@@ -352,11 +352,10 @@ namespace Saturn {
 							// In order to create this, we will need to create the class the user wants then we can create the prefab from it.
 
 							// Create the prefab asset
-							AssetID id = AssetRegistry::Get().CreateAsset( AssetType::Prefab );
-							auto asset = AssetRegistry::Get().FindAsset( id );
-
-							auto PrefabAsset = asset.As<Prefab>();
+							Ref<Prefab> PrefabAsset = AssetRegistry::Get().CreateAsset<Prefab>( AssetType::Prefab );
 							PrefabAsset->Create();
+
+							auto asset = AssetRegistry::Get().FindAsset( PrefabAsset->ID );
 
 							// Create the user class
 							// Try register
@@ -373,7 +372,8 @@ namespace Saturn {
 							std::filesystem::path path = m_CurrentPath / name;
 							path.replace_extension( ".prefab" );
 
-							asset->SetPath( path );
+							PrefabAsset->SetPath( path );
+							asset->SetPath( path ); // HACK
 
 							// Serialise
 							PrefabSerialiser ps;
@@ -505,6 +505,8 @@ namespace Saturn {
 				ars.Serialise();
 
 				PopupModified = true;
+
+				UpdateFiles( true );
 			}
 
 			if( ImGui::Button( "Cancel" ) )
@@ -564,6 +566,8 @@ namespace Saturn {
 				ars.Serialise();
 
 				PopupModified = true;
+
+				UpdateFiles( true );
 			}
 
 			if( PopupModified )

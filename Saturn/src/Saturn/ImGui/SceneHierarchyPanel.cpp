@@ -539,8 +539,24 @@ namespace Saturn {
 		{
 			DrawBoolControl( "Is Kinematic", rb.IsKinematic );
 			DrawBoolControl( "Use CCD", rb.UseCCD );
-			
-			DrawIntControl( "Mass", rb.Mass );
+
+			int value = rb.Mass;
+			bool modified = false;
+			modified |= ImGui::DragInt( "Mass##intx", &value, 0.0f, 5000, 0, "%.2f" );
+
+			if ( modified )
+			{
+				rb.Mass = value;
+			}
+
+			float drag = rb.LinearDrag;
+			modified = false;
+			modified |= ImGui::DragFloat( "LinearDrag##inty", &drag, 0.0f, 5000, 0, "%.2f" );
+
+			if( modified )
+			{
+				rb.LinearDrag = drag;
+			}
 
 			// Lock Flags
 			bool locationX = rb.LockFlags & LockFlags::LockLocationX;

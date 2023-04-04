@@ -490,6 +490,8 @@ namespace Saturn {
 		delete m_PhysXRuntime;
 	}
 
+	// Returns the Entity and the game class (if any).
+	// This is not good as the SClass will hold the entity anyway.
 	std::pair<Entity, SClass*> Scene::CreatePrefab( Ref<Prefab> prefabAsset )
 	{
 		Entity prefabEntity;

@@ -297,7 +297,7 @@ namespace Saturn {
 
 	void Project::CreateBuildFile()
 	{
-		auto BuildFilePath = GetAssetPath().parent_path() / "Scripts";
+		auto BuildFilePath = GetRootDir() / "Scripts";
 		BuildFilePath /= GetName() + ".Build.cs";
 
 		if( !std::filesystem::exists( BuildFilePath ) )
