@@ -1,6 +1,6 @@
 workspace "Saturn"
 	architecture "x64"
-	startproject "Titan"
+	startproject "Saturn-Editor"
 	targetdir "build"
 	warnings "Default"
 
@@ -233,8 +233,8 @@ project "Saturn"
 ---------------------------------------------------------------------------------------------------------------------------
 
 group "Editor"
-project "Titan"
-	location "Titan"
+project "Saturn-Editor"
+	location "Saturn-Editor"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
