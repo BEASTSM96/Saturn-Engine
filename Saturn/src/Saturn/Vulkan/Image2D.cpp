@@ -162,7 +162,7 @@ namespace Saturn {
 		// TODO: Get mip levels
 		ImageCreateInfo.mipLevels = 1;
 		ImageCreateInfo.arrayLayers = m_ArrayLevels;
-		ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		ImageCreateInfo.samples = VulkanContext::Get().GetMaxUsableMSAASamples();
 		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 
 		if( IsColorFormat( m_Format ) )

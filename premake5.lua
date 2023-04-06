@@ -318,11 +318,23 @@ project "Saturn-Editor"
 		runtime "Release"
 		optimize "on"
 
+		postbuildcommands 
+		{ 
+			'{COPY} "../bin/Release-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+		}
+
 	filter "configurations:Dist"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
 		kind "WindowedApp"
+
+		postbuildcommands 
+		{ 
+			'{COPY} "../bin/Dist-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
+			'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+		}
 
 	filter "configurations:Dist or configurations:Release"
 		postbuildcommands 

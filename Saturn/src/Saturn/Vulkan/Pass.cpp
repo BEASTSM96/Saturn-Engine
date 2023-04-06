@@ -181,7 +181,7 @@ namespace Saturn {
 				{
 					.flags = 0,
 					.format = VulkanFormat( attachment ),
-					.samples = VK_SAMPLE_COUNT_1_BIT,
+					.samples = VulkanContext::Get().GetMaxUsableMSAASamples(),
 					.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
 					.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 					.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -196,7 +196,7 @@ namespace Saturn {
 				{
 					.flags = 0,
 					.format = VulkanFormat( attachment ),
-					.samples = VK_SAMPLE_COUNT_1_BIT,
+					.samples = VulkanContext::Get().GetMaxUsableMSAASamples(),
 					.loadOp = IsColorFormat( attachment ) ? clrOp : dtpOp,
 					.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 					.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,

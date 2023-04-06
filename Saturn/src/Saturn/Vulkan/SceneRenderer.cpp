@@ -1014,7 +1014,7 @@ namespace Saturn {
 		// Render static meshes.
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
 
-		for( auto& Cmd : m_ShadowMapDrawList )
+		for( auto& Cmd : m_DrawList )
 		{
 			// Entity may of been deleted.
 			if( !Cmd.entity )
@@ -1036,7 +1036,7 @@ namespace Saturn {
 
 			u_Lights.nbLights = int( m_pScene->m_Lights.PointLights.size() );
 
-			std::memcpy( u_Lights.Lights, m_pScene->m_Lights.PointLights.data(), m_pScene->m_Lights.GetPointLightSize() );
+			memcpy( u_Lights.Lights, m_pScene->m_Lights.PointLights.data(), m_pScene->m_Lights.GetPointLightSize() );
 
 			struct SceneData
 			{

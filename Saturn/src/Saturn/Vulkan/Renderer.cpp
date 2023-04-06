@@ -258,7 +258,7 @@ namespace Saturn {
 		mesh->GetIndexBuffer()->Bind( CommandBuffer );
 		Pipeline->Bind( CommandBuffer );
 
-		for( Submesh& rSubmesh : mesh->Submeshes() )
+		Submesh& rSubmesh = mesh->Submeshes()[ SubmeshIndex ];
 		{
 			auto& rMaterialAsset = mesh->GetMaterialAssets()[ rSubmesh.MaterialIndex ];
 

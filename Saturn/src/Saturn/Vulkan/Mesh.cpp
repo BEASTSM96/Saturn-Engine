@@ -277,8 +277,10 @@ namespace Saturn {
 				asset->Path = OldAssetData.Path;
 				asset->Name = OldAssetData.Name;
 
+				/*
 				MaterialAssetSerialiser mas;
 				mas.Serialise( materialAsset );
+				*/
 
 				materialAsset->SetName( MaterialName );
 
@@ -503,7 +505,7 @@ namespace Saturn {
 				}
 
 				MaterialAssetSerialiser mas;
-				mas.Serialise( materialAsset, nullptr );
+				mas.Serialise( materialAsset );
 			}
 		}
 
