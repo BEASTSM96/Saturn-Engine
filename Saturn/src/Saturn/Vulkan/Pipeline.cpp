@@ -225,7 +225,6 @@ namespace Saturn {
 		VertexInputState.pVertexAttributeDescriptions = VertexInputAttributes.data();
 		
 		///// Descriptor sets
-		
 		if( m_Specification.RequestDescriptorSets.SetIndex == -1 && m_Specification.RequestDescriptorSets.Stage == ShaderType::None )
 		{
 			// No descriptor set requested.
@@ -316,7 +315,7 @@ namespace Saturn {
 
 		VkPipelineMultisampleStateCreateInfo PipelineMultisampleState = { VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
 		PipelineMultisampleState.sampleShadingEnable = VK_TRUE;
-		PipelineMultisampleState.rasterizationSamples = VulkanContext::Get().GetMaxUsableMSAASamples();
+		PipelineMultisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		VkPipelineDepthStencilStateCreateInfo DepthStencilState = { VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
 		DepthStencilState.depthTestEnable = m_Specification.UseDepthTest ? VK_TRUE : VK_FALSE;

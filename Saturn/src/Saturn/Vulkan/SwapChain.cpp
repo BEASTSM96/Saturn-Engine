@@ -32,6 +32,8 @@
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
 
+#include "VulkanImageAux.h"
+
 namespace Saturn {
 
 	Swapchain::Swapchain()
@@ -93,14 +95,19 @@ namespace Saturn {
 	void Swapchain::CreateFramebuffers()
 	{
 		SwapchainCreationData SwapchainData = VulkanContext::Get().GetSwapchainCreationData();
-		
+
 		m_Framebuffers.resize( m_ImageViews.size() );
-			
+		
+		// As we are the swapchain we know that we are going to have an MSAA sample so, we will create the image here.
+		auto format = SaturnFormat( SwapchainData.CurrentFormat.format );
+		m_MSAAImage = Ref<Image2D>::Create( format, SwapchainData.SurfaceCaps.currentExtent.width, SwapchainData.SurfaceCaps.currentExtent.height, 1, VulkanContext::Get().GetMaxUsableMSAASamples() );
+
 		for( int i = 0; i < m_ImageViews.size(); i++ )
 		{
 			std::vector< VkImageView > Attachments;
 			Attachments.push_back( m_ImageViews[ i ] );
 			Attachments.push_back( VulkanContext::Get().GetDepthImageView() );
+			Attachments.push_back( m_MSAAImage->GetImageView() );
 			
 			VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 			FramebufferCreateInfo.width = SwapchainData.SurfaceCaps.currentExtent.width;

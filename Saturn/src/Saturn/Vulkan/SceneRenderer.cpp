@@ -1167,7 +1167,7 @@ namespace Saturn {
 			m_RendererData.DirShadowMapPipelines[ i ]->GetShader()->WriteAllUBs( m_RendererData.DirShadowMapPipelines[ i ]->GetDescriptorSet( ShaderType::Vertex, 0 ) );
 
 			// Begin directional shadow map pass.
-			CmdBeginDebugLabel( CommandBuffer, "DirShadowMap" );
+			CmdBeginDebugLabel( CommandBuffer, "ShadowMap" );
 			vkCmdBeginRenderPass( CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
 
 			vkCmdSetViewport( m_RendererData.CommandBuffer, 0, 1, &Viewport );

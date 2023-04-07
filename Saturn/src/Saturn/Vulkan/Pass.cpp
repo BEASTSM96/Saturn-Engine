@@ -169,6 +169,7 @@ namespace Saturn {
 		// Attachment Description
 
 		std::vector< VkAttachmentDescription > AttachmentDescriptions;
+		VkAttachmentDescription				   MSAA_AttachmentDescriptions;
 		
 		for ( auto attachment : m_PassSpec.Attachments )
 		{
@@ -177,11 +178,37 @@ namespace Saturn {
 
 			if( m_PassSpec.IsSwapchainTarget )
 			{
+				if( IsDepthFormat( attachment ) && attachment == m_PassSpec.Attachments.back() )
+				{
+					// This is the last attachment add out MSAA color attachment.
+					if( m_PassSpec.MSAASamples >= VK_SAMPLE_COUNT_2_BIT )
+					{
+						AttachmentDescriptions.push_back(
+							{
+									.flags = 0,
+									.format = VK_FORMAT_B8G8R8A8_UNORM,
+									.samples = m_PassSpec.MSAASamples,
+									.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+									.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+									.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+									.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+									.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+									.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+							} );
+
+						VkAttachmentReference MSAAReslove = {};
+						MSAAReslove.attachment = AttachmentDescriptions.size() - 1;
+						MSAAReslove.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+						DefaultSubpass.pResolveAttachments = &MSAAReslove;
+					}
+				}
+
 				AttachmentDescriptions.push_back(
 				{
 					.flags = 0,
 					.format = VulkanFormat( attachment ),
-					.samples = VulkanContext::Get().GetMaxUsableMSAASamples(),
+					.samples = IsDepthFormat( attachment ) ? m_PassSpec.MSAASamples : VK_SAMPLE_COUNT_1_BIT,
 					.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
 					.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 					.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -196,7 +223,7 @@ namespace Saturn {
 				{
 					.flags = 0,
 					.format = VulkanFormat( attachment ),
-					.samples = VulkanContext::Get().GetMaxUsableMSAASamples(),
+					.samples = VK_SAMPLE_COUNT_1_BIT,
 					.loadOp = IsColorFormat( attachment ) ? clrOp : dtpOp,
 					.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 					.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,

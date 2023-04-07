@@ -76,7 +76,8 @@ namespace Saturn {
 		PassSpecification Specification = {};
 		Specification.Name = "Swapchain render pass";
 		Specification.IsSwapchainTarget = true;
-		
+		Specification.MSAASamples = GetMaxUsableMSAASamples();
+
 		// BGRA8 will be VK_IMAGE_LAYOUT_PRESENT_SRC_KHR as this is the swapchain target.
 		Specification.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
@@ -383,14 +384,12 @@ namespace Saturn {
 
 		VkSampleCountFlags counts = props.limits.framebufferColorSampleCounts & props.limits.framebufferDepthSampleCounts;
 
-		/*
 		if( counts & VK_SAMPLE_COUNT_64_BIT ) { return VK_SAMPLE_COUNT_64_BIT; }
 		if( counts & VK_SAMPLE_COUNT_32_BIT ) { return VK_SAMPLE_COUNT_32_BIT; }
 		if( counts & VK_SAMPLE_COUNT_16_BIT ) { return VK_SAMPLE_COUNT_16_BIT; }
 		if( counts & VK_SAMPLE_COUNT_8_BIT ) { return VK_SAMPLE_COUNT_8_BIT; }
 		if( counts & VK_SAMPLE_COUNT_4_BIT ) { return VK_SAMPLE_COUNT_4_BIT; }
 		if( counts & VK_SAMPLE_COUNT_2_BIT ) { return VK_SAMPLE_COUNT_2_BIT; }
-		*/
 
 		return VK_SAMPLE_COUNT_1_BIT;
 	}

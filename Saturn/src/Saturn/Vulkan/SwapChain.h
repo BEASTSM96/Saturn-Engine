@@ -37,6 +37,8 @@
 
 namespace Saturn {
 
+	class Image2D;
+
 	class Swapchain : public CountedObj
 	{
 	public:
@@ -64,6 +66,8 @@ namespace Saturn {
 		uint32_t m_ImageIndex = 0;
 		
 		VkSemaphore m_PresentSemaphore;
+
+		Ref<Image2D> m_MSAAImage;
 
 		std::vector< VkFence > m_Fences;
 		std::vector< VkImage > m_Images;

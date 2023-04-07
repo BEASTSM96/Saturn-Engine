@@ -57,7 +57,7 @@ namespace Saturn::Helpers {
 		ImageCreateInfo.extent = Extent;
 		ImageCreateInfo.mipLevels = 1;
 		ImageCreateInfo.arrayLayers = ArrayLevels;
-		ImageCreateInfo.samples = VulkanContext::Get().GetMaxUsableMSAASamples();
+		ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		ImageCreateInfo.usage = Usage;
 

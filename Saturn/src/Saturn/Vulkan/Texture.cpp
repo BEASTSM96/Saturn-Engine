@@ -323,7 +323,7 @@ namespace Saturn {
 		ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		ImageCreateInfo.usage = Usage;
 		ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		ImageCreateInfo.samples = VulkanContext::Get().GetMaxUsableMSAASamples();
+		ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		ImageCreateInfo.flags = Flags;
 
 		VK_CHECK( vkCreateImage( VulkanContext::Get().GetDevice(), &ImageCreateInfo, nullptr, &rImage ) );
@@ -858,7 +858,7 @@ namespace Saturn {
 		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		ImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 		ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		ImageCreateInfo.samples = VulkanContext::Get().GetMaxUsableMSAASamples();
+		ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		ImageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
 		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;

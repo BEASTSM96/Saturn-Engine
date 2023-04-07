@@ -180,7 +180,7 @@ namespace Saturn {
 		int i = 0;
 		for( auto format : m_ColorAttachmentsFormats )
 		{
-			Ref<Image2D> image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
+			Ref<Image2D> image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels, m_Specification.MSAASamples );
 
 			std::string name = "Color Attachment for framebuffer " + m_Specification.RenderPass->GetName();
 
@@ -193,13 +193,12 @@ namespace Saturn {
 			else
 				m_AttachmentImageViews.push_back( image->GetImageView() );
 
-
 			i++;
 		}
 		
 		if( !m_DepthAttachmentResource && m_Specification.CreateDepth ) 
 		{
-			m_DepthAttachmentResource = Ref<Image2D>::Create( m_DepthFormat, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels );
+			m_DepthAttachmentResource = Ref<Image2D>::Create( m_DepthFormat, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels, m_Specification.MSAASamples );
 
 			m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView( m_Specification.ExistingImageLayer ) );
 		}

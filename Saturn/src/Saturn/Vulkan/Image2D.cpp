@@ -105,9 +105,11 @@ namespace Saturn {
 		return false;
 	}
 
-	Image2D::Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels, void* pData, size_t size )
+	Image2D::Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels /*= 1*/, uint32_t MSAASamples /*= 1*/, void* pData /*= nullptr*/, size_t size /*= 0 */ )
 		: m_Format( Format ), m_Width( Width ), m_Height( Height ), m_ArrayLevels( ArrayLevels ), m_pData( pData ), m_DataSize( size )
 	{
+		m_MSAASamples = (VkSampleCountFlagBits)MSAASamples;
+
 		m_ImageViewes.resize( m_ArrayLevels );
 
 		Create();
@@ -162,13 +164,16 @@ namespace Saturn {
 		// TODO: Get mip levels
 		ImageCreateInfo.mipLevels = 1;
 		ImageCreateInfo.arrayLayers = m_ArrayLevels;
-		ImageCreateInfo.samples = VulkanContext::Get().GetMaxUsableMSAASamples();
+		ImageCreateInfo.samples = m_MSAASamples;
 		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 
 		if( IsColorFormat( m_Format ) )
 			ImageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		else
 			ImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+		if( m_MSAASamples > VK_SAMPLE_COUNT_1_BIT )
+			ImageCreateInfo.usage |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 
 		VK_CHECK( vkCreateImage( VulkanContext::Get().GetDevice(), &ImageCreateInfo, nullptr, &m_Image ) );
 		SetDebugUtilsObjectName( "Image", ( uint64_t ) m_Image, VK_OBJECT_TYPE_IMAGE );

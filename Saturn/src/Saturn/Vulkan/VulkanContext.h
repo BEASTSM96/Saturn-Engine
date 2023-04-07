@@ -122,7 +122,6 @@ namespace Saturn {
 		void OnEvent( Event& e );
 
 		VkImage GetDepthImage() { return m_DepthImage; }
-
 	private:
 		void Terminate();
 

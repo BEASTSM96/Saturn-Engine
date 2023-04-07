@@ -41,6 +41,8 @@ namespace Saturn {
 		std::string Name = "";
 		bool IsSwapchainTarget = false;
 
+		VkSampleCountFlagBits MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
 		bool LoadColor = false;
 		bool LoadDepth = false;
 	};

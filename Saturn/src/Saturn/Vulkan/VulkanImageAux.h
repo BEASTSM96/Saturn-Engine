@@ -28,82 +28,107 @@
 
 #pragma once
 
-#include "Pass.h"
-#include "Renderer.h"
 #include "Image2D.h"
-
-#include <vulkan.h>
 
 namespace Saturn {
 
-	struct FramebufferTextureSpecification
+	static VkFormat VulkanFormat( ImageFormat format )
 	{
-		FramebufferTextureSpecification() = default;
-		FramebufferTextureSpecification( ImageFormat format ) : TextureFormat( format ) { }
+		switch( format )
+		{
+			case Saturn::ImageFormat::RGBA8:
+				return VK_FORMAT_R8G8B8A8_UNORM;
 
-		ImageFormat TextureFormat;
-	};
+			case Saturn::ImageFormat::RGBA16F:
+				return VK_FORMAT_R16G16B16A16_UNORM;
 
-	struct FramebufferAttachmentSpecification
+			case Saturn::ImageFormat::RGBA32F:
+				return VK_FORMAT_R32G32B32A32_SFLOAT;
+
+			case ImageFormat::BGRA8:
+				return VK_FORMAT_B8G8R8A8_UNORM;
+
+			case ImageFormat::RED8:
+				return VK_FORMAT_R8_UNORM;
+
+			case Saturn::ImageFormat::DEPTH24STENCIL8:
+				return VK_FORMAT_D32_SFLOAT_S8_UINT;
+			case Saturn::ImageFormat::DEPTH32F:
+				return VK_FORMAT_D32_SFLOAT;
+		}
+
+		return VK_FORMAT_UNDEFINED;
+	}
+
+	static ImageFormat SaturnFormat( VkFormat format )
 	{
-		FramebufferAttachmentSpecification() = default;
-		FramebufferAttachmentSpecification( const std::initializer_list<FramebufferTextureSpecification>&attachments ) : Attachments( attachments ) {}
+		switch( format )
+		{
+			case VK_FORMAT_R8G8B8A8_UNORM:
+				return ImageFormat::BGRA8;
 
-		std::vector<FramebufferTextureSpecification> Attachments;
-	};
+			case VK_FORMAT_R16G16B16A16_UNORM:
+				return ImageFormat::RGBA16F;
 
-	struct FramebufferSpecification
+			case VK_FORMAT_R32G32B32A32_SFLOAT:
+				return ImageFormat::RGBA32F;
+
+			case VK_FORMAT_B8G8R8A8_UNORM:
+				return ImageFormat::BGRA8;
+
+			case VK_FORMAT_R8_UNORM:
+				return ImageFormat::RED8;
+
+			case VK_FORMAT_D32_SFLOAT_S8_UINT:
+				return ImageFormat::DEPTH24STENCIL8;
+
+			case VK_FORMAT_D32_SFLOAT:
+				return ImageFormat::DEPTH32F;
+		}
+
+		return ImageFormat::None;
+	}
+
+	static bool IsColorFormat( ImageFormat format )
 	{
-		uint32_t Width;
-		uint32_t Height;
-		uint32_t ArrayLevels = 1;
-		uint32_t ExistingImageLayer = 0;
+		switch( format )
+		{
+			case Saturn::ImageFormat::RGBA8:
+			case Saturn::ImageFormat::RGBA16F:
+			case Saturn::ImageFormat::RGBA32F:
+			case Saturn::ImageFormat::RGB32F:
+			case Saturn::ImageFormat::BGRA8:
+			case Saturn::ImageFormat::RED8:
+				return true;
+		}
 
-		VkSampleCountFlagBits MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		return false;
+	}
 
-		bool CreateDepth = true;
-
-		Ref< Image2D > ExistingImage = nullptr;
-		uint32_t ExistingImageIndex = 0;
-
-		Ref< Pass > RenderPass = nullptr;
-		FramebufferAttachmentSpecification Attachments;
-	};
-
-	class Framebuffer : public CountedObj
+	static bool IsColorFormat( VkFormat format )
 	{
-	public:
-		Framebuffer( const FramebufferSpecification& Specification );
-		~Framebuffer();
-		
-		void Recreate( uint32_t Width, uint32_t  Height );
+		switch( format )
+		{
+			case VK_FORMAT_R32G32B32A32_SFLOAT:
+			case VK_FORMAT_R8G8B8A8_UNORM:
+			case VK_FORMAT_R16G16B16A16_UNORM:
+			case VK_FORMAT_B8G8R8A8_UNORM:
+			case VK_FORMAT_R8_UNORM:
+				return true;
+		}
 
-		operator VkFramebuffer() const { return m_Framebuffer; }
+		return false;
+	}
 
-		VkFramebuffer GetVulkanFramebuffer() { return m_Framebuffer; }
+	static bool IsDepthFormat( ImageFormat format )
+	{
+		switch( format )
+		{
+			case Saturn::ImageFormat::DEPTH32F:
+			case Saturn::ImageFormat::DEPTH24STENCIL8:
+				return true;
+		}
 
-		std::vector< Ref<Image2D> >& GetColorAttachmentsResources() { return m_ColorAttachmentsResources; }
-		const std::vector< Ref<Image2D> >& GetColorAttachmentsResources() const { return m_ColorAttachmentsResources; }
-
-		std::vector< ImageFormat >& GetColorAttachmentsFormats() { return m_ColorAttachmentsFormats; }
-		const std::vector< ImageFormat >& GetColorAttachmentsFormats() const { return m_ColorAttachmentsFormats; }
-
-		Ref<Image2D>& GetDepthAttachmentsResource() { return m_DepthAttachmentResource; }
-		const Ref<Image2D>& GetDepthAttachmentsResource() const { return m_DepthAttachmentResource; }
-
-	private:
-		void Create();
-
-		VkFramebuffer m_Framebuffer = nullptr;
-
-		std::vector< ImageFormat > m_ColorAttachmentsFormats;
-		std::vector< Ref<Image2D> > m_ColorAttachmentsResources;
-
-		ImageFormat m_DepthFormat = ImageFormat::Depth;
-		Ref<Image2D> m_DepthAttachmentResource;
-
-		std::vector< VkImageView > m_AttachmentImageViews;
-
-		FramebufferSpecification m_Specification;
-	};
+		return false;
+	}
 }
