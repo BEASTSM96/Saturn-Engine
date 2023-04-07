@@ -47,6 +47,7 @@ namespace Saturn {
 		void TransferEntities( const Ref<Scene>& rOldScene );
 
 		void RegisterScript( const std::string& rName );
+		void UnregisterScript( const std::string& rName );
 
 		void BeginPlay();
 		void UpdateAllScripts( Saturn::Timestep ts );
@@ -57,6 +58,8 @@ namespace Saturn {
 		void DestroyEntityInScene( const Ref<Scene>& rScene );
 
 		Saturn::SClass* CreateScript( const std::string& rName, SClass* Base );
+
+		void Reload();
 
 		void AddProperty( const std::string& rClassName, const std::string& rName, void* ppRawProp );
 	private:

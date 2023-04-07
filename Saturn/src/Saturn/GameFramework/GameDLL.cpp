@@ -44,7 +44,7 @@ namespace Saturn {
 		SingletonStorage::Get().AddSingleton( this );
 	}
 
-	void GameDLL::Load()
+	void GameDLL::Load( bool reload /*=false*/ )
 	{
 		if( !Application::Get().GetSpecification().GameDist )
 		{
@@ -52,8 +52,7 @@ namespace Saturn {
 
 			auto binDir = Project::GetActiveProject()->GetBinDir();
 
-			auto DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
-
+			auto& DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
 			m_DLLInstance = LoadLibraryA( DllPath.string().c_str() );
 
 			SourceManager::Get();
@@ -73,5 +72,11 @@ namespace Saturn {
 		{
 			FreeLibrary( m_DLLInstance );
 		}
+	}
+
+	void GameDLL::Reload() 
+	{
+		Unload();
+		Load(true);
 	}
 }

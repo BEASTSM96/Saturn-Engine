@@ -71,7 +71,6 @@ namespace Saturn {
 	private:
 		std::filesystem::path m_CurrentPath;
 		std::filesystem::path m_FirstFolder;
-
 		std::filesystem::path m_ScriptPath;
 
 		Ref< Texture2D > m_DirectoryIcon;

@@ -88,6 +88,14 @@ namespace Saturn {
 		m_ScriptFunctions[ rName ] = regfn;
 	}
 
+	void EntityScriptManager::UnregisterScript( const std::string& rName )
+	{
+		if( m_ScriptFunctions.find( rName ) == m_ScriptFunctions.end() )
+			return;
+
+		m_ScriptFunctions.erase( rName );
+	}
+
 	void EntityScriptManager::BeginPlay()
 	{
 		SAT_PF_EVENT();
@@ -144,6 +152,17 @@ namespace Saturn {
 	Saturn::SClass* EntityScriptManager::CreateScript( const std::string& rName, SClass* Base )
 	{
 		return m_Scripts[ m_CurrentScene->GetId() ][ rName ] = m_ScriptFunctions[ rName ]( Base );
+	}
+
+	void EntityScriptManager::Reload()
+	{
+		for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
+		{
+			UnregisterScript( name );
+			RegisterScript( name );
+
+			script = CreateScript( name, ( Entity*)script );
+		}
 	}
 
 }

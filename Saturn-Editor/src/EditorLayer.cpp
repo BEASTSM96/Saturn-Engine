@@ -189,6 +189,7 @@ namespace Saturn {
 		m_TranslationTexture  = Ref< Texture2D >::Create( "content/textures/editor/Move.png", AddressingMode::Repeat );
 		m_RotationTexture     = Ref< Texture2D >::Create( "content/textures/editor/Rotate.png", AddressingMode::Repeat );
 		m_ScaleTexture        = Ref< Texture2D >::Create( "content/textures/editor/Scale.png", AddressingMode::Repeat );
+		m_SyncTexture         = Ref< Texture2D >::Create( "content/textures/editor/Sync.png", AddressingMode::Repeat );
 
 		// Init PhysX
 		PhysXFnd::Get();
@@ -638,7 +639,7 @@ namespace Saturn {
 		ImGui::PushID( "VP_GIZMO" );
 		
 		const float windowHeight = 32.0f;
-		const float windowWidth = 160.0f;
+		const float windowWidth = 200.0f;
 
 		ImGui::SetNextWindowPos ( ImVec2( minBound.x + 5.0f, minBound.y + 5.0f ) );
 		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
@@ -648,13 +649,16 @@ namespace Saturn {
 		ImGui::BeginHorizontal( "##v_gizmoH", { windowWidth, ImGui::GetContentRegionAvail().y } );
 
 		ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f } );
-		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 4.0f * 2.0f, 0 ) );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 5.0f * 2.0f, 0 ) );
 
 		const Ref<Texture2D>& texture = m_RequestRuntime == false ? m_StartRuntimeTexture : m_EndRuntimeTexture;
 		if( ImageButton( texture, { 24.0f, 24.0f } ) ) m_RequestRuntime ^= 1;
 		if( ImageButton( m_TranslationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
 		if( ImageButton( m_RotationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
 		if( ImageButton( m_ScaleTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
+
+		// Hot-Reload game
+		if( ImageButton( m_SyncTexture, { 24.0f, 24.0f } ) ) HotReloadGame();
 
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar();
@@ -941,6 +945,14 @@ namespace Saturn {
 		}
 		
 		ImGui::End();
+	}
+
+	void EditorLayer::HotReloadGame()
+	{
+		GameDLL::Get().Reload();
+
+		// We now need to recreate all of the game scripts to use the new code.
+
 	}
 
 }

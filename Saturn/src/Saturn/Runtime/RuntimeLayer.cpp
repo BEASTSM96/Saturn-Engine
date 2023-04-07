@@ -111,8 +111,8 @@ namespace Saturn {
 
 	void RuntimeLayer::OnUpdate( Timestep time )
 	{
-		m_RuntimeScene->OnUpdate( Application::Get().Time() );
-		m_RuntimeScene->OnRenderRuntime( Application::Get().Time() );
+		m_RuntimeScene->OnUpdate( time );
+		m_RuntimeScene->OnRenderRuntime( time );
 	}
 
 	void RuntimeLayer::OnImGuiRender()

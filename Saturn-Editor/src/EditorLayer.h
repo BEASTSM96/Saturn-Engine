@@ -74,6 +74,8 @@ namespace Saturn {
 		void UI_Titlebar_UserSettings();
 		bool m_ShowUserSettings = false;
 
+		void HotReloadGame();
+
 	private:
 		TitleBar* m_TitleBar;
 		
@@ -84,6 +86,7 @@ namespace Saturn {
 		Ref< Texture2D > m_TranslationTexture;
 		Ref< Texture2D > m_RotationTexture;
 		Ref< Texture2D > m_ScaleTexture;
+		Ref< Texture2D > m_SyncTexture;
 
 		EditorCamera m_EditorCamera;
 		bool m_AllowCameraEvents = false;

@@ -42,9 +42,9 @@ namespace Saturn {
 		GameDLL();
 		~GameDLL() {}
 
-		void Load();
+		void Load(bool reload = false);
 		void Unload();
-
+		void Reload();
 	private:
 		HMODULE m_DLLInstance = nullptr;
 

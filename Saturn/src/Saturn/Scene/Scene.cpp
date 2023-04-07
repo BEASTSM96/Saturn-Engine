@@ -75,26 +75,12 @@ namespace Saturn {
 	Scene::~Scene()
 	{
 		s_ActiveScenes.erase( m_SceneID );
-
-		// Destroy all entities with mesh component.
-		auto group = m_Registry.group<StaticMeshComponent>( entt::get<TransformComponent> );
-		
-		for ( const auto& e : group )
-		{
-			Entity entity( e, this );
-
-			Ref< StaticMesh >& mesh = entity.GetComponent<StaticMeshComponent>().Mesh;
-
-			if( mesh )
-				mesh = nullptr;
-		}
-
 		m_Registry.clear();
 	}
 
 	Entity Scene::GetMainCameraEntity()
 	{
-		std::unique_lock Lock( m_Mutex, std::try_to_lock );
+		//std::unique_lock Lock( m_Mutex, std::try_to_lock );
 
 		auto view = GetAllEntitiesWith<CameraComponent>();
 
