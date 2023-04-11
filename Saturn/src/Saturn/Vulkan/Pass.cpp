@@ -111,15 +111,32 @@ namespace Saturn {
 		{
 			if( IsColorFormat( attachment ) ) 
 			{
-				VkAttachmentReference Attachment = { .attachment = ( uint32_t ) i, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+				if( m_PassSpec.IsSwapchainTarget )
+				{
+					// This is a hack. We only do this because the swapchain pass only has two attachments at the start, but when we add the MSAA pass we add it before the color attachment.
+					m_ColorAttacments.push_back( { .attachment = ( uint32_t ) i + 1, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL } );
+				}
+				else
+				{
+					VkAttachmentReference Attachment = { .attachment = ( uint32_t ) i, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 
-				m_ColorAttacments.push_back( Attachment );
+					m_ColorAttacments.push_back( Attachment );
+				}
 
 				m_ClearValues[ i ].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
 			}
 			else 
 			{
-				m_DepthAttacment = { .attachment = ( uint32_t ) i, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+				if( m_PassSpec.IsSwapchainTarget )
+				{
+					// This is a hack. We only do this because the swapchain pass only has two attachments at the start, but when we add the MSAA pass we add it before the depth attachment.
+					m_DepthAttacment = { .attachment = ( uint32_t ) i + 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+				}
+				else
+				{
+					m_DepthAttacment = { .attachment = ( uint32_t ) i, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+				}
+
 				m_ClearValues[ i ].depthStencil = { 1.0f, 0 };
 			}
 
@@ -135,6 +152,7 @@ namespace Saturn {
 			DefaultSubpass.pDepthStencilAttachment = &m_DepthAttacment;
 		}
 
+		bool IsMultisamplePass = m_PassSpec.MSAASamples > VK_SAMPLE_COUNT_1_BIT;
 		if( m_ColorAttacments.size() ) 
 		{
 			DefaultSubpass.pColorAttachments = m_ColorAttacments.data();
@@ -170,7 +188,8 @@ namespace Saturn {
 
 		std::vector< VkAttachmentDescription > AttachmentDescriptions;
 		VkAttachmentDescription				   MSAA_AttachmentDescriptions;
-		
+		uint32_t MSAA_AttachmentIndex = 0;
+
 		for ( auto attachment : m_PassSpec.Attachments )
 		{
 			VkAttachmentLoadOp clrOp = m_PassSpec.LoadColor ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -178,32 +197,6 @@ namespace Saturn {
 
 			if( m_PassSpec.IsSwapchainTarget )
 			{
-				if( IsDepthFormat( attachment ) && attachment == m_PassSpec.Attachments.back() )
-				{
-					// This is the last attachment add out MSAA color attachment.
-					if( m_PassSpec.MSAASamples >= VK_SAMPLE_COUNT_2_BIT )
-					{
-						AttachmentDescriptions.push_back(
-							{
-									.flags = 0,
-									.format = VK_FORMAT_B8G8R8A8_UNORM,
-									.samples = m_PassSpec.MSAASamples,
-									.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-									.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-									.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-									.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-									.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-									.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-							} );
-
-						VkAttachmentReference MSAAReslove = {};
-						MSAAReslove.attachment = AttachmentDescriptions.size() - 1;
-						MSAAReslove.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-						DefaultSubpass.pResolveAttachments = &MSAAReslove;
-					}
-				}
-
 				AttachmentDescriptions.push_back(
 				{
 					.flags = 0,
@@ -216,6 +209,16 @@ namespace Saturn {
 					.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 					.finalLayout = IsColorFormat( attachment ) ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR  : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 				} );
+
+				// Now that we have added our first attachment we can now (try) to add the MSAA attachment.
+				AddMultisampleAttachments( attachment, DefaultSubpass, AttachmentDescriptions);
+
+				// Attachment zero, because attachment zero will be our main color attachment.
+				VkAttachmentReference MSAAReslove = {};
+				MSAAReslove.attachment = 0;
+				MSAAReslove.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+				DefaultSubpass.pResolveAttachments = &MSAAReslove;
 			}
 			else
 			{
@@ -244,6 +247,32 @@ namespace Saturn {
 
 		VK_CHECK( vkCreateRenderPass( VulkanContext::Get().GetDevice(), &RenderPassCreateInfo, nullptr, &m_Pass ) );
 		SetDebugUtilsObjectName( m_PassSpec.Name, ( uint64_t ) m_Pass, VK_OBJECT_TYPE_RENDER_PASS );
+	}
+
+	void Pass::AddMultisampleAttachments(ImageFormat format, VkSubpassDescription& rSubpass, std::vector<VkAttachmentDescription>& rAttachments)
+{
+		// We currently only allow for the swapchain pass to have an image that has a sample count.
+		if( !m_PassSpec.IsSwapchainTarget )
+			return;
+
+		// How MSAA works in Vulkan is that we can't present using an image that has a sample count more than one.
+
+		if ( IsColorFormat( format ) )
+		{
+			// Add our multisample attachment.
+			rAttachments.push_back(
+				{
+						.flags = 0,
+						.format = VK_FORMAT_B8G8R8A8_UNORM,
+						.samples = m_PassSpec.MSAASamples,
+						.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+						.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+						.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+						.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+						.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+						.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+				} );
+		}
 	}
 
 	void Pass::Terminate()

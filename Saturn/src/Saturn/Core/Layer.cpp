@@ -125,8 +125,8 @@ namespace Saturn {
 		ImGuiInitInfo.Queue = VulkanContext::Get().GetGraphicsQueue();
 		ImGuiInitInfo.DescriptorPool = m_DescriptorPool;
 		ImGuiInitInfo.MinImageCount = 2;
-		ImGuiInitInfo.ImageCount = 2;
-		ImGuiInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		ImGuiInitInfo.ImageCount = MAX_FRAMES_IN_FLIGHT;
+		ImGuiInitInfo.MSAASamples = VulkanContext::Get().GetMaxUsableMSAASamples();
 
 		ImGuiInitInfo.CheckVkResultFn = _VkCheckResult;
 
@@ -178,16 +178,17 @@ namespace Saturn {
 		
 		ImGui::Render();
 		
-		VkClearValue ClearColor[ 2 ];
+		VkClearValue ClearColor[ 3 ];
 		ClearColor[ 0 ].color = { { 0.1f, 0.1f, 0.1f, 1.0f } };
-		ClearColor[ 1 ].depthStencil = { 1.0f, 0 };
+		ClearColor[ 1 ].color = { { 0.1f, 0.1f, 0.1f, 1.0f } };
+		ClearColor[ 2 ].depthStencil = { 1.0f, 0 };
 		
 		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		RenderPassBeginInfo.renderPass = VulkanContext::Get().GetDefaultVulkanPass();
 		RenderPassBeginInfo.framebuffer = rSwapchain.GetFramebuffers()[ Renderer::Get().GetImageIndex() ];
 		RenderPassBeginInfo.renderArea.offset = { 0, 0 };
 		RenderPassBeginInfo.renderArea.extent = { ( uint32_t ) Window::Get().Width(), ( uint32_t ) Window::Get().Height() };
-		RenderPassBeginInfo.clearValueCount = 2;
+		RenderPassBeginInfo.clearValueCount = 3;
 		RenderPassBeginInfo.pClearValues = ClearColor;
 		
 		CmdBeginDebugLabel( CommandBuffer, "Swap chain pass" );
