@@ -91,7 +91,7 @@ namespace SaturnBuildTool
             TargetToBuild = UserTarget.SetupUserTarget(BuildTargetFile.Instance.BuildFile);
 
             if(TargetToBuild == null)
-                Console.WriteLine( "Could not find a user target!" );
+                Console.WriteLine( "Could not find a user target!, looking for {0}. Please regenerate it in the engine!", BuildTargetFile.Instance.BuildFile );
 
             TargetToBuild.ProjectName = Args[1];
             TargetToBuild.ProjectName = TargetToBuild.ProjectName.Replace("/", string.Empty);
@@ -186,40 +186,9 @@ namespace SaturnBuildTool
             }
             else 
             {
+                Console.WriteLine("Compiling single threaded.");
                 CompileFiles_ForThread(null);
             }
-
-            /*
-            // Compiling of the main files done, compile the generated files.
-            Console.WriteLine("Generating files... (One Thread)");
-
-            Stopwatch time = Stopwatch.StartNew();
-            //HeaderTool.Instance.WriteGeneratedFiles();
-
-            Console.WriteLine("Done in {0}", time.Elapsed);
-
-            // Compiling of the main files done, compile the generated files.
-            Console.WriteLine("Compiling generated files... (One Thread)");
-
-            List<string> files = HeaderTool.Instance.GetAllGeneratedFiles();
-
-            foreach (string file in files) 
-            {
-                FileCache.FilesInCache.TryGetValue(file, out DateTime LastTime);
-
-                if (IsRebuild)
-                {
-                    Toolchain.Compile(file, false);
-                }
-                else if(LastTime != File.GetLastWriteTime(file))
-                {
-                    Toolchain.Compile(file, false);
-                }
-
-                if (!FileCache.IsFileInCache(file))
-                    FileCache.CacheFile(file);
-            }
-            */
 
             return NumTasksFailed == 0;
         }

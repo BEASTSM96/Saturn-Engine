@@ -306,14 +306,21 @@ namespace Saturn {
 
 	void Project::PrepForDist()
 	{
+		// Copy over the runtime build file.
+		auto BuildFilePath = GetRootDir() / "Scripts";
+		BuildFilePath /= GetName() + ".RT_Build.cs";
+
+		if( !std::filesystem::exists( BuildFilePath ) )
+			std::filesystem::copy( "content/Templates/%PROJECT_NAME%.RT_Build.cs", BuildFilePath );
+
 		// Copy over the client main file
-		auto BuildPath = GetAssetPath().parent_path() / "Build";
+		auto BuildPath = GetFullAssetPath().parent_path() / "Build";
 		BuildPath /= GetName() + "Main.cpp";
 
 		if( std::filesystem::exists( BuildPath ) )
 			std::filesystem::remove( BuildPath );
 
-		std::filesystem::create_directory( GetAssetPath().parent_path() / "Build" );
+		std::filesystem::create_directory( GetFullAssetPath().parent_path() / "Build" );
 
 		std::filesystem::copy( "content/Templates/%PROJECT_NAME%Main.cpp", BuildPath );
 
