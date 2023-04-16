@@ -92,8 +92,6 @@ namespace Saturn {
 		VkSurfaceKHR GetSurface() { return m_Surface; }
 		VkSurfaceFormatKHR& GetSurfaceFormat() { return m_SurfaceFormat; }
 
-		VkImageView GetDepthImageView() { return m_DepthImageView; }
-
 		SwapchainCreationData GetSwapchainCreationData();
 
 		QueueFamilyIndices& GetQueueFamilyIndices() { return m_Indices; };
@@ -121,7 +119,8 @@ namespace Saturn {
 
 		void OnEvent( Event& e );
 
-		VkImage GetDepthImage() { return m_DepthImage; }
+		VkImageView GetDepthImageView() { return m_DepthImage->GetImageView(); }
+		VkImage GetDepthImage() { return m_DepthImage->GetImage(); }
 	private:
 		void Terminate();
 
@@ -147,9 +146,7 @@ namespace Saturn {
 		VkCommandBuffer m_CommandBuffer = nullptr;
 	
 		// Depth resources.
-		VkImage m_DepthImage = nullptr;
-		VkDeviceMemory m_DepthImageMemory = nullptr;
-		VkImageView m_DepthImageView = nullptr;
+		Ref<Image2D> m_DepthImage = nullptr;
 
 		VulkanDebugMessenger* m_pDebugMessenger;
 		VulkanAllocator* m_pAllocator;

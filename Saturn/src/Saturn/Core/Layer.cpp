@@ -178,18 +178,19 @@ namespace Saturn {
 		
 		ImGui::Render();
 		
-		VkClearValue ClearColor[ 3 ];
-		ClearColor[ 0 ].color = { { 0.1f, 0.1f, 0.1f, 1.0f } };
-		ClearColor[ 1 ].color = { { 0.1f, 0.1f, 0.1f, 1.0f } };
-		ClearColor[ 2 ].depthStencil = { 1.0f, 0 };
+		std::vector<VkClearValue> ClearColor;
+		ClearColor.push_back( { .color = { { 0.1f, 0.1f, 0.1f, 1.0f } } } );
+		if( VulkanContext::Get().GetMaxUsableMSAASamples() > VK_SAMPLE_COUNT_1_BIT )
+			ClearColor.push_back( { .color = { { 0.1f, 0.1f, 0.1f, 1.0f } } } );
+		ClearColor.push_back( { .depthStencil = { 1.0f, 0 } } );
 		
 		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		RenderPassBeginInfo.renderPass = VulkanContext::Get().GetDefaultVulkanPass();
 		RenderPassBeginInfo.framebuffer = rSwapchain.GetFramebuffers()[ Renderer::Get().GetImageIndex() ];
 		RenderPassBeginInfo.renderArea.offset = { 0, 0 };
 		RenderPassBeginInfo.renderArea.extent = { ( uint32_t ) Window::Get().Width(), ( uint32_t ) Window::Get().Height() };
-		RenderPassBeginInfo.clearValueCount = 3;
-		RenderPassBeginInfo.pClearValues = ClearColor;
+		RenderPassBeginInfo.clearValueCount = ClearColor.size();
+		RenderPassBeginInfo.pClearValues = ClearColor.data();
 		
 		CmdBeginDebugLabel( CommandBuffer, "Swap chain pass" );
 

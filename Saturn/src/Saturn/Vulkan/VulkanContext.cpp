@@ -110,9 +110,7 @@ namespace Saturn {
 		Renderer::Get().Terminate();
 		SceneRenderer::Get().Terminate();
 
-		vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
-		vkDestroyImage( m_LogicalDevice, m_DepthImage, nullptr );
-		vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
+		m_DepthImage = nullptr;
 		
 		delete m_pAllocator;
 
@@ -379,6 +377,9 @@ namespace Saturn {
 
 	VkSampleCountFlagBits VulkanContext::GetMaxUsableMSAASamples()
 	{
+		if( !Application::Get().GetSpecification().GameDist )
+			return VK_SAMPLE_COUNT_1_BIT;
+
 		VkPhysicalDeviceProperties props;
 		vkGetPhysicalDeviceProperties( m_PhysicalDevice, &props );
 
@@ -579,25 +580,9 @@ namespace Saturn {
 	void VulkanContext::CreateDepthResources()
 	{
 		if( m_DepthImage )
-		{
-			vkDestroyImage( m_LogicalDevice, m_DepthImage, nullptr );
-			vkFreeMemory( m_LogicalDevice, m_DepthImageMemory, nullptr );
-		}
+			m_DepthImage = nullptr;
 
-		if( m_DepthImageView )
-		{
-			vkDestroyImageView( m_LogicalDevice, m_DepthImageView, nullptr );
-		}
-
-		VkFormat DepthFormat = FindDepthFormat();
-
-		Helpers::CreateImage( VK_IMAGE_TYPE_2D, DepthFormat,
-			{ .width = ( uint32_t )Window::Get().Width(), .height = ( uint32_t )Window::Get().Height(), .depth = 1 }, 1, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &m_DepthImage, &m_DepthImageMemory );
-
-		Helpers::CreateImageView( VK_IMAGE_VIEW_TYPE_2D, m_DepthImage, DepthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, &m_DepthImageView );
-		
-		SetDebugUtilsObjectName( "Context Depth Image", (uint64_t)m_DepthImage, VK_OBJECT_TYPE_IMAGE );
-		SetDebugUtilsObjectName( "Context Depth Image View", (uint64_t)m_DepthImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
+		m_DepthImage = Ref<Image2D>::Create( ImageFormat::Depth, Window::Get().Width(), Window::Get().Height(), 1, GetMaxUsableMSAASamples() );
 	}
 
 }

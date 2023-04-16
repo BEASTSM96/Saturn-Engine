@@ -98,15 +98,19 @@ namespace Saturn {
 
 		m_Framebuffers.resize( m_ImageViews.size() );
 		
-		// As we are the swapchain we know that we are going to have an MSAA sample so, we will create the image here.
-		auto format = SaturnFormat( SwapchainData.CurrentFormat.format );
-		m_MSAAImage = Ref<Image2D>::Create( format, SwapchainData.SurfaceCaps.currentExtent.width, SwapchainData.SurfaceCaps.currentExtent.height, 1, VulkanContext::Get().GetMaxUsableMSAASamples() );
+		if( VulkanContext::Get().GetMaxUsableMSAASamples() > VK_SAMPLE_COUNT_1_BIT )
+		{
+			// As we are the swapchain we know that we are going to have an MSAA sample so, we will create the image here.
+			auto format = SaturnFormat( SwapchainData.CurrentFormat.format );
+			m_MSAAImage = Ref<Image2D>::Create( format, SwapchainData.SurfaceCaps.currentExtent.width, SwapchainData.SurfaceCaps.currentExtent.height, 1, VulkanContext::Get().GetMaxUsableMSAASamples() );
+		}
 
 		for( int i = 0; i < m_ImageViews.size(); i++ )
 		{
 			std::vector< VkImageView > Attachments;
 			Attachments.push_back( m_ImageViews[ i ] );
-			Attachments.push_back( m_MSAAImage->GetImageView() );
+			if( VulkanContext::Get().GetMaxUsableMSAASamples() > VK_SAMPLE_COUNT_1_BIT )
+				Attachments.push_back( m_MSAAImage->GetImageView() );
 			Attachments.push_back( VulkanContext::Get().GetDepthImageView() );
 			
 			VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
