@@ -26,6 +26,7 @@
 *********************************************************************************************
 */
 
+#include "sppch.h"
 #include "Saturn/Core/App.h"
 
 #include "ProjectBrowserLayer.h"
