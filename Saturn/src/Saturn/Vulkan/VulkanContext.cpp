@@ -85,10 +85,6 @@ namespace Saturn {
 		m_SwapChain.CreateFramebuffers();
 		
 		Renderer::Get();
-
-		SceneRenderer::Get();
-
-		SceneRenderer::Get().SetSwapchainTarget( Application::Get().GetSpecification().GameDist );
 	}
 
 	void VulkanContext::Terminate()
@@ -108,7 +104,7 @@ namespace Saturn {
 			rFunc();
 
 		Renderer::Get().Terminate();
-		SceneRenderer::Get().Terminate();
+		Application::Get().PrimarySceneRenderer().Terminate();
 
 		m_DepthImage = nullptr;
 		

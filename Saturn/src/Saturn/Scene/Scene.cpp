@@ -120,13 +120,13 @@ namespace Saturn {
 		EntityScriptManager::Get().OnPhysicsUpdate( ts );
 	}
 
-	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts )
+	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer )
 	{
 		SAT_PF_EVENT();
 
 		auto group = m_Registry.group<StaticMeshComponent>( entt::get<TransformComponent> );
 		
-		SceneRenderer::Get().SetCurrentScene( this );
+		rSceneRenderer.SetCurrentScene( this );
 
 		// Lights
 		{
@@ -183,14 +183,14 @@ namespace Saturn {
 				auto transform = GetTransformRelativeToParent( entity );
 
 				if( meshComponent.Mesh )
-					SceneRenderer::Get().SubmitStaticMesh( entity, meshComponent.Mesh, transform );
+					rSceneRenderer.SubmitStaticMesh( entity, meshComponent.Mesh, transform );
 			}
 		}
 
-		SceneRenderer::Get().SetCamera( { rCamera, rCamera.ViewMatrix() } );
+		rSceneRenderer.SetCamera( { rCamera, rCamera.ViewMatrix() } );
 	}
 
-	void Scene::OnRenderRuntime( Timestep ts )
+	void Scene::OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer )
 	{
 		SAT_PF_EVENT();
 
@@ -203,7 +203,7 @@ namespace Saturn {
 		auto view = glm::inverse( GetTransformRelativeToParent( cameraEntity ) );
 		SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
 	
-		SceneRenderer::Get().SetCurrentScene( this );
+		rSceneRenderer.SetCurrentScene( this );
 
 		// Lights
 		{
@@ -263,12 +263,12 @@ namespace Saturn {
 				auto transform = GetTransformRelativeToParent( entity );
 
 				if( meshComponent.Mesh )
-					SceneRenderer::Get().SubmitStaticMesh( entity, meshComponent.Mesh, transform );
+					rSceneRenderer.SubmitStaticMesh( entity, meshComponent.Mesh, transform );
 			}
 		}
 
-		camera.SetViewportSize( SceneRenderer::Get().Width(), SceneRenderer::Get().Height() );
-		SceneRenderer::Get().SetCamera( { camera, view } );
+		camera.SetViewportSize( rSceneRenderer.Width(), rSceneRenderer.Height() );
+		rSceneRenderer.SetCamera( { camera, view } );
 	}
 
 	Entity Scene::CreateEntity( const std::string& name /*= "" */ )

@@ -109,7 +109,7 @@ namespace Saturn {
 		{
 			std::vector< VkImageView > Attachments;
 			Attachments.push_back( m_ImageViews[ i ] );
-			if( VulkanContext::Get().GetMaxUsableMSAASamples() > VK_SAMPLE_COUNT_1_BIT )
+			if( m_MSAAImage )
 				Attachments.push_back( m_MSAAImage->GetImageView() );
 			Attachments.push_back( VulkanContext::Get().GetDepthImageView() );
 			

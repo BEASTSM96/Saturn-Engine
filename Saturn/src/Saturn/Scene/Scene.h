@@ -82,6 +82,7 @@ namespace Saturn {
 
 	class PhysXRuntime;
 	class SClass;
+	class SceneRenderer;
 
 	class Scene : public CountedObj
 	{
@@ -94,8 +95,8 @@ namespace Saturn {
 
 		void DestroyEntity( Entity entity );
 
-		void OnRenderEditor( const EditorCamera& Camera, Timestep ts );
-		void OnRenderRuntime( Timestep ts );
+		void OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer );
+		void OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer );
 
 		void DuplicateEntity( Entity entity );
 		void DeleteEntity( Entity entity );

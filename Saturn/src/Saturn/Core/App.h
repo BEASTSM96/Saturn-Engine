@@ -54,6 +54,7 @@ namespace Saturn {
 		uint32_t WindowHeight = 0;
 	};
 
+	class SceneRenderer;
 	class Application
 	{
 	public:
@@ -83,6 +84,8 @@ namespace Saturn {
 		virtual void OnInit() {}
 		virtual void OnShutdown() {}
 		
+		SceneRenderer& PrimarySceneRenderer() { return *m_SceneRenderer; }
+
 	protected:
 
 		void OnEvent( Event& e );
@@ -101,6 +104,9 @@ namespace Saturn {
 		ApplicationSpecification m_Specification;
 
 		std::vector<Layer*> m_Layers;
+
+		// TODO: Change to ref
+		SceneRenderer* m_SceneRenderer;
 
 	private:
 		//static Application* s_Instance;

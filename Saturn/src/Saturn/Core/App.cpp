@@ -68,6 +68,11 @@ namespace Saturn {
 
 		pVkContext->Init();
 
+		if( m_Specification.CreateSceneRenderer )
+		{
+			m_SceneRenderer = new SceneRenderer();
+		}
+
 		pWindow->SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
 		pWindow->RemoveBorder();
@@ -97,7 +102,7 @@ namespace Saturn {
 				Renderer::Get().BeginFrame();
 				{
 					// Try to render scene.
-					SceneRenderer::Get().RenderScene();
+					m_SceneRenderer->RenderScene();
 
 					// Render UI
 					// TODO: Make new threads.

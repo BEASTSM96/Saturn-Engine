@@ -310,10 +310,7 @@ namespace Saturn {
 
 	class SceneRenderer : public CountedObj
 	{
-		SINGLETON( SceneRenderer );
-
 		using ScheduledFunc = std::function<void()>;
-
 	public:
 		SceneRenderer() { Init(); }
 		~SceneRenderer() {}

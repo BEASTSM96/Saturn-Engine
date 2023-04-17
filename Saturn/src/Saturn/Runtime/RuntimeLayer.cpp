@@ -106,13 +106,13 @@ namespace Saturn {
 
 		newScene = nullptr;
 
-		SceneRenderer::Get().SetCurrentScene( m_RuntimeScene.Pointer() );
+		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Pointer() );
 	}
 
 	void RuntimeLayer::OnUpdate( Timestep time )
 	{
 		m_RuntimeScene->OnUpdate( time );
-		m_RuntimeScene->OnRenderRuntime( time );
+		m_RuntimeScene->OnRenderRuntime( time, Application::Get().PrimarySceneRenderer() );
 	}
 
 	void RuntimeLayer::OnImGuiRender()
@@ -132,7 +132,7 @@ namespace Saturn {
 		if( width == 0 && height == 0 )
 			return false;
 
-		SceneRenderer::Get().SetViewportSize( ( uint32_t ) width, ( uint32_t ) height );
+		Application::Get().PrimarySceneRenderer().SetViewportSize( ( uint32_t ) width, ( uint32_t ) height );
 
 		return true;
 	}

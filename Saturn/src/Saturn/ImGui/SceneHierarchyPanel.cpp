@@ -505,7 +505,7 @@ namespace Saturn {
 				changed |= DrawFloatControl( "Inclination", skl.Inclination );
 
 				if( changed )
-					SceneRenderer::Get().SetDynamicSky( skl.Turbidity, skl.Azimuth, skl.Inclination );
+					Application::Get().PrimarySceneRenderer().SetDynamicSky( skl.Turbidity, skl.Azimuth, skl.Inclination );
 			}
 		} );
 		

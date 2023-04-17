@@ -281,17 +281,17 @@ namespace Saturn {
 		if( m_RuntimeScene ) 
 		{
 			m_RuntimeScene->OnUpdate( Application::Get().Time() );
-			m_RuntimeScene->OnRenderRuntime( Application::Get().Time() );
+			m_RuntimeScene->OnRenderRuntime( Application::Get().Time(), Application::Get().PrimarySceneRenderer() );
 		}
 		else 
 		{
 			m_EditorCamera.SetActive( m_AllowCameraEvents );
 			m_EditorCamera.OnUpdate( time );
 
-			SceneRenderer::Get().SetCamera( { m_EditorCamera, m_EditorCamera.ViewMatrix() } );
+			Application::Get().PrimarySceneRenderer().SetCamera( { m_EditorCamera, m_EditorCamera.ViewMatrix() } );
 
 			m_EditorScene->OnUpdate( Application::Get().Time() );
-			m_EditorScene->OnRenderEditor( m_EditorCamera, Application::Get().Time() );
+			m_EditorScene->OnRenderEditor( m_EditorCamera, Application::Get().Time(), Application::Get().PrimarySceneRenderer() );
 		}
 
 		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
@@ -324,7 +324,7 @@ namespace Saturn {
 		m_TitleBar->Draw();
 
 		PanelManager::Get().DrawAllPanels();
-		SceneRenderer::Get().ImGuiRender();
+		Application::Get().PrimarySceneRenderer().ImGuiRender();
 		
 		if( m_ShowUserSettings )
 			UI_Titlebar_UserSettings();
@@ -582,14 +582,14 @@ namespace Saturn {
 		{
 			m_ViewportSize = ImGui::GetContentRegionAvail();
 
-			SceneRenderer::Get().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
+			Application::Get().PrimarySceneRenderer().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 			m_EditorCamera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 		}
 
 		ImGui::PushID( "VIEWPORT_IMAGE" );
 
 		// In the editor we only should flip the image UV, we don't have to flip anything else.
-		Image( SceneRenderer::Get().CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
+		Image( Application::Get().PrimarySceneRenderer().CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
 
 		if( ImGui::BeginDragDropTarget() )
 		{
@@ -771,7 +771,7 @@ namespace Saturn {
 
 		pHierarchyPanel->SetContext( m_EditorScene );
 
-		SceneRenderer::Get().SetCurrentScene( m_EditorScene.Pointer() );
+		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Pointer() );
 	}
 
 	void EditorLayer::OpenFile()
