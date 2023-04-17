@@ -29,5 +29,8 @@ jobs:
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.1.1
 
+    - name: Setup NuGet dependencies
+      run: nuget install YamlDotNet -Version 13.1.0
+
     - name: Build Solution
       run: msbuild -property:Configuration=Debug,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Saturn.sln
