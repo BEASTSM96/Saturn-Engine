@@ -88,6 +88,7 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
 
 	ApplicationSpecification spec;
+	//spec.GameDist = true;
 
 	return new EditorApplication( spec, projectPath );
 }

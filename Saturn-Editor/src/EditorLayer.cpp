@@ -290,8 +290,8 @@ namespace Saturn {
 
 			Application::Get().PrimarySceneRenderer().SetCamera( { m_EditorCamera, m_EditorCamera.ViewMatrix() } );
 
-			m_EditorScene->OnUpdate( Application::Get().Time() );
-			m_EditorScene->OnRenderEditor( m_EditorCamera, Application::Get().Time(), Application::Get().PrimarySceneRenderer() );
+			m_EditorScene->OnUpdate( time );
+			m_EditorScene->OnRenderEditor( m_EditorCamera, time, Application::Get().PrimarySceneRenderer() );
 		}
 
 		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
@@ -528,9 +528,8 @@ namespace Saturn {
 			}
 		}
 		
-		// Asset viewers
-		MaterialAssetViewer::Get().Draw();
-		PrefabViewer::Get().Draw();
+		// Asset viewers, check for any dead assets viewers.
+		AssetViewer::DrawAll();
 
 		if( !s_HasPremakePath )
 		{

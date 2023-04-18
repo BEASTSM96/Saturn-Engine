@@ -37,14 +37,26 @@ namespace Saturn {
 	class AssetViewer : public CountedObj
 	{
 	public:
-
-		AssetViewer() {}
-		~AssetViewer() {}
+		AssetViewer();
+		~AssetViewer();
 
 		virtual void Draw() = 0;
 
+		bool IsOpen() { return m_Open; }
+
+	public: // Statics
+		template<typename Ty, typename... Args>
+		static Ty* Add( Args&&... rrArgs ) 
+		{
+			Ty* assetViewer = new Ty( std::forward<Args>( rrArgs )... );
+			return assetViewer;
+		}
+
+		static void DrawAll();
+
 	protected:
 		AssetType m_AssetType = AssetType::Unknown;
+		AssetID m_AssetID;
+		bool m_Open = false;
 	};
-
 }

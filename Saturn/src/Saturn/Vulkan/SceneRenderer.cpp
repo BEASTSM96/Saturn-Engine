@@ -163,8 +163,7 @@ namespace Saturn {
 		// Load the shader
 		if( !m_RendererData.StaticMeshShader ) 
 		{
-			ShaderLibrary::Get().Load( "content/shaders/shader_new.glsl" );
-			m_RendererData.StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
+			m_RendererData.StaticMeshShader = ShaderLibrary::Get().TryFind( "shader_new", "content/shaders/shader_new.glsl" );
 		}
 		
 		if( m_RendererData.StaticMeshPipeline )
@@ -198,8 +197,7 @@ namespace Saturn {
 
 		if( !m_RendererData.DirShadowMapShader )
 		{
-			ShaderLibrary::Get().Load( "content/shaders/ShadowMap.glsl" );
-			m_RendererData.DirShadowMapShader = ShaderLibrary::Get().Find( "ShadowMap" );
+			m_RendererData.DirShadowMapShader = ShaderLibrary::Get().TryFind( "ShadowMap", "content/shaders/ShadowMap.glsl" );
 		}
 
 		PipelineSpecification PipelineSpec = {};
@@ -279,11 +277,8 @@ namespace Saturn {
 
 		if( !m_RendererData.PreDepthShader ) 
 		{
-			ShaderLibrary::Get().Load( "content/shaders/PreDepth.glsl" );
-			ShaderLibrary::Get().Load( "content/shaders/LightCulling.glsl" );
-
-			m_RendererData.PreDepthShader = ShaderLibrary::Get().Find( "PreDepth" );
-			m_RendererData.LightCullingShader = ShaderLibrary::Get().Find( "LightCulling" );
+			m_RendererData.PreDepthShader = ShaderLibrary::Get().TryFind( "PreDepth", "content/shaders/PreDepth.glsl" );
+			m_RendererData.LightCullingShader = ShaderLibrary::Get().TryFind( "LightCulling", "content/shaders/LightCulling.glsl" );
 		}
 
 		if( m_RendererData.PreDepthPipeline )
@@ -359,8 +354,7 @@ namespace Saturn {
 		
 		if( !m_RendererData.SceneCompositeShader )
 		{
-			ShaderLibrary::Get().Load( "content/shaders/SceneComposite.glsl" );
-			m_RendererData.SceneCompositeShader = ShaderLibrary::Get().Find( "SceneComposite" );
+			m_RendererData.SceneCompositeShader = ShaderLibrary::Get().TryFind( "SceneComposite", "content/shaders/SceneComposite.glsl" );
 		}
 		
 		if( !m_RendererData.SC_DescriptorSet )
@@ -396,8 +390,7 @@ namespace Saturn {
 	{
 		if( !m_RendererData.BloomShader )
 		{
-			ShaderLibrary::Get().Load( "content/shaders/Bloom.glsl" );
-			m_RendererData.BloomShader = ShaderLibrary::Get().Find( "Bloom" );
+			m_RendererData.BloomShader = ShaderLibrary::Get().TryFind( "Bloom", "content/shaders/Bloom.glsl" );
 		}
 
 		m_RendererData.BloomComputePipeline = Ref<ComputePipeline>::Create( m_RendererData.BloomShader );
@@ -437,8 +430,7 @@ namespace Saturn {
 	{
 		if( !m_RendererData.TexturePassShader )
 		{
-			ShaderLibrary::Get().Load( "content/shaders/TexturePass.glsl" );
-			m_RendererData.TexturePassShader = ShaderLibrary::Get().Find( "TexturePass" );
+			m_RendererData.TexturePassShader = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
 		}
 
 		if( !m_RendererData.TexturePassDescriptorSet )
@@ -705,8 +697,7 @@ namespace Saturn {
 		
 		if( !m_RendererData.GridShader )
 		{
-			ShaderLibrary::Get().Load( "content/shaders/Grid.glsl" );
-			m_RendererData.GridShader = ShaderLibrary::Get().Find( "Grid" );
+			m_RendererData.GridShader = ShaderLibrary::Get().TryFind( "Grid", "content/shaders/Grid.glsl" );
 		}
 	
 		if( !m_RendererData.GridDescriptorSet ) 
@@ -751,11 +742,8 @@ namespace Saturn {
 		
 		if( !m_RendererData.SkyboxShader && !m_RendererData.PreethamShader )
 		{
-			ShaderLibrary::Get().Load( "content/shaders/Skybox.glsl" );
-			ShaderLibrary::Get().Load( "content/shaders/Skybox_Compute.glsl" );
-
-			m_RendererData.SkyboxShader = ShaderLibrary::Get().Find( "Skybox" );
-			m_RendererData.PreethamShader = ShaderLibrary::Get().Find( "Skybox_Compute" );
+			m_RendererData.SkyboxShader = ShaderLibrary::Get().TryFind( "Skybox", "content/shaders/Skybox.glsl" );
+			m_RendererData.PreethamShader = ShaderLibrary::Get().TryFind( "Skybox_Compute", "content/shaders/Skybox_Compute.glsl" );
 		}
 				
 		if( !m_RendererData.SkyboxDescriptorSet ) 

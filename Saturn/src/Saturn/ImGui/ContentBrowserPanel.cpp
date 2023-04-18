@@ -763,7 +763,7 @@ namespace Saturn {
 							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
 							
 							// Importing the asset will happen in this function.
-							MaterialAssetViewer::Get().AddMaterialAsset( asset );
+							AssetViewer::Add<MaterialAssetViewer>( asset->ID );
 						} break;
 						case Saturn::AssetType::MaterialInstance:
 							break;
@@ -774,8 +774,8 @@ namespace Saturn {
 
 							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
 
-							PrefabViewer::Get().AddPrefab( asset );
-						} break;
+							AssetViewer::Add<PrefabViewer>( asset->ID );
+						} break; 
 
 						case Saturn::AssetType::Scene:
 						case Saturn::AssetType::Audio:

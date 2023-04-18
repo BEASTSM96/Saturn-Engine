@@ -30,60 +30,72 @@
 #include "PrefabViewer.h"
 
 #include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Vulkan/SceneRenderer.h"
+
+#include "Saturn/ImGui/UITools.h"
 
 #include <imgui.h>
 
 namespace Saturn {
 
-	PrefabViewer::PrefabViewer()
+	PrefabViewer::PrefabViewer( AssetID id )
+		: AssetViewer(), m_Camera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
 	{
+		m_AssetID = id;
+
 		m_SceneHierarchyPanel = Ref<SceneHierarchyPanel>::Create();
 		m_SceneHierarchyPanel->SetIsPrefabScene( true );
+
+		AddPrefab();
+
+		m_SceneRenderer = new SceneRenderer();
+
+		m_Camera.SetActive( true );
+		m_SceneRenderer->SetCamera( { m_Camera, m_Camera.ViewMatrix() } );
 	}
 
 	PrefabViewer::~PrefabViewer()
 	{
-
 	}
 
 	void PrefabViewer::Draw()
 	{
-		for( auto& prefab : m_Prefabs )
-			DrawInternal( prefab );
-	}
+		ImGui::PushID( static_cast< int >( m_AssetID ) );
 
-	void PrefabViewer::AddPrefab( Ref<Asset>& rAsset )
-	{
-		Ref<Prefab> prefab = AssetRegistry::Get().GetAssetAs<Prefab>( rAsset->GetAssetID() );
-
-		m_SceneHierarchyPanel->SetContext( prefab->GetScene() );
-
-		m_Prefabs.push_back( prefab );
-
-		m_OpenPrefabs[ prefab->ID ] = true;
-	}
-
-	void PrefabViewer::DrawInternal( Ref<Prefab>& rPrefab )
-	{
-		ImGui::PushID( static_cast<int>( rPrefab->ID ) );
-
-		ImGui::Begin( rPrefab->Name.c_str(), &m_OpenPrefabs.at( rPrefab->ID ) );
+		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open );
 
 		m_SceneHierarchyPanel->Draw();
+
+		// Update for scene rendering.
+		m_Prefab->GetScene()->OnRenderEditor( m_Camera, Application::Get().Time(), *m_SceneRenderer );
+		m_SceneRenderer->RenderScene();
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+		ImGui::Begin( "Viewport", 0, flags );
+
+		Image( m_SceneRenderer->CompositeImage(), ImGui::GetContentRegionAvail(), { 0, 1 }, { 1, 0 } );
+
+		ImGui::End();
 
 		ImGui::End();
 
 		ImGui::PopID();
 
-		if( m_OpenPrefabs.at( rPrefab->ID ) == false )
+		if( m_Open == false )
 		{
-			m_OpenPrefabs.erase( rPrefab->ID );
-
-			m_Prefabs.erase( std::remove( m_Prefabs.begin(), m_Prefabs.end(), rPrefab ), m_Prefabs.end() );
-
 			PrefabSerialiser ps;
-			ps.Serialise( rPrefab );
+			ps.Serialise( m_Prefab );
 		}
 	}
 
+	void PrefabViewer::AddPrefab()
+	{
+		Ref<Prefab> prefab = AssetRegistry::Get().GetAssetAs<Prefab>( m_AssetID );
+
+		m_SceneHierarchyPanel->SetContext( prefab->GetScene() );
+
+		m_Prefab = prefab;
+
+		m_Open = true;
+	}
 }

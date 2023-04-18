@@ -26,32 +26,38 @@
 *********************************************************************************************
 */
 
-#pragma once
-
+#include "sppch.h"
 #include "AssetViewer.h"
-#include "Saturn/Asset/Prefab.h"
-
-#include "SceneHierarchyPanel.h"
 
 namespace Saturn {
 
-	class SceneRenderer;
-	class EditorCamera;
+	static std::unordered_map<AssetID, AssetViewer*> s_AssetViewers;
 
-	class PrefabViewer : public AssetViewer
+	AssetViewer::AssetViewer()
 	{
-	public:
-		PrefabViewer( AssetID id );
-		~PrefabViewer();
+		s_AssetViewers[ m_AssetID ] = this;
+	}
 
-		virtual void Draw() override;
+	AssetViewer::~AssetViewer()
+	{
+		s_AssetViewers[ m_AssetID ] = nullptr;
+		s_AssetViewers.erase( m_AssetID );
+	}
 
-		void AddPrefab();
-	private:
-		Ref<Prefab> m_Prefab;
-		SceneRenderer* m_SceneRenderer;
-		EditorCamera m_Camera;
+	void AssetViewer::DrawAll()
+	{
+		for ( auto&& [id, viewer] : s_AssetViewers )
+		{
+			if( !viewer->IsOpen() )
+			{
+				delete viewer;
+				s_AssetViewers.erase( id );
 
-		Ref<SceneHierarchyPanel> m_SceneHierarchyPanel;
-	};
+				continue;
+			}
+
+			viewer->Draw();
+		}
+	}
+
 }

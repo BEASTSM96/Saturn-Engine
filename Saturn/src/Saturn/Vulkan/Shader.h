@@ -319,10 +319,11 @@ namespace Saturn {
 		void Load( const std::string& name, const std::string& path );
 		void Remove( const Ref<Shader>& shader );
 
-		void Shutdown();
-
-
+		// If the shader does not exist, it will load it.
+		const Ref<Shader>& TryFind( const std::string& name, const std::string& path );
 		const Ref<Shader>& Find( const std::string& name ) const;
+
+		void Shutdown();
 	private:
 		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
 	};

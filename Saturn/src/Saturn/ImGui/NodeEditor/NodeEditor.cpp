@@ -84,8 +84,10 @@ namespace Saturn {
 	static SelectAssetInfo s_SelectAssetInfo;
 
 	NodeEditor::NodeEditor( AssetID ID )
-		: m_AssetID( ID )
+		: AssetViewer()
 	{
+		m_AssetID = ID;
+
 		ed::Config config;
 		config.SettingsFile = nullptr;
 		config.UserPointer = this;

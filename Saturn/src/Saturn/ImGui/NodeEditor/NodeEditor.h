@@ -63,7 +63,6 @@ namespace Saturn {
 		void Draw() override;
 
 		void Open( bool open ) { m_Open = open; }
-		bool IsOpen() { return m_Open; }
 
 		// Only use this when creating a node that needs to link automatically.
 		void LinkPin( ed::PinId Start, ed::PinId End );
@@ -112,8 +111,6 @@ namespace Saturn {
 
 		std::string m_NodeEditorState;
 
-		bool m_Open = false;
-
 		bool m_CreateNewNode = false;
 		Pin* m_NewLinkPin = nullptr;
 		Pin* m_NewNodeLinkPin = nullptr;
@@ -127,7 +124,5 @@ namespace Saturn {
 		std::vector<Link> m_Links;
 
 		std::string m_Name;
-
-		AssetID m_AssetID;
 	};
 }

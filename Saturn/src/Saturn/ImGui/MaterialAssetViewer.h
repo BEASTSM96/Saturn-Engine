@@ -38,22 +38,22 @@ namespace Saturn {
 
 	class MaterialAssetViewer : public AssetViewer
 	{
-		SINGLETON( MaterialAssetViewer );
 	public:
-		MaterialAssetViewer();
+		MaterialAssetViewer( AssetID id );
 		~MaterialAssetViewer();
 
 		virtual void Draw() override;
 
-		void AddMaterialAsset( Ref<Asset>& rAsset );
-
 	private:
-		void DrawInternal( Ref<MaterialAsset>& rMaterialAsset );
+		void AddMaterialAsset();
+		void DrawInternal();
 
 		NodeEditorCompilationStatus CheckOutputNodeInput( NodeEditor* pNodeEditor, int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker, Ref<MaterialAsset>& rMaterialAsset );
 
 	private:
-		std::vector<Ref<MaterialAsset>> m_MaterialAssets;
+		Ref<MaterialAsset> m_MaterialAsset;
+
+		NodeEditor* m_NodeEditor;
 
 		int m_OutputNodeID = 0;
 	};
