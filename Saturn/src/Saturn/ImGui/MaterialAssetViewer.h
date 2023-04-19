@@ -43,6 +43,7 @@ namespace Saturn {
 		~MaterialAssetViewer();
 
 		virtual void Draw() override;
+		virtual void OnRender() override {}
 
 	private:
 		void AddMaterialAsset();

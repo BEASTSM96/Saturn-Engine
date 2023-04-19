@@ -42,6 +42,9 @@ namespace Saturn {
 
 		virtual void Draw() = 0;
 
+		// This function is to only be used when a asset viewer has a SceneRenderer as this will be called after the main renderer is complete.
+		virtual void OnRender() = 0;
+
 		bool IsOpen() { return m_Open; }
 
 	public: // Statics
@@ -53,6 +56,7 @@ namespace Saturn {
 		}
 
 		static void DrawAll();
+		static void RenderAll();
 
 	protected:
 		AssetType m_AssetType = AssetType::Unknown;

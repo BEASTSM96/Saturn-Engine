@@ -321,6 +321,9 @@ namespace Saturn {
 
 		io.ConfigWindowsResizeFromEdges = io.BackendFlags & ImGuiBackendFlags_HasMouseCursors;
 
+		// Render scenes in other asset viewers
+		AssetViewer::RenderAll();
+
 		m_TitleBar->Draw();
 
 		PanelManager::Get().DrawAllPanels();

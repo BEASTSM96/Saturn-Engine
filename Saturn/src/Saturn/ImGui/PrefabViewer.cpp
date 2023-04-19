@@ -34,9 +34,10 @@
 
 #include "Saturn/ImGui/UITools.h"
 
-#include <imgui.h>
-
 namespace Saturn {
+
+	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
+	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
 	PrefabViewer::PrefabViewer( AssetID id )
 		: AssetViewer(), m_Camera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
@@ -56,6 +57,7 @@ namespace Saturn {
 
 	PrefabViewer::~PrefabViewer()
 	{
+		delete m_SceneRenderer;
 	}
 
 	void PrefabViewer::Draw()
@@ -64,18 +66,26 @@ namespace Saturn {
 
 		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open );
 
-		m_SceneHierarchyPanel->Draw();
-
 		// Update for scene rendering.
 		m_Prefab->GetScene()->OnRenderEditor( m_Camera, Application::Get().Time(), *m_SceneRenderer );
-		m_SceneRenderer->RenderScene();
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		ImGui::Begin( "Viewport", 0, flags );
+		ImGui::PushID( m_AssetID );
+		ImGui::BeginChild( "##Viewport", m_ViewportSize, 0, flags );
+
+		if( m_ViewportSize != ImGui::GetContentRegionAvail() ) 
+		{
+			m_ViewportSize = ImGui::GetContentRegionAvail();
+
+			m_SceneRenderer->SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
+		}
 
 		Image( m_SceneRenderer->CompositeImage(), ImGui::GetContentRegionAvail(), { 0, 1 }, { 1, 0 } );
 
-		ImGui::End();
+		ImGui::EndChild();
+		ImGui::PopID();
+
+		m_SceneHierarchyPanel->Draw();
 
 		ImGui::End();
 
@@ -86,6 +96,11 @@ namespace Saturn {
 			PrefabSerialiser ps;
 			ps.Serialise( m_Prefab );
 		}
+	}
+
+	void PrefabViewer::OnRender()
+	{
+		m_SceneRenderer->RenderScene();
 	}
 
 	void PrefabViewer::AddPrefab()

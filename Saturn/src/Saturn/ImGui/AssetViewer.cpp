@@ -60,4 +60,20 @@ namespace Saturn {
 		}
 	}
 
+	void AssetViewer::RenderAll()
+	{
+		for( auto&& [id, viewer] : s_AssetViewers )
+		{
+			if( !viewer->IsOpen() )
+			{
+				delete viewer;
+				s_AssetViewers.erase( id );
+
+				continue;
+			}
+
+			viewer->OnRender();
+		}
+	}
+
 }

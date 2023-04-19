@@ -60,7 +60,8 @@ namespace Saturn {
 		const std::vector<Link>& GetLinks() const { return m_Links; }
 		std::vector<Link>& GetLinks() { return m_Links; }
 
-		void Draw() override;
+		virtual void Draw() override;
+		virtual void OnRender() override {}
 
 		void Open( bool open ) { m_Open = open; }
 

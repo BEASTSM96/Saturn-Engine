@@ -32,6 +32,7 @@
 #include "Saturn/Asset/Prefab.h"
 
 #include "SceneHierarchyPanel.h"
+#include <imgui.h>
 
 namespace Saturn {
 
@@ -45,12 +46,15 @@ namespace Saturn {
 		~PrefabViewer();
 
 		virtual void Draw() override;
+		virtual void OnRender() override;
 
 		void AddPrefab();
 	private:
 		Ref<Prefab> m_Prefab;
 		SceneRenderer* m_SceneRenderer;
 		EditorCamera m_Camera;
+
+		ImVec2 m_ViewportSize;
 
 		Ref<SceneHierarchyPanel> m_SceneHierarchyPanel;
 	};
