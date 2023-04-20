@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "Renderer.h"
 
+#include "Saturn/Core/Renderer/RenderThread.h"
+
 #include "VulkanDebug.h"
 #include "DescriptorSet.h"
 #include "MaterialInstance.h"
@@ -343,31 +345,35 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
+		//RenderThread::Get().Queue( 
+		//	[this] 
+		//	{
+				VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
 
-		m_BeginFrameTimer.Reset();
+				m_BeginFrameTimer.Reset();
 
-		vkResetDescriptorPool( LogicalDevice, m_RendererDescriptorPools[ m_FrameCount ]->GetVulkanPool(), 0 );
+				vkResetDescriptorPool( LogicalDevice, m_RendererDescriptorPools[ m_FrameCount ]->GetVulkanPool(), 0 );
 
-		m_CommandBuffer = AllocateCommandBuffer( VulkanContext::Get().GetCommandPool() );
+				m_CommandBuffer = AllocateCommandBuffer( VulkanContext::Get().GetCommandPool() );
 
-		// Wait for last frame.
-		VK_CHECK( vkWaitForFences( LogicalDevice, 1, &m_FlightFences[ m_FrameCount ], VK_TRUE, UINT32_MAX ) );
+				// Wait for last frame.
+				VK_CHECK( vkWaitForFences( LogicalDevice, 1, &m_FlightFences[ m_FrameCount ], VK_TRUE, UINT32_MAX ) );
 
-		// Reset current fence.
-		VK_CHECK( vkResetFences( LogicalDevice, 1, &m_FlightFences[ m_FrameCount ] ) );
+				// Reset current fence.
+				VK_CHECK( vkResetFences( LogicalDevice, 1, &m_FlightFences[ m_FrameCount ] ) );
 
-		// Acquire next image.
-		uint32_t ImageIndex;
-		if( !VulkanContext::Get().GetSwapchain().AcquireNextImage( UINT32_MAX, m_AcquireSemaphore, VK_NULL_HANDLE, &ImageIndex ) )
-			SAT_CORE_ASSERT( false );
+				// Acquire next image.
+				uint32_t ImageIndex;
+				if( !VulkanContext::Get().GetSwapchain().AcquireNextImage( UINT32_MAX, m_AcquireSemaphore, VK_NULL_HANDLE, &ImageIndex ) )
+					SAT_CORE_ASSERT( false );
 
-		m_ImageIndex = ImageIndex;
+				m_ImageIndex = ImageIndex;
 
-		if( ImageIndex == UINT32_MAX || ImageIndex == 3435973836 )
-			SAT_CORE_ASSERT( false );
+				if( ImageIndex == UINT32_MAX || ImageIndex == 3435973836 )
+					SAT_CORE_ASSERT( false );
 
-		m_BeginFrameTime = m_BeginFrameTimer.ElapsedMilliseconds();
+				m_BeginFrameTime = m_BeginFrameTimer.ElapsedMilliseconds();
+		//	} );
 	}
 
 	void Renderer::EndFrame()

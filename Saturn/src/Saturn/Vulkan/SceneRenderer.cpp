@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "SceneRenderer.h"
 
+#include "Saturn/Core/Renderer/RenderThread.h"
+
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
 #include "Texture.h"
@@ -60,22 +62,22 @@ namespace Saturn {
 		VkCommandPoolCreateInfo CommandPoolInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 		CommandPoolInfo.queueFamilyIndex = VulkanContext::Get().GetQueueFamilyIndices().GraphicsFamily.value();
 		CommandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		
+
 		VK_CHECK( vkCreateCommandPool( VulkanContext::Get().GetDevice(), &CommandPoolInfo, nullptr, &m_RendererData.CommandPool ) );
-		
+
 		if( m_RendererData.Width == 0 && m_RendererData.Height == 0 )
 		{
 			m_RendererData.Width = Window::Get().Width();
 			m_RendererData.Height = Window::Get().Height();
 		}
-		
+
 		//////////////////////////////////////////////////////////////////////////
 		// Geometry 
 		//////////////////////////////////////////////////////////////////////////
 
 		if( !Application::Get().GetSpecification().CreateSceneRenderer )
 			return;
-			
+
 		m_RendererData.StorageBufferSet = Ref<StorageBufferSet>::Create( 0, 0 );
 
 		InitPreDepth();
@@ -111,16 +113,16 @@ namespace Saturn {
 
 	Ref<Image2D> SceneRenderer::CompositeImage()
 	{
-		return m_RendererData.ViewShadowCascades ? m_RendererData.ShadowCascades[0].Framebuffer->GetDepthAttachmentsResource() : m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[0];
+		return m_RendererData.ViewShadowCascades ? m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource() : m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ];
 	}
 
 	void SceneRenderer::Terminate()
 	{
 		m_pScene = nullptr;
-		
+
 		m_DrawList.clear();
 		m_ShadowMapDrawList.clear();
-		
+
 		m_RendererData.Terminate();
 	}
 
@@ -153,7 +155,7 @@ namespace Saturn {
 		FBSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F };
 
 		m_RendererData.GeometryFramebuffer = Ref< Framebuffer >::Create( FBSpec );
-		
+
 
 		//////////////////////////////////////////////////////////////////////////
 		// STATIC MESHES
@@ -161,11 +163,11 @@ namespace Saturn {
 
 		// Create the static meshes pipeline.
 		// Load the shader
-		if( !m_RendererData.StaticMeshShader ) 
+		if( !m_RendererData.StaticMeshShader )
 		{
 			m_RendererData.StaticMeshShader = ShaderLibrary::Get().TryFind( "shader_new", "content/shaders/shader_new.glsl" );
 		}
-		
+
 		if( m_RendererData.StaticMeshPipeline )
 			m_RendererData.StaticMeshPipeline = nullptr;
 
@@ -185,12 +187,12 @@ namespace Saturn {
 		};
 		PipelineSpec.CullMode = CullMode::Back;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		
-		m_RendererData.StaticMeshPipeline = Ref< Pipeline >::Create( PipelineSpec ); 
+
+		m_RendererData.StaticMeshPipeline = Ref< Pipeline >::Create( PipelineSpec );
 	}
 
 	void SceneRenderer::InitDirShadowMap()
-	{	
+	{
 		m_RendererData.ShadowCascades.resize( SHADOW_CASCADE_COUNT );
 		m_RendererData.DirShadowMapPasses.resize( SHADOW_CASCADE_COUNT );
 		m_RendererData.DirShadowMapPipelines.resize( SHADOW_CASCADE_COUNT );
@@ -234,17 +236,17 @@ namespace Saturn {
 		PassSpec.Attachments = { ImageFormat::Depth };
 
 		for( size_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
-		{			
+		{
 			m_RendererData.DirShadowMapPasses[ i ] = Ref<Pass>::Create( PassSpec );
 
 			FBSpec.RenderPass = m_RendererData.DirShadowMapPasses[ i ];
 			FBSpec.ExistingImageLayer = ( uint32_t ) i;
 
-			PipelineSpec.RenderPass = m_RendererData.DirShadowMapPasses[i];
+			PipelineSpec.RenderPass = m_RendererData.DirShadowMapPasses[ i ];
 
 			m_RendererData.ShadowCascades[ i ].Framebuffer = Ref<Framebuffer>::Create( FBSpec );
 
-			m_RendererData.DirShadowMapPipelines[i] = Ref< Pipeline >::Create( PipelineSpec );
+			m_RendererData.DirShadowMapPipelines[ i ] = Ref< Pipeline >::Create( PipelineSpec );
 		}
 
 	}
@@ -275,7 +277,7 @@ namespace Saturn {
 			m_RendererData.PreDepthFramebuffer = Ref<Framebuffer>::Create( FBSpec );
 		}
 
-		if( !m_RendererData.PreDepthShader ) 
+		if( !m_RendererData.PreDepthShader )
 		{
 			m_RendererData.PreDepthShader = ShaderLibrary::Get().TryFind( "PreDepth", "content/shaders/PreDepth.glsl" );
 			m_RendererData.LightCullingShader = ShaderLibrary::Get().TryFind( "LightCulling", "content/shaders/LightCulling.glsl" );
@@ -309,8 +311,9 @@ namespace Saturn {
 		// Light culling
 		m_RendererData.LightCullingPipeline = Ref<ComputePipeline>::Create( m_RendererData.LightCullingShader );
 
-		if( !m_RendererData.LightCullingDescriptorSet )
-			m_RendererData.LightCullingDescriptorSet = m_RendererData.LightCullingShader->CreateDescriptorSet( 0 );
+		m_RendererData.LightCullingDescriptorSet = m_RendererData.LightCullingShader->CreateDescriptorSet( 0 );
+
+		Renderer::Get().GetCurrentFrame();
 
 		m_RendererData.LightCullingShader->WriteDescriptor( "u_PreDepth", m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.LightCullingDescriptorSet->GetVulkanSet() );
 
@@ -351,16 +354,16 @@ namespace Saturn {
 		// Create fullscreen quad.
 		if( m_RendererData.SC_VertexBuffer == nullptr && m_RendererData.SC_IndexBuffer == nullptr )
 			Renderer::Get().CreateFullscreenQuad( &m_RendererData.SC_VertexBuffer, &m_RendererData.SC_IndexBuffer );
-		
+
 		if( !m_RendererData.SceneCompositeShader )
 		{
 			m_RendererData.SceneCompositeShader = ShaderLibrary::Get().TryFind( "SceneComposite", "content/shaders/SceneComposite.glsl" );
 		}
-		
+
 		if( !m_RendererData.SC_DescriptorSet )
 			m_RendererData.SC_DescriptorSet = m_RendererData.SceneCompositeShader->CreateDescriptorSet( 0 );
 
-		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_GeometryPassTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[0]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
+		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_GeometryPassTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomTexture", m_RendererData.BloomTextures[ 2 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomDirtTexture", m_RendererData.BloomDirtTexture->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 
@@ -395,7 +398,7 @@ namespace Saturn {
 
 		m_RendererData.BloomComputePipeline = Ref<ComputePipeline>::Create( m_RendererData.BloomShader );
 
-		for( size_t i = 0; i < 3; i++ ) 
+		for( size_t i = 0; i < 3; i++ )
 		{
 			m_RendererData.BloomTextures[ i ] = Ref<Texture2D>::Create( ImageFormat::RGBA32F, 1, 1, nullptr, true );
 			m_RendererData.BloomTextures[ i ]->SetDebugName( "Bloom Texture: " + std::to_string( i ) );
@@ -409,7 +412,7 @@ namespace Saturn {
 
 		m_RendererData.BloomDirtTexture = Ref<Texture2D>::Create( "content/textures/BloomDirtTextureUE.png", AddressingMode::Repeat );
 
-		VkDescriptorPoolSize PoolSizes[] = 
+		VkDescriptorPoolSize PoolSizes[] =
 		{
 			{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
 			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
@@ -483,12 +486,12 @@ namespace Saturn {
 		auto Data = m_RendererData.GridShader->MapUB( ShaderType::All, 0, 0 );
 
 		memcpy( Data, &GridMatricesObject, sizeof( GridMatricesObject ) );
-		
+
 		m_RendererData.GridShader->UnmapUB( ShaderType::All, 0, 0 );
 
 		m_RendererData.GridShader->WriteAllUBs( m_RendererData.GridDescriptorSet );
-		
-		Renderer::Get().SubmitFullscreenQuad( 
+
+		Renderer::Get().SubmitFullscreenQuad(
 			m_RendererData.CommandBuffer, m_RendererData.GridPipeline, m_RendererData.GridDescriptorSet, m_RendererData.GridIndexBuffer, m_RendererData.GridVertexBuffer );
 	}
 
@@ -508,7 +511,7 @@ namespace Saturn {
 
 		auto view = m_pScene->GetAllEntitiesWith< SkylightComponent >();
 
-		for ( const auto e : view )
+		for( const auto e : view )
 		{
 			SkylightEntity = { e, m_pScene };
 		}
@@ -519,7 +522,7 @@ namespace Saturn {
 
 			if( !Skylight.DynamicSky )
 				return;
-			
+
 			RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
 			SkyboxMatricesObject.InverseVP = glm::inverse( m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix );
 
@@ -539,7 +542,7 @@ namespace Saturn {
 
 			m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
 
-			Renderer::Get().SubmitFullscreenQuad( 
+			Renderer::Get().SubmitFullscreenQuad(
 				CommandBuffer, m_RendererData.SkyboxPipeline, m_RendererData.SkyboxDescriptorSet, m_RendererData.SkyboxIndexBuffer, m_RendererData.SkyboxVertexBuffer );
 		}
 	}
@@ -694,13 +697,13 @@ namespace Saturn {
 
 		// Create fullscreen quad.
 		Renderer::Get().CreateFullscreenQuad( &m_RendererData.GridVertexBuffer, &m_RendererData.GridIndexBuffer );
-		
+
 		if( !m_RendererData.GridShader )
 		{
 			m_RendererData.GridShader = ShaderLibrary::Get().TryFind( "Grid", "content/shaders/Grid.glsl" );
 		}
-	
-		if( !m_RendererData.GridDescriptorSet ) 
+
+		if( !m_RendererData.GridDescriptorSet )
 			m_RendererData.GridDescriptorSet = m_RendererData.GridShader->CreateDescriptorSet( 0 );
 
 		m_RendererData.GridShader->WriteAllUBs( m_RendererData.GridDescriptorSet );
@@ -722,10 +725,10 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float2, "a_TexCoord" },
 		};
-		
+
 		m_RendererData.GridPipeline = Ref< Pipeline >::Create( PipelineSpec );
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////////
 	// Skybox
 	//////////////////////////////////////////////////////////////////////////
@@ -739,14 +742,14 @@ namespace Saturn {
 			Renderer::Get().CreateFullscreenQuad( &m_RendererData.SkyboxVertexBuffer, &m_RendererData.SkyboxIndexBuffer );
 
 		// Create skybox shader.
-		
+
 		if( !m_RendererData.SkyboxShader && !m_RendererData.PreethamShader )
 		{
 			m_RendererData.SkyboxShader = ShaderLibrary::Get().TryFind( "Skybox", "content/shaders/Skybox.glsl" );
 			m_RendererData.PreethamShader = ShaderLibrary::Get().TryFind( "Skybox_Compute", "content/shaders/Skybox_Compute.glsl" );
 		}
-				
-		if( !m_RendererData.SkyboxDescriptorSet ) 
+
+		if( !m_RendererData.SkyboxDescriptorSet )
 			m_RendererData.SkyboxDescriptorSet = m_RendererData.SkyboxShader->CreateDescriptorSet( 0 );
 
 		if( !m_RendererData.PreethamDescriptorSet )
@@ -781,8 +784,8 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		ImGui::Begin( "Scene Renderer" );
-		
-		ImGui::Text( "Viewport size, %i, %i", ( int )m_RendererData.Width, ( int ) m_RendererData.Height );
+
+		ImGui::Text( "Viewport size, %i, %i", ( int ) m_RendererData.Width, ( int ) m_RendererData.Height );
 
 		ImGui::Text( "FPS: %.1f", ImGui::GetIO().Framerate );
 
@@ -820,8 +823,9 @@ namespace Saturn {
 
 			ImGui::Text( "Renderer::EndFrame: %.2f ms", FrameTimings.second );
 
+			ImGui::Text( "Total (render wait time): %.2f ms", RenderThread::Get().GetWaitTime() );
 			ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
-			
+
 			EndTreeNode();
 		}
 
@@ -838,7 +842,7 @@ namespace Saturn {
 			{
 				ImGui::DragFloat( "Cascade Split Lambda", &m_RendererData.CascadeSplitLambda, 1.0f, 0.01f, 1.0f );
 				ImGui::DragFloat( "Cascade Near plane", &m_RendererData.CascadeNearPlaneOffset, 1.0f, -1000.0f, 1000.0f );
-				ImGui::DragFloat( "Cascade Far plane", &m_RendererData.CascadeFarPlaneOffset, 1.0f, -1000.0f, 1000.0f );	
+				ImGui::DragFloat( "Cascade Far plane", &m_RendererData.CascadeFarPlaneOffset, 1.0f, -1000.0f, 1000.0f );
 
 				ImGui::Checkbox( "Enable shadows", &m_RendererData.EnableShadows );
 
@@ -849,7 +853,7 @@ namespace Saturn {
 
 				ImGui::SliderInt( "##cascade_dt", &index, 0, 3 );
 
-				Image( framebuffer, (uint32_t)index, { size, size }, { 0, 1 }, { 1, 0 } );
+				Image( framebuffer, ( uint32_t ) index, { size, size }, { 0, 1 }, { 1, 0 } );
 
 				EndTreeNode();
 			}
@@ -879,7 +883,7 @@ namespace Saturn {
 
 				EndTreeNode();
 			}
-			
+
 			EndTreeNode();
 		}
 
@@ -892,7 +896,7 @@ namespace Saturn {
 
 		auto& submeshes = mesh->Submeshes();
 		for( size_t i = 0; i < submeshes.size(); i++ )
-			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = (uint32_t)i } );
+			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) i } );
 
 		m_ShadowMapDrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) 0 } );
 	}
@@ -927,9 +931,6 @@ namespace Saturn {
 
 		InitTexturePass();
 
-		//InitAO();
-		//InitAOComposite();
-
 		glm::uvec2 bs = ( glm::uvec2( m_RendererData.Width, m_RendererData.Height ) + 1u ) / 2u;
 		bs += m_RendererData.BloomWorkSize - bs % m_RendererData.BloomWorkSize;
 
@@ -942,8 +943,6 @@ namespace Saturn {
 		}
 
 		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomTexture", m_RendererData.BloomTextures[ 2 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
-
-		//InitBloom();
 
 		CreateSkyboxComponents();
 		CreateGridComponents();
@@ -964,17 +963,17 @@ namespace Saturn {
 
 		// Begin geometry pass.
 		m_RendererData.GeometryPass->BeginPass( m_RendererData.CommandBuffer, m_RendererData.GeometryFramebuffer->GetVulkanFramebuffer(), Extent );
-		
+
 		VkViewport Viewport = {};
 		Viewport.x = 0;
 		Viewport.y = 0;
-		Viewport.width = ( float )m_RendererData.Width;
-		Viewport.height = ( float )m_RendererData.Height;
+		Viewport.width = ( float ) m_RendererData.Width;
+		Viewport.height = ( float ) m_RendererData.Height;
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
-		
+
 		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
-		
+
 		vkCmdSetScissor( m_RendererData.CommandBuffer, 0, 1, &Scissor );
 		vkCmdSetViewport( m_RendererData.CommandBuffer, 0, 1, &Viewport );
 
@@ -1017,7 +1016,7 @@ namespace Saturn {
 
 			struct
 			{
-				glm::mat4 LightMatrix[4];
+				glm::mat4 LightMatrix[ 4 ];
 			} u_LightData = {};
 
 			RendererData::PointLights u_Lights;
@@ -1031,7 +1030,7 @@ namespace Saturn {
 				DirLight Lights;
 				glm::vec3 CameraPosition;
 			} u_SceneData = {};
-			
+
 			struct ShadowData
 			{
 				glm::vec4 CascadeSplits;
@@ -1051,10 +1050,10 @@ namespace Saturn {
 			u_DebugData.TilesCountX = ( int ) m_RendererData.LightCullingWorkGroups.x;
 
 			auto dirLight = m_pScene->m_Lights.DirectionalLights[ 0 ];
-			
+
 			auto invView = glm::inverse( u_Matrices.View );
 
-			u_SceneData.CameraPosition = invView[3];
+			u_SceneData.CameraPosition = invView[ 3 ];
 			u_SceneData.Lights = { .Direction = dirLight.Direction, .Radiance = dirLight.Radiance, .Multiplier = dirLight.Intensity };
 
 			if( m_RendererData.EnableShadows )
@@ -1078,14 +1077,14 @@ namespace Saturn {
 
 			// Render
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
-				m_RendererData.StaticMeshPipeline, 
+				m_RendererData.StaticMeshPipeline,
 				Cmd.Mesh, m_RendererData.StorageBufferSet, Cmd.Transform, Cmd.SubmeshIndex );
 		}
-		
+
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		//////////////////////////////////////////////////////////////////////////
-		
+
 		// End geometry pass.
 		m_RendererData.GeometryPass->EndPass();
 
@@ -1120,17 +1119,17 @@ namespace Saturn {
 		Viewport.maxDepth = 1.0f;
 
 		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
-		
+
 		//////////////////////////////////////////////////////////////////////////
 
 		Ref< Shader > ShadowShader = m_RendererData.DirShadowMapShader;
 
 		UpdateCascades( m_pScene->m_Lights.DirectionalLights[ 0 ].Direction );
-		
+
 		// u_Matrices
 		struct UB_Matrices
 		{
-			glm::mat4 ViewProjection[4];
+			glm::mat4 ViewProjection[ 4 ];
 		} u_Matrices;
 
 		u_Matrices = {};
@@ -1166,9 +1165,9 @@ namespace Saturn {
 				// Entity may of been deleted.
 				if( !Cmd.entity )
 					continue;
-				
+
 				// Pass in the cascade index.
-				Buffer AdditionalData( sizeof(uint32_t), &i );
+				Buffer AdditionalData( sizeof( uint32_t ), &i );
 
 				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipelines[ i ], Cmd.Mesh, Cmd.Transform, AdditionalData );
 			}
@@ -1227,7 +1226,6 @@ namespace Saturn {
 		}
 
 		m_RendererData.PreDepthPass->EndPass();
-
 		m_RendererData.PreDepthTimer.Stop();
 	}
 
@@ -1244,8 +1242,8 @@ namespace Saturn {
 		VkViewport Viewport = {};
 		Viewport.x = 0;
 		Viewport.y = 0;
-		Viewport.width = ( float )m_RendererData.Width;
-		Viewport.height = ( float )m_RendererData.Height;
+		Viewport.width = ( float ) m_RendererData.Width;
+		Viewport.height = ( float ) m_RendererData.Height;
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
 
@@ -1253,16 +1251,16 @@ namespace Saturn {
 
 		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
 		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
-		
+
 		// Actual scene composite pass.
-		
+
 		m_RendererData.SceneCompositeShader->WriteAllUBs( m_RendererData.SC_DescriptorSet );
 
-		Renderer::Get().SubmitFullscreenQuad( 
-			CommandBuffer, m_RendererData.SceneCompositePipeline, 
-			m_RendererData.SC_DescriptorSet, 
+		Renderer::Get().SubmitFullscreenQuad(
+			CommandBuffer, m_RendererData.SceneCompositePipeline,
+			m_RendererData.SC_DescriptorSet,
 			m_RendererData.SC_IndexBuffer, m_RendererData.SC_VertexBuffer );
-		
+
 		// End scene composite pass.
 		m_RendererData.SceneComposite->EndPass();
 	}
@@ -1322,7 +1320,7 @@ namespace Saturn {
 		glm::uvec2 Viewport = { m_RendererData.Width, m_RendererData.Height };
 		glm::uvec2 Size = Viewport;
 		Size += TILE_SIZE - Viewport % TILE_SIZE;
-		
+
 		m_RendererData.LightCullingWorkGroups = { Size / TILE_SIZE, 1 };
 
 		m_RendererData.StorageBufferSet->Resize( 0, 14, ( size_t ) m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4 * 1024 );
@@ -1330,12 +1328,12 @@ namespace Saturn {
 		// UBs
 		UBLights u_Lights;
 
-		struct 
+		struct
 		{
 			glm::vec2 FullResolution;
 		} u_ScreenData{};
 
-		struct 
+		struct
 		{
 			glm::mat4 ViewProjection;
 			glm::mat4 Projection;
@@ -1343,10 +1341,10 @@ namespace Saturn {
 			glm::mat4 InvP;
 		} u_Matrices{};
 
-		u_Matrices.ViewProjection   = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
-		u_Matrices.Projection       = m_RendererData.CurrentCamera.Camera.ProjectionMatrix();
-		u_Matrices.View             = glm::inverse( m_RendererData.CurrentCamera.ViewMatrix );
-		u_Matrices.InvP				= glm::inverse( u_Matrices.Projection );
+		u_Matrices.ViewProjection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
+		u_Matrices.Projection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix();
+		u_Matrices.View = glm::inverse( m_RendererData.CurrentCamera.ViewMatrix );
+		u_Matrices.InvP = glm::inverse( u_Matrices.Projection );
 
 		u_ScreenData.FullResolution = { m_RendererData.Width, m_RendererData.Height };
 
@@ -1362,7 +1360,7 @@ namespace Saturn {
 
 		// Write sb
 		Ref<StorageBuffer> SB = m_RendererData.StorageBufferSet->Get( 0, 14, Renderer::Get().GetCurrentFrame() );
-		
+
 		m_RendererData.LightCullingShader->WriteSB( 0, 14, SB->GetBufferInfo(), m_RendererData.LightCullingDescriptorSet );
 
 		// Light culling here
@@ -1382,12 +1380,12 @@ namespace Saturn {
 		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 		vkCmdPipelineBarrier( CullingPipeline->GetCommandBuffer(),
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				0,
-				1, &barrier,
-				0, nullptr,
-				0, nullptr );
+			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			0,
+			1, &barrier,
+			0, nullptr,
+			0, nullptr );
 
 		CullingPipeline->Unbind();
 
@@ -1455,7 +1453,7 @@ namespace Saturn {
 
 		// Step 0.5: Prefilter.
 		// Here we are just getting anything that is brighter than the bloom threshold.
-		pc_Settings.Stage = (float)BloomStage::Prefilter;
+		pc_Settings.Stage = ( float ) BloomStage::Prefilter;
 
 		{
 			VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &info, &descriptorSet ) );
@@ -1525,9 +1523,9 @@ namespace Saturn {
 				pc_Settings.LOD = ( float ) i;
 
 				pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
-				pipeline->Execute( descriptorSet, 
-					( uint32_t ) workgrps.x, 
-					( uint32_t ) workgrps.y, 
+				pipeline->Execute( descriptorSet,
+					( uint32_t ) workgrps.x,
+					( uint32_t ) workgrps.y,
 					( uint32_t ) 1 );
 			}
 		}
@@ -1560,10 +1558,10 @@ namespace Saturn {
 			workgrps.y = glm::ceil( ( float ) h / m_RendererData.BloomWorkSize );
 
 			pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
-			pipeline->Execute( descriptorSet, 
-				( uint32_t )workgrps.x, 
-				( uint32_t )workgrps.y, 
-				( uint32_t )1 );
+			pipeline->Execute( descriptorSet,
+				( uint32_t ) workgrps.x,
+				( uint32_t ) workgrps.y,
+				( uint32_t ) 1 );
 		}
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
@@ -1590,13 +1588,13 @@ namespace Saturn {
 
 				shader->WriteDescriptor( "o_Image", info, descriptorSet );
 
-				pc_Settings.LOD = ( float )mip;
+				pc_Settings.LOD = ( float ) mip;
 
 				// Step 2.5: Set push constants & Execute the compute shader.
 				pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
-				pipeline->Execute( descriptorSet, 
+				pipeline->Execute( descriptorSet,
 					( uint32_t ) workgrps.x,
-					( uint32_t ) workgrps.y, 
+					( uint32_t ) workgrps.y,
 					( uint32_t ) 1 );
 			}
 		}
@@ -1648,20 +1646,20 @@ namespace Saturn {
 		float inclination = Inclination;
 
 		AddScheduledFunction( [&, turbidity, azimuth, inclination]()
-		{
-			m_RendererData.SceneEnvironment->Turbidity = turbidity;
-			m_RendererData.SceneEnvironment->Azimuth = azimuth;
-			m_RendererData.SceneEnvironment->Inclination = inclination;
+			{
+				m_RendererData.SceneEnvironment->Turbidity = turbidity;
+				m_RendererData.SceneEnvironment->Azimuth = azimuth;
+				m_RendererData.SceneEnvironment->Inclination = inclination;
 
-			m_RendererData.SceneEnvironment->IrradianceMap = nullptr;
-			m_RendererData.SceneEnvironment->RadianceMap = nullptr;
+				m_RendererData.SceneEnvironment->IrradianceMap = nullptr;
+				m_RendererData.SceneEnvironment->RadianceMap = nullptr;
 
-			Ref<TextureCube> map = CreateDymanicSky();
+				Ref<TextureCube> map = CreateDymanicSky();
 
-			m_RendererData.SceneEnvironment->IrradianceMap = map;
-			m_RendererData.SceneEnvironment->RadianceMap = map;
+				m_RendererData.SceneEnvironment->IrradianceMap = map;
+				m_RendererData.SceneEnvironment->RadianceMap = map;
 
-		} );
+			} );
 	}
 
 	void SceneRenderer::RenderScene()
@@ -1682,7 +1680,7 @@ namespace Saturn {
 		}
 
 		m_RendererData.CommandBuffer = Renderer::Get().ActiveCommandBuffer();
-		
+
 		for( auto&& func : m_ScheduledFunctions )
 			func();
 
@@ -1705,19 +1703,19 @@ namespace Saturn {
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Geometry" );
 
 		GeometryPass();
-		
+
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-		
+
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Bloom" );
 
-		BloomPass();
+		//		BloomPass();
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Post Processing" );
 
 		SceneCompositePass();
-		
+
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		if( m_RendererData.IsSwapchainTarget )
@@ -1743,7 +1741,7 @@ namespace Saturn {
 	{
 		m_RendererData.CurrentCamera = Camera;
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////////
 	// RendererData
 	//////////////////////////////////////////////////////////////////////////
@@ -1751,13 +1749,13 @@ namespace Saturn {
 	void RendererData::Terminate()
 	{
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
-		
+
 		// Command Pools
 		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
 
 		if( !Application::Get().GetSpecification().CreateSceneRenderer )
 			return;
-	
+
 		// DescriptorSets
 		GridDescriptorSet = nullptr;
 		SkyboxDescriptorSet = nullptr;
@@ -1780,7 +1778,7 @@ namespace Saturn {
 
 		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 			ShadowCascades[ i ].Framebuffer = nullptr;
-		
+
 		ShadowCascades.clear();
 
 		// Render Passes
@@ -1820,7 +1818,7 @@ namespace Saturn {
 
 		// Textures
 		BRDFLUT_Texture = nullptr;
-		
+
 		SceneEnvironment = nullptr;
 
 		ShaderLibrary::Get().Shutdown();

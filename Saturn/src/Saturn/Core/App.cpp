@@ -37,6 +37,7 @@
 #include "OptickProfiler.h"
 
 #include "Saturn/GameFramework/GameThread.h"
+#include "Renderer/RenderThread.h"
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -102,14 +103,15 @@ namespace Saturn {
 				Renderer::Get().BeginFrame();
 				{
 					// Try to render scene.
-					m_SceneRenderer->RenderScene();
-
+					RenderThread::Get().Queue( [=] { m_SceneRenderer->RenderScene(); } );
+					
 					// Render UI
-					// TODO: Make new threads.
-					//       One for rendering and one for UI.
 					{
 						RenderImGui();
 					}
+
+					// Execute render thread.
+					RenderThread::Get().WaitAll();
 				}
 				Renderer::Get().EndFrame();
 			}
@@ -126,6 +128,7 @@ namespace Saturn {
 		OnShutdown();
 		
 		GameThread::Get().Terminate();
+		RenderThread::Get().Terminate();
 
 		VulkanContext::Get().SubmitTerminateResource( [&]() 
 		{
@@ -337,13 +340,25 @@ namespace Saturn {
 
 		m_ImGuiLayer->Begin();
 
+		// Update on the main thread.
 		for( auto& layer : m_Layers )
 		{
 			layer->OnUpdate( m_Timestep );
-			layer->OnImGuiRender();
 		}
 
-		m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
+		// I'm not really sure if I want the render thread to render imgui.
+		RenderThread::Get().Queue( [=]
+			{
+				for( auto& layer : m_Layers )
+				{
+					layer->OnImGuiRender();
+				}
+			} );
+
+		RenderThread::Get().Queue( [=] 
+			{
+				m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
+			} );
 	}
 
 	bool OnOptickStateChanged( Optick::State::Type state )

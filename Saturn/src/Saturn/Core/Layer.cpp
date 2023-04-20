@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "Layer.h"
 
+#include "Saturn/Core/Renderer/RenderThread.h"
+
 #include "Saturn/ImGui/Styles.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 #include "Saturn/Vulkan/Renderer.h"
@@ -175,15 +177,15 @@ namespace Saturn {
 			return;
 
 		Swapchain& rSwapchain = VulkanContext::Get().GetSwapchain();
-		
+
 		ImGui::Render();
-		
+
 		std::vector<VkClearValue> ClearColor;
 		ClearColor.push_back( { .color = { { 0.1f, 0.1f, 0.1f, 1.0f } } } );
 		if( VulkanContext::Get().GetMaxUsableMSAASamples() > VK_SAMPLE_COUNT_1_BIT )
 			ClearColor.push_back( { .color = { { 0.1f, 0.1f, 0.1f, 1.0f } } } );
 		ClearColor.push_back( { .depthStencil = { 1.0f, 0 } } );
-		
+
 		VkRenderPassBeginInfo RenderPassBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		RenderPassBeginInfo.renderPass = VulkanContext::Get().GetDefaultVulkanPass();
 		RenderPassBeginInfo.framebuffer = rSwapchain.GetFramebuffers()[ Renderer::Get().GetImageIndex() ];
@@ -191,12 +193,11 @@ namespace Saturn {
 		RenderPassBeginInfo.renderArea.extent = { ( uint32_t ) Window::Get().Width(), ( uint32_t ) Window::Get().Height() };
 		RenderPassBeginInfo.clearValueCount = ClearColor.size();
 		RenderPassBeginInfo.pClearValues = ClearColor.data();
-		
-		CmdBeginDebugLabel( CommandBuffer, "Swap chain pass" );
 
 		// Begin swap chain pass
+		CmdBeginDebugLabel( CommandBuffer, "Swap chain pass" );
 		vkCmdBeginRenderPass( CommandBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
-		
+
 		VkViewport Viewport = {};
 		Viewport.x = 0;
 		Viewport.y = 0;
@@ -206,12 +207,12 @@ namespace Saturn {
 		Viewport.maxDepth = 1.0f;
 
 		VkRect2D Scissor = { { 0, 0 }, { ( uint32_t ) Window::Get().Width(), ( uint32_t ) Window::Get().Height() } };
-		
+
 		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
 		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
 
 		ImGui_ImplVulkan_RenderDrawData( ImGui::GetDrawData(), CommandBuffer );
-		
+
 		ImGuiIO& rIO = ImGui::GetIO();
 		if( rIO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
 		{

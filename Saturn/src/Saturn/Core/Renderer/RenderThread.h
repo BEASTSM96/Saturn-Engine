@@ -28,89 +28,54 @@
 
 #pragma once
 
-#include "Base.h"
-
-#include "Layer.h"
-#include "Events.h"
-#include "Input.h"
-#include "UserSettings.h"
-
 #include "SingletonStorage.h"
 
-#include <optick/optick.h>
-
-#include <vector>
+#include <thread>
+#include <functional>
+#include <mutex>
+#include <condition_variable>
 
 namespace Saturn {
 
-	struct ApplicationSpecification
-	{
-		bool CreateSceneRenderer = true;
-		bool Titlebar = false;
-		bool UIOnly = false;
-		bool GameDist = false;
-		
-		uint32_t WindowWidth = 0;
-		uint32_t WindowHeight = 0;
-	};
-
-	class SceneRenderer;
-	class Application
+	class RenderThread
 	{
 	public:
-		Application( const ApplicationSpecification& spec );
+		static inline RenderThread& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<RenderThread>(); }
+	public:
+		RenderThread();
+		~RenderThread();
 
-		~Application() {}
+		void WaitAll();
 
-		void Run();
-		void Close();
+		// Executes the most recent command.
+		void ExecuteOne();
 
-		bool Running() { return m_Running; }
+		void Terminate();
 
-		Timestep& Time() { return m_Timestep; }
+		template<typename Fn, typename... Args>
+		void Queue( Fn&& rrFunc, Args&&... rrArgs ) 
+		{
+			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
+			m_Cond.notify_one();
 
-		std::string OpenFile( const char* pFilter ) const;
-		std::string SaveFile( const char* pFilter ) const;
-		std::string OpenFolder() const;
+			m_CommandBuffer.push_back( rrFunc );
+		}
 
-		const char* GetPlatformName();
-
-		static inline Application& Get() { return *SingletonStorage::Get().GetSingleton<Application>(); }
-		ApplicationSpecification& GetSpecification() { return m_Specification; }
-
-		void PushLayer( Layer* pLayer );
-		void PopLayer( Layer* pLayer );
-
-		virtual void OnInit() {}
-		virtual void OnShutdown() {}
-		
-		SceneRenderer& PrimarySceneRenderer() { return *m_SceneRenderer; }
-
-	protected:
-
-		void OnEvent( Event& e );
-		bool OnWindowResize( WindowResizeEvent& e );
-
-		void RenderImGui();
+		float GetWaitTime() { return m_WaitTime.ElapsedMilliseconds(); }
 
 	private:
-		bool m_Running = true;
-		
-		ImGuiLayer* m_ImGuiLayer = nullptr;
-
-		Timestep m_Timestep;
-		float m_LastFrameTime = 0.0f;
-		
-		ApplicationSpecification m_Specification;
-
-		std::vector<Layer*> m_Layers;
-
-		// TODO: Change to ref
-		SceneRenderer* m_SceneRenderer = nullptr;
-
+		void ThreadRun();
 	private:
-		//static Application* s_Instance;
+		bool m_ExecuteAll = false;
+		bool m_ExecuteOne = false;
+
+		Timer m_WaitTime;
+
+		std::thread m_Thread;
+		std::mutex m_Mutex;
+		std::condition_variable m_Cond;
+		std::shared_ptr<std::atomic_bool> m_Running;
+
+		std::vector<std::function<void()>> m_CommandBuffer;
 	};
-
-	Application* CreateApplication( int argc, char** argv );
 }

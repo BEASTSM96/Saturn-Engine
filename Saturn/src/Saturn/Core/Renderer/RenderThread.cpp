@@ -26,91 +26,108 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "RenderThread.h"
 
-#include "Base.h"
-
-#include "Layer.h"
-#include "Events.h"
-#include "Input.h"
-#include "UserSettings.h"
-
-#include "SingletonStorage.h"
-
-#include <optick/optick.h>
-
-#include <vector>
+#include "Saturn/Core/OptickProfiler.h"
 
 namespace Saturn {
 
-	struct ApplicationSpecification
+	RenderThread::RenderThread()
 	{
-		bool CreateSceneRenderer = true;
-		bool Titlebar = false;
-		bool UIOnly = false;
-		bool GameDist = false;
-		
-		uint32_t WindowWidth = 0;
-		uint32_t WindowHeight = 0;
-	};
+		m_Running = std::make_shared<std::atomic_bool>();
+		m_Running->store( true );
 
-	class SceneRenderer;
-	class Application
+		m_Thread = std::thread( &RenderThread::ThreadRun, this );
+	}
+
+	RenderThread::~RenderThread()
 	{
-	public:
-		Application( const ApplicationSpecification& spec );
 
-		~Application() {}
+	}
 
-		void Run();
-		void Close();
+	void RenderThread::WaitAll()
+	{
+		m_ExecuteAll = true;
 
-		bool Running() { return m_Running; }
+		m_WaitTime.Reset();
 
-		Timestep& Time() { return m_Timestep; }
+		while( m_ExecuteAll )
+		{
+			std::this_thread::yield();
+		}
 
-		std::string OpenFile( const char* pFilter ) const;
-		std::string SaveFile( const char* pFilter ) const;
-		std::string OpenFolder() const;
+		m_WaitTime.Stop();
+	}
 
-		const char* GetPlatformName();
+	void RenderThread::ExecuteOne()
+	{
+		m_ExecuteOne = true;
+	}
 
-		static inline Application& Get() { return *SingletonStorage::Get().GetSingleton<Application>(); }
-		ApplicationSpecification& GetSpecification() { return m_Specification; }
+	void RenderThread::Terminate()
+	{
+		if ( m_Thread.joinable() )
+		{
+			{
+				std::lock_guard<std::mutex> Lock( m_Mutex );
 
-		void PushLayer( Layer* pLayer );
-		void PopLayer( Layer* pLayer );
+				m_Running->store( false );
 
-		virtual void OnInit() {}
-		virtual void OnShutdown() {}
-		
-		SceneRenderer& PrimarySceneRenderer() { return *m_SceneRenderer; }
+				m_Cond.notify_all();
+			}
 
-	protected:
+			while( m_Running->load() )
+			{
+				std::this_thread::yield();
+			}
 
-		void OnEvent( Event& e );
-		bool OnWindowResize( WindowResizeEvent& e );
+			m_Thread.join();
+		}
+	}
 
-		void RenderImGui();
+	void RenderThread::ThreadRun()
+	{
+		SetThreadDescription( GetCurrentThread(), L"Render Thread" );
 
-	private:
-		bool m_Running = true;
-		
-		ImGuiLayer* m_ImGuiLayer = nullptr;
+		while (true)
+		{
+			SAT_PF_FRAME( "Render Thread" );
+			
+			std::unique_lock<std::mutex> Lock( m_Mutex );
 
-		Timestep m_Timestep;
-		float m_LastFrameTime = 0.0f;
-		
-		ApplicationSpecification m_Specification;
+			m_Cond.wait( Lock, [this] 
+				{
+					return !m_Running->load() || !m_CommandBuffer.empty();
+				} );
 
-		std::vector<Layer*> m_Layers;
+			if( !m_Running->load() ) break;
 
-		// TODO: Change to ref
-		SceneRenderer* m_SceneRenderer = nullptr;
+			Lock.unlock();
 
-	private:
-		//static Application* s_Instance;
-	};
+			if( m_ExecuteOne )
+			{
+				auto& rFunc = m_CommandBuffer.back();
 
-	Application* CreateApplication( int argc, char** argv );
+				rFunc();
+
+				m_CommandBuffer.pop_back();
+
+				m_ExecuteOne = false;
+			}
+
+			if( m_ExecuteAll )
+			{
+				for( auto& rFunc : m_CommandBuffer )
+					rFunc();
+
+				m_CommandBuffer.clear();
+
+				m_ExecuteAll = false;
+			}
+		}
+
+		m_Running->store( false );
+	}
+
 }
