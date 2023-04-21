@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "PrefabViewer.h"
 
+#include "Saturn/Core/Renderer/RenderThread.h"
+
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
 
@@ -100,7 +102,8 @@ namespace Saturn {
 
 	void PrefabViewer::OnRender()
 	{
-		m_SceneRenderer->RenderScene();
+		PrefabViewer* prefab = this;
+		RenderThread::Get().Queue( [prefab]() { prefab->m_SceneRenderer->RenderScene(); } );
 	}
 
 	void PrefabViewer::AddPrefab()

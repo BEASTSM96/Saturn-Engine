@@ -57,6 +57,8 @@ namespace Saturn {
 
 	PhysXRigidbody::~PhysXRigidbody()
 	{
+		m_Body->release();
+		m_Body = nullptr;
 	}
 
 	void PhysXRigidbody::Create()

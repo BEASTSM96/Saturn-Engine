@@ -210,7 +210,7 @@ namespace Saturn {
 
 		std::mutex m_Mutex;
 
-		PhysXRuntime* m_PhysXRuntime;
+		PhysXRuntime* m_PhysXRuntime = nullptr;
 
 	private:
 

@@ -453,6 +453,9 @@ namespace Saturn {
 
 	void Scene::OnRuntimeStart()
 	{
+		if( m_PhysXRuntime )
+			delete m_PhysXRuntime;
+
 		m_PhysXRuntime = new PhysXRuntime();
 		m_PhysXRuntime->CreateScene();
 
@@ -472,6 +475,18 @@ namespace Saturn {
 
 	void Scene::OnRuntimeEnd()
 	{
+		// Delete rigid bodies.
+		auto view = m_Registry.view<PhysXRigidbodyComponent>();
+
+		for( auto entity : view )
+		{
+			Entity e{ entity, this };
+			auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
+
+			delete rb.Rigidbody;
+			rb.Rigidbody = nullptr;
+		}
+
 		m_PhysXRuntime->Clear();
 		delete m_PhysXRuntime;
 	}
