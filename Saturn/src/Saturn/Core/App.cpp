@@ -69,10 +69,7 @@ namespace Saturn {
 
 		pVkContext->Init();
 
-		if( m_Specification.CreateSceneRenderer )
-		{
-			m_SceneRenderer = new SceneRenderer();
-		}
+		m_SceneRenderer = new SceneRenderer();
 
 		pWindow->SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
