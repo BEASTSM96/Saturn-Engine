@@ -384,8 +384,8 @@ namespace Saturn {
 		Ref<TextureCube> CreateDymanicSky();
 	private:
 
-		RendererData m_RendererData;
-		Scene* m_pScene;
+		RendererData m_RendererData{};
+		Scene* m_pScene = nullptr;
 
 		std::vector< DrawCommand > m_DrawList;
 		std::vector< DrawCommand > m_ShadowMapDrawList;
