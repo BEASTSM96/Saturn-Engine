@@ -283,7 +283,7 @@ namespace Saturn {
 			// Descriptor set 1, for environment data.
 			std::array<VkDescriptorSet, 2> DescriptorSets = {
 				Set,
-				m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet()
+				m_RendererDescriptorSets[ m_FrameCount ]
 			};
 
 			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -297,16 +297,15 @@ namespace Saturn {
 	{
 		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
 
-		if( m_RendererDescriptorSets[ m_FrameCount ] == nullptr )
-			m_RendererDescriptorSets[ m_FrameCount ] = shader->CreateDescriptorSet( 1 );
+		m_RendererDescriptorSets[ m_FrameCount ] = shader->AllocateDescriptorSet( 1, true );
 
-		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet() );
-		shader->WriteDescriptor( "u_BRDFLUTTexture", BDRF->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet() );
+		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
+		shader->WriteDescriptor( "u_BRDFLUTTexture", BDRF->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
 
 		if( Environment && Environment->RadianceMap && Environment->IrradianceMap )
 		{
-			shader->WriteDescriptor( "u_EnvRadianceTex", Environment->RadianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet() );
-			shader->WriteDescriptor( "u_EnvIrradianceTex", Environment->IrradianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ]->GetVulkanSet() );
+			shader->WriteDescriptor( "u_EnvRadianceTex", Environment->RadianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
+			shader->WriteDescriptor( "u_EnvIrradianceTex", Environment->IrradianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
 		}
 	}
 

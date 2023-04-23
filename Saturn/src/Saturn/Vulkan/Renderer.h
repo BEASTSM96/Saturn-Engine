@@ -118,7 +118,7 @@ namespace Saturn {
 		
 		Ref< Texture2D > m_PinkTexture;
 
-		Ref< DescriptorSet > m_RendererDescriptorSets[MAX_FRAMES_IN_FLIGHT];
+		VkDescriptorSet m_RendererDescriptorSets[MAX_FRAMES_IN_FLIGHT];
 
 		Ref< DescriptorPool > m_RendererDescriptorPools[ MAX_FRAMES_IN_FLIGHT ];
 

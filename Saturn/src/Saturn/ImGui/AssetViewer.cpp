@@ -48,6 +48,12 @@ namespace Saturn {
 	{
 		for ( auto&& [id, viewer] : s_AssetViewers )
 		{
+			if( !viewer )
+			{
+				delete viewer;
+				s_AssetViewers.erase( id );
+			}
+
 			if( !viewer->IsOpen() )
 			{
 				delete viewer;
@@ -64,6 +70,12 @@ namespace Saturn {
 	{
 		for( auto&& [id, viewer] : s_AssetViewers )
 		{
+			if( !viewer )
+			{
+				delete viewer;
+				s_AssetViewers.erase( id );
+			}
+
 			if( !viewer->IsOpen() )
 			{
 				delete viewer;

@@ -393,11 +393,11 @@ namespace Saturn {
 		UnmapUB( Type, Set, Binding );
 	}
 
-	Ref<DescriptorSet> Shader::CreateDescriptorSet( uint32_t set )
+	Ref<DescriptorSet> Shader::CreateDescriptorSet( uint32_t set, bool UseRendererPool /*= false */ )
 	{
 		DescriptorSetSpecification Specification;
 		Specification.Layout = m_DescriptorSets[ set ].SetLayout;
-		Specification.Pool = m_SetPool;
+		Specification.Pool = UseRendererPool ? Renderer::Get().GetDescriptorPool() : m_SetPool;
 		Specification.SetIndex = set;
 
 		return Ref<DescriptorSet>::Create( Specification );

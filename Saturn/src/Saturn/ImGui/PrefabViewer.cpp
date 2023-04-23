@@ -47,11 +47,12 @@ namespace Saturn {
 		m_AssetID = id;
 
 		m_SceneHierarchyPanel = Ref<SceneHierarchyPanel>::Create();
-		m_SceneHierarchyPanel->SetIsPrefabScene( true );
+		//m_SceneHierarchyPanel->SetIsPrefabScene( true );
 
 		AddPrefab();
 
 		m_SceneRenderer = new SceneRenderer();
+		m_SceneRenderer->SetDynamicSky( 2.0f, 0.0f, 0.0f );
 
 		m_Camera.SetActive( true );
 		m_SceneRenderer->SetCamera( { m_Camera, m_Camera.ViewMatrix() } );
@@ -68,6 +69,29 @@ namespace Saturn {
 
 		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open );
 
+		// Draw Viewport
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+		ImGui::PushID( m_AssetID );
+		ImGui::BeginChild( "##Viewport", m_ViewportSize, 0, flags );
+
+		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
+		{
+			m_ViewportSize = ImGui::GetContentRegionAvail();
+
+			m_SceneRenderer->SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
+			m_Camera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
+		}
+
+		Image( m_SceneRenderer->CompositeImage(), ImGui::GetContentRegionAvail(), { 0, 1 }, { 1, 0 } );
+
+		ImGui::EndChild();
+		ImGui::PopID();
+		ImGui::PopStyleVar();
+
+		/*
+
 		// Update for scene rendering.
 		m_Prefab->GetScene()->OnRenderEditor( m_Camera, Application::Get().Time(), *m_SceneRenderer );
 
@@ -82,12 +106,14 @@ namespace Saturn {
 			m_SceneRenderer->SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 		}
 
-		Image( m_SceneRenderer->CompositeImage(), ImGui::GetContentRegionAvail(), { 0, 1 }, { 1, 0 } );
+		Image( Renderer::Get().GetPinkTexture(), ImGui::GetContentRegionAvail(), { 0, 1 }, { 1, 0 } );
 
 		ImGui::EndChild();
 		ImGui::PopID();
 
 		m_SceneHierarchyPanel->Draw();
+
+		*/
 
 		ImGui::End();
 
@@ -102,8 +128,13 @@ namespace Saturn {
 
 	void PrefabViewer::OnRender()
 	{
-		PrefabViewer* prefab = this;
-		RenderThread::Get().Queue( [prefab]() { prefab->m_SceneRenderer->RenderScene(); } );
+		// Update Scene for rendering (on main thread.)
+		m_Prefab->GetScene()->OnRenderEditor( m_Camera, Application::Get().Time(), *m_SceneRenderer );
+
+		RenderThread::Get().Queue( [=]() 
+			{ 
+				m_SceneRenderer->RenderScene();
+			} );
 	}
 
 	void PrefabViewer::AddPrefab()

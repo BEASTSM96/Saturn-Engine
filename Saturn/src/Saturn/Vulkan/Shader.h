@@ -251,7 +251,7 @@ namespace Saturn {
 
 		uint32_t GetDescriptorSetCount() { return m_DescriptorSetCount; }
 
-		Ref<DescriptorSet> CreateDescriptorSet( uint32_t set );
+		Ref<DescriptorSet> CreateDescriptorSet( uint32_t set, bool UseRendererPool = false );
 		VkDescriptorSet AllocateDescriptorSet( uint32_t set, bool UseRendererPool = false );
 
 		ShaderDescriptorSet& GetShaderDescriptorSet( uint32_t set ) { return m_DescriptorSets[ set ]; }
