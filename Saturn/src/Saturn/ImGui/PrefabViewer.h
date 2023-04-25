@@ -51,10 +51,10 @@ namespace Saturn {
 		void AddPrefab();
 	private:
 		Ref<Prefab> m_Prefab;
-		SceneRenderer* m_SceneRenderer;
+		SceneRenderer* m_SceneRenderer = nullptr;
 		EditorCamera m_Camera;
 
-		ImVec2 m_ViewportSize;
+		ImVec2 m_ViewportSize{};
 
 		Ref<SceneHierarchyPanel> m_SceneHierarchyPanel;
 	};
