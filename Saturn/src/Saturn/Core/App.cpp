@@ -39,6 +39,8 @@
 #include "Saturn/GameFramework/GameThread.h"
 #include "Renderer/RenderThread.h"
 
+#include "Saturn/Audio/AudioCore.h"
+
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
@@ -78,6 +80,8 @@ namespace Saturn {
 
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
 			pWindow->Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
+
+		AudioSystem* audioSystem = new AudioSystem();
 
 		m_ImGuiLayer = new ImGuiLayer();
 		m_ImGuiLayer->OnAttach();

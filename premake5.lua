@@ -27,6 +27,7 @@ IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
 IncludeDir["Optick"] = "Saturn/vendor/optick/src"
 IncludeDir["Filewatch"] = "Saturn/vendor/Filewatch/src"
+IncludeDir["MiniAudio"] = "Saturn/vendor/miniaudio/src"
 
 IncludeDir["SingletonStorage"] = "SingletonStorage/src"
 
@@ -75,7 +76,8 @@ project "Saturn"
 		"AL_LIBTYPE_STATIC",
 		"GLM_ENABLE_EXPERIMENTAL",
 		"SATURN_SS_IMPORT",
-		"GLFW_DLL"
+		"GLFW_DLL",
+		"MINIAUDIO_IMPLEMENTATION"
 		--"GLM_FORCE_LEFT_HANDED"
 	}
 
@@ -101,6 +103,7 @@ project "Saturn"
 		"%{IncludeDir.PhysX}/physx",
 		"%{IncludeDir.ImguiNodeEditor}",
 		"%{IncludeDir.Optick}",
+		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.Filewatch}",
 
 		"%{IncludeDir.SingletonStorage}"
