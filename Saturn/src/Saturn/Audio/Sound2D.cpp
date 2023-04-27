@@ -27,99 +27,48 @@
 */
 
 #include "sppch.h"
-#include "PrefabViewer.h"
-
-#include "Saturn/Core/Renderer/RenderThread.h"
-
-#include "Saturn/Asset/AssetRegistry.h"
-#include "Saturn/Vulkan/SceneRenderer.h"
-
-#include "Saturn/ImGui/UITools.h"
+#include "Sound2D.h"
 
 namespace Saturn {
 
-	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
-	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
-
-	PrefabViewer::PrefabViewer( AssetID id )
-		: AssetViewer(), m_Camera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
+	Sound2D::Sound2D()
 	{
-		m_AssetID = id;
-
-		m_SceneHierarchyPanel = Ref<SceneHierarchyPanel>::Create();
-		//m_SceneHierarchyPanel->SetIsPrefabScene( true );
-
-		AddPrefab();
-
-		m_SceneRenderer = new SceneRenderer();
-		m_SceneRenderer->SetDynamicSky( 2.0f, 0.0f, 0.0f );
-
-		m_Camera.SetActive( true );
-		m_SceneRenderer->SetCamera( { m_Camera, m_Camera.ViewMatrix() } );
+		Load();
 	}
 
-	PrefabViewer::~PrefabViewer()
+	void Sound2D::Load()
 	{
-		delete m_SceneRenderer;
+		AudioSystem::Get().CreateAudio( AudioType::Static, ID, m_RawPath );
 	}
 
-	void PrefabViewer::Draw()
+	Sound2D::~Sound2D()
 	{
-		ImGui::PushID( static_cast< int >( m_AssetID ) );
 
-		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open );
-
-		// Draw Viewport
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
-
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		ImGui::PushID( m_AssetID );
-		ImGui::BeginChild( "##Viewport", m_ViewportSize, 0, flags );
-
-		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
-		{
-			m_ViewportSize = ImGui::GetContentRegionAvail();
-
-			m_SceneRenderer->SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
-			m_Camera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
-		}
-
-		Image( m_SceneRenderer->CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
-
-		ImGui::EndChild();
-		ImGui::PopID();
-		ImGui::PopStyleVar();
-
-		ImGui::End();
-
-		ImGui::PopID();
-
-		if( m_Open == false )
-		{
-			PrefabSerialiser ps;
-			ps.Serialise( m_Prefab );
-		}
 	}
 
-	void PrefabViewer::OnRender()
+	void Sound2D::TryPlay()
 	{
-		// Update Scene for rendering (on main thread.)
-		m_Prefab->GetScene()->OnRenderEditor( m_Camera, Application::Get().Time(), *m_SceneRenderer );
-
-		RenderThread::Get().Queue( [=]() 
-			{ 
-				m_SceneRenderer->RenderScene();
-			} );
+		m_Playing = AudioSystem::Get().Play( ID );
 	}
 
-	void PrefabViewer::AddPrefab()
+	void Sound2D::Stop()
 	{
-		Ref<Prefab> prefab = AssetRegistry::Get().GetAssetAs<Prefab>( m_AssetID );
+		AudioSystem::Get().Stop( ID );
+		m_Playing = false;
+	}
 
-		m_SceneHierarchyPanel->SetContext( prefab->GetScene() );
+	void Sound2D::Loop()
+	{
 
-		m_Prefab = prefab;
+	}
 
-		m_Open = true;
+	bool Sound2D::IsPlaying()
+	{
+		return m_Playing;
+	}
+
+	bool Sound2D::IsLooping()
+	{
+		return true;
 	}
 }

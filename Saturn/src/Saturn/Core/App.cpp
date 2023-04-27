@@ -39,7 +39,7 @@
 #include "Saturn/GameFramework/GameThread.h"
 #include "Renderer/RenderThread.h"
 
-#include "Saturn/Audio/AudioCore.h"
+#include "Saturn/Audio/AudioSystem.h"
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -144,6 +144,8 @@ namespace Saturn {
 
 			m_ImGuiLayer = nullptr;
 		} );
+
+		AudioSystem::Get().Terminate();
 
 		OPTICK_SHUTDOWN();
 	}

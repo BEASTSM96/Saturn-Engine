@@ -38,19 +38,40 @@ namespace Saturn {
 
 	AudioSystem::~AudioSystem()
 	{
-		Terminate();
+	}
+
+	void AudioSystem::CreateAudio( AudioType type, UUID ID, const std::filesystem::path& rPath )
+	{
+		ma_sound sound;
+
+		MA_CHECK( ma_sound_init_from_file( &m_Engine, rPath.string().c_str(), 0, NULL, NULL, &sound ) );
+		m_Sounds[ ID ] = sound;
+	}
+
+	bool AudioSystem::Play( UUID ID )
+	{
+		MA_CHECK( ma_sound_start( &m_Sounds.at( ID ) ) );
+		return ma_sound_is_playing( &m_Sounds.at( ID ) );
+	}
+
+	bool AudioSystem::Stop( UUID ID )
+	{
+		MA_CHECK( ma_sound_stop( &m_Sounds.at( ID ) ) );
 	}
 
 	void AudioSystem::Init()
 	{
-		ma_device_config config = ma_device_config_init( ma_device_type_playback );
-		config.playback.format = ma_format_s32;
-		config.playback.channels = 2;
-		config.sampleRate = 48000;
-		config.dataCallback = nullptr;
-		config.pUserData = nullptr;
+		ma_device_config DeviceConfig = ma_device_config_init( ma_device_type_playback );
+		DeviceConfig.playback.format = ma_format_s32;
+		DeviceConfig.playback.channels = 2;
+		DeviceConfig.sampleRate = 48000;
+		DeviceConfig.dataCallback = nullptr;
+		DeviceConfig.pUserData = nullptr;
 
-		MA_CHECK( ma_device_init( NULL, &config, &m_Device ) );
+		MA_CHECK( ma_device_init( NULL, &DeviceConfig, &m_Device ) );
+		ma_device_start( &m_Device );
+
+		MA_CHECK( ma_engine_init( NULL, &m_Engine ) );
 	}
 
 	void AudioSystem::Terminate()

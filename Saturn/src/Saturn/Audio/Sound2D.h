@@ -26,100 +26,32 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "PrefabViewer.h"
+#pragma once
 
-#include "Saturn/Core/Renderer/RenderThread.h"
+#include "Saturn/Asset/Asset.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
-#include "Saturn/Vulkan/SceneRenderer.h"
-
-#include "Saturn/ImGui/UITools.h"
+#include "AudioSystem.h"
 
 namespace Saturn {
 
-	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
-	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
-
-	PrefabViewer::PrefabViewer( AssetID id )
-		: AssetViewer(), m_Camera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
+	class Sound2D : public Asset
 	{
-		m_AssetID = id;
+	public:
+		Sound2D();
+		~Sound2D();
 
-		m_SceneHierarchyPanel = Ref<SceneHierarchyPanel>::Create();
-		//m_SceneHierarchyPanel->SetIsPrefabScene( true );
+		void TryPlay();
+		void Stop();
+		void Loop();
+		bool IsPlaying();
+		bool IsLooping();
 
-		AddPrefab();
+	private:
+		void Load();
+	private:
+		std::filesystem::path m_RawPath;
 
-		m_SceneRenderer = new SceneRenderer();
-		m_SceneRenderer->SetDynamicSky( 2.0f, 0.0f, 0.0f );
+		bool m_Playing = false;
+	};
 
-		m_Camera.SetActive( true );
-		m_SceneRenderer->SetCamera( { m_Camera, m_Camera.ViewMatrix() } );
-	}
-
-	PrefabViewer::~PrefabViewer()
-	{
-		delete m_SceneRenderer;
-	}
-
-	void PrefabViewer::Draw()
-	{
-		ImGui::PushID( static_cast< int >( m_AssetID ) );
-
-		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open );
-
-		// Draw Viewport
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
-
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		ImGui::PushID( m_AssetID );
-		ImGui::BeginChild( "##Viewport", m_ViewportSize, 0, flags );
-
-		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
-		{
-			m_ViewportSize = ImGui::GetContentRegionAvail();
-
-			m_SceneRenderer->SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
-			m_Camera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
-		}
-
-		Image( m_SceneRenderer->CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
-
-		ImGui::EndChild();
-		ImGui::PopID();
-		ImGui::PopStyleVar();
-
-		ImGui::End();
-
-		ImGui::PopID();
-
-		if( m_Open == false )
-		{
-			PrefabSerialiser ps;
-			ps.Serialise( m_Prefab );
-		}
-	}
-
-	void PrefabViewer::OnRender()
-	{
-		// Update Scene for rendering (on main thread.)
-		m_Prefab->GetScene()->OnRenderEditor( m_Camera, Application::Get().Time(), *m_SceneRenderer );
-
-		RenderThread::Get().Queue( [=]() 
-			{ 
-				m_SceneRenderer->RenderScene();
-			} );
-	}
-
-	void PrefabViewer::AddPrefab()
-	{
-		Ref<Prefab> prefab = AssetRegistry::Get().GetAssetAs<Prefab>( m_AssetID );
-
-		m_SceneHierarchyPanel->SetContext( prefab->GetScene() );
-
-		m_Prefab = prefab;
-
-		m_Open = true;
-	}
 }

@@ -80,7 +80,9 @@ namespace Saturn {
 		Ref< Texture2D > m_ForwardIcon;
 
 		bool m_ShowMeshImport = false;
+		bool m_ShowSoundImport = false;
 		std::filesystem::path m_ImportMeshPath;
+		std::filesystem::path m_ImportSoundPath;
 
 		struct AssetInfo
 		{

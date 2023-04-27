@@ -321,6 +321,13 @@ namespace Saturn {
 						m_ShowMeshImport = true;
 						m_ImportMeshPath = path;
 					}
+
+					// Audio
+					if( path.extension() == ".wav" || path.extension() == ".mp3" )
+					{
+						m_ShowMeshImport = true;
+						m_ImportSoundPath = path;
+					}
 				}
 
 				if( ImGui::BeginMenu( "Create" ) )
@@ -407,6 +414,54 @@ namespace Saturn {
 
 		if( m_ShowMeshImport )
 			ImGui::OpenPopup( "Import Mesh##IMPORT_MESH" );
+
+		if( m_ShowSoundImport )
+			ImGui::OpenPopup( "Import Sound##IMPORT_SOUND" );
+
+		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
+		if( ImGui::BeginPopupModal( "Import Sound##IMPORT_SOUND", &m_ShowSoundImport, ImGuiWindowFlags_NoMove ) )
+		{
+			bool PopupModified = false;
+
+			ImGui::BeginVertical( "##inputv" );
+
+			ImGui::Text( "Path:" );
+
+			ImGui::BeginHorizontal( "##inputH" );
+
+			ImGui::InputText( "##path", ( char* ) m_ImportSoundPath.string().c_str(), 1024 );
+
+			if( ImGui::Button( "Browse" ) )
+			{
+				m_ImportMeshPath = Application::Get().OpenFile( "Supported asset types (*.wav *.mp3)\0*.wav; *.mp3\0" );
+			}
+
+			ImGui::EndHorizontal();
+			ImGui::EndVertical();
+
+			ImGui::BeginHorizontal( "##actionsH" );
+
+			if( ImGui::Button( "Create" ) )
+			{
+			}
+
+			if( ImGui::Button( "Cancel" ) )
+			{
+				m_ShowSoundImport = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndHorizontal();
+
+			if( PopupModified )
+			{
+				m_ShowSoundImport = false;
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
 
 		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
 		if( ImGui::BeginPopupModal( "Import Mesh##IMPORT_MESH", &m_ShowMeshImport, ImGuiWindowFlags_NoMove ) )

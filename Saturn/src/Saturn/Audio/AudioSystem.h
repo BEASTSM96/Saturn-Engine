@@ -31,7 +31,16 @@
 #include "SingletonStorage.h"
 #include "AudioCore.h"
 
+#include <filesystem>
+
 namespace Saturn {
+
+	enum AudioType
+	{
+		Static, // 2D
+		Dynamic, // 3D
+		Unknown
+	};
 
 	class AudioSystem
 	{
@@ -41,10 +50,18 @@ namespace Saturn {
 		AudioSystem();
 		~AudioSystem();
 
-	private:
-		void Init();
+		void CreateAudio( AudioType type, UUID ID, const std::filesystem::path& rPath );
+		bool Play( UUID ID );
+		bool Stop( UUID ID );
+
 		void Terminate();
 	private:
+		void Init();
+	private:
 		ma_device m_Device;
+		ma_engine m_Engine;
+
+		// I might want to change this.
+		std::unordered_map<UUID, ma_sound> m_Sounds;
 	};
 }
