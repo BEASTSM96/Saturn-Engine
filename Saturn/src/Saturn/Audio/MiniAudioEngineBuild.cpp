@@ -27,47 +27,6 @@
 */
 
 #include "sppch.h"
-#include "Sound2D.h"
 
-namespace Saturn {
-
-	Sound2D::Sound2D()
-	{
-		Load();
-	}
-
-	void Sound2D::Load()
-	{
-	}
-
-	Sound2D::~Sound2D()
-	{
-
-	}
-
-	void Sound2D::TryPlay()
-	{
-		m_Playing = AudioSystem::Get().Play( m_Sound );
-	}
-
-	void Sound2D::Stop()
-	{
-		AudioSystem::Get().Stop( m_Sound );
-		m_Playing = false;
-	}
-
-	void Sound2D::Loop()
-	{
-
-	}
-
-	bool Sound2D::IsPlaying()
-	{
-		return m_Playing;
-	}
-
-	bool Sound2D::IsLooping()
-	{
-		return true;
-	}
-}
+#define MINIAUDIO_IMPLEMENTATION
+#include <miniaudio.h>

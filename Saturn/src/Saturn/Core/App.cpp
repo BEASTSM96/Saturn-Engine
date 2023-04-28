@@ -350,6 +350,7 @@ namespace Saturn {
 		}
 
 		// I'm not really sure if I want the render thread to render imgui.
+		// TEMP: There is some bugs when we try to render imgui on renderer thread, and if it needs a new window it will freeze
 		RenderThread::Get().Queue( [=]
 			{
 				for( auto& layer : m_Layers )

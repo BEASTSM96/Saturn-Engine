@@ -31,6 +31,7 @@
 
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Asset/Prefab.h"
+#include "Saturn/Audio/Sound2D.h"
 
 #include "YamlAux.h"
 
@@ -684,6 +685,80 @@ namespace Saturn {
 		OldAssetData.Name = rAsset->Name;
 
 		rAsset = mesh;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
+
+		return true;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// SOUND2D
+
+	void Sound2DAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
+	{
+		auto sound = rAsset.As<Sound2D>();
+
+		YAML::Emitter out;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "Sound2D" << YAML::Value;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "Filepath" << YAML::Value << std::filesystem::relative( sound->GetRawPath(), Project::GetActiveProject()->GetRootDir() );
+
+		out << YAML::EndMap;
+
+		out << YAML::EndMap;
+
+		auto& basePath = rAsset->GetPath();
+		auto fullPath = Project::GetActiveProject()->FilepathAbs( basePath );
+
+		std::ofstream fout( fullPath );
+		fout << out.c_str();
+	}
+
+	void Sound2DAssetSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
+	{
+
+	}
+
+	bool Sound2DAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
+	{
+		auto absolutePath = Project::GetActiveProject()->FilepathAbs( rAsset->GetPath() );
+		std::ifstream FileIn( absolutePath );
+
+		std::stringstream ss;
+		ss << FileIn.rdbuf();
+
+		YAML::Node data = YAML::Load( ss.str() );
+
+		if( data.IsNull() )
+			return false;
+
+		auto meshData = data[ "Sound2D" ];
+		auto filepath = meshData[ "Filepath" ].as<std::string>();
+
+		auto realPath = Project::GetActiveProject()->FilepathAbs( filepath );
+		auto sound = Ref<StaticMesh>::Create( realPath.string() );
+
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = sound;
 		rAsset->ID = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
 		rAsset->Path = OldAssetData.Path;

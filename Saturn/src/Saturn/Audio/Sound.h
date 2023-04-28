@@ -26,48 +26,23 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Sound2D.h"
+#pragma once
+
+#include "Saturn/Asset/Asset.h"
+#include <miniaudio.h>
+#include <filesystem>
 
 namespace Saturn {
 
-	Sound2D::Sound2D()
+	class Sound : public Asset
 	{
-		Load();
-	}
+	public:
+		Sound() = default;
+		virtual ~Sound() = default;
 
-	void Sound2D::Load()
-	{
-	}
+	protected:
+		ma_sound m_Sound;
 
-	Sound2D::~Sound2D()
-	{
-
-	}
-
-	void Sound2D::TryPlay()
-	{
-		m_Playing = AudioSystem::Get().Play( m_Sound );
-	}
-
-	void Sound2D::Stop()
-	{
-		AudioSystem::Get().Stop( m_Sound );
-		m_Playing = false;
-	}
-
-	void Sound2D::Loop()
-	{
-
-	}
-
-	bool Sound2D::IsPlaying()
-	{
-		return m_Playing;
-	}
-
-	bool Sound2D::IsLooping()
-	{
-		return true;
-	}
+		std::filesystem::path m_RawPath;
+	};
 }

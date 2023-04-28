@@ -47,6 +47,7 @@
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
 #include "Saturn/Asset/Prefab.h"
+#include "Saturn/Audio/Sound2D.h"
 
 #include "Saturn/Premake/Premake.h"
 #include "Saturn/GameFramework/SourceManager.h"
@@ -433,7 +434,7 @@ namespace Saturn {
 
 			if( ImGui::Button( "Browse" ) )
 			{
-				m_ImportMeshPath = Application::Get().OpenFile( "Supported asset types (*.wav *.mp3)\0*.wav; *.mp3\0" );
+				m_ImportSoundPath = Application::Get().OpenFile( "Supported asset types (*.wav *.mp3)\0*.wav; *.mp3\0" );
 			}
 
 			ImGui::EndHorizontal();
@@ -443,6 +444,36 @@ namespace Saturn {
 
 			if( ImGui::Button( "Create" ) )
 			{
+				// TODO: Right now we only support sound 2Ds.
+				auto id = AssetRegistry::Get().CreateAsset( AssetType::Audio );
+				auto asset = AssetRegistry::Get().FindAsset( id );
+
+				// Copy the audio source.
+				std::filesystem::copy_file( m_ImportSoundPath, m_CurrentPath / m_ImportSoundPath.filename() );
+
+				auto assetPath = m_CurrentPath / m_ImportSoundPath.filename();
+				assetPath.replace_extension( ".s2d" );
+
+				// Create the mesh asset.
+				auto sound = asset.As<Sound2D>();
+				sound = Ref<Sound2D>::Create();
+				sound->ID = asset->ID;
+				sound->Path = asset->Path;
+
+				sound->SetRawPath( m_ImportSoundPath );
+
+				// Save the asset
+				Sound2DAssetSerialiser s2d;
+				s2d.Serialise( sound );
+
+				sound->SetPath( assetPath );
+
+				AssetRegistrySerialiser ars;
+				ars.Serialise();
+
+				PopupModified = true;
+
+				UpdateFiles( true );
 			}
 
 			if( ImGui::Button( "Cancel" ) )

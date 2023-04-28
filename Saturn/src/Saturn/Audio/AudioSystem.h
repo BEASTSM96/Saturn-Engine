@@ -51,8 +51,8 @@ namespace Saturn {
 		~AudioSystem();
 
 		void CreateAudio( AudioType type, UUID ID, const std::filesystem::path& rPath );
-		bool Play( UUID ID );
-		bool Stop( UUID ID );
+		bool Play( ma_sound ID );
+		bool Stop( ma_sound ID );
 
 		void Terminate();
 	private:
@@ -60,8 +60,5 @@ namespace Saturn {
 	private:
 		ma_device m_Device;
 		ma_engine m_Engine;
-
-		// I might want to change this.
-		std::unordered_map<UUID, ma_sound> m_Sounds;
 	};
 }

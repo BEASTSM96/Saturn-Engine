@@ -114,7 +114,7 @@ namespace Saturn {
 	{
 		if( str == ".png" || str == ".tga" || str == ".jpg" || str == ".jpeg" )
 			return AssetType::Texture;
-		else if( str == ".mp3" || str == ".wav" || str == ".ogg" )
+		else if( str == ".s2d" )
 			return AssetType::Audio;
 		else if( str == ".scene" )
 			return AssetType::Scene;

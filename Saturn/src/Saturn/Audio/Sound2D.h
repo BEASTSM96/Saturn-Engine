@@ -28,13 +28,13 @@
 
 #pragma once
 
-#include "Saturn/Asset/Asset.h"
+#include "Sound.h"
 
 #include "AudioSystem.h"
 
 namespace Saturn {
 
-	class Sound2D : public Asset
+	class Sound2D : public Sound
 	{
 	public:
 		Sound2D();
@@ -46,11 +46,12 @@ namespace Saturn {
 		bool IsPlaying();
 		bool IsLooping();
 
+		const std::filesystem::path& GetRawPath() { return m_RawPath; }
+		void SetRawPath( const std::filesystem::path& rPath ) { m_RawPath = rPath; }
+
 	private:
 		void Load();
 	private:
-		std::filesystem::path m_RawPath;
-
 		bool m_Playing = false;
 	};
 

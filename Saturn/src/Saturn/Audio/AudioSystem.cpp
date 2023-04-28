@@ -45,18 +45,18 @@ namespace Saturn {
 		ma_sound sound;
 
 		MA_CHECK( ma_sound_init_from_file( &m_Engine, rPath.string().c_str(), 0, NULL, NULL, &sound ) );
-		m_Sounds[ ID ] = sound;
 	}
 
-	bool AudioSystem::Play( UUID ID )
+	bool AudioSystem::Play( ma_sound Sound )
 	{
-		MA_CHECK( ma_sound_start( &m_Sounds.at( ID ) ) );
-		return ma_sound_is_playing( &m_Sounds.at( ID ) );
+		MA_CHECK( ma_sound_start( &Sound ) );
+		return true;
 	}
 
-	bool AudioSystem::Stop( UUID ID )
+	bool AudioSystem::Stop( ma_sound Sound )
 	{
-		MA_CHECK( ma_sound_stop( &m_Sounds.at( ID ) ) );
+		MA_CHECK( ma_sound_stop( &Sound ) );
+		return true;
 	}
 
 	void AudioSystem::Init()
@@ -68,10 +68,10 @@ namespace Saturn {
 		DeviceConfig.dataCallback = nullptr;
 		DeviceConfig.pUserData = nullptr;
 
-		MA_CHECK( ma_device_init( NULL, &DeviceConfig, &m_Device ) );
-		ma_device_start( &m_Device );
+		//MA_CHECK( ma_device_init( NULL, &DeviceConfig, &m_Device ) );
+		//ma_device_start( &m_Device );
 
-		MA_CHECK( ma_engine_init( NULL, &m_Engine ) );
+		//MA_CHECK( ma_engine_init( NULL, &m_Engine ) );
 	}
 
 	void AudioSystem::Terminate()

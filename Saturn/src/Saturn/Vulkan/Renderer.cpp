@@ -121,9 +121,13 @@ namespace Saturn {
 
 		SubmitTerminateResource( [&]() 
 		{
-			m_RendererDescriptorSets[0] = nullptr;
-			m_RendererDescriptorSets[1] = nullptr;
-			m_RendererDescriptorSets[2] = nullptr;
+			m_RendererDescriptorSets[ 0 ] = nullptr;
+			m_RendererDescriptorSets[ 1 ] = nullptr;
+			m_RendererDescriptorSets[ 2 ] = nullptr;
+
+			m_RendererDescriptorPools[ 0 ] = nullptr;
+			m_RendererDescriptorPools[ 1 ] = nullptr;
+			m_RendererDescriptorPools[ 2 ] = nullptr;
 		} );
 
 		if( m_FlightFences.size() )
@@ -351,7 +355,7 @@ namespace Saturn {
 
 				m_BeginFrameTimer.Reset();
 
-				vkResetDescriptorPool( LogicalDevice, m_RendererDescriptorPools[ m_FrameCount ]->GetVulkanPool(), 0 );
+				VK_CHECK( vkResetDescriptorPool( LogicalDevice, m_RendererDescriptorPools[ m_FrameCount ]->GetVulkanPool(), 0 ) );
 
 				m_CommandBuffer = AllocateCommandBuffer( VulkanContext::Get().GetCommandPool() );
 
