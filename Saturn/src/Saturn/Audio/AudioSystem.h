@@ -55,6 +55,8 @@ namespace Saturn {
 		bool Stop( ma_sound ID );
 
 		void Terminate();
+
+		ma_engine& GetAudioEngine() { return m_Engine; }
 	private:
 		void Init();
 	private:

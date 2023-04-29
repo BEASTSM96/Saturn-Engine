@@ -725,7 +725,7 @@ namespace Saturn {
 		bool isFile = !rEntry.is_directory();
 
 		Ref<Texture2D> Icon = isFile ? m_FileIcon : m_DirectoryIcon;
-		
+
 		// Draw background.
 		const float EdgeOffset = 4.0f;
 		const float TextLineHeight = ImGui::GetTextLineHeightWithSpacing() * 2.0f + EdgeOffset * 2.0f;

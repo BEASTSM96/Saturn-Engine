@@ -63,13 +63,6 @@ namespace Saturn {
 	{
 		// Create engine
 		MA_CHECK( ma_engine_init( NULL, &m_Engine ) );
-
-		ma_sound sound;
-		//MA_CHECK( ma_sound_init_from_file( &m_Engine, "content/meshes/Music_MainThemeStrings.wav", 0, NULL, NULL, &sound ) );
-
-		//ma_engine_play_sound( &m_Engine, "content/meshes/Music_MainThemePiano.wav", NULL );
-
-		//Play( sound );
 	}
 
 	void AudioSystem::Terminate()
