@@ -61,22 +61,19 @@ namespace Saturn {
 
 	void AudioSystem::Init()
 	{
-		ma_device_config DeviceConfig = ma_device_config_init( ma_device_type_playback );
-		DeviceConfig.playback.format = ma_format_s32;
-		DeviceConfig.playback.channels = 2;
-		DeviceConfig.sampleRate = 48000;
-		DeviceConfig.dataCallback = nullptr;
-		DeviceConfig.pUserData = nullptr;
+		// Create engine
+		MA_CHECK( ma_engine_init( NULL, &m_Engine ) );
 
-		//MA_CHECK( ma_device_init( NULL, &DeviceConfig, &m_Device ) );
-		//ma_device_start( &m_Device );
+		ma_sound sound;
+		//MA_CHECK( ma_sound_init_from_file( &m_Engine, "content/meshes/Music_MainThemeStrings.wav", 0, NULL, NULL, &sound ) );
 
-		//MA_CHECK( ma_engine_init( NULL, &m_Engine ) );
+		//ma_engine_play_sound( &m_Engine, "content/meshes/Music_MainThemePiano.wav", NULL );
+
+		//Play( sound );
 	}
 
 	void AudioSystem::Terminate()
 	{
-		ma_device_uninit( &m_Device );
 	}
 
 }

@@ -32,6 +32,7 @@
 namespace Saturn {
 
 	Sound2D::Sound2D()
+		: Sound()
 	{
 		Load();
 	}

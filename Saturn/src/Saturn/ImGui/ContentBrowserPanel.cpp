@@ -298,7 +298,7 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Import" ) )
 				{
-					auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg\0" );
+					auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg *wav)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg; *.wav\0" );
 
 					std::filesystem::path path = result;
 
@@ -326,7 +326,7 @@ namespace Saturn {
 					// Audio
 					if( path.extension() == ".wav" || path.extension() == ".mp3" )
 					{
-						m_ShowMeshImport = true;
+						m_ShowSoundImport = true;
 						m_ImportSoundPath = path;
 					}
 				}
@@ -454,22 +454,27 @@ namespace Saturn {
 				auto assetPath = m_CurrentPath / m_ImportSoundPath.filename();
 				assetPath.replace_extension( ".s2d" );
 
-				// Create the mesh asset.
+				assetPath = std::filesystem::relative( assetPath, Project::GetActiveProject()->GetRootDir() );
+
+				asset->Path = assetPath;
+
+				// Create the asset.
 				auto sound = asset.As<Sound2D>();
 				sound = Ref<Sound2D>::Create();
 				sound->ID = asset->ID;
-				sound->Path = asset->Path;
+				sound->Path = assetPath;
+				sound->Type = AssetType::Audio;
 
-				sound->SetRawPath( m_ImportSoundPath );
+				sound->SetRawPath( m_CurrentPath / m_ImportSoundPath.filename() );
 
 				// Save the asset
 				Sound2DAssetSerialiser s2d;
 				s2d.Serialise( sound );
 
-				sound->SetPath( assetPath );
-
 				AssetRegistrySerialiser ars;
 				ars.Serialise();
+
+				sound->SetPath( assetPath );
 
 				PopupModified = true;
 

@@ -58,7 +58,6 @@ namespace Saturn {
 	private:
 		void Init();
 	private:
-		ma_device m_Device;
 		ma_engine m_Engine;
 	};
 }
