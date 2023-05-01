@@ -55,13 +55,17 @@ namespace Saturn {
 		template<typename Fn, typename... Args>
 		void Queue( Fn&& rrFunc, Args&&... rrArgs ) 
 		{
-			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
-			m_Cond.notify_one();
+		//	std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
+		//	m_Cond.notify_one();
 
-			m_CommandBuffer.push_back( rrFunc );
+		//	m_CommandBuffer.push_back( rrFunc );
+
+			rrFunc();
 		}
 
 		float GetWaitTime() { return m_WaitTime.ElapsedMilliseconds(); }
+
+		bool IsRenderThread();
 
 	private:
 		void ThreadRun();
@@ -72,6 +76,7 @@ namespace Saturn {
 		Timer m_WaitTime;
 
 		std::thread m_Thread;
+		std::thread::id m_ThreadID;
 		std::mutex m_Mutex;
 		std::condition_variable m_Cond;
 		std::shared_ptr<std::atomic_bool> m_Running;

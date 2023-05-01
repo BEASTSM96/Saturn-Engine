@@ -86,13 +86,19 @@ namespace Saturn {
 		}
 	}
 
+	bool RenderThread::IsRenderThread()
+	{
+		return std::this_thread::get_id() == m_ThreadID;
+	}
+
 	void RenderThread::ThreadRun()
 	{
 		SetThreadDescription( GetCurrentThread(), L"Render Thread" );
+		m_ThreadID = std::this_thread::get_id();
 
 		while (true)
 		{
-			SAT_PF_FRAME( "Render Thread" );
+			SAT_PF_THRD( "Render Thread" );
 			
 			std::unique_lock<std::mutex> Lock( m_Mutex );
 

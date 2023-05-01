@@ -36,8 +36,10 @@
 #define SAT_PF_EVENT(...)    OPTICK_EVENT(__VA_ARGS__)
 #define SAT_PF_FRAME(...)    OPTICK_FRAME(__VA_ARGS__)
 #define SAT_PF_SCOPE(x, ...) OPTICK_EVENT_DYNAMIC(x, __VA_ARGS__)
+#define SAT_PF_THRD(...)     OPTICK_THREAD(__VA_ARGS__)
 #else 
 #define SAT_PF_EVENT(...)
 #define SAT_PF_FRAME(...)
 #define SAT_PF_SCOPE(x, ...)
+#define SAT_PF_THRD(x, ...)
 #endif
