@@ -739,11 +739,13 @@ namespace Saturn {
 		if( data.IsNull() )
 			return false;
 
-		auto meshData = data[ "Sound2D" ];
-		auto filepath = meshData[ "Filepath" ].as<std::string>();
+		auto soundData = data[ "Sound2D" ];
+		auto filepath = soundData[ "Filepath" ].as<std::string>();
 
 		auto realPath = Project::GetActiveProject()->FilepathAbs( filepath );
-		auto sound = Ref<StaticMesh>::Create( realPath.string() );
+		auto sound = Ref<Sound2D>::Create();
+		sound->SetRawPath( realPath );
+		sound->Load();
 
 		struct
 		{

@@ -43,7 +43,6 @@ namespace Saturn {
 	void AudioSystem::CreateAudio( AudioType type, UUID ID, const std::filesystem::path& rPath )
 	{
 		ma_sound sound;
-
 		MA_CHECK( ma_sound_init_from_file( &m_Engine, rPath.string().c_str(), 0, NULL, NULL, &sound ) );
 	}
 
@@ -68,5 +67,4 @@ namespace Saturn {
 	void AudioSystem::Terminate()
 	{
 	}
-
 }

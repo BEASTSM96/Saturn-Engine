@@ -40,6 +40,8 @@ namespace Saturn {
 		Sound2D();
 		~Sound2D();
 
+		void Load();
+
 		void TryPlay();
 		void Stop();
 		void Loop();
@@ -50,7 +52,6 @@ namespace Saturn {
 		void SetRawPath( const std::filesystem::path& rPath ) { m_RawPath = rPath; }
 
 	private:
-		void Load();
 	private:
 		bool m_Playing = false;
 	};

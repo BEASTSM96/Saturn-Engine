@@ -34,13 +34,12 @@ namespace Saturn {
 	Sound2D::Sound2D()
 		: Sound()
 	{
-		Load();
 	}
 
 	void Sound2D::Load()
 	{
 		ma_uint32 flags = MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION;
-		MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(), m_RawPath.string().c_str(), flags, NULL, NULL, &m_Sound ) );
+		MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(), m_RawPath.string().c_str(), 0, NULL, NULL, &m_Sound ) );
 	}
 
 	Sound2D::~Sound2D()
@@ -50,12 +49,14 @@ namespace Saturn {
 
 	void Sound2D::TryPlay()
 	{
-		m_Playing = AudioSystem::Get().Play( m_Sound );
+		MA_CHECK( ma_sound_start( &m_Sound ) );
+
+		m_Playing = true;
 	}
 
 	void Sound2D::Stop()
 	{
-		AudioSystem::Get().Stop( m_Sound );
+		MA_CHECK( ma_sound_stop( &m_Sound ) );
 		m_Playing = false;
 	}
 
