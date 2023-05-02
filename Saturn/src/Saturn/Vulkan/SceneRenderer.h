@@ -285,8 +285,6 @@ namespace Saturn {
 
 		float BloomDirtIntensity = 20.0f;
 
-		VkDescriptorPool BloomDescriptorPool = nullptr;
-
 		//////////////////////////////////////////////////////////////////////////
 		// BDRF Lut
 		Ref<Texture2D> BRDFLUT_Texture = nullptr;
@@ -356,7 +354,7 @@ namespace Saturn {
 
 		void RenderGrid();
 		void RenderSkybox();
-		void PrepareSkybox();
+		void CheckInvalidSkybox();
 
 		void UpdateCascades( const glm::vec3& Direction );
 

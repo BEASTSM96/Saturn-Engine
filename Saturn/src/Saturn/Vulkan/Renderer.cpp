@@ -83,6 +83,9 @@ namespace Saturn {
 		// It's really a white texture...
 		m_PinkTexture = Ref< Texture2D >::Create( ImageFormat::RGBA8, 1, 1, pData );
 		m_PinkTexture->SetIsRendererTexture( true );
+
+		m_PinkTextureCube = Ref< TextureCube >::Create( ImageFormat::BGRA8, 1, 1, pData );
+
 		delete[] pData;
 
 		std::vector<VkDescriptorPoolSize> PoolSizes;
@@ -140,6 +143,9 @@ namespace Saturn {
 
 		for ( auto& rFunc : m_TerminateResourceFuncs )
 			rFunc();
+
+		m_PinkTextureCube->Terminate();
+		m_PinkTextureCube = nullptr;
 
 		m_PinkTexture->SetForceTerminate( true );
 		m_PinkTexture = nullptr;

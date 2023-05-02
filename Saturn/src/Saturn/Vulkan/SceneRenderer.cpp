@@ -411,22 +411,6 @@ namespace Saturn {
 		m_RendererData.BloomShader->WriteAllUBs( m_RendererData.BloomDS );
 
 		m_RendererData.BloomDirtTexture = Ref<Texture2D>::Create( "content/textures/BloomDirtTextureUE.png", AddressingMode::Repeat );
-
-		VkDescriptorPoolSize PoolSizes[] =
-		{
-			{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
-			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-		};
-
-		VkDescriptorPoolCreateInfo PoolCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-		PoolCreateInfo.maxSets = 10000;
-		PoolCreateInfo.poolSizeCount = IM_ARRAYSIZE( PoolSizes );
-		PoolCreateInfo.pPoolSizes = PoolSizes;
-		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-
-		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_RendererData.BloomDescriptorPool ) );
 	}
 
 	void SceneRenderer::InitTexturePass()
@@ -499,88 +483,87 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
+		// Is this really needed?
+		if( !m_pScene )
+			return;
+
+		CheckInvalidSkybox();
+
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
 
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 		auto& UBs = m_RendererData.SkyboxDescriptorSet;
 
-		Entity SkylightEntity;
+		RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
+		SkyboxMatricesObject.InverseVP = glm::inverse( m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix );
 
-		if( !m_pScene )
-			return;
+		m_RendererData.SkyboxShader->UploadUB( ShaderType::Vertex, 0, 0, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
 
-		auto view = m_pScene->GetAllEntitiesWith< SkylightComponent >();
-
-		for( const auto e : view )
+		// This should never happen.
+		if( m_RendererData.SceneEnvironment->IrradianceMap == nullptr && m_RendererData.SceneEnvironment->RadianceMap == nullptr )
 		{
-			SkylightEntity = { e, m_pScene };
+			m_RendererData.SkyboxShader->WriteDescriptor( "u_CubeTexture", Renderer::Get().GetPinkTextureCube()->GetDescriptorInfo(), m_RendererData.SkyboxDescriptorSet->GetVulkanSet() );
 		}
-
-		if( SkylightEntity )
+		else
 		{
-			auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
-
-			if( !Skylight.DynamicSky )
-				return;
-
-			RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
-			SkyboxMatricesObject.InverseVP = glm::inverse( m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix );
-
-			m_RendererData.SkyboxShader->UploadUB( ShaderType::Vertex, 0, 0, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
-
 			m_RendererData.SkyboxShader->WriteDescriptor( "u_CubeTexture", m_RendererData.SceneEnvironment->IrradianceMap->GetDescriptorInfo(), m_RendererData.SkyboxDescriptorSet->GetVulkanSet() );
-
-			struct ub_Data
-			{
-				float SkyboxLod;
-			} u_Data;
-
-			u_Data = {};
-			u_Data.SkyboxLod = m_RendererData.SkyboxLod;
-
-			m_RendererData.SkyboxShader->UploadUB( ShaderType::Fragment, 0, 2, &u_Data, sizeof( u_Data ) );
-
-			m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
-
-			Renderer::Get().SubmitFullscreenQuad(
-				CommandBuffer, m_RendererData.SkyboxPipeline, m_RendererData.SkyboxDescriptorSet, m_RendererData.SkyboxIndexBuffer, m_RendererData.SkyboxVertexBuffer );
 		}
+
+		struct ub_Data
+		{
+			float SkyboxLod;
+		} u_Data;
+
+		u_Data = {};
+		u_Data.SkyboxLod = m_RendererData.SkyboxLod;
+
+		m_RendererData.SkyboxShader->UploadUB( ShaderType::Fragment, 0, 2, &u_Data, sizeof( u_Data ) );
+
+		m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
+
+		Renderer::Get().SubmitFullscreenQuad(
+			CommandBuffer, m_RendererData.SkyboxPipeline, m_RendererData.SkyboxDescriptorSet, m_RendererData.SkyboxIndexBuffer, m_RendererData.SkyboxVertexBuffer );
 	}
 
-	void SceneRenderer::PrepareSkybox()
+	void SceneRenderer::CheckInvalidSkybox()
 	{
 		if( !m_pScene )
 			return;
 
-		Entity SkylightEntity;
-
-		auto view = m_pScene->GetAllEntitiesWith< SkylightComponent >();
-
-		for( const auto e : view )
+		// Invalid skybox, maybe null from loading a new scene? This only happens on the first frames so this is a hack.
+		if( m_RendererData.SceneEnvironment->IrradianceMap == nullptr && m_RendererData.SceneEnvironment->IrradianceMap == nullptr )
 		{
-			SkylightEntity = { e, m_pScene };
-		}
+			Entity SkylightEntity;
 
-		if( SkylightEntity )
-		{
-			auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
+			auto view = m_pScene->GetAllEntitiesWith< SkylightComponent >();
 
-			if( !Skylight.DynamicSky )
-				return;
-
-			if( Skylight.DynamicSky && !m_RendererData.SceneEnvironment->IrradianceMap && !m_RendererData.SceneEnvironment->IrradianceMap )
+			for( const auto e : view )
 			{
-				m_RendererData.SceneEnvironment->Turbidity = Skylight.Turbidity;
-				m_RendererData.SceneEnvironment->Azimuth = Skylight.Azimuth;
-				m_RendererData.SceneEnvironment->Inclination = Skylight.Inclination;
-
-				Ref<TextureCube> map = CreateDymanicSky();
-
-				m_RendererData.SceneEnvironment->IrradianceMap = map;
-				m_RendererData.SceneEnvironment->RadianceMap = map;
+				SkylightEntity = { e, m_pScene };
 			}
 
-			m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
+			if( SkylightEntity )
+			{
+				auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
+
+				if( !Skylight.DynamicSky )
+					return;
+
+				if( Skylight.DynamicSky && !m_RendererData.SceneEnvironment->IrradianceMap && !m_RendererData.SceneEnvironment->IrradianceMap )
+				{
+					m_RendererData.SceneEnvironment->Turbidity = Skylight.Turbidity;
+					m_RendererData.SceneEnvironment->Azimuth = Skylight.Azimuth;
+					m_RendererData.SceneEnvironment->Inclination = Skylight.Inclination;
+
+					// We can call this directly, we should be on the render thread.
+					Ref<TextureCube> map = CreateDymanicSky();
+
+					m_RendererData.SceneEnvironment->IrradianceMap = map;
+					m_RendererData.SceneEnvironment->RadianceMap = map;
+				}
+
+				m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
+			}
 		}
 	}
 
@@ -957,9 +940,6 @@ namespace Saturn {
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
-
-		// Prepare skybox
-		PrepareSkybox();
 
 		// Begin geometry pass.
 		m_RendererData.GeometryPass->BeginPass( m_RendererData.CommandBuffer, m_RendererData.GeometryFramebuffer->GetVulkanFramebuffer(), Extent );
@@ -1396,9 +1376,6 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		// Reset the descriptor pool.
-		VK_CHECK( vkResetDescriptorPool( VulkanContext::Get().GetDevice(), m_RendererData.BloomDescriptorPool, 0 ) );
-
 		m_RendererData.BloomTimer.Reset();
 
 		struct u_Settings
@@ -1430,7 +1407,7 @@ namespace Saturn {
 
 		VkDescriptorSet descriptorSet;
 		VkDescriptorSetAllocateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-		info.descriptorPool = m_RendererData.BloomDescriptorPool;
+		info.descriptorPool = Renderer::Get().GetDescriptorPool()->GetVulkanPool();
 		info.descriptorSetCount = 1;
 		info.pSetLayouts = shader->GetSetLayouts().data();
 
@@ -1454,7 +1431,7 @@ namespace Saturn {
 		// Step 0.5: Prefilter.
 		// Here we are just getting anything that is brighter than the bloom threshold.
 		pc_Settings.Stage = ( float ) BloomStage::Prefilter;
-
+		
 		{
 			VK_CHECK( vkAllocateDescriptorSets( VulkanContext::Get().GetDevice(), &info, &descriptorSet ) );
 
@@ -1645,7 +1622,8 @@ namespace Saturn {
 		float azimuth = Azimuth;
 		float inclination = Inclination;
 
-		AddScheduledFunction( [&, turbidity, azimuth, inclination]()
+		// I wanted this to be a RenderThread::Get().Queue, however for some reason it crashes.
+		AddScheduledFunction([&, turbidity, azimuth, inclination]()
 			{
 				m_RendererData.SceneEnvironment->Turbidity = turbidity;
 				m_RendererData.SceneEnvironment->Azimuth = azimuth;
@@ -1708,7 +1686,7 @@ namespace Saturn {
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Bloom" );
 
-		//		BloomPass();
+		BloomPass();
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 

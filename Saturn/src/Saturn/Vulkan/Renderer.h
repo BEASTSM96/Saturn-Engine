@@ -77,7 +77,8 @@ namespace Saturn {
 
 		void SubmitTerminateResource( std::function<void()>&& rrFunction );
 
-		Ref< Texture2D > GetPinkTexture() { return m_PinkTexture; }
+		Ref< Texture2D >   GetPinkTexture() { return m_PinkTexture; }
+		Ref< TextureCube > GetPinkTextureCube() { return m_PinkTextureCube; }
 
 		void CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
 		
@@ -117,6 +118,7 @@ namespace Saturn {
 		float m_QueuePresentTime;
 		
 		Ref< Texture2D > m_PinkTexture;
+		Ref< TextureCube > m_PinkTextureCube;
 
 		VkDescriptorSet m_RendererDescriptorSets[MAX_FRAMES_IN_FLIGHT];
 
