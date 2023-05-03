@@ -19,18 +19,18 @@ jobs:
 
     - name: Download Premake
       uses: BEASTSM96/premake-action@v1.3
+      
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.1.1
+
+    - name: Setup NuGet dependencies
+      run: nuget install YamlDotNet -Version 13.1.0
 
     - name: Generate Project Files
       run: scripts/WindowsGenProjects-CI.bat
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.1
-
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.1.1
-
-    - name: Setup NuGet dependencies
-      run: nuget install YamlDotNet -Version 13.1.0
 
     - name: Build Solution
       run: msbuild -property:Configuration=Debug,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Saturn.sln
