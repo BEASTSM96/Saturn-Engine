@@ -42,9 +42,10 @@ namespace Saturn {
 
 		void Load();
 
-		void TryPlay();
-		void Stop();
-		void Loop();
+		virtual void Play() override;
+		virtual void Stop() override;
+		virtual void Loop() override;
+
 		bool IsPlaying();
 		bool IsLooping();
 
@@ -54,6 +55,7 @@ namespace Saturn {
 	private:
 	private:
 		bool m_Playing = false;
+		bool m_Looping = false;
 	};
 
 }

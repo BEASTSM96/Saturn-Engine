@@ -91,7 +91,7 @@ namespace SaturnBuildTool
             TargetToBuild = UserTarget.SetupUserTarget(BuildTargetFile.Instance.BuildFile);
 
             if(TargetToBuild == null)
-                Console.WriteLine( "Could not find a user target!, looking for {0}. Please regenerate it in the engine!", BuildTargetFile.Instance.BuildFile );
+                Console.WriteLine( "Could not find a user target!, looking for {0} Please regenerate it in the engine!", BuildTargetFile.Instance.BuildFile );
 
             TargetToBuild.ProjectName = Args[1];
             TargetToBuild.ProjectName = TargetToBuild.ProjectName.Replace("/", string.Empty);

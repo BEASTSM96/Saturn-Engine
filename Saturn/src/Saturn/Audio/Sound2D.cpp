@@ -39,16 +39,22 @@ namespace Saturn {
 	void Sound2D::Load()
 	{
 		ma_uint32 flags = MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION;
-		MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(), m_RawPath.string().c_str(), 0, NULL, NULL, &m_Sound ) );
+		MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(), m_RawPath.string().c_str(), flags, NULL, NULL, &m_Sound ) );
+
+		m_Loaded = true;
 	}
 
 	Sound2D::~Sound2D()
 	{
-
+		Stop();
+		ma_sound_uninit( &m_Sound );
 	}
 
-	void Sound2D::TryPlay()
+	void Sound2D::Play()
 	{
+		if( !m_Loaded )
+			Load();
+
 		MA_CHECK( ma_sound_start( &m_Sound ) );
 
 		m_Playing = true;
@@ -63,6 +69,7 @@ namespace Saturn {
 	void Sound2D::Loop()
 	{
 		ma_sound_set_looping( &m_Sound, true );
+		m_Looping = true;
 	}
 
 	bool Sound2D::IsPlaying()
@@ -72,6 +79,6 @@ namespace Saturn {
 
 	bool Sound2D::IsLooping()
 	{
-		return true;
+		return m_Looping;
 	}
 }

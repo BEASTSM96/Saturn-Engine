@@ -40,9 +40,14 @@ namespace Saturn {
 		Sound() = default;
 		virtual ~Sound() = default;
 
-	protected:
-		ma_sound m_Sound;
+		virtual void Play() = 0;
+		virtual void Stop() = 0;
+		virtual void Loop() = 0;
 
-		std::filesystem::path m_RawPath;
+	protected:
+		ma_sound m_Sound{};
+		bool m_Loaded = false;
+
+		std::filesystem::path m_RawPath = "";
 	};
 }
