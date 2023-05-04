@@ -490,7 +490,7 @@ namespace Saturn {
 			{
 				if( ImGui::Button( "...##openenvmap", ImVec2( 50, 20 ) ) ) 
 				{
-					std::string file = Application::Get().OpenFile( "Environment map file (*.hdr)\0*.hdr;\0" );	
+					// TODO:
 				}
 			}
 

@@ -81,7 +81,8 @@ namespace Saturn {
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
 			pWindow->Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
 
-		AudioSystem* audioSystem = new AudioSystem();
+		// Lazy load.
+		AudioSystem::Get();
 
 		m_ImGuiLayer = new ImGuiLayer();
 		m_ImGuiLayer->OnAttach();
@@ -96,25 +97,32 @@ namespace Saturn {
 		{
 			SAT_PF_FRAME("Master Thread");
 
-			Window::Get().OnUpdate();
 			Window::Get().Render();
 		
+			for( auto&& fn : m_MainThreadQueue )
+				fn();
+
+			m_MainThreadQueue.clear();
+
+			// Execute render thread (last frame).
+			RenderThread::Get().WaitAll();
+
+			Window::Get().OnUpdate();
+
 			if( !Window::Get().Minimized() )
 			{
 				Renderer::Get().BeginFrame();
 				{
-					// Try to render scene.
+					// Render Scene on render thread.
 					RenderThread::Get().Queue( [=] { m_SceneRenderer->RenderScene(); } );
 					
 					// Render UI
 					{
 						RenderImGui();
 					}
-
-					// Execute render thread.
-					RenderThread::Get().WaitAll();
 				}
-				Renderer::Get().EndFrame();
+				// End this frame on render thread
+				RenderThread::Get().Queue( [=] { Renderer::Get().EndFrame(); } );
 			}
 
 			float time = ( float ) glfwGetTime();
@@ -155,131 +163,51 @@ namespace Saturn {
 		m_Running = false;
 	}
 
+	void Application::RenderImGui()
+	{
+		SAT_PF_EVENT();
+
+		// Begin on main thread.
+		m_ImGuiLayer->Begin();
+
+		// I'm not really sure if I want the render thread to render imgui.
+		// TEMP: There is some bugs when we try to render imgui on renderer thread, and if it needs a new window it will freeze
+		RenderThread::Get().Queue( [=]
+			{
+				for( auto& layer : m_Layers )
+				{
+					layer->OnImGuiRender();
+				}
+			} );
+
+		RenderThread::Get().Queue( [=]
+			{
+				m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
+			} );
+
+		// Update on the main thread.
+		for( auto& layer : m_Layers )
+		{
+			layer->OnUpdate( m_Timestep );
+		}
+	}
+
 	std::string Application::OpenFile( const char* pFilter ) const
 	{
-	#ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;       // common dialog box structure
-		CHAR szFile[ 260 ] ={ 0 };       // if using TCHAR macros
-
-										// Initialize OPENFILENAME
-		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
-		ofn.lStructSize = sizeof( OPENFILENAME );
-		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* )Window::Get().NativeWindow() );
-		ofn.lpstrFile = szFile;
-		ofn.nMaxFile = sizeof( szFile );
-		ofn.lpstrFilter = pFilter;
-		ofn.nFilterIndex = 1;
-		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-
-		if( GetOpenFileNameA( &ofn ) == TRUE )
-		{
-			return ofn.lpstrFile;
-		}
-		return std::string();
-	#endif
-
-	#ifdef  SAT_PLATFORM_LINUX
-		return std::string();
-	#endif
-
-		return std::string();
+		return OpenFileInternal( pFilter );
 	}
 
 	std::string Application::SaveFile( const char* f ) const
 	{
-#ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;       // common dialog box structure
-		CHAR szFile[ 260 ] = { 0 };       // if using TCHAR macros
-
-										// Initialize OPENFILENAME
-		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
-		ofn.lStructSize = sizeof( OPENFILENAME );
-		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
-		ofn.lpstrFile = szFile;
-		ofn.nMaxFile = sizeof( szFile );
-		ofn.lpstrFilter = f;
-		ofn.nFilterIndex = 1;
-		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-
-		if( GetSaveFileNameA( &ofn ) == TRUE )
-		{
-			return ofn.lpstrFile;
-		}
-		return std::string();
-#endif
-
-#ifdef  SAT_PLATFORM_LINUX
-		return std::string();
-#endif
-
-		return std::string();
+		return SaveFileInternal( f );
 	}
 
 	std::string Application::OpenFolder() const
 	{
-#ifdef  SAT_PLATFORM_WINDOWS
-		IFileOpenDialog* pFileOpen;
-		PWSTR pszFilePath;
-		std::string path;
-		
-		CoInitialize( nullptr );
-
-		// Create the object.
-		HRESULT hr = CoCreateInstance( CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, (void**)&pFileOpen );
-
-		if( SUCCEEDED( hr ) )
-		{
-			DWORD dwOptions;
-			pFileOpen->GetOptions( &dwOptions );
-			pFileOpen->SetOptions( dwOptions | FOS_PICKFOLDERS );
-
-			// Show the dialog.
-			hr = pFileOpen->Show( NULL );
-
-			// Get the file name from the dialog.
-			if( SUCCEEDED( hr ) )
-			{
-				IShellItem* pItem;
-				hr = pFileOpen->GetResult( &pItem );
-
-				if( SUCCEEDED( hr ) )
-				{
-					hr = pItem->GetDisplayName( SIGDN_DESKTOPABSOLUTEPARSING, &pszFilePath );
-
-					auto wstr = std::wstring( pszFilePath );
-
-					std::transform( wstr.begin(), wstr.end(), std::back_inserter( path ), []( wchar_t c )
-					{
-						return ( char ) c;
-					} );
-										
-					CoTaskMemFree( pszFilePath );
-				}
-
-				pItem->Release();
-			}
-			else
-			{
-				SAT_CORE_ASSERT( false );
-			}
-
-			pFileOpen->Release();
-			pFileOpen = NULL;
-		}
-		else
-		{
-			SAT_CORE_ASSERT( false );
-		}
-		
-		//std::replace( path.begin(), path.end(), '\\', '/' );
-
-		return path;
-#endif
-
-		return std::string();
+		return OpenFolderInternal();
 	}
 
-	const char* Application::GetPlatformName()
+	const char* Application::GetConfigName()
 	{
 #if defined(SAT_DEBUG)
 		return "Debug";
@@ -337,32 +265,124 @@ namespace Saturn {
 		return true;
 	}
 
-	void Application::RenderImGui()
+	std::string Application::OpenFileInternal( const char* pFilter ) const
 	{
-		SAT_PF_EVENT();
+#ifdef  SAT_PLATFORM_WINDOWS
+		OPENFILENAMEA ofn;       // common dialog box structure
+		CHAR szFile[ 260 ] = { 0 };       // if using TCHAR macros
 
-		m_ImGuiLayer->Begin();
+										// Initialize OPENFILENAME
+		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
+		ofn.lStructSize = sizeof( OPENFILENAME );
+		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
+		ofn.lpstrFile = szFile;
+		ofn.nMaxFile = sizeof( szFile );
+		ofn.lpstrFilter = pFilter;
+		ofn.nFilterIndex = 1;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
-		// Update on the main thread.
-		for( auto& layer : m_Layers )
+		if( GetOpenFileNameA( &ofn ) == TRUE )
 		{
-			layer->OnUpdate( m_Timestep );
+			return ofn.lpstrFile;
 		}
 
-		// I'm not really sure if I want the render thread to render imgui.
-		// TEMP: There is some bugs when we try to render imgui on renderer thread, and if it needs a new window it will freeze
-		RenderThread::Get().Queue( [=]
-			{
-				for( auto& layer : m_Layers )
-				{
-					layer->OnImGuiRender();
-				}
-			} );
+		return "";
+#endif
 
-		RenderThread::Get().Queue( [=] 
+#ifdef  SAT_PLATFORM_LINUX
+		return "";
+#endif
+	}
+
+	std::string Application::SaveFileInternal( const char* pFilter ) const
+	{
+#ifdef  SAT_PLATFORM_WINDOWS
+		OPENFILENAMEA ofn;       // common dialog box structure
+		CHAR szFile[ 260 ] = { 0 };       // if using TCHAR macros
+
+										// Initialize OPENFILENAME
+		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
+		ofn.lStructSize = sizeof( OPENFILENAME );
+		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
+		ofn.lpstrFile = szFile;
+		ofn.nMaxFile = sizeof( szFile );
+		ofn.lpstrFilter = pFilter;
+		ofn.nFilterIndex = 1;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+		if( GetSaveFileNameA( &ofn ) == TRUE )
+		{
+			return ofn.lpstrFile;
+		}
+
+		return "";
+#endif
+
+#ifdef  SAT_PLATFORM_LINUX
+		return "";
+#endif
+	}
+
+	std::string Application::OpenFolderInternal() const
+	{
+#ifdef  SAT_PLATFORM_WINDOWS
+		IFileOpenDialog* pFileOpen;
+		PWSTR pszFilePath;
+		std::string path;
+
+		CoInitialize( nullptr );
+
+		// Create the object.
+		HRESULT hr = CoCreateInstance( CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, ( void** ) &pFileOpen );
+
+		if( SUCCEEDED( hr ) )
+		{
+			DWORD dwOptions;
+			pFileOpen->GetOptions( &dwOptions );
+			pFileOpen->SetOptions( dwOptions | FOS_PICKFOLDERS );
+
+			// Show the dialog.
+			hr = pFileOpen->Show( NULL );
+
+			// Get the file name from the dialog.
+			if( SUCCEEDED( hr ) )
 			{
-				m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
-			} );
+				IShellItem* pItem;
+				hr = pFileOpen->GetResult( &pItem );
+
+				if( SUCCEEDED( hr ) )
+				{
+					hr = pItem->GetDisplayName( SIGDN_DESKTOPABSOLUTEPARSING, &pszFilePath );
+
+					auto wstr = std::wstring( pszFilePath );
+
+					std::transform( wstr.begin(), wstr.end(), std::back_inserter( path ), []( wchar_t c )
+						{
+							return ( char ) c;
+						} );
+
+					CoTaskMemFree( pszFilePath );
+				}
+
+				pItem->Release();
+			}
+			else
+			{
+				SAT_CORE_ASSERT( false );
+			}
+
+			pFileOpen->Release();
+			pFileOpen = NULL;
+		}
+		else
+		{
+			SAT_CORE_ASSERT( false );
+		}
+
+		return path;
+#endif
+
+		return "";
 	}
 
 	bool OnOptickStateChanged( Optick::State::Type state )
@@ -380,7 +400,7 @@ namespace Saturn {
 					Optick::AttachSummary( "Vulkan Version", "1.2.128" );
 				}
 
-				Optick::AttachSummary( "Configuration", Application::Get().GetPlatformName() );
+				Optick::AttachSummary( "Configuration", Application::Get().GetConfigName() );
 			} break;
 
 			case Optick::State::START_CAPTURE:

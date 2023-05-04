@@ -40,6 +40,7 @@
 #include <optick/optick.h>
 
 #include <vector>
+#include <functional>
 
 namespace Saturn {
 
@@ -73,7 +74,7 @@ namespace Saturn {
 		std::string SaveFile( const char* pFilter ) const;
 		std::string OpenFolder() const;
 
-		const char* GetPlatformName();
+		const char* GetConfigName();
 
 		static inline Application& Get() { return *SingletonStorage::Get().GetSingleton<Application>(); }
 		ApplicationSpecification& GetSpecification() { return m_Specification; }
@@ -86,12 +87,18 @@ namespace Saturn {
 		
 		SceneRenderer& PrimarySceneRenderer() { return *m_SceneRenderer; }
 
+		void SubmitOnMainThread( std::function<void()>&& rrFunction ) { m_MainThreadQueue.push_back( std::move( rrFunction ) ); }
+
 	protected:
 
 		void OnEvent( Event& e );
 		bool OnWindowResize( WindowResizeEvent& e );
 
 		void RenderImGui();
+
+		std::string OpenFileInternal( const char* pFilter ) const;
+		std::string SaveFileInternal( const char* pFilter ) const;
+		std::string OpenFolderInternal() const;
 
 	private:
 		bool m_Running = true;
@@ -107,6 +114,8 @@ namespace Saturn {
 
 		// TODO: Change to ref
 		SceneRenderer* m_SceneRenderer = nullptr;
+
+		std::vector<std::function<void()>> m_MainThreadQueue;
 
 	private:
 		//static Application* s_Instance;

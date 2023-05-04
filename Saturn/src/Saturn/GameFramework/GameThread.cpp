@@ -77,7 +77,7 @@ namespace Saturn {
 
 		while( true )
 		{
-			SAT_PF_FRAME("Game Thread");
+			SAT_PF_THRD("Game Thread");
 
 			std::unique_lock<std::mutex> Lock( m_Mutex );
 			m_Cond.wait( Lock, 

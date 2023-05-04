@@ -298,37 +298,40 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Import" ) )
 				{
-					auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg *wav)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg; *.wav\0" );
+					Application::Get().SubmitOnMainThread( [=]()
+						{
+							auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg *wav)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg; *.wav\0" );
 
-					std::filesystem::path path = result;
+							std::filesystem::path path = result;
 
-					if( path.extension() == ".png" || path.extension() == ".tga" || path.extension() == ".jpeg" || path.extension() == ".jpg" )
-					{
-						auto id = AssetRegistry::Get().CreateAsset( AssetType::Texture );
+							if( path.extension() == ".png" || path.extension() == ".tga" || path.extension() == ".jpeg" || path.extension() == ".jpg" )
+							{
+								auto id = AssetRegistry::Get().CreateAsset( AssetType::Texture );
 
-						auto asset = AssetRegistry::Get().FindAsset( id );
+								auto asset = AssetRegistry::Get().FindAsset( id );
 
-						std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
+								std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
 
-						asset->SetPath( m_CurrentPath / path.filename() );
+								asset->SetPath( m_CurrentPath / path.filename() );
 
-						AssetRegistrySerialiser ars;
-						ars.Serialise();
-					}
+								AssetRegistrySerialiser ars;
+								ars.Serialise();
+							}
 
-					// Meshes
-					if( path.extension() == ".fbx" || path.extension() == ".gltf" )
-					{
-						m_ShowMeshImport = true;
-						m_ImportMeshPath = path;
-					}
+							// Meshes
+							if( path.extension() == ".fbx" || path.extension() == ".gltf" )
+							{
+								m_ShowMeshImport = true;
+								m_ImportMeshPath = path;
+							}
 
-					// Audio
-					if( path.extension() == ".wav" || path.extension() == ".mp3" )
-					{
-						m_ShowSoundImport = true;
-						m_ImportSoundPath = path;
-					}
+							// Audio
+							if( path.extension() == ".wav" || path.extension() == ".mp3" )
+							{
+								m_ShowSoundImport = true;
+								m_ImportSoundPath = path;
+							}
+						} );
 				}
 
 				if( ImGui::BeginMenu( "Create" ) )
@@ -434,7 +437,10 @@ namespace Saturn {
 
 			if( ImGui::Button( "Browse" ) )
 			{
-				m_ImportSoundPath = Application::Get().OpenFile( "Supported asset types (*.wav *.mp3)\0*.wav; *.mp3\0" );
+				Application::Get().SubmitOnMainThread( [=]()
+					{
+						m_ImportSoundPath = Application::Get().OpenFile( "Supported asset types (*.wav *.mp3)\0*.wav; *.mp3\0" );
+					} );
 			}
 
 			ImGui::EndHorizontal();
@@ -517,7 +523,10 @@ namespace Saturn {
 
 			if( ImGui::Button( "Browse" ) ) 
 			{
-				m_ImportMeshPath = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb)\0*.fbx; *.gltf; *.glb\0" );
+				Application::Get().SubmitOnMainThread( [=]()
+					{
+						m_ImportMeshPath = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb)\0*.fbx; *.gltf; *.glb\0" );
+					} );
 			}
 
 			ImGui::EndHorizontal();
@@ -544,7 +553,11 @@ namespace Saturn {
 
 				if( ImGui::Button( "Browse" ) )
 				{
-					s_GLTFBinPath = Application::Get().OpenFile( "Supported asset types (*.glb *.bin)\0*.glb; *.bin\0" );
+					// We'll always be on the render thread.
+					Application::Get().SubmitOnMainThread( [=]()
+						{
+							s_GLTFBinPath = Application::Get().OpenFile( "Supported asset types (*.glb *.bin)\0*.glb; *.bin\0" );
+						} );
 				}
 				
 				ImGui::EndHorizontal();

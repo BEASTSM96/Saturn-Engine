@@ -66,6 +66,10 @@
 #include <Saturn/GameFramework/GameManager.h>
 #include <Saturn/GameFramework/EntityScriptManager.h>
 
+#include <Saturn/Core/Renderer/RenderThread.h>
+
+#include <Saturn/Audio/Sound2D.h>
+
 #include <Saturn/Premake/Premake.h>
 
 #include <typeindex>
@@ -221,6 +225,13 @@ namespace Saturn {
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
 		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+
+		/*
+		Ref<Asset> asset = AssetRegistry::Get().FindAsset( "Assets\\Sound\\Music_MainThemePiano.s2d" );
+		Ref<Sound2D> music = AssetRegistry::Get().GetAssetAs<Sound2D>( asset->ID );
+		music->Loop();
+		music->TryPlay();
+		*/
 	}
 
 	EditorLayer::~EditorLayer()
@@ -483,12 +494,15 @@ namespace Saturn {
 
 							if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
 							{
-								std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
-								
-								if( !file.empty() )
-								{
-									rMaterial->SetResource( "u_AlbedoTexture", Ref<Texture2D>::Create( file, AddressingMode::Repeat ) );
-								}
+								Application::Get().SubmitOnMainThread( [&]() 
+									{
+										std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
+
+										if( !file.empty() )
+										{
+											rMaterial->SetResource( "u_AlbedoTexture", Ref<Texture2D>::Create( file, AddressingMode::Repeat ) );
+										}
+									} );
 							}
 
 							glm::vec3 color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
@@ -550,8 +564,16 @@ namespace Saturn {
 
 				ImGui::InputText( "##path", ( char* ) path.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
 				ImGui::SameLine();
-				if( ImGui::Button( "..." ) )
-					path = Application::Get().OpenFile( ".exe\0*.exe;\0" );
+				if( ImGui::Button( "..." ) ) 
+				{
+					if( RenderThread::Get().IsRenderThread() )
+					{
+						Application::Get().SubmitOnMainThread( [=]()
+							{
+								path = Application::Get().OpenFile( ".exe\0*.exe;\0" );
+							} );
+					}
+				}
 
 				if( !path.empty() )
 				{
@@ -730,10 +752,23 @@ namespace Saturn {
 
 	void EditorLayer::SaveFileAs()
 	{
-		auto res = Application::Get().SaveFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
+		if( RenderThread::Get().IsRenderThread() )
+		{
+			Application::Get().SubmitOnMainThread( [=]()
+				{
+					auto res = Application::Get().SaveFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
 
-		SceneSerialiser serialiser( m_EditorScene );
-		serialiser.Serialise( res );
+					SceneSerialiser serialiser( m_EditorScene );
+					serialiser.Serialise( res );
+				} );
+		}
+		else
+		{
+			auto res = Application::Get().SaveFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
+
+			SceneSerialiser serialiser( m_EditorScene );
+			serialiser.Serialise( res );
+		}
 	}
 
 	void EditorLayer::SaveFile()
@@ -751,6 +786,9 @@ namespace Saturn {
 
 	void EditorLayer::OpenFile( const std::filesystem::path& rFilepath )
 	{
+		if( rFilepath.empty() )
+			return;
+
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
@@ -778,9 +816,19 @@ namespace Saturn {
 
 	void EditorLayer::OpenFile()
 	{
-		auto res = Application::Get().OpenFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
-		
-		OpenFile( res );
+		if( RenderThread::Get().IsRenderThread() )
+		{
+			Application::Get().SubmitOnMainThread( [=]() 
+				{
+					auto res = Application::Get().OpenFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
+					OpenFile( res );
+				} );
+		}
+		else
+		{
+			auto res = Application::Get().OpenFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
+			OpenFile( res );
+		}
 	}
 
 	void EditorLayer::SaveProject()
@@ -890,7 +938,13 @@ namespace Saturn {
 		ImGui::SameLine();
 		if( ImGui::Button( "...##openprj" ) )
 		{
-			startupProject = Application::Get().OpenFile( "Saturn project file (*.scene) (*.sc)\0*.scene\0" );
+			if( RenderThread::Get().IsRenderThread() )
+			{
+				Application::Get().SubmitOnMainThread( [&]()
+					{
+						startupProject = Application::Get().OpenFile( "Saturn project file (*.scene) (*.sc)\0*.scene\0" );
+					} );
+			}
 		}
 
 		ImGui::Text( "Startup Scene:" );
@@ -951,10 +1005,7 @@ namespace Saturn {
 
 	void EditorLayer::HotReloadGame()
 	{
-		GameDLL::Get().Reload();
-
-		// We now need to recreate all of the game scripts to use the new code.
-
+		SAT_CORE_ASSERT(false, "EditorLayer::HotReloadGame not implemented.");
 	}
 
 }

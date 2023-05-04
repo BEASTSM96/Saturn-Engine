@@ -43,19 +43,21 @@ namespace Saturn {
 
 	RenderThread::~RenderThread()
 	{
-
 	}
 
 	void RenderThread::WaitAll()
 	{
-		m_ExecuteAll = true;
-
+		if( !m_CommandBuffer.empty() )
+		{
+			m_ExecuteAll = true;
+			m_SignalCV.notify_one();
+		}
+		
 		m_WaitTime.Reset();
 
-		while( m_ExecuteAll )
-		{
-			std::this_thread::yield();
-		}
+		std::unique_lock<std::mutex> Lock( m_Mutex );
+		m_QueueCV.wait( Lock, [=] { return m_CommandBuffer.empty(); } );
+		Lock.unlock();
 
 		m_WaitTime.Stop();
 	}
@@ -63,6 +65,7 @@ namespace Saturn {
 	void RenderThread::ExecuteOne()
 	{
 		m_ExecuteOne = true;
+		m_SignalCV.notify_one();
 	}
 
 	void RenderThread::Terminate()
@@ -74,7 +77,8 @@ namespace Saturn {
 
 				m_Running->store( false );
 
-				m_Cond.notify_all();
+				m_QueueCV.notify_all();
+				m_SignalCV.notify_all();
 			}
 
 			while( m_Running->load() )
@@ -102,7 +106,18 @@ namespace Saturn {
 			
 			std::unique_lock<std::mutex> Lock( m_Mutex );
 
-			m_Cond.wait( Lock, [this] 
+			// m_SignalCV = What do we want to do, ExecuteOne, ExecuteAll
+			// m_QueueCV  = What state is the queue in, empty or not empty
+			// Every time one of the two has changed we mush notify it
+
+			// Wait for main thread signal
+			m_SignalCV.wait( Lock, [this] 
+				{
+					return !m_Running->load() || m_ExecuteAll;
+				} );
+
+			// Wait for the queue to not be empty.
+			m_QueueCV.wait( Lock, [this]
 				{
 					return !m_Running->load() || !m_CommandBuffer.empty();
 				} );
@@ -131,6 +146,9 @@ namespace Saturn {
 
 				m_ExecuteAll = false;
 			}
+
+			// The the main thread we're done.
+			m_QueueCV.notify_one();
 		}
 
 		m_Running->store( false );

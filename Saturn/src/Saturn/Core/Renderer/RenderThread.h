@@ -34,6 +34,7 @@
 #include <functional>
 #include <mutex>
 #include <condition_variable>
+#include <Windows.h>
 
 namespace Saturn {
 
@@ -55,31 +56,39 @@ namespace Saturn {
 		template<typename Fn, typename... Args>
 		void Queue( Fn&& rrFunc, Args&&... rrArgs ) 
 		{
-		//	std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
-		//	m_Cond.notify_one();
+			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
+			m_QueueCV.notify_one();
 
-		//	m_CommandBuffer.push_back( rrFunc );
-
-			rrFunc();
+			m_CommandBuffer.push_back( std::move( rrFunc ) );
 		}
 
 		float GetWaitTime() { return m_WaitTime.ElapsedMilliseconds(); }
 
 		bool IsRenderThread();
 
+		void Signal() { return m_SignalCV.notify_one(); }
+
+		void Block() { m_Blocked = true; Signal(); m_QueueCV.notify_one(); }
+		void Unblock() { m_Blocked = false; }
+		
 	private:
 		void ThreadRun();
 	private:
 		bool m_ExecuteAll = false;
 		bool m_ExecuteOne = false;
 
+		// TEMP: This should be reworked.
+		bool m_Blocked = false;
+
 		Timer m_WaitTime;
 
 		std::thread m_Thread;
 		std::thread::id m_ThreadID;
 		std::mutex m_Mutex;
-		std::condition_variable m_Cond;
 		std::shared_ptr<std::atomic_bool> m_Running;
+
+		std::condition_variable m_QueueCV;
+		std::condition_variable m_SignalCV;
 
 		std::vector<std::function<void()>> m_CommandBuffer;
 	};
