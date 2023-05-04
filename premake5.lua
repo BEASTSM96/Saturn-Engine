@@ -27,6 +27,7 @@ IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
 IncludeDir["Optick"] = "Saturn/vendor/optick/src"
 IncludeDir["Filewatch"] = "Saturn/vendor/Filewatch/src"
 IncludeDir["MiniAudio"] = "Saturn/vendor/miniaudio/src"
+IncludeDir["JoltPhysics"] = "Saturn/vendor/Jolt/src"
 
 IncludeDir["SingletonStorage"] = "SingletonStorage/src"
 
@@ -36,6 +37,7 @@ group "Dependencies"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
 	include "Saturn/vendor/optick"
+	include "Saturn/vendor/Jolt"
 
 group "Engine"
 project "Saturn"
@@ -100,6 +102,7 @@ project "Saturn"
 		"%{IncludeDir.Optick}",
 		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.Filewatch}",
+		"%{IncludeDir.JoltPhysics}",
 
 		"%{IncludeDir.SingletonStorage}"
 	}
@@ -111,6 +114,7 @@ project "Saturn"
 		"SPIRV-Cross",
 		"yaml-cpp",
 		"optick",
+		"jolt",
 		"SingletonStorage"
 	}
 
