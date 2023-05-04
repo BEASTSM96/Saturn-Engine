@@ -113,7 +113,7 @@ namespace Saturn {
 			// Wait for main thread signal
 			m_SignalCV.wait( Lock, [this] 
 				{
-					return !m_Running->load() || m_ExecuteAll;
+					return !m_Running->load() || m_ExecuteAll || m_ExecuteOne;
 				} );
 
 			// Wait for the queue to not be empty.

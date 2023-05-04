@@ -121,7 +121,7 @@ namespace Saturn {
 						RenderImGui();
 					}
 				}
-				// End this frame on render thread
+				// End this frame on render thread.
 				RenderThread::Get().Queue( [=] { Renderer::Get().EndFrame(); } );
 			}
 

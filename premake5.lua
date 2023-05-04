@@ -280,6 +280,7 @@ project "Saturn-Editor"
 		"Saturn/vendor/vulkan/include",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Filewatch}",
+		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.SingletonStorage}"
 	}
 
