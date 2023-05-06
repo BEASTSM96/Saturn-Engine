@@ -165,29 +165,29 @@ namespace Saturn {
 		SkylightComponent( const SkylightComponent& other ) = default;
 	};
 
-	struct PhysXBoxColliderComponent
+	struct BoxColliderComponent
 	{
 		glm::vec3 Extents = { 1.0f, 1.0f, 1.0f };
 		glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
 		bool IsTrigger = false;
 
-		PhysXBoxColliderComponent() = default;
-		PhysXBoxColliderComponent( const glm::vec3& extents ) : Extents( extents ) { }
+		BoxColliderComponent() = default;
+		BoxColliderComponent( const glm::vec3& extents ) : Extents( extents ) { }
 	};
 
-	struct PhysXSphereColliderComponent
+	struct SphereColliderComponent
 	{
 		glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 		float Radius = 1.0f;
 
 		bool IsTrigger = false;
 
-		PhysXSphereColliderComponent() = default;
-		PhysXSphereColliderComponent( float radius ) : Radius( radius ) { }
+		SphereColliderComponent() = default;
+		SphereColliderComponent( float radius ) : Radius( radius ) { }
 	};
 
-	struct PhysXCapsuleColliderComponent
+	struct CapsuleColliderComponent
 	{
 		glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
@@ -196,12 +196,11 @@ namespace Saturn {
 
 		bool IsTrigger = false;
 
-		PhysXCapsuleColliderComponent() = default;
-		PhysXCapsuleColliderComponent( float radius ) : Radius( radius ) { }
+		CapsuleColliderComponent() = default;
+		CapsuleColliderComponent( float radius ) : Radius( radius ) { }
 	};
 
-	class PhysXRigidbody;
-	struct PhysXRigidbodyComponent
+	struct RigidbodyComponent
 	{
 		bool IsKinematic = false;
 		bool UseCCD = false;
@@ -210,13 +209,11 @@ namespace Saturn {
 
 		uint32_t LockFlags;
 
-		PhysXRigidbody* Rigidbody = nullptr;
-
-		PhysXRigidbodyComponent() = default;
-		PhysXRigidbodyComponent( bool isKinematic ) : IsKinematic( isKinematic ) { }
+		RigidbodyComponent() = default;
+		RigidbodyComponent( bool isKinematic ) : IsKinematic( isKinematic ) { }
 	};
 
-	struct PhysXMaterialComponent
+	struct PhysicsMaterialComponent
 	{
 		float StaticFriction = 0.6f;
 		float DynamicFriction = 0.6f;
@@ -273,6 +270,6 @@ namespace Saturn {
 		StaticMeshComponent, 
 		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 		CameraComponent,
-		PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent,
+		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, RigidbodyComponent, PhysXMaterialComponent,
 		ScriptComponent>;
 }
