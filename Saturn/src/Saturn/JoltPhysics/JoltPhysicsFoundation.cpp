@@ -29,8 +29,12 @@
 #include "sppch.h"
 #include "JoltPhysicsFoundation.h"
 
+#include "JoltDynamicRigidBody.h"
+
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Core/Factory.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
 
 #include <cstdarg>
 
@@ -154,6 +158,53 @@ namespace Saturn {
 
 		delete JPH::Factory::sInstance;
 		JPH::Factory::sInstance = nullptr;
+	}
+
+	void JoltPhysicsFoundation::AddShape( PhysicsShape Shape, JoltDynamicRigidBody* pBody )
+	{
+		switch( Shape )
+		{
+			case Saturn::PhysicsShape::BOX: 
+			{
+				AddBoxCollider( pBody );
+			} break;
+
+			case Saturn::PhysicsShape::SPHERE:
+				break;
+			case Saturn::PhysicsShape::CAPSULE:
+				break;
+			default:
+				break;
+		}
+	}
+
+	void JoltPhysicsFoundation::DestoryBody( JPH::Body* pBody )
+	{
+		JPH::BodyInterface& rBodyInterface = m_PhysicsSystem->GetBodyInterface();
+		rBodyInterface.RemoveBody( pBody->GetID() );
+		rBodyInterface.DestroyBody( pBody->GetID() );
+	}
+
+	void JoltPhysicsFoundation::AddBoxCollider( JoltDynamicRigidBody* pBody )
+	{
+		pBody->DestoryBody();
+
+		auto& rBoxColliderComp = pBody->GetEntity().GetComponent<BoxColliderComponent>();
+		auto& trans = pBody->GetEntity().GetComponent<TransformComponent>();
+		
+		JPH::BodyInterface& rBodyInterface = m_PhysicsSystem->GetBodyInterface();
+
+		JPH::BoxShapeSettings Settings( JPH::Vec3( rBoxColliderComp.Extents.x, rBoxColliderComp.Extents.y, rBoxColliderComp.Extents.z ) );
+
+		// Create the box.
+		JPH::ShapeSettings::ShapeResult Result = Settings.Create();
+		JPH::ShapeRefC Box = Result.Get();
+
+		// No rotation?
+		JPH::BodyCreationSettings BodySettings( Box, JPH::RVec3( trans.Position.x, trans.Position.y, trans.Position.z ), JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic, Layers::NON_MOVING );
+
+		JPH::Body* Body = rBodyInterface.CreateBody( BodySettings );
+		pBody->SetBody( Body );
 	}
 
 }

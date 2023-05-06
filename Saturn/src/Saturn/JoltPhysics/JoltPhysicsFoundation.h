@@ -45,11 +45,11 @@ namespace Saturn {
 			return JPH::ValidateResult::AcceptAllContactsForThisBodyPair;
 		}
 
-		virtual void OnContactAdded( const  JPH::Body& inBody1, const  JPH::Body& inBody2, const  JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings ) override
+		virtual void OnContactAdded( const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings ) override
 		{
 		}
 
-		virtual void OnContactPersisted( const  JPH::Body& inBody1, const  JPH::Body& inBody2, const  JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings ) override
+		virtual void OnContactPersisted( const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings ) override
 		{
 		}
 
@@ -58,6 +58,15 @@ namespace Saturn {
 		}
 	};
 
+	enum class PhysicsShape
+	{
+		BOX,
+		SPHERE,
+		CAPSULE
+	};
+
+	class JoltDynamicRigidBody;
+	
 	class JoltPhysicsFoundation
 	{
 	public:
@@ -66,7 +75,12 @@ namespace Saturn {
 		JoltPhysicsFoundation();
 		~JoltPhysicsFoundation();
 
+		void AddShape( PhysicsShape Shape, JoltDynamicRigidBody* pBody );
 
+		void DestoryBody( JPH::Body* pBody );
+
+	private:
+		void AddBoxCollider( JoltDynamicRigidBody* pBody );
 	private:
 		JPH::PhysicsSystem* m_PhysicsSystem = nullptr;
 		JPH::JobSystem*     m_JobSystem = nullptr;
