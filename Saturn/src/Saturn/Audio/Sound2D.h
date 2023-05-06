@@ -53,7 +53,6 @@ namespace Saturn {
 		void SetRawPath( const std::filesystem::path& rPath ) { m_RawPath = rPath; }
 
 	private:
-	private:
 		bool m_Playing = false;
 		bool m_Looping = false;
 	};

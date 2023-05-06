@@ -147,12 +147,16 @@ namespace Saturn {
 	public:
 		Asset() {}
 
-		AssetType GetAssetType() { return Type; }
-		AssetID GetAssetID() { return ID; }
-
 		const AssetType GetAssetType() const { return Type; }
 		const AssetID& GetAssetID() const { return ID; }
-		
+
+		const std::filesystem::path& GetPath() const { return Path; }
+		const std::string& GetName() const { return Name; }
+
+		// TODO: This is bad.
+		//       I want to copy this just so I can get the name without the extension.
+		// Note:
+		//      p must be an absolute path.
 		void SetPath( std::filesystem::path p )
 		{
 			auto base = Project::GetActiveProject()->GetRootDir();
@@ -161,12 +165,6 @@ namespace Saturn {
 			auto CopyPath = Path;
 			Name = CopyPath.replace_extension().filename().string();
 		}
-
-		std::filesystem::path& GetPath() { return Path; }
-		const std::filesystem::path& GetPath() const { return Path; }
-
-		std::string& GetName() { return Name; }
-		const std::string& GetName() const { return Name; }
 
 	private:
 		friend class AssetRegistrySerialiser;

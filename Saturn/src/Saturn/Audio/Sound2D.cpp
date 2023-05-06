@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "Sound2D.h"
 
+#include "Saturn/Asset/AssetRegistry.h"
+
 namespace Saturn {
 
 	Sound2D::Sound2D()
@@ -48,6 +50,7 @@ namespace Saturn {
 	{
 		Stop();
 		ma_sound_uninit( &m_Sound );
+		m_Loaded = false;
 	}
 
 	void Sound2D::Play()
@@ -71,6 +74,7 @@ namespace Saturn {
 		ma_sound_set_looping( &m_Sound, true );
 		m_Looping = true;
 	}
+
 
 	bool Sound2D::IsPlaying()
 	{

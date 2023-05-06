@@ -254,6 +254,30 @@ namespace Saturn {
 	struct PrefabComponent
 	{
 		UUID AssetID;
+
+		PrefabComponent() = default;
+		PrefabComponent( PrefabComponent& other ) = default;
+		PrefabComponent( UUID id ) : AssetID( id ) {  }
+	};
+
+	struct AudioComponent
+	{
+		UUID AssetID;
+
+		// This API will change when we have a property viewer.
+		void SetSound( const std::string& rName )
+		{
+			AssetID = AssetRegistry::Get().FindAsset( rName, AssetType::Audio )->ID;
+		}
+
+		Ref<Sound2D> GetSound() 
+		{
+			return AssetRegistry::Get().GetAssetAs<Sound2D>( AssetID );
+		}
+
+		AudioComponent() = default;
+		AudioComponent( AudioComponent& other ) = default;
+		AudioComponent( UUID id ) : AssetID( id ) {  }
 	};
 
 	template<typename... V>
@@ -274,5 +298,5 @@ namespace Saturn {
 		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 		CameraComponent,
 		PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent,
-		ScriptComponent>;
+		ScriptComponent, AudioComponent>;
 }
