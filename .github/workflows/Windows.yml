@@ -28,12 +28,6 @@ jobs:
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.1
-
-    - name: Configure Saturn Build Tool
-      run: dotnet add SaturnBuildTool/SaturnBuildTool.csproj package YamlDotNet --version 12.3.1
-
-    - name: Build Saturn Build Tool
-      run: dotnet build SaturnBuildTool/SaturnBuildTool.csproj --configuration Debug --verbosity minimal
-
+    
     - name: Build Solution
       run: msbuild -property:Configuration=Debug,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Saturn.sln

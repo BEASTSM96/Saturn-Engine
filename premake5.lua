@@ -544,7 +544,7 @@ project "SaturnBuildTool"
 	location "SaturnBuildTool"
 	language "C#"
 	kind "ConsoleApp"
-	nuget { "YamlDotNet:12.3.1", "System.Xml.ReaderWriter:4.3.1" }
+	nuget { "System.Xml.ReaderWriter:4.3.1" }
 	links { "System" }
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -559,6 +559,8 @@ project "SaturnBuildTool"
 	{
 		'{COPY} "../../../SaturnBuildTool/RT" "RT"'
 	}
+
+	links { "YamlDotNet.dll" }
 
 	filter { "configurations:Debug" }
 		symbols "On"
