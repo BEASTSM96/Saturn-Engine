@@ -10,16 +10,23 @@ jobs:
     name: Build and analyze
     runs-on: windows-latest
     env:
-      BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
+      BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory
     steps:
       - uses: actions/checkout@v3
         with:
+          submodules: recursive
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Download Premake
+        uses: BEASTSM96/premake-action@v1.3
+
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v1
+
       - name: Run build-wrapper
         run: |
-          build-wrapper-win-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }}/Build/win/
+          build-wrapper-win-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} ${{github.workspace}}\tpremake\premake5.exe vs2022
+
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
