@@ -131,28 +131,14 @@ namespace Saturn {
 		JPH::BroadPhaseLayer m_ObjectToBroadPhase[ Layers::NUM_LAYERS ];
 	};
 
+	BPLayerInterfaceImpl BroadPhaseLayerInterface;
+	ObjectVsBroadPhaseLayerFilterImpl ObjectVBroadphaseLayerFilter;
+	ObjectLayerPairFilterImpl ObjectVObjectLayerFilter;
+
 	//////////////////////////////////////////////////////////////////////////
 
 	JoltPhysicsFoundation::JoltPhysicsFoundation()
 	{
-		JPH::RegisterDefaultAllocator();
-
-		JPH::Factory::sInstance = new JPH::Factory();
-
-		JPH::RegisterTypes();
-
-		BPLayerInterfaceImpl BroadPhaseLayerInterface;
-		ObjectVsBroadPhaseLayerFilterImpl ObjectVBroadphaseLayerFilter;
-		ObjectLayerPairFilterImpl ObjectVObjectLayerFilter;
-
-		m_PhysicsSystem = Ref<JPH::PhysicsSystem>::Create();
-		m_PhysicsSystem->Init( 1024, 0, 1024, 1024, BroadPhaseLayerInterface, ObjectVBroadphaseLayerFilter, ObjectVObjectLayerFilter );
-
-		JoltPhysicsContactListener ContactListener;
-		m_PhysicsSystem->SetContactListener( &ContactListener );
-
-		m_JobSystem = Ref<JPH::JobSystem>::Create( JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, std::thread::hardware_concurrency() / 2 );
-		m_Allocator = Ref<JPH::TempAllocatorImpl>::Create( 10 * 1024 * 1024 ); // 10MB buffer
 	}
 
 	JoltPhysicsFoundation::~JoltPhysicsFoundation()
@@ -167,9 +153,28 @@ namespace Saturn {
 		JPH::Factory::sInstance = nullptr;
 	}
 
+	void JoltPhysicsFoundation::Init()
+	{
+		JPH::RegisterDefaultAllocator();
+
+		JPH::Factory::sInstance = new JPH::Factory();
+
+		JPH::RegisterTypes();
+
+		m_PhysicsSystem = new JPH::PhysicsSystem();
+		m_PhysicsSystem->Init( 1024, 0, 1024, 1024, BroadPhaseLayerInterface, ObjectVBroadphaseLayerFilter, ObjectVObjectLayerFilter );
+
+		m_PhysicsSystem->SetContactListener( &m_ContactListener );
+
+		m_JobSystem = new JPH::JobSystemThreadPool( JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, std::thread::hardware_concurrency() / 2 );
+		m_Allocator = new JPH::TempAllocatorImpl( 10 * 1024 * 1024 ); // 10MB buffer
+
+		m_PhysicsSystem->OptimizeBroadPhase();
+	}
+
 	void JoltPhysicsFoundation::Update( Timestep ts )
 	{
-		m_PhysicsSystem->Update( ts.Seconds(), 1, 1, m_Allocator.Pointer(), m_JobSystem.Pointer() );
+		m_PhysicsSystem->Update( ts.Seconds(), 1, 1, m_Allocator, m_JobSystem );
 	}
 
 	void JoltPhysicsFoundation::DestoryBody( JPH::Body* pBody )
@@ -192,10 +197,12 @@ namespace Saturn {
 
 		// No rotation?
 		JPH::Vec3 pos = Auxiliary::GLMToJPH( Position );
-		JPH::BodyCreationSettings BodySettings( Box, pos, JPH::Quat::sIdentity(), Kinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic, Layers::MOVING );
+		JPH::BodyCreationSettings BodySettings( Box, pos, JPH::Quat::sIdentity(), Kinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, Kinematic ? Layers::NON_MOVING : Layers::MOVING );
 
-		JPH::Body* Body = rBodyInterface.CreateBody( BodySettings );
-		rBodyInterface.ActivateBody( Body->GetID() );
+		JPH::Body* Body = nullptr;
+		Body = rBodyInterface.CreateBody( BodySettings );
+
+		rBodyInterface.AddBody( Body->GetID(), Kinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
 
 		return Body;
 	}

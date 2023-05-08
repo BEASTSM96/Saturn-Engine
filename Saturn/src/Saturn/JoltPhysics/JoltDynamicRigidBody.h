@@ -46,7 +46,7 @@ namespace Saturn {
 	class JoltDynamicRigidBody : public JoltPhysicsBodyBase
 	{
 	public:
-		JoltDynamicRigidBody( Entity entity, const glm::vec3& Position, const glm::vec3& Rotation );
+		JoltDynamicRigidBody( Entity entity );
 		~JoltDynamicRigidBody();
 
 		virtual void Create( const glm::vec3& Position, const glm::vec3& Rotation ) override;

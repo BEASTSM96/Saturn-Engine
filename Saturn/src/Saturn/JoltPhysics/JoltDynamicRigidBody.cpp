@@ -36,12 +36,10 @@
 
 namespace Saturn {
 
-	JoltDynamicRigidBody::JoltDynamicRigidBody( Entity entity, const glm::vec3& Position, const glm::vec3& Rotation )
+	JoltDynamicRigidBody::JoltDynamicRigidBody( Entity entity )
 		: JoltPhysicsBodyBase()
 	{
 		m_Entity = entity;
-
-		Create( Position, Rotation );
 	}
 
 	void JoltDynamicRigidBody::Create( const glm::vec3& Position, const glm::vec3& Rotation )
@@ -53,6 +51,7 @@ namespace Saturn {
 			case PhysicsShape::BOX:
 			{
 				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateBoxCollider( Position, PendingShapeInfo.Scale, m_Kinematic );
+				SetBody( newBody );
 			} break;
 
 			case PhysicsShape::CAPSULE:
@@ -65,8 +64,6 @@ namespace Saturn {
 
 			} break;
 		}
-
-		SetBody( newBody );
 	}
 
 	JoltDynamicRigidBody::~JoltDynamicRigidBody()
@@ -135,8 +132,7 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		auto& tc = m_Entity.GetComponent<TransformComponent>();
-
-		tc.Position = Auxiliary::JPHToGLM( m_Body->GetPosition() );
+		tc.Position = Auxiliary::JPHToGLM( m_Body->GetCenterOfMassPosition() );
 	}
 
 }

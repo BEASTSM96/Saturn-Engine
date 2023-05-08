@@ -32,6 +32,7 @@
 #include "Saturn/Core/OptickProfiler.h"
 
 #include "JoltPhysicsFoundation.h"
+#include "JoltDynamicRigidBody.h"
 
 #include "Saturn/Scene/Entity.h"
 #include "Saturn/Scene/Components.h"
@@ -47,9 +48,14 @@ namespace Saturn {
 		for( const auto& entity : view )
 		{
 			auto [tc, rb] = view.get<TransformComponent, RigidbodyComponent>( entity );
-
 			Entity e{ entity, m_Scene.Pointer() };
-			rb.RigidBody = Ref<JoltDynamicRigidBody>::Create( e, tc.Rotation, tc.Rotation );
+
+			rb.Rigidbody = new JoltDynamicRigidBody( e );
+			rb.Rigidbody->SetKinematic( rb.IsKinematic );
+
+			rb.Rigidbody->AttachShape( PhysicsShape::BOX, e.GetComponent<BoxColliderComponent>().Extents );
+
+			rb.Rigidbody->Create( tc.Position, tc.Rotation );
 		}
 	}
 
@@ -61,7 +67,7 @@ namespace Saturn {
 		for( const auto& entity : view )
 		{
 			auto [tc, rb] = view.get<TransformComponent, RigidbodyComponent>( entity );
-			rb.RigidBody = nullptr;
+			rb.Rigidbody = nullptr;
 		}
 	}
 

@@ -34,6 +34,7 @@
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Core/JobSystemThreadPool.h>
 
 namespace Saturn {
 
@@ -70,18 +71,22 @@ namespace Saturn {
 		JoltPhysicsFoundation();
 		~JoltPhysicsFoundation();
 
+		void Init();
+
 		void Update( Timestep ts );
 
 		// Creates a rigid body with a box collider.
 		JPH::Body* CreateBoxCollider( const glm::vec3& Position, const glm::vec3& Extents, bool Kinematic = false );
 		void DestoryBody( JPH::Body* pBody );
 
-		Ref<JPH::PhysicsSystem> GetPhysicsSystem() { return m_PhysicsSystem; }
-		const Ref<JPH::PhysicsSystem> GetPhysicsSystem() const { return m_PhysicsSystem; }
+		JPH::PhysicsSystem* GetPhysicsSystem() { return m_PhysicsSystem; }
+		const JPH::PhysicsSystem* GetPhysicsSystem() const { return m_PhysicsSystem; }
 
 	private:
-		Ref<JPH::PhysicsSystem>      m_PhysicsSystem = nullptr;
-		Ref<JPH::JobSystem>          m_JobSystem = nullptr;
-		Ref<JPH::TempAllocatorImpl>  m_Allocator;
+		JPH::PhysicsSystem*       m_PhysicsSystem = nullptr;
+		JPH::JobSystemThreadPool* m_JobSystem = nullptr;
+		JPH::TempAllocatorImpl*   m_Allocator = nullptr;
+
+		JoltPhysicsContactListener m_ContactListener;
 	};
 }
