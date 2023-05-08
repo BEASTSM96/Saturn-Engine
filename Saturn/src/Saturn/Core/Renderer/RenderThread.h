@@ -56,6 +56,12 @@ namespace Saturn {
 		template<typename Fn, typename... Args>
 		void Queue( Fn&& rrFunc, Args&&... rrArgs ) 
 		{
+			if ( !m_Enabled )
+			{
+				rrFunc();
+				return;
+			}
+
 			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
 			m_QueueCV.notify_one();
 
@@ -68,17 +74,14 @@ namespace Saturn {
 
 		void Signal() { return m_SignalCV.notify_one(); }
 
-		void Block() { m_Blocked = true; Signal(); m_QueueCV.notify_one(); }
-		void Unblock() { m_Blocked = false; }
-		
+		void Enable( bool enable ) { m_Enabled = enable; }
+
 	private:
 		void ThreadRun();
 	private:
 		bool m_ExecuteAll = false;
 		bool m_ExecuteOne = false;
-
-		// TEMP: This should be reworked.
-		bool m_Blocked = false;
+		bool m_Enabled = false;
 
 		Timer m_WaitTime;
 

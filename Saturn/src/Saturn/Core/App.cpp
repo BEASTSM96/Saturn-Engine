@@ -83,6 +83,7 @@ namespace Saturn {
 
 		// Lazy load.
 		AudioSystem::Get();
+		RenderThread::Get().Enable( m_Specification.EnableGameThread );
 
 		m_ImGuiLayer = new ImGuiLayer();
 		m_ImGuiLayer->OnAttach();

@@ -50,6 +50,7 @@ namespace Saturn {
 		bool Titlebar = false;
 		bool UIOnly = false;
 		bool GameDist = false;
+		bool EnableGameThread = false;
 		
 		uint32_t WindowWidth = 0;
 		uint32_t WindowHeight = 0;

@@ -114,7 +114,7 @@ project "Saturn"
 		"SPIRV-Cross",
 		"yaml-cpp",
 		"optick",
-		"jolt",
+		"JoltPhysics",
 		"SingletonStorage"
 	}
 
@@ -249,6 +249,7 @@ project "Saturn-Editor"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Filewatch}",
 		"%{IncludeDir.MiniAudio}",
+		"%{IncludeDir.JoltPhysics}",
 		"%{IncludeDir.SingletonStorage}"
 	}
 

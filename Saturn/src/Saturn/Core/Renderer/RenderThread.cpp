@@ -47,14 +47,19 @@ namespace Saturn {
 
 	void RenderThread::WaitAll()
 	{
+		if( !m_Enabled ) 
+		{
+			m_WaitTime.Reset();
+			m_WaitTime.Stop();
+			return;
+		}
+
 		if( !m_CommandBuffer.empty() )
 		{
 			m_ExecuteAll = true;
 			m_SignalCV.notify_one();
 		}
 		
-		m_WaitTime.Reset();
-
 		std::unique_lock<std::mutex> Lock( m_Mutex );
 		m_QueueCV.wait( Lock, [=] { return m_CommandBuffer.empty(); } );
 		Lock.unlock();
@@ -104,6 +109,10 @@ namespace Saturn {
 		{
 			SAT_PF_THRD( "Render Thread" );
 			
+			// Exit the loop, kill the thread.
+			if( !m_Enabled )
+				break;
+
 			std::unique_lock<std::mutex> Lock( m_Mutex );
 
 			// m_SignalCV = What do we want to do, ExecuteOne, ExecuteAll
