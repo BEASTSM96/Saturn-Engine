@@ -45,7 +45,7 @@
 #include <Saturn/Serialisation/AssetRegistrySerialiser.h>
 #include <Saturn/Serialisation/AssetSerialisers.h>
 
-#include <Saturn/PhysX/PhysXFnd.h>
+#include <Saturn/JoltPhysics/JoltPhysicsFoundation.h>
 
 #include <Saturn/Vulkan/MaterialInstance.h>
 
@@ -195,8 +195,8 @@ namespace Saturn {
 		m_ScaleTexture        = Ref< Texture2D >::Create( "content/textures/editor/Scale.png", AddressingMode::Repeat );
 		m_SyncTexture         = Ref< Texture2D >::Create( "content/textures/editor/Sync.png", AddressingMode::Repeat );
 
-		// Init PhysX
-		PhysXFnd::Get();
+		// Init Physics
+		JoltPhysicsFoundation::Get().Init();
 
 		ContentBrowserPanel* pContentBrowserPanel = ( ContentBrowserPanel* ) PanelManager::Get().GetPanel( "Content Browser Panel" );
 

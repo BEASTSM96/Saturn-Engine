@@ -35,8 +35,6 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "UITools.h"
 
-#include "Saturn/PhysX/PhysXRigidBodyBase.h"
-
 #include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Saturn/GameFramework/EntityScriptManager.h"

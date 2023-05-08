@@ -100,6 +100,9 @@ namespace Saturn {
 			m_PhysicsRuntime->OnUpdate( ts );
 
 			EntityScriptManager::Get().UpdateAllScripts( ts );
+
+			// TEMP
+			OnUpdatePhysics( ts );
 		}
 	}
 
