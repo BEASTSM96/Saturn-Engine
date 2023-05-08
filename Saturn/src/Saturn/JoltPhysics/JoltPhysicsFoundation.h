@@ -30,6 +30,8 @@
 
 #include "SingletonStorage.h"
 
+#include "JoltBase.h"
+
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 
@@ -45,24 +47,17 @@ namespace Saturn {
 			return JPH::ValidateResult::AcceptAllContactsForThisBodyPair;
 		}
 
-		virtual void OnContactAdded( const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings ) override
+		virtual void OnContactAdded( const JPH::Body& A, const JPH::Body& B, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings ) override
 		{
 		}
 
-		virtual void OnContactPersisted( const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings ) override
+		virtual void OnContactPersisted( const JPH::Body& A, const JPH::Body& B, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings ) override
 		{
 		}
 
 		virtual void OnContactRemoved( const JPH::SubShapeIDPair& inSubShapePair ) override
 		{
 		}
-	};
-
-	enum class PhysicsShape
-	{
-		BOX,
-		SPHERE,
-		CAPSULE
 	};
 
 	class JoltDynamicRigidBody;
@@ -75,14 +70,18 @@ namespace Saturn {
 		JoltPhysicsFoundation();
 		~JoltPhysicsFoundation();
 
-		void AddShape( PhysicsShape Shape, JoltDynamicRigidBody* pBody );
+		void Update( Timestep ts );
 
+		// Creates a rigid body with a box collider.
+		JPH::Body* CreateBoxCollider( const glm::vec3& Position, const glm::vec3& Extents, bool Kinematic = false );
 		void DestoryBody( JPH::Body* pBody );
 
+		Ref<JPH::PhysicsSystem> GetPhysicsSystem() { return m_PhysicsSystem; }
+		const Ref<JPH::PhysicsSystem> GetPhysicsSystem() const { return m_PhysicsSystem; }
+
 	private:
-		void AddBoxCollider( JoltDynamicRigidBody* pBody );
-	private:
-		JPH::PhysicsSystem* m_PhysicsSystem = nullptr;
-		JPH::JobSystem*     m_JobSystem = nullptr;
+		Ref<JPH::PhysicsSystem>      m_PhysicsSystem = nullptr;
+		Ref<JPH::JobSystem>          m_JobSystem = nullptr;
+		Ref<JPH::TempAllocatorImpl>  m_Allocator;
 	};
 }

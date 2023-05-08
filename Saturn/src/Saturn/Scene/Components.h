@@ -200,8 +200,11 @@ namespace Saturn {
 		CapsuleColliderComponent( float radius ) : Radius( radius ) { }
 	};
 
+	class JoltDynamicRigidBody;
 	struct RigidbodyComponent
 	{
+		Ref<JoltDynamicRigidBody> Rigidbody;
+
 		bool IsKinematic = false;
 		bool UseCCD = false;
 		int Mass = 2;
@@ -270,6 +273,6 @@ namespace Saturn {
 		StaticMeshComponent, 
 		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 		CameraComponent,
-		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, RigidbodyComponent, PhysXMaterialComponent,
+		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
 		ScriptComponent>;
 }

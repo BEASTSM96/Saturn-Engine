@@ -28,55 +28,20 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-
-#include "JoltPhysicsBodyBase.h"
-
-#include "JoltBase.h"
-
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
-
 namespace Saturn {
 
-	class JoltDynamicRigidBody : public JoltPhysicsBodyBase
+	enum class PhysicsShape
 	{
-	public:
-		JoltDynamicRigidBody( Entity entity, const glm::vec3& Position, const glm::vec3& Rotation );
-		~JoltDynamicRigidBody();
+		BOX,
+		SPHERE,
+		CAPSULE
+	};
 
-		virtual void Create( const glm::vec3& Position, const glm::vec3& Rotation ) override;
-		void DestoryBody();
-
-		void SetBody( JPH::Body* body );
-
-		void SetKinematic( bool kinematic );
-		void ApplyForce( glm::vec3 ForceAmount, ForceMode Type );
-		void SetUserData( Entity& rEntity );
-		void UseCCD( bool ccd );
-		void SetMass( float mass );
-		void Rotate( const glm::vec3& rRotation );
-		void SetLinearVelocity( glm::vec3 linearVelocity );
-		void SetLinearDrag( float value );
-		bool IsKinematic() { return m_Kinematic; }
-
-		void AttachShape( PhysicsShape shapeType, const glm::vec3& Scale = glm::vec3(0.0f) );
-
-		void SyncTransform();
-
-	private:
-		JPH::Body* m_Body = nullptr;
-
-		struct
-		{
-			PhysicsShape ShapeType;
-			glm::vec3 Scale;
-		} PendingShapeInfo;
-
-		bool m_Kinematic = false;
+	enum class ForceMode
+	{
+		Force,
+		Impulse,
+		VelocityChange,
+		Acceleration
 	};
 }

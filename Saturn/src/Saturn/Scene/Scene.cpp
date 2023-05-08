@@ -32,8 +32,8 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
-#include "Saturn/PhysX/PhysXRuntime.h"
-#include "Saturn/PhysX/PhysXRigidBody.h"
+#include "Saturn/JoltPhysics/JoltRuntime.h"
+#include "Saturn/JoltPhysics/JoltDynamicRigidBody.h"
 
 #include "Saturn/GameFramework/EntityScriptManager.h"
 
@@ -80,8 +80,6 @@ namespace Saturn {
 
 	Entity Scene::GetMainCameraEntity()
 	{
-		//std::unique_lock Lock( m_Mutex, std::try_to_lock );
-
 		auto view = GetAllEntitiesWith<CameraComponent>();
 
 		for ( const auto& entity : view )
@@ -99,7 +97,7 @@ namespace Saturn {
 
 		if( m_RuntimeRunning ) 
 		{
-			m_PhysXRuntime->Update( ts, *this );
+			m_PhysicsRuntime->OnUpdate( ts );
 
 			EntityScriptManager::Get().UpdateAllScripts( ts );
 		}
@@ -109,12 +107,12 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		auto PhysXView = m_Registry.view<TransformComponent, PhysXRigidbodyComponent>();
+		auto PhysXView = m_Registry.view<TransformComponent, RigidbodyComponent>();
 		
 		for ( const auto& entity : PhysXView )
 		{
-			auto [tc, rb] = PhysXView.get<TransformComponent, PhysXRigidbodyComponent>( entity );
-			rb.Rigidbody->SyncTransfrom();
+			auto [tc, rb] = PhysXView.get<TransformComponent, RigidbodyComponent>( entity );
+			rb.Rigidbody->SyncTransform();
 		}
 
 		EntityScriptManager::Get().OnPhysicsUpdate( ts );
@@ -410,7 +408,7 @@ namespace Saturn {
 			StaticMeshComponent,
 			LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 			CameraComponent,
-			PhysXBoxColliderComponent, PhysXSphereColliderComponent, PhysXCapsuleColliderComponent, PhysXRigidbodyComponent, PhysXMaterialComponent,
+			BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
 			ScriptComponent>;
 
 		CopyComponentIfExists( DesiredComponents{}, newEntity, entity, m_Registry );
@@ -453,42 +451,17 @@ namespace Saturn {
 
 	void Scene::OnRuntimeStart()
 	{
-		if( m_PhysXRuntime )
-			delete m_PhysXRuntime;
+		if( m_PhysicsRuntime )
+			delete m_PhysicsRuntime;
 
-		m_PhysXRuntime = new PhysXRuntime();
-		m_PhysXRuntime->CreateScene();
-
-		auto view = m_Registry.view<PhysXRigidbodyComponent>();
-		
-		for( auto entity : view )
-		{
-			Entity e{ entity, this };
-			m_PhysXRuntime->AddRigidbody( e );
-			auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
-			rb.Rigidbody->AddActorToScene();
-			rb.Rigidbody->SetUserData( e );
-		}
+		m_PhysicsRuntime = new JoltRuntime( this );
 
 		EntityScriptManager::Get().BeginPlay();
 	}
 
 	void Scene::OnRuntimeEnd()
 	{
-		// Delete rigid bodies.
-		auto view = m_Registry.view<PhysXRigidbodyComponent>();
-
-		for( auto entity : view )
-		{
-			Entity e{ entity, this };
-			auto& rb = e.GetComponent<PhysXRigidbodyComponent>();
-
-			delete rb.Rigidbody;
-			rb.Rigidbody = nullptr;
-		}
-
-		m_PhysXRuntime->Clear();
-		delete m_PhysXRuntime;
+		delete m_PhysicsRuntime;
 	}
 
 	// Returns the Entity and the game class (if any).

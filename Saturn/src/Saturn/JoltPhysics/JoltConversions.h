@@ -28,55 +28,35 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-
-#include "JoltPhysicsBodyBase.h"
-
-#include "JoltBase.h"
-
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 #include <Jolt/Jolt.h>
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
 
 namespace Saturn {
 
-	class JoltDynamicRigidBody : public JoltPhysicsBodyBase
-	{
-	public:
-		JoltDynamicRigidBody( Entity entity, const glm::vec3& Position, const glm::vec3& Rotation );
-		~JoltDynamicRigidBody();
-
-		virtual void Create( const glm::vec3& Position, const glm::vec3& Rotation ) override;
-		void DestoryBody();
-
-		void SetBody( JPH::Body* body );
-
-		void SetKinematic( bool kinematic );
-		void ApplyForce( glm::vec3 ForceAmount, ForceMode Type );
-		void SetUserData( Entity& rEntity );
-		void UseCCD( bool ccd );
-		void SetMass( float mass );
-		void Rotate( const glm::vec3& rRotation );
-		void SetLinearVelocity( glm::vec3 linearVelocity );
-		void SetLinearDrag( float value );
-		bool IsKinematic() { return m_Kinematic; }
-
-		void AttachShape( PhysicsShape shapeType, const glm::vec3& Scale = glm::vec3(0.0f) );
-
-		void SyncTransform();
-
-	private:
-		JPH::Body* m_Body = nullptr;
-
-		struct
+	namespace Auxiliary {
+	
+		static JPH::Vec3 GLMToJPH( const glm::vec3& rVec ) 
 		{
-			PhysicsShape ShapeType;
-			glm::vec3 Scale;
-		} PendingShapeInfo;
+			return JPH::Vec3( rVec.x, rVec.y, rVec.z );
+		}
 
-		bool m_Kinematic = false;
-	};
+		static glm::vec3 JPHToGLM( const JPH::Vec3& rVec )
+		{
+			return glm::vec3( rVec.GetX(), rVec.GetY(), rVec.GetZ() );
+		}
+	
+		static JPH::Quat GLMQuatToJPH( const glm::quat& rQuat )
+		{
+			return JPH::Quat( rQuat.x, rQuat.y, rQuat.z, rQuat.w );
+		}
+
+		static glm::quat JPHQuatToGLM( const JPH::Quat& rQuat )
+		{
+			// glm's quats work W,X,Y,Z and not X,Y,Z,W unless we define GLM_FORCE_QUAT_DATA_XYZW
+			return glm::quat( rQuat.GetW(), rQuat.GetX(), rQuat.GetY(), rQuat.GetZ() );
+		}
+	}
+
 }

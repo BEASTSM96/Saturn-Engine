@@ -31,10 +31,13 @@
 
 #include "JoltDynamicRigidBody.h"
 
+#include "JoltConversions.h"
+
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Core/Factory.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Core/JobSystemThreadPool.h>
 
 #include <cstdarg>
 
@@ -142,40 +145,31 @@ namespace Saturn {
 		ObjectVsBroadPhaseLayerFilterImpl ObjectVBroadphaseLayerFilter;
 		ObjectLayerPairFilterImpl ObjectVObjectLayerFilter;
 
-		m_PhysicsSystem = new JPH::PhysicsSystem();
+		m_PhysicsSystem = Ref<JPH::PhysicsSystem>::Create();
 		m_PhysicsSystem->Init( 1024, 0, 1024, 1024, BroadPhaseLayerInterface, ObjectVBroadphaseLayerFilter, ObjectVObjectLayerFilter );
 
 		JoltPhysicsContactListener ContactListener;
 		m_PhysicsSystem->SetContactListener( &ContactListener );
+
+		m_JobSystem = Ref<JPH::JobSystem>::Create( JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, std::thread::hardware_concurrency() / 2 );
+		m_Allocator = Ref<JPH::TempAllocatorImpl>::Create( 10 * 1024 * 1024 ); // 10MB buffer
 	}
 
 	JoltPhysicsFoundation::~JoltPhysicsFoundation()
 	{
 		JPH::UnregisterTypes();
 
-		delete m_PhysicsSystem;
+		m_JobSystem = nullptr;
+		m_Allocator = nullptr;
 		m_PhysicsSystem = nullptr;
 
 		delete JPH::Factory::sInstance;
 		JPH::Factory::sInstance = nullptr;
 	}
 
-	void JoltPhysicsFoundation::AddShape( PhysicsShape Shape, JoltDynamicRigidBody* pBody )
+	void JoltPhysicsFoundation::Update( Timestep ts )
 	{
-		switch( Shape )
-		{
-			case Saturn::PhysicsShape::BOX: 
-			{
-				AddBoxCollider( pBody );
-			} break;
-
-			case Saturn::PhysicsShape::SPHERE:
-				break;
-			case Saturn::PhysicsShape::CAPSULE:
-				break;
-			default:
-				break;
-		}
+		m_PhysicsSystem->Update( ts.Seconds(), 1, 1, m_Allocator.Pointer(), m_JobSystem.Pointer() );
 	}
 
 	void JoltPhysicsFoundation::DestoryBody( JPH::Body* pBody )
@@ -185,26 +179,24 @@ namespace Saturn {
 		rBodyInterface.DestroyBody( pBody->GetID() );
 	}
 
-	void JoltPhysicsFoundation::AddBoxCollider( JoltDynamicRigidBody* pBody )
+	JPH::Body* JoltPhysicsFoundation::CreateBoxCollider( const glm::vec3& Position, const glm::vec3& Extents, bool Kinematic /*= false*/ )
 	{
-		pBody->DestoryBody();
-
-		auto& rBoxColliderComp = pBody->GetEntity().GetComponent<BoxColliderComponent>();
-		auto& trans = pBody->GetEntity().GetComponent<TransformComponent>();
-		
 		JPH::BodyInterface& rBodyInterface = m_PhysicsSystem->GetBodyInterface();
 
-		JPH::BoxShapeSettings Settings( JPH::Vec3( rBoxColliderComp.Extents.x, rBoxColliderComp.Extents.y, rBoxColliderComp.Extents.z ) );
+		JPH::Vec3 extent = Auxiliary::GLMToJPH( Extents );
+		JPH::BoxShapeSettings Settings( extent );
 
 		// Create the box.
 		JPH::ShapeSettings::ShapeResult Result = Settings.Create();
 		JPH::ShapeRefC Box = Result.Get();
 
 		// No rotation?
-		JPH::BodyCreationSettings BodySettings( Box, JPH::RVec3( trans.Position.x, trans.Position.y, trans.Position.z ), JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic, Layers::NON_MOVING );
+		JPH::Vec3 pos = Auxiliary::GLMToJPH( Position );
+		JPH::BodyCreationSettings BodySettings( Box, pos, JPH::Quat::sIdentity(), Kinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic, Layers::MOVING );
 
 		JPH::Body* Body = rBodyInterface.CreateBody( BodySettings );
-		pBody->SetBody( Body );
-	}
+		rBodyInterface.ActivateBody( Body->GetID() );
 
+		return Body;
+	}
 }

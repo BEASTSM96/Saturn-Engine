@@ -26,57 +26,50 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "JoltRuntime.h"
 
-#include "Saturn/Core/Base.h"
+#include "Saturn/Core/OptickProfiler.h"
 
-#include "JoltPhysicsBodyBase.h"
+#include "JoltPhysicsFoundation.h"
 
-#include "JoltBase.h"
-
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include "Saturn/Scene/Entity.h"
+#include "Saturn/Scene/Components.h"
 
 namespace Saturn {
-
-	class JoltDynamicRigidBody : public JoltPhysicsBodyBase
+	
+	JoltRuntime::JoltRuntime( const Ref<Scene> scene )
+		: m_Scene( scene )
 	{
-	public:
-		JoltDynamicRigidBody( Entity entity, const glm::vec3& Position, const glm::vec3& Rotation );
-		~JoltDynamicRigidBody();
+		auto view = m_Scene->GetRegistry().view<TransformComponent, RigidbodyComponent>();
 
-		virtual void Create( const glm::vec3& Position, const glm::vec3& Rotation ) override;
-		void DestoryBody();
-
-		void SetBody( JPH::Body* body );
-
-		void SetKinematic( bool kinematic );
-		void ApplyForce( glm::vec3 ForceAmount, ForceMode Type );
-		void SetUserData( Entity& rEntity );
-		void UseCCD( bool ccd );
-		void SetMass( float mass );
-		void Rotate( const glm::vec3& rRotation );
-		void SetLinearVelocity( glm::vec3 linearVelocity );
-		void SetLinearDrag( float value );
-		bool IsKinematic() { return m_Kinematic; }
-
-		void AttachShape( PhysicsShape shapeType, const glm::vec3& Scale = glm::vec3(0.0f) );
-
-		void SyncTransform();
-
-	private:
-		JPH::Body* m_Body = nullptr;
-
-		struct
+		// Create all rigid bodies.
+		for( const auto& entity : view )
 		{
-			PhysicsShape ShapeType;
-			glm::vec3 Scale;
-		} PendingShapeInfo;
+			auto [tc, rb] = view.get<TransformComponent, RigidbodyComponent>( entity );
 
-		bool m_Kinematic = false;
-	};
+			Entity e{ entity, m_Scene.Pointer() };
+			rb.RigidBody = Ref<JoltDynamicRigidBody>::Create( e, tc.Rotation, tc.Rotation );
+		}
+	}
+
+	JoltRuntime::~JoltRuntime()
+	{
+		auto view = m_Scene->GetRegistry().view<TransformComponent, RigidbodyComponent>();
+
+		// Create all rigid bodies.
+		for( const auto& entity : view )
+		{
+			auto [tc, rb] = view.get<TransformComponent, RigidbodyComponent>( entity );
+			rb.RigidBody = nullptr;
+		}
+	}
+
+	void JoltRuntime::OnUpdate( Timestep ts )
+	{
+		SAT_PF_EVENT();
+
+		JoltPhysicsFoundation::Get().Update( ts );
+	}
+
 }

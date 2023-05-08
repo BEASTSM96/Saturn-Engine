@@ -80,7 +80,7 @@ namespace Saturn {
 		[[nodiscard]] uint32_t GetPointLightSize() { return static_cast<uint32_t>( sizeof( PointLight ) * PointLights.size() ); };
 	};
 
-	class PhysXRuntime;
+	class JoltRuntime;
 	class SClass;
 	class SceneRenderer;
 
@@ -210,7 +210,7 @@ namespace Saturn {
 
 		std::mutex m_Mutex;
 
-		PhysXRuntime* m_PhysXRuntime = nullptr;
+		JoltRuntime* m_PhysicsRuntime = nullptr;
 
 	private:
 

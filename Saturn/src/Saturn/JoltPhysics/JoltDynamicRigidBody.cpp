@@ -29,6 +29,11 @@
 #include "sppch.h"
 #include "JoltDynamicRigidBody.h"
 
+#include "Saturn/Core/OptickProfiler.h"
+
+#include "JoltPhysicsFoundation.h"
+#include "JoltConversions.h"
+
 namespace Saturn {
 
 	JoltDynamicRigidBody::JoltDynamicRigidBody( Entity entity, const glm::vec3& Position, const glm::vec3& Rotation )
@@ -36,17 +41,102 @@ namespace Saturn {
 	{
 		m_Entity = entity;
 
-		auto& rComp = m_Entity.GetComponent<RigidbodyComponent>()
+		Create( Position, Rotation );
 	}
 
-	void JoltDynamicRigidBody::Create()
+	void JoltDynamicRigidBody::Create( const glm::vec3& Position, const glm::vec3& Rotation )
 	{
+		JPH::Body* newBody = nullptr;
 
+		switch( PendingShapeInfo.ShapeType )
+		{
+			case PhysicsShape::BOX:
+			{
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateBoxCollider( Position, PendingShapeInfo.Scale, m_Kinematic );
+			} break;
+
+			case PhysicsShape::CAPSULE:
+			{
+
+			} break;
+
+			case PhysicsShape::SPHERE:
+			{
+
+			} break;
+		}
+
+		SetBody( newBody );
 	}
 
 	JoltDynamicRigidBody::~JoltDynamicRigidBody()
 	{
+		DestoryBody();
+	}
 
+	void JoltDynamicRigidBody::DestoryBody()
+	{
+		if( m_Body )
+		{
+			JoltPhysicsFoundation::Get().DestoryBody( m_Body );
+			m_Body = nullptr;
+		}
+	}
+
+	void JoltDynamicRigidBody::SetBody( JPH::Body* body )
+	{
+		SAT_CORE_WARN( "Physics body changing!" );
+		m_Body = body;
+	}
+
+	void JoltDynamicRigidBody::SetKinematic( bool kinematic )
+	{
+		m_Kinematic = kinematic;
+	}
+
+	void JoltDynamicRigidBody::ApplyForce( glm::vec3 ForceAmount, ForceMode Type )
+	{
+		m_Body->AddForce( Auxiliary::GLMToJPH( ForceAmount ) );
+	}
+
+	void JoltDynamicRigidBody::SetUserData( Entity& rEntity )
+	{
+	}
+
+	void JoltDynamicRigidBody::UseCCD( bool ccd )
+	{
+	}
+
+	void JoltDynamicRigidBody::SetMass( float mass )
+	{
+	}
+
+	void JoltDynamicRigidBody::Rotate( const glm::vec3& rRotation )
+	{
+	}
+
+	void JoltDynamicRigidBody::SetLinearVelocity( glm::vec3 linearVelocity )
+	{
+
+	}
+
+	void JoltDynamicRigidBody::SetLinearDrag( float value )
+	{
+	}
+
+	void JoltDynamicRigidBody::AttachShape( PhysicsShape shapeType, const glm::vec3& Scale /*= glm::vec3(0.0f) */ )
+	{
+		PendingShapeInfo.Scale = Scale;
+		PendingShapeInfo.ShapeType = shapeType;
+	}
+
+	void JoltDynamicRigidBody::SyncTransform()
+	{
+		SAT_PF_EVENT();
+
+		auto& tc = m_Entity.GetComponent<TransformComponent>();
+
+		tc.Position = Auxiliary::JPHToGLM( m_Body->GetPosition() );
 	}
 
 }
