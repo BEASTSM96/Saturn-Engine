@@ -44,8 +44,6 @@ namespace Saturn {
 
 	void JoltDynamicRigidBody::Create( const glm::vec3& Position, const glm::vec3& Rotation )
 	{
-		JPH::Body* newBody = nullptr;
-
 		switch( PendingShapeInfo.ShapeType )
 		{
 			case PhysicsShape::BOX:
@@ -56,26 +54,28 @@ namespace Saturn {
 
 			case PhysicsShape::CAPSULE:
 			{
-
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateCapsuleCollider( Position, PendingShapeInfo.Extents, PendingShapeInfo.Height, m_Kinematic );
+				SetBody( newBody );
 			} break;
 
 			case PhysicsShape::SPHERE:
 			{
-
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateSphereCollider( Position, PendingShapeInfo.Extents, m_Kinematic );
+				SetBody( newBody );
 			} break;
 		}
 	}
 
 	JoltDynamicRigidBody::~JoltDynamicRigidBody()
 	{
-		DestoryBody();
+		DestroyBody();
 	}
 
-	void JoltDynamicRigidBody::DestoryBody()
+	void JoltDynamicRigidBody::DestroyBody()
 	{
 		if( m_Body )
 		{
-			JoltPhysicsFoundation::Get().DestoryBody( m_Body );
+			JoltPhysicsFoundation::Get().DestroyBody( m_Body );
 			m_Body = nullptr;
 		}
 	}
@@ -121,10 +121,23 @@ namespace Saturn {
 	{
 	}
 
-	void JoltDynamicRigidBody::AttachShape( PhysicsShape shapeType, const glm::vec3& Scale /*= glm::vec3(0.0f) */ )
+	void JoltDynamicRigidBody::AttachBox( const glm::vec3& Scale /*= glm::vec3(0.0f) */ )
 	{
+		PendingShapeInfo.ShapeType = PhysicsShape::BOX;
 		PendingShapeInfo.Scale = Scale;
-		PendingShapeInfo.ShapeType = shapeType;
+	}
+
+	void JoltDynamicRigidBody::AttachSphere( float Extents )
+	{
+		PendingShapeInfo.ShapeType = PhysicsShape::SPHERE;
+		PendingShapeInfo.Extents = Extents;
+	}
+
+	void JoltDynamicRigidBody::AttachCapsule( float Extents, float Height )
+	{
+		PendingShapeInfo.ShapeType = PhysicsShape::CAPSULE;
+		PendingShapeInfo.Extents = Extents;
+		PendingShapeInfo.Height = Height;
 	}
 
 	void JoltDynamicRigidBody::SyncTransform()

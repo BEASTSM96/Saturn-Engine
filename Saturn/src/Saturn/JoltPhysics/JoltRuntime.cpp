@@ -53,7 +53,19 @@ namespace Saturn {
 			rb.Rigidbody = new JoltDynamicRigidBody( e );
 			rb.Rigidbody->SetKinematic( rb.IsKinematic );
 
-			rb.Rigidbody->AttachShape( PhysicsShape::BOX, e.GetComponent<BoxColliderComponent>().Extents );
+			// I do not like this...
+			if( e.HasComponent<BoxColliderComponent>() )
+			{
+				rb.Rigidbody->AttachBox( e.GetComponent<BoxColliderComponent>().Extents );
+			}
+			else if( e.HasComponent<SphereColliderComponent>() ) 
+			{
+				rb.Rigidbody->AttachSphere( e.GetComponent<SphereColliderComponent>().Radius );
+			}
+			else
+			{
+				rb.Rigidbody->AttachCapsule( e.GetComponent<CapsuleColliderComponent>().Radius, e.GetComponent<CapsuleColliderComponent>().Height );
+			}
 
 			rb.Rigidbody->Create( tc.Position, tc.Rotation );
 		}
@@ -63,7 +75,7 @@ namespace Saturn {
 	{
 		auto view = m_Scene->GetRegistry().view<TransformComponent, RigidbodyComponent>();
 
-		// Create all rigid bodies.
+		// Destroy all rigid bodies.
 		for( const auto& entity : view )
 		{
 			auto [tc, rb] = view.get<TransformComponent, RigidbodyComponent>( entity );

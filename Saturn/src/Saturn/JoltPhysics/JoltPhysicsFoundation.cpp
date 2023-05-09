@@ -37,6 +37,7 @@
 #include <Jolt/Core/Factory.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
 
 #include <cstdarg>
@@ -65,9 +66,9 @@ namespace Saturn {
 			switch( inObject1 )
 			{
 				case Layers::NON_MOVING:
-					return inObject2 == Layers::MOVING; // Non moving only collides with moving
+					return inObject2 == Layers::MOVING;
 				case Layers::MOVING:
-					return true; // Moving collides with everything
+					return true;
 				default:
 					SAT_ASSERT( false );
 					return false;
@@ -143,19 +144,25 @@ namespace Saturn {
 
 	JoltPhysicsFoundation::~JoltPhysicsFoundation()
 	{
-		JPH::UnregisterTypes();
+	}
 
-		m_JobSystem = nullptr;
-		m_Allocator = nullptr;
-		m_PhysicsSystem = nullptr;
+	static void JphTrace( const char* inFMT, ... )
+	{
+		// Format the message
+		va_list list;
+		va_start( list, inFMT );
+		char buffer[ 1024 ];
+		vsnprintf( buffer, sizeof( buffer ), inFMT, list );
+		va_end( list );
 
-		delete JPH::Factory::sInstance;
-		JPH::Factory::sInstance = nullptr;
+		SAT_CORE_INFO( "Jolt: {0}", buffer );
 	}
 
 	void JoltPhysicsFoundation::Init()
 	{
 		JPH::RegisterDefaultAllocator();
+
+		JPH::Trace = JphTrace;
 
 		JPH::Factory::sInstance = new JPH::Factory();
 
@@ -172,12 +179,24 @@ namespace Saturn {
 		m_PhysicsSystem->OptimizeBroadPhase();
 	}
 
+	void JoltPhysicsFoundation::Terminate()
+	{
+		JPH::UnregisterTypes();
+
+		m_JobSystem = nullptr;
+		m_Allocator = nullptr;
+		m_PhysicsSystem = nullptr;
+
+		delete JPH::Factory::sInstance;
+		JPH::Factory::sInstance = nullptr;
+	}
+
 	void JoltPhysicsFoundation::Update( Timestep ts )
 	{
 		m_PhysicsSystem->Update( ts.Seconds(), 1, 1, m_Allocator, m_JobSystem );
 	}
 
-	void JoltPhysicsFoundation::DestoryBody( JPH::Body* pBody )
+	void JoltPhysicsFoundation::DestroyBody( JPH::Body* pBody )
 	{
 		JPH::BodyInterface& rBodyInterface = m_PhysicsSystem->GetBodyInterface();
 		rBodyInterface.RemoveBody( pBody->GetID() );
@@ -198,6 +217,50 @@ namespace Saturn {
 		// No rotation?
 		JPH::Vec3 pos = Auxiliary::GLMToJPH( Position );
 		JPH::BodyCreationSettings BodySettings( Box, pos, JPH::Quat::sIdentity(), Kinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, Kinematic ? Layers::NON_MOVING : Layers::MOVING );
+
+		JPH::Body* Body = nullptr;
+		Body = rBodyInterface.CreateBody( BodySettings );
+
+		rBodyInterface.AddBody( Body->GetID(), Kinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
+
+		return Body;
+	}
+
+	JPH::Body* JoltPhysicsFoundation::CreateCapsuleCollider( const glm::vec3& Position, float Extents, float Height, bool Kinematic /*= false*/ )
+	{
+		JPH::BodyInterface& rBodyInterface = m_PhysicsSystem->GetBodyInterface();
+
+		JPH::CapsuleShapeSettings Settings( Extents, Height );
+
+		// Create the box.
+		JPH::ShapeSettings::ShapeResult Result = Settings.Create();
+		JPH::ShapeRefC Capsule = Result.Get();
+
+		// No rotation?
+		JPH::Vec3 pos = Auxiliary::GLMToJPH( Position );
+		JPH::BodyCreationSettings BodySettings( Capsule, pos, JPH::Quat::sIdentity(), Kinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, Kinematic ? Layers::NON_MOVING : Layers::MOVING );
+
+		JPH::Body* Body = nullptr;
+		Body = rBodyInterface.CreateBody( BodySettings );
+
+		rBodyInterface.AddBody( Body->GetID(), Kinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
+
+		return Body;
+	}
+
+	JPH::Body* JoltPhysicsFoundation::CreateSphereCollider( const glm::vec3& Position, float Extent, bool Kinematic /*= false*/ )
+	{
+		JPH::BodyInterface& rBodyInterface = m_PhysicsSystem->GetBodyInterface();
+
+		JPH::SphereShapeSettings Settings( Extent );
+
+		// Create the box.
+		JPH::ShapeSettings::ShapeResult Result = Settings.Create();
+		JPH::ShapeRefC Sphere = Result.Get();
+
+		// No rotation?
+		JPH::Vec3 pos = Auxiliary::GLMToJPH( Position );
+		JPH::BodyCreationSettings BodySettings( Sphere, pos, JPH::Quat::sIdentity(), Kinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, Kinematic ? Layers::NON_MOVING : Layers::MOVING );
 
 		JPH::Body* Body = nullptr;
 		Body = rBodyInterface.CreateBody( BodySettings );

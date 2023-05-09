@@ -42,7 +42,7 @@ namespace Saturn {
 	{
 	public:
 		// See: ContactListener
-		virtual JPH::ValidateResult	OnContactValidate( const  JPH::Body& inBody1, const  JPH::Body& inBody2, JPH::RVec3Arg inBaseOffset, const JPH::CollideShapeResult& inCollisionResult ) override
+		virtual JPH::ValidateResult	OnContactValidate( const JPH::Body& inBody1, const JPH::Body& inBody2, JPH::RVec3Arg inBaseOffset, const JPH::CollideShapeResult& inCollisionResult ) override
 		{
 			// Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
 			return JPH::ValidateResult::AcceptAllContactsForThisBodyPair;
@@ -72,12 +72,16 @@ namespace Saturn {
 		~JoltPhysicsFoundation();
 
 		void Init();
+		void Terminate();
 
 		void Update( Timestep ts );
 
 		// Creates a rigid body with a box collider.
 		JPH::Body* CreateBoxCollider( const glm::vec3& Position, const glm::vec3& Extents, bool Kinematic = false );
-		void DestoryBody( JPH::Body* pBody );
+		JPH::Body* CreateCapsuleCollider( const glm::vec3& Position, float Extents, float Height, bool Kinematic = false );
+		JPH::Body* CreateSphereCollider( const glm::vec3& Position, float Extents, bool Kinematic = false );
+
+		void DestroyBody( JPH::Body* pBody );
 
 		JPH::PhysicsSystem* GetPhysicsSystem() { return m_PhysicsSystem; }
 		const JPH::PhysicsSystem* GetPhysicsSystem() const { return m_PhysicsSystem; }

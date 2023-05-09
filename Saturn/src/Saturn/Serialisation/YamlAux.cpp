@@ -196,7 +196,7 @@ namespace Saturn {
 		// Box collider
 		if( entity.HasComponent<BoxColliderComponent>() )
 		{
-			rEmitter << YAML::Key << "PhysXBoxColliderComponent";
+			rEmitter << YAML::Key << "BoxColliderComponent";
 			rEmitter << YAML::BeginMap;
 
 			auto& bcc = entity.GetComponent< BoxColliderComponent >();
@@ -211,7 +211,7 @@ namespace Saturn {
 		// Sphere collider
 		if( entity.HasComponent<SphereColliderComponent>() )
 		{
-			rEmitter << YAML::Key << "PhysXSphereColliderComponent";
+			rEmitter << YAML::Key << "SphereColliderComponent";
 			rEmitter << YAML::BeginMap;
 
 			auto& scc = entity.GetComponent< SphereColliderComponent >();
@@ -226,7 +226,7 @@ namespace Saturn {
 		// Box collider
 		if( entity.HasComponent<CapsuleColliderComponent>() )
 		{
-			rEmitter << YAML::Key << "PhysXCapsuleColliderComponent";
+			rEmitter << YAML::Key << "CapsuleColliderComponent";
 			rEmitter << YAML::BeginMap;
 
 			auto& ccc = entity.GetComponent< CapsuleColliderComponent >();
@@ -242,7 +242,7 @@ namespace Saturn {
 		// Rigid body
 		if( entity.HasComponent<RigidbodyComponent>() )
 		{
-			rEmitter << YAML::Key << "PhysXRigidbodyComponent";
+			rEmitter << YAML::Key << "RigidbodyComponent";
 			rEmitter << YAML::BeginMap;
 
 			auto& rbc = entity.GetComponent< RigidbodyComponent >();
@@ -259,7 +259,7 @@ namespace Saturn {
 		// Physics material
 		if( entity.HasComponent<PhysicsMaterialComponent>() )
 		{
-			rEmitter << YAML::Key << "PhysXMaterialComponent";
+			rEmitter << YAML::Key << "MaterialComponent";
 			rEmitter << YAML::BeginMap;
 
 			auto& pmc = entity.GetComponent< PhysicsMaterialComponent >();
@@ -397,7 +397,7 @@ namespace Saturn {
 				p.Falloff = plc[ "Falloff" ].as< float >();
 			}
 
-			auto bcc = entity[ "PhysXBoxColliderComponent" ];
+			auto bcc = entity[ "BoxColliderComponent" ];
 			if( bcc )
 			{
 				auto& b = DeserialisedEntity.AddComponent< BoxColliderComponent >();
@@ -407,7 +407,7 @@ namespace Saturn {
 				b.IsTrigger = bcc[ "IsTrigger" ].as< bool >();
 			}
 
-			auto scc = entity[ "PhysXSphereColliderComponent" ];
+			auto scc = entity[ "SphereColliderComponent" ];
 			if( scc )
 			{
 				auto& s = DeserialisedEntity.AddComponent< SphereColliderComponent >();
@@ -417,7 +417,7 @@ namespace Saturn {
 				s.IsTrigger = scc[ "IsTrigger" ].as< bool >();
 			}
 
-			auto ccc = entity[ "PhysXCapsuleColliderComponent" ];
+			auto ccc = entity[ "CapsuleColliderComponent" ];
 			if( ccc )
 			{
 				auto& c = DeserialisedEntity.AddComponent< CapsuleColliderComponent >();
@@ -428,7 +428,7 @@ namespace Saturn {
 				c.IsTrigger = ccc[ "IsTrigger" ].as< bool >();
 			}
 
-			auto rbc = entity[ "PhysXRigidbodyComponent" ];
+			auto rbc = entity[ "RigidbodyComponent" ];
 			if( rbc )
 			{
 				auto& rb = DeserialisedEntity.AddComponent< RigidbodyComponent >();
@@ -449,7 +449,7 @@ namespace Saturn {
 				}
 			}
 
-			auto pmc = entity[ "PhysXMaterialComponent" ];
+			auto pmc = entity[ "MaterialComponent" ];
 			if( pmc )
 			{
 				auto& m = DeserialisedEntity.AddComponent< PhysicsMaterialComponent >();

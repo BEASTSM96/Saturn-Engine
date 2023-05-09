@@ -50,7 +50,7 @@ namespace Saturn {
 		~JoltDynamicRigidBody();
 
 		virtual void Create( const glm::vec3& Position, const glm::vec3& Rotation ) override;
-		void DestoryBody();
+		void DestroyBody();
 
 		void SetBody( JPH::Body* body );
 
@@ -64,7 +64,9 @@ namespace Saturn {
 		void SetLinearDrag( float value );
 		bool IsKinematic() { return m_Kinematic; }
 
-		void AttachShape( PhysicsShape shapeType, const glm::vec3& Scale = glm::vec3(0.0f) );
+		void AttachBox ( const glm::vec3& Scale = glm::vec3(0.0f) );
+		void AttachSphere ( float Extents );
+		void AttachCapsule ( float Extents, float Height );
 
 		void SyncTransform();
 
@@ -74,7 +76,11 @@ namespace Saturn {
 		struct
 		{
 			PhysicsShape ShapeType;
-			glm::vec3 Scale;
+
+			glm::vec3 Scale; // Box collider
+
+			float Extents; // Sphere & Capsule
+			float Height; // Capsule
 		} PendingShapeInfo;
 
 		bool m_Kinematic = false;

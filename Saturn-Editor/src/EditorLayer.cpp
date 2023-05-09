@@ -247,6 +247,7 @@ namespace Saturn {
 		m_TitleBar = nullptr;
 	
 		PanelManager::Get().Terminate();
+		JoltPhysicsFoundation::Get().Terminate();
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )

@@ -88,6 +88,8 @@ namespace Saturn {
 	{
 		m_RuntimeScene->OnRuntimeEnd();
 		m_RuntimeScene = nullptr;
+
+		JoltPhysicsFoundation::Get().Terminate();
 	}
 
 	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )
