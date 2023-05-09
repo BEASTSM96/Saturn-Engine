@@ -47,10 +47,18 @@ namespace Saturn {
 
 	void RenderThread::WaitAll()
 	{
+		// If we are not using the render thread, we still need to execute the command buffer. 
 		if( !m_Enabled ) 
 		{
 			m_WaitTime.Reset();
+
+			for( auto& rFunc : m_CommandBuffer )
+				rFunc();
+
+			m_CommandBuffer.clear();
+
 			m_WaitTime.Stop();
+
 			return;
 		}
 

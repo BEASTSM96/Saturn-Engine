@@ -56,12 +56,6 @@ namespace Saturn {
 		template<typename Fn, typename... Args>
 		void Queue( Fn&& rrFunc, Args&&... rrArgs ) 
 		{
-			if ( !m_Enabled )
-			{
-				rrFunc();
-				return;
-			}
-
 			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
 			m_QueueCV.notify_one();
 
