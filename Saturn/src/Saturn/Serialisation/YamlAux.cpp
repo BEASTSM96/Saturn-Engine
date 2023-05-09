@@ -259,7 +259,7 @@ namespace Saturn {
 		// Physics material
 		if( entity.HasComponent<PhysicsMaterialComponent>() )
 		{
-			rEmitter << YAML::Key << "MaterialComponent";
+			rEmitter << YAML::Key << "PhysicsMaterialComponent";
 			rEmitter << YAML::BeginMap;
 
 			auto& pmc = entity.GetComponent< PhysicsMaterialComponent >();
@@ -449,7 +449,7 @@ namespace Saturn {
 				}
 			}
 
-			auto pmc = entity[ "MaterialComponent" ];
+			auto pmc = entity[ "PhysicsMaterialComponent" ];
 			if( pmc )
 			{
 				auto& m = DeserialisedEntity.AddComponent< PhysicsMaterialComponent >();
