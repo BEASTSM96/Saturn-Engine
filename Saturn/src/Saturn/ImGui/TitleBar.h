@@ -61,7 +61,7 @@ namespace Saturn {
 		std::vector<MenuBarFunction> m_MenuBarFunctions;
 		std::function<void()> m_OnExitFunction;
 
-		float m_Height;
+		float m_Height = 0.0f;
 	};
 
 }
