@@ -88,7 +88,13 @@ namespace Saturn {
 		
 		SceneRenderer& PrimarySceneRenderer() { return *m_SceneRenderer; }
 
-		void SubmitOnMainThread( std::function<void()>&& rrFunction ) { m_MainThreadQueue.push_back( std::move( rrFunction ) ); }
+		void SubmitOnMainThread( std::function<void()>&& rrFunction ) 
+		{
+			if( m_Specification.EnableGameThread )
+				m_MainThreadQueue.push_back( std::move( rrFunction ) );
+			else
+				rrFunction();
+		}
 
 	protected:
 
