@@ -218,9 +218,7 @@ namespace Saturn {
 
 	struct PhysicsMaterialComponent
 	{
-		float StaticFriction = 0.6f;
-		float DynamicFriction = 0.6f;
-		float Restitution = 0.0f;
+		UUID AssetID;
 	};
 
 	struct PointLightComponent
