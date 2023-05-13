@@ -48,19 +48,19 @@ namespace Saturn {
 		{
 			case PhysicsShape::BOX:
 			{
-				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateBoxCollider( Position, PendingShapeInfo.Scale, m_Kinematic );
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateBoxCollider( Position, Rotation, PendingShapeInfo.Scale, m_Kinematic );
 				SetBody( newBody );
 			} break;
 
 			case PhysicsShape::CAPSULE:
 			{
-				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateCapsuleCollider( Position, PendingShapeInfo.Extents, PendingShapeInfo.Height, m_Kinematic );
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateCapsuleCollider( Position, Rotation, PendingShapeInfo.Extents, PendingShapeInfo.Height, m_Kinematic );
 				SetBody( newBody );
 			} break;
 
 			case PhysicsShape::SPHERE:
 			{
-				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateSphereCollider( Position, PendingShapeInfo.Extents, m_Kinematic );
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateSphereCollider( Position, Rotation, PendingShapeInfo.Extents , m_Kinematic );
 				SetBody( newBody );
 			} break;
 		}
