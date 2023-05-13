@@ -264,9 +264,7 @@ namespace Saturn {
 
 			auto& pmc = entity.GetComponent< PhysicsMaterialComponent >();
 
-			rEmitter << YAML::Key << "StaticFriction" << YAML::Value << pmc.StaticFriction;
-			rEmitter << YAML::Key << "DynamicFriction" << YAML::Value << pmc.DynamicFriction;
-			rEmitter << YAML::Key << "Restitution" << YAML::Value << pmc.Restitution;
+			rEmitter << YAML::Key << "AssetID" << YAML::Value << pmc.AssetID;
 
 			rEmitter << YAML::EndMap;
 		}
@@ -320,7 +318,7 @@ namespace Saturn {
 			{
 				auto& m = DeserialisedEntity.AddComponent< StaticMeshComponent >();
 
-				auto id = mc[ "Asset" ].as<uint64_t>();
+				auto id = mc[ "Asset" ].as<uint64_t>( 0 );
 
 				if( id != 0 ) 
 				{
@@ -454,9 +452,7 @@ namespace Saturn {
 			{
 				auto& m = DeserialisedEntity.AddComponent< PhysicsMaterialComponent >();
 
-				m.StaticFriction = pmc[ "StaticFriction" ].as< float >();
-				m.DynamicFriction = pmc[ "DynamicFriction" ].as< float >();
-				m.Restitution = pmc[ "Restitution" ].as< float >();
+				m.AssetID = pmc[ "AssetID" ].as< uint64_t >( 0 );
 			}
 
 			auto cc = entity[ "CameraComponent" ];

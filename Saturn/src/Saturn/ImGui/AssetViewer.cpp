@@ -44,7 +44,7 @@ namespace Saturn {
 		s_AssetViewers.erase( m_AssetID );
 	}
 
-	void AssetViewer::DrawAll()
+	void AssetViewer::Draw()
 	{
 		for ( auto&& [id, viewer] : s_AssetViewers )
 		{
@@ -66,7 +66,7 @@ namespace Saturn {
 		}
 	}
 
-	void AssetViewer::RenderAll()
+	void AssetViewer::Update( Timestep ts )
 	{
 		for( auto&& [id, viewer] : s_AssetViewers )
 		{
@@ -74,6 +74,8 @@ namespace Saturn {
 			{
 				delete viewer;
 				s_AssetViewers.erase( id );
+
+				continue;
 			}
 
 			if( !viewer->IsOpen() )
@@ -84,7 +86,7 @@ namespace Saturn {
 				continue;
 			}
 
-			viewer->OnRender();
+			viewer->OnUpdate( ts );
 		}
 	}
 

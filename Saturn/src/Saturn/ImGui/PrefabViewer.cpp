@@ -63,7 +63,7 @@ namespace Saturn {
 		delete m_SceneRenderer;
 	}
 
-	void PrefabViewer::Draw()
+	void PrefabViewer::OnImGuiRender()
 	{
 		ImGui::PushID( static_cast< int >( m_AssetID ) );
 
@@ -73,7 +73,7 @@ namespace Saturn {
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		ImGui::PushID( m_AssetID );
+		ImGui::PushID( static_cast<int>( m_AssetID ) );
 		ImGui::BeginChild( "##Viewport", m_ViewportSize, 0, flags );
 
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
@@ -85,6 +85,14 @@ namespace Saturn {
 		}
 
 		Image( m_SceneRenderer->CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
+
+		ImVec2 minBound = ImGui::GetWindowPos();
+		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
+
+		m_ViewportFocused = ImGui::IsWindowFocused();
+		m_MouseOverViewport = ImGui::IsWindowHovered();
+
+		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
 
 		ImGui::EndChild();
 		ImGui::PopID();
@@ -101,8 +109,11 @@ namespace Saturn {
 		}
 	}
 
-	void PrefabViewer::OnRender()
-	{
+	void PrefabViewer::OnUpdate( Timestep ts )
+{
+		m_Camera.SetActive( m_AllowCameraEvents );
+		m_Camera.OnUpdate( Application::Get().Time() );
+
 		// Update Scene for rendering (on main thread.)
 		m_Prefab->GetScene()->OnRenderEditor( m_Camera, Application::Get().Time(), *m_SceneRenderer );
 

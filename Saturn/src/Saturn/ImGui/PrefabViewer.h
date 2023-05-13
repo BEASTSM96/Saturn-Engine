@@ -45,14 +45,19 @@ namespace Saturn {
 		PrefabViewer( AssetID id );
 		~PrefabViewer();
 
-		virtual void Draw() override;
-		virtual void OnRender() override;
+		virtual void OnImGuiRender() override;
+		virtual void OnUpdate( Timestep ts ) override;
 
 		void AddPrefab();
 	private:
 		Ref<Prefab> m_Prefab;
 		SceneRenderer* m_SceneRenderer = nullptr;
 		EditorCamera m_Camera;
+
+		bool m_AllowCameraEvents = false;
+		bool m_StartedRightClickInViewport = false;
+		bool m_ViewportFocused = false;
+		bool m_MouseOverViewport = false;
 
 		ImVec2 m_ViewportSize{};
 

@@ -37,20 +37,19 @@ namespace Saturn {
 	
 	class Panel;
 
-	class PanelManager
+	class PanelManager : public CountedObj
 	{
-		SINGLETON( PanelManager );
 	public:
 		PanelManager();
 		~PanelManager();
-		
-		void Terminate();
 
 		void DrawAllPanels();
 		
 		void AddPanel( Panel* pPanel );
 		Panel* GetPanel( const std::string& rPanel );
 
+	private:
+		void Terminate();
 	private:
 		std::unordered_map<std::string, Panel*> m_Panels;
 	};

@@ -329,7 +329,7 @@ namespace Saturn {
 		ImGui::Dummy( size );
 	}
 
-	void NodeEditor::Draw()
+	void NodeEditor::OnImGuiRender()
 	{
 		// Safety
 		ed::SetCurrentEditor( m_Editor );
