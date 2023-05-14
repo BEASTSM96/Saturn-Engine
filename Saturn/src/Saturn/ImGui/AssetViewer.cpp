@@ -62,7 +62,7 @@ namespace Saturn {
 				continue;
 			}
 
-			viewer->Draw();
+			viewer->OnImGuiRender();
 		}
 	}
 
