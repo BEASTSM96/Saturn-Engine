@@ -51,16 +51,18 @@ namespace Saturn {
 
 		AddPrefab();
 
-		m_SceneRenderer = new SceneRenderer();
+		m_SceneRenderer = Ref<SceneRenderer>::Create();
 		m_SceneRenderer->SetDynamicSky( 2.0f, 0.0f, 0.0f );
 
 		m_Camera.SetActive( true );
 		m_SceneRenderer->SetCamera( { m_Camera, m_Camera.ViewMatrix() } );
+
+		m_Titlebar = new TitleBar();
 	}
 
 	PrefabViewer::~PrefabViewer()
 	{
-		delete m_SceneRenderer;
+		m_SceneRenderer = nullptr;
 	}
 
 	void PrefabViewer::OnImGuiRender()
@@ -69,12 +71,14 @@ namespace Saturn {
 
 		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open );
 
+		m_Titlebar->Draw();
+
 		// Draw Viewport
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		ImGui::PushID( static_cast<int>( m_AssetID ) );
-		ImGui::BeginChild( "##Viewport", m_ViewportSize, 0, flags );
+		std::string pName = "##" + std::to_string( m_AssetID );
+		ImGui::BeginChild( pName.c_str(), m_ViewportSize, 0, flags );
 
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
 		{
@@ -95,7 +99,6 @@ namespace Saturn {
 		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
 
 		ImGui::EndChild();
-		ImGui::PopID();
 		ImGui::PopStyleVar();
 
 		ImGui::End();
@@ -110,7 +113,7 @@ namespace Saturn {
 	}
 
 	void PrefabViewer::OnUpdate( Timestep ts )
-{
+	{
 		m_Camera.SetActive( m_AllowCameraEvents );
 		m_Camera.OnUpdate( Application::Get().Time() );
 
@@ -121,6 +124,12 @@ namespace Saturn {
 			{ 
 				m_SceneRenderer->RenderScene();
 			} );
+	}
+
+	void PrefabViewer::OnEvent( Event& rEvent )
+	{
+		if( m_MouseOverViewport )
+			m_Camera.OnEvent( rEvent );
 	}
 
 	void PrefabViewer::AddPrefab()

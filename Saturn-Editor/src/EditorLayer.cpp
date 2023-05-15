@@ -749,6 +749,8 @@ namespace Saturn {
 
 		if( m_MouseOverViewport )
 			m_EditorCamera.OnEvent( rEvent );
+
+		AssetViewer::ProcessEvent( rEvent );
 	}
 
 	void EditorLayer::SaveFileAs()

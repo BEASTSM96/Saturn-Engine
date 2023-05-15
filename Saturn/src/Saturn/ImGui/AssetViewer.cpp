@@ -90,4 +90,28 @@ namespace Saturn {
 		}
 	}
 
+	void AssetViewer::ProcessEvent( Event& rEvent )
+	{
+		for( auto&& [id, viewer] : s_AssetViewers )
+		{
+			if( !viewer )
+			{
+				delete viewer;
+				s_AssetViewers.erase( id );
+
+				continue;
+			}
+
+			if( !viewer->IsOpen() )
+			{
+				delete viewer;
+				s_AssetViewers.erase( id );
+
+				continue;
+			}
+
+			viewer->OnEvent( rEvent );
+		}
+	}
+
 }
