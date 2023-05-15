@@ -806,7 +806,7 @@ namespace Saturn {
 
 			ImGui::Text( "Renderer::EndFrame: %.2f ms", FrameTimings.second );
 
-			ImGui::Text( "Total (render wait time): %.2f ms", RenderThread::Get().GetWaitTime() );
+			ImGui::Text( "Total (render thread wait time): %.2f ms", RenderThread::Get().GetWaitTime() );
 			ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
 
 			EndTreeNode();
@@ -841,7 +841,7 @@ namespace Saturn {
 				EndTreeNode();
 			}
 
-			if( TreeNode( "Bloom settings", true ) )
+			if( TreeNode( "Bloom settings", false ) )
 			{
 				static int index = 0;
 				static int MipIndex = 0;
@@ -855,14 +855,6 @@ namespace Saturn {
 				Image( img, MipIndex, { size, size }, { 0, 1 }, { 1, 0 } );
 
 				ImGui::SliderFloat( "##dirtint", &m_RendererData.BloomDirtIntensity, 0, 1000.0f );
-
-				EndTreeNode();
-			}
-
-			if( TreeNode( "Forward+", true ) )
-			{
-				ImGui::Checkbox( "Show Light Complexity", &m_RendererData.ShowLightComplexity );
-				ImGui::Checkbox( "Show Light Culling", &m_RendererData.ShowLightCulling );
 
 				EndTreeNode();
 			}
@@ -1018,14 +1010,8 @@ namespace Saturn {
 
 			struct DebugData
 			{
-				float ShowLightComplexity;
-				float ShowLightCulling;
-
 				int TilesCountX;
 			} u_DebugData = {};
-
-			u_DebugData.ShowLightComplexity = ( float ) m_RendererData.ShowLightComplexity;
-			u_DebugData.ShowLightCulling = ( float ) m_RendererData.ShowLightCulling;
 
 			u_DebugData.TilesCountX = ( int ) m_RendererData.LightCullingWorkGroups.x;
 

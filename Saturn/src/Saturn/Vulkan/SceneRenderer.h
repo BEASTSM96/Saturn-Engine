@@ -204,9 +204,6 @@ namespace Saturn {
 		Ref< DescriptorSet > LightCullingDescriptorSet = nullptr;
 		glm::vec3 LightCullingWorkGroups{};
 
-		bool ShowLightCulling = false;
-		bool ShowLightComplexity = false;
-
 		// Geometry
 		//////////////////////////////////////////////////////////////////////////
 
