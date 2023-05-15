@@ -248,9 +248,12 @@ namespace Saturn {
 		if( m_ImGuiLayer != nullptr )
 			m_ImGuiLayer->OnEvent( e );
 		
-		for( auto& layer : m_Layers )
+		// We need to make sure we process event backwards as if the editor layer is first and we have a button that was created by the user in game then the editor layer would get the event first, and let's say that it might shoot or something. We wanted to click a button not shoot.
+		for( auto itr = m_Layers.end(); itr != m_Layers.begin(); )
 		{
-			layer->OnEvent( e );
+			( *--itr )->OnEvent( e );
+			if( e.Handled )
+				break;
 		}
 	}
 
@@ -269,10 +272,9 @@ namespace Saturn {
 	std::string Application::OpenFileInternal( const char* pFilter ) const
 	{
 #ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;       // common dialog box structure
-		CHAR szFile[ 260 ] = { 0 };       // if using TCHAR macros
+		OPENFILENAMEA ofn;
+		CHAR szFile[ 260 ] = { 0 };
 
-										// Initialize OPENFILENAME
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
 		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
@@ -298,10 +300,9 @@ namespace Saturn {
 	std::string Application::SaveFileInternal( const char* pFilter ) const
 	{
 #ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;       // common dialog box structure
-		CHAR szFile[ 260 ] = { 0 };       // if using TCHAR macros
+		OPENFILENAMEA ofn;
+		CHAR szFile[ 260 ] = { 0 };
 
-										// Initialize OPENFILENAME
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
 		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
