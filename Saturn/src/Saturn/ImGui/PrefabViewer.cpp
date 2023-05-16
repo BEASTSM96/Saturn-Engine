@@ -67,9 +67,15 @@ namespace Saturn {
 
 	void PrefabViewer::OnImGuiRender()
 	{
-		ImGui::PushID( static_cast< int >( m_AssetID ) );
+		// Root Window.
+		ImGuiWindowFlags RootWindowFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoCollapse;
+		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open, RootWindowFlags );
 
-		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open );
+		// Create custom dockspace.
+		ImGuiID dockID = ImGui::GetID( "PrefabViewerDckspc" );
+		ImGui::DockSpace( dockID, ImVec2( 0.0f, 0.0f ), ImGuiDockNodeFlags_None );
+
+		//////////////////////////////////////////////////////////////////////////
 
 		m_Titlebar->Draw();
 
@@ -77,8 +83,8 @@ namespace Saturn {
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		std::string pName = "##" + std::to_string( m_AssetID );
-		ImGui::BeginChild( pName.c_str(), m_ViewportSize, 0, flags );
+		ImGui::PushID( static_cast< int >( m_AssetID ) );
+		ImGui::Begin( "##Viewport", 0, flags );
 
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
 		{
@@ -98,12 +104,11 @@ namespace Saturn {
 
 		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
 
-		ImGui::EndChild();
+		ImGui::End();
+		ImGui::PopID();
 		ImGui::PopStyleVar();
 
 		ImGui::End();
-
-		ImGui::PopID();
 
 		if( m_Open == false )
 		{

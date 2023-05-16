@@ -337,10 +337,11 @@ namespace Saturn {
 		io.ConfigWindowsResizeFromEdges = io.BackendFlags & ImGuiBackendFlags_HasMouseCursors;
 
 		m_TitleBar->Draw();
+		AssetViewer::Draw();
 
 		m_PanelManager->DrawAllPanels();
 		Application::Get().PrimarySceneRenderer().ImGuiRender();
-		
+
 		if( m_ShowUserSettings )
 			UI_Titlebar_UserSettings();
 
@@ -545,9 +546,6 @@ namespace Saturn {
 				}
 			}
 		}
-		
-		// Asset viewers, check for any dead assets viewers.
-		AssetViewer::Draw();
 
 		if( !s_HasPremakePath )
 		{

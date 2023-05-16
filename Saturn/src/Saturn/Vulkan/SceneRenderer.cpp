@@ -328,7 +328,7 @@ namespace Saturn {
 		{
 			// Create the scene composite render pass.
 			PassSpecification PassSpec = {};
-			PassSpec.Name = "Texture pass";
+			PassSpec.Name = "Scene Composite (PP) pass";
 
 			PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
@@ -415,6 +415,9 @@ namespace Saturn {
 
 	void SceneRenderer::InitTexturePass()
 	{
+		if( !m_RendererData.IsSwapchainTarget )
+			return;
+
 		if( !m_RendererData.TexturePassShader )
 		{
 			m_RendererData.TexturePassShader = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
@@ -906,7 +909,9 @@ namespace Saturn {
 
 		InitTexturePass();
 
-		glm::uvec2 bs = ( glm::uvec2( m_RendererData.Width, m_RendererData.Height ) + 1u ) / 2u;
+		const glm::uvec2 viewportSize = { m_RendererData.Width, m_RendererData.Height };
+
+		glm::uvec2 bs = ( viewportSize + 1u ) / 2u;
 		bs += m_RendererData.BloomWorkSize - bs % m_RendererData.BloomWorkSize;
 
 		for( uint32_t i = 0; i < 3; i++ )
@@ -1401,13 +1406,6 @@ namespace Saturn {
 
 		glm::vec2 workgrps{};
 
-		uint32_t mips = m_RendererData.BloomTextures[ 0 ]->GetMipMapLevels();
-
-		if( mips == 1 )
-			return;
-
-		mips = mips - 2;
-
 		// Step 0: Bind compute pipeline in graphics queue.
 		// Make sure to do it on the graphics queue.
 		pipeline->BindWithCommandBuffer( m_RendererData.CommandBuffer );
@@ -1439,6 +1437,11 @@ namespace Saturn {
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Downsample" );
+
+		if( m_RendererData.BloomTextures[ 0 ]->GetMipMapLevels() <= 1 )
+			return;
+
+		uint32_t mips = m_RendererData.BloomTextures[ 0 ]->GetMipMapLevels() - 2;
 
 		// Step 1: Downsample.
 		pc_Settings.Stage = ( float ) BloomStage::Downsample;
@@ -1672,7 +1675,7 @@ namespace Saturn {
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Bloom" );
 
-		BloomPass();
+//		BloomPass();
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 

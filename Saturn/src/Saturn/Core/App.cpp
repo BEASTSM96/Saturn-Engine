@@ -171,6 +171,12 @@ namespace Saturn {
 		// Begin on main thread.
 		m_ImGuiLayer->Begin();
 
+		// Update on the main thread.
+		for( auto& layer : m_Layers )
+		{
+			layer->OnUpdate( m_Timestep );
+		}
+
 		// I'm not really sure if I want the render thread to render imgui.
 		// TEMP: There is some bugs when we try to render imgui on renderer thread, and if it needs a new window it will freeze
 		RenderThread::Get().Queue( [=]
@@ -185,12 +191,6 @@ namespace Saturn {
 			{
 				m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
 			} );
-
-		// Update on the main thread.
-		for( auto& layer : m_Layers )
-		{
-			layer->OnUpdate( m_Timestep );
-		}
 	}
 
 	std::string Application::OpenFile( const char* pFilter ) const
