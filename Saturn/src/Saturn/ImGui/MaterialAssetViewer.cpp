@@ -137,9 +137,8 @@ namespace Saturn {
 	}
 
 	MaterialAssetViewer::MaterialAssetViewer( AssetID id )
-		: AssetViewer()
+		: AssetViewer( id )
 	{
-		m_AssetID = id;
 		m_AssetType = AssetType::Material;
 
 		AddMaterialAsset();

@@ -38,8 +38,8 @@ namespace Saturn {
 	class AssetViewer : public CountedObj
 	{
 	public:
-		AssetViewer();
-		~AssetViewer();
+		AssetViewer( AssetID ID );
+		virtual ~AssetViewer();
 
 		virtual void OnImGuiRender() = 0;
 
@@ -61,6 +61,7 @@ namespace Saturn {
 		static void Draw();
 		static void Update( Timestep ts );
 		static void ProcessEvent( Event& rEvent );
+		static void DestoryViewer( AssetID ID );
 
 	protected:
 		AssetType m_AssetType = AssetType::Unknown;

@@ -42,12 +42,9 @@ namespace Saturn {
 	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
 	PrefabViewer::PrefabViewer( AssetID id )
-		: AssetViewer(), m_Camera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
+		: AssetViewer( id ), m_Camera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
 	{
-		m_AssetID = id;
-
 		m_SceneHierarchyPanel = Ref<SceneHierarchyPanel>::Create();
-		//m_SceneHierarchyPanel->SetIsPrefabScene( true );
 
 		AddPrefab();
 
@@ -58,6 +55,16 @@ namespace Saturn {
 		m_SceneRenderer->SetCamera( { m_Camera, m_Camera.ViewMatrix() } );
 
 		m_Titlebar = new TitleBar();
+
+		m_Titlebar->AddMenuBarFunction( [&]() -> void
+			{
+				if( ImGui::BeginMenu( "Layout" ) )
+				{
+					if( ImGui::MenuItem( "Reset Dockspace" ) ) {}
+
+					ImGui::EndMenu();
+				}
+			} );
 	}
 
 	PrefabViewer::~PrefabViewer()
@@ -71,20 +78,23 @@ namespace Saturn {
 		ImGuiWindowFlags RootWindowFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoCollapse;
 		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open, RootWindowFlags );
 
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+
 		// Create custom dockspace.
 		ImGuiID dockID = ImGui::GetID( "PrefabViewerDckspc" );
 		ImGui::DockSpace( dockID, ImVec2( 0.0f, 0.0f ), ImGuiDockNodeFlags_None );
 
 		//////////////////////////////////////////////////////////////////////////
 
-		m_Titlebar->Draw();
-
-		// Draw Viewport
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+		// Viewport
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+		std::string Name = "##" + std::to_string( m_AssetID );
+		ImGui::Begin( Name.c_str(), 0, flags );
+
+		m_Titlebar->Draw();
+
 		ImGui::PushID( static_cast< int >( m_AssetID ) );
-		ImGui::Begin( "##Viewport", 0, flags );
 
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
 		{
@@ -96,6 +106,8 @@ namespace Saturn {
 
 		Image( m_SceneRenderer->CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
 
+		ImGui::PopID();
+
 		ImVec2 minBound = ImGui::GetWindowPos();
 		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
 
@@ -105,8 +117,8 @@ namespace Saturn {
 		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
 
 		ImGui::End();
-		ImGui::PopID();
-		ImGui::PopStyleVar();
+
+		ImGui::PopStyleVar(); // ImGuiStyleVar_WindowPadding
 
 		ImGui::End();
 
@@ -114,6 +126,8 @@ namespace Saturn {
 		{
 			PrefabSerialiser ps;
 			ps.Serialise( m_Prefab );
+
+			AssetViewer::DestoryViewer( m_AssetID );
 		}
 	}
 
@@ -122,7 +136,7 @@ namespace Saturn {
 		m_Camera.SetActive( m_AllowCameraEvents );
 		m_Camera.OnUpdate( Application::Get().Time() );
 
-		// Update Scene for rendering (on main thread.)
+		// Update Scene for rendering (on main thread).
 		m_Prefab->GetScene()->OnRenderEditor( m_Camera, Application::Get().Time(), *m_SceneRenderer );
 
 		RenderThread::Get().Queue( [=]() 
