@@ -31,8 +31,8 @@
 
 #include "Window.h"
 
-#include "Saturn/Vulkan/VulkanContext.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
+#include "Saturn/Vulkan/VulkanContext.h"
 
 #include "OptickProfiler.h"
 

@@ -113,7 +113,7 @@ namespace Saturn {
 
 	Ref<Image2D> SceneRenderer::CompositeImage()
 	{
-		return m_RendererData.ViewShadowCascades ? m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource() : m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ];
+		return m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ];
 	}
 
 	void SceneRenderer::Terminate()
