@@ -149,10 +149,10 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::Draw()
 	{
-		ImGui::PushID( static_cast<int>( m_Context->GetId() ) );
+		ImGui::PushID( static_cast<int>( m_CustomID == 0 ? m_Context->GetId() : m_CustomID ) );
 
 		if( !m_IsPrefabScene )
-			ImGui::Begin( "Scene Hierarchy" );
+			ImGui::Begin( m_WindowName.c_str() );
 
 		if( m_Context )
 		{	
@@ -202,20 +202,15 @@ namespace Saturn {
 				ImGui::EndPopup();
 			}
 
-			//if( !m_IsPrefabScene )
-				ImGui::Begin( "Inspector", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse );
-			//else
-			//	ImGui::BeginChild( "Inspector" );
+			std::string name = "Inspector##" + m_WindowName;
+			ImGui::Begin( name.c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse );
 
 			if( m_SelectionContext )
 			{
 				DrawComponents( m_SelectionContext );
 			}
 
-			//if( !m_IsPrefabScene )
-				ImGui::End();
-			//else
-			//	ImGui::EndChild();
+			ImGui::End();
 		}
 
 		if( !m_IsPrefabScene )

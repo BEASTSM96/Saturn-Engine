@@ -300,8 +300,6 @@ namespace Saturn {
 			m_EditorCamera.SetActive( m_AllowCameraEvents );
 			m_EditorCamera.OnUpdate( time );
 
-			Application::Get().PrimarySceneRenderer().SetCamera( { m_EditorCamera, m_EditorCamera.ViewMatrix() } );
-
 			m_EditorScene->OnUpdate( time );
 			m_EditorScene->OnRenderEditor( m_EditorCamera, time, Application::Get().PrimarySceneRenderer() );
 		}

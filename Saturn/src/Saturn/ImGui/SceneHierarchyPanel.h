@@ -55,6 +55,9 @@ namespace Saturn {
 
 		void SetIsPrefabScene( bool value ) { m_IsPrefabScene = value; }
 
+		void AddID( UUID ID ) { m_CustomID = ID; }
+		void SetName( const std::string& rName ) { m_WindowName = rName; }
+
 	protected:
 
 		void DrawComponents( Entity entity );
@@ -66,6 +69,8 @@ namespace Saturn {
 		void DrawAddComponents( const char* pName, Entity entity );
 
 	private:
+		UUID m_CustomID = 0;
+		std::string m_WindowName = "Scene Hierarchy";
 
 		bool m_IsPrefabScene = false;
 
