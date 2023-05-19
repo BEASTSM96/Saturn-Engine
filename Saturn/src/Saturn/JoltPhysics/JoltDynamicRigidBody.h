@@ -81,7 +81,7 @@ namespace Saturn {
 
 			float Extents; // Sphere & Capsule
 			float Height; // Capsule
-		} PendingShapeInfo;
+		} PendingShapeInfo{};
 
 		bool m_Kinematic = false;
 	};

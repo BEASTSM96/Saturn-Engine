@@ -479,14 +479,6 @@ namespace Saturn {
 
 		DrawComponent<SkylightComponent>( "Skylight", entity, []( auto& skl )
 		{
-			if( !skl.DynamicSky )
-			{
-				if( ImGui::Button( "...##openenvmap", ImVec2( 50, 20 ) ) ) 
-				{
-					// TODO:
-				}
-			}
-
 			DrawBoolControl( "Dynamic Sky", skl.DynamicSky );
 
 			bool changed = false;

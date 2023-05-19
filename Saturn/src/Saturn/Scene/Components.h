@@ -155,7 +155,7 @@ namespace Saturn {
 	{
 		EnvironmentMap Map;
 
-		bool DynamicSky = false;
+		bool DynamicSky = true;
 
 		float Turbidity = 2.0f;
 		float Azimuth = 0.0f;

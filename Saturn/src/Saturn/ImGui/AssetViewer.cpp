@@ -35,8 +35,8 @@ namespace Saturn {
 	static std::vector<AssetID> s_PendingAssetViewers;
 
 	AssetViewer::AssetViewer( AssetID ID )
+		: m_AssetID( ID )
 	{
-		m_AssetID = ID;
 		s_AssetViewers[ ID ] = this;
 	}
 
