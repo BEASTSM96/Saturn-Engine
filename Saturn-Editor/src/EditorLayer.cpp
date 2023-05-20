@@ -158,7 +158,7 @@ namespace Saturn {
 		{
 			if( ImGui::BeginMenu( "Settings" ) )
 			{
-				if( ImGui::MenuItem( "User settings", "Ctrl+Shift+Alt+S" ) ) m_ShowUserSettings = !m_ShowUserSettings;
+				if( ImGui::MenuItem( "User settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;
 				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
 				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug = !OpenLoadedAssetDebug;
 
@@ -272,6 +272,7 @@ namespace Saturn {
 				m_RuntimeScene->m_RuntimeRunning = true;
 
 				Scene::SetActiveScene( m_RuntimeScene.Pointer() );
+				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Pointer() );
 			}
 		}
 		else
@@ -287,6 +288,7 @@ namespace Saturn {
 
 				Scene::SetActiveScene( m_EditorScene.Pointer() );
 				EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
+				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Pointer() );
 			}
 		}
 
@@ -945,7 +947,7 @@ namespace Saturn {
 
 		ImGui::SetNextWindowPos( ImVec2( rIO.DisplaySize.x * 0.5f - 150.0f, rIO.DisplaySize.y * 0.5f - 150.0f ), ImGuiCond_Once );
 
-		ImGui::Begin( "User settings" );
+		ImGui::Begin( "User settings", &m_ShowUserSettings );
 
 		ImGui::SetCursorPosX( ImGui::GetWindowContentRegionWidth() * 0.5f - ImGui::CalcTextSize( "User settings" ).x * 0.5f );
 		ImGui::Text( "User settings" );

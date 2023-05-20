@@ -126,8 +126,6 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		auto group = m_Registry.group<StaticMeshComponent>( entt::get<TransformComponent> );
-		
-		rSceneRenderer.SetCurrentScene( this );
 
 		// Lights
 		{
@@ -204,8 +202,6 @@ namespace Saturn {
 		auto view = glm::inverse( GetTransformRelativeToParent( cameraEntity ) );
 		SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
 	
-		rSceneRenderer.SetCurrentScene( this );
-
 		// Lights
 		{
 			m_Lights = Lights();

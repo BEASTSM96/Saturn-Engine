@@ -203,7 +203,7 @@ namespace Saturn {
 	class JoltDynamicRigidBody;
 	struct RigidbodyComponent
 	{
-		JoltDynamicRigidBody* Rigidbody;
+		JoltDynamicRigidBody* Rigidbody = nullptr;
 
 		bool IsKinematic = false;
 		bool UseCCD = false;

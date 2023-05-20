@@ -457,8 +457,6 @@ namespace Saturn {
 		if( Application::Get().GetSpecification().GameDist )
 			return;
 
-		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-
 		// Set UB Data.
 
 		glm::mat4 trans = glm::rotate( glm::mat4( 1.0f ), glm::radians( 90.0f ), glm::vec3( 1.0f, 0.0f, 0.0f ) ) * glm::scale( glm::mat4( 1.0f ), glm::vec3( 16.0f ) );
@@ -534,7 +532,7 @@ namespace Saturn {
 			return;
 
 		// Invalid skybox, maybe null from loading a new scene? This only happens on the first frames so this is a hack.
-		if( m_RendererData.SceneEnvironment->IrradianceMap == nullptr && m_RendererData.SceneEnvironment->IrradianceMap == nullptr )
+		if( m_RendererData.SceneEnvironment->IrradianceMap == nullptr && m_RendererData.SceneEnvironment->RadianceMap == nullptr )
 		{
 			Entity SkylightEntity;
 
@@ -552,7 +550,7 @@ namespace Saturn {
 				if( !Skylight.DynamicSky )
 					return;
 
-				if( Skylight.DynamicSky && !m_RendererData.SceneEnvironment->IrradianceMap && !m_RendererData.SceneEnvironment->IrradianceMap )
+				if( Skylight.DynamicSky && !m_RendererData.SceneEnvironment->IrradianceMap && !m_RendererData.SceneEnvironment->RadianceMap )
 				{
 					m_RendererData.SceneEnvironment->Turbidity = Skylight.Turbidity;
 					m_RendererData.SceneEnvironment->Azimuth = Skylight.Azimuth;
@@ -1391,11 +1389,6 @@ namespace Saturn {
 		auto& shader = m_RendererData.BloomShader;
 		auto& pipeline = m_RendererData.BloomComputePipeline;
 
-		DescriptorSetSpecification spec;
-		spec.Layout = shader->GetSetLayout();
-		spec.SetIndex = 0;
-		spec.Pool = shader->GetDescriptorPool();
-
 		VkDescriptorSet descriptorSet;
 		VkDescriptorSetAllocateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 		info.descriptorPool = Renderer::Get().GetDescriptorPool()->GetVulkanPool();
@@ -1595,7 +1588,7 @@ namespace Saturn {
 
 		pipeline->Bind();
 		pipeline->AddPushConstant( &params, 0, sizeof( glm::vec3 ) );
-		pipeline->Execute( m_RendererData.PreethamDescriptorSet->GetVulkanSet(), cubemapSize / 32, cubemapSize / 32, 6 );
+		pipeline->Execute( m_RendererData.PreethamDescriptorSet->GetVulkanSet(), cubemapSize / irradianceMap, cubemapSize / irradianceMap, 6 );
 		pipeline->Unbind();
 
 		Environment->CreateMips();

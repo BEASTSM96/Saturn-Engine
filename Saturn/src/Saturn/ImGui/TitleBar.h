@@ -55,9 +55,6 @@ namespace Saturn {
 		void AddOnExitFunction( std::function<void()>&& rrFunc );
 		
 	private:
-
-		Ref< Texture2D > m_Logo;
-
 		std::vector<MenuBarFunction> m_MenuBarFunctions;
 		std::function<void()> m_OnExitFunction;
 

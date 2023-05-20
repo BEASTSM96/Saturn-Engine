@@ -34,8 +34,8 @@
 namespace Saturn {
 
 	RenderThread::RenderThread()
+		: m_Running( std::make_shared<std::atomic_bool>() )
 	{
-		m_Running = std::make_shared<std::atomic_bool>();
 		m_Running->store( true );
 
 		m_Thread = std::thread( &RenderThread::ThreadRun, this );

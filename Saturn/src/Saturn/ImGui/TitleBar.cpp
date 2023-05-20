@@ -41,8 +41,8 @@ namespace Saturn {
 	static bool ShowAcknowledgements = false;
 
 	TitleBar::TitleBar()
+		: m_Height( 0 )
 	{
-		m_Logo = Ref<Texture2D>::Create( "content/Icons/SaturnLogov1.png", AddressingMode::Repeat );
 	}
 
 	TitleBar::~TitleBar()
