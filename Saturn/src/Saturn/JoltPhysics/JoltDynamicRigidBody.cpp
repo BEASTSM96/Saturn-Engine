@@ -37,7 +37,7 @@
 namespace Saturn {
 
 	JoltDynamicRigidBody::JoltDynamicRigidBody( Entity entity )
-		: JoltPhysicsBodyBase()
+		: JoltPhysicsBodyBase(), PendingShapeInfo{}
 	{
 		m_Entity = entity;
 	}
