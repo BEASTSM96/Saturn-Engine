@@ -45,14 +45,14 @@ namespace Saturn {
 	StaticMeshAssetViewer::StaticMeshAssetViewer( AssetID id )
 		: AssetViewer( id ), m_Camera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
 	{
-		AddMesh();
-
 		m_Camera.SetActive( true );
 
 		m_Scene = Ref<Scene>::Create();
 		m_SceneRenderer = Ref<SceneRenderer>::Create();
 		m_SceneRenderer->SetDynamicSky( 2.0f, 0.0f, 0.0f );
 		m_SceneRenderer->SetCurrentScene( m_Scene.Pointer() );
+
+		AddMesh();
 	}
 
 	StaticMeshAssetViewer::~StaticMeshAssetViewer()
@@ -88,7 +88,7 @@ namespace Saturn {
 		ImGui::Begin( Name.c_str(), 0, flags );
 
 		ImGui::PushID( static_cast< int >( m_AssetID ) );
-
+		
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
 		{
 			m_ViewportSize = ImGui::GetContentRegionAvail();
@@ -97,7 +97,7 @@ namespace Saturn {
 			m_Camera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 		}
 
-		Image( Renderer::Get().GetPinkTexture(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
+		Image( m_SceneRenderer->CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
 
 		ImGui::PopID();
 
