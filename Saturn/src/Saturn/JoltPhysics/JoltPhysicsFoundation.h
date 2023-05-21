@@ -62,7 +62,8 @@ namespace Saturn {
 	};
 
 	class JoltDynamicRigidBody;
-	
+	class StaticMesh;
+
 	class JoltPhysicsFoundation
 	{
 	public:
@@ -78,8 +79,12 @@ namespace Saturn {
 
 		// Creates a rigid body with a box collider.
 		JPH::Body* CreateBoxCollider( const glm::vec3& Position, const glm::vec3& Rotation, const glm::vec3& Extents, bool Kinematic = false );
+
 		JPH::Body* CreateCapsuleCollider( const glm::vec3& Position, const glm::vec3& Rotation, float Extents, float Height, bool Kinematic = false );
+
 		JPH::Body* CreateSphereCollider( const glm::vec3& Position, const glm::vec3& Rotation, float Extents, bool Kinematic = false );
+
+		void GenerateMeshCollider( Ref<StaticMesh> mesh, const glm::vec3& Scale );
 
 		void DestroyBody( JPH::Body* pBody );
 

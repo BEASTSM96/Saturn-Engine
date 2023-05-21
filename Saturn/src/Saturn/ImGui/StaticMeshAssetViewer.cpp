@@ -34,6 +34,8 @@
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
 
+#include "Saturn/JoltPhysics/JoltPhysicsFoundation.h"
+
 #include "Saturn/ImGui/UITools.h"
 #include "Saturn/Scene/Components.h"
 
@@ -108,6 +110,19 @@ namespace Saturn {
 		m_MouseOverViewport = ImGui::IsWindowHovered();
 
 		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
+
+		ImGui::End();
+
+		ImGui::Begin( "Sidebar" );
+
+		if( ImGui::Button( "Generate Mesh Collider" ) ) 
+		{
+			JoltPhysicsFoundation::Get().GenerateMeshCollider( m_Mesh );
+
+			// JoltFoundation->CreateMeshCollider( m_Mesh );
+			//	CookMesh
+			//		SaveMeshData
+		}
 
 		ImGui::End();
 
