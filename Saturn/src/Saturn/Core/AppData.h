@@ -37,7 +37,8 @@ namespace Saturn::Auxiliary {
 
 	class AppData
 	{
-		SINGLETON( AppData );
+	public:
+		static inline AppData& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<AppData>(); }
 
 		AppData();
 

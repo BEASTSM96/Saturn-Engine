@@ -44,12 +44,11 @@ namespace Saturn {
 
 	Renderer::Renderer()
 	{
-		Init();
+		SingletonStorage::Get().AddSingleton<Renderer>( this );
 	}
 
 	Renderer::~Renderer()
 	{
-		//Terminate();
 	}
 
 	void Renderer::Init()

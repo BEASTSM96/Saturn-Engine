@@ -36,8 +36,7 @@ namespace Saturn {
 	RenderThread::RenderThread()
 		: m_Running( std::make_shared<std::atomic_bool>() )
 	{
-		m_Running->store( true );
-
+		m_Running->store( m_Enabled );
 		m_Thread = std::thread( &RenderThread::ThreadRun, this );
 	}
 
@@ -116,10 +115,6 @@ namespace Saturn {
 		while (true)
 		{
 			SAT_PF_THRD( "Render Thread" );
-			
-			// Exit the loop, kill the thread.
-			if( !m_Enabled )
-				break;
 
 			std::unique_lock<std::mutex> Lock( m_Mutex );
 

@@ -42,7 +42,8 @@ namespace Saturn {
 
 	class AssetImporter
 	{
-		SINGLETON( AssetImporter );
+	public:
+		static inline AssetImporter& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<AssetImporter>(); }
 
 		AssetImporter() { Init(); }
 		~AssetImporter();

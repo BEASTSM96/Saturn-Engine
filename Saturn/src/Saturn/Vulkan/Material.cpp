@@ -160,29 +160,4 @@ namespace Saturn {
 
 		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &rWDS, 0, nullptr );
 	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// MATERIAL TABLE
-	//////////////////////////////////////////////////////////////////////////
-
-	MaterialTable::~MaterialTable()
-	{
-	}
-
-	void MaterialTable::InsertMaterial( const Ref<Material>& rMaterial )
-	{
-		//if( std::find( m_Materials.begin(), m_Materials.end(), rMaterial->GetName() ) == m_Materials.end() )
-			m_Materials[ rMaterial->GetName() ] = rMaterial;
-	}
-
-	void MaterialTable::RemoveMaterial( const std::string& rName )
-	{
-		m_Materials.at( rName ) = nullptr;
-	}
-
-	void MaterialTable::ApplyChanges( const std::string& rMaterialName, Ref<Material>& rSourceMaterial )
-	{
-		m_Materials[ rMaterialName ]->Copy( rSourceMaterial );
-	}
-
 }

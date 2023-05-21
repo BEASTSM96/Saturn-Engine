@@ -36,15 +36,13 @@ namespace Saturn {
 
 	class SourceManager
 	{
-		SINGLETON( SourceManager );
+	public:
+		static inline SourceManager& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<SourceManager>(); }
 	public:
 		SourceManager();
 		~SourceManager();
 
 		// Copy string...
 		void CreateEntitySourceFiles( const std::filesystem::path& rPath, const char* pName );
-
-	private:
-
 	};
 }

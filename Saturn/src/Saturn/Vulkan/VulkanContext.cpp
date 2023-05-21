@@ -84,7 +84,8 @@ namespace Saturn {
 		m_DefaultPass = Ref<Pass>::Create( Specification );
 		m_SwapChain.CreateFramebuffers();
 		
-		Renderer::Get();
+		Renderer* pRenderer = new Renderer();
+		pRenderer->Init();
 	}
 
 	void VulkanContext::Terminate()
