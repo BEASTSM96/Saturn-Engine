@@ -252,6 +252,19 @@ namespace Saturn {
 	struct PrefabComponent
 	{
 		UUID AssetID;
+
+		PrefabComponent() = default;
+		PrefabComponent( PrefabComponent& other ) = default;
+		PrefabComponent( UUID id ) : AssetID( id ) {  }
+	};
+
+	struct AudioComponent
+	{
+		UUID AssetID;
+
+		AudioComponent() = default;
+		AudioComponent( AudioComponent& other ) = default;
+		AudioComponent( UUID id ) : AssetID( id ) {  }
 	};
 
 	template<typename... V>
@@ -272,5 +285,5 @@ namespace Saturn {
 		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 		CameraComponent,
 		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
-		ScriptComponent>;
+		ScriptComponent, AudioComponent>;
 }

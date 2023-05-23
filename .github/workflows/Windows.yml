@@ -2,9 +2,9 @@ name: CI(Windows)
 
 on:
   push:
-    branches: [ master, v2, vulkan ]
+    branches: [ vulkan ]
   pull_request:
-    branches: [ master, v2, vulkan ]
+    branches: [ vulkan ]
 jobs:
   build:
     runs-on: windows-latest
@@ -12,25 +12,22 @@ jobs:
       run:
         shell: cmd
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Generate Submodules
-      run: git submodule update --init
-
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        
     - name: Download Premake
       uses: BEASTSM96/premake-action@v1.3
       
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.1.1
 
-    - name: Setup NuGet dependencies
-      run: nuget install YamlDotNet -Version 13.1.0
-
     - name: Generate Project Files
       run: scripts/WindowsGenProjects-CI.bat
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.1
-
+    
     - name: Build Solution
       run: msbuild -property:Configuration=Debug,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Saturn.sln
