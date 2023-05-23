@@ -123,8 +123,8 @@ namespace Saturn {
 		std::vector<StaticVertex>& Vertices() { return m_Vertices; }
 		const std::vector<StaticVertex>& Vertices() const { return m_Vertices; }
 
-		std::vector<Index>& Indices() { return m_Vertices; }
-		const std::vector<Index>& Indices() const { return m_Vertices; }
+		std::vector<Index>& Indices() { return m_Indices; }
+		const std::vector<Index>& Indices() const { return m_Indices; }
 
 	private:
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
