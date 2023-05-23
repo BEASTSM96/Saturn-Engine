@@ -34,15 +34,15 @@
 #include "Saturn/Serialisation/AssetSerialisers.h"
 #include "Saturn/Asset/AssetImporter.h"
 
-#include "Saturn/ImGui/AssetViewer.h"
-#include "Saturn/ImGui/PrefabViewer.h"
+#include "AssetViewer.h"
+#include "PrefabViewer.h"
+#include "StaticMeshAssetViewer.h"
+#include "MaterialAssetViewer.h"
 
 #include "Saturn/Project/Project.h"
 #include "Saturn/Core/App.h"
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Vulkan/Mesh.h"
-
-#include "MaterialAssetViewer.h"
 
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
@@ -855,10 +855,19 @@ namespace Saturn {
 					{
 						case Saturn::AssetType::Texture:
 							break;
+
 						case Saturn::AssetType::StaticMesh:
-							break;
+						{
+							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
+
+							// Find the asset.
+							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
+							AssetViewer::Add<StaticMeshAssetViewer>( asset->ID );
+						} break;
+
 						case Saturn::AssetType::SkeletalMesh:
 							break;
+
 						case Saturn::AssetType::Material:
 						{
 							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );

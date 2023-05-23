@@ -28,7 +28,9 @@
 
 #pragma once
 
-#define SAT_PROFILER_ENABLE !SAT_DIST
+#if defined(SAT_DEBUG) || defined(SAT_RELEASE)
+#define SAT_PROFILER_ENABLE
+#endif
 
 #if defined (SAT_PROFILER_ENABLE)
 #include <optick/optick.h>

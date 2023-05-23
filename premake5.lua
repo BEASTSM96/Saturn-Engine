@@ -23,11 +23,11 @@ IncludeDir["SPIRV_Cross"] = "Saturn/vendor/SPIRV-Cross/src/"
 IncludeDir["vma"] = "Saturn/vendor/vma/src/"
 IncludeDir["ImGuizmo"] = "Saturn/vendor/ImGuizmo/src/"
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include/"
-IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
 IncludeDir["Optick"] = "Saturn/vendor/optick/src"
 IncludeDir["Filewatch"] = "Saturn/vendor/Filewatch/src"
 IncludeDir["MiniAudio"] = "Saturn/vendor/miniaudio/src"
+IncludeDir["JoltPhysics"] = "Saturn/vendor/Jolt/src"
 
 IncludeDir["SingletonStorage"] = "SingletonStorage/src"
 
@@ -37,6 +37,7 @@ group "Dependencies"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
 	include "Saturn/vendor/optick"
+	include "Saturn/vendor/Jolt"
 
 group "Engine"
 project "Saturn"
@@ -97,13 +98,11 @@ project "Saturn"
 		"%{IncludeDir.vma}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ImGuizmo}",
-		"%{IncludeDir.PhysX}",
-		"%{IncludeDir.PhysX}/pxshared",
-		"%{IncludeDir.PhysX}/physx",
 		"%{IncludeDir.ImguiNodeEditor}",
 		"%{IncludeDir.Optick}",
 		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.Filewatch}",
+		"%{IncludeDir.JoltPhysics}",
 
 		"%{IncludeDir.SingletonStorage}"
 	}
@@ -115,6 +114,7 @@ project "Saturn"
 		"SPIRV-Cross",
 		"yaml-cpp",
 		"optick",
+		"JoltPhysics",
 		"SingletonStorage"
 	}
 
@@ -170,22 +170,6 @@ project "Saturn"
 
 			links 
 			{
-				-- Link PhysX
-				"Saturn/vendor/physx/bin/Debug/LowLevel_static_64.lib",
-				"Saturn/vendor/physx/bin/Debug/LowLevelAABB_static_64.lib",
-				"Saturn/vendor/physx/bin/Debug/LowLevelDynamics_static_64.lib",
-				"Saturn/vendor/physx/bin/Debug/PhysX_64.lib",
-				"Saturn/vendor/physx/bin/Debug/PhysXCharacterKinematic_static_64.lib",
-				"Saturn/vendor/physx/bin/Debug/PhysXCommon_64.lib",
-				"Saturn/vendor/physx/bin/Debug/PhysXCooking_64.lib",
-				"Saturn/vendor/physx/bin/Debug/PhysXExtensions_static_64.lib",
-				"Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.lib",
-				"Saturn/vendor/physx/bin/Debug/PhysXPvdSDK_static_64.lib",
-				"Saturn/vendor/physx/bin/Debug/PhysXTask_static_64.lib",
-				"Saturn/vendor/physx/bin/Debug/PhysXVehicle_static_64.lib",
-				"Saturn/vendor/physx/bin/Debug/SceneQuery_static_64.lib",
-				"Saturn/vendor/physx/bin/Debug/SimulationController_static_64.lib",
-
 				"Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.lib",
 				"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc.lib",
 				"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc_util.lib",
@@ -208,22 +192,6 @@ project "Saturn"
 		filter "configurations:Release or configurations:Dist"
 			links 
 			{
-				-- Link PhysX
-				"Saturn/vendor/physx/bin/Release/LowLevel_static_64.lib",
-				"Saturn/vendor/physx/bin/Release/LowLevelAABB_static_64.lib",
-				"Saturn/vendor/physx/bin/Release/LowLevelDynamics_static_64.lib",
-				"Saturn/vendor/physx/bin/Release/PhysX_64.lib",
-				"Saturn/vendor/physx/bin/Release/PhysXCharacterKinematic_static_64.lib",
-				"Saturn/vendor/physx/bin/Release/PhysXCommon_64.lib",
-				"Saturn/vendor/physx/bin/Release/PhysXCooking_64.lib",
-				"Saturn/vendor/physx/bin/Release/PhysXExtensions_static_64.lib",
-				"Saturn/vendor/physx/bin/Release/PhysXFoundation_64.lib",
-				"Saturn/vendor/physx/bin/Release/PhysXPvdSDK_static_64.lib",
-				"Saturn/vendor/physx/bin/Release/PhysXTask_static_64.lib",
-				"Saturn/vendor/physx/bin/Release/PhysXVehicle_static_64.lib",
-				"Saturn/vendor/physx/bin/Release/SceneQuery_static_64.lib",
-				"Saturn/vendor/physx/bin/Release/SimulationController_static_64.lib",
-
 				"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",
@@ -281,6 +249,7 @@ project "Saturn-Editor"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Filewatch}",
 		"%{IncludeDir.MiniAudio}",
+		"%{IncludeDir.JoltPhysics}",
 		"%{IncludeDir.SingletonStorage}"
 	}
 
@@ -307,11 +276,6 @@ project "Saturn-Editor"
 		postbuildcommands 
 		{ 
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
-			-- Copy PhysX
-			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
 			'{COPY} "../bin/Debug-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
 		}
@@ -343,11 +307,6 @@ project "Saturn-Editor"
 		postbuildcommands 
 		{ 
 			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
-			-- Copy PhysX
-			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "system:linux"
@@ -464,10 +423,6 @@ project "ProjectBrowser"
 				
 				'{COPY} "../bin/Debug-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
 
-				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
 				'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 			}
 
@@ -498,11 +453,6 @@ project "ProjectBrowser"
 			postbuildcommands 
 			{ 
 				'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
-
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
-				'{COPY} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
 			}
 
 	filter "system:linux"

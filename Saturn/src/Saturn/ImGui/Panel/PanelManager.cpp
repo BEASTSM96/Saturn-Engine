@@ -39,6 +39,7 @@ namespace Saturn {
 
 	PanelManager::~PanelManager()
 	{
+		Terminate();
 	}
 
 	void PanelManager::Terminate()

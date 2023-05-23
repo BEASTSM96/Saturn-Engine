@@ -47,6 +47,16 @@
 
 #include <cassert>
 
+#if defined(SAT_DEBUG) || defined(SAT_RELEASE)
+#define SAT_ENABLE_SHADER_INFO
+#endif
+
+#if defined( SAT_ENABLE_SHADER_INFO )
+#define SHADER_INFO(...) SAT_CORE_INFO(__VA_ARGS__)
+#else
+#define SHADER_INFO(...)
+#endif
+
 namespace Saturn {
 	
 	VkShaderStageFlags ShaderTypeToVulkan( ShaderType type ) 
@@ -518,10 +528,10 @@ namespace Saturn {
 
 			uint32_t Size = ( uint32_t ) Compiler.get_declared_struct_size( BufferType );
 
-			SAT_CORE_INFO( "Storage Buffer: {0}", Name );
-			SAT_CORE_INFO( " Size: {0}", Size );
-			SAT_CORE_INFO( " Binding: {0}", Binding );
-			SAT_CORE_INFO( " Set: {0}", Set );
+			SHADER_INFO( "Storage Buffer: {0}", Name );
+			SHADER_INFO( " Size: {0}", Size );
+			SHADER_INFO( " Binding: {0}", Binding );
+			SHADER_INFO( " Set: {0}", Set );
 
 			if( m_DescriptorSets[ Set ].Set == -1 )
 				m_DescriptorSets[ Set ] = { .Set = Set };
@@ -563,9 +573,9 @@ namespace Saturn {
 
 				std::string MemberName = Name + "." + memberName;
 
-				SAT_CORE_INFO( "  {0}", memberName );
-				SAT_CORE_INFO( "   Size: {0}", size );
-				SAT_CORE_INFO( "   Offset: {0}", offset );
+				SHADER_INFO( "  {0}", memberName );
+				SHADER_INFO( "   Size: {0}", size );
+				SHADER_INFO( "   Offset: {0}", offset );
 
 				// Use Binding as location it does not matter.
 				m_Uniforms.push_back( { MemberName, ( int ) Binding, SpvToSaturn( type ), size, offset } );
@@ -582,10 +592,10 @@ namespace Saturn {
 
 			uint32_t Size = ( uint32_t ) Compiler.get_declared_struct_size( BufferType );
 
-			SAT_CORE_INFO( "Uniform Buffer: {0}", Name );
-			SAT_CORE_INFO( " Size: {0}", Size );
-			SAT_CORE_INFO( " Binding: {0}", Binding );
-			SAT_CORE_INFO( " Set: {0}", Set);
+			SHADER_INFO( "Uniform Buffer: {0}", Name );
+			SHADER_INFO( " Size: {0}", Size );
+			SHADER_INFO( " Binding: {0}", Binding );
+			SHADER_INFO( " Set: {0}", Set);
 
 			if( m_DescriptorSets[ Set ].Set == -1 )
 				m_DescriptorSets[ Set ] = { .Set = Set };
@@ -627,9 +637,9 @@ namespace Saturn {
 
 				std::string MemberName = Name + "." + memberName;
 
-				SAT_CORE_INFO( "  {0}", memberName );
-				SAT_CORE_INFO( "   Size: {0}", size );
-				SAT_CORE_INFO( "   Offset: {0}", offset );
+				SHADER_INFO( "  {0}", memberName );
+				SHADER_INFO( "   Size: {0}", size );
+				SHADER_INFO( "   Offset: {0}", offset );
 
 				// Use Binding as location it does not matter.
 				m_Uniforms.push_back( { MemberName, (int)Binding, SpvToSaturn( type ), size, offset } );
@@ -652,11 +662,11 @@ namespace Saturn {
 
 			m_PushConstantRanges.push_back( { .stageFlags = ShaderTypeToVulkan( shaderType ), .offset = Offset , .size = ( uint32_t )Size } );
 
-			SAT_CORE_INFO( "Push constant buffer: {0}", Name );
-			SAT_CORE_INFO( " Size: {0}", Size );
-			SAT_CORE_INFO( " Offset: {0}", Offset );
-			SAT_CORE_INFO( " Set: {0}", ( uint32_t )set );
-			SAT_CORE_INFO( " Stage: {0}", ( uint32_t )shaderType );
+			SHADER_INFO( "Push constant buffer: {0}", Name );
+			SHADER_INFO( " Size: {0}", Size );
+			SHADER_INFO( " Offset: {0}", Offset );
+			SHADER_INFO( " Set: {0}", ( uint32_t ) set );
+			SHADER_INFO( " Stage: {0}", ( uint32_t )shaderType );
 
 			for( int i = 0; i < MemberCount; i++ )
 			{
@@ -677,9 +687,9 @@ namespace Saturn {
 				if( shaderType == ShaderType::Fragment )
 					PushConstantData = true;
 
-				SAT_CORE_INFO( "  {0}", memberName );
-				SAT_CORE_INFO( "  Size: {0}", size );
-				SAT_CORE_INFO( "  Offset: {0}", offset );
+				SHADER_INFO( "  {0}", memberName );
+				SHADER_INFO( "  Size: {0}", size );
+				SHADER_INFO( "  Offset: {0}", offset );
 
 				// Use Binding as location it does not matter.
 				m_Uniforms.push_back( { MemberName, ( int ) offset, SpvToSaturn( type ), size, offset - Offset, PushConstantData } );
@@ -693,9 +703,9 @@ namespace Saturn {
 			uint32_t binding = Compiler.get_decoration( Resource.id, spv::DecorationBinding );
 			uint32_t set = Compiler.get_decoration( Resource.id, spv::DecorationDescriptorSet );
 
-			SAT_CORE_INFO( "Sampled image: {0}", Name );
-			SAT_CORE_INFO( " Binding: {0}", binding );
-			SAT_CORE_INFO( " Set: {0}", set );
+			SHADER_INFO( "Sampled image: {0}", Name );
+			SHADER_INFO( " Binding: {0}", binding );
+			SHADER_INFO( " Set: {0}", set );
 
 			m_DescriptorSets[ set ].SampledImages.push_back( { Name, shaderType, set, binding } );
 		}
@@ -707,9 +717,9 @@ namespace Saturn {
 			uint32_t binding = Compiler.get_decoration( Resource.id, spv::DecorationBinding );
 			uint32_t set = Compiler.get_decoration( Resource.id, spv::DecorationDescriptorSet );
 
-			SAT_CORE_INFO( "Storage image: {0}", Name );
-			SAT_CORE_INFO( " Binding: {0}", binding );
-			SAT_CORE_INFO( " Set: {0}", set );
+			SHADER_INFO( "Storage image: {0}", Name );
+			SHADER_INFO( " Binding: {0}", binding );
+			SHADER_INFO( " Set: {0}", set );
 
 			m_DescriptorSets[ set ].StorageImages.push_back( { Name, shaderType, set, binding } );
 		}
@@ -896,13 +906,13 @@ namespace Saturn {
 				SAT_ASSERT( false, "Shader Compilation Failed" );
 			}
 
-			SAT_CORE_INFO( "Shader Warings {0}", Res.GetNumWarnings() );
+			SHADER_INFO( "Shader Warings {0}", Res.GetNumWarnings() );
 
 			std::vector< uint32_t > SpvBinary( Res.begin(), Res.end() );
 
 			m_SpvCode[ key ] = SpvBinary;
 		}
 
-		SAT_CORE_INFO( "Shader Compilation took {0} ms", CompileTimer.ElapsedMilliseconds() );
+		SHADER_INFO( "Shader Compilation took {0} ms", CompileTimer.ElapsedMilliseconds() );
 	}
 }

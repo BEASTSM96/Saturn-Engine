@@ -34,10 +34,9 @@
 namespace Saturn {
 
 	RenderThread::RenderThread()
+		: m_Running( std::make_shared<std::atomic_bool>() )
 	{
-		m_Running = std::make_shared<std::atomic_bool>();
-		m_Running->store( true );
-
+		m_Running->store( m_Enabled );
 		m_Thread = std::thread( &RenderThread::ThreadRun, this );
 	}
 
@@ -47,14 +46,27 @@ namespace Saturn {
 
 	void RenderThread::WaitAll()
 	{
+		// If we are not using the render thread, we still need to execute the command buffer. 
+		if( !m_Enabled ) 
+		{
+			m_WaitTime.Reset();
+
+			for( auto& rFunc : m_CommandBuffer )
+				rFunc();
+
+			m_CommandBuffer.clear();
+
+			m_WaitTime.Stop();
+
+			return;
+		}
+
 		if( !m_CommandBuffer.empty() )
 		{
 			m_ExecuteAll = true;
 			m_SignalCV.notify_one();
 		}
 		
-		m_WaitTime.Reset();
-
 		std::unique_lock<std::mutex> Lock( m_Mutex );
 		m_QueueCV.wait( Lock, [=] { return m_CommandBuffer.empty(); } );
 		Lock.unlock();
@@ -103,7 +115,7 @@ namespace Saturn {
 		while (true)
 		{
 			SAT_PF_THRD( "Render Thread" );
-			
+
 			std::unique_lock<std::mutex> Lock( m_Mutex );
 
 			// m_SignalCV = What do we want to do, ExecuteOne, ExecuteAll

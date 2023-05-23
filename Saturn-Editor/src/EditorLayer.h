@@ -88,6 +88,8 @@ namespace Saturn {
 		Ref< Texture2D > m_ScaleTexture;
 		Ref< Texture2D > m_SyncTexture;
 
+		Ref< PanelManager > m_PanelManager;
+
 		EditorCamera m_EditorCamera;
 		bool m_AllowCameraEvents = false;
 		bool m_StartedRightClickInViewport = false;

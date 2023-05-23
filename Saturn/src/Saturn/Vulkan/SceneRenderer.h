@@ -188,8 +188,6 @@ namespace Saturn {
 		float CascadeFarPlaneOffset = 100.0f;
 		float CascadeNearPlaneOffset = -150.0f;
 		
-		bool ViewShadowCascades = false;
-
 		std::vector< ShadowCascade > ShadowCascades;
 
 		// PreDepth + Light culling
@@ -203,9 +201,6 @@ namespace Saturn {
 		Ref< ComputePipeline > LightCullingPipeline = nullptr;
 		Ref< DescriptorSet > LightCullingDescriptorSet = nullptr;
 		glm::vec3 LightCullingWorkGroups{};
-
-		bool ShowLightCulling = false;
-		bool ShowLightComplexity = false;
 
 		// Geometry
 		//////////////////////////////////////////////////////////////////////////
@@ -312,9 +307,6 @@ namespace Saturn {
 	public:
 		SceneRenderer() { Init(); }
 		~SceneRenderer() {}
-
-		void SetRendererData( RendererData Data ) { m_RendererData = Data; }
-		void SetCommandBuffer( VkCommandBuffer CommandBuffer ) { m_RendererData.CommandBuffer = CommandBuffer; }
 
 		void ImGuiRender();
 

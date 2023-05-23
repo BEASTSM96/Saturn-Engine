@@ -30,8 +30,11 @@
 
 #include "AssetViewer.h"
 #include "Saturn/Asset/Prefab.h"
+#include "Saturn/Vulkan/SceneRenderer.h"
 
+#include "TitleBar.h"
 #include "SceneHierarchyPanel.h"
+
 #include <imgui.h>
 
 namespace Saturn {
@@ -45,14 +48,22 @@ namespace Saturn {
 		PrefabViewer( AssetID id );
 		~PrefabViewer();
 
-		virtual void Draw() override;
-		virtual void OnRender() override;
+		virtual void OnImGuiRender() override;
+		virtual void OnUpdate( Timestep ts ) override;
+		virtual void OnEvent( Event& rEvent ) override;
 
 		void AddPrefab();
 	private:
 		Ref<Prefab> m_Prefab;
-		SceneRenderer* m_SceneRenderer = nullptr;
+		Ref<SceneRenderer> m_SceneRenderer;
 		EditorCamera m_Camera;
+
+		TitleBar* m_Titlebar;
+
+		bool m_AllowCameraEvents = false;
+		bool m_StartedRightClickInViewport = false;
+		bool m_ViewportFocused = false;
+		bool m_MouseOverViewport = false;
 
 		ImVec2 m_ViewportSize{};
 

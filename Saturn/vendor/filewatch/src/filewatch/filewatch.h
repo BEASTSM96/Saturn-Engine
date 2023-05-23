@@ -244,7 +244,10 @@ namespace filewatch {
         std::atomic<bool> _destory = { false };
         bool _watching_single_file = { false };
 
-#pragma mark "Platform specific data"
+#ifdef _WIN32
+#pragma region "Platform specific data"
+#endif
+
 #ifdef _WIN32
         HANDLE _directory = { nullptr };
         HANDLE _close_event = { nullptr };
@@ -269,6 +272,7 @@ namespace filewatch {
 #endif // WIN32
 
 #if __unix__
+#pragma mark "Platform specific data"
         struct FolderInfo {
             int folder;
             int watch;
@@ -282,6 +286,7 @@ namespace filewatch {
 #endif // __unix__
 
 #if FILEWATCH_PLATFORM_MAC
+#pragma mark "Platform specific data"
         struct FileState
         {
             int fd;
@@ -323,6 +328,10 @@ namespace filewatch {
         FSEventStreamRef _directory;
         // fd for single file
 #endif // FILEWATCH_PLATFORM_MAC
+
+#ifdef _WIN32
+#pragma endregion
+#endif
 
         void init()
         {

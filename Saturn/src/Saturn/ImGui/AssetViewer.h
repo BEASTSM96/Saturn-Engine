@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Saturn/Asset/Asset.h"
+#include "Saturn/Core/Events.h"
 
 #include <unordered_map>
 
@@ -37,13 +38,15 @@ namespace Saturn {
 	class AssetViewer : public CountedObj
 	{
 	public:
-		AssetViewer();
-		~AssetViewer();
+		AssetViewer( AssetID ID );
+		virtual ~AssetViewer();
 
-		virtual void Draw() = 0;
+		virtual void OnImGuiRender() = 0;
 
 		// This function is to only be used when a asset viewer has a SceneRenderer as this will be called after the main renderer is complete.
-		virtual void OnRender() = 0;
+		virtual void OnUpdate( Timestep ts ) = 0;
+
+		virtual void OnEvent( Event& rEvent ) = 0;
 
 		bool IsOpen() { return m_Open; }
 
@@ -55,8 +58,10 @@ namespace Saturn {
 			return assetViewer;
 		}
 
-		static void DrawAll();
-		static void RenderAll();
+		static void Draw();
+		static void Update( Timestep ts );
+		static void ProcessEvent( Event& rEvent );
+		static void DestoryViewer( AssetID ID );
 
 	protected:
 		AssetType m_AssetType = AssetType::Unknown;

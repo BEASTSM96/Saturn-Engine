@@ -50,6 +50,7 @@ namespace Saturn {
 		bool Titlebar = false;
 		bool UIOnly = false;
 		bool GameDist = false;
+		bool EnableGameThread = false;
 		
 		uint32_t WindowWidth = 0;
 		uint32_t WindowHeight = 0;
@@ -61,7 +62,7 @@ namespace Saturn {
 	public:
 		Application( const ApplicationSpecification& spec );
 
-		~Application() {}
+		virtual ~Application() {}
 
 		void Run();
 		void Close();
@@ -87,7 +88,13 @@ namespace Saturn {
 		
 		SceneRenderer& PrimarySceneRenderer() { return *m_SceneRenderer; }
 
-		void SubmitOnMainThread( std::function<void()>&& rrFunction ) { m_MainThreadQueue.push_back( std::move( rrFunction ) ); }
+		void SubmitOnMainThread( std::function<void()>&& rrFunction ) 
+		{
+			if( m_Specification.EnableGameThread )
+				m_MainThreadQueue.push_back( std::move( rrFunction ) );
+			else
+				rrFunction();
+		}
 
 	protected:
 

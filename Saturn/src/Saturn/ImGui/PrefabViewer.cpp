@@ -42,39 +42,68 @@ namespace Saturn {
 	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
 	PrefabViewer::PrefabViewer( AssetID id )
-		: AssetViewer(), m_Camera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
+		: AssetViewer( id ), m_Camera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f )
 	{
-		m_AssetID = id;
-
 		m_SceneHierarchyPanel = Ref<SceneHierarchyPanel>::Create();
-		//m_SceneHierarchyPanel->SetIsPrefabScene( true );
+		m_SceneHierarchyPanel->AddID( m_AssetID );
+		m_SceneHierarchyPanel->SetName( "Prefab Hierarchy" );
 
 		AddPrefab();
 
-		m_SceneRenderer = new SceneRenderer();
+		m_SceneRenderer = Ref<SceneRenderer>::Create();
 		m_SceneRenderer->SetDynamicSky( 2.0f, 0.0f, 0.0f );
+		m_SceneRenderer->SetCurrentScene( m_Prefab->GetScene().Pointer() );
 
 		m_Camera.SetActive( true );
-		m_SceneRenderer->SetCamera( { m_Camera, m_Camera.ViewMatrix() } );
+		
+		m_Titlebar = new TitleBar();
+
+		m_Titlebar->AddMenuBarFunction( [&]() -> void
+			{
+				if( ImGui::BeginMenu( "Layout" ) )
+				{
+					if( ImGui::MenuItem( "Reset Dockspace" ) ) {}
+
+					ImGui::EndMenu();
+				}
+			} );
 	}
 
 	PrefabViewer::~PrefabViewer()
 	{
-		delete m_SceneRenderer;
+		m_SceneRenderer = nullptr;
+		m_SceneHierarchyPanel = nullptr;
 	}
 
-	void PrefabViewer::Draw()
+	void PrefabViewer::OnImGuiRender()
 	{
-		ImGui::PushID( static_cast< int >( m_AssetID ) );
+		// Root Window.
+		ImGuiWindowFlags RootWindowFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoCollapse;
+		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open, RootWindowFlags );
 
-		ImGui::Begin( m_Prefab->Name.c_str(), &m_Open );
+		// Create custom dockspace.
+		ImGuiID dockID = ImGui::GetID( "PrefabViewerDckspc" );
+		ImGui::DockSpace( dockID, ImVec2( 0.0f, 0.0f ), ImGuiDockNodeFlags_None );
 
-		// Draw Viewport
+		//////////////////////////////////////////////////////////////////////////
+
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 
+		if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) || ( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) && !m_StartedRightClickInViewport ) )
+		{
+			ImGui::FocusWindow( GImGui->HoveredWindow );
+			Input::Get().SetCursorMode( CursorMode::Normal );
+		}
+
+		// Viewport
+
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		ImGui::PushID( m_AssetID );
-		ImGui::BeginChild( "##Viewport", m_ViewportSize, 0, flags );
+		std::string Name = "##" + std::to_string( m_AssetID );
+		ImGui::Begin( Name.c_str(), 0, flags );
+
+		m_Titlebar->Draw();
+
+		ImGui::PushID( static_cast< int >( m_AssetID ) );
 
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
 		{
@@ -84,32 +113,61 @@ namespace Saturn {
 			m_Camera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 		}
 
+		//Image( Renderer::Get().GetPinkTexture(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
 		Image( m_SceneRenderer->CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
 
-		ImGui::EndChild();
 		ImGui::PopID();
-		ImGui::PopStyleVar();
+
+		ImVec2 minBound = ImGui::GetWindowPos();
+		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
+
+		m_ViewportFocused = ImGui::IsWindowFocused();
+		m_MouseOverViewport = ImGui::IsWindowHovered();
+
+		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
 
 		ImGui::End();
 
-		ImGui::PopID();
+		ImGui::PopStyleVar(); // ImGuiStyleVar_WindowPadding
+
+		// Scene Hierarchy panel
+		m_SceneHierarchyPanel->Draw();
+
+		ImGui::End();
 
 		if( m_Open == false )
 		{
 			PrefabSerialiser ps;
 			ps.Serialise( m_Prefab );
+
+			AssetViewer::DestoryViewer( m_AssetID );
 		}
 	}
 
-	void PrefabViewer::OnRender()
+	void PrefabViewer::OnUpdate( Timestep ts )
 	{
-		// Update Scene for rendering (on main thread.)
-		m_Prefab->GetScene()->OnRenderEditor( m_Camera, Application::Get().Time(), *m_SceneRenderer );
+		m_Camera.SetActive( m_AllowCameraEvents );
+		m_Camera.OnUpdate( ts );
 
-		RenderThread::Get().Queue( [=]() 
-			{ 
+		// Update Scene for rendering (on main thread).
+		m_Prefab->GetScene()->OnRenderEditor( m_Camera, ts, *m_SceneRenderer );
+
+		RenderThread::Get().Queue( [=]()
+			{
 				m_SceneRenderer->RenderScene();
 			} );
+
+		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
+			m_StartedRightClickInViewport = true;
+
+		if( !Input::Get().MouseButtonPressed( Mouse::Right ) )
+			m_StartedRightClickInViewport = false;
+	}
+
+	void PrefabViewer::OnEvent( Event& rEvent )
+	{
+		if( m_MouseOverViewport && m_AllowCameraEvents )
+			m_Camera.OnEvent( rEvent );
 	}
 
 	void PrefabViewer::AddPrefab()

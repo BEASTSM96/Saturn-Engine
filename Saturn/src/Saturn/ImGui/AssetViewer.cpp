@@ -32,10 +32,12 @@
 namespace Saturn {
 
 	static std::unordered_map<AssetID, AssetViewer*> s_AssetViewers;
+	static std::vector<AssetID> s_PendingAssetViewers;
 
-	AssetViewer::AssetViewer()
+	AssetViewer::AssetViewer( AssetID ID )
+		: m_AssetID( ID )
 	{
-		s_AssetViewers[ m_AssetID ] = this;
+		s_AssetViewers[ ID ] = this;
 	}
 
 	AssetViewer::~AssetViewer()
@@ -44,48 +46,52 @@ namespace Saturn {
 		s_AssetViewers.erase( m_AssetID );
 	}
 
-	void AssetViewer::DrawAll()
+	void CheckForDeadViewers() 
 	{
-		for ( auto&& [id, viewer] : s_AssetViewers )
+		for( size_t i = 0; i < s_PendingAssetViewers.size(); i++ )
 		{
-			if( !viewer )
-			{
-				delete viewer;
-				s_AssetViewers.erase( id );
-			}
+			auto&& id = s_PendingAssetViewers.at( i );
 
-			if( !viewer->IsOpen() )
-			{
-				delete viewer;
-				s_AssetViewers.erase( id );
+			delete s_AssetViewers[ id ];
 
-				continue;
-			}
-
-			viewer->Draw();
+			s_AssetViewers.erase( id );
+			s_PendingAssetViewers.erase( std::remove( s_PendingAssetViewers.begin(), s_PendingAssetViewers.end(), id ), s_PendingAssetViewers.end() );
 		}
 	}
 
-	void AssetViewer::RenderAll()
+	void AssetViewer::Draw()
 	{
+		CheckForDeadViewers();
+
+		for ( auto&& [id, viewer] : s_AssetViewers )
+		{
+			viewer->OnImGuiRender();
+		}
+	}
+
+	void AssetViewer::Update( Timestep ts )
+	{
+		CheckForDeadViewers();
+
 		for( auto&& [id, viewer] : s_AssetViewers )
 		{
-			if( !viewer )
-			{
-				delete viewer;
-				s_AssetViewers.erase( id );
-			}
-
-			if( !viewer->IsOpen() )
-			{
-				delete viewer;
-				s_AssetViewers.erase( id );
-
-				continue;
-			}
-
-			viewer->OnRender();
+			viewer->OnUpdate( ts );
 		}
+	}
+
+	void AssetViewer::ProcessEvent( Event& rEvent )
+	{
+		CheckForDeadViewers();
+
+		for( auto&& [id, viewer] : s_AssetViewers )
+		{
+			viewer->OnEvent( rEvent );
+		}
+	}
+
+	void AssetViewer::DestoryViewer( AssetID ID )
+	{
+		s_PendingAssetViewers.push_back( ID );
 	}
 
 }

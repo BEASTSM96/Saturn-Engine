@@ -55,15 +55,6 @@
 
 #define SAT_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
-// Lazy load... TODO: Change this.
-#define SINGLETON( x )                    \
-public:                                   \
-static x& Get() { static x _; return _; } \
-x( const x& ) = delete;                   \
-x( x&& ) = delete;                        \
-x& operator=( x&& ) = delete;             \
-x& operator=( const x& ) = delete
-
 #define BIT( x ) (1 << x)
 
 #define SAT_CURRENT_VERISON 0.1.0

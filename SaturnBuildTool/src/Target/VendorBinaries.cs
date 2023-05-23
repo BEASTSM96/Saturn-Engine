@@ -119,9 +119,13 @@ namespace SaturnBuildTool
                         binPath = Path.Combine(binPath, "shaderc\\bin\\");
 
                         if (target.CurrentConfig == ConfigKind.Debug)
+                        {
                             binPath = Path.Combine(binPath, "Debug-Windows");
-                        else
+                        }
+                        else 
+                        {
                             binPath = Path.Combine(binPath, "Release-Windows");
+                        }
                     }
                     break;
 

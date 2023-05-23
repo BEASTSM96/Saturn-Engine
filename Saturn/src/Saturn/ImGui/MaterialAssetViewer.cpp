@@ -137,9 +137,8 @@ namespace Saturn {
 	}
 
 	MaterialAssetViewer::MaterialAssetViewer( AssetID id )
-		: AssetViewer()
+		: AssetViewer( id )
 	{
-		m_AssetID = id;
 		m_AssetType = AssetType::Material;
 
 		AddMaterialAsset();
@@ -150,7 +149,7 @@ namespace Saturn {
 		delete m_NodeEditor;
 	}
 
-	void MaterialAssetViewer::Draw()
+	void MaterialAssetViewer::OnImGuiRender()
 	{
 		DrawInternal();
 	}
@@ -378,7 +377,7 @@ namespace Saturn {
 		m_MaterialAsset->BeginViewingSession();
 
 		if( m_NodeEditor->IsOpen() )
-			m_NodeEditor->Draw();
+			m_NodeEditor->OnImGuiRender();
 		else 
 		{
 			m_MaterialAsset->EndViewingSession();

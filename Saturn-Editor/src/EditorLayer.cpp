@@ -45,7 +45,7 @@
 #include <Saturn/Serialisation/AssetRegistrySerialiser.h>
 #include <Saturn/Serialisation/AssetSerialisers.h>
 
-#include <Saturn/PhysX/PhysXFnd.h>
+#include <Saturn/JoltPhysics/JoltPhysicsFoundation.h>
 
 #include <Saturn/Vulkan/MaterialInstance.h>
 
@@ -99,12 +99,12 @@ namespace Saturn {
 		m_RuntimeScene = nullptr;
 		
 		// Create Panel Manager.
-		PanelManager::Get();
+		m_PanelManager = Ref<PanelManager>::Create();
 		
-		PanelManager::Get().AddPanel( new SceneHierarchyPanel() );
-		PanelManager::Get().AddPanel( new ContentBrowserPanel() );
+		m_PanelManager->AddPanel( new SceneHierarchyPanel() );
+		m_PanelManager->AddPanel( new ContentBrowserPanel() );
 
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 		m_TitleBar = new TitleBar();
 
@@ -112,12 +112,12 @@ namespace Saturn {
 		{
 			if( ImGui::BeginMenu( "File" ) )
 			{
-				if( ImGui::MenuItem( "Exit", "Alt+F4" ) )          Application::Get().Close();
-				if( ImGui::MenuItem( "Save", "Ctrl+S" ) )          SaveFile();
-				if( ImGui::MenuItem( "Save As", "Ctrl+Shift+S" ) ) SaveFileAs();
-				if( ImGui::MenuItem( "Open", "Ctrl+O" ) )          OpenFile();
+				if( ImGui::MenuItem( "Save Scene", "Ctrl+S" ) )          SaveFile();
+				if( ImGui::MenuItem( "Save Scene As", "Ctrl+Shift+S" ) ) SaveFileAs();
+				if( ImGui::MenuItem( "Open Scene", "Ctrl+O" ) )          OpenFile();
 				
-				if( ImGui::MenuItem( "Save Project" ) )            SaveProject();
+				if( ImGui::MenuItem( "Save Project" ) )                  SaveProject();
+				if( ImGui::MenuItem( "Exit", "Alt+F4" ) )                Application::Get().Close();
 
 				ImGui::EndMenu();
 			}
@@ -158,7 +158,7 @@ namespace Saturn {
 		{
 			if( ImGui::BeginMenu( "Settings" ) )
 			{
-				if( ImGui::MenuItem( "User settings", "Ctrl+Shift+Alt+S" ) ) m_ShowUserSettings = !m_ShowUserSettings;
+				if( ImGui::MenuItem( "User settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;
 				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
 				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug = !OpenLoadedAssetDebug;
 
@@ -195,10 +195,10 @@ namespace Saturn {
 		m_ScaleTexture        = Ref< Texture2D >::Create( "content/textures/editor/Scale.png", AddressingMode::Repeat );
 		m_SyncTexture         = Ref< Texture2D >::Create( "content/textures/editor/Sync.png", AddressingMode::Repeat );
 
-		// Init PhysX
-		PhysXFnd::Get();
+		// Init Physics
+		JoltPhysicsFoundation::Get().Init();
 
-		ContentBrowserPanel* pContentBrowserPanel = ( ContentBrowserPanel* ) PanelManager::Get().GetPanel( "Content Browser Panel" );
+		ContentBrowserPanel* pContentBrowserPanel = ( ContentBrowserPanel* ) m_PanelManager->GetPanel( "Content Browser Panel" );
 
 		auto& rUserSettings = GetUserSettings();
 
@@ -246,12 +246,13 @@ namespace Saturn {
 		
 		m_TitleBar = nullptr;
 	
-		PanelManager::Get().Terminate();
+		m_PanelManager = nullptr;
+		JoltPhysicsFoundation::Get().Terminate();
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )
 	{
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 		
 		if( m_RequestRuntime )
 		{
@@ -271,6 +272,7 @@ namespace Saturn {
 				m_RuntimeScene->m_RuntimeRunning = true;
 
 				Scene::SetActiveScene( m_RuntimeScene.Pointer() );
+				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Pointer() );
 			}
 		}
 		else
@@ -286,20 +288,19 @@ namespace Saturn {
 
 				Scene::SetActiveScene( m_EditorScene.Pointer() );
 				EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
+				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Pointer() );
 			}
 		}
 
 		if( m_RuntimeScene ) 
 		{
-			m_RuntimeScene->OnUpdate( Application::Get().Time() );
-			m_RuntimeScene->OnRenderRuntime( Application::Get().Time(), Application::Get().PrimarySceneRenderer() );
+			m_RuntimeScene->OnUpdate( time );
+			m_RuntimeScene->OnRenderRuntime( time, Application::Get().PrimarySceneRenderer() );
 		}
 		else 
 		{
 			m_EditorCamera.SetActive( m_AllowCameraEvents );
 			m_EditorCamera.OnUpdate( time );
-
-			Application::Get().PrimarySceneRenderer().SetCamera( { m_EditorCamera, m_EditorCamera.ViewMatrix() } );
 
 			m_EditorScene->OnUpdate( time );
 			m_EditorScene->OnRenderEditor( m_EditorCamera, time, Application::Get().PrimarySceneRenderer() );
@@ -312,7 +313,7 @@ namespace Saturn {
 			m_StartedRightClickInViewport = false;
 
 		// Render scenes in other asset viewers
-		AssetViewer::RenderAll();
+		AssetViewer::Update( time );
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -336,10 +337,11 @@ namespace Saturn {
 		io.ConfigWindowsResizeFromEdges = io.BackendFlags & ImGuiBackendFlags_HasMouseCursors;
 
 		m_TitleBar->Draw();
+		AssetViewer::Draw();
 
-		PanelManager::Get().DrawAllPanels();
+		m_PanelManager->DrawAllPanels();
 		Application::Get().PrimarySceneRenderer().ImGuiRender();
-		
+
 		if( m_ShowUserSettings )
 			UI_Titlebar_UserSettings();
 
@@ -421,7 +423,7 @@ namespace Saturn {
 	
 		ImGui::Begin( "Materials" );
 
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *)PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 		if( auto& rSelection = pHierarchyPanel->GetSelectionContext() )
 		{
@@ -544,9 +546,6 @@ namespace Saturn {
 				}
 			}
 		}
-		
-		// Asset viewers, check for any dead assets viewers.
-		AssetViewer::DrawAll();
 
 		if( !s_HasPremakePath )
 		{
@@ -748,6 +747,8 @@ namespace Saturn {
 
 		if( m_MouseOverViewport )
 			m_EditorCamera.OnEvent( rEvent );
+
+		AssetViewer::ProcessEvent( rEvent );
 	}
 
 	void EditorLayer::SaveFileAs()
@@ -789,7 +790,7 @@ namespace Saturn {
 		if( rFilepath.empty() )
 			return;
 
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		EntityScriptManager::Get().SetCurrentScene( newScene );
@@ -852,7 +853,7 @@ namespace Saturn {
 		{
 			case Key::Delete:
 			{
-				SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+				SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 				if( pHierarchyPanel )
 				{
@@ -884,7 +885,7 @@ namespace Saturn {
 			{
 				case Key::D:
 				{
-					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 					
 					if( pHierarchyPanel ) 
 					{
@@ -898,13 +899,34 @@ namespace Saturn {
 
 				case Key::F:
 				{
-					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) PanelManager::Get().GetPanel( "Scene Hierarchy Panel" );
+					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 					if( auto& selectedEntity = pHierarchyPanel->GetSelectionContext() ) 
 					{
 						m_EditorCamera.Focus( selectedEntity.GetComponent<TransformComponent>().Position );
 					}
 				} break;
+
+				case Key::O:
+				{
+					OpenFile();
+				} break;
+
+				case Key::S:
+				{
+					SaveFile();
+				} break;
+			}
+
+			if( Input::Get().KeyPressed( Key::LeftShift ) ) 
+			{
+				switch( rEvent.KeyCode() )
+				{
+					case Key::S:
+					{
+						SaveFileAs();
+					} break;
+				}
 			}
 		}
 
@@ -925,7 +947,7 @@ namespace Saturn {
 
 		ImGui::SetNextWindowPos( ImVec2( rIO.DisplaySize.x * 0.5f - 150.0f, rIO.DisplaySize.y * 0.5f - 150.0f ), ImGuiCond_Once );
 
-		ImGui::Begin( "User settings" );
+		ImGui::Begin( "User settings", &m_ShowUserSettings );
 
 		ImGui::SetCursorPosX( ImGui::GetWindowContentRegionWidth() * 0.5f - ImGui::CalcTextSize( "User settings" ).x * 0.5f );
 		ImGui::Text( "User settings" );

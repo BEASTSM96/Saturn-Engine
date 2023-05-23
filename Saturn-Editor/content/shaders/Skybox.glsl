@@ -31,6 +31,9 @@ void main()
 
 // Final Color
 layout(location = 0) out vec4 FinalColor;
+// The geo pass has two extra outputs that we don't write to.
+layout(location = 1) out vec4 UnusedA; 
+layout(location = 2) out vec4 UnusedB;
 
 // Inputs
 layout(location = 0) in vec3 v_Position;

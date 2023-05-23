@@ -31,8 +31,8 @@
 
 #include "Window.h"
 
-#include "Saturn/Vulkan/VulkanContext.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
+#include "Saturn/Vulkan/VulkanContext.h"
 
 #include "OptickProfiler.h"
 
@@ -83,6 +83,7 @@ namespace Saturn {
 
 		// Lazy load.
 		AudioSystem::Get();
+		RenderThread::Get().Enable( m_Specification.EnableGameThread );
 
 		m_ImGuiLayer = new ImGuiLayer();
 		m_ImGuiLayer->OnAttach();
@@ -170,6 +171,12 @@ namespace Saturn {
 		// Begin on main thread.
 		m_ImGuiLayer->Begin();
 
+		// Update on the main thread.
+		for( auto& layer : m_Layers )
+		{
+			layer->OnUpdate( m_Timestep );
+		}
+
 		// I'm not really sure if I want the render thread to render imgui.
 		// TEMP: There is some bugs when we try to render imgui on renderer thread, and if it needs a new window it will freeze
 		RenderThread::Get().Queue( [=]
@@ -184,12 +191,6 @@ namespace Saturn {
 			{
 				m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
 			} );
-
-		// Update on the main thread.
-		for( auto& layer : m_Layers )
-		{
-			layer->OnUpdate( m_Timestep );
-		}
 	}
 
 	std::string Application::OpenFile( const char* pFilter ) const
@@ -247,9 +248,12 @@ namespace Saturn {
 		if( m_ImGuiLayer != nullptr )
 			m_ImGuiLayer->OnEvent( e );
 		
-		for( auto& layer : m_Layers )
+		// We need to make sure we process event backwards as if the editor layer is first and we have a button that was created by the user in game then the editor layer would get the event first, and let's say that it might shoot or something. We wanted to click a button not shoot.
+		for( auto itr = m_Layers.end(); itr != m_Layers.begin(); )
 		{
-			layer->OnEvent( e );
+			( *--itr )->OnEvent( e );
+			if( e.Handled )
+				break;
 		}
 	}
 
@@ -268,10 +272,9 @@ namespace Saturn {
 	std::string Application::OpenFileInternal( const char* pFilter ) const
 	{
 #ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;       // common dialog box structure
-		CHAR szFile[ 260 ] = { 0 };       // if using TCHAR macros
+		OPENFILENAMEA ofn;
+		CHAR szFile[ 260 ] = { 0 };
 
-										// Initialize OPENFILENAME
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
 		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
@@ -297,10 +300,9 @@ namespace Saturn {
 	std::string Application::SaveFileInternal( const char* pFilter ) const
 	{
 #ifdef  SAT_PLATFORM_WINDOWS
-		OPENFILENAMEA ofn;       // common dialog box structure
-		CHAR szFile[ 260 ] = { 0 };       // if using TCHAR macros
+		OPENFILENAMEA ofn;
+		CHAR szFile[ 260 ] = { 0 };
 
-										// Initialize OPENFILENAME
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
 		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );

@@ -67,9 +67,13 @@ namespace SaturnBuildTool.Tools
             {
                 foreach (string d in Directory.GetDirectories(sDir))
                 {
-                    if (isSourceOnly)
-                        if (!d.EndsWith("src") || d.EndsWith("Scripts"))
+                    if (isSourceOnly) 
+                    {
+                        if (!d.EndsWith("src") || d.EndsWith("Scripts")) 
+                        {
                             continue;
+                        }
+                    }
 
                     foreach (string f in Directory.GetFiles(d))
                     {

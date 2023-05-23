@@ -113,7 +113,7 @@ namespace Saturn {
 
 	Ref<Image2D> SceneRenderer::CompositeImage()
 	{
-		return m_RendererData.ViewShadowCascades ? m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource() : m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ];
+		return m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ];
 	}
 
 	void SceneRenderer::Terminate()
@@ -328,7 +328,7 @@ namespace Saturn {
 		{
 			// Create the scene composite render pass.
 			PassSpecification PassSpec = {};
-			PassSpec.Name = "Texture pass";
+			PassSpec.Name = "Scene Composite (PP) pass";
 
 			PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
 
@@ -415,6 +415,9 @@ namespace Saturn {
 
 	void SceneRenderer::InitTexturePass()
 	{
+		if( !m_RendererData.IsSwapchainTarget )
+			return;
+
 		if( !m_RendererData.TexturePassShader )
 		{
 			m_RendererData.TexturePassShader = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
@@ -453,8 +456,6 @@ namespace Saturn {
 
 		if( Application::Get().GetSpecification().GameDist )
 			return;
-
-		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		// Set UB Data.
 
@@ -531,7 +532,7 @@ namespace Saturn {
 			return;
 
 		// Invalid skybox, maybe null from loading a new scene? This only happens on the first frames so this is a hack.
-		if( m_RendererData.SceneEnvironment->IrradianceMap == nullptr && m_RendererData.SceneEnvironment->IrradianceMap == nullptr )
+		if( m_RendererData.SceneEnvironment->IrradianceMap == nullptr && m_RendererData.SceneEnvironment->RadianceMap == nullptr )
 		{
 			Entity SkylightEntity;
 
@@ -549,7 +550,7 @@ namespace Saturn {
 				if( !Skylight.DynamicSky )
 					return;
 
-				if( Skylight.DynamicSky && !m_RendererData.SceneEnvironment->IrradianceMap && !m_RendererData.SceneEnvironment->IrradianceMap )
+				if( Skylight.DynamicSky && !m_RendererData.SceneEnvironment->IrradianceMap && !m_RendererData.SceneEnvironment->RadianceMap )
 				{
 					m_RendererData.SceneEnvironment->Turbidity = Skylight.Turbidity;
 					m_RendererData.SceneEnvironment->Azimuth = Skylight.Azimuth;
@@ -806,7 +807,7 @@ namespace Saturn {
 
 			ImGui::Text( "Renderer::EndFrame: %.2f ms", FrameTimings.second );
 
-			ImGui::Text( "Total (render wait time): %.2f ms", RenderThread::Get().GetWaitTime() );
+			ImGui::Text( "Total (render thread wait time): %.2f ms", RenderThread::Get().GetWaitTime() );
 			ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
 
 			EndTreeNode();
@@ -841,7 +842,7 @@ namespace Saturn {
 				EndTreeNode();
 			}
 
-			if( TreeNode( "Bloom settings", true ) )
+			if( TreeNode( "Bloom settings", false ) )
 			{
 				static int index = 0;
 				static int MipIndex = 0;
@@ -855,14 +856,6 @@ namespace Saturn {
 				Image( img, MipIndex, { size, size }, { 0, 1 }, { 1, 0 } );
 
 				ImGui::SliderFloat( "##dirtint", &m_RendererData.BloomDirtIntensity, 0, 1000.0f );
-
-				EndTreeNode();
-			}
-
-			if( TreeNode( "Forward+", true ) )
-			{
-				ImGui::Checkbox( "Show Light Complexity", &m_RendererData.ShowLightComplexity );
-				ImGui::Checkbox( "Show Light Culling", &m_RendererData.ShowLightCulling );
 
 				EndTreeNode();
 			}
@@ -914,7 +907,9 @@ namespace Saturn {
 
 		InitTexturePass();
 
-		glm::uvec2 bs = ( glm::uvec2( m_RendererData.Width, m_RendererData.Height ) + 1u ) / 2u;
+		const glm::uvec2 viewportSize = { m_RendererData.Width, m_RendererData.Height };
+
+		glm::uvec2 bs = ( viewportSize + 1u ) / 2u;
 		bs += m_RendererData.BloomWorkSize - bs % m_RendererData.BloomWorkSize;
 
 		for( uint32_t i = 0; i < 3; i++ )
@@ -1018,14 +1013,8 @@ namespace Saturn {
 
 			struct DebugData
 			{
-				float ShowLightComplexity;
-				float ShowLightCulling;
-
 				int TilesCountX;
 			} u_DebugData = {};
-
-			u_DebugData.ShowLightComplexity = ( float ) m_RendererData.ShowLightComplexity;
-			u_DebugData.ShowLightCulling = ( float ) m_RendererData.ShowLightCulling;
 
 			u_DebugData.TilesCountX = ( int ) m_RendererData.LightCullingWorkGroups.x;
 
@@ -1400,11 +1389,6 @@ namespace Saturn {
 		auto& shader = m_RendererData.BloomShader;
 		auto& pipeline = m_RendererData.BloomComputePipeline;
 
-		DescriptorSetSpecification spec;
-		spec.Layout = shader->GetSetLayout();
-		spec.SetIndex = 0;
-		spec.Pool = shader->GetDescriptorPool();
-
 		VkDescriptorSet descriptorSet;
 		VkDescriptorSetAllocateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 		info.descriptorPool = Renderer::Get().GetDescriptorPool()->GetVulkanPool();
@@ -1414,13 +1398,6 @@ namespace Saturn {
 		auto& InputImg = m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ];
 
 		glm::vec2 workgrps{};
-
-		uint32_t mips = m_RendererData.BloomTextures[ 0 ]->GetMipMapLevels();
-
-		if( mips == 1 )
-			return;
-
-		mips = mips - 2;
 
 		// Step 0: Bind compute pipeline in graphics queue.
 		// Make sure to do it on the graphics queue.
@@ -1453,6 +1430,11 @@ namespace Saturn {
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Downsample" );
+
+		if( m_RendererData.BloomTextures[ 0 ]->GetMipMapLevels() <= 1 )
+			return;
+
+		uint32_t mips = m_RendererData.BloomTextures[ 0 ]->GetMipMapLevels() - 2;
 
 		// Step 1: Downsample.
 		pc_Settings.Stage = ( float ) BloomStage::Downsample;
@@ -1606,7 +1588,7 @@ namespace Saturn {
 
 		pipeline->Bind();
 		pipeline->AddPushConstant( &params, 0, sizeof( glm::vec3 ) );
-		pipeline->Execute( m_RendererData.PreethamDescriptorSet->GetVulkanSet(), cubemapSize / 32, cubemapSize / 32, 6 );
+		pipeline->Execute( m_RendererData.PreethamDescriptorSet->GetVulkanSet(), cubemapSize / irradianceMap, cubemapSize / irradianceMap, 6 );
 		pipeline->Unbind();
 
 		Environment->CreateMips();
@@ -1686,7 +1668,7 @@ namespace Saturn {
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Bloom" );
 
-		BloomPass();
+//		BloomPass();
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 

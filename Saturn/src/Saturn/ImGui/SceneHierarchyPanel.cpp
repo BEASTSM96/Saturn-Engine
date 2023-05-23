@@ -35,8 +35,6 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "UITools.h"
 
-#include "Saturn/PhysX/PhysXRigidBodyBase.h"
-
 #include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Saturn/GameFramework/EntityScriptManager.h"
@@ -151,10 +149,10 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::Draw()
 	{
-		ImGui::PushID( static_cast<int>( m_Context->GetId() ) );
+		ImGui::PushID( static_cast<int>( m_CustomID == 0 ? m_Context->GetId() : m_CustomID ) );
 
 		if( !m_IsPrefabScene )
-			ImGui::Begin( "Scene Hierarchy" );
+			ImGui::Begin( m_WindowName.c_str() );
 
 		if( m_Context )
 		{	
@@ -204,20 +202,15 @@ namespace Saturn {
 				ImGui::EndPopup();
 			}
 
-			//if( !m_IsPrefabScene )
-				ImGui::Begin( "Inspector", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse );
-			//else
-			//	ImGui::BeginChild( "Inspector" );
+			std::string name = "Inspector##" + m_WindowName;
+			ImGui::Begin( name.c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse );
 
 			if( m_SelectionContext )
 			{
 				DrawComponents( m_SelectionContext );
 			}
 
-			//if( !m_IsPrefabScene )
-				ImGui::End();
-			//else
-			//	ImGui::EndChild();
+			ImGui::End();
 		}
 
 		if( !m_IsPrefabScene )
@@ -245,15 +238,15 @@ namespace Saturn {
 
 			DrawAddComponents<DirectionalLightComponent>( "Directional Light", m_SelectionContext );
 
-			DrawAddComponents<PhysXBoxColliderComponent>( "Box Collider", m_SelectionContext );
+			DrawAddComponents<BoxColliderComponent>( "Box Collider", m_SelectionContext );
 
-			DrawAddComponents<PhysXSphereColliderComponent>( "Sphere Collider", m_SelectionContext );
+			DrawAddComponents<SphereColliderComponent>( "Sphere Collider", m_SelectionContext );
 
-			DrawAddComponents<PhysXCapsuleColliderComponent>( "Capsule Collider", m_SelectionContext );
+			DrawAddComponents<CapsuleColliderComponent>( "Capsule Collider", m_SelectionContext );
 
-			DrawAddComponents<PhysXRigidbodyComponent>( "Rigidbody", m_SelectionContext );
+			DrawAddComponents<RigidbodyComponent>( "Rigidbody", m_SelectionContext );
 
-			DrawAddComponents<PhysXMaterialComponent>( "Physics material", m_SelectionContext );
+			DrawAddComponents<PhysicsMaterialComponent>( "Physics material", m_SelectionContext );
 
 			ImGui::EndPopup();
 		}
@@ -486,14 +479,6 @@ namespace Saturn {
 
 		DrawComponent<SkylightComponent>( "Skylight", entity, []( auto& skl )
 		{
-			if( !skl.DynamicSky )
-			{
-				if( ImGui::Button( "...##openenvmap", ImVec2( 50, 20 ) ) ) 
-				{
-					// TODO:
-				}
-			}
-
 			DrawBoolControl( "Dynamic Sky", skl.DynamicSky );
 
 			bool changed = false;
@@ -509,7 +494,7 @@ namespace Saturn {
 			}
 		} );
 		
-		DrawComponent<PhysXBoxColliderComponent>( "Box Collider", entity, []( auto& bc )
+		DrawComponent<BoxColliderComponent>( "Box Collider", entity, []( auto& bc )
 		{
 			DrawVec3Control( "Extent", bc.Extents );
 			DrawVec3Control( "Offset", bc.Offset );
@@ -517,7 +502,7 @@ namespace Saturn {
 			DrawBoolControl( "IsTrigger", bc.IsTrigger );
 		} );
 
-		DrawComponent<PhysXSphereColliderComponent>( "Sphere Collider", entity, []( auto& sc )
+		DrawComponent<SphereColliderComponent>( "Sphere Collider", entity, []( auto& sc )
 		{
 			DrawVec3Control( "Offset", sc.Offset );
 			DrawFloatControl( "Radius", sc.Radius );
@@ -525,7 +510,7 @@ namespace Saturn {
 			DrawBoolControl( "IsTrigger", sc.IsTrigger );
 		} );
 
-		DrawComponent<PhysXCapsuleColliderComponent>( "Capsule Collider", entity, []( auto& cc )
+		DrawComponent<CapsuleColliderComponent>( "Capsule Collider", entity, []( auto& cc )
 		{
 			DrawVec3Control( "Offset", cc.Offset );
 
@@ -535,7 +520,7 @@ namespace Saturn {
 			DrawBoolControl( "IsTrigger", cc.IsTrigger );
 		} );
 
-		DrawComponent<PhysXRigidbodyComponent>( "Rigidbody", entity, []( auto& rb )
+		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )
 		{
 			DrawBoolControl( "Is Kinematic", rb.IsKinematic );
 			DrawBoolControl( "Use CCD", rb.UseCCD );
@@ -556,44 +541,6 @@ namespace Saturn {
 			if( modified )
 			{
 				rb.LinearDrag = drag;
-			}
-
-			// Lock Flags
-			bool locationX = rb.LockFlags & LockFlags::LockLocationX;
-			bool locationY = rb.LockFlags & LockFlags::LockLocationY;
-			bool locationZ = rb.LockFlags & LockFlags::LockLocationZ;
-			bool rotationX = rb.LockFlags & LockFlags::LockRotationX;
-			bool rotationY = rb.LockFlags & LockFlags::LockRotationY;
-			bool rotationZ = rb.LockFlags & LockFlags::LockRotationZ;
-
-			if( DrawBoolControl( "Lock Location X", locationX ) ) 
-			{
-				locationX ? rb.LockFlags |= ( uint32_t ) LockFlags::LockLocationX : rb.LockFlags &= ~( uint32_t ) LockFlags::LockLocationX;
-			}
-
-			if( DrawBoolControl( "Lock Location Y", locationY ) )
-			{
-				locationY ? rb.LockFlags |= ( uint32_t ) LockFlags::LockLocationY : rb.LockFlags &= ~( uint32_t ) LockFlags::LockLocationY;
-			}
-
-			if( DrawBoolControl( "Lock Location Z", locationZ ) )
-			{
-				locationZ ? rb.LockFlags |= ( uint32_t ) LockFlags::LockLocationZ : rb.LockFlags &= ~( uint32_t ) LockFlags::LockLocationZ;
-			}
-
-			if( DrawBoolControl( "Lock Rotation X", rotationX ) )
-			{
-				rotationX ? rb.LockFlags |= ( uint32_t ) LockFlags::LockRotationX : rb.LockFlags &= ~( uint32_t ) LockFlags::LockRotationX;
-			}
-
-			if( DrawBoolControl( "Lock Rotation Y", rotationY ) )
-			{
-				rotationY ? rb.LockFlags |= ( uint32_t ) LockFlags::LockRotationY : rb.LockFlags &= ~( uint32_t ) LockFlags::LockRotationY;
-			}
-
-			if( DrawBoolControl( "Lock Rotation Z", rotationZ ) )
-			{
-				rotationZ ? rb.LockFlags |= ( uint32_t ) LockFlags::LockRotationZ : rb.LockFlags &= ~( uint32_t ) LockFlags::LockRotationZ;
 			}
 		} );
 

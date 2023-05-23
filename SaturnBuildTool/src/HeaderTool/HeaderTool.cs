@@ -55,7 +55,7 @@ namespace SaturnBuildTool.Tools
         }
 
         // Filepath, Command
-        private Dictionary<string, Command> CommandQueue = new Dictionary<string, Command>();
+        private readonly Dictionary<string, Command> CommandQueue = new Dictionary<string, Command>();
 
         public bool IsFilepathGeneratedH(string Filepath) 
         {
@@ -116,7 +116,9 @@ namespace SaturnBuildTool.Tools
                     while ((line = sr.ReadLine()) != null)
                     {
                         if (!LineIsNotComment(line))
+                            {
                             continue;
+                        }
 
                         string refleciblePattern = @"(class|struct)\s+\w+";
 
@@ -158,7 +160,9 @@ namespace SaturnBuildTool.Tools
                     while ((line = sr.ReadLine()) != null && !Found)
                     {
                         if (!LineIsNotComment(line))
+                        {
                             continue;
+                        }
 
                         if (line.Contains("HT_FLAGS")) 
                         {
@@ -467,7 +471,9 @@ namespace SaturnBuildTool.Tools
                     Property property = kv.Value;
 
                     if (property.Name == null)
+                        {
                         continue;
+                    }
 
                     propfunc += string.Format("\t// [_Zp_Public_Prop] {0} of type {1}\r\n", property.Name.ToUpper(), property.Type.ToUpper());
                     propfunc += string.Format("\t//Saturn::EntityScrviptManager::Get().AddProperty( \"{0}\", \"{1}\", (void*)&{2}::{1});\r\n", cmd.CurrentFile.ClassName, property.Name, cmd.CurrentFile.ClassName);
@@ -525,17 +531,25 @@ namespace SaturnBuildTool.Tools
             string GenFilepath = Path.ChangeExtension(SourcePath, ".Gen.cpp");
             string HeaderFilepath = Path.ChangeExtension(SourcePath, ".h");
 
-            if (!File.Exists(HeaderFilepath))
+            if (!File.Exists(HeaderFilepath)) 
+            {
                 return false;
+            }
 
             if (IsFilepathGeneratedS(HeaderFilepath))
+            {
                 return false;
+            }
 
             if (!CanFileBeReflected(HeaderFilepath))
+            {
                 return false;
+            }
 
             if (NoReflectInFile(HeaderFilepath))
+            {
                 return false;
+            }
 
             if (!CommandQueue.ContainsKey(HeaderFilepath))
             {
@@ -565,7 +579,9 @@ namespace SaturnBuildTool.Tools
             }
 
             if (!File.Exists(GenFilepath))
+            {
                 File.Create(GenFilepath).Close();
+            }
 
             GenerateSource(GenFilepath, HeaderFilepath);
 
@@ -579,16 +595,24 @@ namespace SaturnBuildTool.Tools
             string GenFilepath = Path.ChangeExtension(HeaderFilepath, ".Gen.h");
 
             if (!File.Exists(HeaderFilepath))
+            {
                 return false;
+            }
 
             if (IsFilepathGeneratedH(HeaderFilepath))
+            {
                 return false;
+            }
 
             if (!CanFileBeReflected(HeaderFilepath))
+            {
                 return false;
+            }
 
             if (NoReflectInFile(HeaderFilepath))
+            {
                 return false;
+            }
 
             if (!CommandQueue.ContainsKey(HeaderFilepath))
             {
@@ -612,7 +636,9 @@ namespace SaturnBuildTool.Tools
             }
 
             if (!File.Exists(GenFilepath)) 
+            {
                 File.Create(GenFilepath).Close();
+            }
 
             GenerateHeader( GenFilepath, HeaderFilepath);
 
@@ -635,10 +661,14 @@ namespace SaturnBuildTool.Tools
                             // Safe to create the file.
                             FileStream fs = null;
                             if (!File.Exists(GenFilepath))
+                            {
                                 fs = File.Create(GenFilepath);
+                            }
 
                             if (fs != null)
+                            {
                                 fs.Close();
+                            }
 
                             GenerateSource(Filepath, GenFilepath);
                         } break;
@@ -648,10 +678,14 @@ namespace SaturnBuildTool.Tools
                             // Safe to create the file.
                             FileStream fs = null;
                             if (!File.Exists(cmd.GenFilepath))
+                            {
                                 fs = File.Create(cmd.GenFilepath);
+                            }
 
                             if (fs != null)
+                            {
                                 fs.Close();
+                            }
 
                             GenerateHeader(cmd.GenFilepath, Filepath);
                         } break;

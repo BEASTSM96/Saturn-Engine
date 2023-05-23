@@ -90,8 +90,10 @@ namespace SaturnBuildTool
 
             TargetToBuild = UserTarget.SetupUserTarget(BuildTargetFile.Instance.BuildFile);
 
-            if(TargetToBuild == null)
+            if (TargetToBuild == null) 
+            {
                 Console.WriteLine( "Could not find a user target!, looking for {0} Please regenerate it in the engine!", BuildTargetFile.Instance.BuildFile );
+            }
 
             TargetToBuild.ProjectName = Args[1];
             TargetToBuild.ProjectName = TargetToBuild.ProjectName.Replace("/", string.Empty);
@@ -138,8 +140,10 @@ namespace SaturnBuildTool
                     {
                         HasCompiledAnyFile = true;
 
-                        if (!FileCache.IsFileInCache(file))
+                        if (!FileCache.IsFileInCache(file)) 
+                        {
                             FileCache.CacheFile(file);
+                        }
                     }
                     else
                         NumTasksFailed++;
@@ -152,8 +156,10 @@ namespace SaturnBuildTool
                     {
                         HasCompiledAnyFile = true;
 
-                        if (!FileCache.IsFileInCache(file))
+                        if (!FileCache.IsFileInCache(file)) 
+                        {
                             FileCache.CacheFile(file);
+                        }
                     }
                     else
                         NumTasksFailed++;

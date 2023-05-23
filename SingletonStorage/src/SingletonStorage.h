@@ -35,6 +35,10 @@
 
 #include "SSBase.h"
 
+// Not the best way. 
+// "needs to have dll-interface to be used by clients of class 'Saturn::SingletonStorage'"
+#pragma warning(disable:4251)
+
 namespace Saturn {
 
 	class SS_API SingletonStorage
