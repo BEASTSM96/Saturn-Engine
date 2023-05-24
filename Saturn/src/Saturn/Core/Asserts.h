@@ -34,7 +34,7 @@
 
 #define _VA_AGRS_( x ) x
 
-#if defined ( SAT_DEBUG )
+#if defined ( SAT_DEBUG ) || defined ( SAT_RELEASE )
 #define SAT_ASSERT_NO_MESSAGE(condition) { if(!(condition)) { SAT_CORE_ERROR("Assertion Failed: {2}, Line {0}, File, {1}", __LINE__, __FILE__, #condition); Saturn::Core::BreakDebug(); } }
 #define SAT_ASSERT_MESSAGE(condition, ...) { if(!(condition)) { SAT_CORE_ERROR("Assertion Failed: {2}, Line {0}, File, {1}", __LINE__, __FILE__, __VA_ARGS__); Saturn::Core::BreakDebug(); } }
 

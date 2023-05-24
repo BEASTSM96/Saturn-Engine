@@ -1292,7 +1292,7 @@ namespace Saturn {
 
 		m_RendererData.LightCullingWorkGroups = { Size / TILE_SIZE, 1 };
 
-		m_RendererData.StorageBufferSet->Resize( 0, 14, ( size_t ) m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4 * 1024 );
+		m_RendererData.StorageBufferSet->Resize( 0, 14, ( size_t ) m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4.0f * 1024.0f );
 
 		// UBs
 		UBLights u_Lights;

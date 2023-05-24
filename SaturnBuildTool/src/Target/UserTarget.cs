@@ -29,9 +29,9 @@ namespace SaturnBuildTool
 
         public List<string> PreprocessorDefines = new List<string>();
 
-        private readonly List<string> Links = new List<string>();
+        public List<string> Links = new List<string>();
 
-        private readonly List<string> DynamicBase = new List<string>();
+        public List<string> DynamicBase = new List<string>();
 
         public List<string> LibraryPaths = new List<string>();
 

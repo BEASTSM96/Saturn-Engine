@@ -494,8 +494,7 @@ project "SaturnBuildTool"
 	location "SaturnBuildTool"
 	language "C#"
 	kind "ConsoleApp"
-	nuget { "System.Xml.ReaderWriter:4.3.1" }
-	links { "System" }
+	links { "System", "YamlDotNet" }
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
