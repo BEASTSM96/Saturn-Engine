@@ -62,9 +62,13 @@ namespace Saturn {
 			{
 				rb.Rigidbody->AttachSphere( e.GetComponent<SphereColliderComponent>().Radius );
 			}
-			else
+			else if( e.HasComponent<CapsuleColliderComponent>() )
 			{
 				rb.Rigidbody->AttachCapsule( e.GetComponent<CapsuleColliderComponent>().Radius, e.GetComponent<CapsuleColliderComponent>().Height );
+			}
+			else
+			{
+
 			}
 
 			rb.Rigidbody->Create( tc.Position, tc.Rotation );

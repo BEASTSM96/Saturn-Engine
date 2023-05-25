@@ -244,6 +244,8 @@ namespace Saturn {
 
 			DrawAddComponents<CapsuleColliderComponent>( "Capsule Collider", m_SelectionContext );
 
+			DrawAddComponents<MeshColliderComponent>( "Mesh Collider", m_SelectionContext );
+
 			DrawAddComponents<RigidbodyComponent>( "Rigidbody", m_SelectionContext );
 
 			DrawAddComponents<PhysicsMaterialComponent>( "Physics material", m_SelectionContext );
@@ -518,6 +520,10 @@ namespace Saturn {
 			DrawFloatControl( "Height", cc.Height );
 
 			DrawBoolControl( "IsTrigger", cc.IsTrigger );
+		} );
+
+		DrawComponent<MeshColliderComponent>( "Mesh Collider", entity, []( auto& mcc )
+		{
 		} );
 
 		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )

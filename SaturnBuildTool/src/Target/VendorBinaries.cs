@@ -10,7 +10,7 @@ namespace SaturnBuildTool
     enum VendorProject 
     {
         GLFW,
-        PHSYX,
+        JOLT,
         YAML_CPP,
         IMGUI,
         SPIRVCROSS,
@@ -49,7 +49,7 @@ namespace SaturnBuildTool
         }
 
         // TODO
-        // TEMP
+        // TEMP: There is 1000% a better way of doing this.
         public static string GetBinPath(VendorProject project, UserTarget target) 
         {
             string saturnDir = Environment.GetEnvironmentVariable("SATURN_DIR");
@@ -68,14 +68,13 @@ namespace SaturnBuildTool
                     } break;
 
 
-                case VendorProject.PHSYX:
+                case VendorProject.JOLT:
                     {
-                        binPath = Path.Combine(binPath, "phsyx\\bin\\");
+                        binPath = Path.Combine(binPath, "Jolt\\bin\\");
 
-                        if(target.CurrentConfig == ConfigKind.Debug)
-                            binPath = Path.Combine(binPath, "Debug");
-                        else
-                            binPath = Path.Combine(binPath, "Release");
+                        binPath = GetRootBinPath(binPath, target);
+
+                        binPath = Path.Combine(binPath, "JoltPhysics");
 
                     }
                     break;

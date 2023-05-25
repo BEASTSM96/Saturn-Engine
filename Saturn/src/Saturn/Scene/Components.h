@@ -200,6 +200,11 @@ namespace Saturn {
 		CapsuleColliderComponent( float radius ) : Radius( radius ) { }
 	};
 
+	struct MeshColliderComponent
+	{
+		UUID AssetID;
+	};
+
 	class JoltDynamicRigidBody;
 	struct RigidbodyComponent
 	{
@@ -284,6 +289,7 @@ namespace Saturn {
 		StaticMeshComponent, 
 		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 		CameraComponent,
-		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
-		ScriptComponent, AudioComponent>;
+		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
+		ScriptComponent, 
+		AudioComponent>;
 }

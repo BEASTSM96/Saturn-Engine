@@ -407,8 +407,9 @@ namespace Saturn {
 			StaticMeshComponent,
 			LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 			CameraComponent,
-			BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
-			ScriptComponent>;
+			BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
+			ScriptComponent, 
+			AudioComponent>;
 
 		CopyComponentIfExists( DesiredComponents{}, newEntity, entity, m_Registry );
 	}

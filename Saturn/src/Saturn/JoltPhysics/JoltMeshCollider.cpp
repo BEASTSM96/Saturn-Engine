@@ -26,77 +26,66 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "JoltMeshCollider.h"
 
-#include "SingletonStorage.h"
-
-#include "JoltBase.h"
+#include "JoltConversions.h"
 
 #include <Jolt/Jolt.h>
-#include <Jolt/Physics/PhysicsSystem.h>
-#include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 
 namespace Saturn {
 
-	class JoltPhysicsContactListener : public JPH::ContactListener
+	JoltMeshCollider::JoltMeshCollider( const Ref<StaticMesh>& rStaticMesh, const glm::vec3& rScale )
+		: m_StaticMesh( rStaticMesh ), m_Scale( rScale )
 	{
-	public:
-		// See: ContactListener
-		virtual JPH::ValidateResult	OnContactValidate( const JPH::Body& inBody1, const JPH::Body& inBody2, JPH::RVec3Arg inBaseOffset, const JPH::CollideShapeResult& inCollisionResult ) override
-		{
-			// Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
-			return JPH::ValidateResult::AcceptAllContactsForThisBodyPair;
-		}
+	}
 
-		virtual void OnContactAdded( const JPH::Body& A, const JPH::Body& B, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings ) override
-		{
-		}
-
-		virtual void OnContactPersisted( const JPH::Body& A, const JPH::Body& B, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings ) override
-		{
-		}
-
-		virtual void OnContactRemoved( const JPH::SubShapeIDPair& inSubShapePair ) override
-		{
-		}
-	};
-
-	class JoltDynamicRigidBody;
-	class StaticMesh;
-
-	class JoltPhysicsFoundation
+	JoltMeshCollider::~JoltMeshCollider()
 	{
-	public:
-		static inline JoltPhysicsFoundation& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<JoltPhysicsFoundation>(); }
-	public:
-		JoltPhysicsFoundation();
-		~JoltPhysicsFoundation();
 
-		void Init();
-		void Terminate();
+	}
 
-		void Update( Timestep ts );
+	void JoltMeshCollider::Create()
+	{
+		const auto& vertices = m_StaticMesh->Vertices();
+		const auto& indices = m_StaticMesh->Indices();
 
-		// Creates a rigid body with a box collider.
-		JPH::Body* CreateBoxCollider( const glm::vec3& Position, const glm::vec3& Rotation, const glm::vec3& Extents, bool Kinematic = false );
+		for( auto& rSubmesh : m_StaticMesh->Submeshes() )
+		{
+			JPH::VertexList list;
+			JPH::IndexedTriangleList triList;
 
-		JPH::Body* CreateCapsuleCollider( const glm::vec3& Position, const glm::vec3& Rotation, float Extents, float Height, bool Kinematic = false );
+			for( uint32_t i = rSubmesh.BaseVertex; i < rSubmesh.BaseVertex + rSubmesh.VertexCount; i++ )
+			{
+				const auto& rVertex = vertices[ i ];
 
-		JPH::Body* CreateSphereCollider( const glm::vec3& Position, const glm::vec3& Rotation, float Extents, bool Kinematic = false );
+				list.push_back( JPH::Float3( rVertex.Position.x, rVertex.Position.y, rVertex.Position.z ) );
+			}
 
-		// When we call this function we always assume the mesh collider has not be created, so only calls if it does not exists.
-		void GenerateMeshCollider( Ref<StaticMesh> mesh, const glm::vec3& Scale );
+			// We divide by three because there is 3 faces in one index. 
+			for( uint32_t j = rSubmesh.BaseIndex / 3; j < rSubmesh.BaseIndex / 3 + rSubmesh.IndexCount / 3; j++ )
+			{
+				const auto& rIndex = indices[ j ];
 
-		void DestroyBody( JPH::Body* pBody );
+				triList.push_back( JPH::IndexedTriangle( rIndex.V1, rIndex.V2, rIndex.V3, 0 ) );
+			}
 
-		JPH::PhysicsSystem* GetPhysicsSystem() { return m_PhysicsSystem; }
-		const JPH::PhysicsSystem* GetPhysicsSystem() const { return m_PhysicsSystem; }
+			JPH::RefConst<JPH::MeshShapeSettings> MeshSettings = new JPH::MeshShapeSettings( list, triList );
 
-	private:
-		JPH::PhysicsSystem*       m_PhysicsSystem = nullptr;
-		JPH::JobSystemThreadPool* m_JobSystem = nullptr;
-		JPH::TempAllocatorImpl*   m_Allocator = nullptr;
+			JPH::RefConst<JPH::ScaledShapeSettings> Settings = new JPH::ScaledShapeSettings( MeshSettings, Auxiliary::GLMToJPH( m_Scale ) );
 
-		JoltPhysicsContactListener m_ContactListener;
-	};
+			JPH::Shape::ShapeResult result = Settings->Create();
+
+			if( result.HasError() )
+			{
+				SAT_CORE_ERROR( "Failed to created mesh collider: {0}. Moving on to the next submesh...", result.GetError() );
+				continue;
+			}
+
+			m_Shapes.push_back( result.Get() );
+		}
+	}
+
 }

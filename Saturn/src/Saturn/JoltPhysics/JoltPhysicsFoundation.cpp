@@ -33,7 +33,7 @@
 
 #include "JoltConversions.h"
 
-#include "Saturn/Vulkan/Mesh.h"
+#include "JoltMeshCollider.h"
 
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Core/Factory.h>
@@ -283,41 +283,7 @@ namespace Saturn {
 
 	void JoltPhysicsFoundation::GenerateMeshCollider( Ref<StaticMesh> mesh, const glm::vec3& rScale )
 	{
-		const auto& vertices = mesh->Vertices();
-		const auto& indices = mesh->Indices();
-
-		for ( auto& rSubmesh : mesh->Submeshes() )
-		{
-			JPH::VertexList list;
-			JPH::IndexedTriangleList triList;
-
-			for( uint32_t i = rSubmesh.BaseVertex; i < rSubmesh.BaseVertex + rSubmesh.VertexCount; i++ )
-			{
-				const auto& rVertex = vertices[i];
-
-				list.push_back( JPH::Float3( rVertex.Position.x, rVertex.Position.y, rVertex.Position.z ) );
-			}
-
-			// We divide by three because there is 3 faces in one index. 
-			for( uint32_t j = rSubmesh.BaseIndex / 3; j < rSubmesh.BaseIndex / 3 + rSubmesh.IndexCount / 3; j++ )
-			{
-				const auto& rIndex = indices[ j ];
-
-				triList.push_back( JPH::IndexedTriangle( rIndex.V1, rIndex.V1, rIndex.V1 ) );
-			}
-
-			JPH::RefConst<JPH::MeshShapeSettings> MeshSettings = new JPH::MeshShapeSettings( list, triList );
-
-			JPH::RefConst<JPH::ScaledShapeSettings> Settings = new JPH::ScaledShapeSettings( MeshSettings, Auxiliary::GLMToJPH( rScale ) );
-
-			JPH::Shape::ShapeResult result = Settings->Create();
-
-			if( result.HasError() )
-			{
-				SAT_CORE_ERROR( "Failed to created mesh collider: {0}. Moving on to the next submesh...", result.GetError() );
-				continue;
-			}
-		}
+		Ref<JoltMeshCollider> meshCollider = Ref<JoltMeshCollider>::Create( mesh );
 	}
 
 }

@@ -64,9 +64,9 @@ namespace Saturn {
 		void SetLinearDrag( float value );
 		bool IsKinematic() { return m_Kinematic; }
 
-		void AttachBox ( const glm::vec3& Scale = glm::vec3(0.0f) );
-		void AttachSphere ( float Extents );
-		void AttachCapsule ( float Extents, float Height );
+		void AttachBox( const glm::vec3& Scale = glm::vec3(0.0f) );
+		void AttachSphere( float Extents );
+		void AttachCapsule( float Extents, float Height );
 
 		void SyncTransform();
 

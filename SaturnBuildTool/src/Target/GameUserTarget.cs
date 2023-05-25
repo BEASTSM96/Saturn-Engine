@@ -45,10 +45,8 @@ namespace SaturnBuildTool
             Includes.Add( Path.Combine(SaturnVenderDir, "ImGuizmo\\src") );
             Includes.Add( Path.Combine(SaturnVenderDir, "yaml-cpp\\include") );
             Includes.Add( Path.Combine(SaturnVenderDir, "imgui_node_editor") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include\\pxshared") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include\\physx") );
             Includes.Add( Path.Combine(SaturnVenderDir, "optick\\src") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "Jolt\\src") );
             Includes.Add( Path.Combine(SaturnSingletonDir, "src") );
 
             string saturnBinDir = SaturnRootDir;
@@ -107,6 +105,7 @@ namespace SaturnBuildTool
             Links.Add("SPIRV-Cross.lib");
             Links.Add("yaml-cpp.lib");
             Links.Add("optick.lib");
+            Links.Add("JoltPhysics.lib");
         }
     }
 }

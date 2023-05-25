@@ -51,6 +51,7 @@ namespace Saturn {
 		Scene,
 		Prefab,
 		Script,
+		MeshCollider,
 		Unknown,
 		COUNT,
 	};
@@ -77,6 +78,8 @@ namespace Saturn {
 				return "Prefab";
 			case Saturn::AssetType::Script:
 				return "Script";
+			case Saturn::AssetType::MeshCollider:
+				return "MeshCollider";
 			case Saturn::AssetType::Unknown:
 				return "Unknown";
 			default:
@@ -106,6 +109,8 @@ namespace Saturn {
 			return AssetType::Prefab;
 		else if( str == "Script" )
 			return AssetType::Script;
+		else if( str == "MeshCollider" )
+			return AssetType::MeshCollider;
 		else
 			return AssetType::Unknown;
 	}
@@ -125,6 +130,8 @@ namespace Saturn {
 		else if( str == ".prefab" )
 			return AssetType::Prefab;
 		else if( str == ".stmesh" )
+			return AssetType::StaticMesh;
+		else if( str == ".sphysmesh" )
 			return AssetType::StaticMesh;
 		else
 			return AssetType::Unknown;
