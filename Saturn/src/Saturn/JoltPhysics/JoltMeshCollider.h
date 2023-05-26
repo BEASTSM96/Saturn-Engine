@@ -32,6 +32,7 @@
 #include "Saturn/Vulkan/Mesh.h"
 
 #include <Jolt/Jolt.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 
 namespace Saturn {
 

@@ -283,7 +283,7 @@ namespace Saturn {
 
 	void JoltPhysicsFoundation::GenerateMeshCollider( Ref<StaticMesh> mesh, const glm::vec3& rScale )
 	{
-		Ref<JoltMeshCollider> meshCollider = Ref<JoltMeshCollider>::Create( mesh );
+		Ref<JoltMeshCollider> meshCollider = Ref<JoltMeshCollider>::Create( mesh, rScale );
 	}
 
 }
