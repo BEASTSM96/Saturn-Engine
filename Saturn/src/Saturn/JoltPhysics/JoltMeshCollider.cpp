@@ -44,7 +44,6 @@ namespace Saturn {
 
 	JoltMeshCollider::~JoltMeshCollider()
 	{
-
 	}
 
 	void JoltMeshCollider::Create()
@@ -73,7 +72,6 @@ namespace Saturn {
 			}
 
 			JPH::RefConst<JPH::MeshShapeSettings> MeshSettings = new JPH::MeshShapeSettings( list, triList );
-
 			JPH::RefConst<JPH::ScaledShapeSettings> Settings = new JPH::ScaledShapeSettings( MeshSettings, Auxiliary::GLMToJPH( m_Scale ) );
 
 			JPH::Shape::ShapeResult result = Settings->Create();

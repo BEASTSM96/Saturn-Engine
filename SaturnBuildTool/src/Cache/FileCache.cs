@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+using System.Text;
 
 namespace SaturnBuildTool.Cache
 {
@@ -12,13 +11,14 @@ namespace SaturnBuildTool.Cache
         public IDictionary<string, DateTime> FilesToCache { get; set; }
         public IDictionary<string, DateTime> FilesInCache { get; set; }
 
-        private string m_Location;
+        private string Filepath;
+
         public FileCache(string CacheLocation)
         {
             FilesToCache = new Dictionary<string, DateTime>();
             FilesInCache = new Dictionary<string, DateTime>();
 
-            m_Location = CacheLocation;
+            Filepath = CacheLocation;
         }
 
         public FileCache()
@@ -26,7 +26,7 @@ namespace SaturnBuildTool.Cache
             FilesToCache = new Dictionary<string, DateTime>();
             FilesInCache = new Dictionary<string, DateTime>();
 
-            m_Location = "";
+            Filepath = "";
         }
 
         public void CacheFile(string Filepath)
@@ -77,20 +77,29 @@ namespace SaturnBuildTool.Cache
             
             fileCache.FilesToCache.Clear();
 
-            var serializer = new SerializerBuilder()
-                .WithNamingConvention(PascalCaseNamingConvention.Instance)
-                .Build();
-
             // HACK: Clear the file.
-            File.WriteAllText(fileCache.m_Location, string.Empty);
+            File.WriteAllText(fileCache.Filepath, string.Empty);
 
-            FileStream fs = new FileStream(fileCache.m_Location, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            FileStream fs = new FileStream(fileCache.Filepath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
 
             StreamWriter sw = new StreamWriter( fs );
 
-            var yaml = serializer.Serialize( fileCache );
+            // I'm not sure if we need the new line.
+            byte[] newLine = Encoding.ASCII.GetBytes("\r\n");
+            byte[] fileHeader = Encoding.ASCII.GetBytes(".FC");
 
-            sw.WriteLine( yaml );
+            fs.Write(fileHeader, 0, fileHeader.Length);
+            fs.Write(newLine, 0, newLine.Length);
+
+            foreach (KeyValuePair<string, DateTime> kv in fileCache.FilesInCache) 
+            {
+                string format = kv.Key + ":" + kv.Value.ToBinary();
+
+                byte[] bytes = Encoding.ASCII.GetBytes(format);
+
+                fs.Write(bytes, 0, bytes.Length);
+                fs.Write(newLine, 0, newLine.Length);
+            }
 
             sw.Close();
             fs.Close();
@@ -99,33 +108,60 @@ namespace SaturnBuildTool.Cache
         public static FileCache Load( string FileCachePath ) 
         {
             FileCache fc = new FileCache(FileCachePath);
-            fc.m_Location = FileCachePath;
+            fc.Filepath = FileCachePath;
 
             if (!File.Exists(FileCachePath))
                 File.Create( FileCachePath );
 
-            StreamReader textReader = new StreamReader( FileCachePath );
+            FileStream fs = new FileStream(FileCachePath, FileMode.Open);
 
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(PascalCaseNamingConvention.Instance)
-                .Build();
+            byte[] headerBytes = new byte[3];
+            fs.Read(headerBytes, 0, headerBytes.Length);
 
-            var yaml = deserializer.Deserialize<FileCache>(textReader);
+            string fileHeader = Encoding.ASCII.GetString(headerBytes);
 
-
-            if (yaml != null)
+            if( fileHeader != ".FC" )
             {
-                yaml.m_Location = FileCachePath;
-                fc.FilesToCache = yaml.FilesToCache;
-            }
-            else 
-            {
-                textReader.Close();
-                return fc;
+                Console.WriteLine("File cache file has an invalid header.");
+                fs.Close();
+
+                return null;
             }
 
-            textReader.Close();
-            return yaml;
+            long remainingBytes = fs.Length - headerBytes.Length;
+
+            byte[] bytes = new byte[remainingBytes];
+
+            fs.Read(bytes, 0, bytes.Length);
+
+            string data = Encoding.ASCII.GetString( bytes );
+
+            string[] entries = data.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach ( string entry in entries )
+            {
+                int colonIndex = entry.LastIndexOf(':');
+
+                if (colonIndex == -1) 
+                {
+                    continue;
+                }
+
+                string filePath = entry.Substring(0, colonIndex);
+                string time = entry.Substring(colonIndex + 1);
+
+                if (long.TryParse(time, out long writeTime))
+                {
+                    DateTime dt = DateTime.FromBinary(writeTime);
+                    fc.FilesToCache.Add(filePath, dt);
+                }
+                else
+                {
+                    Console.WriteLine("Invalid date format.");
+                }
+            }
+
+            fs.Close();
+            return fc;
         }
     }
 }
