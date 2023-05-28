@@ -27,77 +27,58 @@
 */
 
 #include "sppch.h"
-#include "JoltMeshCollider.h"
-
-#include "JoltConversions.h"
 #include "JoltMeshColliderStream.h"
 
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/Collision/Shape/MeshShape.h>
-#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
+#include "Saturn/Project/Project.h"
 
 namespace Saturn {
 
-	JoltMeshCollider::JoltMeshCollider( const Ref<StaticMesh>& rStaticMesh, const glm::vec3& rScale )
-		: m_StaticMesh( rStaticMesh ), m_Scale( rScale )
+	JoltMeshColliderStream::JoltMeshColliderStream( const Ref<JoltMeshCollider>& asset )
+		: m_Asset( asset )
 	{
+
 	}
 
-	JoltMeshCollider::~JoltMeshCollider()
+	JoltMeshColliderStream::~JoltMeshColliderStream()
 	{
+
 	}
 
-	void JoltMeshCollider::Create()
+	void JoltMeshColliderStream::Serialise()
 	{
-		const auto& vertices = m_StaticMesh->Vertices();
-		const auto& indices = m_StaticMesh->Indices();
+		std::ofstream fout( m_Asset->Path, std::ios::binary );
 
-		for( auto& rSubmesh : m_StaticMesh->Submeshes() )
+		const char* pHeader = "SMC\0";
+
+		fout.write( pHeader, 5 );
+
+		size_t ColliderSize = m_Asset->m_Shapes.size();
+		fout.write( reinterpret_cast< const char* >( &ColliderSize ), sizeof( size_t ) );
+		fout.write( reinterpret_cast< const char* >( m_Asset->m_Shapes.data() ), ColliderSize * sizeof( m_Asset->m_Shapes ) );
+
+		fout.close();
+	}
+
+	void JoltMeshColliderStream::Deserialise()
+	{
+		std::ifstream input( m_Asset->Path, std::ios::binary );
+
+		input.seekg( 0, std::ios::end );
+		std::streampos size = input.tellg();
+		input.seekg( 0, std::ios::beg );
+
+		std::vector<char> content( size );
+		input.read( content.data(), size );
+
+		input.close();
+
+		// Validate the header
+		if( content[ 0 ] != 'S' || content[ 1 ] != 'M' || content[ 2 ] != 'C' || content[ 3 ] != '\0' )
 		{
-			JPH::VertexList list;
-			JPH::IndexedTriangleList triList;
-
-			for( uint32_t i = rSubmesh.BaseVertex; i < rSubmesh.BaseVertex + rSubmesh.VertexCount; i++ )
-			{
-				const auto& rVertex = vertices[ i ];
-
-				list.push_back( JPH::Float3( rVertex.Position.x, rVertex.Position.y, rVertex.Position.z ) );
-			}
-
-			// We divide by three because there is 3 faces in one index. 
-			for( uint32_t j = rSubmesh.BaseIndex / 3; j < rSubmesh.BaseIndex / 3 + rSubmesh.IndexCount / 3; j++ )
-			{
-				const auto& rIndex = indices[ j ];
-
-				triList.push_back( JPH::IndexedTriangle( rIndex.V1, rIndex.V2, rIndex.V3, 0 ) );
-			}
-
-			JPH::RefConst<JPH::MeshShapeSettings> MeshSettings = new JPH::MeshShapeSettings( list, triList );
-			JPH::RefConst<JPH::ScaledShapeSettings> Settings = new JPH::ScaledShapeSettings( MeshSettings, Auxiliary::GLMToJPH( m_Scale ) );
-
-			JPH::Shape::ShapeResult result = Settings->Create();
-
-			if( result.HasError() )
-			{
-				SAT_CORE_ERROR( "Failed to created mesh collider: {0}. Moving on to the next submesh...", result.GetError() );
-				continue;
-			}
-
-			m_Shapes.push_back( result.Get() );
+			SAT_CORE_ERROR( "Invaild mesh collider header!" );
 		}
 
-		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
 
-		if( !std::filesystem::exists( cachePath ) )
-			std::filesystem::create_directories( cachePath );
-
-		cachePath /= Name;
-		cachePath.replace_extension( ".smcs" );
-
-		Path = cachePath;
-
-		JoltMeshColliderStream stream( this );
-		stream.Serialise();
 	}
 
 }

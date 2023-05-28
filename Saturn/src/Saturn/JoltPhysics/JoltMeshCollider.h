@@ -43,12 +43,14 @@ namespace Saturn {
 		JoltMeshCollider( const Ref<StaticMesh>& rStaticMesh, const glm::vec3& rScale );
 		~JoltMeshCollider();
 
-	private:
 		void Create();
 	private:
 		Ref<StaticMesh> m_StaticMesh;
 		glm::vec3 m_Scale;
 
 		std::vector< JPH::Ref< JPH::Shape > > m_Shapes;
+
+	private:
+		friend class JoltMeshColliderStream;
 	};
 }

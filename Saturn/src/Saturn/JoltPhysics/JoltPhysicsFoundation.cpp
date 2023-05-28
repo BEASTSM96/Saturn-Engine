@@ -35,6 +35,9 @@
 
 #include "JoltMeshCollider.h"
 
+#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
+
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Core/Factory.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
@@ -283,7 +286,21 @@ namespace Saturn {
 
 	void JoltPhysicsFoundation::GenerateMeshCollider( Ref<StaticMesh> mesh, const glm::vec3& rScale )
 	{
-		Ref<JoltMeshCollider> meshCollider = Ref<JoltMeshCollider>::Create( mesh, rScale );
+		AssetID id = AssetRegistry::Get().CreateAsset( AssetType::MeshCollider );
+		Ref<Asset> asset = AssetRegistry::Get().FindAsset( id );
+
+		asset->Name = mesh->Name;
+
+		Ref<JoltMeshCollider> meshCollider = asset.As<JoltMeshCollider>();
+		meshCollider = Ref<JoltMeshCollider>::Create( mesh, rScale );
+		meshCollider->ID = asset->ID;
+		meshCollider->Type = asset->Type;
+		meshCollider->Name = asset->Name;
+
+		meshCollider->Create();
+
+		AssetRegistrySerialiser ars;
+		ars.Serialise();
 	}
 
 }

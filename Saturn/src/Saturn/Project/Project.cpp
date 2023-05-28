@@ -207,6 +207,11 @@ namespace Saturn {
 		return rootDir;
 	}
 
+	std::filesystem::path Project::GetFullCachePath()
+	{
+		return GetRootDir() / "Cache";
+	}
+
 	bool Project::HasPremakeFile()
 	{
 		return std::filesystem::exists( GetAssetPath().parent_path() / "premake5.lua" );

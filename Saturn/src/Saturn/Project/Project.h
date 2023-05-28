@@ -74,6 +74,8 @@ namespace Saturn {
 
 		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
 
+		std::filesystem::path GetFullCachePath();
+
 		bool HasPremakeFile();
 		void CreatePremakeFile();
 		void CreateBuildFile();
