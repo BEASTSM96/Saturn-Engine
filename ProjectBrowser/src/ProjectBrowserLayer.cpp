@@ -148,7 +148,6 @@ namespace Saturn {
 			auto TitleBarHeight = m_TitleBar->Height();
 
 			RECT windowRect;
-			POINT mousePos;
 			GetClientRect( glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() ), &windowRect );
 
 				// Drag the menu bar to move the window
@@ -392,6 +391,7 @@ namespace Saturn {
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" );
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" / "Source" );
 		std::filesystem::create_directory( ProjectPath / "Scripts" );
+		std::filesystem::create_directory( ProjectPath / "Cache" );
 
 		Project::SetActiveProject( newProject );
 
@@ -412,11 +412,11 @@ namespace Saturn {
 		std::string RootDir = s_SaturnDir;
 
 		std::replace( RootDir.begin(), RootDir.end(), '\\', '/' );
-		std::string WorkingDir = RootDir + "/Titan";
+		std::string WorkingDir = RootDir + "/Saturn-Editor";
 #if defined( _DEBUG )
-		RootDir += "/bin/Debug-windows-x86_64/Titan/Titan.exe";
+		RootDir += "/bin/Debug-windows-x86_64/Saturn-Editor/Saturn-Editor.exe";
 #else
-		RootDir += "/bin/Release-windows-x86_64/Titan/Titan.exe";
+		RootDir += "/bin/Release-windows-x86_64/Saturn-Editor/Saturn-Editor.exe";
 #endif
 		RootDir += " " + rPath;
 		
