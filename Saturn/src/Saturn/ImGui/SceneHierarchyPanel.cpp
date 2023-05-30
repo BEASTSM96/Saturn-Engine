@@ -522,8 +522,60 @@ namespace Saturn {
 			DrawBoolControl( "IsTrigger", cc.IsTrigger );
 		} );
 
-		DrawComponent<MeshColliderComponent>( "Mesh Collider", entity, []( auto& mcc )
+		DrawComponent<MeshColliderComponent>( "Mesh Collider", entity, [&]( auto& mcc )
 		{
+			static AssetID id;
+
+			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
+			{
+				m_OpenAssetFinderPopup = !m_OpenAssetFinderPopup;
+				m_CurrentFinderType = AssetType::MeshCollider;
+			}
+
+			ImGui::SameLine();
+			
+			if( m_OpenAssetFinderPopup )
+				ImGui::OpenPopup( "AssetFinderPopup" );
+
+			ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
+			if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+			{
+				bool PopupModified = false;
+
+				if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
+				{
+					for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
+					{
+						bool Selected = ( id == assetID );
+
+						ImGui::PushID( assetID );
+
+						if( rAsset->GetAssetType() == m_CurrentFinderType || m_CurrentFinderType == AssetType::Unknown )
+						{
+							if( ImGui::Selectable( rAsset->GetName().c_str() ) )
+							{
+								PopupModified = true;
+							}
+						}
+
+						ImGui::PopID();
+
+						if( Selected )
+							ImGui::SetItemDefaultFocus();
+					}
+
+					ImGui::EndListBox();
+				}
+
+				if( PopupModified )
+				{
+					m_OpenAssetFinderPopup = false;
+
+					ImGui::CloseCurrentPopup();
+				}
+
+				ImGui::EndPopup();
+			}
 		} );
 
 		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )

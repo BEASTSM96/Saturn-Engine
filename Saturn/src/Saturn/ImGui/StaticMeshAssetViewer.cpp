@@ -118,10 +118,6 @@ namespace Saturn {
 		if( ImGui::Button( "Generate Mesh Collider" ) ) 
 		{
 			JoltPhysicsFoundation::Get().GenerateMeshCollider( m_Mesh, glm::vec3( 1.0f, 1.0f, 1.0f ) );
-
-			// JoltFoundation->CreateMeshCollider( m_Mesh );
-			//	CookMesh
-			//		SaveMeshData
 		}
 
 		ImGui::End();
