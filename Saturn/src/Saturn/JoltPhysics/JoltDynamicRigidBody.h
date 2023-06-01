@@ -67,6 +67,7 @@ namespace Saturn {
 		void AttachBox( const glm::vec3& Scale = glm::vec3(0.0f) );
 		void AttachSphere( float Extents );
 		void AttachCapsule( float Extents, float Height );
+		void AttachMesh( UUID AssetID );
 
 		void SyncTransform();
 
@@ -81,6 +82,7 @@ namespace Saturn {
 
 			float Extents; // Sphere & Capsule
 			float Height; // Capsule
+			UUID ID; // Mesh collider asset id
 		} PendingShapeInfo{};
 
 		bool m_Kinematic = false;

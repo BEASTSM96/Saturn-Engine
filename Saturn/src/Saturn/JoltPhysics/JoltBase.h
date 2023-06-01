@@ -34,7 +34,8 @@ namespace Saturn {
 	{
 		BOX,
 		SPHERE,
-		CAPSULE
+		CAPSULE,
+		MESH
 	};
 
 	enum class ForceMode

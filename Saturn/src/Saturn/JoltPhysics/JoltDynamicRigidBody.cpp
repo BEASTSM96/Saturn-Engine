@@ -63,6 +63,12 @@ namespace Saturn {
 				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateSphereCollider( Position, Rotation, PendingShapeInfo.Extents , m_Kinematic );
 				SetBody( newBody );
 			} break;
+
+			case PhysicsShape::MESH:
+			{
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateMeshCollider( Position, Rotation, PendingShapeInfo.ID, m_Kinematic );
+				SetBody( newBody );
+			} break;
 		}
 	}
 
@@ -138,6 +144,12 @@ namespace Saturn {
 		PendingShapeInfo.ShapeType = PhysicsShape::CAPSULE;
 		PendingShapeInfo.Extents = Extents;
 		PendingShapeInfo.Height = Height;
+	}
+
+	void JoltDynamicRigidBody::AttachMesh( UUID AssetID )
+	{
+		PendingShapeInfo.ShapeType = PhysicsShape::MESH;
+		PendingShapeInfo.ID = AssetID;
 	}
 
 	void JoltDynamicRigidBody::SyncTransform()

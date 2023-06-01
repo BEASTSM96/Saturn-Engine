@@ -34,7 +34,7 @@
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
 
-#include "Saturn/ImGui/UITools.h"
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
 
 namespace Saturn {
 
@@ -114,7 +114,7 @@ namespace Saturn {
 		}
 
 		//Image( Renderer::Get().GetPinkTexture(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
-		Image( m_SceneRenderer->CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
+		Auxiliary::Image( m_SceneRenderer->CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
 
 		ImGui::PopID();
 

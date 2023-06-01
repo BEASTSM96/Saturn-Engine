@@ -36,7 +36,7 @@
 
 #include "Saturn/JoltPhysics/JoltPhysicsFoundation.h"
 
-#include "Saturn/ImGui/UITools.h"
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
 #include "Saturn/Scene/Components.h"
 
 namespace Saturn {
@@ -99,7 +99,7 @@ namespace Saturn {
 			m_Camera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 		}
 
-		Image( m_SceneRenderer->CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
+		Auxiliary::Image( m_SceneRenderer->CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
 
 		ImGui::PopID();
 

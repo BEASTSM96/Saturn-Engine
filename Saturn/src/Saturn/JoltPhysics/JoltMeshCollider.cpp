@@ -47,6 +47,30 @@ namespace Saturn {
 	{
 	}
 
+	void JoltMeshCollider::Load()
+	{
+		JoltMeshColliderStream stream( this );
+		stream.Deserialise();
+	}
+
+	void JoltMeshCollider::Save()
+	{
+		Create();
+
+		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
+
+		if( !std::filesystem::exists( cachePath ) )
+			std::filesystem::create_directories( cachePath );
+
+		cachePath /= Name;
+		cachePath.replace_extension( ".smcs" );
+
+		Path = cachePath;
+
+		JoltMeshColliderStream stream( this );
+		stream.Serialise();
+	}
+
 	void JoltMeshCollider::Create()
 	{
 		const auto& vertices = m_StaticMesh->Vertices();
@@ -85,19 +109,6 @@ namespace Saturn {
 
 			m_Shapes.push_back( result.Get() );
 		}
-
-		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
-
-		if( !std::filesystem::exists( cachePath ) )
-			std::filesystem::create_directories( cachePath );
-
-		cachePath /= Name;
-		cachePath.replace_extension( ".smcs" );
-
-		Path = cachePath;
-
-		JoltMeshColliderStream stream( this );
-		stream.Serialise();
 	}
 
 }

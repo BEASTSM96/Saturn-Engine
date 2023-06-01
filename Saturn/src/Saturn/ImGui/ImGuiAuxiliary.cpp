@@ -27,7 +27,7 @@
 */
 
 #include "sppch.h"
-#include "UITools.h"
+#include "ImGuiAuxiliary.h"
 
 #include "Saturn/Asset/AssetRegistry.h"
 
@@ -35,7 +35,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
 
-namespace Saturn {
+namespace Saturn::Auxiliary {
 
 	bool DrawVec2Control( const std::string& label, glm::vec2& values, float resetValue /*= 0.0f*/, float columnWidth /*= 100.0f */ )
 	{
@@ -402,7 +402,6 @@ namespace Saturn {
 			if( rounded )
 			{
 				window->DrawList->AddRect( bb.Min, bb.Max, col, 5.0f, ImDrawFlags_RoundCornersAll );
-				const float BORDER_SIZE = g.Style.FrameBorderSize;
 			}
 			else
 				RenderFrame( bb.Min, bb.Max, col, true, style.FrameRounding );

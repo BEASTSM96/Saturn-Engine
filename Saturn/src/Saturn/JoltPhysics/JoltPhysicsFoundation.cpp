@@ -284,6 +284,16 @@ namespace Saturn {
 		return Body;
 	}
 
+	JPH::Body* JoltPhysicsFoundation::CreateMeshCollider( const glm::vec3& Position, const glm::vec3& Rotation, UUID ID, bool Kinematic /*= false */ )
+	{
+		Ref<Asset> asset = AssetRegistry::Get().FindAsset( ID );
+		Ref<JoltMeshCollider> meshCollider = asset.As<JoltMeshCollider>();
+
+		meshCollider->Load();
+
+		return nullptr;
+	}
+
 	void JoltPhysicsFoundation::GenerateMeshCollider( Ref<StaticMesh> mesh, const glm::vec3& rScale )
 	{
 		AssetID id = AssetRegistry::Get().CreateAsset( AssetType::MeshCollider );
@@ -297,7 +307,7 @@ namespace Saturn {
 		meshCollider->Type = asset->Type;
 		meshCollider->Name = asset->Name;
 
-		meshCollider->Create();
+		meshCollider->Save();
 
 		AssetRegistrySerialiser ars;
 		ars.Serialise();

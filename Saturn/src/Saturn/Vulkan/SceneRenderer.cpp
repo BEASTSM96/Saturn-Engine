@@ -38,7 +38,7 @@
 #include "Material.h"
 #include "MaterialInstance.h"
 #include "ComputePipeline.h"
-#include "Saturn/ImGui/UITools.h"
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
 #include "Saturn/Core/Memory/Buffer.h"
 
 #include "Saturn/Core/OptickProfiler.h"
@@ -773,7 +773,7 @@ namespace Saturn {
 
 		ImGui::Text( "FPS: %.1f", ImGui::GetIO().Framerate );
 
-		if( TreeNode( "Stats", true ) )
+		if( Auxiliary::TreeNode( "Stats", true ) )
 		{
 			auto FrameTimings = Renderer::Get().GetFrameTimings();
 
@@ -810,19 +810,19 @@ namespace Saturn {
 			ImGui::Text( "Total (render thread wait time): %.2f ms", RenderThread::Get().GetWaitTime() );
 			ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
 
-			EndTreeNode();
+			Auxiliary::EndTreeNode();
 		}
 
-		if( TreeNode( "Environment", false ) )
+		if( Auxiliary::TreeNode( "Environment", false ) )
 		{
 			ImGui::DragFloat( "Skybox Lod", &m_RendererData.SkyboxLod, 0.1f, 0.0f, 1000.0f );
 
-			EndTreeNode();
+			Auxiliary::EndTreeNode();
 		}
 
-		if( TreeNode( "Scene renderer data", true ) )
+		if( Auxiliary::TreeNode( "Scene renderer data", true ) )
 		{
-			if( TreeNode( "Shadow settings", true ) )
+			if( Auxiliary::TreeNode( "Shadow settings", true ) )
 			{
 				ImGui::DragFloat( "Cascade Split Lambda", &m_RendererData.CascadeSplitLambda, 1.0f, 0.01f, 1.0f );
 				ImGui::DragFloat( "Cascade Near plane", &m_RendererData.CascadeNearPlaneOffset, 1.0f, -1000.0f, 1000.0f );
@@ -837,12 +837,12 @@ namespace Saturn {
 
 				ImGui::SliderInt( "##cascade_dt", &index, 0, 3 );
 
-				Image( framebuffer, ( uint32_t ) index, { size, size }, { 0, 1 }, { 1, 0 } );
+				Auxiliary::Image( framebuffer, ( uint32_t ) index, { size, size }, { 0, 1 }, { 1, 0 } );
 
-				EndTreeNode();
+				Auxiliary::EndTreeNode();
 			}
 
-			if( TreeNode( "Bloom settings", false ) )
+			if( Auxiliary::TreeNode( "Bloom settings", false ) )
 			{
 				static int index = 0;
 				static int MipIndex = 0;
@@ -853,14 +853,14 @@ namespace Saturn {
 
 				float size = ImGui::GetContentRegionAvail().x;
 
-				Image( img, MipIndex, { size, size }, { 0, 1 }, { 1, 0 } );
+				Auxiliary::Image( img, MipIndex, { size, size }, { 0, 1 }, { 1, 0 } );
 
 				ImGui::SliderFloat( "##dirtint", &m_RendererData.BloomDirtIntensity, 0, 1000.0f );
 
-				EndTreeNode();
+				Auxiliary::EndTreeNode();
 			}
 
-			EndTreeNode();
+			Auxiliary::EndTreeNode();
 		}
 
 		ImGui::End();

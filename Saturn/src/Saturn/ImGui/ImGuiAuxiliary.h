@@ -39,7 +39,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>	
 
-namespace Saturn {
+namespace Saturn::Auxiliary {
 	
 	extern bool DrawVec3Control( const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
 	extern bool DrawVec2Control( const std::string& label, glm::vec2& values, float resetValue = 0.0f, float columnWidth = 100.0f );
@@ -74,6 +74,59 @@ namespace Saturn {
 	extern bool ButtonRd( const char* label, const ImRect& bb, bool rounded = false );
 
 	extern void DrawColoredRect( const ImVec2& size, const ImVec4& color );
+
+	template<typename Ty, typename Fn>
+	void DrawAssetFinder( AssetType type, bool* rOpen, Fn&& function )
+	{
+		if( *rOpen == true )
+			ImGui::OpenPopup( "AssetFinderPopup" );
+
+		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
+		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+		{
+			bool PopupModified = false;
+
+			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
+			{
+				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
+				{
+					bool Selected = false;
+
+					ImGui::PushID( static_cast<int>( assetID ) );
+
+					if( rAsset->GetAssetType() == type || type == AssetType::Unknown )
+					{
+						if( ImGui::Selectable( rAsset->Name.c_str() ) )
+						{
+							function( rAsset.As<Ty>() );
+
+							Selected = true;
+							PopupModified = true;
+						}
+					}
+
+					ImGui::PopID();
+
+					if( Selected )
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndListBox();
+			}
+
+			if( PopupModified && !ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow) )
+			{
+				*rOpen = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+		else
+		{
+			*rOpen = false;
+		}
+	}
 
 	template<typename Ty, typename Fn>
 	bool DrawAssetDragDropTarget( const char* label, const char* assetName, UUID& returnID, Fn&& function ) 

@@ -31,6 +31,7 @@
 #include "SingletonStorage.h"
 
 #include "JoltBase.h"
+#include "Saturn/Core/UUID.h"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/PhysicsSystem.h>
@@ -83,6 +84,8 @@ namespace Saturn {
 		JPH::Body* CreateCapsuleCollider( const glm::vec3& Position, const glm::vec3& Rotation, float Extents, float Height, bool Kinematic = false );
 
 		JPH::Body* CreateSphereCollider( const glm::vec3& Position, const glm::vec3& Rotation, float Extents, bool Kinematic = false );
+
+		JPH::Body* CreateMeshCollider( const glm::vec3& Position, const glm::vec3& Rotation, UUID ID, bool Kinematic = false );
 
 		// When we call this function we always assume the mesh collider has not be created, so only calls if it does not exists.
 		void GenerateMeshCollider( Ref<StaticMesh> mesh, const glm::vec3& Scale );

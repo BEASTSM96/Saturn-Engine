@@ -46,7 +46,7 @@
 #include "Saturn/ImGui/ContentBrowserPanel.h"
 #include "Saturn/ImGui/SceneHierarchyPanel.h"
 #include "Saturn/ImGui/Styles.h"
-#include "Saturn/ImGui/UITools.h"
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
 #include "Saturn/ImGui/Panel/Panel.h"
 
 // --- Don't include any rendering files as the user shouldn't need them.

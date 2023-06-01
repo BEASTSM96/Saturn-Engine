@@ -31,7 +31,7 @@
 
 #include <Saturn/Project/Project.h>
 
-#include <Saturn/ImGui/UITools.h>
+#include <Saturn/ImGui/ImGuiAuxiliary.h>
 #include <Saturn/Vulkan/SceneRenderer.h>
 #include <Saturn/ImGui/TitleBar.h>
 #include <Saturn/ImGui/MaterialAssetViewer.h>
@@ -447,7 +447,7 @@ namespace Saturn {
 							ImGui::Separator();
 
 							UUID id = rMaterial->GetAssetID();
-							DrawAssetDragDropTarget<MaterialAsset>( "Change asset", rMaterial->GetName().c_str(), id, 
+							Auxiliary::DrawAssetDragDropTarget<MaterialAsset>( "Change asset", rMaterial->GetName().c_str(), id, 
 								[rMaterial](Ref<MaterialAsset> asset) mutable
 								{
 									rMaterial->SetMaterial( asset->GetMaterial() );
@@ -612,7 +612,7 @@ namespace Saturn {
 		ImGui::PushID( "VIEWPORT_IMAGE" );
 
 		// In the editor we only should flip the image UV, we don't have to flip anything else.
-		Image( Application::Get().PrimarySceneRenderer().CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
+		Auxiliary::Image( Application::Get().PrimarySceneRenderer().CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
 
 		if( ImGui::BeginDragDropTarget() )
 		{
@@ -675,13 +675,13 @@ namespace Saturn {
 		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 5.0f * 2.0f, 0 ) );
 
 		const Ref<Texture2D>& texture = m_RequestRuntime == false ? m_StartRuntimeTexture : m_EndRuntimeTexture;
-		if( ImageButton( texture, { 24.0f, 24.0f } ) ) m_RequestRuntime ^= 1;
-		if( ImageButton( m_TranslationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
-		if( ImageButton( m_RotationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
-		if( ImageButton( m_ScaleTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
+		if( Auxiliary::ImageButton( texture, { 24.0f, 24.0f } ) ) m_RequestRuntime ^= 1;
+		if( Auxiliary::ImageButton( m_TranslationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+		if( Auxiliary::ImageButton( m_RotationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
+		if( Auxiliary::ImageButton( m_ScaleTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
 
 		// Hot-Reload game
-		if( ImageButton( m_SyncTexture, { 24.0f, 24.0f } ) ) HotReloadGame();
+		if( Auxiliary::ImageButton( m_SyncTexture, { 24.0f, 24.0f } ) ) HotReloadGame();
 
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar();

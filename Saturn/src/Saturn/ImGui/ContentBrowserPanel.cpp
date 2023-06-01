@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "ContentBrowserPanel.h"
 
-#include "UITools.h"
+#include "ImGuiAuxiliary.h"
 #include "Saturn/Asset/MaterialAsset.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 #include "Saturn/Asset/AssetImporter.h"
@@ -124,7 +124,7 @@ namespace Saturn {
 
 		ImGui::BeginChild( "##CB_TopBar", ImVec2( 0, 30 ) );
 
-		if( ImageButton( m_SwapViewIcon, { 24, 24 } ) )
+		if( Auxiliary::ImageButton( m_SwapViewIcon, { 24, 24 } ) )
 		{
 			switch( m_ViewMode )
 			{
@@ -154,7 +154,7 @@ namespace Saturn {
 			{
 				if( m_CurrentPath != s_pAssetsDirectory )
 				{
-					if( ImageButton( m_BackIcon, { 24, 24 } ) )
+					if( Auxiliary::ImageButton( m_BackIcon, { 24, 24 } ) )
 					{
 						m_CurrentPath = m_CurrentPath.parent_path();
 
@@ -165,7 +165,7 @@ namespace Saturn {
 				{
 					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-					ImageButton( m_BackIcon, { 24, 24 } );
+					Auxiliary::ImageButton( m_BackIcon, { 24, 24 } );
 					ImGui::PopStyleVar( 1 );
 					ImGui::PopItemFlag();
 				}
@@ -175,7 +175,7 @@ namespace Saturn {
 			{
 				if( m_CurrentPath != s_pScriptsDirectory )
 				{
-					if( ImageButton( m_BackIcon, { 24, 24 } ) )
+					if( Auxiliary::ImageButton( m_BackIcon, { 24, 24 } ) )
 					{
 						m_CurrentPath = m_CurrentPath.parent_path();
 
@@ -186,7 +186,7 @@ namespace Saturn {
 				{
 					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-					ImageButton( m_BackIcon, { 24, 24 } );
+					Auxiliary::ImageButton( m_BackIcon, { 24, 24 } );
 					ImGui::PopStyleVar( 1 );
 					ImGui::PopItemFlag();
 				}
@@ -200,7 +200,7 @@ namespace Saturn {
 
 		if( std::filesystem::exists( m_FirstFolder ) )
 		{
-			if( ImageButton( m_ForwardIcon, { 24, 24 } ) )
+			if( Auxiliary::ImageButton( m_ForwardIcon, { 24, 24 } ) )
 			{
 				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_pMainDirectory );
 
@@ -211,7 +211,7 @@ namespace Saturn {
 		{
 			ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 			ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-			ImageButton( m_ForwardIcon, { 24, 24 } );
+			Auxiliary::ImageButton( m_ForwardIcon, { 24, 24 } );
 			ImGui::PopStyleVar( 1 );
 			ImGui::PopItemFlag();
 		}
@@ -796,7 +796,7 @@ namespace Saturn {
 			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( path.c_str() ) );
 
 			bool ItemClicked = false;
-			ItemClicked = ButtonRd( "##CONTENT_BROWSER_ITEM_BTN", ImRect( TopLeft, BottomRight ), true );
+			ItemClicked = Auxiliary::ButtonRd( "##CONTENT_BROWSER_ITEM_BTN", ImRect( TopLeft, BottomRight ), true );
 
 			//if( !excludeFiles )
 			{

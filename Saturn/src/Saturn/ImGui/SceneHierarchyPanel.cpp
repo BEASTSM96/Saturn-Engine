@@ -33,7 +33,7 @@
 #include "Saturn/Vulkan/Mesh.h"
 #include "Saturn/Scene/Entity.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
-#include "UITools.h"
+#include "ImGuiAuxiliary.h"
 
 #include "Saturn/Vulkan/VulkanContext.h"
 
@@ -374,12 +374,12 @@ namespace Saturn {
 			glm::vec3 rotation = glm::degrees( tc.Rotation );
 			auto& scale = tc.Scale;
 
-			DrawVec3Control( "Translation", tc.Position );
+			Auxiliary::DrawVec3Control( "Translation", tc.Position );
 			
-			if( DrawVec3Control( "Rotation", rotation ) )
+			if( Auxiliary::DrawVec3Control( "Rotation", rotation ) )
 				tc.Rotation = glm::radians( rotation );
 
-			DrawVec3Control( "Scale", tc.Scale, 1.0f );
+			Auxiliary::DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
 
 		DrawComponent<StaticMeshComponent>( "Static Mesh", entity, [&]( auto& mc )
@@ -397,55 +397,14 @@ namespace Saturn {
 			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
 			{
 				m_OpenAssetFinderPopup = !m_OpenAssetFinderPopup;
-				m_CurrentFinderType = AssetType::StaticMesh;
 			}
 			
 			ImGui::SameLine();
 
-			if( m_OpenAssetFinderPopup )
-				ImGui::OpenPopup( "AssetFinderPopup" );
-
-			ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
-			if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
-			{
-				bool PopupModified = false;
-
-				if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
+			Auxiliary::DrawAssetFinder<StaticMesh>( AssetType::StaticMesh, &m_OpenAssetFinderPopup, [mc]( Ref<StaticMesh> mesh ) mutable
 				{
-					for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
-					{
-						bool Selected = ( id == assetID );
-
-						ImGui::PushID( assetID );
-
-						if( rAsset->GetAssetType() == m_CurrentFinderType || m_CurrentFinderType == AssetType::Unknown )
-						{
-							if( ImGui::Selectable( rAsset->GetName().c_str() ) )
-							{
-								mc.Mesh = AssetRegistry::Get().GetAssetAs<StaticMesh>( assetID );
-
-								PopupModified = true;
-							}
-						}
-
-						ImGui::PopID();
-
-						if( Selected )
-							ImGui::SetItemDefaultFocus();
-					}
-
-					ImGui::EndListBox();
-				}
-
-				if( PopupModified )
-				{
-					m_OpenAssetFinderPopup = false;
-
-					ImGui::CloseCurrentPopup();
-				}
-
-				ImGui::EndPopup();
-			}
+					mc.Mesh = mesh;
+				} );
 
 			if( mc.Mesh )
 				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->Name.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
@@ -464,32 +423,32 @@ namespace Saturn {
 
 		DrawComponent<PointLightComponent>( "Point Light", entity, []( auto& plc )
 		{
-			DrawColorVec3Control( "Light Color", plc.Radiance, 150.0f );
+			Auxiliary::DrawColorVec3Control( "Light Color", plc.Radiance, 150.0f );
 
 
-			DrawFloatControl( "Light Intensity", plc.Multiplier, 0.0f, 500.0f );
-			DrawFloatControl( "Radius", plc.Radius, 0.0f, FLT_MAX );
-			DrawFloatControl( "Falloff", plc.Falloff, 0.0f, 1.0f );
+			Auxiliary::DrawFloatControl( "Light Intensity", plc.Multiplier, 0.0f, 500.0f );
+			Auxiliary::DrawFloatControl( "Radius", plc.Radius, 0.0f, FLT_MAX );
+			Auxiliary::DrawFloatControl( "Falloff", plc.Falloff, 0.0f, 1.0f );
 		} );
 
 		DrawComponent<DirectionalLightComponent>( "Directional Light", entity, []( auto& dlc )
 		{
-			DrawFloatControl( "Intensity", dlc.Intensity, 110.0f );
-			DrawBoolControl( "Cast shadows", dlc.CastShadows );
-			DrawColorVec3Control( "Radiance", dlc.Radiance, 1.0f );
+			Auxiliary::DrawFloatControl( "Intensity", dlc.Intensity, 110.0f );
+			Auxiliary::DrawBoolControl( "Cast shadows", dlc.CastShadows );
+			Auxiliary::DrawColorVec3Control( "Radiance", dlc.Radiance, 1.0f );
 		} );
 
 		DrawComponent<SkylightComponent>( "Skylight", entity, []( auto& skl )
 		{
-			DrawBoolControl( "Dynamic Sky", skl.DynamicSky );
+			Auxiliary::DrawBoolControl( "Dynamic Sky", skl.DynamicSky );
 
 			bool changed = false;
 
 			if ( skl.DynamicSky )
 			{
-				changed = DrawFloatControl( "Turbidity", skl.Turbidity );
-				changed |= DrawFloatControl( "Azimuth", skl.Azimuth );
-				changed |= DrawFloatControl( "Inclination", skl.Inclination );
+				changed = Auxiliary::DrawFloatControl( "Turbidity", skl.Turbidity );
+				changed |= Auxiliary::DrawFloatControl( "Azimuth", skl.Azimuth );
+				changed |= Auxiliary::DrawFloatControl( "Inclination", skl.Inclination );
 
 				if( changed )
 					Application::Get().PrimarySceneRenderer().SetDynamicSky( skl.Turbidity, skl.Azimuth, skl.Inclination );
@@ -498,90 +457,47 @@ namespace Saturn {
 		
 		DrawComponent<BoxColliderComponent>( "Box Collider", entity, []( auto& bc )
 		{
-			DrawVec3Control( "Extent", bc.Extents );
-			DrawVec3Control( "Offset", bc.Offset );
+			Auxiliary::DrawVec3Control( "Extent", bc.Extents );
+			Auxiliary::DrawVec3Control( "Offset", bc.Offset );
 			
-			DrawBoolControl( "IsTrigger", bc.IsTrigger );
+			Auxiliary::DrawBoolControl( "IsTrigger", bc.IsTrigger );
 		} );
 
 		DrawComponent<SphereColliderComponent>( "Sphere Collider", entity, []( auto& sc )
 		{
-			DrawVec3Control( "Offset", sc.Offset );
-			DrawFloatControl( "Radius", sc.Radius );
+			Auxiliary::DrawVec3Control( "Offset", sc.Offset );
+			Auxiliary::DrawFloatControl( "Radius", sc.Radius );
 
-			DrawBoolControl( "IsTrigger", sc.IsTrigger );
+			Auxiliary::DrawBoolControl( "IsTrigger", sc.IsTrigger );
 		} );
 
 		DrawComponent<CapsuleColliderComponent>( "Capsule Collider", entity, []( auto& cc )
 		{
-			DrawVec3Control( "Offset", cc.Offset );
+			Auxiliary::DrawVec3Control( "Offset", cc.Offset );
 
-			DrawFloatControl( "Radius", cc.Radius );
-			DrawFloatControl( "Height", cc.Height );
+			Auxiliary::DrawFloatControl( "Radius", cc.Radius );
+			Auxiliary::DrawFloatControl( "Height", cc.Height );
 
-			DrawBoolControl( "IsTrigger", cc.IsTrigger );
+			Auxiliary::DrawBoolControl( "IsTrigger", cc.IsTrigger );
 		} );
 
 		DrawComponent<MeshColliderComponent>( "Mesh Collider", entity, [&]( auto& mcc )
 		{
-			static AssetID id;
-
-			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
+			if( ImGui::Button( "Change##openmesh", ImVec2( 50, 20 ) ) )
 			{
 				m_OpenAssetFinderPopup = !m_OpenAssetFinderPopup;
-				m_CurrentFinderType = AssetType::MeshCollider;
 			}
 
-			ImGui::SameLine();
-			
-			if( m_OpenAssetFinderPopup )
-				ImGui::OpenPopup( "AssetFinderPopup" );
-
-			ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
-			if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
-			{
-				bool PopupModified = false;
-
-				if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
+			Auxiliary::DrawAssetFinder<Asset>( AssetType::MeshCollider, &m_OpenAssetFinderPopup, [](Ref<Asset> mc) mutable 
 				{
-					for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
-					{
-						bool Selected = ( id == assetID );
-
-						ImGui::PushID( assetID );
-
-						if( rAsset->GetAssetType() == m_CurrentFinderType || m_CurrentFinderType == AssetType::Unknown )
-						{
-							if( ImGui::Selectable( rAsset->GetName().c_str() ) )
-							{
-								PopupModified = true;
-							}
-						}
-
-						ImGui::PopID();
-
-						if( Selected )
-							ImGui::SetItemDefaultFocus();
-					}
-
-					ImGui::EndListBox();
-				}
-
-				if( PopupModified )
-				{
-					m_OpenAssetFinderPopup = false;
-
-					ImGui::CloseCurrentPopup();
-				}
-
-				ImGui::EndPopup();
-			}
+					SAT_CORE_INFO("Finder");
+				} );
 		} );
 
 		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )
 		{
-			DrawBoolControl( "Is Kinematic", rb.IsKinematic );
-			DrawBoolControl( "Use CCD", rb.UseCCD );
+			Auxiliary::DrawBoolControl( "Is Kinematic", rb.IsKinematic );
+			Auxiliary::DrawBoolControl( "Use CCD", rb.UseCCD );
 
 			int value = rb.Mass;
 			bool modified = false;

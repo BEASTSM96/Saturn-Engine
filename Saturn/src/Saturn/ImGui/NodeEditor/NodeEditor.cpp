@@ -32,7 +32,7 @@
 #include "Saturn/Vulkan/Texture.h"
 #include "Saturn/Asset/AssetRegistry.h"
 
-#include "Saturn/ImGui/UITools.h"
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
 
 // imgui_node_editor
 #include "builders.h"
@@ -480,7 +480,7 @@ namespace Saturn {
 							s_SelectAssetInfo.NodeID = node.ID;
 						}
 
-						DrawColoredRect( { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() }, node.ExtraData.Read<ImVec4>( 0 ) );
+						Auxiliary::DrawColoredRect( { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() }, node.ExtraData.Read<ImVec4>( 0 ) );
 						
 						ImGui::EndHorizontal();
 					}
