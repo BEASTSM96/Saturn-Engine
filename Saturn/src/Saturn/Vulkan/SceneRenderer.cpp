@@ -799,15 +799,11 @@ namespace Saturn {
 
 			ImGui::Text( "SceneRenderer::BlomPass: %.3f ms", m_RendererData.BloomTimer.ElapsedMilliseconds() );
 
-			ImGui::Text( "SceneRenderer::SSAOPass: %.2f ms", m_RendererData.SSAOPassTimer.ElapsedMilliseconds() );
-
-			ImGui::Text( "SceneRenderer::AOComposite: %.2f ms", m_RendererData.AOCompositeTimer.ElapsedMilliseconds() );
-
 			ImGui::Text( "Renderer::EndFrame - Queue Present: %.2f ms", Renderer::Get().GetQueuePresentTime() );
 
 			ImGui::Text( "Renderer::EndFrame: %.2f ms", FrameTimings.second );
 
-			ImGui::Text( "Total (render thread wait time): %.2f ms", RenderThread::Get().GetWaitTime() );
+			ImGui::Text( "Total (RenderThread::Execute): %.2f ms", RenderThread::Get().GetWaitTime() );
 			ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
 
 			Auxiliary::EndTreeNode();
