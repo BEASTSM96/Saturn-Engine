@@ -384,8 +384,6 @@ namespace Saturn {
 
 		DrawComponent<StaticMeshComponent>( "Static Mesh", entity, [&]( auto& mc )
 		{
-			static AssetID id;
-
 			ImGui::Columns( 3 );
 			ImGui::SetColumnWidth( 0, 100 );
 			ImGui::SetColumnWidth( 1, 300 );
@@ -397,14 +395,15 @@ namespace Saturn {
 			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
 			{
 				m_OpenAssetFinderPopup = !m_OpenAssetFinderPopup;
+
+				if( mc.Mesh )
+					m_CurrentAssetID = mc.Mesh->ID;
 			}
 			
-			ImGui::SameLine();
-
-			Auxiliary::DrawAssetFinder<StaticMesh>( AssetType::StaticMesh, &m_OpenAssetFinderPopup, [mc]( Ref<StaticMesh> mesh ) mutable
-				{
-					mc.Mesh = mesh;
-				} );
+			if( Auxiliary::DrawAssetFinder( AssetType::StaticMesh, &m_OpenAssetFinderPopup, m_CurrentAssetID ) )
+			{
+				SAT_CORE_INFO( "Finder" );
+			}
 
 			if( mc.Mesh )
 				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->Name.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
@@ -488,10 +487,10 @@ namespace Saturn {
 				m_OpenAssetFinderPopup = !m_OpenAssetFinderPopup;
 			}
 
-			Auxiliary::DrawAssetFinder<Asset>( AssetType::MeshCollider, &m_OpenAssetFinderPopup, [](Ref<Asset> mc) mutable 
-				{
-					SAT_CORE_INFO("Finder");
-				} );
+			if( Auxiliary::DrawAssetFinder( AssetType::MeshCollider, &m_OpenAssetFinderPopup, m_CurrentAssetID  ) )
+			{
+				SAT_CORE_INFO("Finder");
+			}
 		} );
 
 		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )

@@ -75,32 +75,31 @@ namespace Saturn::Auxiliary {
 
 	extern void DrawColoredRect( const ImVec2& size, const ImVec4& color );
 
-	template<typename Ty, typename Fn>
-	void DrawAssetFinder( AssetType type, bool* rOpen, Fn&& function )
+	inline bool DrawAssetFinder( AssetType type, bool* rOpen, AssetID& rOut )
 	{
+		bool PopupModified = false;
+
 		if( *rOpen == true )
 			ImGui::OpenPopup( "AssetFinderPopup" );
 
 		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
-		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiPopupFlags_NoOpenOverExistingPopup ) )
 		{
-			bool PopupModified = false;
 
 			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
 			{
 				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
 				{
-					bool Selected = false;
+					bool Selected = ( rOut == rAsset );
 
 					ImGui::PushID( static_cast<int>( assetID ) );
 
 					if( rAsset->GetAssetType() == type || type == AssetType::Unknown )
 					{
-						if( ImGui::Selectable( rAsset->Name.c_str() ) )
+						if( ImGui::Selectable( rAsset->Name.c_str(), Selected ) )
 						{
-							function( rAsset.As<Ty>() );
+							rOut = assetID;
 
-							Selected = true;
 							PopupModified = true;
 						}
 					}
@@ -114,7 +113,7 @@ namespace Saturn::Auxiliary {
 				ImGui::EndListBox();
 			}
 
-			if( PopupModified && !ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow) )
+			if( PopupModified )
 			{
 				*rOpen = false;
 				ImGui::CloseCurrentPopup();
@@ -122,10 +121,8 @@ namespace Saturn::Auxiliary {
 
 			ImGui::EndPopup();
 		}
-		else
-		{
-			*rOpen = false;
-		}
+
+		return PopupModified;
 	}
 
 	template<typename Ty, typename Fn>
