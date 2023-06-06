@@ -105,6 +105,7 @@ namespace Saturn {
 
 	private:
 
+		void CreateEditor();
 		void Close();
 		void DeleteDeadLinks( ed::NodeId id );
 

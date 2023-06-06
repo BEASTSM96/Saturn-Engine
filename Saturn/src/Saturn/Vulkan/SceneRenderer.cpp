@@ -777,7 +777,7 @@ namespace Saturn {
 		{
 			auto FrameTimings = Renderer::Get().GetFrameTimings();
 
-			float shadowPassTime = 0;
+			float shadowPassTime = 0.0f;
 
 			if( m_RendererData.EnableShadows )
 			{

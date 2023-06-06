@@ -86,6 +86,20 @@ namespace Saturn {
 	NodeEditor::NodeEditor( AssetID ID )
 		: AssetViewer( ID )
 	{
+		CreateEditor();
+
+		s_BlueprintBackground = Ref<Texture2D>::Create( "content/textures/BlueprintBackground.png", AddressingMode::Repeat );
+
+		s_BlueprintBackgroundID = ImGui_ImplVulkan_AddTexture( s_BlueprintBackground->GetSampler(), s_BlueprintBackground->GetImageView(), s_BlueprintBackground->GetDescriptorInfo().imageLayout );
+	}
+
+	NodeEditor::~NodeEditor()
+	{
+		s_BlueprintBackground = nullptr;
+	}
+
+	void NodeEditor::CreateEditor()
+	{
 		ed::Config config;
 		config.SettingsFile = nullptr;
 		config.UserPointer = this;
@@ -151,15 +165,31 @@ namespace Saturn {
 
 		m_Editor = ed::CreateEditor( &config );
 		ed::SetCurrentEditor( m_Editor );
-
-		s_BlueprintBackground = Ref<Texture2D>::Create( "content/textures/BlueprintBackground.png", AddressingMode::Repeat );
-
-		s_BlueprintBackgroundID = ImGui_ImplVulkan_AddTexture( s_BlueprintBackground->GetSampler(), s_BlueprintBackground->GetImageView(), s_BlueprintBackground->GetDescriptorInfo().imageLayout );
 	}
 
-	NodeEditor::~NodeEditor()
+	void NodeEditor::Reload()
 	{
-		s_BlueprintBackground = nullptr;
+		ed::SetCurrentEditor( nullptr );
+
+		ed::DestroyEditor( m_Editor );
+
+		m_Editor = nullptr;
+
+		CreateEditor();
+	}
+
+	void NodeEditor::Close()
+	{
+		m_OnCompile();
+
+		ed::DestroyEditor( m_Editor );
+		ed::SetCurrentEditor( nullptr );
+
+		m_Nodes.clear();
+		m_Links.clear();
+		m_NodeEditorState = "";
+
+		m_OnClose();
 	}
 
 	Node* NodeEditor::AddNode( NodeSpecification& spec, ImVec2 position )
@@ -835,95 +865,6 @@ namespace Saturn {
 	void NodeEditor::ThrowWarning( const std::string& rMessage )
 	{
 		SAT_CORE_WARN( rMessage );
-	}
-
-	void NodeEditor::Reload()
-	{
-		ed::SetCurrentEditor( nullptr );
-
-		ed::DestroyEditor( m_Editor );
-
-		m_Editor = nullptr;
-
-		ed::Config config;
-		config.SettingsFile = nullptr;
-		config.UserPointer = this;
-
-		config.SaveSettings = []( const char* pData, size_t size, ed::SaveReasonFlags reason, void* pUserPointer ) -> bool
-		{
-			auto* pThis = static_cast< NodeEditor* >( pUserPointer );
-
-			pThis->m_NodeEditorState = pData;
-
-			return true;
-		};
-
-		config.LoadSettings = []( char* pData, void* pUserData ) -> size_t
-		{
-			auto* pThis = static_cast< NodeEditor* >( pUserData );
-
-			const auto& State = pThis->m_NodeEditorState;
-
-			if( !pData )
-			{
-				return State.size();
-			}
-			else
-			{
-				memcpy( pData, State.data(), State.size() );
-				SAT_CORE_INFO( "Assigned Node editor data is: {0}", State );
-			}
-			
-			return 0;
-		};
-
-		config.LoadNodeSettings = []( ed::NodeId nodeId, char* pData, void* pUserPointer ) -> size_t
-		{
-			auto* pThis = static_cast< NodeEditor* >( pUserPointer );
-
-			auto pNode = pThis->FindNode( nodeId );
-
-			if( !pNode )
-				return 0;
-
-			if( pData != nullptr )
-				memcpy( pData, pNode->State.data(), pNode->State.size() );
-
-			return pNode->State.size();
-		};
-
-		config.SaveNodeSettings = []( ed::NodeId nodeId, const char* pData, size_t size, ed::SaveReasonFlags reason, void* pUserPointer ) -> bool
-		{
-			auto* pThis = static_cast< NodeEditor* >( pUserPointer );
-
-			auto pNode = pThis->FindNode( nodeId );
-
-			if( !pNode )
-				return false;
-
-			pNode->State.assign( pData, size );
-
-			SAT_CORE_INFO( "Assigned Node data is: {0}", pNode->State );
-
-			return true;
-		};
-
-		m_Editor = ed::CreateEditor( &config );
-		ed::SetCurrentEditor( m_Editor );
-	}
-
-	void NodeEditor::Close()
-	{
-		m_OnCompile();
-
-		ed::DestroyEditor( m_Editor );
-		ed::SetCurrentEditor( nullptr );
-
-		m_Nodes.clear();
-		m_Links.clear();
-		m_NodeEditorState = "";
-
-		m_OnClose();
 	}
 
 	void NodeEditor::DeleteDeadLinks( ed::NodeId id )

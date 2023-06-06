@@ -77,20 +77,24 @@ namespace Saturn::Auxiliary {
 
 	inline bool DrawAssetFinder( AssetType type, bool* rOpen, AssetID& rOut )
 	{
-		bool PopupModified = false;
+		bool Modified = false;
 
-		if( *rOpen == true )
+		if( *rOpen == true ) 
+		{
 			ImGui::OpenPopup( "AssetFinderPopup" );
+			*rOpen = false;
+		}
 
 		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
-		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiPopupFlags_NoOpenOverExistingPopup ) )
+		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 		{
+			bool PopupModified = false;
 
 			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
 			{
 				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
 				{
-					bool Selected = ( rOut == rAsset );
+					bool Selected = ( rOut == assetID );
 
 					ImGui::PushID( static_cast<int>( assetID ) );
 
@@ -115,19 +119,24 @@ namespace Saturn::Auxiliary {
 
 			if( PopupModified )
 			{
-				*rOpen = false;
 				ImGui::CloseCurrentPopup();
+
+				Modified = true;
+				*rOpen = false;
 			}
 
 			ImGui::EndPopup();
 		}
 
-		return PopupModified;
+		return Modified;
 	}
 
 	template<typename Ty, typename Fn>
 	bool DrawAssetDragDropTarget( const char* label, const char* assetName, UUID& returnID, Fn&& function ) 
 	{
+		if( returnID == 0 )
+			return false;
+
 		bool changed = false;
 
 		ImGui::Text( label );

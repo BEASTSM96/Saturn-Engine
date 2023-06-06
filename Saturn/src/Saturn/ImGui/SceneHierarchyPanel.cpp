@@ -38,6 +38,7 @@
 #include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Saturn/GameFramework/EntityScriptManager.h"
+#include "Saturn/JoltPhysics/JoltMeshCollider.h"
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -384,6 +385,8 @@ namespace Saturn {
 
 		DrawComponent<StaticMeshComponent>( "Static Mesh", entity, [&]( auto& mc )
 		{
+			static bool s_Open = false;
+
 			ImGui::Columns( 3 );
 			ImGui::SetColumnWidth( 0, 100 );
 			ImGui::SetColumnWidth( 1, 300 );
@@ -394,15 +397,16 @@ namespace Saturn {
 
 			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
 			{
-				m_OpenAssetFinderPopup = !m_OpenAssetFinderPopup;
+				s_Open = !s_Open;
+				m_CurrentFinderType = AssetType::StaticMesh;
 
 				if( mc.Mesh )
 					m_CurrentAssetID = mc.Mesh->ID;
 			}
-			
-			if( Auxiliary::DrawAssetFinder( AssetType::StaticMesh, &m_OpenAssetFinderPopup, m_CurrentAssetID ) )
+
+			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
 			{
-				SAT_CORE_INFO( "Finder" );
+				mc.Mesh = AssetRegistry::Get().GetAssetAs<StaticMesh>( m_CurrentAssetID );
 			}
 
 			if( mc.Mesh )
@@ -482,14 +486,20 @@ namespace Saturn {
 
 		DrawComponent<MeshColliderComponent>( "Mesh Collider", entity, [&]( auto& mcc )
 		{
+			static bool s_Open = false;
+
 			if( ImGui::Button( "Change##openmesh", ImVec2( 50, 20 ) ) )
 			{
-				m_OpenAssetFinderPopup = !m_OpenAssetFinderPopup;
+				s_Open = !s_Open;
+				m_CurrentFinderType = AssetType::MeshCollider;
+
+				if( mcc.AssetID )
+					m_CurrentAssetID = mcc.AssetID;
 			}
 
-			if( Auxiliary::DrawAssetFinder( AssetType::MeshCollider, &m_OpenAssetFinderPopup, m_CurrentAssetID  ) )
+			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
 			{
-				SAT_CORE_INFO("Finder");
+				mcc.AssetID = m_CurrentAssetID;
 			}
 		} );
 
@@ -516,7 +526,6 @@ namespace Saturn {
 				rb.LinearDrag = drag;
 			}
 		} );
-
 	}
 
 }

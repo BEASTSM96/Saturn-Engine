@@ -77,7 +77,7 @@ namespace Saturn {
 		Ref<Texture2D> m_EditIcon;
 
 		bool m_OpenAssetFinderPopup = false;
-		AssetID m_CurrentAssetID;
+		AssetID m_CurrentAssetID = 0;
 
 		AssetType m_CurrentFinderType = AssetType::Unknown;
 
