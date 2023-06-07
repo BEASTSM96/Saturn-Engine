@@ -308,6 +308,8 @@ namespace Saturn {
 		meshCollider->Name = asset->Name;
 
 		meshCollider->Save();
+		
+		asset->SetPath( meshCollider->Path );
 
 		AssetRegistrySerialiser ars;
 		ars.Serialise();

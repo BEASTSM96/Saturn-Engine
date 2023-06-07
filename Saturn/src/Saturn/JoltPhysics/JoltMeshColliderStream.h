@@ -30,18 +30,38 @@
 
 #include "JoltMeshCollider.h"
 
+#include <Jolt/Core/StreamIn.h>
+#include <Jolt/Core/StreamOut.h>
+
 namespace Saturn {
 
-	class JoltMeshColliderStream
+	class JoltMeshColliderWriter : public JPH::StreamOut
 	{
 	public:
-		JoltMeshColliderStream( const Ref<JoltMeshCollider>& asset );
-		~JoltMeshColliderStream();
+		void WriteBytes( const void* inData, size_t inNumBytes ) override;
 
-		void Serialise();
-		void Deserialise();
+		bool IsFailed() const override;
+
+		Buffer ToBuffer() const
+		{
+			return Buffer::Copy( m_Data.data(), m_Data.size() );
+		}
 
 	private:
-		Ref<JoltMeshCollider> m_Asset;
+		std::vector<uint8_t*> m_Data;
+	};
+
+	class JoltMeshColliderReader : public JPH::StreamIn
+	{
+	public:
+		void ReadBytes( void* outData, size_t inNumBytes ) override;
+
+		bool IsEOF() const override;
+
+		bool IsFailed() const override;
+
+	private:
+		size_t m_BytesCompleted;
+		std::vector<uint8_t*> m_Data;
 	};
 }

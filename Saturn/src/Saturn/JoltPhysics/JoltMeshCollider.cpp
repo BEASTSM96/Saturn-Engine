@@ -49,8 +49,18 @@ namespace Saturn {
 
 	void JoltMeshCollider::Load()
 	{
-		JoltMeshColliderStream stream( this );
-		stream.Deserialise();
+		std::ifstream stream( Project::GetActiveProject()->FilepathAbs( Path ), std::ios::binary | std::ios::ate );
+
+		Buffer fileBuf;
+
+		auto end = stream.tellg();
+		stream.seekg( 0, std::ios::beg );
+		auto size = end - stream.tellg();
+
+		fileBuf.Allocate( ( uint32_t ) size );
+		stream.read( reinterpret_cast<char*>( fileBuf.Data ), fileBuf.Size );
+		
+		stream.close();
 	}
 
 	void JoltMeshCollider::Save()
@@ -67,8 +77,26 @@ namespace Saturn {
 
 		Path = cachePath;
 
-		JoltMeshColliderStream stream( this );
-		stream.Serialise();
+		// MeshCollider file structure.
+		// Header
+		// Static mesh ID
+		// Physics shapes
+
+		// Write the asset file.
+		const char* pHeader = "SMC\0";
+
+		std::ofstream fout( cachePath, std::ios::binary | std::ios::trunc );
+		fout.write( pHeader, 5 );
+
+		fout.write( reinterpret_cast<char*>( &m_StaticMesh->ID ), sizeof( UUID ) );
+
+		for( auto& rMeshData : m_SubmeshData )
+		{
+			fout.write( reinterpret_cast< char* >( &rMeshData.Index ), sizeof( uint32_t ) );
+
+			fout.write( reinterpret_cast< char* >( &rMeshData.Buffer.Size ), sizeof( rMeshData.Buffer.Size ) );
+			fout.write( reinterpret_cast< char* >( rMeshData.Buffer.Data ), rMeshData.Buffer.Size );
+		}
 	}
 
 	void JoltMeshCollider::Create()
@@ -76,6 +104,7 @@ namespace Saturn {
 		const auto& vertices = m_StaticMesh->Vertices();
 		const auto& indices = m_StaticMesh->Indices();
 
+		uint32_t Index = 0;
 		for( auto& rSubmesh : m_StaticMesh->Submeshes() )
 		{
 			JPH::VertexList list;
@@ -100,6 +129,7 @@ namespace Saturn {
 			JPH::RefConst<JPH::ScaledShapeSettings> Settings = new JPH::ScaledShapeSettings( MeshSettings, Auxiliary::GLMToJPH( m_Scale ) );
 
 			JPH::Shape::ShapeResult result = Settings->Create();
+			const auto& rShape = result.Get();
 
 			if( result.HasError() )
 			{
@@ -107,7 +137,16 @@ namespace Saturn {
 				continue;
 			}
 
+			JoltMeshColliderWriter writer;
+			rShape->SaveBinaryState( writer );
+
+			m_SubmeshData[ Index ].Index = Index;
+			m_SubmeshData[ Index ].Buffer.Zero_Memory();
+			m_SubmeshData[ Index ].Buffer = writer.ToBuffer();
+
 			m_Shapes.push_back( result.Get() );
+
+			Index++;
 		}
 	}
 

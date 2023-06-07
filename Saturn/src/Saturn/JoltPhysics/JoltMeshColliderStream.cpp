@@ -33,52 +33,38 @@
 
 namespace Saturn {
 
-	JoltMeshColliderStream::JoltMeshColliderStream( const Ref<JoltMeshCollider>& asset )
-		: m_Asset( asset )
+	void JoltMeshColliderWriter::WriteBytes( const void* inData, size_t inNumBytes )
 	{
+		// We want to write from where we are and not the start.
+		size_t size = m_Data.size();
 
+		m_Data.resize( size + inNumBytes );
+
+		memcpy( m_Data.data() + size, inData, inNumBytes );
 	}
 
-	JoltMeshColliderStream::~JoltMeshColliderStream()
+	bool JoltMeshColliderWriter::IsFailed() const
 	{
-
+		return false;
 	}
 
-	void JoltMeshColliderStream::Serialise()
+	//////////////////////////////////////////////////////////////////////////
+
+	void JoltMeshColliderReader::ReadBytes( void* outData, size_t inNumBytes )
 	{
-		std::ofstream fout( m_Asset->Path, std::ios::binary );
-
-		const char* pHeader = "SMC\0";
-
-		fout.write( pHeader, 5 );
-
-		size_t ColliderSize = m_Asset->m_Shapes.size();
-		fout.write( reinterpret_cast< const char* >( &ColliderSize ), sizeof( size_t ) );
-		fout.write( reinterpret_cast< const char* >( m_Asset->m_Shapes.data() ), ColliderSize * sizeof( m_Asset->m_Shapes ) );
-
-		fout.close();
+		// We want to read from where we are and not the start
+		memcpy( outData, m_Data.data() + m_BytesCompleted, inNumBytes );
+		m_BytesCompleted += inNumBytes;
 	}
 
-	void JoltMeshColliderStream::Deserialise()
+	bool JoltMeshColliderReader::IsEOF() const
 	{
-		std::ifstream input( m_Asset->Path, std::ios::binary );
+		return m_BytesCompleted >= m_Data.size();
+	}
 
-		input.seekg( 0, std::ios::end );
-		std::streampos size = input.tellg();
-		input.seekg( 0, std::ios::beg );
-
-		std::vector<char> content( size );
-		input.read( content.data(), size );
-
-		input.close();
-
-		// Validate the header
-		if( content[ 0 ] != 'S' || content[ 1 ] != 'M' || content[ 2 ] != 'C' || content[ 3 ] != '\0' )
-		{
-			SAT_CORE_ERROR( "Invaild mesh collider header!" );
-		}
-
-
+	bool JoltMeshColliderReader::IsFailed() const
+	{
+		return m_BytesCompleted == 0 || m_Data.size() == 0;
 	}
 
 }

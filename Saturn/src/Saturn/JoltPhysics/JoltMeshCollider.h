@@ -36,6 +36,12 @@
 
 namespace Saturn {
 
+	struct SubmeshColliderData
+	{
+		uint32_t Index;
+		Buffer Buffer;
+	};
+
 	// Only Triangle meshes for now.
 	class JoltMeshCollider : public Asset
 	{
@@ -53,7 +59,10 @@ namespace Saturn {
 
 		std::vector< JPH::Ref< JPH::Shape > > m_Shapes;
 
+		std::vector<SubmeshColliderData> m_SubmeshData;
+
 	private:
-		friend class JoltMeshColliderStream;
+		friend class JoltMeshColliderWriter;
+		friend class JoltMeshColliderReader;
 	};
 }
