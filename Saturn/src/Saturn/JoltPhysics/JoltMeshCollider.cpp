@@ -38,6 +38,13 @@
 
 namespace Saturn {
 
+	struct ColliderHeaderData
+	{
+		const char pHeader[ 5 ] = "SMC\0";
+		uint64_t ID = 0;
+		size_t Submeshes = 0;
+	};
+
 	JoltMeshCollider::JoltMeshCollider( const Ref<StaticMesh>& rStaticMesh, const glm::vec3& rScale )
 		: m_StaticMesh( rStaticMesh ), m_Scale( rScale )
 	{
@@ -61,6 +68,52 @@ namespace Saturn {
 		stream.read( reinterpret_cast<char*>( fileBuf.Data ), fileBuf.Size );
 		
 		stream.close();
+
+		ColliderHeaderData hd = *( ColliderHeaderData* ) fileBuf.Data;
+		
+		if( hd.pHeader != "SMC\0" ) 
+		{
+			SAT_CORE_ERROR( "Invaild file header!" );
+		}
+
+		// Read the collider data.
+		//  sizeof( ColliderHeaderData ) as an offset.
+		uint8_t* colliderData = fileBuf.As<uint8_t>() + sizeof( ColliderHeaderData );
+
+		for( uint32_t i = 0; i < hd.Submeshes; i++ )
+		{
+			SubmeshColliderData data{};
+			
+			// Index
+			uint32_t index = *( uint32_t* )colliderData;
+
+			colliderData += sizeof( uint32_t ); // Sizeof the index
+
+			uint32_t size = *( uint32_t* ) colliderData + sizeof( uint32_t );
+
+			colliderData += sizeof( uint32_t ); // Sizeof the size
+
+			data.Index = index;
+
+			data.Buffer = Buffer::Copy( colliderData, size );
+
+			colliderData += size;
+
+			m_SubmeshData.push_back( data );
+		}
+
+		fileBuf.Free();
+
+		// Create the shape
+		for( uint32_t i = 0; i < hd.Submeshes; i++ )
+		{
+			const auto& rData = m_SubmeshData[ i ];
+
+			JoltMeshColliderReader reader;
+			reader.ReadBytes( rData.Buffer.Data, rData.Buffer.Size );
+
+			JPH::Shape::ShapeResult result = JPH::Shape::sRestoreFromBinaryState( reader );
+		}
 	}
 
 	void JoltMeshCollider::Save()
@@ -82,13 +135,13 @@ namespace Saturn {
 		// Static mesh ID
 		// Physics shapes
 
-		// Write the asset file.
-		const char* pHeader = "SMC\0";
+		ColliderHeaderData hd{};
+		hd.ID = m_StaticMesh->ID;
+		hd.Submeshes = m_StaticMesh->Submeshes().size();
 
 		std::ofstream fout( cachePath, std::ios::binary | std::ios::trunc );
-		fout.write( pHeader, 5 );
 
-		fout.write( reinterpret_cast<char*>( &m_StaticMesh->ID ), sizeof( UUID ) );
+		fout.write( reinterpret_cast<char*>( &hd ), sizeof( ColliderHeaderData ) );
 
 		for( auto& rMeshData : m_SubmeshData )
 		{
@@ -140,9 +193,12 @@ namespace Saturn {
 			JoltMeshColliderWriter writer;
 			rShape->SaveBinaryState( writer );
 
-			m_SubmeshData[ Index ].Index = Index;
-			m_SubmeshData[ Index ].Buffer.Zero_Memory();
-			m_SubmeshData[ Index ].Buffer = writer.ToBuffer();
+			SubmeshColliderData cd{};
+			cd.Index = Index;
+			cd.Buffer.Zero_Memory();
+			cd.Buffer = writer.ToBuffer();
+
+			m_SubmeshData.push_back( cd );
 
 			m_Shapes.push_back( result.Get() );
 
