@@ -71,7 +71,7 @@ namespace Saturn {
 
 		ColliderHeaderData hd = *( ColliderHeaderData* ) fileBuf.Data;
 		
-		if( hd.pHeader != "SMC\0" ) 
+		if( strcmp( hd.pHeader, "SMC\0" ) )
 		{
 			SAT_CORE_ERROR( "Invaild file header!" );
 		}
