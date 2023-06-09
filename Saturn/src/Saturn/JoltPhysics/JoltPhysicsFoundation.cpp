@@ -289,7 +289,14 @@ namespace Saturn {
 		Ref<Asset> asset = AssetRegistry::Get().FindAsset( ID );
 		Ref<JoltMeshCollider> meshCollider = asset.As<JoltMeshCollider>();
 
+		meshCollider = Ref<JoltMeshCollider>::Create( nullptr, glm::vec3( 0.0f, 0.0f, 0.0f ) );
+		meshCollider->ID = asset->ID;
+		meshCollider->Type = asset->Type;
+		meshCollider->Name = asset->Name;
+		meshCollider->Path = asset->Path;
+
 		meshCollider->Load();
+		meshCollider->CreateBodies();
 
 		return nullptr;
 	}

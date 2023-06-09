@@ -51,7 +51,10 @@ namespace Saturn {
 
 		void Load();
 		void Save();
+
+		void CreateBodies();
 	private:
+		// This function does not create the physics body what this does is create shapes (which is the slowest part)
 		void Create();
 	private:
 		Ref<StaticMesh> m_StaticMesh;

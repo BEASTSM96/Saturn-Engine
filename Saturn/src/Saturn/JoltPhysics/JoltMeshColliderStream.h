@@ -54,6 +54,16 @@ namespace Saturn {
 	class JoltMeshColliderReader : public JPH::StreamIn
 	{
 	public:
+		JoltMeshColliderReader( const Buffer& rBuffer )
+			: m_Buffer( &rBuffer ) 
+		{
+		}
+
+		~JoltMeshColliderReader()
+		{
+			delete m_Buffer;
+		}
+
 		void ReadBytes( void* outData, size_t inNumBytes ) override;
 
 		bool IsEOF() const override;
@@ -61,7 +71,8 @@ namespace Saturn {
 		bool IsFailed() const override;
 
 	private:
-		size_t m_BytesCompleted;
-		std::vector<uint8_t*> m_Data;
+		const Buffer* m_Buffer = nullptr;
+
+		size_t m_BytesCompleted = 0;
 	};
 }

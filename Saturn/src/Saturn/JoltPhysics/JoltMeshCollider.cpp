@@ -33,6 +33,7 @@
 #include "JoltMeshColliderStream.h"
 
 #include <Jolt/Jolt.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 
@@ -109,10 +110,12 @@ namespace Saturn {
 		{
 			const auto& rData = m_SubmeshData[ i ];
 
-			JoltMeshColliderReader reader;
-			reader.ReadBytes( rData.Buffer.Data, rData.Buffer.Size );
-
+			JoltMeshColliderReader reader( rData.Buffer );
 			JPH::Shape::ShapeResult result = JPH::Shape::sRestoreFromBinaryState( reader );
+
+			const auto& rShape = result.Get();
+
+			m_Shapes.push_back( rShape );
 		}
 	}
 
@@ -149,6 +152,14 @@ namespace Saturn {
 
 			fout.write( reinterpret_cast< char* >( &rMeshData.Buffer.Size ), sizeof( rMeshData.Buffer.Size ) );
 			fout.write( reinterpret_cast< char* >( rMeshData.Buffer.Data ), rMeshData.Buffer.Size );
+		}
+	}
+
+	void JoltMeshCollider::CreateBodies()
+	{
+		for( auto& rShape : m_Shapes )
+		{
+			JPH::BodyCreationSettings BodySettings( rShape, pos, rot, Kinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, Kinematic ? Layers::NON_MOVING : Layers::MOVING );
 		}
 	}
 

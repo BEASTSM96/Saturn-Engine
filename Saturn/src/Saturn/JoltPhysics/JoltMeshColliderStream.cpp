@@ -53,18 +53,18 @@ namespace Saturn {
 	void JoltMeshColliderReader::ReadBytes( void* outData, size_t inNumBytes )
 	{
 		// We want to read from where we are and not the start
-		memcpy( outData, m_Data.data() + m_BytesCompleted, inNumBytes );
+		memcpy( outData, (uint8_t*)m_Buffer->Data + m_BytesCompleted, inNumBytes );
 		m_BytesCompleted += inNumBytes;
 	}
 
 	bool JoltMeshColliderReader::IsEOF() const
 	{
-		return m_BytesCompleted >= m_Data.size();
+		return m_BytesCompleted >= m_Buffer->Size;
 	}
 
 	bool JoltMeshColliderReader::IsFailed() const
 	{
-		return m_BytesCompleted == 0 || m_Data.size() == 0;
+		return m_BytesCompleted == 0 || m_Buffer->Size == 0;
 	}
 
 }
