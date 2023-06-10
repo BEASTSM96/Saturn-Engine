@@ -38,7 +38,7 @@ namespace Saturn {
 		JoltPhysicsBodyBase() {}
 		virtual ~JoltPhysicsBodyBase() = default;
 
-		virtual void Create( const glm::vec3& Position, const glm::vec3& Rotation ) = 0;
+		virtual void Create( ) = 0;
 		virtual void SyncTransform() = 0;
 
 		Entity& GetEntity() { return m_Entity; }

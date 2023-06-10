@@ -157,10 +157,6 @@ namespace Saturn {
 
 	void JoltMeshCollider::CreateBodies()
 	{
-		for( auto& rShape : m_Shapes )
-		{
-			JPH::BodyCreationSettings BodySettings( rShape, pos, rot, Kinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, Kinematic ? Layers::NON_MOVING : Layers::MOVING );
-		}
 	}
 
 	void JoltMeshCollider::Create()

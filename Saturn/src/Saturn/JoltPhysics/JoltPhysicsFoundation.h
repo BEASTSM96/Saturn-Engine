@@ -64,6 +64,7 @@ namespace Saturn {
 
 	class JoltDynamicRigidBody;
 	class StaticMesh;
+	class Entity;
 
 	class JoltPhysicsFoundation
 	{
@@ -79,13 +80,13 @@ namespace Saturn {
 		void Update( Timestep ts );
 
 		// Creates a rigid body with a box collider.
-		JPH::Body* CreateBoxCollider( const glm::vec3& Position, const glm::vec3& Rotation, const glm::vec3& Extents, bool Kinematic = false );
+		JPH::Body* CreateBoxCollider( Entity& rEntity, const glm::vec3& Extents );
 
-		JPH::Body* CreateCapsuleCollider( const glm::vec3& Position, const glm::vec3& Rotation, float Extents, float Height, bool Kinematic = false );
+		JPH::Body* CreateCapsuleCollider( Entity& rEntity, float Extents, float Height );
 
-		JPH::Body* CreateSphereCollider( const glm::vec3& Position, const glm::vec3& Rotation, float Extents, bool Kinematic = false );
+		JPH::Body* CreateSphereCollider( Entity& rEntity, float Extents );
 
-		JPH::Body* CreateMeshCollider( const glm::vec3& Position, const glm::vec3& Rotation, UUID ID, bool Kinematic = false );
+		JPH::Body* CreateMeshCollider( Entity& rEntity, UUID ID );
 
 		// When we call this function we always assume the mesh collider has not be created, so only calls if it does not exists.
 		void GenerateMeshCollider( Ref<StaticMesh> mesh, const glm::vec3& Scale );

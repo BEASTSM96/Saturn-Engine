@@ -35,6 +35,8 @@
 
 #include "JoltMeshCollider.h"
 
+#include "Saturn/Scene/Entity.h"
+
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
@@ -211,8 +213,11 @@ namespace Saturn {
 		rBodyInterface.DestroyBody( pBody->GetID() );
 	}
 
-	JPH::Body* JoltPhysicsFoundation::CreateBoxCollider( const glm::vec3& Position, const glm::vec3& Rotation, const glm::vec3& Extents, bool Kinematic /*= false*/ )
+	JPH::Body* JoltPhysicsFoundation::CreateBoxCollider( Entity& rEntity, const glm::vec3& Extents )
 	{
+		TransformComponent& tc = rEntity.GetComponent<TransformComponent>();
+		RigidbodyComponent& rb = rEntity.GetComponent<RigidbodyComponent>();
+
 		JPH::BodyInterface& rBodyInterface = m_PhysicsSystem->GetBodyInterface();
 
 		JPH::Vec3 extent = Auxiliary::GLMToJPH( Extents );
@@ -223,21 +228,24 @@ namespace Saturn {
 		JPH::ShapeRefC Box = Result.Get();
 
 		// No rotation?
-		JPH::Vec3 pos = Auxiliary::GLMToJPH( Position );
-		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( Rotation ) );
+		JPH::Vec3 pos = Auxiliary::GLMToJPH( tc.Position );
+		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( tc.Rotation ) );
 
-		JPH::BodyCreationSettings BodySettings( Box, pos, rot, Kinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, Kinematic ? Layers::NON_MOVING : Layers::MOVING );
+		JPH::BodyCreationSettings BodySettings( Box, pos, rot, rb.IsKinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, rb.IsKinematic ? Layers::NON_MOVING : Layers::MOVING );
 
 		JPH::Body* Body = nullptr;
 		Body = rBodyInterface.CreateBody( BodySettings );
 
-		rBodyInterface.AddBody( Body->GetID(), Kinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
+		rBodyInterface.AddBody( Body->GetID(), rb.IsKinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
 
 		return Body;
 	}
 
-	JPH::Body* JoltPhysicsFoundation::CreateCapsuleCollider( const glm::vec3& Position, const glm::vec3& Rotation, float Extents, float Height, bool Kinematic /*= false*/ )
+	JPH::Body* JoltPhysicsFoundation::CreateCapsuleCollider( Entity& rEntity, float Extents, float Height )
 	{
+		TransformComponent& tc = rEntity.GetComponent<TransformComponent>();
+		RigidbodyComponent& rb = rEntity.GetComponent<RigidbodyComponent>();
+
 		JPH::BodyInterface& rBodyInterface = m_PhysicsSystem->GetBodyInterface();
 
 		JPH::CapsuleShapeSettings Settings( Extents, Height );
@@ -247,21 +255,24 @@ namespace Saturn {
 		JPH::ShapeRefC Capsule = Result.Get();
 
 		// No rotation?
-		JPH::Vec3 pos = Auxiliary::GLMToJPH( Position );
-		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( Rotation ) );
+		JPH::Vec3 pos = Auxiliary::GLMToJPH( tc.Position );
+		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( tc.Rotation ) );
 
-		JPH::BodyCreationSettings BodySettings( Capsule, pos, rot, Kinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, Kinematic ? Layers::NON_MOVING : Layers::MOVING );
+		JPH::BodyCreationSettings BodySettings( Capsule, pos, rot, rb.IsKinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, rb.IsKinematic ? Layers::NON_MOVING : Layers::MOVING );
 
 		JPH::Body* Body = nullptr;
 		Body = rBodyInterface.CreateBody( BodySettings );
 
-		rBodyInterface.AddBody( Body->GetID(), Kinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
+		rBodyInterface.AddBody( Body->GetID(), rb.IsKinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
 
 		return Body;
 	}
 
-	JPH::Body* JoltPhysicsFoundation::CreateSphereCollider(const glm::vec3& Position, const glm::vec3& Rotation, float Extents, bool Kinematic /*= false */)
+	JPH::Body* JoltPhysicsFoundation::CreateSphereCollider( Entity& rEntity, float Extents )
 	{
+		TransformComponent& tc = rEntity.GetComponent<TransformComponent>();
+		RigidbodyComponent& rb = rEntity.GetComponent<RigidbodyComponent>();
+
 		JPH::BodyInterface& rBodyInterface = m_PhysicsSystem->GetBodyInterface();
 
 		JPH::SphereShapeSettings Settings( Extents );
@@ -271,25 +282,30 @@ namespace Saturn {
 		JPH::ShapeRefC Sphere = Result.Get();
 
 		// No rotation?
-		JPH::Vec3 pos = Auxiliary::GLMToJPH( Position );
-		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( Rotation ) );
+		JPH::Vec3 pos = Auxiliary::GLMToJPH( tc.Position );
+		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( tc.Rotation ) );
 
-		JPH::BodyCreationSettings BodySettings( Sphere, pos, rot, Kinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, Kinematic ? Layers::NON_MOVING : Layers::MOVING );
+		JPH::BodyCreationSettings BodySettings( Sphere, pos, rot, rb.IsKinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, rb.IsKinematic ? Layers::NON_MOVING : Layers::MOVING );
 
 		JPH::Body* Body = nullptr;
 		Body = rBodyInterface.CreateBody( BodySettings );
 
-		rBodyInterface.AddBody( Body->GetID(), Kinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
+		rBodyInterface.AddBody( Body->GetID(), rb.IsKinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
 
 		return Body;
 	}
 
-	JPH::Body* JoltPhysicsFoundation::CreateMeshCollider( const glm::vec3& Position, const glm::vec3& Rotation, UUID ID, bool Kinematic /*= false */ )
+	JPH::Body* JoltPhysicsFoundation::CreateMeshCollider( Entity& rEntity, UUID ID )
 	{
+		MeshColliderComponent& mc = rEntity.GetComponent<MeshColliderComponent>();
+		TransformComponent& tc = rEntity.GetComponent<TransformComponent>();
+
 		Ref<Asset> asset = AssetRegistry::Get().FindAsset( ID );
 		Ref<JoltMeshCollider> meshCollider = asset.As<JoltMeshCollider>();
 
-		meshCollider = Ref<JoltMeshCollider>::Create( nullptr, glm::vec3( 0.0f, 0.0f, 0.0f ) );
+		Ref<StaticMesh> mesh = AssetRegistry::Get().GetAssetAs<StaticMesh>( mc.AssetID );
+
+		meshCollider = Ref<JoltMeshCollider>::Create( mesh, tc.Scale );
 		meshCollider->ID = asset->ID;
 		meshCollider->Type = asset->Type;
 		meshCollider->Name = asset->Name;

@@ -71,7 +71,7 @@ namespace Saturn {
 				rb.Rigidbody->AttachMesh( e.GetComponent<MeshColliderComponent>().AssetID );
 			}
 
-			rb.Rigidbody->Create( tc.Position, tc.Rotation );
+			rb.Rigidbody->Create();
 		}
 	}
 

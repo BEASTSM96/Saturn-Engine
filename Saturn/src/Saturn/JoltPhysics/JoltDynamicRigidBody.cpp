@@ -42,31 +42,31 @@ namespace Saturn {
 		m_Entity = entity;
 	}
 
-	void JoltDynamicRigidBody::Create( const glm::vec3& Position, const glm::vec3& Rotation )
+	void JoltDynamicRigidBody::Create()
 	{
 		switch( PendingShapeInfo.ShapeType )
 		{
 			case PhysicsShape::BOX:
 			{
-				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateBoxCollider( Position, Rotation, PendingShapeInfo.Scale, m_Kinematic );
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateBoxCollider( m_Entity, PendingShapeInfo.Scale );
 				SetBody( newBody );
 			} break;
 
 			case PhysicsShape::CAPSULE:
 			{
-				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateCapsuleCollider( Position, Rotation, PendingShapeInfo.Extents, PendingShapeInfo.Height, m_Kinematic );
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateCapsuleCollider( m_Entity, PendingShapeInfo.Extents, PendingShapeInfo.Height );
 				SetBody( newBody );
 			} break;
 
 			case PhysicsShape::SPHERE:
 			{
-				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateSphereCollider( Position, Rotation, PendingShapeInfo.Extents , m_Kinematic );
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateSphereCollider( m_Entity, PendingShapeInfo.Extents );
 				SetBody( newBody );
 			} break;
 
 			case PhysicsShape::MESH:
 			{
-				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateMeshCollider( Position, Rotation, PendingShapeInfo.ID, m_Kinematic );
+				JPH::Body* newBody = JoltPhysicsFoundation::Get().CreateMeshCollider( m_Entity, PendingShapeInfo.ID );
 				SetBody( newBody );
 			} break;
 		}

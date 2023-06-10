@@ -49,7 +49,7 @@ namespace Saturn {
 		JoltDynamicRigidBody( Entity entity );
 		~JoltDynamicRigidBody();
 
-		virtual void Create( const glm::vec3& Position, const glm::vec3& Rotation ) override;
+		virtual void Create() override;
 		void DestroyBody();
 
 		void SetBody( JPH::Body* body );
