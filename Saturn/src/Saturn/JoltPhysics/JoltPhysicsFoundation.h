@@ -79,6 +79,7 @@ namespace Saturn {
 
 		void Update( Timestep ts );
 
+	public:
 		// Creates a rigid body with a box collider.
 		JPH::Body* CreateBoxCollider( Entity& rEntity, const glm::vec3& Extents );
 
@@ -93,6 +94,9 @@ namespace Saturn {
 
 		void DestroyBody( JPH::Body* pBody );
 
+		JPH::Body* CreateRigidBody( const JPH::Shape* pShape, const JPH::Vec3& Position, const JPH::Quat& Rotation, bool Kinematic );
+
+	public:
 		JPH::PhysicsSystem* GetPhysicsSystem() { return m_PhysicsSystem; }
 		const JPH::PhysicsSystem* GetPhysicsSystem() const { return m_PhysicsSystem; }
 

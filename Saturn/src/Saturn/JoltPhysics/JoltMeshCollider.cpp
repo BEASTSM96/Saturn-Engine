@@ -31,6 +31,9 @@
 
 #include "JoltConversions.h"
 #include "JoltMeshColliderStream.h"
+#include "JoltPhysicsFoundation.h"
+
+#include "Saturn/Scene/Entity.h"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
@@ -155,8 +158,20 @@ namespace Saturn {
 		}
 	}
 
-	void JoltMeshCollider::CreateBodies()
+	void JoltMeshCollider::CreateBodies( Entity& rEntity )
 	{
+		TransformComponent& tc = rEntity.GetComponent<TransformComponent>();
+		RigidbodyComponent& rb = rEntity.GetComponent<RigidbodyComponent>();
+
+		for( auto& rShape : m_Shapes )
+		{
+			JPH::Vec3 pos = Auxiliary::GLMToJPH( tc.Position );
+			JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( tc.Rotation ) );
+
+			JPH::Body* pBody = JoltPhysicsFoundation::Get().CreateRigidBody( rShape, pos, rot, rb.IsKinematic );
+
+			m_Bodies.push_back( pBody );
+		}
 	}
 
 	void JoltMeshCollider::Create()

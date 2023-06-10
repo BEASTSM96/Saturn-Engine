@@ -42,6 +42,8 @@ namespace Saturn {
 		Buffer Buffer;
 	};
 
+	class Entity;
+
 	// Only Triangle meshes for now.
 	class JoltMeshCollider : public Asset
 	{
@@ -52,7 +54,10 @@ namespace Saturn {
 		void Load();
 		void Save();
 
-		void CreateBodies();
+		void CreateBodies( Entity& rEntity );
+
+		JPH::Body* GetFirstBody() { return m_Bodies.front(); }
+
 	private:
 		// This function does not create the physics body what this does is create shapes (which is the slowest part)
 		void Create();
@@ -61,6 +66,9 @@ namespace Saturn {
 		glm::vec3 m_Scale;
 
 		std::vector< JPH::Ref< JPH::Shape > > m_Shapes;
+
+		// Todo: Change to BodyID?
+		std::vector< JPH::Body* > m_Bodies;
 
 		std::vector<SubmeshColliderData> m_SubmeshData;
 

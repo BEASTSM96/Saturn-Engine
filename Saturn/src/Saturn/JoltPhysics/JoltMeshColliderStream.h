@@ -61,7 +61,7 @@ namespace Saturn {
 
 		~JoltMeshColliderReader()
 		{
-			delete m_Buffer;
+			m_Buffer = nullptr;
 		}
 
 		void ReadBytes( void* outData, size_t inNumBytes ) override;

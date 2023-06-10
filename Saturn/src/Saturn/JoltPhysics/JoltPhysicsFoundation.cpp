@@ -213,6 +213,22 @@ namespace Saturn {
 		rBodyInterface.DestroyBody( pBody->GetID() );
 	}
 
+	JPH::Body* JoltPhysicsFoundation::CreateRigidBody( const JPH::Shape* pShape, const JPH::Vec3& Position, const JPH::Quat& Rotation, bool Kinematic )
+	{
+		JPH::BodyInterface& rBodyInterface = m_PhysicsSystem->GetBodyInterface();
+
+		JPH::BodyCreationSettings BodySettings( pShape, Position, Rotation, 
+			Kinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, 
+			Kinematic ? Layers::NON_MOVING : Layers::MOVING );
+
+		JPH::Body* Body = nullptr;
+		Body = rBodyInterface.CreateBody( BodySettings );
+
+		rBodyInterface.AddBody( Body->GetID(), Kinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
+
+		return Body;
+	}
+
 	JPH::Body* JoltPhysicsFoundation::CreateBoxCollider( Entity& rEntity, const glm::vec3& Extents )
 	{
 		TransformComponent& tc = rEntity.GetComponent<TransformComponent>();
@@ -227,16 +243,10 @@ namespace Saturn {
 		JPH::ShapeSettings::ShapeResult Result = Settings.Create();
 		JPH::ShapeRefC Box = Result.Get();
 
-		// No rotation?
 		JPH::Vec3 pos = Auxiliary::GLMToJPH( tc.Position );
 		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( tc.Rotation ) );
 
-		JPH::BodyCreationSettings BodySettings( Box, pos, rot, rb.IsKinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, rb.IsKinematic ? Layers::NON_MOVING : Layers::MOVING );
-
-		JPH::Body* Body = nullptr;
-		Body = rBodyInterface.CreateBody( BodySettings );
-
-		rBodyInterface.AddBody( Body->GetID(), rb.IsKinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
+		JPH::Body* Body = CreateRigidBody( Box, pos, rot, rb.IsKinematic );
 
 		return Body;
 	}
@@ -254,16 +264,10 @@ namespace Saturn {
 		JPH::ShapeSettings::ShapeResult Result = Settings.Create();
 		JPH::ShapeRefC Capsule = Result.Get();
 
-		// No rotation?
 		JPH::Vec3 pos = Auxiliary::GLMToJPH( tc.Position );
 		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( tc.Rotation ) );
 
-		JPH::BodyCreationSettings BodySettings( Capsule, pos, rot, rb.IsKinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, rb.IsKinematic ? Layers::NON_MOVING : Layers::MOVING );
-
-		JPH::Body* Body = nullptr;
-		Body = rBodyInterface.CreateBody( BodySettings );
-
-		rBodyInterface.AddBody( Body->GetID(), rb.IsKinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
+		JPH::Body* Body = CreateRigidBody( Capsule, pos, rot, rb.IsKinematic );
 
 		return Body;
 	}
@@ -281,40 +285,32 @@ namespace Saturn {
 		JPH::ShapeSettings::ShapeResult Result = Settings.Create();
 		JPH::ShapeRefC Sphere = Result.Get();
 
-		// No rotation?
 		JPH::Vec3 pos = Auxiliary::GLMToJPH( tc.Position );
 		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( tc.Rotation ) );
 
-		JPH::BodyCreationSettings BodySettings( Sphere, pos, rot, rb.IsKinematic ? JPH::EMotionType::Static : JPH::EMotionType::Dynamic, rb.IsKinematic ? Layers::NON_MOVING : Layers::MOVING );
-
-		JPH::Body* Body = nullptr;
-		Body = rBodyInterface.CreateBody( BodySettings );
-
-		rBodyInterface.AddBody( Body->GetID(), rb.IsKinematic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate );
+		JPH::Body* Body = CreateRigidBody( Sphere, pos, rot, rb.IsKinematic );
 
 		return Body;
 	}
 
 	JPH::Body* JoltPhysicsFoundation::CreateMeshCollider( Entity& rEntity, UUID ID )
 	{
-		MeshColliderComponent& mc = rEntity.GetComponent<MeshColliderComponent>();
+		StaticMeshComponent& mc = rEntity.GetComponent<StaticMeshComponent>();
 		TransformComponent& tc = rEntity.GetComponent<TransformComponent>();
 
 		Ref<Asset> asset = AssetRegistry::Get().FindAsset( ID );
 		Ref<JoltMeshCollider> meshCollider = asset.As<JoltMeshCollider>();
 
-		Ref<StaticMesh> mesh = AssetRegistry::Get().GetAssetAs<StaticMesh>( mc.AssetID );
-
-		meshCollider = Ref<JoltMeshCollider>::Create( mesh, tc.Scale );
+		meshCollider = Ref<JoltMeshCollider>::Create( mc.Mesh, tc.Scale );
 		meshCollider->ID = asset->ID;
 		meshCollider->Type = asset->Type;
 		meshCollider->Name = asset->Name;
 		meshCollider->Path = asset->Path;
 
 		meshCollider->Load();
-		meshCollider->CreateBodies();
+		meshCollider->CreateBodies( rEntity );
 
-		return nullptr;
+		return meshCollider->GetFirstBody();
 	}
 
 	void JoltPhysicsFoundation::GenerateMeshCollider( Ref<StaticMesh> mesh, const glm::vec3& rScale )
