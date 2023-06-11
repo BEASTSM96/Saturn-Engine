@@ -77,7 +77,7 @@ namespace Saturn {
 		
 		if( strcmp( hd.pHeader, "SMC\0" ) )
 		{
-			SAT_CORE_ERROR( "Invaild file header!" );
+			SAT_CORE_ASSERT( false, "Invaild file header!" );
 		}
 
 		// Read the collider data.
@@ -88,17 +88,21 @@ namespace Saturn {
 		{
 			SubmeshColliderData data{};
 			
-			// Index
-			uint32_t index = *( uint32_t* )colliderData;
+			//////////////////////////////////////////////////////////////////////////
+			// BUFFER
+			//[=======================================================================================]//
+			// ^		        ^						^					^					  ^
+			// | (Index)	    | 						| (Size)			|					  | (Jolt shape collider data) + Size
+			// Starting		+	uint32_t (4 bytes)	+	uint32_t (4 bytes)  +  uint32_t (4 bytes)		
+			//////////////////////////////////////////////////////////////////////////
 
-			colliderData += sizeof( uint32_t ); // Sizeof the index
-
-			uint32_t size = *( uint32_t* ) colliderData + sizeof( uint32_t );
+			uint32_t size = *( uint32_t* ) colliderData;
 
 			colliderData += sizeof( uint32_t ); // Sizeof the size
 
-			data.Index = index;
+			data.Index = i;
 
+			data.Buffer.Free();
 			data.Buffer = Buffer::Copy( colliderData, size );
 
 			colliderData += size;
@@ -151,8 +155,6 @@ namespace Saturn {
 
 		for( auto& rMeshData : m_SubmeshData )
 		{
-			fout.write( reinterpret_cast< char* >( &rMeshData.Index ), sizeof( uint32_t ) );
-
 			fout.write( reinterpret_cast< char* >( &rMeshData.Buffer.Size ), sizeof( rMeshData.Buffer.Size ) );
 			fout.write( reinterpret_cast< char* >( rMeshData.Buffer.Data ), rMeshData.Buffer.Size );
 		}
@@ -163,15 +165,14 @@ namespace Saturn {
 		TransformComponent& tc = rEntity.GetComponent<TransformComponent>();
 		RigidbodyComponent& rb = rEntity.GetComponent<RigidbodyComponent>();
 
-		for( auto& rShape : m_Shapes )
-		{
-			JPH::Vec3 pos = Auxiliary::GLMToJPH( tc.Position );
-			JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( tc.Rotation ) );
+		auto& rShape = m_Shapes[ 0 ];
+	
+		JPH::Vec3 pos = Auxiliary::GLMToJPH( tc.Position );
+		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( tc.Rotation ) );
 
-			JPH::Body* pBody = JoltPhysicsFoundation::Get().CreateRigidBody( rShape, pos, rot, rb.IsKinematic );
+		JPH::Body* pBody = JoltPhysicsFoundation::Get().CreateRigidBody( rShape, pos, rot, rb.IsKinematic );
 
-			m_Bodies.push_back( pBody );
-		}
+		m_Bodies.push_back( pBody );
 	}
 
 	void JoltMeshCollider::Create()
