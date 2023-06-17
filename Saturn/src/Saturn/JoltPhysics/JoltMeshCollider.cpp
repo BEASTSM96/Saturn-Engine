@@ -39,6 +39,7 @@
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
+#include <Jolt/Core/StreamWrapper.h>
 
 namespace Saturn {
 
@@ -86,28 +87,23 @@ namespace Saturn {
 
 		for( uint32_t i = 0; i < hd.Submeshes; i++ )
 		{
-			SubmeshColliderData data{};
-			
-			//////////////////////////////////////////////////////////////////////////
-			// BUFFER
-			//[=======================================================================================]//
-			// ^		        ^						^					^					  ^
-			// | (Index)	    | 						| (Size)			|					  | (Jolt shape collider data) + Size
-			// Starting		+	uint32_t (4 bytes)	+	uint32_t (4 bytes)  +  uint32_t (4 bytes)		
-			//////////////////////////////////////////////////////////////////////////
+			SubmeshColliderData submesh{};
 
-			uint32_t size = *( uint32_t* ) colliderData;
+			uint32_t index = *( uint32_t* ) colliderData;
 
-			colliderData += sizeof( uint32_t ); // Sizeof the size
+			colliderData += sizeof( uint32_t );
 
-			data.Index = i;
+			size_t size = *( size_t* ) colliderData;
 
-			data.Buffer.Free();
-			data.Buffer = Buffer::Copy( colliderData, size );
+			colliderData += sizeof( size_t );
 
+			std::string str( reinterpret_cast<const char*>( colliderData ), size );
 			colliderData += size;
+			
+			submesh.Index = index;
+			submesh.Stream = str;
 
-			m_SubmeshData.push_back( data );
+			m_SubmeshData.push_back( submesh );
 		}
 
 		fileBuf.Free();
@@ -117,10 +113,24 @@ namespace Saturn {
 		{
 			const auto& rData = m_SubmeshData[ i ];
 
-			JoltMeshColliderReader reader( rData.Buffer );
-			JPH::Shape::ShapeResult result = JPH::Shape::sRestoreFromBinaryState( reader );
+			std::stringstream ss( rData.Stream );
+
+			JPH::StreamInWrapper reader( ss );
+
+			JPH::Shape::IDToShapeMap IDToShape;
+			JPH::Shape::IDToMaterialMap IDToMaterial;
+
+			JPH::Shape::ShapeResult result = JPH::Shape::sRestoreWithChildren( reader, IDToShape, IDToMaterial );
+
+			if( !result.IsValid() )
+			{
+				SAT_CORE_ERROR( "Failed to read shape. Shape is not vaild. Moving on to the next submesh." );
+				SAT_CORE_ERROR( "Shape error: {0}", result.GetError() );
+				continue;
+			}
 
 			const auto& rShape = result.Get();
+			rShape->GetMassProperties();
 
 			m_Shapes.push_back( rShape );
 		}
@@ -155,8 +165,12 @@ namespace Saturn {
 
 		for( auto& rMeshData : m_SubmeshData )
 		{
-			fout.write( reinterpret_cast< char* >( &rMeshData.Buffer.Size ), sizeof( rMeshData.Buffer.Size ) );
-			fout.write( reinterpret_cast< char* >( rMeshData.Buffer.Data ), rMeshData.Buffer.Size );
+			fout.write( reinterpret_cast< char* >( &rMeshData.Index ), sizeof( uint32_t ) );
+
+			size_t stringLength = rMeshData.Stream.size();
+			fout.write( reinterpret_cast< const char* >( &stringLength ), sizeof( size_t ) );
+
+			fout.write( rMeshData.Stream.c_str(), stringLength );
 		}
 	}
 
@@ -207,19 +221,23 @@ namespace Saturn {
 			JPH::Shape::ShapeResult result = Settings->Create();
 			const auto& rShape = result.Get();
 
-			if( result.HasError() )
+			if( result.HasError() || !result.IsValid() )
 			{
 				SAT_CORE_ERROR( "Failed to created mesh collider: {0}. Moving on to the next submesh...", result.GetError() );
 				continue;
 			}
 
-			JoltMeshColliderWriter writer;
-			rShape->SaveBinaryState( writer );
+			std::stringstream ss;
+			JPH::StreamOutWrapper writer( ss );
+
+			JPH::Shape::ShapeToIDMap ShapeToID;
+			JPH::Shape::MaterialToIDMap MaterialToID;
+
+			rShape->SaveWithChildren( writer, ShapeToID, MaterialToID );
 
 			SubmeshColliderData cd{};
 			cd.Index = Index;
-			cd.Buffer.Zero_Memory();
-			cd.Buffer = writer.ToBuffer();
+			cd.Stream = ss.str();
 
 			m_SubmeshData.push_back( cd );
 

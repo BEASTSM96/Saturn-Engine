@@ -39,7 +39,7 @@ namespace Saturn {
 	struct SubmeshColliderData
 	{
 		uint32_t Index;
-		Buffer Buffer;
+		std::string Stream;
 	};
 
 	class Entity;

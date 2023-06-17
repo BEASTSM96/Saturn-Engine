@@ -42,6 +42,7 @@
 
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Core/Factory.h>
+#include <Jolt/Core/StreamWrapper.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
@@ -247,6 +248,27 @@ namespace Saturn {
 		JPH::Quat rot = Auxiliary::GLMQuatToJPH( glm::quat( tc.Rotation ) );
 
 		JPH::Body* Body = CreateRigidBody( Box, pos, rot, rb.IsKinematic );
+
+		/*
+		std::stringstream ss;
+		JPH::StreamOutWrapper out( ss );
+
+		JPH::Shape::ShapeToIDMap shape_to_id;
+		JPH::Shape::MaterialToIDMap material_to_id;
+		Box->SaveWithChildren( out, shape_to_id, material_to_id );
+
+		std::ofstream fout( "test.smc", std::ios::binary | std::ios::trunc );
+		fout << ss.str();
+		fout.close();
+
+		JPH::StreamInWrapper in( ss );
+		
+		JPH::Shape::IDToShapeMap id_to_shape;
+		JPH::Shape::IDToMaterialMap id_to_material;
+		JPH::Shape::ShapeResult result = JPH::Shape::sRestoreWithChildren( in, id_to_shape, id_to_material );
+
+		JPH::Ref<JPH::Shape> newShape = result.Get();
+		*/
 
 		return Body;
 	}

@@ -42,13 +42,13 @@ namespace Saturn {
 
 		bool IsFailed() const override;
 
-		Buffer ToBuffer() const
+		Buffer ToBuffer() 
 		{
-			return Buffer::Copy( m_Data.data(), m_Data.size() );
+			return Buffer::Copy( m_Stream.data(), m_Stream.size() );
 		}
 
 	private:
-		std::vector<uint8_t*> m_Data;
+		std::vector<uint8_t*> m_Stream;
 	};
 
 	class JoltMeshColliderReader : public JPH::StreamIn

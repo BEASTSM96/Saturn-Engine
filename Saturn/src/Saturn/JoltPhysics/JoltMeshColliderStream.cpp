@@ -35,12 +35,11 @@ namespace Saturn {
 
 	void JoltMeshColliderWriter::WriteBytes( const void* inData, size_t inNumBytes )
 	{
-		// We want to write from where we are and not the start.
-		size_t size = m_Data.size();
+		size_t offset = m_Stream.size() + inNumBytes;
 
-		m_Data.resize( size + inNumBytes );
+		m_Stream.resize( offset );
 
-		memcpy( m_Data.data() + size, inData, inNumBytes );
+		memcpy( m_Stream.data(), inData, inNumBytes );
 	}
 
 	bool JoltMeshColliderWriter::IsFailed() const
