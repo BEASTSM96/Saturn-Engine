@@ -129,10 +129,8 @@ namespace Saturn {
 				continue;
 			}
 
-			const auto& rShape = result.Get();
-			rShape->GetMassProperties();
-
-			m_Shapes.push_back( rShape );
+			JPH::Ref<JPH::Shape> Shape = result.Get();
+			m_Shapes.push_back( Shape );
 		}
 	}
 
@@ -215,8 +213,10 @@ namespace Saturn {
 				triList.push_back( JPH::IndexedTriangle( rIndex.V1, rIndex.V2, rIndex.V3, 0 ) );
 			}
 
+			JPH::Vec3 scale = Auxiliary::GLMToJPH( m_Scale );
+
 			JPH::RefConst<JPH::MeshShapeSettings> MeshSettings = new JPH::MeshShapeSettings( list, triList );
-			JPH::RefConst<JPH::ScaledShapeSettings> Settings = new JPH::ScaledShapeSettings( MeshSettings, Auxiliary::GLMToJPH( m_Scale ) );
+			JPH::RefConst<JPH::ScaledShapeSettings> Settings = new JPH::ScaledShapeSettings( MeshSettings, scale );
 
 			JPH::Shape::ShapeResult result = Settings->Create();
 			const auto& rShape = result.Get();

@@ -145,6 +145,10 @@ void MassProperties::Scale(Vec3Arg inScale)
 
 	// Mass scales linear with volume (note that the scaling can be negative and we don't want the mass to become negative)
 	float mass_scale = abs(inScale.GetX() * inScale.GetY() * inScale.GetZ());
+
+	if( mMass == 0.0f )
+		mMass = 1.0f;
+
 	mMass *= mass_scale;
 	
 	// Inertia scales linear with mass. This updates the m_k terms above.

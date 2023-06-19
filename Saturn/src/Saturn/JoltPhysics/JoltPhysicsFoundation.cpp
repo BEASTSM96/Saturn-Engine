@@ -268,6 +268,8 @@ namespace Saturn {
 		JPH::Shape::ShapeResult result = JPH::Shape::sRestoreWithChildren( in, id_to_shape, id_to_material );
 
 		JPH::Ref<JPH::Shape> newShape = result.Get();
+		auto mass = newShape->GetMassProperties();
+		mass.mMass;
 		*/
 
 		return Body;
