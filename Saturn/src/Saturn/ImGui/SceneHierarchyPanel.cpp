@@ -38,7 +38,6 @@
 #include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Saturn/GameFramework/EntityScriptManager.h"
-#include "Saturn/JoltPhysics/JoltMeshCollider.h"
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>

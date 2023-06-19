@@ -47,7 +47,7 @@ namespace Saturn {
 		bool LoadDepth = false;
 	};
 
-	class Pass : public CountedObj
+	class Pass : public RefTarget
 	{
 	public:
 		 Pass() { }

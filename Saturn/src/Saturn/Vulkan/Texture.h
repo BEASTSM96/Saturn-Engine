@@ -67,7 +67,7 @@ namespace Saturn {
 		ClampToBorder
 	};
 
-	class Texture : public CountedObj
+	class Texture : public RefTarget
 	{
 	public:
 		Texture() {}

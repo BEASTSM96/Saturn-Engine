@@ -84,7 +84,7 @@ namespace Saturn {
 	class SClass;
 	class SceneRenderer;
 
-	class Scene : public CountedObj
+	class Scene : public RefTarget
 	{
 	public:
 		Scene();

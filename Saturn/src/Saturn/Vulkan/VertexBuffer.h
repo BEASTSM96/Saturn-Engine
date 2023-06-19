@@ -95,7 +95,7 @@ namespace Saturn {
 		}
 	};
 
-	class VertexBufferLayout : public CountedObj
+	class VertexBufferLayout : public RefTarget
 	{
 	public:
 		VertexBufferLayout() { }
@@ -160,7 +160,7 @@ namespace Saturn {
 	};
 	
 	// A vulkan vertex buffer.
-	class VertexBuffer : public CountedObj
+	class VertexBuffer : public RefTarget
 	{
 	public:
 		VertexBuffer() : m_pData( nullptr ) { }

@@ -27,7 +27,7 @@ IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
 IncludeDir["Optick"] = "Saturn/vendor/optick/src"
 IncludeDir["Filewatch"] = "Saturn/vendor/Filewatch/src"
 IncludeDir["MiniAudio"] = "Saturn/vendor/miniaudio/src"
-
+IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["SingletonStorage"] = "SingletonStorage/src"
 
 group "Dependencies"
@@ -100,6 +100,9 @@ project "Saturn"
 		"%{IncludeDir.Optick}",
 		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.Filewatch}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx",
 
 		"%{IncludeDir.SingletonStorage}"
 	}
@@ -232,8 +235,6 @@ project "Saturn-Editor"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
-		"%{IncludeDir.DiscordRPC}",
-		"%{IncludeDir.rapidjson}",
 		"%{IncludeDir.glslc}",
 		"%{IncludeDir.shaderc}",
 		"%{IncludeDir.SPIRV_Cross}",
@@ -246,7 +247,7 @@ project "Saturn-Editor"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Filewatch}",
 		"%{IncludeDir.MiniAudio}",
-		"%{IncludeDir.JoltPhysics}",
+
 		"%{IncludeDir.SingletonStorage}"
 	}
 

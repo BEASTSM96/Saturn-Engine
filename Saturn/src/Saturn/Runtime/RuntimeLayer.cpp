@@ -46,7 +46,7 @@
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Asset/Prefab.h"
 
-#include "Saturn/JoltPhysics/JoltPhysicsFoundation.h"
+#include "Saturn/Physics/PhysicsFoundation.h"
 
 namespace Saturn {
 
@@ -58,7 +58,8 @@ namespace Saturn {
 		AssetRegistry* ar = new AssetRegistry();
 
 		// Init Physics
-		JoltPhysicsFoundation::Get().Init();
+		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
+		pPhysicsFoundation->Init();
 
 		auto& rUserSettings = GetUserSettings();
 
@@ -89,7 +90,7 @@ namespace Saturn {
 		m_RuntimeScene->OnRuntimeEnd();
 		m_RuntimeScene = nullptr;
 
-		JoltPhysicsFoundation::Get().Terminate();
+		//JoltPhysicsFoundation::Get().Terminate();
 	}
 
 	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )

@@ -35,7 +35,7 @@
 
 namespace Saturn {
 
-	class AssetViewer : public CountedObj
+	class AssetViewer : public RefTarget
 	{
 	public:
 		AssetViewer( AssetID ID );

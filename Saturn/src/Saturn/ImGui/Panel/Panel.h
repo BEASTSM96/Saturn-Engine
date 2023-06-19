@@ -32,7 +32,7 @@
 
 namespace Saturn {
 
-	class Panel : public CountedObj
+	class Panel : public RefTarget
 	{
 	public:
 		Panel() = default;

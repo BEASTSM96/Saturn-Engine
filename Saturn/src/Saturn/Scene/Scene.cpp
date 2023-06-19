@@ -32,9 +32,6 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
-#include "Saturn/JoltPhysics/JoltRuntime.h"
-#include "Saturn/JoltPhysics/JoltDynamicRigidBody.h"
-
 #include "Saturn/GameFramework/EntityScriptManager.h"
 
 #include "Entity.h"
@@ -97,7 +94,7 @@ namespace Saturn {
 
 		if( m_RuntimeRunning ) 
 		{
-			m_PhysicsRuntime->OnUpdate( ts );
+			//m_PhysicsRuntime->OnUpdate( ts );
 
 			EntityScriptManager::Get().UpdateAllScripts( ts );
 
@@ -115,7 +112,7 @@ namespace Saturn {
 		for ( const auto& entity : PhysXView )
 		{
 			auto [tc, rb] = PhysXView.get<TransformComponent, RigidbodyComponent>( entity );
-			rb.Rigidbody->SyncTransform();
+			//rb.Rigidbody->SyncTransform();
 		}
 
 		EntityScriptManager::Get().OnPhysicsUpdate( ts );
@@ -454,7 +451,7 @@ namespace Saturn {
 		if( m_PhysicsRuntime )
 			delete m_PhysicsRuntime;
 
-		m_PhysicsRuntime = new JoltRuntime( this );
+		//m_PhysicsRuntime = new JoltRuntime( this );
 
 		EntityScriptManager::Get().BeginPlay();
 	}

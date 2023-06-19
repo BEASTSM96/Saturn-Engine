@@ -34,8 +34,6 @@
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
 
-#include "Saturn/JoltPhysics/JoltPhysicsFoundation.h"
-
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 #include "Saturn/Scene/Components.h"
 
@@ -117,7 +115,7 @@ namespace Saturn {
 
 		if( ImGui::Button( "Generate Mesh Collider" ) ) 
 		{
-			JoltPhysicsFoundation::Get().GenerateMeshCollider( m_Mesh, glm::vec3( 1.0f, 1.0f, 1.0f ) );
+			//JoltPhysicsFoundation::Get().GenerateMeshCollider( m_Mesh, glm::vec3( 1.0f, 1.0f, 1.0f ) );
 		}
 
 		ImGui::End();

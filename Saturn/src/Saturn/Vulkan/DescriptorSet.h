@@ -33,7 +33,7 @@
 
 namespace Saturn {
 
-	class DescriptorPool : public CountedObj
+	class DescriptorPool : public RefTarget
 	{
 	public:
 		DescriptorPool() {}
@@ -110,7 +110,7 @@ namespace Saturn {
 		uint32_t SetIndex = -1;
 	};
 
-	class DescriptorSet : public CountedObj
+	class DescriptorSet : public RefTarget
 	{
 	public:
 		DescriptorSet() {}

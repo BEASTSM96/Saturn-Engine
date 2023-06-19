@@ -32,7 +32,7 @@
 
 namespace Saturn {
 
-	class CountedObj
+	class RefTarget
 	{
 	public:
 		void AddRef() const
@@ -57,7 +57,7 @@ namespace Saturn {
 	public:
 		Ref() : m_Pointer( nullptr ) {}
 		Ref( std::nullptr_t nullptrr ) : m_Pointer( nullptr ) {}
-		Ref( T* pointer ) : m_Pointer( pointer ) { static_assert( std::is_base_of<CountedObj, T>::value, "T must be a child of CountedObj class!" ); AddRef(); }
+		Ref( T* pointer ) : m_Pointer( pointer ) { static_assert( std::is_base_of<RefTarget, T>::value, "T must be a child of RefTarget class!" ); AddRef(); }
 
 		template<typename T2>
 		Ref( const Ref<T2>& other ) { m_Pointer = ( T* ) other.m_Pointer; AddRef(); }

@@ -39,7 +39,7 @@ namespace Saturn {
 	class Submesh;
 	class MaterialInstance;
 
-	class Material : public CountedObj
+	class Material : public RefTarget
 	{
 	public:
 		 Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName );

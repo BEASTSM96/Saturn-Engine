@@ -142,7 +142,7 @@ namespace Saturn {
 		Buffer DataBuffer;
 	};
 
-	class Asset : public CountedObj
+	class Asset : public RefTarget
 	{
 	public:
 		AssetID ID = 0;

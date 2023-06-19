@@ -44,7 +44,7 @@ namespace Saturn {
 		std::string Path; // Absolute path
 	};
 
-	class Project : public CountedObj
+	class Project : public RefTarget
 	{
 	public:
 		Project();

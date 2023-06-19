@@ -164,7 +164,7 @@ namespace Saturn {
 	};
 
 	// A mesh source class only exists to get information about a mesh, use the mesh class to render meshes.
-	class MeshSource : public CountedObj
+	class MeshSource : public RefTarget
 	{
 	public:
 		MeshSource( const std::filesystem::path& rPath, const std::filesystem::path& rDstPath );
