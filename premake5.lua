@@ -175,7 +175,23 @@ project "Saturn"
 				"Saturn/vendor/shaderc/bin/Debug-Windows/shaderc_util.lib",
 				"Saturn/vendor/shaderc/bin/Debug-Windows/glslangd.lib",
 				"Saturn/vendor/shaderc/bin/Debug-Windows/SPIRV-Tools.lib",
-				"Saturn/vendor/shaderc/bin/Debug-Windows/glslc.lib"
+				"Saturn/vendor/shaderc/bin/Debug-Windows/glslc.lib",
+
+				-- PhysX
+				--"Saturn/vendor/physx/bin/Debug/LowLevel_static_64.lib",
+				--"Saturn/vendor/physx/bin/Debug/LowLevelAABB_static_64.lib",
+				--"Saturn/vendor/physx/bin/Debug/LowLevelDynamics_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysX_64.lib",
+				--"Saturn/vendor/physx/bin/Debug/PhysXCharacterKinematic_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXCommon_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXCooking_64.lib",
+				--"Saturn/vendor/physx/bin/Debug/PhysXExtensions_static_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.lib",
+				"Saturn/vendor/physx/bin/Debug/PhysXPvdSDK_static_64.lib",
+				--"Saturn/vendor/physx/bin/Debug/PhysXTask_static_64.lib",
+				--"Saturn/vendor/physx/bin/Debug/PhysXVehicle_static_64.lib",
+				--"Saturn/vendor/physx/bin/Debug/SceneQuery_static_64.lib",
+				--"Saturn/vendor/physx/bin/Debug/SimulationController_static_64.lib",
 			}
 
 		filter "configurations:Release"

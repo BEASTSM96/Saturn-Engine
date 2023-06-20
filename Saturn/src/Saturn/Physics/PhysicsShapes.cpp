@@ -27,86 +27,105 @@
 */
 
 #include "sppch.h"
-#include "PhysicsFoundation.h"
+#include "PhysicsShapes.h"
 
 #include "PhysicsAuxiliary.h"
+#include "PhysicsFoundation.h"
 
 namespace Saturn {
 
-	void PhysicsContact::onConstraintBreak( physx::PxConstraintInfo* pConstraints, physx::PxU32 Count )
+	void PhysicsShape::Detach( physx::PxRigidActor& rActor )
 	{
+		rActor.detachShape( *m_Shape );
 	}
 
-	void PhysicsContact::onWake( physx::PxActor** ppActors, physx::PxU32 Count )
+	//////////////////////////////////////////////////////////////////////////
+
+	BoxShape::BoxShape( Entity entity )
+		: PhysicsShape( entity )
 	{
+		m_Type = ShapeType::Box;
 	}
 
-	void PhysicsContact::onSleep( physx::PxActor** ppActors, physx::PxU32 Count )
+	BoxShape::~BoxShape()
 	{
+		DestroyShape();
 	}
 
-	void PhysicsContact::onTrigger( physx::PxTriggerPair* pPairs, physx::PxU32 Count )
+	void BoxShape::Create( physx::PxRigidActor& rActor )
 	{
+		BoxColliderComponent& bcc = m_Entity.GetComponent<BoxColliderComponent>();
+		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
+
+		glm::vec3 size = bcc.Extents;
+		glm::vec3 scale = transform.Scale;
+
+		glm::vec3 halfSize = size / 2.0f;
+
+		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+
+		physx::PxBoxGeometry BoxGeometry = physx::PxBoxGeometry( halfSize.x, halfSize.y, halfSize.z );
+		physx::PxShape* pShape = physx::PxRigidActorExt::createExclusiveShape( rActor, BoxGeometry, *mat );
+
+		pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !bcc.IsTrigger );
+		pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, bcc.IsTrigger );
+
+		pShape->setLocalPose( Auxiliary::GLMTransformToPx( glm::translate( glm::mat4( 1.0f ), bcc.Offset ) ) );
+
+		m_Shape = pShape;
+
+		rActor.attachShape( *m_Shape );
 	}
 
-	void PhysicsContact::onAdvance( const physx::PxRigidBody* const* pBodyBuffer, const physx::PxTransform* PoseBuffer, const physx::PxU32 Count )
+	void BoxShape::DestroyShape()
 	{
+		PHYSX_TERMINATE_ITEM( m_Shape );
 	}
 
-	void PhysicsContact::onContact( const physx::PxContactPairHeader& rPairHeader, const physx::PxContactPair* pPairs, physx::PxU32 Pairs )
+	//////////////////////////////////////////////////////////////////////////
+
+	SphereShape::SphereShape( Entity entity )
+		: PhysicsShape( entity )
+	{
+
+	}
+
+	SphereShape::~SphereShape()
+	{
+
+	}
+
+	void SphereShape::Create( physx::PxRigidActor& rActor )
+	{
+
+	}
+
+	void SphereShape::DestroyShape()
 	{
 
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 
-	PhysicsFoundation::PhysicsFoundation()
+	CapusleShape::CapusleShape( Entity entity )
+		: PhysicsShape( entity )
 	{
-		SingletonStorage::Get().AddSingleton<PhysicsFoundation>( this );
+
 	}
 
-	PhysicsFoundation::~PhysicsFoundation()
+	CapusleShape::~CapusleShape()
 	{
-		Terminate();
+
 	}
 
-	void PhysicsFoundation::Init()
+	void CapusleShape::Create( physx::PxRigidActor& rActor )
 	{
-		physx::PxTolerancesScale Scale;
-		Scale.length = 10.0f;
 
-		m_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, m_AllocatorCallback, m_ErrorCallback );
-		m_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, Scale, true );
-
-		m_Pvd = PxCreatePvd( *m_Foundation );
-		m_Cooking = PxCreateCooking( PX_PHYSICS_VERSION, *m_Foundation, Scale );
-
-		m_Dispatcher = physx::PxDefaultCpuDispatcherCreate( std::thread::hardware_concurrency() / 2 );
-
-		physx::PxSetAssertHandler( m_AssertCallback );
 	}
 
-	void PhysicsFoundation::Terminate()
+	void CapusleShape::DestroyShape()
 	{
-		PHYSX_TERMINATE_ITEM( m_Dispatcher );
-		PHYSX_TERMINATE_ITEM( m_Cooking );
-		PHYSX_TERMINATE_ITEM( m_Physics );
-		PHYSX_TERMINATE_ITEM( m_Pvd );
-		PHYSX_TERMINATE_ITEM( m_Foundation );
-	}
 
-	void PhysicsFoundation::CreateScene()
-	{
-		physx::PxSceneDesc SceneDesc( m_Physics->getTolerancesScale() );
-		SceneDesc.gravity = physx::PxVec3( 0.0f, -9.81f, 0.0f );
-		SceneDesc.cpuDispatcher = m_Dispatcher;
-		SceneDesc.simulationEventCallback = &m_ContantCallback;
-
-		SceneDesc.broadPhaseType = physx::PxBroadPhaseType::eABP;
-		SceneDesc.frictionType = physx::PxFrictionType::ePATCH;
-		SceneDesc.flags = physx::PxSceneFlag::eENABLE_CCD;
-
-		m_Scene = m_Physics->createScene( SceneDesc );
 	}
 
 }

@@ -26,87 +26,43 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "PhysicsFoundation.h"
+#pragma once
 
-#include "PhysicsAuxiliary.h"
+#include "PxPhysicsAPI.h"
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
-namespace Saturn {
+#define PHYSX_TERMINATE_ITEM( x ) if(x) x->release(); x = nullptr
 
-	void PhysicsContact::onConstraintBreak( physx::PxConstraintInfo* pConstraints, physx::PxU32 Count )
+namespace Saturn::Auxiliary {
+
+	inline physx::PxVec3 GLMToPx( const glm::vec3& vec ) 
 	{
+		return *( physx::PxVec3* )&vec;
 	}
 
-	void PhysicsContact::onWake( physx::PxActor** ppActors, physx::PxU32 Count )
+	inline physx::PxQuat QGLMToPx( const glm::quat& quat )
 	{
+		// X, Y, Z, W
+		return physx::PxQuat( quat.x, quat.y, quat.z, quat.w );
 	}
 
-	void PhysicsContact::onSleep( physx::PxActor** ppActors, physx::PxU32 Count )
+	inline glm::vec3 PxToGLM( const physx::PxVec3& vec )
 	{
+		return *( glm::vec3* ) &vec;
 	}
 
-	void PhysicsContact::onTrigger( physx::PxTriggerPair* pPairs, physx::PxU32 Count )
+	// We don't use quat's atm.
+	inline glm::quat QPxToGLM( const physx::PxQuat& quat )
 	{
+		return *( glm::quat* ) &quat;
 	}
 
-	void PhysicsContact::onAdvance( const physx::PxRigidBody* const* pBodyBuffer, const physx::PxTransform* PoseBuffer, const physx::PxU32 Count )
+	inline physx::PxTransform GLMTransformToPx( const glm::mat4& mat )
 	{
+		physx::PxQuat r = QGLMToPx( glm::normalize( glm::quat( mat ) ) );
+		physx::PxVec3 p = GLMToPx( glm::vec3( mat[ 3 ] ) );
+
+		return physx::PxTransform( p, r );
 	}
-
-	void PhysicsContact::onContact( const physx::PxContactPairHeader& rPairHeader, const physx::PxContactPair* pPairs, physx::PxU32 Pairs )
-	{
-
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-
-	PhysicsFoundation::PhysicsFoundation()
-	{
-		SingletonStorage::Get().AddSingleton<PhysicsFoundation>( this );
-	}
-
-	PhysicsFoundation::~PhysicsFoundation()
-	{
-		Terminate();
-	}
-
-	void PhysicsFoundation::Init()
-	{
-		physx::PxTolerancesScale Scale;
-		Scale.length = 10.0f;
-
-		m_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, m_AllocatorCallback, m_ErrorCallback );
-		m_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, Scale, true );
-
-		m_Pvd = PxCreatePvd( *m_Foundation );
-		m_Cooking = PxCreateCooking( PX_PHYSICS_VERSION, *m_Foundation, Scale );
-
-		m_Dispatcher = physx::PxDefaultCpuDispatcherCreate( std::thread::hardware_concurrency() / 2 );
-
-		physx::PxSetAssertHandler( m_AssertCallback );
-	}
-
-	void PhysicsFoundation::Terminate()
-	{
-		PHYSX_TERMINATE_ITEM( m_Dispatcher );
-		PHYSX_TERMINATE_ITEM( m_Cooking );
-		PHYSX_TERMINATE_ITEM( m_Physics );
-		PHYSX_TERMINATE_ITEM( m_Pvd );
-		PHYSX_TERMINATE_ITEM( m_Foundation );
-	}
-
-	void PhysicsFoundation::CreateScene()
-	{
-		physx::PxSceneDesc SceneDesc( m_Physics->getTolerancesScale() );
-		SceneDesc.gravity = physx::PxVec3( 0.0f, -9.81f, 0.0f );
-		SceneDesc.cpuDispatcher = m_Dispatcher;
-		SceneDesc.simulationEventCallback = &m_ContantCallback;
-
-		SceneDesc.broadPhaseType = physx::PxBroadPhaseType::eABP;
-		SceneDesc.frictionType = physx::PxFrictionType::ePATCH;
-		SceneDesc.flags = physx::PxSceneFlag::eENABLE_CCD;
-
-		m_Scene = m_Physics->createScene( SceneDesc );
-	}
-
 }
