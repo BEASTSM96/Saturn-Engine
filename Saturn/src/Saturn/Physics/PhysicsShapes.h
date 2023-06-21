@@ -54,6 +54,9 @@ namespace Saturn {
 		virtual void Create( physx::PxRigidActor& rActor ) = 0;
 		virtual void Detach( physx::PxRigidActor& rActor );
 
+		// Only use this for basic shapes as this only works for one shape.
+		void SetFilterData();
+
 	protected:
 		virtual void DestroyShape() = 0;
 	protected:

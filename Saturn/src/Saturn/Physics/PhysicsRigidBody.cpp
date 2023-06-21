@@ -109,7 +109,10 @@ namespace Saturn {
 
 	void PhysicsRigidBody::Destroy()
 	{
-		m_Shape->Detach( *m_Actor );
+		if( m_Shape )
+		{
+			m_Shape->Detach( *m_Actor );
+		}
 
 		m_Shape = nullptr;
 

@@ -43,7 +43,6 @@ namespace Saturn {
 
 		void CreateShape();
 
-		void AttachPhysicsShape( ShapeType type );
 		void SetKinematic( bool val );
 		void SetMass( float val );
 
@@ -57,6 +56,7 @@ namespace Saturn {
 		const physx::PxRigidActor& GetActor() const { return *m_Actor; }
 
 	private:
+		void AttachPhysicsShape( ShapeType type );
 		void Destroy();
 	private:
 		physx::PxRigidActor* m_Actor = nullptr;

@@ -39,6 +39,15 @@ namespace Saturn {
 		rActor.detachShape( *m_Shape );
 	}
 
+	void PhysicsShape::SetFilterData()
+	{
+		physx::PxFilterData data;
+		data.word0 = BIT( 0 );
+		data.word1 = BIT( 0 );
+
+		m_Shape->setSimulationFilterData( data );
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 
 	BoxShape::BoxShape( Entity entity )
@@ -75,6 +84,8 @@ namespace Saturn {
 		m_Shape = pShape;
 
 		rActor.attachShape( *m_Shape );
+
+		SetFilterData();
 	}
 
 	void BoxShape::DestroyShape()
@@ -87,22 +98,46 @@ namespace Saturn {
 	SphereShape::SphereShape( Entity entity )
 		: PhysicsShape( entity )
 	{
-
+		m_Type = ShapeType::Sphere;
 	}
 
 	SphereShape::~SphereShape()
 	{
-
+		DestroyShape();
 	}
 
 	void SphereShape::Create( physx::PxRigidActor& rActor )
 	{
+		SphereColliderComponent& scc = m_Entity.GetComponent<SphereColliderComponent>();
+		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
 
+		float size = scc.Radius;
+		glm::vec scale = transform.Scale;
+
+		if( scale.x != 0.0f )
+			size *= scale.x;
+
+		float halfSize = size / 2.0f;
+
+		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+
+		physx::PxSphereGeometry SphereGoemetry( halfSize );
+
+		physx::PxShape* pShape = physx::PxRigidActorExt::createExclusiveShape( rActor, SphereGoemetry, *mat );
+
+		pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !scc.IsTrigger );
+		pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, scc.IsTrigger );
+
+		m_Shape = pShape;
+
+		rActor.attachShape( *m_Shape );
+
+		SetFilterData();
 	}
 
 	void SphereShape::DestroyShape()
 	{
-
+		PHYSX_TERMINATE_ITEM( m_Shape );
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -110,22 +145,51 @@ namespace Saturn {
 	CapusleShape::CapusleShape( Entity entity )
 		: PhysicsShape( entity )
 	{
-
+		m_Type = ShapeType::Capusle;
 	}
 
 	CapusleShape::~CapusleShape()
 	{
-
+		DestroyShape();
 	}
 
 	void CapusleShape::Create( physx::PxRigidActor& rActor )
 	{
+		CapsuleColliderComponent& cap = m_Entity.GetComponent<CapsuleColliderComponent>();
+		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
 
+		float size = cap.Radius;
+		float height = cap.Height;
+
+		glm::vec3 scale = transform.Scale;
+
+		if( scale.x != 0.0f )
+			size *= ( scale.x );
+
+		if( scale.y != 0.0f )
+			height *= ( scale.y );
+
+		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+
+		float halfHeight = height / 2.0f;
+		physx::PxCapsuleGeometry CapsuleGemetry( size, halfHeight );
+
+		physx::PxShape* pShape = physx::PxRigidActorExt::createExclusiveShape( rActor, CapsuleGemetry, *mat );
+		pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, !cap.IsTrigger );
+		pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, cap.IsTrigger );
+
+		pShape->setLocalPose( physx::PxTransform( physx::PxQuat( physx::PxHalfPi, physx::PxVec3( 0, 0, 1 ) ) ) );
+
+		m_Shape = pShape;
+
+		rActor.attachShape( *m_Shape );
+
+		SetFilterData();
 	}
 
 	void CapusleShape::DestroyShape()
 	{
-
+		PHYSX_TERMINATE_ITEM( m_Shape );
 	}
 
 }

@@ -48,6 +48,17 @@ namespace Saturn {
 
 	PhysicsScene::~PhysicsScene()
 	{
+		const auto& rView = m_Scene->GetAllEntitiesWith<RigidbodyComponent>();
+
+		for( const auto& rEntity : rView )
+		{
+			Entity ent( rEntity, m_Scene.Pointer() );
+
+			auto& rb = ent.GetComponent<RigidbodyComponent>();
+
+			delete rb.Rigidbody;
+		}
+
 		m_Scene = nullptr;
 
 		PHYSX_TERMINATE_ITEM( m_PhysicsScene );
@@ -105,6 +116,7 @@ namespace Saturn {
 			auto& rb = ent.GetComponent<RigidbodyComponent>();
 
 			rb.Rigidbody = new PhysicsRigidBody( ent );
+			rb.Rigidbody->CreateShape();
 
 			// Maybe we could use addActors?
 			AddToScene( rb.Rigidbody->GetActor() );

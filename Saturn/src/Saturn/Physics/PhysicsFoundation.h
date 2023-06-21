@@ -62,6 +62,9 @@ namespace Saturn {
 		physx::PxFoundation& GetFoundation() { return *m_Foundation; }
 		const physx::PxFoundation& GetFoundation() const { return *m_Foundation; }
 
+		physx::PxDefaultAllocator& GetAllocator() { return m_AllocatorCallback; }
+		const physx::PxDefaultAllocator& GetAllocator() const { return m_AllocatorCallback; }
+
 	private:
 		physx::PxFoundation*		   m_Foundation = nullptr;
 		physx::PxPhysics*			   m_Physics = nullptr;
