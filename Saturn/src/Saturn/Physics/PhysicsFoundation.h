@@ -56,23 +56,17 @@ namespace Saturn {
 		void Init();
 		void Terminate();
 
-		void CreateScene();
-
 		physx::PxPhysics& GetPhysics() { return *m_Physics; }
 		const physx::PxPhysics& GetPhysics() const { return *m_Physics; }
 
 		physx::PxFoundation& GetFoundation() { return *m_Foundation; }
 		const physx::PxFoundation& GetFoundation() const { return *m_Foundation; }
 
-		physx::PxScene& GetScene() { return *m_Scene; }
-		const physx::PxScene& GetScene() const { return *m_Scene; }
-
 	private:
 		physx::PxFoundation*		   m_Foundation = nullptr;
 		physx::PxPhysics*			   m_Physics = nullptr;
 		physx::PxCooking*			   m_Cooking = nullptr;
 		physx::PxPvd*				   m_Pvd = nullptr;
-		physx::PxScene*				   m_Scene = nullptr;
 		physx::PxDefaultCpuDispatcher* m_Dispatcher = nullptr;
 
 		physx::PxDefaultAllocator m_AllocatorCallback;
@@ -80,6 +74,8 @@ namespace Saturn {
 		PhysicsErrorCallback m_ErrorCallback;
 		PhysicsAssertCallback m_AssertCallback;
 		PhysicsContact m_ContantCallback;
+	private:
+		friend class PhysicsScene;
 	};
 
 }

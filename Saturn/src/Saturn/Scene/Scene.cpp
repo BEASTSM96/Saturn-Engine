@@ -41,6 +41,9 @@
 
 #include "Saturn/Core/OptickProfiler.h"
 
+#include "Saturn/Physics/PhysicsScene.h"
+#include "Saturn/Physics/PhysicsRigidBody.h"
+
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -92,13 +95,13 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
+		// TODO: We might want to change the order of this update cycle.
 		if( m_RuntimeRunning ) 
 		{
-			//m_PhysicsRuntime->OnUpdate( ts );
+			m_PhysicsScene->Update( ts );
 
 			EntityScriptManager::Get().UpdateAllScripts( ts );
 
-			// TEMP
 			OnUpdatePhysics( ts );
 		}
 	}
@@ -112,7 +115,7 @@ namespace Saturn {
 		for ( const auto& entity : PhysXView )
 		{
 			auto [tc, rb] = PhysXView.get<TransformComponent, RigidbodyComponent>( entity );
-			//rb.Rigidbody->SyncTransform();
+			rb.Rigidbody->SyncTransfrom();
 		}
 
 		EntityScriptManager::Get().OnPhysicsUpdate( ts );
@@ -448,17 +451,17 @@ namespace Saturn {
 
 	void Scene::OnRuntimeStart()
 	{
-		if( m_PhysicsRuntime )
-			delete m_PhysicsRuntime;
+		if( m_PhysicsScene )
+			delete m_PhysicsScene;
 
-		//m_PhysicsRuntime = new JoltRuntime( this );
+		m_PhysicsScene = new PhysicsScene( this );
 
 		EntityScriptManager::Get().BeginPlay();
 	}
 
 	void Scene::OnRuntimeEnd()
 	{
-		delete m_PhysicsRuntime;
+		delete m_PhysicsScene;
 	}
 
 	// Returns the Entity and the game class (if any).

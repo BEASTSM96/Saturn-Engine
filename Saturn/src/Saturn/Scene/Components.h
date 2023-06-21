@@ -205,14 +205,15 @@ namespace Saturn {
 		UUID AssetID;
 	};
 
-	class JoltDynamicRigidBody;
+	// TODO: Do we really want to store the rigid body here?
+	class PhysicsRigidBody;
 	struct RigidbodyComponent
 	{
-		JoltDynamicRigidBody* Rigidbody = nullptr;
+		PhysicsRigidBody* Rigidbody = nullptr;
 
 		bool IsKinematic = false;
 		bool UseCCD = false;
-		int Mass = 2;
+		float Mass = 2.0f;
 		float LinearDrag = 1.0f;
 
 		uint32_t LockFlags;

@@ -26,72 +26,28 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "PhysicsFoundation.h"
+#pragma once
 
-#include "PhysicsAuxiliary.h"
+#include "Saturn/Scene/Scene.h"
+
+#include "PxPhysicsAPI.h"
 
 namespace Saturn {
 
-	void PhysicsContact::onConstraintBreak( physx::PxConstraintInfo* pConstraints, physx::PxU32 Count )
+	class PhysicsScene : public RefTarget
 	{
-	}
+	public:
+		PhysicsScene( const Ref<Scene>& rScene );
+		~PhysicsScene();
 
-	void PhysicsContact::onWake( physx::PxActor** ppActors, physx::PxU32 Count )
-	{
-	}
+		void CreateScene();
+		void Update( Timestep ts );
 
-	void PhysicsContact::onSleep( physx::PxActor** ppActors, physx::PxU32 Count )
-	{
-	}
+	private:
+		void AddToScene( physx::PxRigidActor& rBody );
+	private:
+		physx::PxScene* m_PhysicsScene;
 
-	void PhysicsContact::onTrigger( physx::PxTriggerPair* pPairs, physx::PxU32 Count )
-	{
-	}
-
-	void PhysicsContact::onAdvance( const physx::PxRigidBody* const* pBodyBuffer, const physx::PxTransform* PoseBuffer, const physx::PxU32 Count )
-	{
-	}
-
-	void PhysicsContact::onContact( const physx::PxContactPairHeader& rPairHeader, const physx::PxContactPair* pPairs, physx::PxU32 Pairs )
-	{
-		SAT_CORE_INFO( "on Contact" );
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-
-	PhysicsFoundation::PhysicsFoundation()
-	{
-		SingletonStorage::Get().AddSingleton<PhysicsFoundation>( this );
-	}
-
-	PhysicsFoundation::~PhysicsFoundation()
-	{
-		Terminate();
-	}
-
-	void PhysicsFoundation::Init()
-	{
-		physx::PxTolerancesScale Scale;
-		Scale.length = 10.0f;
-
-		m_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, m_AllocatorCallback, m_ErrorCallback );
-		m_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, Scale, true );
-
-		m_Pvd = PxCreatePvd( *m_Foundation );
-		m_Cooking = PxCreateCooking( PX_PHYSICS_VERSION, *m_Foundation, Scale );
-
-		m_Dispatcher = physx::PxDefaultCpuDispatcherCreate( std::thread::hardware_concurrency() / 2 );
-
-		physx::PxSetAssertHandler( m_AssertCallback );
-	}
-
-	void PhysicsFoundation::Terminate()
-	{
-		PHYSX_TERMINATE_ITEM( m_Dispatcher );
-		PHYSX_TERMINATE_ITEM( m_Cooking );
-		PHYSX_TERMINATE_ITEM( m_Physics );
-		PHYSX_TERMINATE_ITEM( m_Pvd );
-		PHYSX_TERMINATE_ITEM( m_Foundation );
-	}
+		Ref<Scene> m_Scene;
+	};
 }

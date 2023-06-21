@@ -46,7 +46,7 @@ namespace Saturn {
 		SetKinematic( rb.IsKinematic );
 		SetMass( rb.Mass );
 
-		physx::PxRigidBodyExt::updateMassAndInertia( *pBody, rb.Mass );
+		physx::PxRigidBodyExt::updateMassAndInertia( *pBody, (physx::PxReal)rb.Mass );
 	}
 
 	PhysicsRigidBody::~PhysicsRigidBody()
@@ -68,6 +68,8 @@ namespace Saturn {
 		if( m_Entity.HasComponent<CapsuleColliderComponent>() )
 			AttachPhysicsShape( ShapeType::Capusle );
 
+		m_Actor->userData = this;
+
 		// The settings might of changed.
 		SetKinematic( rb.IsKinematic );
 		SetMass( rb.Mass );
@@ -84,23 +86,25 @@ namespace Saturn {
 
 			case Saturn::ShapeType::Box: 
 			{
-				m_Shape = Ref<BoxShape>::Create( m_Entity, *m_Actor );
+				m_Shape = Ref<BoxShape>::Create( m_Entity );
 			} break;
 
 			case Saturn::ShapeType::Sphere:
 			{
-				m_Shape = Ref<SphereShape>::Create( m_Entity, *m_Actor );
+				m_Shape = Ref<SphereShape>::Create( m_Entity );
 			} break;
 
 			case Saturn::ShapeType::Capusle:
 			{
-				m_Shape = Ref<CapusleShape>::Create( m_Entity, *m_Actor );
+				m_Shape = Ref<CapusleShape>::Create( m_Entity );
 			} break;
 
 			case Saturn::ShapeType::Unknown:
 			default:
 				break;
 		}
+
+		m_Shape->Create( *m_Actor );
 	}
 
 	void PhysicsRigidBody::Destroy()

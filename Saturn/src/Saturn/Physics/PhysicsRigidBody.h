@@ -53,6 +53,9 @@ namespace Saturn {
 		glm::vec3 GetRotation();
 		glm::mat4 GetTransform();
 
+		physx::PxRigidActor& GetActor() { return *m_Actor; }
+		const physx::PxRigidActor& GetActor() const { return *m_Actor; }
+
 	private:
 		void Destroy();
 	private:
