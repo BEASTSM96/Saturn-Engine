@@ -58,7 +58,6 @@ namespace Saturn {
 
 	BoxShape::~BoxShape()
 	{
-		DestroyShape();
 	}
 
 	void BoxShape::Create( physx::PxRigidActor& rActor )
@@ -88,11 +87,6 @@ namespace Saturn {
 		SetFilterData();
 	}
 
-	void BoxShape::DestroyShape()
-	{
-		PHYSX_TERMINATE_ITEM( m_Shape );
-	}
-
 	//////////////////////////////////////////////////////////////////////////
 
 	SphereShape::SphereShape( Entity entity )
@@ -103,7 +97,6 @@ namespace Saturn {
 
 	SphereShape::~SphereShape()
 	{
-		DestroyShape();
 	}
 
 	void SphereShape::Create( physx::PxRigidActor& rActor )
@@ -135,11 +128,6 @@ namespace Saturn {
 		SetFilterData();
 	}
 
-	void SphereShape::DestroyShape()
-	{
-		PHYSX_TERMINATE_ITEM( m_Shape );
-	}
-
 	//////////////////////////////////////////////////////////////////////////
 
 	CapusleShape::CapusleShape( Entity entity )
@@ -150,7 +138,6 @@ namespace Saturn {
 
 	CapusleShape::~CapusleShape()
 	{
-		DestroyShape();
 	}
 
 	void CapusleShape::Create( physx::PxRigidActor& rActor )
@@ -186,10 +173,4 @@ namespace Saturn {
 
 		SetFilterData();
 	}
-
-	void CapusleShape::DestroyShape()
-	{
-		PHYSX_TERMINATE_ITEM( m_Shape );
-	}
-
 }

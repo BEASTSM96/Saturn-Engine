@@ -58,8 +58,6 @@ namespace Saturn {
 		void SetFilterData();
 
 	protected:
-		virtual void DestroyShape() = 0;
-	protected:
 		ShapeType m_Type = ShapeType::Unknown;
 
 		Entity m_Entity;
@@ -75,8 +73,6 @@ namespace Saturn {
 
 		void Create( physx::PxRigidActor& rActor ) override;
 
-	protected:
-		void DestroyShape() override;
 	private:
 		float m_Extent = 0.0f;
 	};
@@ -89,8 +85,6 @@ namespace Saturn {
 
 		void Create( physx::PxRigidActor& rActor ) override;
 
-	protected:
-		void DestroyShape() override;
 	private:
 		float m_Radius = 0.0f;
 	};
@@ -103,8 +97,6 @@ namespace Saturn {
 
 		void Create( physx::PxRigidActor& rActor ) override;
 
-	protected:
-		void DestroyShape() override;
 	private:
 		float m_Height = 0.0f;
 		float m_Radius = 0.0f;

@@ -1,3 +1,4 @@
++
 /********************************************************************************************
 *                                                                                           *
 *                                                                                           *
@@ -57,6 +58,7 @@ namespace Saturn {
 			auto& rb = ent.GetComponent<RigidbodyComponent>();
 
 			delete rb.Rigidbody;
+			rb.Rigidbody = nullptr;
 		}
 
 		m_Scene = nullptr;
