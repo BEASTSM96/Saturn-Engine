@@ -44,25 +44,38 @@ namespace Saturn {
 			case physx::PxErrorCode::eNO_ERROR:
 				SAT_CORE_INFO( "PhysX: {0} {1} {2}", pMessage, pFile, Line );
 				break;
+
 			case physx::PxErrorCode::eDEBUG_INFO:
 				SAT_CORE_INFO( "PhysX: {0} {1} {2}", pMessage, pFile, Line );
 				break;
+
 			case physx::PxErrorCode::eDEBUG_WARNING:
 				SAT_CORE_WARN( "PhysX: {0} {1} {2}", pMessage, pFile, Line );
 				break;
-			case physx::PxErrorCode::eINVALID_PARAMETER:
+
+			case physx::PxErrorCode::eINVALID_PARAMETER: 
+			{
+				SAT_CORE_WARN( "PhysX: {0} {1} {2}", pMessage, pFile, Line );
 				SAT_CORE_WARN( "PhysX: Invaild paramater!" );
-				break;
-			case physx::PxErrorCode::eINVALID_OPERATION:
+			} break;
+
+			case physx::PxErrorCode::eINVALID_OPERATION: 
+			{
+				SAT_CORE_WARN( "PhysX: {0} {1} {2}", pMessage, pFile, Line );
 				SAT_CORE_WARN( "PhysX: Invaild operation!" );
-				break;
+			}	break;
+
 			case physx::PxErrorCode::eOUT_OF_MEMORY:
 				SAT_CORE_ASSERT( false, "PhysX: Out of memory" );
+				break;
+
 			case physx::PxErrorCode::eINTERNAL_ERROR:
 				SAT_CORE_ERROR( "PhysX: Interal Error! " );
 				break;
+
 			case physx::PxErrorCode::eABORT:
-				SAT_CORE_ASSERT( false, "PhysX request an abort!" );
+				SAT_CORE_ASSERT( false, "PhysX requested an abort!" );
+				break;
 
 			case physx::PxErrorCode::ePERF_WARNING:
 				break;

@@ -58,15 +58,29 @@ namespace Saturn {
 	{
 		RigidbodyComponent& rb = m_Entity.GetComponent<RigidbodyComponent>();
 
-		// Handle shapes
+		// Normal Collider Component's have more priority over the static mesh.
 		if( m_Entity.HasComponent<BoxColliderComponent>() )
+		{
 			AttachPhysicsShape( ShapeType::Box );
-
-		if( m_Entity.HasComponent<SphereColliderComponent>() )
+		}
+		else if( m_Entity.HasComponent<SphereColliderComponent>() )
+		{
 			AttachPhysicsShape( ShapeType::Sphere );
-
-		if( m_Entity.HasComponent<CapsuleColliderComponent>() )
+		}
+		else if ( m_Entity.HasComponent<CapsuleColliderComponent>() )
+		{
 			AttachPhysicsShape( ShapeType::Capusle );
+		}
+		else if( m_Entity.HasComponent<StaticMeshComponent>() )
+		{
+			AttachPhysicsShape( m_Entity.GetComponent<StaticMeshComponent>().Mesh->GetAttachedShape() );
+
+			rb.IsKinematic = true;
+		}
+		else
+		{
+			SAT_CORE_WARN( "No physics shape component was found! No shape will be attached." );
+		}
 
 		m_Actor->userData = this;
 

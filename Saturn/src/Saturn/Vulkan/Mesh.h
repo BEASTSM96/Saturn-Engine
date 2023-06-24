@@ -38,6 +38,8 @@
 
 #include "Saturn/Asset/MaterialAsset.h"
 
+#include "Saturn/Physics/PhysicsShapeTypes.h"
+
 #include <vector>
 #include <string>
 #include <utility>
@@ -126,6 +128,9 @@ namespace Saturn {
 		std::vector<Index>& Indices() { return m_Indices; }
 		const std::vector<Index>& Indices() const { return m_Indices; }
 
+		void SetAttachedShape( ShapeType type ) { m_AttachedPhysicsShape = type; }
+		ShapeType GetAttachedShape() { return m_AttachedPhysicsShape; }
+
 	private:
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
 		void CreateVertices();
@@ -150,6 +155,8 @@ namespace Saturn {
 		Ref<Shader> m_MeshShader;
 		Ref<Material> m_BaseMaterial;
 		std::vector< Ref< MaterialAsset > > m_MaterialsAssets;
+
+		ShapeType m_AttachedPhysicsShape = ShapeType::Unknown;
 
 		std::unique_ptr<Assimp::Importer> m_Importer;
 		const aiScene* m_Scene = nullptr;

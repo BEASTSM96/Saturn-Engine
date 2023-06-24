@@ -115,10 +115,64 @@ namespace Saturn {
 
 		ImGui::Begin( "Sidebar" );
 
-		if( ImGui::Button( "Generate Mesh Collider" ) ) 
+		if( Auxiliary::TreeNode( "Physics" ) )
 		{
-			PhysicsCooking::Get().CookMeshCollider( m_Mesh );
+			ShapeType type = m_Mesh->GetAttachedShape();
+			
+			const char* pItems[] = { "None", "Box", "Sphere", "Capsule", "Convex Mesh", "Triangle Mesh" };
+			static ShapeType SelectedEnum = ShapeType::Unknown;
+			static const char* Selected = NULL;
+
+			ImGui::Text( "Select Physics Shape Type:" );
+			ImGui::SameLine();
+
+			if( ImGui::BeginCombo( "##setshape", Selected ) )
+			{
+				for( int i = 0; i < IM_ARRAYSIZE( pItems ); i++ )
+				{
+					bool IsSelected = ( Selected == pItems[ i ] );
+
+					if( ImGui::Selectable( pItems[ i ], IsSelected ) ) 
+					{
+						SelectedEnum = (ShapeType)i;
+						Selected = pItems[ i ];
+
+						m_Mesh->SetAttachedShape( SelectedEnum );
+					}
+
+					if( IsSelected )
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGui::EndCombo();
+			}
+
+			if( SelectedEnum == ShapeType::TriangleMesh || SelectedEnum == ShapeType::ConvexMesh )
+			{
+				if( ImGui::Button( "Generate Mesh Collider" ) )
+				{
+					PhysicsCooking::Get().CookMeshCollider( m_Mesh );
+				}
+			}
+
+			Auxiliary::EndTreeNode();
 		}
+
+		ImGui::End();
+
+		ImGui::Begin( "##Toolbar" );
+
+		ImGui::BeginVertical( "##tbv" );
+
+		if( ImGui::Button( "Save", ImVec2( 50, 50 ) ) ) 
+		{
+			StaticMeshAssetSerialiser sma;
+			sma.Serialise( m_Mesh );
+		}
+
+		ImGui::EndVertical();
 
 		ImGui::End();
 

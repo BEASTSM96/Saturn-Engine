@@ -119,13 +119,14 @@ namespace Saturn {
 
 			colliderData += sizeof( size_t );
 
-			Buffer buf( size, colliderData );
 			submesh.Index = i;
-			submesh.Data = buf;
+			submesh.Data = Buffer::Copy( colliderData, size );
 
 			m_SubmeshData.push_back( submesh );
 
 			colliderData += size;
+
+			break;
 		}
 
 		fileBuffer.Free();

@@ -636,6 +636,8 @@ namespace Saturn {
 
 		out << YAML::Key << "Filepath" << YAML::Value << std::filesystem::relative( mesh->FilePath(), Project::GetActiveProject()->GetRootDir() );
 
+		out << YAML::Key << "Attached Shape" << YAML::Value << (int)mesh->GetAttachedShape();
+
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
@@ -667,9 +669,12 @@ namespace Saturn {
 
 		auto meshData = data[ "StaticMesh" ];
 		auto filepath = meshData[ "Filepath" ].as<std::string>();
+		auto shapeType = meshData[ "Attached Shape" ].as<int>( 0 );
 
 		auto realMeshPath = Project::GetActiveProject()->FilepathAbs( filepath );
 		auto mesh = Ref<StaticMesh>::Create( realMeshPath.string() );
+
+		mesh->SetAttachedShape( (ShapeType)shapeType );
 
 		struct
 		{

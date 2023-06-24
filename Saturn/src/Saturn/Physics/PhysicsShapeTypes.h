@@ -28,81 +28,15 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-#include "Saturn/Scene/Entity.h"
-
-#include "PxPhysicsAPI.h"
-
-#include "PhysicsShapeTypes.h"
-
 namespace Saturn {
 
-	class PhysicsShape : public RefTarget
+	enum class ShapeType
 	{
-	public:
-		PhysicsShape( Entity entity ) { m_Entity = entity; }
-		virtual ~PhysicsShape() = default;
-
-		virtual void Create( physx::PxRigidActor& rActor ) = 0;
-		virtual void Detach( physx::PxRigidActor& rActor );
-
-		// Only use this for basic shapes as this only works for one shape.
-		void SetFilterData();
-
-	protected:
-		ShapeType m_Type = ShapeType::Unknown;
-
-		Entity m_Entity;
-
-		physx::PxShape* m_Shape = nullptr;
-	};
-
-	class BoxShape : public PhysicsShape
-	{
-	public:
-		BoxShape( Entity entity );
-		~BoxShape();
-
-		void Create( physx::PxRigidActor& rActor ) override;
-
-	private:
-		float m_Extent = 0.0f;
-	};
-
-	class SphereShape : public PhysicsShape
-	{
-	public:
-		SphereShape( Entity entity );
-		~SphereShape();
-
-		void Create( physx::PxRigidActor& rActor ) override;
-
-	private:
-		float m_Radius = 0.0f;
-	};
-
-	class CapusleShape : public PhysicsShape
-	{
-	public:
-		CapusleShape( Entity entity );
-		~CapusleShape();
-
-		void Create( physx::PxRigidActor& rActor ) override;
-
-	private:
-		float m_Height = 0.0f;
-		float m_Radius = 0.0f;
-	};
-
-	class TriangleMeshShape : public PhysicsShape
-	{
-	public:
-		TriangleMeshShape( Entity entity );
-		~TriangleMeshShape();
-
-		void Create( physx::PxRigidActor& rActor ) override;
-
-	private:
-		Ref<StaticMesh> m_Mesh;
+		Unknown,
+		Box,
+		Sphere,
+		Capusle,
+		ConvexMesh,
+		TriangleMesh
 	};
 }

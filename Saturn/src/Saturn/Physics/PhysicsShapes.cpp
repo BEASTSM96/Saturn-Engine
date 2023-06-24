@@ -82,7 +82,9 @@ namespace Saturn {
 		pShape->setLocalPose( Auxiliary::GLMTransformToPx( glm::translate( glm::mat4( 1.0f ), bcc.Offset ) ) );
 
 		m_Shape = pShape;
-		rActor.attachShape( *m_Shape );
+
+		rActor.attachShape( *pShape );
+
 		SetFilterData();
 	}
 
@@ -121,7 +123,8 @@ namespace Saturn {
 		pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, scc.IsTrigger );
 
 		m_Shape = pShape;
-		rActor.attachShape( *m_Shape );
+		rActor.attachShape( *pShape );
+
 		SetFilterData();
 	}
 
@@ -165,7 +168,8 @@ namespace Saturn {
 		pShape->setLocalPose( physx::PxTransform( physx::PxQuat( physx::PxHalfPi, physx::PxVec3( 0, 0, 1 ) ) ) );
 
 		m_Shape = pShape;
-		rActor.attachShape( *m_Shape );
+		rActor.attachShape( *pShape );
+
 		SetFilterData();
 	}
 
@@ -188,17 +192,27 @@ namespace Saturn {
 
 	void TriangleMeshShape::Create( physx::PxRigidActor& rActor )
 	{
-		physx::PxTriangleMesh* triMesh = PhysicsCooking::Get().LoadMeshCollider( m_Mesh );
-		physx::PxTriangleMeshGeometry MeshGeometry( triMesh );
+		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
+		physx::PxTransform PxTrans = Auxiliary::GLMTransformToPx( transform.GetTransform() );
 
-		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+		physx::PxVec3 Scale = Auxiliary::GLMToPx( transform.Scale );
+		physx::PxMeshScale MeshScale( Scale );
+
+		physx::PxTriangleMesh* triMesh = PhysicsCooking::Get().LoadMeshCollider( m_Mesh );
+		physx::PxTriangleMeshGeometry MeshGeometry( triMesh, Scale );
+
+		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 0, 0, 0 );
 		
-		physx::PxShape* pShape = physx::PxRigidActorExt::createExclusiveShape( rActor, MeshGeometry, *mat );
+		physx::PxShape* pShape = PhysicsFoundation::Get().GetPhysics().createShape( MeshGeometry, *mat, true );
 		pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, true );
+		pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, false );
 
 		m_Shape = pShape;
 		rActor.attachShape( *m_Shape );
+
 		SetFilterData();
+
+		PHYSX_TERMINATE_ITEM( triMesh );
 	}
 
 }
