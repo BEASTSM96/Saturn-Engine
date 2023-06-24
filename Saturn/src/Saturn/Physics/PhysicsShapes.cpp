@@ -31,6 +31,7 @@
 
 #include "PhysicsAuxiliary.h"
 #include "PhysicsFoundation.h"
+#include "PhysicsCooking.h"
 
 namespace Saturn {
 
@@ -81,9 +82,7 @@ namespace Saturn {
 		pShape->setLocalPose( Auxiliary::GLMTransformToPx( glm::translate( glm::mat4( 1.0f ), bcc.Offset ) ) );
 
 		m_Shape = pShape;
-
 		rActor.attachShape( *m_Shape );
-
 		SetFilterData();
 	}
 
@@ -122,9 +121,7 @@ namespace Saturn {
 		pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, scc.IsTrigger );
 
 		m_Shape = pShape;
-
 		rActor.attachShape( *m_Shape );
-
 		SetFilterData();
 	}
 
@@ -151,10 +148,10 @@ namespace Saturn {
 		glm::vec3 scale = transform.Scale;
 
 		if( scale.x != 0.0f )
-			size *= ( scale.x );
+			size *= scale.x;
 
 		if( scale.y != 0.0f )
-			height *= ( scale.y );
+			height *= scale.y;
 
 		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
 
@@ -168,9 +165,40 @@ namespace Saturn {
 		pShape->setLocalPose( physx::PxTransform( physx::PxQuat( physx::PxHalfPi, physx::PxVec3( 0, 0, 1 ) ) ) );
 
 		m_Shape = pShape;
-
 		rActor.attachShape( *m_Shape );
-
 		SetFilterData();
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+
+	TriangleMeshShape::TriangleMeshShape( Entity entity )
+		: PhysicsShape( entity )
+	{
+		m_Type = ShapeType::TriangleMesh;
+
+		if( !m_Entity.HasComponent<StaticMeshComponent>() )
+			SAT_CORE_ASSERT( "Entity does not have a static mesh component!" );
+
+		m_Mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
+	}
+
+	TriangleMeshShape::~TriangleMeshShape()
+	{
+	}
+
+	void TriangleMeshShape::Create( physx::PxRigidActor& rActor )
+	{
+		physx::PxTriangleMesh* triMesh = PhysicsCooking::Get().LoadMeshCollider( m_Mesh );
+		physx::PxTriangleMeshGeometry MeshGeometry( triMesh );
+
+		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+		
+		physx::PxShape* pShape = physx::PxRigidActorExt::createExclusiveShape( rActor, MeshGeometry, *mat );
+		pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, true );
+
+		m_Shape = pShape;
+		rActor.attachShape( *m_Shape );
+		SetFilterData();
+	}
+
 }

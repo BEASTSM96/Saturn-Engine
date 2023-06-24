@@ -101,4 +101,16 @@ namespace Saturn {
 		float m_Height = 0.0f;
 		float m_Radius = 0.0f;
 	};
+
+	class TriangleMeshShape : public PhysicsShape
+	{
+	public:
+		TriangleMeshShape( Entity entity );
+		~TriangleMeshShape();
+
+		void Create( physx::PxRigidActor& rActor ) override;
+
+	private:
+		Ref<StaticMesh> m_Mesh;
+	};
 }

@@ -81,8 +81,11 @@ namespace Saturn {
 		{
 			case Saturn::ShapeType::ConvexMesh:
 				break;
-			case Saturn::ShapeType::TriangleMesh:
-				break;
+
+			case Saturn::ShapeType::TriangleMesh: 
+			{
+				m_Shape = Ref<TriangleMeshShape>::Create( m_Entity );
+			} break;
 
 			case Saturn::ShapeType::Box: 
 			{

@@ -28,58 +28,51 @@
 
 #pragma once
 
-#include "PhysicsErrorCallbacks.h"
+#include "Saturn/Vulkan/Mesh.h"
 
 #include "PxPhysicsAPI.h"
 
 namespace Saturn {
 
-	class PhysicsContact : public physx::PxSimulationEventCallback, public RefTarget
+	// File header
+	struct MeshCacheHeader
 	{
-	public:
-		void onConstraintBreak( physx::PxConstraintInfo* pConstraints, physx::PxU32 Count ) override;
-		void onWake( physx::PxActor** ppActors, physx::PxU32 Count ) override;
-		void onSleep( physx::PxActor** ppActors, physx::PxU32 Count ) override;
-		void onContact( const physx::PxContactPairHeader& rPairHeader, const physx::PxContactPair* pPairs, physx::PxU32 Pairs ) override;
-		void onTrigger( physx::PxTriggerPair* pPairs, physx::PxU32 Count ) override;
-		void onAdvance( const physx::PxRigidBody* const* pBodyBuffer, const physx::PxTransform* PoseBuffer, const physx::PxU32 Count ) override;
+		const char pHeader[ 5 ] = "SMC\0";
+		uint64_t ID = 0;
+		size_t Submeshes = 0;
 	};
 
-	class PhysicsFoundation
+	// Data for each submesh
+	struct SubmeshColliderData
+	{
+		uint32_t Index;
+		Buffer Data;
+	};
+
+	class PhysicsCooking
 	{
 	public:
-		static inline PhysicsFoundation& Get() { return *SingletonStorage::Get().GetSingleton<PhysicsFoundation>(); }
+		static inline PhysicsCooking& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<PhysicsCooking>(); }
 	public:
-		PhysicsFoundation();
-		~PhysicsFoundation();
+		PhysicsCooking();
+		~PhysicsCooking();
 
-		void Init();
+		// Cook mesh collider to a triangle mesh, if the collider cache does not exist we will create it if it does exist we will not override it and we will not cook the mesh.
+		// For Static meshes only!
+		void CookMeshCollider( const Ref<StaticMesh>& rMesh );
+
+		physx::PxTriangleMesh* LoadMeshCollider( const Ref<StaticMesh>& rMesh );
+
+	private:
 		void Terminate();
-
-		physx::PxPhysics& GetPhysics() { return *m_Physics; }
-		const physx::PxPhysics& GetPhysics() const { return *m_Physics; }
-
-		physx::PxFoundation& GetFoundation() { return *m_Foundation; }
-		const physx::PxFoundation& GetFoundation() const { return *m_Foundation; }
-
-		physx::PxDefaultAllocator& GetAllocator() { return m_AllocatorCallback; }
-		const physx::PxDefaultAllocator& GetAllocator() const { return m_AllocatorCallback; }
+		void ClearCache();
+		void WriteCache( const Ref<StaticMesh>& rMesh );
 
 	private:
-		physx::PxFoundation*		   m_Foundation = nullptr;
-		physx::PxPhysics*			   m_Physics = nullptr;
-		physx::PxCooking*			   m_Cooking = nullptr;
-		physx::PxPvd*				   m_Pvd = nullptr;
-		physx::PxDefaultCpuDispatcher* m_Dispatcher = nullptr;
 
-		physx::PxDefaultAllocator m_AllocatorCallback;
+		std::vector<SubmeshColliderData> m_SubmeshData;
 
-		PhysicsErrorCallback m_ErrorCallback;
-		PhysicsAssertCallback m_AssertCallback;
-		PhysicsContact m_ContantCallback;
 	private:
-		friend class PhysicsScene;
-		friend class PhysicsCooking;
+		physx::PxCooking* m_Cooking = nullptr;
 	};
-
 }

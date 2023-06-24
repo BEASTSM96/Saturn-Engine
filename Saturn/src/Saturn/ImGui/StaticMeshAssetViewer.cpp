@@ -37,6 +37,8 @@
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 #include "Saturn/Scene/Components.h"
 
+#include "Saturn/Physics/PhysicsCooking.h"
+
 namespace Saturn {
 
 	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
@@ -115,7 +117,7 @@ namespace Saturn {
 
 		if( ImGui::Button( "Generate Mesh Collider" ) ) 
 		{
-			//JoltPhysicsFoundation::Get().GenerateMeshCollider( m_Mesh, glm::vec3( 1.0f, 1.0f, 1.0f ) );
+			PhysicsCooking::Get().CookMeshCollider( m_Mesh );
 		}
 
 		ImGui::End();
