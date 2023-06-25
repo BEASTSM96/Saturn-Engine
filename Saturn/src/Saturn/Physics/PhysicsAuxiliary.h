@@ -64,4 +64,9 @@ namespace Saturn::Auxiliary {
 
 		return physx::PxTransform( p, r );
 	}
+
+	inline physx::PxTransform GLMTransformToPx( const glm::vec3& position, const glm::vec3& rotation )
+	{
+		return physx::PxTransform( GLMToPx( position ), QGLMToPx( glm::quat( rotation ) ) );
+	}
 }
