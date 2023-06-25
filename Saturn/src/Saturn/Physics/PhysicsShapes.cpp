@@ -198,21 +198,39 @@ namespace Saturn {
 		physx::PxVec3 Scale = Auxiliary::GLMToPx( transform.Scale );
 		physx::PxMeshScale MeshScale( Scale );
 
-		physx::PxTriangleMesh* triMesh = PhysicsCooking::Get().LoadMeshCollider( m_Mesh );
-		physx::PxTriangleMeshGeometry MeshGeometry( triMesh, Scale );
+		const auto& triMeshes = PhysicsCooking::Get().LoadMeshCollider( m_Mesh );
 
 		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 0, 0, 0 );
-		
-		physx::PxShape* pShape = PhysicsFoundation::Get().GetPhysics().createShape( MeshGeometry, *mat, true );
-		pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, true );
-		pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, false );
 
-		m_Shape = pShape;
-		rActor.attachShape( *m_Shape );
+		physx::PxFilterData data;
+		data.word0 = BIT( 0 );
+		data.word1 = BIT( 0 );
 
-		SetFilterData();
+		for( auto* triMesh : triMeshes )
+		{
+			physx::PxTriangleMeshGeometry MeshGeometry( triMesh, Scale );
+			physx::PxShape* pShape = PhysicsFoundation::Get().GetPhysics().createShape( MeshGeometry, *mat, true );
+			pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, true );
+			pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, false );
 
-		PHYSX_TERMINATE_ITEM( triMesh );
+			PHYSX_TERMINATE_ITEM( triMesh );
+
+			rActor.attachShape( *pShape );
+
+			pShape->setSimulationFilterData( data );
+
+			m_Shapes.push_back( pShape );
+		}
+
+		m_Shape = m_Shapes.front();
+	}
+
+	void TriangleMeshShape::Detach( physx::PxRigidActor& rActor )
+	{
+		for( physx::PxShape* rShape : m_Shapes )
+		{
+			rActor.detachShape( *rShape );
+		}
 	}
 
 }

@@ -61,7 +61,7 @@ namespace Saturn {
 		// For Static meshes only!
 		void CookMeshCollider( const Ref<StaticMesh>& rMesh );
 
-		physx::PxTriangleMesh* LoadMeshCollider( const Ref<StaticMesh>& rMesh );
+		std::vector<physx::PxTriangleMesh*> LoadMeshCollider( const Ref<StaticMesh>& rMesh );
 
 	private:
 		void Terminate();

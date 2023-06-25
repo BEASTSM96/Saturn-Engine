@@ -55,32 +55,36 @@ namespace Saturn {
 		// Create the triangle mesh.
 		// TODO: Cook each submesh
 
-		physx::PxTriangleMeshDesc MeshDesc;
-		MeshDesc.points.data = rMesh->Vertices().data();
-		MeshDesc.points.count = static_cast<physx::PxU32>( rMesh->Vertices().size() );
-		MeshDesc.points.stride = sizeof( StaticVertex );
-
-		MeshDesc.triangles.data = rMesh->Indices().data();
-		MeshDesc.triangles.count = static_cast< physx::PxU32 >( rMesh->Indices().size() );
-		MeshDesc.triangles.stride = sizeof( Index );
-
-		physx::PxDefaultMemoryOutputStream stream;
-
-		if( m_Cooking->cookTriangleMesh( MeshDesc, stream ) )
+		for( auto& rSubmesh : rMesh->Submeshes() )
 		{
-			SubmeshColliderData data{};
-			data.Index = 0;
-			data.Data = Buffer::Copy( stream.getData(), stream.getSize() );
+			physx::PxTriangleMeshDesc MeshDesc;
+			MeshDesc.points.data = &rMesh->Vertices()[ rSubmesh.BaseVertex ];
+			MeshDesc.points.count = rSubmesh.VertexCount;
+			MeshDesc.points.stride = sizeof( StaticVertex );
 
-			m_SubmeshData.push_back( data );
+			MeshDesc.triangles.data = &rMesh->Indices()[ rSubmesh.BaseIndex / 3 ];
+			MeshDesc.triangles.count = rSubmesh.IndexCount / 3;
+			MeshDesc.triangles.stride = sizeof( Index );
+
+			physx::PxDefaultMemoryOutputStream stream;
+			if( m_Cooking->cookTriangleMesh( MeshDesc, stream ) )
+			{
+				SubmeshColliderData data{};
+				data.Index = 0;
+				data.Data = Buffer::Copy( stream.getData(), stream.getSize() );
+
+				m_SubmeshData.push_back( data );
+			}
 		}
-		
+
 		WriteCache( rMesh );
 		ClearCache();
 	}
 
-	physx::PxTriangleMesh* PhysicsCooking::LoadMeshCollider( const Ref<StaticMesh>& rMesh )
+	std::vector<physx::PxTriangleMesh*> PhysicsCooking::LoadMeshCollider( const Ref<StaticMesh>& rMesh )
 	{
+		std::vector<physx::PxTriangleMesh*> Meshes;
+
 		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
 		cachePath /= rMesh->GetName();
 		cachePath.replace_extension( ".smcs" );
@@ -125,20 +129,21 @@ namespace Saturn {
 			m_SubmeshData.push_back( submesh );
 
 			colliderData += size;
-
-			break;
 		}
 
 		fileBuffer.Free();
 
-		auto& submesh = m_SubmeshData[ 0 ];
+		for( const auto& rSubmesh : m_SubmeshData )
+		{
+			physx::PxDefaultMemoryInputData readBuffer( rSubmesh.Data.Data, static_cast< physx::PxU32 >( rSubmesh.Data.Size ) );
+			physx::PxTriangleMesh* mesh = PhysicsFoundation::Get().m_Physics->createTriangleMesh( readBuffer );
 
-		physx::PxDefaultMemoryInputData readBuffer( submesh.Data.Data, static_cast<physx::PxU32>( submesh.Data.Size ) );
-		physx::PxTriangleMesh* mesh = PhysicsFoundation::Get().m_Physics->createTriangleMesh( readBuffer );
+			Meshes.push_back( mesh );
+		}
 
 		ClearCache();
 
-		return mesh;
+		return Meshes;
 	}
 
 	void PhysicsCooking::WriteCache( const Ref<StaticMesh>& rMesh )

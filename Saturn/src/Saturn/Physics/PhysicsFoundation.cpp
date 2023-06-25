@@ -77,9 +77,13 @@ namespace Saturn {
 
 		m_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, m_AllocatorCallback, m_ErrorCallback );
 
+		// We might in the future want to keep the PVD for Dist builds. What if the user wants to debug their physics?
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		m_Pvd = PxCreatePvd( *m_Foundation );
 		m_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, Scale, true, m_Pvd );
-
+#else
+		m_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, Scale, true );
+#endif
 		m_Cooking = PxCreateCooking( PX_PHYSICS_VERSION, *m_Foundation, Scale );
 
 		m_Dispatcher = physx::PxDefaultCpuDispatcherCreate( std::thread::hardware_concurrency() / 2 );
@@ -100,13 +104,17 @@ namespace Saturn {
 
 	bool PhysicsFoundation::ConnectPVD()
 	{
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate( "127.0.0.1", 5425, 100000000 );
 		return m_Pvd->connect( *transport, physx::PxPvdInstrumentationFlag::eALL );
+#endif
 	}
 
 	void PhysicsFoundation::DisconnectPVD()
 	{
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		m_Pvd->disconnect();
+#endif
 	}
 
 }

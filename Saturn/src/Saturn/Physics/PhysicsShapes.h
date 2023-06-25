@@ -101,8 +101,10 @@ namespace Saturn {
 		~TriangleMeshShape();
 
 		void Create( physx::PxRigidActor& rActor ) override;
+		virtual void Detach( physx::PxRigidActor& rActor ) override;
 
 	private:
 		Ref<StaticMesh> m_Mesh;
+		std::vector<physx::PxShape*> m_Shapes;
 	};
 }
