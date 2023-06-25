@@ -47,13 +47,12 @@ namespace Saturn::Auxiliary {
 		return physx::PxQuat( quat.x, quat.y, quat.z, quat.w );
 	}
 
-	inline glm::vec3 PxToGLM( const physx::PxVec3& vec )
+	inline glm::vec3 PxToGLM( physx::PxVec3 vec )
 	{
 		return *( glm::vec3* ) &vec;
 	}
 
-	// We don't use quat's atm.
-	inline glm::quat QPxToGLM( const physx::PxQuat& quat )
+	inline glm::quat QPxToGLM( physx::PxQuat quat )
 	{
 		return *( glm::quat* ) &quat;
 	}

@@ -41,7 +41,9 @@ namespace Saturn {
 		RigidbodyComponent& rb = entity.GetComponent<RigidbodyComponent>();
 
 		physx::PxRigidDynamic* pBody = PhysicsFoundation::Get().GetPhysics().createRigidDynamic( Auxiliary::GLMTransformToPx( tc.GetTransform() ) );
+		
 		m_Actor = pBody;
+		m_Actor->setActorFlag( physx::PxActorFlag::eVISUALIZATION, true );
 
 		SetKinematic( rb.IsKinematic );
 		SetMass( rb.Mass );
@@ -74,8 +76,6 @@ namespace Saturn {
 		else if( m_Entity.HasComponent<StaticMeshComponent>() )
 		{
 			AttachPhysicsShape( m_Entity.GetComponent<StaticMeshComponent>().Mesh->GetAttachedShape() );
-
-			rb.IsKinematic = true;
 		}
 		else
 		{
@@ -98,6 +98,12 @@ namespace Saturn {
 
 			case Saturn::ShapeType::TriangleMesh: 
 			{
+				// PhysX requires all non-kinematic dynamic rigid bodies with the flag eSIMULATION_SHAPE to be kinematic.
+				RigidbodyComponent& rb = m_Entity.GetComponent<RigidbodyComponent>();
+				rb.IsKinematic = true;
+
+				SetKinematic( true );
+
 				m_Shape = Ref<TriangleMeshShape>::Create( m_Entity );
 			} break;
 
@@ -201,7 +207,7 @@ namespace Saturn {
 		TransformComponent& tc = m_Entity.GetComponent<TransformComponent>();
 
 		physx::PxRigidDynamic* pBody = ( physx::PxRigidDynamic* ) m_Actor;
-		physx::PxTransform actorPose = m_Actor->getGlobalPose();
+		physx::PxTransform actorPose = pBody->getGlobalPose();
 
 		tc.Position = Auxiliary::PxToGLM( actorPose.p );
 		tc.Rotation = glm::eulerAngles( Auxiliary::QPxToGLM( actorPose.q ) );

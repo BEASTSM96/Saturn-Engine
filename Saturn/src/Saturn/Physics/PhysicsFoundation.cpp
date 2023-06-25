@@ -76,9 +76,10 @@ namespace Saturn {
 		Scale.length = 10.0f;
 
 		m_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, m_AllocatorCallback, m_ErrorCallback );
-		m_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, Scale, true );
 
 		m_Pvd = PxCreatePvd( *m_Foundation );
+		m_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, Scale, true, m_Pvd );
+
 		m_Cooking = PxCreateCooking( PX_PHYSICS_VERSION, *m_Foundation, Scale );
 
 		m_Dispatcher = physx::PxDefaultCpuDispatcherCreate( std::thread::hardware_concurrency() / 2 );
@@ -88,10 +89,24 @@ namespace Saturn {
 
 	void PhysicsFoundation::Terminate()
 	{
+		m_Pvd->disconnect();
+
 		PHYSX_TERMINATE_ITEM( m_Dispatcher );
 		PHYSX_TERMINATE_ITEM( m_Cooking );
 		PHYSX_TERMINATE_ITEM( m_Physics );
 		PHYSX_TERMINATE_ITEM( m_Pvd );
 		PHYSX_TERMINATE_ITEM( m_Foundation );
 	}
+
+	bool PhysicsFoundation::ConnectPVD()
+	{
+		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate( "127.0.0.1", 5425, 100000000 );
+		return m_Pvd->connect( *transport, physx::PxPvdInstrumentationFlag::eALL );
+	}
+
+	void PhysicsFoundation::DisconnectPVD()
+	{
+		m_Pvd->disconnect();
+	}
+
 }

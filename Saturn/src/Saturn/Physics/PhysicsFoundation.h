@@ -56,6 +56,9 @@ namespace Saturn {
 		void Init();
 		void Terminate();
 
+		bool ConnectPVD();
+		void DisconnectPVD();
+
 		physx::PxPhysics& GetPhysics() { return *m_Physics; }
 		const physx::PxPhysics& GetPhysics() const { return *m_Physics; }
 

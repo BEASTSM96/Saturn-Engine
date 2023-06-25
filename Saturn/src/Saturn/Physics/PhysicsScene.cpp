@@ -49,6 +49,8 @@ namespace Saturn {
 
 	PhysicsScene::~PhysicsScene()
 	{
+		PhysicsFoundation::Get().DisconnectPVD();
+
 		const auto& rView = m_Scene->GetAllEntitiesWith<RigidbodyComponent>();
 
 		for( const auto& rEntity : rView )
@@ -106,6 +108,10 @@ namespace Saturn {
 		SceneDesc.flags = physx::PxSceneFlag::eENABLE_CCD;
 
 		m_PhysicsScene = PhysicsFoundation::Get().m_Physics->createScene( SceneDesc );
+		PhysicsFoundation::Get().ConnectPVD();
+
+		m_PhysicsScene->setVisualizationParameter( physx::PxVisualizationParameter::eSCALE, 1.0f );
+		m_PhysicsScene->setVisualizationParameter( physx::PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f );
 
 		// Add all current bodies to the scene.
 
