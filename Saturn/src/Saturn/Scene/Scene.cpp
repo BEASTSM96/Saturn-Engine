@@ -99,10 +99,9 @@ namespace Saturn {
 		if( m_RuntimeRunning ) 
 		{
 			m_PhysicsScene->Update( ts );
-
-			EntityScriptManager::Get().UpdateAllScripts( ts );
-
 			OnUpdatePhysics( ts );
+
+			//EntityScriptManager::Get().UpdateAllScripts( ts );
 		}
 	}
 
@@ -112,13 +111,13 @@ namespace Saturn {
 
 		auto PhysXView = m_Registry.view<TransformComponent, RigidbodyComponent>();
 		
-		for ( const auto& entity : PhysXView )
+		for( const auto& entity : PhysXView )
 		{
 			auto [tc, rb] = PhysXView.get<TransformComponent, RigidbodyComponent>( entity );
 			rb.Rigidbody->SyncTransfrom();
 		}
 
-		EntityScriptManager::Get().OnPhysicsUpdate( ts );
+		//EntityScriptManager::Get().OnPhysicsUpdate( ts );
 	}
 
 	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer )

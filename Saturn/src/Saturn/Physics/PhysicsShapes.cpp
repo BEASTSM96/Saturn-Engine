@@ -195,44 +195,10 @@ namespace Saturn {
 		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
 		physx::PxTransform PxTrans = Auxiliary::GLMTransformToPx( transform.GetTransform() );
 
-		const auto& triMeshes = PhysicsCooking::Get().LoadMeshCollider( m_Mesh );
+		const std::vector<physx::PxShape*>& rShapes = PhysicsCooking::Get().UncookMeshCollider( m_Mesh, rActor, transform.Scale );
 
-		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 0, 0, 0 );
-
-		physx::PxFilterData data;
-		data.word0 = BIT( 0 );
-		data.word1 = BIT( 0 );
-
-		int i = 0;
-		for( auto* triMesh : triMeshes )
-		{
-			Submesh& rSubmesh = m_Mesh->Submeshes()[ i ];
-
-			glm::vec3 submeshPosition, submeshRotation, submeshScale;
-			Math::DecomposeTransform( rSubmesh.Transform, submeshPosition, submeshRotation, submeshScale );
-
-			physx::PxVec3 Scale = Auxiliary::GLMToPx( submeshScale * transform.Scale );
-			physx::PxMeshScale MeshScale( Scale );
-
-			physx::PxTriangleMeshGeometry MeshGeometry( triMesh, Scale );
-			physx::PxShape* pShape = PhysicsFoundation::Get().GetPhysics().createShape( MeshGeometry, *mat, true );
-			pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, true );
-			pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, false );
-			
-			pShape->setLocalPose( Auxiliary::GLMTransformToPx( submeshPosition, submeshRotation ) );
-
-			PHYSX_TERMINATE_ITEM( triMesh );
-
-			rActor.attachShape( *pShape );
-
-			pShape->setSimulationFilterData( data );
-
-			m_Shapes.push_back( pShape );
-
-			i++;
-		}
-
-		m_Shape = m_Shapes.front();
+		m_Shapes = rShapes;
+		m_Shape = rShapes.front();
 	}
 
 	void TriangleMeshShape::Detach( physx::PxRigidActor& rActor )

@@ -156,6 +156,36 @@ namespace Saturn {
 		pBody->setMass( val );
 	}
 
+	void PhysicsRigidBody::SetLinearDrag( float value )
+	{
+		physx::PxRigidDynamic* pBody = ( physx::PxRigidDynamic* ) m_Actor;
+		pBody->setLinearDamping( value );
+	}
+
+	float PhysicsRigidBody::GetLinearDrag()
+	{
+		physx::PxRigidDynamic* pBody = ( physx::PxRigidDynamic* ) m_Actor;
+		return pBody->getLinearDamping();
+	}
+
+	void PhysicsRigidBody::ApplyForce( glm::vec3 ForceAmount, ForceMode Type )
+	{
+		physx::PxRigidDynamic* pBody = ( physx::PxRigidDynamic* ) m_Actor;
+
+		pBody->addForce( Auxiliary::GLMToPx( ForceAmount ), ( physx::PxForceMode::Enum ) Type );
+	}
+
+	void PhysicsRigidBody::Rotate( const glm::vec3& rRotation )
+	{
+		physx::PxTransform trans = m_Actor->getGlobalPose();
+
+		trans.q *= ( physx::PxQuat( glm::radians( rRotation.x ), { 1.0f, 0.0f, 0.0f } )
+			* physx::PxQuat( glm::radians( rRotation.y ), { 0.0f, 1.0f, 0.0f } )
+			* physx::PxQuat( glm::radians( rRotation.z ), { 0.0f, 0.0f, 1.0f } ) );
+		
+		m_Actor->setGlobalPose( trans );
+	}
+
 	glm::vec3 PhysicsRigidBody::GetPosition()
 	{
 		float xpos = m_Actor->getGlobalPose().p.x;
@@ -207,7 +237,7 @@ namespace Saturn {
 		TransformComponent& tc = m_Entity.GetComponent<TransformComponent>();
 
 		physx::PxRigidDynamic* pBody = ( physx::PxRigidDynamic* ) m_Actor;
-		physx::PxTransform actorPose = pBody->getGlobalPose();
+		physx::PxTransform actorPose = m_Actor->getGlobalPose();
 
 		tc.Position = Auxiliary::PxToGLM( actorPose.p );
 		tc.Rotation = glm::eulerAngles( Auxiliary::QPxToGLM( actorPose.q ) );

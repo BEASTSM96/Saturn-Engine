@@ -39,4 +39,12 @@ namespace Saturn {
 		ConvexMesh,
 		TriangleMesh
 	};
+
+	enum class ForceMode
+	{
+		Force,
+		Impulse,
+		VelocityChange,
+		Acceleration
+	};
 }

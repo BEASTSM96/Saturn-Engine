@@ -46,7 +46,7 @@ namespace Saturn {
 	struct SubmeshColliderData
 	{
 		uint32_t Index;
-		Buffer Data;
+		Buffer Stream;
 	};
 
 	class PhysicsCooking
@@ -61,12 +61,13 @@ namespace Saturn {
 		// For Static meshes only!
 		void CookMeshCollider( const Ref<StaticMesh>& rMesh );
 
-		std::vector<physx::PxTriangleMesh*> LoadMeshCollider( const Ref<StaticMesh>& rMesh );
+		std::vector<physx::PxShape*> UncookMeshCollider( const Ref<StaticMesh>& rMesh, physx::PxRigidActor& rActor, glm::vec3 Scale );
 
 	private:
 		void Terminate();
 		void ClearCache();
 		void WriteCache( const Ref<StaticMesh>& rMesh );
+		void LoadColliderFile( const std::filesystem::path& rPath );
 
 	private:
 

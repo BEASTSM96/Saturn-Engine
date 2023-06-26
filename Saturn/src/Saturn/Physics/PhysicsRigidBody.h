@@ -45,6 +45,10 @@ namespace Saturn {
 
 		void SetKinematic( bool val );
 		void SetMass( float val );
+		void SetLinearDrag( float value );
+		float GetLinearDrag();
+		void ApplyForce( glm::vec3 ForceAmount, ForceMode Type );
+		void Rotate( const glm::vec3& rRotation );
 
 		void SyncTransfrom();
 

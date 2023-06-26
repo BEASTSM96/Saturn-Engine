@@ -32,6 +32,8 @@
 #include "PhysicsAuxiliary.h"
 #include "PhysicsFoundation.h"
 
+#include "Saturn/Core/Math.h"
+
 namespace Saturn {
 
 	PhysicsCooking::PhysicsCooking()
@@ -71,7 +73,7 @@ namespace Saturn {
 			{
 				SubmeshColliderData data{};
 				data.Index = 0;
-				data.Data = Buffer::Copy( stream.getData(), stream.getSize() );
+				data.Stream = Buffer::Copy( stream.getData(), stream.getSize() );
 
 				m_SubmeshData.push_back( data );
 			}
@@ -81,24 +83,17 @@ namespace Saturn {
 		ClearCache();
 	}
 
-	std::vector<physx::PxTriangleMesh*> PhysicsCooking::LoadMeshCollider( const Ref<StaticMesh>& rMesh )
+	void PhysicsCooking::LoadColliderFile( const std::filesystem::path& rPath )
 	{
-		std::vector<physx::PxTriangleMesh*> Meshes;
-
-		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
-		cachePath /= rMesh->GetName();
-		cachePath.replace_extension( ".smcs" );
-
-		std::ifstream stream( cachePath, std::ios::binary | std::ios::ate );
-
 		Buffer fileBuffer;
+		std::ifstream stream( rPath, std::ios::binary | std::ios::ate );
 
 		auto end = stream.tellg();
 		stream.seekg( 0, std::ios::beg );
 		auto size = end - stream.tellg();
 
 		fileBuffer.Allocate( ( size_t ) size );
-		stream.read( reinterpret_cast<char*>( fileBuffer.Data ), fileBuffer.Size );
+		stream.read( reinterpret_cast< char* >( fileBuffer.Data ), fileBuffer.Size );
 
 		stream.close();
 
@@ -114,7 +109,7 @@ namespace Saturn {
 		for( uint32_t i = 0; i < hd.Submeshes; i++ )
 		{
 			SubmeshColliderData submesh{};
-			
+
 			uint32_t index = *( uint32_t* ) colliderData;
 
 			colliderData += sizeof( uint32_t );
@@ -124,7 +119,7 @@ namespace Saturn {
 			colliderData += sizeof( size_t );
 
 			submesh.Index = i;
-			submesh.Data = Buffer::Copy( colliderData, size );
+			submesh.Stream = Buffer::Copy( colliderData, size );
 
 			m_SubmeshData.push_back( submesh );
 
@@ -132,18 +127,64 @@ namespace Saturn {
 		}
 
 		fileBuffer.Free();
+	}
 
-		for( const auto& rSubmesh : m_SubmeshData )
+	std::vector<physx::PxShape*> PhysicsCooking::UncookMeshCollider( const Ref<StaticMesh>& rMesh, physx::PxRigidActor& rActor, glm::vec3 Scale )
+	{
+		std::vector<physx::PxShape*> Shapes;
+
+		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
+		cachePath /= rMesh->GetName();
+		cachePath.replace_extension( ".smcs" );
+
+		LoadColliderFile( cachePath );
+
+		// TEMP: Until we have physics material assets.
+		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 0, 0, 0 );
+
+		// TEMP: We might want to change the filter data.
+		physx::PxFilterData data;
+		data.word0 = BIT( 0 );
+		data.word1 = BIT( 0 );
+
+		int i = 0;
+		for( const auto& rCookedData : m_SubmeshData )
 		{
-			physx::PxDefaultMemoryInputData readBuffer( rSubmesh.Data.Data, static_cast< physx::PxU32 >( rSubmesh.Data.Size ) );
-			physx::PxTriangleMesh* mesh = PhysicsFoundation::Get().m_Physics->createTriangleMesh( readBuffer );
+			const Submesh& rSubmesh = rMesh->Submeshes()[ i ];
 
-			Meshes.push_back( mesh );
+			// Read the cooked data.
+			physx::PxDefaultMemoryInputData readBuffer( rCookedData.Stream.Data, static_cast< physx::PxU32 >( rCookedData.Stream.Size ) );
+			physx::PxTriangleMesh* mesh = PhysicsFoundation::Get().GetPhysics().createTriangleMesh( readBuffer );
+
+			// Create the shape.
+			glm::vec3 submeshPosition, submeshRotation, submeshScale;
+			Math::DecomposeTransform( rSubmesh.Transform, submeshPosition, submeshRotation, submeshScale );
+
+			physx::PxVec3 ShapeScale = Auxiliary::GLMToPx( submeshScale * Scale );
+			physx::PxMeshScale MeshScale( ShapeScale );
+
+			physx::PxTriangleMeshGeometry MeshGeometry( mesh, ShapeScale );
+
+			physx::PxShape* pShape = PhysicsFoundation::Get().GetPhysics().createShape( MeshGeometry, *mat, true );
+			pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, true ); // We will always set it to be part of the simulation.
+			pShape->setFlag( physx::PxShapeFlag::eTRIGGER_SHAPE, false );
+
+			pShape->setLocalPose( Auxiliary::GLMTransformToPx( submeshPosition, submeshRotation ) );
+
+			pShape->setSimulationFilterData( data );
+
+			mesh->release();
+
+			rActor.attachShape( *pShape );
+
+			Shapes.push_back( pShape );
+
+			i++;
 		}
 
 		ClearCache();
 
-		return Meshes;
+		return Shapes;
 	}
 
 	void PhysicsCooking::WriteCache( const Ref<StaticMesh>& rMesh )
@@ -168,9 +209,9 @@ namespace Saturn {
 		{
 			fout.write( reinterpret_cast<char*>( &rMeshData.Index ), sizeof( uint32_t ) );
 
-			fout.write( reinterpret_cast< char* >( &rMeshData.Data.Size ), sizeof( size_t ) );
+			fout.write( reinterpret_cast< char* >( &rMeshData.Stream.Size ), sizeof( size_t ) );
 
-			fout.write( reinterpret_cast< char* >( rMeshData.Data.Data ), rMeshData.Data.Size );
+			fout.write( reinterpret_cast< char* >( rMeshData.Stream.Data ), rMeshData.Stream.Size );
 		}
 	}
 
