@@ -105,7 +105,7 @@ namespace Saturn {
 	bool PhysicsFoundation::ConnectPVD()
 	{
 #if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
-		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate( "127.0.0.1", 5425, 100000000 );
+		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate( "127.0.0.1", 5425, 1 );
 		return m_Pvd->connect( *transport, physx::PxPvdInstrumentationFlag::eALL );
 #endif
 	}
