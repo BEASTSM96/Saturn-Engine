@@ -202,7 +202,7 @@ namespace Saturn {
 
 	struct MeshColliderComponent
 	{
-		UUID AssetID;
+		bool IsTrigger = false;
 	};
 
 	// TODO: Do we really want to store the rigid body here?
