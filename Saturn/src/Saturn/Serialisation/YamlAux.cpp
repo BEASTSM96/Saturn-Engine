@@ -311,9 +311,10 @@ namespace Saturn {
 
 				t.Position = tc[ "Position" ].as< glm::vec3 >();
 
-				t.SetRotation( glm::radians( tc[ "Rotation" ].as< glm::vec3 >( 0 ) ) );
+				t.SetRotation( glm::radians( tc[ "Rotation" ].as< glm::vec3 >() ) );
 				
-				t.SetRotation( tc[ "Quaternion" ].as< glm::quat >( 0 ) );
+				// This might not be needed.
+				//t.SetRotation( tc[ "Quaternion" ].as< glm::quat >() );
 
 				t.Scale = tc[ "Scale" ].as< glm::vec3 >();
 			}

@@ -728,10 +728,10 @@ namespace Saturn {
 
 					Math::DecomposeTransform( transform, translation, rotation, scale );
 
-					//glm::vec3 DeltaRotation = rotation - tc.Rotation;
+					glm::vec3 DeltaRotation = rotation - tc.GetRotationEuler();
 
 					tc.Position = translation;
-					//tc.Rotation += DeltaRotation;
+					tc.SetRotation( tc.GetRotationEuler() += DeltaRotation );
 					tc.Scale = scale;
 				}
 			}
