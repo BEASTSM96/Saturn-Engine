@@ -341,7 +341,11 @@ namespace Saturn {
 		TransformComponent tc;
 
 		glm::mat4 worldSpace = GetTransformRelativeToParent( entity );
-		Math::DecomposeTransform( worldSpace, tc.Position, tc.Rotation, tc.Scale );
+		glm::quat rotation{};
+
+		Math::DecomposeTransform( worldSpace, tc.Position, rotation, tc.Scale );
+
+		tc.SetRotation( rotation );
 
 		return tc;
 	}

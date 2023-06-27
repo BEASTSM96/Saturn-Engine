@@ -29,6 +29,9 @@
 #pragma once
 
 #include "PxPhysicsAPI.h"
+
+#include "Saturn/Core/Math.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
@@ -54,13 +57,20 @@ namespace Saturn::Auxiliary {
 
 	inline glm::quat QPxToGLM( physx::PxQuat quat )
 	{
-		return *( glm::quat* ) &quat;
+		// We can't cast it to a glm::quat because PhysX's quats are XYZW however GLM's is WXYZ so it would return the wrong values.
+		// We could define GLM_FORCE_QUAT_DATA_XYZW. However that does not seem to work.
+		return glm::quat( quat.w, quat.x, quat.y, quat.z );
 	}
 
 	inline physx::PxTransform GLMTransformToPx( const glm::mat4& mat )
 	{
-		physx::PxQuat r = QGLMToPx( glm::normalize( glm::quat( mat ) ) );
-		physx::PxVec3 p = GLMToPx( glm::vec3( mat[ 3 ] ) );
+		glm::vec3 pos{}, scale{};
+		glm::quat rot{};
+
+		Math::DecomposeTransform( mat, pos, rot, scale );
+
+		physx::PxQuat r = QGLMToPx( rot );
+		physx::PxVec3 p = GLMToPx( pos );
 
 		return physx::PxTransform( p, r );
 	}

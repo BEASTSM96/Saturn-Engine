@@ -180,7 +180,7 @@ namespace Saturn {
 					{
 						auto Entity = m_Context->CreateEntity( "Directional Light" );
 						Entity.AddComponent<DirectionalLightComponent>();
-						Entity.GetComponent<TransformComponent>().Rotation = glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) );
+						Entity.GetComponent<TransformComponent>().SetRotation( glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) ) );
 
 						SetSelected( Entity );
 					}
@@ -371,13 +371,13 @@ namespace Saturn {
 		DrawComponent<TransformComponent>( "Transform", entity, [&]( auto& tc )
 		{
 			auto& translation = tc.Position;
-			glm::vec3 rotation = glm::degrees( tc.Rotation );
+			glm::vec3 rotation = glm::degrees( tc.GetRotationEuler() );
 			auto& scale = tc.Scale;
 
 			Auxiliary::DrawVec3Control( "Translation", tc.Position );
 			
 			if( Auxiliary::DrawVec3Control( "Rotation", rotation ) )
-				tc.Rotation = glm::radians( rotation );
+				tc.SetRotation( glm::radians( rotation ) );
 
 			Auxiliary::DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );

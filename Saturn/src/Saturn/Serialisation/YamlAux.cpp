@@ -60,7 +60,8 @@ namespace Saturn {
 			auto& tc = entity.GetComponent< TransformComponent >();
 
 			rEmitter << YAML::Key << "Position" << YAML::Value << tc.Position;
-			rEmitter << YAML::Key << "Rotation" << YAML::Value << glm::degrees( tc.Rotation );
+			rEmitter << YAML::Key << "Rotation" << YAML::Value << glm::degrees( tc.GetRotationEuler() );
+			rEmitter << YAML::Key << "Quaternion" << YAML::Value << tc.GetRotation();
 			rEmitter << YAML::Key << "Scale" << YAML::Value << tc.Scale;
 
 			rEmitter << YAML::EndMap;
@@ -309,7 +310,11 @@ namespace Saturn {
 				auto& t = DeserialisedEntity.GetComponent< TransformComponent >();
 
 				t.Position = tc[ "Position" ].as< glm::vec3 >();
-				t.Rotation = glm::radians( tc[ "Rotation" ].as< glm::vec3 >() );
+
+				t.SetRotation( glm::radians( tc[ "Rotation" ].as< glm::vec3 >( 0 ) ) );
+				
+				t.SetRotation( tc[ "Quaternion" ].as< glm::quat >( 0 ) );
+
 				t.Scale = tc[ "Scale" ].as< glm::vec3 >();
 			}
 

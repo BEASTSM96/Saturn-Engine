@@ -186,6 +186,15 @@ namespace Saturn {
 		m_Actor->setGlobalPose( trans );
 	}
 
+	void PhysicsRigidBody::Rotate( const glm::quat& rRotation )
+	{
+		physx::PxTransform trans = m_Actor->getGlobalPose();
+
+		trans.q *= Auxiliary::QGLMToPx( rRotation );
+
+		m_Actor->setGlobalPose( trans );
+	}
+
 	glm::vec3 PhysicsRigidBody::GetPosition()
 	{
 		float xpos = m_Actor->getGlobalPose().p.x;
@@ -240,7 +249,7 @@ namespace Saturn {
 		physx::PxTransform actorPose = m_Actor->getGlobalPose();
 
 		tc.Position = Auxiliary::PxToGLM( actorPose.p );
-		tc.Rotation = glm::eulerAngles( Auxiliary::QPxToGLM( actorPose.q ) );
+		tc.SetRotation( Auxiliary::QPxToGLM( actorPose.q ) );
 	}
 
 }
