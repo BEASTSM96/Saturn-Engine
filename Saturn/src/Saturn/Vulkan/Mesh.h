@@ -129,10 +129,10 @@ namespace Saturn {
 		const std::vector<Index>& Indices() const { return m_Indices; }
 
 		void SetAttachedShape( ShapeType type ) { m_AttachedPhysicsShape = type; }
-		ShapeType GetAttachedShape() { return m_AttachedPhysicsShape; }
+		const ShapeType GetAttachedShape() const { return m_AttachedPhysicsShape; }
 
 		void SetPhysicsMaterial( AssetID id ) { m_PhysicsMaterial = id; }
-		AssetID GetPhysicsMaterial() { return m_PhysicsMaterial; }
+		const AssetID GetPhysicsMaterial() const { return m_PhysicsMaterial; }
 
 	private:
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );

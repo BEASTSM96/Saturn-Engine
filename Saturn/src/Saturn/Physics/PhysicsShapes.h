@@ -100,6 +100,22 @@ namespace Saturn {
 		TriangleMeshShape( Entity entity );
 		~TriangleMeshShape();
 
+		// This assumes the the mesh collider has already been cooked.
+		void Create( physx::PxRigidActor& rActor ) override;
+		virtual void Detach( physx::PxRigidActor& rActor ) override;
+
+	private:
+		Ref<StaticMesh> m_Mesh;
+		std::vector<physx::PxShape*> m_Shapes;
+	};
+
+	class ConvexMeshShape : public PhysicsShape
+	{
+	public:
+		ConvexMeshShape( Entity entity );
+		~ConvexMeshShape();
+
+		// This assumes the the mesh collider has already been cooked.
 		void Create( physx::PxRigidActor& rActor ) override;
 		virtual void Detach( physx::PxRigidActor& rActor ) override;
 

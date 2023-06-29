@@ -50,6 +50,7 @@ namespace Saturn {
 	}
 
 	//////////////////////////////////////////////////////////////////////////
+	// Box
 
 	BoxShape::BoxShape( Entity entity )
 		: PhysicsShape( entity )
@@ -89,6 +90,7 @@ namespace Saturn {
 	}
 
 	//////////////////////////////////////////////////////////////////////////
+	// Sphere
 
 	SphereShape::SphereShape( Entity entity )
 		: PhysicsShape( entity )
@@ -129,6 +131,7 @@ namespace Saturn {
 	}
 
 	//////////////////////////////////////////////////////////////////////////
+	// Capsule
 
 	CapusleShape::CapusleShape( Entity entity )
 		: PhysicsShape( entity )
@@ -174,6 +177,7 @@ namespace Saturn {
 	}
 
 	//////////////////////////////////////////////////////////////////////////
+	// Triangle
 
 	TriangleMeshShape::TriangleMeshShape( Entity entity )
 		: PhysicsShape( entity )
@@ -195,13 +199,64 @@ namespace Saturn {
 		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
 		physx::PxTransform PxTrans = Auxiliary::GLMTransformToPx( transform.GetTransform() );
 
-		const std::vector<physx::PxShape*>& rShapes = PhysicsCooking::Get().UncookMeshCollider( m_Mesh, rActor, transform.Scale );
+		const std::vector<physx::PxShape*>& rShapes = PhysicsCooking::Get().CreateTriangleMesh( m_Mesh, rActor, transform.Scale );
 
-		m_Shapes = rShapes;
-		m_Shape = rShapes.front();
+		if( rShapes.size() )
+		{
+			m_Shapes = rShapes;
+			m_Shape = rShapes.front();
+		}
+		else
+		{
+			SAT_CORE_WARN( "No shapes we created from 'CreateTriangleMesh' this could mean the path does not exist or file header is not vaild." );
+		}
 	}
 
 	void TriangleMeshShape::Detach( physx::PxRigidActor& rActor )
+	{
+		for( physx::PxShape* rShape : m_Shapes )
+		{
+			rActor.detachShape( *rShape );
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Convex
+
+	ConvexMeshShape::ConvexMeshShape( Entity entity )
+		: PhysicsShape( entity )
+	{
+		m_Type = ShapeType::ConvexMesh;
+
+		if( !m_Entity.HasComponent<StaticMeshComponent>() )
+			SAT_CORE_ASSERT( "Entity does not have a static mesh component!" );
+
+		m_Mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
+	}
+
+	ConvexMeshShape::~ConvexMeshShape()
+	{
+	}
+
+	void ConvexMeshShape::Create( physx::PxRigidActor& rActor )
+	{
+		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
+		physx::PxTransform PxTrans = Auxiliary::GLMTransformToPx( transform.GetTransform() );
+
+		const std::vector<physx::PxShape*>& rShapes = PhysicsCooking::Get().CreateConvexMesh( m_Mesh, rActor, transform.Scale );
+
+		if( rShapes.size() )
+		{
+			m_Shapes = rShapes;
+			m_Shape = rShapes.front();
+		}
+		else
+		{
+			SAT_CORE_WARN( "No shapes we created from 'CreateConvexMesh' this could mean the path does not exist or file header is not vaild." );
+		}
+	}
+
+	void ConvexMeshShape::Detach( physx::PxRigidActor& rActor )
 	{
 		for( physx::PxShape* rShape : m_Shapes )
 		{

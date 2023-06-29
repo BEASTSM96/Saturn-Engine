@@ -60,6 +60,9 @@ namespace Saturn {
 		bool IsFlagSet( PhysicsMaterialFlags flag ) { m_Flags & flag; }
 		uint32_t GetFlags() { return m_Flags; }
 
+		physx::PxMaterial& GetMaterial() { return *m_Material; }
+		const physx::PxMaterial& GetMaterial() const { return *m_Material; }
+
 	private:
 		float m_StaticFriction = 0.6f;
 		float m_DynamicFriction = 0.6f;

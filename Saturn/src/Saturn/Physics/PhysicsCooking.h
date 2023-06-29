@@ -40,6 +40,7 @@ namespace Saturn {
 		const char pHeader[ 5 ] = "SMC\0";
 		uint64_t ID = 0;
 		size_t Submeshes = 0;
+		ShapeType Type;
 	};
 
 	// Data for each submesh
@@ -59,15 +60,20 @@ namespace Saturn {
 
 		// Cook mesh collider to a triangle mesh, if the collider cache does not exist we will create it if it does exist we will not override it and we will not cook the mesh.
 		// For Static meshes only!
-		void CookMeshCollider( const Ref<StaticMesh>& rMesh );
+		bool CookMeshCollider( const Ref<StaticMesh>& rMesh, ShapeType Type );
 
-		std::vector<physx::PxShape*> UncookMeshCollider( const Ref<StaticMesh>& rMesh, physx::PxRigidActor& rActor, glm::vec3 Scale );
+		std::vector<physx::PxShape*> CreateTriangleMesh( const Ref<StaticMesh>& rMesh, physx::PxRigidActor& rActor, glm::vec3 Scale );
+
+		std::vector<physx::PxShape*> CreateConvexMesh( const Ref<StaticMesh>& rMesh, physx::PxRigidActor& rActor, glm::vec3 Scale );
 
 	private:
 		void Terminate();
 		void ClearCache();
-		void WriteCache( const Ref<StaticMesh>& rMesh );
-		void LoadColliderFile( const std::filesystem::path& rPath );
+		void WriteCache( const Ref<StaticMesh>& rMesh, ShapeType Type );
+		bool LoadColliderFile( const std::filesystem::path& rPath );
+
+		bool TryCookTriangleMesh( const Ref<StaticMesh>& rMesh );
+		bool TryCookConvexMesh( const Ref<StaticMesh>& rMesh );
 
 	private:
 

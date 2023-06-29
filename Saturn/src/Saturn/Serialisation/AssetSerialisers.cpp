@@ -639,6 +639,8 @@ namespace Saturn {
 
 		out << YAML::Key << "Attached Shape" << YAML::Value << (int)mesh->GetAttachedShape();
 
+		out << YAML::Key << "Physics Material ID" << YAML::Value << (int)mesh->GetPhysicsMaterial();
+
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
@@ -671,11 +673,13 @@ namespace Saturn {
 		auto meshData = data[ "StaticMesh" ];
 		auto filepath = meshData[ "Filepath" ].as<std::string>();
 		auto shapeType = meshData[ "Attached Shape" ].as<int>( 0 );
+		auto physicsMaterial = meshData[ "Physics Material ID" ].as<uint64_t>( 0 );
 
 		auto realMeshPath = Project::GetActiveProject()->FilepathAbs( filepath );
 		auto mesh = Ref<StaticMesh>::Create( realMeshPath.string() );
 
 		mesh->SetAttachedShape( (ShapeType)shapeType );
+		mesh->SetPhysicsMaterial( physicsMaterial );
 
 		struct
 		{

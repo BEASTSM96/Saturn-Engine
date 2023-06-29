@@ -153,7 +153,9 @@ namespace Saturn {
 			{
 				if( ImGui::Button( "Generate Mesh Collider" ) )
 				{
-					PhysicsCooking::Get().CookMeshCollider( m_Mesh );
+					bool Result = PhysicsCooking::Get().CookMeshCollider( m_Mesh, SelectedEnum );
+
+					// TODO: Show a dialog box of what failed.
 				}
 			}
 
