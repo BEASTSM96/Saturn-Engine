@@ -157,6 +157,17 @@ namespace Saturn {
 				}
 			}
 
+			ImGui::Text( "Set Physics Material" );
+			ImGui::SameLine();
+
+			static AssetID id;
+			static bool s_Open = false;
+			
+			if( Auxiliary::DrawAssetFinder( AssetType::PhysicsMaterial, &s_Open, id ) ) 
+			{
+				m_Mesh->SetPhysicsMaterial( id );
+			}
+
 			Auxiliary::EndTreeNode();
 		}
 

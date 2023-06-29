@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2023 BEAST                                                           *
+* Copyright (c) 2015 - 2023 BEAST                                                           *
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -26,50 +26,61 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "PhysicsMaterialAsset.h"
 
-#include "Asset.h"
-
-#include "PxPhysicsAPI.h"
+#include "Saturn/Physics/PhysicsAuxiliary.h"
+#include "Saturn/Physics/PhysicsFoundation.h"
 
 namespace Saturn {
 
-	enum PhysicsMaterialFlags
+	PhysicsMaterialAsset::PhysicsMaterialAsset( float StaticFriction, float DynamicFriction, float Restitution, PhysicsMaterialFlags flags )
+		: m_StaticFriction( StaticFriction ),  m_DynamicFriction( DynamicFriction ), m_Restitution( Restitution ), m_Flags( flags )
 	{
-		DisableFriction = BIT( 0 ),
-		DisableHighFriction = BIT( 1 ),
-		ImprovedPatchFriction = BIT( 2 ),
-		None
-	};
+		m_Material = PhysicsFoundation::Get().GetPhysics().createMaterial( StaticFriction, DynamicFriction, Restitution );
 
-	class PhysicsMaterialAsset : public Asset
+		if( flags != PhysicsMaterialFlags::None )
+			m_Material->setFlags( (physx::PxMaterialFlag::Enum)flags );
+	}
+
+	PhysicsMaterialAsset::~PhysicsMaterialAsset()
 	{
-	public:
-		PhysicsMaterialAsset( float StaticFriction, float DynamicFriction, float Restitution, PhysicsMaterialFlags flags = PhysicsMaterialFlags::None );
-		~PhysicsMaterialAsset();
+		m_StaticFriction = 0.0f;
+		m_DynamicFriction = 0.0f;
+		m_Restitution = 0.0f;
+		
+		PHYSX_TERMINATE_ITEM( m_Material );
+	}
 
-		void SetStaticFriction( float val );
-		void SetDynamicFriction( float val );
-		void SetRestitution( float val );
-		 
-		float GetStaticFriction() { return m_StaticFriction; }
-		float GetDynamicFriction() { return m_DynamicFriction; }
-		float GetRestitution() { return m_Restitution; }
+	void PhysicsMaterialAsset::SetStaticFriction( float val )
+	{
+		m_StaticFriction = val;
+		
+		m_Material->setStaticFriction( val );
+	}
 
-		void SetFlag( PhysicsMaterialFlags flag, bool value );
-		bool IsFlagSet( PhysicsMaterialFlags flag ) { m_Flags & flag; }
-		uint32_t GetFlags() { return m_Flags; }
+	void PhysicsMaterialAsset::SetDynamicFriction( float val )
+	{
+		m_DynamicFriction = val;
 
-	private:
-		float m_StaticFriction = 0.6f;
-		float m_DynamicFriction = 0.6f;
-		float m_Restitution = 0.0f;
+		m_Material->setDynamicFriction( val );
+	}
 
-		physx::PxMaterial* m_Material = nullptr;
-		uint32_t m_Flags = -1;
+	void PhysicsMaterialAsset::SetRestitution( float val )
+	{
+		m_Restitution = val;
 
-	private:
-		friend class PhysicsMaterialAssetViewer;
-	};
+		m_Material->setRestitution( val );
+	}
+
+	void PhysicsMaterialAsset::SetFlag( PhysicsMaterialFlags flag, bool value )
+	{
+		if( value )
+			m_Flags |= flag;
+		else
+			m_Flags &= ~flag;
+
+		m_Material->setFlag( ( physx::PxMaterialFlag::Enum )flag, value );
+	}
 
 }

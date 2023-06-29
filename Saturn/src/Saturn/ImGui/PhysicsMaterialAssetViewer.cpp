@@ -26,50 +26,82 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "PhysicsMaterialAssetViewer.h"
 
-#include "Asset.h"
+#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Serialisation/AssetSerialisers.h"
 
-#include "PxPhysicsAPI.h"
+#include <imgui.h>
 
 namespace Saturn {
 
-	enum PhysicsMaterialFlags
+	PhysicsMaterialAssetViewer::PhysicsMaterialAssetViewer( AssetID id )
+		: AssetViewer( id )
 	{
-		DisableFriction = BIT( 0 ),
-		DisableHighFriction = BIT( 1 ),
-		ImprovedPatchFriction = BIT( 2 ),
-		None
-	};
+		m_AssetType = AssetType::PhysicsMaterial;
 
-	class PhysicsMaterialAsset : public Asset
+		AddPhysicsMaterialAsset();
+	}
+
+	PhysicsMaterialAssetViewer::~PhysicsMaterialAssetViewer()
 	{
-	public:
-		PhysicsMaterialAsset( float StaticFriction, float DynamicFriction, float Restitution, PhysicsMaterialFlags flags = PhysicsMaterialFlags::None );
-		~PhysicsMaterialAsset();
 
-		void SetStaticFriction( float val );
-		void SetDynamicFriction( float val );
-		void SetRestitution( float val );
-		 
-		float GetStaticFriction() { return m_StaticFriction; }
-		float GetDynamicFriction() { return m_DynamicFriction; }
-		float GetRestitution() { return m_Restitution; }
+	}
 
-		void SetFlag( PhysicsMaterialFlags flag, bool value );
-		bool IsFlagSet( PhysicsMaterialFlags flag ) { m_Flags & flag; }
-		uint32_t GetFlags() { return m_Flags; }
+	void PhysicsMaterialAssetViewer::OnImGuiRender()
+	{
+		DrawInternal();
+	}
 
-	private:
-		float m_StaticFriction = 0.6f;
-		float m_DynamicFriction = 0.6f;
-		float m_Restitution = 0.0f;
+	void PhysicsMaterialAssetViewer::AddPhysicsMaterialAsset()
+	{
+		Ref<PhysicsMaterialAsset> physMaterialAsset = AssetRegistry::Get().GetAssetAs<PhysicsMaterialAsset>( m_AssetID );
+		m_MaterialAsset = physMaterialAsset;
 
-		physx::PxMaterial* m_Material = nullptr;
-		uint32_t m_Flags = -1;
+		m_Open = true;
+	}
 
-	private:
-		friend class PhysicsMaterialAssetViewer;
-	};
+	void PhysicsMaterialAssetViewer::DrawInternal()
+	{
+		ImGui::PushID( m_MaterialAsset->ID );
+
+		ImGui::Begin( "Physics Material", &m_Open );
+
+		ImGui::BeginHorizontal( "##material_settings" );
+
+		ImGui::BeginVertical( "##material_settingsV" );
+
+		ImGui::Text( "Static Friction" );
+		ImGui::InputFloat( "##StaticFriction", &m_MaterialAsset->m_StaticFriction, 0.0f, 1000.0f );
+
+		ImGui::Spring();
+
+		ImGui::Text( "Dynamic Friction" );
+		ImGui::InputFloat( "##DynamicFriction", &m_MaterialAsset->m_DynamicFriction, 0.0f, 1000.0f );
+		
+		ImGui::Spring();
+
+		ImGui::Text( "Restitution" );
+		ImGui::InputFloat( "##Restitution", &m_MaterialAsset->m_Restitution, 0.0f, 1000.0f );
+		
+		// TODO: Flags
+
+		ImGui::EndVertical();
+
+		ImGui::EndHorizontal();
+
+		ImGui::End();
+
+		ImGui::PopID();
+
+		if( !m_Open )
+		{
+			PhysicsMaterialAssetSerialiser mas;
+			mas.Serialise( m_MaterialAsset );
+
+			AssetViewer::DestoryViewer( m_AssetID );
+		}
+	}
 
 }
