@@ -73,10 +73,13 @@ namespace SaturnBuildTool
                         binPath = Path.Combine(binPath, "phsyx\\bin\\");
 
                         if (target.CurrentConfig == ConfigKind.Debug)
+                        {
                             binPath = Path.Combine(binPath, "Debug");
-                        else
+                        }
+                        else 
+                        {
                             binPath = Path.Combine(binPath, "Release");
-
+                        }
                     }
                     break;
 

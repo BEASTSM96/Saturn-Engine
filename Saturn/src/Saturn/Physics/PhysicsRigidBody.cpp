@@ -247,7 +247,6 @@ namespace Saturn {
 	{
 		TransformComponent& tc = m_Entity.GetComponent<TransformComponent>();
 
-		physx::PxRigidDynamic* pBody = ( physx::PxRigidDynamic* ) m_Actor;
 		physx::PxTransform actorPose = m_Actor->getGlobalPose();
 
 		tc.Position = Auxiliary::PxToGLM( actorPose.p );

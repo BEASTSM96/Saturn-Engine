@@ -92,6 +92,7 @@ namespace Saturn {
 	{
 		bool Result = false;
 
+		int i = 0;
 		for( auto& rSubmesh : rMesh->Submeshes() )
 		{
 			physx::PxTriangleMeshDesc MeshDesc;
@@ -109,7 +110,7 @@ namespace Saturn {
 			if( Result = m_Cooking->cookTriangleMesh( MeshDesc, stream, &errorCode ) )
 			{
 				SubmeshColliderData data{};
-				data.Index = 0;
+				data.Index = i;
 				data.Stream = Buffer::Copy( stream.getData(), stream.getSize() );
 
 				m_SubmeshData.push_back( data );
@@ -119,6 +120,8 @@ namespace Saturn {
 				SAT_CORE_ERROR( "PhysX Cooking error code was: {0}", errorCode );
 				SAT_CORE_INFO( "Please check the log for more info.", errorCode );
 			}
+
+			i++;
 		}
 
 		return Result;
@@ -207,7 +210,7 @@ namespace Saturn {
 
 			colliderData += sizeof( size_t );
 
-			submesh.Index = i;
+			submesh.Index = index;
 			submesh.Stream = Buffer::Copy( colliderData, size );
 
 			m_SubmeshData.push_back( submesh );
