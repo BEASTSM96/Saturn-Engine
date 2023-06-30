@@ -234,7 +234,22 @@ namespace Saturn {
 		if( !LoadColliderFile( cachePath ) )
 			return Shapes;
 
-		Ref<PhysicsMaterialAsset> material = AssetRegistry::Get().GetAssetAs<PhysicsMaterialAsset>( 1421817985369887560 );
+		// Get the material.
+		// TODO: We should create a GameAssetRegistry and a EditorAssetRegistry, so we can have default assets.
+
+		auto& materialID = rMesh->GetPhysicsMaterial();
+		physx::PxMaterial* pMaterial = nullptr;
+
+		if( materialID == 0 )
+		{
+			pMaterial = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+		}
+		else
+		{
+			Ref<PhysicsMaterialAsset> asset = AssetRegistry::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
+
+			pMaterial = &asset->GetMaterial();
+		}
 
 		// TEMP: We might want to change the filter data.
 		physx::PxFilterData data;
@@ -259,7 +274,7 @@ namespace Saturn {
 
 			physx::PxTriangleMeshGeometry MeshGeometry( mesh, ShapeScale );
 
-			physx::PxShape* pShape = PhysicsFoundation::Get().GetPhysics().createShape( MeshGeometry, material->GetMaterial(), true );
+			physx::PxShape* pShape = PhysicsFoundation::Get().GetPhysics().createShape( MeshGeometry, *pMaterial, true );
 			
 			// We will always set it to be part of the simulation.
 			pShape->setFlag( physx::PxShapeFlag::eSIMULATION_SHAPE, true ); 
@@ -294,7 +309,21 @@ namespace Saturn {
 			return Shapes;
 
 		// Get the material.
-		Ref<PhysicsMaterialAsset> material = AssetRegistry::Get().GetAssetAs<PhysicsMaterialAsset>( 1421817985369887560 );
+		// TODO: We should create a GameAssetRegistry and a EditorAssetRegistry, so we can have default assets.
+
+		auto& materialID = rMesh->GetPhysicsMaterial();
+		physx::PxMaterial* pMaterial = nullptr;
+
+		if( materialID == 0 ) 
+		{
+			pMaterial = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+		}
+		else
+		{
+			Ref<PhysicsMaterialAsset> asset = AssetRegistry::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
+
+			pMaterial = &asset->GetMaterial();
+		}
 
 		// TEMP: We might want to change the filter data.
 		physx::PxFilterData data;
@@ -317,7 +346,7 @@ namespace Saturn {
 
 			physx::PxConvexMeshGeometry MeshGeometry( pMesh, ShapeScale );
 
-			physx::PxShape* pShape = PhysicsFoundation::Get().GetPhysics().createShape( MeshGeometry, material->GetMaterial(), true );
+			physx::PxShape* pShape = PhysicsFoundation::Get().GetPhysics().createShape( MeshGeometry, *pMaterial, true );
 
 			// TODO: I think convex meshes don't have to be kinematic meaning they don't have to part of simulation.
 			// We will always set it to be part of the simulation.
