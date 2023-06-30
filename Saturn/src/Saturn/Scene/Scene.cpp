@@ -101,7 +101,7 @@ namespace Saturn {
 			m_PhysicsScene->Update( ts );
 			OnUpdatePhysics( ts );
 
-			//EntityScriptManager::Get().UpdateAllScripts( ts );
+			EntityScriptManager::Get().UpdateAllScripts( ts );
 		}
 	}
 
@@ -117,7 +117,7 @@ namespace Saturn {
 			rb.Rigidbody->SyncTransfrom();
 		}
 
-		//EntityScriptManager::Get().OnPhysicsUpdate( ts );
+		EntityScriptManager::Get().OnPhysicsUpdate( ts );
 	}
 
 	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer )
