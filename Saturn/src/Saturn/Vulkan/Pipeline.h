@@ -81,7 +81,7 @@ namespace Saturn {
 		RequestDescriptorSetInfo RequestDescriptorSets = {};
 	};
 
-	class Pipeline : public CountedObj
+	class Pipeline : public RefTarget
 	{
 	public:
 		Pipeline() { }

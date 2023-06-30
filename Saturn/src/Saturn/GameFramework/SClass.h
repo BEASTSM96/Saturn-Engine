@@ -34,7 +34,7 @@
 
 namespace Saturn {
 
-	class SClass : public CountedObj
+	class SClass : public RefTarget
 	{
 	public:
 		SClass() {}

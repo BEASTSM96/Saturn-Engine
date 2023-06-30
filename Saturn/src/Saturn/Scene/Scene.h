@@ -43,6 +43,8 @@ namespace Saturn {
 
 	class Entity;
 	class Prefab;
+	class PhysicsScene;
+
 	struct TransformComponent;
 
 	using EntityMap = std::unordered_map<UUID, Entity>;
@@ -84,7 +86,7 @@ namespace Saturn {
 	class SClass;
 	class SceneRenderer;
 
-	class Scene : public CountedObj
+	class Scene : public RefTarget
 	{
 	public:
 		Scene();
@@ -210,7 +212,8 @@ namespace Saturn {
 
 		std::mutex m_Mutex;
 
-		JoltRuntime* m_PhysicsRuntime = nullptr;
+		// TODO: Change raw pointer to Ref?
+		PhysicsScene* m_PhysicsScene = nullptr;
 
 	private:
 

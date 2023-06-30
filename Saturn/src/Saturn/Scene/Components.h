@@ -50,8 +50,16 @@ namespace Saturn {
 
 	struct TransformComponent
 	{
+	private:
+		friend class SceneSerialiser;
+	private:
+		// Quat's in GLM are W,X,Y,Z
+		// I want to change it do X,Y,Z,W
+		// I don't want to use quat's however quat's are just better for rotations than a Vector3
+		glm::quat  RotationQuat ={ 1.0f, 0.0f, 0.0f, 0.0f };
+		glm::vec3  Rotation = { 0.0f, 0.0f, 0.0f };
+	public:
 		glm::vec3  Position ={ 0.0f , 0.0f, 0.0f };
-		glm::vec3  Rotation ={ 0.0f, 0.0f, 0.0f };
 		glm::vec3  Scale	={ 1.0f , 1.0f, 1.0f };
 
 		glm::vec3 Up ={ 0.0f, 1.0f, 0.0f };
@@ -67,16 +75,38 @@ namespace Saturn {
 
 		glm::mat4 GetTransform() const
 		{
-			glm::mat4 rotation = glm::toMat4( glm::quat( Rotation ) );
-
 			return glm::translate( glm::mat4( 1.0f ), Position )
-				* rotation
+				* glm::toMat4( RotationQuat )
 				* glm::scale( glm::mat4( 1.0f ), Scale );
 		}
 		
 		void SetTransform( const glm::mat4& rTransfrom )
 		{
-			Math::DecomposeTransform( rTransfrom, Position, Rotation, Scale );
+			Math::DecomposeTransform( rTransfrom, Position, RotationQuat, Scale );
+			Rotation = glm::eulerAngles( RotationQuat );
+		}
+
+		// Where rotation is a euler angle.
+		void SetRotation( const glm::vec3& rotation ) 
+		{
+			Rotation = rotation;
+			RotationQuat = glm::quat( rotation );
+		}
+
+		void SetRotation( const glm::quat& rotation )
+		{
+			RotationQuat = rotation;
+			Rotation = glm::eulerAngles( rotation );
+		}
+
+		glm::quat GetRotation() const
+		{
+			return RotationQuat;
+		}
+
+		glm::vec3 GetRotationEuler() const
+		{
+			return Rotation;
 		}
 
 		operator glm::mat4 ( ) { return GetTransform(); }
@@ -202,17 +232,18 @@ namespace Saturn {
 
 	struct MeshColliderComponent
 	{
-		UUID AssetID;
+		bool IsTrigger = false;
 	};
 
-	class JoltDynamicRigidBody;
+	// TODO: Do we really want to store the rigid body here?
+	class PhysicsRigidBody;
 	struct RigidbodyComponent
 	{
-		JoltDynamicRigidBody* Rigidbody = nullptr;
+		PhysicsRigidBody* Rigidbody = nullptr;
 
 		bool IsKinematic = false;
 		bool UseCCD = false;
-		int Mass = 2;
+		float Mass = 2.0f;
 		float LinearDrag = 1.0f;
 
 		uint32_t LockFlags;

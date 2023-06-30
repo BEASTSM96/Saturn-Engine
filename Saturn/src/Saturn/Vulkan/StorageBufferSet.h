@@ -37,7 +37,7 @@
 
 namespace Saturn {
 
-	class StorageBufferSet : public CountedObj
+	class StorageBufferSet : public RefTarget
 	{
 	public:
 		StorageBufferSet( uint32_t size, uint32_t binding );

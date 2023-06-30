@@ -35,7 +35,7 @@
 
 namespace Saturn {
 
-	class ComputePipeline : public CountedObj
+	class ComputePipeline : public RefTarget
 	{
 	public:
 		ComputePipeline( Ref<Shader> ComputeShader );

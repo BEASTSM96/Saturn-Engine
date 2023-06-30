@@ -39,7 +39,7 @@
 namespace Saturn {
 	
 	// A shader uniform represents a uniform variable in a shader.
-	class ShaderUniform : public CountedObj
+	class ShaderUniform : public RefTarget
 	{
 	public:
 		ShaderUniform() { m_Data = Buffer(); }

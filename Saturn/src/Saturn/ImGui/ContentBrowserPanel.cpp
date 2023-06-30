@@ -31,6 +31,7 @@
 
 #include "ImGuiAuxiliary.h"
 #include "Saturn/Asset/MaterialAsset.h"
+#include "Saturn/Asset/PhysicsMaterialAsset.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 #include "Saturn/Asset/AssetImporter.h"
 
@@ -38,6 +39,7 @@
 #include "PrefabViewer.h"
 #include "StaticMeshAssetViewer.h"
 #include "MaterialAssetViewer.h"
+#include "PhysicsMaterialAssetViewer.h"
 
 #include "Saturn/Project/Project.h"
 #include "Saturn/Core/App.h"
@@ -346,6 +348,24 @@ namespace Saturn {
 						auto materialAsset = asset.As<MaterialAsset>();
 
 						MaterialAssetSerialiser mas;
+						mas.Serialise( materialAsset );
+
+						AssetRegistrySerialiser urs;
+						urs.Serialise();
+
+						UpdateFiles( true );
+					}
+
+					if( ImGui::MenuItem( "Physics Material" ) )
+					{
+						auto id = AssetRegistry::Get().CreateAsset( AssetType::PhysicsMaterial );
+						auto asset = AssetRegistry::Get().FindAsset( id );
+
+						asset->SetPath( m_CurrentPath / "Untitled Physics Material.sphymaterial" );
+
+						auto materialAsset = asset.As<PhysicsMaterialAsset>();
+
+						PhysicsMaterialAssetSerialiser mas;
 						mas.Serialise( materialAsset );
 
 						AssetRegistrySerialiser urs;
@@ -889,6 +909,15 @@ namespace Saturn {
 
 							AssetViewer::Add<PrefabViewer>( asset->ID );
 						} break; 
+
+						case Saturn::AssetType::PhysicsMaterial:
+						{
+							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
+
+							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
+
+							AssetViewer::Add<PhysicsMaterialAssetViewer>( asset->ID );
+						} break;
 
 						case Saturn::AssetType::Scene:
 						case Saturn::AssetType::Audio:

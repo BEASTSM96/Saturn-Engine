@@ -34,10 +34,10 @@
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
 
-#include "Saturn/JoltPhysics/JoltPhysicsFoundation.h"
-
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 #include "Saturn/Scene/Components.h"
+
+#include "Saturn/Physics/PhysicsCooking.h"
 
 namespace Saturn {
 
@@ -115,10 +115,77 @@ namespace Saturn {
 
 		ImGui::Begin( "Sidebar" );
 
-		if( ImGui::Button( "Generate Mesh Collider" ) ) 
+		if( Auxiliary::TreeNode( "Physics" ) )
 		{
-			JoltPhysicsFoundation::Get().GenerateMeshCollider( m_Mesh, glm::vec3( 1.0f, 1.0f, 1.0f ) );
+			ShapeType type = m_Mesh->GetAttachedShape();
+			
+			const char* pItems[] = { "None", "Box", "Sphere", "Capsule", "Convex Mesh", "Triangle Mesh" };
+			static ShapeType SelectedEnum = ShapeType::Unknown;
+			static const char* Selected = NULL;
+
+			ImGui::Text( "Select Physics Shape Type:" );
+			ImGui::SameLine();
+
+			if( ImGui::BeginCombo( "##setshape", Selected ) )
+			{
+				for( int i = 0; i < IM_ARRAYSIZE( pItems ); i++ )
+				{
+					bool IsSelected = ( Selected == pItems[ i ] );
+
+					if( ImGui::Selectable( pItems[ i ], IsSelected ) ) 
+					{
+						SelectedEnum = (ShapeType)i;
+						Selected = pItems[ i ];
+
+						m_Mesh->SetAttachedShape( SelectedEnum );
+					}
+
+					if( IsSelected )
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGui::EndCombo();
+			}
+
+			if( SelectedEnum == ShapeType::TriangleMesh || SelectedEnum == ShapeType::ConvexMesh )
+			{
+				if( ImGui::Button( "Generate Mesh Collider" ) )
+				{
+					bool Result = PhysicsCooking::Get().CookMeshCollider( m_Mesh, SelectedEnum );
+
+					// TODO: Show a dialog box of what failed.
+				}
+			}
+
+			ImGui::Text( "Set Physics Material" );
+			ImGui::SameLine();
+
+			static AssetID id;
+			static bool s_Open = false;
+			
+			if( Auxiliary::DrawAssetFinder( AssetType::PhysicsMaterial, &s_Open, id ) ) 
+			{
+				m_Mesh->SetPhysicsMaterial( id );
+			}
+
+			Auxiliary::EndTreeNode();
 		}
+
+		ImGui::End();
+
+		ImGui::Begin( "##Toolbar" );
+
+		ImGui::BeginVertical( "##tbv" );
+
+		if( ImGui::Button( "Save", ImVec2( 50, 50 ) ) ) 
+		{
+			StaticMeshAssetSerialiser sma;
+			sma.Serialise( m_Mesh );
+		}
+
+		ImGui::EndVertical();
 
 		ImGui::End();
 

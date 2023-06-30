@@ -38,6 +38,8 @@
 
 #include "Saturn/Asset/MaterialAsset.h"
 
+#include "Saturn/Physics/PhysicsShapeTypes.h"
+
 #include <vector>
 #include <string>
 #include <utility>
@@ -126,6 +128,12 @@ namespace Saturn {
 		std::vector<Index>& Indices() { return m_Indices; }
 		const std::vector<Index>& Indices() const { return m_Indices; }
 
+		void SetAttachedShape( ShapeType type ) { m_AttachedPhysicsShape = type; }
+		const ShapeType GetAttachedShape() const { return m_AttachedPhysicsShape; }
+
+		void SetPhysicsMaterial( AssetID id ) { m_PhysicsMaterial = id; }
+		const AssetID GetPhysicsMaterial() const { return m_PhysicsMaterial; }
+
 	private:
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
 		void CreateVertices();
@@ -151,6 +159,9 @@ namespace Saturn {
 		Ref<Material> m_BaseMaterial;
 		std::vector< Ref< MaterialAsset > > m_MaterialsAssets;
 
+		ShapeType m_AttachedPhysicsShape = ShapeType::Unknown;
+		AssetID m_PhysicsMaterial = 0;
+
 		std::unique_ptr<Assimp::Importer> m_Importer;
 		const aiScene* m_Scene = nullptr;
 	};
@@ -164,7 +175,7 @@ namespace Saturn {
 	};
 
 	// A mesh source class only exists to get information about a mesh, use the mesh class to render meshes.
-	class MeshSource : public CountedObj
+	class MeshSource : public RefTarget
 	{
 	public:
 		MeshSource( const std::filesystem::path& rPath, const std::filesystem::path& rDstPath );

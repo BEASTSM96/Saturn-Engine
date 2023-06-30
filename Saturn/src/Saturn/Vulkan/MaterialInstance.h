@@ -34,7 +34,7 @@
 
 namespace Saturn {
 
-	class MaterialInstance : public CountedObj
+	class MaterialInstance : public RefTarget
 	{
 	public:
 		MaterialInstance( const Ref< Material >& rMaterial, const std::string& rName );

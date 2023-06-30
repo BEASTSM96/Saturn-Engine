@@ -39,7 +39,7 @@ namespace Saturn {
 
 	class Image2D;
 
-	class Swapchain : public CountedObj
+	class Swapchain : public RefTarget
 	{
 	public:
 		Swapchain();

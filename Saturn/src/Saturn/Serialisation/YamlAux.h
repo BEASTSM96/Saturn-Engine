@@ -177,6 +177,14 @@ namespace YAML {
 		return out;
 	}
 
+	inline Emitter& operator<<( Emitter& out, const glm::quat& vec )
+	{
+		out << Flow;
+		out << BeginSeq << vec.x << vec.y << vec.z << vec.w << EndSeq;
+		return out;
+	}
+
+
 	inline Emitter& operator<<( Emitter& out, const glm::vec2& vec )
 	{
 		out << Flow;

@@ -30,22 +30,49 @@
 
 #include "Asset.h"
 
+#include "PxPhysicsAPI.h"
+
 namespace Saturn {
+
+	enum PhysicsMaterialFlags
+	{
+		DisableFriction = BIT( 0 ),
+		DisableHighFriction = BIT( 1 ),
+		ImprovedPatchFriction = BIT( 2 ),
+		None
+	};
 
 	class PhysicsMaterialAsset : public Asset
 	{
 	public:
-		PhysicsMaterialAsset();
+		PhysicsMaterialAsset( float StaticFriction, float DynamicFriction, float Restitution, PhysicsMaterialFlags flags = PhysicsMaterialFlags::None );
 		~PhysicsMaterialAsset();
 
-		void SetStaticFriction();
-		void SetDynamicFriction();
-		void SetRestitution();
+		void SetStaticFriction( float val );
+		void SetDynamicFriction( float val );
+		void SetRestitution( float val );
+		 
+		float GetStaticFriction() { return m_StaticFriction; }
+		float GetDynamicFriction() { return m_DynamicFriction; }
+		float GetRestitution() { return m_Restitution; }
+
+		void SetFlag( PhysicsMaterialFlags flag, bool value );
+		bool IsFlagSet( PhysicsMaterialFlags flag ) { m_Flags & flag; }
+		uint32_t GetFlags() { return m_Flags; }
+
+		physx::PxMaterial& GetMaterial() { return *m_Material; }
+		const physx::PxMaterial& GetMaterial() const { return *m_Material; }
 
 	private:
-		float StaticFriction = 0.6f;
-		float DynamicFriction = 0.6f;
-		float Restitution = 0.0f;
+		float m_StaticFriction = 0.6f;
+		float m_DynamicFriction = 0.6f;
+		float m_Restitution = 0.0f;
+
+		physx::PxMaterial* m_Material = nullptr;
+		uint32_t m_Flags = -1;
+
+	private:
+		friend class PhysicsMaterialAssetViewer;
 	};
 
 }

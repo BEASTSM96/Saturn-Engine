@@ -51,7 +51,7 @@ namespace Saturn {
 		Depth = DEPTH32F
 	};
 
-	class Image2D : public CountedObj
+	class Image2D : public RefTarget
 	{
 	public:
 		Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels = 1, uint32_t MSAASamples = 1, void* pData = nullptr, size_t size = 0 );

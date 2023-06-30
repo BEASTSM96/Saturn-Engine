@@ -37,7 +37,7 @@ namespace Saturn {
 	
 	class Panel;
 
-	class PanelManager : public CountedObj
+	class PanelManager : public RefTarget
 	{
 	public:
 		PanelManager();

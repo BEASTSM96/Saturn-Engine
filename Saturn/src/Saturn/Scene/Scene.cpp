@@ -32,9 +32,6 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
-#include "Saturn/JoltPhysics/JoltRuntime.h"
-#include "Saturn/JoltPhysics/JoltDynamicRigidBody.h"
-
 #include "Saturn/GameFramework/EntityScriptManager.h"
 
 #include "Entity.h"
@@ -43,6 +40,9 @@
 #include "Saturn/Asset/Prefab.h"
 
 #include "Saturn/Core/OptickProfiler.h"
+
+#include "Saturn/Physics/PhysicsScene.h"
+#include "Saturn/Physics/PhysicsRigidBody.h"
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -95,14 +95,13 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
+		// TODO: We might want to change the order of this update cycle.
 		if( m_RuntimeRunning ) 
 		{
-			m_PhysicsRuntime->OnUpdate( ts );
-
-			EntityScriptManager::Get().UpdateAllScripts( ts );
-
-			// TEMP
+			m_PhysicsScene->Update( ts );
 			OnUpdatePhysics( ts );
+
+			//EntityScriptManager::Get().UpdateAllScripts( ts );
 		}
 	}
 
@@ -112,13 +111,13 @@ namespace Saturn {
 
 		auto PhysXView = m_Registry.view<TransformComponent, RigidbodyComponent>();
 		
-		for ( const auto& entity : PhysXView )
+		for( const auto& entity : PhysXView )
 		{
 			auto [tc, rb] = PhysXView.get<TransformComponent, RigidbodyComponent>( entity );
-			rb.Rigidbody->SyncTransform();
+			rb.Rigidbody->SyncTransfrom();
 		}
 
-		EntityScriptManager::Get().OnPhysicsUpdate( ts );
+		//EntityScriptManager::Get().OnPhysicsUpdate( ts );
 	}
 
 	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer )
@@ -342,7 +341,11 @@ namespace Saturn {
 		TransformComponent tc;
 
 		glm::mat4 worldSpace = GetTransformRelativeToParent( entity );
-		Math::DecomposeTransform( worldSpace, tc.Position, tc.Rotation, tc.Scale );
+		glm::quat rotation{};
+
+		Math::DecomposeTransform( worldSpace, tc.Position, rotation, tc.Scale );
+
+		tc.SetRotation( rotation );
 
 		return tc;
 	}
@@ -451,17 +454,17 @@ namespace Saturn {
 
 	void Scene::OnRuntimeStart()
 	{
-		if( m_PhysicsRuntime )
-			delete m_PhysicsRuntime;
+		if( m_PhysicsScene )
+			delete m_PhysicsScene;
 
-		m_PhysicsRuntime = new JoltRuntime( this );
+		m_PhysicsScene = new PhysicsScene( this );
 
 		EntityScriptManager::Get().BeginPlay();
 	}
 
 	void Scene::OnRuntimeEnd()
 	{
-		delete m_PhysicsRuntime;
+		delete m_PhysicsScene;
 	}
 
 	// Returns the Entity and the game class (if any).

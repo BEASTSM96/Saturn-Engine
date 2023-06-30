@@ -36,7 +36,7 @@
 
 namespace Saturn {
 
-	class EnvironmentMap : public CountedObj
+	class EnvironmentMap : public RefTarget
 	{
 	public:
 		Ref< TextureCube > RadianceMap;

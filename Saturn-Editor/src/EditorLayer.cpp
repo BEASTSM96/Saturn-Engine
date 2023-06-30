@@ -45,7 +45,7 @@
 #include <Saturn/Serialisation/AssetRegistrySerialiser.h>
 #include <Saturn/Serialisation/AssetSerialisers.h>
 
-#include <Saturn/JoltPhysics/JoltPhysicsFoundation.h>
+#include <Saturn/Physics/PhysicsFoundation.h>
 
 #include <Saturn/Vulkan/MaterialInstance.h>
 
@@ -196,7 +196,8 @@ namespace Saturn {
 		m_SyncTexture         = Ref< Texture2D >::Create( "content/textures/editor/Sync.png", AddressingMode::Repeat );
 
 		// Init Physics
-		JoltPhysicsFoundation::Get().Init();
+		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
+		pPhysicsFoundation->Init();
 
 		ContentBrowserPanel* pContentBrowserPanel = ( ContentBrowserPanel* ) m_PanelManager->GetPanel( "Content Browser Panel" );
 
@@ -247,7 +248,7 @@ namespace Saturn {
 		m_TitleBar = nullptr;
 	
 		m_PanelManager = nullptr;
-		JoltPhysicsFoundation::Get().Terminate();
+		//JoltPhysicsFoundation::Get().Terminate();
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )
@@ -727,10 +728,10 @@ namespace Saturn {
 
 					Math::DecomposeTransform( transform, translation, rotation, scale );
 
-					glm::vec3 DeltaRotation = rotation - tc.Rotation;
+					glm::vec3 DeltaRotation = rotation - tc.GetRotationEuler();
 
 					tc.Position = translation;
-					tc.Rotation += DeltaRotation;
+					tc.SetRotation( tc.GetRotationEuler() += DeltaRotation );
 					tc.Scale = scale;
 				}
 			}

@@ -34,7 +34,7 @@
 
 namespace Saturn {
 
-	class Renderer : public CountedObj
+	class Renderer : public RefTarget
 	{
 	public:
 		static inline Renderer& Get() { return *SingletonStorage::Get().GetSingleton<Renderer>(); }

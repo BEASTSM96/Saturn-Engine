@@ -301,7 +301,7 @@ namespace Saturn {
 		Ref< Shader > BloomShader = nullptr;
 	};
 
-	class SceneRenderer : public CountedObj
+	class SceneRenderer : public RefTarget
 	{
 		using ScheduledFunc = std::function<void()>;
 	public:

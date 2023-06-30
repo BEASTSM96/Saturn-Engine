@@ -70,7 +70,7 @@ namespace Saturn {
 		FramebufferAttachmentSpecification Attachments;
 	};
 
-	class Framebuffer : public CountedObj
+	class Framebuffer : public RefTarget
 	{
 	public:
 		Framebuffer( const FramebufferSpecification& Specification );

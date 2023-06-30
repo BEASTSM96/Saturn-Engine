@@ -38,7 +38,6 @@
 #include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Saturn/GameFramework/EntityScriptManager.h"
-#include "Saturn/JoltPhysics/JoltMeshCollider.h"
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -181,7 +180,7 @@ namespace Saturn {
 					{
 						auto Entity = m_Context->CreateEntity( "Directional Light" );
 						Entity.AddComponent<DirectionalLightComponent>();
-						Entity.GetComponent<TransformComponent>().Rotation = glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) );
+						Entity.GetComponent<TransformComponent>().SetRotation( glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) ) );
 
 						SetSelected( Entity );
 					}
@@ -372,13 +371,13 @@ namespace Saturn {
 		DrawComponent<TransformComponent>( "Transform", entity, [&]( auto& tc )
 		{
 			auto& translation = tc.Position;
-			glm::vec3 rotation = glm::degrees( tc.Rotation );
+			glm::vec3 rotation = glm::degrees( tc.GetRotationEuler() );
 			auto& scale = tc.Scale;
 
 			Auxiliary::DrawVec3Control( "Translation", tc.Position );
 			
 			if( Auxiliary::DrawVec3Control( "Rotation", rotation ) )
-				tc.Rotation = glm::radians( rotation );
+				tc.SetRotation( glm::radians( rotation ) );
 
 			Auxiliary::DrawVec3Control( "Scale", tc.Scale, 1.0f );
 		} );
@@ -447,7 +446,7 @@ namespace Saturn {
 
 			bool changed = false;
 
-			if ( skl.DynamicSky )
+			if( skl.DynamicSky )
 			{
 				changed = Auxiliary::DrawFloatControl( "Turbidity", skl.Turbidity );
 				changed |= Auxiliary::DrawFloatControl( "Azimuth", skl.Azimuth );
@@ -486,21 +485,7 @@ namespace Saturn {
 
 		DrawComponent<MeshColliderComponent>( "Mesh Collider", entity, [&]( auto& mcc )
 		{
-			static bool s_Open = false;
-
-			if( ImGui::Button( "Change##openmesh", ImVec2( 50, 20 ) ) )
-			{
-				s_Open = !s_Open;
-				m_CurrentFinderType = AssetType::MeshCollider;
-
-				if( mcc.AssetID )
-					m_CurrentAssetID = mcc.AssetID;
-			}
-
-			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
-			{
-				mcc.AssetID = m_CurrentAssetID;
-			}
+			Auxiliary::DrawBoolControl( "IsTrigger", mcc.IsTrigger );
 		} );
 
 		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )

@@ -10,7 +10,7 @@ namespace SaturnBuildTool
     enum VendorProject 
     {
         GLFW,
-        JOLT,
+        PHYSX,
         YAML_CPP,
         IMGUI,
         SPIRVCROSS,
@@ -68,14 +68,18 @@ namespace SaturnBuildTool
                     } break;
 
 
-                case VendorProject.JOLT:
+                case VendorProject.PHYSX:
                     {
-                        binPath = Path.Combine(binPath, "Jolt\\bin\\");
+                        binPath = Path.Combine(binPath, "phsyx\\bin\\");
 
-                        binPath = GetRootBinPath(binPath, target);
-
-                        binPath = Path.Combine(binPath, "JoltPhysics");
-
+                        if (target.CurrentConfig == ConfigKind.Debug)
+                        {
+                            binPath = Path.Combine(binPath, "Debug");
+                        }
+                        else 
+                        {
+                            binPath = Path.Combine(binPath, "Release");
+                        }
                     }
                     break;
 

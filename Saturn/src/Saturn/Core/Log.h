@@ -33,6 +33,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace Saturn {
 
@@ -90,6 +91,12 @@ template<typename OStream>
 OStream& operator<<( OStream& os, const glm::vec3& vec )
 {
 	return os << '(' << vec.x << ", " << vec.y << ", " << vec.z << ')';
+}
+
+template<typename OStream>
+OStream& operator<<( OStream& os, const glm::quat& vec )
+{
+	return os << '(' << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ')';
 }
 
 template<typename OStream>

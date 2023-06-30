@@ -31,6 +31,7 @@
 
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Asset/Prefab.h"
+#include "Saturn/Asset/PhysicsMaterialAsset.h"
 #include "Saturn/Audio/Sound2D.h"
 
 #include "YamlAux.h"
@@ -636,6 +637,10 @@ namespace Saturn {
 
 		out << YAML::Key << "Filepath" << YAML::Value << std::filesystem::relative( mesh->FilePath(), Project::GetActiveProject()->GetRootDir() );
 
+		out << YAML::Key << "Attached Shape" << YAML::Value << (int)mesh->GetAttachedShape();
+
+		out << YAML::Key << "Physics Material ID" << YAML::Value << (int)mesh->GetPhysicsMaterial();
+
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
@@ -667,9 +672,14 @@ namespace Saturn {
 
 		auto meshData = data[ "StaticMesh" ];
 		auto filepath = meshData[ "Filepath" ].as<std::string>();
+		auto shapeType = meshData[ "Attached Shape" ].as<int>( 0 );
+		auto physicsMaterial = meshData[ "Physics Material ID" ].as<uint64_t>( 0 );
 
 		auto realMeshPath = Project::GetActiveProject()->FilepathAbs( filepath );
 		auto mesh = Ref<StaticMesh>::Create( realMeshPath.string() );
+
+		mesh->SetAttachedShape( (ShapeType)shapeType );
+		mesh->SetPhysicsMaterial( physicsMaterial );
 
 		struct
 		{
@@ -761,6 +771,89 @@ namespace Saturn {
 		OldAssetData.Name = rAsset->Name;
 
 		rAsset = sound;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
+
+		return true;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// PhysicsMaterial
+
+	void PhysicsMaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
+	{
+		auto material = rAsset.As<PhysicsMaterialAsset>();
+
+		YAML::Emitter out;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "PhysicsMaterial" << YAML::Value;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "Static Friction" << YAML::Value << material->GetStaticFriction();
+
+		out << YAML::Key << "Dynamic Friction" << YAML::Value << material->GetDynamicFriction();
+
+		out << YAML::Key << "Restitution" << YAML::Value << material->GetRestitution();
+
+		out << YAML::Key << "Flags" << YAML::Value << material->GetFlags();
+
+		out << YAML::EndMap;
+
+		out << YAML::EndMap;
+
+		auto& basePath = rAsset->GetPath();
+		auto fullPath = Project::GetActiveProject()->FilepathAbs( basePath );
+
+		std::ofstream fout( fullPath );
+		fout << out.c_str();
+	}
+
+	void PhysicsMaterialAssetSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
+	{
+	}
+
+	bool PhysicsMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
+	{
+		auto absolutePath = Project::GetActiveProject()->FilepathAbs( rAsset->GetPath() );
+		std::ifstream FileIn( absolutePath );
+
+		std::stringstream ss;
+		ss << FileIn.rdbuf();
+
+		YAML::Node data = YAML::Load( ss.str() );
+
+		if( data.IsNull() )
+			return false;
+
+		auto materialData = data[ "PhysicsMaterial" ];
+
+		auto staticFriction = materialData[ "Static Friction" ].as<float>();
+		auto dynamicFriction = materialData[ "Dynamic Friction" ].as<float>();
+		auto restitution = materialData[ "Restitution" ].as<float>();
+
+		auto flags = materialData[ "Flags" ].as<uint32_t>();
+
+		auto material = Ref<PhysicsMaterialAsset>::Create( staticFriction, dynamicFriction, restitution, (PhysicsMaterialFlags)flags );
+
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = material;
 		rAsset->ID = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
 		rAsset->Path = OldAssetData.Path;

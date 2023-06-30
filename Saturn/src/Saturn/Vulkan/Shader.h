@@ -198,7 +198,7 @@ namespace Saturn {
 	extern ShaderType ShaderTypeFromString( const std::string& Str );
 	extern std::string ShaderTypeToString( ShaderType Type );
 
-	class Shader : public CountedObj
+	class Shader : public RefTarget
 	{
 		using ShaderSourceMap = std::unordered_map< ShaderSourceKey, ShaderSource >;
 		using SpvSourceMap = std::unordered_map< ShaderSourceKey, std::vector< uint32_t > >;
@@ -306,7 +306,7 @@ namespace Saturn {
 	};
 
 	// The shader library will hold shaders
-	class ShaderLibrary : public CountedObj
+	class ShaderLibrary : public RefTarget
 	{
 	public:
 		static inline ShaderLibrary& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<ShaderLibrary>(); }

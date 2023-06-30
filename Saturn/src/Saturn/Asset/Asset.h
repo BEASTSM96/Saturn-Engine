@@ -52,6 +52,7 @@ namespace Saturn {
 		Prefab,
 		Script,
 		MeshCollider,
+		PhysicsMaterial,
 		Unknown,
 		COUNT,
 	};
@@ -80,6 +81,8 @@ namespace Saturn {
 				return "Script";
 			case Saturn::AssetType::MeshCollider:
 				return "MeshCollider";
+			case Saturn::AssetType::PhysicsMaterial:
+				return "PhysicsMaterial";
 			case Saturn::AssetType::Unknown:
 				return "Unknown";
 			default:
@@ -111,6 +114,8 @@ namespace Saturn {
 			return AssetType::Script;
 		else if( str == "MeshCollider" )
 			return AssetType::MeshCollider;
+		else if( str == "PhysicsMaterial" )
+			return AssetType::PhysicsMaterial;
 		else
 			return AssetType::Unknown;
 	}
@@ -131,8 +136,8 @@ namespace Saturn {
 			return AssetType::Prefab;
 		else if( str == ".stmesh" )
 			return AssetType::StaticMesh;
-		else if( str == ".sphysmesh" )
-			return AssetType::StaticMesh;
+		else if( str == ".sphymaterial" )
+			return AssetType::PhysicsMaterial;
 		else
 			return AssetType::Unknown;
 	}
@@ -142,7 +147,7 @@ namespace Saturn {
 		Buffer DataBuffer;
 	};
 
-	class Asset : public CountedObj
+	class Asset : public RefTarget
 	{
 	public:
 		AssetID ID = 0;
