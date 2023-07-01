@@ -34,7 +34,7 @@
 #include "DescriptorSet.h"
 #include "MaterialInstance.h"
 
-#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
+#include "Saturn/Serialisation/GameAssetRegistrySerialiser.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
 #include "Saturn/Asset/AssetRegistry.h"
@@ -510,7 +510,7 @@ namespace Saturn {
 		}
 
 		// Serialise the asset registry to save any new materials.
-		AssetRegistrySerialiser ars;
+		GameAssetRegistrySerialiser ars;
 		ars.Serialise();
 	}
 

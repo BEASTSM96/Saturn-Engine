@@ -26,23 +26,24 @@
 *********************************************************************************************
 */
 
-#include <sppch.h>
-#include "AssetRegistry.h"
+#include "sppch.h"
+#include "EditorAssetRegistry.h"
+
+#include "Saturn/Serialisation/EditorAssetRegistrySerialiser.h"
 
 namespace Saturn {
 
-	AssetRegistry::AssetRegistry()
-		: AssetRegistryBase( AssetRegistryType::Game )
+	EditorAssetRegistry::EditorAssetRegistry()
+		: AssetRegistryBase( AssetRegistryType::Editor )
 	{
 		SingletonStorage::Get().AddSingleton( this );
 	}
 
-	AssetRegistry::~AssetRegistry()
+	EditorAssetRegistry::~EditorAssetRegistry()
 	{
-
 	}
 
-	AssetID AssetRegistry::CreateAsset( AssetType type )
+	AssetID EditorAssetRegistry::CreateAsset( AssetType type )
 	{
 		Ref<Asset> asset = Ref<Asset>::Create();
 		asset->Type = type;
@@ -53,12 +54,12 @@ namespace Saturn {
 		return asset->GetAssetID();
 	}
 
-	Ref<Asset> AssetRegistry::FindAsset( AssetID id )
+	Ref<Asset> EditorAssetRegistry::FindAsset( AssetID id )
 	{
 		return m_Assets.at( id );
 	}
 
-	Ref<Asset> AssetRegistry::FindAsset( const std::filesystem::path& rPath )
+	Ref<Asset> EditorAssetRegistry::FindAsset( const std::filesystem::path& rPath )
 	{
 		for( const auto& [id, asset] : m_Assets )
 		{
@@ -69,7 +70,7 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	Ref<Asset> AssetRegistry::FindAsset( const std::string& rName, AssetType type )
+	Ref<Asset> EditorAssetRegistry::FindAsset( const std::string& rName, AssetType type )
 	{
 		for( const auto& [id, asset] : m_Assets )
 		{
@@ -80,7 +81,7 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	std::vector<AssetID> AssetRegistry::FindAssetsWithType( AssetType type ) const
+	std::vector<AssetID> EditorAssetRegistry::FindAssetsWithType( AssetType type ) const
 	{
 		std::vector<AssetID> result;
 
@@ -94,7 +95,7 @@ namespace Saturn {
 		return result;
 	}
 
-	AssetID AssetRegistry::PathToID( const std::filesystem::path& rPath )
+	AssetID EditorAssetRegistry::PathToID( const std::filesystem::path& rPath )
 	{
 		for( const auto& [id, asset] : m_Assets )
 		{
@@ -105,11 +106,77 @@ namespace Saturn {
 		return 0;
 	}
 
-	void AssetRegistry::AddAsset( AssetID id )
+	static std::vector<std::string> s_DisallowedAssetExtensions
+	{
+		{ ".lib"       }, 
+		{ ".hdr"       }, 
+		{ ".eng"       }, 
+		{ ".lua"       }, 
+		{ ".cpp"       }, 
+		{ ".h"         },
+		{ ".cs"        },
+		{ ".sproject"  },
+		{ ".ttf"       },
+		{ ".fbx"       },  // Already in the static mesh asset
+		{ ".gltf"      }, // Already in the static mesh asset
+		{ ".bin"       },  // Already in the static mesh asset
+		{ ".glb"       },  // Already in the static mesh asset
+		{ ".wav"       },  // Already in the sound 2d asset
+		{ ".glsl"	   }
+	};
+
+	void EditorAssetRegistry::CheckMissingAssetRefs()
+	{
+		bool WriteAssetRegistry = false;
+
+		std::filesystem::path path = "content/AssetRegistry.sreg";
+		auto rRootPath = std::filesystem::current_path();
+		rRootPath /= "content";
+
+		for( auto& rEntry : std::filesystem::recursive_directory_iterator( rRootPath ) )
+		{
+			if( rEntry.is_directory() )
+				continue;
+
+			std::filesystem::path filepath = std::filesystem::relative( rEntry.path(), rRootPath );
+			auto filepathString = filepath.extension().string();
+
+			if( filepath.extension() == ".sreg" )
+				continue;
+
+			Ref<Asset> asset = EditorAssetRegistry::Get().FindAsset( filepath );
+
+			// Extension is forbidden.
+			if( std::find( s_DisallowedAssetExtensions.begin(), s_DisallowedAssetExtensions.end(), filepathString ) != s_DisallowedAssetExtensions.end() )
+				continue;
+
+			const auto& assetReg = EditorAssetRegistry::Get().GetAssetMap();
+			if( asset == nullptr )
+			{
+				auto type = AssetTypeFromExtension( filepathString );
+				auto id = EditorAssetRegistry::Get().CreateAsset( type );
+				asset = EditorAssetRegistry::Get().FindAsset( id );
+
+				asset->Path = filepath;	
+				asset->Name = filepath.replace_extension().filename().string();
+				
+				WriteAssetRegistry = true;
+			}
+		}
+
+		if( WriteAssetRegistry )
+		{
+			EditorAssetRegistrySerialiser edrs;
+			edrs.Serialise();
+		}
+	}
+
+	void EditorAssetRegistry::AddAsset( AssetID id )
 	{
 		SAT_CORE_ASSERT( m_Assets.find( id ) == m_Assets.end(), "Asset already exists!" );
 
 		m_Assets[ id ] = Ref<Asset>::Create();
 		m_Assets[ id ]->ID = id;
 	}
+
 }

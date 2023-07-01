@@ -26,78 +26,18 @@
 *********************************************************************************************
 */
 
-#include "Saturn/Core/App.h"
+#pragma once
 
-#include "Saturn/Core/UserSettings.h"
+namespace Saturn {
 
-#include "EditorLayer.h"
-
-#include "Saturn/Serialisation/UserSettingsSerialiser.h"
-
-#include "Saturn/GameFramework/GameDLL.h"
-
-class EditorApplication : public Saturn::Application
-{
-public:
-	EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
-		: Application( spec ), m_ProjectPath( rProjectPath )
+	class GameAssetRegistrySerialiser
 	{
-		// Setup user settings and find the project path.
+	public:
+		GameAssetRegistrySerialiser() = default;
+		~GameAssetRegistrySerialiser() = default;
 
-		auto& settings = Saturn::GetUserSettings();
-		settings.StartupProject = m_ProjectPath;
+		void Serialise();
+		void Deserialise();
+	};
 
-		size_t found = m_ProjectPath.find_last_of( "/\\" );
-		settings.StartupProjectName = m_ProjectPath.substr( found + 1 );
-
-		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
-
-		settings = Saturn::GetUserSettings();
-
-		Saturn::UserSettingsSerialiser uss;
-		uss.Deserialise( settings );
-
-		// Check if the editor asset registry exists.
-		if( !std::filesystem::exists( "content/AssetRegistry.sreg" ) )
-		{
-			// Create file.
-			std::ofstream stream( "content/AssetRegistry.sreg" );
-			stream.close();
-		}
-	}
-
-	virtual void OnInit() override
-	{
-		m_EditorLayer = new Saturn::EditorLayer();
-
-		PushLayer( m_EditorLayer );
-	}
-
-	virtual void OnShutdown() override
-	{
-		Saturn::UserSettingsSerialiser uss;
-		uss.Serialise( Saturn::GetUserSettings() );
-
-		PopLayer( m_EditorLayer );
-		delete m_EditorLayer;
-	}
-
-private:
-	Saturn::EditorLayer* m_EditorLayer = nullptr;
-
-	std::string m_ProjectPath = "";
-};
-
-Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
-{
-	std::string projectPath = "";
-
-	if( argc > 1 )
-		projectPath = argv[1];
-	else
-		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
-
-	ApplicationSpecification spec;
-
-	return new EditorApplication( spec, projectPath );
 }

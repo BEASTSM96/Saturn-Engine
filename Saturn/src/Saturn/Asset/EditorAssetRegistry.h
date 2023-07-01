@@ -26,78 +26,38 @@
 *********************************************************************************************
 */
 
-#include "Saturn/Core/App.h"
+#pragma once
 
-#include "Saturn/Core/UserSettings.h"
+#include "AssetRegistryBase.h"
 
-#include "EditorLayer.h"
+namespace Saturn {
 
-#include "Saturn/Serialisation/UserSettingsSerialiser.h"
-
-#include "Saturn/GameFramework/GameDLL.h"
-
-class EditorApplication : public Saturn::Application
-{
-public:
-	EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
-		: Application( spec ), m_ProjectPath( rProjectPath )
+	class EditorAssetRegistry : public AssetRegistryBase
 	{
-		// Setup user settings and find the project path.
+	public:
+		static inline EditorAssetRegistry& Get() { return *SingletonStorage::Get().GetSingleton<EditorAssetRegistry>(); }
+	public:
+		EditorAssetRegistry();
+		~EditorAssetRegistry();
 
-		auto& settings = Saturn::GetUserSettings();
-		settings.StartupProject = m_ProjectPath;
+		virtual AssetID CreateAsset( AssetType type ) override;
+		virtual Ref<Asset> FindAsset( AssetID id ) override;
 
-		size_t found = m_ProjectPath.find_last_of( "/\\" );
-		settings.StartupProjectName = m_ProjectPath.substr( found + 1 );
+		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
+		Ref<Asset> FindAsset( const std::string& rName, AssetType type );
 
-		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
+		std::vector<AssetID> FindAssetsWithType( AssetType type ) const;
 
-		settings = Saturn::GetUserSettings();
+		AssetID PathToID( const std::filesystem::path& rPath );
 
-		Saturn::UserSettingsSerialiser uss;
-		uss.Deserialise( settings );
+		// I feel like the name is misleading as we are not really checking for missing asset ref, we are checking if an assets exists on the filesystem and not in the registry.
+		void CheckMissingAssetRefs();
 
-		// Check if the editor asset registry exists.
-		if( !std::filesystem::exists( "content/AssetRegistry.sreg" ) )
-		{
-			// Create file.
-			std::ofstream stream( "content/AssetRegistry.sreg" );
-			stream.close();
-		}
-	}
+	private:
+		void AddAsset( AssetID id );
 
-	virtual void OnInit() override
-	{
-		m_EditorLayer = new Saturn::EditorLayer();
+	private:
+		friend class EditorAssetRegistrySerialiser;
+	};
 
-		PushLayer( m_EditorLayer );
-	}
-
-	virtual void OnShutdown() override
-	{
-		Saturn::UserSettingsSerialiser uss;
-		uss.Serialise( Saturn::GetUserSettings() );
-
-		PopLayer( m_EditorLayer );
-		delete m_EditorLayer;
-	}
-
-private:
-	Saturn::EditorLayer* m_EditorLayer = nullptr;
-
-	std::string m_ProjectPath = "";
-};
-
-Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
-{
-	std::string projectPath = "";
-
-	if( argc > 1 )
-		projectPath = argv[1];
-	else
-		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
-
-	ApplicationSpecification spec;
-
-	return new EditorApplication( spec, projectPath );
 }

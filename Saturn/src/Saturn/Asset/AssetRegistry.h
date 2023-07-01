@@ -28,18 +28,15 @@
 
 #pragma once
 
-#include "Asset.h"
-#include "AssetImporter.h"
+#include "AssetRegistryBase.h"
 
 #include <unordered_map>
 #include <unordered_set>
 
 namespace Saturn {
 
-	using AssetMap = std::unordered_map< AssetID, Ref<Asset> >;
-	using AssetIDVector = std::vector< AssetID >;
-
-	class AssetRegistry
+	// The Game AssetRegistry
+	class AssetRegistry : public AssetRegistryBase
 	{
 	public:
 		static inline AssetRegistry& Get() { return *SingletonStorage::Get().GetSingleton<AssetRegistry>(); }
@@ -60,49 +57,21 @@ namespace Saturn {
 			return asset;
 		}
 
-		AssetID CreateAsset( AssetType type );
+		virtual AssetID CreateAsset( AssetType type ) override;
+		virtual Ref<Asset> FindAsset( AssetID id ) override;
 
-		Ref<Asset> FindAsset( AssetID id );
 		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
 		Ref<Asset> FindAsset( const std::string& rName, AssetType type );
-	
-		template<typename Ty>
-		Ref<Ty> GetAssetAs( AssetID id ) 
-		{
-			Ref<Asset> asset = m_Assets.at( id );
-
-			if( !IsAssetLoaded( id ) )
-			{
-				bool loaded = AssetImporter::Get().TryLoadData( asset );
-				if( !loaded )
-					return nullptr;
-
-				m_LoadedAssets[ id ] = asset;
-			}
-			else
-				asset = m_LoadedAssets.at( id );
-
-			return asset.As<Ty>();
-		}
 
 		std::vector<AssetID> FindAssetsWithType( AssetType type ) const;
 
-		const AssetMap& GetAssetMap() const { return m_Assets; }
-		const AssetMap& GetLoadedAssetsMap() const { return m_LoadedAssets; }
-
 		AssetID PathToID( const std::filesystem::path& rPath );
-
-	private:
-		AssetMap m_Assets;
-		AssetMap m_LoadedAssets;
-
-		bool IsAssetLoaded( AssetID id );
 
 	private:
 
 		void AddAsset( AssetID id );
 
 	private:
-		friend class AssetRegistrySerialiser;
+		friend class GameAssetRegistrySerialiser;
 	};
 }

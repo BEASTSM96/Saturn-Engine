@@ -179,7 +179,7 @@ namespace Saturn {
 		}
 
 	private:
-		friend class AssetRegistrySerialiser;
+		friend class GameAssetRegistrySerialiser;
 		friend class AssetRegistry;
 	};
 }

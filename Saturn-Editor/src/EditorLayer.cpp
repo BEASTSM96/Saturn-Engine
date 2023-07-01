@@ -42,7 +42,8 @@
 #include <Saturn/Serialisation/SceneSerialiser.h>
 #include <Saturn/Serialisation/ProjectSerialiser.h>
 #include <Saturn/Serialisation/UserSettingsSerialiser.h>
-#include <Saturn/Serialisation/AssetRegistrySerialiser.h>
+#include <Saturn/Serialisation/GameAssetRegistrySerialiser.h>
+#include <Saturn/Serialisation/EditorAssetRegistrySerialiser.h>
 #include <Saturn/Serialisation/AssetSerialisers.h>
 
 #include <Saturn/Physics/PhysicsFoundation.h>
@@ -60,6 +61,7 @@
 #include <Saturn/Core/UserSettings.h>
 
 #include <Saturn/Asset/AssetRegistry.h>
+#include <Saturn/Asset/EditorAssetRegistry.h>
 #include <Saturn/Asset/Prefab.h>
 
 #include <Saturn/GameFramework/GameDLL.h>
@@ -94,7 +96,13 @@ namespace Saturn {
 	{
 		Scene::SetActiveScene( m_EditorScene.Pointer() );
 
-		AssetRegistry* ar = new AssetRegistry();
+		AssetRegistry* pAssetRegistry = new AssetRegistry();
+		EditorAssetRegistry* pEditorAssetRegistry = new EditorAssetRegistry();
+
+		EditorAssetRegistrySerialiser edrs;
+		edrs.Deserialise();
+
+		pEditorAssetRegistry->CheckMissingAssetRefs();
 
 		m_RuntimeScene = nullptr;
 		

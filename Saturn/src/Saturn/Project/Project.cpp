@@ -33,7 +33,7 @@
 
 #include "Saturn/Serialisation/UserSettingsSerialiser.h"
 #include "Saturn/Serialisation/ProjectSerialiser.h"
-#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
+#include "Saturn/Serialisation/GameAssetRegistrySerialiser.h"
 
 #include "Saturn/Asset/AssetRegistry.h"
 
@@ -135,14 +135,14 @@ namespace Saturn {
 
 		if( FileChanged )
 		{
-			AssetRegistrySerialiser ars;
+			GameAssetRegistrySerialiser ars;
 			ars.Serialise();
 		}
 	}
 
 	void Project::LoadAssetRegistry()
 	{
-		AssetRegistrySerialiser ars;
+		GameAssetRegistrySerialiser ars;
 		ars.Deserialise();
 	}
 

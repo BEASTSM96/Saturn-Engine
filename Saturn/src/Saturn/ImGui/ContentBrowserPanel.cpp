@@ -46,7 +46,7 @@
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Vulkan/Mesh.h"
 
-#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
+#include "Saturn/Serialisation/GameAssetRegistrySerialiser.h"
 
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Audio/Sound2D.h"
@@ -106,7 +106,7 @@ namespace Saturn {
 				PrefabSerialiser ps;
 				ps.Serialise( asset );
 
-				AssetRegistrySerialiser ars;
+				GameAssetRegistrySerialiser ars;
 				ars.Serialise();
 			}
 
@@ -316,7 +316,7 @@ namespace Saturn {
 
 								asset->SetPath( m_CurrentPath / path.filename() );
 
-								AssetRegistrySerialiser ars;
+								GameAssetRegistrySerialiser ars;
 								ars.Serialise();
 							}
 
@@ -350,7 +350,7 @@ namespace Saturn {
 						MaterialAssetSerialiser mas;
 						mas.Serialise( materialAsset );
 
-						AssetRegistrySerialiser urs;
+						GameAssetRegistrySerialiser urs;
 						urs.Serialise();
 
 						UpdateFiles( true );
@@ -368,7 +368,7 @@ namespace Saturn {
 						PhysicsMaterialAssetSerialiser mas;
 						mas.Serialise( materialAsset );
 
-						AssetRegistrySerialiser urs;
+						GameAssetRegistrySerialiser urs;
 						urs.Serialise();
 
 						UpdateFiles( true );
@@ -410,7 +410,7 @@ namespace Saturn {
 							PrefabSerialiser ps;
 							ps.Serialise( PrefabAsset );
 
-							AssetRegistrySerialiser ars;
+							GameAssetRegistrySerialiser ars;
 							ars.Serialise();
 
 							UpdateFiles( true );
@@ -497,7 +497,7 @@ namespace Saturn {
 				Sound2DAssetSerialiser s2d;
 				s2d.Serialise( sound );
 
-				AssetRegistrySerialiser ars;
+				GameAssetRegistrySerialiser ars;
 				ars.Serialise();
 
 				sound->SetPath( assetPath );
@@ -625,7 +625,7 @@ namespace Saturn {
 
 				staticMesh->SetPath( assetPath );
 
-				AssetRegistrySerialiser ars;
+				GameAssetRegistrySerialiser ars;
 				ars.Serialise();
 
 				PopupModified = true;
@@ -686,7 +686,7 @@ namespace Saturn {
 				// Right now the only script type we support is an entity type.
 				SourceManager::Get().CreateEntitySourceFiles( m_CurrentPath, n.c_str() );
 				
-				AssetRegistrySerialiser ars;
+				GameAssetRegistrySerialiser ars;
 				ars.Serialise();
 
 				PopupModified = true;

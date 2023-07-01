@@ -30,11 +30,11 @@
 
 namespace Saturn {
 
-	class AssetRegistrySerialiser
+	class EditorAssetRegistrySerialiser
 	{
 	public:
-		AssetRegistrySerialiser() = default;
-		~AssetRegistrySerialiser() = default;
+		EditorAssetRegistrySerialiser() = default;
+		~EditorAssetRegistrySerialiser() = default;
 
 		void Serialise();
 		void Deserialise();

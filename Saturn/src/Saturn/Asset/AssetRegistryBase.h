@@ -26,78 +26,68 @@
 *********************************************************************************************
 */
 
-#include "Saturn/Core/App.h"
+#pragma once
 
-#include "Saturn/Core/UserSettings.h"
+#include "Asset.h"
+#include "AssetImporter.h"
 
-#include "EditorLayer.h"
+namespace Saturn {
 
-#include "Saturn/Serialisation/UserSettingsSerialiser.h"
-
-#include "Saturn/GameFramework/GameDLL.h"
-
-class EditorApplication : public Saturn::Application
-{
-public:
-	EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
-		: Application( spec ), m_ProjectPath( rProjectPath )
+	enum class AssetRegistryType
 	{
-		// Setup user settings and find the project path.
+		Game,
+		Editor,
+		Unknown
+	};
 
-		auto& settings = Saturn::GetUserSettings();
-		settings.StartupProject = m_ProjectPath;
+	using AssetMap = std::unordered_map< AssetID, Ref<Asset> >;
 
-		size_t found = m_ProjectPath.find_last_of( "/\\" );
-		settings.StartupProjectName = m_ProjectPath.substr( found + 1 );
+	class AssetRegistryBase
+	{
+	public:
+		AssetRegistryBase( AssetRegistryType Type );
+		~AssetRegistryBase();
 
-		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
+		virtual AssetID CreateAsset( AssetType type ) = 0;
+		virtual Ref<Asset> FindAsset( AssetID id ) = 0;
 
-		settings = Saturn::GetUserSettings();
-
-		Saturn::UserSettingsSerialiser uss;
-		uss.Deserialise( settings );
-
-		// Check if the editor asset registry exists.
-		if( !std::filesystem::exists( "content/AssetRegistry.sreg" ) )
+		// Where Ty is an asset.
+		// This will try to find the loaded asset, if it does not exists it will try to load it.
+		// \return Ref<Ty> if found, nullptr if not
+		template<typename Ty>
+		Ref<Ty> GetAssetAs( AssetID id )
 		{
-			// Create file.
-			std::ofstream stream( "content/AssetRegistry.sreg" );
-			stream.close();
+			Ref<Asset> asset = m_Assets.at( id );
+
+			if( !IsAssetLoaded( id ) )
+			{
+				bool loaded = AssetImporter::Get().TryLoadData( asset );
+				if( !loaded )
+					return nullptr;
+
+				m_LoadedAssets[ id ] = asset;
+			}
+			else
+				asset = m_LoadedAssets.at( id );
+
+			return asset.As<Ty>();
 		}
-	}
 
-	virtual void OnInit() override
-	{
-		m_EditorLayer = new Saturn::EditorLayer();
+		const AssetMap& GetAssetMap() const { return m_Assets; }
+		const AssetMap& GetLoadedAssetsMap() const { return m_LoadedAssets; }
 
-		PushLayer( m_EditorLayer );
-	}
+	protected:
+		virtual void AddAsset( AssetID id ) = 0;
 
-	virtual void OnShutdown() override
-	{
-		Saturn::UserSettingsSerialiser uss;
-		uss.Serialise( Saturn::GetUserSettings() );
+		bool IsAssetLoaded( AssetID id );
+	protected:
+		AssetMap m_Assets;
+		AssetMap m_LoadedAssets;
 
-		PopLayer( m_EditorLayer );
-		delete m_EditorLayer;
-	}
+		AssetRegistryType m_Type = AssetRegistryType::Unknown;
 
-private:
-	Saturn::EditorLayer* m_EditorLayer = nullptr;
+	private:
+		friend class GameAssetRegistrySerialiser;
+	};
 
-	std::string m_ProjectPath = "";
-};
-
-Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
-{
-	std::string projectPath = "";
-
-	if( argc > 1 )
-		projectPath = argv[1];
-	else
-		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
-
-	ApplicationSpecification spec;
-
-	return new EditorApplication( spec, projectPath );
 }

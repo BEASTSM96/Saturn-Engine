@@ -1,0 +1,62 @@
+Material:
+  AlbedoColor: [0.783783793, 0.780757606, 0.780757606]
+  AlbedoPath: Renderer Pink Texture
+  UseNormal: 0
+  NormalPath: Renderer Pink Texture
+  Metalness: 1
+  MetalnessPath: Renderer Pink Texture
+  Roughness: 1
+  RoughnessPath: Renderer Pink Texture
+NodeEditor:
+  State: "{\"nodes\":{\"node:1\":{\"location\":{\"x\":64376,\"y\":-63728}},\"node:6\":{\"location\":{\"x\":25675,\"y\":-191716}}},\"selection\":null,\"view\":{\"scroll\":{\"x\":-492.032562255859375,\"y\":-0},\"visible_rect\":{\"max\":{\"x\":84156.5,\"y\":676},\"min\":{\"x\":-83153.5,\"y\":-0}},\"zoom\":0.00591715984046459198}}"
+  Nodes:
+    - Node: 1
+      Name: Material Output
+      Color: [1, 0.501960814, 0.501960814, 1]
+      Size: [0, 0]
+      Inputs:
+        - Input: 2
+          Name: Albedo
+          Node: 0
+          Kind: 1
+          Type: Material_Sampler2D
+        - Input: 3
+          Name: Normal
+          Node: 0
+          Kind: 1
+          Type: Material_Sampler2D
+        - Input: 4
+          Name: Metallic
+          Node: 0
+          Kind: 1
+          Type: Material_Sampler2D
+        - Input: 5
+          Name: Roughness
+          Node: 0
+          Kind: 1
+          Type: Material_Sampler2D
+      Outputs:
+        []
+      State: "{\"location\":{\"x\":64376,\"y\":-63728}}"
+      ED: ""
+      ED_Size: 1024
+    - Node: 6
+      Name: Color Picker
+      Color: [0.988235354, 0.729411781, 0.011764707, 1]
+      Size: [0, 0]
+      Inputs:
+        []
+      Outputs:
+        - Output: 7
+          Name: RGBA
+          Node: 6
+          Kind: 0
+          Type: Material_Sampler2D
+      State: "{\"location\":{\"x\":25675,\"y\":-191716}}"
+      ED: "\x0e�H?��G?��G?"
+      ED_Size: 1024
+  Links:
+    - Link: 8
+      Color: 4294967295
+      Start: 7
+      End: 2

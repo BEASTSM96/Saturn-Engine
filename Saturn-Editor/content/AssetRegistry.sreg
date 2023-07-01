@@ -1,0 +1,430 @@
+Assets:
+  - Asset: 13627048482828952564
+    Path: meshes\CerberusMaterials.fbx
+    Type: Unknown
+  - Asset: 13922235737639974900
+    Path: meshes\sponza\2969916736137545357.jpg
+    Type: Texture
+  - Asset: 4021209863505896016
+    Path: meshes\sponza\11490520546946913238.jpg
+    Type: Texture
+  - Asset: 13881554733718030483
+    Path: Fonts\NotoSans-Regular.ttf
+    Type: Unknown
+  - Asset: 501926962764754131
+    Path: meshes\sponza\16299174074766089871.jpg
+    Type: Texture
+  - Asset: 1628882919000057570
+    Path: meshes\sponza\3371964815757888145.jpg
+    Type: Texture
+  - Asset: 1816135214536519607
+    Path: meshes\sponza\17876391417123941155.jpg
+    Type: Texture
+  - Asset: 8118419652787992599
+    Path: meshes\sponza\13196865903111448057.jpg
+    Type: Texture
+  - Asset: 1256177627845613607
+    Path: Fonts\OFL.txt
+    Type: Unknown
+  - Asset: 15299077686801395390
+    Path: textures\debug\DebugCubeMap.tga
+    Type: Texture
+  - Asset: 12271653620384999135
+    Path: meshes\sponza\6772804448157695701.jpg
+    Type: Texture
+  - Asset: 5638872719648274926
+    Path: meshes\sponza\4975155472559461469.jpg
+    Type: Texture
+  - Asset: 1825912193891643403
+    Path: meshes\Factory\Plane.fbx
+    Type: Unknown
+  - Asset: 5619900249080648083
+    Path: meshes\sponza\5061699253647017043.png
+    Type: Texture
+  - Asset: 5866739113200432161
+    Path: Icons\SaturnLogov1.png
+    Type: Texture
+  - Asset: 1295232279641467604
+    Path: meshes\sponza\11968150294050148237.jpg
+    Type: Texture
+  - Asset: 1829171821877526711
+    Path: Icons\SaturnSmallIcon.ico
+    Type: Unknown
+  - Asset: 5799749278535819536
+    Path: meshes\sponza\2299742237651021498.jpg
+    Type: Texture
+  - Asset: 14987381330097657770
+    Path: meshes\cerberus.fbx
+    Type: Unknown
+  - Asset: 7868737517600785945
+    Path: meshes\Factory\Cube.fbx
+    Type: Unknown
+  - Asset: 11646545143485773882
+    Path: shaders\Bloom.glsl
+    Type: Unknown
+  - Asset: 10117525335094462469
+    Path: meshes\sponza\8006627369776289000.png
+    Type: Texture
+  - Asset: 645313145107703699
+    Path: meshes\m1911.fbx
+    Type: Unknown
+  - Asset: 15795718178703624870
+    Path: meshes\sponza\2775690330959970771.jpg
+    Type: Texture
+  - Asset: 13908725884406173870
+    Path: meshes\sponza\4910669866631290573.jpg
+    Type: Texture
+  - Asset: 18027675781447234522
+    Path: meshes\sponza\white.png
+    Type: Texture
+  - Asset: 15835512158573508022
+    Path: meshes\NewSceneTest.fbx
+    Type: Unknown
+  - Asset: 18377502396249424633
+    Path: meshes\sponza\3455394979645218238.jpg
+    Type: Texture
+  - Asset: 11530807174386296791
+    Path: meshes\sponza\10381718147657362067.jpg
+    Type: Texture
+  - Asset: 17297121511911538196
+    Path: meshes\sponza\6047387724914829168.jpg
+    Type: Texture
+  - Asset: 6593152115043626284
+    Path: meshes\sponza\10388182081421875623.jpg
+    Type: Texture
+  - Asset: 6632005943687460731
+    Path: textures\editor\Left.png
+    Type: Texture
+  - Asset: 7101924197458787310
+    Path: meshes\sponza\3628158980083700836.jpg
+    Type: Texture
+  - Asset: 9390120626975563021
+    Path: meshes\sponza\11474523244911310074.jpg
+    Type: Texture
+  - Asset: 5140712354199331833
+    Path: meshes\sponza\7056944414013900257.jpg
+    Type: Texture
+  - Asset: 4568352567447305098
+    Path: meshes\sponza\11872827283454512094.jpg
+    Type: Texture
+  - Asset: 10623816776889916691
+    Path: meshes\sponza\1219024358953944284.jpg
+    Type: Texture
+  - Asset: 1833331256812607340
+    Path: meshes\sponza\13824894030729245199.jpg
+    Type: Texture
+  - Asset: 7120222886387382657
+    Path: meshes\sponza\12501374198249454378.jpg
+    Type: Texture
+  - Asset: 565468702281244891
+    Path: meshes\sponza\6593109234861095314.jpg
+    Type: Texture
+  - Asset: 12360689639622266615
+    Path: meshes\sponza\13982482287905699490.jpg
+    Type: Texture
+  - Asset: 10494250399112423278
+    Path: meshes\sponza\14118779221266351425.jpg
+    Type: Texture
+  - Asset: 7761726643791189410
+    Path: meshes\sponza\14170708867020035030.jpg
+    Type: Texture
+  - Asset: 4770042980099603510
+    Path: meshes\sponza\3827035219084910048.jpg
+    Type: Texture
+  - Asset: 7397156434869280216
+    Path: shaders\SSAO-Blur.glsl
+    Type: Unknown
+  - Asset: 10076720359162114459
+    Path: meshes\sponza\15295713303328085182.jpg
+    Type: Texture
+  - Asset: 12736987898977386393
+    Path: meshes\sponza\8783994986360286082.jpg
+    Type: Texture
+  - Asset: 7371448310284354133
+    Path: meshes\sponza\8503262930880235456.jpg
+    Type: Texture
+  - Asset: 15112788417133539629
+    Path: meshes\sponza\14267839433702832875.jpg
+    Type: Texture
+  - Asset: 10815213670176127276
+    Path: meshes\sponza\14650633544276105767.jpg
+    Type: Texture
+  - Asset: 2347628258366553490
+    Path: meshes\sponza\15722799267630235092.jpg
+    Type: Texture
+  - Asset: 12945706672125262388
+    Path: meshes\sponza\2411100444841994089.jpg
+    Type: Texture
+  - Asset: 14986672292447800697
+    Path: meshes\sponza\16275776544635328252.png
+    Type: Texture
+  - Asset: 9295354621168580737
+    Path: meshes\sponza\466164707995436622.jpg
+    Type: Texture
+  - Asset: 4311151272802097992
+    Path: meshes\sponza\16885566240357350108.jpg
+    Type: Texture
+  - Asset: 16883472304006912208
+    Path: meshes\sponza\17556969131407844942.jpg
+    Type: Texture
+  - Asset: 10282348722490786620
+    Path: meshes\sponza\4601176305987539675.jpg
+    Type: Texture
+  - Asset: 7169620136303889752
+    Path: meshes\sponza\2051777328469649772.jpg
+    Type: Texture
+  - Asset: 12200297377643199033
+    Path: meshes\sponza\2185409758123873465.jpg
+    Type: Texture
+  - Asset: 11294479121946808245
+    Path: meshes\_BlenderFiles\Cerberus.blend
+    Type: Unknown
+  - Asset: 14687924945514259391
+    Path: meshes\sponza\715093869573992647.jpg
+    Type: Texture
+  - Asset: 4528445272736278913
+    Path: meshes\sponza\2374361008830720677.jpg
+    Type: Texture
+  - Asset: 13067839649255148265
+    Path: meshes\sponza\332936164838540657.jpg
+    Type: Texture
+  - Asset: 17340194690515637744
+    Path: meshes\sponza\4477655471536070370.jpg
+    Type: Texture
+  - Asset: 14596772737929046017
+    Path: meshes\sponza\4675343432951571524.jpg
+    Type: Texture
+  - Asset: 12792283339231868454
+    Path: meshes\sponza\4871783166746854860.jpg
+    Type: Texture
+  - Asset: 9322810563752640980
+    Path: meshes\sponza\5792855332885324923.jpg
+    Type: Texture
+  - Asset: 17394799063993018085
+    Path: meshes\sponza\5823059166183034438.jpg
+    Type: Texture
+  - Asset: 17767821295333049191
+    Path: textures\editor\Right.png
+    Type: Texture
+  - Asset: 10639785319692965685
+    Path: meshes\sponza\6151467286084645207.jpg
+    Type: Texture
+  - Asset: 7607345206791154732
+    Path: meshes\sponza\6667038893015345571.jpg
+    Type: Texture
+  - Asset: 5606789033538983859
+    Path: meshes\sponza\7268504077753552595.jpg
+    Type: Texture
+  - Asset: 15896135181056763988
+    Path: meshes\sponza\7441062115984513793.jpg
+    Type: Texture
+  - Asset: 1211308197829102271
+    Path: shaders\TexturePass.glsl
+    Type: Unknown
+  - Asset: 51608678442723948
+    Path: meshes\sponza\755318871556304029.jpg
+    Type: Texture
+  - Asset: 15448932558130472258
+    Path: meshes\sponza\759203620573749278.jpg
+    Type: Texture
+  - Asset: 3769773725991250829
+    Path: meshes\sponza\7645212358685992005.jpg
+    Type: Texture
+  - Asset: 14083266354742811779
+    Path: meshes\sponza\7815564343179553343.jpg
+    Type: Texture
+  - Asset: 18417881776916595083
+    Path: meshes\sponza\8051790464816141987.jpg
+    Type: Texture
+  - Asset: 9210437403124990002
+    Path: shaders\AO-Composite.glsl
+    Type: Unknown
+  - Asset: 16051535161231636821
+    Path: meshes\sponza\8114461559286000061.jpg
+    Type: Texture
+  - Asset: 8244548033156293834
+    Path: meshes\sponza\8481240838833932244.jpg
+    Type: Texture
+  - Asset: 10564155251787454867
+    Path: meshes\sponza\8747919177698443163.jpg
+    Type: Texture
+  - Asset: 6537012091247344428
+    Path: meshes\sponza\8750083169368950601.jpg
+    Type: Texture
+  - Asset: 12629712558546586573
+    Path: meshes\sponza\8773302468495022225.jpg
+    Type: Texture
+  - Asset: 6182967068091105325
+    Path: meshes\TestSceneNew.fbx
+    Type: Unknown
+  - Asset: 925212728298148127
+    Path: meshes\sponza\9288698199695299068.jpg
+    Type: Texture
+  - Asset: 8791670968782468377
+    Path: meshes\sponza\9916269861720640319.jpg
+    Type: Texture
+  - Asset: 13960843494074595658
+    Path: meshes\sponza\Sponza.bin
+    Type: Unknown
+  - Asset: 12911143524134872691
+    Path: meshes\sponza\Sponza.gltf
+    Type: Unknown
+  - Asset: 15908307779440244392
+    Path: meshes\TestScene.fbx
+    Type: Unknown
+  - Asset: 3428196400822772956
+    Path: meshes\TransformTest.fbx
+    Type: Unknown
+  - Asset: 13466092400317217298
+    Path: meshes\vikingroom.fbx
+    Type: Unknown
+  - Asset: 8361356158908845839
+    Path: meshes\wooden.fbx
+    Type: Unknown
+  - Asset: 7350394117244092944
+    Path: meshes\_BlenderFiles\Cerberus.blend1
+    Type: Unknown
+  - Asset: 11996279271703727864
+    Path: meshes\_BlenderFiles\M1911.blend
+    Type: Unknown
+  - Asset: 9360180739006742755
+    Path: meshes\_BlenderFiles\TestScene.blend
+    Type: Unknown
+  - Asset: 17462641482582919237
+    Path: meshes\_Textures\Cerberus_A.png
+    Type: Texture
+  - Asset: 11129531872529605434
+    Path: shaders\ShadowMap.glsl
+    Type: Unknown
+  - Asset: 11557652697873631203
+    Path: meshes\_Textures\Cerberus_M.png
+    Type: Texture
+  - Asset: 10771656107053823569
+    Path: meshes\_Textures\Cerberus_N.png
+    Type: Texture
+  - Asset: 5457869733309314244
+    Path: meshes\_Textures\Cerberus_R.png
+    Type: Texture
+  - Asset: 8991377666291320966
+    Path: meshes\_Textures\m1911_color.png
+    Type: Texture
+  - Asset: 12872786353405170891
+    Path: meshes\_Textures\m1911_metalness.png
+    Type: Texture
+  - Asset: 10890678915160074799
+    Path: meshes\_Textures\m1911_normal.png
+    Type: Texture
+  - Asset: 16330352797711524547
+    Path: meshes\_Textures\m1911_roughness.png
+    Type: Texture
+  - Asset: 12718244600780436971
+    Path: meshes\_Textures\VikingRoom.png
+    Type: Texture
+  - Asset: 1893505530511579551
+    Path: meshes\_Textures\WoodenTexture.png
+    Type: Texture
+  - Asset: 11359228016790261414
+    Path: mono\lib\eglib.pdb
+    Type: Unknown
+  - Asset: 2210160541279637980
+    Path: mono\lib\mono-2.0-sgen.exp
+    Type: Unknown
+  - Asset: 15302719059338294797
+    Path: scenes\sponza.scene
+    Type: Scene
+  - Asset: 8021502814991363940
+    Path: scenes\basic_test.scene
+    Type: Scene
+  - Asset: 13684013284638008290
+    Path: scenes\physics_test.scene
+    Type: Scene
+  - Asset: 5700918047711047281
+    Path: scenes\shadow_issue.scene
+    Type: Scene
+  - Asset: 9446136712551006344
+    Path: scenes\Test3.scene
+    Type: Scene
+  - Asset: 4600790240031590727
+    Path: shaders\Grid.glsl
+    Type: Unknown
+  - Asset: 12396664789400754943
+    Path: shaders\LightCulling.glsl
+    Type: Unknown
+  - Asset: 4359267723577536653
+    Path: shaders\Outline.glsl
+    Type: Unknown
+  - Asset: 11630516246153267056
+    Path: shaders\PreDepth.glsl
+    Type: Unknown
+  - Asset: 17862356908864006772
+    Path: shaders\SceneComposite.glsl
+    Type: Unknown
+  - Asset: 12059980847005204718
+    Path: shaders\shader_new.glsl
+    Type: Unknown
+  - Asset: 17510707543991464003
+    Path: shaders\Skybox.glsl
+    Type: Unknown
+  - Asset: 12582804189650905815
+    Path: shaders\Skybox_Compute.glsl
+    Type: Unknown
+  - Asset: 1804276890242983979
+    Path: shaders\SSAO.glsl
+    Type: Unknown
+  - Asset: 3681480840303337393
+    Path: Templates\Meshes\Cube.fbx
+    Type: Unknown
+  - Asset: 4963606351214996583
+    Path: textures\BRDF_LUT.tga
+    Type: Texture
+  - Asset: 12687400187628208337
+    Path: Templates\Meshes\Plane.fbx
+    Type: Unknown
+  - Asset: 8384543034941480265
+    Path: textures\BloomDirtTextureUE.png
+    Type: Texture
+  - Asset: 539760399450626046
+    Path: textures\BlueprintBackground.png
+    Type: Texture
+  - Asset: 14918676185340342939
+    Path: textures\editor\Checkerboard.tga
+    Type: Texture
+  - Asset: 2703936668383984272
+    Path: textures\editor\DirectoryIcon.png
+    Type: Texture
+  - Asset: 12739593066066224060
+    Path: textures\editor\EditIcon.png
+    Type: Texture
+  - Asset: 14044748295084155667
+    Path: textures\editor\FileIcon.png
+    Type: Texture
+  - Asset: 12783199985201177527
+    Path: textures\editor\Move.png
+    Type: Texture
+  - Asset: 5617017472494531702
+    Path: textures\editor\Play.png
+    Type: Texture
+  - Asset: 18348095555504840677
+    Path: textures\editor\Rotate.png
+    Type: Texture
+  - Asset: 15326786745926595164
+    Path: textures\editor\Scale.png
+    Type: Texture
+  - Asset: 9407762064015738346
+    Path: textures\editor\Stop.png
+    Type: Texture
+  - Asset: 9286992215878725763
+    Path: textures\editor\Swap.png
+    Type: Texture
+  - Asset: 14934833644043894412
+    Path: textures\editor\Sync.png
+    Type: Texture
+  - Asset: 9831423379423467410
+    Path: textures\PauseButton.png
+    Type: Texture
+  - Asset: 4636895543897720567
+    Path: textures\PlayButton.png
+    Type: Texture
+  - Asset: 5060648004295143726
+    Path: textures\StopButton.png
+    Type: Texture
