@@ -68,6 +68,8 @@ namespace Saturn {
 
 		void UpdateFiles( bool clear = false );
 
+		void DrawFolderTree( const std::filesystem::path& rPath );
+
 	private:
 		std::filesystem::path m_CurrentPath;
 		std::filesystem::path m_FirstFolder;

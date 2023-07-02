@@ -78,128 +78,63 @@ namespace Saturn {
 
 		m_ViewMode      = CBViewMode::Assets;
 	}
+
+	void ContentBrowserPanel::DrawFolderTree( const std::filesystem::path& rPath )
+	{
+		for( const auto& entry : std::filesystem::directory_iterator( rPath ) )
+		{
+			if( !entry.is_directory() )
+				continue;
+
+			const std::filesystem::path& entryPath = entry.path();
+			const std::string entryName = entryPath.filename().string();
+
+			if( ImGui::TreeNode( entryName.c_str() ) )
+			{
+				DrawFolderTree( entryPath );
+
+				ImGui::TreePop();
+			}
+		}
+	}
 	
 	void ContentBrowserPanel::Draw()
 	{
 		ImGui::Begin( "Content Browser" );
 
-		//ImRect windowRect = { ImGui::GetWindowContentRegionMin(), ImGui::GetWindowContentRegionMax() };
-
-		if( ImGui::BeginDragDropTarget( ) )
-		{
-			auto data = ImGui::AcceptDragDropPayload( "ENTITY_PARENT_SCHPANEL" );
-
-			if( data )
-			{
-				const Entity* payload = ( const Entity* ) data->Data;
-
-				Ref<Prefab> asset = AssetRegistry::Get().CreateAsset<Prefab>( AssetType::Prefab );
-				asset->Create( ( Entity& ) *payload );
-
-				auto& tag = payload->Tag();
-
-				std::filesystem::path path = m_CurrentPath / tag;
-				path.replace_extension( ".prefab" );
-
-				asset->SetPath( path );
-
-				PrefabSerialiser ps;
-				ps.Serialise( asset );
-
-				GameAssetRegistrySerialiser ars;
-				ars.Serialise();
-			}
-
-			ImGui::EndDragDropTarget();
-		}
-
-		if( m_ChangeDirectory )
-		{
-			UpdateFiles( true );
-
-			m_ChangeDirectory = false;
-		}
-
-		ImGui::SameLine();
-
 		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 
-		ImGui::BeginChild( "##CB_TopBar", ImVec2( 0, 30 ) );
-
-		if( Auxiliary::ImageButton( m_SwapViewIcon, { 24, 24 } ) )
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+		ImGui::BeginChild( "Top Bar", ImVec2( 0, 30 ), false, flags );
+		
+		if( Auxiliary::ImageButton( m_SwapViewIcon, { 24, 24 } ) ) 
 		{
-			switch( m_ViewMode )
+		}
+
+		ImGui::SameLine();
+
+		// Back button.
+		if( m_CurrentPath != s_pAssetsDirectory )
+		{
+			if( Auxiliary::ImageButton( m_BackIcon, { 24, 24 } ) )
 			{
-				case Saturn::CBViewMode::Assets:
-				{
-					m_ViewMode = CBViewMode::Scripts;
+				m_CurrentPath = m_CurrentPath.parent_path();
 
-					// The Scripts path is always one dir back.
-					SetPath( s_pAssetsDirectory.parent_path() );
-				} break;
-
-
-				case Saturn::CBViewMode::Scripts:
-				{
-					m_ViewMode = CBViewMode::Assets;
-
-					SetPath( s_pScriptsDirectory.parent_path() );
-				} break;
+				UpdateFiles( true );
 			}
 		}
-
-		ImGui::SameLine();
-
-		switch( m_ViewMode )
+		else
 		{
-			case Saturn::CBViewMode::Assets: 
-			{
-				if( m_CurrentPath != s_pAssetsDirectory )
-				{
-					if( Auxiliary::ImageButton( m_BackIcon, { 24, 24 } ) )
-					{
-						m_CurrentPath = m_CurrentPath.parent_path();
-
-						UpdateFiles( true );
-					}
-				}
-				else
-				{
-					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-					Auxiliary::ImageButton( m_BackIcon, { 24, 24 } );
-					ImGui::PopStyleVar( 1 );
-					ImGui::PopItemFlag();
-				}
-			} break;
-
-			case Saturn::CBViewMode::Scripts: 
-			{
-				if( m_CurrentPath != s_pScriptsDirectory )
-				{
-					if( Auxiliary::ImageButton( m_BackIcon, { 24, 24 } ) )
-					{
-						m_CurrentPath = m_CurrentPath.parent_path();
-
-						UpdateFiles( true );
-					}
-				}
-				else
-				{
-					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-					Auxiliary::ImageButton( m_BackIcon, { 24, 24 } );
-					ImGui::PopStyleVar( 1 );
-					ImGui::PopItemFlag();
-				}
-			} break;
-		
-			default:
-				break;
+			ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+			ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+			Auxiliary::ImageButton( m_BackIcon, { 24, 24 } );
+			ImGui::PopStyleVar( 1 );
+			ImGui::PopItemFlag();
 		}
 
 		ImGui::SameLine();
 
+		// Forward button.
 		if( std::filesystem::exists( m_FirstFolder ) )
 		{
 			if( Auxiliary::ImageButton( m_ForwardIcon, { 24, 24 } ) )
@@ -217,42 +152,36 @@ namespace Saturn {
 			ImGui::PopStyleVar( 1 );
 			ImGui::PopItemFlag();
 		}
-		
-		ImGui::SameLine();
-		
-		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
-		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
-
-		int i = 0;
-		for( auto& pFolder : m_CurrentPath )
-		{
-			const char* name = m_ViewMode == CBViewMode::Assets ? "Assets" : "Scripts";
-
-			if( i == 0 && pFolder != name )
-				continue;
-
-			i++;
-
-			if( pFolder != name )
-			{
-				ImGui::Text( "/" );
-			}
-			
-			ImGui::SameLine();
-
-			float size = strlen( pFolder.string().c_str() ) + ImGui::CalcTextSize( pFolder.string().c_str() ).x;
-
-			ImGui::Selectable( pFolder.string().c_str(), false, 0, ImVec2( size, 22.0f ) );
-
-			ImGui::SameLine();
-		}
-
-		ImGui::PopStyleColor( 3 );
 
 		ImGui::EndChild();
 
-		ImGui::Separator();
-		
+		if( m_ChangeDirectory )
+		{
+			UpdateFiles( true );
+
+			m_ChangeDirectory = false;
+		}
+
+		ImGui::BeginChild( "Folder Tree", ImVec2( 200, 0 ), false );
+
+		if( Auxiliary::TreeNode( "Game" ) )
+		{
+			DrawFolderTree( s_pMainDirectory );
+			
+			Auxiliary::EndTreeNode();
+		}
+
+		if( Auxiliary::TreeNode( "Editor", false ) )
+		{
+			Auxiliary::EndTreeNode();
+		}
+
+		ImGui::EndChild();
+
+		ImGui::SameLine();
+
+		ImGui::BeginChild( "Folder Contents", ImVec2( 0, 0 ), false );
+
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
 
@@ -261,7 +190,7 @@ namespace Saturn {
 		static float thumbnailSizeY = 180;
 		float cellSize = thumbnailSizeX + padding;
 		float panelWidth = ImGui::GetContentRegionAvail().x - 20.0f + ImGui::GetStyle().ScrollbarSize;
-		
+
 		int columnCount = ( int ) ( panelWidth / cellSize );
 		if( columnCount < 1 ) columnCount = 1;
 
@@ -285,424 +214,9 @@ namespace Saturn {
 
 		ImGui::PopStyleColor( 2 );
 
-		if( ImGui::BeginPopupContextWindow( 0, 1, false ) )	
-		{
-			if( m_ViewMode == CBViewMode::Assets ) 
-			{
-				if( ImGui::MenuItem( "Starter Assets" ) )
-				{
-					auto ActiveProject = Project::GetActiveProject();
-					auto AssetPath = ActiveProject->GetAssetPath();
+		ImGui::EndChild();
 
-					std::filesystem::copy_file( "content/Templates/Meshes/Cube.fbx", AssetPath / "Meshes" / "Cube.fbx" );
-					std::filesystem::copy_file( "content/Templates/Meshes/Plane.fbx", AssetPath / "Meshes" / "Plane.fbx" );
-				}
-
-				if( ImGui::MenuItem( "Import" ) )
-				{
-					Application::Get().SubmitOnMainThread( [=]()
-						{
-							auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg *wav)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg; *.wav\0" );
-
-							std::filesystem::path path = result;
-
-							if( path.extension() == ".png" || path.extension() == ".tga" || path.extension() == ".jpeg" || path.extension() == ".jpg" )
-							{
-								auto id = AssetRegistry::Get().CreateAsset( AssetType::Texture );
-
-								auto asset = AssetRegistry::Get().FindAsset( id );
-
-								std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
-
-								asset->SetPath( m_CurrentPath / path.filename() );
-
-								GameAssetRegistrySerialiser ars;
-								ars.Serialise();
-							}
-
-							// Meshes
-							if( path.extension() == ".fbx" || path.extension() == ".gltf" )
-							{
-								m_ShowMeshImport = true;
-								m_ImportMeshPath = path;
-							}
-
-							// Audio
-							if( path.extension() == ".wav" || path.extension() == ".mp3" )
-							{
-								m_ShowSoundImport = true;
-								m_ImportSoundPath = path;
-							}
-						} );
-				}
-
-				if( ImGui::BeginMenu( "Create" ) )
-				{
-					if( ImGui::MenuItem( "Material" ) )
-					{
-						auto id = AssetRegistry::Get().CreateAsset( AssetType::Material );
-						auto asset = AssetRegistry::Get().FindAsset( id );
-
-						asset->SetPath( m_CurrentPath / "Untitled Material.smaterial" );
-
-						auto materialAsset = asset.As<MaterialAsset>();
-
-						MaterialAssetSerialiser mas;
-						mas.Serialise( materialAsset );
-
-						GameAssetRegistrySerialiser urs;
-						urs.Serialise();
-
-						UpdateFiles( true );
-					}
-
-					if( ImGui::MenuItem( "Physics Material" ) )
-					{
-						auto id = AssetRegistry::Get().CreateAsset( AssetType::PhysicsMaterial );
-						auto asset = AssetRegistry::Get().FindAsset( id );
-
-						asset->SetPath( m_CurrentPath / "Untitled Physics Material.sphymaterial" );
-
-						auto materialAsset = asset.As<PhysicsMaterialAsset>();
-
-						PhysicsMaterialAssetSerialiser mas;
-						mas.Serialise( materialAsset );
-
-						GameAssetRegistrySerialiser urs;
-						urs.Serialise();
-
-						UpdateFiles( true );
-					}
-
-					auto& names = GamePrefabList::Get().GetNames();
-
-					for ( auto& name : names )
-					{
-						if( ImGui::MenuItem( name.c_str() ) )
-						{
-							// In order to create this, we will need to create the class the user wants then we can create the prefab from it.
-
-							// Create the prefab asset
-							Ref<Prefab> PrefabAsset = AssetRegistry::Get().CreateAsset<Prefab>( AssetType::Prefab );
-							PrefabAsset->Create();
-
-							auto asset = AssetRegistry::Get().FindAsset( PrefabAsset->ID );
-
-							// Create the user class
-							// Try register
-							EntityScriptManager::Get().RegisterScript( name );
-
-							Entity* e = new Entity( PrefabAsset->GetScene()->CreateEntity( name ) );
-							e->AddComponent<ScriptComponent>().ScriptName = name;
-
-							SClass* sclass = EntityScriptManager::Get().CreateScript( name, e );
-
-							PrefabAsset->SetEntity( *(Entity*)&e );
-
-							// Set asset path
-							std::filesystem::path path = m_CurrentPath / name;
-							path.replace_extension( ".prefab" );
-
-							PrefabAsset->SetPath( path );
-							asset->SetPath( path ); // HACK
-
-							// Serialise
-							PrefabSerialiser ps;
-							ps.Serialise( PrefabAsset );
-
-							GameAssetRegistrySerialiser ars;
-							ars.Serialise();
-
-							UpdateFiles( true );
-						}
-					}
-
-					ImGui::EndMenu();
-				}
-			}
-			else
-			{
-				if( ImGui::BeginMenu( "Create" ) )
-				{
-					if( ImGui::MenuItem( "Script" ) )
-					{
-						s_OpenScriptsPopup = true;
-					}
-
-					ImGui::EndMenu();
-				}
-			}
-
-			ImGui::EndPopup();
-		}
-
-		if( m_ShowMeshImport )
-			ImGui::OpenPopup( "Import Mesh##IMPORT_MESH" );
-
-		if( m_ShowSoundImport )
-			ImGui::OpenPopup( "Import Sound##IMPORT_SOUND" );
-
-		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-		if( ImGui::BeginPopupModal( "Import Sound##IMPORT_SOUND", &m_ShowSoundImport, ImGuiWindowFlags_NoMove ) )
-		{
-			bool PopupModified = false;
-
-			ImGui::BeginVertical( "##inputv" );
-
-			ImGui::Text( "Path:" );
-
-			ImGui::BeginHorizontal( "##inputH" );
-
-			ImGui::InputText( "##path", ( char* ) m_ImportSoundPath.string().c_str(), 1024 );
-
-			if( ImGui::Button( "Browse" ) )
-			{
-				Application::Get().SubmitOnMainThread( [=]()
-					{
-						m_ImportSoundPath = Application::Get().OpenFile( "Supported asset types (*.wav *.mp3)\0*.wav; *.mp3\0" );
-					} );
-			}
-
-			ImGui::EndHorizontal();
-			ImGui::EndVertical();
-
-			ImGui::BeginHorizontal( "##actionsH" );
-
-			if( ImGui::Button( "Create" ) )
-			{
-				// TODO: Right now we only support sound 2Ds.
-				auto id = AssetRegistry::Get().CreateAsset( AssetType::Audio );
-				auto asset = AssetRegistry::Get().FindAsset( id );
-
-				// Copy the audio source.
-				std::filesystem::copy_file( m_ImportSoundPath, m_CurrentPath / m_ImportSoundPath.filename() );
-
-				auto assetPath = m_CurrentPath / m_ImportSoundPath.filename();
-				assetPath.replace_extension( ".s2d" );
-
-				assetPath = std::filesystem::relative( assetPath, Project::GetActiveProject()->GetRootDir() );
-
-				asset->Path = assetPath;
-
-				// Create the asset.
-				auto sound = asset.As<Sound2D>();
-				sound = Ref<Sound2D>::Create();
-				sound->ID = asset->ID;
-				sound->Path = assetPath;
-				sound->Type = AssetType::Audio;
-
-				sound->SetRawPath( m_CurrentPath / m_ImportSoundPath.filename() );
-
-				// Save the asset
-				Sound2DAssetSerialiser s2d;
-				s2d.Serialise( sound );
-
-				GameAssetRegistrySerialiser ars;
-				ars.Serialise();
-
-				sound->SetPath( assetPath );
-
-				PopupModified = true;
-
-				UpdateFiles( true );
-			}
-
-			if( ImGui::Button( "Cancel" ) )
-			{
-				m_ShowSoundImport = false;
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndHorizontal();
-
-			if( PopupModified )
-			{
-				m_ShowSoundImport = false;
-
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndPopup();
-		}
-
-		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-		if( ImGui::BeginPopupModal( "Import Mesh##IMPORT_MESH", &m_ShowMeshImport, ImGuiWindowFlags_NoMove ) )
-		{
-			static std::filesystem::path s_GLTFBinPath = "";
-			static bool s_UseBinFile = false;
-
-			bool PopupModified = false;
-
-			ImGui::BeginVertical( "##inputv" );
-
-			ImGui::Text( "Path:" );
-
-			ImGui::BeginHorizontal( "##inputH" );
-
-			ImGui::InputText( "##path", (char*) m_ImportMeshPath.string().c_str(), 1024 );
-
-			if( ImGui::Button( "Browse" ) ) 
-			{
-				Application::Get().SubmitOnMainThread( [=]()
-					{
-						m_ImportMeshPath = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb)\0*.fbx; *.gltf; *.glb\0" );
-					} );
-			}
-
-			ImGui::EndHorizontal();
-
-			ImGui::EndVertical();
-
-			// If the path a GLTF file then we need to file the bin file.
-			if( m_ImportMeshPath.extension() == ".gltf" || m_ImportMeshPath.extension() == ".glb" )
-			{
-				// We can assume the bin file has the same name as the mesh.
-				if( s_GLTFBinPath == "" ) 
-				{
-					s_GLTFBinPath = m_ImportMeshPath;
-					s_GLTFBinPath.replace_extension( ".glb" );
-				}
-
-				ImGui::BeginVertical( "##gltfinput" );
-
-				ImGui::Text( "GLTF binary file path:" );
-
-				ImGui::BeginHorizontal( "##gltfinputH" );
-
-				ImGui::InputText( "##binpath", ( char* ) s_GLTFBinPath.string().c_str(), 1024 );
-
-				if( ImGui::Button( "Browse" ) )
-				{
-					// We'll always be on the render thread.
-					Application::Get().SubmitOnMainThread( [=]()
-						{
-							s_GLTFBinPath = Application::Get().OpenFile( "Supported asset types (*.glb *.bin)\0*.glb; *.bin\0" );
-						} );
-				}
-				
-				ImGui::EndHorizontal();
-
-				ImGui::Checkbox( "Use Binary File", &s_UseBinFile );
-
-				ImGui::EndVertical();
-			}
-			
-			ImGui::BeginHorizontal( "##actionsH" );
-
-			if( ImGui::Button( "Create" ) )
-			{
-				auto id = AssetRegistry::Get().CreateAsset( AssetType::StaticMesh );
-				auto asset = AssetRegistry::Get().FindAsset( id );
-
-				// Copy the mesh source.
-				std::filesystem::copy_file( m_ImportMeshPath, m_CurrentPath / m_ImportMeshPath.filename() );
-
-				if( s_UseBinFile )
-					std::filesystem::copy_file( s_GLTFBinPath, m_CurrentPath / s_GLTFBinPath.filename() );
-
-				auto assetPath = m_CurrentPath / m_ImportMeshPath.filename();
-				assetPath.replace_extension( ".stmesh" );
-
-				asset->SetPath( assetPath );
-
-				// TODO: This is bad.
-				// Create the mesh so we can copy over the texture (if any).
-				auto mesh = Ref<MeshSource>::Create( m_ImportMeshPath, m_CurrentPath );
-				mesh = nullptr;
-
-				// Create the mesh asset.
-				auto staticMesh = asset.As<StaticMesh>();
-				staticMesh = Ref<StaticMesh>::Create();
-				staticMesh->ID = asset->ID;
-				staticMesh->Path = asset->Path;
-				
-				auto& meshPath = assetPath.replace_extension( m_ImportMeshPath.extension() );
-				staticMesh->SetFilepath( meshPath.string() );
-
-				// Save the mesh asset
-				StaticMeshAssetSerialiser sma;
-				sma.Serialise( staticMesh );
-
-				staticMesh->SetPath( assetPath );
-
-				GameAssetRegistrySerialiser ars;
-				ars.Serialise();
-
-				PopupModified = true;
-
-				UpdateFiles( true );
-			}
-
-			if( ImGui::Button( "Cancel" ) )
-			{
-				m_ShowMeshImport = false;
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndHorizontal();
-
-			if( PopupModified )
-			{
-				m_ShowMeshImport = false;
-
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndPopup();
-		}
-
-		if( s_OpenScriptsPopup )
-			ImGui::OpenPopup( "Create A Script##Create_Script" );
-
-		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-		if( ImGui::BeginPopupModal( "Create A Script##Create_Script", &s_OpenScriptsPopup, ImGuiWindowFlags_NoMove ) )
-		{
-			static std::string n;
-
-			bool PopupModified = false;
-
-			ImGui::BeginVertical( "##inputv" );
-
-			ImGui::Text( "Name:" );
-
-			ImGui::InputText( "##n", ( char* ) n.c_str(), 1024 );
-
-			ImGui::EndVertical();
-
-			if( ImGui::Button( "Create" ) )
-			{
-				if( !Project::GetActiveProject()->HasPremakeFile() )
-				{
-					Project::GetActiveProject()->CreatePremakeFile();
-				}
-
-				Project::GetActiveProject()->CreateBuildFile();
-
-				// Update or create the project files.
-				Premake* pPremake = new Premake();
-				pPremake->Launch( Project::GetActiveProject()->GetRootDir().string() );
-
-				// Next, create the source files.
-				// Right now the only script type we support is an entity type.
-				SourceManager::Get().CreateEntitySourceFiles( m_CurrentPath, n.c_str() );
-				
-				GameAssetRegistrySerialiser ars;
-				ars.Serialise();
-
-				PopupModified = true;
-
-				UpdateFiles( true );
-			}
-
-			if( PopupModified )
-			{
-				s_OpenScriptsPopup = false;
-
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndPopup();
-		}
+		ImGui::PopStyleColor();
 
 		ImGui::End();
 	}
