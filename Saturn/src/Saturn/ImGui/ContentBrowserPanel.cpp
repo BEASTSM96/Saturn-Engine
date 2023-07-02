@@ -89,11 +89,25 @@ namespace Saturn {
 			const std::filesystem::path& entryPath = entry.path();
 			const std::string entryName = entryPath.filename().string();
 
-			if( ImGui::TreeNode( entryName.c_str() ) )
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+
+			if( ImGui::TreeNodeEx( entryName.c_str(), flags ) )
 			{
 				DrawFolderTree( entryPath );
 
 				ImGui::TreePop();
+			}
+
+			if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+			{
+				// TODO: Think about this...
+
+				auto path = std::filesystem::relative( entry.path(), s_pAssetsDirectory );
+
+				m_CurrentPath = s_pAssetsDirectory;
+				m_CurrentPath /= path;
+
+				OnDirectorySelected( m_CurrentPath, entry.is_directory() );
 			}
 		}
 	}
@@ -164,9 +178,23 @@ namespace Saturn {
 
 		ImGui::BeginChild( "Folder Tree", ImVec2( 200, 0 ), false );
 
-		if( Auxiliary::TreeNode( "Game" ) )
+		if( Auxiliary::TreeNode( Project::GetActiveProject()->GetName().c_str() ) )
 		{
-			DrawFolderTree( s_pMainDirectory );
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+
+			if( ImGui::TreeNodeEx( "Assets", flags ) ) 
+			{
+				DrawFolderTree( s_pMainDirectory );
+
+				ImGui::TreePop();
+			}
+
+			if( ImGui::TreeNodeEx( "Scripts", flags ) )
+			{
+				DrawFolderTree( s_pMainDirectory );
+
+				ImGui::TreePop();
+			}
 			
 			Auxiliary::EndTreeNode();
 		}
