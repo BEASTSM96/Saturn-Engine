@@ -60,10 +60,12 @@
 
 namespace Saturn {
 	
+	// The absolute Assets and Scripts path.
 	static std::filesystem::path s_pAssetsDirectory = "Assets";
 	static std::filesystem::path s_pScriptsDirectory = "Scripts";
 
-	static std::filesystem::path s_pMainDirectory = "Scripts";
+	/* The root dir, i.e. C:\\MyProjects\Project1\\Assets */
+	static std::filesystem::path s_RootDirectory = "Scripts";
 
 	static bool s_OpenScriptsPopup = false;
 	
@@ -91,6 +93,9 @@ namespace Saturn {
 
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 
+			if( m_CurrentPath == entryPath )
+				flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
 			if( ImGui::TreeNodeEx( entryName.c_str(), flags ) )
 			{
 				DrawFolderTree( entryPath );
@@ -112,9 +117,62 @@ namespace Saturn {
 		}
 	}
 	
+	void ContentBrowserPanel::DrawAssetsFolderTree()
+	{
+		DrawFolderTree( s_pAssetsDirectory );
+	}
+
+	void ContentBrowserPanel::DrawScriptsFolderTree()
+	{
+		DrawFolderTree( s_pScriptsDirectory );
+	}
+
+	void ContentBrowserPanel::DrawRootFolder( CBViewMode type, bool open/* = false*/ )
+	{
+		switch( type )
+		{
+			case CBViewMode::Assets: 
+			{
+				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+				flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+				if( ImGui::TreeNodeEx( "Assets", flags ) )
+				{
+					DrawAssetsFolderTree();
+
+					ImGui::TreePop();
+				}
+			} break;
+
+			case CBViewMode::Scripts: 
+			{
+				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+
+				flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+				if( ImGui::TreeNodeEx( "Scripts", flags ) )
+				{
+					DrawScriptsFolderTree();
+
+					ImGui::TreePop();
+				}
+			} break;
+
+			default:
+				break;
+		}
+	}
+
 	void ContentBrowserPanel::Draw()
 	{
 		ImGui::Begin( "Content Browser" );
+
+		if( m_ChangeDirectory )
+		{
+			UpdateFiles( true );
+
+			m_ChangeDirectory = false;
+		}
 
 		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 
@@ -153,7 +211,7 @@ namespace Saturn {
 		{
 			if( Auxiliary::ImageButton( m_ForwardIcon, { 24, 24 } ) )
 			{
-				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_pMainDirectory );
+				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_RootDirectory );
 
 				UpdateFiles( true );
 			}
@@ -167,34 +225,48 @@ namespace Saturn {
 			ImGui::PopItemFlag();
 		}
 
-		ImGui::EndChild();
+		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
+		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
 
-		if( m_ChangeDirectory )
+		ImGui::SameLine();
+
+		// I don't think this is a good way because this is the absolute path.
+		int i = 0;
+		for( auto& pFolder : m_CurrentPath )
 		{
-			UpdateFiles( true );
+			const char* name = m_ViewMode == CBViewMode::Assets ? "Assets" : "Scripts";
 
-			m_ChangeDirectory = false;
+			if( i == 0 && pFolder != name )
+				continue;
+
+			i++;
+
+			if( pFolder != name )
+			{
+				ImGui::Text( "/" );
+			}
+
+			ImGui::SameLine();
+
+			std::string filename = pFolder.string();
+
+			float size = strlen( filename.c_str() ) + ImGui::CalcTextSize( filename.c_str() ).x;
+
+			ImGui::Selectable( filename.c_str(), false, 0, ImVec2( size, 22.0f ) );
+			
+			ImGui::SameLine();
 		}
+
+		ImGui::PopStyleColor( 2 );
+
+		ImGui::EndChild();
 
 		ImGui::BeginChild( "Folder Tree", ImVec2( 200, 0 ), false );
 
 		if( Auxiliary::TreeNode( Project::GetActiveProject()->GetName().c_str() ) )
 		{
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-
-			if( ImGui::TreeNodeEx( "Assets", flags ) ) 
-			{
-				DrawFolderTree( s_pMainDirectory );
-
-				ImGui::TreePop();
-			}
-
-			if( ImGui::TreeNodeEx( "Scripts", flags ) )
-			{
-				DrawFolderTree( s_pMainDirectory );
-
-				ImGui::TreePop();
-			}
+			DrawRootFolder( CBViewMode::Assets );
+			DrawRootFolder( CBViewMode::Scripts );
 			
 			Auxiliary::EndTreeNode();
 		}
@@ -249,39 +321,6 @@ namespace Saturn {
 		ImGui::End();
 	}
 
-	void ContentBrowserPanel::SetPath( const std::filesystem::path& rPath )
-	{
-		switch( m_ViewMode )
-		{
-			case Saturn::CBViewMode::Assets: 
-			{
-				s_pAssetsDirectory = rPath / "Assets";
-
-				m_CurrentPath = rPath / "Assets";
-				m_FirstFolder = rPath / "Assets";
-
-				s_pMainDirectory = s_pAssetsDirectory;
-			} break;
-
-			case Saturn::CBViewMode::Scripts: 
-			{
-				s_pScriptsDirectory = rPath / "Scripts";
-
-				m_CurrentPath = rPath / "Scripts";
-				m_FirstFolder = rPath / "Scripts";
-
-				s_pMainDirectory = s_pScriptsDirectory;
-			} break;
-		}
-
-		UpdateFiles( true );
-	}
-
-	void ContentBrowserPanel::SwapViewMode( CBViewMode newMode )
-	{
-		m_ViewMode = newMode;
-	}
-
 	void ContentBrowserPanel::RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles /*= true */ )
 	{
 		//if( !rEntry.is_directory() && excludeFiles || rEntry.is_directory() && !excludeFiles )
@@ -309,7 +348,7 @@ namespace Saturn {
 		const ImVec2 ThumbnailBottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y );
 		const ImVec2 InfoTopLeft = ImVec2( TopLeft.x, TopLeft.y + ThumbnailSize.y );
 		const ImVec2 BottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y + InfoPanelHeight );
-		
+
 		ImGui::PushID( path.c_str() );
 		ImGui::BeginGroup();
 
@@ -390,13 +429,13 @@ namespace Saturn {
 							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
 						} break;
 
-						case Saturn::AssetType::Prefab: 
-						{	
+						case Saturn::AssetType::Prefab:
+						{
 							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
 						} break;
 
-						case Saturn::AssetType::Script: 
-						{	
+						case Saturn::AssetType::Script:
+						{
 							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCRIPT", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
 						} break;
 
@@ -436,21 +475,21 @@ namespace Saturn {
 
 							// Find the asset.
 							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
-							
+
 							// Importing the asset will happen in this function.
 							AssetViewer::Add<MaterialAssetViewer>( asset->ID );
 						} break;
 						case Saturn::AssetType::MaterialInstance:
 							break;
 
-						case Saturn::AssetType::Prefab: 
+						case Saturn::AssetType::Prefab:
 						{
 							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
 
 							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
 
 							AssetViewer::Add<PrefabViewer>( asset->ID );
-						} break; 
+						} break;
 
 						case Saturn::AssetType::PhysicsMaterial:
 						{
@@ -485,12 +524,12 @@ namespace Saturn {
 		ImVec2 cursor = ImGui::GetCursorPos();
 		ImGui::SetCursorPos( ImVec2( cursor.x + EdgeOffset + 5.0f, cursor.y + EdgeOffset + 5.0f ) );
 
-		if( rEntry.is_directory() ) 
+		if( rEntry.is_directory() )
 		{
 			ImGui::BeginVertical( "FILENAME_PANEL", ImVec2( ThumbnailSize.x - EdgeOffset * 2.0f, InfoPanelHeight - EdgeOffset ) );
 
 			ImGui::BeginHorizontal( filename.c_str(), ImVec2( ThumbnailSize.x - 2.0f, 0.0f ) );
-			
+
 			ImGui::PushTextWrapPos( ImGui::GetCursorPosX() + ( ThumbnailSize.x - EdgeOffset * 3.0f ) );
 
 			float textWidth = std::min( ImGui::CalcTextSize( filename.c_str() ).x, ThumbnailSize.x );
@@ -535,6 +574,31 @@ namespace Saturn {
 
 		ImGui::NextColumn();
 		ImGui::PopID();
+	}
+
+	void ContentBrowserPanel::SetPath( const std::filesystem::path& rPath )
+	{
+		s_pAssetsDirectory = rPath / "Assets";
+		s_pScriptsDirectory = rPath / "Scripts";
+
+		switch( m_ViewMode )
+		{
+			case Saturn::CBViewMode::Assets: 
+			{
+				s_RootDirectory = s_pAssetsDirectory;
+				m_CurrentPath = s_pAssetsDirectory;
+				m_FirstFolder = s_pAssetsDirectory;
+			} break;
+
+			case Saturn::CBViewMode::Scripts: 
+			{
+				s_RootDirectory = s_pScriptsDirectory;
+				m_CurrentPath = s_pScriptsDirectory;
+				m_FirstFolder = s_pScriptsDirectory;
+			} break;
+		}
+
+		UpdateFiles( true );
 	}
 
 	void ContentBrowserPanel::OnDirectorySelected( std::filesystem::path& rPath, bool IsFile /*= false */ )

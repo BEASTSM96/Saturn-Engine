@@ -58,8 +58,6 @@ namespace Saturn {
 
 		void SetPath( const std::filesystem::path& rPath );
 
-		void SwapViewMode( CBViewMode newMode );
-
 	private:
 
 		void RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles = true );
@@ -69,6 +67,11 @@ namespace Saturn {
 		void UpdateFiles( bool clear = false );
 
 		void DrawFolderTree( const std::filesystem::path& rPath );
+
+		void DrawAssetsFolderTree();
+		void DrawScriptsFolderTree();
+
+		void DrawRootFolder( CBViewMode type, bool open = false );
 
 	private:
 		std::filesystem::path m_CurrentPath;
