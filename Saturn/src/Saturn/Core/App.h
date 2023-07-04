@@ -96,6 +96,9 @@ namespace Saturn {
 				rrFunction();
 		}
 
+		std::filesystem::path& GetRootContentDir() { return m_RootContentPath; }
+		const std::filesystem::path& GetRootContentDir() const { return m_RootContentPath; }
+
 	protected:
 
 		void OnEvent( Event& e );
@@ -106,6 +109,9 @@ namespace Saturn {
 		std::string OpenFileInternal( const char* pFilter ) const;
 		std::string SaveFileInternal( const char* pFilter ) const;
 		std::string OpenFolderInternal() const;
+
+		// The path where the default content is. Path is absolute.
+		std::filesystem::path m_RootContentPath;
 
 	private:
 		bool m_Running = true;
@@ -123,9 +129,6 @@ namespace Saturn {
 		SceneRenderer* m_SceneRenderer = nullptr;
 
 		std::vector<std::function<void()>> m_MainThreadQueue;
-
-	private:
-		//static Application* s_Instance;
 	};
 
 	Application* CreateApplication( int argc, char** argv );

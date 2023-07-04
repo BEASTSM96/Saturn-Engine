@@ -73,10 +73,16 @@ namespace Saturn {
 
 		void DrawRootFolder( CBViewMode type, bool open = false );
 
+	private: // Editor Content
+		void EdDrawRootFolder( CBViewMode type, bool open = false );
+		void EdDrawAssetsFolderTree();
+		void EdSetPath();
+
 	private:
 		std::filesystem::path m_CurrentPath;
 		std::filesystem::path m_FirstFolder;
 		std::filesystem::path m_ScriptPath;
+		std::filesystem::path m_EditorContent;
 
 		Ref< Texture2D > m_DirectoryIcon;
 		Ref< Texture2D > m_FileIcon;

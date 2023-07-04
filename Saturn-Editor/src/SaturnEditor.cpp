@@ -64,6 +64,9 @@ public:
 			std::ofstream stream( "content/AssetRegistry.sreg" );
 			stream.close();
 		}
+
+		// Set our root content path.
+		m_RootContentPath = std::filesystem::current_path() / "content";
 	}
 
 	virtual void OnInit() override

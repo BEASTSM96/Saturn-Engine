@@ -79,6 +79,7 @@ namespace Saturn {
 		m_ForwardIcon   = Ref<Texture2D>::Create( "content/textures/editor/Right.png",         AddressingMode::Repeat );
 
 		m_ViewMode      = CBViewMode::Assets;
+		m_EditorContent = Application::Get().GetRootContentDir();
 	}
 
 	void ContentBrowserPanel::DrawFolderTree( const std::filesystem::path& rPath )
@@ -163,6 +164,62 @@ namespace Saturn {
 		}
 	}
 
+	void ContentBrowserPanel::EdDrawRootFolder( CBViewMode type, bool open /*= false */ )
+	{
+		switch( type )
+		{
+			case Saturn::CBViewMode::Assets: 
+			{
+				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+				if( open )
+					flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+				if( ImGui::TreeNodeEx( "Assets", flags ) )
+				{
+					EdDrawAssetsFolderTree();
+
+					ImGui::TreePop();
+				}
+
+			} break;
+			
+			
+			case Saturn::CBViewMode::Scripts:
+			default:
+				break;
+		}
+	}
+
+	void ContentBrowserPanel::EdDrawAssetsFolderTree()
+	{
+		DrawFolderTree( m_EditorContent );
+	}
+
+	void ContentBrowserPanel::EdSetPath()
+	{
+		s_pAssetsDirectory = m_EditorContent;
+		s_pScriptsDirectory = "";
+
+		switch( m_ViewMode )
+		{
+			case Saturn::CBViewMode::Assets:
+			{
+				s_RootDirectory = m_EditorContent;
+				m_CurrentPath = m_EditorContent;
+				m_FirstFolder = m_EditorContent;
+			} break;
+
+			case Saturn::CBViewMode::Scripts:
+			{
+				s_RootDirectory = "";
+				m_CurrentPath = "";
+				m_FirstFolder = "";
+			} break;
+		}
+
+		UpdateFiles( true );
+	}
+
 	void ContentBrowserPanel::Draw()
 	{
 		ImGui::Begin( "Content Browser" );
@@ -179,12 +236,6 @@ namespace Saturn {
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 		ImGui::BeginChild( "Top Bar", ImVec2( 0, 30 ), false, flags );
 		
-		if( Auxiliary::ImageButton( m_SwapViewIcon, { 24, 24 } ) ) 
-		{
-		}
-
-		ImGui::SameLine();
-
 		// Back button.
 		if( m_CurrentPath != s_pAssetsDirectory )
 		{
@@ -273,7 +324,15 @@ namespace Saturn {
 
 		if( Auxiliary::TreeNode( "Editor", false ) )
 		{
+			EdDrawRootFolder( CBViewMode::Assets );
+
 			Auxiliary::EndTreeNode();
+		}
+
+		if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) ) 
+		{
+			// Switch and set path to the editor content.
+			EdSetPath();
 		}
 
 		ImGui::EndChild();
