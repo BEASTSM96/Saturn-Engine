@@ -33,7 +33,7 @@
 #include "PhysicsFoundation.h"
 
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 
 #include "Saturn/Core/Math.h"
 
@@ -246,7 +246,7 @@ namespace Saturn {
 		}
 		else
 		{
-			Ref<PhysicsMaterialAsset> asset = AssetRegistry::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
+			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
 
 			pMaterial = &asset->GetMaterial();
 		}
@@ -320,7 +320,7 @@ namespace Saturn {
 		}
 		else
 		{
-			Ref<PhysicsMaterialAsset> asset = AssetRegistry::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
+			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
 
 			pMaterial = &asset->GetMaterial();
 		}

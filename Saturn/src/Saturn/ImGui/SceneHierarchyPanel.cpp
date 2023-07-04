@@ -405,7 +405,7 @@ namespace Saturn {
 
 			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
 			{
-				mc.Mesh = AssetRegistry::Get().GetAssetAs<StaticMesh>( m_CurrentAssetID );
+				mc.Mesh = AssetManager::Get().GetAssetAs<StaticMesh>( m_CurrentAssetID );
 			}
 
 			if( mc.Mesh )

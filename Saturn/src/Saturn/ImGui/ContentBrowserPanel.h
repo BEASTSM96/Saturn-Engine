@@ -86,7 +86,6 @@ namespace Saturn {
 
 		Ref< Texture2D > m_DirectoryIcon;
 		Ref< Texture2D > m_FileIcon;
-		Ref< Texture2D > m_SwapViewIcon;
 		Ref< Texture2D > m_BackIcon;
 		Ref< Texture2D > m_ForwardIcon;
 

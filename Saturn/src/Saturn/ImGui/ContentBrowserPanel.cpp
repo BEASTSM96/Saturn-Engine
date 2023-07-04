@@ -46,7 +46,7 @@
 #include "Saturn/Asset/AssetRegistry.h"
 #include "Saturn/Vulkan/Mesh.h"
 
-#include "Saturn/Serialisation/GameAssetRegistrySerialiser.h"
+#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Audio/Sound2D.h"
@@ -74,7 +74,6 @@ namespace Saturn {
 	{
 		m_DirectoryIcon = Ref<Texture2D>::Create( "content/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
 		m_FileIcon      = Ref<Texture2D>::Create( "content/textures/editor/FileIcon.png",      AddressingMode::Repeat );
-		m_SwapViewIcon  = Ref<Texture2D>::Create( "content/textures/editor/Swap.png",          AddressingMode::Repeat );
 		m_BackIcon      = Ref<Texture2D>::Create( "content/textures/editor/Left.png",          AddressingMode::Repeat );
 		m_ForwardIcon   = Ref<Texture2D>::Create( "content/textures/editor/Right.png",         AddressingMode::Repeat );
 
@@ -521,7 +520,7 @@ namespace Saturn {
 							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
 
 							// Find the asset.
-							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
+							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
 							AssetViewer::Add<StaticMeshAssetViewer>( asset->ID );
 						} break;
 
@@ -533,7 +532,7 @@ namespace Saturn {
 							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
 
 							// Find the asset.
-							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
+							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
 
 							// Importing the asset will happen in this function.
 							AssetViewer::Add<MaterialAssetViewer>( asset->ID );
@@ -545,7 +544,7 @@ namespace Saturn {
 						{
 							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
 
-							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
+							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
 
 							AssetViewer::Add<PrefabViewer>( asset->ID );
 						} break;
@@ -554,7 +553,7 @@ namespace Saturn {
 						{
 							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
 
-							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
+							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
 
 							AssetViewer::Add<PhysicsMaterialAssetViewer>( asset->ID );
 						} break;

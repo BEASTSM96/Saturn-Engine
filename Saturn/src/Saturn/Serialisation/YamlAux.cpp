@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "YamlAux.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 
 #include "Saturn/GameFramework/EntityScriptManager.h"
 
@@ -328,7 +328,7 @@ namespace Saturn {
 
 				if( id != 0 ) 
 				{
-					auto mesh = AssetRegistry::Get().GetAssetAs<StaticMesh>( id );
+					auto mesh = AssetManager::Get().GetAssetAs<StaticMesh>( id );
 
 					m.Mesh = mesh;
 				}

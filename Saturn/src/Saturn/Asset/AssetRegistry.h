@@ -35,27 +35,11 @@
 
 namespace Saturn {
 
-	// The Game AssetRegistry
 	class AssetRegistry : public AssetRegistryBase
 	{
 	public:
-		static inline AssetRegistry& Get() { return *SingletonStorage::Get().GetSingleton<AssetRegistry>(); }
-	public:
 		AssetRegistry();
 		~AssetRegistry();
-
-		template<typename Ty, typename... Args>
-		Ref<Asset> CreateAsset( AssetType type, Args&&... rrArgs )
-		{
-			// This might not be the best way, first we create the "real" asset and add it to the registry, then create the template asset.
-			auto id = CreateAsset( type );
-
-			Ref<Ty> asset = Ref<Ty>::Create( std::forward<Args>( rrArgs )... );
-			asset->ID = id;
-			asset->Type = type;
-
-			return asset;
-		}
 
 		virtual AssetID CreateAsset( AssetType type ) override;
 		virtual Ref<Asset> FindAsset( AssetID id ) override;
@@ -67,11 +51,12 @@ namespace Saturn {
 
 		AssetID PathToID( const std::filesystem::path& rPath );
 
-	private:
+		bool DoesIDExists( AssetID id );
 
+	private:
 		void AddAsset( AssetID id );
-
 	private:
-		friend class GameAssetRegistrySerialiser;
+		friend class AssetRegistrySerialiser;
+		friend class AssetManager;
 	};
 }

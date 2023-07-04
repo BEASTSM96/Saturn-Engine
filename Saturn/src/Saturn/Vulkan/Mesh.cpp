@@ -34,10 +34,10 @@
 #include "DescriptorSet.h"
 #include "MaterialInstance.h"
 
-#include "Saturn/Serialisation/GameAssetRegistrySerialiser.h"
+#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Asset/Asset.h"
 #include "Saturn/Asset/MaterialAsset.h"
 #include "Saturn/Asset/AssetImporter.h"
@@ -231,13 +231,13 @@ namespace Saturn {
 
 			auto realPath = std::filesystem::relative( assetPath, Project::GetActiveProject()->GetRootDir() );
 
-			Ref<Asset> asset = AssetRegistry::Get().FindAsset( realPath );
+			Ref<Asset> asset = AssetManager::Get().FindAsset( realPath );
 			Ref<MaterialAsset> materialAsset;
 
 			if( !asset ) 
 			{
 				// Create the new asset
-				asset = AssetRegistry::Get().FindAsset( AssetRegistry::Get().CreateAsset( AssetTypeFromExtension( assetPath.extension().string() ) ) );
+				asset = AssetManager::Get().FindAsset( AssetManager::Get().CreateAsset( AssetTypeFromExtension( assetPath.extension().string() ) ) );
 
 				asset->SetPath( assetPath );
 
@@ -248,7 +248,7 @@ namespace Saturn {
 				}
 				else
 				{
-					materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( asset->GetAssetID() );
+					materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( asset->GetAssetID() );
 				}
 
 				// Material is still null but exists, likely a new material.
@@ -289,7 +289,7 @@ namespace Saturn {
 			else
 			{
 				// Asset was already loaded.
-				materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( asset->GetAssetID() );
+				materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( asset->GetAssetID() );
 				m_MaterialsAssets[ m ] = materialAsset;
 
 				continue;
@@ -510,8 +510,7 @@ namespace Saturn {
 		}
 
 		// Serialise the asset registry to save any new materials.
-		GameAssetRegistrySerialiser ars;
-		ars.Serialise();
+		AssetManager::Get().Save();
 	}
 
 	//////////////////////////////////////////////////////////////////////////

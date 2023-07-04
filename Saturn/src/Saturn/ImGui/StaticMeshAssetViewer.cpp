@@ -226,7 +226,7 @@ namespace Saturn {
 
 	void StaticMeshAssetViewer::AddMesh()
 	{
-		Ref<StaticMesh> mesh = AssetRegistry::Get().GetAssetAs<StaticMesh>( m_AssetID );
+		Ref<StaticMesh> mesh = AssetManager::Get().GetAssetAs<StaticMesh>( m_AssetID );
 
 		m_Mesh = mesh;
 

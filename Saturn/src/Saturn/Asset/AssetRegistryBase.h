@@ -42,18 +42,21 @@ namespace Saturn {
 
 	using AssetMap = std::unordered_map< AssetID, Ref<Asset> >;
 
-	class AssetRegistryBase
+	class AssetRegistryBase : public RefTarget
 	{
 	public:
-		AssetRegistryBase( AssetRegistryType Type );
+		AssetRegistryBase();
 		~AssetRegistryBase();
 
 		virtual AssetID CreateAsset( AssetType type ) = 0;
 		virtual Ref<Asset> FindAsset( AssetID id ) = 0;
 
-		// Where Ty is an asset.
-		// This will try to find the loaded asset, if it does not exists it will try to load it.
-		// \return Ref<Ty> if found, nullptr if not
+		const AssetMap& GetAssetMap() const { return m_Assets; }
+		const AssetMap& GetLoadedAssetsMap() const { return m_LoadedAssets; }
+
+		std::filesystem::path& GetPath() { return m_Path; }
+		const std::filesystem::path& GetPath() const { return m_Path; }
+
 		template<typename Ty>
 		Ref<Ty> GetAssetAs( AssetID id )
 		{
@@ -73,9 +76,6 @@ namespace Saturn {
 			return asset.As<Ty>();
 		}
 
-		const AssetMap& GetAssetMap() const { return m_Assets; }
-		const AssetMap& GetLoadedAssetsMap() const { return m_LoadedAssets; }
-
 	protected:
 		virtual void AddAsset( AssetID id ) = 0;
 
@@ -84,10 +84,11 @@ namespace Saturn {
 		AssetMap m_Assets;
 		AssetMap m_LoadedAssets;
 
-		AssetRegistryType m_Type = AssetRegistryType::Unknown;
+		std::filesystem::path m_Path;
 
 	private:
-		friend class GameAssetRegistrySerialiser;
+		friend class AssetRegistrySerialiser;
+		friend class AssetManager;
 	};
 
 }

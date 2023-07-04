@@ -30,7 +30,7 @@
 #include "NodeEditor.h"
 #include "Saturn/Vulkan/Image2D.h"
 #include "Saturn/Vulkan/Texture.h"
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 
@@ -541,7 +541,8 @@ namespace Saturn {
 
 			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
 			{
-				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
+				// TODO: Change with editor.
+				for( const auto& [assetID, rAsset] : AssetManager::Get().GetAssetRegistry()->GetAssetMap() )
 				{
 					bool Selected = ( s_SelectAssetInfo.Asset == assetID );
 

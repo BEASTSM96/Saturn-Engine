@@ -31,7 +31,7 @@
 
 #include "Saturn/Project/Project.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 
 namespace Saturn {
 
@@ -63,13 +63,13 @@ namespace Saturn {
 		std::filesystem::rename( rPath / "entity_code.cpp", src );
 		std::filesystem::rename( rPath / "entity_code.h", header );
 
-		auto id = AssetRegistry::Get().CreateAsset( AssetType::Script );
-		Ref<Asset> asset = AssetRegistry::Get().FindAsset( id );
+		auto id = AssetManager::Get().CreateAsset( AssetType::Script );
+		Ref<Asset> asset = AssetManager::Get().FindAsset( id );
 
 		asset->SetPath( src );
 
-		id = AssetRegistry::Get().CreateAsset( AssetType::Script );
-		asset = AssetRegistry::Get().FindAsset( id );
+		id = AssetManager::Get().CreateAsset( AssetType::Script );
+		asset = AssetManager::Get().FindAsset( id );
 
 		asset->SetPath( header );
 

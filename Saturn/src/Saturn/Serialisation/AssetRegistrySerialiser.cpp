@@ -27,9 +27,10 @@
 */
 
 #include "sppch.h"
-#include "EditorAssetRegistrySerialiser.h"
+#include "AssetRegistrySerialiser.h"
+#include "Saturn/Asset/AssetRegistry.h"
 
-#include "Saturn/Asset/EditorAssetRegistry.h"
+#include "Saturn/Project/Project.h"
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
@@ -60,11 +61,11 @@ namespace YAML {
 
 namespace Saturn {
 
-	void EditorAssetRegistrySerialiser::Serialise()
+	void AssetRegistrySerialiser::Serialise( const Ref<AssetRegistry>& rAssetRegistry )
 	{
 		YAML::Emitter out;
 
-		auto& Assets = EditorAssetRegistry::Get().GetAssetMap();
+		auto& Assets = rAssetRegistry->GetAssetMap();
 
 		out << YAML::BeginMap;
 
@@ -89,15 +90,13 @@ namespace Saturn {
 
 		out << YAML::EndMap;
 
-		// The working dir will be the our exe path.
-		// However what about in Dist builds we might not want to store the editor assets in the binary folder.
-		std::ofstream stream( "content/AssetRegistry.sreg" );
+		std::ofstream stream( rAssetRegistry->GetPath() );
 		stream << out.c_str();
 	}
 
-	void EditorAssetRegistrySerialiser::Deserialise()
+	void AssetRegistrySerialiser::Deserialise( Ref<AssetRegistry> AssetRegistry )
 	{
-		std::ifstream FileIn( "content/AssetRegistry.sreg" );
+		std::ifstream FileIn( AssetRegistry->GetPath() );
 		std::stringstream ss;
 		ss << FileIn.rdbuf();
 
@@ -115,9 +114,9 @@ namespace Saturn {
 			auto path = asset[ "Path" ].as< std::filesystem::path >();
 			auto type = asset[ "Type" ].as< std::string >();
 
-			EditorAssetRegistry::Get().AddAsset( assetID );
+			AssetRegistry->AddAsset( assetID );
 
-			Ref<Asset> DeserialisedAsset = EditorAssetRegistry::Get().FindAsset( assetID );
+			Ref<Asset> DeserialisedAsset = AssetRegistry->FindAsset( assetID );
 
 			DeserialisedAsset->Path = path;
 			DeserialisedAsset->Name = path.filename().replace_extension().string();

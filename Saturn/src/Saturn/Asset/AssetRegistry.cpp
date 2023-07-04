@@ -32,7 +32,7 @@
 namespace Saturn {
 
 	AssetRegistry::AssetRegistry()
-		: AssetRegistryBase( AssetRegistryType::Game )
+		: AssetRegistryBase()
 	{
 		SingletonStorage::Get().AddSingleton( this );
 	}
@@ -103,6 +103,11 @@ namespace Saturn {
 		}
 
 		return 0;
+	}
+
+	bool AssetRegistry::DoesIDExists( AssetID id )
+	{
+		return m_Assets.find( id ) != m_Assets.end();
 	}
 
 	void AssetRegistry::AddAsset( AssetID id )
