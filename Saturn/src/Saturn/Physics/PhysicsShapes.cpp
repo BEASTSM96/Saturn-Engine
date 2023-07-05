@@ -35,6 +35,9 @@
 
 namespace Saturn {
 
+	// This is hard coded but its and editor asset so it does not really matter.
+	static AssetID s_DefaultPhysicsMaterial = 6021207863585896016;
+
 	void PhysicsShape::Detach( physx::PxRigidActor& rActor )
 	{
 		rActor.detachShape( *m_Shape );

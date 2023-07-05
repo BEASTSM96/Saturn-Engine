@@ -161,9 +161,14 @@ namespace Saturn {
 
 			ImGui::Text( "Set Physics Material" );
 			ImGui::SameLine();
-
+			
 			static AssetID id;
-			static bool s_Open = false;
+			static bool s_Open = true;
+
+			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
+			{
+				s_Open = !s_Open;
+			}
 			
 			if( Auxiliary::DrawAssetFinder( AssetType::PhysicsMaterial, &s_Open, id ) ) 
 			{

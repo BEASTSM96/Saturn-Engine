@@ -1,0 +1,5 @@
+PhysicsMaterial:
+  Static Friction: 1
+  Dynamic Friction: 1
+  Restitution: 1
+  Flags: 5

@@ -39,6 +39,8 @@
 
 namespace Saturn {
 
+	static AssetID s_DefaultPhysicsMaterial = 6021207863585896016;
+
 	PhysicsCooking::PhysicsCooking()
 	{
 		physx::PxCookingParams Params( PhysicsFoundation::Get().m_Physics->getTolerancesScale() );
@@ -242,7 +244,9 @@ namespace Saturn {
 
 		if( materialID == 0 )
 		{
-			pMaterial = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+
+			pMaterial = &asset->GetMaterial();
 		}
 		else
 		{
@@ -316,7 +320,9 @@ namespace Saturn {
 
 		if( materialID == 0 ) 
 		{
-			pMaterial = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+
+			pMaterial = &asset->GetMaterial();
 		}
 		else
 		{

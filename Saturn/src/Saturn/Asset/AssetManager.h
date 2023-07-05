@@ -65,7 +65,7 @@ namespace Saturn {
 		// This will try to find the loaded asset, if it does not exists it will try to load it.
 		// \return Ref<Ty> if found, nullptr if not
 		template<typename Ty>
-		Ref<Ty> GetAssetAs( AssetID id, AssetRegistryType Dst = AssetRegistryType::Game )
+		Ref<Ty> GetAssetAs( AssetID id, AssetRegistryType Dst )
 		{
 			switch( Dst )
 			{
@@ -80,6 +80,19 @@ namespace Saturn {
 					return nullptr;
 			}
 		}
+
+		template<typename Ty>
+		Ref<Ty> GetAssetAs( AssetID id )
+		{
+			Ref<Ty> asset = m_Assets->GetAssetAs<Ty>( id );
+
+			if( !asset )
+				asset = m_EditorAssets->GetAssetAs<Ty>( id );
+
+			return asset;
+		}
+
+		AssetMap GetCombinedAssetMap();
 
 		Ref<AssetRegistry>& GetAssetRegistry() { return m_Assets; }
 		const Ref<AssetRegistry>& GetAssetRegistry() const { return m_Assets; }

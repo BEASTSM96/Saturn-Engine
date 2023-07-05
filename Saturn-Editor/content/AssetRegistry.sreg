@@ -11,21 +11,21 @@ Assets:
   - Asset: 13881554733718030483
     Path: Fonts\NotoSans-Regular.ttf
     Type: Unknown
+  - Asset: 1628882919000057570
+    Path: meshes\sponza\3371964815757888145.jpg
+    Type: Texture
+  - Asset: 501926962764754131
+    Path: meshes\sponza\16299174074766089871.jpg
+    Type: Texture
+  - Asset: 1816135214536519607
+    Path: meshes\sponza\17876391417123941155.jpg
+    Type: Texture
   - Asset: 8118419652787992599
     Path: meshes\sponza\13196865903111448057.jpg
     Type: Texture
   - Asset: 1256177627845613607
     Path: Fonts\OFL.txt
     Type: Unknown
-  - Asset: 501926962764754131
-    Path: meshes\sponza\16299174074766089871.jpg
-    Type: Texture
-  - Asset: 1628882919000057570
-    Path: meshes\sponza\3371964815757888145.jpg
-    Type: Texture
-  - Asset: 1816135214536519607
-    Path: meshes\sponza\17876391417123941155.jpg
-    Type: Texture
   - Asset: 15299077686801395390
     Path: textures\debug\DebugCubeMap.tga
     Type: Texture
@@ -443,3 +443,6 @@ Assets:
   - Asset: 16583467143997029321
     Path: meshes\defualt\Torus.stmesh
     Type: StaticMesh
+  - Asset: 6021207863585896016
+    Path: materials\DefaultMaterial.sphymaterial
+    Type: PhysicsMaterial
