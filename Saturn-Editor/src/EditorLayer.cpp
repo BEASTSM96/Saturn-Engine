@@ -367,18 +367,6 @@ namespace Saturn {
 					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
 				}
 
-				for( auto&& [id, asset] : AssetManager::Get().GetEditorAssetRegistry()->GetAssetMap() )
-				{
-					if( !Filter.PassFilter( asset->GetName().c_str() ) )
-						continue;
-
-					ImGui::Selectable( asset->GetName().c_str(), false );
-					ImGui::SameLine();
-					ImGui::Selectable( std::to_string( id ).c_str(), false );
-					ImGui::SameLine();
-					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
-				}
-
 				ImGui::End();
 			}
 		}
