@@ -47,6 +47,7 @@ namespace Saturn {
 
 		SetKinematic( rb.IsKinematic );
 		SetMass( rb.Mass );
+		SetLockFlags( (RigidbodyLockFlags)rb.LockFlags, true );
 
 		physx::PxRigidBodyExt::updateMassAndInertia( *pBody, (physx::PxReal)rb.Mass );
 	}
@@ -243,6 +244,23 @@ namespace Saturn {
 		return glm::mat4( pos * rot );
 	}
 
+	void PhysicsRigidBody::SetLockFlags( RigidbodyLockFlags flags, bool value )
+	{
+		if( value )
+			m_LockFlags |= flags;
+		else
+			m_LockFlags &= ~flags;
+
+		physx::PxRigidDynamic* pBody = ( physx::PxRigidDynamic* ) m_Actor;
+
+		pBody->setRigidDynamicLockFlag( ( physx::PxRigidDynamicLockFlag::Enum ) flags, value );
+	}
+
+	bool PhysicsRigidBody::AllRotationLocked()
+	{
+		return m_LockFlags & RigidbodyLockFlags::RotationX && m_LockFlags & RigidbodyLockFlags::RotationY && m_LockFlags & RigidbodyLockFlags::RotationZ;
+	}
+
 	void PhysicsRigidBody::SyncTransfrom()
 	{
 		TransformComponent& tc = m_Entity.GetComponent<TransformComponent>();
@@ -250,7 +268,9 @@ namespace Saturn {
 		physx::PxTransform actorPose = m_Actor->getGlobalPose();
 
 		tc.Position = Auxiliary::PxToGLM( actorPose.p );
-		tc.SetRotation( Auxiliary::QPxToGLM( actorPose.q ) );
+
+		if( !AllRotationLocked() )
+			tc.SetRotation( Auxiliary::QPxToGLM( actorPose.q ) );
 	}
 
 }

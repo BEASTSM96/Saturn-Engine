@@ -227,7 +227,7 @@ namespace Saturn {
 		bool IsTrigger = false;
 
 		CapsuleColliderComponent() = default;
-		CapsuleColliderComponent( float radius ) : Radius( radius ) { }
+		CapsuleColliderComponent( float radius, float height ) : Radius( radius ), Height( height ) { }
 	};
 
 	struct MeshColliderComponent
@@ -246,7 +246,7 @@ namespace Saturn {
 		float Mass = 2.0f;
 		float LinearDrag = 1.0f;
 
-		uint32_t LockFlags;
+		uint32_t LockFlags = -1;
 
 		RigidbodyComponent() = default;
 		RigidbodyComponent( bool isKinematic ) : IsKinematic( isKinematic ) { }
