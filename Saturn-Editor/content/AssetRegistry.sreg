@@ -20,11 +20,11 @@ Assets:
   - Asset: 1256177627845613607
     Path: Fonts\OFL.txt
     Type: Unknown
-  - Asset: 501926962764754131
-    Path: meshes\sponza\16299174074766089871.jpg
-    Type: Texture
   - Asset: 1628882919000057570
     Path: meshes\sponza\3371964815757888145.jpg
+    Type: Texture
+  - Asset: 501926962764754131
+    Path: meshes\sponza\16299174074766089871.jpg
     Type: Texture
   - Asset: 1825912193891643403
     Path: meshes\Factory\Plane.fbx
