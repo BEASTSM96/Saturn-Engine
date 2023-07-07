@@ -33,11 +33,13 @@
 #include "PhysicsFoundation.h"
 
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 
 #include "Saturn/Core/Math.h"
 
 namespace Saturn {
+
+	static AssetID s_DefaultPhysicsMaterial = 6021207863585896016;
 
 	PhysicsCooking::PhysicsCooking()
 	{
@@ -242,11 +244,13 @@ namespace Saturn {
 
 		if( materialID == 0 )
 		{
-			pMaterial = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+
+			pMaterial = &asset->GetMaterial();
 		}
 		else
 		{
-			Ref<PhysicsMaterialAsset> asset = AssetRegistry::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
+			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
 
 			pMaterial = &asset->GetMaterial();
 		}
@@ -316,11 +320,13 @@ namespace Saturn {
 
 		if( materialID == 0 ) 
 		{
-			pMaterial = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+
+			pMaterial = &asset->GetMaterial();
 		}
 		else
 		{
-			Ref<PhysicsMaterialAsset> asset = AssetRegistry::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
+			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
 
 			pMaterial = &asset->GetMaterial();
 		}

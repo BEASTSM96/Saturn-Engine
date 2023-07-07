@@ -31,7 +31,7 @@
 #include "Saturn/Vulkan/Image2D.h"
 #include "Saturn/Vulkan/Texture.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 
 #include <string>
 #include <glm/glm.hpp>
@@ -92,7 +92,8 @@ namespace Saturn::Auxiliary {
 
 			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
 			{
-				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
+				// TODO: Change with editor.
+				for( const auto& [assetID, rAsset] : AssetManager::Get().GetCombinedAssetMap() )
 				{
 					bool Selected = ( rOut == assetID );
 
@@ -143,7 +144,7 @@ namespace Saturn::Auxiliary {
 
 		std::string ButtonName = "";
 
-		if( auto asset = AssetRegistry::Get().FindAsset( returnID ) )
+		if( auto asset = AssetManager::Get().FindAsset( returnID ) )
 			ButtonName = asset->GetName();
 		else
 			ButtonName = "Unknown";
@@ -158,7 +159,7 @@ namespace Saturn::Auxiliary {
 			{
 				const wchar_t* path = ( const wchar_t* ) data->Data;
 
-				Ref<Asset> asset = AssetRegistry::Get().GetAssetAs<Asset>( AssetRegistry::Get().PathToID( path ) );
+				Ref<Asset> asset = AssetManager::Get().GetAssetAs<Asset>( AssetManager::Get().PathToID( path ) );
 
 				if( asset )
 				{

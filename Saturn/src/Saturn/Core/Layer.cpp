@@ -191,7 +191,7 @@ namespace Saturn {
 		RenderPassBeginInfo.framebuffer = rSwapchain.GetFramebuffers()[ Renderer::Get().GetImageIndex() ];
 		RenderPassBeginInfo.renderArea.offset = { 0, 0 };
 		RenderPassBeginInfo.renderArea.extent = { ( uint32_t ) Window::Get().Width(), ( uint32_t ) Window::Get().Height() };
-		RenderPassBeginInfo.clearValueCount = ClearColor.size();
+		RenderPassBeginInfo.clearValueCount = (uint32_t)ClearColor.size();
 		RenderPassBeginInfo.pClearValues = ClearColor.data();
 
 		// Begin swap chain pass

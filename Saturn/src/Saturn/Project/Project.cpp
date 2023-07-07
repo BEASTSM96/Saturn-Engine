@@ -33,9 +33,9 @@
 
 #include "Saturn/Serialisation/UserSettingsSerialiser.h"
 #include "Saturn/Serialisation/ProjectSerialiser.h"
-#include "Saturn/Serialisation/GameAssetRegistrySerialiser.h"
+#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 
 #include "Saturn/Core/EnvironmentVariables.h"
 
@@ -113,19 +113,19 @@ namespace Saturn {
 			if( filepath.extension() == ".sreg" )
 				continue;
 
-			Ref<Asset> asset = AssetRegistry::Get().FindAsset( filepath );
+			Ref<Asset> asset = AssetManager::Get().FindAsset( filepath );
 
 			if( std::find( s_DisallowedAssetExtensions.begin(), s_DisallowedAssetExtensions.end(), filepathString ) != s_DisallowedAssetExtensions.end() )
 				continue; // Extension is forbidden.
 
-			const auto& assetReg = AssetRegistry::Get().GetAssetMap();
+			const auto& assetReg = AssetManager::Get().GetAssetRegistry()->GetAssetMap();
 			if( asset == nullptr ) 
 			{
 				SAT_CORE_INFO( "Found an asset that exists in the system filesystem, however not in the asset registry, creating new asset." );
 
 				auto type = AssetTypeFromExtension( filepathString );
-				auto id = AssetRegistry::Get().CreateAsset( type );
-				asset = AssetRegistry::Get().FindAsset( id );
+				auto id = AssetManager::Get().CreateAsset( type );
+				asset = AssetManager::Get().FindAsset( id );
 
 				asset->SetPath( rEntry.path() );
 
@@ -135,15 +135,9 @@ namespace Saturn {
 
 		if( FileChanged )
 		{
-			GameAssetRegistrySerialiser ars;
-			ars.Serialise();
+			AssetRegistrySerialiser ars;
+			ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 		}
-	}
-
-	void Project::LoadAssetRegistry()
-	{
-		GameAssetRegistrySerialiser ars;
-		ars.Deserialise();
 	}
 
 	std::filesystem::path Project::GetAssetPath()

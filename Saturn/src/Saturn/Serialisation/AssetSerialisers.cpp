@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "AssetSerialisers.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
 #include "Saturn/Audio/Sound2D.h"
@@ -88,7 +88,7 @@ namespace Saturn {
 		auto& basePath = rAsset->GetPath();
 		auto fullPath = Project::GetActiveProject()->FilepathAbs( basePath );
 
-		auto materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
+		auto materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
 
 		YAML::Emitter out;
 

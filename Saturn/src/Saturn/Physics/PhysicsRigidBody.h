@@ -60,6 +60,12 @@ namespace Saturn {
 		physx::PxRigidActor& GetActor() { return *m_Actor; }
 		const physx::PxRigidActor& GetActor() const { return *m_Actor; }
 
+		void SetLockFlags( RigidbodyLockFlags flags, bool value );
+		bool IsFlagSet( RigidbodyLockFlags flags ) { return m_LockFlags & flags; }
+		RigidbodyLockFlags GetFlags() { return ( RigidbodyLockFlags )m_LockFlags; }
+		
+		bool AllRotationLocked();
+
 	private:
 		void AttachPhysicsShape( ShapeType type );
 		void Destroy();
@@ -70,6 +76,8 @@ namespace Saturn {
 		bool m_Kinematic = false;
 
 		Ref<PhysicsShape> m_Shape;
+
+		uint32_t m_LockFlags;
 
 	private:
 		friend class PhysicsShape;

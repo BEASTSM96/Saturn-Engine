@@ -34,7 +34,7 @@
 #include "Saturn/Serialisation/SceneSerialiser.h"
 #include "Saturn/Serialisation/ProjectSerialiser.h"
 #include "Saturn/Serialisation/UserSettingsSerialiser.h"
-#include "Saturn/Serialisation/GameAssetRegistrySerialiser.h"
+#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
 #include "Saturn/GameFramework/GameDLL.h"
@@ -43,7 +43,7 @@
 
 #include "Saturn/Vulkan/SceneRenderer.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Asset/Prefab.h"
 
 #include "Saturn/Physics/PhysicsFoundation.h"
@@ -54,8 +54,6 @@ namespace Saturn {
 		: m_RuntimeScene( Ref<Scene>::Create() )
 	{
 		Scene::SetActiveScene( m_RuntimeScene.Pointer() );
-
-		AssetRegistry* ar = new AssetRegistry();
 
 		// Init Physics
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
@@ -69,7 +67,8 @@ namespace Saturn {
 		if( !Project::GetActiveProject() )
 			SAT_CORE_ASSERT( false, "No project was given." );
 
-		Project::GetActiveProject()->LoadAssetRegistry();
+		AssetManager* pAssetManager = new AssetManager();
+
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
 		EntityScriptManager::Get();

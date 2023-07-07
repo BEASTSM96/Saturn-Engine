@@ -82,11 +82,12 @@ namespace Saturn {
 		std::filesystem::path m_CurrentPath;
 		std::filesystem::path m_FirstFolder;
 		std::filesystem::path m_ScriptPath;
+
 		std::filesystem::path m_EditorContent;
+		std::filesystem::path m_EditorScripts;
 
 		Ref< Texture2D > m_DirectoryIcon;
 		Ref< Texture2D > m_FileIcon;
-		Ref< Texture2D > m_SwapViewIcon;
 		Ref< Texture2D > m_BackIcon;
 		Ref< Texture2D > m_ForwardIcon;
 

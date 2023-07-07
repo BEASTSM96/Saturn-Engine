@@ -31,8 +31,7 @@
 
 namespace Saturn {
 
-	AssetRegistryBase::AssetRegistryBase( AssetRegistryType Type )
-		: m_Type( Type )
+	AssetRegistryBase::AssetRegistryBase()
 	{
 	}
 

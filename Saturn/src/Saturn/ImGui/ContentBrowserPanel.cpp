@@ -43,10 +43,10 @@
 
 #include "Saturn/Project/Project.h"
 #include "Saturn/Core/App.h"
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Vulkan/Mesh.h"
 
-#include "Saturn/Serialisation/GameAssetRegistrySerialiser.h"
+#include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Audio/Sound2D.h"
@@ -74,12 +74,13 @@ namespace Saturn {
 	{
 		m_DirectoryIcon = Ref<Texture2D>::Create( "content/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
 		m_FileIcon      = Ref<Texture2D>::Create( "content/textures/editor/FileIcon.png",      AddressingMode::Repeat );
-		m_SwapViewIcon  = Ref<Texture2D>::Create( "content/textures/editor/Swap.png",          AddressingMode::Repeat );
 		m_BackIcon      = Ref<Texture2D>::Create( "content/textures/editor/Left.png",          AddressingMode::Repeat );
 		m_ForwardIcon   = Ref<Texture2D>::Create( "content/textures/editor/Right.png",         AddressingMode::Repeat );
 
 		m_ViewMode      = CBViewMode::Assets;
 		m_EditorContent = Application::Get().GetRootContentDir();
+		m_EditorScripts = m_EditorContent.parent_path();
+		m_EditorScripts /= "src";
 	}
 
 	void ContentBrowserPanel::DrawFolderTree( const std::filesystem::path& rPath )
@@ -94,6 +95,7 @@ namespace Saturn {
 
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 
+			// I don't know, what happens when we open a folder that is two subfolders down the folder tree will display the assets folder.
 			if( m_CurrentPath == entryPath )
 				flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
@@ -137,12 +139,25 @@ namespace Saturn {
 				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 				flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-				if( ImGui::TreeNodeEx( "Assets", flags ) )
+				ImGui::PushID( "PrjAssets" );
+
+				bool opened = ImGui::TreeNodeEx( "Assets##PrjAssets", flags );
+
+				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+				{
+					// Switch and set path to the game content.
+					m_ViewMode = CBViewMode::Assets;
+					SetPath( Project::GetActiveProject()->GetRootDir() );
+				}
+
+				if( opened )
 				{
 					DrawAssetsFolderTree();
 
 					ImGui::TreePop();
 				}
+
+				ImGui::PopID();
 			} break;
 
 			case CBViewMode::Scripts: 
@@ -151,12 +166,25 @@ namespace Saturn {
 
 				flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-				if( ImGui::TreeNodeEx( "Scripts", flags ) )
+				ImGui::PushID( "PrjScripts" );
+
+				bool opened = ImGui::TreeNodeEx( "Scripts##PrjScripts", flags );
+
+				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+				{
+					// Switch and set path to the game content.
+					m_ViewMode = CBViewMode::Scripts;
+					SetPath( Project::GetActiveProject()->GetRootDir() );
+				}
+
+				if( opened )
 				{
 					DrawScriptsFolderTree();
 
 					ImGui::TreePop();
 				}
+
+				ImGui::PopID();
 			} break;
 
 			default:
@@ -174,17 +202,55 @@ namespace Saturn {
 				if( open )
 					flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-				if( ImGui::TreeNodeEx( "Assets", flags ) )
+				ImGui::PushID( "EDITOR_ASSETS" );
+
+				bool opened = ImGui::TreeNodeEx( "Assets##EDITOR_ASSETS", flags );
+
+				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+				{
+					// Switch and set path to the game content.
+					m_ViewMode = CBViewMode::Assets;
+					EdSetPath();
+				}
+
+				if( opened )
 				{
 					EdDrawAssetsFolderTree();
 
 					ImGui::TreePop();
 				}
 
+				ImGui::PopID();
 			} break;
 			
 			
-			case Saturn::CBViewMode::Scripts:
+			case Saturn::CBViewMode::Scripts: 
+			{
+				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+				if( open )
+					flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+				ImGui::PushID( "EDITOR_SCRIPTS" );
+
+				bool opened = ImGui::TreeNodeEx( "Scripts##EDITOR_SCRIPTS", flags );
+
+				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+				{
+					// Switch and set path to the game content.
+					m_ViewMode = CBViewMode::Scripts;
+					EdSetPath();
+				}
+
+				if( opened )
+				{
+					DrawFolderTree( m_EditorScripts );
+
+					ImGui::TreePop();
+				}
+
+				ImGui::PopID();
+			} break;
+
 			default:
 				break;
 		}
@@ -197,8 +263,9 @@ namespace Saturn {
 
 	void ContentBrowserPanel::EdSetPath()
 	{
-		s_pAssetsDirectory = m_EditorContent;
-		s_pScriptsDirectory = "";
+		// No need to set these are they are not used by the editor.
+		//s_pAssetsDirectory = m_EditorContent;
+		//s_pScriptsDirectory = m_EditorScripts;
 
 		switch( m_ViewMode )
 		{
@@ -211,9 +278,9 @@ namespace Saturn {
 
 			case Saturn::CBViewMode::Scripts:
 			{
-				s_RootDirectory = "";
-				m_CurrentPath = "";
-				m_FirstFolder = "";
+				s_RootDirectory = m_EditorScripts;
+				m_CurrentPath = m_EditorScripts;
+				m_FirstFolder = m_EditorScripts;
 			} break;
 		}
 
@@ -318,21 +385,16 @@ namespace Saturn {
 		{
 			DrawRootFolder( CBViewMode::Assets );
 			DrawRootFolder( CBViewMode::Scripts );
-			
+
 			Auxiliary::EndTreeNode();
 		}
 
 		if( Auxiliary::TreeNode( "Editor", false ) )
 		{
-			EdDrawRootFolder( CBViewMode::Assets );
+			EdDrawRootFolder( CBViewMode::Assets, true );
+			EdDrawRootFolder( CBViewMode::Scripts );
 
 			Auxiliary::EndTreeNode();
-		}
-
-		if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) ) 
-		{
-			// Switch and set path to the editor content.
-			EdSetPath();
 		}
 
 		ImGui::EndChild();
@@ -368,7 +430,7 @@ namespace Saturn {
 				break;
 			}
 		}
-
+		
 		ImGui::Columns( 1 );
 
 		ImGui::PopStyleColor( 2 );
@@ -513,57 +575,57 @@ namespace Saturn {
 
 					switch( assetType )
 					{
-						case Saturn::AssetType::Texture:
+						case AssetType::Texture:
 							break;
 
-						case Saturn::AssetType::StaticMesh:
+						case AssetType::StaticMesh:
 						{
 							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
 
 							// Find the asset.
-							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
+							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
 							AssetViewer::Add<StaticMeshAssetViewer>( asset->ID );
 						} break;
 
-						case Saturn::AssetType::SkeletalMesh:
+						case AssetType::SkeletalMesh:
 							break;
 
-						case Saturn::AssetType::Material:
+						case AssetType::Material:
 						{
 							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
 
 							// Find the asset.
-							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
+							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
 
 							// Importing the asset will happen in this function.
 							AssetViewer::Add<MaterialAssetViewer>( asset->ID );
 						} break;
-						case Saturn::AssetType::MaterialInstance:
+						case AssetType::MaterialInstance:
 							break;
 
-						case Saturn::AssetType::Prefab:
+						case AssetType::Prefab:
 						{
 							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
 
-							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
+							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
 
 							AssetViewer::Add<PrefabViewer>( asset->ID );
 						} break;
 
-						case Saturn::AssetType::PhysicsMaterial:
+						case AssetType::PhysicsMaterial:
 						{
 							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
 
-							Ref<Asset> asset = AssetRegistry::Get().FindAsset( path );
+							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
 
 							AssetViewer::Add<PhysicsMaterialAssetViewer>( asset->ID );
 						} break;
 
-						case Saturn::AssetType::Scene:
-						case Saturn::AssetType::Audio:
-						case Saturn::AssetType::Script:
-						case Saturn::AssetType::Unknown:
-						case Saturn::AssetType::COUNT:
+						case AssetType::Scene:
+						case AssetType::Audio:
+						case AssetType::Script:
+						case AssetType::Unknown:
+						case AssetType::COUNT:
 						default:
 							break;
 					}

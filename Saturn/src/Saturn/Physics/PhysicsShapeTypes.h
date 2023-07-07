@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 namespace Saturn {
 
 	enum class ShapeType
@@ -46,5 +48,15 @@ namespace Saturn {
 		Impulse,
 		VelocityChange,
 		Acceleration
+	};
+
+	enum RigidbodyLockFlags : uint32_t
+	{
+		PositionX = BIT( 0 ),
+		PositionY = BIT( 1 ),
+		PositionZ = BIT( 2 ),
+		RotationX = BIT( 3 ),
+		RotationY = BIT( 4 ),
+		RotationZ = BIT( 5 )
 	};
 }

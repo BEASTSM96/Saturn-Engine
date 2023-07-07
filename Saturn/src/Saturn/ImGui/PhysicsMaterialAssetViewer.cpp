@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "PhysicsMaterialAssetViewer.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
 #include <imgui.h>
@@ -56,7 +56,7 @@ namespace Saturn {
 
 	void PhysicsMaterialAssetViewer::AddPhysicsMaterialAsset()
 	{
-		Ref<PhysicsMaterialAsset> physMaterialAsset = AssetRegistry::Get().GetAssetAs<PhysicsMaterialAsset>( m_AssetID );
+		Ref<PhysicsMaterialAsset> physMaterialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( m_AssetID );
 		m_MaterialAsset = physMaterialAsset;
 
 		m_Open = true;

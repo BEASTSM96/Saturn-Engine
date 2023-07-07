@@ -33,7 +33,7 @@
 #include "ImGuiAuxiliary.h"
 #include "Saturn/Vulkan/Renderer.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
 #include <imgui.h>
@@ -156,7 +156,7 @@ namespace Saturn {
 
 	void MaterialAssetViewer::AddMaterialAsset()
 	{
-		Ref<MaterialAsset> materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( m_AssetID );
+		Ref<MaterialAsset> materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( m_AssetID );
 
 		m_NodeEditor = new NodeEditor( m_AssetID );
 		m_NodeEditor->SetWindowName( materialAsset->GetName() );
@@ -195,7 +195,7 @@ namespace Saturn {
 			if( !InternalTexture )
 			{
 				// Find the texture asset.
-				Ref<Asset> TextureAsset = AssetRegistry::Get().FindAsset( rPath );
+				Ref<Asset> TextureAsset = AssetManager::Get().FindAsset( rPath );
 				auto TextureAssetID = TextureAsset->GetAssetID();
 
 				Node* Sampler2DNode = nullptr;
@@ -296,7 +296,7 @@ namespace Saturn {
 		m_NodeEditor->SetCompileFunction(
 			[ & ]() -> NodeEditorCompilationStatus
 			{
-				Ref<MaterialAsset> materialAsset = AssetRegistry::Get().GetAssetAs<MaterialAsset>( m_AssetID );
+				Ref<MaterialAsset> materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( m_AssetID );
 				Node* OutputNode = m_NodeEditor->FindNode( m_OutputNodeID );
 
 				// Check if we have a link in the first input (albedo) as that must be set.
@@ -332,7 +332,7 @@ namespace Saturn {
 						pAssetNode = m_NodeEditor->FindNode( NodeId );
 
 						AssetID = pAssetNode->ExtraData.Read<UUID>( 0 );
-						TextureAsset = AssetRegistry::Get().FindAsset( AssetID );
+						TextureAsset = AssetManager::Get().FindAsset( AssetID );
 
 						// This wont load the texture until we apply it.
 						materialAsset->SetAlbeoMap( TextureAsset->Path );
@@ -358,7 +358,7 @@ namespace Saturn {
 				materialAsset->ApplyChanges();
 				materialAsset->SaveViewingSession();
 
-				Ref<Asset> asset = AssetRegistry::Get().FindAsset( m_AssetID );
+				Ref<Asset> asset = AssetManager::Get().FindAsset( m_AssetID );
 
 				MaterialAssetSerialiser mas;
 				mas.Serialise( asset, m_NodeEditor );
@@ -422,7 +422,7 @@ namespace Saturn {
 				pAssetNode = pNodeEditor->FindNode( id );
 
 				AssetID = pAssetNode->ExtraData.Read<UUID>( 0 );
-				TextureAsset = AssetRegistry::Get().FindAsset( AssetID );
+				TextureAsset = AssetManager::Get().FindAsset( AssetID );
 
 				// This wont load the texture until we apply it.
 				if( Index == 0 )

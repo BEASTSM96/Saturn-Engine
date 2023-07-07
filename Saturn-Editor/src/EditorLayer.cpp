@@ -42,8 +42,7 @@
 #include <Saturn/Serialisation/SceneSerialiser.h>
 #include <Saturn/Serialisation/ProjectSerialiser.h>
 #include <Saturn/Serialisation/UserSettingsSerialiser.h>
-#include <Saturn/Serialisation/GameAssetRegistrySerialiser.h>
-#include <Saturn/Serialisation/EditorAssetRegistrySerialiser.h>
+#include <Saturn/Serialisation/AssetRegistrySerialiser.h>
 #include <Saturn/Serialisation/AssetSerialisers.h>
 
 #include <Saturn/Physics/PhysicsFoundation.h>
@@ -61,7 +60,7 @@
 #include <Saturn/Core/UserSettings.h>
 
 #include <Saturn/Asset/AssetRegistry.h>
-#include <Saturn/Asset/EditorAssetRegistry.h>
+#include <Saturn/Asset/AssetManager.h>
 #include <Saturn/Asset/Prefab.h>
 
 #include <Saturn/GameFramework/GameDLL.h>
@@ -95,14 +94,6 @@ namespace Saturn {
 		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f ), m_EditorScene( Ref<Scene>::Create() )
 	{
 		Scene::SetActiveScene( m_EditorScene.Pointer() );
-
-		AssetRegistry* pAssetRegistry = new AssetRegistry();
-		EditorAssetRegistry* pEditorAssetRegistry = new EditorAssetRegistry();
-
-		EditorAssetRegistrySerialiser edrs;
-		edrs.Deserialise();
-
-		pEditorAssetRegistry->CheckMissingAssetRefs();
 
 		m_RuntimeScene = nullptr;
 		
@@ -219,7 +210,7 @@ namespace Saturn {
 		if( !Project::GetActiveProject() )
 			SAT_CORE_ASSERT( false, "No project was given." );
 
-		Project::GetActiveProject()->LoadAssetRegistry();
+		AssetManager* pAssetManager = new AssetManager();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
 		// Lazy load.
@@ -356,7 +347,7 @@ namespace Saturn {
 
 		if( OpenAssetRegistryDebug ) 
 		{
-			if( ImGui::Begin( "AssetRegistry", &OpenAssetRegistryDebug ) )
+			if( ImGui::Begin( "Asset Manager", &OpenAssetRegistryDebug ) )
 			{
 				static ImGuiTextFilter Filter;
 
@@ -364,7 +355,7 @@ namespace Saturn {
 				ImGui::SameLine();
 				Filter.Draw( "##search" );
 
-				for ( auto&& [id, asset] : AssetRegistry::Get().GetAssetMap() )
+				for ( auto&& [id, asset] : AssetManager::Get().GetAssetRegistry()->GetAssetMap() )
 				{
 					if( !Filter.PassFilter( asset->GetName().c_str() ) )
 						continue;
@@ -390,7 +381,19 @@ namespace Saturn {
 				ImGui::SameLine();
 				Filter.Draw( "##search" );
 
-				for( auto&& [id, asset] : AssetRegistry::Get().GetLoadedAssetsMap() )
+				for( auto&& [id, asset] : AssetManager::Get().GetAssetRegistry()->GetLoadedAssetsMap() )
+				{
+					if( !Filter.PassFilter( asset->GetName().c_str() ) )
+						continue;
+
+					ImGui::Selectable( asset->GetName().c_str(), false );
+					ImGui::SameLine();
+					ImGui::Selectable( std::to_string( id ).c_str(), false );
+					ImGui::SameLine();
+					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+				}
+
+				for( auto&& [id, asset] : AssetManager::Get().GetEditorAssetRegistry()->GetLoadedAssetsMap() )
 				{
 					if( !Filter.PassFilter( asset->GetName().c_str() ) )
 						continue;
@@ -637,9 +640,9 @@ namespace Saturn {
 
 				std::filesystem::path p = path;
 
-				Ref<Asset> asset = AssetRegistry::Get().FindAsset( p );
+				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
 				// Make sure to load the prefab.
-				Ref<Prefab> prefabAsset = AssetRegistry::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
+				Ref<Prefab> prefabAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
 
 				m_EditorScene->CreatePrefab( prefabAsset );
 			}
@@ -652,8 +655,8 @@ namespace Saturn {
 
 				// We have now that path to the *.stmesh but we need to path to the fbx/gltf.
 
-				Ref<Asset> asset = AssetRegistry::Get().FindAsset( p );
-				Ref<StaticMesh> meshAsset = AssetRegistry::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
+				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
+				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
 				
 				auto entity = m_EditorScene->CreateEntity( asset->Name );
 				entity.AddComponent<StaticMeshComponent>().Mesh = meshAsset;
@@ -997,7 +1000,7 @@ namespace Saturn {
 
 			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
 			{
-				for( const auto& [assetID, rAsset] : AssetRegistry::Get().GetAssetMap() )
+				for( const auto& [assetID, rAsset] : AssetManager::Get().GetAssetRegistry()->GetAssetMap() )
 				{
 					bool Selected = ( s_AssetFinderID == assetID );
 

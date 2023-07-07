@@ -204,14 +204,22 @@ namespace Saturn::Auxiliary {
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
 		ImGui::PushID( label.c_str() );
+		ImGui::Columns( 2 );
+		ImGui::SetColumnWidth( 0, columnWidth );
 
 		ImGui::Text( label.c_str() );
 
 		ImGui::NextColumn();
 
-		ImGui::SameLine();
+		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 } );
 
 		modified |= ImGui::DragFloat( "##floatx", &values, 0.1f, max, min, "%.2f" );
+
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+
+		ImGui::Columns( 1 );
 
 		ImGui::PopID();
 
@@ -234,13 +242,15 @@ namespace Saturn::Auxiliary {
 
 		ImGui::NextColumn();
 
-		ImGui::SameLine();
-
-		ImGui::PushMultiItemsWidths( 3, ImGui::CalcItemWidth() );
+		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 } );
 
 		modified |= ImGui::DragInt( "##intx", &values, 0.0f, 5000, 0, "%.2f" );
 
 		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+
+		ImGui::Columns( 1 );
 
 		ImGui::PopID();
 
@@ -256,20 +266,22 @@ namespace Saturn::Auxiliary {
 
 		ImGui::PushID( label.c_str() );
 
-		//ImGui::Columns( 2 );
-		//ImGui::SetColumnWidth( 0, columnWidth );
+		ImGui::Columns( 2 );
+		ImGui::SetColumnWidth( 0, columnWidth );
 
 		ImGui::Text( label.c_str() );
 
-		//ImGui::NextColumn();
+		ImGui::NextColumn();
 
-		ImGui::SameLine();
-
-		ImGui::PushMultiItemsWidths( 3, ImGui::CalcItemWidth() );
+		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 } );
 
 		modified |= ImGui::Checkbox( "##boolean", &value );
 
 		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+
+		ImGui::Columns( 1 );
 
 		ImGui::PopID();
 

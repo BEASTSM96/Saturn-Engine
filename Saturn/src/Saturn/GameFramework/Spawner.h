@@ -29,7 +29,7 @@
 #pragma once
 
 #include "Saturn/Scene/Scene.h"
-#include "Saturn/Asset/AssetRegistry.h"
+#include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Asset/Prefab.h"
 
 namespace Saturn {
@@ -40,9 +40,9 @@ namespace Saturn {
 		template<typename Ty>
 		static Ty* SpawnEntityFromClass( const char* pName, Scene* scene ) 
 		{
-			Ref<Asset> asset = AssetRegistry::Get().FindAsset( pName, AssetType::Prefab );
+			Ref<Asset> asset = AssetManager::Get().FindAsset( pName, AssetType::Prefab );
 			// Make sure to load the prefab.
-			Ref<Prefab> prefabAsset = AssetRegistry::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
+			Ref<Prefab> prefabAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
 
 			return ( Ty* ) scene->CreatePrefab( prefabAsset ).second;
 		}
