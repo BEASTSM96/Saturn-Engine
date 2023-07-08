@@ -204,25 +204,28 @@ float GetShadowBias()
 float HardShadows( sampler2DArray ShadowMap, vec3 ShadowCoords, uint index ) 
 {
 	float bias = GetShadowBias();
+	vec2 texelSize = 1.0 / textureSize( ShadowMap, 0 ).xy;
+	vec2 invShadowMapSize = 1.0 / vec2(textureSize(ShadowMap, 0));
+
 	float map = texture( ShadowMap, vec3( ShadowCoords.xy * 0.5 + 0.5, index ) ).x;
 
-	float s = step( ShadowCoords.z, map + bias ) * 1.0;
+	// TEMP: Soft Shadows?
+	float shadow = 0.0;
+	float filterSize = 4.0 / 2;
 
-	/*
-	vec2 texelSize = 1.0 / vec2(textureSize(ShadowMap, 0));
-
-	for(int x = -1; x <= 1; ++x)
+	for (float x = -filterSize; x <= filterSize; x++)
     {
-        for(int y = -1; y <= 1; ++y)
+        for (float y = -filterSize; y <= filterSize; y++)
         {
-            float pcfDepth = texture(ShadowMap, vec3(ShadowCoords.xy + vec2(x, y) * texelSize, index)).r;
-            s += (ShadowCoords.z - bias) > pcfDepth ? 1.0 : 0.0;        
-        }    
+            vec2 offset = vec2(x, y) * texelSize;
+            float text = texture(ShadowMap, vec3(ShadowCoords.xy * 0.5 + 0.5 + offset, index)).x;
+            shadow += step(ShadowCoords.z, text+ bias);
+        }
     }
-    s /= 9.0;
-	*/
 
-	return s;
+    shadow /= ((2.0 * filterSize + 1.0) * (2.0 * filterSize + 1.0));
+
+	return shadow;
 }
 
 //////////////////////////////////////////////////////////////////////////
