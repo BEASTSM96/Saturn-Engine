@@ -57,7 +57,7 @@ namespace Saturn {
 		float GetRestitution() { return m_Restitution; }
 
 		void SetFlag( PhysicsMaterialFlags flag, bool value );
-		bool IsFlagSet( PhysicsMaterialFlags flag ) { m_Flags & flag; }
+		bool IsFlagSet( PhysicsMaterialFlags flag ) { m_Flags &= flag; }
 		uint32_t GetFlags() { return m_Flags; }
 
 		physx::PxMaterial& GetMaterial() { return *m_Material; }
