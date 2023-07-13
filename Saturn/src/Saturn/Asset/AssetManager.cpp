@@ -52,6 +52,7 @@ namespace Saturn {
 
 		m_EditorAssets = Ref<AssetRegistry>::Create();
 		m_EditorAssets->m_Path = contentDir;
+		m_EditorAssets->m_IsEditorRegistry = true;
 
 		AssetRegistrySerialiser ars;
 		ars.Deserialise( m_Assets );
@@ -202,11 +203,15 @@ namespace Saturn {
 
 		switch( Dst )
 		{
-			case AssetRegistryType::Game:
+			case AssetRegistryType::Game: 
+			{
 				ars.Serialise( m_Assets );
+			} break;
 
-			case AssetRegistryType::Editor:
+			case AssetRegistryType::Editor: 
+			{
 				ars.Serialise( m_EditorAssets );
+			} break;
 		
 			case AssetRegistryType::Unknown:
 			default:

@@ -130,7 +130,8 @@ namespace Saturn {
 				break;
 		}
 
-		m_Shape->Create( *m_Actor );
+		if( m_Shape )
+			m_Shape->Create( *m_Actor );
 	}
 
 	void PhysicsRigidBody::Destroy()

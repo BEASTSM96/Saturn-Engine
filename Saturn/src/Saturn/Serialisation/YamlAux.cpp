@@ -439,7 +439,7 @@ namespace Saturn {
 
 				rb.IsKinematic = rbc[ "IsKinematic" ].as< bool >();
 				rb.UseCCD = rbc[ "CCD" ].as< bool >();
-				rb.Mass = rbc[ "Mass" ].as< int >();
+				rb.Mass = rbc[ "Mass" ].as< float >();
 
 				auto lockNode = rbc[ "LockFlags" ];
 

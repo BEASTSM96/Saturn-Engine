@@ -35,7 +35,7 @@
 namespace Saturn {
 
 	PhysicsMaterialAsset::PhysicsMaterialAsset( float StaticFriction, float DynamicFriction, float Restitution, PhysicsMaterialFlags flags )
-		: m_StaticFriction( StaticFriction ),  m_DynamicFriction( DynamicFriction ), m_Restitution( Restitution ), m_Flags( flags )
+		: m_StaticFriction( StaticFriction ),  m_DynamicFriction( DynamicFriction ), m_Restitution( Restitution ), m_Flags( ( uint32_t ) flags )
 	{
 		m_Material = PhysicsFoundation::Get().GetPhysics().createMaterial( StaticFriction, DynamicFriction, Restitution );
 
@@ -76,9 +76,9 @@ namespace Saturn {
 	void PhysicsMaterialAsset::SetFlag( PhysicsMaterialFlags flag, bool value )
 	{
 		if( value )
-			m_Flags |= flag;
+			m_Flags |= ( uint32_t ) flag;
 		else
-			m_Flags &= ~flag;
+			m_Flags &= ~( uint32_t ) flag;
 
 		m_Material->setFlag( ( physx::PxMaterialFlag::Enum )flag, value );
 	}

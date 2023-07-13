@@ -57,6 +57,13 @@ namespace Saturn {
 		COUNT,
 	};
 
+	enum class AssetFlag : uint32_t
+	{
+		None = BIT( 0 ),
+		Editor = BIT( 1 ),
+		COUNT
+	};
+
 	inline std::string AssetTypeToString( AssetType type )
 	{
 		switch( type )
@@ -152,6 +159,7 @@ namespace Saturn {
 	public:
 		AssetID ID = 0;
 		AssetType Type = AssetType::Unknown;
+		uint32_t Flags = 0;
 
 		std::filesystem::path Path;
 		std::string Name;
@@ -164,6 +172,17 @@ namespace Saturn {
 
 		const std::filesystem::path& GetPath() const { return Path; }
 		const std::string& GetName() const { return Name; }
+
+		bool IsFlagSet( AssetFlag flag ) const { return ( Flags & ( uint32_t ) flag ) != 0; }
+		uint32_t GetFlags() const { return Flags; }
+
+		void SetFlags( AssetFlag flag, bool value ) 
+		{
+			if( value )
+				Flags |= ( uint32_t ) flag;
+			else
+				Flags &= ~( uint32_t ) flag;
+		}
 
 		// TODO: This is bad.
 		//       I want to copy this just so I can get the name without the extension.

@@ -242,7 +242,7 @@ namespace Saturn {
 		auto& materialID = rMesh->GetPhysicsMaterial();
 		physx::PxMaterial* pMaterial = nullptr;
 
-		if( materialID == 0 )
+		if( materialID == 0 || materialID == s_DefaultPhysicsMaterial )
 		{
 			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
 
@@ -318,7 +318,7 @@ namespace Saturn {
 		auto& materialID = rMesh->GetPhysicsMaterial();
 		physx::PxMaterial* pMaterial = nullptr;
 
-		if( materialID == 0 ) 
+		if( materialID == 0 || materialID == s_DefaultPhysicsMaterial )
 		{
 			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
 

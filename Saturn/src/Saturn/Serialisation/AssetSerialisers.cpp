@@ -45,6 +45,22 @@
 
 namespace Saturn {
 
+	static std::filesystem::path GetFilepathAbs( const std::filesystem::path& rPath, bool IsEditorAsset ) 
+	{
+		if( IsEditorAsset )
+		{
+			std::filesystem::path basePath = Application::Get().GetRootContentDir();
+			basePath = basePath.parent_path();
+			basePath /= rPath;
+
+			return basePath;
+		}
+		else
+		{
+			return Project::GetActiveProject()->FilepathAbs( rPath );
+		}
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL
 
@@ -52,7 +68,7 @@ namespace Saturn {
 	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
 	{
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = Project::GetActiveProject()->FilepathAbs( basePath );
+		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
 
 		auto materialAsset = rAsset.As<MaterialAsset>();
 
@@ -86,7 +102,7 @@ namespace Saturn {
 	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset, NodeEditor* pNodeEditor ) const
 	{
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = Project::GetActiveProject()->FilepathAbs( basePath );
+		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
 
 		auto materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
 
@@ -214,7 +230,7 @@ namespace Saturn {
 	{
 		auto materialAsset = rAsset.As<MaterialAsset>();
 
-		auto absolutePath = Project::GetActiveProject()->FilepathAbs( rAsset->GetPath() );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -276,7 +292,7 @@ namespace Saturn {
 	{
 		auto materialAsset = Ref<MaterialAsset>::Create( nullptr );
 
-		auto absolutePath = Project::GetActiveProject()->FilepathAbs( rAsset->GetPath() );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -411,25 +427,28 @@ namespace Saturn {
 		{
 			UUID ID;
 			AssetType Type;
+			uint32_t Flags;
 			std::filesystem::path Path;
 			std::string Name;
 		} OldAssetData = {};
 
 		OldAssetData.ID   = rAsset->ID;
 		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
 		OldAssetData.Path = rAsset->Path;
 		OldAssetData.Name = rAsset->Name;
 
 		rAsset = materialAsset;
 		rAsset->ID   = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
 	}
 
 	bool MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto absolutePath = Project::GetActiveProject()->FilepathAbs( rAsset->GetPath() );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -487,23 +506,26 @@ namespace Saturn {
 
 		materialAsset->SetRoughness( val );
 		materialAsset->SetRoughnessMap( texture );
-
+	
 		struct
 		{
 			UUID ID;
 			AssetType Type;
+			uint32_t Flags;
 			std::filesystem::path Path;
 			std::string Name;
 		} OldAssetData = {};
 
 		OldAssetData.ID = rAsset->ID;
 		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
 		OldAssetData.Path = rAsset->Path;
 		OldAssetData.Name = rAsset->Name;
 
 		rAsset = materialAsset;
 		rAsset->ID = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
 
@@ -520,7 +542,7 @@ namespace Saturn {
 		auto prefabAsset = rAsset.As<Prefab>();
 
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = Project::GetActiveProject()->FilepathAbs( basePath );
+		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
 
 		YAML::Emitter out;
 
@@ -561,7 +583,7 @@ namespace Saturn {
 	{
 		auto prefabAsset = Ref<Prefab>::Create();
 
-		auto absolutePath = Project::GetActiveProject()->FilepathAbs( rAsset->GetPath() );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -602,18 +624,21 @@ namespace Saturn {
 		{
 			UUID ID;
 			AssetType Type;
+			uint32_t Flags;
 			std::filesystem::path Path;
 			std::string Name;
 		} OldAssetData = {};
 
 		OldAssetData.ID = rAsset->ID;
 		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
 		OldAssetData.Path = rAsset->Path;
 		OldAssetData.Name = rAsset->Name;
 
 		rAsset = prefabAsset;
 		rAsset->ID = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
 
@@ -646,7 +671,7 @@ namespace Saturn {
 		out << YAML::EndMap;
 
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = Project::GetActiveProject()->FilepathAbs( basePath );
+		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
 
 		std::ofstream fout( fullPath );
 		fout << out.c_str();
@@ -659,7 +684,7 @@ namespace Saturn {
 
 	bool StaticMeshAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto absolutePath = Project::GetActiveProject()->FilepathAbs( rAsset->GetPath() );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -685,18 +710,21 @@ namespace Saturn {
 		{
 			UUID ID;
 			AssetType Type;
+			uint32_t Flags;
 			std::filesystem::path Path;
 			std::string Name;
 		} OldAssetData = {};
 
 		OldAssetData.ID = rAsset->ID;
 		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
 		OldAssetData.Path = rAsset->Path;
 		OldAssetData.Name = rAsset->Name;
 
 		rAsset = mesh;
 		rAsset->ID = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
 
@@ -725,7 +753,7 @@ namespace Saturn {
 		out << YAML::EndMap;
 
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = Project::GetActiveProject()->FilepathAbs( basePath );
+		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
 
 		std::ofstream fout( fullPath );
 		fout << out.c_str();
@@ -738,7 +766,7 @@ namespace Saturn {
 
 	bool Sound2DAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto absolutePath = Project::GetActiveProject()->FilepathAbs( rAsset->GetPath() );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -761,18 +789,21 @@ namespace Saturn {
 		{
 			UUID ID;
 			AssetType Type;
+			uint32_t Flags;
 			std::filesystem::path Path;
 			std::string Name;
 		} OldAssetData = {};
 
 		OldAssetData.ID = rAsset->ID;
 		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
 		OldAssetData.Path = rAsset->Path;
 		OldAssetData.Name = rAsset->Name;
 
 		rAsset = sound;
 		rAsset->ID = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
 
@@ -807,7 +838,7 @@ namespace Saturn {
 		out << YAML::EndMap;
 
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = Project::GetActiveProject()->FilepathAbs( basePath );
+		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
 
 		std::ofstream fout( fullPath );
 		fout << out.c_str();
@@ -819,7 +850,7 @@ namespace Saturn {
 
 	bool PhysicsMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto absolutePath = Project::GetActiveProject()->FilepathAbs( rAsset->GetPath() );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -844,18 +875,21 @@ namespace Saturn {
 		{
 			UUID ID;
 			AssetType Type;
+			uint32_t Flags;
 			std::filesystem::path Path;
 			std::string Name;
 		} OldAssetData = {};
 
 		OldAssetData.ID = rAsset->ID;
 		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
 		OldAssetData.Path = rAsset->Path;
 		OldAssetData.Name = rAsset->Name;
 
 		rAsset = material;
 		rAsset->ID = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
 

@@ -50,6 +50,9 @@ namespace Saturn {
 
 		m_Assets[ asset->GetAssetID() ] = asset;
 
+		if( m_IsEditorRegistry )
+			asset->Flags = ( uint32_t )AssetFlag::Editor;
+
 		return asset->GetAssetID();
 	}
 
@@ -116,5 +119,9 @@ namespace Saturn {
 
 		m_Assets[ id ] = Ref<Asset>::Create();
 		m_Assets[ id ]->ID = id;
+		m_Assets[ id ]->Flags = (uint32_t) AssetFlag::None;
+		
+		if( m_IsEditorRegistry )
+			m_Assets[ id ]->Flags = ( uint32_t ) AssetFlag::Editor;
 	}
 }

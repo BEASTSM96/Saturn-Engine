@@ -34,7 +34,7 @@
 
 namespace Saturn {
 
-	enum PhysicsMaterialFlags
+	enum class PhysicsMaterialFlags
 	{
 		DisableFriction = BIT( 0 ),
 		DisableHighFriction = BIT( 1 ),
@@ -57,7 +57,7 @@ namespace Saturn {
 		float GetRestitution() { return m_Restitution; }
 
 		void SetFlag( PhysicsMaterialFlags flag, bool value );
-		bool IsFlagSet( PhysicsMaterialFlags flag ) { m_Flags &= flag; }
+		bool IsFlagSet( PhysicsMaterialFlags flag ) { return ( m_Flags & (uint32_t)flag ) != 0; }
 		uint32_t GetFlags() { return m_Flags; }
 
 		physx::PxMaterial& GetMaterial() { return *m_Material; }

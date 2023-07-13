@@ -121,6 +121,8 @@ namespace Saturn {
 			DeserialisedAsset->Path = path;
 			DeserialisedAsset->Name = path.filename().replace_extension().string();
 			DeserialisedAsset->Type = AssetTypeFromString( type );
+
+			AssetRegistry->m_IsEditorRegistry ? DeserialisedAsset->Flags = (uint32_t)AssetFlag::Editor : DeserialisedAsset->Flags = ( uint32_t ) AssetFlag::None;
 		}
 	}
 
