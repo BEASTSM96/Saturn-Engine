@@ -236,9 +236,6 @@ namespace Saturn {
 		if( !LoadColliderFile( cachePath ) )
 			return Shapes;
 
-		// Get the material.
-		// TODO: We should create a GameAssetRegistry and a EditorAssetRegistry, so we can have default assets.
-
 		auto& materialID = rMesh->GetPhysicsMaterial();
 		physx::PxMaterial* pMaterial = nullptr;
 
@@ -311,9 +308,6 @@ namespace Saturn {
 
 		if( !LoadColliderFile( cachePath ) )
 			return Shapes;
-
-		// Get the material.
-		// TODO: We should create a GameAssetRegistry and a EditorAssetRegistry, so we can have default assets.
 
 		auto& materialID = rMesh->GetPhysicsMaterial();
 		physx::PxMaterial* pMaterial = nullptr;

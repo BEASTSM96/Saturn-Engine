@@ -93,6 +93,7 @@ namespace Saturn {
 		}
 
 		AssetMap GetCombinedAssetMap();
+		AssetMap GetCombinedLoadedAssetMap();
 
 		Ref<AssetRegistry>& GetAssetRegistry() { return m_Assets; }
 		const Ref<AssetRegistry>& GetAssetRegistry() const { return m_Assets; }

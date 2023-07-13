@@ -163,6 +163,16 @@ namespace Saturn {
 		return map;
 	}
 
+	AssetMap AssetManager::GetCombinedLoadedAssetMap()
+	{
+		AssetMap map;
+
+		map.insert( m_Assets->GetLoadedAssetsMap().begin(), m_Assets->GetLoadedAssetsMap().end() );
+		map.insert( m_EditorAssets->GetLoadedAssetsMap().begin(), m_EditorAssets->GetLoadedAssetsMap().end() );
+
+		return map;
+	}
+
 	bool AssetManager::IsAssetLoaded( AssetID id, AssetRegistryType Dst /*= AssetRegistryType::Game */ )
 	{
 		switch( Dst )

@@ -355,16 +355,48 @@ namespace Saturn {
 				ImGui::SameLine();
 				Filter.Draw( "##search" );
 
-				for ( auto&& [id, asset] : AssetManager::Get().GetAssetRegistry()->GetAssetMap() )
+				ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
+				if( ImGui::BeginTable( "##FileTable", 5, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y * 0.85f ) ) )
 				{
-					if( !Filter.PassFilter( asset->GetName().c_str() ) )
-						continue;
+					ImGui::TableSetupColumn( "Asset Name" );
+					ImGui::TableSetupColumn( "ID" );
+					ImGui::TableSetupColumn( "Type" );
+					ImGui::TableSetupColumn( "Is Editor Asset" );
+					ImGui::TableSetupColumn( "Path" );
 
-					ImGui::Selectable( asset->GetName().c_str(), false );
-					ImGui::SameLine();
-					ImGui::Selectable( std::to_string( id ).c_str(), false );
-					ImGui::SameLine();
-					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+					ImGui::TableHeadersRow();
+
+					int TableRow = 0;
+
+					for( auto&& [id, asset] : AssetManager::Get().GetCombinedAssetMap() )
+					{
+						if( !Filter.PassFilter( asset->GetName().c_str() ) )
+							continue;
+
+						TableRow++;
+
+						ImGui::TableNextRow();
+
+						ImGui::TableSetColumnIndex( 0 );
+						ImGui::Selectable( asset->GetName().c_str(), false );
+
+						ImGui::TableSetColumnIndex( 1 );
+						ImGui::Selectable( std::to_string( id ).c_str(), false );
+
+						ImGui::TableSetColumnIndex( 2 );
+						ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+
+						ImGui::TableSetColumnIndex( 3 );
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						bool value = asset->IsFlagSet( AssetFlag::Editor );
+						ImGui::Checkbox( "##editor", &value );
+						ImGui::PopItemFlag();
+
+						ImGui::TableSetColumnIndex( 4 );
+						ImGui::Text( asset->Path.string().c_str() );
+					}
+
+					ImGui::EndTable();
 				}
 
 				ImGui::End();
@@ -377,32 +409,48 @@ namespace Saturn {
 			{
 				static ImGuiTextFilter Filter;
 
-				ImGui::Text( "Search" );
+				ImGui::Text( "Search for assets..." );
 				ImGui::SameLine();
 				Filter.Draw( "##search" );
 
-				for( auto&& [id, asset] : AssetManager::Get().GetAssetRegistry()->GetLoadedAssetsMap() )
+				ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
+				if( ImGui::BeginTable( "##FileTable", 4, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y * 0.85f ) ) )
 				{
-					if( !Filter.PassFilter( asset->GetName().c_str() ) )
-						continue;
+					ImGui::TableSetupColumn( "Asset Name" );
+					ImGui::TableSetupColumn( "ID" );
+					ImGui::TableSetupColumn( "Type" );
+					ImGui::TableSetupColumn( "Is Editor Asset" );
 
-					ImGui::Selectable( asset->GetName().c_str(), false );
-					ImGui::SameLine();
-					ImGui::Selectable( std::to_string( id ).c_str(), false );
-					ImGui::SameLine();
-					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
-				}
+					ImGui::TableHeadersRow();
 
-				for( auto&& [id, asset] : AssetManager::Get().GetEditorAssetRegistry()->GetLoadedAssetsMap() )
-				{
-					if( !Filter.PassFilter( asset->GetName().c_str() ) )
-						continue;
+					int TableRow = 0;
 
-					ImGui::Selectable( asset->GetName().c_str(), false );
-					ImGui::SameLine();
-					ImGui::Selectable( std::to_string( id ).c_str(), false );
-					ImGui::SameLine();
-					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+					for( auto&& [id, asset] : AssetManager::Get().GetCombinedLoadedAssetMap() )
+					{
+						if( !Filter.PassFilter( asset->GetName().c_str() ) )
+							continue;
+
+						TableRow++;
+
+						ImGui::TableNextRow();
+
+						ImGui::TableSetColumnIndex( 0 );
+						ImGui::Selectable( asset->GetName().c_str(), false );
+
+						ImGui::TableSetColumnIndex( 1 );
+						ImGui::Selectable( std::to_string( id ).c_str(), false );
+
+						ImGui::TableSetColumnIndex( 2 );
+						ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+
+						ImGui::TableSetColumnIndex( 3 );
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						bool value = asset->IsFlagSet( AssetFlag::Editor );
+						ImGui::Checkbox( "##editor", &value );
+						ImGui::PopItemFlag();
+					}
+
+					ImGui::EndTable();
 				}
 
 				ImGui::End();
