@@ -212,6 +212,7 @@ namespace Saturn {
 
 		AssetManager* pAssetManager = new AssetManager();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
+		CheckMissingEditorAssetRefs();
 
 		// Lazy load.
 		// TODO: We should not lazy load something this important.
@@ -356,7 +357,7 @@ namespace Saturn {
 				Filter.Draw( "##search" );
 
 				ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
-				if( ImGui::BeginTable( "##FileTable", 5, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y * 0.85f ) ) )
+				if( ImGui::BeginTable( "##FileTable", 5, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y ) ) )
 				{
 					ImGui::TableSetupColumn( "Asset Name" );
 					ImGui::TableSetupColumn( "ID" );
@@ -1088,6 +1089,69 @@ namespace Saturn {
 	void EditorLayer::HotReloadGame()
 	{
 		SAT_CORE_ASSERT(false, "EditorLayer::HotReloadGame not implemented.");
+	}
+
+	void EditorLayer::CheckMissingEditorAssetRefs()
+	{
+		std::vector<std::string> DisallowedAssetExtensions = 
+		{
+			{ ".fbx"      }, 
+			{ ".gltf"     },
+			{ ".bin"      }, 
+			{ ".glb"      }, 
+			{ ".wav"      },
+			{ ".lib"      },
+			{ ".ttf"      },
+			{ ".txt"      },
+			{ ".blend"    },
+			{ ".blend1"   },
+			{ ".cpp"      },
+			{ ".h"        },
+			{ ".cs"       },
+			{ ".lua"      },
+			{ ".glsl"     },
+			{ ".sproject" },
+		};
+
+		std::filesystem::path AssetPath = Application::Get().GetRootContentDir().parent_path();
+
+		bool FileChanged = false;
+
+		for( auto& rEntry : std::filesystem::recursive_directory_iterator( AssetPath ) )
+		{
+			if( rEntry.is_directory() )
+				continue;
+
+			std::filesystem::path filepath = std::filesystem::relative( rEntry.path(), AssetPath );
+			auto filepathString = filepath.extension().string();
+
+			if( filepath.extension() == ".sreg" || filepath.extension() == ".eng" )
+				continue;
+
+			Ref<Asset> asset = AssetManager::Get().FindAsset( filepath, AssetRegistryType::Editor );
+
+			if( std::find( DisallowedAssetExtensions.begin(), DisallowedAssetExtensions.end(), filepathString ) != DisallowedAssetExtensions.end() )
+				continue; // Extension is forbidden.
+
+			const auto& assetReg = AssetManager::Get().GetEditorAssetRegistry()->GetAssetMap();
+			if( asset == nullptr )
+			{
+				SAT_CORE_INFO( "Found an asset that exists in the system filesystem, however not in the asset registry, creating new asset." );
+
+				auto type = AssetTypeFromExtension( filepathString );
+				auto id = AssetManager::Get().CreateAsset( type, AssetRegistryType::Editor );
+				asset = AssetManager::Get().FindAsset( id, AssetRegistryType::Editor );
+
+				asset->SetPath( rEntry.path() );
+
+				FileChanged = true;
+			}
+		}
+
+		if( FileChanged )
+		{
+			AssetManager::Get().Save( AssetRegistryType::Editor );
+		}
 	}
 
 }

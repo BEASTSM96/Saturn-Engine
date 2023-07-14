@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Saturn/Core/App.h"
+
 #include "Saturn/Core/UUID.h"
 #include "Saturn/Core/Ref.h"
 #include "Saturn/Core/Memory/Buffer.h"
@@ -129,7 +131,7 @@ namespace Saturn {
 
 	inline AssetType AssetTypeFromExtension( const std::string& str )
 	{
-		if( str == ".png" || str == ".tga" || str == ".jpg" || str == ".jpeg" )
+		if( str == ".png" || str == ".tga" || str == ".jpg" || str == ".jpeg" || str == ".hdr" || str == ".ico" )
 			return AssetType::Texture;
 		else if( str == ".s2d" )
 			return AssetType::Audio;
@@ -190,7 +192,14 @@ namespace Saturn {
 		//      p must be an absolute path.
 		void SetPath( std::filesystem::path p )
 		{
-			auto base = Project::GetActiveProject()->GetRootDir();
+			std::filesystem::path base = "";
+			
+			// TODO: [GetRootContentDir] Change GetRootContentDir to return the actual path and not the path with the asset registry.
+			if( IsFlagSet( AssetFlag::Editor ) )
+				base = Application::Get().GetRootContentDir().parent_path().parent_path();
+			else
+				base = Project::GetActiveProject()->GetRootDir();
+
 			Path = std::filesystem::relative( p, base );
 
 			auto CopyPath = Path;

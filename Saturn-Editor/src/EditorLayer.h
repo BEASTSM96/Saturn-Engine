@@ -75,6 +75,7 @@ namespace Saturn {
 		bool m_ShowUserSettings = false;
 
 		void HotReloadGame();
+		void CheckMissingEditorAssetRefs();
 
 	private:
 		TitleBar* m_TitleBar;
