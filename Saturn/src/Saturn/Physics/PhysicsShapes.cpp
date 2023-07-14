@@ -32,8 +32,14 @@
 #include "PhysicsAuxiliary.h"
 #include "PhysicsFoundation.h"
 #include "PhysicsCooking.h"
+#include "Saturn/Asset/PhysicsMaterialAsset.h"
+#include "Saturn/Asset/AssetManager.h"
 
 namespace Saturn {
+
+	static AssetID s_DefaultPhysicsMaterial = 13151293699070629621;
+
+	//////////////////////////////////////////////////////////////////////////
 
 	void PhysicsShape::Detach( physx::PxRigidActor& rActor )
 	{
@@ -67,12 +73,22 @@ namespace Saturn {
 		BoxColliderComponent& bcc = m_Entity.GetComponent<BoxColliderComponent>();
 		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
 
+		const Ref<StaticMesh>& mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
+
 		glm::vec3 size = bcc.Extents;
 		glm::vec3 scale = transform.Scale;
 
 		glm::vec3 halfSize = size / 2.0f;
 
-		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+		Ref<PhysicsMaterialAsset> materialAsset = nullptr;
+		physx::PxMaterial* mat = nullptr;
+
+		if( mesh->GetPhysicsMaterial() == 0 || mesh->GetPhysicsMaterial() == s_DefaultPhysicsMaterial )
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+		else
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( mesh->GetPhysicsMaterial() );
+			
+		mat = &materialAsset->GetMaterial();
 
 		physx::PxBoxGeometry BoxGeometry = physx::PxBoxGeometry( halfSize.x, halfSize.y, halfSize.z );
 		physx::PxShape* pShape = physx::PxRigidActorExt::createExclusiveShape( rActor, BoxGeometry, *mat );
@@ -107,6 +123,8 @@ namespace Saturn {
 		SphereColliderComponent& scc = m_Entity.GetComponent<SphereColliderComponent>();
 		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
 
+		const Ref<StaticMesh>& mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
+
 		float size = scc.Radius;
 		glm::vec scale = transform.Scale;
 
@@ -115,7 +133,16 @@ namespace Saturn {
 
 		float halfSize = size / 2.0f;
 
-		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+		Ref<PhysicsMaterialAsset> materialAsset = nullptr;
+		physx::PxMaterial* mat = nullptr;
+
+		if( mesh->GetPhysicsMaterial() == 0 || mesh->GetPhysicsMaterial() == s_DefaultPhysicsMaterial )
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+		else
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( mesh->GetPhysicsMaterial() );
+
+		mat = &materialAsset->GetMaterial();
+
 
 		physx::PxSphereGeometry SphereGoemetry( halfSize );
 
@@ -148,6 +175,8 @@ namespace Saturn {
 		CapsuleColliderComponent& cap = m_Entity.GetComponent<CapsuleColliderComponent>();
 		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
 
+		const Ref<StaticMesh>& mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
+
 		float size = cap.Radius;
 		float height = cap.Height;
 
@@ -159,7 +188,15 @@ namespace Saturn {
 		if( scale.y != 0.0f )
 			height *= scale.y;
 
-		physx::PxMaterial* mat = PhysicsFoundation::Get().GetPhysics().createMaterial( 1, 1, 1 );
+		Ref<PhysicsMaterialAsset> materialAsset = nullptr;
+		physx::PxMaterial* mat = nullptr;
+
+		if( mesh->GetPhysicsMaterial() == 0 || mesh->GetPhysicsMaterial() == s_DefaultPhysicsMaterial )
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+		else
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( mesh->GetPhysicsMaterial() );
+
+		mat = &materialAsset->GetMaterial();
 
 		float halfHeight = height / 2.0f;
 		physx::PxCapsuleGeometry CapsuleGemetry( size, halfHeight );

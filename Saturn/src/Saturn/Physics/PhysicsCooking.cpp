@@ -39,7 +39,7 @@
 
 namespace Saturn {
 
-	static AssetID s_DefaultPhysicsMaterial = 6021207863585896016;
+	static AssetID s_DefaultPhysicsMaterial = 13151293699070629621;
 
 	PhysicsCooking::PhysicsCooking()
 	{

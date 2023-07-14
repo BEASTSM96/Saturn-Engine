@@ -51,6 +51,7 @@ namespace Saturn {
 		{
 			std::filesystem::path basePath = Application::Get().GetRootContentDir();
 			basePath = basePath.parent_path();
+			basePath = basePath.parent_path();
 			basePath /= rPath;
 
 			return basePath;

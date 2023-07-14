@@ -1122,7 +1122,7 @@ namespace Saturn {
 			if( rEntry.is_directory() )
 				continue;
 
-			std::filesystem::path filepath = std::filesystem::relative( rEntry.path(), AssetPath );
+			std::filesystem::path filepath = std::filesystem::relative( rEntry.path(), AssetPath.parent_path() );
 			auto filepathString = filepath.extension().string();
 
 			if( filepath.extension() == ".sreg" || filepath.extension() == ".eng" )
