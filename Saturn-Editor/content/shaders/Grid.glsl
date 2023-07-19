@@ -64,8 +64,9 @@ void main()
 	float x = grid( vs_Input.TexCoord * scale );
 	
 	vec4 Color = vec4( vec3( 0.2 ), 0.5 ) * ( 1.0 - x );
+
 	FinalColor = Color;
-	
+
 	if( Color.a == 0.0 )
 		discard;
 }

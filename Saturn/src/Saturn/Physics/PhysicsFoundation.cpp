@@ -30,6 +30,7 @@
 #include "PhysicsFoundation.h"
 
 #include "PhysicsAuxiliary.h"
+#include "PhysicsRigidBody.h"
 
 namespace Saturn {
 
@@ -55,7 +56,38 @@ namespace Saturn {
 
 	void PhysicsContact::onContact( const physx::PxContactPairHeader& rPairHeader, const physx::PxContactPair* pPairs, physx::PxU32 Pairs )
 	{
-		SAT_CORE_INFO( "on Contact" );
+		PhysicsRigidBody* A = ( PhysicsRigidBody* ) rPairHeader.actors[ 0 ]->userData;
+		PhysicsRigidBody* B = ( PhysicsRigidBody* ) rPairHeader.actors[ 1 ]->userData;
+
+		if( !A || !B )
+			return;
+
+		auto callCollisonBeginMethod = []( PhysicsRigidBody* A, PhysicsRigidBody* B )
+		{
+			if( A->m_OnMeshHit )
+				A->OnCollisionHit( B->GetEntity() );
+			
+			if( B->m_OnMeshHit )
+				B->OnCollisionHit( A->GetEntity() );
+		};
+
+		auto callCollisonExitMethod = []( PhysicsRigidBody* A, PhysicsRigidBody* B )
+		{
+			if( A->m_OnMeshExit )
+				A->OnCollisionExit( B->GetEntity() );
+
+			if( B->m_OnMeshExit )
+				B->OnCollisionExit( A->GetEntity() );
+		};
+
+		if( pPairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH ) 
+		{
+			callCollisonBeginMethod( A, B );
+		} 
+		else if( pPairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH ) 
+		{
+			callCollisonExitMethod( A, B );
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////

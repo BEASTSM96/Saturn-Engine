@@ -78,6 +78,7 @@ namespace Saturn {
 		m_Registry.clear();
 	}
 
+	// TODO: We don't want to search for the main camera entity every frame.
 	Entity Scene::GetMainCameraEntity()
 	{
 		auto view = GetAllEntitiesWith<CameraComponent>();

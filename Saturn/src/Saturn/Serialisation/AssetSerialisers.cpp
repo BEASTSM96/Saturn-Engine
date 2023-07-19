@@ -440,11 +440,11 @@ namespace Saturn {
 		OldAssetData.Name = rAsset->Name;
 
 		rAsset = materialAsset;
-		rAsset->ID   = OldAssetData.ID;
-		rAsset->Type = OldAssetData.Type;
+		rAsset->ID    = OldAssetData.ID;
+		rAsset->Type  = OldAssetData.Type;
 		rAsset->Flags = OldAssetData.Flags;
-		rAsset->Path = OldAssetData.Path;
-		rAsset->Name = OldAssetData.Name;
+		rAsset->Path  = OldAssetData.Path;
+		rAsset->Name  = OldAssetData.Name;
 	}
 
 	bool MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
