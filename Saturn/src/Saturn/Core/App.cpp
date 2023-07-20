@@ -98,7 +98,7 @@ namespace Saturn {
 		{
 			SAT_PF_FRAME("Master Thread");
 
-			Window::Get().Render();
+			Window::Get().Update();
 		
 			for( auto&& fn : m_MainThreadQueue )
 				fn();

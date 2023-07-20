@@ -256,7 +256,7 @@ namespace Saturn {
 		glfwSetWindowTitle( m_Window, m_Title.c_str() );
 	}
 
-	void Window::Render()
+	void Window::Update()
 	{
 		if( !Application::Get().Running() )
 			return;
@@ -274,7 +274,7 @@ namespace Saturn {
 			m_PendingMinimize = false;
 		}
 
-		if ( m_PendingMaximized )
+		if( m_PendingMaximized )
 		{
 			glfwMaximizeWindow( m_Window );
 			

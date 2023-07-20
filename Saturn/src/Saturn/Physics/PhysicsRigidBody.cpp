@@ -102,7 +102,7 @@ namespace Saturn {
 			case Saturn::ShapeType::TriangleMesh: 
 			{
 				// PhysX requires all non-kinematic dynamic rigid bodies with the flag eSIMULATION_SHAPE to be kinematic.
-				RigidbodyComponent& rb = m_Entity.GetComponent<RigidbodyComponent>();
+				auto& rb = m_Entity.GetComponent<RigidbodyComponent>();
 				rb.IsKinematic = true;
 
 				SetKinematic( true );

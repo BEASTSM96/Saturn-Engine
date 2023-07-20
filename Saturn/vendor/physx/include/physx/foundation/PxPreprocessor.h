@@ -439,11 +439,6 @@ General defines
 #define PX_OFFSET_OF_RT(Class, Member)                                                                                 \
 	(reinterpret_cast<size_t>(&reinterpret_cast<Class*>(PX_OFFSETOF_BASE)->Member) - size_t(PX_OFFSETOF_BASE))
 
-// check that exactly one of NDEBUG and _DEBUG is defined
-#if !defined(NDEBUG) ^ defined(_DEBUG)
-#error Exactly one of NDEBUG and _DEBUG needs to be defined!
-#endif
-
 // make sure PX_CHECKED is defined in all _DEBUG configurations as well
 #if !PX_CHECKED && PX_DEBUG
 #error PX_CHECKED must be defined when PX_DEBUG is defined

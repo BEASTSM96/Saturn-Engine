@@ -69,7 +69,7 @@ namespace Saturn {
 		void Restore();
 		void SetTitle( const std::string& title );
 
-		void Render();
+		void Update();
 
 		void Show();
 		void RemoveBorder();
