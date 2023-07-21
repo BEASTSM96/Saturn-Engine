@@ -73,10 +73,14 @@ namespace Saturn {
 
 		void DrawRootFolder( CBViewMode type, bool open = false );
 
+		void AssetsPopupContextMenu();
+		void ScriptsPopupContextMenu();
+
 	private: // Editor Content
 		void EdDrawRootFolder( CBViewMode type, bool open = false );
 		void EdDrawAssetsFolderTree();
 		void EdSetPath();
+
 
 	private:
 		std::filesystem::path m_CurrentPath;

@@ -351,6 +351,8 @@ namespace SaturnBuildTool.Tools
                         }
                     }
                 }
+
+                sr.Close();
             }
             catch(Exception e) 
             {
