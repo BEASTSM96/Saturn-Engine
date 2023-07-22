@@ -35,6 +35,7 @@ namespace SaturnBuildTool
         private int NumTasksFailed = 0;
 
         private List<string> FilesCompiling = new List<string>();
+        private List<List<string>> FilesPerThread = new List<List<string>>();
         private List<bool> ThreadsCompleted = new List<bool>();
 
         private bool IsRebuild = false;
@@ -114,9 +115,17 @@ namespace SaturnBuildTool
             FileCache = FileCache.Load(CacheLocation);
         }
 
-        private void CompileFiles_ForThread(object state) 
+        private void CompileFiles_ForThread(object index) 
         {
-            foreach (string file in SourceFiles)
+            int ThreadIndex = (int)index;
+            List<string> Files;
+
+            lock (new object())
+            {
+                Files = FilesPerThread[ThreadIndex];
+            }
+
+            foreach (string file in Files)
             {
                 if (FilesCompiling.Contains(file))
                     continue;
@@ -166,7 +175,7 @@ namespace SaturnBuildTool
                 }
             }
 
-            ThreadsCompleted.Add(true);
+            ThreadsCompleted[ThreadIndex] = true;
         }
 
         private bool CompileFiles() 
@@ -180,12 +189,20 @@ namespace SaturnBuildTool
             {
                 ThreadPool.SetMaxThreads(threadCount, threadCount);
 
+                // Divide the files into separate lists for each thread.
                 for (int i = 0; i < threadCount; i++)
                 {
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(CompileFiles_ForThread));
+                    int start = i * (SourceFiles.Count / threadCount);
+                    int end = (i == threadCount - 1) ? SourceFiles.Count : i + 1 * (SourceFiles.Count / threadCount);
+
+                    List<string> filesForThread = new List<string>( SourceFiles.GetRange( start, end - start ) );
+                    FilesPerThread.Add(filesForThread);
+                    ThreadsCompleted.Add(false);
+
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(CompileFiles_ForThread), i);
                 }
 
-                while (ThreadsCompleted.Count < threadCount)
+                while (ThreadsCompleted.Contains(false))
                 {
                     // Wait
                 }
