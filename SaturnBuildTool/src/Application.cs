@@ -34,7 +34,6 @@ namespace SaturnBuildTool
 
         private int NumTasksFailed = 0;
 
-        private List<string> FilesCompiling = new List<string>();
         private List<List<string>> FilesPerThread = new List<List<string>>();
         private List<bool> ThreadsCompleted = new List<bool>();
 
@@ -127,16 +126,11 @@ namespace SaturnBuildTool
 
             foreach (string file in Files)
             {
-                if (FilesCompiling.Contains(file))
-                    continue;
-
                 // We are only building c++ files.
                 if (!FileCache.IsCppFile(file))
                 {
                     continue;
                 }
-
-                FilesCompiling.Add(file);
 
                 // Only compile the file if it has not be changed.
                 FileCache.FilesInCache.TryGetValue(file, out DateTime LastTime);
@@ -187,6 +181,8 @@ namespace SaturnBuildTool
 
             if (threadCount > 1)
             {
+                Console.WriteLine( String.Format( "Building with {0} threads", threadCount ) );
+
                 ThreadPool.SetMaxThreads(threadCount, threadCount);
 
                 // Divide the files into separate lists for each thread.

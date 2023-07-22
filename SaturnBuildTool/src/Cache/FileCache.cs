@@ -152,7 +152,7 @@ namespace SaturnBuildTool.Cache
                 if (long.TryParse(time, out long writeTime))
                 {
                     DateTime dt = DateTime.FromBinary(writeTime);
-                    fc.FilesToCache.Add(filePath, dt);
+                    fc.FilesInCache.Add(filePath, dt);
                 }
                 else
                 {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 // This file does need a rework.
 // When we compile we should have the Worker thread generate the file information, but we make sure that we don't write the to file.
@@ -616,7 +617,7 @@ namespace SaturnBuildTool.Tools
                 return false;
             }
 
-            if (!CommandQueue.ContainsKey(HeaderFilepath))
+            if( !CommandQueue.ContainsKey(HeaderFilepath) )
             {
                 Command cmd = new Command
                 {
@@ -624,17 +625,16 @@ namespace SaturnBuildTool.Tools
                     GenFilepath = GenFilepath
                 };
 
-                try
+                if( !CommandQueue.ContainsKey( HeaderFilepath ) )
                 {
-                    CommandQueue.Add(HeaderFilepath, cmd);
+                    try
+                    {
+                        CommandQueue.Add(HeaderFilepath, cmd);
+                    }
+                    catch (Exception e)
+                    {
+                    }
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-            else
-            {
             }
 
             if (!File.Exists(GenFilepath)) 
