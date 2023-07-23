@@ -140,6 +140,7 @@ namespace Saturn {
 		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate( "127.0.0.1", 5425, 1 );
 		return m_Pvd->connect( *transport, physx::PxPvdInstrumentationFlag::eALL );
 #endif
+		return true;
 	}
 
 	void PhysicsFoundation::DisconnectPVD()

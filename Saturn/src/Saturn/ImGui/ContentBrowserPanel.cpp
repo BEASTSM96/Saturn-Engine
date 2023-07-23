@@ -64,7 +64,7 @@ namespace Saturn {
 	static std::filesystem::path s_pAssetsDirectory = "Assets";
 	static std::filesystem::path s_pScriptsDirectory = "Scripts";
 
-	/* The root dir, i.e. C:\\MyProjects\Project1\\Assets */
+	/* The root dir, i.e. C:\\MyProjects\\Project1\\Assets */
 	static std::filesystem::path s_RootDirectory = "Scripts";
 
 	static bool s_OpenScriptsPopup = false;

@@ -64,8 +64,7 @@ namespace Saturn {
 		ProjectSerialiser ps;
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 
-		if( !Project::GetActiveProject() )
-			SAT_CORE_ASSERT( false, "No project was given." );
+		SAT_CORE_ASSERT( Project::GetActiveProject(), "No project was given." );
 
 		AssetManager* pAssetManager = new AssetManager();
 

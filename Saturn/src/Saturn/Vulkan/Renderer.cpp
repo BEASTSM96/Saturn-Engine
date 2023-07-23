@@ -368,14 +368,12 @@ namespace Saturn {
 		VK_CHECK( vkResetFences( LogicalDevice, 1, &m_FlightFences[ m_FrameCount ] ) );
 
 		// Acquire next image.
-		uint32_t ImageIndex;
-		if( !VulkanContext::Get().GetSwapchain().AcquireNextImage( UINT32_MAX, m_AcquireSemaphore, VK_NULL_HANDLE, &ImageIndex ) )
-			SAT_CORE_ASSERT( false );
+		uint32_t ImageIndex = -1;
+		SAT_CORE_ASSERT( VulkanContext::Get().GetSwapchain().AcquireNextImage( UINT32_MAX, m_AcquireSemaphore, VK_NULL_HANDLE, &ImageIndex ), "AcquireNextImage failed" );
 
 		m_ImageIndex = ImageIndex;
 
-		if( ImageIndex == UINT32_MAX || ImageIndex == 3435973836 )
-			SAT_CORE_ASSERT( false );
+		SAT_CORE_ASSERT( ImageIndex != UINT32_MAX || ImageIndex != 3435973836 );
 
 		m_BeginFrameTime = m_BeginFrameTimer.ElapsedMilliseconds();
 	}

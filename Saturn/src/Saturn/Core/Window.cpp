@@ -390,10 +390,10 @@ namespace Saturn {
 						const int borderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
 						const int borderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
 
-						params.rgrc[ 0 ].left += borderX;
-						params.rgrc[ 0 ].top  += borderX;
-						params.rgrc[ 0 ].right -= borderY;
-						params.rgrc[ 0 ].bottom -= borderY;
+						params.rgrc->left += borderX;
+						params.rgrc->top += borderX;
+						params.rgrc->right -= borderY;
+						params.rgrc->bottom -= borderY;
 
 						return WVR_VALIDRECTS;
 					}

@@ -189,7 +189,6 @@ namespace Saturn {
 		// Attachment Description
 
 		std::vector< VkAttachmentDescription > AttachmentDescriptions;
-		VkAttachmentDescription				   MSAA_AttachmentDescriptions;
 		uint32_t MSAA_AttachmentIndex = 0;
 
 		for ( auto attachment : m_PassSpec.Attachments )

@@ -327,8 +327,7 @@ namespace Saturn {
 
 	void Shader::WriteAllUBs( const Ref< DescriptorSet >& rSet )
 	{
-		if( !rSet )
-			SAT_CORE_ASSERT( false, "DescriptorSet is null!" );
+		SAT_CORE_ASSERT( rSet, "DescriptorSet is null!" );
 
 		// Iterate over uniform buffers
 		for( auto& [set, descriptorSet] : m_DescriptorSets )

@@ -35,10 +35,8 @@ namespace Saturn::Auxiliary {
 
 	AppData::AppData()
 	{
-		PWSTR Path;
-
-		if( SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &Path ) != S_OK )
-			SAT_CORE_ASSERT( false, "Failed to find Roaming app data" );
+		PWSTR Path = 0;
+		SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &Path );
 
 		std::wstring filepath = Path;
 		std::replace( filepath.begin(), filepath.end(), L'\\', L'/' );

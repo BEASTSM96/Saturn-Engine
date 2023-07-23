@@ -221,8 +221,7 @@ namespace Saturn {
 	{
 		m_Type = ShapeType::TriangleMesh;
 
-		if( !m_Entity.HasComponent<StaticMeshComponent>() )
-			SAT_CORE_ASSERT( "Entity does not have a static mesh component!" );
+		SAT_CORE_ASSERT( m_Entity.HasComponent<StaticMeshComponent>(), "Entity does not have a static mesh component!" );
 
 		m_Mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
 	}
@@ -265,8 +264,7 @@ namespace Saturn {
 	{
 		m_Type = ShapeType::ConvexMesh;
 
-		if( !m_Entity.HasComponent<StaticMeshComponent>() )
-			SAT_CORE_ASSERT( "Entity does not have a static mesh component!" );
+		SAT_CORE_ASSERT( m_Entity.HasComponent<StaticMeshComponent>(), "Entity does not have a static mesh component!" );
 
 		m_Mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
 	}

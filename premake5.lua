@@ -198,7 +198,7 @@ project "Saturn"
 		filter "configurations:Release"
 			defines "SAT_RELEASE"
 			runtime "Release"
-			optimize "on"
+		--	optimize "on"
 
 		filter "configurations:Dist"
 			defines "SAT_DIST"
@@ -214,7 +214,22 @@ project "Saturn"
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/glslang.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/SPIRV-Tools.lib",
-				"Saturn/vendor/shaderc/bin/Release-Windows/glslc.lib"
+				"Saturn/vendor/shaderc/bin/Release-Windows/glslc.lib",
+
+				"Saturn/vendor/physx/bin/Release/LowLevel_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/LowLevelAABB_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/LowLevelDynamics_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysX_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXCharacterKinematic_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXCommon_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXCooking_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXExtensions_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXFoundation_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXPvdSDK_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXTask_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/PhysXVehicle_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/SceneQuery_static_64.lib",
+				"Saturn/vendor/physx/bin/Release/SimulationController_static_64.lib"
 			}
 
 ---------------------------------------------------------------------------------------------------------------------------
@@ -298,7 +313,7 @@ project "Saturn-Editor"
 	filter "configurations:Release"
 		defines "SAT_RELEASE"
 		runtime "Release"
-		optimize "on"
+	--	optimize "on"
 
 		postbuildcommands 
 		{ 

@@ -64,7 +64,7 @@ namespace Saturn {
 
 	void PhysicsMaterialAssetViewer::DrawInternal()
 	{
-		ImGui::PushID( m_MaterialAsset->ID );
+		ImGui::PushID( (int)m_MaterialAsset->ID );
 
 		ImGui::Begin( "Physics Material", &m_Open );
 

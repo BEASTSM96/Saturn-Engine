@@ -493,8 +493,7 @@ namespace Saturn {
 	// Create a texture 2D
 	void Texture2D::CreateTextureImage( bool flip )
 	{
-		if( !std::filesystem::exists( m_Path ) )
-			SAT_CORE_ASSERT( false, "Path does not exist!" );
+		SAT_CORE_ASSERT( std::filesystem::exists( m_Path ), "Path does not exist!" );
 
 		int Width, Height, Channels;
 

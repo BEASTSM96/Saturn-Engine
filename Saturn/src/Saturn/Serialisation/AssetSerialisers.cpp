@@ -383,7 +383,7 @@ namespace Saturn {
 							continue;
 
 						std::string name = input[ "Name" ].as<std::string>();
-						size_t pinID = input[ "Input" ].as<size_t>();
+						int pinID = input[ "Input" ].as<int>();
 
 						// No need to do this right now.
 						//ed::NodeId nodeID = node[ "Node" ].as<ed::NodeId>();
@@ -391,7 +391,7 @@ namespace Saturn {
 						PinKind kind = (PinKind) input[ "Kind" ].as<int>();
 						PinType type = StringToPinType( input[ "Type" ].as<std::string>() );
 
-						Pin pin( pinID, name.c_str(), type, (int)(size_t)pNewNode->ID );
+						Pin pin( pinID, name.c_str(), type, pNewNode->ID );
 						pin.Kind = kind;
 						pin.Node = pNewNode;
 
