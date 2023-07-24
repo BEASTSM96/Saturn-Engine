@@ -258,6 +258,7 @@ namespace Saturn {
 				}
 
 				// Write to disk, create file.
+				// TODO: (Asset) Fix this.
 				struct
 				{
 					UUID ID;

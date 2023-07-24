@@ -246,6 +246,31 @@ namespace Saturn {
 				auto asset = AssetManager::Get().FindAsset( id );
 
 				asset->SetPath( m_CurrentPath / "Untitled Material.smaterial" );
+				Ref<MaterialAsset> material = asset;
+				material = Ref<MaterialAsset>::Create( nullptr );
+
+				// TODO: (Asset) Fix this.
+				struct
+				{
+					UUID ID;
+					AssetType Type;
+					uint32_t Flags;
+					std::filesystem::path Path;
+					std::string Name;
+				} OldAssetData = {};
+
+				OldAssetData.ID = asset->ID;
+				OldAssetData.Type = asset->Type;
+				OldAssetData.Flags = asset->Flags;
+				OldAssetData.Path = asset->Path;
+				OldAssetData.Name = asset->Name;
+
+				asset = material;
+				asset->ID = OldAssetData.ID;
+				asset->Type = OldAssetData.Type;
+				asset->Flags = OldAssetData.Flags;
+				asset->Path = OldAssetData.Path;
+				asset->Name = OldAssetData.Name;
 
 				MaterialAssetSerialiser mas;
 				mas.Serialise( asset );

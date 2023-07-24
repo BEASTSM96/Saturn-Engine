@@ -424,6 +424,7 @@ namespace Saturn {
 			pNodeEditor->Reload();
 		}
 
+		// TODO: (Asset) Fix this.
 		struct
 		{
 			UUID ID;
@@ -508,6 +509,7 @@ namespace Saturn {
 		materialAsset->SetRoughness( val );
 		materialAsset->SetRoughnessMap( texture );
 	
+		// TODO: (Asset) Fix this.
 		struct
 		{
 			UUID ID;
@@ -621,6 +623,7 @@ namespace Saturn {
 
 		prefabAsset->m_Entity = RootEntity;
 
+		// TODO: (Asset) Fix this.
 		struct
 		{
 			UUID ID;
@@ -707,6 +710,7 @@ namespace Saturn {
 		mesh->SetAttachedShape( (ShapeType)shapeType );
 		mesh->SetPhysicsMaterial( physicsMaterial );
 
+		// TODO: (Asset) Fix this.
 		struct
 		{
 			UUID ID;
@@ -786,6 +790,7 @@ namespace Saturn {
 		sound->SetRawPath( realPath );
 		sound->Load();
 
+		// TODO: (Asset) Fix this.
 		struct
 		{
 			UUID ID;
@@ -872,6 +877,7 @@ namespace Saturn {
 
 		auto material = Ref<PhysicsMaterialAsset>::Create( staticFriction, dynamicFriction, restitution, (PhysicsMaterialFlags)flags );
 
+		// TODO: (Asset) Fix this.
 		struct
 		{
 			UUID ID;
