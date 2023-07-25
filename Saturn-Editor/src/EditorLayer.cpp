@@ -227,10 +227,10 @@ namespace Saturn {
 		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 
 		/*
-		Ref<Asset> asset = AssetRegistry::Get().FindAsset( "Assets\\Sound\\Music_MainThemePiano.s2d" );
-		Ref<Sound2D> music = AssetRegistry::Get().GetAssetAs<Sound2D>( asset->ID );
+		Ref<Asset> asset = AssetManager::Get().FindAsset( "Assets\\Sound\\Music_MainThemePiano.s2d" );
+		Ref<Sound2D> music = AssetManager::Get().GetAssetAs<Sound2D>( asset->ID );
 		music->Loop();
-		music->TryPlay();
+		music->Play();
 		*/
 	}
 
@@ -247,7 +247,6 @@ namespace Saturn {
 		m_TitleBar = nullptr;
 	
 		m_PanelManager = nullptr;
-		//JoltPhysicsFoundation::Get().Terminate();
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )

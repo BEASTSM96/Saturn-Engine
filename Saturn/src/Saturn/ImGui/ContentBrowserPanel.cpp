@@ -739,7 +739,7 @@ namespace Saturn {
 				if( s_GLTFBinPath == "" )
 				{
 					s_GLTFBinPath = m_ImportMeshPath;
-					s_GLTFBinPath.replace_extension( ".glb" );
+					s_GLTFBinPath.replace_extension( ".bin" );
 				}
 
 				ImGui::BeginVertical( "##gltfinput" );

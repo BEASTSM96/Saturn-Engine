@@ -113,7 +113,7 @@ namespace Saturn {
 
 			auto& mc = entity.GetComponent< StaticMeshComponent >();
 
-			if(mc.Mesh)
+			if( mc.Mesh )
 				rEmitter << YAML::Key << "Asset" << YAML::Value << mc.Mesh->ID;
 			else
 				rEmitter << YAML::Key << "Asset" << YAML::Value << 0;
