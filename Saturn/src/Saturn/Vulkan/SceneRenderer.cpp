@@ -838,6 +838,40 @@ namespace Saturn {
 				Auxiliary::EndTreeNode();
 			}
 
+			/*
+			if( Auxiliary::TreeNode( "Instanced Meshes", false ) )
+			{
+				ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
+
+				if( ImGui::BeginTable( "##FileTable", 2, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y ) ) )
+				{
+					ImGui::TableSetupColumn( "Mesh ID" );
+					ImGui::TableSetupColumn( "Count" );
+
+					ImGui::TableHeadersRow();
+
+					int TableRow = 0;
+
+					for( auto&& [id, value] : m_RendererData.InstancedMeshes )
+					{
+						TableRow++;
+
+						ImGui::TableNextRow();
+
+						ImGui::TableSetColumnIndex( 0 );
+						ImGui::Selectable( std::to_string( id ).c_str(), false );
+
+						ImGui::TableSetColumnIndex( 1 );
+						ImGui::Selectable( std::to_string( value.Count ).c_str(), false );
+					}
+
+					ImGui::EndTable();
+				}
+
+				Auxiliary::EndTreeNode();
+			}
+			*/
+
 			if( Auxiliary::TreeNode( "Bloom settings", false ) )
 			{
 				static int index = 0;
@@ -867,8 +901,23 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		auto& submeshes = mesh->Submeshes();
-		for( size_t i = 0; i < submeshes.size(); i++ )
-			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) i } );
+		for( size_t i = 0; i < submeshes.size(); i++ ) 
+		{
+			// TODO: Fix this
+			auto id = mesh->ID;
+
+			if( m_RendererData.InstancedMeshes.find( id ) == m_RendererData.InstancedMeshes.end() )
+			{
+				m_RendererData.InstancedMeshes[ id ] = {};
+			}
+
+			if( m_RendererData.InstancedMeshes[ id ].find( i ) == m_RendererData.InstancedMeshes[ id ].end() )
+			{
+				m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) i } );
+			}
+
+			m_RendererData.InstancedMeshes[ id ][ i ].Count++;
+		}
 
 		m_ShadowMapDrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) 0 } );
 	}
@@ -1040,10 +1089,12 @@ namespace Saturn {
 			//StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, sizeof( u_Lights ) );
 			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, 16ull + sizeof( PointLight ) * u_Lights.nbLights );
 
+			uint32_t count = m_RendererData.InstancedMeshes[ Cmd.Mesh->ID ][ Cmd.SubmeshIndex ].Count;
+
 			// Render
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
 				m_RendererData.StaticMeshPipeline,
-				Cmd.Mesh, m_RendererData.StorageBufferSet, Cmd.Transform, Cmd.SubmeshIndex );
+				Cmd.Mesh, m_RendererData.StorageBufferSet, Cmd.Transform, Cmd.SubmeshIndex, count );
 		}
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
@@ -1691,6 +1742,7 @@ namespace Saturn {
 		m_DrawList.clear();
 		m_ShadowMapDrawList.clear();
 		m_ScheduledFunctions.clear();
+		m_RendererData.InstancedMeshes.clear();
 	}
 
 	void SceneRenderer::SetCamera( const RendererCamera& Camera )
