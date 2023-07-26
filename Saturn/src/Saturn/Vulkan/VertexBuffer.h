@@ -166,6 +166,7 @@ namespace Saturn {
 		VertexBuffer() : m_pData( nullptr ) { }
 
 		VertexBuffer( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage = 0 );
+		VertexBuffer( VkDeviceSize Size, VkBufferUsageFlags Usage = 0 );
 		
 		VertexBuffer( const VertexBuffer& ) = delete;
 

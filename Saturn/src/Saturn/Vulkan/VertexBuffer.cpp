@@ -44,6 +44,13 @@ namespace Saturn {
 		CreateBuffer();
 	}
 
+	// Set the size but do not create the buffer.
+	VertexBuffer::VertexBuffer( VkDeviceSize Size, VkBufferUsageFlags Usage /*= 0 */ )
+	{
+		m_Size = Size;
+		m_pData = nullptr;
+	}
+
 	VertexBuffer::~VertexBuffer()
 	{
 		Terminate();
