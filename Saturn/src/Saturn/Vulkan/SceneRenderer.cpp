@@ -108,6 +108,15 @@ namespace Saturn {
 		m_RendererData.AOCompositeTimer.Reset();
 		m_RendererData.AOCompositeTimer.Stop();
 
+		const size_t TransformCount = 1024 * 10;
+		m_RendererData.SubmeshTransformData.resize( MAX_FRAMES_IN_FLIGHT );
+		
+		for( uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		{
+			m_RendererData.SubmeshTransformData[ i ].VertexBuffer = Ref<VertexBuffer>::Create( sizeof( TransformBufferData ) * TransformCount );
+			m_RendererData.SubmeshTransformData[ i ].pData = new TransformBufferData[ TransformCount ];
+		}
+
 		//////////////////////////////////////////////////////////////////////////
 	}
 
@@ -184,6 +193,12 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Tangent" },
 			{ ShaderDataType::Float3, "a_Binormal" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
+		PipelineSpec.InstanceLayout = {
+			{ ShaderDataType::Float4, "a_TransformBufferR1" },
+			{ ShaderDataType::Float4, "a_TransformBufferR2" },
+			{ ShaderDataType::Float4, "a_TransformBufferR3" },
+			{ ShaderDataType::Float4, "a_TransformBufferR4" },
 		};
 		PipelineSpec.CullMode = CullMode::Back;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
@@ -900,12 +915,12 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
+		auto& id = mesh->ID;
+
 		auto& submeshes = mesh->Submeshes();
 		for( size_t i = 0; i < submeshes.size(); i++ ) 
 		{
 			// TODO: Fix this
-			auto id = mesh->ID;
-
 			if( m_RendererData.InstancedMeshes.find( id ) == m_RendererData.InstancedMeshes.end() )
 			{
 				m_RendererData.InstancedMeshes[ id ] = {};
@@ -918,6 +933,20 @@ namespace Saturn {
 
 			m_RendererData.InstancedMeshes[ id ][ i ].Count++;
 		}
+
+		auto& data = m_RendererData.MeshTransforms[ id ].Data.emplace_back();
+
+		data.TransfromBufferR[ 0 ] = 
+		{ transform[ 0 ][ 0 ], transform[ 1 ][ 0 ], transform[ 2 ][ 0 ], transform[ 3 ][ 0 ] };
+
+		data.TransfromBufferR[ 1 ] = 
+		{ transform[ 0 ][ 1 ], transform[ 1 ][ 1 ], transform[ 2 ][ 1 ], transform[ 3 ][ 1 ] };
+
+		data.TransfromBufferR[ 2 ] = 
+		{ transform[ 0 ][ 2 ], transform[ 1 ][ 2 ], transform[ 2 ][ 2 ], transform[ 3 ][ 2 ] };
+
+		data.TransfromBufferR[ 3 ] = 
+		{ transform[ 0 ][ 3 ], transform[ 1 ][ 3 ], transform[ 2 ][ 3 ], transform[ 3 ][ 3 ] };
 
 		m_ShadowMapDrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) 0 } );
 	}
@@ -1094,7 +1123,7 @@ namespace Saturn {
 			// Render
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
 				m_RendererData.StaticMeshPipeline,
-				Cmd.Mesh, m_RendererData.StorageBufferSet, Cmd.Transform, Cmd.SubmeshIndex, count );
+				Cmd.Mesh, m_RendererData.StorageBufferSet, Cmd.Transform, Cmd.SubmeshIndex, count, nullptr );
 		}
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
@@ -1743,6 +1772,7 @@ namespace Saturn {
 		m_ShadowMapDrawList.clear();
 		m_ScheduledFunctions.clear();
 		m_RendererData.InstancedMeshes.clear();
+		m_RendererData.MeshTransforms.clear();
 	}
 
 	void SceneRenderer::SetCamera( const RendererCamera& Camera )
@@ -1828,6 +1858,14 @@ namespace Saturn {
 		BRDFLUT_Texture = nullptr;
 
 		SceneEnvironment = nullptr;
+
+		for( auto& buffer : SubmeshTransformData )
+			delete[] buffer.pData;
+
+		SubmeshTransformData.clear();
+
+		MeshTransforms.clear();
+		InstancedMeshes.clear();
 
 		ShaderLibrary::Get().Shutdown();
 	}

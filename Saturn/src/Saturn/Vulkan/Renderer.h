@@ -53,7 +53,7 @@ namespace Saturn {
 		// Static mesh
 		void RenderSubmesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< StaticMesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
 
-		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex, uint32_t count );
+		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex, uint32_t count, Ref<VertexBuffer> transformData );
 
 		const std::vector<VkWriteDescriptorSet>& GetStorageBufferWriteDescriptors( Ref<StorageBufferSet>& rStorageBufferSet, Ref<MaterialAsset>& rMaterialAsset );
 

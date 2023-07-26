@@ -64,6 +64,7 @@ namespace Saturn {
 		Ref<Pass> RenderPass;
 		std::string Name = "Pipeline";
 		VertexBufferLayout VertexLayout;
+		VertexBufferLayout InstanceLayout;
 		uint32_t Width = 0, Height = 0;
 		bool UseDepthTest = false;
 		bool UseStencilTest = false;

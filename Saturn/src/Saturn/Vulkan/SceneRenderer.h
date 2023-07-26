@@ -94,6 +94,25 @@ namespace Saturn {
 		uint32_t Count = 0;
 	};
 
+	// Data that gets sent to the vertex shader
+	struct TransformBufferData
+	{
+		glm::vec4 TransfromBufferR[ 4 ];
+	};
+
+	// For each mesh, what offset are we and how much transform does it have.
+	struct TransformBuffer
+	{
+		uint32_t Offset = 0;
+		std::vector<TransformBufferData> Data;
+	};
+
+	struct SubmeshTransformVB
+	{
+		Ref<VertexBuffer> VertexBuffer;
+		TransformBufferData* pData = nullptr;
+	};
+
 	struct RendererData
 	{
 		void Terminate();
@@ -293,6 +312,12 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		// MESH ID -> SUBMESH INDEX -> KEY
 		std::unordered_map< UUID, std::unordered_map<uint32_t, StaticMeshKey> > InstancedMeshes;
+		
+		// MESH ID -> TRANSFORMS
+		std::unordered_map< UUID, TransformBuffer > MeshTransforms;
+
+		// This holds the entire transform data for each submesh, per frame in flight.
+		std::vector< SubmeshTransformVB > SubmeshTransformData;
 
 		//////////////////////////////////////////////////////////////////////////
 		// SHADERS

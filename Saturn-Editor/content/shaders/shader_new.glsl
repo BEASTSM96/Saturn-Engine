@@ -17,6 +17,12 @@ layout(location = 2) in vec3 a_Tangent;
 layout(location = 3) in vec3 a_Binormal;
 layout(location = 4) in vec2 a_TexCoord;
 
+// I don't really know if we need the last colunm as it's always 0.0, 0.0, 0.0, 1.0. Meaning we could use a mat3
+layout(location = 5) in vec4 a_TransformBufferR1;
+layout(location = 7) in vec4 a_TransformBufferR2;
+layout(location = 8) in vec4 a_TransformBufferR3;
+layout(location = 9) in vec4 a_TransformBufferR4;
+
 layout(binding = 0) uniform Matrices 
 {
 	mat4 ViewProjection;

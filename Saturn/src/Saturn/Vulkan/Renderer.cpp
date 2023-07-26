@@ -259,13 +259,14 @@ namespace Saturn {
 		return m_StorageBufferSets[ m_FrameCount ][ shaderName ];
 	}
 
-	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex, uint32_t count )
+	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex, uint32_t count, Ref<VertexBuffer> transformData )
 	{
 		SAT_PF_EVENT();
 
 		Ref<Shader> Shader = Pipeline->GetShader();
 
 		mesh->GetVertexBuffer()->Bind( CommandBuffer );
+		//transformData->Bind( CommandBuffer );
 		mesh->GetIndexBuffer()->Bind( CommandBuffer );
 		Pipeline->Bind( CommandBuffer );
 
