@@ -172,16 +172,17 @@ namespace Saturn {
 
 		~VertexBuffer();
 		void Terminate();
-		
-
+	
 		void Bind( VkCommandBuffer CommandBuffer );
+		void Bind( VkCommandBuffer CommandBuffer, uint32_t binding, VkDeviceSize* Offsets );
+
+		void Reallocate( void* pData, uint32_t size, uint32_t offset = 0 );
+
 		void Draw( VkCommandBuffer CommandBuffer );
 		void BindAndDraw( VkCommandBuffer CommandBuffer );
 
 	private:
-		
 		void CreateBuffer();
-
 	private:
 		
 		void* m_pData = nullptr;
