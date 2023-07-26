@@ -51,14 +51,14 @@ namespace Saturn {
 	{
 		Entity entity;
 		Ref< StaticMesh > Mesh = nullptr;
-		glm::mat4 Transform;
-		uint32_t SubmeshIndex;
+		uint32_t SubmeshIndex = 0;
+		uint32_t Instances = 0;
 	};
 
 	struct ShadowCascade
 	{
 		Ref< Framebuffer > Framebuffer = nullptr;
-		
+
 		float SplitDepth = 0.0f;
 		glm::mat4 ViewProjection;
 	};
@@ -67,9 +67,9 @@ namespace Saturn {
 	// DirLight
 	struct DirLight
 	{
-		glm::vec3 Direction {};
+		glm::vec3 Direction{};
 		float Padding = 0.0f;
-		glm::vec3 Radiance {};
+		glm::vec3 Radiance{};
 		float Multiplier = 0.0f;
 	};
 
@@ -90,8 +90,23 @@ namespace Saturn {
 
 	struct StaticMeshKey
 	{
-	//	Submesh Submesh;
-		uint32_t Count = 0;
+		AssetID MeshID;
+		// Should we not hold a list of all materials?
+		AssetID MaterialID;
+
+		uint32_t SubmeshIndex;
+
+		StaticMeshKey( AssetID meshID, AssetID materialID, uint32_t submeshIndex ) : MeshID( meshID ), MaterialID( MaterialID ), SubmeshIndex( submeshIndex ) {  }
+
+		bool operator==( const StaticMeshKey& rKey )
+		{
+			return ( MeshID == rKey.MeshID && MaterialID == rKey.MaterialID && SubmeshIndex == rKey.SubmeshIndex );
+		}
+
+		bool operator==( const StaticMeshKey& rKey ) const
+		{
+			return ( MeshID == rKey.MeshID && MaterialID == rKey.MaterialID && SubmeshIndex == rKey.SubmeshIndex );
+		}
 	};
 
 	// Data that gets sent to the vertex shader
@@ -112,6 +127,21 @@ namespace Saturn {
 		Ref<VertexBuffer> VertexBuffer;
 		TransformBufferData* pData = nullptr;
 	};
+}
+
+namespace std {
+
+	template<>
+	struct hash< Saturn::StaticMeshKey >
+	{
+		size_t operator()( const Saturn::StaticMeshKey& rKey ) const
+		{
+			return rKey.MaterialID ^ rKey.MeshID ^ rKey.SubmeshIndex;
+		}
+	};
+}
+
+namespace Saturn {
 
 	struct RendererData
 	{
@@ -310,11 +340,9 @@ namespace Saturn {
 
 		// Instanced Rendering
 		//////////////////////////////////////////////////////////////////////////
-		// MESH ID -> SUBMESH INDEX -> KEY
-		std::unordered_map< UUID, std::unordered_map<uint32_t, StaticMeshKey> > InstancedMeshes;
-		
+		// 		
 		// MESH ID -> TRANSFORMS
-		std::unordered_map< UUID, TransformBuffer > MeshTransforms;
+		std::unordered_map< StaticMeshKey, TransformBuffer > MeshTransforms;
 
 		// This holds the entire transform data for each submesh, per frame in flight.
 		std::vector< SubmeshTransformVB > SubmeshTransformData;
@@ -359,8 +387,6 @@ namespace Saturn {
 		void RenderScene();
 
 		void SetCamera( const RendererCamera& Camera );
-
-		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
 		Ref<Pass> GetGeometryPass() { return m_RendererData.GeometryPass; }
 		const Ref<Pass> GetGeometryPass() const { return m_RendererData.GeometryPass; }
@@ -414,8 +440,8 @@ namespace Saturn {
 		RendererData m_RendererData{};
 		Scene* m_pScene = nullptr;
 
-		std::vector< DrawCommand > m_DrawList;
-		std::vector< DrawCommand > m_ShadowMapDrawList;
+		std::unordered_map< StaticMeshKey, DrawCommand > m_DrawList;
+		std::unordered_map< StaticMeshKey, DrawCommand > m_ShadowMapDrawList;
 		std::vector< DrawCommand > m_SelectedMeshDrawList;
 
 		std::vector< ScheduledFunc > m_ScheduledFunctions;
