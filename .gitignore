@@ -67,7 +67,6 @@ Output-Build.txt
 **/.codelite/
 *.workspace
 premake5
-Titan/Titan.txt
 Saturn/Saturn.txt
 Saturn/vendor/Glad/Glad.txt
 Saturn/vendor/imgui/ImGui.txt
@@ -83,4 +82,3 @@ Saturn/vendor/imgui/ImGui.txt
 .build-dist/
 **/obj
 **/build
-Titan/NodeEditor.json
