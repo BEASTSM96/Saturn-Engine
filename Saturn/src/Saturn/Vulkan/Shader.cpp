@@ -877,7 +877,7 @@ namespace Saturn {
 		shaderc::Compiler       Compiler;
 		shaderc::CompileOptions CompilerOptions;
 
-		// We don't use shaderc_optimization_level_zero, as will remove the uniform names, it took me 6 hours to figure out.
+		// We only use shaderc_optimization_level_zero if not it will remove the uniform names, it took me 6 hours to figure out.
 		CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_zero );
 
 		CompilerOptions.SetWarningsAsErrors();
@@ -885,6 +885,7 @@ namespace Saturn {
 		CompilerOptions.SetTargetEnvironment( shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2 );
 		CompilerOptions.SetTargetSpirv( shaderc_spirv_version_1_5 );
 
+		// TODO: Shader cache and shader hot reloading.
 		Timer CompileTimer;
 		
 		for ( auto&& [key, src] : m_ShaderSources )

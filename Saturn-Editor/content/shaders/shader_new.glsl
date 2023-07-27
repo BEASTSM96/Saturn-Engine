@@ -51,8 +51,6 @@ struct VertexOutput
 
 layout( location = 1 ) out VertexOutput vs_Output;
 
-invariant gl_Position;
-
 void main()
 {
 	mat4 transform = mat4( 
@@ -472,5 +470,6 @@ void main()
 	LightingContribution += m_Params.Albedo * u_Materials.Emissive;
 
 	FinalColor = vec4( iblContribution + LightingContribution, 1.0 );
+
 	OutAlbedo = vec4( m_Params.Albedo, 1.0 );
 }
