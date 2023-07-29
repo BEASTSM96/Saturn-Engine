@@ -17,6 +17,12 @@ layout(location = 2) in vec3 a_Tangent;
 layout(location = 3) in vec3 a_Binormal;
 layout(location = 4) in vec2 a_TexCoord;
 
+// I don't really know if we need the last colunm as it's always 0.0, 0.0, 0.0, 1.0. Meaning we could use a mat3
+layout(location = 5) in vec4 a_TransformBufferR1;
+layout(location = 6) in vec4 a_TransformBufferR2;
+layout(location = 7) in vec4 a_TransformBufferR3;
+layout(location = 8) in vec4 a_TransformBufferR4;
+
 layout(binding = 0) uniform Matrices 
 {
 	mat4 ViewProjection;
@@ -26,11 +32,6 @@ layout(binding = 0) uniform Matrices
 layout(binding = 1) uniform LightData
 {
 	mat4 LightMatrix[4];
-};
-
-layout(push_constant) uniform u_Transform
-{
-	mat4 Transform;
 };
 
 struct VertexOutput 
@@ -52,13 +53,19 @@ layout( location = 1 ) out VertexOutput vs_Output;
 
 void main()
 {
-	vec4 WorldPos = Transform * vec4( a_Position, 1.0 );
+	mat4 transform = mat4( 
+		a_TransformBufferR1.x, a_TransformBufferR2.x, a_TransformBufferR3.x, a_TransformBufferR4.x, 
+		a_TransformBufferR1.y, a_TransformBufferR2.y, a_TransformBufferR3.y, a_TransformBufferR4.y, 
+		a_TransformBufferR1.z, a_TransformBufferR2.z, a_TransformBufferR3.z, a_TransformBufferR4.z, 
+		a_TransformBufferR1.w, a_TransformBufferR2.w, a_TransformBufferR3.w, a_TransformBufferR4.w  );
+
+	vec4 WorldPos = transform * vec4( a_Position, 1.0 );
 
 	vs_Output.Position   = WorldPos.xyz;
 	vs_Output.TexCoord   = vec2( a_TexCoord.x, 1.0 - a_TexCoord.y );
-	vs_Output.Normal = mat3( Transform ) * a_Normal;
+	vs_Output.Normal = mat3( transform ) * a_Normal;
 
-	vs_Output.WorldNormals = mat3( Transform ) * mat3( a_Tangent, a_Binormal, a_Normal );
+	vs_Output.WorldNormals = mat3( transform ) * mat3( a_Tangent, a_Binormal, a_Normal );
 
 	vs_Output.Bionormal = a_Binormal;
 
@@ -72,7 +79,7 @@ void main()
 
 	vs_Output.ViewPosition = vec3( u_Matrices.View * vec4( vs_Output.Position, 1.0 ) );
 
-	gl_Position = u_Matrices.ViewProjection * Transform * vec4( a_Position, 1.0 );
+	gl_Position = u_Matrices.ViewProjection * WorldPos;
 }
 
 #type fragment
@@ -109,7 +116,7 @@ struct PointLight
 
 layout(push_constant) uniform pc_Materials
 {
-	layout(offset = 64) vec3 AlbedoColor;
+	vec3 AlbedoColor;
 	float UseNormalMap;
 	
 	float Metalness;
@@ -463,5 +470,6 @@ void main()
 	LightingContribution += m_Params.Albedo * u_Materials.Emissive;
 
 	FinalColor = vec4( iblContribution + LightingContribution, 1.0 );
+
 	OutAlbedo = vec4( m_Params.Albedo, 1.0 );
 }

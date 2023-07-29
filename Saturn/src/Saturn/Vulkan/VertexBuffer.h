@@ -166,21 +166,23 @@ namespace Saturn {
 		VertexBuffer() : m_pData( nullptr ) { }
 
 		VertexBuffer( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage = 0 );
+		VertexBuffer( VkDeviceSize Size, VkBufferUsageFlags Usage = 0 );
 		
 		VertexBuffer( const VertexBuffer& ) = delete;
 
 		~VertexBuffer();
 		void Terminate();
-		
-
+	
 		void Bind( VkCommandBuffer CommandBuffer );
+		void Bind( VkCommandBuffer CommandBuffer, uint32_t binding, VkDeviceSize* Offsets );
+
+		void Reallocate( void* pData, uint32_t size, uint32_t offset = 0 );
+
 		void Draw( VkCommandBuffer CommandBuffer );
 		void BindAndDraw( VkCommandBuffer CommandBuffer );
 
 	private:
-		
 		void CreateBuffer();
-
 	private:
 		
 		void* m_pData = nullptr;

@@ -44,6 +44,22 @@ namespace Saturn {
 		CreateBuffer();
 	}
 
+	VertexBuffer::VertexBuffer( VkDeviceSize Size, VkBufferUsageFlags Usage /*= 0 */ )
+	{
+		m_Size = Size;
+		m_pData = nullptr;
+
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+
+		// Create the vertex buffer.
+		VkBufferCreateInfo VertexBufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		VertexBufferCreateInfo.size = Size;
+		VertexBufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+
+		m_Allocation = pAllocator->AllocateBuffer( VertexBufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, &m_Buffer );
+		SetDebugUtilsObjectName( "Vertex Buffer", ( uint64_t ) m_Buffer, VK_OBJECT_TYPE_BUFFER );
+	}
+
 	VertexBuffer::~VertexBuffer()
 	{
 		Terminate();
@@ -61,6 +77,23 @@ namespace Saturn {
 		VkDeviceSize Offsets[] ={ 0 };
 
 		vkCmdBindVertexBuffers( CommandBuffer, 0, 1, &m_Buffer, Offsets );
+	}
+
+	void VertexBuffer::Bind( VkCommandBuffer CommandBuffer, uint32_t binding, VkDeviceSize* Offsets )
+	{
+		vkCmdBindVertexBuffers( CommandBuffer, binding, 1, &m_Buffer, Offsets );
+	}
+
+	void VertexBuffer::Reallocate( void* pData, uint32_t size, uint32_t offset /*= 0 */ )
+	{
+		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+
+		void* dstData = pAllocator->MapMemory< void >( m_Allocation );
+
+		memcpy( dstData, (uint8_t*)pData + offset, size );
+		m_pData = dstData;
+
+		pAllocator->UnmapMemory( m_Allocation );
 	}
 
 	void VertexBuffer::Draw( VkCommandBuffer CommandBuffer )

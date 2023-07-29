@@ -177,33 +177,34 @@ namespace Saturn {
 		vkCmdEndRenderPass( CommandBuffer );
 	}
 	
-	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<StaticMesh> mesh, const glm::mat4 transform, Buffer additionalData )
+	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<StaticMesh> mesh, uint32_t count, Ref<VertexBuffer> transformVB, uint32_t TransformOffset, Buffer additionalData )
 	{	
 		SAT_PF_EVENT();
 
 		Buffer PushConstant;
-		// sizeof glm::mat4 becuase we have the model matrix in the push constant plus any additional data.
-		PushConstant.Allocate( sizeof( glm::mat4 ) + additionalData.Size );
+		PushConstant.Allocate( additionalData.Size );
 		if( additionalData.Size > 0 )
-			PushConstant.Write( additionalData.Data, additionalData.Size, sizeof( glm::mat4 ) ); // Make sure the additional data is always after the model matrix.
+			PushConstant.Write( additionalData.Data, additionalData.Size, 0 );
 
-		for ( auto& rSubmesh : mesh->Submeshes() )
+		for( auto& rSubmesh : mesh->Submeshes() )
 		{
 			mesh->GetVertexBuffer()->Bind( CommandBuffer );
+
+			VkDeviceSize offset[ 1 ] = { TransformOffset };
+			transformVB->Bind( CommandBuffer, 1, offset );
+
 			mesh->GetIndexBuffer()->Bind( CommandBuffer );
 
 			Pipeline->Bind( CommandBuffer );
 
-			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
-			
-			PushConstant.Write( &ModelMatrix, sizeof( glm::mat4 ), 0 );
-
-			// Always assume that the vertex shader will have a push constant block containing the model matrix.
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, ( uint32_t ) PushConstant.Size, PushConstant.Data );
+			if( PushConstant.Size > 0 )
+			{
+				vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, ( uint32_t ) PushConstant.Size, PushConstant.Data );
+			}
 			
 			Pipeline->GetDescriptorSet( ShaderType::Vertex, 0 )->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
-			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
+			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, count, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
 
 		PushConstant.Free();
@@ -259,13 +260,17 @@ namespace Saturn {
 		return m_StorageBufferSets[ m_FrameCount ][ shaderName ];
 	}
 
-	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, const glm::mat4 transform, uint32_t SubmeshIndex )
+	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, uint32_t SubmeshIndex, uint32_t count, Ref<VertexBuffer> transformData, uint32_t transformOffset )
 	{
 		SAT_PF_EVENT();
 
 		Ref<Shader> Shader = Pipeline->GetShader();
 
+		VkDeviceSize transformOffsets[ 1 ] = { transformOffset };
+
 		mesh->GetVertexBuffer()->Bind( CommandBuffer );
+		transformData->Bind( CommandBuffer, 1, transformOffsets );
+
 		mesh->GetIndexBuffer()->Bind( CommandBuffer );
 		Pipeline->Bind( CommandBuffer );
 
@@ -279,14 +284,7 @@ namespace Saturn {
 
 			VkDescriptorSet Set = rMaterialAsset->GetMaterial()->GetDescriptorSet( m_FrameCount );
 
-			glm::mat4 ModelMatrix = transform * rSubmesh.Transform;
-
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, 
-				sizeof( glm::mat4 ), &ModelMatrix );
-
-			// Set the offset to be the size of the vertex push constant.
-			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 
-				sizeof( glm::mat4 ), ( uint32_t ) rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
+			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, ( uint32_t ) rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
 
 			// Descriptor set 0, for material texture data.
 			// Descriptor set 1, for environment data.
@@ -298,7 +296,7 @@ namespace Saturn {
 			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 				Pipeline->GetPipelineLayout(), 0, ( uint32_t ) DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
 
-			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, 1, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
+			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, count, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
 	}
 

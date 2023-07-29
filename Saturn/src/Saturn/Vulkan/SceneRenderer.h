@@ -51,14 +51,14 @@ namespace Saturn {
 	{
 		Entity entity;
 		Ref< StaticMesh > Mesh = nullptr;
-		glm::mat4 Transform;
-		uint32_t SubmeshIndex;
+		uint32_t SubmeshIndex = 0;
+		uint32_t Instances = 0;
 	};
 
 	struct ShadowCascade
 	{
 		Ref< Framebuffer > Framebuffer = nullptr;
-		
+
 		float SplitDepth = 0.0f;
 		glm::mat4 ViewProjection;
 	};
@@ -67,9 +67,9 @@ namespace Saturn {
 	// DirLight
 	struct DirLight
 	{
-		glm::vec3 Direction {};
+		glm::vec3 Direction{};
 		float Padding = 0.0f;
-		glm::vec3 Radiance {};
+		glm::vec3 Radiance{};
 		float Multiplier = 0.0f;
 	};
 
@@ -87,6 +87,61 @@ namespace Saturn {
 		Camera Camera;
 		glm::mat4 ViewMatrix{};
 	};
+
+	struct StaticMeshKey
+	{
+		AssetID MeshID;
+		// Should we not hold a list of all materials?
+		AssetID MaterialID;
+
+		uint32_t SubmeshIndex;
+
+		StaticMeshKey( AssetID meshID, AssetID materialID, uint32_t submeshIndex ) : MeshID( meshID ), MaterialID( MaterialID ), SubmeshIndex( submeshIndex ) {  }
+
+		bool operator==( const StaticMeshKey& rKey )
+		{
+			return ( MeshID == rKey.MeshID && MaterialID == rKey.MaterialID && SubmeshIndex == rKey.SubmeshIndex );
+		}
+
+		bool operator==( const StaticMeshKey& rKey ) const
+		{
+			return ( MeshID == rKey.MeshID && MaterialID == rKey.MaterialID && SubmeshIndex == rKey.SubmeshIndex );
+		}
+	};
+
+	// Data that gets sent to the vertex shader
+	struct TransformBufferData
+	{
+		glm::vec4 TransfromBufferR[ 4 ];
+	};
+
+	// For each mesh, what offset are we and how much transform does it have.
+	struct TransformBuffer
+	{
+		uint32_t Offset = 0;
+		std::vector<TransformBufferData> Data;
+	};
+
+	struct SubmeshTransformVB
+	{
+		Ref<VertexBuffer> VertexBuffer;
+		TransformBufferData* pData = nullptr;
+	};
+}
+
+namespace std {
+
+	template<>
+	struct hash< Saturn::StaticMeshKey >
+	{
+		size_t operator()( const Saturn::StaticMeshKey& rKey ) const
+		{
+			return rKey.MaterialID ^ rKey.MeshID ^ rKey.SubmeshIndex;
+		}
+	};
+}
+
+namespace Saturn {
 
 	struct RendererData
 	{
@@ -256,8 +311,8 @@ namespace Saturn {
 		VertexBuffer* SC_VertexBuffer = nullptr;
 		IndexBuffer* SC_IndexBuffer = nullptr;
 		
-		//////////////////////////////////////////////////////////////////////////
 		// Texture pass
+		//////////////////////////////////////////////////////////////////////////
 		Ref<Pass> TexturePass = nullptr;
 		Ref<Pipeline> TexturePassPipeline = nullptr;
 		// Input
@@ -267,8 +322,7 @@ namespace Saturn {
 		// End Scene Composite
 		//////////////////////////////////////////////////////////////////////////
 
-		//////////////////////////////////////////////////////////////////////////
-		// BLOOM
+		// Bloom
 		//////////////////////////////////////////////////////////////////////////
 
 		Ref<ComputePipeline> BloomComputePipeline = nullptr;
@@ -280,9 +334,18 @@ namespace Saturn {
 
 		float BloomDirtIntensity = 20.0f;
 
-		//////////////////////////////////////////////////////////////////////////
 		// BDRF Lut
+		//////////////////////////////////////////////////////////////////////////
 		Ref<Texture2D> BRDFLUT_Texture = nullptr;
+
+		// Instanced Rendering
+		//////////////////////////////////////////////////////////////////////////
+		// 		
+		// MESH ID -> TRANSFORMS
+		std::unordered_map< StaticMeshKey, TransformBuffer > MeshTransforms;
+
+		// This holds the entire transform data for each submesh, per frame in flight.
+		std::vector< SubmeshTransformVB > SubmeshTransformData;
 
 		//////////////////////////////////////////////////////////////////////////
 		// SHADERS
@@ -312,8 +375,8 @@ namespace Saturn {
 
 		void SetCurrentScene( Scene* pScene ) { m_pScene = pScene; }
 
-		void SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4 transform );
-		void SubmitSelectedMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4 transform );
+		void SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform );
+		void SubmitSelectedMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform );
 
 		void SetViewportSize( uint32_t w, uint32_t h );
 
@@ -324,8 +387,6 @@ namespace Saturn {
 		void RenderScene();
 
 		void SetCamera( const RendererCamera& Camera );
-
-		std::vector< DrawCommand >& GetDrawCmds() { return m_DrawList; }
 
 		Ref<Pass> GetGeometryPass() { return m_RendererData.GeometryPass; }
 		const Ref<Pass> GetGeometryPass() const { return m_RendererData.GeometryPass; }
@@ -361,6 +422,8 @@ namespace Saturn {
 		void InitBloom();
 		void InitTexturePass();
 
+		void InitBuffers();
+
 		void DirShadowMapPass();
 		void PreDepthPass();
 		void LightCullingPass();
@@ -377,8 +440,8 @@ namespace Saturn {
 		RendererData m_RendererData{};
 		Scene* m_pScene = nullptr;
 
-		std::vector< DrawCommand > m_DrawList;
-		std::vector< DrawCommand > m_ShadowMapDrawList;
+		std::unordered_map< StaticMeshKey, DrawCommand > m_DrawList;
+		std::unordered_map< StaticMeshKey, DrawCommand > m_ShadowMapDrawList;
 		std::vector< DrawCommand > m_SelectedMeshDrawList;
 
 		std::vector< ScheduledFunc > m_ScheduledFunctions;

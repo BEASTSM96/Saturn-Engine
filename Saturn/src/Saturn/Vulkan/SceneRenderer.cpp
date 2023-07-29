@@ -108,6 +108,15 @@ namespace Saturn {
 		m_RendererData.AOCompositeTimer.Reset();
 		m_RendererData.AOCompositeTimer.Stop();
 
+		const size_t TransformCount = 1024 * 10;
+		m_RendererData.SubmeshTransformData.resize( MAX_FRAMES_IN_FLIGHT );
+		
+		for( uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		{
+			m_RendererData.SubmeshTransformData[ i ].VertexBuffer = Ref<VertexBuffer>::Create( sizeof( TransformBufferData ) * TransformCount );
+			m_RendererData.SubmeshTransformData[ i ].pData = new TransformBufferData[ TransformCount ];
+		}
+
 		//////////////////////////////////////////////////////////////////////////
 	}
 
@@ -185,6 +194,12 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Binormal" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		};
+		PipelineSpec.InstanceLayout = {
+			{ ShaderDataType::Float4, "a_TransformBufferR1" },
+			{ ShaderDataType::Float4, "a_TransformBufferR2" },
+			{ ShaderDataType::Float4, "a_TransformBufferR3" },
+			{ ShaderDataType::Float4, "a_TransformBufferR4" },
+		};
 		PipelineSpec.CullMode = CullMode::Back;
 		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 
@@ -214,6 +229,12 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Tanget" },
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
+		PipelineSpec.InstanceLayout = {
+			{ ShaderDataType::Float4, "a_TransformBufferR1" },
+			{ ShaderDataType::Float4, "a_TransformBufferR2" },
+			{ ShaderDataType::Float4, "a_TransformBufferR3" },
+			{ ShaderDataType::Float4, "a_TransformBufferR4" }
 		};
 		PipelineSpec.CullMode = CullMode::Back;
 		PipelineSpec.HasColorAttachment = false;
@@ -304,6 +325,12 @@ namespace Saturn {
 			{ ShaderDataType::Float3, "a_Tanget" },
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
+		PipelineSpec.InstanceLayout = {
+			{ ShaderDataType::Float4, "a_TransformBufferR1" },
+			{ ShaderDataType::Float4, "a_TransformBufferR2" },
+			{ ShaderDataType::Float4, "a_TransformBufferR3" },
+			{ ShaderDataType::Float4, "a_TransformBufferR4" }
 		};
 
 		m_RendererData.PreDepthPipeline = Ref<Pipeline>::Create( PipelineSpec );
@@ -838,6 +865,40 @@ namespace Saturn {
 				Auxiliary::EndTreeNode();
 			}
 
+			/*
+			if( Auxiliary::TreeNode( "Instanced Meshes", false ) )
+			{
+				ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
+
+				if( ImGui::BeginTable( "##FileTable", 2, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y ) ) )
+				{
+					ImGui::TableSetupColumn( "Mesh ID" );
+					ImGui::TableSetupColumn( "Count" );
+
+					ImGui::TableHeadersRow();
+
+					int TableRow = 0;
+
+					for( auto&& [id, value] : m_RendererData.InstancedMeshes )
+					{
+						TableRow++;
+
+						ImGui::TableNextRow();
+
+						ImGui::TableSetColumnIndex( 0 );
+						ImGui::Selectable( std::to_string( id ).c_str(), false );
+
+						ImGui::TableSetColumnIndex( 1 );
+						ImGui::Selectable( std::to_string( value.Count ).c_str(), false );
+					}
+
+					ImGui::EndTable();
+				}
+
+				Auxiliary::EndTreeNode();
+			}
+			*/
+
 			if( Auxiliary::TreeNode( "Bloom settings", false ) )
 			{
 				static int index = 0;
@@ -862,26 +923,50 @@ namespace Saturn {
 		ImGui::End();
 	}
 
-	void SceneRenderer::SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4 transform )
+	void SceneRenderer::SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform )
 	{
 		SAT_PF_EVENT();
 
+		auto& id = mesh->ID;
+
 		auto& submeshes = mesh->Submeshes();
 		for( size_t i = 0; i < submeshes.size(); i++ )
-			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) i } );
+		{
+			StaticMeshKey key = { mesh->ID, mesh->GetMaterialAssets()[ 0 ]->ID, (uint32_t)i };
 
-		m_ShadowMapDrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) 0 } );
+			glm::mat4 submeshTransform = transform * submeshes[ i ].Transform;
+
+			auto& command = m_DrawList[ key ];
+			command.entity = entity;
+			command.Mesh = mesh;
+			command.SubmeshIndex = ( uint32_t ) i;
+			command.Instances++;
+
+			auto& shadow = m_ShadowMapDrawList[ key ];
+			shadow.entity = entity;
+			shadow.Mesh = mesh;
+			shadow.SubmeshIndex = ( uint32_t ) i;
+			shadow.Instances++;
+
+			auto& data = m_RendererData.MeshTransforms[ key ].Data.emplace_back();
+			data.TransfromBufferR[ 0 ] = {
+				submeshTransform[ 0 ][ 0 ], submeshTransform[ 1 ][ 0 ], submeshTransform[ 2 ][ 0 ], submeshTransform[ 3 ][ 0 ]
+			};
+			data.TransfromBufferR[ 1 ] = {
+				submeshTransform[ 0 ][ 1 ], submeshTransform[ 1 ][ 1 ], submeshTransform[ 2 ][ 1 ], submeshTransform[ 3 ][ 1 ]
+			};
+			data.TransfromBufferR[ 2 ] = {
+				submeshTransform[ 0 ][ 2 ], submeshTransform[ 1 ][ 2 ], submeshTransform[ 2 ][ 2 ], submeshTransform[ 3 ][ 2 ]
+			};
+			data.TransfromBufferR[ 3 ] = {
+				submeshTransform[ 0 ][ 3 ], submeshTransform[ 1 ][ 3 ], submeshTransform[ 2 ][ 3 ], submeshTransform[ 3 ][ 3 ]
+			};
+		}
 	}
 
-	void SceneRenderer::SubmitSelectedMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4 transform )
+	void SceneRenderer::SubmitSelectedMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform )
 	{
 		SAT_PF_EVENT();
-
-		auto& submeshes = mesh->Submeshes();
-		for( size_t i = 0; i < submeshes.size(); i++ )
-			m_DrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) i } );
-
-		m_ShadowMapDrawList.push_back( { .entity = entity, .Mesh = mesh, .Transform = transform, .SubmeshIndex = ( uint32_t ) 0 } );
 	}
 
 	void SceneRenderer::SetViewportSize( uint32_t w, uint32_t h )
@@ -929,6 +1014,7 @@ namespace Saturn {
 		m_RendererData.GeometryPassTimer.Reset();
 
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
 		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
 
@@ -972,7 +1058,7 @@ namespace Saturn {
 		// Render static meshes.
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
 
-		for( auto& Cmd : m_DrawList )
+		for( auto&& [key, Cmd] : m_DrawList )
 		{
 			// Entity may of been deleted.
 			if( !Cmd.entity )
@@ -1040,10 +1126,12 @@ namespace Saturn {
 			//StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, sizeof( u_Lights ) );
 			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, 16ull + sizeof( PointLight ) * u_Lights.nbLights );
 
+			const auto& rTransformData = m_RendererData.MeshTransforms[ key ];
+
 			// Render
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
 				m_RendererData.StaticMeshPipeline,
-				Cmd.Mesh, m_RendererData.StorageBufferSet, Cmd.Transform, Cmd.SubmeshIndex );
+				Cmd.Mesh, m_RendererData.StorageBufferSet, Cmd.SubmeshIndex, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset );
 		}
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
@@ -1066,6 +1154,7 @@ namespace Saturn {
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 		VkExtent2D Extent = { ( uint32_t ) SHADOW_MAP_SIZE, ( uint32_t ) SHADOW_MAP_SIZE };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
 		std::array<VkClearValue, 2> ClearColors{};
 		ClearColors[ 0 ].depthStencil = { 1.0f, 0 };
@@ -1125,7 +1214,7 @@ namespace Saturn {
 			vkCmdSetViewport( m_RendererData.CommandBuffer, 0, 1, &Viewport );
 			vkCmdSetScissor( m_RendererData.CommandBuffer, 0, 1, &Scissor );
 
-			for( auto& Cmd : m_ShadowMapDrawList )
+			for( auto&& [key, Cmd] : m_ShadowMapDrawList )
 			{
 				// Entity may of been deleted.
 				if( !Cmd.entity )
@@ -1134,7 +1223,9 @@ namespace Saturn {
 				// Pass in the cascade index.
 				Buffer AdditionalData( sizeof( uint32_t ), &i );
 
-				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipelines[ i ], Cmd.Mesh, Cmd.Transform, AdditionalData );
+				const auto& rTransformData = m_RendererData.MeshTransforms[ key ];
+
+				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipelines[ i ], Cmd.Mesh, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset, AdditionalData );
 			}
 
 			vkCmdEndRenderPass( CommandBuffer );
@@ -1149,6 +1240,8 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		m_RendererData.PreDepthTimer.Reset();
+
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
 		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
@@ -1181,13 +1274,15 @@ namespace Saturn {
 		m_RendererData.PreDepthShader->WriteAllUBs( m_RendererData.PreDepthPipeline->GetDescriptorSet( ShaderType::Vertex, 0 ) );
 
 		// We can use the shadow map draw list for pre depth.
-		for( auto& Cmd : m_ShadowMapDrawList )
+		for( auto&& [key, Cmd]: m_ShadowMapDrawList )
 		{
 			// Entity may of been deleted.
 			if( !Cmd.entity )
 				continue;
 
-			Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.PreDepthPipeline, Cmd.Mesh, Cmd.Transform );
+			const auto& rTransformData = m_RendererData.MeshTransforms[ key ];
+
+			Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.PreDepthPipeline, Cmd.Mesh, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset );
 		}
 
 		m_RendererData.PreDepthPass->EndPass();
@@ -1618,6 +1713,25 @@ namespace Saturn {
 			} );
 	}
 
+	void SceneRenderer::InitBuffers()
+	{
+		// Create our buffers for instance data.
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
+
+		uint32_t off = 0;
+		for( auto& [id, buffer] : m_RendererData.MeshTransforms )
+		{
+			buffer.Offset = off * sizeof( TransformBufferData );
+			for (const auto& transform : buffer.Data )
+			{
+				m_RendererData.SubmeshTransformData[ frame ].pData[ off ] = transform;
+				off++;
+			}
+		}
+
+		m_RendererData.SubmeshTransformData[ frame ].VertexBuffer->Reallocate( m_RendererData.SubmeshTransformData[ frame ].pData, off * sizeof( TransformBufferData ) );
+	}
+
 	void SceneRenderer::RenderScene()
 	{
 		SAT_PF_EVENT();
@@ -1639,6 +1753,8 @@ namespace Saturn {
 
 		for( auto&& func : m_ScheduledFunctions )
 			func();
+
+		InitBuffers();
 
 		// Passes
 
@@ -1691,6 +1807,7 @@ namespace Saturn {
 		m_DrawList.clear();
 		m_ShadowMapDrawList.clear();
 		m_ScheduledFunctions.clear();
+		m_RendererData.MeshTransforms.clear();
 	}
 
 	void SceneRenderer::SetCamera( const RendererCamera& Camera )
@@ -1776,6 +1893,13 @@ namespace Saturn {
 		BRDFLUT_Texture = nullptr;
 
 		SceneEnvironment = nullptr;
+
+		for( auto& buffer : SubmeshTransformData )
+			delete[] buffer.pData;
+
+		SubmeshTransformData.clear();
+
+		MeshTransforms.clear();
 
 		ShaderLibrary::Get().Shutdown();
 	}

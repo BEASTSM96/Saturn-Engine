@@ -199,7 +199,7 @@ namespace Saturn {
 
 		///// Vertex input state.
 
-		std::vector< VkVertexInputAttributeDescription > VertexInputAttributes( m_Specification.VertexLayout.Count() );
+		std::vector< VkVertexInputAttributeDescription > VertexInputAttributes( m_Specification.VertexLayout.Count() + m_Specification.InstanceLayout.Count() );
 		
 		uint32_t i = 0;
 		
@@ -212,15 +212,35 @@ namespace Saturn {
 			
 			i++;
 		}
+
+		for( auto element : m_Specification.InstanceLayout )
+		{
+			VertexInputAttributes[ i ].binding = 1;
+			VertexInputAttributes[ i ].location = i;
+			VertexInputAttributes[ i ].format = ShaderDataTypeToVulkan( element.Type );
+			VertexInputAttributes[ i ].offset = element.Offset;
+
+			i++;
+		}
 		
-		VkVertexInputBindingDescription VertexInputBinding = {};
-		VertexInputBinding.binding = 0;
-		VertexInputBinding.stride = m_Specification.VertexLayout.GetStride();
-		VertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		std::vector<VkVertexInputBindingDescription> InputBindingDescriptions{};
+
+		auto& rInputBindingDescription = InputBindingDescriptions.emplace_back();
+		rInputBindingDescription.binding = 0;
+		rInputBindingDescription.stride = m_Specification.VertexLayout.GetStride();
+		rInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		if ( m_Specification.InstanceLayout.Count() > 1 )
+		{
+			auto& InstanceBindingDescription = InputBindingDescriptions.emplace_back();
+			InstanceBindingDescription.binding = 1;
+			InstanceBindingDescription.stride = m_Specification.InstanceLayout.GetStride();
+			InstanceBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+		}
 
 		VkPipelineVertexInputStateCreateInfo VertexInputState = { VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
-		VertexInputState.vertexBindingDescriptionCount = 1;
-		VertexInputState.pVertexBindingDescriptions = &VertexInputBinding;
+		VertexInputState.vertexBindingDescriptionCount = ( uint32_t ) InputBindingDescriptions.size();
+		VertexInputState.pVertexBindingDescriptions = InputBindingDescriptions.data();
 		VertexInputState.vertexAttributeDescriptionCount = ( uint32_t ) VertexInputAttributes.size();
 		VertexInputState.pVertexAttributeDescriptions = VertexInputAttributes.data();
 		
