@@ -7,11 +7,6 @@
     <a href="https://trello.com/b/baqP3fvB/saturn-engine"><img alt="Trello" src="https://img.shields.io/badge/Trello-saturn--engine-blue"></a>
 </p>
 
-<p align=center>
-    <!--- I wish the logo was smaller -->
-    <img src="Titan/assets/Icons/SaturnLogov1.png" alt="Saturn" width="" height="">
-</p>
-
 <p align=left>
     Saturn is primarily an early-stage game engine for Windows.
     <br>
@@ -33,31 +28,51 @@ In order to start building you will need <a href="https://premake.github.io/">Pr
 
 <a href="https://premake.github.io/docs/What-Is-Premake">Learn More</a>
 
+*You may have to add the premake executable to you PATH environment varible.*
+
 ## Generating the project files (Windows)
 
 To generate the project files, you can just run the premake executable that you downloaded, if you already have premake installed make sure it can support generating Visual Studio 2022 project files *so v5.0.0-beta1 onwards*.
 
-So for generating the project files you should do : `premake5.exe vs2022`
+So for generating the project files on Visual Studio 2022 you'd do `premake5.exe vs2022`
 
 ## Compiling the engine
 
 To compile the engine simply open the newly generated project files and build the solution.
 
-## Features soon to come
-PBR Renderer, equirectangular cubemaps, shadows and a material workflow.
-<br>
-PhysX.
-<br>
-C++/C# native scripting.
-<br>
-Linux support.
-<br>
-Project system.
-<br>
-Asset manager.
-<br>
-Game/Engine launcher.
-<!--- UI REWORK -->
-<!--- Vulkan 1.3 support -->
-<!--- Controller support -->
-<!--- Xbx support and/or PS4/5 support -->
+## Features
+- [x] Core
+  - [x] Custom Title bar
+  - [x] Event System
+  - [x] Input
+  - [x] Window
+  - [x] Asset Manager
+  - [x] Projects
+  - [x] ECS (entt)
+- [ ] Renderer
+  - [x] Core Renderer
+  - [x] PBR
+  - [x] Shadows
+  - [x] Material
+  - [x] Bloom
+  - [ ] Soft shadows
+  - [ ] SSAO, HBAO+, GTAO, VXAO
+  - [x] Instanced Rendering
+  - [x] Skybox
+  - [ ] Text rendering
+- [ ] Scripting (C++)
+  - [x] Core scripting
+  - [x] Core build tool
+  - [ ] Scriptable Components
+  - [ ] Public property viewer in the editor
+  - [ ] General Game API and framework
+- [ ] Physics
+  - [x] Core PhysX API
+  - [x] Mesh Colliders
+  - [x] Cooking of mesh colldiers
+  - [ ] Joints
+  - [ ] Ragdolls
+- [ ] Audio
+  - [ ] Initial Audio API
+  - [x] Initial Play/Stop
+  - [x] Sound Assets
