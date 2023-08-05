@@ -60,6 +60,9 @@ namespace Saturn {
 		template<typename Ty>
 		Ref<Ty> GetAssetAs( AssetID id )
 		{
+			if( m_Assets.find( id ) == m_Assets.end() )
+				return nullptr;
+
 			Ref<Asset> asset = m_Assets.at( id );
 
 			if( !IsAssetLoaded( id ) )
