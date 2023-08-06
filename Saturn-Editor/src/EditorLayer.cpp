@@ -160,6 +160,7 @@ namespace Saturn {
 				if( ImGui::MenuItem( "User settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;
 				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
 				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug = !OpenLoadedAssetDebug;
+				if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings = !m_OpenEditorSettings;
 
 				ImGui::EndMenu();
 			}
@@ -461,6 +462,96 @@ namespace Saturn {
 			if( ImGui::Begin( "Attributions", &OpenAttributions ) )
 			{
 				ImGui::Text("All icons in the engine are provided by icons8 via https://icons8.com/\nUsing the Tanah Basah set.");
+
+				ImGui::End();
+			}
+		}
+
+		if( m_OpenEditorSettings )
+		{
+			auto& rIO = ImGui::GetIO();
+
+			ImGui::SetNextWindowSize( ImVec2( 750.0f, 750.0f ), ImGuiCond_Appearing );
+			if( ImGui::Begin( "Editor Settings", &m_OpenEditorSettings ) )
+			{
+				auto boldFont = io.Fonts->Fonts[ 1 ];
+				auto italicsFont = io.Fonts->Fonts[ 2 ];
+
+				ImGui::PushFont( boldFont );
+				ImGui::Text( "Saturn Editor Settings" );
+				ImGui::PopFont();
+
+				ImGui::PushStyleColor( ImGuiCol_Text, ImVec4{ 0.7f, 0.7f, 0.7f, 0.7f } );
+				ImGui::PushFont( italicsFont );
+				ImGui::Text( "Saturn Engine Version: " );
+				ImGui::SameLine();
+				ImGui::Text( SAT_CURRENT_VERISON_STRING );
+				ImGui::PopFont();
+				ImGui::PopStyleColor();
+
+				ImGui::PushStyleColor( ImGuiCol_Separator, ImVec4{ 0.7f, 0.7f, 0.7f, 0.7f } );
+				ImGui::Separator();
+				ImGui::PopStyleColor();
+
+				ImGui::BeginVertical( "##MainSettings" );
+
+				ImGui::Spring();
+
+				ImGui::BeginHorizontal( "##MSAA_Horiz" );
+
+				ImGui::Text( "Default Editor MSAA Samples:" );
+				ImGui::Spring();
+
+				// TODO: Come back to this.
+
+				const char* items[] = { "1x", "2x", "4x", "8x", "16x", "32x", "64x" };
+				static VkSampleCountFlagBits count;
+				if( ImGui::BeginCombo( "##samples", "", ImGuiComboFlags_NoPreview ) )
+				{
+					auto maxUsable = VulkanContext::Get().GetMaxUsableMSAASamples();
+
+					for( int i = 0; i < IM_ARRAYSIZE( items ); i++ )
+					{
+						if( i > maxUsable )
+							break;
+
+						if( ImGui::Selectable( items[ i ] ) )
+						{
+
+						}
+					}
+
+					ImGui::EndCombo();
+				}
+
+				ImGui::Button( "Test" );
+
+				ImGui::EndHorizontal();
+
+				// Ported from user settings
+
+				auto& userSettings = GetUserSettings();
+				auto& startupProject = userSettings.StartupProject;
+				auto& startupScene = Project::GetActiveProject()->m_Config.StartupScenePath;
+
+				ImGuiIO& rIO = ImGui::GetIO();
+
+				ImGui::BeginHorizontal( "#USR_Settings" );
+
+				ImGui::Text( "Startup project:" );
+				startupProject.empty() ? ImGui::Text( "None" ) : ImGui::Text( startupProject.c_str() );
+
+				if( ImGui::Button( "...##openprj" ) )
+				{
+					startupProject = Application::Get().OpenFile( "Saturn project file (*.sproject)\0*.sproject\0" );
+
+					UserSettingsSerialiser uss;
+					uss.Serialise( userSettings );
+				}
+
+				ImGui::EndHorizontal();
+
+				ImGui::EndVertical();
 
 				ImGui::End();
 			}
@@ -1007,26 +1098,6 @@ namespace Saturn {
 		ImGui::SetNextWindowPos( ImVec2( rIO.DisplaySize.x * 0.5f - 150.0f, rIO.DisplaySize.y * 0.5f - 150.0f ), ImGuiCond_Once );
 
 		ImGui::Begin( "User settings", &m_ShowUserSettings );
-
-		ImGui::SetCursorPosX( ImGui::GetWindowContentRegionWidth() * 0.5f - ImGui::CalcTextSize( "User settings" ).x * 0.5f );
-		ImGui::Text( "User settings" );
-
-		ImGui::Separator();
-
-		ImGui::Text( "Startup project:" );
-		ImGui::SameLine();
-		startupProject.empty() ?  ImGui::Text( "None" ) : ImGui::Text( startupProject.c_str() );
-		ImGui::SameLine();
-		if( ImGui::Button( "...##openprj" ) )
-		{
-			if( RenderThread::Get().IsRenderThread() )
-			{
-				Application::Get().SubmitOnMainThread( [&]()
-					{
-						startupProject = Application::Get().OpenFile( "Saturn project file (*.scene) (*.sc)\0*.scene\0" );
-					} );
-			}
-		}
 
 		ImGui::Text( "Startup Scene:" );
 		

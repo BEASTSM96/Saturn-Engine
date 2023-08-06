@@ -42,6 +42,8 @@ namespace Saturn::Auxiliary {
 		bool modified = false;
 
 		ImGuiIO& io = ImGui::GetIO();
+
+		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
 		ImGui::PushID( label.c_str() );
@@ -105,6 +107,8 @@ namespace Saturn::Auxiliary {
 		bool modified = false;
 
 		ImGuiIO& io = ImGui::GetIO();
+
+		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
 		ImGui::PushID( label.c_str() );
@@ -201,6 +205,8 @@ namespace Saturn::Auxiliary {
 		bool modified = false;
 
 		ImGuiIO& io = ImGui::GetIO();
+
+		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
 		ImGui::PushID( label.c_str() );
@@ -231,6 +237,8 @@ namespace Saturn::Auxiliary {
 		bool modified = false;
 
 		ImGuiIO& io = ImGui::GetIO();
+
+		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
 		ImGui::PushID( label.c_str() );
@@ -262,6 +270,8 @@ namespace Saturn::Auxiliary {
 		bool modified = false;
 
 		ImGuiIO& io = ImGui::GetIO();
+
+		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
 		ImGui::PushID( label.c_str() );

@@ -96,6 +96,7 @@ namespace Saturn {
 		bool m_StartedRightClickInViewport = false;
 		bool m_ViewportFocused = false;
 		bool m_MouseOverViewport = false;
+		bool m_OpenEditorSettings = false;
 
 		bool m_RequestRuntime = false;
 
