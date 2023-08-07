@@ -68,10 +68,34 @@ vec3 Reinhard( vec3 x )
 	return x / (1.0 + x);
 }
 
+float Luminance( vec3 colr )  
+{
+	return dot( colr, vec3(0.2126, 0.7152, 0.0722) );
+}
+
+vec3 WhiteLuminance( vec3 colr ) 
+{
+	const float pureWhite = 1.0;
+	float l = Luminance( colr );
+	float mappedLuminance = (l * (1.0 + l / (pureWhite * pureWhite))) / (1.0 + l);
+	
+	return mappedLuminance / l * colr;
+}
+
+vec3 ACES( vec3 colr ) 
+{
+	mat3 m1 = mat3( 0.59719, 0.07600, 0.02840, 0.35458, 0.90834, 0.13383, 0.04823, 0.01566, 0.83777 );
+	mat3 m2 = mat3( 1.60475, -0.10208, -0.00327, -0.53108, 1.10813, -0.07276, -0.07367, -0.00605, 1.07602 );
+
+	vec3 v = m1 * colr;
+	vec3 a = v * (v + 0.0245786) - 0.000090537;
+	vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
+	return clamp(m2 * (a / b), 0.0, 1.0);
+}
+
 void main()
 {
 	const float gamma = 2.2;
-	const float pureWhite = 1.0;
 
 	vec3 GeometryPassColor = texture( u_GeometryPassTexture, vs_Input.TexCoord ).rgb;
 
@@ -79,18 +103,13 @@ void main()
 	float sampleScale = 0.5;
 	ivec2 texSize = textureSize(u_BloomTexture, 0);
 	vec2 fTexSize = vec2(float(texSize.x), float(texSize.y));
-	vec3 bloom = texture(u_BloomTexture, vs_Input.TexCoord ).rgb * 1.0f;
+	vec3 bloom = UpsampleTent9( u_BloomTexture, 0, vs_Input.TexCoord, 1.0f / fTexSize, sampleScale );
 	vec3 dirt = texture( u_BloomDirtTexture, vs_Input.TexCoord ).rgb * 20.0f; 
 
 	GeometryPassColor += bloom;
-	//GeometryPassColor += bloom * dirt;
 
-	float luminance = dot(GeometryPassColor, vec3(0.2126, 0.7152, 0.0722));
-	float mappedLuminance = (luminance * (1.0 + luminance / (pureWhite * pureWhite))) / (1.0 + luminance);
-	
-	vec3 mappedColor = ( mappedLuminance / luminance ) * GeometryPassColor;
-
-	GeometryPassColor = GammaCorrect( mappedColor, gamma );
+	GeometryPassColor = ACES( GeometryPassColor );
+	GeometryPassColor = GammaCorrect( GeometryPassColor, gamma );
 
 	FinalColor = vec4( GeometryPassColor, 1.0 );
 }
