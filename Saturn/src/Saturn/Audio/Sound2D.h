@@ -49,12 +49,10 @@ namespace Saturn {
 		bool IsPlaying();
 		bool IsLooping();
 
-		const std::filesystem::path& GetRawPath() { return m_RawPath; }
+		const std::filesystem::path& GetRawPath() const { return m_RawPath; }
+		std::filesystem::path& GetRawPath() { return m_RawPath; }
+		
 		void SetRawPath( const std::filesystem::path& rPath ) { m_RawPath = rPath; }
-
-	private:
-		bool m_Playing = false;
-		bool m_Looping = false;
 	};
 
 }

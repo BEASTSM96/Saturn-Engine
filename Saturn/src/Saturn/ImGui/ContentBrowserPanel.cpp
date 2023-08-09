@@ -607,6 +607,7 @@ namespace Saturn {
 
 		ImGui::PopStyleColor( 2 );
 
+		/*
 		if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
 		{
 			if( m_ViewMode == CBViewMode::Assets )
@@ -620,6 +621,7 @@ namespace Saturn {
 
 			ImGui::EndPopup();
 		}
+		*/
 
 		if( m_ShowMeshImport )
 			ImGui::OpenPopup( "Import Mesh##IMPORT_MESH" );
@@ -919,10 +921,12 @@ namespace Saturn {
 
 		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 0.0f, 0.0f ) );
 
+		// Draw folder item.
 		if( rEntry.is_directory() )
 		{
 			bool Hovered = false;
 			bool Clicked = false;
+			bool RightClicked = false;
 
 			ImGui::ButtonBehavior( ImRect( TopLeft, BottomRight ), ImGui::GetID( path.c_str() ), &Hovered, &Clicked );
 
@@ -943,9 +947,14 @@ namespace Saturn {
 					m_CurrentPath /= rEntry.path().filename();
 					OnDirectorySelected( m_CurrentPath, rEntry.is_directory() );
 				}
+
+				if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
+				{
+					RightClicked = true;
+				}
 			}
 		}
-		else
+		else // Draw file item.
 		{
 			ImGuiStyle& style = ImGui::GetStyle();
 
@@ -1075,6 +1084,31 @@ namespace Saturn {
 					}
 				}
 			}
+		}
+
+		if( ImGui::BeginPopupContextWindow( 0, 1, true ) )
+		{
+			// Common Actions
+			if( ImGui::MenuItem( "Rename" ) ) 
+			{
+
+			}
+
+			// Folder Actions
+			if( rEntry.is_directory() )
+			{
+				if( ImGui::MenuItem( "Show In Explorer" ) )
+				{
+				}
+			}
+			else
+			{
+				if( ImGui::MenuItem( "Delete" ) )
+				{
+				}
+			}
+
+			ImGui::EndPopup();
 		}
 
 		ImGui::EndGroup();

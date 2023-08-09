@@ -28,95 +28,21 @@
 
 #pragma once
 
-#include "Panel/Panel.h"
-
-#include "Saturn/Vulkan/Texture.h"
-
 #include "Saturn/Asset/Asset.h"
-
-#include <imgui.h>
-#include <filesystem>
-#include <functional>
-
-#include <filewatch/filewatch.h>
+#include "Sound.h"
 
 namespace Saturn {
-	
-	enum class CBViewMode 
-	{
-		Assets,
-		Scripts
-	};
 
-	class ContentBrowserPanel : public Panel
+	class SoundMixerAsset : public Asset
 	{
 	public:
-		ContentBrowserPanel();
-		~ContentBrowserPanel() = default;
+		SoundMixerAsset();
+		~SoundMixerAsset();
 
-		virtual void Draw() override;
-
-		void SetPath( const std::filesystem::path& rPath );
-
-	private:
-
-		void RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles = true );
-				
-		void OnDirectorySelected( std::filesystem::path& rPath, bool IsFile = false );
-
-		void UpdateFiles( bool clear = false );
-
-		void DrawFolderTree( const std::filesystem::path& rPath );
-
-		void DrawAssetsFolderTree();
-		void DrawScriptsFolderTree();
-
-		void DrawRootFolder( CBViewMode type, bool open = false );
-
-		void AssetsPopupContextMenu();
-		void ScriptsPopupContextMenu();
-
-	private: // Editor Content
-		void EdDrawRootFolder( CBViewMode type, bool open = false );
-		void EdDrawAssetsFolderTree();
-		void EdSetPath();
-
+		void PlayVariation( uint32_t index );
+		void AddSound( uint32_t index, AssetID assetID );
 
 	private:
-		std::filesystem::path m_CurrentPath;
-		std::filesystem::path m_FirstFolder;
-		std::filesystem::path m_ScriptPath;
-
-		std::filesystem::path m_EditorContent;
-		std::filesystem::path m_EditorScripts;
-
-		Ref< Texture2D > m_DirectoryIcon;
-		Ref< Texture2D > m_FileIcon;
-		Ref< Texture2D > m_BackIcon;
-		Ref< Texture2D > m_ForwardIcon;
-
-		bool m_ShowMeshImport = false;
-		bool m_ShowSoundImport = false;
-		std::filesystem::path m_ImportMeshPath;
-		std::filesystem::path m_ImportSoundPath;
-
-		bool m_ShowFolderPopupMenu = false;
-
-		struct AssetInfo
-		{
-			AssetType Type;
-			std::filesystem::path Path;
-		};
-
-		CBViewMode m_ViewMode;
-
-		// Files and folder, sorted by folders then files.
-		std::vector<std::filesystem::directory_entry> m_Files;
-
-		bool m_FilesNeedSorting = false;
-		bool m_RenderCreateWindow = false;
-		bool m_ChangeDirectory = false;
-
-		filewatch::FileWatch<std::string>* m_Watcher = nullptr;
+		std::unordered_map<uint32_t, Ref<Sound>> m_SoundAssets;
 	};
 }

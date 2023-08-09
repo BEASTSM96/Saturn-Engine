@@ -47,6 +47,8 @@ namespace Saturn {
 	protected:
 		ma_sound m_Sound{};
 		bool m_Loaded = false;
+		bool m_Playing = false;
+		bool m_Looping = false;
 
 		std::filesystem::path m_RawPath = "";
 	};

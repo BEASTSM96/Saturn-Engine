@@ -154,6 +154,17 @@ namespace Saturn {
 					buttonRect.Min.x -= buttonSize;
 					buttonRect.Max.x -= buttonSize;
 				}
+
+				// TODO:
+				// Centered title
+				{
+					const std::string& name = Project::GetActiveProject()->GetName();
+
+					ImGui::PushFont( ImGui::GetIO().Fonts->Fonts[ 1 ] ); 
+					ImGui::SetCursorPosX( ( ImGui::GetWindowSize().x - ImGui::CalcTextSize( name.c_str() ).x ) * 0.5f );
+					ImGui::Text( name.c_str() );
+					ImGui::PopFont();
+				}
 			}
 
 			ImGui::EndMainMenuBar();
