@@ -273,7 +273,7 @@ namespace Saturn {
 		for( uint32_t QueueFamily : UniqueQueueFamilies )
 		{
 			VkDeviceQueueCreateInfo QueueCreateInfo ={ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-			QueueCreateInfo.queueFamilyIndex = m_Indices.GraphicsFamily.value();
+			QueueCreateInfo.queueFamilyIndex = QueueFamily;
 			QueueCreateInfo.queueCount = 1;
 			QueueCreateInfo.pQueuePriorities = &QueuePriority;
 			QueueCreateInfos.push_back( QueueCreateInfo );
