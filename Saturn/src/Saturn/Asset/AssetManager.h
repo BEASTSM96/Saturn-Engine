@@ -94,6 +94,50 @@ namespace Saturn {
 			return asset;
 		}
 
+		// WARNING: THIS WILL REMOVE THE ASSET FROM THE REGISTRY. PLEASE USE "DestoryAsset" if you intent to destroy the asset.
+		void RemoveAsset( AssetID id, AssetRegistryType Dst = AssetRegistryType::Game )
+		{
+			switch( Dst )
+			{
+				case AssetRegistryType::Game:
+				{
+					m_Assets->RemoveAsset( id );
+				} break;
+
+				case AssetRegistryType::Editor: 
+				{
+					// TODO: Think about this. I don't know if I want to user to be able to delete editor files.
+					m_EditorAssets->RemoveAsset( id );
+				} break;
+			
+				case AssetRegistryType::Unknown:
+				default:
+					break;
+			}
+
+			Save( Dst );
+		}
+
+		void TerminateAsset( AssetID id, AssetRegistryType Dst = AssetRegistryType::Game )
+		{
+			switch( Dst )
+			{
+				case AssetRegistryType::Game:
+				{
+					m_Assets->TerminateAsset( id );
+				} break;
+
+				case AssetRegistryType::Editor:
+				{
+					m_EditorAssets->TerminateAsset( id );
+				} break;
+
+				case AssetRegistryType::Unknown:
+				default:
+					break;
+			}
+		}
+
 		AssetMap GetCombinedAssetMap();
 		AssetMap GetCombinedLoadedAssetMap();
 

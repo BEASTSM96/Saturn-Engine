@@ -643,6 +643,17 @@ namespace Saturn {
 			Ref<Texture2D> Icon = item->IsDirectory() ? m_DirectoryIcon : m_FileIcon;
 
 			item->Draw( { thumbnailSizeX, thumbnailSizeY }, padding, Icon );
+
+			if( item->IsSelected() ) 
+			{
+				// We already selected something. We need to deselected it.
+				if( m_SelectedItem && item != m_SelectedItem )
+				{
+					m_SelectedItem->Deselect();
+				}
+
+				m_SelectedItem = item;
+			}
 		}
 
 		// Get the first folder in the current directory.
@@ -662,25 +673,51 @@ namespace Saturn {
 
 		if( ImGui::BeginPopupContextWindow( 0, 1, true ) )
 		{
-			if( m_IsItemSelected )
+			if( m_SelectedItem )
 			{
 				// Common Actions
 				if( ImGui::MenuItem( "Rename" ) )
 				{
+					m_SelectedItem->Rename();
 
+					// Once we have filewatch setup we will no longer need to do this.
+					//UpdateFiles( true );
 				}
 
 				// Folder Actions
-				if( m_SelectedItemPath.is_directory() )
+				if( m_SelectedItem->IsDirectory() )
 				{
 					if( ImGui::MenuItem( "Show In Explorer" ) )
 					{
+						// TODO TEMP: Create a process class.
+
+						std::filesystem::path AssetPath = m_SelectedItem->Path();
+						std::string AssetPathString = AssetPath.string();
+
+						STARTUPINFOA StartupInfo = {};
+						StartupInfo.cb = sizeof( StartupInfo );
+						StartupInfo.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
+						StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+
+						PROCESS_INFORMATION ProcessInfo;
+
+						std::string CommandLine = "explorer.exe ";
+						CommandLine += AssetPathString;
+
+						bool res = CreateProcessA( nullptr, CommandLine.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo );
+
+						if( !res )
+							SAT_CORE_ERROR( "Failed to start explorer process!" );
 					}
 				}
 				else
 				{
 					if( ImGui::MenuItem( "Delete" ) )
 					{
+						m_SelectedItem->Delete();
+
+						// Once we have filewatch setup we will no longer need to do this.
+						UpdateFiles( true );
 					}
 				}
 			}

@@ -51,6 +51,9 @@ namespace Saturn {
 
 		AssetID PathToID( const std::filesystem::path& rPath );
 
+		void RemoveAsset( AssetID id );
+		void TerminateAsset( AssetID id );
+
 		bool DoesIDExists( AssetID id );
 
 	private:

@@ -102,8 +102,7 @@ namespace Saturn {
 		std::filesystem::path m_ImportMeshPath;
 		std::filesystem::path m_ImportSoundPath;
 
-		std::filesystem::directory_entry m_SelectedItemPath;
-		bool m_IsItemSelected = false;
+		Ref<ContentBrowserItem> m_SelectedItem = nullptr;
 
 		bool m_ShowFolderPopupMenu = false;
 

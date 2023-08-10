@@ -108,6 +108,35 @@ namespace Saturn {
 		return 0;
 	}
 
+	void AssetRegistry::RemoveAsset( AssetID id )
+	{
+		if( DoesIDExists( id ) ) 
+		{
+			m_Assets[ id ] = nullptr;
+
+			if( IsAssetLoaded( id ) )
+			{
+				m_LoadedAssets[ id ] = nullptr;
+				m_LoadedAssets.erase( id );
+			}
+
+			m_Assets.erase( id );
+		}
+	}
+
+	void AssetRegistry::TerminateAsset( AssetID id )
+	{
+		if( DoesIDExists( id ) )
+		{
+			m_Assets[ id ] = nullptr;
+
+			if( IsAssetLoaded( id ) )
+			{
+				m_LoadedAssets[ id ] = nullptr;
+			}
+		}
+	}
+
 	bool AssetRegistry::DoesIDExists( AssetID id )
 	{
 		return m_Assets.find( id ) != m_Assets.end();

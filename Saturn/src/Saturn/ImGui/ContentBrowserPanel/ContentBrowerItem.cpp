@@ -43,11 +43,13 @@
 
 namespace Saturn {
 
+	static char s_RenameBuffer[ 1024 ];
+
 	ContentBrowserItem::ContentBrowserItem( const std::filesystem::directory_entry& rEntry )
 		: m_Entry( rEntry )
 	{
 		m_Path = rEntry.path().string();
-		m_Filename = rEntry.path().filename().replace_extension().filename().string();
+		m_Filename = rEntry.path().filename().replace_extension().filename();
 
 		m_IsDirectory = rEntry.is_directory();
 	}
@@ -80,14 +82,15 @@ namespace Saturn {
 		{
 			bool Clicked = false;
 
-			ImGui::ButtonBehavior( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path.c_str() ), &m_IsHovered, &Clicked );
+			if( !m_IsRenaming )
+				ImGui::ButtonBehavior( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path.c_str() ), &m_IsHovered, &Clicked );
 
 			pDrawList->AddRectFilled( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawCornerFlags_All );
 
 			ImGui::ItemSize( ThumbnailSize, style.FramePadding.y );
 			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path .c_str() ) );
 
-			if( m_IsHovered )
+			if( m_IsHovered && !m_IsRenaming )
 			{
 				// Draw a highlight around the button.
 				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawCornerFlags_All );
@@ -126,11 +129,12 @@ namespace Saturn {
 			bool ItemClicked = false;
 			bool Open = false;
 			
-			ItemClicked = Auxiliary::ButtonRd( "##CONTENT_BROWSER_ITEM_BTN", ImRect( TopLeft, BottomRight ), true );
+			if( !m_IsRenaming )
+				ItemClicked = Auxiliary::ButtonRd( "##CONTENT_BROWSER_ITEM_BTN", ImRect( TopLeft, BottomRight ), true );
 
 			m_IsHovered = ImGui::IsItemHovered();
 
-			if( m_IsHovered )
+			if( m_IsHovered && !m_IsRenaming )
 			{
 				if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 				{
@@ -264,6 +268,8 @@ namespace Saturn {
 		ImVec2 cursor = ImGui::GetCursorPos();
 		ImGui::SetCursorPos( ImVec2( cursor.x + EdgeOffset + 5.0f, cursor.y + EdgeOffset + 5.0f ) );
 
+		std::string Filename = m_Filename.string();
+
 		if( m_IsDirectory )
 		{
 			ImGui::BeginVertical( "FILENAME_PANEL", ImVec2( ThumbnailSize.x - EdgeOffset * 2.0f, InfoPanelHeight - EdgeOffset ) );
@@ -272,13 +278,13 @@ namespace Saturn {
 
 			ImGui::PushTextWrapPos( ImGui::GetCursorPosX() + ( ThumbnailSize.x - EdgeOffset * 3.0f ) );
 
-			float textWidth = std::min( ImGui::CalcTextSize( m_Filename.c_str() ).x, ThumbnailSize.x );
+			float textWidth = std::min( ImGui::CalcTextSize( Filename.c_str() ).x, ThumbnailSize.x );
 
 			ImGui::SetNextItemWidth( textWidth );
 
-			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + ( ThumbnailSize.x - ImGui::CalcTextSize( m_Filename.c_str() ).x ) * 0.5f - EdgeOffset - 5.0f );
+			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + ( ThumbnailSize.x - ImGui::CalcTextSize( Filename.c_str() ).x ) * 0.5f - EdgeOffset - 5.0f );
 
-			ImGui::Text( m_Filename.c_str() );
+			ImGui::Text( Filename.c_str() );
 
 			ImGui::PopTextWrapPos();
 
@@ -297,7 +303,30 @@ namespace Saturn {
 
 			ImGui::PushTextWrapPos( ImGui::GetCursorPosX() + ( ThumbnailSize.x - EdgeOffset - 5.0f * 3.0f ) );
 
-			ImGui::Text( m_Filename.c_str() );
+			if( m_IsRenaming )
+			{
+				if( m_StartingRename )
+				{
+					memset( s_RenameBuffer, 0, 1024 );
+					memcpy( s_RenameBuffer, m_Filename.string().c_str(), m_Filename.string().size() );
+
+					ImGui::SetKeyboardFocusHere( 0 );
+
+					m_StartingRename = false;
+				}
+
+				if( ImGui::InputText( "##renamefile", s_RenameBuffer, 1024, ImGuiInputTextFlags_EnterReturnsTrue ) )
+				{
+					m_IsRenaming = false;
+					OnRenameCommited( s_RenameBuffer );
+
+					memset( s_RenameBuffer, 0, 1024 );
+				}
+			}
+			else
+			{
+				ImGui::Text( Filename.c_str() );
+			}
 
 			ImGui::PopTextWrapPos();
 			ImGui::ResumeLayout();
@@ -316,6 +345,34 @@ namespace Saturn {
 		ImGui::PopID();
 	}
 
+	void ContentBrowserItem::OnRenameCommited( const std::string& rName )
+	{
+		m_Filename = rName;
+
+		std::filesystem::path oldPath = m_Path;
+		const std::string extension = oldPath.extension().string();
+
+		std::filesystem::path newPath = fmt::format( "{0}\\{1}{2}", oldPath.parent_path().string(), rName, extension );
+
+		// Rename the file on the filesystem
+		std::filesystem::rename( oldPath, newPath );
+
+		// Update our Entry.
+		m_Entry = std::filesystem::directory_entry( newPath );
+		m_Path = m_Entry.path();
+
+		// Find our asset.
+		auto relative = std::filesystem::relative( oldPath, Project::GetActiveProject()->GetRootDir() );
+		Ref<Asset> asset = AssetManager::Get().FindAsset( relative );
+		if( asset )
+		{
+			asset->Name = rName;
+			asset->SetPath( m_Path );
+
+			AssetManager::Get().Save();
+		}
+	}
+
 	void ContentBrowserItem::Select()
 	{
 		m_IsSelected = true;
@@ -328,12 +385,15 @@ namespace Saturn {
 
 	void ContentBrowserItem::Rename()
 	{
-
+		m_IsRenaming = true;
+		m_StartingRename = true;
 	}
 
 	void ContentBrowserItem::Delete()
 	{
+		Ref<Asset> culprit = AssetManager::Get().FindAsset( m_Path );
+		AssetManager::Get().RemoveAsset( culprit->ID );
 
+		std::filesystem::remove( m_Path );
 	}
-
 }
