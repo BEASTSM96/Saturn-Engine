@@ -46,8 +46,8 @@ namespace Saturn {
 	ContentBrowserItem::ContentBrowserItem( const std::filesystem::directory_entry& rEntry )
 		: m_Entry( rEntry )
 	{
-		m_Filename = rEntry.path().filename().string();
 		m_Path = rEntry.path().string();
+		m_Filename = rEntry.path().filename().replace_extension().filename().string();
 
 		m_IsDirectory = rEntry.is_directory();
 	}
@@ -153,8 +153,10 @@ namespace Saturn {
 
 			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
 			{
-				auto path = std::filesystem::relative( m_Filename, Project::GetActiveProject()->GetRootDir() );
+				auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
 				const wchar_t* c = path.c_str();
+
+				ImGui::SetDragDropPayload( "CB_ITEM_MOVE", &m_Entry, sizeof( std::filesystem::directory_entry ), ImGuiCond_Once );
 
 				switch( assetType )
 				{

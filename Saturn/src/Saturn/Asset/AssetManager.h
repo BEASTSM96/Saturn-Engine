@@ -45,6 +45,8 @@ namespace Saturn {
 
 		AssetID CreateAsset( AssetType type, AssetRegistryType Dst = AssetRegistryType::Game );
 
+		// Note:
+		// rPath must be a relaitve path.
 		Ref<Asset> FindAsset( const std::filesystem::path& rPath, AssetRegistryType Dst = AssetRegistryType::Game );
 		Ref<Asset> FindAsset( const std::string& rName, AssetType type, AssetRegistryType Dst = AssetRegistryType::Game );
 

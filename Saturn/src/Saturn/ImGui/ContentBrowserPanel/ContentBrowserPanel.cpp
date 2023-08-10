@@ -100,6 +100,32 @@ namespace Saturn {
 				ImGui::TreePop();
 			}
 
+			if( ImGui::BeginDragDropTarget() )
+			{
+				auto data = ImGui::AcceptDragDropPayload( "CB_ITEM_MOVE", ImGuiDragDropFlags_None );
+
+				if( data )
+				{
+					std::filesystem::directory_entry& entry = *( std::filesystem::directory_entry* ) data->Data;
+
+					std::filesystem::path srcPath = entry.path();
+					std::filesystem::path dstPath = entryPath / srcPath.filename();
+
+					std::filesystem::path assetPath = std::filesystem::relative( srcPath, Project::GetActiveProject()->GetRootDir() );
+					
+					std::filesystem::copy_file( entry, dstPath );
+					std::filesystem::remove( entry );
+
+					// Find and update the asset that is linked to this path.
+					Ref<Asset> culprit = AssetManager::Get().FindAsset( assetPath );
+					culprit->SetPath( dstPath );
+
+					AssetManager::Get().Save();
+
+					UpdateFiles( true );
+				}
+			}
+
 			if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 			{
 				// TODO: Think about this...
@@ -364,27 +390,22 @@ namespace Saturn {
 		{
 			case filewatch::Event::added: 
 			{
-
 			} break;
 
 			case filewatch::Event::removed:
 			{
-
 			} break;
 
 			case filewatch::Event::modified:
 			{
-
 			} break;
 
 			case filewatch::Event::renamed_new:
 			{
-
 			} break;
 
 			case filewatch::Event::renamed_old:
 			{
-
 			} break;
 
 			default:
