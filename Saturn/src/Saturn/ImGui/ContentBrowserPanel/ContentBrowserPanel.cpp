@@ -29,17 +29,11 @@
 #include "sppch.h"
 #include "ContentBrowserPanel.h"
 
-#include "ImGuiAuxiliary.h"
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
 #include "Saturn/Asset/MaterialAsset.h"
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 #include "Saturn/Asset/AssetImporter.h"
-
-#include "AssetViewer.h"
-#include "PrefabViewer.h"
-#include "StaticMeshAssetViewer.h"
-#include "MaterialAssetViewer.h"
-#include "PhysicsMaterialAssetViewer.h"
 
 #include "Saturn/Project/Project.h"
 #include "Saturn/Core/App.h"
@@ -115,7 +109,7 @@ namespace Saturn {
 				m_CurrentPath = s_pAssetsDirectory;
 				m_CurrentPath /= path;
 
-				OnDirectorySelected( m_CurrentPath, entry.is_directory() );
+				m_ChangeDirectory = true;
 			}
 		}
 	}
@@ -364,6 +358,40 @@ namespace Saturn {
 		}
 	}
 
+	void ContentBrowserPanel::OnFilewatchEvent( const std::string& rPath, const filewatch::Event Event )
+	{
+		switch( Event )
+		{
+			case filewatch::Event::added: 
+			{
+
+			} break;
+
+			case filewatch::Event::removed:
+			{
+
+			} break;
+
+			case filewatch::Event::modified:
+			{
+
+			} break;
+
+			case filewatch::Event::renamed_new:
+			{
+
+			} break;
+
+			case filewatch::Event::renamed_old:
+			{
+
+			} break;
+
+			default:
+				break;
+		}
+	}
+
 	void ContentBrowserPanel::EdDrawRootFolder( CBViewMode type, bool open /*= false */ )
 	{
 		switch( type )
@@ -589,8 +617,12 @@ namespace Saturn {
 
 		ImGui::Columns( columnCount, 0, false );
 
-		for( auto& rEntry : m_Files )
-			RenderEntry( rEntry, { thumbnailSizeX, thumbnailSizeY }, padding );
+		for( auto& item : m_Files ) 
+		{
+			Ref<Texture2D> Icon = item->IsDirectory() ? m_DirectoryIcon : m_FileIcon;
+
+			item->Draw( { thumbnailSizeX, thumbnailSizeY }, padding, Icon );
+		}
 
 		// Get the first folder in the current directory.
 		m_FirstFolder = "";
@@ -607,21 +639,44 @@ namespace Saturn {
 
 		ImGui::PopStyleColor( 2 );
 
-		/*
-		if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
+		if( ImGui::BeginPopupContextWindow( 0, 1, true ) )
 		{
-			if( m_ViewMode == CBViewMode::Assets )
+			if( m_IsItemSelected )
 			{
-				AssetsPopupContextMenu();
+				// Common Actions
+				if( ImGui::MenuItem( "Rename" ) )
+				{
+
+				}
+
+				// Folder Actions
+				if( m_SelectedItemPath.is_directory() )
+				{
+					if( ImGui::MenuItem( "Show In Explorer" ) )
+					{
+					}
+				}
+				else
+				{
+					if( ImGui::MenuItem( "Delete" ) )
+					{
+					}
+				}
 			}
 			else
 			{
-				ScriptsPopupContextMenu();
+				if( m_ViewMode == CBViewMode::Assets )
+				{
+					AssetsPopupContextMenu();
+				}
+				else
+				{
+					ScriptsPopupContextMenu();
+				}
 			}
 
 			ImGui::EndPopup();
 		}
-		*/
 
 		if( m_ShowMeshImport )
 			ImGui::OpenPopup( "Import Mesh##IMPORT_MESH" );
@@ -888,293 +943,6 @@ namespace Saturn {
 		ImGui::End();
 	}
 
-	void ContentBrowserPanel::RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles /*= true */ )
-	{
-		//if( !rEntry.is_directory() && excludeFiles || rEntry.is_directory() && !excludeFiles )
-		//	return;
-
-		auto* pDrawList = ImGui::GetWindowDrawList();
-
-		//auto RelativePath = std::filesystem::relative( rEntry.path(), s_pAssetsDirectory );
-		auto path = rEntry.path().string();
-
-		if( rEntry.path().extension() == ".sreg" )
-			return;
-
-		std::string filename = rEntry.path().filename().string();
-
-		bool isFile = !rEntry.is_directory();
-
-		Ref<Texture2D> Icon = isFile ? m_FileIcon : m_DirectoryIcon;
-
-		// Draw background.
-		const float EdgeOffset = 4.0f;
-		const float TextLineHeight = ImGui::GetTextLineHeightWithSpacing() * 2.0f + EdgeOffset * 2.0f;
-		const float InfoPanelHeight = std::max( ThumbnailSize.x * 0.5f, TextLineHeight );
-		const ImVec2 TopLeft = ImGui::GetCursorScreenPos();
-		const ImVec2 ThumbnailBottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y );
-		const ImVec2 InfoTopLeft = ImVec2( TopLeft.x, TopLeft.y + ThumbnailSize.y );
-		const ImVec2 BottomRight = ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y + InfoPanelHeight );
-
-		ImGui::PushID( path.c_str() );
-		ImGui::BeginGroup();
-
-		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 0.0f, 0.0f ) );
-
-		// Draw folder item.
-		if( rEntry.is_directory() )
-		{
-			bool Hovered = false;
-			bool Clicked = false;
-			bool RightClicked = false;
-
-			ImGui::ButtonBehavior( ImRect( TopLeft, BottomRight ), ImGui::GetID( path.c_str() ), &Hovered, &Clicked );
-
-			pDrawList->AddRectFilled( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawCornerFlags_All );
-
-			ImGuiStyle& style = ImGui::GetStyle();
-
-			ImGui::ItemSize( ThumbnailSize, style.FramePadding.y );
-			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( path.c_str() ) );
-
-			if( Hovered )
-			{
-				// Draw a highlight on the button.
-				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawCornerFlags_All );
-
-				if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
-				{
-					m_CurrentPath /= rEntry.path().filename();
-					OnDirectorySelected( m_CurrentPath, rEntry.is_directory() );
-				}
-
-				if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
-				{
-					RightClicked = true;
-				}
-			}
-		}
-		else // Draw file item.
-		{
-			ImGuiStyle& style = ImGui::GetStyle();
-
-			// Fill background.
-			pDrawList->AddRectFilled( TopLeft, ThumbnailBottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawCornerFlags_Top );
-
-			// Fill Info area
-			pDrawList->AddRectFilled( InfoTopLeft, BottomRight, IM_COL32( 47, 47, 47, 255 ), 5.0f, ImDrawCornerFlags_Bot );
-
-			// Draw line between thumbnail and info.
-			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.5f );
-
-			ImGui::ItemSize( ImRect( TopLeft, BottomRight ).Min, style.FramePadding.y );
-			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( path.c_str() ) );
-
-			bool ItemClicked = false;
-			ItemClicked = Auxiliary::ButtonRd( "##CONTENT_BROWSER_ITEM_BTN", ImRect( TopLeft, BottomRight ), true );
-
-			//if( !excludeFiles )
-			{
-				auto assetType = AssetTypeFromExtension( rEntry.path().filename().extension().string() );
-
-				if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
-				{
-					auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
-					const wchar_t* c = path.c_str();
-
-					switch( assetType )
-					{
-						case Saturn::AssetType::Texture:
-							break;
-						case Saturn::AssetType::StaticMesh:
-						{
-							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-						}	break;
-						case Saturn::AssetType::SkeletalMesh:
-						case Saturn::AssetType::Material:
-						{
-							ImGui::SetDragDropPayload( "asset_playload", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-						}	break;
-						case Saturn::AssetType::MaterialInstance:
-						case Saturn::AssetType::Audio:
-							break;
-						case Saturn::AssetType::Scene:
-						{
-							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-						} break;
-
-						case Saturn::AssetType::Prefab:
-						{
-							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-						} break;
-
-						case Saturn::AssetType::Script:
-						{
-							ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCRIPT", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-						} break;
-
-						case Saturn::AssetType::Unknown:
-						case Saturn::AssetType::COUNT:
-						default:
-							break;
-					}
-
-					ImGui::EndDragDropSource();
-				}
-
-				if( ItemClicked )
-				{
-					ItemClicked = false;
-
-					switch( assetType )
-					{
-						case AssetType::Texture:
-							break;
-
-						case AssetType::StaticMesh:
-						{
-							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
-
-							// Find the asset.
-							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
-							AssetViewer::Add<StaticMeshAssetViewer>( asset->ID );
-						} break;
-
-						case AssetType::SkeletalMesh:
-							break;
-
-						case AssetType::Material:
-						{
-							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
-
-							// Find the asset.
-							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
-
-							// Importing the asset will happen in this function.
-							AssetViewer::Add<MaterialAssetViewer>( asset->ID );
-						} break;
-						case AssetType::MaterialInstance:
-							break;
-
-						case AssetType::Prefab:
-						{
-							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
-
-							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
-
-							AssetViewer::Add<PrefabViewer>( asset->ID );
-						} break;
-
-						case AssetType::PhysicsMaterial:
-						{
-							auto path = std::filesystem::relative( rEntry.path(), Project::GetActiveProject()->GetRootDir() );
-
-							Ref<Asset> asset = AssetManager::Get().FindAsset( path );
-
-							AssetViewer::Add<PhysicsMaterialAssetViewer>( asset->ID );
-						} break;
-
-						case AssetType::Scene:
-						case AssetType::Audio:
-						case AssetType::Script:
-						case AssetType::Unknown:
-						case AssetType::COUNT:
-						default:
-							break;
-					}
-				}
-			}
-		}
-
-		if( ImGui::BeginPopupContextWindow( 0, 1, true ) )
-		{
-			// Common Actions
-			if( ImGui::MenuItem( "Rename" ) ) 
-			{
-
-			}
-
-			// Folder Actions
-			if( rEntry.is_directory() )
-			{
-				if( ImGui::MenuItem( "Show In Explorer" ) )
-				{
-				}
-			}
-			else
-			{
-				if( ImGui::MenuItem( "Delete" ) )
-				{
-				}
-			}
-
-			ImGui::EndPopup();
-		}
-
-		ImGui::EndGroup();
-
-		// Draw icon.
-		pDrawList->AddImage( Icon->GetDescriptorSet(), TopLeft, ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y ), { 0, 1 }, { 1, 0 } );
-
-		ImGui::SetCursorScreenPos( ImVec2( TopLeft.x + 2.0f, TopLeft.y + ThumbnailSize.y ) );
-
-		// Filename 
-
-		ImVec2 cursor = ImGui::GetCursorPos();
-		ImGui::SetCursorPos( ImVec2( cursor.x + EdgeOffset + 5.0f, cursor.y + EdgeOffset + 5.0f ) );
-
-		if( rEntry.is_directory() )
-		{
-			ImGui::BeginVertical( "FILENAME_PANEL", ImVec2( ThumbnailSize.x - EdgeOffset * 2.0f, InfoPanelHeight - EdgeOffset ) );
-
-			ImGui::BeginHorizontal( filename.c_str(), ImVec2( ThumbnailSize.x - 2.0f, 0.0f ) );
-
-			ImGui::PushTextWrapPos( ImGui::GetCursorPosX() + ( ThumbnailSize.x - EdgeOffset * 3.0f ) );
-
-			float textWidth = std::min( ImGui::CalcTextSize( filename.c_str() ).x, ThumbnailSize.x );
-
-			ImGui::SetNextItemWidth( textWidth );
-
-			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + ( ThumbnailSize.x - ImGui::CalcTextSize( filename.c_str() ).x ) * 0.5f - EdgeOffset - 5.0f );
-
-			ImGui::Text( filename.c_str() );
-
-			ImGui::PopTextWrapPos();
-
-			ImGui::Spring();
-			ImGui::EndHorizontal();
-			ImGui::Spring();
-			ImGui::EndVertical();
-		}
-		else
-		{
-			ImGui::BeginVertical( "FILENAME_PANEL", ImVec2( ThumbnailSize.x - EdgeOffset * 3.0f, InfoPanelHeight - EdgeOffset ) );
-
-			ImGui::BeginHorizontal( "FILENAME_PANEL_HOR", ImVec2( 0.0f, 0.0f ) );
-
-			ImGui::SuspendLayout();
-
-			ImGui::PushTextWrapPos( ImGui::GetCursorPosX() + ( ThumbnailSize.x - EdgeOffset - 5.0f * 3.0f ) );
-
-			ImGui::Text( filename.c_str() );
-
-			ImGui::PopTextWrapPos();
-			ImGui::ResumeLayout();
-
-			ImGui::Spring();
-
-			ImGui::EndHorizontal();
-
-			ImGui::Spring();
-			ImGui::EndVertical();
-		}
-
-		ImGui::PopStyleVar();
-
-		ImGui::NextColumn();
-		ImGui::PopID();
-	}
-
 	void ContentBrowserPanel::SetPath( const std::filesystem::path& rPath )
 	{
 		s_pAssetsDirectory = rPath / "Assets";
@@ -1197,11 +965,19 @@ namespace Saturn {
 			} break;
 		}
 
+		m_Watcher = new filewatch::FileWatch<std::string>( s_pAssetsDirectory.string(),
+			[this]( const std::string& path, const filewatch::Event event )
+			{
+				OnFilewatchEvent( path, event );
+			} );
+
 		UpdateFiles( true );
 	}
 
-	void ContentBrowserPanel::OnDirectorySelected( std::filesystem::path& rPath, bool IsFile /*= false */ )
+	void ContentBrowserPanel::OnDirectorySelected( const std::filesystem::path& rPath )
 	{
+		m_CurrentPath /= rPath;
+
 		m_ChangeDirectory = true;
 	}
 
@@ -1212,10 +988,18 @@ namespace Saturn {
 
 		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
 		{
-			if( std::find( m_Files.begin(), m_Files.end(), rEntry ) != m_Files.end() )
+			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
+
+			// SHIT!!
+			item->SetDirectorySelectedFn( [this]( const std::filesystem::path& path ) 
+				{
+					OnDirectorySelected( path );
+				} );
+
+			if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )
 			{
 				if( !std::filesystem::exists( rEntry ) )
-					m_Files.erase( std::remove( m_Files.begin(), m_Files.end(), rEntry ), m_Files.end() );
+					m_Files.erase( std::remove( m_Files.begin(), m_Files.end(), item ), m_Files.end() );
 
 				continue;
 			}
@@ -1226,24 +1010,24 @@ namespace Saturn {
 					continue;
 			}
 
-			m_Files.push_back( rEntry );
+			m_Files.push_back( item );
+
 			m_FilesNeedSorting = true;
 		}
 
 		if( m_FilesNeedSorting )
 		{
-			auto Fn = []( const auto& a, const auto& b ) -> bool
+			auto Fn = []( Ref<ContentBrowserItem>& a, Ref<ContentBrowserItem>& b) -> bool
 			{
-				if( a.is_directory() && !b.is_directory() )
+				if( a->IsDirectory() && !b->IsDirectory() )
 					return true; // a is a directory sort first.
-				else if( !a.is_directory() && b.is_directory() )
+				else if( !a->IsDirectory() && b->IsDirectory() )
 					return false;
 				else
-					return a.path().filename() < b.path().filename();
+					return a->Filename() < b->Filename();
 			};
 
 			std::sort( m_Files.begin(), m_Files.end(), Fn );
-
 			m_FilesNeedSorting = false;
 		}
 	}

@@ -246,7 +246,7 @@ namespace Saturn {
 		float Mass = 2.0f;
 		float LinearDrag = 1.0f;
 
-		uint32_t LockFlags = -1;
+		uint32_t LockFlags = 0;
 
 		RigidbodyComponent() = default;
 		RigidbodyComponent( bool isKinematic ) : IsKinematic( isKinematic ) { }

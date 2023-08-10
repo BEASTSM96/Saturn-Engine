@@ -28,84 +28,68 @@
 
 #pragma once
 
-#include <Saturn/ImGui/SceneHierarchyPanel.h>
-#include <Saturn/ImGui/ContentBrowserPanel/ContentBrowserPanel.h>
+#include "Saturn/Core/Base.h"
 
-#include <Saturn/Scene/Scene.h>
-#include <Saturn/Core/Layer.h>
+#include "Saturn/Vulkan/Texture.h"
+
+#include <imgui.h>
+#include <filesystem>
 
 namespace Saturn {
-	
-	class Toolbar;
-	class TitleBar;
 
-	class EditorLayer : public Layer
+	struct ContentBrowserCompare
+	{
+		bool operator()(const std::filesystem::directory_entry& A, const std::filesystem::directory_entry& B)
+		{
+			if( A.is_directory() && !B.is_directory() )
+				return true; // a is a directory sort first.
+			else if( !A.is_directory() && B.is_directory() )
+				return false;
+			else
+				return A.path().filename() < B.path().filename();
+		}
+	};
+
+	class ContentBrowserItem : public RefTarget
 	{
 	public:
-		EditorLayer();
-		~EditorLayer();
+		ContentBrowserItem( const std::filesystem::directory_entry& rEntry );
+		~ContentBrowserItem();
 
-		void OnUpdate( Timestep time ) override;
+		void Draw( ImVec2 ThumbnailSize, float Padding, Ref<Texture2D> Icon );
 
-		void OnImGuiRender() override;
+		bool operator==( const ContentBrowserItem& rOther ) 
+		{
+			return m_Entry == rOther.m_Entry && m_Filename == rOther.m_Filename && m_Path == rOther.m_Path;
+		}
 
-		void OnEvent( Event& rEvent ) override;
+		bool IsDirectory() { return m_IsDirectory; }
+		bool IsHovered()   { return m_IsHovered;   }
+		bool IsSelected()  { return m_IsSelected;  }
+
+		std::string& Filename() { return m_Filename; }
+		const std::string& Filename() const { return m_Filename; }
 		
-		void SaveFileAs();
-		void OpenFile( const std::filesystem::path& rFilepath );
+		std::filesystem::path& Path()             { return m_Path; }
+		const std::filesystem::path& Path() const { return m_Path; }
 
-		void SaveFile();
-		void OpenFile();
-
-		void SaveProject();
+		void SetDirectorySelectedFn( const std::function<void( const std::filesystem::path& )>&& rrFunc ) { m_OnDirectorySelected = rrFunc; }
 
 	public:
-		
-		TitleBar* GetTitleBar() { return m_TitleBar; }
-		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
+		void Select();
+		void Deselect();
+		void Rename();
+		void Delete();
 
 	private:
-		
-		void SelectionChanged( Entity e );
-		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
-		bool OnKeyPressed( KeyPressedEvent& rEvent );
+		std::filesystem::directory_entry m_Entry;
+		std::string m_Filename;
+		std::filesystem::path m_Path;
 
-		// UI Functions.
-		void UI_Titlebar_UserSettings();
-		bool m_ShowUserSettings = false;
+		std::function<void( const std::filesystem::path& )> m_OnDirectorySelected;
 
-		void HotReloadGame();
-		void CheckMissingEditorAssetRefs();
-
-	private:
-		TitleBar* m_TitleBar;
-		
-		Ref< Texture2D > m_CheckerboardTexture;
-		Ref< Texture2D > m_StartRuntimeTexture;
-		Ref< Texture2D > m_EndRuntimeTexture;
-
-		Ref< Texture2D > m_TranslationTexture;
-		Ref< Texture2D > m_RotationTexture;
-		Ref< Texture2D > m_ScaleTexture;
-		Ref< Texture2D > m_SyncTexture;
-
-		Ref< PanelManager > m_PanelManager;
-
-		EditorCamera m_EditorCamera;
-		bool m_AllowCameraEvents = false;
-		bool m_StartedRightClickInViewport = false;
-		bool m_ViewportFocused = false;
-		bool m_MouseOverViewport = false;
-		bool m_OpenEditorSettings = false;
-
-		bool m_RequestRuntime = false;
-
-		// Translate as default
-		int m_GizmoOperation = 7;
-
-		ImVec2 m_ViewportSize;
-
-		Ref< Scene > m_EditorScene;
-		Ref< Scene > m_RuntimeScene;
+		bool m_IsDirectory = false;
+		bool m_IsHovered = false;
+		bool m_IsSelected = false;
 	};
 }

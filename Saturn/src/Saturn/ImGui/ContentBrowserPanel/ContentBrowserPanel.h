@@ -28,15 +28,18 @@
 
 #pragma once
 
-#include "Panel/Panel.h"
+#include "Saturn/ImGui/Panel/Panel.h"
 
 #include "Saturn/Vulkan/Texture.h"
 
 #include "Saturn/Asset/Asset.h"
 
+#include "ContentBrowerItem.h"
+
 #include <imgui.h>
 #include <filesystem>
 #include <functional>
+#include <map>
 
 #include <filewatch/filewatch.h>
 
@@ -58,11 +61,8 @@ namespace Saturn {
 
 		void SetPath( const std::filesystem::path& rPath );
 
-	private:
-
-		void RenderEntry( const std::filesystem::directory_entry& rEntry, ImVec2 ThumbnailSize, float Padding, bool excludeFiles = true );
-				
-		void OnDirectorySelected( std::filesystem::path& rPath, bool IsFile = false );
+	private:	
+		void OnDirectorySelected( const std::filesystem::path& rPath );
 
 		void UpdateFiles( bool clear = false );
 
@@ -75,6 +75,8 @@ namespace Saturn {
 
 		void AssetsPopupContextMenu();
 		void ScriptsPopupContextMenu();
+
+		void OnFilewatchEvent( const std::string& rPath, const filewatch::Event Event );
 
 	private: // Editor Content
 		void EdDrawRootFolder( CBViewMode type, bool open = false );
@@ -100,6 +102,9 @@ namespace Saturn {
 		std::filesystem::path m_ImportMeshPath;
 		std::filesystem::path m_ImportSoundPath;
 
+		std::filesystem::directory_entry m_SelectedItemPath;
+		bool m_IsItemSelected = false;
+
 		bool m_ShowFolderPopupMenu = false;
 
 		struct AssetInfo
@@ -111,7 +116,7 @@ namespace Saturn {
 		CBViewMode m_ViewMode;
 
 		// Files and folder, sorted by folders then files.
-		std::vector<std::filesystem::directory_entry> m_Files;
+		std::vector<Ref<ContentBrowserItem>> m_Files;
 
 		bool m_FilesNeedSorting = false;
 		bool m_RenderCreateWindow = false;
