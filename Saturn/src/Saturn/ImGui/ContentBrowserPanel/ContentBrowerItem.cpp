@@ -318,7 +318,7 @@ namespace Saturn {
 				if( ImGui::InputText( "##renamefile", s_RenameBuffer, 1024, ImGuiInputTextFlags_EnterReturnsTrue ) )
 				{
 					m_IsRenaming = false;
-					OnRenameCommited( s_RenameBuffer );
+					OnRenameCommitted( s_RenameBuffer );
 
 					memset( s_RenameBuffer, 0, 1024 );
 				}
@@ -345,7 +345,7 @@ namespace Saturn {
 		ImGui::PopID();
 	}
 
-	void ContentBrowserItem::OnRenameCommited( const std::string& rName )
+	void ContentBrowserItem::OnRenameCommitted( const std::string& rName )
 	{
 		m_Filename = rName;
 

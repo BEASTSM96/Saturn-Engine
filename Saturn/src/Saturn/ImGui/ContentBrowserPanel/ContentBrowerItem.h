@@ -75,7 +75,7 @@ namespace Saturn {
 
 		void SetDirectorySelectedFn( const std::function<void( const std::filesystem::path& )>&& rrFunc ) { m_OnDirectorySelected = rrFunc; }
 		
-		void OnRenameCommited( const std::string& rName );
+		void OnRenameCommitted( const std::string& rName );
 
 	public:
 		void Select();

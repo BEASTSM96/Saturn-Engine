@@ -46,7 +46,7 @@ namespace Saturn {
 		AssetID CreateAsset( AssetType type, AssetRegistryType Dst = AssetRegistryType::Game );
 
 		// Note:
-		// rPath must be a relaitve path.
+		// rPath must be a relative path.
 		Ref<Asset> FindAsset( const std::filesystem::path& rPath, AssetRegistryType Dst = AssetRegistryType::Game );
 		Ref<Asset> FindAsset( const std::string& rName, AssetType type, AssetRegistryType Dst = AssetRegistryType::Game );
 
@@ -94,7 +94,7 @@ namespace Saturn {
 			return asset;
 		}
 
-		// WARNING: THIS WILL REMOVE THE ASSET FROM THE REGISTRY. PLEASE USE "DestoryAsset" if you intent to destroy the asset.
+		// WARNING: THIS WILL REMOVE THE ASSET FROM THE REGISTRY. PLEASE USE "DestoryAsset" if you intend to destroy the asset.
 		void RemoveAsset( AssetID id, AssetRegistryType Dst = AssetRegistryType::Game )
 		{
 			switch( Dst )
