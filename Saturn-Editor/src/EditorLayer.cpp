@@ -952,6 +952,7 @@ namespace Saturn {
 		SceneSerialiser serialiser( newScene );
 		serialiser.Deserialise( fullPath.string() );
 
+		m_EditorScene = nullptr;
 		m_EditorScene = newScene;
 
 		// We maybe don't need to transfer the entities but just to be sure we will do it.
@@ -967,19 +968,8 @@ namespace Saturn {
 
 	void EditorLayer::OpenFile()
 	{
-		if( RenderThread::Get().IsRenderThread() )
-		{
-			Application::Get().SubmitOnMainThread( [=]() 
-				{
-					auto res = Application::Get().OpenFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
-					OpenFile( res );
-				} );
-		}
-		else
-		{
-			auto res = Application::Get().OpenFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
-			OpenFile( res );
-		}
+		auto res = Application::Get().OpenFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
+		OpenFile( res );
 	}
 
 	void EditorLayer::SaveProject()

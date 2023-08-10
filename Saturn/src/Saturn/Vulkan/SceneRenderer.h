@@ -373,7 +373,7 @@ namespace Saturn {
 
 		void ImGuiRender();
 
-		void SetCurrentScene( Scene* pScene ) { m_pScene = pScene; }
+		void SetCurrentScene( Scene* pScene );
 
 		void SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform );
 		void SubmitSelectedMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform );

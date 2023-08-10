@@ -195,6 +195,9 @@ namespace Saturn {
 						auto Entity = m_Context->CreateEntity( "Skylight" );
 						Entity.AddComponent<SkylightComponent>();
 						
+						// Defaults
+						Application::Get().PrimarySceneRenderer().SetDynamicSky( 2.0f, 0.0f, 0.0f );
+
 						SetSelected( Entity );
 					}
 				}

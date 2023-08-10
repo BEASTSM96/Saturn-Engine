@@ -314,6 +314,11 @@ namespace Saturn {
 			shader->WriteDescriptor( "u_EnvRadianceTex", Environment->RadianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
 			shader->WriteDescriptor( "u_EnvIrradianceTex", Environment->IrradianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
 		}
+		else
+		{
+			shader->WriteDescriptor( "u_EnvRadianceTex", m_PinkTextureCube->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
+			shader->WriteDescriptor( "u_EnvIrradianceTex", m_PinkTextureCube->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
+		}
 	}
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )

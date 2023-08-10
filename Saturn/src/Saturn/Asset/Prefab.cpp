@@ -163,8 +163,6 @@ namespace Saturn {
 		// Check if this entity has any children.
 		for( auto& childId : child.GetChildren() )
 		{
-			SAT_CORE_INFO( "Child in Child has {0} children", child.GetComponent<RelationshipComponent>().ChildrenID.size() );
-
 			Entity c = CreateChildren( child, Scene );
 
 			c.SetParent( child.GetComponent<IdComponent>().ID );

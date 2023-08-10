@@ -515,6 +515,23 @@ namespace Saturn {
 		if( !m_pScene )
 			return;
 
+		auto& sceneEnvironment = m_RendererData.SceneEnvironment;
+
+		// We have no skybox.
+		if( sceneEnvironment->Azimuth == 0 && sceneEnvironment->Inclination == 0 && sceneEnvironment->Turbidity == 0 )
+		{
+			// I don't really like this.
+			// TODO: Come back to this.
+			if( sceneEnvironment->IrradianceMap && sceneEnvironment->RadianceMap )
+			{
+				sceneEnvironment->RadianceMap = nullptr;
+				sceneEnvironment->IrradianceMap = nullptr;
+			}
+
+			return;
+		}
+
+		// We have a skybox, but we need to update the texture cubes.
 		CheckInvalidSkybox();
 
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
@@ -522,20 +539,12 @@ namespace Saturn {
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 		auto& UBs = m_RendererData.SkyboxDescriptorSet;
 
+		m_RendererData.SkyboxShader->WriteDescriptor( "u_CubeTexture", m_RendererData.SceneEnvironment->IrradianceMap->GetDescriptorInfo(), m_RendererData.SkyboxDescriptorSet->GetVulkanSet() );
+
 		RendererData::SkyboxMatricesObject SkyboxMatricesObject = {};
 		SkyboxMatricesObject.InverseVP = glm::inverse( m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix );
 
 		m_RendererData.SkyboxShader->UploadUB( ShaderType::Vertex, 0, 0, &SkyboxMatricesObject, sizeof( SkyboxMatricesObject ) );
-
-		// This should never happen.
-		if( m_RendererData.SceneEnvironment->IrradianceMap == nullptr && m_RendererData.SceneEnvironment->RadianceMap == nullptr )
-		{
-			m_RendererData.SkyboxShader->WriteDescriptor( "u_CubeTexture", Renderer::Get().GetPinkTextureCube()->GetDescriptorInfo(), m_RendererData.SkyboxDescriptorSet->GetVulkanSet() );
-		}
-		else
-		{
-			m_RendererData.SkyboxShader->WriteDescriptor( "u_CubeTexture", m_RendererData.SceneEnvironment->IrradianceMap->GetDescriptorInfo(), m_RendererData.SkyboxDescriptorSet->GetVulkanSet() );
-		}
 
 		struct ub_Data
 		{
@@ -921,6 +930,26 @@ namespace Saturn {
 		}
 
 		ImGui::End();
+	}
+
+	void SceneRenderer::SetCurrentScene( Scene* pScene )
+	{
+		m_pScene = pScene;
+
+		m_RendererData.SceneEnvironment->Turbidity = 0.0f;
+		m_RendererData.SceneEnvironment->Azimuth = 0.0f;
+		m_RendererData.SceneEnvironment->Inclination = 0.0f;
+
+		// Find the skylight entity and set the turbidity, azimuth, inclination.
+		const auto& view = m_pScene->GetAllEntitiesWith<SkylightComponent>();
+
+		for( const auto& entity : view )
+		{
+			const auto& skylight = m_pScene->GetRegistry().get<SkylightComponent>( entity );
+			m_RendererData.SceneEnvironment->Turbidity = skylight.Turbidity;
+			m_RendererData.SceneEnvironment->Azimuth = skylight.Azimuth;
+			m_RendererData.SceneEnvironment->Inclination = skylight.Inclination;
+		}
 	}
 
 	void SceneRenderer::SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform )
