@@ -30,6 +30,8 @@
 
 #include "Saturn/Core/Base.h"
 
+#include "Saturn/Asset/Asset.h"
+
 #include "Saturn/Vulkan/Texture.h"
 
 #include <imgui.h>
@@ -96,5 +98,7 @@ namespace Saturn {
 
 		bool m_IsRenaming = false;
 		bool m_StartingRename = false;
+
+		AssetType m_AssetType;
 	};
 }

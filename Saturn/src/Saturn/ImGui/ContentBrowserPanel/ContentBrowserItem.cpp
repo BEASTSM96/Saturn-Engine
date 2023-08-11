@@ -27,7 +27,7 @@
 */
 
 #include "sppch.h"
-#include "ContentBrowerItem.h"
+#include "ContentBrowserItem.h"
 
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 
@@ -52,6 +52,8 @@ namespace Saturn {
 		m_Filename = rEntry.path().filename().replace_extension().filename();
 
 		m_IsDirectory = rEntry.is_directory();
+
+		m_AssetType = AssetTypeFromExtension( m_Path.filename().extension().string() );
 	}
 
 	ContentBrowserItem::~ContentBrowserItem()
@@ -126,7 +128,8 @@ namespace Saturn {
 			pDrawList->AddRectFilled( InfoTopLeft, BottomRight, IM_COL32( 47, 47, 47, 255 ), 5.0f, ImDrawCornerFlags_Bot );
 
 			// Draw line between thumbnail and info.
-			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.5f );
+			//pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.5f );
+			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, AssetTypeToColor( m_AssetType ), 1.5f );
 
 			ImGui::ItemSize( ImRect( TopLeft, BottomRight ).Min, style.FramePadding.y );
 			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path .c_str() ) );
@@ -163,8 +166,6 @@ namespace Saturn {
 				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawCornerFlags_All );
 			}
 
-			auto assetType = AssetTypeFromExtension( m_Path.filename().extension().string() );
-
 			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
 			{
 				auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
@@ -175,7 +176,7 @@ namespace Saturn {
 					ImGui::SetDragDropPayload( "CB_ITEM_MOVE", &m_Entry, sizeof( std::filesystem::directory_entry ), ImGuiCond_Once );
 				}
 
-				switch( assetType )
+				switch( m_AssetType )
 				{
 					case Saturn::AssetType::Texture:
 						break;
@@ -219,7 +220,7 @@ namespace Saturn {
 			{
 				auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
 	
-				switch( assetType )
+				switch( m_AssetType )
 				{
 					case AssetType::Texture:
 						break;
@@ -340,6 +341,8 @@ namespace Saturn {
 			{
 				ImGui::Text( Filename.c_str() );
 			}
+
+			ImGui::Text( "Testing 123" );
 
 			ImGui::PopTextWrapPos();
 			ImGui::ResumeLayout();

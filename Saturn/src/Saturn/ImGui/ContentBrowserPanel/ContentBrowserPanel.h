@@ -34,7 +34,7 @@
 
 #include "Saturn/Asset/Asset.h"
 
-#include "ContentBrowerItem.h"
+#include "ContentBrowserItem.h"
 
 #include <imgui.h>
 #include <filesystem>
