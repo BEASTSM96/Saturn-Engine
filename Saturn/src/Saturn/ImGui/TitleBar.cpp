@@ -157,6 +157,7 @@ namespace Saturn {
 
 				// TODO:
 				// Centered title
+				/*
 				{
 					const std::string& name = Project::GetActiveProject()->GetName();
 
@@ -165,6 +166,7 @@ namespace Saturn {
 					ImGui::Text( name.c_str() );
 					ImGui::PopFont();
 				}
+				*/
 			}
 
 			ImGui::EndMainMenuBar();

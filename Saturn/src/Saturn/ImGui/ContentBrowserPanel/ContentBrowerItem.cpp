@@ -99,6 +99,11 @@ namespace Saturn {
 				{
 					m_OnDirectorySelected( m_Entry.path().filename() );
 				}
+
+				if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
+				{
+					Select();
+				}
 			}
 
 			if( Clicked )
@@ -140,6 +145,11 @@ namespace Saturn {
 				{
 					Open = true;
 				}
+
+				if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
+				{
+					Select();
+				}
 			}
 
 			if( ItemClicked )
@@ -160,7 +170,10 @@ namespace Saturn {
 				auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
 				const wchar_t* c = path.c_str();
 
-				ImGui::SetDragDropPayload( "CB_ITEM_MOVE", &m_Entry, sizeof( std::filesystem::directory_entry ), ImGuiCond_Once );
+				if( Input::Get().KeyPressed( Key::LeftControl ) || Input::Get().KeyPressed( Key::RightControl ) )
+				{
+					ImGui::SetDragDropPayload( "CB_ITEM_MOVE", &m_Entry, sizeof( std::filesystem::directory_entry ), ImGuiCond_Once );
+				}
 
 				switch( assetType )
 				{
