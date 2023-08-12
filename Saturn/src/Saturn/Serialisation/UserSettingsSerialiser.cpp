@@ -110,6 +110,16 @@ namespace Saturn {
 			return;
 
 		auto p = data[ "Recent Projects" ];
+		auto startup = data[ "Startup Project" ].as<std::string>( "" );
+
+		if( !startup.empty() )
+		{
+			size_t found = startup.find_last_of( "/\\" );
+			rSettings.StartupProjectName = startup.substr( found + 1 );
+
+			rSettings.StartupProject = startup;
+			rSettings.FullStartupProjPath = fmt::format( "{0}\\{1}.sproject", startup, rSettings.StartupProjectName );
+		}
 
 		for ( auto project : p )
 		{

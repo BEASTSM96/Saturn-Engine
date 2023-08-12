@@ -353,7 +353,7 @@ namespace Saturn {
 			std::filesystem::create_directories( ProjectPath );
 
 		// Copy files.
-		std::filesystem::copy( s_SaturnDir + "/Titan/content/Templates/Base", ProjectPath, std::filesystem::copy_options::recursive );
+		std::filesystem::copy( s_SaturnDir + "/Saturn-Editor/content/Templates/Base", ProjectPath, std::filesystem::copy_options::recursive );
 
 		// New Project ref
 		Ref<Project> newProject = Ref<Project>::Create();

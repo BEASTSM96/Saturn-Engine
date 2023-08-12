@@ -937,9 +937,6 @@ namespace Saturn {
 
 	void EditorLayer::OpenFile( const std::filesystem::path& rFilepath )
 	{
-		if( rFilepath.empty() )
-			return;
-
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
@@ -947,10 +944,12 @@ namespace Saturn {
 
 		pHierarchyPanel->SetSelected( {} );
 
-		auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
-
-		SceneSerialiser serialiser( newScene );
-		serialiser.Deserialise( fullPath.string() );
+		if( !rFilepath.empty() ) 
+		{
+			auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
+			SceneSerialiser serialiser( newScene );
+			serialiser.Deserialise( fullPath.string() );
+		}
 
 		m_EditorScene = nullptr;
 		m_EditorScene = newScene;

@@ -69,6 +69,7 @@ namespace Saturn {
 		bool IsHovered()     { return m_IsHovered;     }
 		bool IsSelected()    { return m_IsSelected;    }
 		bool MultiSelected() { return m_MultiSelected; }
+		bool IsRenaming()    { return m_IsRenaming;    }
 
 		std::filesystem::path& Filename() { return m_Filename; }
 		const std::filesystem::path& Filename() const { return m_Filename; }
