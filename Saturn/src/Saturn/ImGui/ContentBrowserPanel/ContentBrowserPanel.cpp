@@ -35,6 +35,8 @@
 #include "Saturn/Serialisation/AssetSerialisers.h"
 #include "Saturn/Asset/AssetImporter.h"
 
+#include "Saturn/Serialisation/SceneSerialiser.h"
+
 #include "Saturn/Project/Project.h"
 #include "Saturn/Core/App.h"
 #include "Saturn/Asset/AssetManager.h"
@@ -121,6 +123,9 @@ namespace Saturn {
 					culprit->SetPath( dstPath );
 
 					AssetManager::Get().Save();
+
+					// TODO: Change this when we support moving multiple items.
+					m_SelectedItems[ 0 ]->Deselect();
 
 					UpdateFiles( true );
 				}
@@ -260,6 +265,15 @@ namespace Saturn {
 
 		if( ImGui::BeginMenu( "Create" ) )
 		{
+			if( ImGui::MenuItem( "New Folder" ) )
+			{
+				std::filesystem::create_directories( m_CurrentPath / "New Folder" );
+
+				UpdateFiles( true );
+
+				FindAndRenameItem( m_CurrentPath / "New Folder" );
+			}
+
 			if( ImGui::MenuItem( "Material" ) )
 			{
 				auto id = AssetManager::Get().CreateAsset( AssetType::Material );
@@ -299,6 +313,8 @@ namespace Saturn {
 				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 
 				UpdateFiles( true );
+				
+				FindAndRenameItem( asset->Path );
 			}
 
 			if( ImGui::MenuItem( "Physics Material" ) )
@@ -317,11 +333,25 @@ namespace Saturn {
 				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 
 				UpdateFiles( true );
+				FindAndRenameItem( asset->Path );
 			}
 
 			if( ImGui::MenuItem( "Empty Scene" ) )
 			{
-				// TODO:
+				auto id = AssetManager::Get().CreateAsset( AssetType::Scene );
+				auto asset = AssetManager::Get().FindAsset( id );
+
+				asset->SetPath( m_CurrentPath / "Empty Scene.scene" );
+
+				Ref<Scene> newScene = Ref<Scene>::Create();
+
+				SceneSerialiser ss( newScene );
+				ss.Serialise( newScene->Filepath() );
+
+				AssetManager::Get().Save();
+
+				UpdateFiles( true );
+				FindAndRenameItem( asset->Path );
 			}
 
 			auto& names = GamePrefabList::Get().GetNames();
@@ -401,15 +431,29 @@ namespace Saturn {
 			} break;
 
 			case filewatch::Event::renamed_new:
-			{
+			{ 
+				UpdateFiles( true );
 			} break;
 
 			case filewatch::Event::renamed_old:
 			{
+				UpdateFiles( true );
 			} break;
 
 			default:
 				break;
+		}
+	}
+
+	void ContentBrowserPanel::FindAndRenameItem( const std::filesystem::path& rPath )
+	{
+		for( auto&& rrItem : m_Files )
+		{
+			if( rrItem->Path() == rPath )
+			{
+				rrItem->Rename();
+				break;
+			}
 		}
 	}
 
@@ -644,15 +688,34 @@ namespace Saturn {
 
 			item->Draw( { thumbnailSizeX, thumbnailSizeY }, padding, Icon );
 
-			if( item->IsSelected() ) 
-			{
-				// We already selected something. We need to deselected it.
-				if( m_SelectedItem && item != m_SelectedItem )
-				{
-					m_SelectedItem->Deselect();
-				}
+			// This happens if we rename a file as we then have to create the file cache again.
+			if( !item )
+				break;
 
-				m_SelectedItem = item;
+			// Is the item in the selection list if so and we are no longer selected then we need to remove it.
+			if( std::find( m_SelectedItems.begin(), m_SelectedItems.end(), item ) != m_SelectedItems.end() )
+			{
+				if( !item->IsSelected() )
+				{
+					item->Deselect();
+
+					m_SelectedItems.erase( std::remove( m_SelectedItems.begin(), m_SelectedItems.end(), item ), m_SelectedItems.end() );
+				}
+			}
+			else
+			{
+				if( item->IsSelected() )
+				{
+					m_SelectedItems.push_back( item );
+
+					// We are selected but if we are not multi selected, we need to deselect the other one.
+					if( !item->MultiSelected() && item != m_SelectedItems[ 0 ] )
+					{
+						m_SelectedItems[ 0 ]->Deselect();
+
+						m_SelectedItems.erase( std::remove( m_SelectedItems.begin(), m_SelectedItems.end(), item ), m_SelectedItems.end() );
+					}
+				}
 			}
 		}
 
@@ -673,25 +736,26 @@ namespace Saturn {
 
 		if( ImGui::BeginPopupContextWindow( 0, 1, true ) )
 		{
-			if( m_SelectedItem )
+			// Theses actions are only going to be used when one item is selected.
+			if( m_SelectedItems.size() )
 			{
 				// Common Actions
 				if( ImGui::MenuItem( "Rename" ) )
 				{
-					m_SelectedItem->Rename();
+					m_SelectedItems[ 0 ]->Rename();
 
 					// Once we have filewatch setup we will no longer need to do this.
 					//UpdateFiles( true );
 				}
 
 				// Folder Actions
-				if( m_SelectedItem->IsDirectory() )
+				if( m_SelectedItems[ 0 ]->IsDirectory() )
 				{
 					if( ImGui::MenuItem( "Show In Explorer" ) )
 					{
 						// TODO TEMP: Create a process class.
 
-						std::filesystem::path AssetPath = m_SelectedItem->Path();
+						std::filesystem::path AssetPath = m_SelectedItems[ 0 ]->Path();
 						std::string AssetPathString = AssetPath.string();
 
 						STARTUPINFOA StartupInfo = {};
@@ -701,20 +765,24 @@ namespace Saturn {
 
 						PROCESS_INFORMATION ProcessInfo;
 
-						std::string CommandLine = "explorer.exe ";
+						std::string CommandLine = "explorer.exe '";
 						CommandLine += AssetPathString;
+						CommandLine += "'";
 
 						bool res = CreateProcessA( nullptr, CommandLine.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo );
 
 						if( !res )
 							SAT_CORE_ERROR( "Failed to start explorer process!" );
+
+						CloseHandle( ProcessInfo.hProcess );
+						CloseHandle( ProcessInfo.hThread );
 					}
 				}
 				else
 				{
 					if( ImGui::MenuItem( "Delete" ) )
 					{
-						m_SelectedItem->Delete();
+						m_SelectedItems[ 0 ]->Delete();
 
 						// Once we have filewatch setup we will no longer need to do this.
 						UpdateFiles( true );

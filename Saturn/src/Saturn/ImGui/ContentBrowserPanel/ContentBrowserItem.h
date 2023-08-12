@@ -65,9 +65,10 @@ namespace Saturn {
 			return m_Entry == rOther.m_Entry && m_Filename == rOther.m_Filename && m_Path == rOther.m_Path;
 		}
 
-		bool IsDirectory() { return m_IsDirectory; }
-		bool IsHovered()   { return m_IsHovered;   }
-		bool IsSelected()  { return m_IsSelected;  }
+		bool IsDirectory()   { return m_IsDirectory;   }
+		bool IsHovered()     { return m_IsHovered;     }
+		bool IsSelected()    { return m_IsSelected;    }
+		bool MultiSelected() { return m_MultiSelected; }
 
 		std::filesystem::path& Filename() { return m_Filename; }
 		const std::filesystem::path& Filename() const { return m_Filename; }
@@ -78,6 +79,7 @@ namespace Saturn {
 		void SetDirectorySelectedFn( const std::function<void( const std::filesystem::path& )>&& rrFunc ) { m_OnDirectorySelected = rrFunc; }
 		
 		void OnRenameCommitted( const std::string& rName );
+		void OnRenameCommittedFolder( const std::string& rName );
 
 	public:
 		void Select();
@@ -95,6 +97,7 @@ namespace Saturn {
 		bool m_IsDirectory = false;
 		bool m_IsHovered = false;
 		bool m_IsSelected = false;
+		bool m_MultiSelected = false;
 
 		bool m_IsRenaming = false;
 		bool m_StartingRename = false;

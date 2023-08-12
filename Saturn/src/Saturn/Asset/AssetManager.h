@@ -94,7 +94,7 @@ namespace Saturn {
 			return asset;
 		}
 
-		// WARNING: THIS WILL REMOVE THE ASSET FROM THE REGISTRY. PLEASE USE "DestoryAsset" if you intend to destroy the asset.
+		// WARNING: THIS WILL REMOVE THE ASSET FROM THE REGISTRY. PLEASE USE "TerminateAsset" if you intend to destroy the asset.
 		void RemoveAsset( AssetID id, AssetRegistryType Dst = AssetRegistryType::Game )
 		{
 			switch( Dst )

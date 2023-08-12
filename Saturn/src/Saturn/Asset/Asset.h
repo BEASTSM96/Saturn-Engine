@@ -101,6 +101,49 @@ namespace Saturn {
 		return "";
 	}
 
+// I don't want to include the imgui header so we will just copy the macro.
+#define R_SHIFT 0
+#define G_SHIFT 8
+#define B_SHIFT 16
+#define A_SHIFT 24
+#define A_MASK  0xFF000000
+#define COLOR_32( R, G, B, A )  (((uint32_t)(A)<<A_SHIFT) | ((uint32_t)(B)<<B_SHIFT) | ((uint32_t)(G)<<G_SHIFT) | ((uint32_t)(R)<<R_SHIFT))
+
+	inline uint32_t AssetTypeToColor( AssetType type )
+	{
+		switch( type )
+		{
+			case Saturn::AssetType::Texture:
+				return COLOR_32( 160, 118, 249, 255 );
+			case Saturn::AssetType::StaticMesh:
+				return COLOR_32( 161, 103, 11, 255 );
+			case Saturn::AssetType::SkeletalMesh:
+				return COLOR_32( 161, 103, 11, 255 );
+			case Saturn::AssetType::Material:
+				return COLOR_32( 237, 5, 229, 255 );
+			case Saturn::AssetType::MaterialInstance:
+				return COLOR_32( 237, 5, 229, 255 );
+			case Saturn::AssetType::Audio:
+				return COLOR_32( 237, 202, 5, 255 );
+			case Saturn::AssetType::Scene:
+				return COLOR_32( 255, 0, 0, 255 );
+			case Saturn::AssetType::Prefab:
+				return COLOR_32( 255, 0, 255, 255 );
+			case Saturn::AssetType::Script:
+				return COLOR_32( 5, 183, 237, 255 );
+			case Saturn::AssetType::MeshCollider:
+				return COLOR_32( 255, 255, 255, 255 );
+			case Saturn::AssetType::PhysicsMaterial:
+				return COLOR_32( 235, 0, 55, 255 );
+			case Saturn::AssetType::Unknown:
+				return COLOR_32( 255, 255, 255, 255 );
+			default:
+				break;
+		}
+
+		return 0;
+	}
+
 	inline AssetType AssetTypeFromString( const std::string& str )
 	{
 		if( str == "Texture" )

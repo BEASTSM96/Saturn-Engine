@@ -157,6 +157,11 @@ namespace Saturn {
 
 			if( ItemClicked )
 			{
+				if( Input::Get().KeyPressed( Key::LeftControl ) || Input::Get().KeyPressed( Key::RightControl ) )
+				{
+					m_MultiSelected = !m_MultiSelected;
+				}
+
 				m_IsSelected = !m_IsSelected;
 			}
 
@@ -173,7 +178,10 @@ namespace Saturn {
 
 				if( Input::Get().KeyPressed( Key::LeftControl ) || Input::Get().KeyPressed( Key::RightControl ) )
 				{
-					ImGui::SetDragDropPayload( "CB_ITEM_MOVE", &m_Entry, sizeof( std::filesystem::directory_entry ), ImGuiCond_Once );
+					if ( m_IsSelected )
+					{
+						ImGui::SetDragDropPayload( "CB_ITEM_MOVE", &m_Entry, sizeof( std::filesystem::directory_entry ), ImGuiCond_Once );
+					}
 				}
 
 				switch( m_AssetType )
@@ -298,7 +306,30 @@ namespace Saturn {
 
 			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + ( ThumbnailSize.x - ImGui::CalcTextSize( Filename.c_str() ).x ) * 0.5f - EdgeOffset - 5.0f );
 
-			ImGui::Text( Filename.c_str() );
+			if( m_IsRenaming )
+			{
+				if( m_StartingRename )
+				{
+					memset( s_RenameBuffer, 0, 1024 );
+					memcpy( s_RenameBuffer, m_Filename.string().c_str(), m_Filename.string().size() );
+
+					ImGui::SetKeyboardFocusHere( 0 );
+
+					m_StartingRename = false;
+				}
+
+				if( ImGui::InputText( "##renamefolder", s_RenameBuffer, 1024, ImGuiInputTextFlags_EnterReturnsTrue ) )
+				{
+					m_IsRenaming = false;
+					OnRenameCommittedFolder( s_RenameBuffer );
+
+					memset( s_RenameBuffer, 0, 1024 );
+				}
+			}
+			else
+			{
+				ImGui::Text( Filename.c_str() );
+			}
 
 			ImGui::PopTextWrapPos();
 
@@ -341,8 +372,6 @@ namespace Saturn {
 			{
 				ImGui::Text( Filename.c_str() );
 			}
-
-			ImGui::Text( "Testing 123" );
 
 			ImGui::PopTextWrapPos();
 			ImGui::ResumeLayout();
@@ -389,14 +418,29 @@ namespace Saturn {
 		}
 	}
 
+	void ContentBrowserItem::OnRenameCommittedFolder( const std::string& rName )
+	{
+		m_Filename = rName;
+
+		std::filesystem::path oldPath = m_Path;
+		std::filesystem::path newPath = fmt::format( "{0}\\{1}", oldPath.parent_path().string(), rName );
+
+		std::filesystem::rename( oldPath, newPath );
+
+		m_Entry = std::filesystem::directory_entry( newPath );
+		m_Path = m_Entry.path();
+	}
+
 	void ContentBrowserItem::Select()
 	{
 		m_IsSelected = true;
+		m_MultiSelected = true;
 	}
 
 	void ContentBrowserItem::Deselect()
 	{
 		m_IsSelected = false;
+		m_MultiSelected = false;
 	}
 
 	void ContentBrowserItem::Rename()

@@ -77,6 +77,7 @@ namespace Saturn {
 		void ScriptsPopupContextMenu();
 
 		void OnFilewatchEvent( const std::string& rPath, const filewatch::Event Event );
+		void FindAndRenameItem( const std::filesystem::path& rPath );
 
 	private: // Editor Content
 		void EdDrawRootFolder( CBViewMode type, bool open = false );
@@ -102,7 +103,7 @@ namespace Saturn {
 		std::filesystem::path m_ImportMeshPath;
 		std::filesystem::path m_ImportSoundPath;
 
-		Ref<ContentBrowserItem> m_SelectedItem = nullptr;
+		std::vector<Ref<ContentBrowserItem>> m_SelectedItems;
 
 		bool m_ShowFolderPopupMenu = false;
 
