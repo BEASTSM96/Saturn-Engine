@@ -78,6 +78,7 @@ namespace Saturn {
 
 		void OnFilewatchEvent( const std::string& rPath, const filewatch::Event Event );
 		void FindAndRenameItem( const std::filesystem::path& rPath );
+		Ref<ContentBrowserItem> GetActiveHoveredItem();
 
 	private: // Editor Content
 		void EdDrawRootFolder( CBViewMode type, bool open = false );

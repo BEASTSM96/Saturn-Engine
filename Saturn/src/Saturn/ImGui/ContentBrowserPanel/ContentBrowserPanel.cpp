@@ -56,6 +56,8 @@
 
 namespace Saturn {
 	
+	static inline ImVec2 operator+( const ImVec2& lhs, const ImVec2& rhs ) { return ImVec2( lhs.x + rhs.x, lhs.y + rhs.y ); }
+
 	// The absolute Assets and Scripts path.
 	static std::filesystem::path s_pAssetsDirectory = "Assets";
 	static std::filesystem::path s_pScriptsDirectory = "Scripts";
@@ -457,6 +459,19 @@ namespace Saturn {
 		}
 	}
 
+	Ref<ContentBrowserItem> ContentBrowserPanel::GetActiveHoveredItem()
+	{
+		for( auto&& rrItem : m_Files )
+		{
+			if( rrItem->IsHovered() )
+			{
+				return rrItem;
+			}
+		}
+
+		return nullptr;
+	}
+
 	void ContentBrowserPanel::EdDrawRootFolder( CBViewMode type, bool open /*= false */ )
 	{
 		switch( type )
@@ -554,6 +569,9 @@ namespace Saturn {
 
 	void ContentBrowserPanel::Draw()
 	{
+		//bool open_demo = true;
+		//ImGui::ShowDemoWindow( &open_demo );
+
 		ImGui::Begin( "Content Browser" );
 
 		if( m_ChangeDirectory )
@@ -575,6 +593,13 @@ namespace Saturn {
 			{
 				m_CurrentPath = m_CurrentPath.parent_path();
 
+				for( auto&& rrItem : m_SelectedItems )
+				{
+					rrItem->Deselect();
+				}
+
+				m_SelectedItems.clear();
+
 				UpdateFiles( true );
 			}
 		}
@@ -595,6 +620,13 @@ namespace Saturn {
 			if( Auxiliary::ImageButton( m_ForwardIcon, { 24, 24 } ) )
 			{
 				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_RootDirectory );
+
+				for( auto&& rrItem : m_SelectedItems )
+				{
+					rrItem->Deselect();
+				}
+
+				m_SelectedItems.clear();
 
 				UpdateFiles( true );
 			}
@@ -665,8 +697,44 @@ namespace Saturn {
 		ImGui::EndChild();
 
 		ImGui::SameLine();
-
+		
 		ImGui::BeginChild( "Folder Contents", ImVec2( 0, 0 ), false );
+
+		ImVec2 contentSize = ImGui::GetContentRegionAvail();
+
+		if( ImGui::IsMouseHoveringRect( ImGui::GetWindowPos(), ImGui::GetWindowPos() + contentSize ) )
+		{
+			if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) )
+			{
+				// TODO: Think about this.
+				if( m_SelectedItems.size() )
+				{
+					bool IsAnyItemHoverved = GetActiveHoveredItem();
+					bool Clear = false;
+
+					for( auto&& rrItem : m_SelectedItems )
+					{
+						if( !rrItem->IsSelected() )
+							continue;
+
+						// If the item is multi selected the we need to check if we are still any item is hovered.
+						if( rrItem->MultiSelected() && IsAnyItemHoverved )
+							break;
+
+						// If we are not multi selected we can just check if we are still hovered.
+						if( rrItem->IsHovered() )
+							break;
+
+						rrItem->Deselect();
+
+						Clear = true;
+					}
+
+					if( Clear )
+						m_SelectedItems.clear();
+				}
+			}
+		}
 
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
@@ -894,7 +962,7 @@ namespace Saturn {
 		if( ImGui::BeginPopupModal( "Import Mesh##IMPORT_MESH", &m_ShowMeshImport, ImGuiWindowFlags_NoMove ) )
 		{
 			static std::filesystem::path s_GLTFBinPath = "";
-			static bool s_UseBinFile = false;
+			static bool s_UseBinFile = true;
 
 			bool PopupModified = false;
 
@@ -1105,6 +1173,13 @@ namespace Saturn {
 		m_CurrentPath /= rPath;
 
 		m_ChangeDirectory = true;
+
+		for( auto&& rrItem : m_SelectedItems )
+		{
+			rrItem->Deselect();
+		}
+
+		m_SelectedItems.clear();
 	}
 
 	void ContentBrowserPanel::UpdateFiles( bool clear /*= false */ )

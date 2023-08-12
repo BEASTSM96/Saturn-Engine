@@ -83,6 +83,7 @@ namespace Saturn {
 		if( m_IsDirectory )
 		{
 			bool Clicked = false;
+			bool DoubleClicked = false;
 
 			if( !m_IsRenaming )
 				ImGui::ButtonBehavior( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path.c_str() ), &m_IsHovered, &Clicked );
@@ -99,6 +100,8 @@ namespace Saturn {
 
 				if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 				{
+					DoubleClicked = true;
+
 					m_OnDirectorySelected( m_Entry.path().filename() );
 				}
 
@@ -108,7 +111,8 @@ namespace Saturn {
 				}
 			}
 
-			if( Clicked )
+			// Because when we double click we know we will change directory and when we change directory this will no longer be selected.
+			if( Clicked && !DoubleClicked )
 			{
 				m_IsSelected = !m_IsSelected;
 			}
@@ -148,8 +152,7 @@ namespace Saturn {
 				{
 					Open = true;
 				}
-
-				if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
+				else if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
 				{
 					Select();
 				}
@@ -173,6 +176,19 @@ namespace Saturn {
 
 			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
 			{
+				// Tooltip
+				ImGui::BeginHorizontal( "##dndinfo" );
+
+				Auxiliary::Image( Icon, ImVec2( 24, 24 ) );
+				ImGui::Text( m_Filename.string().c_str() );
+				
+				if( m_MultiSelected )
+				{
+					ImGui::Text( " + others" );
+				}
+
+				ImGui::EndHorizontal();
+
 				auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
 				const wchar_t* c = path.c_str();
 
