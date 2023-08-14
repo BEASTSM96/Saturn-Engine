@@ -388,6 +388,7 @@ namespace Saturn {
 		DrawComponent<StaticMeshComponent>( "Static Mesh", entity, [&]( auto& mc )
 		{
 			static bool s_Open = false;
+			static uint32_t s_CurrentIndex = 0;
 
 			ImGui::Columns( 3 );
 			ImGui::SetColumnWidth( 0, 100 );
@@ -397,28 +398,58 @@ namespace Saturn {
 			ImGui::NextColumn();
 			ImGui::PushItemWidth( -1 );
 
-			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
-			{
-				s_Open = !s_Open;
-				m_CurrentFinderType = AssetType::StaticMesh;
-
-				if( mc.Mesh )
-					m_CurrentAssetID = mc.Mesh->ID;
-			}
-
-			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
-			{
-				mc.Mesh = AssetManager::Get().GetAssetAs<StaticMesh>( m_CurrentAssetID );
-			}
+			ImGui::BeginHorizontal( "##mshPath" );
 
 			if( mc.Mesh )
 				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->Name.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 			else
 				ImGui::InputText( "##meshfilepath", ( char* ) "", 256, ImGuiInputTextFlags_ReadOnly );
 
+			ImGui::Spring();
+
+			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
+			{
+				s_Open = !s_Open;
+				m_CurrentFinderType = AssetType::StaticMesh;
+
+				if( mc.Mesh )
+						m_CurrentAssetID = mc.Mesh->ID;
+			}
+
+			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
+			{
+				if( m_CurrentFinderType == AssetType::StaticMesh )
+				{
+					mc.Mesh = AssetManager::Get().GetAssetAs<StaticMesh>( m_CurrentAssetID );
+				}
+				else if ( m_CurrentFinderType == AssetType::Material )
+				{
+					mc.MaterialRegistry->SetMaterial( s_CurrentIndex, m_CurrentAssetID );
+				}
+			}
+
+			ImGui::EndHorizontal();
+
+			if( Auxiliary::TreeNode( "Materials" ) )
+			{
+				int i = 0;
+				for( auto& rAsset : mc.MaterialRegistry->GetMaterials() )
+				{
+					if( ImGui::Selectable( rAsset->Name.c_str() ) )
+					{
+						m_CurrentFinderType = AssetType::Material;
+						s_Open = !s_Open;
+						s_CurrentIndex = i;
+					}
+
+					i++;
+				}
+
+				Auxiliary::EndTreeNode();
+			}
+
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
-
 		} );
 
 		DrawComponent<CameraComponent>( "Camera", entity, [&]( auto& cc )

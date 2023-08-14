@@ -135,4 +135,44 @@ namespace Saturn {
 		friend class MaterialAssetViewer;
 	};
 
+	class MaterialRegistry : public RefTarget
+	{
+	public:
+		MaterialRegistry();
+		// TODO: When we have animated meshes this will need to be re-worked.
+		MaterialRegistry( const Ref<StaticMesh>& mesh );
+
+		~MaterialRegistry();
+
+		void Copy( const Ref<MaterialRegistry>& rSrc );
+
+		void AddAsset( uint32_t index );
+		void AddAsset( const Ref<MaterialAsset>& rAsset );
+
+		Ref<MaterialAsset> GetAsset( AssetID id );
+
+		void SetMaterial( uint32_t index, AssetID id );
+		void ResetMaterial( uint32_t index );
+	
+		std::vector< Ref<MaterialAsset> >& GetMaterials() { return m_Materials; }
+		const std::vector< Ref<MaterialAsset> >& GetMaterials() const { return m_Materials; }
+
+		UUID GetID() { return m_ID; }
+		const UUID GetID() const { return m_ID; }
+
+		bool HasOverrides() const { return m_HasOverrides; }
+		void SetOverries( bool val ) { m_HasOverrides = val; }
+
+	private:
+		//std::unordered_map< AssetID, Ref<MaterialAsset> > m_Materials;
+		Ref<StaticMesh> m_Mesh = nullptr;
+		std::vector< Ref<MaterialAsset> > m_Materials;
+
+		bool m_HasOverrides = false;
+
+		UUID m_ID;
+	private:
+		friend class MaterialAsset;
+		friend class StaticMesh;
+	};
 }

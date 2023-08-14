@@ -142,6 +142,8 @@ namespace Saturn {
 	{
 		// TODO: Change to Asset ID
 		Ref<Saturn::StaticMesh> Mesh;
+		// We always want to store our own material registry because there will be one in the asset however that is global for all of the same meshes in the scene and what if we want to just locally change one asset.
+		Ref<Saturn::MaterialRegistry> MaterialRegistry;
 
 		StaticMeshComponent() = default;
 		StaticMeshComponent( const StaticMeshComponent& other ) = default;

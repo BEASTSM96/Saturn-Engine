@@ -331,6 +331,7 @@ namespace Saturn {
 					auto mesh = AssetManager::Get().GetAssetAs<StaticMesh>( id );
 
 					m.Mesh = mesh;
+					m.MaterialRegistry = Ref<MaterialRegistry>::Create( m.Mesh );
 				}
 			}
 

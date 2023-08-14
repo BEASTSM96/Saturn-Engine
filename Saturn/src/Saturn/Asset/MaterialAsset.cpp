@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "MaterialAsset.h"
 
-#include "AssetRegistry.h"
+#include "AssetManager.h"
 
 #include "Saturn/Vulkan/Renderer.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
@@ -407,4 +407,54 @@ namespace Saturn {
 		m_VPendingTextureChanges[ 3 ] = rPath;
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// MATERIAL REGISTRY
+
+	MaterialRegistry::MaterialRegistry()
+	{
+	}
+
+	MaterialRegistry::MaterialRegistry( const Ref<StaticMesh>& mesh )
+		: m_Mesh( mesh )
+	{
+		Copy( mesh->GetMaterialRegistry() );
+	}
+
+	MaterialRegistry::~MaterialRegistry()
+	{
+	}
+
+	void MaterialRegistry::Copy( const Ref<MaterialRegistry>& rSrc )
+	{
+		m_Materials.clear();
+
+		m_Materials = rSrc->m_Materials;
+	}
+
+	void MaterialRegistry::AddAsset( uint32_t index )
+	{
+		m_Materials[ index ] = nullptr;
+	}
+
+	void MaterialRegistry::AddAsset( const Ref<MaterialAsset>& rAsset )
+	{
+		m_Materials.push_back( rAsset );
+	}
+
+	Saturn::Ref<Saturn::MaterialAsset> MaterialRegistry::GetAsset( AssetID id )
+	{
+		return m_Materials.at( id );
+	}
+
+	void MaterialRegistry::SetMaterial( uint32_t index, AssetID id )
+	{
+		m_HasOverrides = true;
+
+		m_Materials[ index ] = AssetManager::Get().GetAssetAs<MaterialAsset>( id );
+	}
+
+	void MaterialRegistry::ResetMaterial( uint32_t index ) 
+	{
+		m_Materials[ index ] = m_Mesh->GetMaterialRegistry()->GetMaterials()[ index ];
+	}
 }

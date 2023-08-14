@@ -134,6 +134,9 @@ namespace Saturn {
 		void SetPhysicsMaterial( AssetID id ) { m_PhysicsMaterial = id; }
 		const AssetID GetPhysicsMaterial() const { return m_PhysicsMaterial; }
 
+		Ref<MaterialRegistry>& GetMaterialRegistry() { return m_MaterialRegistry; }
+		const Ref<MaterialRegistry>& GetMaterialRegistry() const { return m_MaterialRegistry; }
+
 	private:
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
 		void CreateVertices();
@@ -161,6 +164,8 @@ namespace Saturn {
 
 		ShapeType m_AttachedPhysicsShape = ShapeType::Unknown;
 		AssetID m_PhysicsMaterial = 0;
+
+		Ref<MaterialRegistry> m_MaterialRegistry;
 
 		std::unique_ptr<Assimp::Importer> m_Importer;
 		const aiScene* m_Scene = nullptr;

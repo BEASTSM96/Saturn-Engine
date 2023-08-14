@@ -181,8 +181,12 @@ namespace Saturn {
 
 				auto transform = GetTransformRelativeToParent( entity );
 
+				Ref<MaterialRegistry> targetMaterialRegistry = nullptr;
+
+				targetMaterialRegistry = meshComponent.MaterialRegistry->HasOverrides() ? meshComponent.MaterialRegistry : meshComponent.Mesh->GetMaterialRegistry();
+
 				if( meshComponent.Mesh )
-					rSceneRenderer.SubmitStaticMesh( entity, meshComponent.Mesh, transform );
+					rSceneRenderer.SubmitStaticMesh( entity, meshComponent.Mesh, targetMaterialRegistry, transform );
 			}
 		}
 
@@ -259,8 +263,12 @@ namespace Saturn {
 
 				auto transform = GetTransformRelativeToParent( entity );
 
+				Ref<MaterialRegistry> targetMaterialRegistry = nullptr;
+
+				targetMaterialRegistry = meshComponent.MaterialRegistry->HasOverrides() ? meshComponent.MaterialRegistry : meshComponent.Mesh->GetMaterialRegistry();
+
 				if( meshComponent.Mesh )
-					rSceneRenderer.SubmitStaticMesh( entity, meshComponent.Mesh, transform );
+					rSceneRenderer.SubmitStaticMesh( entity, meshComponent.Mesh, targetMaterialRegistry, transform );
 			}
 		}
 

@@ -33,6 +33,7 @@
 #include "Saturn/Scene/Entity.h"
 #include "Mesh.h"
 #include "Saturn/Core/UUID.h"
+#include "Saturn/Asset/MaterialAsset.h"
 
 #include "Renderer.h"
 #include "EnvironmentMap.h"
@@ -91,21 +92,20 @@ namespace Saturn {
 	struct StaticMeshKey
 	{
 		AssetID MeshID;
-		// Should we not hold a list of all materials?
-		AssetID MaterialID;
+		Ref<MaterialRegistry> Registry;
 
 		uint32_t SubmeshIndex;
 
-		StaticMeshKey( AssetID meshID, AssetID materialID, uint32_t submeshIndex ) : MeshID( meshID ), MaterialID( MaterialID ), SubmeshIndex( submeshIndex ) {  }
+		StaticMeshKey( AssetID meshID, Ref<MaterialRegistry> materialReg, uint32_t submeshIndex ) : MeshID( meshID ), SubmeshIndex( submeshIndex ) { Registry = materialReg; }
 
 		bool operator==( const StaticMeshKey& rKey )
 		{
-			return ( MeshID == rKey.MeshID && MaterialID == rKey.MaterialID && SubmeshIndex == rKey.SubmeshIndex );
+			return ( MeshID == rKey.MeshID && Registry == rKey.Registry && SubmeshIndex == rKey.SubmeshIndex );
 		}
 
 		bool operator==( const StaticMeshKey& rKey ) const
 		{
-			return ( MeshID == rKey.MeshID && MaterialID == rKey.MaterialID && SubmeshIndex == rKey.SubmeshIndex );
+			return ( MeshID == rKey.MeshID && Registry == rKey.Registry && SubmeshIndex == rKey.SubmeshIndex );
 		}
 	};
 
@@ -136,7 +136,7 @@ namespace std {
 	{
 		size_t operator()( const Saturn::StaticMeshKey& rKey ) const
 		{
-			return rKey.MaterialID ^ rKey.MeshID ^ rKey.SubmeshIndex;
+			return rKey.Registry->GetID() ^ rKey.MeshID ^ rKey.SubmeshIndex;
 		}
 	};
 }
@@ -375,7 +375,7 @@ namespace Saturn {
 
 		void SetCurrentScene( Scene* pScene );
 
-		void SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform );
+		void SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, Ref<MaterialRegistry> materialRegistry, const glm::mat4& transform );
 		void SubmitSelectedMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform );
 
 		void SetViewportSize( uint32_t w, uint32_t h );

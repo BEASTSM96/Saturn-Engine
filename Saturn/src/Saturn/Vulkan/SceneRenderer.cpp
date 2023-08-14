@@ -952,7 +952,7 @@ namespace Saturn {
 		}
 	}
 
-	void SceneRenderer::SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform )
+	void SceneRenderer::SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, Ref<MaterialRegistry> materialRegistry, const glm::mat4& transform )
 	{
 		SAT_PF_EVENT();
 
@@ -961,7 +961,7 @@ namespace Saturn {
 		auto& submeshes = mesh->Submeshes();
 		for( size_t i = 0; i < submeshes.size(); i++ )
 		{
-			StaticMeshKey key = { mesh->ID, mesh->GetMaterialAssets()[ 0 ]->ID, (uint32_t)i };
+			StaticMeshKey key = { mesh->ID, materialRegistry, (uint32_t)i };
 
 			glm::mat4 submeshTransform = transform * submeshes[ i ].Transform;
 
@@ -1160,7 +1160,7 @@ namespace Saturn {
 			// Render
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
 				m_RendererData.StaticMeshPipeline,
-				Cmd.Mesh, m_RendererData.StorageBufferSet, Cmd.SubmeshIndex, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset );
+				Cmd.Mesh, m_RendererData.StorageBufferSet, key.Registry, Cmd.SubmeshIndex, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset );
 		}
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );

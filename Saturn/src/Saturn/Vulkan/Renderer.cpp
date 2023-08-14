@@ -260,7 +260,7 @@ namespace Saturn {
 		return m_StorageBufferSets[ m_FrameCount ][ shaderName ];
 	}
 
-	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, uint32_t SubmeshIndex, uint32_t count, Ref<VertexBuffer> transformData, uint32_t transformOffset )
+	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, Ref< MaterialRegistry > materialRegistry, uint32_t SubmeshIndex, uint32_t count, Ref<VertexBuffer> transformData, uint32_t transformOffset )
 	{
 		SAT_PF_EVENT();
 
@@ -276,7 +276,7 @@ namespace Saturn {
 
 		Submesh& rSubmesh = mesh->Submeshes()[ SubmeshIndex ];
 		{
-			auto& rMaterialAsset = mesh->GetMaterialAssets()[ rSubmesh.MaterialIndex ];
+			auto& rMaterialAsset = materialRegistry->GetMaterials()[ rSubmesh.MaterialIndex ];
 
 			const auto& StorageWriteDescriptors = GetStorageBufferWriteDescriptors( rStorageBufferSet, rMaterialAsset );
 

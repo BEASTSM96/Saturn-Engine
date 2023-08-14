@@ -122,6 +122,8 @@ namespace Saturn {
 		m_InverseTransform = glm::inverse( Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation ) );
 		m_Transform = Mat4FromAssimpMat4( m_Scene->mRootNode->mTransformation );
 
+		m_MaterialRegistry = Ref<MaterialRegistry>::Create();
+
 		CreateVertices();
 		CreateMaterials();
 	}
@@ -296,8 +298,12 @@ namespace Saturn {
 				materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( asset->GetAssetID() );
 				m_MaterialsAssets[ m ] = materialAsset;
 
+				m_MaterialRegistry->AddAsset( materialAsset );
+
 				continue;
 			}
+
+			m_MaterialRegistry->AddAsset( materialAsset );
 
 			// Set the material data (only for new materials).
 			
