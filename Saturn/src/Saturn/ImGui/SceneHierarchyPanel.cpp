@@ -435,11 +435,21 @@ namespace Saturn {
 				int i = 0;
 				for( auto& rAsset : mc.MaterialRegistry->GetMaterials() )
 				{
-					if( ImGui::Selectable( rAsset->Name.c_str() ) )
+					if( ImGui::Button( rAsset->Name.c_str() ) )
 					{
 						m_CurrentFinderType = AssetType::Material;
 						s_Open = !s_Open;
 						s_CurrentIndex = i;
+					}
+
+					if( mc.MaterialRegistry->HasOverrides( i ) )
+					{
+						ImGui::SameLine();
+						
+						if( ImGui::SmallButton( "x" ) ) 
+						{
+							mc.MaterialRegistry->ResetMaterial( i );
+						}
 					}
 
 					i++;

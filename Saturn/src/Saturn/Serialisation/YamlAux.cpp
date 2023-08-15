@@ -118,6 +118,27 @@ namespace Saturn {
 			else
 				rEmitter << YAML::Key << "Asset" << YAML::Value << 0;
 
+			rEmitter << YAML::Key << "MaterialOverrides";
+			rEmitter << YAML::Key << "AnyOverrides" << YAML::Value << mc.MaterialRegistry->HasAnyOverrides();
+			rEmitter << YAML::BeginSeq;
+
+			int i = 0;
+			for( const auto& material : mc.MaterialRegistry->GetMaterials() )
+			{
+				rEmitter << YAML::BeginMap;
+
+				if( mc.MaterialRegistry->HasOverrides( i ) )
+					rEmitter << YAML::Key << i << YAML::Value << material->ID;
+				else
+					rEmitter << YAML::Key << i << YAML::Value << 0;
+
+				rEmitter << YAML::EndMap;
+
+				i++;
+			}
+
+			rEmitter << YAML::EndSeq;
+
 			rEmitter << YAML::EndMap;
 		}
 

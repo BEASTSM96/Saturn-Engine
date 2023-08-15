@@ -183,7 +183,10 @@ namespace Saturn {
 
 				Ref<MaterialRegistry> targetMaterialRegistry = nullptr;
 
-				targetMaterialRegistry = meshComponent.MaterialRegistry->HasOverrides() ? meshComponent.MaterialRegistry : meshComponent.Mesh->GetMaterialRegistry();
+				if( meshComponent.MaterialRegistry->HasAnyOverrides() )
+					targetMaterialRegistry = meshComponent.MaterialRegistry;
+				else
+					targetMaterialRegistry = meshComponent.Mesh->GetMaterialRegistry();
 
 				if( meshComponent.Mesh )
 					rSceneRenderer.SubmitStaticMesh( entity, meshComponent.Mesh, targetMaterialRegistry, transform );
@@ -265,7 +268,10 @@ namespace Saturn {
 
 				Ref<MaterialRegistry> targetMaterialRegistry = nullptr;
 
-				targetMaterialRegistry = meshComponent.MaterialRegistry->HasOverrides() ? meshComponent.MaterialRegistry : meshComponent.Mesh->GetMaterialRegistry();
+				if( meshComponent.MaterialRegistry->HasAnyOverrides() )
+					targetMaterialRegistry = meshComponent.MaterialRegistry;
+				else
+					targetMaterialRegistry = meshComponent.Mesh->GetMaterialRegistry();
 
 				if( meshComponent.Mesh )
 					rSceneRenderer.SubmitStaticMesh( entity, meshComponent.Mesh, targetMaterialRegistry, transform );

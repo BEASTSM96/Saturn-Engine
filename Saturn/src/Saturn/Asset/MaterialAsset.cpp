@@ -429,6 +429,7 @@ namespace Saturn {
 		m_Materials.clear();
 
 		m_Materials = rSrc->m_Materials;
+		m_HasOverridden = rSrc->m_HasOverridden;
 	}
 
 	void MaterialRegistry::AddAsset( uint32_t index )
@@ -439,6 +440,7 @@ namespace Saturn {
 	void MaterialRegistry::AddAsset( const Ref<MaterialAsset>& rAsset )
 	{
 		m_Materials.push_back( rAsset );
+		m_HasOverridden.push_back( false );
 	}
 
 	Saturn::Ref<Saturn::MaterialAsset> MaterialRegistry::GetAsset( AssetID id )
@@ -448,13 +450,19 @@ namespace Saturn {
 
 	void MaterialRegistry::SetMaterial( uint32_t index, AssetID id )
 	{
-		m_HasOverrides = true;
-
+		m_HasOverridden[ index ] = true;
 		m_Materials[ index ] = AssetManager::Get().GetAssetAs<MaterialAsset>( id );
 	}
 
 	void MaterialRegistry::ResetMaterial( uint32_t index ) 
 	{
+		m_HasOverridden[ index ] = false;
 		m_Materials[ index ] = m_Mesh->GetMaterialRegistry()->GetMaterials()[ index ];
 	}
+
+	bool MaterialRegistry::HasAnyOverrides()
+	{
+		return std::any_of( m_HasOverridden.begin(), m_HasOverridden.end(), []( bool x ) { return x; } );
+	}
+
 }

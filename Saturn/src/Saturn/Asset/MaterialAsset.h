@@ -160,16 +160,20 @@ namespace Saturn {
 		UUID GetID() { return m_ID; }
 		const UUID GetID() const { return m_ID; }
 
-		bool HasOverrides() const { return m_HasOverrides; }
-		void SetOverries( bool val ) { m_HasOverrides = val; }
+		bool HasOverrides( uint32_t index ) const { return m_HasOverridden[ index ]; }
+		bool HasAnyOverrides();
+		void SetOverries( uint32_t index, bool val ) { m_HasOverridden[ index ] = val; }
 
 	private:
 		//std::unordered_map< AssetID, Ref<MaterialAsset> > m_Materials;
 		Ref<StaticMesh> m_Mesh = nullptr;
 		std::vector< Ref<MaterialAsset> > m_Materials;
 
-		bool m_HasOverrides = false;
+		// This may not be the best way.
+		std::vector<bool> m_HasOverridden;
 
+		// We want to keep an ID so this is unique to any other material registry.
+		// But really it's because I want to use in the hash function for StaticMeshKey.
 		UUID m_ID;
 	private:
 		friend class MaterialAsset;
