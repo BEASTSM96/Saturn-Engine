@@ -83,7 +83,7 @@ namespace Saturn {
 
 		// Lazy load.
 		AudioSystem::Get();
-		RenderThread::Get().Enable( m_Specification.EnableGameThread );
+		RenderThread::Get().Enable( HasFlag( ApplicationFlags::UseGameThread ) );
 
 		m_ImGuiLayer = new ImGuiLayer();
 		m_ImGuiLayer->OnAttach();
@@ -191,6 +191,11 @@ namespace Saturn {
 			{
 				m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
 			} );
+	}
+
+	bool Application::HasFlag( ApplicationFlags flag )
+	{
+		return ( m_Specification.Flags & (uint32_t)flag ) != 0;
 	}
 
 	std::string Application::OpenFile( const char* pFilter ) const

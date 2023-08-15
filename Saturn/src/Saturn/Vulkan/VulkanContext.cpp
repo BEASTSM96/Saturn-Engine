@@ -374,7 +374,7 @@ namespace Saturn {
 
 	VkSampleCountFlagBits VulkanContext::GetMaxUsableMSAASamples()
 	{
-		if( !Application::Get().GetSpecification().GameDist )
+		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
 			return VK_SAMPLE_COUNT_1_BIT;
 
 		VkPhysicalDeviceProperties props;

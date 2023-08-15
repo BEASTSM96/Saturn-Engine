@@ -43,8 +43,10 @@ public:
 		: Application( spec ), m_ProjectPath( rProjectPath )
 	{
 		// Setup user settings and find the project path.
-
 		auto& settings = Saturn::GetUserSettings();
+		Saturn::UserSettingsSerialiser uss;
+		uss.Deserialise( settings );
+
 		settings.StartupProject = m_ProjectPath;
 
 		size_t found = m_ProjectPath.find_last_of( "/\\" );
@@ -53,9 +55,6 @@ public:
 		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
 
 		settings = Saturn::GetUserSettings();
-
-		Saturn::UserSettingsSerialiser uss;
-		uss.Deserialise( settings );
 
 		// Check if the editor asset registry exists.
 		if( !std::filesystem::exists( "content/AssetRegistry.sreg" ) )
@@ -101,6 +100,7 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
 
 	ApplicationSpecification spec;
+	spec.Flags = (uint32_t)ApplicationFlags::CreateSceneRenderer;
 
 	return new EditorApplication( spec, projectPath );
 }

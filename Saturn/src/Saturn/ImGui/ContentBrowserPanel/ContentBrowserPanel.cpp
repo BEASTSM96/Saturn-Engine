@@ -702,6 +702,7 @@ namespace Saturn {
 
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 
+		/*
 		if( ImGui::IsMouseHoveringRect( ImGui::GetWindowPos(), ImGui::GetWindowPos() + contentSize ) )
 		{
 			if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) )
@@ -714,7 +715,7 @@ namespace Saturn {
 
 					for( auto&& rrItem : m_SelectedItems )
 					{
-						if( !rrItem->IsSelected() )
+						if( !rrItem->IsSelected() || rrItem->IsRenaming() )
 							continue;
 
 						// If the item is multi selected the we need to check if we are still any item is hovered.
@@ -735,6 +736,7 @@ namespace Saturn {
 				}
 			}
 		}
+		*/
 
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );

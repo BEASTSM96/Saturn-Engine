@@ -46,7 +46,7 @@ namespace Saturn {
 
 	void GameDLL::Load( bool reload /*=false*/ )
 	{
-		if( !Application::Get().GetSpecification().GameDist )
+		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
 		{
 			// We are the editor
 
@@ -68,7 +68,7 @@ namespace Saturn {
 
 	void GameDLL::Unload()
 	{
-		if( !Application::Get().GetSpecification().GameDist )
+		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
 		{
 			FreeLibrary( m_DLLInstance );
 		}

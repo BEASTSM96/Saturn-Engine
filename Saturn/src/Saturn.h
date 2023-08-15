@@ -42,15 +42,30 @@
 #include "Saturn/Core/Memory/Buffer.h"
 #include "Saturn/Core/AABB/AABB.h"
 
+// --- Asset
+#include "Saturn/Asset/Asset.h"
+#include "Saturn/Asset/AssetManager.h"
+
 // --- ImGui
-#include "Saturn/ImGui/ContentBrowserPanel.h"
+#include "Saturn/ImGui/ContentBrowserPanel/ContentBrowserPanel.h"
 #include "Saturn/ImGui/SceneHierarchyPanel.h"
 #include "Saturn/ImGui/Styles.h"
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 #include "Saturn/ImGui/Panel/Panel.h"
 
-// --- Don't include any rendering files as the user shouldn't need them.
 // --- Rendering
+#include "Saturn/Vulkan/Base.h"
+#include "Saturn/Vulkan/SceneRenderer.h"
+#include "Saturn/Vulkan/Shader.h"
+#include "Saturn/Vulkan/VulkanContext.h"
+
+// --- Physics
+#include "Saturn/Physics/PhysicsCooking.h"
+#include "Saturn/Physics/PhysicsFoundation.h"
+#include "Saturn/Physics/PhysicsShapes.h"
+
+// --- GameFramework
+#include "Saturn/GameFramework/Spawner.h"
 
 // --- Scene
 #include "Saturn/Scene/Components.h"

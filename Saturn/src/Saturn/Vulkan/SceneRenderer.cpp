@@ -75,7 +75,7 @@ namespace Saturn {
 		// Geometry 
 		//////////////////////////////////////////////////////////////////////////
 
-		if( !Application::Get().GetSpecification().CreateSceneRenderer )
+		if( !Application::Get().HasFlag( ApplicationFlags::CreateSceneRenderer ) )
 			return;
 
 		m_RendererData.StorageBufferSet = Ref<StorageBufferSet>::Create( 0, 0 );
@@ -481,7 +481,7 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		if( Application::Get().GetSpecification().GameDist )
+		if( Application::Get().HasFlag( ApplicationFlags::GameDist ) )
 			return;
 
 		// Set UB Data.
@@ -1855,7 +1855,7 @@ namespace Saturn {
 		// Command Pools
 		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
 
-		if( !Application::Get().GetSpecification().CreateSceneRenderer )
+		if( !Application::Get().HasFlag( ApplicationFlags::CreateSceneRenderer ) )
 			return;
 
 		// DescriptorSets

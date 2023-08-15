@@ -160,7 +160,7 @@ namespace Saturn {
 
 	void ImGuiLayer::Begin()
 	{
-		if( Application::Get().GetSpecification().GameDist )
+		if( Application::Get().HasFlag( ApplicationFlags::GameDist ) )
 			return;
 
 		ImGui_ImplVulkan_NewFrame();
@@ -175,7 +175,7 @@ namespace Saturn {
 
 	void ImGuiLayer::End( VkCommandBuffer CommandBuffer )
 	{
-		if( Application::Get().GetSpecification().GameDist )
+		if( Application::Get().HasFlag( ApplicationFlags::GameDist ) )
 			return;
 
 		Swapchain& rSwapchain = VulkanContext::Get().GetSwapchain();

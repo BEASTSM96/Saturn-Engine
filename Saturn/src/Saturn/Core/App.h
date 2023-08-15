@@ -44,13 +44,19 @@
 
 namespace Saturn {
 
+	enum class ApplicationFlags 
+	{
+		UIOnly = BIT( 0 ),
+		GameDist = BIT( 1 ),
+		CreateSceneRenderer = BIT( 2 ),
+		UseGameThread = BIT( 3 )
+	};
+
 	struct ApplicationSpecification
 	{
-		bool CreateSceneRenderer = true;
+		uint32_t Flags;
+
 		bool Titlebar = false;
-		bool UIOnly = false;
-		bool GameDist = false;
-		bool EnableGameThread = false;
 		
 		uint32_t WindowWidth = 0;
 		uint32_t WindowHeight = 0;
@@ -90,7 +96,7 @@ namespace Saturn {
 
 		void SubmitOnMainThread( std::function<void()>&& rrFunction ) 
 		{
-			if( m_Specification.EnableGameThread )
+			if( HasFlag( ApplicationFlags::UseGameThread ) )
 				m_MainThreadQueue.push_back( std::move( rrFunction ) );
 			else
 				rrFunction();
@@ -99,6 +105,7 @@ namespace Saturn {
 		std::filesystem::path& GetRootContentDir() { return m_RootContentPath; }
 		const std::filesystem::path& GetRootContentDir() const { return m_RootContentPath; }
 
+		bool HasFlag( ApplicationFlags flag );
 	protected:
 
 		void OnEvent( Event& e );
