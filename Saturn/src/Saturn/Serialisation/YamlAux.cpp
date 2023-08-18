@@ -118,8 +118,10 @@ namespace Saturn {
 			else
 				rEmitter << YAML::Key << "Asset" << YAML::Value << 0;
 
-			rEmitter << YAML::Key << "MaterialOverrides";
+			rEmitter << YAML::Key << "MaterialRegistry";
+			rEmitter << YAML::BeginMap;
 			rEmitter << YAML::Key << "AnyOverrides" << YAML::Value << mc.MaterialRegistry->HasAnyOverrides();
+			rEmitter << YAML::Key << "MaterialOverrides";
 			rEmitter << YAML::BeginSeq;
 
 			int i = 0;
@@ -136,8 +138,9 @@ namespace Saturn {
 
 				i++;
 			}
-
 			rEmitter << YAML::EndSeq;
+
+			rEmitter << YAML::EndMap;
 
 			rEmitter << YAML::EndMap;
 		}
@@ -352,8 +355,38 @@ namespace Saturn {
 					auto mesh = AssetManager::Get().GetAssetAs<StaticMesh>( id );
 
 					m.Mesh = mesh;
-					m.MaterialRegistry = Ref<MaterialRegistry>::Create( m.Mesh );
+					m.MaterialRegistry = Ref<MaterialRegistry>::Create();
 				}
+
+				auto materialRegistry = mc[ "MaterialRegistry" ];
+				if( materialRegistry )
+				{
+					bool hasOverrides = materialRegistry[ "AnyOverrides" ].as<bool>();
+
+					if( hasOverrides )
+					{
+						auto materialOverrides = materialRegistry[ "MaterialOverrides" ];
+					
+						int i = 0;
+						for( auto override : materialOverrides )
+						{
+							auto id = override[ i ].as<uint64_t>();
+
+							if( id != 0 )
+								m.MaterialRegistry->AddAsset( AssetManager::Get().GetAssetAs<MaterialAsset>( id ) );
+							
+							m.MaterialRegistry->SetOverries( i, true );
+
+							i++;
+						}
+					}
+					else
+					{
+						m.MaterialRegistry->Copy( m.Mesh->GetMaterialRegistry() );
+					}
+				}
+
+				m.MaterialRegistry->SetMesh( m.Mesh );
 			}
 
 			auto rcNode = entity[ "RelationshipComponent" ];
