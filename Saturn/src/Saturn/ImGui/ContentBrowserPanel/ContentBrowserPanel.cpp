@@ -280,8 +280,15 @@ namespace Saturn {
 			{
 				auto id = AssetManager::Get().CreateAsset( AssetType::Material );
 				auto asset = AssetManager::Get().FindAsset( id );
+				auto newPath = m_CurrentPath / "Untitled Material.smaterial";
+				uint32_t count = GetFilenameCount( "Untitled Material.smaterial" );
 
-				asset->SetPath( m_CurrentPath / "Untitled Material.smaterial" );
+				if( count >= 1 )
+				{
+					newPath = fmt::format( "{0}\\{1} ({2}).smaterial", m_CurrentPath.string(), "Untitled Material", count );
+				}
+
+				asset->SetPath( newPath );
 				Ref<MaterialAsset> material = asset;
 				material = Ref<MaterialAsset>::Create( nullptr );
 
@@ -470,6 +477,24 @@ namespace Saturn {
 		}
 
 		return nullptr;
+	}
+
+	uint32_t ContentBrowserPanel::GetFilenameCount( const std::string& rName )
+	{
+		uint32_t count = 0;
+
+		for( const auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
+		{
+			if( !rEntry.is_regular_file() )
+				continue;
+
+			std::string filename = rEntry.path().filename().string();
+
+			if( filename.find( rName ) != std::string::npos )
+				count++;
+		}
+
+		return count;
 	}
 
 	void ContentBrowserPanel::EdDrawRootFolder( CBViewMode type, bool open /*= false */ )

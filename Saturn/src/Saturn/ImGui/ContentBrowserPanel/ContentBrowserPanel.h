@@ -80,6 +80,8 @@ namespace Saturn {
 		void FindAndRenameItem( const std::filesystem::path& rPath );
 		Ref<ContentBrowserItem> GetActiveHoveredItem();
 
+		uint32_t GetFilenameCount( const std::string& rName );
+
 	private: // Editor Content
 		void EdDrawRootFolder( CBViewMode type, bool open = false );
 		void EdDrawAssetsFolderTree();
