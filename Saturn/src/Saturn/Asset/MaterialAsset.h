@@ -164,6 +164,9 @@ namespace Saturn {
 		bool HasAnyOverrides();
 		void SetOverries( uint32_t index, bool val ) { m_HasOverridden[ index ] = val; }
 
+		// This does not copy the material registry and is only to be used by the scene serialiser.
+		void SetMesh( const Ref<StaticMesh>& mesh ) { m_Mesh = mesh; }
+
 	private:
 		//std::unordered_map< AssetID, Ref<MaterialAsset> > m_Materials;
 		Ref<StaticMesh> m_Mesh = nullptr;

@@ -372,10 +372,11 @@ namespace Saturn {
 						{
 							auto id = override[ i ].as<uint64_t>();
 
-							if( id != 0 )
+							if( id != 0 ) 
+							{
 								m.MaterialRegistry->AddAsset( AssetManager::Get().GetAssetAs<MaterialAsset>( id ) );
-							
-							m.MaterialRegistry->SetOverries( i, true );
+								m.MaterialRegistry->SetOverries( i, true );
+							}
 
 							i++;
 						}
