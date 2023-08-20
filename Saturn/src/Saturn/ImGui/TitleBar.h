@@ -52,13 +52,22 @@ namespace Saturn {
 		float Height() const { return m_Height; }
 
 		void AddMenuBarFunction( MenuBarFunction&& rrFunc );
+		void AddOnRuntimeStateChanged( std::function<void( int state )>&& rrFunc );
 		void AddOnExitFunction( std::function<void()>&& rrFunc );
 		
 	private:
 		std::vector<MenuBarFunction> m_MenuBarFunctions;
-		std::function<void()> m_OnExitFunction;
+		std::function<void()> m_OnExitFunction = nullptr;
+		std::function<void(int state)> m_OnRuntimeStateChanged = nullptr;
 
 		float m_Height = 0.0f;
+
+		Ref<Texture2D> m_PlayImage = nullptr;
+		Ref<Texture2D> m_StopImage = nullptr;
+
+		// Yes, this could be a bool however, I might want to add more states and a bool will not do that.
+		// 0 not running, 1 running
+		int m_RuntimeState = 0;
 	};
 
 }

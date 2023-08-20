@@ -43,6 +43,8 @@ namespace Saturn {
 	TitleBar::TitleBar()
 		: m_Height( 0 )
 	{
+		m_PlayImage = Ref<Texture2D>::Create( "content/textures/PlayButton.png", AddressingMode::Repeat );
+		m_StopImage = Ref<Texture2D>::Create( "content/textures/StopButton.png", AddressingMode::Repeat );
 	}
 
 	TitleBar::~TitleBar()
@@ -53,6 +55,8 @@ namespace Saturn {
 	{
 		ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 5, 5 ) );
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 5, 5 ) );
+
+		auto* pViewport = ImGui::GetMainViewport();
 
 		if( ImGui::BeginMainMenuBar() )
 		{
@@ -171,6 +175,36 @@ namespace Saturn {
 
 			ImGui::EndMainMenuBar();
 		}
+
+		// I don't really like how this looks but we'll see.
+		if( ImGui::BeginViewportSideBar( "##SecondaryTitleBar", pViewport, ImGuiDir_Up, 48.0f, 0 ) )
+		{
+			ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f } );
+			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 5.0f * 2.0f, 0 ) );
+
+			ImGui::SetCursorPosX( ImGui::GetWindowSize().x * 0.5f );
+
+			ImGui::BeginHorizontal( "##SecondaryTB_Actions" );
+
+			const Ref<Texture2D>& image = m_RuntimeState == 1 ? m_StopImage : m_PlayImage;
+
+			if( Auxiliary::ImageButton( image, { 24, 24 } ) ) 
+			{
+				m_RuntimeState ^= 1;
+
+				if( m_OnRuntimeStateChanged )
+					m_OnRuntimeStateChanged( m_RuntimeState );
+			}
+
+			// TODO: Save button?
+
+			ImGui::EndHorizontal();
+
+			ImGui::PopStyleColor();
+			ImGui::PopStyleVar();
+
+			ImGui::End();
+		}
 		
 		ImGui::PopStyleVar( 2 );
 	}
@@ -178,6 +212,11 @@ namespace Saturn {
 	void TitleBar::AddMenuBarFunction( MenuBarFunction&& rrFunc )
 	{
 		m_MenuBarFunctions.push_back( rrFunc );
+	}
+
+	void TitleBar::AddOnRuntimeStateChanged( std::function<void( int state )>&& rrFunc )
+	{
+		m_OnRuntimeStateChanged = std::move( rrFunc );
 	}
 
 	void TitleBar::AddOnExitFunction( std::function<void()>&& rrFunc )

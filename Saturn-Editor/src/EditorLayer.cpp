@@ -166,6 +166,12 @@ namespace Saturn {
 			}
 		} );
 
+		m_TitleBar->AddOnRuntimeStateChanged( [&](int state) -> void 
+			{
+				// TEMP: We only have two states, running or not, so its 0 or 1
+				m_RequestRuntime = state;
+			} );
+
 		Window::Get().SetTitlebarHitTest( [ & ]( int x, int y ) -> bool
 		{
 			auto TitleBarHeight = m_TitleBar->Height();
@@ -812,7 +818,16 @@ namespace Saturn {
 		ImGui::PushID( "VP_GIZMO" );
 		
 		const float windowHeight = 32.0f;
-		const float windowWidth = 200.0f;
+		const float icons = 3.0f;
+		const float neededSpace = 48.0f * icons - 10.0f;
+
+		// For 4 icons
+		//const float windowWidth = 166.0f;
+		
+		// For 3 icons
+		// Formula is 24 * x - 10.0f (for item spacing)
+		// Where x is number of icons
+		const float windowWidth = neededSpace - 10.0f;
 
 		ImGui::SetNextWindowPos ( ImVec2( minBound.x + 5.0f, minBound.y + 5.0f ) );
 		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
@@ -824,14 +839,11 @@ namespace Saturn {
 		ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f } );
 		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 5.0f * 2.0f, 0 ) );
 
-		const Ref<Texture2D>& texture = m_RequestRuntime == false ? m_StartRuntimeTexture : m_EndRuntimeTexture;
-		if( Auxiliary::ImageButton( texture, { 24.0f, 24.0f } ) ) m_RequestRuntime ^= 1;
+		//const Ref<Texture2D>& texture = m_RequestRuntime == false ? m_StartRuntimeTexture : m_EndRuntimeTexture;
+		//if( Auxiliary::ImageButton( texture, { 24.0f, 24.0f } ) ) m_RequestRuntime ^= 1;
 		if( Auxiliary::ImageButton( m_TranslationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
 		if( Auxiliary::ImageButton( m_RotationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
 		if( Auxiliary::ImageButton( m_ScaleTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
-
-		// Hot-Reload game
-		if( Auxiliary::ImageButton( m_SyncTexture, { 24.0f, 24.0f } ) ) HotReloadGame();
 
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar();

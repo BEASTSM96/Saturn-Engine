@@ -53,12 +53,12 @@ namespace Saturn {
 		else
 			m_Name = MateralName;
 
-		for ( auto&& texture : m_Shader->GetTextures() )
+		for( auto&& texture : m_Shader->GetTextures() )
 		{
 			m_Textures[ texture.Name ] = nullptr;
 		}
 
-		for ( auto rUniform : m_Shader->GetUniforms())
+		for( auto rUniform : m_Shader->GetUniforms())
 		{
 			m_Uniforms.push_back( { rUniform.GetName(), rUniform.GetLocation(), rUniform.GetType(), rUniform.GetSize(), rUniform.GetOffset(), rUniform.IsPushConstantData() } );
 		}
