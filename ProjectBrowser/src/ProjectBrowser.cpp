@@ -61,8 +61,7 @@ private:
 Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
 {
 	Saturn::ApplicationSpecification spec;
-	spec.CreateSceneRenderer = false;
-	spec.UIOnly = true;
+	spec.Flags = (uint32_t)Saturn::ApplicationFlags::UIOnly;
 	spec.WindowWidth = 1200;
 	spec.WindowHeight = 780;
 
