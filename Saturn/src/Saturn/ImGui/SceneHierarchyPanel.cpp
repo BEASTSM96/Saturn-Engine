@@ -398,64 +398,71 @@ namespace Saturn {
 			ImGui::NextColumn();
 			ImGui::PushItemWidth( -1 );
 
-			ImGui::BeginHorizontal( "##mshPath" );
-
-			if( mc.Mesh )
-				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->Name.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
-			else
-				ImGui::InputText( "##meshfilepath", ( char* ) "", 256, ImGuiInputTextFlags_ReadOnly );
-
-			ImGui::Spring();
-
 			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
 			{
 				s_Open = !s_Open;
 				m_CurrentFinderType = AssetType::StaticMesh;
 
 				if( mc.Mesh )
-						m_CurrentAssetID = mc.Mesh->ID;
+					m_CurrentAssetID = mc.Mesh->ID;
 			}
+
+			if( mc.Mesh )
+				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->Name.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+			else
+				ImGui::InputText( "##meshfilepath", ( char* ) "", 256, ImGuiInputTextFlags_ReadOnly );
 
 			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
 			{
 				if( m_CurrentFinderType == AssetType::StaticMesh )
 				{
 					mc.Mesh = AssetManager::Get().GetAssetAs<StaticMesh>( m_CurrentAssetID );
+
+					if( !mc.MaterialRegistry ) 
+					{
+						mc.MaterialRegistry = Ref<MaterialRegistry>::Create( mc.Mesh );
+					}
+					else
+					{
+						mc.MaterialRegistry = nullptr;
+						mc.MaterialRegistry = Ref<MaterialRegistry>::Create( mc.Mesh );
+					}
 				}
 				else if ( m_CurrentFinderType == AssetType::Material )
 				{
 					mc.MaterialRegistry->SetMaterial( s_CurrentIndex, m_CurrentAssetID );
 				}
 			}
-
-			ImGui::EndHorizontal();
-
-			if( Auxiliary::TreeNode( "Materials" ) )
+			
+			if( mc.Mesh ) 
 			{
-				int i = 0;
-				for( auto& rAsset : mc.MaterialRegistry->GetMaterials() )
+				if( Auxiliary::TreeNode( "Materials" ) )
 				{
-					if( ImGui::Button( rAsset->Name.c_str() ) )
+					int i = 0;
+					for( auto& rAsset : mc.MaterialRegistry->GetMaterials() )
 					{
-						m_CurrentFinderType = AssetType::Material;
-						s_Open = !s_Open;
-						s_CurrentIndex = i;
-					}
-
-					if( mc.MaterialRegistry->HasOverrides( i ) )
-					{
-						ImGui::SameLine();
-						
-						if( ImGui::SmallButton( "x" ) ) 
+						if( ImGui::Button( rAsset->Name.c_str() ) )
 						{
-							mc.MaterialRegistry->ResetMaterial( i );
+							m_CurrentFinderType = AssetType::Material;
+							s_Open = !s_Open;
+							s_CurrentIndex = i;
 						}
+
+						if( mc.MaterialRegistry->HasOverrides( i ) )
+						{
+							ImGui::SameLine();
+
+							if( ImGui::SmallButton( "x" ) )
+							{
+								mc.MaterialRegistry->ResetMaterial( i );
+							}
+						}
+
+						i++;
 					}
 
-					i++;
+					Auxiliary::EndTreeNode();
 				}
-
-				Auxiliary::EndTreeNode();
 			}
 
 			ImGui::PopItemWidth();

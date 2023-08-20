@@ -181,15 +181,17 @@ namespace Saturn {
 
 				auto transform = GetTransformRelativeToParent( entity );
 
-				Ref<MaterialRegistry> targetMaterialRegistry = nullptr;
-
-				if( meshComponent.MaterialRegistry->HasAnyOverrides() )
-					targetMaterialRegistry = meshComponent.MaterialRegistry;
-				else
-					targetMaterialRegistry = meshComponent.Mesh->GetMaterialRegistry();
-
 				if( meshComponent.Mesh )
+				{
+					Ref<MaterialRegistry> targetMaterialRegistry = meshComponent.Mesh->GetMaterialRegistry();
+			
+					if( meshComponent.MaterialRegistry && meshComponent.MaterialRegistry->HasAnyOverrides() )
+						targetMaterialRegistry = meshComponent.MaterialRegistry;
+					else
+						targetMaterialRegistry = meshComponent.Mesh->GetMaterialRegistry();
+
 					rSceneRenderer.SubmitStaticMesh( entity, meshComponent.Mesh, targetMaterialRegistry, transform );
+				}
 			}
 		}
 
