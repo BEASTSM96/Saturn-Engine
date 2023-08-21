@@ -85,7 +85,7 @@ namespace Saturn {
 			m_Material->Set( rName, rValue );
 		}
 		
-		//void Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, const VkWriteDescriptorSet& rStorageBufferWDS );
+		void Reset();
 
 		// Updates Uniform buffers, texture and storage buffers.
 		void Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, const VkWriteDescriptorSet& rStorageBufferWDS = VkWriteDescriptorSet{} );
@@ -96,12 +96,9 @@ namespace Saturn {
 
 		Buffer GetPushConstantData() { return m_Material->m_PushConstantData; }
 
-		bool IsInViewingMode();
-
-		void ApplyChanges();
-
 		Ref<Material> GetMaterial() const { return m_Material; }
 
+		void ApplyChanges();
 		void SetMaterial( const Ref<Material>& rMaterial );
 
 		void SetName( const std::string& rName ) { return m_Material->SetName( rName ); }
@@ -109,11 +106,6 @@ namespace Saturn {
 	private:
 
 		void Default();
-
-		// Only used for material asset viewer. As we need an internal material to apply the values.
-		void BeginViewingSession();
-		void SaveViewingSession();
-		void EndViewingSession();
 
 		void SetAlbeoMap( const std::filesystem::path& rPath );
 		void SetNormalMap( const std::filesystem::path& rPath );

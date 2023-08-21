@@ -36,9 +36,6 @@
 
 namespace Saturn {
 
-	static Ref<Material> s_ViewingMaterial;
-	static bool s_IsInViewingMode = false;
-
 	static std::vector< AssetID > s_Materials;
 
 	MaterialAsset::MaterialAsset( Ref<Material> material )
@@ -71,86 +68,38 @@ namespace Saturn {
 		m_Material->Set<float>( "u_Materials.Roughness", 1.0f );
 		m_Material->Set<float>( "u_Materials.UseNormalMap", 0.0f );
 		m_Material->Set<float>( "u_Materials.Emissive", 0.0f );
-
-		s_ViewingMaterial = m_Material;
-	}
-
-	void MaterialAsset::BeginViewingSession()
-	{
-		auto& StaticMeshShader = ShaderLibrary::Get().Find( "shader_new" );
-
-		if( !s_IsInViewingMode )
-			s_ViewingMaterial = Ref<Material>::Create( StaticMeshShader, "Viewing material" );
-
-		s_ViewingMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
-		s_ViewingMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
-		s_ViewingMaterial->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
-		s_ViewingMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
-
-		s_ViewingMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", { 1.0f, 1.0f, 1.0f } );
-		s_ViewingMaterial->Set<float>( "u_Materials.Metalness", 1.0f );
-		s_ViewingMaterial->Set<float>( "u_Materials.Roughness", 1.0f );
-		s_ViewingMaterial->Set<float>( "u_Materials.UseNormalMap", 0.0f );
-
-		s_IsInViewingMode = true;
-	}
-
-	void MaterialAsset::SaveViewingSession()
-	{
-		s_IsInViewingMode = false;
-	}
-
-	void MaterialAsset::EndViewingSession()
-	{
-		s_IsInViewingMode = false;
-
-		if( s_ViewingMaterial == nullptr )
-			return;
-
-		s_ViewingMaterial->SetResource( "u_AlbedoTexture", Renderer::Get().GetPinkTexture() );
-		s_ViewingMaterial->SetResource( "u_NormalTexture", Renderer::Get().GetPinkTexture() );
-		s_ViewingMaterial->SetResource( "u_MetallicTexture", Renderer::Get().GetPinkTexture() );
-		s_ViewingMaterial->SetResource( "u_RoughnessTexture", Renderer::Get().GetPinkTexture() );
-
-		s_ViewingMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", { 1.0f, 1.0f, 1.0f } );
-		s_ViewingMaterial->Set<float>( "u_Materials.Metalness", 1.0f );
-		s_ViewingMaterial->Set<float>( "u_Materials.Roughness", 1.0f );
-		s_ViewingMaterial->Set<float>( "u_Materials.UseNormalMap", 0.0f );
 	}
 
 	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetAlbeoMap()
 	{
-		return s_IsInViewingMode ? s_ViewingMaterial->GetResource( "u_AlbedoTexture" ) : m_Material->GetResource( "u_AlbedoTexture" );
+		return m_Material->GetResource( "u_AlbedoTexture" );
 	}
 
 	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetNormalMap()
 	{
-		return s_IsInViewingMode ? s_ViewingMaterial->GetResource( "u_NormalTexture" ) : m_Material->GetResource( "u_NormalTexture" );
+		return m_Material->GetResource( "u_NormalTexture" );
 	}
 
 	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetMetallicMap()
 	{
-		return s_IsInViewingMode ? s_ViewingMaterial->GetResource( "u_MetallicTexture" ) : m_Material->GetResource( "u_MetallicTexture" );
+		return m_Material->GetResource( "u_MetallicTexture" );
 	}
 
 	Saturn::Ref<Saturn::Texture2D> MaterialAsset::GetRoughnessMap()
 	{
-		return s_IsInViewingMode ? s_ViewingMaterial->GetResource( "u_RoughnessTexture" ) : m_Material->GetResource( "u_RoughnessTexture" );
+		return m_Material->GetResource( "u_RoughnessTexture" );
 	}
 
 	glm::vec3 MaterialAsset::GetAlbeoColor()
 	{
-		return s_IsInViewingMode ? s_ViewingMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" ) : m_Material->Get<glm::vec3>( "u_Materials.AlbedoColor" );
+		return m_Material->Get<glm::vec3>( "u_Materials.AlbedoColor" );
 	}
 
 	void MaterialAsset::SetAlbeoColor( glm::vec3 color )
 	{
 		m_ValuesChanged = true;
 
-		if( s_IsInViewingMode )
-			s_ViewingMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
-		else
-			m_Material->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
+		m_Material->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
 	}
 
 	void MaterialAsset::UseNormalMap( bool val )
@@ -196,6 +145,15 @@ namespace Saturn {
 	void MaterialAsset::RT_Bind( const std::vector<std::vector<VkWriteDescriptorSet>>& rStorageBufferWDS )
 	{
 		m_Material->RN_Update();
+	}
+
+	void MaterialAsset::Reset()
+	{
+		m_TextureCache.clear();
+		m_VPendingTextureChanges.clear();
+		m_PendingTextureChanges.clear();
+
+		// We don't want to default the texture because what if the user has only changed the normal map. And we'd be reseting all of the textures.
 	}
 
 	void MaterialAsset::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader, const VkWriteDescriptorSet& rStorageBufferWDS )
@@ -294,11 +252,6 @@ namespace Saturn {
 		m_Material->RN_Clean();
 	}
 
-	bool MaterialAsset::IsInViewingMode()
-	{
-		return s_IsInViewingMode;
-	}
-
 	void MaterialAsset::ApplyChanges()
 	{
 		// Load texture (auto assume we have not loaded them).
@@ -323,15 +276,6 @@ namespace Saturn {
 			m_Material->SetResource( "u_RoughnessTexture", texture );
 
 		}
-
-		m_Material->Set<glm::vec3>( "u_Materials.AlbedoColor", s_ViewingMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" ) );
-
-		m_Material->Set<float>( "u_Materials.Metalness", s_ViewingMaterial->Get<float>( "u_Materials.Metalness" ) );
-		m_Material->Set<float>( "u_Materials.Roughness", s_ViewingMaterial->Get<float>( "u_Materials.Roughness" ) );
-		m_Material->Set<float>( "u_Materials.UseNormalMap", s_ViewingMaterial->Get<float>( "u_Materials.UseNormalMap" ) );
-
-		// MAYBE??
-		//s_ViewingMaterial = nullptr;
 	}
 
 	void MaterialAsset::SetMaterial( const Ref<Material>& rMaterial )
@@ -341,22 +285,22 @@ namespace Saturn {
 
 	float MaterialAsset::IsUsingNormalMap()
 	{
-		return s_IsInViewingMode ? s_ViewingMaterial->Get<float>( "u_Materials.UseNormalMap" ) : m_Material->Get<float>( "u_Materials.UseNormalMap" );
+		return m_Material->Get<float>( "u_Materials.UseNormalMap" );
 	}
 
 	float MaterialAsset::GetRoughness()
 	{
-		return s_IsInViewingMode ? s_ViewingMaterial->Get<float>( "u_Materials.Roughness" ) : m_Material->Get<float>( "u_Materials.Roughness" );
+		return m_Material->Get<float>( "u_Materials.Roughness" );
 	}
 
 	float MaterialAsset::GetMetalness()
 	{
-		return s_IsInViewingMode ? s_ViewingMaterial->Get<float>( "u_Materials.Metalness" ) : m_Material->Get<float>( "u_Materials.Metalness" );
+		return m_Material->Get<float>( "u_Materials.Metalness" );
 	}
 
 	float MaterialAsset::GetEmissive()
 	{
-		return s_IsInViewingMode ? s_ViewingMaterial->Get<float>( "u_Materials.Emissive" ) : m_Material->Get<float>( "u_Materials.Emissive" );
+		return m_Material->Get<float>( "u_Materials.Emissive" );
 	}
 
 	void MaterialAsset::SetAlbeoMap( Ref<Texture2D>& rTexture )
@@ -409,6 +353,7 @@ namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL REGISTRY
+	//////////////////////////////////////////////////////////////////////////
 
 	MaterialRegistry::MaterialRegistry()
 	{

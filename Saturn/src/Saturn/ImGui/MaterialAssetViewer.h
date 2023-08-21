@@ -52,8 +52,11 @@ namespace Saturn {
 
 		NodeEditorCompilationStatus CheckOutputNodeInput( NodeEditor* pNodeEditor, int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker, Ref<MaterialAsset>& rMaterialAsset );
 
+		NodeEditorCompilationStatus Compile();
+
 	private:
-		Ref<MaterialAsset> m_MaterialAsset;
+		Ref<MaterialAsset> m_HostMaterialAsset;
+		Ref<Material> m_EditingMaterial;
 
 		NodeEditor* m_NodeEditor;
 

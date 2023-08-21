@@ -418,15 +418,9 @@ namespace Saturn {
 				{
 					mc.Mesh = AssetManager::Get().GetAssetAs<StaticMesh>( m_CurrentAssetID );
 
-					if( !mc.MaterialRegistry ) 
-					{
-						mc.MaterialRegistry = Ref<MaterialRegistry>::Create( mc.Mesh );
-					}
-					else
-					{
-						mc.MaterialRegistry = nullptr;
-						mc.MaterialRegistry = Ref<MaterialRegistry>::Create( mc.Mesh );
-					}
+					mc.MaterialRegistry = nullptr;
+
+					mc.MaterialRegistry = Ref<MaterialRegistry>::Create( mc.Mesh );
 				}
 				else if ( m_CurrentFinderType == AssetType::Material )
 				{
