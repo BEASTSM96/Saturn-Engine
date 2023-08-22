@@ -257,24 +257,20 @@ namespace Saturn {
 		// Load texture (auto assume we have not loaded them).
 		Ref<Texture2D> texture = nullptr;
 
-		if( m_VPendingTextureChanges.size() > 1)
+		std::unordered_map<uint32_t, std::string> IndexToTextureIndex =
 		{
-			// Albedo
-			texture = Ref<Texture2D>::Create( m_VPendingTextureChanges[ 0 ], AddressingMode::Repeat, false );
-			m_Material->SetResource( "u_AlbedoTexture", texture );
+			{ 0, "u_AlbedoTexture" },
+			{ 1, "u_NormalTexture" },
+			{ 2, "u_MetallicTexture" },
+			{ 3, "u_RoughnessTexture" }
+		};
 
-			// Normal
-			texture = Ref<Texture2D>::Create( m_VPendingTextureChanges[ 1 ], AddressingMode::Repeat, false );
-			m_Material->SetResource( "u_NormalTexture", texture );
+		for( auto&& [index, path] : m_VPendingTextureChanges )
+		{
+			auto fullPath = Project::GetActiveProject()->FilepathAbs( path );
+			texture = Ref<Texture2D>::Create( fullPath, AddressingMode::Repeat, false );
 
-			// Normal
-			texture = Ref<Texture2D>::Create( m_VPendingTextureChanges[ 2 ], AddressingMode::Repeat, false );
-			m_Material->SetResource( "u_MetallicTexture", texture );
-
-			// Normal
-			texture = Ref<Texture2D>::Create( m_VPendingTextureChanges[ 3 ], AddressingMode::Repeat, false );
-			m_Material->SetResource( "u_RoughnessTexture", texture );
-
+			m_Material->SetResource( IndexToTextureIndex[ index ], texture );
 		}
 	}
 

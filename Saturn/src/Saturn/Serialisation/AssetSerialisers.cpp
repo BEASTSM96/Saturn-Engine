@@ -116,16 +116,16 @@ namespace Saturn {
 		out << YAML::BeginMap;
 
 		out << YAML::Key << "AlbedoColor" << YAML::Value << materialAsset->GetAlbeoColor();
-		out << YAML::Key << "AlbedoPath" << YAML::Value << materialAsset->GetAlbeoMap()->GetPath();
+		out << YAML::Key << "AlbedoTexture" << YAML::Value << materialAsset->GetAlbeoMap()->GetPath();
 
 		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
-		out << YAML::Key << "NormalPath" << YAML::Value << materialAsset->GetNormalMap()->GetPath();
+		out << YAML::Key << "NormalTexture" << YAML::Value << materialAsset->GetNormalMap()->GetPath();
 
 		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
-		out << YAML::Key << "MetalnessPath" << YAML::Value << materialAsset->GetMetallicMap()->GetPath();
+		out << YAML::Key << "MetalnessTexture" << YAML::Value << materialAsset->GetMetallicMap()->GetPath();
 
 		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
-		out << YAML::Key << "RoughnessPath" << YAML::Value << materialAsset->GetRoughnessMap()->GetPath();
+		out << YAML::Key << "RoughnessTexture" << YAML::Value << materialAsset->GetRoughnessMap()->GetPath();
 
 		out << YAML::EndMap;
 

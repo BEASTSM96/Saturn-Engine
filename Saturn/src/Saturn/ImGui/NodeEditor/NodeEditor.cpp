@@ -543,6 +543,9 @@ namespace Saturn {
 			{
 				for( const auto& [assetID, rAsset] : AssetManager::Get().GetCombinedAssetMap() )
 				{
+					//if( s_SelectAssetInfo.AssetType != rAsset->Type )
+					//	continue;
+
 					bool Selected = ( s_SelectAssetInfo.Asset == assetID );
 
 					if( ImGui::Selectable( rAsset->GetName().c_str() ) )
