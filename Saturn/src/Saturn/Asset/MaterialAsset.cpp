@@ -347,6 +347,21 @@ namespace Saturn {
 		m_VPendingTextureChanges[ 3 ] = rPath;
 	}
 
+	void MaterialAsset::ForceUpdate()
+	{
+		for( auto& [name, texture] : m_PendingTextureChanges )
+		{
+			if( m_TextureCache[ name ].imageView == texture->GetDescriptorInfo().imageView )
+			{
+				continue;
+			}
+
+			// Does not exists, add and update
+			m_TextureCache[ name ] = texture->GetDescriptorInfo();
+			m_Material->SetResource( name, texture );
+		}
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL REGISTRY
 	//////////////////////////////////////////////////////////////////////////

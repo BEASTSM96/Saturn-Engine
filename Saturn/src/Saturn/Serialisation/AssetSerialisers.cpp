@@ -115,17 +115,39 @@ namespace Saturn {
 
 		out << YAML::BeginMap;
 
+		// I really hate this.
+
 		out << YAML::Key << "AlbedoColor" << YAML::Value << materialAsset->GetAlbeoColor();
-		out << YAML::Key << "AlbedoTexture" << YAML::Value << materialAsset->GetAlbeoMap()->GetPath();
+
+		auto& assetID = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() )->ID;
+		if( assetID != 0 )
+			out << YAML::Key << "AlbedoTexture" << YAML::Value << assetID;
+		else
+			out << YAML::Key << "AlbedoTexture" << YAML::Value << 0;
 
 		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
-		out << YAML::Key << "NormalTexture" << YAML::Value << materialAsset->GetNormalMap()->GetPath();
+
+		assetID = AssetManager::Get().FindAsset( materialAsset->GetNormalMap()->GetPath() )->ID;
+		if( assetID != 0 )
+			out << YAML::Key << "NormalTexture" << YAML::Value << assetID;
+		else
+			out << YAML::Key << "NormalTexture" << YAML::Value << 0;
 
 		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
-		out << YAML::Key << "MetalnessTexture" << YAML::Value << materialAsset->GetMetallicMap()->GetPath();
+
+		assetID = AssetManager::Get().FindAsset( materialAsset->GetMetallicMap()->GetPath() )->ID;
+		if( assetID != 0 )
+			out << YAML::Key << "MetalnessTexture" << YAML::Value << assetID;
+		else
+			out << YAML::Key << "MetalnessTexture" << YAML::Value << 0;
 
 		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
-		out << YAML::Key << "RoughnessTexture" << YAML::Value << materialAsset->GetRoughnessMap()->GetPath();
+
+		assetID = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() )->ID;
+		if( assetID != 0 )
+			out << YAML::Key << "RoughnessTexture" << YAML::Value << assetID;
+		else
+			out << YAML::Key << "RoughnessTexture" << YAML::Value << 0;
 
 		out << YAML::EndMap;
 
@@ -245,48 +267,75 @@ namespace Saturn {
 		auto materialData = data[ "Material" ];
 
 		auto albedoColor = materialData[ "AlbedoColor" ].as<glm::vec3>();
-		auto albedoPath  = materialData[ "AlbedoPath" ].as<std::filesystem::path>();
-
-		Ref<Texture2D> texture = Renderer::Get().GetPinkTexture();
-
-		if( albedoPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( albedoPath, AddressingMode::Repeat );
+		auto albedoID  = materialData[ "AlbedoPath" ].as<uint64_t>();
 
 		materialAsset->SetAlbeoColor( albedoColor );
-		materialAsset->SetAlbeoMap( texture );
+
+		Ref<Texture2D> defaultTexture = Renderer::Get().GetPinkTexture();
+		Ref<Texture2D> texture = nullptr;
+
+		if( albedoID != 0 ) 
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( albedoID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+			
+			materialAsset->SetAlbeoMap( texture );
+		}
+		else
+		{
+			materialAsset->SetAlbeoMap( defaultTexture );
+		}
 
 		auto useNormal = materialData[ "UseNormal" ].as<float>();
-		auto normalPath = materialData[ "NormalPath" ].as<std::filesystem::path>();
-
-		if( normalPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat );
-		else
-			texture = Renderer::Get().GetPinkTexture();
+		auto normalID = materialData[ "NormalPath" ].as<uint64_t>();
 
 		materialAsset->UseNormalMap( useNormal );
-		materialAsset->SetNormalMap( texture );
+		
+		if( normalID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( normalID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetNormalMap( texture );
+		}
+		else
+		{
+			materialAsset->SetNormalMap( defaultTexture );
+		}
 
 		auto metalness = materialData[ "Metalness" ].as<float>();
-		auto metallicPath = materialData[ "MetalnessPath" ].as<std::filesystem::path>();
+		auto metallicID = materialData[ "MetalnessPath" ].as<uint64_t>();
 
-		if( metallicPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat );
+		materialAsset->SetMetalness( metalness );
+
+		if( metallicID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( metallicID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetMetallicMap( texture );
+		}
 		else
-			texture = Renderer::Get().GetPinkTexture();
-
-		materialAsset->SetMetalness( metalness);
-		materialAsset->SetMetallicMap( texture );
+		{
+			materialAsset->SetMetallicMap( defaultTexture );
+		}
 
 		auto val = materialData[ "Roughness" ].as<float>();
-		auto roughnessPath = materialData[ "RoughnessPath" ].as<std::filesystem::path>();
-
-		if( roughnessPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat );
-		else
-			texture = Renderer::Get().GetPinkTexture();
-
+		auto roughnessID = materialData[ "RoughnessPath" ].as<uint64_t>();
+		
 		materialAsset->SetRoughness( val );
-		materialAsset->SetRoughnessMap( texture );
+	
+		if( roughnessID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( roughnessID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetRoughnessMap( texture );
+		}
+		else
+		{
+			materialAsset->SetRoughnessMap( defaultTexture );
+		}
 	}
 
 	void MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, bool LoadNodeEditorData, NodeEditor* pNodeEditor ) const
@@ -307,48 +356,75 @@ namespace Saturn {
 		auto materialData = data[ "Material" ];
 
 		auto albedoColor = materialData[ "AlbedoColor" ].as<glm::vec3>();
-		auto albedoPath = materialData[ "AlbedoPath" ].as<std::filesystem::path>();
-
-		Ref<Texture2D> texture = Renderer::Get().GetPinkTexture();
-
-		if( albedoPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( albedoPath, AddressingMode::Repeat );
+		auto albedoID = materialData[ "AlbedoPath" ].as<uint64_t>();
 
 		materialAsset->SetAlbeoColor( albedoColor );
-		materialAsset->SetAlbeoMap( texture );
+
+		Ref<Texture2D> defaultTexture = Renderer::Get().GetPinkTexture();
+		Ref<Texture2D> texture = nullptr;
+
+		if( albedoID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( albedoID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetAlbeoMap( texture );
+		}
+		else
+		{
+			materialAsset->SetAlbeoMap( defaultTexture );
+		}
 
 		auto useNormal = materialData[ "UseNormal" ].as<float>();
-		auto normalPath = materialData[ "NormalPath" ].as<std::filesystem::path>();
-
-		if( normalPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat );
-		else
-			texture = Renderer::Get().GetPinkTexture();
+		auto normalID = materialData[ "NormalPath" ].as<uint64_t>();
 
 		materialAsset->UseNormalMap( useNormal );
-		materialAsset->SetNormalMap( texture );
+
+		if( normalID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( normalID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetNormalMap( texture );
+		}
+		else
+		{
+			materialAsset->SetNormalMap( defaultTexture );
+		}
 
 		auto metalness = materialData[ "Metalness" ].as<float>();
-		auto metallicPath = materialData[ "MetalnessPath" ].as<std::filesystem::path>();
-
-		if( metallicPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat );
-		else
-			texture = Renderer::Get().GetPinkTexture();
+		auto metallicID = materialData[ "MetalnessPath" ].as<uint64_t>();
 
 		materialAsset->SetMetalness( metalness );
-		materialAsset->SetMetallicMap( texture );
+
+		if( metallicID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( metallicID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetMetallicMap( texture );
+		}
+		else
+		{
+			materialAsset->SetMetallicMap( defaultTexture );
+		}
 
 		auto val = materialData[ "Roughness" ].as<float>();
-		auto roughnessPath = materialData[ "RoughnessPath" ].as<std::filesystem::path>();
-
-		if( roughnessPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat );
-		else
-			texture = Renderer::Get().GetPinkTexture();
+		auto roughnessID = materialData[ "RoughnessPath" ].as<uint64_t>();
 
 		materialAsset->SetRoughness( val );
-		materialAsset->SetRoughnessMap( texture );
+
+		if( roughnessID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( roughnessID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetRoughnessMap( texture );
+		}
+		else
+		{
+			materialAsset->SetRoughnessMap( defaultTexture );
+		}
 
 		if( LoadNodeEditorData )
 		{
@@ -466,48 +542,80 @@ namespace Saturn {
 		auto materialData = data[ "Material" ];
 
 		auto albedoColor = materialData[ "AlbedoColor" ].as<glm::vec3>();
-		auto albedoPath = materialData[ "AlbedoPath" ].as<std::filesystem::path>();
-
-		Ref<Texture2D> texture = Renderer::Get().GetPinkTexture();
-
-		if( albedoPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( albedoPath, AddressingMode::Repeat, false );
+		auto albedoID = materialData[ "AlbedoPath" ].as<uint64_t>();
 
 		materialAsset->SetAlbeoColor( albedoColor );
-		materialAsset->SetAlbeoMap( texture );
+
+		Ref<Texture2D> defaultTexture = Renderer::Get().GetPinkTexture();
+		Ref<Texture2D> texture = nullptr;
+
+		if( albedoID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( albedoID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetAlbeoMap( texture );
+		}
+		else
+		{
+			materialAsset->SetAlbeoMap( defaultTexture );
+		}
 
 		auto useNormal = materialData[ "UseNormal" ].as<float>();
-		auto normalPath = materialData[ "NormalPath" ].as<std::filesystem::path>();
-
-		if( normalPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( normalPath, AddressingMode::Repeat, false );
-		else
-			texture = Renderer::Get().GetPinkTexture();
+		auto normalID = materialData[ "NormalPath" ].as<uint64_t>();
 
 		materialAsset->UseNormalMap( useNormal );
-		materialAsset->SetNormalMap( texture );
+
+		if( normalID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( normalID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetNormalMap( texture );
+		}
+		else
+		{
+			materialAsset->SetNormalMap( defaultTexture );
+		}
 
 		auto metalness = materialData[ "Metalness" ].as<float>();
-		auto metallicPath = materialData[ "MetalnessPath" ].as<std::filesystem::path>();
-
-		if( metallicPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( metallicPath, AddressingMode::Repeat, false );
-		else
-			texture = Renderer::Get().GetPinkTexture();
+		auto metallicID = materialData[ "MetalnessPath" ].as<uint64_t>();
 
 		materialAsset->SetMetalness( metalness );
-		materialAsset->SetMetallicMap( texture );
+
+		if( metallicID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( metallicID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetMetallicMap( texture );
+		}
+		else
+		{
+			materialAsset->SetMetallicMap( defaultTexture );
+		}
 
 		auto val = materialData[ "Roughness" ].as<float>();
-		auto roughnessPath = materialData[ "RoughnessPath" ].as<std::filesystem::path>();
-
-		if( roughnessPath != "Renderer Pink Texture" )
-			texture = Ref<Texture2D>::Create( roughnessPath, AddressingMode::Repeat, false );
-		else
-			texture = Renderer::Get().GetPinkTexture();
+		auto roughnessID = materialData[ "RoughnessPath" ].as<uint64_t>();
 
 		materialAsset->SetRoughness( val );
-		materialAsset->SetRoughnessMap( texture );
+
+		if( roughnessID != 0 )
+		{
+			Ref<Asset> rAsset = AssetManager::Get().FindAsset( roughnessID );
+			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
+
+			materialAsset->SetRoughnessMap( texture );
+		}
+		else
+		{
+			materialAsset->SetRoughnessMap( defaultTexture );
+		}
+
+		// We may not always need to do this because most of the time this material will be bound meaning will change the textures.
+		// However, we don't always know if it will ever be bound, for instance if we open a material in the material asset viewer, the material will not bound.
+		// Meaning that the textures will not be updated.
+		materialAsset->ForceUpdate();
 	
 		// TODO: (Asset) Fix this.
 		struct

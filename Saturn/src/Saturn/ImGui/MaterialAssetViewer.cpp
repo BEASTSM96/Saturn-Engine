@@ -192,49 +192,35 @@ namespace Saturn {
 		auto Fn = [&]( const Ref<Texture2D>& rTexture, int Index ) -> void
 		{
 			const auto& rPath = rTexture->GetPath();
-
 			bool InternalTexture = ( rPath == "Renderer Pink Texture" );
 
 			if( !InternalTexture )
 			{
 				// Find the texture asset.
-				Ref<Asset> TextureAsset = AssetManager::Get().FindAsset( rPath );
-				auto TextureAssetID = TextureAsset->GetAssetID();
+				auto relativePath = std::filesystem::relative( rPath, Project::GetActiveProject()->GetRootDir() );
+				
+				Ref<Asset> TextureAsset = AssetManager::Get().FindAsset( relativePath );
+				AssetID TextureAssetID = TextureAsset->GetAssetID();
 
-				Node* Sampler2DNode = nullptr;
-				Node* AssetNode = nullptr;
-
-				// Create a "Get asset node".
-
-				PinSpecification outPin;
-				outPin.Name = "Asset ID";
-				outPin.Type = PinType::AssetHandle;
-
-				NodeSpecification nodeSpecification;
-				nodeSpecification.Color = ImColor( 30, 117, 217 );
-				nodeSpecification.Name = "Get Asset";
-
-				nodeSpecification.Outputs.push_back( outPin );
-
-				AssetNode = m_NodeEditor->AddNode( nodeSpecification );
+				Ref<Node> Sampler2DNode;
+				Ref<Node> AssetNode;
+				Sampler2DNode = SpawnNewSampler2D( m_NodeEditor );
+				AssetNode = SpawnNewGetAssetNode( m_NodeEditor );
 
 				AssetNode->ExtraData.Allocate( 1024 );
 				AssetNode->ExtraData.Zero_Memory();
 				AssetNode->ExtraData.Write( ( uint8_t* ) &TextureAssetID, sizeof( UUID ), 0 );
 				AssetNode->ExtraData.Write( ( uint8_t* ) &TextureAsset->GetPath(), sizeof( std::filesystem::path ), sizeof( UUID ) );
 
-				// Create the corresponding texture sampler node.
-				Sampler2DNode = SpawnNewSampler2D( m_NodeEditor );
-
-				// TODO: FIX THE LINKING!!!
-
-				auto* pOutNode = m_NodeEditor->FindNode( m_OutputNodeID );
+				Ref<Node> OutputNode = m_NodeEditor->FindNode( m_OutputNodeID );
 
 				// Link the get asset node with the texture node.
 				//s_NodeEditors[ rAsset->GetAssetID() ]->LinkPin( AssetNode->Outputs[ 0 ].ID, Sampler2DNode->Inputs[ 0 ].ID );
 
+				m_NodeEditor->LinkPin( AssetNode->Outputs[ 0 ].ID, Sampler2DNode->Inputs[ 0 ].ID );
+
 				// Link the texture node with the corresponding input in the material output.
-				m_NodeEditor->LinkPin( Sampler2DNode->Outputs[ 0 ].ID, pOutNode->Inputs[ Index ].ID );
+				m_NodeEditor->LinkPin( Sampler2DNode->Outputs[ 0 ].ID, OutputNode->Inputs[ Index ].ID );
 			}
 			else if( Index == 0 )
 			{

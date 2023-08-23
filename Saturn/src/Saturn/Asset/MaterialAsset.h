@@ -111,6 +111,8 @@ namespace Saturn {
 		void SetNormalMap( const std::filesystem::path& rPath );
 		void SetMetallicMap( const std::filesystem::path& rPath );
 		void SetRoughnessMap( const std::filesystem::path& rPath );
+		// Only used MaterialAssetSerialiser
+		void ForceUpdate();
 
 	private:
 		Ref<Material> m_Material = nullptr;
@@ -125,6 +127,7 @@ namespace Saturn {
 		std::unordered_map< uint32_t, std::filesystem::path > m_VPendingTextureChanges;
 	private:
 		friend class MaterialAssetViewer;
+		friend class MaterialAssetSerialiser;
 	};
 
 	class MaterialRegistry : public RefTarget
