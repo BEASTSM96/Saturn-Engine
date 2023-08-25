@@ -44,21 +44,28 @@ namespace Saturn {
 		NodeEditor( AssetID ID );
 		~NodeEditor();
 
-		Node* AddNode( NodeSpecification& spec, ImVec2 position = ImVec2( 0.0f, 0.0f ) );
+		Ref<Node> AddNode( NodeSpecification& spec, ImVec2 position = ImVec2( 0.0f, 0.0f ) );
 
 		bool IsPinLinked( ed::PinId id );
-		bool CanCreateLink( Pin* a, Pin* b );
-		Pin* FindPin( ed::PinId id );
-		Link* FindLink( ed::LinkId id );
-		Node* FindNode( ed::NodeId id );
-		Link* FindLinkByPin( ed::PinId id );
-		Node* FindNodeByPin( ed::PinId id );
+		bool CanCreateLink( const Ref<Pin>& a, const Ref<Pin>& b );
+		
+		Ref<Pin> FindPin( ed::PinId id );
+		const Ref<Pin>& FindPin( ed::PinId id ) const;
+		
+		Ref<Link> FindLink( ed::LinkId id );
+		const Ref<Link>& FindLink( ed::LinkId id ) const;
+	
+		Ref<Node> FindNode( ed::NodeId id );
+		const Ref<Node>& FindNode( ed::NodeId id ) const;
+	
+		Ref<Link> FindLinkByPin( ed::PinId id );
+		Ref<Node> FindNodeByPin( ed::PinId id );
 
-		const std::vector<Node>& GetNodes() const { return m_Nodes; }
-		std::vector<Node>& GetNodes() { return m_Nodes; }
+		const std::vector<Ref<Node>>& GetNodes() const { return m_Nodes; }
+		std::vector<Ref<Node>>& GetNodes() { return m_Nodes; }
 
-		const std::vector<Link>& GetLinks() const { return m_Links; }
-		std::vector<Link>& GetLinks() { return m_Links; }
+		const std::vector<Ref<Link>>& GetLinks() const { return m_Links; }
+		std::vector<Ref<Link>>& GetLinks() { return m_Links; }
 
 		virtual void OnImGuiRender() override;
 		virtual void OnUpdate( Timestep ts ) override {}
@@ -69,13 +76,13 @@ namespace Saturn {
 		// Only use this when creating a node that needs to link automatically.
 		void LinkPin( ed::PinId Start, ed::PinId End );
 
-		void SetDetailsFunction( std::function<void( Node )>&& rrDetailsFunction )
+		void SetDetailsFunction( std::function<void( Ref<Node> )>&& rrDetailsFunction )
 		{
 			m_DetailsFunction = std::move( rrDetailsFunction );
 		}
 
 		// Happens when the user clicks on the empty space.
-		void SetCreateNewNodeFunction( std::function<Node*()>&& rrCreateNewNodeFunction )
+		void SetCreateNewNodeFunction( std::function<Ref<Node>()>&& rrCreateNewNodeFunction )
 		{
 			m_CreateNewNodeFunction = std::move( rrCreateNewNodeFunction );
 		}
@@ -92,7 +99,8 @@ namespace Saturn {
 
 		AssetID GetAssetID() { return m_AssetID; }
 
-		const std::string& GetEditorState() { return m_NodeEditorState; }
+		std::string& GetEditorState() { return m_NodeEditorState; }
+		const std::string& GetEditorState() const { return m_NodeEditorState; }
 		
 		void SetEditorState( const std::string& rState ) { m_NodeEditorState = rState; }
 
@@ -115,16 +123,17 @@ namespace Saturn {
 		std::string m_NodeEditorState;
 
 		bool m_CreateNewNode = false;
-		Pin* m_NewLinkPin = nullptr;
-		Pin* m_NewNodeLinkPin = nullptr;
 
-		std::function<void( Node )> m_DetailsFunction;
-		std::function<Node*()> m_CreateNewNodeFunction;
+		Ref<Pin> m_NewLinkPin = nullptr;
+		Ref<Pin> m_NewNodeLinkPin = nullptr;
+
+		std::function<void( Ref<Node> )> m_DetailsFunction;
+		std::function<Ref<Node>()> m_CreateNewNodeFunction;
 		std::function<NodeEditorCompilationStatus()> m_OnCompile;
 		std::function<void()> m_OnClose;
 
-		std::vector<Node> m_Nodes;
-		std::vector<Link> m_Links;
+		std::vector<Ref<Node>> m_Nodes;
+		std::vector<Ref<Link>> m_Links;
 
 		std::string m_Name;
 	};

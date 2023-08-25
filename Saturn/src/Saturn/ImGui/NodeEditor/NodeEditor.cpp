@@ -58,18 +58,18 @@ namespace Saturn {
 		return s_ID++;
 	}
 
-	void BuildNode( Node* node )
+	void BuildNode( Ref<Node>& rNode )
 	{
-		for( auto& input : node->Inputs )
+		for( auto& input : rNode->Inputs )
 		{
-			input.Node = node;
-			input.Kind = PinKind::Input;
+			input->Node = rNode;
+			input->Kind = PinKind::Input;
 		}
 
-		for( auto& output : node->Outputs )
+		for( auto& output : rNode->Outputs )
 		{
-			output.Node = node;
-			output.Kind = PinKind::Output;
+			output->Node = rNode;
+			output->Kind = PinKind::Output;
 		}
 	}
 
@@ -192,25 +192,32 @@ namespace Saturn {
 		m_OnClose();
 	}
 
-	Node* NodeEditor::AddNode( NodeSpecification& spec, ImVec2 position )
+	Ref<Node> NodeEditor::AddNode( NodeSpecification& spec, ImVec2 position )
 	{
-		auto& node = m_Nodes.emplace_back( GetNextID(), spec.Name.c_str(), spec.Color );
-		
-		for ( auto& rOutput : spec.Outputs )
-			m_Nodes.back().Outputs.push_back( { GetNextID(), rOutput.Name.c_str(), rOutput.Type, node.ID } );
+		Ref<Node> node = Ref<Node>::Create( GetNextID(), spec.Name.c_str(), spec.Color );
+		m_Nodes.emplace_back( node );
 
-		for( auto& rInput : spec.Inputs )
-			m_Nodes.back().Inputs.push_back( { GetNextID(), rInput.Name.c_str(), rInput.Type, node.ID } );
+		for( auto& rOutput : spec.Outputs ) 
+		{
+			Ref<Pin> pin = Ref<Pin>::Create( GetNextID(), rOutput.Name.c_str(), rOutput.Type, node->ID );
+			node->Outputs.push_back( pin );
+		}
 
-		BuildNode( &m_Nodes.back() );
+		for( auto& rInput : spec.Inputs ) 
+		{
+			Ref<Pin> pin = Ref<Pin>::Create( GetNextID(), rInput.Name.c_str(), rInput.Type, node->ID );
+			node->Inputs.push_back( pin );
+		}
+
+		BuildNode( node );
 
 		if( position.x != 0.0f && position.y != 0.0f )
-			ed::SetNodePosition( node.ID, position );
+			ed::SetNodePosition( node->ID, position );
 
-		node.ExtraData.Allocate( 1024 );
-		node.ExtraData.Zero_Memory();
+		node->ExtraData.Allocate( 1024 );
+		node->ExtraData.Zero_Memory();
 
-		return &m_Nodes.back();
+		return m_Nodes.back();
 	}
 
 	bool NodeEditor::IsPinLinked( ed::PinId id )
@@ -219,13 +226,13 @@ namespace Saturn {
 			return false;
 
 		for( auto& link : m_Links )
-			if( link.StartPinID == id || link.EndPinID == id )
+			if( link->StartPinID == id || link->EndPinID == id )
 				return true;
 
 		return false;
 	}
 
-	bool NodeEditor::CanCreateLink( Pin* a, Pin* b )
+	bool NodeEditor::CanCreateLink( const Ref<Pin>& a, const Ref<Pin>& b )
 	{
 		if( !a || !b || a == b || a->Kind == b->Kind || a->Type != b->Type || a->Node == b->Node )
 			return false;
@@ -233,28 +240,26 @@ namespace Saturn {
 		return true;
 	}
 
-	Pin* NodeEditor::FindPin( ed::PinId id )
+	Ref<Pin> NodeEditor::FindPin( ed::PinId id )
 	{
 		if( !id )
 			return nullptr;
 
-		for( auto& node : m_Nodes )
+		for( const auto& node : m_Nodes )
 		{
-			for( auto& pin : node.Inputs ) 
+			for( const auto& pin : node->Inputs )
 			{
-				if( pin.ID == id )
+				if( pin->ID == id )
 				{
-					SAT_CORE_INFO( ( size_t ) id.Get() );
-					return &pin;
+					return pin;
 				}
 			}
 
-			for( auto& pin : node.Outputs ) 
+			for( const auto& pin : node->Outputs )
 			{
-				if( pin.ID == id )
+				if( pin->ID == id )
 				{
-					SAT_CORE_INFO( ( size_t ) id.AsPointer() );
-					return &pin;
+					return pin;
 				}
 			}
 		}
@@ -262,25 +267,70 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	Link* NodeEditor::FindLink( ed::LinkId id )
+	const Ref<Pin>& NodeEditor::FindPin( ed::PinId id ) const
+	{
+		if( !id )
+			return nullptr;
+
+		for( const auto& node : m_Nodes )
+		{
+			for( const auto& pin : node->Inputs )
+			{
+				if( pin->ID == id )
+				{
+					return pin;
+				}
+			}
+
+			for( const auto& pin : node->Outputs )
+			{
+				if( pin->ID == id )
+				{
+					return pin;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	Ref<Link> NodeEditor::FindLink( ed::LinkId id )
 	{
 		for( auto& link : m_Links )
-			if( link.ID == id )
-				return &link;
+			if( link->ID == id )
+				return link;
 
 		return nullptr;
 	}
 
-	Node* NodeEditor::FindNode( ed::NodeId id )
+	const Ref<Link>& NodeEditor::FindLink( ed::LinkId id ) const
+	{
+		for( auto& link : m_Links )
+			if( link->ID == id )
+				return link;
+
+		return nullptr;
+	}
+
+	Ref<Node> NodeEditor::FindNode( ed::NodeId id )
 	{
 		for( auto& node : m_Nodes )
-			if( node.ID == id )
-				return &node;
+			if( node->ID == id )
+				return node;
 
 		return nullptr;
 	}
 
-	Link* NodeEditor::FindLinkByPin( ed::PinId id )
+	const Ref<Node>& NodeEditor::FindNode( ed::NodeId id ) const
+	{
+		for( auto& node : m_Nodes )
+			if( node->ID == id )
+				return node;
+
+		return nullptr;
+	}
+
+	Ref<Link> NodeEditor::FindLinkByPin( ed::PinId id )
 	{
 		if( !id )
 			return nullptr;
@@ -289,18 +339,18 @@ namespace Saturn {
 			return nullptr;
 
 		for( auto& link : m_Links )
-			if( link.StartPinID == id || link.EndPinID == id )
-				return &link;
+			if( link->StartPinID == id || link->EndPinID == id )
+				return link;
 
 		return nullptr;
 	}
 
-	Node* NodeEditor::FindNodeByPin( ed::PinId id )
+	Ref<Node> NodeEditor::FindNodeByPin( ed::PinId id )
 	{
-		Pin* pPin = FindPin( id );
-		Link* pLink = FindLinkByPin( id );
+		const auto& Pin = FindPin( id );
+		const auto& Link = FindLinkByPin( id );
 
-		return pPin->Node;
+		return Pin->Node;
 	}
 
 	ImColor GetIconColor( PinType type )
@@ -320,13 +370,13 @@ namespace Saturn {
 		}
 	}
 
-	void DrawPinIcon( const Pin& pin, bool connected, int alpha )
+	void DrawPinIcon( const Ref<Pin>& pin, bool connected, int alpha )
 	{
 		ax::Drawing::IconType type;
-		ImColor color = GetIconColor( pin.Type );
+		ImColor color = GetIconColor( pin->Type );
 		color.Value.w = alpha / 255.0f;
 
-		switch( pin.Type )
+		switch( pin->Type )
 		{
 			case PinType::Flow:				  type = ax::Drawing::IconType::Flow;   break;
 			case PinType::Bool:				  type = ax::Drawing::IconType::Circle; break;
@@ -378,18 +428,20 @@ namespace Saturn {
 
 		if( ImGui::Button( "Show flow" ) )
 			for( auto& link : m_Links )
-				ed::Flow( link.ID );
+				ed::Flow( link->ID );
 
-		if( ImGui::Button( "Compile & Save" ) )
+		if( ImGui::Button( "Compile & Save" ) ) 
+		{
 			if( m_OnCompile )
 			{
 				m_OnCompile();
 
 				for( auto& link : m_Links )
-					ed::Flow( link.ID );
+					ed::Flow( link->ID );
 			}
 			else
 				SAT_CORE_ASSERT( false, "A compile callback function must be set!" );
+		}
 
 		ImGui::EndHorizontal();
 
@@ -406,19 +458,19 @@ namespace Saturn {
 
 		for( auto& node : m_Nodes )
 		{
-			if( node.Type != NodeType::Blueprint && node.Type != NodeType::Simple )
+			if( node->Type != NodeType::Blueprint && node->Type != NodeType::Simple )
 				continue;
 
-			const auto isSimple = node.Type == NodeType::Simple;
+			const auto isSimple = node->Type == NodeType::Simple;
 
-			builder.Begin( node.ID );
+			builder.Begin( node->ID );
 
 			if( !isSimple )
 			{
-				builder.Header( node.Color );
+				builder.Header( node->Color );
 
 				ImGui::Spring( 0 );
-				ImGui::TextUnformatted( node.Name.c_str() );
+				ImGui::TextUnformatted( node->Name.c_str() );
 				ImGui::Spring( 1 );
 				ImGui::Dummy( ImVec2( 0, 28 ) );
 				ImGui::Spring( 0 );
@@ -426,25 +478,25 @@ namespace Saturn {
 				builder.EndHeader();
 			}
 
-			for( auto& input : node.Inputs )
+			for( auto& input : node->Inputs )
 			{
 				auto alpha = ImGui::GetStyle().Alpha;
 
-				builder.Input( input.ID );
+				builder.Input( input->ID );
 
 				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
 
-				DrawPinIcon( input, IsPinLinked( input.ID ), (int)(alpha * 255) );
+				DrawPinIcon( input, IsPinLinked( input->ID ), (int)(alpha * 255) );
 
 				ImGui::Spring( 0 );
 
-				if( !input.Name.empty() )
+				if( !input->Name.empty() )
 				{
-					ImGui::TextUnformatted( input.Name.c_str() );
+					ImGui::TextUnformatted( input->Name.c_str() );
 					ImGui::Spring( 0 );
 				}
 
-				if( input.Type == PinType::Bool ) 
+				if( input->Type == PinType::Bool )
 				{
 					ImGui::Button( "Hello" );
 					ImGui::Spring( 0 );
@@ -460,45 +512,45 @@ namespace Saturn {
 				builder.Middle();
 
 				ImGui::Spring( 1, 0 );
-				ImGui::TextUnformatted( node.Name.c_str() );
+				ImGui::TextUnformatted( node->Name.c_str() );
 				ImGui::Spring( 1, 0 );
 			}
 
-			for( auto& output : node.Outputs )
+			for( auto& output : node->Outputs )
 			{
-				if( !isSimple && output.Type == PinType::Delegate )
+				if( !isSimple && output->Type == PinType::Delegate )
 					continue;
 
 				auto alpha = ImGui::GetStyle().Alpha;
 
-				if( m_NewLinkPin && !CanCreateLink( m_NewLinkPin, &output ) && &output != m_NewLinkPin )
+				if( m_NewLinkPin && !CanCreateLink( m_NewLinkPin, output ) && output != m_NewLinkPin )
 					alpha = alpha * ( 48.0f / 255.0f );
 
 				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
 
-				builder.Output( output.ID );
+				builder.Output( output->ID );
 
-				if( !output.Name.empty() )
+				if( !output->Name.empty() )
 				{
 					ImGui::Spring( 0 );
-					ImGui::TextUnformatted( output.Name.c_str() );
+					ImGui::TextUnformatted( output->Name.c_str() );
 
 					// Check if output has is an AssetHandle
-					if( output.Type == PinType::AssetHandle ) 
+					if( output->Type == PinType::AssetHandle )
 					{
-						auto& rSavedUUID = node.ExtraData.Read<UUID>( 0 );
-						auto& rSavedPath = node.ExtraData.Read<std::filesystem::path>( sizeof( UUID ) );
+						auto& rSavedUUID = node->ExtraData.Read<UUID>( 0 );
+						auto& rSavedPath = node->ExtraData.Read<std::filesystem::path>( sizeof( UUID ) );
 
 						const char* name = s_SelectAssetInfo.AssetName.empty() ? "Select Asset" : s_SelectAssetInfo.AssetName.c_str();
 
 						if( ImGui::Button( rSavedUUID != 0 ? rSavedPath.string().c_str() : name ) )
 						{
 							OpenAssetPopup = true;
-							s_SelectAssetInfo.ID     = output.ID;
-							s_SelectAssetInfo.NodeID = node.ID;
+							s_SelectAssetInfo.ID     = output->ID;
+							s_SelectAssetInfo.NodeID = node->ID;
 						}
 					}
-					else if( node.Name == "Color Picker" && output.Type == PinType::Material_Sampler2D ) 
+					else if( node->Name == "Color Picker" && output->Type == PinType::Material_Sampler2D )
 					{
 						ImGui::BeginHorizontal( "PickerH" );
 
@@ -506,18 +558,18 @@ namespace Saturn {
 						{
 							OpenAssetColorPicker = true;
 
-							s_SelectAssetInfo.ID = output.ID;
-							s_SelectAssetInfo.NodeID = node.ID;
+							s_SelectAssetInfo.ID = output->ID;
+							s_SelectAssetInfo.NodeID = node->ID;
 						}
 
-						Auxiliary::DrawColoredRect( { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() }, node.ExtraData.Read<ImVec4>( 0 ) );
+						Auxiliary::DrawColoredRect( { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() }, node->ExtraData.Read<ImVec4>( 0 ) );
 						
 						ImGui::EndHorizontal();
 					}
 				}
 
 				ImGui::Spring( 0 );
-				DrawPinIcon( output, IsPinLinked( output.ID ), ( int ) ( alpha * 255 ) );
+				DrawPinIcon( output, IsPinLinked( output->ID ), ( int ) ( alpha * 255 ) );
 
 				builder.EndOutput();
 				ImGui::PopStyleVar();
@@ -543,9 +595,6 @@ namespace Saturn {
 			{
 				for( const auto& [assetID, rAsset] : AssetManager::Get().GetCombinedAssetMap() )
 				{
-					//if( s_SelectAssetInfo.AssetType != rAsset->Type )
-					//	continue;
-
 					bool Selected = ( s_SelectAssetInfo.Asset == assetID );
 
 					if( ImGui::Selectable( rAsset->GetName().c_str() ) )
@@ -553,23 +602,23 @@ namespace Saturn {
 						s_SelectAssetInfo.Asset = assetID;
 						s_SelectAssetInfo.AssetName = rAsset->GetName();
 
-						Node* pNode = nullptr;
+						Ref<Node> Node = nullptr;
 
 						for( auto& rNode : m_Nodes )
 						{
-							if( rNode.ID == s_SelectAssetInfo.NodeID )
+							if( rNode->ID == s_SelectAssetInfo.NodeID )
 							{
-								pNode = &rNode;
+								Node = rNode;
 								break;
 							}
 						}
 
-						if( pNode )
+						if( Node )
 						{
-							pNode->ExtraData.Write( ( uint8_t* ) &assetID, sizeof( UUID ), 0 );
-							pNode->ExtraData.Write( ( uint8_t* ) &rAsset->GetPath(), sizeof( std::filesystem::path ), sizeof( UUID ) );
+							Node->ExtraData.Write( ( uint8_t* ) &assetID, sizeof( UUID ), 0 );
+							Node->ExtraData.Write( ( uint8_t* ) &rAsset->GetPath(), sizeof( std::filesystem::path ), sizeof( UUID ) );
 
-							auto& uuid = pNode->ExtraData.Read<UUID>( 0 );
+							auto& uuid = Node->ExtraData.Read<UUID>( 0 );
 
 							SAT_CORE_INFO("UUID: {0}, Saved UUID: {1}", uuid, assetID );
 						}
@@ -604,17 +653,17 @@ namespace Saturn {
 
 			ImVec4 color = ImVec4( 114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f );
 
-			Node* pNode = nullptr;
-			pNode = FindNode( s_SelectAssetInfo.NodeID );
+			Ref<Node> Node = nullptr;
+			Node = FindNode( s_SelectAssetInfo.NodeID );
 
-			color = pNode->ExtraData.Read<ImVec4>( 0 );
+			color = Node->ExtraData.Read<ImVec4>( 0 );
 
 			if( color.x == 0 && color.y == 0 && color.z == 0  && color.w == 0 )
 				color = ImVec4( 114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f );
 
 			if( ImGui::ColorPicker3( "Color Picker", (float*)&color ) ) 
 			{
-				pNode->ExtraData.Write( (uint8_t*)&color, sizeof( ImVec4 ), 0 );
+				Node->ExtraData.Write( (uint8_t*)&color, sizeof( ImVec4 ), 0 );
 
 				PopupModified = true;
 			}
@@ -650,7 +699,7 @@ namespace Saturn {
 
 		// Link the links
 		for( auto& link : m_Links )
-			ed::Link( link.ID, link.StartPinID, link.EndPinID, link.Color, 2.0f );
+			ed::Link( link->ID, link->StartPinID, link->EndPinID, link->Color, 2.0f );
 
 		if( !m_CreateNewNode )
 		{
@@ -679,8 +728,8 @@ namespace Saturn {
 
 				if( ed::QueryNewLink( &StartPinId, &EndPinId ) )
 				{
-					Pin* StartPin = nullptr; 
-					Pin* EndPin   = nullptr;
+					Ref<Pin> StartPin = nullptr; 
+					Ref<Pin> EndPin   = nullptr;
 
 					StartPin = FindPin( StartPinId );
 					EndPin = FindPin( EndPinId );
@@ -717,8 +766,8 @@ namespace Saturn {
 							showLabel( "+ Create Link", ImColor( 32, 45, 32, 180 ) );
 							if( ed::AcceptNewItem( ImColor( 128, 255, 128 ), 4.0f ) )
 							{
-								m_Links.emplace_back( Link( GetNextID(), StartPinId, EndPinId ) );
-								m_Links.back().Color = GetIconColor( StartPin->Type );
+								m_Links.emplace_back( Ref<Link>::Create( GetNextID(), StartPinId, EndPinId ) );
+								m_Links.back()->Color = GetIconColor( StartPin->Type );
 							}
 						}
 					}
@@ -758,7 +807,7 @@ namespace Saturn {
 				{
 					if( ed::AcceptDeletedItem() )
 					{
-						auto id = std::find_if( m_Links.begin(), m_Links.end(), [linkId]( auto& link ) { return link.ID == linkId; } );
+						auto id = std::find_if( m_Links.begin(), m_Links.end(), [linkId]( auto& link ) { return link->ID == linkId; } );
 						if( id != m_Links.end() )
 							m_Links.erase( id );
 					}
@@ -769,7 +818,7 @@ namespace Saturn {
 				{
 					if( ed::AcceptDeletedItem() )
 					{
-						auto id = std::find_if( m_Nodes.begin(), m_Nodes.end(), [nodeId]( auto& node ) { return node.ID == nodeId; } );
+						auto id = std::find_if( m_Nodes.begin(), m_Nodes.end(), [nodeId]( auto& node ) { return node->ID == nodeId; } );
 						if( id != m_Nodes.end() )
 							m_Nodes.erase( id );
 
@@ -799,7 +848,7 @@ namespace Saturn {
 		{
 			auto mousePos = ed::ScreenToCanvas( ImGui::GetMousePosOnOpeningCurrentPopup() );
 
-			Node* node = nullptr;
+			Ref<Node> node = nullptr;
 
 			if( m_CreateNewNodeFunction )
 				node = m_CreateNewNodeFunction();
@@ -812,21 +861,21 @@ namespace Saturn {
 
 				ed::SetNodePosition( node->ID, mousePos );
 
-				if( auto startPin = m_NewNodeLinkPin ) 
+				if( auto& startPin = m_NewNodeLinkPin ) 
 				{
 					auto& pins = startPin->Kind == PinKind::Input ? node->Outputs : node->Inputs;
 
-					for( Pin& pin : pins ) 
+					for( auto& pin : pins ) 
 					{
-						if( CanCreateLink( startPin, &pin ) )
+						if( CanCreateLink( startPin, pin ) )
 						{
-							auto endPin = &pin;
+							auto& endPin = pin;
 
 							if( startPin->Kind == PinKind::Input )
 								std::swap( startPin, endPin );
 
-							m_Links.emplace_back( Link( GetNextID(), startPin->ID, endPin->ID ) );
-							m_Links.back().Color = GetIconColor( startPin->Type );
+							m_Links.emplace_back( Ref<Link>::Create( GetNextID(), startPin->ID, endPin->ID ) );
+							m_Links.back()->Color = GetIconColor( startPin->Type );
 
 							break;
 						}
@@ -852,10 +901,12 @@ namespace Saturn {
 
 	void NodeEditor::LinkPin( ed::PinId Start, ed::PinId End )
 	{
-		Pin* pin = FindPin( Start );
+		const Ref<Pin>& pin = FindPin( Start );
 
-		m_Links.emplace_back( Link( GetNextID(), Start, End ) );
-		m_Links.back().Color = GetIconColor( pin->Type );
+		Ref<Link> link = Ref<Link>::Create( GetNextID(), Start, End );
+		link->Color = GetIconColor( pin->Type );
+
+		m_Links.emplace_back( link );
 	}
 
 	NodeEditorCompilationStatus NodeEditor::ThrowError( const std::string & rMessage )
@@ -872,11 +923,11 @@ namespace Saturn {
 
 	void NodeEditor::DeleteDeadLinks( ed::NodeId id )
 	{
-		auto wasConnectedToTheNode = [&]( const Link& link )
+		auto wasConnectedToTheNode = [&]( const Ref<Link>& link )
 		{
-			return ( !FindPin( link.StartPinID ) ) || ( !FindPin( link.EndPinID ) )
-				|| FindPin( link.StartPinID )->Node->ID == id
-				|| FindPin( link.EndPinID )->Node->ID == id;
+			return ( !FindPin( link->StartPinID ) ) || ( !FindPin( link->EndPinID ) )
+				|| FindPin( link->StartPinID )->Node->ID == id
+				|| FindPin( link->EndPinID )->Node->ID == id;
 		};
 
 		auto removeIt = std::remove_if( m_Links.begin(), m_Links.end(), wasConnectedToTheNode );

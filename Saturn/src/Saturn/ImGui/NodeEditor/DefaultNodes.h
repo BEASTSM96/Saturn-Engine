@@ -28,48 +28,18 @@
 
 #pragma once
 
-#include "AssetViewer.h"
-#include "Saturn/Asset/MaterialAsset.h"
-#include "NodeEditor/NodeEditorCompilationStatus.h"
-
-namespace ax::NodeEditor {
-	struct NodeId;
-	struct PinId;
-	struct LinkId;
-}
+#include "Saturn/Core/Base.h"
+#include "Node.h"
+#include "NodeEditor.h"
 
 namespace Saturn {
 
-	class NodeEditor;
-	class Node;
-
-	class MaterialAssetViewer : public AssetViewer
-	{
-	public:
-		MaterialAssetViewer( AssetID id );
-		~MaterialAssetViewer();
-
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override {}
-		virtual void OnEvent( Event& rEvent ) override {}
-
-	private:
-		void AddMaterialAsset();
-		void DrawInternal();
-
-		ax::NodeEditor::NodeId FindOtherNodeIDByPin( ax::NodeEditor::PinId id );
-		Ref<Node> FindOtherNodeByPin( ax::NodeEditor::PinId id );
-
-		NodeEditorCompilationStatus CheckOutputNodeInput( int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker, Ref<MaterialAsset>& rMaterialAsset );
-
-		NodeEditorCompilationStatus Compile();
-
-	private:
-		Ref<MaterialAsset> m_HostMaterialAsset = nullptr;
-		Ref<Material> m_EditingMaterial = nullptr;
-
-		Ref<NodeEditor> m_NodeEditor = nullptr;
-
-		int m_OutputNodeID = 0;
-	};
+	// Should this really be a namespace?
+	namespace DefaultNodes {
+	
+		extern Ref<Node> SpawnNewGetAssetNode( Ref<NodeEditor>& rNodeEditor );
+		extern Ref<Node> SpawnNewSampler2D( Ref<NodeEditor>& rNodeEditor );
+		extern Ref<Node> SpawnNewColorPickerNode( Ref<NodeEditor>& rNodeEditor );
+	
+	}
 }

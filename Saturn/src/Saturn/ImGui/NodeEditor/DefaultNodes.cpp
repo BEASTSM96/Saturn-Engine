@@ -26,50 +26,66 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "AssetViewer.h"
-#include "Saturn/Asset/MaterialAsset.h"
-#include "NodeEditor/NodeEditorCompilationStatus.h"
-
-namespace ax::NodeEditor {
-	struct NodeId;
-	struct PinId;
-	struct LinkId;
-}
+#include "sppch.h"
+#include "DefaultNodes.h"
 
 namespace Saturn {
 
-	class NodeEditor;
-	class Node;
-
-	class MaterialAssetViewer : public AssetViewer
+	extern Ref<Node> DefaultNodes::SpawnNewGetAssetNode( Ref<NodeEditor>& rNodeEditor )
 	{
-	public:
-		MaterialAssetViewer( AssetID id );
-		~MaterialAssetViewer();
+		PinSpecification pin;
+		pin.Name = "Asset ID";
+		pin.Type = PinType::AssetHandle;
 
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override {}
-		virtual void OnEvent( Event& rEvent ) override {}
+		NodeSpecification node;
+		node.Color = ImColor( 30, 117, 217 );
+		node.Name = "Get Asset";
 
-	private:
-		void AddMaterialAsset();
-		void DrawInternal();
+		node.Outputs.push_back( pin );
 
-		ax::NodeEditor::NodeId FindOtherNodeIDByPin( ax::NodeEditor::PinId id );
-		Ref<Node> FindOtherNodeByPin( ax::NodeEditor::PinId id );
+		return rNodeEditor->AddNode( node );
+	}
 
-		NodeEditorCompilationStatus CheckOutputNodeInput( int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker, Ref<MaterialAsset>& rMaterialAsset );
+	extern Ref<Node> DefaultNodes::SpawnNewSampler2D( Ref<NodeEditor>& rNodeEditor )
+	{
+		PinSpecification pin;
+		pin.Name = "Albedo";
+		pin.Type = PinType::Material_Sampler2D;
 
-		NodeEditorCompilationStatus Compile();
+		NodeSpecification node;
+		node.Color = ImColor( 0, 255, 0 );
+		node.Name = "Sampler2D";
 
-	private:
-		Ref<MaterialAsset> m_HostMaterialAsset = nullptr;
-		Ref<Material> m_EditingMaterial = nullptr;
+		pin.Name = "RGBA";
+		node.Outputs.push_back( pin );
+		pin.Name = "R";
+		node.Outputs.push_back( pin );
+		pin.Name = "G";
+		node.Outputs.push_back( pin );
+		pin.Name = "B";
+		node.Outputs.push_back( pin );
+		pin.Name = "A";
+		node.Outputs.push_back( pin );
 
-		Ref<NodeEditor> m_NodeEditor = nullptr;
+		pin.Name = "Asset";
+		pin.Type = PinType::AssetHandle;
+		node.Inputs.push_back( pin );
 
-		int m_OutputNodeID = 0;
-	};
+		return rNodeEditor->AddNode( node );
+	}
+
+	extern Ref<Node> DefaultNodes::SpawnNewColorPickerNode( Ref<NodeEditor>& rNodeEditor )
+	{
+		PinSpecification pin;
+		pin.Name = "RGBA";
+		pin.Type = PinType::Material_Sampler2D;
+
+		NodeSpecification node;
+		node.Color = ImColor( 252, 186, 3 );
+		node.Name = "Color Picker";
+
+		node.Outputs.push_back( pin );
+
+		return rNodeEditor->AddNode( node );
+	}
 }

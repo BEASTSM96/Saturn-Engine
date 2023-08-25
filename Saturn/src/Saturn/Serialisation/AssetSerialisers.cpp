@@ -100,7 +100,7 @@ namespace Saturn {
 		file << out.c_str();
 	}
 
-	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset, NodeEditor* pNodeEditor ) const
+	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset, const Ref<NodeEditor>& pNodeEditor ) const
 	{
 		auto& basePath = rAsset->GetPath();
 		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
@@ -166,27 +166,27 @@ namespace Saturn {
 			{
 				out << YAML::BeginMap;
 
-				out << YAML::Key << "Node" << YAML::Value << ( size_t ) rNode.ID;
-				out << YAML::Key << "Name" << YAML::Value << rNode.Name;
+				out << YAML::Key << "Node" << YAML::Value << ( size_t ) rNode->ID;
+				out << YAML::Key << "Name" << YAML::Value << rNode->Name;
 
-				ImVec4 colorVec4 = rNode.Color;
+				ImVec4 colorVec4 = rNode->Color;
 
 				out << YAML::Key << "Color" << YAML::Value << glm::vec4( colorVec4.x, colorVec4.y, colorVec4.z, 1.0f );
-				out << YAML::Key << "Size" << YAML::Value << glm::vec2( rNode.Size.x, rNode.Size.y );
+				out << YAML::Key << "Size" << YAML::Value << glm::vec2( rNode->Size.x, rNode->Size.y );
 
 				out << YAML::Key << "Inputs" << YAML::Value;
 				out << YAML::BeginSeq;
-				for ( auto& rInput : rNode.Inputs )
+				for ( auto& rInput : rNode->Inputs )
 				{
 					out << YAML::BeginMap;
 
-					out << YAML::Key << "Input" << YAML::Value << ( size_t )rInput.ID;
-					out << YAML::Key << "Name" << YAML::Value << rInput.Name;
+					out << YAML::Key << "Input" << YAML::Value << ( size_t )rInput->ID;
+					out << YAML::Key << "Name" << YAML::Value << rInput->Name;
 
-					out << YAML::Key << "Node" << YAML::Value << ( size_t )rInput.Node->ID;
+					out << YAML::Key << "Node" << YAML::Value << ( size_t )rInput->Node->ID;
 
-					out << YAML::Key << "Kind" << YAML::Value << ( int )rInput.Kind;
-					out << YAML::Key << "Type" << YAML::Value << PinTypeToString( rInput.Type );
+					out << YAML::Key << "Kind" << YAML::Value << ( int )rInput->Kind;
+					out << YAML::Key << "Type" << YAML::Value << PinTypeToString( rInput->Type );
 
 					out << YAML::EndMap;
 				}
@@ -194,28 +194,28 @@ namespace Saturn {
 
 				out << YAML::Key << "Outputs" << YAML::Value;
 				out << YAML::BeginSeq;
-				for( auto& rOutput : rNode.Outputs )
+				for( auto& rOutput : rNode->Outputs )
 				{
 					out << YAML::BeginMap;
 
-					out << YAML::Key << "Output" << YAML::Value << ( size_t ) rOutput.ID;
-					out << YAML::Key << "Name" << YAML::Value << rOutput.Name;
+					out << YAML::Key << "Output" << YAML::Value << ( size_t ) rOutput->ID;
+					out << YAML::Key << "Name" << YAML::Value << rOutput->Name;
 
-					out << YAML::Key << "Node" << YAML::Value << ( size_t ) rOutput.Node->ID;
+					out << YAML::Key << "Node" << YAML::Value << ( size_t ) rOutput->Node->ID;
 
-					out << YAML::Key << "Kind" << YAML::Value << ( int ) rOutput.Kind;
-					out << YAML::Key << "Type" << YAML::Value << PinTypeToString( rOutput.Type );
+					out << YAML::Key << "Kind" << YAML::Value << ( int ) rOutput->Kind;
+					out << YAML::Key << "Type" << YAML::Value << PinTypeToString( rOutput->Type );
 
 					out << YAML::EndMap;
 				}
 				out << YAML::EndSeq;
 
-				out << YAML::Key << "State" << YAML::Value << rNode.State;
+				out << YAML::Key << "State" << YAML::Value << rNode->State;
 
-				if( rNode.ExtraData.Data && rNode.ExtraData.Size > 0 )
+				if( rNode->ExtraData.Data && rNode->ExtraData.Size > 0 )
 				{
-					out << YAML::Key << "ED" << YAML::Value << (char*)rNode.ExtraData.Data;
-					out << YAML::Key << "ED_Size" << YAML::Value << rNode.ExtraData.Size;
+					out << YAML::Key << "ED" << YAML::Value << (char*)rNode->ExtraData.Data;
+					out << YAML::Key << "ED_Size" << YAML::Value << rNode->ExtraData.Size;
 				}
 
 				out << YAML::EndMap;
@@ -230,11 +230,11 @@ namespace Saturn {
 			{
 				out << YAML::BeginMap;
 
-				out << YAML::Key << "Link" << YAML::Value << ( size_t ) rLink.ID;
-				out << YAML::Key << "Color" << YAML::Value << rLink.Color;
+				out << YAML::Key << "Link" << YAML::Value << ( size_t ) rLink->ID;
+				out << YAML::Key << "Color" << YAML::Value << rLink->Color;
 
-				out << YAML::Key << "Start" << YAML::Value << ( size_t ) rLink.StartPinID;
-				out << YAML::Key << "End" << YAML::Value << ( size_t ) rLink.EndPinID;
+				out << YAML::Key << "Start" << YAML::Value << ( size_t ) rLink->StartPinID;
+				out << YAML::Key << "End" << YAML::Value << ( size_t ) rLink->EndPinID;
 
 				out << YAML::EndMap;
 			}
@@ -338,7 +338,7 @@ namespace Saturn {
 		}
 	}
 
-	void MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, bool LoadNodeEditorData, NodeEditor* pNodeEditor ) const
+	void MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, bool LoadNodeEditorData, Ref<NodeEditor>& pNodeEditor ) const
 	{
 		auto materialAsset = Ref<MaterialAsset>::Create( nullptr );
 
@@ -449,7 +449,7 @@ namespace Saturn {
 
 					glm::vec2 size = node["Size"].as<glm::vec2>();
 
-					Node* pNewNode = new Node( (int)nodeID, name.c_str(), color );
+					Ref<Node> pNewNode = Ref<Node>::Create( (int)nodeID, name, color );
 					pNewNode->State = node[ "State" ].as<std::string>();
 					pNewNode->Size = ImVec2( size.x, size.y );
 
@@ -467,9 +467,9 @@ namespace Saturn {
 						PinKind kind = (PinKind) input[ "Kind" ].as<int>();
 						PinType type = StringToPinType( input[ "Type" ].as<std::string>() );
 
-						Pin pin( pinID, name.c_str(), type, pNewNode->ID );
-						pin.Kind = kind;
-						pin.Node = pNewNode;
+						Ref<Pin> pin = Ref<Pin>::Create( pinID, name, type, pNewNode->ID );
+						pin->Kind = kind;
+						pin->Node = pNewNode;
 
 						pNewNode->Inputs.push_back( pin );
 					}
@@ -488,9 +488,9 @@ namespace Saturn {
 						PinKind kind = ( PinKind ) output[ "Kind" ].as<int>();
 						PinType type = StringToPinType( output[ "Type" ].as<std::string>() );
 
-						Pin pin( pinID, name.c_str(), type, pNewNode->ID );
-						pin.Kind = kind;
-						pin.Node = pNewNode;
+						Ref<Pin> pin = Ref<Pin>::Create( pinID, name, type, pNewNode->ID );
+						pin->Kind = kind;
+						pin->Node = pNewNode;
 
 						pNewNode->Outputs.push_back( pin );
 					}

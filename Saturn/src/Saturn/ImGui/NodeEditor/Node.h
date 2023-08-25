@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Saturn/Core/Memory/Buffer.h"
+
 #include <string>
 #include <vector>
 #include <imgui_node_editor.h>
@@ -118,27 +120,28 @@ namespace Saturn {
 		Comment
 	};
 
-	struct Node;
+	class Node;
 
-	struct Pin
+	class Pin : public RefTarget
 	{
-		ed::PinId	ID;
-		ed::NodeId  NodeID;
-		Node*		Node;
-		std::string Name;
-		PinType     Type;
-		PinKind     Kind;
-
-		Pin( int id, const char* name, PinType type, ed::NodeId nodeID ) :
+	public:
+		Pin( int id, const std::string& name, PinType type, ed::NodeId nodeID ) :
 			ID( id ), Node( nullptr ), Name( name ), Type( type ), Kind( PinKind::Input ), NodeID( nodeID )
 		{
 		}
+	public:
+		ed::PinId	ID;
+		ed::NodeId  NodeID;
+		Ref<Node>	Node;
+		std::string Name;
+		PinType     Type;
+		PinKind     Kind;
 	};
 
 	struct PinSpecification
 	{
 		std::string Name;
-		PinType     Type;
+		PinType     Type = PinType::Object;
 	};
 
 	struct NodeSpecification
@@ -149,12 +152,19 @@ namespace Saturn {
 		ImColor						  Color;
 	};
 
-	struct Node
+	class Node : public RefTarget
 	{
+	public:
+		Node( int id, const std::string& name, ImColor color = ImColor( 255, 255, 255 ) ) :
+			ID( id ), Name( name ), Color( color ), Type( NodeType::Blueprint ), Size( 0, 0 )
+		{
+			ExtraData = Buffer();
+		}
+	public:
 		ed::NodeId ID;
 		std::string Name;
-		std::vector<Pin> Inputs;
-		std::vector<Pin> Outputs;
+		std::vector<Ref<Pin>> Inputs;
+		std::vector<Ref<Pin>> Outputs;
 		ImColor Color;
 		NodeType Type;
 		ImVec2 Size;
@@ -164,26 +174,21 @@ namespace Saturn {
 
 		std::string State;
 		std::string SavedState;
-
-		Node( int id, const char* name, ImColor color = ImColor( 255, 255, 255 ) ) :
-			ID( id ), Name( name ), Color( color ), Type( NodeType::Blueprint ), Size( 0, 0 )
-		{
-			ExtraData = Buffer();
-		}
 	};
 
-	struct Link
+	class Link : public RefTarget
 	{
+	public:
+		Link( ed::LinkId id, ed::PinId startPinId, ed::PinId endPinId ) :
+			ID( id ), StartPinID( startPinId ), EndPinID( endPinId ), Color( 255, 255, 255 )
+		{
+		}
+	public:
 		ed::LinkId ID;
 
 		ed::PinId StartPinID;
 		ed::PinId EndPinID;
 
 		ImColor Color;
-
-		Link( ed::LinkId id, ed::PinId startPinId, ed::PinId endPinId ) :
-			ID( id ), StartPinID( startPinId ), EndPinID( endPinId ), Color( 255, 255, 255 )
-		{
-		}
 	};
 }
