@@ -82,16 +82,37 @@ namespace Saturn {
 		out << YAML::BeginMap;
 
 		out << YAML::Key << "AlbedoColor" << YAML::Value << materialAsset->GetAlbeoColor();
-		out << YAML::Key << "AlbedoPath" << YAML::Value << materialAsset->GetAlbeoMap()->GetPath();
+
+		auto asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+
+		if( asset->ID )
+			out << YAML::Key << "AlbedoTexture" << YAML::Value << asset->ID;
+		else
+			out << YAML::Key << "AlbedoTexture" << YAML::Value << 0;
 
 		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
-		out << YAML::Key << "NormalPath" << YAML::Value << materialAsset->GetNormalMap()->GetPath();
+
+		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		if( asset )
+			out << YAML::Key << "NormalTexture" << YAML::Value << asset->ID;
+		else
+			out << YAML::Key << "NormalTexture" << YAML::Value << 0;
 
 		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
-		out << YAML::Key << "MetalnessPath" << YAML::Value << materialAsset->GetMetallicMap()->GetPath();
+
+		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		if( asset )
+			out << YAML::Key << "MetalnessTexture" << YAML::Value << asset->ID;
+		else
+			out << YAML::Key << "MetalnessTexture" << YAML::Value << 0;
 
 		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
-		out << YAML::Key << "RoughnessPath" << YAML::Value << materialAsset->GetRoughnessMap()->GetPath();
+
+		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		if( asset )
+			out << YAML::Key << "RoughnessTexture" << YAML::Value << asset->ID;
+		else
+			out << YAML::Key << "RoughnessTexture" << YAML::Value << 0;
 
 		out << YAML::EndMap;
 		out << YAML::EndMap;
@@ -115,37 +136,38 @@ namespace Saturn {
 
 		out << YAML::BeginMap;
 
-		// I really hate this.
+		// TODO: I really hate this.
 
 		out << YAML::Key << "AlbedoColor" << YAML::Value << materialAsset->GetAlbeoColor();
 
-		auto& assetID = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() )->ID;
-		if( assetID != 0 )
-			out << YAML::Key << "AlbedoTexture" << YAML::Value << assetID;
+		auto asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+
+		if( asset )
+			out << YAML::Key << "AlbedoTexture" << YAML::Value << asset->ID;
 		else
 			out << YAML::Key << "AlbedoTexture" << YAML::Value << 0;
 
 		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
 
-		assetID = AssetManager::Get().FindAsset( materialAsset->GetNormalMap()->GetPath() )->ID;
-		if( assetID != 0 )
-			out << YAML::Key << "NormalTexture" << YAML::Value << assetID;
+		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		if( asset )
+			out << YAML::Key << "NormalTexture" << YAML::Value << asset->ID;
 		else
 			out << YAML::Key << "NormalTexture" << YAML::Value << 0;
 
 		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
 
-		assetID = AssetManager::Get().FindAsset( materialAsset->GetMetallicMap()->GetPath() )->ID;
-		if( assetID != 0 )
-			out << YAML::Key << "MetalnessTexture" << YAML::Value << assetID;
+		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		if( asset )
+			out << YAML::Key << "MetalnessTexture" << YAML::Value << asset->ID;
 		else
 			out << YAML::Key << "MetalnessTexture" << YAML::Value << 0;
 
 		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
 
-		assetID = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() )->ID;
-		if( assetID != 0 )
-			out << YAML::Key << "RoughnessTexture" << YAML::Value << assetID;
+		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		if( asset )
+			out << YAML::Key << "RoughnessTexture" << YAML::Value << asset->ID;
 		else
 			out << YAML::Key << "RoughnessTexture" << YAML::Value << 0;
 
