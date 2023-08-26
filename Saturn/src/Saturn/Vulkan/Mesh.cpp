@@ -149,6 +149,10 @@ namespace Saturn {
 			submesh.VertexCount = mesh->mNumVertices;
 			submesh.IndexCount = mesh->mNumFaces * 3;
 			submesh.MeshName = mesh->mName.C_Str();
+			
+			auto& rAABB = submesh.BoundingBox;
+			rAABB.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
+			rAABB.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 
 			m_VertexCount += mesh->mNumVertices;
 			m_IndicesCount += submesh.IndexCount;
@@ -162,6 +166,14 @@ namespace Saturn {
 				StaticVertex vertex;
 				vertex.Position = { mesh->mVertices[ i ].x, mesh->mVertices[ i ].y, mesh->mVertices[ i ].z };
 				vertex.Normal = { mesh->mNormals[ i ].x, mesh->mNormals[ i ].y, mesh->mNormals[ i ].z };
+
+				rAABB.Min.x = glm::min( vertex.Position.x, rAABB.Min.x );
+				rAABB.Min.y = glm::min( vertex.Position.y, rAABB.Min.y );
+				rAABB.Min.z = glm::min( vertex.Position.z, rAABB.Min.z );
+
+				rAABB.Max.x = glm::max( vertex.Position.x, rAABB.Max.x );
+				rAABB.Max.y = glm::max( vertex.Position.y, rAABB.Max.y );
+				rAABB.Max.z = glm::max( vertex.Position.z, rAABB.Max.z );
 
 				if( mesh->HasTangentsAndBitangents() )
 				{

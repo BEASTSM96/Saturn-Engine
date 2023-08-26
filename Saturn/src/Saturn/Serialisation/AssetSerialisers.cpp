@@ -564,7 +564,7 @@ namespace Saturn {
 		auto materialData = data[ "Material" ];
 
 		auto albedoColor = materialData[ "AlbedoColor" ].as<glm::vec3>();
-		auto albedoID = materialData[ "AlbedoPath" ].as<uint64_t>();
+		auto albedoID = materialData[ "AlbedoPath" ].as<uint64_t>(0);
 
 		materialAsset->SetAlbeoColor( albedoColor );
 
@@ -584,7 +584,7 @@ namespace Saturn {
 		}
 
 		auto useNormal = materialData[ "UseNormal" ].as<float>();
-		auto normalID = materialData[ "NormalPath" ].as<uint64_t>();
+		auto normalID = materialData[ "NormalPath" ].as<uint64_t>(0);
 
 		materialAsset->UseNormalMap( useNormal );
 
@@ -601,7 +601,7 @@ namespace Saturn {
 		}
 
 		auto metalness = materialData[ "Metalness" ].as<float>();
-		auto metallicID = materialData[ "MetalnessPath" ].as<uint64_t>();
+		auto metallicID = materialData[ "MetalnessPath" ].as<uint64_t>(0);
 
 		materialAsset->SetMetalness( metalness );
 
@@ -618,7 +618,7 @@ namespace Saturn {
 		}
 
 		auto val = materialData[ "Roughness" ].as<float>();
-		auto roughnessID = materialData[ "RoughnessPath" ].as<uint64_t>();
+		auto roughnessID = materialData[ "RoughnessPath" ].as<uint64_t>(0);
 
 		materialAsset->SetRoughness( val );
 
