@@ -123,6 +123,9 @@ namespace Saturn {
 		node.Inputs.push_back( pin );
 		pin.Name = "Roughness";
 		node.Inputs.push_back( pin );
+		pin.Name = "Emission";
+		pin.Type = PinType::Float;
+		node.Inputs.push_back( pin );
 
 		const Ref<Node>& OutputNode = m_NodeEditor->AddNode( node );
 
@@ -268,7 +271,7 @@ namespace Saturn {
 
 				if( m_NodeEditor->IsPinLinked( pOtherNode->Inputs[ 0 ]->ID ) )
 					id = FindOtherNodeIDByPin( pOtherNode->Inputs[ 0 ]->ID );
-				else 
+				else
 				{
 					return m_NodeEditor->ThrowError( "A texture sampler requires an asset to be linked!" );
 				}
@@ -366,6 +369,11 @@ namespace Saturn {
 		// Then, Roughness
 		if( CheckOutputNodeInput( ( size_t ) OutputNode->Inputs[ 3 ]->ID, false, "", 3, false, m_HostMaterialAsset ) == NodeEditorCompilationStatus::Failed )
 			return NodeEditorCompilationStatus::Failed;
+
+		// Then, Emissive
+		auto emissive = OutputNode->Inputs[ 4 ]->ExtraData.Read<float>( 4 );
+		if( emissive > 0.0f )
+			m_HostMaterialAsset->SetEmissive( emissive );
 
 		m_HostMaterialAsset->ApplyChanges();
 

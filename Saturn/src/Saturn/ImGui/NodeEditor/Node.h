@@ -128,6 +128,7 @@ namespace Saturn {
 		Pin( int id, const std::string& name, PinType type, ed::NodeId nodeID ) :
 			ID( id ), Node( nullptr ), Name( name ), Type( type ), Kind( PinKind::Input ), NodeID( nodeID )
 		{
+			ExtraData = Buffer();
 		}
 	public:
 		ed::PinId	ID;
@@ -136,6 +137,7 @@ namespace Saturn {
 		std::string Name;
 		PinType     Type;
 		PinKind     Kind;
+		Buffer      ExtraData;
 	};
 
 	struct PinSpecification

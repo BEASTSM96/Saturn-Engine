@@ -207,6 +207,10 @@ namespace Saturn {
 		{
 			Ref<Pin> pin = Ref<Pin>::Create( GetNextID(), rInput.Name.c_str(), rInput.Type, node->ID );
 			node->Inputs.push_back( pin );
+
+			// This should be more than enough data for one pin, holds 16 floats.
+			pin->ExtraData.Allocate( 64 );
+			pin->ExtraData.Zero_Memory();
 		}
 
 		BuildNode( node );
@@ -478,6 +482,7 @@ namespace Saturn {
 				builder.EndHeader();
 			}
 
+			uint32_t pinIndex = 0;
 			for( auto& input : node->Inputs )
 			{
 				auto alpha = ImGui::GetStyle().Alpha;
@@ -502,9 +507,28 @@ namespace Saturn {
 					ImGui::Spring( 0 );
 				}
 
+				if( input->Type == PinType::Float )
+				{
+					float value = input->ExtraData.Read<float>( pinIndex );
+
+					ImGui::SetNextItemWidth( 25.0f );
+
+					ImGui::PushID( input->ID.Get() );
+					
+					if( ImGui::DragFloat( "##floatinput", &value ) )
+					{
+						input->ExtraData.Write( &value, sizeof( float ), pinIndex );
+					}
+
+					ImGui::PopID();
+
+					ImGui::Spring( 0 );
+				}
+
 				ImGui::PopStyleVar();
 
 				builder.EndInput();
+				pinIndex++;
 			}
 
 			if( isSimple )

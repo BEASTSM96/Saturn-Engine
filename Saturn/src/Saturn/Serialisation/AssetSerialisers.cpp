@@ -65,6 +65,8 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL
 
+	// I really hate that there is 2 functions that saves the material and there is 3 functions that loads
+
 	// Serialise without node editor info
 	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
 	{
@@ -113,6 +115,8 @@ namespace Saturn {
 			out << YAML::Key << "RoughnessTexture" << YAML::Value << asset->ID;
 		else
 			out << YAML::Key << "RoughnessTexture" << YAML::Value << 0;
+
+		out << YAML::Key << "Emissive" << YAML::Value << materialAsset->GetEmissive();
 
 		out << YAML::EndMap;
 		out << YAML::EndMap;
@@ -171,6 +175,8 @@ namespace Saturn {
 		else
 			out << YAML::Key << "RoughnessTexture" << YAML::Value << 0;
 
+		out << YAML::Key << "Emissive" << YAML::Value << materialAsset->GetEmissive();
+
 		out << YAML::EndMap;
 
 		if( pNodeEditor )
@@ -209,6 +215,12 @@ namespace Saturn {
 
 					out << YAML::Key << "Kind" << YAML::Value << ( int )rInput->Kind;
 					out << YAML::Key << "Type" << YAML::Value << PinTypeToString( rInput->Type );
+
+					if( rInput->ExtraData.Data && rInput->ExtraData.Size > 0 )
+					{
+						out << YAML::Key << "ED" << YAML::Value << ( uint8_t ) rInput->ExtraData.Data;
+						out << YAML::Key << "ED_Size" << YAML::Value << rInput->ExtraData.Size;
+					}
 
 					out << YAML::EndMap;
 				}
@@ -309,7 +321,7 @@ namespace Saturn {
 		}
 
 		auto useNormal = materialData[ "UseNormal" ].as<float>();
-		auto normalID = materialData[ "NormalPath" ].as<uint64_t>();
+		auto normalID = materialData[ "NormalPath" ].as<uint64_t>(0);
 
 		materialAsset->UseNormalMap( useNormal );
 		
@@ -326,7 +338,7 @@ namespace Saturn {
 		}
 
 		auto metalness = materialData[ "Metalness" ].as<float>();
-		auto metallicID = materialData[ "MetalnessPath" ].as<uint64_t>();
+		auto metallicID = materialData[ "MetalnessPath" ].as<uint64_t>(0);
 
 		materialAsset->SetMetalness( metalness );
 
@@ -343,7 +355,7 @@ namespace Saturn {
 		}
 
 		auto val = materialData[ "Roughness" ].as<float>();
-		auto roughnessID = materialData[ "RoughnessPath" ].as<uint64_t>();
+		auto roughnessID = materialData[ "RoughnessPath" ].as<uint64_t>(0);
 		
 		materialAsset->SetRoughness( val );
 	
@@ -358,6 +370,9 @@ namespace Saturn {
 		{
 			materialAsset->SetRoughnessMap( defaultTexture );
 		}
+
+		auto emissive = materialData[ "Emissive" ].as<float>( 0.0f );
+		materialAsset->SetEmissive( emissive );
 	}
 
 	void MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, bool LoadNodeEditorData, Ref<NodeEditor>& pNodeEditor ) const
@@ -448,6 +463,9 @@ namespace Saturn {
 			materialAsset->SetRoughnessMap( defaultTexture );
 		}
 
+		auto emissive = materialData[ "Emissive" ].as<float>( 0.0f );
+		materialAsset->SetEmissive( emissive );
+
 		if( LoadNodeEditorData )
 		{
 			// Node Editor data
@@ -492,6 +510,15 @@ namespace Saturn {
 						Ref<Pin> pin = Ref<Pin>::Create( pinID, name, type, pNewNode->ID );
 						pin->Kind = kind;
 						pin->Node = pNewNode;
+
+						auto size = input[ "ED_Size" ].as<uint32_t>( 0 );
+	
+						if( size > 0 )
+						{
+							auto data = input[ "ED" ].as<char>();
+
+							pin->ExtraData = Buffer::Copy( &data, size );
+						}
 
 						pNewNode->Inputs.push_back( pin );
 					}
@@ -633,6 +660,9 @@ namespace Saturn {
 		{
 			materialAsset->SetRoughnessMap( defaultTexture );
 		}
+
+		auto emissive = materialData[ "Emissive" ].as<float>( 0.0f );
+		materialAsset->SetEmissive( emissive );
 
 		// We may not always need to do this because most of the time this material will be bound meaning will change the textures.
 		// However, we don't always know if it will ever be bound, for instance if we open a material in the material asset viewer, the material will not bound.
