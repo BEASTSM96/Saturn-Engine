@@ -78,6 +78,8 @@ namespace Saturn {
 
 		void OnFilewatchEvent( const std::string& rPath, const filewatch::Event Event );
 		void FindAndRenameItem( const std::filesystem::path& rPath );
+		Ref<ContentBrowserItem> FindItem( const std::filesystem::path& rPath );
+
 		Ref<ContentBrowserItem> GetActiveHoveredItem();
 
 		uint32_t GetFilenameCount( const std::string& rName );
@@ -95,6 +97,10 @@ namespace Saturn {
 
 		std::filesystem::path m_EditorContent;
 		std::filesystem::path m_EditorScripts;
+
+		std::string m_SearchText = "";
+		ImGuiTextFilter m_TextFilter;
+		bool m_Searching = false;
 
 		Ref< Texture2D > m_DirectoryIcon;
 		Ref< Texture2D > m_FileIcon;
@@ -120,6 +126,7 @@ namespace Saturn {
 
 		// Files and folder, sorted by folders then files.
 		std::vector<Ref<ContentBrowserItem>> m_Files;
+		std::vector<Ref<ContentBrowserItem>> m_VaildSearchFiles;
 
 		bool m_FilesNeedSorting = false;
 		bool m_RenderCreateWindow = false;

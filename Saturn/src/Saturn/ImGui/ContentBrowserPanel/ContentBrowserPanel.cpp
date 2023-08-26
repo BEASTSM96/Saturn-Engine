@@ -466,6 +466,19 @@ namespace Saturn {
 		}
 	}
 
+	Ref<ContentBrowserItem> ContentBrowserPanel::FindItem( const std::filesystem::path& rPath )
+	{
+		for( auto&& rrItem : m_Files )
+		{
+			if( rrItem->Path() == rPath )
+			{
+				return rrItem;
+			}
+		}
+
+		return nullptr;
+	}
+
 	Ref<ContentBrowserItem> ContentBrowserPanel::GetActiveHoveredItem()
 	{
 		for( auto&& rrItem : m_Files )
@@ -610,7 +623,7 @@ namespace Saturn {
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 		ImGui::BeginChild( "Top Bar", ImVec2( 0, 30 ), false, flags );
-		
+
 		// Back button.
 		if( m_CurrentPath != s_pAssetsDirectory )
 		{
@@ -693,7 +706,7 @@ namespace Saturn {
 			float size = strlen( filename.c_str() ) + ImGui::CalcTextSize( filename.c_str() ).x;
 
 			ImGui::Selectable( filename.c_str(), false, 0, ImVec2( size, 22.0f ) );
-			
+
 			ImGui::SameLine();
 		}
 
@@ -722,8 +735,15 @@ namespace Saturn {
 		ImGui::EndChild();
 
 		ImGui::SameLine();
-		
+
 		ImGui::BeginChild( "Folder Contents", ImVec2( 0, 0 ), false );
+
+		// Search
+		ImGui::SetNextItemWidth( 436.0f );
+		if( m_TextFilter.Draw( "##search", "Search For Content" ) )
+		{
+			m_Searching = m_TextFilter.IsActive();
+		}
 
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 
@@ -777,39 +797,51 @@ namespace Saturn {
 
 		ImGui::Columns( columnCount, 0, false );
 
-		for( auto& item : m_Files ) 
+		if( !m_Searching )
 		{
-			Ref<Texture2D> Icon = item->IsDirectory() ? m_DirectoryIcon : m_FileIcon;
-
-			item->Draw( { thumbnailSizeX, thumbnailSizeY }, padding, Icon );
-
-			// This happens if we rename a file as we then have to create the file cache again.
-			if( !item )
-				break;
-
-			// Is the item in the selection list if so and we are no longer selected then we need to remove it.
-			if( std::find( m_SelectedItems.begin(), m_SelectedItems.end(), item ) != m_SelectedItems.end() )
+			for( auto& item : m_Files )
 			{
-				if( !item->IsSelected() )
-				{
-					item->Deselect();
+				Ref<Texture2D> Icon = item->IsDirectory() ? m_DirectoryIcon : m_FileIcon;
 
-					m_SelectedItems.erase( std::remove( m_SelectedItems.begin(), m_SelectedItems.end(), item ), m_SelectedItems.end() );
-				}
-			}
-			else
-			{
-				if( item->IsSelected() )
-				{
-					m_SelectedItems.push_back( item );
+				item->Draw( { thumbnailSizeX, thumbnailSizeY }, padding, Icon );
 
-					// We are selected but if we are not multi selected, we need to deselect the other one.
-					if( !item->MultiSelected() && item != m_SelectedItems[ 0 ] )
+				// This happens if we rename a file as we then have to create the file cache again.
+				if( !item )
+					break;
+
+				// Is the item in the selection list if so and we are no longer selected then we need to remove it.
+				if( std::find( m_SelectedItems.begin(), m_SelectedItems.end(), item ) != m_SelectedItems.end() )
+				{
+					if( !item->IsSelected() )
 					{
-						m_SelectedItems[ 0 ]->Deselect();
+						item->Deselect();
 
 						m_SelectedItems.erase( std::remove( m_SelectedItems.begin(), m_SelectedItems.end(), item ), m_SelectedItems.end() );
 					}
+				}
+				else
+				{
+					if( item->IsSelected() )
+					{
+						m_SelectedItems.push_back( item );
+
+						// We are selected but if we are not multi selected, we need to deselect the other one.
+						if( !item->MultiSelected() && item != m_SelectedItems[ 0 ] )
+						{
+							m_SelectedItems[ 0 ]->Deselect();
+
+							m_SelectedItems.erase( std::remove( m_SelectedItems.begin(), m_SelectedItems.end(), item ), m_SelectedItems.end() );
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			for( const auto& entry : std::filesystem::recursive_directory_iterator( s_pAssetsDirectory ) )
+			{
+				if( m_TextFilter.PassFilter( entry.path().filename().string().c_str() ) )
+				{
 				}
 			}
 		}
