@@ -43,6 +43,8 @@ namespace Saturn {
 		Ref<Asset> FindAsset( AssetID id, AssetRegistryType Dst );
 		Ref<Asset> FindAsset( AssetID id );
 
+		Ref<Asset> TryFindAsset( AssetID id );
+
 		AssetID CreateAsset( AssetType type, AssetRegistryType Dst = AssetRegistryType::Game );
 
 		// Note:

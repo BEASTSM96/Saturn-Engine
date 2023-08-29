@@ -1744,6 +1744,8 @@ namespace Saturn {
 
 	void SceneRenderer::InitBuffers()
 	{
+		SAT_PF_EVENT();
+
 		// Create our buffers for instance data.
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 

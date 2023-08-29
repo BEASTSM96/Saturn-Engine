@@ -24,7 +24,7 @@ IncludeDir["vma"] = "Saturn/vendor/vma/src/"
 IncludeDir["ImGuizmo"] = "Saturn/vendor/ImGuizmo/src/"
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include/"
 IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
-IncludeDir["Optick"] = "Saturn/vendor/optick/src"
+IncludeDir["Tracy"] = "Saturn/vendor/tracy/src"
 IncludeDir["Filewatch"] = "Saturn/vendor/Filewatch/src"
 IncludeDir["MiniAudio"] = "Saturn/vendor/miniaudio/src"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
@@ -35,7 +35,7 @@ group "Dependencies"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
-	include "Saturn/vendor/optick"
+	include "Saturn/vendor/tracy"
 
 group "Engine"
 project "Saturn"
@@ -75,7 +75,8 @@ project "Saturn"
 		"AL_LIBTYPE_STATIC",
 		"GLM_ENABLE_EXPERIMENTAL",
 		"SATURN_SS_IMPORT",
-		"GLFW_DLL"
+		"GLFW_DLL",
+		"TRACY_ENABLE"
 		--"GLM_FORCE_QUAT_DATA_XYZW"
 		--"GLM_FORCE_LEFT_HANDED"
 	}
@@ -98,7 +99,7 @@ project "Saturn"
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.ImguiNodeEditor}",
-		"%{IncludeDir.Optick}",
+		"%{IncludeDir.Tracy}",
 		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.Filewatch}",
 		"%{IncludeDir.PhysX}",
@@ -114,7 +115,7 @@ project "Saturn"
 		"ImGui",
 		"SPIRV-Cross",
 		"yaml-cpp",
-		"optick",
+		"Tracy",
 
 		"SingletonStorage"
 	}
@@ -154,7 +155,6 @@ project "Saturn"
 		links 
 		{
 			"dwmapi",
-			"opengl32.lib",
 			"Saturn/vendor/vulkan/bin/vulkan-1.lib"
 		}
 
@@ -279,6 +279,7 @@ project "Saturn-Editor"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Filewatch}",
 		"%{IncludeDir.MiniAudio}",
+		"%{IncludeDir.Tracy}",
 
 		"%{IncludeDir.SingletonStorage}"
 	}

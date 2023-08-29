@@ -318,6 +318,8 @@ namespace Saturn {
 
 	Entity Scene::FindEntityByTag( const std::string& tag )
 	{
+		SAT_PF_EVENT();
+
 		auto view = m_Registry.view<TagComponent>();
 		for( auto entity : view )
 		{
@@ -331,6 +333,8 @@ namespace Saturn {
 
 	Entity Scene::FindEntityByID( const UUID& id )
 	{
+		SAT_PF_EVENT();
+
 		auto view = m_Registry.view<IdComponent>();
 		for( auto entity : view )
 		{
@@ -344,6 +348,8 @@ namespace Saturn {
 
 	glm::mat4 Scene::GetTransformRelativeToParent( Entity entity )
 	{
+		SAT_PF_EVENT();
+
 		glm::mat4 transform( 1.0f );
 
 		Entity parent = FindEntityByID( entity.GetParent() );
@@ -355,6 +361,8 @@ namespace Saturn {
 
 	TransformComponent Scene::GetWorldSpaceTransform( Entity entity )
 	{
+		SAT_PF_EVENT();
+
 		TransformComponent tc;
 
 		glm::mat4 worldSpace = GetTransformRelativeToParent( entity );

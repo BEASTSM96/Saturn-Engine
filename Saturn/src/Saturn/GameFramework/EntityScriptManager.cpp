@@ -102,7 +102,7 @@ namespace Saturn {
 
 		GameThread::Get().Submit( [&]() 
 			{
-				SAT_PF_EVENT("Saturn::EntityScriptManager::BeginPlay - Submit");
+				SAT_PF_EVENT_N("Saturn::EntityScriptManager::BeginPlay - Submit");
 
 				for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
 					script->BeginPlay();
@@ -115,7 +115,7 @@ namespace Saturn {
 
 		GameThread::Get().Submit( [&]()
 			{
-				SAT_PF_EVENT("Saturn::EntityScriptManager::UpdateAllScripts - Submit");
+				SAT_PF_EVENT_N("Saturn::EntityScriptManager::UpdateAllScripts - Submit");
 
 				for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
 					script->OnUpdate( ts );
@@ -128,7 +128,7 @@ namespace Saturn {
 
 		GameThread::Get().Submit( [&]()
 			{
-				SAT_PF_EVENT( "Saturn::EntityScriptManager::OnPhysicsUpdate - Submit" );
+				SAT_PF_EVENT_N( "Saturn::EntityScriptManager::OnPhysicsUpdate - Submit" );
 
 				for( auto&& [name, script] : m_Scripts[ m_CurrentScene->GetId() ] )
 					script->OnPhysicsUpdate( ts );

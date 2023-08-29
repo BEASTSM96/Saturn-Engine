@@ -48,6 +48,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <tracy/Tracy.hpp>
+
 #if defined( SAT_WINDOWS )
 #include <ShObjIdl.h>
 #endif
@@ -55,14 +57,10 @@
 #define APP_BIND_EVENT_FN(_) std::bind(&Application::_, this, std::placeholders::_1)
 
 namespace Saturn {
-	
-	bool OnOptickStateChanged( Optick::State::Type state );
 
 	Application::Application( const ApplicationSpecification& spec )
 		: m_Specification( spec )
 	{
-		OPTICK_SET_STATE_CHANGED_CALLBACK( OnOptickStateChanged );
-
 		SingletonStorage::Get().AddSingleton( this );
 
 		// This may not be the best way... but its better than lazy loading.
@@ -155,8 +153,6 @@ namespace Saturn {
 		} );
 
 		AudioSystem::Get().Terminate();
-
-		OPTICK_SHUTDOWN();
 	}
 
 	void Application::Close()
@@ -391,33 +387,4 @@ namespace Saturn {
 
 		return "";
 	}
-
-	bool OnOptickStateChanged( Optick::State::Type state )
-	{
-		switch( state )
-		{
-			case Optick::State::DUMP_CAPTURE: 
-			{
-				Optick::AttachSummary( "Version", "0.0.1" );
-				Optick::AttachSummary( "Build", __DATE__ " " __TIME__ );
-
-				for( const auto& devices : VulkanContext::Get().GetPhysicalDeviceProperties() )
-				{
-					Optick::AttachSummary( "Device Name", devices.DeviceProps.deviceName );
-					Optick::AttachSummary( "Vulkan Version", "1.2.128" );
-				}
-
-				Optick::AttachSummary( "Configuration", Application::Get().GetConfigName() );
-			} break;
-
-			case Optick::State::START_CAPTURE:
-			case Optick::State::STOP_CAPTURE:
-			case Optick::State::CANCEL_CAPTURE:
-			default:
-				break;
-		}
-
-		return true;
-	}
-
 }

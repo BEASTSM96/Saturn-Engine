@@ -56,13 +56,13 @@ namespace Saturn {
 			case physx::PxErrorCode::eINVALID_PARAMETER: 
 			{
 				SAT_CORE_WARN( "PhysX: {0} {1} {2}", pMessage, pFile, Line );
-				SAT_CORE_WARN( "PhysX: Invaild paramater!" );
+				SAT_CORE_WARN( "PhysX: Invalid paramater!" );
 			} break;
 
 			case physx::PxErrorCode::eINVALID_OPERATION: 
 			{
 				SAT_CORE_WARN( "PhysX: {0} {1} {2}", pMessage, pFile, Line );
-				SAT_CORE_WARN( "PhysX: Invaild operation!" );
+				SAT_CORE_WARN( "PhysX: Invalid operation!" );
 			}	break;
 
 			case physx::PxErrorCode::eOUT_OF_MEMORY:

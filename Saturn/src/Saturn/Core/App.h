@@ -37,8 +37,6 @@
 
 #include "SingletonStorage.h"
 
-#include <optick/optick.h>
-
 #include <vector>
 #include <functional>
 

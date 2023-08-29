@@ -134,6 +134,22 @@ namespace Saturn {
 		return nullptr;
 	}
 
+	Ref<Asset> AssetManager::TryFindAsset( AssetID id )
+	{
+		Ref<Asset> result = nullptr;
+
+		if( m_Assets->DoesIDExists( id ) )
+			result = m_Assets->FindAsset( id );
+
+		if( !result )
+		{
+			if( m_EditorAssets->DoesIDExists( id ) )
+				result = m_EditorAssets->FindAsset( id );
+		}
+
+		return result;
+	}
+
 	AssetID AssetManager::CreateAsset( AssetType type, AssetRegistryType Dst /*= AssetRegistryType::Game */ )
 	{
 		// TODO: Check if multiple asset ids?

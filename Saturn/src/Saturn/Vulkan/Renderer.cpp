@@ -53,6 +53,8 @@ namespace Saturn {
 
 	void Renderer::Init()
 	{
+		SAT_PF_EVENT();
+
 		// Create Sync objects.
 		VkSemaphoreCreateInfo SemaphoreCreateInfo = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
 		VkFenceCreateInfo     FenceCreateInfo     = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
@@ -221,6 +223,8 @@ namespace Saturn {
 	
 	const std::vector<VkWriteDescriptorSet>& Renderer::GetStorageBufferWriteDescriptors( Ref<StorageBufferSet>& rStorageBufferSet, Ref<MaterialAsset>& rMaterialAsset )
 	{
+		SAT_PF_EVENT();
+
 		Ref<Shader> shader = rMaterialAsset->GetMaterial()->GetShader();
 		std::string shaderName = shader->GetName();
 		
@@ -302,6 +306,8 @@ namespace Saturn {
 
 	void Renderer::SetSceneEnvironment( Ref<Image2D> ShadowMap, Ref<EnvironmentMap> Environment, Ref<Texture2D> BDRF )
 	{
+		SAT_PF_EVENT();
+
 		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
 
 		m_RendererDescriptorSets[ m_FrameCount ] = shader->AllocateDescriptorSet( 1, true );
@@ -323,6 +329,8 @@ namespace Saturn {
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )
 	{
+		SAT_PF_EVENT();
+
 		VkCommandBufferAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 		AllocateInfo.commandPool = VulkanContext::Get().GetCommandPool();
 		AllocateInfo.commandBufferCount = 1;
@@ -341,6 +349,8 @@ namespace Saturn {
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandBufferLevel CmdLevel )
 	{
+		SAT_PF_EVENT();
+
 		VkCommandBufferAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 		AllocateInfo.commandPool = VulkanContext::Get().GetCommandPool();
 		AllocateInfo.commandBufferCount = 1;
@@ -424,7 +434,7 @@ namespace Saturn {
 		
 		m_QueuePresentTimer.Reset();
 
-		SAT_PF_EVENT("Queue Present");
+		//SAT_PF_EVENT_N("Queue Present");
 
 		VkResult Result = vkQueuePresentKHR( VulkanContext::Get().GetGraphicsQueue(), &PresentInfo );
 

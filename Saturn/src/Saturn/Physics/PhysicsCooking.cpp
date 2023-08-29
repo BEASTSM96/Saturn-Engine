@@ -188,13 +188,13 @@ namespace Saturn {
 
 		if( strcmp( hd.pHeader, "SMC\0" ) )
 		{
-			SAT_CORE_ASSERT( false, "Invaild file header!" );
+			SAT_CORE_ASSERT( false, "Invalid file header!" );
 			return false;
 		}
 
 		if( hd.Type <= ShapeType::Capusle )
 		{
-			SAT_CORE_ASSERT( false, "Invaild mesh collider type! Must be TriangleMesh or ConvexMesh." );
+			SAT_CORE_ASSERT( false, "Invalid mesh collider type! Must be TriangleMesh or ConvexMesh." );
 			return false;
 		}
 

@@ -33,12 +33,13 @@
 #endif
 
 #if defined (SAT_PROFILER_ENABLE)
-#include <optick/optick.h>
+#include <tracy/Tracy.hpp>
 
-#define SAT_PF_EVENT(...)    OPTICK_EVENT(__VA_ARGS__)
-#define SAT_PF_FRAME(...)    OPTICK_FRAME(__VA_ARGS__)
-#define SAT_PF_SCOPE(x, ...) OPTICK_EVENT_DYNAMIC(x, __VA_ARGS__)
-#define SAT_PF_THRD(...)     OPTICK_THREAD(__VA_ARGS__)
+#define SAT_PF_EVENT()       ZoneScoped
+#define SAT_PF_EVENT_N(x)    ZoneScopedN(x)
+#define SAT_PF_FRAME(x)		 FrameMarkNamed(x)
+#define SAT_PF_SCOPE(x, ...) //OPTICK_EVENT_DYNAMIC(x, __VA_ARGS__)
+#define SAT_PF_THRD(...)     //OPTICK_THREAD(__VA_ARGS__)
 #else 
 #define SAT_PF_EVENT(...)
 #define SAT_PF_FRAME(...)
