@@ -8,14 +8,11 @@ Assets:
   - Asset: 17908649699051951993
     Path: content\env\birchwood_4k.hdr
     Type: Texture
-  - Asset: 590808408098830162
-    Path: content\textures\debug\DebugCubeMap.tga
-    Type: Texture
   - Asset: 2888772411856353559
     Path: content\meshes\defualt\Capsule.stmesh
     Type: StaticMesh
-  - Asset: 9842969786154141980
-    Path: content\Icons\SaturnSmallIcon.ico
+  - Asset: 590808408098830162
+    Path: content\textures\debug\DebugCubeMap.tga
     Type: Texture
   - Asset: 2571163654818216103
     Path: content\meshes\sponza\6151467286084645207.jpg
@@ -23,38 +20,35 @@ Assets:
   - Asset: 14287944712694364256
     Path: content\env\pink_sunrise_4k.hdr
     Type: Texture
-  - Asset: 16076679114628148200
-    Path: content\meshes\sponza\6047387724914829168.jpg
+  - Asset: 9842969786154141980
+    Path: content\Icons\SaturnSmallIcon.ico
     Type: Texture
   - Asset: 4557625200782681215
     Path: content\Icons\SaturnLogov1.png
     Type: Texture
-  - Asset: 13681724469409977553
-    Path: content\meshes\sponza\4477655471536070370.jpg
-    Type: Texture
-  - Asset: 12700460017041352469
-    Path: content\meshes\sponza\3628158980083700836.jpg
+  - Asset: 16076679114628148200
+    Path: content\meshes\sponza\6047387724914829168.jpg
     Type: Texture
   - Asset: 14002559872653904160
     Path: content\meshes\defualt\Cube.stmesh
     Type: StaticMesh
-  - Asset: 6372121668662242142
-    Path: content\meshes\sponza\5823059166183034438.jpg
+  - Asset: 12700460017041352469
+    Path: content\meshes\sponza\3628158980083700836.jpg
     Type: Texture
+  - Asset: 13681724469409977553
+    Path: content\meshes\sponza\4477655471536070370.jpg
+    Type: Texture
+  - Asset: 9138936844795376085
+    Path: content\materials\DefaultMaterial.smaterial
+    Type: Material
   - Asset: 6535496001631802109
     Path: content\meshes\wooden.stmesh
     Type: StaticMesh
   - Asset: 17139911144081084270
     Path: content\meshes\sponza\2411100444841994089.jpg
     Type: Texture
-  - Asset: 9138936844795376085
-    Path: content\materials\DefaultMaterial.smaterial
-    Type: Material
-  - Asset: 2892597608884658038
-    Path: content\meshes\_Textures\m1911_metalness.png
-    Type: Texture
-  - Asset: 11035351525748658632
-    Path: content\meshes\sponza\15722799267630235092.jpg
+  - Asset: 6372121668662242142
+    Path: content\meshes\sponza\5823059166183034438.jpg
     Type: Texture
   - Asset: 2468661674939906139
     Path: content\meshes\_Textures\m1911_roughness.png
@@ -62,6 +56,12 @@ Assets:
   - Asset: 13151293699070629621
     Path: content\materials\DefaultMaterial.sphymaterial
     Type: PhysicsMaterial
+  - Asset: 2892597608884658038
+    Path: content\meshes\_Textures\m1911_metalness.png
+    Type: Texture
+  - Asset: 11035351525748658632
+    Path: content\meshes\sponza\15722799267630235092.jpg
+    Type: Texture
   - Asset: 15902342438625162849
     Path: content\meshes\defualt\Plane.stmesh
     Type: StaticMesh
@@ -83,14 +83,14 @@ Assets:
   - Asset: 1146587401220310759
     Path: content\meshes\sponza\11490520546946913238.jpg
     Type: Texture
-  - Asset: 17789948815809360246
-    Path: content\meshes\sponza\4871783166746854860.jpg
+  - Asset: 8245207943487542112
+    Path: content\meshes\sponza\11968150294050148237.jpg
     Type: Texture
   - Asset: 13781972069128532695
     Path: content\meshes\sponza\2299742237651021498.jpg
     Type: Texture
-  - Asset: 8245207943487542112
-    Path: content\meshes\sponza\11968150294050148237.jpg
+  - Asset: 17789948815809360246
+    Path: content\meshes\sponza\4871783166746854860.jpg
     Type: Texture
   - Asset: 7402739865302197673
     Path: content\meshes\sponza\1219024358953944284.jpg
@@ -119,23 +119,23 @@ Assets:
   - Asset: 10043736649985706902
     Path: content\meshes\sponza\14650633544276105767.jpg
     Type: Texture
-  - Asset: 15972034126364146681
-    Path: content\meshes\sponza\6667038893015345571.jpg
-    Type: Texture
   - Asset: 8419900320608640577
     Path: content\meshes\sponza\15295713303328085182.jpg
     Type: Texture
-  - Asset: 10792709820418048841
-    Path: content\meshes\sponza\755318871556304029.jpg
+  - Asset: 15972034126364146681
+    Path: content\meshes\sponza\6667038893015345571.jpg
     Type: Texture
   - Asset: 14674400949282407857
     Path: content\meshes\sponza\16299174074766089871.jpg
     Type: Texture
-  - Asset: 173811767461831118
-    Path: content\meshes\sponza\3371964815757888145.jpg
+  - Asset: 10792709820418048841
+    Path: content\meshes\sponza\755318871556304029.jpg
     Type: Texture
   - Asset: 18369971041776713509
     Path: content\meshes\sponza\16885566240357350108.jpg
+    Type: Texture
+  - Asset: 173811767461831118
+    Path: content\meshes\sponza\3371964815757888145.jpg
     Type: Texture
   - Asset: 327735870107167161
     Path: content\meshes\sponza\17556969131407844942.jpg
@@ -170,17 +170,17 @@ Assets:
   - Asset: 5569740100668207183
     Path: content\meshes\sponza\3827035219084910048.jpg
     Type: Texture
-  - Asset: 6418519583023535777
-    Path: content\meshes\sponza\7268504077753552595.jpg
-    Type: Texture
   - Asset: 3286699947494493892
     Path: content\meshes\sponza\4601176305987539675.jpg
     Type: Texture
-  - Asset: 8632089342766997792
-    Path: content\meshes\sponza\4975155472559461469.jpg
+  - Asset: 6418519583023535777
+    Path: content\meshes\sponza\7268504077753552595.jpg
     Type: Texture
   - Asset: 14214318611201664410
     Path: content\meshes\sponza\466164707995436622.jpg
+    Type: Texture
+  - Asset: 8632089342766997792
+    Path: content\meshes\sponza\4975155472559461469.jpg
     Type: Texture
   - Asset: 1932903546074860158
     Path: content\meshes\sponza\4675343432951571524.jpg
@@ -212,11 +212,11 @@ Assets:
   - Asset: 7709595562009876868
     Path: content\meshes\sponza\759203620573749278.jpg
     Type: Texture
-  - Asset: 15425870244135021478
-    Path: content\meshes\sponza\9916269861720640319.jpg
-    Type: Texture
   - Asset: 14955046378419672650
     Path: content\meshes\sponza\7645212358685992005.jpg
+    Type: Texture
+  - Asset: 15425870244135021478
+    Path: content\meshes\sponza\9916269861720640319.jpg
     Type: Texture
   - Asset: 15151650459767905704
     Path: content\meshes\sponza\7815564343179553343.jpg
@@ -230,11 +230,11 @@ Assets:
   - Asset: 15869114295055377801
     Path: content\meshes\sponza\8114461559286000061.jpg
     Type: Texture
-  - Asset: 8314113173129038997
-    Path: content\meshes\_Textures\Cerberus_N.png
-    Type: Texture
   - Asset: 6135004201276815348
     Path: content\meshes\sponza\8481240838833932244.jpg
+    Type: Texture
+  - Asset: 8314113173129038997
+    Path: content\meshes\_Textures\Cerberus_N.png
     Type: Texture
   - Asset: 1587549103082041051
     Path: content\meshes\sponza\8503262930880235456.jpg
@@ -266,11 +266,11 @@ Assets:
   - Asset: 14355600932155019307
     Path: content\meshes\_Textures\m1911_color.png
     Type: Texture
-  - Asset: 12173949545316206619
-    Path: content\textures\StopButton.png
-    Type: Texture
   - Asset: 9830407344306195043
     Path: content\meshes\_Textures\m1911_normal.png
+    Type: Texture
+  - Asset: 12173949545316206619
+    Path: content\textures\StopButton.png
     Type: Texture
   - Asset: 8579304083591384464
     Path: content\meshes\_Textures\VikingRoom.png
