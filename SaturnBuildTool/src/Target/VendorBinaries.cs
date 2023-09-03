@@ -15,7 +15,7 @@ namespace SaturnBuildTool
         IMGUI,
         SPIRVCROSS,
         SHADERC,
-        OPTICK
+        TRACY
     }
 
     internal class VendorBinaries
@@ -132,13 +132,13 @@ namespace SaturnBuildTool
                     }
                     break;
 
-                case VendorProject.OPTICK:
+                case VendorProject.TRACY:
                     {
-                        binPath = Path.Combine(binPath, "optick\\bin\\");
+                        binPath = Path.Combine(binPath, "tracy\\bin\\");
 
                         binPath = GetRootBinPath(binPath, target);
 
-                        binPath = Path.Combine(binPath, "optick");
+                        binPath = Path.Combine(binPath, "Tracy");
                     }
                     break;
             }

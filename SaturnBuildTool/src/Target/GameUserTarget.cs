@@ -48,7 +48,7 @@ namespace SaturnBuildTool
             Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include") );
             Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include\\pxshared") );
             Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include\\physx") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "optick\\src") );
+            Includes.Add( Path.Combine(SaturnVenderDir, "tracy\\src") );
             Includes.Add( Path.Combine(SaturnSingletonDir, "src") );
 
             string saturnBinDir = SaturnRootDir;
@@ -106,7 +106,7 @@ namespace SaturnBuildTool
             Links.Add("shaderc.lib");
             Links.Add("SPIRV-Cross.lib");
             Links.Add("yaml-cpp.lib");
-            Links.Add("optick.lib");
+            Links.Add("Tracy.lib");
         }
     }
 }
