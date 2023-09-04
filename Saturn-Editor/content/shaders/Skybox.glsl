@@ -43,9 +43,10 @@ layout(binding = 1) uniform samplerCube u_CubeTexture;
 layout(binding = 2) uniform Data 
 {
 	float SkyboxLod;
+	float Intensity;
 } u_Data;
 
 void main() 
 {
-	FinalColor = textureLod( u_CubeTexture, v_Position, u_Data.SkyboxLod );
+	FinalColor = textureLod( u_CubeTexture, v_Position, u_Data.SkyboxLod ) * u_Data.Intensity;
 }

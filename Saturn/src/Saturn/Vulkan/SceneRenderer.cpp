@@ -393,6 +393,7 @@ namespace Saturn {
 		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_GeometryPassTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomTexture", m_RendererData.BloomTextures[ 2 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomDirtTexture", m_RendererData.BloomDirtTexture->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
+		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_DepthTexture", m_RendererData.GeometryFramebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 
 		m_RendererData.SceneCompositeShader->WriteAllUBs( m_RendererData.SC_DescriptorSet );
 
@@ -549,10 +550,14 @@ namespace Saturn {
 		struct ub_Data
 		{
 			float SkyboxLod;
+			// 0.19
+			float Intensity;
 		} u_Data;
 
 		u_Data = {};
+		// TODO: Maybe we could of used the skylight entity for this data?
 		u_Data.SkyboxLod = m_RendererData.SkyboxLod;
+		u_Data.Intensity = m_RendererData.Intensity;
 
 		m_RendererData.SkyboxShader->UploadUB( ShaderType::Fragment, 0, 2, &u_Data, sizeof( u_Data ) );
 
@@ -845,9 +850,11 @@ namespace Saturn {
 			Auxiliary::EndTreeNode();
 		}
 
+		// TEMP: Move to skylight entity.
 		if( Auxiliary::TreeNode( "Environment", false ) )
 		{
 			ImGui::DragFloat( "Skybox Lod", &m_RendererData.SkyboxLod, 0.1f, 0.0f, 1000.0f );
+			ImGui::DragFloat( "Intensity", &m_RendererData.Intensity, 0.1f, 0.0f, 1000.0f );
 
 			Auxiliary::EndTreeNode();
 		}

@@ -291,6 +291,7 @@ namespace Saturn {
 		IndexBuffer* SkyboxIndexBuffer = nullptr;
 
 		float SkyboxLod = 0.0f;
+		float Intensity = 1.0f;
 
 		//////////////////////////////////////////////////////////////////////////
 		
