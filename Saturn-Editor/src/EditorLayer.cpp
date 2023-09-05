@@ -54,10 +54,9 @@
 #include <ImGuizmo/ImGuizmo.h>
 
 #include <Saturn/Core/Math.h>
-
 #include <Saturn/Core/StringUtills.h>
-
 #include <Saturn/Core/UserSettings.h>
+#include <Saturn/Core/OptickProfiler.h>
 
 #include <Saturn/Asset/AssetRegistry.h>
 #include <Saturn/Asset/AssetManager.h>
@@ -258,6 +257,8 @@ namespace Saturn {
 
 	void EditorLayer::OnUpdate( Timestep time )
 	{
+		SAT_PF_EVENT();
+
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 		
 		if( m_RequestRuntime )
@@ -324,6 +325,8 @@ namespace Saturn {
 
 	void EditorLayer::OnImGuiRender()
 	{
+		SAT_PF_EVENT();
+
 		// Draw dockspace.
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiViewport* pViewport = ImGui::GetWindowViewport();
@@ -804,6 +807,7 @@ namespace Saturn {
 				
 				auto entity = m_EditorScene->CreateEntity( asset->Name );
 				entity.AddComponent<StaticMeshComponent>().Mesh = meshAsset;
+				entity.AddComponent<StaticMeshComponent>().MaterialRegistry = Ref<MaterialRegistry>::Create( meshAsset );
 			}
 
 			ImGui::EndDragDropTarget();
@@ -1223,5 +1227,4 @@ namespace Saturn {
 			AssetManager::Get().Save( AssetRegistryType::Editor );
 		}
 	}
-
 }

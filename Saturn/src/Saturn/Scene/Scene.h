@@ -82,7 +82,6 @@ namespace Saturn {
 		[[nodiscard]] uint32_t GetPointLightSize() { return static_cast<uint32_t>( sizeof( PointLight ) * PointLights.size() ); };
 	};
 
-	class JoltRuntime;
 	class SClass;
 	class SceneRenderer;
 
@@ -124,7 +123,7 @@ namespace Saturn {
 
 		void CopyScene( Ref<Scene>& NewScene );
 
-		void SetName( const std::string& name ) { m_Name = name; }
+		void SetName( std::string name ) { m_Name = std::move( name ); }
 
 		std::string& Name() { return m_Name; }
 		const std::string& Name() const { return m_Name; }
