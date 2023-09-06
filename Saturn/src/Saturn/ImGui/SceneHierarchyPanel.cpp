@@ -262,13 +262,20 @@ namespace Saturn {
 		if( entity.HasComponent<TagComponent>() )
 		{
 			auto& rTag = entity.GetComponent<TagComponent>().Tag;
+			bool isPrefab = entity.HasComponent<PrefabComponent>() || entity.HasComponent<ScriptComponent>();
 
 			ImGuiTreeNodeFlags Flags = ( ( m_SelectionContext == entity ) ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
 			Flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
 			bool Clicked;
 
+			if( isPrefab )
+				ImGui::PushStyleColor( ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4( IM_COL32( 255, 179, 0, 255 ) ) );
+
 			Clicked = ImGui::TreeNodeEx( (void*)(uint32_t)entity, Flags, rTag.c_str() );
+
+			if( isPrefab )
+				ImGui::PopStyleColor();
 
 			if( ImGui::IsItemClicked() )
 			{
@@ -350,12 +357,14 @@ namespace Saturn {
 
 		ImGui::SameLine();
 
+		// TODO: We really don't need to check this as entities will always have a tag.
 		if( entity.HasComponent<TagComponent>() )
 		{
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 			char buffer[ 256 ];
 			memset( buffer, 0, 256 );
 			memcpy( buffer, tag.c_str(), tag.length() );
+
 			ImGui::PushItemWidth( contentRegionAvailable.x * 0.5f );
 			if( ImGui::InputText( "##Tag", buffer, 256 ) )
 			{

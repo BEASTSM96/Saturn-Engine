@@ -46,11 +46,11 @@ namespace Saturn {
 
 	void RenderThread::WaitAll()
 	{
+		m_WaitTime.Reset();
+
 		// If we are not using the render thread, we still need to execute the command buffer. 
 		if( !m_Enabled ) 
 		{
-			m_WaitTime.Reset();
-
 			for( auto& rFunc : m_CommandBuffer )
 				rFunc();
 
@@ -159,7 +159,7 @@ namespace Saturn {
 				m_ExecuteAll = false;
 			}
 
-			// The the main thread we're done.
+			// Tell the main thread we're done.
 			m_QueueCV.notify_one();
 		}
 
