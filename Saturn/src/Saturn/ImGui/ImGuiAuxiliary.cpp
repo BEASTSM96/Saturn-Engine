@@ -464,4 +464,21 @@ namespace Saturn::Auxiliary {
 		ImVec4 ColorNoAlpha = ImVec4( color.x, color.y, color.z, 1.0f );
 		pDrawList->AddRectFilled( BoundingBox.Min, BoundingBox.Max, ImGui::GetColorU32( ColorNoAlpha ), rounding );
 	}
+
+	void TextEllipsis( const char* fmt, const ImVec2& rStart, const ImVec2& rEnd, ... )
+	{
+		va_list args;
+		va_start( args, fmt );
+		TextEllipsisV( fmt, rStart, rEnd, args );
+		va_end( args );
+	}
+
+	void TextEllipsisV( const char* fmt, const ImVec2& rStart, const ImVec2& rEnd, va_list args )
+	{
+		auto* pDrawList = ImGui::GetWindowDrawList();
+
+		const ImVec2 size( 0.0f, 0.0f );
+		ImGui::RenderTextEllipsis( pDrawList, rStart, rEnd, 0.0f, 0.0f, fmt, 0, &size );
+	}
+
 }

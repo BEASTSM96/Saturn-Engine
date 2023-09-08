@@ -350,9 +350,8 @@ namespace Saturn {
 	void SceneHierarchyPanel::DrawEntityComponents( Entity entity )
 	{
 		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+		bool isPrefab = entity.HasComponent<PrefabComponent>() || entity.HasComponent<ScriptComponent>();
 
-		auto id = entity.GetComponent<IdComponent>().ID;
-		
 		ImGui::Image( m_EditIcon->GetDescriptorSet(), ImVec2( 30, 30 ) );
 
 		ImGui::SameLine();
@@ -376,8 +375,21 @@ namespace Saturn {
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
 
 		// ID
-		ImGui::SameLine();
-		ImGui::TextDisabled( "%llx", id );
+		const auto& id = entity.GetComponent<IdComponent>().ID;
+		
+		if( isPrefab ) 
+		{
+			ImGui::SameLine();
+			ImGui::TextDisabled( "%llx", id );
+
+			ImGui::SameLine();
+			ImGui::SmallButton( "s" );
+		}
+		else
+		{
+			ImGui::TextDisabled( "%llx", id );
+		}
+
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
 		DrawComponent<TransformComponent>( "Transform", entity, [&]( auto& tc )

@@ -75,6 +75,10 @@ namespace Saturn::Auxiliary {
 
 	extern void DrawColoredRect( const ImVec2& size, const ImVec4& color );
 
+	extern void TextEllipsis( const char* fmt, const ImVec2& rStart, const ImVec2& rEnd, ... );
+	extern void TextEllipsisV( const char* fmt, const ImVec2& rStart, const ImVec2& rEnd, va_list args );
+	extern void TextEllipsisEx( const char* fmt, va_list args );
+
 	inline bool DrawAssetFinder( AssetType type, bool* rOpen, AssetID& rOut )
 	{
 		bool Modified = false;
