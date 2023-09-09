@@ -28,6 +28,7 @@ void main()
 layout (binding = 0) uniform sampler2D u_GeometryPassTexture;
 layout (binding = 1) uniform sampler2D u_BloomTexture;
 layout (binding = 2) uniform sampler2D u_BloomDirtTexture;
+layout (binding = 3) uniform sampler2D u_DepthTexture;
 
 layout(location = 0) out vec4 FinalColor;
 
@@ -110,6 +111,29 @@ void main()
 
 	GeometryPassColor = ACES( GeometryPassColor );
 	GeometryPassColor = GammaCorrect( GeometryPassColor, gamma );
+
+	/*
+	float d = texture( u_DepthTexture, vs_Input.TexCoord ).r;
+	
+	float fogStart = 2.0f;
+	float fogFalloff = 40.0f;
+
+	float fogAmount = smoothstep( fogStart, fogStart + fogFalloff, d );
+
+	vec3 fogColor = vec3(0.0f);
+
+	GeometryPassColor = mix( GeometryPassColor, fogColor, fogAmount );
+	*/
+	GeometryPassColor *= 0.80;
+
+	vec2 coord = vs_Input.TexCoord * 2.0 - 1.0;
+	float dist = length( coord );
+    dist = sqrt( dist );
+    float vi = 1.0 - dist;
+    vi += 0.7;
+    dist = clamp( vi, 0.0, 1.0 );
+
+	GeometryPassColor *= dist;
 
 	FinalColor = vec4( GeometryPassColor, 1.0 );
 }

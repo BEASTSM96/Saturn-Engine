@@ -376,7 +376,7 @@ namespace Saturn {
 
 		// ID
 		const auto& id = entity.GetComponent<IdComponent>().ID;
-		
+
 		if( isPrefab ) 
 		{
 			ImGui::SameLine();
