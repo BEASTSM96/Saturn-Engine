@@ -42,10 +42,12 @@ namespace Saturn {
 		SingletonStorage* pSingletonStorage = new SingletonStorage();
 
 		Saturn::Application* pApp = Saturn::CreateApplication( count, args );
-		
+	
 		pApp->Run();
 		
 		delete pApp;
+
+		delete pSingletonStorage;
 
 		return 0;
 	}

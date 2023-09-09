@@ -41,6 +41,8 @@
 
 #include "Saturn/Audio/AudioSystem.h"
 
+#include "Saturn/Asset/AssetManager.h"
+
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
@@ -64,20 +66,20 @@ namespace Saturn {
 		SingletonStorage::Get().AddSingleton( this );
 
 		// This may not be the best way... but its better than lazy loading.
-		Window* pWindow = new Window();
-		VulkanContext* pVkContext = new VulkanContext();
+		m_Window = new Window();
+		m_VulkanContext = new VulkanContext();
 
-		pVkContext->Init();
+		m_VulkanContext->Init();
 
 		m_SceneRenderer = new SceneRenderer();
 
-		pWindow->SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
+		m_Window->SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
 
-		pWindow->RemoveBorder();
-		pWindow->Show();
+		m_Window->RemoveBorder();
+		m_Window->Show();
 
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
-			pWindow->Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
+			m_Window->Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
 
 		// Lazy load.
 		AudioSystem::Get();
@@ -85,6 +87,11 @@ namespace Saturn {
 
 		m_ImGuiLayer = new ImGuiLayer();
 		m_ImGuiLayer->OnAttach();
+	}
+
+	Application::~Application()
+	{
+		SingletonStorage::Get().RemoveSingleton( this );
 	}
 
 	void Application::Run()
@@ -135,6 +142,7 @@ namespace Saturn {
 
 		OnShutdown();
 		
+		// So the difference between "Terminate" and delete is delete will completely destroy the class and remove it from the singleton list. However "Terminate" is used to destroy any data in the class but will not destroy it, it is also used because we don't own the class so we can just implicitly destory them.
 		GameThread::Get().Terminate();
 		RenderThread::Get().Terminate();
 
@@ -152,7 +160,13 @@ namespace Saturn {
 			m_ImGuiLayer = nullptr;
 		} );
 
+		delete m_Window;
+
 		AudioSystem::Get().Terminate();
+
+		AssetManager::Get().Terminate();
+		
+		delete m_VulkanContext;
 	}
 
 	void Application::Close()

@@ -61,12 +61,15 @@ namespace Saturn {
 	};
 
 	class SceneRenderer;
+	class Window;
+	class VulkanContext;
+
 	class Application
 	{
 	public:
 		Application( const ApplicationSpecification& spec );
 
-		virtual ~Application() {}
+		virtual ~Application();
 
 		void Run();
 		void Close();
@@ -130,8 +133,10 @@ namespace Saturn {
 
 		std::vector<Layer*> m_Layers;
 
-		// TODO: Change to ref
+		// TODO: Change all of these to refs, I really don't like this.
 		SceneRenderer* m_SceneRenderer = nullptr;
+		Window* m_Window = nullptr;
+		VulkanContext* m_VulkanContext = nullptr;
 
 		std::vector<std::function<void()>> m_MainThreadQueue;
 	};

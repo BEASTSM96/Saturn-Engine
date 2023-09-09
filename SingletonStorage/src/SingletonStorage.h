@@ -77,6 +77,17 @@ namespace Saturn {
 				m_Singletons[ Index ] = type;
 		}
 
+		template<typename Ty>
+		void RemoveSingleton( Ty* type ) 
+		{
+			std::type_index Index = typeid( Ty );
+
+			if( m_Singletons.find( Index ) == m_Singletons.end() )
+				m_Singletons[ Index ] = nullptr;
+
+			m_Singletons.erase( Index );
+		}
+
 		static inline SingletonStorage& Get()
 		{
 			return *s_Instance;

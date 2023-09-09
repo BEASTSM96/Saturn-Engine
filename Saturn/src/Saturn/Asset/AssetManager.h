@@ -38,7 +38,8 @@ namespace Saturn {
 		static inline AssetManager& Get() { return *SingletonStorage::Get().GetSingleton<AssetManager>(); }
 	public:
 		AssetManager();
-		~AssetManager();
+		~AssetManager() { Terminate(); }
+		void Terminate();
 
 		Ref<Asset> FindAsset( AssetID id, AssetRegistryType Dst );
 		Ref<Asset> FindAsset( AssetID id );

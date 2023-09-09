@@ -93,6 +93,9 @@ namespace Saturn {
 		if( m_Terminated )
 			return;
 
+		// Wait for the device to be idle, then we delete all of our vulkan items.
+		VK_CHECK( vkDeviceWaitIdle( m_LogicalDevice ) );
+
 		vkDestroyCommandPool( m_LogicalDevice, m_CommandPool, nullptr );
 		vkDestroyCommandPool( m_LogicalDevice, m_ComputeCommandPool, nullptr );
 		
@@ -118,6 +121,8 @@ namespace Saturn {
 
 		vkDestroySurfaceKHR( m_Instance, m_Surface, nullptr );
 		vkDestroyInstance( m_Instance, nullptr );
+
+		SingletonStorage::Get().RemoveSingleton( this );
 
 		m_Terminated = true;
 	}

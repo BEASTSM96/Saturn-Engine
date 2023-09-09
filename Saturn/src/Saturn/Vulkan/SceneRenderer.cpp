@@ -1873,6 +1873,8 @@ namespace Saturn {
 		SC_DescriptorSet = nullptr;
 		PreethamDescriptorSet = nullptr;
 		LightCullingDescriptorSet = nullptr;
+		BloomDS = nullptr;
+		TexturePassDescriptorSet = nullptr;
 
 		// Vertex and Index buffers
 		GridVertexBuffer->Terminate();
@@ -1886,6 +1888,9 @@ namespace Saturn {
 		GeometryFramebuffer = nullptr;
 		SceneCompositeFramebuffer = nullptr;
 		PreDepthFramebuffer = nullptr;
+
+		for( int i = 0; i < 3; i++ )
+			BloomTextures[ i ] = nullptr;
 
 		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 			ShadowCascades[ i ].Framebuffer = nullptr;
@@ -1915,6 +1920,7 @@ namespace Saturn {
 		SkyboxPipeline = nullptr;
 		PreDepthPipeline = nullptr;
 		LightCullingPipeline = nullptr;
+		BloomComputePipeline = nullptr;
 
 		// Shaders
 		GridShader = nullptr;
@@ -1929,6 +1935,7 @@ namespace Saturn {
 
 		// Textures
 		BRDFLUT_Texture = nullptr;
+		BloomDirtTexture = nullptr;
 
 		SceneEnvironment = nullptr;
 

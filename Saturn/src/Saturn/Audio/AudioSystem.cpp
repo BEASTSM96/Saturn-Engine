@@ -33,11 +33,12 @@ namespace Saturn {
 
 	AudioSystem::AudioSystem()
 	{
-		Init();
+		//Init();
 	}
 
 	AudioSystem::~AudioSystem()
 	{
+		//ma_engine_uninit( &m_Engine );
 	}
 
 	void AudioSystem::CreateAudio( AudioType type, UUID ID, const std::filesystem::path& rPath )

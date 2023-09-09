@@ -111,28 +111,20 @@ namespace Saturn {
 	void Renderer::Terminate()
 	{
 		// Terminate Semaphores.
-		SubmitTerminateResource( [&]()
-		{
-			if( m_AcquireSemaphore )
-				vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_AcquireSemaphore, nullptr );
+		if( m_AcquireSemaphore )
+			vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_AcquireSemaphore, nullptr );
 			
-			if( m_SubmitSemaphore )
-				vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_SubmitSemaphore, nullptr );
+		if( m_SubmitSemaphore )
+			vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_SubmitSemaphore, nullptr );
 
-			m_AcquireSemaphore = nullptr;
-			m_SubmitSemaphore = nullptr;
-		} );
+		m_AcquireSemaphore = nullptr;
+		m_SubmitSemaphore = nullptr;
 
-		SubmitTerminateResource( [&]() 
+		for( size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
 		{
-			m_RendererDescriptorSets[ 0 ] = nullptr;
-			m_RendererDescriptorSets[ 1 ] = nullptr;
-			m_RendererDescriptorSets[ 2 ] = nullptr;
-
-			m_RendererDescriptorPools[ 0 ] = nullptr;
-			m_RendererDescriptorPools[ 1 ] = nullptr;
-			m_RendererDescriptorPools[ 2 ] = nullptr;
-		} );
+			m_RendererDescriptorSets[ i ] = nullptr;
+			m_RendererDescriptorPools[ i ] = nullptr;
+		}
 
 		if( m_FlightFences.size() )
 		{

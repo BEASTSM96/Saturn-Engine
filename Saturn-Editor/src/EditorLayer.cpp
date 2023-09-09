@@ -245,14 +245,26 @@ namespace Saturn {
 		Window::Get().SetTitlebarHitTest( nullptr );
 		
 		delete m_TitleBar;
-
-		m_EditorScene = nullptr;
 		
 		m_CheckerboardTexture = nullptr;
 		
 		m_TitleBar = nullptr;
 	
 		m_PanelManager = nullptr;
+
+		if( m_RuntimeScene ) 
+		{
+			EntityScriptManager::Get().DestroyEntityInScene( m_RuntimeScene );
+			
+			m_RuntimeScene->OnRuntimeEnd();
+			m_RuntimeScene = nullptr;
+		}
+		else
+		{
+			EntityScriptManager::Get().DestroyEntityInScene( m_EditorScene );
+		}
+
+		m_EditorScene = nullptr;
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )

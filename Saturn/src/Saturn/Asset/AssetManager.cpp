@@ -59,10 +59,13 @@ namespace Saturn {
 		ars.Deserialise( m_EditorAssets );
 	}
 
-	AssetManager::~AssetManager()
+	void AssetManager::Terminate()
 	{
-		m_Assets = nullptr;
-		m_EditorAssets = nullptr;
+		if( m_Assets )
+			m_Assets = nullptr;
+		
+		if( m_EditorAssets )
+			m_EditorAssets = nullptr;
 	}
 
 	Ref<Asset> AssetManager::FindAsset( AssetID id, AssetRegistryType Dst )

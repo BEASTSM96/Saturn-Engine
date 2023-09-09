@@ -209,6 +209,12 @@ namespace Saturn {
 	Window::~Window()
 	{
 		glfwDestroyWindow( m_Window );
+
+		// TODO: Right now we only have one window, however in the future if we have more than one window we'd not want to terminate glfw.
+		glfwTerminate();
+
+		// TODO: Same with this.
+		SingletonStorage::Get().RemoveSingleton( this );
 	}
 
 	void Window::OnUpdate()

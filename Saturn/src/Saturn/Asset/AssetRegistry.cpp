@@ -34,12 +34,18 @@ namespace Saturn {
 	AssetRegistry::AssetRegistry()
 		: AssetRegistryBase()
 	{
-		SingletonStorage::Get().AddSingleton( this );
 	}
 
 	AssetRegistry::~AssetRegistry()
 	{
+		m_Assets.clear();
+		
+		for( auto& [id, rAsset] : m_LoadedAssets )
+		{
+			rAsset = nullptr;
+		}
 
+		m_LoadedAssets.clear();
 	}
 
 	AssetID AssetRegistry::CreateAsset( AssetType type )
