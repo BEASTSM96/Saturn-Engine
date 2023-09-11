@@ -160,13 +160,12 @@ namespace Saturn {
 			m_ImGuiLayer = nullptr;
 		} );
 
-		delete m_Window;
-
 		AudioSystem::Get().Terminate();
 
 		AssetManager::Get().Terminate();
 		
 		delete m_VulkanContext;
+		delete m_Window;
 	}
 
 	void Application::Close()
