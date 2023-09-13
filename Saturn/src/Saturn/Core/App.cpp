@@ -142,7 +142,7 @@ namespace Saturn {
 
 		OnShutdown();
 		
-		// So the difference between "Terminate" and delete is delete will completely destroy the class and remove it from the singleton list. However "Terminate" is used to destroy any data in the class but will not destroy it, it is also used because we don't own the class so we can just implicitly destory them.
+		// So the difference between "Terminate" and delete is delete will completely destroy the class and remove it from the singleton list. However "Terminate" is used to destroy any data in the class but will not destroy it, it is also used because we don't own the class so we can just implicitly destroy them.
 		GameThread::Get().Terminate();
 		RenderThread::Get().Terminate();
 
