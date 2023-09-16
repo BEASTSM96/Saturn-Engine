@@ -49,6 +49,8 @@ namespace Saturn {
 
 	TitleBar::~TitleBar()
 	{
+		m_PlayImage = nullptr;
+		m_StopImage = nullptr;
 	}
 
 	void TitleBar::Draw()

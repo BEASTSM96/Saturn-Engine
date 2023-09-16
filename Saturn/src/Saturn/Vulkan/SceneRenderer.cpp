@@ -274,8 +274,10 @@ namespace Saturn {
 
 	void SceneRenderer::InitPreDepth()
 	{
-		if( m_RendererData.PreDepthPass )
+		if( m_RendererData.PreDepthPass ) 
+		{
 			m_RendererData.PreDepthPass->Recreate();
+		}
 		else
 		{
 			PassSpecification PassSpec = {};
@@ -285,8 +287,10 @@ namespace Saturn {
 			m_RendererData.PreDepthPass = Ref<Pass>::Create( PassSpec );
 		}
 
-		if( m_RendererData.PreDepthFramebuffer )
+		if( m_RendererData.PreDepthFramebuffer ) 
+		{
 			m_RendererData.PreDepthFramebuffer->Recreate( m_RendererData.Width, m_RendererData.Height );
+		}
 		else
 		{
 			FramebufferSpecification FBSpec = {};
@@ -304,8 +308,10 @@ namespace Saturn {
 			m_RendererData.LightCullingShader = ShaderLibrary::Get().TryFind( "LightCulling", "content/shaders/LightCulling.glsl" );
 		}
 
-		if( m_RendererData.PreDepthPipeline )
+		if( m_RendererData.PreDepthPipeline ) 
+		{
 			m_RendererData.PreDepthPipeline = nullptr;
+		}
 
 		PipelineSpecification PipelineSpec = {};
 		PipelineSpec.Width = m_RendererData.Width;
@@ -335,15 +341,22 @@ namespace Saturn {
 
 		m_RendererData.PreDepthPipeline = Ref<Pipeline>::Create( PipelineSpec );
 
+		//////////////////////////////////////////////////////////////////////////
 		// Light culling
+		//////////////////////////////////////////////////////////////////////////
+		if( m_RendererData.LightCullingPipeline )
+			m_RendererData.LightCullingPipeline = nullptr;
+
 		m_RendererData.LightCullingPipeline = Ref<ComputePipeline>::Create( m_RendererData.LightCullingShader );
+
+		if( m_RendererData.LightCullingDescriptorSet )
+			m_RendererData.LightCullingDescriptorSet = nullptr;
 
 		m_RendererData.LightCullingDescriptorSet = m_RendererData.LightCullingShader->CreateDescriptorSet( 0 );
 
-		Renderer::Get().GetCurrentFrame();
-
 		m_RendererData.LightCullingShader->WriteDescriptor( "u_PreDepth", m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.LightCullingDescriptorSet->GetVulkanSet() );
-
+		
+		// TODO: We are making the same buffer over and over again.
 		m_RendererData.StorageBufferSet->Create( 0, 14 );
 	}
 
@@ -1941,6 +1954,9 @@ namespace Saturn {
 
 		for( auto& buffer : SubmeshTransformData )
 			delete[] buffer.pData;
+
+		// Storage buffer set
+		StorageBufferSet = nullptr;
 
 		SubmeshTransformData.clear();
 

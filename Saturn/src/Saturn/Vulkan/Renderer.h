@@ -98,27 +98,27 @@ namespace Saturn {
 
 	private:
 
-		uint32_t m_ImageIndex;
-		uint32_t m_ImageCount;
+		uint32_t m_ImageIndex = 0;
+		uint32_t m_ImageCount = 0;
 		uint32_t m_FrameCount = 0;
 
 		std::vector<VkFence> m_FlightFences;
 		
 		std::vector< std::function<void()> > m_TerminateResourceFuncs;
 		
-		VkSemaphore m_AcquireSemaphore;
-		VkSemaphore m_SubmitSemaphore;
+		VkSemaphore m_AcquireSemaphore = nullptr;
+		VkSemaphore m_SubmitSemaphore = nullptr;
 
-		VkCommandBuffer m_CommandBuffer;
+		VkCommandBuffer m_CommandBuffer = nullptr;
 
 		Timer m_BeginFrameTimer;
-		float m_BeginFrameTime;
+		float m_BeginFrameTime = 0.0f;
 
 		Timer m_EndFrameTimer;
-		float m_EndFrameTime;
+		float m_EndFrameTime = 0.0f;
 
 		Timer m_QueuePresentTimer;
-		float m_QueuePresentTime;
+		float m_QueuePresentTime = 0.0f;
 		
 		Ref< Texture2D > m_PinkTexture;
 		Ref< TextureCube > m_PinkTextureCube;

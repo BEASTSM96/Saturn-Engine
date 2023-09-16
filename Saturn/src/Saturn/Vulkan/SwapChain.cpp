@@ -142,6 +142,10 @@ namespace Saturn {
 			vkDestroyImageView( VulkanContext::Get().GetDevice(), rImageView, nullptr );
 		}
 
+		// TODO: Destory Swapchain?
+
+		m_MSAAImage = nullptr;
+
 		m_Framebuffers.clear();
 		m_ImageViews.clear();
 		m_Images.clear();
@@ -161,6 +165,8 @@ namespace Saturn {
 		{
 			vkDestroyImageView( VulkanContext::Get().GetDevice(), rImageView, nullptr );
 		}
+
+		m_MSAAImage = nullptr;
 
 		m_Framebuffers.clear();
 		m_ImageViews.clear();

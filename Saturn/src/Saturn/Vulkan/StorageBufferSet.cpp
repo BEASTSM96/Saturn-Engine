@@ -33,12 +33,22 @@ namespace Saturn {
 
 	StorageBufferSet::StorageBufferSet( uint32_t size, uint32_t binding )
 	{
-
 	}
 
 	StorageBufferSet::~StorageBufferSet()
 	{
+		for( auto& [set, binding] : m_Buffers )
+		{
+			for( auto& [ frame, frameMap ] : binding )
+			{
+				for( auto& [ index, buffer ] : frameMap )
+				{
+					buffer = nullptr;
+				}
+			}
+		}
 
+		m_Buffers.clear();
 	}
 
 	void StorageBufferSet::Create( uint32_t set, uint32_t binding )

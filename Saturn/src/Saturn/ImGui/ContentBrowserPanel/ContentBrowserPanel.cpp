@@ -81,6 +81,14 @@ namespace Saturn {
 		m_EditorScripts /= "src";
 	}
 
+	ContentBrowserPanel::~ContentBrowserPanel()
+	{
+		m_DirectoryIcon = nullptr;
+		m_FileIcon = nullptr;
+		m_BackIcon = nullptr;
+		m_ForwardIcon = nullptr;
+	}
+
 	void ContentBrowserPanel::DrawFolderTree( const std::filesystem::path& rPath )
 	{
 		for( const auto& entry : std::filesystem::directory_iterator( rPath ) )

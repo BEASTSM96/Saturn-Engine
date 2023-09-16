@@ -55,7 +55,7 @@ namespace Saturn {
 	{
 	public:
 		ContentBrowserPanel();
-		~ContentBrowserPanel() = default;
+		~ContentBrowserPanel();
 
 		virtual void Draw() override;
 
