@@ -952,6 +952,12 @@ namespace Saturn {
 
 	void SceneRenderer::SetCurrentScene( Scene* pScene )
 	{
+		if( pScene == nullptr ) 
+		{
+			m_pScene = nullptr;
+			return;
+		}
+
 		m_pScene = pScene;
 
 		m_RendererData.SceneEnvironment->Turbidity = 0.0f;
@@ -1950,9 +1956,10 @@ namespace Saturn {
 		BloomComputePipeline = nullptr;
 
 		// Shaders
+		// Static mesh shader will never be fully destroyed because it has 17 other refs attached to it.
 		GridShader = nullptr;
 		SkyboxShader = nullptr;
-		StaticMeshShader = nullptr;
+		StaticMeshShader = nullptr; 
 		SceneCompositeShader = nullptr;
 		DirShadowMapShader = nullptr;
 		PreethamShader = nullptr;

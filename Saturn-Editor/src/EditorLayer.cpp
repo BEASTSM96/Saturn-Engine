@@ -167,7 +167,7 @@ namespace Saturn {
 
 		m_TitleBar->AddOnRuntimeStateChanged( [&](int state) -> void 
 			{
-				// TEMP: We only have two states, running or not, so its 0 or 1
+				// TEMP: We only have two states, running or not, so 0 or 1
 				m_RequestRuntime = state;
 			} );
 
@@ -263,6 +263,8 @@ namespace Saturn {
 		{
 			EntityScriptManager::Get().DestroyEntityInScene( m_EditorScene );
 		}
+
+		Application::Get().PrimarySceneRenderer().SetCurrentScene( nullptr );
 
 		m_EditorScene = nullptr;
 	}
@@ -971,6 +973,7 @@ namespace Saturn {
 		EntityScriptManager::Get().SetCurrentScene( newScene );
 
 		pHierarchyPanel->SetSelected( {} );
+		pHierarchyPanel->SetContext( nullptr );
 
 		if( !rFilepath.empty() ) 
 		{
@@ -984,11 +987,12 @@ namespace Saturn {
 
 		// We maybe don't need to transfer the entities but just to be sure we will do it.
 		EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
-		EntityScriptManager::Get().TransferEntities( newScene );
 
-		newScene = nullptr;
+		EntityScriptManager::Get().TransferEntities( newScene );
+		EntityScriptManager::Get().DestroyEntityInScene( newScene );
 
 		pHierarchyPanel->SetContext( m_EditorScene );
+		newScene = nullptr;
 
 		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Pointer() );
 	}

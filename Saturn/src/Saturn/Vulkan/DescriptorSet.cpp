@@ -33,6 +33,8 @@
 
 namespace Saturn {
 
+	static std::vector<DescriptorPool*> s_DescriptorPools;
+
 	DescriptorPool::DescriptorPool( std::vector< VkDescriptorPoolSize > PoolSizes, uint32_t MaxSets )
 	{
 		VkDescriptorPoolCreateInfo PoolCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
@@ -42,11 +44,14 @@ namespace Saturn {
 		PoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
 		VK_CHECK( vkCreateDescriptorPool( VulkanContext::Get().GetDevice(), &PoolCreateInfo, nullptr, &m_Pool ) );
+
+		s_DescriptorPools.push_back( this );
 	}
 
 	DescriptorPool::~DescriptorPool()
 	{
 		Terminate();
+		s_DescriptorPools.erase( std::remove( s_DescriptorPools.begin(), s_DescriptorPools.end(), this ), s_DescriptorPools.end() );
 	}
 
 	void DescriptorPool::Terminate()

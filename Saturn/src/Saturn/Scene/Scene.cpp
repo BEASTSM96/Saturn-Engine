@@ -74,6 +74,25 @@ namespace Saturn {
 
 	Scene::~Scene()
 	{
+		// Destroy All Physics Entities and static meshes
+		auto meshView = GetAllEntitiesWith<StaticMeshComponent>();
+
+		for( const auto& entity : meshView )
+		{
+			if( m_Registry.get<StaticMeshComponent>( entity ).Mesh )
+				m_Registry.get<StaticMeshComponent>( entity ).Mesh = nullptr;
+
+			m_Registry.get<StaticMeshComponent>( entity ).MaterialRegistry = nullptr;
+		}
+
+		auto rigidView = GetAllEntitiesWith<RigidbodyComponent>();
+
+		for( const auto& entity : rigidView )
+		{
+			if( m_Registry.get<RigidbodyComponent>( entity ).Rigidbody )
+				m_Registry.get<RigidbodyComponent>( entity ).Rigidbody = nullptr;
+		}
+
 		s_ActiveScenes.erase( m_SceneID );
 		m_Registry.clear();
 	}
@@ -516,12 +535,12 @@ namespace Saturn {
 
 	void Scene::SetActiveScene( Scene* pScene )
 	{
-		s_ActiveScene = pScene;
+		//s_ActiveScene = pScene;
 	}
 
 	Scene* Scene::GetActiveScene()
 	{
-		return s_ActiveScene;
+		return nullptr;
 	}
 
 }

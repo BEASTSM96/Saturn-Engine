@@ -130,7 +130,18 @@ namespace Saturn {
 
 	StaticMesh::~StaticMesh()
 	{
+		m_VertexBuffer = nullptr;
+		m_IndexBuffer = nullptr;
 
+		m_Vertices.clear();
+
+		m_Submeshes.clear();
+
+		m_MeshShader = nullptr;
+		m_MaterialRegistry = nullptr;
+		m_BaseMaterial = nullptr;
+
+		m_MaterialsAssets.clear();
 	}
 
 	void StaticMesh::CreateVertices()

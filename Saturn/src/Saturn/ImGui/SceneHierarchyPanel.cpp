@@ -381,9 +381,6 @@ namespace Saturn {
 		{
 			ImGui::SameLine();
 			ImGui::TextDisabled( "%llx", id );
-
-			ImGui::SameLine();
-			ImGui::SmallButton( "s" );
 		}
 		else
 		{
