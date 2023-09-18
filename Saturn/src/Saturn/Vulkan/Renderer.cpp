@@ -256,7 +256,10 @@ namespace Saturn {
 		return m_StorageBufferSets[ m_FrameCount ][ shaderName ];
 	}
 
-	void Renderer::SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, Ref<StorageBufferSet>& rStorageBufferSet, Ref< MaterialRegistry > materialRegistry, uint32_t SubmeshIndex, uint32_t count, Ref<VertexBuffer> transformData, uint32_t transformOffset )
+	void Renderer::SubmitMesh( 
+		VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, 
+		Ref<StorageBufferSet>& rStorageBufferSet, Ref< MaterialRegistry > materialRegistry, 
+		uint32_t SubmeshIndex, uint32_t count, Ref<VertexBuffer> transformData, uint32_t transformOffset )
 	{
 		SAT_PF_EVENT();
 

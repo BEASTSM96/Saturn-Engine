@@ -433,6 +433,10 @@ namespace Saturn {
 		void SceneCompositePass();
 		void TexturePass();
 
+		void RenderStaticMeshes();
+		//void RenderDynamicMeshes();
+
+
 		void AddScheduledFunction( ScheduledFunc&& rrFunc );
 
 		Ref<TextureCube> CreateDymanicSky();

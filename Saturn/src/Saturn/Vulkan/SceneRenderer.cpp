@@ -79,6 +79,7 @@ namespace Saturn {
 			return;
 
 		m_RendererData.StorageBufferSet = Ref<StorageBufferSet>::Create( 0, 0 );
+		m_RendererData.StorageBufferSet->Create( 0, 14 ); // Create Light culling buffer.
 
 		InitPreDepth();
 
@@ -108,7 +109,7 @@ namespace Saturn {
 		m_RendererData.AOCompositeTimer.Reset();
 		m_RendererData.AOCompositeTimer.Stop();
 
-		const size_t TransformCount = 1024 * 10;
+		const size_t TransformCount = static_cast<size_t>( 1024 ) * 10;
 		m_RendererData.SubmeshTransformData.resize( MAX_FRAMES_IN_FLIGHT );
 		
 		for( uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
@@ -355,9 +356,6 @@ namespace Saturn {
 		m_RendererData.LightCullingDescriptorSet = m_RendererData.LightCullingShader->CreateDescriptorSet( 0 );
 
 		m_RendererData.LightCullingShader->WriteDescriptor( "u_PreDepth", m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource()->GetDescriptorInfo(), m_RendererData.LightCullingDescriptorSet->GetVulkanSet() );
-		
-		// TODO: We are making the same buffer over and over again.
-		m_RendererData.StorageBufferSet->Create( 0, 14 );
 	}
 
 	void SceneRenderer::InitSceneComposite()
@@ -1056,14 +1054,35 @@ namespace Saturn {
 		CreateGridComponents();
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// RENDERER SHADER 
+	//////////////////////////////////////////////////////////////////////////
+
+	// Vertex, Binding 1
+	struct LightData
+	{
+		glm::mat4 LightMatrix[ 4 ];
+	
+	};
+
+	// Fragment, Binding 2
+	struct SceneData
+	{
+		DirLight Lights;
+		glm::vec3 CameraPosition;
+	};
+
+	// Fragment, Binding 3
+	struct ShadowData
+	{
+		glm::vec4 CascadeSplits;
+	};
+
 	void SceneRenderer::GeometryPass()
 	{
 		SAT_PF_EVENT();
 
 		m_RendererData.GeometryPassTimer.Reset();
-
-		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
 		VkExtent2D Extent = { m_RendererData.Width, m_RendererData.Height };
 
@@ -1100,9 +1119,25 @@ namespace Saturn {
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Static meshes" );
-
+		
 		// Set environment resource.
 		Renderer::Get().SetSceneEnvironment( m_RendererData.ShadowCascades[ 0 ].Framebuffer->GetDepthAttachmentsResource(), m_RendererData.SceneEnvironment, m_RendererData.BRDFLUT_Texture );
+
+		RenderStaticMeshes();
+
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+
+		//////////////////////////////////////////////////////////////////////////
+
+		// End geometry pass.
+		m_RendererData.GeometryPass->EndPass();
+
+		m_RendererData.GeometryPassTimer.Stop();
+	}
+
+	void SceneRenderer::RenderStaticMeshes()
+	{
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
 		// Render static meshes.
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
@@ -1120,27 +1155,15 @@ namespace Saturn {
 			u_Matrices.View = m_RendererData.CurrentCamera.ViewMatrix;
 			u_Matrices.ViewProjection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
 
-			struct
-			{
-				glm::mat4 LightMatrix[ 4 ];
-			} u_LightData = {};
-
+			LightData u_LightData = {};
 			RendererData::PointLights u_Lights;
 
 			u_Lights.nbLights = int( m_pScene->m_Lights.PointLights.size() );
 
 			memcpy( u_Lights.Lights, m_pScene->m_Lights.PointLights.data(), m_pScene->m_Lights.GetPointLightSize() );
 
-			struct SceneData
-			{
-				DirLight Lights;
-				glm::vec3 CameraPosition;
-			} u_SceneData = {};
-
-			struct ShadowData
-			{
-				glm::vec4 CascadeSplits;
-			} u_ShadowData = {};
+			SceneData u_SceneData = {};
+			ShadowData u_ShadowData = {};
 
 			struct DebugData
 			{
@@ -1177,20 +1200,11 @@ namespace Saturn {
 
 			const auto& rTransformData = m_RendererData.MeshTransforms[ key ];
 
-			// Render
+			// Render Submesh
 			Renderer::Get().SubmitMesh( m_RendererData.CommandBuffer,
 				m_RendererData.StaticMeshPipeline,
 				Cmd.Mesh, m_RendererData.StorageBufferSet, key.Registry, Cmd.SubmeshIndex, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset );
 		}
-
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-
-		//////////////////////////////////////////////////////////////////////////
-
-		// End geometry pass.
-		m_RendererData.GeometryPass->EndPass();
-
-		m_RendererData.GeometryPassTimer.Stop();
 	}
 
 	void SceneRenderer::DirShadowMapPass()
@@ -1415,7 +1429,7 @@ namespace Saturn {
 
 	struct UBLights
 	{
-		uint32_t nbLights;
+		uint32_t nbLights = 0;
 		PointLight Lights[ 1024 ];
 	};
 
