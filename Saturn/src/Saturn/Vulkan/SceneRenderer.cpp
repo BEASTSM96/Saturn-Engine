@@ -1966,6 +1966,7 @@ namespace Saturn {
 		AOCompositeShader = nullptr;
 		PreDepthShader = nullptr;
 		LightCullingShader = nullptr;
+		BloomShader = nullptr;
 
 		// Textures
 		BRDFLUT_Texture = nullptr;

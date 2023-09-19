@@ -101,7 +101,7 @@ namespace Saturn {
 	public:
 		StaticMesh() {}
 		StaticMesh( const std::string& rFilepath );
-		~StaticMesh();
+		virtual ~StaticMesh();
 
 		std::string& FilePath() { return m_FilePath; }
 		const std::string& FilePath() const { return m_FilePath; }

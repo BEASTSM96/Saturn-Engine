@@ -104,7 +104,7 @@ namespace Saturn {
 		AssimpLog::Initialize();
 
 		if( !std::filesystem::exists( m_FilePath ) )
-			SAT_CORE_ERROR( "Failed to load mesh file: {0}", m_FilePath );
+			SAT_CORE_ERROR( "Failed to load mesh file (file does not exists): {0}", m_FilePath );
 
 		SAT_CORE_INFO( "Loading mesh: {0}", m_FilePath.c_str() );
 
@@ -112,7 +112,7 @@ namespace Saturn {
 
 		const aiScene* scene = m_Importer->ReadFile( m_FilePath, s_MeshImportFlags );
 		if( scene == nullptr || !scene->HasMeshes() )
-			SAT_CORE_ERROR( "Failed to load mesh file: {0}", m_FilePath );
+			SAT_CORE_ERROR( "Failed to load mesh file (does the file have meshes?): {0}", m_FilePath );
 
 		m_Scene = scene;
 		// Shader new is the static mesh pbr shader.

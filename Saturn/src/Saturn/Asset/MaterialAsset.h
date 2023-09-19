@@ -38,7 +38,7 @@ namespace Saturn {
 	{
 	public:
 		MaterialAsset( Ref<Material> material );
-		~MaterialAsset();
+		virtual ~MaterialAsset();
 
 		// Texture
 		Ref<Texture2D> GetAlbeoMap();

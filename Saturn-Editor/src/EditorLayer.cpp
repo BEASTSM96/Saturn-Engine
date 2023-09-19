@@ -255,6 +255,7 @@ namespace Saturn {
 		if( m_RuntimeScene ) 
 		{
 			EntityScriptManager::Get().DestroyEntityInScene( m_RuntimeScene );
+			EntityScriptManager::Get().SetCurrentScene( nullptr );
 			
 			m_RuntimeScene->OnRuntimeEnd();
 			m_RuntimeScene = nullptr;
@@ -262,6 +263,7 @@ namespace Saturn {
 		else
 		{
 			EntityScriptManager::Get().DestroyEntityInScene( m_EditorScene );
+			EntityScriptManager::Get().SetCurrentScene( nullptr );
 		}
 
 		Application::Get().PrimarySceneRenderer().SetCurrentScene( nullptr );
@@ -988,8 +990,8 @@ namespace Saturn {
 		// We maybe don't need to transfer the entities but just to be sure we will do it.
 		EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
 
-		EntityScriptManager::Get().TransferEntities( newScene );
-		EntityScriptManager::Get().DestroyEntityInScene( newScene );
+		//EntityScriptManager::Get().TransferEntities( newScene );
+		//EntityScriptManager::Get().DestroyEntityInScene( newScene );
 
 		pHierarchyPanel->SetContext( m_EditorScene );
 		newScene = nullptr;

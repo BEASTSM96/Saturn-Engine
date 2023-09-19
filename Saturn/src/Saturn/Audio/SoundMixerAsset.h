@@ -37,7 +37,7 @@ namespace Saturn {
 	{
 	public:
 		SoundMixerAsset();
-		~SoundMixerAsset();
+		virtual ~SoundMixerAsset();
 
 		void PlayVariation( uint32_t index );
 		void AddSound( uint32_t index, AssetID assetID );

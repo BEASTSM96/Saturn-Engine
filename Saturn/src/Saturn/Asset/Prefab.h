@@ -39,7 +39,7 @@ namespace Saturn {
 	{
 	public:
 		Prefab();
-		~Prefab();
+		virtual ~Prefab();
 
 		void Create( Entity& srcEntity );
 		void Create();

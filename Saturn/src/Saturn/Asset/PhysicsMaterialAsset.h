@@ -46,7 +46,7 @@ namespace Saturn {
 	{
 	public:
 		PhysicsMaterialAsset( float StaticFriction, float DynamicFriction, float Restitution, PhysicsMaterialFlags flags = PhysicsMaterialFlags::None );
-		~PhysicsMaterialAsset();
+		virtual ~PhysicsMaterialAsset();
 
 		void SetStaticFriction( float val );
 		void SetDynamicFriction( float val );

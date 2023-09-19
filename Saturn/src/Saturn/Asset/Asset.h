@@ -211,6 +211,7 @@ namespace Saturn {
 
 	public:
 		Asset() {}
+		virtual ~Asset() = default;
 
 		const AssetType GetAssetType() const { return Type; }
 		const AssetID& GetAssetID() const { return ID; }

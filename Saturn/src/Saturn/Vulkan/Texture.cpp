@@ -37,8 +37,6 @@
 
 namespace Saturn {
 
-	static std::vector<Texture*> s_Textures;
-
 	static VkFormat VulkanFormat( ImageFormat format )
 	{
 		switch( format )
@@ -469,8 +467,6 @@ namespace Saturn {
 
 		Texture::Terminate();
 		
-		s_Textures.erase( std::remove( s_Textures.begin(), s_Textures.end(), this ), s_Textures.end() );
-
 		//if( m_DescriptorSet )
 		//	ImGui_ImplVulkan_RemoveTexture( m_DescriptorSet );
 	}
@@ -618,8 +614,6 @@ namespace Saturn {
 		pAllocator->DestroyBuffer( StagingBuffer );
 
 		CreateMips();
-
-		s_Textures.push_back( this );
 	}
 
 	void Texture2D::CreateMips()
@@ -930,8 +924,6 @@ namespace Saturn {
 
 		m_DescriptorImageInfo.sampler = m_Sampler;
 		m_DescriptorImageInfo.imageView = m_ImageView;
-
-		s_Textures.push_back( this );
 	}
 
 	void TextureCube::CreateMips()
