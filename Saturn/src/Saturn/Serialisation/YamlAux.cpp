@@ -39,6 +39,7 @@ namespace Saturn {
 	{
 		rEmitter << YAML::BeginMap;
 		rEmitter << YAML::Key << "Entity" << YAML::Value << entity.GetComponent< IdComponent >().ID;
+		bool isPrefab = entity.HasComponent<PrefabComponent>();
 
 		// Tag Component
 		if( entity.HasComponent<TagComponent>() )
@@ -95,12 +96,13 @@ namespace Saturn {
 		}
 
 		// Prefab Component
-		if( entity.HasComponent<PrefabComponent>() )
+		if( isPrefab )
 		{
 			rEmitter << YAML::Key << "PrefabComponent";
 			rEmitter << YAML::BeginMap;
 
 			rEmitter << YAML::Key << "AssetID" << YAML::Value << entity.GetComponent< PrefabComponent >().AssetID;
+			rEmitter << YAML::Key << "Modified" << YAML::Value << entity.GetComponent< PrefabComponent >().Modified;
 
 			rEmitter << YAML::EndMap;
 		}

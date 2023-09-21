@@ -592,6 +592,7 @@ namespace Saturn {
 		vkGetPhysicalDeviceProperties( VulkanContext::Get().GetPhysicalDevice(), &Properties );
 
 		SamplerCreateInfo.maxAnisotropy = Properties.limits.maxSamplerAnisotropy;
+		// Why?
 		SamplerCreateInfo.maxAnisotropy = 1.0f;
 
 		SamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;

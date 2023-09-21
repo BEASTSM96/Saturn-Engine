@@ -86,9 +86,11 @@ namespace Saturn {
 	RuntimeLayer::~RuntimeLayer()
 	{
 		m_RuntimeScene->OnRuntimeEnd();
-		m_RuntimeScene = nullptr;
 
-		//JoltPhysicsFoundation::Get().Terminate();
+		EntityScriptManager::Get().DestroyEntityInScene( m_RuntimeScene );
+		EntityScriptManager::Get().SetCurrentScene( nullptr );
+
+		m_RuntimeScene = nullptr;
 	}
 
 	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )
@@ -100,10 +102,10 @@ namespace Saturn {
 		SceneSerialiser serialiser( newScene );
 		serialiser.Deserialise( fullPath.string() );
 
+		m_RuntimeScene = nullptr;
 		m_RuntimeScene = newScene;
 
 		EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
-		EntityScriptManager::Get().TransferEntities( newScene );
 
 		newScene = nullptr;
 

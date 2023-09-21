@@ -86,7 +86,7 @@ namespace Saturn {
 		WriteDescriptorSet.dstBinding = 0;
 		WriteDescriptorSet.dstArrayElement = 0;
 		WriteDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		WriteDescriptorSet.descriptorCount = 1;		
+		WriteDescriptorSet.descriptorCount = 1;
 		
 		if( BufferInfo.buffer != VK_NULL_HANDLE )
 			WriteDescriptorSet.pBufferInfo = &BufferInfo;

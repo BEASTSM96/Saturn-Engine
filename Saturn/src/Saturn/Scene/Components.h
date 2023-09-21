@@ -290,6 +290,7 @@ namespace Saturn {
 	struct PrefabComponent
 	{
 		UUID AssetID;
+		bool Modified;
 
 		PrefabComponent() = default;
 		PrefabComponent( PrefabComponent& other ) = default;

@@ -535,7 +535,7 @@ namespace Saturn {
 
 	void Scene::SetActiveScene( Scene* pScene )
 	{
-		//s_ActiveScene = pScene;
+		s_ActiveScene = pScene;
 	}
 
 	Scene* Scene::GetActiveScene()
