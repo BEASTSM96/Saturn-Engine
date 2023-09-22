@@ -49,7 +49,18 @@ namespace Saturn {
 		void SetSelected( Entity entity );
 		void SetSelectionChangedCallback( const std::function<void( Entity )>& func ) { m_SelectionChangedCallback = func; }
 
-		Entity& GetSelectionContext() { return m_SelectionContext; }
+		std::vector<Entity>& GetSelectionContexts() { return m_SelectionContexts; }
+		const std::vector<Entity>& GetSelectionContexts() const { return m_SelectionContexts; }
+		
+		Entity& GetSelectionContext( uint32_t index = 0 ) 
+		{
+			return m_SelectionContexts[ index ]; 
+		}
+		
+		const Entity& GetSelectionContext( uint32_t index = 0 ) const 
+		{
+			return m_SelectionContexts[ index ]; 
+		}
 
 		void Draw();
 
@@ -61,9 +72,12 @@ namespace Saturn {
 	protected:
 
 		void DrawComponents( Entity entity );
+		bool IsEntitySelected( Entity entity );
 		void DrawEntityNode( Entity entity );
 		void DrawEntityComponents( Entity entity );
 		void DrawEntities();
+
+		void ClearSelection();
 
 		template<typename Ty>
 		void DrawAddComponents( const char* pName, Entity entity );
@@ -81,8 +95,10 @@ namespace Saturn {
 
 		AssetType m_CurrentFinderType = AssetType::Unknown;
 
+		bool m_IsMultiSelecting = false;
+
 		Ref<Scene> m_Context;
-		Entity m_SelectionContext ={};
+		std::vector<Entity> m_SelectionContexts;
 		std::function<void( Entity )> m_SelectionChangedCallback;
 	};
 

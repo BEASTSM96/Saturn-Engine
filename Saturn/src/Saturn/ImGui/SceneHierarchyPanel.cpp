@@ -33,6 +33,7 @@
 #include "Saturn/Vulkan/Mesh.h"
 #include "Saturn/Scene/Entity.h"
 #include "Saturn/Vulkan/SceneRenderer.h"
+#include "Saturn/Asset/Prefab.h"
 #include "ImGuiAuxiliary.h"
 
 #include "Saturn/Vulkan/VulkanContext.h"
@@ -108,12 +109,23 @@ namespace Saturn {
 	void SceneHierarchyPanel::SetContext( const Ref<Scene>& scene )
 	{
 		m_Context = scene;
-		m_SelectionContext  ={};
+		m_SelectionContexts.clear();
 	}
 
 	void SceneHierarchyPanel::SetSelected( Entity entity )
 	{
-		m_SelectionContext = entity;
+		if( m_IsMultiSelecting )
+		{
+			m_SelectionContexts.push_back( entity );
+		}
+		else
+		{
+			m_SelectionContexts.clear();
+			m_SelectionContexts.push_back( entity );
+		}
+	
+		SAT_CORE_INFO( "{0}", m_SelectionContexts.size() );
+
 		m_Context->SetSelectedEntity( entity );
 	}
 
@@ -133,14 +145,20 @@ namespace Saturn {
 		} );
 	}
 
+	void SceneHierarchyPanel::ClearSelection()
+	{
+		m_SelectionContexts.clear();
+		m_Context->SetSelectedEntity( {} );
+	}
+
 	template<typename Ty>
 	void SceneHierarchyPanel::DrawAddComponents( const char* pName, Entity entity )
 	{
-		if( !m_SelectionContext.HasComponent<Ty>() )
+		if( !m_SelectionContexts[ 0 ].HasComponent<Ty>() )
 		{
 			if( ImGui::Button( pName ) )
 			{
-				m_SelectionContext.AddComponent<Ty>();
+				m_SelectionContexts[ 0 ].AddComponent<Ty>();
 
 				ImGui::CloseCurrentPopup();
 			}
@@ -158,9 +176,9 @@ namespace Saturn {
 		{	
 			DrawEntities();
 
-			if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
+			if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() && !m_IsMultiSelecting )
 			{
-				SetSelected( {} );
+				ClearSelection();
 			}
 
 			if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
@@ -208,9 +226,9 @@ namespace Saturn {
 			std::string name = "Inspector##" + m_WindowName;
 			ImGui::Begin( name.c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse );
 
-			if( m_SelectionContext )
+			if( m_SelectionContexts.size() )
 			{
-				DrawComponents( m_SelectionContext );
+				DrawComponents( m_SelectionContexts[ 0 ] );
 			}
 
 			ImGui::End();
@@ -219,42 +237,52 @@ namespace Saturn {
 		if( !m_IsPrefabScene )
 			ImGui::End();
 
+		if( Input::Get().KeyPressed( Key::LeftControl ) || Input::Get().KeyPressed( Key::RightControl ) )
+		{
+			m_IsMultiSelecting ^= 1;
+		}
+
 		ImGui::PopID();
 	}
 	
 	void SceneHierarchyPanel::DrawComponents( Entity entity )
 	{
-		DrawEntityComponents( m_SelectionContext );
+		DrawEntityComponents( m_SelectionContexts[ 0 ] );
 
 		if( ImGui::Button( "Add Component" ) )
 			ImGui::OpenPopup( "AddComponentPanel" );
 
 		if( ImGui::BeginPopup( "AddComponentPanel" ) )
 		{
-			DrawAddComponents<StaticMeshComponent>( "Static Mesh", m_SelectionContext );
+			DrawAddComponents<StaticMeshComponent>( "Static Mesh", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<ScriptComponent>( "Script", m_SelectionContext );
+			DrawAddComponents<ScriptComponent>( "Script", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<CameraComponent>( "Camera", m_SelectionContext );
+			DrawAddComponents<CameraComponent>( "Camera", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<PointLightComponent>( "Point Light", m_SelectionContext );
+			DrawAddComponents<PointLightComponent>( "Point Light", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<DirectionalLightComponent>( "Directional Light", m_SelectionContext );
+			DrawAddComponents<DirectionalLightComponent>( "Directional Light", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<BoxColliderComponent>( "Box Collider", m_SelectionContext );
+			DrawAddComponents<BoxColliderComponent>( "Box Collider", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<SphereColliderComponent>( "Sphere Collider", m_SelectionContext );
+			DrawAddComponents<SphereColliderComponent>( "Sphere Collider", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<CapsuleColliderComponent>( "Capsule Collider", m_SelectionContext );
+			DrawAddComponents<CapsuleColliderComponent>( "Capsule Collider", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<MeshColliderComponent>( "Mesh Collider", m_SelectionContext );
+			DrawAddComponents<MeshColliderComponent>( "Mesh Collider", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<RigidbodyComponent>( "Rigidbody", m_SelectionContext );
+			DrawAddComponents<RigidbodyComponent>( "Rigidbody", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<PhysicsMaterialComponent>( "Physics material", m_SelectionContext );
+			DrawAddComponents<PhysicsMaterialComponent>( "Physics material", m_SelectionContexts[ 0 ] );
 
 			ImGui::EndPopup();
 		}
+	}
+
+	bool SceneHierarchyPanel::IsEntitySelected( Entity entity )
+	{
+		return std::find( m_SelectionContexts.begin(), m_SelectionContexts.end(), entity ) != m_SelectionContexts.end();
 	}
 
 	void SceneHierarchyPanel::DrawEntityNode( Entity entity )
@@ -264,8 +292,8 @@ namespace Saturn {
 			auto& rTag = entity.GetComponent<TagComponent>().Tag;
 			bool isPrefab = entity.HasComponent<PrefabComponent>() || entity.HasComponent<ScriptComponent>();
 
-			ImGuiTreeNodeFlags Flags = ( ( m_SelectionContext == entity ) ? ImGuiTreeNodeFlags_Selected : 0 ) | ImGuiTreeNodeFlags_OpenOnArrow;
-			Flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+			ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+			IsEntitySelected( entity ) ? Flags |= ImGuiTreeNodeFlags_Selected : 0;
 
 			bool Clicked;
 
@@ -279,11 +307,10 @@ namespace Saturn {
 
 			if( ImGui::IsItemClicked() )
 			{
-				m_SelectionContext = entity;
 				SetSelected( entity );
 
 				if( m_SelectionChangedCallback )
-					m_SelectionChangedCallback( m_SelectionContext );
+					m_SelectionChangedCallback( entity );
 			}
 
 			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) ) 
@@ -381,6 +408,10 @@ namespace Saturn {
 		{
 			ImGui::SameLine();
 			ImGui::TextDisabled( "%llx", id );
+
+			//bool value = AssetManager::Get().GetAssetAs<Prefab>( entity.GetComponent<PrefabComponent>().AssetID )->IsComponentModified<TransformComponent>( entity );
+
+			//ImGui::Checkbox( "Modified", &value );
 		}
 		else
 		{

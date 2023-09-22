@@ -600,8 +600,10 @@ namespace Saturn {
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
-		if( auto& rSelection = pHierarchyPanel->GetSelectionContext() )
+		if( pHierarchyPanel->GetSelectionContexts().size() > 0 )
 		{
+			auto& rSelection = pHierarchyPanel->GetSelectionContext();
+
 			if( rSelection.HasComponent<StaticMeshComponent>() )
 			{
 				if( auto& mesh = rSelection.GetComponent<StaticMeshComponent>().Mesh )
@@ -882,6 +884,8 @@ namespace Saturn {
 
 		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
 
+		// TODO: 
+		/*
 		Entity selectedEntity = pHierarchyPanel->GetSelectionContext();
 
 		if( selectedEntity && m_GizmoOperation != -1 )
@@ -917,6 +921,7 @@ namespace Saturn {
 				}
 			}
 		}
+		*/
 
 		ImGui::PopStyleVar();
 		ImGui::End();
