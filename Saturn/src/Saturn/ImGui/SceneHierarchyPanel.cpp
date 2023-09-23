@@ -123,10 +123,13 @@ namespace Saturn {
 			m_SelectionContexts.clear();
 			m_SelectionContexts.push_back( entity );
 		}
-	
-		SAT_CORE_INFO( "{0}", m_SelectionContexts.size() );
 
 		m_Context->SetSelectedEntity( entity );
+	}
+
+	void SceneHierarchyPanel::ClearSelected()
+	{
+		m_SelectionContexts.clear();
 	}
 
 	void SceneHierarchyPanel::DrawEntities()
@@ -228,7 +231,7 @@ namespace Saturn {
 
 			if( m_SelectionContexts.size() )
 			{
-				DrawComponents( m_SelectionContexts[ 0 ] );
+				DrawComponents( m_SelectionContexts.front() );
 			}
 
 			ImGui::End();
@@ -239,7 +242,11 @@ namespace Saturn {
 
 		if( Input::Get().KeyPressed( Key::LeftControl ) || Input::Get().KeyPressed( Key::RightControl ) )
 		{
-			m_IsMultiSelecting ^= 1;
+			m_IsMultiSelecting = true;
+		}
+		else
+		{
+			m_IsMultiSelecting = false;
 		}
 
 		ImGui::PopID();

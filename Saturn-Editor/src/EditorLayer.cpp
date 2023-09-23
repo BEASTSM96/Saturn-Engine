@@ -884,34 +884,55 @@ namespace Saturn {
 
 		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
 
-		// TODO: 
-		/*
-		Entity selectedEntity = pHierarchyPanel->GetSelectionContext();
+		Ref<Scene> ActiveScene = m_RuntimeScene ? m_RuntimeScene : m_EditorScene;
 
-		if( selectedEntity && m_GizmoOperation != -1 )
+		std::vector<Entity>& selectedEntities = pHierarchyPanel->GetSelectionContexts();
+
+		// Calc center of transform.
+		glm::vec3 Positions = {};
+		glm::quat Rotations = {};
+		glm::vec3 Scales = {};
+
+		for( const auto& rEntity : selectedEntities )
 		{
-			if( !selectedEntity.HasComponent<SkylightComponent>() )
+			TransformComponent worldSpace = ActiveScene->GetWorldSpaceTransform( rEntity );
+			Positions += worldSpace.Position;
+			Rotations += worldSpace.GetRotation();
+			Scales += worldSpace.Scale;
+		}
+
+		Positions /= selectedEntities.size();
+		Rotations /= selectedEntities.size();
+		Scales /= selectedEntities.size();
+
+		glm::mat4 centerPoint = glm::translate( glm::mat4( 1.0f ), Positions) * glm::toMat4( Rotations ) * glm::scale( glm::mat4(1.0f), Scales );
+		glm::mat4 offsetTransform( 1.0f );
+
+		///////////////////
+
+		if( selectedEntities.size() )
+		{
+			ImGuizmo::SetOrthographic( false );
+			ImGuizmo::SetDrawlist();
+			ImGuizmo::SetRect( minBound.x, minBound.y, m_ViewportSize.x, m_ViewportSize.y );
+
+			const glm::mat4 Projection = m_EditorCamera.ProjectionMatrix();
+			const glm::mat4 View = m_EditorCamera.ViewMatrix();
+
+			ImGuizmo::Manipulate( glm::value_ptr( View ), glm::value_ptr( Projection ), ( ImGuizmo::OPERATION ) m_GizmoOperation, ImGuizmo::LOCAL, glm::value_ptr( centerPoint ), glm::value_ptr( offsetTransform ) );
+
+			if( ImGuizmo::IsUsing() )
 			{
-				ImGuizmo::SetOrthographic( false );
-				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetRect( minBound.x, minBound.y, m_ViewportSize.x, m_ViewportSize.y );
-
-				auto& tc = selectedEntity.GetComponent<TransformComponent>();
-
-				glm::mat4 transform = m_RuntimeScene ? m_RuntimeScene->GetTransformRelativeToParent( selectedEntity ) : m_EditorScene->GetTransformRelativeToParent( selectedEntity );
-
-				const glm::mat4 Projection = m_EditorCamera.ProjectionMatrix();
-				const glm::mat4 View = m_EditorCamera.ViewMatrix();
-
-				ImGuizmo::Manipulate( glm::value_ptr( View ), glm::value_ptr( Projection ), ( ImGuizmo::OPERATION ) m_GizmoOperation, ImGuizmo::LOCAL, glm::value_ptr( transform ) );
-
-				if( ImGuizmo::IsUsing() )
+				for( Entity& entity : selectedEntities )
 				{
+					glm::mat4 transform = ActiveScene->GetTransformRelativeToParent( entity );
+					auto& tc = entity.GetComponent<TransformComponent>();
+
 					glm::vec3 translation;
 					glm::vec3 rotation;
 					glm::vec3 scale;
 
-					Math::DecomposeTransform( transform, translation, rotation, scale );
+					Math::DecomposeTransform( transform * offsetTransform, translation, rotation, scale );
 
 					glm::vec3 DeltaRotation = rotation - tc.GetRotationEuler();
 
@@ -921,7 +942,6 @@ namespace Saturn {
 				}
 			}
 		}
-		*/
 
 		ImGui::PopStyleVar();
 		ImGui::End();
@@ -979,7 +999,7 @@ namespace Saturn {
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		EntityScriptManager::Get().SetCurrentScene( newScene );
 
-		pHierarchyPanel->SetSelected( {} );
+		pHierarchyPanel->ClearSelected();
 		pHierarchyPanel->SetContext( nullptr );
 
 		if( !rFilepath.empty() ) 
@@ -994,9 +1014,6 @@ namespace Saturn {
 
 		// We maybe don't need to transfer the entities but just to be sure we will do it.
 		EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
-
-		//EntityScriptManager::Get().TransferEntities( newScene );
-		//EntityScriptManager::Get().DestroyEntityInScene( newScene );
 
 		pHierarchyPanel->SetContext( m_EditorScene );
 		newScene = nullptr;
@@ -1035,11 +1052,12 @@ namespace Saturn {
 
 				if( pHierarchyPanel )
 				{
-					if( auto& rEntity = pHierarchyPanel->GetSelectionContext() )
+					for( auto& rEntity : pHierarchyPanel->GetSelectionContexts() )
 					{
 						m_EditorScene->DeleteEntity( rEntity );
-						pHierarchyPanel->SetSelected( {} );
 					}
+					
+					pHierarchyPanel->ClearSelected();
 				}
 			} break;
 
@@ -1067,7 +1085,7 @@ namespace Saturn {
 					
 					if( pHierarchyPanel ) 
 					{
-						if( auto& rEntity = pHierarchyPanel->GetSelectionContext() )
+						for( const auto& rEntity : pHierarchyPanel->GetSelectionContexts() )
 						{
 							m_EditorScene->DuplicateEntity( rEntity );
 						}
@@ -1075,6 +1093,7 @@ namespace Saturn {
 
 				} break;
 
+				// TODO: Support more than one selection.
 				case Key::F:
 				{
 					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );

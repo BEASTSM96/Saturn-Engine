@@ -47,6 +47,7 @@ namespace Saturn {
 
 		void SetContext( const Ref<Scene>& scene );
 		void SetSelected( Entity entity );
+		void ClearSelected();
 		void SetSelectionChangedCallback( const std::function<void( Entity )>& func ) { m_SelectionChangedCallback = func; }
 
 		std::vector<Entity>& GetSelectionContexts() { return m_SelectionContexts; }
@@ -99,6 +100,7 @@ namespace Saturn {
 
 		Ref<Scene> m_Context;
 		std::vector<Entity> m_SelectionContexts;
+		std::pair<Entity, Entity> m_ShiftStartEnd;
 		std::function<void( Entity )> m_SelectionChangedCallback;
 	};
 
