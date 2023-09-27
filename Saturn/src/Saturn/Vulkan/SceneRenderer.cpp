@@ -1521,6 +1521,10 @@ namespace Saturn {
 		m_RendererData.LightCullingTimer.Stop();
 	}
 
+	// TODO: This function needs a rework.
+	//       We are creating a new descriptor set every frame but we are recycling it at the end of frame in the Renderer.
+	//	     We could just free them in this function?
+	//       And also we aren't freeing them after the stages are complete.
 	void SceneRenderer::BloomPass()
 	{
 		SAT_PF_EVENT();
@@ -1550,8 +1554,10 @@ namespace Saturn {
 		auto& pipeline = m_RendererData.BloomComputePipeline;
 
 		VkDescriptorSet descriptorSet;
+		VkDescriptorPool descriptorPool = Renderer::Get().GetDescriptorPool()->GetVulkanPool();
+
 		VkDescriptorSetAllocateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-		info.descriptorPool = Renderer::Get().GetDescriptorPool()->GetVulkanPool();
+		info.descriptorPool = descriptorPool;
 		info.descriptorSetCount = 1;
 		info.pSetLayouts = shader->GetSetLayouts().data();
 
@@ -1851,7 +1857,7 @@ namespace Saturn {
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Bloom" );
 
-		BloomPass();
+		//BloomPass();
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
@@ -1956,7 +1962,6 @@ namespace Saturn {
 		BloomComputePipeline = nullptr;
 
 		// Shaders
-		// Static mesh shader will never be fully destroyed because it has 17 other refs attached to it.
 		GridShader = nullptr;
 		SkyboxShader = nullptr;
 		StaticMeshShader = nullptr; 
