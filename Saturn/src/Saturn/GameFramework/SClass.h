@@ -30,8 +30,6 @@
 
 #include "Saturn/Core/Ref.h"
 
-#include "Saturn/Scene/Entity.h"
-
 namespace Saturn {
 
 	class SClass : public RefTarget
@@ -40,9 +38,9 @@ namespace Saturn {
 		SClass() {}
 		virtual ~SClass() = default;
 
-		virtual void BeginPlay() = 0;
-		virtual void OnUpdate( Saturn::Timestep ts ) = 0;
-		virtual void OnPhysicsUpdate( Saturn::Timestep ts ) = 0;
+		virtual void BeginPlay() {}
+		virtual void OnUpdate( Saturn::Timestep ts ) {}
+		virtual void OnPhysicsUpdate( Saturn::Timestep ts ) {}
 
 	private:
 		friend class EntityScriptManager;

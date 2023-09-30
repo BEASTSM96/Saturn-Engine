@@ -27,7 +27,7 @@
 */
 
 #include "sppch.h"
-#include "GameDLL.h"
+#include "GameModule.h"
 
 #include "Saturn/Core/App.h"
 
@@ -39,12 +39,12 @@
 
 namespace Saturn {
 
-	GameDLL::GameDLL()
+	GameModule::GameModule()
 	{
 		SingletonStorage::Get().AddSingleton( this );
 	}
 
-	void GameDLL::Load( bool reload /*=false*/ )
+	void GameModule::Load( bool reload /*=false*/ )
 	{
 		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
 		{
@@ -66,7 +66,16 @@ namespace Saturn {
 		}
 	}
 
-	void GameDLL::Unload()
+	Entity* GameModule::FindAndCallRegisterFunction( const std::string& rClassName ) 
+	{
+		std::string funcName = "_Z_Create_" + rClassName;
+
+		pEntityCreateFunction registerFunc = ( pEntityCreateFunction ) GetProcAddress( m_DLLInstance, funcName.c_str() );
+
+		return (Entity*)( registerFunc )();
+	}
+
+	void GameModule::Unload()
 	{
 		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
 		{
@@ -74,7 +83,7 @@ namespace Saturn {
 		}
 	}
 
-	void GameDLL::Reload() 
+	void GameModule::Reload() 
 	{
 		Unload();
 		Load(true);

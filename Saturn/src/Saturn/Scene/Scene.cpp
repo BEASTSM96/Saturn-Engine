@@ -32,8 +32,6 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
-#include "Saturn/GameFramework/EntityScriptManager.h"
-
 #include "Entity.h"
 #include "Components.h"
 
@@ -43,6 +41,8 @@
 
 #include "Saturn/Physics/PhysicsScene.h"
 #include "Saturn/Physics/PhysicsRigidBody.h"
+
+#include "Saturn/GameFramework/Core/GameModule.h"
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -120,8 +120,6 @@ namespace Saturn {
 		{
 			m_PhysicsScene->Update( ts );
 			OnUpdatePhysics( ts );
-
-			EntityScriptManager::Get().UpdateAllScripts( ts );
 		}
 	}
 
@@ -136,8 +134,6 @@ namespace Saturn {
 			auto [tc, rb] = PhysXView.get<TransformComponent, RigidbodyComponent>( entity );
 			rb.Rigidbody->SyncTransfrom();
 		}
-
-		EntityScriptManager::Get().OnPhysicsUpdate( ts );
 	}
 
 	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer )
@@ -319,7 +315,8 @@ namespace Saturn {
 
 	Entity Scene::CreateEntityWithID( UUID uuid, const std::string& name /*= "" */ )
 	{
-		auto entity = Entity{ m_Registry.create(), this };
+		Entity entity ={ m_Registry.create(), this };
+
 		auto& idComponent = entity.AddComponent<IdComponent>();
 		idComponent.ID = uuid;
 
@@ -327,12 +324,25 @@ namespace Saturn {
 		if( !name.empty() )
 			entity.AddComponent<TagComponent>( name );
 
-		//SAT_CORE_ASSERT( m_EntityIDMap.find( uuid ) == m_EntityIDMap.end(), "Entity has the same name!" );
 		m_EntityIDMap[ uuid ] = entity;
 
 		entity.AddComponent<RelationshipComponent>();
 
 		return entity;
+	}
+
+	Entity Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
+	{
+		FindSciptCtorFunc( rScriptName );
+
+		return entity;
+	}
+
+	Entity* Scene::FindSciptCtorFunc( const std::string& rName ) 
+	{
+		Entity* entity = GameModule::Get().FindAndCallRegisterFunction( rName );
+		entity->m_EntityHandle = m_Registry.create();
+		entity->m_Scene = this;
 	}
 
 	Entity Scene::FindEntityByTag( const std::string& tag )
@@ -503,7 +513,12 @@ namespace Saturn {
 
 		m_PhysicsScene = new PhysicsScene( this );
 
-		EntityScriptManager::Get().BeginPlay();
+		// Update all game entities (i.e. entities that have custom types that are made by the client).
+		const auto& view = GetAllEntitiesWith<ScriptComponent>();
+
+		for( const auto& e : view )
+		{
+		}
 	}
 
 	void Scene::OnRuntimeEnd()
@@ -522,10 +537,6 @@ namespace Saturn {
 
 		if( prefabEntity.HasComponent<ScriptComponent>() ) 
 		{
-			// Try register
-			EntityScriptManager::Get().RegisterScript( prefabEntity.GetComponent<ScriptComponent>().ScriptName );
-
-			sc = EntityScriptManager::Get().CreateScript( prefabEntity.GetComponent<ScriptComponent>().ScriptName, (SClass*)&prefabEntity );
 		}
 
 		return { prefabEntity, sc };

@@ -37,9 +37,7 @@
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
-#include "Saturn/GameFramework/GameDLL.h"
-#include "Saturn/GameFramework/GameManager.h"
-#include "Saturn/GameFramework/EntityScriptManager.h"
+#include "Saturn/GameFramework/Core/GameModule.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
 
@@ -70,12 +68,8 @@ namespace Saturn {
 
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
-		EntityScriptManager::Get();
-
-		GameDLL* pGameDLL = new GameDLL();
+		GameModule* pGameDLL = new GameModule();
 		pGameDLL->Load();
-
-		GameManager* pGameManager = new GameManager();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
@@ -87,25 +81,19 @@ namespace Saturn {
 	{
 		m_RuntimeScene->OnRuntimeEnd();
 
-		EntityScriptManager::Get().DestroyEntityInScene( m_RuntimeScene );
-		EntityScriptManager::Get().SetCurrentScene( nullptr );
-
 		m_RuntimeScene = nullptr;
 	}
 
 	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )
 	{
 		Ref<Scene> newScene = Ref<Scene>::Create();
-		EntityScriptManager::Get().SetCurrentScene( newScene );
-
+		
 		auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
 		SceneSerialiser serialiser( newScene );
 		serialiser.Deserialise( fullPath.string() );
 
 		m_RuntimeScene = nullptr;
 		m_RuntimeScene = newScene;
-
-		EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
 
 		newScene = nullptr;
 

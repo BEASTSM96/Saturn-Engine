@@ -28,51 +28,34 @@
 
 #pragma once
 
-#include "Saturn/Scene/Scene.h"
-#include <unordered_map>
+#include "SingletonStorage.h"
+#include "Saturn/GameFramework/SClass.h"
+
+#include <Windows.h>
 
 namespace Saturn {
-	
+
 	class Entity;
 
-	class EntityScriptManager
+	typedef Entity* ( __stdcall* pEntityCreateFunction )();
+
+	class GameModule
 	{
 	public:
-		static EntityScriptManager& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<EntityScriptManager>(); }
+		static GameModule& Get() { return *SingletonStorage::Get().GetSingleton<GameModule>(); }
 	public:
-		EntityScriptManager();
-		~EntityScriptManager();
+		GameModule();
+		~GameModule() {}
 
-		void SetCurrentScene( const Ref<Scene>& rScene ) { m_CurrentScene = rScene; }
-		void TransferEntities( const Ref<Scene>& rOldScene );
-
-		void RegisterScript( const std::string& rName );
-		void UnregisterScript( const std::string& rName );
-
-		void BeginPlay();
-		void UpdateAllScripts( Saturn::Timestep ts );
-		void OnPhysicsUpdate( Saturn::Timestep ts );
-
-		void CreateAllScripts();
-
-		void DestroyEntityInScene( const Ref<Scene>& rScene );
-
-		Saturn::SClass* CreateScript( const std::string& rName, SClass* Base );
-
+		void Load( bool reload = false );
+		Entity* FindAndCallRegisterFunction( const std::string& rClassName );
+		void Unload();
 		void Reload();
-
-		void AddProperty( const std::string& rClassName, const std::string& rName, void* ppRawProp );
 	private:
-
-		// The register function defined in the game dll. i.e. _Z_Create_MyClass
-		std::unordered_map< std::string, SClass* ( __stdcall* )( SClass* ) > m_ScriptFunctions;
-
-		std::unordered_map< UUID, std::unordered_map< std::string, SClass* >> m_Scripts;
-		std::vector< Ref<Scene> > m_Scenes;
-
-		Ref<Scene> m_CurrentScene;
+		HMODULE m_DLLInstance = nullptr;
 
 	private:
-		static EntityScriptManager* s_Instance;
+		friend class EntityScriptManager;
 	};
+
 }

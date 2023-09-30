@@ -94,7 +94,11 @@ namespace Saturn {
 		Entity CreateEntity( const std::string& name =  "" );
 		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
 
+		Entity CreateEntityWithIDScript( UUID uuid, const std::string& name = "", const std::string& rScriptName = "" );
+
 		void DestroyEntity( Entity entity );
+	
+		Entity* FindSciptCtorFunc( const std::string& rName );
 
 		void OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer );
 		void OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer );
@@ -213,6 +217,8 @@ namespace Saturn {
 
 		// TODO: Change raw pointer to Ref?
 		PhysicsScene* m_PhysicsScene = nullptr;
+
+		std::unordered_map<std::string, Entity*> m_ScriptEntities;
 
 	private:
 

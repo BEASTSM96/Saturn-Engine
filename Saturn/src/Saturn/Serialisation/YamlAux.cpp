@@ -31,8 +31,6 @@
 
 #include "Saturn/Asset/AssetManager.h"
 
-#include "Saturn/GameFramework/Core/EntityScriptManager.h"
-
 namespace Saturn {
 
 	void SerialiseEntity( YAML::Emitter& rEmitter, Entity entity )
@@ -328,7 +326,25 @@ namespace Saturn {
 
 			SAT_CORE_INFO( "Deserialised entity with ID: {0}, with name : {1}", entityID, Tag );
 
-			Entity DeserialisedEntity = scene->CreateEntityWithID( entityID, Tag );
+			Entity DeserialisedEntity;
+
+			auto srcc = entity[ "ScriptComponent" ];
+			if( srcc )
+			{
+				// We are a entity that has a custom type, we'll need to create that custom type and use it. 
+				// However we don't know what that type is, but we know for a fact that it's always based from an SClass. And (right now) it's got to be based from an Entity as well.
+
+				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, srcc[ "Name" ].as< std::string >() );
+
+				auto& s = DeserialisedEntity.GetComponent< ScriptComponent >();
+
+				s.ScriptName = srcc[ "Name" ].as< std::string >();
+				s.AssetID = srcc[ "ID" ].as< uint64_t >();
+			}
+			else
+			{
+				DeserialisedEntity = scene->CreateEntityWithID( entityID, Tag );
+			}
 
 			auto tc = entity[ "TransformComponent" ];
 			if( tc )
@@ -527,18 +543,6 @@ namespace Saturn {
 				c.MainCamera = cc[ "MainCamera" ].as< bool >();
 			}
 
-			auto srcc = entity[ "ScriptComponent" ];
-			if( srcc )
-			{
-				auto& s = DeserialisedEntity.AddComponent< ScriptComponent >();
-
-				s.ScriptName = srcc[ "Name" ].as< std::string >();
-				s.AssetID = srcc[ "ID" ].as< uint64_t >();
-
-				// Create the script class
-				EntityScriptManager::Get().RegisterScript( s.ScriptName );
-				SClass* sclass = EntityScriptManager::Get().CreateScript( s.ScriptName, ( SClass* ) &DeserialisedEntity );
-			}
 		}
 	}
 

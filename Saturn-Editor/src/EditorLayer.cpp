@@ -62,9 +62,7 @@
 #include <Saturn/Asset/AssetManager.h>
 #include <Saturn/Asset/Prefab.h>
 
-#include <Saturn/GameFramework/Core/GameDLL.h>
-#include <Saturn/GameFramework/Core/GameManager.h>
-#include <Saturn/GameFramework/Core/EntityScriptManager.h>
+#include <Saturn/GameFramework/Core/GameModule.h>
 
 #include <Saturn/GameFramework/Character.h>
 
@@ -221,21 +219,12 @@ namespace Saturn {
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 		CheckMissingEditorAssetRefs();
 
-		// Lazy load.
-		// TODO: We should not lazy load something this important.
-		EntityScriptManager::Get();
-
-		GameDLL* pGameDLL = new GameDLL();
+		GameModule* pGameDLL = new GameModule();
 		pGameDLL->Load();
-
-		GameManager* pGameManager = new GameManager();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
 		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
-
-		Character* myCharacter = Character::Spawn();
-		delete myCharacter;
 
 		/*
 		Ref<Asset> asset = AssetManager::Get().FindAsset( "Assets\\Sound\\Music_MainThemePiano.s2d" );
@@ -258,17 +247,12 @@ namespace Saturn {
 		m_PanelManager = nullptr;
 
 		if( m_RuntimeScene ) 
-		{
-			EntityScriptManager::Get().DestroyEntityInScene( m_RuntimeScene );
-			EntityScriptManager::Get().SetCurrentScene( nullptr );
-			
+		{	
 			m_RuntimeScene->OnRuntimeEnd();
 			m_RuntimeScene = nullptr;
 		}
 		else
 		{
-			EntityScriptManager::Get().DestroyEntityInScene( m_EditorScene );
-			EntityScriptManager::Get().SetCurrentScene( nullptr );
 		}
 
 		Application::Get().PrimarySceneRenderer().SetCurrentScene( nullptr );
@@ -290,9 +274,6 @@ namespace Saturn {
 
 				m_EditorScene->CopyScene( m_RuntimeScene );
 
-				EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
-				EntityScriptManager::Get().TransferEntities( m_EditorScene );
-
 				m_RuntimeScene->OnRuntimeStart();
 
 				pHierarchyPanel->SetContext( m_RuntimeScene );
@@ -308,14 +289,12 @@ namespace Saturn {
 			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
 			{
 				m_RuntimeScene->OnRuntimeEnd();
-				EntityScriptManager::Get().DestroyEntityInScene( m_RuntimeScene );
 
 				m_RuntimeScene = nullptr;
 
 				pHierarchyPanel->SetContext( m_EditorScene );
 
 				Scene::SetActiveScene( m_EditorScene.Pointer() );
-				EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
 				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Pointer() );
 			}
 		}
@@ -1002,7 +981,6 @@ namespace Saturn {
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
-		EntityScriptManager::Get().SetCurrentScene( newScene );
 
 		pHierarchyPanel->ClearSelected();
 		pHierarchyPanel->SetContext( nullptr );
@@ -1016,9 +994,6 @@ namespace Saturn {
 
 		m_EditorScene = nullptr;
 		m_EditorScene = newScene;
-
-		// We maybe don't need to transfer the entities but just to be sure we will do it.
-		EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
 
 		pHierarchyPanel->SetContext( m_EditorScene );
 		newScene = nullptr;

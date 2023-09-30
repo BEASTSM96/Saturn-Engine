@@ -38,8 +38,6 @@
 
 #include "Saturn/Vulkan/VulkanContext.h"
 
-#include "Saturn/GameFramework/Core/EntityScriptManager.h"
-
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
