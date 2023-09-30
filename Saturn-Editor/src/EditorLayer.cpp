@@ -62,9 +62,11 @@
 #include <Saturn/Asset/AssetManager.h>
 #include <Saturn/Asset/Prefab.h>
 
-#include <Saturn/GameFramework/GameDLL.h>
-#include <Saturn/GameFramework/GameManager.h>
-#include <Saturn/GameFramework/EntityScriptManager.h>
+#include <Saturn/GameFramework/Core/GameDLL.h>
+#include <Saturn/GameFramework/Core/GameManager.h>
+#include <Saturn/GameFramework/Core/EntityScriptManager.h>
+
+#include <Saturn/GameFramework/Character.h>
 
 #include <Saturn/Core/Renderer/RenderThread.h>
 
@@ -231,6 +233,9 @@ namespace Saturn {
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
 		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+
+		Character* myCharacter = Character::Spawn();
+		delete myCharacter;
 
 		/*
 		Ref<Asset> asset = AssetManager::Get().FindAsset( "Assets\\Sound\\Music_MainThemePiano.s2d" );

@@ -33,6 +33,7 @@
 #include "EntityVisibility.h"
 
 #include "Saturn/GameFramework/SClass.h"
+#include "Saturn/GameFramework/Core/GameScript.h"
 
 #include <glm/glm.hpp>
 #include "entt.hpp"
@@ -41,8 +42,11 @@ namespace Saturn {
 
 	class Entity : public SClass
 	{
+		//////////////////////////////////////////////////////////////////////////
+		// Needed for game class.
+
+		DECLARE_CLASS_NO_MOVE( Entity, SClass )
 	public:
-		Entity() = default;
 		Entity( entt::entity handle, Scene* scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
 		Entity( const Entity& other ) = default;
 

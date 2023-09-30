@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "Saturn/Scene/Entity.h"
-
 #define SCLASS(...)
 #define SPROPERTY(...)
 
@@ -52,6 +50,26 @@ public: \
 	{ \
 		return nullptr; \
 	} \
-	__declspec(dllexport) static x* Spawn() { return new x(); } \
+	__declspec(dllexport) static x* Spawn() \
+	{ \
+		return new x(); \
+	} \
+public: \
+	x() : Super() {} 
+
+#define DECLARE_CLASS_NO_MOVE( x, BaseClass ) \
+private: \
+	static Saturn::SClass* _PrvStatic() {} \
+public: \
+	typedef x ThisClass; \
+	typedef BaseClass Super; \
+	inline static Saturn::SClass* StaticClass() \
+	{ \
+		return nullptr; \
+	} \
+	__declspec(dllexport) static x* Spawn() \
+	{ \
+		return new x(); \
+	} \
 public: \
 	x() : Super() {} 

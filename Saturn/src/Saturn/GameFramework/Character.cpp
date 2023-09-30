@@ -73,10 +73,12 @@ namespace Saturn {
 
 	glm::vec3 Character::CalculateRight()
 	{
+		return {};
 	}
 
 	glm::vec3 Character::CalculateForward()
 	{
+		return {};
 	}
 
 	void Character::HandleMovement()

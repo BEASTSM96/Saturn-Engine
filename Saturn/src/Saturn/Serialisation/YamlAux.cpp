@@ -31,7 +31,7 @@
 
 #include "Saturn/Asset/AssetManager.h"
 
-#include "Saturn/GameFramework/EntityScriptManager.h"
+#include "Saturn/GameFramework/Core/EntityScriptManager.h"
 
 namespace Saturn {
 

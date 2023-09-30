@@ -36,7 +36,7 @@
 
 #include "OptickProfiler.h"
 
-#include "Saturn/GameFramework/GameThread.h"
+#include "Saturn/GameFramework/Core/GameThread.h"
 #include "Renderer/RenderThread.h"
 
 #include "Saturn/Audio/AudioSystem.h"

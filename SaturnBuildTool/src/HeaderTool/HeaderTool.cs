@@ -194,6 +194,16 @@ namespace SaturnBuildTool.Tools
             return !match.Success;
         }
 
+        private bool ClassIsNotFwd( string Line ) 
+        {
+            // This regex checks for...
+            // 1. That there is a namespace (i.e. Saturn::PhysicsRigidBody)
+            // 2. Checks if it's actually a forward declaration.
+            Match match = Regex.Match(Line, @"^\s*(?:namespace\s+\w+\s*{)?\s*class\s+\w+(?:::\w+)?\s*;\s*(?:})?\s*$");
+
+            return !match.Success;
+        }
+
         private bool GenerateHeader(string GenHeaderPath, string HeaderPath) 
         {
             bool Result = false;
@@ -229,7 +239,7 @@ namespace SaturnBuildTool.Tools
 
                 cmd.GeneratedHeader.AppendLine("#pragma once\r\n");
 
-                cmd.GeneratedHeader.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
+                cmd.GeneratedHeader.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/GameScript.h"));
 
                 cmd.GeneratedHeader.AppendLine("\r\n");
 
@@ -283,7 +293,7 @@ namespace SaturnBuildTool.Tools
                         }
                     }
 
-                    if (line.Contains("class") && cmd.CurrentFile.ClassName == null && LineIsNotComment(line))
+                    if (line.Contains("class") && cmd.CurrentFile.ClassName == null && LineIsNotComment(line) && ClassIsNotFwd(line))
                     {
                         cmd.CurrentFile.ClassName = GetClassName(line);
                     }
@@ -388,9 +398,9 @@ namespace SaturnBuildTool.Tools
 
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", string.Format( "{0}.Gen.h", cmd.CurrentFile.ClassName ) ));
 
-                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GameScript.h"));
-                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/GamePrefabList.h"));
-                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/EntityScriptManager.h"));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/GameScript.h"));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/GamePrefabList.h"));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/EntityScriptManager.h"));
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/Scene/Entity.h"));
 
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"\r\n", string.Format( "{0}.h", cmd.CurrentFile.ClassName )));
@@ -627,6 +637,7 @@ namespace SaturnBuildTool.Tools
 
                 if( !CommandQueue.ContainsKey( HeaderFilepath ) )
                 {
+                    // Very bad.
                     try
                     {
                         CommandQueue.Add(HeaderFilepath, cmd);
@@ -763,7 +774,7 @@ namespace SaturnBuildTool.Tools
 
                 generatedFiles.Add(cmd.GenFilepath);
             }
-            
+
             return generatedFiles;
         }
     }
