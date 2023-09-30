@@ -151,7 +151,7 @@ namespace Saturn {
 
 	Saturn::SClass* EntityScriptManager::CreateScript( const std::string& rName, SClass* Base )
 	{
-		return m_Scripts[ m_CurrentScene->GetId() ][ rName ] = m_ScriptFunctions[ rName ]( Base );
+		return m_Scripts[ m_CurrentScene->GetId() ][ rName ] = m_ScriptFunctions[ rName ]( nullptr );
 	}
 
 	void EntityScriptManager::Reload()

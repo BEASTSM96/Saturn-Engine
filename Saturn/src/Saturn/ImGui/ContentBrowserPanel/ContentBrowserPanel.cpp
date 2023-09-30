@@ -48,9 +48,9 @@
 #include "Saturn/Audio/Sound2D.h"
 
 #include "Saturn/Premake/Premake.h"
-#include "Saturn/GameFramework/SourceManager.h"
-#include "Saturn/GameFramework/GamePrefabList.h"
-#include "Saturn/GameFramework/EntityScriptManager.h"
+#include "Saturn/GameFramework/Core/SourceManager.h"
+#include "Saturn/GameFramework/Core/GamePrefabList.h"
+#include "Saturn/GameFramework/Core/EntityScriptManager.h"
 
 #include <imgui_internal.h>
 
@@ -392,7 +392,7 @@ namespace Saturn {
 					Entity* e = new Entity( PrefabAsset->GetScene()->CreateEntity( name ) );
 					e->AddComponent<ScriptComponent>().ScriptName = name;
 
-					SClass* sclass = EntityScriptManager::Get().CreateScript( name, e );
+					SClass* sclass = EntityScriptManager::Get().CreateScript( name, nullptr );
 
 					PrefabAsset->SetEntity( *( Entity* ) &e );
 

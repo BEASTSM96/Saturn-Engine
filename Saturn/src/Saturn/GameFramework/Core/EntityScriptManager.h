@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "GameScript.h"
+#include "Saturn/Scene/Scene.h"
 #include <unordered_map>
 
 namespace Saturn {
