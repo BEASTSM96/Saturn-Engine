@@ -333,9 +333,9 @@ namespace Saturn {
 
 	Entity Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
 	{
-		FindSciptCtorFunc( rScriptName );
+		Entity* e = GameModule::Get().FindAndCallRegisterFunction( name );
 
-		return entity;
+		return {};
 	}
 
 	Entity* Scene::FindSciptCtorFunc( const std::string& rName ) 
@@ -343,6 +343,8 @@ namespace Saturn {
 		Entity* entity = GameModule::Get().FindAndCallRegisterFunction( rName );
 		entity->m_EntityHandle = m_Registry.create();
 		entity->m_Scene = this;
+
+		return nullptr;
 	}
 
 	Entity Scene::FindEntityByTag( const std::string& tag )
@@ -542,16 +544,13 @@ namespace Saturn {
 		return { prefabEntity, sc };
 	}
 
-	static Scene* s_ActiveScene = nullptr;
-
 	void Scene::SetActiveScene( Scene* pScene )
 	{
-		s_ActiveScene = pScene;
+		GActiveScene = pScene;
 	}
 
 	Scene* Scene::GetActiveScene()
 	{
-		return nullptr;
+		return GActiveScene;
 	}
-
 }

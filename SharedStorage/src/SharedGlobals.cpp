@@ -26,28 +26,10 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/Core/Ref.h"
+#include "SharedGlobals.h"
 
 namespace Saturn {
 
-	class SClass : public RefTarget
-	{
-	public:
-		SClass() {}
-		virtual ~SClass() = default;
-
-		virtual void BeginPlay() {}
-		virtual void OnUpdate( Saturn::Timestep ts ) {}
-		virtual void OnPhysicsUpdate( Saturn::Timestep ts ) {}
-
-		SClass* GetSuperClass() { return m_SuperClass; }
-
-	public:
-		SClass* m_SuperClass = nullptr;
-	private:
-		friend class EntityScriptManager;
-	};
+	static Scene* GActiveScene = nullptr;
 
 }

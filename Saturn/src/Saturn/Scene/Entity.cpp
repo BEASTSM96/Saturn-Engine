@@ -26,28 +26,17 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "Entity.h"
 
-#include "Saturn/Core/Ref.h"
+Saturn::SClass* _Z_Create_Entity()
+{
+	using namespace Saturn;
 
-namespace Saturn {
+	SClass* pClass = new SClass();
 
-	class SClass : public RefTarget
-	{
-	public:
-		SClass() {}
-		virtual ~SClass() = default;
+	Entity e = GActiveScene->CreateEntity( "Script Entity" );
+	e.m_SuperClass = pClass;
 
-		virtual void BeginPlay() {}
-		virtual void OnUpdate( Saturn::Timestep ts ) {}
-		virtual void OnPhysicsUpdate( Saturn::Timestep ts ) {}
-
-		SClass* GetSuperClass() { return m_SuperClass; }
-
-	public:
-		SClass* m_SuperClass = nullptr;
-	private:
-		friend class EntityScriptManager;
-	};
-
+	return &e;
 }

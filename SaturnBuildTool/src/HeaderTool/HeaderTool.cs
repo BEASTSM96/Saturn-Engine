@@ -400,7 +400,6 @@ namespace SaturnBuildTool.Tools
 
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/GameScript.h"));
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/GamePrefabList.h"));
-                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/EntityScriptManager.h"));
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/Scene/Entity.h"));
 
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"\r\n", string.Format( "{0}.h", cmd.CurrentFile.ClassName )));
@@ -415,28 +414,19 @@ namespace SaturnBuildTool.Tools
                 {
                     // If our class in spawnable we can now create the spawn function.
 
-                    string function = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
-                    function += cmd.CurrentFile.ClassName;
-                    function += "()\r\n";
-                    function += "{\r\n";
-                    function += "\t return ";
-                    function += cmd.CurrentFile.ClassName;
-                    function += "::Spawn();\r\n";
+                    string spawnParamName = string.Format( "_Z_{0}_SpawnParams", cmd.CurrentFile.ClassName );
+
+                    string function = string.Format( "__declspec(dllexport) Saturn::Entity* _Z_Create_{0}()", cmd.CurrentFile.ClassName );
+                    function += "\r\n{\r\n";
+                    function += "\r\n";
+                    function += "\tSaturn::SClass* pClass = new SClass();\r\n";
+                    function += string.Format( "\tpClass->m_SuperClass = _Z_Create_{0}();\r\n", cmd.CurrentFile.BaseClass );
+                    function += string.Format( "\t{0}* p{0} = ({0}*)pClass;\r\n", cmd.CurrentFile.ClassName );
+                    function += string.Format("\tp{0}->__DefaultConstructor();\r\n", cmd.CurrentFile.ClassName );
+                    function += string.Format("\treturn (Saturn::Entity*)p{0};\r\n", cmd.CurrentFile.ClassName );
                     function += "}\r\n";
 
                     cmd.GeneratedSource.AppendLine(function);
-
-                    string functionBaseClass = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
-                    functionBaseClass += cmd.CurrentFile.ClassName;
-                    functionBaseClass += "_FromBase";
-                    functionBaseClass += string.Format("({0}* Ty)\r\n", cmd.CurrentFile.BaseClass);
-                    functionBaseClass += "{\r\n";
-                    functionBaseClass += "\t return new ";
-                    functionBaseClass += cmd.CurrentFile.ClassName;
-                    functionBaseClass += "(*Ty);\r\n";
-                    functionBaseClass += "}\r\n";
-
-                    cmd.GeneratedSource.AppendLine(functionBaseClass);
 
                     cmd.GeneratedSource.AppendLine("//^^^ Spawnable\r\n");
                 }

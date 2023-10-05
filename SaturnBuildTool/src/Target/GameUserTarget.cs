@@ -24,7 +24,7 @@ namespace SaturnBuildTool
             // Saturn:
             SaturnRootDir = Environment.GetEnvironmentVariable( "SATURN_DIR" );
 
-            SaturnSingletonDir = Path.Combine(SaturnRootDir, "SingletonStorage" );
+            SaturnSingletonDir = Path.Combine(SaturnRootDir, "SharedStorage");
 
             SaturnVenderDir = Path.Combine(SaturnRootDir, "Saturn\\vendor" );
             SaturnSourceDir = Path.Combine(SaturnRootDir, "Saturn\\src" );
@@ -62,14 +62,14 @@ namespace SaturnBuildTool
                 case ConfigKind.Debug: 
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Debug-windows-x86_64\\Saturn" );
-                        ssBinDir = Path.Combine(ssBinDir, "Debug-windows-x86_64\\SingletonStorage" );
+                        ssBinDir = Path.Combine(ssBinDir, "Debug-windows-x86_64\\SharedStorage");
                     } break;
 
                 case ConfigKind.DistRelease:
                 case ConfigKind.Release:
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Release-windows-x86_64\\Saturn");
-                        ssBinDir = Path.Combine(ssBinDir, "Release-windows-x86_64\\SingletonStorage");
+                        ssBinDir = Path.Combine(ssBinDir, "Release-windows-x86_64\\SharedStorage");
                     }
                     break;
 
@@ -77,7 +77,7 @@ namespace SaturnBuildTool
                 case ConfigKind.Dist:
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Dist-windows-x86_64\\Saturn");
-                        ssBinDir = Path.Combine(ssBinDir, "Dist-windows-x86_64\\SingletonStorage");
+                        ssBinDir = Path.Combine(ssBinDir, "Dist-windows-x86_64\\SharedStorage");
                     }
                     break;
             }
@@ -86,7 +86,7 @@ namespace SaturnBuildTool
 
             // Link to saturn
             Links.Add("Saturn.lib");
-            Links.Add("SingletonStorage.lib");
+            Links.Add("SharedStorage.lib");
 
             PreprocessorDefines.Add("SATURN_SS_IMPORT");
 

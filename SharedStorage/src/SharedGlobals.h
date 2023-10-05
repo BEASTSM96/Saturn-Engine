@@ -28,26 +28,12 @@
 
 #pragma once
 
-#include "Saturn/Core/Ref.h"
+#include "SSBase.h"
+
+// All shared globals from the game and the engine.
+// This will really be needed when we compile the game as a standalone as we can just build this link this statically.
 
 namespace Saturn {
-
-	class SClass : public RefTarget
-	{
-	public:
-		SClass() {}
-		virtual ~SClass() = default;
-
-		virtual void BeginPlay() {}
-		virtual void OnUpdate( Saturn::Timestep ts ) {}
-		virtual void OnPhysicsUpdate( Saturn::Timestep ts ) {}
-
-		SClass* GetSuperClass() { return m_SuperClass; }
-
-	public:
-		SClass* m_SuperClass = nullptr;
-	private:
-		friend class EntityScriptManager;
-	};
-
+	class Scene;
+	extern SS_API Scene* GActiveScene;
 }

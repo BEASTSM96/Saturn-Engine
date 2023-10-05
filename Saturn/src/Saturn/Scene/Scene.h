@@ -29,6 +29,9 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
+#include "SharedGlobals.h"
+
+#include "Saturn/GameFramework/Core/GameScript.h"
 
 #include "Saturn/Core/Renderer/EditorCamera.h"
 
@@ -149,7 +152,6 @@ namespace Saturn {
 
 		static void   SetActiveScene( Scene* pScene );
 		static Scene* GetActiveScene();
-
 	private:
 
 		//////////////////////////////////////////////////////////////////////////

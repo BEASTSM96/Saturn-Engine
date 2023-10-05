@@ -28,6 +28,17 @@
 
 #pragma once
 
+#include <string>
+
+namespace Saturn {
+
+	struct SClassParams
+	{
+		// The script/class to spawn.
+		//SClass* SuperClasses[];
+	};
+}
+
 #define SCLASS(...)
 #define SPROPERTY(...)
 
@@ -38,7 +49,10 @@
 #define CURRENT_FILE_ID
 #define GENERATED_BODY(...) BODY_MACRO_COMBINE(CURRENT_FILE_ID,_,__LINE__,_GENERATED_BODY);
 
+
 #define DECLARE_CLASS( x, BaseClass ) \
+public: \
+	static void __DefaultConstructor() { new x(); } \
 private: \
 	x& operator=(x&&); \
 	x& operator=(const x&); \
@@ -50,14 +64,10 @@ public: \
 	{ \
 		return nullptr; \
 	} \
-	__declspec(dllexport) static x* Spawn() \
-	{ \
-		return new x(); \
-	} \
-public: \
-	x() : Super() {} 
 
 #define DECLARE_CLASS_NO_MOVE( x, BaseClass ) \
+public: \
+	static void __DefaultConstructor() { new x(); } \
 private: \
 	static Saturn::SClass* _PrvStatic() {} \
 public: \
@@ -67,9 +77,3 @@ public: \
 	{ \
 		return nullptr; \
 	} \
-	__declspec(dllexport) static x* Spawn() \
-	{ \
-		return new x(); \
-	} \
-public: \
-	x() : Super() {} 

@@ -47,6 +47,7 @@ namespace Saturn {
 
 		DECLARE_CLASS_NO_MOVE( Entity, SClass )
 	public:
+		Entity() : SClass() { }
 		Entity( entt::entity handle, Scene* scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
 		Entity( const Entity& other ) = default;
 
@@ -138,3 +139,11 @@ namespace Saturn {
 		friend class Prefab;
 	};
 }
+
+//////////////////////////////////////////////////////////////////////////
+// Build Tool
+//////////////////////////////////////////////////////////////////////////
+
+// Temp
+// DO NOT USE! This is only here because we are not using the Build Tool for the engine however any game classes will need this function to constructed properly
+Saturn::SClass* _Z_Create_Entity();

@@ -33,6 +33,11 @@
 
 namespace Saturn {
 
+	Character::Character()
+	{
+
+	}
+
 	Character::~Character()
 	{
 
@@ -91,4 +96,22 @@ namespace Saturn {
 
 	}
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Build Tool
+//////////////////////////////////////////////////////////////////////////
+
+Saturn::SClass* _Z_Create_Character()
+{
+	using namespace Saturn;
+
+	SClass* pClass = new SClass();
+
+	pClass->m_SuperClass = _Z_Create_Entity();
+
+	Character* pChar = (Character*)pClass;
+	pChar->__DefaultConstructor();
+
+	return pChar;
 }
