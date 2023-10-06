@@ -48,6 +48,17 @@ namespace Saturn {
 		DECLARE_CLASS_NO_MOVE( Entity, SClass )
 	public:
 		Entity() : SClass() { }
+		Entity( const SClassCtorInfo& rInfo ) : SClass()
+		{
+			if( rInfo.RegisterNewEntity )
+			{
+				m_Scene = GActiveScene;
+				m_EntityHandle = GActiveScene->m_Registry.create();
+
+				m_Scene->AddDefaultComponents( *this );
+			}
+		}
+
 		Entity( entt::entity handle, Scene* scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
 		Entity( const Entity& other ) = default;
 

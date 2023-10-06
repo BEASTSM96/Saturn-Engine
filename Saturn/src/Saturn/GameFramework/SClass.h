@@ -28,12 +28,17 @@
 
 #pragma once
 
+#include "SClassConstructorHelpers.h"
+
 #include "Saturn/Core/Ref.h"
 
 namespace Saturn {
 
 	class SClass : public RefTarget
 	{
+	public:
+		typedef void ( *Ctor )( const SClassCtorInfo& );
+		Ctor ClassConstructor = nullptr;
 	public:
 		SClass() {}
 		virtual ~SClass() = default;

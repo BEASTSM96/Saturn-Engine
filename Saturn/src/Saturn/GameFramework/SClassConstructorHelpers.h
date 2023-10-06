@@ -26,97 +26,22 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Character.h"
-
-#include "Saturn/Physics/PhysicsRigidBody.h"
+#pragma once
 
 namespace Saturn {
 
-	Character::Character()
+	class SClass;
+	struct SClassCtorInfo
 	{
+		// The class to construct.
+		SClass* TargetClass = nullptr;
+		// One, are we creating something based from an entity, if so should we register it? i.e. asking entt to give us an ID for the entity.
+		bool RegisterNewEntity = false;
+	};
 
-	}
-
-	Character::~Character()
+	template<typename Ty>
+	void CallConstructor( const SClassCtorInfo& rInfo )
 	{
-
+		Ty::__DefaultConstructor( rInfo );
 	}
-
-	void Character::BeginPlay()
-	{
-		Super::BeginPlay();
-
-		m_RigidBody = GetComponent<RigidbodyComponent>().Rigidbody;
-
-		m_RigidBody->SetOnCollisionHit( SAT_BIND_EVENT_FN( OnMeshHit ) );
-		m_RigidBody->SetOnCollisionExit( SAT_BIND_EVENT_FN( OnMeshExit ) );
-	}
-
-	void Character::OnUpdate( Timestep ts )
-	{
-		Super::OnUpdate( ts );
-
-		HandleRotation( ts );
-		HandleMovement();
-	}
-
-	void Character::OnPhysicsUpdate( Timestep ts )
-	{
-		Super::OnPhysicsUpdate( ts );
-	}
-
-	void Character::OnMeshHit( Entity Other )
-	{
-
-	}
-
-	void Character::OnMeshExit( Entity Other )
-	{
-
-	}
-
-	glm::vec3 Character::CalculateRight()
-	{
-		return {};
-	}
-
-	glm::vec3 Character::CalculateForward()
-	{
-		return {};
-	}
-
-	void Character::HandleMovement()
-	{
-
-	}
-
-	void Character::HandleRotation( Timestep ts )
-	{
-
-	}
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Build Tool
-//////////////////////////////////////////////////////////////////////////
-
-Saturn::SClass* _Z_Create_Character()
-{
-	using namespace Saturn;
-
-	SClass* pClass = new SClass();
-
-	pClass->m_SuperClass = _Z_Create_Entity();
-
-	Character* pChar = (Character*)pClass;
-	pChar->ClassConstructor = Saturn::CallConstructor<Character>;
-
-	Saturn::SClassCtorInfo ClassConstructor{};
-	ClassConstructor.TargetClass = pChar;
-
-	( *pChar->ClassConstructor )( ClassConstructor );
-
-	return pChar;
 }

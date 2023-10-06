@@ -99,6 +99,8 @@ namespace Saturn {
 
 		Entity CreateEntityWithIDScript( UUID uuid, const std::string& name = "", const std::string& rScriptName = "" );
 
+		void AddDefaultComponents( Entity entity );
+
 		void DestroyEntity( Entity entity );
 	
 		Entity* FindSciptCtorFunc( const std::string& rName );

@@ -72,7 +72,7 @@ namespace Saturn {
 
 		pEntityCreateFunction registerFunc = ( pEntityCreateFunction ) GetProcAddress( m_DLLInstance, funcName.c_str() );
 
-		return (Entity*)( registerFunc )();
+		return ( registerFunc )();
 	}
 
 	void GameModule::Unload()

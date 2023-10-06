@@ -334,11 +334,23 @@ namespace Saturn {
 	Entity Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
 	{
 		Entity* e = GameModule::Get().FindAndCallRegisterFunction( name );
+		e->AddComponent<ScriptComponent>().ScriptName = name;
+		e->GetComponent<TagComponent>().Tag = name;
 
-		return {};
+		return *e;
 	}
 
-	Entity* Scene::FindSciptCtorFunc( const std::string& rName ) 
+	void Scene::AddDefaultComponents( Entity entity )
+	{
+		entity.AddComponent<RelationshipComponent>();
+		entity.AddComponent<TransformComponent>();
+		auto& idComponent = entity.AddComponent<IdComponent>().ID = {};
+		entity.AddComponent<TagComponent>( "Unknown Name" );
+
+		m_EntityIDMap[ idComponent ] = entity;
+	}
+
+	Entity* Scene::FindSciptCtorFunc( const std::string& rName )
 	{
 		Entity* entity = GameModule::Get().FindAndCallRegisterFunction( rName );
 		entity->m_EntityHandle = m_Registry.create();

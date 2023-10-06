@@ -44,6 +44,7 @@ namespace Saturn {
 
 	public:
 		Character();
+		Character( const SClassCtorInfo& rInfo ) {}
 		~Character();
 
 	public:
