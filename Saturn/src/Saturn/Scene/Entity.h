@@ -47,7 +47,7 @@ namespace Saturn {
 
 		DECLARE_CLASS_NO_MOVE( Entity, SClass )
 	public:
-		Entity() : SClass() { }
+		Entity() = default;
 		Entity( const SClassCtorInfo& rInfo ) : SClass()
 		{
 			if( rInfo.RegisterNewEntity )
@@ -60,7 +60,21 @@ namespace Saturn {
 		}
 
 		Entity( entt::entity handle, Scene* scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
-		Entity( const Entity& other ) = default;
+		
+		Entity( const Entity& other ) 
+		{
+			this->m_Scene = other.m_Scene;
+			this->m_EntityHandle = other.m_EntityHandle;
+		}
+
+		virtual ~Entity() 
+		{
+			// We don't actually remove the handle from the registry in the scene.
+			// Why? because if we want to remove an entity (i.e. destroy) the entity we will call the function in the scene.
+
+			m_Scene = nullptr;
+			m_EntityHandle = entt::null;
+		}
 
 		template<typename T, typename... Args>
 		T& AddComponent( Args&&... args )

@@ -97,13 +97,12 @@ namespace Saturn {
 		Entity CreateEntity( const std::string& name =  "" );
 		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
 
-		Entity CreateEntityWithIDScript( UUID uuid, const std::string& name = "", const std::string& rScriptName = "" );
+		Ref<Entity> CreateEntityWithIDScript( UUID uuid, const std::string& name = "", const std::string& rScriptName = "" );
 
-		void AddDefaultComponents( Entity entity );
+		void AddDefaultComponents( Entity entity, const std::string& rName = "" );
+		void AddDefaultComponents( Ref<Entity>& entity, const std::string& rName = "" );
 
 		void DestroyEntity( Entity entity );
-	
-		Entity* FindSciptCtorFunc( const std::string& rName );
 
 		void OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer );
 		void OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer );
@@ -151,6 +150,11 @@ namespace Saturn {
 
 		UUID GetId() { return m_SceneID; }
 		const UUID GetId() const { return m_SceneID; }
+
+		entt::entity CreateHandle()
+		{
+			return m_Registry.create();
+		}
 
 		static void   SetActiveScene( Scene* pScene );
 		static Scene* GetActiveScene();
@@ -222,7 +226,7 @@ namespace Saturn {
 		// TODO: Change raw pointer to Ref?
 		PhysicsScene* m_PhysicsScene = nullptr;
 
-		std::unordered_map<std::string, Entity*> m_ScriptEntities;
+		std::vector<Ref<Entity>> m_ScriptEntities;
 
 	private:
 

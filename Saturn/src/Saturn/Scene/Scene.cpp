@@ -93,6 +93,11 @@ namespace Saturn {
 				m_Registry.get<RigidbodyComponent>( entity ).Rigidbody = nullptr;
 		}
 
+		for( auto& entity : m_ScriptEntities )
+		{
+			entity = nullptr;
+		}
+
 		s_ActiveScenes.erase( m_SceneID );
 		m_Registry.clear();
 	}
@@ -331,32 +336,33 @@ namespace Saturn {
 		return entity;
 	}
 
-	Entity Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
+	Ref<Entity> Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
 	{
-		Entity* e = GameModule::Get().FindAndCallRegisterFunction( name );
-		e->AddComponent<ScriptComponent>().ScriptName = name;
-		e->GetComponent<TagComponent>().Tag = name;
+		Ref<Entity> entity = Ref<Entity>( GameModule::Get().FindAndCallRegisterFunction( name ) );
+		entity->AddComponent<ScriptComponent>().ScriptName = name;
+		entity->GetComponent<TagComponent>().Tag = name;
 
-		return *e;
+		m_ScriptEntities.push_back( entity );
+
+		return entity;
 	}
 
-	void Scene::AddDefaultComponents( Entity entity )
+	void Scene::AddDefaultComponents( Entity entity, const std::string& rName )
 	{
 		entity.AddComponent<RelationshipComponent>();
 		entity.AddComponent<TransformComponent>();
 		auto& idComponent = entity.AddComponent<IdComponent>().ID = {};
-		entity.AddComponent<TagComponent>( "Unknown Name" );
+		entity.AddComponent<TagComponent>( rName.empty() ? "Unknown Name" : rName );
 
 		m_EntityIDMap[ idComponent ] = entity;
 	}
 
-	Entity* Scene::FindSciptCtorFunc( const std::string& rName )
+	void Scene::AddDefaultComponents( Ref<Entity>& entity, const std::string& rName )
 	{
-		Entity* entity = GameModule::Get().FindAndCallRegisterFunction( rName );
-		entity->m_EntityHandle = m_Registry.create();
-		entity->m_Scene = this;
-
-		return nullptr;
+		entity->AddComponent<RelationshipComponent>();
+		entity->AddComponent<TransformComponent>();
+		auto& idComponent = entity->AddComponent<IdComponent>().ID = {};
+		entity->AddComponent<TagComponent>( rName.empty() ? "Unknown Name" : rName );
 	}
 
 	Entity Scene::FindEntityByTag( const std::string& tag )

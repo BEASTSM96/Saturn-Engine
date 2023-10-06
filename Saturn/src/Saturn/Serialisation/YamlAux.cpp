@@ -326,7 +326,7 @@ namespace Saturn {
 
 			SAT_CORE_INFO( "Deserialised entity with ID: {0}, with name : {1}", entityID, Tag );
 
-			Entity DeserialisedEntity;
+			Ref<Entity> DeserialisedEntity;
 
 			auto srcc = entity[ "ScriptComponent" ];
 			if( srcc )
@@ -334,22 +334,25 @@ namespace Saturn {
 				// We are a entity that has a custom type, we'll need to create that custom type and use it. 
 				// However we don't know what that type is, but we know for a fact that it's always based from an SClass. And (right now) it's got to be based from an Entity as well.
 
-				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, srcc[ "Name" ].as< std::string >() );
+				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, "TTA" );
 
-				auto& s = DeserialisedEntity.GetComponent< ScriptComponent >();
+				auto& s = DeserialisedEntity->GetComponent< ScriptComponent >();
 
 				s.ScriptName = srcc[ "Name" ].as< std::string >();
 				s.AssetID = srcc[ "ID" ].as< uint64_t >();
 			}
 			else
 			{
-				DeserialisedEntity = scene->CreateEntityWithID( entityID, Tag );
+				DeserialisedEntity = Ref<Entity>::Create( scene->CreateHandle(), scene.Pointer() );
+
+				scene->AddDefaultComponents( DeserialisedEntity, Tag );
+				DeserialisedEntity->GetComponent<IdComponent>().ID = entityID;
 			}
 
 			auto tc = entity[ "TransformComponent" ];
 			if( tc )
 			{
-				auto& t = DeserialisedEntity.GetComponent< TransformComponent >();
+				auto& t = DeserialisedEntity->GetComponent< TransformComponent >();
 
 				t.Position = tc[ "Position" ].as< glm::vec3 >();
 
@@ -364,7 +367,7 @@ namespace Saturn {
 			auto mc = entity[ "MeshComponent" ];
 			if( mc )
 			{
-				auto& m = DeserialisedEntity.AddComponent< StaticMeshComponent >();
+				auto& m = DeserialisedEntity->AddComponent< StaticMeshComponent >();
 
 				auto id = mc[ "Asset" ].as<uint64_t>( 0 );
 
@@ -409,7 +412,7 @@ namespace Saturn {
 			}
 
 			auto rcNode = entity[ "RelationshipComponent" ];
-			auto& rc = DeserialisedEntity.GetComponent<RelationshipComponent>();
+			auto& rc = DeserialisedEntity->GetComponent<RelationshipComponent>();
 			rc.Parent = rcNode[ "Parent" ] ? rcNode[ "Parent" ].as<uint64_t>() : 0;
 
 			auto rcChildren = rcNode[ "Children" ];
@@ -425,7 +428,7 @@ namespace Saturn {
 			auto pc = entity["PrefabComponent" ];
 			if( pc )
 			{
-				auto& p = DeserialisedEntity.AddComponent< PrefabComponent >();
+				auto& p = DeserialisedEntity->AddComponent< PrefabComponent >();
 
 				p.AssetID = pc[ "AssetID" ].as< uint64_t >();
 			}
@@ -433,7 +436,7 @@ namespace Saturn {
 			auto slc = entity[ "SkyLightComponent" ];
 			if( slc )
 			{
-				auto& s = DeserialisedEntity.AddComponent< SkylightComponent >();
+				auto& s = DeserialisedEntity->AddComponent< SkylightComponent >();
 
 				s.DynamicSky = slc[ "IsPreetham" ].as< bool >();
 
@@ -454,7 +457,7 @@ namespace Saturn {
 			auto dlc = entity[ "DirectionalLightComponent" ];
 			if( dlc )
 			{
-				auto& d = DeserialisedEntity.AddComponent< DirectionalLightComponent >();
+				auto& d = DeserialisedEntity->AddComponent< DirectionalLightComponent >();
 
 				d.Radiance = dlc[ "Radiance" ].as< glm::vec3 >();
 				d.Intensity = dlc[ "Intensity" ].as< float >();
@@ -464,7 +467,7 @@ namespace Saturn {
 			auto plc = entity[ "PointLightComponent" ];
 			if( plc )
 			{
-				auto& p = DeserialisedEntity.AddComponent< PointLightComponent >();
+				auto& p = DeserialisedEntity->AddComponent< PointLightComponent >();
 
 				p.Radiance = plc[ "Radiance" ].as< glm::vec3 >();
 				p.Intensity = plc[ "Intensity" ].as< float >();
@@ -478,7 +481,7 @@ namespace Saturn {
 			auto bcc = entity[ "BoxColliderComponent" ];
 			if( bcc )
 			{
-				auto& b = DeserialisedEntity.AddComponent< BoxColliderComponent >();
+				auto& b = DeserialisedEntity->AddComponent< BoxColliderComponent >();
 
 				b.Extents = bcc[ "Extents" ].as< glm::vec3 >();
 				b.Offset = bcc[ "Offset" ].as< glm::vec3 >();
@@ -488,7 +491,7 @@ namespace Saturn {
 			auto scc = entity[ "SphereColliderComponent" ];
 			if( scc )
 			{
-				auto& s = DeserialisedEntity.AddComponent< SphereColliderComponent >();
+				auto& s = DeserialisedEntity->AddComponent< SphereColliderComponent >();
 
 				s.Radius = scc[ "Radius" ].as< float >();
 				s.Offset = scc[ "Offset" ].as< glm::vec3 >();
@@ -498,7 +501,7 @@ namespace Saturn {
 			auto ccc = entity[ "CapsuleColliderComponent" ];
 			if( ccc )
 			{
-				auto& c = DeserialisedEntity.AddComponent< CapsuleColliderComponent >();
+				auto& c = DeserialisedEntity->AddComponent< CapsuleColliderComponent >();
 
 				c.Height = ccc[ "Height" ].as< float >();
 				c.Radius = ccc[ "Radius" ].as< float >();
@@ -509,7 +512,7 @@ namespace Saturn {
 			auto rbc = entity[ "RigidbodyComponent" ];
 			if( rbc )
 			{
-				auto& rb = DeserialisedEntity.AddComponent< RigidbodyComponent >();
+				auto& rb = DeserialisedEntity->AddComponent< RigidbodyComponent >();
 
 				rb.IsKinematic = rbc[ "IsKinematic" ].as< bool >();
 				rb.UseCCD = rbc[ "CCD" ].as< bool >();
@@ -530,7 +533,7 @@ namespace Saturn {
 			auto pmc = entity[ "PhysicsMaterialComponent" ];
 			if( pmc )
 			{
-				auto& m = DeserialisedEntity.AddComponent< PhysicsMaterialComponent >();
+				auto& m = DeserialisedEntity->AddComponent< PhysicsMaterialComponent >();
 
 				m.AssetID = pmc[ "AssetID" ].as< uint64_t >( 0 );
 			}
@@ -538,7 +541,7 @@ namespace Saturn {
 			auto cc = entity[ "CameraComponent" ];
 			if( cc )
 			{
-				auto& c = DeserialisedEntity.AddComponent< CameraComponent >();
+				auto& c = DeserialisedEntity->AddComponent< CameraComponent >();
 
 				c.MainCamera = cc[ "MainCamera" ].as< bool >();
 			}

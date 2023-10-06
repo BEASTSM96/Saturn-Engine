@@ -47,8 +47,9 @@ namespace Saturn {
 		GameModule();
 		~GameModule() {}
 
-		void Load( bool reload = false );
 		Entity* FindAndCallRegisterFunction( const std::string& rClassName );
+		
+		void Load( bool reload = false );
 		void Unload();
 		void Reload();
 	private:
