@@ -726,13 +726,7 @@ namespace Saturn {
 				ImGui::SameLine();
 				if( ImGui::Button( "..." ) ) 
 				{
-					if( RenderThread::Get().IsRenderThread() )
-					{
-						Application::Get().SubmitOnMainThread( [=]()
-							{
-								path = Application::Get().OpenFile( ".exe\0*.exe;\0" );
-							} );
-					}
+					path = Application::Get().OpenFile( ".exe\0*.exe;\0" );
 				}
 
 				if( !path.empty() )
