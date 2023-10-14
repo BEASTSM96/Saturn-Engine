@@ -337,6 +337,12 @@ namespace Saturn {
 				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, "TTA" );
 
 				auto& s = DeserialisedEntity->GetComponent< ScriptComponent >();
+				DeserialisedEntity = Ref<Entity>::Create( scene->CreateHandle(), scene.Pointer() );
+
+				scene->AddDefaultComponents( DeserialisedEntity, Tag );
+				DeserialisedEntity->GetComponent<IdComponent>().ID = entityID;
+
+				auto& s = DeserialisedEntity->AddComponent< ScriptComponent >();
 
 				s.ScriptName = srcc[ "Name" ].as< std::string >();
 				s.AssetID = srcc[ "ID" ].as< uint64_t >();
