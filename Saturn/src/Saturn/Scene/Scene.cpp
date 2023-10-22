@@ -75,22 +75,24 @@ namespace Saturn {
 	Scene::~Scene()
 	{
 		// Destroy All Physics Entities and static meshes
-		auto meshView = GetAllEntitiesWith<StaticMeshComponent>();
+		auto staticMeshes = GetAllEntitiesWith<StaticMeshComponent>();
 
-		for( const auto& entity : meshView )
+		for( auto& entity : staticMeshes )
 		{
-			if( m_Registry.get<StaticMeshComponent>( entity ).Mesh )
-				m_Registry.get<StaticMeshComponent>( entity ).Mesh = nullptr;
+			auto& rMeshComponent = entity->GetComponent<StaticMeshComponent>();
 
-			m_Registry.get<StaticMeshComponent>( entity ).MaterialRegistry = nullptr;
+			if( rMeshComponent.Mesh )
+				rMeshComponent.Mesh = nullptr;
+
+			rMeshComponent.MaterialRegistry = nullptr;
 		}
 
-		auto rigidView = GetAllEntitiesWith<RigidbodyComponent>();
+		auto rigidBodies = GetAllEntitiesWith<RigidbodyComponent>();
 
-		for( const auto& entity : rigidView )
+		for( auto& entity : rigidBodies )
 		{
-			if( m_Registry.get<RigidbodyComponent>( entity ).Rigidbody )
-				m_Registry.get<RigidbodyComponent>( entity ).Rigidbody = nullptr;
+			if( entity->GetComponent<RigidbodyComponent>().Rigidbody )
+				entity->GetComponent<RigidbodyComponent>().Rigidbody = nullptr;
 		}
 
 		for( auto& entity : m_ScriptEntities )
@@ -98,54 +100,76 @@ namespace Saturn {
 			entity = nullptr;
 		}
 
+		for( auto&& [id, entity] : m_EntityIDMap )
+		{
+			entity = nullptr;
+		}
+
 		s_ActiveScenes.erase( m_SceneID );
-		m_Registry.clear();
+
+		m_EntityIDMap.clear();
+		//m_Registry.clear();
 	}
 
 	// TODO: We don't want to search for the main camera entity every frame.
-	Entity Scene::GetMainCameraEntity()
+	Ref<Entity> Scene::GetMainCameraEntity()
 	{
-		auto view = GetAllEntitiesWith<CameraComponent>();
+		auto entities = GetAllEntitiesWith<CameraComponent>();
 
-		for ( const auto& entity : view )
+		for( auto& entity : entities )
 		{
-			if( m_Registry.get<CameraComponent>( entity ).MainCamera )
-				return Entity( entity, this );
+			if( entity->GetComponent<CameraComponent>().MainCamera )
+				return entity;
 		}
 
-		return {};
+		return nullptr;
 	}
 
 	void Scene::OnUpdate( Timestep ts )
 	{
 		SAT_PF_EVENT();
 
+		// Update Cycle.
+		// Step 1: Update and simulate the physics scene.
+		// Step 2: Update all entities.
+
 		// TODO: We might want to change the order of this update cycle.
 		if( m_RuntimeRunning ) 
 		{
+			// Simulate the physics scene.
 			m_PhysicsScene->Update( ts );
 			OnUpdatePhysics( ts );
+
+			for( auto&& [id, entity] : m_EntityIDMap )
+			{
+				entity->OnUpdate( ts );
+			}
 		}
 	}
-
+	
 	void Scene::OnUpdatePhysics( Timestep ts )
 	{
 		SAT_PF_EVENT();
 
+		// We can use a entt::view here because we are only accessing the rigid body.
 		auto PhysXView = m_Registry.view<TransformComponent, RigidbodyComponent>();
 		
 		for( const auto& entity : PhysXView )
 		{
 			auto [tc, rb] = PhysXView.get<TransformComponent, RigidbodyComponent>( entity );
 			rb.Rigidbody->SyncTransfrom();
+			// TODO: Maybe we could call the entity's OnPhysicsUpdate right here?
+		}
+
+		for( auto&& [id, entity] : m_EntityIDMap )
+		{
+			entity->OnPhysicsUpdate( ts );
 		}
 	}
 
 	void Scene::OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer )
 	{
 		SAT_PF_EVENT();
-
-		auto group = m_Registry.group<StaticMeshComponent>( entt::get<TransformComponent> );
 
 		// Lights
 		{
@@ -193,11 +217,11 @@ namespace Saturn {
 
 		// Static meshes
 		{
-			for( const auto e : group )
-			{
-				Entity entity( e, this );
+			auto entities = GetAllEntitiesWith<StaticMeshComponent>();
 
-				auto [meshComponent, transformComponent] = group.get<StaticMeshComponent, TransformComponent>( entity );
+			for( auto& entity : entities )
+			{
+				auto& meshComponent = entity->GetComponent<StaticMeshComponent>();
 
 				auto transform = GetTransformRelativeToParent( entity );
 
@@ -223,13 +247,13 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		// Camera
-		Entity cameraEntity = GetMainCameraEntity();
+		Ref<Entity> cameraEntity = GetMainCameraEntity();
 
 		if( !cameraEntity )
 			return;
 
 		auto view = glm::inverse( GetTransformRelativeToParent( cameraEntity ) );
-		SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+		SceneCamera& camera = cameraEntity->GetComponent<CameraComponent>().Camera;
 	
 		// Lights
 		{
@@ -279,12 +303,11 @@ namespace Saturn {
 
 		// Static meshes
 		{
-			auto group = m_Registry.group<StaticMeshComponent>( entt::get<TransformComponent> );
-			for( const auto e : group )
-			{
-				Entity entity( e, this );
+			auto entities = GetAllEntitiesWith<StaticMeshComponent>();
 
-				auto [meshComponent, transformComponent] = group.get<StaticMeshComponent, TransformComponent>( entity );
+			for( auto& entity : entities )
+			{
+				auto& meshComponent = entity->GetComponent<StaticMeshComponent>();
 
 				auto transform = GetTransformRelativeToParent( entity );
 
@@ -304,7 +327,8 @@ namespace Saturn {
 		rSceneRenderer.SetCamera( { camera, view } );
 	}
 
-	Entity Scene::CreateEntity( const std::string& name /*= "" */ )
+	/*
+	Entity Scene::CreateEntity( const std::string& name )
 	{
 		Entity entity ={ m_Registry.create(), this };
 		entity.AddComponent<RelationshipComponent>();
@@ -318,7 +342,7 @@ namespace Saturn {
 		return entity;
 	}
 
-	Entity Scene::CreateEntityWithID( UUID uuid, const std::string& name /*= "" */ )
+	Entity Scene::CreateEntityWithID( UUID uuid, const std::string& name )
 	{
 		Entity entity ={ m_Registry.create(), this };
 
@@ -336,33 +360,14 @@ namespace Saturn {
 		return entity;
 	}
 
+	*/
+
 	Ref<Entity> Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
 	{
-		Ref<Entity> entity = Ref<Entity>( GameModule::Get().FindAndCallRegisterFunction( name ) );
-		entity->AddComponent<ScriptComponent>().ScriptName = name;
-		entity->GetComponent<TagComponent>().Tag = name;
-
-		m_ScriptEntities.push_back( entity );
+		Ref<Entity> entity = GameModule::Get().FindAndCallRegisterFunction( name );
+		entity->SetName( name );
 
 		return entity;
-	}
-
-	void Scene::AddDefaultComponents( Entity entity, const std::string& rName )
-	{
-		entity.AddComponent<RelationshipComponent>();
-		entity.AddComponent<TransformComponent>();
-		auto& idComponent = entity.AddComponent<IdComponent>().ID = {};
-		entity.AddComponent<TagComponent>( rName.empty() ? "Unknown Name" : rName );
-
-		m_EntityIDMap[ idComponent ] = entity;
-	}
-
-	void Scene::AddDefaultComponents( Ref<Entity>& entity, const std::string& rName )
-	{
-		entity->AddComponent<RelationshipComponent>();
-		entity->AddComponent<TransformComponent>();
-		auto& idComponent = entity->AddComponent<IdComponent>().ID = {};
-		entity->AddComponent<TagComponent>( rName.empty() ? "Unknown Name" : rName );
 	}
 
 	Entity Scene::FindEntityByTag( const std::string& tag )
@@ -380,7 +385,7 @@ namespace Saturn {
 		return Entity{};
 	}
 
-	Entity Scene::FindEntityByID( const UUID& id )
+	Saturn::Ref<Saturn::Entity> Scene::FindEntityByID( const UUID& id )
 	{
 		SAT_PF_EVENT();
 
@@ -389,26 +394,26 @@ namespace Saturn {
 		{
 			const auto& canditate = view.get<IdComponent>( entity ).ID;
 			if( canditate == id )
-				return Entity( entity, this );
+				return Ref<Entity>::Create( entity, this );
 		}
 
-		return Entity{};
+		return nullptr;
 	}
 
-	glm::mat4 Scene::GetTransformRelativeToParent( Entity entity )
+	glm::mat4 Scene::GetTransformRelativeToParent( Ref<Entity> entity )
 	{
 		SAT_PF_EVENT();
 
 		glm::mat4 transform( 1.0f );
 
-		Entity parent = FindEntityByID( entity.GetParent() );
+		Ref<Entity> parent = FindEntityByID( entity->GetParent() );
 		if( parent )
 			transform = GetTransformRelativeToParent( parent );
 
-		return transform * entity.GetComponent<TransformComponent>().GetTransform();
+		return transform * entity->GetComponent<TransformComponent>().GetTransform();
 	}
 
-	TransformComponent Scene::GetWorldSpaceTransform( Entity entity )
+	TransformComponent Scene::GetWorldSpaceTransform( Ref<Entity> entity )
 	{
 		SAT_PF_EVENT();
 
@@ -422,11 +427,6 @@ namespace Saturn {
 		tc.SetRotation( rotation );
 
 		return tc;
-	}
-
-	void Scene::DestroyEntity( Entity entity )
-	{
-		m_Registry.destroy( entity.m_EntityHandle );
 	}
 
 	template<typename ...V>
@@ -473,11 +473,10 @@ namespace Saturn {
 		CopyComponentIfExists<V...>( dst, src, rRegistry );
 	}
 
-	void Scene::DuplicateEntity( Entity entity )
+	void Scene::DuplicateEntity( Ref<Entity> entity )
 	{
-		Entity newEntity;
-
-		newEntity = CreateEntity( entity.GetComponent<TagComponent>().Tag );
+		Ref<Entity> newEntity = Ref<Entity>::Create();
+		newEntity->SetName( entity->GetComponent<TagComponent>().Tag );
 
 		// Without TagComponent and IdComponent
 		using DesiredComponents = ComponentGroup<TransformComponent, RelationshipComponent, PrefabComponent,
@@ -488,19 +487,19 @@ namespace Saturn {
 			ScriptComponent, 
 			AudioComponent>;
 
-		CopyComponentIfExists( DesiredComponents{}, newEntity, entity, m_Registry );
+		CopyComponentIfExists( DesiredComponents{}, newEntity->GetHandle(), entity->GetHandle(), m_Registry );
 	}
 
-	void Scene::DeleteEntity( Entity entity )
+	void Scene::DeleteEntity( Ref<Entity> entity )
 	{
-		for ( auto& rChild : entity.GetChildren() )
+		for ( auto& rChild : entity->GetChildren() )
 		{
 			auto child = FindEntityByID( rChild );
 
-			m_Registry.destroy( child );
+			m_Registry.destroy( child->GetHandle() );
 		}
 
-		m_Registry.destroy( entity );
+		m_Registry.destroy( entity->GetHandle() );
 	}
 
 	void Scene::CopyScene( Ref<Scene>& NewScene )
@@ -519,8 +518,10 @@ namespace Saturn {
 		for( auto entity : IdComponents )
 		{
 			auto uuid = m_Registry.get<IdComponent>( entity ).ID;
-			Entity e = NewScene->CreateEntityWithID( uuid );
-			EntityMap[ uuid ] = e.m_EntityHandle;
+			Ref<Entity> e = Ref<Entity>::Create();
+			e->GetComponent<IdComponent>().ID = uuid;
+
+			EntityMap[ uuid ] = e->GetHandle();
 		}
 
 		CopyComponent( AllComponents{}, NewScene->m_Registry, m_Registry, EntityMap );
@@ -533,11 +534,9 @@ namespace Saturn {
 
 		m_PhysicsScene = new PhysicsScene( this );
 
-		// Update all game entities (i.e. entities that have custom types that are made by the client).
-		const auto& view = GetAllEntitiesWith<ScriptComponent>();
-
-		for( const auto& e : view )
+		for( auto&& [id, entity] : m_EntityIDMap )
 		{
+			entity->BeginPlay();
 		}
 	}
 
@@ -548,18 +547,13 @@ namespace Saturn {
 
 	// Returns the Entity and the game class (if any).
 	// This is not good as the SClass will hold the entity anyway.
-	std::pair<Entity, SClass*> Scene::CreatePrefab( Ref<Prefab> prefabAsset )
+	Ref<Entity> Scene::CreatePrefab( Ref<Prefab> prefabAsset )
 	{
-		Entity prefabEntity;
-		SClass* sc = nullptr;
+		Ref<Entity> prefabEntity;
 
 		prefabEntity = prefabAsset->PrefabToEntity( this, prefabEntity );
 
-		if( prefabEntity.HasComponent<ScriptComponent>() ) 
-		{
-		}
-
-		return { prefabEntity, sc };
+		return prefabEntity;
 	}
 
 	void Scene::SetActiveScene( Scene* pScene )
@@ -570,5 +564,10 @@ namespace Saturn {
 	Scene* Scene::GetActiveScene()
 	{
 		return GActiveScene;
+	}
+
+	void Scene::OnEntityCreated( Ref<Entity> entity )
+	{
+		m_EntityIDMap[ entity->GetHandle() ] = entity;
 	}
 }

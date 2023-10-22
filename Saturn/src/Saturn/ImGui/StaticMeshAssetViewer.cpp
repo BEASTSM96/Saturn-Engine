@@ -237,8 +237,10 @@ namespace Saturn {
 
 		m_Open = true;
 
-		Entity e = m_Scene->CreateEntity( "InternalViewerEntity" );
-		e.AddComponent<StaticMeshComponent>().Mesh = mesh;
+		Ref<Entity> e = Ref<Entity>::Create();
+		e->SetName( "InternalViewerEntity" );
+
+		e->AddComponent<StaticMeshComponent>().Mesh = mesh;
 	}
 
 }

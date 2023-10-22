@@ -50,7 +50,8 @@ namespace Saturn {
 
 	struct TransformComponent;
 
-	using EntityMap = std::unordered_map<UUID, Entity>;
+	// entt entity id.
+	using EntityMap = std::unordered_map<entt::entity, Ref<Entity>>;
 
 	struct SceneComponent
 	{
@@ -94,29 +95,32 @@ namespace Saturn {
 		Scene();
 		~Scene();
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
+		//Entity CreateEntity( const std::string& name =  "" );
+		//Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
 
 		Ref<Entity> CreateEntityWithIDScript( UUID uuid, const std::string& name = "", const std::string& rScriptName = "" );
-
-		void AddDefaultComponents( Entity entity, const std::string& rName = "" );
-		void AddDefaultComponents( Ref<Entity>& entity, const std::string& rName = "" );
-
-		void DestroyEntity( Entity entity );
 
 		void OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer );
 		void OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer );
 
-		void DuplicateEntity( Entity entity );
-		void DeleteEntity( Entity entity );
+		void DuplicateEntity( Ref<Entity> entity );
+		void DeleteEntity( Ref<Entity> entity );
 
 		template<typename T>
-		auto GetAllEntitiesWith( void )
+		std::vector<Ref<Entity>> GetAllEntitiesWith( void )
 		{
-			return m_Registry.view<T>();
+			std::vector<Ref<Entity>> result;
+
+			for( auto&& [ id, entity ] : m_EntityIDMap )
+			{
+				if( entity->HasComponent<T>() )
+					result.push_back( entity );
+			}
+
+			return result;
 		}
 
-		Entity GetMainCameraEntity();
+		Ref<Entity> GetMainCameraEntity();
 
 		void OnUpdate( Timestep ts );
 		void OnUpdatePhysics( Timestep ts );
@@ -124,10 +128,10 @@ namespace Saturn {
 		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
 		
 		Entity FindEntityByTag( const std::string& tag );
-		Entity FindEntityByID( const UUID& id );
+		 Ref<Entity> FindEntityByID( const UUID& id );
 
-		glm::mat4 GetTransformRelativeToParent( Entity entity );
-		TransformComponent GetWorldSpaceTransform( Entity entity );
+		glm::mat4 GetTransformRelativeToParent( Ref<Entity> entity );
+		TransformComponent GetWorldSpaceTransform( Ref<Entity> entity );
 
 		void CopyScene( Ref<Scene>& NewScene );
 
@@ -146,18 +150,30 @@ namespace Saturn {
 		entt::registry& GetRegistry() { return m_Registry; }
 		const entt::registry& GetRegistry() const { return m_Registry; }
 
-		std::pair<Entity, SClass*> CreatePrefab( Ref<Prefab> prefabAsset );
+		Ref<Entity> CreatePrefab( Ref<Prefab> prefabAsset );
 
 		UUID GetId() { return m_SceneID; }
 		const UUID GetId() const { return m_SceneID; }
 
-		entt::entity CreateHandle()
+		[[nodiscard]] entt::entity CreateHandle()
 		{
 			return m_Registry.create();
 		}
 
+		void RemoveHandle( entt::entity handle ) 
+		{
+			m_Registry.destroy( handle );
+
+			//m_EntityIDMap[ handle ] = nullptr;
+			//m_EntityIDMap.erase( handle );
+		}
+
 		static void   SetActiveScene( Scene* pScene );
 		static Scene* GetActiveScene();
+
+	protected:
+		void OnEntityCreated( Ref<Entity> entity );
+
 	private:
 
 		//////////////////////////////////////////////////////////////////////////
@@ -215,6 +231,7 @@ namespace Saturn {
 		EntityMap m_EntityIDMap;
 
 		entt::registry m_Registry;
+		//std::vector<Ref<Entity>> m_entities;
 
 		entt::entity m_SceneEntity;
 		entt::entity m_SelectedEntity;

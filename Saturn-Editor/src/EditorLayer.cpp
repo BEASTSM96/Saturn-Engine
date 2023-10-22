@@ -588,11 +588,11 @@ namespace Saturn {
 		{
 			auto& rSelection = pHierarchyPanel->GetSelectionContext();
 
-			if( rSelection.HasComponent<StaticMeshComponent>() )
+			if( rSelection->HasComponent<StaticMeshComponent>() )
 			{
-				if( auto& mesh = rSelection.GetComponent<StaticMeshComponent>().Mesh )
+				if( auto& mesh = rSelection->GetComponent<StaticMeshComponent>().Mesh )
 				{
-					ImGui::TextDisabled( "%llx", rSelection.GetComponent<IdComponent>().ID );
+					ImGui::TextDisabled( "%llx", rSelection->GetComponent<IdComponent>().ID );
 
 					ImGui::Separator();
 
@@ -801,9 +801,11 @@ namespace Saturn {
 				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
 				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
 				
-				auto entity = m_EditorScene->CreateEntity( asset->Name );
-				entity.AddComponent<StaticMeshComponent>().Mesh = meshAsset;
-				entity.AddComponent<StaticMeshComponent>().MaterialRegistry = Ref<MaterialRegistry>::Create( meshAsset );
+				Ref<Entity> entity = Ref<Entity>::Create();
+				entity->SetName( asset->Name );
+
+				entity->AddComponent<StaticMeshComponent>().Mesh = meshAsset;
+				entity->AddComponent<StaticMeshComponent>().MaterialRegistry = Ref<MaterialRegistry>::Create( meshAsset );
 			}
 
 			ImGui::EndDragDropTarget();
@@ -864,7 +866,7 @@ namespace Saturn {
 
 		Ref<Scene> ActiveScene = m_RuntimeScene ? m_RuntimeScene : m_EditorScene;
 
-		std::vector<Entity>& selectedEntities = pHierarchyPanel->GetSelectionContexts();
+		std::vector<Ref<Entity>>& selectedEntities = pHierarchyPanel->GetSelectionContexts();
 
 		// Calc center of transform.
 		glm::vec3 Positions = {};
@@ -901,10 +903,10 @@ namespace Saturn {
 
 			if( ImGuizmo::IsUsing() )
 			{
-				for( Entity& entity : selectedEntities )
+				for( Ref<Entity>& entity : selectedEntities )
 				{
 					glm::mat4 transform = ActiveScene->GetTransformRelativeToParent( entity );
-					auto& tc = entity.GetComponent<TransformComponent>();
+					auto& tc = entity->GetComponent<TransformComponent>();
 
 					glm::vec3 translation;
 					glm::vec3 rotation;
@@ -975,6 +977,7 @@ namespace Saturn {
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
+		GActiveScene = newScene.Pointer();
 
 		pHierarchyPanel->ClearSelected();
 		pHierarchyPanel->SetContext( nullptr );
@@ -988,6 +991,8 @@ namespace Saturn {
 
 		m_EditorScene = nullptr;
 		m_EditorScene = newScene;
+
+		GActiveScene = m_EditorScene.Pointer();
 
 		pHierarchyPanel->SetContext( m_EditorScene );
 		newScene = nullptr;
@@ -1007,7 +1012,7 @@ namespace Saturn {
 		ps.Serialise( Project::GetActiveProject()->m_Config.Path );
 	}
 
-	void EditorLayer::SelectionChanged( Entity e )
+	void EditorLayer::SelectionChanged( Ref<Entity> e )
 	{
 	}
 
@@ -1074,7 +1079,7 @@ namespace Saturn {
 
 					if( auto& selectedEntity = pHierarchyPanel->GetSelectionContext() ) 
 					{
-						m_EditorCamera.Focus( selectedEntity.GetComponent<TransformComponent>().Position );
+						m_EditorCamera.Focus( selectedEntity->GetComponent<TransformComponent>().Position );
 					}
 				} break;
 

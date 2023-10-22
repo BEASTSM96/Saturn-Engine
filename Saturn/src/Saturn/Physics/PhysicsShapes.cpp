@@ -58,7 +58,7 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// Box
 
-	BoxShape::BoxShape( Entity entity )
+	BoxShape::BoxShape( Ref<Entity> entity )
 		: PhysicsShape( entity )
 	{
 		m_Type = ShapeType::Box;
@@ -70,10 +70,10 @@ namespace Saturn {
 
 	void BoxShape::Create( physx::PxRigidActor& rActor )
 	{
-		BoxColliderComponent& bcc = m_Entity.GetComponent<BoxColliderComponent>();
-		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
+		BoxColliderComponent& bcc = m_Entity->GetComponent<BoxColliderComponent>();
+		TransformComponent& transform = m_Entity->GetComponent<TransformComponent>();
 
-		const Ref<StaticMesh>& mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
+		const Ref<StaticMesh>& mesh = m_Entity->GetComponent<StaticMeshComponent>().Mesh;
 
 		glm::vec3 size = bcc.Extents;
 		glm::vec3 scale = transform.Scale;
@@ -108,7 +108,7 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// Sphere
 
-	SphereShape::SphereShape( Entity entity )
+	SphereShape::SphereShape( Ref<Entity> entity )
 		: PhysicsShape( entity )
 	{
 		m_Type = ShapeType::Sphere;
@@ -120,10 +120,10 @@ namespace Saturn {
 
 	void SphereShape::Create( physx::PxRigidActor& rActor )
 	{
-		SphereColliderComponent& scc = m_Entity.GetComponent<SphereColliderComponent>();
-		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
+		SphereColliderComponent& scc = m_Entity->GetComponent<SphereColliderComponent>();
+		TransformComponent& transform = m_Entity->GetComponent<TransformComponent>();
 
-		const Ref<StaticMesh>& mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
+		const Ref<StaticMesh>& mesh = m_Entity->GetComponent<StaticMeshComponent>().Mesh;
 
 		float size = scc.Radius;
 		glm::vec scale = transform.Scale;
@@ -160,7 +160,7 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// Capsule
 
-	CapusleShape::CapusleShape( Entity entity )
+	CapusleShape::CapusleShape( Ref<Entity> entity )
 		: PhysicsShape( entity )
 	{
 		m_Type = ShapeType::Capusle;
@@ -172,10 +172,10 @@ namespace Saturn {
 
 	void CapusleShape::Create( physx::PxRigidActor& rActor )
 	{
-		CapsuleColliderComponent& cap = m_Entity.GetComponent<CapsuleColliderComponent>();
-		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
+		CapsuleColliderComponent& cap = m_Entity->GetComponent<CapsuleColliderComponent>();
+		TransformComponent& transform = m_Entity->GetComponent<TransformComponent>();
 
-		const Ref<StaticMesh>& mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
+		const Ref<StaticMesh>& mesh = m_Entity->GetComponent<StaticMeshComponent>().Mesh;
 
 		float size = cap.Radius;
 		float height = cap.Height;
@@ -216,14 +216,14 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// Triangle
 
-	TriangleMeshShape::TriangleMeshShape( Entity entity )
+	TriangleMeshShape::TriangleMeshShape( Ref<Entity> entity )
 		: PhysicsShape( entity )
 	{
 		m_Type = ShapeType::TriangleMesh;
 
-		SAT_CORE_ASSERT( m_Entity.HasComponent<StaticMeshComponent>(), "Entity does not have a static mesh component!" );
+		SAT_CORE_ASSERT( m_Entity->HasComponent<StaticMeshComponent>(), "Entity does not have a static mesh component!" );
 
-		m_Mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
+		m_Mesh = m_Entity->GetComponent<StaticMeshComponent>().Mesh;
 	}
 
 	TriangleMeshShape::~TriangleMeshShape()
@@ -232,7 +232,7 @@ namespace Saturn {
 
 	void TriangleMeshShape::Create( physx::PxRigidActor& rActor )
 	{
-		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
+		TransformComponent& transform = m_Entity->GetComponent<TransformComponent>();
 		physx::PxTransform PxTrans = Auxiliary::GLMTransformToPx( transform.GetTransform() );
 
 		const std::vector<physx::PxShape*>& rShapes = PhysicsCooking::Get().CreateTriangleMesh( m_Mesh, rActor, transform.Scale );
@@ -259,14 +259,14 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// Convex
 
-	ConvexMeshShape::ConvexMeshShape( Entity entity )
+	ConvexMeshShape::ConvexMeshShape( Ref<Entity> entity )
 		: PhysicsShape( entity )
 	{
 		m_Type = ShapeType::ConvexMesh;
 
-		SAT_CORE_ASSERT( m_Entity.HasComponent<StaticMeshComponent>(), "Entity does not have a static mesh component!" );
+		SAT_CORE_ASSERT( m_Entity->HasComponent<StaticMeshComponent>(), "Entity does not have a static mesh component!" );
 
-		m_Mesh = m_Entity.GetComponent<StaticMeshComponent>().Mesh;
+		m_Mesh = m_Entity->GetComponent<StaticMeshComponent>().Mesh;
 	}
 
 	ConvexMeshShape::~ConvexMeshShape()
@@ -275,7 +275,7 @@ namespace Saturn {
 
 	void ConvexMeshShape::Create( physx::PxRigidActor& rActor )
 	{
-		TransformComponent& transform = m_Entity.GetComponent<TransformComponent>();
+		TransformComponent& transform = m_Entity->GetComponent<TransformComponent>();
 		physx::PxTransform PxTrans = Auxiliary::GLMTransformToPx( transform.GetTransform() );
 
 		const std::vector<physx::PxShape*>& rShapes = PhysicsCooking::Get().CreateConvexMesh( m_Mesh, rActor, transform.Scale );

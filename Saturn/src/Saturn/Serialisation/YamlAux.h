@@ -204,5 +204,5 @@ namespace Saturn {
 
 	extern void SerialiseEntity( YAML::Emitter& rEmitter, Entity entity );
 
-	extern void DeserialiseEntites( YAML::Node& rNode, Ref<Scene> scene );
+	extern void Deserialiseentities( YAML::Node& rNode, Ref<Scene> scene );
 }

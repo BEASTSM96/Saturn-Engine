@@ -66,7 +66,7 @@ namespace Saturn {
 
 	private:
 		
-		void SelectionChanged( Entity e );
+		void SelectionChanged( Ref<Entity> e );
 		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
 		bool OnKeyPressed( KeyPressedEvent& rEvent );
 

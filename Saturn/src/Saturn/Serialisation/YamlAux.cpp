@@ -310,7 +310,7 @@ namespace Saturn {
 		rEmitter << YAML::EndMap;
 	}
 
-	void DeserialiseEntites( YAML::Node& rNode, Ref<Scene> scene )
+	void Deserialiseentities( YAML::Node& rNode, Ref<Scene> scene )
 	{
 		if( rNode.IsNull() )
 			return;
@@ -326,7 +326,7 @@ namespace Saturn {
 
 			SAT_CORE_INFO( "Deserialised entity with ID: {0}, with name : {1}", entityID, Tag );
 
-			Ref<Entity> DeserialisedEntity;
+			Ref<Entity> DeserialisedEntity = nullptr;
 
 			auto srcc = entity[ "ScriptComponent" ];
 			if( srcc )
@@ -334,13 +334,7 @@ namespace Saturn {
 				// We are a entity that has a custom type, we'll need to create that custom type and use it. 
 				// However we don't know what that type is, but we know for a fact that it's always based from an SClass. And (right now) it's got to be based from an Entity as well.
 
-				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, "TTA" );
-
-				auto& s = DeserialisedEntity->GetComponent< ScriptComponent >();
-				DeserialisedEntity = Ref<Entity>::Create( scene->CreateHandle(), scene.Pointer() );
-
-				scene->AddDefaultComponents( DeserialisedEntity, Tag );
-				DeserialisedEntity->GetComponent<IdComponent>().ID = entityID;
+				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, "" );
 
 				auto& s = DeserialisedEntity->AddComponent< ScriptComponent >();
 
@@ -349,10 +343,10 @@ namespace Saturn {
 			}
 			else
 			{
-				DeserialisedEntity = Ref<Entity>::Create( scene->CreateHandle(), scene.Pointer() );
+				DeserialisedEntity = Ref<Entity>::Create();
 
-				scene->AddDefaultComponents( DeserialisedEntity, Tag );
 				DeserialisedEntity->GetComponent<IdComponent>().ID = entityID;
+				DeserialisedEntity->SetName( Tag );
 			}
 
 			auto tc = entity[ "TransformComponent" ];

@@ -29,14 +29,67 @@
 #include "sppch.h"
 #include "Entity.h"
 
+// Game
+// This is not needed?
 Saturn::SClass* _Z_Create_Entity()
 {
 	using namespace Saturn;
 
 	SClass* pClass = new SClass();
+	return pClass;
+}
 
-	Entity e = GActiveScene->CreateEntity( "Script Entity" );
-	e.m_SuperClass = pClass;
+namespace Saturn {
 
-	return &e;
+	Entity::Entity()
+	{
+		m_Scene = GActiveScene;
+		m_EntityHandle = m_Scene->CreateHandle();
+		
+		AddComponent<IdComponent>();
+		AddComponent<RelationshipComponent>();
+		AddComponent<TransformComponent>();
+		AddComponent<TagComponent>().Tag = "Unnamed Entity";
+
+		m_Scene->OnEntityCreated( this );
+	}
+
+	Entity::Entity( const SClassCtorInfo& rInfo )
+		: SClass( rInfo )
+	{
+		if( rInfo.RegisterNewEntity )
+		{
+			m_Scene = GActiveScene;
+			m_EntityHandle = GActiveScene->m_Registry.create();
+
+			AddComponent<IdComponent>();
+			AddComponent<RelationshipComponent>();
+			AddComponent<TransformComponent>();
+			AddComponent<TagComponent>().Tag = "Unnamed Entity";
+
+			m_Scene->OnEntityCreated( this );
+		}
+	}
+
+	Entity::Entity( const Entity& other )
+	{
+		this->m_Scene = other.m_Scene;
+		this->m_EntityHandle = other.m_EntityHandle;
+	}
+
+	Entity::~Entity()
+	{
+		SAT_CORE_INFO( "destroyed entity {0}", (std::uint32_t)m_EntityHandle );
+
+		m_Scene->RemoveHandle( m_EntityHandle );
+		m_EntityHandle = entt::null;
+
+		m_Scene = nullptr;
+	}
+
+	void Entity::SetName( const std::string& rName )
+	{
+		GetComponent<TagComponent>().Tag = rName;
+	}
+
 }

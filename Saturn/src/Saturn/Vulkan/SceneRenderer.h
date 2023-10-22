@@ -50,7 +50,7 @@ namespace Saturn {
 
 	struct DrawCommand
 	{
-		Entity entity;
+		Ref<Entity> entity = nullptr;
 		Ref< StaticMesh > Mesh = nullptr;
 		uint32_t SubmeshIndex = 0;
 		uint32_t Instances = 0;
@@ -376,7 +376,7 @@ namespace Saturn {
 
 		void SetCurrentScene( Scene* pScene );
 
-		void SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, Ref<MaterialRegistry> materialRegistry, const glm::mat4& transform );
+		void SubmitStaticMesh( Ref<Entity> entity, Ref< StaticMesh > mesh, Ref<MaterialRegistry> materialRegistry, const glm::mat4& transform );
 		void SubmitSelectedMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform );
 
 		void SetViewportSize( uint32_t w, uint32_t h );

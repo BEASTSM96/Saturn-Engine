@@ -49,13 +49,13 @@
 namespace Saturn {
 
 	template<typename T, typename UIFunction>
-	static void DrawComponent( const std::string& name, Entity entity, UIFunction uiFunction )
+	static void DrawComponent( const std::string& name, Ref<Entity> entity, UIFunction uiFunction )
 	{
-		if( entity.HasComponent<T>() )
+		if( entity->HasComponent<T>() )
 		{
 			bool removeComponent = false;
 
-			auto& component = entity.GetComponent<T>();
+			auto& component = entity->GetComponent<T>();
 
 			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str() );
 
@@ -89,7 +89,7 @@ namespace Saturn {
 
 			if( removeComponent )
 			{
-				entity.RemoveComponent<T>();
+				entity->RemoveComponent<T>();
 			}
 		}
 	}
@@ -110,7 +110,7 @@ namespace Saturn {
 		m_SelectionContexts.clear();
 	}
 
-	void SceneHierarchyPanel::SetSelected( Entity entity )
+	void SceneHierarchyPanel::SetSelected( Ref<Entity> entity )
 	{
 		if( m_IsMultiSelecting )
 		{
@@ -122,7 +122,7 @@ namespace Saturn {
 			m_SelectionContexts.push_back( entity );
 		}
 
-		m_Context->SetSelectedEntity( entity );
+		m_Context->SetSelectedEntity( entity->GetHandle() );
 	}
 
 	void SceneHierarchyPanel::ClearSelected()
@@ -132,18 +132,26 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::DrawEntities()
 	{
+		for( auto&& [id, entity] : m_Context->m_EntityIDMap )
+		{
+			if( !entity->HasParent() )
+				DrawEntityNode( entity );
+		}
+
+		/*
 		m_Context->m_Registry.each( [&]( auto entity )
 		{
-			Entity e{ entity, m_Context.Pointer() };
+			Ref<Entity> e = Ref<Entity>::Create( entity, m_Context.Pointer() );
 
 			if( !e )
 				return;
 
-			if( !m_Context->m_Registry.any_of<SceneComponent>( entity ) && !e.HasParent() )
+			if( !m_Context->m_Registry.any_of<SceneComponent>( entity ) && !e->HasParent() )
 			{
 				DrawEntityNode( e );
 			}
 		} );
+		*/
 	}
 
 	void SceneHierarchyPanel::ClearSelection()
@@ -153,13 +161,13 @@ namespace Saturn {
 	}
 
 	template<typename Ty>
-	void SceneHierarchyPanel::DrawAddComponents( const char* pName, Entity entity )
+	void SceneHierarchyPanel::DrawAddComponents( const char* pName, Ref<Entity> entity )
 	{
-		if( !m_SelectionContexts[ 0 ].HasComponent<Ty>() )
+		if( !m_SelectionContexts[ 0 ]->HasComponent<Ty>() )
 		{
 			if( ImGui::Button( pName ) )
 			{
-				m_SelectionContexts[ 0 ].AddComponent<Ty>();
+				m_SelectionContexts[ 0 ]->AddComponent<Ty>();
 
 				ImGui::CloseCurrentPopup();
 			}
@@ -186,9 +194,7 @@ namespace Saturn {
 			{
 				if( ImGui::MenuItem( "Create Empty Entity" ) )
 				{
-					auto Entity = m_Context->CreateEntity( "Empty Entity" );
-
-					SetSelected( Entity );
+					SetSelected( Ref<Entity>::Create() );
 				}
 
 				auto components = m_Context->m_Registry.view<DirectionalLightComponent>();
@@ -197,11 +203,13 @@ namespace Saturn {
 				{
 					if( ImGui::MenuItem( "Directional Light" ) )
 					{
-						auto Entity = m_Context->CreateEntity( "Directional Light" );
-						Entity.AddComponent<DirectionalLightComponent>();
-						Entity.GetComponent<TransformComponent>().SetRotation( glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) ) );
+						Ref<Entity> entity = Ref<Entity>::Create();
+						entity->SetName( "Directional Light" );
 
-						SetSelected( Entity );
+						entity->AddComponent<DirectionalLightComponent>();
+						entity->GetComponent<TransformComponent>().SetRotation( glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) ) );
+
+						SetSelected( entity );
 					}
 				}
 
@@ -211,13 +219,14 @@ namespace Saturn {
 				{
 					if( ImGui::MenuItem( "Skylight" ) )
 					{
-						auto Entity = m_Context->CreateEntity( "Skylight" );
-						Entity.AddComponent<SkylightComponent>();
+						Ref<Entity> entity = Ref<Entity>::Create();
+						entity->SetName( "Skylight" );
+						entity->AddComponent<SkylightComponent>();
 						
 						// Defaults
 						Application::Get().PrimarySceneRenderer().SetDynamicSky( 2.0f, 0.0f, 0.0f );
 
-						SetSelected( Entity );
+						SetSelected( entity );
 					}
 				}
 
@@ -250,7 +259,7 @@ namespace Saturn {
 		ImGui::PopID();
 	}
 	
-	void SceneHierarchyPanel::DrawComponents( Entity entity )
+	void SceneHierarchyPanel::DrawComponents( Ref<Entity> entity )
 	{
 		DrawEntityComponents( m_SelectionContexts[ 0 ] );
 
@@ -285,17 +294,17 @@ namespace Saturn {
 		}
 	}
 
-	bool SceneHierarchyPanel::IsEntitySelected( Entity entity )
+	bool SceneHierarchyPanel::IsEntitySelected( Ref<Entity> entity )
 	{
 		return std::find( m_SelectionContexts.begin(), m_SelectionContexts.end(), entity ) != m_SelectionContexts.end();
 	}
 
-	void SceneHierarchyPanel::DrawEntityNode( Entity entity )
+	void SceneHierarchyPanel::DrawEntityNode( Ref<Entity> entity )
 	{
-		if( entity.HasComponent<TagComponent>() )
+		if( entity->HasComponent<TagComponent>() )
 		{
-			auto& rTag = entity.GetComponent<TagComponent>().Tag;
-			bool isPrefab = entity.HasComponent<PrefabComponent>() || entity.HasComponent<ScriptComponent>();
+			auto& rTag = entity->GetComponent<TagComponent>().Tag;
+			bool isPrefab = entity->HasComponent<PrefabComponent>() || entity->HasComponent<ScriptComponent>();
 
 			ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 			IsEntitySelected( entity ) ? Flags |= ImGuiTreeNodeFlags_Selected : 0;
@@ -305,7 +314,7 @@ namespace Saturn {
 			if( isPrefab )
 				ImGui::PushStyleColor( ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4( IM_COL32( 255, 179, 0, 255 ) ) );
 
-			Clicked = ImGui::TreeNodeEx( (void*)(uint32_t)entity, Flags, rTag.c_str() );
+			Clicked = ImGui::TreeNodeEx( (void*)(uint32_t)*entity, Flags, rTag.c_str() );
 
 			if( isPrefab )
 				ImGui::PopStyleColor();
@@ -334,13 +343,13 @@ namespace Saturn {
 				if( pPayload )
 				{
 					Entity& e = *( Entity* ) pPayload->Data;
-					Entity previousParent = m_Context->FindEntityByID( e.GetParent() );
+					Ref<Entity> previousParent = m_Context->FindEntityByID( e.GetParent() );
 
 					// If a child is trying to parent it's parent.
 					bool ParentToParent = false;
 					for( auto& child : e.GetChildren() )
 					{
-						if( child == entity.GetUUID() )
+						if( child == entity->GetUUID() )
 						{
 							ParentToParent = true;
 							break;
@@ -351,13 +360,13 @@ namespace Saturn {
 					{
 						if( previousParent )
 						{
-							auto& children = previousParent.GetChildren();
+							auto& children = previousParent->GetChildren();
 							children.erase( std::remove( children.begin(), children.end(), e.GetComponent<IdComponent>().ID ), children.end() );
 						}
 
-						e.SetParent( entity.GetComponent<IdComponent>().ID );
+						e.SetParent( entity->GetComponent<IdComponent>().ID );
 
-						auto& children = entity.GetChildren();
+						auto& children = entity->GetChildren();
 						children.push_back( e.GetComponent<IdComponent>().ID );
 					}
 				}
@@ -367,9 +376,9 @@ namespace Saturn {
 
 			if( Clicked ) 
 			{
-				for ( auto& child : entity.GetChildren() )
+				for ( auto& child : entity->GetChildren() )
 				{
-					Entity e = m_Context->FindEntityByID( child );
+					Ref<Entity> e = m_Context->FindEntityByID( child );
 					if( e )
 						DrawEntityNode( e );
 				}
@@ -379,19 +388,19 @@ namespace Saturn {
 		}
 	}
 
-	void SceneHierarchyPanel::DrawEntityComponents( Entity entity )
+	void SceneHierarchyPanel::DrawEntityComponents( Ref<Entity> entity )
 	{
 		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
-		bool isPrefab = entity.HasComponent<PrefabComponent>() || entity.HasComponent<ScriptComponent>();
+		bool isPrefab = entity->HasComponent<PrefabComponent>() || entity->HasComponent<ScriptComponent>();
 
 		ImGui::Image( m_EditIcon->GetDescriptorSet(), ImVec2( 30, 30 ) );
 
 		ImGui::SameLine();
 
 		// TODO: We really don't need to check this as entities will always have a tag.
-		if( entity.HasComponent<TagComponent>() )
+		if( entity->HasComponent<TagComponent>() )
 		{
-			auto& tag = entity.GetComponent<TagComponent>().Tag;
+			auto& tag = entity->GetComponent<TagComponent>().Tag;
 			char buffer[ 256 ];
 			memset( buffer, 0, 256 );
 			memcpy( buffer, tag.c_str(), tag.length() );
@@ -407,7 +416,7 @@ namespace Saturn {
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
 
 		// ID
-		const auto& id = entity.GetComponent<IdComponent>().ID;
+		const auto& id = entity->GetComponent<IdComponent>().ID;
 
 		if( isPrefab ) 
 		{

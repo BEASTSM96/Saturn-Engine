@@ -47,34 +47,16 @@ namespace Saturn {
 
 		DECLARE_CLASS_NO_MOVE( Entity, SClass )
 	public:
-		Entity() = default;
-		Entity( const SClassCtorInfo& rInfo ) : SClass()
-		{
-			if( rInfo.RegisterNewEntity )
-			{
-				m_Scene = GActiveScene;
-				m_EntityHandle = GActiveScene->m_Registry.create();
-
-				m_Scene->AddDefaultComponents( *this );
-			}
-		}
+		Entity();
+		Entity( const SClassCtorInfo& rInfo );
 
 		Entity( entt::entity handle, Scene* scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
 		
-		Entity( const Entity& other ) 
-		{
-			this->m_Scene = other.m_Scene;
-			this->m_EntityHandle = other.m_EntityHandle;
-		}
+		Entity( const Entity& other );
 
-		virtual ~Entity() 
-		{
-			// We don't actually remove the handle from the registry in the scene.
-			// Why? because if we want to remove an entity (i.e. destroy) the entity we will call the function in the scene.
+		virtual ~Entity();
 
-			m_Scene = nullptr;
-			m_EntityHandle = entt::null;
-		}
+	public:
 
 		template<typename T, typename... Args>
 		T& AddComponent( Args&&... args )
@@ -105,6 +87,11 @@ namespace Saturn {
 			return m_Scene->m_Registry.valid( m_EntityHandle );
 		}
 
+		bool Vaild() const
+		{
+			return m_Scene->m_Registry.valid( m_EntityHandle );
+		}
+
 		Scene& GetScene() { return *m_Scene; }
 		const Scene& GetScene() const { return *m_Scene; }
 
@@ -115,9 +102,15 @@ namespace Saturn {
 
 		glm::mat4 Transform() { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ).GetTransform(); }
 		
-		const std::string& Tag() const { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }
-		std::string& Tag() { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }
+		const std::string& Name() const { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }
+		std::string& Name() { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }
 
+		void SetName( const std::string& rName );
+
+		entt::entity GetHandle() { return m_EntityHandle; }
+		const entt::entity GetHandle() const { return m_EntityHandle; }
+
+	public:
 		operator bool() const { return m_EntityHandle != entt::null && m_Scene != nullptr && m_Scene->m_Registry.valid( m_EntityHandle ); }
 		operator entt::entity() const { return m_EntityHandle; }
 		operator uint32_t () const { return ( uint32_t ) m_EntityHandle; }
@@ -132,6 +125,7 @@ namespace Saturn {
 			return !( *this == other );
 		}
 
+	public:
 		UUID GetUUID() { return GetComponent<IdComponent>().ID; }
 
 		void BeginPlay() override {}

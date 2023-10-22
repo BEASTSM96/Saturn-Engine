@@ -416,7 +416,7 @@ namespace SaturnBuildTool.Tools
 
                     string spawnParamName = string.Format( "_Z_{0}_SpawnParams", cmd.CurrentFile.ClassName );
 
-                    string function = string.Format( "__declspec(dllexport) Saturn::Entity* _Z_Create_{0}()", cmd.CurrentFile.ClassName );
+                    string function = string.Format( "__declspec(dllexport) Saturn::Ref<Saturn::Entity> _Z_Create_{0}()", cmd.CurrentFile.ClassName );
                     function += "\r\n{\r\n";
                     function += "\r\n";
                     function += "\tSaturn::SClass* pClass = new SClass();\r\n";
@@ -429,8 +429,9 @@ namespace SaturnBuildTool.Tools
                     // TODO: This is hard coded, we obviously want to change this.
                     function += string.Format("\tClassConstructor.RegisterNewEntity = true;\r\n", cmd.CurrentFile.ClassName );
                     function += "\t\r\n";
-                    function += string.Format("\t(*pClass->ClassConstructor)( ClassConstructor );\r\n", cmd.CurrentFile.ClassName );
-                    function += string.Format("\treturn (Saturn::Entity*)pClass;\r\n", cmd.CurrentFile.ClassName );
+                    //function += string.Format("\t(*pClass->ClassConstructor)( ClassConstructor );\r\n", cmd.CurrentFile.ClassName );
+                    function += string.Format("\tSaturn::Ref<{0}> Target = Saturn::Ref<{0}>::Create();\r\n", cmd.CurrentFile.ClassName );
+                    function += string.Format("\treturn Target.As<Saturn::Entity>();\r\n", cmd.CurrentFile.ClassName );
                     function += "}\r\n";
 
                     cmd.GeneratedSource.AppendLine(function);

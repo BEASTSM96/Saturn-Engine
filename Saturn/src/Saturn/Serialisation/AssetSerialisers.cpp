@@ -761,24 +761,22 @@ namespace Saturn {
 
 		prefabAsset->m_Scene = Ref<Scene>::Create();
 
-		DeserialiseEntites( entities, prefabAsset->m_Scene );
+		Deserialiseentities( entities, prefabAsset->m_Scene );
 
 		auto view = prefabAsset->m_Scene->GetAllEntitiesWith<RelationshipComponent>();
 
 		// Find root entity
-		Entity RootEntity;
+		Ref<Entity> RootEntity = nullptr;
 
 		for( auto& entity : view )
 		{
-			Entity ent( entity, prefabAsset->m_Scene.Pointer() );
-
-			if( ent.GetComponent<RelationshipComponent>().Parent != 0 )
+			if( entity->GetComponent<RelationshipComponent>().Parent != 0 )
 				continue;
 
-			if( ent.GetChildren().size() > 0 )
+			if( entity->GetChildren().size() > 0 )
 				continue;
 
-			RootEntity = ent;
+			RootEntity = entity;
 		}
 
 		prefabAsset->m_Entity = RootEntity;

@@ -38,7 +38,7 @@ namespace Saturn {
 	class PhysicsRigidBody : public RefTarget
 	{
 	public:
-		PhysicsRigidBody( Entity entity );
+		PhysicsRigidBody( Ref<Entity> entity );
 		~PhysicsRigidBody();
 
 		void CreateShape();
@@ -66,20 +66,20 @@ namespace Saturn {
 		
 		bool AllRotationLocked();
 
-		void SetOnCollisionHit( std::function<void( Entity rOther )>&& rrFunc ) { m_OnMeshHit = rrFunc; }
-		void SetOnCollisionExit( std::function<void( Entity rOther )>&& rrFunc ) { m_OnMeshExit = rrFunc; }
+		void SetOnCollisionHit( std::function<void( Ref<Entity> rOther )>&& rrFunc ) { m_OnMeshHit = rrFunc; }
+		void SetOnCollisionExit( std::function<void( Ref<Entity> rOther )>&& rrFunc ) { m_OnMeshExit = rrFunc; }
 
-		void OnCollisionHit ( Entity rOther ) { m_OnMeshHit( rOther ); }
-		void OnCollisionExit( Entity rOther ) { m_OnMeshExit( rOther ); }
+		void OnCollisionHit ( Ref<Entity> rOther ) { m_OnMeshHit( rOther ); }
+		void OnCollisionExit( Ref<Entity> rOther ) { m_OnMeshExit( rOther ); }
 
-		Entity GetEntity() { return m_Entity; }
+		Ref<Entity> GetEntity() { return m_Entity; }
 
 	private:
 		void AttachPhysicsShape( ShapeType type );
 		void Destroy();
 	private:
 		physx::PxRigidActor* m_Actor = nullptr;
-		Entity m_Entity;
+		Ref<Entity> m_Entity;
 
 		bool m_Kinematic = false;
 
@@ -87,8 +87,8 @@ namespace Saturn {
 
 		uint32_t m_LockFlags;
 
-		std::function<void( Entity rOther )> m_OnMeshHit;
-		std::function<void( Entity rOther )> m_OnMeshExit;
+		std::function<void( Ref<Entity> rOther )> m_OnMeshHit;
+		std::function<void( Ref<Entity> rOther )> m_OnMeshExit;
 	private:
 		friend class PhysicsShape;
 		friend class PhysicsFoundation;

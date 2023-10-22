@@ -41,6 +41,7 @@ namespace Saturn {
 		Ctor ClassConstructor = nullptr;
 	public:
 		SClass() {}
+		SClass( const SClassCtorInfo& rInfo ) {}
 		virtual ~SClass() = default;
 
 		virtual void BeginPlay() {}

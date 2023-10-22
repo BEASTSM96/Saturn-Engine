@@ -30,6 +30,7 @@
 #include "GameModule.h"
 
 #include "Saturn/Core/App.h"
+#include "Saturn/Scene/Entity.h"
 
 #include "Saturn/Project/Project.h"
 
@@ -66,7 +67,7 @@ namespace Saturn {
 		}
 	}
 
-	Entity* GameModule::FindAndCallRegisterFunction( const std::string& rClassName ) 
+	Ref<Entity> GameModule::FindAndCallRegisterFunction( const std::string& rClassName ) 
 	{
 		std::string funcName = "_Z_Create_" + rClassName;
 

@@ -41,23 +41,23 @@ namespace Saturn {
 		Prefab();
 		virtual ~Prefab();
 
-		void Create( Entity& srcEntity );
+		void Create( const Ref<Entity>& srcEntity );
 		void Create();
 
-		Entity PrefabToEntity( Ref<Scene> Scene, Entity entity );
+		Ref<Entity> PrefabToEntity( Ref<Scene> Scene, Ref<Entity>& entity );
 
 		Ref<Scene>& GetScene() { return m_Scene; }
 		const Ref<Scene>& GetScene() const { return m_Scene; }
 
 		// Only used when create a prefab of a game class.
-		void SetEntity( Entity entity ) { m_Entity = entity; }
+		void SetEntity( const Ref<Entity>& entity ) { m_Entity = entity; }
 		void CreateScene();
 
 	private:
-		Entity CreateFromEntity( Entity srcEntity );
-		Entity CreateChildren( Entity parent, Ref<Scene> Scene );
+		Ref<Entity> CreateFromEntity( Ref<Entity>& srcEntity );
+		Ref<Entity> CreateChildren( const Ref<Entity>& parent, Ref<Scene> Scene );
 	private:
-		Entity m_Entity;
+		Ref<Entity> m_Entity;
 		
 		// We need a scene to create entities in the prefab.
 		Ref<Scene> m_Scene = nullptr;

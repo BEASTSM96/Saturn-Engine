@@ -51,13 +51,11 @@ namespace Saturn {
 	{
 		PhysicsFoundation::Get().DisconnectPVD();
 
-		const auto& rView = m_Scene->GetAllEntitiesWith<RigidbodyComponent>();
+		auto rView = m_Scene->GetAllEntitiesWith<RigidbodyComponent>();
 
-		for( const auto& rEntity : rView )
+		for( auto& rEntity : rView )
 		{
-			Entity ent( rEntity, m_Scene.Pointer() );
-
-			auto& rb = ent.GetComponent<RigidbodyComponent>();
+			auto& rb = rEntity->GetComponent<RigidbodyComponent>();
 
 			delete rb.Rigidbody;
 			rb.Rigidbody = nullptr;
@@ -115,15 +113,13 @@ namespace Saturn {
 
 		// Add all current bodies to the scene.
 
-		const auto& rView = m_Scene->GetAllEntitiesWith<RigidbodyComponent>();
+		auto rView = m_Scene->GetAllEntitiesWith<RigidbodyComponent>();
 
-		for( const auto& rEntity : rView )
+		for( auto& rEntity : rView )
 		{
-			Entity ent( rEntity, m_Scene.Pointer() );
+			auto& rb = rEntity->GetComponent<RigidbodyComponent>();
 
-			auto& rb = ent.GetComponent<RigidbodyComponent>();
-
-			rb.Rigidbody = new PhysicsRigidBody( ent );
+			rb.Rigidbody = new PhysicsRigidBody( rEntity );
 			rb.Rigidbody->CreateShape();
 
 			// Maybe we could use addActors?
