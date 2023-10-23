@@ -104,21 +104,11 @@ namespace Saturn {
 // Build Tool
 //////////////////////////////////////////////////////////////////////////
 
-Saturn::SClass* _Z_Create_Character()
+Saturn::Entity* _Z_Create_Character()
 {
 	using namespace Saturn;
 
-	SClass* pClass = new SClass();
-
-	pClass->m_SuperClass = _Z_Create_Entity();
-
-	Character* pChar = (Character*)pClass;
-	pChar->ClassConstructor = Saturn::CallConstructor<Character>;
-
-	Saturn::SClassCtorInfo ClassConstructor{};
-	ClassConstructor.TargetClass = pChar;
-
-	( *pChar->ClassConstructor )( ClassConstructor );
-
-	return pChar;
+	Saturn::Ref<Character> Target = Saturn::Ref<Character>::Create();
+	Saturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();
+	return TargetReturn.Pointer();
 }

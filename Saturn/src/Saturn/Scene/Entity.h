@@ -48,10 +48,8 @@ namespace Saturn {
 		DECLARE_CLASS_NO_MOVE( Entity, SClass )
 	public:
 		Entity();
-		Entity( const SClassCtorInfo& rInfo );
-
 		Entity( entt::entity handle, Scene* scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
-		
+		Entity( const std::string& rName, UUID Id );
 		Entity( const Entity& other );
 
 		virtual ~Entity();

@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "Saturn/GameFramework/SClassConstructorHelpers.h"
 #include <string>
 
 #define SCLASS(...)
@@ -43,8 +42,6 @@
 
 
 #define DECLARE_CLASS( x, BaseClass ) \
-public: \
-	static void __DefaultConstructor( const SClassCtorInfo& rInfo ) { new(rInfo.TargetClass) x(rInfo); } \
 private: \
 	x& operator=(x&&); \
 	x& operator=(const x&); \
@@ -58,8 +55,6 @@ public: \
 	} \
 
 #define DECLARE_CLASS_NO_MOVE( x, BaseClass ) \
-public: \
-	static void __DefaultConstructor( const SClassCtorInfo& rInfo ) { new(rInfo.TargetClass) x(); } \
 private: \
 	static Saturn::SClass* _PrvStatic() {} \
 public: \

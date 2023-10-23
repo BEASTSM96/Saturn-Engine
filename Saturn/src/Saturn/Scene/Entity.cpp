@@ -54,21 +54,17 @@ namespace Saturn {
 		m_Scene->OnEntityCreated( this );
 	}
 
-	Entity::Entity( const SClassCtorInfo& rInfo )
-		: SClass( rInfo )
+	Entity::Entity( const std::string& rName, UUID Id )
 	{
-		if( rInfo.RegisterNewEntity )
-		{
-			m_Scene = GActiveScene;
-			m_EntityHandle = GActiveScene->m_Registry.create();
+		m_Scene = GActiveScene;
+		m_EntityHandle = m_Scene->CreateHandle();
 
-			AddComponent<IdComponent>();
-			AddComponent<RelationshipComponent>();
-			AddComponent<TransformComponent>();
-			AddComponent<TagComponent>().Tag = "Unnamed Entity";
+		AddComponent<IdComponent>().ID = Id;
+		AddComponent<RelationshipComponent>();
+		AddComponent<TransformComponent>();
+		AddComponent<TagComponent>().Tag = rName;
 
-			m_Scene->OnEntityCreated( this );
-		}
+		m_Scene->OnEntityCreated( this );
 	}
 
 	Entity::Entity( const Entity& other )

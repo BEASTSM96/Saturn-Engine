@@ -37,7 +37,7 @@ namespace Saturn {
 
 	class Entity;
 
-	typedef Ref<Entity> ( __stdcall* pEntityCreateFunction )();
+	typedef Entity* ( __stdcall* EntityRegistrantFunction )();
 
 	class GameModule
 	{
@@ -47,7 +47,7 @@ namespace Saturn {
 		GameModule();
 		~GameModule() {}
 
-		Ref<Entity> FindAndCallRegisterFunction( const std::string& rClassName );
+		Entity* FindAndCallRegisterFunction( const std::string& rClassName );
 		
 		void Load( bool reload = false );
 		void Unload();

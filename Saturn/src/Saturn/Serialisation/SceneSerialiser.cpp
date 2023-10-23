@@ -108,7 +108,7 @@ namespace Saturn {
 
 		auto entities = data["Entities"];
 
-		Deserialiseentities( entities, m_Scene );
+		DeserialiseEntities( entities, m_Scene );
 	}
 
 }

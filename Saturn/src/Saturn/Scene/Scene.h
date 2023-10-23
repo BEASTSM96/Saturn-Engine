@@ -242,9 +242,6 @@ namespace Saturn {
 
 		// TODO: Change raw pointer to Ref?
 		PhysicsScene* m_PhysicsScene = nullptr;
-
-		std::vector<Ref<Entity>> m_ScriptEntities;
-
 	private:
 
 		friend class Entity;

@@ -761,7 +761,7 @@ namespace Saturn {
 
 		prefabAsset->m_Scene = Ref<Scene>::Create();
 
-		Deserialiseentities( entities, prefabAsset->m_Scene );
+		DeserialiseEntities( entities, prefabAsset->m_Scene );
 
 		auto view = prefabAsset->m_Scene->GetAllEntitiesWith<RelationshipComponent>();
 

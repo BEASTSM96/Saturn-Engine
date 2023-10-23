@@ -246,16 +246,13 @@ namespace Saturn {
 	
 		m_PanelManager = nullptr;
 
+		Application::Get().PrimarySceneRenderer().SetCurrentScene( nullptr );
+		
 		if( m_RuntimeScene ) 
 		{	
 			m_RuntimeScene->OnRuntimeEnd();
 			m_RuntimeScene = nullptr;
 		}
-		else
-		{
-		}
-
-		Application::Get().PrimarySceneRenderer().SetCurrentScene( nullptr );
 
 		m_EditorScene = nullptr;
 	}
@@ -271,6 +268,7 @@ namespace Saturn {
 			if( !m_RuntimeScene )
 			{
 				m_RuntimeScene = Ref<Scene>::Create();
+				Scene::SetActiveScene( m_RuntimeScene.Pointer() );
 
 				m_EditorScene->CopyScene( m_RuntimeScene );
 
@@ -278,9 +276,6 @@ namespace Saturn {
 
 				pHierarchyPanel->SetContext( m_RuntimeScene );
 
-				m_RuntimeScene->m_RuntimeRunning = true;
-
-				Scene::SetActiveScene( m_RuntimeScene.Pointer() );
 				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Pointer() );
 			}
 		}
@@ -289,12 +284,12 @@ namespace Saturn {
 			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
 			{
 				m_RuntimeScene->OnRuntimeEnd();
-
-				m_RuntimeScene = nullptr;
+				Scene::SetActiveScene( m_EditorScene.Pointer() );
 
 				pHierarchyPanel->SetContext( m_EditorScene );
 
-				Scene::SetActiveScene( m_EditorScene.Pointer() );
+				m_RuntimeScene = nullptr;
+
 				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Pointer() );
 			}
 		}

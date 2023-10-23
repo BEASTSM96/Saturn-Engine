@@ -95,11 +95,6 @@ namespace Saturn {
 				entity->GetComponent<RigidbodyComponent>().Rigidbody = nullptr;
 		}
 
-		for( auto& entity : m_ScriptEntities )
-		{
-			entity = nullptr;
-		}
-
 		for( auto&& [id, entity] : m_EntityIDMap )
 		{
 			entity = nullptr;
@@ -108,7 +103,7 @@ namespace Saturn {
 		s_ActiveScenes.erase( m_SceneID );
 
 		m_EntityIDMap.clear();
-		//m_Registry.clear();
+		m_Registry.clear();
 	}
 
 	// TODO: We don't want to search for the main camera entity every frame.
@@ -152,13 +147,13 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		// We can use a entt::view here because we are only accessing the rigid body.
-		auto PhysXView = m_Registry.view<TransformComponent, RigidbodyComponent>();
+		auto rigidBodies = GetAllEntitiesWith<RigidbodyComponent>();
 		
-		for( const auto& entity : PhysXView )
+		for( auto& entity : rigidBodies )
 		{
-			auto [tc, rb] = PhysXView.get<TransformComponent, RigidbodyComponent>( entity );
+			auto& rb = entity->GetComponent<RigidbodyComponent>();
+			
 			rb.Rigidbody->SyncTransfrom();
-			// TODO: Maybe we could call the entity's OnPhysicsUpdate right here?
 		}
 
 		for( auto&& [id, entity] : m_EntityIDMap )
@@ -532,6 +527,8 @@ namespace Saturn {
 		if( m_PhysicsScene )
 			delete m_PhysicsScene;
 
+		m_RuntimeRunning = true;
+
 		m_PhysicsScene = new PhysicsScene( this );
 
 		for( auto&& [id, entity] : m_EntityIDMap )
@@ -542,7 +539,10 @@ namespace Saturn {
 
 	void Scene::OnRuntimeEnd()
 	{
-		delete m_PhysicsScene;
+		if( m_PhysicsScene )
+			delete m_PhysicsScene;
+
+		m_RuntimeRunning = false;
 	}
 
 	// Returns the Entity and the game class (if any).

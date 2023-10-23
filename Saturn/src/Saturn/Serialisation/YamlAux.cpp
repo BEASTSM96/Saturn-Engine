@@ -310,7 +310,7 @@ namespace Saturn {
 		rEmitter << YAML::EndMap;
 	}
 
-	void Deserialiseentities( YAML::Node& rNode, Ref<Scene> scene )
+	void DeserialiseEntities( YAML::Node& rNode, Ref<Scene> scene )
 	{
 		if( rNode.IsNull() )
 			return;

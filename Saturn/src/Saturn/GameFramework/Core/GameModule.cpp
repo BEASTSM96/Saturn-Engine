@@ -67,13 +67,13 @@ namespace Saturn {
 		}
 	}
 
-	Ref<Entity> GameModule::FindAndCallRegisterFunction( const std::string& rClassName ) 
+	Entity* GameModule::FindAndCallRegisterFunction( const std::string& rClassName ) 
 	{
 		std::string funcName = "_Z_Create_" + rClassName;
 
-		pEntityCreateFunction registerFunc = ( pEntityCreateFunction ) GetProcAddress( m_DLLInstance, funcName.c_str() );
+		EntityRegistrantFunction registrant = ( EntityRegistrantFunction ) GetProcAddress( m_DLLInstance, funcName.c_str() );
 
-		return ( registerFunc )();
+		return ( registrant )();
 	}
 
 	void GameModule::Unload()

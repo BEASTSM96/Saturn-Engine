@@ -195,8 +195,6 @@ namespace SaturnBuildTool
                     if (count < 0)
                         count = 0;
 
-                    Console.WriteLine(end - start);
-
                     List<string> filesForThread = new List<string>( SourceFiles.GetRange( start, count ) );
                     FilesPerThread.Add(filesForThread);
                     ThreadsCompleted.Add(false);
@@ -207,6 +205,7 @@ namespace SaturnBuildTool
                 while (ThreadsCompleted.Contains(false))
                 {
                     // Wait
+                    Thread.Sleep( 1 );
                 }
             }
             else 

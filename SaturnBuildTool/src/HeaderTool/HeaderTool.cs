@@ -416,22 +416,11 @@ namespace SaturnBuildTool.Tools
 
                     string spawnParamName = string.Format( "_Z_{0}_SpawnParams", cmd.CurrentFile.ClassName );
 
-                    string function = string.Format( "__declspec(dllexport) Saturn::Ref<Saturn::Entity> _Z_Create_{0}()", cmd.CurrentFile.ClassName );
+                    string function = string.Format( "__declspec(dllexport) Saturn::Entity* _Z_Create_{0}()", cmd.CurrentFile.ClassName );
                     function += "\r\n{\r\n";
-                    function += "\r\n";
-                    function += "\tSaturn::SClass* pClass = new SClass();\r\n";
-                    //function += string.Format( "\tpClass->m_SuperClass = _Z_Create_{0}();\r\n", cmd.CurrentFile.BaseClass );
-                    function += string.Format( "\t{0}* p{0} = ({0}*)pClass;\r\n", cmd.CurrentFile.ClassName );
-                    function += string.Format("\tpClass->ClassConstructor = Saturn::CallConstructor<{0}>;\r\n", cmd.CurrentFile.ClassName );
-                    function += "\t\r\n";
-                    function += "\tSaturn::SClassCtorInfo ClassConstructor{};\r\n";
-                    function += string.Format("\tClassConstructor.TargetClass = p{0};\r\n", cmd.CurrentFile.ClassName );
-                    // TODO: This is hard coded, we obviously want to change this.
-                    function += string.Format("\tClassConstructor.RegisterNewEntity = true;\r\n", cmd.CurrentFile.ClassName );
-                    function += "\t\r\n";
-                    //function += string.Format("\t(*pClass->ClassConstructor)( ClassConstructor );\r\n", cmd.CurrentFile.ClassName );
                     function += string.Format("\tSaturn::Ref<{0}> Target = Saturn::Ref<{0}>::Create();\r\n", cmd.CurrentFile.ClassName );
-                    function += string.Format("\treturn Target.As<Saturn::Entity>();\r\n", cmd.CurrentFile.ClassName );
+                    function += string.Format("\tSaturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();\r\n", cmd.CurrentFile.ClassName );
+                    function += string.Format("\treturn TargetReturn.Pointer();\r\n", cmd.CurrentFile.ClassName );
                     function += "}\r\n";
 
                     cmd.GeneratedSource.AppendLine(function);
