@@ -231,7 +231,6 @@ namespace Saturn {
 		EntityMap m_EntityIDMap;
 
 		entt::registry m_Registry;
-		//std::vector<Ref<Entity>> m_entities;
 
 		entt::entity m_SceneEntity;
 		entt::entity m_SelectedEntity;

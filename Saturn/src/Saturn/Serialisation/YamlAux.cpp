@@ -331,22 +331,22 @@ namespace Saturn {
 			auto srcc = entity[ "ScriptComponent" ];
 			if( srcc )
 			{
-				// We are a entity that has a custom type, we'll need to create that custom type and use it. 
-				// However we don't know what that type is, but we know for a fact that it's always based from an SClass. And (right now) it's got to be based from an Entity as well.
-
+				// Ask the game module to create the entity.
 				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, "" );
 
 				auto& s = DeserialisedEntity->AddComponent< ScriptComponent >();
 
 				s.ScriptName = srcc[ "Name" ].as< std::string >();
 				s.AssetID = srcc[ "ID" ].as< uint64_t >();
+
+				SAT_CORE_INFO( "Created entity with class name: {0}", s.ScriptName );
 			}
 			else
 			{
+				//DeserialisedEntity = Ref<Entity>::Create( Tag, entityID );
 				DeserialisedEntity = Ref<Entity>::Create();
-
-				DeserialisedEntity->GetComponent<IdComponent>().ID = entityID;
 				DeserialisedEntity->SetName( Tag );
+				DeserialisedEntity->GetComponent<IdComponent>().ID = entityID;
 			}
 
 			auto tc = entity[ "TransformComponent" ];

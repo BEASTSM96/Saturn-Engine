@@ -633,13 +633,10 @@ namespace Saturn {
 							{
 								Ref< Texture2D > v = rMaterial->GetResource( property );
 
-								if( v )
-								{
-									if( v && v->GetDescriptorSet() )
-										ImGui::Image( v->GetDescriptorSet(), ImVec2( 100, 100 ) );
-									else
-										ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-								}
+								if( v && v->GetDescriptorSet() )
+									ImGui::Image( v->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								else
+									ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
 							};
 
 							ImGui::Text( "Albedo" );
@@ -1026,11 +1023,13 @@ namespace Saturn {
 
 				if( pHierarchyPanel )
 				{
+					// Because of our ref system, the entity will be deleted when we clear the selections.
+
 					for( auto& rEntity : pHierarchyPanel->GetSelectionContexts() )
 					{
-						m_EditorScene->DeleteEntity( rEntity );
+						GActiveScene->DeleteEntity( rEntity );
 					}
-					
+
 					pHierarchyPanel->ClearSelected();
 				}
 			} break;
@@ -1061,7 +1060,7 @@ namespace Saturn {
 					{
 						for( const auto& rEntity : pHierarchyPanel->GetSelectionContexts() )
 						{
-							m_EditorScene->DuplicateEntity( rEntity );
+							GActiveScene->DuplicateEntity( rEntity );
 						}
 					}
 

@@ -361,6 +361,7 @@ namespace Saturn {
 	{
 		Ref<Entity> entity = GameModule::Get().FindAndCallRegisterFunction( name );
 		entity->SetName( name );
+		entity->GetComponent<IdComponent>().ID = uuid;
 
 		return entity;
 	}
@@ -384,12 +385,10 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		auto view = m_Registry.view<IdComponent>();
-		for( auto entity : view )
+		for( auto&& [handle, entity] : m_EntityIDMap )
 		{
-			const auto& canditate = view.get<IdComponent>( entity ).ID;
-			if( canditate == id )
-				return Ref<Entity>::Create( entity, this );
+			if( entity->GetUUID() == id )
+				return entity;
 		}
 
 		return nullptr;
@@ -432,6 +431,7 @@ namespace Saturn {
 			auto components = srcRegistry.view<V>();
 			for( auto srcEntity : components )
 			{
+				// Don't add to the scene entity.
 				if( !srcRegistry.any_of<SceneComponent>( srcEntity ) )
 				{
 					entt::entity destEntity = enttMap.at( srcRegistry.get<IdComponent>( srcEntity ).ID );
@@ -491,15 +491,30 @@ namespace Saturn {
 		{
 			auto child = FindEntityByID( rChild );
 
-			m_Registry.destroy( child->GetHandle() );
+			m_EntityIDMap.erase( child->GetHandle() );
 		}
 
-		m_Registry.destroy( entity->GetHandle() );
+		m_EntityIDMap.erase( entity->GetHandle() );
 	}
 
 	void Scene::CopyScene( Ref<Scene>& NewScene )
 	{
-		NewScene->m_EntityIDMap = m_EntityIDMap;
+		// Copy entities
+		// I know we can just use the "=" operator, but we need to recreate the entities from the game.
+
+		for( auto&& [id, entity] : m_EntityIDMap )
+		{
+			if( m_EntityIDMap[ id ]->HasComponent<ScriptComponent>() )
+			{
+				NewScene->m_EntityIDMap[ id ] = NewScene->CreateEntityWithIDScript( m_EntityIDMap[ id ]->GetUUID(), m_EntityIDMap[ id ]->GetName() );
+			}
+			else
+			{
+				NewScene->m_EntityIDMap[ id ] = Ref<Entity>::Create( m_EntityIDMap[ id ]->GetName(), m_EntityIDMap[ id ]->GetUUID() );
+			}	
+		}
+
+		//NewScene->m_EntityIDMap = m_EntityIDMap;
 
 		NewScene->m_Name = m_Name;
 		NewScene->m_Filepath = m_Filepath;
@@ -508,16 +523,10 @@ namespace Saturn {
 
 		std::unordered_map< UUID, entt::entity > EntityMap;
 		
-		auto IdComponents = m_Registry.view< IdComponent >();
+		auto IdComponents = NewScene->GetAllEntitiesWith< IdComponent >();
 
-		for( auto entity : IdComponents )
-		{
-			auto uuid = m_Registry.get<IdComponent>( entity ).ID;
-			Ref<Entity> e = Ref<Entity>::Create();
-			e->GetComponent<IdComponent>().ID = uuid;
-
-			EntityMap[ uuid ] = e->GetHandle();
-		}
+		for( auto& entity : IdComponents )
+			EntityMap[ entity->GetUUID() ] = entity->GetHandle();
 
 		CopyComponent( AllComponents{}, NewScene->m_Registry, m_Registry, EntityMap );
 	}

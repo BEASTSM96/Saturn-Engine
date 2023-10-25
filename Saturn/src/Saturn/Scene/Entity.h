@@ -125,6 +125,7 @@ namespace Saturn {
 
 	public:
 		UUID GetUUID() { return GetComponent<IdComponent>().ID; }
+		const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
 
 		void BeginPlay() override {}
 		void OnUpdate( Saturn::Timestep ts ) override {}

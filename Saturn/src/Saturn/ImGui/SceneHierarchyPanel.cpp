@@ -137,21 +137,6 @@ namespace Saturn {
 			if( !entity->HasParent() )
 				DrawEntityNode( entity );
 		}
-
-		/*
-		m_Context->m_Registry.each( [&]( auto entity )
-		{
-			Ref<Entity> e = Ref<Entity>::Create( entity, m_Context.Pointer() );
-
-			if( !e )
-				return;
-
-			if( !m_Context->m_Registry.any_of<SceneComponent>( entity ) && !e->HasParent() )
-			{
-				DrawEntityNode( e );
-			}
-		} );
-		*/
 	}
 
 	void SceneHierarchyPanel::ClearSelection()
