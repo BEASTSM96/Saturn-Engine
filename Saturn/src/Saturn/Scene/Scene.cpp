@@ -95,10 +95,12 @@ namespace Saturn {
 				entity->GetComponent<RigidbodyComponent>().Rigidbody = nullptr;
 		}
 
+		/*
 		for( auto&& [id, entity] : m_EntityIDMap )
 		{
 			entity = nullptr;
 		}
+		*/
 
 		s_ActiveScenes.erase( m_SceneID );
 
