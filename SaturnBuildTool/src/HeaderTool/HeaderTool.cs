@@ -415,8 +415,8 @@ namespace SaturnBuildTool.Tools
                     string function = string.Format( "__declspec(dllexport) Saturn::Entity* _Z_Create_{0}()", cmd.CurrentFile.ClassName );
                     function += "\r\n{\r\n";
                     function += string.Format("\tSaturn::Ref<{0}> Target = Saturn::Ref<{0}>::Create();\r\n", cmd.CurrentFile.ClassName );
-                    function += string.Format("\tSaturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();\r\n" );
-                    function += string.Format("\treturn TargetReturn.Pointer();\r\n" );
+                    function += "\tSaturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();\r\n";
+                    function += "\treturn TargetReturn.Pointer();\r\n";
                     function += "}\r\n";
 
                     cmd.GeneratedSource.AppendLine(function);
