@@ -192,8 +192,10 @@ namespace SaturnBuildTool
                     int end = (i == threadCount - 1) ? SourceFiles.Count : i + 1 * (SourceFiles.Count / threadCount);
                     int count = end - start;
 
-                    if (count < 0)
+                    if (count < 0) 
+                    {
                         count = 0;
+                    }
 
                     List<string> filesForThread = new List<string>( SourceFiles.GetRange( start, count ) );
                     FilesPerThread.Add(filesForThread);
