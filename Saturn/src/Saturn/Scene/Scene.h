@@ -232,8 +232,8 @@ namespace Saturn {
 
 		entt::registry m_Registry;
 
-		entt::entity m_SceneEntity;
-		entt::entity m_SelectedEntity;
+		entt::entity m_SceneEntity{ entt::null };
+		entt::entity m_SelectedEntity{ entt::null };
 
 		Lights m_Lights;
 

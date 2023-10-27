@@ -144,6 +144,8 @@ namespace Saturn {
 		m_Shape = nullptr;
 
 		PHYSX_TERMINATE_ITEM( m_Actor );
+
+		m_Entity = nullptr;
 	}
 
 	void PhysicsRigidBody::SetKinematic( bool val )

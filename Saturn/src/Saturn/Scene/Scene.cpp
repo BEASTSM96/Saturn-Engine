@@ -75,37 +75,35 @@ namespace Saturn {
 	Scene::~Scene()
 	{
 		// Destroy All Physics Entities and static meshes
-		auto staticMeshes = GetAllEntitiesWith<StaticMeshComponent>();
 
-		for( auto& entity : staticMeshes )
 		{
-			auto& rMeshComponent = entity->GetComponent<StaticMeshComponent>();
+			auto staticMeshes = GetAllEntitiesWith<StaticMeshComponent>();
 
-			if( rMeshComponent.Mesh )
-				rMeshComponent.Mesh = nullptr;
+			for( auto& entity : staticMeshes )
+			{
+				auto& rMeshComponent = entity->GetComponent<StaticMeshComponent>();
 
-			rMeshComponent.MaterialRegistry = nullptr;
+				if( rMeshComponent.Mesh )
+					rMeshComponent.Mesh = nullptr;
+
+				rMeshComponent.MaterialRegistry = nullptr;
+			}
+
+			// TODO: Is really needed? As the physics scene will destroy all of this.
+			
+			auto rigidBodies = GetAllEntitiesWith<RigidbodyComponent>();
+
+			for( auto& entity : rigidBodies )
+			{
+				if( entity->GetComponent<RigidbodyComponent>().Rigidbody )
+					delete entity->GetComponent<RigidbodyComponent>().Rigidbody;
+			}
 		}
-
-		auto rigidBodies = GetAllEntitiesWith<RigidbodyComponent>();
-
-		for( auto& entity : rigidBodies )
-		{
-			if( entity->GetComponent<RigidbodyComponent>().Rigidbody )
-				entity->GetComponent<RigidbodyComponent>().Rigidbody = nullptr;
-		}
-
-		/*
-		for( auto&& [id, entity] : m_EntityIDMap )
-		{
-			entity = nullptr;
-		}
-		*/
-
-		s_ActiveScenes.erase( m_SceneID );
 
 		m_EntityIDMap.clear();
 		m_Registry.clear();
+
+		s_ActiveScenes.erase( m_SceneID );
 	}
 
 	// TODO: We don't want to search for the main camera entity every frame.
@@ -323,41 +321,6 @@ namespace Saturn {
 		camera.SetViewportSize( rSceneRenderer.Width(), rSceneRenderer.Height() );
 		rSceneRenderer.SetCamera( { camera, view } );
 	}
-
-	/*
-	Entity Scene::CreateEntity( const std::string& name )
-	{
-		Entity entity ={ m_Registry.create(), this };
-		entity.AddComponent<RelationshipComponent>();
-		entity.AddComponent<TransformComponent>();
-		
-		auto& idComponent = entity.AddComponent<IdComponent>().ID = {};
-		auto& tagComponent = entity.AddComponent<TagComponent>( name.empty() ? "Empty Entity" : name );
-		
-		m_EntityIDMap[ idComponent ] = entity;
-		
-		return entity;
-	}
-
-	Entity Scene::CreateEntityWithID( UUID uuid, const std::string& name )
-	{
-		Entity entity ={ m_Registry.create(), this };
-
-		auto& idComponent = entity.AddComponent<IdComponent>();
-		idComponent.ID = uuid;
-
-		entity.AddComponent<TransformComponent>();
-		if( !name.empty() )
-			entity.AddComponent<TagComponent>( name );
-
-		m_EntityIDMap[ uuid ] = entity;
-
-		entity.AddComponent<RelationshipComponent>();
-
-		return entity;
-	}
-
-	*/
 
 	Ref<Entity> Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
 	{
