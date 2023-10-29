@@ -68,8 +68,8 @@ namespace Saturn {
 		m_Scene->SetName( "Prefab scene" );
 
 		// TODO: (Entities using refs) Fix this
-		//if( srcEntity->Vaild() )
-		//	m_Entity = CreateFromEntity( srcEntity );
+		if( srcEntity->Vaild() )
+			m_Entity = CreateFromEntity( srcEntity );
 	}
 
 	void Prefab::Create()
@@ -127,7 +127,7 @@ namespace Saturn {
 		return result;
 	}
 
-	Ref<Entity> Prefab::CreateFromEntity( Ref<Entity>& srcEntity )
+	Ref<Entity> Prefab::CreateFromEntity( Ref<Entity> srcEntity )
 	{
 		Ref<Entity> result = Ref<Entity>::Create();
 		result->AddComponent<PrefabComponent>().AssetID = ID;
@@ -140,15 +140,12 @@ namespace Saturn {
 
 		for( auto& childId : srcEntity->GetChildren() )
 		{
-			//Ref<Entity> child = CreateFromEntity( srcEntity->m_Scene->FindEntityByID( childId ) );
-
-			// TODO: (Entities using refs) Fix this
-			Ref<Entity> child = nullptr;
+			Ref<Entity> child = CreateFromEntity( srcEntity->m_Scene->FindEntityByID( childId ) );
 
 			auto& rc = result->GetComponent<RelationshipComponent>();
 
 			child->SetParent( result->GetComponent<IdComponent>().ID );
-			//rc.ChildrenID.push_back( child.GetComponent<IdComponent>().ID );s
+			rc.ChildrenID.push_back( child->GetComponent<IdComponent>().ID );
 		}
 
 		return result;

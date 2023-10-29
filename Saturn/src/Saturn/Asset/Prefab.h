@@ -54,7 +54,7 @@ namespace Saturn {
 		void CreateScene();
 
 	private:
-		Ref<Entity> CreateFromEntity( Ref<Entity>& srcEntity );
+		Ref<Entity> CreateFromEntity( Ref<Entity> srcEntity );
 		Ref<Entity> CreateChildren( const Ref<Entity>& parent, Ref<Scene> Scene );
 	private:
 		Ref<Entity> m_Entity;
