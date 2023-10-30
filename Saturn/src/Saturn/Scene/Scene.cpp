@@ -103,7 +103,12 @@ namespace Saturn {
 			}
 		}
 
-		m_EntityIDMap.clear();
+		for( auto&& [ id, entity ] : m_EntityIDMap )
+		{
+			entity = nullptr;
+		}
+
+		//m_EntityIDMap.clear();
 		m_Registry.clear();
 
 		s_ActiveScenes.erase( m_SceneID );

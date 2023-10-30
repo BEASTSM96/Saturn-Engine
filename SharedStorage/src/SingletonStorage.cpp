@@ -43,6 +43,6 @@ namespace Saturn {
 		for( auto&& [typeinfo, data] : m_Singletons ) 
 			delete m_Singletons[ typeinfo ];
 
-		m_Singletons.clear();
+		s_Instance = nullptr;
 	}
 }

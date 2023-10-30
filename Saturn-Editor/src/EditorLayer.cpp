@@ -733,9 +733,6 @@ namespace Saturn {
 
 				static std::string path = "";
 
-				if( path.empty() )
-					path = "";
-
 				ImGui::InputText( "##path", ( char* ) path.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
 				ImGui::SameLine();
 				if( ImGui::Button( "..." ) ) 
