@@ -327,7 +327,7 @@ namespace Saturn {
 
 	Ref<Entity> Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
 	{
-		Ref<Entity> entity = GameModule::Get().FindAndCallRegisterFunction( name );
+		Ref<Entity> entity = GameModule::Get().FindAndCallRegisterFunction( rScriptName );
 		entity->SetName( name );
 		entity->GetComponent<IdComponent>().ID = uuid;
 
@@ -469,20 +469,19 @@ namespace Saturn {
 	{
 		// Copy entities
 		// I know we can just use the "=" operator, but we need to recreate the entities from the game.
-
 		for( auto&& [id, entity] : m_EntityIDMap )
 		{
 			if( m_EntityIDMap[ id ]->HasComponent<ScriptComponent>() )
 			{
-				NewScene->m_EntityIDMap[ id ] = NewScene->CreateEntityWithIDScript( m_EntityIDMap[ id ]->GetUUID(), m_EntityIDMap[ id ]->GetName() );
+				auto& rScriptComponent = m_EntityIDMap[ id ]->GetComponent<ScriptComponent>();
+
+				NewScene->m_EntityIDMap[ id ] = NewScene->CreateEntityWithIDScript( m_EntityIDMap[ id ]->GetUUID(), m_EntityIDMap[ id ]->GetName(), rScriptComponent.ScriptName );
 			}
 			else
 			{
 				NewScene->m_EntityIDMap[ id ] = Ref<Entity>::Create( m_EntityIDMap[ id ]->GetName(), m_EntityIDMap[ id ]->GetUUID() );
 			}	
 		}
-
-		//NewScene->m_EntityIDMap = m_EntityIDMap;
 
 		NewScene->m_Name = m_Name;
 		NewScene->m_Filepath = m_Filepath;
@@ -526,9 +525,7 @@ namespace Saturn {
 	// This is not good as the SClass will hold the entity anyway.
 	Ref<Entity> Scene::CreatePrefab( Ref<Prefab> prefabAsset )
 	{
-		Ref<Entity> prefabEntity;
-
-		prefabEntity = prefabAsset->PrefabToEntity( this, prefabEntity );
+		Ref<Entity> prefabEntity = prefabAsset->PrefabToEntity( this );
 
 		return prefabEntity;
 	}

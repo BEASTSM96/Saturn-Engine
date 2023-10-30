@@ -1259,11 +1259,7 @@ namespace Saturn {
 		{
 			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
 
-			// SHIT!!
-			item->SetDirectorySelectedFn( [this]( const std::filesystem::path& path ) 
-				{
-					OnDirectorySelected( path );
-				} );
+			item->SetDirectorySelectedFn( SAT_BIND_EVENT_FN( OnDirectorySelected ) );
 
 			if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )
 			{

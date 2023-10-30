@@ -752,6 +752,9 @@ namespace Saturn {
 		auto entities = data[ "Entities" ];
 
 		prefabAsset->m_Scene = Ref<Scene>::Create();
+		Scene* CurrentScene = GActiveScene;
+
+		Scene::SetActiveScene( prefabAsset->m_Scene.Get() );
 
 		DeserialiseEntities( entities, prefabAsset->m_Scene );
 
@@ -772,6 +775,7 @@ namespace Saturn {
 		}
 
 		prefabAsset->m_Entity = RootEntity;
+		Scene::SetActiveScene( CurrentScene );
 
 		// TODO: (Asset) Fix this.
 		struct

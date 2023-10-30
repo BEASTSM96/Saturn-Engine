@@ -73,6 +73,7 @@ namespace Saturn {
 	{
 		m_SceneRenderer = nullptr;
 		m_SceneHierarchyPanel = nullptr;
+		m_Prefab = nullptr;
 	}
 
 	void PrefabViewer::OnImGuiRender()

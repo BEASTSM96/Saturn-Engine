@@ -44,7 +44,7 @@ namespace Saturn {
 		void Create( const Ref<Entity>& srcEntity );
 		void Create();
 
-		Ref<Entity> PrefabToEntity( Ref<Scene> Scene, Ref<Entity>& entity );
+		Ref<Entity> PrefabToEntity( Ref<Scene> Scene );
 
 		Ref<Scene>& GetScene() { return m_Scene; }
 		const Ref<Scene>& GetScene() const { return m_Scene; }

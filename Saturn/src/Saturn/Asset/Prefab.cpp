@@ -85,7 +85,7 @@ namespace Saturn {
 		m_Scene = Ref<Scene>::Create();
 	}
 
-	Ref<Entity> Prefab::PrefabToEntity( Ref<Scene> Scene, Ref<Entity>& entity )
+	Ref<Entity> Prefab::PrefabToEntity( Ref<Scene> Scene )
 	{
 		Ref<Entity> result = Ref<Entity>::Create();
 		result->AddComponent<PrefabComponent>().AssetID = ID;
@@ -108,14 +108,12 @@ namespace Saturn {
 		if( !RootEntity )
 			RootEntity = m_Entity;
 
-		auto id = entity->GetComponent<IdComponent>().ID;
-
 		CopyComponentIfExists( AllComponents{}, 
 			result->m_EntityHandle, RootEntity->m_EntityHandle,
 			m_Scene->m_Registry, Scene->m_Registry );
 
 		// We don't want the same id, what if we spawn this prefab and it has the same id?
-		result->GetComponent<IdComponent>().ID = id;
+		result->GetComponent<IdComponent>().ID = {};
 
 		for( auto& childId : RootEntity->GetChildren() )
 		{

@@ -262,10 +262,11 @@ namespace Saturn {
 		if( m_ImGuiLayer != nullptr )
 			m_ImGuiLayer->OnEvent( e );
 		
-		// We need to make sure we process event backwards as if the editor layer is first and we have a button that was created by the user in game then the editor layer would get the event first, and let's say that it might shoot or something. We wanted to click a button not shoot.
+		// Process Events backwards. This is so that if we are in a game and we click a button if the first layer gets that event it might shoot in the game however we wanted to click a button not shoot.
 		for( auto itr = m_Layers.end(); itr != m_Layers.begin(); )
 		{
 			( *--itr )->OnEvent( e );
+
 			if( e.Handled )
 				break;
 		}
