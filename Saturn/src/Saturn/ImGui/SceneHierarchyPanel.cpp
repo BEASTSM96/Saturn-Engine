@@ -132,11 +132,11 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::DrawEntities()
 	{
-		for( auto&& [id, entity] : m_Context->m_EntityIDMap )
-		{
-			if( !entity->HasParent() )
-				DrawEntityNode( entity );
-		}
+		m_Context->Each( [&]( Ref<Entity> entity )
+			{
+				if( !entity->HasParent() )
+					DrawEntityNode( entity );
+			} );
 	}
 
 	void SceneHierarchyPanel::ClearSelection()

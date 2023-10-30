@@ -67,18 +67,10 @@ namespace Saturn {
 
 		out << YAML::BeginSeq;
 		
-		m_Scene->m_Registry.each( [&]( auto EntityID ) 
-		{
-			Entity entity = { EntityID, m_Scene.Pointer() };
-
-			if( !entity )
-				return;
-		
-			if( entity.HasComponent<SceneComponent>() )
-				return;
-
-			SerialiseEntity( out, entity );
-		} );
+		m_Scene->Each( [&]( Ref<Entity> entity ) 
+			{
+				SerialiseEntity( out, entity );
+			} );
 
 		out << YAML::EndSeq;
 		out << YAML::EndMap;

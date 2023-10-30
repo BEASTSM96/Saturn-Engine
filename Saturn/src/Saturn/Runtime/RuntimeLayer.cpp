@@ -51,7 +51,7 @@ namespace Saturn {
 	RuntimeLayer::RuntimeLayer()
 		: m_RuntimeScene( Ref<Scene>::Create() )
 	{
-		Scene::SetActiveScene( m_RuntimeScene.Pointer() );
+		Scene::SetActiveScene( m_RuntimeScene.Get() );
 
 		// Init Physics
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
@@ -74,19 +74,18 @@ namespace Saturn {
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
 		m_RuntimeScene->OnRuntimeStart();
-		m_RuntimeScene->m_RuntimeRunning = true;
 	}
 
 	RuntimeLayer::~RuntimeLayer()
 	{
 		m_RuntimeScene->OnRuntimeEnd();
-
 		m_RuntimeScene = nullptr;
 	}
 
 	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )
 	{
 		Ref<Scene> newScene = Ref<Scene>::Create();
+		Scene::SetActiveScene( newScene.Get() );
 		
 		auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
 		SceneSerialiser serialiser( newScene );
@@ -95,9 +94,11 @@ namespace Saturn {
 		m_RuntimeScene = nullptr;
 		m_RuntimeScene = newScene;
 
+		Scene::SetActiveScene( m_RuntimeScene.Get() );
+
 		newScene = nullptr;
 
-		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Pointer() );
+		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Get() );
 	}
 
 	void RuntimeLayer::OnUpdate( Timestep time )

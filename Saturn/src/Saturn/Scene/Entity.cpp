@@ -75,8 +75,6 @@ namespace Saturn {
 
 	Entity::~Entity()
 	{
-		SAT_CORE_INFO( "destroyed entity {0}", (std::uint32_t)m_EntityHandle );
-
 		m_Scene->RemoveHandle( m_EntityHandle );
 		m_EntityHandle = entt::null;
 

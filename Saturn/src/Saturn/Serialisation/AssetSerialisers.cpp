@@ -717,18 +717,10 @@ namespace Saturn {
 
 		out << YAML::BeginSeq;
 
-		prefabAsset->m_Scene->GetRegistry().each( [ & ]( auto ID )
-		{
-			Entity e = { ID, prefabAsset->m_Scene.Pointer() };
-
-			if( !e )
-				return;
-
-			if( e.HasComponent<SceneComponent>() )
-				return;
-
-			SerialiseEntity( out, e );
-		});
+		prefabAsset->m_Scene->Each( [&]( Ref<Entity> entity ) 
+			{
+				SerialiseEntity( out, entity );
+			} );
 
 		out << YAML::EndSeq;
 		out << YAML::EndMap;

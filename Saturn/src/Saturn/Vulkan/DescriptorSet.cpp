@@ -73,7 +73,7 @@ namespace Saturn {
 	void DescriptorSet::Terminate()
 	{
 		if( m_Set )
-			vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), *m_Specification.Pool.Pointer(), 1, &m_Set );
+			vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), *m_Specification.Pool.Get(), 1, &m_Set );
 
 		m_Set = nullptr;
 		m_Specification = {};
@@ -114,7 +114,7 @@ namespace Saturn {
 	void DescriptorSet::Allocate()
 	{
 		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-		AllocateInfo.descriptorPool = *m_Specification.Pool.Pointer();
+		AllocateInfo.descriptorPool = *m_Specification.Pool.Get();
 		AllocateInfo.descriptorSetCount = 1;
 		AllocateInfo.pSetLayouts = &m_Specification.Layout;
 		

@@ -95,10 +95,8 @@ namespace Saturn {
 		Scene();
 		~Scene();
 
-		//Entity CreateEntity( const std::string& name =  "" );
-		//Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
-
 		Ref<Entity> CreateEntityWithIDScript( UUID uuid, const std::string& name = "", const std::string& rScriptName = "" );
+	public:
 
 		void OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer );
 		void OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer );
@@ -106,6 +104,10 @@ namespace Saturn {
 		void DuplicateEntity( Ref<Entity> entity );
 		void DeleteEntity( Ref<Entity> entity );
 
+		void OnUpdate( Timestep ts );
+		void OnUpdatePhysics( Timestep ts );
+
+	public:
 		template<typename T>
 		std::vector<Ref<Entity>> GetAllEntitiesWith( void )
 		{
@@ -120,10 +122,16 @@ namespace Saturn {
 			return result;
 		}
 
-		Ref<Entity> GetMainCameraEntity();
+		template<typename Func>
+		void Each( Func Function )
+		{
+			for( auto&& [id, entity] : m_EntityIDMap )
+			{
+				Function( entity );
+			}
+		}
 
-		void OnUpdate( Timestep ts );
-		void OnUpdatePhysics( Timestep ts );
+		Ref<Entity> GetMainCameraEntity();
 
 		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
 		
@@ -163,9 +171,6 @@ namespace Saturn {
 		void RemoveHandle( entt::entity handle ) 
 		{
 			m_Registry.destroy( handle );
-
-			//m_EntityIDMap[ handle ] = nullptr;
-			//m_EntityIDMap.erase( handle );
 		}
 
 		static void   SetActiveScene( Scene* pScene );
@@ -220,6 +225,14 @@ namespace Saturn {
 
 			return m_Registry.get<Ty>( entity );
 		}
+
+	public:
+
+		//////////////////////////////////////////////////////////////////////////
+		// Loads and opens the scene for play.
+		static bool Travel( const std::string& rSceneName );
+		static bool AwaitingTravels();
+		static void DoTravel();
 
 	private:
 

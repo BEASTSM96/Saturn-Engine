@@ -180,8 +180,8 @@ namespace Saturn {
 		T& operator*()             { return *m_Pointer; }
 		const T& operator*() const { return *m_Pointer; }
 
-		T* Pointer()             { return m_Pointer; }
-		const T* Pointer() const { return m_Pointer; }
+		T* Get()             { return m_Pointer; }
+		const T* Get() const { return m_Pointer; }
 
 		template <typename T2>
 		Ref<T2> As() const

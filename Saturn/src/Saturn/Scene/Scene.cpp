@@ -36,6 +36,7 @@
 #include "Components.h"
 
 #include "Saturn/Asset/Prefab.h"
+#include "Saturn/Asset/AssetManager.h"
 
 #include "Saturn/Core/OptickProfiler.h"
 
@@ -43,6 +44,8 @@
 #include "Saturn/Physics/PhysicsRigidBody.h"
 
 #include "Saturn/GameFramework/Core/GameModule.h"
+
+#include "Saturn/Serialisation/SceneSerialiser.h"
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -52,6 +55,7 @@ namespace Saturn {
 
 	static const std::string DefaultEntityName = "Empty Entity";
 	std::unordered_map<UUID, Scene*> s_ActiveScenes;
+	std::unordered_map< std::string, Ref<Asset> > s_PendingTravels;
 
 	static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition( const glm::mat4& transform )
 	{
@@ -75,7 +79,6 @@ namespace Saturn {
 	Scene::~Scene()
 	{
 		// Destroy All Physics Entities and static meshes
-
 		{
 			auto staticMeshes = GetAllEntitiesWith<StaticMeshComponent>();
 
@@ -544,4 +547,36 @@ namespace Saturn {
 	{
 		m_EntityIDMap[ entity->GetHandle() ] = entity;
 	}
+
+	bool Scene::Travel( const std::string& rSceneName )
+	{
+		// Because we don't load scenes from the asset importer, we have to manually load it.
+		Ref<Asset> asset = AssetManager::Get().FindAsset( rSceneName, AssetType::Scene );
+
+		if( !asset )
+			return false;
+
+		// We cannot just immediately start to open the scene we need to do it next frame.
+		s_PendingTravels[ rSceneName ] = asset;
+
+		return true;
+	}
+
+	bool Scene::AwaitingTravels()
+	{
+		return false;
+	}
+
+	void Scene::DoTravel()
+	{
+		for( auto&& [Name, asset] : s_PendingTravels )
+		{
+			Ref<Scene> newScene = Ref<Scene>::Create();
+			Scene::SetActiveScene( newScene.Get() );
+
+			SceneSerialiser ss( newScene );
+			ss.Deserialise( asset->Path.string() );
+		}
+	}
+
 }

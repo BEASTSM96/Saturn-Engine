@@ -92,7 +92,7 @@ namespace Saturn {
 	EditorLayer::EditorLayer() 
 		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f ), m_EditorScene( Ref<Scene>::Create() )
 	{
-		Scene::SetActiveScene( m_EditorScene.Pointer() );
+		Scene::SetActiveScene( m_EditorScene.Get() );
 
 		m_RuntimeScene = nullptr;
 		
@@ -263,12 +263,34 @@ namespace Saturn {
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 		
+		// Check for any awaiting scene travels.
+		if( Scene::AwaitingTravels() )
+		{
+			pHierarchyPanel->SetContext( nullptr );
+			Application::Get().PrimarySceneRenderer().SetCurrentScene( nullptr );
+			
+			Scene::DoTravel();
+
+			// Travels are only used for the runtime scene
+			if( m_RuntimeScene )
+			{
+				m_RuntimeScene->OnRuntimeEnd();
+				m_RuntimeScene = nullptr;
+
+				m_RuntimeScene = GActiveScene;
+				m_RuntimeScene->OnRuntimeStart();
+
+				pHierarchyPanel->SetContext( m_RuntimeScene );
+				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Get() );
+			}
+		}
+
 		if( m_RequestRuntime )
 		{
 			if( !m_RuntimeScene )
 			{
 				m_RuntimeScene = Ref<Scene>::Create();
-				Scene::SetActiveScene( m_RuntimeScene.Pointer() );
+				Scene::SetActiveScene( m_RuntimeScene.Get() );
 
 				m_EditorScene->CopyScene( m_RuntimeScene );
 
@@ -276,7 +298,7 @@ namespace Saturn {
 
 				pHierarchyPanel->SetContext( m_RuntimeScene );
 
-				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Pointer() );
+				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Get() );
 			}
 		}
 		else
@@ -284,13 +306,13 @@ namespace Saturn {
 			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
 			{
 				m_RuntimeScene->OnRuntimeEnd();
-				Scene::SetActiveScene( m_EditorScene.Pointer() );
+				Scene::SetActiveScene( m_EditorScene.Get() );
 
 				pHierarchyPanel->SetContext( m_EditorScene );
 
 				m_RuntimeScene = nullptr;
 
-				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Pointer() );
+				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Get() );
 			}
 		}
 
@@ -969,7 +991,7 @@ namespace Saturn {
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
-		GActiveScene = newScene.Pointer();
+		GActiveScene = newScene.Get();
 
 		pHierarchyPanel->ClearSelected();
 		pHierarchyPanel->SetContext( nullptr );
@@ -984,12 +1006,12 @@ namespace Saturn {
 		m_EditorScene = nullptr;
 		m_EditorScene = newScene;
 
-		GActiveScene = m_EditorScene.Pointer();
+		GActiveScene = m_EditorScene.Get();
 
 		pHierarchyPanel->SetContext( m_EditorScene );
 		newScene = nullptr;
 
-		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Pointer() );
+		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Get() );
 	}
 
 	void EditorLayer::OpenFile()

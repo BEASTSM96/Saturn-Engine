@@ -416,7 +416,7 @@ namespace SaturnBuildTool.Tools
                     function += "\r\n{\r\n";
                     function += string.Format("\tSaturn::Ref<{0}> Target = Saturn::Ref<{0}>::Create();\r\n", cmd.CurrentFile.ClassName );
                     function += "\tSaturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();\r\n";
-                    function += "\treturn TargetReturn.Pointer();\r\n";
+                    function += "\treturn TargetReturn.Get();\r\n";
                     function += "}\r\n";
 
                     cmd.GeneratedSource.AppendLine(function);
@@ -433,16 +433,6 @@ namespace SaturnBuildTool.Tools
                     function += "}\r\n";
 
                     cmd.GeneratedSource.AppendLine(function);
-
-                    string functionBaseClass = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
-                    functionBaseClass += cmd.CurrentFile.ClassName;
-                    functionBaseClass += "_FromBase";
-                    functionBaseClass += string.Format("({0}* Ty)\r\n", cmd.CurrentFile.BaseClass);
-                    functionBaseClass += "{\r\n";
-                    functionBaseClass += "\treturn nullptr;\r\n";
-                    functionBaseClass += "}\r\n";
-
-                    cmd.GeneratedSource.AppendLine(functionBaseClass);
 
                     cmd.GeneratedSource.AppendLine("//^^^ NO Spawnable\r\n");
                 }

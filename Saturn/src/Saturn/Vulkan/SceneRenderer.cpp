@@ -185,7 +185,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Static Meshes";
-		PipelineSpec.Shader = m_RendererData.StaticMeshShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.StaticMeshShader.Get();
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.VertexLayout = {
@@ -222,7 +222,7 @@ namespace Saturn {
 		PipelineSpec.Width = ( uint32_t ) SHADOW_MAP_SIZE;
 		PipelineSpec.Height = ( uint32_t ) SHADOW_MAP_SIZE;
 		PipelineSpec.Name = "DirShadowMap";
-		PipelineSpec.Shader = m_RendererData.DirShadowMapShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.DirShadowMapShader.Get();
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
@@ -318,7 +318,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "PreDepth";
-		PipelineSpec.Shader = m_RendererData.PreDepthShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.PreDepthShader.Get();
 		PipelineSpec.RenderPass = m_RendererData.PreDepthPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::Back;
@@ -415,7 +415,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Scene Composite";
-		PipelineSpec.Shader = m_RendererData.SceneCompositeShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.SceneCompositeShader.Get();
 		PipelineSpec.RenderPass = m_RendererData.SceneComposite;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::None;
@@ -476,7 +476,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Texture Pass";
-		PipelineSpec.Shader = m_RendererData.TexturePassShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.TexturePassShader.Get();
 		PipelineSpec.RenderPass = VulkanContext::Get().GetDefaultPass();
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::None;
@@ -752,7 +752,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Grid";
-		PipelineSpec.Shader = m_RendererData.GridShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.GridShader.Get();
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::None;
@@ -802,7 +802,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Skybox";
-		PipelineSpec.Shader = m_RendererData.SkyboxShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.SkyboxShader.Get();
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::Back;

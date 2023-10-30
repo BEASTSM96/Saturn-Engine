@@ -52,7 +52,7 @@ namespace Saturn {
 		m_Scene = Ref<Scene>::Create();
 		m_SceneRenderer = Ref<SceneRenderer>::Create();
 		m_SceneRenderer->SetDynamicSky( 2.0f, 0.0f, 0.0f );
-		m_SceneRenderer->SetCurrentScene( m_Scene.Pointer() );
+		m_SceneRenderer->SetCurrentScene( m_Scene.Get() );
 
 		AddMesh();
 	}

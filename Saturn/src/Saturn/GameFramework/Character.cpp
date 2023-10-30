@@ -110,5 +110,5 @@ Saturn::Entity* _Z_Create_Character()
 
 	Saturn::Ref<Character> Target = Saturn::Ref<Character>::Create();
 	Saturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();
-	return TargetReturn.Pointer();
+	return TargetReturn.Get();
 }
