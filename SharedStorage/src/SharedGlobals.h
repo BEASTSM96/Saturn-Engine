@@ -26,23 +26,14 @@
 *********************************************************************************************
 */
 
-#include "SingletonStorage.h"
+#pragma once
+
+#include "SSBase.h"
+
+// All shared globals from the game and the engine.
+// This will really be needed when we compile the game as a standalone as we can just build this link this statically.
 
 namespace Saturn {
-
-	Saturn::SingletonStorage* SingletonStorage::s_Instance;
-	
-	SingletonStorage::SingletonStorage() 
-	{
-		// Yes, we should check if its already been created but, no.
-		s_Instance = this;
-	}
-
-	SingletonStorage::~SingletonStorage()
-	{
-		for( auto&& [typeinfo, data] : m_Singletons ) 
-			delete m_Singletons[ typeinfo ];
-
-		m_Singletons.clear();
-	}
+	class Scene;
+	extern SS_API Scene* GActiveScene;
 }

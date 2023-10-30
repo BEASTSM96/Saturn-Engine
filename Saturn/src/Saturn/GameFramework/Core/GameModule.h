@@ -26,30 +26,37 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "GameManager.h"
+#pragma once
 
-#include "GameScript.h"
-#include "EntityScriptManager.h"
-#include "GameThread.h"
+#include "SingletonStorage.h"
+#include "Saturn/GameFramework/SClass.h"
+
+#include <Windows.h>
 
 namespace Saturn {
 
-	Saturn::GameManager* GameManager::s_Instance;
+	class Entity;
 
-	GameManager::GameManager()
+	typedef Entity* ( __stdcall* EntityRegistrantFunction )();
+
+	class GameModule
 	{
-		SAT_CORE_ASSERT( !s_Instance, "A Game Manager was already created!" );
+	public:
+		static GameModule& Get() { return *SingletonStorage::Get().GetSingleton<GameModule>(); }
+	public:
+		GameModule();
+		~GameModule() {}
 
-		s_Instance = this;
+		Entity* FindAndCallRegisterFunction( const std::string& rClassName );
+		
+		void Load( bool reload = false );
+		void Unload();
+		void Reload();
+	private:
+		HMODULE m_DLLInstance = nullptr;
 
-		// We want the game manager to own this class.
-		EntityScriptManager* pScriptManager = new EntityScriptManager();
-		GameThread::Get();
-	}
+	private:
+		friend class EntityScriptManager;
+	};
 
-	GameManager::~GameManager()
-	{
-
-	}
 }

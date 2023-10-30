@@ -26,53 +26,10 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/Scene/Scene.h"
-#include <unordered_map>
+#include "SharedGlobals.h"
 
 namespace Saturn {
-	
-	class Entity;
 
-	class EntityScriptManager
-	{
-	public:
-		static EntityScriptManager& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<EntityScriptManager>(); }
-	public:
-		EntityScriptManager();
-		~EntityScriptManager();
+	static Scene* GActiveScene = nullptr;
 
-		void SetCurrentScene( const Ref<Scene>& rScene ) { m_CurrentScene = rScene; }
-		void TransferEntities( const Ref<Scene>& rOldScene );
-
-		void RegisterScript( const std::string& rName );
-		void UnregisterScript( const std::string& rName );
-
-		void BeginPlay();
-		void UpdateAllScripts( Saturn::Timestep ts );
-		void OnPhysicsUpdate( Saturn::Timestep ts );
-
-		void CreateAllScripts();
-
-		void DestroyEntityInScene( const Ref<Scene>& rScene );
-
-		Saturn::SClass* CreateScript( const std::string& rName, SClass* Base );
-
-		void Reload();
-
-		void AddProperty( const std::string& rClassName, const std::string& rName, void* ppRawProp );
-	private:
-
-		// The register function defined in the game dll. i.e. _Z_Create_MyClass
-		std::unordered_map< std::string, SClass* ( __stdcall* )( SClass* ) > m_ScriptFunctions;
-
-		std::unordered_map< UUID, std::unordered_map< std::string, SClass* >> m_Scripts;
-		std::vector< Ref<Scene> > m_Scenes;
-
-		Ref<Scene> m_CurrentScene;
-
-	private:
-		static EntityScriptManager* s_Instance;
-	};
 }

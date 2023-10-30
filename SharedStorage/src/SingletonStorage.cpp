@@ -26,30 +26,23 @@
 *********************************************************************************************
 */
 
-#pragma once
-
 #include "SingletonStorage.h"
-
-#include <Windows.h>
 
 namespace Saturn {
 
-	class GameDLL
+	Saturn::SingletonStorage* SingletonStorage::s_Instance;
+	
+	SingletonStorage::SingletonStorage() 
 	{
-	public:
-		static GameDLL& Get() { return *SingletonStorage::Get().GetSingleton<GameDLL>(); }
-	public:
-		GameDLL();
-		~GameDLL() {}
+		// Yes, we should check if its already been created but, no.
+		s_Instance = this;
+	}
 
-		void Load(bool reload = false);
-		void Unload();
-		void Reload();
-	private:
-		HMODULE m_DLLInstance = nullptr;
+	SingletonStorage::~SingletonStorage()
+	{
+		for( auto&& [typeinfo, data] : m_Singletons ) 
+			delete m_Singletons[ typeinfo ];
 
-	private:
-		friend class EntityScriptManager;
-	};
-
+		s_Instance = nullptr;
+	}
 }

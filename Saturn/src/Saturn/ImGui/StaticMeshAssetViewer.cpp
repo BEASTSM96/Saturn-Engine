@@ -52,7 +52,7 @@ namespace Saturn {
 		m_Scene = Ref<Scene>::Create();
 		m_SceneRenderer = Ref<SceneRenderer>::Create();
 		m_SceneRenderer->SetDynamicSky( 2.0f, 0.0f, 0.0f );
-		m_SceneRenderer->SetCurrentScene( m_Scene.Pointer() );
+		m_SceneRenderer->SetCurrentScene( m_Scene.Get() );
 
 		AddMesh();
 	}
@@ -237,8 +237,10 @@ namespace Saturn {
 
 		m_Open = true;
 
-		Entity e = m_Scene->CreateEntity( "InternalViewerEntity" );
-		e.AddComponent<StaticMeshComponent>().Mesh = mesh;
+		Ref<Entity> e = Ref<Entity>::Create();
+		e->SetName( "InternalViewerEntity" );
+
+		e->AddComponent<StaticMeshComponent>().Mesh = mesh;
 	}
 
 }

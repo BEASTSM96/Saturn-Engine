@@ -50,7 +50,6 @@
 #include "Saturn/Premake/Premake.h"
 #include "Saturn/GameFramework/Core/SourceManager.h"
 #include "Saturn/GameFramework/Core/GamePrefabList.h"
-#include "Saturn/GameFramework/Core/EntityScriptManager.h"
 
 #include <imgui_internal.h>
 
@@ -387,6 +386,7 @@ namespace Saturn {
 
 					// Create the user class
 					// Try register
+					/*
 					EntityScriptManager::Get().RegisterScript( name );
 
 					Entity* e = new Entity( PrefabAsset->GetScene()->CreateEntity( name ) );
@@ -395,6 +395,7 @@ namespace Saturn {
 					SClass* sclass = EntityScriptManager::Get().CreateScript( name, nullptr );
 
 					PrefabAsset->SetEntity( *( Entity* ) &e );
+					*/
 
 					// Set asset path
 					std::filesystem::path path = m_CurrentPath / name;
@@ -1258,11 +1259,7 @@ namespace Saturn {
 		{
 			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
 
-			// SHIT!!
-			item->SetDirectorySelectedFn( [this]( const std::filesystem::path& path ) 
-				{
-					OnDirectorySelected( path );
-				} );
+			item->SetDirectorySelectedFn( SAT_BIND_EVENT_FN( OnDirectorySelected ) );
 
 			if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )
 			{

@@ -52,7 +52,7 @@ namespace Saturn {
 
 		m_SceneRenderer = Ref<SceneRenderer>::Create();
 		m_SceneRenderer->SetDynamicSky( 2.0f, 0.0f, 0.0f );
-		m_SceneRenderer->SetCurrentScene( m_Prefab->GetScene().Pointer() );
+		m_SceneRenderer->SetCurrentScene( m_Prefab->GetScene().Get() );
 
 		m_Camera.SetActive( true );
 		
@@ -73,6 +73,7 @@ namespace Saturn {
 	{
 		m_SceneRenderer = nullptr;
 		m_SceneHierarchyPanel = nullptr;
+		m_Prefab = nullptr;
 	}
 
 	void PrefabViewer::OnImGuiRender()

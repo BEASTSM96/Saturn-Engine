@@ -31,34 +31,32 @@
 
 #include "Saturn/Asset/AssetManager.h"
 
-#include "Saturn/GameFramework/Core/EntityScriptManager.h"
-
 namespace Saturn {
 
-	void SerialiseEntity( YAML::Emitter& rEmitter, Entity entity )
+	void SerialiseEntity( YAML::Emitter& rEmitter, Ref<Entity> entity )
 	{
 		rEmitter << YAML::BeginMap;
-		rEmitter << YAML::Key << "Entity" << YAML::Value << entity.GetComponent< IdComponent >().ID;
-		bool isPrefab = entity.HasComponent<PrefabComponent>();
+		rEmitter << YAML::Key << "Entity" << YAML::Value << entity->GetComponent< IdComponent >().ID;
+		bool isPrefab = entity->HasComponent<PrefabComponent>();
 
 		// Tag Component
-		if( entity.HasComponent<TagComponent>() )
+		if( entity->HasComponent<TagComponent>() )
 		{
 			rEmitter << YAML::Key << "TagComponent";
 			rEmitter << YAML::BeginMap;
 
-			rEmitter << YAML::Key << "Tag" << YAML::Value << entity.GetComponent< TagComponent >().Tag;
+			rEmitter << YAML::Key << "Tag" << YAML::Value << entity->GetComponent< TagComponent >().Tag;
 
 			rEmitter << YAML::EndMap;
 		}
 
 		// Transform Component
-		if( entity.HasComponent<TransformComponent>() )
+		if( entity->HasComponent<TransformComponent>() )
 		{
 			rEmitter << YAML::Key << "TransformComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& tc = entity.GetComponent< TransformComponent >();
+			auto& tc = entity->GetComponent< TransformComponent >();
 
 			rEmitter << YAML::Key << "Position" << YAML::Value << tc.Position;
 			rEmitter << YAML::Key << "Rotation" << YAML::Value << glm::degrees( tc.GetRotationEuler() );
@@ -69,12 +67,12 @@ namespace Saturn {
 		}
 
 		// Relationship Component
-		if( entity.HasComponent<RelationshipComponent>() )
+		if( entity->HasComponent<RelationshipComponent>() )
 		{
 			rEmitter << YAML::Key << "RelationshipComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& rc = entity.GetComponent< RelationshipComponent >();
+			auto& rc = entity->GetComponent< RelationshipComponent >();
 
 			rEmitter << YAML::Key << "Parent" << YAML::Value << rc.Parent;
 
@@ -101,19 +99,19 @@ namespace Saturn {
 			rEmitter << YAML::Key << "PrefabComponent";
 			rEmitter << YAML::BeginMap;
 
-			rEmitter << YAML::Key << "AssetID" << YAML::Value << entity.GetComponent< PrefabComponent >().AssetID;
-			rEmitter << YAML::Key << "Modified" << YAML::Value << entity.GetComponent< PrefabComponent >().Modified;
+			rEmitter << YAML::Key << "AssetID" << YAML::Value << entity->GetComponent< PrefabComponent >().AssetID;
+			rEmitter << YAML::Key << "Modified" << YAML::Value << entity->GetComponent< PrefabComponent >().Modified;
 
 			rEmitter << YAML::EndMap;
 		}
 
 		// Mesh Component
-		if( entity.HasComponent<StaticMeshComponent>() )
+		if( entity->HasComponent<StaticMeshComponent>() )
 		{
 			rEmitter << YAML::Key << "MeshComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& mc = entity.GetComponent< StaticMeshComponent >();
+			auto& mc = entity->GetComponent< StaticMeshComponent >();
 
 			if( mc.Mesh )
 				rEmitter << YAML::Key << "Asset" << YAML::Value << mc.Mesh->ID;
@@ -148,12 +146,12 @@ namespace Saturn {
 		}
 
 		// Script Component
-		if( entity.HasComponent<ScriptComponent>() )
+		if( entity->HasComponent<ScriptComponent>() )
 		{
 			rEmitter << YAML::Key << "ScriptComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& sc = entity.GetComponent< ScriptComponent >();
+			auto& sc = entity->GetComponent< ScriptComponent >();
 
 			rEmitter << YAML::Key << "Name" << YAML::Value << sc.ScriptName;
 			rEmitter << YAML::Key << "ID" << YAML::Value << sc.AssetID;
@@ -162,12 +160,12 @@ namespace Saturn {
 		}
 
 		// Sky light component
-		if( entity.HasComponent<SkylightComponent>() )
+		if( entity->HasComponent<SkylightComponent>() )
 		{
 			rEmitter << YAML::Key << "SkyLightComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& slc = entity.GetComponent< SkylightComponent >();
+			auto& slc = entity->GetComponent< SkylightComponent >();
 
 			rEmitter << YAML::Key << "IsPreetham" << YAML::Value << slc.DynamicSky;
 
@@ -187,12 +185,12 @@ namespace Saturn {
 		}
 
 		// Directional Light Component
-		if( entity.HasComponent<DirectionalLightComponent>() )
+		if( entity->HasComponent<DirectionalLightComponent>() )
 		{
 			rEmitter << YAML::Key << "DirectionalLightComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& dlc = entity.GetComponent< DirectionalLightComponent >();
+			auto& dlc = entity->GetComponent< DirectionalLightComponent >();
 
 			rEmitter << YAML::Key << "Radiance" << YAML::Value << dlc.Radiance;
 			rEmitter << YAML::Key << "Intensity" << YAML::Value << dlc.Intensity;
@@ -202,12 +200,12 @@ namespace Saturn {
 		}
 
 		// Point Light Component
-		if( entity.HasComponent<PointLightComponent>() )
+		if( entity->HasComponent<PointLightComponent>() )
 		{
 			rEmitter << YAML::Key << "PointLightComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& plc = entity.GetComponent< PointLightComponent >();
+			auto& plc = entity->GetComponent< PointLightComponent >();
 
 			rEmitter << YAML::Key << "Radiance" << YAML::Value << plc.Radiance;
 			rEmitter << YAML::Key << "Intensity" << YAML::Value << plc.Intensity;
@@ -221,12 +219,12 @@ namespace Saturn {
 		}
 
 		// Box collider
-		if( entity.HasComponent<BoxColliderComponent>() )
+		if( entity->HasComponent<BoxColliderComponent>() )
 		{
 			rEmitter << YAML::Key << "BoxColliderComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& bcc = entity.GetComponent< BoxColliderComponent >();
+			auto& bcc = entity->GetComponent< BoxColliderComponent >();
 
 			rEmitter << YAML::Key << "Extents" << YAML::Value << bcc.Extents;
 			rEmitter << YAML::Key << "Offset" << YAML::Value << bcc.Offset;
@@ -236,12 +234,12 @@ namespace Saturn {
 		}
 
 		// Sphere collider
-		if( entity.HasComponent<SphereColliderComponent>() )
+		if( entity->HasComponent<SphereColliderComponent>() )
 		{
 			rEmitter << YAML::Key << "SphereColliderComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& scc = entity.GetComponent< SphereColliderComponent >();
+			auto& scc = entity->GetComponent< SphereColliderComponent >();
 
 			rEmitter << YAML::Key << "Radius" << YAML::Value << scc.Radius;
 			rEmitter << YAML::Key << "Offset" << YAML::Value << scc.Offset;
@@ -251,12 +249,12 @@ namespace Saturn {
 		}
 
 		// Box collider
-		if( entity.HasComponent<CapsuleColliderComponent>() )
+		if( entity->HasComponent<CapsuleColliderComponent>() )
 		{
 			rEmitter << YAML::Key << "CapsuleColliderComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& ccc = entity.GetComponent< CapsuleColliderComponent >();
+			auto& ccc = entity->GetComponent< CapsuleColliderComponent >();
 
 			rEmitter << YAML::Key << "Height" << YAML::Value << ccc.Height;
 			rEmitter << YAML::Key << "Radius" << YAML::Value << ccc.Radius;
@@ -267,12 +265,12 @@ namespace Saturn {
 		}
 
 		// Rigid body
-		if( entity.HasComponent<RigidbodyComponent>() )
+		if( entity->HasComponent<RigidbodyComponent>() )
 		{
 			rEmitter << YAML::Key << "RigidbodyComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& rbc = entity.GetComponent< RigidbodyComponent >();
+			auto& rbc = entity->GetComponent< RigidbodyComponent >();
 
 			rEmitter << YAML::Key << "IsKinematic" << YAML::Value << rbc.IsKinematic;
 			rEmitter << YAML::Key << "CCD" << YAML::Value << rbc.UseCCD;
@@ -284,12 +282,12 @@ namespace Saturn {
 		}
 
 		// Physics material
-		if( entity.HasComponent<PhysicsMaterialComponent>() )
+		if( entity->HasComponent<PhysicsMaterialComponent>() )
 		{
 			rEmitter << YAML::Key << "PhysicsMaterialComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& pmc = entity.GetComponent< PhysicsMaterialComponent >();
+			auto& pmc = entity->GetComponent< PhysicsMaterialComponent >();
 
 			rEmitter << YAML::Key << "AssetID" << YAML::Value << pmc.AssetID;
 
@@ -297,12 +295,12 @@ namespace Saturn {
 		}
 
 		// Camera Component
-		if ( entity.HasComponent<CameraComponent>() )
+		if ( entity->HasComponent<CameraComponent>() )
 		{
 			rEmitter << YAML::Key << "CameraComponent";
 			rEmitter << YAML::BeginMap;
 
-			auto& cc = entity.GetComponent< CameraComponent >();
+			auto& cc = entity->GetComponent< CameraComponent >();
 
 			rEmitter << YAML::Key << "MainCamera" << YAML::Value << cc.MainCamera;
 
@@ -312,7 +310,7 @@ namespace Saturn {
 		rEmitter << YAML::EndMap;
 	}
 
-	void DeserialiseEntites( YAML::Node& rNode, Ref<Scene> scene )
+	void DeserialiseEntities( YAML::Node& rNode, Ref<Scene> scene )
 	{
 		if( rNode.IsNull() )
 			return;
@@ -328,12 +326,35 @@ namespace Saturn {
 
 			SAT_CORE_INFO( "Deserialised entity with ID: {0}, with name : {1}", entityID, Tag );
 
-			Entity DeserialisedEntity = scene->CreateEntityWithID( entityID, Tag );
+			Ref<Entity> DeserialisedEntity = nullptr;
+
+			auto srcc = entity[ "ScriptComponent" ];
+			if( srcc )
+			{
+				std::string ScriptName = srcc[ "Name" ].as< std::string >();
+
+				// Ask the game module to create the entity.
+				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, ScriptName );
+
+				auto& s = DeserialisedEntity->AddComponent< ScriptComponent >();
+
+				s.ScriptName = ScriptName;
+				s.AssetID = srcc[ "ID" ].as< uint64_t >();
+
+				SAT_CORE_INFO( "Created entity with class name: {0}", s.ScriptName );
+			}
+			else
+			{
+				//DeserialisedEntity = Ref<Entity>::Create( Tag, entityID );
+				DeserialisedEntity = Ref<Entity>::Create();
+				DeserialisedEntity->SetName( Tag );
+				DeserialisedEntity->GetComponent<IdComponent>().ID = entityID;
+			}
 
 			auto tc = entity[ "TransformComponent" ];
 			if( tc )
 			{
-				auto& t = DeserialisedEntity.GetComponent< TransformComponent >();
+				auto& t = DeserialisedEntity->GetComponent< TransformComponent >();
 
 				t.Position = tc[ "Position" ].as< glm::vec3 >();
 
@@ -348,7 +369,7 @@ namespace Saturn {
 			auto mc = entity[ "MeshComponent" ];
 			if( mc )
 			{
-				auto& m = DeserialisedEntity.AddComponent< StaticMeshComponent >();
+				auto& m = DeserialisedEntity->AddComponent< StaticMeshComponent >();
 
 				auto id = mc[ "Asset" ].as<uint64_t>( 0 );
 
@@ -393,7 +414,7 @@ namespace Saturn {
 			}
 
 			auto rcNode = entity[ "RelationshipComponent" ];
-			auto& rc = DeserialisedEntity.GetComponent<RelationshipComponent>();
+			auto& rc = DeserialisedEntity->GetComponent<RelationshipComponent>();
 			rc.Parent = rcNode[ "Parent" ] ? rcNode[ "Parent" ].as<uint64_t>() : 0;
 
 			auto rcChildren = rcNode[ "Children" ];
@@ -409,7 +430,7 @@ namespace Saturn {
 			auto pc = entity["PrefabComponent" ];
 			if( pc )
 			{
-				auto& p = DeserialisedEntity.AddComponent< PrefabComponent >();
+				auto& p = DeserialisedEntity->AddComponent< PrefabComponent >();
 
 				p.AssetID = pc[ "AssetID" ].as< uint64_t >();
 			}
@@ -417,7 +438,7 @@ namespace Saturn {
 			auto slc = entity[ "SkyLightComponent" ];
 			if( slc )
 			{
-				auto& s = DeserialisedEntity.AddComponent< SkylightComponent >();
+				auto& s = DeserialisedEntity->AddComponent< SkylightComponent >();
 
 				s.DynamicSky = slc[ "IsPreetham" ].as< bool >();
 
@@ -438,7 +459,7 @@ namespace Saturn {
 			auto dlc = entity[ "DirectionalLightComponent" ];
 			if( dlc )
 			{
-				auto& d = DeserialisedEntity.AddComponent< DirectionalLightComponent >();
+				auto& d = DeserialisedEntity->AddComponent< DirectionalLightComponent >();
 
 				d.Radiance = dlc[ "Radiance" ].as< glm::vec3 >();
 				d.Intensity = dlc[ "Intensity" ].as< float >();
@@ -448,7 +469,7 @@ namespace Saturn {
 			auto plc = entity[ "PointLightComponent" ];
 			if( plc )
 			{
-				auto& p = DeserialisedEntity.AddComponent< PointLightComponent >();
+				auto& p = DeserialisedEntity->AddComponent< PointLightComponent >();
 
 				p.Radiance = plc[ "Radiance" ].as< glm::vec3 >();
 				p.Intensity = plc[ "Intensity" ].as< float >();
@@ -462,7 +483,7 @@ namespace Saturn {
 			auto bcc = entity[ "BoxColliderComponent" ];
 			if( bcc )
 			{
-				auto& b = DeserialisedEntity.AddComponent< BoxColliderComponent >();
+				auto& b = DeserialisedEntity->AddComponent< BoxColliderComponent >();
 
 				b.Extents = bcc[ "Extents" ].as< glm::vec3 >();
 				b.Offset = bcc[ "Offset" ].as< glm::vec3 >();
@@ -472,7 +493,7 @@ namespace Saturn {
 			auto scc = entity[ "SphereColliderComponent" ];
 			if( scc )
 			{
-				auto& s = DeserialisedEntity.AddComponent< SphereColliderComponent >();
+				auto& s = DeserialisedEntity->AddComponent< SphereColliderComponent >();
 
 				s.Radius = scc[ "Radius" ].as< float >();
 				s.Offset = scc[ "Offset" ].as< glm::vec3 >();
@@ -482,7 +503,7 @@ namespace Saturn {
 			auto ccc = entity[ "CapsuleColliderComponent" ];
 			if( ccc )
 			{
-				auto& c = DeserialisedEntity.AddComponent< CapsuleColliderComponent >();
+				auto& c = DeserialisedEntity->AddComponent< CapsuleColliderComponent >();
 
 				c.Height = ccc[ "Height" ].as< float >();
 				c.Radius = ccc[ "Radius" ].as< float >();
@@ -493,7 +514,7 @@ namespace Saturn {
 			auto rbc = entity[ "RigidbodyComponent" ];
 			if( rbc )
 			{
-				auto& rb = DeserialisedEntity.AddComponent< RigidbodyComponent >();
+				auto& rb = DeserialisedEntity->AddComponent< RigidbodyComponent >();
 
 				rb.IsKinematic = rbc[ "IsKinematic" ].as< bool >();
 				rb.UseCCD = rbc[ "CCD" ].as< bool >();
@@ -514,7 +535,7 @@ namespace Saturn {
 			auto pmc = entity[ "PhysicsMaterialComponent" ];
 			if( pmc )
 			{
-				auto& m = DeserialisedEntity.AddComponent< PhysicsMaterialComponent >();
+				auto& m = DeserialisedEntity->AddComponent< PhysicsMaterialComponent >();
 
 				m.AssetID = pmc[ "AssetID" ].as< uint64_t >( 0 );
 			}
@@ -522,23 +543,11 @@ namespace Saturn {
 			auto cc = entity[ "CameraComponent" ];
 			if( cc )
 			{
-				auto& c = DeserialisedEntity.AddComponent< CameraComponent >();
+				auto& c = DeserialisedEntity->AddComponent< CameraComponent >();
 
 				c.MainCamera = cc[ "MainCamera" ].as< bool >();
 			}
 
-			auto srcc = entity[ "ScriptComponent" ];
-			if( srcc )
-			{
-				auto& s = DeserialisedEntity.AddComponent< ScriptComponent >();
-
-				s.ScriptName = srcc[ "Name" ].as< std::string >();
-				s.AssetID = srcc[ "ID" ].as< uint64_t >();
-
-				// Create the script class
-				EntityScriptManager::Get().RegisterScript( s.ScriptName );
-				SClass* sclass = EntityScriptManager::Get().CreateScript( s.ScriptName, ( SClass* ) &DeserialisedEntity );
-			}
 		}
 	}
 

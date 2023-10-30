@@ -33,6 +33,11 @@
 
 namespace Saturn {
 
+	Character::Character()
+	{
+
+	}
+
 	Character::~Character()
 	{
 
@@ -42,10 +47,12 @@ namespace Saturn {
 	{
 		Super::BeginPlay();
 
+		/*
 		m_RigidBody = GetComponent<RigidbodyComponent>().Rigidbody;
 
 		m_RigidBody->SetOnCollisionHit( SAT_BIND_EVENT_FN( OnMeshHit ) );
 		m_RigidBody->SetOnCollisionExit( SAT_BIND_EVENT_FN( OnMeshExit ) );
+		*/
 	}
 
 	void Character::OnUpdate( Timestep ts )
@@ -61,12 +68,12 @@ namespace Saturn {
 		Super::OnPhysicsUpdate( ts );
 	}
 
-	void Character::OnMeshHit( Entity Other )
+	void Character::OnMeshHit( Ref<Entity> Other )
 	{
 
 	}
 
-	void Character::OnMeshExit( Entity Other )
+	void Character::OnMeshExit( Ref<Entity> Other )
 	{
 
 	}
@@ -91,4 +98,17 @@ namespace Saturn {
 
 	}
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Build Tool
+//////////////////////////////////////////////////////////////////////////
+
+Saturn::Entity* _Z_Create_Character()
+{
+	using namespace Saturn;
+
+	Saturn::Ref<Character> Target = Saturn::Ref<Character>::Create();
+	Saturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();
+	return TargetReturn.Get();
 }

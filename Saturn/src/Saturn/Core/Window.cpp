@@ -340,14 +340,10 @@ namespace Saturn {
 		m_TitlebarHitTest = std::move( rrFunc );
 	}
 
-#if defined( _WIN32 )
-
 	HWND Window::PlatformWindow()
 	{
 		return glfwGetWin32Window( m_Window );
 	}
-
-#endif
 
 	void Window::GetSize( uint32_t* pWidth, uint32_t* pHeight )
 	{

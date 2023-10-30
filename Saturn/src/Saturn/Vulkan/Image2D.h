@@ -74,6 +74,7 @@ namespace Saturn {
 		void CopyBufferToImage( VkBuffer Buffer );
 		void TransitionImageLayout( VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
 
+	private:
 		uint32_t m_Width;
 		uint32_t m_Height;
 

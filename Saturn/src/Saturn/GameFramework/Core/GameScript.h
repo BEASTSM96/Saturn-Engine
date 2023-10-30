@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <string>
+
 #define SCLASS(...)
 #define SPROPERTY(...)
 
@@ -37,6 +39,7 @@
 // Include a empty macro, this will be defined when the header tool is running.
 #define CURRENT_FILE_ID
 #define GENERATED_BODY(...) BODY_MACRO_COMBINE(CURRENT_FILE_ID,_,__LINE__,_GENERATED_BODY);
+
 
 #define DECLARE_CLASS( x, BaseClass ) \
 private: \
@@ -50,12 +53,6 @@ public: \
 	{ \
 		return nullptr; \
 	} \
-	__declspec(dllexport) static x* Spawn() \
-	{ \
-		return new x(); \
-	} \
-public: \
-	x() : Super() {} 
 
 #define DECLARE_CLASS_NO_MOVE( x, BaseClass ) \
 private: \
@@ -67,9 +64,3 @@ public: \
 	{ \
 		return nullptr; \
 	} \
-	__declspec(dllexport) static x* Spawn() \
-	{ \
-		return new x(); \
-	} \
-public: \
-	x() : Super() {} 

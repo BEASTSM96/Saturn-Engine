@@ -46,19 +46,19 @@ namespace Saturn {
 		~SceneHierarchyPanel();
 
 		void SetContext( const Ref<Scene>& scene );
-		void SetSelected( Entity entity );
+		void SetSelected( Ref<Entity> entity );
 		void ClearSelected();
-		void SetSelectionChangedCallback( const std::function<void( Entity )>& func ) { m_SelectionChangedCallback = func; }
+		void SetSelectionChangedCallback( const std::function<void( Ref<Entity> )>& func ) { m_SelectionChangedCallback = func; }
 
-		std::vector<Entity>& GetSelectionContexts() { return m_SelectionContexts; }
-		const std::vector<Entity>& GetSelectionContexts() const { return m_SelectionContexts; }
+		std::vector<Ref<Entity>>& GetSelectionContexts() { return m_SelectionContexts; }
+		const std::vector< Ref<Entity>>& GetSelectionContexts() const { return m_SelectionContexts; }
 		
-		Entity& GetSelectionContext( uint32_t index = 0 ) 
+		Ref<Entity>& GetSelectionContext( uint32_t index = 0 ) 
 		{
 			return m_SelectionContexts[ index ]; 
 		}
 		
-		const Entity& GetSelectionContext( uint32_t index = 0 ) const 
+		const Ref<Entity>& GetSelectionContext( uint32_t index = 0 ) const
 		{
 			return m_SelectionContexts[ index ]; 
 		}
@@ -72,16 +72,16 @@ namespace Saturn {
 
 	protected:
 
-		void DrawComponents( Entity entity );
-		bool IsEntitySelected( Entity entity );
-		void DrawEntityNode( Entity entity );
-		void DrawEntityComponents( Entity entity );
+		void DrawComponents( Ref<Entity> entity );
+		bool IsEntitySelected( Ref<Entity> entity );
+		void DrawEntityNode( Ref<Entity> entity );
+		void DrawEntityComponents( Ref<Entity> entity );
 		void DrawEntities();
 
 		void ClearSelection();
 
 		template<typename Ty>
-		void DrawAddComponents( const char* pName, Entity entity );
+		void DrawAddComponents( const char* pName, Ref<Entity> entity );
 
 	private:
 		UUID m_CustomID = 0;
@@ -99,9 +99,9 @@ namespace Saturn {
 		bool m_IsMultiSelecting = false;
 
 		Ref<Scene> m_Context;
-		std::vector<Entity> m_SelectionContexts;
-		std::pair<Entity, Entity> m_ShiftStartEnd;
-		std::function<void( Entity )> m_SelectionChangedCallback;
+		std::vector< Ref<Entity> > m_SelectionContexts;
+		std::pair< Ref<Entity>, Ref<Entity> > m_ShiftStartEnd;
+		std::function<void( Ref<Entity> )> m_SelectionChangedCallback;
 	};
 
 }

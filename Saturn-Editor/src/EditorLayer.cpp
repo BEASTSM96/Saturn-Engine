@@ -62,9 +62,7 @@
 #include <Saturn/Asset/AssetManager.h>
 #include <Saturn/Asset/Prefab.h>
 
-#include <Saturn/GameFramework/Core/GameDLL.h>
-#include <Saturn/GameFramework/Core/GameManager.h>
-#include <Saturn/GameFramework/Core/EntityScriptManager.h>
+#include <Saturn/GameFramework/Core/GameModule.h>
 
 #include <Saturn/GameFramework/Character.h>
 
@@ -94,7 +92,7 @@ namespace Saturn {
 	EditorLayer::EditorLayer() 
 		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f ), m_EditorScene( Ref<Scene>::Create() )
 	{
-		Scene::SetActiveScene( m_EditorScene.Pointer() );
+		Scene::SetActiveScene( m_EditorScene.Get() );
 
 		m_RuntimeScene = nullptr;
 		
@@ -221,21 +219,12 @@ namespace Saturn {
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 		CheckMissingEditorAssetRefs();
 
-		// Lazy load.
-		// TODO: We should not lazy load something this important.
-		EntityScriptManager::Get();
-
-		GameDLL* pGameDLL = new GameDLL();
+		GameModule* pGameDLL = new GameModule();
 		pGameDLL->Load();
-
-		GameManager* pGameManager = new GameManager();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
 		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
-
-		Character* myCharacter = Character::Spawn();
-		delete myCharacter;
 
 		/*
 		Ref<Asset> asset = AssetManager::Get().FindAsset( "Assets\\Sound\\Music_MainThemePiano.s2d" );
@@ -257,21 +246,13 @@ namespace Saturn {
 	
 		m_PanelManager = nullptr;
 
+		Application::Get().PrimarySceneRenderer().SetCurrentScene( nullptr );
+		
 		if( m_RuntimeScene ) 
-		{
-			EntityScriptManager::Get().DestroyEntityInScene( m_RuntimeScene );
-			EntityScriptManager::Get().SetCurrentScene( nullptr );
-			
+		{	
 			m_RuntimeScene->OnRuntimeEnd();
 			m_RuntimeScene = nullptr;
 		}
-		else
-		{
-			EntityScriptManager::Get().DestroyEntityInScene( m_EditorScene );
-			EntityScriptManager::Get().SetCurrentScene( nullptr );
-		}
-
-		Application::Get().PrimarySceneRenderer().SetCurrentScene( nullptr );
 
 		m_EditorScene = nullptr;
 	}
@@ -282,25 +263,42 @@ namespace Saturn {
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 		
+		// Check for any awaiting scene travels.
+		if( Scene::AwaitingTravels() )
+		{
+			pHierarchyPanel->SetContext( nullptr );
+			Application::Get().PrimarySceneRenderer().SetCurrentScene( nullptr );
+			
+			Scene::DoTravel();
+
+			// Travels are only used for the runtime scene
+			if( m_RuntimeScene )
+			{
+				m_RuntimeScene->OnRuntimeEnd();
+				m_RuntimeScene = nullptr;
+
+				m_RuntimeScene = GActiveScene;
+				m_RuntimeScene->OnRuntimeStart();
+
+				pHierarchyPanel->SetContext( m_RuntimeScene );
+				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Get() );
+			}
+		}
+
 		if( m_RequestRuntime )
 		{
 			if( !m_RuntimeScene )
 			{
 				m_RuntimeScene = Ref<Scene>::Create();
+				Scene::SetActiveScene( m_RuntimeScene.Get() );
 
 				m_EditorScene->CopyScene( m_RuntimeScene );
-
-				EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
-				EntityScriptManager::Get().TransferEntities( m_EditorScene );
 
 				m_RuntimeScene->OnRuntimeStart();
 
 				pHierarchyPanel->SetContext( m_RuntimeScene );
 
-				m_RuntimeScene->m_RuntimeRunning = true;
-
-				Scene::SetActiveScene( m_RuntimeScene.Pointer() );
-				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Pointer() );
+				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Get() );
 			}
 		}
 		else
@@ -308,15 +306,13 @@ namespace Saturn {
 			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
 			{
 				m_RuntimeScene->OnRuntimeEnd();
-				EntityScriptManager::Get().DestroyEntityInScene( m_RuntimeScene );
-
-				m_RuntimeScene = nullptr;
+				Scene::SetActiveScene( m_EditorScene.Get() );
 
 				pHierarchyPanel->SetContext( m_EditorScene );
 
-				Scene::SetActiveScene( m_EditorScene.Pointer() );
-				EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
-				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Pointer() );
+				m_RuntimeScene = nullptr;
+
+				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Get() );
 			}
 		}
 
@@ -609,11 +605,11 @@ namespace Saturn {
 		{
 			auto& rSelection = pHierarchyPanel->GetSelectionContext();
 
-			if( rSelection.HasComponent<StaticMeshComponent>() )
+			if( rSelection->HasComponent<StaticMeshComponent>() )
 			{
-				if( auto& mesh = rSelection.GetComponent<StaticMeshComponent>().Mesh )
+				if( auto& mesh = rSelection->GetComponent<StaticMeshComponent>().Mesh )
 				{
-					ImGui::TextDisabled( "%llx", rSelection.GetComponent<IdComponent>().ID );
+					ImGui::TextDisabled( "%llx", rSelection->GetComponent<IdComponent>().ID );
 
 					ImGui::Separator();
 
@@ -659,13 +655,10 @@ namespace Saturn {
 							{
 								Ref< Texture2D > v = rMaterial->GetResource( property );
 
-								if( v )
-								{
-									if( v && v->GetDescriptorSet() )
-										ImGui::Image( v->GetDescriptorSet(), ImVec2( 100, 100 ) );
-									else
-										ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-								}
+								if( v && v->GetDescriptorSet() )
+									ImGui::Image( v->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								else
+									ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
 							};
 
 							ImGui::Text( "Albedo" );
@@ -740,20 +733,11 @@ namespace Saturn {
 
 				static std::string path = "";
 
-				if( path.empty() )
-					path = "";
-
 				ImGui::InputText( "##path", ( char* ) path.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
 				ImGui::SameLine();
 				if( ImGui::Button( "..." ) ) 
 				{
-					if( RenderThread::Get().IsRenderThread() )
-					{
-						Application::Get().SubmitOnMainThread( [=]()
-							{
-								path = Application::Get().OpenFile( ".exe\0*.exe;\0" );
-							} );
-					}
+					path = Application::Get().OpenFile( ".exe\0*.exe;\0" );
 				}
 
 				if( !path.empty() )
@@ -828,9 +812,11 @@ namespace Saturn {
 				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
 				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
 				
-				auto entity = m_EditorScene->CreateEntity( asset->Name );
-				entity.AddComponent<StaticMeshComponent>().Mesh = meshAsset;
-				entity.AddComponent<StaticMeshComponent>().MaterialRegistry = Ref<MaterialRegistry>::Create( meshAsset );
+				Ref<Entity> entity = Ref<Entity>::Create();
+				entity->SetName( asset->Name );
+
+				entity->AddComponent<StaticMeshComponent>().Mesh = meshAsset;
+				entity->AddComponent<StaticMeshComponent>().MaterialRegistry = Ref<MaterialRegistry>::Create( meshAsset );
 			}
 
 			ImGui::EndDragDropTarget();
@@ -891,7 +877,7 @@ namespace Saturn {
 
 		Ref<Scene> ActiveScene = m_RuntimeScene ? m_RuntimeScene : m_EditorScene;
 
-		std::vector<Entity>& selectedEntities = pHierarchyPanel->GetSelectionContexts();
+		std::vector<Ref<Entity>>& selectedEntities = pHierarchyPanel->GetSelectionContexts();
 
 		// Calc center of transform.
 		glm::vec3 Positions = {};
@@ -928,10 +914,10 @@ namespace Saturn {
 
 			if( ImGuizmo::IsUsing() )
 			{
-				for( Entity& entity : selectedEntities )
+				for( Ref<Entity>& entity : selectedEntities )
 				{
 					glm::mat4 transform = ActiveScene->GetTransformRelativeToParent( entity );
-					auto& tc = entity.GetComponent<TransformComponent>();
+					auto& tc = entity->GetComponent<TransformComponent>();
 
 					glm::vec3 translation;
 					glm::vec3 rotation;
@@ -1002,7 +988,7 @@ namespace Saturn {
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
-		EntityScriptManager::Get().SetCurrentScene( newScene );
+		GActiveScene = newScene.Get();
 
 		pHierarchyPanel->ClearSelected();
 		pHierarchyPanel->SetContext( nullptr );
@@ -1017,13 +1003,12 @@ namespace Saturn {
 		m_EditorScene = nullptr;
 		m_EditorScene = newScene;
 
-		// We maybe don't need to transfer the entities but just to be sure we will do it.
-		EntityScriptManager::Get().SetCurrentScene( m_EditorScene );
+		GActiveScene = m_EditorScene.Get();
 
 		pHierarchyPanel->SetContext( m_EditorScene );
 		newScene = nullptr;
 
-		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Pointer() );
+		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Get() );
 	}
 
 	void EditorLayer::OpenFile()
@@ -1038,7 +1023,7 @@ namespace Saturn {
 		ps.Serialise( Project::GetActiveProject()->m_Config.Path );
 	}
 
-	void EditorLayer::SelectionChanged( Entity e )
+	void EditorLayer::SelectionChanged( Ref<Entity> e )
 	{
 	}
 
@@ -1057,11 +1042,13 @@ namespace Saturn {
 
 				if( pHierarchyPanel )
 				{
+					// Because of our ref system, the entity will be deleted when we clear the selections.
+
 					for( auto& rEntity : pHierarchyPanel->GetSelectionContexts() )
 					{
-						m_EditorScene->DeleteEntity( rEntity );
+						GActiveScene->DeleteEntity( rEntity );
 					}
-					
+
 					pHierarchyPanel->ClearSelected();
 				}
 			} break;
@@ -1092,7 +1079,7 @@ namespace Saturn {
 					{
 						for( const auto& rEntity : pHierarchyPanel->GetSelectionContexts() )
 						{
-							m_EditorScene->DuplicateEntity( rEntity );
+							GActiveScene->DuplicateEntity( rEntity );
 						}
 					}
 
@@ -1105,7 +1092,7 @@ namespace Saturn {
 
 					if( auto& selectedEntity = pHierarchyPanel->GetSelectionContext() ) 
 					{
-						m_EditorCamera.Focus( selectedEntity.GetComponent<TransformComponent>().Position );
+						m_EditorCamera.Focus( selectedEntity->GetComponent<TransformComponent>().Position );
 					}
 				} break;
 

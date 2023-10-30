@@ -26,19 +26,64 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "Entity.h"
+
+// Game
+// This is not needed?
+Saturn::SClass* _Z_Create_Entity()
+{
+	using namespace Saturn;
+
+	SClass* pClass = new SClass();
+	return pClass;
+}
 
 namespace Saturn {
 
-	class GameManager
+	Entity::Entity()
 	{
-	public:
-		GameManager();
-		~GameManager();
+		m_Scene = GActiveScene;
+		m_EntityHandle = m_Scene->CreateHandle();
+		
+		AddComponent<IdComponent>();
+		AddComponent<RelationshipComponent>();
+		AddComponent<TransformComponent>();
+		AddComponent<TagComponent>().Tag = "Unnamed Entity";
 
-		static GameManager& Get() { return *s_Instance; }
+		m_Scene->OnEntityCreated( this );
+	}
 
-	private:
-		static GameManager* s_Instance;
-	};
+	Entity::Entity( const std::string& rName, UUID Id )
+	{
+		m_Scene = GActiveScene;
+		m_EntityHandle = m_Scene->CreateHandle();
+
+		AddComponent<IdComponent>().ID = Id;
+		AddComponent<RelationshipComponent>();
+		AddComponent<TransformComponent>();
+		AddComponent<TagComponent>().Tag = rName;
+
+		m_Scene->OnEntityCreated( this );
+	}
+
+	Entity::Entity( const Entity& other )
+	{
+		this->m_Scene = other.m_Scene;
+		this->m_EntityHandle = other.m_EntityHandle;
+	}
+
+	Entity::~Entity()
+	{
+		m_Scene->RemoveHandle( m_EntityHandle );
+		m_EntityHandle = entt::null;
+
+		m_Scene = nullptr;
+	}
+
+	void Entity::SetName( const std::string& rName )
+	{
+		GetComponent<TagComponent>().Tag = rName;
+	}
+
 }

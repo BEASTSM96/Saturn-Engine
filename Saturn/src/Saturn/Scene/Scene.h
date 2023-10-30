@@ -29,6 +29,9 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
+#include "SharedGlobals.h"
+
+#include "Saturn/GameFramework/Core/GameScript.h"
 
 #include "Saturn/Core/Renderer/EditorCamera.h"
 
@@ -47,7 +50,8 @@ namespace Saturn {
 
 	struct TransformComponent;
 
-	using EntityMap = std::unordered_map<UUID, Entity>;
+	// entt entity id.
+	using EntityMap = std::unordered_map<entt::entity, Ref<Entity>>;
 
 	struct SceneComponent
 	{
@@ -91,35 +95,51 @@ namespace Saturn {
 		Scene();
 		~Scene();
 
-		Entity CreateEntity( const std::string& name =  "" );
-		Entity CreateEntityWithID( UUID uuid, const std::string& name = "" );
-
-		void DestroyEntity( Entity entity );
+		Ref<Entity> CreateEntityWithIDScript( UUID uuid, const std::string& name = "", const std::string& rScriptName = "" );
+	public:
 
 		void OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer );
 		void OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer );
 
-		void DuplicateEntity( Entity entity );
-		void DeleteEntity( Entity entity );
-
-		template<typename T>
-		auto GetAllEntitiesWith( void )
-		{
-			return m_Registry.view<T>();
-		}
-
-		Entity GetMainCameraEntity();
+		void DuplicateEntity( Ref<Entity> entity );
+		void DeleteEntity( Ref<Entity> entity );
 
 		void OnUpdate( Timestep ts );
 		void OnUpdatePhysics( Timestep ts );
 
+	public:
+		template<typename T>
+		std::vector<Ref<Entity>> GetAllEntitiesWith( void )
+		{
+			std::vector<Ref<Entity>> result;
+
+			for( auto&& [ id, entity ] : m_EntityIDMap )
+			{
+				if( entity->HasComponent<T>() )
+					result.push_back( entity );
+			}
+
+			return result;
+		}
+
+		template<typename Func>
+		void Each( Func Function )
+		{
+			for( auto&& [id, entity] : m_EntityIDMap )
+			{
+				Function( entity );
+			}
+		}
+
+		Ref<Entity> GetMainCameraEntity();
+
 		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
 		
 		Entity FindEntityByTag( const std::string& tag );
-		Entity FindEntityByID( const UUID& id );
+		 Ref<Entity> FindEntityByID( const UUID& id );
 
-		glm::mat4 GetTransformRelativeToParent( Entity entity );
-		TransformComponent GetWorldSpaceTransform( Entity entity );
+		glm::mat4 GetTransformRelativeToParent( Ref<Entity> entity );
+		TransformComponent GetWorldSpaceTransform( Ref<Entity> entity );
 
 		void CopyScene( Ref<Scene>& NewScene );
 
@@ -138,13 +158,26 @@ namespace Saturn {
 		entt::registry& GetRegistry() { return m_Registry; }
 		const entt::registry& GetRegistry() const { return m_Registry; }
 
-		std::pair<Entity, SClass*> CreatePrefab( Ref<Prefab> prefabAsset );
+		Ref<Entity> CreatePrefab( Ref<Prefab> prefabAsset );
 
 		UUID GetId() { return m_SceneID; }
 		const UUID GetId() const { return m_SceneID; }
 
+		[[nodiscard]] entt::entity CreateHandle()
+		{
+			return m_Registry.create();
+		}
+
+		void RemoveHandle( entt::entity handle ) 
+		{
+			m_Registry.destroy( handle );
+		}
+
 		static void   SetActiveScene( Scene* pScene );
 		static Scene* GetActiveScene();
+
+	protected:
+		void OnEntityCreated( Ref<Entity> entity );
 
 	private:
 
@@ -193,6 +226,14 @@ namespace Saturn {
 			return m_Registry.get<Ty>( entity );
 		}
 
+	public:
+
+		//////////////////////////////////////////////////////////////////////////
+		// Loads and opens the scene for play.
+		static bool Travel( const std::string& rSceneName );
+		static bool AwaitingTravels();
+		static void DoTravel();
+
 	private:
 
 		UUID m_SceneID;
@@ -204,8 +245,8 @@ namespace Saturn {
 
 		entt::registry m_Registry;
 
-		entt::entity m_SceneEntity;
-		entt::entity m_SelectedEntity;
+		entt::entity m_SceneEntity{ entt::null };
+		entt::entity m_SelectedEntity{ entt::null };
 
 		Lights m_Lights;
 
@@ -213,7 +254,6 @@ namespace Saturn {
 
 		// TODO: Change raw pointer to Ref?
 		PhysicsScene* m_PhysicsScene = nullptr;
-
 	private:
 
 		friend class Entity;

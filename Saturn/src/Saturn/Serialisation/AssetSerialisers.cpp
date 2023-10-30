@@ -717,18 +717,10 @@ namespace Saturn {
 
 		out << YAML::BeginSeq;
 
-		prefabAsset->m_Scene->GetRegistry().each( [ & ]( auto ID )
-		{
-			Entity e = { ID, prefabAsset->m_Scene.Pointer() };
-
-			if( !e )
-				return;
-
-			if( e.HasComponent<SceneComponent>() )
-				return;
-
-			SerialiseEntity( out, e );
-		});
+		prefabAsset->m_Scene->Each( [&]( Ref<Entity> entity ) 
+			{
+				SerialiseEntity( out, entity );
+			} );
 
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
@@ -760,28 +752,30 @@ namespace Saturn {
 		auto entities = data[ "Entities" ];
 
 		prefabAsset->m_Scene = Ref<Scene>::Create();
+		Scene* CurrentScene = GActiveScene;
 
-		DeserialiseEntites( entities, prefabAsset->m_Scene );
+		Scene::SetActiveScene( prefabAsset->m_Scene.Get() );
+
+		DeserialiseEntities( entities, prefabAsset->m_Scene );
 
 		auto view = prefabAsset->m_Scene->GetAllEntitiesWith<RelationshipComponent>();
 
 		// Find root entity
-		Entity RootEntity;
+		Ref<Entity> RootEntity = nullptr;
 
 		for( auto& entity : view )
 		{
-			Entity ent( entity, prefabAsset->m_Scene.Pointer() );
-
-			if( ent.GetComponent<RelationshipComponent>().Parent != 0 )
+			if( entity->GetComponent<RelationshipComponent>().Parent != 0 )
 				continue;
 
-			if( ent.GetChildren().size() > 0 )
+			if( entity->GetChildren().size() > 0 )
 				continue;
 
-			RootEntity = ent;
+			RootEntity = entity;
 		}
 
 		prefabAsset->m_Entity = RootEntity;
+		Scene::SetActiveScene( CurrentScene );
 
 		// TODO: (Asset) Fix this.
 		struct

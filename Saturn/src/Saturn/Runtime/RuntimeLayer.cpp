@@ -37,9 +37,7 @@
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
-#include "Saturn/GameFramework/GameDLL.h"
-#include "Saturn/GameFramework/GameManager.h"
-#include "Saturn/GameFramework/EntityScriptManager.h"
+#include "Saturn/GameFramework/Core/GameModule.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
 
@@ -53,7 +51,7 @@ namespace Saturn {
 	RuntimeLayer::RuntimeLayer()
 		: m_RuntimeScene( Ref<Scene>::Create() )
 	{
-		Scene::SetActiveScene( m_RuntimeScene.Pointer() );
+		Scene::SetActiveScene( m_RuntimeScene.Get() );
 
 		// Init Physics
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
@@ -70,34 +68,25 @@ namespace Saturn {
 
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
-		EntityScriptManager::Get();
-
-		GameDLL* pGameDLL = new GameDLL();
+		GameModule* pGameDLL = new GameModule();
 		pGameDLL->Load();
-
-		GameManager* pGameManager = new GameManager();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
 		m_RuntimeScene->OnRuntimeStart();
-		m_RuntimeScene->m_RuntimeRunning = true;
 	}
 
 	RuntimeLayer::~RuntimeLayer()
 	{
 		m_RuntimeScene->OnRuntimeEnd();
-
-		EntityScriptManager::Get().DestroyEntityInScene( m_RuntimeScene );
-		EntityScriptManager::Get().SetCurrentScene( nullptr );
-
 		m_RuntimeScene = nullptr;
 	}
 
 	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )
 	{
 		Ref<Scene> newScene = Ref<Scene>::Create();
-		EntityScriptManager::Get().SetCurrentScene( newScene );
-
+		Scene::SetActiveScene( newScene.Get() );
+		
 		auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
 		SceneSerialiser serialiser( newScene );
 		serialiser.Deserialise( fullPath.string() );
@@ -105,11 +94,11 @@ namespace Saturn {
 		m_RuntimeScene = nullptr;
 		m_RuntimeScene = newScene;
 
-		EntityScriptManager::Get().SetCurrentScene( m_RuntimeScene );
+		Scene::SetActiveScene( m_RuntimeScene.Get() );
 
 		newScene = nullptr;
 
-		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Pointer() );
+		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Get() );
 	}
 
 	void RuntimeLayer::OnUpdate( Timestep time )

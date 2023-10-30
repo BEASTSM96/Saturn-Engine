@@ -66,7 +66,7 @@ namespace Saturn {
 
 	private:
 		
-		void SelectionChanged( Entity e );
+		void SelectionChanged( Ref<Entity> e );
 		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
 		bool OnKeyPressed( KeyPressedEvent& rEvent );
 
@@ -78,18 +78,18 @@ namespace Saturn {
 		void CheckMissingEditorAssetRefs();
 
 	private:
-		TitleBar* m_TitleBar;
+		TitleBar* m_TitleBar = nullptr;
 		
-		Ref< Texture2D > m_CheckerboardTexture;
-		Ref< Texture2D > m_StartRuntimeTexture;
-		Ref< Texture2D > m_EndRuntimeTexture;
+		Ref< Texture2D > m_CheckerboardTexture = nullptr;
+		Ref< Texture2D > m_StartRuntimeTexture = nullptr;
+		Ref< Texture2D > m_EndRuntimeTexture = nullptr;
 
-		Ref< Texture2D > m_TranslationTexture;
-		Ref< Texture2D > m_RotationTexture;
-		Ref< Texture2D > m_ScaleTexture;
-		Ref< Texture2D > m_SyncTexture;
+		Ref< Texture2D > m_TranslationTexture = nullptr;
+		Ref< Texture2D > m_RotationTexture = nullptr;
+		Ref< Texture2D > m_ScaleTexture = nullptr;
+		Ref< Texture2D > m_SyncTexture = nullptr;
 
-		Ref< PanelManager > m_PanelManager;
+		Ref< PanelManager > m_PanelManager = nullptr;
 
 		EditorCamera m_EditorCamera;
 		bool m_AllowCameraEvents = false;
@@ -105,7 +105,7 @@ namespace Saturn {
 
 		ImVec2 m_ViewportSize;
 
-		Ref< Scene > m_EditorScene;
-		Ref< Scene > m_RuntimeScene;
+		Ref< Scene > m_EditorScene = nullptr;
+		Ref< Scene > m_RuntimeScene = nullptr;
 	};
 }

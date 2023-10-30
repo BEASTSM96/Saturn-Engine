@@ -175,7 +175,7 @@ namespace SaturnBuildTool
         private bool CompileFiles() 
         {
             SourceFiles = DirectoryTools.DirSearch(SourceDir, true);
-
+            
             int threadCount = 0;
             threadCount = (int)Math.Ceiling((double)SourceFiles.Count / (Environment.ProcessorCount / 2));
 
@@ -190,8 +190,14 @@ namespace SaturnBuildTool
                 {
                     int start = i * (SourceFiles.Count / threadCount);
                     int end = (i == threadCount - 1) ? SourceFiles.Count : i + 1 * (SourceFiles.Count / threadCount);
+                    int count = end - start;
 
-                    List<string> filesForThread = new List<string>( SourceFiles.GetRange( start, end - start ) );
+                    if (count < 0) 
+                    {
+                        count = 0;
+                    }
+
+                    List<string> filesForThread = new List<string>( SourceFiles.GetRange( start, count ) );
                     FilesPerThread.Add(filesForThread);
                     ThreadsCompleted.Add(false);
 
@@ -201,6 +207,7 @@ namespace SaturnBuildTool
                 while (ThreadsCompleted.Contains(false))
                 {
                     // Wait
+                    Thread.Sleep( 1 );
                 }
             }
             else 

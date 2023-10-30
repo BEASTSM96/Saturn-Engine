@@ -34,11 +34,11 @@
 
 namespace Saturn {
 
-	PhysicsRigidBody::PhysicsRigidBody( Entity entity )
+	PhysicsRigidBody::PhysicsRigidBody( Ref<Entity> entity )
 		: m_Entity( entity )
 	{
-		TransformComponent& tc = entity.GetComponent<TransformComponent>();
-		RigidbodyComponent& rb = entity.GetComponent<RigidbodyComponent>();
+		TransformComponent& tc = entity->GetComponent<TransformComponent>();
+		RigidbodyComponent& rb = entity->GetComponent<RigidbodyComponent>();
 
 		physx::PxRigidDynamic* pBody = PhysicsFoundation::Get().GetPhysics().createRigidDynamic( Auxiliary::GLMTransformToPx( tc.GetTransform() ) );
 		
@@ -59,24 +59,24 @@ namespace Saturn {
 
 	void PhysicsRigidBody::CreateShape()
 	{
-		RigidbodyComponent& rb = m_Entity.GetComponent<RigidbodyComponent>();
-
+		RigidbodyComponent& rb = m_Entity->GetComponent<RigidbodyComponent>();
+		
 		// Normal Collider Component's have more priority over the static mesh.
-		if( m_Entity.HasComponent<BoxColliderComponent>() )
+		if( m_Entity->HasComponent<BoxColliderComponent>() )
 		{
 			AttachPhysicsShape( ShapeType::Box );
 		}
-		else if( m_Entity.HasComponent<SphereColliderComponent>() )
+		else if( m_Entity->HasComponent<SphereColliderComponent>() )
 		{
 			AttachPhysicsShape( ShapeType::Sphere );
 		}
-		else if ( m_Entity.HasComponent<CapsuleColliderComponent>() )
+		else if ( m_Entity->HasComponent<CapsuleColliderComponent>() )
 		{
 			AttachPhysicsShape( ShapeType::Capusle );
 		}
-		else if( m_Entity.HasComponent<StaticMeshComponent>() )
+		else if( m_Entity->HasComponent<StaticMeshComponent>() )
 		{
-			AttachPhysicsShape( m_Entity.GetComponent<StaticMeshComponent>().Mesh->GetAttachedShape() );
+			AttachPhysicsShape( m_Entity->GetComponent<StaticMeshComponent>().Mesh->GetAttachedShape() );
 		}
 		else
 		{
@@ -102,7 +102,7 @@ namespace Saturn {
 			case Saturn::ShapeType::TriangleMesh: 
 			{
 				// PhysX requires all non-kinematic dynamic rigid bodies with the flag eSIMULATION_SHAPE to be kinematic.
-				auto& rb = m_Entity.GetComponent<RigidbodyComponent>();
+				auto& rb = m_Entity->GetComponent<RigidbodyComponent>();
 				rb.IsKinematic = true;
 
 				SetKinematic( true );
@@ -144,6 +144,8 @@ namespace Saturn {
 		m_Shape = nullptr;
 
 		PHYSX_TERMINATE_ITEM( m_Actor );
+
+		m_Entity = nullptr;
 	}
 
 	void PhysicsRigidBody::SetKinematic( bool val )
@@ -264,7 +266,7 @@ namespace Saturn {
 
 	void PhysicsRigidBody::SyncTransfrom()
 	{
-		TransformComponent& tc = m_Entity.GetComponent<TransformComponent>();
+		TransformComponent& tc = m_Entity->GetComponent<TransformComponent>();
 
 		physx::PxTransform actorPose = m_Actor->getGlobalPose();
 

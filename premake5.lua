@@ -28,7 +28,7 @@ IncludeDir["Tracy"] = "Saturn/vendor/tracy/src"
 IncludeDir["Filewatch"] = "Saturn/vendor/Filewatch/src"
 IncludeDir["MiniAudio"] = "Saturn/vendor/miniaudio/src"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
-IncludeDir["SingletonStorage"] = "SingletonStorage/src"
+IncludeDir["SharedStorage"] = "SharedStorage/src"
 
 group "Dependencies"
 	include "Saturn/vendor/GLFW"
@@ -106,7 +106,7 @@ project "Saturn"
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
 
-		"%{IncludeDir.SingletonStorage}"
+		"%{IncludeDir.SharedStorage}"
 	}
 
 	links 
@@ -117,7 +117,7 @@ project "Saturn"
 		"yaml-cpp",
 		"Tracy",
 
-		"SingletonStorage"
+		"SharedStorage"
 	}
 
 	filter "files:Saturn/vendor/ImGuizmo/src/ImGuizmo/**.cpp"
@@ -281,7 +281,7 @@ project "Saturn-Editor"
 		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.Tracy}",
 
-		"%{IncludeDir.SingletonStorage}"
+		"%{IncludeDir.SharedStorage}"
 	}
 
 	links
@@ -307,7 +307,7 @@ project "Saturn-Editor"
 		postbuildcommands 
 		{ 
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
-			'{COPY} "../bin/Debug-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
+			'{COPY} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
 		}
 
@@ -318,7 +318,7 @@ project "Saturn-Editor"
 
 		postbuildcommands 
 		{ 
-			'{COPY} "../bin/Release-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
+			'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 		}
 
@@ -330,7 +330,7 @@ project "Saturn-Editor"
 
 		postbuildcommands 
 		{ 
-			'{COPY} "../bin/Dist-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
+			'{COPY} "../bin/Dist-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
 			'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 		}
 
@@ -422,7 +422,7 @@ project "ProjectBrowser"
 		"Saturn/vendor/vulkan/include",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Filewatch}",
-		"%{IncludeDir.SingletonStorage}"
+		"%{IncludeDir.SharedStorage}"
 	}
 
 	links
@@ -452,7 +452,7 @@ project "ProjectBrowser"
 			{
 				'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 				
-				'{COPY} "../bin/Debug-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"',
+				'{COPY} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
 
 				'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 			}
@@ -465,7 +465,7 @@ project "ProjectBrowser"
 			postbuildcommands 
 			{ 
 				'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
-				'{COPY} "../bin/Release-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"'
+				'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
 			}
 
 		filter "configurations:Dist"
@@ -477,7 +477,7 @@ project "ProjectBrowser"
 			postbuildcommands 
 			{ 
 				'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
-				'{COPY} "../bin/Release-windows-x86_64/SingletonStorage/SingletonStorage.dll" "%{cfg.targetdir}"'
+				'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
 			}
 
 		filter "configurations:Release or configurations:Dist"
@@ -553,8 +553,8 @@ project "SaturnBuildTool"
 
 		
 group "Tools"
-project "SingletonStorage"
-	location "SingletonStorage"
+project "SharedStorage"
+	location "SharedStorage"
 	kind "SharedLib"
 	language "C++"
 	cppdialect "C++20"

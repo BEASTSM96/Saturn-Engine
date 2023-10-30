@@ -61,13 +61,14 @@ namespace Saturn {
 	{
 	}
 
-	void Prefab::Create( Entity& srcEntity )
+	void Prefab::Create( const Ref<Entity>& srcEntity )
 	{
 		m_Scene = Ref<Scene>::Create();
 
 		m_Scene->SetName( "Prefab scene" );
 
-		if( srcEntity.Vaild() )
+		// TODO: (Entities using refs) Fix this
+		if( srcEntity->Vaild() )
 			m_Entity = CreateFromEntity( srcEntity );
 	}
 
@@ -78,24 +79,28 @@ namespace Saturn {
 		m_Scene->SetName( "Prefab scene" );
 	}
 
-	Entity Prefab::PrefabToEntity( Ref<Scene> Scene, Entity entity )
+	void Prefab::CreateScene()
 	{
-		Entity e = Scene->CreateEntity();
-		e.AddComponent<PrefabComponent>().AssetID = ID;
+		m_Scene = nullptr;
+		m_Scene = Ref<Scene>::Create();
+	}
+
+	Ref<Entity> Prefab::PrefabToEntity( Ref<Scene> Scene )
+	{
+		Ref<Entity> result = Ref<Entity>::Create();
+		result->AddComponent<PrefabComponent>().AssetID = ID;
 
 		// Now we need to find the root entity of the prefab.
 
-		auto view = m_Scene->GetAllEntitiesWith<RelationshipComponent>();
+		auto entities = m_Scene->GetAllEntitiesWith<RelationshipComponent>();
 
-		Entity RootEntity;
+		Ref<Entity> RootEntity = nullptr;
 
-		for( auto& entity : view )
+		for( auto& entity : entities )
 		{
-			Entity ent( entity, m_Scene.Pointer() );
-
-			if( ent.GetParent() == 0 )
+			if( entity->GetParent() == 0 )
 			{
-				RootEntity = ent;
+				RootEntity = entity;
 				break;
 			}
 		}
@@ -103,70 +108,65 @@ namespace Saturn {
 		if( !RootEntity )
 			RootEntity = m_Entity;
 
-		auto id = e.GetComponent<IdComponent>().ID;
-
-		CopyComponentIfExists( AllComponents{}, e, RootEntity, m_Scene->m_Registry, Scene->m_Registry );
+		CopyComponentIfExists( AllComponents{}, 
+			result->m_EntityHandle, RootEntity->m_EntityHandle,
+			m_Scene->m_Registry, Scene->m_Registry );
 
 		// We don't want the same id, what if we spawn this prefab and it has the same id?
-		e.GetComponent<IdComponent>().ID = id;
+		result->GetComponent<IdComponent>().ID = {};
 
-		for( auto& childId : RootEntity.GetChildren() )
+		for( auto& childId : RootEntity->GetChildren() )
 		{
-			Entity child = CreateChildren( m_Scene->FindEntityByID( childId ), Scene );
+			Ref<Entity> child = CreateChildren( m_Scene->FindEntityByID( childId ), Scene );
 
-			child.SetParent( e.GetComponent<IdComponent>().ID );
+			child->SetParent( result->GetComponent<IdComponent>().ID );
 		}
-
-		return e;
-	}
-
-	void Prefab::CreateScene()
-	{
-		m_Scene = nullptr;
-		m_Scene = Ref<Scene>::Create();
-	}
-
-	Entity Prefab::CreateFromEntity( Entity srcEntity )
-	{
-		Entity result = m_Scene->CreateEntity();
-		result.AddComponent<PrefabComponent>().AssetID = ID;
-		
-		auto& rc = srcEntity.GetComponent<RelationshipComponent>();
-
-		CopyComponentIfExists( AllComponents{}, result, srcEntity, srcEntity.m_Scene->m_Registry, m_Scene->m_Registry );
-
-		for( auto& childId : srcEntity.GetChildren() )
-		{
-			Entity child = CreateFromEntity( srcEntity.m_Scene->FindEntityByID( childId ) );
-
-			auto& rc = result.GetComponent<RelationshipComponent>();
-
-			child.SetParent( result.GetComponent<IdComponent>().ID );
-			//rc.ChildrenID.push_back( child.GetComponent<IdComponent>().ID );
-
-			SAT_CORE_INFO("{0}", rc.ChildrenID.size() );
-		}
-
-		SAT_CORE_INFO("{0}", result.GetComponent<RelationshipComponent>().ChildrenID.size() );
 
 		return result;
 	}
 
-	Entity Prefab::CreateChildren( Entity parent, Ref<Scene> Scene )
+	Ref<Entity> Prefab::CreateFromEntity( Ref<Entity> srcEntity )
+	{
+		Ref<Entity> result = Ref<Entity>::Create();
+		result->AddComponent<PrefabComponent>().AssetID = ID;
+		
+		auto& rc = srcEntity->GetComponent<RelationshipComponent>();
+
+		CopyComponentIfExists( AllComponents{}, 
+			result->m_EntityHandle, srcEntity->m_EntityHandle,
+			srcEntity->m_Scene->m_Registry, m_Scene->m_Registry );
+
+		for( auto& childId : srcEntity->GetChildren() )
+		{
+			Ref<Entity> child = CreateFromEntity( srcEntity->m_Scene->FindEntityByID( childId ) );
+
+			auto& rc = result->GetComponent<RelationshipComponent>();
+
+			child->SetParent( result->GetComponent<IdComponent>().ID );
+			rc.ChildrenID.push_back( child->GetComponent<IdComponent>().ID );
+		}
+
+		return result;
+	}
+
+	Ref<Entity> Prefab::CreateChildren( const Ref<Entity>& parent, Ref<Scene> Scene )
 	{
 		// Create the child in the new scene.
-		Entity child = Scene->CreateEntity();
+		Ref<Entity> child = Ref<Entity>::Create();
 		
 		// Copy Components, from our child in the scene.
-		CopyComponentIfExists( AllComponents{}, child, parent, m_Scene->m_Registry, Scene->m_Registry );
+		CopyComponentIfExists( AllComponents{}, 
+			child->m_EntityHandle, parent->m_EntityHandle, 
+			m_Scene->m_Registry, Scene->m_Registry );
 
 		// Check if this entity has any children.
-		for( auto& childId : child.GetChildren() )
+		for( auto& childId : child->GetChildren() )
 		{
-			Entity c = CreateChildren( child, Scene );
+			Ref<Entity> c = CreateChildren( child, Scene );
 
-			c.SetParent( child.GetComponent<IdComponent>().ID );
-			child.GetComponent<RelationshipComponent>().ChildrenID.push_back( c.GetComponent<IdComponent>().ID );
+			c->SetParent( child->GetComponent<IdComponent>().ID );
+			
+			child->GetComponent<RelationshipComponent>().ChildrenID.push_back( c->GetComponent<IdComponent>().ID );
 		}
 
 		return child;

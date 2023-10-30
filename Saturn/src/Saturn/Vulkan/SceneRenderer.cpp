@@ -185,7 +185,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Static Meshes";
-		PipelineSpec.Shader = m_RendererData.StaticMeshShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.StaticMeshShader;
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.VertexLayout = {
@@ -222,7 +222,7 @@ namespace Saturn {
 		PipelineSpec.Width = ( uint32_t ) SHADOW_MAP_SIZE;
 		PipelineSpec.Height = ( uint32_t ) SHADOW_MAP_SIZE;
 		PipelineSpec.Name = "DirShadowMap";
-		PipelineSpec.Shader = m_RendererData.DirShadowMapShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.DirShadowMapShader;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.VertexLayout = {
 			{ ShaderDataType::Float3, "a_Position" },
@@ -318,7 +318,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "PreDepth";
-		PipelineSpec.Shader = m_RendererData.PreDepthShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.PreDepthShader;
 		PipelineSpec.RenderPass = m_RendererData.PreDepthPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::Back;
@@ -415,7 +415,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Scene Composite";
-		PipelineSpec.Shader = m_RendererData.SceneCompositeShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.SceneCompositeShader;
 		PipelineSpec.RenderPass = m_RendererData.SceneComposite;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::None;
@@ -476,7 +476,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Texture Pass";
-		PipelineSpec.Shader = m_RendererData.TexturePassShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.TexturePassShader;
 		PipelineSpec.RenderPass = VulkanContext::Get().GetDefaultPass();
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::None;
@@ -586,18 +586,18 @@ namespace Saturn {
 		// Invalid skybox, maybe null from loading a new scene? This only happens on the first frames so this is a hack.
 		if( m_RendererData.SceneEnvironment->IrradianceMap == nullptr && m_RendererData.SceneEnvironment->RadianceMap == nullptr )
 		{
-			Entity SkylightEntity;
+			Ref<Entity> SkylightEntity = nullptr;
 
 			auto view = m_pScene->GetAllEntitiesWith< SkylightComponent >();
 
-			for( const auto e : view )
+			for( const auto& e : view )
 			{
-				SkylightEntity = { e, m_pScene };
+				SkylightEntity = e;
 			}
 
 			if( SkylightEntity )
 			{
-				auto& Skylight = SkylightEntity.GetComponent< SkylightComponent >();
+				auto& Skylight = SkylightEntity->GetComponent< SkylightComponent >();
 
 				if( !Skylight.DynamicSky )
 					return;
@@ -752,7 +752,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Grid";
-		PipelineSpec.Shader = m_RendererData.GridShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.GridShader;
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::None;
@@ -802,7 +802,7 @@ namespace Saturn {
 		PipelineSpec.Width = m_RendererData.Width;
 		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Skybox";
-		PipelineSpec.Shader = m_RendererData.SkyboxShader.Pointer();
+		PipelineSpec.Shader = m_RendererData.SkyboxShader;
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
 		PipelineSpec.UseDepthTest = true;
 		PipelineSpec.CullMode = CullMode::Back;
@@ -965,18 +965,19 @@ namespace Saturn {
 		m_RendererData.SceneEnvironment->Inclination = 0.0f;
 
 		// Find the skylight entity and set the turbidity, azimuth, inclination.
-		const auto& view = m_pScene->GetAllEntitiesWith<SkylightComponent>();
+		auto view = m_pScene->GetAllEntitiesWith<SkylightComponent>();
 
-		for( const auto& entity : view )
+		for( auto& entity : view )
 		{
-			const auto& skylight = m_pScene->GetRegistry().get<SkylightComponent>( entity );
+			auto& skylight = entity->GetComponent<SkylightComponent>();
+
 			m_RendererData.SceneEnvironment->Turbidity = skylight.Turbidity;
 			m_RendererData.SceneEnvironment->Azimuth = skylight.Azimuth;
 			m_RendererData.SceneEnvironment->Inclination = skylight.Inclination;
 		}
 	}
 
-	void SceneRenderer::SubmitStaticMesh( Entity entity, Ref< StaticMesh > mesh, Ref<MaterialRegistry> materialRegistry, const glm::mat4& transform )
+	void SceneRenderer::SubmitStaticMesh( Ref<Entity> entity, Ref< StaticMesh > mesh, Ref<MaterialRegistry> materialRegistry, const glm::mat4& transform )
 	{
 		SAT_PF_EVENT();
 
@@ -1154,7 +1155,7 @@ namespace Saturn {
 			if( !Cmd.entity )
 				continue;
 
-			auto& uuid = Cmd.entity.GetComponent<IdComponent>().ID;
+			auto& uuid = Cmd.entity->GetComponent<IdComponent>().ID;
 
 			// u_Matrices
 			RendererData::StaticMeshMatrices u_Matrices = {};
