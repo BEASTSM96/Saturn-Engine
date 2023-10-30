@@ -73,7 +73,10 @@ namespace Saturn {
 
 		EntityRegistrantFunction registrant = ( EntityRegistrantFunction ) GetProcAddress( m_DLLInstance, funcName.c_str() );
 
-		return ( registrant )();
+		if( registrant )
+			return ( registrant )();
+		else
+			return nullptr;
 	}
 
 	void GameModule::Unload()

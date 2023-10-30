@@ -393,6 +393,8 @@ namespace Saturn {
 		std::filesystem::create_directory( ProjectPath / "Scripts" );
 		std::filesystem::create_directory( ProjectPath / "Cache" );
 
+		std::filesystem::create_directories( ProjectPath / "Scripts" / newProject->m_Config.Name );
+
 		Project::SetActiveProject( newProject );
 
 		ProjectSerialiser ps;
