@@ -387,12 +387,6 @@ namespace Saturn {
 			m_RendererData.SceneCompositeFramebuffer = Ref< Framebuffer >::Create( FBSpec );
 		}
 
-		/////////
-
-		// Create fullscreen quad.
-		if( m_RendererData.SC_VertexBuffer == nullptr && m_RendererData.SC_IndexBuffer == nullptr )
-			Renderer::Get().CreateFullscreenQuad( &m_RendererData.SC_VertexBuffer, &m_RendererData.SC_IndexBuffer );
-
 		if( !m_RendererData.SceneCompositeShader )
 		{
 			m_RendererData.SceneCompositeShader = ShaderLibrary::Get().TryFind( "SceneComposite", "content/shaders/SceneComposite.glsl" );
@@ -516,7 +510,7 @@ namespace Saturn {
 		m_RendererData.GridShader->WriteAllUBs( m_RendererData.GridDescriptorSet );
 
 		Renderer::Get().SubmitFullscreenQuad(
-			m_RendererData.CommandBuffer, m_RendererData.GridPipeline, m_RendererData.GridDescriptorSet, m_RendererData.GridIndexBuffer, m_RendererData.GridVertexBuffer );
+			m_RendererData.CommandBuffer, m_RendererData.GridPipeline, m_RendererData.GridDescriptorSet, m_RendererData.QuadIndexBuffer, m_RendererData.QuadVertexBuffer );
 	}
 
 	void SceneRenderer::RenderSkybox()
@@ -575,7 +569,7 @@ namespace Saturn {
 		m_RendererData.SkyboxShader->WriteAllUBs( m_RendererData.SkyboxDescriptorSet );
 
 		Renderer::Get().SubmitFullscreenQuad(
-			CommandBuffer, m_RendererData.SkyboxPipeline, m_RendererData.SkyboxDescriptorSet, m_RendererData.SkyboxIndexBuffer, m_RendererData.SkyboxVertexBuffer );
+			CommandBuffer, m_RendererData.SkyboxPipeline, m_RendererData.SkyboxDescriptorSet, m_RendererData.QuadIndexBuffer, m_RendererData.QuadVertexBuffer );
 	}
 
 	void SceneRenderer::CheckInvalidSkybox()
@@ -732,7 +726,10 @@ namespace Saturn {
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
 
 		// Create fullscreen quad.
-		Renderer::Get().CreateFullscreenQuad( &m_RendererData.GridVertexBuffer, &m_RendererData.GridIndexBuffer );
+		auto [vertex, index] = Renderer::Get().CreateFullscreenQuad();
+		
+		m_RendererData.QuadIndexBuffer = index;
+		m_RendererData.QuadVertexBuffer = vertex;
 
 		if( !m_RendererData.GridShader )
 		{
@@ -772,10 +769,6 @@ namespace Saturn {
 	void SceneRenderer::CreateSkyboxComponents()
 	{
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-
-		// Create fullscreen quad.
-		if( m_RendererData.SkyboxVertexBuffer == nullptr && m_RendererData.SkyboxIndexBuffer == nullptr )
-			Renderer::Get().CreateFullscreenQuad( &m_RendererData.SkyboxVertexBuffer, &m_RendererData.SkyboxIndexBuffer );
 
 		// Create skybox shader.
 
@@ -1389,7 +1382,7 @@ namespace Saturn {
 		Renderer::Get().SubmitFullscreenQuad(
 			CommandBuffer, m_RendererData.SceneCompositePipeline,
 			m_RendererData.SC_DescriptorSet,
-			m_RendererData.SC_IndexBuffer, m_RendererData.SC_VertexBuffer );
+			m_RendererData.QuadIndexBuffer, m_RendererData.QuadVertexBuffer );
 
 		// End scene composite pass.
 		m_RendererData.SceneComposite->EndPass();
@@ -1428,7 +1421,7 @@ namespace Saturn {
 		Renderer::Get().SubmitFullscreenQuad(
 			CommandBuffer, m_RendererData.TexturePassPipeline,
 			m_RendererData.TexturePassDescriptorSet,
-			m_RendererData.SC_IndexBuffer, m_RendererData.SC_VertexBuffer );
+			m_RendererData.QuadIndexBuffer, m_RendererData.QuadVertexBuffer );
 
 		// End scene composite pass.
 		pass->EndPass();
@@ -1917,12 +1910,8 @@ namespace Saturn {
 		TexturePassDescriptorSet = nullptr;
 
 		// Vertex and Index buffers
-		GridVertexBuffer->Terminate();
-		GridIndexBuffer->Terminate();
-		SkyboxVertexBuffer->Terminate();
-		SkyboxIndexBuffer->Terminate();
-		SC_VertexBuffer->Terminate();
-		SC_IndexBuffer->Terminate();
+		QuadVertexBuffer->Terminate();
+		QuadIndexBuffer->Terminate();
 
 		// Framebuffers
 		GeometryFramebuffer = nullptr;
@@ -1973,6 +1962,10 @@ namespace Saturn {
 		PreDepthShader = nullptr;
 		LightCullingShader = nullptr;
 		BloomShader = nullptr;
+
+		// Vertex & Index Buffer
+		QuadVertexBuffer = nullptr;
+		QuadIndexBuffer = nullptr;
 
 		// Textures
 		BRDFLUT_Texture = nullptr;

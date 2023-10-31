@@ -156,9 +156,37 @@ namespace Saturn {
 
 		void Save( AssetRegistryType Dst = AssetRegistryType::Game );
 
+		template<typename Func>
+		void Each( Func Function, AssetRegistryType Dst = AssetRegistryType::Game ) 
+		{
+			Ref<AssetRegistry> TargetRegistry = nullptr;
+
+			switch( Dst )
+			{
+				case Saturn::AssetRegistryType::Game: 
+				{
+					TargetRegistry = m_Assets;
+				} break;
+
+				case Saturn::AssetRegistryType::Editor:
+				{
+					TargetRegistry = m_EditorAssets;
+				} break;
+
+				case Saturn::AssetRegistryType::Unknown:
+				default:
+					return;
+			}
+
+			for( auto&& [ id, asset ] : TargetRegistry->GetAssetMap() )
+			{
+				Function( asset );
+			}
+		}
+
 	private:
-		Ref<AssetRegistry> m_Assets;
-		Ref<AssetRegistry> m_EditorAssets;
+		Ref<AssetRegistry> m_Assets = nullptr;
+		Ref<AssetRegistry> m_EditorAssets = nullptr;
 	};
 
 }

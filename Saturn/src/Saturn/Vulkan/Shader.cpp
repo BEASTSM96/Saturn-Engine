@@ -232,6 +232,9 @@ namespace Saturn {
 	Shader::Shader( std::filesystem::path Filepath )
 		: m_Filepath( std::move( Filepath ) )
 	{
+		if( !std::filesystem::exists( m_Filepath ) )
+			return;
+
 		m_Name = m_Filepath.filename().string();
 
 		// Remove the extension from the name

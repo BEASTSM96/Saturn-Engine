@@ -231,6 +231,11 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		Ref<StorageBufferSet> StorageBufferSet;
 
+		//////////////////////////////////////////////////////////////////////////
+		// Quad Vertex and Index buffers
+		Ref<VertexBuffer> QuadVertexBuffer = nullptr;
+		Ref<IndexBuffer> QuadIndexBuffer = nullptr;
+
 		// DirShadowMap
 		//////////////////////////////////////////////////////////////////////////
 		
@@ -275,9 +280,6 @@ namespace Saturn {
 
 		Ref< DescriptorSet > GridDescriptorSet = nullptr;
 
-		VertexBuffer* GridVertexBuffer = nullptr;
-		IndexBuffer* GridIndexBuffer = nullptr;
-
 		// SKYBOX
 
 		Ref<EnvironmentMap> SceneEnvironment = nullptr;
@@ -286,9 +288,6 @@ namespace Saturn {
 
 		Ref< DescriptorSet > SkyboxDescriptorSet = nullptr;
 		Ref< DescriptorSet > PreethamDescriptorSet = nullptr;
-				
-		VertexBuffer* SkyboxVertexBuffer = nullptr;
-		IndexBuffer* SkyboxIndexBuffer = nullptr;
 
 		float SkyboxLod = 0.0f;
 		float Intensity = 1.0f;
@@ -308,9 +307,6 @@ namespace Saturn {
 		
 		// Input
 		Ref< DescriptorSet > SC_DescriptorSet = nullptr;
-
-		VertexBuffer* SC_VertexBuffer = nullptr;
-		IndexBuffer* SC_IndexBuffer = nullptr;
 		
 		// Texture pass
 		//////////////////////////////////////////////////////////////////////////

@@ -42,7 +42,7 @@ namespace Saturn {
 		Renderer();
 		~Renderer();
 
-		void SubmitFullscreenQuad( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< DescriptorSet >& rDescriptorSet, IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer );
+		void SubmitFullscreenQuad( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< DescriptorSet >& rDescriptorSet, Ref<IndexBuffer> IndexBuffer, Ref<VertexBuffer> VertexBuffer );
 
 		// Render pass helpers.
 		void BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass );
@@ -83,7 +83,7 @@ namespace Saturn {
 		Ref< Texture2D >   GetPinkTexture() { return m_PinkTexture; }
 		Ref< TextureCube > GetPinkTextureCube() { return m_PinkTextureCube; }
 
-		void CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer );
+		std::pair< Ref<VertexBuffer>, Ref<IndexBuffer>> CreateFullscreenQuad();
 		
 		Ref<DescriptorPool> GetDescriptorPool() { return m_RendererDescriptorPools[ m_FrameCount ]; }
 

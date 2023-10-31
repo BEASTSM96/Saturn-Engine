@@ -147,7 +147,7 @@ namespace Saturn {
 	void Renderer::SubmitFullscreenQuad(
 		VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, 
 		Ref< DescriptorSet >& rDescriptorSet, 
-		IndexBuffer* pIndexBuffer, VertexBuffer* pVertexBuffer )
+		Ref<IndexBuffer> IndexBuffer, Ref<VertexBuffer> VertexBuffer )
 	{
 		SAT_PF_EVENT();
 
@@ -156,10 +156,10 @@ namespace Saturn {
 		if( rDescriptorSet )
 			rDescriptorSet->Bind( CommandBuffer, Pipeline->GetPipelineLayout() );
 
-		pVertexBuffer->Bind( CommandBuffer );
-		pIndexBuffer->Bind( CommandBuffer );
+		VertexBuffer->Bind( CommandBuffer );
+		IndexBuffer->Bind( CommandBuffer );
 
-		pIndexBuffer->Draw( CommandBuffer );
+		IndexBuffer->Draw( CommandBuffer );
 	}
 
 	void Renderer::BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass )
@@ -463,8 +463,11 @@ namespace Saturn {
 		m_TerminateResourceFuncs.push_back( rrFunction );
 	}
 
-	void Renderer::CreateFullscreenQuad( VertexBuffer** ppVertexBuffer, IndexBuffer** ppIndexBuffer )
+	std::pair< Ref<VertexBuffer>, Ref<IndexBuffer> > Renderer::CreateFullscreenQuad()
 	{
+		Ref<VertexBuffer> vertex = nullptr;
+		Ref<IndexBuffer> index = nullptr;
+
 		struct QuadVertex
 		{
 			glm::vec3 Position;
@@ -490,11 +493,13 @@ namespace Saturn {
 		data[ 3 ].Position = glm::vec3( x, y + height, 0.0f );
 		data[ 3 ].TexCoord = glm::vec2( 0, 1 );
 
-		*ppVertexBuffer = new VertexBuffer( data, 4 * sizeof( QuadVertex ) );
+		vertex = Ref<VertexBuffer>::Create( data, 4 * sizeof( QuadVertex ) );
 
 		uint32_t indices[ 6 ] = { 0, 1, 2,
 								  2, 3, 0, };
 
-		*ppIndexBuffer = new IndexBuffer( indices, 6 * sizeof( uint32_t ) );
+		index = Ref<IndexBuffer>::Create( indices, 6 * sizeof( uint32_t ) );
+
+		return { vertex, index };
 	}
 }

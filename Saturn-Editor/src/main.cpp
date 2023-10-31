@@ -32,12 +32,14 @@
 #endif // SAT_WINDOWS
 
 // Saturn client main:
-extern int _main( int, char** );
+namespace Saturn {
+	extern int SaturnMain( int, char** );
+}
 
 int main( int count, char** args )
 {
 	// Hand it off to Saturn:
-	return _main( count, args );
+	return Saturn::SaturnMain( count, args );
 }
 
 #if defined ( _WIN32 )

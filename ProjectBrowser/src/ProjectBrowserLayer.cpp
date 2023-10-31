@@ -132,12 +132,12 @@ namespace Saturn {
 				}
 			} while( !s_ShouldThreadTerminate );
 		} );
+
+		m_TitleBar = new TitleBar();
 	}
 
 	void ProjectBrowserLayer::OnAttach()
-	{
-		m_TitleBar = new TitleBar();
-		
+	{	
 		// This is still not perfect.
 		// Why does the project browser need to do this?
 		Window::Get().SetTitlebarHitTest( [&]( int x, int y ) -> bool
@@ -171,13 +171,12 @@ namespace Saturn {
 
 	ProjectBrowserLayer::~ProjectBrowserLayer()
 	{
+		delete m_TitleBar;
 	}
 	
 	void ProjectBrowserLayer::OnDetach()
 	{
 		Window::Get().SetTitlebarHitTest( [&]( int x, int y ) -> bool { return false; } );
-
-		delete m_TitleBar;
 	}
 
 	void ProjectBrowserLayer::OnUpdate( Timestep time )

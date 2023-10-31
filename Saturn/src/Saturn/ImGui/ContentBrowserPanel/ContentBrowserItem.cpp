@@ -467,8 +467,20 @@ namespace Saturn {
 
 	void ContentBrowserItem::Delete()
 	{
-		Ref<Asset> culprit = AssetManager::Get().FindAsset( m_Path );
-		AssetManager::Get().RemoveAsset( culprit->ID );
+		if( m_IsDirectory )
+		{
+			AssetManager::Get().Each( [&]( Ref<Asset> asset ) 
+				{
+					if( asset->Path.string().contains( m_Path.string() ) ) 
+					{
+						AssetManager::Get().RemoveAsset( asset->ID );
+					}
+				} );
+		}
+		else
+		{
+			AssetManager::Get().RemoveAsset( AssetManager::Get().FindAsset( m_Path )->ID );
+		}
 
 		std::filesystem::remove( m_Path );
 	}

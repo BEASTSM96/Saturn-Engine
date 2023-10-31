@@ -360,9 +360,13 @@ namespace Saturn {
 				asset->SetPath( m_CurrentPath / "Empty Scene.scene" );
 
 				Ref<Scene> newScene = Ref<Scene>::Create();
+				Scene* CurrentScene = GActiveScene;
+				Scene::SetActiveScene( newScene.Get() );
 
 				SceneSerialiser ss( newScene );
-				ss.Serialise( newScene->Filepath() );
+				ss.Serialise( Project::GetActiveProject()->FilepathAbs( asset->Path ).string() );
+
+				Scene::SetActiveScene( CurrentScene );
 
 				AssetManager::Get().Save();
 

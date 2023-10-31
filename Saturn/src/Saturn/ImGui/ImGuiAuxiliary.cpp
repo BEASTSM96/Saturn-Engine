@@ -465,7 +465,7 @@ namespace Saturn::Auxiliary {
 		pDrawList->AddRectFilled( BoundingBox.Min, BoundingBox.Max, ImGui::GetColorU32( ColorNoAlpha ), rounding );
 	}
 
-	void TextEllipsis( const char* fmt, const ImVec2& rStart, const ImVec2& rEnd, ... )
+	void TextEllipsis( const ImVec2& rStart, const ImVec2& rEnd, const char* fmt, ... )
 	{
 		va_list args;
 		va_start( args, fmt );
