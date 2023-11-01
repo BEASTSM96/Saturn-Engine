@@ -396,6 +396,12 @@ namespace Saturn {
 		return tc;
 	}
 
+	const RaycastHitResult& Scene::Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance )
+	{
+		if( m_PhysicsScene )
+			return m_PhysicsScene->Raycast( Origin, Direction, MaxDistance );
+	}
+
 	template<typename ...V>
 	static void CopyComponent( entt::registry& dstRegistry, entt::registry& srcRegistry, const std::unordered_map<UUID, entt::entity>& enttMap )
 	{

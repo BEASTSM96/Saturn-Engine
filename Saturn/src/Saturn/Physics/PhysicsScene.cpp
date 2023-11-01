@@ -137,6 +137,28 @@ namespace Saturn {
 		m_PhysicsScene->fetchResults( true );
 	}
 
+	const RaycastHitResult& PhysicsScene::Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance )
+	{
+		RaycastHitResult Hit = {};
+
+		physx::PxRaycastBuffer PhysXOutHit = {};
+
+		bool success = m_PhysicsScene->raycast( Auxiliary::GLMToPx( Origin ), Auxiliary::GLMToPx( glm::normalize( Direction ) ), MaxDistance, PhysXOutHit );
+
+		Hit.Success = success;
+		if( Hit.Success )
+		{
+			physx::PxRaycastHit& Target = PhysXOutHit.block;
+
+			Ref<PhysicsRigidBody> body = ( PhysicsRigidBody* ) Target.actor->userData;
+			Hit.Hit = body->GetEntity();
+			Hit.Distance = Target.distance;
+			Hit.Position = Auxiliary::PxToGLM( Target.position );
+		}
+
+		return Hit;
+	}
+
 	void PhysicsScene::AddToScene( physx::PxRigidActor& rBody )
 	{
 		m_PhysicsScene->addActor( rBody );

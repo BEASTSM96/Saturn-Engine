@@ -34,6 +34,14 @@
 
 namespace Saturn {
 
+	struct RaycastHitResult
+	{
+		bool Success = false;
+		Ref<Entity> Hit = nullptr;
+		glm::vec3 Position;
+		float Distance = 0.0f;
+	};
+
 	class PhysicsScene : public RefTarget
 	{
 	public:
@@ -42,6 +50,8 @@ namespace Saturn {
 
 		void CreateScene();
 		void Update( Timestep ts );
+
+		const RaycastHitResult& Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance );
 
 	private:
 		void AddToScene( physx::PxRigidActor& rBody );

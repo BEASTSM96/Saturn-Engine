@@ -47,10 +47,12 @@ namespace Saturn {
 	class Entity;
 	class Prefab;
 	class PhysicsScene;
+	class SClass;
+	class SceneRenderer;
 
 	struct TransformComponent;
+	struct RaycastHitResult;
 
-	// entt entity id.
 	using EntityMap = std::unordered_map<entt::entity, Ref<Entity>>;
 
 	struct SceneComponent
@@ -85,9 +87,6 @@ namespace Saturn {
 
 		[[nodiscard]] uint32_t GetPointLightSize() { return static_cast<uint32_t>( sizeof( PointLight ) * PointLights.size() ); };
 	};
-
-	class SClass;
-	class SceneRenderer;
 
 	class Scene : public RefTarget
 	{
@@ -140,6 +139,9 @@ namespace Saturn {
 
 		glm::mat4 GetTransformRelativeToParent( Ref<Entity> entity );
 		TransformComponent GetWorldSpaceTransform( Ref<Entity> entity );
+
+		const RaycastHitResult& Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance );
+	public:
 
 		void CopyScene( Ref<Scene>& NewScene );
 

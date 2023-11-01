@@ -109,7 +109,6 @@ namespace Saturn {
 
 		m_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, m_AllocatorCallback, m_ErrorCallback );
 
-		// We might in the future want to keep the PVD for Dist builds. What if the user wants to debug their physics?
 #if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		m_Pvd = PxCreatePvd( *m_Foundation );
 		m_Physics = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, Scale, true, m_Pvd );
@@ -125,7 +124,9 @@ namespace Saturn {
 
 	void PhysicsFoundation::Terminate()
 	{
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		m_Pvd->disconnect();
+#endif
 
 		PHYSX_TERMINATE_ITEM( m_Dispatcher );
 		PHYSX_TERMINATE_ITEM( m_Cooking );
