@@ -4,6 +4,6 @@
 [submodule "Saturn/vendor/spdlog"]
 	path = Saturn/vendor/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "Saturn/vendor/GLFW"]
-	path = Saturn/vendor/GLFW
-	url = https://github.com/BEASTSM96/glfw
+[submodule "Saturn/vendor/Ruby"]
+	path = Saturn/vendor/Ruby
+	url = https://github.com/BEASTSM96/Ruby
