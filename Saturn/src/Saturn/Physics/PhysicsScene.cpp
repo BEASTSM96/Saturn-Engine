@@ -137,7 +137,7 @@ namespace Saturn {
 		m_PhysicsScene->fetchResults( true );
 	}
 
-	const RaycastHitResult& PhysicsScene::Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance )
+	bool PhysicsScene::Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance, RaycastHitResult* pOut )
 	{
 		RaycastHitResult Hit = {};
 
@@ -150,13 +150,15 @@ namespace Saturn {
 		{
 			physx::PxRaycastHit& Target = PhysXOutHit.block;
 
-			Ref<PhysicsRigidBody> body = ( PhysicsRigidBody* ) Target.actor->userData;
+			PhysicsRigidBody* body = ( PhysicsRigidBody* ) Target.actor->userData;
+			
 			Hit.Hit = body->GetEntity();
 			Hit.Distance = Target.distance;
 			Hit.Position = Auxiliary::PxToGLM( Target.position );
 		}
 
-		return Hit;
+		*pOut = Hit;
+		return success;
 	}
 
 	void PhysicsScene::AddToScene( physx::PxRigidActor& rBody )

@@ -53,6 +53,8 @@ namespace Saturn {
 
 		void SyncTransfrom();
 
+		bool IsKiniematic() { return m_Kinematic; }
+
 		glm::vec3 GetPosition();
 		glm::vec3 GetRotation();
 		glm::mat4 GetTransform();

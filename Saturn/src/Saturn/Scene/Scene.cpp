@@ -160,7 +160,6 @@ namespace Saturn {
 		for( auto& entity : rigidBodies )
 		{
 			auto& rb = entity->GetComponent<RigidbodyComponent>();
-			
 			rb.Rigidbody->SyncTransfrom();
 		}
 
@@ -396,10 +395,10 @@ namespace Saturn {
 		return tc;
 	}
 
-	const RaycastHitResult& Scene::Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance )
+	bool Scene::Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance, RaycastHitResult* pOut )
 	{
 		if( m_PhysicsScene )
-			return m_PhysicsScene->Raycast( Origin, Direction, MaxDistance );
+			return m_PhysicsScene->Raycast( Origin, Direction, MaxDistance, pOut );
 	}
 
 	template<typename ...V>
