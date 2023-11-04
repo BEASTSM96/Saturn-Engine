@@ -12,7 +12,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
-IncludeDir["GLFW"] = "Saturn/vendor/GLFW/include"
+IncludeDir["Ruby"] = "Saturn/vendor/Ruby/src"
 IncludeDir["ImGui"] = "Saturn/vendor/imgui"
 IncludeDir["glm"] = "Saturn/vendor/glm"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
@@ -31,7 +31,7 @@ IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["SharedStorage"] = "SharedStorage/src"
 
 group "Dependencies"
-	include "Saturn/vendor/GLFW"
+	include "Saturn/vendor/Ruby"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
@@ -87,7 +87,7 @@ project "Saturn"
 		"%{prj.name}/vendor/stb/",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/vendor/vulkan/include",
-		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -262,7 +262,7 @@ project "Saturn-Editor"
 		"Saturn/vendor/spdlog/include",
 		"Saturn/src",
 		"Saturn/vendor",
-		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
