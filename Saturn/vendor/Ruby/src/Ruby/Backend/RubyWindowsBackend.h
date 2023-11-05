@@ -46,6 +46,7 @@ public:
 	void Minimize() override;
 	void Restore() override;
 
+	void* GetNativeHandle() override;
 
 public:
 	void Create() override;

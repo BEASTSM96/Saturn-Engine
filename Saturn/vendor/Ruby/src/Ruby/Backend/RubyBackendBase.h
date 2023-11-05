@@ -65,6 +65,8 @@ public:
 	virtual void Minimize() = 0;
 	virtual void Restore() = 0;
 
+	virtual void* GetNativeHandle() = 0;
+
 	virtual VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) = 0;
 
 public:

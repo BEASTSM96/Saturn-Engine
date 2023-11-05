@@ -29,6 +29,8 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
+#include "Saturn/Core/Log.h"
+
 #include "SharedGlobals.h"
 
 #include "Saturn/GameFramework/Core/GameScript.h"

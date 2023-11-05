@@ -63,11 +63,17 @@ bool RubyWindow::ShouldClose()
 
 void RubyWindow::Maximize()
 {
+	m_Maximized = true;
+	m_Minimized = false;
+
 	m_pDefaultBackend->Maximize();
 }
 
 void RubyWindow::Minimize()
 {
+	m_Maximized = false;
+	m_Minimized = true;
+
 	m_pDefaultBackend->Minimize();
 }
 
@@ -89,6 +95,11 @@ void RubyWindow::Show()
 void RubyWindow::ChangeTitle( std::wstring_view Title )
 {
 	m_pDefaultBackend->SetTitle( Title );
+}
+
+void* RubyWindow::GetNativeHandle()
+{
+	return (void*)m_pDefaultBackend->GetNativeHandle();
 }
 
 void RubyWindow::GLSwapBuffers()

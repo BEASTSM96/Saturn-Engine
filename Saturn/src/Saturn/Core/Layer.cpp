@@ -41,7 +41,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <backends/imgui_impl_vulkan.h>
-#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_ruby.h>
 
 #include <Ruby/RubyWindow.h>
 
@@ -96,7 +96,7 @@ namespace Saturn {
 
 		Styles::Dark();
 
-		//ImGui_ImplGlfw_InitForVulkan( ( GLFWwindow* ) Window::Get().NativeWindow(), true );
+		ImGui_ImplRuby_InitForVulkan( Application::Get().GetWindow() );
 
 		// Create ImGui Descriptor Pool
 		{
@@ -167,7 +167,7 @@ namespace Saturn {
 			return;
 
 		ImGui_ImplVulkan_NewFrame();
-		//ImGui_ImplGlfw_NewFrame();
+		ImGui_ImplRuby_NewFrame();
 
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();

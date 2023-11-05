@@ -32,7 +32,7 @@
 
 #include <stdint.h>
 
-enum RubyEventType
+enum class RubyEventType
 {
 	Resize = RBY_BIT( 0 ),
 	MouseMoved = RBY_BIT( 1 ),
@@ -45,9 +45,9 @@ enum RubyEventType
 	WindowRestored = RBY_BIT( 8 ),
 };
 
-using KeyCode = uint64_t;
+using KeyCode = int;
 
-enum RubyKey 
+enum class RubyKey
 {
 	// Alphabetic keys
 	A = 0x41, B = 0x42, C = 0x43, D = 0x44, E = 0x45, F = 0x46, G = 0x47, H = 0x48,
@@ -71,12 +71,18 @@ enum RubyKey
 	NumpadAdd = 0x6B, NumpadSubtract = 0x6D, NumpadMultiply = 0x6A,
 	NumpadDivide = 0x6F, NumpadEnter = 0x0D,
 
+	// Arrow keys
+	LeftArrow = 0x25,
+	UpArrow = 0x26,
+	RightArrow = 0x27,
+	DownArrow = 0x28,
+
 	// Function keys
 	F1 = 0x70, F2 = 0x71, F3 = 0x72, F4 = 0x73, F5 = 0x74, F6 = 0x75, F7 = 0x76, F8 = 0x77,
 	F9 = 0x78, F10 = 0x79, F11 = 0x7A, F12 = 0x7B,
 };
 
-enum RubyMouseButton 
+enum class RubyMouseButton 
 {
 	Left = RBY_BIT( 0 ),
 	Right = RBY_BIT( 1 ),

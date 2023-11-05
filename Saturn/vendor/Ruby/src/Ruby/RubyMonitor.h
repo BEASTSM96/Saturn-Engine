@@ -28,85 +28,35 @@
 
 #pragma once
 
-#include "Backend/RubyBackendBase.h"
-#include "RubyEvent.h"
+#include <string>
+#include <vector>
 
-#include <string_view>
-#include <unordered_map>
-
-class RBY_API RubyWindow
+struct RubyVec2
 {
-public:
-	RubyWindow( const RubyWindowSpecification& rSpec );
-	~RubyWindow();
-
-	void PollEvents();
-	bool ShouldClose();
-
-	void Maximize();
-	void Minimize();
-	void Restore();
-	void Resize( uint32_t Width, uint32_t Height );
-	void Show();
-	
-	bool Minimized() { return m_Minimized; }
-	bool Maximized() { return m_Maximized; }
-
-	void ChangeTitle( std::wstring_view Title );
-
-	uint32_t GetWidth() { return m_Width; }
-	uint32_t GetHeight() { return m_Height; }
-	RubyGraphicsAPI GetGraphicsAPI() { return m_GraphicsAPI; }
-
-	void* GetNativeHandle();
-
-public:
-	//////////////////////////////////////////////////////////////////////////
-	// OpenGL Functions
-
-	void GLSwapBuffers();
-
-	//////////////////////////////////////////////////////////////////////////
-	// Vulkan Functions
-	std::vector<const char*> GetVulkanRequiredExtensions();
-	VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface );
-
-public:
-
-	template<typename Ty>
-	void SetEventTarget( Ty* Target ) 
-	{
-		m_pEventTarget = Target;
-	}
-
-	template<typename Ty, typename... Args>
-	bool DispatchEvent( RubyEventType Type, Args&&... args ) 
-	{
-		Ty event( Type, std::forward<Args>( args )... );
-
-		if( m_pEventTarget )
-			return m_pEventTarget->OnEvent( event );
-
-		return false;
-	}
-
-private:
-	RubyBackendBase* m_pDefaultBackend = nullptr;
-	RubyEventTarget* m_pEventTarget = nullptr;
-
-	std::wstring m_WindowTitle = L"";
-	RubyGraphicsAPI m_GraphicsAPI = RubyGraphicsAPI::None;
-
-	uint32_t m_Height = 0;
-	uint32_t m_Width = 0;
-
-	bool m_Minimized = false;
-	bool m_Maximized = false;
-
-private:
-	friend class RubyBackendBase;
-
-#if defined(_WIN32)
-	friend class RubyWindowsBackend;
-#endif
+	float x = 0.0f; 
+	float y = 0.0f;
 };
+
+struct RubyIVec2
+{
+	int x = 0.0f;
+	int y = 0.0f;
+};
+
+struct RubyRect
+{
+	RubyVec2 Min, Max;
+};
+
+struct RubyMonitor
+{
+	bool Primary = false;
+	std::wstring Name;
+
+	RubyVec2 WorkSize;
+
+	RubyVec2 MonitorSize;
+	RubyIVec2 MonitorPositon;
+};
+
+extern std::vector<RubyMonitor> RubyGetAllMonitors();

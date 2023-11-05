@@ -107,9 +107,8 @@ namespace Saturn {
 
 			m_MainThreadQueue.clear();
 
-			if( false )
+			if( !m_Window->Minimized() )
 			{
-				/*
 				Renderer::Get().BeginFrame();
 				{
 					// Render Scene on render thread.
@@ -122,11 +121,10 @@ namespace Saturn {
 				}
 				// End this frame on render thread.
 				RenderThread::Get().Queue( [=] { Renderer::Get().EndFrame(); } );
-				*/
 			}
 
 			// Execute render thread (last frame).
-			//RenderThread::Get().WaitAll();
+			RenderThread::Get().WaitAll();
 
 			float time = ( float ) 0.0f;
 

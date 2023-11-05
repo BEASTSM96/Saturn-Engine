@@ -26,87 +26,54 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Backend/RubyBackendBase.h"
-#include "RubyEvent.h"
-
-#include <string_view>
-#include <unordered_map>
-
-class RBY_API RubyWindow
-{
-public:
-	RubyWindow( const RubyWindowSpecification& rSpec );
-	~RubyWindow();
-
-	void PollEvents();
-	bool ShouldClose();
-
-	void Maximize();
-	void Minimize();
-	void Restore();
-	void Resize( uint32_t Width, uint32_t Height );
-	void Show();
-	
-	bool Minimized() { return m_Minimized; }
-	bool Maximized() { return m_Maximized; }
-
-	void ChangeTitle( std::wstring_view Title );
-
-	uint32_t GetWidth() { return m_Width; }
-	uint32_t GetHeight() { return m_Height; }
-	RubyGraphicsAPI GetGraphicsAPI() { return m_GraphicsAPI; }
-
-	void* GetNativeHandle();
-
-public:
-	//////////////////////////////////////////////////////////////////////////
-	// OpenGL Functions
-
-	void GLSwapBuffers();
-
-	//////////////////////////////////////////////////////////////////////////
-	// Vulkan Functions
-	std::vector<const char*> GetVulkanRequiredExtensions();
-	VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface );
-
-public:
-
-	template<typename Ty>
-	void SetEventTarget( Ty* Target ) 
-	{
-		m_pEventTarget = Target;
-	}
-
-	template<typename Ty, typename... Args>
-	bool DispatchEvent( RubyEventType Type, Args&&... args ) 
-	{
-		Ty event( Type, std::forward<Args>( args )... );
-
-		if( m_pEventTarget )
-			return m_pEventTarget->OnEvent( event );
-
-		return false;
-	}
-
-private:
-	RubyBackendBase* m_pDefaultBackend = nullptr;
-	RubyEventTarget* m_pEventTarget = nullptr;
-
-	std::wstring m_WindowTitle = L"";
-	RubyGraphicsAPI m_GraphicsAPI = RubyGraphicsAPI::None;
-
-	uint32_t m_Height = 0;
-	uint32_t m_Width = 0;
-
-	bool m_Minimized = false;
-	bool m_Maximized = false;
-
-private:
-	friend class RubyBackendBase;
+#include "RubyMonitor.h"
 
 #if defined(_WIN32)
-	friend class RubyWindowsBackend;
+#include <windows.h>
 #endif
-};
+
+static std::vector<RubyMonitor> s_RubyMonitors;
+
+#if defined(_WIN32)
+BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMonitor, LPARAM DWData ) 
+{
+	MONITORINFOEX MonitorInfo{};
+	MonitorInfo.cbSize = sizeof( MONITORINFOEX );
+
+	if( GetMonitorInfo( Monitor, &MonitorInfo ) )
+	{
+		RubyMonitor monitor;
+		monitor.Primary = MonitorInfo.dwFlags & MONITORINFOF_PRIMARY;
+		monitor.Name = MonitorInfo.szDevice;
+
+		DEVMODE DevMode{};
+		DevMode.dmSize = sizeof( DevMode );
+
+		::EnumDisplaySettings( MonitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &DevMode );
+		monitor.MonitorPositon = { .x = DevMode.dmPosition.x, .y = DevMode.dmPosition.y };
+		
+		monitor.MonitorSize.x = MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
+		monitor.MonitorSize.y = MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;
+
+		monitor.WorkSize.x = MonitorInfo.rcWork.right - MonitorInfo.rcWork.left;
+		monitor.WorkSize.y = MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top;
+
+		s_RubyMonitors.push_back( monitor );
+	}
+
+	return TRUE;
+}
+#endif
+
+std::vector<RubyMonitor> RubyGetAllMonitors()
+{
+	// TODO: Check for new monitors
+	if( s_RubyMonitors.size() > 0 )
+		return s_RubyMonitors;
+
+#if defined(_WIN32)
+	::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, 0 );
+#endif
+
+	return s_RubyMonitors;
+}

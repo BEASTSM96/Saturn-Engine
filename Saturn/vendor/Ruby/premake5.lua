@@ -1,5 +1,4 @@
 project "Ruby"
-	location "Ruby"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++20"
@@ -30,8 +29,8 @@ project "Ruby"
 
 		links 
 		{
-			"opengl32.lib",
-			"dwmapi"
+			"dwmapi",
+			"opengl32"
 		}
 
 		filter "configurations:Debug"
@@ -55,27 +54,6 @@ project "Ruby"
 			"X11",
 			"X11-xcb",
 			"GL"
-		}
-
-		defines
-		{
-		}
-
-		filter "configurations:Debug"
-			defines "_DEBUG"
-			runtime "Debug"
-			symbols "on"
-
-		filter "configurations:Release"
-			defines "_RELEASE"
-			runtime "Release"
-			optimize "on"
-
-	filter "system:macosx"
-		systemversion "11.0"
-
-		links 
-		{
 		}
 
 		defines

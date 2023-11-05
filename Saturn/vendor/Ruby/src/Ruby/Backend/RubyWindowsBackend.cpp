@@ -160,17 +160,15 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		case WM_KEYDOWN:
 		{
 			int nativeCode = ( int ) WParam;
-			int code = (RubyKey)nativeCode;
 
-			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyPressed, code );
+			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyPressed, nativeCode );
 		} break;
 
 		case WM_KEYUP:
 		{
 			int nativeCode = ( int ) WParam;
-			int code = ( RubyKey ) nativeCode;
 
-			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyReleased, code );
+			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyReleased, nativeCode );
 		} break;
 	}
 
@@ -281,6 +279,11 @@ void RubyWindowsBackend::Restore()
 	::ShowWindow( m_Handle, SW_RESTORE );
 }
 
+void* RubyWindowsBackend::GetNativeHandle()
+{
+	return m_Handle;
+}
+
 VkResult RubyWindowsBackend::CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface )
 {
 	VkWin32SurfaceCreateInfoKHR CreateInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
@@ -350,7 +353,26 @@ void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )
 
 		}	break;
 		
-		case RubyGraphicsAPI::Vulkan:
+		case RubyGraphicsAPI::Vulkan: 
+		{
+			HDC DrawContext = ::GetDC( m_Handle );
+
+			PIXELFORMATDESCRIPTOR pfd
+			{
+				.nSize = sizeof( PIXELFORMATDESCRIPTOR ),
+				.nVersion = 1,
+				.dwFlags = PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
+				.iPixelType = PFD_TYPE_RGBA,
+				.cColorBits = 32,
+				.cDepthBits = 24,
+				.cStencilBits = 8,
+				.iLayerType = PFD_MAIN_PLANE,
+			};
+
+			int PixelFormat = ::ChoosePixelFormat( DrawContext, &pfd );
+			::SetPixelFormat( DrawContext, PixelFormat, &pfd );
+		} break;
+
 		case RubyGraphicsAPI::DirectX11:
 		case RubyGraphicsAPI::DirectX12:
 		case RubyGraphicsAPI::None:

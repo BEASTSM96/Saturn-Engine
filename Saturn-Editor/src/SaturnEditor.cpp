@@ -30,6 +30,8 @@
 
 #include "Saturn/Core/UserSettings.h"
 
+#include "Saturn/Runtime/RuntimeLayer.h"
+
 #include "EditorLayer.h"
 
 #include "Saturn/Serialisation/UserSettingsSerialiser.h"
