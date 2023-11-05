@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "App.h"
 
-#include "Window.h"
+#include "Ruby/RubyWindow.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/VulkanContext.h"
@@ -42,9 +42,6 @@
 #include "Saturn/Audio/AudioSystem.h"
 
 #include "Saturn/Asset/AssetManager.h"
-
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -65,17 +62,17 @@ namespace Saturn {
 	{
 		SingletonStorage::Get().AddSingleton( this );
 
-		// This may not be the best way... but its better than lazy loading.
-		m_Window = new Window();
+		RubyWindowSpecification windowSpec { .Name = L"Saturn", .Width = 1280, .Height = 720, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = RubyStyle::Borderless, .ShowNow = false };
+
+		m_Window = new RubyWindow( windowSpec );
+
+		// This may not be the best way... but it's better than lazy loading.
 		m_VulkanContext = new VulkanContext();
 
 		m_VulkanContext->Init();
 
 		m_SceneRenderer = new SceneRenderer();
 
-		m_Window->SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
-
-		m_Window->RemoveBorder();
 		m_Window->Show();
 
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
@@ -103,17 +100,16 @@ namespace Saturn {
 		{
 			SAT_PF_FRAME("Master Thread");
 
-			Window::Get().Update();
+			m_Window->PollEvents();
 		
 			for( auto&& fn : m_MainThreadQueue )
 				fn();
 
 			m_MainThreadQueue.clear();
 
-			Window::Get().OnUpdate();
-
-			if( !Window::Get().Minimized() )
+			if( false )
 			{
+				/*
 				Renderer::Get().BeginFrame();
 				{
 					// Render Scene on render thread.
@@ -126,12 +122,13 @@ namespace Saturn {
 				}
 				// End this frame on render thread.
 				RenderThread::Get().Queue( [=] { Renderer::Get().EndFrame(); } );
+				*/
 			}
 
 			// Execute render thread (last frame).
-			RenderThread::Get().WaitAll();
+			//RenderThread::Get().WaitAll();
 
-			float time = ( float ) glfwGetTime();
+			float time = ( float ) 0.0f;
 
 			float frametime = time - m_LastFrameTime;
 
@@ -292,7 +289,7 @@ namespace Saturn {
 
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
-		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
+		//ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof( szFile );
 		ofn.lpstrFilter = pFilter;
@@ -320,7 +317,7 @@ namespace Saturn {
 
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
-		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
+		//ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof( szFile );
 		ofn.lpstrFilter = pFilter;

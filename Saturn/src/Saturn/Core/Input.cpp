@@ -29,9 +29,6 @@
 #include "sppch.h"
 #include "Input.h"
 
-#include <GLFW/glfw3.h>
-#include "Saturn/Core/Window.h"
-
 #include <vector>
 
 namespace Saturn {
@@ -43,18 +40,12 @@ namespace Saturn {
 
 	bool Input::KeyPressed( KeyCode key )
 	{
-		auto& window = Window::Get();
-		auto state = glfwGetKey( static_cast< GLFWwindow* >( window.NativeWindow() ), static_cast< int32_t >( key ) );
-
-		return state == GLFW_PRESS || state == GLFW_REPEAT;
+		return false;
 	}
 
 	bool Input::MouseButtonPressed( MouseButton button )
 	{
-		auto& window = static_cast< Window& >( Window::Get() );
-		auto state = glfwGetMouseButton( static_cast< GLFWwindow* >( window.NativeWindow() ), static_cast< int32_t >( button ) );
-
-		return state == GLFW_PRESS;
+		return false;
 	}
 
 	float Input::MouseX()
@@ -69,28 +60,18 @@ namespace Saturn {
 
 	glm::vec2 Input::MousePosition()
 	{
-		auto& window = static_cast< Window& >( Window::Get() );
-
 		double x = 0;
 		double y = 0;
-
-		glfwGetCursorPos( static_cast< GLFWwindow* >( window.NativeWindow() ), &x, &y );
-
 		return { ( float ) x, ( float ) y };
 	}
 
 	void Input::SetCursorMode( CursorMode mode )
 	{
-		auto& window = static_cast< Window& >( Window::Get() );
-
-		glfwSetInputMode( static_cast< GLFWwindow* >( window.NativeWindow() ), GLFW_CURSOR, GLFW_CURSOR_NORMAL + ( int )mode );
 	}
 
 	CursorMode Input::GetCursorMode()
 	{
-		auto& window = static_cast< Window& >( Window::Get() );
-
-		return ( CursorMode )( glfwGetInputMode( static_cast< GLFWwindow* >( window.NativeWindow() ), GLFW_CURSOR ) - GLFW_CURSOR_NORMAL );
+		return CursorMode::Normal;
 	}
 
 }

@@ -16,12 +16,13 @@ project "Ruby"
 
 	defines
 	{
-		"_CRT_SECURE_NO_WARNINGS"
+		"RBY_INCLUDE_VULKAN"
 	}
 
 	includedirs
 	{
-		"src/"
+		"src/",
+		"../vulkan/include"
 	}
 
 	filter "system:windows"
@@ -34,12 +35,10 @@ project "Ruby"
 		}
 
 		filter "configurations:Debug"
-			defines "_DEBUG"
 			runtime "Debug"
 			symbols "on"
 
 		filter "configurations:Release"
-			defines "_RELEASE"
 			runtime "Release"
 			optimize "on"
 

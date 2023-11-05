@@ -32,24 +32,20 @@
 
 #include <Windows.h>
 
-class RubyWindowsBackend : public RubyBackendBase
+class RBY_API RubyWindowsBackend : public RubyBackendBase
 {
 	typedef HGLRC WINAPI wglCreateContextAttribsARBFn( HDC, HGLRC, const int* );
 	typedef BOOL WINAPI wglChoosePixelFormatARBFn( HDC, const int*, const FLOAT*, UINT, int*, UINT* );
 public:
-	RubyWindowsBackend( const WindowSpecification& rSpec, RubyWindow* pWindow );
+	RubyWindowsBackend( const RubyWindowSpecification& rSpec, RubyWindow* pWindow );
 	~RubyWindowsBackend();
 
 	RubyWindow* GetParent() { return m_pWindow; }
 
-
 	void Maximize() override;
-
-
 	void Minimize() override;
-
-
 	void Restore() override;
+
 
 public:
 	void Create() override;
@@ -65,16 +61,16 @@ public:
 	void CreateGraphics( RubyGraphicsAPI api ) override;
 
 	void IssueSwapBuffers() override;
+	VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) override;
 
 public:
 	// Events
 	void PollEvents() override;
 	bool PendingClose() override;
 
-	int ConvertWin32ScanCode( int native );
-
 private:
 	void CreateDummyWindow();
+	DWORD ChooseStyle();
 
 private:
 	HWND m_Handle = nullptr;

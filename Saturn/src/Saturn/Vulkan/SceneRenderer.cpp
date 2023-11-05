@@ -43,6 +43,8 @@
 
 #include "Saturn/Core/OptickProfiler.h"
 
+#include <Ruby/RubyWindow.h>
+
 #include <glm/gtx/matrix_decompose.hpp>
 #include <backends/imgui_impl_vulkan.h>
 
@@ -67,8 +69,8 @@ namespace Saturn {
 
 		if( m_RendererData.Width == 0 && m_RendererData.Height == 0 )
 		{
-			m_RendererData.Width = Window::Get().Width();
-			m_RendererData.Height = Window::Get().Height();
+			m_RendererData.Width = Application::Get().GetWindow()->GetWidth();
+			m_RendererData.Height = Application::Get().GetWindow()->GetHeight();
 		}
 
 		//////////////////////////////////////////////////////////////////////////

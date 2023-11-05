@@ -76,9 +76,8 @@ project "Saturn"
 		"GLM_ENABLE_EXPERIMENTAL",
 		"SATURN_SS_IMPORT",
 		"GLFW_DLL",
-		"TRACY_ENABLE"
-		--"GLM_FORCE_QUAT_DATA_XYZW"
-		--"GLM_FORCE_LEFT_HANDED"
+		"TRACY_ENABLE",
+		"RBY_INCLUDE_VULKAN"
 	}
 
 	includedirs
@@ -111,7 +110,7 @@ project "Saturn"
 
 	links 
 	{
-		"GLFW",
+		"Ruby",
 		"ImGui",
 		"SPIRV-Cross",
 		"yaml-cpp",
@@ -308,7 +307,7 @@ project "Saturn-Editor"
 		{ 
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
+			--'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
 		}
 
 	filter "configurations:Release"
@@ -319,7 +318,7 @@ project "Saturn-Editor"
 		postbuildcommands 
 		{ 
 			'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+			--'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Dist"
@@ -331,7 +330,7 @@ project "Saturn-Editor"
 		postbuildcommands 
 		{ 
 			'{COPY} "../bin/Dist-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+			--'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Dist or configurations:Release"

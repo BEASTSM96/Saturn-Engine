@@ -32,7 +32,7 @@
 #include "Backend/RubyWindowsBackend.h"
 #endif
 
-RubyWindow::RubyWindow( const WindowSpecification& rSpec )
+RubyWindow::RubyWindow( const RubyWindowSpecification& rSpec )
 	: m_WindowTitle( rSpec.Name ), m_Width( rSpec.Width ), m_Height( rSpec.Height ), m_GraphicsAPI( rSpec.GraphicsAPI )
 {
 #if defined(_WIN32)
@@ -40,7 +40,9 @@ RubyWindow::RubyWindow( const WindowSpecification& rSpec )
 #endif
 
 	m_pDefaultBackend->Create();
-	m_pDefaultBackend->PresentWindow();
+
+	if( rSpec.ShowNow )
+		m_pDefaultBackend->PresentWindow();
 }
 
 RubyWindow::~RubyWindow()
@@ -79,6 +81,11 @@ void RubyWindow::Resize( uint32_t Width, uint32_t Height )
 	m_pDefaultBackend->ResizeWindow( Width, Height );
 }
 
+void RubyWindow::Show()
+{
+	m_pDefaultBackend->PresentWindow();
+}
+
 void RubyWindow::ChangeTitle( std::wstring_view Title )
 {
 	m_pDefaultBackend->SetTitle( Title );
@@ -87,4 +94,21 @@ void RubyWindow::ChangeTitle( std::wstring_view Title )
 void RubyWindow::GLSwapBuffers()
 {
 	m_pDefaultBackend->IssueSwapBuffers();
+}
+
+std::vector<const char*> RubyWindow::GetVulkanRequiredExtensions()
+{
+	std::vector<const char*> Extensions;
+	Extensions.push_back( "VK_KHR_surface" );
+
+#if defined(_WIN32)
+	Extensions.push_back( "VK_KHR_win32_surface" );
+#endif
+
+	return Extensions;
+}
+
+VkResult RubyWindow::CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface )
+{
+	return m_pDefaultBackend->CreateVulkanWindowSurface( Instance, pOutSurface );
 }

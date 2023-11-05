@@ -33,7 +33,6 @@
 
 #include <imgui.h>
 
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
 #include <glm/gtx/quaternion.hpp>

@@ -29,6 +29,10 @@
 #include "Ruby/RubyWindow.h"
 #include "RubyWindowsBackend.h"
 
+#if defined( RBY_INCLUDE_VULKAN )
+#include <vulkan_win32.h>
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 
 LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam );
@@ -62,6 +66,9 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 {
 	RubyWindowsBackend* pThis = ( RubyWindowsBackend* ) ::GetPropW( Handle, L"RubyData" );
 
+	if( !pThis )
+		return ::DefWindowProc( Handle, Msg, WParam, LParam );
+
 	switch( Msg )
 	{
 		case WM_CLOSE:
@@ -90,9 +97,9 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			{
 				pThis->GetParent()->DispatchEvent<RubyMinimizeEvent>( RubyEventType::WindowMinimized, true );
 			}
-			else
+			else if( WParam == SIZE_RESTORED )
 			{
-				// TODO: Window restored...
+				//pThis->GetParent()->DispatchEvent<RubyMinimizeEvent>( RubyEventType::WindowRestored, true );
 			}
 
 			pThis->GetParent()->DispatchEvent<RubyWindowResizeEvent>( RubyEventType::Resize, static_cast< uint32_t >( width ), static_cast< uint32_t >( height ) );
@@ -153,7 +160,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		case WM_KEYDOWN:
 		{
 			int nativeCode = ( int ) WParam;
-			int code = pThis->ConvertWin32ScanCode( nativeCode );
+			int code = (RubyKey)nativeCode;
 
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyPressed, code );
 		} break;
@@ -161,8 +168,8 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		case WM_KEYUP:
 		{
 			int nativeCode = ( int ) WParam;
-			int code = pThis->ConvertWin32ScanCode( nativeCode );
-			
+			int code = ( RubyKey ) nativeCode;
+
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyReleased, code );
 		} break;
 	}
@@ -172,11 +179,12 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 //////////////////////////////////////////////////////////////////////////
 
-RubyWindowsBackend::RubyWindowsBackend( const WindowSpecification& rSpec, RubyWindow* pWindow )
+RubyWindowsBackend::RubyWindowsBackend( const RubyWindowSpecification& rSpec, RubyWindow* pWindow )
 {
 	m_pWindow = pWindow;
+	m_WindowSpecification = rSpec;
 
-	if( rSpec.GraphicsAPI == RubyGraphicsAPI::OpenGL )
+	if( m_WindowSpecification.GraphicsAPI == RubyGraphicsAPI::OpenGL )
 	{
 		CreateDummyWindow(); 
 	}
@@ -228,6 +236,31 @@ RubyWindowsBackend::~RubyWindowsBackend()
 	DestroyWindow();
 }
 
+void RubyWindowsBackend::Create()
+{
+	DWORD WindowStyle = ChooseStyle();
+
+	m_Handle = ::CreateWindowEx( 0, DefaultClassName, m_pWindow->m_WindowTitle.data(), WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, ( int ) m_pWindow->GetWidth(), ( int ) m_pWindow->GetHeight(), NULL, NULL, GetModuleHandle( NULL ), NULL );
+
+	::SetPropW( m_Handle, L"RubyData", this );
+
+	CreateGraphics( m_pWindow->GetGraphicsAPI() );
+}
+
+DWORD RubyWindowsBackend::ChooseStyle()
+{
+	switch( m_WindowSpecification.Style )
+	{
+		case RubyStyle::Default:
+			return WS_OVERLAPPEDWINDOW;
+		case RubyStyle::Borderless:
+			return WS_POPUP | WS_THICKFRAME | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+		
+		default:
+			return 0;
+	}
+}
+
 void RubyWindowsBackend::SetTitle( std::wstring_view Title )
 {
 	::SetWindowText( m_Handle, Title.data() );
@@ -248,13 +281,13 @@ void RubyWindowsBackend::Restore()
 	::ShowWindow( m_Handle, SW_RESTORE );
 }
 
-void RubyWindowsBackend::Create()
+VkResult RubyWindowsBackend::CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface )
 {
-	m_Handle = ::CreateWindowEx( 0, DefaultClassName, m_pWindow->m_WindowTitle.data(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, ( int ) m_pWindow->GetWidth(), ( int ) m_pWindow->GetHeight(), NULL, NULL, GetModuleHandle( NULL ), NULL );
+	VkWin32SurfaceCreateInfoKHR CreateInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
+	CreateInfo.hinstance = GetModuleHandle( NULL );
+	CreateInfo.hwnd = m_Handle;
 
-	::SetPropW( m_Handle, L"RubyData", this );
-
-	CreateGraphics( m_pWindow->GetGraphicsAPI() );
+	return vkCreateWin32SurfaceKHR( Instance, &CreateInfo, nullptr, pOutSurface );
 }
 
 void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )
@@ -370,9 +403,4 @@ void RubyWindowsBackend::PollEvents()
 bool RubyWindowsBackend::PendingClose()
 {
 	return m_ShouldClose;
-}
-
-int RubyWindowsBackend::ConvertWin32ScanCode( int native )
-{
-	return ( RubyKey ) native;
 }

@@ -34,18 +34,10 @@
 #include <string_view>
 #include <unordered_map>
 
-struct WindowSpecification
-{
-	std::wstring_view Name;
-	uint32_t Width;
-	uint32_t Height;
-	RubyGraphicsAPI GraphicsAPI = RubyGraphicsAPI::None;
-};
-
-class RubyWindow
+class RBY_API RubyWindow
 {
 public:
-	RubyWindow( const WindowSpecification& rSpec );
+	RubyWindow( const RubyWindowSpecification& rSpec );
 	~RubyWindow();
 
 	void PollEvents();
@@ -55,6 +47,7 @@ public:
 	void Minimize();
 	void Restore();
 	void Resize( uint32_t Width, uint32_t Height );
+	void Show();
 
 	void ChangeTitle( std::wstring_view Title );
 
@@ -67,6 +60,11 @@ public:
 	// OpenGL Functions
 
 	void GLSwapBuffers();
+
+	//////////////////////////////////////////////////////////////////////////
+	// Vulkan Functions
+	std::vector<const char*> GetVulkanRequiredExtensions();
+	VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface );
 
 public:
 

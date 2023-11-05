@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Base.h"
-#include "Saturn/Core/Window.h"
 #include "Saturn/Core/App.h"
 #include "Saturn/Core/Renderer/EditorCamera.h"
 #include "Shader.h"

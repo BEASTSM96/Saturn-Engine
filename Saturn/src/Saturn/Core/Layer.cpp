@@ -35,7 +35,6 @@
 #include "Saturn/Vulkan/VulkanContext.h"
 #include "Saturn/Vulkan/Renderer.h"
 #include "Saturn/Vulkan/VulkanDebug.h"
-#include "Window.h"
 
 #include "ImGuizmo/ImGuizmo.h"
 
@@ -43,6 +42,8 @@
 #include <imgui_internal.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <backends/imgui_impl_glfw.h>
+
+#include <Ruby/RubyWindow.h>
 
 namespace Saturn {
 	
@@ -95,7 +96,7 @@ namespace Saturn {
 
 		Styles::Dark();
 
-		ImGui_ImplGlfw_InitForVulkan( ( GLFWwindow* ) Window::Get().NativeWindow(), true );
+		//ImGui_ImplGlfw_InitForVulkan( ( GLFWwindow* ) Window::Get().NativeWindow(), true );
 
 		// Create ImGui Descriptor Pool
 		{
@@ -151,7 +152,7 @@ namespace Saturn {
 	void ImGuiLayer::OnDetach( void )
 	{
 		ImGui_ImplVulkan_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
+		//ImGui_ImplGlfw_Shutdown();
 
 		vkDestroyDescriptorPool( VulkanContext::Get().GetDevice(), m_DescriptorPool, nullptr );
 		vkDestroyDescriptorSetLayout( VulkanContext::Get().GetDevice(), m_DescriptorLayout, nullptr );
@@ -166,13 +167,13 @@ namespace Saturn {
 			return;
 
 		ImGui_ImplVulkan_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
+		//ImGui_ImplGlfw_NewFrame();
 
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
 
 		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2( ( float ) Window::Get().Width(), ( float ) Window::Get().Height() );
+		io.DisplaySize = ImVec2( ( float ) Application::Get().GetWindow()->GetWidth(), ( float ) Application::Get().GetWindow()->GetHeight() );
 	}
 
 	void ImGuiLayer::End( VkCommandBuffer CommandBuffer )
@@ -184,6 +185,9 @@ namespace Saturn {
 
 		ImGui::Render();
 
+		uint32_t WindowWidth = Application::Get().GetWindow()->GetWidth();
+		uint32_t WindowHeight = Application::Get().GetWindow()->GetHeight();
+
 		std::vector<VkClearValue> ClearColor;
 		ClearColor.push_back( { .color = { { 0.1f, 0.1f, 0.1f, 1.0f } } } );
 		if( VulkanContext::Get().GetMaxUsableMSAASamples() > VK_SAMPLE_COUNT_1_BIT )
@@ -194,7 +198,7 @@ namespace Saturn {
 		RenderPassBeginInfo.renderPass = VulkanContext::Get().GetDefaultVulkanPass();
 		RenderPassBeginInfo.framebuffer = rSwapchain.GetFramebuffers()[ Renderer::Get().GetImageIndex() ];
 		RenderPassBeginInfo.renderArea.offset = { 0, 0 };
-		RenderPassBeginInfo.renderArea.extent = { ( uint32_t ) Window::Get().Width(), ( uint32_t ) Window::Get().Height() };
+		RenderPassBeginInfo.renderArea.extent = { WindowWidth, WindowHeight };
 		RenderPassBeginInfo.clearValueCount = (uint32_t)ClearColor.size();
 		RenderPassBeginInfo.pClearValues = ClearColor.data();
 
@@ -205,12 +209,12 @@ namespace Saturn {
 		VkViewport Viewport = {};
 		Viewport.x = 0;
 		Viewport.y = 0;
-		Viewport.width = ( float ) Window::Get().Width();
-		Viewport.height = ( float ) Window::Get().Height();
+		Viewport.width = ( float ) WindowWidth;
+		Viewport.height = ( float ) WindowHeight;
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
 
-		VkRect2D Scissor = { { 0, 0 }, { ( uint32_t ) Window::Get().Width(), ( uint32_t ) Window::Get().Height() } };
+		VkRect2D Scissor = { { 0, 0 }, { WindowWidth, WindowHeight } };
 
 		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
 		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );

@@ -42,6 +42,7 @@ enum RubyEventType
 	KeyPressed = RBY_BIT( 5 ),
 	WindowMaximized = RBY_BIT( 6 ),
 	WindowMinimized = RBY_BIT( 7 ),
+	WindowRestored = RBY_BIT( 8 ),
 };
 
 using KeyCode = uint64_t;

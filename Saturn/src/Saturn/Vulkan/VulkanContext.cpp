@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "VulkanContext.h"
 
+#include "Ruby/RubyWindow.h"
+
 #include "VulkanDebugMessenger.h"
 
 #include "VulkanDebug.h"
@@ -46,7 +48,6 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 #include <vulkan.h>
-#include <glfw/glfw3.h>
 #include <cassert>
 #include <set>
 #include <iostream>
@@ -129,8 +130,6 @@ namespace Saturn {
 
 	void VulkanContext::CreateInstance()
 	{
-		SAT_CORE_ASSERT( glfwVulkanSupported(), "GLFW must be able to support vulkan." );
-
 #if !defined( SAT_DIST )
 
 		if( !CheckValidationLayerSupport() )
@@ -146,7 +145,8 @@ namespace Saturn {
 		AppInfo.engineVersion      = VK_MAKE_VERSION( 0, 0, 1 );
 		AppInfo.apiVersion         = VK_API_VERSION_1_2;
 		
-		auto Extensions = Window::Get().GetRequiredExtensions();
+		auto Extensions = Application::Get().GetWindow()->GetVulkanRequiredExtensions();
+		Extensions.push_back( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
 
 		VkInstanceCreateInfo InstanceInfo ={ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 		InstanceInfo.pApplicationInfo = &AppInfo;
@@ -180,7 +180,7 @@ namespace Saturn {
 
 	void VulkanContext::CreateSurface()
 	{
-		VK_CHECK( Window::Get().CreateWindowSurface( m_Instance, &m_Surface ) );
+		VK_CHECK( Application::Get().GetWindow()->CreateVulkanWindowSurface( m_Instance, &m_Surface ) );
 	}
 
 	void VulkanContext::PickPhysicalDevice()
@@ -584,7 +584,9 @@ namespace Saturn {
 		if( m_DepthImage )
 			m_DepthImage = nullptr;
 
-		m_DepthImage = Ref<Image2D>::Create( ImageFormat::Depth, Window::Get().Width(), Window::Get().Height(), 1, GetMaxUsableMSAASamples() );
+		m_DepthImage = Ref<Image2D>::Create( ImageFormat::Depth,
+			Application::Get().GetWindow()->GetWidth(), 
+			Application::Get().GetWindow()->GetHeight(), 1, GetMaxUsableMSAASamples() );
 	}
 
 }

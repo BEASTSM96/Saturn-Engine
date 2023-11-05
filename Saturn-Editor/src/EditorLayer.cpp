@@ -74,9 +74,6 @@
 
 #include <typeindex>
 
-#include <glfw/glfw3.h>
-#include <glfw/glfw3native.h>
-
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Saturn {
@@ -171,12 +168,13 @@ namespace Saturn {
 				m_RequestRuntime = state;
 			} );
 
+		/*
 		Window::Get().SetTitlebarHitTest( [ & ]( int x, int y ) -> bool
 		{
 			auto TitleBarHeight = m_TitleBar->Height();
 
 			RECT windowRect;
-			GetClientRect( glfwGetWin32Window( (GLFWwindow*)Window::Get().NativeWindow() ), &windowRect );
+			//GetClientRect( glfwGetWin32Window( (GLFWwindow*)Window::Get().NativeWindow() ), &windowRect );
 
 			// Drag the menu bar to move the window
 			if( !Window::Get().Maximized() && !ImGui::IsAnyItemHovered() && ( y < ( windowRect.top + TitleBarHeight ) ) )
@@ -184,6 +182,7 @@ namespace Saturn {
 			else
 				return false;
 		} );
+		*/
 
 		pHierarchyPanel->SetContext( m_EditorScene );
 		pHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
@@ -236,7 +235,7 @@ namespace Saturn {
 
 	EditorLayer::~EditorLayer()
 	{
-		Window::Get().SetTitlebarHitTest( nullptr );
+		//Window::Get().SetTitlebarHitTest( nullptr );
 		
 		delete m_TitleBar;
 		

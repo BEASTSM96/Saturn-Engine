@@ -40,6 +40,8 @@
 #include <vector>
 #include <functional>
 
+class RubyWindow;
+
 namespace Saturn {
 
 	enum class ApplicationFlags 
@@ -61,7 +63,6 @@ namespace Saturn {
 	};
 
 	class SceneRenderer;
-	class Window;
 	class VulkanContext;
 
 	class Application
@@ -94,6 +95,7 @@ namespace Saturn {
 		virtual void OnShutdown() {}
 		
 		SceneRenderer& PrimarySceneRenderer() { return *m_SceneRenderer; }
+		RubyWindow* GetWindow() { return m_Window; }
 
 		void SubmitOnMainThread( std::function<void()>&& rrFunction ) 
 		{
@@ -135,7 +137,7 @@ namespace Saturn {
 
 		// TODO: Change all of these to refs, I really don't like this.
 		SceneRenderer* m_SceneRenderer = nullptr;
-		Window* m_Window = nullptr;
+		RubyWindow* m_Window = nullptr;
 		VulkanContext* m_VulkanContext = nullptr;
 
 		std::vector<std::function<void()>> m_MainThreadQueue;

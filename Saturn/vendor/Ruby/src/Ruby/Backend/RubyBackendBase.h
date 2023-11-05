@@ -33,19 +33,14 @@
 #include <string>
 #include <stdint.h>
 
-struct WindowSpecification;
+#if defined( RBY_INCLUDE_VULKAN )
+#include <vulkan.h>
+#endif
+
+struct RubyWindowSpecification;
 class RubyWindow;
 
-enum RubyGraphicsAPI
-{
-	OpenGL = RBY_BIT( 1 ),
-	Vulkan = RBY_BIT( 2 ),
-	DirectX11 = RBY_BIT( 3 ),
-	DirectX12 = RBY_BIT( 4 ),
-	None = RBY_BIT( 5 )
-};
-
-class RubyBackendBase
+class RBY_API RubyBackendBase
 {
 public:
 	RubyBackendBase() {}
@@ -70,13 +65,15 @@ public:
 	virtual void Minimize() = 0;
 	virtual void Restore() = 0;
 
+	virtual VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) = 0;
+
 public:
 	virtual void PollEvents() = 0;
 	virtual bool PendingClose() = 0;
 
 protected:
 	bool m_ShouldClose = false;
-	RubyGraphicsAPI m_GraphicsAPI = RubyGraphicsAPI::None;
+	RubyWindowSpecification m_WindowSpecification{};
 	RubyWindow* m_pWindow = nullptr;
 private:
 	friend class RubyWindow;

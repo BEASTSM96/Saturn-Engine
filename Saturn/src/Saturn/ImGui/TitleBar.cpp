@@ -29,12 +29,12 @@
 #include "sppch.h"
 #include "TitleBar.h"
 
-#include "Saturn/Core/Window.h"
 #include "ImGuiAuxiliary.h"
 
 #include "Saturn/Core/EnvironmentVariables.h"
-
 #include "backends/imgui_impl_vulkan.h"
+
+#include <Ruby/RubyWindow.h>
 
 namespace Saturn {
 	
@@ -130,7 +130,7 @@ namespace Saturn {
 					}
 
 					if( pressed )
-						Window::Get().Maximize();
+						Application::Get().GetWindow()->Maximize();
 
 					buttonRect.Min.x -= buttonSize;
 					buttonRect.Max.x -= buttonSize;
@@ -155,7 +155,7 @@ namespace Saturn {
 					}
 
 					if( pressed )
-						Window::Get().Minimize();
+						Application::Get().GetWindow()->Minimize();
 
 					buttonRect.Min.x -= buttonSize;
 					buttonRect.Max.x -= buttonSize;
