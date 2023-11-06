@@ -1,6 +1,5 @@
 // dear imgui: Platform Backend for Ruby
 // This needs to be used along with a Renderer (e.g. OpenGL3, Vulkan, WebGPU..)
-// (Info: GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan graphics context creation, etc.)
 
 #include "imgui.h"
 #include "imgui_impl_ruby.h"
@@ -169,10 +168,61 @@ void ImGui_ImplRuby_Shutdown()
 
 static void ImGui_ImplRuby_UpdateMousePosAndButtons()
 {
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui_ImplRuby_Data* bd = ImGui_ImplRuby_GetBackendData();
+    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+
+	const ImVec2 mouse_pos_prev = io.MousePos;
+	io.MousePos = ImVec2( -FLT_MAX, -FLT_MAX );
+	io.MouseHoveredViewport = 0;
+
+	for( int i = 0; i < IM_ARRAYSIZE( io.MouseDown ); i++ )
+	{
+        // TODO: Ruby input
+		io.MouseDown[ i ] = bd->MouseJustPressed[ i ];
+		bd->MouseJustPressed[ i ] = false;
+	}
+
+    for( int n = 0; n < platform_io.Viewports.Size; n++ )
+    {
+		ImGuiViewport* viewport = platform_io.Viewports[ n ];
+		RubyWindow* window = ( RubyWindow* ) viewport->PlatformHandle;
+
+        RubyWindow* mouse_window = ( bd->MouseWindow == window ) ? window : NULL;
+
+        if( io.WantSetMousePos ) 
+        {
+            window->SetMousePos( (double) mouse_pos_prev.x - viewport->Pos.x, (double) mouse_pos_prev.y - viewport->Pos.y );
+        }
+    }
 }
 
 static void ImGui_ImplRuby_UpdateMouseCursor()
 {
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui_ImplRuby_Data* bd = ImGui_ImplRuby_GetBackendData();
+
+	if( ( io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange ) )
+		return;
+
+	ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+	ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+
+	for( int n = 0; n < platform_io.Viewports.Size; n++ )
+	{
+		RubyWindow* window = ( RubyWindow* ) platform_io.Viewports[ n ]->PlatformHandle;
+
+		if( imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor )
+		{
+			// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
+            // TODO: Set Mouse cursors.
+		}
+		else
+		{
+			// Show OS mouse cursor
+            // TODO: Set Mouse cursors.
+		}
+	}
 }
 
 static void ImGui_ImplRuby_UpdateGamepads()
@@ -298,10 +348,43 @@ static void ImGui_ImplRuby_WindowSizeCallback( RubyWindow* window, int, int)
 
 static void ImGui_ImplRuby_CreateWindow(ImGuiViewport* viewport)
 {
+	ImGui_ImplRuby_Data* bd = ImGui_ImplRuby_GetBackendData();
+    ImGui_ImplRuby_ViewportData* vd = IM_NEW( ImGui_ImplRuby_ViewportData )( );
+	viewport->PlatformUserData = vd;
+
+    RubyWindowSpecification spec;
+    spec.Style = ( viewport->Flags & ImGuiViewportFlags_NoDecoration ) ? RubyStyle::Borderless : RubyStyle::Default;
+    spec.GraphicsAPI = (RubyGraphicsAPI) bd->ClientApi;
+    spec.Name = L"No Name Yet.";
+    spec.ShowNow = false;
+    spec.Width = viewport->Size.x;
+    spec.Height = viewport->Size.y;
+
+    vd->Window = new RubyWindow( spec );
+    vd->WindowOwned = true;
+
+#ifdef _WIN32
+	viewport->PlatformHandleRaw = vd->Window->GetNativeHandle();
+#endif
+
+    vd->Window->SetPosition( ( int ) viewport->Pos.x, ( int ) viewport->Pos.y );
 }
 
 static void ImGui_ImplRuby_DestroyWindow(ImGuiViewport* viewport)
 {
+    ImGui_ImplRuby_Data* bd = ImGui_ImplRuby_GetBackendData();
+
+    if( ImGui_ImplRuby_ViewportData* vd = ( ImGui_ImplRuby_ViewportData* ) viewport->PlatformUserData )
+    {
+        if( vd->WindowOwned )
+        {
+           delete vd->Window;
+        }
+
+        vd->Window = NULL;
+        IM_DELETE( vd );
+    }
+    viewport->PlatformUserData = viewport->PlatformHandle = NULL;
 }
 
 // We have submitted https://github.com/glfw/glfw/pull/1568 to allow GLFW to support "transparent inputs".
@@ -343,7 +426,7 @@ static ImVec2 ImGui_ImplRuby_GetWindowSize(ImGuiViewport* viewport)
 {
 	ImGui_ImplRuby_ViewportData* vd = ( ImGui_ImplRuby_ViewportData* ) viewport->PlatformUserData;
 
-    return { (float)vd->Window->GetWidth(), ( float ) vd->Window->GetHeight() };
+    return { ( float ) vd->Window->GetWidth(), ( float ) vd->Window->GetHeight() };
 }
 
 static void ImGui_ImplRuby_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
@@ -374,7 +457,9 @@ static bool ImGui_ImplRuby_GetWindowFocus(ImGuiViewport* viewport)
 
 static bool ImGui_ImplRuby_GetWindowMinimized(ImGuiViewport* viewport)
 {
-    return false;
+    ImGui_ImplRuby_ViewportData* vd = ( ImGui_ImplRuby_ViewportData* ) viewport->PlatformUserData;
+
+    return vd->Window->Minimized();
 }
 
 #if GLFW_HAS_WINDOW_ALPHA
@@ -389,6 +474,9 @@ static void ImGui_ImplRuby_RenderWindow(ImGuiViewport* viewport, void*)
 
 static void ImGui_ImplRuby_SwapBuffers(ImGuiViewport* viewport, void*)
 {
+    ImGui_ImplRuby_ViewportData* vd = ( ImGui_ImplRuby_ViewportData* ) viewport->PlatformUserData;
+
+    vd->Window->GLSwapBuffers();
 }
 
 //--------------------------------------------------------------------------------------------------------

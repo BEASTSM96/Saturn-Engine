@@ -841,6 +841,8 @@ namespace Saturn {
 		// Where x is number of icons
 		const float windowWidth = neededSpace - 10.0f;
 
+		/*
+
 		ImGui::SetNextWindowPos ( ImVec2( minBound.x + 5.0f, minBound.y + 5.0f ) );
 		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
 		ImGui::Begin( "##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking );
@@ -866,7 +868,7 @@ namespace Saturn {
 		ImGui::EndVertical();
 
 		ImGui::End();
-
+		*/
 		ImGui::PopID();
 
 		m_ViewportFocused = ImGui::IsWindowFocused();
@@ -937,15 +939,15 @@ namespace Saturn {
 		ImGui::End();
 	}
 
-	void EditorLayer::OnEvent( Event& rEvent )
+	void EditorLayer::OnEvent( RubyEvent& rEvent )
 	{
-		EventDispatcher dispatcher( rEvent );
-		dispatcher.Dispatch<KeyPressedEvent>( SAT_BIND_EVENT_FN( EditorLayer::OnKeyPressed ) );
-
 		if( m_MouseOverViewport )
 			m_EditorCamera.OnEvent( rEvent );
 
 		AssetViewer::ProcessEvent( rEvent );
+
+		if( rEvent.Type == RubyEventType::KeyPressed )
+			OnKeyPressed( (RubyKeyEvent&)rEvent );
 	}
 
 	void EditorLayer::SaveFileAs()
@@ -1031,11 +1033,11 @@ namespace Saturn {
 
 	}
 
-	bool EditorLayer::OnKeyPressed( KeyPressedEvent& rEvent )
+	bool EditorLayer::OnKeyPressed( RubyKeyEvent& rEvent )
 	{
-		switch( rEvent.KeyCode() )
+		switch( rEvent.GetScancode() )
 		{
-			case Key::Delete:
+			case RubyKey::Delete:
 			{
 				SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
@@ -1052,25 +1054,25 @@ namespace Saturn {
 				}
 			} break;
 
-			case Key::Q:
+			case RubyKey::Q:
 				m_GizmoOperation = -1;
 				break;
-			case Key::W:
+			case RubyKey::W:
 				m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
 				break;
-			case Key::E:
+			case RubyKey::E:
 				m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
 				break;
-			case Key::R:
+			case RubyKey::R:
 				m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
 				break;
 		}
 
 		if( Input::Get().KeyPressed( Key::LeftControl ) )
 		{
-			switch( rEvent.KeyCode() )
+			switch( rEvent.GetScancode() )
 			{
-				case Key::D:
+				case RubyKey::D:
 				{
 					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 					
@@ -1085,7 +1087,7 @@ namespace Saturn {
 				} break;
 
 				// TODO: Support more than one selection.
-				case Key::F:
+				case RubyKey::F:
 				{
 					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
@@ -1095,12 +1097,12 @@ namespace Saturn {
 					}
 				} break;
 
-				case Key::O:
+				case RubyKey::O:
 				{
 					OpenFile();
 				} break;
 
-				case Key::S:
+				case RubyKey::S:
 				{
 					SaveFile();
 				} break;
@@ -1108,9 +1110,9 @@ namespace Saturn {
 
 			if( Input::Get().KeyPressed( Key::LeftShift ) ) 
 			{
-				switch( rEvent.KeyCode() )
+				switch( rEvent.GetScancode() )
 				{
-					case Key::S:
+					case RubyKey::S:
 					{
 						SaveFileAs();
 					} break;

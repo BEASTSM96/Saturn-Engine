@@ -48,7 +48,9 @@ public:
 	void Restore();
 	void Resize( uint32_t Width, uint32_t Height );
 	void Show();
-	
+	void SetPosition( int x, int y );
+	void SetMousePos( double x, double y );
+
 	bool Minimized() { return m_Minimized; }
 	bool Maximized() { return m_Maximized; }
 
@@ -90,18 +92,23 @@ public:
 		return false;
 	}
 
+public:
+	// Internal Function. Do not call.
+	void SetSize( uint32_t width, uint32_t height );
+
+protected:
+	uint32_t m_Width = 0;
+	uint32_t m_Height = 0;
+
+	bool m_Minimized = false;
+	bool m_Maximized = false;
+
 private:
 	RubyBackendBase* m_pDefaultBackend = nullptr;
 	RubyEventTarget* m_pEventTarget = nullptr;
 
 	std::wstring m_WindowTitle = L"";
 	RubyGraphicsAPI m_GraphicsAPI = RubyGraphicsAPI::None;
-
-	uint32_t m_Height = 0;
-	uint32_t m_Width = 0;
-
-	bool m_Minimized = false;
-	bool m_Maximized = false;
 
 private:
 	friend class RubyBackendBase;

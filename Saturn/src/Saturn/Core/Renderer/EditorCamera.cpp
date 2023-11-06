@@ -233,14 +233,17 @@ namespace Saturn {
 		return speed;
 	}
 
-	void EditorCamera::OnEvent( Event& event )
+	void EditorCamera::OnEvent( RubyEvent& event )
 	{
-		EventDispatcher dispatcher( event );
-		dispatcher.Dispatch<MouseScrolledEvent>( [this]( MouseScrolledEvent& e ) { return OnMouseScroll( e ); } );
+		// TODO: Mouse Scrolling
+
+		//EventDispatcher dispatcher( event );
+		//dispatcher.Dispatch<MouseScrolledEvent>( [this]( MouseScrolledEvent& e ) { return OnMouseScroll( e ); } );
 	}
 
-	bool EditorCamera::OnMouseScroll( MouseScrolledEvent& e )
+	bool EditorCamera::OnMouseScroll( RubyMouseEvent& e )
 	{
+		/*
 		if( Input::Get().MouseButtonPressed( Mouse::Right ) )
 		{
 			m_NormalSpeed += e.YOffset() * 0.3f * m_NormalSpeed;
@@ -251,6 +254,7 @@ namespace Saturn {
 			MouseZoom( e.YOffset() * 0.1f );
 			UpdateCameraView();
 		}
+		*/
 
 		return true;
 	}

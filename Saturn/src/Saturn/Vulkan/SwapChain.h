@@ -65,7 +65,7 @@ namespace Saturn {
 
 		uint32_t m_ImageIndex = 0;
 		
-		VkSemaphore m_PresentSemaphore;
+		VkSemaphore m_PresentSemaphore = VK_NULL_HANDLE;
 
 		Ref<Image2D> m_MSAAImage;
 

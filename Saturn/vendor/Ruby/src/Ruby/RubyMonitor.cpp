@@ -52,11 +52,11 @@ BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMoni
 		::EnumDisplaySettings( MonitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &DevMode );
 		monitor.MonitorPositon = { .x = DevMode.dmPosition.x, .y = DevMode.dmPosition.y };
 		
-		monitor.MonitorSize.x = MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
-		monitor.MonitorSize.y = MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;
+		monitor.MonitorSize.x = (float)MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
+		monitor.MonitorSize.y = (float)MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;
 
-		monitor.WorkSize.x = MonitorInfo.rcWork.right - MonitorInfo.rcWork.left;
-		monitor.WorkSize.y = MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top;
+		monitor.WorkSize.x = (float)MonitorInfo.rcWork.right - MonitorInfo.rcWork.left;
+		monitor.WorkSize.y = (float)MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top;
 
 		s_RubyMonitors.push_back( monitor );
 	}
@@ -67,13 +67,14 @@ BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMoni
 
 std::vector<RubyMonitor> RubyGetAllMonitors()
 {
-	// TODO: Check for new monitors
-	if( s_RubyMonitors.size() > 0 )
-		return s_RubyMonitors;
+	int Monitors = GetSystemMetrics( SM_CMONITORS );
 
+	if( s_RubyMonitors.size() != Monitors )
+	{
 #if defined(_WIN32)
-	::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, 0 );
+		::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, 0 );
 #endif
+	}
 
 	return s_RubyMonitors;
 }

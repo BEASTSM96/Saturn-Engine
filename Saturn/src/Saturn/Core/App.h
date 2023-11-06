@@ -30,6 +30,8 @@
 
 #include "Base.h"
 
+#include "Ruby/RubyEvent.h"
+
 #include "Layer.h"
 #include "Events.h"
 #include "Input.h"
@@ -65,7 +67,7 @@ namespace Saturn {
 	class SceneRenderer;
 	class VulkanContext;
 
-	class Application
+	class Application : public RubyEventTarget
 	{
 	public:
 		Application( const ApplicationSpecification& spec );
@@ -109,10 +111,11 @@ namespace Saturn {
 		const std::filesystem::path& GetRootContentDir() const { return m_RootContentPath; }
 
 		bool HasFlag( ApplicationFlags flag );
+
 	protected:
 
-		void OnEvent( Event& e );
-		bool OnWindowResize( WindowResizeEvent& e );
+		bool OnEvent( RubyEvent& rEvent ) override;
+		bool OnWindowResize( RubyWindowResizeEvent& e );
 
 		void RenderImGui();
 

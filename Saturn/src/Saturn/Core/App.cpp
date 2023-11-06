@@ -30,6 +30,7 @@
 #include "App.h"
 
 #include "Ruby/RubyWindow.h"
+#include "Ruby/RubyMonitor.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/VulkanContext.h"
@@ -62,9 +63,22 @@ namespace Saturn {
 	{
 		SingletonStorage::Get().AddSingleton( this );
 
-		RubyWindowSpecification windowSpec { .Name = L"Saturn", .Width = 1280, .Height = 720, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = RubyStyle::Borderless, .ShowNow = false };
+		std::vector<RubyMonitor> monitors = RubyGetAllMonitors();
+		uint32_t width = 0, height = 0;
 
+		// TODO: Once we have a better monitor API this will be much better.
+		for( const auto& monitor : monitors ) 
+		{
+			if( monitor.Primary )
+			{
+				width = 3 * monitor.MonitorSize.x / 4;
+				height = 3 * monitor.MonitorSize.y / 4;
+			}
+		}
+
+		RubyWindowSpecification windowSpec { .Name = L"Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = RubyStyle::Borderless, .ShowNow = false };
 		m_Window = new RubyWindow( windowSpec );
+		m_Window->SetEventTarget( this );
 
 		// This may not be the best way... but it's better than lazy loading.
 		m_VulkanContext = new VulkanContext();
@@ -246,31 +260,40 @@ namespace Saturn {
 		}
 	}
 
-	void Application::OnEvent( Event& e )
+	bool Application::OnEvent( RubyEvent& rEvent )
 	{
-		EventDispatcher dispatcher( e );
+		switch( rEvent.Type )
+		{
+			case RubyEventType::Resize:
+			{
+				OnWindowResize( ( RubyWindowResizeEvent& )rEvent );
+			} break;
+		}
 
-		dispatcher.Dispatch< WindowResizeEvent >( APP_BIND_EVENT_FN( OnWindowResize ) );
+		VulkanContext::Get().OnEvent( rEvent );
 
-		VulkanContext::Get().OnEvent( e );
+		if( m_ImGuiLayer )
+			m_ImGuiLayer->OnEvent( rEvent );
 
-		if( m_ImGuiLayer != nullptr )
-			m_ImGuiLayer->OnEvent( e );
-		
+		// Pass events to layers, this is the only place in the engine where we actually care if an event is handled or not.
 		// Process Events backwards. This is so that if we are in a game and we click a button if the first layer gets that event it might shoot in the game however we wanted to click a button not shoot.
 		for( auto itr = m_Layers.end(); itr != m_Layers.begin(); )
 		{
-			( *--itr )->OnEvent( e );
+			( *--itr )->OnEvent( rEvent );
 
-			if( e.Handled )
+			if( rEvent.Handled )
 				break;
 		}
+
+		return true;
 	}
 
-	bool Application::OnWindowResize( WindowResizeEvent& e )
+	bool Application::OnWindowResize( RubyWindowResizeEvent& e )
 	{
-		int width = e.Width(), height = e.Height();
+		int width = e.GetWidth(), height = e.GetHeight();
 		
+		SAT_CORE_FATAL( "{0}x{0}", width, height );
+
 		if( width == 0 && height == 0 )
 			return false;
 		

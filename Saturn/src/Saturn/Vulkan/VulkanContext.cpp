@@ -397,7 +397,7 @@ namespace Saturn {
 		return VK_SAMPLE_COUNT_1_BIT;
 	}
 
-	void VulkanContext::OnEvent( Event& e )
+	void VulkanContext::OnEvent( RubyEvent& e )
 	{
 	}
 

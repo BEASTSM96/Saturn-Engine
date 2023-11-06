@@ -102,8 +102,17 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 				//pThis->GetParent()->DispatchEvent<RubyMinimizeEvent>( RubyEventType::WindowRestored, true );
 			}
 
+			pThis->GetParent()->SetSize( width, height );
 			pThis->GetParent()->DispatchEvent<RubyWindowResizeEvent>( RubyEventType::Resize, static_cast< uint32_t >( width ), static_cast< uint32_t >( height ) );
+		} break;
 
+		case WM_ENTERSIZEMOVE:
+		{
+			UINT width = LOWORD( LParam );
+			UINT height = HIWORD( LParam );
+
+			pThis->GetParent()->SetSize( width, height );
+			pThis->GetParent()->DispatchEvent<RubyWindowResizeEvent>( RubyEventType::Resize, static_cast< uint32_t >( width ), static_cast< uint32_t >( height ) );
 		} break;
 
 		//////////////////////////////////////////////////////////////////////////
@@ -252,7 +261,7 @@ DWORD RubyWindowsBackend::ChooseStyle()
 		case RubyStyle::Default:
 			return WS_OVERLAPPEDWINDOW;
 		case RubyStyle::Borderless:
-			return WS_POPUP | WS_THICKFRAME | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+			return WS_OVERLAPPEDWINDOW;
 		
 		default:
 			return 0;
@@ -381,6 +390,14 @@ void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )
 	}
 }
 
+void RubyWindowsBackend::SetMousePos( double x, double y )
+{
+	POINT newPos { x, y };
+
+	::SetCursorPos( x, y );
+	::ScreenToClient( m_Handle, &newPos );
+}
+
 void RubyWindowsBackend::IssueSwapBuffers()
 {
 	if( m_pWindow->GetGraphicsAPI() == RubyGraphicsAPI::OpenGL )
@@ -410,6 +427,11 @@ void RubyWindowsBackend::PresentWindow()
 void RubyWindowsBackend::ResizeWindow( uint32_t Width, uint32_t Height )
 {
 	::MoveWindow( m_Handle, 0, 0, Width, Height, TRUE );
+}
+
+void RubyWindowsBackend::MoveWindow( int x, int y )
+{
+	::MoveWindow( m_Handle, x, y, m_pWindow->GetWidth(), m_pWindow->GetHeight(), TRUE );
 }
 
 void RubyWindowsBackend::PollEvents()

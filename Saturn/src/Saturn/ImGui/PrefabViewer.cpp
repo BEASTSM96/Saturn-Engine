@@ -165,7 +165,7 @@ namespace Saturn {
 			m_StartedRightClickInViewport = false;
 	}
 
-	void PrefabViewer::OnEvent( Event& rEvent )
+	void PrefabViewer::OnEvent( RubyEvent& rEvent )
 	{
 		if( m_MouseOverViewport && m_AllowCameraEvents )
 			m_Camera.OnEvent( rEvent );

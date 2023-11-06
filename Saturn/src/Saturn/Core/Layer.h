@@ -29,7 +29,7 @@
 #pragma once
 
 #include "Timestep.h"
-#include "Events.h"
+#include "Ruby/RubyEvent.h"
 
 #include <vulkan.h>
 
@@ -45,7 +45,7 @@ namespace Saturn {
 		virtual void OnDetach() {}
 		virtual void OnUpdate( Timestep time ) {}
 		virtual void OnImGuiRender() {}
-		virtual void OnEvent( Event& rEvent ) {}
+		virtual void OnEvent( RubyEvent& rEvent ) {}
 
 	private:
 

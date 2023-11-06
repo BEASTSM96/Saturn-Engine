@@ -34,20 +34,20 @@
 
 enum class RubyEventType
 {
-	Resize = RBY_BIT( 0 ),
-	MouseMoved = RBY_BIT( 1 ),
-	MousePressed = RBY_BIT( 2 ),
-	MouseReleased = RBY_BIT( 3 ),
-	KeyReleased = RBY_BIT( 4 ),
-	KeyPressed = RBY_BIT( 5 ),
-	WindowMaximized = RBY_BIT( 6 ),
-	WindowMinimized = RBY_BIT( 7 ),
-	WindowRestored = RBY_BIT( 8 ),
+	Resize,
+	MouseMoved,
+	MousePressed,
+	MouseReleased,
+	KeyReleased,
+	KeyPressed,
+	WindowMaximized,
+	WindowMinimized,
+	WindowRestored,
 };
 
 using KeyCode = int;
 
-enum class RubyKey
+enum RubyKey
 {
 	// Alphabetic keys
 	A = 0x41, B = 0x42, C = 0x43, D = 0x44, E = 0x45, F = 0x46, G = 0x47, H = 0x48,

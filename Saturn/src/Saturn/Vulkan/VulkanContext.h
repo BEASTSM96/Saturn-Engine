@@ -116,7 +116,7 @@ namespace Saturn {
 
 		VkSampleCountFlagBits GetMaxUsableMSAASamples();
 
-		void OnEvent( Event& e );
+		void OnEvent( RubyEvent& e );
 
 		VkImageView GetDepthImageView() { return m_DepthImage->GetImageView(); }
 		VkImage GetDepthImage() { return m_DepthImage->GetImage(); }

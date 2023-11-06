@@ -65,6 +65,9 @@ public:
 	virtual void Minimize() = 0;
 	virtual void Restore() = 0;
 
+	virtual void MoveWindow( int x, int y ) = 0;
+	virtual void SetMousePos( double x, double y ) = 0;
+
 	virtual void* GetNativeHandle() = 0;
 
 	virtual VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) = 0;

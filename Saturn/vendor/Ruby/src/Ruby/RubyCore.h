@@ -45,17 +45,17 @@
 
 enum class RubyGraphicsAPI
 {
-	OpenGL = RBY_BIT( 1 ),
-	Vulkan = RBY_BIT( 2 ),
-	DirectX11 = RBY_BIT( 3 ),
-	DirectX12 = RBY_BIT( 4 ),
-	None = RBY_BIT( 5 )
+	OpenGL = RBY_BIT( 0 ),
+	Vulkan = RBY_BIT( 1 ),
+	DirectX11 = RBY_BIT( 2 ),
+	DirectX12 = RBY_BIT( 3 ),
+	None = RBY_BIT( 4 )
 };
 
 enum class RubyStyle
 {
-	Default = RBY_BIT( 1 ),
-	Borderless = RBY_BIT( 2 ),
+	Default = RBY_BIT( 0 ),
+	Borderless = RBY_BIT( 1 ),
 };
 
 struct RubyWindowSpecification

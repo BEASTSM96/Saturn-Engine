@@ -144,7 +144,7 @@ class RubyEventTarget
 public:
 	virtual ~RubyEventTarget() = default;
 
-	virtual bool OnEvent( const RubyEvent& rEvent ) = 0;
+	virtual bool OnEvent( RubyEvent& rEvent ) = 0;
 
 public:
 };

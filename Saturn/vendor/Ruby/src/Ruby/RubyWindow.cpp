@@ -84,12 +84,25 @@ void RubyWindow::Restore()
 
 void RubyWindow::Resize( uint32_t Width, uint32_t Height )
 {
+	m_Width = Width;
+	m_Height = Height;
+
 	m_pDefaultBackend->ResizeWindow( Width, Height );
 }
 
 void RubyWindow::Show()
 {
 	m_pDefaultBackend->PresentWindow();
+}
+
+void RubyWindow::SetPosition( int x, int y )
+{
+	m_pDefaultBackend->MoveWindow( x, y );
+}
+
+void RubyWindow::SetMousePos( double x, double y )
+{
+	m_pDefaultBackend->SetMousePos( x, y );
 }
 
 void RubyWindow::ChangeTitle( std::wstring_view Title )
@@ -122,4 +135,10 @@ std::vector<const char*> RubyWindow::GetVulkanRequiredExtensions()
 VkResult RubyWindow::CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface )
 {
 	return m_pDefaultBackend->CreateVulkanWindowSurface( Instance, pOutSurface );
+}
+
+void RubyWindow::SetSize( uint32_t width, uint32_t height )
+{
+	m_Width = width;
+	m_Height = height;
 }
