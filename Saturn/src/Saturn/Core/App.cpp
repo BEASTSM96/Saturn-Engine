@@ -76,9 +76,9 @@ namespace Saturn {
 			}
 		}
 
-		RubyWindowSpecification windowSpec { .Name = L"Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = RubyStyle::Borderless, .ShowNow = false };
+		RubyWindowSpecification windowSpec { .Name = "Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = RubyStyle::Borderless, .ShowNow = false };
 		m_Window = new RubyWindow( windowSpec );
-		m_Window->SetEventTarget( this );
+		m_Window->AddEventTarget( this );
 
 		// This may not be the best way... but it's better than lazy loading.
 		m_VulkanContext = new VulkanContext();

@@ -33,6 +33,9 @@
 #include <vulkan_win32.h>
 #endif
 
+#include <codecvt>
+#include <locale>
+
 //////////////////////////////////////////////////////////////////////////
 
 LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam );
@@ -113,6 +116,26 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 			pThis->GetParent()->SetSize( width, height );
 			pThis->GetParent()->DispatchEvent<RubyWindowResizeEvent>( RubyEventType::Resize, static_cast< uint32_t >( width ), static_cast< uint32_t >( height ) );
+		} break;
+
+		//////////////////////////////////////////////////////////////////////////
+		// Window Position & Focus
+
+		case WM_WINDOWPOSCHANGING: 
+		{
+			WINDOWPOS* Info = ( WINDOWPOS* ) LParam;
+
+			pThis->GetParent()->SetPos( Info->x, Info->y );
+		} break;
+
+		case WM_SETFOCUS: 
+		{
+			pThis->GetParent()->SetFocus( true );
+		} break;
+
+		case WM_KILLFOCUS:
+		{
+			pThis->GetParent()->SetFocus( false );
 		} break;
 
 		//////////////////////////////////////////////////////////////////////////
@@ -247,7 +270,9 @@ void RubyWindowsBackend::Create()
 {
 	DWORD WindowStyle = ChooseStyle();
 
-	m_Handle = ::CreateWindowEx( 0, DefaultClassName, m_pWindow->m_WindowTitle.data(), WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, ( int ) m_pWindow->GetWidth(), ( int ) m_pWindow->GetHeight(), NULL, NULL, GetModuleHandle( NULL ), NULL );
+	std::wstring name = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes( m_pWindow->m_WindowTitle.data() );
+
+	m_Handle = ::CreateWindowEx( 0, DefaultClassName, name.data(), WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, ( int ) m_pWindow->GetWidth(), ( int ) m_pWindow->GetHeight(), NULL, NULL, GetModuleHandle( NULL ), NULL );
 
 	::SetPropW( m_Handle, L"RubyData", this );
 
@@ -268,9 +293,9 @@ DWORD RubyWindowsBackend::ChooseStyle()
 	}
 }
 
-void RubyWindowsBackend::SetTitle( std::wstring_view Title )
+void RubyWindowsBackend::SetTitle( std::string_view Title )
 {
-	::SetWindowText( m_Handle, Title.data() );
+	::SetWindowTextA( m_Handle, Title.data() );
 }
 
 void RubyWindowsBackend::Maximize()
@@ -378,8 +403,8 @@ void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )
 				.iLayerType = PFD_MAIN_PLANE,
 			};
 
-			int PixelFormat = ::ChoosePixelFormat( DrawContext, &pfd );
-			::SetPixelFormat( DrawContext, PixelFormat, &pfd );
+			//int PixelFormat = ::ChoosePixelFormat( DrawContext, &pfd );
+			//::SetPixelFormat( DrawContext, PixelFormat, &pfd );
 		} break;
 
 		case RubyGraphicsAPI::DirectX11:
@@ -396,6 +421,16 @@ void RubyWindowsBackend::SetMousePos( double x, double y )
 
 	::SetCursorPos( x, y );
 	::ScreenToClient( m_Handle, &newPos );
+}
+
+void RubyWindowsBackend::GetMousePos( double* x, double* y )
+{
+	POINT pos{};
+	::GetCursorPos( &pos );
+	::ScreenToClient( m_Handle, &pos );
+
+	*x = pos.x;
+	*y = pos.y;
 }
 
 void RubyWindowsBackend::IssueSwapBuffers()

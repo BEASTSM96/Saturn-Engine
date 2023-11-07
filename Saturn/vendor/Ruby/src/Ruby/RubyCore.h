@@ -60,10 +60,22 @@ enum class RubyStyle
 
 struct RubyWindowSpecification
 {
-	std::wstring_view Name;
+	std::string_view Name;
 	uint32_t Width = 0;
 	uint32_t Height = 0;
 	RubyGraphicsAPI GraphicsAPI = RubyGraphicsAPI::None;
 	RubyStyle Style = RubyStyle::Default;
 	bool ShowNow = true;
+};
+
+struct RubyIVec2
+{
+	int x = 0;
+	int y = 0;
+};
+
+struct RubyVec2
+{
+	float x = 0.0f;
+	float y = 0.0f;
 };

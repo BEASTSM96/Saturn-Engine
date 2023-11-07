@@ -28,25 +28,10 @@
 
 #pragma once
 
+#include "RubyCore.h"
+
 #include <string>
 #include <vector>
-
-struct RubyVec2
-{
-	float x = 0.0f; 
-	float y = 0.0f;
-};
-
-struct RubyIVec2
-{
-	int x = 0;
-	int y = 0;
-};
-
-struct RubyRect
-{
-	RubyVec2 Min, Max;
-};
 
 struct RubyMonitor
 {

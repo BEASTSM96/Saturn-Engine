@@ -50,11 +50,16 @@ public:
 	void Show();
 	void SetPosition( int x, int y );
 	void SetMousePos( double x, double y );
+	void GetMousePos( double* x, double* y );
+
+	bool IsFocused() { return m_Focused; }
+
+	RubyIVec2 GetPosition() { return m_Position; }
 
 	bool Minimized() { return m_Minimized; }
 	bool Maximized() { return m_Maximized; }
 
-	void ChangeTitle( std::wstring_view Title );
+	void ChangeTitle( std::string_view Title );
 
 	uint32_t GetWidth() { return m_Width; }
 	uint32_t GetHeight() { return m_Height; }
@@ -76,9 +81,15 @@ public:
 public:
 
 	template<typename Ty>
-	void SetEventTarget( Ty* Target ) 
+	void AddEventTarget( Ty* Target ) 
 	{
-		m_pEventTarget = Target;
+		m_pEventTargets.push_back( Target );
+	}
+
+	template<typename Ty>
+	void RemoveEventTarget( Ty* pTarget ) 
+	{
+		m_pEventTargets.erase( std::remove( m_pEventTargets.begin(), m_pEventTargets.end(), pTarget ), m_pEventTargets.end() );
 	}
 
 	template<typename Ty, typename... Args>
@@ -86,8 +97,10 @@ public:
 	{
 		Ty event( Type, std::forward<Args>( args )... );
 
-		if( m_pEventTarget )
-			return m_pEventTarget->OnEvent( event );
+		for( RubyEventTarget* pTarget : m_pEventTargets )
+		{
+			pTarget->OnEvent( event );
+		}
 
 		return false;
 	}
@@ -95,6 +108,8 @@ public:
 public:
 	// Internal Function. Do not call.
 	void SetSize( uint32_t width, uint32_t height );
+	void SetPos( int x, int y );
+	void SetFocus( bool value ) { m_Focused = value; }
 
 protected:
 	uint32_t m_Width = 0;
@@ -103,11 +118,15 @@ protected:
 	bool m_Minimized = false;
 	bool m_Maximized = false;
 
+	bool m_Focused = false;
+
+	RubyIVec2 m_Position{};
+
 private:
 	RubyBackendBase* m_pDefaultBackend = nullptr;
-	RubyEventTarget* m_pEventTarget = nullptr;
+	std::vector<RubyEventTarget*> m_pEventTargets;
 
-	std::wstring m_WindowTitle = L"";
+	std::string m_WindowTitle = "";
 	RubyGraphicsAPI m_GraphicsAPI = RubyGraphicsAPI::None;
 
 private:

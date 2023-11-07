@@ -55,7 +55,7 @@ public:
 
 	virtual void ResizeWindow( uint32_t Width, uint32_t Height ) = 0;
 
-	virtual void SetTitle( std::wstring_view Title ) = 0;
+	virtual void SetTitle( std::string_view Title ) = 0;
 
 	virtual void CreateGraphics( RubyGraphicsAPI api ) = 0;
 
@@ -66,7 +66,9 @@ public:
 	virtual void Restore() = 0;
 
 	virtual void MoveWindow( int x, int y ) = 0;
+
 	virtual void SetMousePos( double x, double y ) = 0;
+	virtual void GetMousePos( double* x, double* y ) = 0;
 
 	virtual void* GetNativeHandle() = 0;
 

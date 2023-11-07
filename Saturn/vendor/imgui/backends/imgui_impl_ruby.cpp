@@ -15,7 +15,7 @@ enum class RubyClientAPI
     Vulkan
 };
 
-struct ImGui_ImplRuby_Data
+struct ImGui_ImplRuby_Data : public RubyEventTarget
 {
     RubyWindow*             Window;
     RubyClientAPI           ClientApi;
@@ -27,6 +27,26 @@ struct ImGui_ImplRuby_Data
     bool                    WantUpdateMonitors;
 
     ImGui_ImplRuby_Data()   { memset(this, 0, sizeof(*this)); }
+
+    bool OnEvent( RubyEvent& rEvent ) override
+    {
+        switch( rEvent.Type )
+        {
+			case RubyEventType::MouseReleased:
+			{
+				RubyMouseEvent MouseEvent = ( RubyMouseEvent& ) rEvent;
+				return ImGui_ImplRuby_MouseButtonCallback( Window, MouseEvent.GetButton(), false );
+			}
+
+            case RubyEventType::MousePressed:
+            {
+                RubyMouseEvent MouseEvent = ( RubyMouseEvent& ) rEvent;
+                return ImGui_ImplRuby_MouseButtonCallback( Window, MouseEvent.GetButton(), true );
+            }
+        }
+
+        return true;
+    }
 };
 
 // Backend data stored in io.BackendPlatformUserData to allow support for multiple Dear ImGui contexts
@@ -51,8 +71,14 @@ static void ImGui_ImplRuby_SetClipboardText(void* user_data, const char* text)
 {
 }
 
-void ImGui_ImplRuby_MouseButtonCallback(RubyWindow* window, int button, int action, int mods)
+bool ImGui_ImplRuby_MouseButtonCallback(RubyWindow* window, int button, bool state)
 {
+    ImGui_ImplRuby_Data* bd = ImGui_ImplRuby_GetBackendData();
+
+    if( state && button >= 0 && button < IM_ARRAYSIZE( bd->MouseJustPressed ) )
+        bd->MouseJustPressed[ button ] = true;
+
+    return true;
 }
 
 void ImGui_ImplRuby_ScrollCallback( RubyWindow* window, double xoffset, double yoffset)
@@ -94,6 +120,8 @@ static bool ImGui_ImplRuby_Init( RubyWindow* window, bool install_callbacks, Rub
     bd->Window = window;
     bd->Time = 0.0;
     bd->WantUpdateMonitors = true;
+
+    bd->Window->AddEventTarget( bd );
 
     // Keyboard mapping. Dear ImGui will use those indices to peek into the io.KeysDown[] array.
     io.KeyMap[ImGuiKey_Tab]         = (int)RubyKey::Tab;
@@ -161,6 +189,8 @@ void ImGui_ImplRuby_Shutdown()
 
     ImGui_ImplRuby_ShutdownPlatformInterface();
 
+    bd->Window->RemoveEventTarget( bd );
+
     io.BackendPlatformName = NULL;
     io.BackendPlatformUserData = NULL;
     IM_DELETE(bd);
@@ -188,12 +218,30 @@ static void ImGui_ImplRuby_UpdateMousePosAndButtons()
 		ImGuiViewport* viewport = platform_io.Viewports[ n ];
 		RubyWindow* window = ( RubyWindow* ) viewport->PlatformHandle;
 
-        RubyWindow* mouse_window = ( bd->MouseWindow == window ) ? window : NULL;
+        //RubyWindow* mouse_window = ( bd->MouseWindow == window || window->IsFocused() ) ? window : NULL;
+        RubyWindow* mouse_window = window;
 
         if( io.WantSetMousePos ) 
         {
             window->SetMousePos( (double) mouse_pos_prev.x - viewport->Pos.x, (double) mouse_pos_prev.y - viewport->Pos.y );
         }
+
+		if( mouse_window )
+		{
+            double x, y;
+            mouse_window->GetMousePos( &x, &y );
+
+            if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
+            {
+                RubyIVec2 pos = mouse_window->GetPosition();
+
+                io.MousePos = ImVec2( static_cast< float >( x + pos.x ), static_cast< float >( y + pos.y ) );
+            }
+            else
+            {
+                io.MousePos = ImVec2( static_cast< float >( x ), static_cast< float >( y ) );
+            }
+		}
     }
 }
 
@@ -355,7 +403,7 @@ static void ImGui_ImplRuby_CreateWindow(ImGuiViewport* viewport)
     RubyWindowSpecification spec;
     spec.Style = ( viewport->Flags & ImGuiViewportFlags_NoDecoration ) ? RubyStyle::Borderless : RubyStyle::Default;
     spec.GraphicsAPI = (RubyGraphicsAPI) bd->ClientApi;
-    spec.Name = L"No Name Yet.";
+    spec.Name = "No Name Yet.";
     spec.ShowNow = false;
     spec.Width = viewport->Size.x;
     spec.Height = viewport->Size.y;
@@ -415,11 +463,16 @@ static void ImGui_ImplRuby_ShowWindow(ImGuiViewport* viewport)
 
 static ImVec2 ImGui_ImplRuby_GetWindowPos(ImGuiViewport* viewport)
 {
-    return {};
+    ImGui_ImplRuby_ViewportData* vd = ( ImGui_ImplRuby_ViewportData* ) viewport->PlatformUserData;
+
+    return { ( float ) vd->Window->GetPosition().x, ( float ) vd->Window->GetPosition().y };
 }
 
 static void ImGui_ImplRuby_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
 {
+    ImGui_ImplRuby_ViewportData* vd = ( ImGui_ImplRuby_ViewportData* ) viewport->PlatformUserData;
+
+    vd->Window->SetPosition( pos.x, pos.y );
 }
 
 static ImVec2 ImGui_ImplRuby_GetWindowSize(ImGuiViewport* viewport)
@@ -431,12 +484,16 @@ static ImVec2 ImGui_ImplRuby_GetWindowSize(ImGuiViewport* viewport)
 
 static void ImGui_ImplRuby_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 {
+    ImGui_ImplRuby_ViewportData* vd = ( ImGui_ImplRuby_ViewportData* ) viewport->PlatformUserData;
+
+    vd->Window->Resize( size.x, size.y );
 }
 
 static void ImGui_ImplRuby_SetWindowTitle(ImGuiViewport* viewport, const char* title)
 {
     ImGui_ImplRuby_ViewportData* vd = (ImGui_ImplRuby_ViewportData*)viewport->PlatformUserData;
-   // vd->Window->ChangeTitle( title );
+
+   vd->Window->ChangeTitle( title );
 }
 
 static void ImGui_ImplRuby_SetWindowFocus(ImGuiViewport* viewport)
@@ -452,7 +509,9 @@ static void ImGui_ImplRuby_SetWindowFocus(ImGuiViewport* viewport)
 
 static bool ImGui_ImplRuby_GetWindowFocus(ImGuiViewport* viewport)
 {
-    return false;
+    ImGui_ImplRuby_ViewportData* vd = ( ImGui_ImplRuby_ViewportData* ) viewport->PlatformUserData;
+
+    return vd->Window->IsFocused();
 }
 
 static bool ImGui_ImplRuby_GetWindowMinimized(ImGuiViewport* viewport)

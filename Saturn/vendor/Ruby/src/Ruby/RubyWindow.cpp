@@ -97,6 +97,9 @@ void RubyWindow::Show()
 
 void RubyWindow::SetPosition( int x, int y )
 {
+	m_Position.x = x;
+	m_Position.y = y;
+
 	m_pDefaultBackend->MoveWindow( x, y );
 }
 
@@ -105,7 +108,12 @@ void RubyWindow::SetMousePos( double x, double y )
 	m_pDefaultBackend->SetMousePos( x, y );
 }
 
-void RubyWindow::ChangeTitle( std::wstring_view Title )
+void RubyWindow::GetMousePos( double* x, double* y )
+{
+	m_pDefaultBackend->GetMousePos( x, y );
+}
+
+void RubyWindow::ChangeTitle( std::string_view Title )
 {
 	m_pDefaultBackend->SetTitle( Title );
 }
@@ -141,4 +149,10 @@ void RubyWindow::SetSize( uint32_t width, uint32_t height )
 {
 	m_Width = width;
 	m_Height = height;
+}
+
+void RubyWindow::SetPos( int x, int y )
+{
+	m_Position.x = x;
+	m_Position.y = y;
 }
