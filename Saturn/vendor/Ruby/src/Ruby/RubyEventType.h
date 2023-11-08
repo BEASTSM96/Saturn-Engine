@@ -38,6 +38,8 @@ enum class RubyEventType
 	MouseMoved,
 	MousePressed,
 	MouseReleased,
+	MouseEnterWindow,
+	MouseLeaveWindow,
 	KeyReleased,
 	KeyPressed,
 	WindowMaximized,

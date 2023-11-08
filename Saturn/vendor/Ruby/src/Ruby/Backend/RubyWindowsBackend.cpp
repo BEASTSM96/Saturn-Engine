@@ -183,6 +183,16 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, 2 );
 		} break;
 
+		case WM_MOUSEHOVER:
+		{
+			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::MouseEnterWindow );
+		} break;
+
+		case WM_MOUSELAST:
+		{
+			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::MouseLeaveWindow );
+		} break;
+
 		// END: Mouse Events
 		//////////////////////////////////////////////////////////////////////////
 
@@ -270,6 +280,8 @@ void RubyWindowsBackend::Create()
 {
 	DWORD WindowStyle = ChooseStyle();
 
+	// Temp:
+	// Ruby supports wstrings as titles however ImGui does not use them so will convert our title into a wstring.
 	std::wstring name = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes( m_pWindow->m_WindowTitle.data() );
 
 	m_Handle = ::CreateWindowEx( 0, DefaultClassName, name.data(), WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, ( int ) m_pWindow->GetWidth(), ( int ) m_pWindow->GetHeight(), NULL, NULL, GetModuleHandle( NULL ), NULL );
@@ -286,7 +298,7 @@ DWORD RubyWindowsBackend::ChooseStyle()
 		case RubyStyle::Default:
 			return WS_OVERLAPPEDWINDOW;
 		case RubyStyle::Borderless:
-			return WS_OVERLAPPEDWINDOW;
+			return WS_POPUP | WS_EX_TOPMOST;
 		
 		default:
 			return 0;

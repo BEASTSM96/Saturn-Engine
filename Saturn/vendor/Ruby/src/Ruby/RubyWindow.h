@@ -81,26 +81,20 @@ public:
 public:
 
 	template<typename Ty>
-	void AddEventTarget( Ty* Target ) 
+	void SetEventTarget( Ty* Target ) 
 	{
-		m_pEventTargets.push_back( Target );
+		m_pEventTarget = Target;
 	}
 
-	template<typename Ty>
-	void RemoveEventTarget( Ty* pTarget ) 
-	{
-		m_pEventTargets.erase( std::remove( m_pEventTargets.begin(), m_pEventTargets.end(), pTarget ), m_pEventTargets.end() );
-	}
+	RubyEventTarget* GetEventTarget() { return m_pEventTarget; }
 
 	template<typename Ty, typename... Args>
 	bool DispatchEvent( RubyEventType Type, Args&&... args ) 
 	{
 		Ty event( Type, std::forward<Args>( args )... );
 
-		for( RubyEventTarget* pTarget : m_pEventTargets )
-		{
-			pTarget->OnEvent( event );
-		}
+		if( m_pEventTarget )
+			return m_pEventTarget->OnEvent( event );
 
 		return false;
 	}
@@ -124,7 +118,7 @@ protected:
 
 private:
 	RubyBackendBase* m_pDefaultBackend = nullptr;
-	std::vector<RubyEventTarget*> m_pEventTargets;
+	RubyEventTarget* m_pEventTarget = nullptr;
 
 	std::string m_WindowTitle = "";
 	RubyGraphicsAPI m_GraphicsAPI = RubyGraphicsAPI::None;
