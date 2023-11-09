@@ -160,10 +160,12 @@ namespace Saturn {
 
 			if( ItemClicked )
 			{
+				/*
 				if( Input::Get().KeyPressed( Key::LeftControl ) || Input::Get().KeyPressed( Key::RightControl ) )
 				{
 					m_MultiSelected = !m_MultiSelected;
 				}
+				*/
 
 				m_IsSelected = !m_IsSelected;
 			}
@@ -192,6 +194,7 @@ namespace Saturn {
 				auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
 				const wchar_t* c = path.c_str();
 
+				/*
 				if( Input::Get().KeyPressed( Key::LeftControl ) || Input::Get().KeyPressed( Key::RightControl ) )
 				{
 					if ( m_IsSelected )
@@ -199,6 +202,7 @@ namespace Saturn {
 						ImGui::SetDragDropPayload( "CB_ITEM_MOVE", &m_Entry, sizeof( std::filesystem::directory_entry ), ImGuiCond_Once );
 					}
 				}
+				*/
 
 				switch( m_AssetType )
 				{

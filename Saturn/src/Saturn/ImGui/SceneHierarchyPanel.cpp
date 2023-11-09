@@ -232,6 +232,7 @@ namespace Saturn {
 		if( !m_IsPrefabScene )
 			ImGui::End();
 
+		/*
 		if( Input::Get().KeyPressed( Key::LeftControl ) || Input::Get().KeyPressed( Key::RightControl ) )
 		{
 			m_IsMultiSelecting = true;
@@ -240,6 +241,7 @@ namespace Saturn {
 		{
 			m_IsMultiSelecting = false;
 		}
+		*/
 
 		ImGui::PopID();
 	}

@@ -79,7 +79,7 @@ namespace Saturn {
 	private:
 		void UpdateCameraView();
 
-		bool OnMouseScroll( RubyMouseEvent& e );
+		bool OnMouseScroll( RubyMouseScrollEvent& e );
 
 		void MousePan( const glm::vec2& delta );
 		void MouseRotate( const glm::vec2& delta );

@@ -91,7 +91,8 @@ namespace Saturn {
 			return;
 		}
 
-		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !Input::Get().KeyPressed( Key::LeftAlt ) )
+		/*
+		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !Input::Get().KeyPressed( RubyKey::LeftAlt ) )
 		{
 			m_CameraMode = CameraMode::FLYCAM;
 			DisableMouse();
@@ -125,21 +126,21 @@ namespace Saturn {
 			m_FocalPoint = m_Position + GetForwardDirection() * distance;
 			m_Distance = distance;
 		}
-		else if( Input::Get().KeyPressed( Key::LeftAlt ) )
+		else if( Input::Get().KeyPressed( RubyKey::LeftAlt ) )
 		{
 			m_CameraMode = CameraMode::ARCBALL;
 
-			if( Input::Get().MouseButtonPressed( Mouse::Middle ) )
+			if( Input::Get().MouseButtonPressed( RubyMouseButton::Middle ) )
 			{
 				DisableMouse();
 				MousePan( delta );
 			}
-			else if( Input::Get().MouseButtonPressed( Mouse::Left ) )
+			else if( Input::Get().MouseButtonPressed( RubyMouseButton::Left ) )
 			{
 				DisableMouse();
 				MouseRotate( delta );
 			}
-			else if( Input::Get().MouseButtonPressed( Mouse::Right ) )
+			else if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
 			{
 				DisableMouse();
 				MouseZoom( delta.x + delta.y );
@@ -151,6 +152,7 @@ namespace Saturn {
 		{
 			EnableMouse();
 		}
+		*/
 
 		m_InitialMousePosition = mouse;
 
@@ -167,10 +169,10 @@ namespace Saturn {
 	float EditorCamera::GetCameraSpeed() const
 	{
 		float speed = m_NormalSpeed;
-		if( Input::Get().KeyPressed( Key::LeftControl ) )
-			speed /= 2 - glm::log( m_NormalSpeed );
-		if( Input::Get().KeyPressed( Key::LeftShift ) )
-			speed *= 2 - glm::log( m_NormalSpeed );
+		//if( Input::Get().KeyPressed( RubyKey::LeftControl ) )
+		//	speed /= 2 - glm::log( m_NormalSpeed );
+		//if( Input::Get().KeyPressed( RubyKey::LeftShift ) )
+		//	speed *= 2 - glm::log( m_NormalSpeed );
 
 		return glm::clamp( speed, MIN_SPEED, MAX_SPEED );
 	}
@@ -235,26 +237,22 @@ namespace Saturn {
 
 	void EditorCamera::OnEvent( RubyEvent& event )
 	{
-		// TODO: Mouse Scrolling
-
-		//EventDispatcher dispatcher( event );
-		//dispatcher.Dispatch<MouseScrolledEvent>( [this]( MouseScrolledEvent& e ) { return OnMouseScroll( e ); } );
+		if( event.Type == RubyEventType::MouseScroll )
+			OnMouseScroll( (RubyMouseScrollEvent&) event );
 	}
 
-	bool EditorCamera::OnMouseScroll( RubyMouseEvent& e )
+	bool EditorCamera::OnMouseScroll( RubyMouseScrollEvent& e )
 	{
-		/*
-		if( Input::Get().MouseButtonPressed( Mouse::Right ) )
+		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
 		{
-			m_NormalSpeed += e.YOffset() * 0.3f * m_NormalSpeed;
+			m_NormalSpeed += e.GetOffsetY() * 0.3f * m_NormalSpeed;
 			m_NormalSpeed = std::clamp( m_NormalSpeed, MIN_SPEED, MAX_SPEED );
 		}
 		else
 		{
-			MouseZoom( e.YOffset() * 0.1f );
+			MouseZoom( e.GetOffsetY() * 0.1f );
 			UpdateCameraView();
 		}
-		*/
 
 		return true;
 	}

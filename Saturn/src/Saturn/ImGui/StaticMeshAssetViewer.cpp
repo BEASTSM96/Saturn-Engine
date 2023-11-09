@@ -216,10 +216,10 @@ namespace Saturn {
 				m_SceneRenderer->RenderScene();
 			} );
 
-		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
+		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
 			m_StartedRightClickInViewport = true;
 
-		if( !Input::Get().MouseButtonPressed( Mouse::Right ) )
+		if( !Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
 			m_StartedRightClickInViewport = false;
 	}
 

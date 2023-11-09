@@ -29,6 +29,10 @@
 #include "sppch.h"
 #include "Input.h"
 
+#include "App.h"
+
+#include <Ruby/RubyWindow.h>
+
 #include <vector>
 
 namespace Saturn {
@@ -38,14 +42,14 @@ namespace Saturn {
 		SingletonStorage::Get().AddSingleton( this );
 	}
 
-	bool Input::KeyPressed( KeyCode key )
+	bool Input::KeyPressed( RubyKey key )
 	{
-		return false;
+		return Application::Get().GetWindow()->IsKeyDown( key );
 	}
 
-	bool Input::MouseButtonPressed( MouseButton button )
+	bool Input::MouseButtonPressed( RubyMouseButton button )
 	{
-		return false;
+		return Application::Get().GetWindow()->IsMouseButtonDown( button );
 	}
 
 	float Input::MouseX()
@@ -60,8 +64,11 @@ namespace Saturn {
 
 	glm::vec2 Input::MousePosition()
 	{
-		double x = 0;
-		double y = 0;
+		double x = 0.0;
+		double y = 0.0;
+
+		Application::Get().GetWindow()->GetMousePos( &x, &y );
+
 		return { ( float ) x, ( float ) y };
 	}
 

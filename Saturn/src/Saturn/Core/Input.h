@@ -30,8 +30,7 @@
 
 #include "Saturn/Core/Base.h"
 
-#include "Key.h"
-#include "MouseButton.h"
+#include <Ruby/RubyEventType.h>
 
 #include <sstream>
 #include <fstream>
@@ -52,11 +51,13 @@ namespace Saturn {
 	class Input
 	{
 	public:
+		static inline Input& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<Input>(); }
+	public:
 		Input();
 		~Input() { }
 
-		bool KeyPressed( KeyCode key );
-		bool MouseButtonPressed( MouseButton button );
+		bool KeyPressed( RubyKey key );
+		bool MouseButtonPressed( RubyMouseButton button );
 
 		float MouseX();
 		float MouseY();
@@ -65,7 +66,5 @@ namespace Saturn {
 
 		void SetCursorMode( CursorMode mode );
 		CursorMode GetCursorMode();
-
-		static inline Input& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<Input>(); }
 	};
 }

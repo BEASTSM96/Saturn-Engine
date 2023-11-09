@@ -329,10 +329,10 @@ namespace Saturn {
 			m_EditorScene->OnRenderEditor( m_EditorCamera, time, Application::Get().PrimarySceneRenderer() );
 		}
 
-		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
+		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
 			m_StartedRightClickInViewport = true;
 
-		if( !Input::Get().MouseButtonPressed( Mouse::Right ) )
+		if( !Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
 			m_StartedRightClickInViewport = false;
 
 		// Render scenes in other asset viewers
@@ -1068,6 +1068,7 @@ namespace Saturn {
 				break;
 		}
 
+		/*
 		if( Input::Get().KeyPressed( Key::LeftControl ) )
 		{
 			switch( rEvent.GetScancode() )
@@ -1108,6 +1109,7 @@ namespace Saturn {
 				} break;
 			}
 
+			/*
 			if( Input::Get().KeyPressed( Key::LeftShift ) ) 
 			{
 				switch( rEvent.GetScancode() )
@@ -1119,6 +1121,7 @@ namespace Saturn {
 				}
 			}
 		}
+			*/
 
 		return true;
 	}
