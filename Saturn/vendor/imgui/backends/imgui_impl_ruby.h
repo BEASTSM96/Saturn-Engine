@@ -15,10 +15,10 @@ IMGUI_IMPL_API void     ImGui_ImplRuby_NewFrame();
 
 // Ruby callbacks
 IMGUI_IMPL_API void     ImGui_ImplGlfw_WindowFocusCallback( RubyWindow* window, int focused);
-IMGUI_IMPL_API void     ImGui_ImplGlfw_CursorEnterCallback( RubyWindow* window, int entered);
+IMGUI_IMPL_API void     ImGui_ImplRuby_CursorEnterCallback( RubyWindow* window, int entered);
 IMGUI_IMPL_API void     ImGui_ImplRuby_MouseButtonCallback( RubyWindow* window, int button, bool state );
-IMGUI_IMPL_API void     ImGui_ImplGlfw_ScrollCallback( RubyWindow* window, double xoffset, double yoffset);
+IMGUI_IMPL_API void     ImGui_ImplRuby_ScrollCallback( double xoffset, double yoffset);
 IMGUI_IMPL_API void     ImGui_ImplRuby_KeyCallback( RubyWindow* window, int scancode, bool state, int mods);
-IMGUI_IMPL_API void     ImGui_ImplGlfw_CharCallback( RubyWindow* window, unsigned int c);
+IMGUI_IMPL_API void     ImGui_ImplRuby_CharCallback( unsigned int c );
 IMGUI_IMPL_API void     ImGui_ImplRuby_MouseHoverWindowCallback( bool state );
 IMGUI_IMPL_API void     ImGui_ImplRuby_UpdateEvents();

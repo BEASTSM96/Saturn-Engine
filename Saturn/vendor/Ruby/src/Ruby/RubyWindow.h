@@ -65,8 +65,11 @@ public:
 	uint32_t GetHeight() { return m_Height; }
 	RubyGraphicsAPI GetGraphicsAPI() { return m_GraphicsAPI; }
 
-	void* GetNativeHandle();
+	bool IsKeyDown( RubyKey key );
+	bool IsMouseButtonDown( RubyMouseButton button );
 
+public:
+	void* GetNativeHandle();
 public:
 	//////////////////////////////////////////////////////////////////////////
 	// OpenGL Functions
@@ -100,10 +103,16 @@ public:
 	}
 
 public:
-	// Internal Function. Do not call.
+	// Internal Functions. Do not call.
 	void SetSize( uint32_t width, uint32_t height );
 	void SetPos( int x, int y );
 	void SetFocus( bool value ) { m_Focused = value; }
+
+	void SetKeyDown( RubyKey key ) { m_CurrentKey = key; }
+	void SetMouseDown( RubyMouseButton button ) { m_CurrentMouseButton = button; }
+	
+	void RelKey() { m_CurrentKey = RubyKey::UnknownKey; }
+	void RelMouseDown() { m_CurrentMouseButton = RubyMouseButton::Unknown; }
 
 protected:
 	uint32_t m_Width = 0;
@@ -113,6 +122,9 @@ protected:
 	bool m_Maximized = false;
 
 	bool m_Focused = false;
+	
+	RubyKey m_CurrentKey = RubyKey::UnknownKey;
+	RubyMouseButton m_CurrentMouseButton = RubyMouseButton::Unknown;
 
 	RubyIVec2 m_Position{};
 

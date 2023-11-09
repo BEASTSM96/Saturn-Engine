@@ -96,6 +96,21 @@ private:
 	int m_ButtonCode = 0;
 };
 
+class RubyMouseScrollEvent : public RubyEvent 
+{
+public:
+	RubyMouseScrollEvent() = default;
+	RubyMouseScrollEvent( RubyEventType type, int x, int y ) : RubyEvent( type ), m_MouseOffsetX( x ), m_MouseOffsetY( y ) {}
+	~RubyMouseScrollEvent() {}
+
+	int GetOffsetX() { return m_MouseOffsetX; }
+	int GetOffsetY() { return m_MouseOffsetY; }
+
+private:
+	int m_MouseOffsetX = 0;
+	int m_MouseOffsetY = 0;
+};
+
 class RubyKeyEvent : public RubyEvent
 {
 public:
@@ -108,6 +123,20 @@ public:
 
 private:
 	int m_ScanCode = 0;
+};
+
+class RubyCharacterEvent : public RubyEvent
+{
+public:
+	RubyCharacterEvent() = default;
+	RubyCharacterEvent( RubyEventType Type, char c ) : RubyEvent( Type ), m_Character( c ) {}
+
+	~RubyCharacterEvent() = default;
+
+	char GetCharacter() const { return m_Character; }
+
+private:
+	char m_Character;
 };
 
 class RubyMaximizeEvent : public RubyEvent

@@ -35,6 +35,7 @@
 
 #include <codecvt>
 #include <locale>
+#include <windowsx.h>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -155,32 +156,38 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 		case WM_LBUTTONDOWN:
 		{
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, 0 );
+			pThis->GetParent()->SetMouseDown( RubyMouseButton::Left );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, 1 );
 		} break;
 
 		case WM_RBUTTONDOWN:
 		{
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, 1 );
+			pThis->GetParent()->SetMouseDown( RubyMouseButton::Right );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, 2 );
 		} break;
 
 		case WM_MBUTTONDOWN:
 		{
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, 2 );
+			pThis->GetParent()->SetMouseDown( RubyMouseButton::Middle );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, 4 );
 		} break;
 
 		case WM_LBUTTONUP:
 		{
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, 0 );
+			pThis->GetParent()->RelMouseDown();
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, 1 );
 		} break;
 
 		case WM_RBUTTONUP:
 		{
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, 1 );
+			pThis->GetParent()->RelMouseDown();
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, 2 );
 		} break;
 
 		case WM_MBUTTONUP:
 		{
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, 2 );
+			pThis->GetParent()->RelMouseDown();
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, 4 );
 		} break;
 
 		case WM_MOUSEHOVER:
@@ -188,9 +195,27 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::MouseEnterWindow );
 		} break;
 
-		case WM_MOUSELAST:
+		case WM_MOUSELEAVE:
 		{
 			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::MouseLeaveWindow );
+		} break;
+		
+		// Vertical Scroll
+		case WM_MOUSEWHEEL:
+		{
+			int yOffset = GET_WHEEL_DELTA_WPARAM( WParam );
+			yOffset /= WHEEL_DELTA;
+
+			pThis->GetParent()->DispatchEvent<RubyMouseScrollEvent>( RubyEventType::MouseScroll, 0, yOffset );
+		} break;
+
+		// Horizontal Scroll
+		case WM_MOUSEHWHEEL: 
+		{
+			int xOffset = GET_WHEEL_DELTA_WPARAM( WParam );
+			xOffset /= WHEEL_DELTA;
+
+			pThis->GetParent()->DispatchEvent<RubyMouseScrollEvent>( RubyEventType::MouseScroll, xOffset, 0 );
 		} break;
 
 		// END: Mouse Events
@@ -201,16 +226,27 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 		case WM_KEYDOWN:
 		{
+			// In Ruby our key codes match with the Win32 ones.
 			int nativeCode = ( int ) WParam;
 
+			pThis->GetParent()->SetKeyDown( ( RubyKey ) nativeCode );
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyPressed, nativeCode );
 		} break;
 
 		case WM_KEYUP:
 		{
+			// In Ruby our key codes match with the Win32 ones.
 			int nativeCode = ( int ) WParam;
 
+			pThis->GetParent()->RelKey();
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyReleased, nativeCode );
+		} break;
+
+		// The WM_CHAR message is sent when a printable character key is pressed.
+		case WM_CHAR: 
+		{
+			char c = static_cast< char >( WParam );
+			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::InputCharacter, c );
 		} break;
 	}
 

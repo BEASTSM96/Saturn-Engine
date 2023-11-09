@@ -40,8 +40,10 @@ enum class RubyEventType
 	MouseReleased,
 	MouseEnterWindow,
 	MouseLeaveWindow,
+	MouseScroll,
 	KeyReleased,
 	KeyPressed,
+	InputCharacter,
 	WindowMaximized,
 	WindowMinimized,
 	WindowRestored,
@@ -51,6 +53,8 @@ using KeyCode = int;
 
 enum RubyKey
 {
+	UnknownKey,
+
 	// Alphabetic keys
 	A = 0x41, B = 0x42, C = 0x43, D = 0x44, E = 0x45, F = 0x46, G = 0x47, H = 0x48,
 	I = 0x49, J = 0x4A, K = 0x4B, L = 0x4C, M = 0x4D, N = 0x4E, O = 0x4F, P = 0x50,
@@ -86,6 +90,8 @@ enum RubyKey
 
 enum class RubyMouseButton 
 {
+	Unknown,
+
 	Left = RBY_BIT( 0 ),
 	Right = RBY_BIT( 1 ),
 	Middle = RBY_BIT( 2 ),

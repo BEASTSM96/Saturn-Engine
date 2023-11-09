@@ -118,6 +118,16 @@ void RubyWindow::ChangeTitle( std::string_view Title )
 	m_pDefaultBackend->SetTitle( Title );
 }
 
+bool RubyWindow::IsKeyDown( RubyKey key )
+{
+	return m_CurrentKey == key;
+}
+
+bool RubyWindow::IsMouseButtonDown( RubyMouseButton button )
+{
+	return m_CurrentMouseButton == button;
+}
+
 void* RubyWindow::GetNativeHandle()
 {
 	return (void*)m_pDefaultBackend->GetNativeHandle();
