@@ -67,7 +67,7 @@ public:
 			case RubyEventType::KeyPressed:
 			{
 				RubyKeyEvent KeyEvent = ( RubyKeyEvent& ) rEvent;
-				ImGui_ImplRuby_KeyCallback( BackendData->Window, KeyEvent.GetScancode(), true, 0 );
+				ImGui_ImplRuby_KeyCallback( BackendData->Window, KeyEvent.GetScancode(), true, KeyEvent.GetModifers() );
 			} break;
 
 			case RubyEventType::KeyReleased:
@@ -163,6 +163,10 @@ void ImGui_ImplRuby_KeyCallback( RubyWindow* window, int scancode, bool state, i
 			bd->KeyOwnerWindows[ scancode ] = NULL;
 		}
 	}
+
+	io.KeyCtrl = io.KeysDown[ RubyKey::LeftCtrl ] || io.KeysDown[ RubyKey::RightCtrl ];
+	io.KeyAlt = io.KeysDown[ RubyKey::LeftAlt ] || io.KeysDown[ RubyKey::RightAlt ];
+	io.KeyShift = io.KeysDown[ RubyKey::LeftShift ] || io.KeysDown[ RubyKey::LeftAlt ];
 
 #ifdef _WIN32
 	io.KeySuper = false;
@@ -320,8 +324,7 @@ static void ImGui_ImplRuby_UpdateMousePosAndButtons()
 
 	for( int i = 0; i < IM_ARRAYSIZE( io.MouseDown ); i++ )
 	{
-		// TODO: Ruby input
-		io.MouseDown[ i ] = bd->MouseJustPressed[ i ];
+		io.MouseDown[ i ] = bd->MouseJustPressed[ i ] || bd->Window->IsMouseButtonDown( ( RubyMouseButton )i );
 		bd->MouseJustPressed[ i ] = false;
 	}
 
@@ -331,6 +334,14 @@ static void ImGui_ImplRuby_UpdateMousePosAndButtons()
 		RubyWindow* window = ( RubyWindow* ) viewport->PlatformHandle;
 
 		RubyWindow* mouse_window = ( bd->MouseWindow == window || window->IsFocused() ) ? window : NULL;
+
+		if( window->IsFocused() )
+		{
+			for( int i = 0; i < IM_ARRAYSIZE( io.MouseDown ); i++ )
+			{
+				io.MouseDown[ i ] |= window->IsMouseButtonDown( ( RubyMouseButton ) i );
+			}
+		}
 
 		if( io.WantSetMousePos && window->IsFocused() ) 
 		{
@@ -434,7 +445,7 @@ void ImGui_ImplRuby_NewFrame()
 		ImGui_ImplRuby_UpdateMonitors();
 
 	// Setup time step
-	double current_time = 0.0f;
+	double current_time = bd->Window->GetTime();
 	io.DeltaTime = bd->Time > 0.0 ? (float)(current_time - bd->Time) : (float)(1.0f / 60.0f);
 	bd->Time = current_time;
 

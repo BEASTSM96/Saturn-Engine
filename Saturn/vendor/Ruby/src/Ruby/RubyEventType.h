@@ -86,15 +86,20 @@ enum RubyKey
 	// Function keys
 	F1 = 0x70, F2 = 0x71, F3 = 0x72, F4 = 0x73, F5 = 0x74, F6 = 0x75, F7 = 0x76, F8 = 0x77,
 	F9 = 0x78, F10 = 0x79, F11 = 0x7A, F12 = 0x7B,
+
+	// Modifier keys
+	LeftCtrl = 0xA2, RightCtrl = 0xA3,
+	LeftShift = 0xA0, RightShift = 0xA1,
+	LeftAlt = 0xA4, RightAlt = 0xA5,
 };
 
 enum class RubyMouseButton 
 {
-	Unknown,
+	Unknown = 6,
 
-	Left = RBY_BIT( 0 ),
-	Right = RBY_BIT( 1 ),
-	Middle = RBY_BIT( 2 ),
-	Extra1 = RBY_BIT( 3 ),
-	Extra2 = RBY_BIT( 4 )
+	Left = 0,
+	Right = 1,
+	Middle = 2,
+	Extra1 = 3,
+	Extra2 = 4
 };

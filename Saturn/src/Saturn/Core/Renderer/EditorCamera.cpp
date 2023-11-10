@@ -91,7 +91,6 @@ namespace Saturn {
 			return;
 		}
 
-		/*
 		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !Input::Get().KeyPressed( RubyKey::LeftAlt ) )
 		{
 			m_CameraMode = CameraMode::FLYCAM;
@@ -100,17 +99,17 @@ namespace Saturn {
 
 			const float speed = GetCameraSpeed();
 
-			if( Input::Get().KeyPressed( Key::Q ) )
+			if( Input::Get().KeyPressed( RubyKey::Q ) )
 				m_PositionDelta -= ts.Milliseconds() * speed * glm::vec3{ 0.f, yawSign, 0.f };
-			if( Input::Get().KeyPressed( Key::E ) )
+			if( Input::Get().KeyPressed( RubyKey::E ) )
 				m_PositionDelta += ts.Milliseconds() * speed * glm::vec3{ 0.f, yawSign, 0.f };
-			if( Input::Get().KeyPressed( Key::S ) )
+			if( Input::Get().KeyPressed( RubyKey::S ) )
 				m_PositionDelta -= ts.Milliseconds() * speed * m_Rotation;
-			if( Input::Get().KeyPressed( Key::W ) )
+			if( Input::Get().KeyPressed( RubyKey::W ) )
 				m_PositionDelta += ts.Milliseconds() * speed * m_Rotation;
-			if( Input::Get().KeyPressed( Key::A ) )
+			if( Input::Get().KeyPressed( RubyKey::A ) )
 				m_PositionDelta -= ts.Milliseconds() * speed * m_RightDirection;
-			if( Input::Get().KeyPressed( Key::D ) )
+			if( Input::Get().KeyPressed( RubyKey::D ) )
 				m_PositionDelta += ts.Milliseconds() * speed * m_RightDirection;
 
 			constexpr float maxRate{ 0.12f };
@@ -152,7 +151,6 @@ namespace Saturn {
 		{
 			EnableMouse();
 		}
-		*/
 
 		m_InitialMousePosition = mouse;
 
@@ -169,10 +167,10 @@ namespace Saturn {
 	float EditorCamera::GetCameraSpeed() const
 	{
 		float speed = m_NormalSpeed;
-		//if( Input::Get().KeyPressed( RubyKey::LeftControl ) )
-		//	speed /= 2 - glm::log( m_NormalSpeed );
-		//if( Input::Get().KeyPressed( RubyKey::LeftShift ) )
-		//	speed *= 2 - glm::log( m_NormalSpeed );
+		if( Input::Get().KeyPressed( RubyKey::LeftCtrl ) )
+			speed /= 2 - glm::log( m_NormalSpeed );
+		if( Input::Get().KeyPressed( RubyKey::LeftShift ) )
+			speed *= 2 - glm::log( m_NormalSpeed );
 
 		return glm::clamp( speed, MIN_SPEED, MAX_SPEED );
 	}

@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2023 BEAST                                                           *
+* Copyright (c) 2023 BEAST                                                           		*
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -28,36 +28,37 @@
 
 #pragma once
 
-#include "Saturn/Scene/Scene.h"
+#include "RubyCore.h"
 
-#include "PxPhysicsAPI.h"
+#include <chrono>
 
-namespace Saturn {
+#if defined(_WIN32)
+#include <Windows.h>
+#endif
 
-	struct RaycastHitResult
+class RBY_API RubyPerfTimer
+{
+public:
+	RubyPerfTimer()
 	{
-		bool Success = false;
-		Ref<Entity> Hit = nullptr;
-		glm::vec3 Position;
-		float Distance = 0.0f;
-	};
+#if defined( _WIN32 )
+		QueryPerformanceFrequency( ( LARGE_INTEGER* ) &m_Frequency );
+		QueryPerformanceCounter( ( LARGE_INTEGER* ) &m_InitTime );
+#endif
+	}
 
-	class PhysicsScene : public RefTarget
+	double GetTicks() 
 	{
-	public:
-		PhysicsScene( const Ref<Scene>& rScene );
-		~PhysicsScene();
+#if defined(_WIN32)
+		uint64_t ticks;
+		QueryPerformanceCounter( (LARGE_INTEGER*) &ticks );
+		return ( double )( ticks - m_InitTime ) / m_Frequency;
+#endif
+	}
 
-		void CreateScene();
-		void Update( Timestep ts );
-
-		[[nodiscard]] bool Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance, RaycastHitResult* pOut );
-
-	private:
-		void AddToScene( physx::PxRigidActor& rBody );
-	private:
-		physx::PxScene* m_PhysicsScene;
-
-		Ref<Scene> m_Scene;
-	};
-}
+private:
+#if defined(_WIN32)
+	uint64_t m_Frequency = 0.0f;
+	uint64_t m_InitTime = 0.0f;
+#endif
+};

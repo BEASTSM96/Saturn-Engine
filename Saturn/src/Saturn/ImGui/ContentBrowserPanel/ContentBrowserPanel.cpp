@@ -874,7 +874,7 @@ namespace Saturn {
 
 		ImGui::PopStyleColor( 2 );
 
-		if( ImGui::BeginPopupContextWindow( 0, 1, true ) )
+		if( ImGui::BeginPopupContextWindow( "CB_ItemAction", ImGuiPopupFlags_MouseButtonRight ) )
 		{
 			// Theses actions are only going to be used when one item is selected.
 			if( m_SelectedItems.size() )

@@ -45,11 +45,11 @@
 
 enum class RubyGraphicsAPI
 {
-	OpenGL = RBY_BIT( 0 ),
-	Vulkan = RBY_BIT( 1 ),
-	DirectX11 = RBY_BIT( 2 ),
-	DirectX12 = RBY_BIT( 3 ),
-	None = RBY_BIT( 4 )
+	OpenGL,
+	Vulkan,
+	DirectX11,
+	DirectX12,
+	None
 };
 
 enum class RubyStyle

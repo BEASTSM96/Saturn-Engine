@@ -75,6 +75,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 	switch( Msg )
 	{
+		case WM_QUIT: 
 		case WM_CLOSE:
 		{
 			pThis->CloseWindow();
@@ -157,37 +158,37 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		case WM_LBUTTONDOWN:
 		{
 			pThis->GetParent()->SetMouseDown( RubyMouseButton::Left );
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, 1 );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, ( int ) RubyMouseButton::Left );
 		} break;
 
 		case WM_RBUTTONDOWN:
 		{
 			pThis->GetParent()->SetMouseDown( RubyMouseButton::Right );
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, 2 );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, ( int ) RubyMouseButton::Right );
 		} break;
 
 		case WM_MBUTTONDOWN:
 		{
 			pThis->GetParent()->SetMouseDown( RubyMouseButton::Middle );
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, 4 );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, ( int ) RubyMouseButton::Middle );
 		} break;
 
 		case WM_LBUTTONUP:
 		{
 			pThis->GetParent()->RelMouseDown();
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, 1 );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int ) RubyMouseButton::Left );
 		} break;
 
 		case WM_RBUTTONUP:
 		{
 			pThis->GetParent()->RelMouseDown();
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, 2 );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int ) RubyMouseButton::Right );
 		} break;
 
 		case WM_MBUTTONUP:
 		{
 			pThis->GetParent()->RelMouseDown();
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, 4 );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int ) RubyMouseButton::Middle );
 		} break;
 
 		case WM_MOUSEHOVER:
@@ -228,9 +229,40 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		{
 			// In Ruby our key codes match with the Win32 ones.
 			int nativeCode = ( int ) WParam;
+			int Modifiers = RubyKey::UnknownKey;
+
+			if( GetKeyState( VK_LSHIFT ) & 0x8000 )
+			{
+				Modifiers |= RubyKey::LeftShift;
+			}
+
+			if( GetKeyState( VK_RSHIFT ) & 0x8000 )
+			{
+				Modifiers |= RubyKey::RightShift;
+			}
+
+			if( GetKeyState( VK_LMENU ) & 0x8000 )
+			{
+				Modifiers |= RubyKey::LeftAlt;
+			}
+
+			if( GetKeyState( VK_RMENU ) & 0x8000 )
+			{
+				Modifiers |= RubyKey::RightAlt;
+			}
+
+			if( GetKeyState( VK_LCONTROL ) & 0x8000 )
+			{
+				Modifiers |= RubyKey::LeftCtrl;
+			}
+
+			if( GetKeyState( VK_RCONTROL ) & 0x8000 )
+			{
+				Modifiers |= RubyKey::RightCtrl;
+			}
 
 			pThis->GetParent()->SetKeyDown( ( RubyKey ) nativeCode );
-			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyPressed, nativeCode );
+			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyPressed, nativeCode, Modifiers );
 		} break;
 
 		case WM_KEYUP:
@@ -239,14 +271,14 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			int nativeCode = ( int ) WParam;
 
 			pThis->GetParent()->RelKey();
-			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyReleased, nativeCode );
+			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyReleased, nativeCode, 0 );
 		} break;
 
 		// The WM_CHAR message is sent when a printable character key is pressed.
 		case WM_CHAR: 
 		{
 			char c = static_cast< char >( WParam );
-			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::InputCharacter, c );
+			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::InputCharacter, c, 0 );
 		} break;
 	}
 
@@ -436,25 +468,6 @@ void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )
 		}	break;
 		
 		case RubyGraphicsAPI::Vulkan: 
-		{
-			HDC DrawContext = ::GetDC( m_Handle );
-
-			PIXELFORMATDESCRIPTOR pfd
-			{
-				.nSize = sizeof( PIXELFORMATDESCRIPTOR ),
-				.nVersion = 1,
-				.dwFlags = PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
-				.iPixelType = PFD_TYPE_RGBA,
-				.cColorBits = 32,
-				.cDepthBits = 24,
-				.cStencilBits = 8,
-				.iLayerType = PFD_MAIN_PLANE,
-			};
-
-			//int PixelFormat = ::ChoosePixelFormat( DrawContext, &pfd );
-			//::SetPixelFormat( DrawContext, PixelFormat, &pfd );
-		} break;
-
 		case RubyGraphicsAPI::DirectX11:
 		case RubyGraphicsAPI::DirectX12:
 		case RubyGraphicsAPI::None:
@@ -467,7 +480,7 @@ void RubyWindowsBackend::SetMousePos( double x, double y )
 {
 	POINT newPos { x, y };
 
-	::SetCursorPos( x, y );
+	::SetCursorPos( ( int ) x, ( int ) y );
 	::ScreenToClient( m_Handle, &newPos );
 }
 

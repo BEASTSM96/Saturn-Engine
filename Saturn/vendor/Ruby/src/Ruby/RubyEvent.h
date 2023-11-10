@@ -115,14 +115,16 @@ class RubyKeyEvent : public RubyEvent
 {
 public:
 	RubyKeyEvent() = default;
-	RubyKeyEvent( RubyEventType Type, int scanCode ) : RubyEvent( Type ), m_ScanCode( scanCode ) {}
+	RubyKeyEvent( RubyEventType Type, int scanCode, int modifiers ) : RubyEvent( Type ), m_ScanCode( scanCode ), m_Modifiers( modifiers ){}
 
 	~RubyKeyEvent() = default;
 
 	int GetScancode() const { return m_ScanCode; }
+	int GetModifers() const { return m_Modifiers; }
 
 private:
 	int m_ScanCode = 0;
+	int m_Modifiers = 0;
 };
 
 class RubyCharacterEvent : public RubyEvent

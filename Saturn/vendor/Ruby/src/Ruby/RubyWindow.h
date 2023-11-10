@@ -30,6 +30,7 @@
 
 #include "Backend/RubyBackendBase.h"
 #include "RubyEvent.h"
+#include "RubyPerfTimer.h"
 
 #include <string_view>
 #include <unordered_map>
@@ -67,6 +68,8 @@ public:
 
 	bool IsKeyDown( RubyKey key );
 	bool IsMouseButtonDown( RubyMouseButton button );
+
+	double GetTime() { return m_Timer.GetTicks(); }
 
 public:
 	void* GetNativeHandle();
@@ -124,9 +127,10 @@ protected:
 	bool m_Focused = false;
 	
 	RubyKey m_CurrentKey = RubyKey::UnknownKey;
-	RubyMouseButton m_CurrentMouseButton = RubyMouseButton::Unknown;
+	RubyMouseButton m_CurrentMouseButton;
 
 	RubyIVec2 m_Position{};
+	RubyPerfTimer m_Timer;
 
 private:
 	RubyBackendBase* m_pDefaultBackend = nullptr;

@@ -841,8 +841,6 @@ namespace Saturn {
 		// Where x is number of icons
 		const float windowWidth = neededSpace - 10.0f;
 
-		/*
-
 		ImGui::SetNextWindowPos ( ImVec2( minBound.x + 5.0f, minBound.y + 5.0f ) );
 		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
 		ImGui::Begin( "##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking );
@@ -868,7 +866,7 @@ namespace Saturn {
 		ImGui::EndVertical();
 
 		ImGui::End();
-		*/
+
 		ImGui::PopID();
 
 		m_ViewportFocused = ImGui::IsWindowFocused();
@@ -1068,8 +1066,7 @@ namespace Saturn {
 				break;
 		}
 
-		/*
-		if( Input::Get().KeyPressed( Key::LeftControl ) )
+		if( Input::Get().KeyPressed( RubyKey::LeftCtrl ) )
 		{
 			switch( rEvent.GetScancode() )
 			{
@@ -1109,8 +1106,7 @@ namespace Saturn {
 				} break;
 			}
 
-			/*
-			if( Input::Get().KeyPressed( Key::LeftShift ) ) 
+			if( Input::Get().KeyPressed( RubyKey::LeftShift ) )
 			{
 				switch( rEvent.GetScancode() )
 				{
@@ -1121,7 +1117,6 @@ namespace Saturn {
 				}
 			}
 		}
-			*/
 
 		return true;
 	}
