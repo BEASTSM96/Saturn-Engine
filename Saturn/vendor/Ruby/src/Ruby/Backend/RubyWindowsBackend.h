@@ -72,6 +72,12 @@ public:
 	void IssueSwapBuffers() override;
 	VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) override;
 
+	void SetMouseCursor( RubyCursor Cursor ) override;
+	void HideMouseCursor() override;
+
+	void BlockMouseCursor() { m_BlockMouseCursor = true; }
+	void UnblockMouseCursor() { m_BlockMouseCursor = false; }
+
 public:
 	// Events
 	void PollEvents() override;
@@ -80,6 +86,7 @@ public:
 private:
 	void CreateDummyWindow();
 	DWORD ChooseStyle();
+	LPTSTR ChooseCursor( RubyCursor Cursor );
 
 private:
 	HWND m_Handle = nullptr;

@@ -78,12 +78,17 @@ public:
 	virtual bool Maximized() = 0;
 	virtual bool Focused() = 0;
 
+	virtual void SetMouseCursor( RubyCursor Cursor ) = 0;
+	virtual void HideMouseCursor() = 0;
+
 public:
 	virtual void PollEvents() = 0;
 	virtual bool PendingClose() = 0;
 
 protected:
 	bool m_ShouldClose = false;
+	bool m_BlockMouseCursor = false;
+
 	RubyWindowSpecification m_WindowSpecification{};
 	RubyWindow* m_pWindow = nullptr;
 private:

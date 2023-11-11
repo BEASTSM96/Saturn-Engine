@@ -293,28 +293,32 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 				// Top Section of the window
 				if( MousePos.y < ( WindowRect.top + BorderY ) )
 				{
-					if( MousePos.x < ( WindowRect.left + BorderX ) ) { return HTTOPLEFT; }
-					else if( MousePos.x >= ( WindowRect.right - BorderX ) ) { return HTTOPRIGHT; }
-					else { return HTTOP; }
+					if( MousePos.x < ( WindowRect.left + BorderX ) ) { pThis->BlockMouseCursor(); return HTTOPLEFT; }
+					else if( MousePos.x >= ( WindowRect.right - BorderX ) ) { pThis->BlockMouseCursor(); return HTTOPRIGHT; }
+					else { pThis->BlockMouseCursor(); return HTTOP; }
 				}
 				else if( MousePos.y >= ( WindowRect.bottom - BorderY ) )
 				{
-					if( MousePos.x < ( WindowRect.left + BorderX ) ) { return HTBOTTOMLEFT; }
-					else if( MousePos.x >= ( WindowRect.right - BorderX ) ) { return HTBOTTOMRIGHT; }
-					else { return HTBOTTOM; }
+					if( MousePos.x < ( WindowRect.left + BorderX ) ) { pThis->BlockMouseCursor(); return HTBOTTOMLEFT; }
+					else if( MousePos.x >= ( WindowRect.right - BorderX ) ) { pThis->BlockMouseCursor(); return HTBOTTOMRIGHT; }
+					else { pThis->BlockMouseCursor(); return HTBOTTOM; }
 				}
 				else if( MousePos.x < ( WindowRect.left + BorderX ) )
 				{
+					pThis->BlockMouseCursor();
 					return HTLEFT;
 				}
 				else if( MousePos.x >= ( WindowRect.right - BorderX ) )
 				{
+					pThis->BlockMouseCursor();
 					return HTRIGHT;
 				}
 				else
 				{
 					// TODO: Caption.
 				}
+
+				pThis->UnblockMouseCursor();
 			}
 		} break;
 
@@ -438,6 +442,21 @@ DWORD RubyWindowsBackend::ChooseStyle()
 	}
 }
 
+LPTSTR RubyWindowsBackend::ChooseCursor( RubyCursor Cursor )
+{
+	switch( Cursor )
+	{
+		case RubyCursor::Arrow:
+			return IDC_ARROW;
+		
+		case RubyCursor::Hand:
+			return IDC_HAND;
+		
+		case RubyCursor::IBeam:
+			return IDC_IBEAM;
+	}
+}
+
 void RubyWindowsBackend::SetTitle( std::string_view Title )
 {
 	::SetWindowTextA( m_Handle, Title.data() );
@@ -485,6 +504,21 @@ VkResult RubyWindowsBackend::CreateVulkanWindowSurface( VkInstance Instance, VkS
 	CreateInfo.hwnd = m_Handle;
 
 	return vkCreateWin32SurfaceKHR( Instance, &CreateInfo, nullptr, pOutSurface );
+}
+
+void RubyWindowsBackend::SetMouseCursor( RubyCursor Cursor )
+{
+	if( m_BlockMouseCursor )
+		return;
+
+	LPTSTR NativeCursor = ChooseCursor( Cursor );
+
+	::SetCursor( ::LoadCursor( NULL, NativeCursor ) );
+}
+
+void RubyWindowsBackend::HideMouseCursor()
+{
+	::SetCursor( NULL );
 }
 
 void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )

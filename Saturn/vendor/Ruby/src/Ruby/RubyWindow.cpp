@@ -153,6 +153,16 @@ void RubyWindow::GetMousePos( double* x, double* y )
 	m_pDefaultBackend->GetMousePos( x, y );
 }
 
+void RubyWindow::SetMouseCursor( RubyCursor Cursor )
+{
+	m_pDefaultBackend->SetMouseCursor( Cursor );
+}
+
+void RubyWindow::HideMouseCursor()
+{
+	m_pDefaultBackend->HideMouseCursor();
+}
+
 bool RubyWindow::IsFocused()
 {
 	return m_pDefaultBackend->Focused();

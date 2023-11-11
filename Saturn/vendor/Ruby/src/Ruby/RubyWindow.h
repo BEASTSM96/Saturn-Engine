@@ -52,6 +52,8 @@ public:
 	void SetPosition( int x, int y );
 	void SetMousePos( double x, double y );
 	void GetMousePos( double* x, double* y );
+	void SetMouseCursor( RubyCursor Cursor );
+	void HideMouseCursor();
 
 	RubyIVec2 GetPosition() { return m_Position; }
 

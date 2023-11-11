@@ -22,6 +22,7 @@ struct ImGui_ImplRuby_Data
 	RubyClientAPI           ClientApi;
 	double                  Time;
 	RubyWindow*             MouseWindow;
+	int						MouseCursor[ ImGuiMouseCursor_COUNT ];
 	bool                    MouseJustPressed[ImGuiMouseButton_COUNT];
 	RubyWindow*             KeyOwnerWindows[512];
 	bool                    InstalledCallbacks;
@@ -266,6 +267,10 @@ static bool ImGui_ImplRuby_Init( RubyWindow* window, bool install_callbacks, Rub
 	io.GetClipboardTextFn = ImGui_ImplRuby_GetClipboardText;
 	io.ClipboardUserData = bd->Window;
 
+	bd->MouseCursor[ ImGuiMouseCursor_Arrow ]     = (int)RubyCursor::Arrow;
+	bd->MouseCursor[ ImGuiMouseCursor_Hand ]      = (int)RubyCursor::Hand;
+	bd->MouseCursor[ ImGuiMouseCursor_TextInput ] = (int)RubyCursor::IBeam;
+
 	ImGui_ImplRuby_UpdateMonitors();
 
 	// Our mouse update function expect PlatformHandle to be filled for the main viewport
@@ -385,12 +390,13 @@ static void ImGui_ImplRuby_UpdateMouseCursor()
 		if( imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor )
 		{
 			// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
-			// TODO: Set Mouse cursors.
+			window->HideMouseCursor();
 		}
 		else
 		{
 			// Show OS mouse cursor
 			// TODO: Set Mouse cursors.
+			window->SetMouseCursor( ( RubyCursor )bd->MouseCursor[ imgui_cursor ] );
 		}
 	}
 }

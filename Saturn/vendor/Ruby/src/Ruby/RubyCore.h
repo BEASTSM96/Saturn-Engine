@@ -58,6 +58,13 @@ enum class RubyStyle
 	Borderless = RBY_BIT( 1 ),
 };
 
+enum class RubyCursor 
+{
+	Arrow,
+	Hand,
+	IBeam
+};
+
 struct RubyWindowSpecification
 {
 	std::string_view Name;

@@ -264,14 +264,6 @@ namespace Saturn {
 	{
 		switch( rEvent.Type )
 		{
-			case RubyEventType::KeyPressed: 
-			{
-				auto& rKeyEvent = ( RubyKeyEvent& ) rEvent;
-				
-				SAT_CORE_INFO( "Key: {0} has been pressed with modifers: {1}", rKeyEvent.GetScancode(), rKeyEvent.GetModifers() );
-
-			} break;
-
 			case RubyEventType::Resize:
 			{
 				OnWindowResize( ( RubyWindowResizeEvent& )rEvent );
@@ -299,8 +291,6 @@ namespace Saturn {
 	bool Application::OnWindowResize( RubyWindowResizeEvent& e )
 	{
 		int width = e.GetWidth(), height = e.GetHeight();
-		
-		SAT_CORE_FATAL( "{0}x{0}", width, height );
 
 		if( width == 0 && height == 0 )
 			return false;
