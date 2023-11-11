@@ -165,19 +165,19 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 		case WM_LBUTTONUP:
 		{
-			pThis->GetParent()->RelMouseDown();
+			pThis->GetParent()->SetMouseDown( RubyMouseButton::Left, false );
 			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int ) RubyMouseButton::Left );
 		} break;
 
 		case WM_RBUTTONUP:
 		{
-			pThis->GetParent()->RelMouseDown();
+			pThis->GetParent()->SetMouseDown( RubyMouseButton::Right, false );
 			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int ) RubyMouseButton::Right );
 		} break;
 
 		case WM_MBUTTONUP:
 		{
-			pThis->GetParent()->RelMouseDown();
+			pThis->GetParent()->SetMouseDown( RubyMouseButton::Middle, false );
 			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int ) RubyMouseButton::Middle );
 		} break;
 
@@ -251,7 +251,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 				Modifiers |= RubyKey::RightCtrl;
 			}
 
-			pThis->GetParent()->SetKeyDown( ( RubyKey ) nativeCode );
+			pThis->GetParent()->SetKeyDown( ( RubyKey ) nativeCode, true );
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyPressed, nativeCode, Modifiers );
 		} break;
 
@@ -260,7 +260,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			// In Ruby our key codes match with the Win32 ones.
 			int nativeCode = ( int ) WParam;
 
-			pThis->GetParent()->RelKey();
+			pThis->GetParent()->SetKeyDown( ( RubyKey ) nativeCode, false );
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyReleased, nativeCode, 0 );
 		} break;
 

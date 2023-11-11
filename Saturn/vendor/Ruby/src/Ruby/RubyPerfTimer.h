@@ -58,7 +58,7 @@ public:
 
 private:
 #if defined(_WIN32)
-	uint64_t m_Frequency = 0.0f;
-	uint64_t m_InitTime = 0.0f;
+	uint64_t m_Frequency = 0;
+	uint64_t m_InitTime = 0;
 #endif
 };

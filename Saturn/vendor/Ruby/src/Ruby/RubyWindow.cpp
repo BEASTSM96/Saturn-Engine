@@ -175,7 +175,7 @@ void RubyWindow::ChangeTitle( std::string_view Title )
 
 bool RubyWindow::IsKeyDown( RubyKey key )
 {
-	return m_CurrentKey == key;
+	return m_Keys.count( key ) > 0;
 }
 
 bool RubyWindow::IsMouseButtonDown( RubyMouseButton button )

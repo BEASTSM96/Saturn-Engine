@@ -33,7 +33,7 @@
 #include "RubyPerfTimer.h"
 
 #include <string_view>
-#include <unordered_map>
+#include <unordered_set>
 
 class RBY_API RubyWindow
 {
@@ -111,17 +111,27 @@ public:
 	void SetSize( uint32_t width, uint32_t height );
 	void SetPos( int x, int y );
 
-	void SetKeyDown( RubyKey key ) { m_CurrentKey = key; }
-	void SetMouseDown( RubyMouseButton button ) { m_CurrentMouseButton = button; }
-	
-	void RelKey() { m_CurrentKey = RubyKey::UnknownKey; }
-	void RelMouseDown() { m_CurrentMouseButton = RubyMouseButton::Unknown; }
+	void SetKeyDown( RubyKey key, bool value )
+	{
+		if( value )
+			m_Keys.insert( key );
+		else
+			m_Keys.erase( key );
+	}
+
+	void SetMouseDown( RubyMouseButton button, bool value = true )
+	{ 
+		if( value )
+			m_CurrentMouseButton = button;
+		else
+			m_CurrentMouseButton = RubyMouseButton::Unknown;
+	}
 
 protected:
 	uint32_t m_Width = 0;
 	uint32_t m_Height = 0;
 
-	RubyKey m_CurrentKey = RubyKey::UnknownKey;
+	std::unordered_set<RubyKey> m_Keys;
 	RubyMouseButton m_CurrentMouseButton = RubyMouseButton::Unknown;
 
 	RubyIVec2 m_Position{};

@@ -93,7 +93,7 @@ enum RubyKey
 	LeftAlt = 0xA4, RightAlt = 0xA5,
 };
 
-enum class RubyMouseButton 
+enum class RubyMouseButton : uint32_t
 {
 	Unknown = 6,
 
