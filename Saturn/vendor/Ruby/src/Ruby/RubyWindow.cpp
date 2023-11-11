@@ -33,7 +33,7 @@
 #endif
 
 RubyWindow::RubyWindow( const RubyWindowSpecification& rSpec )
-	: m_WindowTitle( rSpec.Name ), m_Width( rSpec.Width ), m_Height( rSpec.Height ), m_GraphicsAPI( rSpec.GraphicsAPI )
+	: m_WindowTitle( rSpec.Name ), m_Width( rSpec.Width ), m_Height( rSpec.Height ), m_GraphicsAPI( rSpec.GraphicsAPI ), m_Style( rSpec.Style )
 {
 #if defined(_WIN32)
 	m_pDefaultBackend = new RubyWindowsBackend( rSpec, this );
@@ -63,18 +63,58 @@ bool RubyWindow::ShouldClose()
 
 void RubyWindow::Maximize()
 {
-	m_Maximized = true;
-	m_Minimized = false;
+	// Win32 will handle if we should maximize or restore the window natively.
+	// However if we aren't using a border then we'll need to do this our self.
+	switch( m_Style )
+	{
+		case RubyStyle::Default: 
+		{
+			m_pDefaultBackend->Maximize();
+		} break;
 
-	m_pDefaultBackend->Maximize();
+		case RubyStyle::Borderless:
+		{
+			if( Maximized() )
+			{
+				Restore();
+			}
+			else
+			{
+				m_pDefaultBackend->Maximize();
+			}
+		}	break;
+
+		default:
+			break;
+	}
 }
 
 void RubyWindow::Minimize()
 {
-	m_Maximized = false;
-	m_Minimized = true;
+	// Win32 will handle if we should maximize or restore the window natively.
+	// However if we aren't using a border then we'll need to do this our self.
+	switch( m_Style )
+	{
+		case RubyStyle::Default: 
+		{
+			m_pDefaultBackend->Minimize();
+		} break;
 
-	m_pDefaultBackend->Minimize();
+		case RubyStyle::Borderless:
+		{
+			if( Minimized() )
+			{
+				Restore();
+			}
+			else
+			{
+				m_pDefaultBackend->Minimize();
+			}
+		}	break;
+		
+		default:
+			break;
+	}
 }
 
 void RubyWindow::Restore()
@@ -111,6 +151,21 @@ void RubyWindow::SetMousePos( double x, double y )
 void RubyWindow::GetMousePos( double* x, double* y )
 {
 	m_pDefaultBackend->GetMousePos( x, y );
+}
+
+bool RubyWindow::IsFocused()
+{
+	return m_pDefaultBackend->Focused();
+}
+
+bool RubyWindow::Minimized()
+{
+	return m_pDefaultBackend->Minimized();
+}
+
+bool RubyWindow::Maximized()
+{
+	return m_pDefaultBackend->Maximized();
 }
 
 void RubyWindow::ChangeTitle( std::string_view Title )

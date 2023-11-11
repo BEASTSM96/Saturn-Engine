@@ -130,16 +130,6 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			pThis->GetParent()->SetPos( Info->x, Info->y );
 		} break;
 
-		case WM_SETFOCUS: 
-		{
-			pThis->GetParent()->SetFocus( true );
-		} break;
-
-		case WM_KILLFOCUS:
-		{
-			pThis->GetParent()->SetFocus( false );
-		} break;
-
 		//////////////////////////////////////////////////////////////////////////
 		// BEGIN: Mouse Events
 		// Mouse Move
@@ -280,6 +270,81 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			char c = static_cast< char >( WParam );
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::InputCharacter, c, 0 );
 		} break;
+
+		//////////////////////////////////////////////////////////////////////////
+		// Borderless Resizing support.
+
+		case WM_NCHITTEST: 
+		{
+			if( pThis->GetParent()->GetStyle() != RubyStyle::Borderless )
+				break;
+
+			POINT MousePos;
+			RECT WindowRect;
+
+			::GetCursorPos( &MousePos );
+			::GetWindowRect( Handle, &WindowRect );
+
+			if( ::PtInRect( &WindowRect, MousePos ) )
+			{
+				int BorderX = ::GetSystemMetrics( SM_CXFRAME ) + ::GetSystemMetrics( SM_CXPADDEDBORDER );
+				int BorderY = ::GetSystemMetrics( SM_CYFRAME ) + ::GetSystemMetrics( SM_CXPADDEDBORDER );
+
+				// Top Section of the window
+				if( MousePos.y < ( WindowRect.top + BorderY ) )
+				{
+					if( MousePos.x < ( WindowRect.left + BorderX ) ) { return HTTOPLEFT; }
+					else if( MousePos.x >= ( WindowRect.right - BorderX ) ) { return HTTOPRIGHT; }
+					else { return HTTOP; }
+				}
+				else if( MousePos.y >= ( WindowRect.bottom - BorderY ) )
+				{
+					if( MousePos.x < ( WindowRect.left + BorderX ) ) { return HTBOTTOMLEFT; }
+					else if( MousePos.x >= ( WindowRect.right - BorderX ) ) { return HTBOTTOMRIGHT; }
+					else { return HTBOTTOM; }
+				}
+				else if( MousePos.x < ( WindowRect.left + BorderX ) )
+				{
+					return HTLEFT;
+				}
+				else if( MousePos.x >= ( WindowRect.right - BorderX ) )
+				{
+					return HTRIGHT;
+				}
+				else
+				{
+					// TODO: Caption.
+				}
+			}
+		} break;
+
+		case WM_NCCALCSIZE: 
+		{
+			/*
+			if( !WParam )
+				return 0;
+
+			WINDOWPLACEMENT WindowPlacement { .length = sizeof( WINDOWPLACEMENT ) };
+
+			if( ::GetWindowPlacement( Handle, &WindowPlacement ) && WindowPlacement.showCmd == SW_MAXIMIZE )
+			{
+				NCCALCSIZE_PARAMS& rParams = *reinterpret_cast< LPNCCALCSIZE_PARAMS >( LParam );
+
+				const int BorderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+				const int BorderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+
+				rParams.rgrc[ 0 ].left += BorderX;
+				rParams.rgrc[ 0 ].top += BorderY;
+				rParams.rgrc[ 0 ].right -= BorderX;
+				rParams.rgrc[ 0 ].bottom -= BorderY;
+
+				return WVR_VALIDRECTS;
+			}
+			*/
+			return 0;
+
+
+		} break;
 	}
 
 	return ::DefWindowProc( Handle, Msg, WParam, LParam );
@@ -366,7 +431,7 @@ DWORD RubyWindowsBackend::ChooseStyle()
 		case RubyStyle::Default:
 			return WS_OVERLAPPEDWINDOW;
 		case RubyStyle::Borderless:
-			return WS_POPUP | WS_EX_TOPMOST;
+			return WS_POPUP | WS_EX_TOPMOST | WS_MAXIMIZEBOX;
 		
 		default:
 			return 0;
@@ -396,6 +461,21 @@ void RubyWindowsBackend::Restore()
 void* RubyWindowsBackend::GetNativeHandle()
 {
 	return m_Handle;
+}
+
+bool RubyWindowsBackend::Minimized()
+{
+	return ::IsIconic( m_Handle );
+}
+
+bool RubyWindowsBackend::Maximized()
+{
+	return ::IsZoomed( m_Handle );
+}
+
+bool RubyWindowsBackend::Focused()
+{
+	return ::GetActiveWindow() == m_Handle;
 }
 
 VkResult RubyWindowsBackend::CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface )

@@ -50,7 +50,7 @@ BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMoni
 		DevMode.dmSize = sizeof( DevMode );
 
 		::EnumDisplaySettings( MonitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &DevMode );
-		monitor.MonitorPositon = { .x = DevMode.dmPosition.x, .y = DevMode.dmPosition.y };
+		monitor.MonitorPosition = { .x = DevMode.dmPosition.x, .y = DevMode.dmPosition.y };
 		
 		monitor.MonitorSize.x = (float)MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
 		monitor.MonitorSize.y = (float)MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;
@@ -71,6 +71,8 @@ std::vector<RubyMonitor> RubyGetAllMonitors()
 
 	if( s_RubyMonitors.size() != Monitors )
 	{
+		s_RubyMonitors.clear();
+
 #if defined(_WIN32)
 		::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, 0 );
 #endif

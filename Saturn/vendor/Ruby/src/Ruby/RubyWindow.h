@@ -53,12 +53,11 @@ public:
 	void SetMousePos( double x, double y );
 	void GetMousePos( double* x, double* y );
 
-	bool IsFocused() { return m_Focused; }
-
 	RubyIVec2 GetPosition() { return m_Position; }
 
-	bool Minimized() { return m_Minimized; }
-	bool Maximized() { return m_Maximized; }
+	bool IsFocused();
+	bool Minimized();
+	bool Maximized();
 
 	void ChangeTitle( std::string_view Title );
 
@@ -70,6 +69,8 @@ public:
 	bool IsMouseButtonDown( RubyMouseButton button );
 
 	double GetTime() { return m_Timer.GetTicks(); }
+
+	RubyStyle GetStyle() { return m_Style; }
 
 public:
 	void* GetNativeHandle();
@@ -109,7 +110,6 @@ public:
 	// Internal Functions. Do not call.
 	void SetSize( uint32_t width, uint32_t height );
 	void SetPos( int x, int y );
-	void SetFocus( bool value ) { m_Focused = value; }
 
 	void SetKeyDown( RubyKey key ) { m_CurrentKey = key; }
 	void SetMouseDown( RubyMouseButton button ) { m_CurrentMouseButton = button; }
@@ -121,13 +121,8 @@ protected:
 	uint32_t m_Width = 0;
 	uint32_t m_Height = 0;
 
-	bool m_Minimized = false;
-	bool m_Maximized = false;
-
-	bool m_Focused = false;
-	
 	RubyKey m_CurrentKey = RubyKey::UnknownKey;
-	RubyMouseButton m_CurrentMouseButton;
+	RubyMouseButton m_CurrentMouseButton = RubyMouseButton::Unknown;
 
 	RubyIVec2 m_Position{};
 	RubyPerfTimer m_Timer;
@@ -138,6 +133,7 @@ private:
 
 	std::string m_WindowTitle = "";
 	RubyGraphicsAPI m_GraphicsAPI = RubyGraphicsAPI::None;
+	RubyStyle m_Style = RubyStyle::Default;
 
 private:
 	friend class RubyBackendBase;

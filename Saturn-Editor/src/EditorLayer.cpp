@@ -596,6 +596,11 @@ namespace Saturn {
 		
 		ImGui::End();
 	
+		if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) ) 
+			SAT_CORE_INFO( "Left is clicked" );
+		else if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
+			SAT_CORE_INFO( "Right is clicked" );
+
 		ImGui::Begin( "Materials" );
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );

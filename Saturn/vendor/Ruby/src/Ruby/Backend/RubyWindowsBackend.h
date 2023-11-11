@@ -46,6 +46,10 @@ public:
 	void Minimize() override;
 	void Restore() override;
 
+	bool Minimized() override;
+	bool Maximized() override;
+	bool Focused() override;
+
 	void* GetNativeHandle() override;
 
 public:

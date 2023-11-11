@@ -74,6 +74,10 @@ public:
 
 	virtual VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) = 0;
 
+	virtual bool Minimized() = 0;
+	virtual bool Maximized() = 0;
+	virtual bool Focused() = 0;
+
 public:
 	virtual void PollEvents() = 0;
 	virtual bool PendingClose() = 0;

@@ -140,7 +140,7 @@ namespace Saturn {
 			// Execute render thread (last frame).
 			RenderThread::Get().WaitAll();
 
-			float time = ( float ) 0.0f;
+			float time = ( float ) m_Window->GetTime();
 
 			float frametime = time - m_LastFrameTime;
 
@@ -264,6 +264,14 @@ namespace Saturn {
 	{
 		switch( rEvent.Type )
 		{
+			case RubyEventType::KeyPressed: 
+			{
+				auto& rKeyEvent = ( RubyKeyEvent& ) rEvent;
+				
+				SAT_CORE_INFO( "Key: {0} has been pressed with modifers: {1}", rKeyEvent.GetScancode(), rKeyEvent.GetModifers() );
+
+			} break;
+
 			case RubyEventType::Resize:
 			{
 				OnWindowResize( ( RubyWindowResizeEvent& )rEvent );

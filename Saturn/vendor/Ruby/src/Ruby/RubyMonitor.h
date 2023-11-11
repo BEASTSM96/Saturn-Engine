@@ -41,7 +41,7 @@ struct RubyMonitor
 	RubyVec2 WorkSize;
 
 	RubyVec2 MonitorSize;
-	RubyIVec2 MonitorPositon;
+	RubyIVec2 MonitorPosition;
 };
 
 extern std::vector<RubyMonitor> RubyGetAllMonitors();
