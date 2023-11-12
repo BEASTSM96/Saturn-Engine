@@ -69,13 +69,13 @@ namespace Saturn {
 
 	static void DisableMouse()
 	{
-		Input::Get().SetCursorMode( CursorMode::Locked );
+		Input::Get().SetCursorMode( RubyCursorMode::Locked );
 		SetMouseEnabled( false );
 	}
 
 	static void EnableMouse()
 	{
-		Input::Get().SetCursorMode( CursorMode::Normal );
+		Input::Get().SetCursorMode( RubyCursorMode::Normal );
 		SetMouseEnabled( true );
 	}
 

@@ -158,9 +158,10 @@ void RubyWindow::SetMouseCursor( RubyCursor Cursor )
 	m_pDefaultBackend->SetMouseCursor( Cursor );
 }
 
-void RubyWindow::HideMouseCursor()
+void RubyWindow::SetMouseCursorMode( RubyCursorMode mode )
 {
-	m_pDefaultBackend->HideMouseCursor();
+	m_CursorMode = mode;
+	m_pDefaultBackend->SetMouseCursorMode( mode );
 }
 
 bool RubyWindow::IsFocused()

@@ -73,7 +73,7 @@ public:
 	VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) override;
 
 	void SetMouseCursor( RubyCursor Cursor ) override;
-	void HideMouseCursor() override;
+	void SetMouseCursorMode( RubyCursorMode mode ) override;
 
 	void BlockMouseCursor() { m_BlockMouseCursor = true; }
 	void UnblockMouseCursor() { m_BlockMouseCursor = false; }
@@ -83,15 +83,29 @@ public:
 	void PollEvents() override;
 	bool PendingClose() override;
 
+	void ConfigureClipRect();
+	void UpdateCursorIcon();
+
 private:
 	void CreateDummyWindow();
 	DWORD ChooseStyle();
 	LPTSTR ChooseCursor( RubyCursor Cursor );
 
+	void DisableCursor();
+	void FindMouseRestorePoint();
+
 private:
 	HWND m_Handle = nullptr;
+
 	HDC m_DrawContent = nullptr;
 	HGLRC m_OpenGLRenderContext = nullptr;
+
+	// For disabled mouse mode.
+	RubyIVec2 m_MouseRestorePoint{};
+
+	// The current cursor image.
+	// For example: Arrow, Hand or IBeam.
+	HCURSOR m_CurrentMouseCursorIcon = nullptr;
 
 	wglCreateContextAttribsARBFn* wglCreateContextAttribsARB = nullptr;
 	wglChoosePixelFormatARBFn* wglChoosePixelFormatARB = nullptr;

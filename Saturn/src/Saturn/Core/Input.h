@@ -41,13 +41,6 @@
 
 namespace Saturn {
 
-	enum class CursorMode
-	{
-		Normal = 0,
-		Hidden = 1,
-		Locked = 2
-	};
-
 	class Input
 	{
 	public:
@@ -64,7 +57,7 @@ namespace Saturn {
 
 		glm::vec2 MousePosition();
 
-		void SetCursorMode( CursorMode mode );
-		CursorMode GetCursorMode();
+		void SetCursorMode( RubyCursorMode mode );
+		RubyCursorMode GetCursorMode();
 	};
 }

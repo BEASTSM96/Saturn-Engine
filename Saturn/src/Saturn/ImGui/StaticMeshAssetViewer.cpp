@@ -80,7 +80,7 @@ namespace Saturn {
 		if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) || ( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) && !m_StartedRightClickInViewport ) )
 		{
 			ImGui::FocusWindow( GImGui->HoveredWindow );
-			Input::Get().SetCursorMode( CursorMode::Normal );
+			Input::Get().SetCursorMode( RubyCursorMode::Normal );
 		}
 
 		// Viewport

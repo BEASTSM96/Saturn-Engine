@@ -65,6 +65,13 @@ enum class RubyCursor
 	IBeam
 };
 
+enum class RubyCursorMode
+{
+	Normal,
+	Hidden,
+	Locked
+};
+
 struct RubyWindowSpecification
 {
 	std::string_view Name;

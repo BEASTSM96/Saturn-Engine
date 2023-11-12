@@ -51,9 +51,8 @@ struct RubyWindowRegister
 		wc.lpfnWndProc = RubyWindowProc;
 		wc.hInstance = GetModuleHandle( NULL );
 		wc.lpszClassName = DefaultClassName;
-		//wc.hbrBackground = ( HBRUSH ) COLOR_WINDOW;
 		wc.hCursor = LoadCursor( nullptr, IDC_ARROW );
-		wc.style = CS_OWNDC;
+		wc.style = CS_VREDRAW | CS_HREDRAW | CS_OWNDC;
 
 		::RegisterClass( &wc );
 	}
@@ -94,6 +93,9 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			UINT width = LOWORD( LParam );
 			UINT height = HIWORD( LParam );
 
+			if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
+				pThis->ConfigureClipRect();
+
 			if( WParam == SIZE_MAXIMIZED )
 			{
 				pThis->GetParent()->DispatchEvent<RubyMaximizeEvent>( RubyEventType::WindowMaximized, true );
@@ -116,6 +118,9 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			UINT width = LOWORD( LParam );
 			UINT height = HIWORD( LParam );
 
+			if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
+				pThis->ConfigureClipRect();
+
 			pThis->GetParent()->SetSize( width, height );
 			pThis->GetParent()->DispatchEvent<RubyWindowResizeEvent>( RubyEventType::Resize, static_cast< uint32_t >( width ), static_cast< uint32_t >( height ) );
 		} break;
@@ -136,10 +141,31 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 		case WM_MOUSEMOVE:
 		{
-			float x = (float)LOWORD( LParam );
-			float y = (float)HIWORD( LParam );
+			int x = LOWORD( LParam );
+			int y = HIWORD( LParam );
 
-			pThis->GetParent()->DispatchEvent<RubyMouseMoveEvent>( RubyEventType::MouseMoved, x, y );
+			if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
+			{
+				RubyIVec2 lastPos = pThis->GetParent()->GetLastMousePos();
+
+				RubyIVec2 v = { .x = x - lastPos.x, .y = y - lastPos.y };
+				pThis->GetParent()->SetLockedMousePos( v );
+				
+				pThis->GetParent()->DispatchEvent<RubyMouseMoveEvent>( 
+					RubyEventType::MouseMoved, ( float ) v.x, ( float ) v.y );
+			}
+			else
+			{
+				pThis->GetParent()->DispatchEvent<RubyMouseMoveEvent>( RubyEventType::MouseMoved, ( float ) x, ( float ) y );
+			}
+
+			pThis->GetParent()->SetLastMousePos( { .x = x, .y = y } );
+		} break;
+
+		case WM_SETCURSOR: 
+		{
+			pThis->UpdateCursorIcon();
+			return TRUE;
 		} break;
 
 		//////////////////////////////////////////////////////////////////////////
@@ -457,6 +483,40 @@ LPTSTR RubyWindowsBackend::ChooseCursor( RubyCursor Cursor )
 	}
 }
 
+void RubyWindowsBackend::FindMouseRestorePoint()
+{
+	if( m_MouseRestorePoint.x > 0 || m_MouseRestorePoint.y > 0 )
+		return;
+
+	double restoreX, restoreY;
+	GetMousePos( &restoreX, &restoreY );
+
+	m_MouseRestorePoint.x = ( int ) restoreX;
+	m_MouseRestorePoint.y = ( int ) restoreY;
+}
+
+void RubyWindowsBackend::ConfigureClipRect() 
+{
+	RECT WindowRect;
+	::GetClientRect( m_Handle, &WindowRect );
+	::ClientToScreen( m_Handle, ( POINT* ) &WindowRect.left );
+	::ClientToScreen( m_Handle, ( POINT* ) &WindowRect.right );
+
+	::ClipCursor( &WindowRect );
+}
+
+void RubyWindowsBackend::DisableCursor()
+{
+	FindMouseRestorePoint();
+
+	UpdateCursorIcon();
+
+	// Keep the mouse in the center of the window so we don't move out of the window.
+	//SetMousePos( m_pWindow->GetWidth() / 2.0, m_pWindow->GetHeight() / 2.0 );
+
+	ConfigureClipRect();
+}
+
 void RubyWindowsBackend::SetTitle( std::string_view Title )
 {
 	::SetWindowTextA( m_Handle, Title.data() );
@@ -511,14 +571,61 @@ void RubyWindowsBackend::SetMouseCursor( RubyCursor Cursor )
 	if( m_BlockMouseCursor )
 		return;
 
-	LPTSTR NativeCursor = ChooseCursor( Cursor );
+	LPTSTR NativeCursorRes = ChooseCursor( Cursor );
 
-	::SetCursor( ::LoadCursor( NULL, NativeCursor ) );
+	m_CurrentMouseCursorIcon = ::LoadCursor( nullptr, NativeCursorRes );
+	::SetCursor( m_CurrentMouseCursorIcon );
 }
 
-void RubyWindowsBackend::HideMouseCursor()
+void RubyWindowsBackend::UpdateCursorIcon() 
 {
-	::SetCursor( NULL );
+	if( m_pWindow->GetCursorMode() == RubyCursorMode::Locked )
+	{
+		::SetCursor( NULL );
+		m_CurrentMouseCursorIcon = nullptr;
+
+	}
+	else if( m_CurrentMouseCursorIcon )
+			::SetCursor( m_CurrentMouseCursorIcon );
+	else
+		SetMouseCursor( RubyCursor::Arrow );
+}
+
+void RubyWindowsBackend::SetMouseCursorMode( RubyCursorMode mode )
+{
+	switch( mode )
+	{
+		case RubyCursorMode::Normal: 
+		{
+			// Unclip the mouse (only needed if we were previously locked)
+			::ClipCursor( nullptr );
+
+			if( m_MouseRestorePoint.x > 0 && m_MouseRestorePoint.y > 0 )
+			{
+				SetMousePos( m_MouseRestorePoint.x, m_MouseRestorePoint.y );
+
+				m_MouseRestorePoint = {};
+			}
+
+		} break;
+		
+		case RubyCursorMode::Hidden: 
+		{
+			::ClipCursor( nullptr );
+			::SetCursor( NULL );
+		} break;
+		
+		case RubyCursorMode::Locked:
+		{
+			if( !Focused() )
+				break;
+
+			DisableCursor();
+		} break;
+	
+		default:
+			break;
+	}
 }
 
 void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )
@@ -594,8 +701,10 @@ void RubyWindowsBackend::SetMousePos( double x, double y )
 {
 	POINT newPos { x, y };
 
+	m_pWindow->SetLastMousePos( { ( int ) x, ( int ) y } );
+
+	::ClientToScreen( m_Handle, &newPos );
 	::SetCursorPos( ( int ) x, ( int ) y );
-	::ScreenToClient( m_Handle, &newPos );
 }
 
 void RubyWindowsBackend::GetMousePos( double* x, double* y )

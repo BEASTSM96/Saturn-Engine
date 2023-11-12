@@ -390,13 +390,13 @@ static void ImGui_ImplRuby_UpdateMouseCursor()
 		if( imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor )
 		{
 			// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
-			window->HideMouseCursor();
+			window->SetMouseCursorMode( RubyCursorMode::Hidden );
 		}
 		else
 		{
-			// Show OS mouse cursor
-			// TODO: Set Mouse cursors.
-			window->SetMouseCursor( ( RubyCursor )bd->MouseCursor[ imgui_cursor ] );
+			// TODO: This is now broken again.
+			//window->SetMouseCursor( ( RubyCursor )bd->MouseCursor[ imgui_cursor ] );
+			//window->SetMouseCursorMode( RubyCursorMode::Normal );
 		}
 	}
 }

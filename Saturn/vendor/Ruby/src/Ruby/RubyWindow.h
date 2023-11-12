@@ -42,8 +42,6 @@ public:
 	~RubyWindow();
 
 	void PollEvents();
-	bool ShouldClose();
-
 	void Maximize();
 	void Minimize();
 	void Restore();
@@ -53,29 +51,31 @@ public:
 	void SetMousePos( double x, double y );
 	void GetMousePos( double* x, double* y );
 	void SetMouseCursor( RubyCursor Cursor );
-	void HideMouseCursor();
+	void SetMouseCursorMode( RubyCursorMode mode );
+	void ChangeTitle( std::string_view Title );
 
 	RubyIVec2 GetPosition() { return m_Position; }
+	RubyIVec2 GetLastMousePos() { return m_LastMousePosition; }
+	RubyIVec2 GetVirtualMousePos() { return m_LockedMousePosition; }
+	
+	RubyCursorMode GetCursorMode() { return m_CursorMode; }
+	uint32_t GetWidth() { return m_Width; }
+	uint32_t GetHeight() { return m_Height; }
+	RubyGraphicsAPI GetGraphicsAPI() { return m_GraphicsAPI; }
+	RubyStyle GetStyle() { return m_Style; }
 
 	bool IsFocused();
 	bool Minimized();
 	bool Maximized();
-
-	void ChangeTitle( std::string_view Title );
-
-	uint32_t GetWidth() { return m_Width; }
-	uint32_t GetHeight() { return m_Height; }
-	RubyGraphicsAPI GetGraphicsAPI() { return m_GraphicsAPI; }
-
+	bool ShouldClose();
 	bool IsKeyDown( RubyKey key );
 	bool IsMouseButtonDown( RubyMouseButton button );
 
 	double GetTime() { return m_Timer.GetTicks(); }
 
-	RubyStyle GetStyle() { return m_Style; }
-
 public:
 	void* GetNativeHandle();
+
 public:
 	//////////////////////////////////////////////////////////////////////////
 	// OpenGL Functions
@@ -109,7 +109,9 @@ public:
 	}
 
 public:
+	//////////////////////////////////////////////////////////////////////////
 	// Internal Functions. Do not call.
+
 	void SetSize( uint32_t width, uint32_t height );
 	void SetPos( int x, int y );
 
@@ -129,14 +131,30 @@ public:
 			m_CurrentMouseButton = RubyMouseButton::Unknown;
 	}
 
+	void SetLockedMousePos( const RubyIVec2& Position ) 
+	{
+		m_LockedMousePosition.x += Position.x;
+		m_LockedMousePosition.y += Position.y;
+	}
+
+	void SetLastMousePos( const RubyIVec2& Position )
+	{
+		m_LastMousePosition = Position;
+	}
+
 protected:
 	uint32_t m_Width = 0;
 	uint32_t m_Height = 0;
 
 	std::unordered_set<RubyKey> m_Keys;
+
 	RubyMouseButton m_CurrentMouseButton = RubyMouseButton::Unknown;
+	RubyCursorMode m_CursorMode = RubyCursorMode::Normal;
 
 	RubyIVec2 m_Position{};
+	RubyIVec2 m_LockedMousePosition{};
+	RubyIVec2 m_LastMousePosition{};
+	
 	RubyPerfTimer m_Timer;
 
 private:

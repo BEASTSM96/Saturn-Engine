@@ -79,7 +79,7 @@ public:
 	virtual bool Focused() = 0;
 
 	virtual void SetMouseCursor( RubyCursor Cursor ) = 0;
-	virtual void HideMouseCursor() = 0;
+	virtual void SetMouseCursorMode( RubyCursorMode mode ) = 0;
 
 public:
 	virtual void PollEvents() = 0;

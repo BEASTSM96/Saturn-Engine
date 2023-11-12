@@ -72,13 +72,16 @@ namespace Saturn {
 		return { ( float ) x, ( float ) y };
 	}
 
-	void Input::SetCursorMode( CursorMode mode )
+	void Input::SetCursorMode( RubyCursorMode mode )
 	{
+		SAT_CORE_INFO( "Changing cursor mode: {0}", (int)mode );
+
+		Application::Get().GetWindow()->SetMouseCursorMode( mode );
 	}
 
-	CursorMode Input::GetCursorMode()
+	RubyCursorMode Input::GetCursorMode()
 	{
-		return CursorMode::Normal;
+		return Application::Get().GetWindow()->GetCursorMode();
 	}
 
 }
