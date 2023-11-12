@@ -74,8 +74,6 @@ namespace Saturn {
 
 	void Input::SetCursorMode( RubyCursorMode mode )
 	{
-		SAT_CORE_INFO( "Changing cursor mode: {0}", (int)mode );
-
 		Application::Get().GetWindow()->SetMouseCursorMode( mode );
 	}
 

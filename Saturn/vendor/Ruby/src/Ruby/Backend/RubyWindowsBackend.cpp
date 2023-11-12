@@ -348,31 +348,28 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			}
 		} break;
 
-		case WM_NCCALCSIZE: 
+		case WM_NCCALCSIZE:
 		{
-			/*
-			if( !WParam )
-				return 0;
-
-			WINDOWPLACEMENT WindowPlacement { .length = sizeof( WINDOWPLACEMENT ) };
-
-			if( ::GetWindowPlacement( Handle, &WindowPlacement ) && WindowPlacement.showCmd == SW_MAXIMIZE )
+			if( WParam == true )
 			{
-				NCCALCSIZE_PARAMS& rParams = *reinterpret_cast< LPNCCALCSIZE_PARAMS >( LParam );
+				WINDOWPLACEMENT WindowPlacement{ .length = sizeof( WINDOWPLACEMENT ) };
 
-				const int BorderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
-				const int BorderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+				if( GetWindowPlacement( Handle, &WindowPlacement ) && WindowPlacement.showCmd == SW_MAXIMIZE )
+				{
+					NCCALCSIZE_PARAMS& rParams = *reinterpret_cast< LPNCCALCSIZE_PARAMS >( LParam );
+					const int          BorderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+					const int          BorderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
 
-				rParams.rgrc[ 0 ].left += BorderX;
-				rParams.rgrc[ 0 ].top += BorderY;
-				rParams.rgrc[ 0 ].right -= BorderX;
-				rParams.rgrc[ 0 ].bottom -= BorderY;
+					rParams.rgrc[ 0 ].left += BorderX;
+					rParams.rgrc[ 0 ].top += BorderY;
+					rParams.rgrc[ 0 ].right -= BorderX;
+					rParams.rgrc[ 0 ].bottom -= BorderY;
 
-				return WVR_VALIDRECTS;
+					return WVR_VALIDRECTS;
+				}
 			}
-			*/
-			return 0;
 
+			return 0;
 
 		} break;
 	}
@@ -451,6 +448,9 @@ void RubyWindowsBackend::Create()
 
 	::SetPropW( m_Handle, L"RubyData", this );
 
+	if( m_WindowSpecification.Style == RubyStyle::Borderless )
+		::SetWindowLong( m_Handle, GWL_STYLE, GetWindowLong( m_Handle, GWL_STYLE ) | WS_CAPTION );
+
 	CreateGraphics( m_pWindow->GetGraphicsAPI() );
 }
 
@@ -461,6 +461,8 @@ DWORD RubyWindowsBackend::ChooseStyle()
 		case RubyStyle::Default:
 			return WS_OVERLAPPEDWINDOW;
 		case RubyStyle::Borderless:
+			// Create the borderless window as a normal window however we will then set the required styles.
+			// TODO: For some reason adding WS_CAPTION does not work, so we'll add it when set the style long.
 			return WS_POPUP | WS_EX_TOPMOST | WS_MAXIMIZEBOX;
 		
 		default:
