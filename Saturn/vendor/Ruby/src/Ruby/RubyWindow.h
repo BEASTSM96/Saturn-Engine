@@ -29,11 +29,14 @@
 #pragma once
 
 #include "Backend/RubyBackendBase.h"
+
 #include "RubyEvent.h"
 #include "RubyPerfTimer.h"
+#include "RubyCursor.h"
 
 #include <string_view>
 #include <unordered_set>
+#include <unordered_map>
 
 class RBY_API RubyWindow
 {
@@ -50,9 +53,10 @@ public:
 	void SetPosition( int x, int y );
 	void SetMousePos( double x, double y );
 	void GetMousePos( double* x, double* y );
-	void SetMouseCursor( RubyCursor Cursor );
+	void SetMouseCursor( RubyCursorType Cursor );
 	void SetMouseCursorMode( RubyCursorMode mode );
 	void ChangeTitle( std::string_view Title );
+	void Focus();
 
 	RubyIVec2 GetPosition() { return m_Position; }
 	RubyIVec2 GetLastMousePos() { return m_LastMousePosition; }
@@ -164,6 +168,8 @@ private:
 	std::string m_WindowTitle = "";
 	RubyGraphicsAPI m_GraphicsAPI = RubyGraphicsAPI::None;
 	RubyStyle m_Style = RubyStyle::Default;
+
+	std::unordered_map<RubyCursorType, RubyCursor> m_Cursors;
 
 private:
 	friend class RubyBackendBase;

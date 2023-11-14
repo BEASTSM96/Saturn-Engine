@@ -54,11 +54,8 @@ public:
 	virtual void PresentWindow() = 0;
 
 	virtual void ResizeWindow( uint32_t Width, uint32_t Height ) = 0;
-
 	virtual void SetTitle( std::string_view Title ) = 0;
-
 	virtual void CreateGraphics( RubyGraphicsAPI api ) = 0;
-
 	virtual void IssueSwapBuffers() = 0;
 
 	virtual void Maximize() = 0;
@@ -78,8 +75,9 @@ public:
 	virtual bool Maximized() = 0;
 	virtual bool Focused() = 0;
 
-	virtual void SetMouseCursor( RubyCursor Cursor ) = 0;
+	virtual void SetMouseCursor( RubyCursorType Cursor ) = 0;
 	virtual void SetMouseCursorMode( RubyCursorMode mode ) = 0;
+	virtual void Focus() = 0;
 
 public:
 	virtual void PollEvents() = 0;

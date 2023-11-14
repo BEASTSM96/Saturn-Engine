@@ -153,7 +153,7 @@ void RubyWindow::GetMousePos( double* x, double* y )
 	m_pDefaultBackend->GetMousePos( x, y );
 }
 
-void RubyWindow::SetMouseCursor( RubyCursor Cursor )
+void RubyWindow::SetMouseCursor( RubyCursorType Cursor )
 {
 	m_pDefaultBackend->SetMouseCursor( Cursor );
 }
@@ -182,6 +182,11 @@ bool RubyWindow::Maximized()
 void RubyWindow::ChangeTitle( std::string_view Title )
 {
 	m_pDefaultBackend->SetTitle( Title );
+}
+
+void RubyWindow::Focus()
+{
+	m_pDefaultBackend->Focus();
 }
 
 bool RubyWindow::IsKeyDown( RubyKey key )

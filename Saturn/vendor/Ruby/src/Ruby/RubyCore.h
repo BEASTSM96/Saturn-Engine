@@ -58,11 +58,17 @@ enum class RubyStyle
 	Borderless = RBY_BIT( 1 ),
 };
 
-enum class RubyCursor 
+enum class RubyCursorType 
 {
 	Arrow,
 	Hand,
-	IBeam
+	IBeam,
+	ResizeEW,
+	ResizeNS,
+	ResizeNESW,
+	ResizeNWSE,
+	NotAllowed,
+	ImageFile
 };
 
 enum class RubyCursorMode

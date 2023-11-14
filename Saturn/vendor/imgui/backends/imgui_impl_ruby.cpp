@@ -267,9 +267,14 @@ static bool ImGui_ImplRuby_Init( RubyWindow* window, bool install_callbacks, Rub
 	io.GetClipboardTextFn = ImGui_ImplRuby_GetClipboardText;
 	io.ClipboardUserData = bd->Window;
 
-	bd->MouseCursor[ ImGuiMouseCursor_Arrow ]     = (int)RubyCursor::Arrow;
-	bd->MouseCursor[ ImGuiMouseCursor_Hand ]      = (int)RubyCursor::Hand;
-	bd->MouseCursor[ ImGuiMouseCursor_TextInput ] = (int)RubyCursor::IBeam;
+	bd->MouseCursor[ ImGuiMouseCursor_Arrow ]      = (int)RubyCursorType::Arrow;
+	bd->MouseCursor[ ImGuiMouseCursor_Hand ]       = (int)RubyCursorType::Hand;
+	bd->MouseCursor[ ImGuiMouseCursor_TextInput ]  = (int)RubyCursorType::IBeam;
+	bd->MouseCursor[ ImGuiMouseCursor_NotAllowed ] = (int)RubyCursorType::NotAllowed;
+	bd->MouseCursor[ ImGuiMouseCursor_ResizeNS ]   = (int)RubyCursorType::ResizeNS;
+	bd->MouseCursor[ ImGuiMouseCursor_ResizeEW ]   = (int)RubyCursorType::ResizeEW;
+	bd->MouseCursor[ ImGuiMouseCursor_ResizeNWSE ] = (int)RubyCursorType::ResizeNWSE;
+	bd->MouseCursor[ ImGuiMouseCursor_ResizeNESW ] = (int)RubyCursorType::ResizeNESW;
 
 	ImGui_ImplRuby_UpdateMonitors();
 
@@ -395,8 +400,8 @@ static void ImGui_ImplRuby_UpdateMouseCursor()
 		else
 		{
 			// TODO: This is now broken again.
-			//window->SetMouseCursor( ( RubyCursor )bd->MouseCursor[ imgui_cursor ] );
 			//window->SetMouseCursorMode( RubyCursorMode::Normal );
+			//window->SetMouseCursor( ( RubyCursorType )bd->MouseCursor[ imgui_cursor ] );
 		}
 	}
 }
@@ -642,13 +647,9 @@ static void ImGui_ImplRuby_SetWindowTitle(ImGuiViewport* viewport, const char* t
 
 static void ImGui_ImplRuby_SetWindowFocus(ImGuiViewport* viewport)
 {
-#if GLFW_HAS_FOCUS_WINDOW
 	ImGui_ImplRuby_ViewportData* vd = (ImGui_ImplRuby_ViewportData*)viewport->PlatformUserData;
-	glfwFocusWindow(vd->Window);
-#else
-	// FIXME: What are the effect of not having this function? At the moment imgui doesn't actually call SetWindowFocus - we set that up ahead, will answer that question later.
-	(void)viewport;
-#endif
+
+	vd->Window->Focus();
 }
 
 static bool ImGui_ImplRuby_GetWindowFocus(ImGuiViewport* viewport)
