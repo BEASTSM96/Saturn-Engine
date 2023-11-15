@@ -160,7 +160,12 @@ void RubyWindow::SetMouseCursor( RubyCursorType Cursor )
 
 void RubyWindow::SetMouseCursorMode( RubyCursorMode mode )
 {
+	if( m_CursorMode == mode )
+		return;
+
+	m_LastCursorMode = m_CursorMode;
 	m_CursorMode = mode;
+
 	m_pDefaultBackend->SetMouseCursorMode( mode );
 }
 

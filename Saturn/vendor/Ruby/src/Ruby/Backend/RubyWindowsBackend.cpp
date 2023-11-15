@@ -93,8 +93,13 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			UINT width = LOWORD( LParam );
 			UINT height = HIWORD( LParam );
 
-			if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
+			pThis->GetParent()->SetSize( width, height );
+
+			if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked ) 
+			{
 				pThis->ConfigureClipRect();
+				pThis->RecenterMousePos();
+			}
 
 			if( WParam == SIZE_MAXIMIZED )
 			{
@@ -109,31 +114,24 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 				//pThis->GetParent()->DispatchEvent<RubyMinimizeEvent>( RubyEventType::WindowRestored, true );
 			}
 
-			pThis->GetParent()->SetSize( width, height );
 			pThis->GetParent()->DispatchEvent<RubyWindowResizeEvent>( RubyEventType::Resize, static_cast< uint32_t >( width ), static_cast< uint32_t >( height ) );
 		} break;
 
 		case WM_ENTERSIZEMOVE:
 		{
-			UINT width = LOWORD( LParam );
-			UINT height = HIWORD( LParam );
-
-			if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
-				pThis->ConfigureClipRect();
-
-			pThis->GetParent()->SetSize( width, height );
-			pThis->GetParent()->DispatchEvent<RubyWindowResizeEvent>( RubyEventType::Resize, static_cast< uint32_t >( width ), static_cast< uint32_t >( height ) );
 		} break;
 
 		//////////////////////////////////////////////////////////////////////////
 		// Window Position & Focus
 
+		/*
 		case WM_WINDOWPOSCHANGING: 
 		{
 			WINDOWPOS* Info = ( WINDOWPOS* ) LParam;
 
 			pThis->GetParent()->SetPos( Info->x, Info->y );
 		} break;
+		*/
 
 		//////////////////////////////////////////////////////////////////////////
 		// BEGIN: Mouse Events
@@ -299,6 +297,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 		//////////////////////////////////////////////////////////////////////////
 		// Borderless Resizing support.
+		// Thank You: https://github.com/Geno-IDE/Geno/blob/master/src/Geno/C%2B%2B/GUI/MainWindow.cpp#L520-L586
 
 		case WM_NCHITTEST: 
 		{
@@ -329,12 +328,12 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 					else if( MousePos.x >= ( WindowRect.right - BorderX ) ) { pThis->SetResizeCursor( RubyCursorType::ResizeNWSE ); return HTBOTTOMRIGHT; }
 					else { pThis->SetResizeCursor( RubyCursorType::ResizeNS ); return HTBOTTOM; }
 				}
-				else if( MousePos.x < ( WindowRect.left + BorderX ) ) // Left section of the window
+				else if( MousePos.x < ( WindowRect.left + BorderX ) ) // Left section of the window.
 				{
 					pThis->SetResizeCursor( RubyCursorType::ResizeEW );
 					return HTLEFT;
 				}
-				else if( MousePos.x >= ( WindowRect.right - BorderX ) ) // Right section of the window
+				else if( MousePos.x >= ( WindowRect.right - BorderX ) ) // Right section of the window.
 				{
 					pThis->SetResizeCursor( RubyCursorType::ResizeEW );
 					return HTRIGHT;
@@ -342,6 +341,9 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 				else
 				{
 					// TODO: Caption.
+					// TODO: Border height.
+					if( MousePos.y < WindowRect.top + 16 )
+						return HTCAPTION;
 				}
 
 				pThis->ResetResizeCursor();
@@ -357,8 +359,8 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 				if( GetWindowPlacement( Handle, &WindowPlacement ) && WindowPlacement.showCmd == SW_MAXIMIZE )
 				{
 					NCCALCSIZE_PARAMS& rParams = *reinterpret_cast< LPNCCALCSIZE_PARAMS >( LParam );
-					const int          BorderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
-					const int          BorderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+					const int BorderX = ::GetSystemMetrics( SM_CXFRAME ) + ::GetSystemMetrics( SM_CXPADDEDBORDER );
+					const int BorderY = ::GetSystemMetrics( SM_CYFRAME ) + ::GetSystemMetrics( SM_CXPADDEDBORDER );
 
 					rParams.rgrc[ 0 ].left += BorderX;
 					rParams.rgrc[ 0 ].top += BorderY;
@@ -424,7 +426,7 @@ void RubyWindowsBackend::CreateDummyWindow()
 	wglMakeCurrent( DrawContext, 0 );
 	wglDeleteContext( Context );
 
-	ReleaseDC( DummyWindow, DrawContext );
+	::ReleaseDC( DummyWindow, DrawContext );
 
 	::DestroyWindow( DummyWindow );
 
@@ -502,14 +504,15 @@ LPTSTR RubyWindowsBackend::ChooseCursor( RubyCursorType Cursor )
 
 void RubyWindowsBackend::FindMouseRestorePoint()
 {
-	if( m_MouseRestorePoint.x > 0 || m_MouseRestorePoint.y > 0 )
-		return;
+	if( m_pWindow->GetLastCursorMode() < RubyCursorMode::Locked )
+	{
+		POINT pos{};
+		::GetCursorPos( &pos );
+		::ScreenToClient( m_Handle, &pos );
 
-	double restoreX, restoreY;
-	GetMousePos( &restoreX, &restoreY );
-
-	m_MouseRestorePoint.x = ( int ) restoreX;
-	m_MouseRestorePoint.y = ( int ) restoreY;
+		m_MouseRestorePoint.x = pos.x;
+		m_MouseRestorePoint.y = pos.y;
+	}
 }
 
 void RubyWindowsBackend::SetResizeCursor( RubyCursorType Type )
@@ -526,6 +529,7 @@ void RubyWindowsBackend::ResetResizeCursor()
 {
 	UnblockMouseCursor();
 
+	// TODO: What if we did not have the arrow before?
 	SetMouseCursor( RubyCursorType::Arrow );
 }
 
@@ -537,6 +541,11 @@ void RubyWindowsBackend::ConfigureClipRect()
 	::ClientToScreen( m_Handle, ( POINT* ) &WindowRect.right );
 
 	::ClipCursor( &WindowRect );
+}
+
+void RubyWindowsBackend::RecenterMousePos() 
+{
+	SetMousePos( m_pWindow->GetWidth() / 2.0, m_pWindow->GetHeight() / 2.0 );
 }
 
 void RubyWindowsBackend::DisableCursor()
@@ -622,7 +631,7 @@ void RubyWindowsBackend::UpdateCursorIcon()
 	else if( m_CurrentMouseCursorIcon )
 		::SetCursor( m_CurrentMouseCursorIcon );
 	else
-		::SetCursor( ::LoadCursor( nullptr, IDC_ARROW ) );
+		m_CurrentMouseCursorIcon = ::SetCursor( ::LoadCursor( nullptr, IDC_ARROW ) );
 }
 
 void RubyWindowsBackend::SetMouseCursorMode( RubyCursorMode mode )
@@ -631,17 +640,20 @@ void RubyWindowsBackend::SetMouseCursorMode( RubyCursorMode mode )
 	{
 		case RubyCursorMode::Normal: 
 		{
-			// Unclip the mouse (only needed if we were previously locked)
-			::ClipCursor( nullptr );
-
-			if( m_MouseRestorePoint.x > 0 && m_MouseRestorePoint.y > 0 )
+			if( m_pWindow->GetLastCursorMode() == RubyCursorMode::Locked )
 			{
+				// Unclip the mouse
+				::ClipCursor( nullptr );
+
 				SetMousePos( m_MouseRestorePoint.x, m_MouseRestorePoint.y );
 
-				// Rest the restore point and the locked mouse postion
+				// Rest the restore point and the locked mouse position.
 				m_MouseRestorePoint = {};
 				m_pWindow->m_LockedMousePosition = {};
 			}
+
+			::ShowCursor( TRUE );
+			SetMouseCursor( RubyCursorType::Arrow );
 
 		} break;
 		
@@ -670,6 +682,8 @@ void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )
 	{
 		case RubyGraphicsAPI::OpenGL:
 		{
+			// TODO: Maybe 32 bits for depth.
+
 			// Create Pixel Format Descriptor
 			PIXELFORMATDESCRIPTOR pfd {};
 			pfd = {
@@ -701,6 +715,7 @@ void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )
 
 			if( wglCreateContextAttribsARB ) 
 			{
+				// TODO: Allow for the spec to set the OpenGL version.
 				int attrib[] =
 				{
 					0x2091, 3,
@@ -737,14 +752,17 @@ void RubyWindowsBackend::SetMousePos( double x, double y )
 {
 	POINT newPos { x, y };
 
-	m_pWindow->SetLastMousePos( { ( int ) x, ( int ) y } );
-
 	::ClientToScreen( m_Handle, &newPos );
 	::SetCursorPos( ( int ) x, ( int ) y );
+
+	double nx, ny;
+	m_pWindow->GetMousePos( &nx, &ny );
+	m_pWindow->SetLastMousePos( { ( int ) nx, ( int ) ny } );
 }
 
 void RubyWindowsBackend::GetMousePos( double* x, double* y )
 {
+	// TODO: Do we really have to do this?
 	if( m_pWindow->GetCursorMode() == RubyCursorMode::Locked )
 	{
 		*x = m_pWindow->m_LockedMousePosition.x;
@@ -799,6 +817,9 @@ void RubyWindowsBackend::MoveWindow( int x, int y )
 
 void RubyWindowsBackend::PollEvents()
 {
+	// TODO: I don't want to just update our window. 
+	// We should update all windows all at once.
+	
 	MSG Message = {};
 	while( ::PeekMessage( &Message, m_Handle, 0, 0, PM_REMOVE ) > 0 )
 	{
@@ -817,4 +838,14 @@ void RubyWindowsBackend::Focus()
 	::BringWindowToTop( m_Handle );
 	::SetForegroundWindow( m_Handle );
 	::SetFocus( m_Handle );
+}
+
+RubyIVec2 RubyWindowsBackend::GetWindowPos()
+{
+	RECT WindowRect;
+	::GetWindowRect( m_Handle, &WindowRect );
+
+	::MapWindowPoints( HWND_DESKTOP, ::GetParent( m_Handle ), (LPPOINT)&WindowRect, 2 );
+
+	return { WindowRect.left, WindowRect.top };
 }

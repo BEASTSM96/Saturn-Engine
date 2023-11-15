@@ -58,11 +58,13 @@ public:
 	void ChangeTitle( std::string_view Title );
 	void Focus();
 
-	RubyIVec2 GetPosition() { return m_Position; }
+	RubyIVec2 GetPosition() { return m_pDefaultBackend->GetWindowPos(); }
 	RubyIVec2 GetLastMousePos() { return m_LastMousePosition; }
 	RubyIVec2 GetVirtualMousePos() { return m_LockedMousePosition; }
 	
 	RubyCursorMode GetCursorMode() { return m_CursorMode; }
+	RubyCursorMode GetLastCursorMode() { return m_LastCursorMode; }
+
 	uint32_t GetWidth() { return m_Width; }
 	uint32_t GetHeight() { return m_Height; }
 	RubyGraphicsAPI GetGraphicsAPI() { return m_GraphicsAPI; }
@@ -154,6 +156,7 @@ protected:
 
 	RubyMouseButton m_CurrentMouseButton = RubyMouseButton::Unknown;
 	RubyCursorMode m_CursorMode = RubyCursorMode::Normal;
+	RubyCursorMode m_LastCursorMode = RubyCursorMode::Normal;
 
 	RubyIVec2 m_Position{};
 	RubyIVec2 m_LockedMousePosition{};

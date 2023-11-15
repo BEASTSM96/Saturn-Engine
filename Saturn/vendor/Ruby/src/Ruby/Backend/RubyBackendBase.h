@@ -79,6 +79,8 @@ public:
 	virtual void SetMouseCursorMode( RubyCursorMode mode ) = 0;
 	virtual void Focus() = 0;
 
+	virtual RubyIVec2 GetWindowPos() = 0;
+
 public:
 	virtual void PollEvents() = 0;
 	virtual bool PendingClose() = 0;

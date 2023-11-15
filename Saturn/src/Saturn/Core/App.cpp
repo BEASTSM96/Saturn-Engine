@@ -308,7 +308,7 @@ namespace Saturn {
 
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
-		//ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
+		ofn.hwndOwner = ( HWND ) m_Window->GetNativeHandle();
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof( szFile );
 		ofn.lpstrFilter = pFilter;
@@ -336,7 +336,7 @@ namespace Saturn {
 
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
-		//ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
+		ofn.hwndOwner = ( HWND ) m_Window->GetNativeHandle();
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof( szFile );
 		ofn.lpstrFilter = pFilter;

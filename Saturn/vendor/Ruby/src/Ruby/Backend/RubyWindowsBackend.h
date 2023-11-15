@@ -79,6 +79,7 @@ public:
 	bool PendingClose() override;
 
 	void Focus() override;
+	RubyIVec2 GetWindowPos() override;
 
 public:
 	void BlockMouseCursor() { m_BlockMouseCursor = true; }
@@ -86,6 +87,7 @@ public:
 
 public:
 	void ConfigureClipRect();
+	void RecenterMousePos();
 	void UpdateCursorIcon();
 	void SetResizeCursor( RubyCursorType Type );
 	void ResetResizeCursor();

@@ -403,7 +403,7 @@ namespace Saturn {
 				break;
 		}
 
-		ImGui::Text( "Current Pos %, %i", pWindow->GetPosition().x, pWindow->GetPosition().y );
+		ImGui::Text( "Current Pos %i, %i", pWindow->GetPosition().x, pWindow->GetPosition().y );
 		double x, y;
 		pWindow->GetMousePos( &x, &y );
 
