@@ -366,51 +366,6 @@ namespace Saturn {
 		m_TitleBar->Draw();
 		AssetViewer::Draw();
 
-		ImGui::Begin( "Main Window debug" );
-		
-		RubyWindow* pWindow = Application::Get().GetWindow();
-
-		ImGui::Text( "Size %i x %i", pWindow->GetWidth(), pWindow->GetHeight() );
-		
-		switch( pWindow->GetCursorMode() )
-		{
-			case RubyCursorMode::Hidden:
-				ImGui::Text( "Cursor Mode is Hidden" );
-				break;
-
-			case RubyCursorMode::Normal:
-				ImGui::Text( "Cursor Mode is Normal" );
-				break;
-
-			case RubyCursorMode::Locked:
-				ImGui::Text( "Cursor Mode is Locked" );
-				break;
-		}
-
-		switch( pWindow->GetGraphicsAPI() )
-		{
-			case RubyGraphicsAPI::Vulkan:
-				ImGui::Text( "Graphics API: Vulkan" );
-				break;
-
-			case RubyGraphicsAPI::OpenGL:
-				ImGui::Text( "Graphics API: OpenGL" );
-				break;
-
-			case RubyGraphicsAPI::DirectX11:
-			case RubyGraphicsAPI::DirectX12:
-				ImGui::Text( "Graphics API: DirectX" );
-				break;
-		}
-
-		ImGui::Text( "Current Pos %i, %i", pWindow->GetPosition().x, pWindow->GetPosition().y );
-		double x, y;
-		pWindow->GetMousePos( &x, &y );
-
-		ImGui::Text( "Current Mouse Pos %f, %f", x, y );
-
-		ImGui::End();
-
 		m_PanelManager->DrawAllPanels();
 		Application::Get().PrimarySceneRenderer().ImGuiRender();
 

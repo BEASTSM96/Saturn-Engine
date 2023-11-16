@@ -139,8 +139,7 @@ public:
 
 	void SetLockedMousePos( const RubyIVec2& Position ) 
 	{
-		m_LockedMousePosition.x += Position.x;
-		m_LockedMousePosition.y += Position.y;
+		m_LockedMousePosition = Position;
 	}
 
 	void SetLastMousePos( const RubyIVec2& Position )

@@ -192,11 +192,11 @@ void ImGui_ImplRuby_MouseHoverWindowCallback( bool state )
 	}
 }
 
-void ImGui_ImplRuby_WindowFocusCallback( RubyWindow* window, int focused)
+void ImGui_ImplRuby_WindowFocusCallback( RubyWindow* window, bool focused )
 {
 }
 
-void ImGui_ImplRuby_CursorEnterCallback( RubyWindow* window, int entered)
+void ImGui_ImplRuby_CursorEnterCallback( RubyWindow* window, bool entered )
 {
 	ImGui_ImplRuby_Data* bd = ImGui_ImplRuby_GetBackendData();
 	

@@ -90,12 +90,38 @@ struct RubyWindowSpecification
 
 struct RubyIVec2
 {
+	RubyIVec2() = default;
+	RubyIVec2( int _x, int _y ) : x( _x ), y( _y ) {}
+
 	int x = 0;
 	int y = 0;
+
+	RubyIVec2 operator+( const RubyIVec2& other ) const { return RubyIVec2( x + other.x, y + other.y ); }
+	RubyIVec2 operator-( const RubyIVec2& other ) const { return RubyIVec2( x - other.x, y - other.y ); }
+	RubyIVec2 operator/( const RubyIVec2& other ) const { return RubyIVec2( x / other.x, y / other.y ); }
+	RubyIVec2 operator*( const RubyIVec2& other ) const { return RubyIVec2( x * other.x, y * other.y ); }
+
+	RubyIVec2& operator+=( const RubyIVec2& other ) { x += other.x; y += other.y; return *this; }
+	RubyIVec2& operator-=( const RubyIVec2& other ) { x -= other.x; y -= other.y; return *this; }
+	RubyIVec2& operator*=( int scalar )          { x *= scalar; y *= scalar; return *this;   }
+	RubyIVec2& operator/=( int divisor )         { x /= divisor; y /= divisor; return *this; }
 };
 
 struct RubyVec2
 {
+	RubyVec2() = default;
+	RubyVec2( float _x, float _y ) : x( _x ), y( _y ) {}
+
 	float x = 0.0f;
 	float y = 0.0f;
+
+	RubyVec2 operator+( const RubyVec2& other ) const { return RubyVec2( x + other.x, y + other.y ); }
+	RubyVec2 operator-( const RubyVec2& other ) const { return RubyVec2( x - other.x, y - other.y ); }
+	RubyVec2 operator/( const RubyVec2& other ) const { return RubyVec2( x / other.x, y / other.y ); }
+	RubyVec2 operator*( const RubyVec2& other ) const { return RubyVec2( x * other.x, y * other.y ); }
+
+	RubyVec2& operator+=( const RubyVec2& other ) { x += other.x; y += other.y; return *this; }
+	RubyVec2& operator-=( const RubyVec2& other ) { x -= other.x; y -= other.y; return *this; }
+	RubyVec2& operator*=( float scalar ) { x *= scalar; y *= scalar; return *this; }
+	RubyVec2& operator/=( float divisor ) { x /= divisor; y /= divisor; return *this; }
 };

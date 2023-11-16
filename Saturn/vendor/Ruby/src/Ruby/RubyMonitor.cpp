@@ -50,7 +50,7 @@ BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMoni
 		DevMode.dmSize = sizeof( DevMode );
 
 		::EnumDisplaySettings( MonitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &DevMode );
-		monitor.MonitorPosition = { .x = DevMode.dmPosition.x, .y = DevMode.dmPosition.y };
+		monitor.MonitorPosition = { DevMode.dmPosition.x, DevMode.dmPosition.y };
 		
 		monitor.MonitorSize.x = (float)MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
 		monitor.MonitorSize.y = (float)MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;

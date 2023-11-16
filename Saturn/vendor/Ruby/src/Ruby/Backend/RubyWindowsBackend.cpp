@@ -124,14 +124,14 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		//////////////////////////////////////////////////////////////////////////
 		// Window Position & Focus
 
-		/*
 		case WM_WINDOWPOSCHANGING: 
 		{
-			WINDOWPOS* Info = ( WINDOWPOS* ) LParam;
-
-			pThis->GetParent()->SetPos( Info->x, Info->y );
+			if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
+			{
+				pThis->ConfigureClipRect();
+				pThis->RecenterMousePos();
+			}
 		} break;
-		*/
 
 		//////////////////////////////////////////////////////////////////////////
 		// BEGIN: Mouse Events
@@ -145,25 +145,31 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
 			{
 				RubyIVec2 lastPos = pThis->GetParent()->GetLastMousePos();
-
-				RubyIVec2 v = { .x = x - lastPos.x, .y = y - lastPos.y };
-				pThis->GetParent()->SetLockedMousePos( v );
+				
+				RubyIVec2 deltaPos = { x - lastPos.x, y - lastPos.y };
+				RubyIVec2 lockedDelta = pThis->GetParent()->GetVirtualMousePos();
+				lockedDelta += deltaPos;
 				
 				pThis->GetParent()->DispatchEvent<RubyMouseMoveEvent>( 
-					RubyEventType::MouseMoved, ( float ) v.x, ( float ) v.y );
+					RubyEventType::MouseMoved, ( float ) lockedDelta.x, ( float ) lockedDelta.y );
+
+				pThis->GetParent()->SetLockedMousePos( lockedDelta );
 			}
 			else
 			{
 				pThis->GetParent()->DispatchEvent<RubyMouseMoveEvent>( RubyEventType::MouseMoved, ( float ) x, ( float ) y );
 			}
-
-			pThis->GetParent()->SetLastMousePos( { .x = x, .y = y } );
-		} break;
+			
+			pThis->GetParent()->SetLastMousePos( { x, y } );
+		} return 0;
 
 		case WM_SETCURSOR: 
 		{
-			pThis->UpdateCursorIcon();
-			return TRUE;
+			if( LOWORD( LParam ) == HTCLIENT ) 
+			{
+				pThis->UpdateCursorIcon();
+				return TRUE;
+			}
 		} break;
 
 		//////////////////////////////////////////////////////////////////////////
@@ -301,7 +307,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 		case WM_NCHITTEST: 
 		{
-			if( pThis->GetParent()->GetStyle() != RubyStyle::Borderless )
+			if( pThis->GetParent()->GetStyle() != RubyStyle::Borderless || pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
 				break;
 
 			POINT MousePos;
@@ -500,6 +506,8 @@ LPTSTR RubyWindowsBackend::ChooseCursor( RubyCursorType Cursor )
 		case RubyCursorType::ResizeNWSE:
 			return IDC_SIZENWSE;
 	}
+
+	return nullptr;
 }
 
 void RubyWindowsBackend::FindMouseRestorePoint()
@@ -750,33 +758,22 @@ void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )
 
 void RubyWindowsBackend::SetMousePos( double x, double y )
 {
+	m_pWindow->SetLastMousePos( { ( int ) x, ( int ) y } );
+
 	POINT newPos { x, y };
 
 	::ClientToScreen( m_Handle, &newPos );
-	::SetCursorPos( ( int ) x, ( int ) y );
-
-	double nx, ny;
-	m_pWindow->GetMousePos( &nx, &ny );
-	m_pWindow->SetLastMousePos( { ( int ) nx, ( int ) ny } );
+	::SetCursorPos( newPos.x, newPos.y );
 }
 
 void RubyWindowsBackend::GetMousePos( double* x, double* y )
 {
-	// TODO: Do we really have to do this?
-	if( m_pWindow->GetCursorMode() == RubyCursorMode::Locked )
-	{
-		*x = m_pWindow->m_LockedMousePosition.x;
-		*y = m_pWindow->m_LockedMousePosition.y;
-	}
-	else
-	{
-		POINT pos{};
-		::GetCursorPos( &pos );
-		::ScreenToClient( m_Handle, &pos );
+	POINT pos{};
+	::GetCursorPos( &pos );
+	::ScreenToClient( m_Handle, &pos );
 
-		*x = pos.x;
-		*y = pos.y;
-	}
+	*x = pos.x;
+	*y = pos.y;
 }
 
 void RubyWindowsBackend::IssueSwapBuffers()
