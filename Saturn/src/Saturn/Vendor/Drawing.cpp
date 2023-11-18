@@ -1,6 +1,7 @@
 #include "sppch.h"
 #include "drawing.h"
-#define IMGUI_DEFINE_MATH_OPERATORS
+
+#include <imgui.h>
 #include <imgui_internal.h>
 
 void ax::Drawing::DrawIcon( ImDrawList* drawList, const ImVec2& a, const ImVec2& b, IconType type, bool filled, ImU32 color, ImU32 innerColor )

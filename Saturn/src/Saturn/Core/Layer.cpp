@@ -136,17 +136,6 @@ namespace Saturn {
 		ImGuiInitInfo.CheckVkResultFn = _VkCheckResult;
 
 		ImGui_ImplVulkan_Init( &ImGuiInitInfo, VulkanContext::Get().GetDefaultVulkanPass() );
-		
-		VkCommandBuffer CommandBuffer;
-		CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
-
-		{
-			ImGui_ImplVulkan_CreateFontsTexture( CommandBuffer );
-		}
-		
-		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
-
-		ImGui_ImplVulkan_DestroyFontUploadObjects();
 	}
 
 	void ImGuiLayer::OnDetach( void )

@@ -1,5 +1,3 @@
-﻿#include <sppch.h>
-
 // Crude implementation of JSON value object and parser.
 //
 // VERSION 0.1
@@ -11,6 +9,7 @@
 //
 // CREDITS
 //   Written by Michal Cichon
+# include "sppch.h"
 # include "crude_json.h"
 # include <iomanip>
 # include <limits>
@@ -563,7 +562,7 @@ private:
             if (end != hex.c_str() + hex.size())
                 return false;
 
-            c = v;
+            c = static_cast<int>(v);
             return true;
         }
 

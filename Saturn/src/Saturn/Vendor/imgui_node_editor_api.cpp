@@ -1,5 +1,3 @@
-#include <sppch.h>
-
 //------------------------------------------------------------------------------
 // VERSION 0.9.1
 //
@@ -11,6 +9,7 @@
 // CREDITS
 //   Written by Michal Cichon
 //------------------------------------------------------------------------------
+# include "sppch.h"
 # include "imgui_node_editor_internal.h"
 # include <algorithm>
 
@@ -65,6 +64,24 @@ void ax::NodeEditor::DestroyEditor(EditorContext* ctx)
 
     if (lastContext != ctx)
         SetCurrentEditor(lastContext);
+}
+
+const ax::NodeEditor::Config& ax::NodeEditor::GetConfig(EditorContext* ctx)
+{
+    if (ctx == nullptr)
+        ctx = GetCurrentEditor();
+
+    if (ctx)
+    {
+        auto editor = reinterpret_cast<ax::NodeEditor::Detail::EditorContext*>(ctx);
+
+        return editor->GetConfig();
+    }
+    else
+    {
+        static Config s_EmptyConfig;
+        return s_EmptyConfig;
+    }
 }
 
 void ax::NodeEditor::SetCurrentEditor(EditorContext* ctx)
@@ -550,9 +567,9 @@ int ax::NodeEditor::BreakLinks(PinId pinId)
     return s_Editor->BreakLinks(pinId);
 }
 
-void ax::NodeEditor::NavigateToContent(bool zoomIn /*= false*/, float duration)
+void ax::NodeEditor::NavigateToContent(float duration)
 {
-    s_Editor->NavigateTo(s_Editor->GetContentBounds(), zoomIn, duration);
+    s_Editor->NavigateTo(s_Editor->GetContentBounds(), true, duration);
 }
 
 void ax::NodeEditor::NavigateToSelection(bool zoomIn, float duration)
@@ -651,11 +668,6 @@ float ax::NodeEditor::GetCurrentZoom()
     return s_Editor->GetView().InvScale;
 }
 
-void ax::NodeEditor::SetCurrentZoom( float zoom )
-{
-//	s_Editor->GetView().SetZoom( zoom );
-}
-
 ax::NodeEditor::NodeId ax::NodeEditor::GetHoveredNode()
 {
     return s_Editor->GetHoveredNode();
@@ -694,6 +706,16 @@ bool ax::NodeEditor::IsBackgroundClicked()
 bool ax::NodeEditor::IsBackgroundDoubleClicked()
 {
     return s_Editor->IsBackgroundDoubleClicked();
+}
+
+ImGuiMouseButton ax::NodeEditor::GetBackgroundClickButtonIndex()
+{
+    return s_Editor->GetBackgroundClickButtonIndex();
+}
+
+ImGuiMouseButton ax::NodeEditor::GetBackgroundDoubleClickButtonIndex()
+{
+    return s_Editor->GetBackgroundDoubleClickButtonIndex();
 }
 
 bool ax::NodeEditor::GetLinkPins(LinkId linkId, PinId* startPinId, PinId* endPinId)
