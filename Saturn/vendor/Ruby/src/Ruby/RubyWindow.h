@@ -32,7 +32,6 @@
 
 #include "RubyEvent.h"
 #include "RubyPerfTimer.h"
-#include "RubyCursor.h"
 
 #include <string_view>
 #include <unordered_set>
@@ -170,8 +169,6 @@ private:
 	std::string m_WindowTitle = "";
 	RubyGraphicsAPI m_GraphicsAPI = RubyGraphicsAPI::None;
 	RubyStyle m_Style = RubyStyle::Default;
-
-	std::unordered_map<RubyCursorType, RubyCursor> m_Cursors;
 
 private:
 	friend class RubyBackendBase;
