@@ -35,6 +35,7 @@
 enum class RubyEventType
 {
 	Resize,
+	Close,
 	MouseMoved,
 	MousePressed,
 	MouseReleased,
@@ -47,6 +48,9 @@ enum class RubyEventType
 	WindowMaximized,
 	WindowMinimized,
 	WindowRestored,
+	WindowMoved,
+	WindowFocus,
+	DisplayChanged
 };
 
 using KeyCode = int;

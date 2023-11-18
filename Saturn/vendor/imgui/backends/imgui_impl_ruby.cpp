@@ -15,7 +15,7 @@ enum class RubyClientAPI
 	Vulkan
 };
 
-class ImGui_ImplRuby_EventHandler;
+class ImGui_ImplRuby_MainEventHandler;
 struct ImGui_ImplRuby_Data
 {
 	RubyWindow*             Window;
@@ -27,17 +27,86 @@ struct ImGui_ImplRuby_Data
 	RubyWindow*             KeyOwnerWindows[512];
 	bool                    InstalledCallbacks;
 	bool                    WantUpdateMonitors;
-	ImGui_ImplRuby_EventHandler* EventHandler;
+	ImGui_ImplRuby_MainEventHandler* EventHandler;
 
 	ImGui_ImplRuby_Data()   { memset(this, 0, sizeof(*this)); }
 };
 
-class ImGui_ImplRuby_EventHandler : public RubyEventTarget
+// Ruby Events
+
+static bool ImGui_ImplRuby_DispatchEvent( RubyEvent& rEvent, RubyWindow* pWindow )
+{
+	switch( rEvent.Type )
+	{
+		case RubyEventType::MouseReleased:
+		{
+			RubyMouseEvent MouseEvent = ( RubyMouseEvent& ) rEvent;
+			ImGui_ImplRuby_MouseButtonCallback( pWindow, MouseEvent.GetButton(), false );
+		} break;
+
+		case RubyEventType::MousePressed:
+		{
+			RubyMouseEvent MouseEvent = ( RubyMouseEvent& ) rEvent;
+			ImGui_ImplRuby_MouseButtonCallback( pWindow, MouseEvent.GetButton(), true );
+		} break;
+
+		case RubyEventType::KeyPressed:
+		{
+			RubyKeyEvent KeyEvent = ( RubyKeyEvent& ) rEvent;
+			ImGui_ImplRuby_KeyCallback( pWindow, KeyEvent.GetScancode(), true, KeyEvent.GetModifers() );
+		} break;
+
+		case RubyEventType::KeyReleased:
+		{
+			RubyKeyEvent KeyEvent = ( RubyKeyEvent& ) rEvent;
+			ImGui_ImplRuby_KeyCallback( pWindow, KeyEvent.GetScancode(), false, 0 );
+		} break;
+
+		case RubyEventType::InputCharacter:
+		{
+			RubyCharacterEvent CharEvent = ( RubyCharacterEvent& ) rEvent;
+			ImGui_ImplRuby_CharCallback( CharEvent.GetCharacter() );
+		} break;
+
+		case RubyEventType::MouseEnterWindow:
+		{
+			ImGui_ImplRuby_CursorEnterCallback( pWindow, true );
+		} break;
+
+		case RubyEventType::MouseLeaveWindow:
+		{
+			ImGui_ImplRuby_CursorEnterCallback( pWindow, false );
+		} break;
+		
+		case RubyEventType::WindowFocus: 
+		{
+			RubyFocusEvent FocusEvent = ( RubyFocusEvent& ) rEvent;
+
+			ImGuiIO& io = ImGui::GetIO();
+			io.AddFocusEvent( FocusEvent.GetState() );
+		} break;
+
+		case RubyEventType::DisplayChanged: 
+		{
+		} break;
+
+		case RubyEventType::MouseScroll:
+		{
+			RubyMouseScrollEvent ScrollEvent = ( RubyMouseScrollEvent& ) rEvent;
+			ImGui_ImplRuby_ScrollCallback( ScrollEvent.GetOffsetX(), ScrollEvent.GetOffsetY() );
+		} break;
+	}
+
+	return true;
+}
+
+// ImGui and Ruby event handler (only for the main window)
+class ImGui_ImplRuby_MainEventHandler : public RubyEventTarget
 {
 public:
-	ImGui_ImplRuby_EventHandler() {}
+	ImGui_ImplRuby_MainEventHandler() {}
 
-	~ImGui_ImplRuby_EventHandler() 
+	~ImGui_ImplRuby_MainEventHandler() 
 	{
 		PrevUserEventTarget = nullptr;
 		BackendData = nullptr;
@@ -51,55 +120,8 @@ public:
 		if( PrevUserEventTarget )
 			handled = PrevUserEventTarget->OnEvent( rEvent );
 
-		switch( rEvent.Type )
-		{
-			case RubyEventType::MouseReleased:
-			{
-				RubyMouseEvent MouseEvent = ( RubyMouseEvent& ) rEvent;
-				ImGui_ImplRuby_MouseButtonCallback( BackendData->Window, MouseEvent.GetButton(), false );
-			} break;
-
-			case RubyEventType::MousePressed:
-			{
-				RubyMouseEvent MouseEvent = ( RubyMouseEvent& ) rEvent;
-				ImGui_ImplRuby_MouseButtonCallback( BackendData->Window, MouseEvent.GetButton(), true );
-			} break;
-
-			case RubyEventType::KeyPressed:
-			{
-				RubyKeyEvent KeyEvent = ( RubyKeyEvent& ) rEvent;
-				ImGui_ImplRuby_KeyCallback( BackendData->Window, KeyEvent.GetScancode(), true, KeyEvent.GetModifers() );
-			} break;
-
-			case RubyEventType::KeyReleased:
-			{
-				RubyKeyEvent KeyEvent = ( RubyKeyEvent& ) rEvent;
-				ImGui_ImplRuby_KeyCallback( BackendData->Window, KeyEvent.GetScancode(), false, 0 );
-			} break;
-
-			case RubyEventType::InputCharacter:
-			{
-				RubyCharacterEvent CharEvent = ( RubyCharacterEvent& ) rEvent;
-				ImGui_ImplRuby_CharCallback( CharEvent.GetCharacter() );
-			} break;
-
-			case RubyEventType::MouseEnterWindow:
-			{
-				ImGui_ImplRuby_CursorEnterCallback( BackendData->Window, true );
-			} break;
-
-			case RubyEventType::MouseLeaveWindow:
-			{
-				ImGui_ImplRuby_CursorEnterCallback( BackendData->Window, false );
-			} break;
-
-			case RubyEventType::MouseScroll:
-			{
-				RubyMouseScrollEvent ScrollEvent = ( RubyMouseScrollEvent& ) rEvent;
-				ImGui_ImplRuby_ScrollCallback( ScrollEvent.GetOffsetX(), ScrollEvent.GetOffsetY() );
-			} break;
-		}
-
+		ImGui_ImplRuby_DispatchEvent( rEvent, BackendData->Window );
+		
 		return handled;
 	}
 
@@ -107,6 +129,45 @@ public:
 	RubyEventTarget* PrevUserEventTarget = nullptr;
 	ImGui_ImplRuby_Data* BackendData = nullptr;
 };
+
+// ImGui and Ruby event handler (only for windows that we own, and only if we are using multi-viewports)
+class ImGui_ImplRuby_EventHandler : public RubyEventTarget
+{
+public:
+	ImGui_ImplRuby_EventHandler() {}
+	ImGui_ImplRuby_EventHandler( ImGuiViewport* viewport ) : pViewport( viewport ) {}
+
+	~ImGui_ImplRuby_EventHandler() {}
+
+	bool OnEvent( RubyEvent& rEvent ) override
+	{
+		if( !pViewport )
+			return false;
+
+		ImGui_ImplRuby_DispatchEvent( rEvent, (RubyWindow*)pViewport->PlatformHandle );
+
+		switch( rEvent.Type )
+		{
+			case RubyEventType::WindowMoved:
+				pViewport->PlatformRequestMove = true;
+				break;
+
+			case RubyEventType::Resize:
+				pViewport->PlatformRequestResize = true;
+				break;
+
+			case RubyEventType::Close:
+				pViewport->PlatformRequestClose = true;
+				return false;
+		}
+
+		return true;
+	}
+
+public:
+	ImGuiViewport* pViewport;
+};
+
 
 // Backend data stored in io.BackendPlatformUserData to allow support for multiple Dear ImGui contexts
 // It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
@@ -165,8 +226,9 @@ void ImGui_ImplRuby_KeyCallback( RubyWindow* window, int scancode, bool state, i
 		}
 	}
 
-	io.KeyCtrl = io.KeysDown[ RubyKey::LeftCtrl ] || io.KeysDown[ RubyKey::RightCtrl ];
-	io.KeyAlt = io.KeysDown[ RubyKey::LeftAlt ] || io.KeysDown[ RubyKey::RightAlt ];
+	// Mods do not work right now after megre they will because I'll update ImGui fork.
+	io.KeyCtrl = io.KeysDown[ RubyKey::LeftCtrl ]   || io.KeysDown[ RubyKey::RightCtrl ];
+	io.KeyAlt = io.KeysDown[ RubyKey::LeftAlt ]     || io.KeysDown[ RubyKey::RightAlt ];
 	io.KeyShift = io.KeysDown[ RubyKey::LeftShift ] || io.KeysDown[ RubyKey::LeftAlt ];
 
 #ifdef _WIN32
@@ -233,7 +295,7 @@ static bool ImGui_ImplRuby_Init( RubyWindow* window, bool install_callbacks, Rub
 	bd->Time = 0.0;
 	bd->WantUpdateMonitors = true;
 
-	bd->EventHandler = IM_NEW( ImGui_ImplRuby_EventHandler )();
+	bd->EventHandler = IM_NEW( ImGui_ImplRuby_MainEventHandler )();
 	bd->EventHandler->BackendData = bd;
 	bd->EventHandler->PrevUserEventTarget = bd->Window->GetEventTarget();
 
@@ -399,9 +461,7 @@ static void ImGui_ImplRuby_UpdateMouseCursor()
 		}
 		else
 		{
-			// TODO: This is now broken again.
-			//window->SetMouseCursorMode( RubyCursorMode::Normal );
-			//window->SetMouseCursor( ( RubyCursorType )bd->MouseCursor[ imgui_cursor ] );
+			window->SetMouseCursor( ( RubyCursorType )bd->MouseCursor[ imgui_cursor ] );
 		}
 	}
 }
@@ -421,11 +481,11 @@ static void ImGui_ImplRuby_UpdateMonitors()
 	{
 		ImGuiPlatformMonitor monitor;
 
-		monitor.MainSize = ImVec2( rMonitor.MonitorSize.x, rMonitor.MonitorSize.x );
-		monitor.WorkSize = ImVec2( rMonitor.WorkSize.x, rMonitor.WorkSize.y );
+		monitor.MainSize = ImVec2( ( float ) rMonitor.MonitorSize.x, ( float ) rMonitor.MonitorSize.x );
+		monitor.WorkSize = ImVec2( ( float ) rMonitor.WorkSize.x, ( float ) rMonitor.WorkSize.y );
 
-		monitor.WorkPos = ImVec2( rMonitor.WorkSize.x, rMonitor.WorkSize.y );
-		monitor.MainPos = ImVec2( rMonitor.WorkSize.x, rMonitor.WorkSize.y );
+		monitor.WorkPos = ImVec2( ( float ) rMonitor.MonitorPosition.x, ( float ) rMonitor.MonitorPosition.y );
+		monitor.MainPos = monitor.WorkPos;
 
 		platform_io.Monitors.push_back( monitor );
 	}
@@ -479,10 +539,8 @@ struct ImGui_ImplRuby_ViewportData
 {
 	RubyWindow* Window;
 	bool        WindowOwned;
-	int         IgnoreWindowPosEventFrame;
-	int         IgnoreWindowSizeEventFrame;
 
-	ImGui_ImplRuby_ViewportData()  { Window = NULL; WindowOwned = false; IgnoreWindowSizeEventFrame = IgnoreWindowPosEventFrame = -1; }
+	ImGui_ImplRuby_ViewportData()  { Window = NULL; WindowOwned = false; }
 	~ImGui_ImplRuby_ViewportData() { IM_ASSERT(Window == NULL); }
 };
 
@@ -490,42 +548,6 @@ static void ImGui_ImplRuby_WindowCloseCallback( RubyWindow* window )
 {
 	if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(window))
 		viewport->PlatformRequestClose = true;
-}
-
-// GLFW may dispatch window pos/size events after calling glfwSetWindowPos()/glfwSetWindowSize().
-// However: depending on the platform the callback may be invoked at different time:
-// - on Windows it appears to be called within the glfwSetWindowPos()/glfwSetWindowSize() call
-// - on Linux it is queued and invoked during glfwPollEvents()
-// Because the event doesn't always fire on glfwSetWindowXXX() we use a frame counter tag to only
-// ignore recent glfwSetWindowXXX() calls.
-static void ImGui_ImplRuby_WindowPosCallback( RubyWindow* window, int, int)
-{
-	if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(window))
-	{
-		if (ImGui_ImplRuby_ViewportData* vd = (ImGui_ImplRuby_ViewportData*)viewport->PlatformUserData)
-		{
-			bool ignore_event = (ImGui::GetFrameCount() <= vd->IgnoreWindowPosEventFrame + 1);
-			//data->IgnoreWindowPosEventFrame = -1;
-			if (ignore_event)
-				return;
-		}
-		viewport->PlatformRequestMove = true;
-	}
-}
-
-static void ImGui_ImplRuby_WindowSizeCallback( RubyWindow* window, int, int)
-{
-	if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(window))
-	{
-		if (ImGui_ImplRuby_ViewportData* vd = (ImGui_ImplRuby_ViewportData*)viewport->PlatformUserData)
-		{
-			bool ignore_event = (ImGui::GetFrameCount() <= vd->IgnoreWindowSizeEventFrame + 1);
-			//data->IgnoreWindowSizeEventFrame = -1;
-			if (ignore_event)
-				return;
-		}
-		viewport->PlatformRequestResize = true;
-	}
 }
 
 static void ImGui_ImplRuby_CreateWindow(ImGuiViewport* viewport)
@@ -539,11 +561,11 @@ static void ImGui_ImplRuby_CreateWindow(ImGuiViewport* viewport)
 	spec.GraphicsAPI = (RubyGraphicsAPI) bd->ClientApi;
 	spec.Name = "No Name Yet.";
 	spec.ShowNow = false;
-	spec.Width = viewport->Size.x;
-	spec.Height = viewport->Size.y;
+	spec.Width = ( uint32_t ) viewport->Size.x;
+	spec.Height = ( uint32_t ) viewport->Size.y;
 
 	vd->Window = new RubyWindow( spec );
-	vd->Window->SetEventTarget( bd->EventHandler );
+	vd->Window->SetEventTarget( IM_NEW( ImGui_ImplRuby_EventHandler )( viewport ) );
 	vd->WindowOwned = true;
 
 	viewport->PlatformHandleRaw = vd->Window->GetNativeHandle();

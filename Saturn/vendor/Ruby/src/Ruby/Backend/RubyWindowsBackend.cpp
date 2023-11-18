@@ -65,6 +65,43 @@ struct RubyWindowRegister
 
 //////////////////////////////////////////////////////////////////////////
 
+int HandleKeyMods() 
+{
+	int Modifiers = RubyKey::UnknownKey;
+
+	if( GetKeyState( VK_LSHIFT ) & 0x8000 )
+	{
+		Modifiers |= RubyKey::LeftShift;
+	}
+
+	if( GetKeyState( VK_RSHIFT ) & 0x8000 )
+	{
+		Modifiers |= RubyKey::RightShift;
+	}
+
+	if( GetKeyState( VK_LMENU ) & 0x8000 )
+	{
+		Modifiers |= RubyKey::LeftAlt;
+	}
+
+	if( GetKeyState( VK_RMENU ) & 0x8000 )
+	{
+		Modifiers |= RubyKey::RightAlt;
+	}
+
+	if( GetKeyState( VK_LCONTROL ) & 0x8000 )
+	{
+		Modifiers |= RubyKey::LeftCtrl;
+	}
+
+	if( GetKeyState( VK_RCONTROL ) & 0x8000 )
+	{
+		Modifiers |= RubyKey::RightCtrl;
+	}
+
+	return Modifiers;
+}
+
 LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam ) 
 {
 	RubyWindowsBackend* pThis = ( RubyWindowsBackend* ) ::GetPropW( Handle, L"RubyData" );
@@ -77,6 +114,9 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		case WM_QUIT: 
 		case WM_CLOSE:
 		{
+			// Send a last minute event to tell the client that the window is about to close.
+			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::Close );
+
 			pThis->CloseWindow();
 		} break;
 
@@ -109,16 +149,8 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			{
 				pThis->GetParent()->DispatchEvent<RubyMinimizeEvent>( RubyEventType::WindowMinimized, true );
 			}
-			else if( WParam == SIZE_RESTORED )
-			{
-				//pThis->GetParent()->DispatchEvent<RubyMinimizeEvent>( RubyEventType::WindowRestored, true );
-			}
 
 			pThis->GetParent()->DispatchEvent<RubyWindowResizeEvent>( RubyEventType::Resize, static_cast< uint32_t >( width ), static_cast< uint32_t >( height ) );
-		} break;
-
-		case WM_ENTERSIZEMOVE:
-		{
 		} break;
 
 		//////////////////////////////////////////////////////////////////////////
@@ -126,11 +158,26 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 		case WM_WINDOWPOSCHANGING: 
 		{
+			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::WindowMoved );
+
 			if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
 			{
 				pThis->ConfigureClipRect();
 				pThis->RecenterMousePos();
 			}
+		} break;
+
+		//////////////////////////////////////////////////////////////////////////
+		
+		case WM_DISPLAYCHANGE: 
+		{
+			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::DisplayChanged );
+		} break;
+
+		case WM_KILLFOCUS:
+		case WM_SETFOCUS: 
+		{
+			pThis->GetParent()->DispatchEvent<RubyFocusEvent>( RubyEventType::WindowFocus, Msg == WM_SETFOCUS );
 		} break;
 
 		//////////////////////////////////////////////////////////////////////////
@@ -249,37 +296,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		{
 			// In Ruby our key codes match with the Win32 ones.
 			int nativeCode = ( int ) WParam;
-			int Modifiers = RubyKey::UnknownKey;
-
-			if( GetKeyState( VK_LSHIFT ) & 0x8000 )
-			{
-				Modifiers |= RubyKey::LeftShift;
-			}
-
-			if( GetKeyState( VK_RSHIFT ) & 0x8000 )
-			{
-				Modifiers |= RubyKey::RightShift;
-			}
-
-			if( GetKeyState( VK_LMENU ) & 0x8000 )
-			{
-				Modifiers |= RubyKey::LeftAlt;
-			}
-
-			if( GetKeyState( VK_RMENU ) & 0x8000 )
-			{
-				Modifiers |= RubyKey::RightAlt;
-			}
-
-			if( GetKeyState( VK_LCONTROL ) & 0x8000 )
-			{
-				Modifiers |= RubyKey::LeftCtrl;
-			}
-
-			if( GetKeyState( VK_RCONTROL ) & 0x8000 )
-			{
-				Modifiers |= RubyKey::RightCtrl;
-			}
+			int Modifiers = HandleKeyMods();
 
 			pThis->GetParent()->SetKeyDown( ( RubyKey ) nativeCode, true );
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyPressed, nativeCode, Modifiers );
@@ -289,9 +306,10 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		{
 			// In Ruby our key codes match with the Win32 ones.
 			int nativeCode = ( int ) WParam;
+			int Modifiers = HandleKeyMods();
 
 			pThis->GetParent()->SetKeyDown( ( RubyKey ) nativeCode, false );
-			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyReleased, nativeCode, 0 );
+			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyReleased, nativeCode, Modifiers );
 		} break;
 
 		// The WM_CHAR message is sent when a printable character key is pressed.
@@ -362,7 +380,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			{
 				WINDOWPLACEMENT WindowPlacement{ .length = sizeof( WINDOWPLACEMENT ) };
 
-				if( GetWindowPlacement( Handle, &WindowPlacement ) && WindowPlacement.showCmd == SW_MAXIMIZE )
+				if( ::GetWindowPlacement( Handle, &WindowPlacement ) && WindowPlacement.showCmd == SW_MAXIMIZE )
 				{
 					NCCALCSIZE_PARAMS& rParams = *reinterpret_cast< LPNCCALCSIZE_PARAMS >( LParam );
 					const int BorderX = ::GetSystemMetrics( SM_CXFRAME ) + ::GetSystemMetrics( SM_CXPADDEDBORDER );
@@ -450,6 +468,7 @@ void RubyWindowsBackend::Create()
 
 	// Temp:
 	// Ruby supports wstrings as titles however ImGui does not use them so will convert our title into a wstring.
+	// "codecvt_utf8" and "wstring_convert" are going to be removed in C++26
 	std::wstring name = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes( m_pWindow->m_WindowTitle.data() );
 
 	m_Handle = ::CreateWindowEx( 0, DefaultClassName, name.data(), WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, ( int ) m_pWindow->GetWidth(), ( int ) m_pWindow->GetHeight(), NULL, NULL, GetModuleHandle( NULL ), NULL );
@@ -693,26 +712,16 @@ void RubyWindowsBackend::CreateGraphics( RubyGraphicsAPI api )
 			// TODO: Maybe 32 bits for depth.
 
 			// Create Pixel Format Descriptor
-			PIXELFORMATDESCRIPTOR pfd {};
-			pfd = {
-				sizeof( PIXELFORMATDESCRIPTOR ),
-				1,                     
-				PFD_DRAW_TO_WINDOW |  
-				PFD_SUPPORT_OPENGL |
-				PFD_DOUBLEBUFFER,   
-				PFD_TYPE_RGBA,      
-				24,                 
-				0, 0, 0, 0, 0, 0,   
-				0,                  
-				0,                  
-				0,                    
-				0, 0, 0, 0,         
-				32,                 
-				0,                  
-				0,                  
-				PFD_MAIN_PLANE,     
-				0,                  
-				0, 0, 0             
+			PIXELFORMATDESCRIPTOR pfd
+			{
+				.nSize = sizeof( PIXELFORMATDESCRIPTOR ),
+				.nVersion = 1,
+				.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+				.iPixelType = PFD_TYPE_RGBA,
+				.cColorBits = 32,
+				.cDepthBits = 24,
+				.cStencilBits = 8,
+				.iLayerType = PFD_MAIN_PLANE,
 			};
 
 			m_DrawContent = ::GetDC( m_Handle );
@@ -760,7 +769,7 @@ void RubyWindowsBackend::SetMousePos( double x, double y )
 {
 	m_pWindow->SetLastMousePos( { ( int ) x, ( int ) y } );
 
-	POINT newPos { x, y };
+	POINT newPos{ ( int ) x, ( int ) y };
 
 	::ClientToScreen( m_Handle, &newPos );
 	::SetCursorPos( newPos.x, newPos.y );

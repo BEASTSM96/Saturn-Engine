@@ -156,6 +156,20 @@ private:
 	bool m_State = false;
 };
 
+class RubyFocusEvent : public RubyEvent
+{
+public:
+	RubyFocusEvent() = default;
+	RubyFocusEvent( RubyEventType Type, bool state ) : RubyEvent( Type ), m_State( state ) {}
+
+	~RubyFocusEvent() = default;
+
+	bool GetState() const { return m_State; }
+
+private:
+	bool m_State = false;
+};
+
 class RubyMinimizeEvent : public RubyEvent
 {
 public:
