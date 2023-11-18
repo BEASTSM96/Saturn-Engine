@@ -52,11 +52,11 @@ BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMoni
 		::EnumDisplaySettings( MonitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &DevMode );
 		monitor.MonitorPosition = { DevMode.dmPosition.x, DevMode.dmPosition.y };
 		
-		monitor.MonitorSize.x = (float)MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
-		monitor.MonitorSize.y = (float)MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;
+		monitor.MonitorSize.x = MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
+		monitor.MonitorSize.y = MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;
 
-		monitor.WorkSize.x = (float)MonitorInfo.rcWork.right - MonitorInfo.rcWork.left;
-		monitor.WorkSize.y = (float)MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top;
+		monitor.WorkSize.x = MonitorInfo.rcWork.right - MonitorInfo.rcWork.left;
+		monitor.WorkSize.y = MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top;
 
 		s_RubyMonitors.push_back( monitor );
 	}
@@ -79,4 +79,14 @@ std::vector<RubyMonitor> RubyGetAllMonitors()
 	}
 
 	return s_RubyMonitors;
+}
+
+RubyMonitor& RubyGetPrimaryMonitor()
+{
+	if( s_RubyMonitors.size() < 0 )
+		RubyGetAllMonitors();
+
+	auto It = std::find_if( s_RubyMonitors.begin(), s_RubyMonitors.end(), []( auto& rMonitor ) { return rMonitor.Primary; } );
+
+	return *( It );
 }

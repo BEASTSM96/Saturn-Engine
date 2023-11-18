@@ -38,10 +38,13 @@ struct RubyMonitor
 	bool Primary = false;
 	std::wstring Name;
 
-	RubyVec2 WorkSize;
+	int BBP = 0;
+	int DPI = 0;
 
-	RubyVec2 MonitorSize;
+	RubyIVec2 WorkSize;
+	RubyIVec2 MonitorSize;
 	RubyIVec2 MonitorPosition;
 };
 
 extern std::vector<RubyMonitor> RubyGetAllMonitors();
+extern RubyMonitor& RubyGetPrimaryMonitor();
