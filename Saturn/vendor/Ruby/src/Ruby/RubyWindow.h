@@ -75,6 +75,7 @@ public:
 	bool ShouldClose();
 	bool IsKeyDown( RubyKey key );
 	bool IsMouseButtonDown( RubyMouseButton button );
+	bool MouseInWindow();
 
 	double GetTime() { return m_Timer.GetTicks(); }
 

@@ -92,9 +92,9 @@ enum RubyKey
 	F9 = 0x78, F10 = 0x79, F11 = 0x7A, F12 = 0x7B,
 
 	// Modifier keys
-	LeftCtrl = 0xA2, RightCtrl = 0xA3,
-	LeftShift = 0xA0, RightShift = 0xA1,
-	LeftAlt = 0xA4, RightAlt = 0xA5,
+	RightCtrl = 0xA3,
+	RightShift = 0xA1,
+	RightAlt = 0xA5,
 };
 
 enum class RubyMouseButton : uint32_t

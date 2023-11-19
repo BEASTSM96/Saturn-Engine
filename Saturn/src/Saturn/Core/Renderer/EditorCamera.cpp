@@ -91,7 +91,7 @@ namespace Saturn {
 			return;
 		}
 
-		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !Input::Get().KeyPressed( RubyKey::LeftAlt ) )
+		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !Input::Get().KeyPressed( RubyKey::Alt ) )
 		{
 			m_CameraMode = CameraMode::FLYCAM;
 			DisableMouse();
@@ -125,7 +125,7 @@ namespace Saturn {
 			m_FocalPoint = m_Position + GetForwardDirection() * distance;
 			m_Distance = distance;
 		}
-		else if( Input::Get().KeyPressed( RubyKey::LeftAlt ) )
+		else if( Input::Get().KeyPressed( RubyKey::Alt ) )
 		{
 			m_CameraMode = CameraMode::ARCBALL;
 
@@ -167,9 +167,9 @@ namespace Saturn {
 	float EditorCamera::GetCameraSpeed() const
 	{
 		float speed = m_NormalSpeed;
-		if( Input::Get().KeyPressed( RubyKey::LeftCtrl ) )
+		if( Input::Get().KeyPressed( RubyKey::Ctrl ) )
 			speed /= 2 - glm::log( m_NormalSpeed );
-		if( Input::Get().KeyPressed( RubyKey::LeftShift ) )
+		if( Input::Get().KeyPressed( RubyKey::Shift ) )
 			speed *= 2 - glm::log( m_NormalSpeed );
 
 		return glm::clamp( speed, MIN_SPEED, MAX_SPEED );

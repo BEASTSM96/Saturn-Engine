@@ -81,6 +81,8 @@ public:
 	void Focus() override;
 	RubyIVec2 GetWindowPos() override;
 
+	bool MouseInRect() override;
+
 public:
 	void BlockMouseCursor() { m_BlockMouseCursor = true; }
 	void UnblockMouseCursor() { m_BlockMouseCursor = false; }

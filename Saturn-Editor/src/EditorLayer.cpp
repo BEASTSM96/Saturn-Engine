@@ -1068,7 +1068,7 @@ namespace Saturn {
 				break;
 		}
 
-		if( Input::Get().KeyPressed( RubyKey::LeftCtrl ) )
+		if( Input::Get().KeyPressed( RubyKey::Ctrl ) )
 		{
 			switch( rEvent.GetScancode() )
 			{
@@ -1108,7 +1108,7 @@ namespace Saturn {
 				} break;
 			}
 
-			if( Input::Get().KeyPressed( RubyKey::LeftShift ) )
+			if( Input::Get().KeyPressed( RubyKey::Shift ) )
 			{
 				switch( rEvent.GetScancode() )
 				{

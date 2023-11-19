@@ -160,7 +160,7 @@ namespace Saturn {
 
 			if( ItemClicked )
 			{
-				if( Input::Get().KeyPressed( RubyKey::LeftCtrl ) || Input::Get().KeyPressed( RubyKey::RightCtrl ) )
+				if( Input::Get().KeyPressed( RubyKey::Ctrl ) || Input::Get().KeyPressed( RubyKey::RightCtrl ) )
 				{
 					m_MultiSelected = !m_MultiSelected;
 				}
@@ -192,7 +192,7 @@ namespace Saturn {
 				auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
 				const wchar_t* c = path.c_str();
 
-				if( Input::Get().KeyPressed( RubyKey::LeftCtrl ) || Input::Get().KeyPressed( RubyKey::RightCtrl ) )
+				if( Input::Get().KeyPressed( RubyKey::Ctrl ) || Input::Get().KeyPressed( RubyKey::RightCtrl ) )
 				{
 					if ( m_IsSelected )
 					{

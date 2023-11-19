@@ -80,6 +80,7 @@ public:
 	virtual void Focus() = 0;
 
 	virtual RubyIVec2 GetWindowPos() = 0;
+	virtual bool MouseInRect() = 0;
 
 public:
 	virtual void PollEvents() = 0;

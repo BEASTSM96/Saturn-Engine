@@ -71,7 +71,7 @@ int HandleKeyMods()
 
 	if( GetKeyState( VK_LSHIFT ) & 0x8000 )
 	{
-		Modifiers |= RubyKey::LeftShift;
+		Modifiers |= RubyKey::Shift;
 	}
 
 	if( GetKeyState( VK_RSHIFT ) & 0x8000 )
@@ -81,7 +81,7 @@ int HandleKeyMods()
 
 	if( GetKeyState( VK_LMENU ) & 0x8000 )
 	{
-		Modifiers |= RubyKey::LeftAlt;
+		Modifiers |= RubyKey::Alt;
 	}
 
 	if( GetKeyState( VK_RMENU ) & 0x8000 )
@@ -91,7 +91,7 @@ int HandleKeyMods()
 
 	if( GetKeyState( VK_LCONTROL ) & 0x8000 )
 	{
-		Modifiers |= RubyKey::LeftCtrl;
+		Modifiers |= RubyKey::Ctrl;
 	}
 
 	if( GetKeyState( VK_RCONTROL ) & 0x8000 )
@@ -854,4 +854,15 @@ RubyIVec2 RubyWindowsBackend::GetWindowPos()
 	::MapWindowPoints( HWND_DESKTOP, ::GetParent( m_Handle ), (LPPOINT)&WindowRect, 2 );
 
 	return { WindowRect.left, WindowRect.top };
+}
+
+bool RubyWindowsBackend::MouseInRect()
+{
+	RECT WindowRect;
+	POINT MousePos;
+
+	::GetWindowRect( m_Handle, &WindowRect );
+	::GetCursorPos( &MousePos );
+
+	return ::PtInRect( &WindowRect, MousePos );
 }

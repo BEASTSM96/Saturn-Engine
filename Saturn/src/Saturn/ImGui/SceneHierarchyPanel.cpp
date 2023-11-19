@@ -232,7 +232,7 @@ namespace Saturn {
 		if( !m_IsPrefabScene )
 			ImGui::End();
 
-		if( Input::Get().KeyPressed( RubyKey::LeftCtrl ) || Input::Get().KeyPressed( RubyKey::RightCtrl ) )
+		if( Input::Get().KeyPressed( RubyKey::Ctrl ) || Input::Get().KeyPressed( RubyKey::RightCtrl ) )
 		{
 			m_IsMultiSelecting = true;
 		}

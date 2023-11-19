@@ -204,6 +204,11 @@ bool RubyWindow::IsMouseButtonDown( RubyMouseButton button )
 	return m_CurrentMouseButton == button;
 }
 
+bool RubyWindow::MouseInWindow()
+{
+	return m_pDefaultBackend->MouseInRect();
+}
+
 void* RubyWindow::GetNativeHandle()
 {
 	return (void*)m_pDefaultBackend->GetNativeHandle();
