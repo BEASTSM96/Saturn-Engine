@@ -49,7 +49,7 @@ namespace Saturn {
 
 		void OnImGuiRender() override;
 
-		void OnEvent( Event& rEvent ) override;
+		void OnEvent( RubyEvent& rEvent ) override;
 		
 		void SaveFileAs();
 		void OpenFile( const std::filesystem::path& rFilepath );
@@ -68,7 +68,7 @@ namespace Saturn {
 		
 		void SelectionChanged( Ref<Entity> e );
 		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
-		bool OnKeyPressed( KeyPressedEvent& rEvent );
+		bool OnKeyPressed( RubyKeyEvent& rEvent );
 
 		// UI Functions.
 		void UI_Titlebar_UserSettings();

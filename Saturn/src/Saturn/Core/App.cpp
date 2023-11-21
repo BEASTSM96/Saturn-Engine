@@ -29,7 +29,8 @@
 #include "sppch.h"
 #include "App.h"
 
-#include "Window.h"
+#include "Ruby/RubyWindow.h"
+#include "Ruby/RubyMonitor.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/VulkanContext.h"
@@ -42,9 +43,6 @@
 #include "Saturn/Audio/AudioSystem.h"
 
 #include "Saturn/Asset/AssetManager.h"
-
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -65,17 +63,30 @@ namespace Saturn {
 	{
 		SingletonStorage::Get().AddSingleton( this );
 
-		// This may not be the best way... but its better than lazy loading.
-		m_Window = new Window();
+		std::vector<RubyMonitor> monitors = RubyGetAllMonitors();
+		uint32_t width = 0, height = 0;
+
+		// TODO: Once we have a better monitor API this will be much better.
+		for( const auto& monitor : monitors ) 
+		{
+			if( monitor.Primary )
+			{
+				width = 3 * monitor.MonitorSize.x / 4;
+				height = 3 * monitor.MonitorSize.y / 4;
+			}
+		}
+
+		RubyWindowSpecification windowSpec { .Name = "Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = RubyStyle::Borderless, .ShowNow = false };
+		m_Window = new RubyWindow( windowSpec );
+		m_Window->SetEventTarget( this );
+
+		// This may not be the best way... but it's better than lazy loading.
 		m_VulkanContext = new VulkanContext();
 
 		m_VulkanContext->Init();
 
 		m_SceneRenderer = new SceneRenderer();
 
-		m_Window->SetEventCallback( APP_BIND_EVENT_FN( OnEvent ) );
-
-		m_Window->RemoveBorder();
 		m_Window->Show();
 
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
@@ -103,16 +114,14 @@ namespace Saturn {
 		{
 			SAT_PF_FRAME("Master Thread");
 
-			Window::Get().Update();
+			m_Window->PollEvents();
 		
 			for( auto&& fn : m_MainThreadQueue )
 				fn();
 
 			m_MainThreadQueue.clear();
 
-			Window::Get().OnUpdate();
-
-			if( !Window::Get().Minimized() )
+			if( !m_Window->Minimized() )
 			{
 				Renderer::Get().BeginFrame();
 				{
@@ -131,7 +140,7 @@ namespace Saturn {
 			// Execute render thread (last frame).
 			RenderThread::Get().WaitAll();
 
-			float time = ( float ) glfwGetTime();
+			float time = ( float ) m_Window->GetTime();
 
 			float frametime = time - m_LastFrameTime;
 
@@ -251,31 +260,38 @@ namespace Saturn {
 		}
 	}
 
-	void Application::OnEvent( Event& e )
+	bool Application::OnEvent( RubyEvent& rEvent )
 	{
-		EventDispatcher dispatcher( e );
+		switch( rEvent.Type )
+		{
+			case RubyEventType::Resize:
+			{
+				OnWindowResize( ( RubyWindowResizeEvent& )rEvent );
+			} break;
+		}
 
-		dispatcher.Dispatch< WindowResizeEvent >( APP_BIND_EVENT_FN( OnWindowResize ) );
+		VulkanContext::Get().OnEvent( rEvent );
 
-		VulkanContext::Get().OnEvent( e );
+		if( m_ImGuiLayer )
+			m_ImGuiLayer->OnEvent( rEvent );
 
-		if( m_ImGuiLayer != nullptr )
-			m_ImGuiLayer->OnEvent( e );
-		
+		// Pass events to layers, this is the only place in the engine where we actually care if an event is handled or not.
 		// Process Events backwards. This is so that if we are in a game and we click a button if the first layer gets that event it might shoot in the game however we wanted to click a button not shoot.
 		for( auto itr = m_Layers.end(); itr != m_Layers.begin(); )
 		{
-			( *--itr )->OnEvent( e );
+			( *--itr )->OnEvent( rEvent );
 
-			if( e.Handled )
+			if( rEvent.Handled )
 				break;
 		}
+
+		return true;
 	}
 
-	bool Application::OnWindowResize( WindowResizeEvent& e )
+	bool Application::OnWindowResize( RubyWindowResizeEvent& e )
 	{
-		int width = e.Width(), height = e.Height();
-		
+		int width = e.GetWidth(), height = e.GetHeight();
+
 		if( width == 0 && height == 0 )
 			return false;
 		
@@ -292,7 +308,7 @@ namespace Saturn {
 
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
-		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
+		ofn.hwndOwner = ( HWND ) m_Window->GetNativeHandle();
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof( szFile );
 		ofn.lpstrFilter = pFilter;
@@ -320,7 +336,7 @@ namespace Saturn {
 
 		ZeroMemory( &ofn, sizeof( OPENFILENAME ) );
 		ofn.lStructSize = sizeof( OPENFILENAME );
-		ofn.hwndOwner = glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() );
+		ofn.hwndOwner = ( HWND ) m_Window->GetNativeHandle();
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof( szFile );
 		ofn.lpstrFilter = pFilter;

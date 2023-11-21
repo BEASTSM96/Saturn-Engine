@@ -11,6 +11,7 @@
 //------------------------------------------------------------------------------
 # include "builders.h"
 # define IMGUI_DEFINE_MATH_OPERATORS
+# include <imgui.h>
 # include <imgui_internal.h>
 
 
@@ -68,11 +69,7 @@ void util::BlueprintNodeBuilder::End()
 				HeaderMin - ImVec2( 8 - halfBorderWidth, 4 - halfBorderWidth ),
 				HeaderMax + ImVec2( 8 - halfBorderWidth, 0 ),
 				ImVec2( 0.0f, 0.0f ), uv,
-#if IMGUI_VERSION_NUM > 18101
 				headerColor, GetStyle().NodeRounding, ImDrawFlags_RoundCornersTop );
-#else
-				headerColor, GetStyle().NodeRounding, 1 | 2);
-#endif
 
 
 			auto headerSeparatorMin = ImVec2( HeaderMin.x, HeaderMax.y );

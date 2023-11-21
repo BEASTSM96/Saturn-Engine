@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2023 BEAST                                                           *
+* Copyright (c) 2023 BEAST                                                           		*
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -28,45 +28,70 @@
 
 #pragma once
 
-#include "AssetViewer.h"
-#include "Saturn/Asset/Prefab.h"
-#include "Saturn/Vulkan/SceneRenderer.h"
+#include "RubyCore.h"
 
-#include "TitleBar.h"
-#include "SceneHierarchyPanel.h"
+#include <string>
+#include <stdint.h>
 
-#include <imgui.h>
+#if defined( RBY_INCLUDE_VULKAN )
+#include <vulkan.h>
+#endif
 
-namespace Saturn {
+struct RubyWindowSpecification;
+class RubyWindow;
 
-	class SceneRenderer;
-	class EditorCamera;
+class RBY_API RubyBackendBase
+{
+public:
+	RubyBackendBase() {}
+	virtual ~RubyBackendBase() = default;
 
-	class PrefabViewer : public AssetViewer
-	{
-	public:
-		PrefabViewer( AssetID id );
-		~PrefabViewer();
+public:
+	virtual void Create() = 0;
+	virtual void DestroyWindow() = 0;
 
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override;
-		virtual void OnEvent( RubyEvent& rEvent ) override;
+	virtual void CloseWindow() = 0;
+	virtual void PresentWindow() = 0;
 
-		void AddPrefab();
-	private:
-		Ref<Prefab> m_Prefab;
-		Ref<SceneRenderer> m_SceneRenderer;
-		EditorCamera m_Camera;
+	virtual void ResizeWindow( uint32_t Width, uint32_t Height ) = 0;
+	virtual void SetTitle( std::string_view Title ) = 0;
+	virtual void CreateGraphics( RubyGraphicsAPI api ) = 0;
+	virtual void IssueSwapBuffers() = 0;
 
-		TitleBar* m_Titlebar;
+	virtual void Maximize() = 0;
+	virtual void Minimize() = 0;
+	virtual void Restore() = 0;
 
-		bool m_AllowCameraEvents = false;
-		bool m_StartedRightClickInViewport = false;
-		bool m_ViewportFocused = false;
-		bool m_MouseOverViewport = false;
+	virtual void MoveWindow( int x, int y ) = 0;
 
-		ImVec2 m_ViewportSize{};
+	virtual void SetMousePos( double x, double y ) = 0;
+	virtual void GetMousePos( double* x, double* y ) = 0;
 
-		Ref<SceneHierarchyPanel> m_SceneHierarchyPanel;
-	};
-}
+	virtual void* GetNativeHandle() = 0;
+
+	virtual VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) = 0;
+
+	virtual bool Minimized() = 0;
+	virtual bool Maximized() = 0;
+	virtual bool Focused() = 0;
+
+	virtual void SetMouseCursor( RubyCursorType Cursor ) = 0;
+	virtual void SetMouseCursorMode( RubyCursorMode mode ) = 0;
+	virtual void Focus() = 0;
+
+	virtual RubyIVec2 GetWindowPos() = 0;
+	virtual bool MouseInRect() = 0;
+
+public:
+	virtual void PollEvents() = 0;
+	virtual bool PendingClose() = 0;
+
+protected:
+	bool m_ShouldClose = false;
+	bool m_BlockMouseCursor = false;
+
+	RubyWindowSpecification m_WindowSpecification{};
+	RubyWindow* m_pWindow = nullptr;
+private:
+	friend class RubyWindow;
+};

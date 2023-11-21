@@ -12,7 +12,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
-IncludeDir["GLFW"] = "Saturn/vendor/GLFW/include"
+IncludeDir["Ruby"] = "Saturn/vendor/Ruby/src"
 IncludeDir["ImGui"] = "Saturn/vendor/imgui"
 IncludeDir["glm"] = "Saturn/vendor/glm"
 IncludeDir["entt"] = "Saturn/vendor/entt/include"
@@ -31,7 +31,7 @@ IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["SharedStorage"] = "SharedStorage/src"
 
 group "Dependencies"
-	include "Saturn/vendor/GLFW"
+	include "Saturn/vendor/Ruby"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
@@ -76,9 +76,8 @@ project "Saturn"
 		"GLM_ENABLE_EXPERIMENTAL",
 		"SATURN_SS_IMPORT",
 		"GLFW_DLL",
-		"TRACY_ENABLE"
-		--"GLM_FORCE_QUAT_DATA_XYZW"
-		--"GLM_FORCE_LEFT_HANDED"
+		"TRACY_ENABLE",
+		"RBY_INCLUDE_VULKAN"
 	}
 
 	includedirs
@@ -87,7 +86,7 @@ project "Saturn"
 		"%{prj.name}/vendor/stb/",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/vendor/vulkan/include",
-		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -111,7 +110,7 @@ project "Saturn"
 
 	links 
 	{
-		"GLFW",
+		"Ruby",
 		"ImGui",
 		"SPIRV-Cross",
 		"yaml-cpp",
@@ -262,7 +261,7 @@ project "Saturn-Editor"
 		"Saturn/vendor/spdlog/include",
 		"Saturn/src",
 		"Saturn/vendor",
-		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -308,7 +307,7 @@ project "Saturn-Editor"
 		{ 
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
+			--'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
 		}
 
 	filter "configurations:Release"
@@ -319,7 +318,7 @@ project "Saturn-Editor"
 		postbuildcommands 
 		{ 
 			'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+			--'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Dist"
@@ -331,7 +330,7 @@ project "Saturn-Editor"
 		postbuildcommands 
 		{ 
 			'{COPY} "../bin/Dist-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-			'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+			--'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Dist or configurations:Release"

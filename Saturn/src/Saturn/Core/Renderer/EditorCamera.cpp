@@ -33,7 +33,6 @@
 
 #include <imgui.h>
 
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
 #include <glm/gtx/quaternion.hpp>
@@ -70,13 +69,13 @@ namespace Saturn {
 
 	static void DisableMouse()
 	{
-		Input::Get().SetCursorMode( CursorMode::Locked );
+		Input::Get().SetCursorMode( RubyCursorMode::Locked );
 		SetMouseEnabled( false );
 	}
 
 	static void EnableMouse()
 	{
-		Input::Get().SetCursorMode( CursorMode::Normal );
+		Input::Get().SetCursorMode( RubyCursorMode::Normal );
 		SetMouseEnabled( true );
 	}
 
@@ -92,7 +91,7 @@ namespace Saturn {
 			return;
 		}
 
-		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !Input::Get().KeyPressed( Key::LeftAlt ) )
+		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !Input::Get().KeyPressed( RubyKey::Alt ) )
 		{
 			m_CameraMode = CameraMode::FLYCAM;
 			DisableMouse();
@@ -100,17 +99,17 @@ namespace Saturn {
 
 			const float speed = GetCameraSpeed();
 
-			if( Input::Get().KeyPressed( Key::Q ) )
+			if( Input::Get().KeyPressed( RubyKey::Q ) )
 				m_PositionDelta -= ts.Milliseconds() * speed * glm::vec3{ 0.f, yawSign, 0.f };
-			if( Input::Get().KeyPressed( Key::E ) )
+			if( Input::Get().KeyPressed( RubyKey::E ) )
 				m_PositionDelta += ts.Milliseconds() * speed * glm::vec3{ 0.f, yawSign, 0.f };
-			if( Input::Get().KeyPressed( Key::S ) )
+			if( Input::Get().KeyPressed( RubyKey::S ) )
 				m_PositionDelta -= ts.Milliseconds() * speed * m_Rotation;
-			if( Input::Get().KeyPressed( Key::W ) )
+			if( Input::Get().KeyPressed( RubyKey::W ) )
 				m_PositionDelta += ts.Milliseconds() * speed * m_Rotation;
-			if( Input::Get().KeyPressed( Key::A ) )
+			if( Input::Get().KeyPressed( RubyKey::A ) )
 				m_PositionDelta -= ts.Milliseconds() * speed * m_RightDirection;
-			if( Input::Get().KeyPressed( Key::D ) )
+			if( Input::Get().KeyPressed( RubyKey::D ) )
 				m_PositionDelta += ts.Milliseconds() * speed * m_RightDirection;
 
 			constexpr float maxRate{ 0.12f };
@@ -126,21 +125,21 @@ namespace Saturn {
 			m_FocalPoint = m_Position + GetForwardDirection() * distance;
 			m_Distance = distance;
 		}
-		else if( Input::Get().KeyPressed( Key::LeftAlt ) )
+		else if( Input::Get().KeyPressed( RubyKey::Alt ) )
 		{
 			m_CameraMode = CameraMode::ARCBALL;
 
-			if( Input::Get().MouseButtonPressed( Mouse::Middle ) )
+			if( Input::Get().MouseButtonPressed( RubyMouseButton::Middle ) )
 			{
 				DisableMouse();
 				MousePan( delta );
 			}
-			else if( Input::Get().MouseButtonPressed( Mouse::Left ) )
+			else if( Input::Get().MouseButtonPressed( RubyMouseButton::Left ) )
 			{
 				DisableMouse();
 				MouseRotate( delta );
 			}
-			else if( Input::Get().MouseButtonPressed( Mouse::Right ) )
+			else if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
 			{
 				DisableMouse();
 				MouseZoom( delta.x + delta.y );
@@ -168,9 +167,9 @@ namespace Saturn {
 	float EditorCamera::GetCameraSpeed() const
 	{
 		float speed = m_NormalSpeed;
-		if( Input::Get().KeyPressed( Key::LeftControl ) )
+		if( Input::Get().KeyPressed( RubyKey::Ctrl ) )
 			speed /= 2 - glm::log( m_NormalSpeed );
-		if( Input::Get().KeyPressed( Key::LeftShift ) )
+		if( Input::Get().KeyPressed( RubyKey::Shift ) )
 			speed *= 2 - glm::log( m_NormalSpeed );
 
 		return glm::clamp( speed, MIN_SPEED, MAX_SPEED );
@@ -234,22 +233,22 @@ namespace Saturn {
 		return speed;
 	}
 
-	void EditorCamera::OnEvent( Event& event )
+	void EditorCamera::OnEvent( RubyEvent& event )
 	{
-		EventDispatcher dispatcher( event );
-		dispatcher.Dispatch<MouseScrolledEvent>( [this]( MouseScrolledEvent& e ) { return OnMouseScroll( e ); } );
+		if( event.Type == RubyEventType::MouseScroll )
+			OnMouseScroll( (RubyMouseScrollEvent&) event );
 	}
 
-	bool EditorCamera::OnMouseScroll( MouseScrolledEvent& e )
+	bool EditorCamera::OnMouseScroll( RubyMouseScrollEvent& e )
 	{
-		if( Input::Get().MouseButtonPressed( Mouse::Right ) )
+		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
 		{
-			m_NormalSpeed += e.YOffset() * 0.3f * m_NormalSpeed;
+			m_NormalSpeed += e.GetOffsetY() * 0.3f * m_NormalSpeed;
 			m_NormalSpeed = std::clamp( m_NormalSpeed, MIN_SPEED, MAX_SPEED );
 		}
 		else
 		{
-			MouseZoom( e.YOffset() * 0.1f );
+			MouseZoom( e.GetOffsetY() * 0.1f );
 			UpdateCameraView();
 		}
 

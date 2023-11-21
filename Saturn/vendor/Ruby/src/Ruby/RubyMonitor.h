@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2023 BEAST                                                           *
+* Copyright (c) 2023 BEAST                                                           		*
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -28,45 +28,23 @@
 
 #pragma once
 
-#include "AssetViewer.h"
-#include "Saturn/Asset/Prefab.h"
-#include "Saturn/Vulkan/SceneRenderer.h"
+#include "RubyCore.h"
 
-#include "TitleBar.h"
-#include "SceneHierarchyPanel.h"
+#include <string>
+#include <vector>
 
-#include <imgui.h>
+struct RubyMonitor
+{
+	bool Primary = false;
+	std::wstring Name;
 
-namespace Saturn {
+	int BBP = 0;
+	int DPI = 0;
 
-	class SceneRenderer;
-	class EditorCamera;
+	RubyIVec2 WorkSize;
+	RubyIVec2 MonitorSize;
+	RubyIVec2 MonitorPosition;
+};
 
-	class PrefabViewer : public AssetViewer
-	{
-	public:
-		PrefabViewer( AssetID id );
-		~PrefabViewer();
-
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override;
-		virtual void OnEvent( RubyEvent& rEvent ) override;
-
-		void AddPrefab();
-	private:
-		Ref<Prefab> m_Prefab;
-		Ref<SceneRenderer> m_SceneRenderer;
-		EditorCamera m_Camera;
-
-		TitleBar* m_Titlebar;
-
-		bool m_AllowCameraEvents = false;
-		bool m_StartedRightClickInViewport = false;
-		bool m_ViewportFocused = false;
-		bool m_MouseOverViewport = false;
-
-		ImVec2 m_ViewportSize{};
-
-		Ref<SceneHierarchyPanel> m_SceneHierarchyPanel;
-	};
-}
+extern std::vector<RubyMonitor> RubyGetAllMonitors();
+extern RubyMonitor& RubyGetPrimaryMonitor();

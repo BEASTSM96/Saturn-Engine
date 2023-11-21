@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2023 BEAST                                                           *
+* Copyright (c) 2023 BEAST                                                           		*
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -28,45 +28,37 @@
 
 #pragma once
 
-#include "AssetViewer.h"
-#include "Saturn/Asset/Prefab.h"
-#include "Saturn/Vulkan/SceneRenderer.h"
+#include "RubyCore.h"
 
-#include "TitleBar.h"
-#include "SceneHierarchyPanel.h"
+#include <chrono>
 
-#include <imgui.h>
+#if defined(_WIN32)
+#include <Windows.h>
+#endif
 
-namespace Saturn {
-
-	class SceneRenderer;
-	class EditorCamera;
-
-	class PrefabViewer : public AssetViewer
+class RBY_API RubyPerfTimer
+{
+public:
+	RubyPerfTimer()
 	{
-	public:
-		PrefabViewer( AssetID id );
-		~PrefabViewer();
+#if defined( _WIN32 )
+		QueryPerformanceFrequency( ( LARGE_INTEGER* ) &m_Frequency );
+		QueryPerformanceCounter( ( LARGE_INTEGER* ) &m_InitTime );
+#endif
+	}
 
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override;
-		virtual void OnEvent( RubyEvent& rEvent ) override;
+	double GetTicks() 
+	{
+#if defined(_WIN32)
+		uint64_t ticks;
+		QueryPerformanceCounter( (LARGE_INTEGER*) &ticks );
+		return ( double )( ticks - m_InitTime ) / m_Frequency;
+#endif
+	}
 
-		void AddPrefab();
-	private:
-		Ref<Prefab> m_Prefab;
-		Ref<SceneRenderer> m_SceneRenderer;
-		EditorCamera m_Camera;
-
-		TitleBar* m_Titlebar;
-
-		bool m_AllowCameraEvents = false;
-		bool m_StartedRightClickInViewport = false;
-		bool m_ViewportFocused = false;
-		bool m_MouseOverViewport = false;
-
-		ImVec2 m_ViewportSize{};
-
-		Ref<SceneHierarchyPanel> m_SceneHierarchyPanel;
-	};
-}
+private:
+#if defined(_WIN32)
+	uint64_t m_Frequency = 0;
+	uint64_t m_InitTime = 0;
+#endif
+};

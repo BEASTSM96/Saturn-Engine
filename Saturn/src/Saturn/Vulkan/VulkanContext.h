@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Base.h"
-#include "Saturn/Core/Window.h"
 #include "Saturn/Core/App.h"
 #include "Saturn/Core/Renderer/EditorCamera.h"
 #include "Shader.h"
@@ -117,7 +116,7 @@ namespace Saturn {
 
 		VkSampleCountFlagBits GetMaxUsableMSAASamples();
 
-		void OnEvent( Event& e );
+		void OnEvent( RubyEvent& e );
 
 		VkImageView GetDepthImageView() { return m_DepthImage->GetImageView(); }
 		VkImage GetDepthImage() { return m_DepthImage->GetImage(); }

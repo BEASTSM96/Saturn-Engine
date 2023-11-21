@@ -83,7 +83,7 @@ namespace Saturn {
 		}
 	}
 
-	void AssetViewer::ProcessEvent( Event& rEvent )
+	void AssetViewer::ProcessEvent( RubyEvent& rEvent )
 	{
 		CheckForDeadViewers();
 

@@ -30,7 +30,7 @@
 
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/Core/Input.h"
-#include "Saturn/Core/Events.h"
+#include "Ruby/RubyEvent.h"
 #include "Camera.h"
 
 namespace Saturn {
@@ -48,7 +48,7 @@ namespace Saturn {
 
 		void Focus( const glm::vec3& focusPoint );
 		void OnUpdate( Timestep ts );
-		void OnEvent( Event& e );
+		void OnEvent( RubyEvent& e );
 
 		bool IsActive() const { return m_IsActive; }
 		void SetActive( bool active ) { m_IsActive = active; }
@@ -79,7 +79,7 @@ namespace Saturn {
 	private:
 		void UpdateCameraView();
 
-		bool OnMouseScroll( MouseScrolledEvent& e );
+		bool OnMouseScroll( RubyMouseScrollEvent& e );
 
 		void MousePan( const glm::vec2& delta );
 		void MouseRotate( const glm::vec2& delta );

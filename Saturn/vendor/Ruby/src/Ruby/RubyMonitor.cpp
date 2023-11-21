@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2023 BEAST                                                           *
+* Copyright (c) 2023 BEAST                                                           		*
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -26,47 +26,67 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "RubyMonitor.h"
 
-#include "AssetViewer.h"
-#include "Saturn/Asset/Prefab.h"
-#include "Saturn/Vulkan/SceneRenderer.h"
+#if defined(_WIN32)
+#include <windows.h>
+#endif
 
-#include "TitleBar.h"
-#include "SceneHierarchyPanel.h"
+static std::vector<RubyMonitor> s_RubyMonitors;
 
-#include <imgui.h>
+#if defined(_WIN32)
+BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMonitor, LPARAM DWData ) 
+{
+	MONITORINFOEX MonitorInfo{};
+	MonitorInfo.cbSize = sizeof( MONITORINFOEX );
 
-namespace Saturn {
-
-	class SceneRenderer;
-	class EditorCamera;
-
-	class PrefabViewer : public AssetViewer
+	if( GetMonitorInfo( Monitor, &MonitorInfo ) )
 	{
-	public:
-		PrefabViewer( AssetID id );
-		~PrefabViewer();
+		RubyMonitor monitor;
+		monitor.Primary = MonitorInfo.dwFlags & MONITORINFOF_PRIMARY;
+		monitor.Name = MonitorInfo.szDevice;
 
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override;
-		virtual void OnEvent( RubyEvent& rEvent ) override;
+		DEVMODE DevMode{};
+		DevMode.dmSize = sizeof( DevMode );
 
-		void AddPrefab();
-	private:
-		Ref<Prefab> m_Prefab;
-		Ref<SceneRenderer> m_SceneRenderer;
-		EditorCamera m_Camera;
+		::EnumDisplaySettings( MonitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &DevMode );
+		monitor.MonitorPosition = { DevMode.dmPosition.x, DevMode.dmPosition.y };
+		
+		monitor.MonitorSize.x = MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
+		monitor.MonitorSize.y = MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;
 
-		TitleBar* m_Titlebar;
+		monitor.WorkSize.x = MonitorInfo.rcWork.right - MonitorInfo.rcWork.left;
+		monitor.WorkSize.y = MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top;
 
-		bool m_AllowCameraEvents = false;
-		bool m_StartedRightClickInViewport = false;
-		bool m_ViewportFocused = false;
-		bool m_MouseOverViewport = false;
+		s_RubyMonitors.push_back( monitor );
+	}
 
-		ImVec2 m_ViewportSize{};
+	return TRUE;
+}
+#endif
 
-		Ref<SceneHierarchyPanel> m_SceneHierarchyPanel;
-	};
+std::vector<RubyMonitor> RubyGetAllMonitors()
+{
+	int Monitors = GetSystemMetrics( SM_CMONITORS );
+
+	if( s_RubyMonitors.size() != Monitors )
+	{
+		s_RubyMonitors.clear();
+
+#if defined(_WIN32)
+		::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, 0 );
+#endif
+	}
+
+	return s_RubyMonitors;
+}
+
+RubyMonitor& RubyGetPrimaryMonitor()
+{
+	if( s_RubyMonitors.size() < 0 )
+		RubyGetAllMonitors();
+
+	auto It = std::find_if( s_RubyMonitors.begin(), s_RubyMonitors.end(), []( auto& rMonitor ) { return rMonitor.Primary; } );
+
+	return *( It );
 }

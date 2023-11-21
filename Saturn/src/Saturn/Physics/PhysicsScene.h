@@ -51,7 +51,7 @@ namespace Saturn {
 		void CreateScene();
 		void Update( Timestep ts );
 
-		bool Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance, RaycastHitResult* pOut );
+		[[nodiscard]] bool Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance, RaycastHitResult* pOut );
 
 	private:
 		void AddToScene( physx::PxRigidActor& rBody );

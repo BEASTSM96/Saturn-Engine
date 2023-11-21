@@ -41,8 +41,8 @@ namespace Saturn {
 
 		void OnUpdate( Timestep time ) override;
 		void OnImGuiRender() override;
-		void OnEvent( Event& rEvent ) override;
-		bool OnWindowResize( WindowResizeEvent& e );
+		void OnEvent( RubyEvent& rEvent ) override;
+		bool OnWindowResize( RubyWindowResizeEvent& e );
 
 	private:
 		void OpenFile( const std::filesystem::path& rFilepath );

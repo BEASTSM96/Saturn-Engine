@@ -69,7 +69,7 @@ namespace Saturn {
 
 		virtual void OnImGuiRender() override;
 		virtual void OnUpdate( Timestep ts ) override {}
-		virtual void OnEvent( Event& rEvent ) override {}
+		virtual void OnEvent( RubyEvent& rEvent ) override {}
 
 		void Open( bool open ) { m_Open = open; }
 

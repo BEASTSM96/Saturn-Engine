@@ -34,8 +34,8 @@
 
 #include "Panel/Panel.h"
 
-#include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui.h>
 #include <imgui_internal.h>
 
 namespace Saturn {

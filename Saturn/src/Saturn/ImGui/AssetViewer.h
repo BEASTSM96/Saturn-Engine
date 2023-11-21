@@ -29,7 +29,7 @@
 #pragma once
 
 #include "Saturn/Asset/Asset.h"
-#include "Saturn/Core/Events.h"
+#include "Ruby/RubyEvent.h"
 
 #include <unordered_map>
 
@@ -46,7 +46,7 @@ namespace Saturn {
 		// This function is to only be used when a asset viewer has a SceneRenderer as this will be called after the main renderer is complete.
 		virtual void OnUpdate( Timestep ts ) = 0;
 
-		virtual void OnEvent( Event& rEvent ) = 0;
+		virtual void OnEvent( RubyEvent& rEvent ) = 0;
 
 		bool IsOpen() { return m_Open; }
 
@@ -60,7 +60,7 @@ namespace Saturn {
 
 		static void Draw();
 		static void Update( Timestep ts );
-		static void ProcessEvent( Event& rEvent );
+		static void ProcessEvent( RubyEvent& rEvent );
 		static void DestoryViewer( AssetID ID );
 
 	protected:

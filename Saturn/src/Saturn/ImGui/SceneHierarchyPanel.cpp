@@ -175,7 +175,7 @@ namespace Saturn {
 				ClearSelection();
 			}
 
-			if( ImGui::BeginPopupContextWindow( 0, 1, false ) )
+			if( ImGui::BeginPopupContextWindow( 0, ImGuiPopupFlags_MouseButtonRight ) )
 			{
 				if( ImGui::MenuItem( "Create Empty Entity" ) )
 				{
@@ -232,7 +232,7 @@ namespace Saturn {
 		if( !m_IsPrefabScene )
 			ImGui::End();
 
-		if( Input::Get().KeyPressed( Key::LeftControl ) || Input::Get().KeyPressed( Key::RightControl ) )
+		if( Input::Get().KeyPressed( RubyKey::Ctrl ) || Input::Get().KeyPressed( RubyKey::RightCtrl ) )
 		{
 			m_IsMultiSelecting = true;
 		}

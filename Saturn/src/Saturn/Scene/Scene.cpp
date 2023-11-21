@@ -399,6 +399,8 @@ namespace Saturn {
 	{
 		if( m_PhysicsScene )
 			return m_PhysicsScene->Raycast( Origin, Direction, MaxDistance, pOut );
+
+		return false;
 	}
 
 	template<typename ...V>

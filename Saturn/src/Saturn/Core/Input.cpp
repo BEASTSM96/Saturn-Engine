@@ -29,8 +29,9 @@
 #include "sppch.h"
 #include "Input.h"
 
-#include <GLFW/glfw3.h>
-#include "Saturn/Core/Window.h"
+#include "App.h"
+
+#include <Ruby/RubyWindow.h>
 
 #include <vector>
 
@@ -41,20 +42,14 @@ namespace Saturn {
 		SingletonStorage::Get().AddSingleton( this );
 	}
 
-	bool Input::KeyPressed( KeyCode key )
+	bool Input::KeyPressed( RubyKey key )
 	{
-		auto& window = Window::Get();
-		auto state = glfwGetKey( static_cast< GLFWwindow* >( window.NativeWindow() ), static_cast< int32_t >( key ) );
-
-		return state == GLFW_PRESS || state == GLFW_REPEAT;
+		return Application::Get().GetWindow()->IsKeyDown( key );
 	}
 
-	bool Input::MouseButtonPressed( MouseButton button )
+	bool Input::MouseButtonPressed( RubyMouseButton button )
 	{
-		auto& window = static_cast< Window& >( Window::Get() );
-		auto state = glfwGetMouseButton( static_cast< GLFWwindow* >( window.NativeWindow() ), static_cast< int32_t >( button ) );
-
-		return state == GLFW_PRESS;
+		return Application::Get().GetWindow()->IsMouseButtonDown( button );
 	}
 
 	float Input::MouseX()
@@ -69,28 +64,22 @@ namespace Saturn {
 
 	glm::vec2 Input::MousePosition()
 	{
-		auto& window = static_cast< Window& >( Window::Get() );
+		double x = 0.0;
+		double y = 0.0;
 
-		double x = 0;
-		double y = 0;
-
-		glfwGetCursorPos( static_cast< GLFWwindow* >( window.NativeWindow() ), &x, &y );
+		Application::Get().GetWindow()->GetMousePos( &x, &y );
 
 		return { ( float ) x, ( float ) y };
 	}
 
-	void Input::SetCursorMode( CursorMode mode )
+	void Input::SetCursorMode( RubyCursorMode mode )
 	{
-		auto& window = static_cast< Window& >( Window::Get() );
-
-		glfwSetInputMode( static_cast< GLFWwindow* >( window.NativeWindow() ), GLFW_CURSOR, GLFW_CURSOR_NORMAL + ( int )mode );
+		Application::Get().GetWindow()->SetMouseCursorMode( mode );
 	}
 
-	CursorMode Input::GetCursorMode()
+	RubyCursorMode Input::GetCursorMode()
 	{
-		auto& window = static_cast< Window& >( Window::Get() );
-
-		return ( CursorMode )( glfwGetInputMode( static_cast< GLFWwindow* >( window.NativeWindow() ), GLFW_CURSOR ) - GLFW_CURSOR_NORMAL );
+		return Application::Get().GetWindow()->GetCursorMode();
 	}
 
 }

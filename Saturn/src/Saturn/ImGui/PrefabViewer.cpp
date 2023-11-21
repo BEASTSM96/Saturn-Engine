@@ -93,7 +93,7 @@ namespace Saturn {
 		if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) || ( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) && !m_StartedRightClickInViewport ) )
 		{
 			ImGui::FocusWindow( GImGui->HoveredWindow );
-			Input::Get().SetCursorMode( CursorMode::Normal );
+			Input::Get().SetCursorMode( RubyCursorMode::Normal );
 		}
 
 		// Viewport
@@ -158,14 +158,14 @@ namespace Saturn {
 				m_SceneRenderer->RenderScene();
 			} );
 
-		if( Input::Get().MouseButtonPressed( Mouse::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
+		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
 			m_StartedRightClickInViewport = true;
 
-		if( !Input::Get().MouseButtonPressed( Mouse::Right ) )
+		if( !Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
 			m_StartedRightClickInViewport = false;
 	}
 
-	void PrefabViewer::OnEvent( Event& rEvent )
+	void PrefabViewer::OnEvent( RubyEvent& rEvent )
 	{
 		if( m_MouseOverViewport && m_AllowCameraEvents )
 			m_Camera.OnEvent( rEvent );

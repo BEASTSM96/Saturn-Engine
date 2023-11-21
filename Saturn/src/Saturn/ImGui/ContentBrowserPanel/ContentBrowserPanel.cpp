@@ -752,11 +752,16 @@ namespace Saturn {
 		ImGui::BeginChild( "Folder Contents", ImVec2( 0, 0 ), false );
 
 		// Search
-		ImGui::SetNextItemWidth( 436.0f );
-		if( m_TextFilter.Draw( "##search", "Search For Content" ) )
+		ImGui::BeginHorizontal( "##cbfinder" );
+
+		ImGui::Text( "Search for content" );
+
+		if( m_TextFilter.Draw( "##contentfinder", 436.0f ) )
 		{
 			m_Searching = m_TextFilter.IsActive();
 		}
+
+		ImGui::EndHorizontal();
 
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 
@@ -874,7 +879,7 @@ namespace Saturn {
 
 		ImGui::PopStyleColor( 2 );
 
-		if( ImGui::BeginPopupContextWindow( 0, 1, true ) )
+		if( ImGui::BeginPopupContextWindow( "CB_ItemAction", ImGuiPopupFlags_MouseButtonRight ) )
 		{
 			// Theses actions are only going to be used when one item is selected.
 			if( m_SelectedItems.size() )

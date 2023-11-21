@@ -29,6 +29,8 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
+#include "Saturn/Core/Log.h"
+
 #include "SharedGlobals.h"
 
 #include "Saturn/GameFramework/Core/GameScript.h"
@@ -140,7 +142,7 @@ namespace Saturn {
 		glm::mat4 GetTransformRelativeToParent( Ref<Entity> entity );
 		TransformComponent GetWorldSpaceTransform( Ref<Entity> entity );
 
-		bool Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance, RaycastHitResult* pOut );
+		[[nodiscard]] bool Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance, RaycastHitResult* pOut );
 	public:
 
 		void CopyScene( Ref<Scene>& NewScene );

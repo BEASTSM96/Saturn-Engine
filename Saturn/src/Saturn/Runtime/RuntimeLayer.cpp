@@ -111,15 +111,15 @@ namespace Saturn {
 	{
 	}
 
-	void RuntimeLayer::OnEvent( Event& rEvent )
+	void RuntimeLayer::OnEvent( RubyEvent& rEvent )
 	{
-		EventDispatcher dispatcher( rEvent );
-		dispatcher.Dispatch< WindowResizeEvent >( SAT_BIND_EVENT_FN( OnWindowResize ) );
+		if( rEvent.Type == RubyEventType::Resize )
+			OnWindowResize( ( RubyWindowResizeEvent& ) rEvent );
 	}
 
-	bool RuntimeLayer::OnWindowResize( WindowResizeEvent& e )
+	bool RuntimeLayer::OnWindowResize( RubyWindowResizeEvent& e )
 	{
-		int width = e.Width(), height = e.Height();
+		int width = e.GetWidth(), height = e.GetHeight();
 
 		if( width == 0 && height == 0 )
 			return false;
