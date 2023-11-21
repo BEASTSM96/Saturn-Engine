@@ -75,7 +75,6 @@ project "Saturn"
 		"AL_LIBTYPE_STATIC",
 		"GLM_ENABLE_EXPERIMENTAL",
 		"SATURN_SS_IMPORT",
-		"GLFW_DLL",
 		"TRACY_ENABLE",
 		"RBY_INCLUDE_VULKAN"
 	}
@@ -143,8 +142,7 @@ project "Saturn"
 
 		defines
 		{
-			"SAT_PLATFORM_LINUX",
-			"GLFW_INCLUDE_NONE"
+			"SAT_PLATFORM_LINUX"
 		}
 
 
@@ -159,8 +157,7 @@ project "Saturn"
 
 		defines
 		{
-			"SAT_PLATFORM_WINDOWS",
-			"GLFW_INCLUDE_NONE"
+			"SAT_PLATFORM_WINDOWS"
 		}
 
 		filter "configurations:Debug"
@@ -294,7 +291,6 @@ project "Saturn-Editor"
 		defines
 		{
 			"SAT_PLATFORM_WINDOWS",
-			"GLFW_INCLUDE_NONE",
 			"SATURN_SS_IMPORT"
 		}
 
@@ -307,7 +303,6 @@ project "Saturn-Editor"
 		{ 
 			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-			--'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
 		}
 
 	filter "configurations:Release"
@@ -318,7 +313,6 @@ project "Saturn-Editor"
 		postbuildcommands 
 		{ 
 			'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-			--'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Dist"
@@ -330,7 +324,6 @@ project "Saturn-Editor"
 		postbuildcommands 
 		{ 
 			'{COPY} "../bin/Dist-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-			--'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Dist or configurations:Release"
@@ -354,7 +347,6 @@ project "Saturn-Editor"
 			"dl",
 			"GL",
 			"X11",
-			"GLFW",
 			"ImGui"
 		}
 
@@ -403,7 +395,7 @@ project "ProjectBrowser"
 		"Saturn/vendor/spdlog/include",
 		"Saturn/src",
 		"Saturn/vendor",
-		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -438,8 +430,7 @@ project "ProjectBrowser"
 
 		defines
 		{
-			"SAT_PLATFORM_WINDOWS",
-			"GLFW_INCLUDE_NONE"
+			"SAT_PLATFORM_WINDOWS"
 		}
 
 		filter "configurations:Debug"
@@ -451,9 +442,7 @@ project "ProjectBrowser"
 			{
 				'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 				
-				'{COPY} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-
-				'{COPY} "../Saturn/vendor/GLFW/bin/Debug-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"'
+				'{COPY} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
 			}
 
 		filter "configurations:Release"
@@ -463,7 +452,6 @@ project "ProjectBrowser"
 
 			postbuildcommands 
 			{ 
-				'{COPY} "../Saturn/vendor/GLFW/bin/Release-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
 				'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
 			}
 
@@ -475,7 +463,6 @@ project "ProjectBrowser"
 
 			postbuildcommands 
 			{ 
-				'{COPY} "../Saturn/vendor/GLFW/bin/Dist-windows-x86_64/GLFW/GLFW.dll" "%{cfg.targetdir}"',
 				'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
 			}
 
@@ -500,7 +487,6 @@ project "ProjectBrowser"
 			"dl",
 			"GL",
 			"X11",
-			"GLFW",
 			"ImGui"
 		}
 
