@@ -752,10 +752,16 @@ namespace Saturn {
 		ImGui::BeginChild( "Folder Contents", ImVec2( 0, 0 ), false );
 
 		// Search
-		if( m_TextFilter.Draw( "Search For Content", 436.0f ) )
+		ImGui::BeginHorizontal( "##cbfinder" );
+
+		ImGui::Text( "Search for content" );
+
+		if( m_TextFilter.Draw( "##contentfinder", 436.0f ) )
 		{
 			m_Searching = m_TextFilter.IsActive();
 		}
+
+		ImGui::EndHorizontal();
 
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 

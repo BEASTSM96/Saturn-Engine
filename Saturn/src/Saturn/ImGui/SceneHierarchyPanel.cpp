@@ -175,7 +175,7 @@ namespace Saturn {
 				ClearSelection();
 			}
 
-			if( ImGui::BeginPopupContextWindow( 0, ImGuiPopupFlags_MouseButtonLeft ) )
+			if( ImGui::BeginPopupContextWindow( 0, ImGuiPopupFlags_MouseButtonRight ) )
 			{
 				if( ImGui::MenuItem( "Create Empty Entity" ) )
 				{

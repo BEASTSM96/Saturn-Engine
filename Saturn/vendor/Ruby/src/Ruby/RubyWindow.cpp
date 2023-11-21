@@ -209,6 +209,12 @@ bool RubyWindow::MouseInWindow()
 	return m_pDefaultBackend->MouseInRect();
 }
 
+void RubyWindow::SetTiltebarHeight( uint32_t height )
+{
+	if( m_TitlebarHeight != height )
+		m_Height = height;
+}
+
 void* RubyWindow::GetNativeHandle()
 {
 	return (void*)m_pDefaultBackend->GetNativeHandle();

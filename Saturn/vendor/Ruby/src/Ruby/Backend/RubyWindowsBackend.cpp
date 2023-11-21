@@ -364,9 +364,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 				}
 				else
 				{
-					// TODO: Caption.
-					// TODO: Border height.
-					if( MousePos.y < WindowRect.top + 16 )
+					if( MousePos.y < WindowRect.top + pThis->GetParent()->GetTitlebarHeight() && !::IsZoomed( Handle ) )
 						return HTCAPTION;
 				}
 
@@ -630,7 +628,7 @@ bool RubyWindowsBackend::Focused()
 VkResult RubyWindowsBackend::CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface )
 {
 	VkWin32SurfaceCreateInfoKHR CreateInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
-	CreateInfo.hinstance = GetModuleHandle( NULL );
+	CreateInfo.hinstance = GetModuleHandle( nullptr );
 	CreateInfo.hwnd = m_Handle;
 
 	return vkCreateWin32SurfaceKHR( Instance, &CreateInfo, nullptr, pOutSurface );

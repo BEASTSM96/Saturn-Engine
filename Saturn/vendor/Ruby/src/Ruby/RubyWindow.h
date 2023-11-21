@@ -79,6 +79,10 @@ public:
 
 	double GetTime() { return m_Timer.GetTicks(); }
 
+	// Set title bar hit-test height
+	void SetTiltebarHeight( uint32_t height );
+	uint32_t GetTitlebarHeight() { return m_TitlebarHeight; }
+
 public:
 	void* GetNativeHandle();
 
@@ -150,6 +154,9 @@ public:
 protected:
 	uint32_t m_Width = 0;
 	uint32_t m_Height = 0;
+
+	// Only used for borderless windows.
+	uint32_t m_TitlebarHeight = 0;
 
 	std::unordered_set<RubyKey> m_Keys;
 

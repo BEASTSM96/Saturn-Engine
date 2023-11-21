@@ -63,6 +63,7 @@ namespace Saturn {
 		if( ImGui::BeginMainMenuBar() )
 		{
 			m_Height = ImGui::GetWindowHeight();
+			//Application::Get().GetWindow()->SetTiltebarHeight( m_Height );
 
 			for( auto&& rrFunc : m_MenuBarFunctions )
 			{
