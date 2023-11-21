@@ -118,10 +118,7 @@ namespace Saturn {
 
 				ImGui::EndMenu();
 			}
-		} );
-		
-		m_TitleBar->AddMenuBarFunction( []() -> void
-		{
+
 			if( ImGui::BeginMenu( "Saturn" ) )
 			{
 				if( ImGui::MenuItem( "Attributions" ) )
@@ -149,10 +146,7 @@ namespace Saturn {
 
 				ImGui::EndMenu();
 			}
-		} );
-		
-		m_TitleBar->AddMenuBarFunction( [&]() -> void
-		{
+
 			if( ImGui::BeginMenu( "Settings" ) )
 			{
 				if( ImGui::MenuItem( "User settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;

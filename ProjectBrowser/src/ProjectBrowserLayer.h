@@ -45,7 +45,7 @@ namespace Saturn {
 
 		void OnImGuiRender() override;
 
-		void OnEvent( Event& rEvent ) override;
+		void OnEvent( RubyEvent& rEvent ) override;
 
 		void OnAttach() override;
 
@@ -57,7 +57,7 @@ namespace Saturn {
 
 	private:
 
-		bool OnKeyPressed( KeyPressedEvent& rEvent );
+		bool OnKeyPressed( RubyKeyEvent& rEvent );
 
 	private:
 		TitleBar* m_TitleBar = nullptr;

@@ -48,6 +48,7 @@ namespace SaturnBuildTool
             Links.Add("ole32.lib");
             Links.Add("oleaut32.lib");
             Links.Add("delayimp.lib");
+            Links.Add("gdi32.lib");
         }
 
         public List<string> GetIntermediateFiles() 

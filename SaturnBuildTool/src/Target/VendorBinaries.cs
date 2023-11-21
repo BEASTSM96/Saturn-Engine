@@ -9,7 +9,7 @@ namespace SaturnBuildTool
 {
     enum VendorProject 
     {
-        GLFW,
+        RUBY,
         PHYSX,
         YAML_CPP,
         IMGUI,
@@ -57,13 +57,13 @@ namespace SaturnBuildTool
 
             switch ( project ) 
             {
-                case VendorProject.GLFW:
+                case VendorProject.RUBY:
                     {
-                        binPath = Path.Combine(binPath, "GLFW\\bin\\" );
+                        binPath = Path.Combine(binPath, "Ruby\\bin\\" );
 
                         binPath = GetRootBinPath(binPath, target);
 
-                        binPath = Path.Combine(binPath, "GLFW" );
+                        binPath = Path.Combine(binPath, "Ruby");
 
                     } break;
 

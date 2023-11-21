@@ -40,16 +40,11 @@
 #include <Saturn/Serialisation/ProjectSerialiser.h>
 #include <Saturn/Serialisation/UserSettingsSerialiser.h>
 
-#include <Saturn/Core/Window.h>
-
 #include <glm/gtc/type_ptr.hpp>
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h> 
 #include <imgui_internal.h>
-
-#include <glfw/glfw3.h>
-#include <glfw/glfw3native.h>
 
 namespace Saturn {
 
@@ -138,25 +133,6 @@ namespace Saturn {
 
 	void ProjectBrowserLayer::OnAttach()
 	{	
-		// This is still not perfect.
-		// Why does the project browser need to do this?
-		Window::Get().SetTitlebarHitTest( [&]( int x, int y ) -> bool
-		{
-			if( !m_TitleBar )
-				return false;
-
-			auto TitleBarHeight = m_TitleBar->Height();
-
-			RECT windowRect;
-			GetClientRect( glfwGetWin32Window( ( GLFWwindow* ) Window::Get().NativeWindow() ), &windowRect );
-
-				// Drag the menu bar to move the window
-			if( !Window::Get().Maximized() && !ImGui::IsAnyItemHovered() && ( y < ( windowRect.top + TitleBarHeight ) ) )
-				return true;
-			else
-				return false;
-		} );
-
 		m_TitleBar->AddOnExitFunction( []() 
 		{
 			s_ShouldThreadTerminate = true;
@@ -176,7 +152,6 @@ namespace Saturn {
 	
 	void ProjectBrowserLayer::OnDetach()
 	{
-		Window::Get().SetTitlebarHitTest( [&]( int x, int y ) -> bool { return false; } );
 	}
 
 	void ProjectBrowserLayer::OnUpdate( Timestep time )
@@ -432,12 +407,12 @@ namespace Saturn {
 		CloseHandle( ProcessInfo.hProcess );
 	}
 
-	void ProjectBrowserLayer::OnEvent( Event& rEvent )
+	void ProjectBrowserLayer::OnEvent( RubyEvent& rEvent )
 	{
 
 	}
 
-	bool ProjectBrowserLayer::OnKeyPressed( KeyPressedEvent& rEvent )
+	bool ProjectBrowserLayer::OnKeyPressed( RubyKeyEvent& rEvent )
 	{
 		return true;
 	}
