@@ -39,6 +39,7 @@
 
 class RBY_API RubyWindow
 {
+	RBY_DISABLE_COPY( RubyWindow );
 public:
 	RubyWindow( const RubyWindowSpecification& rSpec );
 	~RubyWindow();
@@ -82,6 +83,8 @@ public:
 	// Set title bar hit-test height
 	void SetTiltebarHeight( uint32_t height );
 	uint32_t GetTitlebarHeight() { return m_TitlebarHeight; }
+
+	std::unordered_set<RubyKey> GetCurrentKeys() { return m_Keys; }
 
 public:
 	void* GetNativeHandle();

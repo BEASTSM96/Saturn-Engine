@@ -290,7 +290,7 @@ namespace Saturn {
 	struct PrefabComponent
 	{
 		UUID AssetID;
-		bool Modified;
+		bool Modified = false;
 
 		PrefabComponent() = default;
 		PrefabComponent( PrefabComponent& other ) = default;
@@ -304,6 +304,15 @@ namespace Saturn {
 		AudioComponent() = default;
 		AudioComponent( AudioComponent& other ) = default;
 		AudioComponent( UUID id ) : AssetID( id ) {  }
+	};
+
+	class PlayerInputController;
+	struct PlayerInputComponent
+	{
+		Ref<PlayerInputController> Binding = nullptr;
+
+		PlayerInputComponent() = default;
+		PlayerInputComponent( PlayerInputComponent& other ) = default;
 	};
 
 	template<typename... V>

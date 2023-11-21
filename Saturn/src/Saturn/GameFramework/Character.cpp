@@ -35,17 +35,22 @@ namespace Saturn {
 
 	Character::Character()
 	{
-
+		m_PlayerInputController = Ref<PlayerInputController>::Create();
 	}
 
 	Character::~Character()
 	{
-
+		m_PlayerInputController = nullptr;
 	}
 
 	void Character::BeginPlay()
 	{
 		Super::BeginPlay();
+
+		m_PlayerInputController->BindAction( RubyKey::W, SAT_BIND_EVENT_FN( MoveForward ) );
+		m_PlayerInputController->BindAction( RubyKey::S, SAT_BIND_EVENT_FN( MoveBack ) );
+		m_PlayerInputController->BindAction( RubyKey::A, SAT_BIND_EVENT_FN( MoveLeft ) );
+		m_PlayerInputController->BindAction( RubyKey::D, SAT_BIND_EVENT_FN( MoveRight ) );
 
 		/*
 		m_RigidBody = GetComponent<RigidbodyComponent>().Rigidbody;
@@ -58,6 +63,12 @@ namespace Saturn {
 	void Character::OnUpdate( Timestep ts )
 	{
 		Super::OnUpdate( ts );
+
+		m_MovementDirection.x = 0;
+		m_MovementDirection.y = 0;
+
+		// Update player input
+		m_PlayerInputController->Update();
 
 		HandleRotation( ts );
 		HandleMovement();
@@ -96,6 +107,26 @@ namespace Saturn {
 	void Character::HandleRotation( Timestep ts )
 	{
 
+	}
+
+	void Character::MoveForward()
+	{
+		m_MovementDirection.y = 1.0f;
+	}
+
+	void Character::MoveBack()
+	{
+		m_MovementDirection.y = -1.0f;
+	}
+
+	void Character::MoveLeft()
+	{
+		m_MovementDirection.x = -1.0f;
+	}
+
+	void Character::MoveRight()
+	{
+		m_MovementDirection.x = 1.0f;
 	}
 
 }

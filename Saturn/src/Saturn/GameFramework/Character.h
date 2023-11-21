@@ -31,6 +31,8 @@
 #include "Saturn/Scene/Entity.h"
 #include "Core/GameScript.h"
 
+#include "PlayerInputController.h"
+
 namespace Saturn {
 
 	// TODO: Make this an SCLASS macro as well be able to spawn this correctly.
@@ -76,6 +78,11 @@ namespace Saturn {
 		void HandleMovement();
 		void HandleRotation( Timestep ts );
 
+		void MoveForward();
+		void MoveBack();
+		void MoveLeft();
+		void MoveRight();
+
 		glm::vec2 m_MovementDirection{};
 
 	private:
@@ -83,6 +90,8 @@ namespace Saturn {
 		Ref<StaticMesh> m_Mesh;
 		// TODO: Move this to a movement component.
 		PhysicsRigidBody* m_RigidBody = nullptr;
+
+		Ref<PlayerInputController> m_PlayerInputController = nullptr;
 	};
 }
 

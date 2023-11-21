@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2023 BEAST                                                           		*
+* Copyright (c) 2020 - 2023 BEAST                                                           *
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -26,67 +26,43 @@
 *********************************************************************************************
 */
 
-#include "RubyMonitor.h"
+#include "sppch.h"
+#include "PlayerInputController.h"
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
+#include "Saturn/Core/App.h"
+#include <Ruby/RubyWindow.h>
 
-static std::vector<RubyMonitor> s_RubyMonitors;
+namespace Saturn {
 
-#if defined(_WIN32)
-BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMonitor, LPARAM DWData ) 
-{
-	MONITORINFOEX MonitorInfo{};
-	MonitorInfo.cbSize = sizeof( MONITORINFOEX );
-
-	if( GetMonitorInfo( Monitor, &MonitorInfo ) )
+	PlayerInputController::PlayerInputController()
 	{
-		RubyMonitor monitor;
-		monitor.Primary = MonitorInfo.dwFlags & MONITORINFOF_PRIMARY;
-		monitor.Name = MonitorInfo.szDevice;
-
-		DEVMODE DevMode{};
-		DevMode.dmSize = sizeof( DevMode );
-
-		::EnumDisplaySettings( MonitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &DevMode );
-		monitor.MonitorPosition = { DevMode.dmPosition.x, DevMode.dmPosition.y };
-		
-		monitor.MonitorSize.x = MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
-		monitor.MonitorSize.y = MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;
-
-		monitor.WorkSize.x = MonitorInfo.rcWork.right - MonitorInfo.rcWork.left;
-		monitor.WorkSize.y = MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top;
-
-		s_RubyMonitors.push_back( monitor );
 	}
 
-	return TRUE;
-}
-#endif
-
-std::vector<RubyMonitor> RubyGetAllMonitors()
-{
-	int Monitors = GetSystemMetrics( SM_CMONITORS );
-
-	if( s_RubyMonitors.size() != Monitors )
+	PlayerInputController::~PlayerInputController()
 	{
-		s_RubyMonitors.clear();
-
-#if defined(_WIN32)
-		::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, 0 );
-#endif
+		m_ActionMap.clear();
 	}
 
-	return s_RubyMonitors;
-}
+	void PlayerInputController::Update()
+	{
+		std::unordered_set<RubyKey> keys = Application::Get().GetWindow()->GetCurrentKeys();
 
-RubyMonitor& RubyGetPrimaryMonitor()
-{
-	if( s_RubyMonitors.size() )
-		RubyGetAllMonitors();
+		for( RubyKey key : keys )
+		{
+			if( m_ActionMap.find( key ) != m_ActionMap.end() )
+				m_ActionMap.at( key )( );
+		}
+	}
 
-	auto It = std::find_if( s_RubyMonitors.begin(), s_RubyMonitors.end(), []( auto& rMonitor ) { return rMonitor.Primary; } );
+	void PlayerInputController::TriggerAction( RubyKey key )
+	{
+		if( m_ActionMap.find( key ) != m_ActionMap.end() )
+			m_ActionMap.at( key )();
+	}
 
-	return *( It );
+	void PlayerInputController::BindAction( RubyKey key, const ActionFunction& rFunction )
+	{
+		m_ActionMap[ key ] = rFunction;
+	}
+
 }

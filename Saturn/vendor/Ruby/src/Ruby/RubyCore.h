@@ -32,6 +32,7 @@
 #include <string>
 
 #define RBY_BIT( x ) ( 1 << x )
+#define RBY_DISABLE_COPY( x ) x(const x&) = delete
 
 #if defined( RBY_DLL )
 #if defined( RBY_BUILD )
