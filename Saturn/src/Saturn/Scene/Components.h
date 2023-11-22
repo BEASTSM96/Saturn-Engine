@@ -306,15 +306,6 @@ namespace Saturn {
 		AudioComponent( UUID id ) : AssetID( id ) {  }
 	};
 
-	class PlayerInputController;
-	struct PlayerInputComponent
-	{
-		Ref<PlayerInputController> Binding = nullptr;
-
-		PlayerInputComponent() = default;
-		PlayerInputComponent( PlayerInputComponent& other ) = default;
-	};
-
 	template<typename... V>
 	struct ComponentGroup {};
 

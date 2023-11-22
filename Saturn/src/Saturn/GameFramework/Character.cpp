@@ -47,6 +47,8 @@ namespace Saturn {
 	{
 		Super::BeginPlay();
 
+		SetupInputBindings();
+
 		m_PlayerInputController->BindAction( RubyKey::W, SAT_BIND_EVENT_FN( MoveForward ) );
 		m_PlayerInputController->BindAction( RubyKey::S, SAT_BIND_EVENT_FN( MoveBack ) );
 		m_PlayerInputController->BindAction( RubyKey::A, SAT_BIND_EVENT_FN( MoveLeft ) );
@@ -109,24 +111,32 @@ namespace Saturn {
 
 	}
 
-	void Character::MoveForward()
+	void Character::MoveForward( bool pressed )
 	{
 		m_MovementDirection.y = 1.0f;
+		
+		SAT_CORE_INFO( "W Pressed!" );
 	}
 
-	void Character::MoveBack()
+	void Character::MoveBack( bool pressed )
 	{
 		m_MovementDirection.y = -1.0f;
+		
+		SAT_CORE_INFO( "S Pressed!" );
 	}
 
-	void Character::MoveLeft()
+	void Character::MoveLeft( bool pressed )
 	{
 		m_MovementDirection.x = -1.0f;
+		
+		SAT_CORE_INFO( "A Pressed!" );
 	}
 
-	void Character::MoveRight()
+	void Character::MoveRight( bool pressed )
 	{
 		m_MovementDirection.x = 1.0f;
+		
+		SAT_CORE_INFO( "D Pressed!" );
 	}
 
 }

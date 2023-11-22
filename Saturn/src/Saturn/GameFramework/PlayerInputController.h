@@ -33,23 +33,28 @@
 
 #include <functional>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace Saturn {
 
 	class PlayerInputController : public RefTarget
 	{
 	public:
-		using ActionFunction = std::function<void()>;
+		using ActionFunction = std::function<void( bool )>;
 	public:
 		PlayerInputController();
 		~PlayerInputController();
 
-		void Update();
-
-		void TriggerAction( RubyKey key );
 		void BindAction( RubyKey key, const ActionFunction& rFunction );
 
+	protected:
+		void Update();
+	
 	private:
 		std::unordered_map<RubyKey, ActionFunction> m_ActionMap;
+		std::unordered_set<RubyKey> m_Keys;
+
+	private:
+		friend class Character;
 	};
 }

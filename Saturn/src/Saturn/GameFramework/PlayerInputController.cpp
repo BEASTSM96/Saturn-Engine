@@ -45,19 +45,50 @@ namespace Saturn {
 
 	void PlayerInputController::Update()
 	{
-		std::unordered_set<RubyKey> keys = Application::Get().GetWindow()->GetCurrentKeys();
+		const std::unordered_set<RubyKey>& windowKeys = Application::Get().GetWindow()->GetCurrentKeys();
 
-		for( RubyKey key : keys )
+		std::unordered_map<RubyKey, std::unordered_map<bool, ActionFunction>> EventsToFire;
+
+		// First, check if any keys from the window are in our copy.
+		for( const RubyKey& key : windowKeys )
 		{
-			if( m_ActionMap.find( key ) != m_ActionMap.end() )
-				m_ActionMap.at( key )( );
-		}
-	}
+			auto [it, inserted] = m_Keys.insert( key );
+			if( inserted )
+			{
+				auto map = m_ActionMap.find( key );
 
-	void PlayerInputController::TriggerAction( RubyKey key )
-	{
-		if( m_ActionMap.find( key ) != m_ActionMap.end() )
-			m_ActionMap.at( key )();
+				if( map != m_ActionMap.end() )
+					EventsToFire[ key ][ true ] = map->second;
+			}
+		}
+
+		// Now, check if our copy contains keys that are no longer being pressed.
+		for( auto it = m_Keys.begin(); it != m_Keys.end(); ) 
+		{
+			const auto& key = *( it );
+
+			if ( windowKeys.find( key ) == windowKeys.end() )
+			{
+				auto map = m_ActionMap.find( key );
+
+				if( map != m_ActionMap.end() )
+					EventsToFire[ key ][ false ] = map->second;
+
+				it = m_Keys.erase( it );
+			}
+			else
+			{
+				++it;
+			}
+		}
+		
+		for( const auto& [key, valueMap] : EventsToFire )
+		{
+			for ( const auto& [ pressed, event ] : valueMap )
+			{
+				( event ) ( pressed );
+			}
+		}
 	}
 
 	void PlayerInputController::BindAction( RubyKey key, const ActionFunction& rFunction )

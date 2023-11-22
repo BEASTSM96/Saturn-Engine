@@ -84,7 +84,8 @@ public:
 	void SetTiltebarHeight( uint32_t height );
 	uint32_t GetTitlebarHeight() { return m_TitlebarHeight; }
 
-	std::unordered_set<RubyKey> GetCurrentKeys() { return m_Keys; }
+	const std::unordered_set<RubyKey>& GetCurrentKeys() const { return m_Keys; }
+	std::unordered_set<RubyKey>& GetCurrentKeys() { return m_Keys; }
 
 public:
 	void* GetNativeHandle();

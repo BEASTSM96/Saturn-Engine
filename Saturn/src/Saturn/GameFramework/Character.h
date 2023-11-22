@@ -48,6 +48,8 @@ namespace Saturn {
 		Character();
 		~Character();
 
+		virtual void SetupInputBindings() {};
+
 	public:
 		//////////////////////////////////////////////////////////////////////////
 		// SClass overrides
@@ -78,10 +80,10 @@ namespace Saturn {
 		void HandleMovement();
 		void HandleRotation( Timestep ts );
 
-		void MoveForward();
-		void MoveBack();
-		void MoveLeft();
-		void MoveRight();
+		void MoveForward( bool pressed );
+		void MoveBack( bool pressed );
+		void MoveLeft( bool pressed );
+		void MoveRight( bool pressed );
 
 		glm::vec2 m_MovementDirection{};
 
