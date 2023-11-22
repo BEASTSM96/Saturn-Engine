@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "PlayerInputController.h"
 
+#include "Saturn/Core/OptickProfiler.h"
+
 #include "Saturn/Core/App.h"
 #include <Ruby/RubyWindow.h>
 
@@ -45,6 +47,8 @@ namespace Saturn {
 
 	void PlayerInputController::Update()
 	{
+		SAT_PF_EVENT();
+
 		const std::unordered_set<RubyKey>& windowKeys = Application::Get().GetWindow()->GetCurrentKeys();
 
 		std::unordered_map<RubyKey, std::unordered_map<bool, ActionFunction>> EventsToFire;
@@ -59,6 +63,13 @@ namespace Saturn {
 
 				if( map != m_ActionMap.end() )
 					EventsToFire[ key ][ true ] = map->second;
+			}
+			else 
+			{
+				// Key was not added for some reason. Maybe it's already in the map, most likely the key is being held.
+				// This will crash the engine if the function does is not present but that is rare as the key should always be inserted unless the key is already present which means there the key is being held.
+
+				EventsToFire[ key ][ true ] = m_ActionMap.at( key );
 			}
 		}
 
@@ -82,6 +93,9 @@ namespace Saturn {
 			}
 		}
 		
+		SAT_CORE_INFO( "Key size: {0}", m_Keys.size() );
+		SAT_CORE_INFO( "Events to fire size: {0}", EventsToFire.size() );
+
 		for( const auto& [key, valueMap] : EventsToFire )
 		{
 			for ( const auto& [ pressed, event ] : valueMap )
