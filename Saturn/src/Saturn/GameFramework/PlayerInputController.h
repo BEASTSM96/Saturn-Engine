@@ -46,6 +46,7 @@ namespace Saturn {
 		~PlayerInputController();
 
 		void BindAction( RubyKey key, const ActionFunction& rFunction );
+		void RemoveAction( RubyKey key );
 
 	protected:
 		void Update();

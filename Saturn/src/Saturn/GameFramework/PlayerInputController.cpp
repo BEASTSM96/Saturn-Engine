@@ -69,7 +69,8 @@ namespace Saturn {
 				// Key was not added for some reason. Maybe it's already in the map, most likely the key is being held.
 				// This will crash the engine if the function does is not present but that is rare as the key should always be inserted unless the key is already present which means there the key is being held.
 
-				EventsToFire[ key ][ true ] = m_ActionMap.at( key );
+				if( m_ActionMap.find( key ) != m_ActionMap.end() )
+					EventsToFire[ key ][ true ] = m_ActionMap.at( key );
 			}
 		}
 
@@ -93,9 +94,7 @@ namespace Saturn {
 			}
 		}
 		
-		SAT_CORE_INFO( "Key size: {0}", m_Keys.size() );
-		SAT_CORE_INFO( "Events to fire size: {0}", EventsToFire.size() );
-
+		// Trigger events.
 		for( const auto& [key, valueMap] : EventsToFire )
 		{
 			for ( const auto& [ pressed, event ] : valueMap )
@@ -108,6 +107,11 @@ namespace Saturn {
 	void PlayerInputController::BindAction( RubyKey key, const ActionFunction& rFunction )
 	{
 		m_ActionMap[ key ] = rFunction;
+	}
+
+	void PlayerInputController::RemoveAction( RubyKey key )
+	{
+		m_ActionMap.erase( key );
 	}
 
 }

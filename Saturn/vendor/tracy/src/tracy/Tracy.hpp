@@ -5,7 +5,6 @@
 #include "common/TracySystem.hpp"
 
 #ifndef TracyFunction
-//#  define TracyFunction "Saturn::Application::Run"
 #  define TracyFunction __FUNCTION__
 #endif
 
@@ -122,7 +121,7 @@
 #include "client/TracyProfiler.hpp"
 #include "client/TracyScoped.hpp"
 
-// NOTE(beastsm96): I changed the way we get the line number, in MSVC __LINE__ is non-constant for some reason, so we have to use the workaround for it.
+// NOTE(beastsm96): I changed the way we get the line number, in MSVC as __LINE__ is non-constant for some reason, so we have to use the workaround for it.
 //					Adding "U" to the line number should be fine as the line number should not go below 0.
 //                  Courtesy of: https://stackoverflow.com/questions/57137351/line-is-not-constexpr-in-msvc
 #if defined TRACY_HAS_CALLSTACK && defined TRACY_CALLSTACK

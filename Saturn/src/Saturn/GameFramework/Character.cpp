@@ -36,6 +36,9 @@ namespace Saturn {
 	Character::Character()
 	{
 		m_PlayerInputController = Ref<PlayerInputController>::Create();
+
+		m_MouseSensitivity = 3.0f;
+		m_MouseUpMovement = 0.0f;
 	}
 
 	Character::~Character()
@@ -60,6 +63,8 @@ namespace Saturn {
 		m_RigidBody->SetOnCollisionHit( SAT_BIND_EVENT_FN( OnMeshHit ) );
 		m_RigidBody->SetOnCollisionExit( SAT_BIND_EVENT_FN( OnMeshExit ) );
 		*/
+
+		m_CameraEntity = m_Scene->GetMainCameraEntity();
 	}
 
 	void Character::OnUpdate( Timestep ts )
@@ -79,6 +84,29 @@ namespace Saturn {
 	void Character::OnPhysicsUpdate( Timestep ts )
 	{
 		Super::OnPhysicsUpdate( ts );
+
+		if( Input::Get().GetCursorMode() != RubyCursorMode::Locked )
+			return;
+
+		TransformComponent& tc = GetComponent<TransformComponent>();
+
+		auto& up = tc.Up;
+
+		tc.SetRotation( tc.GetRotationEuler() += m_MouseUpMovement * up * 0.05f );
+
+		glm::vec3 right, forward;
+		right = CalculateRight();
+		forward = CalculateForward();
+
+		glm::vec3 Direction = right * m_MovementDirection.x + forward * m_MovementDirection.y;
+
+		if( glm::length( Direction ) > 0.0f )
+		{
+			glm::vec3 normalMove = glm::normalize( Direction );
+			normalMove *= 70.0f;
+
+			m_RigidBody->ApplyForce( normalMove, ForceMode::Force );
+		}
 	}
 
 	void Character::OnMeshHit( Ref<Entity> Other )
@@ -93,50 +121,70 @@ namespace Saturn {
 
 	glm::vec3 Character::CalculateRight()
 	{
-		return {};
+		auto& r = GetComponent<TransformComponent>().Right;
+
+		TransformComponent result = m_Scene->GetWorldSpaceTransform( m_CameraEntity );
+
+		return result.GetRotation() * r;
 	}
 
 	glm::vec3 Character::CalculateForward()
 	{
-		return {};
-	}
+		auto& f = GetComponent<TransformComponent>().Forward;
 
-	void Character::HandleMovement()
-	{
+		TransformComponent result = m_Scene->GetWorldSpaceTransform( m_CameraEntity );
 
+		return result.GetRotation() * f;
 	}
 
 	void Character::HandleRotation( Timestep ts )
 	{
+		if( Input::Get().GetCursorMode() != RubyCursorMode::Locked )
+			return;
 
+		TransformComponent& tc = m_CameraEntity->GetComponent<TransformComponent>();
+		auto rot = tc.GetRotationEuler();
+
+		glm::vec2 currentMousePos = Input::Get().MousePosition();
+		glm::vec2 delta = m_LastMousePos - currentMousePos;
+
+		if( delta.x != 0.0f )
+			m_MouseUpMovement = delta.x * m_MouseSensitivity * ts.Seconds();
+
+		float xRotation = delta.y * ( m_MouseSensitivity * 0.05f ) * ts.Seconds();
+
+		if( xRotation != 0.0f )
+			tc.SetRotation( glm::vec3( xRotation, 0.0f, 0.0f ) );
+
+		tc.SetRotation( glm::radians( glm::vec3( glm::clamp( glm::degrees( rot.x ), -80.0f, 80.0f ), 0.0f, 0.0f ) ) );
+
+		m_LastMousePos = currentMousePos;
 	}
 
 	void Character::MoveForward( bool pressed )
 	{
-		m_MovementDirection.y = 1.0f;
-		
-		SAT_CORE_INFO( "W Pressed!" );
+		if( pressed )
+		{
+			m_MovementDirection.y = 1.0f;
+		}
 	}
 
 	void Character::MoveBack( bool pressed )
 	{
-		m_MovementDirection.y = -1.0f;
-		
-		SAT_CORE_INFO( "S Pressed!" );
+		if( pressed )
+			m_MovementDirection.y = -1.0f;
 	}
 
 	void Character::MoveLeft( bool pressed )
 	{
-		m_MovementDirection.x = -1.0f;
-		
-		SAT_CORE_INFO( "A Pressed!" );
+		if( pressed )
+			m_MovementDirection.x = -1.0f;
 	}
 
 	void Character::MoveRight( bool pressed )
 	{
-		m_MovementDirection.x = 1.0f;
-		
-		SAT_CORE_INFO( "D Pressed!" );
+		if( pressed )
+			m_MovementDirection.x = 1.0f;
 	}
 
 }

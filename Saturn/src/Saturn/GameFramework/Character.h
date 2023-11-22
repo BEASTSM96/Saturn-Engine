@@ -77,7 +77,7 @@ namespace Saturn {
 		glm::vec3 CalculateRight();
 		glm::vec3 CalculateForward();
 
-		void HandleMovement();
+		void HandleMovement() {}
 		void HandleRotation( Timestep ts );
 
 		void MoveForward( bool pressed );
@@ -86,12 +86,18 @@ namespace Saturn {
 		void MoveRight( bool pressed );
 
 		glm::vec2 m_MovementDirection{};
+		glm::vec2 m_LastMousePos{};
+
+		float m_MouseUpMovement = 0.0f;
+		float m_MouseSensitivity = 0.0f;
 
 	private:
 		// TODO: Change to a base mesh class, we don't know what the user will have.
 		Ref<StaticMesh> m_Mesh;
 		// TODO: Move this to a movement component.
 		PhysicsRigidBody* m_RigidBody = nullptr;
+
+		Ref<Entity> m_CameraEntity = nullptr;
 
 		Ref<PlayerInputController> m_PlayerInputController = nullptr;
 	};
