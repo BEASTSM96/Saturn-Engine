@@ -167,22 +167,6 @@ namespace Saturn {
 				m_RequestRuntime = state;
 			} );
 
-		/*
-		Window::Get().SetTitlebarHitTest( [ & ]( int x, int y ) -> bool
-		{
-			auto TitleBarHeight = m_TitleBar->Height();
-
-			RECT windowRect;
-			//GetClientRect( glfwGetWin32Window( (GLFWwindow*)Window::Get().NativeWindow() ), &windowRect );
-
-			// Drag the menu bar to move the window
-			if( !Window::Get().Maximized() && !ImGui::IsAnyItemHovered() && ( y < ( windowRect.top + TitleBarHeight ) ) )
-				return true;
-			else
-				return false;
-		} );
-		*/
-
 		pHierarchyPanel->SetContext( m_EditorScene );
 		pHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
 
@@ -226,13 +210,6 @@ namespace Saturn {
 
 		m_Character = new Character();
 		m_Character->BeginPlay();
-
-		/*
-		Ref<Asset> asset = AssetManager::Get().FindAsset( "Assets\\Sound\\Music_MainThemePiano.s2d" );
-		Ref<Sound2D> music = AssetManager::Get().GetAssetAs<Sound2D>( asset->ID );
-		music->Loop();
-		music->Play();
-		*/
 	}
 
 	EditorLayer::~EditorLayer()
@@ -952,23 +929,10 @@ namespace Saturn {
 
 	void EditorLayer::SaveFileAs()
 	{
-		if( RenderThread::Get().IsRenderThread() )
-		{
-			Application::Get().SubmitOnMainThread( [=]()
-				{
-					auto res = Application::Get().SaveFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
+		auto res = Application::Get().SaveFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
 
-					SceneSerialiser serialiser( m_EditorScene );
-					serialiser.Serialise( res );
-				} );
-		}
-		else
-		{
-			auto res = Application::Get().SaveFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
-
-			SceneSerialiser serialiser( m_EditorScene );
-			serialiser.Serialise( res );
-		}
+		SceneSerialiser serialiser( m_EditorScene );
+		serialiser.Serialise( res );
 	}
 
 	void EditorLayer::SaveFile()
