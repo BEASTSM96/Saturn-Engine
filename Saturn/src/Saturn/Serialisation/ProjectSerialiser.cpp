@@ -62,13 +62,33 @@ namespace Saturn {
 			out << YAML::Key << "Name" << YAML::Value << rProject->GetName();
 			out << YAML::Key << "AssetPath" << YAML::Value << rProject->GetAssetPath();
 			out << YAML::Key << "StartupScene" << YAML::Value << rProject->m_Config.StartupScenePath;
+
+			out << YAML::Key << "ActionBindings";
+			out << YAML::BeginSeq;
+
+			for( const auto& rBinding : rProject->ActionBindings )
+			{
+				out << YAML::BeginMap;
+
+				out << YAML::Key << "ActionBinding" << YAML::Value << rBinding.Name;
+				
+				out << YAML::Key << "ActionName" << YAML::Value << rBinding.ActionName;
+				out << YAML::Key << "Key" << YAML::Value << (int)rBinding.Key;
+				out << YAML::Key << "MouseButton" << YAML::Value << (int)rBinding.MouseButton;
+				out << YAML::Key << "Type" << YAML::Value << (int)rBinding.Type;
+				out << YAML::Key << "ID" << YAML::Value << (uint64_t)rBinding.ID;
+
+				out << YAML::EndMap;
+			}
+
+			out << YAML::EndSeq;
 		}
 
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
 
-		std::ofstream file( rFilePath + ".sproject" );
+		std::ofstream file( rProject->m_Config.Path );
 		file << out.c_str();
 	}
 
@@ -87,10 +107,31 @@ namespace Saturn {
 		auto project = data[ "Project" ];
 
 		Ref<Project> newProject = Ref<Project>::Create();
+
 		{
 			newProject->m_Config.Name      = project[ "Name" ].as<std::string>();
 			newProject->m_Config.AssetPath = project[ "AssetPath" ].as<std::string>();
 			newProject->m_Config.StartupScenePath = project[ "StartupScene" ].as<std::string>();
+
+			auto actionBindings = project[ "ActionBindings" ];
+
+			if( actionBindings ) 
+			{
+				for( const auto& binding : actionBindings )
+				{
+					ActionBinding ab;
+					ab.Name = binding[ "ActionBinding" ].as<std::string>();
+					ab.ActionName = binding[ "ActionName" ].as<std::string>();
+
+					ab.Key = ( RubyKey ) binding[ "Key" ].as<int>( 0 );
+					ab.MouseButton = ( RubyMouseButton ) binding[ "Key" ].as<int>( 6 );
+
+					ab.Type = ( ActionBindingType ) binding[ "Type" ].as<int>( 0 );
+					ab.ID = ( UUID ) binding[ "ID" ].as<uint64_t>();
+
+					newProject->ActionBindings.push_back( ab );
+				}
+			}
 		}
 
 		newProject->m_Config.Path = rFilePath;

@@ -1128,7 +1128,7 @@ namespace Saturn {
 
 	void EditorLayer::UI_Titlebar_UserSettings()
 	{
-		ImGui::ShowDemoWindow();
+		static bool ShouldSaveProject = false;
 
 		ImGuiIO& rIO = ImGui::GetIO();
 
@@ -1186,9 +1186,7 @@ namespace Saturn {
 			if( PopupModified )
 			{
 				s_OpenAssetFinderPopup = false;
-
-				ProjectSerialiser ps;
-				ps.Serialise( Project::GetActiveProject()->GetRootDir().string() );
+				ShouldSaveProject = true;
 
 				ImGui::CloseCurrentPopup();
 			}
@@ -1210,7 +1208,7 @@ namespace Saturn {
 
 			ImGui::SetNextItemWidth( 130.0f );
 			std::string id = "##" + std::to_string( rBinding.ID );
-			ImGui::InputText( id.data(), (char*)rBinding.Name.data(), 256 );
+			ImGui::InputText( id.data(), (char*)rBinding.Name.c_str(), 1024 );
 
 			ImGui::SameLine(); // HACK, There seems to bug with the ImGui Layout as the InputText works fine when it's not in a Horizontal layout. (Update) Seems to be with certain IDs/labels
 
@@ -1237,6 +1235,8 @@ namespace Saturn {
 						rBinding.Key = ( RubyKey ) i;
 						rBinding.Type = ActionBindingType::Key;
 						rBinding.ActionName = result;
+
+						ShouldSaveProject = true;
 					}
 
 					if( IsSelected )
@@ -1251,6 +1251,7 @@ namespace Saturn {
 			if( ImGui::SmallButton( "-" ) )
 			{
 				rIt = ActiveProject->ActionBindings.erase( rIt );
+				ShouldSaveProject = true;
 			}
 			else
 			{
@@ -1280,9 +1281,16 @@ namespace Saturn {
 			}
 
 			ActiveProject->ActionBindings.push_back( ab );
+			ShouldSaveProject = true;
 		}
 
 		ImGui::End();
+
+		if( ShouldSaveProject && !m_ShowUserSettings )
+		{
+			ProjectSerialiser ps;
+			ps.Serialise( Project::GetActiveProject()->GetRootDir().string() );
+		}
 	}
 
 	void EditorLayer::HotReloadGame()

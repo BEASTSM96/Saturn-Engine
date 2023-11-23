@@ -54,7 +54,7 @@ namespace Saturn {
 		RubyMouseButton MouseButton = RubyMouseButton::Unknown;
 		
 		// Editor Only
-		std::string_view ActionName = "";
+		std::string ActionName = "";
 		UUID ID;
 	};
 }
