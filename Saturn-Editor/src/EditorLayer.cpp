@@ -73,6 +73,7 @@
 #include <Saturn/Premake/Premake.h>
 
 #include <Ruby/RubyWindow.h>
+#include <Ruby/RubyAuxiliary.h>
 
 #include <typeindex>
 
@@ -131,6 +132,8 @@ namespace Saturn {
 
 			if( ImGui::BeginMenu( "Project" ) )
 			{
+				if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;
+
 				if( ImGui::MenuItem( "Recreate project files" ) )
 				{
 					Project::GetActiveProject()->CreatePremakeFile();
@@ -149,7 +152,7 @@ namespace Saturn {
 
 			if( ImGui::BeginMenu( "Settings" ) )
 			{
-				if( ImGui::MenuItem( "User settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;
+				if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;
 				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
 				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug = !OpenLoadedAssetDebug;
 				if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings = !m_OpenEditorSettings;
@@ -221,6 +224,9 @@ namespace Saturn {
 
 		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 
+		m_Character = new Character();
+		m_Character->BeginPlay();
+
 		/*
 		Ref<Asset> asset = AssetManager::Get().FindAsset( "Assets\\Sound\\Music_MainThemePiano.s2d" );
 		Ref<Sound2D> music = AssetManager::Get().GetAssetAs<Sound2D>( asset->ID );
@@ -230,9 +236,7 @@ namespace Saturn {
 	}
 
 	EditorLayer::~EditorLayer()
-	{
-		//Window::Get().SetTitlebarHitTest( nullptr );
-		
+	{		
 		delete m_TitleBar;
 		
 		m_CheckerboardTexture = nullptr;
@@ -257,6 +261,8 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
+
+		m_Character->OnUpdate( time );
 		
 		// Check for any awaiting scene travels.
 		if( Scene::AwaitingTravels() )
@@ -1122,16 +1128,20 @@ namespace Saturn {
 
 	void EditorLayer::UI_Titlebar_UserSettings()
 	{
-		auto& userSettings = GetUserSettings();
-
-		auto& startupProject = userSettings.StartupProject;
-		auto& startupScene = Project::GetActiveProject()->m_Config.StartupScenePath;
+		ImGui::ShowDemoWindow();
 
 		ImGuiIO& rIO = ImGui::GetIO();
 
+		auto& userSettings = GetUserSettings();
+
+		Ref<Project> ActiveProject = Project::GetActiveProject();
+
+		auto& startupProject = userSettings.StartupProject;
+		auto& startupScene = ActiveProject->m_Config.StartupScenePath;
+
 		ImGui::SetNextWindowPos( ImVec2( rIO.DisplaySize.x * 0.5f - 150.0f, rIO.DisplaySize.y * 0.5f - 150.0f ), ImGuiCond_Once );
 
-		ImGui::Begin( "User settings", &m_ShowUserSettings );
+		ImGui::Begin( "Project settings", &m_ShowUserSettings );
 
 		ImGui::Text( "Startup Scene:" );
 		
@@ -1186,6 +1196,92 @@ namespace Saturn {
 			ImGui::EndPopup();
 		}
 		
+		auto boldFont = rIO.Fonts->Fonts[ 1 ];
+		ImGui::PushFont( boldFont );
+
+		ImGui::Text( "Action Bindings" );
+		ImGui::Separator();
+
+		ImGui::PopFont();
+
+		for( auto rIt = ActiveProject->ActionBindings.begin(); rIt != ActiveProject->ActionBindings.end(); )
+		{
+			auto& rBinding = *( rIt );
+
+			ImGui::SetNextItemWidth( 130.0f );
+			std::string id = "##" + std::to_string( rBinding.ID );
+			ImGui::InputText( id.data(), (char*)rBinding.Name.data(), 256 );
+
+			ImGui::SameLine(); // HACK, There seems to bug with the ImGui Layout as the InputText works fine when it's not in a Horizontal layout. (Update) Seems to be with certain IDs/labels
+
+			ImGui::BeginHorizontal( rBinding.Name.data() );
+
+			ImGui::SetNextItemWidth( 130.0f );
+			if( ImGui::BeginCombo( "##KEYLIST", rBinding.ActionName.data() ) )
+			{
+				for( int i = 0; i < RubyKey::EnumSize; i++ )
+				{
+					const auto& result = Ruby_KeyToString( (RubyKey) i );
+
+					// This is here because of how we do our loop, some keys will be empty because the values to do not match up.
+					if( result.empty() )
+						continue;
+
+					bool IsSelected = ( rBinding.ActionName == result );
+
+					ImGui::PushID( i );
+
+					ImGui::SetNextItemWidth( 130.0f );
+					if( ImGui::Selectable( result.data(), IsSelected ) )
+					{
+						rBinding.Key = ( RubyKey ) i;
+						rBinding.Type = ActionBindingType::Key;
+						rBinding.ActionName = result;
+					}
+
+					if( IsSelected )
+						ImGui::SetItemDefaultFocus();
+
+					ImGui::PopID();
+				}
+
+				ImGui::EndCombo();
+			}
+
+			if( ImGui::SmallButton( "-" ) )
+			{
+				rIt = ActiveProject->ActionBindings.erase( rIt );
+			}
+			else
+			{
+				++rIt;
+			}
+
+			ImGui::EndHorizontal();
+		}
+
+		if( ImGui::SmallButton( "+" ) ) 
+		{
+			ActionBinding ab;
+			ab.Name = "Empty Binding";
+
+			int count = 0;
+			// Find all other actions bindings with the same name.
+			for( const auto& bindings : ActiveProject->ActionBindings ) 
+			{
+				if( bindings.Name.contains( "Empty Binding" ) ) 
+					count++;
+			}
+
+			if( count >= 1 ) 
+			{
+				ab.Name += " ";
+				ab.Name += std::to_string( count );
+			}
+
+			ActiveProject->ActionBindings.push_back( ab );
+		}
+
 		ImGui::End();
 	}
 
@@ -1256,4 +1352,5 @@ namespace Saturn {
 			AssetManager::Get().Save( AssetRegistryType::Editor );
 		}
 	}
+
 }

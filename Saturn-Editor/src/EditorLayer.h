@@ -38,6 +38,7 @@ namespace Saturn {
 	
 	class Toolbar;
 	class TitleBar;
+	class Character;
 
 	class EditorLayer : public Layer
 	{
@@ -90,6 +91,8 @@ namespace Saturn {
 		Ref< Texture2D > m_SyncTexture = nullptr;
 
 		Ref< PanelManager > m_PanelManager = nullptr;
+
+		Character* m_Character = nullptr;
 
 		EditorCamera m_EditorCamera;
 		bool m_AllowCameraEvents = false;

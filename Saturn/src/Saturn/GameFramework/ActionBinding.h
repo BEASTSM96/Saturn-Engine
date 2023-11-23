@@ -28,63 +28,33 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-#include "Saturn/GameFramework/ActionBinding.h"
+#include "Saturn/Core/UUID.h"
 
 #include <string>
-#include <filesystem>
+#include <Ruby/RubyEventType.h>
 
 namespace Saturn {
-	
-	struct ProjectConfig
-	{
-		std::string Name;
-		std::string StartupScenePath;
 
-		std::string AssetPath; // Relative path
-		std::string Path; // Absolute path
+	enum class ActionBindingType 
+	{
+		Key,
+		Mouse
 	};
 
-	class Project : public RefTarget
+	struct ActionBinding
 	{
-	public:
-		Project();
-		~Project();
+		std::string Name = "";
+		ActionBindingType Type = ActionBindingType::Key;
+		
+		// That state should did this event fire in. For example, Pressed or Released.
+		// This will not be set by the user and will be set by the Engine when this event is pressed or released.
+		bool State = false;
 
-		const ProjectConfig& GetConfig() const { return m_Config; }
-
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
-
-		// Only to be used by the Game.
-		static std::string FindProjectDir( const std::string& rName );
-
-		void CheckMissingAssetRefs();
-
-		std::filesystem::path GetAssetPath();
-		std::filesystem::path GetFullAssetPath();
-		const std::string& GetName() const;
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-
-		std::filesystem::path GetBinDir();
-
-		std::filesystem::path GetPath();
-
-		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
-
-		std::filesystem::path GetFullCachePath();
-
-		bool HasPremakeFile();
-		void CreatePremakeFile();
-		void CreateBuildFile();
-
-		void PrepForDist();
-
-		// TEMP
-		//    Until we have a proper project system
-		ProjectConfig m_Config;
-		std::vector<ActionBinding> ActionBindings;
+		RubyKey Key = RubyKey::UnknownKey;
+		RubyMouseButton MouseButton = RubyMouseButton::Unknown;
+		
+		// Editor Only
+		std::string_view ActionName = "";
+		UUID ID;
 	};
 }

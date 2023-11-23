@@ -95,6 +95,8 @@ enum RubyKey
 	RightCtrl = 0xA3,
 	RightShift = 0xA1,
 	RightAlt = 0xA5,
+
+	EnumSize
 };
 
 enum class RubyMouseButton : uint32_t
