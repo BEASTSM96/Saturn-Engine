@@ -55,8 +55,6 @@ namespace Saturn {
 	struct TransformComponent;
 	struct RaycastHitResult;
 
-	using EntityMap = std::unordered_map<entt::entity, Ref<Entity>>;
-
 	struct SceneComponent
 	{
 		UUID SceneID;
@@ -245,7 +243,7 @@ namespace Saturn {
 		std::string m_Name;
 		std::string m_Filepath;
 
-		EntityMap m_EntityIDMap;
+		std::unordered_map<entt::entity, Ref<Entity>> m_EntityIDMap;
 
 		entt::registry m_Registry;
 

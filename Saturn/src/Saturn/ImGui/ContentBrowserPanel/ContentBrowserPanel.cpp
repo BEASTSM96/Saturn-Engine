@@ -524,7 +524,8 @@ namespace Saturn {
 
 	void ContentBrowserPanel::DrawClassHierarchy( const SClassMetadata& rData )
 	{
-		if( ImGui::TreeNode( rData.Name.c_str() ) )
+		ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+		if( ImGui::TreeNodeEx( rData.Name.c_str(), Flags ) )
 		{
 			ClassMetadataHandler::Get().EachTreeNode(
 				[&]( auto& rMetadata )
