@@ -31,6 +31,8 @@
 #include "Saturn/Core/Ref.h"
 #include "Ruby/RubyEventType.h"
 
+#include "ActionBinding.h"
+
 #include <functional>
 #include <unordered_map>
 #include <unordered_set>
@@ -40,19 +42,19 @@ namespace Saturn {
 	class PlayerInputController : public RefTarget
 	{
 	public:
-		using ActionFunction = std::function<void( bool )>;
+		using ActionFunction = std::function<void()>;
 	public:
 		PlayerInputController();
 		~PlayerInputController();
 
-		void BindAction( RubyKey key, const ActionFunction& rFunction );
-		void RemoveAction( RubyKey key );
+		void BindAction( const std::string& rBindingName, const ActionFunction& rFunction );
+		void RemoveAction( const std::string& rBindingName );
 
 	protected:
 		void Update();
 	
 	private:
-		std::unordered_map<RubyKey, ActionFunction> m_ActionMap;
+		std::unordered_map<std::string, ActionBinding> m_ActionMap;
 		std::unordered_set<RubyKey> m_Keys;
 
 	private:

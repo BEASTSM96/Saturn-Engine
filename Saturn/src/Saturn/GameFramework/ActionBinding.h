@@ -56,5 +56,6 @@ namespace Saturn {
 		// Editor Only
 		std::string ActionName = "";
 		UUID ID;
+		std::function<void()> Function = nullptr;
 	};
 }

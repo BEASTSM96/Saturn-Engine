@@ -52,10 +52,10 @@ namespace Saturn {
 
 		SetupInputBindings();
 
-		m_PlayerInputController->BindAction( RubyKey::W, SAT_BIND_EVENT_FN( MoveForward ) );
-		m_PlayerInputController->BindAction( RubyKey::S, SAT_BIND_EVENT_FN( MoveBack ) );
-		m_PlayerInputController->BindAction( RubyKey::A, SAT_BIND_EVENT_FN( MoveLeft ) );
-		m_PlayerInputController->BindAction( RubyKey::D, SAT_BIND_EVENT_FN( MoveRight ) );
+		m_PlayerInputController->BindAction( "Jump", SAT_BIND_EVENT_FN( MoveForward ) );
+		m_PlayerInputController->BindAction( "Jump", SAT_BIND_EVENT_FN( MoveBack ) );
+		m_PlayerInputController->BindAction( "Jump", SAT_BIND_EVENT_FN( MoveLeft ) );
+		m_PlayerInputController->BindAction( "Jump", SAT_BIND_EVENT_FN( MoveRight ) );
 
 		/*
 		m_RigidBody = GetComponent<RigidbodyComponent>().Rigidbody;
@@ -161,30 +161,24 @@ namespace Saturn {
 		m_LastMousePos = currentMousePos;
 	}
 
-	void Character::MoveForward( bool pressed )
+	void Character::MoveForward()
 	{
-		if( pressed )
-		{
-			m_MovementDirection.y = 1.0f;
-		}
+		m_MovementDirection.y = 1.0f;
 	}
 
-	void Character::MoveBack( bool pressed )
+	void Character::MoveBack()
 	{
-		if( pressed )
-			m_MovementDirection.y = -1.0f;
+		m_MovementDirection.y = -1.0f;
 	}
 
-	void Character::MoveLeft( bool pressed )
+	void Character::MoveLeft()
 	{
-		if( pressed )
-			m_MovementDirection.x = -1.0f;
+		m_MovementDirection.x = -1.0f;
 	}
 
-	void Character::MoveRight( bool pressed )
+	void Character::MoveRight()
 	{
-		if( pressed )
-			m_MovementDirection.x = 1.0f;
+		m_MovementDirection.x = 1.0f;
 	}
 
 }

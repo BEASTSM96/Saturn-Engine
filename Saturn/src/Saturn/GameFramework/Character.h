@@ -80,10 +80,10 @@ namespace Saturn {
 		void HandleMovement() {}
 		void HandleRotation( Timestep ts );
 
-		void MoveForward( bool pressed );
-		void MoveBack( bool pressed );
-		void MoveLeft( bool pressed );
-		void MoveRight( bool pressed );
+		void MoveForward();
+		void MoveBack();
+		void MoveLeft();
+		void MoveRight();
 
 		glm::vec2 m_MovementDirection{};
 		glm::vec2 m_LastMousePos{};
