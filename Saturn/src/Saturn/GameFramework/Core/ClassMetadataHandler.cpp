@@ -26,32 +26,45 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/Core/Ref.h"
+#include "sppch.h"
+#include "ClassMetadataHandler.h"
 
 namespace Saturn {
 
-	//////////////////////////////////////////////////////////////////////////
-	// SClass Metadata
-	// Editor Only
-	// This information could of been inside of the SClass however I want to keep this away from whatever class uses this.
-	// This is manly used when choosing a parent class for a new class in the editor.
-	struct SClassMetadata 
+	ClassMetadataHandler::ClassMetadataHandler()
 	{
-		std::string Name;
-		std::string ParentClassName;
-	};
+		// Push some default classes.
+		// TODO: This should be done by the Build Tool however we are not using it for the Engine.
+		SClassMetadata SClassData{ .Name = "SClass", .ParentClassName = "" };
+		m_Metadata.push_back( SClassData );
 
-	class SClass : public RefTarget
+		SClassData = { .Name = "Entity", .ParentClassName = "SClass" };
+		m_Metadata.push_back( SClassData );
+
+		SClassData = { .Name = "Character", .ParentClassName = "Entity" };
+		m_Metadata.push_back( SClassData );
+
+		ConstructTree();
+	}
+
+	ClassMetadataHandler::~ClassMetadataHandler()
 	{
-	public:
-		SClass() {}
-		virtual ~SClass() = default;
+		m_Metadata.clear();
+	}
 
-		virtual void BeginPlay() {}
-		virtual void OnUpdate( Saturn::Timestep ts ) {}
-		virtual void OnPhysicsUpdate( Saturn::Timestep ts ) {}
-	};
+	void ClassMetadataHandler::Add( const SClassMetadata& rData )
+	{
+		m_Metadata.push_back( rData );
+		
+		ConstructTree();
+	}
+
+	void ClassMetadataHandler::ConstructTree()
+	{
+		for( const auto& data : m_Metadata )
+		{
+			m_MetadataTree[ data.Name ] = data;
+		}
+	}
 
 }

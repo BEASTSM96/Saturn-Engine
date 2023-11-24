@@ -29,26 +29,42 @@
 #pragma once
 
 #include "SingletonStorage.h"
+#include "Saturn/GameFramework/SClass.h"
+
 #include <string>
 #include <vector>
 
 namespace Saturn {
 
-	class GamePrefabList
+	class ClassMetadataHandler : public RefTarget
 	{
 	public:
-		static inline GamePrefabList& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<GamePrefabList>(); }
+		static inline ClassMetadataHandler& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<ClassMetadataHandler>(); }
 	public:
-		GamePrefabList() {}
+		ClassMetadataHandler();
+		~ClassMetadataHandler();
 
-		~GamePrefabList() {}
+		template<typename Fn> 
+		void Each( Fn Function ) 
+		{
+			for( const auto& data : m_Metadata )
+				Function( data );
+		}
 
-		void Add( const std::string& rName ) { m_Names.push_back( rName ); }
+		template<typename Fn>
+		void EachTreeNode( Fn Function )
+		{
+			for( auto&& [name, data] : m_MetadataTree )
+				Function( data );
+		}
 
-		std::vector<std::string>& GetNames() { return m_Names; }
-		const std::vector<std::string>& GetNames() const { return m_Names; }
+		void Add( const SClassMetadata& rData );
 
 	private:
-		std::vector<std::string> m_Names;
+		void ConstructTree();
+
+	private:
+		std::vector<SClassMetadata> m_Metadata;
+		std::unordered_map<std::string, SClassMetadata> m_MetadataTree;
 	};
 }

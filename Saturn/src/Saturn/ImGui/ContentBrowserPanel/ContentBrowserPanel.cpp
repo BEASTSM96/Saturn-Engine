@@ -49,7 +49,7 @@
 
 #include "Saturn/Premake/Premake.h"
 #include "Saturn/GameFramework/Core/SourceManager.h"
-#include "Saturn/GameFramework/Core/GamePrefabList.h"
+#include "Saturn/GameFramework/Core/ClassMetadataHandler.h"
 
 #include <imgui_internal.h>
 
@@ -374,50 +374,49 @@ namespace Saturn {
 				FindAndRenameItem( asset->Path );
 			}
 
-			auto& names = GamePrefabList::Get().GetNames();
-
-			for( auto& name : names )
-			{
-				if( ImGui::MenuItem( name.c_str() ) )
+			ClassMetadataHandler::Get().Each( 
+				[&]( auto& rMetadata ) 
 				{
-					// In order to create this, we will need to create the class the user wants then we can create the prefab from it.
+					if( ImGui::MenuItem( rMetadata.Name.c_str() ) )
+					{
+						// In order to create this, we will need to create the class the user wants then we can create the prefab from it.
 
-					// Create the prefab asset
-					Ref<Prefab> PrefabAsset = AssetManager::Get().CreateAsset<Prefab>( AssetType::Prefab, AssetRegistryType::Game );
-					PrefabAsset->Create();
+						// Create the prefab asset
+						Ref<Prefab> PrefabAsset = AssetManager::Get().CreateAsset<Prefab>( AssetType::Prefab, AssetRegistryType::Game );
+						PrefabAsset->Create();
 
-					auto asset = AssetManager::Get().FindAsset( PrefabAsset->ID );
+						auto asset = AssetManager::Get().FindAsset( PrefabAsset->ID );
 
-					// Create the user class
-					// Try register
-					/*
-					EntityScriptManager::Get().RegisterScript( name );
+						// Create the user class
+						// Try register
+						/*
+						EntityScriptManager::Get().RegisterScript( name );
 
-					Entity* e = new Entity( PrefabAsset->GetScene()->CreateEntity( name ) );
-					e->AddComponent<ScriptComponent>().ScriptName = name;
+						Entity* e = new Entity( PrefabAsset->GetScene()->CreateEntity( name ) );
+						e->AddComponent<ScriptComponent>().ScriptName = name;
 
-					SClass* sclass = EntityScriptManager::Get().CreateScript( name, nullptr );
+						SClass* sclass = EntityScriptManager::Get().CreateScript( name, nullptr );
 
-					PrefabAsset->SetEntity( *( Entity* ) &e );
-					*/
+						PrefabAsset->SetEntity( *( Entity* ) &e );
+						*/
 
-					// Set asset path
-					std::filesystem::path path = m_CurrentPath / name;
-					path.replace_extension( ".prefab" );
+						// Set asset path
+						std::filesystem::path path = m_CurrentPath / rMetadata.Name;
+						path.replace_extension( ".prefab" );
 
-					PrefabAsset->SetPath( path );
-					asset->SetPath( path ); // HACK
+						PrefabAsset->SetPath( path );
+						asset->SetPath( path ); // HACK
 
-					// Serialise
-					PrefabSerialiser ps;
-					ps.Serialise( PrefabAsset );
+						// Serialise
+						PrefabSerialiser ps;
+						ps.Serialise( PrefabAsset );
 
-					AssetRegistrySerialiser ars;
-					ars.Serialise( AssetManager::Get().GetAssetRegistry() );
+						AssetRegistrySerialiser ars;
+						ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 
-					UpdateFiles( true );
-				}
-			}
+						UpdateFiles( true );
+					}
+				} );
 
 			ImGui::EndMenu();
 		}
@@ -521,6 +520,23 @@ namespace Saturn {
 		}
 
 		return count;
+	}
+
+	void ContentBrowserPanel::DrawClassHierarchy( const SClassMetadata& rData )
+	{
+		if( ImGui::TreeNode( rData.Name.c_str() ) )
+		{
+			ClassMetadataHandler::Get().EachTreeNode(
+				[&]( auto& rMetadata )
+				{
+					if( rMetadata.ParentClassName == rData.Name ) 
+					{
+						DrawClassHierarchy( rMetadata );
+					}
+				} );
+
+			Auxiliary::EndTreeNode();
+		}
 	}
 
 	void ContentBrowserPanel::EdDrawRootFolder( CBViewMode type, bool open /*= false */ )
@@ -1155,20 +1171,52 @@ namespace Saturn {
 		}
 
 		if( s_OpenScriptsPopup )
-			ImGui::OpenPopup( "Create A Script##Create_Script" );
+			ImGui::OpenPopup( "Create A New Class##Create_Script" );
 
 		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-		if( ImGui::BeginPopupModal( "Create A Script##Create_Script", &s_OpenScriptsPopup, ImGuiWindowFlags_NoMove ) )
+		if( ImGui::BeginPopupModal( "Create A New Class##Create_Script", &s_OpenScriptsPopup, ImGuiWindowFlags_NoMove ) )
 		{
 			static std::string n;
 
 			bool PopupModified = false;
 
 			ImGui::BeginVertical( "##inputv" );
+			ImGui::BeginHorizontal( "##inputh" );
 
 			ImGui::Text( "Name:" );
-
 			ImGui::InputText( "##n", ( char* ) n.c_str(), 1024 );
+			
+			ImGui::EndHorizontal();
+
+			ImGuiIO& rIO = ImGui::GetIO();
+			auto boldFont = rIO.Fonts->Fonts[ 1 ];
+
+			ImGui::PushFont( boldFont );
+			ImGui::Text( "Choose a parent class" );
+			ImGui::PopFont();
+
+			if( ImGui::BeginListBox( "##classes", ImVec2( -FLT_MIN, 0.0f ) ) )
+			{
+				ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+				// Root Tree
+				if( ImGui::TreeNodeEx( "SClass", Flags ) )
+				{
+					// Display any SClass children.
+					ClassMetadataHandler::Get().EachTreeNode( 
+						[&]( auto& rMetadata ) 
+						{
+							if( rMetadata.ParentClassName == "SClass" ) 
+							{
+								DrawClassHierarchy( rMetadata );
+							}
+						} );
+					
+					Auxiliary::EndTreeNode();
+				}
+
+				ImGui::EndListBox();
+			}
 
 			ImGui::EndVertical();
 

@@ -30,6 +30,7 @@
 #include "Character.h"
 
 #include "Saturn/Physics/PhysicsRigidBody.h"
+#include "Core/ClassMetadataHandler.h"
 
 namespace Saturn {
 
@@ -39,6 +40,10 @@ namespace Saturn {
 
 		m_MouseSensitivity = 3.0f;
 		m_MouseUpMovement = 0.0f;
+
+		AddComponent<StaticMeshComponent>();
+		AddComponent<RigidbodyComponent>();
+		AddComponent<CapsuleColliderComponent>();
 	}
 
 	Character::~Character()
@@ -57,12 +62,13 @@ namespace Saturn {
 		m_PlayerInputController->BindAction( "Jump", SAT_BIND_EVENT_FN( MoveLeft ) );
 		m_PlayerInputController->BindAction( "Jump", SAT_BIND_EVENT_FN( MoveRight ) );
 
-		/*
 		m_RigidBody = GetComponent<RigidbodyComponent>().Rigidbody;
 
-		m_RigidBody->SetOnCollisionHit( SAT_BIND_EVENT_FN( OnMeshHit ) );
-		m_RigidBody->SetOnCollisionExit( SAT_BIND_EVENT_FN( OnMeshExit ) );
-		*/
+		if( m_RigidBody )
+		{
+			m_RigidBody->SetOnCollisionHit( SAT_BIND_EVENT_FN( OnMeshHit ) );
+			m_RigidBody->SetOnCollisionExit( SAT_BIND_EVENT_FN( OnMeshExit ) );
+		}
 
 		m_CameraEntity = m_Scene->GetMainCameraEntity();
 	}
@@ -71,8 +77,8 @@ namespace Saturn {
 	{
 		Super::OnUpdate( ts );
 
-		m_MovementDirection.x = 0;
-		m_MovementDirection.y = 0;
+		m_MovementDirection.x = 0.0f;
+		m_MovementDirection.y = 0.0f;
 
 		// Update player input
 		m_PlayerInputController->Update();

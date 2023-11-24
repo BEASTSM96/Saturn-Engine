@@ -51,6 +51,8 @@ namespace Saturn {
 		Scripts
 	};
 
+	struct SClassMetadata;
+
 	class ContentBrowserPanel : public Panel
 	{
 	public:
@@ -83,6 +85,8 @@ namespace Saturn {
 		Ref<ContentBrowserItem> GetActiveHoveredItem();
 
 		uint32_t GetFilenameCount( const std::string& rName );
+
+		void DrawClassHierarchy( const SClassMetadata& rData );
 
 	private: // Editor Content
 		void EdDrawRootFolder( CBViewMode type, bool open = false );

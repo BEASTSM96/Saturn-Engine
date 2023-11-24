@@ -439,14 +439,19 @@ namespace SaturnBuildTool.Tools
 
                 cmd.GeneratedSource.AppendLine(cExternEnd);
 
-                // Add to prefab list
-                string prefab = string.Format("static void _RT_Z_AddPrefab_{0}()\r\n", cmd.CurrentFile.ClassName);
-                prefab += "{\r\n";
-                prefab += string.Format("\t Saturn::GamePrefabList::Get().Add(\"{0}\");\r\n", cmd.CurrentFile.ClassName);
-                prefab += "}\r\n";
-                prefab += "//^^^ Type is prefab...\r\n";
+                // Create metadata and add it to the list
+                if(BuildConfig.Instance.GetTargetConfig() < ConfigKind.DistDebug) 
+                {
+                    string metadata = string.Format("static void _RT_Z_CreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
+                    metadata += "{\r\n";
+                    metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};", cmd.CurrentFile.ClassName);
+                    metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
+                    metadata += string.Format("\t__Metadata_{0}.ParentClassName = \"{1}\";\r\n", cmd.CurrentFile.ClassName, cmd.CurrentFile.BaseClass);
+                    metadata += string.Format("\tSaturn::MetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
+                    metadata += "}\r\n";
 
-                cmd.GeneratedSource.AppendLine(prefab);
+                    cmd.GeneratedSource.AppendLine(metadata);
+                }
 
                 // Properties
                 string propfunc = string.Format("static void _Zp_{0}_Reg_Props()\r\n", cmd.CurrentFile.ClassName);
