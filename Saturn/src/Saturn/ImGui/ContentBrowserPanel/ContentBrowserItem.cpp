@@ -111,7 +111,7 @@ namespace Saturn {
 				}
 			}
 
-			// Because when we double click we know we will change directory and when we change directory this will no longer be selected.
+			// Because when we double click we know that we will change directory and when we change directory this will no longer be selected.
 			if( Clicked && !DoubleClicked )
 			{
 				m_IsSelected = !m_IsSelected;

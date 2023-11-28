@@ -36,6 +36,8 @@
 
 #include "ContentBrowserItem.h"
 
+#include "Saturn/GameFramework/SClass.h"
+
 #include <imgui.h>
 #include <filesystem>
 #include <functional>
@@ -86,7 +88,7 @@ namespace Saturn {
 
 		uint32_t GetFilenameCount( const std::string& rName );
 
-		void DrawClassHierarchy( const SClassMetadata& rData );
+		void DrawClassHierarchy( const std::string& rKeyName, const SClassMetadata& rData );
 
 	private: // Editor Content
 		void EdDrawRootFolder( CBViewMode type, bool open = false );
@@ -135,6 +137,8 @@ namespace Saturn {
 		bool m_FilesNeedSorting = false;
 		bool m_RenderCreateWindow = false;
 		bool m_ChangeDirectory = false;
+
+		SClassMetadata m_SelectedMetadata = {};
 
 		filewatch::FileWatch<std::string>* m_Watcher = nullptr;
 	};

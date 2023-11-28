@@ -60,6 +60,10 @@ namespace Saturn {
 
 		void Add( const SClassMetadata& rData );
 
+		// This return metadata for the SClass class.
+		const SClassMetadata& GetSClassMetadata() const;
+		SClassMetadata& GetSClassMetadata();
+
 	private:
 		void ConstructTree();
 

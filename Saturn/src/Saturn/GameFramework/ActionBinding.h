@@ -53,9 +53,12 @@ namespace Saturn {
 		RubyKey Key = RubyKey::UnknownKey;
 		RubyMouseButton MouseButton = RubyMouseButton::Unknown;
 		
+		std::function<void()> Function = nullptr;
+
 		// Editor Only
+		// TODO: I want to create a SAT_HAS_EDITOR macro so that this code is only there in Debug, Release
+		// As our Dist config is our shipping for running the game with the editor attached.
 		std::string ActionName = "";
 		UUID ID;
-		std::function<void()> Function = nullptr;
 	};
 }

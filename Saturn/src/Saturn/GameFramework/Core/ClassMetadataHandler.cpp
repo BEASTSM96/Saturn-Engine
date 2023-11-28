@@ -59,6 +59,16 @@ namespace Saturn {
 		ConstructTree();
 	}
 
+	const SClassMetadata& ClassMetadataHandler::GetSClassMetadata() const
+	{
+		return m_MetadataTree.at( "SClass" );
+	}
+
+	SClassMetadata& ClassMetadataHandler::GetSClassMetadata()
+	{
+		return m_MetadataTree.at( "SClass" );
+	}
+
 	void ClassMetadataHandler::ConstructTree()
 	{
 		for( const auto& data : m_Metadata )

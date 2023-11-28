@@ -522,24 +522,6 @@ namespace Saturn {
 		return count;
 	}
 
-	void ContentBrowserPanel::DrawClassHierarchy( const SClassMetadata& rData )
-	{
-		ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-		if( ImGui::TreeNodeEx( rData.Name.c_str(), Flags ) )
-		{
-			ClassMetadataHandler::Get().EachTreeNode(
-				[&]( auto& rMetadata )
-				{
-					if( rMetadata.ParentClassName == rData.Name ) 
-					{
-						DrawClassHierarchy( rMetadata );
-					}
-				} );
-
-			Auxiliary::EndTreeNode();
-		}
-	}
-
 	void ContentBrowserPanel::EdDrawRootFolder( CBViewMode type, bool open /*= false */ )
 	{
 		switch( type )
@@ -1201,20 +1183,7 @@ namespace Saturn {
 				ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 
 				// Root Tree
-				if( ImGui::TreeNodeEx( "SClass", Flags ) )
-				{
-					// Display any SClass children.
-					ClassMetadataHandler::Get().EachTreeNode( 
-						[&]( auto& rMetadata ) 
-						{
-							if( rMetadata.ParentClassName == "SClass" ) 
-							{
-								DrawClassHierarchy( rMetadata );
-							}
-						} );
-					
-					Auxiliary::EndTreeNode();
-				}
+				DrawClassHierarchy( "SClass", ClassMetadataHandler::Get().GetSClassMetadata() );
 
 				ImGui::EndListBox();
 			}
@@ -1261,6 +1230,35 @@ namespace Saturn {
 		ImGui::PopStyleColor();
 
 		ImGui::End();
+	}
+
+	void ContentBrowserPanel::DrawClassHierarchy( const std::string& rKeyName, const SClassMetadata& rData )
+	{
+		ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+		m_SelectedMetadata.Name == rKeyName ? Flags |= ImGuiTreeNodeFlags_Selected : 0;
+
+		ImGui::PushID( rKeyName.c_str() );
+
+		if( ImGui::TreeNodeEx( rKeyName.c_str(), Flags ) )
+		{
+			ClassMetadataHandler::Get().EachTreeNode(
+				[&]( auto& rMetadata )
+				{
+					if( rMetadata.ParentClassName == rKeyName )
+					{
+						DrawClassHierarchy( rMetadata.Name, rMetadata );
+					}
+				} );
+
+			Auxiliary::EndTreeNode();
+		}
+
+		ImGui::PopID();
+
+		if( ImGui::IsItemClicked() )
+		{
+			m_SelectedMetadata = rData;
+		}
 	}
 
 	void ContentBrowserPanel::SetPath( const std::filesystem::path& rPath )
