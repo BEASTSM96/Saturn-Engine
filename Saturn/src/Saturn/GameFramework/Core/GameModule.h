@@ -31,7 +31,7 @@
 #include "SingletonStorage.h"
 #include "Saturn/GameFramework/SClass.h"
 
-#include <Windows.h>
+#include "Saturn/Core/Library.h"
 
 namespace Saturn {
 
@@ -45,7 +45,7 @@ namespace Saturn {
 		static GameModule& Get() { return *SingletonStorage::Get().GetSingleton<GameModule>(); }
 	public:
 		GameModule();
-		~GameModule() {}
+		~GameModule();
 
 		Entity* FindAndCallRegisterFunction( const std::string& rClassName );
 		
@@ -53,7 +53,7 @@ namespace Saturn {
 		void Unload();
 		void Reload();
 	private:
-		HMODULE m_DLLInstance = nullptr;
+		Library m_DLLInstance;
 
 	private:
 		friend class EntityScriptManager;

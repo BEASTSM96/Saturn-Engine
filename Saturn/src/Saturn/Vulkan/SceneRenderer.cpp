@@ -887,40 +887,6 @@ namespace Saturn {
 				Auxiliary::EndTreeNode();
 			}
 
-			/*
-			if( Auxiliary::TreeNode( "Instanced Meshes", false ) )
-			{
-				ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
-
-				if( ImGui::BeginTable( "##FileTable", 2, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y ) ) )
-				{
-					ImGui::TableSetupColumn( "Mesh ID" );
-					ImGui::TableSetupColumn( "Count" );
-
-					ImGui::TableHeadersRow();
-
-					int TableRow = 0;
-
-					for( auto&& [id, value] : m_RendererData.InstancedMeshes )
-					{
-						TableRow++;
-
-						ImGui::TableNextRow();
-
-						ImGui::TableSetColumnIndex( 0 );
-						ImGui::Selectable( std::to_string( id ).c_str(), false );
-
-						ImGui::TableSetColumnIndex( 1 );
-						ImGui::Selectable( std::to_string( value.Count ).c_str(), false );
-					}
-
-					ImGui::EndTable();
-				}
-
-				Auxiliary::EndTreeNode();
-			}
-			*/
-
 			if( Auxiliary::TreeNode( "Bloom settings", false ) )
 			{
 				static int index = 0;
@@ -1620,7 +1586,7 @@ namespace Saturn {
 
 				pc_Settings.LOD = i - 1.0f;
 
-				// Step 1.5: Set push constants & Execute the compute shader.
+				// Step 1.5: Set push constants & execute the compute shader.
 				pipeline->AddPushConstant( &pc_Settings, 0, sizeof( pc_Settings ) );
 				pipeline->Execute( descriptorSet,
 					( uint32_t ) workgrps.x,

@@ -42,7 +42,7 @@ namespace Saturn {
 		}
 	}
 
-	inline void SetDebugUtilsObjectName( std::string Name, uint64_t Handle, VkObjectType ObjectType )
+	inline void SetDebugUtilsObjectName( const std::string& Name, uint64_t Handle, VkObjectType ObjectType )
 	{
 		PFN_vkSetDebugUtilsObjectNameEXT Function = ( PFN_vkSetDebugUtilsObjectNameEXT )vkGetInstanceProcAddr( VulkanContext::Get().GetInstance(), "vkSetDebugUtilsObjectNameEXT" );
 
@@ -97,7 +97,7 @@ namespace Saturn {
 		}
 	}
 
-	inline void CmdBeginDebugLabel( VkCommandBuffer ComamndBuffer, std::string Name )
+	inline void CmdBeginDebugLabel( VkCommandBuffer ComamndBuffer, const std::string& Name )
 	{
 		PFN_vkCmdBeginDebugUtilsLabelEXT Function = ( PFN_vkCmdBeginDebugUtilsLabelEXT ) vkGetDeviceProcAddr( VulkanContext::Get().GetDevice(), "vkCmdBeginDebugUtilsLabelEXT" );
 

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Saturn/Core/Ref.h"
+#include "Saturn/Core/Timestep.h"
 
 namespace Saturn {
 
@@ -36,11 +37,12 @@ namespace Saturn {
 	// SClass Metadata
 	// Editor Only
 	// This information could of been inside of the SClass however I want to keep this away from whatever class uses this.
-	// This is manly used when choosing a parent class for a new class in the editor.
+	// This is mainly used when choosing a parent class for a new class in the editor.
 	struct SClassMetadata 
 	{
 		std::string Name;
 		std::string ParentClassName;
+		bool Handled = false;
 	};
 
 	class SClass : public RefTarget

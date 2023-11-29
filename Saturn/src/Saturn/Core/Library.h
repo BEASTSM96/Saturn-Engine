@@ -26,75 +26,40 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "GameModule.h"
+#pragma once
 
-#include "Saturn/Core/App.h"
-#include "Saturn/Scene/Entity.h"
+#include "Ref.h"
 
-#include "Saturn/Project/Project.h"
+#include <string>
 
-#include "GameScript.h"
-
-#include "SourceManager.h"
+#if defined(_WIN32)
+#include <Windows.h>
+using LibraryHandle = HMODULE;
+#else
+#include <dlfcn.h>
+using LibraryHandle = void*;
+#endif
 
 namespace Saturn {
 
-	GameModule::GameModule()
+	class Library : public RefTarget
 	{
-		SingletonStorage::Get().AddSingleton( this );
-	}
+	public:
+		Library();
+		~Library();
 
-	GameModule::~GameModule()
-	{
-		Unload();
-	}
+		bool Load( const std::string& rPath );
+		void Free();
 
-	void GameModule::Load( bool reload /*=false*/ )
-	{
-		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
-		{
-			// We are the editor
+#if defined(_WIN32)
+		FARPROC GetSymbol( const char* pName );
+#else
+		void* GetSymbol( const char* pName );
+#endif
 
-			auto binDir = Project::GetActiveProject()->GetBinDir();
+		void SetExisting( LibraryHandle NewHandle );
 
-			auto& DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
-			m_DLLInstance.Load( DllPath.string() );
-
-			SourceManager::Get();
-
-			SAT_CORE_INFO( "Loaded Game DLL!" );
-		}
-		else // We are the game
-		{
-			m_DLLInstance.SetExisting( GetModuleHandle( nullptr ) );
-			SourceManager::Get();
-		}
-	}
-
-	Entity* GameModule::FindAndCallRegisterFunction( const std::string& rClassName ) 
-	{
-		std::string funcName = "_Z_Create_" + rClassName;
-
-		EntityRegistrantFunction registrant = ( EntityRegistrantFunction ) m_DLLInstance.GetSymbol( funcName.c_str() );
-
-		if( registrant )
-			return ( registrant )();
-		else
-			return nullptr;
-	}
-
-	void GameModule::Unload()
-	{
-		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
-		{
-			m_DLLInstance.Free();
-		}
-	}
-
-	void GameModule::Reload() 
-	{
-		Unload();
-		Load(true);
-	}
+	private:
+		LibraryHandle m_Handle = nullptr;
+	};
 }

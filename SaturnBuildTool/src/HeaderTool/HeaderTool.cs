@@ -399,7 +399,7 @@ namespace SaturnBuildTool.Tools
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", string.Format( "{0}.Gen.h", cmd.CurrentFile.ClassName ) ));
 
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/GameScript.h"));
-                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/GamePrefabList.h"));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/ClassMetadataHandler.h"));
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/Scene/Entity.h"));
 
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"\r\n", string.Format( "{0}.h", cmd.CurrentFile.ClassName )));
@@ -447,7 +447,7 @@ namespace SaturnBuildTool.Tools
                     metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};", cmd.CurrentFile.ClassName);
                     metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
                     metadata += string.Format("\t__Metadata_{0}.ParentClassName = \"{1}\";\r\n", cmd.CurrentFile.ClassName, cmd.CurrentFile.BaseClass);
-                    metadata += string.Format("\tSaturn::MetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
+                    metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
                     metadata += "}\r\n";
 
                     cmd.GeneratedSource.AppendLine(metadata);
@@ -486,7 +486,7 @@ namespace SaturnBuildTool.Tools
                     call += string.Format("\t_Z_{0}_RT_Editor()\r\n", cmd.CurrentFile.ClassName);
                     call += "\t{\r\n";
                     //call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
-                    call += string.Format("\t\t_RT_Z_AddPrefab_{0}();\r\n", cmd.CurrentFile.ClassName);
+                    call += string.Format("\t\t_RT_Z_CreateMetadataFor_{0}();\r\n", cmd.CurrentFile.ClassName);
                     call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", cmd.CurrentFile.ClassName);
                     call += "\r\n";
                     call += "\t}\r\n";

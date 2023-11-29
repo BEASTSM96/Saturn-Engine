@@ -27,74 +27,64 @@
 */
 
 #include "sppch.h"
-#include "GameModule.h"
-
-#include "Saturn/Core/App.h"
-#include "Saturn/Scene/Entity.h"
-
-#include "Saturn/Project/Project.h"
-
-#include "GameScript.h"
-
-#include "SourceManager.h"
+#include "Library.h"
 
 namespace Saturn {
 
-	GameModule::GameModule()
+	Library::Library()
 	{
-		SingletonStorage::Get().AddSingleton( this );
 	}
 
-	GameModule::~GameModule()
+	Library::~Library()
 	{
-		Unload();
+		Free();
 	}
 
-	void GameModule::Load( bool reload /*=false*/ )
+	bool Library::Load( const std::string& rPath )
 	{
-		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
-		{
-			// We are the editor
+		bool result = false;
 
-			auto binDir = Project::GetActiveProject()->GetBinDir();
+#if defined(_WIN32)
+		m_Handle = LoadLibraryA( rPath.data() );
+		result = ( bool ) m_Handle;
+#else
+		m_Handle = dlopen( rPath.data(), RTLD_LAZY );
+		result = ( bool ) m_Handle;
+#endif
 
-			auto& DllPath = binDir /= Project::GetActiveProject()->GetName() + ".dll";
-			m_DLLInstance.Load( DllPath.string() );
-
-			SourceManager::Get();
-
-			SAT_CORE_INFO( "Loaded Game DLL!" );
-		}
-		else // We are the game
-		{
-			m_DLLInstance.SetExisting( GetModuleHandle( nullptr ) );
-			SourceManager::Get();
-		}
+		return result;
 	}
 
-	Entity* GameModule::FindAndCallRegisterFunction( const std::string& rClassName ) 
+	void Library::Free()
 	{
-		std::string funcName = "_Z_Create_" + rClassName;
+		if( !m_Handle )
+			return;
 
-		EntityRegistrantFunction registrant = ( EntityRegistrantFunction ) m_DLLInstance.GetSymbol( funcName.c_str() );
-
-		if( registrant )
-			return ( registrant )();
-		else
-			return nullptr;
+#if defined(_WIN32)
+		FreeLibrary( m_Handle );
+		m_Handle = nullptr;
+#else
+		dlclose( m_Handle );
+		m_Handle = nullptr;
+#endif
 	}
 
-	void GameModule::Unload()
+#if defined(_WIN32)
+	FARPROC Library::GetSymbol( const char* pName )
 	{
-		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
-		{
-			m_DLLInstance.Free();
-		}
+		return GetProcAddress( m_Handle, pName );
+	}
+#else
+	void* Library::GetSymbol( const char* pName )
+	{
+		return dlsym( m_Handle, pName );
+	}
+#endif
+
+	void Library::SetExisting( LibraryHandle NewHandle )
+	{
+		Free();
+		m_Handle = NewHandle;
 	}
 
-	void GameModule::Reload() 
-	{
-		Unload();
-		Load(true);
-	}
 }
