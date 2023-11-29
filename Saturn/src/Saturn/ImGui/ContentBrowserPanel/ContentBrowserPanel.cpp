@@ -1180,8 +1180,6 @@ namespace Saturn {
 
 			if( ImGui::BeginListBox( "##classes", ImVec2( -FLT_MIN, 0.0f ) ) )
 			{
-				ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-
 				// Root Tree
 				DrawClassHierarchy( "SClass", ClassMetadataHandler::Get().GetSClassMetadata() );
 
@@ -1190,7 +1188,22 @@ namespace Saturn {
 
 			ImGui::EndVertical();
 
-			if( ImGui::Button( "Create" ) )
+			auto drawDisabledBtn = [&]( const char* n ) -> bool
+			{
+				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+				bool value = ImGui::Button( n );
+				ImGui::PopStyleVar( 1 );
+				ImGui::PopItemFlag();
+
+				return value;
+			};
+
+			// For some reason this returns true when it return false because it is not empty (that is, when we have text in the strings).
+			bool Condition = n.empty() || m_SelectedMetadata.Name.empty();
+			bool Pressed = ( Condition ) ? drawDisabledBtn( "Create" ) : ImGui::Button( "Create" );
+
+			if( Pressed )
 			{
 				if( !Project::GetActiveProject()->HasPremakeFile() )
 				{
@@ -1200,8 +1213,8 @@ namespace Saturn {
 				Project::GetActiveProject()->CreateBuildFile();
 
 				// Update or create the project files.
-				Premake* pPremake = new Premake();
-				pPremake->Launch( Project::GetActiveProject()->GetRootDir().string() );
+				Premake premake;
+				premake.Launch( Project::GetActiveProject()->GetRootDir().string() );
 
 				// Next, create the source files.
 				// Right now the only script type we support is an entity type.
@@ -1237,9 +1250,14 @@ namespace Saturn {
 		ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 		m_SelectedMetadata.Name == rKeyName ? Flags |= ImGuiTreeNodeFlags_Selected : 0;
 
-		ImGui::PushID( rKeyName.c_str() );
+		bool opened = ImGui::TreeNodeEx( rKeyName.c_str(), Flags );
 
-		if( ImGui::TreeNodeEx( rKeyName.c_str(), Flags ) )
+		if( ImGui::IsItemClicked() )
+		{
+			m_SelectedMetadata = rData;
+		}
+
+		if( opened ) 
 		{
 			ClassMetadataHandler::Get().EachTreeNode(
 				[&]( auto& rMetadata )
@@ -1251,13 +1269,6 @@ namespace Saturn {
 				} );
 
 			Auxiliary::EndTreeNode();
-		}
-
-		ImGui::PopID();
-
-		if( ImGui::IsItemClicked() )
-		{
-			m_SelectedMetadata = rData;
 		}
 	}
 
