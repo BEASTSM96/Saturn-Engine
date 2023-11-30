@@ -61,12 +61,12 @@ namespace Saturn {
 		{
 			out << YAML::Key << "Name" << YAML::Value << rProject->GetName();
 			out << YAML::Key << "AssetPath" << YAML::Value << rProject->GetAssetPath();
-			out << YAML::Key << "StartupScene" << YAML::Value << rProject->m_Config.StartupScenePath;
+			out << YAML::Key << "StartupScene" << YAML::Value << rProject->GetConfig().StartupScenePath;
 
 			out << YAML::Key << "ActionBindings";
 			out << YAML::BeginSeq;
 
-			for( const auto& rBinding : rProject->ActionBindings )
+			for( const auto& rBinding : rProject->GetActionBindings() )
 			{
 				out << YAML::BeginMap;
 
@@ -88,7 +88,7 @@ namespace Saturn {
 
 		out << YAML::EndMap;
 
-		std::ofstream file( rProject->m_Config.Path );
+		std::ofstream file( rProject->GetConfig().Path );
 		file << out.c_str();
 	}
 
@@ -107,11 +107,12 @@ namespace Saturn {
 		auto project = data[ "Project" ];
 
 		Ref<Project> newProject = Ref<Project>::Create();
+		ProjectConfig& rConfig = newProject->GetConfig();
 
 		{
-			newProject->m_Config.Name      = project[ "Name" ].as<std::string>();
-			newProject->m_Config.AssetPath = project[ "AssetPath" ].as<std::string>();
-			newProject->m_Config.StartupScenePath = project[ "StartupScene" ].as<std::string>();
+			rConfig.Name      = project[ "Name" ].as<std::string>();
+			rConfig.AssetPath = project[ "AssetPath" ].as<std::string>();
+			rConfig.StartupScenePath = project[ "StartupScene" ].as<std::string>();
 
 			auto actionBindings = project[ "ActionBindings" ];
 
@@ -129,12 +130,12 @@ namespace Saturn {
 					ab.Type = ( ActionBindingType ) binding[ "Type" ].as<int>( 0 );
 					ab.ID = ( UUID ) binding[ "ID" ].as<uint64_t>();
 
-					newProject->ActionBindings.push_back( ab );
+					newProject->AddActionBinding( ab );
 				}
 			}
 		}
 
-		newProject->m_Config.Path = rFilePath;
+		rConfig.Path = rFilePath;
 
 		Project::SetActiveProject( newProject );
 	}

@@ -86,9 +86,12 @@ namespace Saturn {
 
 		Ref<ContentBrowserItem> GetActiveHoveredItem();
 
-		uint32_t GetFilenameCount( const std::string& rName );
+		int32_t GetFilenameCount( const std::string& rName );
 
 		void DrawClassHierarchy( const std::string& rKeyName, const SClassMetadata& rData );
+		void DrawCreateClass( const std::string& rKeyName, const SClassMetadata& rData );
+
+		void ClearSelected();
 
 	private: // Editor Content
 		void EdDrawRootFolder( CBViewMode type, bool open = false );

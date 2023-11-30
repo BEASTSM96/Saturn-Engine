@@ -51,7 +51,8 @@ namespace Saturn {
 		Project();
 		~Project();
 
-		const ProjectConfig& GetConfig() const { return m_Config; }
+		ProjectConfig& GetConfig() { return m_Config; }
+		static ProjectConfig& GetActiveConfig() { return s_ActiveProject->m_Config; }
 
 		static Ref<Project> GetActiveProject();
 		static void SetActiveProject( const Ref<Project>& rProject );
@@ -69,22 +70,32 @@ namespace Saturn {
 		std::filesystem::path GetRootDir();
 
 		std::filesystem::path GetBinDir();
+		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }
 
-		std::filesystem::path GetPath();
+		std::filesystem::path GetProjectPath();
+		static std::filesystem::path GetActiveProjectPath() { return s_ActiveProject->GetProjectPath(); }
 
 		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
 
 		std::filesystem::path GetFullCachePath();
 
+		std::vector<ActionBinding>& GetActionBindings() { return m_ActionBindings; }
+		const std::vector<ActionBinding>& GetActionBindings() const { return m_ActionBindings; }
+		
+		void AddActionBinding( const ActionBinding& rBinding ) { m_ActionBindings.push_back( rBinding ); }
+		void RemoveActionBinding( const ActionBinding& rBinding );
+
+	public:
 		bool HasPremakeFile();
 		void CreatePremakeFile();
 		void CreateBuildFile();
 
 		void PrepForDist();
 
-		// TEMP
-		//    Until we have a proper project system
+	private:
 		ProjectConfig m_Config;
-		std::vector<ActionBinding> ActionBindings;
+		std::vector<ActionBinding> m_ActionBindings;
+
+		inline static Ref<Project> s_ActiveProject;
 	};
 }

@@ -39,10 +39,10 @@
 
 #include "Saturn/Core/EnvironmentVariables.h"
 
+#include "SharedGlobals.h"
+
 namespace Saturn {
 	
-	static Ref<Project> s_ActiveProject;
-
 	static std::vector<std::string> s_DisallowedAssetExtensions
 	{
 		{ ".fbx" },  // Already in the static mesh asset
@@ -188,7 +188,7 @@ namespace Saturn {
 		return rootDir;
 	}
 
-	std::filesystem::path Project::GetPath()
+	std::filesystem::path Project::GetProjectPath()
 	{
 		return GetActiveProject()->GetConfig().Path;
 	}
@@ -204,6 +204,11 @@ namespace Saturn {
 	std::filesystem::path Project::GetFullCachePath()
 	{
 		return GetRootDir() / "Cache";
+	}
+
+	void Project::RemoveActionBinding( const ActionBinding& rBinding )
+	{
+		//m_ActionBindings.erase( std::remove( m_ActionBindings.begin(), m_ActionBindings.end(), rBinding ), m_ActionBindings.end() );
 	}
 
 	bool Project::HasPremakeFile()

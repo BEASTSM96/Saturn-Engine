@@ -207,9 +207,6 @@ namespace Saturn {
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
 		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
-
-		m_Character = new Character();
-		m_Character->BeginPlay();
 	}
 
 	EditorLayer::~EditorLayer()
@@ -239,8 +236,6 @@ namespace Saturn {
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
-		m_Character->OnUpdate( time );
-		
 		// Check for any awaiting scene travels.
 		if( Scene::AwaitingTravels() )
 		{
@@ -536,7 +531,7 @@ namespace Saturn {
 
 				auto& userSettings = GetUserSettings();
 				auto& startupProject = userSettings.StartupProject;
-				auto& startupScene = Project::GetActiveProject()->m_Config.StartupScenePath;
+				auto& startupScene = Project::GetActiveProject()->GetConfig().StartupScenePath;
 
 				ImGuiIO& rIO = ImGui::GetIO();
 
@@ -985,7 +980,7 @@ namespace Saturn {
 	void EditorLayer::SaveProject()
 	{
 		ProjectSerialiser ps( Project::GetActiveProject() );
-		ps.Serialise( Project::GetActiveProject()->m_Config.Path );
+		ps.Serialise( Project::GetActiveProject()->GetConfig().Path );
 	}
 
 	void EditorLayer::SelectionChanged( Ref<Entity> e )
@@ -1101,7 +1096,7 @@ namespace Saturn {
 		Ref<Project> ActiveProject = Project::GetActiveProject();
 
 		auto& startupProject = userSettings.StartupProject;
-		auto& startupScene = ActiveProject->m_Config.StartupScenePath;
+		auto& startupScene = ActiveProject->GetConfig().StartupScenePath;
 
 		ImGui::SetNextWindowPos( ImVec2( rIO.DisplaySize.x * 0.5f - 150.0f, rIO.DisplaySize.y * 0.5f - 150.0f ), ImGuiCond_Once );
 
@@ -1134,7 +1129,7 @@ namespace Saturn {
 					{
 						if( ImGui::Selectable( rAsset->GetName().c_str() ) )
 						{
-							Project::GetActiveProject()->m_Config.StartupScenePath = std::filesystem::relative( rAsset->GetPath(), Project::GetActiveProject()->GetRootDir() ).string();
+							Project::GetActiveProject()->GetConfig().StartupScenePath = std::filesystem::relative( rAsset->GetPath(), Project::GetActiveProject()->GetRootDir() ).string();
 							
 							PopupModified = true;
 						}
@@ -1166,7 +1161,7 @@ namespace Saturn {
 
 		ImGui::PopFont();
 
-		for( auto rIt = ActiveProject->ActionBindings.begin(); rIt != ActiveProject->ActionBindings.end(); )
+		for( auto rIt = ActiveProject->GetActionBindings().begin(); rIt != ActiveProject->GetActionBindings().end(); )
 		{
 			auto& rBinding = *( rIt );
 
@@ -1214,7 +1209,7 @@ namespace Saturn {
 
 			if( ImGui::SmallButton( "-" ) )
 			{
-				rIt = ActiveProject->ActionBindings.erase( rIt );
+				rIt = ActiveProject->GetActionBindings().erase( rIt );
 				ShouldSaveProject = true;
 			}
 			else
@@ -1232,7 +1227,7 @@ namespace Saturn {
 
 			int count = 0;
 			// Find all other actions bindings with the same name.
-			for( const auto& bindings : ActiveProject->ActionBindings ) 
+			for( const auto& bindings : ActiveProject->GetActionBindings() ) 
 			{
 				if( bindings.Name.contains( "Empty Binding" ) ) 
 					count++;
@@ -1244,7 +1239,7 @@ namespace Saturn {
 				ab.Name += std::to_string( count );
 			}
 
-			ActiveProject->ActionBindings.push_back( ab );
+			ActiveProject->AddActionBinding( ab );
 			ShouldSaveProject = true;
 		}
 

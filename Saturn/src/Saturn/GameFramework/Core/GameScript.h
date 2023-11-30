@@ -54,7 +54,7 @@ public: \
 		return nullptr; \
 	} \
 
-#define DECLARE_CLASS_NO_MOVE( x, BaseClass ) \
+#define DECLARE_CLASS_MOVE( x, BaseClass ) \
 private: \
 	static Saturn::SClass* _PrvStatic() {} \
 public: \

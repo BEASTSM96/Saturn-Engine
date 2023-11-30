@@ -30,11 +30,12 @@
 #include "ContentBrowserPanel.h"
 
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
+
 #include "Saturn/Asset/MaterialAsset.h"
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
-#include "Saturn/Serialisation/AssetSerialisers.h"
 #include "Saturn/Asset/AssetImporter.h"
 
+#include "Saturn/Serialisation/AssetSerialisers.h"
 #include "Saturn/Serialisation/SceneSerialiser.h"
 
 #include "Saturn/Project/Project.h"
@@ -48,8 +49,10 @@
 #include "Saturn/Audio/Sound2D.h"
 
 #include "Saturn/Premake/Premake.h"
+
 #include "Saturn/GameFramework/Core/SourceManager.h"
 #include "Saturn/GameFramework/Core/ClassMetadataHandler.h"
+#include "Saturn/GameFramework/Core/GameModule.h"
 
 #include <imgui_internal.h>
 
@@ -179,6 +182,8 @@ namespace Saturn {
 
 				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 				{
+					ClearSelected();
+
 					// Switch and set path to the game content.
 					m_ViewMode = CBViewMode::Assets;
 					SetPath( Project::GetActiveProject()->GetRootDir() );
@@ -206,6 +211,8 @@ namespace Saturn {
 
 				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 				{
+					ClearSelected();
+				
 					// Switch and set path to the game content.
 					m_ViewMode = CBViewMode::Scripts;
 					SetPath( Project::GetActiveProject()->GetRootDir() );
@@ -288,7 +295,7 @@ namespace Saturn {
 				auto id = AssetManager::Get().CreateAsset( AssetType::Material );
 				auto asset = AssetManager::Get().FindAsset( id );
 				auto newPath = m_CurrentPath / "Untitled Material.smaterial";
-				uint32_t count = GetFilenameCount( "Untitled Material.smaterial" );
+				int32_t count = GetFilenameCount( "Untitled Material.smaterial" );
 
 				if( count >= 1 )
 				{
@@ -374,48 +381,11 @@ namespace Saturn {
 				FindAndRenameItem( asset->Path );
 			}
 
+			// Create a prefab for the users game classes.
 			ClassMetadataHandler::Get().Each( 
 				[&]( auto& rMetadata ) 
 				{
-					if( ImGui::MenuItem( rMetadata.Name.c_str() ) )
-					{
-						// In order to create this, we will need to create the class the user wants then we can create the prefab from it.
-
-						// Create the prefab asset
-						Ref<Prefab> PrefabAsset = AssetManager::Get().CreateAsset<Prefab>( AssetType::Prefab, AssetRegistryType::Game );
-						PrefabAsset->Create();
-
-						auto asset = AssetManager::Get().FindAsset( PrefabAsset->ID );
-
-						// Create the user class
-						// Try register
-						/*
-						EntityScriptManager::Get().RegisterScript( name );
-
-						Entity* e = new Entity( PrefabAsset->GetScene()->CreateEntity( name ) );
-						e->AddComponent<ScriptComponent>().ScriptName = name;
-
-						SClass* sclass = EntityScriptManager::Get().CreateScript( name, nullptr );
-
-						PrefabAsset->SetEntity( *( Entity* ) &e );
-						*/
-
-						// Set asset path
-						std::filesystem::path path = m_CurrentPath / rMetadata.Name;
-						path.replace_extension( ".prefab" );
-
-						PrefabAsset->SetPath( path );
-						asset->SetPath( path ); // HACK
-
-						// Serialise
-						PrefabSerialiser ps;
-						ps.Serialise( PrefabAsset );
-
-						AssetRegistrySerialiser ars;
-						ars.Serialise( AssetManager::Get().GetAssetRegistry() );
-
-						UpdateFiles( true );
-					}
+					DrawCreateClass( rMetadata.Name, rMetadata );
 				} );
 
 			ImGui::EndMenu();
@@ -504,9 +474,9 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	uint32_t ContentBrowserPanel::GetFilenameCount( const std::string& rName )
+	int32_t ContentBrowserPanel::GetFilenameCount( const std::string& rName )
 	{
-		uint32_t count = 0;
+		int32_t count = 0;
 
 		for( const auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
 		{
@@ -620,7 +590,7 @@ namespace Saturn {
 	void ContentBrowserPanel::Draw()
 	{
 		//bool open_demo = true;
-		//ImGui::ShowDemoWindow( &open_demo );
+		ImGui::ShowDemoWindow();
 
 		ImGui::Begin( "Content Browser" );
 
@@ -643,12 +613,7 @@ namespace Saturn {
 			{
 				m_CurrentPath = m_CurrentPath.parent_path();
 
-				for( auto&& rrItem : m_SelectedItems )
-				{
-					rrItem->Deselect();
-				}
-
-				m_SelectedItems.clear();
+				ClearSelected();
 
 				UpdateFiles( true );
 			}
@@ -671,12 +636,7 @@ namespace Saturn {
 			{
 				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_RootDirectory );
 
-				for( auto&& rrItem : m_SelectedItems )
-				{
-					rrItem->Deselect();
-				}
-
-				m_SelectedItems.clear();
+				ClearSelected();
 
 				UpdateFiles( true );
 			}
@@ -909,9 +869,8 @@ namespace Saturn {
 
 						PROCESS_INFORMATION ProcessInfo;
 
-						std::string CommandLine = "explorer.exe '";
-						CommandLine += AssetPathString;
-						CommandLine += "'";
+						std::string CommandLine = "";
+						CommandLine = std::format( "explorer.exe \"{0}\"", AssetPathString );
 
 						bool res = CreateProcessA( nullptr, CommandLine.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo );
 
@@ -1272,6 +1231,57 @@ namespace Saturn {
 		}
 	}
 
+	void ContentBrowserPanel::DrawCreateClass( const std::string& rKeyName, const SClassMetadata& rData )
+	{
+		if( ImGui::MenuItem( rKeyName.c_str() ) )
+		{
+			// In order to create this, we will need to create the class the user wants then we can create the prefab from it.
+
+			// Create the prefab asset
+			Ref<Prefab> PrefabAsset = AssetManager::Get().CreateAsset<Prefab>( AssetType::Prefab, AssetRegistryType::Game );
+			PrefabAsset->Create();
+
+			auto asset = AssetManager::Get().FindAsset( PrefabAsset->ID );
+
+			// Create the class in the prefab scene.
+			// Swap context
+			Scene* OldActiveScene = Scene::GetActiveScene();
+			Scene::SetActiveScene( PrefabAsset->GetScene().Get() );
+
+			Ref<Entity> entity = GameModule::Get().FindAndCallRegisterFunction( rData.Name );
+			PrefabAsset->SetEntity( entity );
+			
+			// Swap back to the current scene.
+			Scene::SetActiveScene( OldActiveScene );
+
+			// Set asset path
+			std::filesystem::path path = m_CurrentPath / rData.Name;
+			path.replace_extension( ".prefab" );
+
+			PrefabAsset->SetPath( path );
+			asset->SetPath( path ); // HACK
+
+			// Serialise
+			PrefabSerialiser ps;
+			ps.Serialise( PrefabAsset );
+
+			AssetRegistrySerialiser ars;
+			ars.Serialise( AssetManager::Get().GetAssetRegistry() );
+
+			UpdateFiles( true );
+		}
+	}
+
+	void ContentBrowserPanel::ClearSelected()
+	{
+		for( auto&& rrItem : m_SelectedItems )
+		{
+			rrItem->Deselect();
+		}
+
+		m_SelectedItems.clear();
+	}
+
 	void ContentBrowserPanel::SetPath( const std::filesystem::path& rPath )
 	{
 		s_pAssetsDirectory = rPath / "Assets";
@@ -1309,12 +1319,7 @@ namespace Saturn {
 
 		m_ChangeDirectory = true;
 
-		for( auto&& rrItem : m_SelectedItems )
-		{
-			rrItem->Deselect();
-		}
-
-		m_SelectedItems.clear();
+		ClearSelected();
 	}
 
 	void ContentBrowserPanel::UpdateFiles( bool clear /*= false */ )

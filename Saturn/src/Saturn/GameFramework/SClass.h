@@ -31,6 +31,8 @@
 #include "Saturn/Core/Ref.h"
 #include "Saturn/Core/Timestep.h"
 
+#include <filesystem>
+
 namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
@@ -42,6 +44,10 @@ namespace Saturn {
 	{
 		std::string Name;
 		std::string ParentClassName;
+
+		std::string Date;
+		std::filesystem::path Path;
+
 		bool Handled = false;
 	};
 

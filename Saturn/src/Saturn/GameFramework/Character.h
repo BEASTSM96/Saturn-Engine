@@ -48,8 +48,6 @@ namespace Saturn {
 		Character();
 		~Character();
 
-		virtual void SetupInputBindings() {};
-
 	public:
 		//////////////////////////////////////////////////////////////////////////
 		// SClass overrides
@@ -68,6 +66,16 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		void OnMeshHit( Ref<Entity> Other );
 		void OnMeshExit( Ref<Entity> Other );
+		
+		virtual void SetupInputBindings() {};
+
+		void MoveForward();
+		void MoveBack();
+		void MoveLeft();
+		void MoveRight();
+
+	protected:
+		Ref<PlayerInputController> m_PlayerInputController = nullptr;
 
 	private:
 		//////////////////////////////////////////////////////////////////////////
@@ -79,11 +87,6 @@ namespace Saturn {
 
 		void HandleMovement() {}
 		void HandleRotation( Timestep ts );
-
-		void MoveForward();
-		void MoveBack();
-		void MoveLeft();
-		void MoveRight();
 
 		glm::vec2 m_MovementDirection{};
 		glm::vec2 m_LastMousePos{};
@@ -98,8 +101,6 @@ namespace Saturn {
 		PhysicsRigidBody* m_RigidBody = nullptr;
 
 		Ref<Entity> m_CameraEntity = nullptr;
-
-		Ref<PlayerInputController> m_PlayerInputController = nullptr;
 	};
 }
 

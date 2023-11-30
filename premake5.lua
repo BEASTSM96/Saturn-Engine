@@ -244,7 +244,8 @@ project "Saturn-Editor"
 
 	defines
 	{
-		"_CRT_SECURE_NO_WARNINGS"
+		"_CRT_SECURE_NO_WARNINGS",
+		"SAT_HAS_EDITOR"
 	}
 
 	files
@@ -562,6 +563,8 @@ project "SharedStorage"
 	includedirs
 	{
 		"%{prj.name}/src",
+		"Saturn/src",
+		"%{IncludeDir.Ruby}"
 	}
 		
 	links 

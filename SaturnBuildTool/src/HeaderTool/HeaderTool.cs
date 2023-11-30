@@ -444,15 +444,18 @@ namespace SaturnBuildTool.Tools
                 {
                     string metadata = string.Format("static void _RT_Z_CreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
                     metadata += "{\r\n";
-                    metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};", cmd.CurrentFile.ClassName);
+                    metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", cmd.CurrentFile.ClassName);
                     metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
                     metadata += string.Format("\t__Metadata_{0}.ParentClassName = \"{1}\";\r\n", cmd.CurrentFile.ClassName, cmd.CurrentFile.BaseClass);
+                    metadata += string.Format("\t__Metadata_{0}.Path = __FILE__;\r\n", cmd.CurrentFile.ClassName);
+                    metadata += string.Format("\t__Metadata_{0}.Date = __DATE__;\r\n", cmd.CurrentFile.ClassName);
                     metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
                     metadata += "}\r\n";
 
                     cmd.GeneratedSource.AppendLine(metadata);
                 }
 
+                /*
                 // Properties
                 string propfunc = string.Format("static void _Zp_{0}_Reg_Props()\r\n", cmd.CurrentFile.ClassName);
                 propfunc += "{\r\n";
@@ -472,8 +475,9 @@ namespace SaturnBuildTool.Tools
 
                 propfunc += "}\r\n";
                 propfunc += "//^^^ Public Properties\r\n";
-
                 cmd.GeneratedSource.AppendLine(propfunc);
+                */
+
 
                 // Auto-Registration (DLL only).
                 if (BuildConfig.Instance.GetTargetConfig() < ConfigKind.DistDebug)
@@ -487,7 +491,7 @@ namespace SaturnBuildTool.Tools
                     call += "\t{\r\n";
                     //call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
                     call += string.Format("\t\t_RT_Z_CreateMetadataFor_{0}();\r\n", cmd.CurrentFile.ClassName);
-                    call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", cmd.CurrentFile.ClassName);
+                    //call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", cmd.CurrentFile.ClassName);
                     call += "\r\n";
                     call += "\t}\r\n";
                     call += "};\r\n";

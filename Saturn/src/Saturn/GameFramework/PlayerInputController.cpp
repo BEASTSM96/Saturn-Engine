@@ -45,6 +45,7 @@ namespace Saturn {
 	PlayerInputController::~PlayerInputController()
 	{
 		m_ActionMap.clear();
+		m_Keys.clear();
 	}
 
 	void PlayerInputController::Update()
@@ -128,15 +129,16 @@ namespace Saturn {
 	void PlayerInputController::BindAction( const std::string& rBindingName, const ActionFunction& rFunction )
 	{
 		Ref<Project> project = Project::GetActiveProject();
-		
+		auto& bindings = project->GetActionBindings();
+
 		// Check if the binding exists in the project
-		auto it = std::find_if( project->ActionBindings.begin(), project->ActionBindings.end(),
+		auto it = std::find_if( bindings.begin(), bindings.end(),
 			[rBindingName]( auto& binding )
 			{
 				return binding.Name == rBindingName;
 			} );
 
-		if( it != project->ActionBindings.end() )
+		if( it != bindings.end() )
 		{
 			auto& rBinding = *( it );
 			

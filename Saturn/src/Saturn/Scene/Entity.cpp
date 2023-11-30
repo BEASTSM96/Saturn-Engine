@@ -29,16 +29,6 @@
 #include "sppch.h"
 #include "Entity.h"
 
-// Game
-// This is not needed?
-Saturn::SClass* _Z_Create_Entity()
-{
-	using namespace Saturn;
-
-	SClass* pClass = new SClass();
-	return pClass;
-}
-
 namespace Saturn {
 
 	Entity::Entity()

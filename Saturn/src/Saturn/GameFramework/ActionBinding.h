@@ -31,6 +31,7 @@
 #include "Saturn/Core/UUID.h"
 
 #include <string>
+#include <functional>
 #include <Ruby/RubyEventType.h>
 
 namespace Saturn {
@@ -57,7 +58,7 @@ namespace Saturn {
 
 		// Editor Only
 		// TODO: I want to create a SAT_HAS_EDITOR macro so that this code is only there in Debug, Release
-		// As our Dist config is our shipping for running the game with the editor attached.
+		// As our Dist config is our shipping for running the game without the editor attached.
 		std::string ActionName = "";
 		UUID ID;
 	};
