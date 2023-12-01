@@ -211,7 +211,7 @@ namespace Saturn {
 					case Saturn::AssetType::SkeletalMesh:
 					case Saturn::AssetType::Material:
 					{
-						ImGui::SetDragDropPayload( "asset_playload", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+						ImGui::SetDragDropPayload( "asset_payload", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
 					}	break;
 					case Saturn::AssetType::MaterialInstance:
 					case Saturn::AssetType::Audio:

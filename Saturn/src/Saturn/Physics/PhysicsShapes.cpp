@@ -287,7 +287,7 @@ namespace Saturn {
 		}
 		else
 		{
-			SAT_CORE_WARN( "No shapes we created from 'CreateConvexMesh' this could mean the path does not exist or file header is not vaild." );
+			SAT_CORE_WARN( "No shapes were created from 'CreateConvexMesh' this could mean the path does not exist or file header is not vaild." );
 		}
 	}
 

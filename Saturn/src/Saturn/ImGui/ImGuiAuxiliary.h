@@ -157,7 +157,7 @@ namespace Saturn::Auxiliary {
 
 		if( ImGui::BeginDragDropTarget() )
 		{
-			auto data = ImGui::AcceptDragDropPayload( "asset_playload" );
+			auto data = ImGui::AcceptDragDropPayload( "asset_payload" );
 
 			if( data )
 			{
