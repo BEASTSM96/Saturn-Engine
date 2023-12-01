@@ -20,6 +20,9 @@ namespace SaturnBuildTool
 
             // Include source.
             Includes.Add( "Source" );
+            Includes.Add( string.Format( "Source\\{0}", ProjectInfo.Instance.Name ) );
+            // Include Build folder for generated files.
+            Includes.Add( ProjectInfo.Instance.BuildDir );
 
             // Saturn:
             SaturnRootDir = Environment.GetEnvironmentVariable( "SATURN_DIR" );

@@ -26,8 +26,9 @@ project "__PROJECT_NAME__"
 
 	files
 	{
-		"Scripts/**.h",
-		"Scripts/**.cpp"
+		"Source/**.h",
+		"Source/**.cpp",
+		"Source/**.cs"
 	}
 
 	removefiles 

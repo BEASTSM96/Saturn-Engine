@@ -43,7 +43,7 @@ namespace SaturnBuildTool
         public string TargetDir { get; set; }
 
         private string TargetPlatformName { get; set; }
-        public ArchitectureKind TargetPlatformKind;
+        public ArchitectureKind TargetPlatformKind = ArchitectureKind.Unknown;
 
         private string ConfigName { get; set; }
         public ConfigKind CurrentConfigKind;
@@ -71,6 +71,8 @@ namespace SaturnBuildTool
 
             // Name
             Name = Args[1];
+            index = Name.IndexOf("/");
+            Name = Name.Substring( index + 1);
 
             // Source
             SourceDir = Path.Combine( RootDirectory, "Source" );
@@ -91,12 +93,18 @@ namespace SaturnBuildTool
             BuildDir = BuildDir.Replace( "/", "\\" );
 
             // Filecache
-            FileCacheLocation = RootDir + "\\filecahce.fc";
+            FileCacheLocation = Path.Combine( RootDirectory, "filecache.fc" );
 
             TargetPlatformName = Args[2];
+            index = TargetPlatformName.IndexOf("/");
+            TargetPlatformName = TargetPlatformName.Substring(index + 1);
+
             StringToTargetPlatform();
 
             ConfigName = Args[3];
+            index = ConfigName.IndexOf("/");
+            ConfigName = ConfigName.Substring(index + 1);
+
             StringToConfigKind();
 
             FindBuildRuleFile();
@@ -138,8 +146,6 @@ namespace SaturnBuildTool
                 TargetPlatformKind = ArchitectureKind.Win64;
             else if (TargetPlatformName == "Win86")
                 TargetPlatformKind = ArchitectureKind.Win86;
-
-            TargetPlatformKind = ArchitectureKind.Unknown;
         }
 
         private void FindBuildRuleFile() 
@@ -150,20 +156,20 @@ namespace SaturnBuildTool
                 case ConfigKind.Release:
                 case ConfigKind.Dist:
                     {
-                        BuildRuleFile = SourceDir;
-                        BuildRuleFile += string.Format( "{0}.Build.cs", Name );
+                        BuildRuleFile = TargetDir;
+                        BuildRuleFile += string.Format( "\\{0}.Build.cs", Name );
 
-                        BuildRuleFile = BuildRuleFile.Replace( "\\", "/" );
+                        BuildRuleFile = BuildRuleFile.Replace( "/", "\\" );
                     } break;
 
                 case ConfigKind.DistDebug:
                 case ConfigKind.DistRelease:
                 case ConfigKind.DistFull:
                     {
-                        BuildRuleFile = SourceDir;
-                        BuildRuleFile += string.Format("{0}.RT_Build.cs", Name);
+                        BuildRuleFile = TargetDir;
+                        BuildRuleFile += string.Format("\\{0}.RT_Build.cs", Name);
 
-                        BuildRuleFile = BuildRuleFile.Replace("\\", "/");
+                        BuildRuleFile = BuildRuleFile.Replace("/", "\\");
                     }
                     break;
             }

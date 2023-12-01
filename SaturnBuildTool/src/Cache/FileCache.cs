@@ -115,7 +115,16 @@ namespace SaturnBuildTool.Cache
             if (!File.Exists(FileCachePath))
                 File.Create( FileCachePath );
 
-            FileStream fs = new FileStream(FileCachePath, FileMode.Open);
+            FileStream fs = null;
+            try
+            {
+                fs = new FileStream(FileCachePath, FileMode.Open);
+            } 
+            catch (Exception e) 
+            {
+                Console.WriteLine( "Error when trying open filecache: {0}", e.Message );
+                return null;
+            }
 
             byte[] headerBytes = new byte[3];
             fs.Read(headerBytes, 0, headerBytes.Length);

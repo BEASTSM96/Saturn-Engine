@@ -167,7 +167,12 @@ namespace SaturnBuildTool
             else 
             {
                 Console.WriteLine("Compiling single threaded.");
-                CompileFiles_ForThread(null);
+
+                // Pass all the files for the one thread.
+                FilesPerThread.Add(SourceFiles);
+                ThreadsCompleted.Add(false);
+
+                CompileFiles_ForThread(0);
             }
 
             return NumTasksFailed == 0;
@@ -177,7 +182,7 @@ namespace SaturnBuildTool
         {
             Stopwatch time = Stopwatch.StartNew();
 
-            Console.WriteLine("==== Saturn Build Tool v0.0.1 ====");
+            Console.WriteLine("==== Saturn Build Tool v0.0.2 ====");
 
             IsRebuild = Args[0] == "/REBUILD";
 

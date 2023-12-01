@@ -69,7 +69,7 @@ namespace SaturnBuildTool.Tools
                 {
                     if (isSourceOnly) 
                     {
-                        if (!d.EndsWith("src") || d.EndsWith("Scripts")) 
+                        if (!d.EndsWith("src") || d.EndsWith("Source")) 
                         {
                             continue;
                         }

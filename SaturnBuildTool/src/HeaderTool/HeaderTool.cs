@@ -523,8 +523,13 @@ namespace SaturnBuildTool.Tools
         public bool GenerateSource(string SourcePath)
         {
             // Assume the Filepath is a source file
-            string GenFilepath = Path.ChangeExtension(SourcePath, ".Gen.cpp");
             string HeaderFilepath = Path.ChangeExtension(SourcePath, ".h");
+
+            string Filename = Path.GetFileName(SourcePath);
+
+            string GenFilepath = ProjectInfo.Instance.BuildDir;
+            GenFilepath = Path.Combine(GenFilepath, Filename);
+            GenFilepath = Path.ChangeExtension(GenFilepath, ".Gen.cpp");
 
             if (!File.Exists(HeaderFilepath)) 
             {
@@ -587,7 +592,11 @@ namespace SaturnBuildTool.Tools
         {
             // Assume the Filepath is a source file
             string HeaderFilepath = Path.ChangeExtension(Filepath, ".h");
-            string GenFilepath = Path.ChangeExtension(HeaderFilepath, ".Gen.h");
+            string Filename = Path.GetFileName(HeaderFilepath);
+
+            string GenFilepath = ProjectInfo.Instance.BuildDir;
+            GenFilepath = Path.Combine(GenFilepath, Filename);
+            GenFilepath = Path.ChangeExtension( GenFilepath, ".Gen.h" );
 
             if (!File.Exists(HeaderFilepath))
             {
@@ -640,54 +649,6 @@ namespace SaturnBuildTool.Tools
             return false;
         }
 
-        public void ExecuteAll() 
-        {
-            foreach (KeyValuePair<string, Command> kv in CommandQueue) 
-            {
-                string Filepath = kv.Key;
-                Command cmd = kv.Value;
-
-                switch (cmd.Type) 
-                {
-                    case CommandType.Source:
-                        {
-                            string GenFilepath = Path.ChangeExtension(cmd.GenFilepath, ".Gen.cpp");
-
-                            // Safe to create the file.
-                            FileStream fs = null;
-                            if (!File.Exists(GenFilepath))
-                            {
-                                fs = File.Create(GenFilepath);
-                            }
-
-                            if (fs != null)
-                            {
-                                fs.Close();
-                            }
-
-                            GenerateSource(Filepath, GenFilepath);
-                        } break;
-
-                    case CommandType.Header:
-                        {
-                            // Safe to create the file.
-                            FileStream fs = null;
-                            if (!File.Exists(cmd.GenFilepath))
-                            {
-                                fs = File.Create(cmd.GenFilepath);
-                            }
-
-                            if (fs != null)
-                            {
-                                fs.Close();
-                            }
-
-                            GenerateHeader(cmd.GenFilepath, Filepath);
-                        } break;
-                }
-            }
-        }
-
         private void WriteGeneratedHeader(string Filepath, StringBuilder Contents) 
         {
             //string GenFilepath = Path.ChangeExtension( Filepath, ".Gen.h" );
@@ -716,48 +677,6 @@ namespace SaturnBuildTool.Tools
 
             streamWriter.Close();
             fs.Close();
-        }
-
-        private void WriteGeneratedFile(string Path, Command command) 
-        {
-            switch (command.Type) 
-            {
-                case CommandType.Header:
-                    {
-                        WriteGeneratedHeader(Path, command.GeneratedHeader);
-                    } break;
-
-                case CommandType.Source:
-                    {
-                        WriteGeneratedSource(Path, command.GeneratedSource);
-                    }
-                    break;
-            }
-        }
-
-        public void WriteGeneratedFiles()
-        {
-            foreach (KeyValuePair<string, Command> kv in CommandQueue)
-            {
-                string filepath = kv.Key;
-                Command cmd = kv.Value;
-
-                WriteGeneratedFile(filepath, cmd);
-            }
-        }
-
-        public List<string> GetAllGeneratedFiles()
-        {
-            List<string> generatedFiles = new List<string>();
-
-            foreach (KeyValuePair<string, Command> kv in CommandQueue)
-            {
-                Command cmd = kv.Value;
-
-                generatedFiles.Add(cmd.GenFilepath);
-            }
-
-            return generatedFiles;
         }
     }
 }

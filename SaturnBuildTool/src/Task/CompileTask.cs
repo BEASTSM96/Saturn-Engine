@@ -124,6 +124,8 @@ namespace SaturnBuildTool
 
             clProcess.EnableRaisingEvents = true;
 
+            //Console.WriteLine( "Command Line: {0}", processStart.Arguments );
+
             clProcess.Start();
 
             clProcess.WaitForExit();
