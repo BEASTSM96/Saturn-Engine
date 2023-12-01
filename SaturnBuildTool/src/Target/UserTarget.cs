@@ -12,7 +12,7 @@ namespace SaturnBuildTool
 {
     public class UserTarget
     {
-        public TargetKind[] Architectures { get; set; }
+        public ArchitectureKind[] Architectures { get; set; }
         public ConfigKind[] BuildConfigs { get; set; }
 
         public ConfigKind CurrentConfig { get; set; }
@@ -133,8 +133,10 @@ namespace SaturnBuildTool
             return BinDir;
         }
 
-        public static UserTarget SetupUserTarget( string BuildFile ) 
+        public static UserTarget SetupUserTarget() 
         {
+            string BuildFile = ProjectInfo.Instance.BuildRuleFile;
+
             UserTarget target = null;
 
             // Compile the *.Build.cs file
@@ -184,7 +186,8 @@ namespace SaturnBuildTool
                     // Create a user target.
                     target = (UserTarget)Activator.CreateInstance(type);
 
-                    target.CurrentConfig = BuildConfig.Instance.GetTargetConfig();
+                    target.ProjectName = ProjectInfo.Instance.Name;
+                    target.CurrentConfig = ProjectInfo.Instance.CurrentConfigKind;
 
                     string outDir = "";
                     outDir = Directory.GetParent(BuildFile).ToString();

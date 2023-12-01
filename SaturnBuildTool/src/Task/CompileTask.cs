@@ -32,15 +32,15 @@ namespace SaturnBuildTool
             ProcessStartInfo processStart = new ProcessStartInfo();
             processStart.CreateNoWindow = true;
 
-            switch (Target.Instance.GetTargetKind())
+            switch (ProjectInfo.Instance.TargetPlatformKind)
             {
-                case TargetKind.Win64:
+                case ArchitectureKind.Win64:
                     {
                         processStart.FileName = CLLocation + "/bin/Hostx64/x64/cl.exe";
                     }
                     break;
 
-                case TargetKind.Win86:
+                case ArchitectureKind.Win86:
                     {
                         processStart.FileName = CLLocation + "/bin/Hostx64/x86/cl.exe";
                     }

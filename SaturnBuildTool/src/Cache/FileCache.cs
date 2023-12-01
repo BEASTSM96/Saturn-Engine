@@ -105,8 +105,10 @@ namespace SaturnBuildTool.Cache
             fs.Close();
         }
 
-        public static FileCache Load( string FileCachePath ) 
+        public static FileCache Load() 
         {
+            string FileCachePath = ProjectInfo.Instance.FileCacheLocation;
+
             FileCache fc = new FileCache(FileCachePath);
             fc.Filepath = FileCachePath;
 

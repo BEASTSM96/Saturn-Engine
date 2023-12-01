@@ -16,10 +16,10 @@ namespace SaturnBuildTool
             base.Init();
 
             // Always use x64
-            Architectures = new[] { TargetKind.Win64 };
+            Architectures = new[] { ArchitectureKind.Win64 };
 
             // Include source.
-            Includes.Add( "Scripts" );
+            Includes.Add( "Source" );
 
             // Saturn:
             SaturnRootDir = Environment.GetEnvironmentVariable( "SATURN_DIR" );

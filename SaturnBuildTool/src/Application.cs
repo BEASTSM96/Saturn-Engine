@@ -16,17 +16,9 @@ namespace SaturnBuildTool
     {
         private UserTarget TargetToBuild = null;
 
-        public string SourceDir { get; set; }
-
-        public string BuildDir { get; set; }
-
-        public string ProjectDir { get; set; }
-
         public string[] Args;
 
         public Toolchain Toolchain { get; set; }
-
-        private string CacheLocation = null;
 
         private FileCache FileCache = null;
 
@@ -40,68 +32,31 @@ namespace SaturnBuildTool
         private bool IsRebuild = false;
 
         List<string> SourceFiles = null;
-        private void FindSourceDir()
-        {
-            SourceDir = Path.Combine(ProjectDir, "Scripts");
 
-            // We know if we are the game that we source is in the same dir as the project.
-            // However if it does not exist then we are the engine.
-            if (!Directory.Exists(SourceDir))
-            {
-                SourceDir = Path.Combine(ProjectDir, Args[1]);
-
-                SourceDir = Path.Combine(SourceDir, "src");
-
-                SourceDir = Path.Combine(SourceDir, Args[1]);
-            }
-
-            SourceDir = SourceDir.Replace("/", "\\");
-        }
-
-        private void FindBuildFolder()
-        {
-            BuildDir = Path.Combine(ProjectDir, "Build");
-
-            BuildDir = BuildDir.Replace("/", "\\");
-        }
-
-        private void FindProjectDir()
-        {
-            int index = Args[4].IndexOf('/');
-
-            ProjectDir = Args[4].Substring(index + 1);
-            ProjectDir = ProjectDir.Replace("/", "\\");
-        }
-
+        // Args:
+        // 0: The Action, BUILD, REBULD, CLEAN. TODO
+        // 1: The project name
+        // 2: The target platform, Win64
+        // 3: The configuration, Debug, Release, Dist
+        // 4: The project location
         public Application(string[] args) 
         {
             Args = args;
 
-            FindProjectDir();
-            FindBuildFolder();
-            FindSourceDir();
+            // Setup project info from args.
+            ProjectInfo.Instance.Setup( Args );
 
-            Target.Instance.Init( Args[2] );
-
-            BuildConfig.Instance.Init( Args[3] );
-
-            BuildTargetFile.Instance.InitBuildFile(SourceDir, Args[1]);
-            BuildTargetFile.Instance.CreateBuildFile();
-
-            TargetToBuild = UserTarget.SetupUserTarget(BuildTargetFile.Instance.BuildFile);
+            TargetToBuild = UserTarget.SetupUserTarget();
 
             if (TargetToBuild == null) 
             {
-                Console.WriteLine( "Could not find a user target!, looking for {0} Please regenerate it in the engine!", BuildTargetFile.Instance.BuildFile );
+                Console.WriteLine( "Could not find a user target!, looking for {0} Please regenerate it in the engine!", ProjectInfo.Instance.BuildRuleFile );
             }
 
-            TargetToBuild.ProjectName = Args[1];
-            TargetToBuild.ProjectName = TargetToBuild.ProjectName.Replace("/", string.Empty);
-
-            switch (Target.Instance.GetTargetKind()) 
+            switch (ProjectInfo.Instance.TargetPlatformKind) 
             {
-                case TargetKind.Win86:
-                case TargetKind.Win64:
+                case ArchitectureKind.Win86:
+                case ArchitectureKind.Win64:
                     {
                         Toolchain = new MSVCToolchain(TargetToBuild);
                     } break;
@@ -110,8 +65,7 @@ namespace SaturnBuildTool
                     break;
             }
 
-            CacheLocation = ProjectDir + "\\filecache.fc";
-            FileCache = FileCache.Load(CacheLocation);
+            FileCache = FileCache.Load();
         }
 
         private void CompileFiles_ForThread(object index) 
@@ -174,7 +128,7 @@ namespace SaturnBuildTool
 
         private bool CompileFiles() 
         {
-            SourceFiles = DirectoryTools.DirSearch(SourceDir, true);
+            SourceFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.SourceDir, true);
             
             int threadCount = 0;
             threadCount = (int)Math.Ceiling((double)SourceFiles.Count / (Environment.ProcessorCount / 2));
@@ -227,10 +181,10 @@ namespace SaturnBuildTool
 
             IsRebuild = Args[0] == "/REBUILD";
 
-            List<string> sourceBuildFiles = DirectoryTools.DirSearch(BuildDir);
+            List<string> sourceBuildFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.BuildDir);
             CompileFiles();
 
-            if( BuildConfig.Instance.GetTargetConfig() >= ConfigKind.DistDebug )
+            if(ProjectInfo.Instance.CurrentConfigKind >= ConfigKind.DistDebug)
             {
                 foreach (string file in sourceBuildFiles)
                 {

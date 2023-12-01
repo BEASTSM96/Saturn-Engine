@@ -34,15 +34,15 @@ namespace SaturnBuildTool
             ProcessStartInfo processStart = new ProcessStartInfo();
             processStart.CreateNoWindow = true;
 
-            switch (Target.Instance.GetTargetKind())
+            switch (ProjectInfo.Instance.TargetPlatformKind)
             {
-                case TargetKind.Win64:
+                case ArchitectureKind.Win64:
                     {
                         processStart.FileName = LinkLocation + "/bin/Hostx64/x64/link.exe";
                     }
                     break;
 
-                case TargetKind.Win86:
+                case ArchitectureKind.Win86:
                     {
                         processStart.FileName = LinkLocation + "/bin/Hostx64/x86/link.exe";
                     }
@@ -164,15 +164,15 @@ namespace SaturnBuildTool
         {
             string CLLocation = VSWhere.FindMSVCToolsDir();
 
-            switch (Target.Instance.GetTargetKind())
+            switch (ProjectInfo.Instance.TargetPlatformKind)
             {
-                case TargetKind.Win64:
+                case ArchitectureKind.Win64:
                     {
                         CLLocation += "/lib/x64";
                     }
                     break;
 
-                case TargetKind.Win86:
+                case ArchitectureKind.Win86:
                     {
                         CLLocation += "/lib/x86";
                     }
