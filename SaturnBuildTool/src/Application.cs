@@ -14,20 +14,20 @@ namespace SaturnBuildTool
 {
     internal class Application
     {
-        private UserTarget TargetToBuild = null;
+        private readonly UserTarget TargetToBuild = null;
 
         public string[] Args;
 
         public Toolchain Toolchain { get; set; }
 
-        private FileCache FileCache = null;
+        private readonly FileCache FileCache = null;
 
         private bool HasCompiledAnyFile = false;
 
         private int NumTasksFailed = 0;
 
-        private List<List<string>> FilesPerThread = new List<List<string>>();
-        private List<bool> ThreadsCompleted = new List<bool>();
+        private readonly List<List<string>> FilesPerThread = new List<List<string>>();
+        private readonly List<bool> ThreadsCompleted = new List<bool>();
 
         private bool IsRebuild = false;
 
@@ -126,7 +126,7 @@ namespace SaturnBuildTool
             ThreadsCompleted[ThreadIndex] = true;
         }
 
-        private bool CompileFiles() 
+        private void CompileFiles() 
         {
             SourceFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.SourceDir, true);
             
@@ -174,8 +174,6 @@ namespace SaturnBuildTool
 
                 CompileFiles_ForThread(0);
             }
-
-            return NumTasksFailed == 0;
         }
 
         public void Run() 

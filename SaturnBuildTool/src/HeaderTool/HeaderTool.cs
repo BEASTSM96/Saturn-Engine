@@ -30,10 +30,6 @@ namespace SaturnBuildTool.Tools
             public Dictionary<int, Property> Properties;
         }
 
-        public HeaderTool()
-        {
-        }
-
         public static readonly HeaderTool Instance = new HeaderTool();
 
         // If the last line had a SPROPERTY macro.

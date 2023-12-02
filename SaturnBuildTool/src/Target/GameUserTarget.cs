@@ -6,10 +6,10 @@ namespace SaturnBuildTool
 {
     public class GameUserTarget : UserTarget
     {
-        public string SaturnRootDir = "";
-        public string SaturnSingletonDir = "";
-        public string SaturnSourceDir = "";
-        public string SaturnVenderDir = "";
+        protected string SaturnRootDir = "";
+        protected string SaturnSingletonDir = "";
+        protected string SaturnSourceDir = "";
+        protected string SaturnVenderDir = "";
 
         public override void Init() 
         {
