@@ -27,75 +27,41 @@
 */
 
 #include "sppch.h"
-#include "GameModule.h"
-
-#include "Saturn/Core/App.h"
-#include "Saturn/Scene/Entity.h"
+#include "Module.h"
 
 #include "Saturn/Project/Project.h"
 
-#include "GameScript.h"
-
-#include "SourceManager.h"
-
 namespace Saturn {
 
-	GameModule::GameModule()
+	Module::Module( const std::filesystem::path& rPath, const std::string& rName )
+		: m_Path( rPath ), m_Name( rName )
 	{
-		SingletonStorage::Get().AddSingleton( this );
-
-		Load( false );
 	}
 
-	GameModule::~GameModule()
+	Module::~Module()
 	{
-		Unload();
+		Terminate();
 	}
 
-	Entity* GameModule::CreateEntity( const std::string& rClassName )
+	void Module::Load()
 	{
-		std::string funcName = "_Z_Create_" + rClassName;
-
-		CreateSClassFn createFunc = ( CreateSClassFn ) m_GameModule->GetOrFindFunction<CreateSClassFn>( funcName );
-
-		if( createFunc )
-			return ( createFunc ) ( );
+		if( m_Library.Load( m_Path.string() ) ) 
+		{
+			SAT_CORE_INFO( "Loaded corresponding module DLL: {0} -> {1}", m_Name, m_Path.string() );
+		}
 		else
-			return nullptr;
-	}
-
-	void GameModule::Load( bool reload /*=false*/ )
-	{
-		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
 		{
-			// We are the editor, load DLL.
-			auto binDir = Project::GetActiveProject()->GetBinDir();
-			auto& DllPath = binDir /= Project::GetActiveConfig().Name + ".dll";
-
-			m_GameModule = Ref<Module>::Create( DllPath, Project::GetActiveConfig().Name );
-			m_GameModule->Load();
-		}
-		else 
-		{
-			// We are the game so there is no need to load the dll all we need to do is set the handle to ourself.
-			m_GameModule = Ref<Module>::Create( "", Project::GetActiveConfig().Name );
-			m_GameModule->m_Library.SetExisting( GetModuleHandle( nullptr ) );
-		}
-
-		SourceManager::Get();
-	}
-
-	void GameModule::Unload()
-	{
-		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
-		{
-			m_GameModule = nullptr;
+			SAT_CORE_WARN( "Failed to load corresponding module DLL: {0} -> {1}", m_Name, m_Path.string() );
 		}
 	}
 
-	void GameModule::Reload() 
+	void Module::Terminate()
 	{
-		Unload();
-		Load(true);
+		m_Library.Free();
+	}
+
+	void Module::InitFixedGlobals( const Ref<Project>& rProject )
+	{
+		Project::SetActiveProject( rProject );
 	}
 }

@@ -331,7 +331,7 @@ namespace Saturn {
 
 	Ref<Entity> Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
 	{
-		Ref<Entity> entity = GameModule::Get().FindAndCallRegisterFunction( rScriptName );
+		Ref<Entity> entity = GameModule::Get().CreateEntity( rScriptName );
 		entity->SetName( name );
 		entity->GetComponent<IdComponent>().ID = uuid;
 

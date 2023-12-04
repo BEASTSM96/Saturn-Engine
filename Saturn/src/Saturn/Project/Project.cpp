@@ -155,11 +155,6 @@ namespace Saturn {
 		return rootDir;
 	}
 
-	const std::string& Project::GetName() const
-	{
-		return GetActiveProject()->GetConfig().Name;
-	}
-
 	std::filesystem::path Project::GetPremakeFile()
 	{
 		return GetAssetPath().parent_path() / "premake5.lua";
@@ -183,7 +178,7 @@ namespace Saturn {
 		rootDir /= "Dist-windows-x86_64";
 #endif
 
-		rootDir /= GetName();
+		rootDir /= m_Config.Name;
 
 		return rootDir;
 	}
@@ -268,7 +263,7 @@ namespace Saturn {
 
 		while( pos != std::string::npos )
 		{
-			fileData.replace( pos, 16, GetName().c_str() );
+			fileData.replace( pos, 16, m_Config.Name.c_str() );
 
 			pos = fileData.find( "__PROJECT_NAME__" );
 		}
@@ -302,8 +297,8 @@ namespace Saturn {
 
 	void Project::CreateBuildFile()
 	{
-		auto BuildFilePath = GetRootDir() / "Scripts";
-		BuildFilePath /= GetName() + ".Build.cs";
+		auto BuildFilePath = GetRootDir() / "Source";
+		BuildFilePath /= m_Config.Name + ".Build.cs";
 
 		if( !std::filesystem::exists( BuildFilePath ) )
 			std::filesystem::copy( "content/Templates/%PROJECT_NAME%.Build.cs", BuildFilePath );
@@ -312,15 +307,15 @@ namespace Saturn {
 	void Project::PrepForDist()
 	{
 		// Copy over the runtime build file.
-		auto BuildFilePath = GetRootDir() / "Scripts";
-		BuildFilePath /= GetName() + ".RT_Build.cs";
+		auto BuildFilePath = GetRootDir() / "Source";
+		BuildFilePath /= m_Config.Name + ".RT_Build.cs";
 
 		if( !std::filesystem::exists( BuildFilePath ) )
 			std::filesystem::copy( "content/Templates/%PROJECT_NAME%.RT_Build.cs", BuildFilePath );
 
 		// Copy over the client main file
 		auto BuildPath = GetFullAssetPath().parent_path() / "Build";
-		BuildPath /= GetName() + "Main.cpp";
+		BuildPath /= m_Config.Name + "Main.cpp";
 
 		if( std::filesystem::exists( BuildPath ) )
 			std::filesystem::remove( BuildPath );
@@ -347,7 +342,7 @@ namespace Saturn {
 
 		while( pos != std::string::npos )
 		{
-			std::string projectPath = GetName();
+			std::string projectPath = m_Config.Name;
 			std::replace( projectPath.begin(), projectPath.end(), '\\', '/' );
 
 			fileData.replace( pos, 14, projectPath );

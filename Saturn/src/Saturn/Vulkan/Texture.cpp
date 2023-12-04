@@ -83,7 +83,7 @@ namespace Saturn {
 
 	static bool VulkanIsDepth( VkFormat format ) 
 	{
-		return ( format == VK_FORMAT_D32_SFLOAT || VK_FORMAT_D32_SFLOAT_S8_UINT );
+		return format == VK_FORMAT_D32_SFLOAT /*|| format == VK_FORMAT_D32_SFLOAT_S8_UINT*/;
 	}
 
 	static void ImagePipelineBarrier( 

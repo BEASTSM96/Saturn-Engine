@@ -291,10 +291,7 @@ namespace Saturn {
 					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
 				}
 			}
-		}
 
-		for( auto& [set, descriptorSet] : m_DescriptorSets )
-		{
 			for( auto& texture : descriptorSet.StorageImages )
 			{
 				if( texture.Name == rName )
@@ -306,13 +303,10 @@ namespace Saturn {
 				}
 			}
 		}
-
 	}
 
 	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, VkDescriptorSet desSet )
 	{
-		SAT_CORE_INFO( "Updating : {0}", rName );
-
 		for( auto& [set, descriptorSet] : m_DescriptorSets )
 		{
 			for( auto& [ binding, ub ] : descriptorSet.UniformBuffers )

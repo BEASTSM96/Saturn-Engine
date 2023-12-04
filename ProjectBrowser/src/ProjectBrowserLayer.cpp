@@ -346,11 +346,11 @@ namespace Saturn {
 			out << str;
 			out.close();
 
-			newProject->m_Config.Name = std::string( s_ProjectNameBuffer );
+			newProject->GetConfig().Name = std::string( s_ProjectNameBuffer );
 
 			std::string name = std::string( s_ProjectNameBuffer ) + ".sproject";
 
-			newProject->m_Config.Path = ProjectPath.string();
+			newProject->GetConfig().Path = ProjectPath.string();
 
 			std::filesystem::rename( ProjectPath / "Project.sproject", ProjectPath / name );
 		}
@@ -364,15 +364,15 @@ namespace Saturn {
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Scenes" );
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" );
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" / "Source" );
-		std::filesystem::create_directory( ProjectPath / "Scripts" );
+		std::filesystem::create_directory( ProjectPath / "Source" );
 		std::filesystem::create_directory( ProjectPath / "Cache" );
 
-		std::filesystem::create_directories( ProjectPath / "Scripts" / newProject->m_Config.Name );
+		std::filesystem::create_directories( ProjectPath / "Source" / newProject->GetConfig().Name );
 
 		Project::SetActiveProject( newProject );
 
 		ProjectSerialiser ps;
-		ps.Serialise( newProject->m_Config.Path + "\\" + newProject->m_Config.Name );
+		ps.Serialise( newProject->GetConfig().Path + "\\" + newProject->GetConfig().Name );
 
 		Project::SetActiveProject( nullptr );
 	}

@@ -68,8 +68,8 @@ namespace Saturn {
 
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
+		// Load the Game Module
 		GameModule* pGameDLL = new GameModule();
-		pGameDLL->Load();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 

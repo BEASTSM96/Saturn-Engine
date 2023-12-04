@@ -64,7 +64,6 @@ namespace Saturn {
 
 		std::filesystem::path GetAssetPath();
 		std::filesystem::path GetFullAssetPath();
-		const std::string& GetName() const;
 	
 		std::filesystem::path GetPremakeFile();
 		std::filesystem::path GetRootDir();

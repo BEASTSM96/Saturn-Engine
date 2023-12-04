@@ -31,14 +31,15 @@
 #include "SingletonStorage.h"
 #include "Saturn/GameFramework/SClass.h"
 
+#include "Saturn/Core/Module.h"
 #include "Saturn/Core/Library.h"
 
 namespace Saturn {
 
 	class Entity;
 
-	typedef Entity* ( __stdcall* EntityRegistrantFunction )();
-
+	// This class holds and owns the Game Module.
+	// So this class should be the only way to access the game module.
 	class GameModule
 	{
 	public:
@@ -47,16 +48,15 @@ namespace Saturn {
 		GameModule();
 		~GameModule();
 
-		Entity* FindAndCallRegisterFunction( const std::string& rClassName );
+		Entity* CreateEntity( const std::string& rClassName );
 		
+	private:
 		void Load( bool reload = false );
 		void Unload();
 		void Reload();
-	private:
-		Library m_DLLInstance;
 
 	private:
-		friend class EntityScriptManager;
+		Ref<Module> m_GameModule;
 	};
 
 }

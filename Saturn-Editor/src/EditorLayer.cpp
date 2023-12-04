@@ -202,7 +202,6 @@ namespace Saturn {
 		CheckMissingEditorAssetRefs();
 
 		GameModule* pGameDLL = new GameModule();
-		pGameDLL->Load();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 

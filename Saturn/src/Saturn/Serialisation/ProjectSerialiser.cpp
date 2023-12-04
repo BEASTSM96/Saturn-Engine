@@ -59,7 +59,7 @@ namespace Saturn {
 		out << YAML::BeginMap;
 
 		{
-			out << YAML::Key << "Name" << YAML::Value << rProject->GetName();
+			out << YAML::Key << "Name" << YAML::Value << rProject->GetConfig().Name;
 			out << YAML::Key << "AssetPath" << YAML::Value << rProject->GetAssetPath();
 			out << YAML::Key << "StartupScene" << YAML::Value << rProject->GetConfig().StartupScenePath;
 

@@ -62,10 +62,10 @@ namespace Saturn {
 
 	// The absolute Assets and Scripts path.
 	static std::filesystem::path s_pAssetsDirectory = "Assets";
-	static std::filesystem::path s_pScriptsDirectory = "Scripts";
+	static std::filesystem::path s_pScriptsDirectory = "Source";
 
 	/* The root dir, i.e. C:\\MyProjects\\Project1\\Assets */
-	static std::filesystem::path s_RootDirectory = "Scripts";
+	static std::filesystem::path s_RootDirectory = "Source";
 
 	static bool s_OpenScriptsPopup = false;
 	
@@ -688,7 +688,7 @@ namespace Saturn {
 
 		ImGui::BeginChild( "Folder Tree", ImVec2( 200, 0 ), false );
 
-		if( Auxiliary::TreeNode( Project::GetActiveProject()->GetName().c_str() ) )
+		if( Auxiliary::TreeNode( Project::GetActiveProject()->GetConfig().Name.c_str() ) )
 		{
 			DrawRootFolder( CBViewMode::Assets );
 			DrawRootFolder( CBViewMode::Scripts );
@@ -1248,7 +1248,7 @@ namespace Saturn {
 			Scene* OldActiveScene = Scene::GetActiveScene();
 			Scene::SetActiveScene( PrefabAsset->GetScene().Get() );
 
-			Ref<Entity> entity = GameModule::Get().FindAndCallRegisterFunction( rData.Name );
+			Ref<Entity> entity = GameModule::Get().CreateEntity( rData.Name );
 			PrefabAsset->SetEntity( entity );
 			
 			// Swap back to the current scene.
@@ -1285,7 +1285,7 @@ namespace Saturn {
 	void ContentBrowserPanel::SetPath( const std::filesystem::path& rPath )
 	{
 		s_pAssetsDirectory = rPath / "Assets";
-		s_pScriptsDirectory = rPath / "Scripts";
+		s_pScriptsDirectory = rPath / "Source";
 
 		switch( m_ViewMode )
 		{

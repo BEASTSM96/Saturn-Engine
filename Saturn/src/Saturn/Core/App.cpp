@@ -96,6 +96,7 @@ namespace Saturn {
 		AudioSystem::Get();
 		RenderThread::Get().Enable( HasFlag( ApplicationFlags::UseGameThread ) );
 
+		// ImGui is only used if we have the editor, and ImGui should not be used when building the game.
 		m_ImGuiLayer = new ImGuiLayer();
 		m_ImGuiLayer->OnAttach();
 	}

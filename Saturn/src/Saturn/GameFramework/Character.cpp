@@ -57,10 +57,12 @@ namespace Saturn {
 
 		SetupInputBindings();
 
-		m_PlayerInputController->BindAction( "Jump", SAT_BIND_EVENT_FN( MoveForward ) );
-		m_PlayerInputController->BindAction( "Jump", SAT_BIND_EVENT_FN( MoveBack ) );
-		m_PlayerInputController->BindAction( "Jump", SAT_BIND_EVENT_FN( MoveLeft ) );
-		m_PlayerInputController->BindAction( "Jump", SAT_BIND_EVENT_FN( MoveRight ) );
+		/*
+		m_PlayerInputController->BindAction( "Forward", SAT_BIND_EVENT_FN( MoveForward ) );
+		m_PlayerInputController->BindAction( "Back", SAT_BIND_EVENT_FN( MoveBack ) );
+		m_PlayerInputController->BindAction( "Left", SAT_BIND_EVENT_FN( MoveLeft ) );
+		m_PlayerInputController->BindAction( "Right", SAT_BIND_EVENT_FN( MoveRight ) );
+		*/
 
 		m_RigidBody = GetComponent<RigidbodyComponent>().Rigidbody;
 
