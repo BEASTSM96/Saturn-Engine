@@ -57,8 +57,6 @@ namespace Saturn {
 
 	extern void TransitionImageLayout( VkImage Image, VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
 
-	extern Saturn::Buffer LoadTextureData( const std::filesystem::path& rPath );
-
 	enum class AddressingMode
 	{
 		Repeat,

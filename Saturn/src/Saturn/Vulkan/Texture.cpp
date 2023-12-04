@@ -83,7 +83,7 @@ namespace Saturn {
 
 	static bool VulkanIsDepth( VkFormat format ) 
 	{
-		return format == VK_FORMAT_D32_SFLOAT /*|| format == VK_FORMAT_D32_SFLOAT_S8_UINT*/;
+		return ( format == VK_FORMAT_D32_SFLOAT ) || ( format == VK_FORMAT_D32_SFLOAT_S8_UINT );
 	}
 
 	static void ImagePipelineBarrier( 
@@ -142,8 +142,8 @@ namespace Saturn {
 	{
 		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
 
-		VkPipelineStageFlags SrcStage;
-		VkPipelineStageFlags DstStage;
+		VkPipelineStageFlags SrcStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
+		VkPipelineStageFlags DstStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
 
 		VkImageMemoryBarrier ImageBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 		ImageBarrier.oldLayout = OldLayout;
@@ -215,8 +215,8 @@ namespace Saturn {
 	{
 		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
 
-		VkPipelineStageFlags SrcStage;
-		VkPipelineStageFlags DstStage;
+		VkPipelineStageFlags SrcStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
+		VkPipelineStageFlags DstStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
 
 		VkImageMemoryBarrier ImageBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 		ImageBarrier.oldLayout = OldLayout;
@@ -396,8 +396,8 @@ namespace Saturn {
 	{
 		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
 
-		VkPipelineStageFlags SrcStage;
-		VkPipelineStageFlags DstStage;
+		VkPipelineStageFlags SrcStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
+		VkPipelineStageFlags DstStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
 
 		VkImageMemoryBarrier ImageBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 		ImageBarrier.oldLayout = OldLayout;
@@ -433,21 +433,6 @@ namespace Saturn {
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 	}
 
-	Saturn::Buffer LoadTextureData( const std::filesystem::path& rPath )
-	{
-		int w, h, c;
-
-		stbi_uc* data;
-
-		data = stbi_load( rPath.string().c_str(), &w, &h, &c, 4 );
-
-		Saturn::Buffer bf = Buffer( sizeof( data ) / sizeof( *data ) , data );
-
-		stbi_image_free( data );
-
-		return bf;
-	}
-
 	Texture2D::Texture2D( ImageFormat format, uint32_t width, uint32_t height, const void* pData, bool storage )
 		: Texture( width, height, VulkanFormat( format ), pData )
 	{
@@ -466,9 +451,6 @@ namespace Saturn {
 			return;
 
 		Texture::Terminate();
-		
-		//if( m_DescriptorSet )
-		//	ImGui_ImplVulkan_RemoveTexture( m_DescriptorSet );
 	}
 
 	void Texture2D::Copy( Ref<Texture2D> rOther )
@@ -691,7 +673,7 @@ namespace Saturn {
 			VkImageView view;
 
 			VkImageSubresourceRange range{};
-			range.aspectMask = !VulkanIsDepth( m_ImageFormat ) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+			range.aspectMask = VulkanIsDepth( m_ImageFormat ) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 			range.baseMipLevel = mip;
 			range.layerCount = 1;
 			range.baseArrayLayer = 0;
@@ -721,7 +703,7 @@ namespace Saturn {
 		auto MipCount = GetMipMapLevels();
 
 		// Staging Buffer.
-		VkBuffer StagingBuffer;
+		VkBuffer StagingBuffer = nullptr;
 
 		if( pData )
 		{
