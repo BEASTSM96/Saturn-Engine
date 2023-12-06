@@ -68,6 +68,7 @@ namespace Saturn {
 	static std::filesystem::path s_RootDirectory = "Source";
 
 	static bool s_OpenScriptsPopup = false;
+	static bool s_OpenClassInstancePopup = false;
 	
 	ContentBrowserPanel::ContentBrowserPanel()
 		: Panel( "Content Browser Panel" ), m_CurrentPath( s_pAssetsDirectory ), m_FirstFolder( s_pAssetsDirectory ), m_ScriptPath( s_pScriptsDirectory )
@@ -381,12 +382,19 @@ namespace Saturn {
 				FindAndRenameItem( asset->Path );
 			}
 
+			if( ImGui::MenuItem( "Entity Instance" ) ) 
+			{
+				s_OpenClassInstancePopup = true;
+			}
+
+			/*
 			// Create a prefab for the users game classes.
 			ClassMetadataHandler::Get().Each( 
 				[&]( auto& rMetadata ) 
 				{
 					DrawCreateClass( rMetadata.Name, rMetadata );
 				} );
+				*/
 
 			ImGui::EndMenu();
 		}
@@ -1190,6 +1198,91 @@ namespace Saturn {
 			if( PopupModified )
 			{
 				s_OpenScriptsPopup = false;
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
+		if( s_OpenClassInstancePopup )
+			ImGui::OpenPopup( "Create A New Class Instance (Prefab)##Create_ClassIns" );
+
+		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
+		if( ImGui::BeginPopupModal( "Create A New Class Instance (Prefab)##Create_ClassIns", &s_OpenClassInstancePopup, ImGuiWindowFlags_NoMove ) )
+		{
+			bool PopupModified = false;
+
+			ImGui::BeginHorizontal( "##inputH" );
+
+			ImGui::Text( "Name:" );
+			ImGui::InputText( "##instanceName", ( char* ) m_ClassInstanceName.c_str(), 1024 );
+
+			ImGui::EndHorizontal();
+
+			ImGui::Text( "Choose Parent class" );
+
+			if( ImGui::BeginListBox( "##CLASSES_INST", ImVec2( -FLT_MIN, 0.0f ) ) ) 
+			{
+				// Root Tree
+				DrawClassHierarchy( "SClass", ClassMetadataHandler::Get().GetSClassMetadata() );
+
+				ImGui::EndListBox();
+			}
+
+			auto drawDisabledBtn = [&]( const char* n ) -> bool
+			{
+				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+				bool value = ImGui::Button( n );
+				ImGui::PopStyleVar( 1 );
+				ImGui::PopItemFlag();
+
+				return value;
+			};
+
+			if( ImGui::Button( "Create" ) )
+			{
+				// First, create the asset.
+				Ref<Asset> prefabAsset = AssetManager::Get().FindAsset( AssetManager::Get().CreateAsset( AssetType::Prefab ) );
+				Ref<Prefab> prefab = prefabAsset;
+				prefab = Ref<Prefab>::Create();
+
+				// Setup the asset
+				std::filesystem::path path = m_CurrentPath / m_ClassInstanceName;
+				path.replace_extension( ".prefab" );
+
+				prefab->SetPath( path );
+				prefab->Name = m_ClassInstanceName;
+
+				// Create the source entity.
+				Ref<Entity> sourceEntity = nullptr;
+				
+				if( ClassMetadataHandler::Get().IsEngineMetadata( m_SelectedMetadata ) ) 
+				{
+					// TODO: Create the class somehow?
+				}
+				else
+				{
+					sourceEntity = GameModule::Get().CreateEntity( m_SelectedMetadata.Name );
+				}
+
+				prefab->Create( sourceEntity );
+
+				// Delete the temporary source entity from the current scene.
+				GActiveScene->DeleteEntity( sourceEntity );
+
+				// Save the prefab.
+				PrefabSerialiser ps;
+				ps.Serialise( prefab );
+
+				PopupModified = true;
+			}
+
+			if( PopupModified )
+			{
+				s_OpenClassInstancePopup = false;
+				m_ClassInstanceName = "";
 
 				ImGui::CloseCurrentPopup();
 			}

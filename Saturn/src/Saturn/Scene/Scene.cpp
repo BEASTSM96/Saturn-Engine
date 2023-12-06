@@ -472,9 +472,11 @@ namespace Saturn {
 			auto child = FindEntityByID( rChild );
 
 			m_EntityIDMap.erase( child->GetHandle() );
+			m_Registry.destroy( child->GetHandle() );
 		}
 
 		m_EntityIDMap.erase( entity->GetHandle() );
+		m_Registry.destroy( entity->GetHandle() );
 	}
 
 	void Scene::CopyScene( Ref<Scene>& NewScene )

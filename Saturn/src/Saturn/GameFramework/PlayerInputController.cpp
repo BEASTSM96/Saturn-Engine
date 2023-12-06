@@ -107,6 +107,7 @@ namespace Saturn {
 				{
 					auto&& [name, binding] = ( *bindingItr );
 
+					EventsToFire[ name ] = binding;
 					EventsToFire[ name ].State = false;
 				}	
 

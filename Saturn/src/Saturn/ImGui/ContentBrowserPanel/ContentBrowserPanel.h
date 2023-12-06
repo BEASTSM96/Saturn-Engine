@@ -116,11 +116,6 @@ namespace Saturn {
 		Ref< Texture2D > m_BackIcon;
 		Ref< Texture2D > m_ForwardIcon;
 
-		bool m_ShowMeshImport = false;
-		bool m_ShowSoundImport = false;
-		std::filesystem::path m_ImportMeshPath;
-		std::filesystem::path m_ImportSoundPath;
-
 		std::vector<Ref<ContentBrowserItem>> m_SelectedItems;
 
 		bool m_ShowFolderPopupMenu = false;
@@ -144,5 +139,16 @@ namespace Saturn {
 		SClassMetadata m_SelectedMetadata = {};
 
 		filewatch::FileWatch<std::string>* m_Watcher = nullptr;
+
+	private:
+		// Popup data
+
+		bool m_ShowMeshImport = false;
+		bool m_ShowSoundImport = false;
+		
+		std::filesystem::path m_ImportMeshPath;
+		std::filesystem::path m_ImportSoundPath;
+		
+		std::string m_ClassInstanceName;
 	};
 }

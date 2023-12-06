@@ -53,6 +53,18 @@ namespace Saturn {
 		CopyComponentIfExists<V...>( dst, src, rRegistry, rDstRegistry );
 	}
 
+	static void SwapActiveScene( Scene* pScene ) 
+	{
+		if( GActiveScene != pScene )
+			GActiveScene = pScene;
+	}
+
+	static void RestoreActiveScene( Scene* pNewScene ) 
+	{
+		if( GActiveScene != pNewScene )
+			GActiveScene = pNewScene;
+	}
+
 	Prefab::Prefab()
 	{
 	}
@@ -67,9 +79,14 @@ namespace Saturn {
 
 		m_Scene->SetName( "Prefab scene" );
 
+		Scene* CurrentScene = GActiveScene;
+		SwapActiveScene( m_Scene.Get() );
+
 		// TODO: (Entities using refs) Fix this
 		if( srcEntity->Vaild() )
 			m_Entity = CreateFromEntity( srcEntity );
+
+		RestoreActiveScene( CurrentScene );
 	}
 
 	void Prefab::Create()

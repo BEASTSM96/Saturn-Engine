@@ -35,6 +35,12 @@ namespace Saturn {
 
 	class Scene;
 
+	//////////////////////////////////////////////////////////////////////////
+	// Prefab
+	// This is not like a normal prefab. Think of this like an instance of another class.
+	// This is used for entities that need to be persistent throughout multiple levels.
+	// Or for entities that can be spawned in e.g. a bullet.
+	// Prefabs can only represents one entity.
 	class Prefab : public Asset
 	{
 	public:

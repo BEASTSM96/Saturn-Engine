@@ -35,8 +35,6 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
-#include "OptickProfiler.h"
-
 #include "Saturn/GameFramework/Core/GameThread.h"
 #include "Renderer/RenderThread.h"
 
@@ -48,7 +46,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
+#include "OptickProfiler.h"
 #include <tracy/Tracy.hpp>
+#endif
 
 #if defined( SAT_WINDOWS )
 #include <ShObjIdl.h>
@@ -152,7 +153,8 @@ namespace Saturn {
 
 		OnShutdown();
 		
-		// So the difference between "Terminate" and delete is delete will completely destroy the class and remove it from the singleton list. However "Terminate" is used to destroy any data in the class but will not destroy it, it is also used because we don't own the class so we can just implicitly destroy them.
+		// So the difference between "Terminate" and delete is delete will completely destroy the class and remove it from the singleton list. 
+		// However "Terminate" is used to destroy any data in the class but will not remove it from the singleton list, it is also used because we don't own the class so we can just implicitly destroy them.
 		GameThread::Get().Terminate();
 		RenderThread::Get().Terminate();
 

@@ -60,6 +60,9 @@ namespace Saturn {
 
 		void Add( const SClassMetadata& rData );
 
+		// Temp
+		bool IsEngineMetadata( const SClassMetadata& rData ) { return false; }
+
 		// This return metadata for the SClass class.
 		const SClassMetadata& GetSClassMetadata() const;
 		SClassMetadata& GetSClassMetadata();

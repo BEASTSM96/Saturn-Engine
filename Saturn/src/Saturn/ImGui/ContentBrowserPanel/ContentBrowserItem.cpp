@@ -479,7 +479,8 @@ namespace Saturn {
 		}
 		else
 		{
-			AssetManager::Get().RemoveAsset( AssetManager::Get().FindAsset( m_Path )->ID );
+			auto relativePath = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
+			AssetManager::Get().RemoveAsset( AssetManager::Get().FindAsset( relativePath )->ID );
 		}
 
 		std::filesystem::remove( m_Path );

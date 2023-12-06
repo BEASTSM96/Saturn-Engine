@@ -54,7 +54,7 @@ namespace Saturn {
 		friend class SceneSerialiser;
 	private:
 		// Quat's in GLM are W,X,Y,Z
-		// I want to change it do X,Y,Z,W
+		// I want to change it X,Y,Z,W
 		// I don't want to use quat's however quat's are just better for rotations than a Vector3
 		glm::quat  RotationQuat ={ 1.0f, 0.0f, 0.0f, 0.0f };
 		glm::vec3  Rotation = { 0.0f, 0.0f, 0.0f };

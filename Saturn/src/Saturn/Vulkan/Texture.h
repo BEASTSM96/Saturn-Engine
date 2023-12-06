@@ -114,7 +114,7 @@ namespace Saturn {
 		virtual void CreateMips() = 0;
 
 		virtual VkImageView GetOrCreateMipImageView( uint32_t mip ) = 0;
-	public:
+	protected:
 
 		std::filesystem::path m_Path = "";
 		
