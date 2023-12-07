@@ -176,19 +176,11 @@ namespace SaturnBuildTool
             }
         }
 
-        public void Run() 
+        private void CompileEntryFile() 
         {
-            Stopwatch time = Stopwatch.StartNew();
-
-            Console.WriteLine("==== Saturn Build Tool v0.0.2 ====");
-
-            IsRebuild = Args[0] == "/REBUILD";
-
-            List<string> sourceBuildFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.BuildDir);
-            CompileFiles();
-
-            if(ProjectInfo.Instance.CurrentConfigKind >= ConfigKind.DistDebug)
+            if (ProjectInfo.Instance.CurrentConfigKind >= ConfigKind.DistDebug) 
             {
+                List<string> sourceBuildFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.BuildDir);
                 foreach (string file in sourceBuildFiles)
                 {
                     // We are only building c++ files.
@@ -230,6 +222,57 @@ namespace SaturnBuildTool
                     }
                 }
             }
+        }
+
+        private void CompileLoadFile() 
+        {
+            string loadFilepath = Path.Combine( ProjectInfo.Instance.BuildDir, string.Format( "{0}.Load.cpp", ProjectInfo.Instance.Name ) );
+
+            // Only compile the file if it has not be changed.
+            FileCache.FilesInCache.TryGetValue(loadFilepath, out DateTime LastTime);
+
+            if (Args[0] == "/REBUILD")
+            {
+                int exitCode = Toolchain.Compile(loadFilepath, false);
+
+                if (exitCode == 0)
+                {
+                    HasCompiledAnyFile = true;
+
+                    if (!FileCache.IsFileInCache(loadFilepath))
+                        FileCache.CacheFile(loadFilepath);
+                }
+                else
+                    NumTasksFailed++;
+            }
+            else if (Args[0] == "/BUILD" && (LastTime != File.GetLastWriteTime(loadFilepath)))
+            {
+                int exitCode = Toolchain.Compile(loadFilepath, false);
+
+                if (exitCode == 0)
+                {
+                    HasCompiledAnyFile = true;
+
+                    if (!FileCache.IsFileInCache(loadFilepath))
+                        FileCache.CacheFile(loadFilepath);
+                }
+                else
+                    NumTasksFailed++;
+            }
+        }
+
+        public void Run() 
+        {
+            Stopwatch time = Stopwatch.StartNew();
+
+            Console.WriteLine("==== Saturn Build Tool v0.0.2 ====");
+
+            IsRebuild = Args[0] == "/REBUILD";
+
+            CompileFiles();
+
+            CompileEntryFile();
+            CompileLoadFile();
 
             Console.WriteLine(string.Format("{0} task(s) failed.", NumTasksFailed));
 

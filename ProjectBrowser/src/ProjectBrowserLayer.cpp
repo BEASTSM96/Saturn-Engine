@@ -364,10 +364,21 @@ namespace Saturn {
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Scenes" );
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" );
 		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" / "Source" );
+		
 		std::filesystem::create_directory( ProjectPath / "Source" );
+		std::filesystem::create_directory( ProjectPath / "Build" );
 		std::filesystem::create_directory( ProjectPath / "Cache" );
 
 		std::filesystem::create_directories( ProjectPath / "Source" / newProject->GetConfig().Name );
+
+		{
+			std::filesystem::copy( s_SaturnDir + "/Saturn-Editor/content/Templates/%PROJECT_NAME%.Load.cpp", ProjectPath / "Build" );
+			
+			std::string filename = "%PROJECT_NAME%.Load.cpp";
+			std::string newName = std::format( "{0}.Load.cpp", newProject->GetConfig().Name );
+
+			std::filesystem::rename( ProjectPath / "Build" / filename, ProjectPath / "Build" / newName );
+		}
 
 		Project::SetActiveProject( newProject );
 

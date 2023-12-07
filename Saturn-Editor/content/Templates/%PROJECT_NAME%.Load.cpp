@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2023 BEAST                                                           *
+* Copyright (c) 2023 BEAST                                                           		*
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -26,49 +26,12 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include <Saturn/Core/Module.h>
 
-// --- Core
-#include "Saturn/Core/App.h"
-#include "Saturn/Core/Base.h"
-#include "Saturn/Core/EnvironmentVariables.h"
-#include "Saturn/Core/Events.h"
-#include "Saturn/Core/Input.h"
-#include "Saturn/Core/Layer.h"
-#include "Saturn/Core/Timer.h"
-#include "Saturn/Core/Timestep.h"
-#include "Saturn/Core/UUID.h"
-#include "Saturn/Core/Memory/Buffer.h"
-#include "Saturn/Core/AABB/AABB.h"
-#include "Ruby/RubyCore.h"
-#include "Ruby/RubyEventType.h"
+extern "C" {
 
-// --- Asset
-#include "Saturn/Asset/Asset.h"
-#include "Saturn/Asset/AssetManager.h"
-
-// --- ImGui
-#include "Saturn/ImGui/ContentBrowserPanel/ContentBrowserPanel.h"
-#include "Saturn/ImGui/SceneHierarchyPanel.h"
-#include "Saturn/ImGui/Styles.h"
-#include "Saturn/ImGui/ImGuiAuxiliary.h"
-#include "Saturn/ImGui/Panel/Panel.h"
-
-// --- Rendering
-#include "Saturn/Vulkan/Base.h"
-#include "Saturn/Vulkan/SceneRenderer.h"
-#include "Saturn/Vulkan/Shader.h"
-#include "Saturn/Vulkan/VulkanContext.h"
-
-// --- Physics
-#include "Saturn/Physics/PhysicsCooking.h"
-#include "Saturn/Physics/PhysicsFoundation.h"
-#include "Saturn/Physics/PhysicsShapes.h"
-
-// --- GameFramework
-#include "Saturn/GameFramework/ActionBinding.h"
-
-// --- Scene
-#include "Saturn/Scene/Components.h"
-#include "Saturn/Scene/Entity.h"
-#include "Saturn/Scene/Scene.h"
+	void InitializeModule( const Ref<Project>& rProject ) 
+	{
+		Project::SetActiveProject( rProject );
+	}
+};
