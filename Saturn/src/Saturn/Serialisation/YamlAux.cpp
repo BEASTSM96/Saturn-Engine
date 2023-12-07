@@ -120,24 +120,33 @@ namespace Saturn {
 
 			rEmitter << YAML::Key << "MaterialRegistry";
 			rEmitter << YAML::BeginMap;
-			rEmitter << YAML::Key << "AnyOverrides" << YAML::Value << mc.MaterialRegistry->HasAnyOverrides();
+			
+			if( mc.MaterialRegistry ) 
+				rEmitter << YAML::Key << "AnyOverrides" << YAML::Value << mc.MaterialRegistry->HasAnyOverrides();
+			else
+				rEmitter << YAML::Key << "AnyOverrides" << YAML::Value << false;
+
 			rEmitter << YAML::Key << "MaterialOverrides";
 			rEmitter << YAML::BeginSeq;
 
-			int i = 0;
-			for( const auto& material : mc.MaterialRegistry->GetMaterials() )
+			if( mc.MaterialRegistry )
 			{
-				rEmitter << YAML::BeginMap;
+				int i = 0;
+				for( const auto& material : mc.MaterialRegistry->GetMaterials() )
+				{
+					rEmitter << YAML::BeginMap;
 
-				if( mc.MaterialRegistry->HasOverrides( i ) )
-					rEmitter << YAML::Key << i << YAML::Value << material->ID;
-				else
-					rEmitter << YAML::Key << i << YAML::Value << 0;
+					if( mc.MaterialRegistry->HasOverrides( i ) )
+						rEmitter << YAML::Key << i << YAML::Value << material->ID;
+					else
+						rEmitter << YAML::Key << i << YAML::Value << 0;
 
-				rEmitter << YAML::EndMap;
+					rEmitter << YAML::EndMap;
 
-				i++;
+					i++;
+				}
 			}
+
 			rEmitter << YAML::EndSeq;
 
 			rEmitter << YAML::EndMap;
@@ -345,7 +354,6 @@ namespace Saturn {
 			}
 			else
 			{
-				//DeserialisedEntity = Ref<Entity>::Create( Tag, entityID );
 				DeserialisedEntity = Ref<Entity>::Create();
 				DeserialisedEntity->SetName( Tag );
 				DeserialisedEntity->GetComponent<IdComponent>().ID = entityID;
@@ -379,38 +387,38 @@ namespace Saturn {
 
 					m.Mesh = mesh;
 					m.MaterialRegistry = Ref<MaterialRegistry>::Create();
-				}
 
-				auto materialRegistry = mc[ "MaterialRegistry" ];
-				if( materialRegistry )
-				{
-					bool hasOverrides = materialRegistry[ "AnyOverrides" ].as<bool>();
-
-					if( hasOverrides )
+					auto materialRegistry = mc[ "MaterialRegistry" ];
+					if( materialRegistry )
 					{
-						auto materialOverrides = materialRegistry[ "MaterialOverrides" ];
-					
-						int i = 0;
-						for( auto override : materialOverrides )
+						bool hasOverrides = materialRegistry[ "AnyOverrides" ].as<bool>();
+
+						if( hasOverrides )
 						{
-							auto id = override[ i ].as<uint64_t>();
+							auto materialOverrides = materialRegistry[ "MaterialOverrides" ];
 
-							if( id != 0 ) 
+							int i = 0;
+							for( auto override : materialOverrides )
 							{
-								m.MaterialRegistry->AddAsset( AssetManager::Get().GetAssetAs<MaterialAsset>( id ) );
-								m.MaterialRegistry->SetOverries( i, true );
-							}
+								auto id = override[ i ].as<uint64_t>();
 
-							i++;
+								if( id != 0 )
+								{
+									m.MaterialRegistry->AddAsset( AssetManager::Get().GetAssetAs<MaterialAsset>( id ) );
+									m.MaterialRegistry->SetOverries( i, true );
+								}
+
+								i++;
+							}
+						}
+						else
+						{
+							m.MaterialRegistry->Copy( m.Mesh->GetMaterialRegistry() );
 						}
 					}
-					else
-					{
-						m.MaterialRegistry->Copy( m.Mesh->GetMaterialRegistry() );
-					}
+					
+					m.MaterialRegistry->SetMesh( m.Mesh );
 				}
-
-				m.MaterialRegistry->SetMesh( m.Mesh );
 			}
 
 			auto rcNode = entity[ "RelationshipComponent" ];

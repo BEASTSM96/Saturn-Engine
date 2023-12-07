@@ -535,8 +535,6 @@ namespace Saturn {
 		m_RuntimeRunning = false;
 	}
 
-	// Returns the Entity and the game class (if any).
-	// This is not good as the SClass will hold the entity anyway.
 	Ref<Entity> Scene::CreatePrefab( Ref<Prefab> prefabAsset )
 	{
 		Ref<Entity> prefabEntity = prefabAsset->PrefabToEntity( this );

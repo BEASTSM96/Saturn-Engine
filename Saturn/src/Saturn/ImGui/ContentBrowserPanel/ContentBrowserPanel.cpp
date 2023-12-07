@@ -1216,7 +1216,16 @@ namespace Saturn {
 			ImGui::BeginHorizontal( "##inputH" );
 
 			ImGui::Text( "Name:" );
-			ImGui::InputText( "##instanceName", ( char* ) m_ClassInstanceName.c_str(), 1024 );
+			
+			// I wish that we did not have to do this. But for some reason ImGui does not work well when i use a string.
+			char buffer[ 256 ];
+			memset( buffer, 0, 256 );
+			memcpy( buffer, m_ClassInstanceName.c_str(), m_ClassInstanceName.length() );
+
+			if( ImGui::InputText( "##instanceName", buffer, 256 ) )
+			{
+				m_ClassInstanceName = std::string( buffer );
+			}
 
 			ImGui::EndHorizontal();
 
@@ -1254,6 +1263,9 @@ namespace Saturn {
 
 				prefab->SetPath( path );
 				prefab->Name = m_ClassInstanceName;
+				prefab->ID = prefabAsset->ID;
+				prefab->Type = prefabAsset->Type;
+				prefab->Flags = prefabAsset->Flags;
 
 				// Create the source entity.
 				Ref<Entity> sourceEntity = nullptr;
@@ -1267,6 +1279,8 @@ namespace Saturn {
 					sourceEntity = GameModule::Get().CreateEntity( m_SelectedMetadata.Name );
 				}
 
+				sourceEntity->AddComponent<ScriptComponent>().ScriptName = m_SelectedMetadata.Name;
+
 				prefab->Create( sourceEntity );
 
 				// Delete the temporary source entity from the current scene.
@@ -1275,6 +1289,8 @@ namespace Saturn {
 				// Save the prefab.
 				PrefabSerialiser ps;
 				ps.Serialise( prefab );
+
+				AssetManager::Get().Save();
 
 				PopupModified = true;
 			}

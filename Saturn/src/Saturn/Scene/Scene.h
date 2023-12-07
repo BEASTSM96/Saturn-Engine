@@ -160,6 +160,8 @@ namespace Saturn {
 		entt::registry& GetRegistry() { return m_Registry; }
 		const entt::registry& GetRegistry() const { return m_Registry; }
 
+		// This transfers a prefab to an entity.
+		// The prefabs holds an entity however that entity is local to it's scene and we want that entity to be our scene.
 		Ref<Entity> CreatePrefab( Ref<Prefab> prefabAsset );
 
 		UUID GetId() { return m_SceneID; }
@@ -172,7 +174,9 @@ namespace Saturn {
 
 		void RemoveHandle( entt::entity handle ) 
 		{
-			m_Registry.destroy( handle );
+			// Does the handle exist in out registry.
+			if( m_Registry.valid( handle ) )
+				m_Registry.destroy( handle );
 		}
 
 		static void   SetActiveScene( Scene* pScene );
