@@ -467,6 +467,8 @@ namespace Saturn {
 
 	void ContentBrowserItem::Delete()
 	{
+		// TODO: Check for asset links.
+
 		if( m_IsDirectory )
 		{
 			AssetManager::Get().Each( [&]( Ref<Asset> asset ) 

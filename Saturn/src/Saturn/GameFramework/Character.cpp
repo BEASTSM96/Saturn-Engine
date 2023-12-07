@@ -49,6 +49,7 @@ namespace Saturn {
 	Character::~Character()
 	{
 		m_PlayerInputController = nullptr;
+		m_CameraEntity = nullptr;
 	}
 
 	void Character::BeginPlay()
@@ -57,12 +58,20 @@ namespace Saturn {
 
 		SetupInputBindings();
 
-		/*
-		m_PlayerInputController->BindAction( "Forward", SAT_BIND_EVENT_FN( MoveForward ) );
-		m_PlayerInputController->BindAction( "Back", SAT_BIND_EVENT_FN( MoveBack ) );
-		m_PlayerInputController->BindAction( "Left", SAT_BIND_EVENT_FN( MoveLeft ) );
-		m_PlayerInputController->BindAction( "Right", SAT_BIND_EVENT_FN( MoveRight ) );
-		*/
+		// Try find our camera.
+		Ref<Entity> cameraEntity = m_Scene->GetMainCameraEntity();
+		
+		if( cameraEntity == nullptr ) 
+		{
+			// Create the main camera.
+			m_CameraEntity = Ref<Entity>::Create();
+			m_CameraEntity->SetParent( GetComponent<IdComponent>().ID );
+			m_CameraEntity->AddComponent<CameraComponent>().MainCamera = true;
+		}
+		else
+		{
+			m_CameraEntity = cameraEntity;
+		}
 
 		m_RigidBody = GetComponent<RigidbodyComponent>().Rigidbody;
 
@@ -71,8 +80,6 @@ namespace Saturn {
 			m_RigidBody->SetOnCollisionHit( SAT_BIND_EVENT_FN( OnMeshHit ) );
 			m_RigidBody->SetOnCollisionExit( SAT_BIND_EVENT_FN( OnMeshExit ) );
 		}
-
-		m_CameraEntity = m_Scene->GetMainCameraEntity();
 	}
 
 	void Character::OnUpdate( Timestep ts )
