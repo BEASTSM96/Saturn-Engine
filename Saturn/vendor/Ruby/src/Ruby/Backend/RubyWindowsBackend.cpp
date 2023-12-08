@@ -811,7 +811,9 @@ void RubyWindowsBackend::PresentWindow()
 
 void RubyWindowsBackend::ResizeWindow( uint32_t Width, uint32_t Height )
 {
-	::MoveWindow( m_Handle, 0, 0, Width, Height, TRUE );
+	RubyIVec2 currentPos = GetWindowPos();
+
+	::MoveWindow( m_Handle, currentPos.x, currentPos.y, Width, Height, TRUE );
 }
 
 void RubyWindowsBackend::MoveWindow( int x, int y )

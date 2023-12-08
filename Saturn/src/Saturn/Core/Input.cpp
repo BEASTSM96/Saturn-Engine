@@ -72,9 +72,10 @@ namespace Saturn {
 		return { ( float ) x, ( float ) y };
 	}
 
-	void Input::SetCursorMode( RubyCursorMode mode )
+	void Input::SetCursorMode( RubyCursorMode mode, bool bypassGuard /*= false*/ )
 	{
-		Application::Get().GetWindow()->SetMouseCursorMode( mode );
+		if( m_CanSetCursorMode || bypassGuard )
+			Application::Get().GetWindow()->SetMouseCursorMode( mode );
 	}
 
 	RubyCursorMode Input::GetCursorMode()

@@ -1819,7 +1819,7 @@ namespace Saturn {
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Bloom" );
 
-		BloomPass();
+//		BloomPass();
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 

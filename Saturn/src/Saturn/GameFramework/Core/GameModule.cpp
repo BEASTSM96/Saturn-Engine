@@ -74,6 +74,10 @@ namespace Saturn {
 
 			m_GameModule = Ref<Module>::Create( DllPath, Project::GetActiveConfig().Name );
 			m_GameModule->Load();
+
+			// Call the init function.
+			InitModuleFn initModFn = ( InitModuleFn )m_GameModule->m_Library.GetSymbol( "InitializeModule" );
+			( initModFn ) ( Project::GetActiveProject().Get() );
 		}
 		else 
 		{

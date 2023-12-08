@@ -130,11 +130,11 @@ namespace Saturn {
 	void PlayerInputController::BindAction( const std::string& rBindingName, const ActionFunction& rFunction )
 	{
 		Ref<Project> project = Project::GetActiveProject();
-		auto& bindings = project->GetActionBindings();
+		const auto& bindings = project->GetActionBindings();
 
 		// Check if the binding exists in the project
 		auto it = std::find_if( bindings.begin(), bindings.end(),
-			[rBindingName]( auto& binding )
+			[rBindingName]( const auto& binding )
 			{
 				return binding.Name == rBindingName;
 			} );

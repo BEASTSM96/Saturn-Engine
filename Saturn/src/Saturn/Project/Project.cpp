@@ -315,14 +315,14 @@ namespace Saturn {
 
 		// Copy over the client main file
 		auto BuildPath = GetFullAssetPath().parent_path() / "Build";
-		BuildPath /= m_Config.Name + "Main.cpp";
+		BuildPath /= m_Config.Name + ".Entry.cpp";
 
 		if( std::filesystem::exists( BuildPath ) )
 			std::filesystem::remove( BuildPath );
 
 		std::filesystem::create_directory( GetFullAssetPath().parent_path() / "Build" );
 
-		std::filesystem::copy( "content/Templates/%PROJECT_NAME%Main.cpp", BuildPath );
+		std::filesystem::copy( "content/Templates/%PROJECT_NAME%.Entry.cpp", BuildPath );
 
 		std::ifstream ifs( BuildPath );
 

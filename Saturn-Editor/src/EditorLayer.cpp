@@ -308,6 +308,8 @@ namespace Saturn {
 		if( !Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
 			m_StartedRightClickInViewport = false;
 
+		Input::Get().SetCanSetCursorMode( m_AllowCameraEvents );
+
 		// Render scenes in other asset viewers
 		AssetViewer::Update( time );
 	}
@@ -846,7 +848,7 @@ namespace Saturn {
 		m_MouseOverViewport = ImGui::IsWindowHovered();
 
 		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
-
+		
 		Ref<Scene> ActiveScene = m_RuntimeScene ? m_RuntimeScene : m_EditorScene;
 
 		std::vector<Ref<Entity>>& selectedEntities = pHierarchyPanel->GetSelectionContexts();
@@ -1002,6 +1004,7 @@ namespace Saturn {
 				if( pHierarchyPanel )
 				{
 					// Because of our ref system, the entity will be deleted when we clear the selections.
+					// What we are really doing here is freeing it from the registry.
 
 					for( auto& rEntity : pHierarchyPanel->GetSelectionContexts() )
 					{

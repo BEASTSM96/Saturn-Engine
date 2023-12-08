@@ -26,12 +26,13 @@
 *********************************************************************************************
 */
 
+#include <Saturn/Core/Project.h>
 #include <Saturn/Core/Module.h>
 
 extern "C" {
 
-	void InitializeModule( const Ref<Project>& rProject ) 
+	__declspec(dllexport) void InitializeModule( Saturn::Project* rProject )
 	{
-		Project::SetActiveProject( rProject );
+		Saturn::Project::SetActiveProject( rProject );
 	}
 };

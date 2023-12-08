@@ -80,6 +80,8 @@ namespace Saturn {
 			m_RigidBody->SetOnCollisionHit( SAT_BIND_EVENT_FN( OnMeshHit ) );
 			m_RigidBody->SetOnCollisionExit( SAT_BIND_EVENT_FN( OnMeshExit ) );
 		}
+
+		Input::Get().SetCursorMode( RubyCursorMode::Locked, true );
 	}
 
 	void Character::OnUpdate( Timestep ts )
@@ -91,6 +93,11 @@ namespace Saturn {
 
 		// Update player input
 		m_PlayerInputController->Update();
+
+		if( Input::Get().KeyPressed( RubyKey::Esc ) && Input::Get().GetCursorMode() == RubyCursorMode::Locked )
+			Input::Get().SetCursorMode( RubyCursorMode::Normal, true );
+		else if( Input::Get().MouseButtonPressed( RubyMouseButton::Left ) && Input::Get().GetCursorMode() != RubyCursorMode::Locked )
+			Input::Get().SetCursorMode( RubyCursorMode::Locked );
 
 		HandleRotation( ts );
 		HandleMovement();

@@ -98,6 +98,7 @@ namespace Saturn {
 		void EdDrawAssetsFolderTree();
 		void EdSetPath();
 
+		void DrawTopBar();
 
 	private:
 		std::filesystem::path m_CurrentPath;
@@ -150,5 +151,6 @@ namespace Saturn {
 		std::filesystem::path m_ImportSoundPath;
 		
 		std::string m_ClassInstanceName;
+		std::string m_NewClassName;
 	};
 }

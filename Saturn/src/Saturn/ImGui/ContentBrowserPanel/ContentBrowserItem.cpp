@@ -413,7 +413,7 @@ namespace Saturn {
 		std::filesystem::path oldPath = m_Path;
 		const std::string extension = oldPath.extension().string();
 
-		std::filesystem::path newPath = fmt::format( "{0}\\{1}{2}", oldPath.parent_path().string(), rName, extension );
+		std::filesystem::path newPath = std::format( "{0}\\{1}{2}", oldPath.parent_path().string(), rName, extension );
 
 		// Rename the file on the filesystem
 		std::filesystem::rename( oldPath, newPath );
@@ -439,7 +439,7 @@ namespace Saturn {
 		m_Filename = rName;
 
 		std::filesystem::path oldPath = m_Path;
-		std::filesystem::path newPath = fmt::format( "{0}\\{1}", oldPath.parent_path().string(), rName );
+		std::filesystem::path newPath = std::format( "{0}\\{1}", oldPath.parent_path().string(), rName );
 
 		std::filesystem::rename( oldPath, newPath );
 

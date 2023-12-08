@@ -30,8 +30,10 @@
 
 #include "Ref.h"
 #include "Library.h"
+#include "Log.h"
 
 #include <filesystem>
+#include <unordered_map>
 
 namespace Saturn {
 	
@@ -96,5 +98,5 @@ namespace Saturn {
 	};
 
 	// Default Module registration function.
-	typedef Module* ( __stdcall* InitModuleFn )( const Ref<Project>& );
+	typedef void ( __stdcall* InitModuleFn )( Project* );
 }

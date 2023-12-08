@@ -291,7 +291,7 @@ namespace Saturn {
 				FindAndRenameItem( m_CurrentPath / "New Folder" );
 			}
 
-			if( ImGui::MenuItem( "Material" ) )
+			if( ImGui::MenuItem( "New Material" ) )
 			{
 				auto id = AssetManager::Get().CreateAsset( AssetType::Material );
 				auto asset = AssetManager::Get().FindAsset( id );
@@ -300,7 +300,7 @@ namespace Saturn {
 
 				if( count >= 1 )
 				{
-					newPath = fmt::format( "{0}\\{1} ({2}).smaterial", m_CurrentPath.string(), "Untitled Material", count );
+					newPath = std::format( "{0}\\{1} ({2}).smaterial", m_CurrentPath.string(), "Untitled Material", count );
 				}
 
 				asset->SetPath( newPath );
@@ -341,7 +341,7 @@ namespace Saturn {
 				FindAndRenameItem( asset->Path );
 			}
 
-			if( ImGui::MenuItem( "Physics Material" ) )
+			if( ImGui::MenuItem( "New Physics Material" ) )
 			{
 				auto id = AssetManager::Get().CreateAsset( AssetType::PhysicsMaterial );
 				auto asset = AssetManager::Get().FindAsset( id );
@@ -360,7 +360,7 @@ namespace Saturn {
 				FindAndRenameItem( asset->Path );
 			}
 
-			if( ImGui::MenuItem( "Empty Scene" ) )
+			if( ImGui::MenuItem( "New Scene" ) )
 			{
 				auto id = AssetManager::Get().CreateAsset( AssetType::Scene );
 				auto asset = AssetManager::Get().FindAsset( id );
@@ -382,19 +382,10 @@ namespace Saturn {
 				FindAndRenameItem( asset->Path );
 			}
 
-			if( ImGui::MenuItem( "Entity Instance" ) ) 
+			if( ImGui::MenuItem( "New Entity Instance" ) ) 
 			{
 				s_OpenClassInstancePopup = true;
 			}
-
-			/*
-			// Create a prefab for the users game classes.
-			ClassMetadataHandler::Get().Each( 
-				[&]( auto& rMetadata ) 
-				{
-					DrawCreateClass( rMetadata.Name, rMetadata );
-				} );
-				*/
 
 			ImGui::EndMenu();
 		}
@@ -419,10 +410,12 @@ namespace Saturn {
 		{
 			case filewatch::Event::added: 
 			{
+				UpdateFiles( true );
 			} break;
 
 			case filewatch::Event::removed:
 			{
+				UpdateFiles( true );
 			} break;
 
 			case filewatch::Event::modified:
@@ -595,25 +588,8 @@ namespace Saturn {
 		UpdateFiles( true );
 	}
 
-	void ContentBrowserPanel::Draw()
+	void ContentBrowserPanel::DrawTopBar()
 	{
-		//bool open_demo = true;
-		ImGui::ShowDemoWindow();
-
-		ImGui::Begin( "Content Browser" );
-
-		if( m_ChangeDirectory )
-		{
-			UpdateFiles( true );
-
-			m_ChangeDirectory = false;
-		}
-
-		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
-
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-		ImGui::BeginChild( "Top Bar", ImVec2( 0, 30 ), false, flags );
-
 		// Back button.
 		if( m_CurrentPath != s_pAssetsDirectory )
 		{
@@ -691,6 +667,25 @@ namespace Saturn {
 		}
 
 		ImGui::PopStyleColor( 2 );
+	}
+
+	void ContentBrowserPanel::Draw()
+	{
+		ImGui::Begin( "Content Browser" );
+
+		if( m_ChangeDirectory )
+		{
+			UpdateFiles( true );
+
+			m_ChangeDirectory = false;
+		}
+
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+		ImGui::BeginChild( "Top Bar", ImVec2( 0, 30 ), false, flags );
+
+		DrawTopBar();
 
 		ImGui::EndChild();
 
@@ -729,44 +724,6 @@ namespace Saturn {
 		}
 
 		ImGui::EndHorizontal();
-
-		ImVec2 contentSize = ImGui::GetContentRegionAvail();
-
-		/*
-		if( ImGui::IsMouseHoveringRect( ImGui::GetWindowPos(), ImGui::GetWindowPos() + contentSize ) )
-		{
-			if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) )
-			{
-				// TODO: Think about this.
-				if( m_SelectedItems.size() )
-				{
-					bool IsAnyItemHoverved = GetActiveHoveredItem();
-					bool Clear = false;
-
-					for( auto&& rrItem : m_SelectedItems )
-					{
-						if( !rrItem->IsSelected() || rrItem->IsRenaming() )
-							continue;
-
-						// If the item is multi selected the we need to check if we are still any item is hovered.
-						if( rrItem->MultiSelected() && IsAnyItemHoverved )
-							break;
-
-						// If we are not multi selected we can just check if we are still hovered.
-						if( rrItem->IsHovered() )
-							break;
-
-						rrItem->Deselect();
-
-						Clear = true;
-					}
-
-					if( Clear )
-						m_SelectedItems.clear();
-				}
-			}
-		}
-		*/
 
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
@@ -1126,15 +1083,20 @@ namespace Saturn {
 		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
 		if( ImGui::BeginPopupModal( "Create A New Class##Create_Script", &s_OpenScriptsPopup, ImGuiWindowFlags_NoMove ) )
 		{
-			static std::string n;
-
 			bool PopupModified = false;
 
 			ImGui::BeginVertical( "##inputv" );
 			ImGui::BeginHorizontal( "##inputh" );
 
 			ImGui::Text( "Name:" );
-			ImGui::InputText( "##n", ( char* ) n.c_str(), 1024 );
+			char buffer[ 256 ];
+			memset( buffer, 0, 256 );
+			memcpy( buffer, m_NewClassName.data(), m_NewClassName.length() );
+
+			if( ImGui::InputText( "##n", buffer, 256 ) ) 
+			{
+				m_NewClassName = std::string( buffer );
+			}
 			
 			ImGui::EndHorizontal();
 
@@ -1166,9 +1128,11 @@ namespace Saturn {
 				return value;
 			};
 
-			// For some reason this returns true when it return false because it is not empty (that is, when we have text in the strings).
-			bool Condition = n.empty() || m_SelectedMetadata.Name.empty();
-			bool Pressed = ( Condition ) ? drawDisabledBtn( "Create" ) : ImGui::Button( "Create" );
+			bool Pressed = false;
+			if( m_NewClassName.empty() || m_SelectedMetadata.Name.empty() )
+				Pressed = drawDisabledBtn( "Create" );
+			else
+				Pressed = ImGui::Button( "Create" );
 
 			if( Pressed )
 			{
@@ -1185,7 +1149,7 @@ namespace Saturn {
 
 				// Next, create the source files.
 				// Right now the only script type we support is an entity type.
-				SourceManager::Get().CreateEntitySourceFiles( m_CurrentPath, n.c_str() );
+				SourceManager::Get().CreateEntitySourceFiles( m_CurrentPath, m_NewClassName.c_str() );
 
 				AssetRegistrySerialiser ars;
 				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
@@ -1217,7 +1181,7 @@ namespace Saturn {
 
 			ImGui::Text( "Name:" );
 			
-			// I wish that we did not have to do this. But for some reason ImGui does not work well when i use a string.
+			// I wish that we did not have to do this. But for some reason ImGui does not work well when I use a string.
 			char buffer[ 256 ];
 			memset( buffer, 0, 256 );
 			memcpy( buffer, m_ClassInstanceName.c_str(), m_ClassInstanceName.length() );
@@ -1254,7 +1218,7 @@ namespace Saturn {
 			{
 				// First, create the asset.
 				Ref<Asset> prefabAsset = AssetManager::Get().FindAsset( AssetManager::Get().CreateAsset( AssetType::Prefab ) );
-				Ref<Prefab> prefab = prefabAsset;
+				Ref<Prefab> prefab = prefabAsset.As<Prefab>();
 				prefab = Ref<Prefab>::Create();
 
 				// Setup the asset
