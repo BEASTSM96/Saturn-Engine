@@ -52,7 +52,7 @@ namespace Saturn {
 
 	protected:
 		void Update();
-	
+
 	private:
 		std::unordered_map<std::string, ActionBinding> m_ActionMap;
 		std::unordered_set<RubyKey> m_Keys;

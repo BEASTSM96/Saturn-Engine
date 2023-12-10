@@ -37,7 +37,9 @@
 
 // Not the best way. 
 // "needs to have dll-interface to be used by clients of class 'Saturn::SingletonStorage'"
+#if defined(_MSC_VER)
 #pragma warning(disable:4251)
+#endif
 
 namespace Saturn {
 
@@ -81,10 +83,6 @@ namespace Saturn {
 		void RemoveSingleton( Ty* type ) 
 		{
 			std::type_index Index = typeid( Ty );
-
-			if( m_Singletons.find( Index ) == m_Singletons.end() )
-				m_Singletons[ Index ] = nullptr;
-
 			m_Singletons.erase( Index );
 		}
 

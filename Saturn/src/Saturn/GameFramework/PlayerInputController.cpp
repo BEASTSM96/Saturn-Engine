@@ -59,6 +59,26 @@ namespace Saturn {
 
 		std::unordered_map<std::string, ActionBinding> EventsToFire;
 
+		auto addToEventsToFire = [&](RubyKey key, bool state)
+		{
+			// Try to map the key to a binding.
+			auto bindingItr = std::find_if( m_ActionMap.begin(), m_ActionMap.end(),
+				[key]( const auto& a )
+				{
+					auto&& [k, v] = a;
+
+					return v.Key == key;
+				} );
+
+			if( bindingItr != m_ActionMap.end() )
+			{
+				auto&& [name, binding] = ( *bindingItr );
+
+				binding.State = state;
+				EventsToFire[ name ] = binding;
+			}
+		};
+
 		// What current keys are down in the window and try to map that to an action binding.
 		for( RubyKey key : windowKeys ) 
 		{
@@ -67,23 +87,12 @@ namespace Saturn {
 
 			if( inserted )
 			{
-				// Try to map the key to a binding.
-				auto bindingItr = std::find_if( m_ActionMap.begin(), m_ActionMap.end(), 
-					[key]( const auto& a ) 
-					{ 
-						auto&& [k, v] = a;
-
-						return v.Key == key; 
-					} );
-
-				// Did we find a binding?
-				if( bindingItr != m_ActionMap.end() )
-				{
-					auto&& [name, binding] = ( *bindingItr );
-
-					binding.State = true;
-					EventsToFire[ name ] = binding;
-				}
+				addToEventsToFire( key, true );
+			}
+			else if( m_Keys.find( key ) != m_Keys.end() )
+			{
+				// If the key already exists in our local map and is still down, then the key is being held, so add it to the events to fire.
+				addToEventsToFire( key, true );
 			}
 		}
 
@@ -94,22 +103,7 @@ namespace Saturn {
 
 			if( windowKeys.find( key ) == windowKeys.end() )
 			{
-				// Try find a binding that matches that key.
-				auto bindingItr = std::find_if( m_ActionMap.begin(), m_ActionMap.end(),
-					[key]( const auto& a )
-					{
-						auto&& [k, v] = a;
-
-						return v.Key == key;
-					} );
-
-				if( bindingItr != m_ActionMap.end() )
-				{
-					auto&& [name, binding] = ( *bindingItr );
-
-					EventsToFire[ name ] = binding;
-					EventsToFire[ name ].State = false;
-				}	
+				addToEventsToFire( key, false );
 
 				it = m_Keys.erase( it );
 			}

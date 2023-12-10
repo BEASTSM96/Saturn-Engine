@@ -322,7 +322,7 @@ namespace SaturnBuildTool.Tools
                         classDeclarations += "_CLASSDECLS \\\r\n";
 
                         classDeclarations += "private: \\\r\n";
-                        classDeclarations += "\tDECLARE_CLASS(";
+                        classDeclarations += "\tSAT_DECLARE_CLASS(";
                         classDeclarations += Path.GetFileNameWithoutExtension(HeaderPath);
                         classDeclarations += ", " + FirstBaseClass;
                         classDeclarations += ") \\\r\n";

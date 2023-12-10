@@ -30,18 +30,19 @@
 
 namespace Saturn {
 
-	Saturn::SingletonStorage* SingletonStorage::s_Instance;
+	Saturn::SingletonStorage* SingletonStorage::s_Instance = nullptr;
 	
 	SingletonStorage::SingletonStorage() 
 	{
-		// Yes, we should check if its already been created but, no.
+		if( s_Instance ) 
+			std::terminate();
+
 		s_Instance = this;
 	}
 
 	SingletonStorage::~SingletonStorage()
 	{
-		for( auto&& [typeinfo, data] : m_Singletons ) 
-			delete m_Singletons[ typeinfo ];
+		m_Singletons.clear();
 
 		s_Instance = nullptr;
 	}

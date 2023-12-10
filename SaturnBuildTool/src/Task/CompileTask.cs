@@ -30,7 +30,6 @@ namespace SaturnBuildTool
             var Args = new List<string>();
 
             ProcessStartInfo processStart = new ProcessStartInfo();
-            processStart.CreateNoWindow = true;
 
             switch (ProjectInfo.Instance.TargetPlatformKind)
             {
@@ -52,8 +51,10 @@ namespace SaturnBuildTool
             processStart.RedirectStandardError = true;
             processStart.UseShellExecute = false;
 
-            Process clProcess = new Process();
-            clProcess.StartInfo = processStart;
+            Process clProcess = new Process
+            {
+                StartInfo = processStart
+            };
 
             // Parse Args
             Args.Add(" /nologo");

@@ -87,23 +87,27 @@ namespace Saturn {
 		}
 
 		// Where rotation is a euler angle.
+		// Rotational values must be radians.
 		void SetRotation( const glm::vec3& rotation ) 
 		{
 			Rotation = rotation;
 			RotationQuat = glm::quat( rotation );
 		}
 
+		// Rotational values must be radians.
 		void SetRotation( const glm::quat& rotation )
 		{
 			RotationQuat = rotation;
 			Rotation = glm::eulerAngles( rotation );
 		}
 
+		// Rotational values will be in radians.
 		glm::quat GetRotation() const
 		{
 			return RotationQuat;
 		}
 
+		// Rotational values will be in radians.
 		glm::vec3 GetRotationEuler() const
 		{
 			return Rotation;

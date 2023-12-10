@@ -33,15 +33,14 @@
 #define SCLASS(...)
 #define SPROPERTY(...)
 
-#define BODY_MACRO_COMBINE_INNER(A,B,C,D) A##B##C##D
-#define BODY_MACRO_COMBINE(A,B,C,D) BODY_MACRO_COMBINE_INNER(A,B,C,D)
+#define SAT_CONTACT_FOUR_(x,y,z,w) x##y##z##w
+#define SAT_CONTACT_FOUR(x,y,z,w) SAT_CONTACT_FOUR_(x,y,z,w)
 
 // Include a empty macro, this will be defined when the header tool is running.
 #define CURRENT_FILE_ID
-#define GENERATED_BODY(...) BODY_MACRO_COMBINE(CURRENT_FILE_ID,_,__LINE__,_GENERATED_BODY);
+#define GENERATED_BODY(...) SAT_CONTACT_FOUR(CURRENT_FILE_ID,_,__LINE__,_GENERATED_BODY);
 
-
-#define DECLARE_CLASS( x, BaseClass ) \
+#define SAT_DECLARE_CLASS( x, BaseClass ) \
 private: \
 	x& operator=(x&&); \
 	x& operator=(const x&); \
@@ -54,7 +53,7 @@ public: \
 		return nullptr; \
 	} \
 
-#define DECLARE_CLASS_MOVE( x, BaseClass ) \
+#define SAT_DECLARE_CLASS( x, BaseClass ) \
 private: \
 	static Saturn::SClass* _PrvStatic() {} \
 public: \
