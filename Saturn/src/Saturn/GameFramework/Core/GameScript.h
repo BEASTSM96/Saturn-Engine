@@ -53,7 +53,7 @@ public: \
 		return nullptr; \
 	} \
 
-#define SAT_DECLARE_CLASS( x, BaseClass ) \
+#define SAT_DECLARE_CLASS_MOVE( x, BaseClass ) \
 private: \
 	static Saturn::SClass* _PrvStatic() {} \
 public: \

@@ -45,7 +45,7 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		// Needed for game class.
 
-		DECLARE_CLASS_MOVE( Entity, SClass )
+		SAT_DECLARE_CLASS_MOVE( Entity, SClass )
 	public:
 		Entity();
 		Entity( entt::entity handle, Scene* scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }

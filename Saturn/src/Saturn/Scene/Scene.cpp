@@ -157,15 +157,16 @@ namespace Saturn {
 		// We can use a entt::view here because we are only accessing the rigid body.
 		auto rigidBodies = GetAllEntitiesWith<RigidbodyComponent>();
 		
+		float FixedTimestep = 1.0f / 100.0f;
+		for( auto&& [id, entity] : m_EntityIDMap )
+		{
+			entity->OnPhysicsUpdate( FixedTimestep );
+		}
+
 		for( auto& entity : rigidBodies )
 		{
 			auto& rb = entity->GetComponent<RigidbodyComponent>();
 			rb.Rigidbody->SyncTransfrom();
-		}
-
-		for( auto&& [id, entity] : m_EntityIDMap )
-		{
-			entity->OnPhysicsUpdate( ts );
 		}
 	}
 

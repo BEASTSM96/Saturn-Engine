@@ -42,7 +42,7 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		// This is here because we aren't using the Build Tool.
 		//////////////////////////////////////////////////////////////////////////
-		DECLARE_CLASS( Character, Entity );
+		SAT_DECLARE_CLASS( Character, Entity );
 
 	public:
 		Character();
@@ -76,6 +76,9 @@ namespace Saturn {
 
 	protected:
 		Ref<PlayerInputController> m_PlayerInputController = nullptr;
+
+		Ref<Entity>& GetCameraEntity() { return m_CameraEntity; }
+		const Ref<Entity>& GetCameraEntity() const { return m_CameraEntity; }
 
 	private:
 		//////////////////////////////////////////////////////////////////////////
