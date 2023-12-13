@@ -47,6 +47,8 @@ RubyWindow::RubyWindow( const RubyWindowSpecification& rSpec )
 
 RubyWindow::~RubyWindow()
 {
+	m_pEventTarget = nullptr;
+
 	m_pDefaultBackend->DestroyWindow();
 	delete m_pDefaultBackend;
 }
@@ -54,6 +56,12 @@ RubyWindow::~RubyWindow()
 void RubyWindow::PollEvents()
 {
 	m_pDefaultBackend->PollEvents();
+
+	if( !m_pDefaultBackend->Focused() && m_CursorMode >= RubyCursorMode::Hidden )
+	{
+		SetMouseCursorMode( RubyCursorMode::Normal );
+		SetMouseCursor( RubyCursorType::Arrow );
+	}
 }
 
 bool RubyWindow::ShouldClose()

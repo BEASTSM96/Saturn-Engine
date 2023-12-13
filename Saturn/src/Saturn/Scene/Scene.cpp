@@ -203,13 +203,13 @@ namespace Saturn {
 					auto [transformComponent, lightComponent] = points.get<TransformComponent, PointLightComponent>( e );
 
 					PointLight pl = { 
-						.Position = transformComponent.Position,
-						.Radiance = lightComponent.Radiance,
+						.Position   = transformComponent.Position,
+						.Radiance   = lightComponent.Radiance,
 						.Multiplier = lightComponent.Multiplier,
-						.LightSize = lightComponent.LightSize,
-						.Radius = lightComponent.Radius,
-						.MinRadius = lightComponent.MinRadius,
-						.Falloff = lightComponent.Falloff };
+						.LightSize  = lightComponent.LightSize,
+						.Radius     = lightComponent.Radius,
+						.MinRadius  = lightComponent.MinRadius,
+						.Falloff    = lightComponent.Falloff };
 
 					m_Lights.PointLights.push_back( pl );
 

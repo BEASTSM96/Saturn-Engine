@@ -69,7 +69,7 @@ enum class RubyCursorType
 	ResizeNESW,
 	ResizeNWSE,
 	NotAllowed,
-	ImageFile
+	Custom
 };
 
 enum class RubyCursorMode

@@ -96,8 +96,12 @@ namespace Saturn {
 
 		if( Input::Get().KeyPressed( RubyKey::Esc ) && Input::Get().GetCursorMode() == RubyCursorMode::Locked )
 			Input::Get().SetCursorMode( RubyCursorMode::Normal, true );
-		else if( Input::Get().MouseButtonPressed( RubyMouseButton::Left ) && Input::Get().GetCursorMode() != RubyCursorMode::Locked )
+		else if( Input::Get().MouseButtonPressed( RubyMouseButton::Left ) && Input::Get().GetCursorMode() != RubyCursorMode::Locked ) 
+		{
 			Input::Get().SetCursorMode( RubyCursorMode::Locked );
+
+			m_LastMousePos = Input::Get().MousePosition();
+		}
 
 		HandleRotation( ts );
 		HandleMovement();
@@ -114,18 +118,20 @@ namespace Saturn {
 
 		auto& up = tc.Up;
 
-		tc.SetRotation( tc.GetRotationEuler() += m_MouseUpMovement * up * 0.05f );
+		tc.SetRotation( tc.GetRotationEuler() + glm::vec3( up * m_MouseUpMovement * 0.05f ) );
 
 		glm::vec3 right, forward;
 		right = CalculateRight();
 		forward = CalculateForward();
 
 		glm::vec3 Direction = right * m_MovementDirection.x + forward * m_MovementDirection.y;
+		Direction.y = 0.0f;
 
 		if( glm::length( Direction ) > 0.0f )
 		{
 			glm::vec3 normalMove = glm::normalize( Direction );
-			normalMove *= 70.0f;
+			normalMove *= 2.0f;
+			normalMove.y = -2.0f;
 
 			m_RigidBody->ApplyForce( normalMove, ForceMode::Force );
 		}
@@ -165,10 +171,12 @@ namespace Saturn {
 			return;
 
 		TransformComponent& tc = m_CameraEntity->GetComponent<TransformComponent>();
-		auto rot = tc.GetRotationEuler();
 
 		glm::vec2 currentMousePos = Input::Get().MousePosition();
 		glm::vec2 delta = m_LastMousePos - currentMousePos;
+
+		if( m_LastMousePos == currentMousePos )
+			return;
 
 		if( delta.x != 0.0f )
 			m_MouseUpMovement = delta.x * m_MouseSensitivity * ts.Seconds();
@@ -176,9 +184,9 @@ namespace Saturn {
 		float xRotation = delta.y * ( m_MouseSensitivity * 0.05f ) * ts.Seconds();
 
 		if( xRotation != 0.0f )
-			tc.SetRotation( glm::vec3( xRotation, 0.0f, 0.0f ) );
+			tc.SetRotation( glm::vec3( tc.GetRotationEuler().x + xRotation, 0.0f, 0.0f ) );
 
-		tc.SetRotation( glm::radians( glm::vec3( glm::clamp( glm::degrees( rot.x ), -80.0f, 80.0f ), 0.0f, 0.0f ) ) );
+		tc.SetRotation( glm::radians( glm::vec3( glm::clamp( glm::degrees( tc.GetRotationEuler().x ), -88.0f, 88.0f ), 0.0f, 0.0f ) ) );
 
 		m_LastMousePos = currentMousePos;
 	}

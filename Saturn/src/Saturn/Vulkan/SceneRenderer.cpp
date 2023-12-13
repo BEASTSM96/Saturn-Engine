@@ -1107,7 +1107,6 @@ namespace Saturn {
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
-		// Render static meshes.
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
 
 		for( auto&& [key, Cmd] : m_DrawList )
@@ -1449,7 +1448,7 @@ namespace Saturn {
 
 		m_RendererData.LightCullingShader->WriteAllUBs( m_RendererData.LightCullingDescriptorSet );
 
-		// Write sb
+		// Write storage buffer
 		Ref<StorageBuffer> SB = m_RendererData.StorageBufferSet->Get( 0, 14, Renderer::Get().GetCurrentFrame() );
 
 		m_RendererData.LightCullingShader->WriteSB( 0, 14, SB->GetBufferInfo(), m_RendererData.LightCullingDescriptorSet );
