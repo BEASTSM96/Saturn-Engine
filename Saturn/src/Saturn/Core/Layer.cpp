@@ -88,6 +88,8 @@ namespace Saturn {
 			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
 		}
 
+		io.ConfigWindowsResizeFromEdges = io.BackendFlags & ImGuiBackendFlags_HasMouseCursors;
+
 		auto* pFont = io.Fonts->AddFontFromFileTTF( "content\\Fonts\\NotoSans-Regular.ttf", 18.0f );
 		io.FontDefault = io.Fonts->Fonts.back();
 		

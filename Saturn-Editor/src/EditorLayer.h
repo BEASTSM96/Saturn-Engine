@@ -78,6 +78,11 @@ namespace Saturn {
 		void HotReloadGame();
 		void CheckMissingEditorAssetRefs();
 
+		void DrawAssetRegistryDebug();
+		void DrawLoadedAssetsDebug();
+		void DrawEditorSettings();
+		void DrawMaterials();
+
 	private:
 		TitleBar* m_TitleBar = nullptr;
 		
@@ -107,6 +112,8 @@ namespace Saturn {
 		int m_GizmoOperation = 7;
 
 		ImVec2 m_ViewportSize;
+
+		bool m_ShowImGuiDemoWindow = false;
 
 		Ref< Scene > m_EditorScene = nullptr;
 		Ref< Scene > m_RuntimeScene = nullptr;

@@ -156,6 +156,7 @@ namespace Saturn {
 				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
 				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug = !OpenLoadedAssetDebug;
 				if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings = !m_OpenEditorSettings;
+				if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow = !m_ShowImGuiDemoWindow;
 
 				ImGui::EndMenu();
 			}
@@ -321,7 +322,6 @@ namespace Saturn {
 		// Draw dockspace.
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiViewport* pViewport = ImGui::GetWindowViewport();
-		auto Height = ImGui::GetFrameHeight();
 
 		ImGui::DockSpaceOverViewport( pViewport );
 		
@@ -334,7 +334,8 @@ namespace Saturn {
 			}
 		}
 
-		io.ConfigWindowsResizeFromEdges = io.BackendFlags & ImGuiBackendFlags_HasMouseCursors;
+		if( m_ShowImGuiDemoWindow )
+			ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
 
 		m_TitleBar->Draw();
 		AssetViewer::Draw();
@@ -347,114 +348,12 @@ namespace Saturn {
 
 		if( OpenAssetRegistryDebug ) 
 		{
-			if( ImGui::Begin( "Asset Manager", &OpenAssetRegistryDebug ) )
-			{
-				static ImGuiTextFilter Filter;
-
-				ImGui::Text( "Search" );
-				ImGui::SameLine();
-				Filter.Draw( "##search" );
-
-				ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
-				if( ImGui::BeginTable( "##FileTable", 5, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y ) ) )
-				{
-					ImGui::TableSetupColumn( "Asset Name" );
-					ImGui::TableSetupColumn( "ID" );
-					ImGui::TableSetupColumn( "Type" );
-					ImGui::TableSetupColumn( "Is Editor Asset" );
-					ImGui::TableSetupColumn( "Path" );
-
-					ImGui::TableHeadersRow();
-
-					int TableRow = 0;
-
-					for( auto&& [id, asset] : AssetManager::Get().GetCombinedAssetMap() )
-					{
-						if( !Filter.PassFilter( asset->GetName().c_str() ) )
-							continue;
-
-						TableRow++;
-
-						ImGui::TableNextRow();
-
-						ImGui::TableSetColumnIndex( 0 );
-						ImGui::Selectable( asset->GetName().c_str(), false );
-
-						ImGui::TableSetColumnIndex( 1 );
-						ImGui::Selectable( std::to_string( id ).c_str(), false );
-
-						ImGui::TableSetColumnIndex( 2 );
-						ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
-
-						ImGui::TableSetColumnIndex( 3 );
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						bool value = asset->IsFlagSet( AssetFlag::Editor );
-						ImGui::Checkbox( "##editor", &value );
-						ImGui::PopItemFlag();
-
-						ImGui::TableSetColumnIndex( 4 );
-						ImGui::Text( asset->Path.string().c_str() );
-					}
-
-					ImGui::EndTable();
-				}
-
-				ImGui::End();
-			}
+			DrawAssetRegistryDebug();
 		}
 
 		if( OpenLoadedAssetDebug ) 
 		{
-			if( ImGui::Begin( "Loaded Assets", &OpenLoadedAssetDebug ) )
-			{
-				static ImGuiTextFilter Filter;
-
-				ImGui::Text( "Search for assets..." );
-				ImGui::SameLine();
-				Filter.Draw( "##search" );
-
-				ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
-				if( ImGui::BeginTable( "##FileTable", 4, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y * 0.85f ) ) )
-				{
-					ImGui::TableSetupColumn( "Asset Name" );
-					ImGui::TableSetupColumn( "ID" );
-					ImGui::TableSetupColumn( "Type" );
-					ImGui::TableSetupColumn( "Is Editor Asset" );
-
-					ImGui::TableHeadersRow();
-
-					int TableRow = 0;
-
-					for( auto&& [id, asset] : AssetManager::Get().GetCombinedLoadedAssetMap() )
-					{
-						if( !Filter.PassFilter( asset->GetName().c_str() ) )
-							continue;
-
-						TableRow++;
-
-						ImGui::TableNextRow();
-
-						ImGui::TableSetColumnIndex( 0 );
-						ImGui::Selectable( asset->GetName().c_str(), false );
-
-						ImGui::TableSetColumnIndex( 1 );
-						ImGui::Selectable( std::to_string( id ).c_str(), false );
-
-						ImGui::TableSetColumnIndex( 2 );
-						ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
-
-						ImGui::TableSetColumnIndex( 3 );
-						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-						bool value = asset->IsFlagSet( AssetFlag::Editor );
-						ImGui::Checkbox( "##editor", &value );
-						ImGui::PopItemFlag();
-					}
-
-					ImGui::EndTable();
-				}
-
-				ImGui::End();
-			}
+			DrawLoadedAssetsDebug();
 		}
 
 		if( OpenAttributions )
@@ -469,92 +368,7 @@ namespace Saturn {
 
 		if( m_OpenEditorSettings )
 		{
-			auto& rIO = ImGui::GetIO();
-
-			ImGui::SetNextWindowSize( ImVec2( 750.0f, 750.0f ), ImGuiCond_Appearing );
-			if( ImGui::Begin( "Editor Settings", &m_OpenEditorSettings ) )
-			{
-				auto boldFont = io.Fonts->Fonts[ 1 ];
-				auto italicsFont = io.Fonts->Fonts[ 2 ];
-
-				ImGui::PushFont( boldFont );
-				ImGui::Text( "Saturn Editor Settings" );
-				ImGui::PopFont();
-
-				ImGui::PushStyleColor( ImGuiCol_Text, ImVec4{ 0.7f, 0.7f, 0.7f, 0.7f } );
-				ImGui::PushFont( italicsFont );
-				ImGui::Text( "Saturn Engine Version: " );
-				ImGui::SameLine();
-				ImGui::Text( SAT_CURRENT_VERISON_STRING );
-				ImGui::PopFont();
-				ImGui::PopStyleColor();
-
-				ImGui::PushStyleColor( ImGuiCol_Separator, ImVec4{ 0.7f, 0.7f, 0.7f, 0.7f } );
-				ImGui::Separator();
-				ImGui::PopStyleColor();
-
-				ImGui::BeginVertical( "##MainSettings" );
-
-				ImGui::Spring();
-
-				ImGui::BeginHorizontal( "##MSAA_Horiz" );
-
-				ImGui::Text( "Default Editor MSAA Samples:" );
-				ImGui::Spring();
-
-				// TODO: Come back to this.
-
-				const char* items[] = { "1x", "2x", "4x", "8x", "16x", "32x", "64x" };
-				static VkSampleCountFlagBits count;
-				if( ImGui::BeginCombo( "##samples", "", ImGuiComboFlags_NoPreview ) )
-				{
-					auto maxUsable = VulkanContext::Get().GetMaxUsableMSAASamples();
-
-					for( int i = 0; i < IM_ARRAYSIZE( items ); i++ )
-					{
-						if( i > maxUsable )
-							break;
-
-						if( ImGui::Selectable( items[ i ] ) )
-						{
-
-						}
-					}
-
-					ImGui::EndCombo();
-				}
-
-				ImGui::Button( "Test" );
-
-				ImGui::EndHorizontal();
-
-				// Ported from user settings
-
-				auto& userSettings = GetUserSettings();
-				auto& startupProject = userSettings.StartupProject;
-				auto& startupScene = Project::GetActiveProject()->GetConfig().StartupScenePath;
-
-				ImGuiIO& rIO = ImGui::GetIO();
-
-				ImGui::BeginHorizontal( "#USR_Settings" );
-
-				ImGui::Text( "Startup project:" );
-				startupProject.empty() ? ImGui::Text( "None" ) : ImGui::Text( startupProject.c_str() );
-
-				if( ImGui::Button( "...##openprj" ) )
-				{
-					startupProject = Application::Get().OpenFile( "Saturn project file (*.sproject)\0*.sproject\0" );
-
-					UserSettingsSerialiser uss;
-					uss.Serialise( userSettings );
-				}
-
-				ImGui::EndHorizontal();
-
-				ImGui::EndVertical();
-
-				ImGui::End();
-			}
+			DrawEditorSettings();
 		}
 
 		ImGui::Begin( "Renderer" );
@@ -573,128 +387,7 @@ namespace Saturn {
 	
 		ImGui::Begin( "Materials" );
 
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
-
-		if( pHierarchyPanel->GetSelectionContexts().size() > 0 )
-		{
-			auto& rSelection = pHierarchyPanel->GetSelectionContext();
-
-			if( rSelection->HasComponent<StaticMeshComponent>() )
-			{
-				if( auto& mesh = rSelection->GetComponent<StaticMeshComponent>().Mesh )
-				{
-					ImGui::TextDisabled( "%llx", rSelection->GetComponent<IdComponent>().ID );
-
-					ImGui::Separator();
-
-					for( auto& rMaterial : mesh->GetMaterialAssets() )
-					{
-						if( ImGui::CollapsingHeader( rMaterial->GetName().c_str() ) ) 
-						{
-							ImGui::PushID( static_cast<int>( rMaterial->GetAssetID() ) );
-
-							ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
-							ImGui::Text( "Asset ID: %llu", (uint64_t)rMaterial->GetAssetID() );
-							
-							ImGui::Separator();
-
-							UUID id = rMaterial->GetAssetID();
-							Auxiliary::DrawAssetDragDropTarget<MaterialAsset>( "Change asset", rMaterial->GetName().c_str(), id, 
-								[rMaterial](Ref<MaterialAsset> asset) mutable
-								{
-									rMaterial->SetMaterial( asset->GetMaterial() );
-								} );
-
-							ImGui::Separator();
-
-							auto drawItemValue = [&]( const char* name, const char* property )
-							{
-								ImGui::Text( name );
-
-								ImGui::Separator();
-
-								float v = rMaterial->Get< float >( property );
-
-								ImGui::PushID( name );
-
-								ImGui::DragFloat( "##drgflt", &v, 0.01f, 0.0f, 10000.0f );
-
-								ImGui::PopID();
-
-								if( v != rMaterial->Get<float>( property ) )
-									rMaterial->Set( property, v );
-							};
-
-							auto displayItemMap = [&]( const char* property ) 
-							{
-								Ref< Texture2D > v = rMaterial->GetResource( property );
-
-								if( v && v->GetDescriptorSet() )
-									ImGui::Image( v->GetDescriptorSet(), ImVec2( 100, 100 ) );
-								else
-									ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-							};
-
-							ImGui::Text( "Albedo" );
-
-							ImGui::Separator();
-
-							displayItemMap( "u_AlbedoTexture" );
-
-							ImGui::SameLine();
-
-							if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
-							{
-								Application::Get().SubmitOnMainThread( [&]() 
-									{
-										std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
-
-										if( !file.empty() )
-										{
-											rMaterial->SetResource( "u_AlbedoTexture", Ref<Texture2D>::Create( file, AddressingMode::Repeat ) );
-										}
-									} );
-							}
-
-							glm::vec3 color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
-
-							bool changed = ImGui::ColorEdit3( "##Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
-
-							if( changed )
-								rMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
-
-							drawItemValue( "Emissive", "u_Materials.Emissive" );
-
-							ImGui::Text( "Normal" );
-
-							ImGui::Separator();
-
-							bool UseNormalMap = rMaterial->Get< float >( "u_Materials.UseNormalMap" );
-
-							if( UseNormalMap )
-								displayItemMap( "u_NormalTexture" );
-
-							if( ImGui::Checkbox( "Use Normal Map", &UseNormalMap ) )
-								rMaterial->Set( "u_Materials.UseNormalMap", UseNormalMap ? 1.0f : 0.0f );
-							
-							// Roughness Value
-							drawItemValue( "Roughness", "u_Materials.Roughness" );
-
-							// Roughness map
-							displayItemMap( "u_RoughnessTexture" );
-
-							// Metalness value
-							drawItemValue( "Metalness", "u_Materials.Metalness" );
-							
-							// Metalness map
-							displayItemMap( "u_MetallicTexture" );
-
-							ImGui::PopID();
-						}
-					}
-				}
-			}
-		}
+		DrawMaterials();
 
 		if( !s_HasPremakePath )
 		{
@@ -851,6 +544,7 @@ namespace Saturn {
 		
 		Ref<Scene> ActiveScene = m_RuntimeScene ? m_RuntimeScene : m_EditorScene;
 
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 		std::vector<Ref<Entity>>& selectedEntities = pHierarchyPanel->GetSelectionContexts();
 
 		// Calc center of transform.
@@ -1319,6 +1013,334 @@ namespace Saturn {
 		if( FileChanged )
 		{
 			AssetManager::Get().Save( AssetRegistryType::Editor );
+		}
+	}
+
+	void EditorLayer::DrawAssetRegistryDebug()
+	{
+		if( ImGui::Begin( "Asset Manager", &OpenAssetRegistryDebug ) )
+		{
+			static ImGuiTextFilter Filter;
+
+			ImGui::Text( "Search" );
+			ImGui::SameLine();
+			Filter.Draw( "##search" );
+
+			ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
+			if( ImGui::BeginTable( "##FileTable", 5, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y ) ) )
+			{
+				ImGui::TableSetupColumn( "Asset Name" );
+				ImGui::TableSetupColumn( "ID" );
+				ImGui::TableSetupColumn( "Type" );
+				ImGui::TableSetupColumn( "Is Editor Asset" );
+				ImGui::TableSetupColumn( "Path" );
+
+				ImGui::TableHeadersRow();
+
+				int TableRow = 0;
+
+				for( auto&& [id, asset] : AssetManager::Get().GetCombinedAssetMap() )
+				{
+					if( !Filter.PassFilter( asset->GetName().c_str() ) )
+						continue;
+
+					TableRow++;
+
+					ImGui::TableNextRow();
+
+					ImGui::TableSetColumnIndex( 0 );
+					ImGui::Selectable( asset->GetName().c_str(), false );
+
+					ImGui::TableSetColumnIndex( 1 );
+					ImGui::Selectable( std::to_string( id ).c_str(), false );
+
+					ImGui::TableSetColumnIndex( 2 );
+					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+
+					ImGui::TableSetColumnIndex( 3 );
+					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+					bool value = asset->IsFlagSet( AssetFlag::Editor );
+					ImGui::Checkbox( "##editor", &value );
+					ImGui::PopItemFlag();
+
+					ImGui::TableSetColumnIndex( 4 );
+					ImGui::Text( asset->Path.string().c_str() );
+				}
+
+				ImGui::EndTable();
+			}
+
+			ImGui::End();
+		}
+	}
+
+	void EditorLayer::DrawLoadedAssetsDebug()
+	{
+		if( ImGui::Begin( "Loaded Assets", &OpenLoadedAssetDebug ) )
+		{
+			static ImGuiTextFilter Filter;
+
+			ImGui::Text( "Search for assets..." );
+			ImGui::SameLine();
+			Filter.Draw( "##search" );
+
+			ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
+			if( ImGui::BeginTable( "##FileTable", 4, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y * 0.85f ) ) )
+			{
+				ImGui::TableSetupColumn( "Asset Name" );
+				ImGui::TableSetupColumn( "ID" );
+				ImGui::TableSetupColumn( "Type" );
+				ImGui::TableSetupColumn( "Is Editor Asset" );
+
+				ImGui::TableHeadersRow();
+
+				int TableRow = 0;
+
+				for( auto&& [id, asset] : AssetManager::Get().GetCombinedLoadedAssetMap() )
+				{
+					if( !Filter.PassFilter( asset->GetName().c_str() ) )
+						continue;
+
+					TableRow++;
+
+					ImGui::TableNextRow();
+
+					ImGui::TableSetColumnIndex( 0 );
+					ImGui::Selectable( asset->GetName().c_str(), false );
+
+					ImGui::TableSetColumnIndex( 1 );
+					ImGui::Selectable( std::to_string( id ).c_str(), false );
+
+					ImGui::TableSetColumnIndex( 2 );
+					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+
+					ImGui::TableSetColumnIndex( 3 );
+					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+					bool value = asset->IsFlagSet( AssetFlag::Editor );
+					ImGui::Checkbox( "##editor", &value );
+					ImGui::PopItemFlag();
+				}
+
+				ImGui::EndTable();
+			}
+
+			ImGui::End();
+		}
+	}
+
+	void EditorLayer::DrawEditorSettings()
+	{
+		auto& rIO = ImGui::GetIO();
+
+		ImGui::SetNextWindowSize( ImVec2( 750.0f, 750.0f ), ImGuiCond_Appearing );
+		if( ImGui::Begin( "Editor Settings", &m_OpenEditorSettings ) )
+		{
+			auto boldFont = rIO.Fonts->Fonts[ 1 ];
+			auto italicsFont = rIO.Fonts->Fonts[ 2 ];
+
+			ImGui::PushFont( boldFont );
+			ImGui::Text( "Saturn Editor Settings" );
+			ImGui::PopFont();
+
+			ImGui::PushStyleColor( ImGuiCol_Text, ImVec4{ 0.7f, 0.7f, 0.7f, 0.7f } );
+			ImGui::PushFont( italicsFont );
+			ImGui::Text( "Saturn Engine Version: " );
+			ImGui::SameLine();
+			ImGui::Text( SAT_CURRENT_VERISON_STRING );
+			ImGui::PopFont();
+			ImGui::PopStyleColor();
+
+			ImGui::PushStyleColor( ImGuiCol_Separator, ImVec4{ 0.7f, 0.7f, 0.7f, 0.7f } );
+			ImGui::Separator();
+			ImGui::PopStyleColor();
+
+			ImGui::BeginVertical( "##MainSettings" );
+
+			ImGui::Spring();
+
+			ImGui::BeginHorizontal( "##MSAA_Horiz" );
+
+			ImGui::Text( "Default Editor MSAA Samples:" );
+			ImGui::Spring();
+
+			// TODO: Come back to this.
+
+			const char* items[] = { "1x", "2x", "4x", "8x", "16x", "32x", "64x" };
+			static VkSampleCountFlagBits count;
+			if( ImGui::BeginCombo( "##samples", "", ImGuiComboFlags_NoPreview ) )
+			{
+				auto maxUsable = VulkanContext::Get().GetMaxUsableMSAASamples();
+
+				for( int i = 0; i < IM_ARRAYSIZE( items ); i++ )
+				{
+					if( i > maxUsable )
+						break;
+
+					if( ImGui::Selectable( items[ i ] ) )
+					{
+
+					}
+				}
+
+				ImGui::EndCombo();
+			}
+
+			ImGui::Button( "Test" );
+
+			ImGui::EndHorizontal();
+
+			// Ported from user settings
+
+			auto& userSettings = GetUserSettings();
+			auto& startupProject = userSettings.StartupProject;
+			auto& startupScene = Project::GetActiveProject()->GetConfig().StartupScenePath;
+
+			ImGuiIO& rIO = ImGui::GetIO();
+
+			ImGui::BeginHorizontal( "#USR_Settings" );
+
+			ImGui::Text( "Startup project:" );
+			startupProject.empty() ? ImGui::Text( "None" ) : ImGui::Text( startupProject.c_str() );
+
+			if( ImGui::Button( "...##openprj" ) )
+			{
+				startupProject = Application::Get().OpenFile( "Saturn project file (*.sproject)\0*.sproject\0" );
+
+				UserSettingsSerialiser uss;
+				uss.Serialise( userSettings );
+			}
+
+			ImGui::EndHorizontal();
+
+			ImGui::EndVertical();
+
+			ImGui::End();
+		}
+	}
+
+	void EditorLayer::DrawMaterials()
+	{
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
+
+		if( pHierarchyPanel->GetSelectionContexts().size() > 0 )
+		{
+			auto& rSelection = pHierarchyPanel->GetSelectionContext();
+
+			if( rSelection->HasComponent<StaticMeshComponent>() )
+			{
+				if( auto& mesh = rSelection->GetComponent<StaticMeshComponent>().Mesh )
+				{
+					ImGui::TextDisabled( "%llx", rSelection->GetComponent<IdComponent>().ID );
+
+					ImGui::Separator();
+
+					for( auto& rMaterial : mesh->GetMaterialAssets() )
+					{
+						if( ImGui::CollapsingHeader( rMaterial->GetName().c_str() ) )
+						{
+							ImGui::PushID( static_cast< int >( rMaterial->GetAssetID() ) );
+
+							ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
+							ImGui::Text( "Asset ID: %llu", ( uint64_t ) rMaterial->GetAssetID() );
+
+							ImGui::Separator();
+
+							UUID id = rMaterial->GetAssetID();
+							Auxiliary::DrawAssetDragDropTarget<MaterialAsset>( "Change asset", rMaterial->GetName().c_str(), id,
+								[rMaterial]( Ref<MaterialAsset> asset ) mutable
+								{
+									rMaterial->SetMaterial( asset->GetMaterial() );
+								} );
+
+							ImGui::Separator();
+
+							auto drawItemValue = [&]( const char* name, const char* property )
+							{
+								ImGui::Text( name );
+
+								ImGui::Separator();
+
+								float v = rMaterial->Get< float >( property );
+
+								ImGui::PushID( name );
+
+								ImGui::DragFloat( "##drgflt", &v, 0.01f, 0.0f, 10000.0f );
+
+								ImGui::PopID();
+
+								if( v != rMaterial->Get<float>( property ) )
+									rMaterial->Set( property, v );
+							};
+
+							auto displayItemMap = [&]( const char* property )
+							{
+								Ref< Texture2D > v = rMaterial->GetResource( property );
+
+								if( v && v->GetDescriptorSet() )
+									ImGui::Image( v->GetDescriptorSet(), ImVec2( 100, 100 ) );
+								else
+									ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+							};
+
+							ImGui::Text( "Albedo" );
+
+							ImGui::Separator();
+
+							displayItemMap( "u_AlbedoTexture" );
+
+							ImGui::SameLine();
+
+							if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
+							{
+								Application::Get().SubmitOnMainThread( [&]()
+									{
+										std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
+
+										if( !file.empty() )
+										{
+											rMaterial->SetResource( "u_AlbedoTexture", Ref<Texture2D>::Create( file, AddressingMode::Repeat ) );
+										}
+									} );
+							}
+
+							glm::vec3 color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
+
+							bool changed = ImGui::ColorEdit3( "##Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
+
+							if( changed )
+								rMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
+
+							drawItemValue( "Emissive", "u_Materials.Emissive" );
+
+							ImGui::Text( "Normal" );
+
+							ImGui::Separator();
+
+							bool UseNormalMap = rMaterial->Get< float >( "u_Materials.UseNormalMap" );
+
+							if( UseNormalMap )
+								displayItemMap( "u_NormalTexture" );
+
+							if( ImGui::Checkbox( "Use Normal Map", &UseNormalMap ) )
+								rMaterial->Set( "u_Materials.UseNormalMap", UseNormalMap ? 1.0f : 0.0f );
+
+							// Roughness Value
+							drawItemValue( "Roughness", "u_Materials.Roughness" );
+
+							// Roughness map
+							displayItemMap( "u_RoughnessTexture" );
+
+							// Metalness value
+							drawItemValue( "Metalness", "u_Materials.Metalness" );
+
+							// Metalness map
+							displayItemMap( "u_MetallicTexture" );
+
+							ImGui::PopID();
+						}
+					}
+				}
+			}
 		}
 	}
 

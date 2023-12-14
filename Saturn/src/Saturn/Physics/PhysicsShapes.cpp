@@ -182,10 +182,10 @@ namespace Saturn {
 
 		glm::vec3 scale = transform.Scale;
 
-		if( scale.x != 0.0f )
+		if( scale.x != 0.0f && height == 0.0f )
 			size *= scale.x;
 
-		if( scale.y != 0.0f )
+		if( scale.y != 0.0f && height == 0.0f )
 			height *= scale.y;
 
 		Ref<PhysicsMaterialAsset> materialAsset = nullptr;

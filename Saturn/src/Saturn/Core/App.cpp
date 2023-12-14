@@ -114,8 +114,6 @@ namespace Saturn {
 
 		while( m_Running )
 		{
-			SAT_PF_FRAME("Master Thread");
-
 			m_Window->PollEvents();
 		
 			for( auto&& fn : m_MainThreadQueue )
