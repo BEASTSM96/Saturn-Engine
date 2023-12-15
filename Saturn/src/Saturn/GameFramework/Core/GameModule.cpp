@@ -37,12 +37,17 @@
 #include "GameScript.h"
 
 #include "SourceManager.h"
+#include "ClassMetadataHandler.h"
 
 namespace Saturn {
 
 	GameModule::GameModule()
 	{
 		SingletonStorage::Get().AddSingleton( this );
+
+		// This is bad but I do not want the game to create this class.
+		// And its fine because the ClassMetadataHandler is only used for the game when we are in the editor anyway.
+		ClassMetadataHandler::Get();
 
 		Load( false );
 	}

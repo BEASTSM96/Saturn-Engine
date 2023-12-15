@@ -1,4 +1,9 @@
-﻿using System;
+﻿using System.Reflection;
+
+[assembly: AssemblyVersion("0.0.2.0")]
+[assembly: AssemblyCompany("Saturn Engine")]
+[assembly: AssemblyCopyright("2020 - 2023")]
+[assembly: AssemblyProduct("Saturn Build Tool")]
 
 namespace SaturnBuildTool
 {

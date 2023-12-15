@@ -339,19 +339,17 @@ namespace Saturn {
 		return entity;
 	}
 
-	Entity Scene::FindEntityByTag( const std::string& tag )
+	Ref<Entity> Scene::FindEntityByTag( const std::string& tag )
 	{
 		SAT_PF_EVENT();
 
-		auto view = m_Registry.view<TagComponent>();
-		for( auto entity : view )
+		for( auto&& [handle, entity] : m_EntityIDMap )
 		{
-			const auto& canditate = view.get<TagComponent>( entity ).Tag;
-			if( canditate == tag )
-				return Entity( entity, this );
+			if( entity->GetComponent<TagComponent>().Tag == tag )
+				return entity;
 		}
 
-		return Entity{};
+		return nullptr;
 	}
 
 	Saturn::Ref<Saturn::Entity> Scene::FindEntityByID( const UUID& id )

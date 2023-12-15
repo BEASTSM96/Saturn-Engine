@@ -134,8 +134,8 @@ namespace Saturn {
 
 		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
 		
-		Entity FindEntityByTag( const std::string& tag );
-		 Ref<Entity> FindEntityByID( const UUID& id );
+		Ref<Entity> FindEntityByTag( const std::string& tag );
+		Ref<Entity> FindEntityByID( const UUID& id );
 
 		glm::mat4 GetTransformRelativeToParent( Ref<Entity> entity );
 		TransformComponent GetWorldSpaceTransform( Ref<Entity> entity );
