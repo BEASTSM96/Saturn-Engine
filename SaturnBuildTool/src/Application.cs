@@ -176,88 +176,57 @@ namespace SaturnBuildTool
             }
         }
 
-        private void CompileEntryFile() 
+        private void CompileBuildFolderFiles() 
         {
-            if (ProjectInfo.Instance.CurrentConfigKind >= ConfigKind.DistDebug) 
+            List<string> sourceBuildFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.BuildDir);
+
+            // Remove the entry file if we are not an exe.
+            if (ProjectInfo.Instance.CurrentConfigKind < ConfigKind.DistDebug) 
             {
-                List<string> sourceBuildFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.BuildDir);
-                foreach (string file in sourceBuildFiles)
-                {
-                    // We are only building c++ files.
-                    if (!FileCache.IsCppFile(file))
-                    {
-                        continue;
-                    }
+                string EntryFilepath = Path.Combine(ProjectInfo.Instance.BuildDir, string.Format( "{0}.Entry.cpp", ProjectInfo.Instance.Name ) );
 
-                    // Only compile the file if it has not be changed.
-                    FileCache.FilesInCache.TryGetValue(file, out DateTime LastTime);
-
-                    if (Args[0] == "/REBUILD")
-                    {
-                        int exitCode = Toolchain.Compile(file, false);
-
-                        if (exitCode == 0)
-                        {
-                            HasCompiledAnyFile = true;
-
-                            if (!FileCache.IsFileInCache(file))
-                                FileCache.CacheFile(file);
-                        }
-                        else
-                            NumTasksFailed++;
-                    }
-                    else if (Args[0] == "/BUILD" && (LastTime != File.GetLastWriteTime(file)))
-                    {
-                        int exitCode = Toolchain.Compile(file, false);
-
-                        if (exitCode == 0)
-                        {
-                            HasCompiledAnyFile = true;
-
-                            if (!FileCache.IsFileInCache(file))
-                                FileCache.CacheFile(file);
-                        }
-                        else
-                            NumTasksFailed++;
-                    }
-                }
+                sourceBuildFiles.Remove( EntryFilepath );
             }
-        }
 
-        private void CompileLoadFile() 
-        {
-            string loadFilepath = Path.Combine( ProjectInfo.Instance.BuildDir, string.Format( "{0}.Load.cpp", ProjectInfo.Instance.Name ) );
-
-            // Only compile the file if it has not be changed.
-            FileCache.FilesInCache.TryGetValue(loadFilepath, out DateTime LastTime);
-
-            if (Args[0] == "/REBUILD")
+            foreach (string file in sourceBuildFiles)
             {
-                int exitCode = Toolchain.Compile(loadFilepath, false);
-
-                if (exitCode == 0)
+                // We are only building c++ files.
+                if (!FileCache.IsCppFile(file))
                 {
-                    HasCompiledAnyFile = true;
-
-                    if (!FileCache.IsFileInCache(loadFilepath))
-                        FileCache.CacheFile(loadFilepath);
+                    continue;
                 }
-                else
-                    NumTasksFailed++;
-            }
-            else if (Args[0] == "/BUILD" && (LastTime != File.GetLastWriteTime(loadFilepath)))
-            {
-                int exitCode = Toolchain.Compile(loadFilepath, false);
 
-                if (exitCode == 0)
+                // Only compile the file if it has not be changed.
+                FileCache.FilesInCache.TryGetValue(file, out DateTime LastTime);
+
+                if (Args[0] == "/REBUILD")
                 {
-                    HasCompiledAnyFile = true;
+                    int exitCode = Toolchain.Compile(file, false);
 
-                    if (!FileCache.IsFileInCache(loadFilepath))
-                        FileCache.CacheFile(loadFilepath);
+                    if (exitCode == 0)
+                    {
+                        HasCompiledAnyFile = true;
+
+                        if (!FileCache.IsFileInCache(file))
+                            FileCache.CacheFile(file);
+                    }
+                    else
+                        NumTasksFailed++;
                 }
-                else
-                    NumTasksFailed++;
+                else if (Args[0] == "/BUILD" && (LastTime != File.GetLastWriteTime(file)))
+                {
+                    int exitCode = Toolchain.Compile(file, false);
+
+                    if (exitCode == 0)
+                    {
+                        HasCompiledAnyFile = true;
+
+                        if (!FileCache.IsFileInCache(file))
+                            FileCache.CacheFile(file);
+                    }
+                    else
+                        NumTasksFailed++;
+                }
             }
         }
 
@@ -269,10 +238,9 @@ namespace SaturnBuildTool
 
             IsRebuild = Args[0] == "/REBUILD";
 
+            // Compile all source files and all "build folder" files next.
             CompileFiles();
-
-            CompileEntryFile();
-            CompileLoadFile();
+            CompileBuildFolderFiles();
 
             Console.WriteLine(string.Format("{0} task(s) failed.", NumTasksFailed));
 
