@@ -37,19 +37,19 @@
 
 namespace Saturn {
 
-	class Log
+	class Log : RefTarget
 	{
 	public:
-		Log() { Init(); }
-		~Log() { Clear(); }
+		static inline Log& Get() { return *SingletonStorage::GetSingleton<Log>(); }
+	public:
+		Log();
+		~Log();
 
 		void Init();
 		void Clear();
 
 		std::shared_ptr<spdlog::logger>& CoreLogger() { return m_CoreLogger; }
 		std::shared_ptr<spdlog::logger>& ClientLogger() { return m_ClientLogger; }
-
-		static inline Log& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<Log>(); }
 
 	private:
 		std::shared_ptr<spdlog::logger> m_CoreLogger;

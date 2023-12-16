@@ -32,24 +32,18 @@
 #include <Saturn/Core/Base.h>
 #include <unordered_map>
 
-// AssetImporter::Import( AssetType::Material, path );
-// -> MaterialAssetSerialiser::Serialise();
-// 
-// AssetImporter::Import( AssetType::Mesh, path );
-// -> Mesh::Mesh( path );
-
 namespace Saturn {
 
 	class AssetImporter
 	{
 	public:
-		static inline AssetImporter& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<AssetImporter>(); }
+		static inline AssetImporter& Get() { return *SingletonStorage::GetOrCreateSingleton<AssetImporter>(); }
+	public:
 
 		AssetImporter() { Init(); }
 		~AssetImporter();
 	public:
 
-		// Serialise
 		void Import     ( const Ref<Asset>& rAsset );
 		bool TryLoadData(       Ref<Asset>& rAsset );
 

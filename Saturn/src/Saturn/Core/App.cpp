@@ -62,7 +62,9 @@ namespace Saturn {
 	Application::Application( const ApplicationSpecification& spec )
 		: m_Specification( spec )
 	{
-		SingletonStorage::Get().AddSingleton( this );
+		SingletonStorage::AddSingleton( this );
+
+		m_Log = new Log();
 
 		std::vector<RubyMonitor> monitors = RubyGetAllMonitors();
 		uint32_t width = 0, height = 0;
@@ -104,7 +106,9 @@ namespace Saturn {
 
 	Application::~Application()
 	{
-		SingletonStorage::Get().RemoveSingleton( this );
+		delete m_Log;
+
+		SingletonStorage::RemoveSingleton( this );
 	}
 
 	void Application::Run()
@@ -175,6 +179,8 @@ namespace Saturn {
 		AssetManager::Get().Terminate();
 		
 		delete m_VulkanContext;
+		delete m_SceneRenderer;
+
 		delete m_Window;
 	}
 

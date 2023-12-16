@@ -33,9 +33,23 @@
 
 namespace Saturn {
 
+	Log::Log()
+	{
+		SingletonStorage::AddSingleton( this );
+
+		Init();
+	}
+
+	Log::~Log()
+	{
+		Clear();
+		
+		SingletonStorage::RemoveSingleton( this );
+	}
+
 	void Log::Init( void )
 	{
-		SingletonStorage::Get().AddSingleton( this );
+		SingletonStorage::AddSingleton( this );
 
 		spdlog::set_automatic_registration( true );
 

@@ -39,7 +39,7 @@ namespace Saturn {
 
 	Input::Input()
 	{
-		SingletonStorage::Get().AddSingleton( this );
+		SingletonStorage::AddSingleton( this );
 	}
 
 	bool Input::KeyPressed( RubyKey key )

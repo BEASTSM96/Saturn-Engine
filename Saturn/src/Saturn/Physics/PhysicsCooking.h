@@ -53,7 +53,7 @@ namespace Saturn {
 	class PhysicsCooking
 	{
 	public:
-		static inline PhysicsCooking& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<PhysicsCooking>(); }
+		static inline PhysicsCooking& Get() { return *SingletonStorage::GetOrCreateSingleton<PhysicsCooking>(); }
 	public:
 		PhysicsCooking();
 		~PhysicsCooking();

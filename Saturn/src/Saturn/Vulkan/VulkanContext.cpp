@@ -57,7 +57,7 @@ namespace Saturn {
 	
 	VulkanContext::VulkanContext()
 	{
-		SingletonStorage::Get().AddSingleton( this );
+		SingletonStorage::AddSingleton( this );
 	}
 
 	void VulkanContext::Init()
@@ -123,7 +123,7 @@ namespace Saturn {
 		vkDestroySurfaceKHR( m_Instance, m_Surface, nullptr );
 		vkDestroyInstance( m_Instance, nullptr );
 
-		SingletonStorage::Get().RemoveSingleton( this );
+		SingletonStorage::RemoveSingleton( this );
 
 		m_Terminated = true;
 	}

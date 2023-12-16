@@ -39,7 +39,7 @@ namespace Saturn {
 	class ClassMetadataHandler : public RefTarget
 	{
 	public:
-		static inline ClassMetadataHandler& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<ClassMetadataHandler>(); }
+		static inline ClassMetadataHandler& Get() { return *SingletonStorage::GetOrCreateSingleton<ClassMetadataHandler>(); }
 	public:
 		ClassMetadataHandler();
 		~ClassMetadataHandler();

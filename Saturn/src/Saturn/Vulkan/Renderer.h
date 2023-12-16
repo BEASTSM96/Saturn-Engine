@@ -37,7 +37,7 @@ namespace Saturn {
 	class Renderer : public RefTarget
 	{
 	public:
-		static inline Renderer& Get() { return *SingletonStorage::Get().GetSingleton<Renderer>(); }
+		static inline Renderer& Get() { return *SingletonStorage::GetSingleton<Renderer>(); }
 	public:
 		Renderer();
 		~Renderer();
