@@ -41,7 +41,7 @@ namespace Saturn {
 	class RenderThread
 	{
 	public:
-		static inline RenderThread& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<RenderThread>(); }
+		static inline RenderThread& Get() { return *SingletonStorage::GetOrCreateSingleton<RenderThread>(); }
 	public:
 		RenderThread();
 		~RenderThread();

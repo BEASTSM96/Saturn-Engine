@@ -309,7 +309,7 @@ namespace Saturn {
 	class ShaderLibrary : public RefTarget
 	{
 	public:
-		static inline ShaderLibrary& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<ShaderLibrary>(); }
+		static inline ShaderLibrary& Get() { return *SingletonStorage::GetOrCreateSingleton<ShaderLibrary>(); }
 	public:
 		ShaderLibrary();
 		~ShaderLibrary();

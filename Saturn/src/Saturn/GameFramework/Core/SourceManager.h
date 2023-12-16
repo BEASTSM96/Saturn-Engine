@@ -37,7 +37,7 @@ namespace Saturn {
 	class SourceManager
 	{
 	public:
-		static inline SourceManager& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<SourceManager>(); }
+		static inline SourceManager& Get() { return *SingletonStorage::GetOrCreateSingleton<SourceManager>(); }
 	public:
 		SourceManager();
 		~SourceManager();

@@ -30,20 +30,34 @@
 
 namespace Saturn {
 
-	Saturn::SingletonStorage* SingletonStorage::s_Instance = nullptr;
-	
-	SingletonStorage::SingletonStorage() 
-	{
-		if( s_Instance ) 
-			std::terminate();
+	static std::unordered_map<std::type_index, SingletonHolder> s_Singletons;
+	static std::mutex s_Mutex;
 
-		s_Instance = this;
+	std::unordered_map<std::type_index, Saturn::SingletonHolder>& SingletonStorage::GetSingletonMap()
+	{
+		return s_Singletons;
 	}
 
-	SingletonStorage::~SingletonStorage()
+	void SS_API Internal::FindSharedClassInstance( const std::type_index& rIndex, void* ( *pStaticClass )( ), void*& pOutInstace )
 	{
-		m_Singletons.clear();
+		SingletonHolder type = {};
 
-		s_Instance = nullptr;
+		if( s_Singletons.find( rIndex ) == s_Singletons.end() ) 
+		{
+			s_Singletons[ rIndex ] = type;
+		}
+		else
+		{
+			type = s_Singletons.at( rIndex );
+		}
+
+		if( !type.pObject )
+		{
+			// Create the static instance.
+			type.pObject = ( *pStaticClass )( );
+		}
+
+		pOutInstace = type.pObject;
 	}
+
 }

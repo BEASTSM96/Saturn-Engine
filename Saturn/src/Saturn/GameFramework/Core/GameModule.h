@@ -43,7 +43,7 @@ namespace Saturn {
 	class GameModule
 	{
 	public:
-		static GameModule& Get() { return *SingletonStorage::Get().GetSingleton<GameModule>(); }
+		static GameModule& Get() { return *SingletonStorage::GetSingleton<GameModule>(); }
 	public:
 		GameModule();
 		~GameModule();

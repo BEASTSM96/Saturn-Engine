@@ -19,8 +19,8 @@ namespace SaturnBuildTool
             Architectures = new[] { ArchitectureKind.Win64 };
 
             // Include source.
-            Includes.Add( "Source" );
-            Includes.Add( string.Format( "Source\\{0}", ProjectInfo.Instance.Name ) );
+            Includes.Add( ProjectInfo.Instance.SourceDir );
+            Includes.Add( Path.Combine( ProjectInfo.Instance.SourceDir, ProjectInfo.Instance.Name ) );
             // Include Build folder for generated files.
             Includes.Add( ProjectInfo.Instance.BuildDir );
 

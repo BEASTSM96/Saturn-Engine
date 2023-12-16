@@ -44,7 +44,7 @@ namespace Saturn {
 
 	Renderer::Renderer()
 	{
-		SingletonStorage::Get().AddSingleton<Renderer>( this );
+		SingletonStorage::AddSingleton<Renderer>( this );
 	}
 
 	Renderer::~Renderer()

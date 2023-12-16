@@ -66,6 +66,7 @@ namespace Saturn {
 
 	class SceneRenderer;
 	class VulkanContext;
+	class Log;
 
 	class Application : public RubyEventTarget
 	{
@@ -87,7 +88,7 @@ namespace Saturn {
 
 		const char* GetConfigName();
 
-		static inline Application& Get() { return *SingletonStorage::Get().GetSingleton<Application>(); }
+		static inline Application& Get() { return *SingletonStorage::GetSingleton<Application>(); }
 		ApplicationSpecification& GetSpecification() { return m_Specification; }
 
 		void PushLayer( Layer* pLayer );
@@ -142,6 +143,7 @@ namespace Saturn {
 		SceneRenderer* m_SceneRenderer = nullptr;
 		RubyWindow* m_Window = nullptr;
 		VulkanContext* m_VulkanContext = nullptr;
+		Log* m_Log = nullptr;
 
 		std::vector<std::function<void()>> m_MainThreadQueue;
 	};

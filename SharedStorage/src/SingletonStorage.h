@@ -43,58 +43,75 @@
 
 namespace Saturn {
 
+	struct SingletonHolder
+	{
+		void* pObject;
+	};
+
+	namespace Internal {
+
+		void SS_API FindSharedClassInstance( const std::type_index& rIndex, void* (*pStaticClass)(), void*& pOutInstace );
+
+		template<typename Ty>
+		class InternalSingleton
+		{
+		public:
+			static Ty* Instance()
+			{
+				static void* pClass = nullptr;
+
+				if( !pClass )
+					FindSharedClassInstance( typeid( Ty ), &GetStaticClass, pClass );
+
+				return reinterpret_cast<Ty*>( pClass );
+			}
+
+		private:
+			// Possible undefined behavior.
+			static void* GetStaticClass()
+			{
+				static Ty _; return static_cast<void*>(&_);
+			}
+		};
+	}
+
 	class SS_API SingletonStorage
 	{
 	public:
-		SingletonStorage();
-		~SingletonStorage();
-
 		template<typename Ty>
-		Ty* GetOrCreateSingleton()
+		static Ty* GetOrCreateSingleton()
 		{
-			std::type_index Index = typeid( Ty );
-
-			if( m_Singletons.find( Index ) == m_Singletons.end() )
-			{
-				m_Singletons[ Index ] = new Ty();
-			}
-
-			return static_cast< Ty* >( m_Singletons.at( Index ) );
+			return Internal::InternalSingleton<Ty>::Instance();
 		}
 
 		template<typename Ty>
-		Ty* GetSingleton()
+		static Ty* GetSingleton()
 		{
-			std::type_index Index = typeid( Ty );
+			std::type_index info = typeid( Ty );
+			auto& map = GetSingletonMap();
 
-			return static_cast< Ty* >( m_Singletons.at( Index ) );
+			return reinterpret_cast<Ty*>( map[ info ].pObject );
 		}
 
 		template<typename Ty>
-		void AddSingleton( Ty* type )
+		static void AddSingleton( Ty* type )
 		{
-			std::type_index Index = typeid( Ty );
+			std::type_index info = typeid( Ty );
+			auto& map = GetSingletonMap();
 
-			if( m_Singletons.find( Index ) == m_Singletons.end() )
-				m_Singletons[ Index ] = type;
+			map[ info ] = { .pObject = type };
 		}
 
 		template<typename Ty>
-		void RemoveSingleton( Ty* type ) 
+		static void RemoveSingleton( Ty* type )
 		{
-			std::type_index Index = typeid( Ty );
-			m_Singletons.erase( Index );
-		}
+			std::type_index info = typeid( Ty );
+			auto& map = GetSingletonMap();
 
-		static inline SingletonStorage& Get()
-		{
-			return *s_Instance;
+			map.erase( info );
 		}
 
 	private:
-		std::unordered_map<std::type_index, void*> m_Singletons;
-		std::mutex m_Mutex;
-
-		static SingletonStorage* s_Instance;
+		static std::unordered_map<std::type_index, SingletonHolder>& GetSingletonMap();
 	};
 }

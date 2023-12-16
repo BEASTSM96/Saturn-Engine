@@ -38,7 +38,7 @@ namespace Saturn {
 	class GameThread
 	{
 	public:
-		static inline GameThread& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<GameThread>(); }
+		static inline GameThread& Get() { return *SingletonStorage::GetOrCreateSingleton<GameThread>(); }
 	public:
 		GameThread();
 		~GameThread();

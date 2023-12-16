@@ -48,7 +48,7 @@ namespace Saturn {
 	class PhysicsFoundation
 	{
 	public:
-		static inline PhysicsFoundation& Get() { return *SingletonStorage::Get().GetSingleton<PhysicsFoundation>(); }
+		static inline PhysicsFoundation& Get() { return *SingletonStorage::GetSingleton<PhysicsFoundation>(); }
 	public:
 		PhysicsFoundation();
 		~PhysicsFoundation();

@@ -110,6 +110,7 @@ namespace Saturn {
 
 	ShaderLibrary::~ShaderLibrary()
 	{
+		Shutdown();
 	}
 
 	void ShaderLibrary::Add( const Ref<Shader>& shader )

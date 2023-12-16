@@ -94,7 +94,7 @@ namespace Saturn {
 
 	PhysicsFoundation::PhysicsFoundation()
 	{
-		SingletonStorage::Get().AddSingleton<PhysicsFoundation>( this );
+		SingletonStorage::AddSingleton<PhysicsFoundation>( this );
 	}
 
 	PhysicsFoundation::~PhysicsFoundation()

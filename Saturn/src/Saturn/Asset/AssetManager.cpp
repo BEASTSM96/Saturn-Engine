@@ -36,7 +36,7 @@ namespace Saturn {
 
 	AssetManager::AssetManager()
 	{
-		SingletonStorage::Get().AddSingleton( this );
+		SingletonStorage::AddSingleton( this );
 
 		// Setup Asset Registries.
 		auto project = Project::GetActiveProject();

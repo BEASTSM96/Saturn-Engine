@@ -44,7 +44,7 @@ namespace Saturn {
 	class Input
 	{
 	public:
-		static inline Input& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<Input>(); }
+		static inline Input& Get() { return *SingletonStorage::GetOrCreateSingleton<Input>(); }
 	public:
 		Input();
 		~Input() { }

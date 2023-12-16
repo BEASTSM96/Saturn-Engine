@@ -56,6 +56,8 @@ namespace Saturn {
 	class VulkanContext
 	{
 	public:
+		static VulkanContext& Get() { return *SingletonStorage::GetOrCreateSingleton<VulkanContext>(); }
+	public:
 		VulkanContext();
 		~VulkanContext() { Terminate(); }
 
@@ -79,8 +81,6 @@ namespace Saturn {
 
 		Ref<Pass> GetDefaultPass() { return m_DefaultPass; }
 		VkRenderPass GetDefaultVulkanPass() { return m_DefaultPass->GetVulkanPass(); }
-
-		static VulkanContext& Get() { return *SingletonStorage::Get().GetOrCreateSingleton<VulkanContext>(); }
 
 	public:
 		
