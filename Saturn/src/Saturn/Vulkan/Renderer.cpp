@@ -171,7 +171,7 @@ namespace Saturn {
 		vkCmdEndRenderPass( CommandBuffer );
 	}
 	
-	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<StaticMesh> mesh, uint32_t count, Ref<VertexBuffer> transformVB, uint32_t TransformOffset, Buffer additionalData )
+	void Renderer::RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<StaticMesh> mesh, uint32_t count, Ref<VertexBuffer> transformVB, uint32_t TransformOffset, uint32_t SubmeshIndex, Buffer additionalData )
 	{	
 		SAT_PF_EVENT();
 
@@ -180,7 +180,8 @@ namespace Saturn {
 		if( additionalData.Size > 0 )
 			PushConstant.Write( additionalData.Data, additionalData.Size, 0 );
 
-		for( auto& rSubmesh : mesh->Submeshes() )
+		auto& rSubmesh = mesh->Submeshes()[ SubmeshIndex ];
+
 		{
 			mesh->GetVertexBuffer()->Bind( CommandBuffer );
 

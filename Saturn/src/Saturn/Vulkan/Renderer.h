@@ -48,7 +48,7 @@ namespace Saturn {
 		void BeginRenderPass( VkCommandBuffer CommandBuffer, Pass& rPass );
 		void EndRenderPass( VkCommandBuffer CommandBuffer );
 
-		void RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<StaticMesh> mesh, uint32_t count, Ref<VertexBuffer> transformVB, uint32_t TransformOffset, Buffer additionalData = Buffer() );
+		void RenderMeshWithoutMaterial( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref<StaticMesh> mesh, uint32_t count, Ref<VertexBuffer> transformVB, uint32_t TransformOffset, uint32_t SubmeshIndex, Buffer additionalData = Buffer() );
 
 		// Static mesh
 		void RenderSubmesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< StaticMesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );

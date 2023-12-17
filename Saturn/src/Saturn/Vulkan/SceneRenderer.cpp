@@ -132,10 +132,7 @@ namespace Saturn {
 	{
 		m_pScene = nullptr;
 
-		m_DrawList.clear();
-		m_ShadowMapDrawList.clear();
-
-		m_RendererData.Terminate();
+		FlushDrawList();
 	}
 
 	void SceneRenderer::InitGeometryPass()
@@ -1255,7 +1252,7 @@ namespace Saturn {
 
 				const auto& rTransformData = m_RendererData.MeshTransforms[ key ];
 
-				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipelines[ i ], Cmd.Mesh, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset, AdditionalData );
+				Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.DirShadowMapPipelines[ i ], Cmd.Mesh, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset, Cmd.SubmeshIndex, AdditionalData );
 			}
 
 			vkCmdEndRenderPass( CommandBuffer );
@@ -1312,7 +1309,7 @@ namespace Saturn {
 
 			const auto& rTransformData = m_RendererData.MeshTransforms[ key ];
 
-			Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.PreDepthPipeline, Cmd.Mesh, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset );
+			Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.PreDepthPipeline, Cmd.Mesh, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset, Cmd.SubmeshIndex );
 		}
 
 		m_RendererData.PreDepthPass->EndPass();
