@@ -38,7 +38,7 @@ namespace Saturn {
 	
 	class Toolbar;
 	class TitleBar;
-	class Character;
+	class GameModule;
 
 	class EditorLayer : public Layer
 	{
@@ -97,7 +97,7 @@ namespace Saturn {
 
 		Ref< PanelManager > m_PanelManager = nullptr;
 
-		Character* m_Character = nullptr;
+		GameModule* m_GameModule = nullptr;
 
 		EditorCamera m_EditorCamera;
 		bool m_AllowCameraEvents = false;

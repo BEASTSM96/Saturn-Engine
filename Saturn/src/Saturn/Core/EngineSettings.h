@@ -28,20 +28,26 @@
 
 #pragma once
 
+#include "SingletonStorage.h"
+
 #include <string>
 #include <vector>
 #include <filesystem>
 
 namespace Saturn {
 
-	struct UserSettings
+	class EngineSettings
 	{
+	public:
+		static inline EngineSettings& Get() { return *SingletonStorage::GetOrCreateSingleton<EngineSettings>(); }
+	public:
+		EngineSettings() = default;
+		~EngineSettings() = default;
+	public:
 		std::string StartupProject;
 		std::string StartupProjectName;
 		std::filesystem::path FullStartupProjPath;
 
 		std::vector< std::filesystem::path > RecentProjects;
 	};
-
-	extern UserSettings& GetUserSettings();
 }

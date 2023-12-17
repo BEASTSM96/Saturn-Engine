@@ -366,7 +366,7 @@ namespace Saturn {
 		using ScheduledFunc = std::function<void()>;
 	public:
 		SceneRenderer() { Init(); }
-		~SceneRenderer() {}
+		~SceneRenderer() { Terminate(); }
 
 		void ImGuiRender();
 
@@ -394,13 +394,12 @@ namespace Saturn {
 		
 		void SetSwapchainTarget( bool target ) { m_RendererData.IsSwapchainTarget = target; }
 
-		void Terminate();
-
 		uint32_t Width() { return m_RendererData.Width; }
 		uint32_t Height() { return m_RendererData.Height; }
 
 	private:
 		void Init();
+		void Terminate();
 
 		void RenderGrid();
 		void RenderSkybox();

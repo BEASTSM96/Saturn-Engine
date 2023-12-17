@@ -34,16 +34,12 @@
 // Short Macros
 #if defined ( SAT_PLATFORM_WINDOWS )
 #define SAT_WINDOWS 1
-#define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined ( SAT_PLATFORM_LINUX )
 #define SAT_LINUX 1
-#define GLFW_EXPOSE_NATIVE_X11
 #include <signal.h>
 #else
 #define SAT_MAC 1
 #endif 
-
-#define GLFW_RESIZE_NESW_CURSOR 0x00036008
 
 #define SAT_ARRAYSIZE( x ) ( ( int ) ( sizeof( x ) / sizeof( *( x ) ) ) )
 

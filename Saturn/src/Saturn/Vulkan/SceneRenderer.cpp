@@ -133,6 +133,8 @@ namespace Saturn {
 		m_pScene = nullptr;
 
 		FlushDrawList();
+
+		m_RendererData.Terminate();
 	}
 
 	void SceneRenderer::InitGeometryPass()
@@ -1410,7 +1412,8 @@ namespace Saturn {
 
 		m_RendererData.LightCullingWorkGroups = { Size / TILE_SIZE, 1 };
 
-		m_RendererData.StorageBufferSet->Resize( 0, 14, ( size_t ) m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4.0f * 1024.0f );
+		size_t size = (size_t)m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4.0f * 1024.0f;
+		m_RendererData.StorageBufferSet->Resize( 0, 14, size );
 
 		// UBs
 		UBLights u_Lights;

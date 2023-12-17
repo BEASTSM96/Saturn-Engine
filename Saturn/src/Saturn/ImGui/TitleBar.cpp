@@ -43,8 +43,6 @@ namespace Saturn {
 	TitleBar::TitleBar()
 		: m_Height( 0 )
 	{
-		m_PlayImage = Ref<Texture2D>::Create( "content/textures/PlayButton.png", AddressingMode::Repeat );
-		m_StopImage = Ref<Texture2D>::Create( "content/textures/StopButton.png", AddressingMode::Repeat );
 	}
 
 	TitleBar::~TitleBar()
@@ -53,17 +51,20 @@ namespace Saturn {
 		m_StopImage = nullptr;
 	}
 
+	void TitleBar::LoadPlayButton()
+	{
+		m_PlayImage = Ref<Texture2D>::Create( "content/textures/PlayButton.png", AddressingMode::Repeat );
+		m_StopImage = Ref<Texture2D>::Create( "content/textures/StopButton.png", AddressingMode::Repeat );
+	}
+
 	void TitleBar::Draw()
 	{
 		ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 5, 5 ) );
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 5, 5 ) );
 
-		auto* pViewport = ImGui::GetMainViewport();
-
 		if( ImGui::BeginMainMenuBar() )
 		{
 			m_Height = ImGui::GetWindowHeight();
-			//Application::Get().GetWindow()->SetTiltebarHeight( m_Height );
 
 			for( auto&& rrFunc : m_MenuBarFunctions )
 			{
@@ -163,8 +164,18 @@ namespace Saturn {
 				}
 			}
 
+			if( m_DrawSecondaryTitleBar )
+				DrawSecondaryTitleBar();
+
 			ImGui::EndMainMenuBar();
 		}
+		
+		ImGui::PopStyleVar( 2 );
+	}
+
+	void TitleBar::DrawSecondaryTitleBar()
+	{
+		auto* pViewport = ImGui::GetMainViewport();
 
 		// I don't really like how this looks but we'll see.
 		if( ImGui::BeginViewportSideBar( "##SecondaryTitleBar", pViewport, ImGuiDir_Up, 48.0f, 0 ) )
@@ -178,7 +189,7 @@ namespace Saturn {
 
 			const Ref<Texture2D>& image = m_RuntimeState == 1 ? m_StopImage : m_PlayImage;
 
-			if( Auxiliary::ImageButton( image, { 24, 24 } ) ) 
+			if( Auxiliary::ImageButton( image, { 24, 24 } ) )
 			{
 				m_RuntimeState ^= 1;
 
@@ -195,8 +206,6 @@ namespace Saturn {
 
 			ImGui::End();
 		}
-		
-		ImGui::PopStyleVar( 2 );
 	}
 
 	void TitleBar::AddMenuBarFunction( MenuBarFunction&& rrFunc )

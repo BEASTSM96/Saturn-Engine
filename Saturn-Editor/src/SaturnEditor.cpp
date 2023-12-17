@@ -28,13 +28,13 @@
 
 #include "Saturn/Core/App.h"
 
-#include "Saturn/Core/UserSettings.h"
+#include "Saturn/Core/EngineSettings.h"
 
 #include "Saturn/Runtime/RuntimeLayer.h"
 
 #include "EditorLayer.h"
 
-#include "Saturn/Serialisation/UserSettingsSerialiser.h"
+#include "Saturn/Serialisation/EngineSettingsSerialiser.h"
 
 #include "Saturn/GameFramework/Core/GameModule.h"
 
@@ -45,9 +45,10 @@ public:
 		: Application( spec ), m_ProjectPath( rProjectPath )
 	{
 		// Setup user settings and find the project path.
-		auto& settings = Saturn::GetUserSettings();
-		Saturn::UserSettingsSerialiser uss;
-		uss.Deserialise( settings );
+		Saturn::EngineSettingsSerialiser uss;
+		uss.Deserialise();
+
+		Saturn::EngineSettings& settings = Saturn::EngineSettings::Get();
 
 		settings.StartupProject = m_ProjectPath;
 
@@ -56,7 +57,7 @@ public:
 
 		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
 
-		settings = Saturn::GetUserSettings();
+		settings = Saturn::EngineSettings::Get();
 
 		// Check if the editor asset registry exists.
 		if( !std::filesystem::exists( "content/AssetRegistry.sreg" ) )
@@ -79,8 +80,8 @@ public:
 
 	virtual void OnShutdown() override
 	{
-		Saturn::UserSettingsSerialiser uss;
-		uss.Serialise( Saturn::GetUserSettings() );
+		Saturn::EngineSettingsSerialiser uss;
+		uss.Serialise();
 
 		PopLayer( m_EditorLayer );
 		delete m_EditorLayer;

@@ -33,6 +33,8 @@
 
 namespace Saturn {
 
+	class GameModule;
+
 	class RuntimeLayer : public Layer
 	{
 	public:
@@ -48,5 +50,6 @@ namespace Saturn {
 		void OpenFile( const std::filesystem::path& rFilepath );
 	private:
 		Ref< Scene > m_RuntimeScene;
+		GameModule* m_GameModule = nullptr;
 	};
 }

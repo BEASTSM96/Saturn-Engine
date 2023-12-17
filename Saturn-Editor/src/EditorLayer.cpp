@@ -41,7 +41,7 @@
 
 #include <Saturn/Serialisation/SceneSerialiser.h>
 #include <Saturn/Serialisation/ProjectSerialiser.h>
-#include <Saturn/Serialisation/UserSettingsSerialiser.h>
+#include <Saturn/Serialisation/EngineSettingsSerialiser.h>
 #include <Saturn/Serialisation/AssetRegistrySerialiser.h>
 #include <Saturn/Serialisation/AssetSerialisers.h>
 
@@ -55,7 +55,7 @@
 
 #include <Saturn/Core/Math.h>
 #include <Saturn/Core/StringUtills.h>
-#include <Saturn/Core/UserSettings.h>
+#include <Saturn/Core/EngineSettings.h>
 #include <Saturn/Core/OptickProfiler.h>
 
 #include <Saturn/Asset/AssetRegistry.h>
@@ -63,8 +63,6 @@
 #include <Saturn/Asset/Prefab.h>
 
 #include <Saturn/GameFramework/Core/GameModule.h>
-
-#include <Saturn/GameFramework/Character.h>
 
 #include <Saturn/Core/Renderer/RenderThread.h>
 
@@ -105,6 +103,7 @@ namespace Saturn {
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 		m_TitleBar = new TitleBar();
+		m_TitleBar->LoadPlayButton();
 
 		m_TitleBar->AddMenuBarFunction( [&]() -> void
 		{
@@ -189,7 +188,7 @@ namespace Saturn {
 
 		ContentBrowserPanel* pContentBrowserPanel = ( ContentBrowserPanel* ) m_PanelManager->GetPanel( "Content Browser Panel" );
 
-		auto& rUserSettings = GetUserSettings();
+		auto& rUserSettings = EngineSettings::Get();
 
 		pContentBrowserPanel->SetPath( rUserSettings.StartupProject );
 
@@ -202,7 +201,7 @@ namespace Saturn {
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 		CheckMissingEditorAssetRefs();
 
-		GameModule* pGameDLL = new GameModule();
+		m_GameModule = new GameModule();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
@@ -228,6 +227,8 @@ namespace Saturn {
 		}
 
 		m_EditorScene = nullptr;
+
+		//delete m_GameModule;
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )
@@ -787,7 +788,7 @@ namespace Saturn {
 
 		ImGuiIO& rIO = ImGui::GetIO();
 
-		auto& userSettings = GetUserSettings();
+		auto& userSettings = EngineSettings::Get();
 
 		Ref<Project> ActiveProject = Project::GetActiveProject();
 
@@ -1191,7 +1192,7 @@ namespace Saturn {
 
 			// Ported from user settings
 
-			auto& userSettings = GetUserSettings();
+			auto& userSettings = EngineSettings::Get();
 			auto& startupProject = userSettings.StartupProject;
 			auto& startupScene = Project::GetActiveProject()->GetConfig().StartupScenePath;
 
@@ -1206,8 +1207,8 @@ namespace Saturn {
 			{
 				startupProject = Application::Get().OpenFile( "Saturn project file (*.sproject)\0*.sproject\0" );
 
-				UserSettingsSerialiser uss;
-				uss.Serialise( userSettings );
+				EngineSettingsSerialiser uss;
+				uss.Serialise();
 			}
 
 			ImGui::EndHorizontal();

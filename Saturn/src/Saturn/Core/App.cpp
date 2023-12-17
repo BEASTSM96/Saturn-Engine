@@ -53,6 +53,7 @@
 
 #if defined( SAT_WINDOWS )
 #include <ShObjIdl.h>
+#include <ShlObj.h>
 #endif
 
 #define APP_BIND_EVENT_FN(_) std::bind(&Application::_, this, std::placeholders::_1)
@@ -178,8 +179,8 @@ namespace Saturn {
 
 		AssetManager::Get().Terminate();
 		
-		delete m_VulkanContext;
 		delete m_SceneRenderer;
+		delete m_VulkanContext;
 
 		delete m_Window;
 	}
@@ -221,6 +222,28 @@ namespace Saturn {
 	bool Application::HasFlag( ApplicationFlags flag )
 	{
 		return ( m_Specification.Flags & (uint32_t)flag ) != 0;
+	}
+
+	std::filesystem::path Application::GetAppDataFolder()
+	{
+		std::filesystem::path path = L"";
+
+#if defined(SAT_PLATFORM_WINDOWS)
+		PWSTR Path = 0;
+		SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &Path );
+
+		std::wstring fp = Path;
+		std::replace( fp.begin(), fp.end(), L'\\', L'/' );
+
+		path = fp + L"/Saturn";
+#elif defined(SAT_PLATFORM_LINUX)
+
+#endif
+
+		if( !std::filesystem::exists( path ) )
+			std::filesystem::create_directories( path );
+
+		return path;
 	}
 
 	std::string Application::OpenFile( const char* pFilter ) const

@@ -26,108 +26,19 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "UserSettingsSerialiser.h"
+#pragma once
 
-#include <fstream>
-#include <yaml-cpp/yaml.h>
-#include <filesystem>
-
-namespace YAML {
-
-	template <>
-	struct convert<std::filesystem::path> 
-	{
-		static Node encode( std::filesystem::path rhs ) 
-		{ 
-			return Node( rhs.string() ); 
-		}
-
-		static bool decode( const Node& node, std::filesystem::path& rhs )
-		{
-			rhs = node.as<std::string>();
-			
-			return true;
-		}
-	};
-
-}
+#include "Saturn/Core/App.h"
 
 namespace Saturn {
-
-	UserSettingsSerialiser::UserSettingsSerialiser()
+	
+	class EngineSettingsSerialiser
 	{
-	}
+	public:
+		EngineSettingsSerialiser();
+		~EngineSettingsSerialiser();
 
-	UserSettingsSerialiser::~UserSettingsSerialiser()
-	{
-	}
-
-	void UserSettingsSerialiser::Serialise( const UserSettings& rSettings )
-	{
-		YAML::Emitter out;
-
-		out << YAML::BeginMap;
-
-		if( !rSettings.StartupProject.empty() )
-			out << YAML::Key << "Startup Project" << YAML::Value << rSettings.StartupProject;
-		
-		out << YAML::Key << "Recent Projects";
-		
-		out << YAML::BeginSeq;
-		
-		for( auto& rPath : rSettings.RecentProjects )
-		{
-			auto p = rPath.string();
-
-			std::replace( p.begin(), p.end(), '\\', '/' );
-
-			out << YAML::Key << YAML::Value << p;
-		}
-
-		out << YAML::EndSeq;
-		out << YAML::EndMap;
-		
-		// TODO: Add back app data path
-		auto userSettingsPath = "UserSettings.yaml";
-
-		std::ofstream file( userSettingsPath );
-		file << out.c_str();
-	}
-
-	void UserSettingsSerialiser::Deserialise( UserSettings& rSettings )
-	{
-		// TODO: Add back app data path
-		auto userSettingsPath = "UserSettings.yaml";
-
-		std::ifstream FileIn( userSettingsPath );
-		std::stringstream ss;
-		ss << FileIn.rdbuf();
-
-		YAML::Node data = YAML::Load( ss.str() );
-
-		if( data.IsNull() )
-			return;
-
-		auto p = data[ "Recent Projects" ];
-		auto startup = data[ "Startup Project" ].as<std::string>( "" );
-
-		if( !startup.empty() )
-		{
-			size_t found = startup.find_last_of( "/\\" );
-			rSettings.StartupProjectName = startup.substr( found + 1 );
-
-			rSettings.StartupProject = startup;
-			rSettings.FullStartupProjPath = fmt::format( "{0}\\{1}.sproject", startup, rSettings.StartupProjectName );
-		}
-
-		for ( auto project : p )
-		{
-			auto path = project.as<std::filesystem::path>();
-			
-			if( std::filesystem::exists( path ) )
-				rSettings.RecentProjects.push_back( path );
-		}
-	}
-
+		void Serialise();
+		void Deserialise();
+	};
 }

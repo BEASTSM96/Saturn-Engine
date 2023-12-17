@@ -109,7 +109,6 @@ namespace Saturn {
 			rFunc();
 
 		Renderer::Get().Terminate();
-		Application::Get().PrimarySceneRenderer().Terminate();
 
 		m_DepthImage = nullptr;
 		

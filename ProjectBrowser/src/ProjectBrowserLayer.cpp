@@ -34,11 +34,10 @@
 #include <Saturn/ImGui/TitleBar.h>
 
 #include <Saturn/Core/StringUtills.h>
-#include <Saturn/Core/AppData.h>
 #include <Saturn/Core/EnvironmentVariables.h>
 
 #include <Saturn/Serialisation/ProjectSerialiser.h>
-#include <Saturn/Serialisation/UserSettingsSerialiser.h>
+#include <Saturn/Serialisation/EngineSettingsSerialiser.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -85,12 +84,11 @@ namespace Saturn {
 		memset( s_ProjectFilePathBuffer, 0, 1024 );
 		memset( s_ProjectNameBuffer, 0, 1024 );
 
-		auto& userSettings = GetUserSettings();
-		
-		UserSettingsSerialiser userSettingsSerialiser;
-		userSettingsSerialiser.Deserialise( userSettings );
+		EngineSettingsSerialiser userSettingsSerialiser;
+		userSettingsSerialiser.Deserialise();
 
-		for ( auto&& path : userSettings.RecentProjects )
+		auto& rEngineSettings = EngineSettings::Get();
+		for ( auto&& path : rEngineSettings.RecentProjects )
 		{
 			if( std::filesystem::exists( path ) )
 				s_RecentProjects.push_back( path );
@@ -102,7 +100,7 @@ namespace Saturn {
 
 			do
 			{
-				auto& userSettings = GetUserSettings();
+				auto& userSettings = EngineSettings::Get();
 
 				for( auto& path : userSettings.RecentProjects )
 				{
@@ -129,6 +127,7 @@ namespace Saturn {
 		} );
 
 		m_TitleBar = new TitleBar();
+		m_TitleBar->ShouldDrawSecondaryTitleBar( false );
 	}
 
 	void ProjectBrowserLayer::OnAttach()
@@ -294,11 +293,11 @@ namespace Saturn {
 
 						CreateProject( path );
 						
-						auto& us = GetUserSettings();
+						auto& us = EngineSettings::Get();
 						us.RecentProjects.push_back( p );
 						
-						UserSettingsSerialiser uss;
-						uss.Serialise( us );
+						EngineSettingsSerialiser uss;
+						uss.Serialise();
 
 						ImGui::CloseCurrentPopup();
 					}
@@ -420,7 +419,6 @@ namespace Saturn {
 
 	void ProjectBrowserLayer::OnEvent( RubyEvent& rEvent )
 	{
-
 	}
 
 	bool ProjectBrowserLayer::OnKeyPressed( RubyKeyEvent& rEvent )

@@ -35,7 +35,7 @@
 #include "Layer.h"
 #include "Events.h"
 #include "Input.h"
-#include "UserSettings.h"
+#include "EngineSettings.h"
 
 #include "SingletonStorage.h"
 
@@ -71,6 +71,8 @@ namespace Saturn {
 	class Application : public RubyEventTarget
 	{
 	public:
+		static inline Application& Get() { return *SingletonStorage::GetSingleton<Application>(); }
+	public:
 		Application( const ApplicationSpecification& spec );
 
 		virtual ~Application();
@@ -88,7 +90,6 @@ namespace Saturn {
 
 		const char* GetConfigName();
 
-		static inline Application& Get() { return *SingletonStorage::GetSingleton<Application>(); }
 		ApplicationSpecification& GetSpecification() { return m_Specification; }
 
 		void PushLayer( Layer* pLayer );
@@ -112,6 +113,8 @@ namespace Saturn {
 		const std::filesystem::path& GetRootContentDir() const { return m_RootContentPath; }
 
 		bool HasFlag( ApplicationFlags flag );
+
+		std::filesystem::path GetAppDataFolder();
 
 	protected:
 

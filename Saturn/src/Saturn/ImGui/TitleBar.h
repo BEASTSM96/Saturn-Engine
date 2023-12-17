@@ -49,6 +49,9 @@ namespace Saturn {
 
 		void Draw() override;
 
+		void LoadPlayButton();
+		void ShouldDrawSecondaryTitleBar( bool value ) { m_DrawSecondaryTitleBar = value; }
+
 		float Height() const { return m_Height; }
 
 		void AddMenuBarFunction( MenuBarFunction&& rrFunc );
@@ -56,11 +59,16 @@ namespace Saturn {
 		void AddOnExitFunction( std::function<void()>&& rrFunc );
 		
 	private:
+		void DrawSecondaryTitleBar();
+
+	private:
 		std::vector<MenuBarFunction> m_MenuBarFunctions;
 		std::function<void()> m_OnExitFunction = nullptr;
 		std::function<void(int state)> m_OnRuntimeStateChanged = nullptr;
 
 		float m_Height = 0.0f;
+
+		bool m_DrawSecondaryTitleBar = true;
 
 		Ref<Texture2D> m_PlayImage = nullptr;
 		Ref<Texture2D> m_StopImage = nullptr;

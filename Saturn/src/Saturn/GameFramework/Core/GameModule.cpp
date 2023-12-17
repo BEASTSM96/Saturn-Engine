@@ -82,7 +82,9 @@ namespace Saturn {
 
 			// Call the init function.
 			InitModuleFn initModFn = ( InitModuleFn )m_GameModule->m_Library.GetSymbol( "InitializeModule" );
-			( initModFn ) ( Project::GetActiveProject().Get() );
+			
+			if( initModFn )
+				( initModFn ) ( Project::GetActiveProject().Get() );
 		}
 		else 
 		{

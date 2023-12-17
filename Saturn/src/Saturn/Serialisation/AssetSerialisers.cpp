@@ -87,7 +87,7 @@ namespace Saturn {
 
 		auto asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
 
-		if( asset->ID )
+		if( asset )
 			out << YAML::Key << "AlbedoTexture" << YAML::Value << asset->ID;
 		else
 			out << YAML::Key << "AlbedoTexture" << YAML::Value << 0;

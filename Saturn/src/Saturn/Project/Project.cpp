@@ -29,9 +29,9 @@
 #include "sppch.h"
 #include "Project.h"
 
-#include "Saturn/Core/UserSettings.h"
+#include "Saturn/Core/EngineSettings.h"
 
-#include "Saturn/Serialisation/UserSettingsSerialiser.h"
+#include "Saturn/Serialisation/EngineSettingsSerialiser.h"
 #include "Saturn/Serialisation/ProjectSerialiser.h"
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 

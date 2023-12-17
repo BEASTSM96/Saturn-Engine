@@ -33,7 +33,7 @@
 
 #include "Saturn/Serialisation/SceneSerialiser.h"
 #include "Saturn/Serialisation/ProjectSerialiser.h"
-#include "Saturn/Serialisation/UserSettingsSerialiser.h"
+#include "Saturn/Serialisation/EngineSettingsSerialiser.h"
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
@@ -57,7 +57,7 @@ namespace Saturn {
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
 		pPhysicsFoundation->Init();
 
-		auto& rUserSettings = GetUserSettings();
+		auto& rUserSettings = EngineSettings::Get();
 
 		ProjectSerialiser ps;
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
@@ -68,8 +68,8 @@ namespace Saturn {
 
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
-		// Load the Game Module
-		GameModule* pGameDLL = new GameModule();
+		// "Load" the Game Module
+		m_GameModule = new GameModule();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
@@ -80,6 +80,8 @@ namespace Saturn {
 	{
 		m_RuntimeScene->OnRuntimeEnd();
 		m_RuntimeScene = nullptr;
+
+		delete m_GameModule;
 	}
 
 	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )
