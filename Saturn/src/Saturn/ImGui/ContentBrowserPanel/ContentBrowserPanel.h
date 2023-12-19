@@ -63,10 +63,10 @@ namespace Saturn {
 
 		virtual void Draw() override;
 
-		void SetPath( const std::filesystem::path& rPath );
+		void ResetPath( const std::filesystem::path& rPath );
 
 	private:	
-		void OnDirectorySelected( const std::filesystem::path& rPath );
+		void OnItemSelected( ContentBrowserItem* pItem );
 
 		void UpdateFiles( bool clear = false );
 

@@ -120,8 +120,8 @@ namespace Saturn {
 			ShapeType type = m_Mesh->GetAttachedShape();
 			
 			const char* pItems[] = { "None", "Box", "Sphere", "Capsule", "Convex Mesh", "Triangle Mesh" };
-			static ShapeType SelectedEnum = ShapeType::Unknown;
-			static const char* Selected = NULL;
+			static ShapeType SelectedEnum = type;
+			static const char* Selected = pItems[ (int)SelectedEnum ];
 
 			ImGui::Text( "Select Physics Shape Type:" );
 			ImGui::SameLine();
@@ -237,10 +237,15 @@ namespace Saturn {
 
 		m_Open = true;
 
+		Scene* pOldScene = GActiveScene;
+		GActiveScene = m_Scene.Get();
+
 		Ref<Entity> e = Ref<Entity>::Create();
 		e->SetName( "InternalViewerEntity" );
 
 		e->AddComponent<StaticMeshComponent>().Mesh = mesh;
+		
+		GActiveScene = pOldScene;
 	}
 
 }

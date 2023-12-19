@@ -65,6 +65,7 @@ namespace Saturn {
 	static std::filesystem::path s_pScriptsDirectory = "Source";
 
 	/* The root dir, i.e. C:\\MyProjects\\Project1\\Assets */
+	// This will never change unless we change view mode.
 	static std::filesystem::path s_RootDirectory = "Source";
 
 	static bool s_OpenScriptsPopup = false;
@@ -132,8 +133,8 @@ namespace Saturn {
 					std::filesystem::remove( entry );
 
 					// Find and update the asset that is linked to this path.
-					Ref<Asset> culprit = AssetManager::Get().FindAsset( assetPath );
-					culprit->SetPath( dstPath );
+					Ref<Asset> target = AssetManager::Get().FindAsset( assetPath );
+					target->SetPath( dstPath );
 
 					AssetManager::Get().Save();
 
@@ -187,7 +188,7 @@ namespace Saturn {
 
 					// Switch and set path to the game content.
 					m_ViewMode = CBViewMode::Assets;
-					SetPath( Project::GetActiveProject()->GetRootDir() );
+					ResetPath( Project::GetActiveProject()->GetRootDir() );
 				}
 
 				if( opened )
@@ -216,7 +217,7 @@ namespace Saturn {
 				
 					// Switch and set path to the game content.
 					m_ViewMode = CBViewMode::Scripts;
-					SetPath( Project::GetActiveProject()->GetRootDir() );
+					ResetPath( Project::GetActiveProject()->GetRootDir() );
 				}
 
 				if( opened )
@@ -345,8 +346,16 @@ namespace Saturn {
 			{
 				auto id = AssetManager::Get().CreateAsset( AssetType::PhysicsMaterial );
 				auto asset = AssetManager::Get().FindAsset( id );
+				auto newPath = m_CurrentPath / "Untitled Physics Material.smaterial";
 
-				asset->SetPath( m_CurrentPath / "Untitled Physics Material.sphymaterial" );
+				int32_t count = GetFilenameCount( "Untitled Physics Material.smaterial" );
+
+				if( count >= 1 )
+				{
+					newPath = std::format( "{0}\\{1} ({2}).sphymaterial", m_CurrentPath.string(), "Untitled Physics Material", count );
+				}
+
+				asset->SetPath( newPath );
 
 				auto materialAsset = asset.As<PhysicsMaterialAsset>();
 
@@ -364,8 +373,15 @@ namespace Saturn {
 			{
 				auto id = AssetManager::Get().CreateAsset( AssetType::Scene );
 				auto asset = AssetManager::Get().FindAsset( id );
+				auto newPath = m_CurrentPath / "Empty Scene.scene";
+				int32_t count = GetFilenameCount( "Empty Scene.scene" );
 
-				asset->SetPath( m_CurrentPath / "Empty Scene.scene" );
+				if( count >= 1 )
+				{
+					newPath = std::format( "{0}\\{1} ({2}).scene", m_CurrentPath.string(), "Empty Scene", count );
+				}
+
+				asset->SetPath( newPath );
 
 				Ref<Scene> newScene = Ref<Scene>::Create();
 				Scene* CurrentScene = GActiveScene;
@@ -409,10 +425,6 @@ namespace Saturn {
 		switch( Event )
 		{
 			case filewatch::Event::added: 
-			{
-				UpdateFiles( true );
-			} break;
-
 			case filewatch::Event::removed:
 			{
 				UpdateFiles( true );
@@ -423,10 +435,6 @@ namespace Saturn {
 			} break;
 
 			case filewatch::Event::renamed_new:
-			{ 
-				UpdateFiles( true );
-			} break;
-
 			case filewatch::Event::renamed_old:
 			{
 				UpdateFiles( true );
@@ -439,38 +447,28 @@ namespace Saturn {
 
 	void ContentBrowserPanel::FindAndRenameItem( const std::filesystem::path& rPath )
 	{
-		for( auto&& rrItem : m_Files )
-		{
-			if( rrItem->Path() == rPath )
-			{
-				rrItem->Rename();
-				break;
-			}
-		}
+		Ref<ContentBrowserItem> item = FindItem( rPath );
+
+		if( item )
+			item->Rename();
 	}
 
 	Ref<ContentBrowserItem> ContentBrowserPanel::FindItem( const std::filesystem::path& rPath )
 	{
-		for( auto&& rrItem : m_Files )
-		{
-			if( rrItem->Path() == rPath )
-			{
-				return rrItem;
-			}
-		}
+		const auto Itr = std::find_if( m_Files.begin(), m_Files.end(), [rPath]( auto& rItem ) { return rItem->Path() == rPath; } );
+
+		if( Itr != m_Files.end() )
+			return *Itr;
 
 		return nullptr;
 	}
 
 	Ref<ContentBrowserItem> ContentBrowserPanel::GetActiveHoveredItem()
 	{
-		for( auto&& rrItem : m_Files )
-		{
-			if( rrItem->IsHovered() )
-			{
-				return rrItem;
-			}
-		}
+		const auto Itr = std::find_if( m_Files.begin(), m_Files.end(), []( auto& rItem ) { return rItem->IsHovered(); } );
+
+		if( Itr != m_Files.end() )
+			return *Itr;
 
 		return nullptr;
 	}
@@ -716,9 +714,7 @@ namespace Saturn {
 		// Search
 		ImGui::BeginHorizontal( "##cbfinder" );
 
-		ImGui::Text( "Search for content" );
-
-		if( m_TextFilter.Draw( "##contentfinder", 436.0f ) )
+		if( m_TextFilter.Draw( "Search for content", "##contentfinder", 436.0f ) )
 		{
 			m_Searching = m_TextFilter.IsActive();
 		}
@@ -751,29 +747,14 @@ namespace Saturn {
 				if( !item )
 					break;
 
-				// Is the item in the selection list if so and we are no longer selected then we need to remove it.
-				if( std::find( m_SelectedItems.begin(), m_SelectedItems.end(), item ) != m_SelectedItems.end() )
+				if( !item->IsSelected() )
 				{
-					if( !item->IsSelected() )
+					// Is the item in the selection list if so and we are no longer selected then we need to remove it.
+					if( std::find( m_SelectedItems.begin(), m_SelectedItems.end(), item ) != m_SelectedItems.end() )
 					{
 						item->Deselect();
 
 						m_SelectedItems.erase( std::remove( m_SelectedItems.begin(), m_SelectedItems.end(), item ), m_SelectedItems.end() );
-					}
-				}
-				else
-				{
-					if( item->IsSelected() )
-					{
-						m_SelectedItems.push_back( item );
-
-						// We are selected but if we are not multi selected, we need to deselect the other one.
-						if( !item->MultiSelected() && item != m_SelectedItems[ 0 ] )
-						{
-							m_SelectedItems[ 0 ]->Deselect();
-
-							m_SelectedItems.erase( std::remove( m_SelectedItems.begin(), m_SelectedItems.end(), item ), m_SelectedItems.end() );
-						}
 					}
 				}
 			}
@@ -812,9 +793,6 @@ namespace Saturn {
 				if( ImGui::MenuItem( "Rename" ) )
 				{
 					m_SelectedItems[ 0 ]->Rename();
-
-					// Once we have filewatch setup we will no longer need to do this.
-					//UpdateFiles( true );
 				}
 
 				// Folder Actions
@@ -850,10 +828,10 @@ namespace Saturn {
 				{
 					if( ImGui::MenuItem( "Delete" ) )
 					{
-						m_SelectedItems[ 0 ]->Delete();
-
-						// Once we have filewatch setup we will no longer need to do this.
-						UpdateFiles( true );
+						for( auto& rItem : m_SelectedItems )
+						{
+							rItem->Delete();
+						}
 					}
 				}
 			}
@@ -1355,10 +1333,10 @@ namespace Saturn {
 		m_SelectedItems.clear();
 	}
 
-	void ContentBrowserPanel::SetPath( const std::filesystem::path& rPath )
+	void ContentBrowserPanel::ResetPath( const std::filesystem::path& rProjectRootPath )
 	{
-		s_pAssetsDirectory = rPath / "Assets";
-		s_pScriptsDirectory = rPath / "Source";
+		s_pAssetsDirectory = rProjectRootPath / "Assets";
+		s_pScriptsDirectory = rProjectRootPath / "Source";
 
 		switch( m_ViewMode )
 		{
@@ -1377,6 +1355,7 @@ namespace Saturn {
 			} break;
 		}
 
+		delete m_Watcher;
 		m_Watcher = new filewatch::FileWatch<std::string>( s_pAssetsDirectory.string(),
 			[this]( const std::string& path, const filewatch::Event event )
 			{
@@ -1386,13 +1365,29 @@ namespace Saturn {
 		UpdateFiles( true );
 	}
 
-	void ContentBrowserPanel::OnDirectorySelected( const std::filesystem::path& rPath )
+	void ContentBrowserPanel::OnItemSelected( ContentBrowserItem* pItem )
 	{
-		m_CurrentPath /= rPath;
+		if( pItem->IsDirectory() )
+		{
+			m_CurrentPath /= pItem->Path();
 
-		m_ChangeDirectory = true;
+			m_ChangeDirectory = true;
 
-		ClearSelected();
+			ClearSelected();
+		}
+		else
+		{
+			if( pItem->MultiSelected() )
+			{
+				m_SelectedItems.push_back( pItem );
+			}
+			else
+			{
+				ClearSelected();
+
+				m_SelectedItems.push_back( pItem );
+			}
+		}
 	}
 
 	void ContentBrowserPanel::UpdateFiles( bool clear /*= false */ )
@@ -1404,7 +1399,7 @@ namespace Saturn {
 		{
 			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
 
-			item->SetDirectorySelectedFn( SAT_BIND_EVENT_FN( OnDirectorySelected ) );
+			item->SetSelectedFn( SAT_BIND_EVENT_FN( OnItemSelected ) );
 
 			if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )
 			{

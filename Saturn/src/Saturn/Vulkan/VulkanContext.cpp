@@ -110,6 +110,8 @@ namespace Saturn {
 
 		Renderer::Get().Terminate();
 
+		ShaderLibrary::Get().Shutdown();
+
 		m_DepthImage = nullptr;
 		
 		delete m_pAllocator;
@@ -138,7 +140,7 @@ namespace Saturn {
 #endif
 
 		VkApplicationInfo AppInfo  ={ VK_STRUCTURE_TYPE_APPLICATION_INFO };
-		AppInfo.pApplicationName = "Saturn Engine";
+		AppInfo.pApplicationName   = "Saturn Engine";
 		AppInfo.pEngineName        = "Saturn Engine";
 		AppInfo.applicationVersion = VK_MAKE_VERSION( 0, 0, 1 );
 		AppInfo.engineVersion      = VK_MAKE_VERSION( 0, 0, 1 );

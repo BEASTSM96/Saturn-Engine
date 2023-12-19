@@ -181,7 +181,6 @@ namespace Saturn {
 			PushConstant.Write( additionalData.Data, additionalData.Size, 0 );
 
 		auto& rSubmesh = mesh->Submeshes()[ SubmeshIndex ];
-
 		{
 			mesh->GetVertexBuffer()->Bind( CommandBuffer );
 

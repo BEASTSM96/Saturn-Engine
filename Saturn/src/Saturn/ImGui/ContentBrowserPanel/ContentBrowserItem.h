@@ -77,7 +77,7 @@ namespace Saturn {
 		std::filesystem::path& Path()             { return m_Path; }
 		const std::filesystem::path& Path() const { return m_Path; }
 
-		void SetDirectorySelectedFn( const std::function<void( const std::filesystem::path& )>&& rrFunc ) { m_OnDirectorySelected = rrFunc; }
+		void SetSelectedFn( const std::function<void( ContentBrowserItem* )>&& rrFunc ) { m_OnSelected = rrFunc; }
 		
 		void OnRenameCommitted( const std::string& rName );
 		void OnRenameCommittedFolder( const std::string& rName );
@@ -93,7 +93,7 @@ namespace Saturn {
 		std::filesystem::path m_Filename;
 		std::filesystem::path m_Path;
 
-		std::function<void( const std::filesystem::path& )> m_OnDirectorySelected;
+		std::function<void( ContentBrowserItem* )> m_OnSelected;
 
 		bool m_IsDirectory = false;
 		bool m_IsHovered = false;

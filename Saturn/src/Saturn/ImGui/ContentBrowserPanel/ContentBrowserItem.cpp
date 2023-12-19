@@ -102,7 +102,7 @@ namespace Saturn {
 				{
 					DoubleClicked = true;
 
-					m_OnDirectorySelected( m_Entry.path().filename() );
+					m_OnSelected( this );
 				}
 
 				if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
@@ -136,7 +136,7 @@ namespace Saturn {
 			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, AssetTypeToColor( m_AssetType ), 1.5f );
 
 			ImGui::ItemSize( ImRect( TopLeft, BottomRight ).Min, style.FramePadding.y );
-			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path .c_str() ) );
+			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path.c_str() ) );
 
 			bool ItemClicked = false;
 			bool Open = false;
@@ -166,6 +166,7 @@ namespace Saturn {
 				}
 
 				m_IsSelected = !m_IsSelected;
+				m_OnSelected( this );
 			}
 
 			if( m_IsSelected )
