@@ -100,6 +100,56 @@ namespace Saturn {
 			return "";
 		}
 
+		std::wstring GetEnvironmentVariableWs( const std::wstring& rKey )
+		{
+			HKEY hKey;
+			LPCSTR keyPath = "Environment";
+			DWORD dwKeyWasCreated;
+			LSTATUS lResult = RegCreateKeyExA( HKEY_CURRENT_USER, keyPath, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, &dwKeyWasCreated );
+
+			if( lResult == ERROR_SUCCESS )
+			{
+				DWORD dwType;
+				wchar_t* pBuffer = new wchar_t[ 512 ];
+				DWORD dwSize = 512;
+
+				lResult = RegGetValueW( hKey, NULL, rKey.c_str(), RRF_RT_ANY, &dwType, ( PBYTE ) pBuffer, &dwSize );
+
+				RegCloseKey( hKey );
+
+				if( lResult == ERROR_SUCCESS )
+				{
+					std::wstring res( pBuffer );
+
+					delete[] pBuffer;
+
+					return res;
+				}
+				else
+				{
+					DWORD ErrorCode = GetLastError();
+					LPTSTR Error = NULL;
+
+					FormatMessage(
+						FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
+						NULL,
+						lResult,
+						MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
+						( LPTSTR ) &Error,
+						0,
+						NULL
+					);
+
+					SAT_CORE_ASSERT( false, "HResult failed." );
+
+					LocalFree( Error );
+					Error = NULL;
+				}
+			}
+
+			return L"";
+		}
+
 		void SetEnvironmentVariable( const std::string& rKey, const std::string& rValue )
 		{
 			HKEY hKey;

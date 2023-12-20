@@ -54,7 +54,7 @@
 #include <ImGuizmo/ImGuizmo.h>
 
 #include <Saturn/Core/Math.h>
-#include <Saturn/Core/StringUtills.h>
+#include <Saturn/Core/StringAuxiliary.h>
 #include <Saturn/Core/EngineSettings.h>
 #include <Saturn/Core/OptickProfiler.h>
 
@@ -135,10 +135,10 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Recreate project files" ) )
 				{
-					Project::GetActiveProject()->CreatePremakeFile();
+					if( !Project::GetActiveProject()->HasPremakeFile() )
+						Project::GetActiveProject()->CreatePremakeFile();
 
-					Premake* pPremake = new Premake();
-					pPremake->Launch( Project::GetActiveProject()->GetRootDir().string() );
+					Premake::Launch( Project::GetActiveProject()->GetRootDir().wstring() );
 				}
 
 				if( ImGui::MenuItem( "Prepare Project for Distribution" ) )
@@ -190,7 +190,7 @@ namespace Saturn {
 
 		auto& rUserSettings = EngineSettings::Get();
 
-		pContentBrowserPanel->SetPath( rUserSettings.StartupProject );
+		pContentBrowserPanel->ResetPath( rUserSettings.StartupProject );
 
 		ProjectSerialiser ps;
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
@@ -1025,7 +1025,7 @@ namespace Saturn {
 
 			ImGui::Text( "Search" );
 			ImGui::SameLine();
-			Filter.Draw( "##search" );
+			Filter.Draw( "", "##search" );
 
 			ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
 			if( ImGui::BeginTable( "##FileTable", 5, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y ) ) )
@@ -1083,7 +1083,7 @@ namespace Saturn {
 
 			ImGui::Text( "Search for assets..." );
 			ImGui::SameLine();
-			Filter.Draw( "##search" );
+			Filter.Draw( "", "##search" );
 
 			ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
 			if( ImGui::BeginTable( "##FileTable", 4, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y * 0.85f ) ) )

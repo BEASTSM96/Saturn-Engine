@@ -30,33 +30,20 @@
 #include "Premake.h"
 
 #include "Saturn/Core/EnvironmentVariables.h"
+#include "Saturn/Core/Process.h"
 
 namespace Saturn {
 
-	bool Premake::Launch( const std::string& rWorkingDir )
+	bool Premake::Launch( const std::wstring& rWorkingDir )
 	{
-		std::string PremakePath = Auxiliary::GetEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+		std::wstring PremakePath = Auxiliary::GetEnvironmentVariableWs( L"SATURN_PREMAKE_PATH" );
+		PremakePath += L" vs2022";
 
-		STARTUPINFOA StartupInfo = {};
-		StartupInfo.cb = sizeof( StartupInfo );
-		StartupInfo.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
-		StartupInfo.dwFlags = STARTF_USESTDHANDLES;
-
-		PROCESS_INFORMATION ProcessInfo;
-
-		std::replace( PremakePath.begin(), PremakePath.end(), '\\', '/' );
-
-		PremakePath += " vs2022";
-
-		bool res = CreateProcessA( nullptr, PremakePath.data(), nullptr, nullptr, FALSE, 0, nullptr, rWorkingDir.data(), &StartupInfo, &ProcessInfo );
-
-		if( !res )
-			SAT_CORE_ERROR( "Unable to start premake process" );
-
-		WaitForSingleObject( ProcessInfo.hProcess, INFINITE );
-
-		CloseHandle( ProcessInfo.hThread );
-		CloseHandle( ProcessInfo.hProcess );
+#if defined( _WIN32 )
+		std::replace( PremakePath.begin(), PremakePath.end(), L'/', L'\\' );
+#endif
+		Process premakeProcess( PremakePath, rWorkingDir );
+		bool res = ( premakeProcess.ResultOfProcess() == 0 ) ? true : false;
 
 		return res;
 	}

@@ -130,7 +130,7 @@ namespace Saturn {
 		if( glm::length( Direction ) > 0.0f )
 		{
 			glm::vec3 normalMove = glm::normalize( Direction );
-			normalMove *= 5.0f;
+			normalMove *= 20.0f;
 			normalMove.y = -2.0f;
 
 			m_RigidBody->ApplyForce( normalMove, ForceMode::Force );

@@ -38,8 +38,10 @@
 #include "Saturn/Serialisation/AssetSerialisers.h"
 #include "Saturn/Serialisation/SceneSerialiser.h"
 
-#include "Saturn/Project/Project.h"
 #include "Saturn/Core/App.h"
+#include "Saturn/Core/Process.h"
+
+#include "Saturn/Project/Project.h"
 #include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Vulkan/Mesh.h"
 
@@ -802,26 +804,16 @@ namespace Saturn {
 					{
 						// TODO TEMP: Create a process class.
 
+						std::wstring CommandLine = L"";
 						std::filesystem::path AssetPath = m_SelectedItems[ 0 ]->Path();
-						std::string AssetPathString = AssetPath.string();
+						CommandLine = std::format( L"explorer.exe \"{0}\"", AssetPath.wstring() );
 
-						STARTUPINFOA StartupInfo = {};
-						StartupInfo.cb = sizeof( StartupInfo );
-						StartupInfo.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
-						StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+						Process explorer( CommandLine );
 
-						PROCESS_INFORMATION ProcessInfo;
-
-						std::string CommandLine = "";
-						CommandLine = std::format( "explorer.exe \"{0}\"", AssetPathString );
-
-						bool res = CreateProcessA( nullptr, CommandLine.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo );
-
-						if( !res )
-							SAT_CORE_ERROR( "Failed to start explorer process!" );
-
-						CloseHandle( ProcessInfo.hProcess );
-						CloseHandle( ProcessInfo.hThread );
+						// Wait a bit for the process to start.
+						// Usually the explorer process takes a bit to start for some reason?
+						using namespace std::chrono_literals;
+						std::this_thread::sleep_for( 1.5s );
 					}
 				}
 				else
@@ -1122,8 +1114,7 @@ namespace Saturn {
 				Project::GetActiveProject()->CreateBuildFile();
 
 				// Update or create the project files.
-				Premake premake;
-				premake.Launch( Project::GetActiveProject()->GetRootDir().string() );
+				Premake::Launch( Project::GetActiveProject()->GetRootDir().wstring() );
 
 				// Next, create the source files.
 				// Right now the only script type we support is an entity type.
@@ -1365,9 +1356,9 @@ namespace Saturn {
 		UpdateFiles( true );
 	}
 
-	void ContentBrowserPanel::OnItemSelected( ContentBrowserItem* pItem )
+	void ContentBrowserPanel::OnItemSelected( ContentBrowserItem* pItem, bool clicked )
 	{
-		if( pItem->IsDirectory() )
+		if( pItem->IsDirectory() && clicked && !pItem->MultiSelected() ) 
 		{
 			m_CurrentPath /= pItem->Path();
 
@@ -1399,7 +1390,8 @@ namespace Saturn {
 		{
 			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
 
-			item->SetSelectedFn( SAT_BIND_EVENT_FN( OnItemSelected ) );
+			//item->SetSelectedFn( std::bind( &ContentBrowserPanel::OnItemSelected, this, std::placeholders::_1 ) );
+			item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
 
 			if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )
 			{

@@ -33,7 +33,7 @@
 #include <Saturn/ImGui/Panel/PanelManager.h>
 #include <Saturn/ImGui/TitleBar.h>
 
-#include <Saturn/Core/StringUtills.h>
+#include <Saturn/Core/StringAuxiliary.h>
 #include <Saturn/Core/EnvironmentVariables.h>
 
 #include <Saturn/Serialisation/ProjectSerialiser.h>

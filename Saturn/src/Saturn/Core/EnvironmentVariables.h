@@ -34,8 +34,12 @@
 namespace Saturn {
 	
 	namespace Auxiliary {
+
 		extern bool HasEnvironmentVariable( const std::string& rKey );
 		extern std::string GetEnvironmentVariable( const std::string& rKey );
+
+		extern std::wstring GetEnvironmentVariableWs( const std::wstring& rKey );
+
 		extern void SetEnvironmentVariable( const std::string& rKey, const std::string& rValue );
 	}
 

@@ -66,7 +66,7 @@ namespace Saturn {
 		void ResetPath( const std::filesystem::path& rPath );
 
 	private:	
-		void OnItemSelected( ContentBrowserItem* pItem );
+		void OnItemSelected( ContentBrowserItem* pItem, bool clicked );
 
 		void UpdateFiles( bool clear = false );
 

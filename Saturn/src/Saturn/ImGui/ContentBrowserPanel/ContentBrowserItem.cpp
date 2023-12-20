@@ -102,12 +102,14 @@ namespace Saturn {
 				{
 					DoubleClicked = true;
 
-					m_OnSelected( this );
+					m_OnSelected( this, true );
 				}
 
 				if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
 				{
 					Select();
+
+					m_OnSelected( this, false );
 				}
 			}
 
@@ -115,6 +117,8 @@ namespace Saturn {
 			if( Clicked && !DoubleClicked )
 			{
 				m_IsSelected = !m_IsSelected;
+
+				m_OnSelected( this, m_IsSelected );
 			}
 
 			if( m_IsSelected )
@@ -155,6 +159,8 @@ namespace Saturn {
 				else if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
 				{
 					Select();
+
+					m_OnSelected( this, false );
 				}
 			}
 
@@ -166,7 +172,7 @@ namespace Saturn {
 				}
 
 				m_IsSelected = !m_IsSelected;
-				m_OnSelected( this );
+				m_OnSelected( this, m_IsSelected );
 			}
 
 			if( m_IsSelected )

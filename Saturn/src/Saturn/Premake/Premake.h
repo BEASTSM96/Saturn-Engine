@@ -37,10 +37,6 @@ namespace Saturn {
 	class Premake
 	{
 	public:
-		Premake() {}
-		~Premake() {}
-
-		bool Launch( const std::string& rWorkingDir );
-	private:
+		static bool Launch( const std::wstring& rWorkingDir );
 	};
 }
