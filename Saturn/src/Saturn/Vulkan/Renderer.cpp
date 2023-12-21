@@ -429,13 +429,11 @@ namespace Saturn {
 		
 		m_QueuePresentTimer.Reset();
 
-		//SAT_PF_EVENT_N("Queue Present");
-
 		VkResult Result = vkQueuePresentKHR( VulkanContext::Get().GetGraphicsQueue(), &PresentInfo );
 
 		if( Result == VK_ERROR_OUT_OF_DATE_KHR ) 
 		{
-			SAT_CORE_INFO( "VK_ERROR_OUT_OF_DATE_KHR, Swapchain will be re-created" );
+			SAT_CORE_INFO( "Result was VK_ERROR_OUT_OF_DATE_KHR, Swapchain will be re-created!" );
 
 			VulkanContext::Get().GetSwapchain().Recreate();
 

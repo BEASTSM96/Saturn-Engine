@@ -47,19 +47,14 @@ struct RubyWindowRegister
 {
 	RubyWindowRegister() 
 	{
-		WNDCLASS wc = {};
-		wc.lpfnWndProc = RubyWindowProc;
-		wc.hInstance = GetModuleHandle( NULL );
-		wc.lpszClassName = DefaultClassName;
-		wc.hCursor = LoadCursor( nullptr, IDC_ARROW );
-		wc.style = CS_VREDRAW | CS_HREDRAW | CS_OWNDC;
+		WNDCLASS wc = { .style = CS_VREDRAW | CS_HREDRAW | CS_OWNDC, .lpfnWndProc = RubyWindowProc, .hInstance = GetModuleHandle( nullptr ), .hCursor = LoadCursor( nullptr, IDC_ARROW ), .lpszClassName = DefaultClassName };
 
 		::RegisterClass( &wc );
 	}
 
 	~RubyWindowRegister()
 	{
-		::UnregisterClass( DefaultClassName, GetModuleHandle( NULL ) );
+		::UnregisterClass( DefaultClassName, GetModuleHandle( nullptr ) );
 	}
 } static s_RubyWindowRegister;
 
@@ -223,49 +218,31 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		// Mouse Button Pressed & Released
 
 		case WM_LBUTTONDOWN:
-		{
-			pThis->GetParent()->SetMouseDown( RubyMouseButton::Left );
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, ( int ) RubyMouseButton::Left );
-		} break;
-
 		case WM_RBUTTONDOWN:
-		{
-			pThis->GetParent()->SetMouseDown( RubyMouseButton::Right );
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, ( int ) RubyMouseButton::Right );
-		} break;
-
 		case WM_MBUTTONDOWN:
 		{
-			pThis->GetParent()->SetMouseDown( RubyMouseButton::Middle );
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, ( int ) RubyMouseButton::Middle );
+			RubyMouseButton btn = ( Msg == WM_LBUTTONDOWN ? RubyMouseButton::Left : Msg == WM_RBUTTONDOWN ? RubyMouseButton::Right : RubyMouseButton::Middle );
+
+			pThis->GetParent()->SetMouseDown( btn );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, ( int ) btn );
 		} break;
 
 		case WM_LBUTTONUP:
-		{
-			pThis->GetParent()->SetMouseDown( RubyMouseButton::Left, false );
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int ) RubyMouseButton::Left );
-		} break;
-
 		case WM_RBUTTONUP:
-		{
-			pThis->GetParent()->SetMouseDown( RubyMouseButton::Right, false );
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int ) RubyMouseButton::Right );
-		} break;
-
 		case WM_MBUTTONUP:
 		{
-			pThis->GetParent()->SetMouseDown( RubyMouseButton::Middle, false );
-			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int ) RubyMouseButton::Middle );
+			RubyMouseButton btn = ( Msg == WM_LBUTTONUP ? RubyMouseButton::Left : Msg == WM_RBUTTONUP ? RubyMouseButton::Right : RubyMouseButton::Middle );
+
+			pThis->GetParent()->SetMouseDown( btn, false );
+			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int )btn );
 		} break;
 
 		case WM_MOUSEHOVER:
-		{
-			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::MouseEnterWindow );
-		} break;
-
 		case WM_MOUSELEAVE:
 		{
-			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::MouseLeaveWindow );
+			RubyEventType Type = ( Msg == WM_MOUSEHOVER ? RubyEventType::MouseEnterWindow : RubyEventType::MouseLeaveWindow );
+
+			pThis->GetParent()->DispatchEvent<RubyEvent>( Type );
 		} break;
 		
 		// Vertical Scroll
