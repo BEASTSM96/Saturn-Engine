@@ -1025,7 +1025,7 @@ namespace Saturn {
 
 			ImGui::Text( "Search" );
 			ImGui::SameLine();
-			Filter.Draw( "", "##search" );
+			Filter.Draw( "##search" );
 
 			ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
 			if( ImGui::BeginTable( "##FileTable", 5, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y ) ) )
@@ -1083,7 +1083,7 @@ namespace Saturn {
 
 			ImGui::Text( "Search for assets..." );
 			ImGui::SameLine();
-			Filter.Draw( "", "##search" );
+			Filter.Draw( "##search" );
 
 			ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
 			if( ImGui::BeginTable( "##FileTable", 4, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y * 0.85f ) ) )

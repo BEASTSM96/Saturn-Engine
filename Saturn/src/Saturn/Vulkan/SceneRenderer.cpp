@@ -1302,8 +1302,7 @@ namespace Saturn {
 
 		m_RendererData.PreDepthShader->WriteAllUBs( m_RendererData.PreDepthPipeline->GetDescriptorSet( ShaderType::Vertex, 0 ) );
 
-		// We can use the shadow map draw list for pre depth.
-		for( auto&& [key, Cmd]: m_ShadowMapDrawList )
+		for( auto&& [key, Cmd]: m_DrawList )
 		{
 			// Entity may of been deleted.
 			if( !Cmd.entity )
@@ -1491,6 +1490,10 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		m_RendererData.BloomTimer.Reset();
+		m_RendererData.BloomTimer.Stop();
+
+		// TEMP
+		return;
 
 		struct u_Settings
 		{
@@ -1818,7 +1821,7 @@ namespace Saturn {
 
 		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Bloom" );
 
-//		BloomPass();
+		BloomPass();
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
@@ -1949,8 +1952,6 @@ namespace Saturn {
 		SubmeshTransformData.clear();
 
 		MeshTransforms.clear();
-
-		ShaderLibrary::Get().Shutdown();
 	}
 
 }

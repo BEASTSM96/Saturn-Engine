@@ -716,7 +716,7 @@ namespace Saturn {
 		// Search
 		ImGui::BeginHorizontal( "##cbfinder" );
 
-		if( m_TextFilter.Draw( "Search for content", "##contentfinder", 436.0f ) )
+		if( m_TextFilter.DrawWithHint( "##contentfinder", "Search for content", 436.0f ) )
 		{
 			m_Searching = m_TextFilter.IsActive();
 		}
