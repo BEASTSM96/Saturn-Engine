@@ -57,6 +57,7 @@
 #include "Saturn/GameFramework/Core/GameModule.h"
 
 #include <imgui_internal.h>
+#include <ranges>
 
 namespace Saturn {
 	
@@ -1414,7 +1415,7 @@ namespace Saturn {
 
 		if( m_FilesNeedSorting )
 		{
-			auto Fn = []( Ref<ContentBrowserItem>& a, Ref<ContentBrowserItem>& b) -> bool
+			auto Fn = []( Ref<ContentBrowserItem>& a, Ref<ContentBrowserItem>& b ) -> bool
 			{
 				if( a->IsDirectory() && !b->IsDirectory() )
 					return true; // a is a directory sort first.

@@ -274,7 +274,11 @@ namespace Saturn {
 		float QueuePriority = 1.0f;
 
 		std::vector<VkDeviceQueueCreateInfo> QueueCreateInfos;
-		std::set<uint32_t> UniqueQueueFamilies ={ m_Indices.GraphicsFamily.value(), m_Indices.PresentFamily.value(), m_Indices.ComputeFamily.value() };
+
+		// We only want the unique values so therefore we need to create a std::set as a set only stores unqiue values.
+		// And Vulkan only wants the unique vales anyway.
+		std::set<uint32_t> UniqueQueueFamilies = { 
+			m_Indices.GraphicsFamily.value(), m_Indices.PresentFamily.value(), m_Indices.ComputeFamily.value() };
 
 		for( uint32_t QueueFamily : UniqueQueueFamilies )
 		{

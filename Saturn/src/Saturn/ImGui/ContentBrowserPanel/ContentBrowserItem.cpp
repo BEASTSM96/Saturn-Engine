@@ -118,7 +118,8 @@ namespace Saturn {
 			{
 				m_IsSelected = !m_IsSelected;
 
-				m_OnSelected( this, m_IsSelected );
+				// Selected but not opened!
+				m_OnSelected( this, false );
 			}
 
 			if( m_IsSelected )
