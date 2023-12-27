@@ -78,7 +78,7 @@ namespace Saturn {
 		std::string fullName = rName + ".sproject";
 		std::string res = "";
 
-		for( auto& rEntry : std::filesystem::recursive_directory_iterator( std::filesystem::current_path() ) )
+		for( auto& rEntry : std::filesystem::directory_iterator( std::filesystem::current_path() ) )
 		{
 			if( rEntry.is_directory() )
 				continue;

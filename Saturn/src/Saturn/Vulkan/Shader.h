@@ -34,6 +34,8 @@
 #include "DescriptorSet.h"
 
 #include "Base.h"
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -56,7 +58,7 @@ namespace Saturn {
 	struct ShaderUniformBuffer
 	{
 		std::string Name;
-		uint32_t Binding = -1;
+		uint32_t Binding;
 		size_t Size = 0;
 		ShaderType Location = ShaderType::None;
 		
@@ -70,12 +72,28 @@ namespace Saturn {
 		auto operator<=>( const ShaderUniformBuffer& rOther ) const = default;
 
 		std::vector< ShaderUniform > Members;
+
+		static void Serialise( const ShaderUniformBuffer& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteString( rObject.Name, rStream );
+			RawSerialisation::WriteObject( rObject.Binding, rStream );
+			RawSerialisation::WriteObject( rObject.Size, rStream );
+			RawSerialisation::WriteObject( rObject.Location, rStream );
+		}
+
+		static void Deserialise( ShaderUniformBuffer& rObject, std::ifstream& rStream )
+		{
+			rObject.Name = RawSerialisation::ReadString( rStream );
+			RawSerialisation::ReadObject( rObject.Binding, rStream );
+			RawSerialisation::ReadObject( rObject.Size, rStream );
+			RawSerialisation::ReadObject( rObject.Location, rStream );
+		}
 	};
 
 	struct ShaderStorageBuffer
 	{
 		std::string Name;
-		uint32_t Binding = -1;
+		uint32_t Binding;
 		size_t Size = 0;
 		ShaderType Location = ShaderType::None;
 		bool Updated = false;
@@ -88,19 +106,52 @@ namespace Saturn {
 		auto operator<=>( const ShaderStorageBuffer& rOther ) const = default;
 
 		std::vector< ShaderUniform > Members;
+
+		static void Serialise( const ShaderStorageBuffer& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteString( rObject.Name, rStream );
+			RawSerialisation::WriteObject( rObject.Binding, rStream );
+			RawSerialisation::WriteObject( rObject.Size, rStream );
+			RawSerialisation::WriteObject( rObject.Location, rStream );
+		}
+
+		static void Deserialise( ShaderStorageBuffer& rObject, std::ifstream& rStream )
+		{
+			rObject.Name = RawSerialisation::ReadString( rStream );
+			RawSerialisation::ReadObject( rObject.Binding, rStream );
+			RawSerialisation::ReadObject( rObject.Size, rStream );
+			RawSerialisation::ReadObject( rObject.Location, rStream );
+		}
 	};
 
 	struct ShaderSampledImage
 	{
 		std::string Name;
 		ShaderType Stage = ShaderType::None;
-		uint32_t Set = -1;
-		uint32_t Binding = -1;
+		uint32_t Set;
+		uint32_t Binding;
+
+		static void Serialise( const ShaderSampledImage& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteString( rObject.Name, rStream );
+			RawSerialisation::WriteObject( rObject.Stage, rStream );
+			RawSerialisation::WriteObject( rObject.Set, rStream );
+			RawSerialisation::WriteObject( rObject.Binding, rStream );
+		}
+
+		static void Deserialise( ShaderSampledImage& rObject, std::ifstream& rStream )
+		{
+			rObject.Name = RawSerialisation::ReadString( rStream );
+
+			RawSerialisation::ReadObject( rObject.Stage, rStream );
+			RawSerialisation::ReadObject( rObject.Set, rStream );
+			RawSerialisation::ReadObject( rObject.Binding, rStream );
+		}
 	};
 
 	struct ShaderDescriptorSet
 	{
-		uint32_t Set = -1;
+		uint32_t Set;
 
 		VkDescriptorSetLayout SetLayout = nullptr;
 		
@@ -109,6 +160,28 @@ namespace Saturn {
 		std::vector< ShaderSampledImage > StorageImages;
 		std::unordered_map< uint32_t, ShaderUniformBuffer > UniformBuffers;
 		std::unordered_map< uint32_t, ShaderStorageBuffer > StorageBuffers;
+
+		static void Serialise( const ShaderDescriptorSet& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteObject( rObject.Set, rStream );
+
+			RawSerialisation::WriteVector( rObject.SampledImages, rStream );
+			RawSerialisation::WriteVector( rObject.StorageImages, rStream );
+
+			RawSerialisation::WriteMap( rObject.UniformBuffers, rStream );
+			RawSerialisation::WriteMap( rObject.StorageBuffers, rStream );
+		}
+
+		static void Deserialise( ShaderDescriptorSet& rObject, std::ifstream& rStream )
+		{
+			RawSerialisation::ReadObject( rObject.Set, rStream );
+
+			RawSerialisation::ReadVector( rObject.SampledImages, rStream );
+			RawSerialisation::ReadVector( rObject.StorageImages, rStream );
+
+			RawSerialisation::ReadMap( rObject.UniformBuffers, rStream );
+			RawSerialisation::ReadMap( rObject.StorageBuffers, rStream );
+		}
 	};
 
 	struct ShaderSource
@@ -151,6 +224,18 @@ namespace Saturn {
 
 		ShaderType Type = ShaderType::Vertex;
 		int Index = -1;
+
+		static void Serialise( const ShaderSourceKey& rKey, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteObject( rKey.Type, rStream );
+			RawSerialisation::WriteObject( rKey.Index, rStream );
+		}
+
+		static void Deserialise( ShaderSourceKey& rKey, std::ifstream& rStream )
+		{
+			RawSerialisation::ReadObject( rKey.Type, rStream );
+			RawSerialisation::ReadObject( rKey.Index, rStream );
+		}
 	};
 }
 
@@ -263,7 +348,7 @@ namespace Saturn {
 		VkDescriptorSetLayout GetSetLayout( uint32_t set = 0 ) { return m_SetLayouts[ set ]; }
 
 		void SerialiseShaderData( std::ofstream& rStream );
-		void DeserialiseShaderData( uint8_t** ppData );
+		void DeserialiseShaderData( std::ifstream& rStream );
 
 	private:
 

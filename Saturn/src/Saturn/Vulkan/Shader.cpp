@@ -922,16 +922,16 @@ namespace Saturn {
 		RawSerialisation::WriteVector( m_PushConstantRanges, rStream );
 	}
 
-	void Shader::DeserialiseShaderData( uint8_t** ppData ) 
+	void Shader::DeserialiseShaderData( std::ifstream& rStream ) 
 	{
-		RawSerialisation::ReadMap<SpvSourceMap, ShaderSourceKey, std::vector<uint32_t>>( ppData, m_SpvCode );
-		RawSerialisation::ReadMap<std::unordered_map<uint32_t, ShaderDescriptorSet>, uint32_t, ShaderDescriptorSet>( ppData, m_DescriptorSets );
+		RawSerialisation::ReadMap( m_SpvCode, rStream );
+		RawSerialisation::ReadMap( m_DescriptorSets, rStream );
 
-		RawSerialisation::ReadVector( ppData, m_Uniforms );
-		RawSerialisation::ReadVector( ppData, m_PushConstantUniforms );
+		RawSerialisation::ReadVector( m_Uniforms, rStream );
+		RawSerialisation::ReadVector( m_PushConstantUniforms, rStream );
 
-		RawSerialisation::ReadVector( ppData, m_Textures );
-		RawSerialisation::ReadVector( ppData, m_PushConstantRanges );
+		RawSerialisation::ReadVector( m_Textures, rStream );
+		RawSerialisation::ReadVector( m_PushConstantRanges, rStream );
 
 		// Clean up some of the data that was read.
 		for( auto&& [k, v] : m_DescriptorSets )

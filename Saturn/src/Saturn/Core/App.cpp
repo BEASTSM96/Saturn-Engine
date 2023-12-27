@@ -89,7 +89,10 @@ namespace Saturn {
 
 		m_VulkanContext->Init();
 
+		// If we are in Dist we don't want to create the scene renderer just right now because we want to load the project and then load the shader bundle so then we can create the scene renderer.
+#if !defined( SAT_DIST )
 		m_SceneRenderer = new SceneRenderer();
+#endif
 
 		// Just for a better startup, we will only show the window when the layer wants to.
 #if !defined( SAT_DIST )

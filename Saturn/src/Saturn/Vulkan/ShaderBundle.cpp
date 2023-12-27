@@ -71,8 +71,10 @@ namespace Saturn {
 		{
 			SAT_CORE_INFO( "Packaging shader: {0}", name );
 
-			fout.write( name.c_str(), name.length() );
-			fout.write( reinterpret_cast<char*>( &i ), sizeof( int ) );
+			size_t stringSize = name.length();
+			fout.write( reinterpret_cast<char*>( &stringSize ), sizeof( size_t ) );
+
+			fout.write( name.c_str(), stringSize );
 
 			shader->SerialiseShaderData( fout );
 
@@ -91,19 +93,10 @@ namespace Saturn {
 
 		if( !std::filesystem::exists( cachePath ) )
 			return;
+		std::ifstream stream( cachePath, std::ios::binary | std::ios::in );
 
-		Buffer FileBuffer;
-		std::ifstream stream( cachePath, std::ios::binary | std::ios::ate );
-
-		auto end = stream.tellg();
-		stream.seekg( 0, std::ios::beg );
-		auto size = end - stream.tellg();
-
-		FileBuffer.Allocate( size );
-		stream.read( reinterpret_cast<char*>( FileBuffer.Data ), FileBuffer.Size );
-		stream.close();
-
-		ShaderBundleHeader header = *(ShaderBundleHeader*) FileBuffer.Data;
+		ShaderBundleHeader header{};
+		stream.read( reinterpret_cast< char* >( &header ), sizeof( ShaderBundleHeader ) );
 
 		if( strcmp( header.Magic, ".SB\0" ) )
 		{
@@ -111,21 +104,19 @@ namespace Saturn {
 			return;
 		}
 
-		uint8_t* shaderData = FileBuffer.As<uint8_t>() + sizeof( ShaderBundleHeader );
-
 		for( uint32_t i = 0; i < header.Shaders; i++ )
 		{
 			Ref<Shader> shader = Ref<Shader>::Create();
 
-			std::string name = RawSerialisation::ReadString( &shaderData );
+			std::string name = RawSerialisation::ReadString( stream );
 			shader->m_Name = name;
 
-			shader->DeserialiseShaderData( &shaderData );
+			shader->DeserialiseShaderData( stream );
 
 			ShaderLibrary::Get().Add( shader );
 		}
 
 		// We are done with the file buffer.
-		FileBuffer.Free();
+		stream.close();
 	}
 }

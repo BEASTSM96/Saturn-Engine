@@ -59,12 +59,14 @@ namespace Saturn {
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
 		pPhysicsFoundation->Init();
 
+#if !defined( SAT_DIST )
 		auto& rUserSettings = EngineSettings::Get();
 
 		ProjectSerialiser ps;
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 
 		SAT_CORE_ASSERT( Project::GetActiveProject(), "No project was given." );
+#endif
 
 		AssetManager* pAssetManager = new AssetManager();
 

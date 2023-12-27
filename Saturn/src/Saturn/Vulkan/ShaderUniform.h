@@ -36,6 +36,8 @@
 
 #include "Saturn/Core/Memory/Buffer.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 namespace Saturn {
 	
 	// A shader uniform represents a uniform variable in a shader.
@@ -73,6 +75,27 @@ namespace Saturn {
 		{	
 			Location = -1;
 			DataType = ShaderDataType::None;
+		}
+
+		static void Serialise( const ShaderUniform& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteString( rObject.Name, rStream );
+			RawSerialisation::WriteObject( rObject.Location, rStream );
+			RawSerialisation::WriteObject( rObject.DataType, rStream );
+			RawSerialisation::WriteObject( rObject.IsPushConstantData, rStream );
+			RawSerialisation::WriteObject( rObject.Offset, rStream );
+			RawSerialisation::WriteObject( rObject.Size, rStream );
+		}
+
+		static void Deserialise( ShaderUniform& rObject, std::ifstream& rStream )
+		{
+			rObject.Name = RawSerialisation::ReadString( rStream );
+
+			RawSerialisation::ReadObject( rObject.Location, rStream );
+			RawSerialisation::ReadObject( rObject.DataType, rStream );
+			RawSerialisation::ReadObject( rObject.IsPushConstantData, rStream );
+			RawSerialisation::ReadObject( rObject.Offset, rStream );
+			RawSerialisation::ReadObject( rObject.Size, rStream );
 		}
 
 	private:

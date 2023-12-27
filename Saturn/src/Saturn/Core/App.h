@@ -134,6 +134,10 @@ namespace Saturn {
 		// The path where the default content is. Path is absolute.
 		std::filesystem::path m_RootContentPath;
 
+	protected:
+		SceneRenderer* m_SceneRenderer = nullptr;
+		RubyWindow* m_Window = nullptr;
+
 	private:
 		bool m_Running = true;
 		
@@ -147,8 +151,6 @@ namespace Saturn {
 		std::vector<Layer*> m_Layers;
 
 		// TODO: Change all of these to refs, I really don't like this.
-		SceneRenderer* m_SceneRenderer = nullptr;
-		RubyWindow* m_Window = nullptr;
 		VulkanContext* m_VulkanContext = nullptr;
 		Log* m_Log = nullptr;
 

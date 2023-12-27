@@ -152,6 +152,7 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Distribute project" ) )
 				{
+					Project::GetActiveProject()->Rebuild( ConfigKind::Dist );
 					Project::GetActiveProject()->Distribute( ConfigKind::Dist );
 				}
 

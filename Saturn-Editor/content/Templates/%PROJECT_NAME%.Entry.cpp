@@ -34,26 +34,26 @@
 #include <Saturn/Core/App.h>
 #include <Saturn/Runtime/RuntimeLayer.h>
 #include <Saturn/Project/Project.h>
+#include <Saturn/Vulkan/ShaderBundle.h>
 #include <Saturn/Serialisation/EngineSettingsSerialiser.h>
+#include <Saturn/Serialisation/ProjectSerialiser.h>
 
 static std::string s_ProjectPath = "";
 
 // Saturn client main:
-namespace Saturn {
-	extern int SaturnMain( int, char** );
-}
+extern int _main( int, char** );
 
 int main( int count, char** args )
 {
 	// Hand it off to Saturn:
-	return Saturn::SaturnMain( count, args );
+	return _main( count, args );
 }
 
 #if defined ( _WIN32 )
 
 int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd )
 {
-	return Saturn::SaturnMain( __argc, __argv );
+	return _main( __argc, __argv );
 }
 
 #endif // _WIN32
@@ -71,10 +71,22 @@ public:
 		Saturn::EngineSettings& rSettings = Saturn::EngineSettings::Get();
 		rSettings.StartupProject = s_ProjectPath;
 
-		size_t found = m_ProjectPath.find_last_of( "/\\" );
+		size_t found = s_ProjectPath.find_last_of( "/\\" );
 		rSettings.StartupProjectName = s_ProjectPath.substr( found + 1 );
 
-		rSettings.FullStartupProjPath = s_ProjectPath + "\\" + rSettings.StartupProjectName + ".sproject";
+		rSettings.FullStartupProjPath = s_ProjectPath;
+
+		m_RootContentPath = std::filesystem::current_path() / "content";
+
+		// Load the project really early because we still need to load the shader bundle and create the scene renderer.
+		Saturn::ProjectSerialiser ps;
+		ps.Deserialise( rSettings.FullStartupProjPath.string() );
+
+		SAT_CORE_ASSERT( Saturn::Project::GetActiveProject(), "No project was given." );
+
+		Saturn::ShaderBundle::Get().ReadBundle();
+
+		m_SceneRenderer = new Saturn::SceneRenderer();
 	}
 
 	virtual void OnInit() override
@@ -98,9 +110,11 @@ private:
 
 Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 {
+	std::filesystem::path WorkingDir = argv[ 0 ];
+	std::filesystem::current_path( WorkingDir.parent_path() );
+
 	Saturn::ApplicationSpecification spec{};
-	spec.Titlebar = true;
-	spec.GameDist = true;
+	spec.Flags = Saturn::ApplicationFlag_CreateSceneRenderer | Saturn::ApplicationFlag_GameDist | Saturn::ApplicationFlag_Titlebar;
 
 	s_ProjectPath = Saturn::Project::FindProjectDir( "%PROJECT_NAME%" );
 

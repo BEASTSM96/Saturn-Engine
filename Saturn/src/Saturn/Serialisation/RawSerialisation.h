@@ -37,8 +37,8 @@ namespace Saturn {
 	class RawSerialisation
 	{
 	public:
-		template<typename Ty>
-		static void WriteMap( const Ty& rMap, std::ofstream& rStream )
+		template<typename K, typename V>
+		static void WriteMap( const std::unordered_map<K, V>& rMap, std::ofstream& rStream )
 		{
 			if( !rStream.is_open() )
 				return;
@@ -48,13 +48,52 @@ namespace Saturn {
 
 			for( const auto& [key, value] : rMap )
 			{
-				WriteObject( key, rStream );
-				WriteObject( value, rStream );
+				if constexpr( std::is_trivial<K>() )
+				{
+					WriteObject( key, rStream );
+				}
+				else
+				{
+					K::Serialise( key, rStream );
+				}
+
+				if constexpr( std::is_trivial<V>() )
+				{
+					WriteObject( value, rStream );
+				}
+				else
+				{
+					V::Serialise( value, rStream );
+				}
+			}
+		}
+
+		template<typename K, typename V>
+		static void WriteMap( const std::unordered_map<K, std::vector<V>>& rMap, std::ofstream& rStream )
+		{
+			if( !rStream.is_open() )
+				return;
+
+			size_t mapSize = rMap.size();
+			rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+			for( const auto& [key, value] : rMap )
+			{
+				if constexpr( std::is_trivial<K>() )
+				{
+					WriteObject( key, rStream );
+				}
+				else
+				{
+					K::Serialise( key, rStream );
+				}
+
+				WriteVector( value, rStream );
 			}
 		}
 
 		template<typename Ty>
-		static void WriteVector( const Ty& rMap, std::ofstream& rStream )
+		static void WriteVector( const std::vector<Ty>& rMap, std::ofstream& rStream )
 		{
 			if( !rStream.is_open() )
 				return;
@@ -64,7 +103,14 @@ namespace Saturn {
 
 			for( const auto& value : rMap )
 			{
-				WriteObject( value, rStream );
+				if constexpr( std::is_trivial<Ty>() )
+				{
+					WriteObject( value, rStream );
+				}
+				else
+				{
+					Ty::Serialise( value, rStream );
+				}
 			}
 		}
 
@@ -74,62 +120,123 @@ namespace Saturn {
 			rStream.write( reinterpret_cast< const char* >( &rObject ), sizeof( Ty ) );
 		}
 
+		template<typename Ty>
+		static void ReadObject( Ty& rObject, std::ifstream& rStream )
+		{
+			rStream.read( reinterpret_cast<char*>( &rObject ), sizeof( Ty ) );
+		}
+
 		static void WriteString( const std::string& rString, std::ofstream& rStream )
 		{
 			size_t size = rString.size();
-
 			rStream.write( reinterpret_cast< const char* >( &size ), sizeof( size ) );
 
 			rStream.write( rString.data(), size );
 		}
 
 		template<typename Ty>
-		static void ReadVector( uint8_t** ppData, Ty& rMap ) 
+		static void ReadVector( std::vector<Ty>& rMap, std::ifstream& rStream )
 		{
 			if( rMap.size() )
 				rMap.clear();
 
-			size_t size = *( size_t* ) *ppData;
-			*ppData += sizeof( size_t );
-
+			size_t size = 0;
+			rStream.read( reinterpret_cast< char* >( &size ), sizeof( size_t ) );
 			rMap.resize( size );
-			
-			std::memcpy( rMap.data(), *ppData, size * sizeof( typename Ty::value_type ) );
-			*ppData += size * sizeof( typename Ty::value_type );
-		}
-
-		template<typename MapType, typename K, typename V>
-		static void ReadMap( uint8_t** ppData, MapType& rMap )
-		{
-			if( rMap.size() )
-				rMap.clear();
-
-			size_t size = *( size_t* ) *ppData;
-			*ppData += sizeof( size_t );
 
 			for( size_t i = 0; i < size; i++ )
 			{
-				K key;
-				std::memcpy( &key, *ppData, sizeof( K ) );
-				*ppData += sizeof( K );
+				Ty value{};
+				if constexpr( std::is_trivial<Ty>() )
+				{
+					ReadObject<Ty>( value, rStream );
+				}
+				else
+				{
+					Ty::Deserialise( value, rStream );
+				}
 
-				V value;
-				std::memcpy( &value, *ppData, sizeof( V ) );
-				*ppData += sizeof( V );
+				rMap[i] = value;
+			}
+		}
+
+		template<typename K, typename V>
+		static void ReadMap( std::unordered_map<K, V>& rMap, std::ifstream& rStream )
+		{
+			if( rMap.size() )
+				rMap.clear();
+
+			size_t size = 0;
+			rStream.read( reinterpret_cast< char* >( &size ), sizeof( size_t ) );
+
+			for( size_t i = 0; i < size; i++ )
+			{
+				K key{};
+				if constexpr( std::is_trivial<K>() )
+				{
+					ReadObject<K>( key, rStream );
+				}
+				else
+				{
+					K::Deserialise( key, rStream );
+				}
+
+				V value{};
+				if constexpr( std::is_trivial<V>() )
+				{
+					ReadObject<V>( value, rStream );
+				}
+				else
+				{
+					V::Deserialise( value, rStream );
+				}
 
 				rMap[ key ] = value;
 			}
 		}
 
-		static std::string ReadString( uint8_t** ppData )
+		template<typename K, typename V>
+		static void ReadMap( std::unordered_map<K, std::vector<V>>& rMap, std::ifstream& rStream )
 		{
-			size_t size = *( size_t* ) ppData;
-			*ppData += sizeof( size_t );
+			if( rMap.size() )
+				rMap.clear();
 
-			std::string result( reinterpret_cast< const char* >( *ppData ), size );
+			size_t size = 0;
+			rStream.read( reinterpret_cast< char* >( &size ), sizeof( size_t ) );
 
-			*ppData += size;
-			
+			for( size_t i = 0; i < size; i++ )
+			{
+				K key{};
+				if constexpr( std::is_trivial<K>() )
+				{
+					ReadObject<K>( key, rStream );
+				}
+				else
+				{
+					K::Deserialise( key, rStream );
+				}
+
+				std::vector<V> values{};
+				ReadVector( values, rStream );
+
+				rMap[ key ] = std::move( values );
+			}
+		}
+
+		static std::string ReadString( std::ifstream& rStream )
+		{
+			size_t length = 0;
+			rStream.read( reinterpret_cast< char* >( &length ), sizeof( size_t ) );
+
+			char* TemporaryBuffer = new char[ length + 1 ];
+			rStream.read( TemporaryBuffer, length );
+
+			TemporaryBuffer[ length ] = '\0';
+
+			std::string result = TemporaryBuffer;
+
+			delete[] TemporaryBuffer;
+
 			return result;
 		}
 	};
