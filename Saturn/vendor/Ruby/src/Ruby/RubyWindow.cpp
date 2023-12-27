@@ -138,9 +138,11 @@ void RubyWindow::Resize( uint32_t Width, uint32_t Height )
 	m_pDefaultBackend->ResizeWindow( Width, Height );
 }
 
-void RubyWindow::Show()
+void RubyWindow::Show( RubyWindowShowCmd Command /*= RubyWindowShowCmd::Default */ )
 {
-	m_pDefaultBackend->PresentWindow();
+	m_ShowCommand = Command;
+
+	m_pDefaultBackend->PresentWindow( Command );
 }
 
 void RubyWindow::SetPosition( int x, int y )

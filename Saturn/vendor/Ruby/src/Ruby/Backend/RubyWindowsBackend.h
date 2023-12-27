@@ -57,7 +57,7 @@ public:
 	void DestroyWindow() override;
 
 	void CloseWindow() override;
-	void PresentWindow() override;
+	void PresentWindow( RubyWindowShowCmd Command = RubyWindowShowCmd::Default ) override;
 
 	void ResizeWindow( uint32_t Width, uint32_t Height ) override;
 	void MoveWindow( int x, int y ) override;

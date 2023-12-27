@@ -781,9 +781,25 @@ void RubyWindowsBackend::CloseWindow()
 	m_ShouldClose = true;
 }
 
-void RubyWindowsBackend::PresentWindow()
+void RubyWindowsBackend::PresentWindow( RubyWindowShowCmd Command )
 {
-	::ShowWindow( m_Handle, SW_SHOW );
+	switch( Command )
+	{
+		case RubyWindowShowCmd::Default:
+			::ShowWindow( m_Handle, SW_SHOW );
+			break;
+	
+		case RubyWindowShowCmd::Fullscreen:
+		{
+			HMONITOR Monitor = ::MonitorFromWindow( m_Handle, MONITOR_DEFAULTTONEAREST );
+
+			MONITORINFO Info = { .cbSize = sizeof( MONITORINFO ) };
+			::GetMonitorInfo( Monitor, &Info );
+
+			::MoveWindow( m_Handle, Info.rcMonitor.left, Info.rcMonitor.top, Info.rcMonitor.right - Info.rcMonitor.left, Info.rcMonitor.bottom - Info.rcMonitor.top, TRUE );
+			::ShowWindow( m_Handle, SW_SHOW );
+		} break;
+	}
 }
 
 void RubyWindowsBackend::ResizeWindow( uint32_t Width, uint32_t Height )

@@ -79,6 +79,12 @@ enum class RubyCursorMode
 	Locked
 };
 
+enum class RubyWindowShowCmd
+{
+	Default,
+	Fullscreen
+};
+
 struct RubyWindowSpecification
 {
 	std::string_view Name;

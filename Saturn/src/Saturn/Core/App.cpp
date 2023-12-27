@@ -94,23 +94,25 @@ namespace Saturn {
 		m_SceneRenderer = new SceneRenderer();
 #endif
 
-		// Just for a better startup, we will only show the window when the layer wants to.
-#if !defined( SAT_DIST )
-		m_Window->Show();
-#endif
-
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
 			m_Window->Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
 
 		// Lazy load.
 		AudioSystem::Get();
 		RenderThread::Get().Enable( HasFlag( ApplicationFlag_UseGameThread ) );
+		RenderThread::Get().Initialise();
 
 		// ImGui is only used if we have the editor, and ImGui should not be used when building the game.
 		m_ImGuiLayer = new ImGuiLayer();
 
 		if( !HasFlag( ApplicationFlag_GameDist ) )
 			m_ImGuiLayer->OnAttach();
+
+#if defined( SAT_DIST )
+		m_Window->Show( RubyWindowShowCmd::Fullscreen );
+#else
+		m_Window->Show();
+#endif
 	}
 
 	Application::~Application()

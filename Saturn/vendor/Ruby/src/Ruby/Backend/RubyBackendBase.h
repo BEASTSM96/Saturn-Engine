@@ -51,7 +51,7 @@ public:
 	virtual void DestroyWindow() = 0;
 
 	virtual void CloseWindow() = 0;
-	virtual void PresentWindow() = 0;
+	virtual void PresentWindow( RubyWindowShowCmd Command = RubyWindowShowCmd::Default ) = 0;
 
 	virtual void ResizeWindow( uint32_t Width, uint32_t Height ) = 0;
 	virtual void SetTitle( std::string_view Title ) = 0;

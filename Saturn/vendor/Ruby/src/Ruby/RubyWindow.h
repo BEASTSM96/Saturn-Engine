@@ -49,7 +49,7 @@ public:
 	void Minimize();
 	void Restore();
 	void Resize( uint32_t Width, uint32_t Height );
-	void Show();
+	void Show( RubyWindowShowCmd Command = RubyWindowShowCmd::Default );
 	void SetPosition( int x, int y );
 	void SetMousePos( double x, double y );
 	void GetMousePos( double* x, double* y );
@@ -100,6 +100,8 @@ public:
 	// Vulkan Functions
 	std::vector<const char*> GetVulkanRequiredExtensions();
 	VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface );
+
+	RubyWindowShowCmd GetCurrentShowCommand() { return m_ShowCommand; }
 
 public:
 
@@ -173,6 +175,8 @@ protected:
 	RubyIVec2 m_LastMousePosition{};
 	
 	RubyPerfTimer m_Timer;
+
+	RubyWindowShowCmd m_ShowCommand = RubyWindowShowCmd::Fullscreen;
 
 private:
 	RubyBackendBase* m_pDefaultBackend = nullptr;

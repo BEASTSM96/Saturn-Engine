@@ -46,6 +46,8 @@ namespace Saturn {
 		RenderThread();
 		~RenderThread();
 
+		void Initialise();
+
 		void WaitAll();
 
 		// Executes the most recent command.
