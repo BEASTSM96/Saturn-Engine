@@ -28,55 +28,109 @@
 
 #pragma once
 
-#include <string>
-
-#include "Texture.h"
-
-#include "ShaderDataType.h"
-
-#include "Saturn/Core/Memory/Buffer.h"
+#include <fstream>
+#include <unordered_map>
 
 namespace Saturn {
-	
-	// A shader uniform represents a uniform variable in a shader.
-	class ShaderUniform : public RefTarget
+
+	// Helpers for reading/writing in binary.
+	class RawSerialisation
 	{
 	public:
-		std::string Name = "";
-		int Location = -1;
-		ShaderDataType DataType = ShaderDataType::None;
-		bool IsPushConstantData = false;
-
-		uint32_t Offset = 0;
-		uint32_t Size = 0;
-
-		Buffer Data;
-
-	public:
-		ShaderUniform() 
+		template<typename Ty>
+		static void WriteMap( const Ty& rMap, std::ofstream& rStream )
 		{
+			if( !rStream.is_open() )
+				return;
+
+			size_t mapSize = rMap.size();
+			rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+			for( const auto& [key, value] : rMap )
+			{
+				WriteObject( key, rStream );
+				WriteObject( value, rStream );
+			}
 		}
-		
-		~ShaderUniform()
+
+		template<typename Ty>
+		static void WriteVector( const Ty& rMap, std::ofstream& rStream )
 		{
-			Terminate();
+			if( !rStream.is_open() )
+				return;
+
+			size_t mapSize = rMap.size();
+			rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+			for( const auto& value : rMap )
+			{
+				WriteObject( value, rStream );
+			}
 		}
 
-		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size, uint32_t offset, bool isPushConstantData = false )
-			: Name( name ), Location( location ), DataType( type ), IsPushConstantData( isPushConstantData ), Size( (uint32_t)size ), Offset( offset )
+		template<typename Ty>
+		static void WriteObject( const Ty& rObject, std::ofstream& rStream )
 		{
-			Data.Allocate( size );
-			Data.Zero_Memory();
+			rStream.write( reinterpret_cast< const char* >( &rObject ), sizeof( Ty ) );
 		}
 
-		void Terminate()
-		{	
-			Location = -1;
-			DataType = ShaderDataType::None;
+		static void WriteString( const std::string& rString, std::ofstream& rStream )
+		{
+			size_t size = rString.size();
+
+			rStream.write( reinterpret_cast< const char* >( &size ), sizeof( size ) );
+
+			rStream.write( rString.data(), size );
 		}
 
-	private:
-		friend class ShaderBundle;
+		template<typename Ty>
+		static void ReadVector( uint8_t** ppData, Ty& rMap ) 
+		{
+			if( rMap.size() )
+				rMap.clear();
+
+			size_t size = *( size_t* ) *ppData;
+			*ppData += sizeof( size_t );
+
+			rMap.resize( size );
+			
+			std::memcpy( rMap.data(), *ppData, size * sizeof( typename Ty::value_type ) );
+			*ppData += size * sizeof( typename Ty::value_type );
+		}
+
+		template<typename MapType, typename K, typename V>
+		static void ReadMap( uint8_t** ppData, MapType& rMap )
+		{
+			if( rMap.size() )
+				rMap.clear();
+
+			size_t size = *( size_t* ) *ppData;
+			*ppData += sizeof( size_t );
+
+			for( size_t i = 0; i < size; i++ )
+			{
+				K key;
+				std::memcpy( &key, *ppData, sizeof( K ) );
+				*ppData += sizeof( K );
+
+				V value;
+				std::memcpy( &value, *ppData, sizeof( V ) );
+				*ppData += sizeof( V );
+
+				rMap[ key ] = value;
+			}
+		}
+
+		static std::string ReadString( uint8_t** ppData )
+		{
+			size_t size = *( size_t* ) ppData;
+			*ppData += sizeof( size_t );
+
+			std::string result( reinterpret_cast< const char* >( *ppData ), size );
+
+			*ppData += size;
+			
+			return result;
+		}
 	};
-
 }

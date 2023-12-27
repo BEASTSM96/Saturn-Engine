@@ -99,13 +99,19 @@ namespace Saturn {
 				m_Shape = Ref<ConvexMeshShape>::Create( m_Entity );
 			} break;
 
-			case Saturn::ShapeType::TriangleMesh: 
+			case Saturn::ShapeType::TriangleMesh:
 			{
 				// PhysX requires all non-kinematic dynamic rigid bodies with the flag eSIMULATION_SHAPE to be kinematic.
 				auto& rb = m_Entity->GetComponent<RigidbodyComponent>();
-				rb.IsKinematic = true;
-
-				SetKinematic( true );
+				
+				if( !rb.IsKinematic )
+				{
+					SAT_CORE_WARN( "PhysX requires all non-kinematic dynamic rigid bodies with the flag eSIMULATION_SHAPE to be kinematic!" );
+					SAT_CORE_WARN( "This happened because you are using a Triangle mesh shape!" );
+					
+					rb.IsKinematic = true;
+					SetKinematic( true );
+				}
 
 				m_Shape = Ref<TriangleMeshShape>::Create( m_Entity );
 			} break;

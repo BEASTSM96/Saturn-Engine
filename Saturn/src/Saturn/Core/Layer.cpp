@@ -154,9 +154,6 @@ namespace Saturn {
 
 	void ImGuiLayer::Begin()
 	{
-		if( Application::Get().HasFlag( ApplicationFlags::GameDist ) )
-			return;
-
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplRuby_NewFrame();
 
@@ -169,9 +166,6 @@ namespace Saturn {
 
 	void ImGuiLayer::End( VkCommandBuffer CommandBuffer )
 	{
-		if( Application::Get().HasFlag( ApplicationFlags::GameDist ) )
-			return;
-
 		Swapchain& rSwapchain = VulkanContext::Get().GetSwapchain();
 
 		ImGui::Render();

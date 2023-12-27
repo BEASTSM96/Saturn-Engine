@@ -320,6 +320,7 @@ project "Saturn-Editor"
 		defines "SAT_DIST"
 		runtime "Release"
 		optimize "on"
+		symbols "Off"
 		kind "WindowedApp"
 
 		postbuildcommands 
@@ -460,6 +461,7 @@ project "ProjectBrowser"
 			defines "SAT_DIST"
 			runtime "Release"
 			optimize "on"
+			symbols "Off"
 			kind "WindowedApp"
 
 			postbuildcommands 

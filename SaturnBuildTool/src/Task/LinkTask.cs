@@ -36,13 +36,13 @@ namespace SaturnBuildTool
 
             switch (ProjectInfo.Instance.TargetPlatformKind)
             {
-                case ArchitectureKind.Win64:
+                case ArchitectureKind.x64:
                     {
                         processStart.FileName = LinkLocation + "/bin/Hostx64/x64/link.exe";
                     }
                     break;
 
-                case ArchitectureKind.Win86:
+                case ArchitectureKind.x86:
                     {
                         processStart.FileName = LinkLocation + "/bin/Hostx64/x86/link.exe";
                     }
@@ -166,13 +166,13 @@ namespace SaturnBuildTool
 
             switch (ProjectInfo.Instance.TargetPlatformKind)
             {
-                case ArchitectureKind.Win64:
+                case ArchitectureKind.x64:
                     {
                         CLLocation += "/lib/x64";
                     }
                     break;
 
-                case ArchitectureKind.Win86:
+                case ArchitectureKind.x86:
                     {
                         CLLocation += "/lib/x86";
                     }

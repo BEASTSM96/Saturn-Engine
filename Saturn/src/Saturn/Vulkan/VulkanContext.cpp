@@ -134,7 +134,7 @@ namespace Saturn {
 #if !defined( SAT_DIST )
 
 		if( !CheckValidationLayerSupport() )
-			SAT_CORE_ASSERT( "Unable to find validation layer, please use DIST build if you want to run the app." );
+			SAT_CORE_ASSERT( false, "Unable to find validation layer, please use DIST build if you want to run the app." );
 #else
 		CheckValidationLayerSupport();
 #endif
@@ -384,8 +384,9 @@ namespace Saturn {
 
 	VkSampleCountFlagBits VulkanContext::GetMaxUsableMSAASamples()
 	{
-		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
-			return VK_SAMPLE_COUNT_1_BIT;
+		return VK_SAMPLE_COUNT_1_BIT;
+
+		std::unreachable();
 
 		VkPhysicalDeviceProperties props;
 		vkGetPhysicalDeviceProperties( m_PhysicalDevice, &props );

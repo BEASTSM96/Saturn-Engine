@@ -377,7 +377,7 @@ namespace Saturn {
 
 		// Acquire next image.
 		uint32_t ImageIndex = -1;
-		SAT_CORE_ASSERT( VulkanContext::Get().GetSwapchain().AcquireNextImage( UINT32_MAX, m_AcquireSemaphore, VK_NULL_HANDLE, &ImageIndex ), "AcquireNextImage failed" );
+		VulkanContext::Get().GetSwapchain().AcquireNextImage( UINT32_MAX, m_AcquireSemaphore, VK_NULL_HANDLE, &ImageIndex );
 
 		m_ImageIndex = ImageIndex;
 

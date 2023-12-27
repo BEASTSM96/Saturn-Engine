@@ -48,6 +48,7 @@
 #include <Saturn/Physics/PhysicsFoundation.h>
 
 #include <Saturn/Vulkan/MaterialInstance.h>
+#include <Saturn/Vulkan/ShaderBundle.h>
 
 #include <Saturn/Core/EnvironmentVariables.h>
 
@@ -74,6 +75,7 @@
 #include <Ruby/RubyAuxiliary.h>
 
 #include <typeindex>
+#include <ranges>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -141,9 +143,16 @@ namespace Saturn {
 					Premake::Launch( Project::GetActiveProject()->GetRootDir().wstring() );
 				}
 
-				if( ImGui::MenuItem( "Prepare Project for Distribution" ) )
+				if( ImGui::MenuItem( "Setup Project for Distribution" ) )
 				{
 					Project::GetActiveProject()->PrepForDist();
+
+					ShaderBundle::Get().BundleShaders();
+				}
+
+				if( ImGui::MenuItem( "Distribute project" ) )
+				{
+					Project::GetActiveProject()->Distribute( ConfigKind::Dist );
 				}
 
 				ImGui::EndMenu();

@@ -46,10 +46,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 #include "OptickProfiler.h"
-#include <tracy/Tracy.hpp>
-#endif
 
 #if defined( SAT_WINDOWS )
 #include <ShObjIdl.h>
@@ -80,7 +77,10 @@ namespace Saturn {
 			}
 		}
 
-		RubyWindowSpecification windowSpec { .Name = "Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = RubyStyle::Borderless, .ShowNow = false };
+		// TEMP! Vulkan does not like default windows for some reason?
+		RubyStyle WindowStyle = HasFlag( ApplicationFlag_Titlebar ) ? RubyStyle::Borderless : RubyStyle::Borderless;
+
+		RubyWindowSpecification windowSpec { .Name = "Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = WindowStyle, .ShowNow = false };
 		m_Window = new RubyWindow( windowSpec );
 		m_Window->SetEventTarget( this );
 
@@ -91,18 +91,23 @@ namespace Saturn {
 
 		m_SceneRenderer = new SceneRenderer();
 
+		// Just for a better startup, we will only show the window when the layer wants to.
+#if !defined( SAT_DIST )
 		m_Window->Show();
+#endif
 
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
 			m_Window->Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
 
 		// Lazy load.
 		AudioSystem::Get();
-		RenderThread::Get().Enable( HasFlag( ApplicationFlags::UseGameThread ) );
+		RenderThread::Get().Enable( HasFlag( ApplicationFlag_UseGameThread ) );
 
 		// ImGui is only used if we have the editor, and ImGui should not be used when building the game.
 		m_ImGuiLayer = new ImGuiLayer();
-		m_ImGuiLayer->OnAttach();
+
+		if( !HasFlag( ApplicationFlag_GameDist ) )
+			m_ImGuiLayer->OnAttach();
 	}
 
 	Application::~Application()
@@ -130,9 +135,8 @@ namespace Saturn {
 			{
 				Renderer::Get().BeginFrame();
 				{
-					// Render Scene on render thread.
 					RenderThread::Get().Queue( [=] { m_SceneRenderer->RenderScene(); } );
-					
+
 					// Render UI
 					{
 						RenderImGui();
@@ -150,7 +154,7 @@ namespace Saturn {
 			float frametime = time - m_LastFrameTime;
 
 			m_Timestep = std::min<float>( frametime, 0.0333f );
-			
+
 			m_LastFrameTime = time;
 		}
 
@@ -168,7 +172,8 @@ namespace Saturn {
 				delete layer;
 			}
 
-			m_ImGuiLayer->OnDetach();
+			if( !HasFlag( ApplicationFlag_GameDist ) )
+				m_ImGuiLayer->OnDetach();
 			
 			delete m_ImGuiLayer;
 
@@ -195,7 +200,8 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		// Begin on main thread.
-		m_ImGuiLayer->Begin();
+		if( !HasFlag( ApplicationFlag_GameDist ) )
+			m_ImGuiLayer->Begin();
 
 		// Update on the main thread.
 		for( auto& layer : m_Layers )
@@ -203,20 +209,21 @@ namespace Saturn {
 			layer->OnUpdate( m_Timestep );
 		}
 
-		// I'm not really sure if I want the render thread to render imgui.
-		// TEMP: There is some bugs when we try to render imgui on renderer thread, and if it needs a new window it will freeze
-		RenderThread::Get().Queue( [=]
-			{
-				for( auto& layer : m_Layers )
+		if( !HasFlag( ApplicationFlag_GameDist ) )
+		{
+			RenderThread::Get().Queue( [=]
 				{
-					layer->OnImGuiRender();
-				}
-			} );
+					for( auto& layer : m_Layers )
+					{
+						layer->OnImGuiRender();
+					}
+				} );
 
-		RenderThread::Get().Queue( [=]
-			{
-				m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
-			} );
+			RenderThread::Get().Queue( [=]
+				{
+					m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
+				} );
+		}
 	}
 
 	bool Application::HasFlag( ApplicationFlags flag )

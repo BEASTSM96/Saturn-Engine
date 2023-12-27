@@ -38,6 +38,9 @@
 #include "Saturn/Asset/AssetManager.h"
 
 #include "Saturn/Core/EnvironmentVariables.h"
+#include "Saturn/Core/StringAuxiliary.h"
+
+#include "Saturn/Core/Process.h"
 
 #include "SharedGlobals.h"
 
@@ -354,4 +357,188 @@ namespace Saturn {
 		fout << fileData;
 	}
 
+	bool Project::Build( ConfigKind kind )
+	{
+		// Find Build Tool.
+		std::filesystem::path SaturnRootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
+		std::filesystem::path BuildToolDir = SaturnRootDir;	
+
+		BuildToolDir /= "bin";
+
+#if defined( SAT_DEBUG )
+		BuildToolDir /= "Debug-windows-x86_64";
+#elif defined( SAT_RELEASE )
+		BuildToolDir /= "Release-windows-x86_64";
+#else
+		BuildToolDir /= "Dist-windows-x86_64";
+#endif
+
+		BuildToolDir /= "SaturnBuildTool";
+		std::filesystem::path WorkingDir = BuildToolDir;
+
+		BuildToolDir /= "SaturnBuildTool.exe";
+
+		std::wstring Args = BuildToolDir.wstring();
+
+		Args += L" /BUILD ";
+		
+		Args += Auxiliary::ConvertString( m_Config.Name );
+		
+		Args += L" /Win64";
+		
+		switch( kind )
+		{
+			case Saturn::ConfigKind::Debug:
+				Args += L" /Debug ";
+				break;
+		
+			case Saturn::ConfigKind::Release:
+				Args += L" /Release ";
+				break;
+			
+			case Saturn::ConfigKind::Dist:
+				Args += L" /Dist ";
+				break;
+		}
+
+		Args += GetRootDir().wstring();
+
+		// Start the process
+		Process buildTool( Args, WorkingDir );
+
+		int exitCode = buildTool.ResultOfProcess();
+
+		return exitCode == 0;
+	}
+
+	bool Project::Rebuild( ConfigKind kind )
+	{
+		// Find Build Tool.
+		std::filesystem::path SaturnRootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
+		std::filesystem::path BuildToolDir = SaturnRootDir;
+
+		BuildToolDir /= "bin";
+
+#if defined( SAT_DEBUG )
+		BuildToolDir /= "Debug-windows-x86_64";
+#elif defined( SAT_RELEASE )
+		BuildToolDir /= "Release-windows-x86_64";
+#else
+		BuildToolDir /= "Dist-windows-x86_64";
+#endif
+
+		BuildToolDir /= "SaturnBuildTool";
+		std::filesystem::path WorkingDir = BuildToolDir;
+
+		BuildToolDir /= "SaturnBuildTool.exe";
+
+		std::string Args = BuildToolDir.string();
+
+		Args += " /REBUILD /";
+
+		Args += m_Config.Name;
+
+		Args += " /Win64";
+
+		switch( kind )
+		{
+			case Saturn::ConfigKind::Debug:
+				Args += " /Debug /";
+				break;
+
+			case Saturn::ConfigKind::Release:
+				Args += " /Release /";
+				break;
+
+			case Saturn::ConfigKind::Dist:
+				Args += " /Dist /";
+				break;
+		}
+
+		Args += GetRootDir().string();
+		std::wstring wArgs = Auxiliary::ConvertString( Args );
+
+		// Start the process
+		Process buildTool( wArgs, WorkingDir );
+
+		int exitCode = buildTool.ResultOfProcess();
+
+		return exitCode == 0;
+	}
+
+	void Project::Distribute( ConfigKind kind )
+	{
+		std::filesystem::path SaturnBinDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
+		std::filesystem::path binDir = GetRootDir();
+
+		SaturnBinDir /= "bin";
+		binDir /= "bin";
+		
+		switch( kind )
+		{
+			case Saturn::ConfigKind::Debug: 
+				SaturnBinDir /= "Debug-windows-x86_64";
+				binDir /= "Debug-windows-x86_64";
+				break;
+
+			case Saturn::ConfigKind::Release:
+				SaturnBinDir /= "Release-windows-x86_64";
+				binDir /= "Release-windows-x86_64";
+				break;
+
+			case Saturn::ConfigKind::Dist:
+				SaturnBinDir /= "Dist-windows-x86_64";
+				binDir /= "Dist-windows-x86_64";
+				break;
+		}
+
+		// We use the editor because the editor will have the DLLs that we need to copy over.
+		SaturnBinDir /= "Saturn-Editor";
+		binDir /= m_Config.Name;
+
+		for( const auto& rEntry : std::filesystem::directory_iterator( SaturnBinDir ) )
+		{
+			auto& path = rEntry.path();
+
+			// TODO: Change for other platforms.
+			if( path.extension() != ".dll" ) 
+				continue;
+
+			std::filesystem::path dstPath = binDir / path.filename();
+
+			if( std::filesystem::exists( dstPath ) )
+				std::filesystem::remove( dstPath );
+
+			std::filesystem::copy_file( path, dstPath );
+		}
+
+		std::filesystem::path dstAssets = binDir / "Assets";
+		std::filesystem::path dstCache = binDir / "Cache";
+
+		// Copy our assets folder into the bin dir
+		if( std::filesystem::exists( dstAssets ) )
+			std::filesystem::remove_all( dstAssets );
+
+		if( std::filesystem::exists( dstCache ) )
+			std::filesystem::remove_all( dstCache );
+
+		std::filesystem::copy( GetFullAssetPath(), dstAssets, std::filesystem::copy_options::recursive );
+		std::filesystem::copy( GetRootDir() / "Cache", dstCache, std::filesystem::copy_options::recursive );
+
+		// Copy the project file over
+		std::string projectName = std::format( "{0}\\{1}.sproject", binDir.string(), m_Config.Name );
+
+		if( std::filesystem::exists( projectName ) )
+			std::filesystem::remove( projectName );
+
+		std::filesystem::copy_file( m_Config.Path, projectName );
+		
+		// TEMP: Copy over the editor assets
+		std::filesystem::path contentDir = Application::Get().GetRootContentDir().parent_path();
+		
+		if( std::filesystem::exists( binDir / "content" ) )
+			std::filesystem::remove_all( binDir / "content" );
+
+		std::filesystem::copy( contentDir, binDir / "content", std::filesystem::copy_options::recursive );
+	}
 }

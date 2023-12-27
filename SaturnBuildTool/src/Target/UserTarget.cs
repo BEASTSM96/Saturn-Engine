@@ -83,25 +83,6 @@ namespace SaturnBuildTool
                         BinDir = Path.Combine(BinDir, "Dist-windows-x86_64");
                     }
                     break;
-
-                case ConfigKind.DistDebug:
-                    {
-                        BinDir = Path.Combine(BinDir, "Dist-Debug-windows-x86_64");
-                    }
-                    break;
-
-                case ConfigKind.DistRelease:
-                    {
-                        BinDir = Path.Combine(BinDir, "Dist-Release-windows-x86_64");
-                    }
-                    break;
-
-                case ConfigKind.DistFull:
-                    {
-                        // TODO: Because this will be the final exe, we may want to change this name.
-                        BinDir = Path.Combine(BinDir, "Dist-Full-windows-x86_64");
-                    }
-                    break;
             }
 
             BinDir = Path.Combine( BinDir, ProjectName );
@@ -147,7 +128,7 @@ namespace SaturnBuildTool
             providerOptions.Add("CompilerVersion", "v4.0");
             CodeDomProvider codeDomProvider = new Microsoft.CSharp.CSharpCodeProvider(providerOptions);
             
-            Assembly[] DefaultReferences = { typeof(IntPtr).Assembly, typeof(Enumerable).Assembly, typeof(ISet<>).Assembly, typeof(UserTarget).Assembly, typeof(RTGameTarget).Assembly };
+            Assembly[] DefaultReferences = { typeof(IntPtr).Assembly, typeof(Enumerable).Assembly, typeof(ISet<>).Assembly, typeof(UserTarget).Assembly, typeof(RuntimeGameTarget).Assembly };
 
             HashSet<string> references = new HashSet<string>();
             foreach (var defaultReference in DefaultReferences)
@@ -215,29 +196,6 @@ namespace SaturnBuildTool
                                 outDir = Path.Combine(outDir, "Dist-windows-x86_64");
                             }
                             break;
-
-                        case ConfigKind.DistDebug:
-                            {
-                                outDir = Path.Combine(outDir, "bin-int");
-                                outDir = Path.Combine(outDir, "Dist-Debug-windows-x86_64");
-                            }
-                            break;
-
-                        case ConfigKind.DistRelease:
-                            {
-                                outDir = Path.Combine(outDir, "bin-int");
-                                outDir = Path.Combine(outDir, "Dist-Release-windows-x86_64");
-                            }
-                            break;
-
-                        case ConfigKind.DistFull:
-                            {
-                                // TODO: Because this will be the final exe, we may want to change this name.
-                                outDir = Path.Combine(outDir, "bin-int");
-                                outDir = Path.Combine(outDir, "Dist-Full-windows-x86_64");
-                            }
-                            break;
-
                         default:
                             break;
                     }

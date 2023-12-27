@@ -33,13 +33,13 @@ namespace SaturnBuildTool
 
             switch (ProjectInfo.Instance.TargetPlatformKind)
             {
-                case ArchitectureKind.Win64:
+                case ArchitectureKind.x64:
                     {
                         processStart.FileName = CLLocation + "/bin/Hostx64/x64/cl.exe";
                     }
                     break;
 
-                case ArchitectureKind.Win86:
+                case ArchitectureKind.x86:
                     {
                         processStart.FileName = CLLocation + "/bin/Hostx64/x86/cl.exe";
                     }
@@ -66,7 +66,10 @@ namespace SaturnBuildTool
             Args.Add(" /verbosity:quiet");
 
             // Debugging.
-            Args.Add(" /ZI");
+            if( TargetToBuild.CurrentConfig < ConfigKind.Dist )
+            {
+                Args.Add(" /ZI");
+            }
 
             // Compile for C++
             Args.Add(" /std:c++latest /D _HAS_EXCEPTIONS=0");
@@ -77,8 +80,10 @@ namespace SaturnBuildTool
             // Allow for multiple CL.exes to write to the same pdb file.
             Args.Add(" /FS");
 
-            // I would of included DistDebug to be in here, however DistDebug will always Dist bins of the engine.
-            if (TargetToBuild.CurrentConfig == ConfigKind.Debug || TargetToBuild.CurrentConfig == ConfigKind.DistDebug)
+            // Eliminate Duplicate Strings
+            Args.Add(" /GF");
+
+            if (TargetToBuild.CurrentConfig == ConfigKind.Debug )
             {
                 Args.Add(" /MTd");
             }

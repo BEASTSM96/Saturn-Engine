@@ -26,57 +26,106 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "ShaderBundle.h"
 
-#include <string>
+#include "Saturn/Project/Project.h"
+#include "Shader.h"
 
-#include "Texture.h"
-
-#include "ShaderDataType.h"
-
-#include "Saturn/Core/Memory/Buffer.h"
+#include "Saturn/Serialisation/RawSerialisation.h"
 
 namespace Saturn {
-	
-	// A shader uniform represents a uniform variable in a shader.
-	class ShaderUniform : public RefTarget
+
+	struct ShaderBundleHeader
 	{
-	public:
-		std::string Name = "";
-		int Location = -1;
-		ShaderDataType DataType = ShaderDataType::None;
-		bool IsPushConstantData = false;
-
-		uint32_t Offset = 0;
-		uint32_t Size = 0;
-
-		Buffer Data;
-
-	public:
-		ShaderUniform() 
-		{
-		}
-		
-		~ShaderUniform()
-		{
-			Terminate();
-		}
-
-		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size, uint32_t offset, bool isPushConstantData = false )
-			: Name( name ), Location( location ), DataType( type ), IsPushConstantData( isPushConstantData ), Size( (uint32_t)size ), Offset( offset )
-		{
-			Data.Allocate( size );
-			Data.Zero_Memory();
-		}
-
-		void Terminate()
-		{	
-			Location = -1;
-			DataType = ShaderDataType::None;
-		}
-
-	private:
-		friend class ShaderBundle;
+		const char Magic[5] = ".SB\0";
+		size_t Shaders;
 	};
 
+	ShaderBundle::ShaderBundle()
+	{
+	}
+
+	ShaderBundle::~ShaderBundle()
+	{
+	}
+
+	bool ShaderBundle::BundleShaders()
+	{
+		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
+
+		if( !std::filesystem::exists( cachePath ) )
+			std::filesystem::create_directories( cachePath );
+
+		cachePath /= "ShaderBundle.ssb";
+
+		std::ofstream fout( cachePath, std::ios::binary | std::ios::trunc );
+
+		ShaderBundleHeader header{};
+		header.Shaders = ShaderLibrary::Get().GetShaders().size();
+
+		fout.write( reinterpret_cast< char* >( &header ), sizeof( ShaderBundleHeader ) );
+
+		int i = 0;
+		for( auto&& [name, shader] : ShaderLibrary::Get().GetShaders() )
+		{
+			SAT_CORE_INFO( "Packaging shader: {0}", name );
+
+			fout.write( name.c_str(), name.length() );
+			fout.write( reinterpret_cast<char*>( &i ), sizeof( int ) );
+
+			shader->SerialiseShaderData( fout );
+
+			i++;
+		}
+
+		fout.close();
+	
+		return true;
+	}
+
+	void ShaderBundle::ReadBundle()
+	{
+		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
+		cachePath /= "ShaderBundle.ssb";
+
+		if( !std::filesystem::exists( cachePath ) )
+			return;
+
+		Buffer FileBuffer;
+		std::ifstream stream( cachePath, std::ios::binary | std::ios::ate );
+
+		auto end = stream.tellg();
+		stream.seekg( 0, std::ios::beg );
+		auto size = end - stream.tellg();
+
+		FileBuffer.Allocate( size );
+		stream.read( reinterpret_cast<char*>( FileBuffer.Data ), FileBuffer.Size );
+		stream.close();
+
+		ShaderBundleHeader header = *(ShaderBundleHeader*) FileBuffer.Data;
+
+		if( strcmp( header.Magic, ".SB\0" ) )
+		{
+			SAT_CORE_ERROR( "Invalid shader bundle file header!" );
+			return;
+		}
+
+		uint8_t* shaderData = FileBuffer.As<uint8_t>() + sizeof( ShaderBundleHeader );
+
+		for( uint32_t i = 0; i < header.Shaders; i++ )
+		{
+			Ref<Shader> shader = Ref<Shader>::Create();
+
+			std::string name = RawSerialisation::ReadString( &shaderData );
+			shader->m_Name = name;
+
+			shader->DeserialiseShaderData( &shaderData );
+
+			ShaderLibrary::Get().Add( shader );
+		}
+
+		// We are done with the file buffer.
+		FileBuffer.Free();
+	}
 }

@@ -9,8 +9,8 @@ namespace SaturnBuildTool
 {
     public enum ArchitectureKind
     {
-        Win64,
-        Win86,
+        x64,
+        x86,
         Unknown
     }
 
@@ -18,10 +18,7 @@ namespace SaturnBuildTool
     {
         Debug,
         Release,
-        Dist,
-        DistDebug,
-        DistRelease,
-        DistFull
+        Dist
     }
 
     // This class holds all of our needed information about the current project that is being built.
@@ -124,28 +121,14 @@ namespace SaturnBuildTool
             {
                 CurrentConfigKind = ConfigKind.Dist;
             }
-            else if (ConfigName == "DDebug")
-            {
-                CurrentConfigKind = ConfigKind.DistDebug;
-            }
-            else if (ConfigName == "DRelease")
-            {
-                CurrentConfigKind = ConfigKind.DistRelease;
-            }
-            else if (ConfigName == "DF")
-            {
-                CurrentConfigKind = ConfigKind.DistFull;
-            }
-            else
-                CurrentConfigKind = ConfigKind.Dist;
         }
 
         private void StringToTargetPlatform() 
         {
             if (TargetPlatformName == "Win64")
-                TargetPlatformKind = ArchitectureKind.Win64;
+                TargetPlatformKind = ArchitectureKind.x64;
             else if (TargetPlatformName == "Win86")
-                TargetPlatformKind = ArchitectureKind.Win86;
+                TargetPlatformKind = ArchitectureKind.x86;
         }
 
         private void FindBuildRuleFile() 
@@ -154,7 +137,6 @@ namespace SaturnBuildTool
             {
                 case ConfigKind.Debug:
                 case ConfigKind.Release:
-                case ConfigKind.Dist:
                     {
                         BuildRuleFile = TargetDir;
                         BuildRuleFile += string.Format( "\\{0}.Build.cs", Name );
@@ -162,9 +144,7 @@ namespace SaturnBuildTool
                         BuildRuleFile = BuildRuleFile.Replace( "/", "\\" );
                     } break;
 
-                case ConfigKind.DistDebug:
-                case ConfigKind.DistRelease:
-                case ConfigKind.DistFull:
+                case ConfigKind.Dist:
                     {
                         BuildRuleFile = TargetDir;
                         BuildRuleFile += string.Format("\\{0}.RT_Build.cs", Name);

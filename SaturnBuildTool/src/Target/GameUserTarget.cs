@@ -16,7 +16,7 @@ namespace SaturnBuildTool
             base.Init();
 
             // Always use x64
-            Architectures = new[] { ArchitectureKind.Win64 };
+            Architectures = new[] { ArchitectureKind.x64 };
 
             // Include source.
             Includes.Add( ProjectInfo.Instance.SourceDir );
@@ -61,14 +61,12 @@ namespace SaturnBuildTool
 
             switch ( CurrentConfig ) 
             {
-                case ConfigKind.DistDebug:
                 case ConfigKind.Debug: 
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Debug-windows-x86_64\\Saturn" );
                         ssBinDir = Path.Combine(ssBinDir, "Debug-windows-x86_64\\SharedStorage");
                     } break;
 
-                case ConfigKind.DistRelease:
                 case ConfigKind.Release:
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Release-windows-x86_64\\Saturn");
@@ -76,7 +74,6 @@ namespace SaturnBuildTool
                     }
                     break;
 
-                case ConfigKind.DistFull:
                 case ConfigKind.Dist:
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Dist-windows-x86_64\\Saturn");

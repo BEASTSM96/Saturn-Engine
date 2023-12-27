@@ -41,6 +41,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include <Ruby/RubyWindow.h>
+
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h> 
 #include <imgui_internal.h>
@@ -128,6 +130,8 @@ namespace Saturn {
 
 		m_TitleBar = new TitleBar();
 		m_TitleBar->ShouldDrawSecondaryTitleBar( false );
+
+		Application::Get().GetWindow()->Show();
 	}
 
 	void ProjectBrowserLayer::OnAttach()

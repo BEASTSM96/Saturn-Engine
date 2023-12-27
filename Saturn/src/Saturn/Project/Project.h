@@ -45,6 +45,13 @@ namespace Saturn {
 		std::string Path; // Absolute path
 	};
 
+	enum class ConfigKind
+	{
+		Debug,
+		Release,
+		Dist
+	};
+
 	class Project : public RefTarget
 	{
 	public:
@@ -83,6 +90,10 @@ namespace Saturn {
 		
 		void AddActionBinding( const ActionBinding& rBinding ) { m_ActionBindings.push_back( rBinding ); }
 		void RemoveActionBinding( const ActionBinding& rBinding );
+
+		bool Build( ConfigKind kind );
+		bool Rebuild( ConfigKind kind );
+		void Distribute( ConfigKind kind );
 
 	public:
 		bool HasPremakeFile();

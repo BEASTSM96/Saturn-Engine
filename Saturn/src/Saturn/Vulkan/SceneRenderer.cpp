@@ -77,11 +77,15 @@ namespace Saturn {
 		// Geometry 
 		//////////////////////////////////////////////////////////////////////////
 
-		if( !Application::Get().HasFlag( ApplicationFlags::CreateSceneRenderer ) )
+		if( !Application::Get().HasFlag( ApplicationFlag_CreateSceneRenderer ) )
 			return;
 
 		m_RendererData.StorageBufferSet = Ref<StorageBufferSet>::Create( 0, 0 );
 		m_RendererData.StorageBufferSet->Create( 0, 14 ); // Create Light culling buffer.
+
+		// TODO: What about second viewports?
+		// However this should never happen if we are in the GameDist?
+		m_RendererData.IsSwapchainTarget = Application::Get().HasFlag( ApplicationFlag_GameDist );
 
 		InitPreDepth();
 
@@ -488,7 +492,7 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		if( Application::Get().HasFlag( ApplicationFlags::GameDist ) )
+		if( Application::Get().HasFlag( ApplicationFlag_GameDist ) )
 			return;
 
 		// Set UB Data.
@@ -1867,7 +1871,7 @@ namespace Saturn {
 		// Command Pools
 		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
 
-		if( !Application::Get().HasFlag( ApplicationFlags::CreateSceneRenderer ) )
+		if( !Application::Get().HasFlag( ApplicationFlag_CreateSceneRenderer ) )
 			return;
 
 		// DescriptorSets

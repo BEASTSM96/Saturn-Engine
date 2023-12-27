@@ -32,15 +32,18 @@ namespace SaturnBuildTool
         private bool IsRebuild = false;
 
         List<string> SourceFiles = null;
+        List<string> BuildFiles = null;
 
         // Args:
-        // 0: The Action, BUILD, REBULD, CLEAN. TODO
+        // 0: The Action, BUILD, REBULD, CLEAN <--TODO
         // 1: The project name
         // 2: The target platform, Win64
         // 3: The configuration, Debug, Release, Dist
         // 4: The project location
         public Application(string[] args) 
         {
+          //  Thread.Sleep(7000);
+
             Args = args;
 
             // Setup project info from args.
@@ -55,8 +58,8 @@ namespace SaturnBuildTool
 
             switch (ProjectInfo.Instance.TargetPlatformKind) 
             {
-                case ArchitectureKind.Win86:
-                case ArchitectureKind.Win64:
+                case ArchitectureKind.x86:
+                case ArchitectureKind.x64:
                     {
                         Toolchain = new MSVCToolchain(TargetToBuild);
                     } break;
@@ -126,10 +129,8 @@ namespace SaturnBuildTool
             ThreadsCompleted[ThreadIndex] = true;
         }
 
-        private void CompileFiles() 
+        private void CompileSourceFiles() 
         {
-            SourceFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.SourceDir, true);
-            
             int threadCount = 0;
             threadCount = (int)Math.Ceiling((double)SourceFiles.Count / (Environment.ProcessorCount / 2));
 
@@ -178,55 +179,66 @@ namespace SaturnBuildTool
 
         private void CompileBuildFolderFiles() 
         {
-            List<string> sourceBuildFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.BuildDir);
+            FilesPerThread.Clear();
+            ThreadsCompleted.Clear();
+
+            int threadCount = 0;
+            threadCount = (int)Math.Ceiling((double)BuildFiles.Count / (Environment.ProcessorCount / 2));
+
+            if (threadCount > 1)
+            {
+                Console.WriteLine(String.Format("Building with {0} threads", threadCount));
+
+                ThreadPool.SetMaxThreads(threadCount, threadCount);
+
+                // Divide the files into separate lists for each thread.
+                for (int i = 0; i < threadCount; i++)
+                {
+                    int start = i * (BuildFiles.Count / threadCount);
+                    int end = (i == threadCount - 1) ? BuildFiles.Count : i + 1 * (BuildFiles.Count / threadCount);
+                    int count = end - start;
+
+                    if (count < 0)
+                    {
+                        count = 0;
+                    }
+
+                    List<string> filesForThread = new List<string>(BuildFiles.GetRange(start, count));
+                    FilesPerThread.Add(filesForThread);
+                    ThreadsCompleted.Add(false);
+
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(CompileFiles_ForThread), i);
+                }
+
+                while (ThreadsCompleted.Contains(false))
+                {
+                    // Wait
+                    Thread.Sleep(1);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Compiling single threaded.");
+
+                // Pass all the files for the one thread.
+                FilesPerThread.Add(BuildFiles);
+                ThreadsCompleted.Add(false);
+
+                CompileFiles_ForThread(0);
+            }
+        }
+
+        private void SearchForFiles() 
+        {
+            SourceFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.SourceDir, true);
+            BuildFiles = DirectoryTools.DirSearch(ProjectInfo.Instance.BuildDir);
 
             // Remove the entry file if we are not an exe.
-            if (ProjectInfo.Instance.CurrentConfigKind < ConfigKind.DistDebug) 
+            if (ProjectInfo.Instance.CurrentConfigKind != ConfigKind.Dist)
             {
-                string EntryFilepath = Path.Combine(ProjectInfo.Instance.BuildDir, string.Format( "{0}.Entry.cpp", ProjectInfo.Instance.Name ) );
+                string EntryFilepath = Path.Combine(ProjectInfo.Instance.BuildDir, string.Format("{0}.Entry.cpp", ProjectInfo.Instance.Name));
 
-                sourceBuildFiles.Remove( EntryFilepath );
-            }
-
-            foreach (string file in sourceBuildFiles)
-            {
-                // We are only building c++ files.
-                if (!FileCache.IsCppFile(file))
-                {
-                    continue;
-                }
-
-                // Only compile the file if it has not be changed.
-                FileCache.FilesInCache.TryGetValue(file, out DateTime LastTime);
-
-                if (Args[0] == "/REBUILD")
-                {
-                    int exitCode = Toolchain.Compile(file, false);
-
-                    if (exitCode == 0)
-                    {
-                        HasCompiledAnyFile = true;
-
-                        if (!FileCache.IsFileInCache(file))
-                            FileCache.CacheFile(file);
-                    }
-                    else
-                        NumTasksFailed++;
-                }
-                else if (Args[0] == "/BUILD" && (LastTime != File.GetLastWriteTime(file)))
-                {
-                    int exitCode = Toolchain.Compile(file, false);
-
-                    if (exitCode == 0)
-                    {
-                        HasCompiledAnyFile = true;
-
-                        if (!FileCache.IsFileInCache(file))
-                            FileCache.CacheFile(file);
-                    }
-                    else
-                        NumTasksFailed++;
-                }
+                BuildFiles.Remove(EntryFilepath);
             }
         }
 
@@ -238,8 +250,10 @@ namespace SaturnBuildTool
 
             IsRebuild = Args[0] == "/REBUILD";
 
+            SearchForFiles();
+
             // Compile all source files and all "build folder" files next.
-            CompileFiles();
+            CompileSourceFiles();
             CompileBuildFolderFiles();
 
             Console.WriteLine(string.Format("{0} task(s) failed.", NumTasksFailed));

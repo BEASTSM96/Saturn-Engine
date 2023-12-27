@@ -56,11 +56,11 @@ namespace Saturn {
 	struct ShaderUniformBuffer
 	{
 		std::string Name;
-		uint32_t Binding;
-		size_t Size;
-		ShaderType Location;
+		uint32_t Binding = -1;
+		size_t Size = 0;
+		ShaderType Location = ShaderType::None;
 		
-		VkBuffer Buffer;
+		VkBuffer Buffer = VK_NULL_HANDLE;
 
 		bool operator==( const ShaderUniformBuffer& rOther ) 
 		{
@@ -75,9 +75,9 @@ namespace Saturn {
 	struct ShaderStorageBuffer
 	{
 		std::string Name;
-		uint32_t Binding;
-		size_t Size;
-		ShaderType Location;
+		uint32_t Binding = -1;
+		size_t Size = 0;
+		ShaderType Location = ShaderType::None;
 		bool Updated = false;
 
 		bool operator==( const ShaderStorageBuffer& rOther )
@@ -93,9 +93,9 @@ namespace Saturn {
 	struct ShaderSampledImage
 	{
 		std::string Name;
-		ShaderType Stage;
-		uint32_t Set;
-		uint32_t Binding;
+		ShaderType Stage = ShaderType::None;
+		uint32_t Set = -1;
+		uint32_t Binding = -1;
 	};
 
 	struct ShaderDescriptorSet
@@ -207,11 +207,14 @@ namespace Saturn {
 		
 		using ShaderWriteMap = std::unordered_map< ShaderType, std::unordered_map< std::string, VkWriteDescriptorSet > >;
 
+
 	public:
+		// Internal default constructor, only used when reading from a shader bundle.
+		// Do not use!
+		Shader() {}
+	
 		Shader( std::filesystem::path Filepath );
-
 		~Shader();
-
 		
 		std::string& GetName() { return m_Name; }
 		const std::string& GetName() const { return m_Name; }
@@ -259,11 +262,12 @@ namespace Saturn {
 		std::vector< VkDescriptorSetLayout >& GetSetLayouts() { return m_SetLayouts; }
 		VkDescriptorSetLayout GetSetLayout( uint32_t set = 0 ) { return m_SetLayouts[ set ]; }
 
+		void SerialiseShaderData( std::ofstream& rStream );
+		void DeserialiseShaderData( uint8_t** ppData );
+
 	private:
 
 		void ReadFile();
-
-		void GetAvailableUniform();
 
 		void DetermineShaderTypes();
 		
@@ -278,7 +282,7 @@ namespace Saturn {
 		SpvSourceMap m_SpvCode;
 
 		std::string m_FileContents = "";
-		size_t m_FileSize;
+		size_t m_FileSize = 0;
 
 		std::string m_Name = "";
 
@@ -286,11 +290,7 @@ namespace Saturn {
 		
 		std::vector< ShaderUniform > m_Uniforms;
 		std::vector< ShaderUniform > m_PushConstantUniforms;
-		
-		ShaderUBMap m_UniformBuffers;
-
 		std::vector< ShaderSampledImage > m_Textures;
-		
 		std::vector< VkPushConstantRange > m_PushConstantRanges;
 
 		// Set -> ShaderDescriptorSet
@@ -303,6 +303,9 @@ namespace Saturn {
 		std::vector< VkDescriptorSetLayout > m_SetLayouts;
 
 		Ref< DescriptorPool > m_SetPool;
+
+	private:
+		friend class ShaderBundle;
 	};
 
 	// The shader library will hold shaders
@@ -322,6 +325,9 @@ namespace Saturn {
 		// If the shader does not exist, it will load it.
 		const Ref<Shader>& TryFind( const std::string& name, const std::string& path );
 		const Ref<Shader>& Find( const std::string& name ) const;
+
+		std::unordered_map<std::string, Ref<Shader>>& GetShaders() { return m_Shaders; }
+		const std::unordered_map<std::string, Ref<Shader>>& GetShaders() const { return m_Shaders; }
 
 		void Shutdown();
 	private:

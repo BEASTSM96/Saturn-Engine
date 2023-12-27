@@ -46,6 +46,8 @@
 
 #include "Saturn/Physics/PhysicsFoundation.h"
 
+#include <Ruby/RubyWindow.h>
+
 namespace Saturn {
 
 	RuntimeLayer::RuntimeLayer()
@@ -74,6 +76,10 @@ namespace Saturn {
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
 		m_RuntimeScene->OnRuntimeStart();
+
+		Application::Get().GetWindow()->Show();
+
+		Input::Get().SetCanSetCursorMode( true );
 	}
 
 	RuntimeLayer::~RuntimeLayer()

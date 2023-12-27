@@ -103,7 +103,7 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
 
 	ApplicationSpecification spec;
-	spec.Flags = (uint32_t)ApplicationFlags::CreateSceneRenderer;
+	spec.Flags = ApplicationFlag_CreateSceneRenderer;
 
 	return new EditorApplication( spec, projectPath );
 }

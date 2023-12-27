@@ -59,15 +59,15 @@ namespace Saturn {
 		{
 			for ( auto& Uniform : m_Uniforms )
 			{
-				if ( Uniform.GetName() == Name )
+				if ( Uniform.Name == Name )
 				{
-					if( Uniform.IsPushConstantData() )
+					if( Uniform.IsPushConstantData )
 					{
-						m_PushConstantData.Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
+						m_PushConstantData.Write( ( uint8_t* ) &Value, Uniform.Size, Uniform.Offset );
 					}
 					else
 					{
-						Uniform.GetBuffer().Write( ( uint8_t* ) &Value, Uniform.GetSize(), Uniform.GetOffset() );
+						Uniform.Data.Write( ( uint8_t* ) &Value, Uniform.Size, Uniform.Offset );
 					}
 					
 					m_AnyValueChanged = true;
@@ -80,18 +80,21 @@ namespace Saturn {
 		template<typename Ty>
 		Ty& Get( const std::string& Name ) 
 		{
-			for ( auto& Uniform : m_Uniforms )
+			auto Itr = std::find_if( m_Uniforms.begin(), m_Uniforms.end(), 
+				[&]( auto& uniform ) { return uniform.Name == Name; } 
+			);
+
+			if( Itr != m_Uniforms.end() )
 			{
-				if ( Uniform.GetName() == Name )
+				auto& Uniform = *( Itr );
+
+				if( Uniform.IsPushConstantData )
 				{
-					if ( Uniform.IsPushConstantData() )
-					{
-						return m_PushConstantData.Read< Ty >( Uniform.GetOffset() );
-					}
-					else
-					{
-						return Uniform.GetBuffer().Read< Ty >( Uniform.GetOffset() );
-					}
+					return m_PushConstantData.Read< Ty >( Uniform.Offset );
+				}
+				else
+				{
+					return Uniform.Data.Read< Ty >( Uniform.Offset );
 				}
 			}
 

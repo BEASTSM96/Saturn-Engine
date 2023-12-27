@@ -9,7 +9,7 @@ namespace SaturnBuildTool
         {
             base.Init();
 
-            BuildConfigs = new[] { ConfigKind.Debug, ConfigKind.Release, ConfigKind.Dist };
+            BuildConfigs = new[] { ConfigKind.Debug, ConfigKind.Release };
 
             // Games are DLLs in the editor.
             OutputType = LinkerOutput.SharedLibrary;

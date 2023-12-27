@@ -36,6 +36,8 @@
 #include "VulkanDebug.h"
 #include "Renderer.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 #include <istream>
 #include <fstream>
 #include <iostream>
@@ -229,6 +231,8 @@ namespace Saturn {
 	}
 	
 	//////////////////////////////////////////////////////////////////////////
+	// SHADER
+	//////////////////////////////////////////////////////////////////////////
 
 	Shader::Shader( std::filesystem::path Filepath )
 		: m_Filepath( std::move( Filepath ) )
@@ -252,8 +256,6 @@ namespace Saturn {
 		}
 
 		CreateDescriptors();
-
-		GetAvailableUniform();
 	}
 
 	Shader::~Shader()
@@ -440,11 +442,6 @@ namespace Saturn {
 		f.close();
 
 		m_FileContents = std::string( Buffer.begin(), Buffer.end() );
-	}
-
-	void Shader::GetAvailableUniform()
-	{
-
 	}
 
 	void Shader::DetermineShaderTypes()
@@ -912,5 +909,34 @@ namespace Saturn {
 		}
 
 		SHADER_INFO( "Shader Compilation took {0} ms", CompileTimer.ElapsedMilliseconds() );
+	}
+
+	void Shader::SerialiseShaderData( std::ofstream& rStream )
+	{
+		RawSerialisation::WriteMap( m_SpvCode, rStream );
+		RawSerialisation::WriteMap( m_DescriptorSets, rStream );
+		
+		RawSerialisation::WriteVector( m_Uniforms, rStream );
+		RawSerialisation::WriteVector( m_PushConstantUniforms, rStream );
+		RawSerialisation::WriteVector( m_Textures, rStream );
+		RawSerialisation::WriteVector( m_PushConstantRanges, rStream );
+	}
+
+	void Shader::DeserialiseShaderData( uint8_t** ppData ) 
+	{
+		RawSerialisation::ReadMap<SpvSourceMap, ShaderSourceKey, std::vector<uint32_t>>( ppData, m_SpvCode );
+		RawSerialisation::ReadMap<std::unordered_map<uint32_t, ShaderDescriptorSet>, uint32_t, ShaderDescriptorSet>( ppData, m_DescriptorSets );
+
+		RawSerialisation::ReadVector( ppData, m_Uniforms );
+		RawSerialisation::ReadVector( ppData, m_PushConstantUniforms );
+
+		RawSerialisation::ReadVector( ppData, m_Textures );
+		RawSerialisation::ReadVector( ppData, m_PushConstantRanges );
+
+		// Clean up some of the data that was read.
+		for( auto&& [k, v] : m_DescriptorSets )
+			v.SetLayout = nullptr;
+		
+		CreateDescriptors();
 	}
 }

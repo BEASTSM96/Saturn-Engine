@@ -71,7 +71,7 @@ namespace Saturn {
 
 	void GameModule::Load( bool reload /*=false*/ )
 	{
-		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
+		if( !Application::Get().HasFlag( ApplicationFlag_GameDist ) )
 		{
 			// We are the editor, load DLL.
 			auto binDir = Project::GetActiveProject()->GetBinDir();
@@ -98,7 +98,7 @@ namespace Saturn {
 
 	void GameModule::Unload()
 	{
-		if( !Application::Get().HasFlag( ApplicationFlags::GameDist ) )
+		if( !Application::Get().HasFlag( ApplicationFlag_GameDist ) )
 		{
 			m_GameModule = nullptr;
 		}

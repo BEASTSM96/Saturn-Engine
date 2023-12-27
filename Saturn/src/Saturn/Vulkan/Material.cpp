@@ -60,16 +60,16 @@ namespace Saturn {
 
 		for( auto rUniform : m_Shader->GetUniforms())
 		{
-			m_Uniforms.push_back( { rUniform.GetName(), rUniform.GetLocation(), rUniform.GetType(), rUniform.GetSize(), rUniform.GetOffset(), rUniform.IsPushConstantData() } );
+			m_Uniforms.push_back( { rUniform.Name, rUniform.Location, rUniform.DataType, rUniform.Size, rUniform.Offset, rUniform.IsPushConstantData } );
 		}
 
 		uint32_t Size = 0;
 		
 		for ( auto& rUniform : m_Uniforms )
 		{
-			if( rUniform.IsPushConstantData() ) 
+			if( rUniform.IsPushConstantData ) 
 			{
-				Size += static_cast<uint32_t>( rUniform.GetSize() );
+				Size += static_cast<uint32_t>( rUniform.Size );
 			}
 		}
 		

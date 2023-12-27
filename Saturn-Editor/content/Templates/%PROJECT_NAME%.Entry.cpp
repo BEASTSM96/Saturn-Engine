@@ -34,48 +34,47 @@
 #include <Saturn/Core/App.h>
 #include <Saturn/Runtime/RuntimeLayer.h>
 #include <Saturn/Project/Project.h>
-#include <Saturn/Serialisation/UserSettingsSerialiser.h>
+#include <Saturn/Serialisation/EngineSettingsSerialiser.h>
 
 static std::string s_ProjectPath = "";
 
 // Saturn client main:
-extern int _main( int, char** );
+namespace Saturn {
+	extern int SaturnMain( int, char** );
+}
 
 int main( int count, char** args )
 {
 	// Hand it off to Saturn:
-	return _main( count, args );
+	return Saturn::SaturnMain( count, args );
 }
 
 #if defined ( _WIN32 )
 
 int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd )
 {
-	return main( __argc, __argv );
+	return Saturn::SaturnMain( __argc, __argv );
 }
 
 #endif // _WIN32
-
 
 // Client default app.
 class __GameApplication : public Saturn::Application
 {
 public:
-	__GameApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
-		: Saturn::Application( spec ), m_ProjectPath( rProjectPath )
+	__GameApplication( const Saturn::ApplicationSpecification& spec )
+		: Saturn::Application( spec )
 	{
-		auto& settings = Saturn::GetUserSettings();
-		settings.StartupProject = m_ProjectPath;
+		Saturn::EngineSettingsSerialiser uss;
+		uss.Deserialise();
+
+		Saturn::EngineSettings& rSettings = Saturn::EngineSettings::Get();
+		rSettings.StartupProject = s_ProjectPath;
 
 		size_t found = m_ProjectPath.find_last_of( "/\\" );
-		settings.StartupProjectName = m_ProjectPath.substr( found + 1 );
+		rSettings.StartupProjectName = s_ProjectPath.substr( found + 1 );
 
-		settings.FullStartupProjPath = m_ProjectPath;
-
-		settings = Saturn::GetUserSettings();
-
-		Saturn::UserSettingsSerialiser uss;
-		uss.Deserialise( settings );
+		rSettings.FullStartupProjPath = s_ProjectPath + "\\" + rSettings.StartupProjectName + ".sproject";
 	}
 
 	virtual void OnInit() override
@@ -86,24 +85,24 @@ public:
 
 	virtual void OnShutdown() override
 	{
-		Saturn::UserSettingsSerialiser uss;
-		uss.Serialise( Saturn::GetUserSettings() );
+		Saturn::EngineSettingsSerialiser uss;
+		uss.Serialise();
 
 		PopLayer( m_RuntimeLayer );
 		delete m_RuntimeLayer;
 	}
+
 private:
 	Saturn::RuntimeLayer* m_RuntimeLayer = nullptr;
-	std::string m_ProjectPath = "";
 };
 
 Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 {
-	ApplicationSpecification spec{};
+	Saturn::ApplicationSpecification spec{};
 	spec.Titlebar = true;
 	spec.GameDist = true;
 
 	s_ProjectPath = Saturn::Project::FindProjectDir( "%PROJECT_NAME%" );
 
-	return new __GameApplication( spec, s_ProjectPath );
+	return new __GameApplication( spec );
 }

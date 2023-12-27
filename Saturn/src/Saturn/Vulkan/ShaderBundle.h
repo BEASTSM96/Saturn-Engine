@@ -28,55 +28,22 @@
 
 #pragma once
 
-#include <string>
+#include "Saturn/Core/Ref.h"
+#include "SingletonStorage.h"
 
-#include "Texture.h"
-
-#include "ShaderDataType.h"
-
-#include "Saturn/Core/Memory/Buffer.h"
+#include "ShaderUniform.h"
 
 namespace Saturn {
-	
-	// A shader uniform represents a uniform variable in a shader.
-	class ShaderUniform : public RefTarget
+
+	class ShaderBundle : public RefTarget
 	{
 	public:
-		std::string Name = "";
-		int Location = -1;
-		ShaderDataType DataType = ShaderDataType::None;
-		bool IsPushConstantData = false;
-
-		uint32_t Offset = 0;
-		uint32_t Size = 0;
-
-		Buffer Data;
-
+		static inline ShaderBundle& Get() { return *SingletonStorage::GetOrCreateSingleton<ShaderBundle>(); }
 	public:
-		ShaderUniform() 
-		{
-		}
-		
-		~ShaderUniform()
-		{
-			Terminate();
-		}
+		ShaderBundle();
+		~ShaderBundle();
 
-		ShaderUniform( const std::string& name, int location, ShaderDataType type, size_t size, uint32_t offset, bool isPushConstantData = false )
-			: Name( name ), Location( location ), DataType( type ), IsPushConstantData( isPushConstantData ), Size( (uint32_t)size ), Offset( offset )
-		{
-			Data.Allocate( size );
-			Data.Zero_Memory();
-		}
-
-		void Terminate()
-		{	
-			Location = -1;
-			DataType = ShaderDataType::None;
-		}
-
-	private:
-		friend class ShaderBundle;
+		bool BundleShaders();
+		void ReadBundle();
 	};
-
 }

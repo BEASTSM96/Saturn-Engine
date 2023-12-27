@@ -46,17 +46,21 @@ class RubyWindow;
 
 namespace Saturn {
 
-	enum class ApplicationFlags 
+	enum ApplicationFlags_
 	{
-		UIOnly = BIT( 0 ),
-		GameDist = BIT( 1 ),
-		CreateSceneRenderer = BIT( 2 ),
-		UseGameThread = BIT( 3 )
+		ApplicationFlag_UIOnly = BIT( 0 ),
+		ApplicationFlag_GameDist = BIT( 1 ),
+		ApplicationFlag_CreateSceneRenderer = BIT( 2 ),
+		ApplicationFlag_UseGameThread = BIT( 3 ),
+		ApplicationFlag_Titlebar = BIT( 4 )
 	};
+
+	// enum ApplicationFlags_
+	typedef int ApplicationFlags;
 
 	struct ApplicationSpecification
 	{
-		uint32_t Flags;
+		ApplicationFlags Flags;
 
 		bool Titlebar = false;
 		
@@ -103,7 +107,7 @@ namespace Saturn {
 
 		void SubmitOnMainThread( std::function<void()>&& rrFunction ) 
 		{
-			if( HasFlag( ApplicationFlags::UseGameThread ) )
+			if( HasFlag( ApplicationFlag_UseGameThread ) )
 				m_MainThreadQueue.push_back( std::move( rrFunction ) );
 			else
 				rrFunction();

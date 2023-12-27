@@ -436,7 +436,7 @@ namespace SaturnBuildTool.Tools
                 cmd.GeneratedSource.AppendLine(cExternEnd);
 
                 // Create metadata and add it to the list
-                if(ProjectInfo.Instance.CurrentConfigKind < ConfigKind.DistDebug) 
+                if(ProjectInfo.Instance.CurrentConfigKind != ConfigKind.Dist) 
                 {
                     string metadata = string.Format("static void _RT_Z_CreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
                     metadata += "{\r\n";
@@ -476,7 +476,7 @@ namespace SaturnBuildTool.Tools
 
 
                 // Auto-Registration (DLL only).
-                if (ProjectInfo.Instance.CurrentConfigKind < ConfigKind.DistDebug)
+                if (ProjectInfo.Instance.CurrentConfigKind != ConfigKind.Dist)
                 {
                     Random random = new Random();
                     int randomNumber = random.Next();
