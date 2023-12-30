@@ -83,7 +83,7 @@ std::vector<RubyMonitor> RubyGetAllMonitors()
 
 RubyMonitor& RubyGetPrimaryMonitor()
 {
-	if( s_RubyMonitors.size() )
+	if( !s_RubyMonitors.size() )
 		RubyGetAllMonitors();
 
 	auto It = std::find_if( s_RubyMonitors.begin(), s_RubyMonitors.end(), []( auto& rMonitor ) { return rMonitor.Primary; } );

@@ -64,21 +64,14 @@ namespace Saturn {
 
 		m_Log = new Log();
 
-		std::vector<RubyMonitor> monitors = RubyGetAllMonitors();
+		const RubyMonitor& rPrimaryMonitor = RubyGetPrimaryMonitor();
 		uint32_t width = 0, height = 0;
 
-		// TODO: Once we have a better monitor API this will be much better.
-		for( const auto& monitor : monitors ) 
-		{
-			if( monitor.Primary )
-			{
-				width = 3 * monitor.MonitorSize.x / 4;
-				height = 3 * monitor.MonitorSize.y / 4;
-			}
-		}
+		width = 3 * rPrimaryMonitor.MonitorSize.x / 4;
+		height = 3 * rPrimaryMonitor.MonitorSize.y / 4;
 
 		// TEMP! Vulkan does not like default windows for some reason?
-		RubyStyle WindowStyle = HasFlag( ApplicationFlag_Titlebar ) ? RubyStyle::Borderless : RubyStyle::Borderless;
+		RubyStyle WindowStyle = HasFlag( ApplicationFlag_Titlebar ) ? RubyStyle::Default : RubyStyle::Borderless;
 
 		RubyWindowSpecification windowSpec { .Name = "Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = WindowStyle, .ShowNow = false };
 		m_Window = new RubyWindow( windowSpec );
@@ -89,7 +82,7 @@ namespace Saturn {
 
 		m_VulkanContext->Init();
 
-		// If we are in Dist we don't want to create the scene renderer just right now because we want to load the project and then load the shader bundle so then we can create the scene renderer.
+		// If we are in Dist we don't want to create the scene renderer just right now because we want to load the project and then load the shader bundle so then we can't right now create the scene renderer.
 #if !defined( SAT_DIST )
 		m_SceneRenderer = new SceneRenderer();
 #endif
@@ -309,6 +302,11 @@ namespace Saturn {
 			case RubyEventType::Resize:
 			{
 				OnWindowResize( ( RubyWindowResizeEvent& )rEvent );
+			} break;
+
+			case RubyEventType::Close: 
+			{
+				Close();
 			} break;
 		}
 

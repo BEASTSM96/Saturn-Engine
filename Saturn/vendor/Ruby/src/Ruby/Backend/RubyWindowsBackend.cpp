@@ -113,7 +113,10 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::Close );
 
 			pThis->CloseWindow();
-		} break;
+			
+			// Don't tell the OS about this message because if we did then the OS will destroy the window, that can be good but this will cause the engine to crash because the surface will be lost as the window no longer exists.
+			// So instead we just return and then the Engine will take care of the rest.
+		} return TRUE;
 
 		case WM_DESTROY:
 		{
