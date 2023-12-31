@@ -254,7 +254,7 @@ namespace Saturn {
 			auto CurrentStage = m_Specification.RequestDescriptorSets.Stage;
 			auto Index = m_Specification.RequestDescriptorSets.SetIndex;
 
-			if( Index == -1 && CurrentStage == ShaderType::All )
+			if( Index == -1 && CurrentStage != ShaderType::All )
 			{
 				SAT_CORE_ERROR( "You requested a descriptor set at index {0}, and at shader stage {1}, but index is -1!\n In order to use -1 as a binding point you must have your shader type is 'All'!", Index, (int) CurrentStage );
 
