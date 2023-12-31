@@ -275,7 +275,6 @@ namespace Saturn {
 
 			m_RendererData.DirShadowMapPipelines[ i ] = Ref< Pipeline >::Create( PipelineSpec );
 		}
-
 	}
 
 	void SceneRenderer::InitPreDepth()
@@ -496,7 +495,6 @@ namespace Saturn {
 			return;
 
 		// Set UB Data.
-
 		glm::mat4 trans = glm::rotate( glm::mat4( 1.0f ), glm::radians( 90.0f ), glm::vec3( 1.0f, 0.0f, 0.0f ) ) * glm::scale( glm::mat4( 1.0f ), glm::vec3( 16.0f ) );
 
 		RendererData::GridMatricesObject GridMatricesObject = {};

@@ -799,7 +799,8 @@ void RubyWindowsBackend::PresentWindow( RubyWindowShowCmd Command )
 			MONITORINFO Info = { .cbSize = sizeof( MONITORINFO ) };
 			::GetMonitorInfo( Monitor, &Info );
 
-			::MoveWindow( m_Handle, Info.rcMonitor.left, Info.rcMonitor.top, Info.rcMonitor.right - Info.rcMonitor.left, Info.rcMonitor.bottom - Info.rcMonitor.top, TRUE );
+			::MoveWindow( m_Handle, Info.rcMonitor.left, Info.rcMonitor.top, 
+				Info.rcMonitor.right - Info.rcMonitor.left, Info.rcMonitor.bottom - Info.rcMonitor.top, TRUE );
 			::ShowWindow( m_Handle, SW_SHOW );
 		} break;
 	}

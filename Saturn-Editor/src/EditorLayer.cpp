@@ -81,7 +81,7 @@
 
 namespace Saturn {
 
-	bool s_HasPremakePath = false;
+	bool HasPremakePath = false;
 	bool OpenAssetRegistryDebug = false;
 	bool OpenLoadedAssetDebug = false;
 	bool OpenAttributions = false;
@@ -133,7 +133,7 @@ namespace Saturn {
 
 			if( ImGui::BeginMenu( "Project" ) )
 			{
-				if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;
+				if( ImGui::MenuItem( "Project settings" ) ) m_ShowUserSettings = !m_ShowUserSettings;
 
 				if( ImGui::MenuItem( "Recreate project files" ) )
 				{
@@ -147,7 +147,13 @@ namespace Saturn {
 				{
 					Project::GetActiveProject()->PrepForDist();
 
+					// Make sure we will include the Texture Pass shader because that will not be in the shader library at this point because we don't need it.
+					Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
+
 					ShaderBundle::Get().BundleShaders();
+
+					ShaderLibrary::Get().Remove( TexturePass ); 
+					TexturePass = nullptr;
 				}
 
 				if( ImGui::MenuItem( "Distribute project" ) )
@@ -215,7 +221,7 @@ namespace Saturn {
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
 
-		s_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+		HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 	}
 
 	EditorLayer::~EditorLayer()
@@ -400,7 +406,7 @@ namespace Saturn {
 
 		DrawMaterials();
 
-		if( !s_HasPremakePath )
+		if( !HasPremakePath )
 		{
 			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
 			{
@@ -426,7 +432,7 @@ namespace Saturn {
 						
 						Auxiliary::SetEnvironmentVariable( "SATURN_PREMAKE_PATH", path.c_str() );
 
-						s_HasPremakePath = true;
+						HasPremakePath = true;
 					}
 				}
 
@@ -836,7 +842,7 @@ namespace Saturn {
 					{
 						if( ImGui::Selectable( rAsset->GetName().c_str() ) )
 						{
-							Project::GetActiveProject()->GetConfig().StartupScenePath = std::filesystem::relative( rAsset->GetPath(), Project::GetActiveProject()->GetRootDir() ).string();
+							ActiveProject->GetConfig().StartupScenePath = std::filesystem::relative( rAsset->GetPath(), ActiveProject->GetRootDir() ).string();
 							
 							PopupModified = true;
 						}
