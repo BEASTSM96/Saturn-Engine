@@ -471,13 +471,13 @@ namespace Saturn {
 		CopyComponentIfExists<V...>( dst, src, rRegistry );
 	}
 
-	void Scene::DuplicateEntity( Ref<Entity> entity )
+	Ref<Entity> Scene::DuplicateEntity( Ref<Entity> entity, Ref<Entity> parent )
 	{
 		Ref<Entity> newEntity = Ref<Entity>::Create();
 		newEntity->SetName( entity->GetComponent<TagComponent>().Tag );
 
-		// Without TagComponent and IdComponent
-		using DesiredComponents = ComponentGroup<TransformComponent, RelationshipComponent, PrefabComponent,
+		// Without TagComponent, IdComponent, RelationshipComponent
+		using DesiredComponents = ComponentGroup<TransformComponent, PrefabComponent,
 			StaticMeshComponent,
 			LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 			CameraComponent,
@@ -487,6 +487,35 @@ namespace Saturn {
 			BillboardComponent>;
 
 		CopyComponentIfExists( DesiredComponents{}, newEntity->GetHandle(), entity->GetHandle(), m_Registry );
+
+		auto& relationshipComponent = newEntity->GetComponent<RelationshipComponent>();
+		auto& sourceRelationship = entity->GetComponent<RelationshipComponent>();
+		
+		relationshipComponent.ChildrenID.resize( entity->GetChildren().size() );
+		
+		// parent should only be not be null if we are calling this recursively
+		if( parent )
+		{
+			newEntity->SetParent( parent->GetUUID() );
+		}
+
+		if( entity->HasParent() && !parent )
+		{
+			Ref<Entity> parent = FindEntityByID( entity->GetParent() );
+			Ref<Entity> newParent = DuplicateEntity( parent, nullptr );
+
+			newEntity->SetParent( newParent->GetUUID() );
+		}
+
+		for( const auto& rID : sourceRelationship.ChildrenID )
+		{
+			Ref<Entity> child = FindEntityByID( rID );
+			Ref<Entity> newChild = DuplicateEntity( child, newEntity );
+
+			newEntity->GetChildren().push_back( newChild->GetUUID() );
+		}
+
+		return newEntity;
 	}
 
 	void Scene::DeleteEntity( Ref<Entity> entity )

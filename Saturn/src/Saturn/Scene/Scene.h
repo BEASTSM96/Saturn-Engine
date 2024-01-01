@@ -100,7 +100,7 @@ namespace Saturn {
 		void OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer );
 		void OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer );
 
-		void DuplicateEntity( Ref<Entity> entity );
+		Ref<Entity> DuplicateEntity( Ref<Entity> entity, Ref<Entity> parent = nullptr );
 		void DeleteEntity( Ref<Entity> entity );
 
 		void OnUpdate( Timestep ts );

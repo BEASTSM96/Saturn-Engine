@@ -318,7 +318,7 @@ namespace Saturn {
 			{
 				ImGui::Text( rTag.c_str() );
 
-				ImGui::SetDragDropPayload( "ENTITY_PARENT_SCHPANEL", &entity, sizeof( Entity ), ImGuiCond_Once );
+				ImGui::SetDragDropPayload( "ENTITY_PARENT_SCHPANEL", entity.Get(), sizeof( Entity ), ImGuiCond_Once );
 
 				ImGui::EndDragDropSource();
 			}
@@ -329,12 +329,12 @@ namespace Saturn {
 
 				if( pPayload )
 				{
-					Entity& e = *( Entity* ) pPayload->Data;
-					Ref<Entity> previousParent = m_Context->FindEntityByID( e.GetParent() );
+					Ref<Entity> e = (Entity*)pPayload->Data;
+					Ref<Entity> previousParent = m_Context->FindEntityByID( e->GetParent() );
 
 					// If a child is trying to parent it's parent.
 					bool ParentToParent = false;
-					for( auto& child : e.GetChildren() )
+					for( auto& child : e->GetChildren() )
 					{
 						if( child == entity->GetUUID() )
 						{
@@ -348,13 +348,13 @@ namespace Saturn {
 						if( previousParent )
 						{
 							auto& children = previousParent->GetChildren();
-							children.erase( std::remove( children.begin(), children.end(), e.GetComponent<IdComponent>().ID ), children.end() );
+							children.erase( std::remove( children.begin(), children.end(), e->GetComponent<IdComponent>().ID ), children.end() );
 						}
 
-						e.SetParent( entity->GetComponent<IdComponent>().ID );
+						e->SetParent( entity->GetComponent<IdComponent>().ID );
 
 						auto& children = entity->GetChildren();
-						children.push_back( e.GetComponent<IdComponent>().ID );
+						children.push_back( e->GetComponent<IdComponent>().ID );
 					}
 				}
 
