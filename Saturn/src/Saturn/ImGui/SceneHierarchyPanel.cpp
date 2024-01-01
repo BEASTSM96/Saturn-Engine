@@ -275,6 +275,8 @@ namespace Saturn {
 
 			DrawAddComponents<PhysicsMaterialComponent>( "Physics material", m_SelectionContexts[ 0 ] );
 
+			DrawAddComponents<BillboardComponent>( "Billboard", m_SelectionContexts[ 0 ] );
+
 			ImGui::EndPopup();
 		}
 	}
@@ -702,6 +704,25 @@ namespace Saturn {
 
 			ImGui::PopID();
 		} );
+
+		DrawComponent<BillboardComponent>( "Billboard", entity, [&](auto& bc) 
+			{
+				static bool s_Open = false;
+
+				if( ImGui::Button( "Select Texture" ) )
+				{
+					m_CurrentFinderType = AssetType::Texture;
+					s_Open = true;
+
+					if( bc.AssetID != 0 )
+						m_CurrentAssetID = bc.AssetID;
+				}
+
+				if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) ) 
+				{
+					bc.AssetID = m_CurrentAssetID;
+				}
+			} );
 	}
 
 }

@@ -310,6 +310,15 @@ namespace Saturn {
 		AudioComponent( UUID id ) : AssetID( id ) {  }
 	};
 
+	struct BillboardComponent
+	{
+		UUID AssetID;
+
+		BillboardComponent() = default;
+		BillboardComponent( BillboardComponent& other ) = default;
+		BillboardComponent( UUID id ) : AssetID( id ) {  }
+	};
+
 	template<typename... V>
 	struct ComponentGroup {};
 
@@ -329,5 +338,6 @@ namespace Saturn {
 		CameraComponent,
 		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
 		ScriptComponent, 
-		AudioComponent>;
+		AudioComponent, 
+		BillboardComponent>;
 }

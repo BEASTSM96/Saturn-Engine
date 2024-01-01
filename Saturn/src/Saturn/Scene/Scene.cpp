@@ -30,6 +30,7 @@
 #include "Scene.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
+#include "Saturn/Vulkan/Renderer2D.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Entity.h"
@@ -218,6 +219,20 @@ namespace Saturn {
 			}
 		}
 
+		// Billboards
+		{
+			auto entities = GetAllEntitiesWith<BillboardComponent>();
+
+			for( auto& entity : entities )
+			{
+				auto& billboardComponent = entity->GetComponent<BillboardComponent>();
+
+				auto transform = GetTransformRelativeToParent( entity );
+
+				rSceneRenderer.SubmitBillboard( entity, transform, billboardComponent.AssetID );
+			}
+		}
+
 		// Static meshes
 		{
 			auto entities = GetAllEntitiesWith<StaticMeshComponent>();
@@ -241,6 +256,7 @@ namespace Saturn {
 		}
 
 		rSceneRenderer.SetCamera( { rCamera, rCamera.ViewMatrix() } );
+		VulkanContext::Get().m_Renderer2D->SetCamera( { rCamera, rCamera.ViewMatrix() } );
 	}
 
 	void Scene::OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer )
@@ -278,8 +294,6 @@ namespace Saturn {
 			{
 				auto points = m_Registry.group<PointLightComponent>( entt::get<TransformComponent> );
 
-				//m_Lights.PointLights.resize( points.size() );
-
 				uint32_t plIndex = 0;
 
 				for( const auto& e : points )
@@ -299,6 +313,20 @@ namespace Saturn {
 
 					plIndex++;
 				}
+			}
+		}
+
+		// Billboards
+		{
+			auto entities = GetAllEntitiesWith<BillboardComponent>();
+
+			for( auto& entity : entities )
+			{
+				auto& billboardComponent = entity->GetComponent<BillboardComponent>();
+
+				auto transform = GetTransformRelativeToParent( entity );
+
+				rSceneRenderer.SubmitBillboard( entity, transform, billboardComponent.AssetID );
 			}
 		}
 
@@ -454,8 +482,9 @@ namespace Saturn {
 			LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
 			CameraComponent,
 			BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
-			ScriptComponent, 
-			AudioComponent>;
+			ScriptComponent,
+			AudioComponent,
+			BillboardComponent>;
 
 		CopyComponentIfExists( DesiredComponents{}, newEntity->GetHandle(), entity->GetHandle(), m_Registry );
 	}
