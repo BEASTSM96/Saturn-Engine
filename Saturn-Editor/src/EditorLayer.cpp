@@ -765,7 +765,17 @@ namespace Saturn {
 
 					if( auto& selectedEntity = pHierarchyPanel->GetSelectionContext() ) 
 					{
-						m_EditorCamera.Focus( selectedEntity->GetComponent<TransformComponent>().Position );
+						if( selectedEntity->HasParent() )
+						{
+							Ref<Entity> parent = GActiveScene->FindEntityByID( selectedEntity->GetParent() );
+							auto transform = GActiveScene->GetWorldSpaceTransform( parent );
+
+							m_EditorCamera.Focus( transform.Position );
+						}
+						else
+						{
+							m_EditorCamera.Focus( selectedEntity->GetComponent<TransformComponent>().Position );
+						}	
 					}
 				} break;
 

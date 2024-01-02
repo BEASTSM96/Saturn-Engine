@@ -493,7 +493,7 @@ namespace Saturn {
 		
 		relationshipComponent.ChildrenID.resize( entity->GetChildren().size() );
 		
-		// parent should only be not be null if we are calling this recursively
+		// parent should only be a valid pointer if we are calling this recursively.
 		if( parent )
 		{
 			newEntity->SetParent( parent->GetUUID() );

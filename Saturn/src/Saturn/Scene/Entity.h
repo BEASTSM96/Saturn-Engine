@@ -80,12 +80,12 @@ namespace Saturn {
 			m_Scene->RemoveComponent<T>( m_EntityHandle );
 		}
 
-		bool Vaild()
+		bool Valid()
 		{
 			return m_Scene->m_Registry.valid( m_EntityHandle );
 		}
 
-		bool Vaild() const
+		bool Valid() const
 		{
 			return m_Scene->m_Registry.valid( m_EntityHandle );
 		}
@@ -144,7 +144,7 @@ namespace Saturn {
 		std::vector<UUID>& GetChildren()             { return GetComponent<RelationshipComponent>().ChildrenID; }
 		
 		bool HasParent()   { return GetComponent<RelationshipComponent>().Parent != 0; }
-		bool HasChildren() { return GetComponent<RelationshipComponent>().ChildrenID.size() > 1; }
+		bool HasChildren() { return GetComponent<RelationshipComponent>().ChildrenID.size() > 0; }
 
 	protected:
 

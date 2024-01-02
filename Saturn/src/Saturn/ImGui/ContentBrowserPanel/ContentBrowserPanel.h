@@ -131,7 +131,7 @@ namespace Saturn {
 
 		// Files and folder, sorted by folders then files.
 		std::vector<Ref<ContentBrowserItem>> m_Files;
-		std::vector<Ref<ContentBrowserItem>> m_VaildSearchFiles;
+		std::vector<Ref<ContentBrowserItem>> m_ValidSearchFiles;
 
 		bool m_FilesNeedSorting = false;
 		bool m_RenderCreateWindow = false;

@@ -83,7 +83,7 @@ namespace Saturn {
 		SwapActiveScene( m_Scene.Get() );
 
 		// TODO: (Entities using refs) Fix this
-		if( srcEntity->Vaild() )
+		if( srcEntity->Valid() )
 			m_Entity = CreateFromEntity( srcEntity );
 
 		RestoreActiveScene( CurrentScene );
