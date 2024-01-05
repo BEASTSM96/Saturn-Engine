@@ -133,7 +133,7 @@ namespace Saturn {
 
 		// Create the shader module.
 
-		std::string ComputeName = m_ComputeShader->GetName() + "/Compute" + "/0";
+		std::string ComputeName = std::format( "{0}/Compute/0", m_ComputeShader->GetName() );
 
 		auto& SpvSrc = ShaderLibrary::Get().Find( m_ComputeShader->GetName() )->GetSpvCode();
 

@@ -170,8 +170,10 @@ namespace Saturn {
 					m_ColorAttachmentsResources.push_back( m_Specification.ExistingImage );
 			}
 
-			if( m_AttachmentImageViews.size() )
+			if( m_AttachmentImageViews.size() ) 
+			{
 				m_AttachmentImageViews[ m_Specification.ExistingImageIndex ] = m_Specification.ExistingImage->GetImageView( m_Specification.ExistingImageLayer );
+			}
 			else
 				m_AttachmentImageViews.push_back( m_Specification.ExistingImage->GetImageView( m_Specification.ExistingImageLayer ) );
 
@@ -205,8 +207,8 @@ namespace Saturn {
 
 		VkFramebufferCreateInfo FramebufferCreateInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		FramebufferCreateInfo.renderPass = m_Specification.RenderPass->GetVulkanPass();
-	
-		FramebufferCreateInfo.attachmentCount = (uint32_t)m_AttachmentImageViews.size();
+
+		FramebufferCreateInfo.attachmentCount = ( uint32_t ) m_AttachmentImageViews.size();
 		FramebufferCreateInfo.pAttachments = m_AttachmentImageViews.data();
 
 		FramebufferCreateInfo.width = m_Specification.Width;
