@@ -45,6 +45,7 @@
 #include "Pipeline.h"
 
 #define SHADOW_CASCADE_COUNT 4
+#define MAX_POINT_LIGHTS 512
 
 namespace Saturn {
 
@@ -151,7 +152,6 @@ namespace Saturn {
 		// COMMAND POOLS & BUFFERS
 		//////////////////////////////////////////////////////////////////////////
 		
-		VkCommandPool CommandPool = nullptr;
 		VkCommandBuffer CommandBuffer = nullptr;
 		
 		//////////////////////////////////////////////////////////////////////////
@@ -225,7 +225,7 @@ namespace Saturn {
 		struct PointLights
 		{
 			uint32_t nbLights = 0;
-			PointLight Lights[ 1024 ]{};
+			PointLight Lights[ 256 ]{};
 		};
 
 		//////////////////////////////////////////////////////////////////////////
@@ -335,6 +335,11 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		Ref<Texture2D> BRDFLUT_Texture = nullptr;
 
+		// Late Composite
+		//////////////////////////////////////////////////////////////////////////
+		Ref<Pass> LateCompositePass = nullptr;
+		Ref<Framebuffer> LateCompositeFramebuffer = nullptr;
+
 		// Instanced Rendering
 		//////////////////////////////////////////////////////////////////////////
 		// 		
@@ -377,7 +382,7 @@ namespace Saturn {
 
 		void SetViewportSize( uint32_t w, uint32_t h );
 
-		void FlushDrawList();		
+		void FlushDrawList();
 
 		void Recreate();
 
@@ -414,8 +419,9 @@ namespace Saturn {
 		void InitGeometryPass();
 		void InitDirShadowMap();
 		void InitPreDepth();
-		void InitSceneComposite();
 		void InitBloom();
+		void InitSceneComposite();
+		void InitLateComposite();
 		void InitTexturePass();
 
 		void InitBuffers();

@@ -30,6 +30,7 @@
 #include "Scene.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
+#include "Saturn/Vulkan/Renderer2D.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Entity.h"
@@ -46,6 +47,8 @@
 #include "Saturn/GameFramework/Core/GameModule.h"
 
 #include "Saturn/Serialisation/SceneSerialiser.h"
+
+#include "Saturn/ImGui/EditorIcons.h"
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -174,6 +177,9 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
+		Renderer2D::Get().SetCamera( rCamera.ViewProjection(), rCamera.ViewMatrix() );
+		Renderer2D::Get().Prepare();
+
 		// Lights
 		{
 			m_Lights = Lights();
@@ -197,6 +203,7 @@ namespace Saturn {
 				auto points = m_Registry.group<PointLightComponent>( entt::get<TransformComponent> );
 
 				uint32_t plIndex = 0;
+				Ref<Texture2D> pointLightBillboardTex = EditorIcons::GetIcon( "Billboard_PointLight" );
 
 				for( const auto& e : points )
 				{
@@ -213,22 +220,10 @@ namespace Saturn {
 
 					m_Lights.PointLights.push_back( pl );
 
+					Renderer2D::Get().SubmitBillboardTextured( pl.Position, glm::vec4( 1.0f ), pointLightBillboardTex, glm::vec2( 1.0f ) );
+
 					plIndex++;
 				}
-			}
-		}
-
-		// Billboards
-		{
-			auto entities = GetAllEntitiesWith<BillboardComponent>();
-
-			for( auto& entity : entities )
-			{
-				auto& billboardComponent = entity->GetComponent<BillboardComponent>();
-
-				auto transform = GetTransformRelativeToParent( entity );
-
-				rSceneRenderer.SubmitBillboard( entity, transform, billboardComponent.AssetID );
 			}
 		}
 
@@ -311,20 +306,6 @@ namespace Saturn {
 
 					plIndex++;
 				}
-			}
-		}
-
-		// Billboards
-		{
-			auto entities = GetAllEntitiesWith<BillboardComponent>();
-
-			for( auto& entity : entities )
-			{
-				auto& billboardComponent = entity->GetComponent<BillboardComponent>();
-
-				auto transform = GetTransformRelativeToParent( entity );
-
-				rSceneRenderer.SubmitBillboard( entity, transform, billboardComponent.AssetID );
 			}
 		}
 

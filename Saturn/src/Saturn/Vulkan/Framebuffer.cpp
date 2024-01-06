@@ -95,6 +95,11 @@ namespace Saturn {
 
 	Framebuffer::~Framebuffer()
 	{
+		Terminate();
+	}
+
+	void Framebuffer::Terminate()
+	{
 		if( m_Framebuffer )
 			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_Framebuffer, nullptr );
 
@@ -102,7 +107,12 @@ namespace Saturn {
 		{
 			resource = nullptr;
 		}
-		
+
+		for( auto& [index, resource] : m_Specification.ExistingImages )
+		{
+			resource = nullptr;
+		}
+
 		m_DepthAttachmentResource = nullptr;
 
 		m_ColorAttachmentsResources.clear();
@@ -110,23 +120,19 @@ namespace Saturn {
 		m_AttachmentImageViews.clear();
 	}
 
-	void Framebuffer::Recreate( uint32_t Width, uint32_t Height )
+	void Framebuffer::Recreate( uint32_t Width, uint32_t Height, const FramebufferSpecification& newSpec /*= {}*/ )
 	{
-		if( m_Framebuffer )
-			vkDestroyFramebuffer( VulkanContext::Get().GetDevice(), m_Framebuffer, nullptr );
-
-		m_Framebuffer = nullptr;
-
-		for( auto& resource : m_ColorAttachmentsResources )
+		if( newSpec.ExistingImages.size() )
 		{
-			resource = nullptr;
+			for( auto& [index, resource] : m_Specification.ExistingImages )
+			{
+				resource = nullptr;
+			}
 		}
 
-		m_ColorAttachmentsResources.clear();
-		m_DepthAttachmentResource = nullptr;
-
-		m_ColorAttachmentsFormats.clear();
-		m_AttachmentImageViews.clear();
+		Terminate();
+		
+		m_Specification.ExistingImages = newSpec.ExistingImages;
 
 		////
 

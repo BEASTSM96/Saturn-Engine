@@ -38,6 +38,7 @@
 #include "Material.h"
 #include "MaterialInstance.h"
 #include "ComputePipeline.h"
+#include "Renderer2D.h"
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 #include "Saturn/Core/Memory/Buffer.h"
 
@@ -59,14 +60,6 @@ namespace Saturn {
 
 	void SceneRenderer::Init()
 	{
-		// Create command pool.
-
-		VkCommandPoolCreateInfo CommandPoolInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-		CommandPoolInfo.queueFamilyIndex = VulkanContext::Get().GetQueueFamilyIndices().GraphicsFamily.value();
-		CommandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-		VK_CHECK( vkCreateCommandPool( VulkanContext::Get().GetDevice(), &CommandPoolInfo, nullptr, &m_RendererData.CommandPool ) );
-
 		if( m_RendererData.Width == 0 && m_RendererData.Height == 0 )
 		{
 			m_RendererData.Width = Application::Get().GetWindow()->GetWidth();
@@ -84,7 +77,7 @@ namespace Saturn {
 		m_RendererData.StorageBufferSet->Create( 0, 14 ); // Create Light culling buffer.
 
 		// TODO: What about second viewports?
-		// However this should never happen if we are in the GameDist?
+		// However this should only be ever true when we are the game
 		m_RendererData.IsSwapchainTarget = Application::Get().HasFlag( ApplicationFlag_GameDist );
 
 		InitPreDepth();
@@ -102,6 +95,8 @@ namespace Saturn {
 		InitBloom();
 
 		InitSceneComposite();
+
+		InitLateComposite();
 
 		InitTexturePass();
 
@@ -125,6 +120,8 @@ namespace Saturn {
 		}
 
 		//////////////////////////////////////////////////////////////////////////
+
+		Renderer2D::Get().SetInitialRenderPass( m_RendererData.LateCompositePass, m_RendererData.LateCompositeFramebuffer );
 	}
 
 	Ref<Image2D> SceneRenderer::CompositeImage()
@@ -164,8 +161,7 @@ namespace Saturn {
 		FBSpec.RenderPass = m_RendererData.GeometryPass;
 		FBSpec.Width = m_RendererData.Width;
 		FBSpec.Height = m_RendererData.Height;
-		FBSpec.ExistingImage = m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource();
-		FBSpec.ExistingImageIndex = 3;
+		FBSpec.ExistingImages[ 3 ] = m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource();
 		// Depth will be the PreDepth image.
 		FBSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F };
 
@@ -255,8 +251,7 @@ namespace Saturn {
 		FBSpec.Width = ( uint32_t ) SHADOW_MAP_SIZE;
 		FBSpec.Height = ( uint32_t ) SHADOW_MAP_SIZE;
 		FBSpec.ArrayLevels = SHADOW_CASCADE_COUNT;
-		FBSpec.Attachments = { ImageFormat::Depth };
-		FBSpec.ExistingImage = shadowImage;
+		FBSpec.ExistingImages[0] = shadowImage;
 
 		PassSpecification PassSpec = {};
 		PassSpec.Name = "Dir Shadow Map";
@@ -372,7 +367,7 @@ namespace Saturn {
 			PassSpecification PassSpec = {};
 			PassSpec.Name = "Scene Composite (PP) pass";
 
-			PassSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
+			PassSpec.Attachments = { ImageFormat::RGBA8, ImageFormat::Depth };
 
 			m_RendererData.SceneComposite = Ref< Pass >::Create( PassSpec );
 		}
@@ -386,7 +381,7 @@ namespace Saturn {
 			FBSpec.Width = m_RendererData.Width;
 			FBSpec.Height = m_RendererData.Height;
 
-			FBSpec.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
+			FBSpec.Attachments = { ImageFormat::RGBA8, ImageFormat::Depth };
 
 			m_RendererData.SceneCompositeFramebuffer = Ref< Framebuffer >::Create( FBSpec );
 		}
@@ -424,6 +419,49 @@ namespace Saturn {
 		};
 
 		m_RendererData.SceneCompositePipeline = Ref<Pipeline>::Create( PipelineSpec );
+	}
+
+	void SceneRenderer::InitLateComposite()
+	{
+		if( m_RendererData.LateCompositePass )
+			m_RendererData.LateCompositePass->Recreate();
+		else
+		{
+			// Create the scene composite render pass.
+			PassSpecification PassSpec = {};
+			PassSpec.Name = "Late Composite pass";
+			PassSpec.LoadColor = true;
+			PassSpec.LoadDepth = true;
+
+			// Both the color and the depth will be loaded.
+			// Color = Color attachment from the Scene Composite.
+			// Depth = PreDepth.
+			PassSpec.Attachments = { ImageFormat::RGBA8, ImageFormat::DEPTH24STENCIL8 };
+
+			m_RendererData.LateCompositePass = Ref< Pass >::Create( PassSpec );
+		}
+
+		if( m_RendererData.LateCompositeFramebuffer ) 
+		{
+			FramebufferSpecification NewSpec;
+
+			NewSpec.ExistingImages[ 0 ] = m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ];
+			NewSpec.ExistingImages[ 1 ] = m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource();
+
+			m_RendererData.LateCompositeFramebuffer->Recreate( m_RendererData.Width, m_RendererData.Height, NewSpec );
+		}
+		else	
+		{
+			FramebufferSpecification FBSpec = {};
+			FBSpec.RenderPass = m_RendererData.LateCompositePass;
+			FBSpec.Width = m_RendererData.Width;
+			FBSpec.Height = m_RendererData.Height;
+
+			FBSpec.ExistingImages[ 0 ] = m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ];
+			FBSpec.ExistingImages[ 1 ] = m_RendererData.PreDepthFramebuffer->GetDepthAttachmentsResource();
+
+			m_RendererData.LateCompositeFramebuffer = Ref<Framebuffer>::Create( FBSpec );
+		}
 	}
 
 	void SceneRenderer::InitBloom()
@@ -987,7 +1025,7 @@ namespace Saturn {
 
 	void SceneRenderer::SetViewportSize( uint32_t w, uint32_t h )
 	{
-		if( m_RendererData.Width != w && m_RendererData.Width != h )
+		if( m_RendererData.Width != w && m_RendererData.Height != h )
 		{
 			m_RendererData.Width = w;
 			m_RendererData.Height = h;
@@ -1000,8 +1038,10 @@ namespace Saturn {
 		InitPreDepth();
 
 		InitGeometryPass();
-		InitSceneComposite();
 
+		InitSceneComposite();
+		InitLateComposite();
+		
 		InitTexturePass();
 
 		const glm::uvec2 viewportSize = { m_RendererData.Width, m_RendererData.Height };
@@ -1021,6 +1061,8 @@ namespace Saturn {
 
 		CreateSkyboxComponents();
 		CreateGridComponents();
+
+		Renderer2D::Get().SetInitialRenderPass( m_RendererData.LateCompositePass, m_RendererData.LateCompositeFramebuffer );
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -1413,8 +1455,8 @@ namespace Saturn {
 
 		m_RendererData.LightCullingWorkGroups = { Size / TILE_SIZE, 1 };
 
-		size_t size = (size_t)m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4.0f * 1024.0f;
-		m_RendererData.StorageBufferSet->Resize( 0, 14, size );
+		float size = m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4.0f * 1024.0f;
+		m_RendererData.StorageBufferSet->Resize( 0, 14, (size_t)size );
 
 		// UBs
 		UBLights u_Lights;
@@ -1866,9 +1908,6 @@ namespace Saturn {
 	{
 		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
 
-		// Command Pools
-		vkDestroyCommandPool( LogicalDevice, CommandPool, nullptr );
-
 		if( !Application::Get().HasFlag( ApplicationFlag_CreateSceneRenderer ) )
 			return;
 
@@ -1889,6 +1928,7 @@ namespace Saturn {
 		GeometryFramebuffer = nullptr;
 		SceneCompositeFramebuffer = nullptr;
 		PreDepthFramebuffer = nullptr;
+		LateCompositeFramebuffer = nullptr;
 
 		for( int i = 0; i < 3; i++ )
 			BloomTextures[ i ] = nullptr;
@@ -1909,6 +1949,9 @@ namespace Saturn {
 		SceneComposite = nullptr;
 
 		PreDepthPass->Terminate();
+
+		LateCompositePass->Terminate();
+		LateCompositePass = nullptr;
 
 		// Pipelines
 		SceneCompositePipeline = nullptr;
