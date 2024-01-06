@@ -28,95 +28,15 @@
 
 #pragma once
 
-#include <Saturn/ImGui/SceneHierarchyPanel.h>
-#include <Saturn/ImGui/ContentBrowserPanel/ContentBrowserPanel.h>
-
-#include <Saturn/Scene/Scene.h>
-#include <Saturn/Core/Layer.h>
+#include "Saturn/Vulkan/Texture.h"
 
 namespace Saturn {
-	
-	class Toolbar;
-	class TitleBar;
-	class GameModule;
 
-	class EditorLayer : public Layer
+	class EditorIcons
 	{
 	public:
-		EditorLayer();
-		~EditorLayer();
-
-		void OnUpdate( Timestep time ) override;
-
-		void OnImGuiRender() override;
-
-		void OnEvent( RubyEvent& rEvent ) override;
-		
-		void SaveFileAs();
-		void OpenFile( const std::filesystem::path& rFilepath );
-
-		void SaveFile();
-		void OpenFile();
-
-		void SaveProject();
-
-	public:
-		
-		TitleBar* GetTitleBar() { return m_TitleBar; }
-		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
-
-	private:
-		
-		void SelectionChanged( Ref<Entity> e );
-		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
-		bool OnKeyPressed( RubyKeyEvent& rEvent );
-
-		// UI Functions.
-		void UI_Titlebar_UserSettings();
-		bool m_ShowUserSettings = false;
-
-		void HotReloadGame();
-		void CheckMissingEditorAssetRefs();
-
-		void DrawAssetRegistryDebug();
-		void DrawLoadedAssetsDebug();
-		void DrawEditorSettings();
-		void DrawMaterials();
-
-	private:
-		TitleBar* m_TitleBar = nullptr;
-		
-		Ref< Texture2D > m_CheckerboardTexture = nullptr;
-		Ref< Texture2D > m_StartRuntimeTexture = nullptr;
-		Ref< Texture2D > m_EndRuntimeTexture = nullptr;
-
-		Ref< Texture2D > m_TranslationTexture = nullptr;
-		Ref< Texture2D > m_RotationTexture = nullptr;
-		Ref< Texture2D > m_ScaleTexture = nullptr;
-		Ref< Texture2D > m_SyncTexture = nullptr;
-		Ref< Texture2D > m_PointLightTexture = nullptr;
-
-		Ref< PanelManager > m_PanelManager = nullptr;
-
-		GameModule* m_GameModule = nullptr;
-
-		EditorCamera m_EditorCamera;
-		bool m_AllowCameraEvents = false;
-		bool m_StartedRightClickInViewport = false;
-		bool m_ViewportFocused = false;
-		bool m_MouseOverViewport = false;
-		bool m_OpenEditorSettings = false;
-
-		bool m_RequestRuntime = false;
-
-		// Translate as default
-		int m_GizmoOperation = 7;
-
-		ImVec2 m_ViewportSize;
-
-		bool m_ShowImGuiDemoWindow = false;
-
-		Ref< Scene > m_EditorScene = nullptr;
-		Ref< Scene > m_RuntimeScene = nullptr;
+		static Ref<Texture2D> GetIcon( const std::string& rName );
+		static void AddIcon( const Ref<Texture2D>& rTexture );
+		static void Clear();
 	};
 }

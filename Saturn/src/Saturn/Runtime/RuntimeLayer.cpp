@@ -40,6 +40,7 @@
 #include "Saturn/GameFramework/Core/GameModule.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
+#include "Saturn/Vulkan/Renderer2D.h"
 
 #include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Asset/Prefab.h"
@@ -159,6 +160,7 @@ namespace Saturn {
 			return false;
 
 		Application::Get().PrimarySceneRenderer().SetViewportSize( ( uint32_t ) width, ( uint32_t ) height );
+		Renderer2D::Get().SetViewportSize( ( uint32_t ) width, ( uint32_t ) height );
 
 		return true;
 	}

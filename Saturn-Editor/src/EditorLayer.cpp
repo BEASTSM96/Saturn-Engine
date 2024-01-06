@@ -38,6 +38,7 @@
 #include <Saturn/ImGui/PrefabViewer.h>
 #include <Saturn/ImGui/Panel/Panel.h>
 #include <Saturn/ImGui/Panel/PanelManager.h>
+#include <Saturn/ImGui/EditorIcons.h>
 
 #include <Saturn/Serialisation/SceneSerialiser.h>
 #include <Saturn/Serialisation/ProjectSerialiser.h>
@@ -49,6 +50,7 @@
 
 #include <Saturn/Vulkan/MaterialInstance.h>
 #include <Saturn/Vulkan/ShaderBundle.h>
+#include <Saturn/Vulkan/Renderer2D.h>
 
 #include <Saturn/Core/EnvironmentVariables.h>
 
@@ -197,6 +199,17 @@ namespace Saturn {
 		m_RotationTexture     = Ref< Texture2D >::Create( "content/textures/editor/Rotate.png", AddressingMode::Repeat );
 		m_ScaleTexture        = Ref< Texture2D >::Create( "content/textures/editor/Scale.png", AddressingMode::Repeat );
 		m_SyncTexture         = Ref< Texture2D >::Create( "content/textures/editor/Sync.png", AddressingMode::Repeat );
+		m_PointLightTexture   = Ref< Texture2D >::Create( "content/textures/editor/Billboard_PointLight.png", AddressingMode::Repeat );
+
+		// Add all of our icons to the editor icons list so that we have use this anywhere else in the engine/editor.
+		EditorIcons::AddIcon( m_CheckerboardTexture );
+		EditorIcons::AddIcon( m_StartRuntimeTexture );
+		EditorIcons::AddIcon( m_EndRuntimeTexture );
+		EditorIcons::AddIcon( m_TranslationTexture );
+		EditorIcons::AddIcon( m_RotationTexture );
+		EditorIcons::AddIcon( m_ScaleTexture );
+		EditorIcons::AddIcon( m_SyncTexture );
+		EditorIcons::AddIcon( m_PointLightTexture );
 
 		// Init Physics
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
@@ -228,6 +241,8 @@ namespace Saturn {
 	{		
 		delete m_TitleBar;
 		
+		EditorIcons::Clear();
+
 		m_CheckerboardTexture = nullptr;
 		
 		m_TitleBar = nullptr;
@@ -456,6 +471,7 @@ namespace Saturn {
 			m_ViewportSize = ImGui::GetContentRegionAvail();
 
 			Application::Get().PrimarySceneRenderer().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
+			Renderer2D::Get().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 			m_EditorCamera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 		}
 

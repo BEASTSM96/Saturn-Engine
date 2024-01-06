@@ -152,7 +152,6 @@ namespace Saturn {
 
 		// TODO: Change all of these to refs, I really don't like this.
 		VulkanContext* m_VulkanContext = nullptr;
-		Log* m_Log = nullptr;
 
 		std::vector<std::function<void()>> m_MainThreadQueue;
 	};

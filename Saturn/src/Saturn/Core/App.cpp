@@ -33,6 +33,7 @@
 #include "Ruby/RubyMonitor.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
+#include "Saturn/Vulkan/Renderer2D.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Saturn/GameFramework/Core/GameThread.h"
@@ -61,8 +62,6 @@ namespace Saturn {
 		: m_Specification( spec )
 	{
 		SingletonStorage::AddSingleton( this );
-
-		m_Log = new Log();
 
 		const RubyMonitor& rPrimaryMonitor = RubyGetPrimaryMonitor();
 		uint32_t width = 0, height = 0;
@@ -110,8 +109,6 @@ namespace Saturn {
 
 	Application::~Application()
 	{
-		delete m_Log;
-
 		SingletonStorage::RemoveSingleton( this );
 	}
 
@@ -134,6 +131,7 @@ namespace Saturn {
 				Renderer::Get().BeginFrame();
 				{
 					RenderThread::Get().Queue( [=] { m_SceneRenderer->RenderScene(); } );
+					RenderThread::Get().Queue( [=] { Renderer2D::Get().Render(); } );
 
 					// Render UI
 					{
