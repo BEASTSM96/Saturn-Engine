@@ -52,11 +52,12 @@ namespace Saturn {
 		IndexBuffer( void* pData, size_t Size );
 		~IndexBuffer();
 
+		size_t GetSize() { return m_Size; }
+
 		void Bind( VkCommandBuffer CommandBuffer );
 		void Draw( VkCommandBuffer CommandBuffer );
 
 		void Terminate();
-
 		
 	private:
 

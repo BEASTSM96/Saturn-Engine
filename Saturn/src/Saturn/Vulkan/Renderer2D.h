@@ -28,53 +28,68 @@
 
 #pragma once
 
-#define SAT_DONT_USE_GL
-#define SAT_DONT_USE_DX
+#include "Saturn/Core/Ref.h"
 
-// Short Macros
-#if defined ( SAT_PLATFORM_WINDOWS )
-#define SAT_WINDOWS 1
-#elif defined ( SAT_PLATFORM_LINUX )
-#define SAT_LINUX 1
-#include <signal.h>
-#else
-#define SAT_MAC 1
-#endif 
+#include "Pass.h"
+#include "Texture.h"
+#include "Framebuffer.h"
 
-#define SAT_ARRAYSIZE( x ) ( ( int ) ( sizeof( x ) / sizeof( *( x ) ) ) )
+#include "Saturn/Scene/Scene.h"
 
-// Line Ending for shaders
+namespace Saturn {
 
-#define __CR_LF__ "\r\n"
-#define _LF__ "\n"
-#define _CR__ "\r"
-
-#define SAT_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
-
-#define BIT( x ) (1 << x)
-
-#define SAT_CURRENT_VERISON 0.1.0
-#define SAT_CURRENT_VERISON_STRING "0.1.0"
-
-namespace Saturn::Core {
-
-	inline void BreakDebug()
+	struct Renderer2DDrawCommand
 	{
-	#if defined( _WIN32 )
-		__debugbreak();
-	#else
-		raise( SIGTRAP );
-	#endif // _MSC_VER
-	}
+		glm::vec3 Position;
+		glm::vec4 Color;
+		
+		// TexCoord is calculated before we render.
+		glm::vec2 TexCoord;
+		Ref<Texture2D> Texture = nullptr;
+	};
 
+	class Renderer2D : public RefTarget
+	{
+	public:
+		Renderer2D() { Init(); }
+		~Renderer2D() { Terminate(); }
+
+		void SetInitialRenderPass( Ref<Pass> pass );
+		Ref<Pass> GetTargetRenderPass() { return m_TargetRenderPass; }
+
+		void Render( const glm::mat4& viewProjection, const glm::mat4& view );
+
+		void SubmitQuad( const glm::mat4& transform, const glm::vec4& color );
+		void SubmitQuadTextured( const glm::mat4& transform, const glm::vec4& color, const Ref<Texture2D>& rTexture );
+		
+		void SubmitBillboard( const glm::vec3& position, const glm::vec4& color, const glm::vec2& rSize );
+		void SubmitBillboardTextured( const glm::vec3& position, const glm::vec4& color, const Ref<Texture2D>& rTexture, const glm::vec2& rSize );
+
+	private:
+		void Init();
+		void LateInit( Ref<Pass> targetPass = nullptr );
+
+		void Terminate();
+		void FlushDrawList();
+
+		void RenderAllQuads();
+
+	private:
+		Ref<Pass> m_TargetRenderPass = nullptr;
+		Ref<Pass> m_TempRenderPass = nullptr;
+
+		std::vector<Renderer2DDrawCommand> m_DrawList;
+		std::vector<glm::vec4> m_QuadPositions;
+
+		glm::mat4 m_CameraView;
+		glm::mat4 m_CameraViewProjection;
+
+		uint32_t m_Width, m_Height;
+
+		VkCommandBuffer m_CommandBuffer = nullptr;
+
+		Ref<Pipeline> m_QuadPipeline = nullptr;
+		Ref<Framebuffer> m_QuadFramebuffer = nullptr;
+		Ref<IndexBuffer> m_QuadIndexBuffer = nullptr;
+	};
 }
-
-const int MAX_FRAMES_IN_FLIGHT = 3;
-
-// Inject asserts
-#define __CORE_INCLUDED__
-#include "Asserts.h"
-// Common includes
-#include "Timestep.h"
-#include "Ref.h"
-#include "SingletonStorage.h"

@@ -26,7 +26,7 @@ namespace Saturn {
 
 	class VulkanDebugMessenger;
 	class VulkanAllocator;
-
+	
 	struct QueueFamilyIndices
 	{
 		std::optional<uint32_t> GraphicsFamily;
@@ -73,11 +73,10 @@ namespace Saturn {
 		bool HasStencilComponent( VkFormat Format );
 		
 		VkCommandBuffer BeginSingleTimeCommands();
-		VkCommandBuffer BeginNewCommandBuffer();
-
-		VkCommandBuffer CreateComputeCommandBuffer();
-
 		void EndSingleTimeCommands( VkCommandBuffer CommandBuffer );
+		
+		VkCommandBuffer BeginNewCommandBuffer();
+		VkCommandBuffer CreateComputeCommandBuffer();
 
 		Ref<Pass> GetDefaultPass() { return m_DefaultPass; }
 		VkRenderPass GetDefaultVulkanPass() { return m_DefaultPass->GetVulkanPass(); }
@@ -120,6 +119,7 @@ namespace Saturn {
 
 		VkImageView GetDepthImageView() { return m_DepthImage->GetImageView(); }
 		VkImage GetDepthImage() { return m_DepthImage->GetImage(); }
+
 	private:
 		void Terminate();
 
@@ -146,6 +146,7 @@ namespace Saturn {
 	
 		// Depth resources.
 		Ref<Image2D> m_DepthImage = nullptr;
+
 
 		VulkanDebugMessenger* m_pDebugMessenger;
 		VulkanAllocator* m_pAllocator;

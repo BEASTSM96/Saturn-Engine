@@ -30,7 +30,6 @@
 #include "Scene.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
-#include "Saturn/Vulkan/Renderer2D.h"
 #include "Saturn/Vulkan/VulkanContext.h"
 
 #include "Entity.h"
@@ -256,7 +255,6 @@ namespace Saturn {
 		}
 
 		rSceneRenderer.SetCamera( { rCamera, rCamera.ViewMatrix() } );
-		VulkanContext::Get().m_Renderer2D->SetCamera( { rCamera, rCamera.ViewMatrix() } );
 	}
 
 	void Scene::OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer )

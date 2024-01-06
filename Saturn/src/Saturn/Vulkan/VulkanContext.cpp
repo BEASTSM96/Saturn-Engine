@@ -505,6 +505,32 @@ namespace Saturn {
 		return CommandBuffer;
 	}
 
+	void VulkanContext::EndSingleTimeCommands( VkCommandBuffer CommandBuffer )
+	{
+		const uint64_t FENCE_TIMEOUT = 100000000000;
+
+		VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
+
+		// Submit the command buffer.
+		VkSubmitInfo SubmitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		SubmitInfo.commandBufferCount = 1;
+		SubmitInfo.pCommandBuffers = &CommandBuffer;
+
+		VkFenceCreateInfo FenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+		FenceCreateInfo.flags = 0;
+
+		VkFence Fence;
+		VK_CHECK( vkCreateFence( m_LogicalDevice, &FenceCreateInfo, nullptr, &Fence ) );
+
+		VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, Fence ) );
+
+		VK_CHECK( vkWaitForFences( m_LogicalDevice, 1, &Fence, VK_TRUE, FENCE_TIMEOUT ) );
+
+		// Free the command buffer.
+		vkDestroyFence( m_LogicalDevice, Fence, nullptr );
+		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
+	}
+
 	VkCommandBuffer VulkanContext::BeginNewCommandBuffer()
 	{
 		VkCommandBufferAllocateInfo cmdBufAllocateInfo = {};
@@ -542,32 +568,6 @@ namespace Saturn {
 		VK_CHECK( vkBeginCommandBuffer( CommandBuffer, &cmdBufferBeginInfo ) );
 
 		return CommandBuffer;
-	}
-
-	void VulkanContext::EndSingleTimeCommands( VkCommandBuffer CommandBuffer )
-	{
-		const uint64_t FENCE_TIMEOUT = 100000000000;
-
-		VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
-
-		// Submit the command buffer.
-		VkSubmitInfo SubmitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-		SubmitInfo.commandBufferCount = 1;
-		SubmitInfo.pCommandBuffers = &CommandBuffer;
-
-		VkFenceCreateInfo FenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
-		FenceCreateInfo.flags = 0;
-
-		VkFence Fence;
-		VK_CHECK( vkCreateFence( m_LogicalDevice, &FenceCreateInfo, nullptr, &Fence ) );
-
-		VK_CHECK( vkQueueSubmit( m_GraphicsQueue, 1, &SubmitInfo, Fence ) );
-
-		VK_CHECK( vkWaitForFences( m_LogicalDevice, 1, &Fence, VK_TRUE, FENCE_TIMEOUT ) );
-
-		// Free the command buffer.
-		vkDestroyFence( m_LogicalDevice, Fence, nullptr );
-		vkFreeCommandBuffers( m_LogicalDevice, m_CommandPool, 1, &CommandBuffer );
 	}
 
 	void VulkanContext::CreateCommandPool()
