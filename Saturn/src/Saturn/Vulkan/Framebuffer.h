@@ -63,8 +63,8 @@ namespace Saturn {
 
 		bool CreateDepth = true;
 
-		Ref< Image2D > ExistingImage = nullptr;
-		uint32_t ExistingImageIndex = 0;
+		// Existing Image Index (in the render pass) -> ExistingImage
+		std::unordered_map< uint32_t, Ref< Image2D > > ExistingImages;
 
 		Ref< Pass > RenderPass = nullptr;
 		FramebufferAttachmentSpecification Attachments;
