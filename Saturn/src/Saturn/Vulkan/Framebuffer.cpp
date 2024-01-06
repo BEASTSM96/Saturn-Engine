@@ -150,13 +150,12 @@ namespace Saturn {
 		// Color
 		VkExtent3D Extent = { m_Specification.Width, m_Specification.Height, 1 };
 
+		size_t totalImageViews = m_Specification.Attachments.Attachments.size() + m_Specification.ExistingImages.size();
+
+		m_AttachmentImageViews.resize( totalImageViews );
+
 		for( auto& [imageIndex, rImage] : m_Specification.ExistingImages )
 		{
-			if( m_Specification.Attachments.Attachments.size() > 1 )
-				m_AttachmentImageViews.resize( m_Specification.Attachments.Attachments.size() + 1 );
-			else
-				m_AttachmentImageViews.resize( m_Specification.Attachments.Attachments.size() );
-
 			if( FramebufferUtills::IsDepthFormat( rImage->GetImageFormat() ) )
 			{
 				m_DepthAttachmentResource = rImage;
@@ -185,9 +184,12 @@ namespace Saturn {
 		{
 			Ref<Image2D> image = Ref<Image2D>::Create( format, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels, m_Specification.MSAASamples );
 
-			std::string name = "Color Attachment for framebuffer " + m_Specification.RenderPass->GetName();
+			std::string imageDebugName = std::format( "Color Attachment for framebuffer {0} ({1})", m_Specification.RenderPass->GetName(), i );
 
-			SetDebugUtilsObjectName( name.c_str(), (uint64_t)image->GetImage(), VK_OBJECT_TYPE_IMAGE );
+			SetDebugUtilsObjectName( imageDebugName.c_str(), (uint64_t)image->GetImage(), VK_OBJECT_TYPE_IMAGE );
+
+			if( imageDebugName == "Color Attachment for framebuffer Late Composite pass (0)" )
+				Core::BreakDebug();
 
 			m_ColorAttachmentsResources.push_back( image );
 
@@ -203,7 +205,14 @@ namespace Saturn {
 		{
 			m_DepthAttachmentResource = Ref<Image2D>::Create( m_DepthFormat, m_Specification.Width, m_Specification.Height, m_Specification.ArrayLevels, m_Specification.MSAASamples );
 
-			m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView( m_Specification.ExistingImageLayer ) );
+			std::string imageDebugName = std::format( "Depth Attachment for framebuffer {0}", m_Specification.RenderPass->GetName() );
+
+			SetDebugUtilsObjectName( imageDebugName.c_str(), ( uint64_t ) m_DepthAttachmentResource->GetImage(), VK_OBJECT_TYPE_IMAGE );
+
+			if( m_AttachmentImageViews.size() )
+				m_AttachmentImageViews[ i ] = m_DepthAttachmentResource->GetImageView( m_Specification.ExistingImageLayer );
+			else
+				m_AttachmentImageViews.push_back( m_DepthAttachmentResource->GetImageView( m_Specification.ExistingImageLayer ) );
 		}
 
 		VkFramebufferCreateInfo FramebufferCreateInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
