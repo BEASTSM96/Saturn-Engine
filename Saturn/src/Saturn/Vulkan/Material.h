@@ -48,11 +48,14 @@ namespace Saturn {
 		void Copy( Ref<Material>& rOther );
 
 		void Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );
+		void Bind( VkCommandBuffer CommandBuffer, Ref< Shader >& Shader );
+		void BindDS( VkCommandBuffer CommandBuffer, VkPipelineLayout Layout );
 		
 		void RN_Update();
 		void RN_Clean();
 
 		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture );
+		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture, uint32_t Index );
 
 		template<typename Ty>
 		void Set( const std::string& Name, const Ty& Value ) 
@@ -135,6 +138,9 @@ namespace Saturn {
 		
 		std::vector< ShaderUniform > m_Uniforms;
 		std::unordered_map< std::string, Ref<Texture2D> > m_Textures;
+
+		// Binding Name -> Textures
+		std::unordered_map< std::string, std::vector< Ref<Texture2D> > > m_TextureArrays;
 
 		VkDescriptorSet m_DescriptorSets[ MAX_FRAMES_IN_FLIGHT ];
 

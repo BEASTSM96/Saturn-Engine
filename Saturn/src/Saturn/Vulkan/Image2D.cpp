@@ -247,17 +247,17 @@ namespace Saturn {
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		ImageViewCreateInfo.subresourceRange.layerCount = m_ArrayLevels;
 
-		if( m_Format == ImageFormat::DEPTH24STENCIL8 )
-			ImageViewCreateInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+		//if( m_Format == ImageFormat::DEPTH24STENCIL8 )
+		//	ImageViewCreateInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
 		VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageView) );
 		SetDebugUtilsObjectName( "Base image view layer", ( uint64_t ) m_ImageView, VK_OBJECT_TYPE_IMAGE_VIEW );
 
 		// Create sampler.
 		VkSamplerCreateInfo SamplerCreateInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
-		SamplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-		SamplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		SamplerCreateInfo.magFilter = VK_FILTER_NEAREST;
+		SamplerCreateInfo.minFilter = VK_FILTER_NEAREST;
+		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
 		SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
@@ -285,11 +285,11 @@ namespace Saturn {
 
 			if( IsColorFormat( m_Format ) )
 				ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			else
+			else 
 				ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 
-			if( m_Format == ImageFormat::DEPTH24STENCIL8 )
-				ImageViewCreateInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			//if( m_Format == ImageFormat::DEPTH24STENCIL8 )
+			//	ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
 
 			ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 			ImageViewCreateInfo.subresourceRange.levelCount = 1;

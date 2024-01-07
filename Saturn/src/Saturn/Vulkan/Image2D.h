@@ -51,6 +51,10 @@ namespace Saturn {
 		Depth = DEPTH32F
 	};
 
+	// Represents a Vulkan Image, ImageView and Sampler
+	// This is different from the "Texture, Texture2D and TextureCube" classes because an Image2D and not be created from a file path.
+	// So this should only be used as a memory only Image.
+	// For images that require a file use Texture2D or TextureCube
 	class Image2D : public RefTarget
 	{
 	public:

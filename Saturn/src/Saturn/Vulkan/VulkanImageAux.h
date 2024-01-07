@@ -45,6 +45,9 @@ namespace Saturn {
 			case Saturn::ImageFormat::RGBA32F:
 				return VK_FORMAT_R32G32B32A32_SFLOAT;
 
+			case Saturn::ImageFormat::RGB32F:
+				return VK_FORMAT_R32G32B32_SFLOAT;
+
 			case ImageFormat::BGRA8:
 				return VK_FORMAT_B8G8R8A8_UNORM;
 
@@ -75,6 +78,9 @@ namespace Saturn {
 
 			case VK_FORMAT_B8G8R8A8_UNORM:
 				return ImageFormat::BGRA8;
+
+			case VK_FORMAT_R32G32B32_SFLOAT:
+				return ImageFormat::RGB32F;
 
 			case VK_FORMAT_R8_UNORM:
 				return ImageFormat::RED8;
@@ -110,6 +116,7 @@ namespace Saturn {
 		switch( format )
 		{
 			case VK_FORMAT_R32G32B32A32_SFLOAT:
+			case VK_FORMAT_R32G32B32_SFLOAT:
 			case VK_FORMAT_R8G8B8A8_UNORM:
 			case VK_FORMAT_R16G16B16A16_UNORM:
 			case VK_FORMAT_B8G8R8A8_UNORM:

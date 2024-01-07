@@ -113,6 +113,24 @@ namespace Saturn {
 	{
 	}
 
+	void Material::Bind( VkCommandBuffer CommandBuffer, Ref< Shader >& Shader )
+	{
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
+
+		RN_Update();
+
+		VkDescriptorSet Set = m_DescriptorSets[ frame ];
+		Shader->WriteAllUBs( Set );
+	}
+
+	void Material::BindDS( VkCommandBuffer CommandBuffer, VkPipelineLayout Layout )
+	{
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
+		VkDescriptorSet Set = m_DescriptorSets[ frame ];
+
+		vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Layout, 0, 1, &Set, 0, nullptr );
+	}
+
 	void Material::RN_Update()
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
@@ -130,6 +148,18 @@ namespace Saturn {
 			m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSets[ frame ] );
 		}
 
+		for( auto& [name, textures] : m_TextureArrays )
+		{
+			std::vector<VkDescriptorImageInfo> ImageInfos;
+
+			for ( auto& texture : textures )
+			{
+				ImageInfos.push_back( texture->GetDescriptorInfo() );
+			}
+
+			m_Shader->WriteDescriptor( name, ImageInfos, m_DescriptorSets[ frame ] );
+		}
+
 		m_Shader->WriteAllUBs( m_DescriptorSets[ frame ] );
 	}
 
@@ -143,6 +173,20 @@ namespace Saturn {
 			m_AnyValueChanged = true;
 
 		m_Textures[ Name ] = Texture;
+	}
+
+	void Material::SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture, uint32_t Index )
+	{
+		// Already in the set and the images are the same,
+		//if( m_TextureArrays[ Name ][ Index ] == Texture )
+		//	return;
+
+		auto& textures = m_TextureArrays[ Name ];
+
+		if( textures.size() >= Index )
+			textures.resize( Index + 1 );
+
+		textures[ Index ] = Texture;
 	}
 
 	Ref< Texture2D > Material::GetResource( const std::string& Name )

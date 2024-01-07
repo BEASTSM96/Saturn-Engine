@@ -37,8 +37,14 @@ namespace Saturn {
 	
 	struct PassSpecification
 	{
+		// Render Pass attachments
+		// This is different from the Framebuffer attachment as the framebuffer attachments only specify how much attachments that should be created.
+		// However, the render pass need to know all of the attachments regardless if they already exist or not.
 		std::vector< ImageFormat > Attachments = {};
+
 		std::string Name = "";
+		
+		// If this is true then this Render Pass will output to the Swapchain Framebuffer.
 		bool IsSwapchainTarget = false;
 
 		VkSampleCountFlagBits MSAASamples = VK_SAMPLE_COUNT_1_BIT;

@@ -111,7 +111,7 @@ namespace Saturn {
 			Attachments.push_back( m_ImageViews[ i ] );
 			if( m_MSAAImage )
 				Attachments.push_back( m_MSAAImage->GetImageView() );
-			Attachments.push_back( VulkanContext::Get().GetDepthImageView() );
+			//Attachments.push_back( VulkanContext::Get().GetDepthImageView() );
 			
 			VkFramebufferCreateInfo FramebufferCreateInfo ={ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 			FramebufferCreateInfo.width = SwapchainData.SurfaceCaps.currentExtent.width;

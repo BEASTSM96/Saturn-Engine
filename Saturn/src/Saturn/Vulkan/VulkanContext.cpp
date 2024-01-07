@@ -38,6 +38,7 @@
 
 #include "Saturn/Core/Timer.h"
 #include "SceneRenderer.h"
+#include "Renderer2D.h"
 #include "Helpers.h"
 
 // ImGui
@@ -80,13 +81,17 @@ namespace Saturn {
 		Specification.MSAASamples = GetMaxUsableMSAASamples();
 
 		// BGRA8 will be VK_IMAGE_LAYOUT_PRESENT_SRC_KHR as this is the swapchain target.
-		Specification.Attachments = { ImageFormat::BGRA8, ImageFormat::Depth };
+		// No Depth should be created.
+		Specification.Attachments = { ImageFormat::BGRA8 };
 
 		m_DefaultPass = Ref<Pass>::Create( Specification );
 		m_SwapChain.CreateFramebuffers();
 		
 		Renderer* pRenderer = new Renderer();
 		pRenderer->Init();
+
+		// Init Renderer2D.
+		Renderer2D::Get().Init();
 	}
 
 	void VulkanContext::Terminate()
@@ -108,6 +113,7 @@ namespace Saturn {
 		for( auto& rFunc : m_TerminateResourceFuncs )
 			rFunc();
 
+		Renderer2D::Get().Terminate();
 		Renderer::Get().Terminate();
 
 		ShaderLibrary::Get().Shutdown();

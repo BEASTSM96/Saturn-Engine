@@ -192,14 +192,14 @@ namespace Saturn {
 		
 		m_CheckerboardTexture = Ref< Texture2D >::Create( "content/textures/editor/checkerboard.tga", AddressingMode::Repeat );
 
-		m_StartRuntimeTexture = Ref< Texture2D >::Create( "content/textures/editor/Play.png", AddressingMode::Repeat );
-		m_EndRuntimeTexture   = Ref< Texture2D >::Create( "content/textures/editor/Stop.png", AddressingMode::Repeat );
+		m_StartRuntimeTexture = Ref< Texture2D >::Create( "content/textures/editor/Play.png", AddressingMode::ClampToEdge );
+		m_EndRuntimeTexture   = Ref< Texture2D >::Create( "content/textures/editor/Stop.png", AddressingMode::ClampToEdge );
 
-		m_TranslationTexture  = Ref< Texture2D >::Create( "content/textures/editor/Move.png", AddressingMode::Repeat );
-		m_RotationTexture     = Ref< Texture2D >::Create( "content/textures/editor/Rotate.png", AddressingMode::Repeat );
-		m_ScaleTexture        = Ref< Texture2D >::Create( "content/textures/editor/Scale.png", AddressingMode::Repeat );
-		m_SyncTexture         = Ref< Texture2D >::Create( "content/textures/editor/Sync.png", AddressingMode::Repeat );
-		m_PointLightTexture   = Ref< Texture2D >::Create( "content/textures/editor/Billboard_PointLight.png", AddressingMode::Repeat );
+		m_TranslationTexture  = Ref< Texture2D >::Create( "content/textures/editor/Move.png", AddressingMode::ClampToEdge );
+		m_RotationTexture     = Ref< Texture2D >::Create( "content/textures/editor/Rotate.png", AddressingMode::ClampToEdge );
+		m_ScaleTexture        = Ref< Texture2D >::Create( "content/textures/editor/Scale.png", AddressingMode::ClampToEdge );
+		m_SyncTexture         = Ref< Texture2D >::Create( "content/textures/editor/Sync.png", AddressingMode::ClampToEdge );
+		m_PointLightTexture   = Ref< Texture2D >::Create( "content/textures/editor/Billboard_PointLight.png", AddressingMode::ClampToEdge, false );
 
 		// Add all of our icons to the editor icons list so that we have use this anywhere else in the engine/editor.
 		EditorIcons::AddIcon( m_CheckerboardTexture );
@@ -244,7 +244,8 @@ namespace Saturn {
 		EditorIcons::Clear();
 
 		m_CheckerboardTexture = nullptr;
-		
+		m_PointLightTexture = nullptr;
+
 		m_TitleBar = nullptr;
 	
 		m_PanelManager = nullptr;

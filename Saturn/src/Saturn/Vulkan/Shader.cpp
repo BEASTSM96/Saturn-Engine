@@ -325,6 +325,36 @@ namespace Saturn {
 		}
 	}
 
+	void Shader::WriteDescriptor( const std::string& rName, std::vector<VkDescriptorImageInfo> ImageInfos, VkDescriptorSet desSet )
+	{
+		for( auto& [set, descriptorSet] : m_DescriptorSets )
+		{
+			for( auto& texture : descriptorSet.SampledImages )
+			{
+				if( texture.Name == rName )
+				{
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = ImageInfos.data();
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ImageInfos.size();
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
+
+					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
+				}
+			}
+
+			for( auto& texture : descriptorSet.StorageImages )
+			{
+				if( texture.Name == rName )
+				{
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = ImageInfos.data();
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ImageInfos.size();
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
+
+					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
+				}
+			}
+		}
+	}
+
 	void Shader::WriteAllUBs( const Ref< DescriptorSet >& rSet )
 	{
 		SAT_CORE_ASSERT( rSet, "DescriptorSet is null!" );
@@ -693,29 +723,41 @@ namespace Saturn {
 		for( const auto& Resource : Resources.sampled_images )
 		{
 			const auto& Name = Resource.name;
-			auto& BufferType = Compiler.get_type( Resource.base_type_id );
+			auto& BaseType = Compiler.get_type( Resource.base_type_id );
+			auto& RealType = Compiler.get_type( Resource.type_id );
+
 			uint32_t binding = Compiler.get_decoration( Resource.id, spv::DecorationBinding );
 			uint32_t set = Compiler.get_decoration( Resource.id, spv::DecorationDescriptorSet );
+			uint32_t arraySizes = RealType.array[ 0 ];
 
 			SHADER_INFO( "Sampled image: {0}", Name );
 			SHADER_INFO( " Binding: {0}", binding );
 			SHADER_INFO( " Set: {0}", set );
 
-			m_DescriptorSets[ set ].SampledImages.push_back( { Name, shaderType, set, binding } );
+			if( arraySizes == 0 )
+				arraySizes = 1;
+
+			m_DescriptorSets[ set ].SampledImages.push_back( { Name, shaderType, set, binding, arraySizes } );
 		}
 
 		for ( const auto& Resource : Resources.storage_images )
 		{
 			const auto& Name = Resource.name;
-			auto& BufferType = Compiler.get_type( Resource.base_type_id );
+			auto& BaseType = Compiler.get_type( Resource.base_type_id );
+			auto& RealType = Compiler.get_type( Resource.type_id );
+
 			uint32_t binding = Compiler.get_decoration( Resource.id, spv::DecorationBinding );
 			uint32_t set = Compiler.get_decoration( Resource.id, spv::DecorationDescriptorSet );
+			uint32_t arraySizes = RealType.array[ 0 ];
 
 			SHADER_INFO( "Storage image: {0}", Name );
 			SHADER_INFO( " Binding: {0}", binding );
 			SHADER_INFO( " Set: {0}", set );
 
-			m_DescriptorSets[ set ].StorageImages.push_back( { Name, shaderType, set, binding } );
+			if( arraySizes == 0 )
+				arraySizes = 1;
+
+			m_DescriptorSets[ set ].StorageImages.push_back( { Name, shaderType, set, binding, arraySizes } );
 		}
 	}
 
@@ -803,7 +845,7 @@ namespace Saturn {
 				VkDescriptorSetLayoutBinding Binding = {};
 				Binding.binding = texture.Binding;
 				Binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-				Binding.descriptorCount = 1;
+				Binding.descriptorCount = texture.ArraySize;
 				Binding.stageFlags = texture.Stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : ( texture.Stage == ShaderType::All ? VK_SHADER_STAGE_ALL : ( texture.Stage == ShaderType::Compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_FRAGMENT_BIT ) );
 				Binding.pImmutableSamplers = nullptr;
 
@@ -832,7 +874,7 @@ namespace Saturn {
 				VkDescriptorSetLayoutBinding Binding = {};
 				Binding.binding = texture.Binding;
 				Binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-				Binding.descriptorCount = 1;
+				Binding.descriptorCount = texture.ArraySize;
 				Binding.stageFlags = texture.Stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : ( texture.Stage == ShaderType::All ? VK_SHADER_STAGE_ALL : ( texture.Stage == ShaderType::Compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_FRAGMENT_BIT ) );
 				Binding.pImmutableSamplers = nullptr;
 

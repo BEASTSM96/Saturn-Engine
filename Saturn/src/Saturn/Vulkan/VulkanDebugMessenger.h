@@ -42,7 +42,6 @@ namespace Saturn {
 		VulkanDebugMessenger( VkInstance& rInstance );
 		~VulkanDebugMessenger();
 
-
 	private:
 
 		void CreateDebugMessengerInfo( VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo );

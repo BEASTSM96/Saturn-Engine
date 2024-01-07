@@ -33,6 +33,7 @@
 #include "Pass.h"
 #include "Texture.h"
 #include "Framebuffer.h"
+#include "VertexBuffer.h"
 
 #include "Saturn/Scene/Scene.h"
 
@@ -45,31 +46,42 @@ namespace Saturn {
 		
 		// TexCoord is calculated before we render.
 		glm::vec2 TexCoord;
-		Ref<Texture2D> Texture = nullptr;
+		float TextureIndex;
 	};
 
 	class Renderer2D : public RefTarget
 	{
 	public:
-		Renderer2D() { Init(); }
-		~Renderer2D() { Terminate(); }
+		static inline Renderer2D& Get() { return *SingletonStorage::GetOrCreateSingleton<Renderer2D>(); }
+	public:
+		Renderer2D() = default;
+		~Renderer2D() = default;
 
-		void SetInitialRenderPass( Ref<Pass> pass );
+		void SetInitialRenderPass( Ref<Pass> pass, Ref<Framebuffer> targetFramebuffer );
 		Ref<Pass> GetTargetRenderPass() { return m_TargetRenderPass; }
 
-		void Render( const glm::mat4& viewProjection, const glm::mat4& view );
+		void Render();
 
 		void SubmitQuad( const glm::mat4& transform, const glm::vec4& color );
+		void SubmitQuad( const glm::vec3& position, const glm::vec4& color, const glm::vec2& size );
 		void SubmitQuadTextured( const glm::mat4& transform, const glm::vec4& color, const Ref<Texture2D>& rTexture );
 		
 		void SubmitBillboard( const glm::vec3& position, const glm::vec4& color, const glm::vec2& rSize );
 		void SubmitBillboardTextured( const glm::vec3& position, const glm::vec4& color, const Ref<Texture2D>& rTexture, const glm::vec2& rSize );
 
-	private:
-		void Init();
-		void LateInit( Ref<Pass> targetPass = nullptr );
+		void SetCamera( const glm::mat4& viewProjection, const glm::mat4& view );
 
+		void Prepare();
+
+		void Init();
 		void Terminate();
+		void SetViewportSize( uint32_t w, uint32_t h );
+
+	private:
+		void LateInit( Ref<Pass> targetPass = nullptr, Ref<Framebuffer> framebuffer = nullptr);
+		void Recreate();
+		void Reset();
+
 		void FlushDrawList();
 
 		void RenderAllQuads();
@@ -81,15 +93,30 @@ namespace Saturn {
 		std::vector<Renderer2DDrawCommand> m_DrawList;
 		std::vector<glm::vec4> m_QuadPositions;
 
-		glm::mat4 m_CameraView;
-		glm::mat4 m_CameraViewProjection;
+		std::vector< Ref<VertexBuffer> > m_QuadVertexBuffers;
+		std::vector< Renderer2DDrawCommand* > m_CurrentQuadBase;
+		
+		Renderer2DDrawCommand* m_CurrentQuad = nullptr;
 
-		uint32_t m_Width, m_Height;
+		std::array<Ref<Texture2D>, 32> m_Textures;
+		uint32_t m_DefaultTextureSlot = 1;
+		uint32_t m_CurrentTextureSlot = 0;
+
+		glm::mat4 m_CameraView = glm::mat4( 1.0f );
+		glm::mat4 m_CameraViewProjection = glm::mat4( 1.0f );
+
+		uint32_t m_Width = 0;
+		uint32_t m_Height = 0;
+		uint32_t m_QuadIndexCount = 0;
+
+		bool m_Resized = false;
 
 		VkCommandBuffer m_CommandBuffer = nullptr;
 
 		Ref<Pipeline> m_QuadPipeline = nullptr;
-		Ref<Framebuffer> m_QuadFramebuffer = nullptr;
+		Ref<Framebuffer> m_TargetFramebuffer = nullptr;
 		Ref<IndexBuffer> m_QuadIndexBuffer = nullptr;
+		Ref<Shader> m_QuadShader = nullptr;
+		Ref<Material> m_QuadMaterial = nullptr;
 	};
 }

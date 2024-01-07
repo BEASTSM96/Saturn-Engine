@@ -522,7 +522,6 @@ namespace Saturn {
 		{
 			Auxiliary::DrawColorVec3Control( "Light Color", plc.Radiance, 150.0f );
 
-
 			Auxiliary::DrawFloatControl( "Light Intensity", plc.Multiplier, 0.0f, 500.0f );
 			Auxiliary::DrawFloatControl( "Radius", plc.Radius, 0.0f, FLT_MAX );
 			Auxiliary::DrawFloatControl( "Falloff", plc.Falloff, 0.0f, 1.0f );
