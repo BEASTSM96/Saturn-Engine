@@ -306,11 +306,21 @@ namespace Saturn {
 			VkPipelineColorBlendAttachmentState ColorBlendAttachmentState = {};
 			ColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 			ColorBlendAttachmentState.blendEnable = VK_TRUE;
+			/*
 			ColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 			ColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 			ColorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
 			ColorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 			ColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+			ColorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
+			*/
+
+			// TODO: Add Pipline spec option for this.
+			ColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			ColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			ColorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
+			ColorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			ColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 			ColorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
 
 			ColorBlendAttachmentStates.push_back( ColorBlendAttachmentState );

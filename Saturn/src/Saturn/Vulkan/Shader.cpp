@@ -525,8 +525,8 @@ namespace Saturn {
 		// Sort the descriptors by set and binding.
 		auto Fn = [&]( const auto& a, const auto& b ) -> bool
 		{
-			auto aSet = Compiler.get_decoration( a.id, spv::DecorationDescriptorSet );
-			auto bSet = Compiler.get_decoration( b.id, spv::DecorationDescriptorSet );
+			uint32_t aSet = Compiler.get_decoration( a.id, spv::DecorationDescriptorSet );
+			uint32_t bSet = Compiler.get_decoration( b.id, spv::DecorationDescriptorSet );
 
 			if( aSet == bSet )
 			{

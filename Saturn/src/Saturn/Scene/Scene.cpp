@@ -220,7 +220,7 @@ namespace Saturn {
 
 					m_Lights.PointLights.push_back( pl );
 
-					Renderer2D::Get().SubmitBillboardTextured( pl.Position, glm::vec4( 1.0f ), pointLightBillboardTex, glm::vec2( 1.0f ) );
+					Renderer2D::Get().SubmitBillboardTextured( pl.Position, glm::vec4( 1.0f ), pointLightBillboardTex, glm::vec2( 2.0f ) );
 
 					plIndex++;
 				}

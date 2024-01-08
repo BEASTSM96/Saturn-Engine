@@ -41,7 +41,7 @@ namespace Saturn {
 
 	bool AssetRegistryBase::IsAssetLoaded( AssetID id )
 	{
-		return m_LoadedAssets.find( id ) != m_LoadedAssets.end();
+		return m_LoadedAssets.contains( id );
 	}
 
 }

@@ -59,4 +59,7 @@ layout( set = 0, binding = 1 ) uniform sampler2D u_InputTexture[32];
 void main() 
 {
 	FinalColor = texture( u_InputTexture[ int(o_TexIndex) ], o_InputData.TexCoord ) * o_InputData.Color;
+
+	if( FinalColor.a == 0.0 )
+		discard;
 }

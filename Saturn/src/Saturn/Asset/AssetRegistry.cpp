@@ -145,7 +145,7 @@ namespace Saturn {
 
 	bool AssetRegistry::DoesIDExists( AssetID id )
 	{
-		return m_Assets.find( id ) != m_Assets.end();
+		return m_Assets.contains( id );
 	}
 
 	void AssetRegistry::AddAsset( AssetID id )
