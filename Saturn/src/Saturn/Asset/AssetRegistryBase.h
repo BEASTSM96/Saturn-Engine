@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2023 BEAST                                                           *
+* Copyright (c) 2020 - 2024 BEAST                                                           *
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -60,10 +60,12 @@ namespace Saturn {
 		template<typename Ty>
 		Ref<Ty> GetAssetAs( AssetID id )
 		{
-			if( m_Assets.find( id ) == m_Assets.end() )
+			auto AssetItr = m_Assets.find( id );
+
+			if( AssetItr == m_Assets.end() )
 				return nullptr;
 
-			Ref<Asset> asset = m_Assets.at( id );
+			Ref<Asset> asset = AssetItr->second;
 
 			if( !IsAssetLoaded( id ) )
 			{

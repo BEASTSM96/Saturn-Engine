@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2020 - 2023 BEAST                                                           *
+* Copyright (c) 2020 - 2024 BEAST                                                           *
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -42,14 +42,12 @@ namespace Saturn {
 	{
 		SingletonHolder type = {};
 
-		if( s_Singletons.find( rIndex ) == s_Singletons.end() ) 
-		{
+		const auto itr = s_Singletons.find( rIndex );
+
+		if( itr == s_Singletons.end() ) 
 			s_Singletons[ rIndex ] = type;
-		}
 		else
-		{
 			type = s_Singletons.at( rIndex );
-		}
 
 		if( !type.pObject )
 		{
