@@ -132,7 +132,7 @@ namespace Saturn {
 
 		Ref<Entity> GetMainCameraEntity();
 
-		void SetSelectedEntity( entt::entity entity ) { m_SelectedEntity = entity; }
+		void SetSelectedEntity( Ref<Entity> entity );
 		
 		Ref<Entity> FindEntityByTag( const std::string& tag );
 		Ref<Entity> FindEntityByID( const UUID& id );
@@ -252,7 +252,7 @@ namespace Saturn {
 		entt::registry m_Registry;
 
 		entt::entity m_SceneEntity{ entt::null };
-		entt::entity m_SelectedEntity{ entt::null };
+		Ref<Entity> m_SelectedEntity = nullptr;
 
 		Lights m_Lights;
 

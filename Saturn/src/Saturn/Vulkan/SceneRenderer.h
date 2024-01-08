@@ -340,6 +340,11 @@ namespace Saturn {
 		Ref<Pass> LateCompositePass = nullptr;
 		Ref<Framebuffer> LateCompositeFramebuffer = nullptr;
 
+		// Physics Outline
+		//////////////////////////////////////////////////////////////////////////
+		Ref<Pipeline> PhysicsOutlinePipeline = nullptr;
+		Ref<Material> PhysicsOutlineMaterial = nullptr;
+
 		// Instanced Rendering
 		//////////////////////////////////////////////////////////////////////////
 		// 		
@@ -364,6 +369,7 @@ namespace Saturn {
 		Ref< Shader > PreDepthShader = nullptr;
 		Ref< Shader > LightCullingShader = nullptr;
 		Ref< Shader > BloomShader = nullptr;
+		Ref< Shader > PhysicsOutlineShader = nullptr;
 	};
 
 	class SceneRenderer : public RefTarget
@@ -378,7 +384,10 @@ namespace Saturn {
 		void SetCurrentScene( Scene* pScene );
 
 		void SubmitStaticMesh( Ref<Entity> entity, Ref< StaticMesh > mesh, Ref<MaterialRegistry> materialRegistry, const glm::mat4& transform );
-		void SubmitSelectedMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform );
+		
+		// This will work for now (as atm now we are just gonna render the mesh ).
+		// However, if we have a different collider mesh than the mesh it will not be correct.
+		void SubmitPhysicsCollider( Ref<Entity> entity, Ref< StaticMesh > mesh, Ref<MaterialRegistry> materialRegistry, const glm::mat4& transform );
 
 		void SetViewportSize( uint32_t w, uint32_t h );
 
@@ -422,6 +431,7 @@ namespace Saturn {
 		void InitBloom();
 		void InitSceneComposite();
 		void InitLateComposite();
+		void InitPhysicsOutline();
 		void InitTexturePass();
 
 		void InitBuffers();
@@ -432,6 +442,7 @@ namespace Saturn {
 		void GeometryPass();
 		void BloomPass();
 		void SceneCompositePass();
+		void LateCompPhysicsOutline();
 		void TexturePass();
 
 		void RenderStaticMeshes();
@@ -448,7 +459,7 @@ namespace Saturn {
 
 		std::unordered_map< StaticMeshKey, DrawCommand > m_DrawList;
 		std::unordered_map< StaticMeshKey, DrawCommand > m_ShadowMapDrawList;
-		std::vector< DrawCommand > m_SelectedMeshDrawList;
+		std::unordered_map< StaticMeshKey, DrawCommand > m_PhysicsColliderDrawList;
 
 		std::vector< ScheduledFunc > m_ScheduledFunctions;
 

@@ -81,6 +81,8 @@ namespace Saturn {
 
 	Scene::~Scene()
 	{
+		m_SelectedEntity = nullptr;
+
 		// Destroy All Physics Entities and static meshes
 		{
 			auto staticMeshes = GetAllEntitiesWith<StaticMeshComponent>();
@@ -129,6 +131,11 @@ namespace Saturn {
 		}
 
 		return nullptr;
+	}
+
+	void Scene::SetSelectedEntity( Ref<Entity> entity )
+	{
+		m_SelectedEntity = entity;
 	}
 
 	void Scene::OnUpdate( Timestep ts )
@@ -220,9 +227,38 @@ namespace Saturn {
 
 					m_Lights.PointLights.push_back( pl );
 
-					Renderer2D::Get().SubmitBillboardTextured( pl.Position, glm::vec4( 1.0f ), pointLightBillboardTex, glm::vec2( 2.0f ) );
+					Renderer2D::Get().SubmitBillboardTextured( pl.Position, glm::vec4( 1.0f ), pointLightBillboardTex, glm::vec2( 1.5f ) );
 
 					plIndex++;
+				}
+			}
+		}
+
+		// Physics Colliders (selected meshes only)
+		{
+			auto entities = GetAllEntitiesWith<RigidbodyComponent>();
+
+			for( auto& entity : entities )
+			{
+				if( m_SelectedEntity != entity )
+					continue;
+
+				auto& rbComp = entity->GetComponent<RigidbodyComponent>();
+				auto transform = GetTransformRelativeToParent( entity );
+
+				if( entity->HasComponent<StaticMeshComponent>() )
+				{
+					auto& meshComponent = entity->GetComponent<StaticMeshComponent>();
+
+					if( meshComponent.Mesh )
+					{
+						Ref<MaterialRegistry> targetMaterialRegistry = meshComponent.Mesh->GetMaterialRegistry();
+
+						if( meshComponent.MaterialRegistry && meshComponent.MaterialRegistry->HasAnyOverrides() )
+							targetMaterialRegistry = meshComponent.MaterialRegistry;
+
+						rSceneRenderer.SubmitPhysicsCollider( entity, meshComponent.Mesh, targetMaterialRegistry, transform );
+					}
 				}
 			}
 		}

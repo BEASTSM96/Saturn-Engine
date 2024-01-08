@@ -97,6 +97,7 @@ namespace Saturn {
 		InitSceneComposite();
 
 		InitLateComposite();
+		InitPhysicsOutline();
 
 		InitTexturePass();
 
@@ -462,6 +463,44 @@ namespace Saturn {
 
 			m_RendererData.LateCompositeFramebuffer = Ref<Framebuffer>::Create( FBSpec );
 		}
+	}
+
+	void SceneRenderer::InitPhysicsOutline()
+	{
+		if( !m_RendererData.PhysicsOutlineShader )
+		{
+			m_RendererData.PhysicsOutlineShader = ShaderLibrary::Get().TryFind( "PhysicsCollider", "content/shaders/PhysicsCollider.glsl" );
+		}
+
+		if( m_RendererData.PhysicsOutlinePipeline )
+			m_RendererData.PhysicsOutlinePipeline = nullptr;
+
+		PipelineSpecification PipelineSpec = {};
+		PipelineSpec.Width = m_RendererData.Width;
+		PipelineSpec.Height = m_RendererData.Height;
+		PipelineSpec.Name = "Late Composite (PhysCollider)";
+		PipelineSpec.Shader = m_RendererData.PhysicsOutlineShader;
+		PipelineSpec.RenderPass = m_RendererData.LateCompositePass;
+		PipelineSpec.UseDepthTest = true;
+		PipelineSpec.CullMode = CullMode::Back;
+		PipelineSpec.RequestDescriptorSets = { ShaderType::Vertex, 0 };
+		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+		PipelineSpec.PolygonMode = VK_POLYGON_MODE_LINE;
+		PipelineSpec.VertexLayout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal" },
+			{ ShaderDataType::Float3, "a_Tanget" },
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float2, "a_TexCoord" }
+		};
+		PipelineSpec.InstanceLayout = {
+			{ ShaderDataType::Float4, "a_TransformBufferR1" },
+			{ ShaderDataType::Float4, "a_TransformBufferR2" },
+			{ ShaderDataType::Float4, "a_TransformBufferR3" },
+			{ ShaderDataType::Float4, "a_TransformBufferR4" }
+		};
+
+		m_RendererData.PhysicsOutlinePipeline = Ref<Pipeline>::Create( PipelineSpec );
 	}
 
 	void SceneRenderer::InitBloom()
@@ -1018,9 +1057,24 @@ namespace Saturn {
 		}
 	}
 
-	void SceneRenderer::SubmitSelectedMesh( Entity entity, Ref< StaticMesh > mesh, const glm::mat4& transform )
+	void SceneRenderer::SubmitPhysicsCollider( Ref<Entity> entity, Ref< StaticMesh > mesh, Ref<MaterialRegistry> materialRegistry, const glm::mat4& transform )
 	{
 		SAT_PF_EVENT();
+
+		auto& id = mesh->ID;
+		auto& submeshes = mesh->Submeshes();
+		for( size_t i = 0; i < submeshes.size(); i++ )
+		{
+			StaticMeshKey key = { mesh->ID, materialRegistry, ( uint32_t ) i };
+
+			glm::mat4 submeshTransform = transform * submeshes[ i ].Transform;
+
+			auto& command = m_PhysicsColliderDrawList[ key ];
+			command.entity = entity;
+			command.Mesh = mesh;
+			command.SubmeshIndex = ( uint32_t ) i;
+			command.Instances++;
+		}
 	}
 
 	void SceneRenderer::SetViewportSize( uint32_t w, uint32_t h )
@@ -1041,6 +1095,7 @@ namespace Saturn {
 
 		InitSceneComposite();
 		InitLateComposite();
+		InitPhysicsOutline();
 		
 		InitTexturePass();
 
@@ -1395,6 +1450,48 @@ namespace Saturn {
 
 		// End scene composite pass.
 		m_RendererData.SceneComposite->EndPass();
+	}
+
+	void SceneRenderer::LateCompPhysicsOutline()
+	{
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
+		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
+		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
+
+		m_RendererData.LateCompositePass->BeginPass( CommandBuffer, m_RendererData.LateCompositeFramebuffer->GetVulkanFramebuffer(), Extent );
+
+		VkViewport Viewport = {};
+		Viewport.x = 0;
+		Viewport.y = 0;
+		Viewport.width = ( float ) m_RendererData.Width;
+		Viewport.height = ( float ) m_RendererData.Height;
+		Viewport.minDepth = 0.0f;
+		Viewport.maxDepth = 1.0f;
+
+		VkRect2D Scissor = { .offset = { 0, 0 }, .extent = Extent };
+
+		vkCmdSetViewport( CommandBuffer, 0, 1, &Viewport );
+		vkCmdSetScissor( CommandBuffer, 0, 1, &Scissor );
+
+		struct UB_Matrices
+		{
+			glm::mat4 ViewProjection;
+		} u_Matrices;
+
+		u_Matrices.ViewProjection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
+
+		m_RendererData.PhysicsOutlineShader->UploadUB( ShaderType::Vertex, 0, 0, &u_Matrices, sizeof( u_Matrices ) );
+
+		m_RendererData.PhysicsOutlineShader->WriteAllUBs( m_RendererData.PhysicsOutlinePipeline->GetDescriptorSet( ShaderType::Vertex, 0 ) );
+
+		for( auto& [key, Cmd] : m_PhysicsColliderDrawList )
+		{
+			const auto& rTransformData = m_RendererData.MeshTransforms[ key ];
+
+			Renderer::Get().RenderMeshWithoutMaterial( CommandBuffer, m_RendererData.PhysicsOutlinePipeline, Cmd.Mesh, Cmd.Instances, m_RendererData.SubmeshTransformData[ frame ].VertexBuffer, rTransformData.Offset, Cmd.SubmeshIndex );
+		}
+
+		m_RendererData.LateCompositePass->EndPass();
 	}
 
 	void SceneRenderer::TexturePass()
@@ -1875,6 +1972,12 @@ namespace Saturn {
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Late Composite (PhysCollider)" );
+
+		LateCompPhysicsOutline();
+
+		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+
 		if( m_RendererData.IsSwapchainTarget )
 		{
 			CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Texture Pass" );
@@ -1891,6 +1994,7 @@ namespace Saturn {
 	{
 		m_DrawList.clear();
 		m_ShadowMapDrawList.clear();
+		m_PhysicsColliderDrawList.clear();
 		m_ScheduledFunctions.clear();
 		m_RendererData.MeshTransforms.clear();
 	}
@@ -1965,6 +2069,7 @@ namespace Saturn {
 		PreDepthPipeline = nullptr;
 		LightCullingPipeline = nullptr;
 		BloomComputePipeline = nullptr;
+		PhysicsOutlinePipeline = nullptr;
 
 		// Shaders
 		GridShader = nullptr;
@@ -1977,6 +2082,7 @@ namespace Saturn {
 		PreDepthShader = nullptr;
 		LightCullingShader = nullptr;
 		BloomShader = nullptr;
+		PhysicsOutlineShader = nullptr;
 
 		// Vertex & Index Buffer
 		QuadVertexBuffer = nullptr;

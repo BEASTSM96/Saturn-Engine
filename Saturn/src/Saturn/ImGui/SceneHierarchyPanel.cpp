@@ -122,7 +122,7 @@ namespace Saturn {
 			m_SelectionContexts.push_back( entity );
 		}
 
-		m_Context->SetSelectedEntity( entity->GetHandle() );
+		m_Context->SetSelectedEntity( entity );
 	}
 
 	void SceneHierarchyPanel::ClearSelected()
