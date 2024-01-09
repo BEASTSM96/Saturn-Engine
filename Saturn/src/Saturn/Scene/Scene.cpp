@@ -81,7 +81,7 @@ namespace Saturn {
 
 	Scene::~Scene()
 	{
-		m_SelectedEntity = nullptr;
+		m_SelectedEntities.clear();
 
 		// Destroy All Physics Entities and static meshes
 		{
@@ -133,9 +133,19 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	void Scene::SetSelectedEntity( Ref<Entity> entity )
+	void Scene::AddSelectedEntity( Ref<Entity> entity )
 	{
-		m_SelectedEntity = entity;
+		m_SelectedEntities.push_back( entity );
+	}
+
+	void Scene::DeselectEntity( Ref<Entity> entity )
+	{
+		m_SelectedEntities.erase( std::remove( m_SelectedEntities.begin(), m_SelectedEntities.end(), entity ), m_SelectedEntities.end() );
+	}
+
+	void Scene::ClearSelectedEntities()
+	{
+		m_SelectedEntities.clear();
 	}
 
 	void Scene::OnUpdate( Timestep ts )
@@ -236,28 +246,22 @@ namespace Saturn {
 
 		// Physics Colliders (selected meshes only)
 		{
-			auto entities = GetAllEntitiesWith<RigidbodyComponent>();
-
-			for( auto& entity : entities )
+			for ( auto& rSelectedEntity : m_SelectedEntities )
 			{
-				if( m_SelectedEntity != entity )
-					continue;
-
-				auto& rbComp = entity->GetComponent<RigidbodyComponent>();
-				auto transform = GetTransformRelativeToParent( entity );
-
-				if( entity->HasComponent<StaticMeshComponent>() )
+				if( rSelectedEntity->HasComponent<RigidbodyComponent>() && rSelectedEntity->HasComponent<StaticMeshComponent>() )
 				{
-					auto& meshComponent = entity->GetComponent<StaticMeshComponent>();
+					auto& rbComp = rSelectedEntity->GetComponent<RigidbodyComponent>();
+					auto& meshComponent = rSelectedEntity->GetComponent<StaticMeshComponent>();
+					auto transform = GetTransformRelativeToParent( rSelectedEntity );
 
-					if( meshComponent.Mesh )
+					if( meshComponent.Mesh ) 
 					{
 						Ref<MaterialRegistry> targetMaterialRegistry = meshComponent.Mesh->GetMaterialRegistry();
 
 						if( meshComponent.MaterialRegistry && meshComponent.MaterialRegistry->HasAnyOverrides() )
 							targetMaterialRegistry = meshComponent.MaterialRegistry;
 
-						rSceneRenderer.SubmitPhysicsCollider( entity, meshComponent.Mesh, targetMaterialRegistry, transform );
+						rSceneRenderer.SubmitPhysicsCollider( rSelectedEntity, meshComponent.Mesh, targetMaterialRegistry, transform );
 					}
 				}
 			}
@@ -300,7 +304,11 @@ namespace Saturn {
 
 		auto view = glm::inverse( GetTransformRelativeToParent( cameraEntity ) );
 		SceneCamera& camera = cameraEntity->GetComponent<CameraComponent>().Camera;
-	
+
+		// We currently do not use the 2D renderer in runtime however make sure that we "Prepare" it.
+		// Preparing the Renderer2D will reset the quad index count and the vertex buffer ptr.
+		Renderer2D::Get().Prepare();
+
 		// Lights
 		{
 			m_Lights = Lights();

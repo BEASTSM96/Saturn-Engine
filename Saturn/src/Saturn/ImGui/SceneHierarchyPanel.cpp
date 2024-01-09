@@ -115,14 +115,14 @@ namespace Saturn {
 		if( m_IsMultiSelecting )
 		{
 			m_SelectionContexts.push_back( entity );
+			m_Context->AddSelectedEntity( entity );
 		}
 		else
 		{
-			m_SelectionContexts.clear();
+			ClearSelected();
+
 			m_SelectionContexts.push_back( entity );
 		}
-
-		m_Context->SetSelectedEntity( entity );
 	}
 
 	void SceneHierarchyPanel::ClearSelected()
@@ -142,7 +142,7 @@ namespace Saturn {
 	void SceneHierarchyPanel::ClearSelection()
 	{
 		m_SelectionContexts.clear();
-		m_Context->SetSelectedEntity( {} );
+		m_Context->ClearSelectedEntities();
 	}
 
 	template<typename Ty>

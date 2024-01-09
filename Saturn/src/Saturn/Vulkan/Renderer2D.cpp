@@ -464,7 +464,7 @@ namespace Saturn {
 		m_CommandBuffer = Renderer::Get().ActiveCommandBuffer();
 
 		// First, check if we have a render pass.
-		if( !m_TargetRenderPass || m_QuadIndexCount == 0 )
+		if( !m_TargetRenderPass )
 		{
 			FlushDrawList();
 			return;
@@ -490,7 +490,6 @@ namespace Saturn {
 	void Renderer2D::FlushDrawList()
 	{
 		m_DrawList.clear();
-		m_QuadIndexCount = 0;
 	}
 
 }
