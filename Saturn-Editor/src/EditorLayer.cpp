@@ -679,7 +679,7 @@ namespace Saturn {
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		GActiveScene = newScene.Get();
 
-		pHierarchyPanel->ClearSelected();
+		pHierarchyPanel->ClearSelection();
 		pHierarchyPanel->SetContext( nullptr );
 
 		if( !rFilepath.empty() ) 
@@ -739,7 +739,7 @@ namespace Saturn {
 						GActiveScene->DeleteEntity( rEntity );
 					}
 
-					pHierarchyPanel->ClearSelected();
+					pHierarchyPanel->ClearSelection();
 				}
 			} break;
 

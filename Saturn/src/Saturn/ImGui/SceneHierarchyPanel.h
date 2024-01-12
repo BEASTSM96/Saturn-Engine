@@ -47,7 +47,7 @@ namespace Saturn {
 
 		void SetContext( const Ref<Scene>& scene );
 		void SetSelected( Ref<Entity> entity );
-		void ClearSelected();
+		void ClearSelection();
 		void SetSelectionChangedCallback( const std::function<void( Ref<Entity> )>& func ) { m_SelectionChangedCallback = func; }
 
 		std::vector<Ref<Entity>>& GetSelectionContexts() { return m_SelectionContexts; }
@@ -77,8 +77,6 @@ namespace Saturn {
 		void DrawEntityNode( Ref<Entity> entity );
 		void DrawEntityComponents( Ref<Entity> entity );
 		void DrawEntities();
-
-		void ClearSelection();
 
 		template<typename Ty>
 		void DrawAddComponents( const char* pName, Ref<Entity> entity );

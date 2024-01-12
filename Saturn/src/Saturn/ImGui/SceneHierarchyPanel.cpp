@@ -119,15 +119,11 @@ namespace Saturn {
 		}
 		else
 		{
-			ClearSelected();
+			ClearSelection();
 
+			m_Context->AddSelectedEntity( entity );
 			m_SelectionContexts.push_back( entity );
 		}
-	}
-
-	void SceneHierarchyPanel::ClearSelected()
-	{
-		m_SelectionContexts.clear();
 	}
 
 	void SceneHierarchyPanel::DrawEntities()
