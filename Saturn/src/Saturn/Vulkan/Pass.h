@@ -69,7 +69,7 @@ namespace Saturn {
 		operator VkRenderPass() { return m_Pass; }
 		VkRenderPass GetVulkanPass() { return m_Pass; }
 
-		size_t GetColorAttachmetSize() { return m_ColorAttacments.size(); }
+		size_t GetColorAttachmetSize() { return m_ColorAttachments.size(); }
 
 		std::string& GetName() { return m_PassSpec.Name; }
 		const std::string& GetName() const { return m_PassSpec.Name; }
@@ -82,8 +82,8 @@ namespace Saturn {
 	private:
 		PassSpecification m_PassSpec;
 
-		VkAttachmentReference m_DepthAttacment = {};
-		std::vector< VkAttachmentReference > m_ColorAttacments;
+		VkAttachmentReference m_DepthAttachment = {};
+		std::vector< VkAttachmentReference > m_ColorAttachments;
 
 		std::vector<VkClearValue> m_ClearValues;
 
