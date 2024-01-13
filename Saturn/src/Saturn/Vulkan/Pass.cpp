@@ -115,13 +115,13 @@ namespace Saturn {
 				{
 					// This is a hack.
 					// We only do this because the swapchain pass only has two attachments at the start, but when we add the MSAA pass we add it before the color attachment.
-					m_ColorAttacments.push_back( { .attachment = ( uint32_t ) i + 1, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL } );
+					m_ColorAttachments.push_back( { .attachment = ( uint32_t ) i + 1, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL } );
 				}
 				else
 				{
 					VkAttachmentReference Attachment = { .attachment = ( uint32_t ) i, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 
-					m_ColorAttacments.push_back( Attachment );
+					m_ColorAttachments.push_back( Attachment );
 				}
 
 				m_ClearValues[ i ].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
@@ -132,11 +132,11 @@ namespace Saturn {
 				{
 					// This is a hack. 
 					// We only do this because the swapchain pass only has two attachments at the start, but when we add the MSAA pass we add it before the depth attachment.
-					m_DepthAttacment = { .attachment = ( uint32_t ) i + 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+					m_DepthAttachment = { .attachment = ( uint32_t ) i + 1, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 				}
 				else
 				{
-					m_DepthAttacment = { .attachment = ( uint32_t ) i, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+					m_DepthAttachment = { .attachment = ( uint32_t ) i, .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 				}
 
 				m_ClearValues[ i ].depthStencil = { 1.0f, 0 };
@@ -145,20 +145,20 @@ namespace Saturn {
 			i++;
 		}
 
-		if ( m_DepthAttacment.layout == VK_IMAGE_LAYOUT_UNDEFINED || m_DepthAttacment.layout == VK_IMAGE_LAYOUT_MAX_ENUM || m_DepthAttacment.layout ==VK_IMAGE_LAYOUT_UNDEFINED )
+		if ( m_DepthAttachment.layout == VK_IMAGE_LAYOUT_UNDEFINED || m_DepthAttachment.layout == VK_IMAGE_LAYOUT_MAX_ENUM || m_DepthAttachment.layout ==VK_IMAGE_LAYOUT_UNDEFINED )
 		{
 			DefaultSubpass.pDepthStencilAttachment = nullptr;
 		}
 		else
 		{
-			DefaultSubpass.pDepthStencilAttachment = &m_DepthAttacment;
+			DefaultSubpass.pDepthStencilAttachment = &m_DepthAttachment;
 		}
 
 		bool IsMultisamplePass = m_PassSpec.MSAASamples > VK_SAMPLE_COUNT_1_BIT;
-		if( m_ColorAttacments.size() ) 
+		if( m_ColorAttachments.size() ) 
 		{
-			DefaultSubpass.pColorAttachments = m_ColorAttacments.data();
-			DefaultSubpass.colorAttachmentCount = (uint32_t)m_ColorAttacments.size();
+			DefaultSubpass.pColorAttachments = m_ColorAttachments.data();
+			DefaultSubpass.colorAttachmentCount = (uint32_t)m_ColorAttachments.size();
 		}
 
 		DefaultSubpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -284,7 +284,7 @@ namespace Saturn {
 		if( m_Pass )
 			vkDestroyRenderPass( VulkanContext::Get().GetDevice(), m_Pass, nullptr );
 
-		m_ColorAttacments.clear();
+		m_ColorAttachments.clear();
 
 		m_Pass = nullptr;
 	}
