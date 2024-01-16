@@ -12,6 +12,13 @@ using SaturnBuildTool.Tools;
 
 namespace SaturnBuildTool
 {
+    public enum ActionType 
+    {
+        Build,
+        Rebuild,
+        Clean
+    }
+
     internal class Application
     {
         private readonly UserTarget TargetToBuild = null;
@@ -29,7 +36,7 @@ namespace SaturnBuildTool
         private readonly List<List<string>> FilesPerThread = new List<List<string>>();
         private readonly List<bool> ThreadsCompleted = new List<bool>();
 
-        private bool IsRebuild = false;
+        private ActionType Action = ActionType.Build;
 
         List<string> SourceFiles = null;
         List<string> BuildFiles = null;
@@ -42,7 +49,8 @@ namespace SaturnBuildTool
         // 4: The project location
         public Application(string[] args) 
         {
-          //  Thread.Sleep(7000);
+            // Debug Only
+            //Thread.Sleep(7000);
 
             Args = args;
 
@@ -68,6 +76,14 @@ namespace SaturnBuildTool
                     break;
             }
 
+            // Set Action
+            if( Args[0] == "/BUILD" )
+                Action = ActionType.Build;
+            else if(Args[0] == "/REBUILD")
+                Action = ActionType.Rebuild;
+            else
+                Action = ActionType.Clean;
+
             FileCache = FileCache.Load();
         }
 
@@ -92,7 +108,7 @@ namespace SaturnBuildTool
                 // Only compile the file if it has not be changed.
                 FileCache.FilesInCache.TryGetValue(file, out DateTime LastTime);
 
-                if (IsRebuild)
+                if (Action == ActionType.Rebuild)
                 {
                     int exitCode = Toolchain.Compile(file);
 
@@ -241,16 +257,9 @@ namespace SaturnBuildTool
                 BuildFiles.Remove(EntryFilepath);
             }
         }
-
-        public void Run() 
+        private void ActionBuild() 
         {
             Stopwatch time = Stopwatch.StartNew();
-
-            Console.WriteLine("==== Saturn Build Tool v0.0.2 ====");
-
-            IsRebuild = Args[0] == "/REBUILD";
-
-            SearchForFiles();
 
             // Compile all source files and all "build folder" files next.
             CompileSourceFiles();
@@ -267,6 +276,71 @@ namespace SaturnBuildTool
             }
 
             Console.WriteLine("Done building in {0}", time.Elapsed);
+        }
+
+        private void CleanBinaryFolder()
+        {
+            // Binary folder.
+            try
+            {
+                Directory.Delete(TargetToBuild.GetBinDir(), true);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(string.Format("Could not delete dir/file: {0}", e.Message));
+            }
+
+            // Intermediate binary folder.
+            try
+            {
+                Directory.Delete(TargetToBuild.OutputPath, true);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(string.Format("Could not delete dir/file: {0}", e.Message));
+            }
+
+            FileCache.Clean();
+        }
+
+        private void CleanBuildFolder()
+        {
+            // Maybe not?
+        }
+
+        private void ActionClean() 
+        {
+            Stopwatch time = Stopwatch.StartNew();
+
+            CleanBinaryFolder();
+            CleanBuildFolder();
+
+            FileCache.RT_WriteCache(FileCache);
+
+            Console.WriteLine("Done cleaning in {0}", time.Elapsed);
+        }
+
+        public void Run() 
+        {
+            Console.WriteLine("==== Saturn Build Tool v0.0.2 ====");
+
+            SearchForFiles();
+
+            switch( Action )
+            {
+                case ActionType.Build:
+                case ActionType.Rebuild:
+                    {
+                        ActionBuild();
+                    }
+                    break;
+
+                case ActionType.Clean:
+                    {
+                        ActionClean();
+                    }
+                    break;
+            }
         }
     }
 }

@@ -58,11 +58,11 @@ namespace SaturnBuildTool
 
         public string GetBinDir() 
         {
-            string BinDir = Directory.GetParent( OutputPath ).ToString();
-            BinDir = Directory.GetParent( BinDir ).ToString();
-            BinDir = Directory.GetParent( BinDir ).ToString();
+            string BinDir = Directory.GetParent(OutputPath).ToString();
+            BinDir = Directory.GetParent(BinDir).ToString();
+            BinDir = Directory.GetParent(BinDir).ToString();
 
-            BinDir = Path.Combine( BinDir, "bin" );
+            BinDir = Path.Combine(BinDir, "bin");
 
             switch (CurrentConfig)
             {
@@ -85,7 +85,14 @@ namespace SaturnBuildTool
                     break;
             }
 
-            BinDir = Path.Combine( BinDir, ProjectName );
+            BinDir = Path.Combine(BinDir, ProjectName);
+
+            return BinDir;
+        }
+
+        public string GetFullBinPath() 
+        {
+            string BinDir = GetBinDir();
 
             switch (OutputType)
             {

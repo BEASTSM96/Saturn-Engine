@@ -354,6 +354,9 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 		case WM_NCCALCSIZE:
 		{
+			if( pThis->GetParent()->GetStyle() != RubyStyle::Borderless )
+				break;
+
 			if( WParam == TRUE )
 			{
 				WINDOWPLACEMENT WindowPlacement{ .length = sizeof( WINDOWPLACEMENT ) };

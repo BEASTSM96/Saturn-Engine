@@ -83,19 +83,19 @@ namespace SaturnBuildTool
             {
                 case LinkerOutput.Executable:
                     {
-                        Args.Add(string.Format(" /SUBSYSTEM:CONSOLE /OUT:\"{0}\"", TargetToBuild.GetBinDir()));
+                        Args.Add(string.Format(" /SUBSYSTEM:CONSOLE /OUT:\"{0}\"", TargetToBuild.GetFullBinPath()));
                     } break;
 
 
                 case LinkerOutput.StaticLibrary:
                     {
-                        Args.Add(string.Format(" /LIB /OUT:\"{0}\"", TargetToBuild.GetBinDir()));
+                        Args.Add(string.Format(" /LIB /OUT:\"{0}\"", TargetToBuild.GetFullBinPath()));
                     }
                     break;
 
                 case LinkerOutput.SharedLibrary:
                     {
-                        Args.Add(string.Format(" /DLL /OUT:\"{0}\"", TargetToBuild.GetBinDir()));
+                        Args.Add(string.Format(" /DLL /OUT:\"{0}\"", TargetToBuild.GetFullBinPath()));
                     }
                     break;
             }

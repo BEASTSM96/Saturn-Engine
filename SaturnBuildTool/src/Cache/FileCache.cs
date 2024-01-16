@@ -51,7 +51,11 @@ namespace SaturnBuildTool.Cache
         {
             return FilesToCache.ContainsKey(Filepath);
         }
-
+        public void Clean() 
+        {
+            FilesToCache.Clear();
+            FilesInCache.Clear();
+        }
         public static void RT_WriteCache( FileCache fileCache ) 
         {
             foreach (KeyValuePair<string, DateTime> kv in fileCache.FilesToCache) 
