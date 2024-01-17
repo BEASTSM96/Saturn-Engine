@@ -149,7 +149,8 @@ namespace Saturn {
 				{
 					Project::GetActiveProject()->PrepForDist();
 
-					// Make sure we will include the Texture Pass shader because that will not be in the shader library at this point because we don't need it.
+					// Make sure we will include the Texture Pass shader.
+					// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
 					Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
 
 					ShaderBundle::Get().BundleShaders();
@@ -1001,10 +1002,10 @@ namespace Saturn {
 	{
 		std::vector<std::string> DisallowedAssetExtensions = 
 		{
-			{ ".fbx"      }, 
+			{ ".fbx"      },
 			{ ".gltf"     },
-			{ ".bin"      }, 
-			{ ".glb"      }, 
+			{ ".bin"      },
+			{ ".glb"      },
 			{ ".wav"      },
 			{ ".lib"      },
 			{ ".ttf"      },
