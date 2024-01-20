@@ -83,6 +83,11 @@ namespace Saturn {
 		void DrawEditorSettings();
 		void DrawMaterials();
 
+		// Viewport
+		void DrawViewport();
+		void Viewport_Gizmo();
+		void Viewport_RTControls();
+
 	private:
 		TitleBar* m_TitleBar = nullptr;
 		

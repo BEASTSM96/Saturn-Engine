@@ -180,12 +180,6 @@ namespace Saturn {
 			}
 		} );
 
-		m_TitleBar->AddOnRuntimeStateChanged( [&](int state) -> void 
-			{
-				// TEMP: We only have two states, running or not, so 0 or 1
-				m_RequestRuntime = state;
-			} );
-
 		pHierarchyPanel->SetContext( m_EditorScene );
 		pHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
 
@@ -461,184 +455,7 @@ namespace Saturn {
 
 		ImGui::End();
 
-		// Viewport
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
-
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-
-		ImGui::Begin( "Viewport", 0, flags );
-
-		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
-		{
-			m_ViewportSize = ImGui::GetContentRegionAvail();
-
-			Application::Get().PrimarySceneRenderer().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
-			Renderer2D::Get().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
-			m_EditorCamera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
-		}
-
-		ImGui::PushID( "VIEWPORT_IMAGE" );
-
-		// In the editor we only should flip the image UV, we don't have to flip anything else.
-		Auxiliary::Image( Application::Get().PrimarySceneRenderer().CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
-
-		if( ImGui::BeginDragDropTarget() )
-		{
-			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE" ) )
-			{
-				const wchar_t* path = ( const wchar_t* ) payload->Data;
-				OpenFile( path );
-			}
-
-			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB" ) )
-			{
-				const wchar_t* path = ( const wchar_t* ) payload->Data;
-
-				std::filesystem::path p = path;
-
-				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
-				// Make sure to load the prefab.
-				Ref<Prefab> prefabAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
-
-				m_EditorScene->CreatePrefab( prefabAsset );
-			}
-
-			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL" ) )
-			{
-				const wchar_t* path = ( const wchar_t* ) payload->Data;
-				
-				std::filesystem::path p = path;
-
-				// We have now that path to the *.stmesh but we need to path to the fbx/gltf.
-
-				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
-				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
-				
-				Ref<Entity> entity = Ref<Entity>::Create();
-				entity->SetName( asset->Name );
-
-				entity->AddComponent<StaticMeshComponent>().Mesh = meshAsset;
-				entity->AddComponent<StaticMeshComponent>().MaterialRegistry = Ref<MaterialRegistry>::Create( meshAsset );
-			}
-
-			ImGui::EndDragDropTarget();
-		}
-
-		ImGui::PopID();
-
-		ImVec2 minBound = ImGui::GetWindowPos();
-		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
-
-		// Viewport Gizmo toolbar
-		ImGui::PushID( "VP_GIZMO" );
-		
-		const float windowHeight = 32.0f;
-		const float icons = 3.0f;
-		const float neededSpace = 48.0f * icons - 10.0f;
-
-		// For 4 icons
-		//const float windowWidth = 166.0f;
-		
-		// For 3 icons
-		// Formula is 24 * x - 10.0f (for item spacing)
-		// Where x is number of icons
-		const float windowWidth = neededSpace - 10.0f;
-
-		ImGui::SetNextWindowPos ( ImVec2( minBound.x + 5.0f, minBound.y + 5.0f ) );
-		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
-		ImGui::Begin( "##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking );
-
-		ImGui::BeginVertical  ( "##v_gizmoV", { windowWidth, ImGui::GetContentRegionAvail().y } );
-		ImGui::BeginHorizontal( "##v_gizmoH", { windowWidth, ImGui::GetContentRegionAvail().y } );
-
-		ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f } );
-		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 5.0f * 2.0f, 0 ) );
-
-		//const Ref<Texture2D>& texture = m_RequestRuntime == false ? m_StartRuntimeTexture : m_EndRuntimeTexture;
-		//if( Auxiliary::ImageButton( texture, { 24.0f, 24.0f } ) ) m_RequestRuntime ^= 1;
-		if( Auxiliary::ImageButton( m_TranslationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
-		if( Auxiliary::ImageButton( m_RotationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
-		if( Auxiliary::ImageButton( m_ScaleTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
-
-		ImGui::PopStyleColor();
-		ImGui::PopStyleVar();
-
-		ImGui::Spring();
-		ImGui::EndHorizontal();
-		ImGui::Spring();
-		ImGui::EndVertical();
-
-		ImGui::End();
-
-		ImGui::PopID();
-
-		m_ViewportFocused = ImGui::IsWindowFocused();
-		m_MouseOverViewport = ImGui::IsWindowHovered();
-
-		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
-		
-		Ref<Scene> ActiveScene = m_RuntimeScene ? m_RuntimeScene : m_EditorScene;
-
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
-		std::vector<Ref<Entity>>& selectedEntities = pHierarchyPanel->GetSelectionContexts();
-
-		// Calc center of transform.
-		glm::vec3 Positions = {};
-		glm::quat Rotations = {};
-		glm::vec3 Scales = {};
-
-		for( const auto& rEntity : selectedEntities )
-		{
-			TransformComponent worldSpace = ActiveScene->GetWorldSpaceTransform( rEntity );
-			Positions += worldSpace.Position;
-			Rotations += worldSpace.GetRotation();
-			Scales += worldSpace.Scale;
-		}
-
-		Positions /= selectedEntities.size();
-		Rotations /= selectedEntities.size();
-		Scales /= selectedEntities.size();
-
-		glm::mat4 centerPoint = glm::translate( glm::mat4( 1.0f ), Positions) * glm::toMat4( Rotations ) * glm::scale( glm::mat4(1.0f), Scales );
-		glm::mat4 offsetTransform( 1.0f );
-
-		///////////////////
-
-		if( selectedEntities.size() )
-		{
-			ImGuizmo::SetOrthographic( false );
-			ImGuizmo::SetDrawlist();
-			ImGuizmo::SetRect( minBound.x, minBound.y, m_ViewportSize.x, m_ViewportSize.y );
-
-			const glm::mat4 Projection = m_EditorCamera.ProjectionMatrix();
-			const glm::mat4 View = m_EditorCamera.ViewMatrix();
-
-			ImGuizmo::Manipulate( glm::value_ptr( View ), glm::value_ptr( Projection ), ( ImGuizmo::OPERATION ) m_GizmoOperation, ImGuizmo::LOCAL, glm::value_ptr( centerPoint ), glm::value_ptr( offsetTransform ) );
-
-			if( ImGuizmo::IsUsing() )
-			{
-				for( Ref<Entity>& entity : selectedEntities )
-				{
-					glm::mat4 transform = ActiveScene->GetTransformRelativeToParent( entity );
-					auto& tc = entity->GetComponent<TransformComponent>();
-
-					glm::vec3 translation;
-					glm::vec3 rotation;
-					glm::vec3 scale;
-
-					Math::DecomposeTransform( transform * offsetTransform, translation, rotation, scale );
-
-					glm::vec3 DeltaRotation = rotation - tc.GetRotationEuler();
-
-					tc.Position = translation;
-					tc.SetRotation( tc.GetRotationEuler() += DeltaRotation );
-					tc.Scale = scale;
-				}
-			}
-		}
-
-		ImGui::PopStyleVar();
-		ImGui::End();
+		DrawViewport();
 	}
 
 	void EditorLayer::OnEvent( RubyEvent& rEvent )
@@ -758,7 +575,7 @@ namespace Saturn {
 				break;
 		}
 
-		if( Input::Get().KeyPressed( RubyKey::Ctrl ) )
+		if( Input::Get().KeyPressed( RubyKey::Ctrl ) && !m_RuntimeScene )
 		{
 			switch( rEvent.GetScancode() )
 			{
@@ -1389,4 +1206,244 @@ namespace Saturn {
 		}
 	}
 
+	void EditorLayer::DrawViewport()
+	{
+		// Viewport Image & Drag and drop handling
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+
+		ImGui::Begin( "Viewport", 0, flags );
+
+		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
+		{
+			m_ViewportSize = ImGui::GetContentRegionAvail();
+
+			Application::Get().PrimarySceneRenderer().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
+			Renderer2D::Get().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
+			m_EditorCamera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
+		}
+
+		ImGui::PushID( "VIEWPORT_IMAGE" );
+
+		// In the editor we only should flip the image UV, we don't have to flip anything else.
+		Auxiliary::Image( Application::Get().PrimarySceneRenderer().CompositeImage(), m_ViewportSize, { 0, 1 }, { 1, 0 } );
+
+		if( ImGui::BeginDragDropTarget() )
+		{
+			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE" ) )
+			{
+				const wchar_t* path = ( const wchar_t* ) payload->Data;
+				OpenFile( path );
+			}
+
+			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB" ) )
+			{
+				const wchar_t* path = ( const wchar_t* ) payload->Data;
+
+				std::filesystem::path p = path;
+
+				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
+				// Make sure to load the prefab.
+				Ref<Prefab> prefabAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
+
+				m_EditorScene->CreatePrefab( prefabAsset );
+			}
+
+			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL" ) )
+			{
+				const wchar_t* path = ( const wchar_t* ) payload->Data;
+
+				std::filesystem::path p = path;
+
+				// We have now that path to the *.stmesh but we need to path to the fbx/gltf.
+
+				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
+				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
+
+				Ref<Entity> entity = Ref<Entity>::Create();
+				entity->SetName( asset->Name );
+
+				entity->AddComponent<StaticMeshComponent>().Mesh = meshAsset;
+				entity->AddComponent<StaticMeshComponent>().MaterialRegistry = Ref<MaterialRegistry>::Create( meshAsset );
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
+		ImGui::PopID();
+
+		// Viewport Gizmo controls
+		Viewport_Gizmo();
+
+		// Viewport Runtime controls
+		Viewport_RTControls();
+
+		//// Render the real gizmo
+
+		ImVec2 minBound = ImGui::GetWindowPos();
+		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
+
+		m_ViewportFocused = ImGui::IsWindowFocused();
+		m_MouseOverViewport = ImGui::IsWindowHovered();
+
+		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
+
+		Ref<Scene> ActiveScene = m_RuntimeScene ? m_RuntimeScene : m_EditorScene;
+
+		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
+		std::vector<Ref<Entity>>& selectedEntities = pHierarchyPanel->GetSelectionContexts();
+
+		// Calc center of transform.
+		glm::vec3 Positions = {};
+		glm::quat Rotations = {};
+		glm::vec3 Scales = {};
+
+		for( const auto& rEntity : selectedEntities )
+		{
+			TransformComponent worldSpace = ActiveScene->GetWorldSpaceTransform( rEntity );
+			Positions += worldSpace.Position;
+			Rotations += worldSpace.GetRotation();
+			Scales += worldSpace.Scale;
+		}
+
+		Positions /= selectedEntities.size();
+		Rotations /= selectedEntities.size();
+		Scales /= selectedEntities.size();
+
+		glm::mat4 centerPoint = glm::translate( glm::mat4( 1.0f ), Positions ) * glm::toMat4( Rotations ) * glm::scale( glm::mat4( 1.0f ), Scales );
+		glm::mat4 offsetTransform( 1.0f );
+
+		///////////////////
+
+		if( selectedEntities.size() )
+		{
+			ImGuizmo::SetOrthographic( false );
+			ImGuizmo::SetDrawlist();
+			ImGuizmo::SetRect( minBound.x, minBound.y, m_ViewportSize.x, m_ViewportSize.y );
+
+			const glm::mat4 Projection = m_EditorCamera.ProjectionMatrix();
+			const glm::mat4 View = m_EditorCamera.ViewMatrix();
+
+			ImGuizmo::Manipulate( glm::value_ptr( View ), glm::value_ptr( Projection ), ( ImGuizmo::OPERATION ) m_GizmoOperation, ImGuizmo::LOCAL, glm::value_ptr( centerPoint ), glm::value_ptr( offsetTransform ) );
+
+			if( ImGuizmo::IsUsing() )
+			{
+				for( Ref<Entity>& entity : selectedEntities )
+				{
+					glm::mat4 transform = ActiveScene->GetTransformRelativeToParent( entity );
+					auto& tc = entity->GetComponent<TransformComponent>();
+
+					glm::vec3 translation;
+					glm::vec3 rotation;
+					glm::vec3 scale;
+
+					Math::DecomposeTransform( transform * offsetTransform, translation, rotation, scale );
+
+					glm::vec3 DeltaRotation = rotation - tc.GetRotationEuler();
+
+					tc.Position = translation;
+					tc.SetRotation( tc.GetRotationEuler() += DeltaRotation );
+					tc.Scale = scale;
+				}
+			}
+		}
+
+		ImGui::PopStyleVar();
+		ImGui::End();
+	}
+
+	void EditorLayer::Viewport_Gizmo()
+	{
+		ImVec2 minBound = ImGui::GetWindowPos();
+		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
+
+		// Viewport Gizmo toolbar
+		ImGui::PushID( "VP_GIZMO" );
+
+		const float windowHeight = 32.0f;
+		const float icons = 3.0f;
+		const float neededSpace = 48.0f * icons - 10.0f;
+
+		// For 4 icons
+		//const float windowWidth = 166.0f;
+
+		// For 3 icons
+		// Formula is 24 * x - 10.0f (for item spacing)
+		// Where x is number of icons
+		const float windowWidth = neededSpace - 10.0f;
+
+		ImGui::SetNextWindowPos( ImVec2( minBound.x + 5.0f, minBound.y + 5.0f ) );
+		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
+		ImGui::Begin( "##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking );
+
+		ImGui::BeginVertical( "##v_gizmoV", { windowWidth, ImGui::GetContentRegionAvail().y } );
+		ImGui::BeginHorizontal( "##v_gizmoH", { windowWidth, ImGui::GetContentRegionAvail().y } );
+
+		ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f } );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 5.0f * 2.0f, 0 ) );
+
+		if( Auxiliary::ImageButton( m_TranslationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+		if( Auxiliary::ImageButton( m_RotationTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
+		if( Auxiliary::ImageButton( m_ScaleTexture, { 24.0f, 24.0f } ) ) m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
+
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
+
+		ImGui::Spring();
+		ImGui::EndHorizontal();
+		ImGui::Spring();
+		ImGui::EndVertical();
+
+		ImGui::End();
+
+		ImGui::PopID();
+	}
+
+	void EditorLayer::Viewport_RTControls()
+	{
+		ImVec2 minBound = ImGui::GetWindowPos();
+		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
+
+		const float windowHeight = 32.0f;
+		const float icons = 1.0f;
+		const float neededSpace = 48.0f * icons - 10.0f;
+
+		// For 4 icons
+		//const float windowWidth = 166.0f;
+
+		// For 3 icons
+		// Formula is 24 * x - 10.0f (for item spacing)
+		// Where x is number of icons
+		const float windowWidth = neededSpace - 10.0f;
+
+		float runtimeCenterX = minBound.x + m_ViewportSize.x * 0.5f - windowWidth * 0.5f;
+
+		// Runtime Controls
+		ImGui::SetNextWindowPos( ImVec2( runtimeCenterX, minBound.y + 5.0f ) );
+		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
+
+		ImGui::Begin( "##viewport_center_rt", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking );
+
+		ImGui::BeginVertical( "##centerRTv", { windowWidth, ImGui::GetContentRegionAvail().y } );
+		ImGui::BeginHorizontal( "##centerRTh", { windowWidth, ImGui::GetContentRegionAvail().y } );
+
+		ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f } );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 5.0f * 2.0f, 0 ) );
+
+		Ref<Texture2D> texture = m_RequestRuntime ? m_EndRuntimeTexture : m_StartRuntimeTexture;
+
+		if( Auxiliary::ImageButton( texture, ImVec2( 24.0f, 24.0f ) ) ) 
+			m_RequestRuntime ^= 1;
+
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
+
+		ImGui::Spring();
+		ImGui::EndHorizontal();
+		ImGui::Spring();
+		ImGui::EndVertical();
+
+		ImGui::End();
+	}
 }
