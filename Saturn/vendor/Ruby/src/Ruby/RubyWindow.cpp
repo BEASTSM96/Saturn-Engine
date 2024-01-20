@@ -155,12 +155,27 @@ void RubyWindow::SetPosition( int x, int y )
 
 void RubyWindow::SetMousePos( double x, double y )
 {
-	m_pDefaultBackend->SetMousePos( x, y );
+	if( m_CursorMode == RubyCursorMode::Normal || m_CursorMode == RubyCursorMode::Hidden )
+	{
+		m_pDefaultBackend->SetMousePos( x, y );
+	}
+	else
+	{
+		m_LockedMousePosition = { ( int ) x, ( int ) y };
+	}
 }
 
 void RubyWindow::GetMousePos( double* x, double* y )
 {
-	m_pDefaultBackend->GetMousePos( x, y );
+	if( m_CursorMode == RubyCursorMode::Normal || m_CursorMode == RubyCursorMode::Hidden )
+	{
+		m_pDefaultBackend->GetMousePos( x, y );
+	}
+	else
+	{
+		*x = m_LockedMousePosition.x;
+		*y = m_LockedMousePosition.y;
+	}
 }
 
 void RubyWindow::SetMouseCursor( RubyCursorType Cursor )

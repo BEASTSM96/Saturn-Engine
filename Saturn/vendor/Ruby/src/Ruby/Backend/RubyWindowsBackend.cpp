@@ -563,7 +563,7 @@ void RubyWindowsBackend::DisableCursor()
 	UpdateCursorIcon();
 
 	// Keep the mouse in the center of the window so we don't move out of the window.
-	SetMousePos( m_pWindow->GetWidth() / 2.0, m_pWindow->GetHeight() / 2.0 );
+	RecenterMousePos();
 
 	ConfigureClipRect();
 }
@@ -831,6 +831,20 @@ void RubyWindowsBackend::PollEvents()
 	{
 		::TranslateMessage( &Message );
 		::DispatchMessage( &Message );
+	}
+
+	// Lock the mouse back to the center if it has moved.
+	if( m_pWindow->GetCursorMode() == RubyCursorMode::Locked ) 
+	{
+		RubyIVec2 lastPos = m_pWindow->GetLastMousePos();
+		 
+		uint32_t w = m_pWindow->GetWidth() / 2;
+		uint32_t h = m_pWindow->GetHeight() / 2;
+
+		if( lastPos.x != w || lastPos.y != h )
+		{
+			RecenterMousePos();
+		}
 	}
 }
 
