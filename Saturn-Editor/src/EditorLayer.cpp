@@ -723,9 +723,17 @@ namespace Saturn {
 		{
 			auto& rBinding = *( rIt );
 
-			ImGui::SetNextItemWidth( 130.0f );
+			char buffer[ 256 ];
+			memset( buffer, 0, 256 );
+			memcpy( buffer, rBinding.Name.data(), rBinding.Name.length() );
+
 			std::string id = "##" + std::to_string( rBinding.ID );
-			ImGui::InputText( id.data(), (char*)rBinding.Name.c_str(), 1024 );
+
+			ImGui::SetNextItemWidth( 130.0f );
+			if( ImGui::InputText( id.data(), buffer, 256 ) ) 
+			{
+				rBinding.Name = std::string( buffer );
+			}
 
 			ImGui::SameLine(); // HACK, There seems to bug with the ImGui Layout as the InputText works fine when it's not in a Horizontal layout. (Update) Seems to be with certain IDs/labels
 

@@ -91,7 +91,7 @@ namespace Saturn {
 		Ref<Pass> m_TempRenderPass = nullptr;
 
 		std::vector<Renderer2DDrawCommand> m_DrawList;
-		std::vector<glm::vec4> m_QuadPositions;
+		std::vector<glm::vec4> m_QuadVertexPositions;
 
 		std::vector< Ref<VertexBuffer> > m_QuadVertexBuffers;
 		std::vector< Renderer2DDrawCommand* > m_CurrentQuadBase;

@@ -34,6 +34,8 @@
 #include <Saturn/Scene/Scene.h>
 #include <Saturn/Core/Layer.h>
 
+#include <thread>
+
 namespace Saturn {
 	
 	class Toolbar;
@@ -120,6 +122,9 @@ namespace Saturn {
 		ImVec2 m_ViewportSize;
 
 		bool m_ShowImGuiDemoWindow = false;
+
+		float m_OperationPercent = 0.0f;
+		bool m_ShowOperation = false;
 
 		Ref< Scene > m_EditorScene = nullptr;
 		Ref< Scene > m_RuntimeScene = nullptr;
