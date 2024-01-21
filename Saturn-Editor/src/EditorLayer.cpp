@@ -687,8 +687,10 @@ namespace Saturn {
 					{
 						if( ImGui::Selectable( rAsset->GetName().c_str() ) )
 						{
-							ActiveProject->GetConfig().StartupScenePath = std::filesystem::relative( rAsset->GetPath(), ActiveProject->GetRootDir() ).string();
+							ActiveProject->GetConfig().StartupScenePath = rAsset->GetPath().string();
 							
+							s_AssetFinderID = assetID;
+
 							PopupModified = true;
 						}
 					}
