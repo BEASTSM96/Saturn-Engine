@@ -112,6 +112,7 @@ void main()
 	GeometryPassColor = ACES( GeometryPassColor );
 	GeometryPassColor = GammaCorrect( GeometryPassColor, gamma );
 
+	// Fog
 	/*
 	float d = texture( u_DepthTexture, vs_Input.TexCoord ).r;
 	
@@ -123,9 +124,11 @@ void main()
 	vec3 fogColor = vec3(0.0f);
 
 	GeometryPassColor = mix( GeometryPassColor, fogColor, fogAmount );
+	GeometryPassColor *= 0.80;
 	*/
-	//GeometryPassColor *= 0.80;
 
+	// Vignette
+	/*
 	vec2 coord = vs_Input.TexCoord * 2.0 - 1.0;
 	float dist = length( coord );
     dist = sqrt( dist );
@@ -133,7 +136,8 @@ void main()
     vi += 0.7;
     dist = clamp( vi, 0.0, 1.0 );
 
-//	GeometryPassColor *= dist;
+	GeometryPassColor *= dist;
+	*/
 
 	FinalColor = vec4( GeometryPassColor, 1.0 );
 }
