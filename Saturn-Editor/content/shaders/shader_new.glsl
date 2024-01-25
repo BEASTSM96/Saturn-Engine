@@ -394,7 +394,7 @@ vec3 CalculatePointLights(in vec3 F0, vec3 worldPos)
 		vec3 Lh = normalize(Li + m_Params.View);
 
 		float attenuation = clamp(1.0 - lightDistance * lightDistance / (light.Radius * light.Radius * 10), 0.0, 1.0);
-		//attenuation *= mix(attenuation, 1.0, light.Falloff);
+		attenuation *= mix(attenuation, 1.0, light.Falloff);
 
 		vec3 Lradiance = light.Radiance * light.Multiplier * attenuation;
 

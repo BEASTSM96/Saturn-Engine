@@ -84,6 +84,13 @@ namespace Saturn {
 		Upsample
 	};
 
+	enum class AOTechnique 
+	{
+		SSAO,
+		HBAO,
+		None
+	};
+
 	struct RendererCamera
 	{
 		Camera Camera;
@@ -407,6 +414,9 @@ namespace Saturn {
 		void SetDynamicSky( float Turbidity, float Azimuth, float Inclination );
 		
 		void SetSwapchainTarget( bool target ) { m_RendererData.IsSwapchainTarget = target; }
+		void ChangeAOTechnique( AOTechnique newTechique );
+
+		AOTechnique GetAOTechnique() { return m_AOTechnique; }
 
 		uint32_t Width() { return m_RendererData.Width; }
 		uint32_t Height() { return m_RendererData.Height; }
@@ -433,6 +443,8 @@ namespace Saturn {
 		void InitLateComposite();
 		void InitPhysicsOutline();
 		void InitTexturePass();
+		void InitSSAO();
+		void InitHBAO();
 
 		void InitBuffers();
 
@@ -447,7 +459,6 @@ namespace Saturn {
 
 		void RenderStaticMeshes();
 		//void RenderDynamicMeshes();
-
 
 		void AddScheduledFunction( ScheduledFunc&& rrFunc );
 
@@ -464,6 +475,7 @@ namespace Saturn {
 		std::vector< ScheduledFunc > m_ScheduledFunctions;
 
 		ScheduledFunc m_LightCullingFunction;
+		AOTechnique m_AOTechnique = AOTechnique::None;
 
 	private:
 		friend class Scene;

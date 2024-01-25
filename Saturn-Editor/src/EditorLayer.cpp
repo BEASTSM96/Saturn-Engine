@@ -712,10 +712,39 @@ namespace Saturn {
 
 			ImGui::EndPopup();
 		}
-		
+
 		auto boldFont = rIO.Fonts->Fonts[ 1 ];
 		ImGui::PushFont( boldFont );
 
+		// Scene Renderer Settings
+
+		ImGui::Text( "Ambient Occlusion Rendering Technique" );
+		ImGui::Separator();
+
+		ImGui::PopFont();
+
+		const char* AOTechniques[] = { "SSAO", "HBAO", "None" };
+		AOTechnique selectedTech = Application::Get().PrimarySceneRenderer().GetAOTechnique();
+
+		const char* preview = AOTechniques[ ( int ) selectedTech ];
+
+		ImGui::SetNextItemWidth( 130.0f );
+		if( ImGui::BeginCombo( "##aotechniques", preview, ImGuiComboFlags_HeightSmall ) )
+		{
+			for( int i = 0; i < IM_ARRAYSIZE( AOTechniques ); i++ )
+			{
+				AOTechnique technique = ( AOTechnique ) i;
+				bool selected = ( selectedTech == technique );
+
+				ImGui::SetNextItemWidth( 130.0f );
+				if( ImGui::Selectable( AOTechniques[ i ], selected ) )
+					Application::Get().PrimarySceneRenderer().ChangeAOTechnique( technique );
+			}
+
+			ImGui::EndCombo();
+		}
+
+		ImGui::PushFont( boldFont );
 		ImGui::Text( "Action Bindings" );
 		ImGui::Separator();
 

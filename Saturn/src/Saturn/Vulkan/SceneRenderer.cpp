@@ -101,6 +101,21 @@ namespace Saturn {
 
 		InitTexturePass();
 
+		switch( m_AOTechnique )
+		{
+			case AOTechnique::SSAO:
+				InitSSAO();
+				break;
+
+			case AOTechnique::HBAO:
+				InitHBAO();
+				break;
+		
+			case AOTechnique::None:
+			default:
+				break;
+		}
+
 		m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
 
 		m_RendererData.BRDFLUT_Texture = Ref<Texture2D>::Create( "content/textures/BRDF_LUT.tga", AddressingMode::Repeat, false );
@@ -562,6 +577,16 @@ namespace Saturn {
 		};
 
 		m_RendererData.TexturePassPipeline = Ref<Pipeline>::Create( PipelineSpec );
+	}
+
+	void SceneRenderer::InitSSAO()
+	{
+
+	}
+
+	void SceneRenderer::InitHBAO()
+	{
+
 	}
 
 	void SceneRenderer::RenderGrid()
@@ -1891,6 +1916,11 @@ namespace Saturn {
 				m_RendererData.SceneEnvironment->RadianceMap = map;
 
 			} );
+	}
+
+	void SceneRenderer::ChangeAOTechnique( AOTechnique newTechique )
+	{
+		// TODO: ChangeAOTechnique
 	}
 
 	void SceneRenderer::InitBuffers()
