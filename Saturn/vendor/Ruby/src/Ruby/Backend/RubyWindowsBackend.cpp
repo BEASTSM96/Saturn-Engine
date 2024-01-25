@@ -172,7 +172,12 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			pThis->GetParent()->DispatchEvent<RubyEvent>( RubyEventType::DisplayChanged );
 		} break;
 
-		case WM_KILLFOCUS:
+		case WM_KILLFOCUS: 
+		{
+			pThis->GetParent()->ClearKeysAndMouse();
+			[[fallthrough]];
+		}
+
 		case WM_SETFOCUS: 
 		{
 			pThis->GetParent()->DispatchEvent<RubyFocusEvent>( RubyEventType::WindowFocus, Msg == WM_SETFOCUS );
@@ -344,7 +349,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 				}
 				else
 				{
-					if( MousePos.y < WindowRect.top + pThis->GetParent()->GetTitlebarHeight() && !::IsZoomed( Handle ) )
+					if( MousePos.y < WindowRect.top + pThis->GetParent()->GetTitlebarHeight() && !::IsZoomed( Handle ) && !pThis->GetParent()->GetTitlebarCond() )
 						return HTCAPTION;
 				}
 
@@ -879,4 +884,122 @@ bool RubyWindowsBackend::MouseInRect()
 	::GetCursorPos( &MousePos );
 
 	return ::PtInRect( &WindowRect, MousePos );
+}
+
+void RubyWindowsBackend::SetClipboardText( const std::string& rTextData )
+{
+	// Try open the clipboard.
+	if( ::OpenClipboard( m_Handle ) )
+	{
+		::EmptyClipboard();
+
+		size_t DataSize = ( rTextData.size() + 1 ) * sizeof( char );
+		HGLOBAL ClipboardData = ::GlobalAlloc( GMEM_MOVEABLE, DataSize );
+
+		if( ClipboardData )
+		{
+			// Lock and copy data.
+			void* pData = ::GlobalLock( ClipboardData );
+
+			if( pData )
+			{
+				// Copy data.
+				strcpy_s( ( char* ) pData, DataSize, rTextData.c_str() );
+
+				::GlobalUnlock( ClipboardData );
+
+				// Set the data on the clipboard.
+				::SetClipboardData( CF_TEXT, ClipboardData );
+			}
+		}
+
+		::CloseClipboard();
+	}
+}
+
+void RubyWindowsBackend::SetClipboardText( const std::wstring& rTextData )
+{
+	// Try open the clipboard.
+	if( ::OpenClipboard( m_Handle ) )
+	{
+		::EmptyClipboard();
+
+		size_t DataSize = ( rTextData.size() + 1 ) * sizeof( wchar_t );
+		HGLOBAL ClipboardData = ::GlobalAlloc( GMEM_MOVEABLE, DataSize );
+
+		if( ClipboardData )
+		{
+			// Lock and copy data.
+			void* pData = ::GlobalLock( ClipboardData );
+
+			if( pData )
+			{
+				// Copy data.
+				wcscpy_s( ( wchar_t* ) pData, DataSize, rTextData.c_str() );
+
+				::GlobalUnlock( ClipboardData );
+
+				// Set the data on the clipboard.
+				::SetClipboardData( CF_UNICODETEXT, ClipboardData );
+			}
+		}
+
+		::CloseClipboard();
+	}
+}
+
+const char* RubyWindowsBackend::GetClipboardText()
+{
+	const char* result;
+
+	// Try open the clipboard.
+	if( ::OpenClipboard( m_Handle ) )
+	{
+		HANDLE ClipboardData = ::GetClipboardData( CF_TEXT );
+
+		if( ClipboardData )
+		{
+			// Lock and copy data.
+			char* pData = static_cast<char*>( ::GlobalLock( ClipboardData ) );
+
+			if( pData )
+			{
+				result = pData;
+				
+				::GlobalUnlock( ClipboardData );
+			}
+		}
+
+		::CloseClipboard();
+	}
+
+	return result;
+}
+
+const wchar_t* RubyWindowsBackend::GetClipboardTextW()
+{
+	const wchar_t* result = L"";
+
+	// Try open the clipboard.
+	if( ::OpenClipboard( m_Handle ) )
+	{
+		HANDLE ClipboardData = ::GetClipboardData( CF_UNICODETEXT );
+
+		if( ClipboardData )
+		{
+			// Lock and copy data.
+			wchar_t* pData = static_cast< wchar_t* >( ::GlobalLock( ClipboardData ) );
+
+			if( pData )
+			{
+				result = pData;
+
+				::GlobalUnlock( ClipboardData );
+			}
+		}
+
+		::CloseClipboard();
+	}
+
+	return result;
 }

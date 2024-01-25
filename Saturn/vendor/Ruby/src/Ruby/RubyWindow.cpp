@@ -194,6 +194,16 @@ void RubyWindow::SetMouseCursorMode( RubyCursorMode mode )
 	m_pDefaultBackend->SetMouseCursorMode( mode );
 }
 
+const char* RubyWindow::GetClipboardText()
+{
+	return m_pDefaultBackend->GetClipboardText();
+}
+
+const wchar_t* RubyWindow::GetClipboardTextW()
+{
+	return m_pDefaultBackend->GetClipboardTextW();
+}
+
 bool RubyWindow::IsFocused()
 {
 	return m_pDefaultBackend->Focused();
@@ -212,6 +222,16 @@ bool RubyWindow::Maximized()
 void RubyWindow::ChangeTitle( std::string_view Title )
 {
 	m_pDefaultBackend->SetTitle( Title );
+}
+
+void RubyWindow::SetClipboardText( const std::string& rTextData )
+{
+	m_pDefaultBackend->SetClipboardText( rTextData );
+}
+
+void RubyWindow::SetClipboardText( const std::wstring& rTextData )
+{
+	m_pDefaultBackend->SetClipboardText( rTextData );
 }
 
 void RubyWindow::Focus()
@@ -236,8 +256,12 @@ bool RubyWindow::MouseInWindow()
 
 void RubyWindow::SetTiltebarHeight( uint32_t height )
 {
-	if( m_TitlebarHeight != height )
-		m_Height = height;
+	m_TitlebarHeight = height;
+}
+
+void RubyWindow::SetTitlebarCondition( bool condition )
+{
+	m_TitlebarCondition = condition;
 }
 
 void* RubyWindow::GetNativeHandle()

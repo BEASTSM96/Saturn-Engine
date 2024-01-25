@@ -75,6 +75,12 @@ public:
 	void SetMouseCursor( RubyCursorType Cursor ) override;
 	void SetMouseCursorMode( RubyCursorMode mode ) override;
 
+	void SetClipboardText( const std::string& rTextData ) override;
+	void SetClipboardText( const std::wstring& rTextData ) override;
+	
+	const const char* GetClipboardText() override;
+	const const wchar_t* GetClipboardTextW() override;
+
 	void PollEvents() override;
 	bool PendingClose() override;
 

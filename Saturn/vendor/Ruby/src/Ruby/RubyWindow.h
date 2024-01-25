@@ -56,6 +56,8 @@ public:
 	void SetMouseCursor( RubyCursorType Cursor );
 	void SetMouseCursorMode( RubyCursorMode mode );
 	void ChangeTitle( std::string_view Title );
+	void SetClipboardText( const std::string& rTextData );
+	void SetClipboardText( const std::wstring& rTextData );
 	void Focus();
 
 	RubyIVec2 GetPosition() { return m_pDefaultBackend->GetWindowPos(); }
@@ -70,6 +72,9 @@ public:
 	RubyGraphicsAPI GetGraphicsAPI() { return m_GraphicsAPI; }
 	RubyStyle GetStyle() { return m_Style; }
 
+	const char* GetClipboardText();
+	const wchar_t* GetClipboardTextW();
+
 	bool IsFocused();
 	bool Minimized();
 	bool Maximized();
@@ -82,7 +87,10 @@ public:
 
 	// Set title bar hit-test height
 	void SetTiltebarHeight( uint32_t height );
+	void SetTitlebarCondition( bool condition );
+
 	uint32_t GetTitlebarHeight() { return m_TitlebarHeight; }
+	bool GetTitlebarCond() { return m_TitlebarCondition; }
 
 	const std::unordered_set<RubyKey>& GetCurrentKeys() const { return m_Keys; }
 	std::unordered_set<RubyKey>& GetCurrentKeys() { return m_Keys; }
@@ -157,12 +165,19 @@ public:
 		m_LastMousePosition = Position;
 	}
 
+	void ClearKeysAndMouse() 
+	{
+		m_Keys.clear();
+		m_CurrentMouseButton = RubyMouseButton::Unknown;
+	}
+
 protected:
 	uint32_t m_Width = 0;
 	uint32_t m_Height = 0;
 
 	// Only used for borderless windows.
 	uint32_t m_TitlebarHeight = 0;
+	bool m_TitlebarCondition = false;
 
 	std::unordered_set<RubyKey> m_Keys;
 

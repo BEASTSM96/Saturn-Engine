@@ -67,6 +67,12 @@ public:
 	virtual void SetMousePos( double x, double y ) = 0;
 	virtual void GetMousePos( double* x, double* y ) = 0;
 
+	virtual void SetClipboardText( const std::string& rTextData ) = 0;
+	virtual void SetClipboardText( const std::wstring& rTextData ) = 0;
+	
+	virtual const char* GetClipboardText() = 0;
+	virtual const wchar_t* GetClipboardTextW() = 0;
+
 	virtual void* GetNativeHandle() = 0;
 
 	virtual VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) = 0;

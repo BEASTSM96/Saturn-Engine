@@ -58,9 +58,20 @@ namespace Saturn {
 		ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 5, 5 ) );
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 5, 5 ) );
 
+		RubyWindow* pWindow = Application::Get().GetWindow();
+
 		if( ImGui::BeginMainMenuBar() )
 		{
-			m_Height = ImGui::GetWindowHeight();
+			float height = ImGui::GetWindowHeight();
+
+			if( m_Height != height )
+			{
+				m_Height = height;
+
+				pWindow->SetTiltebarHeight( height );
+			}
+
+			pWindow->SetTitlebarCondition( ImGui::IsAnyItemHovered() );
 
 			for( auto&& rrFunc : m_MenuBarFunctions )
 			{
