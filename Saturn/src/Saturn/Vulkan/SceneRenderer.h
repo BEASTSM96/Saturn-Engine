@@ -86,7 +86,9 @@ namespace Saturn {
 
 	enum class AOTechnique 
 	{
+		// Screen Space AO
 		SSAO,
+		// Horizon Based AO+
 		HBAO,
 		None
 	};

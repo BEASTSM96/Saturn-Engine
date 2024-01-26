@@ -33,11 +33,13 @@
 
 #include "Saturn/Serialisation/AssetSerialisers.h"
 #include "Saturn/Asset/AssetImporter.h"
+
 #include "Saturn/ImGui/AssetViewer.h"
 #include "Saturn/ImGui/PrefabViewer.h"
 #include "Saturn/ImGui/StaticMeshAssetViewer.h"
 #include "Saturn/ImGui/MaterialAssetViewer.h"
 #include "Saturn/ImGui/PhysicsMaterialAssetViewer.h"
+#include "Saturn/ImGui/TextureViewer.h"
 
 #include <imgui_internal.h>
 
@@ -255,7 +257,11 @@ namespace Saturn {
 				switch( m_AssetType )
 				{
 					case AssetType::Texture:
-						break;
+					{
+						// Find the asset.
+						Ref<Asset> asset = AssetManager::Get().FindAsset( path );
+						AssetViewer::Add<TextureViewer>( asset->ID );
+					} break;
 
 					case AssetType::StaticMesh:
 					{
