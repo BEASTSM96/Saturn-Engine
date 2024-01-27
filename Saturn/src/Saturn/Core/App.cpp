@@ -81,9 +81,11 @@ namespace Saturn {
 
 		m_VulkanContext->Init();
 
-		// If we are in Dist we don't want to create the scene renderer just right now because we want to load the project and then load the shader bundle so then we can't right now create the scene renderer.
+		// If we are in Dist we don't want to create the Scene Renderer now because it does not know where the shaders are. So we want to first the shader bundle however that requires the project to be loaded.
 #if !defined( SAT_DIST )
-		m_SceneRenderer = new SceneRenderer();
+		SceneRendererFlags flags = SceneRendererFlag_MasterInstance | SceneRendererFlag_RenderGrid;
+
+		m_SceneRenderer = new SceneRenderer( flags );
 #endif
 
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )

@@ -78,15 +78,18 @@ public:
 
 		m_RootContentPath = std::filesystem::current_path() / "content";
 
-		// Load the project really early because we still need to load the shader bundle and create the scene renderer.
+		// Load the project really early on because we still need to load the shader bundle and create the scene renderer.
 		Saturn::ProjectSerialiser ps;
 		ps.Deserialise( rSettings.FullStartupProjPath.string() );
 
 		SAT_CORE_ASSERT( Saturn::Project::GetActiveProject(), "No project was given." );
 
+		// Load the shader bundle.
 		Saturn::ShaderBundle::Get().ReadBundle();
 
-		m_SceneRenderer = new Saturn::SceneRenderer();
+		Saturn::SceneRendererFlags flags = Saturn::SceneRendererFlag_MasterInstance | Saturn::SceneRendererFlag_SwapchainTarget;
+
+		m_SceneRenderer = new Saturn::SceneRenderer( flags );
 	}
 
 	virtual void OnInit() override

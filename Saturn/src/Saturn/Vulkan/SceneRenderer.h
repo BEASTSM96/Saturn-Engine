@@ -381,11 +381,22 @@ namespace Saturn {
 		Ref< Shader > PhysicsOutlineShader = nullptr;
 	};
 
+	enum SceneRendererFlags_
+	{
+		SceneRendererFlag_MasterInstance = BIT( 0 ), 
+		SceneRendererFlag_SwapchainTarget = BIT( 1 ),
+		SceneRendererFlag_RenderGrid = BIT( 2 )
+	};
+
+	// enum SceneRendererFlags_
+	typedef int SceneRendererFlags;
+
 	class SceneRenderer : public RefTarget
 	{
 		using ScheduledFunc = std::function<void()>;
 	public:
-		SceneRenderer() { Init(); }
+		SceneRenderer() = default;
+		SceneRenderer( SceneRendererFlags flags );
 		~SceneRenderer() { Terminate(); }
 
 		void ImGuiRender();
@@ -415,6 +426,8 @@ namespace Saturn {
 
 		void SetDynamicSky( float Turbidity, float Azimuth, float Inclination );
 		
+		bool HasFlag( SceneRendererFlags flag );
+
 		void SetSwapchainTarget( bool target ) { m_RendererData.IsSwapchainTarget = target; }
 		void ChangeAOTechnique( AOTechnique newTechique );
 
@@ -466,6 +479,7 @@ namespace Saturn {
 
 		Ref<TextureCube> CreateDymanicSky();
 	private:
+		SceneRendererFlags m_Flags;
 
 		RendererData m_RendererData{};
 		Scene* m_pScene = nullptr;

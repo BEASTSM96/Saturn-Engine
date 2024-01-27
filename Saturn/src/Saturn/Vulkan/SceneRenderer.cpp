@@ -58,6 +58,14 @@ namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
 
+	SceneRenderer::SceneRenderer( SceneRendererFlags flags )
+		: m_Flags( flags )
+	{
+		Init();
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+
 	void SceneRenderer::Init()
 	{
 		if( m_RendererData.Width == 0 && m_RendererData.Height == 0 )
@@ -76,9 +84,7 @@ namespace Saturn {
 		m_RendererData.StorageBufferSet = Ref<StorageBufferSet>::Create( 0, 0 );
 		m_RendererData.StorageBufferSet->Create( 0, 14 ); // Create Light culling buffer.
 
-		// TODO: What about second viewports?
-		// However this should only be ever true when we are the game
-		m_RendererData.IsSwapchainTarget = Application::Get().HasFlag( ApplicationFlag_GameDist );
+		m_RendererData.IsSwapchainTarget = HasFlag( SceneRendererFlag_SwapchainTarget );
 
 		InitPreDepth();
 
@@ -137,7 +143,11 @@ namespace Saturn {
 
 		//////////////////////////////////////////////////////////////////////////
 
-		Renderer2D::Get().SetInitialRenderPass( m_RendererData.LateCompositePass, m_RendererData.LateCompositeFramebuffer );
+		// TODO: We don't support multiple Renderer2Ds atm, so we only want the master scene renderer to set the Renderer2D passes.
+		if( HasFlag( SceneRendererFlag_MasterInstance ) )
+		{
+			Renderer2D::Get().SetInitialRenderPass( m_RendererData.LateCompositePass, m_RendererData.LateCompositeFramebuffer );
+		}
 	}
 
 	Ref<Image2D> SceneRenderer::CompositeImage()
@@ -593,7 +603,7 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		if( Application::Get().HasFlag( ApplicationFlag_GameDist ) )
+		if( !HasFlag( SceneRendererFlag_RenderGrid ) )
 			return;
 
 		// Set UB Data.
@@ -1916,6 +1926,11 @@ namespace Saturn {
 				m_RendererData.SceneEnvironment->RadianceMap = map;
 
 			} );
+	}
+
+	bool SceneRenderer::HasFlag( SceneRendererFlags flag )
+	{
+		return ( m_Flags & flag ) != 0;
 	}
 
 	void SceneRenderer::ChangeAOTechnique( AOTechnique newTechique )
