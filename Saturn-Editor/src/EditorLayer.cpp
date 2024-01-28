@@ -56,6 +56,8 @@
 
 #include <ImGuizmo/ImGuizmo.h>
 
+#include <imspinner/imspinner.h>
+
 #include <Saturn/Core/Math.h>
 #include <Saturn/Core/StringAuxiliary.h>
 #include <Saturn/Core/EngineSettings.h>
@@ -255,6 +257,7 @@ namespace Saturn {
 
 		m_EditorScene = nullptr;
 
+		// I would free the game DLL, however, there is some threading issues with Tracy.
 		//delete m_GameModule;
 	}
 
@@ -413,6 +416,22 @@ namespace Saturn {
 		
 		ImGui::End();
 	
+		/*
+		ImGui::Begin( "Test" );
+
+		ImGui::BeginHorizontal( "##ItemsH" );
+
+		ImSpinner::SpinnerAng( "##OPERATION_SPINNER", 25.0f, 2.0f, ImSpinner::white, ImSpinner::half_white, 8.6F );
+
+		ImGui::Spring();
+
+		ImGui::Text( "Please wait for this operation to complete..." );
+
+		ImGui::EndHorizontal();
+
+		ImGui::End();
+		*/
+
 		ImGui::Begin( "Materials" );
 
 		DrawMaterials();

@@ -24,6 +24,7 @@ IncludeDir["vma"] = "Saturn/vendor/vma/src/"
 IncludeDir["ImGuizmo"] = "Saturn/vendor/ImGuizmo/src/"
 IncludeDir["yaml_cpp"] = "Saturn/vendor/yaml-cpp/include/"
 IncludeDir["ImguiNodeEditor"] = "Saturn/vendor/imgui_node_editor"
+IncludeDir["ImSpinner"] = "Saturn/vendor/imspinner/src"
 IncludeDir["Tracy"] = "Saturn/vendor/tracy/src"
 IncludeDir["Filewatch"] = "Saturn/vendor/Filewatch/src"
 IncludeDir["MiniAudio"] = "Saturn/vendor/miniaudio/src"
@@ -97,6 +98,7 @@ project "Saturn"
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.ImguiNodeEditor}",
+		"%{IncludeDir.ImSpinner}",
 		"%{IncludeDir.Tracy}",
 		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.Filewatch}",
@@ -274,6 +276,7 @@ project "Saturn-Editor"
 		"%{IncludeDir.Optick}",
 		"Saturn/vendor/vulkan/include",
 		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.ImSpinner}",
 		"%{IncludeDir.Filewatch}",
 		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.Tracy}",
@@ -408,6 +411,7 @@ project "ProjectBrowser"
 		"%{IncludeDir.shaderc}",
 		"%{IncludeDir.SPIRV_Cross}",
 		"%{IncludeDir.vma}",
+		"%{IncludeDir.ImSpinner}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
