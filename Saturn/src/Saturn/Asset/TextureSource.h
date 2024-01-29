@@ -28,75 +28,79 @@
 
 #pragma once
 
-#include "Saturn/Asset/Asset.h"
-
-namespace YAML {
-	class Node;
-}
+#include "Asset.h"
+#include "Saturn/Serialisation/RawSerialisation.h"
 
 namespace Saturn {
 
-	class NodeEditor;
-
-	class AssetSerialiser
+	class TextureSourceAsset : public Asset
 	{
 	public:
-		virtual void Serialise   ( const Ref<Asset>& rAsset ) const = 0;
-		virtual void Deserialise ( const Ref<Asset>& rAsset ) const = 0;
-		virtual bool TryLoadData (       Ref<Asset>& rAsset ) const = 0;
-	};
+		TextureSourceAsset();
+		TextureSourceAsset( std::filesystem::path AbsolutePath, bool Flip = false );
 
-	class MaterialAssetSerialiser : public AssetSerialiser
-	{
+		~TextureSourceAsset();
+
 	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset, const Ref<NodeEditor>& pNodeEditor ) const;
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
+		//////////////////////////////////////////////////////////////////////////
+		// Raw binary serialisation.
 
-		void TryLoadData        (       Ref<Asset>& rAsset, bool LoadNodeEditorData, Ref<NodeEditor>& pNodeEditor ) const;
+		void SerialiseData( std::ofstream& rStream )
+		{
+			// Serialise Asset
+			Asset::SerialiseData( rStream );
+
+			RawSerialisation::WriteString( m_AbsolutePath.string(), rStream );
+
+			RawSerialisation::WriteObject( m_Width, rStream );
+			RawSerialisation::WriteObject( m_Height, rStream );
+			RawSerialisation::WriteObject( m_Channels, rStream );
+			RawSerialisation::WriteObject( m_Flipped, rStream );
+			RawSerialisation::WriteObject( m_HDR, rStream );
+
+			// Buffer
+			RawSerialisation::WriteObject( m_TextureBuffer.Size, rStream );
+			RawSerialisation::WriteObject( m_TextureBuffer.Data, rStream );
+		}
+
+		void DeserialiseData( std::ifstream& rStream )
+		{
+			// Deserialise Asset
+			Asset::DeserialiseData( rStream );
+
+			m_AbsolutePath = RawSerialisation::ReadString( rStream );
+
+			RawSerialisation::ReadObject( m_Width, rStream );
+			RawSerialisation::ReadObject( m_Height, rStream );
+			RawSerialisation::ReadObject( m_Channels, rStream );
+			RawSerialisation::ReadObject( m_Flipped, rStream );
+			RawSerialisation::ReadObject( m_HDR, rStream );
+
+			// Buffer
+			size_t tempSize = 0;
+			uint8_t* tempData = nullptr;
+
+			RawSerialisation::ReadObject( tempSize, rStream );
+			RawSerialisation::ReadObject( tempData, rStream );
+
+			m_TextureBuffer = Buffer::Copy( tempData, tempSize );
+
+			delete[] tempData;
+		}
 
 	private:
-		void LoadMaterialData( YAML::Node& rNode, Ref<Asset>& rAsset ) const;
-	};
+		void LoadRawTexture();
 
-	class PrefabSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise   ( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise ( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData (		 Ref<Asset>& rAsset ) const override;
-	};
+	private:
+		std::filesystem::path m_AbsolutePath;
 
-	class StaticMeshAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-	};
+		uint32_t m_Width = 0;
+		uint32_t m_Height = 0;
+		uint32_t m_Channels = 0;
 
-	class Sound2DAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-	};
+		bool m_Flipped = false;
+		bool m_HDR = false;
 
-	class PhysicsMaterialAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-	};
-
-	class TextureSourceAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
+		Buffer m_TextureBuffer;
 	};
 }

@@ -250,6 +250,32 @@ namespace Saturn {
 			Name = CopyPath.replace_extension().filename().string();
 		}
 
+	public:
+		//////////////////////////////////////////////////////////////////////////
+		// This should not be confused with AssetSerialisers. This is for raw binary serialisation!
+
+		void SerialiseData( std::ofstream& rStream )
+		{
+			// TODO: Support writing for a filesystem path.
+			RawSerialisation::WriteString( Name, rStream );
+			RawSerialisation::WriteString( Path.string(), rStream );
+
+			RawSerialisation::WriteObject( ID, rStream );
+			RawSerialisation::WriteObject( Type, rStream );
+			RawSerialisation::WriteObject( Flags, rStream );
+		}
+
+		void DeserialiseData( std::ifstream& rStream )
+		{
+			// TODO: Support reading for a filesystem path.
+			Name = RawSerialisation::ReadString( rStream );
+			Path = RawSerialisation::ReadString( rStream );
+
+			RawSerialisation::ReadObject( ID, rStream );
+			RawSerialisation::ReadObject( Type, rStream );
+			RawSerialisation::ReadObject( Flags, rStream );
+		}
+
 	private:
 		friend class AssetRegistrySerialiser;
 		friend class AssetRegistry;

@@ -26,77 +26,59 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "TextureSource.h"
 
-#include "Saturn/Asset/Asset.h"
-
-namespace YAML {
-	class Node;
-}
+#include <stb_image.h>
 
 namespace Saturn {
 
-	class NodeEditor;
-
-	class AssetSerialiser
+	TextureSourceAsset::TextureSourceAsset()
 	{
-	public:
-		virtual void Serialise   ( const Ref<Asset>& rAsset ) const = 0;
-		virtual void Deserialise ( const Ref<Asset>& rAsset ) const = 0;
-		virtual bool TryLoadData (       Ref<Asset>& rAsset ) const = 0;
-	};
+	}
 
-	class MaterialAssetSerialiser : public AssetSerialiser
+	TextureSourceAsset::TextureSourceAsset( std::filesystem::path AbsolutePath, bool Flip )
+		: m_AbsolutePath( std::move( AbsolutePath ) ), m_Flipped( Flip )
 	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset, const Ref<NodeEditor>& pNodeEditor ) const;
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
+		LoadRawTexture();
+	}
 
-		void TryLoadData        (       Ref<Asset>& rAsset, bool LoadNodeEditorData, Ref<NodeEditor>& pNodeEditor ) const;
-
-	private:
-		void LoadMaterialData( YAML::Node& rNode, Ref<Asset>& rAsset ) const;
-	};
-
-	class PrefabSerialiser : public AssetSerialiser
+	TextureSourceAsset::~TextureSourceAsset()
 	{
-	public:
-		virtual void Serialise   ( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise ( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData (		 Ref<Asset>& rAsset ) const override;
-	};
+		m_TextureBuffer.Free();
+	}
 
-	class StaticMeshAssetSerialiser : public AssetSerialiser
+	void TextureSourceAsset::LoadRawTexture()
 	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-	};
+		SAT_CORE_ASSERT( std::filesystem::exists( m_AbsolutePath ), "Path does not exist!" );
 
-	class Sound2DAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-	};
+		int Width, Height, Channels;
 
-	class PhysicsMaterialAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-	};
+		stbi_uc* pTextureData;
 
-	class TextureSourceAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise( const Ref<Asset>& rAsset ) const override;
-		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
-	};
+		m_HDR = stbi_is_hdr( m_AbsolutePath.string().c_str() );
+
+		if( m_HDR )
+		{
+			SAT_CORE_INFO( "Loading HDR texture {0}", m_AbsolutePath.string() );
+			pTextureData = ( uint8_t* ) stbi_loadf( m_AbsolutePath.string().c_str(), &Width, &Height, &Channels, 4 );
+		}
+		else
+		{
+			SAT_CORE_INFO( "Loading texture {0}", m_AbsolutePath.string() );
+
+			pTextureData = stbi_load( m_AbsolutePath.string().c_str(), &Width, &Height, &Channels, 4 );
+		}
+
+		m_Width = Width;
+		m_Height = Height;
+		m_Channels = Channels;
+
+		uint32_t ImageSize = m_Width * m_Height * 4;
+
+		m_TextureBuffer = Buffer::Copy( pTextureData, static_cast<size_t>( ImageSize ) );
+
+		stbi_image_free( pTextureData );
+	}
+
 }
