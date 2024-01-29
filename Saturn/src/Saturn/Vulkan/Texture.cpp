@@ -433,6 +433,10 @@ namespace Saturn {
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// TEXTURE 2D															//
+	//////////////////////////////////////////////////////////////////////////
+
 	Texture2D::Texture2D( ImageFormat format, uint32_t width, uint32_t height, const void* pData, bool storage )
 		: Texture( width, height, VulkanFormat( format ), pData )
 	{
@@ -440,10 +444,6 @@ namespace Saturn {
 
 		SetData( pData );
 	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// TEXTURE 2D															//
-	//////////////////////////////////////////////////////////////////////////
 
 	void Texture2D::Terminate()
 	{
@@ -511,92 +511,11 @@ namespace Saturn {
 		m_Width = Width;
 		m_Height = Height;
 
-		VkDeviceSize ImageSize = m_Width * m_Height * 4;
+		m_ImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
-		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
-		auto MipCount = GetMipMapLevels();
-
-		// Staging Buffer.
-		VkBuffer StagingBuffer;
-
-		VkBufferCreateInfo BufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-		BufferCreateInfo.size = ImageSize;
-		BufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		auto rBufferAlloc = pAllocator->AllocateBuffer( BufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, &StagingBuffer );
-
-		void* pDstData = pAllocator->MapMemory< void* >( rBufferAlloc );
-
-		memcpy( pDstData, pTextureData, ImageSize );
-
-		pAllocator->UnmapMemory( rBufferAlloc );
+		SetData( m_pData );
 
 		stbi_image_free( pTextureData );
-
-		// Create the image.
-		CreateImage( Width, Height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Image, m_ImageMemory, MipCount, 1 );
-
-		TransitionImageLayout( VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
-
-		CopyBufferToImage( StagingBuffer );
-
-		if( MipCount > 1 )
-			TransitionImageLayout( VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL );
-		else
-			TransitionImageLayout( VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-
-		// Create image views
-		VkImageSubresourceRange range = {};
-		range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		range.baseMipLevel = 0;
-		range.baseArrayLayer = 0;
-		range.layerCount = 1;
-		range.levelCount = MipCount;
-
-		m_ImageView = CreateImageView( range, m_Image, VK_FORMAT_R8G8B8A8_UNORM );
-
-		// Create sampler
-		VkSamplerCreateInfo SamplerCreateInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
-		SamplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-		SamplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-
-		SamplerCreateInfo.addressModeU = SaturnToVulkanAdressingMode( m_AddressingMode );
-		SamplerCreateInfo.addressModeV = SaturnToVulkanAdressingMode( m_AddressingMode );
-		SamplerCreateInfo.addressModeW = SaturnToVulkanAdressingMode( m_AddressingMode );
-
-		SamplerCreateInfo.anisotropyEnable = VK_FALSE;
-
-		// We don't know the max anisotropy level, so we'll need to get it from the properties of the physical device.
-		// We do this as this is the best way to get the max anisotropy level as it can be different on other devices.
-		VkPhysicalDeviceProperties Properties = {};
-		vkGetPhysicalDeviceProperties( VulkanContext::Get().GetPhysicalDevice(), &Properties );
-
-		SamplerCreateInfo.maxAnisotropy = Properties.limits.maxSamplerAnisotropy;
-		// Why?
-		SamplerCreateInfo.maxAnisotropy = 1.0f;
-
-		SamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-		SamplerCreateInfo.compareEnable = VK_FALSE;
-		SamplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
-		SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		SamplerCreateInfo.mipLodBias = 0.0f;
-		SamplerCreateInfo.minLod = 0.0f;
-		SamplerCreateInfo.maxLod = ( float ) MipCount;
-
-		VK_CHECK( vkCreateSampler( VulkanContext::Get().GetDevice(), &SamplerCreateInfo, nullptr, &m_Sampler ) );
-
-		m_DescriptorSet = ( VkDescriptorSet ) ImGui_ImplVulkan_AddTexture( m_Sampler, m_ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-
-		m_DescriptorImageInfo = {};
-		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		m_DescriptorImageInfo.imageView = m_ImageView;
-		m_DescriptorImageInfo.sampler = m_Sampler;
-		
-		pAllocator->DestroyBuffer( StagingBuffer );
-
-		CreateMips();
 	}
 
 	void Texture2D::CreateMips()

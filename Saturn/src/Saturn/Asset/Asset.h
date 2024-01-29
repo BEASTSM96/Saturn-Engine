@@ -34,6 +34,8 @@
 #include "Saturn/Core/Ref.h"
 #include "Saturn/Core/Memory/Buffer.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 #include "Saturn/Project/Project.h"
 
 #include <filesystem>
