@@ -32,7 +32,7 @@
 #include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
-#include "Saturn/Asset/TextureSource.h"
+#include "Saturn/Asset/TextureSourceAsset.h"
 #include "Saturn/Audio/Sound2D.h"
 
 #include "YamlAux.h"

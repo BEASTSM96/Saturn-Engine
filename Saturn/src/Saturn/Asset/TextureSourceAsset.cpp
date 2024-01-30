@@ -27,7 +27,7 @@
 */
 
 #include "sppch.h"
-#include "TextureSource.h"
+#include "TextureSourceAsset.h"
 
 #include <stb_image.h>
 
