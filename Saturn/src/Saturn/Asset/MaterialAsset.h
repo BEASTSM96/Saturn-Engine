@@ -103,6 +103,20 @@ namespace Saturn {
 
 		void SetName( const std::string& rName ) { return m_Material->SetName( rName ); }
 
+	public:
+		//////////////////////////////////////////////////////////////////////////
+		// This should not be confused with AssetSerialisers. This is for raw binary serialisation!
+
+		virtual void SerialiseData( std::ofstream& rStream )
+		{
+			Asset::SerialiseData( rStream );
+		}
+
+		virtual void DeserialiseData( std::ifstream& rStream )
+		{
+			Asset::DeserialiseData( rStream );
+		}
+
 	private:
 
 		void Default();
@@ -161,6 +175,10 @@ namespace Saturn {
 
 		// This does not copy the material registry and is only to be used by the scene serialiser.
 		void SetMesh( const Ref<StaticMesh>& mesh ) { m_Mesh = mesh; }
+
+	public:
+		static void Serialise( const MaterialRegistry& rRegistry, std::ofstream& rStream );
+		static void Deserialise( MaterialRegistry& rRegistry, std::ifstream& rStream );
 
 	private:
 		//std::unordered_map< AssetID, Ref<MaterialAsset> > m_Materials;

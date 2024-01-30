@@ -137,10 +137,15 @@ namespace Saturn {
 		Ref<MaterialRegistry>& GetMaterialRegistry() { return m_MaterialRegistry; }
 		const Ref<MaterialRegistry>& GetMaterialRegistry() const { return m_MaterialRegistry; }
 
+	public:
+		static void Serialise( const StaticMesh& rObject, std::ofstream& rStream );
+		static void Deserialise( StaticMesh& rObject, std::ifstream& rStream );
+
 	private:
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
 		void CreateVertices();
 		void CreateMaterials();
+
 	private:
 		Ref<VertexBuffer> m_VertexBuffer;
 		Ref<IndexBuffer> m_IndexBuffer;

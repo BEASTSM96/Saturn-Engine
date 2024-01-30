@@ -31,6 +31,8 @@
 #include "Saturn/Core/Base.h"
 #include "Saturn/Core/Log.h"
 
+#include "Saturn/Asset/Asset.h"
+
 #include "SharedGlobals.h"
 
 #include "Saturn/GameFramework/Core/GameScript.h"
@@ -66,6 +68,22 @@ namespace Saturn {
 		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
 
 		float Intensity = 1.0f;
+
+		static void Serialise( const DirectionalLight& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteVec3( rObject.Direction, rStream );
+			RawSerialisation::WriteVec3( rObject.Radiance, rStream );
+
+			RawSerialisation::WriteObject( rObject.Intensity, rStream );
+		}
+
+		static void Deserialise( DirectionalLight& rObject, std::ifstream& rStream )
+		{
+			RawSerialisation::ReadVec3( rObject.Direction, rStream );
+			RawSerialisation::ReadVec3( rObject.Radiance, rStream );
+
+			RawSerialisation::ReadObject( rObject.Intensity, rStream );
+		}
 	};
 
 	struct PointLight
@@ -78,6 +96,30 @@ namespace Saturn {
 		alignas( 4 ) float Radius = 10.0f;
 		alignas( 4 ) float MinRadius = 0.001f;
 		alignas( 4 ) float Falloff = 1.f;
+
+		static void Serialise( const PointLight& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteVec3( rObject.Position, rStream );
+			RawSerialisation::WriteVec3( rObject.Radiance, rStream );
+
+			RawSerialisation::WriteObject( rObject.Multiplier, rStream );
+			RawSerialisation::WriteObject( rObject.LightSize, rStream );
+			RawSerialisation::WriteObject( rObject.Radius, rStream );
+			RawSerialisation::WriteObject( rObject.MinRadius, rStream );
+			RawSerialisation::WriteObject( rObject.Falloff, rStream );
+		}
+
+		static void Deserialise( PointLight& rObject, std::ifstream& rStream )
+		{
+			RawSerialisation::ReadVec3( rObject.Position, rStream );
+			RawSerialisation::ReadVec3( rObject.Radiance, rStream );
+
+			RawSerialisation::ReadObject( rObject.Multiplier, rStream );
+			RawSerialisation::ReadObject( rObject.LightSize, rStream );
+			RawSerialisation::ReadObject( rObject.Radius, rStream );
+			RawSerialisation::ReadObject( rObject.MinRadius, rStream );
+			RawSerialisation::ReadObject( rObject.Falloff, rStream );
+		}
 	};
 
 	struct Lights
@@ -86,9 +128,29 @@ namespace Saturn {
 		std::vector<PointLight> PointLights;
 
 		[[nodiscard]] uint32_t GetPointLightSize() { return static_cast<uint32_t>( sizeof( PointLight ) * PointLights.size() ); };
+
+		static void Serialise( const Lights& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteVector( rObject.PointLights, rStream );
+
+			RawSerialisation::WriteObject( rObject.DirectionalLights[ 0 ], rStream );
+			RawSerialisation::WriteObject( rObject.DirectionalLights[ 1 ], rStream );
+			RawSerialisation::WriteObject( rObject.DirectionalLights[ 2 ], rStream );
+			RawSerialisation::WriteObject( rObject.DirectionalLights[ 3 ], rStream );
+		}
+
+		static void Deserialise( Lights& rObject, std::ifstream& rStream )
+		{
+			RawSerialisation::ReadVector( rObject.PointLights, rStream );
+
+			RawSerialisation::ReadObject( rObject.DirectionalLights[ 0 ], rStream );
+			RawSerialisation::ReadObject( rObject.DirectionalLights[ 1 ], rStream );
+			RawSerialisation::ReadObject( rObject.DirectionalLights[ 2 ], rStream );
+			RawSerialisation::ReadObject( rObject.DirectionalLights[ 3 ], rStream );
+		}
 	};
 
-	class Scene : public RefTarget
+	class Scene : public Asset
 	{
 	public:
 		Scene();
@@ -143,16 +205,9 @@ namespace Saturn {
 		TransformComponent GetWorldSpaceTransform( Ref<Entity> entity );
 
 		[[nodiscard]] bool Raycast( const glm::vec3& Origin, const glm::vec3& Direction, float MaxDistance, RaycastHitResult* pOut );
+
 	public:
-
 		void CopyScene( Ref<Scene>& NewScene );
-
-		void SetName( std::string name ) { m_Name = std::move( name ); }
-
-		std::string& Name() { return m_Name; }
-		const std::string& Name() const { return m_Name; }
-
-		const std::string& Filepath() { return m_Filepath; }
 
 		bool m_RuntimeRunning = false;
 
@@ -183,6 +238,13 @@ namespace Saturn {
 
 		static void   SetActiveScene( Scene* pScene );
 		static Scene* GetActiveScene();
+
+	public:
+		//////////////////////////////////////////////////////////////////////////
+		// #WARNING This should not be confused with AssetSerialisers. This is for raw binary serialisation!
+
+		virtual void SerialiseData( std::ofstream& rStream );
+		virtual void DeserialiseData( std::ifstream& rStream );
 
 	protected:
 		void OnEntityCreated( Ref<Entity> entity );
@@ -243,11 +305,7 @@ namespace Saturn {
 		static void DoTravel();
 
 	private:
-
 		UUID m_SceneID;
-
-		std::string m_Name;
-		std::string m_Filepath;
 
 		std::unordered_map<entt::entity, Ref<Entity>> m_EntityIDMap;
 

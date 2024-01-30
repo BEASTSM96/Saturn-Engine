@@ -546,6 +546,16 @@ namespace Saturn {
 		AssetManager::Get().Save();
 	}
 
+	void StaticMesh::Serialise( const StaticMesh& rObject, std::ofstream& rStream )
+	{
+		// TODO:
+	}
+
+	void StaticMesh::Deserialise( StaticMesh& rObject, std::ifstream& rStream )
+	{
+		// TODO:
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 
 	MeshSource::MeshSource( const std::filesystem::path& rPath, const std::filesystem::path& rDstPath )

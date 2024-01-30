@@ -45,6 +45,7 @@
 #include <Saturn/Serialisation/EngineSettingsSerialiser.h>
 #include <Saturn/Serialisation/AssetRegistrySerialiser.h>
 #include <Saturn/Serialisation/AssetSerialisers.h>
+#include <Saturn/Serialisation/AssetBundle.h>
 
 #include <Saturn/Physics/PhysicsFoundation.h>
 
@@ -155,10 +156,14 @@ namespace Saturn {
 					// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
 					Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
 
-					ShaderBundle::Get().BundleShaders();
+					ShaderBundle::BundleShaders();
 
 					ShaderLibrary::Get().Remove( TexturePass ); 
 					TexturePass = nullptr;
+
+					// Bundle Assets
+					// TODO: This will most likely be an action that takes time so to account for that we need to make a window modal for this.
+					AssetBundle::BundleAssets();
 				}
 
 				if( ImGui::MenuItem( "Distribute project" ) )
@@ -229,7 +234,8 @@ namespace Saturn {
 
 		m_GameModule = new GameModule();
 
-		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
+//		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
+		OpenFile( "Assets\\Scenes\\UI_Main.scene" );
 
 		HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 	}
@@ -490,18 +496,20 @@ namespace Saturn {
 
 	void EditorLayer::SaveFileAs()
 	{
+		// TODO: Support Saving scene as!
+
 		auto res = Application::Get().SaveFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
 
 		SceneSerialiser serialiser( m_EditorScene );
-		serialiser.Serialise( res );
+		serialiser.Serialise();
 	}
 
 	void EditorLayer::SaveFile()
 	{
-		if( std::filesystem::exists( m_EditorScene->Filepath() ) )
+		if( std::filesystem::exists( m_EditorScene->Path ) )
 		{
 			SceneSerialiser ss( m_EditorScene );
-			ss.Serialise( m_EditorScene->Filepath() );
+			ss.Serialise();
 		}
 		else
 		{
@@ -521,9 +529,8 @@ namespace Saturn {
 
 		if( !rFilepath.empty() ) 
 		{
-			auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
 			SceneSerialiser serialiser( newScene );
-			serialiser.Deserialise( fullPath.string() );
+			serialiser.Deserialise( rFilepath );
 		}
 
 		m_EditorScene = nullptr;

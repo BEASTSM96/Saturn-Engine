@@ -239,5 +239,69 @@ namespace Saturn {
 
 			return result;
 		}
+
+		static void WriteVec3( const glm::vec3& rVec, std::ofstream& rStream )
+		{
+			glm::vec3 temporaryVec( rVec );
+
+			rStream.write( reinterpret_cast< char* >( &temporaryVec.x ), sizeof( float ) );
+			rStream.write( reinterpret_cast< char* >( &temporaryVec.y ), sizeof( float ) );
+			rStream.write( reinterpret_cast< char* >( &temporaryVec.z ), sizeof( float ) );
+		}
+
+		static void ReadVec3( glm::vec3& rVec, std::ifstream& rStream )
+		{
+			float x, y, z;
+
+			rStream.read( reinterpret_cast< char* >( &x ), sizeof( float ) );
+			rStream.read( reinterpret_cast< char* >( &y ), sizeof( float ) );
+			rStream.read( reinterpret_cast< char* >( &z ), sizeof( float ) );
+
+			rVec = glm::vec3( x, y, z );
+		}
+
+		static void WriteVec4( const glm::vec4& rVec, std::ofstream& rStream )
+		{
+			glm::vec4 temporaryVec( rVec );
+
+			rStream.write( reinterpret_cast< char* >( &temporaryVec.x ), sizeof( float ) );
+			rStream.write( reinterpret_cast< char* >( &temporaryVec.y ), sizeof( float ) );
+			rStream.write( reinterpret_cast< char* >( &temporaryVec.z ), sizeof( float ) );
+			rStream.write( reinterpret_cast< char* >( &temporaryVec.w ), sizeof( float ) );
+		}
+
+		static void ReadVec4( glm::vec4& rVec, std::ifstream& rStream )
+		{
+			float x, y, z, w;
+
+			rStream.read( reinterpret_cast< char* >( &x ), sizeof( float ) );
+			rStream.read( reinterpret_cast< char* >( &y ), sizeof( float ) );
+			rStream.read( reinterpret_cast< char* >( &z ), sizeof( float ) );
+			rStream.read( reinterpret_cast< char* >( &w ), sizeof( float ) );
+
+			rVec = glm::vec4( x, y, z, w );
+		}
+
+		static void WriteMatrix4x4( const glm::mat4& rMat, std::ofstream& rStream )
+		{
+			glm::mat4 temporaryMat( rMat );
+
+			WriteVec4( temporaryMat[ 0 ], rStream );
+			WriteVec4( temporaryMat[ 1 ], rStream );
+			WriteVec4( temporaryMat[ 2 ], rStream );
+			WriteVec4( temporaryMat[ 3 ], rStream );
+		}
+
+		static void ReadMatrix4x4( glm::mat4& rMat, std::ifstream& rStream )
+		{
+			glm::mat4 newMat{};
+
+			ReadVec4( newMat[ 0 ], rStream );
+			ReadVec4( newMat[ 1 ], rStream );
+			ReadVec4( newMat[ 2 ], rStream );
+			ReadVec4( newMat[ 3 ], rStream );
+			
+			rMat = newMat;
+		}
 	};
 }

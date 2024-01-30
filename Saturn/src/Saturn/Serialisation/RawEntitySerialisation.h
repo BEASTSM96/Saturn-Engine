@@ -28,40 +28,14 @@
 
 #pragma once
 
-#include "AssetRegistryBase.h"
-
-#include <unordered_map>
-#include <unordered_set>
+#include "Saturn/Scene/Entity.h"
 
 namespace Saturn {
 
-	class AssetRegistry : public AssetRegistryBase
+	class RawEntitySerialisation
 	{
 	public:
-		AssetRegistry();
-		~AssetRegistry();
-
-		virtual AssetID CreateAsset( AssetType type ) override;
-		virtual Ref<Asset> FindAsset( AssetID id ) override;
-
-		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
-		Ref<Asset> FindAsset( const std::string& rName, AssetType type );
-
-		std::vector<AssetID> FindAssetsWithType( AssetType type ) const;
-
-		AssetID PathToID( const std::filesystem::path& rPath );
-
-		void RemoveAsset( AssetID id );
-		void TerminateAsset( AssetID id );
-
-		bool DoesIDExists( AssetID id );
-
-		size_t GetSize();
-
-	private:
-		void AddAsset( AssetID id );
-	private:
-		friend class AssetRegistrySerialiser;
-		friend class AssetManager;
+		static void SerialiseEntity( Entity& rEntity, std::ofstream& rStream );
+		static void DeserialiseEntity( Entity& rEntity, std::ifstream& rStream );
 	};
 }

@@ -77,8 +77,6 @@ namespace Saturn {
 	{
 		m_Scene = Ref<Scene>::Create();
 
-		m_Scene->SetName( "Prefab scene" );
-
 		Scene* CurrentScene = GActiveScene;
 		SwapActiveScene( m_Scene.Get() );
 
@@ -92,8 +90,6 @@ namespace Saturn {
 	void Prefab::Create()
 	{
 		m_Scene = Ref<Scene>::Create();
-
-		m_Scene->SetName( "Prefab scene" );
 	}
 
 	void Prefab::CreateScene()

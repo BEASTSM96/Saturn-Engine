@@ -75,5 +75,4 @@ namespace Saturn {
 	{
 		GetComponent<TagComponent>().Tag = rName;
 	}
-
 }

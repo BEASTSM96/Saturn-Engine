@@ -28,40 +28,18 @@
 
 #pragma once
 
-#include "AssetRegistryBase.h"
-
-#include <unordered_map>
-#include <unordered_set>
-
 namespace Saturn {
 
-	class AssetRegistry : public AssetRegistryBase
+	class AssetBundle
 	{
 	public:
-		AssetRegistry();
-		~AssetRegistry();
+		AssetBundle();
+		~AssetBundle();
 
-		virtual AssetID CreateAsset( AssetType type ) override;
-		virtual Ref<Asset> FindAsset( AssetID id ) override;
-
-		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
-		Ref<Asset> FindAsset( const std::string& rName, AssetType type );
-
-		std::vector<AssetID> FindAssetsWithType( AssetType type ) const;
-
-		AssetID PathToID( const std::filesystem::path& rPath );
-
-		void RemoveAsset( AssetID id );
-		void TerminateAsset( AssetID id );
-
-		bool DoesIDExists( AssetID id );
-
-		size_t GetSize();
+		static bool BundleAssets();
+		static void ReadBundle();
 
 	private:
-		void AddAsset( AssetID id );
-	private:
-		friend class AssetRegistrySerialiser;
-		friend class AssetManager;
+
 	};
 }

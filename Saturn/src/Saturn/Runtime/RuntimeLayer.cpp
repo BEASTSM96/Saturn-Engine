@@ -100,7 +100,7 @@ namespace Saturn {
 		
 		auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
 		SceneSerialiser serialiser( newScene );
-		serialiser.Deserialise( fullPath.string() );
+		serialiser.Deserialise();
 
 		m_RuntimeScene = nullptr;
 		m_RuntimeScene = newScene;

@@ -148,6 +148,11 @@ namespace Saturn {
 		return m_Assets.contains( id );
 	}
 
+	size_t AssetRegistry::GetSize()
+	{
+		return m_Assets.size();
+	}
+
 	void AssetRegistry::AddAsset( AssetID id )
 	{
 		SAT_CORE_ASSERT( m_Assets.find( id ) == m_Assets.end(), "Asset already exists!" );

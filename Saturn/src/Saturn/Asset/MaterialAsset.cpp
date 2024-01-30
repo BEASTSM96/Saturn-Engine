@@ -421,4 +421,14 @@ namespace Saturn {
 		return std::any_of( m_HasOverridden.begin(), m_HasOverridden.end(), []( bool x ) { return x; } );
 	}
 
+	void MaterialRegistry::Serialise( const MaterialRegistry& rRegistry, std::ofstream& rStream )
+	{
+		RawSerialisation::WriteVector( rRegistry.m_HasOverridden, rStream );
+	}
+
+	void MaterialRegistry::Deserialise( MaterialRegistry& rRegistry, std::ifstream& rStream )
+	{
+		RawSerialisation::ReadVector( rRegistry.m_HasOverridden, rStream );
+	}
+
 }

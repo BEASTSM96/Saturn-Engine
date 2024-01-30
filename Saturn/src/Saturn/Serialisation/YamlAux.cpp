@@ -257,7 +257,7 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
-		// Box collider
+		// Capsule collider
 		if( entity->HasComponent<CapsuleColliderComponent>() )
 		{
 			rEmitter << YAML::Key << "CapsuleColliderComponent";

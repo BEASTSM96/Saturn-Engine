@@ -35,15 +35,13 @@
 
 namespace Saturn {
 
-	class ShaderBundle : public RefTarget
+	class ShaderBundle
 	{
-	public:
-		static inline ShaderBundle& Get() { return *SingletonStorage::GetOrCreateSingleton<ShaderBundle>(); }
 	public:
 		ShaderBundle();
 		~ShaderBundle();
 
-		bool BundleShaders();
-		void ReadBundle();
+		static bool BundleShaders();
+		static void ReadBundle();
 	};
 }

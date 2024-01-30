@@ -26,42 +26,66 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "AssetBundle.h"
 
-#include "AssetRegistryBase.h"
+#include "Saturn/Asset/Asset.h"
+#include "Saturn/Asset/AssetManager.h"
 
-#include <unordered_map>
-#include <unordered_set>
+#include "Saturn/Project/Project.h"
+#include "Saturn/Serialisation/RawSerialisation.h"
 
 namespace Saturn {
 
-	class AssetRegistry : public AssetRegistryBase
+	struct AssetBundleHeader
 	{
-	public:
-		AssetRegistry();
-		~AssetRegistry();
-
-		virtual AssetID CreateAsset( AssetType type ) override;
-		virtual Ref<Asset> FindAsset( AssetID id ) override;
-
-		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
-		Ref<Asset> FindAsset( const std::string& rName, AssetType type );
-
-		std::vector<AssetID> FindAssetsWithType( AssetType type ) const;
-
-		AssetID PathToID( const std::filesystem::path& rPath );
-
-		void RemoveAsset( AssetID id );
-		void TerminateAsset( AssetID id );
-
-		bool DoesIDExists( AssetID id );
-
-		size_t GetSize();
-
-	private:
-		void AddAsset( AssetID id );
-	private:
-		friend class AssetRegistrySerialiser;
-		friend class AssetManager;
+		const char Magic[ 5 ] = ".AB\0";
+		size_t Assets;
 	};
+
+	AssetBundle::AssetBundle()
+	{
+	}
+
+	AssetBundle::~AssetBundle()
+	{
+	}
+
+	bool AssetBundle::BundleAssets()
+	{
+		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
+
+		if( !std::filesystem::exists( cachePath ) )
+			std::filesystem::create_directories( cachePath );
+
+		cachePath /= "AssetBundle.sab";
+
+		std::ofstream fout( cachePath, std::ios::binary | std::ios::trunc );
+
+		AssetManager& rAssetManager = AssetManager::Get();
+
+		AssetBundleHeader header{};
+		header.Assets = rAssetManager.GetAssetRegistrySize();
+
+		fout.write( reinterpret_cast<char*>( &header ), sizeof( AssetBundleHeader ) );
+
+		rAssetManager.Each( [&]( Ref<Asset> rAsset ) 
+			{
+				SAT_CORE_INFO( "Packaging asset: {0} ({1})", rAsset->ID, rAsset->Name );
+
+				rAsset->SerialiseData( fout );
+			} );
+
+		SAT_CORE_INFO( "Packaged {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
+
+		fout.close();
+
+		return true;
+	}
+
+	void AssetBundle::ReadBundle()
+	{
+
+	}
+
 }

@@ -75,8 +75,6 @@ namespace Saturn {
 		s_ActiveScenes[ m_SceneID ] = this;
 		m_SceneEntity = m_Registry.create();
 		m_Registry.emplace<SceneComponent>( m_SceneEntity, m_SceneID );
-
-		SetName( "Empty Scene" );
 	}
 
 	Scene::~Scene()
@@ -573,9 +571,6 @@ namespace Saturn {
 			}	
 		}
 
-		NewScene->m_Name = m_Name;
-		NewScene->m_Filepath = m_Filepath;
-
 		NewScene->m_Lights = m_Lights;
 
 		std::unordered_map< UUID, entt::entity > EntityMap;
@@ -660,8 +655,28 @@ namespace Saturn {
 			Scene::SetActiveScene( newScene.Get() );
 
 			SceneSerialiser ss( newScene );
-			ss.Deserialise( asset->Path.string() );
+			ss.Deserialise();
 		}
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// #WARNING This should not be confused with AssetSerialisers. This is for raw binary serialisation!
+
+	void Scene::SerialiseData( std::ofstream& rStream )
+	{
+		Asset::SerialiseData( rStream );
+
+		RawSerialisation::WriteObject( m_SceneID, rStream );
+		RawSerialisation::WriteObject( m_Lights, rStream );
+		//RawSerialisation::WriteMap( m_EntityIDMap, rStream );
+	}
+
+	void Scene::DeserialiseData( std::ifstream& rStream )
+	{
+		Asset::DeserialiseData( rStream );
+
+		RawSerialisation::ReadObject( m_SceneID, rStream );
+		RawSerialisation::ReadObject( m_Lights, rStream );
+		//RawSerialisation::ReadMap( m_EntityIDMap, rStream );
+	}
 }

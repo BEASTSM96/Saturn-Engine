@@ -256,7 +256,7 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		// This should not be confused with AssetSerialisers. This is for raw binary serialisation!
 
-		void SerialiseData( std::ofstream& rStream )
+		virtual void SerialiseData( std::ofstream& rStream )
 		{
 			// TODO: Support writing for a filesystem path.
 			RawSerialisation::WriteString( Name, rStream );
@@ -267,7 +267,7 @@ namespace Saturn {
 			RawSerialisation::WriteObject( Flags, rStream );
 		}
 
-		void DeserialiseData( std::ifstream& rStream )
+		virtual void DeserialiseData( std::ifstream& rStream )
 		{
 			// TODO: Support reading for a filesystem path.
 			Name = RawSerialisation::ReadString( rStream );
