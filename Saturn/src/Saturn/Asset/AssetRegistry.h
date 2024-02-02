@@ -39,6 +39,8 @@ namespace Saturn {
 	{
 	public:
 		AssetRegistry();
+		AssetRegistry( const AssetRegistry& rOther );
+
 		~AssetRegistry();
 
 		virtual AssetID CreateAsset( AssetType type ) override;
@@ -63,5 +65,6 @@ namespace Saturn {
 	private:
 		friend class AssetRegistrySerialiser;
 		friend class AssetManager;
+		friend class AssetBundle;
 	};
 }

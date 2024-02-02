@@ -95,7 +95,7 @@ namespace Saturn {
 
 		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetNormalMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "NormalTexture" << YAML::Value << asset->ID;
 		else
@@ -103,7 +103,7 @@ namespace Saturn {
 
 		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetMetallicMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "MetalnessTexture" << YAML::Value << asset->ID;
 		else
@@ -111,7 +111,7 @@ namespace Saturn {
 
 		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetRoughnessMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "RoughnessTexture" << YAML::Value << asset->ID;
 		else
@@ -154,7 +154,7 @@ namespace Saturn {
 
 		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetNormalMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "NormalTexture" << YAML::Value << asset->ID;
 		else
@@ -162,7 +162,7 @@ namespace Saturn {
 
 		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetMetallicMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "MetalnessTexture" << YAML::Value << asset->ID;
 		else
@@ -170,7 +170,7 @@ namespace Saturn {
 
 		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetRoughnessMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "RoughnessTexture" << YAML::Value << asset->ID;
 		else
@@ -1057,81 +1057,4 @@ namespace Saturn {
 
 		return true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// Texture Source Asset (BINARY FILE)
-
-	void TextureSourceAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
-	{
-		auto textureSourceAsset = rAsset.As<TextureSourceAsset>();
-
-		// No YAML, raw serialisation.
-
-		auto& basePath = rAsset->GetPath();
-		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
-
-		std::ofstream fout( fullPath, std::ios::binary | std::ios::trunc );
-		
-		const char Magic[ 6 ] = ".TSA\0";
-
-		fout.write( Magic, 6 );
-
-		textureSourceAsset->SerialiseData( fout );
-
-		fout.close();
-	}
-
-	void TextureSourceAssetSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
-	{
-	}
-
-	bool TextureSourceAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
-	{
-		auto& basePath = rAsset->GetPath();
-		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
-
-		std::ifstream stream( fullPath, std::ios::binary | std::ios::in );
-
-		char* Magic = nullptr;
-
-		stream.read( reinterpret_cast<char*>( Magic ), 6 );
-
-		if( strcmp( Magic, ".TSA\0" ) )
-		{
-			SAT_CORE_ERROR( "Invalid shader bundle file header!" );
-			return false;
-		}
-
-		Ref<TextureSourceAsset> textureSource = Ref<TextureSourceAsset>::Create();
-		textureSource->DeserialiseData( stream );
-		
-		// We are done with the file.
-		stream.close();
-
-		// TODO: (Asset) Fix this.
-		struct
-		{
-			UUID ID;
-			AssetType Type;
-			uint32_t Flags;
-			std::filesystem::path Path;
-			std::string Name;
-		} OldAssetData = {};
-
-		OldAssetData.ID = rAsset->ID;
-		OldAssetData.Type = rAsset->Type;
-		OldAssetData.Flags = rAsset->Flags;
-		OldAssetData.Path = rAsset->Path;
-		OldAssetData.Name = rAsset->Name;
-
-		rAsset = textureSource;
-		rAsset->ID = OldAssetData.ID;
-		rAsset->Type = OldAssetData.Type;
-		rAsset->Flags = OldAssetData.Flags;
-		rAsset->Path = OldAssetData.Path;
-		rAsset->Name = OldAssetData.Name;
-
-		return true;
-	}
-
 }

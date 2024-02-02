@@ -105,8 +105,8 @@ namespace Saturn {
 
 		if( !std::filesystem::exists( m_FilePath ) )
 			SAT_CORE_ERROR( "Failed to load mesh file (file does not exists): {0}", m_FilePath );
-
-		SAT_CORE_INFO( "Loading mesh: {0}", m_FilePath.c_str() );
+		else
+			SAT_CORE_INFO( "Loading mesh: {0}", m_FilePath.c_str() );
 
 		m_Importer = std::make_unique<Assimp::Importer>();
 
@@ -546,12 +546,17 @@ namespace Saturn {
 		AssetManager::Get().Save();
 	}
 
-	void StaticMesh::Serialise( const StaticMesh& rObject, std::ofstream& rStream )
+	void StaticMesh::SerialiseData( std::ofstream& rStream )
 	{
-		// TODO:
+		RawSerialisation::WriteObject( m_VertexCount, rStream );
+		RawSerialisation::WriteObject( m_IndicesCount, rStream );
+
+		RawSerialisation::WriteVector( m_Indices, rStream );
+		RawSerialisation::WriteVector( m_Vertices, rStream );
+		RawSerialisation::WriteVector( m_Submeshes, rStream );
 	}
 
-	void StaticMesh::Deserialise( StaticMesh& rObject, std::ifstream& rStream )
+	void StaticMesh::DeserialiseData( std::ifstream& rStream )
 	{
 		// TODO:
 	}

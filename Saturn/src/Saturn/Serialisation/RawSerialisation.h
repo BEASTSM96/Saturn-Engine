@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Saturn/Core/Memory/Buffer.h"
+
 #include <fstream>
 #include <unordered_map>
 
@@ -240,6 +242,24 @@ namespace Saturn {
 			return result;
 		}
 
+		static void WriteVec2( const glm::vec2& rVec, std::ofstream& rStream )
+		{
+			glm::vec2 temporaryVec( rVec );
+
+			rStream.write( reinterpret_cast< char* >( &temporaryVec.x ), sizeof( float ) );
+			rStream.write( reinterpret_cast< char* >( &temporaryVec.y ), sizeof( float ) );
+		}
+
+		static void ReadVec2( glm::vec2& rVec, std::ifstream& rStream )
+		{
+			float x, y;
+
+			rStream.read( reinterpret_cast< char* >( &x ), sizeof( float ) );
+			rStream.read( reinterpret_cast< char* >( &y ), sizeof( float ) );
+
+			rVec = glm::vec2( x, y );
+		}
+
 		static void WriteVec3( const glm::vec3& rVec, std::ofstream& rStream )
 		{
 			glm::vec3 temporaryVec( rVec );
@@ -302,6 +322,27 @@ namespace Saturn {
 			ReadVec4( newMat[ 3 ], rStream );
 			
 			rMat = newMat;
+		}
+
+		static void WriteSaturnBuffer( Buffer& rBuffer, std::ofstream& rStream ) 
+		{
+			rStream.write( reinterpret_cast<char*>( &rBuffer.Size ), sizeof( size_t ) );
+			rStream.write( reinterpret_cast<char*>( rBuffer.Data ), rBuffer.Size );
+		}
+
+		static void ReadSaturnBuffer( Buffer& rBuffer, std::ifstream& rStream )
+		{
+			rBuffer.Free();
+
+			size_t BufferSize = 0;
+			uint8_t* pData = nullptr;
+
+			rStream.read( reinterpret_cast< char* >( &BufferSize ), sizeof( size_t ) );
+			rStream.read( reinterpret_cast< char* >( pData ), rBuffer.Size );
+
+			rBuffer = Buffer::Copy( pData, BufferSize );
+
+			delete[] pData;
 		}
 	};
 }

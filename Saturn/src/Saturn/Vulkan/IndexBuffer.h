@@ -32,6 +32,8 @@
 
 #include "VulkanAllocator.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 #include <vulkan.h>
 #include <string>
 #include <vector>
@@ -43,6 +45,21 @@ namespace Saturn {
 	struct Index
 	{
 		uint32_t V1, V2, V3;
+
+	public:
+		static void Serialise( const Index& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteObject( rObject.V1, rStream );
+			RawSerialisation::WriteObject( rObject.V2, rStream );
+			RawSerialisation::WriteObject( rObject.V3, rStream );
+		}
+
+		static void Deserialise( Index& rObject, std::ifstream& rStream )
+		{
+			RawSerialisation::ReadObject( rObject.V1, rStream );
+			RawSerialisation::ReadObject( rObject.V2, rStream );
+			RawSerialisation::ReadObject( rObject.V3, rStream );
+		}
 	};
 
 	class IndexBuffer : public RefTarget

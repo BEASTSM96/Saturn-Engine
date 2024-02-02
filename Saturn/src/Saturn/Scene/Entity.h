@@ -147,25 +147,8 @@ namespace Saturn {
 		bool HasChildren() { return GetComponent<RelationshipComponent>().ChildrenID.size() > 0; }
 
 	public:
-		static void Serialise( const Entity& rObject, std::ofstream& rStream )
-		{
-
-		}
-
-		static void Deserialise( Entity& rObject, std::ifstream& rStream )
-		{
-
-		}
-
-		static void Serialise( const Ref<Entity>& rObject, std::ofstream& rStream )
-		{
-
-		}
-
-		static void Deserialise( Ref<Entity>& rObject, std::ifstream& rStream )
-		{
-
-		}
+		static void Serialise( const Ref<Entity>& rObject, std::ofstream& rStream );
+		static void Deserialise( Ref<Entity>& rObject, std::ifstream& rStream );
 
 	protected:
 

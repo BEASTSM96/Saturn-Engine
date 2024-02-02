@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "Entity.h"
 
+#include "Saturn/Serialisation/RawEntitySerialisation.h"
+
 namespace Saturn {
 
 	Entity::Entity()
@@ -74,5 +76,18 @@ namespace Saturn {
 	void Entity::SetName( const std::string& rName )
 	{
 		GetComponent<TagComponent>().Tag = rName;
+	}
+
+	void Entity::Serialise( const Ref<Entity>& rObject, std::ofstream& rStream )
+	{
+		RawEntitySerialisation serialiser;
+		serialiser.SerialiseEntity( const_cast< Ref<Entity>& >( rObject ), rStream );
+	}
+
+
+	void Entity::Deserialise( Ref<Entity>& rObject, std::ifstream& rStream )
+	{
+		RawEntitySerialisation serialiser;
+		serialiser.DeserialiseEntity( rObject, rStream );
 	}
 }

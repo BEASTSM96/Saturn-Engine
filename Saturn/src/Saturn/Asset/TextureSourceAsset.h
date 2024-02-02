@@ -47,9 +47,6 @@ namespace Saturn {
 
 		void SerialiseData( std::ofstream& rStream )
 		{
-			// Serialise Asset
-			Asset::SerialiseData( rStream );
-
 			RawSerialisation::WriteString( m_AbsolutePath.string(), rStream );
 
 			RawSerialisation::WriteObject( m_Width, rStream );
@@ -59,15 +56,11 @@ namespace Saturn {
 			RawSerialisation::WriteObject( m_HDR, rStream );
 
 			// Buffer
-			RawSerialisation::WriteObject( m_TextureBuffer.Size, rStream );
-			RawSerialisation::WriteObject( m_TextureBuffer.Data, rStream );
+			RawSerialisation::WriteSaturnBuffer( m_TextureBuffer, rStream );
 		}
 
 		void DeserialiseData( std::ifstream& rStream )
 		{
-			// Deserialise Asset
-			Asset::DeserialiseData( rStream );
-
 			m_AbsolutePath = RawSerialisation::ReadString( rStream );
 
 			RawSerialisation::ReadObject( m_Width, rStream );
@@ -77,15 +70,7 @@ namespace Saturn {
 			RawSerialisation::ReadObject( m_HDR, rStream );
 
 			// Buffer
-			size_t tempSize = 0;
-			uint8_t* tempData = nullptr;
-
-			RawSerialisation::ReadObject( tempSize, rStream );
-			RawSerialisation::ReadObject( tempData, rStream );
-
-			m_TextureBuffer = Buffer::Copy( tempData, tempSize );
-
-			delete[] tempData;
+			RawSerialisation::ReadSaturnBuffer( m_TextureBuffer, rStream );
 		}
 
 	private:

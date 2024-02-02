@@ -28,38 +28,50 @@
 
 #pragma once
 
-#include "Saturn/Serialisation/RawSerialisation.h"
-
-#include <glm/glm.hpp>
+#include "Saturn/Asset/Asset.h"
 
 namespace Saturn {
 
-	struct AABB
+	class RawAssetSerialiser
 	{
-		glm::vec3 Min, Max;
-
-		AABB()
-			: Min( 0.0f ), Max( 0.0f )
-		{
-		}
-
-		AABB( const glm::vec3& min, const glm::vec3& max )
-			: Min( min ), Max( max )
-		{
-		}
-
 	public:
-		static void Serialise( const AABB& rObject, std::ofstream& rStream )
-		{
-			RawSerialisation::WriteVec3( rObject.Min, rStream );
-			RawSerialisation::WriteVec3( rObject.Max, rStream );
-		}
-
-		static void Deserialise( AABB& rObject, std::ifstream& rStream )
-		{
-			RawSerialisation::ReadVec3( rObject.Min, rStream );
-			RawSerialisation::ReadVec3( rObject.Max, rStream );
-		}
+		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const = 0;
+		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const = 0;
 	};
 
+	class RawMaterialAssetSerialiser : public RawAssetSerialiser
+	{
+	public:
+		// We don't need to load the node editor information, this will not be needed for binary.
+		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
+	};
+
+	class RawPrefabSerialiser : public RawAssetSerialiser
+	{
+	public:
+		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
+	};
+
+	class RawStaticMeshAssetSerialiser : public RawAssetSerialiser
+	{
+	public:
+		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
+	};
+
+	class RawPhysicsMaterialAssetSerialiser : public RawAssetSerialiser
+	{
+	public:
+		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
+	};
+
+	class RawTextureSourceAssetSerialiser : public RawAssetSerialiser
+	{
+	public:
+		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
+	};
 }

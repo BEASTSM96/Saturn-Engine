@@ -34,6 +34,15 @@
 
 #include "Saturn/Project/Project.h"
 #include "Saturn/Serialisation/RawSerialisation.h"
+#include "Saturn/Serialisation/RawAssetSerialisers.h"
+
+#include "Saturn/Asset/TextureSourceAsset.h"
+#include "Saturn/Asset/Prefab.h"
+#include "Saturn/Asset/MaterialAsset.h"
+
+#include "Saturn/Asset/PhysicsMaterialAsset.h"
+
+#include "Saturn/Serialisation/SceneSerialiser.h"
 
 namespace Saturn {
 
@@ -64,28 +73,195 @@ namespace Saturn {
 
 		AssetManager& rAssetManager = AssetManager::Get();
 
+		// Construct a temporary asset registry to hold all of our assets in.
+		Ref<AssetRegistry> AssetBundleRegistry = Ref<AssetRegistry>::Create( *rAssetManager.GetAssetRegistry().Get() );
+
 		AssetBundleHeader header{};
 		header.Assets = rAssetManager.GetAssetRegistrySize();
 
 		fout.write( reinterpret_cast<char*>( &header ), sizeof( AssetBundleHeader ) );
 
-		rAssetManager.Each( [&]( Ref<Asset> rAsset ) 
-			{
-				SAT_CORE_INFO( "Packaging asset: {0} ({1})", rAsset->ID, rAsset->Name );
+		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
+		{
+			SAT_CORE_INFO( "Packaging asset: {0} ({1})", id, asset->Name );
+			
+			asset->SerialiseData( fout );
 
-				rAsset->SerialiseData( fout );
-			} );
+			switch( asset->Type )
+			{
+				case Saturn::AssetType::Texture:
+				{
+					auto AbsolutePath = Project::GetActiveProject()->FilepathAbs( asset->Path );
+					Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AbsolutePath );
+
+					RawTextureSourceAssetSerialiser serialiser;
+					serialiser.Serialise( sourceAsset, fout );
+				} break;
+
+				case Saturn::AssetType::StaticMesh:
+				{
+					Ref<StaticMesh> asset = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
+
+					RawStaticMeshAssetSerialiser serialiser;
+					serialiser.Serialise( asset, fout );
+				} break;
+
+				case Saturn::AssetType::Material:
+				{
+					Ref<MaterialAsset> asset = AssetBundleRegistry->GetAssetAs<MaterialAsset>( id );
+
+					RawMaterialAssetSerialiser serialiser;
+					serialiser.Serialise( asset, fout );
+				} break;
+
+				case Saturn::AssetType::PhysicsMaterial:
+				{
+					Ref<PhysicsMaterialAsset> asset = AssetBundleRegistry->GetAssetAs<PhysicsMaterialAsset>( id );
+
+					RawPhysicsMaterialAssetSerialiser serialiser;
+					serialiser.Serialise( asset, fout );
+				} break;
+
+				case Saturn::AssetType::Scene:
+				{
+					Ref<Scene> scene = Ref<Scene>::Create();
+					Scene* pOldActiveScene = GActiveScene;
+					GActiveScene = scene.Get();
+
+					SceneSerialiser serialiser( scene );
+					serialiser.Deserialise( asset->Path );
+
+					GActiveScene = pOldActiveScene;
+
+					scene->SerialiseData( fout );
+				} break;
+
+				case Saturn::AssetType::Prefab:
+				{
+					Ref<Prefab> asset = AssetBundleRegistry->GetAssetAs<Prefab>( id );
+
+					if( asset )
+					{
+						RawPrefabSerialiser serialiser;
+						serialiser.Serialise( asset, fout );
+					}
+				} break;
+
+				case Saturn::AssetType::SkeletalMesh:
+				case Saturn::AssetType::MaterialInstance:
+				case Saturn::AssetType::Audio:
+				case Saturn::AssetType::Script:
+				case Saturn::AssetType::MeshCollider:
+				case Saturn::AssetType::Unknown:
+				default:
+					break;
+			}
+		}
 
 		SAT_CORE_INFO( "Packaged {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
 
 		fout.close();
+
+		AssetBundleRegistry = nullptr;
 
 		return true;
 	}
 
 	void AssetBundle::ReadBundle()
 	{
+		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
+		cachePath /= "AssetBundle.sab";
 
+		if( !std::filesystem::exists( cachePath ) )
+			return;
+
+		std::ifstream stream( cachePath, std::ios::binary | std::ios::in );
+
+		AssetBundleHeader header{};
+		stream.read( reinterpret_cast< char* >( &header ), sizeof( AssetBundleHeader ) );
+
+		if( strcmp( header.Magic, ".AB\0" ) )
+		{
+			SAT_CORE_ERROR( "Invalid shader bundle file header!" );
+			return;
+		}
+
+		AssetManager& rAssetManager = AssetManager::Get();
+		Ref<AssetRegistry>& rAssetRegistry = rAssetManager.GetAssetRegistry();
+
+		for( size_t i = 0; i < header.Assets; i++ )
+		{
+			Ref<Asset> asset = Ref<Asset>::Create();
+			asset->DeserialiseData( stream );
+
+			rAssetRegistry->m_Assets[ asset->ID ] = asset;
+
+			/*
+			switch( asset->Type )
+			{
+				case Saturn::AssetType::Texture:
+				{
+					auto AbsolutePath = Project::GetActiveProject()->FilepathAbs( asset->Path );
+					Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AbsolutePath );
+
+					RawTextureSourceAssetSerialiser serialiser;
+					serialiser.TryLoadData( sourceAsset, stream );
+				} break;
+
+				case Saturn::AssetType::StaticMesh:
+				{
+					RawStaticMeshAssetSerialiser serialiser;
+					serialiser.TryLoadData( asset, stream );
+				} break;
+
+				case Saturn::AssetType::Material:
+				{
+					RawMaterialAssetSerialiser serialiser;
+					serialiser.TryLoadData( asset, stream );
+				} break;
+
+				case Saturn::AssetType::PhysicsMaterial:
+				{
+					RawPhysicsMaterialAssetSerialiser serialiser;
+					serialiser.TryLoadData( asset, stream );
+				} break;
+
+				case Saturn::AssetType::Scene:
+				{
+					Ref<Scene> scene = Ref<Scene>::Create();
+					Scene* pOldActiveScene = GActiveScene;
+					GActiveScene = scene.Get();
+
+					SceneSerialiser serialiser( scene );
+					serialiser.TryLoadData( asset->Path );
+
+					GActiveScene = pOldActiveScene;
+
+					scene->SerialiseData( fout );
+				} break;
+
+				case Saturn::AssetType::Prefab:
+				{
+					if( asset )
+					{
+						RawPrefabSerialiser serialiser;
+						serialiser.TryLoadData( asset, stream );
+					}
+				} break;
+
+				case Saturn::AssetType::SkeletalMesh:
+				case Saturn::AssetType::MaterialInstance:
+				case Saturn::AssetType::Audio:
+				case Saturn::AssetType::Script:
+				case Saturn::AssetType::MeshCollider:
+				case Saturn::AssetType::Unknown:
+				default:
+					break;
+			}
+			*/
+		}
+
+		stream.close();
 	}
 
 }

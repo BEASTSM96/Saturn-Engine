@@ -34,9 +34,9 @@
 namespace Saturn {
 
 	template<typename Component, typename Func>
-	void WriteComponent( Entity& rEntity, std::ofstream& rStream, Func Function )
+	void WriteComponent( Ref<Entity>& rEntity, std::ofstream& rStream, Func Function )
 	{
-		bool hasT = rEntity.HasComponent<Component>();
+		bool hasT = rEntity->HasComponent<Component>();
 
 		RawSerialisation::WriteObject( hasT, rStream );
 
@@ -47,7 +47,7 @@ namespace Saturn {
 	}
 
 	template<typename Component, typename Func>
-	void ReadComponent( Entity& rEntity, std::ifstream& rStream, Func Function )
+	void ReadComponent( Ref<Entity>& rEntity, std::ifstream& rStream, Func Function )
 	{
 		bool hasT = false;
 		RawSerialisation::ReadObject( hasT, rStream );
@@ -58,23 +58,23 @@ namespace Saturn {
 		}
 	}
 
-	void RawEntitySerialisation::SerialiseEntity( Entity& rEntity, std::ofstream& rStream )
+	void RawEntitySerialisation::SerialiseEntity( Ref<Entity>& rEntity, std::ofstream& rStream )
 	{
-		RawSerialisation::WriteObject( rEntity.GetComponent<IdComponent>().ID, rStream );
-		RawSerialisation::WriteObject( rEntity.GetHandle(), rStream );
+		RawSerialisation::WriteObject( rEntity->GetComponent<IdComponent>().ID, rStream );
+		RawSerialisation::WriteObject( rEntity->GetHandle(), rStream );
 
-		bool isPrefab = rEntity.HasComponent<PrefabComponent>();
-
+		bool isPrefab = rEntity->HasComponent<PrefabComponent>();
+		
 		// Tag Component.
 		WriteComponent<TagComponent>( rEntity, rStream, [&]() 
 			{
-				RawSerialisation::WriteString( rEntity.GetComponent<TagComponent>().Tag, rStream );
+				RawSerialisation::WriteString( rEntity->GetComponent<TagComponent>().Tag, rStream );
 			} );
 
 		// Transform Component.
 		WriteComponent<TransformComponent>( rEntity, rStream, [&]()
 			{
-				auto& tc = rEntity.GetComponent<TransformComponent>();
+				auto& tc = rEntity->GetComponent<TransformComponent>();
 
 				RawSerialisation::WriteVec3( tc.Position, rStream );
 				RawSerialisation::WriteVec3( tc.GetRotationEuler(), rStream );
@@ -85,7 +85,7 @@ namespace Saturn {
 		// Relationship Component.
 		WriteComponent<RelationshipComponent>( rEntity, rStream, [&]()
 			{
-				auto& rc = rEntity.GetComponent< RelationshipComponent >();
+				auto& rc = rEntity->GetComponent< RelationshipComponent >();
 
 				RawSerialisation::WriteObject( rc.Parent, rStream );
 
@@ -97,9 +97,9 @@ namespace Saturn {
 		
 		
 		// Relationship Component
-		WriteComponent<RelationshipComponent>( rEntity, rStream, [&]()
+		WriteComponent<PrefabComponent>( rEntity, rStream, [&]()
 			{
-				auto& pc = rEntity.GetComponent< PrefabComponent >();
+				auto& pc = rEntity->GetComponent< PrefabComponent >();
 
 				RawSerialisation::WriteObject( pc.AssetID, rStream );
 				RawSerialisation::WriteObject( pc.Modified, rStream );
@@ -108,7 +108,7 @@ namespace Saturn {
 		// Mesh Component
 		WriteComponent<StaticMeshComponent>( rEntity, rStream, [&]()
 			{
-				auto& mc = rEntity.GetComponent< StaticMeshComponent >();
+				auto& mc = rEntity->GetComponent< StaticMeshComponent >();
 
 				AssetID ID = 0;
 
@@ -128,7 +128,7 @@ namespace Saturn {
 		// Script Component
 		WriteComponent<ScriptComponent>( rEntity, rStream, [&]()
 			{
-				auto& sc = rEntity.GetComponent< ScriptComponent >();
+				auto& sc = rEntity->GetComponent< ScriptComponent >();
 
 				RawSerialisation::WriteObject( sc.ScriptName, rStream );
 				RawSerialisation::WriteObject( sc.AssetID, rStream );
@@ -137,7 +137,7 @@ namespace Saturn {
 		// Sky light component
 		WriteComponent<SkylightComponent>( rEntity, rStream, [&]()
 			{
-				auto& slc = rEntity.GetComponent< SkylightComponent >();
+				auto& slc = rEntity->GetComponent< SkylightComponent >();
 
 				RawSerialisation::WriteObject( slc.DynamicSky, rStream );
 
@@ -152,7 +152,7 @@ namespace Saturn {
 		// Directional Light Component
 		WriteComponent<DirectionalLightComponent>( rEntity, rStream, [&]()
 			{
-				auto& dlc = rEntity.GetComponent< DirectionalLightComponent>();
+				auto& dlc = rEntity->GetComponent< DirectionalLightComponent>();
 
 				RawSerialisation::WriteVec3( dlc.Radiance, rStream );
 				RawSerialisation::WriteObject( dlc.Intensity, rStream );
@@ -163,7 +163,7 @@ namespace Saturn {
 		// Point Light Component
 		WriteComponent<PointLightComponent>( rEntity, rStream, [&]()
 			{
-				auto& plc = rEntity.GetComponent< PointLightComponent >();
+				auto& plc = rEntity->GetComponent< PointLightComponent >();
 
 				RawSerialisation::WriteVec3( plc.Radiance, rStream );
 				RawSerialisation::WriteObject( plc.Intensity, rStream );
@@ -177,7 +177,7 @@ namespace Saturn {
 		// Box collider
 		WriteComponent<BoxColliderComponent>( rEntity, rStream, [&]()
 			{
-				auto& bcc = rEntity.GetComponent< BoxColliderComponent >();
+				auto& bcc = rEntity->GetComponent< BoxColliderComponent >();
 
 				RawSerialisation::WriteVec3( bcc.Extents, rStream );
 				RawSerialisation::WriteVec3( bcc.Offset, rStream );
@@ -187,7 +187,7 @@ namespace Saturn {
 		// Sphere collider
 		WriteComponent<SphereColliderComponent>( rEntity, rStream, [&]()
 			{
-				auto& scc = rEntity.GetComponent< SphereColliderComponent >();
+				auto& scc = rEntity->GetComponent< SphereColliderComponent >();
 
 				RawSerialisation::WriteObject( scc.Radius, rStream );
 				RawSerialisation::WriteVec3( scc.Offset, rStream );
@@ -197,7 +197,7 @@ namespace Saturn {
 		// Capsule collider
 		WriteComponent<CapsuleColliderComponent>( rEntity, rStream, [&]()
 			{
-				auto& ccc = rEntity.GetComponent< CapsuleColliderComponent >();
+				auto& ccc = rEntity->GetComponent< CapsuleColliderComponent >();
 
 				RawSerialisation::WriteObject( ccc.Height, rStream );
 				RawSerialisation::WriteObject( ccc.Radius, rStream );
@@ -208,7 +208,7 @@ namespace Saturn {
 		// Rigid body
 		WriteComponent<RigidbodyComponent>( rEntity, rStream, [&]()
 			{
-				auto& rbc = rEntity.GetComponent< RigidbodyComponent >();
+				auto& rbc = rEntity->GetComponent< RigidbodyComponent >();
 
 				RawSerialisation::WriteObject( rbc.IsKinematic, rStream );
 				RawSerialisation::WriteObject( rbc.UseCCD, rStream );
@@ -219,7 +219,7 @@ namespace Saturn {
 		// Physics material
 		WriteComponent<PhysicsMaterialComponent>( rEntity, rStream, [&]()
 			{
-				auto& pmc = rEntity.GetComponent< PhysicsMaterialComponent >();
+				auto& pmc = rEntity->GetComponent< PhysicsMaterialComponent >();
 
 				RawSerialisation::WriteObject( pmc.AssetID, rStream );
 			} );
@@ -227,15 +227,15 @@ namespace Saturn {
 		// Camera Component
 		WriteComponent<CameraComponent>( rEntity, rStream, [&]()
 			{
-				auto& cc = rEntity.GetComponent< CameraComponent >();
+				auto& cc = rEntity->GetComponent< CameraComponent >();
 
 				RawSerialisation::WriteObject( cc.MainCamera, rStream );
 			} );
 	}
 
-	void RawEntitySerialisation::DeserialiseEntity( Entity& rEntity, std::ifstream& rStream )
+	void RawEntitySerialisation::DeserialiseEntity( Ref<Entity>& rEntity, std::ifstream& rStream )
 	{
-		RawSerialisation::ReadObject( rEntity.GetComponent<IdComponent>().ID, rStream );
+		RawSerialisation::ReadObject( rEntity->GetComponent<IdComponent>().ID, rStream );
 		
 		entt::entity handle{ entt::null };
 		RawSerialisation::ReadObject( handle, rStream );
@@ -243,13 +243,13 @@ namespace Saturn {
 		// Tag Component
 		ReadComponent<TagComponent>( rEntity, rStream, [&]()
 			{
-				rEntity.GetComponent<TagComponent>().Tag = RawSerialisation::ReadString( rStream );
+				rEntity->GetComponent<TagComponent>().Tag = RawSerialisation::ReadString( rStream );
 			} );
 
 		// Transform Component
 		ReadComponent<TransformComponent>( rEntity, rStream, [&]()
 			{
-				auto& tc = rEntity.GetComponent<TransformComponent>();
+				auto& tc = rEntity->GetComponent<TransformComponent>();
 
 				glm::vec3 rotation{};
 
@@ -263,7 +263,7 @@ namespace Saturn {
 		// Relationship Component
 		ReadComponent<RelationshipComponent>( rEntity, rStream, [&]()
 			{
-				auto& rc = rEntity.GetComponent< RelationshipComponent >();
+				auto& rc = rEntity->GetComponent< RelationshipComponent >();
 
 				RawSerialisation::ReadObject( rc.Parent, rStream );
 
@@ -276,7 +276,7 @@ namespace Saturn {
 		// Prefab Component
 		ReadComponent<PrefabComponent>( rEntity, rStream, [&]()
 			{
-				auto& pc = rEntity.GetComponent< PrefabComponent >();
+				auto& pc = rEntity->GetComponent< PrefabComponent >();
 
 				RawSerialisation::ReadObject( pc.AssetID, rStream );
 				RawSerialisation::ReadObject( pc.Modified, rStream );
@@ -285,7 +285,7 @@ namespace Saturn {
 		// Mesh Component
 		ReadComponent<StaticMeshComponent>( rEntity, rStream, [&]()
 			{
-				auto& mc = rEntity.GetComponent< StaticMeshComponent >();
+				auto& mc = rEntity->GetComponent< StaticMeshComponent >();
 
 				AssetID ID = 0;
 
@@ -305,7 +305,7 @@ namespace Saturn {
 		// Script Component
 		ReadComponent<ScriptComponent>( rEntity, rStream, [&]()
 			{
-				auto& sc = rEntity.GetComponent< ScriptComponent >();
+				auto& sc = rEntity->GetComponent< ScriptComponent >();
 
 				RawSerialisation::ReadObject( sc.ScriptName, rStream );
 				RawSerialisation::ReadObject( sc.AssetID, rStream );
@@ -314,7 +314,7 @@ namespace Saturn {
 		// Sky light component
 		ReadComponent<SkylightComponent>( rEntity, rStream, [&]()
 			{
-				auto& slc = rEntity.GetComponent< SkylightComponent >();
+				auto& slc = rEntity->GetComponent< SkylightComponent >();
 
 				RawSerialisation::ReadObject( slc.DynamicSky, rStream );
 
@@ -329,7 +329,7 @@ namespace Saturn {
 		// Directional Light Component
 		ReadComponent<DirectionalLightComponent>( rEntity, rStream, [&]()
 			{
-				auto& dlc = rEntity.GetComponent< DirectionalLightComponent>();
+				auto& dlc = rEntity->GetComponent< DirectionalLightComponent>();
 
 				RawSerialisation::ReadVec3( dlc.Radiance, rStream );
 				RawSerialisation::ReadObject( dlc.Intensity, rStream );
@@ -339,7 +339,7 @@ namespace Saturn {
 		// Point Light Component
 		ReadComponent<PointLightComponent>( rEntity, rStream, [&]()
 			{
-				auto& plc = rEntity.GetComponent< PointLightComponent >();
+				auto& plc = rEntity->GetComponent< PointLightComponent >();
 
 				RawSerialisation::ReadVec3( plc.Radiance, rStream );
 				RawSerialisation::ReadObject( plc.Intensity, rStream );
@@ -353,7 +353,7 @@ namespace Saturn {
 		// Box collider
 		ReadComponent<BoxColliderComponent>( rEntity, rStream, [&]()
 			{
-				auto& bcc = rEntity.GetComponent< BoxColliderComponent >();
+				auto& bcc = rEntity->GetComponent< BoxColliderComponent >();
 
 				RawSerialisation::ReadVec3( bcc.Extents, rStream );
 				RawSerialisation::ReadVec3( bcc.Offset, rStream );
@@ -363,7 +363,7 @@ namespace Saturn {
 		// Sphere collider
 		ReadComponent<SphereColliderComponent>( rEntity, rStream, [&]()
 			{
-				auto& scc = rEntity.GetComponent< SphereColliderComponent >();
+				auto& scc = rEntity->GetComponent< SphereColliderComponent >();
 
 				RawSerialisation::ReadObject( scc.Radius, rStream );
 				RawSerialisation::ReadVec3( scc.Offset, rStream );
@@ -373,7 +373,7 @@ namespace Saturn {
 		// Capsule collider
 		ReadComponent<CapsuleColliderComponent>( rEntity, rStream, [&]()
 			{
-				auto& ccc = rEntity.GetComponent< CapsuleColliderComponent >();
+				auto& ccc = rEntity->GetComponent< CapsuleColliderComponent >();
 
 				RawSerialisation::ReadObject( ccc.Height, rStream );
 				RawSerialisation::ReadObject( ccc.Radius, rStream );
@@ -384,7 +384,7 @@ namespace Saturn {
 		// Rigid body
 		ReadComponent<RigidbodyComponent>( rEntity, rStream, [&]()
 			{
-				auto& rbc = rEntity.GetComponent< RigidbodyComponent >();
+				auto& rbc = rEntity->GetComponent< RigidbodyComponent >();
 
 				RawSerialisation::ReadObject( rbc.IsKinematic, rStream );
 				RawSerialisation::ReadObject( rbc.UseCCD, rStream );
@@ -395,7 +395,7 @@ namespace Saturn {
 		// Physics material
 		ReadComponent<PhysicsMaterialComponent>( rEntity, rStream, [&]()
 			{
-				auto& pmc = rEntity.GetComponent< PhysicsMaterialComponent >();
+				auto& pmc = rEntity->GetComponent< PhysicsMaterialComponent >();
 
 				RawSerialisation::ReadObject( pmc.AssetID, rStream );
 			} );
@@ -403,7 +403,7 @@ namespace Saturn {
 		// Camera Component
 		ReadComponent<CameraComponent>( rEntity, rStream, [&]()
 			{
-				auto& cc = rEntity.GetComponent< CameraComponent >();
+				auto& cc = rEntity->GetComponent< CameraComponent >();
 
 				RawSerialisation::ReadObject( cc.MainCamera, rStream );
 			} );

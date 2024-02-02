@@ -74,6 +74,37 @@ namespace Saturn {
 		{
 			return BaseVertex == other.BaseVertex && BaseIndex == other.BaseIndex && MaterialIndex == other.MaterialIndex && IndexCount == other.IndexCount && VertexCount == other.VertexCount && NodeName == other.NodeName && MeshName == other.MeshName;
 		}
+
+	public:
+		static void Serialise( const Submesh& rObject, std::ofstream& rStream ) 
+		{
+			RawSerialisation::WriteObject( rObject.BaseVertex, rStream );
+			RawSerialisation::WriteObject( rObject.BaseIndex, rStream );
+			RawSerialisation::WriteObject( rObject.MaterialIndex, rStream );
+			RawSerialisation::WriteObject( rObject.IndexCount, rStream );
+			RawSerialisation::WriteObject( rObject.VertexCount, rStream );
+
+			RawSerialisation::WriteMatrix4x4( rObject.Transform, rStream );
+			RawSerialisation::WriteObject( rObject.BoundingBox, rStream );
+
+			RawSerialisation::WriteString( rObject.NodeName, rStream );
+			RawSerialisation::WriteString( rObject.MeshName, rStream );
+		}
+
+		static void Deserialise( Submesh& rObject, std::ifstream& rStream )
+		{
+			RawSerialisation::ReadObject( rObject.BaseVertex, rStream );
+			RawSerialisation::ReadObject( rObject.BaseIndex, rStream );
+			RawSerialisation::ReadObject( rObject.MaterialIndex, rStream );
+			RawSerialisation::ReadObject( rObject.IndexCount, rStream );
+			RawSerialisation::ReadObject( rObject.VertexCount, rStream );
+
+			RawSerialisation::ReadMatrix4x4( rObject.Transform, rStream );
+			RawSerialisation::ReadObject( rObject.BoundingBox, rStream );
+
+			rObject.NodeName = RawSerialisation::ReadString( rStream );
+			rObject.MeshName = RawSerialisation::ReadString( rStream );
+		}
 	};
 
 }
@@ -138,8 +169,8 @@ namespace Saturn {
 		const Ref<MaterialRegistry>& GetMaterialRegistry() const { return m_MaterialRegistry; }
 
 	public:
-		static void Serialise( const StaticMesh& rObject, std::ofstream& rStream );
-		static void Deserialise( StaticMesh& rObject, std::ifstream& rStream );
+		void SerialiseData( std::ofstream& rStream );
+		void DeserialiseData( std::ifstream& rStream );
 
 	private:
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );

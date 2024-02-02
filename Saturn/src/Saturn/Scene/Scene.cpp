@@ -664,11 +664,30 @@ namespace Saturn {
 
 	void Scene::SerialiseData( std::ofstream& rStream )
 	{
-		Asset::SerialiseData( rStream );
-
 		RawSerialisation::WriteObject( m_SceneID, rStream );
 		RawSerialisation::WriteObject( m_Lights, rStream );
-		//RawSerialisation::WriteMap( m_EntityIDMap, rStream );
+		
+		// Serialise the map manually.
+		size_t mapSize = m_EntityIDMap.size();
+		rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+		
+		for( const auto& [k, v] : m_EntityIDMap )
+		{
+			// K is always trivial
+			if constexpr( std::is_trivial<entt::entity>() )
+			{
+				RawSerialisation::WriteObject( k, rStream );
+			}
+
+			if constexpr( std::is_trivial<Entity>() )
+			{
+				RawSerialisation::WriteObject( v, rStream );
+			}
+			else
+			{
+				Entity::Serialise( v, rStream );
+			}
+		}
 	}
 
 	void Scene::DeserialiseData( std::ifstream& rStream )
