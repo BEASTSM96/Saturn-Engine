@@ -335,10 +335,11 @@ namespace Saturn {
 			rBuffer.Free();
 
 			size_t BufferSize = 0;
-			uint8_t* pData = nullptr;
 
 			rStream.read( reinterpret_cast< char* >( &BufferSize ), sizeof( size_t ) );
-			rStream.read( reinterpret_cast< char* >( pData ), rBuffer.Size );
+			
+			uint8_t* pData = new uint8_t[ BufferSize ];
+			rStream.read( reinterpret_cast< char* >( pData ), BufferSize );
 
 			rBuffer = Buffer::Copy( pData, BufferSize );
 

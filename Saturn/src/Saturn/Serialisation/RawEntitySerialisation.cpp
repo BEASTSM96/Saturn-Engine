@@ -52,8 +52,11 @@ namespace Saturn {
 		bool hasT = false;
 		RawSerialisation::ReadObject( hasT, rStream );
 
+		// If the entity ever had Component before then add it and invoke function.
 		if( hasT )
 		{
+			rEntity->AddComponent<Component>();
+
 			Function();
 		}
 	}
@@ -89,10 +92,7 @@ namespace Saturn {
 
 				RawSerialisation::WriteObject( rc.Parent, rStream );
 
-				for( const auto& id : rc.ChildrenID )
-				{
-					RawSerialisation::WriteObject( id, rStream );
-				}
+				RawSerialisation::WriteVector( rc.ChildrenID, rStream );
 			} );
 		
 		
@@ -267,10 +267,7 @@ namespace Saturn {
 
 				RawSerialisation::ReadObject( rc.Parent, rStream );
 
-				for( auto& id : rc.ChildrenID )
-				{
-					RawSerialisation::ReadObject( id, rStream );
-				}
+				RawSerialisation::ReadVector( rc.ChildrenID, rStream );
 			} );
 
 		// Prefab Component

@@ -109,12 +109,10 @@ namespace Saturn {
 
 		virtual void SerialiseData( std::ofstream& rStream )
 		{
-			Asset::SerialiseData( rStream );
 		}
 
 		virtual void DeserialiseData( std::ifstream& rStream )
 		{
-			Asset::DeserialiseData( rStream );
 		}
 
 	private:

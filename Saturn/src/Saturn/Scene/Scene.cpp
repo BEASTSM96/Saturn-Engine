@@ -692,10 +692,38 @@ namespace Saturn {
 
 	void Scene::DeserialiseData( std::ifstream& rStream )
 	{
-		Asset::DeserialiseData( rStream );
-
 		RawSerialisation::ReadObject( m_SceneID, rStream );
 		RawSerialisation::ReadObject( m_Lights, rStream );
-		//RawSerialisation::ReadMap( m_EntityIDMap, rStream );
+
+		// Read the map manually.
+		size_t mapSize = 0;
+		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+		
+		// We can not guarantee that we are the active scene, so temporarily set it while loading.
+		Scene* ActiveScene = GActiveScene;
+		GActiveScene = this;
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			entt::entity K{};
+			Ref<Entity> V = Ref<Entity>::Create();
+
+			// K is always trivial
+			if constexpr( std::is_trivial<entt::entity>() )
+			{
+				RawSerialisation::ReadObject( K, rStream );
+			}
+
+			if constexpr( std::is_trivial<Entity>() )
+			{
+				RawSerialisation::ReadObject( V, rStream );
+			}
+			else
+			{
+				Entity::Deserialise( V, rStream );
+			}
+		}
+
+		GActiveScene = ActiveScene;
 	}
 }

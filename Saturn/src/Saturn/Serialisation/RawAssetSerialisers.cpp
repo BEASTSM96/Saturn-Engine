@@ -100,6 +100,77 @@ namespace Saturn {
 
 	bool RawMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
 	{
+		Ref<MaterialAsset> materialAsset = Ref<MaterialAsset>::Create( nullptr );
+		AssetID currentTextureID = 0;
+
+		// ALBEO COLOR
+
+		glm::vec3 albeoColor = glm::vec3( 0.0f );
+		RawSerialisation::ReadVec3( albeoColor, rStream );
+
+		materialAsset->SetAlbeoColor( albeoColor );
+
+		// ALBEO MAP
+		RawSerialisation::ReadObject( currentTextureID, rStream );
+		
+		// IS USING NORMAL MAPS
+		bool isUsingNormalMaps = false;
+		RawSerialisation::ReadObject( isUsingNormalMaps, rStream );
+
+		// NORMAL MAP
+		RawSerialisation::ReadObject( currentTextureID, rStream );
+		
+		materialAsset->UseNormalMap( isUsingNormalMaps );
+
+		// METALNESS
+		float metalness = 0.0f;
+
+		RawSerialisation::ReadObject( metalness, rStream );
+
+		materialAsset->SetMetalness( metalness );
+
+		// METALLIC MAP
+		RawSerialisation::ReadObject( currentTextureID, rStream );
+
+		// ROUGHNESS
+		float roughness = 0.0f;
+
+		RawSerialisation::ReadObject( roughness, rStream );
+
+		materialAsset->SetRoughness( roughness );
+
+		// ROUGHNESS MAP
+		RawSerialisation::ReadObject( currentTextureID, rStream );
+
+		// EMISSIVE
+		float emissive = 0.0f;
+		RawSerialisation::ReadObject( emissive, rStream );
+		
+		materialAsset->SetEmissive( emissive );
+
+		// TODO: (Asset) Fix this.
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			uint32_t Flags;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = materialAsset;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
+
 		return true;
 	}
 
@@ -115,6 +186,34 @@ namespace Saturn {
 
 	bool RawPrefabSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
 	{
+		auto prefabAsset = Ref<Prefab>::Create();
+		prefabAsset->Create();
+
+		prefabAsset->GetScene()->DeserialiseData( rStream );
+
+		// TODO: (Asset) Fix this.
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			uint32_t Flags;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = prefabAsset;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
+
 		return true;
 	}
 
@@ -133,7 +232,7 @@ namespace Saturn {
 
 	bool RawStaticMeshAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
 	{
-		auto staticMeshAsset = rAsset.As<StaticMesh>();
+		auto staticMeshAsset = Ref<StaticMesh>::Create();
 
 		ShapeType shapeType = ShapeType::Unknown;
 		AssetID physicsMaterial = 0;
@@ -145,6 +244,29 @@ namespace Saturn {
 		staticMeshAsset->SetPhysicsMaterial( physicsMaterial );
 
 		staticMeshAsset->DeserialiseData( rStream );
+
+		// TODO: (Asset) Fix this.
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			uint32_t Flags;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = staticMeshAsset;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
 
 		return true;
 	}
@@ -165,8 +287,6 @@ namespace Saturn {
 
 	bool RawPhysicsMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
 	{
-		auto physMaterialAsset = rAsset.As<PhysicsMaterialAsset>();
-
 		glm::vec3 StaticDynamicFrictionRestitution{};
 		uint32_t assetFlags = 0;
 
@@ -176,11 +296,35 @@ namespace Saturn {
 
 		RawSerialisation::ReadObject( assetFlags, rStream );
 
-		physMaterialAsset->SetStaticFriction( StaticDynamicFrictionRestitution.x );
-		physMaterialAsset->SetDynamicFriction( StaticDynamicFrictionRestitution.y );
-		physMaterialAsset->SetRestitution( StaticDynamicFrictionRestitution.z );
-
+		auto physMaterialAsset = Ref<PhysicsMaterialAsset>::Create( 
+			StaticDynamicFrictionRestitution.x,
+			StaticDynamicFrictionRestitution.y,
+			StaticDynamicFrictionRestitution.z );
+		
 		physMaterialAsset->SetFlag( (PhysicsMaterialFlags)assetFlags, true );
+
+		// TODO: (Asset) Fix this.
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			uint32_t Flags;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = physMaterialAsset;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
 
 		return true;
 	}
@@ -197,6 +341,33 @@ namespace Saturn {
 
 	bool RawTextureSourceAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
 	{
+		auto textureSourceAsset = Ref<TextureSourceAsset>::Create();
+
+		textureSourceAsset->DeserialiseData( rStream );
+
+		// TODO: (Asset) Fix this.
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			uint32_t Flags;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = textureSourceAsset;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
+
 		return false;
 	}
 

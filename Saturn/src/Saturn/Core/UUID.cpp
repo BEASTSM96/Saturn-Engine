@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "UUID.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 #include <random>
 
 namespace Saturn {
@@ -52,4 +54,13 @@ namespace Saturn {
 
 	}
 
+	void UUID::Serialise( const UUID& rObject, std::ofstream& rStream )
+	{
+		RawSerialisation::WriteObject( rObject.m_UUID, rStream );
+	}
+
+	void UUID::Deserialise( UUID& rObject, std::ifstream& rStream )
+	{
+		RawSerialisation::ReadObject( rObject.m_UUID, rStream );
+	}
 }

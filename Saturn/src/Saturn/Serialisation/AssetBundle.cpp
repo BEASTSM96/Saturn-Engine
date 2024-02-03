@@ -113,7 +113,7 @@ namespace Saturn {
 					RawMaterialAssetSerialiser serialiser;
 					serialiser.Serialise( asset, fout );
 				} break;
-
+				
 				case Saturn::AssetType::PhysicsMaterial:
 				{
 					Ref<PhysicsMaterialAsset> asset = AssetBundleRegistry->GetAssetAs<PhysicsMaterialAsset>( id );
@@ -124,6 +124,7 @@ namespace Saturn {
 
 				case Saturn::AssetType::Scene:
 				{
+					/*
 					Ref<Scene> scene = Ref<Scene>::Create();
 					Scene* pOldActiveScene = GActiveScene;
 					GActiveScene = scene.Get();
@@ -134,10 +135,12 @@ namespace Saturn {
 					GActiveScene = pOldActiveScene;
 
 					scene->SerialiseData( fout );
+					*/
 				} break;
 
 				case Saturn::AssetType::Prefab:
 				{
+					/*
 					Ref<Prefab> asset = AssetBundleRegistry->GetAssetAs<Prefab>( id );
 
 					if( asset )
@@ -145,6 +148,7 @@ namespace Saturn {
 						RawPrefabSerialiser serialiser;
 						serialiser.Serialise( asset, fout );
 					}
+					*/
 				} break;
 
 				case Saturn::AssetType::SkeletalMesh:
@@ -187,7 +191,7 @@ namespace Saturn {
 		}
 
 		AssetManager& rAssetManager = AssetManager::Get();
-		Ref<AssetRegistry>& rAssetRegistry = rAssetManager.GetAssetRegistry();
+		Ref<AssetRegistry> rAssetRegistry = Ref<AssetRegistry>::Create();
 
 		for( size_t i = 0; i < header.Assets; i++ )
 		{
@@ -196,16 +200,15 @@ namespace Saturn {
 
 			rAssetRegistry->m_Assets[ asset->ID ] = asset;
 
-			/*
 			switch( asset->Type )
 			{
 				case Saturn::AssetType::Texture:
-				{
+				{ 
 					auto AbsolutePath = Project::GetActiveProject()->FilepathAbs( asset->Path );
 					Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AbsolutePath );
 
 					RawTextureSourceAssetSerialiser serialiser;
-					serialiser.TryLoadData( sourceAsset, stream );
+					serialiser.TryLoadData( asset, stream );
 				} break;
 
 				case Saturn::AssetType::StaticMesh:
@@ -228,25 +231,21 @@ namespace Saturn {
 
 				case Saturn::AssetType::Scene:
 				{
+					/*
 					Ref<Scene> scene = Ref<Scene>::Create();
-					Scene* pOldActiveScene = GActiveScene;
-					GActiveScene = scene.Get();
-
-					SceneSerialiser serialiser( scene );
-					serialiser.TryLoadData( asset->Path );
-
-					GActiveScene = pOldActiveScene;
-
-					scene->SerialiseData( fout );
+					scene->DeserialiseData( stream );
+					*/
 				} break;
 
 				case Saturn::AssetType::Prefab:
 				{
+					/*
 					if( asset )
 					{
 						RawPrefabSerialiser serialiser;
 						serialiser.TryLoadData( asset, stream );
 					}
+					*/
 				} break;
 
 				case Saturn::AssetType::SkeletalMesh:
@@ -258,7 +257,6 @@ namespace Saturn {
 				default:
 					break;
 			}
-			*/
 		}
 
 		stream.close();

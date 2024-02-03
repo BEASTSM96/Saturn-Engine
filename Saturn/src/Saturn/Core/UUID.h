@@ -50,6 +50,10 @@ namespace Saturn {
 		operator uint64_t() { return m_UUID; }
 		operator const uint64_t() const { return m_UUID; }
 
+	public:
+		static void Serialise( const UUID& rObject, std::ofstream& rStream );
+		static void Deserialise( UUID& rObject, std::ifstream& rStream );
+
 	private:
 
 		uint64_t m_UUID;
