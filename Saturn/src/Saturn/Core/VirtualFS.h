@@ -1,0 +1,143 @@
+/********************************************************************************************
+*                                                                                           *
+*                                                                                           *
+*                                                                                           *
+* MIT License                                                                               *
+*                                                                                           *
+* Copyright (c) 2020 - 2024 BEAST                                                           *
+*                                                                                           *
+* Permission is hereby granted, free of charge, to any person obtaining a copy              *
+* of this software and associated documentation files (the "Software"), to deal             *
+* in the Software without restriction, including without limitation the rights              *
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                 *
+* copies of the Software, and to permit persons to whom the Software is                     *
+* furnished to do so, subject to the following conditions:                                  *
+*                                                                                           *
+* The above copyright notice and this permission notice shall be included in all            *
+* copies or substantial portions of the Software.                                           *
+*                                                                                           *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                *
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                  *
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE               *
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                    *
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,             *
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE             *
+* SOFTWARE.                                                                                 *
+*********************************************************************************************
+*/
+
+#pragma once
+
+#include "StringAuxiliary.h"
+
+#include "Memory/Buffer.h"
+
+#include <filesystem>
+#include <string>
+#include <map>
+
+namespace Saturn {
+
+	struct VFile
+	{
+		std::wstring Name;
+
+		Buffer FileContents;
+	};
+
+	struct VDirectory
+	{
+		std::wstring Name;
+		
+		// Name -> File
+		std::map< std::wstring, VFile > Files;
+		
+		// Name -> VDirectory
+		std::map< std::wstring, VDirectory > Directories;
+	
+		VDirectory() = default;
+
+		VDirectory( const std::wstring& rName ) : Name( rName ) {}
+		
+		VDirectory( const std::string& rName ) 
+		{
+			Name = Auxiliary::ConvertString( rName );
+		}
+
+		void AddFile( const std::wstring& rName ) 
+		{
+			Files.emplace( rName, VFile( rName ) );
+		}
+
+		void RemoveFile( const std::wstring& rName )
+		{
+			Files.erase( rName );
+		}
+
+		void AddDirectory( const std::wstring& rName )
+		{
+			Directories.emplace( rName, VDirectory( rName ) );
+		}
+
+		void RemoveDirectory( const std::wstring& rName )
+		{
+			Directories.erase( rName );
+		}
+
+		template<typename Func>
+		void EachFile( Func Function ) 
+		{
+			for( const auto& rFile : Files ) 
+			{
+				Function( rFile );
+			}
+		}
+
+		template<typename Func>
+		void EachDirectory( Func Function )
+		{
+			for( const auto& rDir : Directories )
+			{
+				Function( rDir );
+			}
+		}
+
+		void Clear() 
+		{
+			Files.clear();
+			Directories.clear();
+		}
+	};
+
+	class VirtualFS
+	{
+	public:
+		static inline VirtualFS& Get() { return *SingletonStorage::GetOrCreateSingleton<VirtualFS>(); }
+	public:
+		VirtualFS();
+		~VirtualFS();
+
+		// Mounts a real path to a virtual one.
+		// For example:
+		// ID = FPS, RealPath = D:\Projects\FPS\ would result in:
+		// /FPS/
+		// 
+		// Virtual path is then added to the root directory.
+		// Real path is then added to the mount bases list.
+		void MountBase( const std::string& rID, const std::filesystem::path& rRealPath );
+		
+		bool Mount( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+
+	private:
+		void Init();
+		void Terminate();
+
+	private:
+		VDirectory m_RootDirectory;
+
+		std::map<std::string, std::filesystem::path> m_MountBases;
+		
+		// Files and Directories in the ROOT DIR ONLY!
+		//std::map<std::wstring, VFile> m_Files;
+	};
+}
