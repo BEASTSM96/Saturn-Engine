@@ -193,6 +193,12 @@ namespace Saturn {
 		AssetManager& rAssetManager = AssetManager::Get();
 		Ref<AssetRegistry> rAssetRegistry = Ref<AssetRegistry>::Create();
 
+		// Assets that are fine to load.
+		// Physics Material
+		// Textures
+		// Static meshes
+		// Scenes (disabled for now)
+
 		for( size_t i = 0; i < header.Assets; i++ )
 		{
 			Ref<Asset> asset = Ref<Asset>::Create();
@@ -231,10 +237,8 @@ namespace Saturn {
 
 				case Saturn::AssetType::Scene:
 				{
-					/*
-					Ref<Scene> scene = Ref<Scene>::Create();
-					scene->DeserialiseData( stream );
-					*/
+					//Ref<Scene> scene = Ref<Scene>::Create();
+					//scene->DeserialiseData( stream );
 				} break;
 
 				case Saturn::AssetType::Prefab:

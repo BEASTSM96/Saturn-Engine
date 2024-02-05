@@ -55,7 +55,7 @@ namespace Saturn {
 
 		// We are fine to use the main asset registry here, we are only looking for an asset.
 		auto asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
-		auto fallbackAssetID = 0;
+		AssetID fallbackAssetID = 0;
 
 		// ALBEO
 		if( asset )

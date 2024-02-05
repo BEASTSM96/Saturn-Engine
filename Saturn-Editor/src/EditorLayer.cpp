@@ -150,20 +150,24 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Setup Project for Distribution" ) )
 				{
-					Project::GetActiveProject()->PrepForDist();
+					//Project::GetActiveProject()->PrepForDist();
 
 					// Make sure we will include the Texture Pass shader.
 					// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
-					Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
+					//Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
 
-					ShaderBundle::BundleShaders();
+					//ShaderBundle::BundleShaders();
 
-					ShaderLibrary::Get().Remove( TexturePass ); 
-					TexturePass = nullptr;
+					//ShaderLibrary::Get().Remove( TexturePass ); 
+					//TexturePass = nullptr;
 
 					// Bundle Assets
 					// TODO: This will most likely be an action that takes time so to account for that we need to make a window modal for this.
 					AssetBundle::BundleAssets();
+					
+					std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
+
+					AssetBundle::ReadBundle();
 				}
 
 				if( ImGui::MenuItem( "Distribute project" ) )
