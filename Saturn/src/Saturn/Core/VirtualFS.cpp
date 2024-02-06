@@ -110,6 +110,60 @@ namespace Saturn {
 		return true;
 	}
 
+	VFile& VirtualFS::FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	{
+		return *Search<VFile>( rMountBase, rVirtualPath );
+	}
+
+	VDirectory& VirtualFS::FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	{
+		return *Search<VDirectory>( rMountBase, rVirtualPath );
+	}
+
+	template<typename Ty>
+	Ty* VirtualFS::Search( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	{
+		// Check if the mount base exists.
+		const auto Itr = m_MountBases.find( rMountBase );
+
+		if( Itr == m_MountBases.end() )
+			return nullptr;
+
+		auto& MountBasePath = Itr->second;
+
+		VDirectory& rMountBaseDir = m_RootDirectory.Directories[ rMountBase ];
+
+		// We are looking for a file.
+		if( rVirtualPath.has_extension() )
+		{
+			// Search the mount base for the file.
+		}
+		else
+		{
+			return ( Ty* ) SearchRecursive( rMountBaseDir, rVirtualPath.begin(), rVirtualPath.end() );
+		}
+
+		return nullptr;
+	}
+
+	VDirectory* VirtualFS::SearchRecursive( VDirectory& rLastDir, std::filesystem::path::iterator Iterator, const std::filesystem::path::iterator& rEnd )
+	{
+		if( Iterator == rEnd )
+		{
+			return &rLastDir;
+		}
+
+		std::filesystem::path path = *Iterator;
+
+		auto it = rLastDir.Directories.find( path.string() );
+		if( it != rLastDir.Directories.end() )
+		{
+			return SearchRecursive( it->second, ++Iterator, rEnd );
+		}
+
+		return nullptr;
+	}
+
 	size_t VirtualFS::GetMountBases()
 	{
 		return m_MountBases.size();

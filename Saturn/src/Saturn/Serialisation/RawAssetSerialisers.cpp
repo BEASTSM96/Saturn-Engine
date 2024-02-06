@@ -35,6 +35,8 @@
 #include "Saturn/Asset/TextureSourceAsset.h"
 #include "Saturn/Audio/Sound2D.h"
 
+#include "Saturn/Core/VirtualFS.h"
+
 #include "Saturn/Physics/PhysicsShapeTypes.h"
 
 #include "Saturn/Asset/MaterialAsset.h"
@@ -173,6 +175,13 @@ namespace Saturn {
 
 		return true;
 	}
+
+	/*
+	bool RawMaterialAssetSerialiser::TryLoadIntoVFS( Ref<Asset>& rAsset, std::ifstream& rStream ) const
+	{
+		VFile& rFile = VirtualFS::Get().FindFile( rAsset->Path );
+	}
+	*/
 
 	//////////////////////////////////////////////////////////////////////////
 	// PREFAB

@@ -131,7 +131,14 @@ namespace Saturn {
 		// Real path is then added to the mount bases list.
 		void MountBase( const std::string& rID, const std::filesystem::path& rRealPath );
 		
+		// Mount a virtual path to a mount base
+		// For example:
+		// MountBase = FPS
+		// VirtualPath = Assets/Meshes/Gun.fbx
 		bool Mount( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+
+		VFile& FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+		VDirectory& FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
 		size_t GetMountBases();
 		size_t GetMounts();
@@ -145,6 +152,11 @@ namespace Saturn {
 
 		void DrawDirectory( VDirectory& rDirectory );
 		size_t GetMountsForDir( VDirectory& rDirectory );
+
+		template<typename Ty>
+		Ty* Search( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+
+		VDirectory* SearchRecursive( VDirectory& rLastDir, std::filesystem::path::iterator Iterator, const std::filesystem::path::iterator& rEnd );
 
 	private:
 		VDirectory m_RootDirectory;

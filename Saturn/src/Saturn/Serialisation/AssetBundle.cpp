@@ -32,6 +32,8 @@
 #include "Saturn/Asset/Asset.h"
 #include "Saturn/Asset/AssetManager.h"
 
+#include "Saturn/Core/VirtualFS.h"
+
 #include "Saturn/Project/Project.h"
 #include "Saturn/Serialisation/RawSerialisation.h"
 #include "Saturn/Serialisation/RawAssetSerialisers.h"
@@ -203,6 +205,8 @@ namespace Saturn {
 		{
 			Ref<Asset> asset = Ref<Asset>::Create();
 			asset->DeserialiseData( stream );
+
+			VirtualFS::Get().Mount( Project::GetActiveConfig().Name, asset->Path );
 
 			rAssetRegistry->m_Assets[ asset->ID ] = asset;
 
