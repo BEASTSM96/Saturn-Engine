@@ -29,6 +29,9 @@
 #include "sppch.h"
 #include "VirtualFS.h"
 
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
+#include <imgui.h>
+
 namespace Saturn {
 
 	VirtualFS::VirtualFS()
@@ -42,11 +45,18 @@ namespace Saturn {
 		Terminate();
 	}
 
+	void VirtualFS::Init()
+	{
+	}
+
+	void VirtualFS::Terminate()
+	{
+		m_RootDirectory.Clear();
+	}
+
 	void VirtualFS::MountBase( const std::string& rID, const std::filesystem::path& rRealPath )
 	{
-		std::wstring rIDW = Auxiliary::ConvertString( rID );
-
-		m_RootDirectory.AddDirectory( rIDW );
+		m_RootDirectory.AddDirectory( rID );
 		m_MountBases.emplace( rID, rRealPath );
 	}
 
@@ -59,55 +69,121 @@ namespace Saturn {
 			return false;
 
 		auto& MountBasePath = Itr->second;
-		std::wstring MouseBasePathW = Auxiliary::ConvertString( rMountBase );
 
 		// Get the mount base folder.
-		VDirectory& rMountBaseDir = m_RootDirectory.Directories[ MouseBasePathW ];
+		VDirectory& rMountBaseDir = m_RootDirectory.Directories[ rMountBase ];
 
-		VDirectory CurrentDir = rMountBaseDir;
+		VDirectory* pCurrentDir = &rMountBaseDir;
 
 		for( auto it = rVirtualPath.begin(); it != rVirtualPath.end(); ++it )
 		{
-			std::wstring segmentStr = *it;
 			std::filesystem::path temporaryPath = *it;
+			std::string segmentStr = temporaryPath.string();
 
 			bool isDir = !temporaryPath.has_extension();
 
 			if( isDir )
 			{
-				auto dirItr = CurrentDir.Directories.find( segmentStr );
+				auto dirItr = pCurrentDir->Directories.find( segmentStr );
 
-				if( dirItr == CurrentDir.Directories.end() )
+				if( dirItr == pCurrentDir->Directories.end() )
 				{
 					// Directory does not exist.
-					CurrentDir.Directories.emplace( segmentStr, VDirectory( segmentStr ) );
+					pCurrentDir->Directories.emplace( segmentStr, VDirectory( segmentStr ) );
 				}
+
+				pCurrentDir = &pCurrentDir->Directories[ segmentStr ];
 			}
 			else
 			{
-				auto fileItr = CurrentDir.Files.find( segmentStr );
+				auto fileItr = pCurrentDir->Files.find( segmentStr );
 
-				if( fileItr == CurrentDir.Files.end() )
+				if( fileItr == pCurrentDir->Files.end() )
 				{
 					// Directory does not exist.
-					CurrentDir.Files.emplace( segmentStr, VFile( segmentStr ) );
+					pCurrentDir->Files.emplace( segmentStr, VFile( segmentStr ) );
 				}
 			}
-
-			//CurrentDir = CurrentDir.Directories[ SegmentStr ];
 		}
 
 		// Mount successful.
 		return true;
 	}
 
-	void VirtualFS::Init()
+	size_t VirtualFS::GetMountBases()
 	{
+		return m_MountBases.size();
 	}
 
-	void VirtualFS::Terminate()
+	size_t VirtualFS::GetMounts()
 	{
-		m_RootDirectory.Clear();
+		size_t mounts = 0;
+
+		for( auto&& [name, rDir] : m_RootDirectory.Directories )
+			mounts += GetMountsForDir( rDir );
+
+		return mounts;
 	}
 
+	size_t VirtualFS::GetMountsForDir( VDirectory& rDirectory )
+	{
+		size_t mounts = 0;
+
+		for( auto&& [name, rDir] : rDirectory.Directories )
+		{
+			mounts += rDir.Files.size();
+			mounts += rDirectory.Directories.size();
+
+			mounts += GetMountsForDir( rDir );
+		}
+
+		return mounts;
+	}
+
+	void VirtualFS::DrawDirectory( VDirectory& rDirectory )
+	{		
+		if( ImGui::TreeNode( rDirectory.GetName().c_str() ) )
+		{
+			for( auto&& [name, rDirectory] : rDirectory.Directories )
+			{
+				DrawDirectory( rDirectory );
+			}
+
+			for( auto&& [name, rFile] : rDirectory.Files )
+			{
+				ImGui::Selectable( name.c_str() );
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	void VirtualFS::ImGuiRender()
+	{
+		if( Auxiliary::TreeNode( "Mount Bases", false ) ) 
+		{
+			for( auto&& [name, rPath] : m_MountBases )
+			{
+				if( ImGui::TreeNode( name.c_str() ) )
+				{
+					ImGui::Text( "ID: %s", name.c_str() );
+					ImGui::Text( "Path: %s", rPath.string().c_str() );
+
+					ImGui::TreePop();
+				}
+			}
+
+			Auxiliary::EndTreeNode();
+		}
+
+		if( Auxiliary::TreeNode( "Mounts", false ) )
+		{
+			for( auto&& [name, rDirectory] : m_RootDirectory.Directories )
+			{
+				DrawDirectory( rDirectory );
+			}
+
+			Auxiliary::EndTreeNode();
+		}
+	}
 }

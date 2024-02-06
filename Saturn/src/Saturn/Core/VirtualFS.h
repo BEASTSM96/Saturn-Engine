@@ -40,46 +40,39 @@ namespace Saturn {
 
 	struct VFile
 	{
-		std::wstring Name;
+		std::string Name;
 
 		Buffer FileContents;
 	};
 
-	struct VDirectory
+	class VDirectory
 	{
-		std::wstring Name;
-		
-		// Name -> File
-		std::map< std::wstring, VFile > Files;
-		
-		// Name -> VDirectory
-		std::map< std::wstring, VDirectory > Directories;
-	
+	public:
 		VDirectory() = default;
 
-		VDirectory( const std::wstring& rName ) : Name( rName ) {}
-		
-		VDirectory( const std::string& rName ) 
-		{
-			Name = Auxiliary::ConvertString( rName );
-		}
+		VDirectory( const std::string& rName ) : m_Name( rName ) {}
 
-		void AddFile( const std::wstring& rName ) 
+		VDirectory( const std::wstring& rName )
+		{
+			m_Name = Auxiliary::ConvertWString( rName );
+		}
+	public:
+		void AddFile( const std::string& rName ) 
 		{
 			Files.emplace( rName, VFile( rName ) );
 		}
 
-		void RemoveFile( const std::wstring& rName )
+		void RemoveFile( const std::string& rName )
 		{
 			Files.erase( rName );
 		}
 
-		void AddDirectory( const std::wstring& rName )
+		void AddDirectory( const std::string& rName )
 		{
 			Directories.emplace( rName, VDirectory( rName ) );
 		}
 
-		void RemoveDirectory( const std::wstring& rName )
+		void RemoveDirectory( const std::string& rName )
 		{
 			Directories.erase( rName );
 		}
@@ -107,6 +100,18 @@ namespace Saturn {
 			Files.clear();
 			Directories.clear();
 		}
+
+		const std::string& GetName() { return m_Name; }
+
+	public:
+		// Name -> File
+		std::unordered_map< std::string, VFile > Files;
+
+		// Name -> VDirectory
+		std::unordered_map< std::string, VDirectory > Directories;
+
+	private:
+		std::string m_Name;
 	};
 
 	class VirtualFS
@@ -128,9 +133,18 @@ namespace Saturn {
 		
 		bool Mount( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
+		size_t GetMountBases();
+		size_t GetMounts();
+
+	public:
+		void ImGuiRender();
+
 	private:
 		void Init();
 		void Terminate();
+
+		void DrawDirectory( VDirectory& rDirectory );
+		size_t GetMountsForDir( VDirectory& rDirectory );
 
 	private:
 		VDirectory m_RootDirectory;

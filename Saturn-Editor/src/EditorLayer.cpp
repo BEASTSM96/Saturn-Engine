@@ -71,6 +71,7 @@
 #include <Saturn/GameFramework/Core/GameModule.h>
 
 #include <Saturn/Core/Renderer/RenderThread.h>
+#include <Saturn/Core/VirtualFS.h>
 
 #include <Saturn/Audio/Sound2D.h>
 
@@ -181,11 +182,12 @@ namespace Saturn {
 
 			if( ImGui::BeginMenu( "Settings" ) )
 			{
-				if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;
-				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
-				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug = !OpenLoadedAssetDebug;
-				if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings = !m_OpenEditorSettings;
-				if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow = !m_ShowImGuiDemoWindow;
+				if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings ^= 1;
+				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug ^= 1;
+				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug ^= 1;
+				if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings ^= 1;
+				if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow ^= 1;
+				if( ImGui::MenuItem( "Virtual File system debug", "" ) ) m_ShowVFSDebug ^= 1;
 
 				ImGui::EndMenu();
 			}
@@ -224,6 +226,8 @@ namespace Saturn {
 		ContentBrowserPanel* pContentBrowserPanel = ( ContentBrowserPanel* ) m_PanelManager->GetPanel( "Content Browser Panel" );
 
 		auto& rUserSettings = EngineSettings::Get();
+
+		VirtualFS::Get().MountBase( "barn_blew_up", rUserSettings.StartupProject );
 
 		pContentBrowserPanel->ResetPath( rUserSettings.StartupProject );
 
@@ -375,27 +379,11 @@ namespace Saturn {
 			}
 		}
 
-		if( m_ShowImGuiDemoWindow )
-			ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
-
 		m_TitleBar->Draw();
 		AssetViewer::Draw();
 
 		m_PanelManager->DrawAllPanels();
 		Application::Get().PrimarySceneRenderer().ImGuiRender();
-
-		if( m_ShowUserSettings )
-			UI_Titlebar_UserSettings();
-
-		if( OpenAssetRegistryDebug ) 
-		{
-			DrawAssetRegistryDebug();
-		}
-
-		if( OpenLoadedAssetDebug ) 
-		{
-			DrawLoadedAssetsDebug();
-		}
 
 		if( OpenAttributions )
 		{
@@ -407,11 +395,13 @@ namespace Saturn {
 			}
 		}
 
-		if( m_OpenEditorSettings )
-		{
-			DrawEditorSettings();
-		}
-
+		if( m_ShowImGuiDemoWindow ) ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
+		if( m_ShowUserSettings ) UI_Titlebar_UserSettings();
+		if( OpenAssetRegistryDebug ) DrawAssetRegistryDebug();
+		if( OpenLoadedAssetDebug ) 	DrawLoadedAssetsDebug();
+		if( m_OpenEditorSettings ) DrawEditorSettings();
+		if( m_ShowVFSDebug ) DrawVFSDebug();
+		
 		ImGui::Begin( "Renderer" );
 
 		ImGui::Text( "Frame Time: %.2f ms", Application::Get().Time().Milliseconds() );
@@ -1273,6 +1263,25 @@ namespace Saturn {
 				}
 			}
 		}
+	}
+
+	void EditorLayer::DrawVFSDebug()
+	{
+		VirtualFS& rVirtualFS = VirtualFS::Get();
+
+		ImGui::Begin( "Virtual File system" );
+
+		if( Auxiliary::TreeNode( "VFS Info", false ) )
+		{
+			ImGui::Text( "Mount Bases: %i", rVirtualFS.GetMountBases() );
+			ImGui::Text( "Mounts: %i", rVirtualFS.GetMounts() );
+		
+			Auxiliary::EndTreeNode();
+		}
+
+		rVirtualFS.ImGuiRender();
+
+		ImGui::End();
 	}
 
 	void EditorLayer::DrawViewport()
