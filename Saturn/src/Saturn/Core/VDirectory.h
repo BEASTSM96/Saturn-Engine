@@ -26,106 +26,63 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "AssetRegistrySerialiser.h"
-#include "Saturn/Asset/AssetRegistry.h"
+#pragma once
 
-#include "Saturn/Project/Project.h"
-
-#include "Saturn/Core/VirtualFS.h"
-
-#include <fstream>
-#include <yaml-cpp/yaml.h>
-
-namespace YAML {
-
-	template <>
-	struct convert<std::filesystem::path>
-	{
-		static Node encode( std::filesystem::path rhs )
-		{
-			return Node( rhs.string() );
-		}
-
-		static bool decode( const Node& node, std::filesystem::path& rhs )
-		{
-			rhs = node.as<std::string>();
-
-			return true;
-		}
-	};
-
-	inline Emitter& operator<<( Emitter& emitter, const std::filesystem::path& v )
-	{
-		return emitter.Write( v.string() );
-	}
-}
+#include "StringAuxiliary.h"
+#include <unordered_map>
 
 namespace Saturn {
 
-	void AssetRegistrySerialiser::Serialise( const Ref<AssetRegistry>& rAssetRegistry )
+	struct VFile;
+
+	class VDirectory
 	{
-		YAML::Emitter out;
+	public:
+		VDirectory() = default;
+		VDirectory( const std::string& rName );
+		VDirectory( const std::wstring& rName );
+		VDirectory( const std::string& rName, VDirectory* parentDirectory );
 
-		auto& Assets = rAssetRegistry->GetAssetMap();
+	public:
+		void AddFile( const std::string& rName );
+		void RemoveFile( const std::string& rName );
+		void AddDirectory( const std::string& rName );
+		void RemoveDirectory( const std::string& rName );
 
-		out << YAML::BeginMap;
-
-		out << YAML::Key << "Assets";
-
-		out << YAML::BeginSeq;
-
-		for( const auto& [id, asset] : Assets )
+		template<typename Func>
+		void EachFile( Func Function )
 		{
-			out << YAML::BeginMap;
-
-			out << YAML::Key << "Asset" << YAML::Value << id;
-
-			out << YAML::Key << "Path" << YAML::Value << asset->GetPath();
-
-			out << YAML::Key << "Type" << YAML::Value << AssetTypeToString( asset->GetAssetType() );
-
-			out << YAML::EndMap;
+			for( const auto& rFile : Files )
+			{
+				Function( rFile );
+			}
 		}
 
-		out << YAML::EndSeq;
-
-		out << YAML::EndMap;
-
-		std::ofstream stream( rAssetRegistry->GetPath() );
-		stream << out.c_str();
-	}
-
-	void AssetRegistrySerialiser::Deserialise( Ref<AssetRegistry> AssetRegistry )
-	{
-		std::ifstream FileIn( AssetRegistry->GetPath() );
-		std::stringstream ss;
-		ss << FileIn.rdbuf();
-
-		YAML::Node data = YAML::Load( ss.str() );
-
-		auto assets = data[ "Assets" ];
-
-		if( assets.IsNull() )
-			return;
-
-		for( auto asset : assets )
+		template<typename Func>
+		void EachDirectory( Func Function )
 		{
-			UUID assetID = asset[ "Asset" ].as< uint64_t >();
-
-			auto path = asset[ "Path" ].as< std::filesystem::path >();
-			auto type = asset[ "Type" ].as< std::string >();
-
-			AssetRegistry->AddAsset( assetID );
-
-			Ref<Asset> DeserialisedAsset = AssetRegistry->FindAsset( assetID );
-
-			DeserialisedAsset->Path = path;
-			DeserialisedAsset->Name = path.filename().replace_extension().string();
-			DeserialisedAsset->Type = AssetTypeFromString( type );
-
-			AssetRegistry->m_IsEditorRegistry ? DeserialisedAsset->Flags = (uint32_t)AssetFlag::Editor : DeserialisedAsset->Flags = ( uint32_t ) AssetFlag::None;
+			for( const auto& rDir : Directories )
+			{
+				Function( rDir );
+			}
 		}
-	}
 
+		void Clear();
+
+		const std::string& GetName() { return m_Name; }
+
+		VDirectory& GetParent() { return *m_ParentDirectory; }
+
+	public:
+		// Name -> File
+		std::unordered_map< std::string, VFile > Files;
+
+		// Name -> VDirectory
+		std::unordered_map< std::string, VDirectory > Directories;
+
+		VDirectory* m_ParentDirectory = nullptr;
+
+	private:
+		std::string m_Name;
+	};
 }

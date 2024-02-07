@@ -88,8 +88,21 @@ namespace Saturn {
 
 				if( dirItr == pCurrentDir->Directories.end() )
 				{
+					VDirectory dir( segmentStr, pCurrentDir );
+
 					// Directory does not exist.
-					pCurrentDir->Directories.emplace( segmentStr, VDirectory( segmentStr ) );
+					pCurrentDir->Directories.emplace( segmentStr, dir );
+
+					// Only add the last dir path if the last path is not the mount base.
+					if( pCurrentDir->GetName() != rMountBase )
+					{
+						// Build the path for our Path to dir map.
+						BuildPath( dir, rMountBase );
+					}
+					else
+					{
+						m_PathToDir[ rMountBase ][ segmentStr ] = pCurrentDir->Directories[ segmentStr ];
+					}
 				}
 
 				pCurrentDir = &pCurrentDir->Directories[ segmentStr ];
@@ -110,47 +123,119 @@ namespace Saturn {
 		return true;
 	}
 
-	VFile& VirtualFS::FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	void VirtualFS::BuildPath( VDirectory& rDir, const std::string& rMountBase )
 	{
-		return *Search<VFile>( rMountBase, rVirtualPath );
+		// Create a temp copy just so we don't modify the rDir
+		VDirectory* currentDir = &rDir;
+
+		// Add all of our parents paths onto our one.
+		std::string path = "";
+
+		while( currentDir != nullptr )
+		{
+			if( currentDir->GetName() == rMountBase )
+				break;
+
+			std::string dirName = currentDir->GetName();
+			path = dirName + "/" + path;
+
+			currentDir = &currentDir->GetParent();
+		}
+
+		m_PathToDir[ rMountBase ][ path ] = rDir;
 	}
 
-	VDirectory& VirtualFS::FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	void VirtualFS::UnmountBase( const std::string& rID )
 	{
-		return *Search<VDirectory>( rMountBase, rVirtualPath );
+		// Check if the mount base exists.
+		const auto Itr = m_MountBases.find( rID );
+
+		if( Itr == m_MountBases.end() ) 
+		{
+			SAT_CORE_WARN( "{0} was not found, maybe it was already unmounted?", rID );
+
+			return;
+		}
+
+		auto& MountBasePath = Itr->second;
+
+		// Get the mount base folder.
+		VDirectory& rMountBaseDir = m_RootDirectory.Directories[ rID ];
+
+		if( rMountBaseDir.Directories.size() || rMountBaseDir.Files.size() )
+		{
+			SAT_CORE_WARN( "{0} still has directories and/or files mounted to it! Please unmount them before unmounting the base!", rID );
+		}
+
+		rMountBaseDir.Clear();
+
+		m_RootDirectory.Directories.erase( rID );
 	}
 
-	template<typename Ty>
-	Ty* VirtualFS::Search( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	void VirtualFS::Unmount( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	{
+		// TODO:
+	}
+
+	VFile VirtualFS::FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
 	{
 		// Check if the mount base exists.
 		const auto Itr = m_MountBases.find( rMountBase );
 
 		if( Itr == m_MountBases.end() )
-			return nullptr;
+			return {};
 
 		auto& MountBasePath = Itr->second;
 
 		VDirectory& rMountBaseDir = m_RootDirectory.Directories[ rMountBase ];
 
-		// We are looking for a file.
-		if( rVirtualPath.has_extension() )
-		{
-			// Search the mount base for the file.
-		}
-		else
-		{
-			return ( Ty* ) SearchRecursive( rMountBaseDir, rVirtualPath.begin(), rVirtualPath.end() );
-		}
-
-		return nullptr;
+		return SearchRecursiveFile( rMountBaseDir, rVirtualPath.begin(), rVirtualPath.end() );
 	}
 
-	VDirectory* VirtualFS::SearchRecursive( VDirectory& rLastDir, std::filesystem::path::iterator Iterator, const std::filesystem::path::iterator& rEnd )
+	VDirectory VirtualFS::FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	{
+		// Check if the mount base exists.
+		const auto Itr = m_MountBases.find( rMountBase );
+
+		if( Itr == m_MountBases.end() )
+			return {};
+
+		auto& MountBasePath = Itr->second;
+
+		VDirectory& rMountBaseDir = m_RootDirectory.Directories[ rMountBase ];
+
+		return SearchRecursiveDir( rMountBaseDir, rVirtualPath.begin(), rVirtualPath.end() );
+	}
+
+	VFile Saturn::VirtualFS::SearchRecursiveFile( VDirectory& rLastDir, std::filesystem::path::iterator Iterator, const std::filesystem::path::iterator& rEnd, const std::string& rTargetName /* = "" */ )
 	{
 		if( Iterator == rEnd )
 		{
-			return &rLastDir;
+			return rLastDir.Files[ rTargetName ];
+		}
+
+		std::filesystem::path path = *Iterator;
+
+		auto it = rLastDir.Files.find( path.string() );
+		if( it != rLastDir.Files.end() )
+		{
+			return SearchRecursiveFile( it->second.ParentDir, ++Iterator, rEnd, path.string() );
+		}
+		else
+		{
+			// Not found? try a new dir
+			VDirectory dir = SearchRecursiveDir( rLastDir, ++Iterator, rEnd );
+			return SearchRecursiveFile( dir, ++Iterator, rEnd, path.string() );
+		}
+
+		return {};
+	}
+
+	VDirectory Saturn::VirtualFS::SearchRecursiveDir( VDirectory& rLastDir, std::filesystem::path::iterator Iterator, const std::filesystem::path::iterator& rEnd )
+	{
+		if( Iterator == rEnd )
+		{
+			return rLastDir;
 		}
 
 		std::filesystem::path path = *Iterator;
@@ -158,10 +243,10 @@ namespace Saturn {
 		auto it = rLastDir.Directories.find( path.string() );
 		if( it != rLastDir.Directories.end() )
 		{
-			return SearchRecursive( it->second, ++Iterator, rEnd );
+			return SearchRecursiveDir( it->second, ++Iterator, rEnd );
 		}
 
-		return nullptr;
+		return {};
 	}
 
 	size_t VirtualFS::GetMountBases()
@@ -235,6 +320,25 @@ namespace Saturn {
 			for( auto&& [name, rDirectory] : m_RootDirectory.Directories )
 			{
 				DrawDirectory( rDirectory );
+			}
+
+			Auxiliary::EndTreeNode();
+		}
+
+		if( Auxiliary::TreeNode( "Path to Dir Map", false ) )
+		{
+			for( auto&& [mountBase, pathToDir] : m_PathToDir )
+			{
+				if( Auxiliary::TreeNode( mountBase.c_str(), false ) )
+				{
+					for( auto&& [path, dir] : pathToDir )
+					{
+						ImGui::Text( "Mapped to Dir name: %s", dir.GetName().c_str() );
+						ImGui::Text( "Path: %s", path.string().c_str() );
+					}
+
+					Auxiliary::EndTreeNode();
+				}
 			}
 
 			Auxiliary::EndTreeNode();

@@ -30,6 +30,8 @@
 
 #include "StringAuxiliary.h"
 
+#include "VFile.h"
+
 #include "Memory/Buffer.h"
 
 #include <filesystem>
@@ -37,82 +39,6 @@
 #include <map>
 
 namespace Saturn {
-
-	struct VFile
-	{
-		std::string Name;
-
-		Buffer FileContents;
-	};
-
-	class VDirectory
-	{
-	public:
-		VDirectory() = default;
-
-		VDirectory( const std::string& rName ) : m_Name( rName ) {}
-
-		VDirectory( const std::wstring& rName )
-		{
-			m_Name = Auxiliary::ConvertWString( rName );
-		}
-	public:
-		void AddFile( const std::string& rName ) 
-		{
-			Files.emplace( rName, VFile( rName ) );
-		}
-
-		void RemoveFile( const std::string& rName )
-		{
-			Files.erase( rName );
-		}
-
-		void AddDirectory( const std::string& rName )
-		{
-			Directories.emplace( rName, VDirectory( rName ) );
-		}
-
-		void RemoveDirectory( const std::string& rName )
-		{
-			Directories.erase( rName );
-		}
-
-		template<typename Func>
-		void EachFile( Func Function ) 
-		{
-			for( const auto& rFile : Files ) 
-			{
-				Function( rFile );
-			}
-		}
-
-		template<typename Func>
-		void EachDirectory( Func Function )
-		{
-			for( const auto& rDir : Directories )
-			{
-				Function( rDir );
-			}
-		}
-
-		void Clear() 
-		{
-			Files.clear();
-			Directories.clear();
-		}
-
-		const std::string& GetName() { return m_Name; }
-
-	public:
-		// Name -> File
-		std::unordered_map< std::string, VFile > Files;
-
-		// Name -> VDirectory
-		std::unordered_map< std::string, VDirectory > Directories;
-
-	private:
-		std::string m_Name;
-	};
 
 	class VirtualFS
 	{
@@ -137,8 +63,11 @@ namespace Saturn {
 		// VirtualPath = Assets/Meshes/Gun.fbx
 		bool Mount( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
-		VFile& FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
-		VDirectory& FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+		void UnmountBase( const std::string& rID );
+		void Unmount( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+
+		VFile FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+		VDirectory FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
 		size_t GetMountBases();
 		size_t GetMounts();
@@ -150,20 +79,21 @@ namespace Saturn {
 		void Init();
 		void Terminate();
 
+		void BuildPath( VDirectory& rDir, const std::string& rMountBase );
+
 		void DrawDirectory( VDirectory& rDirectory );
 		size_t GetMountsForDir( VDirectory& rDirectory );
 
-		template<typename Ty>
-		Ty* Search( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+		VFile SearchRecursiveFile( VDirectory& rLastDir, std::filesystem::path::iterator Iterator, const std::filesystem::path::iterator& rEnd, const std::string& rTargetName = "" );
 
-		VDirectory* SearchRecursive( VDirectory& rLastDir, std::filesystem::path::iterator Iterator, const std::filesystem::path::iterator& rEnd );
+		VDirectory SearchRecursiveDir( VDirectory& rLastDir, std::filesystem::path::iterator Iterator, const std::filesystem::path::iterator& rEnd );
 
 	private:
 		VDirectory m_RootDirectory;
 
 		std::map<std::string, std::filesystem::path> m_MountBases;
 		
-		// Files and Directories in the ROOT DIR ONLY!
-		//std::map<std::wstring, VFile> m_Files;
+		// Mount Base -> Path -> Dir
+		std::map<std::string, std::map<std::filesystem::path, VDirectory>> m_PathToDir;
 	};
 }

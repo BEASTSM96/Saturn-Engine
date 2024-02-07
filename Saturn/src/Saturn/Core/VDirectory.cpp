@@ -27,105 +27,57 @@
 */
 
 #include "sppch.h"
-#include "AssetRegistrySerialiser.h"
-#include "Saturn/Asset/AssetRegistry.h"
+#include "VDirectory.h"
 
-#include "Saturn/Project/Project.h"
-
-#include "Saturn/Core/VirtualFS.h"
-
-#include <fstream>
-#include <yaml-cpp/yaml.h>
-
-namespace YAML {
-
-	template <>
-	struct convert<std::filesystem::path>
-	{
-		static Node encode( std::filesystem::path rhs )
-		{
-			return Node( rhs.string() );
-		}
-
-		static bool decode( const Node& node, std::filesystem::path& rhs )
-		{
-			rhs = node.as<std::string>();
-
-			return true;
-		}
-	};
-
-	inline Emitter& operator<<( Emitter& emitter, const std::filesystem::path& v )
-	{
-		return emitter.Write( v.string() );
-	}
-}
+#include "VFile.h"
 
 namespace Saturn {
 
-	void AssetRegistrySerialiser::Serialise( const Ref<AssetRegistry>& rAssetRegistry )
+	VDirectory::VDirectory( const std::wstring& rName )
 	{
-		YAML::Emitter out;
-
-		auto& Assets = rAssetRegistry->GetAssetMap();
-
-		out << YAML::BeginMap;
-
-		out << YAML::Key << "Assets";
-
-		out << YAML::BeginSeq;
-
-		for( const auto& [id, asset] : Assets )
-		{
-			out << YAML::BeginMap;
-
-			out << YAML::Key << "Asset" << YAML::Value << id;
-
-			out << YAML::Key << "Path" << YAML::Value << asset->GetPath();
-
-			out << YAML::Key << "Type" << YAML::Value << AssetTypeToString( asset->GetAssetType() );
-
-			out << YAML::EndMap;
-		}
-
-		out << YAML::EndSeq;
-
-		out << YAML::EndMap;
-
-		std::ofstream stream( rAssetRegistry->GetPath() );
-		stream << out.c_str();
+		m_Name = Auxiliary::ConvertWString( rName );
 	}
 
-	void AssetRegistrySerialiser::Deserialise( Ref<AssetRegistry> AssetRegistry )
+	VDirectory::VDirectory( const std::string& rName ) 
+		: m_Name( rName )
 	{
-		std::ifstream FileIn( AssetRegistry->GetPath() );
-		std::stringstream ss;
-		ss << FileIn.rdbuf();
-
-		YAML::Node data = YAML::Load( ss.str() );
-
-		auto assets = data[ "Assets" ];
-
-		if( assets.IsNull() )
-			return;
-
-		for( auto asset : assets )
-		{
-			UUID assetID = asset[ "Asset" ].as< uint64_t >();
-
-			auto path = asset[ "Path" ].as< std::filesystem::path >();
-			auto type = asset[ "Type" ].as< std::string >();
-
-			AssetRegistry->AddAsset( assetID );
-
-			Ref<Asset> DeserialisedAsset = AssetRegistry->FindAsset( assetID );
-
-			DeserialisedAsset->Path = path;
-			DeserialisedAsset->Name = path.filename().replace_extension().string();
-			DeserialisedAsset->Type = AssetTypeFromString( type );
-
-			AssetRegistry->m_IsEditorRegistry ? DeserialisedAsset->Flags = (uint32_t)AssetFlag::Editor : DeserialisedAsset->Flags = ( uint32_t ) AssetFlag::None;
-		}
 	}
 
+	VDirectory::VDirectory( const std::string& rName, VDirectory* parentDirectory )
+		: m_Name( rName ), m_ParentDirectory( parentDirectory )
+	{
+
+	}
+
+	void VDirectory::AddFile( const std::string& rName )
+	{
+		Files.emplace( rName, VFile( rName ) );
+	}
+
+	void VDirectory::RemoveFile( const std::string& rName )
+	{
+		Files.erase( rName );
+	}
+
+	void VDirectory::AddDirectory( const std::string& rName )
+	{
+		Directories.emplace( rName, VDirectory( rName ) );
+	}
+
+	void VDirectory::RemoveDirectory( const std::string& rName )
+	{
+		Directories.erase( rName );
+	}
+
+	void VDirectory::Clear()
+	{
+		Files.clear();
+
+		for( auto&& [k, dir] : Directories )
+		{
+			dir.Clear();
+		}
+
+		Directories.clear();
+	}
 }
