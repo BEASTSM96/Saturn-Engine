@@ -39,8 +39,8 @@ namespace Saturn {
 	struct VFile
 	{
 		std::string Name;
-		Buffer FileContents;
 		VDirectory ParentDir;
+		Buffer FileContents;
 	};
 
 }

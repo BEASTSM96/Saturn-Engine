@@ -66,7 +66,16 @@ namespace Saturn {
 		void UnmountBase( const std::string& rID );
 		void Unmount( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
+		// Finds and returns the file.
+		// NOTE:
+		// If the path is Assets/Meshes/Base/Cube.fbx
+		// Then it will return the Cube.fbx file.
 		VFile FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+
+		// Finds and returns the directory.
+		// NOTE:
+		// If the path is Assets/Meshes/Base
+		// Then it will return the Base Directory.
 		VDirectory FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
 		size_t GetMountBases();
@@ -80,13 +89,10 @@ namespace Saturn {
 		void Terminate();
 
 		void BuildPath( VDirectory& rDir, const std::string& rMountBase );
+		void BuildPath( VFile& rFile, const std::string& rMountBase );
 
 		void DrawDirectory( VDirectory& rDirectory );
 		size_t GetMountsForDir( VDirectory& rDirectory );
-
-		VFile SearchRecursiveFile( VDirectory& rLastDir, std::filesystem::path::iterator Iterator, const std::filesystem::path::iterator& rEnd, const std::string& rTargetName = "" );
-
-		VDirectory SearchRecursiveDir( VDirectory& rLastDir, std::filesystem::path::iterator Iterator, const std::filesystem::path::iterator& rEnd );
 
 	private:
 		VDirectory m_RootDirectory;
@@ -95,5 +101,7 @@ namespace Saturn {
 		
 		// Mount Base -> Path -> Dir
 		std::map<std::string, std::map<std::filesystem::path, VDirectory>> m_PathToDir;
+		// Mount Base -> Path -> File
+		std::map<std::string, std::map<std::filesystem::path, VFile>> m_PathToFile;
 	};
 }

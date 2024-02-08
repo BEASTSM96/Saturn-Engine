@@ -227,14 +227,14 @@ namespace Saturn {
 
 		auto& rUserSettings = EngineSettings::Get();
 
-		VirtualFS::Get().MountBase( "barn_blew_up", rUserSettings.StartupProject );
-
 		pContentBrowserPanel->ResetPath( rUserSettings.StartupProject );
 
 		ProjectSerialiser ps;
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 
 		SAT_CORE_ASSERT( Project::GetActiveProject(), "No project was given." );
+		
+		VirtualFS::Get().MountBase( Project::GetActiveConfig().Name, rUserSettings.StartupProject );
 
 		AssetManager* pAssetManager = new AssetManager();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
@@ -249,7 +249,7 @@ namespace Saturn {
 	}
 
 	EditorLayer::~EditorLayer()
-	{		
+	{
 		delete m_TitleBar;
 		
 		EditorIcons::Clear();
@@ -270,6 +270,8 @@ namespace Saturn {
 		}
 
 		m_EditorScene = nullptr;
+
+		VirtualFS::Get().UnmountBase( Project::GetActiveConfig().Name );
 
 		// I would free the game DLL, however, there is some threading issues with Tracy.
 		//delete m_GameModule;
@@ -395,12 +397,12 @@ namespace Saturn {
 			}
 		}
 
-		if( m_ShowImGuiDemoWindow ) ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
-		if( m_ShowUserSettings ) UI_Titlebar_UserSettings();
+		if( m_ShowImGuiDemoWindow )  ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
+		if( m_ShowUserSettings )     UI_Titlebar_UserSettings();
 		if( OpenAssetRegistryDebug ) DrawAssetRegistryDebug();
-		if( OpenLoadedAssetDebug ) 	DrawLoadedAssetsDebug();
-		if( m_OpenEditorSettings ) DrawEditorSettings();
-		if( m_ShowVFSDebug ) DrawVFSDebug();
+		if( OpenLoadedAssetDebug ) 	 DrawLoadedAssetsDebug();
+		if( m_OpenEditorSettings )   DrawEditorSettings();
+		if( m_ShowVFSDebug )         DrawVFSDebug();
 		
 		ImGui::Begin( "Renderer" );
 
