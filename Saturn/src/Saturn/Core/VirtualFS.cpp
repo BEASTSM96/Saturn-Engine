@@ -31,6 +31,8 @@
 
 #include "OptickProfiler.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 #include <imgui.h>
 
@@ -115,7 +117,7 @@ namespace Saturn {
 
 				if( fileItr == pCurrentDir->Files.end() )
 				{
-					VFile file( segmentStr, *pCurrentDir );
+					VFile file( segmentStr, pCurrentDir );
 
 					// Directory does not exist.
 					pCurrentDir->Files.emplace( segmentStr, file );
@@ -125,6 +127,8 @@ namespace Saturn {
 				}
 			}
 		}
+
+		SAT_CORE_INFO( "[VFS]: Successfully mounted {0} to mount base: {1}", rVirtualPath.string(), rMountBase );
 
 		// Mount successful.
 		return true;
@@ -159,7 +163,7 @@ namespace Saturn {
 	void VirtualFS::BuildPath( VFile& rFile, const std::string& rMountBase )
 	{
 		// Create a temp copy just so we don't modify the rDir
-		VDirectory* currentDir = &rFile.ParentDir;
+		VDirectory* currentDir = rFile.ParentDir;
 
 		// Add all of our parents paths onto our one.
 		std::string path = rFile.Name;
@@ -185,7 +189,7 @@ namespace Saturn {
 
 		if( Itr == m_MountBases.end() ) 
 		{
-			SAT_CORE_WARN( "[VFS] '{0}' was not found, maybe it was already unmounted?", rID );
+			SAT_CORE_WARN( "[VFS]: '{0}' was not found, maybe it was already unmounted?", rID );
 
 			return;
 		}
@@ -197,7 +201,7 @@ namespace Saturn {
 
 		if( rMountBaseDir.Directories.size() || rMountBaseDir.Files.size() )
 		{
-			SAT_CORE_WARN( "[VFS] '{0}' still has directories and/or files mounted to it! Please unmount them before unmounting the base!", rID );
+			SAT_CORE_WARN( "[VFS]: '{0}' still has directories and/or files mounted to it! Please unmount them before unmounting the base!", rID );
 		}
 
 		rMountBaseDir.Clear();
@@ -212,7 +216,7 @@ namespace Saturn {
 
 		if( Itr == m_MountBases.end() )
 		{
-			SAT_CORE_WARN( "[VFS] '{0}' mount base was not found, maybe it was already unmounted?", rMountBase );
+			SAT_CORE_WARN( "[VFS]: '{0}' mount base was not found, maybe it was already unmounted?", rMountBase );
 
 			return;
 		}
@@ -227,12 +231,13 @@ namespace Saturn {
 		{
 			VFile& rFile = m_PathToFile[ rMountBase ][ rVirtualPath ];
 			
-			rFile.ParentDir.RemoveFile( rFile.Name );
+			rFile.ParentDir->RemoveFile( rFile.Name );
 		}
 		else
 		{
 			VDirectory& rDirectory = m_PathToDir[ rMountBase ][ rVirtualPath ];
 
+			rDirectory.Clear();
 			rDirectory.GetParent().RemoveDirectory( rDirectory.GetName() );
 		}
 	}
@@ -261,6 +266,62 @@ namespace Saturn {
 			return {};
 
 		return m_PathToDir[ rMountBase ][ rVirtualPath ];
+	}
+
+	void VirtualFS::WriteToFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath, const Buffer& rBuffer )
+	{
+		// Check if the mount base exists.
+		const auto Itr = m_MountBases.find( rMountBase );
+
+		if( Itr == m_MountBases.end() )
+		{
+			SAT_CORE_ERROR( "[VFS]: Failed to write to virtual file {0}. Because the mount base does not exist!", rVirtualPath.string() );
+
+			return;
+		}
+
+		VFile& rTargetFile = m_PathToFile[ rMountBase ][ rVirtualPath ];
+
+		rTargetFile.FileContents = Buffer::Copy( rBuffer.Data, rBuffer.Size );
+	}
+
+	const Buffer& VirtualFS::ReadFromFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	{
+		// Check if the mount base exists.
+		const auto Itr = m_MountBases.find( rMountBase );
+
+		if( Itr == m_MountBases.end() )
+		{
+			SAT_CORE_ERROR( "[VFS]: Failed to read from virtual file {0}. Because the mount base does not exist!", rVirtualPath.string() );
+		}
+
+		VFile& rTargetFile = m_PathToFile[ rMountBase ][ rVirtualPath ];
+
+		return rTargetFile.FileContents;
+	}
+
+	void VirtualFS::WriteDir( VDirectory& rDir, std::ifstream& rStream )
+	{
+		// Write files
+		RawSerialisation::WriteUnorderedMap( rDir.Files, rStream );
+	
+		// Write our directories map.
+		RawSerialisation::WriteUnorderedMap( rDir.Directories, rStream );
+
+		// Write sub-directories, files, and sub-sub-directories
+		for( auto& [name, dir] : rDir.Directories )
+		{
+			WriteDir( rDir, rStream );
+		}
+	}
+
+	void VirtualFS::WriteVFS( std::ifstream& rStream )
+	{
+		RawSerialisation::WriteMap( m_MountBases, rStream );
+		RawSerialisation::WriteMap( m_PathToDir, rStream );
+		RawSerialisation::WriteMap( m_PathToFile, rStream );
+
+		WriteDir( m_RootDirectory, rStream );
 	}
 
 	size_t VirtualFS::GetMountBases()

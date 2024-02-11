@@ -74,6 +74,10 @@ namespace Saturn {
 		VDirectory& GetParent() { return *m_ParentDirectory; }
 
 	public:
+		static void Serialise( static VDirectory& rObject, std::ofstream& rStream );
+		static void Deserialise( static VDirectory& rObject, std::ifstream& rStream );
+
+	public:
 		// Name -> File
 		std::unordered_map< std::string, VFile > Files;
 

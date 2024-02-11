@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "VDirectory.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 #include "VFile.h"
 
 namespace Saturn {
@@ -80,4 +82,21 @@ namespace Saturn {
 
 		Directories.clear();
 	}
+
+	void VDirectory::Serialise( static VDirectory& rObject, std::ofstream& rStream )
+	{
+		RawSerialisation::WriteString( rObject.m_Name, rStream );
+
+		RawSerialisation::WriteUnorderedMap( rObject.Files, rStream );
+		RawSerialisation::WriteUnorderedMap( rObject.Directories, rStream );
+	}
+
+	void VDirectory::Deserialise( static VDirectory& rObject, std::ifstream& rStream )
+	{
+		rObject.m_Name = RawSerialisation::ReadString( rStream );
+
+		RawSerialisation::ReadUnorderedMap( rObject.Files, rStream );
+		RawSerialisation::ReadUnorderedMap( rObject.Directories, rStream );
+	}
+
 }

@@ -78,6 +78,15 @@ namespace Saturn {
 		// Then it will return the Base Directory.
 		VDirectory FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
+		// Copies the buffer content of rBuffer into the file buffer
+		// Make sure to free rBuffer as it will be copied.
+		void WriteToFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath, const Buffer& rBuffer );
+	
+		const Buffer& ReadFromFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+
+		void WriteDir( VDirectory& rDir, std::ifstream& rStream );
+		void WriteVFS( std::ifstream& rStream );
+
 		size_t GetMountBases();
 		size_t GetMounts();
 

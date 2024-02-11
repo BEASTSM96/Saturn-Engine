@@ -36,11 +36,28 @@
 
 namespace Saturn {
 
-	struct VFile
+	class VFile
 	{
-		std::string Name;
-		VDirectory ParentDir;
-		Buffer FileContents;
-	};
+	public:
+		VFile() = default;
+		~VFile() = default;
 
+	public:
+		std::string Name;
+		VDirectory* ParentDir;
+		Buffer FileContents;
+	
+	public:
+		static void Serialise( static VFile& rObject, std::ofstream& rStream ) 
+		{
+			RawSerialisation::WriteString( rObject.Name, rStream );
+			RawSerialisation::WriteSaturnBuffer( rObject.FileContents, rStream );
+		}
+
+		static void Deserialise( static VFile& rObject, std::ifstream& rStream )
+		{
+			rObject.Name = RawSerialisation::ReadString( rStream );
+			RawSerialisation::ReadSaturnBuffer( rObject.FileContents, rStream );
+		}
+	};
 }
