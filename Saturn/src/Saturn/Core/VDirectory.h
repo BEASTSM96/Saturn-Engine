@@ -33,7 +33,7 @@
 
 namespace Saturn {
 
-	struct VFile;
+	class VFile;
 
 	class VDirectory
 	{
@@ -74,8 +74,8 @@ namespace Saturn {
 		VDirectory& GetParent() { return *m_ParentDirectory; }
 
 	public:
-		static void Serialise( static VDirectory& rObject, std::ofstream& rStream );
-		static void Deserialise( static VDirectory& rObject, std::ifstream& rStream );
+		static void Serialise( const VDirectory& rObject, std::ofstream& rStream );
+		static void Deserialise( VDirectory& rObject, std::ifstream& rStream );
 
 	public:
 		// Name -> File

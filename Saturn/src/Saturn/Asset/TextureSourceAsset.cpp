@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "TextureSourceAsset.h"
 
+#include "Saturn/Core/VirtualFS.h"
+
 #include <stb_image.h>
 
 namespace Saturn {
@@ -79,6 +81,31 @@ namespace Saturn {
 		m_TextureBuffer = Buffer::Copy( pTextureData, static_cast<size_t>( ImageSize ) );
 
 		stbi_image_free( pTextureData );
+	}
+
+	void TextureSourceAsset::WriteToVFS()
+	{
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+
+		VFile& file = VirtualFS::Get().FindFile( rMountBase, Path );
+
+		/////////////////////////////////////
+		// Write to a std::ostream, then to our buffer.
+
+		std::ostringstream stream;
+
+		RawSerialisation::WriteString( m_AbsolutePath.string(), stream );
+
+		RawSerialisation::WriteObject( m_Width, stream );
+		RawSerialisation::WriteObject( m_Height, stream );
+		RawSerialisation::WriteObject( m_Channels, stream );
+		RawSerialisation::WriteObject( m_Flipped, stream );
+		RawSerialisation::WriteObject( m_HDR, stream );
+
+		// Buffer
+		RawSerialisation::WriteSaturnBuffer( m_TextureBuffer, stream );
+
+		file.FileContents = stream.str();
 	}
 
 }

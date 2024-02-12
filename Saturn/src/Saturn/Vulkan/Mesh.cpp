@@ -556,6 +556,16 @@ namespace Saturn {
 		RawSerialisation::WriteVector( m_Submeshes, rStream );
 	}
 
+	void StaticMesh::SerialiseData( std::ostringstream& rStream )
+	{
+		RawSerialisation::WriteObject( m_VertexCount, rStream );
+		RawSerialisation::WriteObject( m_IndicesCount, rStream );
+
+		RawSerialisation::WriteVector( m_Indices, rStream );
+		RawSerialisation::WriteVector( m_Vertices, rStream );
+		RawSerialisation::WriteVector( m_Submeshes, rStream );
+	}
+
 	void StaticMesh::DeserialiseData( std::ifstream& rStream )
 	{
 		RawSerialisation::ReadObject( m_VertexCount, rStream );

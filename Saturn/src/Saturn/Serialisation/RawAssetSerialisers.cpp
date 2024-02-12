@@ -44,6 +44,12 @@
 
 #include "RawSerialisation.h"
 
+// #NOTE
+// NOTES WHEN ADDING NEW FIELDS TO SERIALISE:
+// First, make sure to add the field in both Raw and YAML serialisers
+// Next, add it to TryLoadData.
+// Finally, for VFS Assets, make sure to load it and write into the VFile!
+
 namespace Saturn {
 
 	void RawMaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const
@@ -176,12 +182,68 @@ namespace Saturn {
 		return true;
 	}
 
-	/*
-	bool RawMaterialAssetSerialiser::TryLoadIntoVFS( Ref<Asset>& rAsset, std::ifstream& rStream ) const
+	bool RawMaterialAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
 	{
-		VFile& rFile = VirtualFS::Get().FindFile( rAsset->Path );
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		VFile& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		auto materialAsset = rAsset.As<MaterialAsset>();
+
+		if( !materialAsset )
+			return false;
+
+		std::stringstream ss;
+
+		RawSerialisation::WriteVec3( materialAsset->GetAlbeoColor(), ss );
+
+		// We are fine to use the main asset registry here, we are only looking for an asset.
+		auto asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		AssetID fallbackAssetID = 0;
+
+		// ALBEO
+		if( asset )
+			RawSerialisation::WriteObject( asset->ID, ss );
+		else
+			RawSerialisation::WriteObject( fallbackAssetID, ss );
+
+		// NORMAL MAP
+
+		asset = AssetManager::Get().FindAsset( materialAsset->GetNormalMap()->GetPath() );
+		bool isUsingNormalMaps = materialAsset->IsUsingNormalMap();
+
+		RawSerialisation::WriteObject( isUsingNormalMaps, ss );
+
+		if( asset )
+			RawSerialisation::WriteObject( asset->ID, ss );
+		else
+			RawSerialisation::WriteObject( fallbackAssetID, ss );
+
+		// METALLIC MAP
+
+		asset = AssetManager::Get().FindAsset( materialAsset->GetMetallicMap()->GetPath() );
+		RawSerialisation::WriteObject( materialAsset->GetMetalness(), ss );
+
+		if( asset )
+			RawSerialisation::WriteObject( asset->ID, ss );
+		else
+			RawSerialisation::WriteObject( fallbackAssetID, ss );
+
+		// ROUGHNESS MAP
+
+		asset = AssetManager::Get().FindAsset( materialAsset->GetRoughnessMap()->GetPath() );
+		RawSerialisation::WriteObject( materialAsset->GetRoughness(), ss );
+
+		if( asset )
+			RawSerialisation::WriteObject( asset->ID, ss );
+		else
+			RawSerialisation::WriteObject( fallbackAssetID, ss );
+
+		RawSerialisation::WriteObject( materialAsset->GetEmissive(), ss );
+		
+		file.FileContents = ss.str();
+
+		return true;
 	}
-	*/
 
 	//////////////////////////////////////////////////////////////////////////
 	// PREFAB
@@ -224,6 +286,11 @@ namespace Saturn {
 		rAsset->Name = OldAssetData.Name;
 
 		return true;
+	}
+
+	bool RawPrefabSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
+	{
+		return false;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -276,6 +343,25 @@ namespace Saturn {
 		rAsset->Flags = OldAssetData.Flags;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
+
+		return true;
+	}
+
+	bool RawStaticMeshAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
+	{
+		auto staticMeshAsset = rAsset.As<StaticMesh>();
+
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		VFile& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		std::ostringstream ss;
+
+		RawSerialisation::WriteObject( staticMeshAsset->GetAttachedShape(), ss );
+		RawSerialisation::WriteObject( staticMeshAsset->GetPhysicsMaterial(), ss );
+
+		staticMeshAsset->SerialiseData( ss );
+
+		file.FileContents = ss.str();
 
 		return true;
 	}
@@ -338,6 +424,29 @@ namespace Saturn {
 		return true;
 	}
 
+	bool RawPhysicsMaterialAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
+	{
+		auto physMaterialAsset = rAsset.As<PhysicsMaterialAsset>();
+
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		VFile& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		/////////////////////////////////////
+		// Write to a std::ostream, then to our buffer.
+
+		std::ostringstream stream;
+
+		RawSerialisation::WriteObject( physMaterialAsset->GetStaticFriction(), stream );
+		RawSerialisation::WriteObject( physMaterialAsset->GetDynamicFriction(), stream );
+		RawSerialisation::WriteObject( physMaterialAsset->GetRestitution(), stream );
+
+		RawSerialisation::WriteObject( physMaterialAsset->GetFlags(), stream );
+
+		file.FileContents = stream.str();
+
+		return true;
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// TEXTURE SOURCE
 
@@ -377,6 +486,11 @@ namespace Saturn {
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
 
+		return true;
+	}
+
+	bool RawTextureSourceAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
+	{
 		return false;
 	}
 

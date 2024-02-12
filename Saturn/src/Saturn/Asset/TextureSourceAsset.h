@@ -41,6 +41,8 @@ namespace Saturn {
 
 		~TextureSourceAsset();
 
+		void WriteToVFS();
+
 	public:
 		//////////////////////////////////////////////////////////////////////////
 		// Raw binary serialisation.
@@ -70,7 +72,8 @@ namespace Saturn {
 			RawSerialisation::ReadObject( m_HDR, rStream );
 
 			// Buffer
-			RawSerialisation::ReadSaturnBuffer( m_TextureBuffer, rStream );
+			// Don't read the buffer just yet.
+			//RawSerialisation::ReadSaturnBuffer( m_TextureBuffer, rStream );
 		}
 
 	private:
@@ -85,6 +88,7 @@ namespace Saturn {
 
 		bool m_Flipped = false;
 		bool m_HDR = false;
+		bool m_FullyLoaded = false;
 
 		Buffer m_TextureBuffer;
 	};

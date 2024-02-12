@@ -36,8 +36,9 @@ namespace Saturn {
 	{
 	public:
 		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const = 0;
+		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const = 0;
+		
 		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const = 0;
-		//virtual bool TryLoadIntoVFS( Ref<Asset>& rAsset, std::ifstream& rStream ) const = 0;
 	};
 
 	class RawMaterialAssetSerialiser : public RawAssetSerialiser
@@ -45,14 +46,17 @@ namespace Saturn {
 	public:
 		// We don't need to load the node editor information, this will not be needed for binary.
 		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
+		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
+		
 		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
-		//virtual bool TryLoadIntoVFS( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
 	};
 
 	class RawPrefabSerialiser : public RawAssetSerialiser
 	{
 	public:
 		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
+		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
+		
 		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
 	};
 
@@ -60,6 +64,8 @@ namespace Saturn {
 	{
 	public:
 		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
+		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
+		
 		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
 	};
 
@@ -67,6 +73,8 @@ namespace Saturn {
 	{
 	public:
 		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
+		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
+		
 		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
 	};
 
@@ -74,6 +82,8 @@ namespace Saturn {
 	{
 	public:
 		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
+		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
+		
 		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
 	};
 }

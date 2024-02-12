@@ -74,6 +74,7 @@ namespace Saturn {
 		std::ofstream fout( cachePath, std::ios::binary | std::ios::trunc );
 
 		AssetManager& rAssetManager = AssetManager::Get();
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
 
 		// Construct a temporary asset registry to hold all of our assets in.
 		Ref<AssetRegistry> AssetBundleRegistry = Ref<AssetRegistry>::Create( *rAssetManager.GetAssetRegistry().Get() );
@@ -83,45 +84,66 @@ namespace Saturn {
 
 		fout.write( reinterpret_cast<char*>( &header ), sizeof( AssetBundleHeader ) );
 
+		// Two Passes:
+		// Three stages:
+		// 
+		// 1), write the normal asset data, such as ID, Name, Path. (So basically write the AssetRegistry)
+		// 2), write into the VFS loaded data.
+		// 2.5), write the VFS.
+
 		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 		{
 			SAT_CORE_INFO( "Packaging asset: {0} ({1})", id, asset->Name );
 			
 			asset->SerialiseData( fout );
 
+			VirtualFS::Get().Mount( rMountBase, asset->Path );
+		}
+
+		auto& rVFS = VirtualFS::Get();
+
+		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
+		{
+			SAT_CORE_INFO( "Writing loaded asset data into VFS: {0} ({1})", id, asset->Name );
+
 			switch( asset->Type )
 			{
 				case Saturn::AssetType::Texture:
 				{
+					// Read the raw texture file into the virtual FS.
+					// To do this we can use our TextureSourceAsset class.
 					auto AbsolutePath = Project::GetActiveProject()->FilepathAbs( asset->Path );
 					Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AbsolutePath );
+					sourceAsset->Path = asset->Path;
 
-					RawTextureSourceAssetSerialiser serialiser;
-					serialiser.Serialise( sourceAsset, fout );
+					sourceAsset->WriteToVFS();
 				} break;
 
 				case Saturn::AssetType::StaticMesh:
 				{
-					Ref<StaticMesh> asset = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
+					Ref<StaticMesh> mesh = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
 
 					RawStaticMeshAssetSerialiser serialiser;
-					serialiser.Serialise( asset, fout );
+					serialiser.Serialise( mesh, fout );
 				} break;
 
 				case Saturn::AssetType::Material:
 				{
-					Ref<MaterialAsset> asset = AssetBundleRegistry->GetAssetAs<MaterialAsset>( id );
+					Ref<MaterialAsset> materialAsset = AssetBundleRegistry->GetAssetAs<MaterialAsset>( id );
 
-					RawMaterialAssetSerialiser serialiser;
-					serialiser.Serialise( asset, fout );
+					if( materialAsset )
+					{
+						RawMaterialAssetSerialiser serialiser;
+						serialiser.WriteToVFS( materialAsset );
+					}
 				} break;
-				
+
 				case Saturn::AssetType::PhysicsMaterial:
 				{
-					Ref<PhysicsMaterialAsset> asset = AssetBundleRegistry->GetAssetAs<PhysicsMaterialAsset>( id );
-
+					Ref<PhysicsMaterialAsset> physAsset = AssetBundleRegistry->GetAssetAs<PhysicsMaterialAsset>( id );
+					
 					RawPhysicsMaterialAssetSerialiser serialiser;
-					serialiser.Serialise( asset, fout );
+					serialiser.WriteToVFS( physAsset );
 				} break;
 
 				case Saturn::AssetType::Scene:
@@ -164,6 +186,8 @@ namespace Saturn {
 			}
 		}
 
+		VirtualFS::Get().WriteVFS( fout );
+
 		SAT_CORE_INFO( "Packaged {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
 
 		fout.close();
@@ -201,36 +225,49 @@ namespace Saturn {
 		// Static meshes
 		// Scenes (disabled for now)
 
+		// Two Passes:
+		// First, write the normal asset data, such as ID, Name, Path.
+		// Second, write the loaded data.
+
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+
 		for( size_t i = 0; i < header.Assets; i++ )
 		{
 			Ref<Asset> asset = Ref<Asset>::Create();
 			asset->DeserialiseData( stream );
 
-			VirtualFS::Get().Mount( Project::GetActiveConfig().Name, asset->Path );
+			VirtualFS::Get().Mount( rMountBase, asset->Path );
 
 			rAssetRegistry->m_Assets[ asset->ID ] = asset;
+		}
 
+		for( auto& [id, asset] : rAssetRegistry->m_Assets )
+		{
 			switch( asset->Type )
 			{
 				case Saturn::AssetType::Texture:
-				{ 
+				{
 					auto AbsolutePath = Project::GetActiveProject()->FilepathAbs( asset->Path );
 					Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AbsolutePath );
 
 					RawTextureSourceAssetSerialiser serialiser;
-					serialiser.TryLoadData( asset, stream );
+					//serialiser.WriteIntoVFS( asset, stream );
 				} break;
 
 				case Saturn::AssetType::StaticMesh:
 				{
+					/*
 					RawStaticMeshAssetSerialiser serialiser;
 					serialiser.TryLoadData( asset, stream );
+					*/
 				} break;
 
 				case Saturn::AssetType::Material:
 				{
+					/*
 					RawMaterialAssetSerialiser serialiser;
 					serialiser.TryLoadData( asset, stream );
+					*/
 				} break;
 
 				case Saturn::AssetType::PhysicsMaterial:

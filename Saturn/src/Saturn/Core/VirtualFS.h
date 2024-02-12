@@ -70,22 +70,16 @@ namespace Saturn {
 		// NOTE:
 		// If the path is Assets/Meshes/Base/Cube.fbx
 		// Then it will return the Cube.fbx file.
-		VFile FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+		VFile& FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
 		// Finds and returns the directory.
 		// NOTE:
 		// If the path is Assets/Meshes/Base
 		// Then it will return the Base Directory.
-		VDirectory FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+		VDirectory& FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
-		// Copies the buffer content of rBuffer into the file buffer
-		// Make sure to free rBuffer as it will be copied.
-		void WriteToFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath, const Buffer& rBuffer );
-	
-		const Buffer& ReadFromFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
-
-		void WriteDir( VDirectory& rDir, std::ifstream& rStream );
-		void WriteVFS( std::ifstream& rStream );
+		void WriteDir( VDirectory& rDir, std::ofstream& rStream );
+		void WriteVFS( std::ofstream& rStream );
 
 		size_t GetMountBases();
 		size_t GetMounts();
@@ -102,7 +96,9 @@ namespace Saturn {
 
 		void DrawDirectory( VDirectory& rDirectory );
 		size_t GetMountsForDir( VDirectory& rDirectory );
-
+		
+		template<typename V, typename OStream>
+		void WriteVFSMap( const std::map<std::string, std::map<std::filesystem::path, V>>& rMap, OStream& rStream );
 	private:
 		VDirectory m_RootDirectory;
 

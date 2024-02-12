@@ -242,7 +242,7 @@ namespace Saturn {
 		}
 	}
 
-	VFile VirtualFS::FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	VFile& VirtualFS::FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
 	{
 		SAT_PF_EVENT();
 
@@ -250,12 +250,15 @@ namespace Saturn {
 		const auto Itr = m_MountBases.find( rMountBase );
 
 		if( Itr == m_MountBases.end() )
-			return {};
+			throw std::runtime_error( "Mount base not found!" );
+
+		if( rVirtualPath.empty() )
+			throw std::runtime_error( "Path is empty!" );
 
 		return m_PathToFile[ rMountBase ][ rVirtualPath ];
 	}
 
-	VDirectory VirtualFS::FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	VDirectory& VirtualFS::FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
 	{
 		SAT_PF_EVENT();
 
@@ -263,45 +266,15 @@ namespace Saturn {
 		const auto Itr = m_MountBases.find( rMountBase );
 
 		if( Itr == m_MountBases.end() )
-			return {};
+			throw std::runtime_error( "Mount base not found!" );
 
 		return m_PathToDir[ rMountBase ][ rVirtualPath ];
 	}
 
-	void VirtualFS::WriteToFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath, const Buffer& rBuffer )
+	void VirtualFS::WriteDir( VDirectory& rDir, std::ofstream& rStream )
 	{
-		// Check if the mount base exists.
-		const auto Itr = m_MountBases.find( rMountBase );
-
-		if( Itr == m_MountBases.end() )
-		{
-			SAT_CORE_ERROR( "[VFS]: Failed to write to virtual file {0}. Because the mount base does not exist!", rVirtualPath.string() );
-
-			return;
-		}
-
-		VFile& rTargetFile = m_PathToFile[ rMountBase ][ rVirtualPath ];
-
-		rTargetFile.FileContents = Buffer::Copy( rBuffer.Data, rBuffer.Size );
-	}
-
-	const Buffer& VirtualFS::ReadFromFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
-	{
-		// Check if the mount base exists.
-		const auto Itr = m_MountBases.find( rMountBase );
-
-		if( Itr == m_MountBases.end() )
-		{
-			SAT_CORE_ERROR( "[VFS]: Failed to read from virtual file {0}. Because the mount base does not exist!", rVirtualPath.string() );
-		}
-
-		VFile& rTargetFile = m_PathToFile[ rMountBase ][ rVirtualPath ];
-
-		return rTargetFile.FileContents;
-	}
-
-	void VirtualFS::WriteDir( VDirectory& rDir, std::ifstream& rStream )
-	{
+		SAT_CORE_INFO( "Writing Dir with name: {0}", rDir.GetName() );
+		 
 		// Write files
 		RawSerialisation::WriteUnorderedMap( rDir.Files, rStream );
 	
@@ -311,15 +284,45 @@ namespace Saturn {
 		// Write sub-directories, files, and sub-sub-directories
 		for( auto& [name, dir] : rDir.Directories )
 		{
-			WriteDir( rDir, rStream );
+			WriteDir( dir, rStream );
 		}
 	}
 
-	void VirtualFS::WriteVFS( std::ifstream& rStream )
+	template<typename V, typename OStream>
+	void VirtualFS::WriteVFSMap( const std::map<std::string, std::map<std::filesystem::path, V>>& rMap, OStream& rStream )
+	{
+		size_t mapSize = rMap.size();
+		rStream.write( reinterpret_cast<char*>( &mapSize ), sizeof( size_t ) );
+
+		for( const auto& [key, value] : rMap )
+		{
+			RawSerialisation::WriteString( key, rStream );
+
+			size_t valueSize = value.size();
+			rStream.write( reinterpret_cast<char*>( &valueSize ), sizeof( size_t ) );
+			
+			for( const auto& [key2, value2] : value )
+			{
+				RawSerialisation::WriteString( key2, rStream );
+
+				if constexpr( std::is_trivial<V>() )
+				{
+					RawSerialisation::WriteObject( value2, rStream );
+				}
+				else
+				{
+					V::Serialise( value2, rStream );
+				}
+			}
+		}
+	}
+
+	void VirtualFS::WriteVFS( std::ofstream& rStream )
 	{
 		RawSerialisation::WriteMap( m_MountBases, rStream );
-		RawSerialisation::WriteMap( m_PathToDir, rStream );
-		RawSerialisation::WriteMap( m_PathToFile, rStream );
+		
+		WriteVFSMap( m_PathToDir, rStream );
+		WriteVFSMap( m_PathToFile, rStream );
 
 		WriteDir( m_RootDirectory, rStream );
 	}

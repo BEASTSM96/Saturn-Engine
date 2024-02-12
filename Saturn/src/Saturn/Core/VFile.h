@@ -32,6 +32,8 @@
 
 #include "Memory/Buffer.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 #include <string>
 
 namespace Saturn {
@@ -39,25 +41,29 @@ namespace Saturn {
 	class VFile
 	{
 	public:
-		VFile() = default;
+		VFile() {}
+		VFile( const std::string& rName ) : Name( rName ), ParentDir( nullptr ) {}
+		VFile( const std::string& rName, VDirectory* pParentDir ) : Name( rName ), ParentDir( pParentDir ) {}
+
 		~VFile() = default;
 
 	public:
 		std::string Name;
-		VDirectory* ParentDir;
-		Buffer FileContents;
+		VDirectory* ParentDir = nullptr;
+		
+		// TODO: I want to replace with a buffer.
+		std::string FileContents;
 	
 	public:
-		static void Serialise( static VFile& rObject, std::ofstream& rStream ) 
+		static void Serialise( const VFile& rObject, std::ofstream& rStream ) 
 		{
 			RawSerialisation::WriteString( rObject.Name, rStream );
-			RawSerialisation::WriteSaturnBuffer( rObject.FileContents, rStream );
+			RawSerialisation::WriteString( rObject.FileContents, rStream );
 		}
 
-		static void Deserialise( static VFile& rObject, std::ifstream& rStream )
+		static void Deserialise( VFile& rObject, std::ifstream& rStream )
 		{
 			rObject.Name = RawSerialisation::ReadString( rStream );
-			RawSerialisation::ReadSaturnBuffer( rObject.FileContents, rStream );
 		}
 	};
 }

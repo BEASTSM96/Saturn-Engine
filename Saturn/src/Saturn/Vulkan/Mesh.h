@@ -40,6 +40,8 @@
 
 #include "Saturn/Physics/PhysicsShapeTypes.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 #include <vector>
 #include <string>
 #include <utility>
@@ -76,7 +78,8 @@ namespace Saturn {
 		}
 
 	public:
-		static void Serialise( const Submesh& rObject, std::ofstream& rStream ) 
+		template<typename OStream>
+		static void Serialise( const Submesh& rObject, OStream& rStream ) 
 		{
 			RawSerialisation::WriteObject( rObject.BaseVertex, rStream );
 			RawSerialisation::WriteObject( rObject.BaseIndex, rStream );
@@ -170,6 +173,8 @@ namespace Saturn {
 
 	public:
 		void SerialiseData( std::ofstream& rStream );
+		void SerialiseData( std::ostringstream& rStream );
+		
 		void DeserialiseData( std::ifstream& rStream );
 
 	private:
