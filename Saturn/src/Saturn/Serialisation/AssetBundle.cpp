@@ -84,12 +84,10 @@ namespace Saturn {
 
 		fout.write( reinterpret_cast<char*>( &header ), sizeof( AssetBundleHeader ) );
 
-		// Two Passes:
-		// Three stages:
-		// 
+		// Steps:
 		// 1), write the normal asset data, such as ID, Name, Path. (So basically write the AssetRegistry)
 		// 2), write into the VFS loaded data.
-		// 2.5), write the VFS.
+		// 3), write the VFS.
 
 		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 		{
@@ -148,7 +146,6 @@ namespace Saturn {
 
 				case Saturn::AssetType::Scene:
 				{
-					/*
 					Ref<Scene> scene = Ref<Scene>::Create();
 					Scene* pOldActiveScene = GActiveScene;
 					GActiveScene = scene.Get();
@@ -159,7 +156,6 @@ namespace Saturn {
 					GActiveScene = pOldActiveScene;
 
 					scene->SerialiseData( fout );
-					*/
 				} break;
 
 				case Saturn::AssetType::Prefab:
@@ -219,15 +215,9 @@ namespace Saturn {
 		AssetManager& rAssetManager = AssetManager::Get();
 		Ref<AssetRegistry> rAssetRegistry = Ref<AssetRegistry>::Create();
 
-		// Assets that are fine to load.
-		// Physics Material
-		// Textures
-		// Static meshes
-		// Scenes (disabled for now)
-
-		// Two Passes:
-		// First, write the normal asset data, such as ID, Name, Path.
-		// Second, write the loaded data.
+		// Steps:
+		// 1) Read the asset registry
+		// 2) Read the loaded data and the VFS
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 
@@ -239,6 +229,8 @@ namespace Saturn {
 			VirtualFS::Get().Mount( rMountBase, asset->Path );
 
 			rAssetRegistry->m_Assets[ asset->ID ] = asset;
+
+			SAT_CORE_INFO( "Unpacking asset: {0} ({1})", asset->ID, asset->Name );
 		}
 
 		for( auto& [id, asset] : rAssetRegistry->m_Assets )

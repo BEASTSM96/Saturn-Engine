@@ -673,20 +673,11 @@ namespace Saturn {
 		
 		for( const auto& [k, v] : m_EntityIDMap )
 		{
-			// K is always trivial
-			if constexpr( std::is_trivial<entt::entity>() )
-			{
-				RawSerialisation::WriteObject( k, rStream );
-			}
+			// K (entt::entity) is always trivial
+			RawSerialisation::WriteObject( k, rStream );
 
-			if constexpr( std::is_trivial<Entity>() )
-			{
-				RawSerialisation::WriteObject( v, rStream );
-			}
-			else
-			{
-				Entity::Serialise( v, rStream );
-			}
+			// V (Entity) is not trivial
+			Entity::Serialise( v, rStream );
 		}
 	}
 
