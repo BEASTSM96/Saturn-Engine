@@ -96,6 +96,21 @@ namespace Saturn {
 			}
 		}
 
+		// TODO: Move this into the VFS.
+		// This is only used by the VFS.
+		template<typename OStream>
+		static void WriteUnorderedMap( const std::unordered_map<std::string, std::filesystem::path>& rMap, OStream& rStream )
+		{
+			size_t mapSize = rMap.size();
+			rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+			for( const auto& [key, value] : rMap )
+			{
+				WriteString( key, rStream );
+				WriteString( value.string(), rStream );
+			}
+		}
+
 		template<typename K, typename V, typename OStream>
 		static void WriteUnorderedMap( const std::unordered_map<K, std::vector<V>>& rMap, OStream& rStream )
 		{
@@ -175,24 +190,6 @@ namespace Saturn {
 			}
 		}
 
-		// TODO: Move this into the VFS.
-		// This is only used by the VFS.
-		template<typename OStream>
-		static void WriteMap( const std::map<std::string, std::filesystem::path>& rMap, OStream& rStream )
-		{
-			if( !rStream.is_open() )
-				return;
-
-			size_t mapSize = rMap.size();
-			rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-
-			for( const auto& [key, value] : rMap )
-			{
-				WriteString( key, rStream );
-				WriteString( value.string(), rStream );
-			}
-		}
-
 		template<typename K, typename K2, typename V, typename OStream>
 		static void WriteMap( const std::map<K, std::map<K2, V>>& rMap, OStream& rStream )
 		{
@@ -251,25 +248,6 @@ namespace Saturn {
 				{
 					Ty::Serialise( value, rStream );
 				}
-			}
-		}
-
-		// TODO: Move this into the VFS.
-		// This is only used by the VFS.
-		static void ReadMap( std::map<std::string, std::filesystem::path>& rMap, std::ifstream& rStream )
-		{
-			size_t mapSize = 0;
-			rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-
-			for( size_t i = 0; i < mapSize; i++ )
-			{
-				std::string K{};
-				std::filesystem::path V{};
-
-				K = ReadString( rStream );
-				V = ReadString( rStream );
-
-				rMap[ K ] = V;
 			}
 		}
 
@@ -382,6 +360,25 @@ namespace Saturn {
 				}
 
 				rMap[ key ] = value;
+			}
+		}
+
+		// TODO: Move this into the VFS.
+		// This is only used by the VFS.
+		static void ReadUnorderedMap( std::unordered_map<std::string, std::filesystem::path>& rMap, std::ifstream& rStream )
+		{
+			size_t mapSize = 0;
+			rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+			for( size_t i = 0; i < mapSize; i++ )
+			{
+				std::string K{};
+				std::filesystem::path V{};
+
+				K = ReadString( rStream );
+				V = ReadString( rStream );
+
+				rMap[ K ] = V;
 			}
 		}
 
