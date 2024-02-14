@@ -122,7 +122,7 @@ namespace Saturn {
 					Ref<StaticMesh> mesh = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
 
 					RawStaticMeshAssetSerialiser serialiser;
-					serialiser.Serialise( mesh, fout );
+					//serialiser.Serialise( mesh, fout );
 				} break;
 
 				case Saturn::AssetType::Material:
@@ -146,6 +146,7 @@ namespace Saturn {
 
 				case Saturn::AssetType::Scene:
 				{
+					/*
 					Ref<Scene> scene = Ref<Scene>::Create();
 					Scene* pOldActiveScene = GActiveScene;
 					GActiveScene = scene.Get();
@@ -156,6 +157,7 @@ namespace Saturn {
 					GActiveScene = pOldActiveScene;
 
 					scene->SerialiseData( fout );
+					*/
 				} break;
 
 				case Saturn::AssetType::Prefab:
@@ -220,6 +222,8 @@ namespace Saturn {
 		// 2) Read the loaded data and the VFS
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		VirtualFS::Get().UnmountBase( rMountBase );
+		VirtualFS::Get().MountBase( rMountBase, Project::GetActiveProjectPath() );
 
 		for( size_t i = 0; i < header.Assets; i++ )
 		{
@@ -233,68 +237,8 @@ namespace Saturn {
 			SAT_CORE_INFO( "Unpacking asset: {0} ({1})", asset->ID, asset->Name );
 		}
 
-		for( auto& [id, asset] : rAssetRegistry->m_Assets )
-		{
-			switch( asset->Type )
-			{
-				case Saturn::AssetType::Texture:
-				{
-					auto AbsolutePath = Project::GetActiveProject()->FilepathAbs( asset->Path );
-					Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AbsolutePath );
-
-					RawTextureSourceAssetSerialiser serialiser;
-					//serialiser.WriteIntoVFS( asset, stream );
-				} break;
-
-				case Saturn::AssetType::StaticMesh:
-				{
-					/*
-					RawStaticMeshAssetSerialiser serialiser;
-					serialiser.TryLoadData( asset, stream );
-					*/
-				} break;
-
-				case Saturn::AssetType::Material:
-				{
-					/*
-					RawMaterialAssetSerialiser serialiser;
-					serialiser.TryLoadData( asset, stream );
-					*/
-				} break;
-
-				case Saturn::AssetType::PhysicsMaterial:
-				{
-					RawPhysicsMaterialAssetSerialiser serialiser;
-					serialiser.TryLoadData( asset, stream );
-				} break;
-
-				case Saturn::AssetType::Scene:
-				{
-					//Ref<Scene> scene = Ref<Scene>::Create();
-					//scene->DeserialiseData( stream );
-				} break;
-
-				case Saturn::AssetType::Prefab:
-				{
-					/*
-					if( asset )
-					{
-						RawPrefabSerialiser serialiser;
-						serialiser.TryLoadData( asset, stream );
-					}
-					*/
-				} break;
-
-				case Saturn::AssetType::SkeletalMesh:
-				case Saturn::AssetType::MaterialInstance:
-				case Saturn::AssetType::Audio:
-				case Saturn::AssetType::Script:
-				case Saturn::AssetType::MeshCollider:
-				case Saturn::AssetType::Unknown:
-				default:
-					break;
-			}
-		}
+		// Load the VFS
+		VirtualFS::Get().LoadVFS( stream );
 
 		stream.close();
 	}

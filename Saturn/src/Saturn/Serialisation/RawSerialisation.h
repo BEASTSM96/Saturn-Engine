@@ -254,6 +254,25 @@ namespace Saturn {
 			}
 		}
 
+		// TODO: Move this into the VFS.
+		// This is only used by the VFS.
+		static void ReadMap( std::map<std::string, std::filesystem::path>& rMap, std::ifstream& rStream )
+		{
+			size_t mapSize = 0;
+			rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+			for( size_t i = 0; i < mapSize; i++ )
+			{
+				std::string K{};
+				std::filesystem::path V{};
+
+				K = ReadString( rStream );
+				V = ReadString( rStream );
+
+				rMap[ K ] = V;
+			}
+		}
+
 		template<typename Ty, typename OStream>
 		static size_t WriteObject( const Ty& rObject, OStream& rStream )
 		{

@@ -398,28 +398,7 @@ namespace Saturn {
 		
 		physMaterialAsset->SetFlag( (PhysicsMaterialFlags)assetFlags, true );
 
-		// TODO: (Asset) Fix this.
-		struct
-		{
-			UUID ID;
-			AssetType Type;
-			uint32_t Flags;
-			std::filesystem::path Path;
-			std::string Name;
-		} OldAssetData = {};
-
-		OldAssetData.ID = rAsset->ID;
-		OldAssetData.Type = rAsset->Type;
-		OldAssetData.Flags = rAsset->Flags;
-		OldAssetData.Path = rAsset->Path;
-		OldAssetData.Name = rAsset->Name;
-
-		rAsset = physMaterialAsset;
-		rAsset->ID = OldAssetData.ID;
-		rAsset->Type = OldAssetData.Type;
-		rAsset->Flags = OldAssetData.Flags;
-		rAsset->Path = OldAssetData.Path;
-		rAsset->Name = OldAssetData.Name;
+		WriteToVFS( physMaterialAsset );
 
 		return true;
 	}
@@ -459,32 +438,12 @@ namespace Saturn {
 
 	bool RawTextureSourceAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
 	{
-		auto textureSourceAsset = Ref<TextureSourceAsset>::Create();
+		// Read the data into a temporary TextureSorce, then write that information into the VFS.
 
+		auto textureSourceAsset = Ref<TextureSourceAsset>::Create();
 		textureSourceAsset->DeserialiseData( rStream );
 
-		// TODO: (Asset) Fix this.
-		struct
-		{
-			UUID ID;
-			AssetType Type;
-			uint32_t Flags;
-			std::filesystem::path Path;
-			std::string Name;
-		} OldAssetData = {};
-
-		OldAssetData.ID = rAsset->ID;
-		OldAssetData.Type = rAsset->Type;
-		OldAssetData.Flags = rAsset->Flags;
-		OldAssetData.Path = rAsset->Path;
-		OldAssetData.Name = rAsset->Name;
-
-		rAsset = textureSourceAsset;
-		rAsset->ID = OldAssetData.ID;
-		rAsset->Type = OldAssetData.Type;
-		rAsset->Flags = OldAssetData.Flags;
-		rAsset->Path = OldAssetData.Path;
-		rAsset->Name = OldAssetData.Name;
+		textureSourceAsset->WriteToVFS();
 
 		return true;
 	}

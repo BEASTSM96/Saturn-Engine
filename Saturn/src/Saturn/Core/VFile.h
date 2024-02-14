@@ -64,6 +64,7 @@ namespace Saturn {
 		static void Deserialise( VFile& rObject, std::ifstream& rStream )
 		{
 			rObject.Name = RawSerialisation::ReadString( rStream );
+			rObject.FileContents = RawSerialisation::ReadString( rStream );
 		}
 	};
 }

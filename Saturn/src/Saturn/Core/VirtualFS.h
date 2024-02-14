@@ -79,7 +79,10 @@ namespace Saturn {
 		VDirectory& FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
 		void WriteDir( VDirectory& rDir, std::ofstream& rStream );
+		void ReadDir( VDirectory& rDir, std::ifstream& rStream );
+		
 		void WriteVFS( std::ofstream& rStream );
+		void LoadVFS( std::ifstream& rStream );
 
 		size_t GetMountBases();
 		size_t GetMounts();
@@ -99,6 +102,9 @@ namespace Saturn {
 		
 		template<typename V, typename OStream>
 		void WriteVFSMap( const std::map<std::string, std::map<std::filesystem::path, V>>& rMap, OStream& rStream );
+
+		template<typename V>
+		void ReadVFSMap( std::map<std::string, std::map<std::filesystem::path, V>>& rMap, std::ifstream& rStream );
 	private:
 		VDirectory m_RootDirectory;
 

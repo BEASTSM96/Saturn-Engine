@@ -207,6 +207,8 @@ namespace Saturn {
 		rMountBaseDir.Clear();
 
 		m_RootDirectory.Directories.erase( rID );
+		m_PathToFile.erase( rID );
+		m_PathToDir.erase( rID );
 	}
 
 	void VirtualFS::Unmount( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
@@ -268,6 +270,9 @@ namespace Saturn {
 		if( Itr == m_MountBases.end() )
 			throw std::runtime_error( "Mount base not found!" );
 
+		if( rVirtualPath.empty() )
+			throw std::runtime_error( "Path is empty!" );
+
 		return m_PathToDir[ rMountBase ][ rVirtualPath ];
 	}
 
@@ -285,6 +290,23 @@ namespace Saturn {
 		for( auto& [name, dir] : rDir.Directories )
 		{
 			WriteDir( dir, rStream );
+		}
+	}
+
+	void VirtualFS::ReadDir( VDirectory& rDir, std::ifstream& rStream )
+	{
+		SAT_CORE_INFO( "Reading Dir with name: {0}", rDir.GetName() );
+
+		// Read files
+		RawSerialisation::ReadUnorderedMap( rDir.Files, rStream );
+
+		// Read our directories map.
+		RawSerialisation::ReadUnorderedMap( rDir.Directories, rStream );
+
+		// Write sub-directories, files, and sub-sub-directories
+		for( auto& [name, dir] : rDir.Directories )
+		{
+			ReadDir( dir, rStream );
 		}
 	}
 
@@ -317,14 +339,51 @@ namespace Saturn {
 		}
 	}
 
+	template<typename V>
+	void VirtualFS::ReadVFSMap( std::map<std::string, std::map<std::filesystem::path, V>>& rMap, std::ifstream& rStream )
+	{
+		size_t mapSize = 0;
+		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			std::string K{};
+			K = RawSerialisation::ReadString( rStream );
+
+			size_t valueSize = 0;
+			rStream.read( reinterpret_cast< char* >( &valueSize ), sizeof( size_t ) );
+
+			for( size_t j = 0; j < mapSize; j++ )
+			{
+				std::string K2{};
+				K2 = RawSerialisation::ReadString( rStream );
+
+				V value{};
+
+				if constexpr( std::is_trivial<V>() )
+				{
+					RawSerialisation::ReadObject( value, rStream );
+				}
+				else
+				{
+					V::Deserialise( value, rStream );
+				}
+
+				rMap[ K ][ K2 ] = value;
+			}
+		}
+	}
+
 	void VirtualFS::WriteVFS( std::ofstream& rStream )
 	{
 		RawSerialisation::WriteMap( m_MountBases, rStream );
-		
-		WriteVFSMap( m_PathToDir, rStream );
-		WriteVFSMap( m_PathToFile, rStream );
-
 		WriteDir( m_RootDirectory, rStream );
+	}
+
+	void VirtualFS::LoadVFS( std::ifstream& rStream )
+	{
+		RawSerialisation::ReadMap( m_MountBases, rStream );
+		ReadDir( m_RootDirectory, rStream );
 	}
 
 	size_t VirtualFS::GetMountBases()
