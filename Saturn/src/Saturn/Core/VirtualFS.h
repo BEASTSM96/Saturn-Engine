@@ -108,7 +108,7 @@ namespace Saturn {
 	private:
 		VDirectory m_RootDirectory;
 
-		std::map<std::string, std::filesystem::path> m_MountBases;
+		std::unordered_map<std::string, std::filesystem::path> m_MountBases;
 		
 		// Mount Base -> Path -> Dir
 		std::map<std::string, std::map<std::filesystem::path, VDirectory>> m_PathToDir;

@@ -119,9 +119,9 @@ namespace Saturn {
 
 				case Saturn::AssetType::StaticMesh:
 				{
-					Ref<StaticMesh> mesh = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
+					//Ref<StaticMesh> mesh = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
 
-					RawStaticMeshAssetSerialiser serialiser;
+					//RawStaticMeshAssetSerialiser serialiser;
 					//serialiser.Serialise( mesh, fout );
 				} break;
 

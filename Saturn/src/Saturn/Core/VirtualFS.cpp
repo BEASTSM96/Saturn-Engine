@@ -376,13 +376,13 @@ namespace Saturn {
 
 	void VirtualFS::WriteVFS( std::ofstream& rStream )
 	{
-		RawSerialisation::WriteMap( m_MountBases, rStream );
+		RawSerialisation::WriteUnorderedMap( m_MountBases, rStream );
 		WriteDir( m_RootDirectory, rStream );
 	}
 
 	void VirtualFS::LoadVFS( std::ifstream& rStream )
 	{
-		RawSerialisation::ReadMap( m_MountBases, rStream );
+		RawSerialisation::ReadUnorderedMap( m_MountBases, rStream );
 		ReadDir( m_RootDirectory, rStream );
 	}
 
