@@ -345,12 +345,6 @@ namespace Saturn {
 			RawSerialisation::WriteString( k, rStream );
 			VDirectory::Serialise( v, rStream );
 		}
-
-		// Write sub-directories, files, and sub-sub-directories
-		for( auto& [name, dir] : rDir->Directories )
-		{
-			WriteDir( dir, rStream );
-		}
 	}
 
 	void VirtualFS::WriteDir( VDirectory& rDir, std::ofstream& rStream )
@@ -373,12 +367,6 @@ namespace Saturn {
 		{
 			RawSerialisation::WriteString( k, rStream );
 			VDirectory::Serialise( v, rStream );
-		}
-
-		// Write sub-directories, files, and sub-sub-directories
-		for( auto& [name, dir] : rDir.Directories )
-		{
-			WriteDir( dir, rStream );
 		}
 	}
 
@@ -413,12 +401,6 @@ namespace Saturn {
 
 			rDir->Directories[ K ] = dir;
 		}
-
-		// Write sub-directories, files, and sub-sub-directories
-		for( auto& [name, dir] : rDir->Directories )
-		{
-			ReadDir( dir, rStream );
-		}
 	}
 
 	void VirtualFS::ReadDir( VDirectory& rDir, std::ifstream& rStream )
@@ -451,12 +433,6 @@ namespace Saturn {
 			VDirectory::Deserialise( dir, rStream );
 
 			rDir.Directories[ K ] = dir;
-		}
-
-		// Write sub-directories, files, and sub-sub-directories
-		for( auto& [name, dir] : rDir.Directories )
-		{
-			ReadDir( dir, rStream );
 		}
 	}
 
