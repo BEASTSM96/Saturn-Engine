@@ -185,7 +185,7 @@ namespace Saturn {
 	bool RawMaterialAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		VFile& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
 		auto materialAsset = rAsset.As<MaterialAsset>();
 
@@ -240,7 +240,7 @@ namespace Saturn {
 
 		RawSerialisation::WriteObject( materialAsset->GetEmissive(), ss );
 		
-		file.FileContents = ss.str();
+		file->FileContents = ss.str();
 
 		return true;
 	}
@@ -352,7 +352,7 @@ namespace Saturn {
 		auto staticMeshAsset = rAsset.As<StaticMesh>();
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		VFile& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
 		std::ostringstream ss;
 
@@ -361,7 +361,7 @@ namespace Saturn {
 
 		staticMeshAsset->SerialiseData( ss );
 
-		file.FileContents = ss.str();
+		file->FileContents = ss.str();
 
 		return true;
 	}
@@ -408,7 +408,7 @@ namespace Saturn {
 		auto physMaterialAsset = rAsset.As<PhysicsMaterialAsset>();
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		VFile& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
 		/////////////////////////////////////
 		// Write to a std::ostream, then to our buffer.
@@ -421,7 +421,7 @@ namespace Saturn {
 
 		RawSerialisation::WriteObject( physMaterialAsset->GetFlags(), stream );
 
-		file.FileContents = stream.str();
+		file->FileContents = stream.str();
 
 		return true;
 	}

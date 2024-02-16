@@ -41,7 +41,7 @@
 class EditorApplication : public Saturn::Application
 {
 public:
-	EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
+	explicit EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
 		: Application( spec ), m_ProjectPath( rProjectPath )
 	{
 		// Setup user settings and find the project path.

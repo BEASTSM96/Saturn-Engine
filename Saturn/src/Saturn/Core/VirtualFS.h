@@ -61,6 +61,11 @@ namespace Saturn {
 		// For example:
 		// MountBase = FPS
 		// VirtualPath = Assets/Meshes/Gun.fbx
+		// When mounting the VFS will split the path by each segment.
+		// Meaning that if there is no previous mounts it will ending looking like this:
+		// Assets
+		// Meshes
+		// Gun.fbx
 		bool Mount( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
 		void UnmountBase( const std::string& rID );
@@ -70,17 +75,14 @@ namespace Saturn {
 		// NOTE:
 		// If the path is Assets/Meshes/Base/Cube.fbx
 		// Then it will return the Cube.fbx file.
-		VFile& FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+		Ref<VFile>& FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
 		// Finds and returns the directory.
 		// NOTE:
 		// If the path is Assets/Meshes/Base
 		// Then it will return the Base Directory.
-		VDirectory& FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+		Ref<VDirectory>& FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
-		void WriteDir( VDirectory& rDir, std::ofstream& rStream );
-		void ReadDir( VDirectory& rDir, std::ifstream& rStream );
-		
 		void WriteVFS( std::ofstream& rStream );
 		void LoadVFS( std::ifstream& rStream );
 
@@ -94,25 +96,38 @@ namespace Saturn {
 		void Init();
 		void Terminate();
 
+		void BuildPath( Ref<VDirectory>& rDir, const std::string& rMountBase );
+		void BuildPath( Ref<VFile>& rFile, const std::string& rMountBase );
+
 		void BuildPath( VDirectory& rDir, const std::string& rMountBase );
 		void BuildPath( VFile& rFile, const std::string& rMountBase );
 
 		void DrawDirectory( VDirectory& rDirectory );
 		size_t GetMountsForDir( VDirectory& rDirectory );
 		
+		void DrawDirectory( Ref<VDirectory>& rDirectory );
+		size_t GetMountsForDir( Ref<VDirectory>& rDirectory );
+
 		template<typename V, typename OStream>
 		void WriteVFSMap( const std::map<std::string, std::map<std::filesystem::path, V>>& rMap, OStream& rStream );
 
 		template<typename V>
 		void ReadVFSMap( std::map<std::string, std::map<std::filesystem::path, V>>& rMap, std::ifstream& rStream );
+
+		void WriteDir( VDirectory& rDir, std::ofstream& rStream );
+		void WriteDir( Ref<VDirectory>& rDir, std::ofstream& rStream );
+
+		void ReadDir( VDirectory& rDir, std::ifstream& rStream );
+		void ReadDir( Ref<VDirectory>& rDir, std::ifstream& rStream );
+
 	private:
 		VDirectory m_RootDirectory;
 
 		std::unordered_map<std::string, std::filesystem::path> m_MountBases;
 		
 		// Mount Base -> Path -> Dir
-		std::map<std::string, std::map<std::filesystem::path, VDirectory>> m_PathToDir;
+		std::map<std::string, std::map<std::filesystem::path, Ref<VDirectory>>> m_PathToDir;
 		// Mount Base -> Path -> File
-		std::map<std::string, std::map<std::filesystem::path, VFile>> m_PathToFile;
+		std::map<std::string, std::map<std::filesystem::path, Ref<VFile>>> m_PathToFile;
 	};
 }

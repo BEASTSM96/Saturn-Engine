@@ -62,7 +62,7 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 class __GameApplication : public Saturn::Application
 {
 public:
-	__GameApplication( const Saturn::ApplicationSpecification& spec )
+	explicit __GameApplication( const Saturn::ApplicationSpecification& spec )
 		: Saturn::Application( spec )
 	{
 		Saturn::EngineSettingsSerialiser uss;

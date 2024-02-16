@@ -87,7 +87,7 @@ namespace Saturn {
 	{
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 
-		VFile& file = VirtualFS::Get().FindFile( rMountBase, Path );
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, Path );
 
 		/////////////////////////////////////
 		// Write to a std::ostream, then to our buffer.
@@ -105,7 +105,7 @@ namespace Saturn {
 		// Buffer
 		RawSerialisation::WriteSaturnBuffer( m_TextureBuffer, stream );
 
-		file.FileContents = stream.str();
+		file->FileContents = stream.str();
 	}
 
 }

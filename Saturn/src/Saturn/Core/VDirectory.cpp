@@ -51,11 +51,6 @@ namespace Saturn {
 
 	}
 
-	void VDirectory::AddFile( const std::string& rName )
-	{
-		Files.emplace( rName, VFile( rName ) );
-	}
-
 	void VDirectory::RemoveFile( const std::string& rName )
 	{
 		Files.erase( rName );
@@ -63,7 +58,8 @@ namespace Saturn {
 
 	void VDirectory::AddDirectory( const std::string& rName )
 	{
-		Directories.emplace( rName, VDirectory( rName ) );
+		Ref<VDirectory> dir = Ref<VDirectory>::Create( rName, nullptr );
+		Directories.emplace( rName, dir );
 	}
 
 	void VDirectory::RemoveDirectory( const std::string& rName )
@@ -77,25 +73,67 @@ namespace Saturn {
 
 		for( auto&& [k, dir] : Directories )
 		{
-			dir.Clear();
+			dir->Clear();
 		}
 
 		Directories.clear();
 	}
 
-	void VDirectory::Serialise( const VDirectory& rObject, std::ofstream& rStream )
+	void VDirectory::Serialise( const Ref<VDirectory>& rObject, std::ofstream& rStream )
 	{
-		RawSerialisation::WriteString( rObject.m_Name, rStream );
+		RawSerialisation::WriteString( rObject->m_Name, rStream );
 
-		RawSerialisation::WriteUnorderedMap( rObject.Files, rStream );
-		RawSerialisation::WriteUnorderedMap( rObject.Directories, rStream );
+		// Serialise the map manually.
+		size_t mapSize = rObject->Files.size();
+		rStream.write( reinterpret_cast<char*>( &mapSize ), sizeof( size_t ) );
+
+		for( const auto& [k, v] : rObject->Files )
+		{
+			RawSerialisation::WriteString( k, rStream );
+			VFile::Serialise( v, rStream );
+		}
+
+		mapSize = rObject->Directories.size();
+		rStream.write( reinterpret_cast<char*>( &mapSize ), sizeof( size_t ) );
+
+		for( const auto& [k, v] : rObject->Directories )
+		{
+			RawSerialisation::WriteString( k, rStream );
+			VDirectory::Serialise( v, rStream );
+		}
 	}
 
-	void VDirectory::Deserialise( VDirectory& rObject, std::ifstream& rStream )
+	void VDirectory::Deserialise( Ref<VDirectory>& rObject, std::ifstream& rStream )
 	{
-		rObject.m_Name = RawSerialisation::ReadString( rStream );
+		rObject->m_Name = RawSerialisation::ReadString( rStream );
 
-		RawSerialisation::ReadUnorderedMap( rObject.Files, rStream );
-		RawSerialisation::ReadUnorderedMap( rObject.Directories, rStream );
+		// Deserialise the map manually.
+		size_t mapSize = 0;
+		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			std::string K;
+			K = RawSerialisation::ReadString( rStream );
+
+			Ref<VFile> V = Ref<VFile>::Create();
+			VFile::Deserialise( V, rStream );
+
+			rObject->Files[ K ] = V;
+		}
+
+		mapSize = 0;
+		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			std::string K;
+			K = RawSerialisation::ReadString( rStream );
+
+			Ref<VDirectory> V = Ref<VDirectory>::Create();
+			VDirectory::Deserialise( V, rStream );
+
+			rObject->Directories[ K ] = V;
+		}
 	}
 }

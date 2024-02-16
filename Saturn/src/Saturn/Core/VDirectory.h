@@ -35,7 +35,7 @@ namespace Saturn {
 
 	class VFile;
 
-	class VDirectory
+	class VDirectory : public RefTarget
 	{
 	public:
 		VDirectory() = default;
@@ -44,8 +44,8 @@ namespace Saturn {
 		VDirectory( const std::string& rName, VDirectory* parentDirectory );
 
 	public:
-		void AddFile( const std::string& rName );
 		void RemoveFile( const std::string& rName );
+		
 		void AddDirectory( const std::string& rName );
 		void RemoveDirectory( const std::string& rName );
 
@@ -74,15 +74,15 @@ namespace Saturn {
 		VDirectory& GetParent() { return *m_ParentDirectory; }
 
 	public:
-		static void Serialise( const VDirectory& rObject, std::ofstream& rStream );
-		static void Deserialise( VDirectory& rObject, std::ifstream& rStream );
+		static void Serialise( const Ref<VDirectory>& rObject, std::ofstream& rStream );
+		static void Deserialise( Ref<VDirectory>& rObject, std::ifstream& rStream );
 
 	public:
 		// Name -> File
-		std::unordered_map< std::string, VFile > Files;
+		std::unordered_map< std::string, Ref< VFile > > Files;
 
 		// Name -> VDirectory
-		std::unordered_map< std::string, VDirectory > Directories;
+		std::unordered_map< std::string, Ref< VDirectory > > Directories;
 
 		VDirectory* m_ParentDirectory = nullptr;
 

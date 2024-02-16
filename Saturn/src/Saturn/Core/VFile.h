@@ -38,7 +38,7 @@
 
 namespace Saturn {
 
-	class VFile
+	class VFile : public RefTarget
 	{
 	public:
 		VFile() {}
@@ -46,6 +46,18 @@ namespace Saturn {
 		VFile( const std::string& rName, VDirectory* pParentDir ) : Name( rName ), ParentDir( pParentDir ) {}
 
 		~VFile() = default;
+
+		inline constexpr VFile& operator=( const VFile& rObject )
+		{
+			if( this == &rObject )
+				return *this;
+
+			Name = rObject.Name;
+			ParentDir = rObject.ParentDir;
+			FileContents = rObject.FileContents;
+
+			return *this;
+		}
 
 	public:
 		std::string Name;
@@ -55,16 +67,16 @@ namespace Saturn {
 		std::string FileContents;
 	
 	public:
-		static void Serialise( const VFile& rObject, std::ofstream& rStream ) 
+		static void Serialise( const Ref<VFile>& rObject, std::ofstream& rStream )
 		{
-			RawSerialisation::WriteString( rObject.Name, rStream );
-			RawSerialisation::WriteString( rObject.FileContents, rStream );
+			RawSerialisation::WriteString( rObject->Name, rStream );
+			RawSerialisation::WriteString( rObject->FileContents, rStream );
 		}
 
-		static void Deserialise( VFile& rObject, std::ifstream& rStream )
+		static void Deserialise( Ref<VFile>& rObject, std::ifstream& rStream )
 		{
-			rObject.Name = RawSerialisation::ReadString( rStream );
-			rObject.FileContents = RawSerialisation::ReadString( rStream );
+			rObject->Name = RawSerialisation::ReadString( rStream );
+			rObject->FileContents = RawSerialisation::ReadString( rStream );
 		}
 	};
 }
