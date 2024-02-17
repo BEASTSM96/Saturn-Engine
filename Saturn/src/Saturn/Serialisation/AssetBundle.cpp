@@ -54,14 +54,6 @@ namespace Saturn {
 		size_t Assets;
 	};
 
-	AssetBundle::AssetBundle()
-	{
-	}
-
-	AssetBundle::~AssetBundle()
-	{
-	}
-
 	bool AssetBundle::BundleAssets()
 	{
 		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
@@ -195,13 +187,13 @@ namespace Saturn {
 		return true;
 	}
 
-	void AssetBundle::ReadBundle()
+	bool AssetBundle::ReadBundle()
 	{
 		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
 		cachePath /= "AssetBundle.sab";
 
 		if( !std::filesystem::exists( cachePath ) )
-			return;
+			return false;
 
 		std::ifstream stream( cachePath, std::ios::binary | std::ios::in );
 
@@ -211,7 +203,7 @@ namespace Saturn {
 		if( strcmp( header.Magic, ".AB\0" ) )
 		{
 			SAT_CORE_ERROR( "Invalid shader bundle file header!" );
-			return;
+			return false;
 		}
 
 		AssetManager& rAssetManager = AssetManager::Get();
@@ -241,6 +233,8 @@ namespace Saturn {
 		VirtualFS::Get().LoadVFS( stream );
 
 		stream.close();
+
+		return true;
 	}
 
 }

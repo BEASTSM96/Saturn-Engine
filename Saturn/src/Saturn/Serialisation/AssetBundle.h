@@ -33,13 +33,7 @@ namespace Saturn {
 	class AssetBundle
 	{
 	public:
-		AssetBundle();
-		~AssetBundle();
-
 		static bool BundleAssets();
-		static void ReadBundle();
-
-	private:
-
+		static bool ReadBundle();
 	};
 }
