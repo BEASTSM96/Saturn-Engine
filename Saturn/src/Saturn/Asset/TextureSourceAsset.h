@@ -42,6 +42,7 @@ namespace Saturn {
 		~TextureSourceAsset();
 
 		void WriteToVFS();
+		void ReadFromVFS();
 
 	public:
 		//////////////////////////////////////////////////////////////////////////

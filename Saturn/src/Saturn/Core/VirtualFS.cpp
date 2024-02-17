@@ -324,6 +324,9 @@ namespace Saturn {
 		return m_PathToDir[ rMountBase ][ rVirtualPath ];
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// SERIALILSATION/DESERIALILSATION
+
 	void VirtualFS::WriteDir( Ref<VDirectory>& rDir, std::ofstream& rStream )
 	{
 		SAT_CORE_INFO( "Writing Dir with name: {0}", rDir->GetName() );
@@ -436,70 +439,6 @@ namespace Saturn {
 		}
 	}
 
-	template<typename V, typename OStream>
-	void VirtualFS::WriteVFSMap( const std::map<std::string, std::map<std::filesystem::path, V>>& rMap, OStream& rStream )
-	{
-		size_t mapSize = rMap.size();
-		rStream.write( reinterpret_cast<char*>( &mapSize ), sizeof( size_t ) );
-
-		for( const auto& [key, value] : rMap )
-		{
-			RawSerialisation::WriteString( key, rStream );
-
-			size_t valueSize = value.size();
-			rStream.write( reinterpret_cast<char*>( &valueSize ), sizeof( size_t ) );
-			
-			for( const auto& [key2, value2] : value )
-			{
-				RawSerialisation::WriteString( key2, rStream );
-
-				if constexpr( std::is_trivial<V>() )
-				{
-					RawSerialisation::WriteObject( value2, rStream );
-				}
-				else
-				{
-					V::Serialise( value2, rStream );
-				}
-			}
-		}
-	}
-
-	template<typename V>
-	void VirtualFS::ReadVFSMap( std::map<std::string, std::map<std::filesystem::path, V>>& rMap, std::ifstream& rStream )
-	{
-		size_t mapSize = 0;
-		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-
-		for( size_t i = 0; i < mapSize; i++ )
-		{
-			std::string K{};
-			K = RawSerialisation::ReadString( rStream );
-
-			size_t valueSize = 0;
-			rStream.read( reinterpret_cast< char* >( &valueSize ), sizeof( size_t ) );
-
-			for( size_t j = 0; j < mapSize; j++ )
-			{
-				std::string K2{};
-				K2 = RawSerialisation::ReadString( rStream );
-
-				V value{};
-
-				if constexpr( std::is_trivial<V>() )
-				{
-					RawSerialisation::ReadObject( value, rStream );
-				}
-				else
-				{
-					V::Deserialise( value, rStream );
-				}
-
-				rMap[ K ][ K2 ] = value;
-			}
-		}
-	}
-
 	void VirtualFS::WriteVFS( std::ofstream& rStream )
 	{
 		RawSerialisation::WriteUnorderedMap( m_MountBases, rStream );
@@ -511,6 +450,8 @@ namespace Saturn {
 		RawSerialisation::ReadUnorderedMap( m_MountBases, rStream );
 		ReadDir( m_RootDirectory, rStream );
 	}
+
+	//////////////////////////////////////////////////////////////////////////
 
 	size_t VirtualFS::GetMountBases()
 	{
@@ -556,6 +497,9 @@ namespace Saturn {
 
 		return mounts;
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// IMGUI
 
 	void VirtualFS::DrawDirectory( Ref<VDirectory>& rDirectory )
 	{

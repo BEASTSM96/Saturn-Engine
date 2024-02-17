@@ -35,55 +35,42 @@ namespace Saturn {
 	class RawAssetSerialiser
 	{
 	public:
-		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const = 0;
 		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const = 0;
-		
-		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const = 0;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const = 0;
 	};
 
 	class RawMaterialAssetSerialiser : public RawAssetSerialiser
 	{
 	public:
-		// We don't need to load the node editor information, this will not be needed for binary.
-		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
 		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
-		
-		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 
 	class RawPrefabSerialiser : public RawAssetSerialiser
 	{
 	public:
-		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
 		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
-		
-		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 
 	class RawStaticMeshAssetSerialiser : public RawAssetSerialiser
 	{
 	public:
-		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
-		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
-		
-		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
+		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;	
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 
 	class RawPhysicsMaterialAssetSerialiser : public RawAssetSerialiser
 	{
 	public:
-		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
 		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
-		
-		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 
 	class RawTextureSourceAssetSerialiser : public RawAssetSerialiser
 	{
 	public:
-		virtual void Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const override;
-		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
-		
-		virtual bool TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const override;
+		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;	
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 }

@@ -576,6 +576,16 @@ namespace Saturn {
 		RawSerialisation::ReadVector( m_Submeshes, rStream );
 	}
 
+	void StaticMesh::DeserialiseData( std::istringstream& rStream )
+	{
+		RawSerialisation::ReadObject( m_VertexCount, rStream );
+		RawSerialisation::ReadObject( m_IndicesCount, rStream );
+
+		RawSerialisation::ReadVector( m_Indices, rStream );
+		RawSerialisation::ReadVector( m_Vertices, rStream );
+		RawSerialisation::ReadVector( m_Submeshes, rStream );
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 
 	MeshSource::MeshSource( const std::filesystem::path& rPath, const std::filesystem::path& rDstPath )

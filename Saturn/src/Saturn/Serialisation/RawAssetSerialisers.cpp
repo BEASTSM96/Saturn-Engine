@@ -52,107 +52,60 @@
 
 namespace Saturn {
 
-	void RawMaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const
+	bool RawMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto materialAsset = rAsset.As<MaterialAsset>();
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
-		if( !materialAsset )
-			return;
+		std::istringstream stream( file->FileContents );
 
-		RawSerialisation::WriteVec3( materialAsset->GetAlbeoColor(), rStream );
+		/////////////////////////////////////
 
-		// We are fine to use the main asset registry here, we are only looking for an asset.
-		auto asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
-		AssetID fallbackAssetID = 0;
-
-		// ALBEO
-		if( asset )
-			RawSerialisation::WriteObject( asset->ID, rStream );
-		else
-			RawSerialisation::WriteObject( fallbackAssetID, rStream );
-
-		// NORMAL MAP
-
-		asset = AssetManager::Get().FindAsset( materialAsset->GetNormalMap()->GetPath() );
-		bool isUsingNormalMaps = materialAsset->IsUsingNormalMap();
-
-		RawSerialisation::WriteObject( isUsingNormalMaps, rStream );
-
-		if( asset )
-			RawSerialisation::WriteObject( asset->ID, rStream );
-		else
-			RawSerialisation::WriteObject( fallbackAssetID, rStream );
-
-		// METALLIC MAP
-
-		asset = AssetManager::Get().FindAsset( materialAsset->GetMetallicMap()->GetPath() );
-		RawSerialisation::WriteObject( materialAsset->GetMetalness(), rStream );
-		
-		if( asset )
-			RawSerialisation::WriteObject( asset->ID, rStream );
-		else
-			RawSerialisation::WriteObject( fallbackAssetID, rStream );
-
-		// ROUGHNESS MAP
-
-		asset = AssetManager::Get().FindAsset( materialAsset->GetRoughnessMap()->GetPath() );
-		RawSerialisation::WriteObject( materialAsset->GetRoughness(), rStream );
-
-		if( asset )
-			RawSerialisation::WriteObject( asset->ID, rStream );
-		else
-			RawSerialisation::WriteObject( fallbackAssetID, rStream );
-
-		RawSerialisation::WriteObject( materialAsset->GetEmissive(), rStream );
-	}
-
-	bool RawMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
-	{
 		Ref<MaterialAsset> materialAsset = Ref<MaterialAsset>::Create( nullptr );
 		AssetID currentTextureID = 0;
 
 		// ALBEO COLOR
 
 		glm::vec3 albeoColor = glm::vec3( 0.0f );
-		RawSerialisation::ReadVec3( albeoColor, rStream );
+		RawSerialisation::ReadVec3( albeoColor, stream );
 
 		materialAsset->SetAlbeoColor( albeoColor );
 
 		// ALBEO MAP
-		RawSerialisation::ReadObject( currentTextureID, rStream );
+		RawSerialisation::ReadObject( currentTextureID, stream );
 		
 		// IS USING NORMAL MAPS
 		bool isUsingNormalMaps = false;
-		RawSerialisation::ReadObject( isUsingNormalMaps, rStream );
+		RawSerialisation::ReadObject( isUsingNormalMaps, stream );
 
 		// NORMAL MAP
-		RawSerialisation::ReadObject( currentTextureID, rStream );
+		RawSerialisation::ReadObject( currentTextureID, stream );
 		
 		materialAsset->UseNormalMap( isUsingNormalMaps );
 
 		// METALNESS
 		float metalness = 0.0f;
 
-		RawSerialisation::ReadObject( metalness, rStream );
+		RawSerialisation::ReadObject( metalness, stream );
 
 		materialAsset->SetMetalness( metalness );
 
 		// METALLIC MAP
-		RawSerialisation::ReadObject( currentTextureID, rStream );
+		RawSerialisation::ReadObject( currentTextureID, stream );
 
 		// ROUGHNESS
 		float roughness = 0.0f;
 
-		RawSerialisation::ReadObject( roughness, rStream );
+		RawSerialisation::ReadObject( roughness, stream );
 
 		materialAsset->SetRoughness( roughness );
 
 		// ROUGHNESS MAP
-		RawSerialisation::ReadObject( currentTextureID, rStream );
+		RawSerialisation::ReadObject( currentTextureID, stream );
 
 		// EMISSIVE
 		float emissive = 0.0f;
-		RawSerialisation::ReadObject( emissive, rStream );
+		RawSerialisation::ReadObject( emissive, stream );
 		
 		materialAsset->SetEmissive( emissive );
 
@@ -248,19 +201,12 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// PREFAB
 
-	void RawPrefabSerialiser::Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const
-	{
-		auto prefabAsset = rAsset.As<Prefab>();
-
-		prefabAsset->GetScene()->SerialiseData( rStream );
-	}
-
-	bool RawPrefabSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
+	bool RawPrefabSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
 		auto prefabAsset = Ref<Prefab>::Create();
 		prefabAsset->Create();
 
-		prefabAsset->GetScene()->DeserialiseData( rStream );
+		//prefabAsset->GetScene()->DeserialiseData( rStream );
 
 		// TODO: (Asset) Fix this.
 		struct
@@ -296,30 +242,27 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// STATIC MESH
 
-	void RawStaticMeshAssetSerialiser::Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const
-	{
-		auto staticMeshAsset = rAsset.As<StaticMesh>();
-
-		RawSerialisation::WriteObject( staticMeshAsset->GetAttachedShape(), rStream );
-		RawSerialisation::WriteObject( staticMeshAsset->GetPhysicsMaterial(), rStream );
-
-		staticMeshAsset->SerialiseData( rStream );
-	}
-
-	bool RawStaticMeshAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
+	bool RawStaticMeshAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
 		auto staticMeshAsset = Ref<StaticMesh>::Create();
+
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		std::istringstream stream( file->FileContents );
+
+		/////////////////////////////////////
 
 		ShapeType shapeType = ShapeType::Unknown;
 		AssetID physicsMaterial = 0;
 
-		RawSerialisation::ReadObject( shapeType, rStream );
-		RawSerialisation::ReadObject( physicsMaterial, rStream );
+		RawSerialisation::ReadObject( shapeType, stream );
+		RawSerialisation::ReadObject( physicsMaterial, stream );
 
 		staticMeshAsset->SetAttachedShape( shapeType );
 		staticMeshAsset->SetPhysicsMaterial( physicsMaterial );
 
-		staticMeshAsset->DeserialiseData( rStream );
+		staticMeshAsset->DeserialiseData( stream );
 
 		// TODO: (Asset) Fix this.
 		struct
@@ -369,27 +312,22 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// PHYSICS MATERIAL
 
-	void RawPhysicsMaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const
+	bool RawPhysicsMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto physMaterialAsset = rAsset.As<PhysicsMaterialAsset>();
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
-		RawSerialisation::WriteObject( physMaterialAsset->GetStaticFriction(), rStream );
-		RawSerialisation::WriteObject( physMaterialAsset->GetDynamicFriction(), rStream );
-		RawSerialisation::WriteObject( physMaterialAsset->GetRestitution(), rStream );
-		
-		RawSerialisation::WriteObject( physMaterialAsset->GetFlags(), rStream );
-	}
+		/////////////////////////////////////
+		std::istringstream stream( file->FileContents );
 
-	bool RawPhysicsMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
-	{
 		glm::vec3 StaticDynamicFrictionRestitution{};
 		uint32_t assetFlags = 0;
 
-		RawSerialisation::ReadObject( StaticDynamicFrictionRestitution.x, rStream );
-		RawSerialisation::ReadObject( StaticDynamicFrictionRestitution.y, rStream );
-		RawSerialisation::ReadObject( StaticDynamicFrictionRestitution.z, rStream );
+		RawSerialisation::ReadObject( StaticDynamicFrictionRestitution.x, stream );
+		RawSerialisation::ReadObject( StaticDynamicFrictionRestitution.y, stream );
+		RawSerialisation::ReadObject( StaticDynamicFrictionRestitution.z, stream );
 
-		RawSerialisation::ReadObject( assetFlags, rStream );
+		RawSerialisation::ReadObject( assetFlags, stream );
 
 		auto physMaterialAsset = Ref<PhysicsMaterialAsset>::Create( 
 			StaticDynamicFrictionRestitution.x,
@@ -398,7 +336,28 @@ namespace Saturn {
 		
 		physMaterialAsset->SetFlag( (PhysicsMaterialFlags)assetFlags, true );
 
-		WriteToVFS( physMaterialAsset );
+		// TODO: (Asset) Fix this.
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			uint32_t Flags;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = physMaterialAsset;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
 
 		return true;
 	}
@@ -411,7 +370,6 @@ namespace Saturn {
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
 		/////////////////////////////////////
-		// Write to a std::ostream, then to our buffer.
 
 		std::ostringstream stream;
 
@@ -429,21 +387,18 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// TEXTURE SOURCE
 
-	void RawTextureSourceAssetSerialiser::Serialise( const Ref<Asset>& rAsset, std::ofstream& rStream ) const
+	bool RawTextureSourceAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto textureSourceAsset = rAsset.As<TextureSourceAsset>();
-
-		textureSourceAsset->SerialiseData( rStream );
-	}
-
-	bool RawTextureSourceAssetSerialiser::TryLoadData( Ref<Asset>& rAsset, std::ifstream& rStream ) const
-	{
-		// Read the data into a temporary TextureSorce, then write that information into the VFS.
-
 		auto textureSourceAsset = Ref<TextureSourceAsset>::Create();
-		textureSourceAsset->DeserialiseData( rStream );
+		textureSourceAsset->Path = rAsset->Path;
+		textureSourceAsset->ID = rAsset->ID;
+		textureSourceAsset->Name = rAsset->Name;
+		textureSourceAsset->Flags = rAsset->Flags;
+		textureSourceAsset->Type = rAsset->Type;
 
-		textureSourceAsset->WriteToVFS();
+		textureSourceAsset->ReadFromVFS();
+
+		rAsset = textureSourceAsset;
 
 		return true;
 	}

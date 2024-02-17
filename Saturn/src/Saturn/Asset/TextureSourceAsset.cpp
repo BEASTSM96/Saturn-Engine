@@ -90,7 +90,6 @@ namespace Saturn {
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, Path );
 
 		/////////////////////////////////////
-		// Write to a std::ostream, then to our buffer.
 
 		std::ostringstream stream;
 
@@ -108,4 +107,22 @@ namespace Saturn {
 		file->FileContents = stream.str();
 	}
 
+	void TextureSourceAsset::ReadFromVFS()
+	{
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, Path );
+
+		/////////////////////////////////////
+		std::istringstream stream( file->FileContents );
+
+		m_AbsolutePath = RawSerialisation::ReadString( stream );
+		RawSerialisation::ReadObject( m_Width, stream );
+		RawSerialisation::ReadObject( m_Height, stream );
+		RawSerialisation::ReadObject( m_Channels, stream );
+		RawSerialisation::ReadObject( m_Flipped, stream );
+		RawSerialisation::ReadObject( m_HDR, stream );
+
+		// Buffer
+		RawSerialisation::ReadSaturnBuffer( m_TextureBuffer, stream );
+	}
 }
