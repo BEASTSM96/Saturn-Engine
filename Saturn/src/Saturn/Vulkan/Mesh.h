@@ -94,7 +94,8 @@ namespace Saturn {
 			RawSerialisation::WriteString( rObject.MeshName, rStream );
 		}
 
-		static void Deserialise( Submesh& rObject, std::ifstream& rStream )
+		template<typename IStream>
+		static void Deserialise( Submesh& rObject, IStream& rStream )
 		{
 			RawSerialisation::ReadObject( rObject.BaseVertex, rStream );
 			RawSerialisation::ReadObject( rObject.BaseIndex, rStream );

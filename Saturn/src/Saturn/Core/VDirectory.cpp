@@ -51,6 +51,11 @@ namespace Saturn {
 
 	}
 
+	VDirectory::~VDirectory()
+	{
+		Clear();
+	}
+
 	void VDirectory::RemoveFile( const std::string& rName )
 	{
 		Files.erase( rName );

@@ -26,30 +26,25 @@
 *********************************************************************************************
 */
 
-#pragma once
-
+#include "sppch.h"
 #include "AssetImporterBase.h"
+
+#include "Saturn/Core/App.h"
+
+#include "AssetImporter.h"
 
 namespace Saturn {
 
-	// We have two main AssetImporters.
-	// This one is for importing YAML files, i.e. when we are in the editor, and in development.
-	// The other is for importing assets from the VFS and is used when all of the assets are "cooked" used in distribution.
-	class AssetImporter : public AssetImporterBase
+	AssetImporterBase& AssetImporterBase::Get()
 	{
-	public:
-		AssetImporter() { Init(); }
-		~AssetImporter();
-
-	public:
-
-		void Import     ( const Ref<Asset>& rAsset ) override;
-		bool TryLoadData(       Ref<Asset>& rAsset ) override;
-
-	private:
-		void Init();
-
-		// TODO: Maybe change to Ref?
-		std::unordered_map<AssetType, std::unique_ptr<AssetSerialiser>> m_AssetSerialisers;
-	};
+		if( Application::Get().HasFlag( ApplicationFlag_UseVFS ) )
+		{
+			// TEMP
+			return *SingletonStorage::GetOrCreateSingleton<AssetImporter>();
+		}
+		else
+		{
+			return *SingletonStorage::GetOrCreateSingleton<AssetImporter>();
+		}
+	}
 }

@@ -28,28 +28,19 @@
 
 #pragma once
 
-#include "AssetImporterBase.h"
+#include <Saturn/Serialisation/AssetSerialisers.h>
+#include <Saturn/Core/Base.h>
+#include <unordered_map>
 
 namespace Saturn {
 
-	// We have two main AssetImporters.
-	// This one is for importing YAML files, i.e. when we are in the editor, and in development.
-	// The other is for importing assets from the VFS and is used when all of the assets are "cooked" used in distribution.
-	class AssetImporter : public AssetImporterBase
+	class AssetImporterBase : public RefTarget
 	{
 	public:
-		AssetImporter() { Init(); }
-		~AssetImporter();
+		static AssetImporterBase& Get();
 
 	public:
-
-		void Import     ( const Ref<Asset>& rAsset ) override;
-		bool TryLoadData(       Ref<Asset>& rAsset ) override;
-
-	private:
-		void Init();
-
-		// TODO: Maybe change to Ref?
-		std::unordered_map<AssetType, std::unique_ptr<AssetSerialiser>> m_AssetSerialisers;
+		virtual void Import( const Ref<Asset>& rAsset ) = 0;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) = 0;
 	};
 }

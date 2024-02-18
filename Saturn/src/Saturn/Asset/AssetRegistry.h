@@ -88,7 +88,7 @@ namespace Saturn {
 
 			if( !IsAssetLoaded( id ) )
 			{
-				bool loaded = AssetImporter::Get().TryLoadData( asset );
+				bool loaded = AssetImporterBase::Get().TryLoadData( asset );
 				if( !loaded )
 					return nullptr;
 

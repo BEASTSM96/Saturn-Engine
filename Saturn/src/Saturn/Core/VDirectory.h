@@ -43,6 +43,8 @@ namespace Saturn {
 		VDirectory( const std::wstring& rName );
 		VDirectory( const std::string& rName, VDirectory* parentDirectory );
 
+		~VDirectory();
+
 	public:
 		void RemoveFile( const std::string& rName );
 		

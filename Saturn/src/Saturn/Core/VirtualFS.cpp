@@ -441,12 +441,16 @@ namespace Saturn {
 
 	void VirtualFS::WriteVFS( std::ofstream& rStream )
 	{
+		SAT_CORE_INFO( "VFS: Writing to AssetBundle..." );
+
 		RawSerialisation::WriteUnorderedMap( m_MountBases, rStream );
 		WriteDir( m_RootDirectory, rStream );
 	}
 
 	void VirtualFS::LoadVFS( std::ifstream& rStream )
 	{
+		SAT_CORE_INFO( "VFS: Loading from AssetBundle..." );
+
 		RawSerialisation::ReadUnorderedMap( m_MountBases, rStream );
 		ReadDir( m_RootDirectory, rStream );
 	}
