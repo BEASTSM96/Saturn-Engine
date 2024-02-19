@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Saturn/Core/Memory/Buffer.h"
+#include "Saturn/Core/Serialisable.h"
 
 #include <fstream>
 #include <unordered_map>
@@ -58,6 +59,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					K::Serialise( key, rStream );
 				}
 
@@ -67,6 +70,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					V::Serialise( value, rStream );
 				}
 			}
@@ -91,6 +96,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					V::Serialise( value, rStream );
 				}
 			}
@@ -128,6 +135,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					K::Serialise( key, rStream );
 				}
 
@@ -152,6 +161,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					K::Serialise( key, rStream );
 				}
 
@@ -161,6 +172,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					V::Serialise( value, rStream );
 				}
 			}
@@ -185,6 +198,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					V::Serialise( value, rStream );
 				}
 			}
@@ -207,6 +222,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					K::Serialise( key, rStream );
 				}
 
@@ -246,6 +263,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, Ty>::value, "Ty is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					Ty::Serialise( value, rStream );
 				}
 			}
@@ -259,8 +278,8 @@ namespace Saturn {
 			return sizeof( Ty );
 		}
 
-		template<typename Ty>
-		static void ReadObject( Ty& rObject, std::ifstream& rStream )
+		template<typename Ty, typename IStream>
+		static void ReadObject( Ty& rObject, IStream& rStream )
 		{
 			rStream.read( reinterpret_cast<char*>( &rObject ), sizeof( Ty ) );
 		}
@@ -302,8 +321,8 @@ namespace Saturn {
 			return size;
 		}
 
-		template<typename Ty>
-		static void ReadVector( std::vector<Ty>& rMap, std::ifstream& rStream )
+		template<typename Ty, typename IStream>
+		static void ReadVector( std::vector<Ty>& rMap, IStream& rStream )
 		{
 			if( rMap.size() )
 				rMap.clear();
@@ -321,6 +340,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, Ty>::value, "Ty is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					Ty::Deserialise( value, rStream );
 				}
 
@@ -328,8 +349,8 @@ namespace Saturn {
 			}
 		}
 
-		template<typename K, typename V>
-		static void ReadUnorderedMap( std::unordered_map<K, V>& rMap, std::ifstream& rStream )
+		template<typename K, typename V, typename IStream>
+		static void ReadUnorderedMap( std::unordered_map<K, V>& rMap, IStream& rStream )
 		{
 			if( rMap.size() )
 				rMap.clear();
@@ -346,6 +367,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					K::Deserialise( key, rStream );
 				}
 
@@ -356,6 +379,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					V::Deserialise( value, rStream );
 				}
 
@@ -365,7 +390,8 @@ namespace Saturn {
 
 		// TODO: Move this into the VFS.
 		// This is only used by the VFS.
-		static void ReadUnorderedMap( std::unordered_map<std::string, std::filesystem::path>& rMap, std::ifstream& rStream )
+		template<typename IStream>
+		static void ReadUnorderedMap( std::unordered_map<std::string, std::filesystem::path>& rMap, IStream& rStream )
 		{
 			size_t mapSize = 0;
 			rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
@@ -382,8 +408,8 @@ namespace Saturn {
 			}
 		}
 
-		template<typename V>
-		static void ReadUnorderedMap( std::unordered_map<std::string, V>& rMap, std::ifstream& rStream )
+		template<typename V, typename IStream>
+		static void ReadUnorderedMap( std::unordered_map<std::string, V>& rMap, IStream& rStream )
 		{
 			if( rMap.size() )
 				rMap.clear();
@@ -403,6 +429,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					V::Deserialise( value, rStream );
 				}
 
@@ -410,8 +438,8 @@ namespace Saturn {
 			}
 		}
 
-		template<typename K, typename V>
-		static void ReadUnorderedMap( std::unordered_map<K, std::vector<V>>& rMap, std::ifstream& rStream )
+		template<typename K, typename V, typename IStream>
+		static void ReadUnorderedMap( std::unordered_map<K, std::vector<V>>& rMap, IStream& rStream )
 		{
 			if( rMap.size() )
 				rMap.clear();
@@ -428,6 +456,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					K::Deserialise( key, rStream );
 				}
 
@@ -438,8 +468,8 @@ namespace Saturn {
 			}
 		}
 
-		template<typename K, typename V>
-		static void ReadMap( std::map<K, V>& rMap, std::ifstream& rStream )
+		template<typename K, typename V, typename IStream>
+		static void ReadMap( std::map<K, V>& rMap, IStream& rStream )
 		{
 			if( rMap.size() )
 				rMap.clear();
@@ -456,6 +486,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					K::Deserialise( key, rStream );
 				}
 
@@ -466,6 +498,8 @@ namespace Saturn {
 				}
 				else
 				{
+					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
+
 					V::Deserialise( value, rStream );
 				}
 
@@ -473,7 +507,8 @@ namespace Saturn {
 			}
 		}
 
-		static std::string ReadString( std::ifstream& rStream )
+		template<typename IStream>
+		static std::string ReadString( IStream& rStream )
 		{
 			size_t length = 0;
 			rStream.read( reinterpret_cast< char* >( &length ), sizeof( size_t ) );
@@ -499,7 +534,8 @@ namespace Saturn {
 			rStream.write( reinterpret_cast< char* >( &temporaryVec.y ), sizeof( float ) );
 		}
 
-		static void ReadVec2( glm::vec2& rVec, std::ifstream& rStream )
+		template<typename IStream>
+		static void ReadVec2( glm::vec2& rVec, IStream& rStream )
 		{
 			float x, y;
 
@@ -521,7 +557,8 @@ namespace Saturn {
 			return sizeof( float ) * 3;
 		}
 
-		static void ReadVec3( glm::vec3& rVec, std::ifstream& rStream )
+		template<typename IStream>
+		static void ReadVec3( glm::vec3& rVec, IStream& rStream )
 		{
 			float x, y, z;
 
@@ -543,7 +580,8 @@ namespace Saturn {
 			rStream.write( reinterpret_cast< char* >( &temporaryVec.w ), sizeof( float ) );
 		}
 
-		static void ReadVec4( glm::vec4& rVec, std::ifstream& rStream )
+		template<typename IStream>
+		static void ReadVec4( glm::vec4& rVec, IStream& rStream )
 		{
 			float x, y, z, w;
 
@@ -566,7 +604,8 @@ namespace Saturn {
 			WriteVec4( temporaryMat[ 3 ], rStream );
 		}
 
-		static void ReadMatrix4x4( glm::mat4& rMat, std::ifstream& rStream )
+		template<typename IStream>
+		static void ReadMatrix4x4( glm::mat4& rMat, IStream& rStream )
 		{
 			glm::mat4 newMat{};
 
@@ -585,7 +624,8 @@ namespace Saturn {
 			rStream.write( reinterpret_cast<char*>( rBuffer.Data ), rBuffer.Size );
 		}
 
-		static void ReadSaturnBuffer( Buffer& rBuffer, std::ifstream& rStream )
+		template<typename IStream>
+		static void ReadSaturnBuffer( Buffer& rBuffer, IStream& rStream )
 		{
 			rBuffer.Free();
 
