@@ -26,22 +26,30 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
+#pragma once
+
 #include "AssetImporterBase.h"
 
-#include "Saturn/Core/App.h"
-
-#include "AssetImporter.h"
-#include "VFSAssetImporter.h"
+#include "Saturn/Serialisation/RawAssetSerialisers.h"
 
 namespace Saturn {
 
-	// This would be very very nice if we where able to do constexpr here however application is not constexpr.
-	AssetImporterBase& AssetImporterBase::Get()
+	class VFSAssetImporter : public AssetImporterBase
 	{
-		if ( Application::Get().HasFlag( ApplicationFlag_UseVFS ) )
-			return *SingletonStorage::GetOrCreateSingleton<VFSAssetImporter>();
-		else
-			return *SingletonStorage::GetOrCreateSingleton<AssetImporter>();
-	}
+	public:
+		static AssetImporterType GetStaticType() { return AssetImporterType::BINARY; }
+	public:
+		VFSAssetImporter();
+		~VFSAssetImporter();
+
+		void Import( const Ref<Asset>& rAsset ) override;
+		bool TryLoadData( Ref<Asset>& rAsset ) override;
+
+	private:
+		void Init();
+
+	private:
+		std::unordered_map<AssetType, std::unique_ptr<RawAssetSerialiser>> m_AssetSerialisers;
+	};
+
 }

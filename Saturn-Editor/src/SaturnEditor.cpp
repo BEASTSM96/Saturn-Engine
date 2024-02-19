@@ -102,6 +102,15 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 	else
 		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
 
+	// TEMP, We will soon remove that ^^^, therefore this will need to be here.
+#if defined( _WIN32 )
+	if( projectPath.empty() )
+	{
+		MessageBoxA( nullptr, "No project path was provided!", "Error", MB_OK | MB_ICONERROR );
+		return nullptr;
+	}
+#endif
+
 	ApplicationSpecification spec;
 	spec.Flags = ApplicationFlag_CreateSceneRenderer;
 

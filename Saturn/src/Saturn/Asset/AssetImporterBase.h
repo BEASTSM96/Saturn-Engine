@@ -34,6 +34,12 @@
 
 namespace Saturn {
 
+	enum class AssetImporterType
+	{
+		YAML,
+		BINARY
+	};
+
 	class AssetImporterBase : public RefTarget
 	{
 	public:

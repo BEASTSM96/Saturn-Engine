@@ -46,6 +46,8 @@ class RubyWindow;
 
 namespace Saturn {
 
+	// ApplicationFlags must are set when the application is being created and must not change throughout its lifetime.
+	// TODO: It would be nice if we could use constexpr to evaluate this at compile time.
 	enum ApplicationFlags_
 	{
 		ApplicationFlag_UIOnly = BIT( 0 ),
@@ -117,7 +119,10 @@ namespace Saturn {
 		std::filesystem::path& GetRootContentDir() { return m_RootContentPath; }
 		const std::filesystem::path& GetRootContentDir() const { return m_RootContentPath; }
 
-		bool HasFlag( ApplicationFlags flag );
+		constexpr bool HasFlag( ApplicationFlags flag )
+		{
+			return ( m_Specification.Flags & ( uint32_t ) flag ) != 0;
+		}
 
 		std::filesystem::path GetAppDataFolder();
 

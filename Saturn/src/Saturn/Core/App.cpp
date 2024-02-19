@@ -224,11 +224,6 @@ namespace Saturn {
 		}
 	}
 
-	bool Application::HasFlag( ApplicationFlags flag )
-	{
-		return ( m_Specification.Flags & (uint32_t)flag ) != 0;
-	}
-
 	std::filesystem::path Application::GetAppDataFolder()
 	{
 		std::filesystem::path path = L"";
