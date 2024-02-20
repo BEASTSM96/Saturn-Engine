@@ -165,10 +165,6 @@ namespace Saturn {
 					// Bundle Assets
 					// TODO: This will most likely be an action that takes time so to account for that we need to make a window modal for this.
 					AssetBundle::BundleAssets();
-					
-					std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
-
-					AssetBundle::ReadBundle();
 				}
 
 				if( ImGui::MenuItem( "Distribute project" ) )
@@ -246,6 +242,8 @@ namespace Saturn {
 		OpenFile( "Assets\\Scenes\\UI_Main.scene" );
 
 		HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+
+		AssetBundle::ReadBundle();
 	}
 
 	EditorLayer::~EditorLayer()
@@ -1339,7 +1337,7 @@ namespace Saturn {
 				// We have now that path to the *.stmesh but we need to path to the fbx/gltf.
 
 				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
-				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
+				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<StaticMesh>( asset->GetAssetID() );
 
 				Ref<Entity> entity = Ref<Entity>::Create();
 				entity->SetName( asset->Name );

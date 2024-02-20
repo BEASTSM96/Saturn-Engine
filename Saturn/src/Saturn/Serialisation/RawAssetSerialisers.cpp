@@ -74,14 +74,17 @@ namespace Saturn {
 		// ALBEO MAP
 		RawSerialisation::ReadObject( currentTextureID, stream );
 		
+		materialAsset->SetAlbeoMap( currentTextureID );
+
 		// IS USING NORMAL MAPS
 		bool isUsingNormalMaps = false;
 		RawSerialisation::ReadObject( isUsingNormalMaps, stream );
+		materialAsset->UseNormalMap( isUsingNormalMaps );
 
 		// NORMAL MAP
 		RawSerialisation::ReadObject( currentTextureID, stream );
 		
-		materialAsset->UseNormalMap( isUsingNormalMaps );
+		materialAsset->SetNormalMap( currentTextureID );
 
 		// METALNESS
 		float metalness = 0.0f;
@@ -92,6 +95,7 @@ namespace Saturn {
 
 		// METALLIC MAP
 		RawSerialisation::ReadObject( currentTextureID, stream );
+		materialAsset->SetMetallicMap( currentTextureID );
 
 		// ROUGHNESS
 		float roughness = 0.0f;
@@ -102,12 +106,15 @@ namespace Saturn {
 
 		// ROUGHNESS MAP
 		RawSerialisation::ReadObject( currentTextureID, stream );
+		materialAsset->SetRoughnessMap( currentTextureID );
 
 		// EMISSIVE
 		float emissive = 0.0f;
 		RawSerialisation::ReadObject( emissive, stream );
 		
 		materialAsset->SetEmissive( emissive );
+
+		materialAsset->ForceUpdate();
 
 		// TODO: (Asset) Fix this.
 		struct
@@ -242,6 +249,25 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// STATIC MESH
 
+	bool RawStaticMeshAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
+	{
+		auto staticMeshAsset = rAsset.As<StaticMesh>();
+
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		std::ostringstream ss;
+
+		//RawSerialisation::WriteObject( staticMeshAsset->GetAttachedShape(), ss );
+		//RawSerialisation::WriteObject( staticMeshAsset->GetPhysicsMaterial(), ss );
+
+		staticMeshAsset->SerialiseData( ss );
+
+		file->FileContents = ss.str();
+
+		return true;
+	}
+
 	bool RawStaticMeshAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
 		auto staticMeshAsset = Ref<StaticMesh>::Create();
@@ -256,11 +282,11 @@ namespace Saturn {
 		ShapeType shapeType = ShapeType::Unknown;
 		AssetID physicsMaterial = 0;
 
-		RawSerialisation::ReadObject( shapeType, stream );
-		RawSerialisation::ReadObject( physicsMaterial, stream );
+		//RawSerialisation::ReadObject( shapeType, stream );
+		//RawSerialisation::ReadObject( physicsMaterial, stream );
 
-		staticMeshAsset->SetAttachedShape( shapeType );
-		staticMeshAsset->SetPhysicsMaterial( physicsMaterial );
+		//staticMeshAsset->SetAttachedShape( shapeType );
+		//staticMeshAsset->SetPhysicsMaterial( physicsMaterial );
 
 		staticMeshAsset->DeserialiseData( stream );
 
@@ -286,25 +312,6 @@ namespace Saturn {
 		rAsset->Flags = OldAssetData.Flags;
 		rAsset->Path = OldAssetData.Path;
 		rAsset->Name = OldAssetData.Name;
-
-		return true;
-	}
-
-	bool RawStaticMeshAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
-	{
-		auto staticMeshAsset = rAsset.As<StaticMesh>();
-
-		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
-
-		std::ostringstream ss;
-
-		RawSerialisation::WriteObject( staticMeshAsset->GetAttachedShape(), ss );
-		RawSerialisation::WriteObject( staticMeshAsset->GetPhysicsMaterial(), ss );
-
-		staticMeshAsset->SerialiseData( ss );
-
-		file->FileContents = ss.str();
 
 		return true;
 	}

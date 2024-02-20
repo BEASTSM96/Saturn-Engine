@@ -58,6 +58,7 @@
 
 namespace Saturn {
 
+	// This constructor is quite messy.
 	Application::Application( const ApplicationSpecification& spec )
 		: m_Specification( spec )
 	{

@@ -103,27 +103,23 @@ namespace Saturn {
 
 		void SetName( const std::string& rName ) { return m_Material->SetName( rName ); }
 
-	public:
-		//////////////////////////////////////////////////////////////////////////
-		// This should not be confused with AssetSerialisers. This is for raw binary serialisation!
-
-		virtual void SerialiseData( std::ofstream& rStream )
-		{
-		}
-
-		virtual void DeserialiseData( std::ifstream& rStream )
-		{
-		}
+	private:
+		void Default();
 
 	private:
 
-		void Default();
-
+		// Used by MaterialAssetSerialiser & Material asset viewer (node editor)
 		void SetAlbeoMap( const std::filesystem::path& rPath );
 		void SetNormalMap( const std::filesystem::path& rPath );
 		void SetMetallicMap( const std::filesystem::path& rPath );
 		void SetRoughnessMap( const std::filesystem::path& rPath );
-		// Only used MaterialAssetSerialiser
+
+		// Used by RawMaterialAssetSerialiser
+		void SetAlbeoMap( UUID AssetID );
+		void SetNormalMap( UUID AssetID );
+		void SetMetallicMap( UUID AssetID );
+		void SetRoughnessMap( UUID AssetID );
+
 		void ForceUpdate();
 
 	private:
@@ -140,6 +136,7 @@ namespace Saturn {
 	private:
 		friend class MaterialAssetViewer;
 		friend class MaterialAssetSerialiser;
+		friend class RawMaterialAssetSerialiser;
 	};
 
 	class MaterialRegistry : public RefTarget

@@ -170,7 +170,7 @@ namespace Saturn {
 
 		while( true )
 		{
-			if( currentDir->GetName() == rMountBase || currentDir == nullptr )
+			if( currentDir == nullptr || currentDir->GetName() == rMountBase )
 				break;
 
 			std::string dirName = currentDir->GetName();
@@ -192,7 +192,7 @@ namespace Saturn {
 
 		while( true )
 		{
-			if( currentDir->GetName() == rMountBase || currentDir == nullptr )
+			if( currentDir == nullptr || currentDir->GetName() == rMountBase )
 				break;
 
 			std::string dirName = currentDir->GetName();
@@ -327,29 +327,6 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// SERIALILSATION/DESERIALILSATION
 
-	void VirtualFS::WriteDir( Ref<VDirectory>& rDir, std::ofstream& rStream )
-	{
-		SAT_CORE_INFO( "Writing Dir with name: {0}", rDir->GetName() );
-		 
-		size_t mapSize = rDir->Files.size();
-		rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-
-		for( const auto& [k, v] : rDir->Files )
-		{
-			RawSerialisation::WriteString( k, rStream );
-			VFile::Serialise( v, rStream );
-		}
-
-		mapSize = rDir->Directories.size();
-		rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-
-		for( const auto& [k, v] : rDir->Directories )
-		{
-			RawSerialisation::WriteString( k, rStream );
-			VDirectory::Serialise( v, rStream );
-		}
-	}
-
 	void VirtualFS::WriteDir( VDirectory& rDir, std::ofstream& rStream )
 	{
 		SAT_CORE_INFO( "Writing Dir with name: {0}", rDir.GetName() );
@@ -373,39 +350,6 @@ namespace Saturn {
 		}
 	}
 
-	void VirtualFS::ReadDir( Ref<VDirectory>& rDir, std::ifstream& rStream )
-	{
-		SAT_CORE_INFO( "Reading Dir with name: {0}", rDir->GetName() );
-
-		size_t mapSize = 0;
-		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-		
-		for( size_t i = 0; i < mapSize; i++ )
-		{
-			std::string K{};
-			K = RawSerialisation::ReadString( rStream );
-			
-			Ref<VFile> file = Ref<VFile>::Create();
-			VFile::Deserialise( file, rStream );
-			
-			rDir->Files[ K ] = file;
-		}
-
-		mapSize = 0;
-		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-
-		for( size_t i = 0; i < mapSize; i++ )
-		{
-			std::string K{};
-			K = RawSerialisation::ReadString( rStream );
-
-			Ref<VDirectory> dir = Ref<VDirectory>::Create();
-			VDirectory::Deserialise( dir, rStream );
-
-			rDir->Directories[ K ] = dir;
-		}
-	}
-
 	void VirtualFS::ReadDir( VDirectory& rDir, std::ifstream& rStream )
 	{
 		SAT_CORE_INFO( "Reading Dir with name: {0}", rDir.GetName() );
@@ -419,6 +363,8 @@ namespace Saturn {
 			K = RawSerialisation::ReadString( rStream );
 
 			Ref<VFile> file = Ref<VFile>::Create();
+			file->ParentDir = &rDir;
+
 			VFile::Deserialise( file, rStream );
 
 			rDir.Files[ K ] = file;
@@ -433,6 +379,8 @@ namespace Saturn {
 			K = RawSerialisation::ReadString( rStream );
 
 			Ref<VDirectory> dir = Ref<VDirectory>::Create();
+			dir->m_ParentDirectory = &rDir;
+
 			VDirectory::Deserialise( dir, rStream );
 
 			rDir.Directories[ K ] = dir;
@@ -453,6 +401,31 @@ namespace Saturn {
 
 		RawSerialisation::ReadUnorderedMap( m_MountBases, rStream );
 		ReadDir( m_RootDirectory, rStream );
+
+		// Build paths because we do not serialise them.
+		for( auto& [ name, dir ] : m_RootDirectory.Directories )
+		{
+			// Skip mount base folder, move into the mount base and start building.
+			for( auto& [subName, subDir] : dir->Directories )
+			{
+				BuildAllPathsInDir( subDir, name );
+			}
+		}
+	}
+
+	void VirtualFS::BuildAllPathsInDir( Ref<VDirectory>& rDir, const std::string& rMountBase )
+	{
+		BuildPath( rDir, rMountBase );
+
+		for( auto& [name, file] : rDir->Files )
+		{
+			BuildPath( file, rMountBase );
+		}
+
+		for( auto& [name, dir] : rDir->Directories )
+		{
+			BuildAllPathsInDir( dir, rMountBase );
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////

@@ -47,6 +47,7 @@ namespace Saturn {
 
 		~VFile() = default;
 
+		/*
 		inline constexpr VFile& operator=( const VFile& rObject )
 		{
 			if( this == &rObject )
@@ -58,6 +59,7 @@ namespace Saturn {
 
 			return *this;
 		}
+		*/
 
 	public:
 		std::string Name;

@@ -108,17 +108,9 @@ namespace Saturn {
 		void DrawDirectory( Ref<VDirectory>& rDirectory );
 		size_t GetMountsForDir( Ref<VDirectory>& rDirectory );
 
-		template<typename V, typename OStream>
-		void WriteVFSMap( const std::map<std::string, std::map<std::filesystem::path, V>>& rMap, OStream& rStream );
-
-		template<typename V>
-		void ReadVFSMap( std::map<std::string, std::map<std::filesystem::path, V>>& rMap, std::ifstream& rStream );
-
 		void WriteDir( VDirectory& rDir, std::ofstream& rStream );
-		void WriteDir( Ref<VDirectory>& rDir, std::ofstream& rStream );
-
 		void ReadDir( VDirectory& rDir, std::ifstream& rStream );
-		void ReadDir( Ref<VDirectory>& rDir, std::ifstream& rStream );
+		void BuildAllPathsInDir( Ref<VDirectory>& rDir, const std::string& rMountBase );
 
 	private:
 		VDirectory m_RootDirectory;

@@ -90,5 +90,8 @@ namespace Saturn {
 
 	private:
 		std::string m_Name;
+
+	private:
+		friend class VirtualFS;
 	};
 }

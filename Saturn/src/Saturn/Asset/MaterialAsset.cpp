@@ -335,6 +335,7 @@ namespace Saturn {
 		m_VPendingTextureChanges[ 2 ] = rPath;
 	}
 
+
 	void MaterialAsset::SetRoughnessMap( Ref<Texture2D>& rTexture )
 	{
 		m_ValuesChanged = true;
@@ -360,6 +361,29 @@ namespace Saturn {
 			m_TextureCache[ name ] = texture->GetDescriptorInfo();
 			m_Material->SetResource( name, texture );
 		}
+	}
+
+	void MaterialAsset::SetAlbeoMap( UUID AssetID )
+	{
+		// TEMP: because this will not work when using VFS
+		// Find and load the texture
+
+		m_PendingTextureChanges[ "u_AlbedoTexture" ] = Renderer::Get().GetPinkTexture();
+	}
+
+	void MaterialAsset::SetNormalMap( UUID AssetID )
+	{
+		m_PendingTextureChanges[ "u_NormalTexture" ] = Renderer::Get().GetPinkTexture();
+	}
+
+	void MaterialAsset::SetMetallicMap( UUID AssetID )
+	{
+		m_PendingTextureChanges[ "u_MetallicTexture" ] = Renderer::Get().GetPinkTexture();
+	}
+
+	void MaterialAsset::SetRoughnessMap( UUID AssetID )
+	{
+		m_PendingTextureChanges[ "u_RoughnessTexture" ] = Renderer::Get().GetPinkTexture();
 	}
 
 	//////////////////////////////////////////////////////////////////////////

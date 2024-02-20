@@ -122,6 +122,8 @@ namespace Saturn {
 			K = RawSerialisation::ReadString( rStream );
 
 			Ref<VFile> V = Ref<VFile>::Create();
+			V->ParentDir = rObject.Get();
+
 			VFile::Deserialise( V, rStream );
 
 			rObject->Files[ K ] = V;
@@ -136,6 +138,8 @@ namespace Saturn {
 			K = RawSerialisation::ReadString( rStream );
 
 			Ref<VDirectory> V = Ref<VDirectory>::Create();
+			V->m_ParentDirectory = rObject.Get();
+
 			VDirectory::Deserialise( V, rStream );
 
 			rObject->Directories[ K ] = V;

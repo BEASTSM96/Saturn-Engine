@@ -106,15 +106,15 @@ namespace Saturn {
 					Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AbsolutePath );
 					sourceAsset->Path = asset->Path;
 
-					sourceAsset->WriteToVFS();
+					//sourceAsset->WriteToVFS();
 				} break;
 
 				case Saturn::AssetType::StaticMesh:
 				{
-					//Ref<StaticMesh> mesh = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
+					Ref<StaticMesh> mesh = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
 
-					//RawStaticMeshAssetSerialiser serialiser;
-					//serialiser.Serialise( mesh, fout );
+					RawStaticMeshAssetSerialiser serialiser;
+					//serialiser.WriteToVFS( mesh );
 				} break;
 
 				case Saturn::AssetType::Material:
@@ -221,8 +221,6 @@ namespace Saturn {
 		{
 			Ref<Asset> asset = Ref<Asset>::Create();
 			asset->DeserialiseData( stream );
-
-			VirtualFS::Get().Mount( rMountBase, asset->Path );
 
 			rAssetRegistry->m_Assets[ asset->ID ] = asset;
 
