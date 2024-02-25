@@ -205,6 +205,7 @@ namespace Saturn {
 		AssetID ID = 0;
 		AssetType Type = AssetType::Unknown;
 		uint32_t Flags = 0;
+		uint32_t Version = SAT_CURRENT_VERISON;
 
 		std::filesystem::path Path;
 		std::string Name;

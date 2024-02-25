@@ -53,7 +53,9 @@
 
 #define BIT( x ) (1 << x)
 
-#define SAT_CURRENT_VERISON 0.1.0
+#define SAT_MAKE_VERSION(major, minor, patch) ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
+
+#define SAT_CURRENT_VERISON SAT_MAKE_VERSION( 0, 1, 0 )
 #define SAT_CURRENT_VERISON_STRING "0.1.0"
 
 namespace Saturn::Core {

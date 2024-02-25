@@ -83,6 +83,8 @@ namespace Saturn {
 
 			out << YAML::Key << "Type" << YAML::Value << AssetTypeToString( asset->GetAssetType() );
 
+			out << YAML::Key << "Version" << YAML::Value << asset->Version;
+
 			out << YAML::EndMap;
 		}
 
@@ -114,6 +116,9 @@ namespace Saturn {
 			auto path = asset[ "Path" ].as< std::filesystem::path >();
 			auto type = asset[ "Type" ].as< std::string >();
 
+			// Fallback to newest version if no version is present.
+			auto version = asset[ "Version" ].as< uint32_t >( SAT_CURRENT_VERISON );
+
 			AssetRegistry->AddAsset( assetID );
 
 			Ref<Asset> DeserialisedAsset = AssetRegistry->FindAsset( assetID );
@@ -121,6 +126,13 @@ namespace Saturn {
 			DeserialisedAsset->Path = path;
 			DeserialisedAsset->Name = path.filename().replace_extension().string();
 			DeserialisedAsset->Type = AssetTypeFromString( type );
+			DeserialisedAsset->Version = version;
+
+			if( version != SAT_CURRENT_VERISON )
+			{
+				uint32_t currentVersion = SAT_CURRENT_VERISON;
+				SAT_CORE_WARN( "Asset \"{0}\" was created in a different version (asset version was {1}) Saturn version is {2}", DeserialisedAsset->Name, version, currentVersion );
+			}
 
 			AssetRegistry->m_IsEditorRegistry ? DeserialisedAsset->Flags = (uint32_t)AssetFlag::Editor : DeserialisedAsset->Flags = ( uint32_t ) AssetFlag::None;
 		}
