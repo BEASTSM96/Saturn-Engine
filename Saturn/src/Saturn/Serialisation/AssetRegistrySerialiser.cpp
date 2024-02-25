@@ -130,8 +130,12 @@ namespace Saturn {
 
 			if( version != SAT_CURRENT_VERISON )
 			{
-				uint32_t currentVersion = SAT_CURRENT_VERISON;
-				SAT_CORE_WARN( "Asset \"{0}\" was created in a different version (asset version was {1}) Saturn version is {2}", DeserialisedAsset->Name, version, currentVersion );
+				std::string versionString = SAT_CURRENT_VERISON_STRING;
+
+				std::string assetVersionString;
+				SAT_DECODE_VER_STRING( version, assetVersionString );
+
+				SAT_CORE_WARN( "Asset \"{0}\" was created in a different version (asset version was {1}) Saturn version is {2}", DeserialisedAsset->Name, assetVersionString, versionString );
 			}
 
 			AssetRegistry->m_IsEditorRegistry ? DeserialisedAsset->Flags = (uint32_t)AssetFlag::Editor : DeserialisedAsset->Flags = ( uint32_t ) AssetFlag::None;

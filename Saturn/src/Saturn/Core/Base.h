@@ -53,10 +53,30 @@
 
 #define BIT( x ) (1 << x)
 
+//////////////////////////////////////////////////////////////////////////
+// CONCAT
+#define SAT_CONTACT_INNER(x,y) x##y
+#define SAT_CONTACT(x,y) SAT_CONTACT_INNER(x,y)
+
+#define SAT_CONTACT_THREE_INNER(x,y,z) x##y##z
+#define SAT_CONTACT_THREE(x,y,z) SAT_CONTACT_THREE_INNER(x,y,z)
+
+//////////////////////////////////////////////////////////////////////////
+// VERSION
 #define SAT_MAKE_VERSION(major, minor, patch) ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 
 #define SAT_CURRENT_VERISON SAT_MAKE_VERSION( 0, 1, 0 )
 #define SAT_CURRENT_VERISON_STRING "0.1.0"
+
+#define SAT_DECODE_VERSION(source, major, minor, patch) \
+patch = (source) & 0xFF; \
+minor = ((source) >> 12) & 0x3FF;\
+major = (source) >> 22;
+
+#define SAT_DECODE_VER_STRING(source, string) \
+uint32_t SAT_CONTACT_THREE(major,_,__LINE__), SAT_CONTACT_THREE(minor,_,__LINE__), SAT_CONTACT_THREE(patch,_,__LINE__); \
+SAT_DECODE_VERSION(source, SAT_CONTACT_THREE(major,_,__LINE__), SAT_CONTACT_THREE(minor,_,__LINE__), SAT_CONTACT_THREE(patch,_,__LINE__)) \
+string = std::format( "{0}.{1}.{2}", SAT_CONTACT_THREE(major,_,__LINE__), SAT_CONTACT_THREE(minor,_,__LINE__), SAT_CONTACT_THREE(patch,_,__LINE__) );
 
 namespace Saturn::Core {
 
