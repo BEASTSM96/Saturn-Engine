@@ -74,6 +74,7 @@ namespace Saturn {
 	
 		std::filesystem::path GetPremakeFile();
 		std::filesystem::path GetRootDir();
+		std::filesystem::path GetTempDir();
 
 		std::filesystem::path GetBinDir();
 		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }

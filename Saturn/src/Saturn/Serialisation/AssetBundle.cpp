@@ -46,6 +46,12 @@
 
 #include "Saturn/Serialisation/SceneSerialiser.h"
 
+#define PACK_ASSET( rAsset, rVFS ) \
+std::filesystem::path out = tempDir; \
+out /= std::to_string( rAsset->ID ); \
+out.replace_extension( ".vfs" );\
+rVFS.RT_PackFile( Project::GetActiveConfig().Name, rAsset->Path, out );
+
 namespace Saturn {
 
 	struct AssetBundleHeader
@@ -63,128 +69,178 @@ namespace Saturn {
 
 		cachePath /= "AssetBundle.sab";
 
-		std::ofstream fout( cachePath, std::ios::binary | std::ios::trunc );
-
 		AssetManager& rAssetManager = AssetManager::Get();
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 
-		// Construct a temporary asset registry to hold all of our assets in.
-		Ref<AssetRegistry> AssetBundleRegistry = Ref<AssetRegistry>::Create( *rAssetManager.GetAssetRegistry().Get() );
+		Ref<AssetRegistry>& AssetBundleRegistry = rAssetManager.GetAssetRegistry();
 
+		/*
+		// Start by dumping all of the assets
+		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
+		{
+			SAT_CORE_INFO( "Dumping loaded asset into file: {0} ({1})", id, asset->Name );
+
+			RT_PackTemp( asset );
+		}
+		*/
+
+		std::ofstream fout( cachePath, std::ios::binary | std::ios::trunc );
+		
 		AssetBundleHeader header{};
 		header.Assets = rAssetManager.GetAssetRegistrySize();
 
-		fout.write( reinterpret_cast<char*>( &header ), sizeof( AssetBundleHeader ) );
+		RawSerialisation::WriteObject( header, fout );
 
-		// Steps:
-		// 1), write the normal asset data, such as ID, Name, Path. (So basically write the AssetRegistry)
-		// 2), write into the VFS loaded data.
-		// 3), write the VFS.
-
+		// Write asset header data.
 		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 		{
 			SAT_CORE_INFO( "Packaging asset: {0} ({1})", id, asset->Name );
-			
+
 			asset->SerialiseData( fout );
 
 			VirtualFS::Get().Mount( rMountBase, asset->Path );
 		}
 
-		auto& rVFS = VirtualFS::Get();
+		/////////////////////////////////////
 
-		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
+		// Next, now that we have dumped all of the assets we can now pack and compress the assets.
+		for( const auto& rEntry : std::filesystem::directory_iterator( Project::GetActiveProject()->GetTempDir() ) )
 		{
-			SAT_CORE_INFO( "Writing loaded asset data into VFS: {0} ({1})", id, asset->Name );
+			std::filesystem::path path = rEntry.path();
 
-			switch( asset->Type )
-			{
-				case Saturn::AssetType::Texture:
-				{
-					// Read the raw texture file into the virtual FS.
-					// To do this we can use our TextureSourceAsset class.
-					auto AbsolutePath = Project::GetActiveProject()->FilepathAbs( asset->Path );
-					Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AbsolutePath );
-					sourceAsset->Path = asset->Path;
+			std::vector<char> fileBuffer;
+			std::ifstream stream( path, std::ios::binary | std::ios::in | std::ios::ate );
 
-					//sourceAsset->WriteToVFS();
-				} break;
+			uint64_t fileSize = stream.tellg();
 
-				case Saturn::AssetType::StaticMesh:
-				{
-					Ref<StaticMesh> mesh = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
+			stream.seekg( 0 );
 
-					RawStaticMeshAssetSerialiser serialiser;
-					//serialiser.WriteToVFS( mesh );
-				} break;
+			fileBuffer.resize( fileSize );
+			stream.read( fileBuffer.data(), fileSize );
 
-				case Saturn::AssetType::Material:
-				{
-					Ref<MaterialAsset> materialAsset = AssetBundleRegistry->GetAssetAs<MaterialAsset>( id );
+			stream.close();
 
-					if( materialAsset )
-					{
-						RawMaterialAssetSerialiser serialiser;
-						serialiser.WriteToVFS( materialAsset );
-					}
-				} break;
+			// TODO: Compression.
 
-				case Saturn::AssetType::PhysicsMaterial:
-				{
-					Ref<PhysicsMaterialAsset> physAsset = AssetBundleRegistry->GetAssetAs<PhysicsMaterialAsset>( id );
-					
-					RawPhysicsMaterialAssetSerialiser serialiser;
-					serialiser.WriteToVFS( physAsset );
-				} break;
-
-				case Saturn::AssetType::Scene:
-				{
-					/*
-					Ref<Scene> scene = Ref<Scene>::Create();
-					Scene* pOldActiveScene = GActiveScene;
-					GActiveScene = scene.Get();
-
-					SceneSerialiser serialiser( scene );
-					serialiser.Deserialise( asset->Path );
-
-					GActiveScene = pOldActiveScene;
-
-					scene->SerialiseData( fout );
-					*/
-				} break;
-
-				case Saturn::AssetType::Prefab:
-				{
-					/*
-					Ref<Prefab> asset = AssetBundleRegistry->GetAssetAs<Prefab>( id );
-
-					if( asset )
-					{
-						RawPrefabSerialiser serialiser;
-						serialiser.Serialise( asset, fout );
-					}
-					*/
-				} break;
-
-				case Saturn::AssetType::SkeletalMesh:
-				case Saturn::AssetType::MaterialInstance:
-				case Saturn::AssetType::Audio:
-				case Saturn::AssetType::Script:
-				case Saturn::AssetType::MeshCollider:
-				case Saturn::AssetType::Unknown:
-				default:
-					break;
-			}
+			RawSerialisation::WriteVector( fileBuffer, fout );
 		}
 
-		VirtualFS::Get().WriteVFS( fout );
+		//VirtualFS::Get().WriteVFS( fout );
 
 		SAT_CORE_INFO( "Packaged {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
 
 		fout.close();
 
+		// Delete the temp folder
+		std::filesystem::remove_all( Project::GetActiveProject()->GetTempDir() );
+
 		AssetBundleRegistry = nullptr;
 
 		return true;
+	}
+
+	static void CreateTempDirIfNeeded() 
+	{
+		std::filesystem::path tempDir = Project::GetActiveProject()->GetRootDir();
+		tempDir /= "Temp";
+
+		if( !std::filesystem::exists( tempDir ) )
+			std::filesystem::create_directories( tempDir );
+	}
+
+	void AssetBundle::RT_PackTemp( const Ref<Asset>& rAsset )
+	{
+		// Create the temp dir.
+		CreateTempDirIfNeeded();
+
+		std::filesystem::path tempDir = Project::GetActiveProject()->GetRootDir();
+		tempDir /= "Temp";
+
+		Ref<AssetRegistry>& AssetBundleRegistry = AssetManager::Get().GetAssetRegistry();
+		auto& rVFS = VirtualFS::Get();
+
+		UUID id = rAsset->ID;
+
+		// Load the asset and dump memory into our temporary file.
+		switch( rAsset->Type )
+		{
+			case Saturn::AssetType::Texture:
+			{
+				// Read the raw texture file into the virtual FS.
+				// To do this we can use our TextureSourceAsset class.
+				auto AbsolutePath = Project::GetActiveProject()->FilepathAbs( rAsset->Path );
+				Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AbsolutePath );
+				sourceAsset->Path = rAsset->Path;
+				sourceAsset->ID = rAsset->ID;
+
+				sourceAsset->WriteToVFS();
+			} break;
+
+			case Saturn::AssetType::StaticMesh:
+			{
+				Ref<StaticMesh> mesh = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
+
+				RawStaticMeshAssetSerialiser serialiser;
+				serialiser.PackAndWriteToVFS( mesh );
+			} break;
+
+			case Saturn::AssetType::Material:
+			{
+				Ref<MaterialAsset> materialAsset = AssetBundleRegistry->GetAssetAs<MaterialAsset>( id );
+
+				if( materialAsset )
+				{
+					RawMaterialAssetSerialiser serialiser;
+					serialiser.PackAndWriteToVFS( materialAsset );
+				}
+			} break;
+
+			case Saturn::AssetType::PhysicsMaterial:
+			{
+				Ref<PhysicsMaterialAsset> physAsset = AssetBundleRegistry->GetAssetAs<PhysicsMaterialAsset>( id );
+
+				RawPhysicsMaterialAssetSerialiser serialiser;
+				serialiser.PackAndWriteToVFS( physAsset );
+			} break;
+
+			case Saturn::AssetType::Scene:
+			{
+				/*
+				Ref<Scene> scene = Ref<Scene>::Create();
+				Scene* pOldActiveScene = GActiveScene;
+				GActiveScene = scene.Get();
+
+				SceneSerialiser serialiser( scene );
+				serialiser.Deserialise( asset->Path );
+
+				GActiveScene = pOldActiveScene;
+
+				scene->SerialiseData( fout );
+				*/
+			} break;
+
+			case Saturn::AssetType::Prefab:
+			{
+				/*
+				Ref<Prefab> asset = AssetBundleRegistry->GetAssetAs<Prefab>( id );
+
+				if( asset )
+				{
+					RawPrefabSerialiser serialiser;
+					serialiser.Serialise( asset, fout );
+				}
+				*/
+			} break;
+
+			case Saturn::AssetType::SkeletalMesh:
+			case Saturn::AssetType::MaterialInstance:
+			case Saturn::AssetType::Audio:
+			case Saturn::AssetType::Script:
+			case Saturn::AssetType::MeshCollider:
+			case Saturn::AssetType::Unknown:
+			default:
+				break;
+		}
 	}
 
 	bool AssetBundle::ReadBundle()
@@ -233,6 +289,6 @@ namespace Saturn {
 		stream.close();
 
 		return true;
-	}
 
+	}
 }

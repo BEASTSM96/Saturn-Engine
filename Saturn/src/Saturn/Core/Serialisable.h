@@ -28,43 +28,14 @@
 
 #pragma once
 
-#include "VDirectory.h"
-
-#include "Memory/Buffer.h"
-
-#include "Saturn/Serialisation/RawSerialisation.h"
-
-#include <string>
+#include <fstream>
 
 namespace Saturn {
 
-	class VFile : public RefTarget
+	class Serialisable
 	{
 	public:
-		VFile() {}
-		VFile( const std::string& rName ) : Name( rName ), ParentDir( nullptr ) {}
-		VFile( const std::string& rName, VDirectory* pParentDir ) : Name( rName ), ParentDir( pParentDir ) {}
-
-		~VFile() = default;
-
-	public:
-		std::string Name;
-		VDirectory* ParentDir = nullptr;
-		
-		// TODO: I want to replace with a buffer.
-		std::string FileContents;
-	
-	public:
-		static void Serialise( const Ref<VFile>& rObject, std::ofstream& rStream )
-		{
-			RawSerialisation::WriteString( rObject->Name, rStream );
-			RawSerialisation::WriteString( rObject->FileContents, rStream );
-		}
-
-		static void Deserialise( Ref<VFile>& rObject, std::ifstream& rStream )
-		{
-			rObject->Name = RawSerialisation::ReadString( rStream );
-			rObject->FileContents = RawSerialisation::ReadString( rStream );
-		}
+		static void Serialise( const Serialisable& rObject, std::ofstream& rStream );
+		static void Deserialise( Serialisable& rObject, std::ifstream& rStream );
 	};
 }

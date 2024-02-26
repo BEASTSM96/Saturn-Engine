@@ -324,6 +324,53 @@ namespace Saturn {
 		return m_PathToDir[ rMountBase ][ rVirtualPath ];
 	}
 
+	void VirtualFS::RT_PackFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath, const std::filesystem::path& rOutPath )
+	{
+		if( !rVirtualPath.has_extension() )
+			return;
+
+		Ref<VFile>& rFile = FindFile( rMountBase, rVirtualPath );
+
+		struct VFSFileHeader
+		{
+			char Magic[ 5 ] = { '.', 'F', 'S', 'F' };
+			size_t Filesize = 0;
+		} fileHeader;
+
+		fileHeader.Filesize = rFile->FileContents.size();
+
+		std::ofstream fout( rOutPath, std::ios::binary | std::ios::trunc );
+
+		RawSerialisation::WriteObject( fileHeader, fout );
+		RawSerialisation::WriteString( rFile->FileContents, fout );
+
+		fout.close();
+	}
+
+	void VirtualFS::RT_PackFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath, const std::filesystem::path& rOutPath, std::ostringstream& rStream )
+	{
+		if( !rVirtualPath.has_extension() )
+			return;
+
+		Ref<VFile>& rFile = FindFile( rMountBase, rVirtualPath );
+
+		struct VFSFileHeader
+		{
+			char Magic[ 5 ] = { '.', 'F', 'S', 'F' };
+			size_t Filesize = 0;
+		} fileHeader;
+
+		fileHeader.Filesize = rFile->FileContents.size();
+
+		std::ofstream fout( rOutPath, std::ios::binary | std::ios::trunc );
+
+		RawSerialisation::WriteObject( fileHeader, fout );
+
+		fout << rStream.rdbuf();
+
+		fout.close();
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// SERIALILSATION/DESERIALILSATION
 
@@ -379,7 +426,7 @@ namespace Saturn {
 			K = RawSerialisation::ReadString( rStream );
 
 			Ref<VDirectory> dir = Ref<VDirectory>::Create();
-			dir->m_ParentDirectory = &rDir;
+			dir->ParentDirectory = &rDir;
 
 			VDirectory::Deserialise( dir, rStream );
 

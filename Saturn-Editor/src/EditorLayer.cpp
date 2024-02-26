@@ -167,6 +167,17 @@ namespace Saturn {
 					AssetBundle::BundleAssets();
 				}
 
+				if( ImGui::MenuItem( "DEBUG: Read Asset Bundle" ) )
+				{
+					Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
+					AssetBundle::ReadBundle();
+				}
+
+				if( ImGui::MenuItem( "DEBUG: Enable VFS Flag" ) )
+				{
+					Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
+				}
+
 				if( ImGui::MenuItem( "Distribute project" ) )
 				{
 					Project::GetActiveProject()->Rebuild( ConfigKind::Dist );
@@ -242,8 +253,6 @@ namespace Saturn {
 		OpenFile( "Assets\\Scenes\\UI_Main.scene" );
 
 		HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
-
-		AssetBundle::ReadBundle();
 	}
 
 	EditorLayer::~EditorLayer()

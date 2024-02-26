@@ -73,7 +73,7 @@ namespace Saturn {
 
 		const std::string& GetName() { return m_Name; }
 
-		VDirectory& GetParent() { return *m_ParentDirectory; }
+		VDirectory& GetParent() { return *ParentDirectory; }
 
 	public:
 		static void Serialise( const Ref<VDirectory>& rObject, std::ofstream& rStream );
@@ -86,7 +86,7 @@ namespace Saturn {
 		// Name -> VDirectory
 		std::unordered_map< std::string, Ref< VDirectory > > Directories;
 
-		VDirectory* m_ParentDirectory = nullptr;
+		VDirectory* ParentDirectory = nullptr;
 
 	private:
 		std::string m_Name;

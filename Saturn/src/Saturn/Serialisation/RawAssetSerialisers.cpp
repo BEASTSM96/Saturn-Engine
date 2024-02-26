@@ -57,7 +57,7 @@ namespace Saturn {
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
-		std::istringstream stream( file->FileContents );
+		std::istringstream stream( file->FileContents, std::ios::binary | std::ios::in );
 
 		/////////////////////////////////////
 
@@ -142,7 +142,7 @@ namespace Saturn {
 		return true;
 	}
 
-	bool RawMaterialAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
+	bool RawMaterialAssetSerialiser::PackAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
@@ -152,7 +152,13 @@ namespace Saturn {
 		if( !materialAsset )
 			return false;
 
-		std::stringstream ss;
+		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
+		out /= std::to_string( rAsset->ID );
+		out.replace_extension( ".vfs" );
+
+		std::ofstream ss( out, std::ios::binary | std::ios::trunc );
+
+		/////////////////////////////////////
 
 		RawSerialisation::WriteVec3( materialAsset->GetAlbeoColor(), ss );
 
@@ -200,7 +206,7 @@ namespace Saturn {
 
 		RawSerialisation::WriteObject( materialAsset->GetEmissive(), ss );
 		
-		file->FileContents = ss.str();
+		ss.close();
 
 		return true;
 	}
@@ -241,7 +247,7 @@ namespace Saturn {
 		return true;
 	}
 
-	bool RawPrefabSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
+	bool RawPrefabSerialiser::PackAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		return false;
 	}
@@ -249,21 +255,25 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// STATIC MESH
 
-	bool RawStaticMeshAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
+	bool RawStaticMeshAssetSerialiser::PackAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		auto staticMeshAsset = rAsset.As<StaticMesh>();
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
-		std::ostringstream ss;
+		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
+		out /= std::to_string( rAsset->ID );
+		out.replace_extension( ".vfs" );
 
-		//RawSerialisation::WriteObject( staticMeshAsset->GetAttachedShape(), ss );
-		//RawSerialisation::WriteObject( staticMeshAsset->GetPhysicsMaterial(), ss );
+		std::ofstream fout( out, std::ios::binary | std::ios::trunc );
 
-		staticMeshAsset->SerialiseData( ss );
+		/////////////////////////////////////
 
-		file->FileContents = ss.str();
+		RawSerialisation::WriteObject( staticMeshAsset->GetAttachedShape(), fout );
+		RawSerialisation::WriteObject( staticMeshAsset->GetPhysicsMaterial(), fout );
+
+		staticMeshAsset->SerialiseData( fout );
 
 		return true;
 	}
@@ -275,20 +285,20 @@ namespace Saturn {
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
-		std::istringstream stream( file->FileContents );
+		std::istringstream stream( file->FileContents, std::ios::binary | std::ios::in );
 
 		/////////////////////////////////////
 
 		ShapeType shapeType = ShapeType::Unknown;
 		AssetID physicsMaterial = 0;
 
-		//RawSerialisation::ReadObject( shapeType, stream );
-		//RawSerialisation::ReadObject( physicsMaterial, stream );
+		RawSerialisation::ReadObject( shapeType, stream );
+		RawSerialisation::ReadObject( physicsMaterial, stream );
 
-		//staticMeshAsset->SetAttachedShape( shapeType );
-		//staticMeshAsset->SetPhysicsMaterial( physicsMaterial );
+		staticMeshAsset->SetAttachedShape( shapeType );
+		staticMeshAsset->SetPhysicsMaterial( physicsMaterial );
 
-		staticMeshAsset->DeserialiseData( stream );
+		//staticMeshAsset->DeserialiseData( stream );
 
 		// TODO: (Asset) Fix this.
 		struct
@@ -325,7 +335,7 @@ namespace Saturn {
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
 		/////////////////////////////////////
-		std::istringstream stream( file->FileContents );
+		std::istringstream stream( file->FileContents, std::ios::binary | std::ios::in );
 
 		glm::vec3 StaticDynamicFrictionRestitution{};
 		uint32_t assetFlags = 0;
@@ -369,7 +379,7 @@ namespace Saturn {
 		return true;
 	}
 
-	bool RawPhysicsMaterialAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
+	bool RawPhysicsMaterialAssetSerialiser::PackAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		auto physMaterialAsset = rAsset.As<PhysicsMaterialAsset>();
 
@@ -378,7 +388,11 @@ namespace Saturn {
 
 		/////////////////////////////////////
 
-		std::ostringstream stream;
+		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
+		out /= std::to_string( rAsset->ID );
+		out.replace_extension( ".vfs" );
+
+		std::ofstream stream( out, std::ios::binary | std::ios::trunc );
 
 		RawSerialisation::WriteObject( physMaterialAsset->GetStaticFriction(), stream );
 		RawSerialisation::WriteObject( physMaterialAsset->GetDynamicFriction(), stream );
@@ -386,7 +400,7 @@ namespace Saturn {
 
 		RawSerialisation::WriteObject( physMaterialAsset->GetFlags(), stream );
 
-		file->FileContents = stream.str();
+		stream.close();
 
 		return true;
 	}
@@ -410,7 +424,7 @@ namespace Saturn {
 		return true;
 	}
 
-	bool RawTextureSourceAssetSerialiser::WriteToVFS( const Ref<Asset>& rAsset ) const
+	bool RawTextureSourceAssetSerialiser::PackAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		return false;
 	}

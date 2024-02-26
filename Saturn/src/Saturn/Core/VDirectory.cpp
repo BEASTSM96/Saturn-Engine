@@ -46,7 +46,7 @@ namespace Saturn {
 	}
 
 	VDirectory::VDirectory( const std::string& rName, VDirectory* parentDirectory )
-		: m_Name( rName ), m_ParentDirectory( parentDirectory )
+		: m_Name( rName ), ParentDirectory( parentDirectory )
 	{
 
 	}
@@ -118,7 +118,7 @@ namespace Saturn {
 
 		for( size_t i = 0; i < mapSize; i++ )
 		{
-			std::string K;
+			std::string K{};
 			K = RawSerialisation::ReadString( rStream );
 
 			Ref<VFile> V = Ref<VFile>::Create();
@@ -134,11 +134,11 @@ namespace Saturn {
 
 		for( size_t i = 0; i < mapSize; i++ )
 		{
-			std::string K;
+			std::string K{};
 			K = RawSerialisation::ReadString( rStream );
 
 			Ref<VDirectory> V = Ref<VDirectory>::Create();
-			V->m_ParentDirectory = rObject.Get();
+			V->ParentDirectory = rObject.Get();
 
 			VDirectory::Deserialise( V, rStream );
 

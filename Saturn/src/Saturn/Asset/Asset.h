@@ -260,22 +260,24 @@ namespace Saturn {
 		{
 			// TODO: Support writing for a filesystem path.
 			RawSerialisation::WriteString( Name, rStream );
-			RawSerialisation::WriteString( Path.string(), rStream );
+			//RawSerialisation::WriteString( Path, rStream );
 
-			RawSerialisation::WriteObject( ID, rStream );
-			RawSerialisation::WriteObject( Type, rStream );
-			RawSerialisation::WriteObject( Flags, rStream );
+			//RawSerialisation::WriteObject( ID, rStream );
+			//RawSerialisation::WriteObject( Type, rStream );
+			//RawSerialisation::WriteObject( Flags, rStream );
 		}
 
 		void DeserialiseData( std::ifstream& rStream )
 		{
 			// TODO: Support reading for a filesystem path.
 			Name = RawSerialisation::ReadString( rStream );
-			Path = RawSerialisation::ReadString( rStream );
+			
+			//std::string pathStr = RawSerialisation::ReadString( rStream );
+			//Path = pathStr;
 
-			RawSerialisation::ReadObject( ID, rStream );
-			RawSerialisation::ReadObject( Type, rStream );
-			RawSerialisation::ReadObject( Flags, rStream );
+			//RawSerialisation::ReadObject( ID, rStream );
+			//RawSerialisation::ReadObject( Type, rStream );
+			//RawSerialisation::ReadObject( Flags, rStream );
 		}
 
 	private:

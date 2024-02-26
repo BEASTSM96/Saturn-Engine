@@ -83,6 +83,14 @@ namespace Saturn {
 		// Then it will return the Base Directory.
 		Ref<VDirectory>& FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
+		// Finds the target file and writes it to disk.
+		// This version will use the file content.
+		void RT_PackFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath, const std::filesystem::path& rOutPath );
+
+		// Finds the target file and writes it to disk.
+		// This version will use a designated stringstream.
+		void RT_PackFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath, const std::filesystem::path& rOutPath, std::ostringstream& rStream );
+
 		void WriteVFS( std::ofstream& rStream );
 		void LoadVFS( std::ifstream& rStream );
 

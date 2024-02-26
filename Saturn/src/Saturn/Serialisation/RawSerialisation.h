@@ -288,7 +288,7 @@ namespace Saturn {
 		static size_t WriteString( const std::string& rString, OStream& rStream )
 		{
 			size_t size = rString.size();
-			rStream.write( reinterpret_cast< const char* >( &size ), sizeof( size ) );
+			rStream.write( reinterpret_cast< char* >( &size ), sizeof( size_t ) );
 
 			rStream.write( rString.data(), size );
 
@@ -300,12 +300,7 @@ namespace Saturn {
 		{
 			std::string stringbuf = rString.string();
 
-			size_t size = stringbuf.size();
-			rStream.write( reinterpret_cast< const char* >( &size ), sizeof( size ) );
-
-			rStream.write( stringbuf.data(), size );
-
-			return size;
+			return WriteString( stringbuf, rStream );
 		}
 
 		template<typename OStream>

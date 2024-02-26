@@ -112,8 +112,8 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 #endif
 
 	ApplicationSpecification spec;
-	spec.Flags = ApplicationFlag_CreateSceneRenderer | ApplicationFlag_UseVFS;
-//	spec.Flags = ApplicationFlag_CreateSceneRenderer;
+//	spec.Flags = ApplicationFlag_CreateSceneRenderer | ApplicationFlag_UseVFS;
+	spec.Flags = ApplicationFlag_CreateSceneRenderer;
 
 	return new EditorApplication( spec, projectPath );
 }

@@ -35,42 +35,42 @@ namespace Saturn {
 	class RawAssetSerialiser
 	{
 	public:
-		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const = 0;
+		virtual bool PackAndWriteToVFS( const Ref<Asset>& rAsset ) const = 0;
 		virtual bool TryLoadData( Ref<Asset>& rAsset ) const = 0;
 	};
 
 	class RawMaterialAssetSerialiser : public RawAssetSerialiser
 	{
 	public:
-		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
+		virtual bool PackAndWriteToVFS( const Ref<Asset>& rAsset ) const override;
 		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 
 	class RawPrefabSerialiser : public RawAssetSerialiser
 	{
 	public:
-		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
+		virtual bool PackAndWriteToVFS( const Ref<Asset>& rAsset ) const override;
 		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 
 	class RawStaticMeshAssetSerialiser : public RawAssetSerialiser
 	{
 	public:
-		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;	
+		virtual bool PackAndWriteToVFS( const Ref<Asset>& rAsset ) const override;	
 		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 
 	class RawPhysicsMaterialAssetSerialiser : public RawAssetSerialiser
 	{
 	public:
-		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;
+		virtual bool PackAndWriteToVFS( const Ref<Asset>& rAsset ) const override;
 		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 
 	class RawTextureSourceAssetSerialiser : public RawAssetSerialiser
 	{
 	public:
-		virtual bool WriteToVFS( const Ref<Asset>& rAsset ) const override;	
+		virtual bool PackAndWriteToVFS( const Ref<Asset>& rAsset ) const override;	
 		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 }

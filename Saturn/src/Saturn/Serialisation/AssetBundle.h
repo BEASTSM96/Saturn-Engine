@@ -30,10 +30,14 @@
 
 namespace Saturn {
 
+	class Asset;
+
 	class AssetBundle
 	{
 	public:
 		static bool BundleAssets();
 		static bool ReadBundle();
+	private:
+		static void RT_PackTemp( const Ref<Asset>& rAsset );
 	};
 }
