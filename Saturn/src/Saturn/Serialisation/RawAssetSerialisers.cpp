@@ -142,7 +142,7 @@ namespace Saturn {
 		return true;
 	}
 
-	bool RawMaterialAssetSerialiser::PackAndWriteToVFS( const Ref<Asset>& rAsset ) const
+	bool RawMaterialAssetSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
@@ -247,7 +247,7 @@ namespace Saturn {
 		return true;
 	}
 
-	bool RawPrefabSerialiser::PackAndWriteToVFS( const Ref<Asset>& rAsset ) const
+	bool RawPrefabSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		return false;
 	}
@@ -255,7 +255,7 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// STATIC MESH
 
-	bool RawStaticMeshAssetSerialiser::PackAndWriteToVFS( const Ref<Asset>& rAsset ) const
+	bool RawStaticMeshAssetSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		auto staticMeshAsset = rAsset.As<StaticMesh>();
 
@@ -379,7 +379,7 @@ namespace Saturn {
 		return true;
 	}
 
-	bool RawPhysicsMaterialAssetSerialiser::PackAndWriteToVFS( const Ref<Asset>& rAsset ) const
+	bool RawPhysicsMaterialAssetSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		auto physMaterialAsset = rAsset.As<PhysicsMaterialAsset>();
 
@@ -424,7 +424,7 @@ namespace Saturn {
 		return true;
 	}
 
-	bool RawTextureSourceAssetSerialiser::PackAndWriteToVFS( const Ref<Asset>& rAsset ) const
+	bool RawTextureSourceAssetSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		return false;
 	}

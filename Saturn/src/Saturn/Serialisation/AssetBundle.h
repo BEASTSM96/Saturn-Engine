@@ -38,6 +38,6 @@ namespace Saturn {
 		static bool BundleAssets();
 		static bool ReadBundle();
 	private:
-		static void RT_PackTemp( const Ref<Asset>& rAsset );
+		static void RTDumpAsset( const Ref<Asset>& rAsset );
 	};
 }

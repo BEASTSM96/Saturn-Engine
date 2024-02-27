@@ -46,6 +46,8 @@
 
 #include "Saturn/Serialisation/SceneSerialiser.h"
 
+#include <zlib.h>
+
 #define PACK_ASSET( rAsset, rVFS ) \
 std::filesystem::path out = tempDir; \
 out /= std::to_string( rAsset->ID ); \
@@ -58,7 +60,27 @@ namespace Saturn {
 	{
 		const char Magic[ 5 ] = ".AB\0";
 		size_t Assets;
+		uint32_t Version;
 	};
+
+	struct DumpFileHeader
+	{
+		char Magic[ 5 ] = { '.', 'P', 'A', 'K' };
+		AssetID Filename = 0;
+		uint32_t OrginalSize = 0;
+		uint32_t CompressedSize = 0;
+		uint32_t Offset = 0;
+		uint32_t Version = 0;
+	};
+
+	static void CreateTempDirIfNeeded()
+	{
+		std::filesystem::path tempDir = Project::GetActiveProject()->GetRootDir();
+		tempDir /= "Temp";
+
+		if( !std::filesystem::exists( tempDir ) )
+			std::filesystem::create_directories( tempDir );
+	}
 
 	bool AssetBundle::BundleAssets()
 	{
@@ -69,32 +91,43 @@ namespace Saturn {
 
 		cachePath /= "AssetBundle.sab";
 
+		Timer timer;
+
 		AssetManager& rAssetManager = AssetManager::Get();
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 
 		Ref<AssetRegistry>& AssetBundleRegistry = rAssetManager.GetAssetRegistry();
 
-		/*
 		// Start by dumping all of the assets
+		CreateTempDirIfNeeded();
+
 		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 		{
 			SAT_CORE_INFO( "Dumping loaded asset into file: {0} ({1})", id, asset->Name );
 
-			RT_PackTemp( asset );
+			RTDumpAsset( asset );
 		}
-		*/
+
+		SAT_CORE_INFO( "Dumped {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
+
+		// This might not be needed, however, I just want to be nice and give the I/O a time to rest.
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for( 1ms );
+
+		/////////////////////////////////////
 
 		std::ofstream fout( cachePath, std::ios::binary | std::ios::trunc );
 		
 		AssetBundleHeader header{};
 		header.Assets = rAssetManager.GetAssetRegistrySize();
+		header.Version = 1;
 
 		RawSerialisation::WriteObject( header, fout );
 
 		// Write asset header data.
 		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 		{
-			SAT_CORE_INFO( "Packaging asset: {0} ({1})", id, asset->Name );
+			SAT_CORE_INFO( "Writing header information for asset: {0} ({1})", id, asset->Name );
 
 			asset->SerialiseData( fout );
 
@@ -103,15 +136,28 @@ namespace Saturn {
 
 		/////////////////////////////////////
 
+		uint32_t offset = 0;
+
 		// Next, now that we have dumped all of the assets we can now pack and compress the assets.
 		for( const auto& rEntry : std::filesystem::directory_iterator( Project::GetActiveProject()->GetTempDir() ) )
 		{
+			if( !rEntry.is_regular_file() )
+				continue;
+
 			std::filesystem::path path = rEntry.path();
 
 			std::vector<char> fileBuffer;
 			std::ifstream stream( path, std::ios::binary | std::ios::in | std::ios::ate );
 
 			uint64_t fileSize = stream.tellg();
+
+			DumpFileHeader dfh;
+			dfh.Filename = 0;
+			dfh.Version = 1;
+			dfh.OrginalSize = fileSize;
+			dfh.Offset = offset;
+
+			offset += fileSize;
 
 			stream.seekg( 0 );
 
@@ -120,18 +166,53 @@ namespace Saturn {
 
 			stream.close();
 
-			// TODO: Compression.
+			// Compression, allow for files under 500KB (0.5MB) to not be compressed.
+			if( fileSize > 500 * 1024 )
+			{
+				SAT_CORE_INFO( "Compressing file: {0} because file is {1} KB", path.string(), fileSize / 1000 );
+				
+				// Compress, file over the limit.
+				std::vector<char> compressedData;
+				compressedData.resize( compressBound( fileSize ) );
 
-			RawSerialisation::WriteVector( fileBuffer, fout );
+				uLongf compressedSize = compressedData.size();
+
+				int result = compress( (Bytef*)compressedData.data(), &compressedSize, (Bytef*)fileBuffer.data(), fileBuffer.size() );
+
+				if( result != Z_OK )
+				{
+					SAT_CORE_ERROR( "Failed to compress {0}! zlib error is: {1}. Writing uncompressed data.", path.string(
+					), result );
+
+					RawSerialisation::WriteObject( dfh, fout );
+					RawSerialisation::WriteVector( fileBuffer, fout );
+				}
+
+				SAT_CORE_INFO( "Compressed file: {0} new file size is {1} KB", path.string(), compressedSize / 1000 );
+
+				compressedData.resize( compressedSize );
+				dfh.CompressedSize = compressedSize;
+
+				RawSerialisation::WriteObject( dfh, fout );
+				RawSerialisation::WriteVector( compressedData, fout );
+			}
+			else
+			{
+				SAT_CORE_INFO( "Not compressing file: {0} because file size is less than 500 KB", path.string() );
+
+				RawSerialisation::WriteObject( dfh, fout );
+				RawSerialisation::WriteVector( fileBuffer, fout );
+			}
 		}
 
-		//VirtualFS::Get().WriteVFS( fout );
+		VirtualFS::Get().WriteVFS( fout );
 
 		SAT_CORE_INFO( "Packaged {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
+		SAT_CORE_INFO( "Asset bundle built in {0}s", timer.Elapsed() );
 
 		fout.close();
 
-		// Delete the temp folder
+		// Delete the temp folder as we will no longer be needing it.
 		std::filesystem::remove_all( Project::GetActiveProject()->GetTempDir() );
 
 		AssetBundleRegistry = nullptr;
@@ -139,20 +220,8 @@ namespace Saturn {
 		return true;
 	}
 
-	static void CreateTempDirIfNeeded() 
+	void AssetBundle::RTDumpAsset( const Ref<Asset>& rAsset )
 	{
-		std::filesystem::path tempDir = Project::GetActiveProject()->GetRootDir();
-		tempDir /= "Temp";
-
-		if( !std::filesystem::exists( tempDir ) )
-			std::filesystem::create_directories( tempDir );
-	}
-
-	void AssetBundle::RT_PackTemp( const Ref<Asset>& rAsset )
-	{
-		// Create the temp dir.
-		CreateTempDirIfNeeded();
-
 		std::filesystem::path tempDir = Project::GetActiveProject()->GetRootDir();
 		tempDir /= "Temp";
 
@@ -181,7 +250,7 @@ namespace Saturn {
 				Ref<StaticMesh> mesh = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
 
 				RawStaticMeshAssetSerialiser serialiser;
-				serialiser.PackAndWriteToVFS( mesh );
+				serialiser.DumpAndWriteToVFS( mesh );
 			} break;
 
 			case Saturn::AssetType::Material:
@@ -191,7 +260,7 @@ namespace Saturn {
 				if( materialAsset )
 				{
 					RawMaterialAssetSerialiser serialiser;
-					serialiser.PackAndWriteToVFS( materialAsset );
+					serialiser.DumpAndWriteToVFS( materialAsset );
 				}
 			} break;
 
@@ -200,7 +269,7 @@ namespace Saturn {
 				Ref<PhysicsMaterialAsset> physAsset = AssetBundleRegistry->GetAssetAs<PhysicsMaterialAsset>( id );
 
 				RawPhysicsMaterialAssetSerialiser serialiser;
-				serialiser.PackAndWriteToVFS( physAsset );
+				serialiser.DumpAndWriteToVFS( physAsset );
 			} break;
 
 			case Saturn::AssetType::Scene:
