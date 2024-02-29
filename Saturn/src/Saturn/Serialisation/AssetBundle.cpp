@@ -60,13 +60,14 @@ namespace Saturn {
 	{
 		const char Magic[ 5 ] = ".AB\0";
 		size_t Assets;
+		uint32_t Files;
 		uint32_t Version;
 	};
 
 	struct DumpFileHeader
 	{
 		char Magic[ 5 ] = { '.', 'P', 'A', 'K' };
-		AssetID Filename = 0;
+		AssetID Asset = 0;
 		uint32_t OrginalSize = 0;
 		uint32_t CompressedSize = 0;
 		uint32_t Offset = 0;
@@ -94,33 +95,42 @@ namespace Saturn {
 		Timer timer;
 
 		AssetManager& rAssetManager = AssetManager::Get();
+		Ref<Project> ActiveProject = Project::GetActiveProject();
+
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 
 		Ref<AssetRegistry>& AssetBundleRegistry = rAssetManager.GetAssetRegistry();
+		auto& rVFS = VirtualFS::Get();
 
 		// Start by dumping all of the assets
 		CreateTempDirIfNeeded();
 
+		std::unordered_map<std::filesystem::path, AssetID> DumpFileToAssetID;
+
 		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 		{
-			SAT_CORE_INFO( "Dumping loaded asset into file: {0} ({1})", id, asset->Name );
-
 			RTDumpAsset( asset );
+
+			std::filesystem::path p = ActiveProject->GetTempDir() / std::to_string( id );
+			p.replace_extension( ".vfs" );
+
+			DumpFileToAssetID[ p ] = id;
 		}
 
 		SAT_CORE_INFO( "Dumped {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
 
-		// This might not be needed, however, I just want to be nice and give the I/O a time to rest.
+		// This might not be needed, however, I just want to be nice and give the I/O time to rest.
 		using namespace std::chrono_literals;
 		std::this_thread::sleep_for( 1ms );
 
 		/////////////////////////////////////
 
 		std::ofstream fout( cachePath, std::ios::binary | std::ios::trunc );
-		
+	
 		AssetBundleHeader header{};
 		header.Assets = rAssetManager.GetAssetRegistrySize();
 		header.Version = 1;
+		header.Files = header.Assets;
 
 		RawSerialisation::WriteObject( header, fout );
 
@@ -131,14 +141,18 @@ namespace Saturn {
 
 			asset->SerialiseData( fout );
 
-			VirtualFS::Get().Mount( rMountBase, asset->Path );
+			rVFS.Mount( rMountBase, asset->Path );
 		}
+
+		/////////////////////////////////////
+		VirtualFS::Get().WriteVFS( fout );
 
 		/////////////////////////////////////
 
 		uint32_t offset = 0;
 
 		// Next, now that we have dumped all of the assets we can now pack and compress the assets.
+		// And we also make sure that we write the uncompressed/compressed file data + the header into the VFS.
 		for( const auto& rEntry : std::filesystem::directory_iterator( Project::GetActiveProject()->GetTempDir() ) )
 		{
 			if( !rEntry.is_regular_file() )
@@ -152,7 +166,7 @@ namespace Saturn {
 			uint64_t fileSize = stream.tellg();
 
 			DumpFileHeader dfh;
-			dfh.Filename = 0;
+			dfh.Asset = DumpFileToAssetID[ path ];
 			dfh.Version = 1;
 			dfh.OrginalSize = fileSize;
 			dfh.Offset = offset;
@@ -198,6 +212,8 @@ namespace Saturn {
 			}
 			else
 			{
+				dfh.CompressedSize = dfh.OrginalSize;
+
 				SAT_CORE_INFO( "Not compressing file: {0} because file size is less than 500 KB", path.string() );
 
 				RawSerialisation::WriteObject( dfh, fout );
@@ -205,15 +221,15 @@ namespace Saturn {
 			}
 		}
 
-		VirtualFS::Get().WriteVFS( fout );
-
 		SAT_CORE_INFO( "Packaged {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
 		SAT_CORE_INFO( "Asset bundle built in {0}s", timer.Elapsed() );
 
 		fout.close();
 
+		DumpFileToAssetID.clear();
+
 		// Delete the temp folder as we will no longer be needing it.
-		std::filesystem::remove_all( Project::GetActiveProject()->GetTempDir() );
+		std::filesystem::remove_all( ActiveProject->GetTempDir() );
 
 		AssetBundleRegistry = nullptr;
 
@@ -323,25 +339,27 @@ namespace Saturn {
 		std::ifstream stream( cachePath, std::ios::binary | std::ios::in );
 
 		AssetBundleHeader header{};
-		stream.read( reinterpret_cast< char* >( &header ), sizeof( AssetBundleHeader ) );
+		RawSerialisation::ReadObject( header, stream );
 
 		if( strcmp( header.Magic, ".AB\0" ) )
 		{
-			SAT_CORE_ERROR( "Invalid shader bundle file header!" );
+			SAT_CORE_ERROR( "Invalid asset bundle file header!" );
 			return false;
 		}
 
 		AssetManager& rAssetManager = AssetManager::Get();
 		Ref<AssetRegistry> rAssetRegistry = Ref<AssetRegistry>::Create();
+		VirtualFS& rVFS = VirtualFS::Get();
 
 		// Steps:
 		// 1) Read the asset registry
 		// 2) Read the loaded data and the VFS
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		VirtualFS::Get().UnmountBase( rMountBase );
-		VirtualFS::Get().MountBase( rMountBase, Project::GetActiveProjectPath() );
+		rVFS.UnmountBase( rMountBase );
+		rVFS.MountBase( rMountBase, Project::GetActiveProjectPath() );
 
+		// Read header information
 		for( size_t i = 0; i < header.Assets; i++ )
 		{
 			Ref<Asset> asset = Ref<Asset>::Create();
@@ -349,13 +367,77 @@ namespace Saturn {
 
 			rAssetRegistry->m_Assets[ asset->ID ] = asset;
 
-			SAT_CORE_INFO( "Unpacking asset: {0} ({1})", asset->ID, asset->Name );
+			SAT_CORE_INFO( "Read asset header info: {0} ({1})", asset->ID, asset->Name );
 		}
 
 		// Load the VFS
-		VirtualFS::Get().LoadVFS( stream );
+		rVFS.LoadVFS( stream );
+
+		std::vector<DumpFileHeader> FileEntries( header.Assets );
+
+		// Iterate over all of the assets again. But this time read compressed file.
+		for( size_t i = 0; i < header.Assets; i++ )
+		{
+			DumpFileHeader dfh;
+			RawSerialisation::ReadObject( dfh, stream );
+
+			Ref<Asset>& rAsset = rAssetRegistry->m_Assets[ dfh.Asset ];
+			if( !rAsset ) return false;
+
+			if( strcmp( dfh.Magic, ".PAK\0" ) )
+			{
+				SAT_CORE_ERROR( "Invalid pack file header!" );
+				return false;
+			}
+
+			if( rAsset->ID != dfh.Asset )
+			{
+				SAT_CORE_ERROR( "Asset ID's do not match!" );
+				return false;
+			}
+
+			// Find the VFile
+			Ref<VFile>& rFile = rVFS.FindFile( rMountBase, rAsset->Path );
+
+			if( dfh.OrginalSize != dfh.CompressedSize )
+			{
+				SAT_CORE_INFO( "Decompressing file at offset {0}", dfh.Offset );
+
+				// Compression was used, uncompress. 
+				std::vector<char> uncompressedData( dfh.OrginalSize );
+
+				std::vector<char> compressedData;
+				RawSerialisation::ReadVector( compressedData, stream );
+
+				uLongf uncompSize = uncompressedData.size();
+				int result = uncompress( ( Bytef* ) uncompressedData.data(), &uncompSize, ( Bytef* ) compressedData.data(), compressedData.size() );
+
+				if( result != Z_OK )
+				{
+					SAT_CORE_ERROR( "Failed to uncompress data!" );
+					return false;
+				}
+
+				compressedData.clear();
+
+				rFile->FileContents = uncompressedData;
+			}
+			else
+			{
+				SAT_CORE_INFO( "Loading uncompressed file at offset {0}", dfh.Offset );
+
+				std::vector<char> uncompressedData( dfh.OrginalSize );
+				RawSerialisation::ReadVector( uncompressedData, stream );
+				
+				rFile->FileContents = uncompressedData;
+			}
+
+			FileEntries[ i ] = dfh;
+		}
 
 		stream.close();
+
+		FileEntries.clear();
 
 		return true;
 

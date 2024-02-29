@@ -115,7 +115,7 @@ namespace Saturn {
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, Path );
 
 		/////////////////////////////////////
-		std::istringstream stream( file->FileContents, std::ios::binary | std::ios::in );
+		std::istringstream stream( "", std::ios::binary | std::ios::in );
 
 		m_AbsolutePath = RawSerialisation::ReadString( stream );
 		RawSerialisation::ReadObject( m_Width, stream );

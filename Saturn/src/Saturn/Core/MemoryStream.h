@@ -28,40 +28,78 @@
 
 #pragma once
 
-#include "VDirectory.h"
-
-#include "Memory/Buffer.h"
-
-#include "Saturn/Serialisation/RawSerialisation.h"
-
-#include <string>
+#include <vector>
+#include <fstream>
 
 namespace Saturn {
 
-	class VFile : public RefTarget
+	class PakFileMemoryBuffer : public std::streambuf
 	{
 	public:
-		VFile() {}
-		VFile( const std::string& rName ) : Name( rName ), ParentDir( nullptr ) {}
-		VFile( const std::string& rName, VDirectory* pParentDir ) : Name( rName ), ParentDir( pParentDir ) {}
-
-		~VFile() = default;
-
-	public:
-		std::string Name;
-		VDirectory* ParentDir = nullptr;
-		
-		std::vector<char> FileContents;
-	
-	public:
-		static void Serialise( const Ref<VFile>& rObject, std::ofstream& rStream )
+		PakFileMemoryBuffer( char* begin, char* end )
 		{
-			RawSerialisation::WriteString( rObject->Name, rStream );
+			Set( begin, end );
 		}
 
-		static void Deserialise( Ref<VFile>& rObject, std::ifstream& rStream )
+		PakFileMemoryBuffer( std::vector<char>& rStream )
 		{
-			rObject->Name = RawSerialisation::ReadString( rStream );
+			Set( rStream.data(), rStream.data() + rStream.size() );
+		}
+
+	private:
+		void Set( char* pFirst, char* pEnd )
+		{
+			setg( pFirst, pFirst, pEnd );
+		}
+
+	protected:
+		pos_type __CLR_OR_THIS_CALL seekpos( pos_type position, std::ios_base::openmode = std::ios_base::in | std::ios_base::out ) override
+		{
+			char* pNewPos = eback() + position;
+
+			// Check if the new position is within the buffer
+			if( pNewPos < egptr() && pNewPos >= eback() )
+			{
+				setg( eback(), pNewPos, egptr() );
+				return position;
+			}
+			else
+			{
+				return pos_type( off_type( -1 ) );
+			}
+		}
+
+		pos_type __CLR_OR_THIS_CALL seekoff( off_type offset, std::ios_base::seekdir seekdir, std::ios_base::openmode = std::ios_base::in | std::ios_base::out ) override
+		{
+			char* pNewPos = nullptr;
+
+			switch( seekdir )
+			{
+				case std::ios::beg:
+					pNewPos = eback() + offset;
+					break;
+
+				case std::ios::cur:
+					pNewPos = gptr() + offset;
+					break;
+
+				case std::ios::end:
+					pNewPos = egptr() + offset;
+					break;
+			}
+
+			// Check if the new position is within the buffer
+			if( pNewPos < egptr() && pNewPos >= eback() )
+			{
+				setg( eback(), pNewPos, egptr() );
+
+				return static_cast< pos_type >( gptr() - eback() );
+			}
+			else
+			{
+				return pos_type( off_type( -1 ) );
+			}
 		}
 	};
+
 }

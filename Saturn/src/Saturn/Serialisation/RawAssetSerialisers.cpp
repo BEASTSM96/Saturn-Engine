@@ -57,7 +57,7 @@ namespace Saturn {
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
-		std::istringstream stream( file->FileContents, std::ios::binary | std::ios::in );
+		std::istringstream stream( "", std::ios::binary | std::ios::in );
 
 		/////////////////////////////////////
 
@@ -285,7 +285,7 @@ namespace Saturn {
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
-		std::istringstream stream( file->FileContents, std::ios::binary | std::ios::in );
+		std::istringstream stream( "", std::ios::binary | std::ios::in );
 
 		/////////////////////////////////////
 
@@ -335,7 +335,7 @@ namespace Saturn {
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
 		/////////////////////////////////////
-		std::istringstream stream( file->FileContents, std::ios::binary | std::ios::in );
+		std::istringstream stream( "", std::ios::binary | std::ios::in );
 
 		glm::vec3 StaticDynamicFrictionRestitution{};
 		uint32_t assetFlags = 0;

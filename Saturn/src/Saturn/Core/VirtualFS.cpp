@@ -342,7 +342,7 @@ namespace Saturn {
 		std::ofstream fout( rOutPath, std::ios::binary | std::ios::trunc );
 
 		RawSerialisation::WriteObject( fileHeader, fout );
-		RawSerialisation::WriteString( rFile->FileContents, fout );
+		RawSerialisation::WriteVector( rFile->FileContents, fout );
 
 		fout.close();
 	}
