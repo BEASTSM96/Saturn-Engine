@@ -46,6 +46,8 @@ namespace Saturn {
 			Set( rStream.data(), rStream.data() + rStream.size() );
 		}
 
+		virtual ~PakFileMemoryBuffer() noexcept {}
+
 	private:
 		void Set( char* pFirst, char* pEnd )
 		{

@@ -45,6 +45,14 @@ namespace Saturn {
 		void ReadFromVFS();
 
 	public:
+		uint32_t Width() { return m_Width; }
+		uint32_t Height() { return m_Height; }
+
+		uint32_t Channels() { return m_Channels; }
+
+		Buffer TextureData() { return m_TextureBuffer; }
+
+	public:
 		//////////////////////////////////////////////////////////////////////////
 		// Raw binary serialisation.
 
