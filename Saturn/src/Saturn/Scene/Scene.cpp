@@ -662,35 +662,55 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// #WARNING This should not be confused with AssetSerialisers. This is for raw binary serialisation!
 
-	void Scene::SerialiseData( std::ofstream& rStream )
+	void Scene::SerialiseData()
+	{
+		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
+		out /= std::to_string( ID );
+		out.replace_extension( ".vfs" );
+
+		std::ofstream stream( out, std::ios::binary | std::ios::trunc );
+
+		/////////////////////////////////////
+
+		SerialiseInternal( stream );
+
+		stream.close();
+	}
+	
+	void Scene::SerialiseInternal( std::ofstream& rStream )
 	{
 		RawSerialisation::WriteObject( m_SceneID, rStream );
 		RawSerialisation::WriteObject( m_Lights, rStream );
-		
+
 		// Serialise the map manually.
 		size_t mapSize = m_EntityIDMap.size();
 		rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-		
+
 		for( const auto& [k, v] : m_EntityIDMap )
 		{
-			// K is always trivial
-			if constexpr( std::is_trivial<entt::entity>() )
-			{
-				RawSerialisation::WriteObject( k, rStream );
-			}
+			// K (entt::entity) is always trivial
+			RawSerialisation::WriteObject( k, rStream );
 
-			if constexpr( std::is_trivial<Entity>() )
-			{
-				RawSerialisation::WriteObject( v, rStream );
-			}
-			else
-			{
-				Entity::Serialise( v, rStream );
-			}
+			// V (Entity) is not trivial
+			Entity::Serialise( v, rStream );
 		}
 	}
 
-	void Scene::DeserialiseData( std::ifstream& rStream )
+	void Scene::DeserialiseData()
+	{
+		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
+		out /= std::to_string( ID );
+		out.replace_extension( ".vfs" );
+
+		std::ifstream stream( out, std::ios::binary | std::ios::trunc );
+
+		/////////////////////////////////////
+
+		DeserialiseInternal( stream );
+	}
+
+	template<typename IStream>
+	void Scene::DeserialiseInternal( IStream& rStream )
 	{
 		RawSerialisation::ReadObject( m_SceneID, rStream );
 		RawSerialisation::ReadObject( m_Lights, rStream );
@@ -698,7 +718,7 @@ namespace Saturn {
 		// Read the map manually.
 		size_t mapSize = 0;
 		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-		
+
 		// We can not guarantee that we are the active scene, so temporarily set it while loading.
 		Scene* ActiveScene = GActiveScene;
 		GActiveScene = this;
@@ -726,4 +746,5 @@ namespace Saturn {
 
 		GActiveScene = ActiveScene;
 	}
+
 }

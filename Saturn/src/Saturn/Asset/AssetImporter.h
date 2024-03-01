@@ -28,24 +28,25 @@
 
 #pragma once
 
-#include <Saturn/Serialisation/AssetSerialisers.h>
-#include <Saturn/Core/Base.h>
-#include <unordered_map>
+#include "AssetImporterBase.h"
 
 namespace Saturn {
 
-	class AssetImporter
+	// We have two main AssetImporters.
+	// This one is for importing YAML files, i.e. when we are in the editor, and in development.
+	// The other is for importing assets from the VFS and is used when all of the assets are "cooked" used in distribution.
+	class AssetImporter : public AssetImporterBase
 	{
 	public:
-		static inline AssetImporter& Get() { return *SingletonStorage::GetOrCreateSingleton<AssetImporter>(); }
-	public:
-
 		AssetImporter() { Init(); }
 		~AssetImporter();
+
 	public:
 
-		void Import     ( const Ref<Asset>& rAsset );
-		bool TryLoadData(       Ref<Asset>& rAsset );
+		void Import     ( const Ref<Asset>& rAsset ) override;
+		bool TryLoadData(       Ref<Asset>& rAsset ) override;
+
+		static AssetImporterType GetStaticType() { return AssetImporterType::YAML; }
 
 	private:
 		void Init();

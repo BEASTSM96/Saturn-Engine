@@ -28,16 +28,40 @@
 
 #pragma once
 
+#include "VDirectory.h"
+
+#include "Memory/Buffer.h"
+
+#include "Saturn/Serialisation/RawSerialisation.h"
+
+#include <string>
+
 namespace Saturn {
 
-	class Asset;
-
-	class AssetBundle
+	class VFile : public RefTarget
 	{
 	public:
-		static bool BundleAssets();
-		static bool ReadBundle();
-	private:
-		static void RTDumpAsset( const Ref<Asset>& rAsset );
+		VFile() {}
+		VFile( const std::string& rName ) : Name( rName ), ParentDir( nullptr ) {}
+		VFile( const std::string& rName, VDirectory* pParentDir ) : Name( rName ), ParentDir( pParentDir ) {}
+
+		~VFile() = default;
+
+	public:
+		std::string Name;
+		VDirectory* ParentDir = nullptr;
+		
+		std::vector<char> FileContents;
+	
+	public:
+		static void Serialise( const Ref<VFile>& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteString( rObject->Name, rStream );
+		}
+
+		static void Deserialise( Ref<VFile>& rObject, std::ifstream& rStream )
+		{
+			rObject->Name = RawSerialisation::ReadString( rStream );
+		}
 	};
 }

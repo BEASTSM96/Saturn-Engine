@@ -28,14 +28,24 @@
 
 #pragma once
 
-#include "AssetRegistryBase.h"
+#include "Asset.h"
+#include "AssetImporter.h"
 
 #include <unordered_map>
 #include <unordered_set>
 
 namespace Saturn {
 
-	class AssetRegistry : public AssetRegistryBase
+	enum class AssetRegistryType
+	{
+		Game,
+		Editor,
+		Unknown
+	};
+
+	using AssetMap = std::unordered_map< AssetID, Ref<Asset> >;
+
+	class AssetRegistry : public RefTarget
 	{
 	public:
 		AssetRegistry();
@@ -43,8 +53,8 @@ namespace Saturn {
 
 		~AssetRegistry();
 
-		virtual AssetID CreateAsset( AssetType type ) override;
-		virtual Ref<Asset> FindAsset( AssetID id ) override;
+		AssetID CreateAsset( AssetType type );
+		Ref<Asset> FindAsset( AssetID id );
 
 		Ref<Asset> FindAsset( const std::filesystem::path& rPath );
 		Ref<Asset> FindAsset( const std::string& rName, AssetType type );
@@ -60,8 +70,48 @@ namespace Saturn {
 
 		size_t GetSize();
 
+		const AssetMap& GetAssetMap() const { return m_Assets; }
+		const AssetMap& GetLoadedAssetsMap() const { return m_LoadedAssets; }
+
+		std::filesystem::path& GetPath() { return m_Path; }
+		const std::filesystem::path& GetPath() const { return m_Path; }
+
+		template<typename Ty>
+		Ref<Ty> GetAssetAs( AssetID id )
+		{
+			auto AssetItr = m_Assets.find( id );
+
+			if( AssetItr == m_Assets.end() )
+				return nullptr;
+
+			Ref<Asset> asset = AssetItr->second;
+
+			if( !IsAssetLoaded( id ) )
+			{
+				bool loaded = AssetImporterBase::Get().TryLoadData( asset );
+				if( !loaded )
+					return nullptr;
+
+				m_LoadedAssets[ id ] = asset;
+			}
+			else
+				asset = m_LoadedAssets.at( id );
+
+			return asset.As<Ty>();
+		}
+
 	private:
 		void AddAsset( AssetID id );
+		bool IsAssetLoaded( AssetID id );
+
+  	private:
+		AssetMap m_Assets;
+		AssetMap m_LoadedAssets;
+
+		bool m_IsEditorRegistry = false;
+
+		std::filesystem::path m_Path;
+
 	private:
 		friend class AssetRegistrySerialiser;
 		friend class AssetManager;

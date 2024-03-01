@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "TextureSourceAsset.h"
 
+#include "Saturn/Core/VirtualFS.h"
+
 #include <stb_image.h>
 
 namespace Saturn {
@@ -81,4 +83,48 @@ namespace Saturn {
 		stbi_image_free( pTextureData );
 	}
 
+	void TextureSourceAsset::WriteToVFS()
+	{
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, Path );
+
+		/////////////////////////////////////
+
+		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
+		out /= std::to_string( ID );
+		out.replace_extension( ".vfs" );
+
+		std::ofstream stream( out, std::ios::binary | std::ios::trunc );
+
+		RawSerialisation::WriteString( m_AbsolutePath.string(), stream );
+
+		RawSerialisation::WriteObject( m_Width, stream );
+		RawSerialisation::WriteObject( m_Height, stream );
+		RawSerialisation::WriteObject( m_Channels, stream );
+		RawSerialisation::WriteObject( m_Flipped, stream );
+		RawSerialisation::WriteObject( m_HDR, stream );
+
+		// Buffer
+		RawSerialisation::WriteSaturnBuffer( m_TextureBuffer, stream );
+	}
+
+	void TextureSourceAsset::ReadFromVFS()
+	{
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, Path );
+
+		/////////////////////////////////////
+		std::istringstream stream( "", std::ios::binary | std::ios::in );
+
+		m_AbsolutePath = RawSerialisation::ReadString( stream );
+		RawSerialisation::ReadObject( m_Width, stream );
+		RawSerialisation::ReadObject( m_Height, stream );
+		RawSerialisation::ReadObject( m_Channels, stream );
+		RawSerialisation::ReadObject( m_Flipped, stream );
+		RawSerialisation::ReadObject( m_HDR, stream );
+
+		// Buffer
+		RawSerialisation::ReadSaturnBuffer( m_TextureBuffer, stream );
+	}
 }

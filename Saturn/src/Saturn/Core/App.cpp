@@ -58,6 +58,7 @@
 
 namespace Saturn {
 
+	// This constructor is quite messy.
 	Application::Application( const ApplicationSpecification& spec )
 		: m_Specification( spec )
 	{
@@ -222,11 +223,6 @@ namespace Saturn {
 					m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
 				} );
 		}
-	}
-
-	bool Application::HasFlag( ApplicationFlags flag )
-	{
-		return ( m_Specification.Flags & (uint32_t)flag ) != 0;
 	}
 
 	std::filesystem::path Application::GetAppDataFolder()

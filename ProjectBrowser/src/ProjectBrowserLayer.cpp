@@ -129,7 +129,6 @@ namespace Saturn {
 		} );
 
 		m_TitleBar = new TitleBar();
-		m_TitleBar->ShouldDrawSecondaryTitleBar( false );
 
 		Application::Get().GetWindow()->Show();
 	}

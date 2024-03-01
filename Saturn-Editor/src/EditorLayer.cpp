@@ -71,6 +71,7 @@
 #include <Saturn/GameFramework/Core/GameModule.h>
 
 #include <Saturn/Core/Renderer/RenderThread.h>
+#include <Saturn/Core/VirtualFS.h>
 
 #include <Saturn/Audio/Sound2D.h>
 
@@ -150,24 +151,31 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Setup Project for Distribution" ) )
 				{
-					//Project::GetActiveProject()->PrepForDist();
+					Project::GetActiveProject()->PrepForDist();
 
 					// Make sure we will include the Texture Pass shader.
 					// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
-					//Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
+					Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
 
-					//ShaderBundle::BundleShaders();
+					ShaderBundle::BundleShaders();
 
-					//ShaderLibrary::Get().Remove( TexturePass ); 
-					//TexturePass = nullptr;
+					ShaderLibrary::Get().Remove( TexturePass ); 
+					TexturePass = nullptr;
 
 					// Bundle Assets
 					// TODO: This will most likely be an action that takes time so to account for that we need to make a window modal for this.
 					AssetBundle::BundleAssets();
-					
-					std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
+				}
 
+				if( ImGui::MenuItem( "DEBUG: Read Asset Bundle" ) )
+				{
+					Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
 					AssetBundle::ReadBundle();
+				}
+
+				if( ImGui::MenuItem( "DEBUG: Enable VFS Flag" ) )
+				{
+					Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
 				}
 
 				if( ImGui::MenuItem( "Distribute project" ) )
@@ -181,11 +189,12 @@ namespace Saturn {
 
 			if( ImGui::BeginMenu( "Settings" ) )
 			{
-				if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;
-				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
-				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug = !OpenLoadedAssetDebug;
-				if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings = !m_OpenEditorSettings;
-				if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow = !m_ShowImGuiDemoWindow;
+				if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings ^= 1;
+				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug ^= 1;
+				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug ^= 1;
+				if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings ^= 1;
+				if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow ^= 1;
+				if( ImGui::MenuItem( "Virtual File system debug", "" ) ) m_ShowVFSDebug ^= 1;
 
 				ImGui::EndMenu();
 			}
@@ -231,6 +240,8 @@ namespace Saturn {
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 
 		SAT_CORE_ASSERT( Project::GetActiveProject(), "No project was given." );
+		
+		VirtualFS::Get().MountBase( Project::GetActiveConfig().Name, rUserSettings.StartupProject );
 
 		AssetManager* pAssetManager = new AssetManager();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
@@ -245,7 +256,7 @@ namespace Saturn {
 	}
 
 	EditorLayer::~EditorLayer()
-	{		
+	{
 		delete m_TitleBar;
 		
 		EditorIcons::Clear();
@@ -266,6 +277,8 @@ namespace Saturn {
 		}
 
 		m_EditorScene = nullptr;
+
+		VirtualFS::Get().UnmountBase( Project::GetActiveConfig().Name );
 
 		// I would free the game DLL, however, there is some threading issues with Tracy.
 		//delete m_GameModule;
@@ -375,27 +388,11 @@ namespace Saturn {
 			}
 		}
 
-		if( m_ShowImGuiDemoWindow )
-			ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
-
 		m_TitleBar->Draw();
 		AssetViewer::Draw();
 
 		m_PanelManager->DrawAllPanels();
 		Application::Get().PrimarySceneRenderer().ImGuiRender();
-
-		if( m_ShowUserSettings )
-			UI_Titlebar_UserSettings();
-
-		if( OpenAssetRegistryDebug ) 
-		{
-			DrawAssetRegistryDebug();
-		}
-
-		if( OpenLoadedAssetDebug ) 
-		{
-			DrawLoadedAssetsDebug();
-		}
 
 		if( OpenAttributions )
 		{
@@ -407,11 +404,13 @@ namespace Saturn {
 			}
 		}
 
-		if( m_OpenEditorSettings )
-		{
-			DrawEditorSettings();
-		}
-
+		if( m_ShowImGuiDemoWindow )  ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
+		if( m_ShowUserSettings )     UI_Titlebar_UserSettings();
+		if( OpenAssetRegistryDebug ) DrawAssetRegistryDebug();
+		if( OpenLoadedAssetDebug ) 	 DrawLoadedAssetsDebug();
+		if( m_OpenEditorSettings )   DrawEditorSettings();
+		if( m_ShowVFSDebug )         DrawVFSDebug();
+		
 		ImGui::Begin( "Renderer" );
 
 		ImGui::Text( "Frame Time: %.2f ms", Application::Get().Time().Milliseconds() );
@@ -1275,6 +1274,25 @@ namespace Saturn {
 		}
 	}
 
+	void EditorLayer::DrawVFSDebug()
+	{
+		VirtualFS& rVirtualFS = VirtualFS::Get();
+
+		ImGui::Begin( "Virtual File system" );
+
+		if( Auxiliary::TreeNode( "VFS Info", false ) )
+		{
+			ImGui::Text( "Mount Bases: %i", rVirtualFS.GetMountBases() );
+			ImGui::Text( "Mounts: %i", rVirtualFS.GetMounts() );
+		
+			Auxiliary::EndTreeNode();
+		}
+
+		rVirtualFS.ImGuiRender();
+
+		ImGui::End();
+	}
+
 	void EditorLayer::DrawViewport()
 	{
 		// Viewport Image & Drag and drop handling
@@ -1328,7 +1346,7 @@ namespace Saturn {
 				// We have now that path to the *.stmesh but we need to path to the fbx/gltf.
 
 				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
-				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
+				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<StaticMesh>( asset->GetAssetID() );
 
 				Ref<Entity> entity = Ref<Entity>::Create();
 				entity->SetName( asset->Name );

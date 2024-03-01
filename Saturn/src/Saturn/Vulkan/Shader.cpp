@@ -955,8 +955,8 @@ namespace Saturn {
 
 	void Shader::SerialiseShaderData( std::ofstream& rStream )
 	{
-		RawSerialisation::WriteMap( m_SpvCode, rStream );
-		RawSerialisation::WriteMap( m_DescriptorSets, rStream );
+		RawSerialisation::WriteUnorderedMap( m_SpvCode, rStream );
+		RawSerialisation::WriteUnorderedMap( m_DescriptorSets, rStream );
 		
 		RawSerialisation::WriteVector( m_Uniforms, rStream );
 		RawSerialisation::WriteVector( m_PushConstantUniforms, rStream );
@@ -966,8 +966,8 @@ namespace Saturn {
 
 	void Shader::DeserialiseShaderData( std::ifstream& rStream ) 
 	{
-		RawSerialisation::ReadMap( m_SpvCode, rStream );
-		RawSerialisation::ReadMap( m_DescriptorSets, rStream );
+		RawSerialisation::ReadUnorderedMap( m_SpvCode, rStream );
+		RawSerialisation::ReadUnorderedMap( m_DescriptorSets, rStream );
 
 		RawSerialisation::ReadVector( m_Uniforms, rStream );
 		RawSerialisation::ReadVector( m_PushConstantUniforms, rStream );

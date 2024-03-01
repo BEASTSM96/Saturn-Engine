@@ -26,79 +26,123 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "VDirectory.h"
 
-#include "Asset.h"
 #include "Saturn/Serialisation/RawSerialisation.h"
+
+#include "VFile.h"
 
 namespace Saturn {
 
-	class TextureSourceAsset : public Asset
+	VDirectory::VDirectory( const std::wstring& rName )
+		: m_Name( Auxiliary::ConvertWString( rName ) )
 	{
-	public:
-		TextureSourceAsset();
-		TextureSourceAsset( std::filesystem::path AbsolutePath, bool Flip = false );
+	}
 
-		~TextureSourceAsset();
+	VDirectory::VDirectory( const std::string& rName ) 
+		: m_Name( rName )
+	{
+	}
 
-		void WriteToVFS();
-		void ReadFromVFS();
+	VDirectory::VDirectory( const std::string& rName, VDirectory* parentDirectory )
+		: m_Name( rName ), ParentDirectory( parentDirectory )
+	{
 
-	public:
-		uint32_t Width() { return m_Width; }
-		uint32_t Height() { return m_Height; }
+	}
 
-		uint32_t Channels() { return m_Channels; }
+	VDirectory::~VDirectory()
+	{
+		Clear();
+	}
 
-		Buffer TextureData() { return m_TextureBuffer; }
+	void VDirectory::RemoveFile( const std::string& rName )
+	{
+		Files.erase( rName );
+	}
 
-	public:
-		//////////////////////////////////////////////////////////////////////////
-		// Raw binary serialisation.
+	void VDirectory::AddDirectory( const std::string& rName )
+	{
+		Ref<VDirectory> dir = Ref<VDirectory>::Create( rName, nullptr );
+		Directories.emplace( rName, dir );
+	}
 
-		void SerialiseData( std::ofstream& rStream )
+	void VDirectory::RemoveDirectory( const std::string& rName )
+	{
+		Directories.erase( rName );
+	}
+
+	void VDirectory::Clear()
+	{
+		Files.clear();
+
+		for( auto&& [k, dir] : Directories )
 		{
-			RawSerialisation::WriteString( m_AbsolutePath.string(), rStream );
-
-			RawSerialisation::WriteObject( m_Width, rStream );
-			RawSerialisation::WriteObject( m_Height, rStream );
-			RawSerialisation::WriteObject( m_Channels, rStream );
-			RawSerialisation::WriteObject( m_Flipped, rStream );
-			RawSerialisation::WriteObject( m_HDR, rStream );
-
-			// Buffer
-			RawSerialisation::WriteSaturnBuffer( m_TextureBuffer, rStream );
+			dir->Clear();
 		}
 
-		void DeserialiseData( std::ifstream& rStream )
+		Directories.clear();
+	}
+
+	void VDirectory::Serialise( const Ref<VDirectory>& rObject, std::ofstream& rStream )
+	{
+		RawSerialisation::WriteString( rObject->m_Name, rStream );
+
+		// Serialise the map manually.
+		size_t mapSize = rObject->Files.size();
+		rStream.write( reinterpret_cast<char*>( &mapSize ), sizeof( size_t ) );
+
+		for( const auto& [k, v] : rObject->Files )
 		{
-			m_AbsolutePath = RawSerialisation::ReadString( rStream );
-
-			RawSerialisation::ReadObject( m_Width, rStream );
-			RawSerialisation::ReadObject( m_Height, rStream );
-			RawSerialisation::ReadObject( m_Channels, rStream );
-			RawSerialisation::ReadObject( m_Flipped, rStream );
-			RawSerialisation::ReadObject( m_HDR, rStream );
-
-			// Buffer
-			// Don't read the buffer just yet.
-			//RawSerialisation::ReadSaturnBuffer( m_TextureBuffer, rStream );
+			RawSerialisation::WriteString( k, rStream );
+			VFile::Serialise( v, rStream );
 		}
 
-	private:
-		void LoadRawTexture();
+		mapSize = rObject->Directories.size();
+		rStream.write( reinterpret_cast<char*>( &mapSize ), sizeof( size_t ) );
 
-	private:
-		std::filesystem::path m_AbsolutePath;
+		for( const auto& [k, v] : rObject->Directories )
+		{
+			RawSerialisation::WriteString( k, rStream );
+			VDirectory::Serialise( v, rStream );
+		}
+	}
 
-		uint32_t m_Width = 0;
-		uint32_t m_Height = 0;
-		uint32_t m_Channels = 0;
+	void VDirectory::Deserialise( Ref<VDirectory>& rObject, std::ifstream& rStream )
+	{
+		rObject->m_Name = RawSerialisation::ReadString( rStream );
 
-		bool m_Flipped = false;
-		bool m_HDR = false;
-		bool m_FullyLoaded = false;
+		// Deserialise the map manually.
+		size_t mapSize = 0;
+		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
 
-		Buffer m_TextureBuffer;
-	};
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			std::string K{};
+			K = RawSerialisation::ReadString( rStream );
+
+			Ref<VFile> V = Ref<VFile>::Create();
+			V->ParentDir = rObject.Get();
+
+			VFile::Deserialise( V, rStream );
+
+			rObject->Files[ K ] = V;
+		}
+
+		mapSize = 0;
+		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			std::string K{};
+			K = RawSerialisation::ReadString( rStream );
+
+			Ref<VDirectory> V = Ref<VDirectory>::Create();
+			V->ParentDirectory = rObject.Get();
+
+			VDirectory::Deserialise( V, rStream );
+
+			rObject->Directories[ K ] = V;
+		}
+	}
 }

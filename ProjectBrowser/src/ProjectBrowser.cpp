@@ -34,7 +34,7 @@
 class ProjectBrowserApplication : public Saturn::Application
 {
 public:
-	ProjectBrowserApplication( const Saturn::ApplicationSpecification& spec )
+	explicit ProjectBrowserApplication( const Saturn::ApplicationSpecification& spec )
 		: Application( spec )
 	{
 	}

@@ -28,16 +28,14 @@
 
 #pragma once
 
+#include <fstream>
+
 namespace Saturn {
 
-	class Asset;
-
-	class AssetBundle
+	class Serialisable
 	{
 	public:
-		static bool BundleAssets();
-		static bool ReadBundle();
-	private:
-		static void RTDumpAsset( const Ref<Asset>& rAsset );
+		static void Serialise( const Serialisable& rObject, std::ofstream& rStream );
+		static void Deserialise( Serialisable& rObject, std::ifstream& rStream );
 	};
 }

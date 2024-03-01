@@ -37,7 +37,7 @@ namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
 	// Prefab
-	// This is not like a normal prefab. Think of this like an instance of another class.
+	// This is not like a normal prefab. Think of this like an instance of another class (class means Entity or type defined in the game code).
 	// This is used for entities that need to be persistent throughout multiple levels.
 	// Or for entities that can be spawned in e.g. a bullet.
 	// Prefabs can only represents one entity.
@@ -58,6 +58,10 @@ namespace Saturn {
 		// Only used when create a prefab of a game class.
 		void SetEntity( const Ref<Entity>& entity ) { m_Entity = entity; }
 		void CreateScene();
+
+	public:
+		void SerialisePrefab( std::ofstream& rStream );
+		void DeserialisePrefab( std::ifstream& rStream );
 
 	private:
 		Ref<Entity> CreateFromEntity( Ref<Entity> srcEntity );

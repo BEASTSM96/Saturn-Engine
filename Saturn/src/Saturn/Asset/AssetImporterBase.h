@@ -28,16 +28,25 @@
 
 #pragma once
 
+#include <Saturn/Serialisation/AssetSerialisers.h>
+#include <Saturn/Core/Base.h>
+#include <unordered_map>
+
 namespace Saturn {
 
-	class Asset;
+	enum class AssetImporterType
+	{
+		YAML,
+		BINARY
+	};
 
-	class AssetBundle
+	class AssetImporterBase : public RefTarget
 	{
 	public:
-		static bool BundleAssets();
-		static bool ReadBundle();
-	private:
-		static void RTDumpAsset( const Ref<Asset>& rAsset );
+		static AssetImporterBase& Get();
+
+	public:
+		virtual void Import( const Ref<Asset>& rAsset ) = 0;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) = 0;
 	};
 }

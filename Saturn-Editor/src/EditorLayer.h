@@ -84,6 +84,7 @@ namespace Saturn {
 		void DrawLoadedAssetsDebug();
 		void DrawEditorSettings();
 		void DrawMaterials();
+		void DrawVFSDebug();
 
 		// Viewport
 		void DrawViewport();
@@ -113,6 +114,8 @@ namespace Saturn {
 		bool m_ViewportFocused = false;
 		bool m_MouseOverViewport = false;
 		bool m_OpenEditorSettings = false;
+		bool m_ShowImGuiDemoWindow = false;
+		bool m_ShowVFSDebug = false;
 
 		bool m_RequestRuntime = false;
 
@@ -120,8 +123,6 @@ namespace Saturn {
 		int m_GizmoOperation = 7;
 
 		ImVec2 m_ViewportSize;
-
-		bool m_ShowImGuiDemoWindow = false;
 
 		float m_OperationPercent = 0.0f;
 		bool m_ShowOperation = false;

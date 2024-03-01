@@ -32,6 +32,8 @@
 
 #include "Saturn/Project/Project.h"
 
+#include "Saturn/Core/VirtualFS.h"
+
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 

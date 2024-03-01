@@ -34,6 +34,8 @@
 #include "Saturn/Vulkan/Renderer.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
+#include "TextureSourceAsset.h"
+
 namespace Saturn {
 
 	static std::vector< AssetID > s_Materials;
@@ -335,6 +337,7 @@ namespace Saturn {
 		m_VPendingTextureChanges[ 2 ] = rPath;
 	}
 
+
 	void MaterialAsset::SetRoughnessMap( Ref<Texture2D>& rTexture )
 	{
 		m_ValuesChanged = true;
@@ -359,6 +362,100 @@ namespace Saturn {
 			// Does not exists, add and update
 			m_TextureCache[ name ] = texture->GetDescriptorInfo();
 			m_Material->SetResource( name, texture );
+		}
+	}
+
+	void MaterialAsset::SetAlbeoMap( UUID AssetID )
+	{
+		if( AssetID == 0 )
+		{
+			m_PendingTextureChanges[ "u_AlbedoTexture" ] = Renderer::Get().GetPinkTexture();
+		}
+		else
+		{
+			// TEMP: because this will not work when using VFS
+			// Find and load the texture
+			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
+
+			Ref<Texture2D> albedo = Ref<Texture2D>::Create(
+				ImageFormat::RGBA8,
+				sourceAsset->Width(),
+				sourceAsset->Height(),
+				sourceAsset->TextureData().Data,
+				false );
+
+			m_PendingTextureChanges[ "u_AlbedoTexture" ] = albedo;
+		}
+	}
+
+	void MaterialAsset::SetNormalMap( UUID AssetID )
+	{
+		if( AssetID == 0 )
+		{
+			m_PendingTextureChanges[ "u_NormalTexture" ] = Renderer::Get().GetPinkTexture();
+		}
+		else
+		{
+			// TEMP: because this will not work when using VFS
+			// Find and load the texture
+			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
+
+			Ref<Texture2D> normalMap = Ref<Texture2D>::Create(
+				ImageFormat::RGBA8,
+				sourceAsset->Width(),
+				sourceAsset->Height(),
+				sourceAsset->TextureData().Data,
+				false );
+
+			// TODO: Do we really need the texture source after this?
+
+			m_PendingTextureChanges[ "u_NormalTexture" ] = normalMap;
+		}
+	}
+
+	void MaterialAsset::SetMetallicMap( UUID AssetID )
+	{
+		if( AssetID == 0 )
+		{
+			m_PendingTextureChanges[ "u_MetalnessTexture" ] = Renderer::Get().GetPinkTexture();
+		}
+		else
+		{
+			// TEMP: because this will not work when using VFS
+			// Find and load the texture
+			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
+
+			Ref<Texture2D> metalness = Ref<Texture2D>::Create(
+				ImageFormat::RGBA8,
+				sourceAsset->Width(),
+				sourceAsset->Height(),
+				sourceAsset->TextureData().Data,
+				false );
+
+			m_PendingTextureChanges[ "u_MetalnessTexture" ] = metalness;
+		}
+	}
+
+	void MaterialAsset::SetRoughnessMap( UUID AssetID )
+	{
+		if( AssetID == 0 )
+		{
+			m_PendingTextureChanges[ "u_RoughnessTexture" ] = Renderer::Get().GetPinkTexture();
+		}
+		else
+		{
+			// TEMP: because this will not work when using VFS
+			// Find and load the texture
+			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
+
+			Ref<Texture2D> roughness = Ref<Texture2D>::Create(
+				ImageFormat::RGBA8,
+				sourceAsset->Width(),
+				sourceAsset->Height(),
+				sourceAsset->TextureData().Data,
+				false );
+
+			m_PendingTextureChanges[ "u_RoughnessTexture" ] = roughness;
 		}
 	}
 

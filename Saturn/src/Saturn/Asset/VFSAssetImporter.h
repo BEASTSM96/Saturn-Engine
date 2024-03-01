@@ -28,16 +28,28 @@
 
 #pragma once
 
+#include "AssetImporterBase.h"
+
+#include "Saturn/Serialisation/RawAssetSerialisers.h"
+
 namespace Saturn {
 
-	class Asset;
-
-	class AssetBundle
+	class VFSAssetImporter : public AssetImporterBase
 	{
 	public:
-		static bool BundleAssets();
-		static bool ReadBundle();
+		static AssetImporterType GetStaticType() { return AssetImporterType::BINARY; }
+	public:
+		VFSAssetImporter();
+		~VFSAssetImporter();
+
+		void Import( const Ref<Asset>& rAsset ) override;
+		bool TryLoadData( Ref<Asset>& rAsset ) override;
+
 	private:
-		static void RTDumpAsset( const Ref<Asset>& rAsset );
+		void Init();
+
+	private:
+		std::unordered_map<AssetType, std::unique_ptr<RawAssetSerialiser>> m_AssetSerialisers;
 	};
+
 }

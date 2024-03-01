@@ -28,16 +28,70 @@
 
 #pragma once
 
+#include "StringAuxiliary.h"
+#include <unordered_map>
+
 namespace Saturn {
 
-	class Asset;
+	class VFile;
 
-	class AssetBundle
+	class VDirectory : public RefTarget
 	{
 	public:
-		static bool BundleAssets();
-		static bool ReadBundle();
+		VDirectory() = default;
+		VDirectory( const std::string& rName );
+		VDirectory( const std::wstring& rName );
+		VDirectory( const std::string& rName, VDirectory* parentDirectory );
+
+		~VDirectory();
+
+	public:
+		void RemoveFile( const std::string& rName );
+		
+		void AddDirectory( const std::string& rName );
+		void RemoveDirectory( const std::string& rName );
+
+		template<typename Func>
+		void EachFile( Func Function )
+		{
+			for( const auto& rFile : Files )
+			{
+				Function( rFile );
+			}
+		}
+
+		template<typename Func>
+		void EachDirectory( Func Function )
+		{
+			for( const auto& rDir : Directories )
+			{
+				Function( rDir );
+			}
+		}
+
+		void Clear();
+
+		const std::string& GetName() { return m_Name; }
+
+		VDirectory& GetParent() { return *ParentDirectory; }
+
+	public:
+		static void Serialise( const Ref<VDirectory>& rObject, std::ofstream& rStream );
+		static void Deserialise( Ref<VDirectory>& rObject, std::ifstream& rStream );
+
+	public:
+		// Name -> File
+		std::unordered_map< std::string, Ref< VFile > > Files;
+
+		// Name -> VDirectory
+		std::unordered_map< std::string, Ref< VDirectory > > Directories;
+
+		VDirectory* ParentDirectory = nullptr;
+
 	private:
-		static void RTDumpAsset( const Ref<Asset>& rAsset );
+		std::string m_Name;
+
+	private:
+		friend class VirtualFS;
 	};
 }

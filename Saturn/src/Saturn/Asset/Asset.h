@@ -236,7 +236,8 @@ namespace Saturn {
 		//       I want to copy this just so I can get the name without the extension.
 		// Note:
 		//      p must be an absolute path.
-		void SetPath( std::filesystem::path p )
+		//		If you want to set a relative path just modify the 'Path' variable directly.
+		void SetPath( std::filesystem::path path )
 		{
 			std::filesystem::path base = "";
 			
@@ -246,7 +247,7 @@ namespace Saturn {
 			else
 				base = Project::GetActiveProject()->GetRootDir();
 
-			Path = std::filesystem::relative( p, base );
+			Path = std::filesystem::relative( path, base );
 
 			auto CopyPath = Path;
 			Name = CopyPath.replace_extension().filename().string();
@@ -260,7 +261,7 @@ namespace Saturn {
 		{
 			// TODO: Support writing for a filesystem path.
 			RawSerialisation::WriteString( Name, rStream );
-			RawSerialisation::WriteString( Path.string(), rStream );
+			RawSerialisation::WriteString( Path, rStream );
 
 			RawSerialisation::WriteObject( ID, rStream );
 			RawSerialisation::WriteObject( Type, rStream );

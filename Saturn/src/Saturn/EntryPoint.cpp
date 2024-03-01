@@ -41,6 +41,9 @@ namespace Saturn {
 	{
 		Saturn::Application* pApp = Saturn::CreateApplication( count, args );
 	
+		if( !pApp ) 
+			return 1;
+
 		pApp->Run();
 		
 		delete pApp;

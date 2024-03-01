@@ -243,8 +243,14 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		// #WARNING This should not be confused with AssetSerialisers. This is for raw binary serialisation!
 
-		void SerialiseData( std::ofstream& rStream );
-		void DeserialiseData( std::ifstream& rStream );
+		void SerialiseData();
+		void DeserialiseData();
+
+	private:
+		void SerialiseInternal( std::ofstream& rStream );
+
+		template<typename IStream>
+		void DeserialiseInternal( IStream& rStream );
 
 	protected:
 		void OnEntityCreated( Ref<Entity> entity );
