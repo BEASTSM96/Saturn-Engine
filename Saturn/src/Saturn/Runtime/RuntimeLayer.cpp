@@ -72,8 +72,6 @@ namespace Saturn {
 
 		AssetManager* pAssetManager = new AssetManager();
 
-		Project::GetActiveProject()->CheckMissingAssetRefs();
-
 		// Load Asset bundle.
 		if( !AssetBundle::ReadBundle() )
 			exit( EXIT_FAILURE );

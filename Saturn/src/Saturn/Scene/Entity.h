@@ -48,7 +48,7 @@ namespace Saturn {
 		SAT_DECLARE_CLASS_MOVE( Entity, SClass )
 	public:
 		Entity();
-		Entity( entt::entity handle, Scene* scene ) : m_EntityHandle( handle ), m_Scene( scene ) { }
+		Entity( Scene* scene );
 		Entity( const std::string& rName, UUID Id );
 		Entity( const Entity& other );
 

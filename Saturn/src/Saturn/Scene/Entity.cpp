@@ -65,6 +65,19 @@ namespace Saturn {
 		this->m_EntityHandle = other.m_EntityHandle;
 	}
 
+	Entity::Entity( Scene* scene )
+	{
+		m_Scene = GActiveScene;
+		m_EntityHandle = m_Scene->CreateHandle();
+
+		AddComponent<IdComponent>();
+		AddComponent<RelationshipComponent>();
+		AddComponent<TransformComponent>();
+		AddComponent<TagComponent>().Tag = "Unnamed Entity";
+
+		m_Scene->OnEntityCreated( this );
+	}
+
 	Entity::~Entity()
 	{
 		m_Scene->RemoveHandle( m_EntityHandle );
