@@ -672,23 +672,28 @@ namespace Saturn {
 
 		/////////////////////////////////////
 
-		RawSerialisation::WriteObject( m_SceneID, stream );
-		RawSerialisation::WriteObject( m_Lights, stream );
-		
+		SerialiseInternal( stream );
+
+		stream.close();
+	}
+	
+	void Scene::SerialiseInternal( std::ofstream& rStream )
+	{
+		RawSerialisation::WriteObject( m_SceneID, rStream );
+		RawSerialisation::WriteObject( m_Lights, rStream );
+
 		// Serialise the map manually.
 		size_t mapSize = m_EntityIDMap.size();
-		stream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-		
+		rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
 		for( const auto& [k, v] : m_EntityIDMap )
 		{
 			// K (entt::entity) is always trivial
-			RawSerialisation::WriteObject( k, stream );
+			RawSerialisation::WriteObject( k, rStream );
 
 			// V (Entity) is not trivial
-			Entity::Serialise( v, stream );
+			Entity::Serialise( v, rStream );
 		}
-
-		stream.close();
 	}
 
 	void Scene::DeserialiseData()
@@ -701,13 +706,19 @@ namespace Saturn {
 
 		/////////////////////////////////////
 
-		RawSerialisation::ReadObject( m_SceneID, stream );
-		RawSerialisation::ReadObject( m_Lights, stream );
+		DeserialiseInternal( stream );
+	}
+
+	template<typename IStream>
+	void Scene::DeserialiseInternal( IStream& rStream )
+	{
+		RawSerialisation::ReadObject( m_SceneID, rStream );
+		RawSerialisation::ReadObject( m_Lights, rStream );
 
 		// Read the map manually.
 		size_t mapSize = 0;
-		stream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-		
+		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
 		// We can not guarantee that we are the active scene, so temporarily set it while loading.
 		Scene* ActiveScene = GActiveScene;
 		GActiveScene = this;
@@ -720,19 +731,20 @@ namespace Saturn {
 			// K is always trivial
 			if constexpr( std::is_trivial<entt::entity>() )
 			{
-				RawSerialisation::ReadObject( K, stream );
+				RawSerialisation::ReadObject( K, rStream );
 			}
 
 			if constexpr( std::is_trivial<Entity>() )
 			{
-				RawSerialisation::ReadObject( V, stream );
+				RawSerialisation::ReadObject( V, rStream );
 			}
 			else
 			{
-				Entity::Deserialise( V, stream );
+				Entity::Deserialise( V, rStream );
 			}
 		}
 
 		GActiveScene = ActiveScene;
 	}
+
 }

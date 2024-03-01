@@ -288,7 +288,6 @@ namespace Saturn {
 
 			case Saturn::AssetType::Scene:
 			{
-				/*
 				Ref<Scene> scene = Ref<Scene>::Create();
 				Scene* pOldActiveScene = GActiveScene;
 				GActiveScene = scene.Get();
@@ -299,20 +298,17 @@ namespace Saturn {
 				GActiveScene = pOldActiveScene;
 
 				scene->SerialiseData();
-				*/
 			} break;
 
 			case Saturn::AssetType::Prefab:
 			{
-				/*
 				Ref<Prefab> asset = AssetBundleRegistry->GetAssetAs<Prefab>( id );
 
 				if( asset )
 				{
 					RawPrefabSerialiser serialiser;
-					serialiser.Serialise( asset, fout );
+					serialiser.DumpAndWriteToVFS();
 				}
-				*/
 			} break;
 
 			case Saturn::AssetType::SkeletalMesh:

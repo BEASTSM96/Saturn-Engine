@@ -59,8 +59,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					K::Serialise( key, rStream );
 				}
 
@@ -70,8 +68,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					V::Serialise( value, rStream );
 				}
 			}
@@ -96,8 +92,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					V::Serialise( value, rStream );
 				}
 			}
@@ -135,8 +129,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					K::Serialise( key, rStream );
 				}
 
@@ -161,8 +153,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					K::Serialise( key, rStream );
 				}
 
@@ -172,8 +162,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					V::Serialise( value, rStream );
 				}
 			}
@@ -198,8 +186,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					V::Serialise( value, rStream );
 				}
 			}
@@ -222,8 +208,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					K::Serialise( key, rStream );
 				}
 
@@ -263,8 +247,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, Ty>::value, "Ty is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					Ty::Serialise( value, rStream );
 				}
 			}
@@ -335,8 +317,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, Ty>::value, "Ty is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					Ty::Deserialise( value, rStream );
 				}
 
@@ -362,8 +342,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					K::Deserialise( key, rStream );
 				}
 
@@ -374,8 +352,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					V::Deserialise( value, rStream );
 				}
 
@@ -424,8 +400,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					V::Deserialise( value, rStream );
 				}
 
@@ -451,8 +425,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					K::Deserialise( key, rStream );
 				}
 
@@ -481,8 +453,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, K>::value, "K is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					K::Deserialise( key, rStream );
 				}
 
@@ -493,8 +463,6 @@ namespace Saturn {
 				}
 				else
 				{
-					//static_assert( std::is_base_of<Serialisable, V>::value, "V is not is trivial and is not based from Serialisable. All non trivial types in Saturn must be derived from Serialisable!" );
-
 					V::Deserialise( value, rStream );
 				}
 

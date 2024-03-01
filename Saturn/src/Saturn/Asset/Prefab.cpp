@@ -98,6 +98,18 @@ namespace Saturn {
 		m_Scene = Ref<Scene>::Create();
 	}
 
+	void Prefab::SerialisePrefab( std::ofstream& rStream )
+	{
+		m_Scene->SerialiseInternal( rStream );
+	}
+
+	void Prefab::DeserialisePrefab( std::ifstream& rStream )
+	{
+		Create();
+
+		m_Scene->DeserialiseInternal( rStream );
+	}
+
 	Ref<Entity> Prefab::PrefabToEntity( Ref<Scene> Scene )
 	{
 		Ref<Entity> result = Ref<Entity>::Create();

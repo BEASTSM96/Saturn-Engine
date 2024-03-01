@@ -222,7 +222,7 @@ namespace Saturn {
 		auto prefabAsset = Ref<Prefab>::Create();
 		prefabAsset->Create();
 
-		//prefabAsset->GetScene()->DeserialiseData( rStream );
+		prefabAsset->DeserialiseData( );
 
 		// TODO: (Asset) Fix this.
 		struct
@@ -252,6 +252,23 @@ namespace Saturn {
 
 	bool RawPrefabSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
+		auto prefabAsset = rAsset.As<Prefab>();
+
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
+		out /= std::to_string( rAsset->ID );
+		out.replace_extension( ".vfs" );
+
+		std::ofstream fout( out, std::ios::binary | std::ios::trunc );
+
+		/////////////////////////////////////
+
+		prefabAsset->SerialisePrefab( fout );
+		
+		fout.close();
+
 		return false;
 	}
 
@@ -277,6 +294,8 @@ namespace Saturn {
 		RawSerialisation::WriteObject( staticMeshAsset->GetPhysicsMaterial(), fout );
 
 		staticMeshAsset->SerialiseData( fout );
+
+		fout.close();
 
 		return true;
 	}

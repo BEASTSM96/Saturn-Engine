@@ -36,6 +36,7 @@
 #include "Saturn/Serialisation/EngineSettingsSerialiser.h"
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
+#include "Saturn/Serialisation/AssetBundle.h"
 
 #include "Saturn/GameFramework/Core/GameModule.h"
 
@@ -72,6 +73,9 @@ namespace Saturn {
 		AssetManager* pAssetManager = new AssetManager();
 
 		Project::GetActiveProject()->CheckMissingAssetRefs();
+
+		// Load Asset bundle.
+		AssetBundle::ReadBundle();
 
 		// "Load" the Game Module
 		m_GameModule = new GameModule();

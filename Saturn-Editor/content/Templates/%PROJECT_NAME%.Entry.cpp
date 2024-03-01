@@ -117,7 +117,7 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 	std::filesystem::current_path( WorkingDir.parent_path() );
 
 	Saturn::ApplicationSpecification spec{};
-	spec.Flags = Saturn::ApplicationFlag_CreateSceneRenderer | Saturn::ApplicationFlag_GameDist | Saturn::ApplicationFlag_Titlebar;
+	spec.Flags = Saturn::ApplicationFlag_CreateSceneRenderer | Saturn::ApplicationFlag_GameDist | Saturn::ApplicationFlag_Titlebar | Saturn::ApplicationFlag_UseVFS;
 
 	s_ProjectPath = Saturn::Project::FindProjectDir( "%PROJECT_NAME%" );
 
