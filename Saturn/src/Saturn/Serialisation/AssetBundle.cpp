@@ -48,12 +48,6 @@
 
 #include <zlib.h>
 
-#define PACK_ASSET( rAsset, rVFS ) \
-std::filesystem::path out = tempDir; \
-out /= std::to_string( rAsset->ID ); \
-out.replace_extension( ".vfs" );\
-rVFS.RT_PackFile( Project::GetActiveConfig().Name, rAsset->Path, out );
-
 namespace Saturn {
 
 	struct AssetBundleHeader
@@ -229,8 +223,6 @@ namespace Saturn {
 		// Delete the temp folder as we will no longer be needing it.
 		std::filesystem::remove_all( ActiveProject->GetTempDir() );
 
-		AssetBundleRegistry = nullptr;
-
 		return true;
 	}
 
@@ -302,12 +294,12 @@ namespace Saturn {
 
 			case Saturn::AssetType::Prefab:
 			{
-				Ref<Prefab> asset = AssetBundleRegistry->GetAssetAs<Prefab>( id );
+				Ref<Prefab> prefabAsset = AssetBundleRegistry->GetAssetAs<Prefab>( id );
 
-				if( asset )
+				if( prefabAsset )
 				{
 					RawPrefabSerialiser serialiser;
-					serialiser.DumpAndWriteToVFS();
+					serialiser.DumpAndWriteToVFS( prefabAsset );
 				}
 			} break;
 
@@ -344,12 +336,8 @@ namespace Saturn {
 		}
 
 		AssetManager& rAssetManager = AssetManager::Get();
-		Ref<AssetRegistry> rAssetRegistry = Ref<AssetRegistry>::Create();
+		Ref<AssetRegistry> rAssetRegistry = rAssetManager.GetAssetRegistry();
 		VirtualFS& rVFS = VirtualFS::Get();
-
-		// Steps:
-		// 1) Read the asset registry
-		// 2) Read the loaded data and the VFS
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		rVFS.UnmountBase( rMountBase );

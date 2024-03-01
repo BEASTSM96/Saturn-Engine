@@ -75,7 +75,8 @@ namespace Saturn {
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
 		// Load Asset bundle.
-		AssetBundle::ReadBundle();
+		if( !AssetBundle::ReadBundle() )
+			exit( EXIT_FAILURE );
 
 		// "Load" the Game Module
 		m_GameModule = new GameModule();

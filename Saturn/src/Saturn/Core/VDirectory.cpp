@@ -36,8 +36,8 @@
 namespace Saturn {
 
 	VDirectory::VDirectory( const std::wstring& rName )
+		: m_Name( Auxiliary::ConvertWString( rName ) )
 	{
-		m_Name = Auxiliary::ConvertWString( rName );
 	}
 
 	VDirectory::VDirectory( const std::string& rName ) 

@@ -36,12 +36,11 @@ namespace Saturn {
 	}
 
 	AssetRegistry::AssetRegistry( const AssetRegistry& rOther )
+		: m_Assets( rOther.m_Assets ), 
+		m_LoadedAssets( rOther.m_LoadedAssets ), 
+		m_IsEditorRegistry( rOther.m_IsEditorRegistry ), 
+		m_Path( rOther.m_Path )
 	{
-		m_Assets = rOther.m_Assets;
-		m_LoadedAssets = rOther.m_LoadedAssets;
-		
-		m_IsEditorRegistry = rOther.m_IsEditorRegistry;
-		m_Path = rOther.m_Path;
 	}
 
 	AssetRegistry::~AssetRegistry()
