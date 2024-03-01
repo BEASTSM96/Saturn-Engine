@@ -177,7 +177,7 @@ namespace Saturn {
 		void SerialiseData( std::ostringstream& rStream );
 		
 		void DeserialiseData( std::ifstream& rStream );
-		void DeserialiseData( std::istringstream& rStream );
+		void DeserialiseData( std::istream& rStream );
 
 	private:
 		template<typename OStream>

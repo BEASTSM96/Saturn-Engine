@@ -43,6 +43,7 @@
 #include "Saturn/Vulkan/Renderer.h"
 
 #include "RawSerialisation.h"
+#include "Saturn/Core/MemoryStream.h"
 
 // #NOTE
 // NOTES WHEN ADDING NEW FIELDS TO SERIALISE:
@@ -57,7 +58,9 @@ namespace Saturn {
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
-		std::istringstream stream( "", std::ios::binary | std::ios::in );
+		PakFileMemoryBuffer membuf( file->FileContents );
+
+		std::istream stream( &membuf );
 
 		/////////////////////////////////////
 
@@ -285,7 +288,8 @@ namespace Saturn {
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
-		std::istringstream stream( "", std::ios::binary | std::ios::in );
+		PakFileMemoryBuffer membuf( file->FileContents );
+		std::istream stream( &membuf );
 
 		/////////////////////////////////////
 
@@ -298,7 +302,7 @@ namespace Saturn {
 		staticMeshAsset->SetAttachedShape( shapeType );
 		staticMeshAsset->SetPhysicsMaterial( physicsMaterial );
 
-		//staticMeshAsset->DeserialiseData( stream );
+		staticMeshAsset->DeserialiseData( stream );
 
 		// TODO: (Asset) Fix this.
 		struct
@@ -335,7 +339,8 @@ namespace Saturn {
 		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
 		/////////////////////////////////////
-		std::istringstream stream( "", std::ios::binary | std::ios::in );
+		PakFileMemoryBuffer membuf( file->FileContents );
+		std::istream stream( &membuf );
 
 		glm::vec3 StaticDynamicFrictionRestitution{};
 		uint32_t assetFlags = 0;

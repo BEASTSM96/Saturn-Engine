@@ -583,7 +583,7 @@ namespace Saturn {
 		DeserialiseMesh( rStream );
 	}
 
-	void StaticMesh::DeserialiseData( std::istringstream& rStream )
+	void StaticMesh::DeserialiseData( std::istream& rStream )
 	{
 		RawSerialisation::ReadObject( m_VertexCount, rStream );
 		RawSerialisation::ReadObject( m_IndicesCount, rStream );
@@ -594,6 +594,41 @@ namespace Saturn {
 
 		RawSerialisation::ReadMatrix4x4( m_Transform, rStream );
 		RawSerialisation::ReadMatrix4x4( m_InverseTransform, rStream );
+
+		m_VertexBuffer = Ref<VertexBuffer>::Create( m_Vertices.data(), ( uint32_t ) ( m_Vertices.size() * sizeof( StaticVertex ) ) );
+		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
+
+		m_MeshShader = ShaderLibrary::Get().Find( "shader_new" );
+		m_BaseMaterial = Ref< Material >::Create( m_MeshShader, "Base Material" );
+		m_MaterialRegistry = Ref<MaterialRegistry>::Create();
+
+		// Read Materials
+		size_t materials = 0;
+		RawSerialisation::ReadObject( materials, rStream );
+
+		m_MaterialsAssets.resize( materials );
+
+		for( size_t i = 0; i < materials; i++ )
+		{
+			UUID materialID = 0;
+			RawSerialisation::ReadObject( materialID, rStream );
+
+			// Try load material
+			Ref<MaterialAsset> materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( materialID );
+
+			// Failed to load material, create new and default it.
+			if( materialAsset == nullptr )
+			{
+				Ref<MaterialAsset> defaultMat = Ref<MaterialAsset>::Create( nullptr );
+				m_MaterialsAssets[ i ] = defaultMat;
+			}
+			else
+			{
+				m_MaterialsAssets[ i ] = materialAsset;
+			}
+
+			m_MaterialRegistry->AddAsset( m_MaterialsAssets[ i ] );
+		}
 	}
 
 	template<typename OStream>

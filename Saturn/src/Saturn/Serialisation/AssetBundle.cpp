@@ -60,7 +60,6 @@ namespace Saturn {
 	{
 		const char Magic[ 5 ] = ".AB\0";
 		size_t Assets;
-		uint32_t Files;
 		uint32_t Version;
 	};
 
@@ -68,9 +67,9 @@ namespace Saturn {
 	{
 		char Magic[ 5 ] = { '.', 'P', 'A', 'K' };
 		AssetID Asset = 0;
-		uint32_t OrginalSize = 0;
-		uint32_t CompressedSize = 0;
-		uint32_t Offset = 0;
+		uint64_t OrginalSize = 0;
+		uint64_t CompressedSize = 0;
+		uint64_t Offset = 0;
 		uint32_t Version = 0;
 	};
 
@@ -130,7 +129,6 @@ namespace Saturn {
 		AssetBundleHeader header{};
 		header.Assets = rAssetManager.GetAssetRegistrySize();
 		header.Version = 1;
-		header.Files = header.Assets;
 
 		RawSerialisation::WriteObject( header, fout );
 
@@ -149,7 +147,7 @@ namespace Saturn {
 
 		/////////////////////////////////////
 
-		uint32_t offset = 0;
+		uint64_t offset = 0;
 
 		// Next, now that we have dumped all of the assets we can now pack and compress the assets.
 		// And we also make sure that we write the uncompressed/compressed file data + the header into the VFS.
@@ -187,11 +185,11 @@ namespace Saturn {
 				
 				// Compress, file over the limit.
 				std::vector<char> compressedData;
-				compressedData.resize( compressBound( fileSize ) );
+				compressedData.resize( compressBound( (uLong)fileSize ) );
 
-				uLongf compressedSize = compressedData.size();
+				uLongf compressedSize = (uLongf)compressedData.size();
 
-				int result = compress( (Bytef*)compressedData.data(), &compressedSize, (Bytef*)fileBuffer.data(), fileBuffer.size() );
+				int result = compress( (Bytef*)compressedData.data(), &compressedSize, (Bytef*)fileBuffer.data(), static_cast<uLong>( fileBuffer.size() ) );
 
 				if( result != Z_OK )
 				{
@@ -222,7 +220,7 @@ namespace Saturn {
 		}
 
 		SAT_CORE_INFO( "Packaged {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
-		SAT_CORE_INFO( "Asset bundle built in {0}s", timer.Elapsed() );
+		SAT_CORE_INFO( "Asset bundle built in {0}s", timer.Elapsed() / 1000 );
 
 		fout.close();
 
@@ -336,6 +334,8 @@ namespace Saturn {
 		if( !std::filesystem::exists( cachePath ) )
 			return false;
 
+		Timer timer;
+
 		std::ifstream stream( cachePath, std::ios::binary | std::ios::in );
 
 		AssetBundleHeader header{};
@@ -378,22 +378,27 @@ namespace Saturn {
 		// Iterate over all of the assets again. But this time read compressed file.
 		for( size_t i = 0; i < header.Assets; i++ )
 		{
+			SAT_CORE_INFO( "Index: {0}", i );
+
+			if( i == 256 )
+				__debugbreak();
+
 			DumpFileHeader dfh;
 			RawSerialisation::ReadObject( dfh, stream );
 
 			Ref<Asset>& rAsset = rAssetRegistry->m_Assets[ dfh.Asset ];
-			if( !rAsset ) return false;
+			if( !rAsset ) continue;
 
 			if( strcmp( dfh.Magic, ".PAK\0" ) )
 			{
 				SAT_CORE_ERROR( "Invalid pack file header!" );
-				return false;
+				break;
 			}
 
 			if( rAsset->ID != dfh.Asset )
 			{
 				SAT_CORE_ERROR( "Asset ID's do not match!" );
-				return false;
+				break;
 			}
 
 			// Find the VFile
@@ -409,13 +414,13 @@ namespace Saturn {
 				std::vector<char> compressedData;
 				RawSerialisation::ReadVector( compressedData, stream );
 
-				uLongf uncompSize = uncompressedData.size();
-				int result = uncompress( ( Bytef* ) uncompressedData.data(), &uncompSize, ( Bytef* ) compressedData.data(), compressedData.size() );
+				uLongf uncompSize = (uLongf)uncompressedData.size();
+				int result = uncompress( ( Bytef* ) uncompressedData.data(), &uncompSize, ( Bytef* ) compressedData.data(), static_cast<uLong>( compressedData.size() ) );
 
 				if( result != Z_OK )
 				{
 					SAT_CORE_ERROR( "Failed to uncompress data!" );
-					return false;
+					break;
 				}
 
 				compressedData.clear();
@@ -435,11 +440,12 @@ namespace Saturn {
 			FileEntries[ i ] = dfh;
 		}
 
+		SAT_CORE_INFO( "Done reading asset bundle in {0}s", timer.Elapsed() / 1000 );
+
 		stream.close();
 
 		FileEntries.clear();
 
 		return true;
-
 	}
 }
