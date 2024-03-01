@@ -294,11 +294,11 @@ namespace Saturn {
 				GActiveScene = scene.Get();
 
 				SceneSerialiser serialiser( scene );
-				serialiser.Deserialise( asset->Path );
+				serialiser.Deserialise( rAsset->Path );
 
 				GActiveScene = pOldActiveScene;
 
-				scene->SerialiseData( fout );
+				scene->SerialiseData();
 				*/
 			} break;
 
@@ -378,16 +378,13 @@ namespace Saturn {
 		// Iterate over all of the assets again. But this time read compressed file.
 		for( size_t i = 0; i < header.Assets; i++ )
 		{
-			SAT_CORE_INFO( "Index: {0}", i );
-
-			if( i == 256 )
-				__debugbreak();
-
 			DumpFileHeader dfh;
 			RawSerialisation::ReadObject( dfh, stream );
 
+			if( !rAssetRegistry->DoesIDExists( dfh.Asset ) )
+				continue;
+
 			Ref<Asset>& rAsset = rAssetRegistry->m_Assets[ dfh.Asset ];
-			if( !rAsset ) continue;
 
 			if( strcmp( dfh.Magic, ".PAK\0" ) )
 			{
