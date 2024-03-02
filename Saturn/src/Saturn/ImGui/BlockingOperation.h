@@ -28,22 +28,53 @@
 
 #pragma once
 
-#include "Saturn/ImGui/BlockingOperation.h"
+#include "Saturn/Core/Timer.h"
+
+#include <string>
+#include <functional>
 
 namespace Saturn {
 
-	class Asset;
-
-	class AssetBundle
+	class BlockingOperation : public RefTarget
 	{
 	public:
-		static bool BundleAssets();
-		static bool ReadBundle();
+		BlockingOperation();
+		~BlockingOperation();
 
-		static Ref<BlockingOperation>& GetBlockingOperation();
+		float GetProgress() { return m_Progress; }
+		const std::string& GetStatus() const { return m_Status; }
+		const std::string& GetTitle() const { return m_Title; }
+
+		void OnComplete( std::function<void()>&& rrFunction )
+		{
+			m_ExitFunction = rrFunction;
+		}
+
+		void SetJob( std::function<void()>&& rFunction );
+
+		bool HasJob() { return m_Job != nullptr; }
+
+		void Execute();
+
+		void SetStatus( const std::string& rStatus ) { m_Status = rStatus; }
+		void SetTitle( const std::string& rTitle ) { m_Title = rTitle; }
+
+		void SetProgress( float progress ) { m_Progress = progress; }
 
 	private:
-		static void RTDumpAsset( const Ref<Asset>& rAsset );
-	};
+		void ThreadRun();
 
+	protected:
+		float m_Progress = 0.0f;
+		std::string m_Status;
+		std::string m_Title;
+
+		bool m_Done = false;
+		Timer m_Duration;
+
+	private:
+		std::thread m_JobThread;
+		std::function<void()> m_Job;
+		std::function<void()> m_ExitFunction;
+	};
 }

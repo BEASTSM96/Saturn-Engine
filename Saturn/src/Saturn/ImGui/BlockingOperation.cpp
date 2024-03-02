@@ -26,24 +26,46 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/ImGui/BlockingOperation.h"
+#include "sppch.h"
+#include "BlockingOperation.h"
 
 namespace Saturn {
 
-	class Asset;
-
-	class AssetBundle
+	BlockingOperation::BlockingOperation()
 	{
-	public:
-		static bool BundleAssets();
-		static bool ReadBundle();
 
-		static Ref<BlockingOperation>& GetBlockingOperation();
+	}
 
-	private:
-		static void RTDumpAsset( const Ref<Asset>& rAsset );
-	};
+	BlockingOperation::~BlockingOperation()
+	{
+		m_JobThread.join();
+	}
+
+	void BlockingOperation::SetJob( std::function<void()>&& rrFunction )
+	{
+		m_Job = rrFunction;
+	}
+
+	void BlockingOperation::Execute()
+	{
+		if( !m_Job )
+			return;
+
+		if( !m_ExitFunction )
+			return;
+
+		m_JobThread = std::thread( &BlockingOperation::ThreadRun, this );
+	}
+
+	void BlockingOperation::ThreadRun()
+	{
+		SetThreadDescription( GetCurrentThread(), L"BlockOperation" );
+
+		// Execute job
+		m_Job();
+
+		// Call exit function.
+		m_ExitFunction();
+	}
 
 }

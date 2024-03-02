@@ -222,7 +222,7 @@ namespace Saturn {
 		auto prefabAsset = Ref<Prefab>::Create();
 		prefabAsset->Create();
 
-		prefabAsset->DeserialiseData( );
+		//prefabAsset->DeserialisePrefab();
 
 		// TODO: (Asset) Fix this.
 		struct

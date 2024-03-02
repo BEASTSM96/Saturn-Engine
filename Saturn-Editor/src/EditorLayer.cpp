@@ -151,6 +151,7 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Setup Project for Distribution" ) )
 				{
+					/*
 					Project::GetActiveProject()->PrepForDist();
 
 					// Make sure we will include the Texture Pass shader.
@@ -161,10 +162,18 @@ namespace Saturn {
 
 					ShaderLibrary::Get().Remove( TexturePass ); 
 					TexturePass = nullptr;
+					*/
 
-					// Bundle Assets
-					// TODO: This will most likely be an action that takes time so to account for that we need to make a window modal for this.
-					AssetBundle::BundleAssets();
+					m_BlockingActionRunning = true;
+					m_BlockingOperation = AssetBundle::GetBlockingOperation();
+					m_BlockingOperation->OnComplete( [this]() { m_BlockingActionRunning = false; m_BlockingOperation = nullptr; } );
+
+					m_BlockingOperation->SetJob( [this]() 
+						{
+							AssetBundle::BundleAssets();
+						} );
+
+					m_BlockingOperation->Execute();
 				}
 
 				if( ImGui::MenuItem( "DEBUG: Read Asset Bundle" ) )
@@ -425,22 +434,43 @@ namespace Saturn {
 		
 		ImGui::End();
 	
-		/*
-		ImGui::Begin( "Test" );
+		if( m_BlockingActionRunning )
+		{
+			ImGui::OpenPopup( "Blocking Action" );
+		}
 
-		ImGui::BeginHorizontal( "##ItemsH" );
+		if( ImGui::BeginPopupModal( "Blocking Action", &m_BlockingActionRunning ) )
+		{
+			ImGui::BeginHorizontal( "##ItemsH" );
 
-		ImSpinner::SpinnerAng( "##OPERATION_SPINNER", 25.0f, 2.0f, ImSpinner::white, ImSpinner::half_white, 8.6F );
+			ImSpinner::SpinnerAng( "##OPERATION_SPINNER", 25.0f, 2.0f, ImSpinner::white, ImSpinner::half_white, 8.6F );
 
-		ImGui::Spring();
+			ImGui::Spring();
 
-		ImGui::Text( "Please wait for this operation to complete..." );
+			if( m_BlockingOperation->GetTitle().empty() )
+				ImGui::Text( "Please wait for this operation to complete..." );
+			else
+				ImGui::Text( m_BlockingOperation->GetTitle().c_str() );
 
-		ImGui::EndHorizontal();
+			ImGui::EndHorizontal();
+			
+			ImGui::BeginHorizontal( "##SecondItemsH" );
+			
+			if( float percent = m_BlockingOperation->GetProgress(); percent >= 1.0f )
+			{
+				ImGui::ProgressBar( percent / 100 );
+			}
 
-		ImGui::End();
-		*/
+			if( std::string status = m_BlockingOperation->GetStatus(); !status.empty() )
+			{
+				ImGui::Text( status.c_str() );
+			}
 
+			ImGui::EndHorizontal();
+
+			ImGui::EndPopup();
+		}
+		
 		ImGui::Begin( "Materials" );
 
 		DrawMaterials();

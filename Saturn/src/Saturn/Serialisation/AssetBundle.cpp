@@ -78,6 +78,8 @@ namespace Saturn {
 
 	bool AssetBundle::BundleAssets()
 	{
+		GetBlockingOperation()->SetTitle( "AssetBundle" );
+
 		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
 
 		if( !std::filesystem::exists( cachePath ) )
@@ -112,6 +114,9 @@ namespace Saturn {
 
 		SAT_CORE_INFO( "Dumped {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
 
+		GetBlockingOperation()->SetProgress( 10.0f );
+		GetBlockingOperation()->SetTitle( "Building AssetBundle" );
+		
 		// This might not be needed, however, I just want to be nice and give the I/O time to rest.
 		using namespace std::chrono_literals;
 		std::this_thread::sleep_for( 1ms );
@@ -126,6 +131,8 @@ namespace Saturn {
 
 		RawSerialisation::WriteObject( header, fout );
 
+		GetBlockingOperation()->SetStatus( "Writing header information for assets" );
+
 		// Write asset header data.
 		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 		{
@@ -136,12 +143,20 @@ namespace Saturn {
 			rVFS.Mount( rMountBase, asset->Path );
 		}
 
+		GetBlockingOperation()->SetProgress( 45.0f );
+
 		/////////////////////////////////////
+		GetBlockingOperation()->SetStatus( "Writing VFS" );
+
 		VirtualFS::Get().WriteVFS( fout );
+
+		GetBlockingOperation()->SetProgress( 50.0f );
 
 		/////////////////////////////////////
 
 		uint64_t offset = 0;
+
+		GetBlockingOperation()->SetStatus( "Compressing data..." );
 
 		// Next, now that we have dumped all of the assets we can now pack and compress the assets.
 		// And we also make sure that we write the uncompressed/compressed file data + the header into the VFS.
@@ -217,6 +232,8 @@ namespace Saturn {
 		SAT_CORE_INFO( "Asset bundle built in {0}s", timer.Elapsed() / 1000 );
 
 		fout.close();
+
+		GetBlockingOperation()->SetProgress( 100.0f );
 
 		DumpFileToAssetID.clear();
 
@@ -429,4 +446,11 @@ namespace Saturn {
 
 		return true;
 	}
+
+	Ref<BlockingOperation>& AssetBundle::GetBlockingOperation()
+	{
+		static Ref<BlockingOperation> _ = Ref<BlockingOperation>::Create();
+		return _;
+	}
+
 }

@@ -34,6 +34,8 @@
 #include <Saturn/Scene/Scene.h>
 #include <Saturn/Core/Layer.h>
 
+#include <Saturn/ImGui/BlockingOperation.h>
+
 #include <thread>
 
 namespace Saturn {
@@ -91,6 +93,8 @@ namespace Saturn {
 		void Viewport_Gizmo();
 		void Viewport_RTControls();
 
+		void CreateBlockingOp( std::function<void()>&& rrFunction );
+
 	private:
 		TitleBar* m_TitleBar = nullptr;
 		
@@ -108,6 +112,8 @@ namespace Saturn {
 
 		GameModule* m_GameModule = nullptr;
 
+		Ref<BlockingOperation> m_BlockingOperation = nullptr;
+
 		EditorCamera m_EditorCamera;
 		bool m_AllowCameraEvents = false;
 		bool m_StartedRightClickInViewport = false;
@@ -118,6 +124,8 @@ namespace Saturn {
 		bool m_ShowVFSDebug = false;
 
 		bool m_RequestRuntime = false;
+
+		bool m_BlockingActionRunning = false;
 
 		// Translate as default
 		int m_GizmoOperation = 7;
