@@ -102,24 +102,35 @@ namespace Saturn {
 
 		std::unordered_map<std::filesystem::path, AssetID> DumpFileToAssetID;
 
-		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
+		bool DumpedAllFiles = false;
+
+		// Submit on the main thread because we will get threading issue with vulkan when loading static meshes.
+		Application::Get().SubmitOnMainThread( [&]() 
+			{
+				for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
+				{
+					RTDumpAsset( asset );
+
+					std::filesystem::path p = ActiveProject->GetTempDir() / std::to_string( id );
+					p.replace_extension( ".vfs" );
+
+					DumpFileToAssetID[ p ] = id;
+				}
+
+				DumpedAllFiles = true;
+			} );
+
+		// Wait for main thread to dump all of the assets.
+		while( !DumpedAllFiles )
 		{
-			RTDumpAsset( asset );
-
-			std::filesystem::path p = ActiveProject->GetTempDir() / std::to_string( id );
-			p.replace_extension( ".vfs" );
-
-			DumpFileToAssetID[ p ] = id;
+			using namespace std::chrono_literals;
+			std::this_thread::sleep_for( 1ms );
 		}
 
 		SAT_CORE_INFO( "Dumped {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
 
 		GetBlockingOperation()->SetProgress( 10.0f );
 		GetBlockingOperation()->SetTitle( "Building AssetBundle" );
-		
-		// This might not be needed, however, I just want to be nice and give the I/O time to rest.
-		using namespace std::chrono_literals;
-		std::this_thread::sleep_for( 1ms );
 
 		/////////////////////////////////////
 
@@ -137,26 +148,27 @@ namespace Saturn {
 		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 		{
 			SAT_CORE_INFO( "Writing header information for asset: {0} ({1})", id, asset->Name );
+			std::string status = std::format( "Writing header information for asset: {0} ({1})", (uint64_t)id, asset->Name );
+
+			GetBlockingOperation()->SetStatus( status );
 
 			asset->SerialiseData( fout );
 
 			rVFS.Mount( rMountBase, asset->Path );
 		}
 
-		GetBlockingOperation()->SetProgress( 45.0f );
+		GetBlockingOperation()->SetProgress( 30.0f );
 
 		/////////////////////////////////////
 		GetBlockingOperation()->SetStatus( "Writing VFS" );
 
 		VirtualFS::Get().WriteVFS( fout );
 
-		GetBlockingOperation()->SetProgress( 50.0f );
+		GetBlockingOperation()->SetProgress( 35.0f );
 
 		/////////////////////////////////////
 
 		uint64_t offset = 0;
-
-		GetBlockingOperation()->SetStatus( "Compressing data..." );
 
 		// Next, now that we have dumped all of the assets we can now pack and compress the assets.
 		// And we also make sure that we write the uncompressed/compressed file data + the header into the VFS.
@@ -192,6 +204,8 @@ namespace Saturn {
 			{
 				SAT_CORE_INFO( "Compressing file: {0} because file is {1} KB", path.string(), fileSize / 1000 );
 				
+				GetBlockingOperation()->SetStatus( std::format( "Compressing file: {0}", path.string() ) );
+
 				// Compress, file over the limit.
 				std::vector<char> compressedData;
 				compressedData.resize( compressBound( (uLong)fileSize ) );
@@ -222,10 +236,13 @@ namespace Saturn {
 				dfh.CompressedSize = dfh.OrginalSize;
 
 				SAT_CORE_INFO( "Not compressing file: {0} because file size is less than 500 KB", path.string() );
+				GetBlockingOperation()->SetStatus( std::format( "Not Compressing file because file size is less than 500 KB: {0}", path.string() ) );
 
 				RawSerialisation::WriteObject( dfh, fout );
 				RawSerialisation::WriteVector( fileBuffer, fout );
 			}
+
+			GetBlockingOperation()->AddProgress( ( 1.0 + GetBlockingOperation()->GetProgress() ) / DumpFileToAssetID.size() );
 		}
 
 		SAT_CORE_INFO( "Packaged {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
@@ -233,6 +250,7 @@ namespace Saturn {
 
 		fout.close();
 
+		GetBlockingOperation()->SetStatus( "Done" );
 		GetBlockingOperation()->SetProgress( 100.0f );
 
 		DumpFileToAssetID.clear();

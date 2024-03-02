@@ -60,6 +60,7 @@ namespace Saturn {
 		void SetTitle( const std::string& rTitle ) { m_Title = rTitle; }
 
 		void SetProgress( float progress ) { m_Progress = progress; }
+		void AddProgress( float progress ) { m_Progress += progress; }
 
 	private:
 		void ThreadRun();

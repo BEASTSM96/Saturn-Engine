@@ -110,10 +110,7 @@ namespace Saturn {
 
 		void SubmitOnMainThread( std::function<void()>&& rrFunction ) 
 		{
-			if( HasFlag( ApplicationFlag_UseGameThread ) )
-				m_MainThreadQueue.push_back( std::move( rrFunction ) );
-			else
-				rrFunction();
+			m_MainThreadQueue.push_back( std::move( rrFunction ) );
 		}
 
 		std::filesystem::path& GetRootContentDir() { return m_RootContentPath; }

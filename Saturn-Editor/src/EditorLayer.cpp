@@ -454,8 +454,6 @@ namespace Saturn {
 
 			ImGui::EndHorizontal();
 			
-			ImGui::BeginHorizontal( "##SecondItemsH" );
-			
 			if( float percent = m_BlockingOperation->GetProgress(); percent >= 1.0f )
 			{
 				ImGui::ProgressBar( percent / 100 );
@@ -465,8 +463,6 @@ namespace Saturn {
 			{
 				ImGui::Text( status.c_str() );
 			}
-
-			ImGui::EndHorizontal();
 
 			ImGui::EndPopup();
 		}
