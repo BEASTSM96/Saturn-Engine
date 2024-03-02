@@ -57,7 +57,7 @@ namespace Saturn {
 		void OnEvent( RubyEvent& rEvent ) override;
 		
 		void SaveFileAs();
-		void OpenFile( const std::filesystem::path& rFilepath );
+		void OpenFile( AssetID id );
 
 		void SaveFile();
 		void OpenFile();
@@ -94,6 +94,9 @@ namespace Saturn {
 		void Viewport_RTControls();
 
 		void CreateBlockingOp( std::function<void()>&& rrFunction );
+		
+		// Close editor and open the project browser.
+		void CloseEditorAndOpenPB();
 
 	private:
 		TitleBar* m_TitleBar = nullptr;

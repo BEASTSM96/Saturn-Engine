@@ -142,8 +142,6 @@ namespace Saturn {
 
 		RawSerialisation::WriteObject( header, fout );
 
-		GetBlockingOperation()->SetStatus( "Writing header information for assets" );
-
 		// Write asset header data.
 		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 		{
@@ -250,8 +248,8 @@ namespace Saturn {
 
 		fout.close();
 
-		GetBlockingOperation()->SetStatus( "Done" );
 		GetBlockingOperation()->SetProgress( 100.0f );
+		GetBlockingOperation()->SetStatus( "Done" );
 
 		DumpFileToAssetID.clear();
 

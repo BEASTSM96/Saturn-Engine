@@ -31,6 +31,8 @@
 #include "Saturn/Core/Base.h"
 #include "Saturn/GameFramework/ActionBinding.h"
 
+#include "Saturn/Core/UUID.h"
+
 #include <string>
 #include <filesystem>
 
@@ -39,7 +41,7 @@ namespace Saturn {
 	struct ProjectConfig
 	{
 		std::string Name;
-		std::string StartupScenePath;
+		UUID StartupSceneID;
 
 		std::string AssetPath; // Relative path
 		std::string Path; // Absolute path

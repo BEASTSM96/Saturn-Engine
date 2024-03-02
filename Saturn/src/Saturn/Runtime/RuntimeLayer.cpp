@@ -79,7 +79,7 @@ namespace Saturn {
 		// "Load" the Game Module
 		m_GameModule = new GameModule();
 
-		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
+		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
 
 		m_RuntimeScene->OnRuntimeStart();
 
@@ -96,17 +96,25 @@ namespace Saturn {
 		delete m_GameModule;
 	}
 
-	void RuntimeLayer::OpenFile( const std::filesystem::path& rFilepath )
+	void RuntimeLayer::OpenFile( AssetID id )
 	{
+		Ref<Asset> asset = AssetManager::Get().FindAsset( id );
+
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		Scene::SetActiveScene( newScene.Get() );
 		
-		auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
+		auto fullPath = Project::GetActiveProject()->FilepathAbs( asset->Path );
 		SceneSerialiser serialiser( newScene );
 		serialiser.Deserialise();
 
 		m_RuntimeScene = nullptr;
 		m_RuntimeScene = newScene;
+
+		m_RuntimeScene->Name = asset->Name;
+		m_RuntimeScene->Path = asset->Path;
+		m_RuntimeScene->ID = asset->ID;
+		m_RuntimeScene->Type = asset->Type;
+		m_RuntimeScene->Flags = asset->Flags;
 
 		Scene::SetActiveScene( m_RuntimeScene.Get() );
 
