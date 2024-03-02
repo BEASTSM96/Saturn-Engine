@@ -169,8 +169,8 @@ namespace Saturn {
 			RawSerialisation::WriteVector( rObject.SampledImages, rStream );
 			RawSerialisation::WriteVector( rObject.StorageImages, rStream );
 
-			RawSerialisation::WriteMap( rObject.UniformBuffers, rStream );
-			RawSerialisation::WriteMap( rObject.StorageBuffers, rStream );
+			RawSerialisation::WriteUnorderedMap( rObject.UniformBuffers, rStream );
+			RawSerialisation::WriteUnorderedMap( rObject.StorageBuffers, rStream );
 		}
 
 		static void Deserialise( ShaderDescriptorSet& rObject, std::ifstream& rStream )
@@ -180,8 +180,8 @@ namespace Saturn {
 			RawSerialisation::ReadVector( rObject.SampledImages, rStream );
 			RawSerialisation::ReadVector( rObject.StorageImages, rStream );
 
-			RawSerialisation::ReadMap( rObject.UniformBuffers, rStream );
-			RawSerialisation::ReadMap( rObject.StorageBuffers, rStream );
+			RawSerialisation::ReadUnorderedMap( rObject.UniformBuffers, rStream );
+			RawSerialisation::ReadUnorderedMap( rObject.StorageBuffers, rStream );
 		}
 	};
 

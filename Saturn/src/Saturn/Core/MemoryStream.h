@@ -28,87 +28,80 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-#include "Saturn/GameFramework/ActionBinding.h"
-
-#include "Saturn/Core/UUID.h"
-
-#include <string>
-#include <filesystem>
+#include <vector>
+#include <fstream>
 
 namespace Saturn {
-	
-	struct ProjectConfig
-	{
-		std::string Name;
-		UUID StartupSceneID;
 
-		std::string AssetPath; // Relative path
-		std::string Path; // Absolute path
-	};
-
-	enum class ConfigKind
-	{
-		Debug,
-		Release,
-		Dist
-	};
-
-	class Project : public RefTarget
+	class PakFileMemoryBuffer : public std::streambuf
 	{
 	public:
-		Project();
-		~Project();
+		PakFileMemoryBuffer( char* begin, char* end )
+		{
+			Set( begin, end );
+		}
 
-		ProjectConfig& GetConfig() { return m_Config; }
-		static ProjectConfig& GetActiveConfig() { return s_ActiveProject->m_Config; }
+		PakFileMemoryBuffer( std::vector<char>& rStream )
+		{
+			Set( rStream.data(), rStream.data() + rStream.size() );
+		}
 
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
-
-		// Only to be used by the Game.
-		static std::string FindProjectDir( const std::string& rName );
-
-		void CheckMissingAssetRefs();
-
-		std::filesystem::path GetAssetPath();
-		std::filesystem::path GetFullAssetPath();
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-		std::filesystem::path GetTempDir();
-
-		std::filesystem::path GetBinDir();
-		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }
-
-		std::filesystem::path GetProjectPath();
-		static std::filesystem::path GetActiveProjectPath() { return s_ActiveProject->GetProjectPath(); }
-
-		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
-
-		std::filesystem::path GetFullCachePath();
-
-		std::vector<ActionBinding>& GetActionBindings() { return m_ActionBindings; }
-		const std::vector<ActionBinding>& GetActionBindings() const { return m_ActionBindings; }
-		
-		void AddActionBinding( const ActionBinding& rBinding ) { m_ActionBindings.push_back( rBinding ); }
-		void RemoveActionBinding( const ActionBinding& rBinding );
-
-		bool Build( ConfigKind kind );
-		bool Rebuild( ConfigKind kind );
-		void Distribute( ConfigKind kind );
-
-	public:
-		bool HasPremakeFile();
-		void CreatePremakeFile();
-		void CreateBuildFile();
-
-		void PrepForDist();
+		virtual ~PakFileMemoryBuffer() noexcept {}
 
 	private:
-		ProjectConfig m_Config;
-		std::vector<ActionBinding> m_ActionBindings;
+		void Set( char* pFirst, char* pEnd )
+		{
+			setg( pFirst, pFirst, pEnd );
+		}
 
-		inline static Ref<Project> s_ActiveProject;
+	protected:
+		pos_type __CLR_OR_THIS_CALL seekpos( pos_type position, std::ios_base::openmode = std::ios_base::in | std::ios_base::out ) override
+		{
+			char* pNewPos = eback() + position;
+
+			// Check if the new position is within the buffer
+			if( pNewPos < egptr() && pNewPos >= eback() )
+			{
+				setg( eback(), pNewPos, egptr() );
+				return position;
+			}
+			else
+			{
+				return pos_type( off_type( -1 ) );
+			}
+		}
+
+		pos_type __CLR_OR_THIS_CALL seekoff( off_type offset, std::ios_base::seekdir seekdir, std::ios_base::openmode = std::ios_base::in | std::ios_base::out ) override
+		{
+			char* pNewPos = nullptr;
+
+			switch( seekdir )
+			{
+				case std::ios::beg:
+					pNewPos = eback() + offset;
+					break;
+
+				case std::ios::cur:
+					pNewPos = gptr() + offset;
+					break;
+
+				case std::ios::end:
+					pNewPos = egptr() + offset;
+					break;
+			}
+
+			// Check if the new position is within the buffer
+			if( pNewPos < egptr() && pNewPos >= eback() )
+			{
+				setg( eback(), pNewPos, egptr() );
+
+				return static_cast< pos_type >( gptr() - eback() );
+			}
+			else
+			{
+				return pos_type( off_type( -1 ) );
+			}
+		}
 	};
+
 }

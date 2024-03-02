@@ -32,7 +32,14 @@
 namespace Saturn {
 
 	AssetRegistry::AssetRegistry()
-		: AssetRegistryBase()
+	{
+	}
+
+	AssetRegistry::AssetRegistry( const AssetRegistry& rOther )
+		: m_Assets( rOther.m_Assets ), 
+		m_LoadedAssets( rOther.m_LoadedAssets ), 
+		m_IsEditorRegistry( rOther.m_IsEditorRegistry ), 
+		m_Path( rOther.m_Path )
 	{
 	}
 
@@ -146,6 +153,16 @@ namespace Saturn {
 	bool AssetRegistry::DoesIDExists( AssetID id )
 	{
 		return m_Assets.contains( id );
+	}
+
+	bool AssetRegistry::IsAssetLoaded( AssetID id )
+	{
+		return m_LoadedAssets.contains( id );
+	}
+
+	size_t AssetRegistry::GetSize()
+	{
+		return m_Assets.size();
 	}
 
 	void AssetRegistry::AddAsset( AssetID id )

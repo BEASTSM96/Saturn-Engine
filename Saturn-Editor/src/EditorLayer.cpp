@@ -45,6 +45,7 @@
 #include <Saturn/Serialisation/EngineSettingsSerialiser.h>
 #include <Saturn/Serialisation/AssetRegistrySerialiser.h>
 #include <Saturn/Serialisation/AssetSerialisers.h>
+#include <Saturn/Serialisation/AssetBundle.h>
 
 #include <Saturn/Physics/PhysicsFoundation.h>
 
@@ -70,10 +71,12 @@
 #include <Saturn/GameFramework/Core/GameModule.h>
 
 #include <Saturn/Core/Renderer/RenderThread.h>
+#include <Saturn/Core/VirtualFS.h>
 
 #include <Saturn/Audio/Sound2D.h>
 
 #include <Saturn/Premake/Premake.h>
+#include <Saturn/Core/Process.h>
 
 #include <Ruby/RubyWindow.h>
 #include <Ruby/RubyAuxiliary.h>
@@ -120,6 +123,7 @@ namespace Saturn {
 				if( ImGui::MenuItem( "Open Scene", "Ctrl+O" ) )          OpenFile();
 				
 				if( ImGui::MenuItem( "Save Project" ) )                  SaveProject();
+				if( ImGui::MenuItem( "Close Project" ) )                 CloseEditorAndOpenPB();
 				if( ImGui::MenuItem( "Exit", "Alt+F4" ) )                Application::Get().Close();
 
 				ImGui::EndMenu();
@@ -155,11 +159,35 @@ namespace Saturn {
 					// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
 					Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
 
-					ShaderBundle::Get().BundleShaders();
+					ShaderBundle::BundleShaders();
 
 					ShaderLibrary::Get().Remove( TexturePass ); 
 					TexturePass = nullptr;
+
+					m_BlockingActionRunning = true;
+					m_BlockingOperation = AssetBundle::GetBlockingOperation();
+					m_BlockingOperation->OnComplete( [this]() { m_BlockingActionRunning = false; m_BlockingOperation = nullptr; } );
+
+					m_BlockingOperation->SetJob( [this]() 
+						{
+							AssetBundle::BundleAssets();
+						} );
+
+					m_BlockingOperation->Execute();
 				}
+
+#if defined( SAT_DEBUG )
+				if( ImGui::MenuItem( "DEBUG: Read Asset Bundle" ) )
+				{
+					Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
+					AssetBundle::ReadBundle();
+				}
+
+				if( ImGui::MenuItem( "DEBUG: Enable VFS Flag" ) )
+				{
+					Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
+				}
+#endif
 
 				if( ImGui::MenuItem( "Distribute project" ) )
 				{
@@ -172,11 +200,12 @@ namespace Saturn {
 
 			if( ImGui::BeginMenu( "Settings" ) )
 			{
-				if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings = !m_ShowUserSettings;
-				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug = !OpenAssetRegistryDebug;
-				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug = !OpenLoadedAssetDebug;
-				if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings = !m_OpenEditorSettings;
-				if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow = !m_ShowImGuiDemoWindow;
+				if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings ^= 1;
+				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug ^= 1;
+				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug ^= 1;
+				if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings ^= 1;
+				if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow ^= 1;
+				if( ImGui::MenuItem( "Virtual File system debug", "" ) ) m_ShowVFSDebug ^= 1;
 
 				ImGui::EndMenu();
 			}
@@ -222,6 +251,8 @@ namespace Saturn {
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 
 		SAT_CORE_ASSERT( Project::GetActiveProject(), "No project was given." );
+		
+		VirtualFS::Get().MountBase( Project::GetActiveConfig().Name, rUserSettings.StartupProject );
 
 		AssetManager* pAssetManager = new AssetManager();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
@@ -229,13 +260,13 @@ namespace Saturn {
 
 		m_GameModule = new GameModule();
 
-		OpenFile( Project::GetActiveProject()->GetConfig().StartupScenePath );
+		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
 
 		HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 	}
 
 	EditorLayer::~EditorLayer()
-	{		
+	{
 		delete m_TitleBar;
 		
 		EditorIcons::Clear();
@@ -256,6 +287,8 @@ namespace Saturn {
 		}
 
 		m_EditorScene = nullptr;
+
+		VirtualFS::Get().UnmountBase( Project::GetActiveConfig().Name );
 
 		// I would free the game DLL, however, there is some threading issues with Tracy.
 		//delete m_GameModule;
@@ -365,27 +398,11 @@ namespace Saturn {
 			}
 		}
 
-		if( m_ShowImGuiDemoWindow )
-			ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
-
 		m_TitleBar->Draw();
 		AssetViewer::Draw();
 
 		m_PanelManager->DrawAllPanels();
 		Application::Get().PrimarySceneRenderer().ImGuiRender();
-
-		if( m_ShowUserSettings )
-			UI_Titlebar_UserSettings();
-
-		if( OpenAssetRegistryDebug ) 
-		{
-			DrawAssetRegistryDebug();
-		}
-
-		if( OpenLoadedAssetDebug ) 
-		{
-			DrawLoadedAssetsDebug();
-		}
 
 		if( OpenAttributions )
 		{
@@ -397,11 +414,13 @@ namespace Saturn {
 			}
 		}
 
-		if( m_OpenEditorSettings )
-		{
-			DrawEditorSettings();
-		}
-
+		if( m_ShowImGuiDemoWindow )  ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
+		if( m_ShowUserSettings )     UI_Titlebar_UserSettings();
+		if( OpenAssetRegistryDebug ) DrawAssetRegistryDebug();
+		if( OpenLoadedAssetDebug ) 	 DrawLoadedAssetsDebug();
+		if( m_OpenEditorSettings )   DrawEditorSettings();
+		if( m_ShowVFSDebug )         DrawVFSDebug();
+		
 		ImGui::Begin( "Renderer" );
 
 		ImGui::Text( "Frame Time: %.2f ms", Application::Get().Time().Milliseconds() );
@@ -416,22 +435,39 @@ namespace Saturn {
 		
 		ImGui::End();
 	
-		/*
-		ImGui::Begin( "Test" );
+		if( m_BlockingActionRunning )
+		{
+			ImGui::OpenPopup( "Blocking Action" );
+		}
 
-		ImGui::BeginHorizontal( "##ItemsH" );
+		if( ImGui::BeginPopupModal( "Blocking Action", &m_BlockingActionRunning ) )
+		{
+			ImGui::BeginHorizontal( "##ItemsH" );
 
-		ImSpinner::SpinnerAng( "##OPERATION_SPINNER", 25.0f, 2.0f, ImSpinner::white, ImSpinner::half_white, 8.6F );
+			ImSpinner::SpinnerAng( "##OPERATION_SPINNER", 25.0f, 2.0f, ImSpinner::white, ImSpinner::half_white, 8.6F );
 
-		ImGui::Spring();
+			ImGui::Spring();
 
-		ImGui::Text( "Please wait for this operation to complete..." );
+			if( m_BlockingOperation->GetTitle().empty() )
+				ImGui::Text( "Please wait for this operation to complete..." );
+			else
+				ImGui::Text( m_BlockingOperation->GetTitle().c_str() );
 
-		ImGui::EndHorizontal();
+			ImGui::EndHorizontal();
+			
+			if( float percent = m_BlockingOperation->GetProgress(); percent >= 1.0f )
+			{
+				ImGui::ProgressBar( percent / 100 );
+			}
 
-		ImGui::End();
-		*/
+			if( std::string status = m_BlockingOperation->GetStatus(); !status.empty() )
+			{
+				ImGui::Text( status.c_str() );
+			}
 
+			ImGui::EndPopup();
+		}
+		
 		ImGui::Begin( "Materials" );
 
 		DrawMaterials();
@@ -490,18 +526,22 @@ namespace Saturn {
 
 	void EditorLayer::SaveFileAs()
 	{
+		// TODO: Support Saving scene as!
+
 		auto res = Application::Get().SaveFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
 
 		SceneSerialiser serialiser( m_EditorScene );
-		serialiser.Serialise( res );
+		serialiser.Serialise();
 	}
 
 	void EditorLayer::SaveFile()
 	{
-		if( std::filesystem::exists( m_EditorScene->Filepath() ) )
+		auto fullPath = Project::GetActiveProject()->FilepathAbs( m_EditorScene->Path );
+
+		if( std::filesystem::exists( fullPath ) )
 		{
 			SceneSerialiser ss( m_EditorScene );
-			ss.Serialise( m_EditorScene->Filepath() );
+			ss.Serialise();
 		}
 		else
 		{
@@ -509,7 +549,7 @@ namespace Saturn {
 		}
 	}
 
-	void EditorLayer::OpenFile( const std::filesystem::path& rFilepath )
+	void EditorLayer::OpenFile( AssetID id )
 	{
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
@@ -519,15 +559,22 @@ namespace Saturn {
 		pHierarchyPanel->ClearSelection();
 		pHierarchyPanel->SetContext( nullptr );
 
-		if( !rFilepath.empty() ) 
+		Ref<Asset> asset = id == 0 ? nullptr : AssetManager::Get().FindAsset( id );
+		
+		if( id != 0 )
 		{
-			auto fullPath = Project::GetActiveProject()->FilepathAbs( rFilepath );
 			SceneSerialiser serialiser( newScene );
-			serialiser.Deserialise( fullPath.string() );
+			serialiser.Deserialise( asset->Path );
 		}
 
 		m_EditorScene = nullptr;
 		m_EditorScene = newScene;
+
+		m_EditorScene->Name = asset->Name;
+		m_EditorScene->Path = asset->Path;
+		m_EditorScene->ID = asset->ID;
+		m_EditorScene->Type = asset->Type;
+		m_EditorScene->Flags = asset->Flags;
 
 		GActiveScene = m_EditorScene.Get();
 
@@ -540,7 +587,7 @@ namespace Saturn {
 	void EditorLayer::OpenFile()
 	{
 		auto res = Application::Get().OpenFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
-		OpenFile( res );
+		//OpenFile( res );
 	}
 
 	void EditorLayer::SaveProject()
@@ -673,7 +720,9 @@ namespace Saturn {
 		Ref<Project> ActiveProject = Project::GetActiveProject();
 
 		auto& startupProject = userSettings.StartupProject;
-		auto& startupScene = ActiveProject->GetConfig().StartupScenePath;
+		auto& startupScene = ActiveProject->GetConfig().StartupSceneID;
+
+		Ref<Asset> asset = AssetManager::Get().FindAsset( startupScene );
 
 		ImGui::SetNextWindowPos( ImVec2( rIO.DisplaySize.x * 0.5f - 150.0f, rIO.DisplaySize.y * 0.5f - 150.0f ), ImGuiCond_Once );
 
@@ -685,7 +734,7 @@ namespace Saturn {
 			ImGui::OpenPopup( "AssetFinderPopup" );
 		
 		ImGui::SameLine();
-		startupScene.empty() ? ImGui::Text( "None" ) : ImGui::Text( startupScene.c_str() );
+		startupScene == 0 ? ImGui::Text( "None" ) : ImGui::Text( asset->Name.c_str() );
 		ImGui::SameLine();
 		
 		if( ImGui::Button( "...##scene" ) )
@@ -706,7 +755,7 @@ namespace Saturn {
 					{
 						if( ImGui::Selectable( rAsset->GetName().c_str() ) )
 						{
-							ActiveProject->GetConfig().StartupScenePath = rAsset->GetPath().string();
+							ActiveProject->GetConfig().StartupSceneID = rAsset->ID;
 							
 							s_AssetFinderID = assetID;
 
@@ -1109,31 +1158,6 @@ namespace Saturn {
 
 			ImGui::EndHorizontal();
 
-			// Ported from user settings
-
-			auto& userSettings = EngineSettings::Get();
-			auto& startupProject = userSettings.StartupProject;
-			auto& startupScene = Project::GetActiveProject()->GetConfig().StartupScenePath;
-
-			ImGuiIO& rIO = ImGui::GetIO();
-
-			ImGui::BeginHorizontal( "#USR_Settings" );
-
-			ImGui::Text( "Startup project:" );
-			startupProject.empty() ? ImGui::Text( "None" ) : ImGui::Text( startupProject.c_str() );
-
-			if( ImGui::Button( "...##openprj" ) )
-			{
-				startupProject = Application::Get().OpenFile( "Saturn project file (*.sproject)\0*.sproject\0" );
-
-				EngineSettingsSerialiser uss;
-				uss.Serialise();
-			}
-
-			ImGui::EndHorizontal();
-
-			ImGui::EndVertical();
-
 			ImGui::End();
 		}
 	}
@@ -1264,6 +1288,25 @@ namespace Saturn {
 		}
 	}
 
+	void EditorLayer::DrawVFSDebug()
+	{
+		VirtualFS& rVirtualFS = VirtualFS::Get();
+
+		ImGui::Begin( "Virtual File system" );
+
+		if( Auxiliary::TreeNode( "VFS Info", false ) )
+		{
+			ImGui::Text( "Mount Bases: %i", rVirtualFS.GetMountBases() );
+			ImGui::Text( "Mounts: %i", rVirtualFS.GetMounts() );
+		
+			Auxiliary::EndTreeNode();
+		}
+
+		rVirtualFS.ImGuiRender();
+
+		ImGui::End();
+	}
+
 	void EditorLayer::DrawViewport()
 	{
 		// Viewport Image & Drag and drop handling
@@ -1292,7 +1335,11 @@ namespace Saturn {
 			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE" ) )
 			{
 				const wchar_t* path = ( const wchar_t* ) payload->Data;
-				OpenFile( path );
+				
+				std::filesystem::path p = path;
+				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
+
+				OpenFile( asset->ID );
 			}
 
 			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB" ) )
@@ -1317,7 +1364,7 @@ namespace Saturn {
 				// We have now that path to the *.stmesh but we need to path to the fbx/gltf.
 
 				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
-				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
+				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<StaticMesh>( asset->GetAssetID() );
 
 				Ref<Entity> entity = Ref<Entity>::Create();
 				entity->SetName( asset->Name );
@@ -1504,4 +1551,37 @@ namespace Saturn {
 
 		ImGui::End();
 	}
+
+	void EditorLayer::CloseEditorAndOpenPB()
+	{
+		SaveProject();
+		SaveFile();
+
+#if defined(SAT_WINDOWS)
+		STARTUPINFOA StartupInfo = {};
+		StartupInfo.cb = sizeof( StartupInfo );
+		
+		PROCESS_INFORMATION ProcessInfo;
+
+		if( Auxiliary::HasEnvironmentVariable( "SATURN_DIR" ) )
+		{
+			std::string SaturnDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
+			std::string WorkingDir = SaturnDir + "/ProjectBrowser";
+
+#if defined( SAT_DEBUG )
+			SaturnDir += "/bin/Debug-windows-x86_64/ProjectBrowser/ProjectBrowser.exe";
+#else
+			SaturnDir += "/bin/Release-windows-x86_64/ProjectBrowser/ProjectBrowser.exe";
+#endif
+
+			bool res = CreateProcessA( nullptr, SaturnDir.data(), nullptr, nullptr, FALSE, DETACHED_PROCESS, nullptr, WorkingDir.data(), &StartupInfo, &ProcessInfo );
+
+			CloseHandle( ProcessInfo.hThread );
+			CloseHandle( ProcessInfo.hProcess );
+		}
+#endif
+
+		Application::Get().Close();
+	}
+
 }

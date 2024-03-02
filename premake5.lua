@@ -30,6 +30,7 @@ IncludeDir["Filewatch"] = "Saturn/vendor/Filewatch/src"
 IncludeDir["MiniAudio"] = "Saturn/vendor/miniaudio/src"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
 IncludeDir["SharedStorage"] = "SharedStorage/src"
+IncludeDir["zlib"] = "Saturn/vendor/zlib"
 
 group "Dependencies"
 	include "Saturn/vendor/Ruby"
@@ -37,6 +38,7 @@ group "Dependencies"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
 	include "Saturn/vendor/tracy"
+	include "Saturn/vendor/zlib"
 
 group "Engine"
 project "Saturn"
@@ -102,6 +104,7 @@ project "Saturn"
 		"%{IncludeDir.Tracy}",
 		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.Filewatch}",
+		"%{IncludeDir.zlib}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.PhysX}/pxshared",
 		"%{IncludeDir.PhysX}/physx",
@@ -116,6 +119,7 @@ project "Saturn"
 		"SPIRV-Cross",
 		"yaml-cpp",
 		"Tracy",
+		"zlib",
 
 		"SharedStorage"
 	}

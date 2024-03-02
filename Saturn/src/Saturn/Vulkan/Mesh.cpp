@@ -105,8 +105,8 @@ namespace Saturn {
 
 		if( !std::filesystem::exists( m_FilePath ) )
 			SAT_CORE_ERROR( "Failed to load mesh file (file does not exists): {0}", m_FilePath );
-
-		SAT_CORE_INFO( "Loading mesh: {0}", m_FilePath.c_str() );
+		else
+			SAT_CORE_INFO( "Loading mesh: {0}", m_FilePath.c_str() );
 
 		m_Importer = std::make_unique<Assimp::Importer>();
 
@@ -544,6 +544,165 @@ namespace Saturn {
 
 		// Serialise the asset registry to save any new materials.
 		AssetManager::Get().Save();
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// SERIALISATION/DESERIALISATION
+
+	void StaticMesh::SerialiseData( std::ofstream& rStream )
+	{
+		SerialiseMesh( rStream );
+	}
+
+	void StaticMesh::SerialiseData( std::ostringstream& rStream )
+	{
+		RawSerialisation::WriteObject( m_VertexCount, rStream );
+		RawSerialisation::WriteObject( m_IndicesCount, rStream );
+
+		RawSerialisation::WriteVector( m_Indices, rStream );
+		RawSerialisation::WriteVector( m_Vertices, rStream );
+		RawSerialisation::WriteVector( m_Submeshes, rStream );
+
+		RawSerialisation::WriteMatrix4x4( m_Transform, rStream );
+		RawSerialisation::WriteMatrix4x4( m_InverseTransform, rStream );
+
+		/*
+		// Write materials
+		size_t materials = m_MaterialsAssets.size();
+		rStream.write( reinterpret_cast< char* >( &materials ), sizeof( size_t ) );
+
+		for( const auto& rMaterialAsset : m_MaterialsAssets )
+		{
+			RawSerialisation::WriteObject( rMaterialAsset->ID, rStream );
+		}
+		*/
+	}
+
+	void StaticMesh::DeserialiseData( std::ifstream& rStream )
+	{
+		DeserialiseMesh( rStream );
+	}
+
+	void StaticMesh::DeserialiseData( std::istream& rStream )
+	{
+		RawSerialisation::ReadObject( m_VertexCount, rStream );
+		RawSerialisation::ReadObject( m_IndicesCount, rStream );
+
+		RawSerialisation::ReadVector( m_Indices, rStream );
+		RawSerialisation::ReadVector( m_Vertices, rStream );
+		RawSerialisation::ReadVector( m_Submeshes, rStream );
+
+		RawSerialisation::ReadMatrix4x4( m_Transform, rStream );
+		RawSerialisation::ReadMatrix4x4( m_InverseTransform, rStream );
+
+		m_VertexBuffer = Ref<VertexBuffer>::Create( m_Vertices.data(), ( uint32_t ) ( m_Vertices.size() * sizeof( StaticVertex ) ) );
+		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
+
+		m_MeshShader = ShaderLibrary::Get().Find( "shader_new" );
+		m_BaseMaterial = Ref< Material >::Create( m_MeshShader, "Base Material" );
+		m_MaterialRegistry = Ref<MaterialRegistry>::Create();
+
+		// Read Materials
+		size_t materials = 0;
+		RawSerialisation::ReadObject( materials, rStream );
+
+		m_MaterialsAssets.resize( materials );
+
+		for( size_t i = 0; i < materials; i++ )
+		{
+			UUID materialID = 0;
+			RawSerialisation::ReadObject( materialID, rStream );
+
+			// Try load material
+			Ref<MaterialAsset> materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( materialID );
+
+			// Failed to load material, create new and default it.
+			if( materialAsset == nullptr )
+			{
+				Ref<MaterialAsset> defaultMat = Ref<MaterialAsset>::Create( nullptr );
+				m_MaterialsAssets[ i ] = defaultMat;
+			}
+			else
+			{
+				m_MaterialsAssets[ i ] = materialAsset;
+			}
+
+			m_MaterialRegistry->AddAsset( m_MaterialsAssets[ i ] );
+		}
+	}
+
+	template<typename OStream>
+	void StaticMesh::SerialiseMesh( OStream& rStream )
+	{
+		RawSerialisation::WriteObject( m_VertexCount, rStream );
+		RawSerialisation::WriteObject( m_IndicesCount, rStream );
+
+		RawSerialisation::WriteVector( m_Indices, rStream );
+		RawSerialisation::WriteVector( m_Vertices, rStream );
+		RawSerialisation::WriteVector( m_Submeshes, rStream );
+
+		RawSerialisation::WriteMatrix4x4( m_Transform, rStream );
+		RawSerialisation::WriteMatrix4x4( m_InverseTransform, rStream );
+
+		// Write materials
+		size_t materials = m_MaterialsAssets.size();
+		rStream.write( reinterpret_cast< char* >( &materials ), sizeof( size_t ) );
+
+		for( const auto& rMaterialAsset : m_MaterialsAssets )
+		{
+			RawSerialisation::WriteObject( rMaterialAsset->ID, rStream );
+		}
+	}
+
+	template<typename IStream>
+	void StaticMesh::DeserialiseMesh( IStream& rStream )
+	{
+		RawSerialisation::ReadObject( m_VertexCount, rStream );
+		RawSerialisation::ReadObject( m_IndicesCount, rStream );
+
+		RawSerialisation::ReadVector( m_Indices, rStream );
+		RawSerialisation::ReadVector( m_Vertices, rStream );
+		RawSerialisation::ReadVector( m_Submeshes, rStream );
+
+		RawSerialisation::ReadMatrix4x4( m_Transform, rStream );
+		RawSerialisation::ReadMatrix4x4( m_InverseTransform, rStream );
+
+		/*
+		m_VertexBuffer = Ref<VertexBuffer>::Create( m_Vertices.data(), ( uint32_t ) ( m_Vertices.size() * sizeof( StaticVertex ) ) );
+		m_IndexBuffer = Ref<IndexBuffer>::Create( m_Indices.data(), m_Indices.size() * sizeof( Index ) );
+
+		m_MeshShader = ShaderLibrary::Get().Find( "shader_new" );
+		m_BaseMaterial = Ref< Material >::Create( m_MeshShader, "Base Material" );
+		m_MaterialRegistry = Ref<MaterialRegistry>::Create();
+
+		// Read Materials
+		size_t materials = 0;
+		rStream.read( reinterpret_cast< char* >( materials ), sizeof( size_t ) );
+
+		m_MaterialsAssets.resize( materials );
+
+		for( size_t i = 0; i < materials; i++ )
+		{
+			UUID materialID = 0;
+			RawSerialisation::ReadObject( materialID, rStream );
+
+			// Try load material
+			Ref<MaterialAsset> materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( materialID );
+
+			// Failed to load material, create new and default it.
+			if( materialAsset == nullptr )
+			{
+				Ref<MaterialAsset> defaultMat = Ref<MaterialAsset>::Create( nullptr );
+				m_MaterialsAssets[ i ] = defaultMat;
+			}
+			else
+			{
+				m_MaterialsAssets[ i ] = materialAsset;
+			}
+
+			m_MaterialRegistry->AddAsset( m_MaterialsAssets[ i ] );
+		}
+		*/
 	}
 
 	//////////////////////////////////////////////////////////////////////////

@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "Entity.h"
 
+#include "Saturn/Serialisation/RawEntitySerialisation.h"
+
 namespace Saturn {
 
 	Entity::Entity()
@@ -63,6 +65,19 @@ namespace Saturn {
 		this->m_EntityHandle = other.m_EntityHandle;
 	}
 
+	Entity::Entity( Scene* scene )
+	{
+		m_Scene = GActiveScene;
+		m_EntityHandle = m_Scene->CreateHandle();
+
+		AddComponent<IdComponent>();
+		AddComponent<RelationshipComponent>();
+		AddComponent<TransformComponent>();
+		AddComponent<TagComponent>().Tag = "Unnamed Entity";
+
+		m_Scene->OnEntityCreated( this );
+	}
+
 	Entity::~Entity()
 	{
 		m_Scene->RemoveHandle( m_EntityHandle );
@@ -76,4 +91,15 @@ namespace Saturn {
 		GetComponent<TagComponent>().Tag = rName;
 	}
 
+	void Entity::Serialise( const Ref<Entity>& rObject, std::ofstream& rStream )
+	{
+		RawEntitySerialisation serialiser;
+		serialiser.SerialiseEntity( const_cast< Ref<Entity>& >( rObject ), rStream );
+	}
+
+	void Entity::Deserialise( Ref<Entity>& rObject, std::ifstream& rStream )
+	{
+		RawEntitySerialisation serialiser;
+		serialiser.DeserialiseEntity( rObject, rStream );
+	}
 }

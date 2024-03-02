@@ -28,87 +28,28 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-#include "Saturn/GameFramework/ActionBinding.h"
+#include "AssetImporterBase.h"
 
-#include "Saturn/Core/UUID.h"
-
-#include <string>
-#include <filesystem>
+#include "Saturn/Serialisation/RawAssetSerialisers.h"
 
 namespace Saturn {
-	
-	struct ProjectConfig
-	{
-		std::string Name;
-		UUID StartupSceneID;
 
-		std::string AssetPath; // Relative path
-		std::string Path; // Absolute path
-	};
-
-	enum class ConfigKind
-	{
-		Debug,
-		Release,
-		Dist
-	};
-
-	class Project : public RefTarget
+	class VFSAssetImporter : public AssetImporterBase
 	{
 	public:
-		Project();
-		~Project();
-
-		ProjectConfig& GetConfig() { return m_Config; }
-		static ProjectConfig& GetActiveConfig() { return s_ActiveProject->m_Config; }
-
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
-
-		// Only to be used by the Game.
-		static std::string FindProjectDir( const std::string& rName );
-
-		void CheckMissingAssetRefs();
-
-		std::filesystem::path GetAssetPath();
-		std::filesystem::path GetFullAssetPath();
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-		std::filesystem::path GetTempDir();
-
-		std::filesystem::path GetBinDir();
-		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }
-
-		std::filesystem::path GetProjectPath();
-		static std::filesystem::path GetActiveProjectPath() { return s_ActiveProject->GetProjectPath(); }
-
-		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
-
-		std::filesystem::path GetFullCachePath();
-
-		std::vector<ActionBinding>& GetActionBindings() { return m_ActionBindings; }
-		const std::vector<ActionBinding>& GetActionBindings() const { return m_ActionBindings; }
-		
-		void AddActionBinding( const ActionBinding& rBinding ) { m_ActionBindings.push_back( rBinding ); }
-		void RemoveActionBinding( const ActionBinding& rBinding );
-
-		bool Build( ConfigKind kind );
-		bool Rebuild( ConfigKind kind );
-		void Distribute( ConfigKind kind );
-
+		static AssetImporterType GetStaticType() { return AssetImporterType::BINARY; }
 	public:
-		bool HasPremakeFile();
-		void CreatePremakeFile();
-		void CreateBuildFile();
+		VFSAssetImporter();
+		~VFSAssetImporter();
 
-		void PrepForDist();
+		void Import( const Ref<Asset>& rAsset ) override;
+		bool TryLoadData( Ref<Asset>& rAsset ) override;
 
 	private:
-		ProjectConfig m_Config;
-		std::vector<ActionBinding> m_ActionBindings;
+		void Init();
 
-		inline static Ref<Project> s_ActiveProject;
+	private:
+		std::unordered_map<AssetType, std::unique_ptr<RawAssetSerialiser>> m_AssetSerialisers;
 	};
+
 }

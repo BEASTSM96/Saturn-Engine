@@ -145,7 +145,7 @@ namespace Saturn {
 			i++;
 		}
 
-		if ( m_DepthAttachment.layout == VK_IMAGE_LAYOUT_UNDEFINED || m_DepthAttachment.layout == VK_IMAGE_LAYOUT_MAX_ENUM || m_DepthAttachment.layout ==VK_IMAGE_LAYOUT_UNDEFINED )
+		if ( m_DepthAttachment.layout == VK_IMAGE_LAYOUT_UNDEFINED || m_DepthAttachment.layout == VK_IMAGE_LAYOUT_MAX_ENUM )
 		{
 			DefaultSubpass.pDepthStencilAttachment = nullptr;
 		}

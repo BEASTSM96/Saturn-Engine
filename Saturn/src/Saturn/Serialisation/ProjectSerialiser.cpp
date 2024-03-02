@@ -61,7 +61,7 @@ namespace Saturn {
 		{
 			out << YAML::Key << "Name" << YAML::Value << rProject->GetConfig().Name;
 			out << YAML::Key << "AssetPath" << YAML::Value << rProject->GetAssetPath();
-			out << YAML::Key << "StartupScene" << YAML::Value << rProject->GetConfig().StartupScenePath;
+			out << YAML::Key << "StartupScene" << YAML::Value << rProject->GetConfig().StartupSceneID;
 
 			out << YAML::Key << "ActionBindings";
 			out << YAML::BeginSeq;
@@ -112,7 +112,7 @@ namespace Saturn {
 		{
 			rConfig.Name      = project[ "Name" ].as<std::string>();
 			rConfig.AssetPath = project[ "AssetPath" ].as<std::string>();
-			rConfig.StartupScenePath = project[ "StartupScene" ].as<std::string>();
+			rConfig.StartupSceneID = project[ "StartupScene" ].as<uint64_t>( 0 );
 
 			auto actionBindings = project[ "ActionBindings" ];
 

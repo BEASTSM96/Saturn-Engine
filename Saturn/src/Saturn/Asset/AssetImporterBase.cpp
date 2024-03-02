@@ -26,76 +26,22 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "AssetImporterBase.h"
 
-#include "Asset.h"
+#include "Saturn/Core/App.h"
+
 #include "AssetImporter.h"
+#include "VFSAssetImporter.h"
 
 namespace Saturn {
 
-	enum class AssetRegistryType
+	// This would be very very nice if we where able to do constexpr here however application is not constexpr.
+	AssetImporterBase& AssetImporterBase::Get()
 	{
-		Game,
-		Editor,
-		Unknown
-	};
-
-	using AssetMap = std::unordered_map< AssetID, Ref<Asset> >;
-
-	class AssetRegistryBase : public RefTarget
-	{
-	public:
-		AssetRegistryBase();
-		~AssetRegistryBase();
-
-		virtual AssetID CreateAsset( AssetType type ) = 0;
-		virtual Ref<Asset> FindAsset( AssetID id ) = 0;
-
-		const AssetMap& GetAssetMap() const { return m_Assets; }
-		const AssetMap& GetLoadedAssetsMap() const { return m_LoadedAssets; }
-
-		std::filesystem::path& GetPath() { return m_Path; }
-		const std::filesystem::path& GetPath() const { return m_Path; }
-
-		template<typename Ty>
-		Ref<Ty> GetAssetAs( AssetID id )
-		{
-			auto AssetItr = m_Assets.find( id );
-
-			if( AssetItr == m_Assets.end() )
-				return nullptr;
-
-			Ref<Asset> asset = AssetItr->second;
-
-			if( !IsAssetLoaded( id ) )
-			{
-				bool loaded = AssetImporter::Get().TryLoadData( asset );
-				if( !loaded )
-					return nullptr;
-
-				m_LoadedAssets[ id ] = asset;
-			}
-			else
-				asset = m_LoadedAssets.at( id );
-
-			return asset.As<Ty>();
-		}
-
-	protected:
-		virtual void AddAsset( AssetID id ) = 0;
-
-		bool IsAssetLoaded( AssetID id );
-	protected:
-		AssetMap m_Assets;
-		AssetMap m_LoadedAssets;
-
-		bool m_IsEditorRegistry = false;
-
-		std::filesystem::path m_Path;
-
-	private:
-		friend class AssetRegistrySerialiser;
-		friend class AssetManager;
-	};
-
+		if ( Application::Get().HasFlag( ApplicationFlag_UseVFS ) )
+			return *SingletonStorage::GetOrCreateSingleton<VFSAssetImporter>();
+		else
+			return *SingletonStorage::GetOrCreateSingleton<AssetImporter>();
+	}
 }

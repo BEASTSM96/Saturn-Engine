@@ -27,21 +27,34 @@
 */
 
 #include "sppch.h"
-#include "AssetRegistryBase.h"
+#include "VFSAssetImporter.h"
 
 namespace Saturn {
 
-	AssetRegistryBase::AssetRegistryBase()
+	VFSAssetImporter::VFSAssetImporter()
+	{
+		Init();
+	}
+
+	VFSAssetImporter::~VFSAssetImporter()
 	{
 	}
 
-	AssetRegistryBase::~AssetRegistryBase()
+	void VFSAssetImporter::Init()
+	{
+		m_AssetSerialisers[ AssetType::Material ] = std::make_unique<RawMaterialAssetSerialiser>();
+		m_AssetSerialisers[ AssetType::Prefab ] = std::make_unique<RawPrefabSerialiser>();
+		m_AssetSerialisers[ AssetType::StaticMesh ] = std::make_unique<RawStaticMeshAssetSerialiser>();
+//		m_AssetSerialisers[ AssetType::Audio ] = std::make_unique<RawSound2DAssetSerialiser>();
+		m_AssetSerialisers[ AssetType::PhysicsMaterial ] = std::make_unique<RawPhysicsMaterialAssetSerialiser>();
+	}
+
+	void VFSAssetImporter::Import( const Ref<Asset>& rAsset )
 	{
 	}
 
-	bool AssetRegistryBase::IsAssetLoaded( AssetID id )
+	bool VFSAssetImporter::TryLoadData( Ref<Asset>& rAsset )
 	{
-		return m_LoadedAssets.contains( id );
+		return m_AssetSerialisers[ rAsset->Type ]->TryLoadData( rAsset );
 	}
-
 }

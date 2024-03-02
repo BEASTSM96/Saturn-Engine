@@ -47,7 +47,8 @@ namespace Saturn {
 		bool OnWindowResize( RubyWindowResizeEvent& e );
 
 	private:
-		void OpenFile( const std::filesystem::path& rFilepath );
+		void OpenFile( AssetID id );
+	
 	private:
 		Ref< Scene > m_RuntimeScene;
 		GameModule* m_GameModule = nullptr;

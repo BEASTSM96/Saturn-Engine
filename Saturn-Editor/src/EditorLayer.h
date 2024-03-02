@@ -34,6 +34,8 @@
 #include <Saturn/Scene/Scene.h>
 #include <Saturn/Core/Layer.h>
 
+#include <Saturn/ImGui/BlockingOperation.h>
+
 #include <thread>
 
 namespace Saturn {
@@ -55,7 +57,7 @@ namespace Saturn {
 		void OnEvent( RubyEvent& rEvent ) override;
 		
 		void SaveFileAs();
-		void OpenFile( const std::filesystem::path& rFilepath );
+		void OpenFile( AssetID id );
 
 		void SaveFile();
 		void OpenFile();
@@ -84,11 +86,17 @@ namespace Saturn {
 		void DrawLoadedAssetsDebug();
 		void DrawEditorSettings();
 		void DrawMaterials();
+		void DrawVFSDebug();
 
 		// Viewport
 		void DrawViewport();
 		void Viewport_Gizmo();
 		void Viewport_RTControls();
+
+		void CreateBlockingOp( std::function<void()>&& rrFunction );
+		
+		// Close editor and open the project browser.
+		void CloseEditorAndOpenPB();
 
 	private:
 		TitleBar* m_TitleBar = nullptr;
@@ -107,21 +115,25 @@ namespace Saturn {
 
 		GameModule* m_GameModule = nullptr;
 
+		Ref<BlockingOperation> m_BlockingOperation = nullptr;
+
 		EditorCamera m_EditorCamera;
 		bool m_AllowCameraEvents = false;
 		bool m_StartedRightClickInViewport = false;
 		bool m_ViewportFocused = false;
 		bool m_MouseOverViewport = false;
 		bool m_OpenEditorSettings = false;
+		bool m_ShowImGuiDemoWindow = false;
+		bool m_ShowVFSDebug = false;
 
 		bool m_RequestRuntime = false;
+
+		bool m_BlockingActionRunning = false;
 
 		// Translate as default
 		int m_GizmoOperation = 7;
 
 		ImVec2 m_ViewportSize;
-
-		bool m_ShowImGuiDemoWindow = false;
 
 		float m_OperationPercent = 0.0f;
 		bool m_ShowOperation = false;

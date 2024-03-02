@@ -257,7 +257,7 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
-		// Box collider
+		// Capsule collider
 		if( entity->HasComponent<CapsuleColliderComponent>() )
 		{
 			rEmitter << YAML::Key << "CapsuleColliderComponent";
@@ -343,7 +343,11 @@ namespace Saturn {
 				std::string ScriptName = srcc[ "Name" ].as< std::string >();
 
 				// Ask the game module to create the entity.
-				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, ScriptName );
+				//DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, ScriptName );
+
+				DeserialisedEntity = Ref<Entity>::Create();
+				DeserialisedEntity->SetName( Tag );
+				DeserialisedEntity->GetComponent<IdComponent>().ID = entityID;
 
 				auto& s = DeserialisedEntity->AddComponent< ScriptComponent >();
 

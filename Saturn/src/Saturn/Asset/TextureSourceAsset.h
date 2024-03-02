@@ -28,87 +28,77 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-#include "Saturn/GameFramework/ActionBinding.h"
-
-#include "Saturn/Core/UUID.h"
-
-#include <string>
-#include <filesystem>
+#include "Asset.h"
+#include "Saturn/Serialisation/RawSerialisation.h"
 
 namespace Saturn {
-	
-	struct ProjectConfig
-	{
-		std::string Name;
-		UUID StartupSceneID;
 
-		std::string AssetPath; // Relative path
-		std::string Path; // Absolute path
-	};
-
-	enum class ConfigKind
-	{
-		Debug,
-		Release,
-		Dist
-	};
-
-	class Project : public RefTarget
+	class TextureSourceAsset : public Asset
 	{
 	public:
-		Project();
-		~Project();
+		TextureSourceAsset();
+		TextureSourceAsset( std::filesystem::path AbsolutePath, bool Flip = false );
 
-		ProjectConfig& GetConfig() { return m_Config; }
-		static ProjectConfig& GetActiveConfig() { return s_ActiveProject->m_Config; }
+		~TextureSourceAsset();
 
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
-
-		// Only to be used by the Game.
-		static std::string FindProjectDir( const std::string& rName );
-
-		void CheckMissingAssetRefs();
-
-		std::filesystem::path GetAssetPath();
-		std::filesystem::path GetFullAssetPath();
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-		std::filesystem::path GetTempDir();
-
-		std::filesystem::path GetBinDir();
-		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }
-
-		std::filesystem::path GetProjectPath();
-		static std::filesystem::path GetActiveProjectPath() { return s_ActiveProject->GetProjectPath(); }
-
-		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
-
-		std::filesystem::path GetFullCachePath();
-
-		std::vector<ActionBinding>& GetActionBindings() { return m_ActionBindings; }
-		const std::vector<ActionBinding>& GetActionBindings() const { return m_ActionBindings; }
-		
-		void AddActionBinding( const ActionBinding& rBinding ) { m_ActionBindings.push_back( rBinding ); }
-		void RemoveActionBinding( const ActionBinding& rBinding );
-
-		bool Build( ConfigKind kind );
-		bool Rebuild( ConfigKind kind );
-		void Distribute( ConfigKind kind );
+		void WriteToVFS();
+		void ReadFromVFS();
 
 	public:
-		bool HasPremakeFile();
-		void CreatePremakeFile();
-		void CreateBuildFile();
+		uint32_t Width() { return m_Width; }
+		uint32_t Height() { return m_Height; }
 
-		void PrepForDist();
+		uint32_t Channels() { return m_Channels; }
+
+		Buffer TextureData() { return m_TextureBuffer; }
+
+	public:
+		//////////////////////////////////////////////////////////////////////////
+		// Raw binary serialisation.
+
+		void SerialiseData( std::ofstream& rStream )
+		{
+			RawSerialisation::WriteString( m_AbsolutePath.string(), rStream );
+
+			RawSerialisation::WriteObject( m_Width, rStream );
+			RawSerialisation::WriteObject( m_Height, rStream );
+			RawSerialisation::WriteObject( m_Channels, rStream );
+			RawSerialisation::WriteObject( m_Flipped, rStream );
+			RawSerialisation::WriteObject( m_HDR, rStream );
+
+			// Buffer
+			RawSerialisation::WriteSaturnBuffer( m_TextureBuffer, rStream );
+		}
+
+		void DeserialiseData( std::ifstream& rStream )
+		{
+			m_AbsolutePath = RawSerialisation::ReadString( rStream );
+
+			RawSerialisation::ReadObject( m_Width, rStream );
+			RawSerialisation::ReadObject( m_Height, rStream );
+			RawSerialisation::ReadObject( m_Channels, rStream );
+			RawSerialisation::ReadObject( m_Flipped, rStream );
+			RawSerialisation::ReadObject( m_HDR, rStream );
+
+			// Buffer
+			// Don't read the buffer just yet.
+			//RawSerialisation::ReadSaturnBuffer( m_TextureBuffer, rStream );
+		}
 
 	private:
-		ProjectConfig m_Config;
-		std::vector<ActionBinding> m_ActionBindings;
+		void LoadRawTexture();
 
-		inline static Ref<Project> s_ActiveProject;
+	private:
+		std::filesystem::path m_AbsolutePath;
+
+		uint32_t m_Width = 0;
+		uint32_t m_Height = 0;
+		uint32_t m_Channels = 0;
+
+		bool m_Flipped = false;
+		bool m_HDR = false;
+		bool m_FullyLoaded = false;
+
+		Buffer m_TextureBuffer;
 	};
 }

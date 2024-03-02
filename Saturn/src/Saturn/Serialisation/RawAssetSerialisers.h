@@ -28,87 +28,49 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-#include "Saturn/GameFramework/ActionBinding.h"
-
-#include "Saturn/Core/UUID.h"
-
-#include <string>
-#include <filesystem>
+#include "Saturn/Asset/Asset.h"
 
 namespace Saturn {
-	
-	struct ProjectConfig
-	{
-		std::string Name;
-		UUID StartupSceneID;
 
-		std::string AssetPath; // Relative path
-		std::string Path; // Absolute path
-	};
-
-	enum class ConfigKind
-	{
-		Debug,
-		Release,
-		Dist
-	};
-
-	class Project : public RefTarget
+	class RawAssetSerialiser
 	{
 	public:
-		Project();
-		~Project();
+		virtual bool DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const = 0;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const = 0;
+	};
 
-		ProjectConfig& GetConfig() { return m_Config; }
-		static ProjectConfig& GetActiveConfig() { return s_ActiveProject->m_Config; }
-
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
-
-		// Only to be used by the Game.
-		static std::string FindProjectDir( const std::string& rName );
-
-		void CheckMissingAssetRefs();
-
-		std::filesystem::path GetAssetPath();
-		std::filesystem::path GetFullAssetPath();
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-		std::filesystem::path GetTempDir();
-
-		std::filesystem::path GetBinDir();
-		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }
-
-		std::filesystem::path GetProjectPath();
-		static std::filesystem::path GetActiveProjectPath() { return s_ActiveProject->GetProjectPath(); }
-
-		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
-
-		std::filesystem::path GetFullCachePath();
-
-		std::vector<ActionBinding>& GetActionBindings() { return m_ActionBindings; }
-		const std::vector<ActionBinding>& GetActionBindings() const { return m_ActionBindings; }
-		
-		void AddActionBinding( const ActionBinding& rBinding ) { m_ActionBindings.push_back( rBinding ); }
-		void RemoveActionBinding( const ActionBinding& rBinding );
-
-		bool Build( ConfigKind kind );
-		bool Rebuild( ConfigKind kind );
-		void Distribute( ConfigKind kind );
-
+	class RawMaterialAssetSerialiser : public RawAssetSerialiser
+	{
 	public:
-		bool HasPremakeFile();
-		void CreatePremakeFile();
-		void CreateBuildFile();
+		virtual bool DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
+	};
 
-		void PrepForDist();
+	class RawPrefabSerialiser : public RawAssetSerialiser
+	{
+	public:
+		virtual bool DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
+	};
 
-	private:
-		ProjectConfig m_Config;
-		std::vector<ActionBinding> m_ActionBindings;
+	class RawStaticMeshAssetSerialiser : public RawAssetSerialiser
+	{
+	public:
+		virtual bool DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const override;	
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
+	};
 
-		inline static Ref<Project> s_ActiveProject;
+	class RawPhysicsMaterialAssetSerialiser : public RawAssetSerialiser
+	{
+	public:
+		virtual bool DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const override;
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
+	};
+
+	class RawTextureSourceAssetSerialiser : public RawAssetSerialiser
+	{
+	public:
+		virtual bool DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const override;	
+		virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
 	};
 }

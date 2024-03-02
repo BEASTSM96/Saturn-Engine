@@ -391,7 +391,7 @@ namespace Saturn {
 				Scene::SetActiveScene( newScene.Get() );
 
 				SceneSerialiser ss( newScene );
-				ss.Serialise( Project::GetActiveProject()->FilepathAbs( asset->Path ).string() );
+				ss.Serialise();
 
 				Scene::SetActiveScene( CurrentScene );
 

@@ -40,6 +40,8 @@
 
 #include "Saturn/Physics/PhysicsShapeTypes.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
 #include <vector>
 #include <string>
 #include <utility>
@@ -73,6 +75,39 @@ namespace Saturn {
 		bool operator==( const Submesh& other ) const
 		{
 			return BaseVertex == other.BaseVertex && BaseIndex == other.BaseIndex && MaterialIndex == other.MaterialIndex && IndexCount == other.IndexCount && VertexCount == other.VertexCount && NodeName == other.NodeName && MeshName == other.MeshName;
+		}
+
+	public:
+		template<typename OStream>
+		static void Serialise( const Submesh& rObject, OStream& rStream ) 
+		{
+			RawSerialisation::WriteObject( rObject.BaseVertex, rStream );
+			RawSerialisation::WriteObject( rObject.BaseIndex, rStream );
+			RawSerialisation::WriteObject( rObject.MaterialIndex, rStream );
+			RawSerialisation::WriteObject( rObject.IndexCount, rStream );
+			RawSerialisation::WriteObject( rObject.VertexCount, rStream );
+
+			RawSerialisation::WriteMatrix4x4( rObject.Transform, rStream );
+			RawSerialisation::WriteObject( rObject.BoundingBox, rStream );
+
+			RawSerialisation::WriteString( rObject.NodeName, rStream );
+			RawSerialisation::WriteString( rObject.MeshName, rStream );
+		}
+
+		template<typename IStream>
+		static void Deserialise( Submesh& rObject, IStream& rStream )
+		{
+			RawSerialisation::ReadObject( rObject.BaseVertex, rStream );
+			RawSerialisation::ReadObject( rObject.BaseIndex, rStream );
+			RawSerialisation::ReadObject( rObject.MaterialIndex, rStream );
+			RawSerialisation::ReadObject( rObject.IndexCount, rStream );
+			RawSerialisation::ReadObject( rObject.VertexCount, rStream );
+
+			RawSerialisation::ReadMatrix4x4( rObject.Transform, rStream );
+			RawSerialisation::ReadObject( rObject.BoundingBox, rStream );
+
+			rObject.NodeName = RawSerialisation::ReadString( rStream );
+			rObject.MeshName = RawSerialisation::ReadString( rStream );
 		}
 	};
 
@@ -137,10 +172,25 @@ namespace Saturn {
 		Ref<MaterialRegistry>& GetMaterialRegistry() { return m_MaterialRegistry; }
 		const Ref<MaterialRegistry>& GetMaterialRegistry() const { return m_MaterialRegistry; }
 
+	public:
+		void SerialiseData( std::ofstream& rStream );
+		void SerialiseData( std::ostringstream& rStream );
+		
+		void DeserialiseData( std::ifstream& rStream );
+		void DeserialiseData( std::istream& rStream );
+
+	private:
+		template<typename OStream>
+		void SerialiseMesh( OStream& rStream );
+		
+		template<typename IStream>
+		void DeserialiseMesh( IStream& rStream );
+
 	private:
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
 		void CreateVertices();
 		void CreateMaterials();
+
 	private:
 		Ref<VertexBuffer> m_VertexBuffer;
 		Ref<IndexBuffer> m_IndexBuffer;

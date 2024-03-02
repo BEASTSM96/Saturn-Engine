@@ -180,9 +180,20 @@ namespace Saturn {
 
 			for( auto&& [ id, asset ] : TargetRegistry->GetAssetMap() )
 			{
+				if( TargetRegistry->IsAssetLoaded( id ) )
+				{
+					const AssetMap& rMap = TargetRegistry->GetLoadedAssetsMap();
+
+					Function( rMap.at( id ) );
+				}
+				
+				// Still call the function however use the default version.
 				Function( asset );
 			}
 		}
+
+		size_t GetAssetRegistrySize() { return m_Assets->GetSize(); }
+		size_t GetEditorRegistrySize() { return m_EditorAssets->GetSize(); }
 
 	private:
 		Ref<AssetRegistry> m_Assets = nullptr;

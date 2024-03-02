@@ -40,8 +40,10 @@ namespace Saturn {
 
 		~SceneSerialiser();
 
-		void Serialise( const std::string& rFilePath );
-		void Deserialise( const std::string& rFilePath );
+		void Serialise();
+
+		void Deserialise();
+		void Deserialise( const std::filesystem::path& rPath );
 
 	private:
 		Ref< Scene > m_Scene;

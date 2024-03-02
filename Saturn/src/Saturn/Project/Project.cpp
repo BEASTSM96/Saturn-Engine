@@ -168,6 +168,11 @@ namespace Saturn {
 		return GetFullAssetPath().parent_path();
 	}
 
+	std::filesystem::path Project::GetTempDir()
+	{
+		return GetFullAssetPath().parent_path() / "Temp";
+	}
+
 	std::filesystem::path Project::GetBinDir()
 	{
 		auto rootDir = GetRootDir();

@@ -77,8 +77,6 @@ namespace Saturn {
 	{
 		m_Scene = Ref<Scene>::Create();
 
-		m_Scene->SetName( "Prefab scene" );
-
 		Scene* CurrentScene = GActiveScene;
 		SwapActiveScene( m_Scene.Get() );
 
@@ -92,14 +90,24 @@ namespace Saturn {
 	void Prefab::Create()
 	{
 		m_Scene = Ref<Scene>::Create();
-
-		m_Scene->SetName( "Prefab scene" );
 	}
 
 	void Prefab::CreateScene()
 	{
 		m_Scene = nullptr;
 		m_Scene = Ref<Scene>::Create();
+	}
+
+	void Prefab::SerialisePrefab( std::ofstream& rStream )
+	{
+		m_Scene->SerialiseInternal( rStream );
+	}
+
+	void Prefab::DeserialisePrefab( std::ifstream& rStream )
+	{
+		Create();
+
+		m_Scene->DeserialiseInternal( rStream );
 	}
 
 	Ref<Entity> Prefab::PrefabToEntity( Ref<Scene> Scene )

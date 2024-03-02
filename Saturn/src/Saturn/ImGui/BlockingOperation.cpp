@@ -26,89 +26,46 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/Core/Base.h"
-#include "Saturn/GameFramework/ActionBinding.h"
-
-#include "Saturn/Core/UUID.h"
-
-#include <string>
-#include <filesystem>
+#include "sppch.h"
+#include "BlockingOperation.h"
 
 namespace Saturn {
-	
-	struct ProjectConfig
+
+	BlockingOperation::BlockingOperation()
 	{
-		std::string Name;
-		UUID StartupSceneID;
 
-		std::string AssetPath; // Relative path
-		std::string Path; // Absolute path
-	};
+	}
 
-	enum class ConfigKind
+	BlockingOperation::~BlockingOperation()
 	{
-		Debug,
-		Release,
-		Dist
-	};
+		m_JobThread.join();
+	}
 
-	class Project : public RefTarget
+	void BlockingOperation::SetJob( std::function<void()>&& rrFunction )
 	{
-	public:
-		Project();
-		~Project();
+		m_Job = rrFunction;
+	}
 
-		ProjectConfig& GetConfig() { return m_Config; }
-		static ProjectConfig& GetActiveConfig() { return s_ActiveProject->m_Config; }
+	void BlockingOperation::Execute()
+	{
+		if( !m_Job )
+			return;
 
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
+		if( !m_ExitFunction )
+			return;
 
-		// Only to be used by the Game.
-		static std::string FindProjectDir( const std::string& rName );
+		m_JobThread = std::thread( &BlockingOperation::ThreadRun, this );
+	}
 
-		void CheckMissingAssetRefs();
+	void BlockingOperation::ThreadRun()
+	{
+		SetThreadDescription( GetCurrentThread(), L"BlockOperation" );
 
-		std::filesystem::path GetAssetPath();
-		std::filesystem::path GetFullAssetPath();
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-		std::filesystem::path GetTempDir();
+		// Execute job
+		m_Job();
 
-		std::filesystem::path GetBinDir();
-		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }
+		// Call exit function.
+		m_ExitFunction();
+	}
 
-		std::filesystem::path GetProjectPath();
-		static std::filesystem::path GetActiveProjectPath() { return s_ActiveProject->GetProjectPath(); }
-
-		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
-
-		std::filesystem::path GetFullCachePath();
-
-		std::vector<ActionBinding>& GetActionBindings() { return m_ActionBindings; }
-		const std::vector<ActionBinding>& GetActionBindings() const { return m_ActionBindings; }
-		
-		void AddActionBinding( const ActionBinding& rBinding ) { m_ActionBindings.push_back( rBinding ); }
-		void RemoveActionBinding( const ActionBinding& rBinding );
-
-		bool Build( ConfigKind kind );
-		bool Rebuild( ConfigKind kind );
-		void Distribute( ConfigKind kind );
-
-	public:
-		bool HasPremakeFile();
-		void CreatePremakeFile();
-		void CreateBuildFile();
-
-		void PrepForDist();
-
-	private:
-		ProjectConfig m_Config;
-		std::vector<ActionBinding> m_ActionBindings;
-
-		inline static Ref<Project> s_ActiveProject;
-	};
 }

@@ -41,6 +41,23 @@
 
 namespace Saturn {
 
+	static std::filesystem::path GetFilepathAbs( const std::filesystem::path& rPath, bool IsEditorAsset )
+	{
+		if( IsEditorAsset )
+		{
+			std::filesystem::path basePath = Application::Get().GetRootContentDir();
+			basePath = basePath.parent_path();
+			basePath = basePath.parent_path();
+			basePath /= rPath;
+
+			return basePath;
+		}
+		else
+		{
+			return Project::GetActiveProject()->FilepathAbs( rPath );
+		}
+	}
+
 	SceneSerialiser::SceneSerialiser( const Ref< Scene >& rScene )
 		: m_Scene( rScene )
 	{
@@ -51,17 +68,16 @@ namespace Saturn {
 
 	}
 
-	void SceneSerialiser::Serialise( const std::string& rFilePath )
+	void SceneSerialiser::Serialise()
 	{
+		auto& basePath = m_Scene->GetPath();
+		auto fullPath = GetFilepathAbs( basePath, m_Scene->IsFlagSet( AssetFlag::Editor ) );
+
 		YAML::Emitter out;
 		
 		out << YAML::BeginMap;
 
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled Scene";
-
-		out << YAML::Key << "FilePath" << YAML::Value << rFilePath;
-
-		m_Scene->m_Filepath = rFilePath;
 
 		out << YAML::Key << "Entities";
 
@@ -75,31 +91,36 @@ namespace Saturn {
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
 		
-		std::ofstream FileOut( rFilePath );
+		std::ofstream FileOut( fullPath );
 		FileOut << out.c_str();
 	}
 
-	void SceneSerialiser::Deserialise( const std::string& rFilePath )
+	void SceneSerialiser::Deserialise()
 	{
-		std::ifstream FileIn( rFilePath );
+		auto& basePath = m_Scene->GetPath();	
+		Deserialise( basePath );
+	}
+
+	void SceneSerialiser::Deserialise( const std::filesystem::path& rPath )
+	{
+		auto fullPath = GetFilepathAbs( rPath, m_Scene->IsFlagSet( AssetFlag::Editor ) );
+
+		std::ifstream FileIn( fullPath );
 		std::stringstream ss;
 		ss << FileIn.rdbuf();
 
 		YAML::Node data = YAML::Load( ss.str() );
-		
+
 		if( data.IsNull() )
 			return;
 
-		if( !data["Scene"] )
+		if( !data[ "Scene" ] )
 			return;
 
-		std::string sceneName = data["Scene"].as< std::string >();
+		std::string sceneName = data[ "Scene" ].as< std::string >();
 		SAT_CORE_INFO( "Deserialising scene '{0}'", sceneName );
 
-		m_Scene->m_Filepath = rFilePath;
-
-		auto entities = data["Entities"];
-
+		auto entities = data[ "Entities" ];
 		DeserialiseEntities( entities, m_Scene );
 	}
 

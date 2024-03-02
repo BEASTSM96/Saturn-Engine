@@ -28,87 +28,40 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-#include "Saturn/GameFramework/ActionBinding.h"
+#include "VDirectory.h"
 
-#include "Saturn/Core/UUID.h"
+#include "Memory/Buffer.h"
+
+#include "Saturn/Serialisation/RawSerialisation.h"
 
 #include <string>
-#include <filesystem>
 
 namespace Saturn {
-	
-	struct ProjectConfig
+
+	class VFile : public RefTarget
 	{
+	public:
+		VFile() {}
+		VFile( const std::string& rName ) : Name( rName ), ParentDir( nullptr ) {}
+		VFile( const std::string& rName, VDirectory* pParentDir ) : Name( rName ), ParentDir( pParentDir ) {}
+
+		~VFile() = default;
+
+	public:
 		std::string Name;
-		UUID StartupSceneID;
-
-		std::string AssetPath; // Relative path
-		std::string Path; // Absolute path
-	};
-
-	enum class ConfigKind
-	{
-		Debug,
-		Release,
-		Dist
-	};
-
-	class Project : public RefTarget
-	{
-	public:
-		Project();
-		~Project();
-
-		ProjectConfig& GetConfig() { return m_Config; }
-		static ProjectConfig& GetActiveConfig() { return s_ActiveProject->m_Config; }
-
-		static Ref<Project> GetActiveProject();
-		static void SetActiveProject( const Ref<Project>& rProject );
-
-		// Only to be used by the Game.
-		static std::string FindProjectDir( const std::string& rName );
-
-		void CheckMissingAssetRefs();
-
-		std::filesystem::path GetAssetPath();
-		std::filesystem::path GetFullAssetPath();
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-		std::filesystem::path GetTempDir();
-
-		std::filesystem::path GetBinDir();
-		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }
-
-		std::filesystem::path GetProjectPath();
-		static std::filesystem::path GetActiveProjectPath() { return s_ActiveProject->GetProjectPath(); }
-
-		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
-
-		std::filesystem::path GetFullCachePath();
-
-		std::vector<ActionBinding>& GetActionBindings() { return m_ActionBindings; }
-		const std::vector<ActionBinding>& GetActionBindings() const { return m_ActionBindings; }
+		VDirectory* ParentDir = nullptr;
 		
-		void AddActionBinding( const ActionBinding& rBinding ) { m_ActionBindings.push_back( rBinding ); }
-		void RemoveActionBinding( const ActionBinding& rBinding );
-
-		bool Build( ConfigKind kind );
-		bool Rebuild( ConfigKind kind );
-		void Distribute( ConfigKind kind );
-
+		std::vector<char> FileContents;
+	
 	public:
-		bool HasPremakeFile();
-		void CreatePremakeFile();
-		void CreateBuildFile();
+		static void Serialise( const Ref<VFile>& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteString( rObject->Name, rStream );
+		}
 
-		void PrepForDist();
-
-	private:
-		ProjectConfig m_Config;
-		std::vector<ActionBinding> m_ActionBindings;
-
-		inline static Ref<Project> s_ActiveProject;
+		static void Deserialise( Ref<VFile>& rObject, std::ifstream& rStream )
+		{
+			rObject->Name = RawSerialisation::ReadString( rStream );
+		}
 	};
 }

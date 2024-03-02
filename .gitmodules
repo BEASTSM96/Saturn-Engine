@@ -7,3 +7,6 @@
 [submodule "Saturn/vendor/imgui"]
 	path = Saturn/vendor/imgui
 	url = https://github.com/BEASTSM96/fork-imgui
+[submodule "Saturn/vendor/zlib"]
+	path = Saturn/vendor/zlib
+	url = https://github.com/BEASTSM96/fork-zlib

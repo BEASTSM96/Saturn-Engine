@@ -89,7 +89,7 @@ namespace Saturn {
 		}
 
 		template<typename... VaArgs>
-		static Ref<T> Create( VaArgs&&... args )
+		[[nodiscard]] static Ref<T> Create( VaArgs&&... args )
 		{
 			return Ref<T>( new T( std::forward<VaArgs>( args )... ) );
 		}

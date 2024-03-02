@@ -32,6 +32,7 @@
 #include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
+#include "Saturn/Asset/TextureSourceAsset.h"
 #include "Saturn/Audio/Sound2D.h"
 
 #include "YamlAux.h"
@@ -94,7 +95,7 @@ namespace Saturn {
 
 		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetNormalMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "NormalTexture" << YAML::Value << asset->ID;
 		else
@@ -102,7 +103,7 @@ namespace Saturn {
 
 		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetMetallicMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "MetalnessTexture" << YAML::Value << asset->ID;
 		else
@@ -110,7 +111,7 @@ namespace Saturn {
 
 		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetRoughnessMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "RoughnessTexture" << YAML::Value << asset->ID;
 		else
@@ -153,7 +154,7 @@ namespace Saturn {
 
 		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetNormalMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "NormalTexture" << YAML::Value << asset->ID;
 		else
@@ -161,7 +162,7 @@ namespace Saturn {
 
 		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetMetallicMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "MetalnessTexture" << YAML::Value << asset->ID;
 		else
@@ -169,7 +170,7 @@ namespace Saturn {
 
 		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		asset = AssetManager::Get().FindAsset( materialAsset->GetRoughnessMap()->GetPath() );
 		if( asset )
 			out << YAML::Key << "RoughnessTexture" << YAML::Value << asset->ID;
 		else
@@ -1056,5 +1057,4 @@ namespace Saturn {
 
 		return true;
 	}
-
 }

@@ -104,14 +104,22 @@ namespace Saturn {
 		void SetName( const std::string& rName ) { return m_Material->SetName( rName ); }
 
 	private:
-
 		void Default();
 
+	private:
+
+		// Used by MaterialAssetSerialiser & Material asset viewer (node editor)
 		void SetAlbeoMap( const std::filesystem::path& rPath );
 		void SetNormalMap( const std::filesystem::path& rPath );
 		void SetMetallicMap( const std::filesystem::path& rPath );
 		void SetRoughnessMap( const std::filesystem::path& rPath );
-		// Only used MaterialAssetSerialiser
+
+		// Used by RawMaterialAssetSerialiser
+		void SetAlbeoMap( UUID AssetID );
+		void SetNormalMap( UUID AssetID );
+		void SetMetallicMap( UUID AssetID );
+		void SetRoughnessMap( UUID AssetID );
+
 		void ForceUpdate();
 
 	private:
@@ -128,6 +136,7 @@ namespace Saturn {
 	private:
 		friend class MaterialAssetViewer;
 		friend class MaterialAssetSerialiser;
+		friend class RawMaterialAssetSerialiser;
 	};
 
 	class MaterialRegistry : public RefTarget
@@ -161,6 +170,10 @@ namespace Saturn {
 
 		// This does not copy the material registry and is only to be used by the scene serialiser.
 		void SetMesh( const Ref<StaticMesh>& mesh ) { m_Mesh = mesh; }
+
+	public:
+		static void Serialise( const MaterialRegistry& rRegistry, std::ofstream& rStream );
+		static void Deserialise( MaterialRegistry& rRegistry, std::ifstream& rStream );
 
 	private:
 		//std::unordered_map< AssetID, Ref<MaterialAsset> > m_Materials;

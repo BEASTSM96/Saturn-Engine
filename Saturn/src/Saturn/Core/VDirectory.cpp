@@ -26,40 +26,123 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "VDirectory.h"
 
 #include "Saturn/Serialisation/RawSerialisation.h"
 
-#include <glm/glm.hpp>
+#include "VFile.h"
 
 namespace Saturn {
 
-	struct AABB
+	VDirectory::VDirectory( const std::wstring& rName )
+		: m_Name( Auxiliary::ConvertWString( rName ) )
 	{
-		glm::vec3 Min, Max;
+	}
 
-		AABB()
-			: Min( 0.0f ), Max( 0.0f )
+	VDirectory::VDirectory( const std::string& rName ) 
+		: m_Name( rName )
+	{
+	}
+
+	VDirectory::VDirectory( const std::string& rName, VDirectory* parentDirectory )
+		: m_Name( rName ), ParentDirectory( parentDirectory )
+	{
+
+	}
+
+	VDirectory::~VDirectory()
+	{
+		Clear();
+	}
+
+	void VDirectory::RemoveFile( const std::string& rName )
+	{
+		Files.erase( rName );
+	}
+
+	void VDirectory::AddDirectory( const std::string& rName )
+	{
+		Ref<VDirectory> dir = Ref<VDirectory>::Create( rName, nullptr );
+		Directories.emplace( rName, dir );
+	}
+
+	void VDirectory::RemoveDirectory( const std::string& rName )
+	{
+		Directories.erase( rName );
+	}
+
+	void VDirectory::Clear()
+	{
+		Files.clear();
+
+		for( auto&& [k, dir] : Directories )
 		{
+			dir->Clear();
 		}
 
-		AABB( const glm::vec3& min, const glm::vec3& max )
-			: Min( min ), Max( max )
+		Directories.clear();
+	}
+
+	void VDirectory::Serialise( const Ref<VDirectory>& rObject, std::ofstream& rStream )
+	{
+		RawSerialisation::WriteString( rObject->m_Name, rStream );
+
+		// Serialise the map manually.
+		size_t mapSize = rObject->Files.size();
+		rStream.write( reinterpret_cast<char*>( &mapSize ), sizeof( size_t ) );
+
+		for( const auto& [k, v] : rObject->Files )
 		{
+			RawSerialisation::WriteString( k, rStream );
+			VFile::Serialise( v, rStream );
 		}
 
-	public:
-		static void Serialise( const AABB& rObject, std::ofstream& rStream )
+		mapSize = rObject->Directories.size();
+		rStream.write( reinterpret_cast<char*>( &mapSize ), sizeof( size_t ) );
+
+		for( const auto& [k, v] : rObject->Directories )
 		{
-			RawSerialisation::WriteVec3( rObject.Min, rStream );
-			RawSerialisation::WriteVec3( rObject.Max, rStream );
+			RawSerialisation::WriteString( k, rStream );
+			VDirectory::Serialise( v, rStream );
+		}
+	}
+
+	void VDirectory::Deserialise( Ref<VDirectory>& rObject, std::ifstream& rStream )
+	{
+		rObject->m_Name = RawSerialisation::ReadString( rStream );
+
+		// Deserialise the map manually.
+		size_t mapSize = 0;
+		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			std::string K{};
+			K = RawSerialisation::ReadString( rStream );
+
+			Ref<VFile> V = Ref<VFile>::Create();
+			V->ParentDir = rObject.Get();
+
+			VFile::Deserialise( V, rStream );
+
+			rObject->Files[ K ] = V;
 		}
 
-		static void Deserialise( AABB& rObject, std::ifstream& rStream )
-		{
-			RawSerialisation::ReadVec3( rObject.Min, rStream );
-			RawSerialisation::ReadVec3( rObject.Max, rStream );
-		}
-	};
+		mapSize = 0;
+		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
 
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			std::string K{};
+			K = RawSerialisation::ReadString( rStream );
+
+			Ref<VDirectory> V = Ref<VDirectory>::Create();
+			V->ParentDirectory = rObject.Get();
+
+			VDirectory::Deserialise( V, rStream );
+
+			rObject->Directories[ K ] = V;
+		}
+	}
 }
