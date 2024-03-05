@@ -35,6 +35,8 @@
 #include <Saturn/Runtime/RuntimeLayer.h>
 #include <Saturn/Project/Project.h>
 #include <Saturn/Vulkan/ShaderBundle.h>
+#include <Saturn/Core/Timer.h>
+#include <Saturn/Vulkan/SceneRenderer.h>
 #include <Saturn/Serialisation/EngineSettingsSerialiser.h>
 #include <Saturn/Serialisation/ProjectSerialiser.h>
 
@@ -85,10 +87,9 @@ public:
 		SAT_CORE_ASSERT( Saturn::Project::GetActiveProject(), "No project was given." );
 
 		// Load the shader bundle.
-		Saturn::ShaderBundle::Get().ReadBundle();
+		Saturn::ShaderBundle::ReadBundle();
 
 		Saturn::SceneRendererFlags flags = Saturn::SceneRendererFlag_MasterInstance | Saturn::SceneRendererFlag_SwapchainTarget;
-
 		m_SceneRenderer = new Saturn::SceneRenderer( flags );
 	}
 
@@ -117,7 +118,7 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 	std::filesystem::current_path( WorkingDir.parent_path() );
 
 	Saturn::ApplicationSpecification spec{};
-	spec.Flags = Saturn::ApplicationFlag_CreateSceneRenderer | Saturn::ApplicationFlag_GameDist | Saturn::ApplicationFlag_Titlebar | Saturn::ApplicationFlag_UseVFS;
+	spec.Flags = Saturn::ApplicationFlag_CreateSceneRenderer | Saturn::ApplicationFlag_GameDistribution | Saturn::ApplicationFlag_Titlebar | Saturn::ApplicationFlag_UseVFS;
 
 	s_ProjectPath = Saturn::Project::FindProjectDir( "%PROJECT_NAME%" );
 

@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "SceneRendererFlags.h"
 #include "Saturn/Scene/Components.h"
 #include "Saturn/Scene/Scene.h"
 #include "Saturn/Scene/Entity.h"
@@ -380,16 +381,6 @@ namespace Saturn {
 		Ref< Shader > BloomShader = nullptr;
 		Ref< Shader > PhysicsOutlineShader = nullptr;
 	};
-
-	enum SceneRendererFlags_
-	{
-		SceneRendererFlag_MasterInstance = BIT( 0 ), 
-		SceneRendererFlag_SwapchainTarget = BIT( 1 ),
-		SceneRendererFlag_RenderGrid = BIT( 2 )
-	};
-
-	// enum SceneRendererFlags_
-	typedef int SceneRendererFlags;
 
 	class SceneRenderer : public RefTarget
 	{

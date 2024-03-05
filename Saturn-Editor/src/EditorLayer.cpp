@@ -300,28 +300,6 @@ namespace Saturn {
 
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
-		// Check for any awaiting scene travels.
-		if( Scene::AwaitingTravels() )
-		{
-			pHierarchyPanel->SetContext( nullptr );
-			Application::Get().PrimarySceneRenderer().SetCurrentScene( nullptr );
-			
-			Scene::DoTravel();
-
-			// Travels are only used for the runtime scene
-			if( m_RuntimeScene )
-			{
-				m_RuntimeScene->OnRuntimeEnd();
-				m_RuntimeScene = nullptr;
-
-				m_RuntimeScene = GActiveScene;
-				m_RuntimeScene->OnRuntimeStart();
-
-				pHierarchyPanel->SetContext( m_RuntimeScene );
-				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Get() );
-			}
-		}
-
 		if( m_RequestRuntime )
 		{
 			if( !m_RuntimeScene )

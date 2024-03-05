@@ -58,7 +58,6 @@ namespace Saturn {
 
 	static const std::string DefaultEntityName = "Empty Entity";
 	std::unordered_map<UUID, Scene*> s_ActiveScenes;
-	std::unordered_map< std::string, Ref<Asset> > s_PendingTravels;
 
 	static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition( const glm::mat4& transform )
 	{
@@ -72,9 +71,12 @@ namespace Saturn {
 
 	Scene::Scene()
 	{
-		s_ActiveScenes[ m_SceneID ] = this;
+		if( ID == 0 )
+			ID = UUID();
+
+		s_ActiveScenes[ ID ] = this;
 		m_SceneEntity = m_Registry.create();
-		m_Registry.emplace<SceneComponent>( m_SceneEntity, m_SceneID );
+		m_Registry.emplace<SceneComponent>( m_SceneEntity, ID );
 	}
 
 	Scene::~Scene()
@@ -114,7 +116,7 @@ namespace Saturn {
 		m_EntityIDMap.clear();
 		m_Registry.clear();
 
-		s_ActiveScenes.erase( m_SceneID );
+		s_ActiveScenes.erase( ID );
 	}
 
 	// TODO: We don't want to search for the main camera entity every frame.
@@ -377,9 +379,15 @@ namespace Saturn {
 
 	Ref<Entity> Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
 	{
+		Scene* ActiveScene = GActiveScene;
+		if( GActiveScene != this )
+			GActiveScene = this;
+
 		Ref<Entity> entity = GameModule::Get().CreateEntity( rScriptName );
 		entity->SetName( name );
 		entity->GetComponent<IdComponent>().ID = uuid;
+
+		GActiveScene = ActiveScene;
 
 		return entity;
 	}
@@ -628,37 +636,6 @@ namespace Saturn {
 		m_EntityIDMap[ entity->GetHandle() ] = entity;
 	}
 
-	bool Scene::Travel( const std::string& rSceneName )
-	{
-		// Because we don't load scenes from the asset importer, we have to manually load it.
-		Ref<Asset> asset = AssetManager::Get().FindAsset( rSceneName, AssetType::Scene );
-
-		if( !asset )
-			return false;
-
-		// We cannot just immediately start to open the scene we need to do it next frame.
-		s_PendingTravels[ rSceneName ] = asset;
-
-		return true;
-	}
-
-	bool Scene::AwaitingTravels()
-	{
-		return false;
-	}
-
-	void Scene::DoTravel()
-	{
-		for( auto&& [Name, asset] : s_PendingTravels )
-		{
-			Ref<Scene> newScene = Ref<Scene>::Create();
-			Scene::SetActiveScene( newScene.Get() );
-
-			SceneSerialiser ss( newScene );
-			ss.Deserialise();
-		}
-	}
-
 	//////////////////////////////////////////////////////////////////////////
 	// #WARNING This should not be confused with AssetSerialisers. This is for raw binary serialisation!
 
@@ -679,7 +656,6 @@ namespace Saturn {
 	
 	void Scene::SerialiseInternal( std::ofstream& rStream )
 	{
-		RawSerialisation::WriteObject( m_SceneID, rStream );
 		RawSerialisation::WriteObject( m_Lights, rStream );
 
 		// Serialise the map manually.
@@ -712,7 +688,6 @@ namespace Saturn {
 	template<typename IStream>
 	void Scene::DeserialiseInternal( IStream& rStream )
 	{
-		RawSerialisation::ReadObject( m_SceneID, rStream );
 		RawSerialisation::ReadObject( m_Lights, rStream );
 
 		// Read the map manually.

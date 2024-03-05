@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Threading;
 
 [assembly: AssemblyVersion("0.0.2.0")]
 [assembly: AssemblyCompany("Saturn Engine")]
@@ -19,6 +20,8 @@ namespace SaturnBuildTool
         // 4: The project location
         static void Main(string[] args)
         {
+          //  Thread.Sleep( 7000 );
+
             if( IsHelpCommand( args ) ) { return; }
 
             if (args.Length <= 4)
@@ -27,11 +30,13 @@ namespace SaturnBuildTool
                 return;
             }
 
+            /*
             if (!ValidateArgs(args)) 
             {
                 Console.WriteLine("ERROR: Validate args failed!");
                 return;
             }
+            */
 
             // Safe to continue
             Application app = new Application(args);
@@ -68,9 +73,15 @@ namespace SaturnBuildTool
 
         static bool ValidateArgs(string[] args)
         {
+            for(int i = 0; i < args.Length; i++) 
+            {
+                Console.WriteLine(args[i]);
+            }
+
             if( args[0] != "/BUILD" || args[0] != "/REBUILD" || args[0] != "/CLEAN")
             {
                 Console.WriteLine("ERROR: Action argument must be /BUILD /REBUILD or /CLEAN");
+                Console.WriteLine( string.Format( "ERROR: Action was {0}", args[ 0 ] ) );
                 return false;
             }
 
@@ -80,13 +91,13 @@ namespace SaturnBuildTool
                 return false;
             }
 
-            if( args[2] != "Win64" || args[2] != "Win86")
+            if( args[2] != "/Win64" || args[2] != "/Win86")
             {
                 Console.WriteLine("ERROR: Target platform argument must be /Win64 or /Win86");
                 return false;
             }
 
-            if (args[3] != "Debug" || args[3] != "Release" || args[3] != "Dist")
+            if (args[3] != "/Debug" || args[3] != "/Release" || args[3] != "/Dist")
             {
                 Console.WriteLine("ERROR: Configuration argument must be /Debug /Release or /Dist");
                 return false;

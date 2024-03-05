@@ -408,7 +408,7 @@ namespace SaturnBuildTool.Tools
                 // Check if this class is spawnable
                 if ((cmd.CurrentFile.SClassInfo & SC.Spawnable) == SC.Spawnable)
                 {
-                    string function = string.Format( "__declspec(dllexport) Saturn::Entity* _Z_Create_{0}()", cmd.CurrentFile.ClassName );
+                    string function = string.Format( "__declspec(dllexport) Saturn::Entity* _Z_Create_{0}(Saturn::Scene* pScene)", cmd.CurrentFile.ClassName );
                     function += "\r\n{\r\n";
                     function += string.Format("\tSaturn::Ref<{0}> Target = Saturn::Ref<{0}>::Create();\r\n", cmd.CurrentFile.ClassName );
                     function += "\tSaturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();\r\n";

@@ -55,7 +55,9 @@ namespace Saturn {
 		m_EditorAssets->m_IsEditorRegistry = true;
 
 		AssetRegistrySerialiser ars;
+#if !defined(SAT_DIST)
 		ars.Deserialise( m_Assets );
+#endif
 		ars.Deserialise( m_EditorAssets );
 	}
 

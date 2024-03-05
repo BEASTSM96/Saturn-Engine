@@ -157,7 +157,7 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::Draw()
 	{
-		ImGui::PushID( static_cast<int>( m_CustomID == 0 ? m_Context->GetId() : m_CustomID ) );
+		ImGui::PushID( static_cast<int>( m_CustomID == 0 ? m_Context->ID : m_CustomID ) );
 
 		if( !m_IsPrefabScene )
 			ImGui::Begin( m_WindowName.c_str() );

@@ -31,6 +31,8 @@
 
 #include "Saturn/Project/Project.h"
 
+#include "Saturn/Core/VirtualFS.h"
+
 #include "Saturn/Serialisation/SceneSerialiser.h"
 #include "Saturn/Serialisation/ProjectSerialiser.h"
 #include "Saturn/Serialisation/EngineSettingsSerialiser.h"
@@ -61,14 +63,17 @@ namespace Saturn {
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
 		pPhysicsFoundation->Init();
 
-#if !defined( SAT_DIST )
 		auto& rUserSettings = EngineSettings::Get();
+#if !defined( SAT_DIST )
 
 		ProjectSerialiser ps;
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 
 		SAT_CORE_ASSERT( Project::GetActiveProject(), "No project was given." );
+
 #endif
+
+		VirtualFS::Get().MountBase( Project::GetActiveConfig().Name, rUserSettings.StartupProject );
 
 		AssetManager* pAssetManager = new AssetManager();
 

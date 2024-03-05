@@ -183,8 +183,8 @@ namespace Saturn {
 			uint64_t fileSize = stream.tellg();
 
 			DumpFileHeader dfh;
-			dfh.Asset = DumpFileToAssetID[ path ];
-			dfh.Version = 1;
+			dfh.Asset = DumpFileToAssetID.at( path );
+			dfh.Version = SAT_CURRENT_VERISON;
 			dfh.OrginalSize = fileSize;
 			dfh.Offset = offset;
 
@@ -314,13 +314,11 @@ namespace Saturn {
 			case Saturn::AssetType::Scene:
 			{
 				Ref<Scene> scene = Ref<Scene>::Create();
-				Scene* pOldActiveScene = GActiveScene;
-				GActiveScene = scene.Get();
+				scene->ID = rAsset->ID;
+				scene->Path = rAsset->Path;
 
 				SceneSerialiser serialiser( scene );
 				serialiser.Deserialise( rAsset->Path );
-
-				GActiveScene = pOldActiveScene;
 
 				scene->SerialiseData();
 			} break;
@@ -373,8 +371,6 @@ namespace Saturn {
 		VirtualFS& rVFS = VirtualFS::Get();
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		rVFS.UnmountBase( rMountBase );
-		rVFS.MountBase( rMountBase, Project::GetActiveProjectPath() );
 
 		// Read header information
 		for( size_t i = 0; i < header.Assets; i++ )

@@ -37,6 +37,7 @@
 namespace Saturn {
 
 	class Entity;
+	class Scene;
 
 	// This class holds and owns the Game Module.
 	// So this class should be the only way to access the game module.

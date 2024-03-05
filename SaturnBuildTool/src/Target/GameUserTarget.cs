@@ -107,6 +107,7 @@ namespace SaturnBuildTool
             Links.Add("SPIRV-Cross.lib");
             Links.Add("yaml-cpp.lib");
             Links.Add("Tracy.lib");
+            Links.Add("zlib.lib");
         }
     }
 }

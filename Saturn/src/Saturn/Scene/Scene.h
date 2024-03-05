@@ -221,9 +221,6 @@ namespace Saturn {
 		// The prefabs holds an entity however that entity is local to it's scene and we want that entity to be our scene.
 		Ref<Entity> CreatePrefab( Ref<Prefab> prefabAsset );
 
-		UUID GetId() { return m_SceneID; }
-		const UUID GetId() const { return m_SceneID; }
-
 		[[nodiscard]] entt::entity CreateHandle()
 		{
 			return m_Registry.create();
@@ -302,17 +299,7 @@ namespace Saturn {
 			return m_Registry.get<Ty>( entity );
 		}
 
-	public:
-
-		//////////////////////////////////////////////////////////////////////////
-		// Loads and opens the scene for play.
-		static bool Travel( const std::string& rSceneName );
-		static bool AwaitingTravels();
-		static void DoTravel();
-
 	private:
-		UUID m_SceneID;
-
 		std::unordered_map<entt::entity, Ref<Entity>> m_EntityIDMap;
 
 		entt::registry m_Registry;
@@ -343,17 +330,17 @@ namespace std {
 	{
 		std::size_t operator()( const Saturn::Scene& scene) const
 		{
-			return hash<uint64_t>()( ( uint64_t ) scene.GetId() );
+			return hash<uint64_t>()( ( uint64_t ) scene.ID );
 		}
 
 		std::size_t operator()( Saturn::Scene* scene ) const
 		{
-			return hash<uint64_t>()( ( uint64_t ) scene->GetId() );
+			return hash<uint64_t>()( ( uint64_t ) scene->ID );
 		}
 
 		std::size_t operator()( Saturn::Ref<Saturn::Scene> scene ) const
 		{
-			return hash<uint64_t>()( ( uint64_t ) scene->GetId() );
+			return hash<uint64_t>()( ( uint64_t ) scene->ID );
 		}
 	};
 

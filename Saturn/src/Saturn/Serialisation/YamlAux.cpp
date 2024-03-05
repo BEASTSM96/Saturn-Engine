@@ -354,7 +354,7 @@ namespace Saturn {
 			}
 			else
 			{
-				DeserialisedEntity = Ref<Entity>::Create();
+				DeserialisedEntity = Ref<Entity>::Create( scene.Get() );
 				DeserialisedEntity->SetName( Tag );
 				DeserialisedEntity->GetComponent<IdComponent>().ID = entityID;
 			}

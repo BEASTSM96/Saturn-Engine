@@ -100,7 +100,7 @@ namespace Saturn {
 		// ImGui is only used if we have the editor, and ImGui should not be used when building the game.
 		m_ImGuiLayer = new ImGuiLayer();
 
-		if( !HasFlag( ApplicationFlag_GameDist ) )
+		if( !HasFlag( ApplicationFlag_GameDistribution ) )
 			m_ImGuiLayer->OnAttach();
 
 #if defined( SAT_DIST )
@@ -123,7 +123,7 @@ namespace Saturn {
 		while( m_Running )
 		{
 			m_Window->PollEvents();
-		
+
 			for( auto&& fn : m_MainThreadQueue )
 				fn();
 
@@ -171,7 +171,7 @@ namespace Saturn {
 				delete layer;
 			}
 
-			if( !HasFlag( ApplicationFlag_GameDist ) )
+			if( !HasFlag( ApplicationFlag_GameDistribution ) )
 				m_ImGuiLayer->OnDetach();
 			
 			delete m_ImGuiLayer;
@@ -199,7 +199,7 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		// Begin on main thread.
-		if( !HasFlag( ApplicationFlag_GameDist ) )
+		if( !HasFlag( ApplicationFlag_GameDistribution ) )
 			m_ImGuiLayer->Begin();
 
 		// Update on the main thread.
@@ -208,7 +208,7 @@ namespace Saturn {
 			layer->OnUpdate( m_Timestep );
 		}
 
-		if( !HasFlag( ApplicationFlag_GameDist ) )
+		if( !HasFlag( ApplicationFlag_GameDistribution ) )
 		{
 			RenderThread::Get().Queue( [=]
 				{

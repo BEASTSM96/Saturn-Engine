@@ -15,7 +15,8 @@ namespace SaturnBuildTool
         IMGUI,
         SPIRVCROSS,
         SHADERC,
-        TRACY
+        TRACY,
+        ZLIB
     }
 
     internal class VendorBinaries
@@ -136,6 +137,16 @@ namespace SaturnBuildTool
                         binPath = GetRootBinPath(binPath, target);
 
                         binPath = Path.Combine(binPath, "Tracy");
+                    }
+                    break;
+
+                case VendorProject.ZLIB:
+                    {
+                        binPath = Path.Combine(binPath, "zlib\\bin\\");
+
+                        binPath = GetRootBinPath(binPath, target);
+
+                        binPath = Path.Combine(binPath, "zlib");
                     }
                     break;
             }

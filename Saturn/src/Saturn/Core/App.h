@@ -51,7 +51,7 @@ namespace Saturn {
 	enum ApplicationFlags_
 	{
 		ApplicationFlag_UIOnly = BIT( 0 ),
-		ApplicationFlag_GameDist = BIT( 1 ),
+		ApplicationFlag_GameDistribution = BIT( 1 ),
 		ApplicationFlag_CreateSceneRenderer = BIT( 2 ),
 		ApplicationFlag_UseGameThread = BIT( 3 ),
 		ApplicationFlag_Titlebar = BIT( 4 ),

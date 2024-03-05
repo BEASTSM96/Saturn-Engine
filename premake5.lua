@@ -205,8 +205,8 @@ project "Saturn"
 		filter "configurations:Dist"
 			defines "SAT_DIST"
 			runtime "Release"
-			optimize "on"
-			symbols "Off"
+			--optimize "off"
+			symbols "on"
 
 		filter "configurations:Release or configurations:Dist"
 			links 
