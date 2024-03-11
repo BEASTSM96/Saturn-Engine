@@ -55,6 +55,15 @@ namespace Saturn {
 		m_LoadedAssets.clear();
 	}
 
+	void AssetRegistry::CopyFrom( const Ref<AssetRegistry>& rOther )
+	{
+		m_Path = rOther->m_Path;
+		m_IsEditorRegistry = rOther->m_IsEditorRegistry;
+	
+		m_Assets.insert( rOther->m_Assets.begin(), rOther->m_Assets.end() );
+		m_LoadedAssets.insert( rOther->m_LoadedAssets.begin(), rOther->m_LoadedAssets.end() );
+	}
+
 	AssetID AssetRegistry::CreateAsset( AssetType type )
 	{
 		Ref<Asset> asset = Ref<Asset>::Create();

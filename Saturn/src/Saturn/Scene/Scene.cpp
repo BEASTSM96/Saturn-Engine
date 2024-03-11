@@ -174,7 +174,6 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		// We can use a entt::view here because we are only accessing the rigid body.
 		auto rigidBodies = GetAllEntitiesWith<RigidbodyComponent>();
 		
 		float FixedTimestep = 1.0f / 100.0f;
@@ -683,6 +682,8 @@ namespace Saturn {
 		/////////////////////////////////////
 
 		DeserialiseInternal( stream );
+
+		stream.close();
 	}
 
 	template<typename IStream>
@@ -717,6 +718,8 @@ namespace Saturn {
 			{
 				Entity::Deserialise( V, rStream );
 			}
+
+			m_EntityIDMap[ K ] = V;
 		}
 
 		GActiveScene = ActiveScene;

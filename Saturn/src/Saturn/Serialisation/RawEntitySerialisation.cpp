@@ -49,11 +49,11 @@ namespace Saturn {
 	template<typename Component, typename Func>
 	void ReadComponent( Ref<Entity>& rEntity, std::ifstream& rStream, Func Function )
 	{
-		bool hasT = false;
-		RawSerialisation::ReadObject( hasT, rStream );
+		bool hadT = false;
+		RawSerialisation::ReadObject( hadT, rStream );
 
 		// If the entity ever had Component before then add it and invoke function.
-		if( hasT )
+		if( hadT )
 		{
 			rEntity->AddComponent<Component>();
 

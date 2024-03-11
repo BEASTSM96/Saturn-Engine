@@ -228,7 +228,6 @@ namespace Saturn {
 
 		void RemoveHandle( entt::entity handle ) 
 		{
-			// Does the handle exist in out registry.
 			if( m_Registry.valid( handle ) )
 				m_Registry.destroy( handle );
 		}

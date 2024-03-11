@@ -111,7 +111,7 @@ namespace Saturn {
 #define A_MASK  0xFF000000
 #define COLOR_32( R, G, B, A )  (((uint32_t)(A)<<A_SHIFT) | ((uint32_t)(B)<<B_SHIFT) | ((uint32_t)(G)<<G_SHIFT) | ((uint32_t)(R)<<R_SHIFT))
 
-	inline uint32_t AssetTypeToColor( AssetType type )
+	inline constexpr uint32_t AssetTypeToColor( AssetType type )
 	{
 		switch( type )
 		{
@@ -222,7 +222,7 @@ namespace Saturn {
 		const std::filesystem::path& GetPath() const { return Path; }
 		const std::string& GetName() const { return Name; }
 
-		bool IsFlagSet( AssetFlag flag ) const { return ( Flags & ( uint32_t ) flag ) != 0; }
+		constexpr bool IsFlagSet( AssetFlag flag ) const { return ( Flags & ( uint32_t ) flag ) != 0; }
 		uint32_t GetFlags() const { return Flags; }
 
 		void SetFlags( AssetFlag flag, bool value ) 

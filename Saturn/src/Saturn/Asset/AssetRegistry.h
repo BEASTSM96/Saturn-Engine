@@ -53,6 +53,10 @@ namespace Saturn {
 
 		~AssetRegistry();
 
+		// Copies the other asset registry asset map, path and loaded assets into this.
+		// NOTE: This will not copy the assets, this means that assets will still "shared" between them however loading assets into this asset registry will not affect the other.
+		void CopyFrom( const Ref<AssetRegistry>& rOther );
+
 		AssetID CreateAsset( AssetType type );
 		Ref<Asset> FindAsset( AssetID id );
 
