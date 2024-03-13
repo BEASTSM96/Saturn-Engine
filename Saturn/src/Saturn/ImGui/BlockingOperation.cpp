@@ -57,6 +57,14 @@ namespace Saturn {
 		m_JobThread = std::thread( &BlockingOperation::ThreadRun, this );
 	}
 
+	void BlockingOperation::Reset()
+	{
+		m_Progress = 0.0f;
+		m_Status = "";
+		m_Title = "";
+		m_Done = false;
+	}
+
 	void BlockingOperation::ThreadRun()
 	{
 		SetThreadDescription( GetCurrentThread(), L"BlockOperation" );

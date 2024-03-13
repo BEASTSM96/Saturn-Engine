@@ -78,6 +78,7 @@ namespace Saturn {
 
 	bool AssetBundle::BundleAssets()
 	{
+		GetBlockingOperation()->Reset();
 		GetBlockingOperation()->SetTitle( "AssetBundle" );
 
 		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
@@ -94,7 +95,9 @@ namespace Saturn {
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 
-		Ref<AssetRegistry>& AssetBundleRegistry = rAssetManager.GetAssetRegistry();
+		Ref<AssetRegistry> AssetBundleRegistry = Ref<AssetRegistry>::Create();
+		AssetBundleRegistry->CopyFrom( rAssetManager.GetAssetRegistry() );
+
 		auto& rVFS = VirtualFS::Get();
 
 		// Start by dumping all of the assets
@@ -109,7 +112,9 @@ namespace Saturn {
 			{
 				for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 				{
-					RTDumpAsset( asset );
+					SAT_CORE_INFO( "Dumping asset to disk: {0}", asset->Name );
+
+					RTDumpAsset( asset, AssetBundleRegistry );
 
 					std::filesystem::path p = ActiveProject->GetTempDir() / std::to_string( id );
 					p.replace_extension( ".vfs" );
@@ -200,7 +205,7 @@ namespace Saturn {
 			// Compression, allow for files under 500KB (0.5MB) to not be compressed.
 			if( fileSize > 500 * 1024 )
 			{
-				SAT_CORE_INFO( "Compressing file: {0} because file is {1} KB", path.string(), fileSize / 1000 );
+				SAT_CORE_WARN( "Compressing file: {0} because file is {1} KB", path.string(), fileSize / 1000 );
 				
 				GetBlockingOperation()->SetStatus( std::format( "Compressing file: {0}", path.string() ) );
 
@@ -233,14 +238,14 @@ namespace Saturn {
 			{
 				dfh.CompressedSize = dfh.OrginalSize;
 
-				SAT_CORE_INFO( "Not compressing file: {0} because file size is less than 500 KB", path.string() );
+				SAT_CORE_WARN( "Not compressing file: {0} because file size is less than 500 KB", path.string() );
 				GetBlockingOperation()->SetStatus( std::format( "Not Compressing file because file size is less than 500 KB: {0}", path.string() ) );
 
 				RawSerialisation::WriteObject( dfh, fout );
 				RawSerialisation::WriteVector( fileBuffer, fout );
 			}
 
-			GetBlockingOperation()->AddProgress( ( 1.0 + GetBlockingOperation()->GetProgress() ) / DumpFileToAssetID.size() );
+			GetBlockingOperation()->AddProgress( ( 1.0f + GetBlockingOperation()->GetProgress() ) / DumpFileToAssetID.size() );
 		}
 
 		SAT_CORE_INFO( "Packaged {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
@@ -256,15 +261,16 @@ namespace Saturn {
 		// Delete the temp folder as we will no longer be needing it.
 		std::filesystem::remove_all( ActiveProject->GetTempDir() );
 
+		AssetBundleRegistry = nullptr;
+
 		return true;
 	}
 
-	void AssetBundle::RTDumpAsset( const Ref<Asset>& rAsset )
+	void AssetBundle::RTDumpAsset( const Ref<Asset>& rAsset, Ref<AssetRegistry>& AssetBundleRegistry )
 	{
 		std::filesystem::path tempDir = Project::GetActiveProject()->GetRootDir();
 		tempDir /= "Temp";
 
-		Ref<AssetRegistry>& AssetBundleRegistry = AssetManager::Get().GetAssetRegistry();
 		auto& rVFS = VirtualFS::Get();
 
 		UUID id = rAsset->ID;
@@ -320,7 +326,7 @@ namespace Saturn {
 				SceneSerialiser serialiser( scene );
 				serialiser.Deserialise( rAsset->Path );
 
-				scene->SerialiseData();
+				//scene->SerialiseData();
 			} break;
 
 			case Saturn::AssetType::Prefab:

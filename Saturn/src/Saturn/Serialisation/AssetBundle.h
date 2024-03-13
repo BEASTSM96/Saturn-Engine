@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Saturn/Asset/AssetRegistry.h"
+
 #include "Saturn/ImGui/BlockingOperation.h"
 
 namespace Saturn {
@@ -43,7 +45,7 @@ namespace Saturn {
 		static Ref<BlockingOperation>& GetBlockingOperation();
 
 	private:
-		static void RTDumpAsset( const Ref<Asset>& rAsset );
+		static void RTDumpAsset( const Ref<Asset>& rAsset, Ref<AssetRegistry>& AssetBundleRegistry );
 	};
 
 }

@@ -62,6 +62,8 @@ namespace Saturn {
 		void SetProgress( float progress ) { m_Progress = progress; }
 		void AddProgress( float progress ) { m_Progress += progress; }
 
+		void Reset();
+
 	private:
 		void ThreadRun();
 
