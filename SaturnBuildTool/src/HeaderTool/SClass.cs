@@ -2,7 +2,7 @@
 
 namespace SaturnBuildTool
 {
-    // Vaild arguments for SCLASS macro
+    // Valid arguments for SCLASS macro
     [Flags]
     public enum SC
     {

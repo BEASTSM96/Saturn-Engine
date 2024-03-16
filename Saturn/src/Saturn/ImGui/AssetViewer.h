@@ -61,7 +61,7 @@ namespace Saturn {
 		static void Draw();
 		static void Update( Timestep ts );
 		static void ProcessEvent( RubyEvent& rEvent );
-		static void DestoryViewer( AssetID ID );
+		static void DestroyViewer( AssetID ID );
 
 	protected:
 		AssetType m_AssetType = AssetType::Unknown;

@@ -71,17 +71,23 @@ namespace Saturn {
 
 	Scene::Scene()
 	{
-		if( ID == 0 )
-			ID = UUID();
+		SAT_CORE_INFO( "Adding new active scene: Asset ID: {0} SceneID: {1}", ID, m_InternalID );
 
-		s_ActiveScenes[ ID ] = this;
+		s_ActiveScenes[ m_InternalID ] = this;
 		m_SceneEntity = m_Registry.create();
-		m_Registry.emplace<SceneComponent>( m_SceneEntity, ID );
+		m_Registry.emplace<SceneComponent>( m_SceneEntity, m_InternalID );
 	}
 
 	Scene::~Scene()
 	{
-		m_SelectedEntities.clear();
+		Empty();
+
+		s_ActiveScenes.erase( m_InternalID );
+	}
+
+	void Scene::Empty()
+	{
+		ClearSelectedEntities();
 
 		// Destroy All Physics Entities and static meshes
 		{
@@ -94,11 +100,12 @@ namespace Saturn {
 				if( rMeshComponent.Mesh )
 					rMeshComponent.Mesh = nullptr;
 
-				rMeshComponent.MaterialRegistry = nullptr;
+				if( rMeshComponent.MaterialRegistry )
+					rMeshComponent.MaterialRegistry = nullptr;
 			}
 
 			// TODO: Is really needed? As the physics scene will destroy all of this.
-			
+
 			auto rigidBodies = GetAllEntitiesWith<RigidbodyComponent>();
 
 			for( auto& entity : rigidBodies )
@@ -108,15 +115,14 @@ namespace Saturn {
 			}
 		}
 
-		for( auto&& [ id, entity ] : m_EntityIDMap )
+		// Destroy all entities.
+		for( auto&& [id, entity] : m_EntityIDMap )
 		{
 			entity = nullptr;
 		}
 
 		m_EntityIDMap.clear();
 		m_Registry.clear();
-
-		s_ActiveScenes.erase( ID );
 	}
 
 	// TODO: We don't want to search for the main camera entity every frame.

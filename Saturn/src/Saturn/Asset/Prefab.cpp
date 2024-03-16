@@ -71,6 +71,7 @@ namespace Saturn {
 
 	Prefab::~Prefab()
 	{
+		m_Scene = nullptr;
 	}
 
 	void Prefab::Create( const Ref<Entity>& srcEntity )

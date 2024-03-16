@@ -199,7 +199,7 @@ namespace Saturn {
 
 		if( m_Open == false )
 		{
-			AssetViewer::DestoryViewer( m_AssetID );
+			AssetViewer::DestroyViewer( m_AssetID );
 		}
 	}
 
@@ -237,15 +237,10 @@ namespace Saturn {
 
 		m_Open = true;
 
-		Scene* pOldScene = GActiveScene;
-		GActiveScene = m_Scene.Get();
-
-		Ref<Entity> e = Ref<Entity>::Create();
+		Ref<Entity> e = Ref<Entity>::Create( m_Scene.Get() );
 		e->SetName( "InternalViewerEntity" );
 
 		e->AddComponent<StaticMeshComponent>().Mesh = mesh;
-		
-		GActiveScene = pOldScene;
 	}
 
 }

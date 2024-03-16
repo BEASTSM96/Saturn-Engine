@@ -176,7 +176,6 @@ namespace Saturn {
 		static void Deserialise( MaterialRegistry& rRegistry, std::ifstream& rStream );
 
 	private:
-		//std::unordered_map< AssetID, Ref<MaterialAsset> > m_Materials;
 		Ref<StaticMesh> m_Mesh = nullptr;
 		std::vector< Ref<MaterialAsset> > m_Materials;
 

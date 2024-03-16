@@ -100,7 +100,7 @@ namespace Saturn {
 			PhysicsMaterialAssetSerialiser mas;
 			mas.Serialise( m_MaterialAsset );
 
-			AssetViewer::DestoryViewer( m_AssetID );
+			AssetViewer::DestroyViewer( m_AssetID );
 		}
 	}
 

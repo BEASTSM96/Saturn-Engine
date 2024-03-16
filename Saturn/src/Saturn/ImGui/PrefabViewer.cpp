@@ -141,7 +141,7 @@ namespace Saturn {
 			PrefabSerialiser ps;
 			ps.Serialise( m_Prefab );
 
-			AssetViewer::DestoryViewer( m_AssetID );
+			AssetViewer::DestroyViewer( m_AssetID );
 		}
 	}
 

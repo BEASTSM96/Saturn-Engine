@@ -93,7 +93,7 @@ namespace Saturn {
 		}
 	}
 
-	void AssetViewer::DestoryViewer( AssetID ID )
+	void AssetViewer::DestroyViewer( AssetID ID )
 	{
 		s_PendingAssetViewers.push_back( ID );
 	}

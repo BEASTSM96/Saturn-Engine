@@ -67,7 +67,7 @@ namespace Saturn {
 
 	Entity::Entity( Scene* scene )
 	{
-		m_Scene = GActiveScene;
+		m_Scene = scene;
 		m_EntityHandle = m_Scene->CreateHandle();
 
 		AddComponent<IdComponent>();

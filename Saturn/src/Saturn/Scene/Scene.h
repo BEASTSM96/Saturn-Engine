@@ -208,6 +208,7 @@ namespace Saturn {
 
 	public:
 		void CopyScene( Ref<Scene>& NewScene );
+		void Empty();
 
 		bool m_RuntimeRunning = false;
 
@@ -312,6 +313,8 @@ namespace Saturn {
 
 		// TODO: Change raw pointer to Ref?
 		PhysicsScene* m_PhysicsScene = nullptr;
+
+		UUID m_InternalID;
 	private:
 
 		friend class Entity;

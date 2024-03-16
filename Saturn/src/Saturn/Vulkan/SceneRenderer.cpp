@@ -1102,8 +1102,6 @@ namespace Saturn {
 		{
 			StaticMeshKey key = { mesh->ID, materialRegistry, ( uint32_t ) i };
 
-			glm::mat4 submeshTransform = transform * submeshes[ i ].Transform;
-
 			auto& command = m_PhysicsColliderDrawList[ key ];
 			command.entity = entity;
 			command.Mesh = mesh;

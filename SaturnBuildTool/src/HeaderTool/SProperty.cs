@@ -2,7 +2,7 @@
 
 namespace SaturnBuildTool
 {
-    // Vaild arguments for SPROPERTY macro
+    // Valid arguments for SPROPERTY macro
     [Flags]
     public enum SP
     {

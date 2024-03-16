@@ -38,6 +38,7 @@
 #include <fstream>
 
 #include <yaml-cpp/yaml.h>
+#include "yaml-cpp/node/node.h"
 
 namespace Saturn {
 
@@ -65,7 +66,7 @@ namespace Saturn {
 
 	SceneSerialiser::~SceneSerialiser()
 	{
-
+		m_Scene = nullptr;
 	}
 
 	void SceneSerialiser::Serialise()
@@ -117,11 +118,12 @@ namespace Saturn {
 		if( !data[ "Scene" ] )
 			return;
 
-		std::string sceneName = data[ "Scene" ].as< std::string >();
-		SAT_CORE_INFO( "Deserialising scene '{0}'", sceneName );
+		SAT_CORE_INFO( "Deserialising scene '{0}'", m_Scene->Name );
 
 		auto entities = data[ "Entities" ];
 		DeserialiseEntities( entities, m_Scene );
+
+		FileIn.close();
 	}
 
 }
