@@ -950,7 +950,7 @@ void RubyWindowsBackend::SetClipboardText( const std::wstring& rTextData )
 
 const char* RubyWindowsBackend::GetClipboardText()
 {
-	const char* result;
+	const char* result = nullptr;
 
 	// Try open the clipboard.
 	if( ::OpenClipboard( m_Handle ) )

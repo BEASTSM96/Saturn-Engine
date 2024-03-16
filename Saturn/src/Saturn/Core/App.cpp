@@ -70,7 +70,6 @@ namespace Saturn {
 		width = 3 * rPrimaryMonitor.MonitorSize.x / 4;
 		height = 3 * rPrimaryMonitor.MonitorSize.y / 4;
 
-		// TEMP! Vulkan does not like default windows for some reason?
 		RubyStyle WindowStyle = HasFlag( ApplicationFlag_Titlebar ) ? RubyStyle::Default : RubyStyle::Borderless;
 
 		RubyWindowSpecification windowSpec { .Name = "Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = WindowStyle, .ShowNow = false };
