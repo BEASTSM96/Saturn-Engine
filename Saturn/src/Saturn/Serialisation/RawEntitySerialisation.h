@@ -36,6 +36,6 @@ namespace Saturn {
 	{
 	public:
 		static void SerialiseEntity( Ref<Entity>& rEntity, std::ofstream& rStream );
-		static void DeserialiseEntity( Ref<Entity>& rEntity, std::ifstream& rStream );
+		static void DeserialiseEntity( Ref<Entity>& rEntity, std::istream& rStream );
 	};
 }

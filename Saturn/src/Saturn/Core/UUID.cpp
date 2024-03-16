@@ -59,7 +59,7 @@ namespace Saturn {
 		RawSerialisation::WriteObject( rObject.m_UUID, rStream );
 	}
 
-	void UUID::Deserialise( UUID& rObject, std::ifstream& rStream )
+	void UUID::Deserialise( UUID& rObject, std::istream& rStream )
 	{
 		RawSerialisation::ReadObject( rObject.m_UUID, rStream );
 	}

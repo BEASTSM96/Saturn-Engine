@@ -50,6 +50,9 @@
 
 #include "Saturn/ImGui/EditorIcons.h"
 
+#include "Saturn/Core/VirtualFS.h"
+#include "Saturn/Core/MemoryStream.h"
+
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -71,7 +74,7 @@ namespace Saturn {
 
 	Scene::Scene()
 	{
-		SAT_CORE_INFO( "Adding new active scene: Asset ID: {0} SceneID: {1}", ID, m_InternalID );
+		SAT_CORE_INFO( "Created new scene: Asset ID: {0} SceneID: {1}", ID, m_InternalID );
 
 		s_ActiveScenes[ m_InternalID ] = this;
 		m_SceneEntity = m_Registry.create();
@@ -661,7 +664,7 @@ namespace Saturn {
 	
 	void Scene::SerialiseInternal( std::ofstream& rStream )
 	{
-		RawSerialisation::WriteObject( m_Lights, rStream );
+		Lights::Serialise( m_Lights, rStream );
 
 		// Serialise the map manually.
 		size_t mapSize = m_EntityIDMap.size();
@@ -679,23 +682,22 @@ namespace Saturn {
 
 	void Scene::DeserialiseData()
 	{
-		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
-		out /= std::to_string( ID );
-		out.replace_extension( ".vfs" );
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, Path );
 
-		std::ifstream stream( out, std::ios::binary | std::ios::trunc );
+		PakFileMemoryBuffer membuf( file->FileContents );
+
+		std::istream stream( &membuf );
 
 		/////////////////////////////////////
 
 		DeserialiseInternal( stream );
-
-		stream.close();
 	}
 
 	template<typename IStream>
 	void Scene::DeserialiseInternal( IStream& rStream )
 	{
-		RawSerialisation::ReadObject( m_Lights, rStream );
+		Lights::Deserialise( m_Lights, rStream );
 
 		// Read the map manually.
 		size_t mapSize = 0;
@@ -711,19 +713,10 @@ namespace Saturn {
 			Ref<Entity> V = Ref<Entity>::Create();
 
 			// K is always trivial
-			if constexpr( std::is_trivial<entt::entity>() )
-			{
-				RawSerialisation::ReadObject( K, rStream );
-			}
+			RawSerialisation::ReadObject( K, rStream );
 
-			if constexpr( std::is_trivial<Entity>() )
-			{
-				RawSerialisation::ReadObject( V, rStream );
-			}
-			else
-			{
-				Entity::Deserialise( V, rStream );
-			}
+			// V is always non-trivial
+			Entity::Deserialise( V, rStream );
 
 			m_EntityIDMap[ K ] = V;
 		}

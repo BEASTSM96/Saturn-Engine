@@ -37,7 +37,8 @@
 
 namespace Saturn {
 
-	static AssetID s_DefaultPhysicsMaterial = 13151293699070629621;
+//	static AssetID s_DefaultPhysicsMaterial = 13151293699070629621;
+	static AssetID s_DefaultPhysicsMaterial = 1421817985369887560;
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -84,7 +85,7 @@ namespace Saturn {
 		physx::PxMaterial* mat = nullptr;
 
 		if( mesh->GetPhysicsMaterial() == 0 || mesh->GetPhysicsMaterial() == s_DefaultPhysicsMaterial )
-			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Game );
 		else
 			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( mesh->GetPhysicsMaterial() );
 			
@@ -137,7 +138,7 @@ namespace Saturn {
 		physx::PxMaterial* mat = nullptr;
 
 		if( mesh->GetPhysicsMaterial() == 0 || mesh->GetPhysicsMaterial() == s_DefaultPhysicsMaterial )
-			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Game );
 		else
 			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( mesh->GetPhysicsMaterial() );
 
@@ -192,7 +193,7 @@ namespace Saturn {
 		physx::PxMaterial* mat = nullptr;
 
 		if( mesh->GetPhysicsMaterial() == 0 || mesh->GetPhysicsMaterial() == s_DefaultPhysicsMaterial )
-			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Game );
 		else
 			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( mesh->GetPhysicsMaterial() );
 

@@ -70,7 +70,6 @@ namespace Saturn {
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
 
 		SAT_CORE_ASSERT( Project::GetActiveProject(), "No project was given." );
-
 #endif
 
 		VirtualFS::Get().MountBase( Project::GetActiveConfig().Name, rUserSettings.StartupProject );
@@ -106,11 +105,11 @@ namespace Saturn {
 		Ref<Asset> asset = AssetManager::Get().FindAsset( id );
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
+		newScene->Path = asset->Path;
+
 		Scene::SetActiveScene( newScene.Get() );
 		
-		auto fullPath = Project::GetActiveProject()->FilepathAbs( asset->Path );
-		SceneSerialiser serialiser( newScene );
-		serialiser.Deserialise();
+		newScene->DeserialiseData();
 
 		m_RuntimeScene = nullptr;
 		m_RuntimeScene = newScene;

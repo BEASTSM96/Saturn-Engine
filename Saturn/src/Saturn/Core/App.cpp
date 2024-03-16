@@ -92,6 +92,9 @@ namespace Saturn {
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
 			m_Window->Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
 
+		// Right before we create any thread, lets get the main thread id and handle.
+		m_MainThreadID = std::this_thread::get_id();
+
 		// Lazy load.
 		AudioSystem::Get();
 		RenderThread::Get().Enable( HasFlag( ApplicationFlag_UseGameThread ) );
@@ -245,6 +248,30 @@ namespace Saturn {
 			std::filesystem::create_directories( path );
 
 		return path;
+	}
+
+	void Application::SuspendMainThreadCV()
+	{
+		if( std::this_thread::get_id() == m_MainThreadID )
+		{
+			SAT_CORE_WARN( "Cannot suspend main thread if the current thread is the main thread, this will result in a deadlock!" );
+			return;
+		}
+
+		bool complete = false;
+		SubmitOnMainThread( [&]() 
+			{
+				std::unique_lock<std::mutex> lock( m_Mutex );
+				complete = true;
+				m_BlockCV.wait( lock );
+			} );
+
+		while( !complete ) std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
+	}
+
+	void Application::ResumeMainThreadCV()
+	{
+		m_BlockCV.notify_all();
 	}
 
 	std::string Application::OpenFile( const char* pFilter ) const

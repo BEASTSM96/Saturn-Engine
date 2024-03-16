@@ -104,7 +104,7 @@ namespace Saturn {
 		m_Scene->SerialiseInternal( rStream );
 	}
 
-	void Prefab::DeserialisePrefab( std::ifstream& rStream )
+	void Prefab::DeserialisePrefab( std::istream& rStream )
 	{
 		Create();
 

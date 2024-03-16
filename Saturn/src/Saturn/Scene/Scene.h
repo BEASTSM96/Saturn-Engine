@@ -109,7 +109,8 @@ namespace Saturn {
 			RawSerialisation::WriteObject( rObject.Falloff, rStream );
 		}
 
-		static void Deserialise( PointLight& rObject, std::ifstream& rStream )
+		template<typename IStream>
+		static void Deserialise( PointLight& rObject, IStream& rStream )
 		{
 			RawSerialisation::ReadVec3( rObject.Position, rStream );
 			RawSerialisation::ReadVec3( rObject.Radiance, rStream );
@@ -139,7 +140,8 @@ namespace Saturn {
 			RawSerialisation::WriteObject( rObject.DirectionalLights[ 3 ], rStream );
 		}
 
-		static void Deserialise( Lights& rObject, std::ifstream& rStream )
+		template<typename IStream>
+		static void Deserialise( Lights& rObject, IStream& rStream )
 		{
 			RawSerialisation::ReadVector( rObject.PointLights, rStream );
 

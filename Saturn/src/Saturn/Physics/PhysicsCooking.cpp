@@ -39,7 +39,8 @@
 
 namespace Saturn {
 
-	static AssetID s_DefaultPhysicsMaterial = 13151293699070629621;
+//	static AssetID s_DefaultPhysicsMaterial = 13151293699070629621;
+	static AssetID s_DefaultPhysicsMaterial = 1421817985369887560;
 
 	PhysicsCooking::PhysicsCooking()
 	{
@@ -241,7 +242,7 @@ namespace Saturn {
 
 		if( materialID == 0 || materialID == s_DefaultPhysicsMaterial )
 		{
-			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Game );
 
 			pMaterial = &asset->GetMaterial();
 		}
@@ -314,7 +315,7 @@ namespace Saturn {
 
 		if( materialID == 0 || materialID == s_DefaultPhysicsMaterial )
 		{
-			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Editor );
+			Ref<PhysicsMaterialAsset> asset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Game );
 
 			pMaterial = &asset->GetMaterial();
 		}

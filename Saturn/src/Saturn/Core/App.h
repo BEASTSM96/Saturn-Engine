@@ -108,7 +108,7 @@ namespace Saturn {
 		SceneRenderer& PrimarySceneRenderer() { return *m_SceneRenderer; }
 		RubyWindow* GetWindow() { return m_Window; }
 
-		void SubmitOnMainThread( std::function<void()>&& rrFunction ) 
+		void SubmitOnMainThread( std::function<void()>&& rrFunction )
 		{
 			m_MainThreadQueue.push_back( std::move( rrFunction ) );
 		}
@@ -122,6 +122,9 @@ namespace Saturn {
 		}
 
 		std::filesystem::path GetAppDataFolder();
+
+		void SuspendMainThreadCV();
+		void ResumeMainThreadCV();
 
 	protected:
 
@@ -155,6 +158,11 @@ namespace Saturn {
 
 		// TODO: Change all of these to refs, I really don't like this.
 		VulkanContext* m_VulkanContext = nullptr;
+
+		// Concurrency (threading) stuff
+		std::thread::id m_MainThreadID;
+		std::condition_variable m_BlockCV;
+		std::mutex m_Mutex;
 
 		std::vector<std::function<void()>> m_MainThreadQueue;
 	};

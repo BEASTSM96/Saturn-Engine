@@ -174,17 +174,7 @@ namespace Saturn {
 
 	public:
 		void SerialiseData( std::ofstream& rStream );
-		void SerialiseData( std::ostringstream& rStream );
-		
-		void DeserialiseData( std::ifstream& rStream );
 		void DeserialiseData( std::istream& rStream );
-
-	private:
-		template<typename OStream>
-		void SerialiseMesh( OStream& rStream );
-		
-		template<typename IStream>
-		void DeserialiseMesh( IStream& rStream );
 
 	private:
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );

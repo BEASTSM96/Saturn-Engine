@@ -30,6 +30,7 @@
 #include "RawEntitySerialisation.h"
 
 #include "RawSerialisation.h"
+#include "Saturn/Asset/AssetManager.h"
 
 namespace Saturn {
 
@@ -46,8 +47,8 @@ namespace Saturn {
 		}
 	}
 
-	template<typename Component, typename Func>
-	void ReadComponent( Ref<Entity>& rEntity, std::ifstream& rStream, Func Function )
+	template<typename Component, typename IStream, typename Func>
+	void ReadComponent( Ref<Entity>& rEntity, IStream& rStream, Func Function )
 	{
 		bool hadT = false;
 		RawSerialisation::ReadObject( hadT, rStream );
@@ -122,7 +123,7 @@ namespace Saturn {
 				RawSerialisation::WriteObject( HasRegistry, rStream );
 
 				if( HasRegistry )
-					RawSerialisation::WriteObject( mc.MaterialRegistry, rStream );
+					MaterialRegistry::Serialise( mc.MaterialRegistry, rStream );
 			} );
 
 		// Script Component
@@ -233,7 +234,7 @@ namespace Saturn {
 			} );
 	}
 
-	void RawEntitySerialisation::DeserialiseEntity( Ref<Entity>& rEntity, std::ifstream& rStream )
+	void RawEntitySerialisation::DeserialiseEntity( Ref<Entity>& rEntity, std::istream& rStream )
 	{
 		RawSerialisation::ReadObject( rEntity->GetComponent<IdComponent>().ID, rStream );
 		
@@ -291,12 +292,30 @@ namespace Saturn {
 
 				RawSerialisation::ReadObject( ID, rStream );
 
-				bool HasRegistry = mc.MaterialRegistry != nullptr;
-
+				bool HasRegistry = false;
 				RawSerialisation::ReadObject( HasRegistry, rStream );
 
+				mc.MaterialRegistry = Ref<MaterialRegistry>::Create();
+
 				if( HasRegistry )
-					RawSerialisation::ReadObject( mc.MaterialRegistry, rStream );
+					MaterialRegistry::Deserialise( mc.MaterialRegistry, rStream );
+
+				if( ID != 0 )
+				{
+					// Load Mesh
+					auto mesh = AssetManager::Get().GetAssetAs<StaticMesh>( ID );
+					mc.Mesh = mesh;
+				
+					if( mc.MaterialRegistry->HasAnyOverrides() ) 
+					{
+					}
+					else
+					{
+						mc.MaterialRegistry->Copy( mc.Mesh->GetMaterialRegistry() );
+					}
+
+					mc.MaterialRegistry->SetMesh( mc.Mesh );
+				}
 			} );
 
 		// Script Component

@@ -138,6 +138,7 @@ namespace Saturn {
 			RawSerialisation::WriteObject( rObject.Stage, rStream );
 			RawSerialisation::WriteObject( rObject.Set, rStream );
 			RawSerialisation::WriteObject( rObject.Binding, rStream );
+			RawSerialisation::WriteObject( rObject.ArraySize, rStream );
 		}
 
 		static void Deserialise( ShaderSampledImage& rObject, std::ifstream& rStream )
@@ -147,6 +148,7 @@ namespace Saturn {
 			RawSerialisation::ReadObject( rObject.Stage, rStream );
 			RawSerialisation::ReadObject( rObject.Set, rStream );
 			RawSerialisation::ReadObject( rObject.Binding, rStream );
+			RawSerialisation::ReadObject( rObject.ArraySize, rStream );
 		}
 	};
 

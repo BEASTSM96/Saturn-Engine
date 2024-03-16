@@ -61,7 +61,7 @@ namespace Saturn {
 
 	public:
 		void SerialisePrefab( std::ofstream& rStream );
-		void DeserialisePrefab( std::ifstream& rStream );
+		void DeserialisePrefab( std::istream& rStream );
 
 	private:
 		Ref<Entity> CreateFromEntity( Ref<Entity> srcEntity );

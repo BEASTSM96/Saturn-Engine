@@ -158,7 +158,7 @@ namespace Saturn {
 		VkInstanceCreateInfo InstanceInfo ={ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 		InstanceInfo.pApplicationInfo = &AppInfo;
 
-#if !defined( SAT_DIST )
+#if 1
 		Extensions.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
 
 		{

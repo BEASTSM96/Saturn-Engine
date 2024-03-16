@@ -338,7 +338,7 @@ namespace Saturn {
 			Ref<Entity> DeserialisedEntity = nullptr;
 
 			auto srcc = entity[ "ScriptComponent" ];
-			if( srcc )
+			if( false )
 			{
 				std::string ScriptName = srcc[ "Name" ].as< std::string >();
 

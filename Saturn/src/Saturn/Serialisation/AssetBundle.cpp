@@ -105,32 +105,40 @@ namespace Saturn {
 
 		std::unordered_map<std::filesystem::path, AssetID> DumpFileToAssetID;
 
-		bool DumpedAllFiles = false;
+		GetBlockingOperation()->SetTitle( "Loading assets..." );
 
-		// Submit on the main thread because we will get threading issue with vulkan when loading static meshes.
-		Application::Get().SubmitOnMainThread( [&]() 
-			{
-				for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
-				{
-					SAT_CORE_INFO( "Dumping asset to disk: {0}", asset->Name );
+		// THREAD-TRANSTION, Block main thread
+		Application::Get().SuspendMainThreadCV();
 
-					RTDumpAsset( asset, AssetBundleRegistry );
-
-					std::filesystem::path p = ActiveProject->GetTempDir() / std::to_string( id );
-					p.replace_extension( ".vfs" );
-
-					DumpFileToAssetID[ p ] = id;
-				}
-
-				DumpedAllFiles = true;
-			} );
-
-		// Wait for main thread to dump all of the assets.
-		while( !DumpedAllFiles )
+		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
 		{
-			using namespace std::chrono_literals;
-			std::this_thread::sleep_for( 1ms );
+			SAT_CORE_INFO( "Dumping asset to disk: {0}", asset->Name );
+
+			RTDumpAsset( asset, AssetBundleRegistry );
+
+			std::filesystem::path p = ActiveProject->GetTempDir() / std::to_string( id );
+			p.replace_extension( ".vfs" );
+
+			DumpFileToAssetID[ p ] = id;
 		}
+
+		for( auto& [id, asset] : AssetBundleRegistry->GetAssetMap() )
+		{
+			if( asset->Type != AssetType::Scene )
+				continue;
+
+			Ref<Scene> scene = Ref<Scene>::Create();
+			scene->Path = asset->Path;
+			scene->ID = asset->ID;
+
+			SceneSerialiser serialiser( scene );
+			serialiser.Deserialise();
+
+			scene->SerialiseData();
+		}
+
+		// THREAD-TRANSTION, Resume main thread
+		Application::Get().ResumeMainThreadCV();
 
 		SAT_CORE_INFO( "Dumped {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
 
@@ -143,7 +151,7 @@ namespace Saturn {
 	
 		AssetBundleHeader header{};
 		header.Assets = rAssetManager.GetAssetRegistrySize();
-		header.Version = 1;
+		header.Version = SAT_CURRENT_VERISON;
 
 		RawSerialisation::WriteObject( header, fout );
 
@@ -317,18 +325,6 @@ namespace Saturn {
 				serialiser.DumpAndWriteToVFS( physAsset );
 			} break;
 
-			case Saturn::AssetType::Scene:
-			{
-				Ref<Scene> scene = Ref<Scene>::Create();
-				scene->ID = rAsset->ID;
-				scene->Path = rAsset->Path;
-
-				SceneSerialiser serialiser( scene );
-				serialiser.Deserialise( rAsset->Path );
-
-				//scene->SerialiseData();
-			} break;
-
 			case Saturn::AssetType::Prefab:
 			{
 				Ref<Prefab> prefabAsset = AssetBundleRegistry->GetAssetAs<Prefab>( id );
@@ -340,6 +336,7 @@ namespace Saturn {
 				}
 			} break;
 
+			case Saturn::AssetType::Scene:
 			case Saturn::AssetType::SkeletalMesh:
 			case Saturn::AssetType::MaterialInstance:
 			case Saturn::AssetType::Audio:
@@ -368,8 +365,17 @@ namespace Saturn {
 
 		if( strcmp( header.Magic, ".AB\0" ) )
 		{
-			SAT_CORE_ERROR( "Invalid asset bundle file header!" );
+			SAT_CORE_ERROR( "Invalid asset bundle file header or corrupt asset bundle file!" );
 			return false;
+		}
+
+		if( header.Version != SAT_CURRENT_VERISON )
+		{
+			std::string decodedAssetBundleVer;
+			SAT_DECODE_VER_STRING( header.Version, decodedAssetBundleVer );
+			
+			SAT_CORE_ERROR( "Asset bundle version mismatch! This should not happen. Asset bundle version is: {0} while current Engine version is: {1}.", decodedAssetBundleVer, SAT_CURRENT_VERISON_STRING );
+			SAT_CORE_WARN( "The engine will continue to load however this may result in the asset bundle not loading! Please rebuild the asset bundle!");
 		}
 
 		AssetManager& rAssetManager = AssetManager::Get();
@@ -415,6 +421,12 @@ namespace Saturn {
 			{
 				SAT_CORE_ERROR( "Asset ID's do not match!" );
 				break;
+			}
+
+			if( dfh.Version != SAT_CURRENT_VERISON ) 
+			{
+				SAT_CORE_ERROR( "Pack file version mismatch!" );
+				// For now continue loading this current file however in future maybe try to upgrade this file to the current verison.
 			}
 
 			// Find the VFile

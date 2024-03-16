@@ -521,11 +521,43 @@ namespace Saturn {
 	void MaterialRegistry::Serialise( const MaterialRegistry& rRegistry, std::ofstream& rStream )
 	{
 		RawSerialisation::WriteVector( rRegistry.m_HasOverridden, rStream );
+
+		size_t mapSize = rRegistry.m_Materials.size();
+		RawSerialisation::WriteObject( mapSize, rStream );
+
+		for( const auto& rMaterial : rRegistry.m_Materials )
+		{
+			RawSerialisation::WriteObject( rMaterial->ID, rStream );
+		}
 	}
 
-	void MaterialRegistry::Deserialise( MaterialRegistry& rRegistry, std::ifstream& rStream )
+	void MaterialRegistry::Serialise( const Ref<MaterialRegistry>& rRegistry, std::ofstream& rStream )
 	{
-		RawSerialisation::ReadVector( rRegistry.m_HasOverridden, rStream );
+		RawSerialisation::WriteVector( rRegistry->m_HasOverridden, rStream );
+		
+		size_t mapSize = rRegistry->m_Materials.size();
+		RawSerialisation::WriteObject( mapSize, rStream );
+
+		for( const auto& rMaterial : rRegistry->m_Materials )
+		{
+			RawSerialisation::WriteObject( rMaterial->ID, rStream );
+		}
 	}
 
+	void MaterialRegistry::Deserialise( Ref<MaterialRegistry>& rRegistry, std::istream& rStream )
+	{
+		RawSerialisation::ReadVector( rRegistry->m_HasOverridden, rStream );
+
+		size_t mapSize = 0;
+		RawSerialisation::ReadObject( mapSize, rStream );
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			UUID MaterialID;
+			RawSerialisation::ReadObject( MaterialID, rStream );
+
+			Ref<MaterialAsset> asset = AssetManager::Get().GetAssetAs<MaterialAsset>( MaterialID );
+			rRegistry->m_Materials.push_back( asset );
+		}
+	}
 }

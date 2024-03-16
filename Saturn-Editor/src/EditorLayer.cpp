@@ -153,7 +153,7 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Setup Project for Distribution" ) )
 				{
-					Project::GetActiveProject()->PrepForDist();
+					//Project::GetActiveProject()->PrepForDist();
 
 					// Make sure we will include the Texture Pass shader.
 					// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
@@ -174,6 +174,16 @@ namespace Saturn {
 						} );
 
 					m_BlockingOperation->Execute();
+				}
+
+				if( ImGui::MenuItem( "Build Shader Bundle" ) )
+				{
+					Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
+
+					ShaderBundle::BundleShaders();
+
+					ShaderLibrary::Get().Remove( TexturePass );
+					TexturePass = nullptr;
 				}
 
 #if defined( SAT_DEBUG )
@@ -545,7 +555,6 @@ namespace Saturn {
 			serialiser.Deserialise( asset->Path );
 		}
 
-		m_EditorScene = nullptr;
 		m_EditorScene = newScene;
 
 		m_EditorScene->Name = asset->Name;

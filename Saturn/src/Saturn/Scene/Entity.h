@@ -148,7 +148,7 @@ namespace Saturn {
 
 	public:
 		static void Serialise( const Ref<Entity>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Entity>& rObject, std::ifstream& rStream );
+		static void Deserialise( Ref<Entity>& rObject, std::istream& rStream );
 
 	protected:
 

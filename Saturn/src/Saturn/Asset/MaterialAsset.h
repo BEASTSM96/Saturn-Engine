@@ -173,7 +173,9 @@ namespace Saturn {
 
 	public:
 		static void Serialise( const MaterialRegistry& rRegistry, std::ofstream& rStream );
-		static void Deserialise( MaterialRegistry& rRegistry, std::ifstream& rStream );
+		static void Serialise( const Ref<MaterialRegistry>& rRegistry, std::ofstream& rStream );
+		
+		static void Deserialise( Ref<MaterialRegistry>& rRegistry, std::istream& rStream );
 
 	private:
 		Ref<StaticMesh> m_Mesh = nullptr;

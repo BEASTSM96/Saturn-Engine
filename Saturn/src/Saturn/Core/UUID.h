@@ -52,7 +52,7 @@ namespace Saturn {
 
 	public:
 		static void Serialise( const UUID& rObject, std::ofstream& rStream );
-		static void Deserialise( UUID& rObject, std::ifstream& rStream );
+		static void Deserialise( UUID& rObject, std::istream& rStream );
 
 	private:
 
