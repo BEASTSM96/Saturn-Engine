@@ -113,8 +113,11 @@ namespace Saturn {
 
 			for( auto& entity : rigidBodies )
 			{
-				if( entity->GetComponent<RigidbodyComponent>().Rigidbody )
+				if( entity->GetComponent<RigidbodyComponent>().Rigidbody ) 
+				{
 					delete entity->GetComponent<RigidbodyComponent>().Rigidbody;
+					entity->GetComponent<RigidbodyComponent>().Rigidbody = nullptr;
+				}
 			}
 		}
 
@@ -670,10 +673,19 @@ namespace Saturn {
 		size_t mapSize = m_EntityIDMap.size();
 		rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
 
-		for( const auto& [k, v] : m_EntityIDMap )
+		for( auto& [k, v] : m_EntityIDMap )
 		{
 			// K (entt::entity) is always trivial
 			RawSerialisation::WriteObject( k, rStream );
+
+			bool isScriptClass = v->HasComponent<ScriptComponent>();
+			RawSerialisation::WriteObject( isScriptClass, rStream );
+
+			if( isScriptClass )
+			{
+				std::string name = v->GetComponent<ScriptComponent>().ScriptName;
+				RawSerialisation::WriteString( name, rStream );
+			}
 
 			// V (Entity) is not trivial
 			Entity::Serialise( v, rStream );
@@ -710,10 +722,24 @@ namespace Saturn {
 		for( size_t i = 0; i < mapSize; i++ )
 		{
 			entt::entity K{};
-			Ref<Entity> V = Ref<Entity>::Create();
 
 			// K is always trivial
 			RawSerialisation::ReadObject( K, rStream );
+
+			bool isScriptClass = false;
+			RawSerialisation::ReadObject( isScriptClass, rStream );
+
+			Ref<Entity> V = nullptr;
+
+			if( isScriptClass )
+			{
+				std::string className = RawSerialisation::ReadString( rStream );
+				V = GameModule::Get().CreateEntity( className );
+			}
+			else
+			{
+				V = Ref<Entity>::Create();
+			}
 
 			// V is always non-trivial
 			Entity::Deserialise( V, rStream );

@@ -78,8 +78,8 @@ public:
 	void SetClipboardText( const std::string& rTextData ) override;
 	void SetClipboardText( const std::wstring& rTextData ) override;
 	
-	const const char* GetClipboardText() override;
-	const const wchar_t* GetClipboardTextW() override;
+	const char* GetClipboardText() override;
+	const wchar_t* GetClipboardTextW() override;
 
 	void PollEvents() override;
 	bool PendingClose() override;

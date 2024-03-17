@@ -338,12 +338,12 @@ namespace Saturn {
 			Ref<Entity> DeserialisedEntity = nullptr;
 
 			auto srcc = entity[ "ScriptComponent" ];
-			if( false )
+			if( srcc )
 			{
 				std::string ScriptName = srcc[ "Name" ].as< std::string >();
 
 				// Ask the game module to create the entity.
-				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, ScriptName );
+				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, "Barn" );
 
 				auto& s = DeserialisedEntity->AddComponent< ScriptComponent >();
 

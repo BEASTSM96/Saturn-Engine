@@ -306,14 +306,11 @@ namespace Saturn {
 					auto mesh = AssetManager::Get().GetAssetAs<StaticMesh>( ID );
 					mc.Mesh = mesh;
 				
-					if( mc.MaterialRegistry->HasAnyOverrides() ) 
-					{
-					}
-					else
+					if( !mc.MaterialRegistry->HasAnyOverrides() ) 
 					{
 						mc.MaterialRegistry->Copy( mc.Mesh->GetMaterialRegistry() );
 					}
-
+					
 					mc.MaterialRegistry->SetMesh( mc.Mesh );
 				}
 			} );

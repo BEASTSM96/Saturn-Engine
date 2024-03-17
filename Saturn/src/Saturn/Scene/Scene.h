@@ -77,7 +77,8 @@ namespace Saturn {
 			RawSerialisation::WriteObject( rObject.Intensity, rStream );
 		}
 
-		static void Deserialise( DirectionalLight& rObject, std::ifstream& rStream )
+		template<typename IStream>
+		static void Deserialise( DirectionalLight& rObject, IStream& rStream )
 		{
 			RawSerialisation::ReadVec3( rObject.Direction, rStream );
 			RawSerialisation::ReadVec3( rObject.Radiance, rStream );
@@ -134,10 +135,10 @@ namespace Saturn {
 		{
 			RawSerialisation::WriteVector( rObject.PointLights, rStream );
 
-			RawSerialisation::WriteObject( rObject.DirectionalLights[ 0 ], rStream );
-			RawSerialisation::WriteObject( rObject.DirectionalLights[ 1 ], rStream );
-			RawSerialisation::WriteObject( rObject.DirectionalLights[ 2 ], rStream );
-			RawSerialisation::WriteObject( rObject.DirectionalLights[ 3 ], rStream );
+			DirectionalLight::Serialise( rObject.DirectionalLights[ 0 ], rStream );
+			DirectionalLight::Serialise( rObject.DirectionalLights[ 1 ], rStream );
+			DirectionalLight::Serialise( rObject.DirectionalLights[ 2 ], rStream );
+			DirectionalLight::Serialise( rObject.DirectionalLights[ 3 ], rStream );
 		}
 
 		template<typename IStream>
@@ -145,10 +146,10 @@ namespace Saturn {
 		{
 			RawSerialisation::ReadVector( rObject.PointLights, rStream );
 
-			RawSerialisation::ReadObject( rObject.DirectionalLights[ 0 ], rStream );
-			RawSerialisation::ReadObject( rObject.DirectionalLights[ 1 ], rStream );
-			RawSerialisation::ReadObject( rObject.DirectionalLights[ 2 ], rStream );
-			RawSerialisation::ReadObject( rObject.DirectionalLights[ 3 ], rStream );
+			DirectionalLight::Deserialise( rObject.DirectionalLights[ 0 ], rStream );
+			DirectionalLight::Deserialise( rObject.DirectionalLights[ 1 ], rStream );
+			DirectionalLight::Deserialise( rObject.DirectionalLights[ 2 ], rStream );
+			DirectionalLight::Deserialise( rObject.DirectionalLights[ 3 ], rStream );
 		}
 	};
 
