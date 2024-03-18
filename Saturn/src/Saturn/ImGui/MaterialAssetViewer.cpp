@@ -54,6 +54,9 @@ namespace Saturn {
 
 	MaterialAssetViewer::~MaterialAssetViewer()
 	{
+		m_HostMaterialAsset = nullptr;
+		m_EditingMaterial = nullptr;
+
 		m_NodeEditor = nullptr;
 	}
 
@@ -240,8 +243,17 @@ namespace Saturn {
 
 	void MaterialAssetViewer::DrawInternal()
 	{
-		if( m_NodeEditor->IsOpen() )
+		if( m_NodeEditor->IsOpen() ) 
+		{
 			m_NodeEditor->OnImGuiRender(); 
+		}
+		else if( m_HostMaterialAsset )
+		{
+			m_NodeEditor->Open( false );
+			m_Open = false;
+
+			DestroyViewer( m_AssetID );
+		}
 	}
 
 	NodeEditorCompilationStatus MaterialAssetViewer::CheckOutputNodeInput( int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker, Ref<MaterialAsset>& rMaterialAsset )

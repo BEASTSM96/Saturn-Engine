@@ -151,7 +151,7 @@ namespace Saturn {
 	
 		AssetBundleHeader header{};
 		header.Assets = rAssetManager.GetAssetRegistrySize();
-		header.Version = SAT_CURRENT_VERISON;
+		header.Version = SAT_CURRENT_VERSION;
 
 		RawSerialisation::WriteObject( header, fout );
 
@@ -197,7 +197,7 @@ namespace Saturn {
 
 			DumpFileHeader dfh;
 			dfh.Asset = DumpFileToAssetID.at( path );
-			dfh.Version = SAT_CURRENT_VERISON;
+			dfh.Version = SAT_CURRENT_VERSION;
 			dfh.OrginalSize = fileSize;
 			dfh.Offset = offset;
 
@@ -369,12 +369,12 @@ namespace Saturn {
 			return false;
 		}
 
-		if( header.Version != SAT_CURRENT_VERISON )
+		if( header.Version != SAT_CURRENT_VERSION )
 		{
 			std::string decodedAssetBundleVer;
 			SAT_DECODE_VER_STRING( header.Version, decodedAssetBundleVer );
 			
-			SAT_CORE_ERROR( "Asset bundle version mismatch! This should not happen. Asset bundle version is: {0} while current Engine version is: {1}.", decodedAssetBundleVer, SAT_CURRENT_VERISON_STRING );
+			SAT_CORE_ERROR( "Asset bundle version mismatch! This should not happen. Asset bundle version is: {0} while current Engine version is: {1}.", decodedAssetBundleVer, SAT_CURRENT_VERSION_STRING );
 			SAT_CORE_WARN( "The engine will continue to load however this may result in the asset bundle not loading! Please rebuild the asset bundle!");
 		}
 
@@ -423,7 +423,7 @@ namespace Saturn {
 				break;
 			}
 
-			if( dfh.Version != SAT_CURRENT_VERISON ) 
+			if( dfh.Version != SAT_CURRENT_VERSION ) 
 			{
 				SAT_CORE_ERROR( "Pack file version mismatch!" );
 				// For now continue loading this current file however in future maybe try to upgrade this file to the current verison.

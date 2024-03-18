@@ -98,4 +98,13 @@ namespace Saturn {
 		s_PendingAssetViewers.push_back( ID );
 	}
 
+	void AssetViewer::Terminate()
+	{
+		for( auto&& [id, viewer] : s_AssetViewers )
+		{
+			if( viewer )
+				delete viewer;
+		}
+	}
+
 }

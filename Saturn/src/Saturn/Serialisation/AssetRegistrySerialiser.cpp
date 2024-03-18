@@ -119,7 +119,7 @@ namespace Saturn {
 			auto type = asset[ "Type" ].as< std::string >();
 
 			// Fallback to newest version if no version is present.
-			auto version = asset[ "Version" ].as< uint32_t >( SAT_CURRENT_VERISON );
+			auto version = asset[ "Version" ].as< uint32_t >( SAT_CURRENT_VERSION );
 
 			AssetRegistry->AddAsset( assetID );
 
@@ -130,9 +130,9 @@ namespace Saturn {
 			DeserialisedAsset->Type = AssetTypeFromString( type );
 			DeserialisedAsset->Version = version;
 
-			if( version != SAT_CURRENT_VERISON )
+			if( version != SAT_CURRENT_VERSION )
 			{
-				std::string versionString = SAT_CURRENT_VERISON_STRING;
+				std::string versionString = SAT_CURRENT_VERSION_STRING;
 
 				std::string assetVersionString;
 				SAT_DECODE_VER_STRING( version, assetVersionString );

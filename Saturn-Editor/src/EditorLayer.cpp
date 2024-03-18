@@ -279,6 +279,7 @@ namespace Saturn {
 	{
 		delete m_TitleBar;
 		
+		AssetViewer::Terminate();
 		EditorIcons::Clear();
 
 		m_CheckerboardTexture = nullptr;
@@ -1102,7 +1103,7 @@ namespace Saturn {
 			ImGui::PushFont( italicsFont );
 			ImGui::Text( "Saturn Engine Version: " );
 			ImGui::SameLine();
-			ImGui::Text( SAT_CURRENT_VERISON_STRING );
+			ImGui::Text( SAT_CURRENT_VERSION_STRING );
 			ImGui::PopFont();
 			ImGui::PopStyleColor();
 

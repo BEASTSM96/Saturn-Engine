@@ -93,11 +93,6 @@ namespace Saturn {
 		Scene& GetScene() { return *m_Scene; }
 		const Scene& GetScene() const { return *m_Scene; }
 
-		void SetScene( Scene* sceneIn )
-		{
-			m_Scene = sceneIn;
-		}
-
 		glm::mat4 Transform() { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ).GetTransform(); }
 		
 		const std::string& Name() const { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }

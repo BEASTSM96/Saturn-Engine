@@ -50,7 +50,9 @@ namespace Saturn {
 
 		bool IsOpen() { return m_Open; }
 
-	public: // Statics
+	public: 
+		// Static API
+
 		template<typename Ty, typename... Args>
 		static Ty* Add( Args&&... rrArgs ) 
 		{
@@ -62,6 +64,7 @@ namespace Saturn {
 		static void Update( Timestep ts );
 		static void ProcessEvent( RubyEvent& rEvent );
 		static void DestroyViewer( AssetID ID );
+		static void Terminate();
 
 	protected:
 		AssetType m_AssetType = AssetType::Unknown;
