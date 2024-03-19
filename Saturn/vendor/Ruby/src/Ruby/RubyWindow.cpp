@@ -264,9 +264,9 @@ void RubyWindow::SetTitlebarCondition( bool condition )
 	m_TitlebarCondition = condition;
 }
 
-void* RubyWindow::GetNativeHandle()
+WindowType_t RubyWindow::GetNativeHandle()
 {
-	return (void*)m_pDefaultBackend->GetNativeHandle();
+	return m_pDefaultBackend->GetNativeHandle();
 }
 
 void RubyWindow::GLSwapBuffers()

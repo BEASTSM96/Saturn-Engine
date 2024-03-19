@@ -56,6 +56,7 @@ namespace Saturn {
 	private:
 		std::unordered_map<std::string, ActionBinding> m_ActionMap;
 		std::unordered_set<RubyKey> m_Keys;
+		RubyMouseButton m_MouseButton = RubyMouseButton::Unknown;
 
 	private:
 		friend class Character;

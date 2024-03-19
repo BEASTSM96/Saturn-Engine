@@ -56,10 +56,11 @@ namespace Saturn {
 			return;
 
 		const std::unordered_set<RubyKey>& windowKeys = Application::Get().GetWindow()->GetCurrentKeys();
+		const RubyMouseButton mouseButton = Application::Get().GetWindow()->GetCurrentMouseButtons();
 
 		std::unordered_map<std::string, ActionBinding> EventsToFire;
 
-		auto addToEventsToFire = [&](RubyKey key, bool state)
+		auto addKeyEventToFire = [&](RubyKey key, bool state)
 		{
 			// Try to map the key to a binding.
 			auto bindingItr = std::find_if( m_ActionMap.begin(), m_ActionMap.end(),
@@ -79,6 +80,26 @@ namespace Saturn {
 			}
 		};
 
+		auto addMouseEventToFire = [&]( RubyMouseButton btn, bool state )
+		{
+			// Try to map the mouse button to a binding.
+			auto bindingItr = std::find_if( m_ActionMap.begin(), m_ActionMap.end(),
+				[btn]( const auto& a )
+				{
+					auto&& [k, v] = a;
+
+					return v.MouseButton == btn;
+				} );
+
+			if( bindingItr != m_ActionMap.end() )
+			{
+				auto&& [name, binding] = ( *bindingItr );
+
+				binding.State = state;
+				EventsToFire[ name ] = binding;
+			}
+		};
+
 		// What current keys are down in the window and try to map that to an action binding.
 		for( RubyKey key : windowKeys ) 
 		{
@@ -87,13 +108,25 @@ namespace Saturn {
 
 			if( inserted )
 			{
-				addToEventsToFire( key, true );
+				addKeyEventToFire( key, true );
 			}
 			else if( m_Keys.find( key ) != m_Keys.end() )
 			{
 				// If the key already exists in our local map and is still down, then the key is being held, so add it to the events to fire.
-				addToEventsToFire( key, true );
+				addKeyEventToFire( key, true );
 			}
+		}
+
+		// What current mouse button is down in the window and try to map that to an action binding.
+		// If the mouse button was already set and is the same then we are holding the key down.
+		if( m_MouseButton == mouseButton )
+		{
+			addMouseEventToFire( mouseButton, true );
+		}
+		else
+		{
+			m_MouseButton = mouseButton;
+			addMouseEventToFire( mouseButton, true );
 		}
 
 		// Now, check if our local copy contains keys that are no longer being pressed.
@@ -103,7 +136,7 @@ namespace Saturn {
 
 			if( windowKeys.find( key ) == windowKeys.end() )
 			{
-				addToEventsToFire( key, false );
+				addKeyEventToFire( key, false );
 
 				it = m_Keys.erase( it );
 			}
@@ -111,6 +144,13 @@ namespace Saturn {
 			{
 				++it;
 			}
+		}
+
+		// Now, check if our last mouse button is still pressed.
+		if( m_MouseButton != mouseButton )
+		{
+			addMouseEventToFire( m_MouseButton, false );
+			m_MouseButton = RubyMouseButton::Unknown;
 		}
 		
 		// Trigger events.

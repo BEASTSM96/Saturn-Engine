@@ -73,7 +73,7 @@ public:
 	virtual const char* GetClipboardText() = 0;
 	virtual const wchar_t* GetClipboardTextW() = 0;
 
-	virtual void* GetNativeHandle() = 0;
+	virtual WindowType_t GetNativeHandle() = 0;
 
 	virtual VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) = 0;
 

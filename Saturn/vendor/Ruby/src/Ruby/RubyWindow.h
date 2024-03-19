@@ -95,8 +95,11 @@ public:
 	const std::unordered_set<RubyKey>& GetCurrentKeys() const { return m_Keys; }
 	std::unordered_set<RubyKey>& GetCurrentKeys() { return m_Keys; }
 
+	const RubyMouseButton GetCurrentMouseButtons() const { return m_CurrentMouseButton; }
+	RubyMouseButton GetCurrentMouseButtons() { return m_CurrentMouseButton; }
+
 public:
-	void* GetNativeHandle();
+	WindowType_t GetNativeHandle();
 
 public:
 	//////////////////////////////////////////////////////////////////////////

@@ -44,6 +44,14 @@
 #define RBY_API 
 #endif
 
+#if defined(_WIN32)
+// I did not want to include windows.h here, but we will need to in order to use the HWND handle.
+#include <Windows.h>
+using WindowType_t = HWND;
+#else
+using WindowType_t = void*;
+#endif
+
 enum class RubyGraphicsAPI
 {
 	OpenGL,

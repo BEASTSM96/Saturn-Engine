@@ -50,7 +50,7 @@ public:
 	bool Maximized() override;
 	bool Focused() override;
 
-	void* GetNativeHandle() override;
+	WindowType_t GetNativeHandle() override;
 
 public:
 	void Create() override;

@@ -593,7 +593,7 @@ void RubyWindowsBackend::Restore()
 	::ShowWindow( m_Handle, SW_RESTORE );
 }
 
-void* RubyWindowsBackend::GetNativeHandle()
+WindowType_t RubyWindowsBackend::GetNativeHandle()
 {
 	return m_Handle;
 }
