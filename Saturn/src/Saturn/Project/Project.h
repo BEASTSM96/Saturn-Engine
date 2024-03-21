@@ -63,6 +63,7 @@ namespace Saturn {
 		ProjectConfig& GetConfig() { return m_Config; }
 		static ProjectConfig& GetActiveConfig() { return s_ActiveProject->m_Config; }
 
+		// Local per module (copied to game when running in editor.)
 		static Ref<Project> GetActiveProject();
 		static void SetActiveProject( const Ref<Project>& rProject );
 
@@ -71,22 +72,42 @@ namespace Saturn {
 
 		void CheckMissingAssetRefs();
 
-		std::filesystem::path GetAssetPath();
-		std::filesystem::path GetFullAssetPath();
-	
-		std::filesystem::path GetPremakeFile();
-		std::filesystem::path GetRootDir();
-		std::filesystem::path GetTempDir();
-
-		std::filesystem::path GetBinDir();
-		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }
-
-		std::filesystem::path GetProjectPath();
-		static std::filesystem::path GetActiveProjectPath() { return s_ActiveProject->GetProjectPath(); }
+	public:
+		//////////////////////////////////////////////////////////////////////////
+		// File and Project folder helpers.
 
 		std::filesystem::path FilepathAbs( const std::filesystem::path& rPath );
 
+		// Relative Asset Path
+		std::filesystem::path GetAssetPath();
+		
+		// Absolute Asset Path
+		std::filesystem::path GetFullAssetPath();
+		std::filesystem::path GetAbsoluteAssetPath() { return GetFullAssetPath(); }
+	
+		// Relative Premake file
+		std::filesystem::path GetPremakeFile();
+		
+		// Absolute project dir
+		std::filesystem::path GetRootDir();
+		
+		// Absolute Temp dir
+		std::filesystem::path GetTempDir();
+
+		// Absolute bin dir
+		std::filesystem::path GetBinDir();
+		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }
+
+		// Absolute project dir (uses the project config's "Path" variable)
+		std::filesystem::path GetProjectPath();
+		static std::filesystem::path GetActiveProjectPath() { return s_ActiveProject->GetProjectPath(); }
+
+		// Absolute cache dir
 		std::filesystem::path GetFullCachePath();
+
+	public:
+		//////////////////////////////////////////////////////////////////////////
+		// Action Bindings
 
 		std::vector<ActionBinding>& GetActionBindings() { return m_ActionBindings; }
 		const std::vector<ActionBinding>& GetActionBindings() const { return m_ActionBindings; }
@@ -94,14 +115,17 @@ namespace Saturn {
 		void AddActionBinding( const ActionBinding& rBinding ) { m_ActionBindings.push_back( rBinding ); }
 		void RemoveActionBinding( const ActionBinding& rBinding );
 
-		bool Build( ConfigKind kind );
-		bool Rebuild( ConfigKind kind );
-		void Distribute( ConfigKind kind );
-
 	public:
+		//////////////////////////////////////////////////////////////////////////
+		// Premake, Building & Preparation for Distribution
+
 		bool HasPremakeFile();
 		void CreatePremakeFile();
 		void CreateBuildFile();
+
+		bool Build( ConfigKind kind );
+		bool Rebuild( ConfigKind kind );
+		void Distribute( ConfigKind kind );
 
 		void PrepForDist();
 
@@ -109,6 +133,7 @@ namespace Saturn {
 		ProjectConfig m_Config;
 		std::vector<ActionBinding> m_ActionBindings;
 
+	private:
 		inline static Ref<Project> s_ActiveProject;
 	};
 }
