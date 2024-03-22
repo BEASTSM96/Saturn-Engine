@@ -61,5 +61,10 @@ namespace Saturn {
 		// As our Dist config is our shipping for running the game without the editor attached.
 		std::string ActionName = "";
 		UUID ID;
+
+		bool operator==( const ActionBinding& rOther ) 
+		{
+			return Name == rOther.Name && Type == rOther.Type && Key == rOther.Key && MouseButton == rOther.MouseButton && ID == rOther.ID;
+		}
 	};
 }

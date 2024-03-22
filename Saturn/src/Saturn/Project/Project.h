@@ -43,8 +43,12 @@ namespace Saturn {
 		std::string Name;
 		UUID StartupSceneID;
 
-		std::string AssetPath; // Relative path
-		std::string Path; // Absolute path
+		// Relative path
+		// "Assets"
+		std::string AssetPath; 
+		
+		// Path to the .sproject file
+		std::filesystem::path Path;
 	};
 
 	enum class ConfigKind
@@ -58,6 +62,7 @@ namespace Saturn {
 	{
 	public:
 		Project();
+		Project( const ProjectConfig& rConfig );
 		~Project();
 
 		ProjectConfig& GetConfig() { return m_Config; }
@@ -117,11 +122,13 @@ namespace Saturn {
 
 	public:
 		//////////////////////////////////////////////////////////////////////////
-		// Premake, Building & Preparation for Distribution
+		// Premake, Building & Preparation for Distribution (Used in Editor)
 
 		bool HasPremakeFile();
 		void CreatePremakeFile();
 		void CreateBuildFile();
+
+		std::filesystem::path FindBuildTool();
 
 		bool Build( ConfigKind kind );
 		bool Rebuild( ConfigKind kind );
@@ -132,6 +139,9 @@ namespace Saturn {
 	private:
 		ProjectConfig m_Config;
 		std::vector<ActionBinding> m_ActionBindings;
+
+		// Absolute root path
+		std::filesystem::path m_RootPath;
 
 	private:
 		inline static Ref<Project> s_ActiveProject;

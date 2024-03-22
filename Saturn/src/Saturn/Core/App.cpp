@@ -338,7 +338,8 @@ namespace Saturn {
 			m_ImGuiLayer->OnEvent( rEvent );
 
 		// Pass events to layers, this is the only place in the engine where we actually care if an event is handled or not.
-		// Process Events backwards. This is so that if we are in a game and we click a button if the first layer gets that event it might shoot in the game however we wanted to click a button not shoot.
+		// Process Events backwards. 
+		// This is because if we are in a game and we click a button if the first layer gets that event it might shoot in the game however we wanted to click a button not shoot.
 		for( auto itr = m_Layers.end(); itr != m_Layers.begin(); )
 		{
 			( *--itr )->OnEvent( rEvent );

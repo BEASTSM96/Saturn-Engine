@@ -59,6 +59,12 @@ namespace Saturn {
 	{
 	}
 
+	Project::Project( const ProjectConfig& rConfig )
+		: m_Config( rConfig )
+	{
+		m_RootPath = m_Config.Path.parent_path();
+	}
+
 	Project::~Project()
 	{
 	}
@@ -126,6 +132,9 @@ namespace Saturn {
 			{
 				SAT_CORE_INFO( "Found an asset that exists in the system filesystem, however not in the asset registry, creating new asset." );
 
+				// Add to pending file list.
+				// Editor will show dialog and handle the rest.
+
 				auto type = AssetTypeFromExtension( filepathString );
 				auto id = AssetManager::Get().CreateAsset( type );
 				asset = AssetManager::Get().FindAsset( id );
@@ -152,7 +161,7 @@ namespace Saturn {
 	std::filesystem::path Project::GetFullAssetPath()
 	{
 		// Root dir
-		auto rootDir = std::filesystem::path( GetActiveProject()->GetConfig().Path ).parent_path();
+		std::filesystem::path rootDir = m_RootPath;
 		rootDir /= "Assets";
 
 		return rootDir;
@@ -165,12 +174,12 @@ namespace Saturn {
 
 	std::filesystem::path Project::GetRootDir()
 	{
-		return GetFullAssetPath().parent_path();
+		return m_RootPath;
 	}
 
 	std::filesystem::path Project::GetTempDir()
 	{
-		return GetFullAssetPath().parent_path() / "Temp";
+		return m_RootPath / "Temp";
 	}
 
 	std::filesystem::path Project::GetBinDir()
@@ -178,12 +187,17 @@ namespace Saturn {
 		auto rootDir = GetRootDir();
 		rootDir /= "bin";
 
-#if defined( SAT_DEBUG )
+#if defined(SAT_WINDOWS)
+
+# if defined( SAT_DEBUG )
 		rootDir /= "Debug-windows-x86_64";
-#elif defined( SAT_RELEASE )
+#  elif defined( SAT_RELEASE )
 		rootDir /= "Release-windows-x86_64";
-#else // SAT_DIST
+#  else // SAT_DIST
 		rootDir /= "Dist-windows-x86_64";
+# endif
+#else // SAT_WINDOWS
+
 #endif
 
 		rootDir /= m_Config.Name;
@@ -198,7 +212,7 @@ namespace Saturn {
 
 	std::filesystem::path Project::FilepathAbs( const std::filesystem::path& rPath )
 	{
-		auto rootDir = std::filesystem::path( GetActiveProject()->GetConfig().Path ).parent_path();
+		std::filesystem::path rootDir = m_RootPath;
 		rootDir /= rPath;
 
 		return rootDir;
@@ -206,12 +220,12 @@ namespace Saturn {
 
 	std::filesystem::path Project::GetFullCachePath()
 	{
-		return GetRootDir() / "Cache";
+		return m_RootPath / "Cache";
 	}
 
 	void Project::RemoveActionBinding( const ActionBinding& rBinding )
 	{
-		//m_ActionBindings.erase( std::remove( m_ActionBindings.begin(), m_ActionBindings.end(), rBinding ), m_ActionBindings.end() );
+		m_ActionBindings.erase( std::remove( m_ActionBindings.begin(), m_ActionBindings.end(), rBinding ), m_ActionBindings.end() );
 	}
 
 	bool Project::HasPremakeFile()
@@ -362,14 +376,14 @@ namespace Saturn {
 		fout << fileData;
 	}
 
-	bool Project::Build( ConfigKind kind )
+	std::filesystem::path Project::FindBuildTool()
 	{
-		// Find Build Tool.
 		std::filesystem::path SaturnRootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
-		std::filesystem::path BuildToolDir = SaturnRootDir;	
+		std::filesystem::path BuildToolDir = SaturnRootDir;
 
 		BuildToolDir /= "bin";
 
+		// Should we make this be our current config OR should we set this to the target project config?
 #if defined( SAT_DEBUG )
 		BuildToolDir /= "Debug-windows-x86_64";
 #elif defined( SAT_RELEASE )
@@ -377,8 +391,21 @@ namespace Saturn {
 #else
 		BuildToolDir /= "Dist-windows-x86_64";
 #endif
-
 		BuildToolDir /= "SaturnBuildTool";
+
+#if defined( SAT_WINDOWS )
+		BuildToolDir /= "SaturnBuildTool.exe";
+#else
+		BuildToolDir /= "SaturnBuildTool";
+#endif
+
+		return BuildToolDir;
+	}
+
+	bool Project::Build( ConfigKind kind )
+	{
+		std::filesystem::path BuildToolDir = FindBuildTool();
+
 		std::filesystem::path WorkingDir = BuildToolDir;
 
 		BuildToolDir /= "SaturnBuildTool.exe";
@@ -418,21 +445,7 @@ namespace Saturn {
 
 	bool Project::Rebuild( ConfigKind kind )
 	{
-		// Find Build Tool.
-		std::filesystem::path SaturnRootDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
-		std::filesystem::path BuildToolDir = SaturnRootDir;
-
-		BuildToolDir /= "bin";
-
-#if defined( SAT_DEBUG )
-		BuildToolDir /= "Debug-windows-x86_64";
-#elif defined( SAT_RELEASE )
-		BuildToolDir /= "Release-windows-x86_64";
-#else
-		BuildToolDir /= "Dist-windows-x86_64";
-#endif
-
-		BuildToolDir /= "SaturnBuildTool";
+		std::filesystem::path BuildToolDir = FindBuildTool();
 		std::filesystem::path WorkingDir = BuildToolDir;
 
 		BuildToolDir /= "SaturnBuildTool.exe";

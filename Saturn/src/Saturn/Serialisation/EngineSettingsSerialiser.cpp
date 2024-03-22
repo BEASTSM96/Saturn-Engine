@@ -73,7 +73,7 @@ namespace Saturn {
 		out << YAML::BeginMap;
 
 		if( !rSettings.StartupProject.empty() )
-			out << YAML::Key << "Startup Project" << YAML::Value << rSettings.StartupProject;
+			out << YAML::Key << "Startup Project" << YAML::Value << rSettings.StartupProject.string();
 		
 		out << YAML::Key << "Recent Projects";
 		

@@ -46,7 +46,7 @@ namespace Saturn {
 	{
 	}
 
-	void ProjectSerialiser::Serialise( const std::string& rFilePath )
+	void ProjectSerialiser::Serialise( const std::filesystem::path& rFilePath )
 	{
 		Ref<Project> rProject = Project::GetActiveProject();
 
@@ -92,7 +92,7 @@ namespace Saturn {
 		file << out.c_str();
 	}
 
-	void ProjectSerialiser::Deserialise( const std::string& rFilePath )
+	void ProjectSerialiser::Deserialise( const std::filesystem::path& rFilePath )
 	{
 		std::ifstream FileIn( rFilePath );
 
@@ -106,36 +106,35 @@ namespace Saturn {
 
 		auto project = data[ "Project" ];
 
-		Ref<Project> newProject = Ref<Project>::Create();
-		ProjectConfig& rConfig = newProject->GetConfig();
+		ProjectConfig newConfig{};
 
+		newConfig.Name = project[ "Name" ].as<std::string>();
+		newConfig.AssetPath = project[ "AssetPath" ].as<std::string>();
+		newConfig.StartupSceneID = project[ "StartupScene" ].as<uint64_t>( 0 );
+		newConfig.Path = rFilePath;
+
+		// Create project
+		Ref<Project> newProject = Ref<Project>::Create( newConfig );
+
+		auto actionBindings = project[ "ActionBindings" ];
+
+		if( actionBindings )
 		{
-			rConfig.Name      = project[ "Name" ].as<std::string>();
-			rConfig.AssetPath = project[ "AssetPath" ].as<std::string>();
-			rConfig.StartupSceneID = project[ "StartupScene" ].as<uint64_t>( 0 );
-
-			auto actionBindings = project[ "ActionBindings" ];
-
-			if( actionBindings ) 
+			for( const auto& binding : actionBindings )
 			{
-				for( const auto& binding : actionBindings )
-				{
-					ActionBinding ab;
-					ab.Name = binding[ "ActionBinding" ].as<std::string>();
-					ab.ActionName = binding[ "ActionName" ].as<std::string>();
+				ActionBinding ab;
+				ab.Name = binding[ "ActionBinding" ].as<std::string>();
+				ab.ActionName = binding[ "ActionName" ].as<std::string>();
 
-					ab.Key = ( RubyKey ) binding[ "Key" ].as<int>( 0 );
-					ab.MouseButton = ( RubyMouseButton ) binding[ "Key" ].as<int>( 6 );
+				ab.Key = ( RubyKey ) binding[ "Key" ].as<int>( 0 );
+				ab.MouseButton = ( RubyMouseButton ) binding[ "Key" ].as<int>( 6 );
 
-					ab.Type = ( ActionBindingType ) binding[ "Type" ].as<int>( 0 );
-					ab.ID = ( UUID ) binding[ "ID" ].as<uint64_t>();
+				ab.Type = ( ActionBindingType ) binding[ "Type" ].as<int>( 0 );
+				ab.ID = ( UUID ) binding[ "ID" ].as<uint64_t>();
 
-					newProject->AddActionBinding( ab );
-				}
+				newProject->AddActionBinding( ab );
 			}
 		}
-
-		rConfig.Path = rFilePath;
 
 		Project::SetActiveProject( newProject );
 	}
