@@ -29,7 +29,6 @@
 #pragma once
 
 #include "Saturn/Core/Memory/Buffer.h"
-#include "Saturn/Core/Serialisable.h"
 
 #include <fstream>
 #include <unordered_map>
@@ -471,7 +470,7 @@ namespace Saturn {
 		}
 
 		template<typename IStream>
-		static std::string ReadString( IStream& rStream )
+		[[nodiscard]] static std::string ReadString( IStream& rStream )
 		{
 			size_t length = 0;
 			rStream.read( reinterpret_cast< char* >( &length ), sizeof( size_t ) );
@@ -576,7 +575,7 @@ namespace Saturn {
 			ReadVec4( newMat[ 1 ], rStream );
 			ReadVec4( newMat[ 2 ], rStream );
 			ReadVec4( newMat[ 3 ], rStream );
-			
+
 			rMat = newMat;
 		}
 
@@ -585,6 +584,13 @@ namespace Saturn {
 		{
 			rStream.write( reinterpret_cast<char*>( &rBuffer.Size ), sizeof( size_t ) );
 			rStream.write( reinterpret_cast<char*>( rBuffer.Data ), rBuffer.Size );
+		}
+
+		template<typename OStream>
+		static void WriteSaturnBuffer( const Buffer& rBuffer, OStream& rStream )
+		{
+			rStream.write( reinterpret_cast< const char* >( &rBuffer.Size ), sizeof( size_t ) );
+			rStream.write( reinterpret_cast< const char* >( rBuffer.Data ), rBuffer.Size );
 		}
 
 		template<typename IStream>

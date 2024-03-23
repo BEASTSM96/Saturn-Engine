@@ -38,6 +38,7 @@ namespace Saturn {
 	class AssetViewer : public RefTarget
 	{
 	public:
+		AssetViewer() = default;
 		AssetViewer( AssetID ID );
 		virtual ~AssetViewer();
 
@@ -54,7 +55,7 @@ namespace Saturn {
 		// Static API
 
 		template<typename Ty, typename... Args>
-		static Ty* Add( Args&&... rrArgs ) 
+		[[nodiscard]] static Ty* Add( Args&&... rrArgs ) 
 		{
 			Ty* assetViewer = new Ty( std::forward<Args>( rrArgs )... );
 			return assetViewer;

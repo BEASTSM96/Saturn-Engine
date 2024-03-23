@@ -28,8 +28,10 @@
 
 #include "sppch.h"
 #include "MaterialAssetViewer.h"
+
 #include "NodeEditor/NodeEditor.h"
 #include "NodeEditor/DefaultNodes.h"
+#include "NodeEditor/NodeEditorCache.h"
 
 #include "ImGuiAuxiliary.h"
 #include "Saturn/Vulkan/Renderer.h"
@@ -56,6 +58,8 @@ namespace Saturn {
 	{
 		m_HostMaterialAsset = nullptr;
 		m_EditingMaterial = nullptr;
+
+		NodeEditorCache::WriteNodeEditorCache( m_NodeEditor );
 
 		m_NodeEditor = nullptr;
 	}
@@ -103,13 +107,68 @@ namespace Saturn {
 	{
 		Ref<MaterialAsset> materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( m_AssetID );
 
-		m_NodeEditor = new NodeEditor( m_AssetID );
+		m_HostMaterialAsset = materialAsset;
+		m_EditingMaterial = Ref<Material>( m_HostMaterialAsset->GetMaterial() );
+		
+		if( NodeEditorCache::DoesCacheExist( m_AssetID ) )
+		{
+			m_NodeEditor = new NodeEditor();
+
+			// Try to read the cache.
+			NodeEditorCache::ReadNodeEditorCache( m_NodeEditor, m_AssetID );
+
+			m_OutputNodeID = ( int ) ( size_t ) m_NodeEditor->FindNode( "Material Output" )->ID;
+		}
+		else
+		{
+			m_NodeEditor = new NodeEditor( m_AssetID );
+			SetupNewNodeEditor();
+		}
+
 		m_NodeEditor->SetWindowName( materialAsset->GetName() );
 
-		m_HostMaterialAsset = materialAsset;
+		SetupNodeEditorCallbacks();
 
-		m_EditingMaterial = Ref<Material>( m_HostMaterialAsset->GetMaterial() );
+		// Maybe in the future we would want to do some stuff here.
+		m_NodeEditor->SetCloseFunction( []() -> void {} );
+		m_NodeEditor->Open( true );
+		m_Open = true;
+	}
 
+	void MaterialAssetViewer::SetupNodeEditorCallbacks()
+	{
+		m_NodeEditor->SetCreateNewNodeFunction(
+			[&]() -> Ref<Node>
+			{
+				Ref<Node> node = nullptr;
+
+				if( ImGui::MenuItem( "Texture Sampler2D" ) )
+					node = DefaultNodes::SpawnNewSampler2D( m_NodeEditor );
+
+				if( ImGui::MenuItem( "Get Asset" ) )
+					node = DefaultNodes::SpawnNewGetAssetNode( m_NodeEditor );
+
+				if( ImGui::MenuItem( "Color Picker" ) )
+					node = DefaultNodes::SpawnNewColorPickerNode( m_NodeEditor );
+
+				return node;
+			} );
+
+		m_NodeEditor->SetDetailsFunction(
+			[]( const Ref<Node>& rNode ) -> void
+			{
+			}
+		);
+
+		m_NodeEditor->SetCompileFunction(
+			[&]() -> NodeEditorCompilationStatus
+			{
+				return Compile();
+			} );
+	}
+
+	void MaterialAssetViewer::SetupNewNodeEditor()
+	{
 		// Add material output node.
 		PinSpecification pin;
 		pin.Name = "Albedo";
@@ -132,10 +191,10 @@ namespace Saturn {
 
 		const Ref<Node>& OutputNode = m_NodeEditor->AddNode( node );
 
-		m_OutputNodeID = (int)(size_t)OutputNode->ID;
+		m_OutputNodeID = ( int ) ( size_t ) OutputNode->ID;
 
 		// Read the material data, and create some nodes based of the info.
-		
+
 		auto Fn = [&]( const Ref<Texture2D>& rTexture, int Index ) -> void
 		{
 			const auto& rPath = rTexture->GetPath();
@@ -145,7 +204,7 @@ namespace Saturn {
 			{
 				// Find the texture asset.
 				auto relativePath = std::filesystem::relative( rPath, Project::GetActiveProject()->GetRootDir() );
-				
+
 				Ref<Asset> TextureAsset = AssetManager::Get().FindAsset( relativePath );
 				AssetID TextureAssetID = TextureAsset->GetAssetID();
 
@@ -157,7 +216,6 @@ namespace Saturn {
 				AssetNode->ExtraData.Allocate( 1024 );
 				AssetNode->ExtraData.Zero_Memory();
 				AssetNode->ExtraData.Write( ( uint8_t* ) &TextureAssetID, sizeof( UUID ), 0 );
-				AssetNode->ExtraData.Write( ( uint8_t* ) &TextureAsset->GetPath(), sizeof( std::filesystem::path ), sizeof( UUID ) );
 
 				Ref<Node> OutputNode = m_NodeEditor->FindNode( m_OutputNodeID );
 
@@ -173,7 +231,7 @@ namespace Saturn {
 			{
 				Ref<Node> node = DefaultNodes::SpawnNewColorPickerNode( m_NodeEditor );
 
-				auto& albedoColor = materialAsset->Get<glm::vec3>( "u_Materials.AlbedoColor" );
+				auto& albedoColor = m_HostMaterialAsset->Get<glm::vec3>( "u_Materials.AlbedoColor" );
 				ImVec4 color = ImVec4( albedoColor.x, albedoColor.y, albedoColor.z, 1.0f );
 
 				node->ExtraData.Write( ( uint8_t* ) &color, sizeof( ImVec4 ), 0 );
@@ -187,65 +245,31 @@ namespace Saturn {
 
 		// Albedo
 		{
-			Fn( materialAsset->GetAlbeoMap(), 0 );
+			Fn( m_HostMaterialAsset->GetAlbeoMap(), 0 );
 
 		}
 
 		// Normal
 		{
-			Fn( materialAsset->GetNormalMap(), 1 );
+			Fn( m_HostMaterialAsset->GetNormalMap(), 1 );
 		}
 
 		// Metallic
 		{
-			Fn( materialAsset->GetMetallicMap(), 2 );
+			Fn( m_HostMaterialAsset->GetMetallicMap(), 2 );
 		}
 
 		// Roughness
 		{
-			Fn( materialAsset->GetRoughnessMap(), 3 );
+			Fn( m_HostMaterialAsset->GetRoughnessMap(), 3 );
 		}
-
-		m_NodeEditor->SetCreateNewNodeFunction(
-			[&]() -> Ref<Node>
-			{
-				Ref<Node> node = nullptr;
-
-				if( ImGui::MenuItem( "Texture Sampler2D" ) )
-					node = DefaultNodes::SpawnNewSampler2D( m_NodeEditor );
-				
-				if( ImGui::MenuItem( "Get Asset" ) )
-					node = DefaultNodes::SpawnNewGetAssetNode( m_NodeEditor );
-
-				if( ImGui::MenuItem( "Color Picker" ) )
-					node = DefaultNodes::SpawnNewColorPickerNode( m_NodeEditor );
-
-				return node;
-			} );
-
-		m_NodeEditor->SetDetailsFunction(
-			[]( const Ref<Node>& rNode ) -> void
-			{
-			}
-		);
-
-		m_NodeEditor->SetCompileFunction(
-			[ & ]() -> NodeEditorCompilationStatus
-			{
-				return Compile();
-			} );
-
-		// Maybe in the future we would want to do some stuff here.
-		m_NodeEditor->SetCloseFunction( []() -> void {} );
-		m_NodeEditor->Open( true );
-		m_Open = true;
 	}
 
 	void MaterialAssetViewer::DrawInternal()
 	{
-		if( m_NodeEditor->IsOpen() ) 
+		if( m_NodeEditor->IsOpen() )
 		{
-			m_NodeEditor->OnImGuiRender(); 
+			m_NodeEditor->OnImGuiRender();
 		}
 		else if( m_HostMaterialAsset )
 		{
@@ -254,6 +278,8 @@ namespace Saturn {
 
 			DestroyViewer( m_AssetID );
 		}
+
+		SAT_CORE_INFO( "Open: {0}", m_NodeEditor->IsOpen() );
 	}
 
 	NodeEditorCompilationStatus MaterialAssetViewer::CheckOutputNodeInput( int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker, Ref<MaterialAsset>& rMaterialAsset )
@@ -392,8 +418,9 @@ namespace Saturn {
 		// We need to find the asset not the material asset.
 		Ref<Asset> asset = AssetManager::Get().FindAsset( m_HostMaterialAsset->ID );
 
+		// Save the material
 		MaterialAssetSerialiser mas;
-		mas.Serialise( asset, m_NodeEditor );
+		mas.Serialise( asset );
 
 		return NodeEditorCompilationStatus::Success;
 	}

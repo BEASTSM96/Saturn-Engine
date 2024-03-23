@@ -28,14 +28,19 @@
 
 #pragma once
 
-#include <fstream>
+#include "Saturn/Core/Ref.h"
+#include "Saturn/Asset/Asset.h"
 
 namespace Saturn {
 
-	class Serialisable
+	class NodeEditor;
+
+	class NodeEditorCache
 	{
 	public:
-		static void Serialise( const Serialisable& rObject, std::ofstream& rStream );
-		static void Deserialise( Serialisable& rObject, std::ifstream& rStream );
+		static void WriteNodeEditorCache( Ref<NodeEditor>& NodeEditor );
+		static bool ReadNodeEditorCache( Ref<NodeEditor>& NodeEditor, AssetID id );
+
+		static bool DoesCacheExist( AssetID id );
 	};
 }

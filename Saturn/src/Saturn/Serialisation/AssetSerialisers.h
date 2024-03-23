@@ -36,8 +36,6 @@ namespace YAML {
 
 namespace Saturn {
 
-	class NodeEditor;
-
 	class AssetSerialiser
 	{
 	public:
@@ -49,15 +47,9 @@ namespace Saturn {
 	class MaterialAssetSerialiser : public AssetSerialiser
 	{
 	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset, const Ref<NodeEditor>& pNodeEditor ) const;
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
+		virtual void Serialise  ( const Ref<Asset>& rAsset ) const;
 		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
 		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-
-		void TryLoadData        (       Ref<Asset>& rAsset, bool LoadNodeEditorData, Ref<NodeEditor>& pNodeEditor ) const;
-
-	private:
-		void LoadMaterialData( YAML::Node& rNode, Ref<Asset>& rAsset ) const;
 	};
 
 	class PrefabSerialiser : public AssetSerialiser

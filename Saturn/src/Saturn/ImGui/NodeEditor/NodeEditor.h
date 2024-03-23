@@ -29,10 +29,12 @@
 #pragma once
 
 #include "Saturn/ImGui/AssetViewer.h"
-#include "Node.h"
-#include "imgui_node_editor.h"
 
+#include "Node.h"
+#include "Link.h"
 #include "NodeEditorCompilationStatus.h"
+
+#include "imgui_node_editor.h"
 
 namespace ed = ax::NodeEditor;
 
@@ -41,6 +43,7 @@ namespace Saturn {
 	class NodeEditor : public AssetViewer
 	{
 	public:
+		NodeEditor();
 		NodeEditor( AssetID ID );
 		~NodeEditor();
 
@@ -58,6 +61,9 @@ namespace Saturn {
 		Ref<Node> FindNode( ed::NodeId id );
 		const Ref<Node>& FindNode( ed::NodeId id ) const;
 	
+		Ref<Node> FindNode( const std::string& rName );
+		const Ref<Node>& FindNode( const std::string& rName ) const;
+
 		Ref<Link> FindLinkByPin( ed::PinId id );
 		Ref<Node> FindNodeByPin( ed::PinId id );
 
@@ -112,7 +118,10 @@ namespace Saturn {
 		void SetWindowName( const std::string& rName ) { m_Name = rName; }
 
 	private:
+		void SerialiseData( std::ofstream& rStream );
+		void DeserialiseData( std::ifstream& rStream );
 
+	private:
 		void CreateEditor();
 		void Close();
 		void DeleteDeadLinks( ed::NodeId id );
@@ -136,5 +145,8 @@ namespace Saturn {
 		std::vector<Ref<Link>> m_Links;
 
 		std::string m_Name;
+
+	private:
+		friend class NodeEditorCache;
 	};
 }

@@ -26,72 +26,35 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/Core/Memory/Buffer.h"
-
-#include "Saturn/Serialisation/RawSerialisation.h"
-
+#include "sppch.h"
 #include "Pin.h"
 
-#include <string>
-#include <vector>
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
+#include "Node.h"
 
 namespace Saturn {
 
-	enum class NodeType
+	void Pin::Serialise( const Ref<Pin>& rObject, std::ofstream& rStream )
 	{
-		Blueprint,
-		Simple,
-		Comment
-	};
+		RawSerialisation::WriteObject( rObject->ID, rStream );
+		RawSerialisation::WriteObject( rObject->NodeID, rStream );
 
-	struct PinSpecification
+		RawSerialisation::WriteString( rObject->Name, rStream );
+		RawSerialisation::WriteObject( rObject->Type, rStream );
+		RawSerialisation::WriteObject( rObject->Kind, rStream );
+
+		RawSerialisation::WriteSaturnBuffer( rObject->ExtraData, rStream );
+	}
+
+	void Pin::Deserialise( Ref<Pin>& rObject, std::ifstream& rStream )
 	{
-		std::string Name;
-		PinType     Type = PinType::Object;
-	};
+		RawSerialisation::ReadObject( rObject->ID, rStream );
+		RawSerialisation::ReadObject( rObject->NodeID, rStream );
 
-	struct NodeSpecification
-	{
-		std::string                   Name;
-		std::vector<PinSpecification> Outputs;
-		std::vector<PinSpecification> Inputs;
-		ImColor						  Color;
-	};
+		rObject->Name = RawSerialisation::ReadString( rStream );
+		RawSerialisation::ReadObject( rObject->Type, rStream );
+		RawSerialisation::ReadObject( rObject->Kind, rStream );
 
-	class Node : public RefTarget
-	{
-	public:
-		Node() = default;
-
-		Node( int id, const std::string& name, ImColor color = ImColor( 255, 255, 255 ) ) :
-			ID( id ), Name( name ), Color( color ), Type( NodeType::Blueprint ), Size( 0, 0 )
-		{
-			ExtraData = Buffer();
-		}
-
-		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
-
-	public:
-		ed::NodeId ID;
-		std::string Name;
-		std::vector<Ref<Pin>> Inputs;
-		std::vector<Ref<Pin>> Outputs;
-		ImColor Color;
-		NodeType Type;
-		ImVec2 Size;
-		ImVec2 Position;
-
-		// Any other extra data that should be stored in the node.
-		Buffer ExtraData;
-
-		std::string State;
-		std::string SavedState;
-	};
+		RawSerialisation::ReadSaturnBuffer( rObject->ExtraData, rStream );
+	}
 
 }

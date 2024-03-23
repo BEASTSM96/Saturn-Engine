@@ -57,6 +57,9 @@ namespace Saturn {
 		void AddMaterialAsset();
 		void DrawInternal();
 
+		void SetupNodeEditorCallbacks();
+		void SetupNewNodeEditor();
+
 		ax::NodeEditor::NodeId FindOtherNodeIDByPin( ax::NodeEditor::PinId id );
 		Ref<Node> FindOtherNodeByPin( ax::NodeEditor::PinId id );
 

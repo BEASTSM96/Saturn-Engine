@@ -28,70 +28,50 @@
 
 #pragma once
 
-#include "Saturn/Core/Memory/Buffer.h"
-
+#include "Saturn/Core/Ref.h"
 #include "Saturn/Serialisation/RawSerialisation.h"
 
-#include "Pin.h"
-
-#include <string>
-#include <vector>
 #include <imgui_node_editor.h>
 
 namespace ed = ax::NodeEditor;
 
 namespace Saturn {
 
-	enum class NodeType
-	{
-		Blueprint,
-		Simple,
-		Comment
-	};
-
-	struct PinSpecification
-	{
-		std::string Name;
-		PinType     Type = PinType::Object;
-	};
-
-	struct NodeSpecification
-	{
-		std::string                   Name;
-		std::vector<PinSpecification> Outputs;
-		std::vector<PinSpecification> Inputs;
-		ImColor						  Color;
-	};
-
-	class Node : public RefTarget
+	class Link : public RefTarget
 	{
 	public:
-		Node() = default;
+		Link() = default;
 
-		Node( int id, const std::string& name, ImColor color = ImColor( 255, 255, 255 ) ) :
-			ID( id ), Name( name ), Color( color ), Type( NodeType::Blueprint ), Size( 0, 0 )
+		Link( ed::LinkId id, ed::PinId startPinId, ed::PinId endPinId ) :
+			ID( id ), StartPinID( startPinId ), EndPinID( endPinId ), Color( 255, 255, 255 )
 		{
-			ExtraData = Buffer();
 		}
 
-		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
+		static void Serialise( const Ref<Link>& rObject, std::ofstream& rStream )
+		{
+			RawSerialisation::WriteObject( rObject->ID, rStream );
+			RawSerialisation::WriteObject( rObject->StartPinID, rStream );
+			RawSerialisation::WriteObject( rObject->EndPinID, rStream );
+
+			RawSerialisation::WriteObject( rObject->Color, rStream );
+		}
+
+		static void Deserialise( Ref<Link>& rObject, std::ifstream& rStream )
+		{
+			RawSerialisation::ReadObject( rObject->ID, rStream );
+			RawSerialisation::ReadObject( rObject->StartPinID, rStream );
+			RawSerialisation::ReadObject( rObject->EndPinID, rStream );
+
+			RawSerialisation::ReadObject( rObject->Color, rStream );
+		}
 
 	public:
-		ed::NodeId ID;
-		std::string Name;
-		std::vector<Ref<Pin>> Inputs;
-		std::vector<Ref<Pin>> Outputs;
+		ed::LinkId ID;
+
+		ed::PinId StartPinID;
+		ed::PinId EndPinID;
+
 		ImColor Color;
-		NodeType Type;
-		ImVec2 Size;
-		ImVec2 Position;
-
-		// Any other extra data that should be stored in the node.
-		Buffer ExtraData;
-
-		std::string State;
-		std::string SavedState;
 	};
 
 }

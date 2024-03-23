@@ -76,14 +76,28 @@ namespace Saturn {
 		ed::NodeId  NodeID = 0;
 		AssetID     Asset = 0;
 		std::string AssetName = "";
+		AssetType DesiredAssetType = AssetType::Unknown;
 	};
 
 	static SelectAssetInfo s_SelectAssetInfo;
 
+	// TODO: What if we do want to add this node editor the the asset viewers list?
 	NodeEditor::NodeEditor( AssetID ID )
-		: AssetViewer( ID )
+		: AssetViewer()
 	{
+		m_AssetID = ID;
+
 		CreateEditor();
+
+		s_BlueprintBackground = Ref<Texture2D>::Create( "content/textures/BlueprintBackground.png", AddressingMode::Repeat );
+
+		s_BlueprintBackgroundID = ImGui_ImplVulkan_AddTexture( s_BlueprintBackground->GetSampler(), s_BlueprintBackground->GetImageView(), s_BlueprintBackground->GetDescriptorInfo().imageLayout );
+	}
+
+	NodeEditor::NodeEditor()
+		: AssetViewer()
+	{
+		m_Editor = nullptr;
 
 		s_BlueprintBackground = Ref<Texture2D>::Create( "content/textures/BlueprintBackground.png", AddressingMode::Repeat );
 
@@ -331,6 +345,28 @@ namespace Saturn {
 		return nullptr;
 	}
 
+	Saturn::Ref<Node> NodeEditor::FindNode( const std::string& rName )
+	{
+		for( auto& node : m_Nodes ) 
+		{
+			if( node->Name == rName )
+				return node;
+		}
+
+		return nullptr;
+	}
+
+	const Saturn::Ref<Node>& NodeEditor::FindNode( const std::string& rName ) const
+	{
+		for( auto& node : m_Nodes ) 
+		{
+			if( node->Name == rName )
+				return node;
+		}
+
+		return nullptr;
+	}
+
 	Ref<Link> NodeEditor::FindLinkByPin( ed::PinId id )
 	{
 		if( !id )
@@ -557,14 +593,19 @@ namespace Saturn {
 					ImGui::TextUnformatted( output->Name.c_str() );
 
 					// Check if output has is an AssetHandle
+					// TODO: Allow for certain asset types.
 					if( output->Type == PinType::AssetHandle )
 					{
 						auto& rSavedUUID = node->ExtraData.Read<UUID>( 0 );
-						auto& rSavedPath = node->ExtraData.Read<std::filesystem::path>( sizeof( UUID ) );
+						
+						std::string name = "Select Asset";
 
-						const char* name = s_SelectAssetInfo.AssetName.empty() ? "Select Asset" : s_SelectAssetInfo.AssetName.c_str();
+						if( rSavedUUID != 0 )
+							name = std::to_string( rSavedUUID );
+						else if( !s_SelectAssetInfo.AssetName.empty() )
+							name = s_SelectAssetInfo.AssetName;
 
-						if( ImGui::Button( rSavedUUID != 0 ? rSavedPath.string().c_str() : name ) )
+						if( ImGui::Button( name.c_str() ) )
 						{
 							OpenAssetPopup = true;
 							s_SelectAssetInfo.ID     = output->ID;
@@ -616,9 +657,12 @@ namespace Saturn {
 			{
 				for( const auto& [assetID, rAsset] : AssetManager::Get().GetCombinedAssetMap() )
 				{
+					if( rAsset->Type != s_SelectAssetInfo.DesiredAssetType && s_SelectAssetInfo.DesiredAssetType != AssetType::Unknown )
+						continue;
+
 					bool Selected = ( s_SelectAssetInfo.Asset == assetID );
 
-					if( ImGui::Selectable( rAsset->GetName().c_str() ) )
+					if( ImGui::Selectable( rAsset->GetName().c_str(), Selected ) )
 					{
 						s_SelectAssetInfo.Asset = assetID;
 						s_SelectAssetInfo.AssetName = rAsset->GetName();
@@ -636,12 +680,8 @@ namespace Saturn {
 
 						if( Node )
 						{
+							// Write asset id
 							Node->ExtraData.Write( ( uint8_t* ) &assetID, sizeof( UUID ), 0 );
-							Node->ExtraData.Write( ( uint8_t* ) &rAsset->GetPath(), sizeof( std::filesystem::path ), sizeof( UUID ) );
-
-							auto& uuid = Node->ExtraData.Read<UUID>( 0 );
-
-							SAT_CORE_INFO("UUID: {0}, Saved UUID: {1}", uuid, assetID );
 						}
 
 						PopupModified = true;
@@ -662,6 +702,7 @@ namespace Saturn {
 				s_SelectAssetInfo.ID        = 0;
 				s_SelectAssetInfo.NodeID    = 0;
 				s_SelectAssetInfo.AssetName = "";
+				s_SelectAssetInfo.DesiredAssetType = AssetType::Unknown;
 			}
 
 			ImGui::EndPopup();
@@ -698,6 +739,7 @@ namespace Saturn {
 					s_SelectAssetInfo.ID = 0;
 					s_SelectAssetInfo.NodeID = 0;
 					s_SelectAssetInfo.AssetName = "";
+					s_SelectAssetInfo.DesiredAssetType = AssetType::Unknown;
 				}
 			}
 
@@ -955,6 +997,64 @@ namespace Saturn {
 		const bool linkRemoved = removeIt != m_Links.end();
 
 		m_Links.erase( removeIt, m_Links.end() );
+	}
+
+	void NodeEditor::SerialiseData( std::ofstream& rStream )
+	{
+		RawSerialisation::WriteString( m_Name, rStream );
+		RawSerialisation::WriteString( m_NodeEditorState, rStream );
+
+		size_t mapSize = m_Nodes.size();
+		RawSerialisation::WriteObject( mapSize, rStream );
+
+		for( auto& rNode : m_Nodes )
+		{
+			Node::Serialise( rNode, rStream );
+		}
+
+		mapSize = m_Links.size();
+		RawSerialisation::WriteObject( mapSize, rStream );
+
+		for( auto& rLinks : m_Links )
+		{
+			Link::Serialise( rLinks, rStream );
+		}
+	}
+
+	void NodeEditor::DeserialiseData( std::ifstream& rStream )
+	{
+		m_Name = RawSerialisation::ReadString( rStream );
+		m_NodeEditorState = RawSerialisation::ReadString( rStream );
+
+		CreateEditor();
+
+		size_t mapSize = 0;
+		RawSerialisation::ReadObject( mapSize, rStream );
+
+		m_Nodes.resize( mapSize );
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			Ref<Node> node = Ref<Node>::Create();
+
+			Node::Deserialise( node, rStream );
+
+			m_Nodes[ i ] = node;
+		}
+
+		mapSize = 0;
+		RawSerialisation::ReadObject( mapSize, rStream );
+
+		m_Links.resize( mapSize );
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			Ref<Link> link = Ref<Link>::Create();
+
+			Link::Deserialise( link, rStream );
+
+			m_Links[ i ] = link;
+		}
 	}
 
 }
