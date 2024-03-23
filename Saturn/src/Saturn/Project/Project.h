@@ -107,6 +107,8 @@ namespace Saturn {
 		std::filesystem::path GetProjectPath();
 		static std::filesystem::path GetActiveProjectPath() { return s_ActiveProject->GetProjectPath(); }
 
+		static std::filesystem::path GetActiveProjectRootPath() { return s_ActiveProject->GetRootDir(); }
+
 		// Absolute cache dir
 		std::filesystem::path GetFullCachePath();
 

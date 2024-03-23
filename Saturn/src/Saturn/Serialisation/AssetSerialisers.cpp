@@ -145,36 +145,30 @@ namespace Saturn {
 
 		out << YAML::Key << "AlbedoColor" << YAML::Value << materialAsset->GetAlbeoColor();
 
-		auto asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
+		auto writeTexture = [&](const char* key, Ref<Texture2D> texture ) 
+		{
+			std::filesystem::path relativePath = std::filesystem::relative( texture->GetPath(), Project::GetActiveProjectRootPath() );
+			auto asset = AssetManager::Get().FindAsset( relativePath );
 
-		if( asset )
-			out << YAML::Key << "AlbedoTexture" << YAML::Value << asset->ID;
-		else
-			out << YAML::Key << "AlbedoTexture" << YAML::Value << 0;
+			if( asset )
+				out << YAML::Key << key << YAML::Value << asset->ID;
+			else
+				out << YAML::Key << key << YAML::Value << 0;
+		};
+
+		writeTexture( "AlbedoTexture", materialAsset->GetAlbeoMap() );
 
 		out << YAML::Key << "UseNormal" << YAML::Value << materialAsset->IsUsingNormalMap();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetNormalMap()->GetPath() );
-		if( asset )
-			out << YAML::Key << "NormalTexture" << YAML::Value << asset->ID;
-		else
-			out << YAML::Key << "NormalTexture" << YAML::Value << 0;
+		writeTexture( "NormalTexture", materialAsset->GetNormalMap() );
 
 		out << YAML::Key << "Metalness" << YAML::Value << materialAsset->GetMetalness();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetMetallicMap()->GetPath() );
-		if( asset )
-			out << YAML::Key << "MetalnessTexture" << YAML::Value << asset->ID;
-		else
-			out << YAML::Key << "MetalnessTexture" << YAML::Value << 0;
+		writeTexture( "MetalnessTexture", materialAsset->GetMetallicMap() );
 
 		out << YAML::Key << "Roughness" << YAML::Value << materialAsset->GetRoughness();
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetRoughnessMap()->GetPath() );
-		if( asset )
-			out << YAML::Key << "RoughnessTexture" << YAML::Value << asset->ID;
-		else
-			out << YAML::Key << "RoughnessTexture" << YAML::Value << 0;
+		writeTexture( "RoughnessTexture", materialAsset->GetRoughnessMap() );
 
 		out << YAML::Key << "Emissive" << YAML::Value << materialAsset->GetEmissive();
 
@@ -592,7 +586,7 @@ namespace Saturn {
 		auto materialData = data[ "Material" ];
 
 		auto albedoColor = materialData[ "AlbedoColor" ].as<glm::vec3>();
-		auto albedoID = materialData[ "AlbedoPath" ].as<uint64_t>(0);
+		auto albedoID = materialData[ "AlbedoTexture" ].as<uint64_t>(0);
 
 		materialAsset->SetAlbeoColor( albedoColor );
 
@@ -612,7 +606,7 @@ namespace Saturn {
 		}
 
 		auto useNormal = materialData[ "UseNormal" ].as<float>();
-		auto normalID = materialData[ "NormalPath" ].as<uint64_t>(0);
+		auto normalID = materialData[ "NormalTexture" ].as<uint64_t>(0);
 
 		materialAsset->UseNormalMap( useNormal );
 
@@ -629,7 +623,7 @@ namespace Saturn {
 		}
 
 		auto metalness = materialData[ "Metalness" ].as<float>();
-		auto metallicID = materialData[ "MetalnessPath" ].as<uint64_t>(0);
+		auto metallicID = materialData[ "MetalnessTexture" ].as<uint64_t>(0);
 
 		materialAsset->SetMetalness( metalness );
 
@@ -646,7 +640,7 @@ namespace Saturn {
 		}
 
 		auto val = materialData[ "Roughness" ].as<float>();
-		auto roughnessID = materialData[ "RoughnessPath" ].as<uint64_t>(0);
+		auto roughnessID = materialData[ "RoughnessTexture" ].as<uint64_t>(0);
 
 		materialAsset->SetRoughness( val );
 

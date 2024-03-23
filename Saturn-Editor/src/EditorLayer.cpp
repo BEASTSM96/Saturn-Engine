@@ -896,6 +896,37 @@ namespace Saturn {
 			ShouldSaveProject = true;
 		}
 
+
+		// This does not matter because the editor is not designed to run in Dist, however, right now I want to keep this in release builds.
+#if !defined(SAT_DIST)
+		ImGui::PushFont( boldFont );
+		ImGui::Text( "Project Debug information" );
+		ImGui::PopFont();
+
+		ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
+
+		ImGui::BeginVertical( "##PRJDBGV" );
+
+		auto drawDebugText = [](std::string id, std::string key, std::string value) 
+		{
+			ImGui::BeginHorizontal( id.c_str() );
+			ImGui::Text( key.c_str() );
+			ImGui::Text( " : " );
+			ImGui::Text( value.c_str() );
+			ImGui::EndHorizontal();
+		};
+
+		drawDebugText( "##PRJD1", "Root Path", ActiveProject->GetRootDir().string() );
+		drawDebugText( "##PRJD2", ".sproject Path", ActiveProject->GetConfig().Path.string() );
+		drawDebugText( "##PRJD3", "Assets Path", ActiveProject->GetFullAssetPath().string() );
+		drawDebugText( "##PRJD4", "Premake filename", ActiveProject->GetPremakeFile().string() );
+		drawDebugText( "##PRJD5", "Temp Path", ActiveProject->GetTempDir().string() );
+		drawDebugText( "##PRJD6", "Bin Path", ActiveProject->GetBinDir().string() );
+		drawDebugText( "##PRJD7", "Cache Path", ActiveProject->GetFullCachePath().string() );
+
+		ImGui::EndVertical();
+#endif
+
 		ImGui::End();
 
 		if( ShouldSaveProject && !m_ShowUserSettings )

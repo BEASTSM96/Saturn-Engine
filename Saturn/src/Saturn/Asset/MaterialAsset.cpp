@@ -140,7 +140,6 @@ namespace Saturn {
 	void MaterialAsset::SetResource( const std::string& rName, const Ref<Texture2D>& rTexture )
 	{
 		m_ValuesChanged = true;
-
 		m_PendingTextureChanges[ rName ] = rTexture;
 	}
 
