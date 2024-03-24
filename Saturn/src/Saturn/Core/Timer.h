@@ -152,6 +152,4 @@ namespace Saturn {
 	};
 
 	using TimerMap = std::unordered_map<std::string, Timer>;
-	
-	static TimerMap s_Timers;
 }

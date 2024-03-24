@@ -464,7 +464,7 @@ namespace Saturn {
 		m_CommandBuffer = Renderer::Get().ActiveCommandBuffer();
 
 		// First, check if we have a render pass.
-		if( !m_TargetRenderPass )
+		if( !m_TargetRenderPass || !m_CurrentQuad )
 		{
 			FlushDrawList();
 			return;

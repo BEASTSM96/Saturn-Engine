@@ -56,6 +56,8 @@ namespace Saturn {
 		template<typename Ty, typename... Args>
 		Ref<Asset> CreateAsset( AssetType type, Args&&... rrArgs, AssetRegistryType Dst = AssetRegistryType::Game )
 		{
+			static_assert( std::is_base_of<Asset, Ty>::value, "Ty must be a child of Asset class!" );
+
 			// This might not be the best way, first we create the "real" asset and add it to the registry, then create the template asset.
 			auto id = CreateAsset( type, Dst );
 
@@ -72,6 +74,8 @@ namespace Saturn {
 		template<typename Ty>
 		Ref<Ty> GetAssetAs( AssetID id, AssetRegistryType Dst )
 		{
+			static_assert( std::is_base_of<Asset, Ty>::value, "Ty must be a child of Asset class!" );
+
 			switch( Dst )
 			{
 				case AssetRegistryType::Game: 
@@ -89,6 +93,8 @@ namespace Saturn {
 		template<typename Ty>
 		Ref<Ty> GetAssetAs( AssetID id )
 		{
+			static_assert( std::is_base_of<Asset, Ty>::value, "Ty must be a child of Asset class!" );
+
 			Ref<Ty> asset = m_Assets->GetAssetAs<Ty>( id );
 
 			if( !asset )

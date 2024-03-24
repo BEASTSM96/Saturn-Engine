@@ -50,10 +50,6 @@
 #include <cassert>
 
 #if defined(SAT_DEBUG) || defined(SAT_RELEASE)
-#define SAT_ENABLE_SHADER_INFO
-#endif
-
-#if defined( SAT_ENABLE_SHADER_INFO )
 #define SHADER_INFO(...) SAT_CORE_INFO(__VA_ARGS__)
 #else
 #define SHADER_INFO(...)
@@ -72,7 +68,7 @@ namespace Saturn {
 			case Saturn::ShaderType::Fragment:
 				return VK_SHADER_STAGE_FRAGMENT_BIT;
 			case Saturn::ShaderType::Geometry:
-				return VK_SHADER_STAGE_COMPUTE_BIT;
+				return VK_SHADER_STAGE_GEOMETRY_BIT;
 			case Saturn::ShaderType::Compute:
 				return VK_SHADER_STAGE_COMPUTE_BIT;
 			case Saturn::ShaderType::All:
@@ -175,6 +171,9 @@ namespace Saturn {
 	{
 		if( m_Shaders.find( name ) == m_Shaders.end() ) 
 		{
+			SAT_CORE_ERROR( "Failed to find shader \"{0}\"", name );
+			SAT_CORE_ASSERT(false);
+
 			return nullptr;
 		}
 

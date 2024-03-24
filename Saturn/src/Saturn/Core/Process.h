@@ -44,7 +44,7 @@ namespace Saturn {
 		~Process();
 
 		void WaitForExit();
-		int ResultOfProcess();
+		[[nodiscard]] int ResultOfProcess();
 
 	private:
 		void Create( const std::wstring& rWorkingDir );
