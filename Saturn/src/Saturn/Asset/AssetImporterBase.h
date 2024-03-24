@@ -37,7 +37,8 @@ namespace Saturn {
 	enum class AssetImporterType
 	{
 		YAML,
-		BINARY
+		Binary,
+		None
 	};
 
 	class AssetImporterBase : public RefTarget
@@ -47,6 +48,6 @@ namespace Saturn {
 
 	public:
 		virtual void Import( const Ref<Asset>& rAsset ) = 0;
-		virtual bool TryLoadData( Ref<Asset>& rAsset ) = 0;
+		[[nodiscard]] virtual bool TryLoadData( Ref<Asset>& rAsset ) = 0;
 	};
 }

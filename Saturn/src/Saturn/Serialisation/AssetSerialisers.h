@@ -41,7 +41,7 @@ namespace Saturn {
 	public:
 		virtual void Serialise   ( const Ref<Asset>& rAsset ) const = 0;
 		virtual void Deserialise ( const Ref<Asset>& rAsset ) const = 0;
-		virtual bool TryLoadData (       Ref<Asset>& rAsset ) const = 0;
+		[[nodiscard]] virtual bool TryLoadData (       Ref<Asset>& rAsset ) const = 0;
 	};
 
 	class MaterialAssetSerialiser : public AssetSerialiser
@@ -49,7 +49,7 @@ namespace Saturn {
 	public:
 		virtual void Serialise  ( const Ref<Asset>& rAsset ) const;
 		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
+		[[nodiscard]] virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
 	};
 
 	class PrefabSerialiser : public AssetSerialiser
@@ -57,7 +57,7 @@ namespace Saturn {
 	public:
 		virtual void Serialise   ( const Ref<Asset>& rAsset ) const override;
 		virtual void Deserialise ( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData (		 Ref<Asset>& rAsset ) const override;
+		[[nodiscard]] virtual bool TryLoadData (		 Ref<Asset>& rAsset ) const override;
 	};
 
 	class StaticMeshAssetSerialiser : public AssetSerialiser
@@ -65,7 +65,7 @@ namespace Saturn {
 	public:
 		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
 		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
+		[[nodiscard]] virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
 	};
 
 	class Sound2DAssetSerialiser : public AssetSerialiser
@@ -73,7 +73,7 @@ namespace Saturn {
 	public:
 		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
 		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
+		[[nodiscard]] virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
 	};
 
 	class PhysicsMaterialAssetSerialiser : public AssetSerialiser
@@ -81,6 +81,6 @@ namespace Saturn {
 	public:
 		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
 		virtual void Deserialise( const Ref<Asset>& rAsset ) const override;
-		virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
+		[[nodiscard]] virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
 	};
 }

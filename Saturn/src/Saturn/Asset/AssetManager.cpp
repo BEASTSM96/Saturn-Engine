@@ -176,6 +176,7 @@ namespace Saturn {
 
 	AssetMap AssetManager::GetCombinedAssetMap()
 	{
+		// TODO: Could use std::merge
 		AssetMap map;
 
 		map.insert( m_Assets->GetAssetMap().begin(), m_Assets->GetAssetMap().end() );
@@ -186,6 +187,7 @@ namespace Saturn {
 
 	AssetMap AssetManager::GetCombinedLoadedAssetMap()
 	{
+		// TODO: Could use std::merge
 		AssetMap map;
 
 		map.insert( m_Assets->GetLoadedAssetsMap().begin(), m_Assets->GetLoadedAssetsMap().end() );

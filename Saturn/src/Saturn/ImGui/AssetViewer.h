@@ -55,7 +55,7 @@ namespace Saturn {
 		// Static API
 
 		template<typename Ty, typename... Args>
-		[[nodiscard]] static Ty* Add( Args&&... rrArgs ) 
+		static Ty* Add( Args&&... rrArgs ) 
 		{
 			Ty* assetViewer = new Ty( std::forward<Args>( rrArgs )... );
 			return assetViewer;

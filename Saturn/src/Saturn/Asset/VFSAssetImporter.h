@@ -37,13 +37,13 @@ namespace Saturn {
 	class VFSAssetImporter : public AssetImporterBase
 	{
 	public:
-		static AssetImporterType GetStaticType() { return AssetImporterType::BINARY; }
+		static AssetImporterType GetStaticType() { return AssetImporterType::Binary; }
 	public:
 		VFSAssetImporter();
 		~VFSAssetImporter();
 
 		void Import( const Ref<Asset>& rAsset ) override;
-		bool TryLoadData( Ref<Asset>& rAsset ) override;
+		[[nodiscard]] bool TryLoadData( Ref<Asset>& rAsset ) override;
 
 	private:
 		void Init();
