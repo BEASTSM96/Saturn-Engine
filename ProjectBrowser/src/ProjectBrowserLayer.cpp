@@ -384,8 +384,11 @@ namespace Saturn {
 
 		Project::SetActiveProject( newProject );
 
+		std::filesystem::path outputPath = newProject->GetConfig().Path;
+		outputPath /= newProject->GetConfig().Name;
+
 		ProjectSerialiser ps;
-		ps.Serialise( newProject->GetConfig().Path + "\\" + newProject->GetConfig().Name );
+		ps.Serialise( outputPath );
 
 		Project::SetActiveProject( nullptr );
 	}
