@@ -690,7 +690,6 @@ namespace Saturn {
 					rb.LockFlags &= ~RigidbodyLockFlags::RotationZ;
 			}
 
-
 			ImGui::PopStyleVar();
 
 			ImGui::EndHorizontal();

@@ -45,6 +45,9 @@ namespace Saturn {
 
 	void Renderer2D::Init()
 	{
+		if( Application::Get().HasFlag( ApplicationFlag_UIOnly ) )
+			return;
+
 		m_Width = Application::Get().GetWindow()->GetWidth();
 		m_Height = Application::Get().GetWindow()->GetHeight();
 
@@ -101,6 +104,9 @@ namespace Saturn {
 
 	void Renderer2D::LateInit( Ref<Pass> targetPass /*= nullptr */, Ref<Framebuffer> targetFramebuffer /*= nullptr*/ )
 	{
+		if( Application::Get().HasFlag( ApplicationFlag_UIOnly ) )
+			return;
+
 		if( !targetFramebuffer )
 		{
 			FramebufferSpecification FBSpec = {};
