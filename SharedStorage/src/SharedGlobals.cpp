@@ -30,6 +30,9 @@
 
 namespace Saturn {
 
+#if defined(SATURN_SS_STATIC)
+	Scene* GActiveScene = nullptr;
+#else
 	static Scene* GActiveScene = nullptr;
-
+#endif
 }

@@ -18,7 +18,6 @@ namespace SaturnBuildTool
             // And is only to be used in Debug and Release
             Links.Remove( "Tracy.lib" );
             // TODO: Remove assimp
-            // TODO: Make shared storage a static library because we are no longer sharing memory between the Game DLL and the Editor Exe.
         }
     }
 }

@@ -30,6 +30,8 @@
 
 #if defined( SATURN_SS_IMPORT )
 #define SS_API __declspec(dllimport)
-#else
+#elif !defined( SATURN_SS_STATIC )
 #define SS_API __declspec(dllexport)
+#else
+#define SS_API
 #endif

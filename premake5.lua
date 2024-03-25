@@ -205,8 +205,20 @@ project "Saturn"
 		filter "configurations:Dist"
 			defines "SAT_DIST"
 			runtime "Release"
-			--optimize "off"
-			symbols "on"
+			optimize "on"
+			symbols "Off"
+
+			removelinks { "Tracy" }
+
+			removedefines 
+			{
+				"TRACY_ENABLE",
+				"SATURN_SS_IMPORT"
+			}
+
+			defines { "SATURN_SS_STATIC" }
+
+			links { "SharedStorage" }
 
 		filter "configurations:Release or configurations:Dist"
 			links 
@@ -330,10 +342,8 @@ project "Saturn-Editor"
 		symbols "Off"
 		kind "WindowedApp"
 
-		postbuildcommands 
-		{ 
-			'{COPY} "../bin/Dist-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
-		}
+		removedefines { "SATURN_SS_IMPORT" }
+		defines { "SATURN_SS_STATIC" }
 
 	filter "configurations:Dist or configurations:Release"
 		postbuildcommands 
@@ -431,10 +441,6 @@ project "ProjectBrowser"
 		"Saturn"
 	}
 
-	postbuildcommands 
-	{
-	}
-
 	filter "system:windows"
 		systemversion "latest"
 
@@ -471,11 +477,6 @@ project "ProjectBrowser"
 			optimize "on"
 			symbols "Off"
 			kind "WindowedApp"
-
-			postbuildcommands 
-			{ 
-				'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
-			}
 
 		filter "configurations:Release or configurations:Dist"
 			postbuildcommands 
@@ -565,20 +566,12 @@ project "SharedStorage"
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp"
 	}
-		
-	defines
-	{
-	}
-		
+
 	includedirs
 	{
 		"%{prj.name}/src",
 		"Saturn/src",
 		"%{IncludeDir.Ruby}"
-	}
-		
-	links 
-	{
 	}
 	
 	filter "system:windows"
@@ -587,7 +580,6 @@ project "SharedStorage"
 		filter "configurations:Debug"
 			runtime "Debug"
 			symbols "on"
-
 		
 		filter "configurations:Release"
 			runtime "Release"
@@ -597,3 +589,5 @@ project "SharedStorage"
 			runtime "Release"
 			optimize "on"
 			symbols "Off"
+			kind "StaticLib"
+			defines { "SATURN_SS_STATIC" }
