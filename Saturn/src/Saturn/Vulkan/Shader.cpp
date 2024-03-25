@@ -111,12 +111,18 @@ namespace Saturn {
 		Shutdown();
 	}
 
-	void ShaderLibrary::Add( const Ref<Shader>& shader )
+	void ShaderLibrary::Add( const Ref<Shader>& shader, bool override /* =false*/ )
 	{
 		auto& rName = shader->GetName();
 		
 		if( m_Shaders.find( rName ) == m_Shaders.end() ) 
 		{
+			m_Shaders[ rName ] = shader;
+		}
+		else if( override )
+		{
+			SAT_CORE_WARN("Shader already exists and \"override\" was set overriding shader...");
+			
 			m_Shaders[ rName ] = shader;
 		}
 	}
@@ -144,7 +150,7 @@ namespace Saturn {
 		m_Shaders.erase( shader->GetName() );
 	}
 
-	const Ref<Shader>& ShaderLibrary::TryFind( const std::string& name, const std::string& path )
+	const Ref<Shader>& ShaderLibrary::FindOrLoad( const std::string& name, const std::string& path )
 	{
 		// Does the shader exists?
 		if( m_Shaders.find( name ) == m_Shaders.end() ) 
@@ -158,7 +164,7 @@ namespace Saturn {
 
 	void ShaderLibrary::Shutdown()
 	{
-		for ( auto& [name, shader] : m_Shaders )
+		for( auto& [name, shader] : m_Shaders )
 		{
 			if( shader )
 				shader = nullptr;
@@ -167,7 +173,7 @@ namespace Saturn {
 		m_Shaders.clear();
 	}
 
-	const Ref<Shader>& ShaderLibrary::Find( const std::string& name ) const
+	Ref<Shader> ShaderLibrary::Find( const std::string& name )
 	{
 		if( m_Shaders.find( name ) == m_Shaders.end() ) 
 		{
@@ -202,7 +208,7 @@ namespace Saturn {
 		}
 		else
 		{
-			return ShaderType::Vertex;
+			return ShaderType::None;
 		}
 	}
 
@@ -233,8 +239,8 @@ namespace Saturn {
 	// SHADER
 	//////////////////////////////////////////////////////////////////////////
 
-	Shader::Shader( std::filesystem::path Filepath )
-		: m_Filepath( std::move( Filepath ) )
+	Shader::Shader( const std::filesystem::path& rFilepath )
+		: m_Filepath( rFilepath )
 	{
 		if( !std::filesystem::exists( m_Filepath ) )
 			return;
@@ -249,7 +255,7 @@ namespace Saturn {
 
 		CompileGlslToSpvAssembly();
 
-		for ( const auto& [k, data] : m_SpvCode )
+		for( const auto& [k, data] : m_SpvCode )
 		{
 			Reflect( k.Type, data );
 		}

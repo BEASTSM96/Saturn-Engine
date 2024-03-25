@@ -157,7 +157,7 @@ namespace Saturn {
 
 					// Make sure we will include the Texture Pass shader.
 					// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
-					Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
+					Ref<Shader> TexturePass = ShaderLibrary::Get().FindOrLoad( "TexturePass", "content/shaders/TexturePass.glsl" );
 
 					ShaderBundle::BundleShaders();
 
@@ -178,7 +178,7 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Build Shader Bundle" ) )
 				{
-					Ref<Shader> TexturePass = ShaderLibrary::Get().TryFind( "TexturePass", "content/shaders/TexturePass.glsl" );
+					Ref<Shader> TexturePass = ShaderLibrary::Get().FindOrLoad( "TexturePass", "content/shaders/TexturePass.glsl" );
 
 					ShaderBundle::BundleShaders();
 

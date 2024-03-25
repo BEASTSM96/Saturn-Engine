@@ -301,7 +301,7 @@ namespace Saturn {
 		// Do not use!
 		Shader() {}
 	
-		Shader( std::filesystem::path Filepath );
+		Shader( const std::filesystem::path& rFilepath );
 		~Shader();
 		
 		std::string& GetName() { return m_Name; }
@@ -407,14 +407,15 @@ namespace Saturn {
 		ShaderLibrary();
 		~ShaderLibrary();
 		
-		void Add( const Ref<Shader>& shader );
+		void Add( const Ref<Shader>& shader, bool override = false );
 		void Load( const std::string& path );
 		void Load( const std::string& name, const std::string& path );
 		void Remove( const Ref<Shader>& shader );
 
 		// If the shader does not exist, it will load it.
-		const Ref<Shader>& TryFind( const std::string& name, const std::string& path );
-		const Ref<Shader>& Find( const std::string& name ) const;
+		const Ref<Shader>& FindOrLoad( const std::string& name, const std::string& path );
+		
+		Ref<Shader> Find( const std::string& name );
 
 		std::unordered_map<std::string, Ref<Shader>>& GetShaders() { return m_Shaders; }
 		const std::unordered_map<std::string, Ref<Shader>>& GetShaders() const { return m_Shaders; }

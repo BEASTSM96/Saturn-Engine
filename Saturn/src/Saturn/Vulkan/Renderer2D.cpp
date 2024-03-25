@@ -121,7 +121,7 @@ namespace Saturn {
 
 		if( !m_QuadShader )
 		{
-			m_QuadShader = ShaderLibrary::Get().TryFind( "Renderer2D", "content/shaders/Renderer2D.glsl" );
+			m_QuadShader = ShaderLibrary::Get().FindOrLoad( "Renderer2D", "content/shaders/Renderer2D.glsl" );
 			m_QuadMaterial = Ref<Material>::Create( m_QuadShader, "QuadMaterial" );
 		}
 
