@@ -2,7 +2,6 @@
 
 namespace SaturnBuildTool
 {
-    // Usage for Dist-Debug, Dist-Release and Dist-Full.
     public class RuntimeGameTarget : GameUserTarget
     {
         public override void Init()
@@ -17,7 +16,10 @@ namespace SaturnBuildTool
             // Remove Tracy because this will never be used in Dist
             // And is only to be used in Debug and Release
             Links.Remove( "Tracy.lib" );
-            // TODO: Remove assimp
+
+            // Shared storage will be linked statically.
+            PreprocessorDefines.Add("SATURN_SS_STATIC");
+            PreprocessorDefines.Remove("SATURN_SS_IMPORT");
         }
     }
 }

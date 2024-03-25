@@ -83,7 +83,14 @@ namespace SaturnBuildTool
             {
                 case LinkerOutput.Executable:
                     {
-                        Args.Add(string.Format(" /SUBSYSTEM:CONSOLE /OUT:\"{0}\"", TargetToBuild.GetFullBinPath()));
+                        if (ProjectInfo.Instance.CurrentConfigKind == ConfigKind.Dist)
+                        {
+                            Args.Add(string.Format(" /SUBSYSTEM:WINDOWS /OUT:\"{0}\"", TargetToBuild.GetFullBinPath()));
+                        }
+                        else
+                        {
+                            Args.Add(string.Format(" /SUBSYSTEM:CONSOLE /OUT:\"{0}\"", TargetToBuild.GetFullBinPath()));
+                        }
                     } break;
 
 
