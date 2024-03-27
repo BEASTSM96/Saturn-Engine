@@ -65,6 +65,7 @@
 // VERSION
 #define SAT_MAKE_VERSION(major, minor, patch) ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 
+// Current version is Alpha 0.1.0 (Alpha 1)
 #define SAT_CURRENT_VERSION SAT_MAKE_VERSION( 0, 1, 0 )
 #define SAT_CURRENT_VERSION_STRING "0.1.0"
 
