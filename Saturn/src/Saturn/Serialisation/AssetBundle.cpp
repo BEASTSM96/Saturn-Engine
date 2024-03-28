@@ -424,7 +424,7 @@ namespace Saturn {
 			if( dfh.Version != SAT_CURRENT_VERSION ) 
 			{
 				SAT_CORE_ERROR( "Pack file version mismatch!" );
-				// For now continue loading this current file however in future maybe try to upgrade this file to the current verison.
+				// For now continue loading this current file however in future maybe try to upgrade this file to the current version.
 			}
 
 			// Find the VFile
