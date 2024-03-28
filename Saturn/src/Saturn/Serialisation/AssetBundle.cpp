@@ -276,14 +276,12 @@ namespace Saturn {
 
 	void AssetBundle::RTDumpAsset( const Ref<Asset>& rAsset, Ref<AssetRegistry>& AssetBundleRegistry )
 	{
-		std::filesystem::path tempDir = Project::GetActiveProject()->GetRootDir();
-		tempDir /= "Temp";
-
-		auto& rVFS = VirtualFS::Get();
-
 		UUID id = rAsset->ID;
+		AssetManager& rAssetManager = AssetManager::Get();
 
-		// Load the asset and dump memory into our temporary file.
+		// Load the asset and dump memory into it's temporary file.
+		// NOTE: We use the asset manager but ask it to load the asset into our asset registry.
+		// NOTE: Asset manager will use it own importer which is fine as it will be the YAML importer.
 		switch( rAsset->Type )
 		{
 			case Saturn::AssetType::Texture:
@@ -300,7 +298,7 @@ namespace Saturn {
 
 			case Saturn::AssetType::StaticMesh:
 			{
-				Ref<StaticMesh> mesh = AssetBundleRegistry->GetAssetAs<StaticMesh>( id );
+				Ref<StaticMesh> mesh = rAssetManager.GetAssetAs<StaticMesh>( AssetBundleRegistry, id );
 
 				RawStaticMeshAssetSerialiser serialiser;
 				serialiser.DumpAndWriteToVFS( mesh );
@@ -308,7 +306,7 @@ namespace Saturn {
 
 			case Saturn::AssetType::Material:
 			{
-				Ref<MaterialAsset> materialAsset = AssetBundleRegistry->GetAssetAs<MaterialAsset>( id );
+				Ref<MaterialAsset> materialAsset = rAssetManager.GetAssetAs<MaterialAsset>( AssetBundleRegistry, id );
 
 				if( materialAsset )
 				{
@@ -319,7 +317,7 @@ namespace Saturn {
 
 			case Saturn::AssetType::PhysicsMaterial:
 			{
-				Ref<PhysicsMaterialAsset> physAsset = AssetBundleRegistry->GetAssetAs<PhysicsMaterialAsset>( id );
+				Ref<PhysicsMaterialAsset> physAsset = rAssetManager.GetAssetAs<PhysicsMaterialAsset>( AssetBundleRegistry, id );
 
 				RawPhysicsMaterialAssetSerialiser serialiser;
 				serialiser.DumpAndWriteToVFS( physAsset );
@@ -327,7 +325,7 @@ namespace Saturn {
 
 			case Saturn::AssetType::Prefab:
 			{
-				Ref<Prefab> prefabAsset = AssetBundleRegistry->GetAssetAs<Prefab>( id );
+				Ref<Prefab> prefabAsset = rAssetManager.GetAssetAs<Prefab>( AssetBundleRegistry, id );
 
 				if( prefabAsset )
 				{

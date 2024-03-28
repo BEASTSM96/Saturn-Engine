@@ -72,35 +72,22 @@ namespace Saturn {
 		// This will try to find the loaded asset, if it does not exists it will try to load it.
 		// \return Ref<Ty> if found, nullptr if not
 		template<typename Ty>
-		Ref<Ty> GetAssetAs( AssetID id, AssetRegistryType Dst )
+		Ref<Ty> GetAssetAs( AssetID id, AssetRegistryType Dst = AssetRegistryType::Game )
 		{
 			static_assert( std::is_base_of<Asset, Ty>::value, "Ty must be a child of Asset class!" );
 
 			switch( Dst )
 			{
 				case AssetRegistryType::Game: 
-					return m_Assets->GetAssetAs<Ty>( id );
+					return GetAssetAs<Ty>( m_Assets, id );
 
 				case AssetRegistryType::Editor:
-					return m_EditorAssets->GetAssetAs<Ty>( id );
+					return GetAssetAs<Ty>( m_EditorAssets, id );
 
 				case AssetRegistryType::Unknown:
 				default:
 					return nullptr;
 			}
-		}
-
-		template<typename Ty>
-		Ref<Ty> GetAssetAs( AssetID id )
-		{
-			static_assert( std::is_base_of<Asset, Ty>::value, "Ty must be a child of Asset class!" );
-
-			Ref<Ty> asset = m_Assets->GetAssetAs<Ty>( id );
-
-			if( !asset )
-				asset = m_EditorAssets->GetAssetAs<Ty>( id );
-
-			return asset;
 		}
 
 		// WARNING: THIS WILL REMOVE THE ASSET FROM THE REGISTRY. 
@@ -195,8 +182,43 @@ namespace Saturn {
 		size_t GetEditorRegistrySize() { return m_EditorAssets->GetSize(); }
 
 	private:
+		template<typename Ty>
+		Ref<Ty> GetAssetAs( Ref<AssetRegistry> TargetRegistry, AssetID id )
+		{
+			auto AssetItr = TargetRegistry->m_Assets.find( id );
+
+			if( AssetItr == TargetRegistry->m_Assets.end() )
+				return nullptr;
+
+			Ref<Asset> asset = AssetItr->second;
+
+			if( !TargetRegistry->IsAssetLoaded( id ) )
+			{
+				bool loaded = m_Importer.TryLoadData( asset );
+				if( !loaded )
+					return nullptr;
+
+				TargetRegistry->m_LoadedAssets[ id ] = asset;
+			}
+			else
+				asset = TargetRegistry->m_LoadedAssets.at( id );
+
+			return asset.As<Ty>();
+		}
+
+	private:
 		Ref<AssetRegistry> m_Assets = nullptr;
 		Ref<AssetRegistry> m_EditorAssets = nullptr;
+
+		// TODO: Don't hard code this.
+#if defined(SAT_DIST)
+		VFSAssetImporter m_Importer;
+#else
+		AssetImporter m_Importer;
+#endif
+
+	private:
+		friend class AssetBundle;
 	};
 
 }

@@ -652,7 +652,7 @@ namespace Saturn {
 			return;
 		}
 
-		// We have a skybox, but we need to update the texture cubes.
+		// Skybox values where set, but check if out textures exist or update them accordingly.
 		CheckInvalidSkybox();
 
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;

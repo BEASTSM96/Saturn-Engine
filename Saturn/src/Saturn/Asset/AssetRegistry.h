@@ -80,30 +80,6 @@ namespace Saturn {
 		std::filesystem::path& GetPath() { return m_Path; }
 		const std::filesystem::path& GetPath() const { return m_Path; }
 
-		template<typename Ty>
-		Ref<Ty> GetAssetAs( AssetID id )
-		{
-			auto AssetItr = m_Assets.find( id );
-
-			if( AssetItr == m_Assets.end() )
-				return nullptr;
-
-			Ref<Asset> asset = AssetItr->second;
-
-			if( !IsAssetLoaded( id ) )
-			{
-				bool loaded = AssetImporterBase::Get().TryLoadData( asset );
-				if( !loaded )
-					return nullptr;
-
-				m_LoadedAssets[ id ] = asset;
-			}
-			else
-				asset = m_LoadedAssets.at( id );
-
-			return asset.As<Ty>();
-		}
-
 	private:
 		void AddAsset( AssetID id );
 		bool IsAssetLoaded( AssetID id );

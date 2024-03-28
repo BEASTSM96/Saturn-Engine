@@ -56,7 +56,7 @@ namespace Saturn {
 	{
 	public:
 		Ref() : m_Pointer( nullptr ) {}
-		Ref( std::nullptr_t nullptrr ) : m_Pointer( nullptr ) {}
+		Ref( std::nullptr_t ) : m_Pointer( nullptr ) {}
 		Ref( T* pointer ) : m_Pointer( pointer ) { static_assert( std::is_base_of<RefTarget, T>::value, "T must be a child of RefTarget class!" ); AddRef(); }
 
 		template<typename T2>

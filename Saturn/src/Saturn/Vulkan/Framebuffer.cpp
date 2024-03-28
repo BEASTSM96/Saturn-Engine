@@ -232,6 +232,5 @@ namespace Saturn {
 		FramebufferCreateInfo.layers = 1;
 
 		VK_CHECK( vkCreateFramebuffer( VulkanContext::Get().GetDevice(), &FramebufferCreateInfo, nullptr, &m_Framebuffer ) );
-	
 	}
 }
