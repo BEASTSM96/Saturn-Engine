@@ -178,6 +178,22 @@ namespace Saturn {
 			}
 		}
 
+		[[nodiscard]] bool DoesAssetIDExist( AssetID id, AssetRegistryType Dst = AssetRegistryType::Game ) 
+		{
+			switch( Dst )
+			{
+				case Saturn::AssetRegistryType::Game:
+					return m_Assets->DoesIDExists( id );
+
+				case Saturn::AssetRegistryType::Editor:
+					return m_EditorAssets->DoesIDExists( id );
+
+				case Saturn::AssetRegistryType::Unknown:
+				default:
+					return false;
+			}
+		}
+
 		size_t GetAssetRegistrySize() { return m_Assets->GetSize(); }
 		size_t GetEditorRegistrySize() { return m_EditorAssets->GetSize(); }
 

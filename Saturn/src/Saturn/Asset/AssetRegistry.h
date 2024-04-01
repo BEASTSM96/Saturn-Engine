@@ -70,7 +70,7 @@ namespace Saturn {
 		void RemoveAsset( AssetID id );
 		void TerminateAsset( AssetID id );
 
-		bool DoesIDExists( AssetID id );
+		[[nodiscard]] bool DoesIDExists( AssetID id );
 
 		size_t GetSize();
 

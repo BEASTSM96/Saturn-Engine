@@ -145,19 +145,14 @@ namespace Saturn {
 
 		materialAsset->SetAlbeoColor( albedoColor );
 
-		Ref<Texture2D> defaultTexture = Renderer::Get().GetPinkTexture();
 		Ref<Texture2D> texture = nullptr;
 
-		if( albedoID != 0 )
+		if( AssetManager::Get().DoesAssetIDExist( albedoID ) )
 		{
 			Ref<Asset> rAsset = AssetManager::Get().FindAsset( albedoID );
 			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
 
 			materialAsset->SetAlbeoMap( texture );
-		}
-		else
-		{
-			materialAsset->SetAlbeoMap( defaultTexture );
 		}
 
 		auto useNormal = materialData[ "UseNormal" ].as<float>();
@@ -165,16 +160,12 @@ namespace Saturn {
 
 		materialAsset->UseNormalMap( useNormal );
 
-		if( normalID != 0 )
+		if( AssetManager::Get().DoesAssetIDExist( normalID ) )
 		{
 			Ref<Asset> rAsset = AssetManager::Get().FindAsset( normalID );
 			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
 
 			materialAsset->SetNormalMap( texture );
-		}
-		else
-		{
-			materialAsset->SetNormalMap( defaultTexture );
 		}
 
 		auto metalness = materialData[ "Metalness" ].as<float>();
@@ -182,34 +173,28 @@ namespace Saturn {
 
 		materialAsset->SetMetalness( metalness );
 
-		if( metallicID != 0 )
+		if( AssetManager::Get().DoesAssetIDExist( metallicID ) )
 		{
 			Ref<Asset> rAsset = AssetManager::Get().FindAsset( metallicID );
 			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
 
 			materialAsset->SetMetallicMap( texture );
 		}
-		else
-		{
-			materialAsset->SetMetallicMap( defaultTexture );
-		}
+		
 
 		auto val = materialData[ "Roughness" ].as<float>();
 		auto roughnessID = materialData[ "RoughnessTexture" ].as<uint64_t>( 0 );
 
 		materialAsset->SetRoughness( val );
 
-		if( roughnessID != 0 )
+		if( AssetManager::Get().DoesAssetIDExist( roughnessID ) )
 		{
 			Ref<Asset> rAsset = AssetManager::Get().FindAsset( roughnessID );
 			texture = Ref<Texture2D>::Create( Project::GetActiveProject()->FilepathAbs( rAsset->Path ), AddressingMode::Repeat );
 
 			materialAsset->SetRoughnessMap( texture );
 		}
-		else
-		{
-			materialAsset->SetRoughnessMap( defaultTexture );
-		}
+		
 
 		auto emissive = materialData[ "Emissive" ].as<float>( 0.0f );
 		materialAsset->SetEmissive( emissive );
