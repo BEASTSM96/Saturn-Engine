@@ -57,7 +57,7 @@
 
 namespace Saturn {
 	
-	VkShaderStageFlags ShaderTypeToVulkan( ShaderType type ) 
+	static VkShaderStageFlags ShaderTypeToVulkan( ShaderType type ) 
 	{
 		switch( type )
 		{
@@ -78,7 +78,7 @@ namespace Saturn {
 		return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 	}
 
-	ShaderDataType SpvToSaturn( spirv_cross::SPIRType type )
+	static ShaderDataType SpvToSaturn( spirv_cross::SPIRType type )
 	{
 		switch( type.basetype )
 		{
@@ -919,7 +919,7 @@ namespace Saturn {
 		shaderc::Compiler       Compiler;
 		shaderc::CompileOptions CompilerOptions;
 
-		// We only use shaderc_optimization_level_zero if not it will remove the uniform names, it took me 6 hours to figure out.
+		// We only use shaderc_optimization_level_zero, if not it will remove the uniform names, it took me 6 hours to figure out.
 		CompilerOptions.SetOptimizationLevel( shaderc_optimization_level_zero );
 
 		CompilerOptions.SetWarningsAsErrors();
@@ -958,7 +958,7 @@ namespace Saturn {
 		SHADER_INFO( "Shader Compilation took {0} ms", CompileTimer.ElapsedMilliseconds() );
 	}
 
-	void Shader::SerialiseShaderData( std::ofstream& rStream )
+	void Shader::SerialiseShaderData( std::ofstream& rStream ) const
 	{
 		RawSerialisation::WriteUnorderedMap( m_SpvCode, rStream );
 		RawSerialisation::WriteUnorderedMap( m_DescriptorSets, rStream );

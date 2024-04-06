@@ -352,7 +352,7 @@ namespace Saturn {
 		std::vector< VkDescriptorSetLayout >& GetSetLayouts() { return m_SetLayouts; }
 		VkDescriptorSetLayout GetSetLayout( uint32_t set = 0 ) { return m_SetLayouts[ set ]; }
 
-		void SerialiseShaderData( std::ofstream& rStream );
+		void SerialiseShaderData( std::ofstream& rStream ) const;
 		void DeserialiseShaderData( std::ifstream& rStream );
 
 	private:
