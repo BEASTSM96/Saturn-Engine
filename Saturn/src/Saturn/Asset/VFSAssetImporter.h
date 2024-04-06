@@ -42,7 +42,6 @@ namespace Saturn {
 		VFSAssetImporter();
 		~VFSAssetImporter();
 
-		void Import( const Ref<Asset>& rAsset ) override;
 		[[nodiscard]] bool TryLoadData( Ref<Asset>& rAsset ) override;
 
 	private:

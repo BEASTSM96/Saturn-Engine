@@ -45,11 +45,6 @@ namespace Saturn {
 		m_AssetSerialisers[ AssetType::PhysicsMaterial  ] = std::make_unique<PhysicsMaterialAssetSerialiser>();
 	}
 
-	void AssetImporter::Import( const Ref<Asset>& rAsset )
-	{
-		m_AssetSerialisers[ rAsset->GetAssetType() ]->Deserialise( rAsset );
-	}
-
 	bool AssetImporter::TryLoadData( Ref<Asset>& rAsset )
 	{
 		return m_AssetSerialisers[ rAsset->GetAssetType() ]->TryLoadData( rAsset );

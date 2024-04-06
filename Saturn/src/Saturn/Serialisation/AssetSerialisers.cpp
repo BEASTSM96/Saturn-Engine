@@ -66,11 +66,6 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL
 
-	void MaterialAssetSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
-	{
-		SAT_CORE_ASSERT( false, "MaterialAssetSerialiser::Deserialise is deprecated!" );
-	}
-
 	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
 	{
 		auto& basePath = rAsset->GetPath();
@@ -264,11 +259,6 @@ namespace Saturn {
 		fout << out.c_str();
 	}
 
-	void PrefabSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
-	{
-
-	}
-
 	bool PrefabSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
 		auto prefabAsset = Ref<Prefab>::Create();
@@ -370,11 +360,6 @@ namespace Saturn {
 		fout << out.c_str();
 	}
 
-	void StaticMeshAssetSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
-	{
-
-	}
-
 	bool StaticMeshAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
 		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
@@ -451,11 +436,6 @@ namespace Saturn {
 
 		std::ofstream fout( fullPath );
 		fout << out.c_str();
-	}
-
-	void Sound2DAssetSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
-	{
-
 	}
 
 	bool Sound2DAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
@@ -537,10 +517,6 @@ namespace Saturn {
 
 		std::ofstream fout( fullPath );
 		fout << out.c_str();
-	}
-
-	void PhysicsMaterialAssetSerialiser::Deserialise( const Ref<Asset>& rAsset ) const
-	{
 	}
 
 	bool PhysicsMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const

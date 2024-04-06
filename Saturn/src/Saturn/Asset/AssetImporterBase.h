@@ -44,7 +44,6 @@ namespace Saturn {
 	class AssetImporterBase : public RefTarget
 	{
 	public:
-		virtual void Import( const Ref<Asset>& rAsset ) = 0;
 		[[nodiscard]] virtual bool TryLoadData( Ref<Asset>& rAsset ) = 0;
 	};
 }

@@ -42,8 +42,6 @@ namespace Saturn {
 		~AssetImporter();
 
 	public:
-
-		void Import                   ( const Ref<Asset>& rAsset ) override;
 		[[nodiscard]] bool TryLoadData(       Ref<Asset>& rAsset ) override;
 
 		static AssetImporterType GetStaticType() { return AssetImporterType::YAML; }
