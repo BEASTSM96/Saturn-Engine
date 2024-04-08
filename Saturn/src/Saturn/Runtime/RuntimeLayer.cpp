@@ -50,6 +50,8 @@
 
 #include "Saturn/Physics/PhysicsFoundation.h"
 
+#include "Saturn/Core/ErrorDialog.h"
+
 #include <Ruby/RubyWindow.h>
 
 namespace Saturn {
@@ -78,7 +80,7 @@ namespace Saturn {
 
 		// Load Asset bundle.
 		if( !AssetBundle::ReadBundle() )
-			exit( EXIT_FAILURE );
+			Core::ShowErrorDialogBox( "Error!", "Asset Bundle could not be read.", true );
 
 		// "Load" the Game Module
 		m_GameModule = new GameModule();

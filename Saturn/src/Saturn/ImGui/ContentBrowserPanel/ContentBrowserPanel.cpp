@@ -1418,7 +1418,7 @@ namespace Saturn {
 			auto Fn = []( Ref<ContentBrowserItem>& a, Ref<ContentBrowserItem>& b ) -> bool
 			{
 				if( a->IsDirectory() && !b->IsDirectory() )
-					return true; // a is a directory sort first.
+					return true; // sort first if a is directory.
 				else if( !a->IsDirectory() && b->IsDirectory() )
 					return false;
 				else

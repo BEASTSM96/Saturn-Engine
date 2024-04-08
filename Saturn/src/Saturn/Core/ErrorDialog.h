@@ -26,91 +26,32 @@
 *********************************************************************************************
 */
 
-#include "Saturn/Core/App.h"
-#include "Saturn/Core/ErrorDialog.h"
+#pragma once
 
-#include "Saturn/Core/EngineSettings.h"
+#if defined( SAT_PLATFORM_WINDOWS )
+#include <Windows.h>
+#endif
 
-#include "Saturn/Runtime/RuntimeLayer.h"
+#include <string>
 
-#include "EditorLayer.h"
+namespace Saturn::Core {
 
-#include "Saturn/Serialisation/EngineSettingsSerialiser.h"
-
-#include "Saturn/GameFramework/Core/GameModule.h"
-
-class EditorApplication : public Saturn::Application
-{
-public:
-	explicit EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
-		: Application( spec ), m_ProjectPath( rProjectPath )
+	inline int ShowErrorDialogBox( const std::string& rTitle, const std::string& rText ) 
 	{
-		// Setup user settings and find the project path.
-		Saturn::EngineSettingsSerialiser uss;
-		uss.Deserialise();
-
-		Saturn::EngineSettings& settings = Saturn::EngineSettings::Get();
-
-		settings.StartupProject = m_ProjectPath;
-
-		size_t found = m_ProjectPath.find_last_of( "/\\" );
-		settings.StartupProjectName = m_ProjectPath.substr( found + 1 );
-
-		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
-
-		settings = Saturn::EngineSettings::Get();
-
-		// Check if the editor asset registry exists.
-		if( !std::filesystem::exists( "content/AssetRegistry.sreg" ) )
-		{
-			// Create file.
-			std::ofstream stream( "content/AssetRegistry.sreg" );
-			stream.close();
-		}
-
-		// Set our root content path.
-		m_RootContentPath = std::filesystem::current_path() / "content";
+#if defined(SAT_PLATFORM_WINDOWS)
+		return MessageBoxA( nullptr, rTitle.data(), rText.data(), MB_ICONSTOP | MB_OK );
+#else
+		return 0;
+#endif
 	}
 
-	virtual void OnInit() override
+	[[noreturn]] inline void ShowErrorDialogBox( const std::string& rTitle, const std::string& rText, bool Terminate )
 	{
-		m_EditorLayer = new Saturn::EditorLayer();
-
-		PushLayer( m_EditorLayer );
+#if defined(SAT_PLATFORM_WINDOWS)
+		MessageBoxA( nullptr, rText.data(), rTitle.data(), MB_ICONSTOP | MB_OK );
+#else
+#endif
+		std::exit( 1 );
+		std::unreachable();
 	}
-
-	virtual void OnShutdown() override
-	{
-		Saturn::EngineSettingsSerialiser uss;
-		uss.Serialise();
-
-		PopLayer( m_EditorLayer );
-		delete m_EditorLayer;
-	}
-
-private:
-	Saturn::EditorLayer* m_EditorLayer = nullptr;
-
-	std::string m_ProjectPath = "";
-};
-
-Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
-{
-	std::string projectPath = "";
-
-	if( argc > 1 )
-		projectPath = argv[1];
-	else
-		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
-
-	// TODO: Maybe load the most recent project? Or ask the user to select it.
-	if( projectPath.empty() )
-	{
-		Core::ShowErrorDialogBox( "Error", "No project path was provided!", true );
-	}
-
-	ApplicationSpecification spec;
-	spec.Flags = ApplicationFlag_CreateSceneRenderer;
-
-	return new EditorApplication( spec, projectPath );
 }
