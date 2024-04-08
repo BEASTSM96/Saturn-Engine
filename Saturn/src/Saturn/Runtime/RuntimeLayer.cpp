@@ -79,8 +79,13 @@ namespace Saturn {
 		AssetManager* pAssetManager = new AssetManager();
 
 		// Load Asset bundle.
-		if( !AssetBundle::ReadBundle() )
-			Core::ShowErrorDialogBox( "Error!", "Asset Bundle could not be read.", true );
+		if( auto result = AssetBundle::ReadBundle(); result != AssetBundleResult::Success )
+		{
+			std::string errorCode = std::to_string( (int)result );
+			std::string errMsg = std::format( "Asset Bundle could not be read. Error code: {0}", errorCode );
+
+			Core::ShowErrorDialogBox( "Error!", errMsg, true );
+		}
 
 		// "Load" the Game Module
 		m_GameModule = new GameModule();

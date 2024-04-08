@@ -33,7 +33,17 @@
 
 #include "ShaderUniform.h"
 
+#include <expected>
+
 namespace Saturn {
+
+	enum class ShaderBundleResult 
+	{
+		Success,
+		FileNotFound,
+		InvalidShaderHeader,
+		Failed
+	};
 
 	class ShaderBundle
 	{
@@ -41,7 +51,7 @@ namespace Saturn {
 		ShaderBundle();
 		~ShaderBundle();
 
-		static bool BundleShaders();
-		static void ReadBundle();
+		[[nodiscard]] static ShaderBundleResult BundleShaders();
+		[[nodiscard]] static ShaderBundleResult ReadBundle();
 	};
 }

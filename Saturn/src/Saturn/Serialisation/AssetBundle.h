@@ -36,11 +36,21 @@ namespace Saturn {
 
 	class Asset;
 
+	enum class AssetBundleResult
+	{
+		Success,
+		FileNotFound,
+		FailedToUncompress,
+		InvalidFileHeader,
+		InvalidPakFileHeader,
+		AssetIDMismatch
+	};
+
 	class AssetBundle
 	{
 	public:
-		static bool BundleAssets();
-		static bool ReadBundle();
+		[[nodiscard]] static AssetBundleResult BundleAssets();
+		[[nodiscard]] static AssetBundleResult ReadBundle();
 
 		static Ref<BlockingOperation>& GetBlockingOperation();
 

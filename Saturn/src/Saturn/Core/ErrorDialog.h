@@ -39,7 +39,7 @@ namespace Saturn::Core {
 	inline int ShowErrorDialogBox( const std::string& rTitle, const std::string& rText ) 
 	{
 #if defined(SAT_PLATFORM_WINDOWS)
-		return MessageBoxA( nullptr, rTitle.data(), rText.data(), MB_ICONSTOP | MB_OK );
+		return MessageBoxA( nullptr, rText.data(), rTitle.data(), MB_ICONSTOP | MB_OK );
 #else
 		return 0;
 #endif

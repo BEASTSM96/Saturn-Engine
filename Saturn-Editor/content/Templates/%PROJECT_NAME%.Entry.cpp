@@ -32,6 +32,7 @@
 #include <Windows.h>
 
 #include <Saturn/Core/App.h>
+#include <Saturn/Core/ErrorDialog.h>
 #include <Saturn/Runtime/RuntimeLayer.h>
 #include <Saturn/Project/Project.h>
 #include <Saturn/Vulkan/ShaderBundle.h>
@@ -87,7 +88,12 @@ public:
 		SAT_CORE_ASSERT( Saturn::Project::GetActiveProject(), "No project was given." );
 
 		// Load the shader bundle.
-		Saturn::ShaderBundle::ReadBundle();
+		const auto result = Saturn::ShaderBundle::ReadBundle();
+
+		if( result.error() != Saturn::ShaderBundleResult::Success )
+		{
+			Saturn::Core::ShowErrorDialogBox( "Error!", "Failed to load shader bundle!", true );
+		}
 
 		Saturn::SceneRendererFlags flags = Saturn::SceneRendererFlag_MasterInstance | Saturn::SceneRendererFlag_SwapchainTarget;
 		m_SceneRenderer = new Saturn::SceneRenderer( flags );

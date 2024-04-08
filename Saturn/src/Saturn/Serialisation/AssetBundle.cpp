@@ -76,7 +76,7 @@ namespace Saturn {
 			std::filesystem::create_directories( tempDir );
 	}
 
-	bool AssetBundle::BundleAssets()
+	AssetBundleResult AssetBundle::BundleAssets()
 	{
 		GetBlockingOperation()->Reset();
 		GetBlockingOperation()->SetTitle( "AssetBundle" );
@@ -271,7 +271,7 @@ namespace Saturn {
 
 		AssetBundleRegistry = nullptr;
 
-		return true;
+		return AssetBundleResult::Success;
 	}
 
 	void AssetBundle::RTDumpAsset( const Ref<Asset>& rAsset, Ref<AssetRegistry>& AssetBundleRegistry )
@@ -346,13 +346,13 @@ namespace Saturn {
 		}
 	}
 
-	bool AssetBundle::ReadBundle()
+	AssetBundleResult AssetBundle::ReadBundle()
 	{
 		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
 		cachePath /= "AssetBundle.sab";
 
 		if( !std::filesystem::exists( cachePath ) )
-			return false;
+			return AssetBundleResult::FileNotFound;
 
 		Timer timer;
 
@@ -364,7 +364,7 @@ namespace Saturn {
 		if( strcmp( header.Magic, ".AB\0" ) )
 		{
 			SAT_CORE_ERROR( "Invalid asset bundle file header or corrupt asset bundle file!" );
-			return false;
+			return AssetBundleResult::InvalidFileHeader;
 		}
 
 		if( header.Version != SAT_CURRENT_VERSION )
@@ -412,13 +412,15 @@ namespace Saturn {
 			if( strcmp( dfh.Magic, ".PAK\0" ) )
 			{
 				SAT_CORE_ERROR( "Invalid pack file header!" );
-				break;
+
+				return AssetBundleResult::InvalidPakFileHeader;
 			}
 
 			if( rAsset->ID != dfh.Asset )
 			{
 				SAT_CORE_ERROR( "Asset ID's do not match!" );
-				break;
+			
+				return AssetBundleResult::AssetIDMismatch;
 			}
 
 			if( dfh.Version != SAT_CURRENT_VERSION ) 
@@ -446,7 +448,8 @@ namespace Saturn {
 				if( result != Z_OK )
 				{
 					SAT_CORE_ERROR( "Failed to uncompress data!" );
-					break;
+				
+					return AssetBundleResult::FailedToUncompress;
 				}
 
 				compressedData.clear();
@@ -472,7 +475,7 @@ namespace Saturn {
 
 		FileEntries.clear();
 
-		return true;
+		return AssetBundleResult::Success;
 	}
 
 	Ref<BlockingOperation>& AssetBundle::GetBlockingOperation()

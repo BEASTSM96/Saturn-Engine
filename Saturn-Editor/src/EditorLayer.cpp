@@ -190,7 +190,7 @@ namespace Saturn {
 				if( ImGui::MenuItem( "DEBUG: Read Asset Bundle" ) )
 				{
 					Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
-					AssetBundle::ReadBundle();
+					auto res = AssetBundle::ReadBundle();
 				}
 
 				if( ImGui::MenuItem( "DEBUG: Enable VFS Flag" ) )

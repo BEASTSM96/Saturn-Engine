@@ -50,7 +50,7 @@ namespace Saturn {
 	{
 	}
 
-	bool ShaderBundle::BundleShaders()
+	ShaderBundleResult ShaderBundle::BundleShaders()
 	{
 		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
 
@@ -83,16 +83,17 @@ namespace Saturn {
 
 		fout.close();
 	
-		return true;
+		return ShaderBundleResult::Success;
 	}
 
-	void ShaderBundle::ReadBundle()
+	ShaderBundleResult ShaderBundle::ReadBundle()
 	{
 		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
 		cachePath /= "ShaderBundle.ssb";
 
 		if( !std::filesystem::exists( cachePath ) )
-			return;
+			return ShaderBundleResult::FileNotFound;
+
 		std::ifstream stream( cachePath, std::ios::binary | std::ios::in );
 
 		ShaderBundleHeader header{};
@@ -101,7 +102,7 @@ namespace Saturn {
 		if( strcmp( header.Magic, ".SB\0" ) )
 		{
 			SAT_CORE_ERROR( "Invalid shader bundle file header!" );
-			return;
+			return ShaderBundleResult::InvalidShaderHeader;
 		}
 
 		for( uint32_t i = 0; i < header.Shaders; i++ )
@@ -118,5 +119,7 @@ namespace Saturn {
 
 		// We are done with the file buffer.
 		stream.close();
+
+		return ShaderBundleResult::Success;
 	}
 }
