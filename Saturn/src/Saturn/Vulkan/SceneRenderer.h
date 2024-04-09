@@ -45,8 +45,8 @@
 
 #include "Pipeline.h"
 
-#define SHADOW_CASCADE_COUNT 4
-#define MAX_POINT_LIGHTS 512
+constexpr int SHADOW_CASCADE_COUNT = 4;
+constexpr int MAX_POINT_LIGHTS = 512;
 
 namespace Saturn {
 
@@ -417,7 +417,7 @@ namespace Saturn {
 
 		void SetDynamicSky( float Turbidity, float Azimuth, float Inclination );
 		
-		bool HasFlag( SceneRendererFlags flag );
+		bool HasFlag( SceneRendererFlags flag ) const;
 
 		void SetSwapchainTarget( bool target ) { m_RendererData.IsSwapchainTarget = target; }
 		void ChangeAOTechnique( AOTechnique newTechique );

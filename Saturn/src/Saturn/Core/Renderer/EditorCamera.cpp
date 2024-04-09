@@ -39,7 +39,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define M_PI 3.14159f
+constexpr auto M_PI = 3.14159f;
 
 namespace Saturn {
 	

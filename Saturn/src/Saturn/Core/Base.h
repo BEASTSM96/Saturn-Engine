@@ -51,7 +51,8 @@
 
 #define SAT_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
-#define BIT( x ) (1 << x)
+template<typename Ty>
+constexpr auto BIT( Ty x ) { return 1 << x; }
 
 //////////////////////////////////////////////////////////////////////////
 // CONCAT
@@ -63,11 +64,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // VERSION
-#define SAT_MAKE_VERSION(major, minor, patch) ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
+template<typename Ty>
+constexpr auto SAT_MAKE_VERSION( Ty major, Ty minor, Ty patch ) { return ( ( ( ( unsigned int ) ( major ) ) << 22 ) | ( ( ( unsigned int ) ( minor ) ) << 12 ) | ( ( unsigned int ) ( patch ) ) ); }
 
 // Current version is Alpha 0.1.0 (Alpha 1)
-#define SAT_CURRENT_VERSION SAT_MAKE_VERSION( 0, 1, 0 )
-#define SAT_CURRENT_VERSION_STRING "0.1.0"
+constexpr auto SAT_CURRENT_VERSION = SAT_MAKE_VERSION( 0, 1, 0 );
+constexpr auto SAT_CURRENT_VERSION_STRING = "0.1.0";
 
 #define SAT_DECODE_VERSION(source, major, minor, patch) \
 patch = (source) & 0xFF; \

@@ -51,8 +51,8 @@
 
 #include <random>
 
-#define M_PI 3.14159265358979323846
-#define SHADOW_MAP_SIZE 4096.0f 
+constexpr auto M_PI = 3.14159265358979323846;
+constexpr auto SHADOW_MAP_SIZE = 4096.0f;
 
 namespace Saturn {
 
@@ -1926,7 +1926,7 @@ namespace Saturn {
 			} );
 	}
 
-	bool SceneRenderer::HasFlag( SceneRendererFlags flag )
+	bool SceneRenderer::HasFlag( SceneRendererFlags flag ) const
 	{
 		return ( m_Flags & flag ) != 0;
 	}

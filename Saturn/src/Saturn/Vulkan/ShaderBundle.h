@@ -48,9 +48,6 @@ namespace Saturn {
 	class ShaderBundle
 	{
 	public:
-		ShaderBundle();
-		~ShaderBundle();
-
 		[[nodiscard]] static ShaderBundleResult BundleShaders();
 		[[nodiscard]] static ShaderBundleResult ReadBundle();
 	};

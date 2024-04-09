@@ -42,14 +42,6 @@ namespace Saturn {
 		size_t Shaders;
 	};
 
-	ShaderBundle::ShaderBundle()
-	{
-	}
-
-	ShaderBundle::~ShaderBundle()
-	{
-	}
-
 	ShaderBundleResult ShaderBundle::BundleShaders()
 	{
 		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
