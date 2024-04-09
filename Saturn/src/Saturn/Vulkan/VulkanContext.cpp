@@ -513,7 +513,7 @@ namespace Saturn {
 
 	void VulkanContext::EndSingleTimeCommands( VkCommandBuffer CommandBuffer )
 	{
-		const uint64_t FENCE_TIMEOUT = 100000000000;
+		constexpr uint64_t FENCE_TIMEOUT = 100000000000;
 
 		VK_CHECK( vkEndCommandBuffer( CommandBuffer ) );
 

@@ -159,7 +159,11 @@ namespace Saturn {
 					// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
 					Ref<Shader> TexturePass = ShaderLibrary::Get().FindOrLoad( "TexturePass", "content/shaders/TexturePass.glsl" );
 
-					ShaderBundle::BundleShaders();
+					if( auto shaderRes = ShaderBundle::BundleShaders(); shaderRes != ShaderBundleResult::Success ) 
+					{
+						m_MessageBoxText = std::format( "Shader bundle failed to build error was: {0}", ( int ) shaderRes );
+						m_ShowMessageBox = true;
+					}
 
 					ShaderLibrary::Get().Remove( TexturePass ); 
 					TexturePass = nullptr;
@@ -170,7 +174,7 @@ namespace Saturn {
 
 					m_BlockingOperation->SetJob( [this]() 
 						{
-							AssetBundle::BundleAssets();
+							auto res = AssetBundle::BundleAssets();
 						} );
 
 					m_BlockingOperation->Execute();
@@ -180,7 +184,11 @@ namespace Saturn {
 				{
 					Ref<Shader> TexturePass = ShaderLibrary::Get().FindOrLoad( "TexturePass", "content/shaders/TexturePass.glsl" );
 
-					ShaderBundle::BundleShaders();
+					if( auto shaderRes = ShaderBundle::BundleShaders(); shaderRes != ShaderBundleResult::Success )
+					{
+						m_MessageBoxText = std::format( "Shader bundle failed to build error was: {0}", ( int ) shaderRes );
+						m_ShowMessageBox = true;
+					}
 
 					ShaderLibrary::Get().Remove( TexturePass );
 					TexturePass = nullptr;
@@ -236,6 +244,7 @@ namespace Saturn {
 		m_ScaleTexture        = Ref< Texture2D >::Create( "content/textures/editor/Scale.png", AddressingMode::ClampToEdge );
 		m_SyncTexture         = Ref< Texture2D >::Create( "content/textures/editor/Sync.png", AddressingMode::ClampToEdge );
 		m_PointLightTexture   = Ref< Texture2D >::Create( "content/textures/editor/Billboard_PointLight.png", AddressingMode::ClampToEdge, false );
+		m_ExclamationTexture  = Ref< Texture2D >::Create( "content/textures/editor/Exclamation.png", AddressingMode::ClampToEdge );
 
 		// Add all of our icons to the editor icons list so that we have use this anywhere else in the engine/editor.
 		EditorIcons::AddIcon( m_CheckerboardTexture );
@@ -246,6 +255,7 @@ namespace Saturn {
 		EditorIcons::AddIcon( m_ScaleTexture );
 		EditorIcons::AddIcon( m_SyncTexture );
 		EditorIcons::AddIcon( m_PointLightTexture );
+		EditorIcons::AddIcon( m_ExclamationTexture );
 
 		// Init Physics
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
@@ -500,6 +510,8 @@ namespace Saturn {
 		ImGui::End();
 
 		DrawViewport();
+
+		if( m_ShowMessageBox )         ShowMessageBox();
 	}
 
 	void EditorLayer::OnEvent( RubyEvent& rEvent )
@@ -1601,6 +1613,35 @@ namespace Saturn {
 #endif
 
 		Application::Get().Close();
+	}
+
+	void EditorLayer::ShowMessageBox()
+	{
+		ImGui::SetNextWindowPos( ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2( 0.5f, 0.5f ) );
+		if( ImGui::BeginPopupModal( "Error##MsgBox", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
+		{
+			ImGui::BeginHorizontal( "##MsgBoxH" );
+
+			Auxiliary::Image( m_ExclamationTexture, ImVec2( 72, 72 ) );
+
+			ImGui::Text( m_MessageBoxText.c_str() );
+
+			ImGui::EndHorizontal();
+
+			ImGui::BeginHorizontal( "##MsgBoxOpts" );
+
+			if( ImGui::Button( "OK" ) ) 
+			{
+				ImGui::CloseCurrentPopup();
+				m_ShowMessageBox = false;
+			} 
+			
+			ImGui::EndHorizontal();
+
+			ImGui::EndPopup();
+		}
+
+		ImGui::OpenPopup( "Error##MsgBox" );
 	}
 
 }

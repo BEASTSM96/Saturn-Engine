@@ -92,11 +92,11 @@ namespace Saturn {
 		void DrawViewport();
 		void Viewport_Gizmo();
 		void Viewport_RTControls();
-
-		void CreateBlockingOp( std::function<void()>&& rrFunction );
 		
 		// Close editor and open the project browser.
 		void CloseEditorAndOpenPB();
+
+		void ShowMessageBox();
 
 	private:
 		TitleBar* m_TitleBar = nullptr;
@@ -110,6 +110,7 @@ namespace Saturn {
 		Ref< Texture2D > m_ScaleTexture = nullptr;
 		Ref< Texture2D > m_SyncTexture = nullptr;
 		Ref< Texture2D > m_PointLightTexture = nullptr;
+		Ref< Texture2D > m_ExclamationTexture = nullptr;
 
 		Ref< PanelManager > m_PanelManager = nullptr;
 
@@ -137,6 +138,10 @@ namespace Saturn {
 
 		float m_OperationPercent = 0.0f;
 		bool m_ShowOperation = false;
+
+		std::string m_MessageBoxText = "";
+		std::string m_MessageBoxTitle = "Error";
+		bool m_ShowMessageBox = false;
 
 		Ref< Scene > m_EditorScene = nullptr;
 		Ref< Scene > m_RuntimeScene = nullptr;

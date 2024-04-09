@@ -104,12 +104,14 @@ namespace Saturn {
 	}
 
 // I don't want to include the imgui header so we will just copy the macro.
-#define R_SHIFT 0
-#define G_SHIFT 8
-#define B_SHIFT 16
-#define A_SHIFT 24
-#define A_MASK  0xFF000000
-#define COLOR_32( R, G, B, A )  (((uint32_t)(A)<<A_SHIFT) | ((uint32_t)(B)<<B_SHIFT) | ((uint32_t)(G)<<G_SHIFT) | ((uint32_t)(R)<<R_SHIFT))
+constexpr int R_SHIFT = 0;
+constexpr int G_SHIFT = 8;
+constexpr int B_SHIFT = 16;
+constexpr int A_SHIFT = 24;
+constexpr int A_MASK = 0xFF000000;
+
+template<typename Ty>
+constexpr auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A ) << A_SHIFT ) | ( ( uint32_t ) ( B ) << B_SHIFT ) | ( ( uint32_t ) ( G ) << G_SHIFT ) | ( ( uint32_t ) ( R ) << R_SHIFT ) ); }
 
 	inline constexpr uint32_t AssetTypeToColor( AssetType type )
 	{
