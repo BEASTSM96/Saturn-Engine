@@ -401,7 +401,47 @@ namespace Saturn {
 		AssetViewer::Draw();
 
 		m_PanelManager->DrawAllPanels();
+		
+		ImGui::Begin( "Scene Renderer" );
+
 		Application::Get().PrimarySceneRenderer().ImGuiRender();
+
+		if( Auxiliary::TreeNode( "Shaders", false ) ) 
+		{
+			ImGui::BeginVertical( "shadersV" );
+
+			for( auto& [name, shader] : ShaderLibrary::Get().GetShaders() )
+			{
+				ImGui::Columns( 2 );
+				ImGui::SetColumnWidth( 0, 125.0f );
+				ImGui::PushMultiItemsWidths( 2, ImGui::CalcItemWidth() );
+
+				ImGui::BeginHorizontal( name.c_str() );
+
+				ImGui::Text( name.c_str() );
+
+				ImGui::PopItemWidth();
+
+				ImGui::NextColumn();
+
+				if( ImGui::Button( "Recompile" ) )
+				{
+					shader->TryRecompile();
+				}
+
+				ImGui::PopItemWidth();
+
+				ImGui::Columns( 1 );
+
+				ImGui::EndHorizontal();
+			}
+
+			ImGui::EndVertical();
+
+			Auxiliary::EndTreeNode();
+		}
+
+		ImGui::End();
 
 		if( OpenAttributions )
 		{
@@ -433,7 +473,7 @@ namespace Saturn {
 		}
 		
 		ImGui::End();
-	
+
 		if( m_BlockingActionRunning )
 		{
 			ImGui::OpenPopup( "Blocking Action" );
@@ -471,47 +511,12 @@ namespace Saturn {
 
 		DrawMaterials();
 
-		if( !HasPremakePath )
-		{
-			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
-			{
-				ImGui::Text( "The environment variable SATURN_PREMAKE_PATH is not set." );
-				ImGui::Text( "This is required in order to build projects." );
-
-				ImGui::Separator();
-
-				static std::string path = "";
-
-				ImGui::InputText( "##path", ( char* ) path.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
-				ImGui::SameLine();
-				if( ImGui::Button( "..." ) ) 
-				{
-					path = Application::Get().OpenFile( ".exe\0*.exe;\0" );
-				}
-
-				if( !path.empty() )
-				{
-					if( ImGui::Button( "Close" ) )
-					{
-						ImGui::CloseCurrentPopup();
-						
-						Auxiliary::SetEnvironmentVariable( "SATURN_PREMAKE_PATH", path.c_str() );
-
-						HasPremakePath = true;
-					}
-				}
-
-				ImGui::EndPopup();
-			}
-
-			ImGui::OpenPopup( "Missing Environment Variable" );
-		}
-
 		ImGui::End();
 
 		DrawViewport();
 
 		if( m_ShowMessageBox )         ShowMessageBox();
+		CheckMissingEnv();
 	}
 
 	void EditorLayer::OnEvent( RubyEvent& rEvent )
@@ -1642,6 +1647,45 @@ namespace Saturn {
 		}
 
 		ImGui::OpenPopup( "Error##MsgBox" );
+	}
+
+	void EditorLayer::CheckMissingEnv()
+	{
+		if( !HasPremakePath )
+		{
+			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
+			{
+				ImGui::Text( "The environment variable SATURN_PREMAKE_PATH is not set." );
+				ImGui::Text( "This is required in order to build projects." );
+
+				ImGui::Separator();
+
+				static std::string path = "";
+
+				ImGui::InputText( "##path", ( char* ) path.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
+				ImGui::SameLine();
+				if( ImGui::Button( "..." ) )
+				{
+					path = Application::Get().OpenFile( ".exe\0*.exe;\0" );
+				}
+
+				if( !path.empty() )
+				{
+					if( ImGui::Button( "Close" ) )
+					{
+						ImGui::CloseCurrentPopup();
+
+						Auxiliary::SetEnvironmentVariable( "SATURN_PREMAKE_PATH", path.c_str() );
+
+						HasPremakePath = true;
+					}
+				}
+
+				ImGui::EndPopup();
+			}
+
+			ImGui::OpenPopup( "Missing Environment Variable" );
+		}
 	}
 
 }

@@ -87,8 +87,10 @@ namespace Saturn {
 		
 		Ref<DescriptorPool> GetDescriptorPool() { return m_RendererDescriptorPools[ m_FrameCount ]; }
 
-	public:
+		void AddShaderReloadCB( const std::function<void( const std::string& )>& rFunc );
+		void OnShaderReloaded( const std::string& rName );
 
+	public:
 		VkCommandBuffer ActiveCommandBuffer() { return m_CommandBuffer; };
 
 	private:
@@ -97,7 +99,6 @@ namespace Saturn {
 		void Terminate();
 
 	private:
-
 		uint32_t m_ImageIndex = 0;
 		uint32_t m_ImageCount = 0;
 		uint32_t m_FrameCount = 0;
@@ -105,6 +106,7 @@ namespace Saturn {
 		std::vector<VkFence> m_FlightFences;
 		
 		std::vector< std::function<void()> > m_TerminateResourceFuncs;
+		std::vector< std::function<void(const std::string&)> > m_ShaderReloadedCB;
 		
 		VkSemaphore m_AcquireSemaphore = nullptr;
 		VkSemaphore m_SubmitSemaphore = nullptr;

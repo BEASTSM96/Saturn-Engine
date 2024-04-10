@@ -355,6 +355,8 @@ namespace Saturn {
 		void SerialiseShaderData( std::ofstream& rStream ) const;
 		void DeserialiseShaderData( std::ifstream& rStream );
 
+		[[nodiscard]] bool TryRecompile();
+
 	private:
 
 		void ReadFile();
@@ -365,7 +367,7 @@ namespace Saturn {
 		
 		void CreateDescriptors();
 
-		void CompileGlslToSpvAssembly();
+		[[nodiscard]] bool CompileGlslToSpvAssembly();
 
 	private:
 		ShaderSourceMap m_ShaderSources;

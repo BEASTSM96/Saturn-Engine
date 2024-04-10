@@ -137,6 +137,8 @@ namespace Saturn {
 		for ( auto& rFunc : m_TerminateResourceFuncs )
 			rFunc();
 
+		m_ShaderReloadedCB.clear();
+
 		m_PinkTextureCube->Terminate();
 		m_PinkTextureCube = nullptr;
 
@@ -500,4 +502,16 @@ namespace Saturn {
 
 		return { vertex, index };
 	}
+
+	void Renderer::AddShaderReloadCB( const std::function<void( const std::string& )>& rFunc )
+	{
+		m_ShaderReloadedCB.push_back( rFunc );
+	}
+
+	void Renderer::OnShaderReloaded( const std::string& rName )
+	{
+		for( auto& rFunction : m_ShaderReloadedCB )
+			rFunction( rName );
+	}
+
 }

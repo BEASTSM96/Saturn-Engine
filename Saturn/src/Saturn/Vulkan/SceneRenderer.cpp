@@ -148,6 +148,8 @@ namespace Saturn {
 		{
 			Renderer2D::Get().SetInitialRenderPass( m_RendererData.LateCompositePass, m_RendererData.LateCompositeFramebuffer );
 		}
+
+		Renderer::Get().AddShaderReloadCB( SAT_BIND_EVENT_FN( OnShaderReloaded ) );
 	}
 
 	Ref<Image2D> SceneRenderer::CompositeImage()
@@ -927,8 +929,6 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		ImGui::Begin( "Scene Renderer" );
-
 		ImGui::Text( "Viewport size, %i, %i", ( int ) m_RendererData.Width, ( int ) m_RendererData.Height );
 
 		ImGui::Text( "FPS: %.1f", ImGui::GetIO().Framerate );
@@ -1020,8 +1020,6 @@ namespace Saturn {
 
 			Auxiliary::EndTreeNode();
 		}
-
-		ImGui::End();
 	}
 
 	void SceneRenderer::SetCurrentScene( Scene* pScene )
@@ -1667,7 +1665,7 @@ namespace Saturn {
 		m_RendererData.BloomTimer.Stop();
 
 		// TEMP
-		return;
+		//return;
 
 		struct u_Settings
 		{
@@ -1874,10 +1872,17 @@ namespace Saturn {
 		m_ScheduledFunctions.push_back( rrFunc );
 	}
 
+	void SceneRenderer::OnShaderReloaded( const std::string& rName )
+	{
+		Ref<Shader> shader = ShaderLibrary::Get().Find( rName );
+
+		// TODO: Find what pipeline this shader belongs to.
+	}
+
 	Ref<TextureCube> SceneRenderer::CreateDymanicSky()
 	{
-		const uint32_t cubemapSize = 512;
-		const uint32_t irradianceMap = 32;
+		constexpr uint32_t cubemapSize = 512;
+		constexpr uint32_t irradianceMap = 32;
 
 		Ref<TextureCube> Environment = Ref<TextureCube>::Create( ImageFormat::RGBA32F, cubemapSize, cubemapSize );
 

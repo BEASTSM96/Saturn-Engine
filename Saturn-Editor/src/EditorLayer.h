@@ -97,6 +97,7 @@ namespace Saturn {
 		void CloseEditorAndOpenPB();
 
 		void ShowMessageBox();
+		void CheckMissingEnv();
 
 	private:
 		TitleBar* m_TitleBar = nullptr;

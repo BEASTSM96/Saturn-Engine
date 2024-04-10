@@ -253,7 +253,13 @@ namespace Saturn {
 		ReadFile();
 		DetermineShaderTypes();
 
-		CompileGlslToSpvAssembly();
+		if( !CompileGlslToSpvAssembly() ) 
+		{
+			SAT_CORE_ERROR( "Shader Failed to compile!" );
+			SAT_CORE_ASSERT( false );
+			
+			return;
+		}
 
 		for( const auto& [k, data] : m_SpvCode )
 		{
@@ -914,7 +920,7 @@ namespace Saturn {
 		m_SetPool = Ref< DescriptorPool >::Create( PoolSizes, 10000 );
 	}
 
-	void Shader::CompileGlslToSpvAssembly()
+	bool Shader::CompileGlslToSpvAssembly()
 	{
 		shaderc::Compiler       Compiler;
 		shaderc::CompileOptions CompilerOptions;
@@ -945,7 +951,7 @@ namespace Saturn {
 				SAT_CORE_ERROR( "Shader Error status {0}", Res.GetCompilationStatus() );
 				SAT_CORE_ERROR( "Shader Error at shader stage: {0}", ShaderTypeToString( key.Type ) );
 				SAT_CORE_ERROR( "Shader Error messages {0}", Res.GetErrorMessage() );
-				SAT_ASSERT( false, "Shader Compilation Failed" );
+				return false;
 			}
 
 			SHADER_INFO( "Shader Warings {0}", Res.GetNumWarnings() );
@@ -956,6 +962,8 @@ namespace Saturn {
 		}
 
 		SHADER_INFO( "Shader Compilation took {0} ms", CompileTimer.ElapsedMilliseconds() );
+		
+		return true;
 	}
 
 	void Shader::SerialiseShaderData( std::ofstream& rStream ) const
@@ -986,4 +994,56 @@ namespace Saturn {
 		
 		CreateDescriptors();
 	}
+
+	bool Shader::TryRecompile()
+	{
+		// Create copies of our data so if anything goes wrong we can set it back to what it was before.
+		std::string OldfileContents = m_FileContents;
+		size_t OldFileSize = m_FileSize;
+
+		auto OldSpvMap          = m_SpvCode;
+		auto OldDescriptorSets  = m_DescriptorSets;
+		auto OldUniforms        = m_Uniforms;
+		auto OldPushConstsUni   = m_PushConstantUniforms;
+		auto OldTextures        = m_Textures;
+		auto OldPushConstsRange = m_PushConstantRanges;
+
+		// Read the updated file.
+		ReadFile();
+		DetermineShaderTypes();
+
+		// Clear descriptors and push consts.
+		m_SpvCode.clear();
+		m_DescriptorSets.clear();
+		m_Uniforms.clear();
+		m_PushConstantUniforms.clear();
+		m_Textures.clear();
+		m_PushConstantRanges.clear();
+
+		if( !CompileGlslToSpvAssembly() )
+		{
+			m_SpvCode              = OldSpvMap;
+			m_DescriptorSets       = OldDescriptorSets;
+			m_Uniforms             = OldUniforms;
+			m_PushConstantUniforms = OldPushConstsUni;
+			m_Textures             = OldTextures;
+			m_PushConstantRanges   = OldPushConstsRange;
+
+			SAT_CORE_ERROR( "Shader hot reloading failed. Shader did not compile!" );
+
+			return false;
+		}
+
+		for( const auto& [k, data] : m_SpvCode )
+		{
+			Reflect( k.Type, data );
+		}
+
+		CreateDescriptors();
+
+		Renderer::Get().OnShaderReloaded( m_Name );
+
+		return true;
+	}
+
 }
