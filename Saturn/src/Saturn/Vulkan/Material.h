@@ -45,6 +45,8 @@ namespace Saturn {
 		 Material( const Ref< Saturn::Shader >& Shader, const std::string& MateralName );
 		~Material();
 
+		void Initialise( const std::string& rMaterialName );
+
 		void Copy( Ref<Material>& rOther );
 
 		void Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader );

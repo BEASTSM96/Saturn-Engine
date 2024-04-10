@@ -55,6 +55,8 @@
 #define SHADER_INFO(...)
 #endif
 
+#include "Saturn/Core/Renderer/RenderThread.h"
+
 namespace Saturn {
 	
 	static VkShaderStageFlags ShaderTypeToVulkan( ShaderType type ) 
@@ -250,12 +252,15 @@ namespace Saturn {
 		// Remove the extension from the name
 		m_Name.erase( m_Name.find_last_of( '.' ) );
 
+		// Create Hash from filepath
+		m_ShaderHash = std::hash<std::string>{}( rFilepath.string() );
+
 		ReadFile();
 		DetermineShaderTypes();
 
 		if( !CompileGlslToSpvAssembly() ) 
 		{
-			SAT_CORE_ERROR( "Shader Failed to compile!" );
+			SAT_CORE_ERROR( "Shader failed to compile!" );
 			SAT_CORE_ASSERT( false );
 			
 			return;
@@ -267,6 +272,8 @@ namespace Saturn {
 		}
 
 		CreateDescriptors();
+	
+		Renderer::Get().AddShaderReference( m_ShaderHash );
 	}
 
 	Shader::~Shader()
@@ -289,6 +296,8 @@ namespace Saturn {
 		m_SetLayouts.clear();
 
 		m_SetPool = nullptr;
+
+		Renderer::Get().RemoveShaderReference( m_ShaderHash );
 	}
 
 	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorImageInfo& rImageInfo, VkDescriptorSet desSet )
@@ -1029,7 +1038,7 @@ namespace Saturn {
 			m_Textures             = OldTextures;
 			m_PushConstantRanges   = OldPushConstsRange;
 
-			SAT_CORE_ERROR( "Shader hot reloading failed. Shader did not compile!" );
+			SAT_CORE_ERROR( "Shader hot reloading failed. Shader did not compile successfully!" );
 
 			return false;
 		}
@@ -1044,6 +1053,11 @@ namespace Saturn {
 		Renderer::Get().OnShaderReloaded( m_Name );
 
 		return true;
+	}
+
+	size_t Shader::GetShaderHash() const
+	{
+		return m_ShaderHash;
 	}
 
 }

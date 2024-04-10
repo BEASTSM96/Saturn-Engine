@@ -159,6 +159,8 @@ namespace Saturn {
 
 	void SceneRenderer::Terminate()
 	{
+		Renderer::Get().ClearShaderReferences();
+
 		m_pScene = nullptr;
 
 		FlushDrawList();
@@ -1159,7 +1161,6 @@ namespace Saturn {
 	struct LightData
 	{
 		glm::mat4 LightMatrix[ 4 ];
-	
 	};
 
 	// Fragment, Binding 2
@@ -1876,7 +1877,17 @@ namespace Saturn {
 	{
 		Ref<Shader> shader = ShaderLibrary::Get().Find( rName );
 
-		// TODO: Find what pipeline this shader belongs to.
+		auto& rReference = Renderer::Get().FindShaderReference( shader->GetShaderHash() );
+
+		for( auto& rPipeline : rReference.Pipelines )
+		{
+			rPipeline->Recreate();
+		}
+
+		for( auto& rMaterial : rReference.Materials )
+		{
+			//rMaterial;
+		}
 	}
 
 	Ref<TextureCube> SceneRenderer::CreateDymanicSky()

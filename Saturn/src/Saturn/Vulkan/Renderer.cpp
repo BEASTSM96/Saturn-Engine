@@ -369,6 +369,20 @@ namespace Saturn {
 
 		VK_CHECK( vkResetDescriptorPool( LogicalDevice, m_RendererDescriptorPools[ m_FrameCount ]->GetVulkanPool(), 0 ) );
 
+		if( m_PendingShaderReloads.size() )
+		{
+			for ( const std::string& rName : m_PendingShaderReloads )
+			{
+				for( auto& rFunction : m_ShaderReloadedCB )
+					rFunction( rName );
+			}
+
+			m_PendingShaderReloads.clear();
+		}
+
+		// ^^^ cleanup from last frame
+		// Actual Begin frame
+
 		m_CommandBuffer = AllocateCommandBuffer( VulkanContext::Get().GetCommandPool() );
 
 		// Wait for last frame.
@@ -510,8 +524,31 @@ namespace Saturn {
 
 	void Renderer::OnShaderReloaded( const std::string& rName )
 	{
-		for( auto& rFunction : m_ShaderReloadedCB )
-			rFunction( rName );
+		m_PendingShaderReloads.push_back( rName );
 	}
 
+	void Renderer::AddShaderReference( const Ref<Shader>& rShader )
+	{
+		m_ShaderReferences[ rShader->GetShaderHash() ] = {};
+	}
+
+	void Renderer::AddShaderReference( size_t Hash )
+	{
+		m_ShaderReferences[ Hash ] = { .Hash = Hash };
+	}
+
+	void Renderer::RemoveShaderReference( size_t Hash )
+	{
+		m_ShaderReferences.erase( Hash );
+	}
+
+	void Renderer::ClearShaderReferences()
+	{
+		m_ShaderReferences.clear();
+	}
+
+	ShaderReference& Renderer::FindShaderReference( size_t Hash )
+	{
+		return m_ShaderReferences[ Hash ];
+	}
 }

@@ -90,6 +90,8 @@ namespace Saturn {
 		~Pipeline() { Terminate(); }
 		
 		void Bind( VkCommandBuffer CommandBuffer );
+		void Recreate();
+		void Terminate();
 
 		VkPipeline GetPipeline() { return m_Pipeline; }
 		VkPipelineLayout GetPipelineLayout() { return m_PipelineLayout; }
@@ -102,9 +104,7 @@ namespace Saturn {
 		
 		VkDescriptorSet GetVulkanSet( ShaderType Stage, uint32_t SetIndex ) { return m_DescriptorSets[Stage][SetIndex]->GetVulkanSet(); }
 
-		void Terminate();
 	private:
-
 		void Create();
 
 		PipelineSpecification m_Specification = {};

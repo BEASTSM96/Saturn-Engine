@@ -43,36 +43,41 @@ namespace Saturn {
 	{
 		m_Shader = Shader;
 		
-		if( MateralName.empty() )
+		Initialise( MateralName );
+	}
+
+	void Material::Initialise( const std::string& rMaterialName )
+	{
+		if( rMaterialName.empty() )
 		{
-			std::string NewName = Shader->GetName();
+			std::string NewName = m_Shader->GetName();
 			NewName += " Unknown Material " + std::to_string( UUID() );
 
 			m_Name = NewName;
 		}
 		else
-			m_Name = MateralName;
+			m_Name = rMaterialName;
 
 		for( auto&& texture : m_Shader->GetTextures() )
 		{
 			m_Textures[ texture.Name ] = nullptr;
 		}
 
-		for( auto rUniform : m_Shader->GetUniforms())
+		for( auto rUniform : m_Shader->GetUniforms() )
 		{
 			m_Uniforms.push_back( { rUniform.Name, rUniform.Location, rUniform.DataType, rUniform.Size, rUniform.Offset, rUniform.IsPushConstantData } );
 		}
 
 		uint32_t Size = 0;
-		
-		for ( auto& rUniform : m_Uniforms )
+
+		for( auto& rUniform : m_Uniforms )
 		{
-			if( rUniform.IsPushConstantData ) 
+			if( rUniform.IsPushConstantData )
 			{
-				Size += static_cast<uint32_t>( rUniform.Size );
+				Size += static_cast< uint32_t >( rUniform.Size );
 			}
 		}
-		
+
 		m_PushConstantData.Allocate( Size );
 		m_PushConstantData.Zero_Memory();
 	}

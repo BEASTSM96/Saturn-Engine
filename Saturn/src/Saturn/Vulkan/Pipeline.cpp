@@ -30,6 +30,7 @@
 #include "Pipeline.h"
 
 #include "Pass.h"
+#include "Renderer.h"
 
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
@@ -62,7 +63,6 @@ namespace Saturn {
 	Pipeline::Pipeline( const PipelineSpecification& Spec )
 		: m_Specification( Spec )
 	{
-
 		Create();
 	}
 
@@ -91,6 +91,12 @@ namespace Saturn {
 	void Pipeline::Bind( VkCommandBuffer CommandBuffer )
 	{
 		vkCmdBindPipeline( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline );
+	}
+
+	void Pipeline::Recreate()
+	{
+		Terminate();
+		Create();
 	}
 
 	void Pipeline::Create()
@@ -410,5 +416,7 @@ namespace Saturn {
 
 		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), VertexModule, nullptr );
 		vkDestroyShaderModule( VulkanContext::Get().GetDevice(), FragmentModule, nullptr );
+
+		Renderer::Get().FindShaderReference( m_Specification.Shader->GetShaderHash() ).Pipelines.push_back( this );
 	}
 }

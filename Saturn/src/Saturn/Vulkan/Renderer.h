@@ -34,6 +34,21 @@
 
 namespace Saturn {
 
+	struct ShaderReference
+	{
+		size_t Hash;
+
+		std::vector<Ref<Pipeline>> Pipelines;
+		std::vector<Ref<Material>> Materials;
+		//std::vector<Ref<MaterialAssets>> MaterialAssets;
+
+		~ShaderReference() 
+		{
+			Pipelines.clear();
+			Materials.clear();
+		}
+	};
+
 	class Renderer : public RefTarget
 	{
 	public:
@@ -90,6 +105,13 @@ namespace Saturn {
 		void AddShaderReloadCB( const std::function<void( const std::string& )>& rFunc );
 		void OnShaderReloaded( const std::string& rName );
 
+		void AddShaderReference( const Ref<Shader>& rShader );
+		void AddShaderReference( size_t Hash );
+		void RemoveShaderReference( size_t Hash );
+		void ClearShaderReferences();
+
+		ShaderReference& FindShaderReference( size_t Hash );
+
 	public:
 		VkCommandBuffer ActiveCommandBuffer() { return m_CommandBuffer; };
 
@@ -132,8 +154,8 @@ namespace Saturn {
 		// frame -> shader name -> set
 		std::unordered_map< uint32_t, std::unordered_map< std::string, std::vector<VkWriteDescriptorSet>>> m_StorageBufferSets;
 
-		// StorageBufferSet -> frame -> shader -> set
-		//std::unordered_map < Ref<StorageBufferSet>, std::unordered_map<uint32_t, std::unordered_map< Ref<Shader>, std::vector<VkWriteDescriptorSet>>>> a;
+		std::unordered_map<size_t, ShaderReference> m_ShaderReferences;
+		std::vector<std::string> m_PendingShaderReloads;
 
 	private:
 		friend class VulkanContext;

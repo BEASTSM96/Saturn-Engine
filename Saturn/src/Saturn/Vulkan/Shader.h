@@ -357,6 +357,8 @@ namespace Saturn {
 
 		[[nodiscard]] bool TryRecompile();
 
+		size_t GetShaderHash() const;
+
 	private:
 
 		void ReadFile();
@@ -395,6 +397,8 @@ namespace Saturn {
 		std::vector< VkDescriptorSetLayout > m_SetLayouts;
 
 		Ref< DescriptorPool > m_SetPool;
+
+		size_t m_ShaderHash = 0;
 
 	private:
 		friend class ShaderBundle;
