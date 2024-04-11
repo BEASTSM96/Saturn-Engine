@@ -468,7 +468,8 @@ namespace Saturn {
 
 		m_EndFrameTime = m_EndFrameTimer.ElapsedMilliseconds() - m_QueuePresentTime;
 
-		// This is a hack, but for now we will do this as in the LightCulling pass we resize the buffer every frame meaning we have to update out cache.
+		// Clear storage buffer sets. Reallocated next frame.
+		// Not ideal but for now we will do this as in the LightCulling pass we resize the buffer every frame meaning we have to update our cache.
 		m_StorageBufferSets.clear();
 	}
 
@@ -525,11 +526,6 @@ namespace Saturn {
 	void Renderer::OnShaderReloaded( const std::string& rName )
 	{
 		m_PendingShaderReloads.push_back( rName );
-	}
-
-	void Renderer::AddShaderReference( const Ref<Shader>& rShader )
-	{
-		m_ShaderReferences[ rShader->GetShaderHash() ] = {};
 	}
 
 	void Renderer::AddShaderReference( size_t Hash )

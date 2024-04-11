@@ -36,7 +36,7 @@ namespace Saturn {
 
 	struct ShaderReference
 	{
-		size_t Hash;
+		size_t Hash = 0;
 
 		std::vector<Ref<Pipeline>> Pipelines;
 		std::vector<Ref<Material>> Materials;
@@ -105,7 +105,6 @@ namespace Saturn {
 		void AddShaderReloadCB( const std::function<void( const std::string& )>& rFunc );
 		void OnShaderReloaded( const std::string& rName );
 
-		void AddShaderReference( const Ref<Shader>& rShader );
 		void AddShaderReference( size_t Hash );
 		void RemoveShaderReference( size_t Hash );
 		void ClearShaderReferences();

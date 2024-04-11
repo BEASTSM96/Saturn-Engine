@@ -1170,13 +1170,13 @@ namespace Saturn {
 
 			// TODO: Come back to this.
 
-			const char* items[] = { "1x", "2x", "4x", "8x", "16x", "32x", "64x" };
+			const char* items[] = { "0x", "1x", "2x", "4x", "8x", "16x", "32x", "64x" };
 			static VkSampleCountFlagBits count;
 			if( ImGui::BeginCombo( "##samples", "", ImGuiComboFlags_NoPreview ) )
 			{
 				auto maxUsable = VulkanContext::Get().GetMaxUsableMSAASamples();
 
-				for( int i = 0; i < IM_ARRAYSIZE( items ); i++ )
+				for( int i = 1; i < IM_ARRAYSIZE( items ); i++ )
 				{
 					if( i > maxUsable )
 						break;
@@ -1193,6 +1193,10 @@ namespace Saturn {
 			ImGui::Button( "Test" );
 
 			ImGui::EndHorizontal();
+
+			ImGui::Spring();
+
+			ImGui::EndVertical();
 
 			ImGui::End();
 		}
