@@ -70,6 +70,9 @@ namespace Saturn {
 
 		void UpdateFiles( bool clear = false );
 
+		void DrawItems( std::vector<Ref<ContentBrowserItem>>& rList, ImVec2 size, float padding );
+		void BuildSearchList();
+
 		void DrawFolderTree( const std::filesystem::path& rPath );
 
 		void DrawAssetsFolderTree();
@@ -108,7 +111,6 @@ namespace Saturn {
 		std::filesystem::path m_EditorContent;
 		std::filesystem::path m_EditorScripts;
 
-		std::string m_SearchText = "";
 		ImGuiTextFilter m_TextFilter;
 		bool m_Searching = false;
 

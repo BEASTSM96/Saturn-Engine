@@ -589,6 +589,37 @@ namespace Saturn {
 		UpdateFiles( true );
 	}
 
+	void ContentBrowserPanel::BuildSearchList()
+	{
+		if( m_ValidSearchFiles.size() )
+			m_ValidSearchFiles.clear();
+
+		for( const auto& entry : std::filesystem::recursive_directory_iterator( s_pAssetsDirectory ) )
+		{
+			if( m_TextFilter.PassFilter( entry.path().filename().string().c_str() ) )
+			{
+				Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( entry );
+				item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
+
+				if( std::find( m_ValidSearchFiles.begin(), m_ValidSearchFiles.end(), item ) != m_ValidSearchFiles.end() )
+				{
+					if( !std::filesystem::exists( entry ) )
+						m_ValidSearchFiles.erase( std::remove( m_ValidSearchFiles.begin(), m_ValidSearchFiles.end(), item ), m_ValidSearchFiles.end() );
+
+					continue;
+				}
+
+				if( !entry.is_directory() )
+				{
+					if( AssetTypeFromExtension( entry.path().extension().string() ) == AssetType::Unknown )
+						continue;
+				}
+
+				m_ValidSearchFiles.push_back( item );
+			}
+		}
+	}
+
 	void ContentBrowserPanel::DrawTopBar()
 	{
 		// Back button.
@@ -720,6 +751,7 @@ namespace Saturn {
 		if( m_TextFilter.DrawWithHint( "##contentfinder", "Search for content", 436.0f ) )
 		{
 			m_Searching = m_TextFilter.IsActive();
+			BuildSearchList();
 		}
 
 		ImGui::EndHorizontal();
@@ -727,10 +759,10 @@ namespace Saturn {
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
 
-		static float padding = 16.0f;
-		static float thumbnailSizeX = 180;
-		static float thumbnailSizeY = 180;
-		float cellSize = thumbnailSizeX + padding;
+		constexpr float padding = 16.0f;
+		constexpr int thumbnailSizeX = 180;
+		constexpr int thumbnailSizeY = 180;
+		constexpr int cellSize = thumbnailSizeX + padding;
 		float panelWidth = ImGui::GetContentRegionAvail().x - 20.0f + ImGui::GetStyle().ScrollbarSize;
 
 		int columnCount = ( int ) ( panelWidth / cellSize );
@@ -738,39 +770,17 @@ namespace Saturn {
 
 		ImGui::Columns( columnCount, 0, false );
 
-		if( !m_Searching )
+		if( m_Searching )
 		{
-			for( auto& item : m_Files )
-			{
-				Ref<Texture2D> Icon = item->IsDirectory() ? m_DirectoryIcon : m_FileIcon;
-
-				item->Draw( { thumbnailSizeX, thumbnailSizeY }, padding, Icon );
-
-				// This happens if we rename a file as we then have to create the file cache again.
-				if( !item )
-					break;
-
-				if( !item->IsSelected() )
-				{
-					// Is the item in the selection list if so and we are no longer selected then we need to remove it.
-					if( std::find( m_SelectedItems.begin(), m_SelectedItems.end(), item ) != m_SelectedItems.end() )
-					{
-						item->Deselect();
-
-						m_SelectedItems.erase( std::remove( m_SelectedItems.begin(), m_SelectedItems.end(), item ), m_SelectedItems.end() );
-					}
-				}
-			}
+			DrawItems( m_ValidSearchFiles, { thumbnailSizeX, thumbnailSizeY }, padding );
 		}
 		else
 		{
-			for( const auto& entry : std::filesystem::recursive_directory_iterator( s_pAssetsDirectory ) )
-			{
-				if( m_TextFilter.PassFilter( entry.path().filename().string().c_str() ) )
-				{
-				}
-			}
+			DrawItems( m_Files, { thumbnailSizeX, thumbnailSizeY }, padding );
 		}
+		
+		if( !m_Searching && m_ValidSearchFiles.size() )
+			m_ValidSearchFiles.clear();
 
 		// Get the first folder in the current directory.
 		m_FirstFolder = "";
@@ -1430,4 +1440,28 @@ namespace Saturn {
 		}
 	}
 
+	void ContentBrowserPanel::DrawItems( std::vector<Ref<ContentBrowserItem>>& rList, ImVec2 size, float padding )
+	{
+		for( auto& item : rList )
+		{
+			Ref<Texture2D> Icon = item->IsDirectory() ? m_DirectoryIcon : m_FileIcon;
+
+			item->Draw( { size.x, size.y }, padding, Icon );
+
+			// This happens if we rename a file as we then have to create the file cache again.
+			if( !item )
+				break;
+
+			if( !item->IsSelected() )
+			{
+				// Is the item in the selection list if so and we are no longer selected then we need to remove it.
+				if( std::find( m_SelectedItems.begin(), m_SelectedItems.end(), item ) != m_SelectedItems.end() )
+				{
+					item->Deselect();
+
+					m_SelectedItems.erase( std::remove( m_SelectedItems.begin(), m_SelectedItems.end(), item ), m_SelectedItems.end() );
+				}
+			}
+		}
+	}
 }
