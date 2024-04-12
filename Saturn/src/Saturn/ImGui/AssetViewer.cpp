@@ -48,7 +48,7 @@ namespace Saturn {
 		s_AssetViewers.erase( m_AssetID );
 	}
 
-	void CheckForDeadViewers() 
+	static void CheckForDeadViewers() 
 	{
 		for( size_t i = 0; i < s_PendingAssetViewers.size(); i++ )
 		{

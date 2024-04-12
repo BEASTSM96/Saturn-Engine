@@ -1497,9 +1497,9 @@ namespace Saturn {
 		// Viewport Gizmo toolbar
 		ImGui::PushID( "VP_GIZMO" );
 
-		const float windowHeight = 32.0f;
-		const float icons = 3.0f;
-		const float neededSpace = 48.0f * icons - 10.0f;
+		constexpr float windowHeight = 32.0f;
+		constexpr float icons = 3.0f;
+		constexpr float neededSpace = 48.0f * icons - 10.0f;
 
 		// For 4 icons
 		//const float windowWidth = 166.0f;
@@ -1507,7 +1507,7 @@ namespace Saturn {
 		// For 3 icons
 		// Formula is 24 * x - 10.0f (for item spacing)
 		// Where x is number of icons
-		const float windowWidth = neededSpace - 10.0f;
+		constexpr float windowWidth = neededSpace - 10.0f;
 
 		ImGui::SetNextWindowPos( ImVec2( minBound.x + 5.0f, minBound.y + 5.0f ) );
 		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
@@ -1541,17 +1541,10 @@ namespace Saturn {
 		ImVec2 minBound = ImGui::GetWindowPos();
 		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
 
-		const float windowHeight = 32.0f;
-		const float icons = 1.0f;
-		const float neededSpace = 48.0f * icons - 10.0f;
-
-		// For 4 icons
-		//const float windowWidth = 166.0f;
-
-		// For 3 icons
-		// Formula is 24 * x - 10.0f (for item spacing)
-		// Where x is number of icons
-		const float windowWidth = neededSpace - 10.0f;
+		constexpr float windowHeight = 32.0f;
+		constexpr float icons = 1.0f;
+		constexpr float neededSpace = 48.0f * icons - 10.0f;
+		constexpr float windowWidth = neededSpace - 10.0f;
 
 		float runtimeCenterX = minBound.x + m_ViewportSize.x * 0.5f - windowWidth * 0.5f;
 
@@ -1685,10 +1678,8 @@ namespace Saturn {
 
 	void EditorLayer::BuildShaderBundle()
 	{
-		Application::Get().GetWindow()->FlashAttention();
-
-		// Make sure we will include the Texture Pass shader.
-		// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
+		// Make sure we include the Texture Pass shader.
+		// Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
 		Ref<Shader> TexturePass = ShaderLibrary::Get().FindOrLoad( "TexturePass", "content/shaders/TexturePass.glsl" );
 
 		if( auto shaderRes = ShaderBundle::BundleShaders(); shaderRes != ShaderBundleResult::Success )
@@ -1696,6 +1687,8 @@ namespace Saturn {
 			m_MessageBoxText = std::format( "Shader bundle failed to build error was: {0}", ( int ) shaderRes );
 			m_ShowMessageBox = true;
 		}
+
+		Application::Get().GetWindow()->FlashAttention();
 
 		ShaderLibrary::Get().Remove( TexturePass );
 		TexturePass = nullptr;
