@@ -49,10 +49,6 @@ namespace Saturn {
 	{
 	}
 
-	void TitleBar::LoadPlayButton()
-	{
-	}
-
 	void TitleBar::Draw()
 	{
 		ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 5, 5 ) );

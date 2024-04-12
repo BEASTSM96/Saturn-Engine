@@ -93,8 +93,8 @@ namespace Saturn {
 	bool OpenLoadedAssetDebug = false;
 	bool OpenAttributions = false;
 
-	static inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
-	static inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
+	static constexpr inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
+	static constexpr inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
 	EditorLayer::EditorLayer() 
 		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f ), m_EditorScene( Ref<Scene>::Create() )
@@ -112,7 +112,6 @@ namespace Saturn {
 		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
 
 		m_TitleBar = new TitleBar();
-		m_TitleBar->LoadPlayButton();
 
 		m_TitleBar->AddMenuBarFunction( [&]() -> void
 		{
@@ -155,18 +154,7 @@ namespace Saturn {
 				{
 					Project::GetActiveProject()->PrepForDist();
 
-					// Make sure we will include the Texture Pass shader.
-					// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
-					Ref<Shader> TexturePass = ShaderLibrary::Get().FindOrLoad( "TexturePass", "content/shaders/TexturePass.glsl" );
-
-					if( auto shaderRes = ShaderBundle::BundleShaders(); shaderRes != ShaderBundleResult::Success ) 
-					{
-						m_MessageBoxText = std::format( "Shader bundle failed to build error was: {0}", ( int ) shaderRes );
-						m_ShowMessageBox = true;
-					}
-
-					ShaderLibrary::Get().Remove( TexturePass ); 
-					TexturePass = nullptr;
+					BuildShaderBundle();
 
 					m_BlockingActionRunning = true;
 					m_BlockingOperation = AssetBundle::GetBlockingOperation();
@@ -174,7 +162,13 @@ namespace Saturn {
 
 					m_BlockingOperation->SetJob( [this]() 
 						{
-							auto res = AssetBundle::BundleAssets();
+							if( auto result = AssetBundle::BundleAssets(); result != AssetBundleResult::Success ) 
+							{
+								Application::Get().GetWindow()->FlashAttention();
+
+								m_MessageBoxText = std::format( "Asset bundle failed to build error was: {0}", (int)result );
+								m_ShowMessageBox = true;
+							}
 						} );
 
 					m_BlockingOperation->Execute();
@@ -182,16 +176,7 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Build Shader Bundle" ) )
 				{
-					Ref<Shader> TexturePass = ShaderLibrary::Get().FindOrLoad( "TexturePass", "content/shaders/TexturePass.glsl" );
-
-					if( auto shaderRes = ShaderBundle::BundleShaders(); shaderRes != ShaderBundleResult::Success )
-					{
-						m_MessageBoxText = std::format( "Shader bundle failed to build error was: {0}", ( int ) shaderRes );
-						m_ShowMessageBox = true;
-					}
-
-					ShaderLibrary::Get().Remove( TexturePass );
-					TexturePass = nullptr;
+					BuildShaderBundle();
 				}
 
 #if defined( SAT_DEBUG )
@@ -426,7 +411,13 @@ namespace Saturn {
 
 				if( ImGui::Button( "Recompile" ) )
 				{
-					shader->TryRecompile();
+					if( !shader->TryRecompile() ) 
+					{
+						Application::Get().GetWindow()->FlashAttention();
+					
+						m_MessageBoxText = std::format( "Shader '{0}' failed to recompile. Defaulting back to last successful build.", shader->GetName() );
+						m_ShowMessageBox = true;
+					}
 				}
 
 				ImGui::PopItemWidth();
@@ -796,7 +787,7 @@ namespace Saturn {
 
 		ImGui::PopFont();
 
-		const char* AOTechniques[] = { "SSAO", "HBAO", "None" };
+		constexpr const char* AOTechniques[] = { "SSAO", "HBAO", "None" };
 		AOTechnique selectedTech = Application::Get().PrimarySceneRenderer().GetAOTechnique();
 
 		const char* preview = AOTechniques[ ( int ) selectedTech ];
@@ -1170,7 +1161,7 @@ namespace Saturn {
 
 			// TODO: Come back to this.
 
-			const char* items[] = { "0x", "1x", "2x", "4x", "8x", "16x", "32x", "64x" };
+			constexpr const char* items[] = { "0x", "1x", "2x", "4x", "8x", "16x", "32x", "64x" };
 			static VkSampleCountFlagBits count;
 			if( ImGui::BeginCombo( "##samples", "", ImGuiComboFlags_NoPreview ) )
 			{
@@ -1690,6 +1681,24 @@ namespace Saturn {
 
 			ImGui::OpenPopup( "Missing Environment Variable" );
 		}
+	}
+
+	void EditorLayer::BuildShaderBundle()
+	{
+		Application::Get().GetWindow()->FlashAttention();
+
+		// Make sure we will include the Texture Pass shader.
+		// We do this because the Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
+		Ref<Shader> TexturePass = ShaderLibrary::Get().FindOrLoad( "TexturePass", "content/shaders/TexturePass.glsl" );
+
+		if( auto shaderRes = ShaderBundle::BundleShaders(); shaderRes != ShaderBundleResult::Success )
+		{
+			m_MessageBoxText = std::format( "Shader bundle failed to build error was: {0}", ( int ) shaderRes );
+			m_ShowMessageBox = true;
+		}
+
+		ShaderLibrary::Get().Remove( TexturePass );
+		TexturePass = nullptr;
 	}
 
 }

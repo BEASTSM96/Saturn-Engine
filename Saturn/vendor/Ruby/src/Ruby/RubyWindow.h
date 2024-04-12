@@ -59,6 +59,7 @@ public:
 	void SetClipboardText( const std::string& rTextData );
 	void SetClipboardText( const std::wstring& rTextData );
 	void Focus();
+	void FlashAttention();
 
 	RubyIVec2 GetPosition() { return m_pDefaultBackend->GetWindowPos(); }
 	RubyIVec2 GetLastMousePos() { return m_LastMousePosition; }

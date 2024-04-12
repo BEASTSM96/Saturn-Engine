@@ -98,6 +98,7 @@ namespace Saturn {
 
 		void ShowMessageBox();
 		void CheckMissingEnv();
+		void BuildShaderBundle();
 
 	private:
 		TitleBar* m_TitleBar = nullptr;

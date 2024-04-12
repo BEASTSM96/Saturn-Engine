@@ -88,6 +88,8 @@ public:
 	virtual RubyIVec2 GetWindowPos() = 0;
 	virtual bool MouseInRect() = 0;
 
+	virtual void FlashAttention() = 0;
+
 public:
 	virtual void PollEvents() = 0;
 	virtual bool PendingClose() = 0;

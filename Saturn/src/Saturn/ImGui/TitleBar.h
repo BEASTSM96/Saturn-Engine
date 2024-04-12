@@ -49,8 +49,6 @@ namespace Saturn {
 
 		void Draw() override;
 
-		void LoadPlayButton();
-
 		float Height() const { return m_Height; }
 
 		void AddMenuBarFunction( MenuBarFunction&& rrFunc );

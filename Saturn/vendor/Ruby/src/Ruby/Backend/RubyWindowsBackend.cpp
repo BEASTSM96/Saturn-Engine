@@ -60,7 +60,7 @@ struct RubyWindowRegister
 
 //////////////////////////////////////////////////////////////////////////
 
-int HandleKeyMods() 
+static int HandleKeyMods() 
 {
 	int Modifiers = RubyKey::UnknownKey;
 
@@ -884,6 +884,11 @@ bool RubyWindowsBackend::MouseInRect()
 	::GetCursorPos( &MousePos );
 
 	return ::PtInRect( &WindowRect, MousePos );
+}
+
+void RubyWindowsBackend::FlashAttention()
+{
+	::FlashWindow( m_Handle, FALSE );
 }
 
 void RubyWindowsBackend::SetClipboardText( const std::string& rTextData )

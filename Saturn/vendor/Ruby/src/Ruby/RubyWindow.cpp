@@ -239,6 +239,11 @@ void RubyWindow::Focus()
 	m_pDefaultBackend->Focus();
 }
 
+void RubyWindow::FlashAttention()
+{
+	m_pDefaultBackend->FlashAttention();
+}
+
 bool RubyWindow::IsKeyDown( RubyKey key )
 {
 	return m_Keys.count( key ) > 0;
