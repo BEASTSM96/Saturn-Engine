@@ -95,6 +95,7 @@ namespace Saturn {
 		void DrawCreateClass( const std::string& rKeyName, const SClassMetadata& rData );
 
 		void ClearSelected();
+		void ClearSearchQuery();
 
 	private: // Editor Content
 		void EdDrawRootFolder( CBViewMode type, bool open = false );

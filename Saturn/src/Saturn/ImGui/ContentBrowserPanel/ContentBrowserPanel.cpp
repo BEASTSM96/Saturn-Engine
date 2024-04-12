@@ -430,6 +430,7 @@ namespace Saturn {
 			case filewatch::Event::added: 
 			case filewatch::Event::removed:
 			{
+				ClearSearchQuery();
 				UpdateFiles( true );
 			} break;
 
@@ -440,6 +441,7 @@ namespace Saturn {
 			case filewatch::Event::renamed_new:
 			case filewatch::Event::renamed_old:
 			{
+				ClearSearchQuery();
 				UpdateFiles( true );
 			} break;
 
@@ -565,6 +567,8 @@ namespace Saturn {
 
 	void ContentBrowserPanel::EdSetPath()
 	{
+		ClearSearchQuery();
+
 		// No need to set these are they are not used by the editor.
 		//s_pAssetsDirectory = m_EditorContent;
 		//s_pScriptsDirectory = m_EditorScripts;
@@ -1335,8 +1339,20 @@ namespace Saturn {
 		m_SelectedItems.clear();
 	}
 
+	void ContentBrowserPanel::ClearSearchQuery()
+	{
+		if( m_Searching )
+		{
+			m_Searching = false;
+			m_TextFilter.Clear();
+			m_ValidSearchFiles.clear();
+		}
+	}
+
 	void ContentBrowserPanel::ResetPath( const std::filesystem::path& rProjectRootPath )
 	{
+		ClearSearchQuery();
+
 		s_pAssetsDirectory = rProjectRootPath / "Assets";
 		s_pScriptsDirectory = rProjectRootPath / "Source";
 
@@ -1369,6 +1385,8 @@ namespace Saturn {
 
 	void ContentBrowserPanel::OnItemSelected( ContentBrowserItem* pItem, bool clicked )
 	{
+		ClearSearchQuery();
+
 		if( pItem->IsDirectory() && clicked && !pItem->MultiSelected() ) 
 		{
 			m_CurrentPath /= pItem->Path();
