@@ -122,7 +122,7 @@ namespace Saturn {
 		{
 			ShapeType type = m_Mesh->GetAttachedShape();
 			
-			const char* pItems[] = { "None", "Box", "Sphere", "Capsule", "Convex Mesh", "Triangle Mesh" };
+			constexpr const char* pItems[] = { "None", "Box", "Sphere", "Capsule", "Convex Mesh", "Triangle Mesh" };
 			static ShapeType SelectedEnum = type;
 			static const char* Selected = pItems[ (int)SelectedEnum ];
 

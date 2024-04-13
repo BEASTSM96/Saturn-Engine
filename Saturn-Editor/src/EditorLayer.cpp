@@ -915,7 +915,7 @@ namespace Saturn {
 
 		ImGui::BeginVertical( "##PRJDBGV" );
 
-		auto drawDebugText = [](std::string id, std::string key, std::string value) 
+		auto drawDebugText = [](const std::string& id, const std::string& key, const std::string& value) 
 		{
 			ImGui::BeginHorizontal( id.c_str() );
 			ImGui::Text( key.c_str() );

@@ -711,6 +711,7 @@ namespace Saturn {
 
 		if( m_ChangeDirectory )
 		{
+			ClearSearchQuery();
 			UpdateFiles( true );
 
 			m_ChangeDirectory = false;
