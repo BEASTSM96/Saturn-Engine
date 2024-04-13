@@ -778,6 +778,10 @@ namespace Saturn {
 		if( m_Searching )
 		{
 			DrawItems( m_ValidSearchFiles, { thumbnailSizeX, thumbnailSizeY }, padding );
+
+			// No longer searching, means that user has clicked on a file/folder.
+			if( !m_Searching )
+				ClearSearchQuery();
 		}
 		else
 		{
@@ -1342,12 +1346,8 @@ namespace Saturn {
 
 	void ContentBrowserPanel::ClearSearchQuery()
 	{
-		if( m_Searching )
-		{
-			m_Searching = false;
-			m_TextFilter.Clear();
-			m_ValidSearchFiles.clear();
-		}
+		m_TextFilter.Clear();
+		m_ValidSearchFiles.clear();
 	}
 
 	void ContentBrowserPanel::ResetPath( const std::filesystem::path& rProjectRootPath )
@@ -1386,8 +1386,6 @@ namespace Saturn {
 
 	void ContentBrowserPanel::OnItemSelected( ContentBrowserItem* pItem, bool clicked )
 	{
-		ClearSearchQuery();
-
 		if( pItem->IsDirectory() && clicked && !pItem->MultiSelected() ) 
 		{
 			m_CurrentPath /= pItem->Path();
@@ -1395,6 +1393,8 @@ namespace Saturn {
 			m_ChangeDirectory = true;
 
 			ClearSelected();
+
+			m_Searching = false;
 		}
 		else
 		{
