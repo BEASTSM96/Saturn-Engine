@@ -93,7 +93,7 @@ namespace Saturn {
 			pDrawList->AddRectFilled( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawFlags_RoundCornersAll );
 
 			ImGui::ItemSize( ThumbnailSize, style.FramePadding.y );
-			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path .c_str() ) );
+			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path.c_str() ) );
 
 			if( m_IsHovered && !m_IsRenaming )
 			{

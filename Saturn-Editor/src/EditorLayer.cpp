@@ -506,7 +506,7 @@ namespace Saturn {
 
 		DrawViewport();
 
-		if( m_ShowMessageBox )         ShowMessageBox();
+		if( m_ShowMessageBox )       ShowMessageBox();
 		CheckMissingEnv();
 	}
 

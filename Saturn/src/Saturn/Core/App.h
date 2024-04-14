@@ -87,7 +87,7 @@ namespace Saturn {
 		void Run();
 		void Close();
 
-		bool Running() { return m_Running; }
+		bool Running() const { return m_Running; }
 
 		Timestep& Time() { return m_Timestep; }
 

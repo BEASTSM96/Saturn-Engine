@@ -90,17 +90,17 @@ namespace Saturn {
 
 	public:
 		
-		VkSampler GetSampler() { return m_Sampler; }
-		VkImageView GetImageView() { return m_ImageView; }
-		VkImage GetImage() { return m_Image; }
-		VkDescriptorSet GetDescriptorSet() { return m_DescriptorSet; }
-		VkDescriptorImageInfo& GetDescriptorInfo() { return m_DescriptorImageInfo; }
+		VkSampler GetSampler()					   const { return m_Sampler; }
+		VkImageView GetImageView()                 const { return m_ImageView; }
+		VkImage GetImage()                         const { return m_Image; }
+		VkDescriptorSet GetDescriptorSet()         const { return m_DescriptorSet; }
+		VkDescriptorImageInfo& GetDescriptorInfo()       { return m_DescriptorImageInfo; }
 
 		std::filesystem::path GetPath() { return m_Path; }
 		const std::filesystem::path& GetPath() const { return m_Path; }
 
-		int Width() { return m_Width; }
-		int Height() { return m_Height; }
+		int Width() const { return m_Width; }
+		int Height() const { return m_Height; }
 
 	public:
 
@@ -124,7 +124,7 @@ namespace Saturn {
 		VkSampler m_Sampler = VK_NULL_HANDLE;
 		VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
 		VkDescriptorImageInfo m_DescriptorImageInfo = {};
-		VkFormat m_ImageFormat;
+		VkFormat m_ImageFormat = VK_FORMAT_UNDEFINED;
 
 		bool m_HDR = false;
 		bool m_IsRendererTexture = false;

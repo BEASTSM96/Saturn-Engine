@@ -65,11 +65,11 @@ namespace Saturn {
 			return m_Entry == rOther.m_Entry && m_Filename == rOther.m_Filename && m_Path == rOther.m_Path;
 		}
 
-		bool IsDirectory()   { return m_IsDirectory;   }
-		bool IsHovered()     { return m_IsHovered;     }
-		bool IsSelected()    { return m_IsSelected;    }
-		bool MultiSelected() { return m_MultiSelected; }
-		bool IsRenaming()    { return m_IsRenaming;    }
+		bool IsDirectory()   const { return m_IsDirectory;   }
+		bool IsHovered()     const { return m_IsHovered;     }
+		bool IsSelected()    const { return m_IsSelected;    }
+		bool MultiSelected() const { return m_MultiSelected; }
+		bool IsRenaming()    const { return m_IsRenaming;    }
 
 		std::filesystem::path& Filename() { return m_Filename; }
 		const std::filesystem::path& Filename() const { return m_Filename; }
