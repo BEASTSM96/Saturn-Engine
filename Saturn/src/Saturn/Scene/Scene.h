@@ -159,7 +159,7 @@ namespace Saturn {
 		Scene();
 		~Scene();
 
-		Ref<Entity> CreateEntityWithIDScript( UUID uuid, const std::string& name = "", const std::string& rScriptName = "" );
+		[[nodiscard]] Ref<Entity> CreateEntityWithIDScript( UUID uuid, const std::string& name = "", const std::string& rScriptName = "" );
 	public:
 
 		void OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer );
@@ -195,14 +195,14 @@ namespace Saturn {
 			}
 		}
 
-		Ref<Entity> GetMainCameraEntity();
+		[[nodiscard]] Ref<Entity> GetMainCameraEntity();
 
 		void AddSelectedEntity( Ref<Entity> entity );
 		void DeselectEntity( Ref<Entity> entity );
 		void ClearSelectedEntities();
 		
-		Ref<Entity> FindEntityByTag( const std::string& tag );
-		Ref<Entity> FindEntityByID( const UUID& id );
+		[[nodiscard]] Ref<Entity> FindEntityByTag( const std::string& tag );
+		[[nodiscard]] Ref<Entity> FindEntityByID( const UUID& id );
 
 		glm::mat4 GetTransformRelativeToParent( Ref<Entity> entity );
 		TransformComponent GetWorldSpaceTransform( Ref<Entity> entity );
@@ -273,7 +273,7 @@ namespace Saturn {
 		}
 
 		template<typename Ty>
-		bool HasComponent( entt::entity entity )
+		[[nodiscard]] bool HasComponent( entt::entity entity )
 		{
 #if defined( SAT_ENABLE_GAMETHREAD )
 			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
@@ -292,7 +292,7 @@ namespace Saturn {
 		}
 
 		template<typename Ty>
-		Ty& GetComponent( entt::entity entity )
+		[[nodiscard]] Ty& GetComponent( entt::entity entity )
 		{
 #if defined( SAT_ENABLE_GAMETHREAD )
 			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );

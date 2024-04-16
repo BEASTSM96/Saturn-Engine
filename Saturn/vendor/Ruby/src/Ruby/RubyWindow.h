@@ -76,13 +76,13 @@ public:
 	const char* GetClipboardText();
 	const wchar_t* GetClipboardTextW();
 
-	bool IsFocused();
-	bool Minimized();
-	bool Maximized();
-	bool ShouldClose();
-	bool IsKeyDown( RubyKey key );
-	bool IsMouseButtonDown( RubyMouseButton button );
-	bool MouseInWindow();
+	[[nodiscard]] bool IsFocused();
+	[[nodiscard]] bool Minimized();
+	[[nodiscard]] bool Maximized();
+	[[nodiscard]] bool ShouldClose();
+	[[nodiscard]] bool IsKeyDown( RubyKey key );
+	[[nodiscard]] bool IsMouseButtonDown( RubyMouseButton button );
+	[[nodiscard]] bool MouseInWindow();
 
 	double GetTime() { return m_Timer.GetTicks(); }
 

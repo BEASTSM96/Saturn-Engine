@@ -63,13 +63,13 @@ namespace Saturn {
 		}
 
 		template<typename T>
-		T& GetComponent()
+		[[nodiscard]] T& GetComponent()
 		{
 			return m_Scene->GetComponent<T>( m_EntityHandle );
 		}
 
 		template<typename T>
-		bool HasComponent()
+		[[nodiscard]] bool HasComponent()
 		{
 			return m_Scene->HasComponent<T>( m_EntityHandle );
 		}
@@ -80,12 +80,12 @@ namespace Saturn {
 			m_Scene->RemoveComponent<T>( m_EntityHandle );
 		}
 
-		bool Valid()
+		[[nodiscard]] bool Valid()
 		{
 			return m_Scene->m_Registry.valid( m_EntityHandle );
 		}
 
-		bool Valid() const
+		[[nodiscard]] bool Valid() const
 		{
 			return m_Scene->m_Registry.valid( m_EntityHandle );
 		}
@@ -120,7 +120,7 @@ namespace Saturn {
 
 	public:
 		UUID GetUUID() { return GetComponent<IdComponent>().ID; }
-		const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
+		[[nodiscard]] const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
 
 		void BeginPlay() override {}
 		void OnUpdate( Saturn::Timestep ts ) override {}
@@ -138,8 +138,8 @@ namespace Saturn {
 
 		std::vector<UUID>& GetChildren()             { return GetComponent<RelationshipComponent>().ChildrenID; }
 		
-		bool HasParent()   { return GetComponent<RelationshipComponent>().Parent != 0; }
-		bool HasChildren() { return GetComponent<RelationshipComponent>().ChildrenID.size() > 0; }
+		[[nodiscard]] bool HasParent()   { return GetComponent<RelationshipComponent>().Parent != 0; }
+		[[nodiscard]] bool HasChildren() { return GetComponent<RelationshipComponent>().ChildrenID.size() > 0; }
 
 	public:
 		static void Serialise( const Ref<Entity>& rObject, std::ofstream& rStream );
