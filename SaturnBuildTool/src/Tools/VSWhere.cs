@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace SaturnBuildTool.Tools
 {
@@ -33,11 +34,12 @@ namespace SaturnBuildTool.Tools
             string VSWherePath = FindVSRootDir();
             string CLLocation = Path.Combine( VSWherePath, "VC\\Tools\\MSVC\\" );
 
-            // Go up by one dir, as we don't know the what the version is.
+            // We now have folder with the version name, but we need make sure that the first one will be the highest version.
+            var files = Directory.EnumerateDirectories( CLLocation ).OrderByDescending( filename => filename );
 
-            foreach (string d in Directory.GetDirectories(CLLocation))
+            foreach (string d in files)
             {
-                // There is only one folder (most likely), so we can just return the first one as it should be the best version.
+                // Return first one should be the newest
                 return d;
             }
 

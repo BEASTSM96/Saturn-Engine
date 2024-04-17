@@ -130,13 +130,37 @@ namespace SaturnBuildTool
 
             clProcess.EnableRaisingEvents = true;
 
-            //Console.WriteLine( "Command Line: {0}", processStart.Arguments );
+            // Enable this for Debugging
+            /*
+            Console.WriteLine( "Command Line: {0}", processStart.Arguments );
+            
+            clProcess.EnableRaisingEvents = true;
+            clProcess.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
+            {
+                if (e.Data != null)
+                {
+                    Console.WriteLine(e.Data);
+                }
+            });
+
+            clProcess.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
+            {
+                if (e.Data != null)
+                {
+                    Console.WriteLine(e.Data);
+                }
+            });
+            */
 
             clProcess.Start();
+            
+            // Debugging
+            //clProcess.BeginErrorReadLine();
+            //clProcess.BeginOutputReadLine();
 
             clProcess.WaitForExit();
 
-            // Write error output
+            // Write error output (disable this when using synchronous output)
             Console.WriteLine(clProcess.StandardOutput.ReadToEnd().Trim());
 
             return clProcess.ExitCode;
