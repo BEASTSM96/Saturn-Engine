@@ -60,7 +60,6 @@ namespace Saturn {
 		void OpenFile( AssetID id );
 
 		void SaveFile();
-		void OpenFile();
 
 		void SaveProject();
 

@@ -103,7 +103,6 @@ namespace Saturn {
 		InitSceneComposite();
 
 		InitLateComposite();
-		InitPhysicsOutline();
 
 		InitTexturePass();
 
@@ -492,6 +491,9 @@ namespace Saturn {
 
 			m_RendererData.LateCompositeFramebuffer = Ref<Framebuffer>::Create( FBSpec );
 		}
+
+		// All of these use the late comp pass.
+		InitPhysicsOutline();
 	}
 
 	void SceneRenderer::InitPhysicsOutline()
@@ -595,12 +597,10 @@ namespace Saturn {
 
 	void SceneRenderer::InitSSAO()
 	{
-
 	}
 
 	void SceneRenderer::InitHBAO()
 	{
-
 	}
 
 	void SceneRenderer::RenderGrid()
@@ -1486,6 +1486,9 @@ namespace Saturn {
 
 	void SceneRenderer::LateCompPhysicsOutline()
 	{
+		if( !m_PhysicsColliderDrawList.size() )
+			return;
+
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 		VkExtent2D Extent = { m_RendererData.Width,m_RendererData.Height };
 		VkCommandBuffer CommandBuffer = m_RendererData.CommandBuffer;
@@ -2031,7 +2034,7 @@ namespace Saturn {
 
 		CmdEndDebugLabel( m_RendererData.CommandBuffer );
 
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Late Composite (PhysCollider)" );
+		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Late Composite (SceneRenderer)" );
 
 		LateCompPhysicsOutline();
 
@@ -2054,6 +2057,7 @@ namespace Saturn {
 		m_DrawList.clear();
 		m_ShadowMapDrawList.clear();
 		m_PhysicsColliderDrawList.clear();
+		//m_DebugLineDrawList.clear();
 		m_ScheduledFunctions.clear();
 		m_RendererData.MeshTransforms.clear();
 	}
@@ -2075,23 +2079,23 @@ namespace Saturn {
 			return;
 
 		// DescriptorSets
-		GridDescriptorSet = nullptr;
-		SkyboxDescriptorSet = nullptr;
-		SC_DescriptorSet = nullptr;
-		PreethamDescriptorSet = nullptr;
+		GridDescriptorSet         = nullptr;
+		SkyboxDescriptorSet       = nullptr;
+		SC_DescriptorSet          = nullptr;
+		PreethamDescriptorSet     = nullptr;
 		LightCullingDescriptorSet = nullptr;
-		BloomDS = nullptr;
-		TexturePassDescriptorSet = nullptr;
+		BloomDS                   = nullptr;
+		TexturePassDescriptorSet  = nullptr;
 
 		// Vertex and Index buffers
 		QuadVertexBuffer->Terminate();
 		QuadIndexBuffer->Terminate();
 
 		// Framebuffers
-		GeometryFramebuffer = nullptr;
+		GeometryFramebuffer       = nullptr;
 		SceneCompositeFramebuffer = nullptr;
-		PreDepthFramebuffer = nullptr;
-		LateCompositeFramebuffer = nullptr;
+		PreDepthFramebuffer       = nullptr;
+		LateCompositeFramebuffer  = nullptr;
 
 		for( int i = 0; i < 3; i++ )
 			BloomTextures[ i ] = nullptr;
@@ -2122,36 +2126,36 @@ namespace Saturn {
 		for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 			DirShadowMapPipelines[ i ] = nullptr;
 
-		StaticMeshPipeline = nullptr;
-		GridPipeline = nullptr;
-		SkyboxPipeline = nullptr;
-		PreDepthPipeline = nullptr;
-		LightCullingPipeline = nullptr;
-		BloomComputePipeline = nullptr;
-		PhysicsOutlinePipeline = nullptr;
+		StaticMeshPipeline      = nullptr;
+		GridPipeline            = nullptr;
+		SkyboxPipeline          = nullptr;
+		PreDepthPipeline        = nullptr;
+		LightCullingPipeline    = nullptr;
+		BloomComputePipeline    = nullptr;
+		PhysicsOutlinePipeline  = nullptr;
 
 		// Shaders
-		GridShader = nullptr;
-		SkyboxShader = nullptr;
-		StaticMeshShader = nullptr; 
-		SceneCompositeShader = nullptr;
-		DirShadowMapShader = nullptr;
-		PreethamShader = nullptr;
-		AOCompositeShader = nullptr;
-		PreDepthShader = nullptr;
-		LightCullingShader = nullptr;
-		BloomShader = nullptr;
-		PhysicsOutlineShader = nullptr;
+		GridShader              = nullptr;
+		SkyboxShader            = nullptr;
+		StaticMeshShader        = nullptr; 
+		SceneCompositeShader    = nullptr;
+		DirShadowMapShader      = nullptr;
+		PreethamShader          = nullptr;
+		AOCompositeShader       = nullptr;
+		PreDepthShader          = nullptr;
+		LightCullingShader      = nullptr;
+		BloomShader             = nullptr;
+		PhysicsOutlineShader    = nullptr;
 
 		// Vertex & Index Buffer
-		QuadVertexBuffer = nullptr;
-		QuadIndexBuffer = nullptr;
+		QuadVertexBuffer        = nullptr;
+		QuadIndexBuffer         = nullptr;
 
 		// Textures
-		BRDFLUT_Texture = nullptr;
-		BloomDirtTexture = nullptr;
+		BRDFLUT_Texture         = nullptr;
+		BloomDirtTexture        = nullptr;
 
-		SceneEnvironment = nullptr;
+		SceneEnvironment        = nullptr;
 
 		for( auto& buffer : SubmeshTransformData )
 			delete[] buffer.pData;

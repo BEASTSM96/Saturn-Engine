@@ -363,7 +363,7 @@ namespace Saturn {
 		DepthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
 
 		VkPipelineInputAssemblyStateCreateInfo AssemblyStateCreateInfo = {  VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
-		AssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		AssemblyStateCreateInfo.topology = m_Specification.Topology;
 		AssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
 		
 		VkRect2D Scissor = {};

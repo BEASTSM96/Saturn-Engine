@@ -119,7 +119,6 @@ namespace Saturn {
 			{
 				if( ImGui::MenuItem( "Save Scene", "Ctrl+S" ) )          SaveFile();
 				if( ImGui::MenuItem( "Save Scene As", "Ctrl+Shift+S" ) ) SaveFileAs();
-				if( ImGui::MenuItem( "Open Scene", "Ctrl+O" ) )          OpenFile();
 				
 				if( ImGui::MenuItem( "Save Project" ) )                  SaveProject();
 				if( ImGui::MenuItem( "Close Project" ) )                 CloseEditorAndOpenPB();
@@ -351,6 +350,8 @@ namespace Saturn {
 			m_EditorScene->OnRenderEditor( m_EditorCamera, time, Application::Get().PrimarySceneRenderer() );
 		}
 
+		Renderer2D::Get().SubmitLine( { 0.0f, 5.0f, 0.0f }, { 0.0f, 100.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } );
+
 		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
 			m_StartedRightClickInViewport = true;
 
@@ -450,7 +451,7 @@ namespace Saturn {
 		if( OpenLoadedAssetDebug ) 	 DrawLoadedAssetsDebug();
 		if( m_OpenEditorSettings )   DrawEditorSettings();
 		if( m_ShowVFSDebug )         DrawVFSDebug();
-		
+
 		ImGui::Begin( "Renderer" );
 
 		ImGui::Text( "Frame Time: %.2f ms", Application::Get().Time().Milliseconds() );
@@ -580,12 +581,6 @@ namespace Saturn {
 		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Get() );
 	}
 
-	void EditorLayer::OpenFile()
-	{
-		auto res = Application::Get().OpenFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
-		//OpenFile( res );
-	}
-
 	void EditorLayer::SaveProject()
 	{
 		ProjectSerialiser ps( Project::GetActiveProject() );
@@ -674,11 +669,6 @@ namespace Saturn {
 							m_EditorCamera.Focus( selectedEntity->GetComponent<TransformComponent>().Position );
 						}	
 					}
-				} break;
-
-				case RubyKey::O:
-				{
-					OpenFile();
 				} break;
 
 				case RubyKey::S:

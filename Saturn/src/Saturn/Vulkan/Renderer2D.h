@@ -39,7 +39,7 @@
 
 namespace Saturn {
 
-	struct Renderer2DDrawCommand
+	struct QuadDrawCommand
 	{
 		glm::vec3 Position;
 		glm::vec4 Color;
@@ -47,6 +47,12 @@ namespace Saturn {
 		// TexCoord is calculated before we render.
 		glm::vec2 TexCoord;
 		float TextureIndex;
+	};
+
+	struct LineDrawCommand
+	{
+		glm::vec3 Position;
+		glm::vec4 Color;
 	};
 
 	class Renderer2D : public RefTarget
@@ -69,6 +75,9 @@ namespace Saturn {
 		void SubmitBillboard( const glm::vec3& position, const glm::vec4& color, const glm::vec2& rSize );
 		void SubmitBillboardTextured( const glm::vec3& position, const glm::vec4& color, const Ref<Texture2D>& rTexture, const glm::vec2& rSize );
 
+		void SubmitLine( const glm::vec3& rStart, const glm::vec3& rEnd, const glm::vec4& rColor );
+		void SubmitLine( const glm::vec3& rStart, const glm::vec3& rEnd, const glm::vec4& rColor, float Thinkness );
+
 		void SetCamera( const glm::mat4& viewProjection, const glm::mat4& view );
 
 		void Prepare();
@@ -84,19 +93,34 @@ namespace Saturn {
 
 		void FlushDrawList();
 
+		void RenderAll();
 		void RenderAllQuads();
+		void RenderAllLines();
 
 	private:
 		Ref<Pass> m_TargetRenderPass = nullptr;
 		Ref<Pass> m_TempRenderPass = nullptr;
 
-		std::vector<Renderer2DDrawCommand> m_DrawList;
+		//////////////////////////////////////////////////////////////////////////
+		// QUADS
+		std::vector<QuadDrawCommand> m_QuadDrawList;
 		std::vector<glm::vec4> m_QuadVertexPositions;
-
 		std::vector< Ref<VertexBuffer> > m_QuadVertexBuffers;
-		std::vector< Renderer2DDrawCommand* > m_CurrentQuadBase;
+		std::vector< QuadDrawCommand* > m_CurrentQuadBase;
 		
-		Renderer2DDrawCommand* m_CurrentQuad = nullptr;
+		QuadDrawCommand* m_CurrentQuad = nullptr;
+		uint32_t m_QuadIndexCount = 0;
+
+		//////////////////////////////////////////////////////////////////////////
+		// LINES
+		std::vector<LineDrawCommand> m_LineDrawList;
+		std::vector< Ref<VertexBuffer> > m_LineVertexBuffers;
+		std::vector< LineDrawCommand* > m_CurrentLineBase;
+		
+		LineDrawCommand* m_CurrentLine = nullptr;
+		uint32_t m_LineVertexCount = 0;
+
+		//////////////////////////////////////////////////////////////////////////
 
 		std::array<Ref<Texture2D>, 32> m_Textures;
 		uint32_t m_DefaultTextureSlot = 1;
@@ -107,16 +131,25 @@ namespace Saturn {
 
 		uint32_t m_Width = 0;
 		uint32_t m_Height = 0;
-		uint32_t m_QuadIndexCount = 0;
 
 		bool m_Resized = false;
 
 		VkCommandBuffer m_CommandBuffer = nullptr;
 
-		Ref<Pipeline> m_QuadPipeline = nullptr;
+		//////////////////////////////////////////////////////////////////////////
+		// VULKAN RESOURCES
 		Ref<Framebuffer> m_TargetFramebuffer = nullptr;
+
+		// Quad
+		Ref<Pipeline> m_QuadPipeline = nullptr;
 		Ref<IndexBuffer> m_QuadIndexBuffer = nullptr;
 		Ref<Shader> m_QuadShader = nullptr;
 		Ref<Material> m_QuadMaterial = nullptr;
+
+		// Lines
+		Ref<Pipeline> m_LinePipeline = nullptr;
+		Ref<IndexBuffer> m_LineIndexBuffer = nullptr;
+		Ref<Shader> m_LineShader = nullptr;
+		Ref<Material> m_LineMaterial = nullptr;
 	};
 }

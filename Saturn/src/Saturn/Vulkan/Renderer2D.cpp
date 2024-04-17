@@ -38,10 +38,14 @@
 
 namespace Saturn {
 
-	static const uint32_t s_MaxQuads = 20000;
-	static const uint32_t s_MaxVertices = s_MaxQuads * 4;
-	static const uint32_t s_MaxIndices = s_MaxQuads * 6;
-	static const uint32_t s_MaxTextureSlots = 32;
+	static constexpr uint32_t s_MaxQuads = 20000;
+	static constexpr uint32_t s_MaxVertices = s_MaxQuads * 4;
+	static constexpr uint32_t s_MaxIndices = s_MaxQuads * 6;
+	static constexpr uint32_t s_MaxTextureSlots = 32;
+
+	static constexpr uint32_t s_MaxLines = 2000;
+	static constexpr uint32_t s_MaxLineVertices = s_MaxLines * 2;
+	static constexpr uint32_t s_MaxLineIndices = s_MaxLines * 6;
 
 	void Renderer2D::Init()
 	{
@@ -59,12 +63,18 @@ namespace Saturn {
 
 		// Setup vertex buffer
 		m_QuadVertexBuffers.resize( MAX_FRAMES_IN_FLIGHT );
+		m_LineVertexBuffers.resize( MAX_FRAMES_IN_FLIGHT );
+
 		m_CurrentQuadBase.resize( MAX_FRAMES_IN_FLIGHT );
+		m_CurrentLineBase.resize( MAX_FRAMES_IN_FLIGHT );
 
 		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
 		{
-			m_QuadVertexBuffers[ i ] = Ref<VertexBuffer>::Create( s_MaxVertices * sizeof( Renderer2DDrawCommand ) );
-			m_CurrentQuadBase[ i ] = new Renderer2DDrawCommand[ s_MaxVertices ];
+			m_QuadVertexBuffers[ i ] = Ref<VertexBuffer>::Create( s_MaxVertices * sizeof( QuadDrawCommand ) );
+			m_CurrentQuadBase[ i ] = new QuadDrawCommand[ s_MaxVertices ];
+
+			m_LineVertexBuffers[ i ] = Ref<VertexBuffer>::Create( s_MaxLineVertices * sizeof( LineDrawCommand ) );
+			m_CurrentLineBase[ i ] = new LineDrawCommand[ s_MaxLineVertices ];
 		}
 
 		// Setup Index Buffer
@@ -87,6 +97,13 @@ namespace Saturn {
 
 		m_QuadIndexBuffer = Ref<IndexBuffer>::Create( quadBuffer, s_MaxIndices );
 		delete[] quadBuffer;
+
+		uint32_t* pLineBuffer = new uint32_t[ s_MaxLineIndices ];
+		for( uint32_t i = 0; i < s_MaxLineIndices; i++ )
+			pLineBuffer[ i ] = i;
+
+		m_LineIndexBuffer = Ref<IndexBuffer>::Create( pLineBuffer, s_MaxLineIndices );
+		delete[] pLineBuffer;
 
 		// Setup Textures
 		m_Textures[ 0 ] = Renderer::Get().GetPinkTexture();
@@ -125,6 +142,12 @@ namespace Saturn {
 			m_QuadMaterial = Ref<Material>::Create( m_QuadShader, "QuadMaterial" );
 		}
 
+		if( !m_LineShader )
+		{
+			m_LineShader = ShaderLibrary::Get().FindOrLoad( "DebugLine", "content/shaders/DebugLine.glsl" );
+			m_LineMaterial = Ref<Material>::Create( m_LineShader, "DebugLineMaterial" );
+		}
+
 		PipelineSpecification PipelineSpec{};
 		PipelineSpec.Width = m_Width;
 		PipelineSpec.Height = m_Height;
@@ -142,6 +165,18 @@ namespace Saturn {
 		};
 
 		m_QuadPipeline = Ref<Pipeline>::Create( PipelineSpec );
+
+		PipelineSpec.Name = "Renderer2D(Lines)";
+		PipelineSpec.Shader = m_LineShader;
+		PipelineSpec.PolygonMode = VK_POLYGON_MODE_LINE;
+		PipelineSpec.Topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+		PipelineSpec.CullMode = CullMode::Back;
+		PipelineSpec.VertexLayout = {
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float4, "a_Color" }
+		};
+
+		m_LinePipeline = Ref<Pipeline>::Create( PipelineSpec );
 	}
 
 	void Renderer2D::Recreate()
@@ -154,6 +189,9 @@ namespace Saturn {
 
 		m_CurrentQuad = m_CurrentQuadBase[ frame ];
 		m_QuadIndexCount = 0;
+
+		m_CurrentLine = m_CurrentLineBase[ frame ];
+		m_LineVertexCount = 0;
 
 		m_CurrentTextureSlot = 1;
 	}
@@ -169,13 +207,21 @@ namespace Saturn {
 		m_QuadIndexBuffer = nullptr;
 		m_QuadShader = nullptr;
 		m_QuadMaterial = nullptr;
+		m_LinePipeline = nullptr;
+		m_LineShader = nullptr;
+		m_LineMaterial = nullptr;
+		m_LineIndexBuffer = nullptr;
 
 		m_QuadVertexBuffers.clear();
+		m_LineVertexBuffers.clear();
 
 		for( auto& texture : m_Textures )
 			texture = nullptr;
 
 		for( auto buffer : m_CurrentQuadBase )
+			delete[] buffer;
+
+		for( auto buffer : m_CurrentLineBase )
 			delete[] buffer;
 	}
 
@@ -197,6 +243,7 @@ namespace Saturn {
 			m_TargetFramebuffer = targetFramebuffer;
 
 			m_QuadPipeline = nullptr;
+			m_LinePipeline = nullptr;
 
 			LateInit( m_TargetRenderPass, targetFramebuffer );
 
@@ -204,9 +251,8 @@ namespace Saturn {
 		}
 	}
 
-	void Renderer2D::RenderAllQuads()
+	void Renderer2D::RenderAll()
 	{
-		uint32_t frame = Renderer::Get().GetCurrentFrame();
 		VkExtent2D Extent = { m_Width, m_Height };
 
 		m_TargetRenderPass->BeginPass( m_CommandBuffer, m_TargetFramebuffer->GetVulkanFramebuffer(), Extent );
@@ -214,8 +260,8 @@ namespace Saturn {
 		VkViewport Viewport = {};
 		Viewport.x = 0;
 		Viewport.y = 0;
-		Viewport.width = (float) m_Width;
-		Viewport.height = (float) m_Height;
+		Viewport.width = ( float ) m_Width;
+		Viewport.height = ( float ) m_Height;
 		Viewport.minDepth = 0.0f;
 		Viewport.maxDepth = 1.0f;
 
@@ -223,6 +269,16 @@ namespace Saturn {
 
 		vkCmdSetScissor( m_CommandBuffer, 0, 1, &Scissor );
 		vkCmdSetViewport( m_CommandBuffer, 0, 1, &Viewport );
+
+		RenderAllQuads();
+		RenderAllLines();
+
+		m_TargetRenderPass->EndPass();
+	}
+
+	void Renderer2D::RenderAllQuads()
+	{
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
 		struct QuadMatricesObject
 		{
@@ -233,11 +289,11 @@ namespace Saturn {
 
 		m_QuadShader->UploadUB( ShaderType::Vertex, 0, 0, &u_Matrices, sizeof( u_Matrices ) );
 
-		uint32_t dataSize = ( uint32_t ) ( (uint8_t*)m_CurrentQuad - (uint8_t*)m_CurrentQuadBase[ frame ] );
+		uint32_t dataSize = ( uint32_t ) ( ( uint8_t* ) m_CurrentQuad - ( uint8_t* ) m_CurrentQuadBase[ frame ] );
 		if( dataSize )
 		{
 			m_QuadVertexBuffers[ frame ]->Reallocate( m_CurrentQuadBase[ frame ], dataSize );
-			
+
 			for( uint32_t i = 0; i < m_Textures.size(); i++ )
 			{
 				if( m_Textures[ i ] )
@@ -260,13 +316,42 @@ namespace Saturn {
 
 			vkCmdDrawIndexed( m_CommandBuffer, m_QuadIndexCount, 1, 0, 0, 0 );
 		}
+	}
 
-		m_TargetRenderPass->EndPass();
+	void Renderer2D::RenderAllLines()
+	{
+		uint32_t frame = Renderer::Get().GetCurrentFrame();
+
+		struct QuadMatricesObject
+		{
+			glm::mat4 ViewProjection = glm::mat4( 1.0f );
+		} u_Matrices;
+
+		u_Matrices.ViewProjection = m_CameraViewProjection;
+
+		m_LineShader->UploadUB( ShaderType::Vertex, 0, 0, &u_Matrices, sizeof( u_Matrices ) );
+
+		uint32_t dataSize = ( uint32_t ) ( ( uint8_t* ) m_CurrentLine - ( uint8_t* ) m_CurrentLineBase[ frame ] );
+		if( dataSize )
+		{
+			m_LineVertexBuffers[ frame ]->Reallocate( m_CurrentLineBase[ frame ], dataSize );
+
+			m_LineMaterial->Bind( m_CommandBuffer, m_LineShader );
+			m_LineMaterial->BindDS( m_CommandBuffer, m_LinePipeline->GetPipelineLayout() );
+
+			m_LinePipeline->Bind( m_CommandBuffer );
+
+			m_LineIndexBuffer->Bind( m_CommandBuffer );
+
+			m_LineVertexBuffers[ frame ]->Bind( m_CommandBuffer );
+
+			vkCmdDrawIndexed( m_CommandBuffer, m_LineVertexCount, 1, 0, 0, 0 );
+		}
 	}
 
 	void Renderer2D::SubmitQuad( const glm::mat4& transform, const glm::vec4& color )
 	{
-		// One quad has 4 vertexes so we need to submit them one by one.
+		// One quad has 4 vertices so we need to submit them one by one.
 		glm::vec2 TexCoord[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 
 		for( size_t i = 0; i < 4; i++ )
@@ -451,6 +536,36 @@ namespace Saturn {
 		m_QuadIndexCount += 6;
 	}
 
+	void Renderer2D::SubmitLine( const glm::vec3& rStart, const glm::vec3& rEnd, const glm::vec4& rColor )
+	{
+		m_CurrentLine->Position = rStart;
+		m_CurrentLine->Color = rColor;
+	
+		m_CurrentLine++;
+	
+		m_CurrentLine->Position = rEnd;
+		m_CurrentLine->Color = rColor;
+
+		m_CurrentLine++;
+
+		m_LineVertexCount += 2;
+	}
+
+	void Renderer2D::SubmitLine( const glm::vec3& rStart, const glm::vec3& rEnd, const glm::vec4& rColor, float Thinkness )
+	{
+		m_CurrentLine->Position = rStart;
+		m_CurrentLine->Color = rColor;
+
+		m_CurrentLine++;
+
+		m_CurrentLine->Position = rEnd;
+		m_CurrentLine->Color = rColor;
+
+		m_CurrentLine++;
+
+		m_LineVertexCount += 2;
+	}
+
 	void Renderer2D::SetCamera( const glm::mat4& viewProjection, const glm::mat4& view )
 	{
 		m_CameraViewProjection = viewProjection;
@@ -463,6 +578,9 @@ namespace Saturn {
 		
 		m_QuadIndexCount = 0;
 		m_CurrentQuad = m_CurrentQuadBase[ frame ];
+
+		m_LineVertexCount = 0;
+		m_CurrentLine = m_CurrentLineBase[ frame ];
 	}
 
 	void Renderer2D::Render()
@@ -483,10 +601,9 @@ namespace Saturn {
 			m_Resized = false;
 		}
 
-		// Start by rendering all quads
-		CmdBeginDebugLabel( m_CommandBuffer, "Late Composite (2D-Quad)" );
+		CmdBeginDebugLabel( m_CommandBuffer, "Late Composite (Renderer2D)" );
 
-		RenderAllQuads();
+		RenderAll();
 
 		CmdEndDebugLabel( m_CommandBuffer );
 
@@ -495,7 +612,8 @@ namespace Saturn {
 
 	void Renderer2D::FlushDrawList()
 	{
-		m_DrawList.clear();
+		m_QuadDrawList.clear();
+		m_LineDrawList.clear();
 	}
 
 }
