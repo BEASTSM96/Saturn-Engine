@@ -350,8 +350,6 @@ namespace Saturn {
 			m_EditorScene->OnRenderEditor( m_EditorCamera, time, Application::Get().PrimarySceneRenderer() );
 		}
 
-		Renderer2D::Get().SubmitLine( { 0.0f, 5.0f, 0.0f }, { 0.0f, 100.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } );
-
 		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
 			m_StartedRightClickInViewport = true;
 

@@ -99,6 +99,8 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 3;
 // Inject asserts
 #define __CORE_INCLUDED__
 #include "Asserts.h"
+#include "Verifies.h"
+
 // Common includes
 #include "Timestep.h"
 #include "Ref.h"

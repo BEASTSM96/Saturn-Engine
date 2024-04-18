@@ -89,11 +89,7 @@ public:
 
 		// Load the shader bundle.
 		const auto result = Saturn::ShaderBundle::ReadBundle();
-
-		if( result.error() != Saturn::ShaderBundleResult::Success )
-		{
-			Saturn::Core::ShowErrorDialogBox( "Error!", "Failed to load shader bundle!", true );
-		}
+		SAT_CORE_VERIFY( result.error() == Saturn::ShaderBundleResult::Success, "Failed to load shader bundle!" );
 
 		Saturn::SceneRendererFlags flags = Saturn::SceneRendererFlag_MasterInstance | Saturn::SceneRendererFlag_SwapchainTarget;
 		m_SceneRenderer = new Saturn::SceneRenderer( flags );

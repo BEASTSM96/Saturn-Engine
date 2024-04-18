@@ -84,7 +84,7 @@ namespace Saturn {
 			std::string errorCode = std::to_string( (int)result );
 			std::string errMsg = std::format( "Asset Bundle could not be read. Error code: {0}", errorCode );
 
-			Core::ShowErrorDialogBox( "Error!", errMsg, true );
+			SAT_CORE_VERIFY( false, errMsg );
 		}
 
 		// "Load" the Game Module

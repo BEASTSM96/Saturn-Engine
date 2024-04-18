@@ -560,7 +560,7 @@ namespace Saturn {
 
 	void Scene::DeleteEntity( Ref<Entity> entity )
 	{
-		for ( auto& rChild : entity->GetChildren() )
+		for( auto& rChild : entity->GetChildren() )
 		{
 			auto child = FindEntityByID( rChild );
 

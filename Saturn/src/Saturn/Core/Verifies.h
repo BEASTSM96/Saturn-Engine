@@ -26,88 +26,37 @@
 *********************************************************************************************
 */
 
-#include "Saturn/Core/App.h"
-#include "Saturn/Core/ErrorDialog.h"
+#pragma once
 
-#include "Saturn/Core/EngineSettings.h"
+#ifndef __CORE_INCLUDED__
+#error Include Core.h before including Verifies.h!
+#endif // !__CORE_INCLUDE
 
-#include "Saturn/Runtime/RuntimeLayer.h"
+#include "ErrorDialog.h"
 
-#include "EditorLayer.h"
+#define SAT_ENABLE_VERIFIES 
+#define _VA_AGRS_( x ) x
 
-#include "Saturn/Serialisation/EngineSettingsSerialiser.h"
+#if defined( SAT_ENABLE_VERIFIES )
 
-#include "Saturn/GameFramework/Core/GameModule.h"
+#if defined(SAT_DEBUG) || defined(SAT_RELEASE)
+#define SAT_BREAK_DEBUG() Saturn::Core::BreakDebug()
+#define SAT_SHOW_ERROR_DIALOG(...) 
+#else
+#define SAT_BREAK_DEBUG()
+#define SAT_SHOW_ERROR_DIALOG( title, text ) Saturn::Core::ShowErrorDialogBox( title, text, true )
+#endif
 
-class EditorApplication : public Saturn::Application
-{
-public:
-	explicit EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
-		: Application( spec ), m_ProjectPath( rProjectPath )
-	{
-		// Setup user settings and find the project path.
-		Saturn::EngineSettingsSerialiser uss;
-		uss.Deserialise();
+#define SAT_VERIFY_NO_MSG(cond) { if(!(cond)) { SAT_CORE_ERROR("Verify Failed: {0}, Line {1}, File {2}", #cond, __LINE__, __FILE__); SAT_BREAK_DEBUG(); SAT_SHOW_ERROR_DIALOG( "Verify Failed!", "No Message!" ); } }
 
-		Saturn::EngineSettings& settings = Saturn::EngineSettings::Get();
+#define SAT_VERIFY_MSG(cond, ...) { if(!(cond)) { SAT_CORE_ERROR("Verify Failed: {0}, Line {1}, File {2}", __VA_ARGS__, __LINE__, __FILE__); SAT_BREAK_DEBUG(); SAT_SHOW_ERROR_DIALOG( "Verify Failed!", __VA_ARGS__ ); }  }
 
-		settings.StartupProject = m_ProjectPath;
+#define SAT_VERIFY_RESOLVE(arg1, arg2, macro, ...) macro
+#define SAT_VERIFY_GET(...) _VA_AGRS_(SAT_VERIFY_RESOLVE(__VA_ARGS__, SAT_VERIFY_MSG, SAT_VERIFY_NO_MSG))
 
-		size_t found = m_ProjectPath.find_last_of( "/\\" );
-		settings.StartupProjectName = m_ProjectPath.substr( found + 1 );
-
-		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
-
-		settings = Saturn::EngineSettings::Get();
-
-		// Check if the editor asset registry exists.
-		if( !std::filesystem::exists( "content/AssetRegistry.sreg" ) )
-		{
-			// Create file.
-			std::ofstream stream( "content/AssetRegistry.sreg" );
-			stream.close();
-		}
-
-		// Set our root content path.
-		m_RootContentPath = std::filesystem::current_path() / "content";
-	}
-
-	virtual void OnInit() override
-	{
-		m_EditorLayer = new Saturn::EditorLayer();
-
-		PushLayer( m_EditorLayer );
-	}
-
-	virtual void OnShutdown() override
-	{
-		Saturn::EngineSettingsSerialiser uss;
-		uss.Serialise();
-
-		PopLayer( m_EditorLayer );
-		delete m_EditorLayer;
-	}
-
-private:
-	Saturn::EditorLayer* m_EditorLayer = nullptr;
-
-	std::string m_ProjectPath = "";
-};
-
-Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
-{
-	std::string projectPath = "";
-
-	if( argc > 1 )
-		projectPath = argv[1];
-	else
-		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
-
-	// TODO: Maybe load the most recent project? Or ask the user to select it.
-	SAT_CORE_VERIFY( projectPath.empty(), "No Project path was provied!" );
-	
-	ApplicationSpecification spec;
-	spec.Flags = ApplicationFlag_CreateSceneRenderer;
-
-	return new EditorApplication( spec, projectPath );
-}
+#define SAT_CORE_VERIFY( ... ) _VA_AGRS_( SAT_VERIFY_GET( __VA_ARGS__ )(__VA_ARGS__) )
+#define SAT_VERIFY( ... ) _VA_AGRS_( SAT_VERIFY_GET(__VA_ARGS__)(__VA_ARGS__) )
+#else
+#define SAT_CORE_VERIFY( ... )
+#define SAT_VERIFY( ... )
+#endif
