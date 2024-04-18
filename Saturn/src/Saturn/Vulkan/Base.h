@@ -109,10 +109,17 @@ inline void _VkCheckResult( VkResult Result )
 
 		SAT_CORE_INFO( "[Vulkan Error] {0}", ErrorStr );
 
-	#if defined( _WIN32 )
+#if defined(SAT_DEBUG) || defined(SAT_RELEASE)
+
+#if defined( _WIN32 )
 		__debugbreak();
-	#else
+#else
 		raise( SIGTRAP );
-	#endif // _MSC_VER
+#endif // _MSC_VER
+
+#else
+		std::string errorMsg = std::format( "Vulkan Result failed: {0}", ErrorStr );
+		SAT_CORE_VERIFY( false, errorMsg );
+#endif
 	}
 }
