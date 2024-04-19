@@ -297,7 +297,7 @@ namespace Saturn {
 			ImageViewCreateInfo.subresourceRange.layerCount = 1;
 
 			VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageViewes[ i ] ) );
-			SetDebugUtilsObjectName( fmt::format( "Image view layer {}", i ), ( uint64_t ) m_ImageViewes[ i ], VK_OBJECT_TYPE_IMAGE_VIEW );
+			SetDebugUtilsObjectName( std::format( "Image view layer {}", i ), ( uint64_t ) m_ImageViewes[ i ], VK_OBJECT_TYPE_IMAGE_VIEW );
 		}
 	}
 

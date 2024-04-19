@@ -123,7 +123,7 @@ namespace Saturn {
 			rSettings.StartupProjectName = startup.substr( found + 1 );
 
 			rSettings.StartupProject = startup;
-			rSettings.FullStartupProjPath = fmt::format( "{0}\\{1}.sproject", startup, rSettings.StartupProjectName );
+			rSettings.FullStartupProjPath = std::format( "{0}\\{1}.sproject", startup, rSettings.StartupProjectName );
 		}
 
 		for ( auto project : p )

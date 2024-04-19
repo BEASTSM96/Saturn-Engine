@@ -70,7 +70,7 @@ namespace Saturn {
 
 		ImGui::Spring();
 
-		std::string sizeText = fmt::format( "{0}x{1}", m_Texture->Width(), m_Texture->Height() );
+		std::string sizeText = std::format( "{0}x{1}", m_Texture->Width(), m_Texture->Height() );
 
 		ImGui::Text( "Texture Size" );
 		ImGui::InputText( "##textureSize", ( char* ) sizeText.c_str(), sizeText.size(), ImGuiInputTextFlags_ReadOnly );
