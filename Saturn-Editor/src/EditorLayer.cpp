@@ -106,13 +106,10 @@ namespace Saturn {
 		// Create Panel Manager.
 		m_PanelManager = Ref<PanelManager>::Create();
 		
-		m_PanelManager->AddPanel( new SceneHierarchyPanel() );
-		m_PanelManager->AddPanel( new ContentBrowserPanel() );
-
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel *) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
+		m_PanelManager->AddPanel( Ref<SceneHierarchyPanel>::Create() );
+		m_PanelManager->AddPanel( Ref<ContentBrowserPanel>::Create() );
 
 		m_TitleBar = new TitleBar();
-
 		m_TitleBar->AddMenuBarFunction( [&]() -> void
 		{
 			if( ImGui::BeginMenu( "File" ) )
@@ -213,8 +210,9 @@ namespace Saturn {
 			}
 		} );
 
-		pHierarchyPanel->SetContext( m_EditorScene );
-		pHierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
+		hierarchyPanel->SetContext( m_EditorScene );
+		hierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
 
 		m_EditorCamera.SetActive( true );
 		
@@ -245,11 +243,10 @@ namespace Saturn {
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
 		pPhysicsFoundation->Init();
 
-		ContentBrowserPanel* pContentBrowserPanel = ( ContentBrowserPanel* ) m_PanelManager->GetPanel( "Content Browser Panel" );
+		Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>( "Content Browser Panel" );
 
 		auto& rUserSettings = EngineSettings::Get();
-
-		pContentBrowserPanel->ResetPath( rUserSettings.StartupProject );
+		contentBrowserPanel->ResetPath( rUserSettings.StartupProject );
 
 		ProjectSerialiser ps;
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
@@ -303,7 +300,7 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
 
 		if( m_RequestRuntime )
 		{
@@ -316,7 +313,7 @@ namespace Saturn {
 
 				m_RuntimeScene->OnRuntimeStart();
 
-				pHierarchyPanel->SetContext( m_RuntimeScene );
+				hierarchyPanel->SetContext( m_RuntimeScene );
 
 				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Get() );
 			}
@@ -328,7 +325,7 @@ namespace Saturn {
 				m_RuntimeScene->OnRuntimeEnd();
 				Scene::SetActiveScene( m_EditorScene.Get() );
 
-				pHierarchyPanel->SetContext( m_EditorScene );
+				hierarchyPanel->SetContext( m_EditorScene );
 
 				m_RuntimeScene = nullptr;
 
@@ -547,13 +544,13 @@ namespace Saturn {
 
 	void EditorLayer::OpenFile( AssetID id )
 	{
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		GActiveScene = newScene.Get();
 
-		pHierarchyPanel->ClearSelection();
-		pHierarchyPanel->SetContext( nullptr );
+		hierarchyPanel->ClearSelection();
+		hierarchyPanel->SetContext( nullptr );
 
 		Ref<Asset> asset = id == 0 ? nullptr : AssetManager::Get().FindAsset( id );
 		
@@ -576,7 +573,7 @@ namespace Saturn {
 	
 		GActiveScene = m_EditorScene.Get();
 
-		pHierarchyPanel->SetContext( m_EditorScene );
+		hierarchyPanel->SetContext( m_EditorScene );
 		newScene = nullptr;
 
 		Application::Get().PrimarySceneRenderer().SetCurrentScene( m_EditorScene.Get() );
@@ -606,19 +603,19 @@ namespace Saturn {
 		{
 			case RubyKey::Delete:
 			{
-				SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
+				Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
 
-				if( pHierarchyPanel )
+				if( hierarchyPanel )
 				{
 					// Because of our ref system, the entity will be deleted when we clear the selections.
 					// What we are really doing here is freeing it from the registry.
 
-					for( auto& rEntity : pHierarchyPanel->GetSelectionContexts() )
+					for( auto& rEntity : hierarchyPanel->GetSelectionContexts() )
 					{
 						GActiveScene->DeleteEntity( rEntity );
 					}
 
-					pHierarchyPanel->ClearSelection();
+					hierarchyPanel->ClearSelection();
 				}
 			} break;
 
@@ -642,11 +639,11 @@ namespace Saturn {
 			{
 				case RubyKey::D:
 				{
-					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
+					Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
 					
-					if( pHierarchyPanel ) 
+					if( hierarchyPanel ) 
 					{
-						for( const auto& rEntity : pHierarchyPanel->GetSelectionContexts() )
+						for( const auto& rEntity : hierarchyPanel->GetSelectionContexts() )
 						{
 							GActiveScene->DuplicateEntity( rEntity );
 						}
@@ -657,21 +654,26 @@ namespace Saturn {
 				// TODO: Support more than one selection.
 				case RubyKey::F:
 				{
-					SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
+					Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
 
-					if( auto& selectedEntity = pHierarchyPanel->GetSelectionContext() ) 
+					if( hierarchyPanel )
 					{
-						if( selectedEntity->HasParent() )
-						{
-							Ref<Entity> parent = GActiveScene->FindEntityByID( selectedEntity->GetParent() );
-							auto transform = GActiveScene->GetWorldSpaceTransform( parent );
+						Ref<Entity> selectedEntity = hierarchyPanel->GetSelectionContext();
 
-							m_EditorCamera.Focus( transform.Position );
-						}
-						else
+						if( selectedEntity )
 						{
-							m_EditorCamera.Focus( selectedEntity->GetComponent<TransformComponent>().Position );
-						}	
+							if( selectedEntity->HasParent() )
+							{
+								Ref<Entity> parent = GActiveScene->FindEntityByID( selectedEntity->GetParent() );
+								auto transform = GActiveScene->GetWorldSpaceTransform( parent );
+
+								m_EditorCamera.Focus( transform.Position );
+							}
+							else
+							{
+								m_EditorCamera.Focus( selectedEntity->GetComponent<TransformComponent>().Position );
+							}
+						}
 					}
 				} break;
 
@@ -1187,11 +1189,11 @@ namespace Saturn {
 
 	void EditorLayer::DrawMaterials()
 	{
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
 
-		if( pHierarchyPanel->GetSelectionContexts().size() > 0 )
+		if( hierarchyPanel->GetSelectionContexts().size() > 0 )
 		{
-			auto& rSelection = pHierarchyPanel->GetSelectionContext();
+			Ref<Entity> rSelection = hierarchyPanel->GetSelectionContext();
 
 			if( rSelection->HasComponent<StaticMeshComponent>() )
 			{
@@ -1419,8 +1421,8 @@ namespace Saturn {
 
 		Ref<Scene> ActiveScene = m_RuntimeScene ? m_RuntimeScene : m_EditorScene;
 
-		SceneHierarchyPanel* pHierarchyPanel = ( SceneHierarchyPanel* ) m_PanelManager->GetPanel( "Scene Hierarchy Panel" );
-		std::vector<Ref<Entity>>& selectedEntities = pHierarchyPanel->GetSelectionContexts();
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
+		std::vector<Ref<Entity>>& selectedEntities = hierarchyPanel->GetSelectionContexts();
 
 		// Calc center of transform.
 		glm::vec3 Positions = {};

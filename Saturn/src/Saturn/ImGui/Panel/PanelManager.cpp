@@ -46,7 +46,6 @@ namespace Saturn {
 	{
 		for( auto&& [name, panel] : m_Panels )
 		{
-			delete panel;
 			panel = nullptr;
 		}
 
@@ -61,14 +60,9 @@ namespace Saturn {
 		}
 	}
 
-	void PanelManager::AddPanel( Panel* pPanel )
+	void PanelManager::AddPanel( const Ref<Panel>& rPanel )
 	{
-		m_Panels[ pPanel->m_Name ] = pPanel;
-	}
-
-	Panel* PanelManager::GetPanel( const std::string& rName )
-	{
-		return m_Panels.at( rName );
+		m_Panels[ rPanel->m_Name ] = rPanel;
 	}
 
 }

@@ -53,17 +53,32 @@ namespace Saturn {
 		std::vector<Ref<Entity>>& GetSelectionContexts() { return m_SelectionContexts; }
 		const std::vector< Ref<Entity>>& GetSelectionContexts() const { return m_SelectionContexts; }
 		
-		Ref<Entity>& GetSelectionContext( uint32_t index = 0 ) 
+		Ref<Entity> GetSelectionContext( uint32_t index = 0 ) 
 		{
+			if( m_SelectionContexts.size() > index || !m_SelectionContexts.size() )
+			{
+				return nullptr;
+			}
+
 			return m_SelectionContexts[ index ]; 
 		}
 		
-		const Ref<Entity>& GetSelectionContext( uint32_t index = 0 ) const
+		Ref<Entity> GetSelectionContext( uint32_t index = 0 ) const
 		{
+			if( m_SelectionContexts.size() > index || !m_SelectionContexts.size() )
+			{
+				return nullptr;
+			}
+
 			return m_SelectionContexts[ index ]; 
 		}
 
-		void Draw();
+		virtual void Draw() override;
+
+		static const std::string& GetStaticName() 
+		{
+			return "Scene Hierarchy Panel";
+		}
 
 		void SetIsPrefabScene( bool value ) { m_IsPrefabScene = value; }
 
