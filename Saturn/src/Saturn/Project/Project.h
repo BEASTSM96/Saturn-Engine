@@ -139,6 +139,10 @@ namespace Saturn {
 		void PrepForDist();
 
 	private:
+		void CheckNewAssets();
+		void CheckOfflineAssets();
+
+	private:
 		ProjectConfig m_Config;
 		std::vector<ActionBinding> m_ActionBindings;
 

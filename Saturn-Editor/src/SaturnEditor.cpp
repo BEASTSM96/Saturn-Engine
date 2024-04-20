@@ -104,7 +104,7 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
 
 	// TODO: Maybe load the most recent project? Or ask the user to select it.
-	SAT_CORE_VERIFY( projectPath.empty(), "No Project path was provied!" );
+	SAT_CORE_VERIFY( !projectPath.empty(), "No Project path was provied!" );
 	
 	ApplicationSpecification spec;
 	spec.Flags = ApplicationFlag_CreateSceneRenderer;

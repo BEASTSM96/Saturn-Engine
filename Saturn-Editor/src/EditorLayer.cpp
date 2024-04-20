@@ -565,12 +565,15 @@ namespace Saturn {
 
 		m_EditorScene = newScene;
 
-		m_EditorScene->Name = asset->Name;
-		m_EditorScene->Path = asset->Path;
-		m_EditorScene->ID = asset->ID;
-		m_EditorScene->Type = asset->Type;
-		m_EditorScene->Flags = asset->Flags;
-
+		if( asset )
+		{
+			m_EditorScene->Name = asset->Name;
+			m_EditorScene->Path = asset->Path;
+			m_EditorScene->ID = asset->ID;
+			m_EditorScene->Type = asset->Type;
+			m_EditorScene->Flags = asset->Flags;
+		}
+	
 		GActiveScene = m_EditorScene.Get();
 
 		pHierarchyPanel->SetContext( m_EditorScene );
@@ -583,6 +586,9 @@ namespace Saturn {
 	{
 		ProjectSerialiser ps( Project::GetActiveProject() );
 		ps.Serialise( Project::GetActiveProject()->GetConfig().Path );
+
+		AssetRegistrySerialiser ars;
+		ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 	}
 
 	void EditorLayer::SelectionChanged( Ref<Entity> e )
@@ -898,8 +904,6 @@ namespace Saturn {
 		ImGui::PushFont( boldFont );
 		ImGui::Text( "Project Debug information" );
 		ImGui::PopFont();
-
-		ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
 
 		ImGui::BeginVertical( "##PRJDBGV" );
 

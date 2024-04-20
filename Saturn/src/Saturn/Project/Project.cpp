@@ -105,13 +105,12 @@ namespace Saturn {
 		return res;
 	}
 
-	void Project::CheckMissingAssetRefs()
+	void Project::CheckNewAssets()
 	{
+		bool FileChanged = false;
 		auto AssetPath = GetFullAssetPath();
 
-		bool FileChanged = false;
-
-		for( auto& rEntry : std::filesystem::recursive_directory_iterator( AssetPath ) ) 
+		for( auto& rEntry : std::filesystem::recursive_directory_iterator( AssetPath ) )
 		{
 			if( rEntry.is_directory() )
 				continue;
@@ -128,7 +127,7 @@ namespace Saturn {
 				continue; // Extension is forbidden.
 
 			const auto& assetReg = AssetManager::Get().GetAssetRegistry()->GetAssetMap();
-			if( asset == nullptr ) 
+			if( asset == nullptr )
 			{
 				SAT_CORE_INFO( "Found an asset that exists in the system filesystem, however not in the asset registry, creating new asset." );
 
@@ -150,6 +149,37 @@ namespace Saturn {
 			AssetRegistrySerialiser ars;
 			ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 		}
+	}
+
+	void Project::CheckOfflineAssets()
+	{
+		bool FileChanged = false;
+
+		auto& assetReg = AssetManager::Get().GetAssetRegistry()->GetAssetMap();
+		for( auto& [id, rAsset] : assetReg )
+		{
+			if( !rAsset )
+				continue;
+
+			if( std::filesystem::exists( FilepathAbs( rAsset->Path ) ) )
+				continue;
+
+			SAT_CORE_WARN( "Found an asset that is present in the Asset Registry however no longer exists in the filesystem, removing from Asset Registry..." );
+
+			AssetManager::Get().RemoveAsset( id );
+		}
+
+		if( FileChanged )
+		{
+			AssetRegistrySerialiser ars;
+			ars.Serialise( AssetManager::Get().GetAssetRegistry() );
+		}
+	}
+
+	void Project::CheckMissingAssetRefs()
+	{
+		CheckOfflineAssets();
+		CheckNewAssets();
 	}
 
 	std::filesystem::path Project::GetAssetPath()
