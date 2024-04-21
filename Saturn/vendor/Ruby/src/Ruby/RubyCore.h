@@ -93,7 +93,7 @@ enum class RubyWindowShowCmd
 	Fullscreen
 };
 
-struct RubyWindowSpecification
+struct RBY_API RubyWindowSpecification
 {
 	std::string_view Name;
 	uint32_t Width = 0;
@@ -103,7 +103,7 @@ struct RubyWindowSpecification
 	bool ShowNow = true;
 };
 
-struct RubyIVec2
+struct RBY_API RubyIVec2
 {
 	RubyIVec2() = default;
 	RubyIVec2( int _x, int _y ) : x( _x ), y( _y ) {}
@@ -122,7 +122,7 @@ struct RubyIVec2
 	RubyIVec2& operator/=( int divisor )         { x /= divisor; y /= divisor; return *this; }
 };
 
-struct RubyVec2
+struct RBY_API RubyVec2
 {
 	RubyVec2() = default;
 	RubyVec2( float _x, float _y ) : x( _x ), y( _y ) {}

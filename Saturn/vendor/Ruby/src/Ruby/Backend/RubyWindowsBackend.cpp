@@ -41,7 +41,7 @@
 
 LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam );
 
-const wchar_t* DefaultClassName = L"RUBY_WINDOW";
+constexpr const wchar_t* DefaultClassName = L"RUBY_WINDOW";
 
 struct RubyWindowRegister
 {
