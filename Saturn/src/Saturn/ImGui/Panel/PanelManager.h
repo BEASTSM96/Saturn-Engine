@@ -45,7 +45,15 @@ namespace Saturn {
 
 		void DrawAllPanels();
 		
-		void AddPanel( const Ref<Panel>& rPanel );
+		template<typename Ty>
+		void AddPanel( const Ref<Ty>& rPanel )
+		{
+			static_assert( std::is_base_of<Panel, Ty>::value, "Ty must be a child class of Panel!" );
+
+			m_Panels[ Ty::GetStaticName() ] = rPanel;
+		}
+
+		void AddPanel( const Ref<Panel>& rPanel, const std::string& rCustomName );
 
 		template<typename Ty>
 		Ref<Ty> GetPanel( const std::string& rPanelName ) 
@@ -75,6 +83,7 @@ namespace Saturn {
 
 	private:
 		void Terminate();
+
 	private:
 		std::unordered_map<std::string, Ref<Panel>> m_Panels;
 	};

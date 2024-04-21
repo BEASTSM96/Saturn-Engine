@@ -75,7 +75,7 @@ namespace Saturn {
 
 		virtual void Draw() override;
 
-		static const std::string& GetStaticName() 
+		static const char* GetStaticName() 
 		{
 			return "Scene Hierarchy Panel";
 		}

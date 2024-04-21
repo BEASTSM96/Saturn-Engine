@@ -60,9 +60,9 @@ namespace Saturn {
 		}
 	}
 
-	void PanelManager::AddPanel( const Ref<Panel>& rPanel )
+	void PanelManager::AddPanel( const Ref<Panel>& rPanel, const std::string& rCustomName )
 	{
-		m_Panels[ rPanel->m_Name ] = rPanel;
+		m_Panels[ rCustomName ] = rPanel;
 	}
 
 }

@@ -62,7 +62,7 @@ namespace Saturn {
 		~ContentBrowserPanel();
 
 		virtual void Draw() override;
-		static const std::string& GetStaticName()
+		static const char* GetStaticName()
 		{
 			return "Content Browser Panel";
 		}

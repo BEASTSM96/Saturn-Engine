@@ -210,7 +210,7 @@ namespace Saturn {
 			}
 		} );
 
-		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 		hierarchyPanel->SetContext( m_EditorScene );
 		hierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
 
@@ -243,7 +243,7 @@ namespace Saturn {
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
 		pPhysicsFoundation->Init();
 
-		Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>( "Content Browser Panel" );
+		Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>();
 
 		auto& rUserSettings = EngineSettings::Get();
 		contentBrowserPanel->ResetPath( rUserSettings.StartupProject );
@@ -300,7 +300,7 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 
 		if( m_RequestRuntime )
 		{
@@ -544,7 +544,7 @@ namespace Saturn {
 
 	void EditorLayer::OpenFile( AssetID id )
 	{
-		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 
 		Ref<Scene> newScene = Ref<Scene>::Create();
 		GActiveScene = newScene.Get();
@@ -594,7 +594,6 @@ namespace Saturn {
 
 	void EditorLayer::ViewportSizeCallback( uint32_t Width, uint32_t Height )
 	{
-
 	}
 
 	bool EditorLayer::OnKeyPressed( RubyKeyEvent& rEvent )
@@ -603,7 +602,7 @@ namespace Saturn {
 		{
 			case RubyKey::Delete:
 			{
-				Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
+				Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 
 				if( hierarchyPanel )
 				{
@@ -639,7 +638,7 @@ namespace Saturn {
 			{
 				case RubyKey::D:
 				{
-					Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
+					Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 					
 					if( hierarchyPanel ) 
 					{
@@ -654,7 +653,7 @@ namespace Saturn {
 				// TODO: Support more than one selection.
 				case RubyKey::F:
 				{
-					Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
+					Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 
 					if( hierarchyPanel )
 					{
@@ -1189,7 +1188,7 @@ namespace Saturn {
 
 	void EditorLayer::DrawMaterials()
 	{
-		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 
 		if( hierarchyPanel->GetSelectionContexts().size() > 0 )
 		{
@@ -1261,15 +1260,12 @@ namespace Saturn {
 
 							if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
 							{
-								Application::Get().SubmitOnMainThread( [&]()
-									{
-										std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
+								std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
 
-										if( !file.empty() )
-										{
-											rMaterial->SetResource( "u_AlbedoTexture", Ref<Texture2D>::Create( file, AddressingMode::Repeat ) );
-										}
-									} );
+								if( !file.empty() )
+								{
+									rMaterial->SetResource( "u_AlbedoTexture", Ref<Texture2D>::Create( file, AddressingMode::Repeat ) );
+								}
 							}
 
 							glm::vec3 color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
@@ -1421,7 +1417,7 @@ namespace Saturn {
 
 		Ref<Scene> ActiveScene = m_RuntimeScene ? m_RuntimeScene : m_EditorScene;
 
-		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>( "Scene Hierarchy Panel" );
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 		std::vector<Ref<Entity>>& selectedEntities = hierarchyPanel->GetSelectionContexts();
 
 		// Calc center of transform.

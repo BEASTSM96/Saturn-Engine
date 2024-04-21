@@ -131,7 +131,7 @@ namespace Saturn {
 		m_RendererData.AOCompositeTimer.Reset();
 		m_RendererData.AOCompositeTimer.Stop();
 
-		const size_t TransformCount = static_cast<size_t>( 1024 ) * 10;
+		constexpr size_t TransformCount = static_cast<size_t>( 1024 ) * 10;
 		m_RendererData.SubmeshTransformData.resize( MAX_FRAMES_IN_FLIGHT );
 		
 		for( uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
@@ -737,24 +737,23 @@ namespace Saturn {
 	{
 		const auto& viewProjection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
 
-		const int SHADOW_MAP_CASCADE_COUNT = 4;
-		float cascadeSplits[ SHADOW_MAP_CASCADE_COUNT ];
+		float cascadeSplits[ SHADOW_CASCADE_COUNT ];
 
-		float nearClip = 0.1F;
-		float farClip = 1000.0F;
-		float clipRange = farClip - nearClip;
+		constexpr float nearClip = 0.1F;
+		constexpr float farClip = 1000.0F;
+		constexpr float clipRange = farClip - nearClip;
 
-		float minZ = nearClip;
-		float maxZ = nearClip + clipRange;
+		constexpr float minZ = nearClip;
+		constexpr float maxZ = nearClip + clipRange;
 
-		float range = maxZ - minZ;
-		float ratio = maxZ / minZ;
+		constexpr float range = maxZ - minZ;
+		constexpr float ratio = maxZ / minZ;
 
 		// Calculate split depths based on view camera frustum
 		// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
-		for( uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++ )
+		for( uint32_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 		{
-			float p = ( i + 1 ) / static_cast< float >( SHADOW_MAP_CASCADE_COUNT );
+			float p = ( i + 1 ) / static_cast< float >( SHADOW_CASCADE_COUNT );
 			float log = minZ * std::pow( ratio, p );
 			float uniform = minZ + range * p;
 			float d = m_RendererData.CascadeSplitLambda * ( log - uniform ) + uniform;
@@ -765,7 +764,7 @@ namespace Saturn {
 
 		// Calculate orthographic projection matrix for each cascade
 		float lastSplitDist = 0.0;
-		for( uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++ )
+		for( uint32_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 		{
 			float splitDist = cascadeSplits[ i ];
 
@@ -2057,7 +2056,6 @@ namespace Saturn {
 		m_DrawList.clear();
 		m_ShadowMapDrawList.clear();
 		m_PhysicsColliderDrawList.clear();
-		//m_DebugLineDrawList.clear();
 		m_ScheduledFunctions.clear();
 		m_RendererData.MeshTransforms.clear();
 	}
