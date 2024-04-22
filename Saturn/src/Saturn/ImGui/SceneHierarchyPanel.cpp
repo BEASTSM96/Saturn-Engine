@@ -396,24 +396,9 @@ namespace Saturn {
 			ImGui::PopItemWidth();
 		}
 
-		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
-
 		// ID
 		const auto& id = entity->GetComponent<IdComponent>().ID;
-
-		if( isPrefab ) 
-		{
-			ImGui::SameLine();
-			ImGui::TextDisabled( "%llx", id );
-
-			//bool value = AssetManager::Get().GetAssetAs<Prefab>( entity.GetComponent<PrefabComponent>().AssetID )->IsComponentModified<TransformComponent>( entity );
-
-			//ImGui::Checkbox( "Modified", &value );
-		}
-		else
-		{
-			ImGui::TextDisabled( "%llx", id );
-		}
+		ImGui::TextDisabled( "%llx", id );
 
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 

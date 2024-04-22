@@ -475,7 +475,7 @@ namespace Saturn {
 			ImGui::Spring();
 
 			if( m_BlockingOperation->GetTitle().empty() )
-				ImGui::Text( "Please wait for this operation to complete..." );
+				ImGui::Text( "Please wait for the operation to complete..." );
 			else
 				ImGui::Text( m_BlockingOperation->GetTitle().c_str() );
 
