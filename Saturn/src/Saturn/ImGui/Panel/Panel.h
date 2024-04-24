@@ -39,9 +39,9 @@ namespace Saturn {
 		Panel( const std::string& rName ) { m_Name = rName; }
 		virtual ~Panel() {}
 
-		virtual void Draw() {};
-		static const std::string& GetStaticName() { return "Panel"; }
+		virtual void Draw() {}
 
+		static const char* GetStaticName() { return "Panel"; }
 	protected:
 		std::string m_Name = "";
 

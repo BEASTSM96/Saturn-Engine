@@ -239,7 +239,7 @@ namespace Saturn {
 
 		ImGui::PopID();
 	}
-	
+
 	void SceneHierarchyPanel::DrawComponents( Ref<Entity> entity )
 	{
 		DrawEntityComponents( m_SelectionContexts[ 0 ] );
