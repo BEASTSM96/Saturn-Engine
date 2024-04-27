@@ -108,8 +108,8 @@ namespace Saturn {
 		return false;
 	}
 
-	Image2D::Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels /*= 1*/, uint32_t MSAASamples /*= 1*/, void* pData /*= nullptr*/, size_t size /*= 0 */ )
-		: m_Format( Format ), m_Width( Width ), m_Height( Height ), m_ArrayLevels( ArrayLevels ), m_pData( pData ), m_DataSize( size )
+	Image2D::Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels /*= 1*/, uint32_t MSAASamples /*= 1*/, ImageTiling Tiling /*= ImageTiling::Optimal*/, void* pData /*= nullptr*/, size_t size /*= 0 */ )
+		: m_Format( Format ), m_Width( Width ), m_Height( Height ), m_ArrayLevels( ArrayLevels ), m_Tiling( Tiling ), m_pData( pData ), m_DataSize( size )
 	{
 		m_MSAASamples = (VkSampleCountFlagBits)MSAASamples;
 
@@ -168,10 +168,10 @@ namespace Saturn {
 		ImageCreateInfo.mipLevels = 1;
 		ImageCreateInfo.arrayLayers = m_ArrayLevels;
 		ImageCreateInfo.samples = m_MSAASamples;
-		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		ImageCreateInfo.tiling = ( VkImageTiling )m_Tiling;
 
 		if( IsColorFormat( m_Format ) )
-			ImageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+			ImageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 		else
 			ImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 

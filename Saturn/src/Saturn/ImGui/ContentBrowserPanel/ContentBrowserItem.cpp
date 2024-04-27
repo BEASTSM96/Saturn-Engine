@@ -115,7 +115,9 @@ namespace Saturn {
 				}
 			}
 
-			// Because when we double click we know that we will change directory and when we change directory this will no longer be selected.
+			// Selected but not opened!
+			// Double clicked = open (change CB folder)
+			// Single clicked = selected or deselected
 			if( Clicked && !DoubleClicked )
 			{
 				m_IsSelected = !m_IsSelected;

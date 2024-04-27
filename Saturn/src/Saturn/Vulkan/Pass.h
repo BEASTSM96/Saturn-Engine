@@ -75,10 +75,9 @@ namespace Saturn {
 		const std::string& GetName() const { return m_PassSpec.Name; }
 
 	private:
-
 		void Create( const PassSpecification& rPassSpec );
-
 		void AddMultisampleAttachments( ImageFormat format, VkSubpassDescription& rSubpass, std::vector<VkAttachmentDescription>& rAttachments );
+
 	private:
 		PassSpecification m_PassSpec;
 

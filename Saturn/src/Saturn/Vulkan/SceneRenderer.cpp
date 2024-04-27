@@ -739,25 +739,25 @@ namespace Saturn {
 
 		float cascadeSplits[ SHADOW_CASCADE_COUNT ];
 
-		constexpr float nearClip = 0.1F;
-		constexpr float farClip = 1000.0F;
-		constexpr float clipRange = farClip - nearClip;
+		constexpr float NEAR_CLIP = 0.1F;
+		constexpr float FAR_CLIP = 1000.0F;
+		constexpr float CLIP_RANGE = FAR_CLIP - NEAR_CLIP;
 
-		constexpr float minZ = nearClip;
-		constexpr float maxZ = nearClip + clipRange;
+		constexpr float minZ = NEAR_CLIP;
+		constexpr float maxZ = NEAR_CLIP + CLIP_RANGE;
 
-		constexpr float range = maxZ - minZ;
-		constexpr float ratio = maxZ / minZ;
+		constexpr float RANGE = maxZ - minZ;
+		constexpr float RATIO = maxZ / minZ;
 
 		// Calculate split depths based on view camera frustum
 		// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
 		for( uint32_t i = 0; i < SHADOW_CASCADE_COUNT; i++ )
 		{
 			float p = ( i + 1 ) / static_cast< float >( SHADOW_CASCADE_COUNT );
-			float log = minZ * std::pow( ratio, p );
-			float uniform = minZ + range * p;
+			float log = minZ * std::pow( RATIO, p );
+			float uniform = minZ + RANGE * p;
 			float d = m_RendererData.CascadeSplitLambda * ( log - uniform ) + uniform;
-			cascadeSplits[ i ] = ( d - nearClip ) / clipRange;
+			cascadeSplits[ i ] = ( d - NEAR_CLIP ) / CLIP_RANGE;
 		}
 
 		cascadeSplits[ 3 ] = 0.3f;
@@ -832,7 +832,7 @@ namespace Saturn {
 			lightOrthoMatrix[ 3 ] += roundOffset;
 
 			// Store split distance and matrix in cascade
-			m_RendererData.ShadowCascades[ i ].SplitDepth = ( nearClip + splitDist * clipRange ) * -1.0f;
+			m_RendererData.ShadowCascades[ i ].SplitDepth = ( NEAR_CLIP + splitDist * CLIP_RANGE ) * -1.0f;
 			m_RendererData.ShadowCascades[ i ].ViewProjection = lightOrthoMatrix * lightViewMatrix;
 
 			lastSplitDist = cascadeSplits[ i ];
@@ -966,6 +966,11 @@ namespace Saturn {
 
 			ImGui::Text( "Total (RenderThread::Execute): %.2f ms", RenderThread::Get().GetWaitTime() );
 			ImGui::Text( "Total : %.2f ms", Application::Get().Time().Milliseconds() );
+
+			if( ImGui::Button( "Screenshot" ) )
+			{
+				m_RendererData.GeometryFramebuffer->Screenshot( 0, "test.png" );
+			}
 
 			Auxiliary::EndTreeNode();
 		}

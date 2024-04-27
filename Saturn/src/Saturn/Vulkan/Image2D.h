@@ -51,6 +51,13 @@ namespace Saturn {
 		Depth = DEPTH32F
 	};
 
+	enum class ImageTiling
+	{
+		Optimal = 0,
+		Linear = 1,
+		MaxEnum = 0x7FFFFFFF
+	};
+
 	// Represents a Vulkan Image, ImageView and Sampler
 	// This is different from the "Texture, Texture2D and TextureCube" classes because an Image2D and not be created from a file path.
 	// So this should only be used as a memory only Image.
@@ -58,7 +65,7 @@ namespace Saturn {
 	class Image2D : public RefTarget
 	{
 	public:
-		Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels = 1, uint32_t MSAASamples = 1, void* pData = nullptr, size_t size = 0 );
+		Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels = 1, uint32_t MSAASamples = 1, ImageTiling Tiling = ImageTiling::Optimal, void* pData = nullptr, size_t size = 0 );
 		~Image2D();
 
 		void SetDebugName( const std::string& rName );
@@ -70,6 +77,7 @@ namespace Saturn {
 		VkImage GetImage() { return m_Image; }
 		VkImageView GetImageView( size_t index = 0 ) { return m_ImageViewes[ index ]; }
 		VkSampler GetSampler() { return m_Sampler; }
+		VkDeviceMemory GetMemory() { return m_Memory; }
 
 		ImageFormat GetImageFormat() { return m_Format; }
 
@@ -85,6 +93,7 @@ namespace Saturn {
 		VkSampleCountFlagBits m_MSAASamples;
 
 		ImageFormat m_Format;
+		ImageTiling m_Tiling;
 
 		std::vector<VkImageView> m_ImageViewes;
 

@@ -45,7 +45,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-
 namespace Saturn {
 
 	template<typename T, typename UIFunction>

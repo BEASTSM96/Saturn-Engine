@@ -56,7 +56,7 @@ namespace Saturn {
 		void AddPanel( const Ref<Panel>& rPanel, const std::string& rCustomName );
 
 		template<typename Ty>
-		Ref<Ty> GetPanel( const std::string& rPanelName ) 
+		[[nodiscard]] Ref<Ty> GetPanel( const std::string& rPanelName )
 		{
 			static_assert( std::is_base_of<Panel, Ty>::value, "Ty must be a child class of Panel!" );
 
@@ -69,7 +69,7 @@ namespace Saturn {
 		}
 
 		template<typename Ty>
-		Ref<Ty> GetPanel()
+		[[nodiscard]] Ref<Ty> GetPanel()
 		{
 			static_assert( std::is_base_of<Panel, Ty>::value, "Ty must be a child class of Panel!" );
 

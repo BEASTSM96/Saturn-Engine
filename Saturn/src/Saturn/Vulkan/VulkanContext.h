@@ -71,7 +71,9 @@ namespace Saturn {
 		VkFormat FindSupportedFormat( const std::vector<VkFormat>& Formats, VkImageTiling Tiling, VkFormatFeatureFlags Features );
 		VkFormat FindDepthFormat();
 		bool HasStencilComponent( VkFormat Format );
-		
+
+		bool FormatLinearBlitSupported();
+
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands( VkCommandBuffer CommandBuffer );
 		

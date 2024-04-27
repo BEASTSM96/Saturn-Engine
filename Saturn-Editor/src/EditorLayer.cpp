@@ -263,6 +263,7 @@ namespace Saturn {
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
 
+		// TODO: Do we really need to check this every time we load the editor?
 		HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 	}
 
@@ -661,6 +662,8 @@ namespace Saturn {
 
 						if( selectedEntity )
 						{
+							// TODO: This should be it's own separate keybind what if we don't want to use the parents position.
+							//       This also does not account if the parent has a parent and so on.
 							if( selectedEntity->HasParent() )
 							{
 								Ref<Entity> parent = GActiveScene->FindEntityByID( selectedEntity->GetParent() );

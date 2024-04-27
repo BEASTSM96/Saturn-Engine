@@ -492,6 +492,14 @@ namespace Saturn {
 		return Format == VK_FORMAT_D32_SFLOAT_S8_UINT || Format == VK_FORMAT_D24_UNORM_S8_UINT;
 	}
 
+	bool VulkanContext::FormatLinearBlitSupported()
+	{
+		VkFormatProperties FormatProps{};
+		vkGetPhysicalDeviceFormatProperties( m_PhysicalDevice, m_SurfaceFormat.format, &FormatProps );
+
+		return FormatProps.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT;
+	}
+
 	VkCommandBuffer VulkanContext::BeginSingleTimeCommands()
 	{
 		VkCommandBufferAllocateInfo AllocInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };

@@ -50,9 +50,7 @@ namespace Saturn {
 	{
 		if( rMaterialName.empty() )
 		{
-			std::string NewName = m_Shader->GetName();
-			NewName += " Unknown Material " + std::to_string( UUID() );
-
+			std::string NewName = std::format( "{0} Unknown Material {1}", m_Shader->GetName(), std::to_string( UUID() ) );
 			m_Name = NewName;
 		}
 		else
@@ -63,6 +61,7 @@ namespace Saturn {
 			m_Textures[ texture.Name ] = nullptr;
 		}
 
+		// Intentional copy of shader uniforms.
 		for( auto rUniform : m_Shader->GetUniforms() )
 		{
 			m_Uniforms.push_back( { rUniform.Name, rUniform.Location, rUniform.DataType, rUniform.Size, rUniform.Offset, rUniform.IsPushConstantData } );
