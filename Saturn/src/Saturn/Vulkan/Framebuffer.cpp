@@ -248,7 +248,7 @@ namespace Saturn {
 		// Create the custom destination image
 		VkImageCreateInfo ImageCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 		ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-		ImageCreateInfo.format = VulkanFormat( SrcImage->GetImageFormat() );
+		ImageCreateInfo.format = VulkanFormat( SrcImage->GetImageFormat() ); // Use the framebuffer's format
 		ImageCreateInfo.extent.width = m_Specification.Width;
 		ImageCreateInfo.extent.height = m_Specification.Height;
 		ImageCreateInfo.extent.depth = 1;
@@ -278,40 +278,22 @@ namespace Saturn {
 		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
 
 		///////////////////////////////////////
+		VkImageSubresourceRange SubresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1 };
+
 
 		// TRANSITION: Destination image to transfer destination layout.
-		VkImageMemoryBarrier Barrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-		Barrier.srcQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
-		Barrier.dstQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
-		Barrier.srcAccessMask        = 0;
-		Barrier.dstAccessMask        = VK_ACCESS_TRANSFER_WRITE_BIT;
-		Barrier.oldLayout            = VK_IMAGE_LAYOUT_UNDEFINED;
-		Barrier.newLayout            = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		Barrier.image                = DstImage;
-		Barrier.subresourceRange     = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1 };
-
-		vkCmdPipelineBarrier( CommandBuffer,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &Barrier );
+		TransitionImageLayout( 
+			CommandBuffer,
+			DstImage,
+			VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			SubresourceRange, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
 		// TRANSITION: Framebuffer image to VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL.
-		Barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		Barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		Barrier.oldLayout     = SrcImage->GetDescriptorInfo().imageLayout;
-		Barrier.newLayout     = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-		Barrier.image         = SrcImage->GetImage();
-
-		vkCmdPipelineBarrier( CommandBuffer,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &Barrier );
+		SrcImage->TransitionImageLayout( 
+			CommandBuffer,
+			SrcImage->GetDescriptorInfo().imageLayout, 
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
 		if( BlitSuppored )
 		{
@@ -350,38 +332,26 @@ namespace Saturn {
 		}
 
 		// TRANSITION: Destination image to general layout for copying.
-		Barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		Barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		Barrier.oldLayout     = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		Barrier.newLayout     = VK_IMAGE_LAYOUT_GENERAL;
-		Barrier.image         = DstImage;
-
-		vkCmdPipelineBarrier( CommandBuffer,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &Barrier );
+		TransitionImageLayout(
+			CommandBuffer,
+			DstImage,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			VK_IMAGE_LAYOUT_GENERAL, 
+			SubresourceRange, 
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
 		// TRANSITION: Framebuffer image format back to previous specified format in descriptor layout.
 		//             Descriptor layout does not update because the image does not know we are changing it's layout (not a bug it's a feature).
-		Barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		Barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		Barrier.oldLayout     = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-		Barrier.newLayout     = SrcImage->GetDescriptorInfo().imageLayout;
-		Barrier.image         = SrcImage->GetImage();
-
-		vkCmdPipelineBarrier( CommandBuffer,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &Barrier );
+		SrcImage->TransitionImageLayout( 
+			CommandBuffer,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 
+			SrcImage->GetDescriptorInfo().imageLayout, 
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
 		// Execute command buffer.
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+
+		/////////////////////////////////
 
 		// Save the image to a file.
 		VkImageSubresource Subresource{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 0 };

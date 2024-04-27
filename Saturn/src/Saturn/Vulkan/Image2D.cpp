@@ -31,82 +31,9 @@
 
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
+#include "VulkanImageAux.h"
 
 namespace Saturn {
-
-	static VkFormat VulkanFormat( ImageFormat format )
-	{
-		switch( format )
-		{
-			case Saturn::ImageFormat::RGBA8:
-				return VK_FORMAT_R8G8B8A8_UNORM;
-
-			case Saturn::ImageFormat::RGBA16F:
-				return VK_FORMAT_R16G16B16A16_UNORM;
-
-			case Saturn::ImageFormat::RGBA32F:
-				return VK_FORMAT_R32G32B32A32_SFLOAT;
-
-			case Saturn::ImageFormat::RGB32F:
-				return VK_FORMAT_R32G32B32A32_SFLOAT;
-
-			case ImageFormat::BGRA8:
-				return VK_FORMAT_B8G8R8A8_UNORM;
-
-			case ImageFormat::RED8:
-				return VK_FORMAT_R8_UNORM;
-
-			case Saturn::ImageFormat::DEPTH24STENCIL8:
-				return VK_FORMAT_D32_SFLOAT_S8_UINT;
-			case Saturn::ImageFormat::DEPTH32F:
-				return VK_FORMAT_D32_SFLOAT;
-		}
-
-		return VK_FORMAT_UNDEFINED;
-	}
-
-	static bool IsColorFormat( ImageFormat format )
-	{
-		switch( format )
-		{
-			case Saturn::ImageFormat::RGBA8:
-			case Saturn::ImageFormat::RGBA16F:
-			case Saturn::ImageFormat::RGBA32F:
-			case Saturn::ImageFormat::RGB32F:
-			case Saturn::ImageFormat::BGRA8:
-			case Saturn::ImageFormat::RED8:
-				return true;
-		}
-
-		return false;
-	}
-
-	static bool IsColorFormat( VkFormat format )
-	{
-		switch( format )
-		{
-			case VK_FORMAT_R32G32B32A32_SFLOAT:
-			case VK_FORMAT_R8G8B8A8_UNORM:
-			case VK_FORMAT_R16G16B16A16_UNORM:
-			case VK_FORMAT_B8G8R8A8_UNORM:
-			case VK_FORMAT_R8_UNORM:
-				return true;
-		}
-
-		return false;
-	}
-
-	static bool IsDepthFormat( ImageFormat format ) 
-	{
-		switch( format )
-		{
-			case Saturn::ImageFormat::DEPTH32F:
-			case Saturn::ImageFormat::DEPTH24STENCIL8:
-				return true;
-		}
-
-		return false;
-	}
 
 	Image2D::Image2D( ImageFormat Format, uint32_t Width, uint32_t Height, uint32_t ArrayLevels /*= 1*/, uint32_t MSAASamples /*= 1*/, ImageTiling Tiling /*= ImageTiling::Optimal*/, void* pData /*= nullptr*/, size_t size /*= 0 */ )
 		: m_Format( Format ), m_Width( Width ), m_Height( Height ), m_ArrayLevels( ArrayLevels ), m_Tiling( Tiling ), m_pData( pData ), m_DataSize( size )
@@ -327,8 +254,8 @@ namespace Saturn {
 	{
 		VkCommandBuffer CommandBuffer = VulkanContext::Get().BeginSingleTimeCommands();
 
-		VkPipelineStageFlags SrcStage;
-		VkPipelineStageFlags DstStage;
+		VkPipelineStageFlags SrcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		VkPipelineStageFlags DstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 
 		VkImageMemoryBarrier ImageBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 		ImageBarrier.oldLayout = OldLayout;
@@ -391,6 +318,38 @@ namespace Saturn {
 		vkCmdPipelineBarrier( CommandBuffer, SrcStage, DstStage, 0, 0, nullptr, 0, nullptr, 1, &ImageBarrier );
 
 		VulkanContext::Get().EndSingleTimeCommands( CommandBuffer );
+	}
+
+	void Image2D::TransitionImageLayout( 
+		VkCommandBuffer CommandBuffer,
+		VkImageLayout OldLayout, VkImageLayout NewLayout, 
+		VkPipelineStageFlags DstStage, VkPipelineStageFlags SrcStage )
+	{
+		VkFormat vulkanFormat = VulkanFormat( m_Format );
+
+		VkImageMemoryBarrier ImageBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		ImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		ImageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		ImageBarrier.oldLayout           = OldLayout;
+		ImageBarrier.newLayout           = NewLayout;
+		ImageBarrier.image               = m_Image;
+
+		ImageBarrier.subresourceRange.aspectMask = IsColorFormat( vulkanFormat ) ? VK_IMAGE_ASPECT_COLOR_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
+		ImageBarrier.subresourceRange.baseMipLevel = 0;
+		ImageBarrier.subresourceRange.levelCount = 1;
+		ImageBarrier.subresourceRange.baseArrayLayer = 0;
+		ImageBarrier.subresourceRange.layerCount = 1;
+
+		if( vulkanFormat == VK_FORMAT_D32_SFLOAT_S8_UINT )
+			ImageBarrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+
+		vkCmdPipelineBarrier( CommandBuffer,
+			SrcStage,
+			DstStage,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &ImageBarrier );
 	}
 
 }

@@ -138,4 +138,27 @@ namespace Saturn {
 
 		return false;
 	}
+
+	static void TransitionImageLayout( VkCommandBuffer CommandBuffer, 
+		VkImage Image, 
+		VkImageLayout OldLayout, VkImageLayout NewLayout, 
+		const VkImageSubresourceRange& rSubresourceRange, 
+		VkPipelineStageFlags SrcStage, VkPipelineStageFlags DstStage )
+	{
+		VkImageMemoryBarrier ImageBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		ImageBarrier.oldLayout = OldLayout;
+		ImageBarrier.newLayout = NewLayout;
+		ImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		ImageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		ImageBarrier.image = Image;
+		ImageBarrier.subresourceRange = rSubresourceRange;
+
+		vkCmdPipelineBarrier( CommandBuffer, 
+			SrcStage, 
+			DstStage, 
+			0, 
+			0, nullptr, 
+			0, nullptr, 
+			1, &ImageBarrier );
+	}
 }

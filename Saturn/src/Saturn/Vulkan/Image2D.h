@@ -81,9 +81,13 @@ namespace Saturn {
 
 		ImageFormat GetImageFormat() { return m_Format; }
 
+		void TransitionImageLayout( VkCommandBuffer CommandBuffer, VkImageLayout OldLayout, VkImageLayout NewLayout, VkPipelineStageFlags DstStage, VkPipelineStageFlags SrcStage );
+
 	private:
 		void Create();
 		void CopyBufferToImage( VkBuffer Buffer );
+		
+		// Internal TransitionImageLayout
 		void TransitionImageLayout( VkFormat Format, VkImageLayout OldLayout, VkImageLayout NewLayout );
 
 	private:
