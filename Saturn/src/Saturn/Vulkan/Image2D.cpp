@@ -125,9 +125,9 @@ namespace Saturn {
 		VK_CHECK( vkAllocateMemory( VulkanContext::Get().GetDevice(), &MemoryAllocateInfo, nullptr, &m_Memory ) );
 		VK_CHECK( vkBindImageMemory( VulkanContext::Get().GetDevice(), m_Image, m_Memory, 0 ) );
 
-
 		if( m_pData ) 
 		{
+			// TRANSITION: Initial layout to VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
 			TransitionImageLayout( VulkanFormat( m_Format ), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
 
 			VkBuffer ImgBuffer;
@@ -150,6 +150,7 @@ namespace Saturn {
 
 			CopyBufferToImage( ImgBuffer );
 
+			// TRANSITION: VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL to descriptor image layout.
 			TransitionImageLayout( VulkanFormat( m_Format ), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_DescriptorImageInfo.imageLayout );
 		}
 

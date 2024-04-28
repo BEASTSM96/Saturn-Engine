@@ -240,10 +240,12 @@ namespace Saturn {
 
 	void Framebuffer::Screenshot( uint32_t ColorAttachmentIndex, const std::filesystem::path& rPath )
 	{
-		// First, check if the device supports blitting to linear images.
-		bool BlitSuppored = VulkanContext::Get().FormatLinearBlitSupported();
-
 		Ref<Image2D> SrcImage = m_ColorAttachmentsResources[ ColorAttachmentIndex ];
+		
+		// First, check if the device supports blitting to linear images, and check if the device supports blitting from to optimal images.
+		bool BlitSuppored = false;
+		BlitSuppored = VulkanContext::Get().FormatOptimalBlitSupported();
+		BlitSuppored = VulkanContext::Get().FormatLinearBlitSupported( VulkanFormat( SrcImage->GetImageFormat() ) );
 
 		// Create the custom destination image
 		VkImageCreateInfo ImageCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
@@ -359,7 +361,7 @@ namespace Saturn {
 		vkGetImageSubresourceLayout( VulkanContext::Get().GetDevice(), DstImage, &Subresource, &SubresourceLayout );
 
 		const char* pData = nullptr;
-		vkMapMemory( VulkanContext::Get().GetDevice(), ImageMemory, 0, VK_WHOLE_SIZE, 0, ( void** ) &pData );
+		VK_CHECK( vkMapMemory( VulkanContext::Get().GetDevice(), ImageMemory, 0, VK_WHOLE_SIZE, 0, ( void** ) &pData ) );
 		pData += SubresourceLayout.offset;
 
 		bool ColorSwizzle = false;
@@ -371,8 +373,10 @@ namespace Saturn {
 			ColorSwizzle = std::find( FormatsRGB.begin(), FormatsRGB.end(), VulkanContext::Get().GetSurfaceFormat().format ) != FormatsRGB.end();
 		}
 
-		// TODO: Save to file...
-
+		std::string filepath = rPath.string();
+		stbi_flip_vertically_on_write( true );
+		stbi_write_png( filepath.c_str(), m_Specification.Width, m_Specification.Height, 4, pData, SubresourceLayout.rowPitch );
+		
 		vkUnmapMemory( VulkanContext::Get().GetDevice(), ImageMemory );
 		vkFreeMemory( VulkanContext::Get().GetDevice(), ImageMemory, nullptr );
 		vkDestroyImage( VulkanContext::Get().GetDevice(), DstImage, nullptr );

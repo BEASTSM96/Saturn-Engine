@@ -969,7 +969,7 @@ namespace Saturn {
 
 			if( ImGui::Button( "Screenshot" ) )
 			{
-				m_RendererData.GeometryFramebuffer->Screenshot( 0, "test.png" );
+				m_RendererData.SceneCompositeFramebuffer->Screenshot( 0, "SceneComp.png" );
 			}
 
 			Auxiliary::EndTreeNode();

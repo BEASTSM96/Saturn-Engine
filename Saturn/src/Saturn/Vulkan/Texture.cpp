@@ -31,36 +31,12 @@
 
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
+#include "VulkanImageAux.h"
 
 #include <stb_image.h>
 #include <backends/imgui_impl_vulkan.h>
 
 namespace Saturn {
-
-	static VkFormat VulkanFormat( ImageFormat format )
-	{
-		switch( format )
-		{
-			case Saturn::ImageFormat::RGBA8:
-				return VK_FORMAT_R8G8B8A8_UNORM;
-
-			case Saturn::ImageFormat::RGBA16F:
-				return VK_FORMAT_R16G16B16A16_UNORM;
-
-			case Saturn::ImageFormat::RGBA32F:
-				return VK_FORMAT_R32G32B32A32_SFLOAT;
-
-			case ImageFormat::BGRA8:
-				return VK_FORMAT_B8G8R8A8_UNORM;
-
-			case Saturn::ImageFormat::DEPTH24STENCIL8:
-				return VK_FORMAT_D32_SFLOAT_S8_UINT;
-			case Saturn::ImageFormat::DEPTH32F:
-				return VK_FORMAT_D32_SFLOAT;
-		}
-
-		return VK_FORMAT_UNDEFINED;
-	}
 
 	static VkSamplerAddressMode SaturnToVulkanAdressingMode( AddressingMode mode ) 
 	{
@@ -662,6 +638,10 @@ namespace Saturn {
 		if( m_pData )
 			CopyBufferToImage( StagingBuffer );
 
+		// TRANSITION (based on following conditions):
+		// TRANSFER_DST_OPTIMAL to TRANSFER_SRC_OPTIMAL if we have mips
+		// TRANSFER_DST_OPTIMAL to SHADER_READ_ONLY_OPTIMAL if we do not mips and we are not a storage image
+		// TRANSFER_DST_OPTIMAL to GENERAL if do not have mips and we are a storage image.
 		if( MipCount > 1 )
 			TransitionImageLayout( m_ImageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL );
 		else if( !m_Storage )
@@ -785,7 +765,8 @@ namespace Saturn {
 		subresourceRange.levelCount = GetMipMapLevels();
 		subresourceRange.layerCount = 6;
 
-		// No need to transition image layout as the image layout will become VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while creating mips
+		// No need to transition image layout as the image layout will become VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while creating mips.
+		// TRANSITION: VK_IMAGE_LAYOUT_UNDEFINED to VK_IMAGE_LAYOUT_GENERAL (temporary until mips are generated).
 		TransitionImageLayout( subresourceRange, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL );
 
 		// Create image sampler.
@@ -845,7 +826,7 @@ namespace Saturn {
 			mipSubRange.levelCount = 1;
 			mipSubRange.layerCount = 1;
 
-			// Prepare current mip level as image blit destination
+			// TRANSITION: Prepare current mip level as image blit destination.
 			ImagePipelineBarrier( CommandBuffer, m_Image,
 				0, VK_ACCESS_TRANSFER_WRITE_BIT,
 				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -884,14 +865,14 @@ namespace Saturn {
 				mipSubRange.levelCount = 1;
 				mipSubRange.layerCount = 1;
 
-				// Prepare current mip level as image blit destination
+				// TRANSITION: Prepare current mip level as image blit destination.
 				ImagePipelineBarrier( CommandBuffer, m_Image,
 					0, VK_ACCESS_TRANSFER_WRITE_BIT,
 					VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 					VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
 					mipSubRange );
 
-				// Blit from previous level
+				// Blit from previous level.
 				vkCmdBlitImage(
 					CommandBuffer,
 					m_Image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -899,7 +880,7 @@ namespace Saturn {
 					1, &imageBlit,
 					VK_FILTER_LINEAR );
 
-				// Prepare current mip level as image blit source for next level
+				// TRANSITION: Prepare current mip level as image blit source for next level.
 				ImagePipelineBarrier( CommandBuffer, m_Image,
 					VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
 					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -908,12 +889,13 @@ namespace Saturn {
 			}
 		}
 
-		// After the loop, all mip layers are in TRANSFER_SRC layout, so transition all to GENERAL
+		// After the loop, all mip layers are in TRANSFER_SRC layout, so transition all to GENERAL.
 		VkImageSubresourceRange subresourceRange = {};
 		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		subresourceRange.layerCount = 6;
 		subresourceRange.levelCount = mipLevels;
 
+		// TRANSITION: Revert back to general image layout.
 		ImagePipelineBarrier( CommandBuffer, m_Image,
 			VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_READ_BIT,
 			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
