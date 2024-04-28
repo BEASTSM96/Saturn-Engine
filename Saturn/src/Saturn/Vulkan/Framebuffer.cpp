@@ -32,10 +32,9 @@
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
 #include "VulkanImageAux.h"
+#include "Saturn/Serialisation/ImageFileAux.h"
 
 #include <backends/imgui_impl_vulkan.h>
-
-#include <stb_image_write.h>
 
 namespace Saturn {
 
@@ -373,9 +372,7 @@ namespace Saturn {
 			ColorSwizzle = std::find( FormatsRGB.begin(), FormatsRGB.end(), VulkanContext::Get().GetSurfaceFormat().format ) != FormatsRGB.end();
 		}
 
-		std::string filepath = rPath.string();
-		stbi_flip_vertically_on_write( true );
-		stbi_write_png( filepath.c_str(), m_Specification.Width, m_Specification.Height, 4, pData, SubresourceLayout.rowPitch );
+		Auxiliary::WriteImageFile( rPath, Auxiliary::ImageFileType::PNG, m_Specification.Width, m_Specification.Height, 4, pData, SubresourceLayout.rowPitch );
 		
 		vkUnmapMemory( VulkanContext::Get().GetDevice(), ImageMemory );
 		vkFreeMemory( VulkanContext::Get().GetDevice(), ImageMemory, nullptr );
