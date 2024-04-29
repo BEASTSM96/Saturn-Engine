@@ -38,7 +38,6 @@ namespace Saturn {
 	{
 		SingletonStorage::AddSingleton( this );
 
-		// Setup Asset Registries.
 		auto project = Project::GetActiveProject();
 		auto assetDir = project->GetFullAssetPath();
 		assetDir /= "AssetRegistry.sreg";
@@ -46,7 +45,7 @@ namespace Saturn {
 		m_Assets = Ref<AssetRegistry>::Create();
 		m_Assets->m_Path = assetDir;
 
-		// Editor
+		// Editor (read only asset registry)
 		auto& contentDir = Application::Get().GetRootContentDir();
 		contentDir /= "AssetRegistry.sreg";
 
@@ -55,17 +54,20 @@ namespace Saturn {
 		m_EditorAssets->m_IsEditorRegistry = true;
 
 		AssetRegistrySerialiser ars;
+
+		// In distribution builds asset registry is loaded by the Asset Bundle!
+		// Also, editor assets are not loaded when running dist!
 #if !defined(SAT_DIST)
 		ars.Deserialise( m_Assets );
-#endif
 		ars.Deserialise( m_EditorAssets );
+#endif
 	}
 
 	void AssetManager::Terminate()
 	{
 		if( m_Assets )
 			m_Assets = nullptr;
-		
+
 		if( m_EditorAssets )
 			m_EditorAssets = nullptr;
 	}

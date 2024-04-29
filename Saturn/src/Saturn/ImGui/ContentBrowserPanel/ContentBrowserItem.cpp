@@ -186,71 +186,7 @@ namespace Saturn {
 				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawFlags_RoundCornersAll );
 			}
 
-			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
-			{
-				// Tooltip
-				ImGui::BeginHorizontal( "##dndinfo" );
-
-				Auxiliary::Image( Icon, ImVec2( 24, 24 ) );
-				ImGui::Text( m_Filename.string().c_str() );
-				
-				if( m_MultiSelected )
-				{
-					ImGui::Text( " + others" );
-				}
-
-				ImGui::EndHorizontal();
-
-				auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
-				const wchar_t* c = path.c_str();
-
-				if( Input::Get().KeyPressed( RubyKey::Ctrl ) || Input::Get().KeyPressed( RubyKey::RightCtrl ) )
-				{
-					if ( m_IsSelected )
-					{
-						ImGui::SetDragDropPayload( "CB_ITEM_MOVE", &m_Entry, sizeof( std::filesystem::directory_entry ), ImGuiCond_Once );
-					}
-				}
-
-				switch( m_AssetType )
-				{
-					case Saturn::AssetType::Texture:
-						break;
-					case Saturn::AssetType::StaticMesh:
-					{
-						ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-					}	break;
-					case Saturn::AssetType::SkeletalMesh:
-					case Saturn::AssetType::Material:
-					{
-						ImGui::SetDragDropPayload( "asset_payload", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-					}	break;
-					case Saturn::AssetType::MaterialInstance:
-					case Saturn::AssetType::Audio:
-						break;
-					case Saturn::AssetType::Scene:
-					{
-						ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-					} break;
-
-					case Saturn::AssetType::Prefab:
-					{
-						ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-					} break;
-
-					case Saturn::AssetType::Script:
-					{
-						ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCRIPT", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-					} break;
-
-					case Saturn::AssetType::Unknown:
-					case Saturn::AssetType::COUNT:
-					default:
-						break;
-				}
-
-				ImGui::EndDragDropSource();
-			}
+			HandleDragDrop( Icon );
 
 			if( Open )
 			{
@@ -506,4 +442,77 @@ namespace Saturn {
 
 		std::filesystem::remove( m_Path );
 	}
+
+	void ContentBrowserItem::HandleDragDrop( const Ref<Texture2D>& rIcon )
+	{
+		if( !m_CanEverDrag )
+			return;
+
+		if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
+		{
+			// Tooltip
+			ImGui::BeginHorizontal( "##dndinfo" );
+
+			Auxiliary::Image( rIcon, ImVec2( 24, 24 ) );
+			ImGui::Text( m_Filename.string().c_str() );
+
+			if( m_MultiSelected )
+			{
+				ImGui::Text( " + others" );
+			}
+
+			ImGui::EndHorizontal();
+
+			auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
+			const wchar_t* c = path.c_str();
+
+			if( Input::Get().KeyPressed( RubyKey::Ctrl ) || Input::Get().KeyPressed( RubyKey::RightCtrl ) )
+			{
+				if( m_IsSelected )
+				{
+					ImGui::SetDragDropPayload( "CB_ITEM_MOVE", &m_Entry, sizeof( std::filesystem::directory_entry ), ImGuiCond_Once );
+				}
+			}
+
+			switch( m_AssetType )
+			{
+				case Saturn::AssetType::Texture:
+					break;
+				case Saturn::AssetType::StaticMesh:
+				{
+					ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+				}	break;
+				case Saturn::AssetType::SkeletalMesh:
+				case Saturn::AssetType::Material:
+				{
+					ImGui::SetDragDropPayload( "asset_payload", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+				}	break;
+				case Saturn::AssetType::MaterialInstance:
+				case Saturn::AssetType::Audio:
+					break;
+				case Saturn::AssetType::Scene:
+				{
+					ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCENE", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+				} break;
+
+				case Saturn::AssetType::Prefab:
+				{
+					ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+				} break;
+
+				case Saturn::AssetType::Script:
+				{
+					ImGui::SetDragDropPayload( "CONTENT_BROWSER_ITEM_SCRIPT", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
+				} break;
+
+				case Saturn::AssetType::Unknown:
+				case Saturn::AssetType::COUNT:
+				default:
+					break;
+			}
+
+			ImGui::EndDragDropSource();
+		}
+	}
+
 }

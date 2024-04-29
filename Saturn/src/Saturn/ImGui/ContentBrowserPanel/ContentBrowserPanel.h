@@ -119,6 +119,9 @@ namespace Saturn {
 		ImGuiTextFilter m_TextFilter;
 		bool m_Searching = false;
 
+		// True when we are looking at the editor asset registry.
+		bool m_IsEditorContent = false;
+
 		Ref< Texture2D > m_DirectoryIcon;
 		Ref< Texture2D > m_FileIcon;
 		Ref< Texture2D > m_BackIcon;

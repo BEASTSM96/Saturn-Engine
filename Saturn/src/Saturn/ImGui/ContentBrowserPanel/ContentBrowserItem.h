@@ -65,11 +65,12 @@ namespace Saturn {
 			return m_Entry == rOther.m_Entry && m_Filename == rOther.m_Filename && m_Path == rOther.m_Path;
 		}
 
-		bool IsDirectory()   const { return m_IsDirectory;   }
-		bool IsHovered()     const { return m_IsHovered;     }
-		bool IsSelected()    const { return m_IsSelected;    }
-		bool MultiSelected() const { return m_MultiSelected; }
-		bool IsRenaming()    const { return m_IsRenaming;    }
+		bool IsDirectory()   const   { return m_IsDirectory;   }
+		bool IsHovered()     const   { return m_IsHovered;     }
+		bool IsSelected()    const   { return m_IsSelected;    }
+		bool MultiSelected() const   { return m_MultiSelected; }
+		bool IsRenaming()    const   { return m_IsRenaming;    }
+		void CanEverDrag( bool val ) { m_CanEverDrag = val;    }
 
 		std::filesystem::path& Filename() { return m_Filename; }
 		const std::filesystem::path& Filename() const { return m_Filename; }
@@ -89,6 +90,9 @@ namespace Saturn {
 		void Delete();
 
 	private:
+		void HandleDragDrop( const Ref<Texture2D>& rIcon );
+
+	private:
 		std::filesystem::directory_entry m_Entry;
 		std::filesystem::path m_Filename;
 		std::filesystem::path m_Path;
@@ -99,6 +103,7 @@ namespace Saturn {
 		bool m_IsHovered = false;
 		bool m_IsSelected = false;
 		bool m_MultiSelected = false;
+		bool m_CanEverDrag = true;
 
 		bool m_IsRenaming = false;
 		bool m_StartingRename = false;

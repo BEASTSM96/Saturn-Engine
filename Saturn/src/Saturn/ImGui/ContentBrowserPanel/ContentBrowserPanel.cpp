@@ -528,33 +528,8 @@ namespace Saturn {
 			} break;
 			
 			
-			case Saturn::CBViewMode::Scripts: 
-			{
-				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-				if( open )
-					flags |= ImGuiTreeNodeFlags_DefaultOpen;
-
-				ImGui::PushID( "EDITOR_SCRIPTS" );
-
-				bool opened = ImGui::TreeNodeEx( "Scripts##EDITOR_SCRIPTS", flags );
-
-				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
-				{
-					// Switch and set path to the game content.
-					m_ViewMode = CBViewMode::Scripts;
-					EdSetPath();
-				}
-
-				if( opened )
-				{
-					DrawFolderTree( m_EditorScripts );
-
-					ImGui::TreePop();
-				}
-
-				ImGui::PopID();
-			} break;
-
+			// Editor scripts are not supported.
+			case Saturn::CBViewMode::Scripts:
 			default:
 				break;
 		}
@@ -568,10 +543,7 @@ namespace Saturn {
 	void ContentBrowserPanel::EdSetPath()
 	{
 		ClearSearchQuery();
-
-		// No need to set these are they are not used by the editor.
-		//s_pAssetsDirectory = m_EditorContent;
-		//s_pScriptsDirectory = m_EditorScripts;
+		m_IsEditorContent = true;
 
 		switch( m_ViewMode )
 		{
@@ -580,13 +552,6 @@ namespace Saturn {
 				s_RootDirectory = m_EditorContent;
 				m_CurrentPath = m_EditorContent;
 				m_FirstFolder = m_EditorContent;
-			} break;
-
-			case Saturn::CBViewMode::Scripts:
-			{
-				s_RootDirectory = m_EditorScripts;
-				m_CurrentPath = m_EditorScripts;
-				m_FirstFolder = m_EditorScripts;
 			} break;
 		}
 
@@ -739,8 +704,7 @@ namespace Saturn {
 		if( Auxiliary::TreeNode( "Editor", false ) )
 		{
 			EdDrawRootFolder( CBViewMode::Assets, true );
-			EdDrawRootFolder( CBViewMode::Scripts );
-
+			
 			Auxiliary::EndTreeNode();
 		}
 
@@ -807,14 +771,17 @@ namespace Saturn {
 		ImGui::PopStyleColor( 2 );
 
 		if( ImGui::BeginPopupContextWindow( "CB_ItemAction", ImGuiPopupFlags_MouseButtonRight ) )
-		{
+		{		
 			// Theses actions are only going to be used when one item is selected.
 			if( m_SelectedItems.size() )
 			{
 				// Common Actions
-				if( ImGui::MenuItem( "Rename" ) )
+				if( !m_IsEditorContent )
 				{
-					m_SelectedItems[ 0 ]->Rename();
+					if( ImGui::MenuItem( "Rename" ) )
+					{
+						m_SelectedItems[ 0 ]->Rename();
+					}
 				}
 
 				// Folder Actions
@@ -838,7 +805,7 @@ namespace Saturn {
 				}
 				else
 				{
-					if( ImGui::MenuItem( "Delete" ) )
+					if( ImGui::MenuItem( "Delete" ) || !m_IsEditorContent )
 					{
 						for( auto& rItem : m_SelectedItems )
 						{
@@ -849,13 +816,16 @@ namespace Saturn {
 			}
 			else
 			{
-				if( m_ViewMode == CBViewMode::Assets )
+				if( !m_IsEditorContent )
 				{
-					AssetsPopupContextMenu();
-				}
-				else
-				{
-					ScriptsPopupContextMenu();
+					if( m_ViewMode == CBViewMode::Assets )
+					{
+						AssetsPopupContextMenu();
+					}
+					else
+					{
+						ScriptsPopupContextMenu();
+					}
 				}
 			}
 
@@ -1353,6 +1323,7 @@ namespace Saturn {
 	void ContentBrowserPanel::ResetPath( const std::filesystem::path& rProjectRootPath )
 	{
 		ClearSearchQuery();
+		m_IsEditorContent = false;
 
 		s_pAssetsDirectory = rProjectRootPath / "Assets";
 		s_pScriptsDirectory = rProjectRootPath / "Source";
@@ -1419,8 +1390,9 @@ namespace Saturn {
 		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
 		{
 			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
-
-			//item->SetSelectedFn( std::bind( &ContentBrowserPanel::OnItemSelected, this, std::placeholders::_1 ) );
+			
+			// If we are viewing the editor content then we need to disable dragging.
+			item->CanEverDrag( !m_IsEditorContent );
 			item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
 
 			if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )

@@ -90,8 +90,8 @@ namespace Saturn {
 			}
 		}
 
-		// WARNING: THIS WILL REMOVE THE ASSET FROM THE REGISTRY. 
-		// PLEASE USE "TerminateAsset" if you intend to destroy the asset.
+		// WARNING: THIS WILL PERMANENTLY REMOVE THE ASSET FROM THE REGISTRY!
+		// PLEASE USE "TerminateAsset" IF YOU INTENT TO UNLOAD THE ASSET!
 		void RemoveAsset( AssetID id, AssetRegistryType Dst = AssetRegistryType::Game )
 		{
 			switch( Dst )
@@ -101,12 +101,8 @@ namespace Saturn {
 					m_Assets->RemoveAsset( id );
 				} break;
 
+				// Cannot delete asset from the editor asset registry (read only).
 				case AssetRegistryType::Editor: 
-				{
-					// TODO: Think about this. I don't know if I want to user to be able to delete editor files.
-					m_EditorAssets->RemoveAsset( id );
-				} break;
-			
 				case AssetRegistryType::Unknown:
 				default:
 					break;

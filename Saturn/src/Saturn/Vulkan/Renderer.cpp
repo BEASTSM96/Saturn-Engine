@@ -372,7 +372,7 @@ namespace Saturn {
 
 		if( m_PendingShaderReloads.size() )
 		{
-			for ( const std::string& rName : m_PendingShaderReloads )
+			for( const std::string& rName : m_PendingShaderReloads )
 			{
 				for( auto& rFunction : m_ShaderReloadedCB )
 					rFunction( rName );

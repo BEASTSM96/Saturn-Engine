@@ -132,6 +132,9 @@ namespace Saturn {
 
 	void AssetRegistry::RemoveAsset( AssetID id )
 	{
+		if( m_IsEditorRegistry )
+			return;
+
 		if( DoesIDExists( id ) ) 
 		{
 			m_Assets[ id ] = nullptr;
@@ -176,6 +179,8 @@ namespace Saturn {
 
 	void AssetRegistry::AddAsset( AssetID id )
 	{
+		// Rare chance of this ever happening as there are 2^64 random numbers that can be generated!
+		// So chance of collision is 1/2^64
 		SAT_CORE_ASSERT( m_Assets.find( id ) == m_Assets.end(), "Asset already exists!" );
 
 		m_Assets[ id ] = Ref<Asset>::Create();

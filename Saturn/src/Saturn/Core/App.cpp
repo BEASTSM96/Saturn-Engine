@@ -81,7 +81,8 @@ namespace Saturn {
 
 		m_VulkanContext->Init();
 
-		// If we are in Dist we don't want to create the Scene Renderer now because it does not know where the shaders are. So we want to first the shader bundle however that requires the project to be loaded.
+		// If we are in Dist we don't want to create the Scene Renderer now because it does not know where the shaders are. 
+		// So we want to first the shader bundle however that requires the project to be loaded.
 #if !defined( SAT_DIST )
 		SceneRendererFlags flags = SceneRendererFlag_MasterInstance | SceneRendererFlag_RenderGrid;
 
@@ -91,7 +92,7 @@ namespace Saturn {
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
 			m_Window->Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
 
-		// Right before we create any thread, lets get the main thread id and handle.
+		// Right before we create any threads, lets get the main thread id and handle.
 		m_MainThreadID = std::this_thread::get_id();
 
 		// Lazy load.
