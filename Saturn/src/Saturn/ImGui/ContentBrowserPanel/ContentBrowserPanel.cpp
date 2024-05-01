@@ -83,9 +83,6 @@ namespace Saturn {
 		m_ForwardIcon   = Ref<Texture2D>::Create( "content/textures/editor/Right.png",         AddressingMode::Repeat );
 
 		m_ViewMode      = CBViewMode::Assets;
-		m_EditorContent = Application::Get().GetRootContentDir();
-		m_EditorScripts = m_EditorContent.parent_path();
-		m_EditorScripts /= "src";
 	}
 
 	ContentBrowserPanel::~ContentBrowserPanel()
@@ -496,68 +493,6 @@ namespace Saturn {
 		return count;
 	}
 
-	void ContentBrowserPanel::EdDrawRootFolder( CBViewMode type, bool open /*= false */ )
-	{
-		switch( type )
-		{
-			case Saturn::CBViewMode::Assets: 
-			{
-				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-				if( open )
-					flags |= ImGuiTreeNodeFlags_DefaultOpen;
-
-				ImGui::PushID( "EDITOR_ASSETS" );
-
-				bool opened = ImGui::TreeNodeEx( "Assets##EDITOR_ASSETS", flags );
-
-				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
-				{
-					// Switch and set path to the game content.
-					m_ViewMode = CBViewMode::Assets;
-					EdSetPath();
-				}
-
-				if( opened )
-				{
-					EdDrawAssetsFolderTree();
-
-					ImGui::TreePop();
-				}
-
-				ImGui::PopID();
-			} break;
-			
-			
-			// Editor scripts are not supported.
-			case Saturn::CBViewMode::Scripts:
-			default:
-				break;
-		}
-	}
-
-	void ContentBrowserPanel::EdDrawAssetsFolderTree()
-	{
-		DrawFolderTree( m_EditorContent );
-	}
-
-	void ContentBrowserPanel::EdSetPath()
-	{
-		ClearSearchQuery();
-		m_IsEditorContent = true;
-
-		switch( m_ViewMode )
-		{
-			case Saturn::CBViewMode::Assets:
-			{
-				s_RootDirectory = m_EditorContent;
-				m_CurrentPath = m_EditorContent;
-				m_FirstFolder = m_EditorContent;
-			} break;
-		}
-
-		UpdateFiles( true );
-	}
-
 	void ContentBrowserPanel::BuildSearchList()
 	{
 		if( m_ValidSearchFiles.size() )
@@ -701,13 +636,6 @@ namespace Saturn {
 			Auxiliary::EndTreeNode();
 		}
 
-		if( Auxiliary::TreeNode( "Editor", false ) )
-		{
-			EdDrawRootFolder( CBViewMode::Assets, true );
-			
-			Auxiliary::EndTreeNode();
-		}
-
 		ImGui::EndChild();
 
 		ImGui::SameLine();
@@ -776,12 +704,9 @@ namespace Saturn {
 			if( m_SelectedItems.size() )
 			{
 				// Common Actions
-				if( !m_IsEditorContent )
+				if( ImGui::MenuItem( "Rename" ) )
 				{
-					if( ImGui::MenuItem( "Rename" ) )
-					{
-						m_SelectedItems[ 0 ]->Rename();
-					}
+					m_SelectedItems[ 0 ]->Rename();
 				}
 
 				// Folder Actions
@@ -805,7 +730,7 @@ namespace Saturn {
 				}
 				else
 				{
-					if( ImGui::MenuItem( "Delete" ) || !m_IsEditorContent )
+					if( ImGui::MenuItem( "Delete" ) )
 					{
 						for( auto& rItem : m_SelectedItems )
 						{
@@ -816,16 +741,13 @@ namespace Saturn {
 			}
 			else
 			{
-				if( !m_IsEditorContent )
+				if( m_ViewMode == CBViewMode::Assets )
 				{
-					if( m_ViewMode == CBViewMode::Assets )
-					{
-						AssetsPopupContextMenu();
-					}
-					else
-					{
-						ScriptsPopupContextMenu();
-					}
+					AssetsPopupContextMenu();
+				}
+				else
+				{
+					ScriptsPopupContextMenu();
 				}
 			}
 
@@ -1323,7 +1245,6 @@ namespace Saturn {
 	void ContentBrowserPanel::ResetPath( const std::filesystem::path& rProjectRootPath )
 	{
 		ClearSearchQuery();
-		m_IsEditorContent = false;
 
 		s_pAssetsDirectory = rProjectRootPath / "Assets";
 		s_pScriptsDirectory = rProjectRootPath / "Source";
@@ -1390,9 +1311,6 @@ namespace Saturn {
 		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
 		{
 			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
-			
-			// If we are viewing the editor content then we need to disable dragging.
-			item->CanEverDrag( !m_IsEditorContent );
 			item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
 
 			if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )

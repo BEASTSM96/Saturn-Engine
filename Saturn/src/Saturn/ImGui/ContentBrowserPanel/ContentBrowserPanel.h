@@ -101,11 +101,7 @@ namespace Saturn {
 		void ClearSelected();
 		void ClearSearchQuery();
 
-	private: // Editor Content
-		void EdDrawRootFolder( CBViewMode type, bool open = false );
-		void EdDrawAssetsFolderTree();
-		void EdSetPath();
-
+	private: 
 		void DrawTopBar();
 
 	private:
@@ -113,14 +109,8 @@ namespace Saturn {
 		std::filesystem::path m_FirstFolder;
 		std::filesystem::path m_ScriptPath;
 
-		std::filesystem::path m_EditorContent;
-		std::filesystem::path m_EditorScripts;
-
 		ImGuiTextFilter m_TextFilter;
 		bool m_Searching = false;
-
-		// True when we are looking at the editor asset registry.
-		bool m_IsEditorContent = false;
 
 		Ref< Texture2D > m_DirectoryIcon;
 		Ref< Texture2D > m_FileIcon;
