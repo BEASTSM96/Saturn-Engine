@@ -28,97 +28,78 @@
 
 #pragma once
 
-#include "ContentBrowserBase.h"
-
-#include "Saturn/Vulkan/Texture.h"
-
-#include "Saturn/Asset/Asset.h"
-
+#include "Saturn/ImGui/Panel/Panel.h"
 #include "ContentBrowserItem.h"
-
-#include "Saturn/GameFramework/SClass.h"
+#include "Saturn/Vulkan/Texture.h"
 
 #include <imgui.h>
 #include <filesystem>
 #include <functional>
 #include <map>
 
-#include <filewatch/filewatch.h>
-
 namespace Saturn {
 
-	struct SClassMetadata;
+	enum class CBViewMode
+	{
+		Assets,
+		Scripts
+	};
 
-	class ContentBrowserPanel : public ContentBrowserBase
+	class ContentBrowserBase : public Panel
 	{
 	public:
-		ContentBrowserPanel();
-		ContentBrowserPanel( const std::string& rName );
+		ContentBrowserBase();
+		~ContentBrowserBase();
 
-		~ContentBrowserPanel();
+		virtual void Draw() = 0;
+		virtual void ResetPath( const std::filesystem::path& rPath ) = 0;
 
-		virtual void Draw() override;
-		static const char* GetStaticName()
-		{
-			return "Content Browser Panel";
-		}
-
-		virtual void ResetPath( const std::filesystem::path& rPath ) override;
-
-	private:
-		virtual void UpdateFiles( bool clear = false ) override;
-		virtual void OnItemSelected( ContentBrowserItem* pItem, bool clicked ) override;
-		virtual void DrawItems( std::vector<Ref<ContentBrowserItem>>& rList, ImVec2 size, float padding ) override;
-
-		void BuildSearchList();
-
-		void DrawFolderTree( const std::filesystem::path& rPath );
-
-		void DrawAssetsFolderTree();
-		void DrawScriptsFolderTree();
-
-		void DrawRootFolder( CBViewMode type, bool open = false );
-
-		void AssetsPopupContextMenu();
-		void ScriptsPopupContextMenu();
-
-		void OnFilewatchEvent( const std::string& rPath, const filewatch::Event Event );
-
-		Ref<ContentBrowserItem> GetActiveHoveredItem();
-
-		void DrawClassHierarchy( const std::string& rKeyName, const SClassMetadata& rData );
-		void DrawCreateClass( const std::string& rKeyName, const SClassMetadata& rData );
-
-		void ClearSearchQuery();
-
-	private:
-		std::filesystem::path m_ScriptPath;
-
-		ImGuiTextFilter m_TextFilter;
-
-		bool m_ShowFolderPopupMenu = false;
-
-		struct AssetInfo
-		{
-			AssetType Type;
-			std::filesystem::path Path;
-		};
-
-		bool m_RenderCreateWindow = false;
-
-		SClassMetadata m_SelectedMetadata = {};
-
-		filewatch::FileWatch<std::string>* m_Watcher = nullptr;
-
-	private:
-		// Popup data
-		bool m_ShowMeshImport = false;
-		bool m_ShowSoundImport = false;
+	protected:
+		void DrawTopBar();
+		void SortFiles();
 		
-		std::filesystem::path m_ImportMeshPath;
-		std::filesystem::path m_ImportSoundPath;
+		virtual void UpdateFiles( bool clear = false ) = 0;
+
+		virtual void OnItemSelected( ContentBrowserItem* pItem, bool clicked ) = 0;
+		virtual void DrawItems( std::vector<Ref<ContentBrowserItem>>& rList, ImVec2 size, float padding ) = 0;
+
+		Ref<ContentBrowserItem> FindItem( const std::filesystem::path& rPath );
+		void FindAndRenameItem( const std::filesystem::path& rPath );
+		int32_t GetFilenameCount( const std::string& rName );
+
+		void ClearSelected();
+
+	private:
+		void Init();
+
+	protected:
+		// The relative current path (always relative to m_CurrentViewModeDirectory)
+		// Used for finding/creating assets.
+		std::filesystem::path m_CurrentPath;
 		
-		std::string m_ClassInstanceName;
-		std::string m_NewClassName;
+		// The first folder in the current directory.
+		std::filesystem::path m_FirstFolder;
+
+		// The absolute path to the current folder we are looking at.
+		std::filesystem::path m_CurrentViewModeDirectory;
+		
+		// The absolute path root path for the current view mode.
+		std::filesystem::path m_RootPath;
+	
+		Ref< Texture2D > m_DirectoryIcon;
+		Ref< Texture2D > m_FileIcon;
+		Ref< Texture2D > m_BackIcon;
+		Ref< Texture2D > m_ForwardIcon;
+	
+		// Files and folder, sorted by folders then files.
+		std::vector<Ref<ContentBrowserItem>> m_Files;
+		std::vector<Ref<ContentBrowserItem>> m_ValidSearchFiles;
+		std::vector<Ref<ContentBrowserItem>> m_SelectedItems;
+
+		CBViewMode m_ViewMode;
+
+		bool m_FilesNeedSorting = false;
+		bool m_ChangeDirectory = false;
+		bool m_Searching = false;
 	};
 }

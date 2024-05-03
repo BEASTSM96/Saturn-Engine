@@ -63,26 +63,18 @@ namespace Saturn {
 	
 	static inline ImVec2 operator+( const ImVec2& lhs, const ImVec2& rhs ) { return ImVec2( lhs.x + rhs.x, lhs.y + rhs.y ); }
 
-	// The absolute Assets and Scripts path.
-	static std::filesystem::path s_pAssetsDirectory = "Assets";
-	static std::filesystem::path s_pScriptsDirectory = "Source";
-
-	/* The root dir, i.e. C:\\MyProjects\\Project1\\Assets */
-	// This will never change unless we change view mode.
-	static std::filesystem::path s_RootDirectory = "Source";
-
 	static bool s_OpenScriptsPopup = false;
 	static bool s_OpenClassInstancePopup = false;
 	
 	ContentBrowserPanel::ContentBrowserPanel()
-		: Panel( "Content Browser Panel" ), m_CurrentPath( s_pAssetsDirectory ), m_FirstFolder( s_pAssetsDirectory ), m_ScriptPath( s_pScriptsDirectory )
+		: ContentBrowserBase()
 	{
-		m_DirectoryIcon = Ref<Texture2D>::Create( "content/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
-		m_FileIcon      = Ref<Texture2D>::Create( "content/textures/editor/FileIcon.png",      AddressingMode::Repeat );
-		m_BackIcon      = Ref<Texture2D>::Create( "content/textures/editor/Left.png",          AddressingMode::Repeat );
-		m_ForwardIcon   = Ref<Texture2D>::Create( "content/textures/editor/Right.png",         AddressingMode::Repeat );
+		m_ViewMode = CBViewMode::Assets;
+	}
 
-		m_ViewMode      = CBViewMode::Assets;
+	ContentBrowserPanel::ContentBrowserPanel( const std::string& rName )
+		: ContentBrowserBase()
+	{
 	}
 
 	ContentBrowserPanel::~ContentBrowserPanel()
@@ -149,9 +141,9 @@ namespace Saturn {
 			{
 				// TODO: Think about this...
 
-				auto path = std::filesystem::relative( entry.path(), s_pAssetsDirectory );
+				auto path = std::filesystem::relative( entry.path(), m_CurrentViewModeDirectory );
 
-				m_CurrentPath = s_pAssetsDirectory;
+				m_CurrentPath = m_RootPath;
 				m_CurrentPath /= path;
 
 				m_ChangeDirectory = true;
@@ -161,12 +153,12 @@ namespace Saturn {
 	
 	void ContentBrowserPanel::DrawAssetsFolderTree()
 	{
-		DrawFolderTree( s_pAssetsDirectory );
+		DrawFolderTree( m_CurrentViewModeDirectory );
 	}
 
 	void ContentBrowserPanel::DrawScriptsFolderTree()
 	{
-		DrawFolderTree( s_pScriptsDirectory );
+		DrawFolderTree( m_CurrentViewModeDirectory );
 	}
 
 	void ContentBrowserPanel::DrawRootFolder( CBViewMode type, bool open/* = false*/ )
@@ -447,24 +439,6 @@ namespace Saturn {
 		}
 	}
 
-	void ContentBrowserPanel::FindAndRenameItem( const std::filesystem::path& rPath )
-	{
-		Ref<ContentBrowserItem> item = FindItem( rPath );
-
-		if( item )
-			item->Rename();
-	}
-
-	Ref<ContentBrowserItem> ContentBrowserPanel::FindItem( const std::filesystem::path& rPath )
-	{
-		const auto Itr = std::find_if( m_Files.begin(), m_Files.end(), [rPath]( auto& rItem ) { return rItem->Path() == rPath; } );
-
-		if( Itr != m_Files.end() )
-			return *Itr;
-
-		return nullptr;
-	}
-
 	Ref<ContentBrowserItem> ContentBrowserPanel::GetActiveHoveredItem()
 	{
 		const auto Itr = std::find_if( m_Files.begin(), m_Files.end(), []( auto& rItem ) { return rItem->IsHovered(); } );
@@ -475,30 +449,12 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	int32_t ContentBrowserPanel::GetFilenameCount( const std::string& rName )
-	{
-		int32_t count = 0;
-
-		for( const auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
-		{
-			if( !rEntry.is_regular_file() )
-				continue;
-
-			std::string filename = rEntry.path().filename().string();
-
-			if( filename.find( rName ) != std::string::npos )
-				count++;
-		}
-
-		return count;
-	}
-
 	void ContentBrowserPanel::BuildSearchList()
 	{
 		if( m_ValidSearchFiles.size() )
 			m_ValidSearchFiles.clear();
 
-		for( const auto& entry : std::filesystem::recursive_directory_iterator( s_pAssetsDirectory ) )
+		for( const auto& entry : std::filesystem::recursive_directory_iterator( m_CurrentViewModeDirectory ) )
 		{
 			if( m_TextFilter.PassFilter( entry.path().filename().string().c_str() ) )
 			{
@@ -522,87 +478,6 @@ namespace Saturn {
 				m_ValidSearchFiles.push_back( item );
 			}
 		}
-	}
-
-	void ContentBrowserPanel::DrawTopBar()
-	{
-		// Back button.
-		if( m_CurrentPath != s_pAssetsDirectory )
-		{
-			if( Auxiliary::ImageButton( m_BackIcon, { 24, 24 } ) )
-			{
-				m_CurrentPath = m_CurrentPath.parent_path();
-
-				ClearSelected();
-
-				UpdateFiles( true );
-			}
-		}
-		else
-		{
-			ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-			ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-			Auxiliary::ImageButton( m_BackIcon, { 24, 24 } );
-			ImGui::PopStyleVar( 1 );
-			ImGui::PopItemFlag();
-		}
-
-		ImGui::SameLine();
-
-		// Forward button.
-		if( std::filesystem::exists( m_FirstFolder ) )
-		{
-			if( Auxiliary::ImageButton( m_ForwardIcon, { 24, 24 } ) )
-			{
-				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, s_RootDirectory );
-
-				ClearSelected();
-
-				UpdateFiles( true );
-			}
-		}
-		else
-		{
-			ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-			ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-			Auxiliary::ImageButton( m_ForwardIcon, { 24, 24 } );
-			ImGui::PopStyleVar( 1 );
-			ImGui::PopItemFlag();
-		}
-
-		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
-		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
-
-		ImGui::SameLine();
-
-		// I don't think this is a good way because this is the absolute path.
-		int i = 0;
-		for( auto& pFolder : m_CurrentPath )
-		{
-			const char* name = m_ViewMode == CBViewMode::Assets ? "Assets" : "Scripts";
-
-			if( i == 0 && pFolder != name )
-				continue;
-
-			i++;
-
-			if( pFolder != name )
-			{
-				ImGui::Text( "/" );
-			}
-
-			ImGui::SameLine();
-
-			std::string filename = pFolder.string();
-
-			float size = strlen( filename.c_str() ) + ImGui::CalcTextSize( filename.c_str() ).x;
-
-			ImGui::Selectable( filename.c_str(), false, 0, ImVec2( size, 22.0f ) );
-
-			ImGui::SameLine();
-		}
-
-		ImGui::PopStyleColor( 2 );
 	}
 
 	void ContentBrowserPanel::Draw()
@@ -1226,16 +1101,6 @@ namespace Saturn {
 		}
 	}
 
-	void ContentBrowserPanel::ClearSelected()
-	{
-		for( auto&& rrItem : m_SelectedItems )
-		{
-			rrItem->Deselect();
-		}
-
-		m_SelectedItems.clear();
-	}
-
 	void ContentBrowserPanel::ClearSearchQuery()
 	{
 		m_TextFilter.Clear();
@@ -1246,34 +1111,67 @@ namespace Saturn {
 	{
 		ClearSearchQuery();
 
-		s_pAssetsDirectory = rProjectRootPath / "Assets";
-		s_pScriptsDirectory = rProjectRootPath / "Source";
-
 		switch( m_ViewMode )
 		{
 			case Saturn::CBViewMode::Assets: 
 			{
-				s_RootDirectory = s_pAssetsDirectory;
-				m_CurrentPath = s_pAssetsDirectory;
-				m_FirstFolder = s_pAssetsDirectory;
+				m_CurrentViewModeDirectory = rProjectRootPath / "Assets";
 			} break;
 
 			case Saturn::CBViewMode::Scripts: 
 			{
-				s_RootDirectory = s_pScriptsDirectory;
-				m_CurrentPath = s_pScriptsDirectory;
-				m_FirstFolder = s_pScriptsDirectory;
+				m_CurrentViewModeDirectory = rProjectRootPath / "Source";
 			} break;
 		}
 
+		m_RootPath = m_CurrentViewModeDirectory;
+		m_CurrentPath = m_CurrentViewModeDirectory;
+		m_FirstFolder = m_CurrentViewModeDirectory;
+
 		delete m_Watcher;
-		m_Watcher = new filewatch::FileWatch<std::string>( s_pAssetsDirectory.string(),
+		m_Watcher = new filewatch::FileWatch<std::string>( m_RootPath.string(),
 			[this]( const std::string& path, const filewatch::Event event )
 			{
 				OnFilewatchEvent( path, event );
 			} );
 
 		UpdateFiles( true );
+	}
+
+	void ContentBrowserPanel::UpdateFiles( bool clear /*= false */ )
+	{
+		if( clear )
+			m_Files.clear();
+
+		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
+		{
+			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
+			item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
+
+			// Item will never exist if we have cleared the list.
+			if( !clear )
+			{
+				if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )
+				{
+					if( !std::filesystem::exists( rEntry ) )
+						m_Files.erase( std::remove( m_Files.begin(), m_Files.end(), item ), m_Files.end() );
+
+					continue;
+				}
+			}
+
+			if( !rEntry.is_directory() )
+			{
+				if( AssetTypeFromExtension( rEntry.path().extension().string() ) == AssetType::Unknown )
+					continue;
+			}
+
+			m_Files.push_back( item );
+
+			m_FilesNeedSorting = true;
+		}
+
+		SortFiles();
 	}
 
 	void ContentBrowserPanel::OnItemSelected( ContentBrowserItem* pItem, bool clicked )
@@ -1300,52 +1198,6 @@ namespace Saturn {
 
 				m_SelectedItems.push_back( pItem );
 			}
-		}
-	}
-
-	void ContentBrowserPanel::UpdateFiles( bool clear /*= false */ )
-	{
-		if( clear )
-			m_Files.clear();
-
-		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
-		{
-			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
-			item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
-
-			if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )
-			{
-				if( !std::filesystem::exists( rEntry ) )
-					m_Files.erase( std::remove( m_Files.begin(), m_Files.end(), item ), m_Files.end() );
-
-				continue;
-			}
-
-			if( !rEntry.is_directory() ) 
-			{
-				if( AssetTypeFromExtension( rEntry.path().extension().string() ) == AssetType::Unknown )
-					continue;
-			}
-
-			m_Files.push_back( item );
-
-			m_FilesNeedSorting = true;
-		}
-
-		if( m_FilesNeedSorting )
-		{
-			auto Fn = []( Ref<ContentBrowserItem>& a, Ref<ContentBrowserItem>& b ) -> bool
-			{
-				if( a->IsDirectory() && !b->IsDirectory() )
-					return true; // sort first if a is directory.
-				else if( !a->IsDirectory() && b->IsDirectory() )
-					return false;
-				else
-					return a->Filename() < b->Filename();
-			};
-
-			std::sort( m_Files.begin(), m_Files.end(), Fn );
-			m_FilesNeedSorting = false;
 		}
 	}
 
