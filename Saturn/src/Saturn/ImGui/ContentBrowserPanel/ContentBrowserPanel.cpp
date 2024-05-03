@@ -158,7 +158,7 @@ namespace Saturn {
 
 	void ContentBrowserPanel::DrawScriptsFolderTree()
 	{
-		DrawFolderTree( m_CurrentViewModeDirectory );
+		DrawFolderTree( m_ScriptPath );
 	}
 
 	void ContentBrowserPanel::DrawRootFolder( CBViewMode type, bool open/* = false*/ )
@@ -1110,6 +1110,8 @@ namespace Saturn {
 	void ContentBrowserPanel::ResetPath( const std::filesystem::path& rProjectRootPath )
 	{
 		ClearSearchQuery();
+
+		m_ScriptPath = rProjectRootPath / "Source";
 
 		switch( m_ViewMode )
 		{
