@@ -56,6 +56,8 @@
 #include "Saturn/GameFramework/Core/ClassMetadataHandler.h"
 #include "Saturn/GameFramework/Core/GameModule.h"
 
+#include "ContentBrowserThumbnailGenerator.h"
+
 #include <imgui_internal.h>
 #include <ranges>
 
@@ -70,6 +72,7 @@ namespace Saturn {
 		: ContentBrowserBase()
 	{
 		m_ViewMode = CBViewMode::Assets;
+		ContentBrowserThumbnailGenerator::Init();
 	}
 
 	ContentBrowserPanel::ContentBrowserPanel( const std::string& rName )
@@ -83,6 +86,8 @@ namespace Saturn {
 		m_FileIcon = nullptr;
 		m_BackIcon = nullptr;
 		m_ForwardIcon = nullptr;
+	
+		ContentBrowserThumbnailGenerator::Terminate();
 	}
 
 	void ContentBrowserPanel::DrawFolderTree( const std::filesystem::path& rPath )
@@ -1207,9 +1212,7 @@ namespace Saturn {
 	{
 		for( auto& item : rList )
 		{
-			Ref<Texture2D> Icon = item->IsDirectory() ? m_DirectoryIcon : m_FileIcon;
-
-			item->Draw( { size.x, size.y }, padding, Icon );
+			item->Draw( { size.x, size.y }, padding );
 
 			// This happens if we rename a file as we then have to create the file cache again.
 			if( !item )

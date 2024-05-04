@@ -28,90 +28,22 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-
-#include "Saturn/Asset/Asset.h"
-
 #include "Saturn/Vulkan/Texture.h"
-
-#include <imgui.h>
-#include <filesystem>
+#include "Saturn/Asset/Asset.h"
 
 namespace Saturn {
 
-	struct ContentBrowserCompare
-	{
-		bool operator()(const std::filesystem::directory_entry& A, const std::filesystem::directory_entry& B)
-		{
-			if( A.is_directory() && !B.is_directory() )
-				return true; // a is a directory sort first.
-			else if( !A.is_directory() && B.is_directory() )
-				return false;
-			else
-				return A.path().filename() < B.path().filename();
-		}
-	};
+	constexpr int CB_DIRECTORY_ICON = 0;
+	constexpr int CB_FILE_ICON = 1;
 
-	class ContentBrowserItem : public RefTarget
+	class ContentBrowserThumbnailGenerator
 	{
 	public:
-		ContentBrowserItem( const std::filesystem::directory_entry& rEntry );
-		~ContentBrowserItem();
+		static void Init();
+		static void Terminate();
 
-		void Draw( ImVec2 ThumbnailSize, float Padding );
-
-		bool operator==( const ContentBrowserItem& rOther ) 
-		{
-			return m_Entry == rOther.m_Entry && m_Filename == rOther.m_Filename && m_Path == rOther.m_Path;
-		}
-
-		bool IsDirectory()   const   { return m_IsDirectory;   }
-		bool IsHovered()     const   { return m_IsHovered;     }
-		bool IsSelected()    const   { return m_IsSelected;    }
-		bool MultiSelected() const   { return m_MultiSelected; }
-		bool IsRenaming()    const   { return m_IsRenaming;    }
-		void CanEverDrag( bool val ) { m_CanEverDrag = val;    }
-
-		std::filesystem::path& Filename() { return m_Filename; }
-		const std::filesystem::path& Filename() const { return m_Filename; }
-		
-		std::filesystem::path& Path()             { return m_Path; }
-		const std::filesystem::path& Path() const { return m_Path; }
-
-		void SetSelectedFn( const std::function<void( ContentBrowserItem*, bool )>&& rrFunc ) { m_OnSelected = rrFunc; }
-		
-		void OnRenameCommitted( const std::string& rName );
-		void OnRenameCommittedFolder( const std::string& rName );
-
-	public:
-		void Select();
-		void Deselect();
-		void Rename();
-		void Delete();
-
-	private:
-		void HandleDragDrop();
-
-	private:
-		std::filesystem::directory_entry m_Entry;
-		std::filesystem::path m_Filename;
-		std::filesystem::path m_Path;
-
-		Ref<Texture2D> m_Icon;
-
-		std::function<void( ContentBrowserItem*, bool )> m_OnSelected;
-
-		bool m_IsDirectory = false;
-		bool m_IsHovered = false;
-		bool m_IsSelected = false;
-		bool m_MultiSelected = false;
-		bool m_CanEverDrag = true;
-
-		bool m_IsRenaming = false;
-		bool m_StartingRename = false;
-
-		// Maybe we should just hold a reference to our asset?
-		AssetType m_AssetType = AssetType::Unknown;
-		AssetID m_AssetID = 0;
+		[[nodiscard]] static Ref<Texture2D> GetDefault( int Identifier );
+		[[nodiscard]] static Ref<Texture2D> GetFor( AssetID id );
 	};
+
 }

@@ -41,6 +41,8 @@
 #include "Saturn/ImGui/PhysicsMaterialAssetViewer.h"
 #include "Saturn/ImGui/TextureViewer.h"
 
+#include "ContentBrowserThumbnailGenerator.h"
+
 #include <imgui_internal.h>
 
 namespace Saturn {
@@ -55,14 +57,28 @@ namespace Saturn {
 
 		m_IsDirectory = rEntry.is_directory();
 
-		m_AssetType = AssetTypeFromExtension( m_Path.filename().extension().string() );
+		if( !m_IsDirectory )
+		{
+			m_AssetType = AssetTypeFromExtension( m_Path.filename().extension().string() );
+			auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
+
+			if( m_AssetType != AssetType::Unknown )
+			{
+				auto asset = AssetManager::Get().FindAsset( path );
+			
+				asset ? m_AssetID = asset->ID : m_AssetID = 0;
+			}		
+		}
+
+		// Do not generate the icon in the constructor wait until render.
+		m_Icon = ContentBrowserThumbnailGenerator::GetDefault( m_IsDirectory ? CB_DIRECTORY_ICON : CB_FILE_ICON );
 	}
 
 	ContentBrowserItem::~ContentBrowserItem()
 	{
 	}
 
-	void ContentBrowserItem::Draw( ImVec2 ThumbnailSize, float Padding, Ref<Texture2D> Icon )
+	void ContentBrowserItem::Draw( ImVec2 ThumbnailSize, float Padding )
 	{
 		ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -81,7 +97,6 @@ namespace Saturn {
 		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 0.0f, 0.0f ) );
 
 		// Draw the item.
-
 		if( m_IsDirectory )
 		{
 			bool Clicked = false;
@@ -134,6 +149,10 @@ namespace Saturn {
 		}
 		else
 		{
+			// Generate new thumbnail OR return existing one in cache.
+			// Returns default icon while generating.
+			m_Icon = ContentBrowserThumbnailGenerator::GetFor( m_AssetID );
+
 			// Fill background.
 			pDrawList->AddRectFilled( TopLeft, ThumbnailBottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawFlags_RoundCornersTop );
 
@@ -186,7 +205,7 @@ namespace Saturn {
 				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawFlags_RoundCornersAll );
 			}
 
-			HandleDragDrop( Icon );
+			HandleDragDrop();
 
 			if( Open )
 			{
@@ -249,7 +268,11 @@ namespace Saturn {
 
 		ImGui::EndGroup();
 
-		pDrawList->AddImage( Icon->GetDescriptorSet(), TopLeft, ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y ), { 0, 1 }, { 1, 0 } );
+		pDrawList->AddImage( 
+			m_Icon->GetDescriptorSet(),
+			TopLeft, 
+			ImVec2( TopLeft.x + ThumbnailSize.x, TopLeft.y + ThumbnailSize.y ), 
+			{ 0, 1 }, { 1, 0 } );
 
 		ImGui::SetCursorScreenPos( ImVec2( TopLeft.x + 2.0f, TopLeft.y + ThumbnailSize.y ) );
 
@@ -443,14 +466,16 @@ namespace Saturn {
 		std::filesystem::remove( m_Path );
 	}
 
-	void ContentBrowserItem::HandleDragDrop( const Ref<Texture2D>& rIcon )
+	void ContentBrowserItem::HandleDragDrop()
 	{
+		auto Icon = ContentBrowserThumbnailGenerator::GetDefault( m_IsDirectory ? CB_DIRECTORY_ICON : CB_FILE_ICON );
+
 		if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )
 		{
 			// Tooltip
 			ImGui::BeginHorizontal( "##dndinfo" );
 
-			Auxiliary::Image( rIcon, ImVec2( 24, 24 ) );
+			Auxiliary::Image( Icon, ImVec2( 24, 24 ) );
 			ImGui::Text( m_Filename.string().c_str() );
 
 			if( m_MultiSelected )
