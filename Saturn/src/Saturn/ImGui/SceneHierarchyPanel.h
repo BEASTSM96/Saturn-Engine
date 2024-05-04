@@ -55,7 +55,7 @@ namespace Saturn {
 		
 		Ref<Entity> GetSelectionContext( uint32_t index = 0 ) 
 		{
-			if( m_SelectionContexts.size() > index || !m_SelectionContexts.size() )
+			if( m_SelectionContexts.size() < index || !m_SelectionContexts.size() )
 			{
 				return nullptr;
 			}
@@ -65,11 +65,11 @@ namespace Saturn {
 		
 		Ref<Entity> GetSelectionContext( uint32_t index = 0 ) const
 		{
-			if( m_SelectionContexts.size() > index || !m_SelectionContexts.size() )
+			if( m_SelectionContexts.size() < index || !m_SelectionContexts.size() )
 			{
 				return nullptr;
 			}
-
+		
 			return m_SelectionContexts[ index ]; 
 		}
 

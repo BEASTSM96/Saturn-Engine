@@ -220,16 +220,12 @@ namespace Saturn {
 		{
 			case Saturn::ShaderType::Vertex:
 				return "Vertex";
-				break;
 			case Saturn::ShaderType::Fragment:
 				return "Fragment";
-				break;
 			case Saturn::ShaderType::Geometry:
 				return "Geometry";
-				break;
 			case Saturn::ShaderType::Compute:
 				return "Compute";
-				break;
 			default:
 				break;
 		}

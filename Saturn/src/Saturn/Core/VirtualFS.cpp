@@ -39,7 +39,6 @@
 namespace Saturn {
 
 	VirtualFS::VirtualFS()
-		: m_RootDirectory( "/" )
 	{
 		Init();
 	}
@@ -51,16 +50,18 @@ namespace Saturn {
 
 	void VirtualFS::Init()
 	{
+		m_RootDirectory = Ref<VDirectory>::Create( "/" );
 	}
 
 	void VirtualFS::Terminate()
 	{
-		m_RootDirectory.Clear();
+		m_RootDirectory->Clear();
+		m_RootDirectory = nullptr;
 	}
 
 	void VirtualFS::MountBase( const std::string& rID, const std::filesystem::path& rRealPath )
 	{
-		m_RootDirectory.AddDirectory( rID );
+		m_RootDirectory->AddDirectory( rID );
 		m_MountBases.emplace( rID, rRealPath );
 
 		SAT_CORE_INFO( "[VFS] Mounted base {0} successfully.", rID );
@@ -77,7 +78,7 @@ namespace Saturn {
 		auto& MountBasePath = Itr->second;
 
 		// Get the mount base folder.
-		Ref<VDirectory>& rMountBaseDir = m_RootDirectory.Directories[ rMountBase ];
+		Ref<VDirectory>& rMountBaseDir = m_RootDirectory->Directories[ rMountBase ];
 
 		VDirectory* pCurrentDir = rMountBaseDir.Get();
 
@@ -142,6 +143,8 @@ namespace Saturn {
 		// Add all of our parents paths onto our one.
 		std::string path = "";
 
+		// Recursively get the current directory name and append it on to the path.
+		// Then move on to parent and repeat.
 		while( true )
 		{
 			if( currentDir == nullptr || currentDir->GetName() == rMountBase )
@@ -168,6 +171,8 @@ namespace Saturn {
 		// Add all of our parents paths onto our one.
 		std::string path = rFile->Name;
 
+		// Recursively get the current directory name and append it on to the path.
+		// Then move on to parent and repeat.
 		while( true )
 		{
 			if( currentDir == nullptr || currentDir->GetName() == rMountBase )
@@ -180,54 +185,6 @@ namespace Saturn {
 		}
 
 		m_PathToFile[ rMountBase ][ path ] = rFile;
-	}
-
-	void VirtualFS::BuildPath( VDirectory& rDir, const std::string& rMountBase )
-	{
-		// Create a temp copy just so we don't modify the rDir
-		VDirectory* currentDir = &rDir;
-
-		// Add all of our parents paths onto our one.
-		std::string path = "";
-
-		while( true )
-		{
-			if( currentDir == nullptr || currentDir->GetName() == rMountBase )
-				break;
-
-			std::string dirName = currentDir->GetName();
-
-			if( path.empty() )
-				path = dirName;
-			else
-				path = dirName + "/" + path;
-
-			currentDir = &currentDir->GetParent();
-		}
-
-		m_PathToDir[ rMountBase ][ path ] = &rDir;
-	}
-
-	void VirtualFS::BuildPath( VFile& rFile, const std::string& rMountBase )
-	{
-		// Create a temp copy just so we don't modify the rDir
-		VDirectory* currentDir = rFile.ParentDir;
-
-		// Add all of our parents paths onto our one.
-		std::string path = rFile.Name;
-
-		while( true )
-		{
-			if( currentDir == nullptr || currentDir->GetName() == rMountBase )
-				break;
-
-			std::string dirName = currentDir->GetName();
-			path = dirName + "/" + path;
-
-			currentDir = &currentDir->GetParent();
-		}
-
-		m_PathToFile[ rMountBase ][ path ] = &rFile;
 	}
 
 	void VirtualFS::UnmountBase( const std::string& rID )
@@ -245,7 +202,7 @@ namespace Saturn {
 		auto& MountBasePath = Itr->second;
 
 		// Get the mount base folder.
-		Ref<VDirectory>& rMountBaseDir = m_RootDirectory.Directories[ rID ];
+		Ref<VDirectory>& rMountBaseDir = m_RootDirectory->Directories[ rID ];
 
 		if( rMountBaseDir->Directories.size() || rMountBaseDir->Files.size() )
 		{
@@ -254,7 +211,7 @@ namespace Saturn {
 
 		rMountBaseDir->Clear();
 
-		m_RootDirectory.Directories.erase( rID );
+		m_RootDirectory->Directories.erase( rID );
 		m_PathToFile.erase( rID );
 		m_PathToDir.erase( rID );
 	}
@@ -274,7 +231,7 @@ namespace Saturn {
 		auto& MountBasePath = Itr->second;
 
 		// Get the mount base folder.
-		Ref<VDirectory>& rMountBaseDir = m_RootDirectory.Directories[ rMountBase ];
+		Ref<VDirectory>& rMountBaseDir = m_RootDirectory->Directories[ rMountBase ];
 
 		// Are we a file?
 		if( rVirtualPath.has_extension() )
@@ -327,32 +284,32 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// SERIALILSATION/DESERIALILSATION
 
-	void VirtualFS::WriteDir( VDirectory& rDir, std::ofstream& rStream )
+	void VirtualFS::WriteDir( const Ref<VDirectory>& rDir, std::ofstream& rStream )
 	{
-		SAT_CORE_INFO( "Writing Dir with name: {0}", rDir.GetName() );
+		SAT_CORE_INFO( "Writing Dir with name: {0}", rDir->GetName() );
 
-		size_t mapSize = rDir.Files.size();
+		size_t mapSize = rDir->Files.size();
 		rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
 
-		for( const auto& [ k, v ] : rDir.Files )
+		for( const auto& [ k, v ] : rDir->Files )
 		{
 			RawSerialisation::WriteString( k, rStream );
 			VFile::Serialise( v, rStream );
 		}
 
-		mapSize = rDir.Directories.size();
+		mapSize = rDir->Directories.size();
 		rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
 
-		for( const auto& [k, v] : rDir.Directories )
+		for( const auto& [k, v] : rDir->Directories )
 		{
 			RawSerialisation::WriteString( k, rStream );
 			VDirectory::Serialise( v, rStream );
 		}
 	}
 
-	void VirtualFS::ReadDir( VDirectory& rDir, std::ifstream& rStream )
+	void VirtualFS::ReadDir( Ref<VDirectory>& rDir, std::ifstream& rStream )
 	{
-		SAT_CORE_INFO( "Reading Dir with name: {0}", rDir.GetName() );
+		SAT_CORE_INFO( "Reading Dir with name: {0}", rDir->GetName() );
 
 		size_t mapSize = 0;
 		rStream.read( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
@@ -363,11 +320,11 @@ namespace Saturn {
 			K = RawSerialisation::ReadString( rStream );
 
 			Ref<VFile> file = Ref<VFile>::Create();
-			file->ParentDir = &rDir;
+			file->ParentDir = rDir.Get();
 
 			VFile::Deserialise( file, rStream );
 
-			rDir.Files[ K ] = file;
+			rDir->Files[ K ] = file;
 		}
 
 		mapSize = 0;
@@ -379,11 +336,11 @@ namespace Saturn {
 			K = RawSerialisation::ReadString( rStream );
 
 			Ref<VDirectory> dir = Ref<VDirectory>::Create();
-			dir->ParentDirectory = &rDir;
+			dir->ParentDirectory = rDir.Get();
 
 			VDirectory::Deserialise( dir, rStream );
 
-			rDir.Directories[ K ] = dir;
+			rDir->Directories[ K ] = dir;
 		}
 	}
 
@@ -403,7 +360,7 @@ namespace Saturn {
 		ReadDir( m_RootDirectory, rStream );
 
 		// Build paths because we do not serialise them.
-		for( auto& [ name, dir ] : m_RootDirectory.Directories )
+		for( auto& [ name, dir ] : m_RootDirectory->Directories )
 		{
 			// Skip mount base folder, move into the mount base and start building.
 			for( auto& [subName, subDir] : dir->Directories )
@@ -439,23 +396,8 @@ namespace Saturn {
 	{
 		size_t mounts = 0;
 
-		for( auto&& [name, rDir] : m_RootDirectory.Directories )
+		for( auto&& [name, rDir] : m_RootDirectory->Directories )
 			mounts += GetMountsForDir( rDir );
-
-		return mounts;
-	}
-
-	size_t VirtualFS::GetMountsForDir( VDirectory& rDirectory )
-	{
-		size_t mounts = 0;
-
-		for( auto&& [name, rDir] : rDirectory.Directories )
-		{
-			mounts += rDir->Files.size();
-			mounts += rDir->Directories.size();
-
-			mounts += GetMountsForDir( rDir );
-		}
 
 		return mounts;
 	}
@@ -496,24 +438,6 @@ namespace Saturn {
 		}
 	}
 
-	void VirtualFS::DrawDirectory( VDirectory& rDirectory )
-	{		
-		if( ImGui::TreeNode( rDirectory.GetName().c_str() ) )
-		{
-			for( auto&& [name, rDirectory] : rDirectory.Directories )
-			{
-				DrawDirectory( rDirectory );
-			}
-
-			for( auto&& [name, rFile] : rDirectory.Files )
-			{
-				ImGui::Selectable( name.c_str() );
-			}
-
-			ImGui::TreePop();
-		}
-	}
-
 	void VirtualFS::ImGuiRender()
 	{
 		if( Auxiliary::TreeNode( "Mount Bases", false ) ) 
@@ -534,7 +458,7 @@ namespace Saturn {
 
 		if( Auxiliary::TreeNode( "Mounts", false ) )
 		{
-			for( auto&& [name, rDirectory] : m_RootDirectory.Directories )
+			for( auto&& [name, rDirectory] : m_RootDirectory->Directories )
 			{
 				DrawDirectory( rDirectory );
 			}

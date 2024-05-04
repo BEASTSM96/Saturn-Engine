@@ -74,7 +74,7 @@ namespace Saturn {
 		// Finds and returns the file.
 		// NOTE:
 		// If the path is Assets/Meshes/Base/Cube.fbx
-		// Then it will return the Cube.fbx file.
+		// Then it will return the Cube.fbx as the file.
 		Ref<VFile>& FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
 		// Finds and returns the directory.
@@ -99,21 +99,15 @@ namespace Saturn {
 		void BuildPath( Ref<VDirectory>& rDir, const std::string& rMountBase );
 		void BuildPath( Ref<VFile>& rFile, const std::string& rMountBase );
 
-		void BuildPath( VDirectory& rDir, const std::string& rMountBase );
-		void BuildPath( VFile& rFile, const std::string& rMountBase );
-
-		void DrawDirectory( VDirectory& rDirectory );
-		size_t GetMountsForDir( VDirectory& rDirectory );
-		
 		void DrawDirectory( Ref<VDirectory>& rDirectory );
 		size_t GetMountsForDir( Ref<VDirectory>& rDirectory );
 
-		void WriteDir( VDirectory& rDir, std::ofstream& rStream );
-		void ReadDir( VDirectory& rDir, std::ifstream& rStream );
+		void WriteDir( const Ref<VDirectory>& rDir, std::ofstream& rStream );
+		void ReadDir( Ref<VDirectory>& rDir, std::ifstream& rStream );
 		void BuildAllPathsInDir( Ref<VDirectory>& rDir, const std::string& rMountBase );
 
 	private:
-		VDirectory m_RootDirectory;
+		Ref<VDirectory> m_RootDirectory;
 
 		std::unordered_map<std::string, std::filesystem::path> m_MountBases;
 		

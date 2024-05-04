@@ -71,7 +71,8 @@ namespace Saturn {
 
 		void Clear();
 
-		const std::string& GetName() { return m_Name; }
+		const std::string& GetName()       { return m_Name; }
+		const std::string& GetName() const { return m_Name; }
 
 		VDirectory& GetParent() { return *ParentDirectory; }
 
