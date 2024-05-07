@@ -29,30 +29,33 @@
 #include "sppch.h"
 #include "ContentBrowserThumbnailGenerator.h"
 
+#include "Saturn/Asset/Asset.h"
+
 namespace Saturn {
 
-	static Ref<Texture2D> s_DefualtFileIcon;
+	static Ref<Texture2D> s_NoIcon;
 	static Ref<Texture2D> s_FolderIcon;
 
 	void ContentBrowserThumbnailGenerator::Init()
 	{
-		s_DefualtFileIcon = Ref<Texture2D>::Create( "content/textures/editor/NoIcon.png", AddressingMode::Repeat );
-		s_FolderIcon      = Ref<Texture2D>::Create( "content/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
+		//s_NoIcon = Ref<Texture2D>::Create( "content/textures/editor/NoIcon.png", AddressingMode::Repeat );
+		s_NoIcon = Ref<Texture2D>::Create( "content/textures/editor/FileIcon.png", AddressingMode::Repeat );
+		s_FolderIcon = Ref<Texture2D>::Create( "content/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
 	}
 
 	void ContentBrowserThumbnailGenerator::Terminate()
 	{
-		s_DefualtFileIcon = nullptr;
+		s_NoIcon = nullptr;
 		s_FolderIcon = nullptr;
 	}
 
 	Ref<Texture2D> ContentBrowserThumbnailGenerator::GetDefault( int Identifier )
 	{
-		return Identifier == 0 ? s_FolderIcon : s_DefualtFileIcon;
+		return Identifier == 0 ? s_FolderIcon : s_NoIcon;
 	}
 
-	Ref<Texture2D> ContentBrowserThumbnailGenerator::GetFor( AssetID id )
+	Ref<Texture2D> ContentBrowserThumbnailGenerator::GetFor( const Ref<Asset>& rAsset )
 	{
-		return s_DefualtFileIcon;
+		return s_NoIcon;
 	}
 }

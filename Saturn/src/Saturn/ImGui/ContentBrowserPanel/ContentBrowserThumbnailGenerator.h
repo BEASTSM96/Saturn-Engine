@@ -29,12 +29,13 @@
 #pragma once
 
 #include "Saturn/Vulkan/Texture.h"
-#include "Saturn/Asset/Asset.h"
 
 namespace Saturn {
 
 	constexpr int CB_DIRECTORY_ICON = 0;
 	constexpr int CB_FILE_ICON = 1;
+
+	class Asset;
 
 	class ContentBrowserThumbnailGenerator
 	{
@@ -43,7 +44,7 @@ namespace Saturn {
 		static void Terminate();
 
 		[[nodiscard]] static Ref<Texture2D> GetDefault( int Identifier );
-		[[nodiscard]] static Ref<Texture2D> GetFor( AssetID id );
+		[[nodiscard]] static Ref<Texture2D> GetFor( const Ref<Asset>& rAsset );
 	};
 
 }

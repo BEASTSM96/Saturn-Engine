@@ -33,6 +33,7 @@
 
 #include "Saturn/Serialisation/AssetSerialisers.h"
 #include "Saturn/Asset/AssetImporter.h"
+#include "Saturn/Asset/Asset.h"
 
 #include "Saturn/ImGui/AssetViewer.h"
 #include "Saturn/ImGui/PrefabViewer.h"
@@ -59,15 +60,13 @@ namespace Saturn {
 
 		if( !m_IsDirectory )
 		{
-			m_AssetType = AssetTypeFromExtension( m_Path.filename().extension().string() );
 			auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
-
-			if( m_AssetType != AssetType::Unknown )
-			{
-				auto asset = AssetManager::Get().FindAsset( path );
+			auto asset = AssetManager::Get().FindAsset( path );
 			
-				asset ? m_AssetID = asset->ID : m_AssetID = 0;
-			}		
+			if( asset )
+			{
+				m_Asset = asset;
+			}
 		}
 
 		// Do not generate the icon in the constructor wait until render.
@@ -76,6 +75,8 @@ namespace Saturn {
 
 	ContentBrowserItem::~ContentBrowserItem()
 	{
+		m_Asset.Reset();
+		m_Icon = nullptr;
 	}
 
 	void ContentBrowserItem::Draw( ImVec2 ThumbnailSize, float Padding )
@@ -151,7 +152,7 @@ namespace Saturn {
 		{
 			// Generate new thumbnail OR return existing one in cache.
 			// Returns default icon while generating.
-			m_Icon = ContentBrowserThumbnailGenerator::GetFor( m_AssetID );
+			m_Icon = ContentBrowserThumbnailGenerator::GetFor( m_Asset );
 
 			// Fill background.
 			pDrawList->AddRectFilled( TopLeft, ThumbnailBottomRight, ImGui::GetColorU32( ImGuiCol_Button ), 5.0f, ImDrawFlags_RoundCornersTop );
@@ -161,7 +162,7 @@ namespace Saturn {
 
 			// Draw line between thumbnail and info.
 			//pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.5f );
-			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, AssetTypeToColor( m_AssetType ), 1.5f );
+			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, AssetTypeToColor( m_Asset->Type ), 1.5f );
 
 			ImGui::ItemSize( ImRect( TopLeft, BottomRight ).Min, style.FramePadding.y );
 			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path.c_str() ) );
@@ -211,7 +212,7 @@ namespace Saturn {
 			{
 				auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
 	
-				switch( m_AssetType )
+				switch( m_Asset->Type )
 				{
 					case AssetType::Texture:
 					{
@@ -510,7 +511,7 @@ namespace Saturn {
 				}
 			}
 
-			switch( m_AssetType )
+			switch( m_Asset->Type )
 			{
 				case Saturn::AssetType::Texture:
 					break;

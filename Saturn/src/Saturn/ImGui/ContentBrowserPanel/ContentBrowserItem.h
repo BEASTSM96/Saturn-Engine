@@ -52,6 +52,8 @@ namespace Saturn {
 		}
 	};
 
+	class Asset;
+
 	class ContentBrowserItem : public RefTarget
 	{
 	public:
@@ -110,8 +112,6 @@ namespace Saturn {
 		bool m_IsRenaming = false;
 		bool m_StartingRename = false;
 
-		// Maybe we should just hold a reference to our asset?
-		AssetType m_AssetType = AssetType::Unknown;
-		AssetID m_AssetID = 0;
+		Ref<Asset> m_Asset = nullptr;
 	};
 }
