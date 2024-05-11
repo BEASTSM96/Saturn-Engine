@@ -81,6 +81,18 @@ namespace Saturn {
 				return nullptr;
 		}
 
+		template<typename Ty>
+		void DestroyPanel() 
+		{
+			auto Itr = m_Panels.find( Ty::GetStaticName() );
+
+			if( Itr != m_Panels.end() ) 
+			{
+				m_Panels[ Ty::GetStaticName() ] = nullptr;
+				m_Panels.erase( Ty::GetStaticName() );
+			}
+		}
+
 	private:
 		void Terminate();
 

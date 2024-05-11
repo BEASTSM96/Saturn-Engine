@@ -259,6 +259,9 @@ namespace Saturn {
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 		CheckMissingEditorAssetRefs();
 
+		// Setup content browser panel at project dir.
+		contentBrowserPanel->ResetPath( rUserSettings.StartupProject );
+
 		m_GameModule = new GameModule();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
