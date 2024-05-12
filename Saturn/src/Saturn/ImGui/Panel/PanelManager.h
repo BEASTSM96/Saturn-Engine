@@ -88,8 +88,8 @@ namespace Saturn {
 
 			if( Itr != m_Panels.end() ) 
 			{
-				m_Panels[ Ty::GetStaticName() ] = nullptr;
-				m_Panels.erase( Ty::GetStaticName() );
+				m_Panels[ Itr ] = nullptr;
+				m_Panels.erase( Itr );
 			}
 		}
 

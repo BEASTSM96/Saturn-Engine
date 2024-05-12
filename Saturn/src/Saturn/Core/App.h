@@ -116,7 +116,7 @@ namespace Saturn {
 		std::filesystem::path& GetRootContentDir() { return m_RootContentPath; }
 		const std::filesystem::path& GetRootContentDir() const { return m_RootContentPath; }
 
-		constexpr bool HasFlag( ApplicationFlags flag )
+		constexpr bool HasFlag( ApplicationFlags flag ) const
 		{
 			return ( m_Specification.Flags & ( uint32_t ) flag ) != 0;
 		}
