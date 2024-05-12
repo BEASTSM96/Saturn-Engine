@@ -246,7 +246,6 @@ namespace Saturn {
 		Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>();
 
 		auto& rUserSettings = EngineSettings::Get();
-		contentBrowserPanel->ResetPath( rUserSettings.StartupProject );
 
 		ProjectSerialiser ps;
 		ps.Deserialise( rUserSettings.FullStartupProjPath.string() );
