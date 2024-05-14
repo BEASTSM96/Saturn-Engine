@@ -35,7 +35,6 @@
 
 #include <string_view>
 #include <unordered_set>
-#include <unordered_map>
 
 class RBY_API RubyWindow
 {

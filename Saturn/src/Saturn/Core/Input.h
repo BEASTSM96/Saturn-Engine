@@ -32,11 +32,6 @@
 
 #include <Ruby/RubyEventType.h>
 
-#include <sstream>
-#include <fstream>
-#include <algorithm>
-#include <utility>
-
 #include <glm/glm.hpp>
 
 namespace Saturn {
@@ -61,7 +56,7 @@ namespace Saturn {
 		RubyCursorMode GetCursorMode();
 
 		void SetCanSetCursorMode( bool val ) { m_CanSetCursorMode = val; }
-		bool CanSetCursorMode() { return m_CanSetCursorMode; }
+		bool CanSetCursorMode() const { return m_CanSetCursorMode; }
 
 	private:
 		bool m_CanSetCursorMode = false;

@@ -76,6 +76,7 @@ namespace Saturn {
 			RemoveRef();
 		}
 
+		[[deprecated("Saturn::Ref::Delete is deprecated and will be removed. Consider using \"Ref::Reset\" instead.")]]
 		void Delete() 
 		{
 			RemoveRef();
@@ -184,7 +185,7 @@ namespace Saturn {
 		const T* Get() const { return m_Pointer; }
 
 		template <typename T2>
-		Ref<T2> As() const
+		[[nodiscard]] Ref<T2> As() const
 		{
 			return Ref<T2>( *this );
 		}

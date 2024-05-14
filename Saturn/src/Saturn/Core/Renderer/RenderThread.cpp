@@ -34,7 +34,7 @@
 namespace Saturn {
 
 	RenderThread::RenderThread()
-		: m_Running( std::make_shared<std::atomic_bool>() )
+		: Thread()
 	{
 	}
 
@@ -42,7 +42,7 @@ namespace Saturn {
 	{
 	}
 
-	void RenderThread::Initialise()
+	void RenderThread::Start()
 	{
 		if( !m_Enabled )
 			return;
@@ -51,17 +51,23 @@ namespace Saturn {
 		m_Thread = std::thread( &RenderThread::ThreadRun, this );
 	}
 
+	void RenderThread::RequestJoin()
+	{
+		std::lock_guard<std::mutex> Lock( m_Mutex );
+
+		m_Running->store( false );
+		m_SignalCV.notify_one();
+	}
+
 	void RenderThread::WaitAll()
 	{
 		m_WaitTime.Reset();
 
 		// If we are not using the render thread, we still need to execute the command buffer. 
+		// So just do it the now and return out.
 		if( !m_Enabled ) 
 		{
-			for( auto& rFunc : m_CommandBuffer )
-				rFunc();
-
-			m_CommandBuffer.clear();
+			ExecuteCommands();
 
 			m_WaitTime.Stop();
 
@@ -73,10 +79,8 @@ namespace Saturn {
 			m_ExecuteAll = true;
 			m_SignalCV.notify_one();
 		}
-		
-		std::unique_lock<std::mutex> Lock( m_Mutex );
-		m_QueueCV.wait( Lock, [=] { return m_CommandBuffer.empty(); } );
-		Lock.unlock();
+
+		WaitCommands();
 
 		m_WaitTime.Stop();
 	}
@@ -85,28 +89,6 @@ namespace Saturn {
 	{
 		m_ExecuteOne = true;
 		m_SignalCV.notify_one();
-	}
-
-	void RenderThread::Terminate()
-	{
-		if ( m_Thread.joinable() )
-		{
-			{
-				std::lock_guard<std::mutex> Lock( m_Mutex );
-
-				m_Running->store( false );
-
-				m_QueueCV.notify_all();
-				m_SignalCV.notify_all();
-			}
-
-			while( m_Running->load() )
-			{
-				std::this_thread::yield();
-			}
-
-			m_Thread.join();
-		}
 	}
 
 	bool RenderThread::IsRenderThread()
@@ -127,7 +109,7 @@ namespace Saturn {
 
 			// m_SignalCV = What do we want to do, ExecuteOne, ExecuteAll
 			// m_QueueCV  = What state is the queue in, empty or not empty
-			// Every time one of the two has changed we mush notify it
+			// Every time one of the two has changed we must notify it
 
 			// Wait for main thread signal
 			m_SignalCV.wait( Lock, [this] 
@@ -158,10 +140,7 @@ namespace Saturn {
 
 			if( m_ExecuteAll )
 			{
-				for( auto& rFunc : m_CommandBuffer )
-					rFunc();
-
-				m_CommandBuffer.clear();
+				ExecuteCommands();
 
 				m_ExecuteAll = false;
 			}

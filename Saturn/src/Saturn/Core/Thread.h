@@ -26,30 +26,54 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "SoundMixerAsset.h"
+#pragma once
 
-#include "Saturn/Asset/AssetManager.h"
+#include "Saturn/Core/Ref.h"
+
+#include <thread>
+#include <functional>
+#include <mutex>
 
 namespace Saturn {
 
-	SoundMixerAsset::SoundMixerAsset()
-		: Asset()
+	// RAII Safe.
+	class Thread : public RefTarget
 	{
-	}
+	public:
+		Thread();
+		virtual ~Thread();
 
-	SoundMixerAsset::~SoundMixerAsset()
-	{
-	}
+		template<typename Fn, typename... Args>
+		void Queue( Fn&& rrFunc, Args&&... rrArgs )
+		{
+			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
+			m_QueueCV.notify_one();
 
-	void SoundMixerAsset::PlayVariation( uint32_t index )
-	{
-		m_SoundAssets.at( index )->Play();
-	}
+			m_CommandBuffer.push_back( std::move( rrFunc ) );
+		}
 
-	void SoundMixerAsset::AddSound( uint32_t id, AssetID assetID )
-	{
-		m_SoundAssets[ id ] = AssetManager::Get().GetAssetAs<Sound>( assetID );
-	}
+		void Signal() { return m_SignalCV.notify_one(); }
 
+		virtual void Start() = 0;
+		virtual void RequestJoin() = 0;
+
+	protected:
+		void ExecuteCommands();
+		void WaitCommands();
+		void Terminate();
+
+	protected:
+		std::thread m_Thread;
+		std::thread::id m_ThreadID;
+		std::mutex m_Mutex;
+		std::shared_ptr<std::atomic_bool> m_Running;
+
+		// What state is the queue in, empty or not empty.
+		std::condition_variable m_QueueCV;
+
+		// What do we want to do, ExecuteOne, ExecuteAll or are we even allowed to continue?
+		std::condition_variable m_SignalCV;
+
+		std::vector<std::function<void()>> m_CommandBuffer;
+	};
 }

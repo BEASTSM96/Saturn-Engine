@@ -98,7 +98,7 @@ namespace Saturn {
 		// Lazy load.
 		AudioSystem::Get();
 		RenderThread::Get().Enable( HasFlag( ApplicationFlag_UseGameThread ) );
-		RenderThread::Get().Initialise();
+		RenderThread::Get().Start();
 
 		// ImGui is only used if we have the editor, and ImGui should not be used when building the game.
 		m_ImGuiLayer = new ImGuiLayer();
@@ -165,7 +165,7 @@ namespace Saturn {
 		// So the difference between "Terminate" and delete is delete will completely destroy the class and remove it from the singleton list. 
 		// However "Terminate" is used to destroy any data in the class but will not remove it from the singleton list, it is also used because we don't own the class so we can just implicitly destroy them.
 		GameThread::Get().Terminate();
-		RenderThread::Get().Terminate();
+		RenderThread::Get().RequestJoin();
 
 		VulkanContext::Get().SubmitTerminateResource( [&]() 
 		{
@@ -289,7 +289,7 @@ namespace Saturn {
 		return OpenFolderInternal();
 	}
 
-	const char* Application::GetConfigName()
+	constexpr const char* Application::GetConfigName()
 	{
 #if defined(SAT_DEBUG)
 		return "Debug";
@@ -297,8 +297,9 @@ namespace Saturn {
 		return "Release";
 #elif defined(SAT_DIST)
 		return "Dist";
-#endif
+#else
 		return "Unknown";
+#endif
 	}
 
 	void Application::PushLayer( Layer* pLayer )

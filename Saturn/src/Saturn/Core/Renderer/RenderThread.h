@@ -28,67 +28,42 @@
 
 #pragma once
 
+#include "Saturn/Core/Thread.h"
 #include "SingletonStorage.h"
-
-#include <thread>
-#include <functional>
-#include <mutex>
-#include <condition_variable>
-#include <Windows.h>
 
 namespace Saturn {
 
-	class RenderThread
+	class RenderThread : public Thread
 	{
 	public:
 		static inline RenderThread& Get() { return *SingletonStorage::GetOrCreateSingleton<RenderThread>(); }
 	public:
 		RenderThread();
-		~RenderThread();
-
-		void Initialise();
+		virtual ~RenderThread();
 
 		void WaitAll();
 
 		// Executes the most recent command.
 		void ExecuteOne();
 
-		void Terminate();
-
-		template<typename Fn, typename... Args>
-		void Queue( Fn&& rrFunc, Args&&... rrArgs ) 
-		{
-			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
-			m_QueueCV.notify_one();
-
-			m_CommandBuffer.push_back( std::move( rrFunc ) );
-		}
-
 		float GetWaitTime() { return m_WaitTime.ElapsedMilliseconds(); }
 
 		bool IsRenderThread();
 
-		void Signal() { return m_SignalCV.notify_one(); }
-
 		void Enable( bool enable ) { m_Enabled = enable; }
+
+	public:
+		virtual void Start() override;
+		virtual void RequestJoin() override;
 
 	private:
 		void ThreadRun();
+
 	private:
 		bool m_ExecuteAll = false;
 		bool m_ExecuteOne = false;
 		bool m_Enabled = false;
 
 		Timer m_WaitTime;
-
-		std::thread m_Thread;
-		std::thread::id m_ThreadID;
-		std::mutex m_Mutex;
-		std::shared_ptr<std::atomic_bool> m_Running;
-
-		std::condition_variable m_QueueCV;
-		std::condition_variable m_SignalCV;
-
-		std::vector<std::function<void()>> m_CommandBuffer;
 	};
 }

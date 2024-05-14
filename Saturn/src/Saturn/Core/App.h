@@ -95,7 +95,7 @@ namespace Saturn {
 		std::string SaveFile( const char* pFilter ) const;
 		std::string OpenFolder() const;
 
-		const char* GetConfigName();
+		constexpr const char* GetConfigName();
 
 		ApplicationSpecification& GetSpecification() { return m_Specification; }
 

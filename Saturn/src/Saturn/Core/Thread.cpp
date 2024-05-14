@@ -26,23 +26,61 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/Asset/Asset.h"
-#include "Sound.h"
+#include "sppch.h"
+#include "Thread.h"
 
 namespace Saturn {
 
-	class SoundMixerAsset : public Asset
+	Thread::Thread()
+		: m_Running( std::make_shared<std::atomic_bool>() )
 	{
-	public:
-		SoundMixerAsset();
-		virtual ~SoundMixerAsset();
+	}
 
-		void PlayVariation( uint32_t index );
-		void AddSound( uint32_t index, AssetID assetID );
+	void Thread::Terminate()
+	{
+		// TODO: Check what thread is calling this
+		//       Probably don't want our thread calling this most likely called from the main thread.
 
-	private:
-		std::unordered_map<uint32_t, Ref<Sound>> m_SoundAssets;
-	};
+		if( m_Thread.joinable() )
+		{
+			{
+				std::lock_guard<std::mutex> Lock( m_Mutex );
+				m_Running->store( false );
+
+				m_QueueCV.notify_all();
+				m_SignalCV.notify_all();
+			}
+
+			// Wait until our thread has done it's work.
+			while( m_Running->load() )
+			{
+				std::this_thread::yield();
+			}
+
+			m_Thread.join();
+		}
+	}
+
+	Thread::~Thread()
+	{
+		Terminate();
+
+		m_CommandBuffer.clear();
+	}
+
+	void Thread::ExecuteCommands()
+	{
+		for( auto& rFunc : m_CommandBuffer )
+			rFunc();
+
+		m_CommandBuffer.clear();
+	}
+
+	void Thread::WaitCommands() 
+	{
+		std::unique_lock<std::mutex> Lock( m_Mutex );
+		m_QueueCV.wait( Lock, [=] { return m_CommandBuffer.empty(); } );
+		Lock.unlock();
+	}
+
 }

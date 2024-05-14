@@ -33,8 +33,6 @@
 
 #include <Ruby/RubyWindow.h>
 
-#include <vector>
-
 namespace Saturn {
 
 	Input::Input()
