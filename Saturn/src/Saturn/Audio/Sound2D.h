@@ -38,10 +38,9 @@ namespace Saturn {
 	{
 	public:
 		Sound2D();
-		~Sound2D();
+		virtual ~Sound2D();
 
-		void Load();
-
+		virtual void Load() override;
 		virtual void Play() override;
 		virtual void Stop() override;
 		virtual void Loop() override;
@@ -49,10 +48,15 @@ namespace Saturn {
 		bool IsPlaying();
 		bool IsLooping();
 
+	public:
+
 		const std::filesystem::path& GetRawPath() const { return m_RawPath; }
 		std::filesystem::path& GetRawPath() { return m_RawPath; }
 		
 		void SetRawPath( const std::filesystem::path& rPath ) { m_RawPath = rPath; }
+
+	protected:
+		static void OnSoundEnd( void* pUserData, ma_sound* pSound );
 	};
 
 }

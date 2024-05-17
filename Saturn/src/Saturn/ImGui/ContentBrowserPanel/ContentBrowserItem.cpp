@@ -216,16 +216,12 @@ namespace Saturn {
 				{
 					case AssetType::Texture:
 					{
-						// Find the asset.
-						Ref<Asset> asset = AssetManager::Get().FindAsset( path );
-						AssetViewer::Add<TextureViewer>( asset->ID );
+						AssetViewer::Add<TextureViewer>( m_Asset->ID );
 					} break;
 
 					case AssetType::StaticMesh:
 					{
-						// Find the asset.
-						Ref<Asset> asset = AssetManager::Get().FindAsset( path );
-						AssetViewer::Add<StaticMeshAssetViewer>( asset->ID );
+						AssetViewer::Add<StaticMeshAssetViewer>( m_Asset->ID );
 					} break;
 
 					case AssetType::SkeletalMesh:
@@ -233,31 +229,28 @@ namespace Saturn {
 
 					case AssetType::Material:
 					{
-						// Find the asset.
-						Ref<Asset> asset = AssetManager::Get().FindAsset( path );
-
 						// Importing the asset will happen in this function.
-						AssetViewer::Add<MaterialAssetViewer>( asset->ID );
+						AssetViewer::Add<MaterialAssetViewer>( m_Asset->ID );
 					} break;
 					case AssetType::MaterialInstance:
 						break;
 
 					case AssetType::Prefab:
 					{
-						Ref<Asset> asset = AssetManager::Get().FindAsset( path );
-
-						AssetViewer::Add<PrefabViewer>( asset->ID );
+						AssetViewer::Add<PrefabViewer>( m_Asset->ID );
 					} break;
 
 					case AssetType::PhysicsMaterial:
 					{
-						Ref<Asset> asset = AssetManager::Get().FindAsset( path );
+						AssetViewer::Add<PhysicsMaterialAssetViewer>( m_Asset->ID );
+					} break;
 
-						AssetViewer::Add<PhysicsMaterialAssetViewer>( asset->ID );
+					case AssetType::Audio:
+					{
+						//AssetViewer::Add<SoundAssetViewer>( m_Asset->ID );
 					} break;
 
 					case AssetType::Scene:
-					case AssetType::Audio:
 					case AssetType::Script:
 					case AssetType::Unknown:
 					case AssetType::COUNT:

@@ -29,7 +29,10 @@
 #pragma once
 
 #include "SingletonStorage.h"
+#include "Saturn/Core/Thread.h"
+
 #include "AudioCore.h"
+#include "Sound.h"
 
 #include <filesystem>
 
@@ -42,6 +45,22 @@ namespace Saturn {
 		Unknown
 	};
 
+	class AudioThread : public Thread
+	{
+	public:
+		AudioThread();
+		virtual ~AudioThread();
+
+	public:
+		virtual void Start() override;
+		virtual void RequestJoin() override;
+
+	private:
+		void ThreadRun();
+
+		bool m_PendingTerminate = false;
+	};
+
 	class AudioSystem
 	{
 	public:
@@ -50,16 +69,27 @@ namespace Saturn {
 		AudioSystem();
 		~AudioSystem();
 
-		void CreateAudio( AudioType type, UUID ID, const std::filesystem::path& rPath );
-		bool Play( ma_sound ID );
-		bool Stop( ma_sound ID );
-
 		void Terminate();
 
+		void RequestNewSound( AssetID ID, bool Play = true );
+		void ReportSoundCompleted( AssetID ID );
+
 		ma_engine& GetAudioEngine() { return m_Engine; }
+
 	private:
-		void Init();
+		void Initialise();
+		void StartNewSound( Ref<Sound> rSoundAsset );
+		void PlaySound( Ref<Sound> rSoundAsset );
+
+	private:
+		Ref<AudioThread> m_AudioThread;
+
+		// Currently alive sounds (i.e. sounds that are playing)
+		std::unordered_map<AssetID, Ref<Sound>> m_SoundAssets;
+
 	private:
 		ma_engine m_Engine;
+		ma_context m_Context;
+		ma_device m_Device;
 	};
 }

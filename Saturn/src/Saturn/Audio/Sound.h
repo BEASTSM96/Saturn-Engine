@@ -43,6 +43,9 @@ namespace Saturn {
 		virtual void Play() = 0;
 		virtual void Stop() = 0;
 		virtual void Loop() = 0;
+		virtual void Load() = 0;
+
+		ma_sound& GetRawSound() { return m_Sound; }
 
 	protected:
 		ma_sound m_Sound{};

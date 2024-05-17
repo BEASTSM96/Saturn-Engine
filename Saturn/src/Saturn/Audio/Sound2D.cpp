@@ -36,14 +36,25 @@ namespace Saturn {
 	Sound2D::Sound2D()
 		: Sound()
 	{
+		m_RawPath = Project::GetActiveProject()->FilepathAbs( Path );
 	}
 
 	void Sound2D::Load()
 	{
-		ma_uint32 flags = MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION;
-		MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(), m_RawPath.string().c_str(), flags, NULL, NULL, &m_Sound ) );
+		if( !m_Loaded )
+		{
+			SAT_CORE_INFO( "Loading sound: {0}", m_RawPath.string() );
 
-		m_Loaded = true;
+			ma_uint32 flags = MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION | MA_SOUND_FLAG_ASYNC;
+			MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(), 
+				m_RawPath.string().c_str(),
+				flags, NULL, NULL, &m_Sound ) );
+
+			m_Sound.pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( ID ) );
+			m_Sound.endCallback = OnSoundEnd;
+
+			m_Loaded = true;
+		}
 	}
 
 	Sound2D::~Sound2D()
@@ -57,6 +68,8 @@ namespace Saturn {
 	{
 		if( !m_Loaded )
 			Load();
+
+		SAT_CORE_INFO( "Trying to start sound: {0}", m_RawPath.string() );
 
 		MA_CHECK( ma_sound_start( &m_Sound ) );
 
@@ -75,7 +88,6 @@ namespace Saturn {
 		m_Looping = true;
 	}
 
-
 	bool Sound2D::IsPlaying()
 	{
 		return m_Playing;
@@ -85,4 +97,12 @@ namespace Saturn {
 	{
 		return m_Looping;
 	}
+
+	void Sound2D::OnSoundEnd( void* pUserData, ma_sound* pSound )
+	{
+		AssetID ID = static_cast<uint64_t>( reinterpret_cast<intptr_t>( pUserData ) );
+
+		AudioSystem::Get().ReportSoundCompleted( ID );
+	}
+
 }

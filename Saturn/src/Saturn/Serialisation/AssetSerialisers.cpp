@@ -457,7 +457,7 @@ namespace Saturn {
 		auto realPath = Project::GetActiveProject()->FilepathAbs( filepath );
 		auto sound = Ref<Sound2D>::Create();
 		sound->SetRawPath( realPath );
-		sound->Load();
+		//sound->Load();
 
 		// TODO: (Asset) Fix this.
 		struct
