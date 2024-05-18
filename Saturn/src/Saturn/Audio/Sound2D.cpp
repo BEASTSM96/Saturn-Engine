@@ -88,12 +88,12 @@ namespace Saturn {
 		m_Looping = true;
 	}
 
-	bool Sound2D::IsPlaying()
+	bool Sound2D::IsPlaying() const
 	{
 		return m_Playing;
 	}
 
-	bool Sound2D::IsLooping()
+	bool Sound2D::IsLooping() const
 	{
 		return m_Looping;
 	}

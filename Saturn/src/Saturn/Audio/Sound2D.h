@@ -45,8 +45,8 @@ namespace Saturn {
 		virtual void Stop() override;
 		virtual void Loop() override;
 
-		bool IsPlaying();
-		bool IsLooping();
+		bool IsPlaying() const;
+		bool IsLooping() const;
 
 	public:
 

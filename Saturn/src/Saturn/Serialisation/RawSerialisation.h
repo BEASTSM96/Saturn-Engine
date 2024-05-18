@@ -475,14 +475,14 @@ namespace Saturn {
 			size_t length = 0;
 			rStream.read( reinterpret_cast< char* >( &length ), sizeof( size_t ) );
 
-			char* TemporaryBuffer = new char[ length + 1 ];
-			rStream.read( TemporaryBuffer, length );
+			char* pTemporaryBuffer = new char[ length + 1 ];
+			rStream.read( pTemporaryBuffer, length );
 
-			TemporaryBuffer[ length ] = '\0';
+			pTemporaryBuffer[ length ] = '\0';
 
-			std::string result = TemporaryBuffer;
+			std::string result = pTemporaryBuffer;
 
-			delete[] TemporaryBuffer;
+			delete[] pTemporaryBuffer;
 
 			return result;
 		}
