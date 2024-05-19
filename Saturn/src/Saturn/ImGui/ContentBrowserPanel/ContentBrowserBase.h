@@ -49,7 +49,7 @@ namespace Saturn {
 	{
 	public:
 		ContentBrowserBase();
-		~ContentBrowserBase();
+		virtual ~ContentBrowserBase();
 
 		virtual void Draw() = 0;
 		virtual void ResetPath( const std::filesystem::path& rPath ) = 0;
@@ -86,8 +86,6 @@ namespace Saturn {
 		// The absolute path root path for the current view mode.
 		std::filesystem::path m_RootPath;
 	
-		Ref< Texture2D > m_DirectoryIcon;
-		Ref< Texture2D > m_FileIcon;
 		Ref< Texture2D > m_BackIcon;
 		Ref< Texture2D > m_ForwardIcon;
 	

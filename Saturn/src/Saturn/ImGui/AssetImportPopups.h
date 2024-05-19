@@ -28,97 +28,11 @@
 
 #pragma once
 
-#include "ContentBrowserBase.h"
-
-#include "Saturn/Vulkan/Texture.h"
-
-#include "Saturn/Asset/Asset.h"
-
-#include "ContentBrowserItem.h"
-
-#include "Saturn/GameFramework/SClass.h"
-
-#include <imgui.h>
 #include <filesystem>
-#include <functional>
-#include <map>
 
-#include <filewatch/filewatch.h>
+namespace Saturn::Auxiliary {
 
-namespace Saturn {
+	[[nodiscard]] extern bool DrawImportMeshPopup( bool* pOpen, const std::filesystem::path& rImportTargetPath );
+	[[nodiscard]] extern bool DrawImportSoundPopup( bool* pOpen, const std::filesystem::path& rImportTargetPath );
 
-	struct SClassMetadata;
-
-	class ContentBrowserPanel : public ContentBrowserBase
-	{
-	public:
-		ContentBrowserPanel();
-		ContentBrowserPanel( const std::string& rName );
-
-		virtual ~ContentBrowserPanel();
-
-		virtual void Draw() override;
-		static const char* GetStaticName()
-		{
-			return "Content Browser Panel";
-		}
-
-		virtual void ResetPath( const std::filesystem::path& rPath ) override;
-
-	private:
-		virtual void UpdateFiles( bool clear = false ) override;
-		virtual void OnItemSelected( ContentBrowserItem* pItem, bool clicked ) override;
-		virtual void DrawItems( std::vector<Ref<ContentBrowserItem>>& rList, ImVec2 size, float padding ) override;
-
-		void BuildSearchList();
-
-		void DrawFolderTree( const std::filesystem::path& rPath );
-
-		void DrawAssetsFolderTree();
-		void DrawScriptsFolderTree();
-
-		void DrawRootFolder( CBViewMode type, bool open = false );
-
-		void AssetsPopupContextMenu();
-		void ScriptsPopupContextMenu();
-
-		void OnFilewatchEvent( const std::string& rPath, const filewatch::Event Event );
-
-		Ref<ContentBrowserItem> GetActiveHoveredItem();
-
-		void DrawClassHierarchy( const std::string& rKeyName, const SClassMetadata& rData );
-		void DrawCreateClass( const std::string& rKeyName, const SClassMetadata& rData );
-
-		void ClearSearchQuery();
-
-	private:
-		std::filesystem::path m_ScriptPath;
-
-		ImGuiTextFilter m_TextFilter;
-
-		bool m_ShowFolderPopupMenu = false;
-
-		struct AssetInfo
-		{
-			AssetType Type;
-			std::filesystem::path Path;
-		};
-
-		bool m_RenderCreateWindow = false;
-
-		SClassMetadata m_SelectedMetadata = {};
-
-		filewatch::FileWatch<std::string>* m_Watcher = nullptr;
-
-	private:
-		// Popup data
-		bool m_ShowMeshImport = false;
-		bool m_ShowSoundImport = false;
-		
-		std::filesystem::path m_ImportMeshPath;
-		std::filesystem::path m_ImportSoundPath;
-		
-		std::string m_ClassInstanceName;
-		std::string m_NewClassName;
-	};
 }

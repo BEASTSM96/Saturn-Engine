@@ -30,6 +30,7 @@
 #include "ContentBrowserPanel.h"
 
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
+#include "Saturn/ImGui/AssetImportPopups.h"
 
 #include "Saturn/Asset/MaterialAsset.h"
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
@@ -82,11 +83,6 @@ namespace Saturn {
 
 	ContentBrowserPanel::~ContentBrowserPanel()
 	{
-		m_DirectoryIcon = nullptr;
-		m_FileIcon = nullptr;
-		m_BackIcon = nullptr;
-		m_ForwardIcon = nullptr;
-	
 		ContentBrowserThumbnailGenerator::Terminate();
 	}
 
@@ -641,202 +637,25 @@ namespace Saturn {
 			ImGui::OpenPopup( "Import Sound##IMPORT_SOUND" );
 
 		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-		if( ImGui::BeginPopupModal( "Import Sound##IMPORT_SOUND", &m_ShowSoundImport, ImGuiWindowFlags_NoMove ) )
+		if( Auxiliary::DrawImportSoundPopup( &m_ShowSoundImport, m_CurrentPath ) )
 		{
-			bool PopupModified = false;
+			// Popup was modified.
+			// And the popup does not save the asset registry so save it here.
+			AssetRegistrySerialiser ars;
+			ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 
-			ImGui::BeginVertical( "##inputv" );
-
-			ImGui::Text( "Path:" );
-
-			ImGui::BeginHorizontal( "##inputH" );
-
-			ImGui::InputText( "##path", ( char* ) m_ImportSoundPath.string().c_str(), 1024 );
-
-			if( ImGui::Button( "Browse" ) )
-			{
-				m_ImportSoundPath = Application::Get().OpenFile( "Supported asset types (*.wav *.mp3)\0*.wav; *.mp3\0" );
-			}
-
-			ImGui::EndHorizontal();
-			ImGui::EndVertical();
-
-			ImGui::BeginHorizontal( "##actionsH" );
-
-			if( ImGui::Button( "Create" ) )
-			{
-				// TODO: Right now we only support sound 2Ds.
-				auto id = AssetManager::Get().CreateAsset( AssetType::Audio );
-				auto asset = AssetManager::Get().FindAsset( id );
-
-				// Copy the audio source.
-				std::filesystem::copy_file( m_ImportSoundPath, m_CurrentPath / m_ImportSoundPath.filename() );
-
-				auto assetPath = m_CurrentPath / m_ImportSoundPath.filename();
-				assetPath.replace_extension( ".s2d" );
-
-				assetPath = std::filesystem::relative( assetPath, Project::GetActiveProject()->GetRootDir() );
-
-				asset->Path = assetPath;
-
-				// Create the asset.
-				auto sound = asset.As<Sound2D>();
-				sound = Ref<Sound2D>::Create();
-				sound->ID = asset->ID;
-				sound->Path = assetPath;
-				sound->Type = AssetType::Audio;
-
-				sound->SetRawPath( m_CurrentPath / m_ImportSoundPath.filename() );
-
-				// Save the asset
-				Sound2DAssetSerialiser s2d;
-				s2d.Serialise( sound );
-
-				AssetRegistrySerialiser ars;
-				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
-
-				sound->SetPath( assetPath );
-
-				PopupModified = true;
-
-				UpdateFiles( true );
-			}
-
-			if( ImGui::Button( "Cancel" ) )
-			{
-				m_ShowSoundImport = false;
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndHorizontal();
-
-			if( PopupModified )
-			{
-				m_ShowSoundImport = false;
-
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndPopup();
+			UpdateFiles( true );
 		}
 
 		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-		if( ImGui::BeginPopupModal( "Import Mesh##IMPORT_MESH", &m_ShowMeshImport, ImGuiWindowFlags_NoMove ) )
+		if( Auxiliary::DrawImportMeshPopup( &m_ShowMeshImport, m_CurrentPath ) )
 		{
-			static std::filesystem::path s_GLTFBinPath = "";
-			static bool s_UseBinFile = true;
+			// Popup was modified.
+			// And the popup does not save the asset registry so save it here.
+			AssetRegistrySerialiser ars;
+			ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 
-			bool PopupModified = false;
-
-			ImGui::BeginVertical( "##inputv" );
-
-			ImGui::Text( "Path:" );
-
-			ImGui::BeginHorizontal( "##inputH" );
-
-			ImGui::InputText( "##path", ( char* ) m_ImportMeshPath.string().c_str(), 1024 );
-
-			if( ImGui::Button( "Browse" ) )
-			{
-				m_ImportMeshPath = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb)\0*.fbx; *.gltf; *.glb\0" );
-			}
-
-			ImGui::EndHorizontal();
-
-			ImGui::EndVertical();
-
-			// If the path a GLTF file then we need to file the bin file.
-			if( m_ImportMeshPath.extension() == ".gltf" || m_ImportMeshPath.extension() == ".glb" )
-			{
-				// We can assume the bin file has the same name as the mesh.
-				if( s_GLTFBinPath == "" )
-				{
-					s_GLTFBinPath = m_ImportMeshPath;
-					s_GLTFBinPath.replace_extension( ".bin" );
-				}
-
-				ImGui::BeginVertical( "##gltfinput" );
-
-				ImGui::Text( "GLTF binary file path:" );
-
-				ImGui::BeginHorizontal( "##gltfinputH" );
-
-				ImGui::InputText( "##binpath", ( char* ) s_GLTFBinPath.string().c_str(), 1024 );
-
-				if( ImGui::Button( "Browse" ) )
-				{
-					s_GLTFBinPath = Application::Get().OpenFile( "Supported asset types (*.glb *.bin)\0*.glb; *.bin\0" );
-				}
-
-				ImGui::EndHorizontal();
-
-				ImGui::Checkbox( "Use Binary File", &s_UseBinFile );
-
-				ImGui::EndVertical();
-			}
-
-			ImGui::BeginHorizontal( "##actionsH" );
-
-			if( ImGui::Button( "Create" ) )
-			{
-				auto id = AssetManager::Get().CreateAsset( AssetType::StaticMesh );
-				auto asset = AssetManager::Get().FindAsset( id );
-
-				// Copy the mesh source.
-				std::filesystem::copy_file( m_ImportMeshPath, m_CurrentPath / m_ImportMeshPath.filename() );
-
-				if( s_UseBinFile )
-					std::filesystem::copy_file( s_GLTFBinPath, m_CurrentPath / s_GLTFBinPath.filename() );
-
-				auto assetPath = m_CurrentPath / m_ImportMeshPath.filename();
-				assetPath.replace_extension( ".stmesh" );
-
-				asset->SetPath( assetPath );
-
-				// TODO: This is bad.
-				// Create the mesh so we can copy over the texture (if any).
-				auto mesh = Ref<MeshSource>::Create( m_ImportMeshPath, m_CurrentPath );
-				mesh = nullptr;
-
-				// Create the mesh asset.
-				auto staticMesh = asset.As<StaticMesh>();
-				staticMesh = Ref<StaticMesh>::Create();
-				staticMesh->ID = asset->ID;
-				staticMesh->Path = asset->Path;
-
-				auto& meshPath = assetPath.replace_extension( m_ImportMeshPath.extension() );
-				staticMesh->SetFilepath( meshPath.string() );
-
-				// Save the mesh asset
-				StaticMeshAssetSerialiser sma;
-				sma.Serialise( staticMesh );
-
-				staticMesh->SetPath( assetPath );
-
-				AssetRegistrySerialiser ars;
-				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
-
-				PopupModified = true;
-
-				UpdateFiles( true );
-			}
-
-			if( ImGui::Button( "Cancel" ) )
-			{
-				m_ShowMeshImport = false;
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndHorizontal();
-
-			if( PopupModified )
-			{
-				m_ShowMeshImport = false;
-
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndPopup();
+			UpdateFiles( true );
 		}
 
 		if( s_OpenScriptsPopup )

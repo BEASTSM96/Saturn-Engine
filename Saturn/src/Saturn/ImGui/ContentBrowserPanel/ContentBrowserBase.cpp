@@ -43,16 +43,12 @@ namespace Saturn {
 
 	void ContentBrowserBase::Init()
 	{		
-		m_DirectoryIcon = Ref<Texture2D>::Create( "content/textures/editor/DirectoryIcon.png", AddressingMode::Repeat );
-		m_FileIcon      = Ref<Texture2D>::Create( "content/textures/editor/FileIcon.png", AddressingMode::Repeat );
 		m_BackIcon      = Ref<Texture2D>::Create( "content/textures/editor/Left.png", AddressingMode::Repeat );
 		m_ForwardIcon   = Ref<Texture2D>::Create( "content/textures/editor/Right.png", AddressingMode::Repeat );
 	}
 
 	ContentBrowserBase::~ContentBrowserBase()
 	{
-		m_DirectoryIcon = nullptr;
-		m_FileIcon      = nullptr;
 		m_BackIcon      = nullptr;
 		m_ForwardIcon   = nullptr;
 	}
