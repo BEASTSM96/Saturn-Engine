@@ -57,11 +57,20 @@ namespace Saturn {
 		}
 	}
 
+	void Sound2D::Unload()
+	{
+		// TODO: If the sound stops we will crash
+		if( m_Loaded )
+		{
+			ma_sound_uninit( &m_Sound );
+			m_Loaded = false;
+		}
+	}
+
 	Sound2D::~Sound2D()
 	{
 		Stop();
-		ma_sound_uninit( &m_Sound );
-		m_Loaded = false;
+		Unload();
 	}
 
 	void Sound2D::Play()
@@ -104,5 +113,4 @@ namespace Saturn {
 
 		AudioSystem::Get().ReportSoundCompleted( ID );
 	}
-
 }

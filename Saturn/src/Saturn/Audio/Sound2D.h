@@ -57,6 +57,12 @@ namespace Saturn {
 
 	protected:
 		static void OnSoundEnd( void* pUserData, ma_sound* pSound );
+
+	private:
+		virtual void Unload() override;
+
+	private:
+		friend class AudioSystem;
 	};
 
 }

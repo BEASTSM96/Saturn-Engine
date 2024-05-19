@@ -54,5 +54,11 @@ namespace Saturn {
 		bool m_Looping = false;
 
 		std::filesystem::path m_RawPath = "";
+
+	private:
+		virtual void Unload() = 0;
+
+	private:
+		friend class AudioSystem;
 	};
 }

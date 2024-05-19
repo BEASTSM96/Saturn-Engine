@@ -139,6 +139,13 @@ namespace Saturn {
 
 	void AudioSystem::Terminate()
 	{
+		// Stop any alive sounds
+		for( auto& [id, asset] : m_SoundAssets )
+		{
+			asset->Stop();
+			asset->Unload();
+		}
+
 		// Stop audio thread
 		m_AudioThread->RequestJoin();
 
