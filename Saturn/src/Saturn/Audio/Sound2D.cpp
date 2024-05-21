@@ -36,7 +36,6 @@ namespace Saturn {
 	Sound2D::Sound2D()
 		: Sound()
 	{
-		m_RawPath = Project::GetActiveProject()->FilepathAbs( Path );
 	}
 
 	void Sound2D::Load()

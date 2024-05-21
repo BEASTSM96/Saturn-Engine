@@ -1980,6 +1980,24 @@ namespace Saturn {
 		m_RendererData.SubmeshTransformData[ frame ].VertexBuffer->Reallocate( m_RendererData.SubmeshTransformData[ frame ].pData, off * sizeof( TransformBufferData ) );
 	}
 
+	class ScopedDebugLabel
+	{
+	public:
+		ScopedDebugLabel( VkCommandBuffer _CommandBuffer, const char* pName ) 
+			: CommandBuffer( _CommandBuffer )
+		{
+			CmdBeginDebugLabel( CommandBuffer, pName );
+		}
+		
+		~ScopedDebugLabel() 
+		{
+			CmdEndDebugLabel( CommandBuffer );
+		}
+
+	private:
+		VkCommandBuffer CommandBuffer;
+	};
+
 	void SceneRenderer::RenderScene()
 	{
 		SAT_PF_EVENT();
@@ -2008,49 +2026,40 @@ namespace Saturn {
 
 		DirShadowMapPass();
 
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "PreDepth" );
+		{
+			ScopedDebugLabel label( m_RendererData.CommandBuffer, "PreDepth" );
+			PreDepthPass();
+		}
 
-		PreDepthPass();
+		{
+			ScopedDebugLabel label( m_RendererData.CommandBuffer, "LightCulling" );
+			LightCullingPass();
+		}
+		
+		{
+			ScopedDebugLabel label( m_RendererData.CommandBuffer, "Geometry" );
+			GeometryPass();
+		}
 
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+		{
+			ScopedDebugLabel label( m_RendererData.CommandBuffer, "Bloom" );
+			BloomPass();
+		}
 
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "LightCulling" );
+		{
+			ScopedDebugLabel label( m_RendererData.CommandBuffer, "Scene Composite - Post Processing" );
+			SceneCompositePass();
+		}
 
-		LightCullingPass();
-
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Geometry" );
-
-		GeometryPass();
-
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Bloom" );
-
-		BloomPass();
-
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Post Processing" );
-
-		SceneCompositePass();
-
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
-
-		CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Late Composite (SceneRenderer)" );
-
-		LateCompPhysicsOutline();
-
-		CmdEndDebugLabel( m_RendererData.CommandBuffer );
+		{
+			ScopedDebugLabel label( m_RendererData.CommandBuffer, "Late Composite (SceneRenderer)" );
+			LateCompPhysicsOutline();
+		}
 
 		if( m_RendererData.IsSwapchainTarget )
 		{
-			CmdBeginDebugLabel( m_RendererData.CommandBuffer, "Scene Composite - Texture Pass" );
-
+			ScopedDebugLabel label( m_RendererData.CommandBuffer, "Scene Composite - Texture Pass" );
 			TexturePass();
-
-			CmdEndDebugLabel( m_RendererData.CommandBuffer );
 		}
 
 		FlushDrawList();
