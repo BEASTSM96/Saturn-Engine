@@ -49,6 +49,7 @@ namespace Saturn {
 		bool IsLooping() const;
 
 		void WaitUntilLoaded();
+		void Reset();
 
 	public:
 		const std::filesystem::path& GetRawPath() const { return m_RawPath; }

@@ -114,6 +114,11 @@ namespace Saturn {
 		}
 	}
 
+	void Sound2D::Reset()
+	{
+		MA_CHECK( ma_sound_seek_to_pcm_frame( &m_Sound, 0 ) );
+	}
+
 	void Sound2D::OnSoundEnd( void* pUserData, ma_sound* pSound )
 	{
 		AssetID ID = static_cast<uint64_t>( reinterpret_cast<intptr_t>( pUserData ) );

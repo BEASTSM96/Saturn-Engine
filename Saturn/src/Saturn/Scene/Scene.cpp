@@ -48,6 +48,8 @@
 
 #include "Saturn/Serialisation/SceneSerialiser.h"
 
+#include "Saturn/Audio/Sound2D.h"
+
 #include "Saturn/ImGui/EditorIcons.h"
 
 #include "Saturn/Core/VirtualFS.h"
@@ -92,7 +94,6 @@ namespace Saturn {
 	{
 		ClearSelectedEntities();
 
-		// Destroy All Physics Entities and static meshes
 		{
 			auto staticMeshes = GetAllEntitiesWith<StaticMeshComponent>();
 
@@ -119,6 +120,8 @@ namespace Saturn {
 					entity->GetComponent<RigidbodyComponent>().Rigidbody = nullptr;
 				}
 			}
+
+			StopAudioPlayers();
 		}
 
 		// Destroy all entities.
@@ -230,27 +233,59 @@ namespace Saturn {
 			{
 				auto points = m_Registry.group<PointLightComponent>( entt::get<TransformComponent> );
 
-				uint32_t plIndex = 0;
-				Ref<Texture2D> pointLightBillboardTex = EditorIcons::GetIcon( "Billboard_PointLight" );
-
-				for( const auto& e : points )
+				if( points.size() )
 				{
-					auto [transformComponent, lightComponent] = points.get<TransformComponent, PointLightComponent>( e );
+					uint32_t plIndex = 0;
+					Ref<Texture2D> pointLightBillboardTex = EditorIcons::GetIcon( "Billboard_PointLight" );
 
-					PointLight pl = { 
-						.Position   = transformComponent.Position,
-						.Radiance   = lightComponent.Radiance,
-						.Multiplier = lightComponent.Multiplier,
-						.LightSize  = lightComponent.LightSize,
-						.Radius     = lightComponent.Radius,
-						.MinRadius  = lightComponent.MinRadius,
-						.Falloff    = lightComponent.Falloff };
+					for( const auto& e : points )
+					{
+						auto [transformComponent, lightComponent] = points.get<TransformComponent, PointLightComponent>( e );
 
-					m_Lights.PointLights.push_back( pl );
+						PointLight pl = {
+							.Position = transformComponent.Position,
+							.Radiance = lightComponent.Radiance,
+							.Multiplier = lightComponent.Multiplier,
+							.LightSize = lightComponent.LightSize,
+							.Radius = lightComponent.Radius,
+							.MinRadius = lightComponent.MinRadius,
+							.Falloff = lightComponent.Falloff };
 
-					Renderer2D::Get().SubmitBillboardTextured( pl.Position, glm::vec4( 1.0f ), pointLightBillboardTex, glm::vec2( 1.5f ) );
+						m_Lights.PointLights.push_back( pl );
 
-					plIndex++;
+						Renderer2D::Get().SubmitBillboardTextured( pl.Position, glm::vec4( 1.0f ), pointLightBillboardTex, glm::vec2( 1.5f ) );
+
+						plIndex++;
+					}
+				}
+			}
+		}
+
+		// Audio Billboards
+		{
+			auto players = m_Registry.group<Sound2DPlayerComponent>( entt::get<TransformComponent> );
+
+			if( players.size() )
+			{
+				Ref<Texture2D> audio = EditorIcons::GetIcon( "Billboard_Audio" );
+				Ref<Texture2D> audioMuted = EditorIcons::GetIcon( "Billboard_AudioMuted" );
+				Ref<Texture2D> audioLooped = EditorIcons::GetIcon( "Billboard_AudioLooping" );
+
+				for( const auto& e : players )
+				{
+					auto [transformComponent, playerComponent] = players.get<TransformComponent, Sound2DPlayerComponent>( e );
+
+					Ref<Texture2D> submissionTexture = audio;
+
+					if( playerComponent.Loop )
+						submissionTexture = audioLooped;
+					else if( playerComponent.Mute )
+						submissionTexture = audioMuted;
+
+					Renderer2D::Get().SubmitBillboardTextured(
+						transformComponent.Position,
+						glm::vec4( 1.0f ),
+						submissionTexture, glm::vec2( 1.0f ) );
 				}
 			}
 		}
@@ -523,7 +558,7 @@ namespace Saturn {
 			CameraComponent,
 			BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
 			ScriptComponent,
-			AudioComponent,
+			Sound2DPlayerComponent,
 			BillboardComponent>;
 
 		CopyComponentIfExists( DesiredComponents{}, newEntity->GetHandle(), entity->GetHandle(), m_Registry );
@@ -615,6 +650,39 @@ namespace Saturn {
 		{
 			entity->BeginPlay();
 		}
+
+		StartAudioPlayers();
+	}
+
+	void Scene::StartAudioPlayers()
+	{
+		auto snd2dPlayers = GetAllEntitiesWith< Sound2DPlayerComponent >();
+
+		for( auto& entity : snd2dPlayers )
+		{
+			auto& rComp = entity->GetComponent<Sound2DPlayerComponent>();
+			auto soundAsset = AudioSystem::Get().RequestNewSound( rComp.AssetID );
+
+			if( rComp.Loop )
+			{
+				soundAsset->WaitUntilLoaded();
+				soundAsset->Loop();
+			}
+		}
+	}
+
+	void Scene::StopAudioPlayers() 
+	{
+		auto snd2dPlayers = GetAllEntitiesWith< Sound2DPlayerComponent >();
+
+		for( auto& entity : snd2dPlayers )
+		{
+			auto& rComp = entity->GetComponent<Sound2DPlayerComponent>();
+			auto soundAsset = AssetManager::Get().GetAssetAs<Sound2D>( rComp.AssetID );
+
+			soundAsset->Stop();
+			soundAsset->Reset();
+		}
 	}
 
 	void Scene::OnRuntimeEnd()
@@ -623,6 +691,8 @@ namespace Saturn {
 			delete m_PhysicsScene;
 
 		m_RuntimeRunning = false;
+
+		StopAudioPlayers();
 	}
 
 	Ref<Entity> Scene::CreatePrefab( Ref<Prefab> prefabAsset )

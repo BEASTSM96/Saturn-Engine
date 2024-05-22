@@ -236,6 +236,9 @@ namespace Saturn {
 				m_Registry.destroy( handle );
 		}
 
+		void StartAudioPlayers();
+		void StopAudioPlayers();
+
 		static void   SetActiveScene( Scene* pScene );
 		static Scene* GetActiveScene();
 

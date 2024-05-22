@@ -238,6 +238,10 @@ namespace Saturn {
 		EditorIcons::AddIcon( m_SyncTexture );
 		EditorIcons::AddIcon( m_PointLightTexture );
 		EditorIcons::AddIcon( m_ExclamationTexture );
+		
+		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_Audio.png", AddressingMode::Repeat, false ) );
+		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_AudioLooping.png", AddressingMode::Repeat, false ) );
+		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_AudioMuted.png", AddressingMode::Repeat, false ) );
 
 		// Init Physics
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();

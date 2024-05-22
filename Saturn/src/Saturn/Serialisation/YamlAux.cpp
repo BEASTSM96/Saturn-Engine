@@ -316,6 +316,21 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
+		// Sound2D Player Component
+		if( entity->HasComponent<Sound2DPlayerComponent>() )
+		{
+			rEmitter << YAML::Key << "Sound2DPlayerComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& spc = entity->GetComponent< Sound2DPlayerComponent >();
+
+			rEmitter << YAML::Key << "AssetID" << YAML::Value << spc.AssetID;
+			rEmitter << YAML::Key << "Loop"    << YAML::Value << spc.Loop;
+			rEmitter << YAML::Key << "Mute"    << YAML::Value << spc.Mute;
+
+			rEmitter << YAML::EndMap;
+		}
+
 		rEmitter << YAML::EndMap;
 	}
 
@@ -556,6 +571,15 @@ namespace Saturn {
 				c.MainCamera = cc[ "MainCamera" ].as< bool >();
 			}
 
+			auto spc = entity[ "Sound2DPlayerComponent" ];
+			if( spc )
+			{
+				auto& spc = DeserialisedEntity->AddComponent< Sound2DPlayerComponent >();
+
+				spc.AssetID = cc[ "AssetID" ].as< uint64_t >( 0 );
+				spc.Loop    = cc[ "Loop" ].as< bool >();
+				spc.Mute    = cc[ "Mute" ].as< bool >();
+			}
 		}
 	}
 

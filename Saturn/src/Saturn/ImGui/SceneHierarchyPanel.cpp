@@ -272,6 +272,8 @@ namespace Saturn {
 
 			DrawAddComponents<BillboardComponent>( "Billboard", m_SelectionContexts[ 0 ] );
 
+			DrawAddComponents<Sound2DPlayerComponent>( "Sound2D Player", m_SelectionContexts[ 0 ] );
+
 			ImGui::EndPopup();
 		}
 	}
@@ -701,6 +703,33 @@ namespace Saturn {
 					bc.AssetID = m_CurrentAssetID;
 				}
 			} );
+
+		DrawComponent<Sound2DPlayerComponent>( "Sound 2D Player", entity, [&]( auto& spc )
+		{
+			static bool s_Open = false;
+
+			if( ImGui::Button( "Select Audio" ) )
+			{
+				m_CurrentFinderType = AssetType::Audio;
+				s_Open = true;
+
+				if( spc.AssetID != 0 )
+					m_CurrentAssetID = spc.AssetID;
+			}
+
+			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
+			{
+				spc.AssetID = m_CurrentAssetID;
+			}
+
+			if( spc.AssetID != 0 )
+				ImGui::InputText( "##2dplayerid", ( char* ) std::to_string( spc.AssetID ).c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+			else
+				ImGui::InputText( "##2dplayerid", ( char* )"", 256, ImGuiInputTextFlags_ReadOnly );
+
+			Auxiliary::DrawBoolControl( "Loop", spc.Loop );
+			Auxiliary::DrawBoolControl( "Mute", spc.Mute );
+		} );
 	}
 
 }
