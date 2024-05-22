@@ -262,7 +262,7 @@ namespace Saturn {
 
 	struct PhysicsMaterialComponent
 	{
-		UUID AssetID;
+		UUID AssetID = 0;
 	};
 
 	struct PointLightComponent
@@ -279,7 +279,7 @@ namespace Saturn {
 	struct ScriptComponent
 	{
 		std::string ScriptName;
-		UUID AssetID;
+		UUID AssetID = 0;
 	};
 
 	struct RelationshipComponent
@@ -295,7 +295,7 @@ namespace Saturn {
 
 	struct PrefabComponent
 	{
-		UUID AssetID;
+		UUID AssetID = 0;
 		bool Modified = false;
 
 		PrefabComponent() = default;
@@ -305,14 +305,14 @@ namespace Saturn {
 
 	struct Sound2DPlayerComponent
 	{
-		UUID AssetID;
+		UUID AssetID = 0;
 		bool Loop = false;
 		bool Mute = false;
 	};
 
 	struct BillboardComponent
 	{
-		UUID AssetID;
+		UUID AssetID = 0;
 
 		BillboardComponent() = default;
 		BillboardComponent( BillboardComponent& other ) = default;

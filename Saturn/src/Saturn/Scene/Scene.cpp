@@ -690,9 +690,9 @@ namespace Saturn {
 		if( m_PhysicsScene )
 			delete m_PhysicsScene;
 
-		m_RuntimeRunning = false;
-
 		StopAudioPlayers();
+
+		m_RuntimeRunning = false;
 	}
 
 	Ref<Entity> Scene::CreatePrefab( Ref<Prefab> prefabAsset )

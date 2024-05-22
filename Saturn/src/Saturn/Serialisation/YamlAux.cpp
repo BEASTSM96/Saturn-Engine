@@ -574,11 +574,11 @@ namespace Saturn {
 			auto spc = entity[ "Sound2DPlayerComponent" ];
 			if( spc )
 			{
-				auto& spc = DeserialisedEntity->AddComponent< Sound2DPlayerComponent >();
+				auto& sp = DeserialisedEntity->AddComponent< Sound2DPlayerComponent >();
 
-				spc.AssetID = cc[ "AssetID" ].as< uint64_t >( 0 );
-				spc.Loop    = cc[ "Loop" ].as< bool >();
-				spc.Mute    = cc[ "Mute" ].as< bool >();
+				sp.AssetID = spc[ "AssetID" ].as< uint64_t >( 0 );
+				sp.Loop    = spc[ "Loop" ].as< bool >();
+				sp.Mute    = spc[ "Mute" ].as< bool >();
 			}
 		}
 	}
