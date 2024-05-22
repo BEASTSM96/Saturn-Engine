@@ -127,6 +127,7 @@ namespace Saturn {
 				MA_CHECK( ma_device_init( &m_Context, &deviceConfig, &m_Device ) );
 
 				SAT_CORE_INFO( "Audio Device information:" );
+				SAT_CORE_INFO( " Using backend API: {0}", ma_get_backend_name( backends[0] ) );
 				SAT_CORE_INFO( " Device Name: {0}", deviceInfo.name );
 				SAT_CORE_INFO( " Is Primary: {0}", deviceInfo.isDefault );
 				SAT_CORE_INFO( " Channels: {0}", m_Device.playback.channels );
@@ -139,14 +140,21 @@ namespace Saturn {
 
 	void AudioSystem::Terminate()
 	{
-		// Stop any alive sounds
-		for( auto& [id, asset] : m_SoundAssets )
+		// Stop and unload any alive sounds
+		for( auto& [id, asset] : m_AliveSounds )
 		{
 			asset->Stop();
 			asset->Unload();
 		}
 
+		// Unload remaining sounds
+		for( auto& [id, asset] : m_LoadedSounds )
+		{
+			asset->Unload();
+		}
+
 		// Stop audio thread
+		SAT_CORE_INFO( "Stoping Audio Thread..." );
 		m_AudioThread->RequestJoin();
 
 		ma_device_stop( &m_Device );
@@ -155,6 +163,9 @@ namespace Saturn {
 
 		// NOTE: Device is owned by the engine, so it will uninit it for us.
 		ma_engine_uninit( &m_Engine );
+
+		m_AliveSounds.clear();
+		m_LoadedSounds.clear();
 	}
 
 	AudioSystem::~AudioSystem()
@@ -173,10 +184,17 @@ namespace Saturn {
 		soundAsset->Play();
 	}
 
-	void AudioSystem::RequestNewSound( AssetID ID, bool Play /*= true */ )
+	Ref<Sound2D> AudioSystem::RequestNewSound( AssetID ID, bool Play /*= true */ )
 	{
+		// Try load the asset on the main thread to return it.
+		// Of course at this point the sound will just be created
+		// and not loaded.
+		Ref<Sound2D> snd = AssetManager::Get().GetAssetAs<Sound2D>( ID );
+
 		m_AudioThread->Queue( [=]()
 			{
+				// Intentional.
+				// Better to get the sound again rather than copy it into this lambda.
 				Ref<Sound2D> soundAsset = AssetManager::Get().GetAssetAs<Sound2D>( ID );
 
 				soundAsset->Load();
@@ -184,23 +202,27 @@ namespace Saturn {
 				if( Play )
 					soundAsset->Play();
 
-				m_SoundAssets[ ID ] = soundAsset;
+				m_AliveSounds[ ID ] = soundAsset;
+				m_LoadedSounds[ ID ] = soundAsset;
 			} );
+
+		return snd;
 	}
 
 	void AudioSystem::ReportSoundCompleted( AssetID ID )
 	{
-		auto Itr = m_SoundAssets.find( ID );
+		auto Itr = m_AliveSounds.find( ID );
 
 		// This will attempt to destroy the sound.
 		// However, if the sound asset still has an active ref count then it will not (always will because of asset registry)
 		// Until it is played again
 		// (right now it will always destroy it because we aren't returning the sound atm)
-		if( Itr != m_SoundAssets.end() ) 
+		if( Itr != m_AliveSounds.end() ) 
 		{
-			// TODO: Maybe unload the sound?
+			auto& rSnd = ( Itr )->second;
+			rSnd->m_Playing = false;
 
-			m_SoundAssets.erase( Itr );
+			m_AliveSounds.erase( Itr );
 		}
 	}
 

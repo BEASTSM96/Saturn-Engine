@@ -106,6 +106,14 @@ namespace Saturn {
 		return m_Looping;
 	}
 
+	void Sound2D::WaitUntilLoaded()
+	{
+		while( !m_Loaded )
+		{
+			std::this_thread::yield();
+		}
+	}
+
 	void Sound2D::OnSoundEnd( void* pUserData, ma_sound* pSound )
 	{
 		AssetID ID = static_cast<uint64_t>( reinterpret_cast<intptr_t>( pUserData ) );

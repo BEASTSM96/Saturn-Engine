@@ -61,6 +61,8 @@ namespace Saturn {
 		bool m_PendingTerminate = false;
 	};
 
+	class Sound2D;
+
 	class AudioSystem
 	{
 	public:
@@ -71,7 +73,14 @@ namespace Saturn {
 
 		void Terminate();
 
-		void RequestNewSound( AssetID ID, bool Play = true );
+		// Loads a new Sound2D to be played
+		// By default the sound will automatically play upon loading.
+		// WARNING:
+		//  This function uses the Audio Thread
+		//  This function will return the sound however, it may not be loaded as soon as it returns!
+		//  Use WaitUntilLoaded for safety.
+		Ref<Sound2D> RequestNewSound( AssetID ID, bool Play = true );
+		
 		void ReportSoundCompleted( AssetID ID );
 
 		ma_engine& GetAudioEngine() { return m_Engine; }
@@ -85,7 +94,9 @@ namespace Saturn {
 		Ref<AudioThread> m_AudioThread;
 
 		// Currently alive sounds (i.e. sounds that are playing)
-		std::unordered_map<AssetID, Ref<Sound>> m_SoundAssets;
+		std::unordered_map<AssetID, Ref<Sound>> m_AliveSounds;
+		// A list of every loaded sound in memory
+		std::unordered_map<AssetID, Ref<Sound>> m_LoadedSounds;
 
 	private:
 		ma_engine m_Engine;

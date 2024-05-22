@@ -48,8 +48,9 @@ namespace Saturn {
 		bool IsPlaying() const;
 		bool IsLooping() const;
 
-	public:
+		void WaitUntilLoaded();
 
+	public:
 		const std::filesystem::path& GetRawPath() const { return m_RawPath; }
 		std::filesystem::path& GetRawPath() { return m_RawPath; }
 		
