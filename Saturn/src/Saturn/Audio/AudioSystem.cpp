@@ -157,9 +157,9 @@ namespace Saturn {
 		SAT_CORE_INFO( "Stoping Audio Thread..." );
 		m_AudioThread->RequestJoin();
 
-		ma_device_stop( &m_Device );
+		MA_CHECK( ma_device_stop( &m_Device ) );
 
-		ma_context_uninit( nullptr );
+		MA_CHECK( ma_context_uninit( nullptr ) );
 
 		// NOTE: Device is owned by the engine, so it will uninit it for us.
 		ma_engine_uninit( &m_Engine );
@@ -213,16 +213,33 @@ namespace Saturn {
 	{
 		auto Itr = m_AliveSounds.find( ID );
 
-		// This will attempt to destroy the sound.
-		// However, if the sound asset still has an active ref count then it will not (always will because of asset registry)
-		// Until it is played again
-		// (right now it will always destroy it because we aren't returning the sound atm)
 		if( Itr != m_AliveSounds.end() ) 
 		{
 			auto& rSnd = ( Itr )->second;
 			rSnd->m_Playing = false;
 
 			m_AliveSounds.erase( Itr );
+		}
+	}
+
+	void AudioSystem::Suspend()
+	{
+		// Stop and unload any alive sounds
+		for( auto& [id, asset] : m_AliveSounds )
+		{
+			asset->Stop();
+		}
+	
+		MA_CHECK( ma_device_stop( &m_Device ) );
+	}
+
+	void AudioSystem::Resume()
+	{
+		MA_CHECK( ma_device_start( &m_Device ) );
+
+		for( auto& [id, asset] : m_AliveSounds )
+		{
+			asset->Play();
 		}
 	}
 

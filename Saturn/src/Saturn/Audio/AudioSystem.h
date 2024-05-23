@@ -85,6 +85,9 @@ namespace Saturn {
 
 		ma_engine& GetAudioEngine() { return m_Engine; }
 
+		void Suspend();
+		void Resume();
+
 	private:
 		void Initialise();
 		void StartNewSound( Ref<Sound> rSoundAsset );

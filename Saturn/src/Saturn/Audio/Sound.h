@@ -29,6 +29,8 @@
 #pragma once
 
 #include "Saturn/Asset/Asset.h"
+#include "AudioCore.h"
+
 #include <miniaudio.h>
 #include <filesystem>
 
