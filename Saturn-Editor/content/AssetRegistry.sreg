@@ -503,3 +503,20 @@ Assets:
     Path: content\textures\editor\NoIcon.png
     Type: Texture
     Version: 4096
+  - Asset: 5981799677297120073
+    Path: content\textures\editor\Billboard_Audio.png
+    Type: Texture
+    Version: 4096
+  - Asset: 13693472762669789688
+    Path: content\textures\editor\Billboard_AudioLooping.png
+    Type: Texture
+    Version: 4096
+  - Asset: 1385111127010412921
+    Path: content\textures\editor\Billboard_AudioMuted.png
+    Type: Texture
+    Version: 4096
+  - Asset: 10420832643679182569
+    Path: content\textures\editor\Billboard_AudioSpatial.png
+    Type: Texture
+    Version: 4096
+    Version: 4096

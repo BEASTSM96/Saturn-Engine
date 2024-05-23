@@ -49,6 +49,7 @@
 #include "Saturn/Serialisation/SceneSerialiser.h"
 
 #include "Saturn/Audio/Sound2D.h"
+#include "Saturn/Audio/AudioSystem.h"
 
 #include "Saturn/ImGui/EditorIcons.h"
 
@@ -613,15 +614,17 @@ namespace Saturn {
 		// I know we can just use the "=" operator, but we need to recreate the entities from the game.
 		for( auto&& [id, entity] : m_EntityIDMap )
 		{
-			if( m_EntityIDMap[ id ]->HasComponent<ScriptComponent>() )
-			{
-				auto& rScriptComponent = m_EntityIDMap[ id ]->GetComponent<ScriptComponent>();
+			auto& rSourceEntity = m_EntityIDMap[ id ];
 
-				NewScene->m_EntityIDMap[ id ] = NewScene->CreateEntityWithIDScript( m_EntityIDMap[ id ]->GetUUID(), m_EntityIDMap[ id ]->GetName(), rScriptComponent.ScriptName );
+			if( rSourceEntity->HasComponent<ScriptComponent>() )
+			{
+				auto& rScriptComponent = rSourceEntity->GetComponent<ScriptComponent>();
+
+				NewScene->m_EntityIDMap[ id ] = NewScene->CreateEntityWithIDScript( rSourceEntity->GetUUID(), rSourceEntity->GetName(), rScriptComponent.ScriptName );
 			}
 			else
 			{
-				NewScene->m_EntityIDMap[ id ] = Ref<Entity>::Create( m_EntityIDMap[ id ]->GetName(), m_EntityIDMap[ id ]->GetUUID() );
+				NewScene->m_EntityIDMap[ id ] = Ref<Entity>::Create( rSourceEntity->GetName(), rSourceEntity->GetUUID() );
 			}	
 		}
 

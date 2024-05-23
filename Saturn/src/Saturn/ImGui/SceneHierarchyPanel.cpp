@@ -95,7 +95,7 @@ namespace Saturn {
 	
 	SceneHierarchyPanel::SceneHierarchyPanel() : Panel( "Scene Hierarchy Panel" )
 	{
-		m_EditIcon = Ref<Texture2D>::Create( "content/textures/editor/EditIcon.png", AddressingMode::Repeat );
+		m_EditIcon = Ref<Texture2D>::Create( "content/textures/editor/EditIcon.png", AddressingMode::Repeat, false );
 	}
 
 	SceneHierarchyPanel::~SceneHierarchyPanel()

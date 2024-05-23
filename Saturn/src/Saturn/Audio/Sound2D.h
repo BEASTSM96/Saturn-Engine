@@ -30,8 +30,6 @@
 
 #include "Sound.h"
 
-#include "AudioSystem.h"
-
 namespace Saturn {
 
 	class Sound2D : public Sound

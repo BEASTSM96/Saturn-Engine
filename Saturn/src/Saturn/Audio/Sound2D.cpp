@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "Sound2D.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
+#include "AudioSystem.h"
 
 namespace Saturn {
 
@@ -58,7 +58,6 @@ namespace Saturn {
 
 	void Sound2D::Unload()
 	{
-		// TODO: If the sound stops we will crash
 		if( m_Loaded )
 		{
 			ma_sound_uninit( &m_Sound );
@@ -76,6 +75,12 @@ namespace Saturn {
 	{
 		if( !m_Loaded )
 			Load();
+
+		if( ma_sound_at_end( &m_Sound ) )
+		{
+			SAT_CORE_WARN( "Playing sound from beginning: {0}", m_RawPath.string() );
+			Reset();
+		}
 
 		SAT_CORE_INFO( "Trying to start sound: {0}", m_RawPath.string() );
 
@@ -116,7 +121,10 @@ namespace Saturn {
 
 	void Sound2D::Reset()
 	{
-		MA_CHECK( ma_sound_seek_to_pcm_frame( &m_Sound, 0 ) );
+		if( m_Loaded )
+		{
+			MA_CHECK( ma_sound_seek_to_pcm_frame( &m_Sound, 0 ) );
+		}
 	}
 
 	void Sound2D::OnSoundEnd( void* pUserData, ma_sound* pSound )
