@@ -273,6 +273,8 @@ namespace Saturn {
 			DrawAddComponents<BillboardComponent>( "Billboard", m_SelectionContexts[ 0 ] );
 
 			DrawAddComponents<AudioPlayerComponent>( "Audio Player", m_SelectionContexts[ 0 ] );
+			
+			DrawAddComponents<AudioListenerComponent>( "Audio Listener", m_SelectionContexts[ 0 ] );
 
 			ImGui::EndPopup();
 		}
@@ -739,6 +741,14 @@ namespace Saturn {
 				Auxiliary::DrawBoolControl( "Mute", ap.Mute );
 				Auxiliary::DrawBoolControl( "Spatialization", ap.Spatialization );
 			}
+		} );
+
+		DrawComponent<AudioListenerComponent>( "Audio Listener", entity, [&]( auto& alc )
+		{
+			Auxiliary::DrawBoolControl( "Primary", alc.Primary );
+			Auxiliary::DrawVec3Control( "Direction", alc.Direction );
+			Auxiliary::DrawFloatControl( "ConeInnerAngle", alc.ConeInnerAngle );
+			Auxiliary::DrawFloatControl( "ConeOuterAngle", alc.ConeOuterAngle );
 		} );
 	}
 

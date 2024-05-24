@@ -109,7 +109,7 @@ namespace Saturn {
 			[&]() 
 			{
 				// Create engine
-				MA_CHECK( ma_engine_init( NULL, &m_Engine ) );
+				MA_CHECK( ma_engine_init( nullptr, &m_Engine ) );
 
 				ma_backend backends[ 1 ] = { ma_backend_wasapi };
 				MA_CHECK( ma_context_init( backends, 1, nullptr, &m_Context ) );
@@ -268,6 +268,11 @@ namespace Saturn {
 		{
 			asset->Play();
 		}
+	}
+
+	void AudioSystem::SetPrimaryListenerPos( const glm::vec3& rPos )
+	{
+		ma_engine_listener_set_position( &m_Engine, 0, rPos.x, rPos.y, rPos.z );
 	}
 
 }

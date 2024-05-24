@@ -91,6 +91,8 @@ namespace Saturn {
 		void Suspend();
 		void Resume();
 
+		void SetPrimaryListenerPos( const glm::vec3& rPos );
+
 	private:
 		void Initialise();
 		void StartNewSound( Ref<Sound> rSoundAsset );

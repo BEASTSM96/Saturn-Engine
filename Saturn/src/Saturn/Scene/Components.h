@@ -311,6 +311,16 @@ namespace Saturn {
 		bool Spatialization = false;
 	};
 
+	struct AudioListenerComponent
+	{
+		bool Primary = false;
+		glm::vec3 Direction{};
+
+		// Radians not degrees
+		float ConeInnerAngle = 0.0f;
+		float ConeOuterAngle = 0.0f;
+	};
+
 	struct BillboardComponent
 	{
 		UUID AssetID = 0;
@@ -339,6 +349,6 @@ namespace Saturn {
 		CameraComponent,
 		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
 		ScriptComponent, 
-		AudioPlayerComponent,
+		AudioPlayerComponent, AudioListenerComponent,
 		BillboardComponent>;
 }

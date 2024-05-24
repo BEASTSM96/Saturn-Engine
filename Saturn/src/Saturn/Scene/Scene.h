@@ -238,6 +238,7 @@ namespace Saturn {
 
 		void StartAudioPlayers();
 		void StopAudioPlayers();
+		void UpdateAudioListeners();
 
 		static void   SetActiveScene( Scene* pScene );
 		static Scene* GetActiveScene();

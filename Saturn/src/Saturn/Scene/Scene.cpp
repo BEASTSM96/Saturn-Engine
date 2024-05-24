@@ -182,6 +182,8 @@ namespace Saturn {
 			{
 				entity->OnUpdate( ts );
 			}
+
+			UpdateAudioListeners();
 		}
 	}
 	
@@ -558,7 +560,7 @@ namespace Saturn {
 			CameraComponent,
 			BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
 			ScriptComponent,
-			AudioPlayerComponent,
+			AudioPlayerComponent, AudioListenerComponent,
 			BillboardComponent>;
 
 		CopyComponentIfExists( DesiredComponents{}, newEntity->GetHandle(), entity->GetHandle(), m_Registry );
@@ -654,6 +656,22 @@ namespace Saturn {
 		}
 
 		StartAudioPlayers();
+	}
+
+	void Scene::UpdateAudioListeners() 
+	{
+		auto linsteners = GetAllEntitiesWith< AudioListenerComponent >();
+
+		for( auto& entity : linsteners )
+		{
+			auto& rComp = entity->GetComponent<AudioListenerComponent>();
+			
+			if( rComp.Primary )
+			{
+				auto& rTransform = entity->GetComponent<TransformComponent>();
+				AudioSystem::Get().SetPrimaryListenerPos( rTransform.Position );
+			}
+		}
 	}
 
 	void Scene::StartAudioPlayers()
