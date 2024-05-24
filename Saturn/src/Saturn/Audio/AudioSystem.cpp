@@ -159,7 +159,7 @@ namespace Saturn {
 
 		MA_CHECK( ma_device_stop( &m_Device ) );
 
-		MA_CHECK( ma_context_uninit( nullptr ) );
+		MA_CHECK( ma_context_uninit( &m_Context ) );
 
 		// NOTE: Device is owned by the engine, so it will uninit it for us.
 		ma_engine_uninit( &m_Engine );
