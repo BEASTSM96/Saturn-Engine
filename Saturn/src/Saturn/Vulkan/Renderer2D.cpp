@@ -373,33 +373,15 @@ namespace Saturn {
 		glm::mat4 transform = glm::translate( glm::mat4( 1.0f ), position )
 			* glm::scale( glm::mat4( 1.0f ), { size.x, size.y, 1.0f } );
 
-		m_CurrentQuad->Position = transform * m_QuadVertexPositions[ 0 ];
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = TexCoord[ 0 ];
-		m_CurrentQuad->TextureIndex = 0;
+		for( size_t i = 0; i < 4; i++ )
+		{
+			m_CurrentQuad->Position = transform * m_QuadVertexPositions[ i ];
+			m_CurrentQuad->Color = color;
+			m_CurrentQuad->TexCoord = TexCoord[ i ];
+			m_CurrentQuad->TextureIndex = 0;
 
-		m_CurrentQuad++;
-
-		m_CurrentQuad->Position = transform * m_QuadVertexPositions[ 1 ];
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = TexCoord[ 1 ];
-		m_CurrentQuad->TextureIndex = 0;
-
-		m_CurrentQuad++;
-
-		m_CurrentQuad->Position = transform * m_QuadVertexPositions[ 2 ];
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = TexCoord[ 2 ];
-		m_CurrentQuad->TextureIndex = 0;
-
-		m_CurrentQuad++;
-
-		m_CurrentQuad->Position = transform * m_QuadVertexPositions[ 3 ];
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = TexCoord[ 3 ];
-		m_CurrentQuad->TextureIndex = 0;
-
-		m_CurrentQuad++;
+			m_CurrentQuad++;
+		}
 
 		m_QuadIndexCount += 6;
 	}
@@ -449,39 +431,23 @@ namespace Saturn {
 		glm::vec3 CamRight = { m_CameraView[ 0 ][ 0 ], m_CameraView[ 1 ][ 0 ], m_CameraView[ 2 ][ 0 ] };
 		glm::vec3 CamUp = { m_CameraView[ 0 ][ 1 ], m_CameraView[ 1 ][ 1 ], m_CameraView[ 2 ][ 1 ] };
 
-		m_CurrentQuad->Position = position + CamRight * ( m_QuadVertexPositions[ 0 ].x ) * rSize.x + CamUp * m_QuadVertexPositions[ 0 ].y * rSize.y;
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = TexCoord[ 0 ];
-		m_CurrentQuad->TextureIndex = 1;
+		for( size_t i = 0; i < 4; i++ )
+		{
+			m_CurrentQuad->Position = position + CamRight * ( m_QuadVertexPositions[ i ].x ) * rSize.x + CamUp * m_QuadVertexPositions[ i ].y * rSize.y;
+			m_CurrentQuad->Color = color;
+			m_CurrentQuad->TexCoord = TexCoord[ i ];
+			m_CurrentQuad->TextureIndex = 1;
 
-		m_CurrentQuad++;
-
-		m_CurrentQuad->Position = position + CamRight * m_QuadVertexPositions[ 1 ].x * rSize.x + CamUp * m_QuadVertexPositions[ 1 ].y * rSize.y;
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = TexCoord[ 1 ];
-		m_CurrentQuad->TextureIndex = 1;
-
-		m_CurrentQuad++;
-
-		m_CurrentQuad->Position = position + CamRight * m_QuadVertexPositions[ 2 ].x * rSize.x + CamUp * m_QuadVertexPositions[ 2 ].y * rSize.y;
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = TexCoord[ 2 ];
-		m_CurrentQuad->TextureIndex = 1;
-
-		m_CurrentQuad++;
-
-		m_CurrentQuad->Position = position + CamRight * m_QuadVertexPositions[ 3 ].x * rSize.x + CamUp * m_QuadVertexPositions[ 3 ].y * rSize.y;
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = TexCoord[ 3 ];
-		m_CurrentQuad->TextureIndex = 1;
-
-		m_CurrentQuad++;
+			m_CurrentQuad++;
+		}
 
 		m_QuadIndexCount += 6;
 	}
 
 	void Renderer2D::SubmitBillboardTextured( const glm::vec3& position, const glm::vec4& color, const Ref<Texture2D>& rTexture, const glm::vec2& rSize )
 	{
+		constexpr glm::vec2 TexCoord[] = { { 0.0f, 1.0f }, { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f } };
+
 		glm::vec3 CamRight = { m_CameraView[ 0 ][ 0 ], m_CameraView[ 1 ][ 0 ], m_CameraView[ 2 ][ 0 ] };
 		glm::vec3 CamUp = { m_CameraView[ 0 ][ 1 ], m_CameraView[ 1 ][ 1 ], m_CameraView[ 2 ][ 1 ] };
 
@@ -505,33 +471,15 @@ namespace Saturn {
 			m_CurrentTextureSlot++;
 		}
 
-		m_CurrentQuad->Position = position + CamRight * ( m_QuadVertexPositions[ 0 ].x ) * rSize.x + CamUp * m_QuadVertexPositions[ 0 ].y * rSize.y;
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = glm::vec2( 0.0f, 1.0f );
-		m_CurrentQuad->TextureIndex = textureID;
+		for( size_t i = 0; i < 4; i++ )
+		{
+			m_CurrentQuad->Position = position + CamRight * ( m_QuadVertexPositions[ i ].x ) * rSize.x + CamUp * m_QuadVertexPositions[ i ].y * rSize.y;
+			m_CurrentQuad->Color = color;
+			m_CurrentQuad->TexCoord = TexCoord[ i ];
+			m_CurrentQuad->TextureIndex = textureID;
 
-		m_CurrentQuad++;
-
-		m_CurrentQuad->Position = position + CamRight * ( m_QuadVertexPositions[ 1 ].x ) * rSize.x + CamUp * m_QuadVertexPositions[ 1 ].y * rSize.y;
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = glm::vec2( 0.0f, 0.0f );
-		m_CurrentQuad->TextureIndex = textureID;
-
-		m_CurrentQuad++;
-
-		m_CurrentQuad->Position = position + CamRight * ( m_QuadVertexPositions[ 2 ].x ) * rSize.x + CamUp * m_QuadVertexPositions[ 2 ].y * rSize.y;
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = glm::vec2( 1.0f, 0.0f );
-		m_CurrentQuad->TextureIndex = textureID;
-
-		m_CurrentQuad++;
-
-		m_CurrentQuad->Position = position + CamRight * ( m_QuadVertexPositions[ 3 ].x ) * rSize.x + CamUp * m_QuadVertexPositions[ 3 ].y * rSize.y;
-		m_CurrentQuad->Color = color;
-		m_CurrentQuad->TexCoord = glm::vec2( 1.0f, 1.0f );
-		m_CurrentQuad->TextureIndex = textureID;
-
-		m_CurrentQuad++;
+			m_CurrentQuad++;
+		}
 
 		m_QuadIndexCount += 6;
 	}

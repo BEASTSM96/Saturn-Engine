@@ -290,6 +290,25 @@ namespace Saturn {
 						submissionTexture, glm::vec2( 1.0f ) );
 				}
 			}
+
+			auto listeners = m_Registry.group<AudioListenerComponent>( entt::get<TransformComponent> );
+			if( listeners.size() )
+			{
+				Ref<Texture2D> listenTexture = EditorIcons::GetIcon( "Billboard_AudioListen" );
+
+				for( const auto& e : listeners )
+				{
+					auto [transformComponent, comp] = listeners.get<TransformComponent, AudioListenerComponent>( e );
+
+					auto height = transformComponent.Scale.y;
+					auto pos = glm::vec3( transformComponent.Position.x, height + 5, transformComponent.Position.z );
+
+					Renderer2D::Get().SubmitBillboardTextured(
+						pos,
+						glm::vec4( 1.0f ),
+						listenTexture, glm::vec2( 1.0f ) );
+				}
+			}
 		}
 
 		// Physics Colliders (selected meshes only)

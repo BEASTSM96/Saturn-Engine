@@ -64,12 +64,10 @@ namespace Saturn {
 		void SaveProject();
 
 	public:
-		
 		TitleBar* GetTitleBar() { return m_TitleBar; }
 		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
 
 	private:
-		
 		void SelectionChanged( Ref<Entity> e );
 		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
 		bool OnKeyPressed( RubyKeyEvent& rEvent );
