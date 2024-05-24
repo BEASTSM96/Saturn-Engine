@@ -34,7 +34,7 @@
 #include "Saturn/Asset/Asset.h"
 #include "Saturn/Asset/AssetManager.h"
 
-#include "Saturn/Audio/Sound2D.h"
+#include "Saturn/Audio/Sound.h"
 
 #include "Saturn/Vulkan/Mesh.h"
 
@@ -209,8 +209,8 @@ namespace Saturn::Auxiliary {
 				asset->Path = assetPath;
 
 				// Create the asset.
-				auto sound = asset.As<Sound2D>();
-				sound = Ref<Sound2D>::Create();
+				auto sound = asset.As<Sound>();
+				sound = Ref<Sound>::Create();
 				sound->ID = asset->ID;
 				sound->Path = assetPath;
 				sound->Type = AssetType::Audio;
@@ -218,7 +218,7 @@ namespace Saturn::Auxiliary {
 				sound->SetRawPath( rImportTargetPath / s_ImportSoundPath.filename() );
 
 				// Save the asset
-				Sound2DAssetSerialiser s2d;
+				SoundAssetSerialiser s2d;
 				s2d.Serialise( sound );
 
 				sound->SetPath( assetPath );

@@ -49,7 +49,7 @@
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
 #include "Saturn/Asset/Prefab.h"
-#include "Saturn/Audio/Sound2D.h"
+#include "Saturn/Audio/Sound.h"
 
 #include "Saturn/Premake/Premake.h"
 

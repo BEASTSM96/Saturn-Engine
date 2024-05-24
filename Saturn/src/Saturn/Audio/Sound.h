@@ -28,37 +28,36 @@
 
 #pragma once
 
-#include "Saturn/Asset/Asset.h"
-#include "AudioCore.h"
-
-#include <miniaudio.h>
-#include <filesystem>
+#include "SoundBase.h"
 
 namespace Saturn {
 
-	class Sound : public Asset
+	class Sound : public SoundBase
 	{
 	public:
-		Sound() = default;
-		virtual ~Sound() = default;
+		Sound();
+		virtual ~Sound();
 
-		virtual void Play() = 0;
-		virtual void Stop() = 0;
-		virtual void Loop() = 0;
-		virtual void Load() = 0;
+		virtual void Play() override;
+		virtual void Stop() override;
+		virtual void Loop() override;
+		virtual void Load( uint32_t flags = 0 ) override;
 
-		ma_sound& GetRawSound() { return m_Sound; }
+		bool IsPlaying() const;
+		bool IsLooping() const;
 
-	protected:
-		ma_sound m_Sound{};
-		bool m_Loaded = false;
-		bool m_Playing = false;
-		bool m_Looping = false;
-
-		std::filesystem::path m_RawPath = "";
+		void WaitUntilLoaded();
+		void Reset();
+		void SetPosition( const glm::vec3& rPos );
+		void SetSpatialization( bool value );
 
 	private:
-		virtual void Unload() = 0;
+		static void OnSoundEnd( void* pUserData, ma_sound* pSound );
+
+	private:
+		virtual void Unload() override;
+
+		bool m_Spatialization = false;
 
 	private:
 		friend class AudioSystem;

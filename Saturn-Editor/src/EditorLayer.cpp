@@ -73,7 +73,7 @@
 #include <Saturn/Core/Renderer/RenderThread.h>
 #include <Saturn/Core/VirtualFS.h>
 
-#include <Saturn/Audio/Sound2D.h>
+#include <Saturn/Audio/AudioSystem.h>
 
 #include <Saturn/Premake/Premake.h>
 #include <Saturn/Core/Process.h>

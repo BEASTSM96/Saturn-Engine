@@ -62,6 +62,8 @@ namespace Saturn {
 	};
 
 	class Sound2D;
+	class Sound3D;
+	class Entity;
 
 	class AudioSystem
 	{
@@ -79,7 +81,8 @@ namespace Saturn {
 		//  This function uses the Audio Thread
 		//  This function will return the sound however, it may not be loaded as soon as it returns!
 		//  Use WaitUntilLoaded for safety.
-		Ref<Sound2D> RequestNewSound( AssetID ID, bool Play = true );
+		Ref<Sound> RequestNewSound( AssetID ID, bool Play = true );
+		Ref<Sound> PlaySoundAtLocation( AssetID ID, const glm::vec3& rPos, bool Play = true );
 		
 		void ReportSoundCompleted( AssetID ID );
 

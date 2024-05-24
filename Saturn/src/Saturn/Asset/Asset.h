@@ -180,7 +180,7 @@ constexpr auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A 
 	{
 		if( str == ".png" || str == ".tga" || str == ".jpg" || str == ".jpeg" || str == ".hdr" || str == ".ico" )
 			return AssetType::Texture;
-		else if( str == ".s2d" )
+		else if( str == ".msnd" )
 			return AssetType::Audio;
 		else if( str == ".scene" )
 			return AssetType::Scene;

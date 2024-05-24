@@ -33,7 +33,7 @@
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
 #include "Saturn/Asset/TextureSourceAsset.h"
-#include "Saturn/Audio/Sound2D.h"
+#include "Saturn/Audio/Sound.h"
 
 #include "YamlAux.h"
 
@@ -411,17 +411,17 @@ namespace Saturn {
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// SOUND2D
+	// SOUND
 
-	void Sound2DAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
+	void SoundAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
 	{
-		auto sound = rAsset.As<Sound2D>();
+		auto sound = rAsset.As<Sound>();
 
 		YAML::Emitter out;
 
 		out << YAML::BeginMap;
 
-		out << YAML::Key << "Sound2D" << YAML::Value;
+		out << YAML::Key << "Sound" << YAML::Value;
 
 		out << YAML::BeginMap;
 
@@ -438,7 +438,7 @@ namespace Saturn {
 		fout << out.c_str();
 	}
 
-	bool Sound2DAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
+	bool SoundAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
 		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
 		std::ifstream FileIn( absolutePath );
@@ -451,13 +451,13 @@ namespace Saturn {
 		if( data.IsNull() )
 			return false;
 
-		auto soundData = data[ "Sound2D" ];
+		auto soundData = data[ "Sound" ];
 		auto filepath = soundData[ "Filepath" ].as<std::string>();
 
 		auto realPath = Project::GetActiveProject()->FilepathAbs( filepath );
-		auto sound = Ref<Sound2D>::Create();
+
+		auto sound = Ref<Sound>::Create();
 		sound->SetRawPath( realPath );
-		//sound->Load();
 
 		// TODO: (Asset) Fix this.
 		struct

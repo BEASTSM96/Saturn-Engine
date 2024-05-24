@@ -233,10 +233,10 @@ namespace Saturn {
 				RawSerialisation::WriteObject( cc.MainCamera, rStream );
 			} );
 
-		// Sound2D Player Component
-		WriteComponent<Sound2DPlayerComponent>( rEntity, rStream, [&]()
+		// Audio Player Component
+		WriteComponent<AudioPlayerComponent>( rEntity, rStream, [&]()
 			{
-				auto& spc = rEntity->GetComponent< Sound2DPlayerComponent >();
+				auto& spc = rEntity->GetComponent< AudioPlayerComponent >();
 
 				RawSerialisation::WriteObject( spc.AssetID, rStream );
 				RawSerialisation::WriteObject( spc.Loop, rStream );
@@ -431,10 +431,10 @@ namespace Saturn {
 				RawSerialisation::ReadObject( cc.MainCamera, rStream );
 			} );
 
-		// Sound2D Player Component
-		ReadComponent<Sound2DPlayerComponent>( rEntity, rStream, [&]()
+		// Audio Component
+		ReadComponent<AudioPlayerComponent>( rEntity, rStream, [&]()
 			{
-				auto& spc = rEntity->GetComponent< Sound2DPlayerComponent >();
+				auto& spc = rEntity->GetComponent< AudioPlayerComponent >();
 
 				RawSerialisation::ReadObject( spc.AssetID, rStream );
 				RawSerialisation::ReadObject( spc.Loop, rStream );

@@ -64,7 +64,7 @@ namespace Saturn {
 		[[nodiscard]] virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
 	};
 
-	class Sound2DAssetSerialiser : public AssetSerialiser
+	class SoundAssetSerialiser : public AssetSerialiser
 	{
 	public:
 		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;

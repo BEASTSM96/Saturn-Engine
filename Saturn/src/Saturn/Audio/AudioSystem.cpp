@@ -30,7 +30,6 @@
 #include "AudioSystem.h"
 
 #include "Saturn/Asset/AssetManager.h"
-#include "Sound2D.h"
 
 #include "Saturn/Core/OptickProfiler.h"
 
@@ -184,20 +183,48 @@ namespace Saturn {
 		soundAsset->Play();
 	}
 
-	Ref<Sound2D> AudioSystem::RequestNewSound( AssetID ID, bool Play /*= true */ )
+	Ref<Sound> AudioSystem::RequestNewSound( AssetID ID, bool Play /*= true */ )
 	{
 		// Try load the asset on the main thread to return it.
 		// Of course at this point the sound will just be created
 		// and not loaded.
-		Ref<Sound2D> snd = AssetManager::Get().GetAssetAs<Sound2D>( ID );
+		Ref<Sound> snd = AssetManager::Get().GetAssetAs<Sound>( ID );
 
 		m_AudioThread->Queue( [=]()
 			{
 				// Intentional.
 				// Better to get the sound again rather than copy it into this lambda.
-				Ref<Sound2D> soundAsset = AssetManager::Get().GetAssetAs<Sound2D>( ID );
+				Ref<Sound> soundAsset = AssetManager::Get().GetAssetAs<Sound>( ID );
+
+				soundAsset->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
+				// If the sound was already loaded then we can still disable it here.
+				soundAsset->SetSpatialization( false );
+
+				if( Play )
+					soundAsset->Play();
+
+				m_AliveSounds[ ID ] = soundAsset;
+				m_LoadedSounds[ ID ] = soundAsset;
+			} );
+
+		return snd;
+	}
+
+	Ref<Sound> AudioSystem::PlaySoundAtLocation( AssetID ID, const glm::vec3& rPos, bool Play /*= true */ )
+	{
+		Ref<Sound> snd = AssetManager::Get().GetAssetAs<Sound>( ID );
+
+		m_AudioThread->Queue( [=]()
+			{
+				// Intentional.
+				// Better to get the sound again rather than copy it into this lambda.
+				Ref<Sound> soundAsset = AssetManager::Get().GetAssetAs<Sound>( ID ).As<Sound>();
 
 				soundAsset->Load();
+				// If the sound was already loaded then we can still enable it here.
+				soundAsset->SetSpatialization( true );
+
+				soundAsset->SetPosition( rPos );
 
 				if( Play )
 					soundAsset->Play();

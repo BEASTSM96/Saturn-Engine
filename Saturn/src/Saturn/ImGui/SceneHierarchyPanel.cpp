@@ -272,7 +272,7 @@ namespace Saturn {
 
 			DrawAddComponents<BillboardComponent>( "Billboard", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<Sound2DPlayerComponent>( "Sound2D Player", m_SelectionContexts[ 0 ] );
+			DrawAddComponents<AudioPlayerComponent>( "Audio Player", m_SelectionContexts[ 0 ] );
 
 			ImGui::EndPopup();
 		}
@@ -704,7 +704,7 @@ namespace Saturn {
 			}
 		} );
 
-		DrawComponent<Sound2DPlayerComponent>( "Sound 2D Player", entity, [&]( auto& spc )
+		DrawComponent<AudioPlayerComponent>( "Audio Player", entity, [&]( auto& ap )
 		{
 			static bool s_Open = false;
 
@@ -713,22 +713,23 @@ namespace Saturn {
 				m_CurrentFinderType = AssetType::Audio;
 				s_Open = true;
 
-				if( spc.AssetID != 0 )
-					m_CurrentAssetID = spc.AssetID;
+				if( ap.AssetID != 0 )
+					m_CurrentAssetID = ap.AssetID;
 			}
 
 			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
 			{
-				spc.AssetID = m_CurrentAssetID;
+				ap.AssetID = m_CurrentAssetID;
 			}
 
-			if( spc.AssetID != 0 )
-				ImGui::InputText( "##2dplayerid", ( char* ) std::to_string( spc.AssetID ).c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+			if( ap.AssetID != 0 )
+				ImGui::InputText( "##2dplayerid", ( char* ) std::to_string( ap.AssetID ).c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 			else
 				ImGui::InputText( "##2dplayerid", ( char* )"", 256, ImGuiInputTextFlags_ReadOnly );
 
-			Auxiliary::DrawBoolControl( "Loop", spc.Loop );
-			Auxiliary::DrawBoolControl( "Mute", spc.Mute );
+			Auxiliary::DrawBoolControl( "Loop", ap.Loop );
+			Auxiliary::DrawBoolControl( "Mute", ap.Mute );
+			Auxiliary::DrawBoolControl( "Spatialization", ap.Spatialization );
 		} );
 	}
 

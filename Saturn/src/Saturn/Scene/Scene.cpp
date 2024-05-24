@@ -48,7 +48,6 @@
 
 #include "Saturn/Serialisation/SceneSerialiser.h"
 
-#include "Saturn/Audio/Sound2D.h"
 #include "Saturn/Audio/AudioSystem.h"
 
 #include "Saturn/ImGui/EditorIcons.h"
@@ -264,7 +263,7 @@ namespace Saturn {
 
 		// Audio Billboards
 		{
-			auto players = m_Registry.group<Sound2DPlayerComponent>( entt::get<TransformComponent> );
+			auto players = m_Registry.group<AudioPlayerComponent>( entt::get<TransformComponent> );
 
 			if( players.size() )
 			{
@@ -274,7 +273,7 @@ namespace Saturn {
 
 				for( const auto& e : players )
 				{
-					auto [transformComponent, playerComponent] = players.get<TransformComponent, Sound2DPlayerComponent>( e );
+					auto [transformComponent, playerComponent] = players.get<TransformComponent, AudioPlayerComponent>( e );
 
 					Ref<Texture2D> submissionTexture = audio;
 
@@ -559,7 +558,7 @@ namespace Saturn {
 			CameraComponent,
 			BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
 			ScriptComponent,
-			Sound2DPlayerComponent,
+			AudioPlayerComponent,
 			BillboardComponent>;
 
 		CopyComponentIfExists( DesiredComponents{}, newEntity->GetHandle(), entity->GetHandle(), m_Registry );
@@ -659,12 +658,22 @@ namespace Saturn {
 
 	void Scene::StartAudioPlayers()
 	{
-		auto snd2dPlayers = GetAllEntitiesWith< Sound2DPlayerComponent >();
+		auto sndPlayers = GetAllEntitiesWith< AudioPlayerComponent >();
 
-		for( auto& entity : snd2dPlayers )
+		for( auto& entity : sndPlayers )
 		{
-			auto& rComp = entity->GetComponent<Sound2DPlayerComponent>();
-			auto soundAsset = AudioSystem::Get().RequestNewSound( rComp.AssetID );
+			auto& rComp = entity->GetComponent<AudioPlayerComponent>();
+			
+			Ref<Sound> soundAsset = nullptr;
+
+			if( rComp.Spatialization )
+			{
+				soundAsset = AudioSystem::Get().PlaySoundAtLocation( rComp.AssetID, entity->GetComponent<TransformComponent>().Position );
+			}
+			else
+			{
+				soundAsset = AudioSystem::Get().RequestNewSound( rComp.AssetID );
+			}
 
 			if( rComp.Loop )
 			{
@@ -676,12 +685,12 @@ namespace Saturn {
 
 	void Scene::StopAudioPlayers() 
 	{
-		auto snd2dPlayers = GetAllEntitiesWith< Sound2DPlayerComponent >();
+		auto sndPlayers = GetAllEntitiesWith< AudioPlayerComponent >();
 
-		for( auto& entity : snd2dPlayers )
+		for( auto& entity : sndPlayers )
 		{
-			auto& rComp = entity->GetComponent<Sound2DPlayerComponent>();
-			auto soundAsset = AssetManager::Get().GetAssetAs<Sound2D>( rComp.AssetID );
+			auto& rComp = entity->GetComponent<AudioPlayerComponent>();
+			auto soundAsset = AssetManager::Get().GetAssetAs<Sound>( rComp.AssetID );
 
 			soundAsset->Stop();
 			soundAsset->Reset();

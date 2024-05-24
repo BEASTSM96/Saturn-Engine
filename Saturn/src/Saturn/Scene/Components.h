@@ -303,11 +303,12 @@ namespace Saturn {
 		PrefabComponent( UUID id ) : AssetID( id ) {  }
 	};
 
-	struct Sound2DPlayerComponent
+	struct AudioPlayerComponent
 	{
 		UUID AssetID = 0;
 		bool Loop = false;
 		bool Mute = false;
+		bool Spatialization = false;
 	};
 
 	struct BillboardComponent
@@ -338,6 +339,6 @@ namespace Saturn {
 		CameraComponent,
 		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
 		ScriptComponent, 
-		Sound2DPlayerComponent,
+		AudioPlayerComponent,
 		BillboardComponent>;
 }

@@ -33,7 +33,7 @@
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
 #include "Saturn/Asset/TextureSourceAsset.h"
-#include "Saturn/Audio/Sound2D.h"
+#include "Saturn/Audio/Sound.h"
 
 #include "Saturn/Core/VirtualFS.h"
 

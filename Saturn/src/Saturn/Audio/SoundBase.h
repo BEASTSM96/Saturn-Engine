@@ -26,111 +26,47 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "Sound2D.h"
+#pragma once
 
-#include "AudioSystem.h"
+#include "Saturn/Asset/Asset.h"
+#include "AudioCore.h"
+
+#include <miniaudio.h>
+#include <filesystem>
 
 namespace Saturn {
 
-	Sound2D::Sound2D()
-		: Sound()
+	class SoundBase : public Asset
 	{
-	}
+	public:
+		SoundBase() = default;
+		virtual ~SoundBase() = default;
 
-	void Sound2D::Load()
-	{
-		if( !m_Loaded )
-		{
-			SAT_CORE_INFO( "Loading sound: {0}", m_RawPath.string() );
+		virtual void Play() = 0;
+		virtual void Stop() = 0;
+		virtual void Loop() = 0;
+		virtual void Load( uint32_t flags ) = 0;
 
-			ma_uint32 flags = MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION | MA_SOUND_FLAG_ASYNC;
-			MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(), 
-				m_RawPath.string().c_str(),
-				flags, NULL, NULL, &m_Sound ) );
+	public:
+		ma_sound& GetRawSound() { return m_Sound; }
 
-			m_Sound.pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( ID ) );
-			m_Sound.endCallback = OnSoundEnd;
+		const std::filesystem::path& GetRawPath() const { return m_RawPath; }
+		std::filesystem::path& GetRawPath() { return m_RawPath; }
 
-			m_Loaded = true;
-		}
-	}
+		void SetRawPath( const std::filesystem::path& rPath ) { m_RawPath = rPath; }
 
-	void Sound2D::Unload()
-	{
-		if( m_Loaded )
-		{
-			ma_sound_uninit( &m_Sound );
-			m_Loaded = false;
-		}
-	}
+	protected:
+		ma_sound m_Sound{};
+		bool m_Loaded = false;
+		bool m_Playing = false;
+		bool m_Looping = false;
 
-	Sound2D::~Sound2D()
-	{
-		Stop();
-		Unload();
-	}
+		std::filesystem::path m_RawPath = "";
 
-	void Sound2D::Play()
-	{
-		if( !m_Loaded )
-			Load();
+	private:
+		virtual void Unload() = 0;
 
-		if( ma_sound_at_end( &m_Sound ) )
-		{
-			SAT_CORE_WARN( "Playing sound from beginning: {0}", m_RawPath.string() );
-			Reset();
-		}
-
-		SAT_CORE_INFO( "Trying to start sound: {0}", m_RawPath.string() );
-
-		MA_CHECK( ma_sound_start( &m_Sound ) );
-
-		m_Playing = true;
-	}
-
-	void Sound2D::Stop()
-	{
-		MA_CHECK( ma_sound_stop( &m_Sound ) );
-		m_Playing = false;
-	}
-
-	void Sound2D::Loop()
-	{
-		ma_sound_set_looping( &m_Sound, true );
-		m_Looping = true;
-	}
-
-	bool Sound2D::IsPlaying() const
-	{
-		return m_Playing;
-	}
-
-	bool Sound2D::IsLooping() const
-	{
-		return m_Looping;
-	}
-
-	void Sound2D::WaitUntilLoaded()
-	{
-		while( !m_Loaded )
-		{
-			std::this_thread::yield();
-		}
-	}
-
-	void Sound2D::Reset()
-	{
-		if( m_Loaded )
-		{
-			MA_CHECK( ma_sound_seek_to_pcm_frame( &m_Sound, 0 ) );
-		}
-	}
-
-	void Sound2D::OnSoundEnd( void* pUserData, ma_sound* pSound )
-	{
-		AssetID ID = static_cast<uint64_t>( reinterpret_cast<intptr_t>( pUserData ) );
-
-		AudioSystem::Get().ReportSoundCompleted( ID );
-	}
+	private:
+		friend class AudioSystem;
+	};
 }
