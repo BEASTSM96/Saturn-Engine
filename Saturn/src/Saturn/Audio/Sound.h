@@ -38,7 +38,7 @@ namespace Saturn {
 		Sound();
 		virtual ~Sound();
 
-		virtual void Play() override;
+		virtual void Play( int frameOffset = 0 ) override;
 		virtual void Stop() override;
 		virtual void Loop() override;
 		virtual void Load( uint32_t flags = 0 ) override;
@@ -48,8 +48,12 @@ namespace Saturn {
 
 		void WaitUntilLoaded();
 		void Reset();
+
 		void SetPosition( const glm::vec3& rPos );
 		void SetSpatialization( bool value );
+	
+		void SetMaxDistance( float dist );
+		void SetMinDistance( float dist );
 
 	private:
 		static void OnSoundEnd( void* pUserData, ma_sound* pSound );

@@ -51,7 +51,10 @@ namespace Saturn::Auxiliary {
 	extern bool DrawIntControl( const std::string& label, int& values, float columnWidth = 125.0f );
 	
 	extern bool DrawBoolControl( const std::string& label, bool& value, float columnWidth = 125.0f );
+	extern bool DrawDisabledBoolControl( const std::string& label, bool& value, float columnWidth = 125.0f );
 	
+	extern void DrawDisabledButton( const std::string& label );
+
 	extern bool DrawOverlay( const std::string& label, ImVec2 Pos );
 	extern bool DrawOverlay( const std::string& label );
 	extern void EndOverlay();

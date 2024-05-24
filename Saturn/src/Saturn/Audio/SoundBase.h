@@ -42,7 +42,7 @@ namespace Saturn {
 		SoundBase() = default;
 		virtual ~SoundBase() = default;
 
-		virtual void Play() = 0;
+		virtual void Play( int frameOffset ) = 0;
 		virtual void Stop() = 0;
 		virtual void Loop() = 0;
 		virtual void Load( uint32_t flags ) = 0;

@@ -298,6 +298,54 @@ namespace Saturn::Auxiliary {
 		return modified;
 	}
 
+	void DrawDisabledButton( const std::string& label )
+	{
+		ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+		ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+		ImGui::Button( label.c_str() );
+		ImGui::PopStyleVar( 1 );
+		ImGui::PopItemFlag();
+	}
+
+	bool DrawDisabledBoolControl( const std::string& label, bool& value, float columnWidth /*= 125.0f */ )
+	{
+		ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+		ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+		
+		bool modified = false;
+
+		ImGuiIO& io = ImGui::GetIO();
+
+		// This is not the bold font this is normal one, I just like it like that.
+		auto boldFont = io.Fonts->Fonts[ 0 ];
+
+		ImGui::PushID( label.c_str() );
+
+		ImGui::Columns( 2 );
+		ImGui::SetColumnWidth( 0, columnWidth );
+
+		ImGui::Text( label.c_str() );
+
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 } );
+
+		modified |= ImGui::Checkbox( "##boolean", &value );
+
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+
+		ImGui::Columns( 1 );
+
+		ImGui::PopID();
+
+		ImGui::PopStyleVar( 1 );
+		ImGui::PopItemFlag();
+
+		return modified;
+	}
+
 	bool DrawOverlay( const std::string& label )
 	{
 		ImGui::PushID( label.c_str() );
@@ -480,5 +528,4 @@ namespace Saturn::Auxiliary {
 		const ImVec2 size( 0.0f, 0.0f );
 		ImGui::RenderTextEllipsis( pDrawList, rStart, rEnd, 0.0f, 0.0f, fmt, 0, &size );
 	}
-
 }

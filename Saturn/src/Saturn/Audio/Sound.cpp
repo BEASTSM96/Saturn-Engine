@@ -47,6 +47,7 @@ namespace Saturn {
 			ma_uint32 initFlags = MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC;
 			initFlags |= flags;
 
+			// TODO: Wait for the sound to load by using the fence.
 			MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(),
 				m_RawPath.string().c_str(),
 				initFlags, NULL, NULL, &m_Sound ) );
@@ -57,6 +58,8 @@ namespace Saturn {
 			if( ( initFlags & ( uint32_t ) MA_SOUND_FLAG_NO_SPATIALIZATION ) == 0 )
 			{
 				m_Spatialization = true;
+				SetMinDistance( 1.0f );
+				SetMaxDistance( 10.0f );
 			}
 
 			m_Loaded = true;
@@ -78,7 +81,7 @@ namespace Saturn {
 		Unload();
 	}
 
-	void Sound::Play()
+	void Sound::Play( int frameOffset )
 	{
 		if( !m_Loaded )
 			Load( 0 );
@@ -89,9 +92,20 @@ namespace Saturn {
 			Reset();
 		}
 
-		SAT_CORE_INFO( "Trying to start sound: {0}", m_RawPath.string() );
+		if( frameOffset == 0 )
+		{
+			SAT_CORE_INFO( "Trying to start sound \"{0}\" now", m_RawPath.string() );
+			MA_CHECK( ma_sound_start( &m_Sound ) );
+		}
+		else
+		{
+			SAT_CORE_INFO( "Trying to start sound \"{0}\" in {1} frames", m_RawPath.string(), frameOffset );
+			ma_sound_set_start_time_in_pcm_frames( &m_Sound,
+				ma_engine_get_time_in_pcm_frames( &AudioSystem::Get().GetAudioEngine() )
+				+ ( ma_engine_get_sample_rate( &AudioSystem::Get().GetAudioEngine() ) * frameOffset ) );
 
-		MA_CHECK( ma_sound_start( &m_Sound ) );
+			MA_CHECK( ma_sound_start( &m_Sound ) );
+		}
 
 		m_Playing = true;
 	}
@@ -149,6 +163,16 @@ namespace Saturn {
 
 		ma_sound_set_spatialization_enabled( &m_Sound, value );
 		m_Spatialization = value;
+	}
+
+	void Sound::SetMaxDistance( float dist )
+	{
+		ma_sound_set_max_distance( &m_Sound, dist );
+	}
+
+	void Sound::SetMinDistance( float dist )
+	{
+		ma_sound_set_min_distance( &m_Sound, dist );
 	}
 
 	void Sound::OnSoundEnd( void* pUserData, ma_sound* pSound )

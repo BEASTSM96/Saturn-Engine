@@ -727,9 +727,18 @@ namespace Saturn {
 			else
 				ImGui::InputText( "##2dplayerid", ( char* )"", 256, ImGuiInputTextFlags_ReadOnly );
 
-			Auxiliary::DrawBoolControl( "Loop", ap.Loop );
-			Auxiliary::DrawBoolControl( "Mute", ap.Mute );
-			Auxiliary::DrawBoolControl( "Spatialization", ap.Spatialization );
+			if( m_Context->m_RuntimeRunning )
+			{
+				Auxiliary::DrawDisabledBoolControl( "Loop", ap.Loop );
+				Auxiliary::DrawDisabledBoolControl( "Mute", ap.Mute );
+				Auxiliary::DrawDisabledBoolControl( "Spatialization", ap.Spatialization );
+			}
+			else
+			{
+				Auxiliary::DrawBoolControl( "Loop", ap.Loop );
+				Auxiliary::DrawBoolControl( "Mute", ap.Mute );
+				Auxiliary::DrawBoolControl( "Spatialization", ap.Spatialization );
+			}
 		} );
 	}
 
