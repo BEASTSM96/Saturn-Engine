@@ -242,6 +242,17 @@ namespace Saturn {
 				RawSerialisation::WriteObject( spc.Loop, rStream );
 				RawSerialisation::WriteObject( spc.Mute, rStream );
 			} );
+
+		// Audio Listener Component
+		WriteComponent<AudioListenerComponent>( rEntity, rStream, [&]()
+			{
+				auto& alc = rEntity->GetComponent< AudioListenerComponent >();
+
+				RawSerialisation::WriteObject( alc.Primary, rStream );
+				RawSerialisation::WriteVec3( alc.Direction, rStream );
+				RawSerialisation::WriteObject( alc.ConeInnerAngle, rStream );
+				RawSerialisation::WriteObject( alc.ConeOuterAngle, rStream );
+			} );
 	}
 
 	void RawEntitySerialisation::DeserialiseEntity( Ref<Entity>& rEntity, std::istream& rStream )
@@ -439,6 +450,17 @@ namespace Saturn {
 				RawSerialisation::ReadObject( spc.AssetID, rStream );
 				RawSerialisation::ReadObject( spc.Loop, rStream );
 				RawSerialisation::ReadObject( spc.Mute, rStream );
+			} );
+
+		// Audio Listener Component
+		ReadComponent<AudioListenerComponent>( rEntity, rStream, [&]()
+			{
+				auto& alc = rEntity->GetComponent< AudioListenerComponent >();
+
+				RawSerialisation::ReadObject( alc.Primary, rStream );
+				RawSerialisation::ReadVec3( alc.Direction, rStream );
+				RawSerialisation::ReadObject( alc.ConeInnerAngle, rStream );
+				RawSerialisation::ReadObject( alc.ConeOuterAngle, rStream );
 			} );
 	}
 

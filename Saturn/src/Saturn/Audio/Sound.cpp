@@ -60,6 +60,9 @@ namespace Saturn {
 				m_Spatialization = true;
 				SetMinDistance( 1.0f );
 				SetMaxDistance( 10.0f );
+
+				ma_sound_set_min_gain( &m_Sound, 1.0f );
+				ma_sound_set_max_gain( &m_Sound, 100.0f );
 			}
 
 			m_Loaded = true;

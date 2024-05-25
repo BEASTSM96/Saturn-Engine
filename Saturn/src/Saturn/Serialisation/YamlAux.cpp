@@ -331,6 +331,22 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
+		// Audio Listener Component
+		if( entity->HasComponent<AudioListenerComponent>() )
+		{
+			rEmitter << YAML::Key << "AudioListenerComponent";
+			rEmitter << YAML::BeginMap;
+
+			auto& alc = entity->GetComponent< AudioListenerComponent >();
+
+			rEmitter << YAML::Key << "Primary"    << YAML::Value << alc.Primary;
+			rEmitter << YAML::Key << "Direction"  << YAML::Value << alc.Direction;
+			rEmitter << YAML::Key << "ConeInner"  << YAML::Value << alc.ConeInnerAngle;
+			rEmitter << YAML::Key << "ConeOuter"  << YAML::Value << alc.ConeOuterAngle;
+
+			rEmitter << YAML::EndMap;
+		}
+
 		rEmitter << YAML::EndMap;
 	}
 
@@ -579,6 +595,17 @@ namespace Saturn {
 				sp.AssetID = spc[ "AssetID" ].as< uint64_t >( 0 );
 				sp.Loop    = spc[ "Loop" ].as< bool >();
 				sp.Mute    = spc[ "Mute" ].as< bool >();
+			}
+
+			auto alc = entity[ "AudioListenerComponent" ];
+			if( alc )
+			{
+				auto& al = DeserialisedEntity->AddComponent< AudioListenerComponent >();
+
+				al.Primary        = alc[ "Primary" ].as< bool >();
+				al.Direction      = alc[ "Loop" ].as< glm::vec3 >();
+				al.ConeInnerAngle = alc[ "ConeInner" ].as< float >( 0 );
+				al.ConeOuterAngle = alc[ "ConeOuter" ].as< float >( 0 );
 			}
 		}
 	}
