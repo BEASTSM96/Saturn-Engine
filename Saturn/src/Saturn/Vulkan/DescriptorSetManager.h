@@ -28,121 +28,47 @@
 
 #pragma once
 
+#include "Saturn/Core/Ref.h"
+
+#include <unordered_map>
 #include <vulkan.h>
-#include <vector>
 
 namespace Saturn {
 
-	class DescriptorPool : public RefTarget
+	class DescriptorSet;
+	class DescriptorPool;
+	class Material;
+
+	class DescriptorSetManager : public RefTarget
 	{
+		// MATERIAL (NAME) -> FRAMES IN FLIGHT -> SETS
+		using MaterialDSMap = std::unordered_map<std::string, std::vector<std::vector<Ref<DescriptorSet>>>>;
+		
+		// Materialess sets
+		// SET -> FRAMES IN FLIGHT -> SETS
+		using DSMap = std::unordered_map<uint32_t, std::vector<std::vector<Ref<DescriptorSet>>>>;
 	public:
-		DescriptorPool() {}
-		DescriptorPool( std::vector< VkDescriptorPoolSize > PoolSizes, uint32_t MaxSets );
-		~DescriptorPool();
-		
-		void Terminate();
+		DescriptorSetManager();
+		~DescriptorSetManager();
 
-		VkDescriptorPool GetVulkanPool() { return m_Pool; }
+		Ref<DescriptorSet> AllocateDescriptorSet( uint32_t set, VkDescriptorSetLayout layout, Ref<Material> material = nullptr );
 
-		// Copy assignment.
-		DescriptorPool& operator=( const DescriptorPool& other ) 
-		{
-			if( this == &other )
-				return *this;
-			
-			m_Pool = other.m_Pool;
+		void InitialiseForNextFrame( uint32_t frameIndex );
 
-			return *this;
-		}
+		void WriteDescriptor( VkWriteDescriptorSet& rWriteDescriptorSet, Ref<DescriptorSet>& rSet );
 
-		// Move assignment.
-		DescriptorPool& operator=( DescriptorPool&& other ) noexcept
-		{
-			if( this == &other )
-				return *this;
-
-			m_Pool = other.m_Pool;
-
-			other.m_Pool = nullptr;
-
-			return *this;
-		}
-
-		// Copy constructor.
-		DescriptorPool( const DescriptorPool& other )
-		{
-			m_Pool = other.m_Pool;	
-		}
-
-		// Move constructor.
-		DescriptorPool( DescriptorPool&& other ) noexcept
-		{
-			m_Pool = other.m_Pool;
-			other.m_Pool = nullptr;
-		}
+		Ref<DescriptorSet> FindSet( uint32_t set, uint32_t frameIndex, Ref<Material> material = nullptr );
+	private:
+		void ResizeAndResideSet( const std::string& rName, const Ref<DescriptorSet>& rSet, uint32_t frameIndex );
+		Ref<DescriptorSet> AllocateInternal( uint32_t set, VkDescriptorSetLayout layout, Ref<Material> material = nullptr );
 
 	private:
-		VkDescriptorPool m_Pool = nullptr;
-	};	
-	
-	enum class DescriptorType
-	{
-		// Should match with vulkan's VkDescriptorType enum
-		UNKNOWN = -1,
-		SAMPLER = 0,
-		COMBINED_IMAGE_SAMPLER = 1,
-		SAMPLED_IMAGE = 2,
-		STORAGE_IMAGE = 3,
-		UNIFORM_BUFFER = 6,
-		STORAGE_BUFFER = 7,
-	};
-	
-	struct DescriptorSetSpecification
-	{		
-		DescriptorSetSpecification() {}
-		~DescriptorSetSpecification() {}
-		
-		Ref< DescriptorPool > Pool = nullptr;
-		VkDescriptorSetLayout Layout = nullptr;
-		uint32_t SetIndex = -1;
-	};
+		uint32_t m_TotalAllocatedSets = 0;
 
-	class DescriptorSet : public RefTarget
-	{
-	public:
-		DescriptorSet() {}
-		DescriptorSet( DescriptorSetSpecification Spec );
-		~DescriptorSet();
+		Ref<DescriptorPool> m_DescriptorPools[ MAX_FRAMES_IN_FLIGHT ];
+		Ref<DescriptorPool> m_CurrentDescriptorPool = nullptr;
 
-		void Terminate();
-
-		void WriteDescriptor( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo );
-		void WriteDescriptor( std::vector< VkWriteDescriptorSet > WriteDescriptorSets );
-
-		void Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout );
-		
-		uint32_t GetSetIndex() const { return m_Specification.SetIndex; }
-
-		bool operator == ( const DescriptorSet& other ) const
-		{
-			return ( m_Set == other.m_Set );
-		}
-		
-
-		VkDescriptorSet GetVulkanSet() { return m_Set; }
-		const VkDescriptorSet GetVulkanSet() const { return m_Set; }
-
-		operator VkDescriptorSet() { return m_Set; }
-		operator const VkDescriptorSet&() { return m_Set; }
-		
-	private:
-		
-		void Allocate();
-
-	private:
-
-		VkDescriptorSet m_Set = nullptr;
-		
-		DescriptorSetSpecification m_Specification = {};
+		MaterialDSMap m_MaterialDescriptorSets;
+		DSMap m_DescriptorSets;
 	};
 }

@@ -90,28 +90,12 @@ namespace Saturn {
 
 		delete[] pData;
 
-		std::vector<VkDescriptorPoolSize> PoolSizes;
-
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 } );
-
-		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
-		{
-			m_RendererDescriptorPools[i] = Ref<DescriptorPool>::Create( PoolSizes, 100000 );
-		}
+		m_DescriptorSetManager = Ref<DescriptorSetManager>::Create();
 	}
 	
 	void Renderer::Terminate()
 	{
-		// Terminate Semaphores.
+		// Destroy Semaphores.
 		if( m_AcquireSemaphore )
 			vkDestroySemaphore( VulkanContext::Get().GetDevice(), m_AcquireSemaphore, nullptr );
 			
@@ -121,18 +105,9 @@ namespace Saturn {
 		m_AcquireSemaphore = nullptr;
 		m_SubmitSemaphore = nullptr;
 
-		for( size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		for( int i = 0; i < m_FlightFences.size(); i++ )
 		{
-			m_RendererDescriptorSets[ i ] = nullptr;
-			m_RendererDescriptorPools[ i ] = nullptr;
-		}
-
-		if( m_FlightFences.size() )
-		{
-			for( int i = 0; i < m_FlightFences.size(); i++ )
-			{
-				vkDestroyFence( VulkanContext::Get().GetDevice(), m_FlightFences[ i ], nullptr );
-			}
+			vkDestroyFence( VulkanContext::Get().GetDevice(), m_FlightFences[ i ], nullptr );
 		}
 
 		for ( auto& rFunc : m_TerminateResourceFuncs )
@@ -223,9 +198,9 @@ namespace Saturn {
 		Ref<Shader> shader = rMaterialAsset->GetMaterial()->GetShader();
 		std::string shaderName = shader->GetName();
 		
-		if( m_StorageBufferSets.find( m_FrameCount ) != m_StorageBufferSets.end() ) 
+		if( m_StorageBufferSets.find( m_FrameIndex ) != m_StorageBufferSets.end() ) 
 		{
-			const auto& buffersInFrame = m_StorageBufferSets.at( m_FrameCount );
+			const auto& buffersInFrame = m_StorageBufferSets.at( m_FrameIndex );
 
 			if( buffersInFrame.find( shaderName ) != buffersInFrame.end() )
 			{
@@ -239,11 +214,11 @@ namespace Saturn {
 
 		for( auto&& [binding, sb] : descriptorSet.StorageBuffers )
 		{
-			auto& wd = m_StorageBufferSets[ m_FrameCount ][ shaderName ];
+			auto& wd = m_StorageBufferSets[ m_FrameIndex ][ shaderName ];
 
 			for( size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
 			{
-				Ref<StorageBuffer> sb = rStorageBufferSet->Get( 0, binding, m_FrameCount );
+				Ref<StorageBuffer> sb = rStorageBufferSet->Get( 0, binding, m_FrameIndex );
 				
 				VkWriteDescriptorSet wds = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
 				wds.descriptorCount = 1;
@@ -256,13 +231,13 @@ namespace Saturn {
 			}
 		}
 
-		return m_StorageBufferSets[ m_FrameCount ][ shaderName ];
+		return m_StorageBufferSets[ m_FrameIndex ][ shaderName ];
 	}
 
 	void Renderer::SubmitMesh( 
 		VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh, 
 		Ref<StorageBufferSet>& rStorageBufferSet, Ref< MaterialRegistry > materialRegistry, 
-		uint32_t SubmeshIndex, uint32_t count, Ref<VertexBuffer> transformData, uint32_t transformOffset )
+		uint32_t SubmeshIndex, uint32_t InstanceCount, Ref<VertexBuffer> transformData, uint32_t transformOffset )
 	{
 		SAT_PF_EVENT();
 
@@ -282,23 +257,23 @@ namespace Saturn {
 
 			const auto& StorageWriteDescriptors = GetStorageBufferWriteDescriptors( rStorageBufferSet, rMaterialAsset );
 
-			rMaterialAsset->Bind( mesh, rSubmesh, Shader, StorageWriteDescriptors[ m_FrameCount ] );
+			rMaterialAsset->Bind( mesh, rSubmesh, Shader, StorageWriteDescriptors[ m_FrameIndex ] );
 
-			VkDescriptorSet Set = rMaterialAsset->GetMaterial()->GetDescriptorSet( m_FrameCount );
+			auto Set = rMaterialAsset->GetMaterial()->GetDescriptorSet( m_FrameIndex );
 
 			vkCmdPushConstants( CommandBuffer, Pipeline->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, ( uint32_t ) rMaterialAsset->GetPushConstantData().Size, rMaterialAsset->GetPushConstantData().Data );
 
 			// Descriptor set 0, for material texture data.
 			// Descriptor set 1, for environment data.
 			std::array<VkDescriptorSet, 2> DescriptorSets = {
-				Set,
-				m_RendererDescriptorSets[ m_FrameCount ]
+				Set->GetVulkanSet(),
+				m_RendererDescriptorSets[ m_FrameIndex ]->GetVulkanSet()
 			};
 
 			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 				Pipeline->GetPipelineLayout(), 0, ( uint32_t ) DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
 
-			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, count, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
+			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, InstanceCount, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
 	}
 
@@ -308,20 +283,23 @@ namespace Saturn {
 
 		Ref<Shader> shader = ShaderLibrary::Get().Find( "shader_new" );
 
-		m_RendererDescriptorSets[ m_FrameCount ] = shader->AllocateDescriptorSet( 1, true );
+		m_RendererDescriptorSets[ m_FrameIndex ] = m_DescriptorSetManager->AllocateDescriptorSet( 
+			1, 
+			shader->GetShaderDescriptorSet( 1 ).SetLayout,
+			nullptr );
 
-		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
-		shader->WriteDescriptor( "u_BRDFLUTTexture", BDRF->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
+		shader->WriteDescriptor( "u_ShadowMap", ShadowMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameIndex ] );
+		shader->WriteDescriptor( "u_BRDFLUTTexture", BDRF->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameIndex ] );
 
 		if( Environment && Environment->RadianceMap && Environment->IrradianceMap )
 		{
-			shader->WriteDescriptor( "u_EnvRadianceTex", Environment->RadianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
-			shader->WriteDescriptor( "u_EnvIrradianceTex", Environment->IrradianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
+			shader->WriteDescriptor( "u_EnvRadianceTex", Environment->RadianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameIndex ] );
+			shader->WriteDescriptor( "u_EnvIrradianceTex", Environment->IrradianceMap->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameIndex ] );
 		}
 		else
 		{
-			shader->WriteDescriptor( "u_EnvRadianceTex", m_PinkTextureCube->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
-			shader->WriteDescriptor( "u_EnvIrradianceTex", m_PinkTextureCube->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameCount ] );
+			shader->WriteDescriptor( "u_EnvRadianceTex", m_PinkTextureCube->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameIndex ] );
+			shader->WriteDescriptor( "u_EnvIrradianceTex", m_PinkTextureCube->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameIndex ] );
 		}
 	}
 
@@ -368,8 +346,6 @@ namespace Saturn {
 
 		m_BeginFrameTimer.Reset();
 
-		VK_CHECK( vkResetDescriptorPool( LogicalDevice, m_RendererDescriptorPools[ m_FrameCount ]->GetVulkanPool(), 0 ) );
-
 		if( m_PendingShaderReloads.size() )
 		{
 			for( const std::string& rName : m_PendingShaderReloads )
@@ -387,10 +363,10 @@ namespace Saturn {
 		m_CommandBuffer = AllocateCommandBuffer( VulkanContext::Get().GetCommandPool() );
 
 		// Wait for last frame.
-		VK_CHECK( vkWaitForFences( LogicalDevice, 1, &m_FlightFences[ m_FrameCount ], VK_TRUE, UINT32_MAX ) );
+		VK_CHECK( vkWaitForFences( LogicalDevice, 1, &m_FlightFences[ m_FrameIndex ], VK_TRUE, UINT32_MAX ) );
 
 		// Reset current fence.
-		VK_CHECK( vkResetFences( LogicalDevice, 1, &m_FlightFences[ m_FrameCount ] ) );
+		VK_CHECK( vkResetFences( LogicalDevice, 1, &m_FlightFences[ m_FrameIndex ] ) );
 
 		// Acquire next image.
 		uint32_t ImageIndex = -1;
@@ -429,10 +405,10 @@ namespace Saturn {
 		SubmitInfo.pWaitSemaphores = &m_AcquireSemaphore;
 		SubmitInfo.waitSemaphoreCount = 1;
 
-		VK_CHECK( vkResetFences( LogicalDevice, 1, &m_FlightFences[ m_FrameCount ] ) );
+		VK_CHECK( vkResetFences( LogicalDevice, 1, &m_FlightFences[ m_FrameIndex ] ) );
 
 		// Use current fence to be signaled.
-		VK_CHECK( vkQueueSubmit( VulkanContext::Get().GetGraphicsQueue(), 1, &SubmitInfo, m_FlightFences[ m_FrameCount ] ) );
+		VK_CHECK( vkQueueSubmit( VulkanContext::Get().GetGraphicsQueue(), 1, &SubmitInfo, m_FlightFences[ m_FrameIndex ] ) );
 
 		// Present info.
 		VkPresentInfoKHR PresentInfo = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
@@ -465,7 +441,7 @@ namespace Saturn {
 
 		vkFreeCommandBuffers( LogicalDevice, VulkanContext::Get().GetCommandPool(), 1, &m_CommandBuffer );
 
-		m_FrameCount = ( m_FrameCount + 1 ) % MAX_FRAMES_IN_FLIGHT;
+		m_FrameIndex = ( m_FrameIndex + 1 ) % MAX_FRAMES_IN_FLIGHT;
 
 		m_EndFrameTime = m_EndFrameTimer.ElapsedMilliseconds() - m_QueuePresentTime;
 

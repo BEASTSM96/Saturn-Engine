@@ -32,6 +32,8 @@
 #include "EnvironmentMap.h"
 #include "StorageBufferSet.h"
 
+#include "DescriptorSetManager.h"
+
 namespace Saturn {
 
 	struct ShaderReference
@@ -69,7 +71,7 @@ namespace Saturn {
 		void RenderSubmesh( VkCommandBuffer CommandBuffer, Ref<Saturn::Pipeline> Pipeline, Ref< StaticMesh > mesh, Submesh& rSubmsh, const glm::mat4 transform );
 
 		void SubmitMesh( VkCommandBuffer CommandBuffer, Ref< Saturn::Pipeline > Pipeline, Ref< StaticMesh > mesh,
-			Ref<StorageBufferSet>& rStorageBufferSet, Ref< MaterialRegistry > materialRegistry, uint32_t SubmeshIndex, uint32_t count,
+			Ref<StorageBufferSet>& rStorageBufferSet, Ref< MaterialRegistry > materialRegistry, uint32_t SubmeshIndex, uint32_t InstanceCount,
 			Ref<VertexBuffer> transformData, uint32_t transformOffset );
 
 		const std::vector<VkWriteDescriptorSet>& GetStorageBufferWriteDescriptors( Ref<StorageBufferSet>& rStorageBufferSet, Ref<MaterialAsset>& rMaterialAsset );
@@ -87,8 +89,8 @@ namespace Saturn {
 		void BeginFrame();
 		void EndFrame();
 		
-		uint32_t GetImageIndex() { return m_ImageIndex; }
-		uint32_t GetCurrentFrame() { return m_FrameCount; }
+		uint32_t GetImageIndex() const { return m_ImageIndex; }
+		uint32_t GetCurrentFrame() const { return m_FrameIndex; }
 
 		std::pair< float, float > GetFrameTimings() { return std::make_pair( m_BeginFrameTime, m_EndFrameTime ); }
 		float GetQueuePresentTime() { return m_QueuePresentTime; }
@@ -100,8 +102,6 @@ namespace Saturn {
 
 		std::pair< Ref<VertexBuffer>, Ref<IndexBuffer>> CreateFullscreenQuad();
 		
-		Ref<DescriptorPool> GetDescriptorPool() { return m_RendererDescriptorPools[ m_FrameCount ]; }
-
 		void AddShaderReloadCB( const std::function<void( const std::string& )>& rFunc );
 		void OnShaderReloaded( const std::string& rName );
 
@@ -110,6 +110,8 @@ namespace Saturn {
 		void ClearShaderReferences();
 
 		ShaderReference& FindShaderReference( size_t Hash );
+
+		Ref<DescriptorSetManager>& GetDescriptorSetManager() { return m_DescriptorSetManager; }
 
 	public:
 		VkCommandBuffer ActiveCommandBuffer() { return m_CommandBuffer; };
@@ -122,7 +124,7 @@ namespace Saturn {
 	private:
 		uint32_t m_ImageIndex = 0;
 		uint32_t m_ImageCount = 0;
-		uint32_t m_FrameCount = 0;
+		uint32_t m_FrameIndex = 0;
 
 		std::vector<VkFence> m_FlightFences;
 		
@@ -146,9 +148,7 @@ namespace Saturn {
 		Ref< Texture2D > m_PinkTexture;
 		Ref< TextureCube > m_PinkTextureCube;
 
-		VkDescriptorSet m_RendererDescriptorSets[MAX_FRAMES_IN_FLIGHT];
-
-		Ref< DescriptorPool > m_RendererDescriptorPools[ MAX_FRAMES_IN_FLIGHT ];
+		Ref<DescriptorSet> m_RendererDescriptorSets[ MAX_FRAMES_IN_FLIGHT ];
 
 		// frame -> shader name -> set
 		std::unordered_map< uint32_t, std::unordered_map< std::string, std::vector<VkWriteDescriptorSet>>> m_StorageBufferSets;
@@ -156,6 +156,7 @@ namespace Saturn {
 		std::unordered_map<size_t, ShaderReference> m_ShaderReferences;
 		std::vector<std::string> m_PendingShaderReloads;
 
+		Ref<DescriptorSetManager> m_DescriptorSetManager;
 	private:
 		friend class VulkanContext;
 	};

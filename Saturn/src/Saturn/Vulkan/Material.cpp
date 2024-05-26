@@ -123,14 +123,14 @@ namespace Saturn {
 
 		RN_Update();
 
-		VkDescriptorSet Set = m_DescriptorSets[ frame ];
+		VkDescriptorSet Set = m_CurrentDescriptorSet->GetVulkanSet();
 		Shader->WriteAllUBs( Set );
 	}
 
 	void Material::BindDS( VkCommandBuffer CommandBuffer, VkPipelineLayout Layout )
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
-		VkDescriptorSet Set = m_DescriptorSets[ frame ];
+		VkDescriptorSet Set = m_CurrentDescriptorSet->GetVulkanSet();
 
 		vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Layout, 0, 1, &Set, 0, nullptr );
 	}
@@ -139,7 +139,7 @@ namespace Saturn {
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
-		m_DescriptorSets[ frame ] = m_Shader->AllocateDescriptorSet( 0, true );
+		m_CurrentDescriptorSet = Renderer::Get().GetDescriptorSetManager()->AllocateDescriptorSet( 0, m_Shader->GetSetLayout(), this );
 
 		for( auto& [name, texture] : m_Textures )
 		{
@@ -149,7 +149,7 @@ namespace Saturn {
 			ImageInfo.imageView = m_Textures[ name ]->GetImageView();
 			ImageInfo.sampler = m_Textures[ name ]->GetSampler();
 
-			m_Shader->WriteDescriptor( name, ImageInfo, m_DescriptorSets[ frame ] );
+			m_Shader->WriteDescriptor( name, ImageInfo, m_CurrentDescriptorSet );
 		}
 
 		for( auto& [name, textures] : m_TextureArrays )
@@ -161,10 +161,10 @@ namespace Saturn {
 				ImageInfos.push_back( texture->GetDescriptorInfo() );
 			}
 
-			m_Shader->WriteDescriptor( name, ImageInfos, m_DescriptorSets[ frame ] );
+			m_Shader->WriteDescriptor( name, ImageInfos, m_CurrentDescriptorSet );
 		}
 
-		m_Shader->WriteAllUBs( m_DescriptorSets[ frame ] );
+		m_Shader->WriteAllUBs( m_CurrentDescriptorSet );
 	}
 
 	void Material::RN_Clean()
@@ -201,10 +201,15 @@ namespace Saturn {
 			return nullptr;
 	}
 
+	Ref<DescriptorSet> Material::GetDescriptorSet( uint32_t index /*= 0 */ )
+	{
+		return Renderer::Get().GetDescriptorSetManager()->FindSet( 0, index, this );
+	}
+
 	void Material::WriteDescriptor( VkWriteDescriptorSet& rWDS )
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
-		rWDS.dstSet = m_DescriptorSets[ frame ];
+		rWDS.dstSet = m_CurrentDescriptorSet->GetVulkanSet();
 
 		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &rWDS, 0, nullptr );
 	}

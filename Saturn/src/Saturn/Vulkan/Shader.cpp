@@ -296,7 +296,7 @@ namespace Saturn {
 		Renderer::Get().RemoveShaderReference( m_ShaderHash );
 	}
 
-	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorImageInfo& rImageInfo, VkDescriptorSet desSet )
+	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorImageInfo& rImageInfo, Ref<DescriptorSet>& desSet )
 	{
 		for( auto& [set, descriptorSet] : m_DescriptorSets )
 		{
@@ -305,7 +305,7 @@ namespace Saturn {
 				if( texture.Name == rName )
 				{
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = &rImageInfo;
-					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet->GetVulkanSet();
 					
 					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
 				}
@@ -316,7 +316,7 @@ namespace Saturn {
 				if( texture.Name == rName )
 				{
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = &rImageInfo;
-					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet->GetVulkanSet();
 
 					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
 				}
@@ -324,7 +324,7 @@ namespace Saturn {
 		}
 	}
 
-	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, VkDescriptorSet desSet )
+	void Shader::WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, Ref<DescriptorSet>& desSet )
 	{
 		for( auto& [set, descriptorSet] : m_DescriptorSets )
 		{
@@ -333,7 +333,7 @@ namespace Saturn {
 				if( ub.Name == rName )
 				{
 					descriptorSet.WriteDescriptorSets[ binding ].pBufferInfo = &rBufferInfo;
-					descriptorSet.WriteDescriptorSets[ binding ].dstSet = desSet;
+					descriptorSet.WriteDescriptorSets[ binding ].dstSet = desSet->GetVulkanSet();
 
 					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ binding ], 0, nullptr );
 				}
@@ -341,7 +341,7 @@ namespace Saturn {
 		}
 	}
 
-	void Shader::WriteDescriptor( const std::string& rName, std::vector<VkDescriptorImageInfo> ImageInfos, VkDescriptorSet desSet )
+	void Shader::WriteDescriptor( const std::string& rName, std::vector<VkDescriptorImageInfo> ImageInfos, Ref<DescriptorSet>& desSet )
 	{
 		for( auto& [set, descriptorSet] : m_DescriptorSets )
 		{
@@ -351,7 +351,7 @@ namespace Saturn {
 				{
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = ImageInfos.data();
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ImageInfos.size();
-					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet->GetVulkanSet();
 
 					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
 				}
@@ -363,7 +363,7 @@ namespace Saturn {
 				{
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = ImageInfos.data();
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ImageInfos.size();
-					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet->GetVulkanSet();
 
 					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
 				}
@@ -452,7 +452,7 @@ namespace Saturn {
 	{
 		DescriptorSetSpecification Specification;
 		Specification.Layout = m_DescriptorSets[ set ].SetLayout;
-		Specification.Pool = UseRendererPool ? Renderer::Get().GetDescriptorPool() : m_SetPool;
+		Specification.Pool = m_SetPool;
 		Specification.SetIndex = set;
 
 		return Ref<DescriptorSet>::Create( Specification );
@@ -463,7 +463,7 @@ namespace Saturn {
 		VkDescriptorSet Set = VK_NULL_HANDLE;
 
 		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-		AllocateInfo.descriptorPool = UseRendererPool ? Renderer::Get().GetDescriptorPool()->GetVulkanPool() : m_SetPool->GetVulkanPool();
+		AllocateInfo.descriptorPool = m_SetPool->GetVulkanPool();
 		AllocateInfo.descriptorSetCount = 1;
 		AllocateInfo.pSetLayouts = &m_DescriptorSets[ set ].SetLayout;
 

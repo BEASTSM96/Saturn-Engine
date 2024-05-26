@@ -73,13 +73,13 @@ namespace Saturn {
 	void DescriptorSet::Terminate()
 	{
 		if( m_Set )
-			vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), *m_Specification.Pool.Get(), 1, &m_Set );
+			vkFreeDescriptorSets( VulkanContext::Get().GetDevice(), m_Specification.Pool->GetVulkanPool(), 1, &m_Set );
 
 		m_Set = nullptr;
 		m_Specification = {};
 	}
 
-	void DescriptorSet::Write( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo )
+	void DescriptorSet::WriteDescriptor( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo )
 	{
 		VkWriteDescriptorSet WriteDescriptorSet = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
 		WriteDescriptorSet.dstSet = m_Set;
@@ -101,7 +101,7 @@ namespace Saturn {
 		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &WriteDescriptorSet, 0, nullptr );
 	}
 
-	void DescriptorSet::Write( std::vector< VkWriteDescriptorSet > WriteDescriptorSets )
+	void DescriptorSet::WriteDescriptor( std::vector< VkWriteDescriptorSet > WriteDescriptorSets )
 	{
 		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), (uint32_t)WriteDescriptorSets.size(), WriteDescriptorSets.data(), 0, nullptr );
 	}
@@ -114,7 +114,7 @@ namespace Saturn {
 	void DescriptorSet::Allocate()
 	{
 		VkDescriptorSetAllocateInfo AllocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-		AllocateInfo.descriptorPool = *m_Specification.Pool.Get();
+		AllocateInfo.descriptorPool = m_Specification.Pool->GetVulkanPool();
 		AllocateInfo.descriptorSetCount = 1;
 		AllocateInfo.pSetLayouts = &m_Specification.Layout;
 		

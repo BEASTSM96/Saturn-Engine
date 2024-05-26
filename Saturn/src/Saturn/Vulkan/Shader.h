@@ -326,10 +326,10 @@ namespace Saturn {
 		std::vector< VkPushConstantRange >& GetPushConstantRanges() { return m_PushConstantRanges; }
 		const std::vector< VkPushConstantRange >& GetPushConstantRanges() const { return m_PushConstantRanges; }
 
-		void WriteDescriptor( const std::string& rName, VkDescriptorImageInfo& rImageInfo, VkDescriptorSet desSet );
-		void WriteDescriptor( const std::string& rName, std::vector<VkDescriptorImageInfo> ImageInfos, VkDescriptorSet desSet );
+		void WriteDescriptor( const std::string& rName, VkDescriptorImageInfo& rImageInfo, Ref<DescriptorSet>& desSet );
+		void WriteDescriptor( const std::string& rName, std::vector<VkDescriptorImageInfo> ImageInfos, Ref<DescriptorSet>& desSet );
 
-		void WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, VkDescriptorSet desSet );
+		void WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, Ref<DescriptorSet>& desSet );
 
 		// Make sure all the buffers have data mapped to them!
 		void WriteAllUBs( const Ref< DescriptorSet >& rSet );

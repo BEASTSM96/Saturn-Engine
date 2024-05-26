@@ -109,7 +109,7 @@ namespace Saturn {
 				else // If the image view has changed, update the cache.
 				{
 					m_TextureCache[ name ] = texture->GetDescriptorInfo();
-					Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
+					Shader->WriteDescriptor( name, ImageInfo, CurrentSet );
 					
 					continue;
 				}
@@ -132,7 +132,7 @@ namespace Saturn {
 				ImageInfo.sampler = PinkTexture->GetSampler();
 			}
 
-			Shader->WriteDescriptor( name, ImageInfo, CurrentSet->GetVulkanSet() );
+			Shader->WriteDescriptor( name, ImageInfo, CurrentSet );
 		}
 	}
 

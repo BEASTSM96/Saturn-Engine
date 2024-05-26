@@ -321,8 +321,12 @@ project "Saturn-Editor"
 
 		postbuildcommands 
 		{ 
-			'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
-			'{COPY} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../Saturn/vendor/physx/bin/Debug/PhysX_64.dll" "%{cfg.targetdir}"',
 		}
 
 	filter "configurations:Release"
@@ -332,7 +336,7 @@ project "Saturn-Editor"
 
 		postbuildcommands 
 		{ 
-			'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
 		}
 
 	filter "configurations:Dist"
@@ -348,7 +352,11 @@ project "Saturn-Editor"
 	filter "configurations:Dist or configurations:Release"
 		postbuildcommands 
 		{ 
-			'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../Saturn/vendor/physx/bin/Release/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../Saturn/vendor/physx/bin/Release/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../Saturn/vendor/physx/bin/Release/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../Saturn/vendor/physx/bin/Release/PhysX_64.dll" "%{cfg.targetdir}"',
 		}
 
 	filter "system:linux"
@@ -456,9 +464,9 @@ project "ProjectBrowser"
 
 			postbuildcommands 
 			{
-				'{COPY} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
+				'{COPYFILE} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 				
-				'{COPY} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
+				'{COPYFILE} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
 			}
 
 		filter "configurations:Release"
@@ -468,7 +476,7 @@ project "ProjectBrowser"
 
 			postbuildcommands 
 			{ 
-				'{COPY} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
+				'{COPYFILE} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
 			}
 
 		filter "configurations:Dist"
@@ -481,7 +489,7 @@ project "ProjectBrowser"
 		filter "configurations:Release or configurations:Dist"
 			postbuildcommands 
 			{ 
-				'{COPY} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
+				'{COPYFILE} "../Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
 			}
 
 	filter "system:linux"
@@ -534,7 +542,7 @@ project "SaturnBuildTool"
 
 	postbuildcommands
 	{
-		'{COPY} "../../../SaturnBuildTool/RT" "RT"'
+		'{COPYFILE} "../../../SaturnBuildTool/RT" "RT"'
 	}
 
 	links { "YamlDotNet.dll" }

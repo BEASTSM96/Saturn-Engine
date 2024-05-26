@@ -446,7 +446,7 @@ namespace Saturn {
 
 	Ref<Entity> Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
 	{
-		Scene* ActiveScene = GActiveScene;
+		Scene* ActiveScene = GActiveScene; 
 		if( GActiveScene != this )
 			GActiveScene = this;
 
@@ -729,8 +729,11 @@ namespace Saturn {
 			auto& rComp = entity->GetComponent<AudioPlayerComponent>();
 			auto soundAsset = AssetManager::Get().GetAssetAs<Sound>( rComp.AssetID );
 
-			soundAsset->Stop();
-			soundAsset->Reset();
+			if( soundAsset )
+			{
+				soundAsset->Stop();
+				soundAsset->Reset();
+			}
 		}
 	}
 

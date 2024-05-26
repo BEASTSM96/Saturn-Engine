@@ -108,7 +108,7 @@ namespace Saturn {
 		
 		Ref< Texture2D > GetResource( const std::string& Name );
 
-		VkDescriptorSet GetDescriptorSet(uint32_t index = 0) { return m_DescriptorSets[index]; }
+		Ref<DescriptorSet> GetDescriptorSet( uint32_t index = 0 );
 
 		bool HasAnyValueChanged() { return m_AnyValueChanged; };
 
@@ -144,7 +144,7 @@ namespace Saturn {
 		// Binding Name -> Textures
 		std::unordered_map< std::string, std::vector< Ref<Texture2D> > > m_TextureArrays;
 
-		VkDescriptorSet m_DescriptorSets[ MAX_FRAMES_IN_FLIGHT ];
+		Ref<DescriptorSet> m_CurrentDescriptorSet = nullptr;
 
 	private:
 		friend class MaterialInstance;

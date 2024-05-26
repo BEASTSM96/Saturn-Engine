@@ -187,7 +187,7 @@ namespace Saturn {
 
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 
-		VkDescriptorSet CurrentSet = m_Material->GetDescriptorSet( frame );
+		auto CurrentSet = m_Material->GetDescriptorSet( frame );
 
 		// Update material textures.
 		auto& textures = m_Material->GetTextures();
@@ -210,7 +210,7 @@ namespace Saturn {
 				else // If the image view has changed, update the cache.
 				{
 					m_TextureCache[ name ] = texture->GetDescriptorInfo();
-					Shader->WriteDescriptor( name, ImageInfo, m_Material->m_DescriptorSets[ frame ] );
+					Shader->WriteDescriptor( name, ImageInfo, CurrentSet );
 
 					continue;
 				}
@@ -233,7 +233,7 @@ namespace Saturn {
 				ImageInfo.sampler = PinkTexture->GetSampler();
 			}
 
-			Shader->WriteDescriptor( name, ImageInfo, m_Material->m_DescriptorSets[ frame ] );
+			Shader->WriteDescriptor( name, ImageInfo, CurrentSet );
 		}
 
 		if( rStorageBufferWDS.dstBinding != 0 )
