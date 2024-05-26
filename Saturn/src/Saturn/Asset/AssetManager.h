@@ -30,6 +30,10 @@
 
 #include "AssetRegistry.h"
 
+#if defined(SAT_DIST)
+#include "VFSAssetImporter.h"
+#endif
+
 namespace Saturn {
 
 	class AssetManager
