@@ -35,6 +35,7 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Asset/Prefab.h"
 #include "ImGuiAuxiliary.h"
+#include "EditorIcons.h"
 
 #include "Saturn/Vulkan/VulkanContext.h"
 
@@ -399,9 +400,17 @@ namespace Saturn {
 			ImGui::PopItemWidth();
 		}
 
+		// New line for id
+
 		// ID
 		const auto& id = entity->GetComponent<IdComponent>().ID;
 		ImGui::TextDisabled( "%llx", id );
+
+		if( entity->HasComponent<ScriptComponent>() ) 
+		{
+			ImGui::SameLine();
+			ImGui::TextDisabled( "Class Instance" );
+		}
 
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
@@ -432,7 +441,7 @@ namespace Saturn {
 			ImGui::NextColumn();
 			ImGui::PushItemWidth( -1 );
 
-			if( ImGui::Button( "...##openmesh", ImVec2( 50, 20 ) ) )
+			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24, 24 ) ) )
 			{
 				s_Open = !s_Open;
 				m_CurrentFinderType = AssetType::StaticMesh;
@@ -440,6 +449,8 @@ namespace Saturn {
 				if( mc.Mesh )
 					m_CurrentAssetID = mc.Mesh->ID;
 			}
+
+			ImGui::SameLine();
 
 			if( mc.Mesh )
 				ImGui::InputText( "##meshfilepath", ( char* ) mc.Mesh->Name.c_str(), 256, ImGuiInputTextFlags_ReadOnly );
@@ -691,7 +702,7 @@ namespace Saturn {
 		{
 			static bool s_Open = false;
 
-			if( ImGui::Button( "Select Texture" ) )
+			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24, 24 ) ) )
 			{
 				m_CurrentFinderType = AssetType::Texture;
 				s_Open = true;
@@ -699,6 +710,8 @@ namespace Saturn {
 				if( bc.AssetID != 0 )
 					m_CurrentAssetID = bc.AssetID;
 			}
+
+			ImGui::SameLine();
 
 			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) ) 
 			{
@@ -710,7 +723,7 @@ namespace Saturn {
 		{
 			static bool s_Open = false;
 
-			if( ImGui::Button( "Select Audio" ) )
+			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24, 24 ) ) )
 			{
 				m_CurrentFinderType = AssetType::Audio;
 				s_Open = true;
@@ -718,6 +731,8 @@ namespace Saturn {
 				if( ap.AssetID != 0 )
 					m_CurrentAssetID = ap.AssetID;
 			}
+
+			ImGui::SameLine();
 
 			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
 			{

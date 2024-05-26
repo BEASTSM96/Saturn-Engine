@@ -603,7 +603,7 @@ namespace Saturn {
 				auto& al = DeserialisedEntity->AddComponent< AudioListenerComponent >();
 
 				al.Primary        = alc[ "Primary" ].as< bool >();
-				al.Direction      = alc[ "Loop" ].as< glm::vec3 >();
+				al.Direction      = alc[ "Direction" ].as< glm::vec3 >();
 				al.ConeInnerAngle = alc[ "ConeInner" ].as< float >( 0 );
 				al.ConeOuterAngle = alc[ "ConeOuter" ].as< float >( 0 );
 			}
