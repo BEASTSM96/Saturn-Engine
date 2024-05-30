@@ -332,7 +332,7 @@ namespace Saturn {
 		void WriteDescriptor( const std::string& rName, VkDescriptorBufferInfo& rBufferInfo, Ref<DescriptorSet>& desSet );
 
 		// Make sure all the buffers have data mapped to them!
-		void WriteAllUBs( const Ref< DescriptorSet >& rSet );
+		void WriteAllUBs( Ref< DescriptorSet >& rSet );
 		void WriteAllUBs( VkDescriptorSet Set );
 
 		void WriteSB( uint32_t set, uint32_t binding, const VkDescriptorBufferInfo& rInfo, Ref<DescriptorSet>& rSet );

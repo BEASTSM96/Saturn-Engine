@@ -193,6 +193,7 @@ namespace Saturn {
 		auto& textures = m_Material->GetTextures();
 		for( auto& [name, texture] : textures )
 		{
+			/*
 			// Check if the texture even exists in the cache.
 			if( m_TextureCache.find( name ) == m_TextureCache.end() )
 			{
@@ -215,12 +216,13 @@ namespace Saturn {
 					continue;
 				}
 			}
+			*/
 
 			// Fallback, just write the descriptor.
 			VkDescriptorImageInfo ImageInfo = {};
 			ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			if( textures[ name ] )
+			if( false )
 			{
 				ImageInfo.imageView = textures[ name ]->GetImageView();
 				ImageInfo.sampler = textures[ name ]->GetSampler();
@@ -250,7 +252,6 @@ namespace Saturn {
 
 	void MaterialAsset::Clean()
 	{
-		m_Material->RN_Clean();
 	}
 
 	void MaterialAsset::ApplyChanges()

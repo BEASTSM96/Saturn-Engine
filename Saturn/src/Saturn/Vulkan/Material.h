@@ -54,7 +54,7 @@ namespace Saturn {
 		void BindDS( VkCommandBuffer CommandBuffer, VkPipelineLayout Layout );
 		
 		void RN_Update();
-		void RN_Clean();
+		void RT_UpdateDescriptorSet();
 
 		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture );
 		void SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture, uint32_t Index );

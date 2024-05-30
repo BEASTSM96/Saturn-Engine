@@ -29,6 +29,7 @@
 #pragma once
 
 #include <vulkan.h>
+#include <map>
 #include <vector>
 
 namespace Saturn {
@@ -116,10 +117,14 @@ namespace Saturn {
 
 		void Terminate();
 
-		void WriteDescriptor( VkDescriptorBufferInfo BufferInfo, VkDescriptorImageInfo ImageInfo );
+		void WriteDescriptor( const VkDescriptorBufferInfo& BufferInfo, VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER );
+		void WriteDescriptor( const VkDescriptorImageInfo& ImageInfo, VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER );
+
+		void WriteDescriptor( const VkWriteDescriptorSet& rWDS );
+
 		void WriteDescriptor( std::vector< VkWriteDescriptorSet > WriteDescriptorSets );
 
-		void Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout );
+		void Bind( VkCommandBuffer CommandBuffer, VkPipelineLayout PipelineLayout, VkPipelineBindPoint BindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS );
 		
 		uint32_t GetSetIndex() const { return m_Specification.SetIndex; }
 
@@ -127,22 +132,26 @@ namespace Saturn {
 		{
 			return ( m_Set == other.m_Set );
 		}
-		
 
 		VkDescriptorSet GetVulkanSet() { return m_Set; }
 		const VkDescriptorSet GetVulkanSet() const { return m_Set; }
-
-		operator VkDescriptorSet() { return m_Set; }
-		operator const VkDescriptorSet&() { return m_Set; }
 		
 	private:
-		
 		void Allocate();
+		void UpdateResidentWriteDescriptors();
+		[[nodiscard]] bool CompareWds( const VkWriteDescriptorSet& rSource, const VkWriteDescriptorSet& rTarget );
 
 	private:
-
 		VkDescriptorSet m_Set = nullptr;
-		
 		DescriptorSetSpecification m_Specification = {};
+	
+		// Binding -> Wds
+		std::map<uint32_t, VkWriteDescriptorSet> m_ResidentWriteDescriptors;
+		std::map<uint32_t, VkWriteDescriptorSet> m_PendingWriteDescriptors;
+
+	private:
+		friend class Material;
+		friend class Renderer;
+		friend class DescriptorSetManager;
 	};
 }

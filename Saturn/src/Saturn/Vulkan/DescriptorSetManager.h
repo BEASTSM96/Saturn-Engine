@@ -56,8 +56,9 @@ namespace Saturn {
 		void InitialiseForNextFrame( uint32_t frameIndex );
 
 		void WriteDescriptor( VkWriteDescriptorSet& rWriteDescriptorSet, Ref<DescriptorSet>& rSet );
-
 		Ref<DescriptorSet> FindSet( uint32_t set, uint32_t frameIndex, Ref<Material> material = nullptr );
+
+		void BindDescriptorSets( VkCommandBuffer CommandBuffer, VkPipelineBindPoint BindPoint, VkPipelineLayout Layout, uint32_t firstSet, std::vector<Ref<DescriptorSet>>& rDescriptorSets );
 	private:
 		void ResizeAndResideSet( const std::string& rName, const Ref<DescriptorSet>& rSet, uint32_t frameIndex );
 		Ref<DescriptorSet> AllocateInternal( uint32_t set, VkDescriptorSetLayout layout, Ref<Material> material = nullptr );

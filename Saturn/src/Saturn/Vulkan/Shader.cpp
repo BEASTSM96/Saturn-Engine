@@ -307,7 +307,9 @@ namespace Saturn {
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = &rImageInfo;
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet->GetVulkanSet();
 					
-					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
+					desSet->WriteDescriptor( descriptorSet.WriteDescriptorSets[ texture.Binding ] );
+
+					break;
 				}
 			}
 
@@ -318,7 +320,9 @@ namespace Saturn {
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = &rImageInfo;
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet->GetVulkanSet();
 
-					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
+					desSet->WriteDescriptor( descriptorSet.WriteDescriptorSets[ texture.Binding ] );
+
+					break;
 				}
 			}
 		}
@@ -335,7 +339,7 @@ namespace Saturn {
 					descriptorSet.WriteDescriptorSets[ binding ].pBufferInfo = &rBufferInfo;
 					descriptorSet.WriteDescriptorSets[ binding ].dstSet = desSet->GetVulkanSet();
 
-					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ binding ], 0, nullptr );
+					desSet->WriteDescriptor( descriptorSet.WriteDescriptorSets[ binding ] );
 				}
 			}
 		}
@@ -353,7 +357,7 @@ namespace Saturn {
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ImageInfos.size();
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet->GetVulkanSet();
 
-					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
+					desSet->WriteDescriptor( descriptorSet.WriteDescriptorSets[ texture.Binding ] );
 				}
 			}
 
@@ -365,13 +369,13 @@ namespace Saturn {
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ImageInfos.size();
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet->GetVulkanSet();
 
-					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
+					desSet->WriteDescriptor( descriptorSet.WriteDescriptorSets[ texture.Binding ] );
 				}
 			}
 		}
 	}
 
-	void Shader::WriteAllUBs( const Ref< DescriptorSet >& rSet )
+	void Shader::WriteAllUBs( Ref< DescriptorSet >& rSet )
 	{
 		SAT_CORE_ASSERT( rSet, "DescriptorSet is null!" );
 

@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "ComputePipeline.h"
 
+#include "DescriptorSet.h"
+
 #include "VulkanContext.h"
 #include "VulkanDebug.h"
 
@@ -68,9 +70,9 @@ namespace Saturn {
 		vkCmdBindPipeline( m_CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_Pipeline );
 	}
 
-	void ComputePipeline::Execute( VkDescriptorSet DescriptorSet, uint32_t X, uint32_t Y, uint32_t Z )
+	void ComputePipeline::Execute( Ref<DescriptorSet>& rDescriptorSet, uint32_t X, uint32_t Y, uint32_t Z )
 	{
-		vkCmdBindDescriptorSets( m_CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_PipelineLayout, 0, 1, &DescriptorSet, 0, nullptr );
+		rDescriptorSet->Bind( m_CommandBuffer, m_PipelineLayout, VK_PIPELINE_BIND_POINT_COMPUTE );
 
 		vkCmdDispatch( m_CommandBuffer, X, Y, Z );
 	}

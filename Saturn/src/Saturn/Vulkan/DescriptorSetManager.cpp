@@ -135,6 +135,19 @@ namespace Saturn {
 		return nullptr;
 	}
 
+	void DescriptorSetManager::BindDescriptorSets( VkCommandBuffer CommandBuffer, VkPipelineBindPoint BindPoint, VkPipelineLayout Layout, uint32_t firstSet, std::vector<Ref<DescriptorSet>>& rDescriptorSets )
+	{
+		std::vector< VkDescriptorSet > descriptorSets;
+
+		for( auto& rSet : rDescriptorSets )
+		{
+			rSet->UpdateResidentWriteDescriptors();
+			descriptorSets.push_back( rSet->GetVulkanSet() );
+		}
+
+		vkCmdBindDescriptorSets( CommandBuffer, BindPoint, Layout, firstSet, descriptorSets.size(), descriptorSets.data(), 0, nullptr );
+	}
+
 	Ref<DescriptorSet> DescriptorSetManager::AllocateInternal( uint32_t set, VkDescriptorSetLayout layout, Ref<Material> material /*= nullptr */ )
 	{
 		Ref<DescriptorSet> currentFrameDS = nullptr;
@@ -186,5 +199,4 @@ namespace Saturn {
 	{
 		vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &rWriteDescriptorSet, 0, nullptr );
 	}
-
 }

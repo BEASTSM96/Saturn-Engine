@@ -141,6 +141,7 @@ namespace Saturn {
 
 		m_CurrentDescriptorSet = Renderer::Get().GetDescriptorSetManager()->AllocateDescriptorSet( 0, m_Shader->GetSetLayout(), this );
 
+		/*
 		for( auto& [name, texture] : m_Textures )
 		{
 			VkDescriptorImageInfo ImageInfo = {};
@@ -151,6 +152,7 @@ namespace Saturn {
 
 			m_Shader->WriteDescriptor( name, ImageInfo, m_CurrentDescriptorSet );
 		}
+		*/
 
 		for( auto& [name, textures] : m_TextureArrays )
 		{
@@ -167,8 +169,9 @@ namespace Saturn {
 		m_Shader->WriteAllUBs( m_CurrentDescriptorSet );
 	}
 
-	void Material::RN_Clean()
+	void Material::RT_UpdateDescriptorSet()
 	{
+		m_CurrentDescriptorSet->UpdateResidentWriteDescriptors();
 	}
 
 	void Material::SetResource( const std::string& Name, const Ref< Saturn::Texture2D >& Texture )
@@ -208,6 +211,8 @@ namespace Saturn {
 
 	void Material::WriteDescriptor( VkWriteDescriptorSet& rWDS )
 	{
+		//m_CurrentDescriptorSet->WriteDescriptor( rWDS );
+
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 		rWDS.dstSet = m_CurrentDescriptorSet->GetVulkanSet();
 

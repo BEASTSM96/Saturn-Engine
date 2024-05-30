@@ -265,13 +265,17 @@ namespace Saturn {
 
 			// Descriptor set 0, for material texture data.
 			// Descriptor set 1, for environment data.
-			std::array<VkDescriptorSet, 2> DescriptorSets = {
-				Set->GetVulkanSet(),
-				m_RendererDescriptorSets[ m_FrameIndex ]->GetVulkanSet()
+			std::vector<Ref<DescriptorSet>> DescriptorSets = {
+				Set,
+				m_RendererDescriptorSets[ m_FrameIndex ]
 			};
 
-			vkCmdBindDescriptorSets( CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-				Pipeline->GetPipelineLayout(), 0, ( uint32_t ) DescriptorSets.size(), DescriptorSets.data(), 0, nullptr );
+			m_DescriptorSetManager->BindDescriptorSets( 
+				CommandBuffer, 
+				VK_PIPELINE_BIND_POINT_GRAPHICS, 
+				Pipeline->GetPipelineLayout(),
+				0,
+				DescriptorSets );
 
 			vkCmdDrawIndexed( CommandBuffer, rSubmesh.IndexCount, InstanceCount, rSubmesh.BaseIndex, rSubmesh.BaseVertex, 0 );
 		}
@@ -301,6 +305,8 @@ namespace Saturn {
 			shader->WriteDescriptor( "u_EnvRadianceTex", m_PinkTextureCube->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameIndex ] );
 			shader->WriteDescriptor( "u_EnvIrradianceTex", m_PinkTextureCube->GetDescriptorInfo(), m_RendererDescriptorSets[ m_FrameIndex ] );
 		}
+
+		m_RendererDescriptorSets[ m_FrameIndex ]->UpdateResidentWriteDescriptors();
 	}
 
 	VkCommandBuffer Renderer::AllocateCommandBuffer( VkCommandPool CommandPool )

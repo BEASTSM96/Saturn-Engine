@@ -1638,7 +1638,7 @@ namespace Saturn {
 		CullingPipeline->BindWithCommandBuffer( m_RendererData.CommandBuffer );
 
 		CullingPipeline->Execute(
-			m_RendererData.LightCullingDescriptorSet->GetVulkanSet(),
+			m_RendererData.LightCullingDescriptorSet,
 			( uint32_t ) m_RendererData.LightCullingWorkGroups.x,
 			( uint32_t ) m_RendererData.LightCullingWorkGroups.y,
 			( uint32_t ) m_RendererData.LightCullingWorkGroups.z );
@@ -1917,7 +1917,7 @@ namespace Saturn {
 
 		pipeline->Bind();
 		pipeline->AddPushConstant( &params, 0, sizeof( glm::vec3 ) );
-		pipeline->Execute( m_RendererData.PreethamDescriptorSet->GetVulkanSet(), cubemapSize / irradianceMap, cubemapSize / irradianceMap, 6 );
+		pipeline->Execute( m_RendererData.PreethamDescriptorSet, cubemapSize / irradianceMap, cubemapSize / irradianceMap, 6 );
 		pipeline->Unbind();
 
 		Environment->CreateMips();
