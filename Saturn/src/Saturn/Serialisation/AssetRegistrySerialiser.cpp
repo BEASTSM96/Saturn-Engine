@@ -111,6 +111,7 @@ namespace Saturn {
 		if( assets.IsNull() )
 			return;
 
+		bool differingAssetVersions = false;
 		for( auto asset : assets )
 		{
 			UUID assetID = asset[ "Asset" ].as< uint64_t >();
@@ -138,9 +139,16 @@ namespace Saturn {
 				SAT_DECODE_VER_STRING( version, assetVersionString );
 
 				SAT_CORE_WARN( "Asset \"{0}\" was created in a different version (asset version was {1}) Saturn version is {2}", DeserialisedAsset->Name, assetVersionString, versionString );
+
+				differingAssetVersions |= true;
 			}
 
 			AssetRegistry->m_IsEditorRegistry ? DeserialisedAsset->Flags = (uint32_t)AssetFlag::Editor : DeserialisedAsset->Flags = ( uint32_t ) AssetFlag::None;
+		}
+
+		if( differingAssetVersions )
+		{
+			SAT_CORE_WARN( "In order to fix differing versions try re-saving the Asset Registry." );
 		}
 	}
 

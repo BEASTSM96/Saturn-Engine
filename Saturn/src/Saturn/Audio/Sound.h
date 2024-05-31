@@ -55,6 +55,9 @@ namespace Saturn {
 		void SetMaxDistance( float dist );
 		void SetMinDistance( float dist );
 
+		void SetVolumeMultiplier( float multiplier );
+		void SetPitchMultiplier( float multiplier );
+
 	private:
 		static void OnSoundEnd( void* pUserData, ma_sound* pSound );
 

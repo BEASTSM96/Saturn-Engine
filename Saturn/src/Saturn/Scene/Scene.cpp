@@ -717,6 +717,9 @@ namespace Saturn {
 				soundAsset->WaitUntilLoaded();
 				soundAsset->Loop();
 			}
+
+			soundAsset->SetVolumeMultiplier( rComp.VolumeMultiplier );
+			soundAsset->SetPitchMultiplier( rComp.PitchMultiplier );
 		}
 	}
 

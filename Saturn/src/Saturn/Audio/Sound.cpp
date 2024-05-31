@@ -178,6 +178,16 @@ namespace Saturn {
 		ma_sound_set_min_distance( &m_Sound, dist );
 	}
 
+	void Sound::SetVolumeMultiplier( float multiplier )
+	{
+		ma_sound_set_volume( &m_Sound, multiplier );
+	}
+
+	void Sound::SetPitchMultiplier( float multiplier )
+	{
+		ma_sound_set_pitch( &m_Sound, multiplier );
+	}
+
 	void Sound::OnSoundEnd( void* pUserData, ma_sound* pSound )
 	{
 		AssetID ID = static_cast< uint64_t >( reinterpret_cast< intptr_t >( pUserData ) );
