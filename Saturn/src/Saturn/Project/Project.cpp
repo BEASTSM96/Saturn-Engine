@@ -29,17 +29,15 @@
 #include "sppch.h"
 #include "Project.h"
 
-#include "Saturn/Core/EngineSettings.h"
-
 #include "Saturn/Serialisation/EngineSettingsSerialiser.h"
 #include "Saturn/Serialisation/ProjectSerialiser.h"
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 
 #include "Saturn/Asset/AssetManager.h"
 
+#include "Saturn/Core/EngineSettings.h"
 #include "Saturn/Core/EnvironmentVariables.h"
 #include "Saturn/Core/StringAuxiliary.h"
-
 #include "Saturn/Core/Process.h"
 
 #include "SharedGlobals.h"
@@ -256,6 +254,11 @@ namespace Saturn {
 	void Project::RemoveActionBinding( const ActionBinding& rBinding )
 	{
 		m_ActionBindings.erase( std::remove( m_ActionBindings.begin(), m_ActionBindings.end(), rBinding ), m_ActionBindings.end() );
+	}
+
+	void Project::RemoveSoundGroup( const Ref<SoundGroup>& rGrp )
+	{
+		m_SoundGroups.erase( std::remove( m_SoundGroups.begin(), m_SoundGroups.end(), rGrp ), m_SoundGroups.end() );
 	}
 
 	bool Project::HasPremakeFile()

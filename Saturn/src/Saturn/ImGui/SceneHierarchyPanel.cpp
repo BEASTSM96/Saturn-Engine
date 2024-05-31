@@ -750,20 +750,6 @@ namespace Saturn {
 				Auxiliary::DrawDisabledBoolControl( "Loop", ap.Loop );
 				Auxiliary::DrawDisabledBoolControl( "Mute", ap.Mute );
 				Auxiliary::DrawDisabledBoolControl( "Spatialization", ap.Spatialization );
-
-				bool changed = false;
-
-				changed =  Auxiliary::DrawFloatControl( "Volume Multiplier", ap.VolumeMultiplier );
-				changed |= Auxiliary::DrawFloatControl( "Pitch Multiplier", ap.PitchMultiplier );
-
-				/*
-				if( changed )
-				{
-					auto soundAsset = AssetManager::Get().GetAssetAs<Sound>( ap.AssetID );
-					soundAsset->SetVolumeMultiplier( ap.VolumeMultiplier );
-					soundAsset->SetPitchMultiplier( ap.PitchMultiplier );
-				}
-				*/
 			}
 			else
 			{

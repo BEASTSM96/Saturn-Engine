@@ -78,6 +78,8 @@
 #include <Saturn/Premake/Premake.h>
 #include <Saturn/Core/Process.h>
 
+#include <Saturn/Audio/SoundGroup.h>
+
 #include <Ruby/RubyWindow.h>
 #include <Ruby/RubyAuxiliary.h>
 
@@ -938,6 +940,71 @@ namespace Saturn {
 
 		ImGui::EndVertical();
 #endif
+
+		ImGui::PushFont( boldFont );
+		ImGui::Text( "Audio Groups" );
+		ImGui::Separator();
+		ImGui::PopFont();
+
+		for( auto rIt = ActiveProject->GetSoundGroups().begin(); rIt != ActiveProject->GetSoundGroups().end(); )
+		{
+			auto& rSoundGroup = *( rIt );
+
+			char buffer[ 256 ];
+			memset( buffer, 0, 256 );
+			memcpy( buffer, rSoundGroup->GetName().data(), rSoundGroup->GetName().length() );
+
+			// TODO: Change to unique ID
+			std::string id = "##entergrpname";
+
+			ImGui::SetNextItemWidth( 130.0f );
+			if( ImGui::InputText( id.data(), buffer, 256 ) )
+			{
+				rSoundGroup->SetName( std::string( buffer ) );
+			}
+
+			ImGui::SameLine(); // HACK, There seems to bug with the ImGui Layout as the InputText works fine when it's not in a Horizontal layout. (Update) Seems to be with certain IDs/labels
+
+			ImGui::BeginHorizontal( rSoundGroup->GetName().data() );
+
+			if( ImGui::SmallButton( "-" ) )
+			{
+				rIt = ActiveProject->GetSoundGroups().erase( rIt );
+				ShouldSaveProject = true;
+			}
+			else
+			{
+				++rIt;
+			}
+
+			ImGui::EndHorizontal();
+		}
+
+		ImGui::PushID( "##nwSndGrp" );
+
+		if( ImGui::SmallButton( "+" ) )
+		{
+			Ref<SoundGroup> group = Ref<SoundGroup>::Create( "New Sound Group" );
+
+			// Find all other sound groups with the same name.
+			int count = 0;
+			for( const auto& rGroups : ActiveProject->GetSoundGroups() )
+			{
+				if( rGroups->GetName().contains( "New Sound Group" ) )
+					count++;
+			}
+
+			if( count >= 1 )
+			{
+				std::string newName = std::format( "{0} ({1})", group->GetName(), std::to_string( count ) );
+				group->SetName( newName );
+			}
+
+			ActiveProject->AddSoundGroup( group );
+			ShouldSaveProject = true;
+		}
+
+		ImGui::PopID();
 
 		ImGui::End();
 

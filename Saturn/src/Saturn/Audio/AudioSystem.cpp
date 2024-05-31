@@ -29,8 +29,10 @@
 #include "sppch.h"
 #include "AudioSystem.h"
 
-#include "Saturn/Asset/AssetManager.h"
+#include "SoundGroup.h"
 
+#include "Saturn/Asset/AssetManager.h"
+#include "Saturn/Project/Project.h"
 #include "Saturn/Core/OptickProfiler.h"
 
 namespace Saturn {
@@ -150,6 +152,12 @@ namespace Saturn {
 		for( auto& [id, asset] : m_LoadedSounds )
 		{
 			asset->Unload();
+		}
+
+		// Uninit sound groups
+		for( auto& rGroup : Project::GetActiveProject()->GetSoundGroups() )
+		{
+			rGroup->Destroy();
 		}
 
 		// Stop audio thread

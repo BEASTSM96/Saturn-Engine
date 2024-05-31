@@ -30,6 +30,7 @@
 
 #include "Saturn/Core/Base.h"
 #include "Saturn/GameFramework/ActionBinding.h"
+#include "Saturn/Audio/SoundGroup.h"
 
 #include "Saturn/Core/UUID.h"
 
@@ -122,6 +123,15 @@ namespace Saturn {
 		void AddActionBinding( const ActionBinding& rBinding ) { m_ActionBindings.push_back( rBinding ); }
 		void RemoveActionBinding( const ActionBinding& rBinding );
 
+		//////////////////////////////////////////////////////////////////////////
+		// Sound Group
+
+		std::vector<Ref<SoundGroup>>& GetSoundGroups() { return m_SoundGroups; }
+		const std::vector<Ref<SoundGroup>>& GetSoundGroups() const { return m_SoundGroups; }
+
+		void AddSoundGroup( const Ref<SoundGroup>& rGrp ) { m_SoundGroups.push_back( rGrp ); }
+		void RemoveSoundGroup( const Ref<SoundGroup>& rGrp );
+
 	public:
 		//////////////////////////////////////////////////////////////////////////
 		// Premake, Building & Preparation for Distribution (Used in Editor)
@@ -145,6 +155,7 @@ namespace Saturn {
 	private:
 		ProjectConfig m_Config;
 		std::vector<ActionBinding> m_ActionBindings;
+		std::vector<Ref<SoundGroup>> m_SoundGroups;
 
 		// Absolute root path
 		std::filesystem::path m_RootPath;

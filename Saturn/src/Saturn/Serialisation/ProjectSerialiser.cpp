@@ -82,6 +82,22 @@ namespace Saturn {
 			}
 
 			out << YAML::EndSeq;
+
+			out << YAML::Key << "SoundGroups";
+			out << YAML::BeginSeq;
+
+			for( const auto& rSoundGroup : rProject->GetSoundGroups() )
+			{
+				out << YAML::BeginMap;
+
+				out << YAML::Key << "SoundGroup" << YAML::Value << rSoundGroup->GetName();
+
+				// TODO: Volume etc.
+
+				out << YAML::EndMap;
+			}
+
+			out << YAML::EndSeq;
 		}
 
 		out << YAML::EndMap;
@@ -133,6 +149,20 @@ namespace Saturn {
 				ab.ID = ( UUID ) binding[ "ID" ].as<uint64_t>();
 
 				newProject->AddActionBinding( ab );
+			}
+		}
+
+		auto soundGroups = project[ "SoundGroups" ];
+
+		if( soundGroups )
+		{
+			for( const auto& grp : soundGroups )
+			{
+				Ref<SoundGroup> sndGrp = Ref<SoundGroup>::Create();
+
+				sndGrp->SetName( grp[ "Name" ].as<std::string>() );
+				
+				newProject->AddSoundGroup( grp );
 			}
 		}
 
