@@ -42,6 +42,7 @@ namespace Saturn {
 		SoundGroup( const std::string& rName );
 		virtual ~SoundGroup();
 
+		void Init( bool isMaster );
 		void Destroy();
 
 		const std::string& GetName() { return m_Name; }
@@ -49,8 +50,13 @@ namespace Saturn {
 
 		void SetName( const std::string& rName ) { m_Name = rName; }
 
-	private:
-		void Create();
+		float GetVolume() const;
+		float GetPitch() const;
+
+		void SetVolume( float volume );
+		void SetPitch( float pitch );
+
+		ma_sound_group* GetInternal() const { return m_Group; }
 
 	private:
 		ma_sound_group* m_Group = nullptr;

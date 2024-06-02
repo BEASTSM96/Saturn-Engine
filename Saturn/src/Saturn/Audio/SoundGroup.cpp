@@ -36,12 +36,10 @@ namespace Saturn {
 	SoundGroup::SoundGroup( const std::string& rName )
 		: m_Name( rName )
 	{
-		Create();
 	}
 
 	SoundGroup::SoundGroup()
 	{
-		Create();
 	}
 
 	SoundGroup::~SoundGroup()
@@ -54,15 +52,47 @@ namespace Saturn {
 		if( m_Group )
 		{
 			ma_sound_group_uninit( m_Group );
+			delete m_Group;
+
 			m_Group = nullptr;
 		}
 	}
 
-	void SoundGroup::Create()
+	float SoundGroup::GetVolume() const
+	{
+		if( m_Group )
+			return ma_sound_group_get_volume( m_Group );
+
+		return 0.0f;
+	}
+
+	float SoundGroup::GetPitch() const
+	{
+		if( m_Group )
+			return ma_sound_group_get_pitch( m_Group );
+
+		return 0.0f;
+	}
+
+	void SoundGroup::SetVolume( float volume )
+	{
+		if( m_Group )
+			ma_sound_group_set_volume( m_Group, volume );
+	}
+
+	void SoundGroup::SetPitch( float pitch )
+	{
+		if( m_Group )
+			ma_sound_group_set_pitch( m_Group, pitch );
+	}
+
+	void SoundGroup::Init( bool isMaster )
 	{
 		m_Group = new ma_sound();
 
-		MA_CHECK( ma_sound_group_init( &AudioSystem::Get().GetAudioEngine(), 0, nullptr, m_Group ) );
+		ma_sound_group* pParentSoundGroup = isMaster ? nullptr : AudioSystem::Get().GetMasterSoundGroup().GetInternal();
+
+		MA_CHECK( ma_sound_group_init( &AudioSystem::Get().GetAudioEngine(), 0, pParentSoundGroup, m_Group ) );
 	}
 
 }

@@ -136,6 +136,9 @@ namespace Saturn {
 				SAT_CORE_INFO( " Buffer Cap: {0}", m_Device.playback.intermediaryBufferCap );
 				SAT_CORE_INFO( " Format: {0}", m_Device.playback.format );
 				SAT_CORE_INFO( "==============" );
+
+				m_MasterSoundGroup.Init( true );
+				m_MasterSoundGroup.SetName( "Master" );
 			} );
 	}
 
@@ -154,11 +157,14 @@ namespace Saturn {
 			asset->Unload();
 		}
 
-		// Uninit sound groups
+		// Uninit project sound groups
 		for( auto& rGroup : Project::GetActiveProject()->GetSoundGroups() )
 		{
 			rGroup->Destroy();
 		}
+
+		// Unit master sound group
+		m_MasterSoundGroup.Destroy();
 
 		// Stop audio thread
 		SAT_CORE_INFO( "Stoping Audio Thread..." );

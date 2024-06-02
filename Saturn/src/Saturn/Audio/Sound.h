@@ -62,6 +62,7 @@ namespace Saturn {
 		static void OnSoundEnd( void* pUserData, ma_sound* pSound );
 
 	private:
+		void SetupSpatialization();
 		virtual void Unload() override;
 
 		bool m_Spatialization = false;

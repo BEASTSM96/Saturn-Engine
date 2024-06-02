@@ -57,6 +57,8 @@ namespace Saturn {
 
 	protected:
 		ma_sound m_Sound{};
+		ma_sound_group* m_SoundGroup = nullptr;
+
 		bool m_Loaded = false;
 		bool m_Playing = false;
 		bool m_Looping = false;

@@ -33,6 +33,7 @@
 
 #include "AudioCore.h"
 #include "Sound.h"
+#include "SoundGroup.h"
 
 #include <filesystem>
 
@@ -61,8 +62,6 @@ namespace Saturn {
 		bool m_PendingTerminate = false;
 	};
 
-	class Sound2D;
-	class Sound3D;
 	class Entity;
 
 	class AudioSystem
@@ -86,12 +85,13 @@ namespace Saturn {
 		
 		void ReportSoundCompleted( AssetID ID );
 
-		ma_engine& GetAudioEngine() { return m_Engine; }
-
 		void Suspend();
 		void Resume();
 
 		void SetPrimaryListenerPos( const glm::vec3& rPos );
+
+		ma_engine& GetAudioEngine() { return m_Engine; }
+		SoundGroup& GetMasterSoundGroup() { return m_MasterSoundGroup; }
 
 	private:
 		void Initialise();
@@ -100,6 +100,7 @@ namespace Saturn {
 
 	private:
 		Ref<AudioThread> m_AudioThread;
+		SoundGroup m_MasterSoundGroup;
 
 		// Currently alive sounds (i.e. sounds that are playing)
 		std::unordered_map<AssetID, Ref<Sound>> m_AliveSounds;

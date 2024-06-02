@@ -47,26 +47,32 @@ namespace Saturn {
 			ma_uint32 initFlags = MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC;
 			initFlags |= flags;
 
+			// By default always use the master sound group.
+			m_SoundGroup = AudioSystem::Get().GetMasterSoundGroup().GetInternal();
+
 			// TODO: Wait for the sound to load by using the fence.
 			MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(),
 				m_RawPath.string().c_str(),
-				initFlags, NULL, NULL, &m_Sound ) );
+				initFlags, m_SoundGroup, nullptr, &m_Sound ) );
 
 			m_Sound.pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( ID ) );
 			m_Sound.endCallback = OnSoundEnd;
-
+			
 			if( ( initFlags & ( uint32_t ) MA_SOUND_FLAG_NO_SPATIALIZATION ) == 0 )
-			{
-				m_Spatialization = true;
-				SetMinDistance( 1.0f );
-				SetMaxDistance( 10.0f );
-
-				ma_sound_set_min_gain( &m_Sound, 1.0f );
-				ma_sound_set_max_gain( &m_Sound, 100.0f );
-			}
+				SetupSpatialization();
 
 			m_Loaded = true;
 		}
+	}
+
+	void Sound::SetupSpatialization()
+	{
+		m_Spatialization = true;
+		SetMinDistance( 1.0f );
+		SetMaxDistance( 10.0f );
+
+		ma_sound_set_min_gain( &m_Sound, 1.0f );
+		ma_sound_set_max_gain( &m_Sound, 100.0f );
 	}
 
 	void Sound::Unload()

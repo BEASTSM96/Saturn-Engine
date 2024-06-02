@@ -159,10 +159,11 @@ namespace Saturn {
 			for( const auto& grp : soundGroups )
 			{
 				Ref<SoundGroup> sndGrp = Ref<SoundGroup>::Create();
+				sndGrp->Init( false );
 
 				sndGrp->SetName( grp[ "Name" ].as<std::string>() );
-				
-				newProject->AddSoundGroup( grp );
+
+				newProject->AddSoundGroup( sndGrp );
 			}
 		}
 

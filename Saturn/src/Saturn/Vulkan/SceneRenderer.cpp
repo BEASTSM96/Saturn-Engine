@@ -555,7 +555,7 @@ namespace Saturn {
 
 		m_RendererData.BloomShader->WriteAllUBs( m_RendererData.BloomDS );
 
-		m_RendererData.BloomDirtTexture = Ref<Texture2D>::Create( "content/textures/BloomDirtTextureUE.png", AddressingMode::Repeat );
+		m_RendererData.BloomDirtTexture = Ref<Texture2D>::Create( "content/textures/editor/BloomDirtTextureUE.png", AddressingMode::Repeat );
 	}
 
 	void SceneRenderer::InitTexturePass()

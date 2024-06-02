@@ -1,10 +1,22 @@
 Assets:
-  - Asset: 1322704895680931207
-    Path: content\textures\editor\Exclamation.png
+  - Asset: 1985385176539892432
+    Path: content\meshes\sponza\17556969131407844942.jpg
+    Type: Texture
+    Version: 4096
+  - Asset: 4208587304469281517
+    Path: content\env\birchwood_4k.hdr
+    Type: Texture
+    Version: 4096
+  - Asset: 7159776962780629950
+    Path: content\textures\editor\Right.png
     Type: Texture
     Version: 4096
   - Asset: 16805738285757158254
     Path: content\meshes\sponza\4601176305987539675.jpg
+    Type: Texture
+    Version: 4096
+  - Asset: 1322704895680931207
+    Path: content\textures\editor\Exclamation.png
     Type: Texture
     Version: 4096
   - Asset: 16042316880588246345
@@ -15,25 +27,13 @@ Assets:
     Path: content\meshes\defualt\Cube.stmesh
     Type: StaticMesh
     Version: 4096
-  - Asset: 1985385176539892432
-    Path: content\meshes\sponza\17556969131407844942.jpg
-    Type: Texture
-    Version: 4096
-  - Asset: 7159776962780629950
-    Path: content\textures\editor\Right.png
-    Type: Texture
-    Version: 4096
-  - Asset: 4208587304469281517
-    Path: content\env\birchwood_4k.hdr
-    Type: Texture
+  - Asset: 3858020990429298802
+    Path: content\meshes\defualt\Capsule.stmesh
+    Type: StaticMesh
     Version: 4096
   - Asset: 18408245389604140273
     Path: content\Icons\SaturnSmallIcon.ico
     Type: Texture
-    Version: 4096
-  - Asset: 3858020990429298802
-    Path: content\meshes\defualt\Capsule.stmesh
-    Type: StaticMesh
     Version: 4096
   - Asset: 15824077332412949284
     Path: content\env\pink_sunrise_4k.hdr
@@ -47,29 +47,17 @@ Assets:
     Path: content\materials\DefaultMaterial.smaterial
     Type: Material
     Version: 4096
-  - Asset: 13222541318646531485
-    Path: content\meshes\sponza\14650633544276105767.jpg
-    Type: Texture
-    Version: 4096
   - Asset: 5279360738990677112
     Path: content\materials\DefaultMaterial.sphymaterial
     Type: PhysicsMaterial
     Version: 4096
+  - Asset: 13222541318646531485
+    Path: content\meshes\sponza\14650633544276105767.jpg
+    Type: Texture
+    Version: 4096
   - Asset: 13642146206823186413
     Path: content\meshes\defualt\Plane.stmesh
     Type: StaticMesh
-    Version: 4096
-  - Asset: 10988523231352903384
-    Path: content\meshes\sponza\11968150294050148237.jpg
-    Type: Texture
-    Version: 4096
-  - Asset: 11742423272701850036
-    Path: content\meshes\sponza\4477655471536070370.jpg
-    Type: Texture
-    Version: 4096
-  - Asset: 14482187720146373798
-    Path: content\meshes\sponza\11872827283454512094.jpg
-    Type: Texture
     Version: 4096
   - Asset: 4546356559075156700
     Path: content\meshes\_Textures\m1911_color.png
@@ -79,16 +67,16 @@ Assets:
     Path: content\meshes\defualt\Torus.stmesh
     Type: StaticMesh
     Version: 4096
-  - Asset: 16100432342688417122
-    Path: content\meshes\sponza\11490520546946913238.jpg
+  - Asset: 14482187720146373798
+    Path: content\meshes\sponza\11872827283454512094.jpg
     Type: Texture
     Version: 4096
-  - Asset: 16578152231275352563
-    Path: content\meshes\sponza\13982482287905699490.jpg
+  - Asset: 10988523231352903384
+    Path: content\meshes\sponza\11968150294050148237.jpg
     Type: Texture
     Version: 4096
-  - Asset: 17822308058769629830
-    Path: content\meshes\sponza\1219024358953944284.jpg
+  - Asset: 11742423272701850036
+    Path: content\meshes\sponza\4477655471536070370.jpg
     Type: Texture
     Version: 4096
   - Asset: 14891646896471278411
@@ -99,12 +87,16 @@ Assets:
     Path: content\meshes\sponza\10381718147657362067.jpg
     Type: Texture
     Version: 4096
-  - Asset: 9318532148209698742
-    Path: content\meshes\_Textures\Cerberus_A.png
+  - Asset: 17822308058769629830
+    Path: content\meshes\sponza\1219024358953944284.jpg
     Type: Texture
     Version: 4096
-  - Asset: 15220546842937789543
-    Path: content\meshes\sponza\4675343432951571524.jpg
+  - Asset: 16100432342688417122
+    Path: content\meshes\sponza\11490520546946913238.jpg
+    Type: Texture
+    Version: 4096
+  - Asset: 16578152231275352563
+    Path: content\meshes\sponza\13982482287905699490.jpg
     Type: Texture
     Version: 4096
   - Asset: 8926220843714855773
@@ -115,16 +107,20 @@ Assets:
     Path: content\meshes\sponza\10388182081421875623.jpg
     Type: Texture
     Version: 4096
+  - Asset: 9318532148209698742
+    Path: content\meshes\_Textures\Cerberus_A.png
+    Type: Texture
+    Version: 4096
+  - Asset: 15220546842937789543
+    Path: content\meshes\sponza\4675343432951571524.jpg
+    Type: Texture
+    Version: 4096
   - Asset: 1462207924211333578
     Path: content\meshes\sponza\8747919177698443163.jpg
     Type: Texture
     Version: 4096
   - Asset: 11072457938347775314
     Path: content\meshes\sponza\11474523244911310074.jpg
-    Type: Texture
-    Version: 4096
-  - Asset: 3798671698418198487
-    Path: content\meshes\sponza\13824894030729245199.jpg
     Type: Texture
     Version: 4096
   - Asset: 7329289734814556850
@@ -135,12 +131,16 @@ Assets:
     Path: content\meshes\sponza\12501374198249454378.jpg
     Type: Texture
     Version: 4096
-  - Asset: 2024553943237878020
-    Path: content\meshes\sponza\2775690330959970771.jpg
+  - Asset: 3798671698418198487
+    Path: content\meshes\sponza\13824894030729245199.jpg
     Type: Texture
     Version: 4096
   - Asset: 5912572667922274400
     Path: content\meshes\sponza\13196865903111448057.jpg
+    Type: Texture
+    Version: 4096
+  - Asset: 2024553943237878020
+    Path: content\meshes\sponza\2775690330959970771.jpg
     Type: Texture
     Version: 4096
   - Asset: 8875453629322714640
@@ -163,20 +163,20 @@ Assets:
     Path: content\meshes\sponza\14170708867020035030.jpg
     Type: Texture
     Version: 4096
-  - Asset: 10668594770588812789
-    Path: content\meshes\sponza\6047387724914829168.jpg
-    Type: Texture
-    Version: 4096
-  - Asset: 5239336668301037203
-    Path: content\meshes\sponza\3827035219084910048.jpg
-    Type: Texture
-    Version: 4096
   - Asset: 9977544272938272467
     Path: content\scenes\sponza.scene
     Type: Scene
     Version: 4096
   - Asset: 365050758458191377
     Path: content\meshes\sponza\14267839433702832875.jpg
+    Type: Texture
+    Version: 4096
+  - Asset: 5239336668301037203
+    Path: content\meshes\sponza\3827035219084910048.jpg
+    Type: Texture
+    Version: 4096
+  - Asset: 10668594770588812789
+    Path: content\meshes\sponza\6047387724914829168.jpg
     Type: Texture
     Version: 4096
   - Asset: 3965693900197594563
@@ -187,32 +187,32 @@ Assets:
     Path: content\meshes\sponza\15295713303328085182.jpg
     Type: Texture
     Version: 4096
-  - Asset: 7304295066739381202
-    Path: content\meshes\sponza\4975155472559461469.jpg
-    Type: Texture
-    Version: 4096
   - Asset: 11002325568110608774
     Path: content\meshes\sponza\15722799267630235092.jpg
+    Type: Texture
+    Version: 4096
+  - Asset: 7304295066739381202
+    Path: content\meshes\sponza\4975155472559461469.jpg
     Type: Texture
     Version: 4096
   - Asset: 5940441129874129065
     Path: content\meshes\sponza\16275776544635328252.png
     Type: Texture
     Version: 4096
-  - Asset: 5774640784489915780
-    Path: content\meshes\sponza\466164707995436622.jpg
-    Type: Texture
-    Version: 4096
   - Asset: 14467361774610073754
     Path: content\meshes\sponza\16299174074766089871.jpg
     Type: Texture
     Version: 4096
-  - Asset: 6952682565694667986
-    Path: content\meshes\sponza\5061699253647017043.png
+  - Asset: 5774640784489915780
+    Path: content\meshes\sponza\466164707995436622.jpg
     Type: Texture
     Version: 4096
   - Asset: 8269261356761599067
     Path: content\meshes\sponza\16885566240357350108.jpg
+    Type: Texture
+    Version: 4096
+  - Asset: 6952682565694667986
+    Path: content\meshes\sponza\5061699253647017043.png
     Type: Texture
     Version: 4096
   - Asset: 12073494318660806576
@@ -259,12 +259,12 @@ Assets:
     Path: content\meshes\sponza\3455394979645218238.jpg
     Type: Texture
     Version: 4096
-  - Asset: 16494337820604054678
-    Path: content\textures\BRDF_LUT.tga
-    Type: Texture
-    Version: 4096
   - Asset: 1736416813669366030
     Path: content\meshes\sponza\3628158980083700836.jpg
+    Type: Texture
+    Version: 4096
+  - Asset: 16494337820604054678
+    Path: content\textures\BRDF_LUT.tga
     Type: Texture
     Version: 4096
   - Asset: 1512033582184861355
@@ -291,12 +291,12 @@ Assets:
     Path: content\meshes\sponza\6151467286084645207.jpg
     Type: Texture
     Version: 4096
-  - Asset: 14029195278962897498
-    Path: content\meshes\sponza\8481240838833932244.jpg
-    Type: Texture
-    Version: 4096
   - Asset: 13734870180145061993
     Path: content\meshes\sponza\6667038893015345571.jpg
+    Type: Texture
+    Version: 4096
+  - Asset: 14029195278962897498
+    Path: content\meshes\sponza\8481240838833932244.jpg
     Type: Texture
     Version: 4096
   - Asset: 9455674620930401240
@@ -311,13 +311,13 @@ Assets:
     Path: content\meshes\sponza\7056944414013900257.jpg
     Type: Texture
     Version: 4096
-  - Asset: 2206501325490646047
-    Path: content\scenes\physics_test.scene
-    Type: Scene
-    Version: 4096
   - Asset: 11765512616547594807
     Path: content\meshes\sponza\7268504077753552595.jpg
     Type: Texture
+    Version: 4096
+  - Asset: 2206501325490646047
+    Path: content\scenes\physics_test.scene
+    Type: Scene
     Version: 4096
   - Asset: 4940399191692227684
     Path: content\meshes\sponza\7441062115984513793.jpg
@@ -343,6 +343,10 @@ Assets:
     Path: content\meshes\sponza\8051790464816141987.jpg
     Type: Texture
     Version: 4096
+  - Asset: 8349278238404956614
+    Path: content\textures\editor\BlueprintBackground.png
+    Type: Texture
+    Version: 4097
   - Asset: 16095437085408372521
     Path: content\meshes\sponza\8114461559286000061.jpg
     Type: Texture
@@ -383,12 +387,12 @@ Assets:
     Path: content\meshes\_Textures\m1911_metalness.png
     Type: Texture
     Version: 4096
-  - Asset: 118116173519228364
-    Path: content\textures\StopButton.png
-    Type: Texture
-    Version: 4096
   - Asset: 15915411425057585125
     Path: content\meshes\_Textures\m1911_normal.png
+    Type: Texture
+    Version: 4096
+  - Asset: 118116173519228364
+    Path: content\textures\StopButton.png
     Type: Texture
     Version: 4096
   - Asset: 5416014768704194309
@@ -467,12 +471,12 @@ Assets:
     Path: content\textures\editor\NoIcon.png
     Type: Texture
     Version: 4096
-  - Asset: 10993647311584256595
-    Path: content\textures\editor\Swap.png
-    Type: Texture
-    Version: 4096
   - Asset: 10194335187903428703
     Path: content\textures\editor\Play.png
+    Type: Texture
+    Version: 4096
+  - Asset: 10993647311584256595
+    Path: content\textures\editor\Swap.png
     Type: Texture
     Version: 4096
   - Asset: 11910104690919582616
@@ -491,3 +495,7 @@ Assets:
     Path: content\textures\PlayButton.png
     Type: Texture
     Version: 4096
+  - Asset: 12822120158215226515
+    Path: content\textures\editor\BloomDirtTextureUE.png
+    Type: Texture
+    Version: 4097

@@ -985,6 +985,7 @@ namespace Saturn {
 		if( ImGui::SmallButton( "+" ) )
 		{
 			Ref<SoundGroup> group = Ref<SoundGroup>::Create( "New Sound Group" );
+			group->Init( false );
 
 			// Find all other sound groups with the same name.
 			int count = 0;
