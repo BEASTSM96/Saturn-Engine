@@ -61,7 +61,6 @@
 
 namespace Saturn {
 
-	static const std::string DefaultEntityName = "Empty Entity";
 	std::unordered_map<UUID, Scene*> s_ActiveScenes;
 
 	static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition( const glm::mat4& transform )

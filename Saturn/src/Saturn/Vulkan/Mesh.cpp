@@ -262,8 +262,7 @@ namespace Saturn {
 			if( !asset ) 
 			{
 				// Create the new asset
-				asset = AssetManager::Get().FindAsset( AssetManager::Get().CreateAsset( AssetTypeFromExtension( assetPath.extension().string() ) ) );
-
+				asset = AssetManager::Get().FindAsset( AssetManager::Get().CreateAsset( AssetType::Material ) );
 				asset->SetPath( assetPath );
 
 				// Does not exists, mesh source did not copy it?
@@ -306,10 +305,11 @@ namespace Saturn {
 				asset->Path = OldAssetData.Path;
 				asset->Name = OldAssetData.Name;
 
-				/*
+				// Save the material in it's most default state.
+				// So when we write the actual information in the asset will already be loaded.
+				// Because at this point this asset only exists in memory.
 				MaterialAssetSerialiser mas;
 				mas.Serialise( materialAsset );
-				*/
 
 				materialAsset->SetName( MaterialName );
 

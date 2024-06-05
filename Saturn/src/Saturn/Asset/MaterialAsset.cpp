@@ -38,8 +38,6 @@
 
 namespace Saturn {
 
-	static std::vector< AssetID > s_Materials;
-
 	MaterialAsset::MaterialAsset( Ref<Material> material )
 	{
 		if( material == nullptr )

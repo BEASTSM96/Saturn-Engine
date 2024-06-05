@@ -71,7 +71,9 @@ namespace Saturn {
 		auto& basePath = rAsset->GetPath();
 		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
 
-		auto materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
+		//auto materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
+
+		auto materialAsset = rAsset.As<MaterialAsset>();
 
 		YAML::Emitter out;
 
