@@ -76,10 +76,10 @@ namespace Saturn {
 			std::filesystem::create_directories( tempDir );
 	}
 
-	AssetBundleResult AssetBundle::BundleAssets()
+	AssetBundleResult AssetBundle::BundleAssets( Ref<JobProgress>& jobProgress )
 	{
-		GetBlockingOperation()->Reset();
-		GetBlockingOperation()->SetTitle( "AssetBundle" );
+		jobProgress->Reset();
+		jobProgress->SetTitle( "AssetBundle" );
 
 		std::filesystem::path cachePath = Project::GetActiveProject()->GetFullCachePath();
 
@@ -105,7 +105,7 @@ namespace Saturn {
 
 		std::unordered_map<std::filesystem::path, AssetID> DumpFileToAssetID;
 
-		GetBlockingOperation()->SetTitle( "Loading assets..." );
+		jobProgress->SetTitle( "Loading assets..." );
 
 		// THREAD-TRANSTION, Block main thread
 		Application::Get().SuspendMainThreadCV();
@@ -141,10 +141,10 @@ namespace Saturn {
 		Application::Get().ResumeMainThreadCV();
 
 		SAT_CORE_INFO( "Dumped {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
-
-		GetBlockingOperation()->SetProgress( 10.0f );
-		GetBlockingOperation()->SetTitle( "Building AssetBundle" );
-
+				
+		jobProgress->SetProgress( 10.0f );
+		jobProgress->SetTitle( "Building AssetBundle" );
+		
 		/////////////////////////////////////
 
 		std::ofstream fout( cachePath, std::ios::binary | std::ios::trunc );
@@ -161,21 +161,19 @@ namespace Saturn {
 			SAT_CORE_INFO( "Writing header information for asset: {0} ({1})", id, asset->Name );
 			std::string status = std::format( "Writing header information for asset: {0} ({1})", (uint64_t)id, asset->Name );
 
-			GetBlockingOperation()->SetStatus( status );
+			jobProgress->SetStatus( status );
 
 			asset->SerialiseData( fout );
 
 			rVFS.Mount( rMountBase, asset->Path );
 		}
 
-		GetBlockingOperation()->SetProgress( 30.0f );
-
+		jobProgress->SetProgress( 35.0f );
+		jobProgress->SetStatus( "Writing VFS" );
+		
 		/////////////////////////////////////
-		GetBlockingOperation()->SetStatus( "Writing VFS" );
-
+		
 		VirtualFS::Get().WriteVFS( fout );
-
-		GetBlockingOperation()->SetProgress( 35.0f );
 
 		/////////////////////////////////////
 
@@ -215,7 +213,7 @@ namespace Saturn {
 			{
 				SAT_CORE_WARN( "Compressing file: {0} because file is {1} KB", path.string(), fileSize / 1000 );
 				
-				GetBlockingOperation()->SetStatus( std::format( "Compressing file: {0}", path.string() ) );
+				jobProgress->SetStatus( std::format( "Compressing file: {0}", path.string() ) );
 
 				// Compress, file over the limit.
 				std::vector<char> compressedData;
@@ -247,13 +245,13 @@ namespace Saturn {
 				dfh.CompressedSize = dfh.OrginalSize;
 
 				SAT_CORE_WARN( "Not compressing file: {0} because file size is less than 500 KB", path.string() );
-				GetBlockingOperation()->SetStatus( std::format( "Not Compressing file because file size is less than 500 KB: {0}", path.string() ) );
+				jobProgress->SetStatus( std::format( "Not Compressing file because file size is less than 500 KB: {0}", path.string() ) );
 
 				RawSerialisation::WriteObject( dfh, fout );
 				RawSerialisation::WriteVector( fileBuffer, fout );
 			}
 
-			GetBlockingOperation()->AddProgress( ( 1.0f + GetBlockingOperation()->GetProgress() ) / DumpFileToAssetID.size() );
+			jobProgress->AddProgress( ( 1.0f + jobProgress->GetProgress() ) / DumpFileToAssetID.size() );
 		}
 
 		SAT_CORE_INFO( "Packaged {0} asset(s)", rAssetManager.GetAssetRegistrySize() );
@@ -261,8 +259,8 @@ namespace Saturn {
 
 		fout.close();
 
-		GetBlockingOperation()->SetProgress( 100.0f );
-		GetBlockingOperation()->SetStatus( "Done" );
+		jobProgress->SetProgress( 100.0f );
+		jobProgress->SetStatus( "Done" );
 
 		DumpFileToAssetID.clear();
 
@@ -270,6 +268,8 @@ namespace Saturn {
 		std::filesystem::remove_all( ActiveProject->GetTempDir() );
 
 		AssetBundleRegistry = nullptr;
+
+		jobProgress->OnComplete();
 
 		return AssetBundleResult::Success;
 	}
@@ -477,11 +477,4 @@ namespace Saturn {
 
 		return AssetBundleResult::Success;
 	}
-
-	Ref<BlockingOperation>& AssetBundle::GetBlockingOperation()
-	{
-		static Ref<BlockingOperation> _ = Ref<BlockingOperation>::Create();
-		return _;
-	}
-
 }

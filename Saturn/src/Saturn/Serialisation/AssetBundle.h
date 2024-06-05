@@ -30,7 +30,7 @@
 
 #include "Saturn/Asset/AssetRegistry.h"
 
-#include "Saturn/ImGui/BlockingOperation.h"
+#include "Saturn/ImGui/JobProgress.h"
 
 namespace Saturn {
 
@@ -46,13 +46,13 @@ namespace Saturn {
 		AssetIDMismatch
 	};
 
+	class JobProgress;
+
 	class AssetBundle
 	{
 	public:
-		[[nodiscard]] static AssetBundleResult BundleAssets();
+		[[nodiscard]] static AssetBundleResult BundleAssets( Ref<JobProgress>& jobProgress );
 		[[nodiscard]] static AssetBundleResult ReadBundle();
-
-		static Ref<BlockingOperation>& GetBlockingOperation();
 
 	private:
 		static void RTDumpAsset( const Ref<Asset>& rAsset, Ref<AssetRegistry>& AssetBundleRegistry );

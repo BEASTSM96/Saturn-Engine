@@ -34,7 +34,7 @@
 #include <Saturn/Scene/Scene.h>
 #include <Saturn/Core/Layer.h>
 
-#include <Saturn/ImGui/BlockingOperation.h>
+#include <Saturn/ImGui/JobProgress.h>
 
 #include <thread>
 
@@ -115,7 +115,8 @@ namespace Saturn {
 
 		GameModule* m_GameModule = nullptr;
 
-		Ref<BlockingOperation> m_BlockingOperation = nullptr;
+		// Used to be called BlockingOperation hence the name.
+		Ref<JobProgress> m_BlockingOperation = nullptr;
 
 		EditorCamera m_EditorCamera;
 		bool m_AllowCameraEvents = false;
@@ -128,10 +129,10 @@ namespace Saturn {
 
 		bool m_RequestRuntime = false;
 
-		bool m_BlockingActionRunning = false;
+		bool m_JobModalOpen = false;
 
 		// Translate as default
-		int m_GizmoOperation = 7;
+		int m_GizmoOperation = 7 /* ImGuizmo::OPERATION::TRANSLATE */;
 
 		ImVec2 m_ViewportSize;
 

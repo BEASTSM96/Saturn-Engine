@@ -26,54 +26,52 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "BlockingOperation.h"
+#pragma once
+
+#include "Saturn/Core/Timer.h"
+#include "Saturn/Core/JobSystem.h"
+
+#include <string>
+#include <functional>
 
 namespace Saturn {
 
-	BlockingOperation::BlockingOperation()
+	class JobProgress : public RefTarget
 	{
+	public:
+		JobProgress() = default;
+		~JobProgress() = default;
 
-	}
+		float GetProgress() const { return m_Progress.load(); }
+		const std::string& GetStatus() const { return m_Status; }
+		const std::string& GetTitle() const { return m_Title; }
+		bool Completed() const { return m_Done; }
 
-	BlockingOperation::~BlockingOperation()
-	{
-		m_JobThread.join();
-	}
+		inline void OnComplete() { m_Done = true; }
 
-	void BlockingOperation::SetJob( std::function<void()>&& rrFunction )
-	{
-		m_Job = rrFunction;
-	}
+		template<typename Func>
+		inline void SetJobFunc( Func&& rrFunc ) 
+		{
+			JobSystem::Get().AddJob( rrFunc );
+		}
 
-	void BlockingOperation::Execute()
-	{
-		if( !m_Job )
-			return;
+		void SetStatus( const std::string& rStatus ) { m_Status = rStatus; }
+		void SetTitle( const std::string& rTitle ) { m_Title = rTitle; }
 
-		if( !m_ExitFunction )
-			return;
+		void SetProgress( float progress ) { m_Progress.store( progress ); }
+		void AddProgress( float progress ) { m_Progress += progress; }
 
-		m_JobThread = std::thread( &BlockingOperation::ThreadRun, this );
-	}
+		inline void Reset() 
+		{
+			m_Progress = 0.0f;
+			m_Status = "";
+			m_Title = "";
+		}
 
-	void BlockingOperation::Reset()
-	{
-		m_Progress = 0.0f;
-		m_Status = "";
-		m_Title = "";
-		m_Done = false;
-	}
-
-	void BlockingOperation::ThreadRun()
-	{
-		SetThreadDescription( GetCurrentThread(), L"BlockOperation" );
-
-		// Execute job
-		m_Job();
-
-		// Call exit function.
-		m_ExitFunction();
-	}
-
+	private:
+		std::atomic<float> m_Progress = 0.0f;
+		std::string m_Status;
+		std::string m_Title;
+		bool m_Done = false;
+	};
 }
