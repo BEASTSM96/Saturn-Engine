@@ -26,38 +26,30 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "UUID.h"
+#pragma once
 
-#include "Saturn/Serialisation/RawSerialisation.h"
-
-#include <random>
+#include "Ref.h"
+#include <functional>
 
 namespace Saturn {
 
-	static std::random_device s_RandomDevice;
-	static std::mt19937_64 eng( s_RandomDevice() );
-	static std::uniform_int_distribution<uint64_t> s_UniformDistribution;
-
-	UUID::UUID() : m_UUID( s_UniformDistribution( eng ) )
+	class Job : public RefTarget
 	{
-	}
+	public:
+		template<typename Func>
+		explicit Job( Func&& rrFunc )
+			: m_Function( std::forward<Func>( rrFunc ) )
+		{
+		}
 
-	UUID::UUID( uint64_t uuid ) : m_UUID( uuid )
-	{
-	}
+		void ExecuteJob() 
+		{
+			m_Function();
+			m_Completed = true;
+		}
 
-	UUID::UUID( const UUID& other ) : m_UUID( other.m_UUID )
-	{
-	}
-
-	void UUID::Serialise( const UUID& rObject, std::ofstream& rStream )
-	{
-		RawSerialisation::WriteObject( rObject.m_UUID, rStream );
-	}
-
-	void UUID::Deserialise( UUID& rObject, std::istream& rStream )
-	{
-		RawSerialisation::ReadObject( rObject.m_UUID, rStream );
-	}
+	private:
+		bool m_Completed = false;
+		std::function<void()> m_Function;
+	};
 }

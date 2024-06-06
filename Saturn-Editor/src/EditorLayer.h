@@ -77,12 +77,13 @@ namespace Saturn {
 		bool m_ShowUserSettings = false;
 
 		void HotReloadGame();
-		void CheckMissingEditorAssetRefs();
 
 		void DrawAssetRegistryDebug();
 		void DrawLoadedAssetsDebug();
 		void DrawEditorSettings();
 		void DrawMaterials();
+		void DrawMaterialHeader( Ref<MaterialAsset>& rMaterial );
+		void DrawAttributions();
 		void DrawVFSDebug();
 
 		// Viewport

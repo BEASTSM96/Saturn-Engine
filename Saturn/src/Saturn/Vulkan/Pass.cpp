@@ -194,7 +194,7 @@ namespace Saturn {
 		for ( auto attachment : m_PassSpec.Attachments )
 		{
 			VkAttachmentLoadOp clrOp = m_PassSpec.LoadColor ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
-			VkAttachmentLoadOp dtpOp = m_PassSpec.LoadDepth ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
+			VkAttachmentLoadOp dptOp = m_PassSpec.LoadDepth ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
 
 			if( m_PassSpec.IsSwapchainTarget )
 			{
@@ -231,7 +231,7 @@ namespace Saturn {
 					.flags = 0,
 					.format = VulkanFormat( attachment ),
 					.samples = VK_SAMPLE_COUNT_1_BIT,
-					.loadOp = IsColorFormat( attachment ) ? clrOp : dtpOp,
+					.loadOp = IsColorFormat( attachment ) ? clrOp : dptOp,
 					.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 					.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 					.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,

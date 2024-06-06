@@ -128,48 +128,53 @@ namespace Saturn {
 
 			if( ImGui::BeginMenu( "Saturn" ) )
 			{
-				if( ImGui::MenuItem( "Attributions" ) )
-				{
-					OpenAttributions = true;
-				}
+				if( ImGui::MenuItem( "Attributions" ) ) OpenAttributions ^= 1;
 
 				ImGui::EndMenu();
 			}
 
 			if( ImGui::BeginMenu( "Project" ) )
 			{
-				if( ImGui::MenuItem( "Project settings" ) ) m_ShowUserSettings = !m_ShowUserSettings;
+				if( ImGui::MenuItem( "Project settings" ) ) m_ShowUserSettings ^= 1;
 
 				if( ImGui::MenuItem( "Recreate project files" ) )
 				{
-					if( !Project::GetActiveProject()->HasPremakeFile() )
-						Project::GetActiveProject()->CreatePremakeFile();
+					JobSystem::Get().AddJob( []()
+						{
+							if( !Project::GetActiveProject()->HasPremakeFile() )
+								Project::GetActiveProject()->CreatePremakeFile();
 
-					Premake::Launch( Project::GetActiveProject()->GetRootDir().wstring() );
+							Premake::Launch( Project::GetActiveProject()->GetRootDir().wstring() );
+						} );
 				}
 
 				if( ImGui::MenuItem( "Setup Project for Distribution" ) )
 				{
+					if( !m_BlockingOperation )
+						m_BlockingOperation = Ref<JobProgress>::Create();
+
 					Project::GetActiveProject()->PrepForDist();
 
-					BuildShaderBundle();
-
-					m_BlockingActionRunning = true;
-					m_BlockingOperation = AssetBundle::GetBlockingOperation();
-					m_BlockingOperation->OnComplete( [this]() { m_BlockingActionRunning = false; m_BlockingOperation = nullptr; } );
-
-					m_BlockingOperation->SetJob( [this]() 
+					JobSystem::Get().AddJob( [this]()
 						{
-							if( auto result = AssetBundle::BundleAssets(); result != AssetBundleResult::Success ) 
+							m_JobModalOpen = true;
+							m_BlockingOperation->SetStatus( "Building Shader bundle..." );
+
+							BuildShaderBundle();
+						} );
+
+					JobSystem::Get().AddJob( [this]()
+						{
+							m_JobModalOpen = true;
+
+							if( auto result = AssetBundle::BundleAssets( m_BlockingOperation ); result != AssetBundleResult::Success )
 							{
 								Application::Get().GetWindow()->FlashAttention();
 
-								m_MessageBoxText = std::format( "Asset bundle failed to build error was: {0}", (int)result );
+								m_MessageBoxText = std::format( "Asset bundle failed to build error was: {0}", ( int ) result );
 								m_ShowMessageBox = true;
 							}
 						} );
-
-					m_BlockingOperation->Execute();
 				}
 
 				if( ImGui::MenuItem( "Build Shader Bundle" ) )
@@ -192,8 +197,22 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Distribute project" ) )
 				{
-					Project::GetActiveProject()->Rebuild( ConfigKind::Dist );
-					Project::GetActiveProject()->Distribute( ConfigKind::Dist );
+					if( !m_BlockingOperation )
+						m_BlockingOperation = Ref<JobProgress>::Create();
+
+					JobSystem::Get().AddJob( [this]()
+						{
+							m_JobModalOpen = true;
+							m_BlockingOperation->SetTitle( "Distributing Project" );
+
+							m_BlockingOperation->SetStatus( "Building project" );
+							Project::GetActiveProject()->Rebuild( ConfigKind::Dist );
+
+							m_BlockingOperation->SetProgress( 50.0f );
+							
+							m_BlockingOperation->SetStatus( "Copying for Distribution" );
+							Project::GetActiveProject()->Distribute( ConfigKind::Dist );
+						} );
 				}
 
 				ImGui::EndMenu();
@@ -264,7 +283,6 @@ namespace Saturn {
 
 		AssetManager* pAssetManager = new AssetManager();
 		Project::GetActiveProject()->CheckMissingAssetRefs();
-		CheckMissingEditorAssetRefs();
 
 		// Setup content browser panel at project dir.
 		contentBrowserPanel->ResetPath( rUserSettings.StartupProject );
@@ -390,8 +408,6 @@ namespace Saturn {
 		}
 
 		m_TitleBar->Draw();
-		AssetViewer::Draw();
-
 		m_PanelManager->DrawAllPanels();
 		
 		ImGui::Begin( "Scene Renderer" );
@@ -441,22 +457,16 @@ namespace Saturn {
 
 		ImGui::End();
 
-		if( OpenAttributions )
-		{
-			if( ImGui::Begin( "Attributions", &OpenAttributions ) )
-			{
-				ImGui::Text("All icons in the engine are provided by icons8 via https://icons8.com/\nUsing the Tanah Basah set.");
-
-				ImGui::End();
-			}
-		}
-
+		if( OpenAttributions )       DrawAttributions();
 		if( m_ShowImGuiDemoWindow )  ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
 		if( m_ShowUserSettings )     UI_Titlebar_UserSettings();
 		if( OpenAssetRegistryDebug ) DrawAssetRegistryDebug();
 		if( OpenLoadedAssetDebug ) 	 DrawLoadedAssetsDebug();
 		if( m_OpenEditorSettings )   DrawEditorSettings();
 		if( m_ShowVFSDebug )         DrawVFSDebug();
+		if( m_ShowMessageBox )       ShowMessageBox();
+
+		AssetViewer::Draw();
 
 		ImGui::Begin( "Renderer" );
 
@@ -472,12 +482,12 @@ namespace Saturn {
 		
 		ImGui::End();
 
-		if( m_BlockingActionRunning )
+		if( m_JobModalOpen )
 		{
 			ImGui::OpenPopup( "Blocking Action" );
 		}
 
-		if( ImGui::BeginPopupModal( "Blocking Action", &m_BlockingActionRunning ) )
+		if( ImGui::BeginPopupModal( "Blocking Action", &m_JobModalOpen ) )
 		{
 			ImGui::BeginHorizontal( "##ItemsH" );
 
@@ -502,18 +512,22 @@ namespace Saturn {
 				ImGui::Text( status.c_str() );
 			}
 
+			if( m_BlockingOperation->Completed() )
+			{
+				m_JobModalOpen = false;
+				m_BlockingOperation->Reset();
+			}
+
 			ImGui::EndPopup();
 		}
 		
-		ImGui::Begin( "Materials" );
-
-		DrawMaterials();
-
-		ImGui::End();
-
+		// Deprecated -- user will set mesh materials in Scene Hierarchy Panel
+		//               user can change material data in material node editor.
+		//				 So for now there is no way for a mesh to have the same material but have different properties.
+		//DrawMaterials();
+		
 		DrawViewport();
 
-		if( m_ShowMessageBox )       ShowMessageBox();
 		CheckMissingEnv();
 	}
 
@@ -531,7 +545,6 @@ namespace Saturn {
 	void EditorLayer::SaveFileAs()
 	{
 		// TODO: Support Saving scene as!
-
 		auto res = Application::Get().SaveFile( "Saturn Scene file (*.scene, *.sc)\0*.scene; *.sc\0" );
 
 		SceneSerialiser serialiser( m_EditorScene );
@@ -1021,69 +1034,6 @@ namespace Saturn {
 		SAT_CORE_ASSERT(false, "EditorLayer::HotReloadGame not implemented.");
 	}
 
-	void EditorLayer::CheckMissingEditorAssetRefs()
-	{
-		std::vector<std::string> DisallowedAssetExtensions = 
-		{
-			{ ".fbx"      },
-			{ ".gltf"     },
-			{ ".bin"      },
-			{ ".glb"      },
-			{ ".wav"      },
-			{ ".lib"      },
-			{ ".ttf"      },
-			{ ".txt"      },
-			{ ".blend"    },
-			{ ".blend1"   },
-			{ ".cpp"      },
-			{ ".h"        },
-			{ ".cs"       },
-			{ ".lua"      },
-			{ ".glsl"     },
-			{ ".sproject" },
-		};
-
-		std::filesystem::path AssetPath = Application::Get().GetRootContentDir().parent_path();
-
-		bool FileChanged = false;
-
-		for( auto& rEntry : std::filesystem::recursive_directory_iterator( AssetPath ) )
-		{
-			if( rEntry.is_directory() )
-				continue;
-
-			std::filesystem::path filepath = std::filesystem::relative( rEntry.path(), AssetPath.parent_path() );
-			auto filepathString = filepath.extension().string();
-
-			if( filepath.extension() == ".sreg" || filepath.extension() == ".eng" )
-				continue;
-
-			Ref<Asset> asset = AssetManager::Get().FindAsset( filepath, AssetRegistryType::Editor );
-
-			if( std::find( DisallowedAssetExtensions.begin(), DisallowedAssetExtensions.end(), filepathString ) != DisallowedAssetExtensions.end() )
-				continue; // Extension is forbidden.
-
-			const auto& assetReg = AssetManager::Get().GetEditorAssetRegistry()->GetAssetMap();
-			if( asset == nullptr )
-			{
-				SAT_CORE_INFO( "Found an asset that exists in the system filesystem, however not in the asset registry, creating new asset." );
-
-				auto type = AssetTypeFromExtension( filepathString );
-				auto id = AssetManager::Get().CreateAsset( type, AssetRegistryType::Editor );
-				asset = AssetManager::Get().FindAsset( id, AssetRegistryType::Editor );
-
-				asset->SetPath( rEntry.path() );
-
-				FileChanged = true;
-			}
-		}
-
-		if( FileChanged )
-		{
-			AssetManager::Get().Save( AssetRegistryType::Editor );
-		}
-	}
-
 	void EditorLayer::DrawAssetRegistryDebug()
 	{
 		if( ImGui::Begin( "Asset Manager", &OpenAssetRegistryDebug ) )
@@ -1267,6 +1217,8 @@ namespace Saturn {
 
 	void EditorLayer::DrawMaterials()
 	{
+		ImGui::Begin( "Materials" );
+
 		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 
 		if( hierarchyPanel->GetSelectionContexts().size() > 0 )
@@ -1283,108 +1235,123 @@ namespace Saturn {
 
 					for( auto& rMaterial : mesh->GetMaterialAssets() )
 					{
-						if( ImGui::CollapsingHeader( rMaterial->GetName().c_str() ) )
-						{
-							ImGui::PushID( static_cast< int >( rMaterial->GetAssetID() ) );
-
-							ImGui::Text( "Mesh name: %s", mesh->FilePath().c_str() );
-							ImGui::Text( "Asset ID: %llu", ( uint64_t ) rMaterial->GetAssetID() );
-
-							ImGui::Separator();
-
-							UUID id = rMaterial->GetAssetID();
-							Auxiliary::DrawAssetDragDropTarget<MaterialAsset>( "Change asset", rMaterial->GetName().c_str(), id,
-								[rMaterial]( Ref<MaterialAsset> asset ) mutable
-								{
-									rMaterial->SetMaterial( asset->GetMaterial() );
-								} );
-
-							ImGui::Separator();
-
-							auto drawItemValue = [&]( const char* name, const char* property )
-							{
-								ImGui::Text( name );
-
-								ImGui::Separator();
-
-								float v = rMaterial->Get< float >( property );
-
-								ImGui::PushID( name );
-
-								ImGui::DragFloat( "##drgflt", &v, 0.01f, 0.0f, 10000.0f );
-
-								ImGui::PopID();
-
-								if( v != rMaterial->Get<float>( property ) )
-									rMaterial->Set( property, v );
-							};
-
-							auto displayItemMap = [&]( const char* property )
-							{
-								Ref< Texture2D > v = rMaterial->GetResource( property );
-
-								if( v && v->GetDescriptorSet() )
-									ImGui::Image( v->GetDescriptorSet(), ImVec2( 100, 100 ) );
-								else
-									ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
-							};
-
-							ImGui::Text( "Albedo" );
-
-							ImGui::Separator();
-
-							displayItemMap( "u_AlbedoTexture" );
-
-							ImGui::SameLine();
-
-							if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
-							{
-								std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
-
-								if( !file.empty() )
-								{
-									rMaterial->SetResource( "u_AlbedoTexture", Ref<Texture2D>::Create( file, AddressingMode::Repeat ) );
-								}
-							}
-
-							glm::vec3 color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
-
-							bool changed = ImGui::ColorEdit3( "##Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
-
-							if( changed )
-								rMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
-
-							drawItemValue( "Emissive", "u_Materials.Emissive" );
-
-							ImGui::Text( "Normal" );
-
-							ImGui::Separator();
-
-							bool UseNormalMap = rMaterial->Get< float >( "u_Materials.UseNormalMap" );
-
-							if( UseNormalMap )
-								displayItemMap( "u_NormalTexture" );
-
-							if( ImGui::Checkbox( "Use Normal Map", &UseNormalMap ) )
-								rMaterial->Set( "u_Materials.UseNormalMap", UseNormalMap ? 1.0f : 0.0f );
-
-							// Roughness Value
-							drawItemValue( "Roughness", "u_Materials.Roughness" );
-
-							// Roughness map
-							displayItemMap( "u_RoughnessTexture" );
-
-							// Metalness value
-							drawItemValue( "Metalness", "u_Materials.Metalness" );
-
-							// Metalness map
-							displayItemMap( "u_MetallicTexture" );
-
-							ImGui::PopID();
-						}
+						DrawMaterialHeader( rMaterial );
 					}
 				}
 			}
+		}
+
+		ImGui::End();
+	}
+
+	void EditorLayer::DrawMaterialHeader( Ref<MaterialAsset>& rMaterial )
+	{
+		auto drawItemValue = [&]( const char* name, const char* property )
+			{
+				ImGui::Text( name );
+
+				ImGui::Separator();
+
+				float v = rMaterial->Get< float >( property );
+
+				ImGui::PushID( name );
+
+				ImGui::DragFloat( "##drgflt", &v, 0.01f, 0.0f, 10000.0f );
+
+				ImGui::PopID();
+
+				if( v != rMaterial->Get<float>( property ) )
+					rMaterial->Set( property, v );
+			};
+
+		auto displayItemMap = [&]( const char* property )
+			{
+				Ref< Texture2D > v = rMaterial->GetResource( property );
+
+				if( v && v->GetDescriptorSet() )
+					ImGui::Image( v->GetDescriptorSet(), ImVec2( 100, 100 ) );
+				else
+					ImGui::Image( m_CheckerboardTexture->GetDescriptorSet(), ImVec2( 100, 100 ) );
+			};
+
+		if( ImGui::CollapsingHeader( rMaterial->GetName().c_str() ) )
+		{
+			ImGui::PushID( static_cast< int >( rMaterial->GetAssetID() ) );
+			ImGui::Text( "Asset ID: %llu", ( uint64_t ) rMaterial->GetAssetID() );
+
+			ImGui::Separator();
+
+			UUID id = rMaterial->GetAssetID();
+			Auxiliary::DrawAssetDragDropTarget<MaterialAsset>( "Change asset", rMaterial->GetName().c_str(), id,
+				[rMaterial]( Ref<MaterialAsset> asset ) mutable
+				{
+					rMaterial->SetMaterial( asset->GetMaterial() );
+				} );
+
+			ImGui::Separator();
+
+			ImGui::Text( "Albedo" );
+
+			ImGui::Separator();
+
+			displayItemMap( "u_AlbedoTexture" );
+
+			ImGui::SameLine();
+
+			if( ImGui::Button( "...##opentexture", ImVec2( 50, 20 ) ) )
+			{
+				std::string file = Application::Get().OpenFile( "Texture File (*.png *.tga)\0*.tga; *.png\0" );
+
+				if( !file.empty() )
+				{
+					rMaterial->SetResource( "u_AlbedoTexture", Ref<Texture2D>::Create( file, AddressingMode::Repeat ) );
+				}
+			}
+
+			glm::vec3 color = rMaterial->Get<glm::vec3>( "u_Materials.AlbedoColor" );
+
+			bool changed = ImGui::ColorEdit3( "##Albedo Color", glm::value_ptr( color ), ImGuiColorEditFlags_NoInputs );
+
+			if( changed )
+				rMaterial->Set<glm::vec3>( "u_Materials.AlbedoColor", color );
+
+			drawItemValue( "Emissive", "u_Materials.Emissive" );
+
+			ImGui::Text( "Normal" );
+
+			ImGui::Separator();
+
+			bool UseNormalMap = rMaterial->Get< float >( "u_Materials.UseNormalMap" );
+
+			if( UseNormalMap )
+				displayItemMap( "u_NormalTexture" );
+
+			if( ImGui::Checkbox( "Use Normal Map", &UseNormalMap ) )
+				rMaterial->Set( "u_Materials.UseNormalMap", UseNormalMap ? 1.0f : 0.0f );
+
+			// Roughness Value
+			drawItemValue( "Roughness", "u_Materials.Roughness" );
+
+			// Roughness map
+			displayItemMap( "u_RoughnessTexture" );
+
+			// Metalness value
+			drawItemValue( "Metalness", "u_Materials.Metalness" );
+
+			// Metalness map
+			displayItemMap( "u_MetallicTexture" );
+
+			ImGui::PopID();
+		}
+	}
+
+	void EditorLayer::DrawAttributions()
+	{
+		if( ImGui::Begin( "Attributions", &OpenAttributions ) )
+		{
+			ImGui::Text( "All icons in the engine are provided by icons8 via https://icons8.com/\nUsing the Tanah Basah set." );
+
+			ImGui::End();
 		}
 	}
 

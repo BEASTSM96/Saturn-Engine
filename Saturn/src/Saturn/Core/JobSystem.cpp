@@ -26,38 +26,107 @@
 *********************************************************************************************
 */
 
+// This Job System is based from Geno IDE's system:
+// Thank You: https://github.com/Geno-IDE/Geno/blob/master/src/Common/Async/JobSystem.cpp
+
 #include "sppch.h"
-#include "UUID.h"
-
-#include "Saturn/Serialisation/RawSerialisation.h"
-
-#include <random>
+#include "JobSystem.h"
 
 namespace Saturn {
 
-	static std::random_device s_RandomDevice;
-	static std::mt19937_64 eng( s_RandomDevice() );
-	static std::uniform_int_distribution<uint64_t> s_UniformDistribution;
-
-	UUID::UUID() : m_UUID( s_UniformDistribution( eng ) )
+	JobSystem::JobSystem()
 	{
+		SetMaxThreads( 2 );
+		CreateThreads();
 	}
 
-	UUID::UUID( uint64_t uuid ) : m_UUID( uuid )
+	JobSystem::~JobSystem()
 	{
+		TerminateThreads();
 	}
 
-	UUID::UUID( const UUID& other ) : m_UUID( other.m_UUID )
+	void JobSystem::Stop()
 	{
+		m_Running = false;
+	
+		TerminateThreads();
 	}
 
-	void UUID::Serialise( const UUID& rObject, std::ofstream& rStream )
+	void JobSystem::SetMaxThreads( size_t maxThreads )
 	{
-		RawSerialisation::WriteObject( rObject.m_UUID, rStream );
+		m_MaxThreads = glm::clamp( ( size_t ) maxThreads, ( size_t ) 0, ( size_t )std::thread::hardware_concurrency() );
 	}
 
-	void UUID::Deserialise( UUID& rObject, std::istream& rStream )
+	void JobSystem::CreateThreads()
 	{
-		RawSerialisation::ReadObject( rObject.m_UUID, rStream );
+		// Clear last threads if any.
+		TerminateThreads();
+
+		m_Running = true;
+
+		SetMaxThreads( m_MaxThreads );
+		m_Threads.resize( m_MaxThreads );
+
+		for( size_t i = 0; i < m_MaxThreads; i++ )
+		{
+			m_Threads[ i ] = std::thread( &JobSystem::ThreadRun, this );
+		}
 	}
+
+	void JobSystem::TerminateThreads()
+	{
+		size_t index = 0;
+		for( auto& rThread : m_Threads )
+		{
+			if( rThread.joinable() )
+			{
+				rThread.join();
+			}
+
+			m_Threads.erase( m_Threads.begin() + index );
+			index++;
+		}
+	}
+
+	void JobSystem::ThreadRun()
+	{
+		using namespace std::chrono_literals;
+
+		SetThreadDescription( GetCurrentThread(), L"JobSystemThread" );
+
+		while( m_Running )
+		{
+			while( !m_Jobs.empty() )
+			{
+				Ref<Job> currentJob;
+
+				m_Mutex.lock();
+
+				// Find any jobs that have not yet been done.
+				for( auto Itr = m_Jobs.begin(); Itr != m_Jobs.end(); ++Itr )
+				{
+					auto& rJob = *Itr;
+
+					if( rJob )
+					{
+						currentJob = rJob;
+						
+						// Make sure we remove it so that it cannot be executed again.
+						m_Jobs.erase( Itr );
+						break;
+					}
+				}
+
+				m_Mutex.unlock();
+
+				if( currentJob )
+				{
+					currentJob->ExecuteJob();
+				}
+			}
+
+			std::this_thread::sleep_for( 1ms );
+		}
+	}
+
 }

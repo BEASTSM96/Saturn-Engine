@@ -26,38 +26,47 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "UUID.h"
+#pragma once
 
-#include "Saturn/Serialisation/RawSerialisation.h"
+#include "Job.h"
+#include "Base.h"
 
-#include <random>
+#include <mutex>
+#include <thread>
 
 namespace Saturn {
 
-	static std::random_device s_RandomDevice;
-	static std::mt19937_64 eng( s_RandomDevice() );
-	static std::uniform_int_distribution<uint64_t> s_UniformDistribution;
-
-	UUID::UUID() : m_UUID( s_UniformDistribution( eng ) )
+	class JobSystem
 	{
-	}
+	public:
+		static inline JobSystem& Get() { return *SingletonStorage::GetOrCreateSingleton<JobSystem>(); }
+	public:
+		JobSystem();
+		~JobSystem();
 
-	UUID::UUID( uint64_t uuid ) : m_UUID( uuid )
-	{
-	}
+		void Stop();
+		void SetMaxThreads( size_t maxThreads );
 
-	UUID::UUID( const UUID& other ) : m_UUID( other.m_UUID )
-	{
-	}
+		template<typename Func>
+		void AddJob( Func&& rrFunc )
+		{
+			std::unique_lock<std::mutex>( m_Mutex );
 
-	void UUID::Serialise( const UUID& rObject, std::ofstream& rStream )
-	{
-		RawSerialisation::WriteObject( rObject.m_UUID, rStream );
-	}
+			Ref<Job> newJob = Ref<Job>::Create( rrFunc );
+			m_Jobs.push_back( newJob );
+		}
 
-	void UUID::Deserialise( UUID& rObject, std::istream& rStream )
-	{
-		RawSerialisation::ReadObject( rObject.m_UUID, rStream );
-	}
+	private:
+		void ThreadRun();
+		void CreateThreads();
+		void TerminateThreads();
+
+	private:
+		bool m_Running = false;
+		size_t m_MaxThreads = 0;
+
+		std::mutex m_Mutex;
+		std::vector<std::thread> m_Threads;
+		std::vector<Ref<Job>> m_Jobs;
+	};
 }
