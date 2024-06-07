@@ -113,6 +113,9 @@ namespace Saturn {
 		// Absolute cache dir
 		std::filesystem::path GetFullCachePath();
 
+		// Absolute App Data path for this project
+		std::filesystem::path GetAppDataFolder();
+
 	public:
 		//////////////////////////////////////////////////////////////////////////
 		// Action Bindings

@@ -228,7 +228,7 @@ namespace Saturn {
 		}
 	}
 
-	std::filesystem::path Application::GetAppDataFolder()
+	std::filesystem::path Application::GetAppDataFolder() const
 	{
 		std::filesystem::path path = L"";
 

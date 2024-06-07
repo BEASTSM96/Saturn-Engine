@@ -251,6 +251,13 @@ namespace Saturn {
 		return m_RootPath / "Cache";
 	}
 
+	std::filesystem::path Project::GetAppDataFolder()
+	{
+		std::filesystem::path appData = Application::Get().GetAppDataFolder();
+
+		return appData /= m_Config.Name;
+	}
+
 	void Project::RemoveActionBinding( const ActionBinding& rBinding )
 	{
 		m_ActionBindings.erase( std::remove( m_ActionBindings.begin(), m_ActionBindings.end(), rBinding ), m_ActionBindings.end() );

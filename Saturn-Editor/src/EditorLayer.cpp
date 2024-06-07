@@ -292,7 +292,7 @@ namespace Saturn {
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
 
 		// TODO: Do we really need to check this every time we load the editor?
-		HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+		//HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 	}
 
 	EditorLayer::~EditorLayer()
@@ -528,7 +528,7 @@ namespace Saturn {
 		
 		DrawViewport();
 
-		CheckMissingEnv();
+		//CheckMissingEnv();
 	}
 
 	void EditorLayer::OnEvent( RubyEvent& rEvent )
@@ -663,8 +663,8 @@ namespace Saturn {
 				case RubyKey::D:
 				{
 					Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
-					
-					if( hierarchyPanel ) 
+
+					if( hierarchyPanel )
 					{
 						for( const auto& rEntity : hierarchyPanel->GetSelectionContexts() )
 						{

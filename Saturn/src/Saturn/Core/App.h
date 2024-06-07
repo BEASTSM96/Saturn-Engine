@@ -121,7 +121,7 @@ namespace Saturn {
 			return ( m_Specification.Flags & ( uint32_t ) flag ) != 0;
 		}
 
-		std::filesystem::path GetAppDataFolder();
+		std::filesystem::path GetAppDataFolder() const;
 
 		void SuspendMainThreadCV();
 		void ResumeMainThreadCV();
