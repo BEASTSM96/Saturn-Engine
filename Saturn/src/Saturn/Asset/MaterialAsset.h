@@ -134,6 +134,7 @@ namespace Saturn {
 		std::unordered_map< std::string, Ref<Texture2D> > m_PendingTextureChanges;
 		std::unordered_map< uint32_t, std::filesystem::path > m_VPendingTextureChanges;
 	private:
+		friend class MaterialNodeEditorRuntime;
 		friend class MaterialAssetViewer;
 		friend class MaterialAssetSerialiser;
 		friend class RawMaterialAssetSerialiser;

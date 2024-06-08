@@ -41,18 +41,7 @@ namespace Saturn {
 		NodeEditor( AssetID ID );
 		~NodeEditor();
 
-		bool IsPinLinked( ed::PinId id );
-		bool CanCreateLink( const Ref<Pin>& a, const Ref<Pin>& b );
-		
-		Ref<Pin> FindPin( ed::PinId id );
-		
-		Ref<Link> FindLink( ed::LinkId id );
-	
-		Ref<Node> FindNode( ed::NodeId id );	
-		Ref<Node> FindNode( const std::string& rName );
-
-		Ref<Link> FindLinkByPin( ed::PinId id );
-		Ref<Node> FindNodeByPin( ed::PinId id );
+		bool CanCreateLink( const Ref<Pin>& a, const Ref<Pin>& b );	
 
 		const std::vector<Ref<Node>>& GetNodes() const { return m_Nodes; }
 		std::vector<Ref<Node>>& GetNodes() { return m_Nodes; }

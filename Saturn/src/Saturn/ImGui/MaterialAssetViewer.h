@@ -30,8 +30,8 @@
 
 #include "AssetViewer.h"
 #include "Saturn/Asset/MaterialAsset.h"
-#include "Saturn/NodeEditor/NodeEditorCompilationStatus.h"
 #include "Saturn/NodeEditor/NodeEditorBase.h"
+#include "Saturn/NodeEditor/Runtime/NodeEditorRuntime.h"
 
 namespace ax::NodeEditor {
 	struct NodeId;
@@ -57,6 +57,33 @@ namespace Saturn {
 		static Ref<Node> SpawnSampler2D( Ref<NodeEditorBase> rNodeEditor );
 	};
 
+	class MaterialNodeEditorRuntime : public NodeEditorRuntime
+	{
+	public:
+		MaterialNodeEditorRuntime( const MaterialNodeEditorRuntime& ) = delete;
+
+		struct MaterialNodeEdInfo
+		{
+			Ref<MaterialAsset> HostMaterial;
+			ed::NodeId OutputNode;
+		};
+
+	public:
+		MaterialNodeEditorRuntime( const MaterialNodeEdInfo& rInfo );
+		virtual ~MaterialNodeEditorRuntime() = default;
+
+		void SetTargetNodeEditor( Ref<NodeEditorBase> nodeEditor ) { m_NodeEditor = nodeEditor; }
+
+		[[nodiscard]] virtual NodeEditorCompilationStatus Execute() override;
+
+	private:
+		NodeEditorCompilationStatus CheckOutputNodeInput( int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker );
+
+	private:
+		MaterialNodeEdInfo m_Info;
+		Ref<NodeEditorBase> m_NodeEditor;
+	};
+
 	class MaterialAssetViewer : public AssetViewer
 	{
 	public:
@@ -73,13 +100,6 @@ namespace Saturn {
 
 		void SetupNodeEditorCallbacks();
 		void SetupNewNodeEditor();
-
-		ax::NodeEditor::NodeId FindOtherNodeIDByPin( ax::NodeEditor::PinId id );
-		Ref<Node> FindOtherNodeByPin( ax::NodeEditor::PinId id );
-
-		NodeEditorCompilationStatus CheckOutputNodeInput( int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker, Ref<MaterialAsset>& rMaterialAsset );
-
-		NodeEditorCompilationStatus Compile();
 
 	private:
 		Ref<MaterialAsset> m_HostMaterialAsset = nullptr;

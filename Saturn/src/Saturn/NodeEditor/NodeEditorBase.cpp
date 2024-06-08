@@ -55,6 +55,102 @@ namespace Saturn {
 		return EditorIcons::GetIcon( "BlueprintBackground" );
 	}
 
+	bool NodeEditorBase::IsPinLinked( ed::PinId id )
+	{
+		if( !id )
+			return false;
+
+		for( auto& link : m_Links )
+			if( link->StartPinID == id || link->EndPinID == id )
+				return true;
+
+		return false;
+	}
+
+	Ref<Pin> NodeEditorBase::FindPin( ed::PinId id )
+	{
+		if( !id )
+			return nullptr;
+
+		for( const auto& node : m_Nodes )
+		{
+			for( const auto& pin : node->Inputs )
+			{
+				if( pin->ID == id )
+				{
+					return pin;
+				}
+			}
+
+			for( const auto& pin : node->Outputs )
+			{
+				if( pin->ID == id )
+				{
+					return pin;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	Ref<Link> NodeEditorBase::FindLink( ed::LinkId id )
+	{
+		for( auto& link : m_Links )
+			if( link->ID == id )
+				return link;
+
+		return nullptr;
+	}
+
+	Ref<Node> NodeEditorBase::FindNode( ed::NodeId id )
+	{
+		for( auto& node : m_Nodes )
+			if( node->ID == id )
+				return node;
+
+		return nullptr;
+	}
+
+	Ref<Node> NodeEditorBase::FindNode( const std::string& rName )
+	{
+		for( auto& node : m_Nodes )
+		{
+			if( node->Name == rName )
+				return node;
+		}
+
+		return nullptr;
+	}
+
+	Ref<Link> NodeEditorBase::FindLinkByPin( ed::PinId id )
+	{
+		if( !id )
+			return nullptr;
+
+		if( !IsPinLinked( id ) )
+			return nullptr;
+
+		for( auto& link : m_Links )
+			if( link->StartPinID == id || link->EndPinID == id )
+				return link;
+
+		return nullptr;
+	}
+
+	Ref<Node> NodeEditorBase::FindNodeByPin( ed::PinId id )
+	{
+		const auto& Pin = FindPin( id );
+		const auto& Link = FindLinkByPin( id );
+
+		return Pin->Node;
+	}
+
+	void NodeEditorBase::SetRuntime( Ref<NodeEditorRuntime> runtime )
+	{
+		m_Runtime = runtime;
+	}
+
 	static void BuildNode( Ref<Node>& rNode )
 	{
 		for( auto& input : rNode->Inputs )
@@ -122,4 +218,5 @@ namespace Saturn {
 	{
 		m_Runtime = nullptr;
 	}
+
 }

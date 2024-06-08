@@ -90,6 +90,7 @@ namespace Saturn {
 		NodeType Type;
 		ImVec2 Size;
 		ImVec2 Position;
+		bool CanBeDeleted = true;
 
 		// Any other extra data that should be stored in the node.
 		Buffer ExtraData;

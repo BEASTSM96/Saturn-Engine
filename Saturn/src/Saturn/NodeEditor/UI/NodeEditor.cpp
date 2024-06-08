@@ -34,6 +34,8 @@
 
 #include "Saturn/Serialisation/RawSerialisation.h"
 
+#include "Saturn/NodeEditor/Runtime/NodeEditorRuntime.h"
+
 #include "Saturn/ImGui/EditorIcons.h"
 
 // imgui_node_editor
@@ -186,103 +188,12 @@ namespace Saturn {
 		m_OnClose();
 	}
 
-	bool NodeEditor::IsPinLinked( ed::PinId id )
-	{
-		if( !id )
-			return false;
-
-		for( auto& link : m_Links )
-			if( link->StartPinID == id || link->EndPinID == id )
-				return true;
-
-		return false;
-	}
-
 	bool NodeEditor::CanCreateLink( const Ref<Pin>& a, const Ref<Pin>& b )
 	{
 		if( !a || !b || a == b || a->Kind == b->Kind || a->Type != b->Type || a->Node == b->Node )
 			return false;
 
 		return true;
-	}
-
-	Ref<Pin> NodeEditor::FindPin( ed::PinId id )
-	{
-		if( !id )
-			return nullptr;
-
-		for( const auto& node : m_Nodes )
-		{
-			for( const auto& pin : node->Inputs )
-			{
-				if( pin->ID == id )
-				{
-					return pin;
-				}
-			}
-
-			for( const auto& pin : node->Outputs )
-			{
-				if( pin->ID == id )
-				{
-					return pin;
-				}
-			}
-		}
-
-		return nullptr;
-	}
-
-	Ref<Link> NodeEditor::FindLink( ed::LinkId id )
-	{
-		for( auto& link : m_Links )
-			if( link->ID == id )
-				return link;
-
-		return nullptr;
-	}
-
-	Ref<Node> NodeEditor::FindNode( ed::NodeId id )
-	{
-		for( auto& node : m_Nodes )
-			if( node->ID == id )
-				return node;
-
-		return nullptr;
-	}
-
-	Saturn::Ref<Node> NodeEditor::FindNode( const std::string& rName )
-	{
-		for( auto& node : m_Nodes ) 
-		{
-			if( node->Name == rName )
-				return node;
-		}
-
-		return nullptr;
-	}
-
-	Ref<Link> NodeEditor::FindLinkByPin( ed::PinId id )
-	{
-		if( !id )
-			return nullptr;
-
-		if( !IsPinLinked( id ) )
-			return nullptr;
-
-		for( auto& link : m_Links )
-			if( link->StartPinID == id || link->EndPinID == id )
-				return link;
-
-		return nullptr;
-	}
-
-	Ref<Node> NodeEditor::FindNodeByPin( ed::PinId id )
-	{
-		const auto& Pin = FindPin( id );
-		const auto& Link = FindLinkByPin( id );
-
-		return Pin->Node;
 	}
 
 	void NodeEditor::OnImGuiRender()
@@ -292,8 +203,6 @@ namespace Saturn {
 
 		if( !m_Open )
 			return;
-
-		bool WasOpen = m_Open;
 
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 		ImGui::Begin( m_Name.c_str(), &m_Open );
@@ -309,7 +218,8 @@ namespace Saturn {
 
 		if( ImGui::Button( "Compile & Save" ) ) 
 		{
-			
+			if( m_Runtime )
+				m_Runtime->Execute();
 		}
 
 		ImGui::EndHorizontal();
@@ -717,13 +627,30 @@ namespace Saturn {
 				ed::NodeId nodeId = 0;
 				while( ed::QueryDeletedNode( &nodeId ) )
 				{
-					if( ed::AcceptDeletedItem() )
+					const auto itr = std::find_if( m_Nodes.begin(), m_Nodes.end(), 
+						[nodeId]( auto& node ) 
+						{ 
+							return node->ID == nodeId;
+						} );
+					
+					if( itr != m_Nodes.end() )
 					{
-						auto id = std::find_if( m_Nodes.begin(), m_Nodes.end(), [nodeId]( auto& node ) { return node->ID == nodeId; } );
-						if( id != m_Nodes.end() )
-							m_Nodes.erase( id );
+						auto& rNode = ( *itr );
+					
+						if( rNode->CanBeDeleted )
+						{
+							if( ed::AcceptDeletedItem() )
+							{
+								rNode = nullptr;
+								m_Nodes.erase( itr );
 
-						DeleteDeadLinks( nodeId );
+								DeleteDeadLinks( nodeId );
+							}
+						}
+						else
+						{
+							ed::RejectDeletedItem();
+						}
 					}
 				}
 			}
@@ -796,9 +723,6 @@ namespace Saturn {
 
 		ImGui::End(); // NODE_EDITOR
 		ImGui::PopStyleVar();
-
-		//if( WasOpen && !m_Open )
-		//	Close();
 	}
 
 	void NodeEditor::LinkPin( ed::PinId Start, ed::PinId End )

@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
+#include "Saturn/NodeEditor/NodeEditorCompilationStatus.h"
 
 namespace Saturn {
 
@@ -36,7 +36,9 @@ namespace Saturn {
 	{
 	public:
 		NodeEditorRuntime() = default;
-		~NodeEditorRuntime() = default;
+		virtual ~NodeEditorRuntime() = default;
+
+		[[nodiscard]] virtual NodeEditorCompilationStatus Execute() { return NodeEditorCompilationStatus::Failed; }
 
 	private:
 		friend class NodeEditorBase;

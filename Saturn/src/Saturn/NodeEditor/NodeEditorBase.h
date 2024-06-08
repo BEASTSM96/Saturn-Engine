@@ -62,6 +62,16 @@ namespace Saturn {
 
 		static Ref<Texture2D> GetBlueprintBackground();
 
+		bool IsPinLinked( ed::PinId id );
+		Ref<Pin> FindPin( ed::PinId id );
+		Ref<Link> FindLink( ed::LinkId id );
+		Ref<Node> FindNode( ed::NodeId id );
+		Ref<Node> FindNode( const std::string& rName );
+		Ref<Link> FindLinkByPin( ed::PinId id );
+		Ref<Node> FindNodeByPin( ed::PinId id );
+
+		void SetRuntime( Ref<NodeEditorRuntime> runtime );
+
 	public:
 		AssetID GetAssetID() const { return m_AssetID; }
 
