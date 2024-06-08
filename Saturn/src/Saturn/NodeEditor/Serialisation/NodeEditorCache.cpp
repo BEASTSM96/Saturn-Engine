@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "NodeEditorCache.h"
 
-#include "NodeEditor.h"
+#include "Saturn/NodeEditor/UI/NodeEditor.h"
 
 #include "Saturn/Project/Project.h"
 

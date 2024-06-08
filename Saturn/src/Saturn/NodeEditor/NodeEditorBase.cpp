@@ -27,28 +27,99 @@
 */
 
 #include "sppch.h"
-#include "EditorIcons.h"
+#include "NodeEditorBase.h"
+
+#include "Runtime/NodeEditorRuntime.h"
+
+#include "Saturn/Vulkan/Texture.h"
+
+#include "Saturn/ImGui/EditorIcons.h"
+
+#include <backends/imgui_impl_vulkan.h>
 
 namespace Saturn {
 
-	static std::unordered_map<std::string, Ref<Texture2D>> s_Textures;
-
-	Ref<Texture2D> EditorIcons::GetIcon( const std::string& rName )
+	Ref<Texture2D> NodeEditorBase::GetBlueprintBackground()
 	{
-		const auto Itr = s_Textures.find( rName );
+		if( EditorIcons::GetIcon( "BlueprintBackground" ) == nullptr )
+		{
+			auto texture = Ref<Texture2D>::Create( "content/textures/editor/BlueprintBackground.png", AddressingMode::Repeat, false );
 
-		return Itr == s_Textures.end() ? nullptr : Itr->second;
+			EditorIcons::AddIcon( texture );
+
+			ImGui_ImplVulkan_AddTexture( texture->GetSampler(), texture->GetImageView(), texture->GetDescriptorInfo().imageLayout );
+
+			return texture;
+		}
+
+		return EditorIcons::GetIcon( "BlueprintBackground" );
 	}
 
-	void EditorIcons::AddIcon( const Ref<Texture2D>& rTexture )
+	static void BuildNode( Ref<Node>& rNode )
 	{
-		std::string name = rTexture->GetPath().filename().replace_extension().string();
-		s_Textures[ name ] = rTexture;
+		for( auto& input : rNode->Inputs )
+		{
+			input->Node = rNode;
+			input->Kind = PinKind::Input;
+		}
+
+		for( auto& output : rNode->Outputs )
+		{
+			output->Node = rNode;
+			output->Kind = PinKind::Output;
+		}
 	}
 
-	void EditorIcons::Clear()
+	Ref<Node> NodeEditorBase::AddNode( const NodeSpecification& spec, ImVec2 position /*= ImVec2( 0.0f, 0.0f ) */ )
 	{
-		s_Textures.clear();
+		Ref<Node> node = Ref<Node>::Create( GetNextID(), spec.Name.c_str(), spec.Color );
+		m_Nodes.emplace_back( node );
+
+		for( auto& rOutput : spec.Outputs )
+		{
+			Ref<Pin> pin = Ref<Pin>::Create( GetNextID(), rOutput.Name.c_str(), rOutput.Type, node->ID );
+			node->Outputs.push_back( pin );
+		}
+
+		for( auto& rInput : spec.Inputs )
+		{
+			Ref<Pin> pin = Ref<Pin>::Create( GetNextID(), rInput.Name.c_str(), rInput.Type, node->ID );
+			node->Inputs.push_back( pin );
+
+			// This should be more than enough data for one pin, holds 16 floats.
+			pin->ExtraData.Allocate( 64 );
+			pin->ExtraData.Zero_Memory();
+		}
+
+		BuildNode( node );
+
+		if( position.x != 0.0f && position.y != 0.0f )
+			ed::SetNodePosition( node->ID, position );
+
+		node->ExtraData.Allocate( 1024 );
+		node->ExtraData.Zero_Memory();
+
+		return node;
+		//return m_Nodes.back();
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// NODE EDITOR
+
+	NodeEditorBase::NodeEditorBase()
+		: AssetViewer()
+	{
+		m_Runtime = Ref<NodeEditorRuntime>::Create();
+	}
+
+	NodeEditorBase::NodeEditorBase( AssetID id )
+		: AssetViewer( id )
+	{
+		m_Runtime = Ref<NodeEditorRuntime>::Create();
+	}
+
+	NodeEditorBase::~NodeEditorBase()
+	{
+		m_Runtime = nullptr;
+	}
 }

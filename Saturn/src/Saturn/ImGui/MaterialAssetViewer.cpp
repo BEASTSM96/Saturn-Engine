@@ -29,9 +29,9 @@
 #include "sppch.h"
 #include "MaterialAssetViewer.h"
 
-#include "NodeEditor/NodeEditor.h"
-#include "NodeEditor/DefaultNodes.h"
-#include "NodeEditor/NodeEditorCache.h"
+#include "Saturn/NodeEditor/NodeEditorBase.h"
+#include "Saturn/NodeEditor/UI/NodeEditor.h"
+#include "Saturn/NodeEditor/Serialisation/NodeEditorCache.h"
 
 #include "ImGuiAuxiliary.h"
 #include "Saturn/Vulkan/Renderer.h"
@@ -46,6 +46,70 @@ namespace ed = ax::NodeEditor;
 
 namespace Saturn {
 
+	//////////////////////////////////////////////////////////////////////////
+	// MATERIAL NODE LIBRARY
+
+	Ref<Node> MaterialNodeLibrary::SpawnGetAsset( Ref<NodeEditorBase> rNodeEditor )
+	{
+		PinSpecification pin;
+		pin.Name = "Asset ID";
+		pin.Type = PinType::AssetHandle;
+
+		NodeSpecification node;
+		node.Color = ImColor( 30, 117, 217 );
+		node.Name = "Get Asset";
+
+		node.Outputs.push_back( pin );
+
+		return rNodeEditor->AddNode( node );
+	}
+
+	Ref<Node> MaterialNodeLibrary::SpawnColorPicker( Ref<NodeEditorBase> rNodeEditor )
+	{
+		PinSpecification pin;
+		pin.Name = "RGBA";
+		pin.Type = PinType::Material_Sampler2D;
+
+		NodeSpecification node;
+		node.Color = ImColor( 252, 186, 3 );
+		node.Name = "Color Picker";
+
+		node.Outputs.push_back( pin );
+
+		return rNodeEditor->AddNode( node );
+	}
+
+	Ref<Node> MaterialNodeLibrary::SpawnSampler2D( Ref<NodeEditorBase> rNodeEditor )
+	{
+		PinSpecification pin;
+		pin.Name = "Albedo";
+		pin.Type = PinType::Material_Sampler2D;
+
+		NodeSpecification node;
+		node.Color = ImColor( 0, 255, 0 );
+		node.Name = "Sampler2D";
+
+		pin.Name = "RGBA";
+		node.Outputs.push_back( pin );
+		pin.Name = "R";
+		node.Outputs.push_back( pin );
+		pin.Name = "G";
+		node.Outputs.push_back( pin );
+		pin.Name = "B";
+		node.Outputs.push_back( pin );
+		pin.Name = "A";
+		node.Outputs.push_back( pin );
+
+		pin.Name = "Asset";
+		pin.Type = PinType::AssetHandle;
+		node.Inputs.push_back( pin );
+
+		return rNodeEditor->AddNode( node );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// MATERIAL ASSET VIEWER
+
 	MaterialAssetViewer::MaterialAssetViewer( AssetID id )
 		: AssetViewer( id )
 	{
@@ -59,7 +123,7 @@ namespace Saturn {
 		m_HostMaterialAsset = nullptr;
 		m_EditingMaterial = nullptr;
 
-		NodeEditorCache::WriteNodeEditorCache( m_NodeEditor );
+		//NodeEditorCache::WriteNodeEditorCache( m_NodeEditor );
 
 		m_NodeEditor = nullptr;
 	}
@@ -110,9 +174,9 @@ namespace Saturn {
 		m_HostMaterialAsset = materialAsset;
 		m_EditingMaterial = Ref<Material>( m_HostMaterialAsset->GetMaterial() );
 		
-		if( NodeEditorCache::DoesCacheExist( m_AssetID ) )
+		if( false )
 		{
-			m_NodeEditor = new NodeEditor();
+			m_NodeEditor = Ref<NodeEditor>::Create();
 
 			// Try to read the cache.
 			NodeEditorCache::ReadNodeEditorCache( m_NodeEditor, m_AssetID );
@@ -121,7 +185,7 @@ namespace Saturn {
 		}
 		else
 		{
-			m_NodeEditor = new NodeEditor( m_AssetID );
+			m_NodeEditor = Ref<NodeEditor>::Create( m_AssetID );
 			SetupNewNodeEditor();
 		}
 
@@ -143,13 +207,13 @@ namespace Saturn {
 				Ref<Node> node = nullptr;
 
 				if( ImGui::MenuItem( "Texture Sampler2D" ) )
-					node = DefaultNodes::SpawnNewSampler2D( m_NodeEditor );
+					node = MaterialNodeLibrary::SpawnSampler2D( m_NodeEditor );
 
 				if( ImGui::MenuItem( "Get Asset" ) )
-					node = DefaultNodes::SpawnNewGetAssetNode( m_NodeEditor );
+					node = MaterialNodeLibrary::SpawnGetAsset( m_NodeEditor );
 
 				if( ImGui::MenuItem( "Color Picker" ) )
-					node = DefaultNodes::SpawnNewColorPickerNode( m_NodeEditor );
+					node = MaterialNodeLibrary::SpawnColorPicker( m_NodeEditor );
 
 				return node;
 			} );
@@ -159,12 +223,6 @@ namespace Saturn {
 			{
 			}
 		);
-
-		m_NodeEditor->SetCompileFunction(
-			[&]() -> NodeEditorCompilationStatus
-			{
-				return Compile();
-			} );
 	}
 
 	void MaterialAssetViewer::SetupNewNodeEditor()
@@ -210,8 +268,8 @@ namespace Saturn {
 
 				Ref<Node> Sampler2DNode;
 				Ref<Node> AssetNode;
-				Sampler2DNode = DefaultNodes::SpawnNewSampler2D( m_NodeEditor );
-				AssetNode = DefaultNodes::SpawnNewGetAssetNode( m_NodeEditor );
+				Sampler2DNode = MaterialNodeLibrary::SpawnSampler2D( m_NodeEditor );
+				AssetNode = MaterialNodeLibrary::SpawnGetAsset( m_NodeEditor );
 
 				AssetNode->ExtraData.Allocate( 1024 );
 				AssetNode->ExtraData.Zero_Memory();
@@ -229,7 +287,7 @@ namespace Saturn {
 			}
 			else if( Index == 0 )
 			{
-				Ref<Node> node = DefaultNodes::SpawnNewColorPickerNode( m_NodeEditor );
+				Ref<Node> node = MaterialNodeLibrary::SpawnColorPicker( m_NodeEditor );
 
 				auto& albedoColor = m_HostMaterialAsset->Get<glm::vec3>( "u_Materials.AlbedoColor" );
 				ImVec4 color = ImVec4( albedoColor.x, albedoColor.y, albedoColor.z, 1.0f );
@@ -424,5 +482,4 @@ namespace Saturn {
 
 		return NodeEditorCompilationStatus::Success;
 	}
-
 }

@@ -28,41 +28,28 @@
 
 #pragma once
 
-#include "Saturn/ImGui/AssetViewer.h"
+#include "Saturn/NodeEditor/NodeEditorBase.h"
 
-#include "Node.h"
-#include "Link.h"
-#include "NodeEditorCompilationStatus.h"
-
-#include "imgui_node_editor.h"
-
-namespace ed = ax::NodeEditor;
+#include "Saturn/NodeEditor/NodeEditorCompilationStatus.h"
 
 namespace Saturn {
 
-	class NodeEditor : public AssetViewer
+	class NodeEditor : public NodeEditorBase
 	{
 	public:
 		NodeEditor();
 		NodeEditor( AssetID ID );
 		~NodeEditor();
 
-		Ref<Node> AddNode( NodeSpecification& spec, ImVec2 position = ImVec2( 0.0f, 0.0f ) );
-
 		bool IsPinLinked( ed::PinId id );
 		bool CanCreateLink( const Ref<Pin>& a, const Ref<Pin>& b );
 		
 		Ref<Pin> FindPin( ed::PinId id );
-		const Ref<Pin>& FindPin( ed::PinId id ) const;
 		
 		Ref<Link> FindLink( ed::LinkId id );
-		const Ref<Link>& FindLink( ed::LinkId id ) const;
 	
-		Ref<Node> FindNode( ed::NodeId id );
-		const Ref<Node>& FindNode( ed::NodeId id ) const;
-	
+		Ref<Node> FindNode( ed::NodeId id );	
 		Ref<Node> FindNode( const std::string& rName );
-		const Ref<Node>& FindNode( const std::string& rName ) const;
 
 		Ref<Link> FindLinkByPin( ed::PinId id );
 		Ref<Node> FindNodeByPin( ed::PinId id );
@@ -93,22 +80,15 @@ namespace Saturn {
 			m_CreateNewNodeFunction = std::move( rrCreateNewNodeFunction );
 		}
 
-		void SetCompileFunction( std::function<NodeEditorCompilationStatus()>&& rrCompileFunction )
-		{
-			m_OnCompile = std::move( rrCompileFunction );
-		}
-
 		void SetCloseFunction( std::function<void()>&& rrCloseFunction )
 		{
 			m_OnClose = std::move( rrCloseFunction );
 		}
 
-		AssetID GetAssetID() { return m_AssetID; }
-
-		std::string& GetEditorState() { return m_NodeEditorState; }
-		const std::string& GetEditorState() const { return m_NodeEditorState; }
+		std::string& GetEditorState() { return m_ActiveNodeEditorState; }
+		const std::string& GetEditorState() const { return m_ActiveNodeEditorState; }
 		
-		void SetEditorState( const std::string& rState ) { m_NodeEditorState = rState; }
+		void SetEditorState( const std::string& rState ) { m_ActiveNodeEditorState = rState; }
 
 		NodeEditorCompilationStatus ThrowError( const std::string& rMessage );
 		void ThrowWarning( const std::string& rMessage );
@@ -127,10 +107,6 @@ namespace Saturn {
 		void DeleteDeadLinks( ed::NodeId id );
 
 	private:
-		ed::EditorContext* m_Editor;
-
-		std::string m_NodeEditorState;
-
 		bool m_CreateNewNode = false;
 
 		Ref<Pin> m_NewLinkPin = nullptr;
@@ -138,15 +114,12 @@ namespace Saturn {
 
 		std::function<void( Ref<Node> )> m_DetailsFunction;
 		std::function<Ref<Node>()> m_CreateNewNodeFunction;
-		std::function<NodeEditorCompilationStatus()> m_OnCompile;
 		std::function<void()> m_OnClose;
 
-		std::vector<Ref<Node>> m_Nodes;
-		std::vector<Ref<Link>> m_Links;
-
-		std::string m_Name;
+		ImVec2 m_ViewportSize;
 
 	private:
 		friend class NodeEditorCache;
+		friend class NodeCacheSettings;
 	};
 }

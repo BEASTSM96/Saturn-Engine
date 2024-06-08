@@ -30,7 +30,8 @@
 
 #include "AssetViewer.h"
 #include "Saturn/Asset/MaterialAsset.h"
-#include "NodeEditor/NodeEditorCompilationStatus.h"
+#include "Saturn/NodeEditor/NodeEditorCompilationStatus.h"
+#include "Saturn/NodeEditor/NodeEditorBase.h"
 
 namespace ax::NodeEditor {
 	struct NodeId;
@@ -42,6 +43,19 @@ namespace Saturn {
 
 	class NodeEditor;
 	class Node;
+
+	class MaterialNodeLibrary
+	{
+	public:
+		MaterialNodeLibrary() = default;
+		~MaterialNodeLibrary() = default;
+
+		static NodeEditorType GetStaticType() { return NodeEditorType::Material; }
+
+		static Ref<Node> SpawnGetAsset( Ref<NodeEditorBase> rNodeEditor );
+		static Ref<Node> SpawnColorPicker( Ref<NodeEditorBase> rNodeEditor );
+		static Ref<Node> SpawnSampler2D( Ref<NodeEditorBase> rNodeEditor );
+	};
 
 	class MaterialAssetViewer : public AssetViewer
 	{

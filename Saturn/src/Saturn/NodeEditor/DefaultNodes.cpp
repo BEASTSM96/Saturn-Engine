@@ -27,28 +27,65 @@
 */
 
 #include "sppch.h"
-#include "EditorIcons.h"
+#include "UI/NodeEditor.h"
 
 namespace Saturn {
 
-	static std::unordered_map<std::string, Ref<Texture2D>> s_Textures;
-
-	Ref<Texture2D> EditorIcons::GetIcon( const std::string& rName )
+	Ref<Node> SpawnNewGetAssetNode( Ref<NodeEditor>& rNodeEditor )
 	{
-		const auto Itr = s_Textures.find( rName );
+		PinSpecification pin;
+		pin.Name = "Asset ID";
+		pin.Type = PinType::AssetHandle;
 
-		return Itr == s_Textures.end() ? nullptr : Itr->second;
+		NodeSpecification node;
+		node.Color = ImColor( 30, 117, 217 );
+		node.Name = "Get Asset";
+
+		node.Outputs.push_back( pin );
+
+		return rNodeEditor->AddNode( node );
 	}
 
-	void EditorIcons::AddIcon( const Ref<Texture2D>& rTexture )
+	extern Ref<Node> SpawnNewSampler2D( Ref<NodeEditor>& rNodeEditor )
 	{
-		std::string name = rTexture->GetPath().filename().replace_extension().string();
-		s_Textures[ name ] = rTexture;
+		PinSpecification pin;
+		pin.Name = "Albedo";
+		pin.Type = PinType::Material_Sampler2D;
+
+		NodeSpecification node;
+		node.Color = ImColor( 0, 255, 0 );
+		node.Name = "Sampler2D";
+
+		pin.Name = "RGBA";
+		node.Outputs.push_back( pin );
+		pin.Name = "R";
+		node.Outputs.push_back( pin );
+		pin.Name = "G";
+		node.Outputs.push_back( pin );
+		pin.Name = "B";
+		node.Outputs.push_back( pin );
+		pin.Name = "A";
+		node.Outputs.push_back( pin );
+
+		pin.Name = "Asset";
+		pin.Type = PinType::AssetHandle;
+		node.Inputs.push_back( pin );
+
+		return rNodeEditor->AddNode( node );
 	}
 
-	void EditorIcons::Clear()
+	extern Ref<Node> SpawnNewColorPickerNode( Ref<NodeEditor>& rNodeEditor )
 	{
-		s_Textures.clear();
-	}
+		PinSpecification pin;
+		pin.Name = "RGBA";
+		pin.Type = PinType::Material_Sampler2D;
 
+		NodeSpecification node;
+		node.Color = ImColor( 252, 186, 3 );
+		node.Name = "Color Picker";
+
+		node.Outputs.push_back( pin );
+
+		return rNodeEditor->AddNode( node );
+	}
 }

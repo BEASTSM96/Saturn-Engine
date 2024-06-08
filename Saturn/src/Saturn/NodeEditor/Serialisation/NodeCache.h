@@ -29,17 +29,30 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
-#include "Node.h"
-#include "NodeEditor.h"
+#include "Saturn/Asset/Asset.h"
+
+#include "Saturn/NodeEditor/UI/NodeEditor.h"
 
 namespace Saturn {
 
-	// Should this really be a namespace?
-	namespace DefaultNodes {
+	class NodeCacheSettings
+	{
+	public:
+		static inline NodeCacheSettings& Get() { return *SingletonStorage::GetOrCreateSingleton<NodeCacheSettings>(); }
+	public:
+		[[nodiscard]] bool WriteEditorSettings( Ref<NodeEditor>& rNodeEditor );
+
+	private:
+		Buffer TryReadFileForWriting( const std::filesystem::path& rFilepath );
+
+		void OverrideFile( const std::filesystem::path& rFilepath, Ref<NodeEditor>& rNodeEditor );
+		void AppendFile( Buffer& rBuffer, const std::filesystem::path& rFilepath, Ref<NodeEditor>& rNodeEditor );
+	};
+
+	class NodeCacheEditor
+	{
+	public:
+	private:
+	};
 	
-		extern Ref<Node> SpawnNewGetAssetNode( Ref<NodeEditor>& rNodeEditor );
-		extern Ref<Node> SpawnNewSampler2D( Ref<NodeEditor>& rNodeEditor );
-		extern Ref<Node> SpawnNewColorPickerNode( Ref<NodeEditor>& rNodeEditor );
-	
-	}
 }

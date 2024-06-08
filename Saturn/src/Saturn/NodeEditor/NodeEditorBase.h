@@ -28,114 +28,72 @@
 
 #pragma once
 
-#include "Saturn/Serialisation/RawSerialisation.h"
-#include "Saturn/Core/Ref.h"
+#include "Saturn/ImGui/AssetViewer.h"
 
-#include <string>
-#include <imgui_node_editor.h>
+#include "Node.h"
+#include "Link.h"
+
+#include "imgui_node_editor.h"
 
 namespace ed = ax::NodeEditor;
 
 namespace Saturn {
 
-	enum class PinType
+	enum class NodeEditorType
 	{
-		Flow,
-		Bool,
-		Int,
-		Float,
-		String,
-		Object,
-		Function,
-		Delegate,
-		Material_Sampler2D,
-		AssetHandle
+		Unknown,
+		Material,
+		Sound
 	};
 
-	inline std::string_view PinTypeToString( PinType type )
-	{
-		switch( type )
-		{
-			case Saturn::PinType::Flow:
-				return "Flow";
-			case Saturn::PinType::Bool:
-				return "Bool";
-			case Saturn::PinType::Int:
-				return "Int";
-			case Saturn::PinType::Float:
-				return "Float";
-			case Saturn::PinType::String:
-				return "String";
-			case Saturn::PinType::Object:
-				return "Object";
-			case Saturn::PinType::Function:
-				return "Function";
-			case Saturn::PinType::Delegate:
-				return "Delegate";
-			case Saturn::PinType::Material_Sampler2D:
-				return "Material_Sampler2D";
-			case Saturn::PinType::AssetHandle:
-				return "AssetHandle";
-			default:
-				break;
-		}
+	class NodeEditorRuntime;
+	class Texture2D;
 
-		return "";
-	}
-
-	inline PinType StringToPinType( const std::string& rString )
-	{
-		if( rString == "Flow" )
-			return PinType::Flow;
-		else if( rString == "Bool" )
-			return PinType::Bool;
-		else if( rString == "Int" )
-			return PinType::Int;
-		else if( rString == "Float" )
-			return PinType::Float;
-		else if( rString == "String" )
-			return PinType::String;
-		else if( rString == "Object" )
-			return PinType::Object;
-		else if( rString == "Function" )
-			return PinType::Function;
-		else if( rString == "Material_Sampler2D" )
-			return PinType::Material_Sampler2D;
-		else if( rString == "AssetHandle" )
-			return PinType::AssetHandle;
-		else
-			return PinType::Object;
-	}
-
-	enum class PinKind
-	{
-		Output,
-		Input
-	};
-
-	class Node;
-
-	class Pin : public RefTarget
+	class NodeEditorBase : public AssetViewer
 	{
 	public:
-		Pin() = default;
+		NodeEditorBase();
+		NodeEditorBase( AssetID id );
+		virtual ~NodeEditorBase();
 
-		Pin( int id, const std::string& name, PinType type, ed::NodeId nodeID ) :
-			ID( id ), Node( nullptr ), Name( name ), Type( type ), Kind( PinKind::Input ), NodeID( nodeID )
-		{
-			ExtraData = Buffer();
-		}
+		virtual void OnImGuiRender() override = 0;
+		virtual void OnUpdate( Timestep ts ) override = 0;
+		virtual void OnEvent( RubyEvent& rEvent ) override = 0;
 
-		static void Serialise( const Ref<Pin>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Pin>& rObject, std::ifstream& rStream );
+		static Ref<Texture2D> GetBlueprintBackground();
 
 	public:
-		ed::PinId	ID;
-		ed::NodeId  NodeID;
-		Ref<Node>	Node;
-		std::string Name;
-		PinType     Type;
-		PinKind     Kind;
-		Buffer      ExtraData;
+		AssetID GetAssetID() const { return m_AssetID; }
+
+		const std::vector<Ref<Node>>& GetNodes() const { return m_Nodes; }
+		std::vector<Ref<Node>>& GetNodes() { return m_Nodes; }
+
+		const std::vector<Ref<Link>>& GetLinks() const { return m_Links; }
+		std::vector<Ref<Link>>& GetLinks() { return m_Links; }
+
+		Ref<Node> AddNode( const NodeSpecification& spec, ImVec2 position = ImVec2( 0.0f, 0.0f ) );
+
+	protected:
+		[[nodiscard]] int GetNextID() { return m_CurrentID++; }
+		[[nodiscard]] int GeCurrentID() const { return m_CurrentID; }
+
+	protected:
+		std::string m_Name;
+
+		ed::EditorContext* m_Editor = nullptr;
+		std::string m_ActiveNodeEditorState;
+
+		std::vector<Ref<Node>> m_Nodes;
+		std::vector<Ref<Link>> m_Links;
+
+		Ref<NodeEditorRuntime> m_Runtime;
+
+	private:
+		int m_CurrentID = 1;
+
+	private:
+		friend class NodeEditorCache;
+		friend class NodeCacheEditor;
+		friend class NodeCacheSettings;
 	};
 }

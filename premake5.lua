@@ -295,6 +295,7 @@ project "Saturn-Editor"
 		"%{IncludeDir.ImSpinner}",
 		"%{IncludeDir.Filewatch}",
 		"%{IncludeDir.MiniAudio}",
+		"%{IncludeDir.ImguiNodeEditor}",
 		"%{IncludeDir.Tracy}",
 
 		"%{IncludeDir.SharedStorage}"

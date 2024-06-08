@@ -39,7 +39,7 @@
 
 #include "Saturn/Asset/MaterialAsset.h"
 #include "Saturn/Vulkan/Renderer.h"
-#include "Saturn/ImGui/NodeEditor/NodeEditor.h"
+#include "Saturn/NodeEditor/UI/NodeEditor.h"
 
 #include <yaml-cpp/yaml.h>
 #include <fstream>

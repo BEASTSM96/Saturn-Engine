@@ -27,111 +27,99 @@
 */
 
 #include "sppch.h"
+#include "Pin.h"
+
+#include "Saturn/Serialisation/RawSerialisation.h"
 #include "Node.h"
 
-#include "Link.h"
+#include "Saturn/Vendor/Drawing.h"
 
 namespace Saturn {
 
-	static void SerialiseImColor( const ImColor& rColor, std::ofstream& rStream )
+	ax::Drawing::IconType Pin::GetIconType() const
 	{
-		RawSerialisation::WriteObject( rColor.Value, rStream );
+		switch( Type )
+		{
+			case PinType::Flow:				  return ax::Drawing::IconType::Flow;
+			case PinType::Bool:				  return ax::Drawing::IconType::Circle;
+			case PinType::Int:				  return ax::Drawing::IconType::Circle;
+			case PinType::Float:			  return ax::Drawing::IconType::Circle;
+			case PinType::String:			  return ax::Drawing::IconType::Circle;
+			case PinType::Object:			  return ax::Drawing::IconType::Circle;
+			case PinType::Function:			  return ax::Drawing::IconType::Circle;
+			case PinType::Material_Sampler2D: return ax::Drawing::IconType::Circle;
+			case PinType::AssetHandle:        return ax::Drawing::IconType::Circle;
+			case PinType::Delegate:           return ax::Drawing::IconType::Square;
+		}
+
+		return ax::Drawing::IconType::Circle;
 	}
 
-	static void DeserialiseImColor( ImColor& rColor, std::ifstream& rStream )
+	ImColor Pin::GetPinColor() const
 	{
-		RawSerialisation::ReadObject( rColor.Value, rStream );
+		switch( Type )
+		{
+			default:
+			case PinType::Flow:     return ImColor( 255, 255, 255 );
+			case PinType::Bool:     return ImColor( 220, 48, 48 );
+			case PinType::Int:      return ImColor( 68, 201, 156 );
+			case PinType::Float:    return ImColor( 147, 226, 74 );
+			case PinType::String:   return ImColor( 124, 21, 153 );
+			case PinType::Object:   return ImColor( 51, 150, 215 );
+			case PinType::Function: return ImColor( 218, 0, 183 );
+			case PinType::Delegate: return ImColor( 255, 48, 48 );
+			case PinType::AssetHandle: return ImColor( 0, 0, 255 );
+		}
+
+		return ImColor( 0, 0, 255 );
 	}
 
-	static void SerialiseImVec2( const ImVec2& rVector, std::ofstream& rStream )
+	void Pin::DrawIcon( bool connected, int alpha )
 	{
-		RawSerialisation::WriteObject( rVector.x, rStream );
-		RawSerialisation::WriteObject( rVector.y, rStream );
+		auto nativeType = GetIconType();
+		ImColor color = GetPinColor();
+		color.Value.w = alpha / 255.0f;
+
+		constexpr float PIN_ICON_SIZE = 24.0f;
+		auto size = ImVec2( PIN_ICON_SIZE, PIN_ICON_SIZE );
+
+		if( ImGui::IsRectVisible( size ) )
+		{
+			auto cursorPos = ImGui::GetCursorScreenPos();
+			auto drawList = ImGui::GetWindowDrawList();
+
+			ax::Drawing::DrawIcon( drawList,
+				cursorPos,
+				cursorPos + size,
+				nativeType,
+				connected,
+				color, ImColor( 32, 32, 32, alpha ) );
+		}
+
+		ImGui::Dummy( size );
 	}
 
-	static void DeserialiseImVec2( ImVec2& rVector, std::ifstream& rStream )
-	{
-		RawSerialisation::ReadObject( rVector.x, rStream );
-		RawSerialisation::ReadObject( rVector.y, rStream );
-	}
-
-	void Node::Serialise( const Ref<Node>& rObject, std::ofstream& rStream )
+	void Pin::Serialise( const Ref<Pin>& rObject, std::ofstream& rStream )
 	{
 		RawSerialisation::WriteObject( rObject->ID, rStream );
+		RawSerialisation::WriteObject( rObject->NodeID, rStream );
+
 		RawSerialisation::WriteString( rObject->Name, rStream );
-		RawSerialisation::WriteObject( rObject->Color, rStream );
-
 		RawSerialisation::WriteObject( rObject->Type, rStream );
-		RawSerialisation::WriteObject( rObject->Size, rStream );
-
-		RawSerialisation::WriteObject( rObject->Position, rStream );
-
-		RawSerialisation::WriteString( rObject->State, rStream );
-		RawSerialisation::WriteString( rObject->SavedState, rStream );
+		RawSerialisation::WriteObject( rObject->Kind, rStream );
 
 		RawSerialisation::WriteSaturnBuffer( rObject->ExtraData, rStream );
-
-		size_t mapSize = rObject->Inputs.size();
-		RawSerialisation::WriteObject( mapSize, rStream );
-
-		for( const auto& rInput : rObject->Inputs )
-		{
-			Pin::Serialise( rInput, rStream );
-		}
-
-		mapSize = rObject->Outputs.size();
-		RawSerialisation::WriteObject( mapSize, rStream );
-
-		for( const auto& rOutput : rObject->Outputs )
-		{
-			Pin::Serialise( rOutput, rStream );
-		}
 	}
 
-	void Node::Deserialise( Ref<Node>& rObject, std::ifstream& rStream )
+	void Pin::Deserialise( Ref<Pin>& rObject, std::ifstream& rStream )
 	{
 		RawSerialisation::ReadObject( rObject->ID, rStream );
+		RawSerialisation::ReadObject( rObject->NodeID, rStream );
+
 		rObject->Name = RawSerialisation::ReadString( rStream );
-		RawSerialisation::ReadObject( rObject->Color, rStream );
-
 		RawSerialisation::ReadObject( rObject->Type, rStream );
-		RawSerialisation::ReadObject( rObject->Size, rStream );
-		RawSerialisation::ReadObject( rObject->Position, rStream );
-
-		rObject->State = RawSerialisation::ReadString( rStream );
-		rObject->SavedState = RawSerialisation::ReadString( rStream );
+		RawSerialisation::ReadObject( rObject->Kind, rStream );
 
 		RawSerialisation::ReadSaturnBuffer( rObject->ExtraData, rStream );
-
-		size_t mapSize = 0;
-		RawSerialisation::ReadObject( mapSize, rStream );
-
-		rObject->Inputs.resize( mapSize );
-
-		for( size_t i = 0; i < mapSize; i++ )
-		{
-			Ref<Pin> pin = Ref<Pin>::Create();
-
-			Pin::Deserialise( pin, rStream );
-
-			rObject->Inputs[ i ] = pin;
-		}
-
-		mapSize = 0;
-		RawSerialisation::ReadObject( mapSize, rStream );
-
-		rObject->Outputs.resize( mapSize );
-
-		for( size_t i = 0; i < mapSize; i++ )
-		{
-			Ref<Pin> pin = Ref<Pin>::Create();
-
-			Pin::Deserialise( pin, rStream );
-
-			rObject->Outputs[ i ] = pin;
-		}
-
-		ed::SetNodePosition( rObject->ID, rObject->Position );
 	}
-
 }

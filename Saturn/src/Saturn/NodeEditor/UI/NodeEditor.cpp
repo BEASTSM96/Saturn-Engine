@@ -28,34 +28,25 @@
 
 #include "sppch.h"
 #include "NodeEditor.h"
-#include "Saturn/Vulkan/Image2D.h"
-#include "Saturn/Vulkan/Texture.h"
 #include "Saturn/Asset/AssetManager.h"
 
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 
+#include "Saturn/Serialisation/RawSerialisation.h"
+
+#include "Saturn/ImGui/EditorIcons.h"
+
 // imgui_node_editor
 #include "builders.h"
-#include "Saturn/Vendor/widgets.h"
-#include "Saturn/Vendor/Drawing.h"
-
-#include <backends/imgui_impl_vulkan.h>
 
 namespace util = ax::NodeEditor::Utilities;
 
 namespace Saturn {
 
-	static int s_ID = 1;
+	static constexpr inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
+	static constexpr inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
-	static Ref<Texture2D> s_BlueprintBackground;
-	static ImTextureID s_BlueprintBackgroundID;
-
-	int GetNextID()
-	{
-		return s_ID++;
-	}
-
-	void BuildNode( Ref<Node>& rNode )
+	static void BuildNode( Ref<Node>& rNode )
 	{
 		for( auto& input : rNode->Inputs )
 		{
@@ -70,6 +61,9 @@ namespace Saturn {
 		}
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// NODE EDITOR
+
 	struct SelectAssetInfo
 	{
 		ed::PinId   ID = 0;
@@ -83,30 +77,21 @@ namespace Saturn {
 
 	// TODO: What if we do want to add this node editor the the asset viewers list?
 	NodeEditor::NodeEditor( AssetID ID )
-		: AssetViewer()
+		: NodeEditorBase( ID )
 	{
 		m_AssetID = ID;
 
 		CreateEditor();
-
-		s_BlueprintBackground = Ref<Texture2D>::Create( "content/textures/BlueprintBackground.png", AddressingMode::Repeat );
-
-		s_BlueprintBackgroundID = ImGui_ImplVulkan_AddTexture( s_BlueprintBackground->GetSampler(), s_BlueprintBackground->GetImageView(), s_BlueprintBackground->GetDescriptorInfo().imageLayout );
 	}
 
 	NodeEditor::NodeEditor()
-		: AssetViewer()
+		: NodeEditorBase()
 	{
 		m_Editor = nullptr;
-
-		s_BlueprintBackground = Ref<Texture2D>::Create( "content/textures/BlueprintBackground.png", AddressingMode::Repeat );
-
-		s_BlueprintBackgroundID = ImGui_ImplVulkan_AddTexture( s_BlueprintBackground->GetSampler(), s_BlueprintBackground->GetImageView(), s_BlueprintBackground->GetDescriptorInfo().imageLayout );
 	}
 
 	NodeEditor::~NodeEditor()
 	{
-		s_BlueprintBackground = nullptr;
 	}
 
 	void NodeEditor::CreateEditor()
@@ -119,7 +104,7 @@ namespace Saturn {
 		{
 			auto* pThis = static_cast< NodeEditor* >( pUserPointer );
 
-			pThis->m_NodeEditorState = pData;
+			pThis->m_ActiveNodeEditorState = pData;
 
 			return true;
 		};
@@ -128,7 +113,7 @@ namespace Saturn {
 		{
 			auto* pThis = static_cast< NodeEditor* >( pUserData );
 
-			const auto& State = pThis->m_NodeEditorState;
+			const auto& State = pThis->m_ActiveNodeEditorState;
 
 			if( !pData )
 			{
@@ -153,9 +138,9 @@ namespace Saturn {
 				return 0;
 
 			if( pData != nullptr )
-				memcpy( pData, pNode->State.data(), pNode->State.size() );
+				memcpy( pData, pNode->ActiveState.data(), pNode->ActiveState.size() );
 
-			return pNode->State.size();
+			return pNode->ActiveState.size();
 		};
 
 		config.SaveNodeSettings = []( ed::NodeId nodeId, const char* pData, size_t size, ed::SaveReasonFlags reason, void* pUserPointer ) -> bool
@@ -167,9 +152,9 @@ namespace Saturn {
 			if( !pNode )
 				return false;
 
-			pNode->State.assign( pData, size );
+			pNode->ActiveState.assign( pData, size );
 
-			SAT_CORE_INFO( "Assigned Node data is: {0}", pNode->State );
+			SAT_CORE_INFO( "Assigned Node data is: {0}", pNode->ActiveState );
 
 			return true;
 		};
@@ -191,48 +176,14 @@ namespace Saturn {
 
 	void NodeEditor::Close()
 	{
-		m_OnCompile();
-
 		ed::DestroyEditor( m_Editor );
 		ed::SetCurrentEditor( nullptr );
 
 		m_Nodes.clear();
 		m_Links.clear();
-		m_NodeEditorState = "";
+		m_ActiveNodeEditorState = "";
 
 		m_OnClose();
-	}
-
-	Ref<Node> NodeEditor::AddNode( NodeSpecification& spec, ImVec2 position )
-	{
-		Ref<Node> node = Ref<Node>::Create( GetNextID(), spec.Name.c_str(), spec.Color );
-		m_Nodes.emplace_back( node );
-
-		for( auto& rOutput : spec.Outputs ) 
-		{
-			Ref<Pin> pin = Ref<Pin>::Create( GetNextID(), rOutput.Name.c_str(), rOutput.Type, node->ID );
-			node->Outputs.push_back( pin );
-		}
-
-		for( auto& rInput : spec.Inputs ) 
-		{
-			Ref<Pin> pin = Ref<Pin>::Create( GetNextID(), rInput.Name.c_str(), rInput.Type, node->ID );
-			node->Inputs.push_back( pin );
-
-			// This should be more than enough data for one pin, holds 16 floats.
-			pin->ExtraData.Allocate( 64 );
-			pin->ExtraData.Zero_Memory();
-		}
-
-		BuildNode( node );
-
-		if( position.x != 0.0f && position.y != 0.0f )
-			ed::SetNodePosition( node->ID, position );
-
-		node->ExtraData.Allocate( 1024 );
-		node->ExtraData.Zero_Memory();
-
-		return m_Nodes.back();
 	}
 
 	bool NodeEditor::IsPinLinked( ed::PinId id )
@@ -282,43 +233,7 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	const Ref<Pin>& NodeEditor::FindPin( ed::PinId id ) const
-	{
-		if( !id )
-			return nullptr;
-
-		for( const auto& node : m_Nodes )
-		{
-			for( const auto& pin : node->Inputs )
-			{
-				if( pin->ID == id )
-				{
-					return pin;
-				}
-			}
-
-			for( const auto& pin : node->Outputs )
-			{
-				if( pin->ID == id )
-				{
-					return pin;
-				}
-			}
-		}
-
-		return nullptr;
-	}
-
 	Ref<Link> NodeEditor::FindLink( ed::LinkId id )
-	{
-		for( auto& link : m_Links )
-			if( link->ID == id )
-				return link;
-
-		return nullptr;
-	}
-
-	const Ref<Link>& NodeEditor::FindLink( ed::LinkId id ) const
 	{
 		for( auto& link : m_Links )
 			if( link->ID == id )
@@ -336,27 +251,7 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	const Ref<Node>& NodeEditor::FindNode( ed::NodeId id ) const
-	{
-		for( auto& node : m_Nodes )
-			if( node->ID == id )
-				return node;
-
-		return nullptr;
-	}
-
 	Saturn::Ref<Node> NodeEditor::FindNode( const std::string& rName )
-	{
-		for( auto& node : m_Nodes ) 
-		{
-			if( node->Name == rName )
-				return node;
-		}
-
-		return nullptr;
-	}
-
-	const Saturn::Ref<Node>& NodeEditor::FindNode( const std::string& rName ) const
 	{
 		for( auto& node : m_Nodes ) 
 		{
@@ -390,60 +285,6 @@ namespace Saturn {
 		return Pin->Node;
 	}
 
-	ImColor GetIconColor( PinType type )
-	{
-		switch( type )
-		{
-			default:
-			case PinType::Flow:     return ImColor( 255, 255, 255 ); // Same as Material_Sampler2D
-			case PinType::Bool:     return ImColor( 220, 48, 48 );
-			case PinType::Int:      return ImColor( 68, 201, 156 );
-			case PinType::Float:    return ImColor( 147, 226, 74 );
-			case PinType::String:   return ImColor( 124, 21, 153 );
-			case PinType::Object:   return ImColor( 51, 150, 215 );
-			case PinType::Function: return ImColor( 218, 0, 183 );
-			case PinType::Delegate: return ImColor( 255, 48, 48 );
-			case PinType::AssetHandle: return ImColor( 0, 0, 255 );
-		}
-	}
-
-	void DrawPinIcon( const Ref<Pin>& pin, bool connected, int alpha )
-	{
-		ax::Drawing::IconType type;
-		ImColor color = GetIconColor( pin->Type );
-		color.Value.w = alpha / 255.0f;
-
-		switch( pin->Type )
-		{
-			case PinType::Flow:				  type = ax::Drawing::IconType::Flow;   break;
-			case PinType::Bool:				  type = ax::Drawing::IconType::Circle; break;
-			case PinType::Int:				  type = ax::Drawing::IconType::Circle; break;
-			case PinType::Float:			  type = ax::Drawing::IconType::Circle; break;
-			case PinType::String:			  type = ax::Drawing::IconType::Circle; break;
-			case PinType::Object:			  type = ax::Drawing::IconType::Circle; break;
-			case PinType::Function:			  type = ax::Drawing::IconType::Circle; break;
-			case PinType::Material_Sampler2D: type = ax::Drawing::IconType::Circle; break;
-			case PinType::AssetHandle:        type = ax::Drawing::IconType::Circle; break;
-			case PinType::Delegate:           type = ax::Drawing::IconType::Square; break;
-			default:
-				return;
-		}
-
-		const float PIN_ICON_SIZE = 24;
-
-		auto size = ImVec2( static_cast< float >( PIN_ICON_SIZE ), static_cast< float >( PIN_ICON_SIZE ) );
-
-		if( ImGui::IsRectVisible( size ) ) 
-		{
-			auto cursorPos = ImGui::GetCursorScreenPos();
-			auto drawList  = ImGui::GetWindowDrawList();
-
-			ax::Drawing::DrawIcon( drawList, cursorPos, cursorPos + size, type, connected, color, ImColor( 32, 32, 32, alpha ) );
-		}
-
-		ImGui::Dummy( size );
-	}
-
 	void NodeEditor::OnImGuiRender()
 	{
 		// Safety
@@ -454,9 +295,8 @@ namespace Saturn {
 
 		bool WasOpen = m_Open;
 
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 		ImGui::Begin( m_Name.c_str(), &m_Open );
-
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar;
 
 		ImGui::BeginHorizontal( "##TopbarItems" );
 
@@ -469,26 +309,24 @@ namespace Saturn {
 
 		if( ImGui::Button( "Compile & Save" ) ) 
 		{
-			if( m_OnCompile )
-			{
-				m_OnCompile();
-
-				for( auto& link : m_Links )
-					ed::Flow( link->ID );
-			}
-			else
-				SAT_CORE_ASSERT( false, "A compile callback function must be set!" );
+			
 		}
 
 		ImGui::EndHorizontal();
 
 		ImGui::SameLine( 0.0f, 12.0f );
 
+		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
+			m_ViewportSize = ImGui::GetContentRegionAvail();
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar;	
+
 		ed::Begin( "Node Editor" );
 
 		auto cursorTopLeft = ImGui::GetCursorScreenPos();
 
-		util::BlueprintNodeBuilder builder( s_BlueprintBackgroundID, s_BlueprintBackground->Width(), s_BlueprintBackground->Height() );
+		auto texture = NodeEditorBase::GetBlueprintBackground();
+		util::BlueprintNodeBuilder builder( (ImTextureID)texture->GetDescriptorSet(), texture->Width(), texture->Height() );
 
 		bool OpenAssetPopup = false;
 		bool OpenAssetColorPicker = false;
@@ -498,7 +336,7 @@ namespace Saturn {
 			if( node->Type != NodeType::Blueprint && node->Type != NodeType::Simple )
 				continue;
 
-			const auto isSimple = node->Type == NodeType::Simple;
+			const bool isSimple = node->Type == NodeType::Simple;
 
 			builder.Begin( node->ID );
 
@@ -524,7 +362,7 @@ namespace Saturn {
 
 				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
 
-				DrawPinIcon( input, IsPinLinked( input->ID ), (int)(alpha * 255) );
+				input->DrawIcon( IsPinLinked( input->ID ), ( int ) ( alpha * 255 ) );
 
 				ImGui::Spring( 0 );
 
@@ -546,7 +384,7 @@ namespace Saturn {
 
 					ImGui::SetNextItemWidth( 25.0f );
 
-					ImGui::PushID( input->ID.Get() );
+					ImGui::PushID( ( int )input->ID.Get() );
 					
 					if( ImGui::DragFloat( "##floatinput", &value ) )
 					{
@@ -631,7 +469,7 @@ namespace Saturn {
 				}
 
 				ImGui::Spring( 0 );
-				DrawPinIcon( output, IsPinLinked( output->ID ), ( int ) ( alpha * 255 ) );
+				output->DrawIcon( IsPinLinked( output->ID ), ( int ) ( alpha * 255 ) );
 
 				builder.EndOutput();
 				ImGui::PopStyleVar();
@@ -830,7 +668,7 @@ namespace Saturn {
 							if( ed::AcceptNewItem( ImColor( 128, 255, 128 ), 4.0f ) )
 							{
 								m_Links.emplace_back( Ref<Link>::Create( GetNextID(), StartPinId, EndPinId ) );
-								m_Links.back()->Color = GetIconColor( StartPin->Type );
+								m_Links.back()->Color = StartPin->GetPinColor();
 							}
 						}
 					}
@@ -938,7 +776,7 @@ namespace Saturn {
 								std::swap( startPin, endPin );
 
 							m_Links.emplace_back( Ref<Link>::Create( GetNextID(), startPin->ID, endPin->ID ) );
-							m_Links.back()->Color = GetIconColor( startPin->Type );
+							m_Links.back()->Color = startPin->GetPinColor();
 
 							break;
 						}
@@ -957,6 +795,7 @@ namespace Saturn {
 		ed::End();
 
 		ImGui::End(); // NODE_EDITOR
+		ImGui::PopStyleVar();
 
 		//if( WasOpen && !m_Open )
 		//	Close();
@@ -967,7 +806,7 @@ namespace Saturn {
 		const Ref<Pin>& pin = FindPin( Start );
 
 		Ref<Link> link = Ref<Link>::Create( GetNextID(), Start, End );
-		link->Color = GetIconColor( pin->Type );
+		link->Color = pin->GetPinColor();
 
 		m_Links.emplace_back( link );
 	}
@@ -1002,7 +841,7 @@ namespace Saturn {
 	void NodeEditor::SerialiseData( std::ofstream& rStream )
 	{
 		RawSerialisation::WriteString( m_Name, rStream );
-		RawSerialisation::WriteString( m_NodeEditorState, rStream );
+		RawSerialisation::WriteString( m_ActiveNodeEditorState, rStream );
 
 		size_t mapSize = m_Nodes.size();
 		RawSerialisation::WriteObject( mapSize, rStream );
@@ -1024,7 +863,7 @@ namespace Saturn {
 	void NodeEditor::DeserialiseData( std::ifstream& rStream )
 	{
 		m_Name = RawSerialisation::ReadString( rStream );
-		m_NodeEditorState = RawSerialisation::ReadString( rStream );
+		m_ActiveNodeEditorState = RawSerialisation::ReadString( rStream );
 
 		CreateEditor();
 
@@ -1056,5 +895,4 @@ namespace Saturn {
 			m_Links[ i ] = link;
 		}
 	}
-
 }

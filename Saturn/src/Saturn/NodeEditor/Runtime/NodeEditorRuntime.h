@@ -26,66 +26,20 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "DefaultNodes.h"
+#pragma once
+
+#include "Saturn/Core/Base.h"
 
 namespace Saturn {
 
-	extern Ref<Node> DefaultNodes::SpawnNewGetAssetNode( Ref<NodeEditor>& rNodeEditor )
+	class NodeEditorRuntime : public RefTarget
 	{
-		PinSpecification pin;
-		pin.Name = "Asset ID";
-		pin.Type = PinType::AssetHandle;
+	public:
+		NodeEditorRuntime() = default;
+		~NodeEditorRuntime() = default;
 
-		NodeSpecification node;
-		node.Color = ImColor( 30, 117, 217 );
-		node.Name = "Get Asset";
-
-		node.Outputs.push_back( pin );
-
-		return rNodeEditor->AddNode( node );
-	}
-
-	extern Ref<Node> DefaultNodes::SpawnNewSampler2D( Ref<NodeEditor>& rNodeEditor )
-	{
-		PinSpecification pin;
-		pin.Name = "Albedo";
-		pin.Type = PinType::Material_Sampler2D;
-
-		NodeSpecification node;
-		node.Color = ImColor( 0, 255, 0 );
-		node.Name = "Sampler2D";
-
-		pin.Name = "RGBA";
-		node.Outputs.push_back( pin );
-		pin.Name = "R";
-		node.Outputs.push_back( pin );
-		pin.Name = "G";
-		node.Outputs.push_back( pin );
-		pin.Name = "B";
-		node.Outputs.push_back( pin );
-		pin.Name = "A";
-		node.Outputs.push_back( pin );
-
-		pin.Name = "Asset";
-		pin.Type = PinType::AssetHandle;
-		node.Inputs.push_back( pin );
-
-		return rNodeEditor->AddNode( node );
-	}
-
-	extern Ref<Node> DefaultNodes::SpawnNewColorPickerNode( Ref<NodeEditor>& rNodeEditor )
-	{
-		PinSpecification pin;
-		pin.Name = "RGBA";
-		pin.Type = PinType::Material_Sampler2D;
-
-		NodeSpecification node;
-		node.Color = ImColor( 252, 186, 3 );
-		node.Name = "Color Picker";
-
-		node.Outputs.push_back( pin );
-
-		return rNodeEditor->AddNode( node );
-	}
+	private:
+		friend class NodeEditorBase;
+		friend class NodeCacheEditor;
+	};
 }

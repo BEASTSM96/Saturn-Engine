@@ -29,9 +29,6 @@
 #pragma once
 
 #include "Saturn/Core/Memory/Buffer.h"
-
-#include "Saturn/Serialisation/RawSerialisation.h"
-
 #include "Pin.h"
 
 #include <string>
@@ -68,10 +65,17 @@ namespace Saturn {
 	public:
 		Node() = default;
 
-		Node( int id, const std::string& name, ImColor color = ImColor( 255, 255, 255 ) ) :
-			ID( id ), Name( name ), Color( color ), Type( NodeType::Blueprint ), Size( 0, 0 )
+		Node( int id, 
+			const std::string& rName, 
+			ImColor color = ImColor( 255, 255, 255 ) ) :
+			ID( id ), Name( rName ), Color( color ), Type( NodeType::Blueprint ), Size( 0, 0 )
 		{
 			ExtraData = Buffer();
+		}
+
+		~Node() 
+		{
+			ExtraData.Free();
 		}
 
 		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
@@ -90,7 +94,7 @@ namespace Saturn {
 		// Any other extra data that should be stored in the node.
 		Buffer ExtraData;
 
-		std::string State;
+		std::string ActiveState;
 		std::string SavedState;
 	};
 
