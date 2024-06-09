@@ -53,7 +53,7 @@ namespace Saturn {
 		virtual void OnUpdate( Timestep ts ) override {}
 		virtual void OnEvent( RubyEvent& rEvent ) override {}
 
-		void Open( bool open ) { m_Open = open; }
+		void Open( bool open ) { m_WindowOpen = open; }
 
 		// Only use this when creating a node that needs to link automatically.
 		void LinkPin( ed::PinId Start, ed::PinId End );

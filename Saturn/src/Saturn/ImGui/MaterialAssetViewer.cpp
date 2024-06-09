@@ -107,6 +107,30 @@ namespace Saturn {
 		return rNodeEditor->AddNode( node );
 	}
 
+	Ref<Node> MaterialNodeLibrary::SpawnOutputNode( Ref<NodeEditorBase> rNodeEditor )
+	{
+		PinSpecification pin;
+		pin.Name = "Albedo";
+		pin.Type = PinType::Material_Sampler2D;
+
+		NodeSpecification node;
+		node.Color = ImColor( 255, 128, 128 );
+		node.Name = "Material Output";
+		node.Inputs.push_back( pin );
+
+		pin.Name = "Normal";
+		node.Inputs.push_back( pin );
+		pin.Name = "Metallic";
+		node.Inputs.push_back( pin );
+		pin.Name = "Roughness";
+		node.Inputs.push_back( pin );
+		pin.Name = "Emission";
+		pin.Type = PinType::Float;
+		node.Inputs.push_back( pin );
+
+		return rNodeEditor->AddNode( node );
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL NODE EDITOR RUNTIME
 
@@ -317,6 +341,8 @@ namespace Saturn {
 
 		//NodeEditorCache::WriteNodeEditorCache( m_NodeEditor );
 
+		m_NodeEditor->SaveSettings();
+		m_NodeEditor->SetRuntime( nullptr );
 		m_NodeEditor = nullptr;
 	}
 
@@ -394,32 +420,14 @@ namespace Saturn {
 	void MaterialAssetViewer::SetupNewNodeEditor()
 	{
 		// Add material output node.
-		PinSpecification pin;
-		pin.Name = "Albedo";
-		pin.Type = PinType::Material_Sampler2D;
-
-		NodeSpecification node;
-		node.Color = ImColor( 255, 128, 128 );
-		node.Name = "Material Output";
-		node.Inputs.push_back( pin );
-
-		pin.Name = "Normal";
-		node.Inputs.push_back( pin );
-		pin.Name = "Metallic";
-		node.Inputs.push_back( pin );
-		pin.Name = "Roughness";
-		node.Inputs.push_back( pin );
-		pin.Name = "Emission";
-		pin.Type = PinType::Float;
-		node.Inputs.push_back( pin );
-
-		Ref<Node> OutputNode = m_NodeEditor->AddNode( node );
+		Ref<Node> OutputNode = MaterialNodeLibrary::SpawnOutputNode( m_NodeEditor );
 		OutputNode->CanBeDeleted = false;
 
-		m_OutputNodeID = ( int ) ( size_t ) OutputNode->ID;
+		m_OutputNodeID = ( int ) ( uintptr_t ) OutputNode->ID;
 
 		// Read the material data, and create some nodes based of the info.
 
+		/*
 		auto Fn = [&]( const Ref<Texture2D>& rTexture, int Index ) -> void
 			{
 				const auto& rPath = rTexture->GetPath();
@@ -487,6 +495,7 @@ namespace Saturn {
 		{
 			Fn( m_HostMaterialAsset->GetRoughnessMap(), 3 );
 		}
+		*/
 	}
 
 	void MaterialAssetViewer::DrawInternal()

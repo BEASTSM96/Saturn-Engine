@@ -29,9 +29,7 @@
 #pragma once
 
 #include "Saturn/Core/Base.h"
-#include "Saturn/Asset/Asset.h"
-
-#include "Saturn/NodeEditor/UI/NodeEditor.h"
+#include "Saturn/NodeEditor/NodeEditorBase.h"
 
 namespace Saturn {
 
@@ -40,13 +38,13 @@ namespace Saturn {
 	public:
 		static inline NodeCacheSettings& Get() { return *SingletonStorage::GetOrCreateSingleton<NodeCacheSettings>(); }
 	public:
-		[[nodiscard]] bool WriteEditorSettings( Ref<NodeEditor>& rNodeEditor );
+		[[nodiscard]] bool WriteEditorSettings( Ref<NodeEditorBase> rNodeEditor );
 
 	private:
-		Buffer TryReadFileForWriting( const std::filesystem::path& rFilepath );
+		bool CanAppendFile( const std::filesystem::path& rFilepath );
 
-		void OverrideFile( const std::filesystem::path& rFilepath, Ref<NodeEditor>& rNodeEditor );
-		void AppendFile( Buffer& rBuffer, const std::filesystem::path& rFilepath, Ref<NodeEditor>& rNodeEditor );
+		void OverrideFile( const std::filesystem::path& rFilepath, Ref<NodeEditorBase> rNodeEditor );
+		void AppendFile( const std::filesystem::path& rFilepath, Ref<NodeEditorBase> rNodeEditor );
 	};
 
 	class NodeCacheEditor

@@ -52,6 +52,8 @@ namespace Saturn {
 
 		static NodeEditorType GetStaticType() { return NodeEditorType::Material; }
 
+		static Ref<Node> SpawnOutputNode( Ref<NodeEditorBase> rNodeEditor );
+
 		static Ref<Node> SpawnGetAsset( Ref<NodeEditorBase> rNodeEditor );
 		static Ref<Node> SpawnColorPicker( Ref<NodeEditorBase> rNodeEditor );
 		static Ref<Node> SpawnSampler2D( Ref<NodeEditorBase> rNodeEditor );

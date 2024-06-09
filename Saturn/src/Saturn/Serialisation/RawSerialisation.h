@@ -161,7 +161,14 @@ namespace Saturn {
 				}
 				else
 				{
-					V::Serialise( value, rStream );
+					if constexpr( std::is_same<V, std::string>() )
+					{
+						WriteString( value, rStream );
+					}
+					else
+					{
+						V::Serialise( value, rStream );
+					}
 				}
 			}
 		}
@@ -462,7 +469,14 @@ namespace Saturn {
 				}
 				else
 				{
-					V::Deserialise( value, rStream );
+					if constexpr( std::is_same<V, std::string>() )
+					{
+						value = ReadString( rStream );
+					}
+					else
+					{
+						V::Deserialise( value, rStream );
+					}
 				}
 
 				rMap[ key ] = value;

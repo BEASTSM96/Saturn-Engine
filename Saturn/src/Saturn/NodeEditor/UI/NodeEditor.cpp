@@ -98,9 +98,19 @@ namespace Saturn {
 
 	void NodeEditor::CreateEditor()
 	{
+		// Zoom Levels in imgui_node_editor work backwards
+		ImVector<float> zoomLvls;
+		zoomLvls.push_back( 0.25f ); // Highest zoom level (least zoomed in)
+		zoomLvls.push_back( 0.5f );
+		zoomLvls.push_back( 0.75f );
+		zoomLvls.push_back( 1.0f );
+		zoomLvls.push_back( 1.25f );
+		zoomLvls.push_back( 1.50f ); // Lowest zoom level (mosted zoomed in)
+
 		ed::Config config;
 		config.SettingsFile = nullptr;
 		config.UserPointer = this;
+		config.CustomZoomLevels = zoomLvls;
 
 		config.SaveSettings = []( const char* pData, size_t size, ed::SaveReasonFlags reason, void* pUserPointer ) -> bool
 		{
@@ -201,11 +211,11 @@ namespace Saturn {
 		// Safety
 		ed::SetCurrentEditor( m_Editor );
 
-		if( !m_Open )
+		if( !m_WindowOpen ) 
 			return;
 
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
-		ImGui::Begin( m_Name.c_str(), &m_Open );
+		ImGui::Begin( m_Name.c_str(), &m_WindowOpen );
 
 		ImGui::BeginHorizontal( "##TopbarItems" );
 
@@ -240,6 +250,8 @@ namespace Saturn {
 
 		bool OpenAssetPopup = false;
 		bool OpenAssetColorPicker = false;
+
+		SAT_CORE_INFO( "{0}", ed::GetCurrentZoom() );
 
 		for( auto& node : m_Nodes )
 		{

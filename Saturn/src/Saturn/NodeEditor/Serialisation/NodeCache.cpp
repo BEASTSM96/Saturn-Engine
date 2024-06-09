@@ -37,63 +37,68 @@ namespace Saturn {
 		size_t SettingsCount = 0;
 		uint64_t Version = SAT_CURRENT_VERSION;
 	};
+	
+	// Header for each node editor
+	struct NodeCacheSettingsHeader
+	{
+		char Magic[ 5 ] = { 'x', 'N', 'C', 'S', '\0' };
+		AssetID ID = 0;
+		uint64_t Version = SAT_CURRENT_VERSION;
+	};
 
-	bool NodeCacheSettings::WriteEditorSettings( Ref<NodeEditor>& rNodeEditor )
+	bool NodeCacheSettings::WriteEditorSettings( Ref<NodeEditorBase> rNodeEditor )
 	{
 		std::filesystem::path filepath = Project::GetActiveProject()->GetAppDataFolder();
 
 		if( !std::filesystem::exists( filepath ) )
 			std::filesystem::create_directories( filepath );
 
-		Buffer fileBuffer = TryReadFileForWriting( filepath );
+		filepath /= "NodeCache-Settings";
+		filepath.replace_extension( ".ncs" );
 
-		if( fileBuffer.Size == 0 )
-			OverrideFile( filepath, rNodeEditor );
+		if( CanAppendFile( filepath ) )
+			AppendFile( filepath, rNodeEditor );
 		else
-			AppendFile( fileBuffer, filepath, rNodeEditor );
-
-		fileBuffer.Free();
+			OverrideFile( filepath, rNodeEditor );
 
 		return true;
 	}
 
-	Buffer NodeCacheSettings::TryReadFileForWriting( const std::filesystem::path& rFilepath )
+	bool NodeCacheSettings::CanAppendFile( const std::filesystem::path& rFilepath )
 	{
-		Buffer fileBuffer;
-	
 		std::ifstream stream( rFilepath, std::ios::binary | std::ios::in | std::ios::ate );
 
 		auto end = stream.tellg();
 		stream.seekg( 0, std::ios::beg );
 		auto size = end - stream.tellg();
 
-		if( size == 0 )
-			return fileBuffer;
-
-		fileBuffer.Allocate( static_cast< size_t >( size ) );
-		stream.read( reinterpret_cast< char* >( fileBuffer.Data ), fileBuffer.Size );
-
 		stream.close();
 
-		return fileBuffer;
+		return size != 0;
 	}
 
-	void NodeCacheSettings::OverrideFile( const std::filesystem::path& rFilepath, Ref<NodeEditor>& rNodeEditor )
+	void NodeCacheSettings::OverrideFile( const std::filesystem::path& rFilepath, Ref<NodeEditorBase> rNodeEditor )
 	{
 		SettingsFileHeader fileHeader;
 		fileHeader.SettingsCount++;
 
 		std::ofstream fout( rFilepath, std::ios::binary | std::ios::trunc );
 
+		std::map< uint64_t, std::string > stateMap;
+		stateMap[ rNodeEditor->GetAssetID() ] = rNodeEditor->m_ActiveNodeEditorState;
+
 		RawSerialisation::WriteObject( fileHeader, fout );
-		RawSerialisation::WriteString( rNodeEditor->m_ActiveNodeEditorState, fout );
+		RawSerialisation::WriteMap( stateMap, fout );
 
 		fout.close();
 	}
 
-	void NodeCacheSettings::AppendFile( Buffer& rBuffer, const std::filesystem::path& rFilepath, Ref<NodeEditor>& rNodeEditor )
+	void NodeCacheSettings::AppendFile( const std::filesystem::path& rFilepath, Ref<NodeEditorBase> rNodeEditor )
 	{
-		SettingsFileHeader fileHeader = *( SettingsFileHeader* ) rBuffer.Data;
+		std::ifstream stream( rFilepath, std::ios::binary | std::ios::in );
+
+		SettingsFileHeader fileHeader{};
+		RawSerialisation::ReadObject( fileHeader, stream );
 
 		if( strcmp( fileHeader.Magic, ".NCS\0" ) )
 		{
@@ -101,35 +106,32 @@ namespace Saturn {
 			return;
 		}
 
-		uint8_t* stateData = rBuffer.As<uint8_t>() + sizeof( SettingsFileHeader );
-
 		// Get all currently saved states
-		std::vector<std::string> states( fileHeader.SettingsCount );
+		std::map<uint64_t, std::string> stateMap;
+		
+		RawSerialisation::ReadMap( stateMap, stream );
 
-		for( size_t i = 0; i < fileHeader.SettingsCount; i++ )
+		stream.close();
+
+		const auto Itr = stateMap.find( rNodeEditor->GetAssetID() );
+
+		// New node editor is being cached so update file header
+		if( Itr == stateMap.end() )
 		{
-			std::string state = *( std::string* ) stateData;
+			fileHeader.SettingsCount++;
 
-			states[ i ] = state;
-
-			stateData += state.size();
+			stateMap[ rNodeEditor->GetAssetID() ] = rNodeEditor->m_ActiveNodeEditorState;
 		}
-
-		fileHeader.SettingsCount++;
+		else
+		{
+			Itr->second = rNodeEditor->m_ActiveNodeEditorState;
+		}
 
 		std::ofstream fout( rFilepath, std::ios::binary | std::ios::trunc );
 
 		RawSerialisation::WriteObject( fileHeader, fout );
 
-		size_t mapSize = states.size();
-		fout.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-
-		for( const auto& value : states )
-		{
-			RawSerialisation::WriteString( value, fout );
-		}
-
-		RawSerialisation::WriteString( rNodeEditor->m_ActiveNodeEditorState, fout );
+		RawSerialisation::WriteMap( stateMap, fout );
 
 		fout.close();
 	}

@@ -35,6 +35,8 @@
 
 #include "Saturn/ImGui/EditorIcons.h"
 
+#include "Saturn/NodeEditor/Serialisation/NodeCache.h"
+
 #include <backends/imgui_impl_vulkan.h>
 
 namespace Saturn {
@@ -203,13 +205,12 @@ namespace Saturn {
 	// NODE EDITOR
 
 	NodeEditorBase::NodeEditorBase()
-		: AssetViewer()
 	{
 		m_Runtime = Ref<NodeEditorRuntime>::Create();
 	}
 
 	NodeEditorBase::NodeEditorBase( AssetID id )
-		: AssetViewer( id )
+		: m_AssetID( id )
 	{
 		m_Runtime = Ref<NodeEditorRuntime>::Create();
 	}
@@ -217,6 +218,14 @@ namespace Saturn {
 	NodeEditorBase::~NodeEditorBase()
 	{
 		m_Runtime = nullptr;
+		ed::DestroyEditor( m_Editor );
+
+		m_Links.clear();
+		m_Nodes.clear();
 	}
 
+	void NodeEditorBase::SaveSettings()
+	{
+		NodeCacheSettings::Get().WriteEditorSettings( this );
+	}
 }

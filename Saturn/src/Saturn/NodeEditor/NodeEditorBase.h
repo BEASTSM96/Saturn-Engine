@@ -49,16 +49,16 @@ namespace Saturn {
 	class NodeEditorRuntime;
 	class Texture2D;
 
-	class NodeEditorBase : public AssetViewer
+	class NodeEditorBase : public RefTarget
 	{
 	public:
 		NodeEditorBase();
 		NodeEditorBase( AssetID id );
 		virtual ~NodeEditorBase();
 
-		virtual void OnImGuiRender() override = 0;
-		virtual void OnUpdate( Timestep ts ) override = 0;
-		virtual void OnEvent( RubyEvent& rEvent ) override = 0;
+		virtual void OnImGuiRender() = 0;
+		virtual void OnUpdate( Timestep ts ) = 0;
+		virtual void OnEvent( RubyEvent& rEvent ) = 0;
 
 		static Ref<Texture2D> GetBlueprintBackground();
 
@@ -83,12 +83,17 @@ namespace Saturn {
 
 		Ref<Node> AddNode( const NodeSpecification& spec, ImVec2 position = ImVec2( 0.0f, 0.0f ) );
 
+		bool IsOpen() { return m_WindowOpen; }
+
+		void SaveSettings();
+
 	protected:
 		[[nodiscard]] int GetNextID() { return m_CurrentID++; }
 		[[nodiscard]] int GeCurrentID() const { return m_CurrentID; }
 
 	protected:
 		std::string m_Name;
+		bool m_WindowOpen = false;
 
 		ed::EditorContext* m_Editor = nullptr;
 		std::string m_ActiveNodeEditorState;
@@ -97,6 +102,8 @@ namespace Saturn {
 		std::vector<Ref<Link>> m_Links;
 
 		Ref<NodeEditorRuntime> m_Runtime;
+
+		AssetID m_AssetID = 0;
 
 	private:
 		int m_CurrentID = 1;
