@@ -604,8 +604,8 @@ namespace Saturn {
 
 				al.Primary        = alc[ "Primary" ].as< bool >();
 				al.Direction      = alc[ "Direction" ].as< glm::vec3 >();
-				al.ConeInnerAngle = alc[ "ConeInner" ].as< float >( 0 );
-				al.ConeOuterAngle = alc[ "ConeOuter" ].as< float >( 0 );
+				al.ConeInnerAngle = alc[ "ConeInner" ].as< float >( 0.0f );
+				al.ConeOuterAngle = alc[ "ConeOuter" ].as< float >( 0.0f );
 			}
 		}
 	}

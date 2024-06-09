@@ -58,7 +58,14 @@ namespace Saturn {
 				}
 				else
 				{
-					K::Serialise( key, rStream );
+					if constexpr( std::is_same<K, std::string>() )
+					{
+						WriteString( key, rStream );
+					}
+					else
+					{
+						K::Serialise( key, rStream );
+					}
 				}
 
 				if constexpr( std::is_trivial<V>() )
@@ -67,31 +74,14 @@ namespace Saturn {
 				}
 				else
 				{
-					V::Serialise( value, rStream );
-				}
-			}
-		}
-
-		template<typename V, typename OStream>
-		static void WriteUnorderedMap( const std::unordered_map<std::string, V>& rMap, OStream& rStream )
-		{
-			if( !rStream.is_open() )
-				return;
-
-			size_t mapSize = rMap.size();
-			rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-
-			for( const auto& [key, value] : rMap )
-			{
-				WriteString( key, rStream );
-
-				if constexpr( std::is_trivial<V>() )
-				{
-					WriteObject( value, rStream );
-				}
-				else
-				{
-					V::Serialise( value, rStream );
+					if constexpr( std::is_same<V, std::string>() )
+					{
+						WriteString( value, rStream );
+					}
+					else
+					{
+						V::Serialise( value, rStream );
+					}
 				}
 			}
 		}
@@ -128,7 +118,14 @@ namespace Saturn {
 				}
 				else
 				{
-					K::Serialise( key, rStream );
+					if constexpr( std::is_same<K, std::string>() )
+					{
+						WriteString( key, rStream );
+					}
+					else
+					{
+						K::Serialise( key, rStream );
+					}
 				}
 
 				WriteVector( value, rStream );
@@ -152,7 +149,14 @@ namespace Saturn {
 				}
 				else
 				{
-					K::Serialise( key, rStream );
+					if constexpr( std::is_same<K, std::string>() )
+					{
+						WriteString( key, rStream );
+					}
+					else
+					{
+						K::Serialise( key, rStream );
+					}
 				}
 
 				if constexpr( std::is_trivial<V>() )
@@ -169,30 +173,6 @@ namespace Saturn {
 					{
 						V::Serialise( value, rStream );
 					}
-				}
-			}
-		}
-
-		template<typename V, typename OStream>
-		static void WriteMap( const std::map<std::string, V>& rMap, OStream& rStream )
-		{
-			if( !rStream.is_open() )
-				return;
-
-			size_t mapSize = rMap.size();
-			rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
-
-			for( const auto& [key, value] : rMap )
-			{
-				WriteString( key, rStream );
-
-				if constexpr( std::is_trivial<V>() )
-				{
-					WriteObject( value, rStream );
-				}
-				else
-				{
-					V::Serialise( value, rStream );
 				}
 			}
 		}
@@ -214,7 +194,14 @@ namespace Saturn {
 				}
 				else
 				{
-					K::Serialise( key, rStream );
+					if constexpr( std::is_same<K, std::string>() )
+					{
+						WriteString( key, rStream );
+					}
+					else
+					{
+						K::Serialise( key, rStream );
+					}
 				}
 
 				WriteMap( value, rStream );
@@ -253,7 +240,14 @@ namespace Saturn {
 				}
 				else
 				{
-					Ty::Serialise( value, rStream );
+					if constexpr( std::is_same<Ty, std::string>() )
+					{
+						WriteString( value, rStream );
+					}
+					else
+					{
+						Ty::Serialise( value, rStream );
+					}
 				}
 			}
 		}
@@ -304,6 +298,9 @@ namespace Saturn {
 			return size;
 		}
 
+		/////////////////////////////////////////////////////////////////////////
+		// READING
+
 		template<typename Ty, typename IStream>
 		static void ReadVector( std::vector<Ty>& rMap, IStream& rStream )
 		{
@@ -323,7 +320,14 @@ namespace Saturn {
 				}
 				else
 				{
-					Ty::Deserialise( value, rStream );
+					if constexpr( std::is_same<Ty, std::string>() )
+					{
+						value = ReadString( rStream );
+					}
+					else
+					{
+						Ty::Deserialise( value, rStream );
+					}
 				}
 
 				rMap[i] = value;
@@ -348,7 +352,14 @@ namespace Saturn {
 				}
 				else
 				{
-					K::Deserialise( key, rStream );
+					if constexpr( std::is_same<K, std::string>() )
+					{
+						key = ReadString( rStream );
+					}
+					else
+					{
+						K::Deserialise( key, rStream );
+					}
 				}
 
 				V value{};
@@ -358,7 +369,14 @@ namespace Saturn {
 				}
 				else
 				{
-					V::Deserialise( value, rStream );
+					if constexpr( std::is_same<V, std::string>() )
+					{
+						value = ReadString( rStream );
+					}
+					else
+					{
+						V::Deserialise( value, rStream );
+					}
 				}
 
 				rMap[ key ] = value;
@@ -385,34 +403,6 @@ namespace Saturn {
 			}
 		}
 
-		template<typename V, typename IStream>
-		static void ReadUnorderedMap( std::unordered_map<std::string, V>& rMap, IStream& rStream )
-		{
-			if( rMap.size() )
-				rMap.clear();
-
-			size_t size = 0;
-			rStream.read( reinterpret_cast< char* >( &size ), sizeof( size_t ) );
-
-			for( size_t i = 0; i < size; i++ )
-			{
-				std::string key{};
-				key = ReadString( rStream );
-
-				V value{};
-				if constexpr( std::is_trivial<V>() )
-				{
-					ReadObject<V>( value, rStream );
-				}
-				else
-				{
-					V::Deserialise( value, rStream );
-				}
-
-				rMap[ key ] = value;
-			}
-		}
-
 		template<typename K, typename V, typename IStream>
 		static void ReadUnorderedMap( std::unordered_map<K, std::vector<V>>& rMap, IStream& rStream )
 		{
@@ -431,7 +421,14 @@ namespace Saturn {
 				}
 				else
 				{
-					K::Deserialise( key, rStream );
+					if constexpr( std::is_same<K, std::string>() )
+					{
+						key = ReadString( rStream );
+					}
+					else
+					{
+						K::Deserialise( key, rStream );
+					}
 				}
 
 				std::vector<V> values{};
@@ -459,7 +456,14 @@ namespace Saturn {
 				}
 				else
 				{
-					K::Deserialise( key, rStream );
+					if constexpr( std::is_same<K, std::string>() )
+					{
+						key = ReadString( rStream );
+					}
+					else
+					{
+						K::Deserialise( key, rStream );
+					}
 				}
 
 				V value{};
@@ -500,6 +504,9 @@ namespace Saturn {
 
 			return result;
 		}
+
+		//////////////////////////////////////////////////////////////////////////
+		// MATH & SATURN BUFFERS
 
 		template<typename OStream>
 		static void WriteVec2( const glm::vec2& rVec, OStream& rStream )
