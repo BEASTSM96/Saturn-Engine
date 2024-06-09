@@ -29,7 +29,12 @@
 #include "sppch.h"
 #include "NodeCache.h"
 
+#include "Saturn/Asset/AssetManager.h"
+
 namespace Saturn {
+
+	//////////////////////////////////////////////////////////////////////////
+	// NODE CACHE | SETTINGS
 
 	struct SettingsFileHeader
 	{
@@ -38,14 +43,6 @@ namespace Saturn {
 		uint64_t Version = SAT_CURRENT_VERSION;
 	};
 	
-	// Header for each node editor
-	struct NodeCacheSettingsHeader
-	{
-		char Magic[ 5 ] = { 'x', 'N', 'C', 'S', '\0' };
-		AssetID ID = 0;
-		uint64_t Version = SAT_CURRENT_VERSION;
-	};
-
 	bool NodeCacheSettings::WriteEditorSettings( Ref<NodeEditorBase> rNodeEditor )
 	{
 		std::filesystem::path filepath = Project::GetActiveProject()->GetAppDataFolder();
@@ -62,6 +59,43 @@ namespace Saturn {
 			OverrideFile( filepath, rNodeEditor );
 
 		return true;
+	}
+
+	void NodeCacheSettings::ReadEditorSettings( Ref<NodeEditorBase> rNodeEditor )
+	{
+		std::filesystem::path filepath = Project::GetActiveProject()->GetAppDataFolder();
+
+		if( !std::filesystem::exists( filepath ) )
+			return;
+
+		filepath /= "NodeCache-Settings";
+		filepath.replace_extension( ".ncs" );
+
+		std::ifstream stream( filepath, std::ios::binary | std::ios::in );
+
+		SettingsFileHeader fileHeader{};
+		RawSerialisation::ReadObject( fileHeader, stream );
+
+		if( strcmp( fileHeader.Magic, ".NCS\0" ) )
+		{
+			return;
+		}
+
+		// Get all currently saved states
+		// TODO: Cache in memory
+		std::map<uint64_t, std::string> stateMap;
+
+		RawSerialisation::ReadMap( stateMap, stream );
+
+		stream.close();
+
+		const auto Itr = stateMap.find( rNodeEditor->GetAssetID() );
+
+		// New node editor is being cached so update file header
+		if( Itr != stateMap.end() )
+		{
+			rNodeEditor->m_ActiveNodeEditorState = Itr->second;
+		}
 	}
 
 	bool NodeCacheSettings::CanAppendFile( const std::filesystem::path& rFilepath )
@@ -135,4 +169,100 @@ namespace Saturn {
 
 		fout.close();
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// NODE CACHE | EDITOR
+
+	struct NodeCacheEditorHeader
+	{
+		const char Magic[ 6 ] = ".NCE\0";
+		AssetID AssetID;
+		uint32_t Version = SAT_CURRENT_VERSION;
+	};
+	
+	static void CreateDirIfNeeded()
+	{
+		std::filesystem::path dir = Project::GetActiveProject()->GetFullCachePath();
+		dir /= "NodeEdCache";
+
+		if( !std::filesystem::exists( dir ) )
+			std::filesystem::create_directories( dir );
+	}
+
+	static std::filesystem::path GetDefaultCachePath()
+	{
+		CreateDirIfNeeded();
+
+		std::filesystem::path dir = Project::GetActiveProject()->GetFullCachePath();
+		dir /= "NodeEdCache";
+
+		return dir;
+	}
+
+	void NodeCacheEditor::WriteNodeEditorCache( Ref<NodeEditorBase> nodeEditor )
+	{
+		std::string filename = std::format( "NCEditor.{0}.nce", ( uint64_t ) nodeEditor->GetAssetID() );
+
+		std::filesystem::path assetPath = AssetManager::Get().FindAsset( nodeEditor->GetAssetID() )->Path;
+		if( assetPath.empty() )
+			assetPath = GetDefaultCachePath();
+
+		assetPath /= filename;
+
+		std::ofstream fout( assetPath, std::ios::binary | std::ios::trunc );
+
+		NodeCacheEditorHeader header{};
+		header.AssetID = nodeEditor->GetAssetID();
+
+		RawSerialisation::WriteObject( header, fout );
+
+		nodeEditor->SerialiseData( fout );
+
+		fout.close();
+	}
+
+	bool NodeCacheEditor::ReadNodeEditorCache( Ref<NodeEditorBase> nodeEditor, AssetID id )
+	{
+		std::string filename = std::format( "NCEditor.{0}.nce", ( uint64_t ) nodeEditor->GetAssetID() );
+
+		std::filesystem::path assetPath = AssetManager::Get().FindAsset( nodeEditor->GetAssetID() )->Path;
+		if( assetPath.empty() )
+			assetPath = GetDefaultCachePath();
+
+		assetPath /= filename;
+
+		std::ifstream stream( assetPath, std::ios::binary | std::ios::in );
+
+		NodeCacheEditorHeader header{};
+		RawSerialisation::ReadObject( header, stream );
+
+		if( strcmp( header.Magic, ".NC\0" ) )
+		{
+			SAT_CORE_ERROR( "Invalid node editor cache file header or corrupt cache file!" );
+			return false;
+		}
+
+		if( header.Version != SAT_CURRENT_VERSION )
+		{
+			std::string decodedAssetBundleVer;
+			SAT_DECODE_VER_STRING( header.Version, decodedAssetBundleVer );
+
+			SAT_CORE_ERROR( "Node Editor Cache version mismatch! This should not happen. Cache file version is: {0} while current engine version is: {1}.", decodedAssetBundleVer, SAT_CURRENT_VERSION_STRING );
+			SAT_CORE_WARN( "The engine will continue to load however this may result in the cache file not loading!" );
+		}
+
+		if( header.AssetID != id )
+		{
+			SAT_CORE_ERROR( "Node editor cache file asset id mismatch! Saved ID was: {0} however ID passed in was {1}", header.AssetID, id );
+			return false;
+		}
+
+		nodeEditor->m_AssetID = id;
+		nodeEditor->DeserialiseData( stream );
+
+		stream.close();
+
+		return true;
+	}
+
 }

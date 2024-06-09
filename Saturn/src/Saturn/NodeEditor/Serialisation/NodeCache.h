@@ -39,6 +39,7 @@ namespace Saturn {
 		static inline NodeCacheSettings& Get() { return *SingletonStorage::GetOrCreateSingleton<NodeCacheSettings>(); }
 	public:
 		[[nodiscard]] bool WriteEditorSettings( Ref<NodeEditorBase> rNodeEditor );
+		void ReadEditorSettings( Ref<NodeEditorBase> rNodeEditor );
 
 	private:
 		bool CanAppendFile( const std::filesystem::path& rFilepath );
@@ -50,7 +51,8 @@ namespace Saturn {
 	class NodeCacheEditor
 	{
 	public:
-	private:
+		static void WriteNodeEditorCache( Ref<NodeEditorBase> nodeEditor );
+		static bool ReadNodeEditorCache( Ref<NodeEditorBase> nodeEditor, AssetID id );
 	};
 	
 }
