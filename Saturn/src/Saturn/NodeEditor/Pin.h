@@ -30,15 +30,24 @@
 
 #include "Saturn/Core/Ref.h"
 #include "Saturn/Core/Memory/Buffer.h"
+#include "Saturn/Core/UUID.h"
+
+#include "Link.h"
 
 #include <string>
 #include <imgui_node_editor.h>
 
 namespace ed = ax::NodeEditor;
 
-namespace ax::Drawing {
-	enum class IconType : unsigned int;
-};
+namespace ax {
+	namespace NodeEditor::Utilities {
+		struct BlueprintNodeBuilder;
+	}
+
+	namespace Drawing {
+		enum class IconType : unsigned int;
+	};
+}
 
 namespace Saturn {
 
@@ -54,6 +63,12 @@ namespace Saturn {
 		Delegate,
 		Material_Sampler2D,
 		AssetHandle
+	};
+
+	enum class PinKind
+	{
+		Output,
+		Input
 	};
 
 	inline std::string_view PinTypeToString( PinType type )
@@ -111,12 +126,6 @@ namespace Saturn {
 			return PinType::Object;
 	}
 
-	enum class PinKind
-	{
-		Output,
-		Input
-	};
-
 	class Node;
 
 	class Pin : public RefTarget
@@ -124,12 +133,14 @@ namespace Saturn {
 	public:
 		Pin() = default;
 
-		Pin( int id, 
+		Pin( UUID id, 
 			const std::string& rName, 
 			PinType type, 
-			ed::NodeId nodeID ) 
-			: ID( id ), Node( nullptr ), Name( rName ), Type( type ), Kind( PinKind::Input ), NodeID( nodeID )
+			UUID nodeID ) 
+			: Node( nullptr ), Name( rName ), Type( type ), Kind( PinKind::Input )
 		{
+			ID = std::move( id );
+
 			ExtraData = Buffer();
 		}
 
@@ -142,18 +153,24 @@ namespace Saturn {
 		ImColor GetPinColor() const;
 
 		void DrawIcon( bool connected, int alpha );
+		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked );
 
 	public:
 		static void Serialise( const Ref<Pin>& rObject, std::ofstream& rStream );
 		static void Deserialise( Ref<Pin>& rObject, std::ifstream& rStream );
 
 	public:
-		ed::PinId	ID;
-		ed::NodeId  NodeID;
+		UUID        ID;
 		Ref<Node>	Node;
 		std::string Name;
 		PinType     Type;
 		PinKind     Kind;
 		Buffer      ExtraData;
+
+	private:
+		void RenderInput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked );
+		void RenderOutput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked );
+
+		bool CanCreateLink( const Ref<Pin>& rOther );
 	};
 }

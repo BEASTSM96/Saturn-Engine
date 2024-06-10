@@ -41,6 +41,88 @@
 
 namespace Saturn {
 
+	//////////////////////////////////////////////////////////////////////////
+	// DEFAULT NODE LIBRARY
+
+	Ref<Node> DefaultNodeLibrary::SpawnAddFloats( Ref<NodeEditorBase> nodeEditorBase )
+	{
+		PinSpecification pinSpec;
+		pinSpec.Type = PinType::Float;
+
+		NodeSpecification nodeSpec{};
+		nodeSpec.Inputs.push_back( pinSpec );
+		nodeSpec.Inputs.push_back( pinSpec );
+
+		nodeSpec.Outputs.push_back( pinSpec );
+
+		nodeSpec.Name = "Add Floats";
+		
+		Ref<Node> node = nodeEditorBase->AddNode( nodeSpec );
+		node->ExecutionType = NodeExecutionType::Add;
+
+		return node;
+	}
+
+	Ref<Node> DefaultNodeLibrary::SpawnSubFloats( Ref<NodeEditorBase> nodeEditorBase )
+	{
+		PinSpecification pinSpec;
+		pinSpec.Type = PinType::Float;
+
+		NodeSpecification nodeSpec{};
+		nodeSpec.Inputs.push_back( pinSpec );
+		nodeSpec.Inputs.push_back( pinSpec );
+
+		nodeSpec.Outputs.push_back( pinSpec );
+
+		nodeSpec.Name = "Subtract Floats";
+
+		Ref<Node> node = nodeEditorBase->AddNode( nodeSpec );
+		node->ExecutionType = NodeExecutionType::Subtract;
+
+		return node;
+	}
+
+	Ref<Node> DefaultNodeLibrary::SpawnMulFloats( Ref<NodeEditorBase> nodeEditorBase )
+	{
+		PinSpecification pinSpec;
+		pinSpec.Type = PinType::Float;
+
+		NodeSpecification nodeSpec{};
+		nodeSpec.Inputs.push_back( pinSpec );
+		nodeSpec.Inputs.push_back( pinSpec );
+
+		nodeSpec.Outputs.push_back( pinSpec );
+
+		nodeSpec.Name = "Multiply Floats";
+
+		Ref<Node> node = nodeEditorBase->AddNode( nodeSpec );
+		node->ExecutionType = NodeExecutionType::Multiply;
+
+		return node;
+	}
+
+	Ref<Node> DefaultNodeLibrary::SpawnDivFloats( Ref<NodeEditorBase> nodeEditorBase )
+	{
+		PinSpecification pinSpec;
+		pinSpec.Type = PinType::Float;
+
+		NodeSpecification nodeSpec{};
+		nodeSpec.Inputs.push_back( pinSpec );
+		nodeSpec.Inputs.push_back( pinSpec );
+
+		nodeSpec.Outputs.push_back( pinSpec );
+
+		nodeSpec.Name = "Divide Floats";
+
+		Ref<Node> node = nodeEditorBase->AddNode( nodeSpec );
+		node->ExecutionType = NodeExecutionType::Divide;
+
+		return node;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// NODE EDITOR BASE
+
 	Ref<Texture2D> NodeEditorBase::GetBlueprintBackground()
 	{
 		if( EditorIcons::GetIcon( "BlueprintBackground" ) == nullptr )
@@ -56,153 +138,6 @@ namespace Saturn {
 
 		return EditorIcons::GetIcon( "BlueprintBackground" );
 	}
-
-	bool NodeEditorBase::IsPinLinked( ed::PinId id )
-	{
-		if( !id )
-			return false;
-
-		for( auto& link : m_Links )
-			if( link->StartPinID == id || link->EndPinID == id )
-				return true;
-
-		return false;
-	}
-
-	Ref<Pin> NodeEditorBase::FindPin( ed::PinId id )
-	{
-		if( !id )
-			return nullptr;
-
-		for( const auto& node : m_Nodes )
-		{
-			for( const auto& pin : node->Inputs )
-			{
-				if( pin->ID == id )
-				{
-					return pin;
-				}
-			}
-
-			for( const auto& pin : node->Outputs )
-			{
-				if( pin->ID == id )
-				{
-					return pin;
-				}
-			}
-		}
-
-		return nullptr;
-	}
-
-	Ref<Link> NodeEditorBase::FindLink( ed::LinkId id )
-	{
-		for( auto& link : m_Links )
-			if( link->ID == id )
-				return link;
-
-		return nullptr;
-	}
-
-	Ref<Node> NodeEditorBase::FindNode( ed::NodeId id )
-	{
-		for( auto& node : m_Nodes )
-			if( node->ID == id )
-				return node;
-
-		return nullptr;
-	}
-
-	Ref<Node> NodeEditorBase::FindNode( const std::string& rName )
-	{
-		for( auto& node : m_Nodes )
-		{
-			if( node->Name == rName )
-				return node;
-		}
-
-		return nullptr;
-	}
-
-	Ref<Link> NodeEditorBase::FindLinkByPin( ed::PinId id )
-	{
-		if( !id )
-			return nullptr;
-
-		if( !IsPinLinked( id ) )
-			return nullptr;
-
-		for( auto& link : m_Links )
-			if( link->StartPinID == id || link->EndPinID == id )
-				return link;
-
-		return nullptr;
-	}
-
-	Ref<Node> NodeEditorBase::FindNodeByPin( ed::PinId id )
-	{
-		const auto& Pin = FindPin( id );
-		const auto& Link = FindLinkByPin( id );
-
-		return Pin->Node;
-	}
-
-	void NodeEditorBase::SetRuntime( Ref<NodeEditorRuntime> runtime )
-	{
-		m_Runtime = runtime;
-	}
-
-	static void BuildNode( Ref<Node>& rNode )
-	{
-		for( auto& input : rNode->Inputs )
-		{
-			input->Node = rNode;
-			input->Kind = PinKind::Input;
-		}
-
-		for( auto& output : rNode->Outputs )
-		{
-			output->Node = rNode;
-			output->Kind = PinKind::Output;
-		}
-	}
-
-	Ref<Node> NodeEditorBase::AddNode( const NodeSpecification& spec, ImVec2 position /*= ImVec2( 0.0f, 0.0f ) */ )
-	{
-		Ref<Node> node = Ref<Node>::Create( GetNextID(), spec.Name.c_str(), spec.Color );
-		m_Nodes.emplace_back( node );
-
-		for( auto& rOutput : spec.Outputs )
-		{
-			Ref<Pin> pin = Ref<Pin>::Create( GetNextID(), rOutput.Name.c_str(), rOutput.Type, node->ID );
-			node->Outputs.push_back( pin );
-		}
-
-		for( auto& rInput : spec.Inputs )
-		{
-			Ref<Pin> pin = Ref<Pin>::Create( GetNextID(), rInput.Name.c_str(), rInput.Type, node->ID );
-			node->Inputs.push_back( pin );
-
-			// This should be more than enough data for one pin, holds 16 floats.
-			pin->ExtraData.Allocate( 64 );
-			pin->ExtraData.Zero_Memory();
-		}
-
-		BuildNode( node );
-
-		if( position.x != 0.0f && position.y != 0.0f )
-			ed::SetNodePosition( node->ID, position );
-
-		node->ExtraData.Allocate( 1024 );
-		node->ExtraData.Zero_Memory();
-
-		return node;
-		//return m_Nodes.back();
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// NODE EDITOR
 
 	NodeEditorBase::NodeEditorBase()
 	{
@@ -227,5 +162,201 @@ namespace Saturn {
 	void NodeEditorBase::SaveSettings()
 	{
 		NodeCacheSettings::Get().WriteEditorSettings( this );
+	}
+
+	bool NodeEditorBase::IsLinked( UUID pinID )
+	{
+		if( !pinID )
+			return false;
+
+		const auto Itr = std::find_if( m_Links.begin(), m_Links.end(),
+			[pinID]( const auto& rLink )
+			{
+				return rLink->StartPinID == pinID || rLink->EndPinID == pinID;
+			} );
+
+		if( Itr != m_Links.end() )
+			return true;
+
+		return false;
+	}
+
+	Ref<Pin> NodeEditorBase::FindPin( UUID id )
+	{
+		if( !id )
+			return nullptr;
+
+		for( const auto& [ nodeId, rNode ] : m_Nodes )
+		{
+			for( const auto& pin : rNode->Inputs )
+			{
+				if( pin->ID == id )
+				{
+					return pin;
+				}
+			}
+
+			for( const auto& pin : rNode->Outputs )
+			{
+				if( pin->ID == id )
+				{
+					return pin;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	Ref<Link> NodeEditorBase::FindLink( UUID id )
+	{
+		const auto Itr = std::find_if( m_Links.begin(), m_Links.end(),
+			[id]( const auto& rLink )
+			{
+				return rLink->ID == id;
+			} );
+
+		if( Itr != m_Links.end() )
+			return *Itr;
+
+		return nullptr;
+	}
+
+	Ref<Node> NodeEditorBase::FindNode( UUID id )
+	{
+		const auto Itr = m_Nodes.find( id );
+
+		if( Itr != m_Nodes.end() )
+			return Itr->second;
+
+		return nullptr;
+	}
+
+	Ref<Node> NodeEditorBase::FindNode( const std::string& rName )
+	{
+		for( auto& [ id, node ]: m_Nodes )
+		{
+			if( node->Name == rName )
+				return node;
+		}
+
+		return nullptr;
+	}
+
+	Ref<Link> NodeEditorBase::FindLinkByPin( UUID id )
+	{
+		if( !id )
+			return nullptr;
+
+		if( !IsLinked( id ) )
+			return nullptr;
+
+		const auto Itr = std::find_if( m_Links.begin(), m_Links.end(),
+			[id]( const auto& rLink )
+			{
+				return rLink->StartPinID == id || rLink->EndPinID == id;
+			} );
+
+		if( Itr != m_Links.end() )
+			return *Itr;
+
+		return nullptr;
+	}
+
+	Ref<Node> NodeEditorBase::FindNodeByPin( UUID id )
+	{
+		if( const auto& rPin = FindPin( id ); rPin != nullptr ) 
+		{
+			return rPin->Node;
+		}
+		
+		return nullptr;
+	}
+
+	void NodeEditorBase::SetRuntime( Ref<NodeEditorRuntime> runtime )
+	{
+		m_Runtime = runtime;
+	}
+
+	std::vector<UUID> NodeEditorBase::FindNeighbors( Ref<Node>& rNode )
+	{
+		std::vector<UUID> ids;
+
+		for( const auto& rInput : rNode->Inputs )
+		{
+			if( !IsLinked( rInput->ID ) )
+				continue;
+
+			// If the pin is linked find the other end of it and add it to our list.
+			Ref<Link> rLink = FindLinkByPin( rInput->ID );
+
+			if( !rLink )
+				continue;
+
+			const bool isStart = rLink->StartPinID == rInput->ID;
+			Ref<Node> otherNode = FindNodeByPin( isStart ? rLink->EndPinID : rLink->StartPinID );
+
+			ids.push_back( otherNode->ID );
+		}
+
+		return ids;
+	}
+
+	void NodeEditorBase::CreateLink( const Ref<Pin>& rStart, const Ref<Pin>& rEnd )
+	{
+		m_Links.push_back( Ref<Link>::Create( UUID(), rStart->ID, rEnd->ID ) );
+	}
+
+	void NodeEditorBase::ShowFlow()
+	{
+		for( const auto& rLink : m_Links )
+			ed::Flow( ed::LinkId( rLink->ID ) );
+	}
+
+	static void BuildNode( Ref<Node>& rNode )
+	{
+		for( auto& input : rNode->Inputs )
+		{
+			input->Node = rNode;
+			input->Kind = PinKind::Input;
+		}
+
+		for( auto& output : rNode->Outputs )
+		{
+			output->Node = rNode;
+			output->Kind = PinKind::Output;
+		}
+	}
+
+	Ref<Node> NodeEditorBase::AddNode( const NodeSpecification& spec, ImVec2 position /*= ImVec2( 0.0f, 0.0f ) */ )
+	{
+		Ref<Node> node = Ref<Node>::Create( UUID(), spec.Name.c_str(), spec.Color );
+		m_Nodes[ node->ID ] = node;
+
+		for( auto& rOutput : spec.Outputs )
+		{
+			Ref<Pin> pin = Ref<Pin>::Create( UUID(), rOutput.Name.c_str(), rOutput.Type, node->ID );
+			node->Outputs.push_back( pin );
+		}
+
+		for( auto& rInput : spec.Inputs )
+		{
+			Ref<Pin> pin = Ref<Pin>::Create( UUID(), rInput.Name.c_str(), rInput.Type, node->ID );
+			node->Inputs.push_back( pin );
+
+			// This should be more than enough data for one pin, holds 16 floats.
+			pin->ExtraData.Allocate( 64 );
+			pin->ExtraData.Zero_Memory();
+		}
+
+		BuildNode( node );
+
+		if( position.x != 0.0f && position.y != 0.0f )
+			ed::SetNodePosition( ed::NodeId( node->ID ), position );
+
+		node->ExtraData.Allocate( 1024 );
+		node->ExtraData.Zero_Memory();
+
+		return node;
 	}
 }

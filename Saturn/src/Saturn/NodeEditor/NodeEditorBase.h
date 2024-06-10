@@ -35,6 +35,8 @@
 
 #include "imgui_node_editor.h"
 
+#include <stack>
+
 namespace ed = ax::NodeEditor;
 
 namespace Saturn {
@@ -49,6 +51,15 @@ namespace Saturn {
 	class NodeEditorRuntime;
 	class Texture2D;
 
+	class DefaultNodeLibrary 
+	{
+	public:
+		static Ref<Node> SpawnAddFloats( Ref<NodeEditorBase> nodeEditorBase );
+		static Ref<Node> SpawnSubFloats( Ref<NodeEditorBase> nodeEditorBase );
+		static Ref<Node> SpawnMulFloats( Ref<NodeEditorBase> nodeEditorBase );
+		static Ref<Node> SpawnDivFloats( Ref<NodeEditorBase> nodeEditorBase );
+	};
+
 	class NodeEditorBase : public RefTarget
 	{
 	public:
@@ -62,21 +73,47 @@ namespace Saturn {
 
 		static Ref<Texture2D> GetBlueprintBackground();
 
-		bool IsPinLinked( ed::PinId id );
-		Ref<Pin> FindPin( ed::PinId id );
-		Ref<Link> FindLink( ed::LinkId id );
-		Ref<Node> FindNode( ed::NodeId id );
+		bool IsLinked( UUID pinID );
+		Ref<Pin> FindPin( UUID id );
+		Ref<Link> FindLink( UUID id );
+		Ref<Node> FindNode( UUID id );
 		Ref<Node> FindNode( const std::string& rName );
-		Ref<Link> FindLinkByPin( ed::PinId id );
-		Ref<Node> FindNodeByPin( ed::PinId id );
+		Ref<Link> FindLinkByPin( UUID id );
+		Ref<Node> FindNodeByPin( UUID id );
 
 		void SetRuntime( Ref<NodeEditorRuntime> runtime );
+
+		std::vector<UUID> FindNeighbors( Ref<Node>& rNode );
+
+		template<typename Function>
+		void TraverseFromStart( const Ref<Node>& rRootNode, Function func ) 
+		{
+			std::stack<UUID> stack;
+			stack.push( rRootNode->ID );
+
+			while( !stack.empty() )
+			{
+				const auto currentID = stack.top();
+				stack.pop();
+
+				func( currentID );
+
+				Ref<Node> nextNode = FindNode( currentID );
+				for( const auto& rNeighbor : FindNeighbors( nextNode ) )
+				{
+					stack.push( rNeighbor );
+				}
+			}
+		}
+
+		void CreateLink( const Ref<Pin>& rStart, const Ref<Pin>& rEnd );
+		void ShowFlow();
 
 	public:
 		AssetID GetAssetID() const { return m_AssetID; }
 
-		const std::vector<Ref<Node>>& GetNodes() const { return m_Nodes; }
-		std::vector<Ref<Node>>& GetNodes() { return m_Nodes; }
+		const std::map<UUID, Ref<Node>>& GetNodes() const { return m_Nodes; }
+		std::map<UUID, Ref<Node>>& GetNodes() { return m_Nodes; }
 
 		const std::vector<Ref<Link>>& GetLinks() const { return m_Links; }
 		std::vector<Ref<Link>>& GetLinks() { return m_Links; }
@@ -87,9 +124,9 @@ namespace Saturn {
 
 		void SaveSettings();
 
-	protected:
-		[[nodiscard]] int GetNextID() { return m_CurrentID++; }
-		[[nodiscard]] int GeCurrentID() const { return m_CurrentID; }
+	public:
+		virtual void SerialiseData( std::ofstream& rStream ) = 0;
+		virtual void DeserialiseData( std::ifstream& rStream ) = 0;
 
 	protected:
 		std::string m_Name;
@@ -98,15 +135,12 @@ namespace Saturn {
 		ed::EditorContext* m_Editor = nullptr;
 		std::string m_ActiveNodeEditorState;
 
-		std::vector<Ref<Node>> m_Nodes;
+		std::map<UUID, Ref<Node>> m_Nodes;
 		std::vector<Ref<Link>> m_Links;
 
 		Ref<NodeEditorRuntime> m_Runtime;
 
 		AssetID m_AssetID = 0;
-
-	private:
-		int m_CurrentID = 1;
 
 	private:
 		friend class NodeEditorCache;

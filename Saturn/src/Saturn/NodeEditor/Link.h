@@ -30,10 +30,10 @@
 
 #include "Saturn/Core/Ref.h"
 #include "Saturn/Serialisation/RawSerialisation.h"
+#include "Saturn/Core/UUID.h"
 
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui.h>
 
 namespace Saturn {
 
@@ -42,7 +42,7 @@ namespace Saturn {
 	public:
 		Link() = default;
 
-		Link( ed::LinkId id, ed::PinId startPinId, ed::PinId endPinId ) :
+		Link( UUID id, UUID startPinId, UUID endPinId ) :
 			ID( id ), StartPinID( startPinId ), EndPinID( endPinId ), Color( 255, 255, 255 )
 		{
 		}
@@ -66,10 +66,10 @@ namespace Saturn {
 		}
 
 	public:
-		ed::LinkId ID;
+		UUID ID = 0;
 
-		ed::PinId StartPinID;
-		ed::PinId EndPinID;
+		UUID StartPinID = 0;
+		UUID EndPinID = 0;
 
 		ImColor Color;
 	};

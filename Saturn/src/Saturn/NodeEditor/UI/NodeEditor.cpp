@@ -36,6 +36,8 @@
 
 #include "Saturn/NodeEditor/Runtime/NodeEditorRuntime.h"
 
+#include "Saturn/NodeEditor/Serialisation/NodeCache.h"
+
 #include "Saturn/ImGui/EditorIcons.h"
 
 // imgui_node_editor
@@ -105,7 +107,7 @@ namespace Saturn {
 		zoomLvls.push_back( 0.75f );
 		zoomLvls.push_back( 1.0f );
 		zoomLvls.push_back( 1.25f );
-		zoomLvls.push_back( 1.50f ); // Lowest zoom level (mosted zoomed in)
+		zoomLvls.push_back( 1.50f ); // Lowest zoom level (most zoomed in)
 
 		ed::Config config;
 		config.SettingsFile = nullptr;
@@ -144,7 +146,7 @@ namespace Saturn {
 		{
 			auto* pThis = static_cast< NodeEditor* >( pUserPointer );
 
-			auto pNode = pThis->FindNode( nodeId );
+			auto pNode = pThis->FindNode( UUID( nodeId.Get() ) );
 
 			if( !pNode )
 				return 0;
@@ -159,7 +161,7 @@ namespace Saturn {
 		{
 			auto* pThis = static_cast< NodeEditor* >( pUserPointer );
 
-			auto pNode = pThis->FindNode( nodeId );
+			auto pNode = pThis->FindNode( UUID( nodeId.Get() ) );
 
 			if( !pNode )
 				return false;
@@ -214,33 +216,14 @@ namespace Saturn {
 		if( !m_WindowOpen ) 
 			return;
 
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 		ImGui::Begin( m_Name.c_str(), &m_WindowOpen );
-
-		ImGui::BeginHorizontal( "##TopbarItems" );
-
-		if( ImGui::Button( "Zoom to content" ) )
-			ed::NavigateToContent( false );
-
-		if( ImGui::Button( "Show flow" ) )
-			for( auto& link : m_Links )
-				ed::Flow( link->ID );
-
-		if( ImGui::Button( "Compile & Save" ) ) 
-		{
-			if( m_Runtime )
-				m_Runtime->Execute();
-		}
-
-		ImGui::EndHorizontal();
-
-		ImGui::SameLine( 0.0f, 12.0f );
 
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
 			m_ViewportSize = ImGui::GetContentRegionAvail();
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar;	
 
+		ImGui::SameLine( 0.0f, 12.0f );
 		ed::Begin( "Node Editor" );
 
 		auto cursorTopLeft = ImGui::GetCursorScreenPos();
@@ -251,101 +234,144 @@ namespace Saturn {
 		bool OpenAssetPopup = false;
 		bool OpenAssetColorPicker = false;
 
-		SAT_CORE_INFO( "{0}", ed::GetCurrentZoom() );
-
-		for( auto& node : m_Nodes )
+		for( auto& [id, rNode] : m_Nodes )
 		{
-			if( node->Type != NodeType::Blueprint && node->Type != NodeType::Simple )
-				continue;
+			rNode->Render( builder, this );
+		}
 
-			const bool isSimple = node->Type == NodeType::Simple;
+		for( const auto& rLink : m_Links )
+			ed::Link( ed::LinkId( rLink->ID ), ed::PinId( rLink->StartPinID ), ed::PinId( rLink->EndPinID ) );
 
-			builder.Begin( node->ID );
-
-			if( !isSimple )
+		if( !m_CreateNewNode )
+		{
+			if( ed::BeginCreate( ImColor( 255, 255, 255 ), 2.0f ) )
 			{
-				builder.Header( node->Color );
-
-				ImGui::Spring( 0 );
-				ImGui::TextUnformatted( node->Name.c_str() );
-				ImGui::Spring( 1 );
-				ImGui::Dummy( ImVec2( 0, 28 ) );
-				ImGui::Spring( 0 );
-
-				builder.EndHeader();
-			}
-
-			uint32_t pinIndex = 0;
-			for( auto& input : node->Inputs )
-			{
-				auto alpha = ImGui::GetStyle().Alpha;
-
-				builder.Input( input->ID );
-
-				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
-
-				input->DrawIcon( IsPinLinked( input->ID ), ( int ) ( alpha * 255 ) );
-
-				ImGui::Spring( 0 );
-
-				if( !input->Name.empty() )
-				{
-					ImGui::TextUnformatted( input->Name.c_str() );
-					ImGui::Spring( 0 );
-				}
-
-				if( input->Type == PinType::Bool )
-				{
-					ImGui::Button( "Hello" );
-					ImGui::Spring( 0 );
-				}
-
-				if( input->Type == PinType::Float )
-				{
-					float value = input->ExtraData.Read<float>( pinIndex );
-
-					ImGui::SetNextItemWidth( 25.0f );
-
-					ImGui::PushID( ( int )input->ID.Get() );
-					
-					if( ImGui::DragFloat( "##floatinput", &value ) )
+				auto showLabel = []( const char* label, ImColor color )
 					{
-						input->ExtraData.Write( &value, sizeof( float ), pinIndex );
+						ImGui::SetCursorPosY( ImGui::GetCursorPosY() - ImGui::GetTextLineHeight() );
+						auto size = ImGui::CalcTextSize( label );
+
+						auto padding = ImGui::GetStyle().FramePadding;
+						auto spacing = ImGui::GetStyle().ItemSpacing;
+
+						ImGui::SetCursorPos( ImGui::GetCursorPos() + ImVec2( spacing.x, -spacing.y ) );
+
+						auto rectMin = ImGui::GetCursorScreenPos() - padding;
+						auto rectMax = ImGui::GetCursorScreenPos() + size + padding;
+
+						auto drawList = ImGui::GetWindowDrawList();
+						drawList->AddRectFilled( rectMin, rectMax, color, size.y * 0.15f );
+						ImGui::TextUnformatted( label );
+					};
+
+				ed::PinId StartPinId = 0;
+				ed::PinId EndPinId = 0;
+
+				if( ed::QueryNewLink( &StartPinId, &EndPinId ) )
+				{
+					Ref<Pin> StartPin = nullptr;
+					Ref<Pin> EndPin = nullptr;
+
+					StartPin = FindPin( UUID( StartPinId.Get() ) );
+					EndPin = FindPin( UUID( EndPinId.Get() ) );
+
+					m_NewLinkPin = StartPin ? StartPin : EndPin;
+
+					if( StartPin->Kind == PinKind::Input )
+					{
+						std::swap( StartPin, EndPin );
+						std::swap( StartPinId, EndPinId );
 					}
 
-					ImGui::PopID();
+					if( StartPin && EndPin )
+					{
+						// Pin is the same, reject.
+						if( EndPin == StartPin )
+						{
+							ed::RejectNewItem( ImColor( 225, 0, 0 ), 2.0f );
+						}
+						else if( EndPin->Kind == StartPin->Kind )  // Same kind, input/output into input/output.
+						{
+							showLabel( "x Incompatible Pin Kind, input/output into input/output", ImColor( 45, 32, 32, 180 ) );
 
-					ImGui::Spring( 0 );
+							ed::RejectNewItem( ImColor( 225, 0, 0 ), 2.0f );
+						}
+						else if( EndPin->Type != StartPin->Type )
+						{
+							showLabel( "x Incompatible Pin Type", ImColor( 45, 32, 32, 180 ) );
+
+							ed::RejectNewItem( ImColor( 225, 128, 128 ), 2.0f );
+						}
+						else // Vaild type, accept
+						{
+							showLabel( "+ Create Link", ImColor( 32, 45, 32, 180 ) );
+							if( ed::AcceptNewItem( ImColor( 128, 255, 128 ), 4.0f ) )
+							{
+								UUID start = UUID( StartPinId.Get() );
+								UUID end = UUID( EndPinId.Get() );
+
+								m_Links.push_back( Ref<Link>::Create( UUID(), start, end ) );
+							}
+						}
+					}
+				}
+			}
+			
+			ed::EndCreate();
+
+			if( ed::BeginDelete() )
+			{
+				ed::LinkId linkId = 0;
+				while( ed::QueryDeletedLink( &linkId ) )
+				{
+					if( ed::AcceptDeletedItem() )
+					{
+						DeleteLink( linkId.Get() );
+					}
 				}
 
-				ImGui::PopStyleVar();
+				ed::NodeId nodeId = 0;
+				while( ed::QueryDeletedNode( &nodeId ) )
+				{
+					UUID id = nodeId.Get();
 
-				builder.EndInput();
-				pinIndex++;
+					const auto itr = std::find_if( m_Nodes.begin(), m_Nodes.end(),
+						[id]( const auto& kv )
+						{
+							return kv.first == id;
+						} );
+
+					if( itr != m_Nodes.end() )
+					{
+						auto& rNode = ( itr->second );
+
+						if( rNode->CanBeDeleted )
+						{
+							if( ed::AcceptDeletedItem() )
+							{
+								DeleteDeadLinks( id );
+
+								rNode = nullptr;
+								m_Nodes.erase( itr );
+							}
+						}
+						else
+						{
+							ed::RejectDeletedItem();
+						}
+					}
+				}
 			}
+			ed::EndDelete();
+		}
 
-			if( isSimple )
-			{
-				builder.Middle();
-
-				ImGui::Spring( 1, 0 );
-				ImGui::TextUnformatted( node->Name.c_str() );
-				ImGui::Spring( 1, 0 );
-			}
-
+		/*
+		for( auto& node : m_Nodes )
+		{
 			for( auto& output : node->Outputs )
 			{
-				if( !isSimple && output->Type == PinType::Delegate )
-					continue;
-
-				auto alpha = ImGui::GetStyle().Alpha;
-
 				if( m_NewLinkPin && !CanCreateLink( m_NewLinkPin, output ) && output != m_NewLinkPin )
 					alpha = alpha * ( 48.0f / 255.0f );
-
-				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
-
-				builder.Output( output->ID );
 
 				if( !output->Name.empty() )
 				{
@@ -389,15 +415,7 @@ namespace Saturn {
 						ImGui::EndHorizontal();
 					}
 				}
-
-				ImGui::Spring( 0 );
-				output->DrawIcon( IsPinLinked( output->ID ), ( int ) ( alpha * 255 ) );
-
-				builder.EndOutput();
-				ImGui::PopStyleVar();
 			}
-
-			builder.End();
 		}
 
 		ed::Suspend();
@@ -513,17 +531,14 @@ namespace Saturn {
 				s_SelectAssetInfo.NodeID = 0;
 				s_SelectAssetInfo.AssetName = "";
 			}
-			*/
 
 			ImGui::EndPopup();
 		}
+		*/
+		
+//		ed::Resume();
 
-		ed::Resume();
-
-		// Link the links
-		for( auto& link : m_Links )
-			ed::Link( link->ID, link->StartPinID, link->EndPinID, link->Color, 2.0f );
-
+/*
 		if( !m_CreateNewNode )
 		{
 			if( ed::BeginCreate( ImColor( 255, 255, 255 ), 2.0f ) )
@@ -546,56 +561,6 @@ namespace Saturn {
 					ImGui::TextUnformatted( label );
 				};
 
-				ed::PinId StartPinId = 0;
-				ed::PinId EndPinId = 0;
-
-				if( ed::QueryNewLink( &StartPinId, &EndPinId ) )
-				{
-					Ref<Pin> StartPin = nullptr; 
-					Ref<Pin> EndPin   = nullptr;
-
-					StartPin = FindPin( StartPinId );
-					EndPin = FindPin( EndPinId );
-
-					m_NewLinkPin = StartPin ? StartPin : EndPin;
-
-					if( StartPin->Kind == PinKind::Input ) 
-					{
-						std::swap( StartPin, EndPin );
-						std::swap( StartPinId, EndPinId );
-					}
-
-					if( StartPin && EndPin )
-					{
-						// Pin is the same, reject.
-						if( EndPin == StartPin )
-						{
-							ed::RejectNewItem( ImColor( 225, 0, 0 ), 2.0f );
-						}
-						else if( EndPin->Kind == StartPin->Kind )  // Same kind, input/output into input/output.
-						{
-							showLabel( "x Incompatible Pin Kind, input/output into input/output", ImColor( 45, 32, 32, 180 ) );
-
-							ed::RejectNewItem( ImColor( 225, 0, 0 ), 2.0f );
-						}
-						else if( EndPin->Type != StartPin->Type )
-						{
-							showLabel( "x Incompatible Pin Type", ImColor( 45, 32, 32, 180 ) );
-
-							ed::RejectNewItem( ImColor( 225, 128, 128 ), 2.0f );
-						}
-						else // Vaild type, accept
-						{
-							showLabel( "+ Create Link", ImColor( 32, 45, 32, 180 ) );
-							if( ed::AcceptNewItem( ImColor( 128, 255, 128 ), 4.0f ) )
-							{
-								m_Links.emplace_back( Ref<Link>::Create( GetNextID(), StartPinId, EndPinId ) );
-								m_Links.back()->Color = StartPin->GetPinColor();
-							}
-						}
-					}
-				}
-			
 				// If the link is not connected, user maybe want to create a new node rather than link it.
 				ed::PinId id = 0;
 				if( ed::QueryNewNode( &id ) ) 
@@ -622,52 +587,8 @@ namespace Saturn {
 				m_NewLinkPin = nullptr;
 
 			ed::EndCreate();
-
-			if( ed::BeginDelete() )
-			{
-				ed::LinkId linkId = 0;
-				while( ed::QueryDeletedLink( &linkId ) )
-				{
-					if( ed::AcceptDeletedItem() )
-					{
-						auto id = std::find_if( m_Links.begin(), m_Links.end(), [linkId]( auto& link ) { return link->ID == linkId; } );
-						if( id != m_Links.end() )
-							m_Links.erase( id );
-					}
-				}
-
-				ed::NodeId nodeId = 0;
-				while( ed::QueryDeletedNode( &nodeId ) )
-				{
-					const auto itr = std::find_if( m_Nodes.begin(), m_Nodes.end(), 
-						[nodeId]( auto& node ) 
-						{ 
-							return node->ID == nodeId;
-						} );
-					
-					if( itr != m_Nodes.end() )
-					{
-						auto& rNode = ( *itr );
-					
-						if( rNode->CanBeDeleted )
-						{
-							if( ed::AcceptDeletedItem() )
-							{
-								rNode = nullptr;
-								m_Nodes.erase( itr );
-
-								DeleteDeadLinks( nodeId );
-							}
-						}
-						else
-						{
-							ed::RejectDeletedItem();
-						}
-					}
-				}
-			}
-			ed::EndDelete();
 		}
+		*/
 
 		ImGui::SetCursorScreenPos( cursorTopLeft );
 
@@ -699,8 +620,9 @@ namespace Saturn {
 
 				m_CreateNewNode = false;
 
-				ed::SetNodePosition( node->ID, mousePos );
+				ed::SetNodePosition( ed::NodeId( node->ID ), mousePos );
 
+				/*
 				if( auto& startPin = m_NewNodeLinkPin ) 
 				{
 					auto& pins = startPin->Kind == PinKind::Input ? node->Outputs : node->Inputs;
@@ -721,6 +643,7 @@ namespace Saturn {
 						}
 					}
 				}
+				*/
 			}
 
 			ImGui::EndPopup();
@@ -733,18 +656,19 @@ namespace Saturn {
 
 		ed::End();
 
+		ImGui::BeginHorizontal( "##TopbarItems" );
+
+		if( ImGui::Button( "Zoom to content" ) )
+			ed::NavigateToContent( 1.0f );
+
+		if( ImGui::Button( "Compile & Save" ) )
+		{
+			if( m_Runtime ) m_Runtime->Execute();
+		}
+
+		ImGui::EndHorizontal();
+
 		ImGui::End(); // NODE_EDITOR
-		ImGui::PopStyleVar();
-	}
-
-	void NodeEditor::LinkPin( ed::PinId Start, ed::PinId End )
-	{
-		const Ref<Pin>& pin = FindPin( Start );
-
-		Ref<Link> link = Ref<Link>::Create( GetNextID(), Start, End );
-		link->Color = pin->GetPinColor();
-
-		m_Links.emplace_back( link );
 	}
 
 	NodeEditorCompilationStatus NodeEditor::ThrowError( const std::string & rMessage )
@@ -759,25 +683,44 @@ namespace Saturn {
 		SAT_CORE_WARN( rMessage );
 	}
 
-	void NodeEditor::DeleteDeadLinks( ed::NodeId id )
+	void NodeEditor::DeleteDeadLinks( UUID nodeID )
 	{
 		auto wasConnectedToTheNode = [&]( const Ref<Link>& link )
-		{
-			return ( !FindPin( link->StartPinID ) ) || ( !FindPin( link->EndPinID ) )
-				|| FindPin( link->StartPinID )->Node->ID == id
-				|| FindPin( link->EndPinID )->Node->ID == id;
-		};
+			{
+				return ( !FindPin( link->StartPinID ) ) || ( !FindPin( link->EndPinID ) )
+					|| FindPin( link->StartPinID )->Node->ID == nodeID
+					|| FindPin( link->EndPinID )->Node->ID == nodeID;
+			};
 
 		auto removeIt = std::remove_if( m_Links.begin(), m_Links.end(), wasConnectedToTheNode );
-		const bool linkRemoved = removeIt != m_Links.end();
-
 		m_Links.erase( removeIt, m_Links.end() );
 	}
 
+	void NodeEditor::DeleteLink( UUID id )
+	{
+		Ref<Link> targetLink = nullptr;
+		Ref<Pin> targetStartLink = nullptr;
+		Ref<Pin> targetEndLink = nullptr;
+
+		const auto Itr = std::find_if( m_Links.begin(), m_Links.end(),
+			[id]( const auto& rLink )
+			{
+				return rLink->ID == id;
+			} );
+
+		if( Itr != m_Links.end() )
+		{
+			m_Links.erase( Itr );
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// SERIALISATION
+
 	void NodeEditor::SerialiseData( std::ofstream& rStream )
 	{
+		/*
 		RawSerialisation::WriteString( m_Name, rStream );
-		RawSerialisation::WriteString( m_ActiveNodeEditorState, rStream );
 
 		size_t mapSize = m_Nodes.size();
 		RawSerialisation::WriteObject( mapSize, rStream );
@@ -794,12 +737,15 @@ namespace Saturn {
 		{
 			Link::Serialise( rLinks, rStream );
 		}
+		*/
 	}
 
 	void NodeEditor::DeserialiseData( std::ifstream& rStream )
 	{
+		/*
+		NodeCacheSettings::Get().ReadEditorSettings( this );
+
 		m_Name = RawSerialisation::ReadString( rStream );
-		m_ActiveNodeEditorState = RawSerialisation::ReadString( rStream );
 
 		CreateEditor();
 
@@ -830,5 +776,6 @@ namespace Saturn {
 
 			m_Links[ i ] = link;
 		}
+		*/
 	}
 }

@@ -32,7 +32,10 @@
 #include "Saturn/Serialisation/RawSerialisation.h"
 #include "Node.h"
 
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
+
 #include "Saturn/Vendor/Drawing.h"
+#include "builders.h"
 
 namespace Saturn {
 
@@ -81,7 +84,7 @@ namespace Saturn {
 		color.Value.w = alpha / 255.0f;
 
 		constexpr float PIN_ICON_SIZE = 24.0f;
-		auto size = ImVec2( PIN_ICON_SIZE, PIN_ICON_SIZE );
+		constexpr ImVec2 size = ImVec2( PIN_ICON_SIZE, PIN_ICON_SIZE );
 
 		if( ImGui::IsRectVisible( size ) )
 		{
@@ -99,10 +102,189 @@ namespace Saturn {
 		ImGui::Dummy( size );
 	}
 
+	void Pin::Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked )
+	{
+		switch( Kind )
+		{
+			case PinKind::Output: 
+			{
+				RenderOutput( rBuilder, linked );
+			} break;
+
+			case PinKind::Input:
+			{
+				RenderInput( rBuilder, linked );
+			} break;
+		}
+	}
+
+	void Pin::RenderInput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked )
+	{
+		auto alpha = ImGui::GetStyle().Alpha;
+
+		rBuilder.Input( ed::PinId( ID ) );
+
+		ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
+
+		DrawIcon( linked, ( int ) ( alpha * 255 ) );
+
+		ImGui::Spring( 0 );
+
+		if( !Name.empty() )
+		{
+			ImGui::TextUnformatted( Name.c_str() );
+			ImGui::Spring( 0 );
+		}
+
+		if( Type == PinType::Bool )
+		{
+			ImGui::Button( "Hello" );
+			ImGui::Spring( 0 );
+		}
+
+		if( Type == PinType::Float && !linked )
+		{
+			float value = ExtraData.Read<float>( 0 );
+
+			ImGui::SetNextItemWidth( 25.0f );
+
+			ImGui::PushID( static_cast<int>( ID ) );
+
+			if( ImGui::DragFloat( "##floatinput", &value ) )
+			{
+				ExtraData.Write( &value, sizeof( float ), 0 );
+			}
+
+			ImGui::PopID();
+
+			ImGui::Spring( 0 );
+		}
+
+		ImGui::PopStyleVar();
+
+		rBuilder.EndInput();
+	}
+
+	void Pin::RenderOutput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked )
+	{
+		bool OpenAssetColorPicker = false;
+
+		auto alpha = ImGui::GetStyle().Alpha;
+
+		ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
+
+		rBuilder.Output( ed::PinId( ID ) );
+
+		if( !Name.empty() )
+		{
+			ImGui::Spring( 0 );
+			ImGui::TextUnformatted( Name.c_str() );
+
+			// TODO: Allow for certain asset types.
+			if( Type == PinType::AssetHandle )
+			{
+				/*
+				auto& rSavedUUID = Node->ExtraData.Read<UUID>( 0 );
+
+				std::string name = "Select Asset";
+
+				if( rSavedUUID != 0 )
+					name = std::to_string( rSavedUUID );
+				else if( !s_SelectAssetInfo.AssetName.empty() )
+					name = s_SelectAssetInfo.AssetName;
+
+				if( ImGui::Button( name.c_str() ) )
+				{
+					OpenAssetPopup = true;
+					s_SelectAssetInfo.ID = output->ID;
+					s_SelectAssetInfo.NodeID = node->ID;
+				}
+				*/
+			}
+			else if( Node->Name == "Color Picker" && Type == PinType::Material_Sampler2D )
+			{
+				ImGui::BeginHorizontal( "PickerH" );
+
+				ImVec2 buttonSize = { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() };
+				ImRect boundingBox = { ImGui::GetCursorPos(), ImGui::GetCursorPos() + buttonSize };
+
+				bool hovered, held;
+
+				ImGui::ButtonBehavior( boundingBox, ImGui::GetID( &ID ), &hovered, &held );
+
+				// TODO: Ruby and ImGui do not match! so ImGuiButtonFlags_None = 0 and RubyMouse::Left = 0
+				if( hovered && ImGui::IsMouseClicked( ImGuiButtonFlags_None ) )
+				{
+					OpenAssetColorPicker = true;
+				}
+
+				Auxiliary::DrawColoredRect( buttonSize, Node->ExtraData.Read<ImVec4>( 0 ) );
+
+				ImGui::EndHorizontal();
+			}
+		}
+
+		ImGui::Spring( 0 );
+		DrawIcon( linked, ( int ) ( alpha * 255 ) );
+
+		rBuilder.EndOutput();
+		ImGui::PopStyleVar();
+		
+		ed::Suspend();
+
+		if( OpenAssetColorPicker )
+		{
+			ImGui::OpenPopup( "AssetColorPicker" );
+		}	
+
+		ImGui::SetNextWindowSize( { 350.0f, 0.0f } );
+		if( ImGui::BeginPopup( "AssetColorPicker", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+		{
+			bool PopupModified = false;
+
+			constexpr auto FALLBACK_COLOR = ImVec4( 114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f );
+
+			ImVec4 color = FALLBACK_COLOR;
+
+			color = Node->ExtraData.Read<ImVec4>( 0 );
+
+			if( color.x == 0 && color.y == 0 && color.z == 0 && color.w == 0 )
+				color = FALLBACK_COLOR;
+
+			if( ImGui::ColorPicker3( "Color Picker", ( float* ) &color ) )
+			{
+				Node->ExtraData.Write( ( uint8_t* ) &color, sizeof( ImVec4 ), 0 );
+
+				PopupModified = true;
+			}
+			else
+			{
+				if( PopupModified )
+				{
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+
+		ed::Resume();
+	}
+
+	bool Pin::CanCreateLink( const Ref<Pin>& rOther )
+	{
+		if( !rOther || Kind == rOther->Kind || Type != rOther->Type || Node == rOther->Node )
+			return false;
+
+		return true;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// SERIAILSATION
+
 	void Pin::Serialise( const Ref<Pin>& rObject, std::ofstream& rStream )
 	{
 		RawSerialisation::WriteObject( rObject->ID, rStream );
-		RawSerialisation::WriteObject( rObject->NodeID, rStream );
 
 		RawSerialisation::WriteString( rObject->Name, rStream );
 		RawSerialisation::WriteObject( rObject->Type, rStream );
@@ -114,7 +296,6 @@ namespace Saturn {
 	void Pin::Deserialise( Ref<Pin>& rObject, std::ifstream& rStream )
 	{
 		RawSerialisation::ReadObject( rObject->ID, rStream );
-		RawSerialisation::ReadObject( rObject->NodeID, rStream );
 
 		rObject->Name = RawSerialisation::ReadString( rStream );
 		RawSerialisation::ReadObject( rObject->Type, rStream );

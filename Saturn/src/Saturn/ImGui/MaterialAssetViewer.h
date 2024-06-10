@@ -32,12 +32,7 @@
 #include "Saturn/Asset/MaterialAsset.h"
 #include "Saturn/NodeEditor/NodeEditorBase.h"
 #include "Saturn/NodeEditor/Runtime/NodeEditorRuntime.h"
-
-namespace ax::NodeEditor {
-	struct NodeId;
-	struct PinId;
-	struct LinkId;
-}
+#include "Saturn/NodeEditor/Runtime/NodeRuntime.h"
 
 namespace Saturn {
 
@@ -67,7 +62,7 @@ namespace Saturn {
 		struct MaterialNodeEdInfo
 		{
 			Ref<MaterialAsset> HostMaterial;
-			ed::NodeId OutputNode;
+			UUID OutputNodeID;
 		};
 
 	public:
@@ -81,9 +76,43 @@ namespace Saturn {
 	private:
 		NodeEditorCompilationStatus CheckOutputNodeInput( int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker );
 
+		size_t IsOutputsLinkedToOutNode( const Ref<Node>& rNode );
+
 	private:
 		MaterialNodeEdInfo m_Info;
 		Ref<NodeEditorBase> m_NodeEditor;
+	};
+
+	class ColorPickerNodeRuntime : public NodeRuntime
+	{
+	public:
+		explicit ColorPickerNodeRuntime( UUID id ) : NodeRuntime( id ) {}
+
+		virtual void EvaluateNode() override {}
+
+	public:
+		glm::vec4 Value{};
+	};
+
+	class MaterialOutputNodeRuntime : public NodeRuntime 
+	{
+	public:
+		struct TextureValue
+		{
+			uint32_t Slot = 0;
+			glm::vec4 Color;
+			UUID TextureAssetID = 0;
+		};
+	public:
+		explicit MaterialOutputNodeRuntime( UUID id ) : NodeRuntime( id ) {}
+
+		virtual void EvaluateNode() override;
+
+	private:
+		void HandleAlbedo( const TextureValue& rTextureVale );
+	public:
+		std::stack<TextureValue> TextureStack;
+		Ref<MaterialAsset> MaterialAsset;
 	};
 
 	class MaterialAssetViewer : public AssetViewer
@@ -102,6 +131,8 @@ namespace Saturn {
 
 		void SetupNodeEditorCallbacks();
 		void SetupNewNodeEditor();
+		void SetupNodesFromMaterial();
+		void CreateNodesFromTexture( const Ref<Texture2D>& rTexture, int slot );
 
 	private:
 		Ref<MaterialAsset> m_HostMaterialAsset = nullptr;
@@ -109,6 +140,6 @@ namespace Saturn {
 
 		Ref<NodeEditor> m_NodeEditor = nullptr;
 
-		int m_OutputNodeID = 0;
+		UUID m_OutputNodeID = 0;
 	};
 }

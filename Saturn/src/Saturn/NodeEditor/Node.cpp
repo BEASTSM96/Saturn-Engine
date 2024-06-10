@@ -29,7 +29,11 @@
 #include "sppch.h"
 #include "Node.h"
 
+#include "UI/NodeEditor.h"
+
 #include "Saturn/Serialisation/RawSerialisation.h"
+
+#include "builders.h"
 
 namespace Saturn {
 
@@ -131,7 +135,44 @@ namespace Saturn {
 			rObject->Outputs[ i ] = pin;
 		}
 
-		ed::SetNodePosition( rObject->ID, rObject->Position );
+		ed::SetNodePosition( ed::NodeId( rObject->ID ), rObject->Position );
+	}
+
+	void Node::Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase )
+	{
+		rBuilder.Begin( ed::NodeId( ID ) );
+
+		rBuilder.Header( Color );
+
+		ImGui::Spring( 0 );
+		ImGui::TextUnformatted( Name.c_str() );
+		ImGui::Spring( 1 );
+		ImGui::Dummy( ImVec2( 0, 28 ) );
+		ImGui::Spring( 0 );
+
+		rBuilder.EndHeader();
+
+		for( auto& rInput : Inputs )
+		{
+			rInput->Render( rBuilder, pBase->IsLinked( rInput->ID ) );
+		}
+
+		for( auto& rOutput : Outputs )
+		{
+			if( rOutput->Type == PinType::Delegate )
+				continue;
+
+			rOutput->Render( rBuilder, pBase->IsLinked( rOutput->ID ) );
+		}
+
+		rBuilder.End();
+	}
+
+	std::vector<Saturn::Ref<Saturn::Node>> Node::FindNeighbors( Ref<NodeEditorBase> rNodeEditor )
+	{
+		std::vector<Saturn::Ref<Saturn::Node>> neighbors;
+
+		return neighbors;
 	}
 
 }

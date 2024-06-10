@@ -31,7 +31,7 @@
 
 #include "Saturn/NodeEditor/NodeEditorBase.h"
 #include "Saturn/NodeEditor/UI/NodeEditor.h"
-#include "Saturn/NodeEditor/Serialisation/NodeEditorCache.h"
+#include "Saturn/NodeEditor/Serialisation/NodeCache.h"
 
 #include "ImGuiAuxiliary.h"
 #include "Saturn/Vulkan/Renderer.h"
@@ -41,6 +41,7 @@
 
 #include <imgui.h>
 #include <imgui_node_editor.h>
+#include <stack>
 
 namespace ed = ax::NodeEditor;
 
@@ -55,13 +56,16 @@ namespace Saturn {
 		pin.Name = "Asset ID";
 		pin.Type = PinType::AssetHandle;
 
-		NodeSpecification node;
-		node.Color = ImColor( 30, 117, 217 );
-		node.Name = "Get Asset";
+		NodeSpecification nodeSpec;
+		nodeSpec.Color = ImColor( 30, 117, 217 );
+		nodeSpec.Name = "Get Asset";
 
-		node.Outputs.push_back( pin );
+		nodeSpec.Outputs.push_back( pin );
 
-		return rNodeEditor->AddNode( node );
+		Ref<Node> node = rNodeEditor->AddNode( nodeSpec );
+		node->ExecutionType = NodeExecutionType::AssetID;
+
+		return node;
 	}
 
 	Ref<Node> MaterialNodeLibrary::SpawnColorPicker( Ref<NodeEditorBase> rNodeEditor )
@@ -70,13 +74,16 @@ namespace Saturn {
 		pin.Name = "RGBA";
 		pin.Type = PinType::Material_Sampler2D;
 
-		NodeSpecification node;
-		node.Color = ImColor( 252, 186, 3 );
-		node.Name = "Color Picker";
+		NodeSpecification nodeSpec;
+		nodeSpec.Color = ImColor( 252, 186, 3 );
+		nodeSpec.Name = "Color Picker";
 
-		node.Outputs.push_back( pin );
+		nodeSpec.Outputs.push_back( pin );
 
-		return rNodeEditor->AddNode( node );
+		Ref<Node> node = rNodeEditor->AddNode( nodeSpec );
+		node->ExecutionType = NodeExecutionType::ColorPicker;
+
+		return node;
 	}
 
 	Ref<Node> MaterialNodeLibrary::SpawnSampler2D( Ref<NodeEditorBase> rNodeEditor )
@@ -85,26 +92,29 @@ namespace Saturn {
 		pin.Name = "Albedo";
 		pin.Type = PinType::Material_Sampler2D;
 
-		NodeSpecification node;
-		node.Color = ImColor( 0, 255, 0 );
-		node.Name = "Sampler2D";
+		NodeSpecification nodeSpec;
+		nodeSpec.Color = ImColor( 0, 255, 0 );
+		nodeSpec.Name = "Sampler2D";
 
 		pin.Name = "RGBA";
-		node.Outputs.push_back( pin );
+		nodeSpec.Outputs.push_back( pin );
 		pin.Name = "R";
-		node.Outputs.push_back( pin );
+		nodeSpec.Outputs.push_back( pin );
 		pin.Name = "G";
-		node.Outputs.push_back( pin );
+		nodeSpec.Outputs.push_back( pin );
 		pin.Name = "B";
-		node.Outputs.push_back( pin );
+		nodeSpec.Outputs.push_back( pin );
 		pin.Name = "A";
-		node.Outputs.push_back( pin );
+		nodeSpec.Outputs.push_back( pin );
 
 		pin.Name = "Asset";
 		pin.Type = PinType::AssetHandle;
-		node.Inputs.push_back( pin );
+		nodeSpec.Inputs.push_back( pin );
 
-		return rNodeEditor->AddNode( node );
+		Ref<Node> node = rNodeEditor->AddNode( nodeSpec );
+		node->ExecutionType = NodeExecutionType::Sampler2D;
+
+		return node;
 	}
 
 	Ref<Node> MaterialNodeLibrary::SpawnOutputNode( Ref<NodeEditorBase> rNodeEditor )
@@ -113,31 +123,79 @@ namespace Saturn {
 		pin.Name = "Albedo";
 		pin.Type = PinType::Material_Sampler2D;
 
-		NodeSpecification node;
-		node.Color = ImColor( 255, 128, 128 );
-		node.Name = "Material Output";
-		node.Inputs.push_back( pin );
+		NodeSpecification nodeSpec;
+		nodeSpec.Color = ImColor( 255, 128, 128 );
+		nodeSpec.Name = "Material Output";
+		nodeSpec.Inputs.push_back( pin );
 
 		pin.Name = "Normal";
-		node.Inputs.push_back( pin );
+		nodeSpec.Inputs.push_back( pin );
 		pin.Name = "Metallic";
-		node.Inputs.push_back( pin );
+		nodeSpec.Inputs.push_back( pin );
 		pin.Name = "Roughness";
-		node.Inputs.push_back( pin );
+		nodeSpec.Inputs.push_back( pin );
 		pin.Name = "Emission";
 		pin.Type = PinType::Float;
-		node.Inputs.push_back( pin );
+		nodeSpec.Inputs.push_back( pin );
 
-		return rNodeEditor->AddNode( node );
+		Ref<Node> node = rNodeEditor->AddNode( nodeSpec );
+		node->ExecutionType = NodeExecutionType::MaterialOutput;
+
+		return node;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// MATERIAL OUTPUT NODE RUNTIME
+
+	void MaterialOutputNodeRuntime::EvaluateNode()
+	{
+		while( !TextureStack.empty() )
+		{
+			const auto& tv = TextureStack.top();
+			TextureStack.pop();
+
+			if( tv.Slot == 0 )
+			{
+				HandleAlbedo( tv );
+			}
+			else if( tv.Slot == 1 )
+			{
+				MaterialAsset->SetNormalMap( tv.TextureAssetID );
+			}
+			else if( tv.Slot == 2 )
+			{
+				MaterialAsset->SetMetallicMap( tv.TextureAssetID );
+			}
+			else if( tv.Slot == 3 )
+			{
+				MaterialAsset->SetRoughnessMap( tv.TextureAssetID );
+			}
+		}
+	}
+
+	void MaterialOutputNodeRuntime::HandleAlbedo( const TextureValue& rTextureValue )
+	{
+		if( rTextureValue.Color.r != 0.0f && rTextureValue.Color.g != 0.0f && rTextureValue.Color.b != 0.0f )
+		{
+			MaterialAsset->SetAlbeoColor( rTextureValue.Color );
+		}
+		else if( rTextureValue.TextureAssetID != 0 )
+		{
+			Ref<Asset> TextureAsset = nullptr;
+			TextureAsset = AssetManager::Get().FindAsset( rTextureValue.TextureAssetID );
+
+			MaterialAsset->SetAlbeoColor( glm::vec3( 1.0f ) );
+			MaterialAsset->SetAlbeoMap( TextureAsset->Path );
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL NODE EDITOR RUNTIME
 
-	static Ref<Node> FindOtherNodeByPin( ed::PinId id, Ref<NodeEditorBase> nodeEditor )
+	static Ref<Node> FindOtherNodeByPin( UUID id, Ref<NodeEditorBase> nodeEditor )
 	{
 		// The other end of the link.
-		ed::PinId OtherPinID;
+		UUID OtherPinID;
 
 		Ref<Link> pLink = nodeEditor->FindLinkByPin( id );
 
@@ -151,10 +209,10 @@ namespace Saturn {
 		return p->Node;
 	}
 
-	static ed::NodeId FindOtherNodeIDByPin( ed::PinId id, Ref<NodeEditorBase> nodeEditor )
+	static UUID FindOtherNodeIDByPin( UUID id, Ref<NodeEditorBase> nodeEditor )
 	{
 		// The other end of the link.
-		ed::PinId OtherPinID;
+		UUID OtherPinID;
 
 		Ref<Link> pLink = nodeEditor->FindLinkByPin( id );
 
@@ -165,7 +223,7 @@ namespace Saturn {
 
 		Ref<Pin> p = nodeEditor->FindPin( OtherPinID );
 
-		return p->NodeID;
+		return p->Node->ID;
 	}
 
 	MaterialNodeEditorRuntime::MaterialNodeEditorRuntime( const MaterialNodeEdInfo& rInfo )
@@ -178,73 +236,98 @@ namespace Saturn {
 		if( !m_NodeEditor )
 			return NodeEditorCompilationStatus::Failed;
 
-		Ref<Node> OutputNode = m_NodeEditor->FindNode( m_Info.OutputNode );
-
-		// TODO: Maybe we should not clear it what if the compile fails?
 		m_Info.HostMaterial->Reset();
 
-		// Check if we have a link in the first input (albedo) as that must be set.
-		if( m_NodeEditor->IsPinLinked( OutputNode->Inputs[ 0 ]->ID ) )
-		{
-			auto PinID = OutputNode->Inputs[ 0 ]->ID;
-			ed::NodeId OtherNodeID;
+		Ref<Node> OutputNode = m_NodeEditor->FindNode( m_Info.OutputNodeID );
+		UUID AlbedoPinID = OutputNode->Inputs[ 0 ]->ID;
+		UUID NormalPinID = OutputNode->Inputs[ 1 ]->ID;
+		UUID MetallicPinID = OutputNode->Inputs[ 2 ]->ID;
+		UUID RoughnessPinID = OutputNode->Inputs[ 3 ]->ID;
 
-			OtherNodeID = FindOtherNodeIDByPin( PinID, m_NodeEditor );
-
-			Ref<Node> pOtherNode = m_NodeEditor->FindNode( OtherNodeID );
-
-			// Now, we can check what type of node we have.
-			if( pOtherNode->Name == "Color Picker" )
+		std::stack<UUID> order;
+		m_NodeEditor->TraverseFromStart( OutputNode, 
+			[&]( const UUID id )
 			{
-				auto& rColor = pOtherNode->ExtraData.Read<ImVec4>( 0 );
+				order.push( id );
+			} );
+		
+		std::stack<MaterialOutputNodeRuntime::TextureValue> values;
 
-				m_Info.HostMaterial->SetAlbeoColor( glm::vec4( rColor.x, rColor.y, rColor.z, rColor.w ) );
-			}
-			else if( pOtherNode->Name == "Sampler2D" )
-			{
-				ed::NodeId NodeId;
-				Ref<Node> pAssetNode = nullptr;
+		// TODO List:
+		// Get correct texture slot
+		// Support texture loading
+		// Add emssive values
 
-				Ref<Asset> TextureAsset = nullptr;
-				UUID AssetID;
-
-				if( m_NodeEditor->IsPinLinked( pOtherNode->Inputs[ 0 ]->ID ) )
-					NodeId = FindOtherNodeIDByPin( pOtherNode->Inputs[ 0 ]->ID, m_NodeEditor );
-				else
-					return NodeEditorCompilationStatus::Failed; // TODO: Throw error
-
-				pAssetNode = m_NodeEditor->FindNode( NodeId );
-
-				AssetID = pAssetNode->ExtraData.Read<UUID>( 0 );
-				TextureAsset = AssetManager::Get().FindAsset( AssetID );
-
-				// This wont load the texture until we apply it.
-				m_Info.HostMaterial->SetAlbeoMap( TextureAsset->Path );
-			}
-		}
-		else
+		while( !order.empty() )
 		{
-			return NodeEditorCompilationStatus::Failed; // TODO: Throw error
+			const UUID currentNodeID = order.top();
+			order.pop();
+			
+			Ref<Node> currentNode = m_NodeEditor->FindNode( currentNodeID );
+			Ref<NodeRuntime> nodeRT = nullptr;
+
+			std::stack<AssetID> assetIDs;
+			switch( currentNode->ExecutionType )
+			{
+				case NodeExecutionType::ColorPicker: 
+				{
+					size_t index = IsOutputsLinkedToOutNode( currentNode );
+				
+					nodeRT = Ref<ColorPickerNodeRuntime>::Create( currentNodeID );
+					auto colorRT = nodeRT.As<ColorPickerNodeRuntime>();
+					colorRT->Value = currentNode->ExtraData.Read<glm::vec4>();
+
+					if( index != UINT64_MAX )
+					{
+						MaterialOutputNodeRuntime::TextureValue tv{};
+						tv.Slot = index;
+						tv.Color = colorRT->Value;
+
+						values.push( tv );
+					}
+				} break;
+
+				case NodeExecutionType::Sampler2D:
+				{
+					size_t index = IsOutputsLinkedToOutNode( currentNode );
+
+					if( index != UINT64_MAX )
+					{
+						// Get asset node
+						Ref<Node> node = FindOtherNodeByPin( currentNode->Inputs[ 0 ]->ID, m_NodeEditor );
+
+						UUID AssetID = 2391113416952765199;
+						
+						if( false )
+							AssetID = node->ExtraData.Read<UUID>( 0 );
+
+						MaterialOutputNodeRuntime::TextureValue tv{};
+						tv.TextureAssetID = AssetID;
+						tv.Slot = index;
+
+						values.push( tv );
+					}
+				} break;
+
+				case NodeExecutionType::MaterialOutput: 
+				{
+					nodeRT = Ref<MaterialOutputNodeRuntime>::Create( currentNodeID );
+					auto outputRT = nodeRT.As<MaterialOutputNodeRuntime>();
+					outputRT->MaterialAsset = m_Info.HostMaterial;
+
+					outputRT->TextureStack = values;
+				} break;
+			}
+
+			if( nodeRT )
+				nodeRT->EvaluateNode();
 		}
-
-		// Next, Normals
-		if( CheckOutputNodeInput( ( size_t ) OutputNode->Inputs[ 1 ]->ID, false, "", 1, false ) == NodeEditorCompilationStatus::Failed )
-			return NodeEditorCompilationStatus::Failed;
-
-		// Then, Metallic
-		if( CheckOutputNodeInput( ( size_t ) OutputNode->Inputs[ 2 ]->ID, false, "", 2, false ) == NodeEditorCompilationStatus::Failed )
-			return NodeEditorCompilationStatus::Failed;
-
-		// Then, Roughness
-		if( CheckOutputNodeInput( ( size_t ) OutputNode->Inputs[ 3 ]->ID, false, "", 3, false ) == NodeEditorCompilationStatus::Failed )
-			return NodeEditorCompilationStatus::Failed;
-
-		// Then, Emissive
-		auto emissive = OutputNode->Inputs[ 4 ]->ExtraData.Read<float>( 4 );
-		if( emissive > 0.0f )
-			m_Info.HostMaterial->SetEmissive( emissive );
 
 		m_Info.HostMaterial->ApplyChanges();
+
+		m_NodeEditor->ShowFlow();
+
+		return NodeEditorCompilationStatus::Success;
 
 		// We need to find the asset not the material asset.
 		Ref<Asset> asset = AssetManager::Get().FindAsset( m_Info.HostMaterial->ID );
@@ -252,8 +335,6 @@ namespace Saturn {
 		// Save the material
 		MaterialAssetSerialiser mas;
 		//mas.Serialise( asset );
-
-		return NodeEditorCompilationStatus::Success;
 	}
 
 	NodeEditorCompilationStatus MaterialNodeEditorRuntime::CheckOutputNodeInput(
@@ -261,9 +342,9 @@ namespace Saturn {
 		const std::string& rErrorMessage, int Index,
 		bool AllowColorPicker )
 	{
-		if( m_NodeEditor->IsPinLinked( PinID ) )
+		if( m_NodeEditor->IsLinked( PinID ) )
 		{
-			ed::NodeId nodeId = FindOtherNodeIDByPin( PinID, m_NodeEditor );
+			UUID nodeId = FindOtherNodeIDByPin( PinID, m_NodeEditor );
 			Ref<Node> pOtherNode = m_NodeEditor->FindNode( nodeId );
 
 			// Color picker is only for albedo.
@@ -279,12 +360,12 @@ namespace Saturn {
 
 			if( pOtherNode->Name == "Sampler2D" )
 			{
-				ed::NodeId id;
+				UUID id;
 				Ref<Node> pAssetNode = nullptr;
 				Ref<Asset> TextureAsset = nullptr;
 				UUID AssetID;
 
-				if( m_NodeEditor->IsPinLinked( pOtherNode->Inputs[ 0 ]->ID ) )
+				if( m_NodeEditor->IsLinked( pOtherNode->Inputs[ 0 ]->ID ) )
 					id = FindOtherNodeIDByPin( pOtherNode->Inputs[ 0 ]->ID, m_NodeEditor );
 				else
 				{
@@ -323,6 +404,28 @@ namespace Saturn {
 		return NodeEditorCompilationStatus::Success;
 	}
 
+	size_t MaterialNodeEditorRuntime::IsOutputsLinkedToOutNode( const Ref<Node>& rNode )
+	{
+		Ref<Node> outputNode = m_NodeEditor->FindNode( m_Info.OutputNodeID );
+
+		size_t i = 0;
+		for( const auto& rOutput : rNode->Outputs )
+		{
+			Ref<Link> link = m_NodeEditor->FindLinkByPin( rOutput->ID );
+			if( !link )
+				continue;
+
+			if( link->StartPinID == outputNode->Inputs[ i ]->ID || link->EndPinID == outputNode->Inputs[ i ]->ID )
+			{
+				return i;
+			}
+
+			i++;
+		}
+
+		return UINT64_MAX;
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL ASSET VIEWER
 
@@ -339,9 +442,9 @@ namespace Saturn {
 		m_HostMaterialAsset = nullptr;
 		m_EditingMaterial = nullptr;
 
-		//NodeEditorCache::WriteNodeEditorCache( m_NodeEditor );
-
 		m_NodeEditor->SaveSettings();
+		NodeCacheEditor::WriteNodeEditorCache( m_NodeEditor );
+
 		m_NodeEditor->SetRuntime( nullptr );
 		m_NodeEditor = nullptr;
 	}
@@ -363,9 +466,9 @@ namespace Saturn {
 			m_NodeEditor = Ref<NodeEditor>::Create();
 
 			// Try to read the cache.
-			NodeEditorCache::ReadNodeEditorCache( m_NodeEditor, m_AssetID );
+			NodeCacheEditor::ReadNodeEditorCache( m_NodeEditor, m_AssetID );
 
-			m_OutputNodeID = ( int ) ( size_t ) m_NodeEditor->FindNode( "Material Output" )->ID;
+			m_OutputNodeID = m_NodeEditor->FindNode( "Material Output" )->ID;
 		}
 		else
 		{
@@ -375,7 +478,7 @@ namespace Saturn {
 
 		MaterialNodeEditorRuntime::MaterialNodeEdInfo info;
 		info.HostMaterial = m_HostMaterialAsset;
-		info.OutputNode = m_OutputNodeID;
+		info.OutputNodeID = m_OutputNodeID;
 
 		auto rt = Ref<MaterialNodeEditorRuntime>::Create( info );
 		rt->SetTargetNodeEditor( m_NodeEditor );
@@ -407,6 +510,18 @@ namespace Saturn {
 				if( ImGui::MenuItem( "Color Picker" ) )
 					node = MaterialNodeLibrary::SpawnColorPicker( m_NodeEditor );
 
+				if( ImGui::MenuItem( "Add Floats" ) )
+					node = DefaultNodeLibrary::SpawnAddFloats( m_NodeEditor );
+
+				if( ImGui::MenuItem( "Subtract Floats" ) )
+					node = DefaultNodeLibrary::SpawnSubFloats( m_NodeEditor );
+
+				if( ImGui::MenuItem( "Multiply Floats" ) )
+					node = DefaultNodeLibrary::SpawnMulFloats( m_NodeEditor );
+
+				if( ImGui::MenuItem( "Divide Floats" ) )
+					node = DefaultNodeLibrary::SpawnDivFloats( m_NodeEditor );
+
 				return node;
 			} );
 
@@ -423,79 +538,67 @@ namespace Saturn {
 		Ref<Node> OutputNode = MaterialNodeLibrary::SpawnOutputNode( m_NodeEditor );
 		OutputNode->CanBeDeleted = false;
 
-		m_OutputNodeID = ( int ) ( uintptr_t ) OutputNode->ID;
+		m_OutputNodeID = OutputNode->ID;
 
 		// Read the material data, and create some nodes based of the info.
+		SetupNodesFromMaterial();
+	}
 
-		/*
-		auto Fn = [&]( const Ref<Texture2D>& rTexture, int Index ) -> void
-			{
-				const auto& rPath = rTexture->GetPath();
-				bool InternalTexture = ( rPath == "Renderer Pink Texture" );
-
-				if( !InternalTexture )
-				{
-					// Find the texture asset.
-					auto relativePath = std::filesystem::relative( rPath, Project::GetActiveProject()->GetRootDir() );
-
-					Ref<Asset> TextureAsset = AssetManager::Get().FindAsset( relativePath );
-					AssetID TextureAssetID = TextureAsset->GetAssetID();
-
-					Ref<Node> Sampler2DNode;
-					Ref<Node> AssetNode;
-					Sampler2DNode = MaterialNodeLibrary::SpawnSampler2D( m_NodeEditor );
-					AssetNode = MaterialNodeLibrary::SpawnGetAsset( m_NodeEditor );
-
-					AssetNode->ExtraData.Allocate( 1024 );
-					AssetNode->ExtraData.Zero_Memory();
-					AssetNode->ExtraData.Write( ( uint8_t* ) &TextureAssetID, sizeof( UUID ), 0 );
-
-					Ref<Node> OutputNode = m_NodeEditor->FindNode( m_OutputNodeID );
-
-					// Link the get asset node with the texture node.
-					//s_NodeEditors[ rAsset->GetAssetID() ]->LinkPin( AssetNode->Outputs[ 0 ].ID, Sampler2DNode->Inputs[ 0 ].ID );
-
-					m_NodeEditor->LinkPin( AssetNode->Outputs[ 0 ]->ID, Sampler2DNode->Inputs[ 0 ]->ID );
-
-					// Link the texture node with the corresponding input in the material output.
-					m_NodeEditor->LinkPin( Sampler2DNode->Outputs[ 0 ]->ID, OutputNode->Inputs[ Index ]->ID );
-				}
-				else if( Index == 0 )
-				{
-					Ref<Node> node = MaterialNodeLibrary::SpawnColorPicker( m_NodeEditor );
-
-					auto& albedoColor = m_HostMaterialAsset->Get<glm::vec3>( "u_Materials.AlbedoColor" );
-					ImVec4 color = ImVec4( albedoColor.x, albedoColor.y, albedoColor.z, 1.0f );
-
-					node->ExtraData.Write( ( uint8_t* ) &color, sizeof( ImVec4 ), 0 );
-
-					Ref<Node> pNode = m_NodeEditor->FindNode( m_OutputNodeID );
-
-					m_NodeEditor->LinkPin( node->Outputs[ Index ]->ID, pNode->Inputs[ Index ]->ID );
-				}
-
-			};
-
-		// Albedo
+	void MaterialAssetViewer::SetupNodesFromMaterial()
+	{
+		std::map<uint32_t, Ref<Texture2D>> IndexToTextureIndex =
 		{
-			Fn( m_HostMaterialAsset->GetAlbeoMap(), 0 );
-		}
+			{ 0, m_HostMaterialAsset->GetAlbeoMap() },
+			{ 1, m_HostMaterialAsset->GetNormalMap() },
+			{ 2, m_HostMaterialAsset->GetMetallicMap() },
+			{ 3, m_HostMaterialAsset->GetRoughnessMap() }
+		};
 
-		// Normal
+		for( size_t i = 0; i < IndexToTextureIndex.size(); i++ )
 		{
-			Fn( m_HostMaterialAsset->GetNormalMap(), 1 );
+			CreateNodesFromTexture( IndexToTextureIndex[ i ], i );
 		}
+	}
 
-		// Metallic
-		{
-			Fn( m_HostMaterialAsset->GetMetallicMap(), 2 );
-		}
+	void MaterialAssetViewer::CreateNodesFromTexture( const Ref<Texture2D>& rTexture, int slot )
+	{
+		const auto& rPath = rTexture->GetPath();
+		bool HasTexture = rTexture != Renderer::Get().GetPinkTexture();
 
-		// Roughness
+		if( HasTexture )
 		{
-			Fn( m_HostMaterialAsset->GetRoughnessMap(), 3 );
+			// Find the texture asset.
+			auto relativePath = std::filesystem::relative( rPath, Project::GetActiveProject()->GetRootDir() );
+
+			Ref<Asset> TextureAsset = AssetManager::Get().FindAsset( relativePath );
+			AssetID TextureAssetID = TextureAsset->GetAssetID();
+
+			Ref<Node> Sampler2DNode;
+			Ref<Node> AssetNode;
+			Sampler2DNode = MaterialNodeLibrary::SpawnSampler2D( m_NodeEditor );
+			AssetNode = MaterialNodeLibrary::SpawnGetAsset( m_NodeEditor );
+
+			AssetNode->ExtraData.Allocate( 1024 );
+			AssetNode->ExtraData.Zero_Memory();
+			AssetNode->ExtraData.Write( ( uint8_t* ) &TextureAssetID, sizeof( UUID ), 0 );
+
+			Ref<Node> OutputNode = m_NodeEditor->FindNode( m_OutputNodeID );
+
+			m_NodeEditor->CreateLink( AssetNode->Outputs[ 0 ], Sampler2DNode->Inputs[ 0 ] );
+			m_NodeEditor->CreateLink( Sampler2DNode->Outputs[ 0 ], OutputNode->Inputs[ slot ] );
 		}
-		*/
+		else if( slot == 0 )
+		{
+			Ref<Node> colorPickerNode = MaterialNodeLibrary::SpawnColorPicker( m_NodeEditor );
+
+			auto& albedoColor = m_HostMaterialAsset->Get<glm::vec3>( "u_Materials.AlbedoColor" );
+			ImVec4 color = ImVec4( albedoColor.x, albedoColor.y, albedoColor.z, 1.0f );
+
+			colorPickerNode->ExtraData.Write( ( uint8_t* ) &color, sizeof( ImVec4 ), 0 );
+
+			Ref<Node> outputNode = m_NodeEditor->FindNode( m_OutputNodeID );
+			m_NodeEditor->CreateLink( colorPickerNode->Outputs[ slot ], outputNode->Inputs[ slot ] );
+		}
 	}
 
 	void MaterialAssetViewer::DrawInternal()

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "Saturn/Core/Memory/Buffer.h"
+#include "Saturn/Core/UUID.h"
 #include "Pin.h"
 
 #include <string>
@@ -36,14 +37,32 @@
 #include <imgui_node_editor.h>
 
 namespace ed = ax::NodeEditor;
+namespace util = ax::NodeEditor::Utilities;
+
+namespace ax::NodeEditor::Utilities {
+	struct BlueprintNodeBuilder;
+}
 
 namespace Saturn {
 
-	enum class NodeType
+	enum class NodeRenderType
 	{
 		Blueprint,
-		Simple,
 		Comment
+	};
+
+	enum class NodeExecutionType
+	{
+		Value,
+		AssetID, // Values and Asset IDs are different as values can be added together however AssetIDs can not
+		Sampler2D,
+		MaterialOutput,
+		ColorPicker,
+		Add,
+		Subtract,
+		Multiply,
+		Divide,
+		None
 	};
 
 	struct PinSpecification
@@ -60,34 +79,44 @@ namespace Saturn {
 		ImColor						  Color;
 	};
 
+	class NodeEditor;
+	class NodeEditorBase;
+
 	class Node : public RefTarget
 	{
 	public:
 		Node() = default;
 
-		Node( int id, 
+		Node( UUID id, 
 			const std::string& rName, 
 			ImColor color = ImColor( 255, 255, 255 ) ) :
-			ID( id ), Name( rName ), Color( color ), Type( NodeType::Blueprint ), Size( 0, 0 )
+			Name( rName ), Color( color ), Type( NodeRenderType::Blueprint ), Size( 0, 0 )
 		{
+			ID = std::move( id );
+
 			ExtraData = Buffer();
 		}
 
-		~Node() 
+		~Node()
 		{
 			ExtraData.Free();
 		}
+
+		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase );
+
+		std::vector<Ref<Node>> FindNeighbors( Ref<NodeEditorBase> rNodeEditor );
 
 		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
 		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
 
 	public:
-		ed::NodeId ID;
+		UUID ID = 0;
 		std::string Name;
 		std::vector<Ref<Pin>> Inputs;
 		std::vector<Ref<Pin>> Outputs;
 		ImColor Color;
-		NodeType Type;
+		NodeRenderType Type = NodeRenderType::Blueprint;
+		NodeExecutionType ExecutionType = NodeExecutionType::None;
 		ImVec2 Size;
 		ImVec2 Position;
 		bool CanBeDeleted = true;

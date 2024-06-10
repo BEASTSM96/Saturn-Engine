@@ -372,7 +372,7 @@ namespace Saturn {
 		{
 			// TEMP: because this will not work when using VFS
 			// Find and load the texture
-			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
+			Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AssetManager::Get().FindAsset( AssetID )->Path );
 
 			Ref<Texture2D> albedo = Ref<Texture2D>::Create(
 				ImageFormat::RGBA8,

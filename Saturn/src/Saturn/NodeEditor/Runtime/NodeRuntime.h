@@ -28,79 +28,114 @@
 
 #pragma once
 
-#include "Saturn/NodeEditor/NodeEditorBase.h"
-
-#include "Saturn/NodeEditor/NodeEditorCompilationStatus.h"
+#include "Saturn/Core/UUID.h"
+#include "Saturn/Core/Ref.h"
 
 namespace Saturn {
 
-	class NodeEditor : public NodeEditorBase
+	class NodeRuntime : public RefTarget
 	{
 	public:
-		NodeEditor();
-		NodeEditor( AssetID ID );
-		~NodeEditor();
+		explicit NodeRuntime( UUID id ) { m_NodeID = std::move( id ); }
 
-		bool CanCreateLink( const Ref<Pin>& a, const Ref<Pin>& b );	
+		virtual void EvaluateNode() = 0;
 
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override {}
-		virtual void OnEvent( RubyEvent& rEvent ) override {}
-
-		void Open( bool open ) { m_WindowOpen = open; }
-
-		void SetDetailsFunction( std::function<void( Ref<Node> )>&& rrDetailsFunction )
-		{
-			m_DetailsFunction = std::move( rrDetailsFunction );
-		}
-
-		// Happens when the user clicks on the empty space.
-		void SetCreateNewNodeFunction( std::function<Ref<Node>()>&& rrCreateNewNodeFunction )
-		{
-			m_CreateNewNodeFunction = std::move( rrCreateNewNodeFunction );
-		}
-
-		void SetCloseFunction( std::function<void()>&& rrCloseFunction )
-		{
-			m_OnClose = std::move( rrCloseFunction );
-		}
-
-		std::string& GetEditorState() { return m_ActiveNodeEditorState; }
-		const std::string& GetEditorState() const { return m_ActiveNodeEditorState; }
-		
-		void SetEditorState( const std::string& rState ) { m_ActiveNodeEditorState = rState; }
-
-		NodeEditorCompilationStatus ThrowError( const std::string& rMessage );
-		void ThrowWarning( const std::string& rMessage );
-
-		void Reload();
-
-		void SetWindowName( const std::string& rName ) { m_Name = rName; }
-
-	private:
-		virtual void SerialiseData( std::ofstream& rStream ) override;
-		virtual void DeserialiseData( std::ifstream& rStream ) override;
-
-	private:
-		void CreateEditor();
-		void Close();
-		void DeleteDeadLinks( UUID nodeID );
-		void DeleteLink( UUID id );
-
-	private:
-		bool m_CreateNewNode = false;
-
-		Ref<Pin> m_NewLinkPin = nullptr;
-		Ref<Pin> m_NewNodeLinkPin = nullptr;
-
-		std::function<void( Ref<Node> )> m_DetailsFunction;
-		std::function<Ref<Node>()> m_CreateNewNodeFunction;
-		std::function<void()> m_OnClose;
-
-		ImVec2 m_ViewportSize;
-
-	private:
-		friend class NodeEditorCache;
-		friend class NodeCacheSettings;
+	protected:
+		UUID m_NodeID;
 	};
+
+	class GetAssetRuntime : public NodeRuntime
+	{
+	public:
+		explicit GetAssetRuntime( UUID id ) : NodeRuntime( id ) {}
+
+		virtual void EvaluateNode() override;
+
+	public:
+		uint64_t Value;
+	};
+
+	template<typename N>
+	class AddValueRuntime : public NodeRuntime
+	{
+	public:
+		explicit AddValueRuntime( UUID id ) : NodeRuntime( id ) {}
+
+		virtual void EvaluateNode() override 
+		{
+			Result = Value1 + Value2;
+		}
+
+	public:
+		N Value1;
+		N Value2;
+		N Result;
+	};
+
+	template<typename N>
+	class SubtractValueRuntime : public NodeRuntime
+	{
+	public:
+		explicit SubtractValueRuntime( UUID id ) : NodeRuntime( id ) {}
+
+		virtual void EvaluateNode() override 
+		{
+			Result = Value1 - Value2;
+		}
+
+	public:
+		N Value1;
+		N Value2;
+		N Result;
+	};
+
+	template<typename N>
+	class MultiplyValueRuntime : public NodeRuntime
+	{
+	public:
+		explicit MultiplyValueRuntime( UUID id ) : NodeRuntime( id ) {}
+
+		virtual void EvaluateNode() override 
+		{
+			Result = Value1 * Value2;
+		}
+
+	public:
+		N Value1;
+		N Value2;
+		N Result;
+	};
+
+	template<typename N>
+	class DivideValueRuntime : public NodeRuntime
+	{
+	public:
+		explicit DivideValueRuntime( UUID id ) : NodeRuntime( id ) {}
+
+		virtual void EvaluateNode() override 
+		{
+			Result = Value1 / Value2;
+		}
+
+	public:
+		N Value1;
+		N Value2;
+		N Result;
+	};
+
+	using AddFloatRuntime = AddValueRuntime<float>;
+	using AddIntRuntime = AddValueRuntime<int>;
+	using AddDoubleRuntime = AddValueRuntime<double>;
+
+	using SubtractFloatRuntime = AddValueRuntime<float>;
+	using SubtractIntRuntime = AddValueRuntime<int>;
+	using SubtractDoubleRuntime = AddValueRuntime<double>;
+
+	using MultiplyFloatRuntime = AddValueRuntime<float>;
+	using MultiplyIntRuntime = AddValueRuntime<int>;
+	using MultiplyDoubleRuntime = AddValueRuntime<double>;
+
+	using DevideFloatRuntime = AddValueRuntime<float>;
+	using DevideIntRuntime = AddValueRuntime<int>;
+	using DevideDoubleRuntime = AddValueRuntime<double>;
 }
