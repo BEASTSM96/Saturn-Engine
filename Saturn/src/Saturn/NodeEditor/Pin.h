@@ -153,7 +153,7 @@ namespace Saturn {
 		ImColor GetPinColor() const;
 
 		void DrawIcon( bool connected, int alpha );
-		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked );
+		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked, uint32_t pinIndex );
 
 	public:
 		static void Serialise( const Ref<Pin>& rObject, std::ofstream& rStream );
@@ -168,7 +168,7 @@ namespace Saturn {
 		Buffer      ExtraData;
 
 	private:
-		void RenderInput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked );
+		void RenderInput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked, uint32_t pinIndex );
 		void RenderOutput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked );
 
 		bool CanCreateLink( const Ref<Pin>& rOther );

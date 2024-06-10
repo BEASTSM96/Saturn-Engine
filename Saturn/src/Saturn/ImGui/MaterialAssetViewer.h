@@ -74,8 +74,6 @@ namespace Saturn {
 		[[nodiscard]] virtual NodeEditorCompilationStatus Execute() override;
 
 	private:
-		NodeEditorCompilationStatus CheckOutputNodeInput( int PinID, bool ThrowIfNotLinked, const std::string& rErrorMessage, int Index, bool AllowColorPicker );
-
 		size_t IsOutputsLinkedToOutNode( const Ref<Node>& rNode );
 
 	private:
@@ -113,6 +111,7 @@ namespace Saturn {
 	public:
 		std::stack<TextureValue> TextureStack;
 		Ref<MaterialAsset> MaterialAsset;
+		Ref<Node> OutputNode;
 	};
 
 	class MaterialAssetViewer : public AssetViewer

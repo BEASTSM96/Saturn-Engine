@@ -171,6 +171,12 @@ namespace Saturn {
 				MaterialAsset->SetRoughnessMap( tv.TextureAssetID );
 			}
 		}
+
+		// Set emissive
+		auto& rEmissivePin = OutputNode->Inputs[ 4 ];
+		float emissive = rEmissivePin->ExtraData.Read<float>( 0 );
+
+		MaterialAsset->SetEmissive( emissive );
 	}
 
 	void MaterialOutputNodeRuntime::HandleAlbedo( const TextureValue& rTextureValue )
@@ -252,12 +258,6 @@ namespace Saturn {
 			} );
 		
 		std::stack<MaterialOutputNodeRuntime::TextureValue> values;
-
-		// TODO List:
-		// Get correct texture slot
-		// Support texture loading
-		// Add emssive values
-
 		while( !order.empty() )
 		{
 			const UUID currentNodeID = order.top();

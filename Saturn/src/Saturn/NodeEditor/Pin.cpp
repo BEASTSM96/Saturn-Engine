@@ -102,7 +102,7 @@ namespace Saturn {
 		ImGui::Dummy( size );
 	}
 
-	void Pin::Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked )
+	void Pin::Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked, uint32_t pinIndex )
 	{
 		switch( Kind )
 		{
@@ -113,12 +113,12 @@ namespace Saturn {
 
 			case PinKind::Input:
 			{
-				RenderInput( rBuilder, linked );
+				RenderInput( rBuilder, linked, pinIndex );
 			} break;
 		}
 	}
 
-	void Pin::RenderInput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked )
+	void Pin::RenderInput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked, uint32_t pinIndex )
 	{
 		auto alpha = ImGui::GetStyle().Alpha;
 
@@ -144,7 +144,7 @@ namespace Saturn {
 
 		if( Type == PinType::Float && !linked )
 		{
-			float value = ExtraData.Read<float>( 0 );
+			float value = ExtraData.Read<float>( pinIndex * sizeof( float ) );
 
 			ImGui::SetNextItemWidth( 25.0f );
 
@@ -152,7 +152,7 @@ namespace Saturn {
 
 			if( ImGui::DragFloat( "##floatinput", &value ) )
 			{
-				ExtraData.Write( &value, sizeof( float ), 0 );
+				ExtraData.Write( &value, sizeof( float ), pinIndex * sizeof(float) );
 			}
 
 			ImGui::PopID();

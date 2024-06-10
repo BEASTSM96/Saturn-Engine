@@ -41,7 +41,7 @@ namespace Saturn {
 		virtual void EvaluateNode() = 0;
 
 	protected:
-		UUID m_NodeID;
+		UUID m_NodeID = 0;
 	};
 
 	class GetAssetRuntime : public NodeRuntime
@@ -49,10 +49,10 @@ namespace Saturn {
 	public:
 		explicit GetAssetRuntime( UUID id ) : NodeRuntime( id ) {}
 
-		virtual void EvaluateNode() override;
+		virtual void EvaluateNode() override {}
 
 	public:
-		uint64_t Value;
+		uint64_t Value = 0;
 	};
 
 	template<typename N>
@@ -64,12 +64,16 @@ namespace Saturn {
 		virtual void EvaluateNode() override 
 		{
 			Result = Value1 + Value2;
+
+			OutPin->ExtraData.Write( ( uint8_t* ) &Result, sizeof( N ), 0 );
 		}
 
 	public:
-		N Value1;
-		N Value2;
-		N Result;
+		N Value1 = N();
+		N Value2 = N();
+		N Result = N();
+
+		Ref<Pin> OutPin = nullptr;
 	};
 
 	template<typename N>
@@ -81,12 +85,16 @@ namespace Saturn {
 		virtual void EvaluateNode() override 
 		{
 			Result = Value1 - Value2;
+
+			OutPin->ExtraData.Write( ( uint8_t* ) &Result, sizeof( N ), 0 );
 		}
 
 	public:
-		N Value1;
-		N Value2;
-		N Result;
+		N Value1 = N();
+		N Value2 = N();
+		N Result = N();
+
+		Ref<Pin> OutPin = nullptr;
 	};
 
 	template<typename N>
@@ -98,12 +106,16 @@ namespace Saturn {
 		virtual void EvaluateNode() override 
 		{
 			Result = Value1 * Value2;
+
+			OutPin->ExtraData.Write( ( uint8_t* ) &Result, sizeof( N ), 0 );
 		}
 
 	public:
-		N Value1;
-		N Value2;
-		N Result;
+		N Value1 = N();
+		N Value2 = N();
+		N Result = N();
+
+		Ref<Pin> OutPin = nullptr;
 	};
 
 	template<typename N>
@@ -115,27 +127,31 @@ namespace Saturn {
 		virtual void EvaluateNode() override 
 		{
 			Result = Value1 / Value2;
+
+			OutPin->ExtraData.Write( ( uint8_t* ) &Result, sizeof( N ), 0 );
 		}
 
 	public:
-		N Value1;
-		N Value2;
-		N Result;
+		N Value1 = N();
+		N Value2 = N();
+		N Result = N();
+
+		Ref<Pin> OutPin = nullptr;
 	};
 
 	using AddFloatRuntime = AddValueRuntime<float>;
 	using AddIntRuntime = AddValueRuntime<int>;
 	using AddDoubleRuntime = AddValueRuntime<double>;
 
-	using SubtractFloatRuntime = AddValueRuntime<float>;
-	using SubtractIntRuntime = AddValueRuntime<int>;
-	using SubtractDoubleRuntime = AddValueRuntime<double>;
+	using SubtractFloatRuntime = SubtractValueRuntime<float>;
+	using SubtractIntRuntime = SubtractValueRuntime<int>;
+	using SubtractDoubleRuntime = SubtractValueRuntime<double>;
 
-	using MultiplyFloatRuntime = AddValueRuntime<float>;
-	using MultiplyIntRuntime = AddValueRuntime<int>;
-	using MultiplyDoubleRuntime = AddValueRuntime<double>;
+	using MultiplyFloatRuntime = MultiplyValueRuntime<float>;
+	using MultiplyIntRuntime = MultiplyValueRuntime<int>;
+	using MultiplyDoubleRuntime = MultiplyValueRuntime<double>;
 
-	using DevideFloatRuntime = AddValueRuntime<float>;
-	using DevideIntRuntime = AddValueRuntime<int>;
-	using DevideDoubleRuntime = AddValueRuntime<double>;
+	using DivideFloatRuntime = DivideValueRuntime<float>;
+	using DivideIntRuntime = DivideValueRuntime<int>;
+	using DivideDoubleRuntime = DivideValueRuntime<double>;
 }

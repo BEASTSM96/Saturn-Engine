@@ -337,6 +337,9 @@ namespace Saturn {
 		{
 			Ref<Pin> pin = Ref<Pin>::Create( UUID(), rOutput.Name.c_str(), rOutput.Type, node->ID );
 			node->Outputs.push_back( pin );
+
+			pin->ExtraData.Allocate( 64 );
+			pin->ExtraData.Zero_Memory();
 		}
 
 		for( auto& rInput : spec.Inputs )

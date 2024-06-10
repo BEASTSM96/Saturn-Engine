@@ -134,8 +134,6 @@ namespace Saturn {
 
 		bool m_AnyValueChanged = false;
 
-		bool m_Updated[ MAX_FRAMES_IN_FLIGHT ];
-
 		Buffer m_PushConstantData;
 		
 		std::vector< ShaderUniform > m_Uniforms;
