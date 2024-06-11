@@ -34,28 +34,28 @@
 
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 
-#include "Saturn/Vendor/Drawing.h"
+#include "NodeEditorAux.h"
 #include "builders.h"
 
 namespace Saturn {
 
-	ax::Drawing::IconType Pin::GetIconType() const
+	PinIconType Pin::GetIconType() const
 	{
 		switch( Type )
 		{
-			case PinType::Flow:				  return ax::Drawing::IconType::Flow;
-			case PinType::Bool:				  return ax::Drawing::IconType::Circle;
-			case PinType::Int:				  return ax::Drawing::IconType::Circle;
-			case PinType::Float:			  return ax::Drawing::IconType::Circle;
-			case PinType::String:			  return ax::Drawing::IconType::Circle;
-			case PinType::Object:			  return ax::Drawing::IconType::Circle;
-			case PinType::Function:			  return ax::Drawing::IconType::Circle;
-			case PinType::Material_Sampler2D: return ax::Drawing::IconType::Circle;
-			case PinType::AssetHandle:        return ax::Drawing::IconType::Circle;
-			case PinType::Delegate:           return ax::Drawing::IconType::Square;
+			case PinType::Flow:				  return PinIconType::Flow;
+			case PinType::Bool:				  return PinIconType::Circle;
+			case PinType::Int:				  return PinIconType::Circle;
+			case PinType::Float:			  return PinIconType::Circle;
+			case PinType::String:			  return PinIconType::Circle;
+			case PinType::Object:			  return PinIconType::Circle;
+			case PinType::Function:			  return PinIconType::Circle;
+			case PinType::Material_Sampler2D: return PinIconType::Circle;
+			case PinType::AssetHandle:        return PinIconType::Circle;
+			case PinType::Delegate:           return PinIconType::Square;
 		}
 
-		return ax::Drawing::IconType::Circle;
+		return PinIconType::Circle;
 	}
 
 	ImColor Pin::GetPinColor() const
@@ -79,7 +79,7 @@ namespace Saturn {
 
 	void Pin::DrawIcon( bool connected, int alpha )
 	{
-		auto nativeType = GetIconType();
+		auto rendererIcon = GetIconType();
 		ImColor color = GetPinColor();
 		color.Value.w = alpha / 255.0f;
 
@@ -91,10 +91,10 @@ namespace Saturn {
 			auto cursorPos = ImGui::GetCursorScreenPos();
 			auto drawList = ImGui::GetWindowDrawList();
 
-			ax::Drawing::DrawIcon( drawList,
+			Auxiliary::DrawPinIconInternal( drawList,
 				cursorPos,
 				cursorPos + size,
-				nativeType,
+				rendererIcon,
 				connected,
 				color, ImColor( 32, 32, 32, alpha ) );
 		}

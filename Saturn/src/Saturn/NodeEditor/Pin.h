@@ -43,13 +43,11 @@ namespace ax {
 	namespace NodeEditor::Utilities {
 		struct BlueprintNodeBuilder;
 	}
-
-	namespace Drawing {
-		enum class IconType : unsigned int;
-	};
 }
 
 namespace Saturn {
+
+	enum class PinIconType : unsigned int;
 
 	enum class PinType
 	{
@@ -149,7 +147,7 @@ namespace Saturn {
 			ExtraData.Free();
 		}
 
-		ax::Drawing::IconType GetIconType() const;
+		PinIconType GetIconType() const;
 		ImColor GetPinColor() const;
 
 		void DrawIcon( bool connected, int alpha );

@@ -223,7 +223,21 @@ namespace Saturn {
 
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar;	
 
-		ImGui::SameLine( 0.0f, 12.0f );
+		ImGui::BeginHorizontal( "##TopbarItems" );
+
+		if( ImGui::Button( "Zoom to content" ) )
+			ed::NavigateToContent( 1.0f );
+
+		if( ImGui::Button( "Compile & Save" ) )
+		{
+			if( m_Runtime ) m_Runtime->Execute();
+		}
+
+		ImGui::EndHorizontal();
+
+		// Side bar if on the same line.
+		//ImGui::SameLine( 0.0f, 12.0f );
+
 		ed::Begin( "Node Editor" );
 
 		auto cursorTopLeft = ImGui::GetCursorScreenPos();
