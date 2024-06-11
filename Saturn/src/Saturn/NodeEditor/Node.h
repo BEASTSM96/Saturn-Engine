@@ -104,8 +104,6 @@ namespace Saturn {
 
 		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase );
 
-		std::vector<Ref<Node>> FindNeighbors( Ref<NodeEditorBase> rNodeEditor );
-
 		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
 		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
 

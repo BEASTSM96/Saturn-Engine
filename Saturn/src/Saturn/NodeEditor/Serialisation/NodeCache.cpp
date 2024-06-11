@@ -201,11 +201,24 @@ namespace Saturn {
 
 	void NodeCacheEditor::WriteNodeEditorCache( Ref<NodeEditorBase> nodeEditor )
 	{
-		std::string filename = std::format( "NCEditor.{0}.nce", ( uint64_t ) nodeEditor->GetAssetID() );
+		Ref<Asset> asset = AssetManager::Get().FindAsset( nodeEditor->GetAssetID() );
+		std::string filename;
+		std::filesystem::path assetPath;
 
-		std::filesystem::path assetPath = AssetManager::Get().FindAsset( nodeEditor->GetAssetID() )->Path;
-		if( assetPath.empty() )
+		if( asset )
+		{
+			filename = std::format( "{0}.{1}.nce", asset->Name, ( uint64_t ) nodeEditor->GetAssetID() );
+			
+			assetPath = AssetManager::Get().FindAsset( nodeEditor->GetAssetID() )->Path;
+			assetPath = assetPath.parent_path();
+			assetPath = Project::GetActiveProject()->FilepathAbs( assetPath );
+		}
+		else
+		{
+			filename = std::format( "NCEditor.{0}.nce", ( uint64_t ) nodeEditor->GetAssetID() );
+
 			assetPath = GetDefaultCachePath();
+		}
 
 		assetPath /= filename;
 

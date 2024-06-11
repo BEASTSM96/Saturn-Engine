@@ -9,7 +9,6 @@
 //
 // CREDITS
 //   Written by Michal Cichon
-# include "sppch.h"
 # include "crude_json.h"
 # include <iomanip>
 # include <limits>

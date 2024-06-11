@@ -88,6 +88,9 @@ namespace Saturn {
 		template<typename Function>
 		void TraverseFromStart( const Ref<Node>& rRootNode, Function func ) 
 		{
+			// Last in first out
+			// So add our output node then add neighbors and continue as we want the last node with no more neighbors to be evaluated first.
+
 			std::stack<UUID> stack;
 			stack.push( rRootNode->ID );
 
@@ -98,6 +101,7 @@ namespace Saturn {
 
 				func( currentID );
 
+				// Find neighbors from inputs and continue until there is no neighbors
 				Ref<Node> nextNode = FindNode( currentID );
 				for( const auto& rNeighbor : FindNeighbors( nextNode ) )
 				{

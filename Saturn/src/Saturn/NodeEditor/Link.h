@@ -49,18 +49,18 @@ namespace Saturn {
 
 		static void Serialise( const Ref<Link>& rObject, std::ofstream& rStream )
 		{
-			RawSerialisation::WriteObject( rObject->ID, rStream );
-			RawSerialisation::WriteObject( rObject->StartPinID, rStream );
-			RawSerialisation::WriteObject( rObject->EndPinID, rStream );
+			UUID::Serialise( rObject->ID, rStream );
+			UUID::Serialise( rObject->StartPinID, rStream );
+			UUID::Serialise( rObject->EndPinID, rStream );
 
 			RawSerialisation::WriteObject( rObject->Color, rStream );
 		}
 
 		static void Deserialise( Ref<Link>& rObject, std::ifstream& rStream )
 		{
-			RawSerialisation::ReadObject( rObject->ID, rStream );
-			RawSerialisation::ReadObject( rObject->StartPinID, rStream );
-			RawSerialisation::ReadObject( rObject->EndPinID, rStream );
+			UUID::Deserialise( rObject->ID, rStream );
+			UUID::Deserialise( rObject->StartPinID, rStream );
+			UUID::Deserialise( rObject->EndPinID, rStream );
 
 			RawSerialisation::ReadObject( rObject->Color, rStream );
 		}

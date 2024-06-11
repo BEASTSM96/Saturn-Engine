@@ -655,19 +655,6 @@ namespace Saturn {
 		ed::Resume();
 
 		ed::End();
-
-		ImGui::BeginHorizontal( "##TopbarItems" );
-
-		if( ImGui::Button( "Zoom to content" ) )
-			ed::NavigateToContent( 1.0f );
-
-		if( ImGui::Button( "Compile & Save" ) )
-		{
-			if( m_Runtime ) m_Runtime->Execute();
-		}
-
-		ImGui::EndHorizontal();
-
 		ImGui::End(); // NODE_EDITOR
 	}
 
@@ -719,15 +706,16 @@ namespace Saturn {
 
 	void NodeEditor::SerialiseData( std::ofstream& rStream )
 	{
-		/*
 		RawSerialisation::WriteString( m_Name, rStream );
 
 		size_t mapSize = m_Nodes.size();
-		RawSerialisation::WriteObject( mapSize, rStream );
+		rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
 
-		for( auto& rNode : m_Nodes )
+		for( const auto& [key, value] : m_Nodes )
 		{
-			Node::Serialise( rNode, rStream );
+			UUID::Serialise( key, rStream );
+
+			Node::Serialise( value, rStream );
 		}
 
 		mapSize = m_Links.size();
@@ -737,7 +725,6 @@ namespace Saturn {
 		{
 			Link::Serialise( rLinks, rStream );
 		}
-		*/
 	}
 
 	void NodeEditor::DeserialiseData( std::ifstream& rStream )

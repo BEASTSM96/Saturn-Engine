@@ -15,15 +15,14 @@
 
 
 //------------------------------------------------------------------------------
-# define IMGUI_DEFINE_MATH_OPERATORS
 # include <imgui.h>
 # include <cstdint> // std::uintXX_t
 # include <utility> // std::move
 
 
 //------------------------------------------------------------------------------
-# define IMGUI_NODE_EDITOR_VERSION      "0.9.4"
-# define IMGUI_NODE_EDITOR_VERSION_NUM  000904
+# define IMGUI_NODE_EDITOR_VERSION      "0.9.3"
+# define IMGUI_NODE_EDITOR_VERSION_NUM  000903
 
 
 //------------------------------------------------------------------------------
@@ -494,18 +493,6 @@ template <typename Tag>
 inline bool operator!=(const SafePointerType<Tag>& lhs, const SafePointerType<Tag>& rhs)
 {
     return lhs.Get() != rhs.Get();
-}
-
-template<typename Tag>
-inline bool operator<( const SafePointerType<Tag>& lhs, const SafePointerType<Tag>& rhs )
-{
-    return lhs.Get() < rhs.Get();
-}
-
-template<typename Tag>
-inline bool operator>( const SafePointerType<Tag>& lhs, const SafePointerType<Tag>& rhs )
-{
-	return lhs.Get() > rhs.Get();
 }
 
 } // namespace Details

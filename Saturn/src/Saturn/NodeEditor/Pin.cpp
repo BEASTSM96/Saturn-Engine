@@ -136,7 +136,7 @@ namespace Saturn {
 			ImGui::Spring( 0 );
 		}
 
-		if( Type == PinType::Bool )
+		if( Type == PinType::Bool && !linked )
 		{
 			ImGui::Button( "Hello" );
 			ImGui::Spring( 0 );

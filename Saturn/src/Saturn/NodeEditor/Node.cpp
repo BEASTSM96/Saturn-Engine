@@ -61,7 +61,7 @@ namespace Saturn {
 
 	void Node::Serialise( const Ref<Node>& rObject, std::ofstream& rStream )
 	{
-		RawSerialisation::WriteObject( rObject->ID, rStream );
+		UUID::Serialise( rObject->ID, rStream );
 		RawSerialisation::WriteString( rObject->Name, rStream );
 		RawSerialisation::WriteObject( rObject->Color, rStream );
 
@@ -94,7 +94,7 @@ namespace Saturn {
 
 	void Node::Deserialise( Ref<Node>& rObject, std::ifstream& rStream )
 	{
-		RawSerialisation::ReadObject( rObject->ID, rStream );
+		UUID::Deserialise( rObject->ID, rStream );
 		rObject->Name = RawSerialisation::ReadString( rStream );
 		RawSerialisation::ReadObject( rObject->Color, rStream );
 
@@ -169,12 +169,4 @@ namespace Saturn {
 
 		rBuilder.End();
 	}
-
-	std::vector<Saturn::Ref<Saturn::Node>> Node::FindNeighbors( Ref<NodeEditorBase> rNodeEditor )
-	{
-		std::vector<Saturn::Ref<Saturn::Node>> neighbors;
-
-		return neighbors;
-	}
-
 }
