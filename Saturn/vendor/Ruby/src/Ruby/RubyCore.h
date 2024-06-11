@@ -106,8 +106,8 @@ struct RBY_API RubyWindowSpecification
 template<typename N>
 struct RubyBasicVector2
 {
-	RubyBasicVector2() = default;
-	RubyBasicVector2( N _x, N _y ) : x( _x ), y( _y ) {}
+	constexpr RubyBasicVector2() = default;
+	constexpr RubyBasicVector2( N _x, N _y ) : x( _x ), y( _y ) {}
 
 	N x = N();
 	N y = N();

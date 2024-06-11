@@ -96,6 +96,8 @@ namespace Saturn {
 
 	NodeEditor::~NodeEditor()
 	{
+		m_ZoomTexture = nullptr;
+		m_CompileTexture = nullptr;
 	}
 
 	void NodeEditor::CreateEditor()
@@ -175,6 +177,9 @@ namespace Saturn {
 
 		m_Editor = ed::CreateEditor( &config );
 		ed::SetCurrentEditor( m_Editor );
+	
+		m_ZoomTexture = EditorIcons::GetIcon( "Inspect" );
+		m_CompileTexture = EditorIcons::GetIcon( "NoIcon" );
 	}
 
 	void NodeEditor::Reload()
@@ -221,24 +226,26 @@ namespace Saturn {
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
 			m_ViewportSize = ImGui::GetContentRegionAvail();
 
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar;	
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar ;
 
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
+
+		ImGui::BeginChild( "Topbar", ImVec2( 0, 30 ), 0, flags );
 		ImGui::BeginHorizontal( "##TopbarItems" );
 
-		if( ImGui::Button( "Zoom to content" ) )
+		if( Auxiliary::ImageButton( m_ZoomTexture, { 24, 24 } ) )
 			ed::NavigateToContent( 1.0f );
 
-		if( ImGui::Button( "Compile & Save" ) )
+		if( Auxiliary::ImageButton( m_CompileTexture, { 24, 24 } ) )
 		{
 			if( m_Runtime ) m_Runtime->Execute();
 		}
 
 		ImGui::EndHorizontal();
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
 
-		// Side bar if on the same line.
-		//ImGui::SameLine( 0.0f, 12.0f );
-
-		ed::Begin( "Node Editor" );
+		ed::Begin( "Node Editor", ImGui::GetContentRegionAvail() );
 
 		auto cursorTopLeft = ImGui::GetCursorScreenPos();
 
@@ -302,6 +309,7 @@ namespace Saturn {
 						// Pin is the same, reject.
 						if( EndPin == StartPin )
 						{
+							showLabel( "x Cannot link to self!", ImColor( 45, 32, 32, 180 ) );
 							ed::RejectNewItem( ImColor( 225, 0, 0 ), 2.0f );
 						}
 						else if( EndPin->Kind == StartPin->Kind )  // Same kind, input/output into input/output.
@@ -312,7 +320,7 @@ namespace Saturn {
 						}
 						else if( EndPin->Type != StartPin->Type )
 						{
-							showLabel( "x Incompatible Pin Type", ImColor( 45, 32, 32, 180 ) );
+							showLabel( "x Incompatible Pin Type!", ImColor( 45, 32, 32, 180 ) );
 
 							ed::RejectNewItem( ImColor( 225, 128, 128 ), 2.0f );
 						}
@@ -329,7 +337,31 @@ namespace Saturn {
 						}
 					}
 				}
+
+				// If the link is not connected, user maybe want to create a new node rather than link it.
+				ed::PinId id = 0;
+				if( ed::QueryNewNode( &id ) )
+				{
+					m_NewLinkPin = FindPin( UUID( id.Get() ) );
+
+					if( m_NewLinkPin )
+						showLabel( "+ Create Node", ImColor( 32, 45, 32, 180 ) );
+
+					if( ed::AcceptNewItem() )
+					{
+						m_CreateNewNode = true;
+
+						m_NewNodeLinkPin = FindPin( UUID( id.Get() ) );
+						m_NewLinkPin = nullptr;
+
+						ed::Suspend();
+						ImGui::OpenPopup( "Create New Node" );
+						ed::Resume();
+					}
+				}
 			}
+			else
+				m_NewLinkPin = nullptr;
 			
 			ed::EndCreate();
 
@@ -379,236 +411,10 @@ namespace Saturn {
 			ed::EndDelete();
 		}
 
-		/*
-		for( auto& node : m_Nodes )
-		{
-			for( auto& output : node->Outputs )
-			{
-				if( m_NewLinkPin && !CanCreateLink( m_NewLinkPin, output ) && output != m_NewLinkPin )
-					alpha = alpha * ( 48.0f / 255.0f );
-
-				if( !output->Name.empty() )
-				{
-					ImGui::Spring( 0 );
-					ImGui::TextUnformatted( output->Name.c_str() );
-
-					// Check if output has is an AssetHandle
-					// TODO: Allow for certain asset types.
-					if( output->Type == PinType::AssetHandle )
-					{
-						auto& rSavedUUID = node->ExtraData.Read<UUID>( 0 );
-						
-						std::string name = "Select Asset";
-
-						if( rSavedUUID != 0 )
-							name = std::to_string( rSavedUUID );
-						else if( !s_SelectAssetInfo.AssetName.empty() )
-							name = s_SelectAssetInfo.AssetName;
-
-						if( ImGui::Button( name.c_str() ) )
-						{
-							OpenAssetPopup = true;
-							s_SelectAssetInfo.ID     = output->ID;
-							s_SelectAssetInfo.NodeID = node->ID;
-						}
-					}
-					else if( node->Name == "Color Picker" && output->Type == PinType::Material_Sampler2D )
-					{
-						ImGui::BeginHorizontal( "PickerH" );
-
-						if( ImGui::Button( "Color" ) ) 
-						{
-							OpenAssetColorPicker = true;
-
-							s_SelectAssetInfo.ID = output->ID;
-							s_SelectAssetInfo.NodeID = node->ID;
-						}
-
-						Auxiliary::DrawColoredRect( { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() }, node->ExtraData.Read<ImVec4>( 0 ) );
-						
-						ImGui::EndHorizontal();
-					}
-				}
-			}
-		}
-
-		ed::Suspend();
-
-		if( OpenAssetPopup )
-			ImGui::OpenPopup( "AssetFinderPopup" );
-
-		if( OpenAssetColorPicker )
-			ImGui::OpenPopup( "AssetColorPicker" );
-
-		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
-		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
-		{
-			bool PopupModified = false;
-
-			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
-			{
-				for( const auto& [assetID, rAsset] : AssetManager::Get().GetCombinedAssetMap() )
-				{
-					if( rAsset->Type != s_SelectAssetInfo.DesiredAssetType && s_SelectAssetInfo.DesiredAssetType != AssetType::Unknown )
-						continue;
-
-					bool Selected = ( s_SelectAssetInfo.Asset == assetID );
-
-					if( ImGui::Selectable( rAsset->GetName().c_str(), Selected ) )
-					{
-						s_SelectAssetInfo.Asset = assetID;
-						s_SelectAssetInfo.AssetName = rAsset->GetName();
-
-						Ref<Node> Node = nullptr;
-
-						for( auto& rNode : m_Nodes )
-						{
-							if( rNode->ID == s_SelectAssetInfo.NodeID )
-							{
-								Node = rNode;
-								break;
-							}
-						}
-
-						if( Node )
-						{
-							// Write asset id
-							Node->ExtraData.Write( ( uint8_t* ) &assetID, sizeof( UUID ), 0 );
-						}
-
-						PopupModified = true;
-					}
-
-					if( Selected )
-						ImGui::SetItemDefaultFocus();
-				}
-
-				ImGui::EndListBox();
-			}
-
-			if( PopupModified )
-			{
-				ImGui::CloseCurrentPopup();
-
-				s_SelectAssetInfo.Asset     = 0;
-				s_SelectAssetInfo.ID        = 0;
-				s_SelectAssetInfo.NodeID    = 0;
-				s_SelectAssetInfo.AssetName = "";
-				s_SelectAssetInfo.DesiredAssetType = AssetType::Unknown;
-			}
-
-			ImGui::EndPopup();
-		}
-
-		ImGui::SetNextWindowSize( { 350.0f, 0.0f } );
-		if( ImGui::BeginPopup( "AssetColorPicker", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
-		{
-			bool PopupModified = false;
-
-			ImVec4 color = ImVec4( 114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f );
-
-			Ref<Node> Node = nullptr;
-			Node = FindNode( s_SelectAssetInfo.NodeID );
-
-			color = Node->ExtraData.Read<ImVec4>( 0 );
-
-			if( color.x == 0 && color.y == 0 && color.z == 0  && color.w == 0 )
-				color = ImVec4( 114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f );
-
-			if( ImGui::ColorPicker3( "Color Picker", (float*)&color ) ) 
-			{
-				Node->ExtraData.Write( (uint8_t*)&color, sizeof( ImVec4 ), 0 );
-
-				PopupModified = true;
-			}
-			else
-			{
-				if( PopupModified )
-				{
-					ImGui::CloseCurrentPopup();
-
-					s_SelectAssetInfo.Asset = 0;
-					s_SelectAssetInfo.ID = 0;
-					s_SelectAssetInfo.NodeID = 0;
-					s_SelectAssetInfo.AssetName = "";
-					s_SelectAssetInfo.DesiredAssetType = AssetType::Unknown;
-				}
-			}
-
-			/*
-			if( PopupModified )
-			{
-				ImGui::CloseCurrentPopup();
-
-				s_SelectAssetInfo.Asset = 0;
-				s_SelectAssetInfo.ID = 0;
-				s_SelectAssetInfo.NodeID = 0;
-				s_SelectAssetInfo.AssetName = "";
-			}
-
-			ImGui::EndPopup();
-		}
-		*/
-		
-//		ed::Resume();
-
-/*
-		if( !m_CreateNewNode )
-		{
-			if( ed::BeginCreate( ImColor( 255, 255, 255 ), 2.0f ) )
-			{
-				auto showLabel = []( const char* label, ImColor color )
-				{
-					ImGui::SetCursorPosY( ImGui::GetCursorPosY() - ImGui::GetTextLineHeight() );
-					auto size = ImGui::CalcTextSize( label );
-
-					auto padding = ImGui::GetStyle().FramePadding;
-					auto spacing = ImGui::GetStyle().ItemSpacing;
-
-					ImGui::SetCursorPos( ImGui::GetCursorPos() + ImVec2( spacing.x, -spacing.y ) );
-
-					auto rectMin = ImGui::GetCursorScreenPos() - padding;
-					auto rectMax = ImGui::GetCursorScreenPos() + size + padding;
-
-					auto drawList = ImGui::GetWindowDrawList();
-					drawList->AddRectFilled( rectMin, rectMax, color, size.y * 0.15f );
-					ImGui::TextUnformatted( label );
-				};
-
-				// If the link is not connected, user maybe want to create a new node rather than link it.
-				ed::PinId id = 0;
-				if( ed::QueryNewNode( &id ) ) 
-				{
-					m_NewLinkPin = FindPin( id );
-
-					if( m_NewLinkPin  )
-						showLabel( "+ Create Node", ImColor( 32, 45, 32, 180 ) );
-
-					if( ed::AcceptNewItem() ) 
-					{
-						m_CreateNewNode = true;
-						
-						m_NewNodeLinkPin = FindPin( id );
-						m_NewLinkPin = nullptr;
-
-						ed::Suspend();
-						ImGui::OpenPopup( "Create New Node" );
-						ed::Resume();
-					}
-				}
-			}
-			else
-				m_NewLinkPin = nullptr;
-
-			ed::EndCreate();
-		}
-		*/
-
 		ImGui::SetCursorScreenPos( cursorTopLeft );
 
 		ed::Suspend();
 
-		auto openPopupPosition = ImGui::GetMousePos();
 		if( ed::ShowBackgroundContextMenu() )
 		{
 			ImGui::OpenPopup( "Create New Node" );
@@ -636,7 +442,6 @@ namespace Saturn {
 
 				ed::SetNodePosition( ed::NodeId( node->ID ), mousePos );
 
-				/*
 				if( auto& startPin = m_NewNodeLinkPin ) 
 				{
 					auto& pins = startPin->Kind == PinKind::Input ? node->Outputs : node->Inputs;
@@ -647,17 +452,16 @@ namespace Saturn {
 						{
 							auto& endPin = pin;
 
-							if( startPin->Kind == PinKind::Input )
-								std::swap( startPin, endPin );
+							//if( startPin->Kind == PinKind::Input )
+							//	std::swap( startPin, endPin );
 
-							m_Links.emplace_back( Ref<Link>::Create( GetNextID(), startPin->ID, endPin->ID ) );
+							m_Links.emplace_back( Ref<Link>::Create( UUID(), startPin->ID, endPin->ID ) );
 							m_Links.back()->Color = startPin->GetPinColor();
 
 							break;
 						}
 					}
 				}
-				*/
 			}
 
 			ImGui::EndPopup();
@@ -669,6 +473,7 @@ namespace Saturn {
 		ed::Resume();
 
 		ed::End();
+
 		ImGui::End(); // NODE_EDITOR
 	}
 

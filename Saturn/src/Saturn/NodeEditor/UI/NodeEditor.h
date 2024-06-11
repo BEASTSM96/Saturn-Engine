@@ -99,6 +99,9 @@ namespace Saturn {
 
 		ImVec2 m_ViewportSize;
 
+		Ref<Texture2D> m_ZoomTexture;
+		Ref<Texture2D> m_CompileTexture;
+
 	private:
 		friend class NodeEditorCache;
 		friend class NodeCacheSettings;
