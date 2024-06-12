@@ -62,6 +62,7 @@ namespace Saturn {
 		Subtract,
 		Multiply,
 		Divide,
+		Mix,
 		None
 	};
 

@@ -236,9 +236,27 @@ namespace Saturn {
 		if( Auxiliary::ImageButton( m_ZoomTexture, { 24, 24 } ) )
 			ed::NavigateToContent( 1.0f );
 
+		if( ImGui::IsItemHovered() )
+		{
+			ImGui::BeginTooltip();
+
+			ImGui::Text( "Zoom in and find the content." );
+
+			ImGui::EndTooltip();
+		}
+
 		if( Auxiliary::ImageButton( m_CompileTexture, { 24, 24 } ) )
 		{
 			if( m_Runtime ) m_Runtime->Execute();
+		}
+
+		if( ImGui::IsItemHovered() )
+		{
+			ImGui::BeginTooltip();
+
+			ImGui::Text( "Compile and evaluate the node editor." );
+
+			ImGui::EndTooltip();
 		}
 
 		ImGui::EndHorizontal();
@@ -298,6 +316,7 @@ namespace Saturn {
 
 					m_NewLinkPin = StartPin ? StartPin : EndPin;
 
+					// If we started from an input swap the start to the ouput side
 					if( StartPin->Kind == PinKind::Input )
 					{
 						std::swap( StartPin, EndPin );
@@ -452,10 +471,14 @@ namespace Saturn {
 						{
 							auto& endPin = pin;
 
-							//if( startPin->Kind == PinKind::Input )
-							//	std::swap( startPin, endPin );
+							UUID startID = startPin->ID;
+							UUID endID = endPin->ID;
 
-							m_Links.emplace_back( Ref<Link>::Create( UUID(), startPin->ID, endPin->ID ) );
+							// Start of the link must be the output pin
+							if( startPin->Kind == PinKind::Input ) 
+								std::swap( startID, endID );
+
+							m_Links.emplace_back( Ref<Link>::Create( UUID(), startID, endID ) );
 							m_Links.back()->Color = startPin->GetPinColor();
 
 							break;
@@ -548,7 +571,6 @@ namespace Saturn {
 
 	void NodeEditor::DeserialiseData( std::ifstream& rStream )
 	{
-		/*
 		NodeCacheSettings::Get().ReadEditorSettings( this );
 
 		m_Name = RawSerialisation::ReadString( rStream );
@@ -558,15 +580,16 @@ namespace Saturn {
 		size_t mapSize = 0;
 		RawSerialisation::ReadObject( mapSize, rStream );
 
-		m_Nodes.resize( mapSize );
-
 		for( size_t i = 0; i < mapSize; i++ )
 		{
+			UUID key = 0;
+			UUID::Deserialise( key, rStream );
+
 			Ref<Node> node = Ref<Node>::Create();
 
 			Node::Deserialise( node, rStream );
 
-			m_Nodes[ i ] = node;
+			m_Nodes[ key ] = node;
 		}
 
 		mapSize = 0;
@@ -582,6 +605,5 @@ namespace Saturn {
 
 			m_Links[ i ] = link;
 		}
-		*/
 	}
 }

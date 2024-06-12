@@ -68,7 +68,9 @@ namespace Saturn {
 	public:
 		UUID ID = 0;
 
+		// Will always be an output pin.
 		UUID StartPinID = 0;
+		// Will always be an input pin.
 		UUID EndPinID = 0;
 
 		ImColor Color;

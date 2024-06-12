@@ -49,11 +49,6 @@ namespace Saturn {
 
 		void Open( bool open ) { m_WindowOpen = open; }
 
-		void SetDetailsFunction( std::function<void( Ref<Node> )>&& rrDetailsFunction )
-		{
-			m_DetailsFunction = std::move( rrDetailsFunction );
-		}
-
 		// Happens when the user clicks on the empty space.
 		void SetCreateNewNodeFunction( std::function<Ref<Node>()>&& rrCreateNewNodeFunction )
 		{
@@ -93,7 +88,6 @@ namespace Saturn {
 		Ref<Pin> m_NewLinkPin = nullptr;
 		Ref<Pin> m_NewNodeLinkPin = nullptr;
 
-		std::function<void( Ref<Node> )> m_DetailsFunction;
 		std::function<Ref<Node>()> m_CreateNewNodeFunction;
 		std::function<void()> m_OnClose;
 

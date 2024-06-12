@@ -202,7 +202,7 @@ namespace Saturn::Auxiliary {
 				std::filesystem::copy_file( s_ImportSoundPath, rImportTargetPath / s_ImportSoundPath.filename() );
 
 				auto assetPath = rImportTargetPath / s_ImportSoundPath.filename();
-				assetPath.replace_extension( ".s2d" );
+				assetPath.replace_extension( ".msnd" );
 
 				assetPath = std::filesystem::relative( assetPath, Project::GetActiveProject()->GetRootDir() );
 
