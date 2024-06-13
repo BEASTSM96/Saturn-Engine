@@ -36,7 +36,6 @@
 #include "Texture.h"
 #include "Mesh.h"
 #include "Material.h"
-#include "MaterialInstance.h"
 #include "ComputePipeline.h"
 #include "Renderer2D.h"
 #include "Saturn/ImGui/ImGuiAuxiliary.h"

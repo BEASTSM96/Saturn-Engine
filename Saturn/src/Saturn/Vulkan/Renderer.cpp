@@ -33,7 +33,6 @@
 
 #include "VulkanDebug.h"
 #include "DescriptorSet.h"
-#include "MaterialInstance.h"
 #include "Shader.h"
 #include "Framebuffer.h"
 

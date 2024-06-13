@@ -416,7 +416,7 @@ namespace Saturn {
 			m_CurrentQuad->Position = transform * m_QuadVertexPositions[ i ];
 			m_CurrentQuad->Color = color;
 			m_CurrentQuad->TexCoord = TexCoord[ i ];
-			m_CurrentQuad->TextureIndex = textureID;
+			m_CurrentQuad->TextureIndex = (float)textureID;
 
 			m_CurrentQuad++;
 		}
@@ -476,7 +476,7 @@ namespace Saturn {
 			m_CurrentQuad->Position = position + CamRight * ( m_QuadVertexPositions[ i ].x ) * rSize.x + CamUp * m_QuadVertexPositions[ i ].y * rSize.y;
 			m_CurrentQuad->Color = color;
 			m_CurrentQuad->TexCoord = TexCoord[ i ];
-			m_CurrentQuad->TextureIndex = textureID;
+			m_CurrentQuad->TextureIndex = (float)textureID;
 
 			m_CurrentQuad++;
 		}

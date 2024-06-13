@@ -113,10 +113,6 @@ namespace Saturn {
 		m_PushConstantData = rOther->m_PushConstantData;
 	}
 
-	void Material::Bind( const Ref< StaticMesh >& rMesh, Submesh& rSubmsh, Ref< Shader >& Shader )
-	{
-	}
-
 	void Material::Bind( VkCommandBuffer CommandBuffer, Ref< Shader >& Shader )
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();

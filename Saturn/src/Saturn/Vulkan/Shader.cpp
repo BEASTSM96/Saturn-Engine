@@ -350,7 +350,7 @@ namespace Saturn {
 				if( texture.Name == rName )
 				{
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = ImageInfos.data();
-					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ImageInfos.size();
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ( uint32_t ) ImageInfos.size();
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
 
 					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
@@ -362,7 +362,7 @@ namespace Saturn {
 				if( texture.Name == rName )
 				{
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = ImageInfos.data();
-					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ImageInfos.size();
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ( uint32_t ) ImageInfos.size();
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
 
 					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );

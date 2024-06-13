@@ -32,7 +32,6 @@
 #include "VulkanContext.h"
 #include "Renderer.h"
 #include "DescriptorSet.h"
-#include "MaterialInstance.h"
 
 #include "Saturn/Serialisation/AssetRegistrySerialiser.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"

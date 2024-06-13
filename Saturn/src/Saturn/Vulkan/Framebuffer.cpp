@@ -372,7 +372,7 @@ namespace Saturn {
 			ColorSwizzle = std::find( FormatsRGB.begin(), FormatsRGB.end(), VulkanContext::Get().GetSurfaceFormat().format ) != FormatsRGB.end();
 		}
 
-		Auxiliary::WriteImageFile( rPath, Auxiliary::ImageFileType::PNG, m_Specification.Width, m_Specification.Height, 4, pData, SubresourceLayout.rowPitch );
+		Auxiliary::WriteImageFile( rPath, Auxiliary::ImageFileType::PNG, m_Specification.Width, m_Specification.Height, 4, pData, (int)SubresourceLayout.rowPitch );
 		
 		vkUnmapMemory( VulkanContext::Get().GetDevice(), ImageMemory );
 		vkFreeMemory( VulkanContext::Get().GetDevice(), ImageMemory, nullptr );
