@@ -139,6 +139,63 @@ namespace Saturn::Auxiliary {
 		return Modified;
 	}
 
+	template<typename Function>
+	inline bool DrawAssetFinder( AssetType allowedTypes, bool* rOpen, Function&& rrFunction )
+	{
+		bool Modified = false;
+
+		if( *rOpen == true && !ImGui::IsPopupOpen( "AssetFinderPopup" ) )
+		{
+			ImGui::OpenPopup( "AssetFinderPopup" );
+			*rOpen = true;
+		}
+
+		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
+		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+		{
+			bool PopupModified = false;
+
+			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
+			{
+				for( const auto& [assetID, rAsset] : AssetManager::Get().GetAssetRegistry()->GetAssetMap() )
+				{
+					bool Selected = ( false );
+
+					ImGui::PushID( static_cast< int >( assetID ) );
+
+					if( rAsset->GetAssetType() == allowedTypes || allowedTypes == AssetType::Unknown )
+					{
+						if( ImGui::Selectable( rAsset->Name.c_str(), Selected ) )
+						{
+							rrFunction( rAsset );
+
+							PopupModified = true;
+						}
+					}
+
+					ImGui::PopID();
+
+					if( Selected )
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndListBox();
+			}
+
+			if( PopupModified )
+			{
+				ImGui::CloseCurrentPopup();
+
+				Modified = true;
+				*rOpen = false;
+			}
+
+			ImGui::EndPopup();
+		}
+
+		return Modified;
+	}
+
 	template<typename Ty, typename Fn>
 	bool DrawAssetDragDropTarget( const char* label, const char* assetName, UUID& returnID, Fn&& function ) 
 	{

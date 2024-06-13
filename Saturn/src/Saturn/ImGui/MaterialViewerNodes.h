@@ -28,95 +28,74 @@
 
 #pragma once
 
-#include "Saturn/Core/Memory/Buffer.h"
-#include "Saturn/Core/UUID.h"
-#include "Pin.h"
-
-#include <string>
-#include <vector>
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
-namespace util = ax::NodeEditor::Utilities;
-
-namespace ax::NodeEditor::Utilities {
-	struct BlueprintNodeBuilder;
-}
+#include "Saturn/NodeEditor/NodeEditorBase.h"
 
 namespace Saturn {
 
-	enum class NodeRenderType
-	{
-		Blueprint,
-		Comment
-	};
+	class MaterialAsset;
+	struct MaterialEvaluatorValue;
 
-	enum class NodeExecutionType
-	{
-		Value,
-		AssetID, // Values and Asset IDs are different as values can be added together however AssetIDs can not
-		Sampler2D,
-		MaterialOutput,
-		ColorPicker,
-		Add,
-		Subtract,
-		Multiply,
-		Divide,
-		Mix,
-		None
-	};
-
-	struct PinSpecification
-	{
-		std::string Name;
-		PinType     Type = PinType::Object;
-	};
-
-	struct NodeSpecification
-	{
-		std::string                   Name;
-		std::vector<PinSpecification> Outputs;
-		std::vector<PinSpecification> Inputs;
-		ImColor						  Color;
-	};
-
-	class NodeEditor;
-	class NodeEditorBase;
-	class NodeEditorRuntime;
-
-	class Node : public RefTarget
+	class MaterialOutputNode : public Node
 	{
 	public:
-		Node() = default;
-		Node( const NodeSpecification& rSpec );
-		virtual ~Node();
+		struct RuntimeData
+		{
+			Ref<MaterialAsset> MaterialAsset = nullptr;
+		};
+	public:
+		MaterialOutputNode() = default;
+		MaterialOutputNode( const NodeSpecification& rSpec );
 
-		void Destroy();
+		virtual ~MaterialOutputNode();
 
-		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase );
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
+		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) override;
 
 	public:
-		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
+		RuntimeData RuntimeData;
 
-	public:
-		UUID ID = 0;
-		std::string Name;
-		std::vector<Ref<Pin>> Inputs;
-		std::vector<Ref<Pin>> Outputs;
-		ImColor Color;
-		NodeRenderType Type = NodeRenderType::Blueprint;
-		NodeExecutionType ExecutionType = NodeExecutionType::None;
-		ImVec2 Size;
-		ImVec2 Position;
-		bool CanBeDeleted = true;
-
-		// Any other extra data that should be stored in the node.
-		Buffer ExtraData;
-
-		std::string ActiveState;
-		std::string SavedState;
+	private:
+		void HandleAlbedo( const MaterialEvaluatorValue& rTextureValue );
 	};
 
+	class MaterialSampler2DNode : public Node 
+	{
+	public:
+		MaterialSampler2DNode() = default;
+		MaterialSampler2DNode( const NodeSpecification& rSpec );
+
+		virtual ~MaterialSampler2DNode();
+
+		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) override;
+
+	public:
+		size_t TextureSlot = 0;
+	};
+
+	class MaterialColorPickerNode : public Node
+	{
+	public:
+		MaterialColorPickerNode() = default;
+		MaterialColorPickerNode( const NodeSpecification& rSpec );
+
+		virtual ~MaterialColorPickerNode();
+
+		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) override;
+
+	public:
+		size_t TextureSlot = 0;
+	};
+
+	class MaterialNodeLibrary
+	{
+	public:
+		static NodeEditorType GetStaticType() { return NodeEditorType::Material; }
+
+		static Ref<MaterialOutputNode> SpawnOutputNode( Ref<NodeEditorBase> rNodeEditor );
+
+		static Ref<Node> SpawnGetAsset( Ref<NodeEditorBase> rNodeEditor );
+		static Ref<MaterialColorPickerNode> SpawnColorPicker( Ref<NodeEditorBase> rNodeEditor );
+		static Ref<MaterialSampler2DNode> SpawnSampler2D( Ref<NodeEditorBase> rNodeEditor );
+
+		static Ref<Node> SpawnMixColors( Ref<NodeEditorBase> rNodeEditor );
+	};
 }

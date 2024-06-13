@@ -38,7 +38,7 @@ namespace Saturn {
 		NodeEditorRuntime() = default;
 		virtual ~NodeEditorRuntime() = default;
 
-		[[nodiscard]] virtual NodeEditorCompilationStatus Execute() { return NodeEditorCompilationStatus::Failed; }
+		[[nodiscard]] virtual NodeEditorCompilationStatus EvaluateEditor() { return NodeEditorCompilationStatus::Failed; }
 
 	private:
 		friend class NodeEditorBase;

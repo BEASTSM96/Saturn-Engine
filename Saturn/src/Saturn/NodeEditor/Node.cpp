@@ -138,6 +138,49 @@ namespace Saturn {
 		ed::SetNodePosition( ed::NodeId( rObject->ID ), rObject->Position );
 	}
 
+	Node::Node( const NodeSpecification& rSpec )
+		: ID(), Name( rSpec.Name ), Color( rSpec.Color ), ExtraData()
+	{
+		for( const auto& rInputSpec : rSpec.Inputs )
+		{
+			Ref<Pin> input = Ref<Pin>::Create( UUID(), rInputSpec.Name, rInputSpec.Type, ID );
+			Inputs.push_back( input );
+
+			input->ExtraData.Allocate( 64 );
+			input->ExtraData.Zero_Memory();
+		}
+
+		for( const auto& rOutputSpec : rSpec.Outputs )
+		{
+			Ref<Pin> output = Ref<Pin>::Create( UUID(), rOutputSpec.Name, rOutputSpec.Type, ID );
+			Outputs.push_back( output );
+		}
+
+		ExtraData.Allocate( 1024 );
+		ExtraData.Zero_Memory();
+	}
+
+	Node::~Node()
+	{
+		ExtraData.Free();
+	}
+
+	void Node::Destroy()
+	{
+		for( auto& rInput : Inputs )
+		{
+			rInput = nullptr;
+		}
+
+		for( auto& rOutput : Outputs )
+		{
+			rOutput = nullptr;
+		}
+
+		Inputs.clear();
+		Outputs.clear();
+	}
+
 	void Node::Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase )
 	{
 		rBuilder.Begin( ed::NodeId( ID ) );

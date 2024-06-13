@@ -49,7 +49,6 @@
 
 #include <Saturn/Physics/PhysicsFoundation.h>
 
-#include <Saturn/Vulkan/MaterialInstance.h>
 #include <Saturn/Vulkan/ShaderBundle.h>
 #include <Saturn/Vulkan/Renderer2D.h>
 

@@ -122,7 +122,7 @@ namespace Saturn {
 		const std::vector<Ref<Link>>& GetLinks() const { return m_Links; }
 		std::vector<Ref<Link>>& GetLinks() { return m_Links; }
 
-		Ref<Node> AddNode( const NodeSpecification& spec, ImVec2 position = ImVec2( 0.0f, 0.0f ) );
+		void AddNode( Ref<Node> node );
 
 		bool IsOpen() { return m_WindowOpen; }
 

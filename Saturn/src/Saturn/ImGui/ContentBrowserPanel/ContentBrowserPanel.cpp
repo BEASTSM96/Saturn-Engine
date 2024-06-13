@@ -535,7 +535,7 @@ namespace Saturn {
 		constexpr float padding = 16.0f;
 		constexpr int thumbnailSizeX = 180;
 		constexpr int thumbnailSizeY = 180;
-		constexpr int cellSize = thumbnailSizeX + padding;
+		constexpr int cellSize = thumbnailSizeX + static_cast<int>( padding );
 		float panelWidth = ImGui::GetContentRegionAvail().x - 20.0f + ImGui::GetStyle().ScrollbarSize;
 
 		int columnCount = ( int ) ( panelWidth / cellSize );

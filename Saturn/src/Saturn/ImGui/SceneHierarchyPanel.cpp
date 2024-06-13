@@ -302,7 +302,7 @@ namespace Saturn {
 			if( isPrefab )
 				ImGui::PushStyleColor( ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4( IM_COL32( 255, 179, 0, 255 ) ) );
 
-			Clicked = ImGui::TreeNodeEx( (void*)(uint32_t)*entity, Flags, rTag.c_str() );
+			Clicked = ImGui::TreeNodeEx( (void*)entity.Get(), Flags, rTag.c_str() );
 
 			if( isPrefab )
 				ImGui::PopStyleColor();

@@ -32,6 +32,7 @@
 #include "AssetManager.h"
 
 #include "Saturn/Vulkan/Renderer.h"
+#include "Saturn/Vulkan/Mesh.h"
 #include "Saturn/Serialisation/AssetSerialisers.h"
 
 #include "TextureSourceAsset.h"

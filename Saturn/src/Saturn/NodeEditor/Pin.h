@@ -159,10 +159,10 @@ namespace Saturn {
 
 	public:
 		UUID        ID;
-		Ref<Node>	Node;
+		Ref<Node>   Node;
 		std::string Name;
-		PinType     Type;
-		PinKind     Kind;
+		PinType     Type = PinType::Flow;
+		PinKind     Kind = PinKind::Input;
 		Buffer      ExtraData;
 
 	private:

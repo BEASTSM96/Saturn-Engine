@@ -98,6 +98,8 @@ namespace Saturn {
 	{
 		m_ZoomTexture = nullptr;
 		m_CompileTexture = nullptr;
+		
+		Close();
 	}
 
 	void NodeEditor::CreateEditor()
@@ -197,6 +199,12 @@ namespace Saturn {
 	{
 		ed::DestroyEditor( m_Editor );
 		ed::SetCurrentEditor( nullptr );
+		m_Editor = nullptr;
+
+		for( auto& [id, rNode] : m_Nodes )
+		{
+			rNode->Destroy();
+		}
 
 		m_Nodes.clear();
 		m_Links.clear();
@@ -247,7 +255,7 @@ namespace Saturn {
 
 		if( Auxiliary::ImageButton( m_CompileTexture, { 24, 24 } ) )
 		{
-			if( m_Runtime ) m_Runtime->Execute();
+			if( m_Runtime ) m_Runtime->EvaluateEditor();
 		}
 
 		if( ImGui::IsItemHovered() )

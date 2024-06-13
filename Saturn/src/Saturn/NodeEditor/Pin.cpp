@@ -168,6 +168,7 @@ namespace Saturn {
 	void Pin::RenderOutput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked )
 	{
 		bool OpenAssetColorPicker = false;
+		bool OpenAssetIDPopup = false;
 
 		auto alpha = ImGui::GetStyle().Alpha;
 
@@ -183,23 +184,17 @@ namespace Saturn {
 			// TODO: Allow for certain asset types.
 			if( Type == PinType::AssetHandle )
 			{
-				/*
 				auto& rSavedUUID = Node->ExtraData.Read<UUID>( 0 );
 
 				std::string name = "Select Asset";
 
 				if( rSavedUUID != 0 )
 					name = std::to_string( rSavedUUID );
-				else if( !s_SelectAssetInfo.AssetName.empty() )
-					name = s_SelectAssetInfo.AssetName;
-
+				
 				if( ImGui::Button( name.c_str() ) )
 				{
-					OpenAssetPopup = true;
-					s_SelectAssetInfo.ID = output->ID;
-					s_SelectAssetInfo.NodeID = node->ID;
+					OpenAssetIDPopup = true;
 				}
-				*/
 			}
 			else if( Node->Name == "Color Picker" && Type == PinType::Material_Sampler2D )
 			{
@@ -235,7 +230,7 @@ namespace Saturn {
 		if( OpenAssetColorPicker )
 		{
 			ImGui::OpenPopup( "AssetColorPicker" );
-		}	
+		}
 
 		ImGui::SetNextWindowSize( { 350.0f, 0.0f } );
 		if( ImGui::BeginPopup( "AssetColorPicker", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )

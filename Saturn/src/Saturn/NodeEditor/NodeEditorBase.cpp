@@ -57,8 +57,9 @@ namespace Saturn {
 
 		nodeSpec.Name = "Add Floats";
 		
-		Ref<Node> node = nodeEditorBase->AddNode( nodeSpec );
+		Ref<Node> node = Ref<Node>::Create( nodeSpec );
 		node->ExecutionType = NodeExecutionType::Add;
+		nodeEditorBase->AddNode( node );
 
 		return node;
 	}
@@ -76,8 +77,9 @@ namespace Saturn {
 
 		nodeSpec.Name = "Subtract Floats";
 
-		Ref<Node> node = nodeEditorBase->AddNode( nodeSpec );
+		Ref<Node> node = Ref<Node>::Create( nodeSpec );
 		node->ExecutionType = NodeExecutionType::Subtract;
+		nodeEditorBase->AddNode( node );
 
 		return node;
 	}
@@ -95,8 +97,9 @@ namespace Saturn {
 
 		nodeSpec.Name = "Multiply Floats";
 
-		Ref<Node> node = nodeEditorBase->AddNode( nodeSpec );
+		Ref<Node> node = Ref<Node>::Create( nodeSpec );
 		node->ExecutionType = NodeExecutionType::Multiply;
+		nodeEditorBase->AddNode( node );
 
 		return node;
 	}
@@ -114,8 +117,9 @@ namespace Saturn {
 
 		nodeSpec.Name = "Divide Floats";
 
-		Ref<Node> node = nodeEditorBase->AddNode( nodeSpec );
+		Ref<Node> node = Ref<Node>::Create( nodeSpec );
 		node->ExecutionType = NodeExecutionType::Divide;
+		nodeEditorBase->AddNode( node );
 
 		return node;
 	}
@@ -328,38 +332,13 @@ namespace Saturn {
 		}
 	}
 
-	Ref<Node> NodeEditorBase::AddNode( const NodeSpecification& spec, ImVec2 position /*= ImVec2( 0.0f, 0.0f ) */ )
+	void NodeEditorBase::AddNode( Ref<Node> node )
 	{
-		Ref<Node> node = Ref<Node>::Create( UUID(), spec.Name.c_str(), spec.Color );
 		m_Nodes[ node->ID ] = node;
-
-		for( auto& rOutput : spec.Outputs )
-		{
-			Ref<Pin> pin = Ref<Pin>::Create( UUID(), rOutput.Name.c_str(), rOutput.Type, node->ID );
-			node->Outputs.push_back( pin );
-
-			pin->ExtraData.Allocate( 64 );
-			pin->ExtraData.Zero_Memory();
-		}
-
-		for( auto& rInput : spec.Inputs )
-		{
-			Ref<Pin> pin = Ref<Pin>::Create( UUID(), rInput.Name.c_str(), rInput.Type, node->ID );
-			node->Inputs.push_back( pin );
-
-			// This should be more than enough data for one pin, holds 16 floats.
-			pin->ExtraData.Allocate( 64 );
-			pin->ExtraData.Zero_Memory();
-		}
 
 		BuildNode( node );
 
-		if( position.x != 0.0f && position.y != 0.0f )
-			ed::SetNodePosition( ed::NodeId( node->ID ), position );
-
-		node->ExtraData.Allocate( 1024 );
-		node->ExtraData.Zero_Memory();
-
-		return node;
+		if( node->Position.x != 0.0f && node->Position.y != 0.0f )
+			ed::SetNodePosition( ed::NodeId( node->ID ), node->Position );
 	}
 }

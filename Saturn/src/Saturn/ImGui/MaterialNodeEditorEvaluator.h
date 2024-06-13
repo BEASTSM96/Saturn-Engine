@@ -28,95 +28,58 @@
 
 #pragma once
 
-#include "Saturn/Core/Memory/Buffer.h"
+#include "Saturn/NodeEditor/Runtime/NodeEditorRuntime.h"
+
+#include "Saturn/Core/Base.h"
 #include "Saturn/Core/UUID.h"
-#include "Pin.h"
 
-#include <string>
-#include <vector>
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
-namespace util = ax::NodeEditor::Utilities;
-
-namespace ax::NodeEditor::Utilities {
-	struct BlueprintNodeBuilder;
-}
+#include <glm/glm.hpp>
+#include <stack>
 
 namespace Saturn {
 
-	enum class NodeRenderType
+	struct MaterialEvaluatorValue
 	{
-		Blueprint,
-		Comment
+		uint32_t Slot = 0;
+		glm::vec4 Color;
+		UUID TextureAssetID = 0;
 	};
 
-	enum class NodeExecutionType
-	{
-		Value,
-		AssetID, // Values and Asset IDs are different as values can be added together however AssetIDs can not
-		Sampler2D,
-		MaterialOutput,
-		ColorPicker,
-		Add,
-		Subtract,
-		Multiply,
-		Divide,
-		Mix,
-		None
-	};
-
-	struct PinSpecification
-	{
-		std::string Name;
-		PinType     Type = PinType::Object;
-	};
-
-	struct NodeSpecification
-	{
-		std::string                   Name;
-		std::vector<PinSpecification> Outputs;
-		std::vector<PinSpecification> Inputs;
-		ImColor						  Color;
-	};
-
-	class NodeEditor;
+	class MaterialAsset;
 	class NodeEditorBase;
-	class NodeEditorRuntime;
+	class Node;
 
-	class Node : public RefTarget
+	class MaterialNodeEditorEvaluator : public NodeEditorRuntime
 	{
 	public:
-		Node() = default;
-		Node( const NodeSpecification& rSpec );
-		virtual ~Node();
+		MaterialNodeEditorEvaluator( const MaterialNodeEditorEvaluator& ) = delete;
 
-		void Destroy();
-
-		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase );
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
-
-	public:
-		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
+		struct MaterialNodeEdInfo
+		{
+			Ref<MaterialAsset> HostMaterial;
+			UUID OutputNodeID;
+		};
 
 	public:
-		UUID ID = 0;
-		std::string Name;
-		std::vector<Ref<Pin>> Inputs;
-		std::vector<Ref<Pin>> Outputs;
-		ImColor Color;
-		NodeRenderType Type = NodeRenderType::Blueprint;
-		NodeExecutionType ExecutionType = NodeExecutionType::None;
-		ImVec2 Size;
-		ImVec2 Position;
-		bool CanBeDeleted = true;
+		MaterialNodeEditorEvaluator( const MaterialNodeEdInfo& rInfo );
+		virtual ~MaterialNodeEditorEvaluator() = default;
 
-		// Any other extra data that should be stored in the node.
-		Buffer ExtraData;
+		void SetTargetNodeEditor( Ref<NodeEditorBase> nodeEditor ) { m_NodeEditor = nodeEditor; }
 
-		std::string ActiveState;
-		std::string SavedState;
+		[[nodiscard]] virtual NodeEditorCompilationStatus EvaluateEditor() override;
+
+		void AddToValueStack( const MaterialEvaluatorValue& rValue );
+		std::stack<MaterialEvaluatorValue>& GetTextureStack() { return m_ValueStack; }
+
+	private:
+		size_t IsOutputsLinkedToOutNode( const Ref<Node>& rNode );
+
+	private:
+		MaterialNodeEdInfo m_Info;
+		Ref<NodeEditorBase> m_NodeEditor;
+		std::stack<MaterialEvaluatorValue> m_ValueStack;
+
+	private:
+		friend class MaterialOutputNode;
 	};
-
 }
