@@ -172,8 +172,6 @@ namespace Saturn {
 
 			pNode->ActiveState.assign( pData, size );
 
-			SAT_CORE_INFO( "Assigned Node data is: {0}", pNode->ActiveState );
-
 			return true;
 		};
 
