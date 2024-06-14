@@ -26,102 +26,43 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "SoundOutputNode.h"
 
-#include "Saturn/Core/Memory/Buffer.h"
-#include "Saturn/Core/UUID.h"
-#include "Pin.h"
+#include "Saturn/Audio/SoundNodeEditor/SoundEditorEvaluator.h"
 
-#include <string>
-#include <vector>
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
-namespace util = ax::NodeEditor::Utilities;
-
-namespace ax::NodeEditor::Utilities {
-	struct BlueprintNodeBuilder;
-}
+#include "Saturn/Audio/AudioSystem.h"
+#include "Saturn/Audio/Sound.h"
 
 namespace Saturn {
 
-	enum class NodeRenderType
+	SoundOutputNode::SoundOutputNode( const NodeSpecification& rSpec )
+		: Node( rSpec )
 	{
-		Blueprint,
-		Comment
-	};
+		ExecutionType = NodeExecutionType::SoundOutput;
+		CanBeDeleted = false;
+		Color = ImColor( 237, 202, 5, 255 );
+	}
 
-	enum class NodeExecutionType
+	SoundOutputNode::~SoundOutputNode()
 	{
-		Value,
-		AssetID, // Values and Asset IDs are different as values can be added together however AssetIDs can not
-		Sampler2D,
-		MaterialOutput,
-		ColorPicker,
-		Add,
-		Subtract,
-		Multiply,
-		Divide,
-		Mix,
-		SoundOutput,
-		SoundPlayer,
-		Random,
-		None
-	};
+	}
 
-	struct PinSpecification
+	void SoundOutputNode::EvaluateNode( NodeEditorRuntime* evaluator )
 	{
-		std::string Name;
-		PinType     Type = PinType::Object;
-	};
+		SoundEditorEvaluator* pSoundEditorEvaluator = dynamic_cast<SoundEditorEvaluator*>( evaluator );
+		
+		if( !pSoundEditorEvaluator )
+			return;
 
-	struct NodeSpecification
-	{
-		std::string                   Name;
-		std::vector<PinSpecification> Outputs;
-		std::vector<PinSpecification> Inputs;
-		ImColor						  Color;
-	};
+		std::stack<UUID>& soundStack = pSoundEditorEvaluator->SoundStack;
 
-	class NodeEditor;
-	class NodeEditorBase;
-	class NodeEditorRuntime;
+		while( !soundStack.empty() )
+		{
+			const UUID soundAssetID = soundStack.top();
+			soundStack.pop();
 
-	class Node : public RefTarget
-	{
-	public:
-		Node() = default;
-		Node( const NodeSpecification& rSpec );
-		virtual ~Node();
-
-		void Destroy();
-
-		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase );
-
-	public:
-		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
-
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
-		virtual void OnRenderOutput( UUID pinID ) {}
-
-	public:
-		UUID ID = 0;
-		std::string Name;
-		std::vector<Ref<Pin>> Inputs;
-		std::vector<Ref<Pin>> Outputs;
-		ImColor Color;
-		NodeRenderType Type = NodeRenderType::Blueprint;
-		NodeExecutionType ExecutionType = NodeExecutionType::None;
-		ImVec2 Size;
-		ImVec2 Position;
-		bool CanBeDeleted = true;
-
-		// Any other extra data that should be stored in the node.
-		Buffer ExtraData;
-
-		std::string ActiveState;
-		std::string SavedState;
-	};
-
+			AudioSystem::Get().RequestNewSound( soundAssetID );
+		}
+	}
 }

@@ -282,11 +282,11 @@ namespace Saturn {
 		m_Runtime = runtime;
 	}
 
-	std::vector<UUID> NodeEditorBase::FindNeighbors( Ref<Node>& rNode )
+	std::vector<UUID> NodeEditorBase::FindNeighbors( Ref<Node> node )
 	{
 		std::vector<UUID> ids;
 
-		for( const auto& rInput : rNode->Inputs )
+		for( const auto& rInput : node->Inputs )
 		{
 			if( !IsLinked( rInput->ID ) )
 				continue;

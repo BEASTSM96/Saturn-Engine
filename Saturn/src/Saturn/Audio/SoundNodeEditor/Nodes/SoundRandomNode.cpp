@@ -26,102 +26,65 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "SoundRandomNode.h"
 
-#include "Saturn/Core/Memory/Buffer.h"
-#include "Saturn/Core/UUID.h"
-#include "Pin.h"
+#include "Saturn/NodeEditor/NodeEditorBase.h"
 
-#include <string>
-#include <vector>
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
-namespace util = ax::NodeEditor::Utilities;
-
-namespace ax::NodeEditor::Utilities {
-	struct BlueprintNodeBuilder;
-}
+#include "SoundPlayerNode.h"
+#include "Saturn/Audio/SoundNodeEditor/SoundEditorEvaluator.h"
 
 namespace Saturn {
 
-	enum class NodeRenderType
+	SoundRandomNode::SoundRandomNode( const NodeSpecification& rSpec )
+		: Node( rSpec )
 	{
-		Blueprint,
-		Comment
-	};
+		ExecutionType = NodeExecutionType::Random;
+	}
 
-	enum class NodeExecutionType
+	SoundRandomNode::~SoundRandomNode()
 	{
-		Value,
-		AssetID, // Values and Asset IDs are different as values can be added together however AssetIDs can not
-		Sampler2D,
-		MaterialOutput,
-		ColorPicker,
-		Add,
-		Subtract,
-		Multiply,
-		Divide,
-		Mix,
-		SoundOutput,
-		SoundPlayer,
-		Random,
-		None
-	};
+	}
 
-	struct PinSpecification
+	void SoundRandomNode::EvaluateNode( NodeEditorRuntime* evaluator )
 	{
-		std::string Name;
-		PinType     Type = PinType::Object;
-	};
+		SoundEditorEvaluator* pSoundEditorEvaluator = dynamic_cast< SoundEditorEvaluator* >( evaluator );
 
-	struct NodeSpecification
+		if( !pSoundEditorEvaluator )
+			return;
+
+		std::map<UUID, UUID> PinToSoundMap;
+
+		auto ids = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNeighbors( this );
+
+		uint32_t index = 0;
+		for( const auto& rID : ids )
+		{
+			Ref<Node> neighorNode = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNode( rID );
+			if( !neighorNode )
+				continue;
+
+			// TODO: Support more node types coming into the random node
+			if( neighorNode->ExecutionType != NodeExecutionType::SoundPlayer )
+				continue;
+
+			Ref<SoundPlayerNode> playerNode = neighorNode.As<SoundPlayerNode>();
+			PinToSoundMap[ index ] = playerNode->SoundAssetID;
+
+			index++;
+		}
+
+		int range = (int)Inputs.size();
+		int number = std::rand() % range + 0;
+
+		ChosenSoundID = PinToSoundMap[ number ];
+
+		SAT_CORE_INFO( "{0}", number );
+
+		pSoundEditorEvaluator->SoundStack.push( ChosenSoundID );
+	}
+
+	void SoundRandomNode::OnRenderOutput( UUID pinID )
 	{
-		std::string                   Name;
-		std::vector<PinSpecification> Outputs;
-		std::vector<PinSpecification> Inputs;
-		ImColor						  Color;
-	};
-
-	class NodeEditor;
-	class NodeEditorBase;
-	class NodeEditorRuntime;
-
-	class Node : public RefTarget
-	{
-	public:
-		Node() = default;
-		Node( const NodeSpecification& rSpec );
-		virtual ~Node();
-
-		void Destroy();
-
-		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase );
-
-	public:
-		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
-
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
-		virtual void OnRenderOutput( UUID pinID ) {}
-
-	public:
-		UUID ID = 0;
-		std::string Name;
-		std::vector<Ref<Pin>> Inputs;
-		std::vector<Ref<Pin>> Outputs;
-		ImColor Color;
-		NodeRenderType Type = NodeRenderType::Blueprint;
-		NodeExecutionType ExecutionType = NodeExecutionType::None;
-		ImVec2 Size;
-		ImVec2 Position;
-		bool CanBeDeleted = true;
-
-		// Any other extra data that should be stored in the node.
-		Buffer ExtraData;
-
-		std::string ActiveState;
-		std::string SavedState;
-	};
-
+	}
 }

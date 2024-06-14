@@ -26,102 +26,105 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "SoundGraphAssetViewer.h"
 
-#include "Saturn/Core/Memory/Buffer.h"
-#include "Saturn/Core/UUID.h"
-#include "Pin.h"
+#include "SoundEditorEvaluator.h"
 
-#include <string>
-#include <vector>
-#include <imgui_node_editor.h>
+#include "Nodes/SoundRandomNode.h" 
+#include "Nodes/SoundOutputNode.h" 
+#include "Nodes/SoundPlayerNode.h"
 
-namespace ed = ax::NodeEditor;
-namespace util = ax::NodeEditor::Utilities;
+#include "SoundNodeLibrary.h"
 
-namespace ax::NodeEditor::Utilities {
-	struct BlueprintNodeBuilder;
-}
+#include "Saturn/Asset/AssetManager.h"
 
 namespace Saturn {
 
-	enum class NodeRenderType
+	SoundGraphAssetViewer::SoundGraphAssetViewer( AssetID id )
+		: AssetViewer( id )
 	{
-		Blueprint,
-		Comment
-	};
+		m_AssetType = AssetType::GraphSound;
 
-	enum class NodeExecutionType
+		AddSoundAsset();
+	}
+
+	SoundGraphAssetViewer::~SoundGraphAssetViewer()
 	{
-		Value,
-		AssetID, // Values and Asset IDs are different as values can be added together however AssetIDs can not
-		Sampler2D,
-		MaterialOutput,
-		ColorPicker,
-		Add,
-		Subtract,
-		Multiply,
-		Divide,
-		Mix,
-		SoundOutput,
-		SoundPlayer,
-		Random,
-		None
-	};
+		m_SoundAsset = nullptr;
 
-	struct PinSpecification
+		m_NodeEditor = nullptr;
+	}
+
+	void SoundGraphAssetViewer::OnImGuiRender()
 	{
-		std::string Name;
-		PinType     Type = PinType::Object;
-	};
+		if( m_NodeEditor->IsOpen() )
+		{
+			m_NodeEditor->OnImGuiRender();
+		}
+	}
 
-	struct NodeSpecification
+	void SoundGraphAssetViewer::AddSoundAsset()
 	{
-		std::string                   Name;
-		std::vector<PinSpecification> Outputs;
-		std::vector<PinSpecification> Inputs;
-		ImColor						  Color;
-	};
+		Ref<Asset> asset = AssetManager::Get().FindAsset( m_AssetID );
 
-	class NodeEditor;
-	class NodeEditorBase;
-	class NodeEditorRuntime;
+		m_NodeEditor = Ref<NodeEditor>::Create( m_AssetID );
+		m_NodeEditor->SetWindowName( asset->Name );
 
-	class Node : public RefTarget
+		m_NodeEditor->Open( true );
+		m_Open = true;
+
+		SetupNewNodeEditor();
+		SetupNodeEditorCallbacks();
+
+		SoundEditorEvaluator::SoundEdEvaluatorInfo info;
+		info.Sound = nullptr;
+		info.OutputNodeID = m_OutputNodeID;
+		auto rt = Ref<SoundEditorEvaluator>::Create( info );
+		rt->SetTargetNodeEditor( m_NodeEditor );
+
+		m_NodeEditor->SetRuntime( rt );
+	}
+
+	void SoundGraphAssetViewer::SetupNewNodeEditor()
 	{
-	public:
-		Node() = default;
-		Node( const NodeSpecification& rSpec );
-		virtual ~Node();
+		Ref<SoundOutputNode> OutputNode = SoundNodeLibrary::SpawnOutputNode( m_NodeEditor );
 
-		void Destroy();
+		m_OutputNodeID = OutputNode->ID;
+	}
 
-		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase );
+	void SoundGraphAssetViewer::SetupNodeEditorCallbacks()
+	{
+		m_NodeEditor->SetCreateNewNodeFunction(
+			[&]() -> Ref<Node>
+			{
+				Ref<Node> result = nullptr;
 
-	public:
-		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
+				ImGui::SeparatorText( "SOUND" );
 
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
-		virtual void OnRenderOutput( UUID pinID ) {}
+				if( ImGui::MenuItem( "Sound Player" ) )
+					result = SoundNodeLibrary::SpawnPlayerNode( m_NodeEditor );
 
-	public:
-		UUID ID = 0;
-		std::string Name;
-		std::vector<Ref<Pin>> Inputs;
-		std::vector<Ref<Pin>> Outputs;
-		ImColor Color;
-		NodeRenderType Type = NodeRenderType::Blueprint;
-		NodeExecutionType ExecutionType = NodeExecutionType::None;
-		ImVec2 Size;
-		ImVec2 Position;
-		bool CanBeDeleted = true;
+				if( ImGui::MenuItem( "Random" ) )
+					result = SoundNodeLibrary::SpawnRandomNode( m_NodeEditor );
 
-		// Any other extra data that should be stored in the node.
-		Buffer ExtraData;
+				return result;
+			} );
 
-		std::string ActiveState;
-		std::string SavedState;
-	};
+		m_NodeEditor->SetTopBarFunction( [&]() 
+			{
+				if( ImGui::Button( "Stop Sounds" ) ) 
+				{
+					
+				}
+			} );
+	}
 
+	void SoundGraphAssetViewer::OnUpdate( Timestep ts )
+	{
+	}
+
+	void SoundGraphAssetViewer::OnEvent( RubyEvent& rEvent )
+	{
+	}
 }

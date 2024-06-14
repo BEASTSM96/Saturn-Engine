@@ -391,6 +391,27 @@ namespace Saturn {
 				FindAndRenameItem( asset->Path );
 			}
 
+			if( ImGui::MenuItem( "New Sound Editor" ) )
+			{
+				auto id = AssetManager::Get().CreateAsset( AssetType::GraphSound );
+				auto asset = AssetManager::Get().FindAsset( id );
+				auto newPath = m_CurrentPath / "New Sound Editor.gsnd";
+				int32_t count = GetFilenameCount( "New Sound Editor.gsnd" );
+
+				if( count >= 1 )
+					newPath = std::format( "{0}\\{1} ({2}).gsnd", m_CurrentPath.string(), "New Sound Editor", count );
+
+				asset->SetPath( newPath );
+
+				std::ofstream fout( newPath );
+				fout.close();
+
+				AssetManager::Get().Save();
+
+				UpdateFiles( true );
+				FindAndRenameItem( asset->Name );
+			}
+
 			if( ImGui::MenuItem( "New Entity Instance" ) ) 
 			{
 				s_OpenClassInstancePopup = true;

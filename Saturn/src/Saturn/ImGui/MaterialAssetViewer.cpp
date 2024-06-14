@@ -150,7 +150,6 @@ namespace Saturn {
 		SetupNodeEditorCallbacks();
 
 		// Maybe in the future we would want to do some stuff here.
-		m_NodeEditor->SetCloseFunction( []() -> void {} );
 		m_NodeEditor->Open( true );
 		m_Open = true;
 	}
@@ -197,7 +196,7 @@ namespace Saturn {
 	void MaterialAssetViewer::SetupNewNodeEditor()
 	{
 		// Add material output node.
-		Ref<Node> OutputNode = MaterialNodeLibrary::SpawnOutputNode( m_NodeEditor );
+		Ref<MaterialOutputNode> OutputNode = MaterialNodeLibrary::SpawnOutputNode( m_NodeEditor );
 		OutputNode->CanBeDeleted = false;
 
 		m_OutputNodeID = OutputNode->ID;

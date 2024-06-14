@@ -26,102 +26,84 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "SoundEditorEvaluator.h"
 
-#include "Saturn/Core/Memory/Buffer.h"
-#include "Saturn/Core/UUID.h"
-#include "Pin.h"
+#include "Saturn/Audio/Sound.h"
 
-#include <string>
-#include <vector>
-#include <imgui_node_editor.h>
+#include "Nodes/SoundOutputNode.h"
+#include "Nodes/SoundPlayerNode.h"
+#include "Nodes/SoundRandomNode.h"
 
-namespace ed = ax::NodeEditor;
-namespace util = ax::NodeEditor::Utilities;
-
-namespace ax::NodeEditor::Utilities {
-	struct BlueprintNodeBuilder;
-}
+#include "Saturn/NodeEditor/NodeEditorBase.h"
 
 namespace Saturn {
 
-	enum class NodeRenderType
+	SoundEditorEvaluator::SoundEditorEvaluator( const SoundEdEvaluatorInfo& rInfo )
+		: m_Info( rInfo )
 	{
-		Blueprint,
-		Comment
-	};
+	}
 
-	enum class NodeExecutionType
+	void SoundEditorEvaluator::SetTargetNodeEditor( Ref<NodeEditorBase> nodeEditor )
 	{
-		Value,
-		AssetID, // Values and Asset IDs are different as values can be added together however AssetIDs can not
-		Sampler2D,
-		MaterialOutput,
-		ColorPicker,
-		Add,
-		Subtract,
-		Multiply,
-		Divide,
-		Mix,
-		SoundOutput,
-		SoundPlayer,
-		Random,
-		None
-	};
+		m_NodeEditor = nodeEditor;
+	}
 
-	struct PinSpecification
+	NodeEditorCompilationStatus SoundEditorEvaluator::EvaluateEditor()
 	{
-		std::string Name;
-		PinType     Type = PinType::Object;
-	};
+		if( !m_NodeEditor )
+			return NodeEditorCompilationStatus::Failed;
 
-	struct NodeSpecification
-	{
-		std::string                   Name;
-		std::vector<PinSpecification> Outputs;
-		std::vector<PinSpecification> Inputs;
-		ImColor						  Color;
-	};
+		Ref<Node> OutputNode = m_NodeEditor->FindNode( m_Info.OutputNodeID );
+		if( !OutputNode )
+			return NodeEditorCompilationStatus::Failed;
 
-	class NodeEditor;
-	class NodeEditorBase;
-	class NodeEditorRuntime;
+		UUID FinalSoundPinID = OutputNode->Inputs[ 0 ]->ID;
 
-	class Node : public RefTarget
-	{
-	public:
-		Node() = default;
-		Node( const NodeSpecification& rSpec );
-		virtual ~Node();
+		// We must have something linked to the final output.
+		if( !m_NodeEditor->IsLinked( FinalSoundPinID ) )
+			return NodeEditorCompilationStatus::Failed;
 
-		void Destroy();
+		// Stacks are last in first out, so our output node will be evaluated last which is what we want.
+		std::stack<UUID> order;
+		m_NodeEditor->TraverseFromStart( OutputNode,
+			[&]( const UUID id )
+			{
+				order.push( id );
+			} );
 
-		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase );
+		if( order.size() <= 1 )
+			return NodeEditorCompilationStatus::Failed;
+	
+		std::stack<UUID> soundAssetStack;
 
-	public:
-		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
+		while( !order.empty() )
+		{
+			const UUID currentNodeID = order.top();
+			order.pop();
 
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
-		virtual void OnRenderOutput( UUID pinID ) {}
+			Ref<Node> currentNode = m_NodeEditor->FindNode( currentNodeID );
 
-	public:
-		UUID ID = 0;
-		std::string Name;
-		std::vector<Ref<Pin>> Inputs;
-		std::vector<Ref<Pin>> Outputs;
-		ImColor Color;
-		NodeRenderType Type = NodeRenderType::Blueprint;
-		NodeExecutionType ExecutionType = NodeExecutionType::None;
-		ImVec2 Size;
-		ImVec2 Position;
-		bool CanBeDeleted = true;
+			switch( currentNode->ExecutionType )
+			{
+				case NodeExecutionType::SoundOutput:
+				{
+					Ref<SoundOutputNode> outNode = currentNode.As<SoundOutputNode>();
+					currentNode = outNode;
+				} break;
 
-		// Any other extra data that should be stored in the node.
-		Buffer ExtraData;
+				case NodeExecutionType::SoundPlayer:
+				{
+					Ref<SoundPlayerNode> playerNode = currentNode.As<SoundPlayerNode>();
+				
+					if( playerNode && playerNode->SoundAssetID != 0 )
+						soundAssetStack.push( playerNode->SoundAssetID );
+				} break;
+			}
 
-		std::string ActiveState;
-		std::string SavedState;
-	};
+			currentNode->EvaluateNode( this );
+		}
 
+		return NodeEditorCompilationStatus::Success;
+	}
 }

@@ -60,6 +60,7 @@ namespace Saturn {
 		Function,
 		Delegate,
 		Material_Sampler2D,
+		Sound,
 		AssetHandle
 	};
 

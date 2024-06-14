@@ -26,102 +26,60 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "SoundPlayerNode.h"
 
-#include "Saturn/Core/Memory/Buffer.h"
-#include "Saturn/Core/UUID.h"
-#include "Pin.h"
-
-#include <string>
-#include <vector>
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
-namespace util = ax::NodeEditor::Utilities;
-
-namespace ax::NodeEditor::Utilities {
-	struct BlueprintNodeBuilder;
-}
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
 
 namespace Saturn {
 
-	enum class NodeRenderType
+	SoundPlayerNode::SoundPlayerNode( const NodeSpecification& rSpec )
+		: Node( rSpec )
 	{
-		Blueprint,
-		Comment
-	};
+		ExecutionType = NodeExecutionType::SoundPlayer;
+	}
 
-	enum class NodeExecutionType
+	SoundPlayerNode::~SoundPlayerNode()
 	{
-		Value,
-		AssetID, // Values and Asset IDs are different as values can be added together however AssetIDs can not
-		Sampler2D,
-		MaterialOutput,
-		ColorPicker,
-		Add,
-		Subtract,
-		Multiply,
-		Divide,
-		Mix,
-		SoundOutput,
-		SoundPlayer,
-		Random,
-		None
-	};
+	}
 
-	struct PinSpecification
+	void SoundPlayerNode::EvaluateNode( NodeEditorRuntime* evaluator )
 	{
-		std::string Name;
-		PinType     Type = PinType::Object;
-	};
+	}
 
-	struct NodeSpecification
+	static bool s_ShowAssetFinder = false;
+
+	void SoundPlayerNode::OnRenderOutput( UUID pinID )
 	{
-		std::string                   Name;
-		std::vector<PinSpecification> Outputs;
-		std::vector<PinSpecification> Inputs;
-		ImColor						  Color;
-	};
+		const auto itr = std::find_if( Outputs.begin(), Outputs.end(),
+			[pinID]( const auto& rPin )
+			{
+				return rPin->ID == pinID;
+			} );
 
-	class NodeEditor;
-	class NodeEditorBase;
-	class NodeEditorRuntime;
+		if( itr == Outputs.end() )
+			return;
 
-	class Node : public RefTarget
-	{
-	public:
-		Node() = default;
-		Node( const NodeSpecification& rSpec );
-		virtual ~Node();
+		const auto& rPin = ( *itr );
 
-		void Destroy();
+		switch( rPin->Type )
+		{
+			case PinType::Sound:
+			{
+				std::string name = "Select Asset";
 
-		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase );
+				if( SoundAssetID != 0 )
+					name = std::to_string( SoundAssetID );
 
-	public:
-		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
+				if( ImGui::Button( name.c_str() ) )
+				{
+					s_ShowAssetFinder = true;
+				}
+			} break;
+		}
 
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
-		virtual void OnRenderOutput( UUID pinID ) {}
-
-	public:
-		UUID ID = 0;
-		std::string Name;
-		std::vector<Ref<Pin>> Inputs;
-		std::vector<Ref<Pin>> Outputs;
-		ImColor Color;
-		NodeRenderType Type = NodeRenderType::Blueprint;
-		NodeExecutionType ExecutionType = NodeExecutionType::None;
-		ImVec2 Size;
-		ImVec2 Position;
-		bool CanBeDeleted = true;
-
-		// Any other extra data that should be stored in the node.
-		Buffer ExtraData;
-
-		std::string ActiveState;
-		std::string SavedState;
-	};
-
+		ed::Suspend();
+		Auxiliary::DrawAssetFinder( AssetType::Sound, &s_ShowAssetFinder, SoundAssetID );
+		ed::Resume();
+	}
 }

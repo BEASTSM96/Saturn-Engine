@@ -140,14 +140,14 @@ namespace Saturn::Auxiliary {
 	}
 
 	template<typename Function>
-	inline bool DrawAssetFinder( AssetType allowedTypes, bool* rOpen, Function&& rrFunction )
+	inline bool DrawAssetFinder( AssetType allowedTypes, AssetID lastID, bool* rOpen, Function&& rrFunction )
 	{
 		bool Modified = false;
 
 		if( *rOpen == true && !ImGui::IsPopupOpen( "AssetFinderPopup" ) )
 		{
 			ImGui::OpenPopup( "AssetFinderPopup" );
-			*rOpen = true;
+			*rOpen = false;
 		}
 
 		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
@@ -159,7 +159,7 @@ namespace Saturn::Auxiliary {
 			{
 				for( const auto& [assetID, rAsset] : AssetManager::Get().GetAssetRegistry()->GetAssetMap() )
 				{
-					bool Selected = ( false );
+					bool Selected = ( lastID == assetID );
 
 					ImGui::PushID( static_cast< int >( assetID ) );
 

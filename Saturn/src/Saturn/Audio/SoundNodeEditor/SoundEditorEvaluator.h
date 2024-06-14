@@ -28,100 +28,45 @@
 
 #pragma once
 
-#include "Saturn/Core/Memory/Buffer.h"
+#include "Saturn/NodeEditor/Runtime/NodeEditorRuntime.h"
+
+#include "Saturn/Core/Base.h"
 #include "Saturn/Core/UUID.h"
-#include "Pin.h"
 
-#include <string>
-#include <vector>
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
-namespace util = ax::NodeEditor::Utilities;
-
-namespace ax::NodeEditor::Utilities {
-	struct BlueprintNodeBuilder;
-}
+#include <stack>
 
 namespace Saturn {
 
-	enum class NodeRenderType
-	{
-		Blueprint,
-		Comment
-	};
-
-	enum class NodeExecutionType
-	{
-		Value,
-		AssetID, // Values and Asset IDs are different as values can be added together however AssetIDs can not
-		Sampler2D,
-		MaterialOutput,
-		ColorPicker,
-		Add,
-		Subtract,
-		Multiply,
-		Divide,
-		Mix,
-		SoundOutput,
-		SoundPlayer,
-		Random,
-		None
-	};
-
-	struct PinSpecification
-	{
-		std::string Name;
-		PinType     Type = PinType::Object;
-	};
-
-	struct NodeSpecification
-	{
-		std::string                   Name;
-		std::vector<PinSpecification> Outputs;
-		std::vector<PinSpecification> Inputs;
-		ImColor						  Color;
-	};
-
-	class NodeEditor;
+	class Sound;
 	class NodeEditorBase;
-	class NodeEditorRuntime;
+	class Node;
 
-	class Node : public RefTarget
+	class SoundEditorEvaluator : public NodeEditorRuntime
 	{
 	public:
-		Node() = default;
-		Node( const NodeSpecification& rSpec );
-		virtual ~Node();
-
-		void Destroy();
-
-		void Render( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, NodeEditorBase* pBase );
+		struct SoundEdEvaluatorInfo
+		{
+			Ref<Sound> Sound;
+			UUID OutputNodeID;
+		};
 
 	public:
-		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
-		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
+		SoundEditorEvaluator( const SoundEditorEvaluator& ) = delete;
 
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
-		virtual void OnRenderOutput( UUID pinID ) {}
+		SoundEditorEvaluator( const SoundEdEvaluatorInfo& rInfo );
+		virtual ~SoundEditorEvaluator() = default;
+
+		void SetTargetNodeEditor( Ref<NodeEditorBase> nodeEditor );
+		Ref<NodeEditorBase>& GetTargetNodeEditor() { return m_NodeEditor; }
+
+		[[nodiscard]] virtual NodeEditorCompilationStatus EvaluateEditor() override;
 
 	public:
-		UUID ID = 0;
-		std::string Name;
-		std::vector<Ref<Pin>> Inputs;
-		std::vector<Ref<Pin>> Outputs;
-		ImColor Color;
-		NodeRenderType Type = NodeRenderType::Blueprint;
-		NodeExecutionType ExecutionType = NodeExecutionType::None;
-		ImVec2 Size;
-		ImVec2 Position;
-		bool CanBeDeleted = true;
+		// Sounds that have to be played in order to get the correct result.
+		std::stack<UUID> SoundStack;
 
-		// Any other extra data that should be stored in the node.
-		Buffer ExtraData;
-
-		std::string ActiveState;
-		std::string SavedState;
+	private:
+		Ref<NodeEditorBase> m_NodeEditor;
+		SoundEdEvaluatorInfo m_Info;
 	};
-
 }

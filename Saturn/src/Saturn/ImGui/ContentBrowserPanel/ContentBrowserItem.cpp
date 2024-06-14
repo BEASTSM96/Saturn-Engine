@@ -42,6 +42,7 @@
 #include "Saturn/ImGui/PhysicsMaterialAssetViewer.h"
 #include "Saturn/ImGui/TextureViewer.h"
 #include "Saturn/ImGui/SoundAssetViewer.h"
+#include "Saturn/Audio/SoundNodeEditor/SoundGraphAssetViewer.h"
 
 #include "ContentBrowserThumbnailGenerator.h"
 
@@ -249,6 +250,11 @@ namespace Saturn {
 					case AssetType::Sound:
 					{
 						AssetViewer::Add<SoundAssetViewer>( m_Asset->ID );
+					} break;
+
+					case AssetType::GraphSound: 
+					{
+						AssetViewer::Add<SoundGraphAssetViewer>( m_Asset->ID );
 					} break;
 
 					case AssetType::Scene:

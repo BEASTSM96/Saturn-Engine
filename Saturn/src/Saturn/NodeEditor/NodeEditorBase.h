@@ -83,7 +83,7 @@ namespace Saturn {
 
 		void SetRuntime( Ref<NodeEditorRuntime> runtime );
 
-		std::vector<UUID> FindNeighbors( Ref<Node>& rNode );
+		std::vector<UUID> FindNeighbors( Ref<Node> node );
 
 		template<typename Function>
 		void TraverseFromStart( const Ref<Node>& rRootNode, Function func ) 

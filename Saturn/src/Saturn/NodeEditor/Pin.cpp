@@ -181,6 +181,8 @@ namespace Saturn {
 			ImGui::Spring( 0 );
 			ImGui::TextUnformatted( Name.c_str() );
 
+			Node->OnRenderOutput( ID );
+
 			// TODO: Allow for certain asset types.
 			if( Type == PinType::AssetHandle )
 			{
