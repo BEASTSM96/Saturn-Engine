@@ -64,7 +64,7 @@ namespace Saturn {
 		virtual void DrawItems( std::vector<Ref<ContentBrowserItem>>& rList, ImVec2 size, float padding ) = 0;
 
 		Ref<ContentBrowserItem> FindItem( const std::filesystem::path& rPath );
-		void FindAndRenameItem( const std::filesystem::path& rPath );
+		void FindAndRenameItem( const std::filesystem::path& rName );
 		int32_t GetFilenameCount( const std::string& rName );
 
 		void ClearSelected();

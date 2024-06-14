@@ -1073,7 +1073,7 @@ namespace Saturn {
 					ImGui::Selectable( std::to_string( id ).c_str(), false );
 
 					ImGui::TableSetColumnIndex( 2 );
-					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).data(), false );
 
 					ImGui::TableSetColumnIndex( 3 );
 					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
@@ -1130,7 +1130,7 @@ namespace Saturn {
 					ImGui::Selectable( std::to_string( id ).c_str(), false );
 
 					ImGui::TableSetColumnIndex( 2 );
-					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).c_str(), false );
+					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).data(), false );
 
 					ImGui::TableSetColumnIndex( 3 );
 					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );

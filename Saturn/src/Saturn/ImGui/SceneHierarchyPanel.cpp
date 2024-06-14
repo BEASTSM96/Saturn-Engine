@@ -726,7 +726,7 @@ namespace Saturn {
 
 			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24, 24 ) ) )
 			{
-				m_CurrentFinderType = AssetType::Audio;
+				m_CurrentFinderType = AssetType::Sound;
 				s_Open = true;
 
 				if( ap.AssetID != 0 )

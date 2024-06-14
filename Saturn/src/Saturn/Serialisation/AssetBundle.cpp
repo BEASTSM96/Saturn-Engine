@@ -337,7 +337,7 @@ namespace Saturn {
 			case Saturn::AssetType::Scene:
 			case Saturn::AssetType::SkeletalMesh:
 			case Saturn::AssetType::MaterialInstance:
-			case Saturn::AssetType::Audio:
+			case Saturn::AssetType::Sound:
 			case Saturn::AssetType::Script:
 			case Saturn::AssetType::MeshCollider:
 			case Saturn::AssetType::Unknown:

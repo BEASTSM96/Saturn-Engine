@@ -246,7 +246,7 @@ namespace Saturn {
 						AssetViewer::Add<PhysicsMaterialAssetViewer>( m_Asset->ID );
 					} break;
 
-					case AssetType::Audio:
+					case AssetType::Sound:
 					{
 						AssetViewer::Add<SoundAssetViewer>( m_Asset->ID );
 					} break;
@@ -519,7 +519,7 @@ namespace Saturn {
 					ImGui::SetDragDropPayload( "asset_payload", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
 				}	break;
 				case Saturn::AssetType::MaterialInstance:
-				case Saturn::AssetType::Audio:
+				case Saturn::AssetType::Sound:
 					break;
 				case Saturn::AssetType::Scene:
 				{

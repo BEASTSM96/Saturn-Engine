@@ -207,8 +207,6 @@ namespace Saturn {
 		m_Nodes.clear();
 		m_Links.clear();
 		m_ActiveNodeEditorState = "";
-
-		m_OnClose();
 	}
 
 	bool NodeEditor::CanCreateLink( const Ref<Pin>& a, const Ref<Pin>& b )
@@ -264,6 +262,9 @@ namespace Saturn {
 
 			ImGui::EndTooltip();
 		}
+
+		if( m_TopbarItemsFunction )
+			m_TopbarItemsFunction();
 
 		ImGui::EndHorizontal();
 		ImGui::EndChild();

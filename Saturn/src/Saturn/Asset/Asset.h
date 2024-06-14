@@ -51,7 +51,8 @@ namespace Saturn {
 		SkeletalMesh,
 		Material,
 		MaterialInstance,
-		Audio,
+		Sound,
+		GraphSound,
 		Scene,
 		Prefab,
 		Script,
@@ -68,7 +69,7 @@ namespace Saturn {
 		COUNT
 	};
 
-	inline std::string AssetTypeToString( AssetType type )
+	inline std::string_view AssetTypeToString( AssetType type )
 	{
 		switch( type )
 		{
@@ -82,8 +83,10 @@ namespace Saturn {
 				return "Material";
 			case Saturn::AssetType::MaterialInstance:
 				return "MaterialInstance";
-			case Saturn::AssetType::Audio:
+			case Saturn::AssetType::Sound:
 				return "Audio";
+			case Saturn::AssetType::GraphSound:
+				return "GraphSound";
 			case Saturn::AssetType::Scene:
 				return "Scene";
 			case Saturn::AssetType::Prefab:
@@ -97,7 +100,7 @@ namespace Saturn {
 			case Saturn::AssetType::Unknown:
 				return "Unknown";
 			default:
-				break;
+				std::unreachable();
 		}
 
 		return "";
@@ -127,7 +130,7 @@ constexpr auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A 
 				return COLOR_32( 237, 5, 229, 255 );
 			case Saturn::AssetType::MaterialInstance:
 				return COLOR_32( 237, 5, 229, 255 );
-			case Saturn::AssetType::Audio:
+			case Saturn::AssetType::Sound:
 				return COLOR_32( 237, 202, 5, 255 );
 			case Saturn::AssetType::Scene:
 				return COLOR_32( 255, 0, 0, 255 );
@@ -161,7 +164,9 @@ constexpr auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A 
 		else if( str == "MaterialInstance" )
 			return AssetType::MaterialInstance;
 		else if( str == "Audio" )
-			return AssetType::Audio;
+			return AssetType::Sound;
+		else if( str == "GraphSound" )
+			return AssetType::GraphSound;
 		else if( str == "Scene" )
 			return AssetType::Scene;
 		else if( str == "Prefab" )
@@ -181,7 +186,9 @@ constexpr auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A 
 		if( str == ".png" || str == ".tga" || str == ".jpg" || str == ".jpeg" || str == ".hdr" || str == ".ico" )
 			return AssetType::Texture;
 		else if( str == ".msnd" )
-			return AssetType::Audio;
+			return AssetType::Sound;
+		else if( str == ".gsnd" )
+			return AssetType::GraphSound;
 		else if( str == ".scene" )
 			return AssetType::Scene;
 		else if( str == ".smaterial" )

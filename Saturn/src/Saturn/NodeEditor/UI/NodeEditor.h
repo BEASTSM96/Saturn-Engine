@@ -55,9 +55,9 @@ namespace Saturn {
 			m_CreateNewNodeFunction = std::move( rrCreateNewNodeFunction );
 		}
 
-		void SetCloseFunction( std::function<void()>&& rrCloseFunction )
+		void SetTopBarFunction( std::function<void()>&& rrTopbarItemsFunction )
 		{
-			m_OnClose = std::move( rrCloseFunction );
+			m_TopbarItemsFunction = std::move( rrTopbarItemsFunction );
 		}
 
 		std::string& GetEditorState() { return m_ActiveNodeEditorState; }
@@ -89,7 +89,7 @@ namespace Saturn {
 		Ref<Pin> m_NewNodeLinkPin = nullptr;
 
 		std::function<Ref<Node>()> m_CreateNewNodeFunction;
-		std::function<void()> m_OnClose;
+		std::function<void()> m_TopbarItemsFunction;
 
 		ImVec2 m_ViewportSize;
 

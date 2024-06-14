@@ -51,6 +51,7 @@ namespace Saturn {
 		{ ".bin" },  // Already in the static mesh asset
 		{ ".glb" },  // Already in the static mesh asset
 		{ ".wav" },  // Already in the sound 2d asset
+		{ ".nce" },
 	};
 
 	Project::Project()

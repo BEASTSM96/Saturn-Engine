@@ -41,7 +41,7 @@ namespace Saturn {
 	SoundAssetViewer::SoundAssetViewer( AssetID id )
 		: AssetViewer( id )
 	{
-		m_AssetType = AssetType::Audio;
+		m_AssetType = AssetType::Sound;
 		
 		Ref<Sound> snd = AssetManager::Get().GetAssetAs<Sound>( m_AssetID );
 		m_SoundAsset = snd;

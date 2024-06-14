@@ -163,12 +163,16 @@ namespace Saturn {
 		return nullptr;
 	}
 
-	void ContentBrowserBase::FindAndRenameItem( const std::filesystem::path& rPath )
+	void ContentBrowserBase::FindAndRenameItem( const std::filesystem::path& rName )
 	{
-		Ref<ContentBrowserItem> item = FindItem( rPath );
+		const auto Itr = std::find_if( m_Files.begin(), m_Files.end(), 
+			[rName]( auto& rItem ) 
+			{
+				return rItem->Filename() == rName;
+			} );
 
-		if( item )
-			item->Rename();
+		if( Itr != m_Files.end() )
+			return (*Itr)->Rename();
 	}
 
 	int32_t ContentBrowserBase::GetFilenameCount( const std::string& rName )

@@ -195,7 +195,7 @@ namespace Saturn::Auxiliary {
 			if( ImGui::Button( "Create" ) )
 			{
 				// TODO: Right now we only support sound 2Ds.
-				auto id = AssetManager::Get().CreateAsset( AssetType::Audio );
+				auto id = AssetManager::Get().CreateAsset( AssetType::Sound );
 				auto asset = AssetManager::Get().FindAsset( id );
 
 				// Copy the audio source.
@@ -213,7 +213,7 @@ namespace Saturn::Auxiliary {
 				sound = Ref<Sound>::Create();
 				sound->ID = asset->ID;
 				sound->Path = assetPath;
-				sound->Type = AssetType::Audio;
+				sound->Type = AssetType::Sound;
 
 				sound->SetRawPath( rImportTargetPath / s_ImportSoundPath.filename() );
 
