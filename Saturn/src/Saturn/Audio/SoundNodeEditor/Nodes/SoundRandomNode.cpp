@@ -79,8 +79,6 @@ namespace Saturn {
 
 		ChosenSoundID = PinToSoundMap[ number ];
 
-		SAT_CORE_INFO( "{0}", number );
-
 		pSoundEditorEvaluator->SoundStack.push( ChosenSoundID );
 	}
 

@@ -171,6 +171,8 @@ namespace Saturn {
 				return false;
 
 			pNode->ActiveState.assign( pData, size );
+			pNode->Position = ed::GetNodePosition( nodeId );
+			pNode->Size = ed::GetNodeSize( nodeId );
 
 			return true;
 		};
@@ -595,6 +597,9 @@ namespace Saturn {
 			Ref<Node> node = Ref<Node>::Create();
 
 			Node::Deserialise( node, rStream );
+
+			BuildNode( node );
+			ed::SetNodePosition( ed::NodeId( key ), node->Position );
 
 			m_Nodes[ key ] = node;
 		}

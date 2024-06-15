@@ -141,9 +141,8 @@ namespace Saturn {
 		RawSerialisation::WriteObject( rObject->Color, rStream );
 
 		RawSerialisation::WriteObject( rObject->Type, rStream );
-		RawSerialisation::WriteObject( rObject->Size, rStream );
-
-		RawSerialisation::WriteObject( rObject->Position, rStream );
+		SerialiseImVec2( rObject->Size, rStream );
+		SerialiseImVec2( rObject->Position, rStream );
 
 		RawSerialisation::WriteString( rObject->ActiveState, rStream );
 		RawSerialisation::WriteString( rObject->SavedState, rStream );
@@ -174,8 +173,8 @@ namespace Saturn {
 		RawSerialisation::ReadObject( rObject->Color, rStream );
 
 		RawSerialisation::ReadObject( rObject->Type, rStream );
-		RawSerialisation::ReadObject( rObject->Size, rStream );
-		RawSerialisation::ReadObject( rObject->Position, rStream );
+		DeserialiseImVec2( rObject->Size, rStream );
+		DeserialiseImVec2( rObject->Position, rStream );
 
 		rObject->ActiveState = RawSerialisation::ReadString( rStream );
 		rObject->SavedState = RawSerialisation::ReadString( rStream );

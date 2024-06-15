@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "SoundGraphAssetViewer.h"
 
+#include "Saturn/NodeEditor/Serialisation/NodeCache.h"
+
 #include "SoundEditorEvaluator.h"
 
 #include "Nodes/SoundRandomNode.h" 
@@ -51,7 +53,13 @@ namespace Saturn {
 
 	SoundGraphAssetViewer::~SoundGraphAssetViewer()
 	{
+		std::string filename = std::format( "{0}.gsnd", m_SoundAsset->Name );
+
 		m_SoundAsset = nullptr;
+
+		m_NodeEditor->SaveSettings();
+
+		NodeCacheEditor::WriteNodeEditorCache( m_NodeEditor, filename );
 
 		m_NodeEditor = nullptr;
 	}
@@ -62,19 +70,37 @@ namespace Saturn {
 		{
 			m_NodeEditor->OnImGuiRender();
 		}
+		else
+		{
+			m_NodeEditor->Open( false );
+			m_Open = false;
+
+			DestroyViewer( m_AssetID );
+		}
 	}
 
 	void SoundGraphAssetViewer::AddSoundAsset()
 	{
 		Ref<Asset> asset = AssetManager::Get().FindAsset( m_AssetID );
+		m_SoundAsset = asset.As<Sound>();
 
 		m_NodeEditor = Ref<NodeEditor>::Create( m_AssetID );
+
+		std::string filename = std::format( "{0}.gsnd", m_SoundAsset->Name );
+		if( NodeCacheEditor::ReadNodeEditorCache( m_NodeEditor, m_AssetID, filename ) )
+		{
+			m_OutputNodeID = m_NodeEditor->FindNode( "Sound Output" )->ID;
+		}
+		else
+		{
+			SetupNewNodeEditor();
+		}
+
 		m_NodeEditor->SetWindowName( asset->Name );
 
 		m_NodeEditor->Open( true );
 		m_Open = true;
 
-		SetupNewNodeEditor();
 		SetupNodeEditorCallbacks();
 
 		SoundEditorEvaluator::SoundEdEvaluatorInfo info;

@@ -199,7 +199,7 @@ namespace Saturn {
 		return dir;
 	}
 
-	void NodeCacheEditor::WriteNodeEditorCache( Ref<NodeEditorBase> nodeEditor )
+	void NodeCacheEditor::WriteNodeEditorCache( Ref<NodeEditorBase> nodeEditor, std::string customName )
 	{
 		Ref<Asset> asset = AssetManager::Get().FindAsset( nodeEditor->GetAssetID() );
 		std::string filename;
@@ -220,6 +220,9 @@ namespace Saturn {
 			assetPath = GetDefaultCachePath();
 		}
 
+		if( !customName.empty() )
+			filename = customName;
+
 		assetPath /= filename;
 
 		std::ofstream fout( assetPath, std::ios::binary | std::ios::trunc );
@@ -234,22 +237,40 @@ namespace Saturn {
 		fout.close();
 	}
 
-	bool NodeCacheEditor::ReadNodeEditorCache( Ref<NodeEditorBase> nodeEditor, AssetID id )
+	bool NodeCacheEditor::ReadNodeEditorCache( Ref<NodeEditorBase> nodeEditor, AssetID id, std::string customName )
 	{
-		std::string filename = std::format( "NCEditor.{0}.nce", ( uint64_t ) nodeEditor->GetAssetID() );
+		std::string filename;
+		
+		Ref<Asset> asset = AssetManager::Get().FindAsset( id );
+		std::filesystem::path cachePath;
 
-		std::filesystem::path assetPath = AssetManager::Get().FindAsset( nodeEditor->GetAssetID() )->Path;
-		if( assetPath.empty() )
-			assetPath = GetDefaultCachePath();
+		if( asset )
+		{
+			filename = std::format( "{0}.{1}.nce", asset->Name, ( uint64_t ) id );
+			cachePath = asset->Path.parent_path();
+		}
+		else
+		{
+			filename = std::format( "NCEditor.{0}.nce", ( uint64_t ) id );
+			cachePath = GetDefaultCachePath();
+		}
+		
+		if( !customName.empty() )
+			filename = customName;
 
-		assetPath /= filename;
+		cachePath /= filename;
 
-		std::ifstream stream( assetPath, std::ios::binary | std::ios::in );
+		std::filesystem::path cachePathAbs = Project::GetActiveProject()->FilepathAbs( cachePath );
+
+		if( !std::filesystem::exists( cachePathAbs ) )
+			return false;
+
+		std::ifstream stream( cachePathAbs, std::ios::binary | std::ios::in );
 
 		NodeCacheEditorHeader header{};
 		RawSerialisation::ReadObject( header, stream );
 
-		if( strcmp( header.Magic, ".NC\0" ) )
+		if( strcmp( header.Magic, ".NCE\0" ) )
 		{
 			SAT_CORE_ERROR( "Invalid node editor cache file header or corrupt cache file!" );
 			return false;
