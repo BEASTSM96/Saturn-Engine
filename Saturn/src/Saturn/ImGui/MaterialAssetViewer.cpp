@@ -122,18 +122,14 @@ namespace Saturn {
 		m_HostMaterialAsset = materialAsset;
 		m_EditingMaterial = Ref<Material>( m_HostMaterialAsset->GetMaterial() );
 
-		if( false )
+		m_NodeEditor = Ref<NodeEditor>::Create( m_AssetID );
+
+		if( NodeCacheEditor::ReadNodeEditorCache( m_NodeEditor, m_AssetID ) )
 		{
-			m_NodeEditor = Ref<NodeEditor>::Create();
-
-			// Try to read the cache.
-			NodeCacheEditor::ReadNodeEditorCache( m_NodeEditor, m_AssetID );
-
 			m_OutputNodeID = m_NodeEditor->FindNode( "Material Output" )->ID;
 		}
 		else
 		{
-			m_NodeEditor = Ref<NodeEditor>::Create( m_AssetID );
 			SetupNewNodeEditor();
 		}
 

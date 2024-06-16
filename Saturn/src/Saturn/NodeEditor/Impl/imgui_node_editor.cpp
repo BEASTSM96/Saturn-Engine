@@ -93,47 +93,47 @@ namespace ed = ax::NodeEditor::Detail;
 
 
 //------------------------------------------------------------------------------
-static const int c_BackgroundChannelCount = 1;
-static const int c_LinkChannelCount       = 4;
-static const int c_UserLayersCount        = 5;
+static constexpr int c_BackgroundChannelCount = 1;
+static constexpr int c_LinkChannelCount       = 4;
+static constexpr int c_UserLayersCount        = 5;
 
-static const int c_UserLayerChannelStart  = 0;
-static const int c_BackgroundChannelStart = c_UserLayerChannelStart  + c_UserLayersCount;
-static const int c_LinkStartChannel       = c_BackgroundChannelStart + c_BackgroundChannelCount;
-static const int c_NodeStartChannel       = c_LinkStartChannel       + c_LinkChannelCount;
+static constexpr int c_UserLayerChannelStart  = 0;
+static constexpr int c_BackgroundChannelStart = c_UserLayerChannelStart  + c_UserLayersCount;
+static constexpr int c_LinkStartChannel       = c_BackgroundChannelStart + c_BackgroundChannelCount;
+static constexpr int c_NodeStartChannel       = c_LinkStartChannel       + c_LinkChannelCount;
 
-static const int c_BackgroundChannel_SelectionRect = c_BackgroundChannelStart + 0;
+static constexpr int c_BackgroundChannel_SelectionRect = c_BackgroundChannelStart + 0;
 
-static const int c_UserChannel_Content         = c_UserLayerChannelStart + 1;
-static const int c_UserChannel_Grid            = c_UserLayerChannelStart + 2;
-static const int c_UserChannel_HintsBackground = c_UserLayerChannelStart + 3;
-static const int c_UserChannel_Hints           = c_UserLayerChannelStart + 4;
+static constexpr int c_UserChannel_Content         = c_UserLayerChannelStart + 1;
+static constexpr int c_UserChannel_Grid            = c_UserLayerChannelStart + 2;
+static constexpr int c_UserChannel_HintsBackground = c_UserLayerChannelStart + 3;
+static constexpr int c_UserChannel_Hints           = c_UserLayerChannelStart + 4;
 
-static const int c_LinkChannel_Selection  = c_LinkStartChannel + 0;
-static const int c_LinkChannel_Links      = c_LinkStartChannel + 1;
-static const int c_LinkChannel_Flow       = c_LinkStartChannel + 2;
-static const int c_LinkChannel_NewLink    = c_LinkStartChannel + 3;
+static constexpr int c_LinkChannel_Selection  = c_LinkStartChannel + 0;
+static constexpr int c_LinkChannel_Links      = c_LinkStartChannel + 1;
+static constexpr int c_LinkChannel_Flow       = c_LinkStartChannel + 2;
+static constexpr int c_LinkChannel_NewLink    = c_LinkStartChannel + 3;
 
-static const int c_ChannelsPerNode           = 5;
-static const int c_NodeBaseChannel           = 0;
-static const int c_NodeBackgroundChannel     = 1;
-static const int c_NodeUserBackgroundChannel = 2;
-static const int c_NodePinChannel            = 3;
-static const int c_NodeContentChannel        = 4;
+static constexpr int c_ChannelsPerNode           = 5;
+static constexpr int c_NodeBaseChannel           = 0;
+static constexpr int c_NodeBackgroundChannel     = 1;
+static constexpr int c_NodeUserBackgroundChannel = 2;
+static constexpr int c_NodePinChannel            = 3;
+static constexpr int c_NodeContentChannel        = 4;
 
-static const float c_GroupSelectThickness       = 6.0f;  // canvas pixels
-static const float c_LinkSelectThickness        = 5.0f;  // canvas pixels
-static const float c_NavigationZoomMargin       = 0.1f;  // percentage of visible bounds
-static const float c_MouseZoomDuration          = 0.15f; // seconds
-static const float c_SelectionFadeOutDuration   = 0.15f; // seconds
+static constexpr float c_GroupSelectThickness       = 6.0f;  // canvas pixels
+static constexpr float c_LinkSelectThickness        = 5.0f;  // canvas pixels
+static constexpr float c_NavigationZoomMargin       = 0.1f;  // percentage of visible bounds
+static constexpr float c_MouseZoomDuration          = 0.15f; // seconds
+static constexpr float c_SelectionFadeOutDuration   = 0.15f; // seconds
 
-static const auto  c_MaxMoveOverEdgeSpeed       = 10.0f;
-static const auto  c_MaxMoveOverEdgeDistance    = 300.0f;
+static constexpr auto  c_MaxMoveOverEdgeSpeed       = 10.0f;
+static constexpr auto  c_MaxMoveOverEdgeDistance    = 300.0f;
 
 #if IMGUI_VERSION_NUM > 18101
-static const auto  c_AllRoundCornersFlags = ImDrawFlags_RoundCornersAll;
+static constexpr auto  c_AllRoundCornersFlags = ImDrawFlags_RoundCornersAll;
 #else
-static const auto  c_AllRoundCornersFlags = 15;
+static constexpr auto  c_AllRoundCornersFlags = 15;
 #endif
 
 

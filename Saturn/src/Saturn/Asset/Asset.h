@@ -132,6 +132,8 @@ constexpr auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A 
 				return COLOR_32( 237, 5, 229, 255 );
 			case Saturn::AssetType::Sound:
 				return COLOR_32( 237, 202, 5, 255 );
+			case Saturn::AssetType::GraphSound:
+				return COLOR_32( 235, 122, 52, 255 );
 			case Saturn::AssetType::Scene:
 				return COLOR_32( 255, 0, 0, 255 );
 			case Saturn::AssetType::Prefab:
