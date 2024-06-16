@@ -51,8 +51,8 @@ namespace Saturn {
 	class NodeCacheEditor
 	{
 	public:
-		static void WriteNodeEditorCache( Ref<NodeEditorBase> nodeEditor, std::string customName = "" );
-		static bool ReadNodeEditorCache( Ref<NodeEditorBase> nodeEditor, AssetID id, std::string customExt = "" );
+		static void WriteNodeEditorCache( Ref<NodeEditorBase> nodeEditor, const std::string& rCustomName = "" );
+		static bool ReadNodeEditorCache( Ref<NodeEditorBase> nodeEditor, AssetID id, const std::string& rCustomName = "" );
 	};
 	
 }

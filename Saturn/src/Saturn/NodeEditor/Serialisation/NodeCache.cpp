@@ -199,7 +199,7 @@ namespace Saturn {
 		return dir;
 	}
 
-	void NodeCacheEditor::WriteNodeEditorCache( Ref<NodeEditorBase> nodeEditor, std::string customName )
+	void NodeCacheEditor::WriteNodeEditorCache( Ref<NodeEditorBase> nodeEditor, const std::string& rCustomName )
 	{
 		Ref<Asset> asset = AssetManager::Get().FindAsset( nodeEditor->GetAssetID() );
 		std::string filename;
@@ -220,8 +220,8 @@ namespace Saturn {
 			assetPath = GetDefaultCachePath();
 		}
 
-		if( !customName.empty() )
-			filename = customName;
+		if( !rCustomName.empty() )
+			filename = rCustomName;
 
 		assetPath /= filename;
 
@@ -237,7 +237,7 @@ namespace Saturn {
 		fout.close();
 	}
 
-	bool NodeCacheEditor::ReadNodeEditorCache( Ref<NodeEditorBase> nodeEditor, AssetID id, std::string customName )
+	bool NodeCacheEditor::ReadNodeEditorCache( Ref<NodeEditorBase> nodeEditor, AssetID id, const std::string& rCustomName )
 	{
 		std::string filename;
 		
@@ -255,8 +255,8 @@ namespace Saturn {
 			cachePath = GetDefaultCachePath();
 		}
 		
-		if( !customName.empty() )
-			filename = customName;
+		if( !rCustomName.empty() )
+			filename = rCustomName;
 
 		cachePath /= filename;
 
