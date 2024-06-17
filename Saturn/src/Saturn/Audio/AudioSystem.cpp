@@ -163,7 +163,7 @@ namespace Saturn {
 			rGroup->Destroy();
 		}
 
-		// Unit master sound group
+		// And the master sound group as well
 		m_MasterSoundGroup.Destroy();
 
 		// Stop audio thread

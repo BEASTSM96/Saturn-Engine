@@ -2447,7 +2447,7 @@ ed::Control ed::EditorContext::BuildControl(bool allowOffscreen)
 			// Node with a hole
 			ImGui::PushID(node->m_ID.AsPointer());
 
-			static const NodeRegion c_Regions[] =
+			static constexpr NodeRegion c_Regions[] =
 			{
 				NodeRegion::TopLeft,
 				NodeRegion::TopRight,
@@ -3288,7 +3288,7 @@ void ed::FlowAnimationController::Release(FlowAnimation* animation)
 // Navigate Action
 //
 //------------------------------------------------------------------------------
-const float ed::NavigateAction::s_DefaultZoomLevels[] =
+constexpr float ed::NavigateAction::s_DefaultZoomLevels[] =
 {
 	0.1f, 0.15f, 0.20f, 0.25f, 0.33f, 0.5f, 0.75f, 1.0f, 1.25f, 1.50f, 2.0f, 2.5f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f
 };
@@ -3568,8 +3568,8 @@ bool ed::NavigateAction::MoveOverEdge(const ImVec2& canvasSize)
 	if (screenMousePos.x <= -FLT_MAX || screenMousePos.y <= -FLT_MAX)
 		return false;
 
-	const auto minDistance       = ImVec2(-c_MaxMoveOverEdgeDistance, -c_MaxMoveOverEdgeDistance);
-	const auto maxDistance       = ImVec2( c_MaxMoveOverEdgeDistance,  c_MaxMoveOverEdgeDistance);
+	constexpr auto minDistance       = ImVec2(-c_MaxMoveOverEdgeDistance, -c_MaxMoveOverEdgeDistance);
+	constexpr auto maxDistance       = ImVec2( c_MaxMoveOverEdgeDistance,  c_MaxMoveOverEdgeDistance);
 
 	const auto screenPointOnEdge  = ImRect_ClosestPoint(screenRect, screenMousePos, true);
 	const auto offset             = ImMin(ImMax(screenPointOnEdge - screenMousePos, minDistance), maxDistance);
@@ -5485,8 +5485,8 @@ bool ed::HintBuilder::Begin(NodeId nodeId)
 	auto& view = Editor->GetView();
 	auto& rect = Editor->GetRect();
 
-	const float c_min_zoom = 0.75f;
-	const float c_max_zoom = 0.50f;
+	constexpr float c_min_zoom = 0.75f;
+	constexpr float c_max_zoom = 0.50f;
 
 	if (view.Scale > 0.75f)
 		return false;
