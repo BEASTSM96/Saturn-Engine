@@ -50,13 +50,15 @@ namespace Saturn {
 			// By default always use the master sound group.
 			m_SoundGroup = AudioSystem::Get().GetMasterSoundGroup().GetInternal();
 
+			m_Sound = new ma_sound();
+
 			// TODO: Wait for the sound to load by using the fence.
 			MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(),
 				m_RawPath.string().c_str(),
-				initFlags, m_SoundGroup, nullptr, &m_Sound ) );
+				initFlags, m_SoundGroup, nullptr, m_Sound ) );
 
-			m_Sound.pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( ID ) );
-			m_Sound.endCallback = OnSoundEnd;
+			m_Sound->pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( ID ) );
+			m_Sound->endCallback = OnSoundEnd;
 			
 			if( ( initFlags & ( uint32_t ) MA_SOUND_FLAG_NO_SPATIALIZATION ) == 0 )
 				SetupSpatialization();
@@ -71,15 +73,19 @@ namespace Saturn {
 		SetMinDistance( 1.0f );
 		SetMaxDistance( 10.0f );
 
-		ma_sound_set_min_gain( &m_Sound, 1.0f );
-		ma_sound_set_max_gain( &m_Sound, 100.0f );
+		ma_sound_set_min_gain( m_Sound, 1.0f );
+		ma_sound_set_max_gain( m_Sound, 100.0f );
 	}
 
 	void Sound::Unload()
 	{
 		if( m_Loaded )
 		{
-			ma_sound_uninit( &m_Sound );
+			ma_sound_uninit( m_Sound );
+			delete m_Sound;
+
+			m_Sound = nullptr;
+
 			m_Loaded = false;
 		}
 	}
@@ -95,7 +101,7 @@ namespace Saturn {
 		if( !m_Loaded )
 			Load( 0 );
 
-		if( ma_sound_at_end( &m_Sound ) )
+		if( ma_sound_at_end( m_Sound ) )
 		{
 			SAT_CORE_WARN( "Playing sound from beginning: {0}", m_RawPath.string() );
 			Reset();
@@ -104,16 +110,16 @@ namespace Saturn {
 		if( frameOffset == 0 )
 		{
 			SAT_CORE_INFO( "Trying to start sound \"{0}\" now", m_RawPath.string() );
-			MA_CHECK( ma_sound_start( &m_Sound ) );
+			MA_CHECK( ma_sound_start( m_Sound ) );
 		}
 		else
 		{
 			SAT_CORE_INFO( "Trying to start sound \"{0}\" in {1} frames", m_RawPath.string(), frameOffset );
-			ma_sound_set_start_time_in_pcm_frames( &m_Sound,
+			ma_sound_set_start_time_in_pcm_frames( m_Sound,
 				ma_engine_get_time_in_pcm_frames( &AudioSystem::Get().GetAudioEngine() )
 				+ ( ma_engine_get_sample_rate( &AudioSystem::Get().GetAudioEngine() ) * frameOffset ) );
 
-			MA_CHECK( ma_sound_start( &m_Sound ) );
+			MA_CHECK( ma_sound_start( m_Sound ) );
 		}
 
 		m_Playing = true;
@@ -121,13 +127,13 @@ namespace Saturn {
 
 	void Sound::Stop()
 	{
-		MA_CHECK( ma_sound_stop( &m_Sound ) );
+		MA_CHECK( ma_sound_stop( m_Sound ) );
 		m_Playing = false;
 	}
 
 	void Sound::Loop()
 	{
-		ma_sound_set_looping( &m_Sound, true );
+		ma_sound_set_looping( m_Sound, true );
 		m_Looping = true;
 	}
 
@@ -153,7 +159,7 @@ namespace Saturn {
 	{
 		if( m_Loaded )
 		{
-			MA_CHECK( ma_sound_seek_to_pcm_frame( &m_Sound, 0 ) );
+			MA_CHECK( ma_sound_seek_to_pcm_frame( m_Sound, 0 ) );
 		}
 	}
 
@@ -161,7 +167,7 @@ namespace Saturn {
 	{
 		if( m_Spatialization )
 		{
-			ma_sound_set_position( &m_Sound, rPos.x, rPos.y, rPos.z );
+			ma_sound_set_position( m_Sound, rPos.x, rPos.y, rPos.z );
 		}
 	}
 
@@ -170,28 +176,28 @@ namespace Saturn {
 		if( m_Spatialization == value )
 			return;
 
-		ma_sound_set_spatialization_enabled( &m_Sound, value );
+		ma_sound_set_spatialization_enabled( m_Sound, value );
 		m_Spatialization = value;
 	}
 
 	void Sound::SetMaxDistance( float dist )
 	{
-		ma_sound_set_max_distance( &m_Sound, dist );
+		ma_sound_set_max_distance( m_Sound, dist );
 	}
 
 	void Sound::SetMinDistance( float dist )
 	{
-		ma_sound_set_min_distance( &m_Sound, dist );
+		ma_sound_set_min_distance( m_Sound, dist );
 	}
 
 	void Sound::SetVolumeMultiplier( float multiplier )
 	{
-		ma_sound_set_volume( &m_Sound, multiplier );
+		ma_sound_set_volume( m_Sound, multiplier );
 	}
 
 	void Sound::SetPitchMultiplier( float multiplier )
 	{
-		ma_sound_set_pitch( &m_Sound, multiplier );
+		ma_sound_set_pitch( m_Sound, multiplier );
 	}
 
 	void Sound::OnSoundEnd( void* pUserData, ma_sound* pSound )

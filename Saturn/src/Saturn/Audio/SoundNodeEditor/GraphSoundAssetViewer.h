@@ -34,11 +34,11 @@
 
 namespace Saturn {
 
-	class SoundGraphAssetViewer : public AssetViewer
+	class GraphSoundAssetViewer : public AssetViewer
 	{
 	public:
-		SoundGraphAssetViewer( AssetID id );
-		~SoundGraphAssetViewer();
+		GraphSoundAssetViewer( AssetID id );
+		~GraphSoundAssetViewer();
 
 		virtual void OnImGuiRender() override;
 		virtual void OnUpdate( Timestep ts ) override;

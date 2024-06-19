@@ -27,7 +27,7 @@
 */
 
 #include "sppch.h"
-#include "SoundGraphAssetViewer.h"
+#include "GraphSoundAssetViewer.h"
 
 #include "Saturn/NodeEditor/Serialisation/NodeCache.h"
 
@@ -43,7 +43,7 @@
 
 namespace Saturn {
 
-	SoundGraphAssetViewer::SoundGraphAssetViewer( AssetID id )
+	GraphSoundAssetViewer::GraphSoundAssetViewer( AssetID id )
 		: AssetViewer( id )
 	{
 		m_AssetType = AssetType::GraphSound;
@@ -51,7 +51,7 @@ namespace Saturn {
 		AddSoundAsset();
 	}
 
-	SoundGraphAssetViewer::~SoundGraphAssetViewer()
+	GraphSoundAssetViewer::~GraphSoundAssetViewer()
 	{
 		std::string filename = std::format( "{0}.gsnd", m_SoundAsset->Name );
 
@@ -64,7 +64,7 @@ namespace Saturn {
 		m_NodeEditor = nullptr;
 	}
 
-	void SoundGraphAssetViewer::OnImGuiRender()
+	void GraphSoundAssetViewer::OnImGuiRender()
 	{
 		if( m_NodeEditor->IsOpen() )
 		{
@@ -79,7 +79,7 @@ namespace Saturn {
 		}
 	}
 
-	void SoundGraphAssetViewer::AddSoundAsset()
+	void GraphSoundAssetViewer::AddSoundAsset()
 	{
 		Ref<Asset> asset = AssetManager::Get().FindAsset( m_AssetID );
 		m_SoundAsset = asset.As<Sound>();
@@ -112,14 +112,14 @@ namespace Saturn {
 		m_NodeEditor->SetRuntime( rt );
 	}
 
-	void SoundGraphAssetViewer::SetupNewNodeEditor()
+	void GraphSoundAssetViewer::SetupNewNodeEditor()
 	{
 		Ref<SoundOutputNode> OutputNode = SoundNodeLibrary::SpawnOutputNode( m_NodeEditor );
 
 		m_OutputNodeID = OutputNode->ID;
 	}
 
-	void SoundGraphAssetViewer::SetupNodeEditorCallbacks()
+	void GraphSoundAssetViewer::SetupNodeEditorCallbacks()
 	{
 		m_NodeEditor->SetCreateNewNodeFunction(
 			[&]() -> Ref<Node>
@@ -146,11 +146,11 @@ namespace Saturn {
 			} );
 	}
 
-	void SoundGraphAssetViewer::OnUpdate( Timestep ts )
+	void GraphSoundAssetViewer::OnUpdate( Timestep ts )
 	{
 	}
 
-	void SoundGraphAssetViewer::OnEvent( RubyEvent& rEvent )
+	void GraphSoundAssetViewer::OnEvent( RubyEvent& rEvent )
 	{
 	}
 }

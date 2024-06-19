@@ -99,11 +99,9 @@ namespace Saturn {
 				return "PhysicsMaterial";
 			case Saturn::AssetType::Unknown:
 				return "Unknown";
-			default:
-				std::unreachable();
 		}
 
-		return "";
+		std::unreachable();
 	}
 
 // I don't want to include the imgui header so we will just copy the macro.
@@ -114,7 +112,7 @@ constexpr int A_SHIFT = 24;
 constexpr int A_MASK = 0xFF000000;
 
 template<typename Ty>
-constexpr auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A ) << A_SHIFT ) | ( ( uint32_t ) ( B ) << B_SHIFT ) | ( ( uint32_t ) ( G ) << G_SHIFT ) | ( ( uint32_t ) ( R ) << R_SHIFT ) ); }
+consteval auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A ) << A_SHIFT ) | ( ( uint32_t ) ( B ) << B_SHIFT ) | ( ( uint32_t ) ( G ) << G_SHIFT ) | ( ( uint32_t ) ( R ) << R_SHIFT ) ); }
 
 	inline constexpr uint32_t AssetTypeToColor( AssetType type )
 	{
@@ -206,11 +204,6 @@ constexpr auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A 
 		else
 			return AssetType::Unknown;
 	}
-
-	struct AssetData
-	{
-		Buffer DataBuffer;
-	};
 
 	class Asset : public RefTarget
 	{

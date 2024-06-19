@@ -48,7 +48,7 @@ namespace Saturn {
 		virtual void Load( uint32_t flags ) = 0;
 
 	public:
-		ma_sound& GetRawSound() { return m_Sound; }
+		ma_sound* GetRawSound() { return m_Sound; }
 
 		const std::filesystem::path& GetRawPath() const { return m_RawPath; }
 		std::filesystem::path& GetRawPath() { return m_RawPath; }
@@ -56,7 +56,7 @@ namespace Saturn {
 		void SetRawPath( const std::filesystem::path& rPath ) { m_RawPath = rPath; }
 
 	protected:
-		ma_sound m_Sound{};
+		ma_sound* m_Sound = nullptr;
 		ma_sound_group* m_SoundGroup = nullptr;
 
 		bool m_Loaded = false;
