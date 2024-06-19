@@ -26,63 +26,17 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "SoundRandomNode.h"
+#pragma once
 
-#include "Saturn/NodeEditor/NodeEditorBase.h"
-
-#include "SoundPlayerNode.h"
-#include "Saturn/Audio/SoundNodeEditor/SoundEditorEvaluator.h"
+#include "Node.h"
 
 namespace Saturn {
 
-	SoundRandomNode::SoundRandomNode( const NodeSpecification& rSpec )
-		: Node( rSpec )
+	class NodeEditorBase;
+
+	class GlobalNodesList
 	{
-		ExecutionType = NodeExecutionType::RandomSound;
-	}
-
-	SoundRandomNode::~SoundRandomNode()
-	{
-	}
-
-	void SoundRandomNode::EvaluateNode( NodeEditorRuntime* evaluator )
-	{
-		SoundEditorEvaluator* pSoundEditorEvaluator = dynamic_cast< SoundEditorEvaluator* >( evaluator );
-
-		if( !pSoundEditorEvaluator )
-			return;
-
-		std::map<UUID, UUID> PinToSoundMap;
-
-		auto ids = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNeighbors( this );
-
-		uint32_t index = 0;
-		for( const auto& rID : ids )
-		{
-			Ref<Node> neighorNode = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNode( rID );
-			if( !neighorNode )
-				continue;
-
-			// TODO: Support more node types coming into the random node
-			if( neighorNode->ExecutionType != NodeExecutionType::SoundPlayer )
-				continue;
-
-			Ref<SoundPlayerNode> playerNode = neighorNode.As<SoundPlayerNode>();
-			PinToSoundMap[ index ] = playerNode->SoundAssetID;
-
-			index++;
-		}
-
-		int range = (int)Inputs.size();
-		int number = std::rand() % range + 0;
-
-		ChosenSoundID = PinToSoundMap[ number ];
-
-		pSoundEditorEvaluator->SoundStack.push( ChosenSoundID );
-	}
-
-	void SoundRandomNode::OnRenderOutput( UUID pinID )
-	{
-	}
+	public:
+		static Ref<Node> ConvertExecutionTypeToNode( NodeExecutionType executionType, Ref<NodeEditorBase> nodeEditorBase );
+	};
 }

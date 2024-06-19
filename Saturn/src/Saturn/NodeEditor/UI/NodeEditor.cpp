@@ -40,6 +40,8 @@
 
 #include "Saturn/ImGui/EditorIcons.h"
 
+#include "Saturn/NodeEditor/GlobalNodesList.h"
+
 // imgui_node_editor
 #include "builders.h"
 
@@ -566,6 +568,8 @@ namespace Saturn {
 		{
 			UUID::Serialise( key, rStream );
 
+			RawSerialisation::WriteObject( (uint64_t)value->ExecutionType, rStream );
+
 			Node::Serialise( value, rStream );
 		}
 
@@ -594,12 +598,18 @@ namespace Saturn {
 			UUID key = 0;
 			UUID::Deserialise( key, rStream );
 
-			Ref<Node> node = Ref<Node>::Create();
+			uint64_t executionValue = 0;
+			RawSerialisation::ReadObject( executionValue, rStream );
+			NodeExecutionType executionType = ( NodeExecutionType ) executionValue;
+
+			Ref<Node> node = GlobalNodesList::ConvertExecutionTypeToNode( executionType, this );
+			
+			if( !node )
+				node = Ref<Node>::Create();
 
 			Node::Deserialise( node, rStream );
 
 			BuildNode( node );
-			ed::SetNodePosition( ed::NodeId( key ), node->Position );
 
 			m_Nodes[ key ] = node;
 		}

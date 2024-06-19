@@ -164,6 +164,8 @@ namespace Saturn {
 		{
 			Pin::Serialise( rOutput, rStream );
 		}
+
+		rObject->OnSerialise( rStream );
 	}
 
 	void Node::Deserialise( Ref<Node>& rObject, std::ifstream& rStream )
@@ -210,5 +212,7 @@ namespace Saturn {
 		}
 
 		ed::SetNodePosition( ed::NodeId( rObject->ID ), rObject->Position );
+
+		rObject->OnDeserialise( rStream );
 	}
 }

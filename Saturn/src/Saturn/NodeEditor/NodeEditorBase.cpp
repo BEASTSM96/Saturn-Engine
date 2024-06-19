@@ -158,6 +158,12 @@ namespace Saturn {
 	{
 		m_Runtime = nullptr;
 		ed::DestroyEditor( m_Editor );
+		ed::SetCurrentEditor( nullptr );
+
+		for( auto& [id, rNode] : m_Nodes )
+		{
+			rNode->Destroy();
+		}
 
 		m_Links.clear();
 		m_Nodes.clear();

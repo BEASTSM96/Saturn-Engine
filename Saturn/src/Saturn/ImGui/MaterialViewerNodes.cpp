@@ -131,7 +131,7 @@ namespace Saturn {
 		nodeSpec.Inputs.push_back( input );
 
 		Ref<Node> node = Ref<Node>::Create( nodeSpec );
-		node->ExecutionType = NodeExecutionType::Mix;
+		node->ExecutionType = NodeExecutionType::MaterialMixColors;
 		rNodeEditor->AddNode( node );
 
 		return node;

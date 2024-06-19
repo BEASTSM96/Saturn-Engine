@@ -52,7 +52,7 @@
 #define SAT_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 template<typename Ty>
-constexpr auto BIT( Ty x ) { return 1 << x; }
+consteval auto BIT( Ty x ) { return 1 << x; }
 
 //////////////////////////////////////////////////////////////////////////
 // CONCAT
@@ -65,7 +65,7 @@ constexpr auto BIT( Ty x ) { return 1 << x; }
 //////////////////////////////////////////////////////////////////////////
 // VERSION
 template<typename Ty>
-constexpr auto SAT_MAKE_VERSION( Ty major, Ty minor, Ty patch ) { return ( ( ( ( unsigned int ) ( major ) ) << 22 ) | ( ( ( unsigned int ) ( minor ) ) << 12 ) | ( ( unsigned int ) ( patch ) ) ); }
+consteval auto SAT_MAKE_VERSION( Ty major, Ty minor, Ty patch ) { return ( ( ( ( unsigned int ) ( major ) ) << 22 ) | ( ( ( unsigned int ) ( minor ) ) << 12 ) | ( ( unsigned int ) ( patch ) ) ); }
 
 // Current version is Alpha 0.1.1 (Alpha 1.1)
 constexpr auto SAT_CURRENT_VERSION = SAT_MAKE_VERSION( 0, 1, 1 );

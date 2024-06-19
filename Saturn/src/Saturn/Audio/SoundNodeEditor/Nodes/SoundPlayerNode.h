@@ -43,6 +43,10 @@ namespace Saturn {
 		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) override;
 		virtual void OnRenderOutput( UUID pinID ) override;
 
+	protected:
+		virtual void OnSerialise( std::ofstream& rStream ) const override;
+		virtual void OnDeserialise( std::ifstream& rStream ) override;
+
 	public:
 		UUID SoundAssetID = 0;
 	};

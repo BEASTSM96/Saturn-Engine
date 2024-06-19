@@ -62,10 +62,10 @@ namespace Saturn {
 		Subtract,
 		Multiply,
 		Divide,
-		Mix,
+		MaterialMixColors,
 		SoundOutput,
 		SoundPlayer,
-		Random,
+		RandomSound,
 		None
 	};
 
@@ -104,6 +104,10 @@ namespace Saturn {
 
 		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
 		virtual void OnRenderOutput( UUID pinID ) {}
+
+	protected:
+		virtual void OnSerialise( std::ofstream& rStream ) const {}
+		virtual void OnDeserialise( std::ifstream& rStream ) {}
 
 	public:
 		UUID ID = 0;

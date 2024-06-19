@@ -27,62 +27,63 @@
 */
 
 #include "sppch.h"
-#include "SoundRandomNode.h"
+#include "GlobalNodesList.h"
 
-#include "Saturn/NodeEditor/NodeEditorBase.h"
+#include "Saturn/ImGui/MaterialViewerNodes.h"
 
-#include "SoundPlayerNode.h"
-#include "Saturn/Audio/SoundNodeEditor/SoundEditorEvaluator.h"
+#include "Saturn/Audio/SoundNodeEditor/Nodes/SoundOutputNode.h"
+#include "Saturn/Audio/SoundNodeEditor/Nodes/SoundPlayerNode.h"
+#include "Saturn/Audio/SoundNodeEditor/Nodes/SoundRandomNode.h"
+
+#include "Saturn/Audio/SoundNodeEditor/SoundNodeLibrary.h"
+
+#include "NodeEditorBase.h"
 
 namespace Saturn {
 
-	SoundRandomNode::SoundRandomNode( const NodeSpecification& rSpec )
-		: Node( rSpec )
+	Ref<Node> GlobalNodesList::ConvertExecutionTypeToNode( NodeExecutionType executionType, Ref<NodeEditorBase> nodeEditorBase )
 	{
-		ExecutionType = NodeExecutionType::RandomSound;
-	}
-
-	SoundRandomNode::~SoundRandomNode()
-	{
-	}
-
-	void SoundRandomNode::EvaluateNode( NodeEditorRuntime* evaluator )
-	{
-		SoundEditorEvaluator* pSoundEditorEvaluator = dynamic_cast< SoundEditorEvaluator* >( evaluator );
-
-		if( !pSoundEditorEvaluator )
-			return;
-
-		std::map<UUID, UUID> PinToSoundMap;
-
-		auto ids = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNeighbors( this );
-
-		uint32_t index = 0;
-		for( const auto& rID : ids )
+		switch( executionType )
 		{
-			Ref<Node> neighorNode = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNode( rID );
-			if( !neighorNode )
-				continue;
+			// TODO: Value is no longer used.
+			case NodeExecutionType::Value:
+				return nullptr;
 
-			// TODO: Support more node types coming into the random node
-			if( neighorNode->ExecutionType != NodeExecutionType::SoundPlayer )
-				continue;
+			case NodeExecutionType::AssetID:
+				return MaterialNodeLibrary::SpawnGetAsset( nodeEditorBase );
 
-			Ref<SoundPlayerNode> playerNode = neighorNode.As<SoundPlayerNode>();
-			PinToSoundMap[ index ] = playerNode->SoundAssetID;
+			case NodeExecutionType::Sampler2D:
+				return MaterialNodeLibrary::SpawnSampler2D( nodeEditorBase );
+			case NodeExecutionType::MaterialOutput:
+				return MaterialNodeLibrary::SpawnOutputNode( nodeEditorBase );
+			case NodeExecutionType::ColorPicker:
+				return MaterialNodeLibrary::SpawnColorPicker( nodeEditorBase );
+			case NodeExecutionType::MaterialMixColors:
+				return MaterialNodeLibrary::SpawnMixColors( nodeEditorBase );
 
-			index++;
+			// Default nodes
+			case NodeExecutionType::Add:
+				return DefaultNodeLibrary::SpawnAddFloats( nodeEditorBase );
+			case NodeExecutionType::Subtract:
+				return DefaultNodeLibrary::SpawnSubFloats( nodeEditorBase );
+			case NodeExecutionType::Multiply:
+				return DefaultNodeLibrary::SpawnMulFloats( nodeEditorBase );
+			case NodeExecutionType::Divide:
+				return DefaultNodeLibrary::SpawnDivFloats( nodeEditorBase );
+
+			case NodeExecutionType::SoundOutput:
+				return SoundNodeLibrary::SpawnOutputNode( nodeEditorBase );
+			case NodeExecutionType::SoundPlayer:
+				return SoundNodeLibrary::SpawnPlayerNode( nodeEditorBase );
+			case NodeExecutionType::RandomSound:
+				return SoundNodeLibrary::SpawnRandomNode( nodeEditorBase );
+
+			case NodeExecutionType::None:
+			default:
+				return nullptr;
 		}
 
-		int range = (int)Inputs.size();
-		int number = std::rand() % range + 0;
-
-		ChosenSoundID = PinToSoundMap[ number ];
-
-		pSoundEditorEvaluator->SoundStack.push( ChosenSoundID );
-	}
-
-	void SoundRandomNode::OnRenderOutput( UUID pinID )
-	{
+		// All paths return
+		std::unreachable();
 	}
 }
