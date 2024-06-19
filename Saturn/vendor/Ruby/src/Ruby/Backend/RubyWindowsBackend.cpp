@@ -277,6 +277,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		//////////////////////////////////////////////////////////////////////////
 		// Key Events
 
+		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
 		{
 			// In Ruby our key codes match with the Win32 ones.
@@ -287,6 +288,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyPressed, nativeCode, Modifiers );
 		} break;
 
+		case WM_SYSKEYUP:
 		case WM_KEYUP:
 		{
 			// In Ruby our key codes match with the Win32 ones.
