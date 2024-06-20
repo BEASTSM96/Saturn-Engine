@@ -151,6 +151,22 @@ namespace Saturn {
 			asset->Unload();
 		}
 
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
+		// Stop and unload any preview sounds
+		for( auto& [identifier, identifierMap] : m_PreviewSounds )
+		{
+			for( auto& [ID, asset] : identifierMap ) 
+			{
+				asset->Stop();
+				asset->Unload();
+			}
+
+			identifierMap.clear();
+		}
+
+		m_PreviewSounds.clear();
+#endif
+
 		// Unload remaining sounds
 		for( auto& [id, asset] : m_LoadedSounds )
 		{
@@ -250,14 +266,78 @@ namespace Saturn {
 		return snd;
 	}
 
+	Ref<Sound> AudioSystem::RequestPreviewSound( AssetID AssetID, UUID Identifier, bool AllowMultiple )
+	{
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
+		if( !AllowMultiple )
+		{
+			const auto identifierItr = m_PreviewSounds.find( Identifier );
+
+			if( identifierItr != m_PreviewSounds.end() )
+			{
+				auto& rIdentifierMap = identifierItr->second;
+
+				for( auto& [id, asset] : rIdentifierMap )
+				{
+					asset->Stop();
+					asset->Reset();
+				}
+
+				rIdentifierMap.clear();
+			}
+		}
+		
+		// Load the (potentially new) sound now
+		Ref<Sound> snd = AssetManager::Get().GetAssetAs<Sound>( AssetID );
+
+		m_AudioThread->Queue( [=]()
+			{
+				// Intentional.
+				// Better to get the sound again rather than copy it into this lambda.
+				Ref<Sound> soundAsset = AssetManager::Get().GetAssetAs<Sound>( AssetID ).As<Sound>();
+
+				soundAsset->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
+				soundAsset->SetSpatialization( false );
+				soundAsset->Play();
+
+				m_AliveSounds[ AssetID ] = soundAsset;
+				m_PreviewSounds[ Identifier ][ AssetID ] = soundAsset;
+				m_LoadedSounds[ AssetID ] = soundAsset;
+			} );
+
+		return snd;
+#else
+		return nullptr;
+#endif
+	}
+
 	void AudioSystem::ReportSoundCompleted( AssetID ID )
 	{
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
+		for( auto&& [identifier, identifierMap] : m_PreviewSounds )
+		{
+			auto PreviewItr = identifierMap.find( ID );
+
+			if( PreviewItr != identifierMap.end() )
+			{
+				auto& rSnd = ( PreviewItr )->second;
+				rSnd->Stop();
+				//rSnd->Unload();
+				rSnd->Reset();
+
+				identifierMap.erase( PreviewItr );
+				m_PreviewSounds.erase( identifier );
+
+				break;
+			}
+		}
+#endif
 		auto Itr = m_AliveSounds.find( ID );
 
 		if( Itr != m_AliveSounds.end() ) 
 		{
 			auto& rSnd = ( Itr )->second;
-			rSnd->m_Playing = false;
+			rSnd->Stop();
 
 			m_AliveSounds.erase( Itr );
 		}
@@ -287,6 +367,26 @@ namespace Saturn {
 	void AudioSystem::SetPrimaryListenerPos( const glm::vec3& rPos )
 	{
 		ma_engine_listener_set_position( &m_Engine, 0, rPos.x, rPos.y, rPos.z );
+	}
+
+	void AudioSystem::StopPreviewSounds( UUID Identifier )
+	{
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
+		const auto identifierItr = m_PreviewSounds.find( Identifier );
+
+		if( identifierItr != m_PreviewSounds.end() )
+		{
+			auto& rIdentifierMap = identifierItr->second;
+
+			for( auto& [id, asset] : rIdentifierMap )
+			{
+				asset->Stop();
+				asset->Reset();
+			}
+
+			rIdentifierMap.clear();
+		}
+#endif
 	}
 
 }

@@ -127,6 +127,9 @@ namespace Saturn {
 
 	void Sound::Stop()
 	{
+		if( !m_Playing )
+			return;
+
 		MA_CHECK( ma_sound_stop( m_Sound ) );
 		m_Playing = false;
 	}

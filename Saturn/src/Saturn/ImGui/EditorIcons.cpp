@@ -29,26 +29,41 @@
 #include "sppch.h"
 #include "EditorIcons.h"
 
+#if defined(SAT_DIST)
+#include <stacktrace>
+#endif
+
 namespace Saturn {
 
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 	static std::unordered_map<std::string, Ref<Texture2D>> s_Textures;
+#endif
 
 	Ref<Texture2D> EditorIcons::GetIcon( const std::string& rName )
 	{
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		const auto Itr = s_Textures.find( rName );
 
 		return Itr == s_Textures.end() ? nullptr : Itr->second;
+#else
+		std::string message = std::format( "EditorIcons::GetIcon should not be called in Dist! Please check the stacktrace below and debug!\n{0}", std::stacktrace::current() );
+		SAT_CORE_VERIFY( false, message );
+		return nullptr;
+#endif
 	}
 
 	void EditorIcons::AddIcon( const Ref<Texture2D>& rTexture )
 	{
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		std::string name = rTexture->GetPath().filename().replace_extension().string();
 		s_Textures[ name ] = rTexture;
+#endif
 	}
 
 	void EditorIcons::Clear()
 	{
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		s_Textures.clear();
+#endif
 	}
-
 }

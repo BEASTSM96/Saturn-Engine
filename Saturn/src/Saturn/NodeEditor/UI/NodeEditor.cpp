@@ -242,7 +242,7 @@ namespace Saturn {
 		ImGui::BeginHorizontal( "##TopbarItems" );
 
 		if( Auxiliary::ImageButton( m_ZoomTexture, { 24, 24 } ) )
-			ed::NavigateToContent( 1.0f );
+			ed::NavigateToContent( 0.25f );
 
 		if( ImGui::IsItemHovered() )
 		{

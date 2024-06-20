@@ -39,6 +39,11 @@
 
 #include "SoundNodeLibrary.h"
 
+#include "Saturn/Audio/AudioSystem.h"
+
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
+#include "Saturn/ImGui/EditorIcons.h"
+
 #include "Saturn/Asset/AssetManager.h"
 
 namespace Saturn {
@@ -47,7 +52,6 @@ namespace Saturn {
 		: AssetViewer( id )
 	{
 		m_AssetType = AssetType::GraphSound;
-
 		AddSoundAsset();
 	}
 
@@ -74,6 +78,8 @@ namespace Saturn {
 		{
 			m_NodeEditor->Open( false );
 			m_Open = false;
+
+			AudioSystem::Get().StopPreviewSounds( m_AssetID );
 
 			DestroyViewer( m_AssetID );
 		}
@@ -139,9 +145,16 @@ namespace Saturn {
 
 		m_NodeEditor->SetTopBarFunction( [&]() 
 			{
-				if( ImGui::Button( "Stop Sounds" ) ) 
+				if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Billboard_AudioMuted" ), { 24, 24 } ) )
 				{
-					
+					AudioSystem::Get().StopPreviewSounds( m_AssetID );
+				}
+
+				if( ImGui::IsItemHovered() )
+				{
+					ImGui::BeginTooltip();
+					ImGui::Text( "Stop all sounds." );
+					ImGui::EndTooltip();
 				}
 			} );
 	}

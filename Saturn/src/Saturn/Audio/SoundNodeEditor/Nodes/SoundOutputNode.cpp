@@ -29,6 +29,7 @@
 #include "sppch.h"
 #include "SoundOutputNode.h"
 
+#include "Saturn/NodeEditor/NodeEditorBase.h"
 #include "Saturn/Audio/SoundNodeEditor/SoundEditorEvaluator.h"
 
 #include "Saturn/Audio/AudioSystem.h"
@@ -62,7 +63,7 @@ namespace Saturn {
 			const UUID soundAssetID = soundStack.top();
 			soundStack.pop();
 
-			AudioSystem::Get().RequestNewSound( soundAssetID );
+			AudioSystem::Get().RequestPreviewSound( soundAssetID, pSoundEditorEvaluator->GetTargetNodeEditor()->GetAssetID() );
 		}
 	}
 }
