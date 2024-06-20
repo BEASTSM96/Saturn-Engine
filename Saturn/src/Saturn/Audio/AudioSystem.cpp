@@ -137,8 +137,8 @@ namespace Saturn {
 				SAT_CORE_INFO( " Format: {0}", m_Device.playback.format );
 				SAT_CORE_INFO( "==============" );
 
-				m_MasterSoundGroup.Init( true );
-				m_MasterSoundGroup.SetName( "Master" );
+				m_MasterSoundGroup = Ref<SoundGroup>::Create( "Master" );
+				m_MasterSoundGroup->Init( true );
 			} );
 	}
 
@@ -180,7 +180,8 @@ namespace Saturn {
 		}
 
 		// And the master sound group as well
-		m_MasterSoundGroup.Destroy();
+		m_MasterSoundGroup->Destroy();
+		m_MasterSoundGroup = nullptr;
 
 		// Stop audio thread
 		SAT_CORE_INFO( "Stoping Audio Thread..." );
@@ -309,6 +310,27 @@ namespace Saturn {
 #else
 		return nullptr;
 #endif
+	}
+
+	Ref<GraphSound> AudioSystem::PlayGraphSound( AssetID ID )
+	{
+		// Load the (potentially new) sound now
+		Ref<GraphSound> snd = AssetManager::Get().GetAssetAs<GraphSound>( ID );
+
+		m_AudioThread->Queue( [=]()
+			{
+				// Intentional.
+				// Better to get the sound again rather than copy it into this lambda.
+				Ref<GraphSound> graphSoundAsset = AssetManager::Get().GetAssetAs<GraphSound>( ID );
+
+				graphSoundAsset->Initialise();
+				graphSoundAsset->Play();
+
+				//m_AliveSounds[ ID ] = graphSoundAsset;
+				//m_LoadedSounds[ ID ] = graphSoundAsset;
+			} );
+
+		return snd;
 	}
 
 	void AudioSystem::ReportSoundCompleted( AssetID ID )

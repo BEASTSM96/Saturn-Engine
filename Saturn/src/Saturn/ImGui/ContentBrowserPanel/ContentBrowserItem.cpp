@@ -38,7 +38,7 @@
 #include "Saturn/ImGui/AssetViewer.h"
 #include "Saturn/ImGui/PrefabViewer.h"
 #include "Saturn/ImGui/StaticMeshAssetViewer.h"
-#include "Saturn/ImGui/MaterialAssetViewer.h"
+#include "Saturn/ImGui/MaterialAssetViewer/MaterialAssetViewer.h"
 #include "Saturn/ImGui/PhysicsMaterialAssetViewer.h"
 #include "Saturn/ImGui/TextureViewer.h"
 #include "Saturn/ImGui/SoundAssetViewer.h"

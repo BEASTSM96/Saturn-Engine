@@ -41,8 +41,10 @@ namespace Saturn {
 		: Node( rSpec )
 	{
 		ExecutionType = NodeExecutionType::SoundOutput;
+#if !defined(SAT_DIST)
 		CanBeDeleted = false;
 		Color = ImColor( 237, 202, 5, 255 );
+#endif
 	}
 
 	SoundOutputNode::~SoundOutputNode()
@@ -63,7 +65,13 @@ namespace Saturn {
 			const UUID soundAssetID = soundStack.top();
 			soundStack.pop();
 
+#if !defined(SAT_DIST)
 			AudioSystem::Get().RequestPreviewSound( soundAssetID, pSoundEditorEvaluator->GetTargetNodeEditor()->GetAssetID() );
+#else
+			// TODO: Maybe we should have "preview" sounds in Dist
+			//       As it would allows us to group sounds to an ID.
+			AudioSystem::Get().RequestNewSound( soundAssetID );
+#endif
 		}
 	}
 }

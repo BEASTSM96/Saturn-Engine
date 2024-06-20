@@ -86,12 +86,10 @@ namespace Saturn {
 	void SoundPlayerNode::OnSerialise( std::ofstream& rStream ) const
 	{
 		UUID::Serialise( SoundAssetID, rStream );
-		SAT_CORE_INFO( "saved id: {0}", SoundAssetID );
 	}
 
 	void SoundPlayerNode::OnDeserialise( std::ifstream& rStream )
 	{
 		UUID::Deserialise( SoundAssetID, rStream );
-		SAT_CORE_INFO( "read id: {0}", SoundAssetID );
 	} 
 }

@@ -29,7 +29,7 @@
 #include "sppch.h"
 #include "GlobalNodesList.h"
 
-#include "Saturn/ImGui/MaterialViewerNodes.h"
+#include "Saturn/ImGui/MaterialAssetViewer/MaterialViewerNodes.h"
 
 #include "Saturn/Audio/SoundNodeEditor/Nodes/SoundOutputNode.h"
 #include "Saturn/Audio/SoundNodeEditor/Nodes/SoundPlayerNode.h"

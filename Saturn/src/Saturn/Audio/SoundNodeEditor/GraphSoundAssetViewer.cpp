@@ -110,7 +110,7 @@ namespace Saturn {
 		SetupNodeEditorCallbacks();
 
 		SoundEditorEvaluator::SoundEdEvaluatorInfo info;
-		info.Sound = nullptr;
+		info.SoundGroup = nullptr;
 		info.OutputNodeID = m_OutputNodeID;
 		auto rt = Ref<SoundEditorEvaluator>::Create( info );
 		rt->SetTargetNodeEditor( m_NodeEditor );

@@ -26,44 +26,66 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "GraphSound.h"
 
-#include "AssetViewer.h"
-#include "Saturn/Asset/MaterialAsset.h"
+#include "SoundNodeEditor/SoundEditorEvaluator.h"
+
 #include "Saturn/NodeEditor/NodeEditorBase.h"
-#include "Saturn/NodeEditor/Runtime/NodeEditorRuntime.h"
-#include "Saturn/NodeEditor/Runtime/NodeRuntime.h"
+#include "Saturn/NodeEditor/UI/NodeEditor.h"
+#include "Saturn/NodeEditor/Serialisation/NodeCache.h"
 
 namespace Saturn {
 
-	class NodeEditor;
-	class Node;
-
-	class MaterialAssetViewer : public AssetViewer
+	GraphSound::GraphSound()
 	{
-	public:
-		MaterialAssetViewer( AssetID id );
-		~MaterialAssetViewer();
+	}
 
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override {}
-		virtual void OnEvent( RubyEvent& rEvent ) override {}
+	GraphSound::~GraphSound()
+	{
+		m_SoundGroup = nullptr;
+		m_NodeEditor = nullptr;
+	}
 
-	private:
-		void AddMaterialAsset();
-		void DrawInternal();
+	void GraphSound::Initialise()
+	{
+		if( m_Initialised )
+			return;
 
-		void SetupNodeEditorCallbacks();
-		void SetupNewNodeEditor();
-		void SetupNodesFromMaterial();
-		void CreateNodesFromTexture( const Ref<Texture2D>& rTexture, int slot );
+#if defined(SAT_DIST)
+		m_NodeEditor = Ref<NodeEditorBase>::Create( ID );
+#else
+		m_NodeEditor = Ref<NodeEditor>::Create( ID );
+#endif
 
-	private:
-		Ref<MaterialAsset> m_HostMaterialAsset = nullptr;
-		Ref<Material> m_EditingMaterial = nullptr;
+		std::string filename = std::format( "{0}.gsnd", Name );
+		if( NodeCacheEditor::ReadNodeEditorCache( m_NodeEditor, ID, filename ) )
+		{
+			m_OutputNodeID = m_NodeEditor->FindNode( "Sound Output" )->ID;
+		}
+		else
+		{
+			SAT_CORE_WARN( "Failed to read node editor, using empty graph sound" );
+		}
 
-		Ref<NodeEditor> m_NodeEditor = nullptr;
+		SoundEditorEvaluator::SoundEdEvaluatorInfo info;
+		info.SoundGroup = m_SoundGroup;
+		info.OutputNodeID = m_OutputNodeID;
+		auto rt = Ref<SoundEditorEvaluator>::Create( info );
+		rt->SetTargetNodeEditor( m_NodeEditor );
 
-		UUID m_OutputNodeID = 0;
-	};
+		m_NodeEditor->SetRuntime( rt );
+
+		m_Initialised = true;
+	}
+
+	void GraphSound::Play( int frameOffset )
+	{
+		if( m_OutputNodeID == 0 || !m_NodeEditor )
+			return;
+
+		m_NodeEditor->Evaluate();
+
+		m_Playing = true;
+	}
 }

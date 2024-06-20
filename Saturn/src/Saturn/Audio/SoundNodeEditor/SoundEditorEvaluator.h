@@ -40,13 +40,14 @@ namespace Saturn {
 	class Sound;
 	class NodeEditorBase;
 	class Node;
+	class SoundGroup;
 
 	class SoundEditorEvaluator : public NodeEditorRuntime
 	{
 	public:
 		struct SoundEdEvaluatorInfo
 		{
-			Ref<Sound> Sound;
+			Ref<SoundGroup> SoundGroup;
 			UUID OutputNodeID;
 		};
 

@@ -30,6 +30,8 @@
 #include "SoundEditorEvaluator.h"
 
 #include "Saturn/Audio/Sound.h"
+#include "Saturn/Audio/SoundGroup.h"
+#include "Saturn/Audio/AudioSystem.h"
 
 #include "Nodes/SoundOutputNode.h"
 #include "Nodes/SoundPlayerNode.h"
@@ -42,6 +44,8 @@ namespace Saturn {
 	SoundEditorEvaluator::SoundEditorEvaluator( const SoundEdEvaluatorInfo& rInfo )
 		: m_Info( rInfo )
 	{
+		if( !m_Info.SoundGroup )
+			m_Info.SoundGroup = AudioSystem::Get().GetMasterSoundGroup();
 	}
 
 	void SoundEditorEvaluator::SetTargetNodeEditor( Ref<NodeEditorBase> nodeEditor )
@@ -51,6 +55,7 @@ namespace Saturn {
 
 	NodeEditorCompilationStatus SoundEditorEvaluator::EvaluateEditor()
 	{
+#if !defined( SAT_DIST )
 		if( !m_NodeEditor )
 			return NodeEditorCompilationStatus::Failed;
 
@@ -63,6 +68,10 @@ namespace Saturn {
 		// We must have something linked to the final output.
 		if( !m_NodeEditor->IsLinked( FinalSoundPinID ) )
 			return NodeEditorCompilationStatus::Failed;
+#else
+		Ref<Node> OutputNode = m_NodeEditor->FindNode( m_Info.OutputNodeID );
+		UUID FinalSoundPinID = OutputNode->Inputs[ 0 ]->ID;
+#endif
 
 		// Stacks are last in first out, so our output node will be evaluated last which is what we want.
 		std::stack<UUID> order;

@@ -48,7 +48,7 @@ namespace Saturn {
 			initFlags |= flags;
 
 			// By default always use the master sound group.
-			m_SoundGroup = AudioSystem::Get().GetMasterSoundGroup().GetInternal();
+			m_SoundGroup = AudioSystem::Get().GetMasterSoundGroup()->GetInternal();
 
 			m_Sound = new ma_sound();
 

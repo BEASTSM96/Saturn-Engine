@@ -28,58 +28,42 @@
 
 #pragma once
 
-#include "Saturn/Core/Ref.h"
-
-#include <thread>
-#include <functional>
-#include <mutex>
+#include "Saturn/ImGui/AssetViewer.h"
+#include "Saturn/Asset/MaterialAsset.h"
+#include "Saturn/NodeEditor/NodeEditorBase.h"
+#include "Saturn/NodeEditor/Runtime/NodeEditorRuntime.h"
+#include "Saturn/NodeEditor/Runtime/NodeRuntime.h"
 
 namespace Saturn {
 
-	// RAII Safe.
-	class Thread : public RefTarget
+	class NodeEditor;
+	class Node;
+
+	class MaterialAssetViewer : public AssetViewer
 	{
 	public:
-		Thread();
-		virtual ~Thread();
+		MaterialAssetViewer( AssetID id );
+		~MaterialAssetViewer();
 
-		template<typename Fn, typename... Args>
-		void Queue( Fn&& rrFunc, Args&&... rrArgs )
-		{
-			if( m_ThreadID == std::this_thread::get_id() ) 
-			{
-				rrFunc();
-				return;
-			}
+		virtual void OnImGuiRender() override;
+		virtual void OnUpdate( Timestep ts ) override {}
+		virtual void OnEvent( RubyEvent& rEvent ) override {}
 
-			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
-			m_QueueCV.notify_one();
+	private:
+		void AddMaterialAsset();
+		void DrawInternal();
 
-			m_CommandBuffer.push_back( std::move( rrFunc ) );
-		}
+		void SetupNodeEditorCallbacks();
+		void SetupNewNodeEditor();
+		void SetupNodesFromMaterial();
+		void CreateNodesFromTexture( const Ref<Texture2D>& rTexture, int slot );
 
-		void Signal() { return m_SignalCV.notify_one(); }
+	private:
+		Ref<MaterialAsset> m_HostMaterialAsset = nullptr;
+		Ref<Material> m_EditingMaterial = nullptr;
 
-		virtual void Start() = 0;
-		virtual void RequestJoin() = 0;
+		Ref<NodeEditor> m_NodeEditor = nullptr;
 
-	protected:
-		void ExecuteCommands();
-		void WaitCommands();
-		void Terminate();
-
-	protected:
-		std::thread m_Thread;
-		std::thread::id m_ThreadID;
-		std::mutex m_Mutex;
-		std::shared_ptr<std::atomic_bool> m_Running;
-
-		// What state is the queue in, empty or not empty.
-		std::condition_variable m_QueueCV;
-
-		// What do we want to do, ExecuteOne, ExecuteAll or are we even allowed to continue?
-		std::condition_variable m_SignalCV;
-
-		std::vector<std::function<void()>> m_CommandBuffer;
+		UUID m_OutputNodeID = 0;
 	};
 }

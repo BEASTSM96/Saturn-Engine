@@ -28,58 +28,35 @@
 
 #pragma once
 
-#include "Saturn/Core/Ref.h"
-
-#include <thread>
-#include <functional>
-#include <mutex>
+#include "SoundGroup.h"
+#include "SoundBase.h"
+#include "Saturn/Asset/Asset.h"
 
 namespace Saturn {
 
-	// RAII Safe.
-	class Thread : public RefTarget
+	class NodeEditor;
+	class NodeEditorBase;
+
+	class GraphSound : SoundBase
 	{
 	public:
-		Thread();
-		virtual ~Thread();
+		GraphSound();
+		~GraphSound();
 
-		template<typename Fn, typename... Args>
-		void Queue( Fn&& rrFunc, Args&&... rrArgs )
-		{
-			if( m_ThreadID == std::this_thread::get_id() ) 
-			{
-				rrFunc();
-				return;
-			}
+		void Initialise();
+		virtual void Play( int frameOffset = 0 ) override;
 
-			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
-			m_QueueCV.notify_one();
+	private:
+		Ref<SoundGroup> m_SoundGroup;
 
-			m_CommandBuffer.push_back( std::move( rrFunc ) );
-		}
+#if !defined(SAT_DIST)
+		Ref<NodeEditor> m_NodeEditor;
+#else
+		Ref<NodeEditorBase> m_NodeEditor;
+#endif
+		bool m_Playing = false;
+		bool m_Initialised = false;
 
-		void Signal() { return m_SignalCV.notify_one(); }
-
-		virtual void Start() = 0;
-		virtual void RequestJoin() = 0;
-
-	protected:
-		void ExecuteCommands();
-		void WaitCommands();
-		void Terminate();
-
-	protected:
-		std::thread m_Thread;
-		std::thread::id m_ThreadID;
-		std::mutex m_Mutex;
-		std::shared_ptr<std::atomic_bool> m_Running;
-
-		// What state is the queue in, empty or not empty.
-		std::condition_variable m_QueueCV;
-
-		// What do we want to do, ExecuteOne, ExecuteAll or are we even allowed to continue?
-		std::condition_variable m_SignalCV;
-
-		std::vector<std::function<void()>> m_CommandBuffer;
+		UUID m_OutputNodeID = 0;
 	};
 }

@@ -30,6 +30,8 @@
 
 #include "Saturn/ImGui/AssetViewer.h"
 
+#include "NodeEditorCompilationStatus.h"
+
 #include "Node.h"
 #include "Link.h"
 
@@ -82,6 +84,7 @@ namespace Saturn {
 		Ref<Node> FindNodeByPin( UUID id );
 
 		void SetRuntime( Ref<NodeEditorRuntime> runtime );
+		NodeEditorCompilationStatus Evaluate();
 
 		std::vector<UUID> FindNeighbors( Ref<Node> node );
 

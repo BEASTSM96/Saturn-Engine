@@ -34,6 +34,7 @@
 #include "AudioCore.h"
 #include "Sound.h"
 #include "SoundGroup.h"
+#include "GraphSound.h"
 
 #include <filesystem>
 
@@ -85,6 +86,8 @@ namespace Saturn {
 	
 		Ref<Sound> RequestPreviewSound( AssetID AssetID, UUID Identifier, bool allowMultiple = false );
 
+		Ref<GraphSound> PlayGraphSound( AssetID ID );
+
 		void ReportSoundCompleted( AssetID ID );
 
 		void Suspend();
@@ -95,7 +98,7 @@ namespace Saturn {
 		void StopPreviewSounds( UUID Identifier );
 
 		ma_engine& GetAudioEngine() { return m_Engine; }
-		SoundGroup& GetMasterSoundGroup() { return m_MasterSoundGroup; }
+		Ref<SoundGroup>& GetMasterSoundGroup() { return m_MasterSoundGroup; }
 
 	private:
 		void Initialise();
@@ -104,7 +107,7 @@ namespace Saturn {
 
 	private:
 		Ref<AudioThread> m_AudioThread;
-		SoundGroup m_MasterSoundGroup;
+		Ref<SoundGroup> m_MasterSoundGroup;
 
 		// Currently alive sounds (i.e. sounds that are playing)
 		std::unordered_map<AssetID, Ref<Sound>> m_AliveSounds;

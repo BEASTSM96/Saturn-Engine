@@ -34,6 +34,14 @@ namespace YAML {
 	class Node;
 }
 
+#define SAT_SERIALISER_CLASS( Name ) \
+	class Name##AssetSerialiser : public AssetSerialiser \
+	{ \
+	public: \
+		virtual void Serialise( const Ref<Asset>& rAsset ) const override; \
+		[[nodiscard]] virtual bool TryLoadData( Ref<Asset>& rAsset ) const override; \
+	};
+
 namespace Saturn {
 
 	class AssetSerialiser
@@ -77,4 +85,12 @@ namespace Saturn {
 		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
 		[[nodiscard]] virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
 	};
+
+	class GraphSoundAssetSerialiser : public AssetSerialiser
+	{
+	public:
+		virtual void Serialise( const Ref<Asset>& rAsset ) const override;
+		[[nodiscard]] virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
+	};
+
 }

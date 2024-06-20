@@ -125,28 +125,6 @@ namespace Saturn {
 			m_FocalPoint = m_Position + GetForwardDirection() * distance;
 			m_Distance = distance;
 		}
-		else if( Input::Get().KeyPressed( RubyKey::Alt ) )
-		{
-			m_CameraMode = CameraMode::ARCBALL;
-
-			if( Input::Get().MouseButtonPressed( RubyMouseButton::Middle ) )
-			{
-				DisableMouse();
-				MousePan( delta );
-			}
-			else if( Input::Get().MouseButtonPressed( RubyMouseButton::Left ) )
-			{
-				DisableMouse();
-				MouseRotate( delta );
-			}
-			else if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
-			{
-				DisableMouse();
-				MouseZoom( delta.x + delta.y );
-			}
-			else
-				EnableMouse();
-		}
 		else
 		{
 			EnableMouse();

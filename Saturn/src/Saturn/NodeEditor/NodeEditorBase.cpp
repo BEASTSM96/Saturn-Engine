@@ -288,6 +288,14 @@ namespace Saturn {
 		m_Runtime = runtime;
 	}
 
+	NodeEditorCompilationStatus NodeEditorBase::Evaluate()
+	{
+		if( !m_Runtime )
+			return NodeEditorCompilationStatus::Failed;
+
+		return m_Runtime->EvaluateEditor();
+	}
+
 	std::vector<UUID> NodeEditorBase::FindNeighbors( Ref<Node> node )
 	{
 		std::vector<UUID> ids;
