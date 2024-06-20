@@ -147,6 +147,8 @@ namespace Saturn {
 				// End this frame on render thread.
 				RenderThread::Get().Queue( [=] { Renderer::Get().EndFrame(); } );
 			}
+			else
+				std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
 
 			// Execute render thread (last frame).
 			RenderThread::Get().WaitAll();
