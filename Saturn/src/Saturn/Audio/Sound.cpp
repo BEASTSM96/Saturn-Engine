@@ -48,14 +48,14 @@ namespace Saturn {
 			initFlags |= flags;
 
 			// By default always use the master sound group.
-			m_SoundGroup = AudioSystem::Get().GetMasterSoundGroup()->GetInternal();
+			m_SoundGroup = AudioSystem::Get().GetMasterSoundGroup();
 
 			m_Sound = new ma_sound();
 
 			// TODO: Wait for the sound to load by using the fence.
 			MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(),
 				m_RawPath.string().c_str(),
-				initFlags, m_SoundGroup, nullptr, m_Sound ) );
+				initFlags, m_SoundGroup->GetInternal(), nullptr, m_Sound ) );
 
 			m_Sound->pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( ID ) );
 			m_Sound->endCallback = OnSoundEnd;

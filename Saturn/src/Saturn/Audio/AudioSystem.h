@@ -110,14 +110,14 @@ namespace Saturn {
 		Ref<SoundGroup> m_MasterSoundGroup;
 
 		// Currently alive sounds (i.e. sounds that are playing)
-		std::unordered_map<AssetID, Ref<Sound>> m_AliveSounds;
+		std::unordered_map<AssetID, Ref<SoundBase>> m_AliveSounds;
 		// A list of every loaded sound in memory.
-		std::unordered_map<AssetID, Ref<Sound>> m_LoadedSounds;
+		std::unordered_map<AssetID, Ref<SoundBase>> m_LoadedSounds;
 
 		// Preview sound are not available in Dist.
 #if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		// Identifier -> Asset ID -> Sound
-		std::unordered_map<UUID, std::unordered_map< AssetID, Ref<Sound> >> m_PreviewSounds;
+		std::unordered_map<UUID, std::unordered_map< AssetID, Ref<SoundBase> >> m_PreviewSounds;
 #endif
 
 	private:

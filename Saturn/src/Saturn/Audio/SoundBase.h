@@ -46,6 +46,7 @@ namespace Saturn {
 		virtual void Stop() = 0;
 		virtual void Loop() = 0;
 		virtual void Load( uint32_t flags ) = 0;
+		virtual void Reset() = 0;
 
 	public:
 		ma_sound* GetRawSound() { return m_Sound; }
@@ -57,8 +58,7 @@ namespace Saturn {
 
 	protected:
 		ma_sound* m_Sound = nullptr;
-		ma_sound_group* m_SoundGroup = nullptr;
-
+		
 		bool m_Loaded = false;
 		bool m_Playing = false;
 		bool m_Looping = false;

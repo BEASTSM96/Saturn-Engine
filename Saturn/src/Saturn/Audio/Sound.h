@@ -47,7 +47,7 @@ namespace Saturn {
 		bool IsLooping() const;
 
 		void WaitUntilLoaded();
-		void Reset();
+		virtual void Reset() override;
 
 		void SetPosition( const glm::vec3& rPos );
 		void SetSpatialization( bool value );
@@ -64,6 +64,8 @@ namespace Saturn {
 	private:
 		void SetupSpatialization();
 		virtual void Unload() override;
+
+		Ref<SoundGroup> m_SoundGroup;
 
 		bool m_Spatialization = false;
 

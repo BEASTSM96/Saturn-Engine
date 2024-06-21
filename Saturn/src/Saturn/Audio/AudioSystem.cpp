@@ -323,11 +323,11 @@ namespace Saturn {
 				// Better to get the sound again rather than copy it into this lambda.
 				Ref<GraphSound> graphSoundAsset = AssetManager::Get().GetAssetAs<GraphSound>( ID );
 
-				graphSoundAsset->Initialise();
+				graphSoundAsset->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
 				graphSoundAsset->Play();
 
-				//m_AliveSounds[ ID ] = graphSoundAsset;
-				//m_LoadedSounds[ ID ] = graphSoundAsset;
+				m_AliveSounds[ ID ] = graphSoundAsset;
+				m_LoadedSounds[ ID ] = graphSoundAsset;
 			} );
 
 		return snd;
@@ -382,7 +382,7 @@ namespace Saturn {
 
 		for( auto& [id, asset] : m_AliveSounds )
 		{
-			asset->Play();
+			asset->Play( 0 );
 		}
 	}
 

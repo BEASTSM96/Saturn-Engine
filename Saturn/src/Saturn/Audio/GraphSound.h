@@ -37,7 +37,7 @@ namespace Saturn {
 	class NodeEditor;
 	class NodeEditorBase;
 
-	class GraphSound : SoundBase
+	class GraphSound : public SoundBase
 	{
 	public:
 		GraphSound();
@@ -45,6 +45,14 @@ namespace Saturn {
 
 		void Initialise();
 		virtual void Play( int frameOffset = 0 ) override;
+
+		void Stop() override;
+		void Loop() override;
+		void Load( uint32_t flags ) override;
+		void Reset() override;
+
+	private:
+		void Unload() override;
 
 	private:
 		Ref<SoundGroup> m_SoundGroup;
@@ -54,9 +62,6 @@ namespace Saturn {
 #else
 		Ref<NodeEditorBase> m_NodeEditor;
 #endif
-		bool m_Playing = false;
-		bool m_Initialised = false;
-
 		UUID m_OutputNodeID = 0;
 	};
 }

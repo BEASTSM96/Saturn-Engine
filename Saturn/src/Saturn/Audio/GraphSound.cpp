@@ -49,7 +49,7 @@ namespace Saturn {
 
 	void GraphSound::Initialise()
 	{
-		if( m_Initialised )
+		if( m_Loaded )
 			return;
 
 #if defined(SAT_DIST)
@@ -76,7 +76,7 @@ namespace Saturn {
 
 		m_NodeEditor->SetRuntime( rt );
 
-		m_Initialised = true;
+		m_Loaded = true;
 	}
 
 	void GraphSound::Play( int frameOffset )
@@ -87,5 +87,27 @@ namespace Saturn {
 		m_NodeEditor->Evaluate();
 
 		m_Playing = true;
+	}
+
+	void GraphSound::Stop()
+	{
+	}
+
+	void GraphSound::Loop()
+	{
+	}
+
+	void GraphSound::Load( uint32_t flags )
+	{
+		Initialise();
+	}
+
+	void GraphSound::Reset()
+	{
+
+	}
+
+	void GraphSound::Unload()
+	{
 	}
 }
