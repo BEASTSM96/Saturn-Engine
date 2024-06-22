@@ -45,6 +45,7 @@
 #include "Saturn/ImGui/EditorIcons.h"
 
 #include "Saturn/Asset/AssetManager.h"
+#include "Saturn/Core/OptickProfiler.h"
 
 namespace Saturn {
 
@@ -70,6 +71,8 @@ namespace Saturn {
 
 	void GraphSoundAssetViewer::OnImGuiRender()
 	{
+		SAT_PF_EVENT();
+
 		if( m_NodeEditor->IsOpen() )
 		{
 			m_NodeEditor->OnImGuiRender();

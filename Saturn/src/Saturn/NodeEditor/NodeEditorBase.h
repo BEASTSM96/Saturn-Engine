@@ -149,6 +149,8 @@ namespace Saturn {
 
 		AssetID m_AssetID = 0;
 
+		bool m_Loading = false;
+
 	private:
 		friend class NodeEditorCache;
 		friend class NodeCacheEditor;

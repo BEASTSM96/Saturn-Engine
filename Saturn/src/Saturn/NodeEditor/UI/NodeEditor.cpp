@@ -42,6 +42,8 @@
 
 #include "Saturn/NodeEditor/GlobalNodesList.h"
 
+#include "Saturn/Core/OptickProfiler.h"
+
 // imgui_node_editor
 #include "builders.h"
 
@@ -223,6 +225,8 @@ namespace Saturn {
 
 	void NodeEditor::OnImGuiRender()
 	{
+//		SAT_PF_EVENT();
+
 		// Safety
 		ed::SetCurrentEditor( m_Editor );
 
@@ -584,6 +588,8 @@ namespace Saturn {
 
 	void NodeEditor::DeserialiseData( std::ifstream& rStream )
 	{
+		m_Loading = true;
+
 		NodeCacheSettings::Get().ReadEditorSettings( this );
 
 		m_Name = RawSerialisation::ReadString( rStream );
@@ -609,9 +615,8 @@ namespace Saturn {
 
 			Node::Deserialise( node, rStream );
 
-			BuildNode( node );
-
 			m_Nodes[ key ] = node;
+			BuildNode( node );
 		}
 
 		mapSize = 0;
@@ -627,5 +632,7 @@ namespace Saturn {
 
 			m_Links[ i ] = link;
 		}
+
+		m_Loading = false;
 	}
 }

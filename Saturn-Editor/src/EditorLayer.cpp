@@ -34,7 +34,7 @@
 #include <Saturn/ImGui/ImGuiAuxiliary.h>
 #include <Saturn/Vulkan/SceneRenderer.h>
 #include <Saturn/ImGui/TitleBar.h>
-#include <Saturn/ImGui/MaterialAssetViewer.h>
+#include <Saturn/ImGui/MaterialAssetViewer/MaterialAssetViewer.h>
 #include <Saturn/ImGui/PrefabViewer.h>
 #include <Saturn/ImGui/Panel/Panel.h>
 #include <Saturn/ImGui/Panel/PanelManager.h>

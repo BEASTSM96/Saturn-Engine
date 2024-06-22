@@ -93,8 +93,8 @@ namespace Saturn {
 		auto* pFont = io.Fonts->AddFontFromFileTTF( "content\\Fonts\\NotoSans-Regular.ttf", 18.0f );
 		io.FontDefault = io.Fonts->Fonts.back();
 		
-		auto* pBold = io.Fonts->AddFontFromFileTTF( "content\\Fonts\\NotoSans-Bold.ttf", 18.0f );
-		auto* pItalic = io.Fonts->AddFontFromFileTTF( "content\\Fonts\\NotoSans-Italic.ttf", 18.0f );
+		io.Fonts->AddFontFromFileTTF( "content\\Fonts\\NotoSans-Bold.ttf", 18.0f );
+		io.Fonts->AddFontFromFileTTF( "content\\Fonts\\NotoSans-Italic.ttf", 18.0f );
 
 		Styles::Dark();
 

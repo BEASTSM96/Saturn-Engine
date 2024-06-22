@@ -348,6 +348,9 @@ namespace Saturn {
 
 	void NodeEditorBase::AddNode( Ref<Node> node )
 	{
+		if( m_Loading )
+			return;
+
 		m_Nodes[ node->ID ] = node;
 
 		BuildNode( node );
