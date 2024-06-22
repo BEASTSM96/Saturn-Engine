@@ -29,8 +29,9 @@
 #pragma once
 
 #include "Saturn/NodeEditor/NodeEditorBase.h"
-
 #include "Saturn/NodeEditor/NodeEditorCompilationStatus.h"
+
+#include "builders.h"
 
 namespace Saturn {
 
@@ -95,6 +96,8 @@ namespace Saturn {
 
 		Ref<Texture2D> m_ZoomTexture;
 		Ref<Texture2D> m_CompileTexture;
+
+		util::BlueprintNodeBuilder m_Builder;
 
 	private:
 		friend class NodeEditorCache;

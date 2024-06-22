@@ -165,6 +165,7 @@ namespace Saturn {
 		PinType     Type = PinType::Flow;
 		PinKind     Kind = PinKind::Input;
 		Buffer      ExtraData;
+		bool        AcceptMultipleLinks = false;
 
 	private:
 		void RenderInput( ax::NodeEditor::Utilities::BlueprintNodeBuilder& rBuilder, bool linked, uint32_t pinIndex );

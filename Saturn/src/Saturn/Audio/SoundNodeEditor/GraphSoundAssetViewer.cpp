@@ -66,6 +66,7 @@ namespace Saturn {
 
 		NodeCacheEditor::WriteNodeEditorCache( m_NodeEditor, filename );
 
+		m_NodeEditor->SetRuntime( nullptr );
 		m_NodeEditor = nullptr;
 	}
 

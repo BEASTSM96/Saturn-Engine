@@ -50,46 +50,6 @@ namespace ed = ax::NodeEditor;
 
 namespace Saturn {
 
-	//////////////////////////////////////////////////////////////////////////
-	// MATERIAL NODE EDITOR RUNTIME
-
-	static Ref<Node> FindOtherNodeByPin( UUID id, Ref<NodeEditorBase> nodeEditor )
-	{
-		// The other end of the link.
-		UUID OtherPinID;
-
-		Ref<Link> pLink = nodeEditor->FindLinkByPin( id );
-
-		if( pLink->EndPinID == id )
-			OtherPinID = pLink->StartPinID;
-		else
-			OtherPinID = pLink->EndPinID;
-
-		Ref<Pin> p = nodeEditor->FindPin( OtherPinID );
-
-		return p->Node;
-	}
-
-	static UUID FindOtherNodeIDByPin( UUID id, Ref<NodeEditorBase> nodeEditor )
-	{
-		// The other end of the link.
-		UUID OtherPinID;
-
-		Ref<Link> pLink = nodeEditor->FindLinkByPin( id );
-
-		if( pLink->EndPinID == id )
-			OtherPinID = pLink->StartPinID;
-		else
-			OtherPinID = pLink->EndPinID;
-
-		Ref<Pin> p = nodeEditor->FindPin( OtherPinID );
-
-		return p->Node->ID;
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// MATERIAL ASSET VIEWER
-
 	MaterialAssetViewer::MaterialAssetViewer( AssetID id )
 		: AssetViewer( id )
 	{
@@ -230,7 +190,7 @@ namespace Saturn {
 			Ref<Asset> TextureAsset = AssetManager::Get().FindAsset( relativePath );
 			AssetID TextureAssetID = TextureAsset->GetAssetID();
 
-			Ref<Node> Sampler2DNode;
+			Ref<MaterialSampler2DNode> Sampler2DNode;
 			Ref<Node> AssetNode;
 			Sampler2DNode = MaterialNodeLibrary::SpawnSampler2D( m_NodeEditor );
 			AssetNode = MaterialNodeLibrary::SpawnGetAsset( m_NodeEditor );
@@ -246,12 +206,10 @@ namespace Saturn {
 		}
 		else if( slot == 0 )
 		{
-			Ref<Node> colorPickerNode = MaterialNodeLibrary::SpawnColorPicker( m_NodeEditor );
+			Ref<MaterialColorPickerNode> colorPickerNode = MaterialNodeLibrary::SpawnColorPicker( m_NodeEditor );
 
 			auto& albedoColor = m_HostMaterialAsset->Get<glm::vec3>( "u_Materials.AlbedoColor" );
-			ImVec4 color = ImVec4( albedoColor.x, albedoColor.y, albedoColor.z, 1.0f );
-
-			colorPickerNode->ExtraData.Write( ( uint8_t* ) &color, sizeof( ImVec4 ), 0 );
+			colorPickerNode->Color = albedoColor;
 
 			Ref<Node> outputNode = m_NodeEditor->FindNode( m_OutputNodeID );
 			m_NodeEditor->CreateLink( colorPickerNode->Outputs[ slot ], outputNode->Inputs[ slot ] );

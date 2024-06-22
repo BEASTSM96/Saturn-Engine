@@ -290,7 +290,7 @@ namespace Saturn {
 		{
 			MaterialEvaluatorValue tv;
 			tv.Slot = TextureSlot;
-			tv.Color = ExtraData.Read<glm::vec4>();
+			tv.Color = Color;
 
 			// Add to root node
 			materialEval->AddToValueStack( tv );

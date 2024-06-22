@@ -83,6 +83,7 @@ namespace Saturn {
 
 	public:
 		size_t TextureSlot = 0;
+		glm::vec3 Color;
 	};
 
 	class MaterialNodeLibrary

@@ -44,6 +44,8 @@ namespace Saturn {
 	GraphSound::~GraphSound()
 	{
 		m_SoundGroup = nullptr;
+
+		m_NodeEditor->SetRuntime( nullptr );
 		m_NodeEditor = nullptr;
 	}
 
@@ -66,6 +68,7 @@ namespace Saturn {
 		else
 		{
 			SAT_CORE_WARN( "Failed to read node editor, using empty graph sound" );
+			SAT_CORE_ASSERT( false );
 		}
 
 		SoundEditorEvaluator::SoundEdEvaluatorInfo info;

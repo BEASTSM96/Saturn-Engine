@@ -44,9 +44,6 @@
 
 #include "Saturn/Core/OptickProfiler.h"
 
-// imgui_node_editor
-#include "builders.h"
-
 namespace util = ax::NodeEditor::Utilities;
 
 namespace Saturn {
@@ -186,6 +183,9 @@ namespace Saturn {
 	
 		m_ZoomTexture = EditorIcons::GetIcon( "Inspect" );
 		m_CompileTexture = EditorIcons::GetIcon( "NoIcon" );
+		
+		auto texture = NodeEditorBase::GetBlueprintBackground();
+		m_Builder = util::BlueprintNodeBuilder( ( ImTextureID ) texture->GetDescriptorSet(), texture->Width(), texture->Height() );
 	}
 
 	void NodeEditor::Reload()
@@ -282,15 +282,12 @@ namespace Saturn {
 
 		auto cursorTopLeft = ImGui::GetCursorScreenPos();
 
-		auto texture = NodeEditorBase::GetBlueprintBackground();
-		util::BlueprintNodeBuilder builder( (ImTextureID)texture->GetDescriptorSet(), texture->Width(), texture->Height() );
-
 		bool OpenAssetPopup = false;
 		bool OpenAssetColorPicker = false;
 
 		for( auto& [id, rNode] : m_Nodes )
 		{
-			rNode->Render( builder, this );
+			rNode->Render( m_Builder, this );
 		}
 
 		for( const auto& rLink : m_Links )
@@ -331,7 +328,7 @@ namespace Saturn {
 
 					m_NewLinkPin = StartPin ? StartPin : EndPin;
 
-					// If we started from an input swap the start to the ouput side
+					// If we started from an input swap the start to the output side
 					if( StartPin->Kind == PinKind::Input )
 					{
 						std::swap( StartPin, EndPin );
@@ -358,9 +355,10 @@ namespace Saturn {
 
 							ed::RejectNewItem( ImColor( 225, 128, 128 ), 2.0f );
 						}
-						else // Vaild type, accept
+						else // Valid type, accept (create new link)
 						{
 							showLabel( "+ Create Link", ImColor( 32, 45, 32, 180 ) );
+							
 							if( ed::AcceptNewItem( ImColor( 128, 255, 128 ), 4.0f ) )
 							{
 								UUID start = UUID( StartPinId.Get() );
@@ -542,10 +540,6 @@ namespace Saturn {
 
 	void NodeEditor::DeleteLink( UUID id )
 	{
-		Ref<Link> targetLink = nullptr;
-		Ref<Pin> targetStartLink = nullptr;
-		Ref<Pin> targetEndLink = nullptr;
-
 		const auto Itr = std::find_if( m_Links.begin(), m_Links.end(),
 			[id]( const auto& rLink )
 			{

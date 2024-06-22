@@ -41,7 +41,7 @@ namespace Saturn {
 	struct MaterialEvaluatorValue
 	{
 		uint32_t Slot = 0;
-		glm::vec4 Color;
+		glm::vec3 Color;
 		UUID TextureAssetID = 0;
 	};
 
