@@ -45,7 +45,9 @@ namespace Saturn {
 	{
 		m_SoundGroup = nullptr;
 
-		m_NodeEditor->SetRuntime( nullptr );
+		if( m_NodeEditor )
+			m_NodeEditor->SetRuntime( nullptr );
+
 		m_NodeEditor = nullptr;
 	}
 

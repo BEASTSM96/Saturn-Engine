@@ -478,7 +478,9 @@ namespace Saturn {
 
 		for( const auto& entry : std::filesystem::recursive_directory_iterator( m_CurrentViewModeDirectory ) )
 		{
-			if( m_TextFilter.PassFilter( entry.path().filename().string().c_str() ) )
+			const std::filesystem::path& rPath = entry.path();
+
+			if( m_TextFilter.PassFilter( rPath.filename().string().c_str() ) )
 			{
 				Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( entry );
 				item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
@@ -493,7 +495,7 @@ namespace Saturn {
 
 				if( !entry.is_directory() )
 				{
-					if( AssetTypeFromExtension( entry.path().extension().string() ) == AssetType::Unknown )
+					if( ExtensionToAssetType( rPath.extension().string() ) == AssetType::Unknown )
 						continue;
 				}
 
@@ -1009,7 +1011,7 @@ namespace Saturn {
 
 			if( !rEntry.is_directory() )
 			{
-				if( AssetTypeFromExtension( rEntry.path().extension().string() ) == AssetType::Unknown )
+				if( ExtensionToAssetType( rEntry.path().extension().string() ) == AssetType::Unknown )
 					continue;
 			}
 

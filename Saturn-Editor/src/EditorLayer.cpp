@@ -136,6 +136,8 @@ namespace Saturn {
 			{
 				if( ImGui::MenuItem( "Project settings" ) ) m_ShowUserSettings ^= 1;
 
+				if( ImGui::MenuItem( "Upgrade assets" ) ) Project::GetActiveProject()->UpgradeAssets();
+
 				if( ImGui::MenuItem( "Recreate project files" ) )
 				{
 					JobSystem::Get().AddJob( []()

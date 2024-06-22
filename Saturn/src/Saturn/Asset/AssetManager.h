@@ -194,6 +194,14 @@ namespace Saturn {
 			}
 		}
 
+		void BumpAssetVersion( uint32_t newVersion ) 
+		{
+			for( auto& [ id, rAsset ] : m_Assets->m_Assets )
+			{
+				rAsset->Version = newVersion;
+			}
+		}
+
 		size_t GetAssetRegistrySize() { return m_Assets->GetSize(); }
 		size_t GetEditorRegistrySize() { return m_EditorAssets->GetSize(); }
 

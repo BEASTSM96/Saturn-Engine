@@ -112,7 +112,7 @@ constexpr int A_SHIFT = 24;
 constexpr int A_MASK = 0xFF000000;
 
 template<typename Ty>
-consteval auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A ) << A_SHIFT ) | ( ( uint32_t ) ( B ) << B_SHIFT ) | ( ( uint32_t ) ( G ) << G_SHIFT ) | ( ( uint32_t ) ( R ) << R_SHIFT ) ); }
+consteval uint32_t COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A ) << A_SHIFT ) | ( ( uint32_t ) ( B ) << B_SHIFT ) | ( ( uint32_t ) ( G ) << G_SHIFT ) | ( ( uint32_t ) ( R ) << R_SHIFT ) ); }
 
 	inline constexpr uint32_t AssetTypeToColor( AssetType type )
 	{
@@ -181,7 +181,7 @@ consteval auto COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A 
 			return AssetType::Unknown;
 	}
 
-	inline AssetType AssetTypeFromExtension( const std::string& str )
+	inline AssetType ExtensionToAssetType( const std::string& str )
 	{
 		if( str == ".png" || str == ".tga" || str == ".jpg" || str == ".jpeg" || str == ".hdr" || str == ".ico" )
 			return AssetType::Texture;

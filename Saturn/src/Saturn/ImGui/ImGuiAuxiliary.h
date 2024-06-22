@@ -37,7 +37,8 @@
 #include <glm/glm.hpp>
 
 #include <imgui.h>
-#include <imgui_internal.h>	
+#include <imgui_internal.h>
+#include <set>
 
 namespace Saturn::Auxiliary {
 	
@@ -82,62 +83,8 @@ namespace Saturn::Auxiliary {
 	extern void TextEllipsisV( const char* fmt, const ImVec2& rStart, const ImVec2& rEnd, va_list args );
 	extern void TextEllipsisEx( const char* fmt, va_list args );
 
-	inline bool DrawAssetFinder( AssetType type, bool* rOpen, AssetID& rOut )
-	{
-		bool Modified = false;
-
-		if( *rOpen == true ) 
-		{
-			ImGui::OpenPopup( "AssetFinderPopup" );
-			*rOpen = false;
-		}
-
-		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
-		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
-		{
-			bool PopupModified = false;
-
-			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
-			{
-				// TODO: Change with editor.
-				for( const auto& [assetID, rAsset] : AssetManager::Get().GetCombinedAssetMap() )
-				{
-					bool Selected = ( rOut == assetID );
-
-					ImGui::PushID( static_cast<int>( assetID ) );
-
-					if( rAsset->GetAssetType() == type || type == AssetType::Unknown )
-					{
-						if( ImGui::Selectable( rAsset->Name.c_str(), Selected ) )
-						{
-							rOut = assetID;
-
-							PopupModified = true;
-						}
-					}
-
-					ImGui::PopID();
-
-					if( Selected )
-						ImGui::SetItemDefaultFocus();
-				}
-
-				ImGui::EndListBox();
-			}
-
-			if( PopupModified )
-			{
-				ImGui::CloseCurrentPopup();
-
-				Modified = true;
-				*rOpen = false;
-			}
-
-			ImGui::EndPopup();
-		}
-
-		return Modified;
-	}
+	extern bool DrawAssetFinder( AssetType type, bool* rOpen, AssetID& rOut );
+	extern bool DrawAssetFinder( const std::set<AssetType>& rAllowedTypes, bool* rOpen, AssetID& rOut );
 
 	template<typename Function>
 	inline bool DrawAssetFinder( AssetType allowedTypes, AssetID lastID, bool* rOpen, Function&& rrFunction )

@@ -723,6 +723,7 @@ namespace Saturn {
 		DrawComponent<AudioPlayerComponent>( "Audio Player", entity, [&]( auto& ap )
 		{
 			static bool s_Open = false;
+			static std::set<AssetType> allowedTypes = { AssetType::GraphSound, AssetType::Sound };
 
 			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24, 24 ) ) )
 			{
@@ -735,7 +736,7 @@ namespace Saturn {
 
 			ImGui::SameLine();
 
-			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
+			if( Auxiliary::DrawAssetFinder( allowedTypes, &s_Open, m_CurrentAssetID ) )
 			{
 				ap.AssetID = m_CurrentAssetID;
 			}

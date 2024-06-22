@@ -148,7 +148,7 @@ namespace Saturn {
 
 		if( differingAssetVersions )
 		{
-			SAT_CORE_WARN( "In order to fix differing versions try re-saving the Asset Registry." );
+			SAT_CORE_WARN( "In order to fix differing versions go to Project->Upgrade Assets in the editor title bar." );
 		}
 	}
 

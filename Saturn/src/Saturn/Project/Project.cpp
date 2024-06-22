@@ -44,14 +44,22 @@
 
 namespace Saturn {
 	
-	static std::vector<std::string> s_DisallowedAssetExtensions
+	static const std::vector<std::string> s_AllowedAssetExtentions
 	{
-		{ ".fbx" },  // Already in the static mesh asset
-		{ ".gltf" }, // Already in the static mesh asset
-		{ ".bin" },  // Already in the static mesh asset
-		{ ".glb" },  // Already in the static mesh asset
-		{ ".wav" },  // Already in the sound 2d asset
-		{ ".nce" },
+		{ ".png"          },
+		{ ".tga"          },
+		{ ".jpg"          },
+		{ ".jpeg"         },
+		{ ".hdr"          },
+		{ ".ico"          },
+		{ ".msnd"         },
+		{ ".gsnd"         },
+		{ ".scene"        },
+		{ ".smaterial"    },
+		{ ".cpp"          },
+		{ ".h"            },
+		{ ".prefab"       },
+		{ ".sphymaterial" }
 	};
 
 	Project::Project()
@@ -122,7 +130,7 @@ namespace Saturn {
 
 			Ref<Asset> asset = AssetManager::Get().FindAsset( filepath );
 
-			if( std::find( s_DisallowedAssetExtensions.begin(), s_DisallowedAssetExtensions.end(), filepathString ) != s_DisallowedAssetExtensions.end() )
+			if( std::find( s_AllowedAssetExtentions.begin(), s_AllowedAssetExtentions.end(), filepathString ) == s_AllowedAssetExtentions.end() )
 				continue; // Extension is forbidden.
 
 			const auto& assetReg = AssetManager::Get().GetAssetRegistry()->GetAssetMap();
@@ -133,7 +141,7 @@ namespace Saturn {
 				// Add to pending file list.
 				// Editor will show dialog and handle the rest.
 
-				auto type = AssetTypeFromExtension( filepathString );
+				auto type = ExtensionToAssetType( filepathString );
 				auto id = AssetManager::Get().CreateAsset( type );
 				asset = AssetManager::Get().FindAsset( id );
 
@@ -267,6 +275,17 @@ namespace Saturn {
 	void Project::RemoveSoundGroup( const Ref<SoundGroup>& rGrp )
 	{
 		m_SoundGroups.erase( std::remove( m_SoundGroups.begin(), m_SoundGroups.end(), rGrp ), m_SoundGroups.end() );
+	}
+
+	void Project::UpgradeAssets()
+	{
+		// TODO: For now this function will just update the "Version" variable in the asset
+		//       In the future we will want to actually upgrade the asset.
+
+		AssetManager::Get().BumpAssetVersion( SAT_CURRENT_VERSION );
+		
+		AssetRegistrySerialiser ars;
+		ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 	}
 
 	bool Project::HasPremakeFile()

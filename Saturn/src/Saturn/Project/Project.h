@@ -135,6 +135,11 @@ namespace Saturn {
 		void AddSoundGroup( const Ref<SoundGroup>& rGrp ) { m_SoundGroups.push_back( rGrp ); }
 		void RemoveSoundGroup( const Ref<SoundGroup>& rGrp );
 
+		//////////////////////////////////////////////////////////////////////////
+		// Upgrading Assets
+
+		void UpgradeAssets();
+
 	public:
 		//////////////////////////////////////////////////////////////////////////
 		// Premake, Building & Preparation for Distribution (Used in Editor)
