@@ -58,9 +58,9 @@ namespace Saturn {
 
 	GraphSoundAssetViewer::~GraphSoundAssetViewer()
 	{
-		std::string filename = std::format( "{0}.gsnd", m_SoundAsset->Name );
+		std::string filename = std::format( "{0}.gsnd", m_Asset->Name );
 
-		m_SoundAsset = nullptr;
+		m_Asset = nullptr;
 
 		m_NodeEditor->SaveSettings();
 
@@ -92,11 +92,11 @@ namespace Saturn {
 	void GraphSoundAssetViewer::AddSoundAsset()
 	{
 		Ref<Asset> asset = AssetManager::Get().FindAsset( m_AssetID );
-		m_SoundAsset = asset.As<Sound>();
+		m_Asset = asset;
 
 		m_NodeEditor = Ref<NodeEditor>::Create( m_AssetID );
 
-		std::string filename = std::format( "{0}.gsnd", m_SoundAsset->Name );
+		std::string filename = std::format( "{0}.gsnd", m_Asset->Name );
 		if( NodeCacheEditor::ReadNodeEditorCache( m_NodeEditor, m_AssetID, filename ) )
 		{
 			m_OutputNodeID = m_NodeEditor->FindNode( "Sound Output" )->ID;

@@ -46,12 +46,6 @@ namespace Saturn {
 		template<typename Fn, typename... Args>
 		void Queue( Fn&& rrFunc, Args&&... rrArgs )
 		{
-			if( m_ThreadID == std::this_thread::get_id() ) 
-			{
-				rrFunc();
-				return;
-			}
-
 			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
 			m_QueueCV.notify_one();
 
@@ -62,6 +56,8 @@ namespace Saturn {
 
 		virtual void Start() = 0;
 		virtual void RequestJoin() = 0;
+
+		bool IsCurrentThread() { return m_ThreadID == std::this_thread::get_id(); }
 
 	protected:
 		void ExecuteCommands();

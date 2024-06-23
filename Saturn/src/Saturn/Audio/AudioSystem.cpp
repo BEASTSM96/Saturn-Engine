@@ -217,21 +217,23 @@ namespace Saturn {
 		Ref<Sound> newSound = Ref<Sound>::Create( spec );
 		m_AliveSounds[ UniquePlayerID ] = newSound;
 
-		m_AudioThread->Queue( [=]()
-			{
-				// Intentional.
-				// Better to get the sound again rather than copy it into this lambda.
-				Ref<Sound> newSound = m_AliveSounds[ UniquePlayerID ];
+		auto loadFunc = [=]() -> void
+		{
+			// Intentional.
+			// Better to get the sound again rather than copy it into this lambda.
+			Ref<Sound> newSound = m_AliveSounds[ UniquePlayerID ];
 
-				newSound->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
-				// If the sound was already loaded then we can still disable it here.
-				newSound->SetSpatialization( false );
+			newSound->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
+			// If the sound was already loaded then we can still disable it here.
+			newSound->SetSpatialization( false );
+			newSound->SetID( UniquePlayerID );
 
-				if( Play )
-					newSound->Play();
+			if( Play ) newSound->Play();
 
-				m_LoadedSounds[ UniquePlayerID ] = newSound;
-			} );
+			m_LoadedSounds[ UniquePlayerID ] = newSound;
+		};
+
+		m_AudioThread->IsCurrentThread() ? loadFunc() : m_AudioThread->Queue( loadFunc );
 
 		return newSound;
 	}
@@ -244,23 +246,24 @@ namespace Saturn {
 		Ref<Sound> newSound = Ref<Sound>::Create( spec );
 		m_AliveSounds[ UniquePlayerID ] = newSound;
 
-		m_AudioThread->Queue( [=]()
-			{
-				// Intentional.
-				// Better to get the sound again rather than copy it into this lambda.
-				Ref<Sound> newSound = m_AliveSounds[ UniquePlayerID ];
+		auto loadFunc = [=]() -> void
+		{
+			// Intentional.
+			// Better to get the sound again rather than copy it into this lambda.
+			Ref<Sound> newSound = m_AliveSounds[ UniquePlayerID ];
 
-				newSound->Load();
-				// If the sound was already loaded then we can still enable it here.
-				newSound->SetSpatialization( true );
+			newSound->Load();
+			// If the sound was already loaded then we can still enable it here.
+			newSound->SetSpatialization( true );
+			newSound->SetPosition( rPos );
+			newSound->SetID( UniquePlayerID );
 
-				newSound->SetPosition( rPos );
+			if( Play ) newSound->Play();
 
-				if( Play )
-					newSound->Play();
+			m_LoadedSounds[ UniquePlayerID ] = newSound;
+		};
 
-				m_LoadedSounds[ UniquePlayerID ] = newSound;
-			} );
+		m_AudioThread->IsCurrentThread() ? loadFunc() : m_AudioThread->Queue( loadFunc );
 
 		return newSound;
 	}
@@ -291,18 +294,20 @@ namespace Saturn {
 		Ref<Sound> snd = Ref<Sound>::Create( soundSpec );
 		m_PreviewSounds[ Identifier ][ AssetID ] = snd;
 
-		m_AudioThread->Queue( [=]()
-			{
-				// Intentional.
-				Ref<Sound> sound = m_PreviewSounds[ Identifier ][ AssetID ];
+		auto loadFunc = [=]() 
+		{
+			// Intentional.
+			Ref<Sound> sound = m_PreviewSounds[ Identifier ][ AssetID ];
 
-				sound->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
-				sound->SetSpatialization( false );
-				sound->Play();
+			sound->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
+			sound->SetSpatialization( false );
+			sound->Play();
 
-				m_AliveSounds[ AssetID ] = sound;
-				m_LoadedSounds[ AssetID ] = sound;
-			} );
+			m_AliveSounds[ AssetID ] = sound;
+			m_LoadedSounds[ AssetID ] = sound;
+		};
+
+		m_AudioThread->IsCurrentThread() ? loadFunc() : m_AudioThread->Queue( loadFunc );
 
 		return snd;
 #else
@@ -312,27 +317,25 @@ namespace Saturn {
 
 	Ref<GraphSound> AudioSystem::PlayGraphSound( AssetID ID, UUID UniquePlayerID )
 	{
-		return nullptr;
+		Ref<GraphSound> snd = Ref<GraphSound>::Create( ID );
+		snd->SetID( UniquePlayerID );
 
-		/*
-		// Load the (potentially new) sound now
-		Ref<GraphSound> snd = AssetManager::Get().GetAssetAs<GraphSound>( ID );
+		m_AliveSounds[ UniquePlayerID ] = snd;
 
-		m_AudioThread->Queue( [=]()
+		auto loadFunc = [=]()
 			{
 				// Intentional.
-				// Better to get the sound again rather than copy it into this lambda.
-				Ref<GraphSound> graphSoundAsset = AssetManager::Get().GetAssetAs<GraphSound>( ID );
+				Ref<GraphSound> graphSoundAsset = m_AliveSounds[ UniquePlayerID ];
 
 				graphSoundAsset->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
 				graphSoundAsset->Play();
 
-				m_AliveSounds[ ID ] = graphSoundAsset;
 				m_LoadedSounds[ ID ] = graphSoundAsset;
-			} );
+			};
+
+		m_AudioThread->IsCurrentThread() ? loadFunc() : m_AudioThread->Queue( loadFunc );
 
 		return snd;
-		*/
 	}
 
 	void AudioSystem::ReportSoundCompleted( UUID UniquePlayerID )
@@ -346,8 +349,8 @@ namespace Saturn {
 			{
 				auto& rSnd = ( PreviewItr )->second;
 				rSnd->Stop();
-				//rSnd->Unload();
 				rSnd->Reset();
+				rSnd->Unload();
 
 				identifierMap.erase( PreviewItr );
 				m_PreviewSounds.erase( identifier );

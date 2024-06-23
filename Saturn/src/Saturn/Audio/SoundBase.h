@@ -51,10 +51,13 @@ namespace Saturn {
 	public:
 		ma_sound* GetRawSound() { return m_Sound; }
 		const AssetID GetSpecID() const { return m_Specification->ID; }
+		inline void SetID( UUID id ) { m_PlayerID = id; }
 
 	protected:
 		ma_sound* m_Sound = nullptr;
 		Ref<SoundSpecification> m_Specification;
+
+		UUID m_PlayerID = 0;
 
 		bool m_Loaded = false;
 		bool m_Playing = false;

@@ -50,7 +50,7 @@ namespace Saturn {
 		void SetupNodeEditorCallbacks();
 
 	private:
-		Ref<Sound> m_SoundAsset = nullptr;
+		Ref<Asset> m_Asset = nullptr;
 		Ref<NodeEditor> m_NodeEditor = nullptr;
 		UUID m_OutputNodeID = 0;
 	};

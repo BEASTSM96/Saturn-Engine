@@ -574,43 +574,4 @@ namespace Saturn {
 
 		return true;
 	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// GRAPH SOUND
-
-	void GraphSoundAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
-	{ 
-		SAT_CORE_WARN( "GraphSoundAssetSerialiser::Serialise not implemented!" );
-	}
-
-	bool GraphSoundAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
-	{
-		auto graphSound = Ref<GraphSound>::Create();
-
-		// TODO: (Asset) Fix this.
-		struct
-		{
-			UUID ID;
-			AssetType Type;
-			uint32_t Flags;
-			std::filesystem::path Path;
-			std::string Name;
-		} OldAssetData = {};
-
-		OldAssetData.ID = rAsset->ID;
-		OldAssetData.Type = rAsset->Type;
-		OldAssetData.Flags = rAsset->Flags;
-		OldAssetData.Path = rAsset->Path;
-		OldAssetData.Name = rAsset->Name;
-
-		rAsset = nullptr;
-		rAsset->ID = OldAssetData.ID;
-		rAsset->Type = OldAssetData.Type;
-		rAsset->Flags = OldAssetData.Flags;
-		rAsset->Path = OldAssetData.Path;
-		rAsset->Name = OldAssetData.Name;
-
-		return true;
-	}
-
 }

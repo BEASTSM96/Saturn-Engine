@@ -58,7 +58,7 @@ namespace Saturn {
 				m_Specification->SoundSourcePath.string().c_str(),
 				initFlags, m_SoundGroup->GetInternal(), nullptr, m_Sound ) );
 
-			m_Sound->pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( m_Specification->ID ) );
+			m_Sound->pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( m_PlayerID ) );
 			m_Sound->endCallback = OnSoundEnd;
 			
 			if( ( initFlags & ( uint32_t ) MA_SOUND_FLAG_NO_SPATIALIZATION ) == 0 )
@@ -206,7 +206,7 @@ namespace Saturn {
 
 	void Sound::OnSoundEnd( void* pUserData, ma_sound* pSound )
 	{
-		AssetID ID = static_cast< uint64_t >( reinterpret_cast< intptr_t >( pUserData ) );
+		UUID ID = static_cast< uint64_t >( reinterpret_cast< intptr_t >( pUserData ) );
 		AudioSystem::Get().ReportSoundCompleted( ID );
 	}
 }

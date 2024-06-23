@@ -40,7 +40,7 @@ namespace Saturn {
 	class GraphSound : public SoundBase
 	{
 	public:
-		GraphSound();
+		GraphSound( AssetID id );
 		~GraphSound();
 
 		void Initialise();
@@ -55,6 +55,8 @@ namespace Saturn {
 		void Unload() override;
 
 	private:
+		// The "GraphSound" class is not an asset however GraphSounds are an asset
+		Ref<Asset> m_GraphAsset;
 		Ref<SoundGroup> m_SoundGroup;
 
 #if !defined(SAT_DIST)

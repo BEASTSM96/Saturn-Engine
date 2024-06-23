@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "GraphSound.h"
 
+#include "Saturn/Asset/AssetManager.h"
+
 #include "SoundNodeEditor/SoundEditorEvaluator.h"
 
 #include "Saturn/NodeEditor/NodeEditorBase.h"
@@ -37,8 +39,9 @@
 
 namespace Saturn {
 
-	GraphSound::GraphSound()
+	GraphSound::GraphSound( AssetID id )
 	{
+		m_GraphAsset = AssetManager::Get().FindAsset( id );
 	}
 
 	GraphSound::~GraphSound()
@@ -57,13 +60,13 @@ namespace Saturn {
 			return;
 
 #if defined(SAT_DIST)
-		m_NodeEditor = Ref<NodeEditorBase>::Create( m_Specification->ID );
+		m_NodeEditor = Ref<NodeEditorBase>::Create( m_GraphAsset->ID );
 #else
-		m_NodeEditor = Ref<NodeEditor>::Create( m_Specification->ID );
+		m_NodeEditor = Ref<NodeEditor>::Create( m_GraphAsset->ID );
 #endif
 
-		std::string filename = std::format( "{0}.gsnd", m_Specification->Name );
-		if( NodeCacheEditor::ReadNodeEditorCache( m_NodeEditor, m_Specification->ID, filename ) )
+		std::string filename = std::format( "{0}.gsnd", m_GraphAsset->Name );
+		if( NodeCacheEditor::ReadNodeEditorCache( m_NodeEditor, m_GraphAsset->ID, filename ) )
 		{
 			m_OutputNodeID = m_NodeEditor->FindNode( "Sound Output" )->ID;
 		}

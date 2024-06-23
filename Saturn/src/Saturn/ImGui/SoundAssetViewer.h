@@ -29,7 +29,7 @@
 #pragma once
 
 #include "AssetViewer.h"
-#include "Saturn/Audio/Sound.h"
+#include "Saturn/Audio/SoundSpecification.h"
 
 namespace Saturn {
 
@@ -44,6 +44,6 @@ namespace Saturn {
 		virtual void OnEvent( RubyEvent& rEvent ) override {}
 
 	private:
-		Ref<Sound> m_SoundAsset;
+		Ref<SoundSpecification> m_SoundAsset;
 	};
 }

@@ -43,7 +43,7 @@ namespace Saturn {
 	{
 		m_AssetType = AssetType::Sound;
 		
-		Ref<Sound> snd = AssetManager::Get().GetAssetAs<Sound>( m_AssetID );
+		Ref<SoundSpecification> snd = AssetManager::Get().GetAssetAs<SoundSpecification>( m_AssetID );
 		m_SoundAsset = snd;
 
 		m_Open = true;
@@ -71,7 +71,7 @@ namespace Saturn {
 
 			if( !filepath.empty() )
 			{
-				auto& currentRawPath = m_SoundAsset->GetRawPath();
+				std::filesystem::path currentRawPath = "";
 				currentRawPath = currentRawPath.parent_path();
 
 				std::filesystem::path path = filepath;
@@ -82,13 +82,14 @@ namespace Saturn {
 				if( !std::filesystem::exists( filepath ) )
 					std::filesystem::copy_file( filepath, newPath );
 
-				m_SoundAsset->SetRawPath( newPath );
+				m_SoundAsset->SoundSourcePath = newPath;
+				m_SoundAsset->OriginalImportPath = path;
 
 				// TODO: Show an editor dialog message if the user would like to delete the old source.
 			}
 		}
 
-		ImGui::InputText( "##filepath", ( char* ) m_SoundAsset->GetRawPath().string().c_str(), 4096, ImGuiInputTextFlags_ReadOnly );
+		ImGui::InputText( "##filepath", ( char* ) m_SoundAsset->SoundSourcePath.string().c_str(), 4096, ImGuiInputTextFlags_ReadOnly );
 
 		ImGui::EndHorizontal();
 
