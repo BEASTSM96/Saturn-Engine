@@ -33,16 +33,17 @@
 
 namespace Saturn {
 
-	Sound::Sound()
+	Sound::Sound( const Ref<SoundSpecification>& rSpec )
 		: SoundBase()
 	{
+		m_Specification = rSpec;
 	}
 
 	void Sound::Load( uint32_t flags )
 	{
 		if( !m_Loaded )
 		{
-			SAT_CORE_INFO( "Loading sound: {0}", m_RawPath.string() );
+			SAT_CORE_INFO( "Loading sound: {0}", m_Specification->Name );
 
 			ma_uint32 initFlags = MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC;
 			initFlags |= flags;
@@ -54,10 +55,10 @@ namespace Saturn {
 
 			// TODO: Wait for the sound to load by using the fence.
 			MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(),
-				m_RawPath.string().c_str(),
+				m_Specification->SoundSourcePath.string().c_str(),
 				initFlags, m_SoundGroup->GetInternal(), nullptr, m_Sound ) );
 
-			m_Sound->pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( ID ) );
+			m_Sound->pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( m_Specification->ID ) );
 			m_Sound->endCallback = OnSoundEnd;
 			
 			if( ( initFlags & ( uint32_t ) MA_SOUND_FLAG_NO_SPATIALIZATION ) == 0 )
@@ -103,18 +104,18 @@ namespace Saturn {
 
 		if( ma_sound_at_end( m_Sound ) )
 		{
-			SAT_CORE_WARN( "Playing sound from beginning: {0}", m_RawPath.string() );
+			SAT_CORE_WARN( "Playing sound from beginning: {0}", m_Specification->Name );
 			Reset();
 		}
 
 		if( frameOffset == 0 )
 		{
-			SAT_CORE_INFO( "Trying to start sound \"{0}\" now", m_RawPath.string() );
+			SAT_CORE_INFO( "Trying to start sound \"{0}\" now", m_Specification->Name );
 			MA_CHECK( ma_sound_start( m_Sound ) );
 		}
 		else
 		{
-			SAT_CORE_INFO( "Trying to start sound \"{0}\" in {1} frames", m_RawPath.string(), frameOffset );
+			SAT_CORE_INFO( "Trying to start sound \"{0}\" in {1} frames", m_Specification->Name, frameOffset );
 			ma_sound_set_start_time_in_pcm_frames( m_Sound,
 				ma_engine_get_time_in_pcm_frames( &AudioSystem::Get().GetAudioEngine() )
 				+ ( ma_engine_get_sample_rate( &AudioSystem::Get().GetAudioEngine() ) * frameOffset ) );

@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "Saturn/Asset/Asset.h"
+#include "SoundSpecification.h"
 #include "AudioCore.h"
 
 #include <miniaudio.h>
@@ -36,7 +36,7 @@
 
 namespace Saturn {
 
-	class SoundBase : public Asset
+	class SoundBase : public RefTarget
 	{
 	public:
 		SoundBase() = default;
@@ -50,20 +50,15 @@ namespace Saturn {
 
 	public:
 		ma_sound* GetRawSound() { return m_Sound; }
-
-		const std::filesystem::path& GetRawPath() const { return m_RawPath; }
-		std::filesystem::path& GetRawPath() { return m_RawPath; }
-
-		void SetRawPath( const std::filesystem::path& rPath ) { m_RawPath = rPath; }
+		const AssetID GetSpecID() const { return m_Specification->ID; }
 
 	protected:
 		ma_sound* m_Sound = nullptr;
-		
+		Ref<SoundSpecification> m_Specification;
+
 		bool m_Loaded = false;
 		bool m_Playing = false;
 		bool m_Looping = false;
-
-		std::filesystem::path m_RawPath = "";
 
 	private:
 		virtual void Unload() = 0;

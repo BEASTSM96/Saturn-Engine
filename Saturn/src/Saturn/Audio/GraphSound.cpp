@@ -57,13 +57,13 @@ namespace Saturn {
 			return;
 
 #if defined(SAT_DIST)
-		m_NodeEditor = Ref<NodeEditorBase>::Create( ID );
+		m_NodeEditor = Ref<NodeEditorBase>::Create( m_Specification->ID );
 #else
-		m_NodeEditor = Ref<NodeEditor>::Create( ID );
+		m_NodeEditor = Ref<NodeEditor>::Create( m_Specification->ID );
 #endif
 
-		std::string filename = std::format( "{0}.gsnd", Name );
-		if( NodeCacheEditor::ReadNodeEditorCache( m_NodeEditor, ID, filename ) )
+		std::string filename = std::format( "{0}.gsnd", m_Specification->Name );
+		if( NodeCacheEditor::ReadNodeEditorCache( m_NodeEditor, m_Specification->ID, filename ) )
 		{
 			m_OutputNodeID = m_NodeEditor->FindNode( "Sound Output" )->ID;
 		}

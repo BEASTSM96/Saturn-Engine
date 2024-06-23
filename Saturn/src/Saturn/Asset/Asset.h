@@ -185,7 +185,7 @@ consteval uint32_t COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) 
 	{
 		if( str == ".png" || str == ".tga" || str == ".jpg" || str == ".jpeg" || str == ".hdr" || str == ".ico" )
 			return AssetType::Texture;
-		else if( str == ".msnd" )
+		else if( str == ".snd" )
 			return AssetType::Sound;
 		else if( str == ".gsnd" )
 			return AssetType::GraphSound;
@@ -260,7 +260,7 @@ consteval uint32_t COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) 
 
 	public:
 		//////////////////////////////////////////////////////////////////////////
-		// This should not be confused with AssetSerialisers. This is for raw binary serialisation!
+		// #WARNING This should not be confused with AssetSerialisers. This is for raw binary serialisation! (see: AssetBundle)
 
 		void SerialiseData( std::ofstream& rStream ) const
 		{

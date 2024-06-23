@@ -52,7 +52,7 @@ namespace Saturn {
 	};
 	
 	template<typename T>
-	class Ref
+	class Ref final
 	{
 	public:
 		Ref() : m_Pointer( nullptr ) {}

@@ -305,7 +305,7 @@ namespace Saturn {
 
 	struct AudioPlayerComponent
 	{
-		UUID AssetID = 0;
+		UUID SpecAssetID = 0;
 		bool Loop = false;
 		bool Mute = false;
 		bool Spatialization = false;

@@ -30,67 +30,12 @@
 
 #include "Saturn/Asset/Asset.h"
 
-namespace YAML {
-	class Node;
-}
-
-#define SAT_SERIALISER_CLASS( Name ) \
-	class Name##AssetSerialiser : public AssetSerialiser \
-	{ \
-	public: \
-		virtual void Serialise( const Ref<Asset>& rAsset ) const override; \
-		[[nodiscard]] virtual bool TryLoadData( Ref<Asset>& rAsset ) const override; \
-	};
-
 namespace Saturn {
 
-	class AssetSerialiser
+	class SoundSpecification : public Asset
 	{
 	public:
-		virtual void Serialise   ( const Ref<Asset>& rAsset ) const = 0;
-		[[nodiscard]] virtual bool TryLoadData (       Ref<Asset>& rAsset ) const = 0;
+		std::filesystem::path SoundSourcePath;
+		std::filesystem::path OriginalImportPath;
 	};
-
-	class MaterialAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const;
-		[[nodiscard]] virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-	};
-
-	class PrefabSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise   ( const Ref<Asset>& rAsset ) const override;
-		[[nodiscard]] virtual bool TryLoadData (		 Ref<Asset>& rAsset ) const override;
-	};
-
-	class StaticMeshAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		[[nodiscard]] virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-	};
-
-	class SoundSpecificationAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		[[nodiscard]] virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-	};
-
-	class PhysicsMaterialAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise  ( const Ref<Asset>& rAsset ) const override;
-		[[nodiscard]] virtual bool TryLoadData(       Ref<Asset>& rAsset ) const override;
-	};
-
-	class GraphSoundAssetSerialiser : public AssetSerialiser
-	{
-	public:
-		virtual void Serialise( const Ref<Asset>& rAsset ) const override;
-		[[nodiscard]] virtual bool TryLoadData( Ref<Asset>& rAsset ) const override;
-	};
-
 }

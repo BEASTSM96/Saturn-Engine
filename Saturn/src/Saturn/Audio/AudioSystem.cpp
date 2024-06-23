@@ -145,20 +145,20 @@ namespace Saturn {
 	void AudioSystem::Terminate()
 	{
 		// Stop and unload any alive sounds
-		for( auto& [id, asset] : m_AliveSounds )
+		for( auto& [id, sound] : m_AliveSounds )
 		{
-			asset->Stop();
-			asset->Unload();
+			sound->Stop();
+			sound->Unload();
 		}
 
 #if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		// Stop and unload any preview sounds
 		for( auto& [identifier, identifierMap] : m_PreviewSounds )
 		{
-			for( auto& [ID, asset] : identifierMap ) 
+			for( auto& [ID, sound] : identifierMap ) 
 			{
-				asset->Stop();
-				asset->Unload();
+				sound->Stop();
+				sound->Unload();
 			}
 
 			identifierMap.clear();
@@ -168,9 +168,9 @@ namespace Saturn {
 #endif
 
 		// Unload remaining sounds
-		for( auto& [id, asset] : m_LoadedSounds )
+		for( auto& [id, sound] : m_LoadedSounds )
 		{
-			asset->Unload();
+			sound->Unload();
 		}
 
 		// Uninit project sound groups
@@ -216,55 +216,58 @@ namespace Saturn {
 
 	Ref<Sound> AudioSystem::RequestNewSound( AssetID ID, bool Play /*= true */ )
 	{
-		// Try load the asset on the main thread to return it.
-		// Of course at this point the sound will just be created
-		// and not loaded.
-		Ref<Sound> snd = AssetManager::Get().GetAssetAs<Sound>( ID );
+		// Load the sound spec.
+		Ref<SoundSpecification> spec = AssetManager::Get().GetAssetAs<SoundSpecification>( ID );
+
+		Ref<Sound> newSound = Ref<Sound>::Create( spec );
+		m_AliveSounds[ ID ] = newSound;
 
 		m_AudioThread->Queue( [=]()
 			{
 				// Intentional.
 				// Better to get the sound again rather than copy it into this lambda.
-				Ref<Sound> soundAsset = AssetManager::Get().GetAssetAs<Sound>( ID );
+				Ref<Sound> newSound = m_AliveSounds[ ID ];
 
-				soundAsset->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
+				newSound->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
 				// If the sound was already loaded then we can still disable it here.
-				soundAsset->SetSpatialization( false );
+				newSound->SetSpatialization( false );
 
 				if( Play )
-					soundAsset->Play();
+					newSound->Play();
 
-				m_AliveSounds[ ID ] = soundAsset;
-				m_LoadedSounds[ ID ] = soundAsset;
+				m_LoadedSounds[ ID ] = newSound;
 			} );
 
-		return snd;
+		return newSound;
 	}
 
 	Ref<Sound> AudioSystem::PlaySoundAtLocation( AssetID ID, const glm::vec3& rPos, bool Play /*= true */ )
 	{
-		Ref<Sound> snd = AssetManager::Get().GetAssetAs<Sound>( ID );
+		// Load the sound spec.
+		Ref<SoundSpecification> spec = AssetManager::Get().GetAssetAs<SoundSpecification>( ID );
+
+		Ref<Sound> newSound = Ref<Sound>::Create( spec );
+		m_AliveSounds[ ID ] = newSound;
 
 		m_AudioThread->Queue( [=]()
 			{
 				// Intentional.
 				// Better to get the sound again rather than copy it into this lambda.
-				Ref<Sound> soundAsset = AssetManager::Get().GetAssetAs<Sound>( ID ).As<Sound>();
+				Ref<Sound> newSound = m_AliveSounds[ ID ];
 
-				soundAsset->Load();
+				newSound->Load();
 				// If the sound was already loaded then we can still enable it here.
-				soundAsset->SetSpatialization( true );
+				newSound->SetSpatialization( true );
 
-				soundAsset->SetPosition( rPos );
+				newSound->SetPosition( rPos );
 
 				if( Play )
-					soundAsset->Play();
+					newSound->Play();
 
-				m_AliveSounds[ ID ] = soundAsset;
-				m_LoadedSounds[ ID ] = soundAsset;
+				m_LoadedSounds[ ID ] = newSound;
 			} );
 
-		return snd;
+		return newSound;
 	}
 
 	Ref<Sound> AudioSystem::RequestPreviewSound( AssetID AssetID, UUID Identifier, bool AllowMultiple )
@@ -278,32 +281,32 @@ namespace Saturn {
 			{
 				auto& rIdentifierMap = identifierItr->second;
 
-				for( auto& [id, asset] : rIdentifierMap )
+				for( auto& [id, sound] : rIdentifierMap )
 				{
-					asset->Stop();
-					asset->Reset();
+					sound->Stop();
+					sound->Reset();
 				}
 
 				rIdentifierMap.clear();
 			}
 		}
 		
-		// Load the (potentially new) sound now
-		Ref<Sound> snd = AssetManager::Get().GetAssetAs<Sound>( AssetID );
+		Ref<SoundSpecification> soundSpec = AssetManager::Get().GetAssetAs<SoundSpecification>( AssetID );
+
+		Ref<Sound> snd = Ref<Sound>::Create( soundSpec );
+		m_PreviewSounds[ Identifier ][ AssetID ] = snd;
 
 		m_AudioThread->Queue( [=]()
 			{
 				// Intentional.
-				// Better to get the sound again rather than copy it into this lambda.
-				Ref<Sound> soundAsset = AssetManager::Get().GetAssetAs<Sound>( AssetID ).As<Sound>();
+				Ref<Sound> sound = m_PreviewSounds[ Identifier ][ AssetID ];
 
-				soundAsset->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
-				soundAsset->SetSpatialization( false );
-				soundAsset->Play();
+				sound->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
+				sound->SetSpatialization( false );
+				sound->Play();
 
-				m_AliveSounds[ AssetID ] = soundAsset;
-				m_PreviewSounds[ Identifier ][ AssetID ] = soundAsset;
-				m_LoadedSounds[ AssetID ] = soundAsset;
+				m_AliveSounds[ AssetID ] = sound;
+				m_LoadedSounds[ AssetID ] = sound;
 			} );
 
 		return snd;
@@ -314,6 +317,9 @@ namespace Saturn {
 
 	Ref<GraphSound> AudioSystem::PlayGraphSound( AssetID ID )
 	{
+		return nullptr;
+
+		/*
 		// Load the (potentially new) sound now
 		Ref<GraphSound> snd = AssetManager::Get().GetAssetAs<GraphSound>( ID );
 
@@ -331,6 +337,7 @@ namespace Saturn {
 			} );
 
 		return snd;
+		*/
 	}
 
 	void AudioSystem::ReportSoundCompleted( AssetID ID )
@@ -409,6 +416,23 @@ namespace Saturn {
 			rIdentifierMap.clear();
 		}
 #endif
+	}
+
+	void AudioSystem::StopAndResetSound( AssetID specID )
+	{
+		const auto Itr = std::find_if( m_LoadedSounds.begin(), m_LoadedSounds.end(), 
+			[ specID ]( const auto& kv ) 
+			{
+				return kv.first == specID;
+			} );
+
+		if( Itr != m_LoadedSounds.end() )
+		{
+			auto& rSound = ( Itr->second );
+
+			rSound->Stop();
+			rSound->Reset();
+		}
 	}
 
 }

@@ -324,7 +324,7 @@ namespace Saturn {
 
 			auto& spc = entity->GetComponent< AudioPlayerComponent >();
 
-			rEmitter << YAML::Key << "AssetID" << YAML::Value << spc.AssetID;
+			rEmitter << YAML::Key << "AssetID" << YAML::Value << spc.SpecAssetID;
 			rEmitter << YAML::Key << "Loop"    << YAML::Value << spc.Loop;
 			rEmitter << YAML::Key << "Mute"    << YAML::Value << spc.Mute;
 
@@ -592,9 +592,9 @@ namespace Saturn {
 			{
 				auto& sp = DeserialisedEntity->AddComponent< AudioPlayerComponent >();
 
-				sp.AssetID = spc[ "AssetID" ].as< uint64_t >( 0 );
-				sp.Loop    = spc[ "Loop" ].as< bool >();
-				sp.Mute    = spc[ "Mute" ].as< bool >();
+				sp.SpecAssetID = spc[ "AssetID" ].as< uint64_t >( 0 );
+				sp.Loop        = spc[ "Loop" ].as< bool >();
+				sp.Mute        = spc[ "Mute" ].as< bool >();
 			}
 
 			auto alc = entity[ "AudioListenerComponent" ];

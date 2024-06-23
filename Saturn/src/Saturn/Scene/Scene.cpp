@@ -699,36 +699,36 @@ namespace Saturn {
 		for( auto& entity : sndPlayers )
 		{
 			auto& rComp = entity->GetComponent<AudioPlayerComponent>();
-			Ref<Asset> asset = AssetManager::Get().FindAsset( rComp.AssetID );
+			Ref<Asset> soundSpec = AssetManager::Get().FindAsset( rComp.SpecAssetID );
 
-			if( !asset )
+			if( !soundSpec )
 				continue;
 			
-			if( asset->Type == AssetType::GraphSound )
+			if( soundSpec->Type == AssetType::GraphSound )
 			{
-				AudioSystem::Get().PlayGraphSound( rComp.AssetID );
+				AudioSystem::Get().PlayGraphSound( rComp.SpecAssetID );
 			}
 			else
 			{
-				Ref<Sound> soundAsset = nullptr;
+				Ref<Sound> sound = nullptr;
 
 				if( rComp.Spatialization )
 				{
-					soundAsset = AudioSystem::Get().PlaySoundAtLocation( rComp.AssetID, entity->GetComponent<TransformComponent>().Position );
+					sound = AudioSystem::Get().PlaySoundAtLocation( rComp.SpecAssetID, entity->GetComponent<TransformComponent>().Position );
 				}
 				else
 				{
-					soundAsset = AudioSystem::Get().RequestNewSound( rComp.AssetID );
+					sound = AudioSystem::Get().RequestNewSound( rComp.SpecAssetID );
 				}
 
 				if( rComp.Loop )
 				{
-					soundAsset->WaitUntilLoaded();
-					soundAsset->Loop();
+					sound->WaitUntilLoaded();
+					sound->Loop();
 				}
 
-				soundAsset->SetVolumeMultiplier( rComp.VolumeMultiplier );
-				soundAsset->SetPitchMultiplier( rComp.PitchMultiplier );
+				sound->SetVolumeMultiplier( rComp.VolumeMultiplier );
+				sound->SetPitchMultiplier( rComp.PitchMultiplier );
 			}
 		}
 	}
@@ -740,10 +740,8 @@ namespace Saturn {
 		for( auto& entity : sndPlayers )
 		{
 			auto& rComp = entity->GetComponent<AudioPlayerComponent>();
-			auto soundAsset = AssetManager::Get().GetAssetAs<SoundBase>( rComp.AssetID );
-
-			soundAsset->Stop();
-			soundAsset->Reset();
+			
+			AudioSystem::Get().StopAndResetSound( rComp.SpecAssetID );
 		}
 	}
 

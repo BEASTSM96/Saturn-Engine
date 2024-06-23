@@ -241,7 +241,7 @@ namespace Saturn {
 
 		if( ImGui::MenuItem( "Import" ) )
 		{
-			auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg *wav)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg; *.wav\0" );
+			auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg *wav *.ogg *.mp3)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg; *.wav; *.ogg; *.mp3\0" );
 
 			std::filesystem::path path = result;
 
@@ -267,7 +267,7 @@ namespace Saturn {
 			}
 
 			// Audio
-			if( path.extension() == ".wav" || path.extension() == ".mp3" )
+			if( path.extension() == ".wav" || path.extension() == ".mp3" || path.extension() == ".ogg" )
 			{
 				m_ShowSoundImport = true;
 				m_ImportSoundPath = path;
@@ -1063,11 +1063,11 @@ namespace Saturn {
 			if( !item->IsSelected() )
 			{
 				// Is the item in the selection list if so and we are no longer selected then we need to remove it.
-				if( std::find( m_SelectedItems.begin(), m_SelectedItems.end(), item ) != m_SelectedItems.end() )
+				if( const auto Itr = std::find( m_SelectedItems.begin(), m_SelectedItems.end(), item ); Itr != m_SelectedItems.end() )
 				{
 					item->Deselect();
 
-					m_SelectedItems.erase( std::remove( m_SelectedItems.begin(), m_SelectedItems.end(), item ), m_SelectedItems.end() );
+					m_SelectedItems.erase( Itr );
 				}
 			}
 		}

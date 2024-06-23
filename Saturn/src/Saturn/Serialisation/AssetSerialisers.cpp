@@ -33,13 +33,14 @@
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
 #include "Saturn/Asset/TextureSourceAsset.h"
-#include "Saturn/Audio/Sound.h"
+#include "Saturn/Asset/MaterialAsset.h"
+
+#include "Saturn/Audio/SoundSpecification.h"
+#include "Saturn/Audio/GraphSound.h"
 
 #include "YamlAux.h"
 
-#include "Saturn/Asset/MaterialAsset.h"
 #include "Saturn/Vulkan/Renderer.h"
-#include "Saturn/Audio/GraphSound.h"
 
 #include <yaml-cpp/yaml.h>
 #include <fstream>
@@ -415,9 +416,9 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// SOUND
 
-	void SoundAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
+	void SoundSpecificationAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
 	{
-		auto sound = rAsset.As<Sound>();
+		auto sound = rAsset.As<SoundSpecification>();
 
 		YAML::Emitter out;
 
@@ -427,7 +428,9 @@ namespace Saturn {
 
 		out << YAML::BeginMap;
 
-		out << YAML::Key << "Filepath" << YAML::Value << std::filesystem::relative( sound->GetRawPath(), Project::GetActiveProject()->GetRootDir() );
+		out << YAML::Key << "SourcePath" << YAML::Value << std::filesystem::relative( sound->SoundSourcePath, Project::GetActiveProject()->GetRootDir() );
+
+		out << YAML::Key << "ImportPath" << YAML::Value << sound->OriginalImportPath;
 
 		out << YAML::EndMap;
 
@@ -440,7 +443,7 @@ namespace Saturn {
 		fout << out.c_str();
 	}
 
-	bool SoundAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
+	bool SoundSpecificationAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
 		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
 		std::ifstream FileIn( absolutePath );
@@ -454,12 +457,14 @@ namespace Saturn {
 			return false;
 
 		auto soundData = data[ "Sound" ];
-		auto filepath = soundData[ "Filepath" ].as<std::string>();
+		auto filepath = soundData[ "SourcePath" ].as<std::string>();
+		auto importPath = soundData[ "ImportPath" ].as<std::string>();
 
 		auto realPath = Project::GetActiveProject()->FilepathAbs( filepath );
 
-		auto sound = Ref<Sound>::Create();
-		sound->SetRawPath( realPath );
+		auto soundSpec = Ref<SoundSpecification>::Create();
+		soundSpec->SoundSourcePath = realPath;
+		soundSpec->OriginalImportPath = importPath;
 
 		// TODO: (Asset) Fix this.
 		struct
@@ -477,7 +482,7 @@ namespace Saturn {
 		OldAssetData.Path = rAsset->Path;
 		OldAssetData.Name = rAsset->Name;
 
-		rAsset = sound;
+		rAsset = soundSpec;
 		rAsset->ID = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
 		rAsset->Flags = OldAssetData.Flags;
@@ -598,7 +603,7 @@ namespace Saturn {
 		OldAssetData.Path = rAsset->Path;
 		OldAssetData.Name = rAsset->Name;
 
-		rAsset = graphSound;
+		rAsset = nullptr;
 		rAsset->ID = OldAssetData.ID;
 		rAsset->Type = OldAssetData.Type;
 		rAsset->Flags = OldAssetData.Flags;

@@ -194,7 +194,6 @@ namespace Saturn::Auxiliary {
 
 			if( ImGui::Button( "Create" ) )
 			{
-				// TODO: Right now we only support sound 2Ds.
 				auto id = AssetManager::Get().CreateAsset( AssetType::Sound );
 				auto asset = AssetManager::Get().FindAsset( id );
 
@@ -202,23 +201,23 @@ namespace Saturn::Auxiliary {
 				std::filesystem::copy_file( s_ImportSoundPath, rImportTargetPath / s_ImportSoundPath.filename() );
 
 				auto assetPath = rImportTargetPath / s_ImportSoundPath.filename();
-				assetPath.replace_extension( ".msnd" );
+				assetPath.replace_extension( ".snd" );
 
 				assetPath = std::filesystem::relative( assetPath, Project::GetActiveProject()->GetRootDir() );
 
 				asset->Path = assetPath;
 
 				// Create the asset.
-				auto sound = asset.As<Sound>();
-				sound = Ref<Sound>::Create();
+				auto sound = asset.As<SoundSpecification>();
+				sound = Ref<SoundSpecification>::Create();
 				sound->ID = asset->ID;
 				sound->Path = assetPath;
 				sound->Type = AssetType::Sound;
-
-				sound->SetRawPath( rImportTargetPath / s_ImportSoundPath.filename() );
+				sound->OriginalImportPath = s_ImportSoundPath;
+				sound->SoundSourcePath = rImportTargetPath / s_ImportSoundPath.filename();
 
 				// Save the asset
-				SoundAssetSerialiser s2d;
+				SoundSpecificationAssetSerialiser s2d;
 				s2d.Serialise( sound );
 
 				sound->SetPath( assetPath );

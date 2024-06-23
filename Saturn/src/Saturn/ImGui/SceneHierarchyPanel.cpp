@@ -113,18 +113,11 @@ namespace Saturn {
 
 	void SceneHierarchyPanel::SetSelected( Ref<Entity> entity )
 	{
-		if( m_IsMultiSelecting )
-		{
-			m_SelectionContexts.push_back( entity );
-			m_Context->AddSelectedEntity( entity );
-		}
-		else
-		{
+		if( !m_IsMultiSelecting )
 			ClearSelection();
 
-			m_Context->AddSelectedEntity( entity );
-			m_SelectionContexts.push_back( entity );
-		}
+		m_SelectionContexts.push_back( entity );
+		m_Context->AddSelectedEntity( entity );
 	}
 
 	void SceneHierarchyPanel::DrawEntities()
@@ -410,7 +403,12 @@ namespace Saturn {
 		if( entity->HasComponent<ScriptComponent>() ) 
 		{
 			ImGui::SameLine();
-			ImGui::TextDisabled( "Class Instance" );
+			ImGui::TextDisabled( "Class Instance (C++ Class)" );
+		}
+		else if( entity->HasComponent<PrefabComponent>() ) 
+		{
+			ImGui::SameLine();
+			ImGui::TextDisabled( "Class Instance (Prefab)" );
 		}
 
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
@@ -730,19 +728,19 @@ namespace Saturn {
 				m_CurrentFinderType = AssetType::Sound;
 				s_Open = true;
 
-				if( ap.AssetID != 0 )
-					m_CurrentAssetID = ap.AssetID;
+				if( ap.SpecAssetID != 0 )
+					m_CurrentAssetID = ap.SpecAssetID;
 			}
 
 			ImGui::SameLine();
 
 			if( Auxiliary::DrawAssetFinder( allowedTypes, &s_Open, m_CurrentAssetID ) )
 			{
-				ap.AssetID = m_CurrentAssetID;
+				ap.SpecAssetID = m_CurrentAssetID;
 			}
 
-			if( ap.AssetID != 0 )
-				ImGui::InputText( "##2dplayerid", ( char* ) std::to_string( ap.AssetID ).c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+			if( ap.SpecAssetID != 0 )
+				ImGui::InputText( "##2dplayerid", ( char* ) std::to_string( ap.SpecAssetID ).c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 			else
 				ImGui::InputText( "##2dplayerid", ( char* )"", 256, ImGuiInputTextFlags_ReadOnly );
 
@@ -763,12 +761,12 @@ namespace Saturn {
 			}
 		} );
 
-		DrawComponent<AudioListenerComponent>( "Audio Listener", entity, [&]( auto& alc )
+		DrawComponent<AudioListenerComponent>( "Audio Listener", entity, [&]( auto& al )
 		{
-			Auxiliary::DrawBoolControl( "Primary", alc.Primary );
-			Auxiliary::DrawVec3Control( "Direction", alc.Direction );
-			Auxiliary::DrawFloatControl( "ConeInnerAngle", alc.ConeInnerAngle );
-			Auxiliary::DrawFloatControl( "ConeOuterAngle", alc.ConeOuterAngle );
+			Auxiliary::DrawBoolControl( "Primary", al.Primary );
+			Auxiliary::DrawVec3Control( "Direction", al.Direction );
+			Auxiliary::DrawFloatControl( "ConeInnerAngle", al.ConeInnerAngle );
+			Auxiliary::DrawFloatControl( "ConeOuterAngle", al.ConeOuterAngle );
 		} );
 	}
 

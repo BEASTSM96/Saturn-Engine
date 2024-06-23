@@ -238,7 +238,7 @@ namespace Saturn {
 			{
 				auto& spc = rEntity->GetComponent< AudioPlayerComponent >();
 
-				RawSerialisation::WriteObject( spc.AssetID, rStream );
+				RawSerialisation::WriteObject( spc.SpecAssetID, rStream );
 				RawSerialisation::WriteObject( spc.Loop, rStream );
 				RawSerialisation::WriteObject( spc.Mute, rStream );
 			} );
@@ -447,7 +447,7 @@ namespace Saturn {
 			{
 				auto& spc = rEntity->GetComponent< AudioPlayerComponent >();
 
-				RawSerialisation::ReadObject( spc.AssetID, rStream );
+				RawSerialisation::ReadObject( spc.SpecAssetID, rStream );
 				RawSerialisation::ReadObject( spc.Loop, rStream );
 				RawSerialisation::ReadObject( spc.Mute, rStream );
 			} );
