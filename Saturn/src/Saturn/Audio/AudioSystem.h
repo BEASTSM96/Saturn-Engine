@@ -81,14 +81,14 @@ namespace Saturn {
 		//  This function uses the Audio Thread
 		//  This function will return the sound however, it may not be loaded as soon as it returns!
 		//  Use WaitUntilLoaded for safety.
-		Ref<Sound> RequestNewSound( AssetID ID, bool Play = true );
-		Ref<Sound> PlaySoundAtLocation( AssetID ID, const glm::vec3& rPos, bool Play = true );
+		Ref<Sound> RequestNewSound( AssetID ID, UUID UniquePlayerID, bool Play = true );
+		Ref<Sound> PlaySoundAtLocation( AssetID ID, UUID UniquePlayerID, const glm::vec3& rPos, bool Play = true );
 	
 		Ref<Sound> RequestPreviewSound( AssetID AssetID, UUID Identifier, bool allowMultiple = false );
 
-		Ref<GraphSound> PlayGraphSound( AssetID ID );
+		Ref<GraphSound> PlayGraphSound( AssetID ID, UUID UniquePlayerID );
 
-		void ReportSoundCompleted( AssetID ID );
+		void ReportSoundCompleted( UUID UniquePlayerID );
 
 		void Suspend();
 		void Resume();
@@ -96,14 +96,13 @@ namespace Saturn {
 		void SetPrimaryListenerPos( const glm::vec3& rPos );
 
 		void StopPreviewSounds( UUID Identifier );
-		void StopAndResetSound( AssetID specID );
+		void StopAndResetSound( UUID UniquePlayerID );
 
 		ma_engine& GetAudioEngine() { return m_Engine; }
 		Ref<SoundGroup>& GetMasterSoundGroup() { return m_MasterSoundGroup; }
 
 	private:
 		void Initialise();
-		void StartNewSound( Ref<Sound> rSoundAsset );
 		void PlaySound( Ref<Sound> rSoundAsset );
 
 	private:
@@ -111,9 +110,9 @@ namespace Saturn {
 		Ref<SoundGroup> m_MasterSoundGroup;
 
 		// Currently alive sounds (i.e. sounds that are playing)
-		std::unordered_map<AssetID, Ref<SoundBase>> m_AliveSounds;
+		std::unordered_map<UUID, Ref<SoundBase>> m_AliveSounds;
 		// A list of every loaded sound in memory.
-		std::unordered_map<AssetID, Ref<SoundBase>> m_LoadedSounds;
+		std::unordered_map<UUID, Ref<SoundBase>> m_LoadedSounds;
 
 		// Preview sound are not available in Dist.
 #if defined( SAT_DEBUG ) || defined( SAT_RELEASE )

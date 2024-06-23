@@ -203,30 +203,25 @@ namespace Saturn {
 		// No cleanup done in destructor, application already terminated the audio system.
 	}
 
-	void AudioSystem::StartNewSound( Ref<Sound> soundAsset )
-	{
-		soundAsset->Load();
-	}
-
 	void AudioSystem::PlaySound( Ref<Sound> soundAsset )
 	{
 		// TODO: Check if we are on the audio thread.
 		soundAsset->Play();
 	}
 
-	Ref<Sound> AudioSystem::RequestNewSound( AssetID ID, bool Play /*= true */ )
+	Ref<Sound> AudioSystem::RequestNewSound( AssetID ID, UUID UniquePlayerID, bool Play /*= true */ )
 	{
 		// Load the sound spec.
 		Ref<SoundSpecification> spec = AssetManager::Get().GetAssetAs<SoundSpecification>( ID );
 
 		Ref<Sound> newSound = Ref<Sound>::Create( spec );
-		m_AliveSounds[ ID ] = newSound;
+		m_AliveSounds[ UniquePlayerID ] = newSound;
 
 		m_AudioThread->Queue( [=]()
 			{
 				// Intentional.
 				// Better to get the sound again rather than copy it into this lambda.
-				Ref<Sound> newSound = m_AliveSounds[ ID ];
+				Ref<Sound> newSound = m_AliveSounds[ UniquePlayerID ];
 
 				newSound->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
 				// If the sound was already loaded then we can still disable it here.
@@ -235,25 +230,25 @@ namespace Saturn {
 				if( Play )
 					newSound->Play();
 
-				m_LoadedSounds[ ID ] = newSound;
+				m_LoadedSounds[ UniquePlayerID ] = newSound;
 			} );
 
 		return newSound;
 	}
 
-	Ref<Sound> AudioSystem::PlaySoundAtLocation( AssetID ID, const glm::vec3& rPos, bool Play /*= true */ )
+	Ref<Sound> AudioSystem::PlaySoundAtLocation( AssetID ID, UUID UniquePlayerID, const glm::vec3& rPos, bool Play /*= true */ )
 	{
 		// Load the sound spec.
 		Ref<SoundSpecification> spec = AssetManager::Get().GetAssetAs<SoundSpecification>( ID );
 
 		Ref<Sound> newSound = Ref<Sound>::Create( spec );
-		m_AliveSounds[ ID ] = newSound;
+		m_AliveSounds[ UniquePlayerID ] = newSound;
 
 		m_AudioThread->Queue( [=]()
 			{
 				// Intentional.
 				// Better to get the sound again rather than copy it into this lambda.
-				Ref<Sound> newSound = m_AliveSounds[ ID ];
+				Ref<Sound> newSound = m_AliveSounds[ UniquePlayerID ];
 
 				newSound->Load();
 				// If the sound was already loaded then we can still enable it here.
@@ -264,7 +259,7 @@ namespace Saturn {
 				if( Play )
 					newSound->Play();
 
-				m_LoadedSounds[ ID ] = newSound;
+				m_LoadedSounds[ UniquePlayerID ] = newSound;
 			} );
 
 		return newSound;
@@ -315,7 +310,7 @@ namespace Saturn {
 #endif
 	}
 
-	Ref<GraphSound> AudioSystem::PlayGraphSound( AssetID ID )
+	Ref<GraphSound> AudioSystem::PlayGraphSound( AssetID ID, UUID UniquePlayerID )
 	{
 		return nullptr;
 
@@ -340,12 +335,12 @@ namespace Saturn {
 		*/
 	}
 
-	void AudioSystem::ReportSoundCompleted( AssetID ID )
+	void AudioSystem::ReportSoundCompleted( UUID UniquePlayerID )
 	{
 #if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
 		for( auto&& [identifier, identifierMap] : m_PreviewSounds )
 		{
-			auto PreviewItr = identifierMap.find( ID );
+			auto PreviewItr = identifierMap.find( UniquePlayerID );
 
 			if( PreviewItr != identifierMap.end() )
 			{
@@ -361,7 +356,7 @@ namespace Saturn {
 			}
 		}
 #endif
-		auto Itr = m_AliveSounds.find( ID );
+		auto Itr = m_AliveSounds.find( UniquePlayerID );
 
 		if( Itr != m_AliveSounds.end() ) 
 		{
@@ -407,10 +402,10 @@ namespace Saturn {
 		{
 			auto& rIdentifierMap = identifierItr->second;
 
-			for( auto& [id, asset] : rIdentifierMap )
+			for( auto& [id, sound] : rIdentifierMap )
 			{
-				asset->Stop();
-				asset->Reset();
+				sound->Stop();
+				sound->Reset();
 			}
 
 			rIdentifierMap.clear();
@@ -418,12 +413,12 @@ namespace Saturn {
 #endif
 	}
 
-	void AudioSystem::StopAndResetSound( AssetID specID )
+	void AudioSystem::StopAndResetSound( UUID UniquePlayerID )
 	{
 		const auto Itr = std::find_if( m_LoadedSounds.begin(), m_LoadedSounds.end(), 
-			[ specID ]( const auto& kv ) 
+			[UniquePlayerID]( const auto& kv )
 			{
-				return kv.first == specID;
+				return kv.first == UniquePlayerID;
 			} );
 
 		if( Itr != m_LoadedSounds.end() )

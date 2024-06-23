@@ -706,7 +706,7 @@ namespace Saturn {
 			
 			if( soundSpec->Type == AssetType::GraphSound )
 			{
-				AudioSystem::Get().PlayGraphSound( rComp.SpecAssetID );
+				AudioSystem::Get().PlayGraphSound( rComp.SpecAssetID, rComp.UniqueID );
 			}
 			else
 			{
@@ -714,11 +714,11 @@ namespace Saturn {
 
 				if( rComp.Spatialization )
 				{
-					sound = AudioSystem::Get().PlaySoundAtLocation( rComp.SpecAssetID, entity->GetComponent<TransformComponent>().Position );
+					sound = AudioSystem::Get().PlaySoundAtLocation( rComp.SpecAssetID, rComp.UniqueID, entity->GetComponent<TransformComponent>().Position );
 				}
 				else
 				{
-					sound = AudioSystem::Get().RequestNewSound( rComp.SpecAssetID );
+					sound = AudioSystem::Get().RequestNewSound( rComp.SpecAssetID, rComp.UniqueID );
 				}
 
 				if( rComp.Loop )
@@ -741,7 +741,7 @@ namespace Saturn {
 		{
 			auto& rComp = entity->GetComponent<AudioPlayerComponent>();
 			
-			AudioSystem::Get().StopAndResetSound( rComp.SpecAssetID );
+			AudioSystem::Get().StopAndResetSound( rComp.UniqueID );
 		}
 	}
 
