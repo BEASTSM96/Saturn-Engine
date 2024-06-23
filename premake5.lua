@@ -442,6 +442,7 @@ project "ProjectBrowser"
 		"Saturn/vendor/vulkan/include",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Filewatch}",
+		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.SharedStorage}"
 	}
 
