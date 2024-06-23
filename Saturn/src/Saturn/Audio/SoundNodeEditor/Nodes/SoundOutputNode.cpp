@@ -65,13 +65,7 @@ namespace Saturn {
 			const UUID soundAssetID = soundStack.top();
 			soundStack.pop();
 
-#if !defined(SAT_DIST)
-			AudioSystem::Get().RequestPreviewSound( soundAssetID, pSoundEditorEvaluator->GetTargetNodeEditor()->GetAssetID() );
-#else
-			// TODO: Maybe we should have "preview" sounds in Dist
-			//       As it would allows us to group sounds to an ID.
-			AudioSystem::Get().RequestNewSound( soundAssetID );
-#endif
+			pSoundEditorEvaluator->AliveSounds.push_back( AudioSystem::Get().RequestNewSound( soundAssetID, UUID() ) );
 		}
 	}
 }

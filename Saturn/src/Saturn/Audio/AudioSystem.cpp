@@ -433,4 +433,22 @@ namespace Saturn {
 		}
 	}
 
+	void AudioSystem::UnloadSound( Ref<SoundBase> sound )
+	{
+		auto playerID = sound->m_PlayerID;
+
+		sound->Unload();
+
+		m_LoadedSounds.erase( playerID );
+
+		const auto Itr = std::find_if( m_AliveSounds.begin(), m_AliveSounds.end(), 
+			[playerID](const auto& kv)
+			{
+				return playerID == kv.first;
+			} );
+
+		if( Itr != m_AliveSounds.end() )
+			m_AliveSounds.erase( Itr );
+	}
+
 }

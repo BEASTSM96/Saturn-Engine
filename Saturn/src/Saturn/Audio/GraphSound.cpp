@@ -32,6 +32,7 @@
 #include "Saturn/Asset/AssetManager.h"
 
 #include "SoundNodeEditor/SoundEditorEvaluator.h"
+#include "Sound.h"
 
 #include "Saturn/NodeEditor/NodeEditorBase.h"
 #include "Saturn/NodeEditor/UI/NodeEditor.h"
@@ -51,6 +52,7 @@ namespace Saturn {
 		if( m_NodeEditor )
 			m_NodeEditor->SetRuntime( nullptr );
 
+		m_Runtime = nullptr;
 		m_NodeEditor = nullptr;
 	}
 
@@ -79,10 +81,11 @@ namespace Saturn {
 		SoundEditorEvaluator::SoundEdEvaluatorInfo info;
 		info.SoundGroup = m_SoundGroup;
 		info.OutputNodeID = m_OutputNodeID;
-		auto rt = Ref<SoundEditorEvaluator>::Create( info );
-		rt->SetTargetNodeEditor( m_NodeEditor );
+	
+		m_Runtime = Ref<SoundEditorEvaluator>::Create( info );
+		m_Runtime->SetTargetNodeEditor( m_NodeEditor );
 
-		m_NodeEditor->SetRuntime( rt );
+		m_NodeEditor->SetRuntime( m_Runtime );
 
 		m_Loaded = true;
 	}
@@ -99,6 +102,10 @@ namespace Saturn {
 
 	void GraphSound::Stop()
 	{
+		for( auto& rSound : m_Runtime->AliveSounds )
+		{
+			rSound->Stop();
+		}
 	}
 
 	void GraphSound::Loop()
@@ -112,10 +119,18 @@ namespace Saturn {
 
 	void GraphSound::Reset()
 	{
-
+		for( auto& rSound : m_Runtime->AliveSounds )
+		{
+			rSound->Reset();
+		}
 	}
 
 	void GraphSound::Unload()
 	{
+		__debugbreak();
+		for( auto& rSound : m_Runtime->AliveSounds )
+		{
+			rSound->Stop();
+		}
 	}
 }

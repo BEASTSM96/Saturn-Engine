@@ -55,7 +55,7 @@ namespace Saturn {
 		SoundEditorEvaluator( const SoundEditorEvaluator& ) = delete;
 
 		SoundEditorEvaluator( const SoundEdEvaluatorInfo& rInfo );
-		virtual ~SoundEditorEvaluator() = default;
+		~SoundEditorEvaluator();
 
 		void SetTargetNodeEditor( Ref<NodeEditorBase> nodeEditor );
 		Ref<NodeEditorBase>& GetTargetNodeEditor() { return m_NodeEditor; }
@@ -65,7 +65,13 @@ namespace Saturn {
 	public:
 		// Sounds that have to be played in order to get the correct result.
 		std::stack<UUID> SoundStack;
+		
+		// Sounds that are currently playing
+		std::vector<Ref<Sound>> AliveSounds;
 
+	private:
+		void DestroyAliveSounds();
+	
 	private:
 		Ref<NodeEditorBase> m_NodeEditor;
 		SoundEdEvaluatorInfo m_Info;

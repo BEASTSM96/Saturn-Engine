@@ -97,6 +97,7 @@ namespace Saturn {
 
 		void StopPreviewSounds( UUID Identifier );
 		void StopAndResetSound( UUID UniquePlayerID );
+		void UnloadSound( Ref<SoundBase> sound );
 
 		ma_engine& GetAudioEngine() { return m_Engine; }
 		Ref<SoundGroup>& GetMasterSoundGroup() { return m_MasterSoundGroup; }

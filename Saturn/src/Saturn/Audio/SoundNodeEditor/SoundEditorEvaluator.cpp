@@ -48,6 +48,11 @@ namespace Saturn {
 			m_Info.SoundGroup = AudioSystem::Get().GetMasterSoundGroup();
 	}
 
+	SoundEditorEvaluator::~SoundEditorEvaluator()
+	{
+		DestroyAliveSounds();
+	}
+
 	void SoundEditorEvaluator::SetTargetNodeEditor( Ref<NodeEditorBase> nodeEditor )
 	{
 		m_NodeEditor = nodeEditor;
@@ -73,6 +78,8 @@ namespace Saturn {
 		UUID FinalSoundPinID = OutputNode->Inputs[ 0 ]->ID;
 #endif
 
+		DestroyAliveSounds();
+
 		// Stacks are last in first out, so our output node will be evaluated last which is what we want.
 		std::stack<UUID> order;
 		m_NodeEditor->TraverseFromStart( OutputNode,
@@ -84,35 +91,29 @@ namespace Saturn {
 		if( order.size() <= 1 )
 			return NodeEditorCompilationStatus::Failed;
 	
-		std::stack<UUID> soundAssetStack;
-
 		while( !order.empty() )
 		{
 			const UUID currentNodeID = order.top();
 			order.pop();
 
 			Ref<Node> currentNode = m_NodeEditor->FindNode( currentNodeID );
-
-			switch( currentNode->ExecutionType )
-			{
-				case NodeExecutionType::SoundOutput:
-				{
-					Ref<SoundOutputNode> outNode = currentNode.As<SoundOutputNode>();
-					currentNode = outNode;
-				} break;
-
-				case NodeExecutionType::SoundPlayer:
-				{
-					Ref<SoundPlayerNode> playerNode = currentNode.As<SoundPlayerNode>();
-				
-					if( playerNode && playerNode->SoundAssetID != 0 )
-						soundAssetStack.push( playerNode->SoundAssetID );
-				} break;
-			}
-
 			currentNode->EvaluateNode( this );
 		}
 
 		return NodeEditorCompilationStatus::Success;
 	}
+
+	void SoundEditorEvaluator::DestroyAliveSounds()
+	{
+		for( auto& rSound : AliveSounds )
+		{
+			rSound->Stop();
+			AudioSystem::Get().UnloadSound( rSound );
+
+			rSound = nullptr;
+		}
+
+		AliveSounds.clear();
+	}
+
 }

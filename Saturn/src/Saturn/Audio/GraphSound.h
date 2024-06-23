@@ -36,6 +36,7 @@ namespace Saturn {
 
 	class NodeEditor;
 	class NodeEditorBase;
+	class SoundEditorEvaluator;
 
 	class GraphSound : public SoundBase
 	{
@@ -58,6 +59,7 @@ namespace Saturn {
 		// The "GraphSound" class is not an asset however GraphSounds are an asset
 		Ref<Asset> m_GraphAsset;
 		Ref<SoundGroup> m_SoundGroup;
+		Ref<SoundEditorEvaluator> m_Runtime;
 
 #if !defined(SAT_DIST)
 		Ref<NodeEditor> m_NodeEditor;
