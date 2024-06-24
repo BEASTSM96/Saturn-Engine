@@ -42,6 +42,7 @@ namespace Saturn {
 		virtual void Stop() override;
 		virtual void Loop() override;
 		virtual void Load( uint32_t flags = 0 ) override;
+		virtual void Unload() override;
 
 		bool IsPlaying() const;
 		bool IsLooping() const;
@@ -63,7 +64,6 @@ namespace Saturn {
 
 	private:
 		void SetupSpatialization();
-		virtual void Unload() override;
 
 		Ref<SoundGroup> m_SoundGroup;
 

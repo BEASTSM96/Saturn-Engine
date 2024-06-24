@@ -127,10 +127,9 @@ namespace Saturn {
 
 	void GraphSound::Unload()
 	{
-		__debugbreak();
 		for( auto& rSound : m_Runtime->AliveSounds )
 		{
-			rSound->Stop();
+			rSound->Unload();
 		}
 	}
 }
