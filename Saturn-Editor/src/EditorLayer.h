@@ -51,11 +51,12 @@ namespace Saturn {
 		~EditorLayer();
 
 		void OnUpdate( Timestep time ) override;
-
 		void OnImGuiRender() override;
-
 		void OnEvent( RubyEvent& rEvent ) override;
+		void OnAttach() override;
+		void OnDetach() override;
 		
+	private:
 		void SaveFileAs();
 		void OpenFile( AssetID id );
 
@@ -63,11 +64,6 @@ namespace Saturn {
 
 		void SaveProject();
 
-	public:
-		TitleBar* GetTitleBar() { return m_TitleBar; }
-		EditorCamera& GetEditorCamera() { return m_EditorCamera; }
-
-	private:
 		void SelectionChanged( Ref<Entity> e );
 		void ViewportSizeCallback( uint32_t Width, uint32_t Height );
 		bool OnKeyPressed( RubyKeyEvent& rEvent );
@@ -85,6 +81,7 @@ namespace Saturn {
 		void DrawMaterialHeader( Ref<MaterialAsset>& rMaterial );
 		void DrawAttributions();
 		void DrawVFSDebug();
+		void DrawTitlebarOptions();
 
 		// Viewport
 		void DrawViewport();

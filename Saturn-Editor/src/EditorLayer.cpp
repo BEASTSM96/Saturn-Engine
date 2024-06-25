@@ -111,162 +111,12 @@ namespace Saturn {
 		m_PanelManager->AddPanel( Ref<ContentBrowserPanel>::Create() );
 
 		m_TitleBar = new TitleBar();
-		m_TitleBar->AddMenuBarFunction( [&]() -> void
-		{
-			if( ImGui::BeginMenu( "File" ) )
-			{
-				if( ImGui::MenuItem( "Save Scene", "Ctrl+S" ) )          SaveFile();
-				if( ImGui::MenuItem( "Save Scene As", "Ctrl+Shift+S" ) ) SaveFileAs();
-				
-				if( ImGui::MenuItem( "Save Project" ) )                  SaveProject();
-				if( ImGui::MenuItem( "Close Project" ) )                 CloseEditorAndOpenPB();
-				if( ImGui::MenuItem( "Exit", "Alt+F4" ) )                Application::Get().Close();
-
-				ImGui::EndMenu();
-			}
-
-			if( ImGui::BeginMenu( "Saturn" ) )
-			{
-				if( ImGui::MenuItem( "Attributions" ) ) OpenAttributions ^= 1;
-
-				ImGui::EndMenu();
-			}
-
-			if( ImGui::BeginMenu( "Project" ) )
-			{
-				if( ImGui::MenuItem( "Project settings" ) ) m_ShowUserSettings ^= 1;
-
-				if( ImGui::MenuItem( "Upgrade assets" ) ) Project::GetActiveProject()->UpgradeAssets();
-
-				if( ImGui::MenuItem( "Recreate project files" ) )
-				{
-					JobSystem::Get().AddJob( []()
-						{
-							if( !Project::GetActiveProject()->HasPremakeFile() )
-								Project::GetActiveProject()->CreatePremakeFile();
-
-							Premake::Launch( Project::GetActiveProject()->GetRootDir().wstring() );
-						} );
-				}
-
-				if( ImGui::MenuItem( "Setup Project for Distribution" ) )
-				{
-					if( !m_BlockingOperation )
-						m_BlockingOperation = Ref<JobProgress>::Create();
-
-					Project::GetActiveProject()->PrepForDist();
-
-					JobSystem::Get().AddJob( [this]()
-						{
-							m_JobModalOpen = true;
-							m_BlockingOperation->SetStatus( "Building Shader bundle..." );
-
-							BuildShaderBundle();
-						} );
-
-					JobSystem::Get().AddJob( [this]()
-						{
-							m_JobModalOpen = true;
-
-							if( auto result = AssetBundle::BundleAssets( m_BlockingOperation ); result != AssetBundleResult::Success )
-							{
-								Application::Get().GetWindow()->FlashAttention();
-
-								m_MessageBoxText = std::format( "Asset bundle failed to build error was: {0}", ( int ) result );
-								m_ShowMessageBox = true;
-							}
-						} );
-				}
-
-				if( ImGui::MenuItem( "Build Shader Bundle" ) )
-				{
-					BuildShaderBundle();
-				}
-
-#if defined( SAT_DEBUG )
-				if( ImGui::MenuItem( "DEBUG: Read Asset Bundle" ) )
-				{
-					Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
-					auto res = AssetBundle::ReadBundle();
-				}
-
-				if( ImGui::MenuItem( "DEBUG: Enable VFS Flag" ) )
-				{
-					Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
-				}
-#endif
-
-				if( ImGui::MenuItem( "Distribute project" ) )
-				{
-					if( !m_BlockingOperation )
-						m_BlockingOperation = Ref<JobProgress>::Create();
-
-					JobSystem::Get().AddJob( [this]()
-						{
-							m_JobModalOpen = true;
-							m_BlockingOperation->SetTitle( "Distributing Project" );
-
-							m_BlockingOperation->SetStatus( "Building project" );
-							Project::GetActiveProject()->Rebuild( ConfigKind::Dist );
-
-							m_BlockingOperation->SetProgress( 50.0f );
-							
-							m_BlockingOperation->SetStatus( "Copying for Distribution" );
-							Project::GetActiveProject()->Distribute( ConfigKind::Dist );
-						} );
-				}
-
-				ImGui::EndMenu();
-			}
-
-			if( ImGui::BeginMenu( "Settings" ) )
-			{
-				if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings ^= 1;
-				if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug ^= 1;
-				if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug ^= 1;
-				if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings ^= 1;
-				if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow ^= 1;
-				if( ImGui::MenuItem( "Virtual File system debug", "" ) ) m_ShowVFSDebug ^= 1;
-
-				ImGui::EndMenu();
-			}
-		} );
 
 		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 		hierarchyPanel->SetContext( m_EditorScene );
 		hierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
 
 		m_EditorCamera.SetActive( true );
-		
-		m_CheckerboardTexture = Ref< Texture2D >::Create( "content/textures/editor/checkerboard.tga", AddressingMode::Repeat );
-
-		m_StartRuntimeTexture = Ref< Texture2D >::Create( "content/textures/editor/Play.png", AddressingMode::ClampToEdge );
-		m_EndRuntimeTexture   = Ref< Texture2D >::Create( "content/textures/editor/Stop.png", AddressingMode::ClampToEdge );
-
-		m_TranslationTexture  = Ref< Texture2D >::Create( "content/textures/editor/Move.png", AddressingMode::ClampToEdge );
-		m_RotationTexture     = Ref< Texture2D >::Create( "content/textures/editor/Rotate.png", AddressingMode::ClampToEdge );
-		m_ScaleTexture        = Ref< Texture2D >::Create( "content/textures/editor/Scale.png", AddressingMode::ClampToEdge );
-		m_SyncTexture         = Ref< Texture2D >::Create( "content/textures/editor/Sync.png", AddressingMode::ClampToEdge );
-		m_PointLightTexture   = Ref< Texture2D >::Create( "content/textures/editor/Billboard_PointLight.png", AddressingMode::ClampToEdge, false );
-		m_ExclamationTexture  = Ref< Texture2D >::Create( "content/textures/editor/Exclamation.png", AddressingMode::ClampToEdge );
-
-		// Add all of our icons to the editor icons list so that we have use this anywhere else in the engine/editor.
-		EditorIcons::AddIcon( m_CheckerboardTexture );
-		EditorIcons::AddIcon( m_StartRuntimeTexture );
-		EditorIcons::AddIcon( m_EndRuntimeTexture );
-		EditorIcons::AddIcon( m_TranslationTexture );
-		EditorIcons::AddIcon( m_RotationTexture );
-		EditorIcons::AddIcon( m_ScaleTexture );
-		EditorIcons::AddIcon( m_SyncTexture );
-		EditorIcons::AddIcon( m_PointLightTexture );
-		EditorIcons::AddIcon( m_ExclamationTexture );
-		
-		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_Audio.png", AddressingMode::Repeat, false ) );
-		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_AudioLooping.png", AddressingMode::Repeat, false ) );
-		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_AudioMuted.png", AddressingMode::Repeat, false ) );
-		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_AudioListen.png", AddressingMode::Repeat, false ) );
-		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Inspect.png", AddressingMode::Repeat, true ) );
-		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/NoIcon.png", AddressingMode::Repeat, true ) );
 
 		// Init Physics
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
@@ -292,9 +142,48 @@ namespace Saturn {
 		m_GameModule = new GameModule();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
+	}
 
-		// TODO: Do we really need to check this every time we load the editor?
-		//HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+	void EditorLayer::OnAttach()
+	{
+		m_CheckerboardTexture = Ref< Texture2D >::Create( "content/textures/editor/checkerboard.tga", AddressingMode::Repeat );
+
+		m_StartRuntimeTexture = Ref< Texture2D >::Create( "content/textures/editor/Play.png", AddressingMode::ClampToEdge );
+		m_EndRuntimeTexture = Ref< Texture2D >::Create( "content/textures/editor/Stop.png", AddressingMode::ClampToEdge );
+
+		m_TranslationTexture = Ref< Texture2D >::Create( "content/textures/editor/Move.png", AddressingMode::ClampToEdge );
+		m_RotationTexture = Ref< Texture2D >::Create( "content/textures/editor/Rotate.png", AddressingMode::ClampToEdge );
+		m_ScaleTexture = Ref< Texture2D >::Create( "content/textures/editor/Scale.png", AddressingMode::ClampToEdge );
+		m_SyncTexture = Ref< Texture2D >::Create( "content/textures/editor/Sync.png", AddressingMode::ClampToEdge );
+		m_PointLightTexture = Ref< Texture2D >::Create( "content/textures/editor/Billboard_PointLight.png", AddressingMode::ClampToEdge, false );
+		m_ExclamationTexture = Ref< Texture2D >::Create( "content/textures/editor/Exclamation.png", AddressingMode::ClampToEdge );
+
+		// Add all of our icons to the editor icons list so that we have use this anywhere else in the engine/editor.
+		EditorIcons::AddIcon( m_CheckerboardTexture );
+		EditorIcons::AddIcon( m_StartRuntimeTexture );
+		EditorIcons::AddIcon( m_EndRuntimeTexture );
+		EditorIcons::AddIcon( m_TranslationTexture );
+		EditorIcons::AddIcon( m_RotationTexture );
+		EditorIcons::AddIcon( m_ScaleTexture );
+		EditorIcons::AddIcon( m_SyncTexture );
+		EditorIcons::AddIcon( m_PointLightTexture );
+		EditorIcons::AddIcon( m_ExclamationTexture );
+
+		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_Audio.png", AddressingMode::Repeat, false ) );
+		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_AudioLooping.png", AddressingMode::Repeat, false ) );
+		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_AudioMuted.png", AddressingMode::Repeat, false ) );
+		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Billboard_AudioListen.png", AddressingMode::Repeat, false ) );
+		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Inspect.png", AddressingMode::Repeat, true ) );
+		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/NoIcon.png", AddressingMode::Repeat, true ) );
+
+		m_TitleBar->AddMenuBarFunction( SAT_BIND_EVENT_FN( DrawTitlebarOptions ) );
+	}
+
+	void EditorLayer::OnDetach()
+	{
+		EditorIcons::Clear();
+		m_CheckerboardTexture = nullptr;
+		m_PointLightTexture = nullptr;
 	}
 
 	EditorLayer::~EditorLayer()
@@ -302,10 +191,6 @@ namespace Saturn {
 		delete m_TitleBar;
 		
 		AssetViewer::Terminate();
-		EditorIcons::Clear();
-
-		m_CheckerboardTexture = nullptr;
-		m_PointLightTexture = nullptr;
 
 		m_TitleBar = nullptr;
 	
@@ -1361,7 +1246,7 @@ namespace Saturn {
 	{
 		VirtualFS& rVirtualFS = VirtualFS::Get();
 
-		ImGui::Begin( "Virtual File system" );
+		ImGui::Begin( "Virtual File system", &m_ShowVFSDebug );
 
 		if( Auxiliary::TreeNode( "VFS Info", false ) )
 		{
@@ -1374,6 +1259,131 @@ namespace Saturn {
 		rVirtualFS.ImGuiRender();
 
 		ImGui::End();
+	}
+
+	void EditorLayer::DrawTitlebarOptions()
+	{
+		if( ImGui::BeginMenu( "File" ) )
+		{
+			if( ImGui::MenuItem( "Save Scene", "Ctrl+S" ) )          SaveFile();
+			if( ImGui::MenuItem( "Save Scene As", "Ctrl+Shift+S" ) ) SaveFileAs();
+
+			if( ImGui::MenuItem( "Save Project" ) )                  SaveProject();
+			if( ImGui::MenuItem( "Close Project" ) )                 CloseEditorAndOpenPB();
+			if( ImGui::MenuItem( "Exit", "Alt+F4" ) )                Application::Get().Close();
+
+			ImGui::EndMenu();
+		}
+
+		if( ImGui::BeginMenu( "Saturn" ) )
+		{
+			if( ImGui::MenuItem( "Attributions" ) ) OpenAttributions ^= 1;
+
+			ImGui::EndMenu();
+		}
+
+		if( ImGui::BeginMenu( "Project" ) )
+		{
+			if( ImGui::MenuItem( "Project settings" ) ) m_ShowUserSettings ^= 1;
+
+			if( ImGui::MenuItem( "Upgrade assets" ) ) Project::GetActiveProject()->UpgradeAssets();
+
+			if( ImGui::MenuItem( "Recreate project files" ) )
+			{
+				HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+
+				JobSystem::Get().AddJob( []()
+					{
+						if( !Project::GetActiveProject()->HasPremakeFile() )
+							Project::GetActiveProject()->CreatePremakeFile();
+
+						Premake::Launch( Project::GetActiveProject()->GetRootDir().wstring() );
+					} );
+			}
+
+			if( ImGui::MenuItem( "Setup Project for Distribution" ) )
+			{
+				if( !m_BlockingOperation )
+					m_BlockingOperation = Ref<JobProgress>::Create();
+
+				Project::GetActiveProject()->PrepForDist();
+
+				JobSystem::Get().AddJob( [this]()
+					{
+						m_JobModalOpen = true;
+						m_BlockingOperation->SetStatus( "Building Shader bundle..." );
+
+						BuildShaderBundle();
+					} );
+
+				JobSystem::Get().AddJob( [this]()
+					{
+						m_JobModalOpen = true;
+
+						if( auto result = AssetBundle::BundleAssets( m_BlockingOperation ); result != AssetBundleResult::Success )
+						{
+							Application::Get().GetWindow()->FlashAttention();
+
+							m_MessageBoxText = std::format( "Asset bundle failed to build error was: {0}", ( int ) result );
+							m_ShowMessageBox = true;
+						}
+					} );
+			}
+
+			if( ImGui::MenuItem( "Build Shader Bundle" ) )
+			{
+				BuildShaderBundle();
+			}
+
+#if defined( SAT_DEBUG )
+			if( ImGui::MenuItem( "DEBUG: Read Asset Bundle" ) )
+			{
+				Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
+				auto res = AssetBundle::ReadBundle();
+			}
+
+			if( ImGui::MenuItem( "DEBUG: Enable VFS Flag" ) )
+			{
+				Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
+			}
+#endif
+
+			if( ImGui::MenuItem( "Distribute project" ) )
+			{
+				HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+
+				if( !m_BlockingOperation )
+					m_BlockingOperation = Ref<JobProgress>::Create();
+
+				JobSystem::Get().AddJob( [this]()
+					{
+						m_JobModalOpen = true;
+						m_BlockingOperation->SetTitle( "Distributing Project" );
+
+						m_BlockingOperation->SetStatus( "Building project" );
+						Project::GetActiveProject()->Rebuild( ConfigKind::Dist );
+
+						m_BlockingOperation->SetProgress( 50.0f );
+
+						m_BlockingOperation->SetStatus( "Copying for Distribution" );
+						Project::GetActiveProject()->Distribute( ConfigKind::Dist );
+					} );
+			}
+
+			ImGui::EndMenu();
+		}
+
+		if( ImGui::BeginMenu( "Settings" ) )
+		{
+			if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings ^= 1;
+			if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug ^= 1;
+			if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug ^= 1;
+			if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings ^= 1;
+			if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow ^= 1;
+			if( ImGui::MenuItem( "Virtual File system debug", "" ) ) m_ShowVFSDebug ^= 1;
+
+			ImGui::EndMenu();
+		}
 	}
 
 	void EditorLayer::DrawViewport()
@@ -1463,8 +1473,6 @@ namespace Saturn {
 
 		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
 
-		Ref<Scene> ActiveScene = m_RuntimeScene ? m_RuntimeScene : m_EditorScene;
-
 		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 		std::vector<Ref<Entity>>& selectedEntities = hierarchyPanel->GetSelectionContexts();
 
@@ -1475,7 +1483,7 @@ namespace Saturn {
 
 		for( const auto& rEntity : selectedEntities )
 		{
-			TransformComponent worldSpace = ActiveScene->GetWorldSpaceTransform( rEntity );
+			TransformComponent worldSpace = GActiveScene->GetWorldSpaceTransform( rEntity );
 			Positions += worldSpace.Position;
 			Rotations += worldSpace.GetRotation();
 			Scales += worldSpace.Scale;
@@ -1505,7 +1513,7 @@ namespace Saturn {
 			{
 				for( Ref<Entity>& entity : selectedEntities )
 				{
-					glm::mat4 transform = ActiveScene->GetTransformRelativeToParent( entity );
+					glm::mat4 transform = GActiveScene->GetTransformRelativeToParent( entity );
 					auto& tc = entity->GetComponent<TransformComponent>();
 
 					glm::vec3 translation;
