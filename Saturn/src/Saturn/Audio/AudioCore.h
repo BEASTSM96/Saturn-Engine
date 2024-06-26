@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "Saturn/Core/Log.h"
+#include "Saturn/Core/Base.h"
 
 #include <miniaudio.h>
 
@@ -40,10 +40,6 @@ inline void _maCheckResult( ma_result Result )
 	{
 		SAT_CORE_INFO( "[MiniAudio Error] {0}", Result );
 
-#if defined( _WIN32 )
-		__debugbreak();
-#else
-		raise( SIGTRAP );
-#endif // _MSC_VER
+		Saturn::Core::BreakDebug();
 	}
 }

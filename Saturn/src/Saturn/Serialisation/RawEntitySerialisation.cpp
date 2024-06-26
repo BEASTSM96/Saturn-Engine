@@ -35,7 +35,7 @@
 namespace Saturn {
 
 	template<typename Component, typename Func>
-	void WriteComponent( Ref<Entity>& rEntity, std::ofstream& rStream, Func Function )
+	static void WriteComponent( Ref<Entity>& rEntity, std::ofstream& rStream, Func Function )
 	{
 		bool hasT = rEntity->HasComponent<Component>();
 
@@ -48,7 +48,7 @@ namespace Saturn {
 	}
 
 	template<typename Component, typename IStream, typename Func>
-	void ReadComponent( Ref<Entity>& rEntity, IStream& rStream, Func Function )
+	static void ReadComponent( Ref<Entity>& rEntity, IStream& rStream, Func Function )
 	{
 		bool hadT = false;
 		RawSerialisation::ReadObject( hadT, rStream );

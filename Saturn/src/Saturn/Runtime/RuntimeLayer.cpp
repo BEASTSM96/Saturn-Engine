@@ -140,10 +140,6 @@ namespace Saturn {
 		m_RuntimeScene->OnRenderRuntime( time, Application::Get().PrimarySceneRenderer() );
 	}
 
-	void RuntimeLayer::OnImGuiRender()
-	{
-	}
-
 	void RuntimeLayer::OnEvent( RubyEvent& rEvent )
 	{
 		if( rEvent.Type == RubyEventType::Resize )

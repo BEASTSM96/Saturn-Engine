@@ -444,7 +444,7 @@ namespace Saturn {
 		const auto Itr = std::find_if( m_AliveSounds.begin(), m_AliveSounds.end(), 
 			[playerID](const auto& kv)
 			{
-				return playerID == kv.first;
+				return kv.first == playerID;
 			} );
 
 		if( Itr != m_AliveSounds.end() )

@@ -42,7 +42,6 @@ namespace Saturn {
 		~RuntimeLayer();
 
 		void OnUpdate( Timestep time ) override;
-		void OnImGuiRender() override;
 		void OnEvent( RubyEvent& rEvent ) override;
 		bool OnWindowResize( RubyWindowResizeEvent& e );
 

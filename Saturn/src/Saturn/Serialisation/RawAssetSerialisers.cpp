@@ -407,11 +407,6 @@ namespace Saturn {
 	{
 		auto physMaterialAsset = rAsset.As<PhysicsMaterialAsset>();
 
-		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
-
-		/////////////////////////////////////
-
 		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
 		out /= std::to_string( rAsset->ID );
 		out.replace_extension( ".vfs" );
@@ -425,6 +420,70 @@ namespace Saturn {
 		RawSerialisation::WriteObject( physMaterialAsset->GetFlags(), stream );
 
 		stream.close();
+
+		return true;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// SOUND SPECIFICATION
+
+	bool RawSoundSpecAssetSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
+	{
+		auto sound = rAsset.As<SoundSpecification>();
+
+		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
+		out /= std::to_string( rAsset->ID );
+		out.replace_extension( ".vfs" );
+
+		std::ofstream stream( out, std::ios::binary | std::ios::trunc );
+
+		RawSerialisation::WriteString( std::filesystem::relative( sound->SoundSourcePath, Project::GetActiveProject()->GetRootDir() ), stream );
+		
+		// No need for this in dist
+		//RawSerialisation::WriteString( sound->OriginalImportPath, stream );
+
+		stream.close();
+
+		return true;
+	}
+
+	bool RawSoundSpecAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
+	{
+		const std::string& rMountBase = Project::GetActiveConfig().Name;
+		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		/////////////////////////////////////
+
+		PakFileMemoryBuffer membuf( file->FileContents );
+		std::istream stream( &membuf );
+
+		std::string sourcePath = RawSerialisation::ReadString( stream );
+
+		auto soundSpec = Ref<SoundSpecification>::Create();
+		soundSpec->SoundSourcePath = sourcePath;
+
+		// TODO: (Asset) Fix this.
+		struct
+		{
+			UUID ID;
+			AssetType Type;
+			uint32_t Flags;
+			std::filesystem::path Path;
+			std::string Name;
+		} OldAssetData = {};
+
+		OldAssetData.ID = rAsset->ID;
+		OldAssetData.Type = rAsset->Type;
+		OldAssetData.Flags = rAsset->Flags;
+		OldAssetData.Path = rAsset->Path;
+		OldAssetData.Name = rAsset->Name;
+
+		rAsset = soundSpec;
+		rAsset->ID = OldAssetData.ID;
+		rAsset->Type = OldAssetData.Type;
+		rAsset->Flags = OldAssetData.Flags;
+		rAsset->Path = OldAssetData.Path;
+		rAsset->Name = OldAssetData.Name;
 
 		return true;
 	}

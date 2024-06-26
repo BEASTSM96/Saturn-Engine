@@ -82,9 +82,6 @@
 #include <Ruby/RubyWindow.h>
 #include <Ruby/RubyAuxiliary.h>
 
-#include <typeindex>
-#include <ranges>
-
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Saturn {
@@ -114,7 +111,7 @@ namespace Saturn {
 
 		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 		hierarchyPanel->SetContext( m_EditorScene );
-		hierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( EditorLayer::SelectionChanged ) );
+		hierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( SelectionChanged ) );
 
 		m_EditorCamera.SetActive( true );
 
