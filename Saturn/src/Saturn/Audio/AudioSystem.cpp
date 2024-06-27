@@ -330,7 +330,7 @@ namespace Saturn {
 				graphSoundAsset->Load( MA_SOUND_FLAG_NO_SPATIALIZATION );
 				graphSoundAsset->Play();
 
-				m_LoadedSounds[ ID ] = graphSoundAsset;
+				m_LoadedSounds[ UniquePlayerID ] = graphSoundAsset;
 			};
 
 		m_AudioThread->IsCurrentThread() ? loadFunc() : m_AudioThread->Queue( loadFunc );

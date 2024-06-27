@@ -27,62 +27,33 @@
 */
 
 #include "sppch.h"
-#include "SoundRandomNode.h"
+#include "Random.h"
 
-#include "Saturn/NodeEditor/NodeEditorBase.h"
-
-#include "SoundPlayerNode.h"
-#include "Saturn/Audio/SoundNodeEditor/SoundEditorEvaluator.h"
-
-#include "Saturn/Core/Random.h"
+#include <random>
 
 namespace Saturn {
 
-	SoundRandomNode::SoundRandomNode( const NodeSpecification& rSpec )
-		: Node( rSpec )
+	static std::random_device s_RandomDevice;
+	static std::mt19937_64 s_RandomEngine( s_RandomDevice() );
+	static std::uniform_int_distribution<uint64_t> s_UniformDistribution;
+
+	bool Random::RandomBool()
 	{
-		ExecutionType = NodeExecutionType::RandomSound;
+		static std::uniform_int_distribution<int> s_BooleanDistribution( 0, 1 );
+
+		return s_BooleanDistribution( s_RandomEngine );
 	}
 
-	SoundRandomNode::~SoundRandomNode()
+	uint64_t Random::RandomUUID()
 	{
+		return s_UniformDistribution( s_RandomEngine );
 	}
 
-	void SoundRandomNode::EvaluateNode( NodeEditorRuntime* evaluator )
+	size_t Random::RandomElementInRange( size_t min, size_t max )
 	{
-		SoundEditorEvaluator* pSoundEditorEvaluator = dynamic_cast< SoundEditorEvaluator* >( evaluator );
+		std::uniform_int_distribution<size_t> rangeDistribution( min, max );
 
-		if( !pSoundEditorEvaluator )
-			return;
-
-		std::map<UUID, UUID> PinToSoundMap;
-
-		auto ids = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNeighbors( this );
-
-		uint32_t index = 0;
-		for( const auto& rID : ids )
-		{
-			Ref<Node> neighorNode = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNode( rID );
-			if( !neighorNode )
-				continue;
-
-			// TODO: Support more node types coming into the random node
-			if( neighorNode->ExecutionType != NodeExecutionType::SoundPlayer )
-				continue;
-
-			Ref<SoundPlayerNode> playerNode = neighorNode.As<SoundPlayerNode>();
-			PinToSoundMap[ index ] = playerNode->SoundAssetID;
-
-			index++;
-		}
-
-		size_t pin = Random::RandomElementInRange( 0, Inputs.size() - 1 );
-		ChosenSoundID = PinToSoundMap[ pin ];
-
-		pSoundEditorEvaluator->SoundStack.push( ChosenSoundID );
+		return rangeDistribution( s_RandomEngine );
 	}
 
-	void SoundRandomNode::OnRenderOutput( UUID pinID )
-	{
-	}
 }
