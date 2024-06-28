@@ -209,7 +209,7 @@ namespace Saturn {
 			Ref<MaterialColorPickerNode> colorPickerNode = MaterialNodeLibrary::SpawnColorPicker( m_NodeEditor );
 
 			auto& albedoColor = m_HostMaterialAsset->Get<glm::vec3>( "u_Materials.AlbedoColor" );
-			colorPickerNode->Color = albedoColor;
+			colorPickerNode->PickedColor = albedoColor;
 
 			Ref<Node> outputNode = m_NodeEditor->FindNode( m_OutputNodeID );
 			m_NodeEditor->CreateLink( colorPickerNode->Outputs[ slot ], outputNode->Inputs[ slot ] );

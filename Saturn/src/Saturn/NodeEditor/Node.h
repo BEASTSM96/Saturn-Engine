@@ -103,7 +103,7 @@ namespace Saturn {
 		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
 
 		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
-		virtual void OnRenderOutput( UUID pinID ) {}
+		virtual void OnRenderOutput( Ref<Pin> pin ) {}
 
 	protected:
 		virtual void OnSerialise( std::ofstream& rStream ) const {}

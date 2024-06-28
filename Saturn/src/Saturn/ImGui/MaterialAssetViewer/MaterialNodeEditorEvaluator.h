@@ -65,6 +65,7 @@ namespace Saturn {
 		virtual ~MaterialNodeEditorEvaluator() = default;
 
 		void SetTargetNodeEditor( Ref<NodeEditorBase> nodeEditor ) { m_NodeEditor = nodeEditor; }
+		Ref<NodeEditorBase> GetTargetEditor() const { return m_NodeEditor; }
 
 		[[nodiscard]] virtual NodeEditorCompilationStatus EvaluateEditor() override;
 

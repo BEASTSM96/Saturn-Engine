@@ -83,7 +83,21 @@ namespace Saturn {
 
 	public:
 		size_t TextureSlot = 0;
-		glm::vec3 Color;
+		glm::vec3 PickedColor{};
+	};
+
+	class MaterialGetAssetNode : public Node
+	{
+	public:
+		MaterialGetAssetNode() = default;
+		MaterialGetAssetNode( const NodeSpecification& rSpec );
+
+		virtual ~MaterialGetAssetNode();
+
+		virtual void OnRenderOutput( Ref<Pin> pin ) override;
+
+	public:
+		AssetID AssetID = 0;
 	};
 
 	class MaterialNodeLibrary
@@ -93,7 +107,7 @@ namespace Saturn {
 
 		static Ref<MaterialOutputNode> SpawnOutputNode( Ref<NodeEditorBase> rNodeEditor );
 
-		static Ref<Node> SpawnGetAsset( Ref<NodeEditorBase> rNodeEditor );
+		static Ref<MaterialGetAssetNode> SpawnGetAsset( Ref<NodeEditorBase> rNodeEditor );
 		static Ref<MaterialColorPickerNode> SpawnColorPicker( Ref<NodeEditorBase> rNodeEditor );
 		static Ref<MaterialSampler2DNode> SpawnSampler2D( Ref<NodeEditorBase> rNodeEditor );
 

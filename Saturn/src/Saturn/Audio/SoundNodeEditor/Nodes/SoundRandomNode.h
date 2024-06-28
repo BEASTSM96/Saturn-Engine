@@ -41,7 +41,6 @@ namespace Saturn {
 		virtual ~SoundRandomNode();
 
 		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) override;
-		virtual void OnRenderOutput( UUID pinID ) override;
 
 	public:
 		UUID ChosenSoundID = 0;

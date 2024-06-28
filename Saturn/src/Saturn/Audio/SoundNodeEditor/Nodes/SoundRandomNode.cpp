@@ -81,8 +81,4 @@ namespace Saturn {
 
 		pSoundEditorEvaluator->SoundStack.push( ChosenSoundID );
 	}
-
-	void SoundRandomNode::OnRenderOutput( UUID pinID )
-	{
-	}
 }

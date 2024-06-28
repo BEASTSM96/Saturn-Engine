@@ -47,22 +47,11 @@ namespace Saturn {
 	{
 	}
 
-	static bool s_ShowAssetFinder = false;
-
-	void SoundPlayerNode::OnRenderOutput( UUID pinID )
+	void SoundPlayerNode::OnRenderOutput( Ref<Pin> pin )
 	{
-		const auto itr = std::find_if( Outputs.begin(), Outputs.end(),
-			[pinID]( const auto& rPin )
-			{
-				return rPin->ID == pinID;
-			} );
-
-		if( itr == Outputs.end() )
-			return;
-
-		const auto& rPin = ( *itr );
-
-		switch( rPin->Type )
+		bool showAssetFinder = false;
+		
+		switch( pin->Type )
 		{
 			case PinType::Sound:
 			{
@@ -73,13 +62,13 @@ namespace Saturn {
 
 				if( ImGui::Button( name.c_str() ) )
 				{
-					s_ShowAssetFinder = true;
+					showAssetFinder = true;
 				}
 			} break;
 		}
 
 		ed::Suspend();
-		Auxiliary::DrawAssetFinder( AssetType::Sound, &s_ShowAssetFinder, SoundAssetID );
+		Auxiliary::DrawAssetFinder( AssetType::Sound, &showAssetFinder, SoundAssetID );
 		ed::Resume();
 	}
 

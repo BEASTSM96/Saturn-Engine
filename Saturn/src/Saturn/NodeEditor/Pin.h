@@ -61,7 +61,7 @@ namespace Saturn {
 		Delegate,
 		Material_Sampler2D,
 		Sound,
-		AssetHandle
+		AssetID
 	};
 
 	enum class PinKind
@@ -92,7 +92,7 @@ namespace Saturn {
 				return "Delegate";
 			case Saturn::PinType::Material_Sampler2D:
 				return "Material_Sampler2D";
-			case Saturn::PinType::AssetHandle:
+			case Saturn::PinType::AssetID:
 				return "AssetHandle";
 			default:
 				break;
@@ -120,7 +120,7 @@ namespace Saturn {
 		else if( rString == "Material_Sampler2D" )
 			return PinType::Material_Sampler2D;
 		else if( rString == "AssetHandle" )
-			return PinType::AssetHandle;
+			return PinType::AssetID;
 		else
 			return PinType::Object;
 	}

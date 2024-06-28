@@ -51,7 +51,7 @@ namespace Saturn {
 			case PinType::Object:			  return PinIconType::Circle;
 			case PinType::Function:			  return PinIconType::Circle;
 			case PinType::Material_Sampler2D: return PinIconType::Circle;
-			case PinType::AssetHandle:        return PinIconType::Circle;
+			case PinType::AssetID:        return PinIconType::Circle;
 			case PinType::Delegate:           return PinIconType::Square;
 		}
 
@@ -71,7 +71,7 @@ namespace Saturn {
 			case PinType::Object:   return ImColor( 51, 150, 215 );
 			case PinType::Function: return ImColor( 218, 0, 183 );
 			case PinType::Delegate: return ImColor( 255, 48, 48 );
-			case PinType::AssetHandle: return ImColor( 0, 0, 255 );
+			case PinType::AssetID: return ImColor( 0, 0, 255 );
 		}
 
 		return ImColor( 0, 0, 255 );
@@ -136,12 +136,6 @@ namespace Saturn {
 			ImGui::Spring( 0 );
 		}
 
-		if( Type == PinType::Bool && !linked )
-		{
-			ImGui::Button( "Hello" );
-			ImGui::Spring( 0 );
-		}
-
 		if( Type == PinType::Float && !linked )
 		{
 			float value = ExtraData.Read<float>( pinIndex * sizeof( float ) );
@@ -181,24 +175,9 @@ namespace Saturn {
 			ImGui::Spring( 0 );
 			ImGui::TextUnformatted( Name.c_str() );
 
-			Node->OnRenderOutput( ID );
+			Node->OnRenderOutput( this );
 
-			// TODO: Allow for certain asset types.
-			if( Type == PinType::AssetHandle )
-			{
-				auto& rSavedUUID = Node->ExtraData.Read<UUID>( 0 );
-
-				std::string name = "Select Asset";
-
-				if( rSavedUUID != 0 )
-					name = std::to_string( rSavedUUID );
-				
-				if( ImGui::Button( name.c_str() ) )
-				{
-					OpenAssetIDPopup = true;
-				}
-			}
-			else if( Node->Name == "Color Picker" && Type == PinType::Material_Sampler2D )
+			if( Node->Name == "Color Picker" && Type == PinType::Material_Sampler2D )
 			{
 				ImGui::BeginHorizontal( "PickerH" );
 

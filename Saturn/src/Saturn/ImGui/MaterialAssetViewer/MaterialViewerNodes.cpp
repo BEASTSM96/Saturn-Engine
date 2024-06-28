@@ -35,16 +35,20 @@
 #include "MaterialAssetViewer.h"
 #include "Saturn/Asset/AssetManager.h"
 
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
+
+#include "builders.h"
+
 namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL NODE LIBRARY
 
-	Ref<Node> MaterialNodeLibrary::SpawnGetAsset( Ref<NodeEditorBase> rNodeEditor )
+	Ref<MaterialGetAssetNode> MaterialNodeLibrary::SpawnGetAsset( Ref<NodeEditorBase> nodeEditor )
 	{
 		PinSpecification pin;
 		pin.Name = "Asset ID";
-		pin.Type = PinType::AssetHandle;
+		pin.Type = PinType::AssetID;
 
 		NodeSpecification nodeSpec;
 		nodeSpec.Color = ImColor( 30, 117, 217 );
@@ -52,14 +56,13 @@ namespace Saturn {
 
 		nodeSpec.Outputs.push_back( pin );
 
-		Ref<Node> node = Ref<Node>::Create( nodeSpec );
-		node->ExecutionType = NodeExecutionType::AssetID;
-		rNodeEditor->AddNode( node );
+		Ref<MaterialGetAssetNode> node = Ref<MaterialGetAssetNode>::Create( nodeSpec );
+		nodeEditor->AddNode( node );
 
 		return node;
 	}
 
-	Ref<MaterialColorPickerNode> MaterialNodeLibrary::SpawnColorPicker( Ref<NodeEditorBase> rNodeEditor )
+	Ref<MaterialColorPickerNode> MaterialNodeLibrary::SpawnColorPicker( Ref<NodeEditorBase> nodeEditor )
 	{
 		PinSpecification pin;
 		pin.Name = "RGBA";
@@ -72,12 +75,12 @@ namespace Saturn {
 		nodeSpec.Outputs.push_back( pin );
 
 		Ref<MaterialColorPickerNode> node = Ref<MaterialColorPickerNode>::Create( nodeSpec );
-		rNodeEditor->AddNode( node );
+		nodeEditor->AddNode( node );
 
 		return node;
 	}
 
-	Ref<MaterialSampler2DNode> MaterialNodeLibrary::SpawnSampler2D( Ref<NodeEditorBase> rNodeEditor )
+	Ref<MaterialSampler2DNode> MaterialNodeLibrary::SpawnSampler2D( Ref<NodeEditorBase> nodeEditor )
 	{
 		PinSpecification pin;
 		pin.Name = "Albedo";
@@ -99,16 +102,16 @@ namespace Saturn {
 		nodeSpec.Outputs.push_back( pin );
 
 		pin.Name = "Asset";
-		pin.Type = PinType::AssetHandle;
+		pin.Type = PinType::AssetID;
 		nodeSpec.Inputs.push_back( pin );
 
 		Ref<MaterialSampler2DNode> node = Ref<MaterialSampler2DNode>::Create( nodeSpec );
-		rNodeEditor->AddNode( node );
+		nodeEditor->AddNode( node );
 
 		return node;
 	}
 
-	Ref<Node> MaterialNodeLibrary::SpawnMixColors( Ref<NodeEditorBase> rNodeEditor )
+	Ref<Node> MaterialNodeLibrary::SpawnMixColors( Ref<NodeEditorBase> nodeEditor )
 	{
 		PinSpecification output;
 		output.Name = "Out";
@@ -132,12 +135,12 @@ namespace Saturn {
 
 		Ref<Node> node = Ref<Node>::Create( nodeSpec );
 		node->ExecutionType = NodeExecutionType::MaterialMixColors;
-		rNodeEditor->AddNode( node );
+		nodeEditor->AddNode( node );
 
 		return node;
 	}
 
-	Ref<MaterialOutputNode> MaterialNodeLibrary::SpawnOutputNode( Ref<NodeEditorBase> rNodeEditor )
+	Ref<MaterialOutputNode> MaterialNodeLibrary::SpawnOutputNode( Ref<NodeEditorBase> nodeEditor )
 	{
 		PinSpecification pin;
 		pin.Name = "Albedo";
@@ -163,7 +166,7 @@ namespace Saturn {
 		nodeSpec.Inputs.push_back( pin );
 
 		Ref<MaterialOutputNode> node = Ref<MaterialOutputNode>::Create( nodeSpec );
-		rNodeEditor->AddNode( node );
+		nodeEditor->AddNode( node );
 
 		return node;
 	}
@@ -257,8 +260,12 @@ namespace Saturn {
 
 		if( TextureSlot != UINT64_MAX )
 		{
+			auto neighbors = materialEval->GetTargetEditor()->FindNeighbors( this );
+
+			Ref<MaterialGetAssetNode> assetNode = materialEval->GetTargetEditor()->FindNode( neighbors[ 0 ] );
+
 			MaterialEvaluatorValue tv;
-			tv.TextureAssetID = 2391113416952765199;
+			tv.TextureAssetID = assetNode->AssetID;
 			tv.Slot = static_cast<uint32_t>( TextureSlot );
 
 			// Add to root node
@@ -289,11 +296,43 @@ namespace Saturn {
 		if( TextureSlot != UINT64_MAX )
 		{
 			MaterialEvaluatorValue tv;
-			tv.Slot = TextureSlot;
-			tv.Color = Color;
+			tv.Slot = static_cast<uint32_t>( TextureSlot );
+			tv.Color = PickedColor;
 
 			// Add to root node
 			materialEval->AddToValueStack( tv );
 		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// MATERIAL GET ASSET NODE
+
+	MaterialGetAssetNode::MaterialGetAssetNode( const NodeSpecification& rSpec )
+		: Node( rSpec )
+	{
+		ExecutionType = NodeExecutionType::AssetID;
+	}
+
+	MaterialGetAssetNode::~MaterialGetAssetNode()
+	{
+	}
+
+	void MaterialGetAssetNode::OnRenderOutput( Ref<Pin> pin )
+	{
+		bool openAssetIDPopup = false;
+		
+		if( pin->Type == PinType::AssetID )
+		{
+			std::string name = AssetID == 0 ? "Select Asset" : std::to_string( AssetID );
+
+			if( ImGui::Button( name.c_str() ) )
+			{
+				openAssetIDPopup = true;
+			}
+		}
+
+		ed::Suspend();
+		Auxiliary::DrawAssetFinder( AssetType::Texture, &openAssetIDPopup, AssetID );
+		ed::Resume();
 	}
 }
