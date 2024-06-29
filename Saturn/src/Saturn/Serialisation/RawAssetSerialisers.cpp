@@ -56,7 +56,10 @@ namespace Saturn {
 	bool RawMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		if( !file )
+			return false;
 
 		PakFileMemoryBuffer membuf( file->FileContents );
 
@@ -148,7 +151,10 @@ namespace Saturn {
 	bool RawMaterialAssetSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		if( !file )
+			return false;
 
 		auto materialAsset = rAsset.As<MaterialAsset>();
 
@@ -255,7 +261,10 @@ namespace Saturn {
 		auto prefabAsset = rAsset.As<Prefab>();
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		if( !file )
+			return false;
 
 		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
 		out /= std::to_string( rAsset->ID );
@@ -280,7 +289,10 @@ namespace Saturn {
 		auto staticMeshAsset = rAsset.As<StaticMesh>();
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		if( !file )
+			return false;
 
 		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
 		out /= std::to_string( rAsset->ID );
@@ -305,7 +317,10 @@ namespace Saturn {
 		auto staticMeshAsset = Ref<StaticMesh>::Create();
 
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		if( !file )
+			return false;
 
 		PakFileMemoryBuffer membuf( file->FileContents );
 		std::istream stream( &membuf );
@@ -355,7 +370,10 @@ namespace Saturn {
 	bool RawPhysicsMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		if( !file )
+			return false;
 
 		/////////////////////////////////////
 		PakFileMemoryBuffer membuf( file->FileContents );
@@ -450,7 +468,10 @@ namespace Saturn {
 	bool RawSoundSpecAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
+
+		if( !file )
+			return false;
 
 		/////////////////////////////////////
 

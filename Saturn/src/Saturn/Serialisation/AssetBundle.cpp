@@ -430,7 +430,9 @@ namespace Saturn {
 			}
 
 			// Find the VFile
-			Ref<VFile>& rFile = rVFS.FindFile( rMountBase, rAsset->Path );
+			Ref<VFile> file = rVFS.FindFile( rMountBase, rAsset->Path );
+			if( !file )
+				return AssetBundleResult::FileNotFound;
 
 			if( dfh.OrginalSize != dfh.CompressedSize )
 			{
@@ -454,7 +456,7 @@ namespace Saturn {
 
 				compressedData.clear();
 
-				rFile->FileContents = uncompressedData;
+				file->FileContents = uncompressedData;
 			}
 			else
 			{
@@ -463,7 +465,7 @@ namespace Saturn {
 				std::vector<char> uncompressedData( dfh.OrginalSize );
 				RawSerialisation::ReadVector( uncompressedData, stream );
 				
-				rFile->FileContents = uncompressedData;
+				file->FileContents = uncompressedData;
 			}
 
 			FileEntries[ i ] = dfh;

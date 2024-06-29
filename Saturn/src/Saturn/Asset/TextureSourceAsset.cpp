@@ -87,7 +87,10 @@ namespace Saturn {
 	{
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, Path );
+		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, Path );
+		
+		if( !file )
+			return;
 
 		/////////////////////////////////////
 
@@ -111,8 +114,10 @@ namespace Saturn {
 
 	void TextureSourceAsset::ReadFromVFS()
 	{
+		SAT_CORE_ASSERT( false );
+
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, Path );
+		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, Path );
 
 		/////////////////////////////////////
 		std::istringstream stream( "", std::ios::binary | std::ios::in );

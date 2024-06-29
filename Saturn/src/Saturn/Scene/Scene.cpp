@@ -704,11 +704,11 @@ namespace Saturn {
 			if( !soundSpec )
 				continue;
 			
-			if( soundSpec->Type == AssetType::GraphSound )
+			if( soundSpec->Type == AssetType::GraphSound ) [[unlikely]]
 			{
 				AudioSystem::Get().PlayGraphSound( rComp.SpecAssetID, rComp.UniqueID );
 			}
-			else
+			else [[likely]]
 			{
 				Ref<Sound> sound = nullptr;
 
@@ -825,7 +825,10 @@ namespace Saturn {
 	void Scene::DeserialiseData()
 	{
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile>& file = VirtualFS::Get().FindFile( rMountBase, Path );
+		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, Path );
+
+		if( !file )
+			return;
 
 		PakFileMemoryBuffer membuf( file->FileContents );
 

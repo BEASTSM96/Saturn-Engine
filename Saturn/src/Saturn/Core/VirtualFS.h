@@ -75,13 +75,13 @@ namespace Saturn {
 		// NOTE:
 		// If the path is Assets/Meshes/Base/Cube.fbx
 		// Then it will return the Cube.fbx as the file.
-		Ref<VFile>& FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+		Ref<VFile> FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
 		// Finds and returns the directory.
 		// NOTE:
 		// If the path is Assets/Meshes/Base
 		// Then it will return the Base Directory.
-		Ref<VDirectory>& FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
+		Ref<VDirectory> FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath );
 
 		void WriteVFS( std::ofstream& rStream );
 		void LoadVFS( std::ifstream& rStream );

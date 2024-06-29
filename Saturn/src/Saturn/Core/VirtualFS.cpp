@@ -249,7 +249,7 @@ namespace Saturn {
 		}
 	}
 
-	Ref<VFile>& VirtualFS::FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	Ref<VFile> VirtualFS::FindFile( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
 	{
 		SAT_PF_EVENT();
 
@@ -257,15 +257,15 @@ namespace Saturn {
 		const auto Itr = m_MountBases.find( rMountBase );
 
 		if( Itr == m_MountBases.end() )
-			throw std::runtime_error( "Mount base not found!" );
+			return nullptr;
 
 		if( rVirtualPath.empty() )
-			throw std::runtime_error( "Path is empty!" );
+			return nullptr;
 
 		return m_PathToFile[ rMountBase ][ rVirtualPath ];
 	}
 
-	Ref<VDirectory>& VirtualFS::FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
+	Ref<VDirectory> VirtualFS::FindDirectory( const std::string& rMountBase, const std::filesystem::path& rVirtualPath )
 	{
 		SAT_PF_EVENT();
 
@@ -273,10 +273,10 @@ namespace Saturn {
 		const auto Itr = m_MountBases.find( rMountBase );
 
 		if( Itr == m_MountBases.end() )
-			throw std::runtime_error( "Mount base not found!" );
+			return nullptr;
 
 		if( rVirtualPath.empty() )
-			throw std::runtime_error( "Path is empty!" );
+			return nullptr;
 
 		return m_PathToDir[ rMountBase ][ rVirtualPath ];
 	}
