@@ -413,7 +413,7 @@ namespace Saturn {
 			{
 				SAT_CORE_ERROR( "Invalid pack file header!" );
 
-				return AssetBundleResult::InvalidPakFileHeader;
+				return AssetBundleResult::InvalidPackFileHeader;
 			}
 
 			if( rAsset->ID != dfh.Asset )
@@ -423,10 +423,12 @@ namespace Saturn {
 				return AssetBundleResult::AssetIDMismatch;
 			}
 
+			// The version that the file was generated in much match the engine version.
 			if( dfh.Version != SAT_CURRENT_VERSION ) 
 			{
 				SAT_CORE_ERROR( "Pack file version mismatch!" );
-				// For now continue loading this current file however in future maybe try to upgrade this file to the current version.
+			
+				return AssetBundleResult::PackFileVersionMismatch;
 			}
 
 			// Find the VFile
@@ -456,7 +458,7 @@ namespace Saturn {
 
 				compressedData.clear();
 
-				file->FileContents = uncompressedData;
+				file->FileContent = uncompressedData;
 			}
 			else
 			{
@@ -465,7 +467,7 @@ namespace Saturn {
 				std::vector<char> uncompressedData( dfh.OrginalSize );
 				RawSerialisation::ReadVector( uncompressedData, stream );
 				
-				file->FileContents = uncompressedData;
+				file->FileContent = uncompressedData;
 			}
 
 			FileEntries[ i ] = dfh;

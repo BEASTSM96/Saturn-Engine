@@ -51,7 +51,7 @@ namespace Saturn {
 		std::string Name;
 		VDirectory* ParentDir = nullptr;
 		
-		std::vector<char> FileContents;
+		std::vector<char> FileContent;
 	
 	public:
 		static void Serialise( const Ref<VFile>& rObject, std::ofstream& rStream )

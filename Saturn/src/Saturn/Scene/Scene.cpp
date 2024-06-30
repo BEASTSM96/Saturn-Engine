@@ -830,7 +830,7 @@ namespace Saturn {
 		if( !file )
 			return;
 
-		PakFileMemoryBuffer membuf( file->FileContents );
+		PakFileMemoryBuffer membuf( file->FileContent );
 
 		std::istream stream( &membuf );
 

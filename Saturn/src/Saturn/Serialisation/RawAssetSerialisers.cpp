@@ -61,7 +61,7 @@ namespace Saturn {
 		if( !file )
 			return false;
 
-		PakFileMemoryBuffer membuf( file->FileContents );
+		PakFileMemoryBuffer membuf( file->FileContent );
 
 		std::istream stream( &membuf );
 
@@ -322,7 +322,7 @@ namespace Saturn {
 		if( !file )
 			return false;
 
-		PakFileMemoryBuffer membuf( file->FileContents );
+		PakFileMemoryBuffer membuf( file->FileContent );
 		std::istream stream( &membuf );
 
 		/////////////////////////////////////
@@ -376,7 +376,7 @@ namespace Saturn {
 			return false;
 
 		/////////////////////////////////////
-		PakFileMemoryBuffer membuf( file->FileContents );
+		PakFileMemoryBuffer membuf( file->FileContent );
 		std::istream stream( &membuf );
 
 		glm::vec3 StaticDynamicFrictionRestitution{};
@@ -475,7 +475,7 @@ namespace Saturn {
 
 		/////////////////////////////////////
 
-		PakFileMemoryBuffer membuf( file->FileContents );
+		PakFileMemoryBuffer membuf( file->FileContent );
 		std::istream stream( &membuf );
 
 		std::string sourcePath = RawSerialisation::ReadString( stream );

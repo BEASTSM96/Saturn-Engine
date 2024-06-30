@@ -42,7 +42,8 @@ namespace Saturn {
 		FileNotFound,
 		FailedToUncompress,
 		InvalidFileHeader,
-		InvalidPakFileHeader,
+		InvalidPackFileHeader,
+		PackFileVersionMismatch,
 		AssetIDMismatch
 	};
 
