@@ -86,11 +86,6 @@
 
 namespace Saturn {
 
-	bool HasPremakePath = false;
-	bool OpenAssetRegistryDebug = false;
-	bool OpenLoadedAssetDebug = false;
-	bool OpenAttributions = false;
-
 	static constexpr inline bool operator==( const ImVec2& lhs, const ImVec2& rhs ) { return lhs.x == rhs.x && lhs.y == rhs.y; }
 	static constexpr inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
@@ -341,14 +336,14 @@ namespace Saturn {
 
 		ImGui::End();
 
-		if( OpenAttributions )       DrawAttributions();
-		if( m_ShowImGuiDemoWindow )  ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
-		if( m_ShowUserSettings )     UI_Titlebar_UserSettings();
-		if( OpenAssetRegistryDebug ) DrawAssetRegistryDebug();
-		if( OpenLoadedAssetDebug ) 	 DrawLoadedAssetsDebug();
-		if( m_OpenEditorSettings )   DrawEditorSettings();
-		if( m_ShowVFSDebug )         DrawVFSDebug();
-		if( m_ShowMessageBox )       ShowMessageBox();
+		if( m_OpenAttributions )       DrawAttributions();
+		if( m_ShowImGuiDemoWindow )    ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
+		if( m_ShowUserSettings )       UI_Titlebar_UserSettings();
+		if( m_OpenAssetRegistryDebug ) DrawAssetRegistryDebug();
+		if( m_OpenLoadedAssetDebug )   DrawLoadedAssetsDebug();
+		if( m_OpenEditorSettings )     DrawEditorSettings();
+		if( m_ShowVFSDebug )           DrawVFSDebug();
+		if( m_ShowMessageBox )         ShowMessageBox();
 
 		AssetViewer::Draw();
 
@@ -920,7 +915,7 @@ namespace Saturn {
 
 	void EditorLayer::DrawAssetRegistryDebug()
 	{
-		if( ImGui::Begin( "Asset Manager", &OpenAssetRegistryDebug ) )
+		if( ImGui::Begin( "Asset Manager", &m_OpenAssetRegistryDebug ) )
 		{
 			static ImGuiTextFilter Filter;
 
@@ -978,7 +973,7 @@ namespace Saturn {
 
 	void EditorLayer::DrawLoadedAssetsDebug()
 	{
-		if( ImGui::Begin( "Loaded Assets", &OpenLoadedAssetDebug ) )
+		if( ImGui::Begin( "Loaded Assets", &m_OpenLoadedAssetDebug ) )
 		{
 			static ImGuiTextFilter Filter;
 
@@ -1231,7 +1226,7 @@ namespace Saturn {
 
 	void EditorLayer::DrawAttributions()
 	{
-		if( ImGui::Begin( "Attributions", &OpenAttributions ) )
+		if( ImGui::Begin( "Attributions", &m_OpenAttributions ) )
 		{
 			ImGui::Text( "All icons in the engine are provided by icons8 via https://icons8.com/\nUsing the Tanah Basah set." );
 
@@ -1274,7 +1269,7 @@ namespace Saturn {
 
 		if( ImGui::BeginMenu( "Saturn" ) )
 		{
-			if( ImGui::MenuItem( "Attributions" ) ) OpenAttributions ^= 1;
+			if( ImGui::MenuItem( "Attributions" ) ) m_OpenAttributions ^= 1;
 
 			ImGui::EndMenu();
 		}
@@ -1287,7 +1282,7 @@ namespace Saturn {
 
 			if( ImGui::MenuItem( "Recreate project files" ) )
 			{
-				HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+				m_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 
 				JobSystem::Get().AddJob( []()
 					{
@@ -1339,15 +1334,26 @@ namespace Saturn {
 				auto res = AssetBundle::ReadBundle();
 			}
 
-			if( ImGui::MenuItem( "DEBUG: Enable VFS Flag" ) )
+			if( ImGui::MenuItem( "DEBUG: Build Asset Bundle (no shaders)" ) )
 			{
-				Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
+				JobSystem::Get().AddJob( [this]()
+					{
+						m_JobModalOpen = true;
+
+						if( auto result = AssetBundle::BundleAssets( m_BlockingOperation ); result != AssetBundleResult::Success )
+						{
+							Application::Get().GetWindow()->FlashAttention();
+
+							m_MessageBoxText = std::format( "Asset bundle failed to build error was: {0}", ( int ) result );
+							m_ShowMessageBox = true;
+						}
+					} );
 			}
 #endif
 
 			if( ImGui::MenuItem( "Distribute project" ) )
 			{
-				HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
+				m_HasPremakePath = Auxiliary::HasEnvironmentVariable( "SATURN_PREMAKE_PATH" );
 
 				if( !m_BlockingOperation )
 					m_BlockingOperation = Ref<JobProgress>::Create();
@@ -1373,8 +1379,8 @@ namespace Saturn {
 		if( ImGui::BeginMenu( "Settings" ) )
 		{
 			if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings ^= 1;
-			if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) OpenAssetRegistryDebug ^= 1;
-			if( ImGui::MenuItem( "Loaded asset debug", "" ) ) OpenLoadedAssetDebug ^= 1;
+			if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) m_OpenAssetRegistryDebug ^= 1;
+			if( ImGui::MenuItem( "Loaded asset debug", "" ) ) m_OpenLoadedAssetDebug ^= 1;
 			if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings ^= 1;
 			if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow ^= 1;
 			if( ImGui::MenuItem( "Virtual File system debug", "" ) ) m_ShowVFSDebug ^= 1;
@@ -1682,7 +1688,7 @@ namespace Saturn {
 
 	void EditorLayer::CheckMissingEnv()
 	{
-		if( !HasPremakePath )
+		if( !m_HasPremakePath )
 		{
 			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
 			{
@@ -1708,7 +1714,7 @@ namespace Saturn {
 
 						Auxiliary::SetEnvironmentVariable( "SATURN_PREMAKE_PATH", path.c_str() );
 
-						HasPremakePath = true;
+						m_HasPremakePath = true;
 					}
 				}
 

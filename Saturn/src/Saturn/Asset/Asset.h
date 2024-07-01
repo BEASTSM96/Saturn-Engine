@@ -104,15 +104,15 @@ namespace Saturn {
 		std::unreachable();
 	}
 
-// I don't want to include the imgui header so we will just copy the macro.
-constexpr int R_SHIFT = 0;
-constexpr int G_SHIFT = 8;
-constexpr int B_SHIFT = 16;
-constexpr int A_SHIFT = 24;
-constexpr int A_MASK = 0xFF000000;
+	// I don't want to include the imgui header so we will just copy the macro.
+	constexpr int R_SHIFT = 0;
+	constexpr int G_SHIFT = 8;
+	constexpr int B_SHIFT = 16;
+	constexpr int A_SHIFT = 24;
+	constexpr int A_MASK = 0xFF000000;
 
-template<typename Ty>
-consteval uint32_t COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A ) << A_SHIFT ) | ( ( uint32_t ) ( B ) << B_SHIFT ) | ( ( uint32_t ) ( G ) << G_SHIFT ) | ( ( uint32_t ) ( R ) << R_SHIFT ) ); }
+	template<typename Ty>
+	consteval uint32_t COLOR_32( Ty R, Ty G, Ty B, Ty A ) { return ( ( ( uint32_t ) ( A ) << A_SHIFT ) | ( ( uint32_t ) ( B ) << B_SHIFT ) | ( ( uint32_t ) ( G ) << G_SHIFT ) | ( ( uint32_t ) ( R ) << R_SHIFT ) ); }
 
 	inline constexpr uint32_t AssetTypeToColor( AssetType type )
 	{

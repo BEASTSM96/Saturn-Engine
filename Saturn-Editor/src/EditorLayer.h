@@ -124,10 +124,13 @@ namespace Saturn {
 		bool m_OpenEditorSettings = false;
 		bool m_ShowImGuiDemoWindow = false;
 		bool m_ShowVFSDebug = false;
+		bool m_HasPremakePath = false;
+		bool m_OpenAssetRegistryDebug = false;
+		bool m_OpenLoadedAssetDebug = false;
+		bool m_OpenAttributions = false;
+		bool m_JobModalOpen = false;
 
 		bool m_RequestRuntime = false;
-
-		bool m_JobModalOpen = false;
 
 		// Translate as default
 		int m_GizmoOperation = 7 /* ImGuizmo::OPERATION::TRANSLATE */;
