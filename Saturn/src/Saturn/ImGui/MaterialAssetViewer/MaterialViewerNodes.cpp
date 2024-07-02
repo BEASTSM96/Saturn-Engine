@@ -185,12 +185,12 @@ namespace Saturn {
 		RuntimeData.MaterialAsset = nullptr;
 	}
 
-	void MaterialOutputNode::EvaluateNode( NodeEditorRuntime* evaluator )
+	NodeEditorCompilationStatus MaterialOutputNode::EvaluateNode( NodeEditorRuntime* evaluator )
 	{
 		MaterialNodeEditorEvaluator* materialEval = dynamic_cast< MaterialNodeEditorEvaluator* >( evaluator );
 
 		if( !materialEval )
-			return;
+			return NodeEditorCompilationStatus::Failed;
 
 		auto& TextureStack = materialEval->GetTextureStack();
 
@@ -216,6 +216,8 @@ namespace Saturn {
 				RuntimeData.MaterialAsset->SetRoughnessMap( tv.TextureAssetID );
 			}
 		}
+
+		return NodeEditorCompilationStatus::Success;
 	}
 
 	void MaterialOutputNode::HandleAlbedo( const MaterialEvaluatorValue& rTextureValue )
@@ -251,12 +253,12 @@ namespace Saturn {
 	{
 	}
 
-	void MaterialSampler2DNode::EvaluateNode( NodeEditorRuntime* evaluator )
+	NodeEditorCompilationStatus MaterialSampler2DNode::EvaluateNode( NodeEditorRuntime* evaluator )
 	{
 		MaterialNodeEditorEvaluator* materialEval = dynamic_cast< MaterialNodeEditorEvaluator* >( evaluator );
 
 		if( !materialEval )
-			return;
+			return NodeEditorCompilationStatus::Failed;
 
 		if( TextureSlot != UINT64_MAX )
 		{
@@ -271,6 +273,8 @@ namespace Saturn {
 			// Add to root node
 			materialEval->AddToValueStack( tv );
 		}
+		
+		return NodeEditorCompilationStatus::Success;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -286,12 +290,12 @@ namespace Saturn {
 	{
 	}
 
-	void MaterialColorPickerNode::EvaluateNode( NodeEditorRuntime* evaluator )
+	NodeEditorCompilationStatus MaterialColorPickerNode::EvaluateNode( NodeEditorRuntime* evaluator )
 	{
 		MaterialNodeEditorEvaluator* materialEval = dynamic_cast< MaterialNodeEditorEvaluator* >( evaluator );
 
 		if( !materialEval )
-			return;
+			return NodeEditorCompilationStatus::Failed;
 
 		if( TextureSlot != UINT64_MAX )
 		{
@@ -302,6 +306,8 @@ namespace Saturn {
 			// Add to root node
 			materialEval->AddToValueStack( tv );
 		}
+
+		return NodeEditorCompilationStatus::Success;
 	}
 
 	//////////////////////////////////////////////////////////////////////////

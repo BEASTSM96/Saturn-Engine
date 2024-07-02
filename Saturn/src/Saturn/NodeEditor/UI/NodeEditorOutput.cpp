@@ -50,6 +50,8 @@ namespace Saturn {
 	{
 		ImGui::Begin( "Node Editor Output" );
 
+		ImGui::BeginVertical( "##MessageRegionVert" );
+
 		if( ImGui::BeginChild( "MessageRegion", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar ) ) 
 		{
 			for( const auto& rMessage : m_Messages )
@@ -61,9 +63,11 @@ namespace Saturn {
 			{
 				m_SelectedMessageID = 0;
 			}
+
 		}
 
 		ImGui::EndChild();
+		ImGui::EndVertical();
 		ImGui::End();
 	}
 
@@ -79,14 +83,11 @@ namespace Saturn {
 
 	void NodeEditorOutput::DrawMessage( const NodeEditorMessage& rMessage )
 	{
-		float width = ImGui::GetContentRegionAvail().x;
 		float height = ImGui::GetTextLineHeightWithSpacing();
-
-		ImVec2 size( width, height );
 
 		ImGui::BeginHorizontal( rMessage.ID );
 
-		ImGui::Spring();
+		ImGui::Spring( 1.0f, 1.0f );
 
 		switch( rMessage.Type )
 		{
@@ -105,6 +106,10 @@ namespace Saturn {
 
 		ImGui::Spring();
 
+		float width = ImGui::GetContentRegionAvail().x;
+		// Leave space for the bin icon
+		ImVec2 size( width - ( height * 2 ), height );
+
 		if( ImGui::Selectable( rMessage.MessageText.c_str(), rMessage.ID == m_SelectedMessageID, 0, size ) )
 		{
 			m_SelectedMessageID = rMessage.ID;
@@ -112,8 +117,6 @@ namespace Saturn {
 
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 
-		ImGui::Spring();
-		
 		if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Bin" ), { height, height } ) )
 		{
 			ClearMessage( rMessage.ID );

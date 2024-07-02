@@ -31,6 +31,7 @@
 #include "Saturn/Core/Memory/Buffer.h"
 #include "Saturn/Core/UUID.h"
 #include "Pin.h"
+#include "NodeEditorCompilationStatus.h"
 
 #include <string>
 #include <vector>
@@ -102,7 +103,7 @@ namespace Saturn {
 		static void Serialise( const Ref<Node>& rObject, std::ofstream& rStream );
 		static void Deserialise( Ref<Node>& rObject, std::ifstream& rStream );
 
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) {}
+		virtual NodeEditorCompilationStatus EvaluateNode( NodeEditorRuntime* evaluator ) { return NodeEditorCompilationStatus::Success; }
 		virtual void OnRenderOutput( Ref<Pin> pin ) {}
 
 	protected:

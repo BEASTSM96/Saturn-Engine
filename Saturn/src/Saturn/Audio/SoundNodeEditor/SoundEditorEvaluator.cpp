@@ -37,7 +37,11 @@
 #include "Nodes/SoundPlayerNode.h"
 #include "Nodes/SoundRandomNode.h"
 
+#if !defined(SAT_DIST)
+#include "Saturn/NodeEditor/UI/NodeEditor.h"
+#else
 #include "Saturn/NodeEditor/NodeEditorBase.h"
+#endif
 
 namespace Saturn {
 
@@ -64,15 +68,23 @@ namespace Saturn {
 		if( !m_NodeEditor )
 			return NodeEditorCompilationStatus::Failed;
 
+		Ref<NodeEditor> uiEditor = m_NodeEditor.As<NodeEditor>();
+
 		Ref<Node> OutputNode = m_NodeEditor->FindNode( m_Info.OutputNodeID );
-		if( !OutputNode )
+		if( !OutputNode ) 
+		{
+			uiEditor->ThrowError( "Output node was not found!" );
 			return NodeEditorCompilationStatus::Failed;
+		}
 
 		UUID FinalSoundPinID = OutputNode->Inputs[ 0 ]->ID;
 
 		// We must have something linked to the final output.
-		if( !m_NodeEditor->IsLinked( FinalSoundPinID ) )
+		if( !m_NodeEditor->IsLinked( FinalSoundPinID ) ) 
+		{
+			uiEditor->ThrowError( "No links are linked to the output node!" );
 			return NodeEditorCompilationStatus::Failed;
+		}
 #else
 		Ref<Node> OutputNode = m_NodeEditor->FindNode( m_Info.OutputNodeID );
 		UUID FinalSoundPinID = OutputNode->Inputs[ 0 ]->ID;
@@ -88,19 +100,30 @@ namespace Saturn {
 				order.push( id );
 			} );
 
-		if( order.size() <= 1 )
+#if !defined( SAT_DIST )
+		if( order.size() <= 1 ) 
+		{
+			uiEditor->ThrowWarning( "There is no other nodes to compile! (The only node that exists is the output node!)" );
 			return NodeEditorCompilationStatus::Failed;
-	
+		}
+#endif
+
+		auto compileResult = NodeEditorCompilationStatus::Success;
 		while( !order.empty() )
 		{
 			const UUID currentNodeID = order.top();
 			order.pop();
 
 			Ref<Node> currentNode = m_NodeEditor->FindNode( currentNodeID );
-			currentNode->EvaluateNode( this );
+
+			if( auto result = currentNode->EvaluateNode( this ); result != NodeEditorCompilationStatus::Success )
+			{
+				compileResult = NodeEditorCompilationStatus::Failed;
+				break;
+			}	
 		}
 
-		return NodeEditorCompilationStatus::Success;
+		return compileResult;
 	}
 
 	void SoundEditorEvaluator::DestroyAliveSounds()

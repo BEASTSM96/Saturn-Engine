@@ -68,8 +68,9 @@ namespace Saturn {
 		
 		void SetEditorState( const std::string& rState ) { m_ActiveNodeEditorState = rState; }
 
-		NodeEditorCompilationStatus ThrowError( const std::string& rMessage );
+		void ThrowError( const std::string& rMessage );
 		void ThrowWarning( const std::string& rMessage );
+		void PushInfoMessage( const std::string& rMessage );
 
 		void Reload();
 
@@ -84,6 +85,7 @@ namespace Saturn {
 		void Close();
 		void DeleteDeadLinks( UUID nodeID );
 		void DeleteLink( UUID id );
+		void CreateNewEditorIfNeeded();
 
 	private:
 		bool m_CreateNewNode = false;

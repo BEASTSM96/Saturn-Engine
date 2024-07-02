@@ -51,12 +51,12 @@ namespace Saturn {
 	{
 	}
 
-	void SoundOutputNode::EvaluateNode( NodeEditorRuntime* evaluator )
+	NodeEditorCompilationStatus SoundOutputNode::EvaluateNode( NodeEditorRuntime* evaluator )
 	{
 		SoundEditorEvaluator* pSoundEditorEvaluator = dynamic_cast<SoundEditorEvaluator*>( evaluator );
 		
 		if( !pSoundEditorEvaluator )
-			return;
+			return NodeEditorCompilationStatus::Failed;
 
 		std::stack<UUID>& soundStack = pSoundEditorEvaluator->SoundStack;
 
@@ -67,5 +67,7 @@ namespace Saturn {
 
 			pSoundEditorEvaluator->AliveSounds.push_back( AudioSystem::Get().RequestNewSound( soundAssetID, UUID() ) );
 		}
+
+		return NodeEditorCompilationStatus::Success;
 	}
 }

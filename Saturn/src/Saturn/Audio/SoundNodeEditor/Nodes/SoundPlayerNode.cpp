@@ -31,6 +31,11 @@
 
 #include "Saturn/ImGui/ImGuiAuxiliary.h"
 
+#if !defined(SAT_DIST)
+#include "Saturn/Audio/SoundNodeEditor/SoundEditorEvaluator.h"
+#include "Saturn/NodeEditor/UI/NodeEditor.h"
+#endif
+
 namespace Saturn {
 
 	SoundPlayerNode::SoundPlayerNode( const NodeSpecification& rSpec )
@@ -43,8 +48,25 @@ namespace Saturn {
 	{
 	}
 
-	void SoundPlayerNode::EvaluateNode( NodeEditorRuntime* evaluator )
+	NodeEditorCompilationStatus SoundPlayerNode::EvaluateNode( NodeEditorRuntime* evaluator )
 	{
+#if !defined(SAT_DIST)
+		if( SoundAssetID == 0 )
+		{
+			SoundEditorEvaluator* pSoundEvaluator = dynamic_cast<SoundEditorEvaluator*>( evaluator );
+
+			if( pSoundEvaluator )
+			{
+				auto uiEditor = pSoundEvaluator->GetTargetNodeEditor().As<NodeEditor>();
+
+				uiEditor->ThrowError( "No Asset was chosen in the sound player node!" );
+			}
+
+			return NodeEditorCompilationStatus::Failed;
+		}
+#endif
+
+		return NodeEditorCompilationStatus::Success;
 	}
 
 	void SoundPlayerNode::OnRenderOutput( Ref<Pin> pin )

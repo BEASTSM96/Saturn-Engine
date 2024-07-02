@@ -48,7 +48,7 @@ namespace Saturn {
 
 		virtual ~MaterialOutputNode();
 
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) override;
+		virtual NodeEditorCompilationStatus EvaluateNode( NodeEditorRuntime* evaluator ) override;
 
 	public:
 		RuntimeData RuntimeData;
@@ -65,7 +65,7 @@ namespace Saturn {
 
 		virtual ~MaterialSampler2DNode();
 
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) override;
+		virtual NodeEditorCompilationStatus EvaluateNode( NodeEditorRuntime* evaluator ) override;
 
 	public:
 		size_t TextureSlot = 0;
@@ -79,7 +79,7 @@ namespace Saturn {
 
 		virtual ~MaterialColorPickerNode();
 
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) override;
+		virtual NodeEditorCompilationStatus EvaluateNode( NodeEditorRuntime* evaluator ) override;
 
 	public:
 		size_t TextureSlot = 0;

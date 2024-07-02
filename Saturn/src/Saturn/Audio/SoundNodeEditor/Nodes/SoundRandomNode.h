@@ -40,7 +40,7 @@ namespace Saturn {
 
 		virtual ~SoundRandomNode();
 
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) override;
+		virtual NodeEditorCompilationStatus EvaluateNode( NodeEditorRuntime* evaluator ) override;
 
 	public:
 		UUID ChosenSoundID = 0;

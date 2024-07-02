@@ -40,6 +40,6 @@ namespace Saturn {
 
 		virtual ~SoundOutputNode();
 
-		virtual void EvaluateNode( NodeEditorRuntime* evaluator ) override;
+		virtual NodeEditorCompilationStatus EvaluateNode( NodeEditorRuntime* evaluator ) override;
 	};
 }

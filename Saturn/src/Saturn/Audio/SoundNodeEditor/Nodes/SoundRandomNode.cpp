@@ -29,7 +29,11 @@
 #include "sppch.h"
 #include "SoundRandomNode.h"
 
+#if !defined(SAT_DIST)
+#include "Saturn/NodeEditor/UI/NodeEditor.h"
+#else
 #include "Saturn/NodeEditor/NodeEditorBase.h"
+#endif
 
 #include "SoundPlayerNode.h"
 #include "Saturn/Audio/SoundNodeEditor/SoundEditorEvaluator.h"
@@ -48,16 +52,33 @@ namespace Saturn {
 	{
 	}
 
-	void SoundRandomNode::EvaluateNode( NodeEditorRuntime* evaluator )
+	NodeEditorCompilationStatus SoundRandomNode::EvaluateNode( NodeEditorRuntime* evaluator )
 	{
 		SoundEditorEvaluator* pSoundEditorEvaluator = dynamic_cast< SoundEditorEvaluator* >( evaluator );
 
 		if( !pSoundEditorEvaluator )
-			return;
+			return NodeEditorCompilationStatus::Failed;
 
 		std::map<UUID, UUID> PinToSoundMap;
 
 		auto ids = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNeighbors( this );
+
+#if !defined( SAT_DIST )
+		auto count = std::count_if( Inputs.begin(), Inputs.end(), 
+			[=](const auto& pin)
+			{
+				return pSoundEditorEvaluator->GetTargetNodeEditor()->IsLinked( pin->ID );
+			} );
+
+		if( count != Inputs.size() )
+		{
+			Ref<NodeEditor> uiEditor = pSoundEditorEvaluator->GetTargetNodeEditor().As<NodeEditor>();
+
+			uiEditor->ThrowError( "Not all pins are linked to the random node!" );
+
+			return NodeEditorCompilationStatus::Failed;
+		}
+#endif
 
 		uint32_t index = 0;
 		for( const auto& rID : ids )
@@ -80,5 +101,7 @@ namespace Saturn {
 		ChosenSoundID = PinToSoundMap[ pin ];
 
 		pSoundEditorEvaluator->SoundStack.push( ChosenSoundID );
+
+		return NodeEditorCompilationStatus::Success;
 	}
 }

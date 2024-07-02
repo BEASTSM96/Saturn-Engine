@@ -275,10 +275,8 @@ namespace Saturn {
 
 	Ref<Node> NodeEditorBase::FindNodeByPin( UUID id )
 	{
-		if( const auto& rPin = FindPin( id ); rPin != nullptr ) 
-		{
+		if( auto rPin = FindPin( id ) ) 
 			return rPin->Node;
-		}
 		
 		return nullptr;
 	}

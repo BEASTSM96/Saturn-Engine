@@ -186,6 +186,8 @@ namespace Saturn {
 		
 		auto texture = NodeEditorBase::GetBlueprintBackground();
 		m_Builder = util::BlueprintNodeBuilder( ( ImTextureID ) texture->GetDescriptorSet(), texture->Width(), texture->Height() );
+
+		m_OutputWindow.PushMessage( { .MessageText = "Initialised new editor!", .Type = NodeEditorMessageType::Info } );
 	}
 
 	void NodeEditor::Reload()
@@ -264,7 +266,25 @@ namespace Saturn {
 		{
 			m_OutputWindow.ClearOutput();
 
-			if( m_Runtime ) m_Runtime->EvaluateEditor();
+			if( m_Runtime )
+			{
+				NodeEditorCompilationStatus result = m_Runtime->EvaluateEditor();
+
+				switch( result )
+				{
+					case NodeEditorCompilationStatus::Success:
+					{
+						m_OutputWindow.PushMessage( { .MessageText = "Successfully compiled and evaluated node editor!", .Type = NodeEditorMessageType::Info } );
+					} break;
+
+					case NodeEditorCompilationStatus::Failed: 
+					{
+						m_OutputWindow.PushMessage( { .MessageText = "Failed to compile node editor.", .Type = NodeEditorMessageType::Error } );
+					} break;
+				}
+			}
+			else
+				m_OutputWindow.PushMessage( { .MessageText = "No active compiler was found!", .Type = NodeEditorMessageType::Error } );
 		}
 
 		if( ImGui::IsItemHovered() )
@@ -521,16 +541,19 @@ namespace Saturn {
 		ImGui::End(); // NODE_EDITOR
 	}
 
-	NodeEditorCompilationStatus NodeEditor::ThrowError( const std::string & rMessage )
+	void NodeEditor::ThrowError( const std::string & rMessage )
 	{
 		m_OutputWindow.PushMessage( { .MessageText = rMessage, .Type = NodeEditorMessageType::Error } );
-
-		return NodeEditorCompilationStatus::Failed;
 	}
 
 	void NodeEditor::ThrowWarning( const std::string& rMessage )
 	{
 		m_OutputWindow.PushMessage( { .MessageText = rMessage, .Type = NodeEditorMessageType::Warning } );
+	}
+
+	void NodeEditor::PushInfoMessage( const std::string& rMessage )
+	{
+		m_OutputWindow.PushMessage( { .MessageText = rMessage, .Type = NodeEditorMessageType::Info } );
 	}
 
 	void NodeEditor::DeleteDeadLinks( UUID nodeID )
@@ -558,6 +581,12 @@ namespace Saturn {
 		{
 			m_Links.erase( Itr );
 		}
+	}
+
+	void NodeEditor::CreateNewEditorIfNeeded()
+	{
+		if( !m_Editor )
+			CreateEditor();
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -596,7 +625,7 @@ namespace Saturn {
 
 		m_Name = RawSerialisation::ReadString( rStream );
 
-		CreateEditor();
+		CreateNewEditorIfNeeded();
 
 		size_t mapSize = 0;
 		RawSerialisation::ReadObject( mapSize, rStream );
