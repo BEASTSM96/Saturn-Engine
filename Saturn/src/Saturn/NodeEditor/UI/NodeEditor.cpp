@@ -186,6 +186,8 @@ namespace Saturn {
 		
 		auto texture = NodeEditorBase::GetBlueprintBackground();
 		m_Builder = util::BlueprintNodeBuilder( ( ImTextureID ) texture->GetDescriptorSet(), texture->Width(), texture->Height() );
+
+		m_OutputWindow.PushMessage( { .MessageText = "Created!", .Type = NodeEditorMessageType::Info } );
 	}
 
 	void NodeEditor::Reload()
@@ -201,6 +203,8 @@ namespace Saturn {
 
 	void NodeEditor::Close()
 	{
+		m_OutputWindow.ClearOutput();
+
 		ed::DestroyEditor( m_Editor );
 		ed::SetCurrentEditor( nullptr );
 		m_Editor = nullptr;
@@ -233,6 +237,7 @@ namespace Saturn {
 		if( !m_WindowOpen ) 
 			return;
 
+		// Draw main window
 		ImGui::Begin( m_Name.c_str(), &m_WindowOpen );
 
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
@@ -259,6 +264,8 @@ namespace Saturn {
 
 		if( Auxiliary::ImageButton( m_CompileTexture, { 24, 24 } ) )
 		{
+			m_OutputWindow.ClearOutput();
+
 			if( m_Runtime ) m_Runtime->EvaluateEditor();
 		}
 
@@ -278,6 +285,7 @@ namespace Saturn {
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
 
+		// Hand off to imgui_node_editor and draw the actual node editor and nodes
 		ed::Begin( "Node Editor", ImGui::GetContentRegionAvail() );
 
 		auto cursorTopLeft = ImGui::GetCursorScreenPos();
@@ -510,19 +518,21 @@ namespace Saturn {
 
 		ed::End();
 
+		m_OutputWindow.Draw();
+
 		ImGui::End(); // NODE_EDITOR
 	}
 
 	NodeEditorCompilationStatus NodeEditor::ThrowError( const std::string & rMessage )
 	{
-		SAT_CORE_ERROR( rMessage );
+		m_OutputWindow.PushMessage( { .MessageText = rMessage, .Type = NodeEditorMessageType::Error } );
 
 		return NodeEditorCompilationStatus::Failed;
 	}
 
 	void NodeEditor::ThrowWarning( const std::string& rMessage )
 	{
-		SAT_CORE_WARN( rMessage );
+		m_OutputWindow.PushMessage( { .MessageText = rMessage, .Type = NodeEditorMessageType::Warning } );
 	}
 
 	void NodeEditor::DeleteDeadLinks( UUID nodeID )

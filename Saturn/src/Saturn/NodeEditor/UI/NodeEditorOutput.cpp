@@ -26,85 +26,120 @@
 *********************************************************************************************
 */
 
-#pragma once
-
-#include "Saturn/NodeEditor/NodeEditorBase.h"
-#include "Saturn/NodeEditor/NodeEditorCompilationStatus.h"
-
+#include "sppch.h"
 #include "NodeEditorOutput.h"
 
-#include "builders.h"
+#include "Saturn/ImGui/ImGuiAuxiliary.h"
+#include "Saturn/ImGui/EditorIcons.h"
+
+#include <imgui.h>
+#include <imgui_internal.h>
 
 namespace Saturn {
 
-	class NodeEditor : public NodeEditorBase
+	NodeEditorOutput::NodeEditorOutput()
 	{
-	public:
-		NodeEditor();
-		NodeEditor( AssetID ID );
-		~NodeEditor();
+	}
 
-		bool CanCreateLink( const Ref<Pin>& a, const Ref<Pin>& b );	
+	NodeEditorOutput::~NodeEditorOutput()
+	{
+		ClearOutput();
+	}
 
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override {}
-		virtual void OnEvent( RubyEvent& rEvent ) override {}
+	void NodeEditorOutput::Draw()
+	{
+		ImGui::Begin( "Node Editor Output" );
 
-		void Open( bool open ) { m_WindowOpen = open; }
-
-		// Happens when the user clicks on the empty space.
-		void SetCreateNewNodeFunction( std::function<Ref<Node>()>&& rrCreateNewNodeFunction )
+		if( ImGui::BeginChild( "MessageRegion", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar ) ) 
 		{
-			m_CreateNewNodeFunction = std::move( rrCreateNewNodeFunction );
+			for( const auto& rMessage : m_Messages )
+			{
+				DrawMessage( rMessage );
+			}
+
+			if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
+			{
+				m_SelectedMessageID = 0;
+			}
 		}
 
-		void SetTopBarFunction( std::function<void()>&& rrTopbarItemsFunction )
+		ImGui::EndChild();
+		ImGui::End();
+	}
+
+	void NodeEditorOutput::ClearOutput()
+	{
+		m_Messages.clear();
+	}
+
+	void NodeEditorOutput::PushMessage( const NodeEditorMessage& rMessageData )
+	{
+		m_Messages.push_back( rMessageData );
+	}
+
+	void NodeEditorOutput::DrawMessage( const NodeEditorMessage& rMessage )
+	{
+		ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+
+		float width = ImGui::GetContentRegionAvail().x;
+		float height = ImGui::GetTextLineHeightWithSpacing();
+
+		ImVec2 size( width, height );
+
+		ImGui::BeginHorizontal( rMessage.ID );
+
+		ImGui::Spring();
+
+		switch( rMessage.Type )
 		{
-			m_TopbarItemsFunction = std::move( rrTopbarItemsFunction );
+			case NodeEditorMessageType::Error:
+				Auxiliary::Image( EditorIcons::GetIcon( "Error_Small" ), { height, height } );
+				break;
+
+			case NodeEditorMessageType::Info:
+				Auxiliary::Image( EditorIcons::GetIcon( "Information_Small" ), { height, height } );
+				break;
+
+			case NodeEditorMessageType::Warning:
+				Auxiliary::Image( EditorIcons::GetIcon( "Exclamation_Small" ), { height, height } );
+				break;
 		}
 
-		std::string& GetEditorState() { return m_ActiveNodeEditorState; }
-		const std::string& GetEditorState() const { return m_ActiveNodeEditorState; }
+		ImGui::Spring();
+
+		if( ImGui::Selectable( rMessage.MessageText.c_str(), rMessage.ID == m_SelectedMessageID, 0, size ) )
+		{
+			m_SelectedMessageID = rMessage.ID;
+		}
+
+		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
+
+		ImGui::Spring();
 		
-		void SetEditorState( const std::string& rState ) { m_ActiveNodeEditorState = rState; }
+		if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Bin" ), { height, height } ) )
+		{
+			ClearMessage( rMessage.ID );
+		}
 
-		NodeEditorCompilationStatus ThrowError( const std::string& rMessage );
-		void ThrowWarning( const std::string& rMessage );
+		ImGui::PopStyleColor();
 
-		void Reload();
+		ImGui::EndHorizontal();
 
-		void SetWindowName( const std::string& rName ) { m_Name = rName; }
+		ImGui::Separator();
+	}
 
-	private:
-		virtual void SerialiseData( std::ofstream& rStream ) override;
-		virtual void DeserialiseData( std::ifstream& rStream ) override;
+	void NodeEditorOutput::ClearMessage( UUID messageID )
+	{
+		const auto Itr = std::find_if( m_Messages.begin(), m_Messages.end(), 
+			[messageID]( const auto& rMessage )
+			{
+				return rMessage.ID == messageID;
+			} );
 
-	private:
-		void CreateEditor();
-		void Close();
-		void DeleteDeadLinks( UUID nodeID );
-		void DeleteLink( UUID id );
+		if( Itr != m_Messages.end() ) 
+		{
+			m_Messages.erase( Itr );
+		}
+	}
 
-	private:
-		bool m_CreateNewNode = false;
-
-		Ref<Pin> m_NewLinkPin = nullptr;
-		Ref<Pin> m_NewNodeLinkPin = nullptr;
-
-		std::function<Ref<Node>()> m_CreateNewNodeFunction;
-		std::function<void()> m_TopbarItemsFunction;
-
-		ImVec2 m_ViewportSize;
-
-		Ref<Texture2D> m_ZoomTexture;
-		Ref<Texture2D> m_CompileTexture;
-
-		util::BlueprintNodeBuilder m_Builder;
-
-		NodeEditorOutput m_OutputWindow;
-
-	private:
-		friend class NodeEditorCache;
-		friend class NodeCacheSettings;
-	};
 }

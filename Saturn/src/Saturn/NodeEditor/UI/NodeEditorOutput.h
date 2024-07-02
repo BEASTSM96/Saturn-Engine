@@ -28,83 +28,44 @@
 
 #pragma once
 
-#include "Saturn/NodeEditor/NodeEditorBase.h"
-#include "Saturn/NodeEditor/NodeEditorCompilationStatus.h"
+#include "Saturn/Core/UUID.h"
 
-#include "NodeEditorOutput.h"
-
-#include "builders.h"
+#include <string>
+#include <vector>
 
 namespace Saturn {
 
-	class NodeEditor : public NodeEditorBase
+	enum class NodeEditorMessageType 
+	{
+		Info,
+		Warning,
+		Error
+	};
+
+	struct NodeEditorMessage
+	{
+		std::string MessageText;
+		NodeEditorMessageType Type;
+		UUID ID;
+	};
+
+	class NodeEditorOutput
 	{
 	public:
-		NodeEditor();
-		NodeEditor( AssetID ID );
-		~NodeEditor();
+		NodeEditorOutput();
+		~NodeEditorOutput();
 
-		bool CanCreateLink( const Ref<Pin>& a, const Ref<Pin>& b );	
-
-		virtual void OnImGuiRender() override;
-		virtual void OnUpdate( Timestep ts ) override {}
-		virtual void OnEvent( RubyEvent& rEvent ) override {}
-
-		void Open( bool open ) { m_WindowOpen = open; }
-
-		// Happens when the user clicks on the empty space.
-		void SetCreateNewNodeFunction( std::function<Ref<Node>()>&& rrCreateNewNodeFunction )
-		{
-			m_CreateNewNodeFunction = std::move( rrCreateNewNodeFunction );
-		}
-
-		void SetTopBarFunction( std::function<void()>&& rrTopbarItemsFunction )
-		{
-			m_TopbarItemsFunction = std::move( rrTopbarItemsFunction );
-		}
-
-		std::string& GetEditorState() { return m_ActiveNodeEditorState; }
-		const std::string& GetEditorState() const { return m_ActiveNodeEditorState; }
-		
-		void SetEditorState( const std::string& rState ) { m_ActiveNodeEditorState = rState; }
-
-		NodeEditorCompilationStatus ThrowError( const std::string& rMessage );
-		void ThrowWarning( const std::string& rMessage );
-
-		void Reload();
-
-		void SetWindowName( const std::string& rName ) { m_Name = rName; }
+		void Draw();
+		void ClearOutput();
+		void PushMessage( const NodeEditorMessage& rMessageData );
 
 	private:
-		virtual void SerialiseData( std::ofstream& rStream ) override;
-		virtual void DeserialiseData( std::ifstream& rStream ) override;
+		void DrawMessage( const NodeEditorMessage& rMessage );
+		void ClearMessage( UUID messageID );
 
 	private:
-		void CreateEditor();
-		void Close();
-		void DeleteDeadLinks( UUID nodeID );
-		void DeleteLink( UUID id );
+		UUID m_SelectedMessageID = 0;
 
-	private:
-		bool m_CreateNewNode = false;
-
-		Ref<Pin> m_NewLinkPin = nullptr;
-		Ref<Pin> m_NewNodeLinkPin = nullptr;
-
-		std::function<Ref<Node>()> m_CreateNewNodeFunction;
-		std::function<void()> m_TopbarItemsFunction;
-
-		ImVec2 m_ViewportSize;
-
-		Ref<Texture2D> m_ZoomTexture;
-		Ref<Texture2D> m_CompileTexture;
-
-		util::BlueprintNodeBuilder m_Builder;
-
-		NodeEditorOutput m_OutputWindow;
-
-	private:
-		friend class NodeEditorCache;
-		friend class NodeCacheSettings;
+		std::vector<NodeEditorMessage> m_Messages;
 	};
 }
