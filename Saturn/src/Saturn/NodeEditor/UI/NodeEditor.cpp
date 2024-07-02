@@ -186,8 +186,6 @@ namespace Saturn {
 		
 		auto texture = NodeEditorBase::GetBlueprintBackground();
 		m_Builder = util::BlueprintNodeBuilder( ( ImTextureID ) texture->GetDescriptorSet(), texture->Width(), texture->Height() );
-
-		m_OutputWindow.PushMessage( { .MessageText = "Created!", .Type = NodeEditorMessageType::Info } );
 	}
 
 	void NodeEditor::Reload()

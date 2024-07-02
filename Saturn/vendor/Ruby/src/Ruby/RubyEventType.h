@@ -29,7 +29,6 @@
 #pragma once
 
 #include "RubyCore.h"
-
 #include <stdint.h>
 
 enum class RubyEventType

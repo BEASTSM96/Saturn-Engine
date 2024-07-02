@@ -79,8 +79,6 @@ namespace Saturn {
 
 	void NodeEditorOutput::DrawMessage( const NodeEditorMessage& rMessage )
 	{
-		ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-
 		float width = ImGui::GetContentRegionAvail().x;
 		float height = ImGui::GetTextLineHeightWithSpacing();
 
