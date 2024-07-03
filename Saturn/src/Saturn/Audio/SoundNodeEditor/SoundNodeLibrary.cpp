@@ -32,6 +32,7 @@
 #include "Nodes/SoundOutputNode.h"
 #include "Nodes/SoundPlayerNode.h"
 #include "Nodes/SoundRandomNode.h" 
+#include "Nodes/SoundMixerNode.h" 
 
 namespace Saturn {
 
@@ -53,6 +54,29 @@ namespace Saturn {
 		nodeSpec.Outputs.push_back( pinSpec );
 
 		Ref<SoundRandomNode> node = Ref<SoundRandomNode>::Create( nodeSpec );
+		nodeEditor->AddNode( node );
+
+		return node;
+	}
+
+	Ref<SoundMixerNode> SoundNodeLibrary::SpawnMixerNode( Ref<NodeEditorBase> nodeEditor )
+	{
+		NodeSpecification nodeSpec;
+		nodeSpec.Color = ImColor( 173, 18, 128 );
+		nodeSpec.Name = "Mixer";
+
+		PinSpecification pinSpec;
+		pinSpec.Name = "Sound 1";
+		pinSpec.Type = PinType::Sound;
+
+		nodeSpec.Inputs.push_back( pinSpec );
+		pinSpec.Name = "Sound 2";
+		nodeSpec.Inputs.push_back( pinSpec );
+
+		pinSpec.Name = "Out Sound";
+		nodeSpec.Outputs.push_back( pinSpec );
+
+		Ref<SoundMixerNode> node = Ref<SoundMixerNode>::Create( nodeSpec );
 		nodeEditor->AddNode( node );
 
 		return node;

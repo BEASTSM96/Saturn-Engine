@@ -141,7 +141,6 @@ namespace Saturn {
 			else
 			{
 				memcpy( pData, State.data(), State.size() );
-				SAT_CORE_INFO( "Assigned Node editor data is: {0}", State );
 			}
 
 			return 0;
@@ -243,7 +242,7 @@ namespace Saturn {
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
 			m_ViewportSize = ImGui::GetContentRegionAvail();
 
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar ;
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar;
 
 		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 
@@ -307,9 +306,6 @@ namespace Saturn {
 		ed::Begin( "Node Editor", ImGui::GetContentRegionAvail() );
 
 		auto cursorTopLeft = ImGui::GetCursorScreenPos();
-
-		bool OpenAssetPopup = false;
-		bool OpenAssetColorPicker = false;
 
 		for( auto& [id, rNode] : m_Nodes )
 		{

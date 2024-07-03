@@ -88,6 +88,8 @@ namespace Saturn {
 
 		Ref<GraphSound> PlayGraphSound( AssetID ID, UUID UniquePlayerID );
 
+		void RequestNewSounds( std::vector<AssetID> Ids, std::vector<UUID> PlayerIds, std::function<void(Ref<Sound>)>&& rVistor );
+
 		void ReportSoundCompleted( UUID UniquePlayerID );
 
 		void Suspend();

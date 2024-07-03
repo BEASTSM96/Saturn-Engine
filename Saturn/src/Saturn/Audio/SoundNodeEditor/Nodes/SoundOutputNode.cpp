@@ -35,6 +35,8 @@
 #include "Saturn/Audio/AudioSystem.h"
 #include "Saturn/Audio/Sound.h"
 
+#include <unordered_map>
+
 namespace Saturn {
 
 	SoundOutputNode::SoundOutputNode( const NodeSpecification& rSpec )
@@ -59,14 +61,24 @@ namespace Saturn {
 			return NodeEditorCompilationStatus::Failed;
 
 		std::stack<UUID>& soundStack = pSoundEditorEvaluator->SoundStack;
+		
+		std::vector<UUID> soundVector;
+		std::vector<UUID> playerID;
 
 		while( !soundStack.empty() )
 		{
 			const UUID soundAssetID = soundStack.top();
 			soundStack.pop();
 
-			pSoundEditorEvaluator->AliveSounds.push_back( AudioSystem::Get().RequestNewSound( soundAssetID, UUID() ) );
+			soundVector.push_back( soundAssetID );
+			playerID.push_back( UUID() );
 		}
+
+		AudioSystem::Get().RequestNewSounds( soundVector, playerID, 
+			[=]( Ref<Sound> sound ) 
+			{
+				pSoundEditorEvaluator->AliveSounds.push_back( sound );
+			} );
 
 		return NodeEditorCompilationStatus::Success;
 	}

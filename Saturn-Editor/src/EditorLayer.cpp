@@ -920,7 +920,8 @@ namespace Saturn {
 
 	void EditorLayer::DrawAssetRegistryDebug()
 	{
-		if( ImGui::Begin( "Asset Manager", &m_OpenAssetRegistryDebug ) )
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+		if( ImGui::Begin( "Asset Manager", &m_OpenAssetRegistryDebug, flags ) )
 		{
 			static ImGuiTextFilter Filter;
 
@@ -1383,12 +1384,12 @@ namespace Saturn {
 
 		if( ImGui::BeginMenu( "Settings" ) )
 		{
-			if( ImGui::MenuItem( "Project settings", "" ) ) m_ShowUserSettings ^= 1;
-			if( ImGui::MenuItem( "Asset Registry Debug", "" ) ) m_OpenAssetRegistryDebug ^= 1;
-			if( ImGui::MenuItem( "Loaded asset debug", "" ) ) m_OpenLoadedAssetDebug ^= 1;
-			if( ImGui::MenuItem( "Editor Settings", "" ) ) m_OpenEditorSettings ^= 1;
-			if( ImGui::MenuItem( "Show demo window", "" ) ) m_ShowImGuiDemoWindow ^= 1;
-			if( ImGui::MenuItem( "Virtual File system debug", "" ) ) m_ShowVFSDebug ^= 1;
+			if( ImGui::MenuItem( "Project settings", "" ) )          m_ShowUserSettings       ^= 1;
+			if( ImGui::MenuItem( "Asset Registry Debug", "" ) )      m_OpenAssetRegistryDebug ^= 1;
+			if( ImGui::MenuItem( "Loaded asset debug", "" ) )        m_OpenLoadedAssetDebug   ^= 1;
+			if( ImGui::MenuItem( "Editor Settings", "" ) )           m_OpenEditorSettings     ^= 1;
+			if( ImGui::MenuItem( "Show demo window", "" ) )          m_ShowImGuiDemoWindow    ^= 1;
+			if( ImGui::MenuItem( "Virtual File system debug", "" ) ) m_ShowVFSDebug           ^= 1;
 
 			ImGui::EndMenu();
 		}
@@ -1494,7 +1495,7 @@ namespace Saturn {
 			TransformComponent worldSpace = GActiveScene->GetWorldSpaceTransform( rEntity );
 			Positions += worldSpace.Position;
 			Rotations += worldSpace.GetRotation();
-			Scales += worldSpace.Scale;
+			Scales += worldSpace.Scale; 
 		}
 
 		Positions /= selectedEntities.size();

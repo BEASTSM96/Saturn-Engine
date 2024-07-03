@@ -26,90 +26,19 @@
 *********************************************************************************************
 */
 
-#include "sppch.h"
-#include "SoundRandomNode.h"
+#pragma once
 
-#if !defined(SAT_DIST)
-#include "Saturn/NodeEditor/UI/NodeEditor.h"
-#else
-#include "Saturn/NodeEditor/NodeEditorBase.h"
-#endif
-
-#include "SoundPlayerNode.h"
-#include "Saturn/Audio/SoundNodeEditor/SoundEditorEvaluator.h"
-
-#include "Saturn/Core/Random.h"
+#include "Saturn/NodeEditor/Node.h"
 
 namespace Saturn {
 
-	SoundRandomNode::SoundRandomNode( const NodeSpecification& rSpec )
-		: Node( rSpec )
+	class SoundMixerNode : public Node
 	{
-		ExecutionType = NodeExecutionType::RandomSound;
-	}
+	public:
+		SoundMixerNode() = default;
+		SoundMixerNode( const NodeSpecification& rSpec );
+		virtual ~SoundMixerNode();
 
-	SoundRandomNode::~SoundRandomNode()
-	{
-	}
-
-	NodeEditorCompilationStatus SoundRandomNode::EvaluateNode( NodeEditorRuntime* evaluator )
-	{
-		SoundEditorEvaluator* pSoundEditorEvaluator = dynamic_cast< SoundEditorEvaluator* >( evaluator );
-
-		if( !pSoundEditorEvaluator )
-			return NodeEditorCompilationStatus::Failed;
-
-		std::map<UUID, UUID> PinToSoundMap;
-
-		auto ids = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNeighbors( this );
-
-#if !defined( SAT_DIST )
-		auto count = std::count_if( Inputs.begin(), Inputs.end(), 
-			[=](const auto& pin)
-			{
-				return pSoundEditorEvaluator->GetTargetNodeEditor()->IsLinked( pin->ID );
-			} );
-
-		if( count != Inputs.size() )
-		{
-			Ref<NodeEditor> uiEditor = pSoundEditorEvaluator->GetTargetNodeEditor().As<NodeEditor>();
-
-			uiEditor->ThrowError( "Not all pins are linked to the random node!" );
-
-			return NodeEditorCompilationStatus::Failed;
-		}
-#endif
-
-		uint32_t index = 0;
-		for( const auto& rID : ids )
-		{
-			Ref<Node> neighorNode = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNode( rID );
-			if( !neighorNode )
-				continue;
-
-			switch( neighorNode->ExecutionType )
-			{
-				case NodeExecutionType::SoundPlayer:
-				{
-					Ref<SoundPlayerNode> playerNode = neighorNode.As<SoundPlayerNode>();
-					PinToSoundMap[ index ] = playerNode->SoundAssetID;
-				} break;
-
-				case NodeExecutionType::RandomSound:
-				{
-					Ref<SoundRandomNode> randomNode = neighorNode.As<SoundRandomNode>();
-					PinToSoundMap[ index ] = randomNode->ChosenSoundID;
-				} break;
-			}
-
-			index++;
-		}
-
-		size_t pin = Random::RandomElementInRange( 0, Inputs.size() - 1 );
-		ChosenSoundID = PinToSoundMap[ pin ];
-
-		pSoundEditorEvaluator->SoundStack.push( ChosenSoundID );
-
-		return NodeEditorCompilationStatus::Success;
-	}
+		virtual NodeEditorCompilationStatus EvaluateNode( NodeEditorRuntime* evaluator ) override;
+	};
 }

@@ -27,119 +27,82 @@
 */
 
 #include "sppch.h"
-#include "NodeEditorOutput.h"
+#include "SoundMixerNode.h"
 
-#include "Saturn/ImGui/ImGuiAuxiliary.h"
-#include "Saturn/ImGui/EditorIcons.h"
+#if !defined(SAT_DIST)
+#include "Saturn/NodeEditor/UI/NodeEditor.h"
+#else
+#include "Saturn/NodeEditor/NodeEditorBase.h"
+#endif
 
-#include <imgui.h>
-#include <imgui_internal.h>
+#include "SoundPlayerNode.h"
+#include "SoundRandomNode.h"
+
+#include "Saturn/Audio/SoundNodeEditor/SoundEditorEvaluator.h"
 
 namespace Saturn {
 
-	NodeEditorOutput::NodeEditorOutput()
+	SoundMixerNode::SoundMixerNode( const NodeSpecification& rSpec )
+		: Node( rSpec )
+	{
+		ExecutionType = NodeExecutionType::SoundMixer;
+	}
+
+	SoundMixerNode::~SoundMixerNode()
 	{
 	}
 
-	NodeEditorOutput::~NodeEditorOutput()
+	NodeEditorCompilationStatus SoundMixerNode::EvaluateNode( NodeEditorRuntime* evaluator )
 	{
-		ClearOutput();
-	}
+		SoundEditorEvaluator* pSoundEditorEvaluator = dynamic_cast< SoundEditorEvaluator* >( evaluator );
 
-	void NodeEditorOutput::Draw()
-	{
-		ImGui::Begin( "Node Editor Output" );
+		if( !pSoundEditorEvaluator )
+			return NodeEditorCompilationStatus::Failed;
 
-		ImGui::BeginVertical( "##MessageRegionVert" );
+		std::map<UUID, UUID> PinToSoundMap;
 
-		if( ImGui::BeginChild( "MessageRegion", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar ) ) 
+		uint32_t index = 0;
+
+		auto ids = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNeighbors( this );
+		for( const auto& rID : ids )
 		{
-			for( const auto& rMessage : m_Messages )
+			Ref<Node> neighorNode = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNode( rID );
+			if( !neighorNode )
+				continue;
+
+			switch( neighorNode->ExecutionType )
 			{
-				DrawMessage( rMessage );
+				case NodeExecutionType::SoundPlayer:
+				{
+					Ref<SoundPlayerNode> playerNode = neighorNode.As<SoundPlayerNode>();
+					PinToSoundMap[ index ] =  playerNode->SoundAssetID;
+				} break;
+
+				case NodeExecutionType::RandomSound:
+				{
+					Ref<SoundRandomNode> randomNode = neighorNode.As<SoundRandomNode>();
+					PinToSoundMap[ index ] = randomNode->ChosenSoundID;
+				} break;
+
+				// TODO:
+				/*
+				case NodeExecutionType::SoundMixer:
+				{
+					Ref<SoundPlayerNode> playerNode = neighorNode.As<SoundPlayerNode>();
+					PinToSoundMap[ index ] = playerNode->SoundAssetID;
+				} break;
+				*/
 			}
 
-			if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
-			{
-				m_SelectedMessageID = 0;
-			}
+			index++;
 		}
 
-		ImGui::EndChild();
-		ImGui::EndVertical();
-		ImGui::End();
-	}
-
-	void NodeEditorOutput::ClearOutput()
-	{
-		m_Messages.clear();
-	}
-
-	void NodeEditorOutput::PushMessage( const NodeEditorMessage& rMessageData )
-	{
-		m_Messages.push_back( rMessageData );
-	}
-
-	void NodeEditorOutput::DrawMessage( const NodeEditorMessage& rMessage )
-	{
-		float height = ImGui::GetTextLineHeightWithSpacing();
-
-		ImGui::BeginHorizontal( rMessage.ID );
-
-		ImGui::Spring( 1.0f, 1.0f );
-
-		switch( rMessage.Type )
+		for( const auto& [ index, assetID ] : PinToSoundMap )
 		{
-			case NodeEditorMessageType::Error:
-				Auxiliary::Image( EditorIcons::GetIcon( "Error_Small" ), { height, height } );
-				break;
-
-			case NodeEditorMessageType::Info:
-				Auxiliary::Image( EditorIcons::GetIcon( "Information_Small" ), { height, height } );
-				break;
-
-			case NodeEditorMessageType::Warning:
-				Auxiliary::Image( EditorIcons::GetIcon( "Exclamation_Small" ), { height, height } );
-				break;
+			pSoundEditorEvaluator->SoundStack.push( assetID );
 		}
 
-		ImGui::Spring();
-
-		float width = ImGui::GetContentRegionAvail().x;
-		// Leave space for the bin icon
-		ImVec2 size( width - ( height * 2 ), height );
-
-		if( ImGui::Selectable( rMessage.MessageText.c_str(), rMessage.ID == m_SelectedMessageID, 0, size ) )
-		{
-			m_SelectedMessageID = rMessage.ID;
-		}
-
-		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
-
-		if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Bin" ), { height, height } ) )
-		{
-			ClearMessage( rMessage.ID );
-		}
-
-		ImGui::PopStyleColor();
-
-		ImGui::EndHorizontal();
-
-		ImGui::Separator();
-	}
-
-	void NodeEditorOutput::ClearMessage( UUID messageID )
-	{
-		const auto Itr = std::find_if( m_Messages.begin(), m_Messages.end(), 
-			[messageID]( const auto& rMessage )
-			{
-				return rMessage.ID == messageID;
-			} );
-
-		if( Itr != m_Messages.end() ) 
-		{
-			m_Messages.erase( Itr );
-		}
+		return NodeEditorCompilationStatus::Success;
 	}
 
 }

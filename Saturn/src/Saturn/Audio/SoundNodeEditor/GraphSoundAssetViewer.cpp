@@ -36,6 +36,7 @@
 #include "Nodes/SoundRandomNode.h" 
 #include "Nodes/SoundOutputNode.h" 
 #include "Nodes/SoundPlayerNode.h"
+#include "Nodes/SoundMixerNode.h"
 
 #include "SoundNodeLibrary.h"
 
@@ -143,6 +144,9 @@ namespace Saturn {
 
 				if( ImGui::MenuItem( "Random" ) )
 					result = SoundNodeLibrary::SpawnRandomNode( m_NodeEditor );
+
+				if( ImGui::MenuItem( "Mixer" ) )
+					result = SoundNodeLibrary::SpawnMixerNode( m_NodeEditor );
 
 				return result;
 			} );

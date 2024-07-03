@@ -338,6 +338,26 @@ namespace Saturn {
 		return snd;
 	}
 
+	void AudioSystem::RequestNewSounds( std::vector<AssetID> Ids, std::vector<UUID> PlayerIds, std::function<void(Ref<Sound>)>&& rVistor )
+	{
+		// Copy vectors because they might be destroyed by the time the audio thread gets the this function.
+		auto loadFunc = [copyIds = Ids, copyPlayerIds = PlayerIds, rVistor, this]()
+			{
+				size_t soundIndex = 0;
+				for( const AssetID& rAssetID : copyIds )
+				{
+					Ref<Sound> snd = RequestNewSound( rAssetID, copyPlayerIds[soundIndex] );
+
+					if( rVistor )
+						rVistor( snd );
+
+					soundIndex++;
+				}
+			};
+
+		m_AudioThread->IsCurrentThread() ? loadFunc() : m_AudioThread->Queue( loadFunc );
+	}
+
 	void AudioSystem::ReportSoundCompleted( UUID UniquePlayerID )
 	{
 #if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
@@ -348,6 +368,7 @@ namespace Saturn {
 			if( PreviewItr != identifierMap.end() )
 			{
 				auto& rSnd = ( PreviewItr )->second;
+
 				rSnd->Stop();
 				rSnd->Reset();
 				rSnd->Unload();

@@ -67,6 +67,7 @@ namespace Saturn {
 		SoundOutput,
 		SoundPlayer,
 		RandomSound,
+		SoundMixer,
 		None
 	};
 
