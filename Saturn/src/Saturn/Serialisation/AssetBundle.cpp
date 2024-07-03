@@ -41,6 +41,7 @@
 #include "Saturn/Asset/TextureSourceAsset.h"
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Asset/MaterialAsset.h"
+#include "Saturn/Audio/SoundSpecification.h"
 
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
 
@@ -334,10 +335,22 @@ namespace Saturn {
 				}
 			} break;
 
+			case Saturn::AssetType::Sound:
+			{
+				Ref<SoundSpecification> sndSpec = rAssetManager.GetAssetAs<SoundSpecification>( AssetBundleRegistry, id );
+
+				if( sndSpec )
+				{
+					RawSoundSpecAssetSerialiser serialiser;
+					serialiser.DumpAndWriteToVFS( rAsset );
+				}
+			} break;
+
+			// TODO: GraphSound
+			case Saturn::AssetType::GraphSound: 
 			case Saturn::AssetType::Scene:
 			case Saturn::AssetType::SkeletalMesh:
 			case Saturn::AssetType::MaterialInstance:
-			case Saturn::AssetType::Sound:
 			case Saturn::AssetType::Script:
 			case Saturn::AssetType::MeshCollider:
 			case Saturn::AssetType::Unknown:
@@ -373,7 +386,8 @@ namespace Saturn {
 			SAT_DECODE_VER_STRING( header.Version, decodedAssetBundleVer );
 			
 			SAT_CORE_ERROR( "Asset bundle version mismatch! This should not happen. Asset bundle version is: {0} while current Engine version is: {1}.", decodedAssetBundleVer, SAT_CURRENT_VERSION_STRING );
-			SAT_CORE_WARN( "The engine will continue to load however this may result in the asset bundle not loading! Please rebuild the asset bundle!");
+		
+			return AssetBundleResult::FileVersionMismatch;
 		}
 
 		AssetManager& rAssetManager = AssetManager::Get();

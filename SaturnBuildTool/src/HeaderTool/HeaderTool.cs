@@ -287,6 +287,11 @@ namespace SaturnBuildTool.Tools
                         {
                             cmd.CurrentFile.SClassInfo |= SC.VisibleInEditor;
                         }
+
+                        if (line.Contains("NoMetadata"))
+                        {
+                            cmd.CurrentFile.SClassInfo |= SC.NoMetadata;
+                        }
                     }
 
                     if (line.Contains("class") && cmd.CurrentFile.ClassName == null && LineIsNotComment(line) && ClassIsNotFwd(line))
@@ -392,13 +397,13 @@ namespace SaturnBuildTool.Tools
             {
                 cmd.GeneratedSource.AppendLine(GenWarning);
 
-                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", string.Format( "{0}.Gen.h", cmd.CurrentFile.ClassName ) ));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", string.Format("{0}.Gen.h", cmd.CurrentFile.ClassName)));
 
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/GameScript.h"));
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/ClassMetadataHandler.h"));
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/Scene/Entity.h"));
 
-                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"\r\n", string.Format( "{0}.h", cmd.CurrentFile.ClassName )));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"\r\n", string.Format("{0}.h", cmd.CurrentFile.ClassName)));
 
                 string cExternBeg = "extern \"C\" {\r\n";
                 string cExternEnd = "}\r\n";
@@ -408,9 +413,9 @@ namespace SaturnBuildTool.Tools
                 // Check if this class is spawnable
                 if ((cmd.CurrentFile.SClassInfo & SC.Spawnable) == SC.Spawnable)
                 {
-                    string function = string.Format( "__declspec(dllexport) Saturn::Entity* _Z_Create_{0}(Saturn::Scene* pScene)", cmd.CurrentFile.ClassName );
+                    string function = string.Format("__declspec(dllexport) Saturn::Entity* _Z_Create_{0}(Saturn::Scene* pScene)", cmd.CurrentFile.ClassName);
                     function += "\r\n{\r\n";
-                    function += string.Format("\tSaturn::Ref<{0}> Target = Saturn::Ref<{0}>::Create();\r\n", cmd.CurrentFile.ClassName );
+                    function += string.Format("\tSaturn::Ref<{0}> Target = Saturn::Ref<{0}>::Create();\r\n", cmd.CurrentFile.ClassName);
                     function += "\tSaturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();\r\n";
                     function += "\treturn TargetReturn.Get();\r\n";
                     function += "}\r\n";
@@ -419,7 +424,7 @@ namespace SaturnBuildTool.Tools
 
                     cmd.GeneratedSource.AppendLine("//^^^ Spawnable\r\n");
                 }
-                else 
+                else
                 {
                     string function = "__declspec(dllexport) Saturn::Entity* _Z_Create_";
                     function += cmd.CurrentFile.ClassName;
@@ -435,20 +440,33 @@ namespace SaturnBuildTool.Tools
 
                 cmd.GeneratedSource.AppendLine(cExternEnd);
 
-                // Create metadata and add it to the list
-                if(ProjectInfo.Instance.CurrentConfigKind != ConfigKind.Dist) 
+                if (ProjectInfo.Instance.CurrentConfigKind != ConfigKind.Dist)
                 {
-                    string metadata = string.Format("static void _RT_Z_CreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
-                    metadata += "{\r\n";
-                    metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", cmd.CurrentFile.ClassName);
-                    metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
-                    metadata += string.Format("\t__Metadata_{0}.ParentClassName = \"{1}\";\r\n", cmd.CurrentFile.ClassName, cmd.CurrentFile.BaseClass);
-                    metadata += string.Format("\t__Metadata_{0}.Path = __FILE__;\r\n", cmd.CurrentFile.ClassName);
-                    metadata += string.Format("\t__Metadata_{0}.Date = __DATE__;\r\n", cmd.CurrentFile.ClassName);
-                    metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
-                    metadata += "}\r\n";
+                    if ((cmd.CurrentFile.SClassInfo & SC.NoMetadata) != SC.NoMetadata)
+                    {
+                        string metadata = string.Format("static void _RT_Z_CreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
+                        metadata += "{\r\n";
+                        metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", cmd.CurrentFile.ClassName);
+                        metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
+                        metadata += string.Format("\t__Metadata_{0}.ParentClassName = \"{1}\";\r\n", cmd.CurrentFile.ClassName, cmd.CurrentFile.BaseClass);
+                        metadata += string.Format("\t__Metadata_{0}.Path = __FILE__;\r\n", cmd.CurrentFile.ClassName);
+                        metadata += string.Format("\t__Metadata_{0}.Date = __DATE__;\r\n", cmd.CurrentFile.ClassName);
+                        metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
+                        metadata += "}\r\n";
 
-                    cmd.GeneratedSource.AppendLine(metadata);
+                        cmd.GeneratedSource.AppendLine(metadata);
+                    }
+                    else 
+                    {
+                        string metadata = string.Format("static void _RT_Z_CreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
+                        metadata += "{\r\n";
+                        metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", cmd.CurrentFile.ClassName);
+                        metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
+                        metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
+                        metadata += "}\r\n";
+
+                        cmd.GeneratedSource.AppendLine(metadata);
+                    }
                 }
 
                 /*
@@ -629,7 +647,7 @@ namespace SaturnBuildTool.Tools
                     {
                         CommandQueue.Add(HeaderFilepath, cmd);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                     }
                 }

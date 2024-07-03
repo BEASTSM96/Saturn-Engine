@@ -28,15 +28,21 @@
 
 #include "SingletonStorage.h"
 
+#include <thread>
+#include <mutex>
+
 namespace Saturn {
 
 	static std::unordered_map<std::type_index, SingletonHolder> s_Singletons;
-	static std::mutex s_Mutex;
 
 	std::unordered_map<std::type_index, Saturn::SingletonHolder>& SingletonStorage::GetSingletonMap()
 	{
 		return s_Singletons;
 	}
+
+#if !defined(SATURN_SS_STATIC)
+	static std::mutex s_Mutex;
+#endif
 
 	void SS_API Internal::FindSharedClassInstance( const std::type_index& rIndex, void* ( *pStaticClass )( ), void*& pOutInstace )
 	{
@@ -57,5 +63,4 @@ namespace Saturn {
 
 		pOutInstace = type.pObject;
 	}
-
 }

@@ -30,8 +30,6 @@
 
 #include <typeindex>
 #include <unordered_map>
-#include <thread>
-#include <mutex>
 
 #include "SSBase.h"
 

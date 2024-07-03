@@ -9,7 +9,7 @@ namespace SaturnBuildTool
         protected string SaturnRootDir = "";
         protected string SaturnSingletonDir = "";
         protected string SaturnSourceDir = "";
-        protected string SaturnVenderDir = "";
+        protected string SaturnVendorDir = "";
 
         public override void Init() 
         {
@@ -29,29 +29,30 @@ namespace SaturnBuildTool
 
             SaturnSingletonDir = Path.Combine(SaturnRootDir, "SharedStorage");
 
-            SaturnVenderDir = Path.Combine(SaturnRootDir, "Saturn\\vendor" );
+            SaturnVendorDir = Path.Combine(SaturnRootDir, "Saturn\\vendor" );
             SaturnSourceDir = Path.Combine(SaturnRootDir, "Saturn\\src" );
 
             Includes.Add(SaturnSourceDir);
 
             // Saturn Vendor
-            Includes.Add( Path.Combine(SaturnVenderDir, "spdlog\\include") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "vulkan\\include") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "glm") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "ruby\\src") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "imgui") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "entt\\include") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "assimp\\include") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "shaderc\\libshaderc\\include") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "SPRIV-Cross\\src") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "vma\\src") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "ImGuizmo\\src") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "yaml-cpp\\include") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "imgui_node_editor") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include\\pxshared") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "physx\\include\\physx") );
-            Includes.Add( Path.Combine(SaturnVenderDir, "tracy\\src") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "spdlog\\include") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "vulkan\\include") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "glm") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "ruby\\src") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "imgui") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "entt\\include") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "assimp\\include") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "shaderc\\libshaderc\\include") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "SPRIV-Cross\\src") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "vma\\src") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "ImGuizmo\\src") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "yaml-cpp\\include") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "imgui_node_editor") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "physx\\include") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "physx\\include\\pxshared") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "physx\\include\\physx") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "tracy\\src") );
+            Includes.Add( Path.Combine(SaturnVendorDir, "miniaudio\\src") );
             Includes.Add( Path.Combine(SaturnSingletonDir, "src") );
 
             string saturnBinDir = SaturnRootDir;

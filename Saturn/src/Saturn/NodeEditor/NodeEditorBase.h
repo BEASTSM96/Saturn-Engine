@@ -69,9 +69,15 @@ namespace Saturn {
 		NodeEditorBase( AssetID id );
 		virtual ~NodeEditorBase();
 
+#if !defined(SAT_DIST)
 		virtual void OnImGuiRender() = 0;
 		virtual void OnUpdate( Timestep ts ) = 0;
 		virtual void OnEvent( RubyEvent& rEvent ) = 0;
+#else
+		virtual void OnImGuiRender() {}
+		virtual void OnUpdate( Timestep ts ) {}
+		virtual void OnEvent( RubyEvent& rEvent ) {}
+#endif
 
 		static Ref<Texture2D> GetBlueprintBackground();
 
@@ -132,8 +138,13 @@ namespace Saturn {
 		void SaveSettings();
 
 	public:
+#if !defined(SAT_DIST)
 		virtual void SerialiseData( std::ofstream& rStream ) = 0;
 		virtual void DeserialiseData( std::ifstream& rStream ) = 0;
+#else
+		virtual void SerialiseData( std::ofstream& rStream );
+		virtual void DeserialiseData( std::ifstream& rStream );
+#endif
 
 	protected:
 		std::string m_Name;

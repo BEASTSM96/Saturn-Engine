@@ -55,14 +55,17 @@ namespace Saturn {
 		if( !m_NodeEditor )
 			return NodeEditorCompilationStatus::Failed;
 
+		Ref<Node> OutputNode = m_NodeEditor->FindNode( m_Info.OutputNodeID );
+
+#if !defined(SAT_DIST)
 		Ref<NodeEditor> uiEditor = m_NodeEditor.As<NodeEditor>();
 
-		Ref<Node> OutputNode = uiEditor->FindNode( m_Info.OutputNodeID );
 		if( !OutputNode )
 		{
 			uiEditor->ThrowError( "Output node was not found!" );
 			return NodeEditorCompilationStatus::Failed;
 		}
+#endif
 
 		UUID AlbedoPinID = OutputNode->Inputs[ 0 ]->ID;
 		UUID NormalPinID = OutputNode->Inputs[ 1 ]->ID;
@@ -71,12 +74,13 @@ namespace Saturn {
 
 		// Stacks are last in first out, so our output node will be evaluated last which is what we want.
 		std::stack<UUID> order;
-		uiEditor->TraverseFromStart( OutputNode,
+		m_NodeEditor->TraverseFromStart( OutputNode,
 			[&]( const UUID id )
 			{
 				order.push( id );
 			} );
 
+#if !defined(SAT_DIST)
 		// If we only have one node (output node always exists) then we fail as we need something connected to the albedo pin.
 		if( order.size() <= 1 )
 		{
@@ -90,7 +94,8 @@ namespace Saturn {
 			uiEditor->ThrowError( "You must link either a TextureSampler2D node or a ColorPicker node to the albedo pin!" );
 			return NodeEditorCompilationStatus::Failed;
 		}
-		
+#endif
+
 		m_Info.HostMaterial->Reset();
 
 		while( !order.empty() )
@@ -98,7 +103,7 @@ namespace Saturn {
 			const UUID currentNodeID = order.top();
 			order.pop();
 
-			Ref<Node> currentNode = uiEditor->FindNode( currentNodeID );
+			Ref<Node> currentNode = m_NodeEditor->FindNode( currentNodeID );
 			
 			switch( currentNode->ExecutionType )
 			{
@@ -137,7 +142,9 @@ namespace Saturn {
 
 		m_Info.HostMaterial->ApplyChanges();
 
+#if !defined(SAT_DIST)
 		uiEditor->ShowFlow();
+#endif
 
 		// Save the material
 		MaterialAssetSerialiser mas;

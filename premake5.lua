@@ -206,7 +206,7 @@ project "Saturn"
 			defines "SAT_DIST"
 			runtime "Release"
 			--optimize "on"
-			symbols "Off"
+			symbols "on"
 
 			removelinks { "Tracy" }
 
@@ -532,7 +532,7 @@ project "SaturnBuildTool"
 	location "SaturnBuildTool"
 	language "C#"
 	kind "ConsoleApp"
-	links { "System", "YamlDotNet" }
+	links { "System", "System.Xml" }
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -546,8 +546,6 @@ project "SaturnBuildTool"
 	{
 		'{COPYFILE} "../../../SaturnBuildTool/RT" "RT"'
 	}
-
-	links { "YamlDotNet.dll" }
 
 	filter { "configurations:Debug" }
 		symbols "On"

@@ -30,6 +30,7 @@
 #include "SoundAssetViewer.h"
 
 #include "Saturn/Asset/AssetManager.h"
+#include "Saturn/Audio/Sound.h"
 
 #include "ImGuiAuxiliary.h"
 #include "EditorIcons.h"
@@ -51,13 +52,18 @@ namespace Saturn {
 
 	SoundAssetViewer::~SoundAssetViewer()
 	{
+		m_PreviewSound = nullptr;
 	}
 
 	void SoundAssetViewer::OnImGuiRender()
 	{
 		ImGui::PushID( static_cast<int>( m_SoundAsset->ID ) );
 
-		ImGui::Begin( "Sound", &m_Open );
+		std::string windowName = std::format( "{0}##{1}", m_SoundAsset->Name, std::to_string( m_SoundAsset->ID ) );
+
+		SAT_CORE_INFO( "{0}", m_Open );
+
+		ImGui::Begin( windowName.c_str(), &m_Open );
 
 		ImGui::BeginVertical( "##settings_hor" );
 
@@ -89,15 +95,54 @@ namespace Saturn {
 			}
 		}
 
+		ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 1.0f, 1.0f, 0.5f ) );
 		ImGui::InputText( "##filepath", ( char* ) m_SoundAsset->SoundSourcePath.string().c_str(), 4096, ImGuiInputTextFlags_ReadOnly );
+		ImGui::PopStyleColor();
 
 		ImGui::EndHorizontal();
+
+		ImGui::Text( "Original Import Path" );
+
+		ImGui::BeginHorizontal( "##importPath" );
+		
+		ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 1.0f, 1.0f, 0.5f ) );
+		ImGui::InputText( "##importPath", ( char* ) m_SoundAsset->OriginalImportPath.string().c_str(), 4096, ImGuiInputTextFlags_ReadOnly );
+		ImGui::PopStyleColor();
+
+		ImGui::EndHorizontal();
+
+		if( m_PreviewSound && m_PreviewSound->IsPlaying() )
+		{
+			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Stop" ), { 24.0f, 24.0f } ) )
+			{
+				m_PreviewSound->Stop();
+				m_PreviewSound->Reset();
+			}
+		}
+		else
+		{
+			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Play" ), { 24.0f, 24.0f } ) )
+			{
+				if( !m_PreviewSound )
+					m_PreviewSound = Ref<Sound>::Create( m_SoundAsset );
+
+				m_PreviewSound->Play();
+			}
+		}
 
 		ImGui::EndVertical();
 
 		ImGui::End();
 
 		ImGui::PopID();
+
+		if( !m_Open )
+		{
+			SoundSpecificationAssetSerialiser spec;
+			spec.Serialise( m_SoundAsset );
+
+			AssetViewer::DestroyViewer( m_AssetID );
+		}
 	}
 
 }

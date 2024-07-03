@@ -41,6 +41,8 @@
 
 #include <vector>
 #include <functional>
+#include <thread>
+#include <mutex>
 
 class RubyWindow;
 

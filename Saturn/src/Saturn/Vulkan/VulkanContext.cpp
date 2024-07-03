@@ -90,8 +90,11 @@ namespace Saturn {
 		Renderer* pRenderer = new Renderer();
 		pRenderer->Init();
 
+		// Cannot init renderer2d at this point because no shader are loaded!
+#if !defined(SAT_DIST)
 		// Init Renderer2D.
 		Renderer2D::Get().Init();
+#endif
 	}
 
 	void VulkanContext::Terminate()

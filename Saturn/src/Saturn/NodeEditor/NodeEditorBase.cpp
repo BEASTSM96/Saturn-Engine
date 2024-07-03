@@ -37,6 +37,10 @@
 
 #include "Saturn/NodeEditor/Serialisation/NodeCache.h"
 
+#if defined(SAT_DIST)
+#include "Saturn/NodeEditor/GlobalNodesList.h"
+#endif
+
 #include <backends/imgui_impl_vulkan.h>
 
 namespace Saturn {
@@ -173,6 +177,96 @@ namespace Saturn {
 	{
 		NodeCacheSettings::Get().WriteEditorSettings( this );
 	}
+
+	static void BuildNode( Ref<Node>& rNode )
+	{
+		for( auto& input : rNode->Inputs )
+		{
+			input->Node = rNode;
+			input->Kind = PinKind::Input;
+		}
+
+		for( auto& output : rNode->Outputs )
+		{
+			output->Node = rNode;
+			output->Kind = PinKind::Output;
+		}
+	}
+
+#if defined(SAT_DIST)
+	void NodeEditorBase::SerialiseData( std::ofstream& rStream )
+	{
+		RawSerialisation::WriteString( m_Name, rStream );
+
+		size_t mapSize = m_Nodes.size();
+		rStream.write( reinterpret_cast< char* >( &mapSize ), sizeof( size_t ) );
+
+		for( const auto& [key, value] : m_Nodes )
+		{
+			UUID::Serialise( key, rStream );
+
+			RawSerialisation::WriteObject( ( uint64_t ) value->ExecutionType, rStream );
+
+			Node::Serialise( value, rStream );
+		}
+
+		mapSize = m_Links.size();
+		RawSerialisation::WriteObject( mapSize, rStream );
+
+		for( auto& rLinks : m_Links )
+		{
+			Link::Serialise( rLinks, rStream );
+		}
+	}
+
+	void NodeEditorBase::DeserialiseData( std::ifstream& rStream )
+	{
+		m_Loading = true;
+
+		NodeCacheSettings::Get().ReadEditorSettings( this );
+
+		m_Name = RawSerialisation::ReadString( rStream );
+
+		size_t mapSize = 0;
+		RawSerialisation::ReadObject( mapSize, rStream );
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			UUID key = 0;
+			UUID::Deserialise( key, rStream );
+
+			uint64_t executionValue = 0;
+			RawSerialisation::ReadObject( executionValue, rStream );
+			NodeExecutionType executionType = ( NodeExecutionType ) executionValue;
+
+			Ref<Node> node = GlobalNodesList::ConvertExecutionTypeToNode( executionType, this );
+
+			if( !node )
+				node = Ref<Node>::Create();
+
+			Node::Deserialise( node, rStream );
+
+			m_Nodes[ key ] = node;
+			BuildNode( node );
+		}
+
+		mapSize = 0;
+		RawSerialisation::ReadObject( mapSize, rStream );
+
+		m_Links.resize( mapSize );
+
+		for( size_t i = 0; i < mapSize; i++ )
+		{
+			Ref<Link> link = Ref<Link>::Create();
+
+			Link::Deserialise( link, rStream );
+
+			m_Links[ i ] = link;
+		}
+
+		m_Loading = false;
+	}
+#endif
 
 	bool NodeEditorBase::IsLinked( UUID pinID )
 	{
@@ -327,21 +421,6 @@ namespace Saturn {
 	{
 		for( const auto& rLink : m_Links )
 			ed::Flow( ed::LinkId( rLink->ID ) );
-	}
-
-	static void BuildNode( Ref<Node>& rNode )
-	{
-		for( auto& input : rNode->Inputs )
-		{
-			input->Node = rNode;
-			input->Kind = PinKind::Input;
-		}
-
-		for( auto& output : rNode->Outputs )
-		{
-			output->Node = rNode;
-			output->Kind = PinKind::Output;
-		}
 	}
 
 	void NodeEditorBase::AddNode( Ref<Node> node )

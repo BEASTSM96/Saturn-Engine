@@ -33,6 +33,8 @@
 
 namespace Saturn {
 
+	class Sound;
+
 	class SoundAssetViewer : public AssetViewer
 	{
 	public:
@@ -45,5 +47,6 @@ namespace Saturn {
 
 	private:
 		Ref<SoundSpecification> m_SoundAsset;
+		Ref<Sound> m_PreviewSound = nullptr;
 	};
 }
