@@ -67,7 +67,7 @@ namespace Saturn {
 		void FindAndRenameItem( const std::filesystem::path& rName );
 		int32_t GetFilenameCount( const std::string& rName );
 
-		void ClearSelected();
+		void ClearSelection();
 
 	private:
 		void Init();
@@ -99,5 +99,6 @@ namespace Saturn {
 		bool m_FilesNeedSorting = false;
 		bool m_ChangeDirectory = false;
 		bool m_Searching = false;
+		bool m_MultiSelecting = false;
 	};
 }

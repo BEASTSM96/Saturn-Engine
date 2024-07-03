@@ -177,7 +177,7 @@ namespace Saturn {
 
 				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 				{
-					ClearSelected();
+					ClearSelection();
 
 					// Switch and set path to the game content.
 					m_ViewMode = CBViewMode::Assets;
@@ -206,7 +206,7 @@ namespace Saturn {
 
 				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 				{
-					ClearSelected();
+					ClearSelection();
 				
 					// Switch and set path to the game content.
 					m_ViewMode = CBViewMode::Scripts;
@@ -593,6 +593,22 @@ namespace Saturn {
 			}
 		}
 		
+		if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
+		{
+			auto& map = m_Searching ? m_ValidSearchFiles : m_Files;
+
+			auto hoveredItems = std::count_if( map.begin(), map.end(), 
+				[]( const auto& rItem ) 
+				{
+					return rItem->IsHovered();
+				} );
+
+			if( m_SelectedItems.size() && hoveredItems == 0 )
+			{
+				ClearSelection();
+			}
+		}
+
 		ImGui::Columns( 1 );
 
 		ImGui::PopStyleColor( 2 );
@@ -1031,7 +1047,7 @@ namespace Saturn {
 
 			m_ChangeDirectory = true;
 
-			ClearSelected();
+			ClearSelection();
 
 			m_Searching = false;
 		}
@@ -1039,11 +1055,15 @@ namespace Saturn {
 		{
 			if( pItem->MultiSelected() )
 			{
+				m_MultiSelecting = true;
+
 				m_SelectedItems.push_back( pItem );
 			}
 			else
 			{
-				ClearSelected();
+				m_MultiSelecting = false;
+
+				ClearSelection();
 
 				m_SelectedItems.push_back( pItem );
 			}

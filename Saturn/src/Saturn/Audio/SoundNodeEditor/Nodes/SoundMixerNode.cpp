@@ -59,8 +59,24 @@ namespace Saturn {
 		if( !pSoundEditorEvaluator )
 			return NodeEditorCompilationStatus::Failed;
 
-		std::map<UUID, UUID> PinToSoundMap;
+#if !defined( SAT_DIST )
+		auto count = std::count_if( Inputs.begin(), Inputs.end(),
+			[=]( const auto& pin )
+			{
+				return pSoundEditorEvaluator->GetTargetNodeEditor()->IsLinked( pin->ID );
+			} );
 
+		if( count != Inputs.size() )
+		{
+			Ref<NodeEditor> uiEditor = pSoundEditorEvaluator->GetTargetNodeEditor().As<NodeEditor>();
+
+			uiEditor->ThrowError( "Not all pins are linked to the mixer node!" );
+
+			return NodeEditorCompilationStatus::Failed;
+		}
+#endif
+
+		std::map<UUID, UUID> PinToSoundMap;
 		uint32_t index = 0;
 
 		auto ids = pSoundEditorEvaluator->GetTargetNodeEditor()->FindNeighbors( this );

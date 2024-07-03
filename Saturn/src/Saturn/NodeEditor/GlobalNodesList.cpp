@@ -34,6 +34,7 @@
 #include "Saturn/Audio/SoundNodeEditor/Nodes/SoundOutputNode.h"
 #include "Saturn/Audio/SoundNodeEditor/Nodes/SoundPlayerNode.h"
 #include "Saturn/Audio/SoundNodeEditor/Nodes/SoundRandomNode.h"
+#include "Saturn/Audio/SoundNodeEditor/Nodes/SoundMixerNode.h"
 
 #include "Saturn/Audio/SoundNodeEditor/SoundNodeLibrary.h"
 
@@ -77,13 +78,14 @@ namespace Saturn {
 				return SoundNodeLibrary::SpawnPlayerNode( nodeEditorBase );
 			case NodeExecutionType::RandomSound:
 				return SoundNodeLibrary::SpawnRandomNode( nodeEditorBase );
+			case NodeExecutionType::SoundMixer:
+				return SoundNodeLibrary::SpawnMixerNode( nodeEditorBase );
 
 			case NodeExecutionType::None:
 			default:
 				return nullptr;
 		}
 
-		// All paths return
-		std::unreachable();
+		return nullptr;
 	}
 }

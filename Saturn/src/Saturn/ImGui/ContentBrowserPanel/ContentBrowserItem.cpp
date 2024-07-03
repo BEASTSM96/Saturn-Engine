@@ -138,7 +138,12 @@ namespace Saturn {
 			// Single clicked = selected or deselected
 			if( Clicked && !DoubleClicked )
 			{
-				m_IsSelected = !m_IsSelected;
+				if( Input::Get().KeyPressed( RubyKey::Shift ) || Input::Get().KeyPressed( RubyKey::RightShift ) )
+				{
+					m_MultiSelected ^= 1;
+				}
+
+				m_IsSelected ^= 1;
 
 				// Selected but not opened!
 				m_OnSelected( this, false );
@@ -193,12 +198,12 @@ namespace Saturn {
 
 			if( ItemClicked )
 			{
-				if( Input::Get().KeyPressed( RubyKey::Ctrl ) || Input::Get().KeyPressed( RubyKey::RightCtrl ) )
+				if( Input::Get().KeyPressed( RubyKey::Shift ) || Input::Get().KeyPressed( RubyKey::RightShift ) )
 				{
-					m_MultiSelected = !m_MultiSelected;
+					m_MultiSelected ^= 1;
 				}
 
-				m_IsSelected = !m_IsSelected;
+				m_IsSelected ^= 1;
 				m_OnSelected( this, m_IsSelected );
 			}
 
@@ -212,8 +217,6 @@ namespace Saturn {
 
 			if( Open )
 			{
-				auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
-	
 				switch( m_Asset->Type )
 				{
 					case AssetType::Texture:
@@ -303,7 +306,7 @@ namespace Saturn {
 				if( m_StartingRename )
 				{
 					memset( s_RenameBuffer, 0, 1024 );
-					memcpy( s_RenameBuffer, m_Filename.string().c_str(), m_Filename.string().size() );
+					memcpy( s_RenameBuffer, Filename.c_str(), Filename.size() );
 
 					ImGui::SetKeyboardFocusHere( 0 );
 

@@ -62,7 +62,7 @@ namespace Saturn {
 			{
 				m_CurrentPath = m_CurrentPath.parent_path();
 
-				ClearSelected();
+				ClearSelection();
 
 				UpdateFiles( true );
 			}
@@ -85,7 +85,7 @@ namespace Saturn {
 			{
 				m_CurrentPath /= std::filesystem::relative( m_FirstFolder, m_RootPath );
 
-				ClearSelected();
+				ClearSelection();
 
 				UpdateFiles( true );
 			}
@@ -193,7 +193,7 @@ namespace Saturn {
 		return count;
 	}
 
-	void ContentBrowserBase::ClearSelected()
+	void ContentBrowserBase::ClearSelection()
 	{
 		for( auto&& rrItem : m_SelectedItems )
 		{
