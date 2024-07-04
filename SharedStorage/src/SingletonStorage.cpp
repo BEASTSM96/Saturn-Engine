@@ -29,6 +29,7 @@
 #include "SingletonStorage.h"
 
 #include <thread>
+#include <iostream>
 #include <mutex>
 
 namespace Saturn {
@@ -48,14 +49,17 @@ namespace Saturn {
 	{
 		SingletonHolder type = {};
 
-		const auto itr = s_Singletons.find( rIndex );
-
-		if( itr == s_Singletons.end() ) 
-			s_Singletons[ rIndex ] = type;
+		if( s_Singletons.find( rIndex ) == s_Singletons.end() )
+		{
+			type.pObject = ( *pStaticClass )( );
+			s_Singletons.insert( { rIndex, type } );
+		}
 		else
+		{
 			type = s_Singletons.at( rIndex );
+		}
 
-		if( !type.pObject )
+		if( type.pObject == nullptr )
 		{
 			// Create the static instance.
 			type.pObject = ( *pStaticClass )( );

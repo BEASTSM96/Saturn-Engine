@@ -43,7 +43,7 @@ namespace Saturn {
 
 	struct SingletonHolder
 	{
-		void* pObject;
+		void* pObject = nullptr;
 	};
 
 	namespace Internal {
@@ -58,7 +58,7 @@ namespace Saturn {
 			{
 				static void* pClass = nullptr;
 
-				if( !pClass )
+				if( !pClass ) 
 					FindSharedClassInstance( typeid( Ty ), &GetStaticClass, pClass );
 
 				return reinterpret_cast<Ty*>( pClass );
