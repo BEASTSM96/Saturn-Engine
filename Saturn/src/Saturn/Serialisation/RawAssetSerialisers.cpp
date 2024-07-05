@@ -33,7 +33,8 @@
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Asset/PhysicsMaterialAsset.h"
 #include "Saturn/Asset/TextureSourceAsset.h"
-#include "Saturn/Audio/Sound.h"
+#include "Saturn/Audio/SoundSpecification.h"
+#include "Saturn/Audio/AudioSystem.h"
 
 #include "Saturn/Core/VirtualFS.h"
 
@@ -150,12 +151,6 @@ namespace Saturn {
 
 	bool RawMaterialAssetSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
-		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
-
-		if( !file )
-			return false;
-
 		auto materialAsset = rAsset.As<MaterialAsset>();
 
 		if( !materialAsset )
@@ -260,12 +255,6 @@ namespace Saturn {
 	{
 		auto prefabAsset = rAsset.As<Prefab>();
 
-		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
-
-		if( !file )
-			return false;
-
 		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
 		out /= std::to_string( rAsset->ID );
 		out.replace_extension( ".vfs" );
@@ -287,12 +276,6 @@ namespace Saturn {
 	bool RawStaticMeshAssetSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
 		auto staticMeshAsset = rAsset.As<StaticMesh>();
-
-		const std::string& rMountBase = Project::GetActiveConfig().Name;
-		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
-
-		if( !file )
-			return false;
 
 		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
 		out /= std::to_string( rAsset->ID );

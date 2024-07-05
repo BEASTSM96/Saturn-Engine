@@ -85,15 +85,6 @@ namespace Saturn {
 
 	void TextureSourceAsset::WriteToVFS()
 	{
-		const std::string& rMountBase = Project::GetActiveConfig().Name;
-
-		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, Path );
-		
-		if( !file )
-			return;
-
-		/////////////////////////////////////
-
 		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
 		out /= std::to_string( ID );
 		out.replace_extension( ".vfs" );

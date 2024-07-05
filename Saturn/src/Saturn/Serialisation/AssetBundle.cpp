@@ -342,7 +342,7 @@ namespace Saturn {
 				if( sndSpec )
 				{
 					RawSoundSpecAssetSerialiser serialiser;
-					serialiser.DumpAndWriteToVFS( rAsset );
+					serialiser.DumpAndWriteToVFS( sndSpec );
 				}
 			} break;
 

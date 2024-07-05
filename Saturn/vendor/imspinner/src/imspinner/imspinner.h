@@ -45,9 +45,9 @@
 
 namespace ImSpinner
 {
-    static const ImColor white{1.f, 1.f, 1.f, 1.f};
-    static const ImColor half_white{1.f, 1.f, 1.f, 0.5f};
-    static const ImColor red{1.f,0.f,0.f,1.f};
+    constexpr ImColor white{1.f, 1.f, 1.f, 1.f};
+    constexpr ImColor half_white{1.f, 1.f, 1.f, 0.5f};
+    constexpr ImColor red{1.f,0.f,0.f,1.f};
 
 #define DECLPROP(name, type, def) \
     struct name { \

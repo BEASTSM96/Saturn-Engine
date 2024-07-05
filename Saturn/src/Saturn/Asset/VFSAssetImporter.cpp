@@ -42,10 +42,10 @@ namespace Saturn {
 
 	void VFSAssetImporter::Init()
 	{
-		m_AssetSerialisers[ AssetType::Material ] = std::make_unique<RawMaterialAssetSerialiser>();
-		m_AssetSerialisers[ AssetType::Prefab ] = std::make_unique<RawPrefabSerialiser>();
-		m_AssetSerialisers[ AssetType::StaticMesh ] = std::make_unique<RawStaticMeshAssetSerialiser>();
-//		m_AssetSerialisers[ AssetType::Audio ] = std::make_unique<RawSound2DAssetSerialiser>();
+		m_AssetSerialisers[ AssetType::Material ]        = std::make_unique<RawMaterialAssetSerialiser>();
+		m_AssetSerialisers[ AssetType::Prefab ]          = std::make_unique<RawPrefabSerialiser>();
+		m_AssetSerialisers[ AssetType::StaticMesh ]      = std::make_unique<RawStaticMeshAssetSerialiser>();
+		m_AssetSerialisers[ AssetType::Sound ]           = std::make_unique<RawSoundSpecAssetSerialiser>();
 		m_AssetSerialisers[ AssetType::PhysicsMaterial ] = std::make_unique<RawPhysicsMaterialAssetSerialiser>();
 	}
 
