@@ -134,6 +134,8 @@ namespace Saturn {
 		m_GameModule = new GameModule();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
+
+//		AudioSystem::Get().DecodeSound( AssetManager::Get().GetAssetAs<SoundSpecification>( 3547592778649744348 ) );
 	}
 
 	void EditorLayer::OnAttach()
@@ -1282,9 +1284,15 @@ namespace Saturn {
 
 		if( ImGui::BeginMenu( "Project" ) )
 		{
+			ImGui::SeparatorText( "Settings" );
+
 			if( ImGui::MenuItem( "Project settings" ) ) m_ShowUserSettings ^= 1;
 
+			ImGui::SeparatorText( "Compatibility" );
+
 			if( ImGui::MenuItem( "Upgrade assets" ) ) Project::GetActiveProject()->UpgradeAssets();
+
+			ImGui::SeparatorText( "Building and Distribution" );
 
 			if( ImGui::MenuItem( "Recreate project files" ) )
 			{
@@ -1299,24 +1307,28 @@ namespace Saturn {
 					} );
 			}
 
+			if( ImGui::BeginItemTooltip() )
+			{
+				ImGui::Text( "Uses Premake5 to regenerate the project files.\nEnvironment variable \"SATURN_PREMAKE_PATH\" must be set." );
+				ImGui::EndTooltip();
+			}
+
 			if( ImGui::MenuItem( "Setup Project for Distribution" ) )
 			{
 				if( !m_BlockingOperation )
 					m_BlockingOperation = Ref<JobProgress>::Create();
 
-				Project::GetActiveProject()->PrepForDist();
+				//Project::GetActiveProject()->PrepForDist();
 
 				JobSystem::Get().AddJob( [this]()
 					{
 						m_JobModalOpen = true;
-						m_BlockingOperation->SetStatus( "Building Shader bundle..." );
+						//m_BlockingOperation->SetStatus( "Building Shader bundle..." );
 
-						BuildShaderBundle();
-					} );
+						//BuildShaderBundle();
 
-				JobSystem::Get().AddJob( [this]()
-					{
-						m_JobModalOpen = true;
+						//if( m_ShowMessageBox )
+						//	return;
 
 						if( auto result = AssetBundle::BundleAssets( m_BlockingOperation ); result != AssetBundleResult::Success )
 						{
@@ -1328,12 +1340,26 @@ namespace Saturn {
 					} );
 			}
 
+			if( ImGui::BeginItemTooltip() )
+			{
+				ImGui::Text( "Attempts to build the Shader Bundle and the Asset Bundle and copies important build files for distribution.\nYou must run this before clicking the \"Distribute project\" button." );
+				ImGui::EndTooltip();
+			}
+
 			if( ImGui::MenuItem( "Build Shader Bundle" ) )
 			{
 				BuildShaderBundle();
 			}
 
+			if( ImGui::BeginItemTooltip() )
+			{
+				ImGui::Text( "Attempts to compile all shaders and bundles them all into one file.\nYou do not need to do this if your intent is to prepare the project for distribution as that option will build it for you.\nOnly build the Shader Bundle if there is a problem with your shaders." );
+				ImGui::EndTooltip();
+			}
+
 #if defined( SAT_DEBUG )
+			ImGui::SeparatorText( "DEBUG" );
+
 			if( ImGui::MenuItem( "DEBUG: Read Asset Bundle" ) )
 			{
 				Application::Get().GetSpecification().Flags |= ApplicationFlag_UseVFS;
@@ -1379,17 +1405,34 @@ namespace Saturn {
 					} );
 			}
 
+			if( ImGui::BeginItemTooltip() )
+			{
+				ImGui::Text( "Attempts to compile the project and fully setup the project for Distribution.\nMake sure you have prepare the project before attempting to distribute the project." );
+				ImGui::EndTooltip();
+			}
+
 			ImGui::EndMenu();
 		}
 
 		if( ImGui::BeginMenu( "Settings" ) )
 		{
-			if( ImGui::MenuItem( "Project settings", "" ) )          m_ShowUserSettings       ^= 1;
-			if( ImGui::MenuItem( "Asset Registry Debug", "" ) )      m_OpenAssetRegistryDebug ^= 1;
-			if( ImGui::MenuItem( "Loaded asset debug", "" ) )        m_OpenLoadedAssetDebug   ^= 1;
-			if( ImGui::MenuItem( "Editor Settings", "" ) )           m_OpenEditorSettings     ^= 1;
-			if( ImGui::MenuItem( "Show demo window", "" ) )          m_ShowImGuiDemoWindow    ^= 1;
-			if( ImGui::MenuItem( "Virtual File system debug", "" ) ) m_ShowVFSDebug           ^= 1;
+			if( ImGui::MenuItem( "Project settings", "" ) )           m_ShowUserSettings       ^= 1;
+			if( ImGui::MenuItem( "Editor Settings", "" ) )            m_OpenEditorSettings     ^= 1;
+
+			ImGui::EndMenu();
+		}
+
+		if( ImGui::BeginMenu( "Auxiliary" ) ) 
+		{
+			ImGui::SeparatorText( "Asset Registry" );
+			if( ImGui::MenuItem( "Asset Registry Debug", "" ) )       m_OpenAssetRegistryDebug ^= 1;
+			if( ImGui::MenuItem( "Loaded Assets Debug", "" ) )        m_OpenLoadedAssetDebug   ^= 1;
+
+			ImGui::SeparatorText( "Demo Window" );
+			if( ImGui::MenuItem( "Show demo window", "" ) )           m_ShowImGuiDemoWindow    ^= 1;
+
+			ImGui::SeparatorText( "Virtual Filesystem (VFS)" );
+			if( ImGui::MenuItem( "Virtual Filesystem Debug", "" ) )   m_ShowVFSDebug           ^= 1;
 
 			ImGui::EndMenu();
 		}

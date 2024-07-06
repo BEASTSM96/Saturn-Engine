@@ -74,17 +74,17 @@ namespace Saturn::Styles {
 		colors[ ImGuiCol_HeaderHovered ]          = ImVec4( 0.469f, 0.469f, 0.469f, 1.000f );
 		colors[ ImGuiCol_HeaderActive ]           = colors[ ImGuiCol_Header ];
 		
-		colors[ ImGuiCol_Separator ]			  = colors[ ImGuiCol_WindowBg ];
+		colors[ ImGuiCol_Separator ]			  = ImGui::ColorConvertU32ToFloat4( IM_COL32( 48, 48, 48, 255 ) );
 		colors[ ImGuiCol_SeparatorHovered ]       = ImVec4( 0.391f, 0.391f, 0.391f, 1.000f );
 		colors[ ImGuiCol_SeparatorActive ]        = ImGui::ColorConvertU32ToFloat4( IM_COL32( 76, 121, 141, 255 ) );
 
-		colors[ ImGuiCol_ResizeGrip ]             = ImVec4( 1.000f, 1.000f, 1.000f, 0.250f );
+		colors[ ImGuiCol_ResizeGrip ]             = ImVec4( 0.44f, 0.37f, 0.36f, 0.50f );
 		colors[ ImGuiCol_ResizeGripHovered ]      = ImVec4( 1.000f, 1.000f, 1.000f, 0.670f );
 		colors[ ImGuiCol_ResizeGripActive ]       = ImVec4( 1.000f, 0.391f, 0.000f, 1.000f );
 		
-		colors[ ImGuiCol_Tab ]                    = colors[ ImGuiCol_ChildBg ];
+		colors[ ImGuiCol_Tab ]                    = ImVec4( 0.23f, 0.22f, 0.22f, 1.00f );
 		colors[ ImGuiCol_TabHovered ]             = ImVec4( 0.352f, 0.352f, 0.352f, 1.000f );
-		colors[ ImGuiCol_TabActive ]              = ImGui::ColorConvertU32ToFloat4( IM_COL32( 76, 69, 47, 255 ) );
+		colors[ ImGuiCol_TabActive ] = ImVec4( 0.80f, 0.36f, 0.08f, 1.00f );
 		colors[ ImGuiCol_TabUnfocused ]           = ImVec4( 0.098f, 0.098f, 0.098f, 1.000f );
 		colors[ ImGuiCol_TabUnfocusedActive ]     = ImVec4( 0.195f, 0.195f, 0.195f, 1.000f );
 
