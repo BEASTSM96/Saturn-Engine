@@ -34,6 +34,8 @@
 
 namespace Saturn {
 
+	class SoundEditorEvaluator;
+
 	class GraphSoundAssetViewer : public AssetViewer
 	{
 	public:
@@ -52,6 +54,8 @@ namespace Saturn {
 	private:
 		Ref<Asset> m_Asset = nullptr;
 		Ref<NodeEditor> m_NodeEditor = nullptr;
+		Ref<SoundEditorEvaluator> m_Runtime = nullptr;
+
 		UUID m_OutputNodeID = 0;
 	};
 }

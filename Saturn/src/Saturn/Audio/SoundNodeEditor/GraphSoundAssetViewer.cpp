@@ -68,6 +68,8 @@ namespace Saturn {
 		NodeCacheEditor::WriteNodeEditorCache( m_NodeEditor, filename );
 
 		m_NodeEditor->SetRuntime( nullptr );
+		m_Runtime = nullptr;
+
 		m_NodeEditor = nullptr;
 	}
 
@@ -117,10 +119,11 @@ namespace Saturn {
 		SoundEditorEvaluator::SoundEdEvaluatorInfo info;
 		info.SoundGroup = nullptr;
 		info.OutputNodeID = m_OutputNodeID;
-		auto rt = Ref<SoundEditorEvaluator>::Create( info );
-		rt->SetTargetNodeEditor( m_NodeEditor );
+		
+		m_Runtime = Ref<SoundEditorEvaluator>::Create( info );
+		m_Runtime->SetTargetNodeEditor( m_NodeEditor );
 
-		m_NodeEditor->SetRuntime( rt );
+		m_NodeEditor->SetRuntime( m_Runtime );
 	}
 
 	void GraphSoundAssetViewer::SetupNewNodeEditor()
@@ -155,7 +158,11 @@ namespace Saturn {
 			{
 				if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Billboard_AudioMuted" ), { 24, 24 } ) )
 				{
-					AudioSystem::Get().StopPreviewSounds( m_AssetID );
+					for( auto& rSound : m_Runtime->AliveSounds )
+					{
+						rSound->Stop();
+						rSound->Reset();
+					}
 				}
 
 				if( ImGui::IsItemHovered() )
