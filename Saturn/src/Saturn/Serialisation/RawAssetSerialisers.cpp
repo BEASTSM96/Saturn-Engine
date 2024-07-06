@@ -428,9 +428,29 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// SOUND SPECIFICATION
 
+	static void SerialiseSoundDecodedInformation( const SoundDecodedInformation& rObject, std::ofstream& rStream )
+	{
+		RawSerialisation::WriteObject( rObject.Format, rStream );
+		RawSerialisation::WriteObject( rObject.Channels, rStream );
+		RawSerialisation::WriteObject( rObject.SampleRate, rStream );
+		RawSerialisation::WriteObject( rObject.PCMFrameCount, rStream );
+		RawSerialisation::WriteObject( rObject.BytesPerFrame, rStream );
+		RawSerialisation::WriteVector( rObject.PCMFrames, rStream );
+	}
+
+	static void DeserialiseSoundDecodedInformation( SoundDecodedInformation& rObject, std::istream& rStream ) 
+	{
+		RawSerialisation::ReadObject( rObject.Format, rStream );
+		RawSerialisation::ReadObject( rObject.Channels, rStream );
+		RawSerialisation::ReadObject( rObject.SampleRate, rStream );
+		RawSerialisation::ReadObject( rObject.PCMFrameCount, rStream );
+		RawSerialisation::ReadObject( rObject.BytesPerFrame, rStream );
+		RawSerialisation::ReadVector( rObject.PCMFrames, rStream );
+	}
+
 	bool RawSoundSpecAssetSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
 	{
-		auto sound = rAsset.As<SoundSpecification>();
+		auto soundSpec = rAsset.As<SoundSpecification>();
 
 		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
 		out /= std::to_string( rAsset->ID );
@@ -438,10 +458,10 @@ namespace Saturn {
 
 		std::ofstream stream( out, std::ios::binary | std::ios::trunc );
 
-		RawSerialisation::WriteString( std::filesystem::relative( sound->SoundSourcePath, Project::GetActiveProject()->GetRootDir() ), stream );
-		
-		// No need for this in dist
-		//RawSerialisation::WriteString( sound->OriginalImportPath, stream );
+		RawSerialisation::WriteString( std::filesystem::relative( soundSpec->SoundSourcePath, Project::GetActiveProject()->GetRootDir() ), stream );
+
+		auto decodedInformation = AudioSystem::Get().DecodeSound( soundSpec );
+		SerialiseSoundDecodedInformation( decodedInformation, stream );
 
 		stream.close();
 
@@ -450,6 +470,7 @@ namespace Saturn {
 
 	bool RawSoundSpecAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
+#if defined( SAT_DIST )
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, rAsset->Path );
 
@@ -465,6 +486,8 @@ namespace Saturn {
 
 		auto soundSpec = Ref<SoundSpecification>::Create();
 		soundSpec->SoundSourcePath = sourcePath;
+
+		DeserialiseSoundDecodedInformation( soundSpec->DecodedInformation, stream );
 
 		// TODO: (Asset) Fix this.
 		struct
@@ -490,6 +513,10 @@ namespace Saturn {
 		rAsset->Name = OldAssetData.Name;
 
 		return true;
+#else
+		SAT_CORE_ASSERT( false, "RawSoundSpecAssetSerialiser::TryLoadData must be called on Dist!" );
+		return false;
+#endif
 	}
 
 	//////////////////////////////////////////////////////////////////////////

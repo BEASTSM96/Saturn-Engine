@@ -64,10 +64,16 @@ namespace Saturn {
 
 	private:
 		void SetupSpatialization();
+		void LoadForDist( uint32_t flags );
+		void LoadFromFile( uint32_t flags );
 
 		Ref<SoundGroup> m_SoundGroup;
 
 		bool m_Spatialization = false;
+
+#if defined( SAT_DIST )
+		ma_audio_buffer m_AudioBuffer;
+#endif
 
 	private:
 		friend class AudioSystem;

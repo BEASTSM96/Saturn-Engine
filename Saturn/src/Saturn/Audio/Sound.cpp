@@ -45,27 +45,59 @@ namespace Saturn {
 		{
 			SAT_CORE_INFO( "Loading sound: {0}", m_Specification->Name );
 
-			ma_uint32 initFlags = MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC;
-			initFlags |= flags;
-
 			// By default always use the master sound group.
 			m_SoundGroup = AudioSystem::Get().GetMasterSoundGroup();
 
-			m_Sound = new ma_sound();
-
-			// TODO: Wait for the sound to load by using the fence.
-			MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(),
-				m_Specification->SoundSourcePath.string().c_str(),
-				initFlags, m_SoundGroup->GetInternal(), nullptr, m_Sound ) );
+#if defined(SAT_DIST)
+			LoadForDist( flags );
+#else
+			LoadFromFile( flags );
+#endif
 
 			m_Sound->pEndCallbackUserData = reinterpret_cast< void* >( static_cast< intptr_t >( m_PlayerID ) );
 			m_Sound->endCallback = OnSoundEnd;
-			
-			if( ( initFlags & ( uint32_t ) MA_SOUND_FLAG_NO_SPATIALIZATION ) == 0 )
-				SetupSpatialization();
 
 			m_Loaded = true;
 		}
+	}
+
+	void Sound::LoadForDist( uint32_t flags )
+	{
+#if defined(SAT_DIST)
+		auto& rDecodedInformation = m_Specification->DecodedInformation;
+
+		m_Sound = new ma_sound();
+
+		ma_audio_buffer_config bufferConfig = ma_audio_buffer_config_init( (ma_format)rDecodedInformation.Format, rDecodedInformation.Channels, rDecodedInformation.PCMFrameCount, rDecodedInformation.PCMFrames.data(), nullptr );
+
+		MA_CHECK( ma_audio_buffer_init( &bufferConfig, &m_AudioBuffer ) );
+
+		MA_CHECK( ma_sound_init_from_data_source( 
+			&AudioSystem::Get().GetAudioEngine(),
+			&m_AudioBuffer, flags,
+			m_SoundGroup->GetInternal(), m_Sound ) );
+
+//		ma_audio_buffer_uninit( &audioBuffer );
+
+		if( ( flags & ( uint32_t ) MA_SOUND_FLAG_NO_SPATIALIZATION ) == 0 )
+			SetupSpatialization();
+#endif
+	}
+
+	void Sound::LoadFromFile( uint32_t flags )
+	{
+		ma_uint32 initFlags = MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC;
+		initFlags |= flags;
+
+		m_Sound = new ma_sound();
+
+		// TODO: Wait for the sound to load by using the fence.
+		MA_CHECK( ma_sound_init_from_file( &AudioSystem::Get().GetAudioEngine(),
+			m_Specification->SoundSourcePath.string().c_str(),
+			initFlags, m_SoundGroup->GetInternal(), nullptr, m_Sound ) );
+
+		if( ( initFlags & ( uint32_t ) MA_SOUND_FLAG_NO_SPATIALIZATION ) == 0 )
+			SetupSpatialization();
 	}
 
 	void Sound::SetupSpatialization()
@@ -87,6 +119,9 @@ namespace Saturn {
 
 			m_Sound = nullptr;
 
+#if defined( SAT_DIST )
+			ma_audio_buffer_uninit( &m_AudioBuffer );
+#endif
 			m_Loaded = false;
 		}
 	}

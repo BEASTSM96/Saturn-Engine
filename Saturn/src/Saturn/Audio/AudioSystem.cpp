@@ -472,4 +472,42 @@ namespace Saturn {
 			m_AliveSounds.erase( Itr );
 	}
 
+	SoundDecodedInformation AudioSystem::DecodeSound( const Ref<SoundSpecification>& rSpec )
+	{
+		SoundDecodedInformation decodedInformation{};
+		
+		ma_decoder decoder;
+		ma_decoder_config config{};
+		
+		config = ma_decoder_config_init( ma_format_f32, 2, m_Engine.sampleRate );
+
+		MA_CHECK( ma_decoder_init_file( rSpec->SoundSourcePath.string().data(), &config, &decoder ) );
+
+		uint64_t frames = 0;
+		MA_CHECK( ma_decoder_get_length_in_pcm_frames( &decoder, &frames ) );
+
+		uint64_t bpf = ma_get_bytes_per_frame( decoder.outputFormat, decoder.outputChannels );
+		size_t bufferSize = frames * bpf;
+
+		decodedInformation.PCMFrameCount = frames;
+		decodedInformation.BytesPerFrame = bpf;
+		decodedInformation.Channels = decoder.outputChannels;
+		decodedInformation.SampleRate = decoder.outputSampleRate;
+		decodedInformation.Format = (int)decoder.outputFormat;
+
+		std::vector<uint8_t> data( bufferSize );
+
+		uint64_t totalFrameRead = 0;
+		MA_CHECK( ma_decoder_read_pcm_frames( &decoder, data.data(), frames, &totalFrameRead ) );
+
+		SAT_CORE_ASSERT( totalFrameRead == frames, "Audio decoder did not read the whole file/buffer!" );
+	
+		// Copy the data from the decoder into here, let "data" die at the end of the scope.
+		std::copy( data.begin(), data.end(), std::back_inserter( decodedInformation.PCMFrames ) );
+
+		MA_CHECK( ma_decoder_uninit( &decoder ) );
+
+		return decodedInformation;
+	}
+
 }

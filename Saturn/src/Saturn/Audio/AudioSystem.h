@@ -104,6 +104,8 @@ namespace Saturn {
 		ma_engine& GetAudioEngine() { return m_Engine; }
 		Ref<SoundGroup>& GetMasterSoundGroup() { return m_MasterSoundGroup; }
 
+		SoundDecodedInformation DecodeSound( const Ref<SoundSpecification>& rSpec );
+
 	private:
 		void Initialise();
 		void PlaySound( Ref<Sound> rSoundAsset );

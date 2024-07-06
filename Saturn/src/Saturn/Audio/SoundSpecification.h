@@ -32,10 +32,25 @@
 
 namespace Saturn {
 
+	struct SoundDecodedInformation
+	{
+		int Format = 0;
+		uint32_t Channels = 0;
+		uint32_t SampleRate = 0;
+		uint64_t BytesPerFrame = 0;
+		uint64_t PCMFrameCount = 0;
+
+		std::vector<uint8_t> PCMFrames;
+	};
+
 	class SoundSpecification : public Asset
 	{
 	public:
 		std::filesystem::path SoundSourcePath;
 		std::filesystem::path OriginalImportPath;
+
+#if defined(SAT_DIST)
+		SoundDecodedInformation DecodedInformation;
+#endif
 	};
 }
