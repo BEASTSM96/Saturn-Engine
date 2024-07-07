@@ -64,8 +64,6 @@ namespace Saturn {
 	void VulkanContext::Init()
 	{
 		CreateInstance();
-		m_pDebugMessenger = new VulkanDebugMessenger( m_Instance );
-
 		PickPhysicalDevice();
 		CreateLogicalDevice();
 		CreateSwapChain();
@@ -127,8 +125,10 @@ namespace Saturn {
 
 		vkDestroyDevice( m_LogicalDevice, nullptr );
 
+#if !defined(SAT_DIST)
 		delete m_pDebugMessenger;
 		m_pDebugMessenger = nullptr;
+#endif
 
 		vkDestroySurfaceKHR( m_Instance, m_Surface, nullptr );
 		vkDestroyInstance( m_Instance, nullptr );
@@ -161,7 +161,7 @@ namespace Saturn {
 		VkInstanceCreateInfo InstanceInfo ={ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 		InstanceInfo.pApplicationInfo = &AppInfo;
 
-#if 1
+#if !defined( SAT_DIST )
 		Extensions.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
 
 		{
@@ -186,6 +186,10 @@ namespace Saturn {
 		VK_CHECK( vkCreateInstance( &InstanceInfo, nullptr, &m_Instance ) );
 
 		CreateSurface();
+
+#if !defined(SAT_DIST)
+		m_pDebugMessenger = new VulkanDebugMessenger( m_Instance );
+#endif
 	}
 
 	void VulkanContext::CreateSurface()

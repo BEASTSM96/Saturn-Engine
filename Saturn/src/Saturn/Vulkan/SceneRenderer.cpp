@@ -542,9 +542,14 @@ namespace Saturn {
 
 		m_RendererData.BloomComputePipeline = Ref<ComputePipeline>::Create( m_RendererData.BloomShader );
 
-		for( size_t i = 0; i < 3; i++ )
+		const glm::uvec2 viewportSize = { m_RendererData.Width, m_RendererData.Height };
+
+		glm::uvec2 bs = ( viewportSize + 1u ) / 2u;
+		bs += m_RendererData.BloomWorkSize - bs % m_RendererData.BloomWorkSize;
+
+		for( uint32_t i = 0; i < 3; i++ )
 		{
-			m_RendererData.BloomTextures[ i ] = Ref<Texture2D>::Create( ImageFormat::RGBA32F, 1, 1, nullptr, true );
+			m_RendererData.BloomTextures[ i ] = Ref<Texture2D>::Create( ImageFormat::RGBA32F, bs.x, bs.y, nullptr, true );
 			m_RendererData.BloomTextures[ i ]->SetDebugName( "Bloom Texture: " + std::to_string( i ) );
 		}
 
