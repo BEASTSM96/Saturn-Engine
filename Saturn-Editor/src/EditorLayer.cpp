@@ -134,8 +134,6 @@ namespace Saturn {
 		m_GameModule = new GameModule();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
-
-//		AudioSystem::Get().DecodeSound( AssetManager::Get().GetAssetAs<SoundSpecification>( 3547592778649744348 ) );
 	}
 
 	void EditorLayer::OnAttach()
@@ -345,7 +343,7 @@ namespace Saturn {
 
 		if( m_OpenAttributions )       DrawAttributions();
 		if( m_ShowImGuiDemoWindow )    ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
-		if( m_ShowUserSettings )       UI_Titlebar_UserSettings();
+		if( m_ShowUserSettings )       DrawUserSettingsWindow();
 		if( m_OpenAssetRegistryDebug ) DrawAssetRegistryDebug();
 		if( m_OpenLoadedAssetDebug )   DrawLoadedAssetsDebug();
 		if( m_OpenEditorSettings )     DrawEditorSettings();
@@ -612,7 +610,7 @@ namespace Saturn {
 	static bool s_OpenAssetFinderPopup = false;
 	static AssetID s_AssetFinderID = 0;
 
-	void EditorLayer::UI_Titlebar_UserSettings()
+	void EditorLayer::DrawUserSettingsWindow()
 	{
 		static bool ShouldSaveProject = false;
 
@@ -1318,23 +1316,29 @@ namespace Saturn {
 				if( !m_BlockingOperation )
 					m_BlockingOperation = Ref<JobProgress>::Create();
 
-				//Project::GetActiveProject()->PrepForDist();
-
 				JobSystem::Get().AddJob( [this]()
 					{
 						m_JobModalOpen = true;
-						//m_BlockingOperation->SetStatus( "Building Shader bundle..." );
+						m_BlockingOperation->SetStatus( "Initializing..." );
 
-						//BuildShaderBundle();
+						Project::GetActiveProject()->PrepForDist();
+						
+						m_BlockingOperation->SetStatus( "Building Shader bundle..." );
+						BuildShaderBundle();
 
-						//if( m_ShowMessageBox )
-						//	return;
+						if( m_ShowMessageBox )
+							return;
 
 						if( auto result = AssetBundle::BundleAssets( m_BlockingOperation ); result != AssetBundleResult::Success )
 						{
 							Application::Get().GetWindow()->FlashAttention();
 
 							m_MessageBoxText = std::format( "Asset bundle failed to build error was: {0}", ( int ) result );
+							m_ShowMessageBox = true;
+						}
+						else
+						{
+							m_MessageBoxText = "Asset Bundle successfully built. You may now compile the game in the \"Dist\" configuration.\nYou can do this in your IDE. Or go to Project->Distribute project in the title bar.";
 							m_ShowMessageBox = true;
 						}
 					} );

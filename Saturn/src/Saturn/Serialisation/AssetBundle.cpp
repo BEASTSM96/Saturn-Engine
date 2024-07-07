@@ -189,7 +189,7 @@ namespace Saturn {
 
 			std::filesystem::path path = rEntry.path();
 
-			std::vector<char> fileBuffer;
+			Buffer fileBuffer;
 			std::ifstream stream( path, std::ios::binary | std::ios::in | std::ios::ate );
 
 			uint64_t fileSize = stream.tellg();
@@ -204,8 +204,8 @@ namespace Saturn {
 
 			stream.seekg( 0 );
 
-			fileBuffer.resize( fileSize );
-			stream.read( fileBuffer.data(), fileSize );
+			fileBuffer.Allocate( (size_t)fileSize );
+			stream.read( reinterpret_cast<char*>( fileBuffer.Data ), fileBuffer.Size );
 
 			stream.close();
 
@@ -217,12 +217,14 @@ namespace Saturn {
 				jobProgress->SetStatus( std::format( "Compressing file: {0}", path.string() ) );
 
 				// Compress, file over the limit.
-				std::vector<char> compressedData;
-				compressedData.resize( compressBound( (uLong)fileSize ) );
+				Buffer TemporaryBuffer;
+				TemporaryBuffer.Allocate( (size_t) compressBound( (uLong)fileSize ) );
 
-				uLongf compressedSize = (uLongf)compressedData.size();
+				uLongf compressedSize = (uLongf) TemporaryBuffer.Size;
 
-				int result = compress( (Bytef*)compressedData.data(), &compressedSize, (Bytef*)fileBuffer.data(), static_cast<uLong>( fileBuffer.size() ) );
+				int result = compress( 
+					(Bytef*) TemporaryBuffer.Data, &compressedSize,
+					(Bytef*)fileBuffer.Data, static_cast<uLong>( fileBuffer.Size ) );
 
 				if( result != Z_OK )
 				{
@@ -230,16 +232,19 @@ namespace Saturn {
 					), result );
 
 					RawSerialisation::WriteObject( dfh, fout );
-					RawSerialisation::WriteVector( fileBuffer, fout );
+					RawSerialisation::WriteSaturnBuffer( fileBuffer, fout );
 				}
 
 				SAT_CORE_INFO( "Compressed file: {0} new file size is {1} KB", path.string(), compressedSize / 1000 );
 
-				compressedData.resize( compressedSize );
+				Buffer compressedData = Buffer::Copy( TemporaryBuffer.Data, compressedSize );
 				dfh.CompressedSize = compressedSize;
 
 				RawSerialisation::WriteObject( dfh, fout );
-				RawSerialisation::WriteVector( compressedData, fout );
+				RawSerialisation::WriteSaturnBuffer( compressedData, fout );
+
+				compressedData.Free();
+				TemporaryBuffer.Free();
 			}
 			else
 			{
@@ -249,7 +254,7 @@ namespace Saturn {
 				jobProgress->SetStatus( std::format( "Not Compressing file because file size is less than 500 KB: {0}", path.string() ) );
 
 				RawSerialisation::WriteObject( dfh, fout );
-				RawSerialisation::WriteVector( fileBuffer, fout );
+				RawSerialisation::WriteSaturnBuffer( fileBuffer, fout );
 			}
 
 			jobProgress->AddProgress( ( 1.0f + jobProgress->GetProgress() ) / DumpFileToAssetID.size() );
@@ -455,13 +460,17 @@ namespace Saturn {
 				SAT_CORE_INFO( "Decompressing file at offset {0}", dfh.Offset );
 
 				// Compression was used, uncompress. 
-				std::vector<char> uncompressedData( dfh.OrginalSize );
+				Buffer uncompressedData;
+				uncompressedData.Allocate( dfh.OrginalSize );
 
-				std::vector<char> compressedData;
-				RawSerialisation::ReadVector( compressedData, stream );
+				Buffer compressedData;
+				RawSerialisation::ReadSaturnBuffer( compressedData, stream );
 
-				uLongf uncompSize = (uLongf)uncompressedData.size();
-				int result = uncompress( ( Bytef* ) uncompressedData.data(), &uncompSize, ( Bytef* ) compressedData.data(), static_cast<uLong>( compressedData.size() ) );
+				uLongf uncompSize = (uLongf)uncompressedData.Size;
+
+				int result = uncompress( 
+					( Bytef* ) uncompressedData.Data, &uncompSize, 
+					( Bytef* ) compressedData.Data, static_cast<uLong>( compressedData.Size ) );
 
 				if( result != Z_OK )
 				{
@@ -470,18 +479,24 @@ namespace Saturn {
 					return AssetBundleResult::FailedToUncompress;
 				}
 
-				compressedData.clear();
+				compressedData.Free();
 
-				file->FileContent = uncompressedData;
+				file->FileContent.resize( uncompSize );
+				std::memcpy( file->FileContent.data(), uncompressedData.Data, uncompressedData.Size );
+
+				uncompressedData.Free();
 			}
 			else
 			{
 				SAT_CORE_INFO( "Loading uncompressed file at offset {0}", dfh.Offset );
 
-				std::vector<char> uncompressedData( dfh.OrginalSize );
-				RawSerialisation::ReadVector( uncompressedData, stream );
+				Buffer uncompressedData;
+				RawSerialisation::ReadSaturnBuffer( uncompressedData, stream );
 				
-				file->FileContent = uncompressedData;
+				file->FileContent.resize( uncompressedData.Size );
+				std::memcpy( file->FileContent.data(), uncompressedData.Data, uncompressedData.Size );
+
+				uncompressedData.Free();
 			}
 
 			FileEntries[ i ] = dfh;

@@ -87,13 +87,13 @@ public:
 		ps.Deserialise( rSettings.FullStartupProjPath.string() );
 
 		// Load the shader bundle.
-		if( const auto result = Saturn::ShaderBundle::ReadBundle(); result != ShaderBundleResult::Success )
+		if( const auto result = Saturn::ShaderBundle::ReadBundle(); result != Saturn::ShaderBundleResult::Success )
 		{
 			std::string errorMessage = std::format( "Failed to load shader bundle! Error Code: {0}", ( int ) result );
 			SAT_CORE_VERIFY( false, errorMessage );
 		}
 
-		Renderer2D::Get().Init();
+		Saturn::Renderer2D::Get().Init();
 
 		Saturn::SceneRendererFlags flags = Saturn::SceneRendererFlag_MasterInstance | Saturn::SceneRendererFlag_SwapchainTarget;
 		m_SceneRenderer = new Saturn::SceneRenderer( flags );
@@ -121,7 +121,7 @@ Saturn::Application* Saturn::CreateApplication( int argc, char** argv )
 	std::filesystem::current_path( WorkingDir.parent_path() );
 
 	Saturn::ApplicationSpecification spec{};
-	spec.Flags = Saturn::ApplicationFlag_CreateSceneRenderer | Saturn::ApplicationFlag_GameDistribution |Saturn::ApplicationFlag_UseVFS;
+	spec.Flags = Saturn::ApplicationFlag_CreateSceneRenderer | Saturn::ApplicationFlag_GameDistribution | Saturn::ApplicationFlag_UseVFS;
 
 	s_ProjectPath = Saturn::Project::FindProjectDir( "%PROJECT_NAME%" );
 

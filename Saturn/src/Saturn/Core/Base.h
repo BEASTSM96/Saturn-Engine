@@ -77,9 +77,9 @@ minor = ((source) >> 12) & 0x3FF;\
 major = (source) >> 22;
 
 #define SAT_DECODE_VER_STRING(source, string) \
-uint32_t SAT_CONTACT_THREE(major,_,__LINE__), SAT_CONTACT_THREE(minor,_,__LINE__), SAT_CONTACT_THREE(patch,_,__LINE__); \
-SAT_DECODE_VERSION(source, SAT_CONTACT_THREE(major,_,__LINE__), SAT_CONTACT_THREE(minor,_,__LINE__), SAT_CONTACT_THREE(patch,_,__LINE__)) \
-string = std::format( "{0}.{1}.{2}", SAT_CONTACT_THREE(major,_,__LINE__), SAT_CONTACT_THREE(minor,_,__LINE__), SAT_CONTACT_THREE(patch,_,__LINE__) );
+uint32_t SAT_CONTACT(major_,__LINE__), SAT_CONTACT(minor_,__LINE__), SAT_CONTACT(patch_,__LINE__); \
+SAT_DECODE_VERSION(source, SAT_CONTACT(major_,__LINE__), SAT_CONTACT(minor_,__LINE__), SAT_CONTACT(patch_,__LINE__)) \
+string = std::format( "{0}.{1}.{2}", SAT_CONTACT(major_,__LINE__), SAT_CONTACT(minor_,__LINE__), SAT_CONTACT(patch_,__LINE__) );
 
 namespace Saturn::Core {
 

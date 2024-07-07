@@ -371,8 +371,6 @@ namespace Saturn {
 		}
 		else
 		{
-			// TEMP: because this will not work when using VFS
-			// Find and load the texture
 #if defined( SAT_DIST )
 			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
 #else
@@ -398,8 +396,6 @@ namespace Saturn {
 		}
 		else
 		{
-			// TEMP: because this will not work when using VFS
-			// Find and load the texture
 #if defined( SAT_DIST )
 			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
 #else
@@ -413,8 +409,6 @@ namespace Saturn {
 				sourceAsset->TextureData().Data,
 				false );
 
-			// TODO: Do we really need the texture source after this?
-
 			m_PendingTextureChanges[ "u_NormalTexture" ] = normalMap;
 		}
 	}
@@ -427,8 +421,6 @@ namespace Saturn {
 		}
 		else
 		{
-			// TEMP: because this will not work when using VFS
-			// Find and load the texture
 #if defined( SAT_DIST )
 			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
 #else
@@ -454,8 +446,6 @@ namespace Saturn {
 		}
 		else
 		{
-			// TEMP: because this will not work when using VFS
-			// Find and load the texture
 #if defined( SAT_DIST )
 			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
 #else

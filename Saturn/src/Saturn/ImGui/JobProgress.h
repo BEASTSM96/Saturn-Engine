@@ -45,9 +45,9 @@ namespace Saturn {
 		float GetProgress() const { return m_Progress.load(); }
 		const std::string& GetStatus() const { return m_Status; }
 		const std::string& GetTitle() const { return m_Title; }
-		bool Completed() const { return m_Done; }
+		bool Completed() const { return m_Done.load(); }
 
-		inline void OnComplete() { m_Done = true; }
+		inline void OnComplete() { m_Done.store( true ); }
 
 		template<typename Func>
 		inline void SetJobFunc( Func&& rrFunc ) 
@@ -72,6 +72,6 @@ namespace Saturn {
 		std::atomic<float> m_Progress = 0.0f;
 		std::string m_Status;
 		std::string m_Title;
-		bool m_Done = false;
+		std::atomic_bool m_Done = false;
 	};
 }
