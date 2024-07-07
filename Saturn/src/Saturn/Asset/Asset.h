@@ -100,8 +100,6 @@ namespace Saturn {
 			case Saturn::AssetType::Unknown:
 				return "Unknown";
 		}
-
-		std::unreachable();
 	}
 
 	// I don't want to include the imgui header so we will just copy the macro.

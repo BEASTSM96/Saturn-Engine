@@ -373,7 +373,11 @@ namespace Saturn {
 		{
 			// TEMP: because this will not work when using VFS
 			// Find and load the texture
+#if defined( SAT_DIST )
+			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
+#else
 			Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AssetManager::Get().FindAsset( AssetID )->Path );
+#endif
 
 			Ref<Texture2D> albedo = Ref<Texture2D>::Create(
 				ImageFormat::RGBA8,
@@ -396,7 +400,11 @@ namespace Saturn {
 		{
 			// TEMP: because this will not work when using VFS
 			// Find and load the texture
+#if defined( SAT_DIST )
 			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
+#else
+			Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AssetManager::Get().FindAsset( AssetID )->Path );
+#endif
 
 			Ref<Texture2D> normalMap = Ref<Texture2D>::Create(
 				ImageFormat::RGBA8,
@@ -421,7 +429,11 @@ namespace Saturn {
 		{
 			// TEMP: because this will not work when using VFS
 			// Find and load the texture
+#if defined( SAT_DIST )
 			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
+#else
+			Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AssetManager::Get().FindAsset( AssetID )->Path );
+#endif
 
 			Ref<Texture2D> metalness = Ref<Texture2D>::Create(
 				ImageFormat::RGBA8,
@@ -444,7 +456,11 @@ namespace Saturn {
 		{
 			// TEMP: because this will not work when using VFS
 			// Find and load the texture
+#if defined( SAT_DIST )
 			Ref<TextureSourceAsset> sourceAsset = AssetManager::Get().GetAssetAs<TextureSourceAsset>( AssetID );
+#else
+			Ref<TextureSourceAsset> sourceAsset = Ref<TextureSourceAsset>::Create( AssetManager::Get().FindAsset( AssetID )->Path );
+#endif
 
 			Ref<Texture2D> roughness = Ref<Texture2D>::Create(
 				ImageFormat::RGBA8,

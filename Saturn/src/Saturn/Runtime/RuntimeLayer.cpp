@@ -81,8 +81,7 @@ namespace Saturn {
 		// Load Asset bundle.
 		if( auto result = AssetBundle::ReadBundle(); result != AssetBundleResult::Success )
 		{
-			std::string errorCode = std::to_string( (int)result );
-			std::string errMsg = std::format( "Asset Bundle could not be read. Error code: {0}", errorCode );
+			std::string errMsg = std::format( "Asset Bundle could not be read. Error code: {0}", AssetBundleResultToString( result ) );
 
 			SAT_CORE_VERIFY( false, errMsg );
 		}

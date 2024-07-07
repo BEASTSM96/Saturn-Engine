@@ -495,17 +495,19 @@ namespace Saturn {
 		decodedInformation.SampleRate = decoder.outputSampleRate;
 		decodedInformation.Format = (int)decoder.outputFormat;
 
-		std::vector<uint8_t> data( bufferSize );
+		Buffer TemporaryBuffer;
+		TemporaryBuffer.Allocate( bufferSize );
+		TemporaryBuffer.Zero_Memory();
 
 		uint64_t totalFrameRead = 0;
-		MA_CHECK( ma_decoder_read_pcm_frames( &decoder, data.data(), frames, &totalFrameRead ) );
+		MA_CHECK( ma_decoder_read_pcm_frames( &decoder, TemporaryBuffer.Data, frames, &totalFrameRead ) );
 
 		SAT_CORE_ASSERT( totalFrameRead == frames, "Audio decoder did not read the whole file/buffer!" );
 	
-		// Copy the data from the decoder into here, let "data" die at the end of the scope.
-		std::copy( data.begin(), data.end(), std::back_inserter( decodedInformation.PCMFrames ) );
-
 		MA_CHECK( ma_decoder_uninit( &decoder ) );
+
+		decodedInformation.PCMFrames = Buffer::Copy( TemporaryBuffer.Data, TemporaryBuffer.Size );
+		TemporaryBuffer.Free();
 
 		return decodedInformation;
 	}

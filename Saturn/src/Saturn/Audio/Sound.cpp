@@ -68,7 +68,7 @@ namespace Saturn {
 
 		m_Sound = new ma_sound();
 
-		ma_audio_buffer_config bufferConfig = ma_audio_buffer_config_init( (ma_format)rDecodedInformation.Format, rDecodedInformation.Channels, rDecodedInformation.PCMFrameCount, rDecodedInformation.PCMFrames.data(), nullptr );
+		ma_audio_buffer_config bufferConfig = ma_audio_buffer_config_init( (ma_format)rDecodedInformation.Format, rDecodedInformation.Channels, rDecodedInformation.PCMFrameCount, rDecodedInformation.PCMFrames.Data, nullptr );
 
 		MA_CHECK( ma_audio_buffer_init( &bufferConfig, &m_AudioBuffer ) );
 

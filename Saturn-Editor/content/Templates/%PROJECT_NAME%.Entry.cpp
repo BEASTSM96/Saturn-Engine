@@ -37,6 +37,7 @@
 #include <Saturn/Project/Project.h>
 #include <Saturn/Vulkan/ShaderBundle.h>
 #include <Saturn/Core/Timer.h>
+#include <Saturn/Vulkan/Renderer2D.h>
 #include <Saturn/Vulkan/SceneRenderer.h>
 #include <Saturn/Serialisation/EngineSettingsSerialiser.h>
 #include <Saturn/Serialisation/ProjectSerialiser.h>
@@ -85,11 +86,14 @@ public:
 		Saturn::ProjectSerialiser ps;
 		ps.Deserialise( rSettings.FullStartupProjPath.string() );
 
-		SAT_CORE_ASSERT( Saturn::Project::GetActiveProject(), "No project was given." );
-
 		// Load the shader bundle.
-		const auto result = Saturn::ShaderBundle::ReadBundle();
-		SAT_CORE_VERIFY( result.error() == Saturn::ShaderBundleResult::Success, "Failed to load shader bundle!" );
+		if( const auto result = Saturn::ShaderBundle::ReadBundle(); result != ShaderBundleResult::Success )
+		{
+			std::string errorMessage = std::format( "Failed to load shader bundle! Error Code: {0}", ( int ) result );
+			SAT_CORE_VERIFY( false, errorMessage );
+		}
+
+		Renderer2D::Get().Init();
 
 		Saturn::SceneRendererFlags flags = Saturn::SceneRendererFlag_MasterInstance | Saturn::SceneRendererFlag_SwapchainTarget;
 		m_SceneRenderer = new Saturn::SceneRenderer( flags );
@@ -103,9 +107,6 @@ public:
 
 	virtual void OnShutdown() override
 	{
-		Saturn::EngineSettingsSerialiser uss;
-		uss.Serialise();
-
 		PopLayer( m_RuntimeLayer );
 		delete m_RuntimeLayer;
 	}

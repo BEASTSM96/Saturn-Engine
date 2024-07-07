@@ -253,11 +253,9 @@ namespace Saturn {
 		}
 
 		template<typename Ty, typename OStream>
-		static size_t WriteObject( const Ty& rObject, OStream& rStream )
+		static void WriteObject( const Ty& rObject, OStream& rStream )
 		{
 			rStream.write( reinterpret_cast< const char* >( &rObject ), sizeof( Ty ) );
-
-			return sizeof( Ty );
 		}
 
 		template<typename Ty, typename IStream>
@@ -267,26 +265,23 @@ namespace Saturn {
 		}
 
 		template<typename OStream>
-		static size_t WriteString( const std::string& rString, OStream& rStream )
+		static void WriteString( const std::string& rString, OStream& rStream )
 		{
 			size_t size = rString.size();
 			rStream.write( reinterpret_cast< char* >( &size ), sizeof( size_t ) );
 
 			rStream.write( rString.data(), size );
-
-			return size;
 		}
 
 		template<typename OStream>
-		static size_t WriteString( const std::filesystem::path& rString, OStream& rStream )
+		static void WriteString( const std::filesystem::path& rString, OStream& rStream )
 		{
 			std::string stringbuf = rString.string();
-
-			return WriteString( stringbuf, rStream );
+			WriteString( stringbuf, rStream );
 		}
 
 		template<typename OStream>
-		static size_t WriteString( const std::stringstream& rString, OStream& rStream )
+		static void WriteString( const std::stringstream& rString, OStream& rStream )
 		{
 			std::string stringbuf = rString.str();
 
@@ -294,8 +289,6 @@ namespace Saturn {
 			rStream.write( reinterpret_cast< const char* >( &size ), sizeof( size ) );
 
 			rStream.write( stringbuf.data(), size );
-
-			return size;
 		}
 
 		/////////////////////////////////////////////////////////////////////////
@@ -511,93 +504,49 @@ namespace Saturn {
 		template<typename OStream>
 		static void WriteVec2( const glm::vec2& rVec, OStream& rStream )
 		{
-			glm::vec2 temporaryVec( rVec );
-
-			rStream.write( reinterpret_cast< char* >( &temporaryVec.x ), sizeof( float ) );
-			rStream.write( reinterpret_cast< char* >( &temporaryVec.y ), sizeof( float ) );
+			WriteObject( rVec, rStream );
 		}
 
 		template<typename IStream>
 		static void ReadVec2( glm::vec2& rVec, IStream& rStream )
 		{
-			float x, y;
-
-			rStream.read( reinterpret_cast< char* >( &x ), sizeof( float ) );
-			rStream.read( reinterpret_cast< char* >( &y ), sizeof( float ) );
-
-			rVec = glm::vec2( x, y );
+			ReadObject( rVec, rStream );
 		}
 
 		template<typename OStream>
-		static size_t WriteVec3( const glm::vec3& rVec, OStream& rStream )
+		static void WriteVec3( const glm::vec3& rVec, OStream& rStream )
 		{
-			glm::vec3 temporaryVec( rVec );
-
-			rStream.write( reinterpret_cast< char* >( &temporaryVec.x ), sizeof( float ) );
-			rStream.write( reinterpret_cast< char* >( &temporaryVec.y ), sizeof( float ) );
-			rStream.write( reinterpret_cast< char* >( &temporaryVec.z ), sizeof( float ) );
-
-			return sizeof( float ) * 3;
+			WriteObject( rVec, rStream );
 		}
 
 		template<typename IStream>
 		static void ReadVec3( glm::vec3& rVec, IStream& rStream )
 		{
-			float x, y, z;
-
-			rStream.read( reinterpret_cast< char* >( &x ), sizeof( float ) );
-			rStream.read( reinterpret_cast< char* >( &y ), sizeof( float ) );
-			rStream.read( reinterpret_cast< char* >( &z ), sizeof( float ) );
-
-			rVec = glm::vec3( x, y, z );
+			ReadObject( rVec, rStream );
 		}
 
 		template<typename OStream>
 		static void WriteVec4( const glm::vec4& rVec, OStream& rStream )
 		{
-			glm::vec4 temporaryVec( rVec );
-
-			rStream.write( reinterpret_cast< char* >( &temporaryVec.x ), sizeof( float ) );
-			rStream.write( reinterpret_cast< char* >( &temporaryVec.y ), sizeof( float ) );
-			rStream.write( reinterpret_cast< char* >( &temporaryVec.z ), sizeof( float ) );
-			rStream.write( reinterpret_cast< char* >( &temporaryVec.w ), sizeof( float ) );
+			WriteObject( rVec, rStream );
 		}
 
 		template<typename IStream>
 		static void ReadVec4( glm::vec4& rVec, IStream& rStream )
 		{
-			float x, y, z, w;
-
-			rStream.read( reinterpret_cast< char* >( &x ), sizeof( float ) );
-			rStream.read( reinterpret_cast< char* >( &y ), sizeof( float ) );
-			rStream.read( reinterpret_cast< char* >( &z ), sizeof( float ) );
-			rStream.read( reinterpret_cast< char* >( &w ), sizeof( float ) );
-
-			rVec = glm::vec4( x, y, z, w );
+			ReadObject( rVec, rStream );
 		}
 
 		template<typename OStream>
 		static void WriteMatrix4x4( const glm::mat4& rMat, OStream& rStream )
 		{
-			glm::mat4 temporaryMat( rMat );
-
-			WriteVec4( temporaryMat[ 0 ], rStream );
-			WriteVec4( temporaryMat[ 1 ], rStream );
-			WriteVec4( temporaryMat[ 2 ], rStream );
-			WriteVec4( temporaryMat[ 3 ], rStream );
+			WriteObject( rMat, rStream );
 		}
 
 		template<typename IStream>
 		static void ReadMatrix4x4( glm::mat4& rMat, IStream& rStream )
 		{
-			glm::mat4 newMat{};
-
-			ReadVec4( newMat[ 0 ], rStream );
-			ReadVec4( newMat[ 1 ], rStream );
-			ReadVec4( newMat[ 2 ], rStream );
-			ReadVec4( newMat[ 3 ], rStream );
-
-			rMat = newMat;
+			ReadObject( rMat, rStream );
 		}
 
 		template<typename OStream>

@@ -48,6 +48,31 @@ namespace Saturn {
 		AssetIDMismatch
 	};
 
+	inline std::string_view AssetBundleResultToString( AssetBundleResult result )
+	{
+		switch( result )
+		{
+			case AssetBundleResult::Success:
+				return "Success";
+			case AssetBundleResult::FileNotFound:
+				return "Asset Bundle file not found";
+			case AssetBundleResult::FailedToUncompress:
+				return "Failed to uncompress";
+			case AssetBundleResult::InvalidFileHeader:
+				return "Invalid asset bundle file header";
+			case AssetBundleResult::FileVersionMismatch:
+				return "Asset bundle version mismatch";
+			case AssetBundleResult::InvalidPackFileHeader:
+				return "Invalid pack file header";
+			case AssetBundleResult::PackFileVersionMismatch:
+				return "Pack version mismatch";
+			case AssetBundleResult::AssetIDMismatch:
+				return "Asset ID mismatch";
+		}
+
+		return "Unknown Error";
+	}
+
 	class JobProgress;
 
 	class AssetBundle

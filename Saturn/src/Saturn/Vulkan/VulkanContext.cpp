@@ -90,9 +90,9 @@ namespace Saturn {
 		Renderer* pRenderer = new Renderer();
 		pRenderer->Init();
 
-		// Cannot init renderer2d at this point because no shader are loaded!
+		// Only initialise Renderer2D if we are not in Dist.
+		// If we are in dist then the application will initialise when the shader bundle is loaded.
 #if !defined(SAT_DIST)
-		// Init Renderer2D.
 		Renderer2D::Get().Init();
 #endif
 	}

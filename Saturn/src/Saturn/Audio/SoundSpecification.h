@@ -40,7 +40,7 @@ namespace Saturn {
 		uint64_t BytesPerFrame = 0;
 		uint64_t PCMFrameCount = 0;
 
-		std::vector<uint8_t> PCMFrames;
+		Buffer PCMFrames;
 	};
 
 	class SoundSpecification : public Asset

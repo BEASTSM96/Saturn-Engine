@@ -160,57 +160,53 @@ namespace Saturn {
 		out /= std::to_string( rAsset->ID );
 		out.replace_extension( ".vfs" );
 
-		std::ofstream ss( out, std::ios::binary | std::ios::trunc );
+		std::ofstream fout( out, std::ios::binary | std::ios::trunc );
 
 		/////////////////////////////////////
 
-		RawSerialisation::WriteVec3( materialAsset->GetAlbeoColor(), ss );
+		RawSerialisation::WriteVec3( materialAsset->GetAlbeoColor(), fout );
+		
+		auto writeTextureID = []( Ref<Texture2D> targetTexture, std::ofstream& rStream ) 
+			{
+				AssetID textureID = 0;
+				if( targetTexture ) 
+				{
+					auto path = std::filesystem::relative( targetTexture->GetPath(), Project::GetActiveProject()->GetRootDir() );
 
-		// We are fine to use the main asset registry here, we are only looking for an asset.
-		auto asset = AssetManager::Get().FindAsset( materialAsset->GetAlbeoMap()->GetPath() );
-		AssetID fallbackAssetID = 0;
+					SAT_CORE_INFO( "texture relative path: {0} for texture: {1}", path, targetTexture->GetPath() );
+
+					// We are fine to use the main asset registry here, we are only looking for an asset.
+					Ref<Asset> textureSourceAsset = AssetManager::Get().FindAsset( path );
+
+					if( textureSourceAsset )
+						textureID = textureSourceAsset->ID;
+				}
+
+				RawSerialisation::WriteObject( textureID, rStream );
+			};
 
 		// ALBEO
-		if( asset )
-			RawSerialisation::WriteObject( asset->ID, ss );
-		else
-			RawSerialisation::WriteObject( fallbackAssetID, ss );
+		writeTextureID( materialAsset->GetAlbeoMap(), fout );
 
 		// NORMAL MAP
-
-		asset = AssetManager::Get().FindAsset( materialAsset->GetNormalMap()->GetPath() );
 		bool isUsingNormalMaps = materialAsset->IsUsingNormalMap();
+		RawSerialisation::WriteObject( isUsingNormalMaps, fout );
 
-		RawSerialisation::WriteObject( isUsingNormalMaps, ss );
-
-		if( asset )
-			RawSerialisation::WriteObject( asset->ID, ss );
-		else
-			RawSerialisation::WriteObject( fallbackAssetID, ss );
+		writeTextureID( materialAsset->GetNormalMap(), fout );
 
 		// METALLIC MAP
+		RawSerialisation::WriteObject( materialAsset->GetMetalness(), fout );
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetMetallicMap()->GetPath() );
-		RawSerialisation::WriteObject( materialAsset->GetMetalness(), ss );
-
-		if( asset )
-			RawSerialisation::WriteObject( asset->ID, ss );
-		else
-			RawSerialisation::WriteObject( fallbackAssetID, ss );
+		writeTextureID( materialAsset->GetMetallicMap(), fout );
 
 		// ROUGHNESS MAP
+		RawSerialisation::WriteObject( materialAsset->GetRoughness(), fout );
 
-		asset = AssetManager::Get().FindAsset( materialAsset->GetRoughnessMap()->GetPath() );
-		RawSerialisation::WriteObject( materialAsset->GetRoughness(), ss );
+		writeTextureID( materialAsset->GetRoughnessMap(), fout );
 
-		if( asset )
-			RawSerialisation::WriteObject( asset->ID, ss );
-		else
-			RawSerialisation::WriteObject( fallbackAssetID, ss );
-
-		RawSerialisation::WriteObject( materialAsset->GetEmissive(), ss );
+		RawSerialisation::WriteObject( materialAsset->GetEmissive(), fout );
 		
-		ss.close();
+		fout.close();
 
 		return true;
 	}
@@ -435,7 +431,7 @@ namespace Saturn {
 		RawSerialisation::WriteObject( rObject.SampleRate, rStream );
 		RawSerialisation::WriteObject( rObject.PCMFrameCount, rStream );
 		RawSerialisation::WriteObject( rObject.BytesPerFrame, rStream );
-		RawSerialisation::WriteVector( rObject.PCMFrames, rStream );
+		RawSerialisation::WriteSaturnBuffer( rObject.PCMFrames, rStream );
 	}
 
 	static void DeserialiseSoundDecodedInformation( SoundDecodedInformation& rObject, std::istream& rStream ) 
@@ -445,7 +441,7 @@ namespace Saturn {
 		RawSerialisation::ReadObject( rObject.SampleRate, rStream );
 		RawSerialisation::ReadObject( rObject.PCMFrameCount, rStream );
 		RawSerialisation::ReadObject( rObject.BytesPerFrame, rStream );
-		RawSerialisation::ReadVector( rObject.PCMFrames, rStream );
+		RawSerialisation::ReadSaturnBuffer( rObject.PCMFrames, rStream );
 	}
 
 	bool RawSoundSpecAssetSerialiser::DumpAndWriteToVFS( const Ref<Asset>& rAsset ) const
@@ -454,7 +450,7 @@ namespace Saturn {
 
 		std::filesystem::path out = Project::GetActiveProject()->GetTempDir();
 		out /= std::to_string( rAsset->ID );
-		out.replace_extension( ".vfs" );
+		out.replace_extension( ".vfsn" );
 
 		std::ofstream stream( out, std::ios::binary | std::ios::trunc );
 

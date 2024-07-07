@@ -30,6 +30,7 @@
 #include "TextureSourceAsset.h"
 
 #include "Saturn/Core/VirtualFS.h"
+#include "Saturn/Core/MemoryStream.h"
 
 #include <stb_image.h>
 
@@ -52,6 +53,7 @@ namespace Saturn {
 
 	void TextureSourceAsset::LoadRawTexture()
 	{
+#if !defined(SAT_DIST)
 		SAT_CORE_ASSERT( std::filesystem::exists( m_AbsolutePath ), "Path does not exist!" );
 
 		int Width, Height, Channels;
@@ -81,6 +83,7 @@ namespace Saturn {
 		m_TextureBuffer = Buffer::Copy( pTextureData, static_cast<size_t>( ImageSize ) );
 
 		stbi_image_free( pTextureData );
+#endif
 	}
 
 	void TextureSourceAsset::WriteToVFS()
@@ -91,7 +94,7 @@ namespace Saturn {
 
 		std::ofstream stream( out, std::ios::binary | std::ios::trunc );
 
-		RawSerialisation::WriteString( m_AbsolutePath.string(), stream );
+//		RawSerialisation::WriteString( m_AbsolutePath.string(), stream );
 
 		RawSerialisation::WriteObject( m_Width, stream );
 		RawSerialisation::WriteObject( m_Height, stream );
@@ -105,15 +108,19 @@ namespace Saturn {
 
 	void TextureSourceAsset::ReadFromVFS()
 	{
-		SAT_CORE_ASSERT( false );
-
+#if defined(SAT_DIST)
 		const std::string& rMountBase = Project::GetActiveConfig().Name;
 		Ref<VFile> file = VirtualFS::Get().FindFile( rMountBase, Path );
 
-		/////////////////////////////////////
-		std::istringstream stream( "", std::ios::binary | std::ios::in );
+		if( !file )
+			return;
 
-		m_AbsolutePath = RawSerialisation::ReadString( stream );
+		PakFileMemoryBuffer membuf( file->FileContent );
+		std::istream stream( &membuf );
+
+		/////////////////////////////////////
+
+//		m_AbsolutePath = RawSerialisation::ReadString( stream );
 		RawSerialisation::ReadObject( m_Width, stream );
 		RawSerialisation::ReadObject( m_Height, stream );
 		RawSerialisation::ReadObject( m_Channels, stream );
@@ -122,5 +129,6 @@ namespace Saturn {
 
 		// Buffer
 		RawSerialisation::ReadSaturnBuffer( m_TextureBuffer, stream );
+#endif
 	}
 }
