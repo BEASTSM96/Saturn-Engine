@@ -70,12 +70,6 @@ void main()
 		minDepthInt = 0xFFFFFFFF;
 		maxDepthInt = 0;
 		visibleLightCount = 0;
-
-		uint index = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
-		uint offset = index * 1024;
-		for (uint i = 0; i < 1024; i++) {
-			s_VisiblePointLightIndicesBuffer.Indices[offset + i] = -1;
-		}
 	}
 
 	barrier();
@@ -135,6 +129,7 @@ void main()
 	uint threadCount = TILE_SIZE * TILE_SIZE;
 	uint passCount = (u_Lights.nbLights + threadCount - 1) / threadCount;
 
+/*
 	for( uint i = gl_LocalInvocationIndex; i < u_Lights.nbLights; i += threadCount )
 	{
 		PointLight light = u_Lights.Lights[i];
@@ -157,6 +152,34 @@ void main()
 				uint id = atomicAdd( visibleLightCount, 1 );
 				visibleLightIndices[id] = int(i);
 			}
+		}
+	}
+*/
+
+	for( uint i = 0; i < passCount; i++ ) 
+	{
+		uint lightIndex = i * threadCount + gl_LocalInvocationIndex;
+		if(lightIndex >= u_Lights.nbLights)
+		    break;
+
+		PointLight light = u_Lights.Lights[i];
+		vec4 pos = vec4( light.Position, 1.0 );
+		float radius = light.Radius;
+		radius += radius * 0.3f;
+
+		float dist = 0.0;
+		for( uint j = 0; j < 6; j++ ) 
+		{
+			dist = dot( pos, frustumPlanes[ j ] ) + radius;
+
+			if( dist <= 0.0 )
+				break;
+		}
+
+		if( dist > 0.0 ) 
+		{
+			uint offset = atomicAdd( visibleLightCount, 1 );
+			visibleLightIndices[offset] = int(lightIndex);		
 		}
 	}
 

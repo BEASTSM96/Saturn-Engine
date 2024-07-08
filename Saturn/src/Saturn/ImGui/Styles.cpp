@@ -36,7 +36,7 @@ namespace Saturn::Styles {
 	void Dark()
 	{
 		ImGuiStyle& style = ImGui::GetStyle();
-		ImVec4* colors = ImGui::GetStyle().Colors;
+		ImVec4* colors = style.Colors;
 
 		// Inspired by My Own custom theme, Geno IDE's theme, and ImGui's own dark theme, and a mixture with some of Hazel's theme.
 		colors[ ImGuiCol_Text ]                   = ImVec4( 1.000f, 1.000f, 1.000f, 1.000f );
@@ -84,7 +84,7 @@ namespace Saturn::Styles {
 		
 		colors[ ImGuiCol_Tab ]                    = ImVec4( 0.23f, 0.22f, 0.22f, 1.00f );
 		colors[ ImGuiCol_TabHovered ]             = ImVec4( 0.352f, 0.352f, 0.352f, 1.000f );
-		colors[ ImGuiCol_TabActive ] = ImVec4( 0.80f, 0.36f, 0.08f, 1.00f );
+		colors[ ImGuiCol_TabActive ]              = ImVec4( 0.80f, 0.36f, 0.08f, 1.00f );
 		colors[ ImGuiCol_TabUnfocused ]           = ImVec4( 0.098f, 0.098f, 0.098f, 1.000f );
 		colors[ ImGuiCol_TabUnfocusedActive ]     = ImVec4( 0.195f, 0.195f, 0.195f, 1.000f );
 
