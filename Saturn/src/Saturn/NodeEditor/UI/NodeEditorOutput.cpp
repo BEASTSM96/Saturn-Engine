@@ -84,7 +84,7 @@ namespace Saturn {
 	{
 		float height = ImGui::GetTextLineHeightWithSpacing();
 
-		ImGui::BeginHorizontal( rMessage.ID );
+		ImGui::BeginHorizontal( (int)rMessage.ID );
 
 		ImGui::Spring( 1.0f, 1.0f );
 

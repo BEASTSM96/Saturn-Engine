@@ -100,6 +100,8 @@ namespace Saturn {
 			case Saturn::AssetType::Unknown:
 				return "Unknown";
 		}
+
+		return "Unknown";
 	}
 
 	// I don't want to include the imgui header so we will just copy the macro.

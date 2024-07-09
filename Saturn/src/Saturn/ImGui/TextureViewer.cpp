@@ -53,7 +53,7 @@ namespace Saturn {
 
 	void TextureViewer::OnImGuiRender()
 	{
-		ImGui::PushID( (uint64_t)m_Asset->ID );
+		ImGui::PushID( (int)m_Asset->ID );
 
 		ImGui::Begin( "Texture Viewer", &m_Open );
 

@@ -20,7 +20,7 @@ struct PointLight
 layout(set = 0, binding = 0) uniform PointLightData
 {
 	uint nbLights;
-	PointLight Lights[1024];
+	PointLight Lights[512];
 } u_Lights;
 
 // Must match with static meshes shader.

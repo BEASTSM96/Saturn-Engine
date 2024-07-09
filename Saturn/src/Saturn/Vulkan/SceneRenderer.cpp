@@ -1153,6 +1153,16 @@ namespace Saturn {
 			m_RendererData.BloomTextures[ i ]->SetDebugName( "Bloom Texture: " + std::to_string( i ) );
 		}
 
+		constexpr uint32_t TILE_SIZE = 16;
+		glm::uvec2 Viewport = { m_RendererData.Width, m_RendererData.Height };
+		glm::uvec2 Size = Viewport;
+		Size += TILE_SIZE - Viewport % TILE_SIZE;
+
+		m_RendererData.LightCullingWorkGroups = { Size / TILE_SIZE, 1 };
+
+		float size = m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4.0f * 1024.0f;
+		m_RendererData.StorageBufferSet->Resize( 0, 14, ( size_t ) size );
+
 		m_RendererData.SceneCompositeShader->WriteDescriptor( "u_BloomTexture", m_RendererData.BloomTextures[ 2 ]->GetDescriptorInfo(), m_RendererData.SC_DescriptorSet->GetVulkanSet() );
 
 		CreateSkyboxComponents();
@@ -1247,61 +1257,59 @@ namespace Saturn {
 
 		Ref< Shader > StaticMeshShader = m_RendererData.StaticMeshShader;
 
+		// u_Matrices
+		RendererData::StaticMeshMatrices u_Matrices = {};
+		u_Matrices.View = m_RendererData.CurrentCamera.ViewMatrix;
+		u_Matrices.ViewProjection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
+
+		LightData u_LightData = {};
+		RendererData::PointLights u_Lights;
+
+		u_Lights.nbLights = int( m_pScene->m_Lights.PointLights.size() );
+
+		memcpy( u_Lights.Lights, m_pScene->m_Lights.PointLights.data(), m_pScene->m_Lights.GetPointLightSize() );
+
+		SceneData u_SceneData = {};
+		ShadowData u_ShadowData = {};
+
+		struct DebugData
+		{
+			int TilesCountX;
+		} u_DebugData = {};
+
+		u_DebugData.TilesCountX = ( int ) m_RendererData.LightCullingWorkGroups.x;
+
+		auto dirLight = m_pScene->m_Lights.DirectionalLights[ 0 ];
+
+		auto invView = glm::inverse( u_Matrices.View );
+
+		u_SceneData.CameraPosition = invView[ 3 ];
+		u_SceneData.Lights = { .Direction = dirLight.Direction, .Radiance = dirLight.Radiance, .Multiplier = dirLight.Intensity };
+
+		if( m_RendererData.EnableShadows )
+		{
+			for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
+			{
+				u_ShadowData.CascadeSplits[ i ] = m_RendererData.ShadowCascades[ i ].SplitDepth;
+				u_LightData.LightMatrix[ i ] = m_RendererData.ShadowCascades[ i ].ViewProjection;
+			}
+		}
+
+		StaticMeshShader->UploadUB( ShaderType::Vertex, 0, 0, &u_Matrices, sizeof( u_Matrices ) );
+		StaticMeshShader->UploadUB( ShaderType::Vertex, 0, 1, &u_LightData, sizeof( u_LightData ) );
+
+		StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 2, &u_SceneData, sizeof( u_SceneData ) );
+		StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 3, &u_ShadowData, sizeof( u_ShadowData ) );
+		StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 12, &u_DebugData, sizeof( u_DebugData ) );
+
+		//StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, sizeof( u_Lights ) );
+		StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, 16ull + sizeof( PointLight ) * u_Lights.nbLights );
+
 		for( auto&& [key, Cmd] : m_DrawList )
 		{
 			// Entity may of been deleted.
 			if( !Cmd.entity )
 				continue;
-
-			auto& uuid = Cmd.entity->GetComponent<IdComponent>().ID;
-
-			// u_Matrices
-			RendererData::StaticMeshMatrices u_Matrices = {};
-			u_Matrices.View = m_RendererData.CurrentCamera.ViewMatrix;
-			u_Matrices.ViewProjection = m_RendererData.CurrentCamera.Camera.ProjectionMatrix() * m_RendererData.CurrentCamera.ViewMatrix;
-
-			LightData u_LightData = {};
-			RendererData::PointLights u_Lights;
-
-			u_Lights.nbLights = int( m_pScene->m_Lights.PointLights.size() );
-
-			memcpy( u_Lights.Lights, m_pScene->m_Lights.PointLights.data(), m_pScene->m_Lights.GetPointLightSize() );
-
-			SceneData u_SceneData = {};
-			ShadowData u_ShadowData = {};
-
-			struct DebugData
-			{
-				int TilesCountX;
-			} u_DebugData = {};
-
-			u_DebugData.TilesCountX = ( int ) m_RendererData.LightCullingWorkGroups.x;
-
-			auto dirLight = m_pScene->m_Lights.DirectionalLights[ 0 ];
-
-			auto invView = glm::inverse( u_Matrices.View );
-
-			u_SceneData.CameraPosition = invView[ 3 ];
-			u_SceneData.Lights = { .Direction = dirLight.Direction, .Radiance = dirLight.Radiance, .Multiplier = dirLight.Intensity };
-
-			if( m_RendererData.EnableShadows )
-			{
-				for( int i = 0; i < SHADOW_CASCADE_COUNT; i++ )
-				{
-					u_ShadowData.CascadeSplits[ i ] = m_RendererData.ShadowCascades[ i ].SplitDepth;
-					u_LightData.LightMatrix[ i ] = m_RendererData.ShadowCascades[ i ].ViewProjection;
-				}
-			}
-
-			StaticMeshShader->UploadUB( ShaderType::Vertex, 0, 0, &u_Matrices, sizeof( u_Matrices ) );
-			StaticMeshShader->UploadUB( ShaderType::Vertex, 0, 1, &u_LightData, sizeof( u_LightData ) );
-
-			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 2, &u_SceneData, sizeof( u_SceneData ) );
-			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 3, &u_ShadowData, sizeof( u_ShadowData ) );
-			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 12, &u_DebugData, sizeof( u_DebugData ) );
-
-			//StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, sizeof( u_Lights ) );
-			StaticMeshShader->UploadUB( ShaderType::Fragment, 0, 13, &u_Lights, 16ull + sizeof( PointLight ) * u_Lights.nbLights );
 
 			const auto& rTransformData = m_RendererData.MeshTransforms[ key ];
 
@@ -1576,30 +1584,27 @@ namespace Saturn {
 		pass->EndPass();
 	}
 
-	struct UBLights
-	{
-		uint32_t nbLights = 0;
-		PointLight Lights[ 1024 ];
-	};
-
 	void SceneRenderer::LightCullingPass()
 	{
 		SAT_PF_EVENT();
 
 		m_RendererData.LightCullingTimer.Reset();
 
-		constexpr uint32_t TILE_SIZE = 16;
-		glm::uvec2 Viewport = { m_RendererData.Width, m_RendererData.Height };
-		glm::uvec2 Size = Viewport;
-		Size += TILE_SIZE - Viewport % TILE_SIZE;
+		if( m_RendererData.LightCullingWorkGroups.x == 0 ) 
+		{
+			constexpr uint32_t TILE_SIZE = 16;
+			glm::uvec2 Viewport = { m_RendererData.Width, m_RendererData.Height };
+			glm::uvec2 Size = Viewport;
+			Size += TILE_SIZE - Viewport % TILE_SIZE;
 
-		m_RendererData.LightCullingWorkGroups = { Size / TILE_SIZE, 1 };
+			m_RendererData.LightCullingWorkGroups = { Size / TILE_SIZE, 1 };
 
-		float size = m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4.0f * 1024.0f;
-		m_RendererData.StorageBufferSet->Resize( 0, 14, (size_t)size );
+			float size = m_RendererData.LightCullingWorkGroups.x * m_RendererData.LightCullingWorkGroups.y * 4.0f * 1024.0f;
+			m_RendererData.StorageBufferSet->Resize( 0, 14, ( size_t ) size );
+		}
 
 		// UBs
-		UBLights u_Lights;
+		RendererData::PointLights u_Lights;
 
 		struct
 		{
@@ -1674,7 +1679,7 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		m_RendererData.BloomTimer.Reset();
-		m_RendererData.BloomTimer.Stop();
+		//m_RendererData.BloomTimer.Stop();
 
 		// TEMP
 		//return;
@@ -2089,8 +2094,6 @@ namespace Saturn {
 
 	void RendererData::Terminate()
 	{
-		VkDevice LogicalDevice = VulkanContext::Get().GetDevice();
-
 		if( !Application::Get().HasFlag( ApplicationFlag_CreateSceneRenderer ) )
 			return;
 

@@ -235,7 +235,7 @@ namespace Saturn {
 		struct PointLights
 		{
 			uint32_t nbLights = 0;
-			PointLight Lights[ 256 ]{};
+			PointLight Lights[ 512 ]{};
 		};
 
 		//////////////////////////////////////////////////////////////////////////

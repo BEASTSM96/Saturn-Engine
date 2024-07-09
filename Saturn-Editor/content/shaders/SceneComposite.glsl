@@ -116,19 +116,18 @@ void main()
 	/*
 	float d = texture( u_DepthTexture, vs_Input.TexCoord ).r;
 	
-	float fogStart = 2.0f;
-	float fogFalloff = 40.0f;
+	float fogStart = 10.0f;
+	float fogFalloff = 20.0f;
 
 	float fogAmount = smoothstep( fogStart, fogStart + fogFalloff, d );
 
-	vec3 fogColor = vec3(0.0f);
+	vec3 fogColor = vec3(0.5f, 0.02f, 0.01f);
 
 	GeometryPassColor = mix( GeometryPassColor, fogColor, fogAmount );
-	GeometryPassColor *= 0.80;
+	//GeometryPassColor *= 0.80;
 	*/
 
 	// Vignette
-	/*
 	vec2 coord = vs_Input.TexCoord * 2.0 - 1.0;
 	float dist = length( coord );
     dist = sqrt( dist );
@@ -137,7 +136,6 @@ void main()
     dist = clamp( vi, 0.0, 1.0 );
 
 	GeometryPassColor *= dist;
-	*/
 
 	FinalColor = vec4( GeometryPassColor, 1.0 );
 }

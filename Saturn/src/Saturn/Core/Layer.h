@@ -63,7 +63,7 @@ namespace Saturn {
 
 		virtual void OnAttach( void ) override;
 		virtual void OnDetach( void ) override;
-		virtual void OnImGuiRender( void ) override;
+		virtual void OnImGuiRender( void ) {}
 
 		VkDescriptorPool GetPool() { return m_DescriptorPool; }
 		VkDescriptorSetLayout GetLayout() { return m_DescriptorLayout; }
