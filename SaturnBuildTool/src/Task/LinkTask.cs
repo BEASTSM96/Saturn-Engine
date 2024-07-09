@@ -75,9 +75,18 @@ namespace SaturnBuildTool
                 Args.Add(string.Format(" /LIBPATH:\"{0}\"", links));
             }
             
-            Args.Add(" /INCREMENTAL");
             Args.Add(" /MACHINE:x64");
-            Args.Add(" /DEBUG:FULL" );
+    
+            if (TargetToBuild.CurrentConfig != ConfigKind.Dist ) 
+            {
+                Args.Add(" /INCREMENTAL");
+                Args.Add(" /DEBUG:FULL" );
+            }
+            else 
+            {
+                Args.Add(" /DEBUG:NONE" );
+                Args.Add(" /INCREMENTAL:NO");
+            }
 
             switch (TargetToBuild.OutputType) 
             {

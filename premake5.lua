@@ -205,8 +205,8 @@ project "Saturn"
 		filter "configurations:Dist"
 			defines "SAT_DIST"
 			runtime "Release"
-			--optimize "on"
-			symbols "on"
+			optimize "on"
+			symbols "off"
 
 			removelinks { "Tracy" }
 

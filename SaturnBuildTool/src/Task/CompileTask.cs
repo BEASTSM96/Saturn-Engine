@@ -77,19 +77,19 @@ namespace SaturnBuildTool
             // Unwind semantics.
             Args.Add(" /EHsc");
 
-            // Allow for multiple CL.exes to write to the same pdb file.
-            Args.Add(" /FS");
-
             // Eliminate Duplicate Strings
             Args.Add(" /GF");
 
-            if (TargetToBuild.CurrentConfig == ConfigKind.Debug )
+            if (TargetToBuild.CurrentConfig != ConfigKind.Dist )
             {
                 Args.Add(" /MTd");
+                Args.Add(" /Od" );
+                Args.Add(" /FS" );
             }
             else 
             {
                 Args.Add(" /MT" );
+                Args.Add( "/Ox" );
             }
 
             // Out

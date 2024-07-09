@@ -41,6 +41,9 @@ project "Ruby"
 			runtime "Release"
 			optimize "on"
 
+		filter "configurations:Dist"
+			runtime "Release"
+			optimize "on"
 
 	filter "system:linux"
 		systemversion "latest"
@@ -56,10 +59,6 @@ project "Ruby"
 			"GL"
 		}
 
-		defines
-		{
-		}
-
 		filter "configurations:Debug"
 			defines "_DEBUG"
 			runtime "Debug"
@@ -67,5 +66,9 @@ project "Ruby"
 
 		filter "configurations:Release"
 			defines "_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+		filter "configurations:Dist"
 			runtime "Release"
 			optimize "on"

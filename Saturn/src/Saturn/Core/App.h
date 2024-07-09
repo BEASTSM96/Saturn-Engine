@@ -53,7 +53,6 @@ namespace Saturn {
 	enum ApplicationFlags_
 	{
 		ApplicationFlag_UIOnly = BIT( 0 ),
-		ApplicationFlag_GameDistribution = BIT( 1 ),
 		ApplicationFlag_CreateSceneRenderer = BIT( 2 ),
 		ApplicationFlag_UseGameThread = BIT( 3 ),
 		ApplicationFlag_Titlebar = BIT( 4 ),
@@ -83,7 +82,6 @@ namespace Saturn {
 		static inline Application& Get() { return *SingletonStorage::GetSingleton<Application>(); }
 	public:
 		Application( const ApplicationSpecification& spec );
-
 		virtual ~Application();
 
 		void Run();
@@ -91,7 +89,7 @@ namespace Saturn {
 
 		bool Running() const { return m_Running; }
 
-		Timestep& Time() { return m_Timestep; }
+		const Timestep& Time() { return m_Timestep; }
 
 		std::string OpenFile( const char* pFilter ) const;
 		std::string SaveFile( const char* pFilter ) const;

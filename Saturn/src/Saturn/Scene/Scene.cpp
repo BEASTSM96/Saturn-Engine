@@ -490,9 +490,14 @@ namespace Saturn {
 
 		glm::mat4 transform( 1.0f );
 
-		Ref<Entity> parent = FindEntityByID( entity->GetParent() );
-		if( parent )
-			transform = GetTransformRelativeToParent( parent );
+		const UUID& rParentID = entity->GetParent();
+
+		if( rParentID != 0 )
+		{
+			Ref<Entity> parent = FindEntityByID( rParentID );
+			if( parent )
+				transform = GetTransformRelativeToParent( parent );
+		}
 
 		return transform * entity->GetComponent<TransformComponent>().GetTransform();
 	}

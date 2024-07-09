@@ -103,12 +103,10 @@ namespace Saturn {
 		// ImGui is only used if we have the editor, and ImGui should not be used when building the game.
 		m_ImGuiLayer = new ImGuiLayer();
 
-		if( !HasFlag( ApplicationFlag_GameDistribution ) )
-			m_ImGuiLayer->OnAttach();
-
 #if defined( SAT_DIST )
 		m_Window->Show( RubyWindowShowCmd::Fullscreen );
 #else
+		m_ImGuiLayer->OnAttach();
 		m_Window->Show();
 #endif
 	}
@@ -176,9 +174,10 @@ namespace Saturn {
 				delete layer;
 			}
 
-			if( !HasFlag( ApplicationFlag_GameDistribution ) )
-				m_ImGuiLayer->OnDetach();
-			
+#if !defined( SAT_DIST )
+			m_ImGuiLayer->OnDetach();
+#endif
+
 			delete m_ImGuiLayer;
 
 			m_ImGuiLayer = nullptr;
@@ -203,9 +202,10 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
+#if !defined(SAT_DIST)
 		// Begin on main thread.
-		if( !HasFlag( ApplicationFlag_GameDistribution ) )
-			m_ImGuiLayer->Begin();
+		m_ImGuiLayer->Begin();
+#endif
 
 		// Update on the main thread.
 		for( auto& layer : m_Layers )
@@ -213,21 +213,20 @@ namespace Saturn {
 			layer->OnUpdate( m_Timestep );
 		}
 
-		if( !HasFlag( ApplicationFlag_GameDistribution ) )
-		{
-			RenderThread::Get().Queue( [=]
+#if !defined(SAT_DIST)
+		RenderThread::Get().Queue( [=]
+			{
+				for( auto& layer : m_Layers )
 				{
-					for( auto& layer : m_Layers )
-					{
-						layer->OnImGuiRender();
-					}
-				} );
+					layer->OnImGuiRender();
+				}
+			} );
 
-			RenderThread::Get().Queue( [=]
-				{
-					m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
-				} );
-		}
+		RenderThread::Get().Queue( [=]
+			{
+				m_ImGuiLayer->End( Renderer::Get().ActiveCommandBuffer() );
+			} );
+#endif
 	}
 
 	std::filesystem::path Application::GetAppDataFolder() const

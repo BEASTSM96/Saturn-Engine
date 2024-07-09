@@ -42,3 +42,8 @@ project "Tracy"
 		runtime "Release"
 		optimize "on"
 		defines { "TRACY_ENABLE" }
+
+	filter "configurations:Dist"
+		runtime "Release"
+		optimize "on"
+		symbols "off"

@@ -61,6 +61,8 @@ namespace Saturn {
 
 	void RenderThread::WaitAll()
 	{
+		SAT_PF_EVENT();
+
 		m_WaitTime.Reset();
 
 		// If we are not using the render thread, we still need to execute the command buffer. 

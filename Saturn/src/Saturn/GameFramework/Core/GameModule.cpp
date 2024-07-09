@@ -71,37 +71,33 @@ namespace Saturn {
 
 	void GameModule::Load( bool reload /*=false*/ )
 	{
-		if( !Application::Get().HasFlag( ApplicationFlag_GameDistribution ) )
-		{
-			// We are the editor, load DLL.
-			auto binDir = Project::GetActiveProject()->GetBinDir();
-			auto& DllPath = binDir /= Project::GetActiveConfig().Name + ".dll";
+#if defined(SAT_DIST)
+		// We are the game so there is no need to load the dll all we need to do is set the handle to ourself.
+		m_GameModule = Ref<Module>::Create( "", Project::GetActiveConfig().Name );
+		m_GameModule->m_Library.SetExisting( ::GetModuleHandleW( nullptr ) );
+#else
+		// We are the editor, load game DLL.
+		auto binDir = Project::GetActiveProject()->GetBinDir();
+		auto& DllPath = binDir /= Project::GetActiveConfig().Name + ".dll";
 
-			m_GameModule = Ref<Module>::Create( DllPath, Project::GetActiveConfig().Name );
-			m_GameModule->Load();
+		m_GameModule = Ref<Module>::Create( DllPath, Project::GetActiveConfig().Name );
+		m_GameModule->Load();
 
-			// Call the init function.
-			InitModuleFn initModFn = ( InitModuleFn )m_GameModule->m_Library.GetSymbol( "InitializeModule" );
-			
-			if( initModFn )
-				( initModFn ) ( Project::GetActiveProject().Get() );
-		}
-		else 
-		{
-			// We are the game so there is no need to load the dll all we need to do is set the handle to ourself.
-			m_GameModule = Ref<Module>::Create( "", Project::GetActiveConfig().Name );
-			m_GameModule->m_Library.SetExisting( GetModuleHandle( nullptr ) );
-		}
+		// Call the init function.
+		InitModuleFn initModFn = ( InitModuleFn ) m_GameModule->m_Library.GetSymbol( "InitializeModule" );
+
+		if( initModFn )
+			( initModFn ) ( Project::GetActiveProject().Get() );
 
 		SourceManager::Get();
+#endif
 	}
 
 	void GameModule::Unload()
 	{
-		if( !Application::Get().HasFlag( ApplicationFlag_GameDistribution ) )
-		{
-			m_GameModule = nullptr;
-		}
+#if !defined(SAT_DIST)
+		m_GameModule = nullptr;
+#endif
 	}
 
 	void GameModule::Reload() 
