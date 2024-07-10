@@ -47,16 +47,18 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#if !defined(SAT_DIST)
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
-
+#endif
 
 #include <filesystem>
 
 namespace Saturn {
 
+#if !defined(SAT_DIST)
 	glm::mat4 Mat4FromAssimpMat4( const aiMatrix4x4& matrix )
 	{
 		glm::mat4 result;
@@ -67,7 +69,7 @@ namespace Saturn {
 		return result;
 	}
 
-	static const uint32_t s_MeshImportFlags =
+	static constexpr uint32_t s_MeshImportFlags =
 		aiProcess_CalcTangentSpace |        // Create binormals/tangents just in case
 		aiProcess_Triangulate |             // Make sure we're triangles
 		aiProcess_SortByPType |             // Split meshes by primitive type
@@ -94,12 +96,14 @@ namespace Saturn {
 			SAT_CORE_WARN( "Assimp error: {0}", message );
 		}
 	};
-	
+#endif
+
 	//////////////////////////////////////////////////////////////////////////
 
 	StaticMesh::StaticMesh( const std::string& rFilepath )
 		: m_FilePath( rFilepath )
 	{
+#if !defined(SAT_DIST)
 		AssimpLog::Initialize();
 
 		if( !std::filesystem::exists( m_FilePath ) )
@@ -125,6 +129,7 @@ namespace Saturn {
 
 		CreateVertices();
 		CreateMaterials();
+#endif
 	}
 
 	StaticMesh::~StaticMesh()
@@ -143,6 +148,7 @@ namespace Saturn {
 		m_MaterialsAssets.clear();
 	}
 
+#if !defined(SAT_DIST)
 	void StaticMesh::CreateVertices()
 	{
 		m_Submeshes.reserve( m_Scene->mNumMeshes );
@@ -544,6 +550,7 @@ namespace Saturn {
 		// Serialise the asset registry to save any new materials.
 		AssetManager::Get().Save();
 	}
+#endif
 
 	//////////////////////////////////////////////////////////////////////////
 	// SERIALISATION/DESERIALISATION
@@ -624,6 +631,7 @@ namespace Saturn {
 
 	MeshSource::MeshSource( const std::filesystem::path& rPath, const std::filesystem::path& rDstPath )
 	{
+#if !defined(SAT_DIST)
 		AssimpLog::Initialize();
 
 		m_Importer = std::make_unique<Assimp::Importer>();
@@ -752,16 +760,16 @@ namespace Saturn {
 				}
 			}
 		}
+#endif
 	}
 
 	MeshSource::~MeshSource()
 	{
-
 	}
 
+#if !defined(SAT_DIST)
 	void MeshSource::TraverseNodes( aiNode* node, const glm::mat4& parentTransform /*= glm::mat4( 1.0f )*/, uint32_t level /*= 0 */ )
 	{
-
 	}
-
+#endif
 }

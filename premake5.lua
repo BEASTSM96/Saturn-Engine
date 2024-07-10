@@ -201,6 +201,7 @@ project "Saturn"
 			defines "SAT_RELEASE"
 			runtime "Release"
 		--	optimize "on"
+			links { "Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib" }
 
 		filter "configurations:Dist"
 			defines "SAT_DIST"
@@ -209,21 +210,15 @@ project "Saturn"
 			symbols "off"
 
 			removelinks { "Tracy" }
-
-			removedefines 
-			{
-				"TRACY_ENABLE",
-				"SATURN_SS_IMPORT"
-			}
+			removedefines { "TRACY_ENABLE","SATURN_SS_IMPORT" }
+			removefiles { "%{prj.name}/vendor/ImGuizmo/src/**.cpp", "%{prj.name}/vendor/ImGuizmo/src/**.h" }
 
 			defines { "SATURN_SS_STATIC" }
-
 			links { "SharedStorage" }
 
 		filter "configurations:Release or configurations:Dist"
 			links 
 			{
-				"Saturn/vendor/assimp/bin/Release/assimp-vc142-mt.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/shaderc_util.lib",
 				"Saturn/vendor/shaderc/bin/Release-Windows/glslang.lib",

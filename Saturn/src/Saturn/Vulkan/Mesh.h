@@ -49,7 +49,9 @@
 #include <unordered_map>
 #include <glm/glm.hpp>
 
+#if !defined(SAT_DIST)
 #include <assimp/Importer.hpp>
+#endif
 
 struct aiNode;
 struct aiAnimation;
@@ -177,10 +179,11 @@ namespace Saturn {
 		void DeserialiseData( std::istream& rStream );
 
 	private:
+#if !defined(SAT_DIST)
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
 		void CreateVertices();
 		void CreateMaterials();
-
+#endif
 	private:
 		Ref<VertexBuffer> m_VertexBuffer;
 		Ref<IndexBuffer> m_IndexBuffer;
@@ -207,8 +210,10 @@ namespace Saturn {
 
 		Ref<MaterialRegistry> m_MaterialRegistry;
 
+#if !defined(SAT_DIST)
 		std::unique_ptr<Assimp::Importer> m_Importer;
 		const aiScene* m_Scene = nullptr;
+#endif
 	};
 
 	struct MeshInformation
@@ -227,6 +232,7 @@ namespace Saturn {
 		~MeshSource();
 
 	private:
+#if !defined(SAT_DIST)
 		void TraverseNodes( aiNode* node, const glm::mat4& parentTransform = glm::mat4( 1.0f ), uint32_t level = 0 );
 
 		MeshInformation m_MeshInformation;
@@ -234,5 +240,6 @@ namespace Saturn {
 		std::unique_ptr<Assimp::Importer> m_Importer;
 
 		const aiScene* m_Scene;
+#endif
 	};
 }

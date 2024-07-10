@@ -36,7 +36,9 @@
 #include "Saturn/Vulkan/Renderer.h"
 #include "Saturn/Vulkan/VulkanDebug.h"
 
+#if !defined(SAT_DIST)
 #include "ImGuizmo/ImGuizmo.h"
+#endif
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -158,7 +160,9 @@ namespace Saturn {
 		ImGui_ImplRuby_NewFrame();
 
 		ImGui::NewFrame();
+#if !defined(SAT_DIST)
 		ImGuizmo::BeginFrame();
+#endif
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2( ( float ) Application::Get().GetWindow()->GetWidth(), ( float ) Application::Get().GetWindow()->GetHeight() );
@@ -216,10 +220,4 @@ namespace Saturn {
 		vkCmdEndRenderPass( CommandBuffer );
 		CmdEndDebugLabel( CommandBuffer );
 	}
-
-	void ImGuiLayer::OnImGuiRender( void )
-	{
-
-	}
-
 }
