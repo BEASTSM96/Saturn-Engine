@@ -82,6 +82,7 @@ namespace Saturn {
 		void DrawAttributions();
 		void DrawVFSDebug();
 		void DrawTitlebarOptions();
+		void DrawAboutWindow();
 
 		// Viewport
 		void DrawViewport();
@@ -129,6 +130,7 @@ namespace Saturn {
 		bool m_OpenLoadedAssetDebug = false;
 		bool m_OpenAttributions = false;
 		bool m_JobModalOpen = false;
+		bool m_OpenAboutWindow = false;
 
 		bool m_RequestRuntime = false;
 

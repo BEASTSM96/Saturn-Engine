@@ -95,8 +95,6 @@ namespace Saturn {
 		std::string SaveFile( const char* pFilter ) const;
 		std::string OpenFolder() const;
 
-		constexpr const char* GetConfigName();
-
 		ApplicationSpecification& GetSpecification() { return m_Specification; }
 
 		void PushLayer( Layer* pLayer );
@@ -125,6 +123,10 @@ namespace Saturn {
 
 		void SuspendMainThreadCV();
 		void ResumeMainThreadCV();
+
+	public:
+		static const char* GetCurrentPlatformName();
+		static const char* GetCurrentConfigName();
 
 	protected:
 

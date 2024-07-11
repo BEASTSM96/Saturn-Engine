@@ -348,6 +348,7 @@ namespace Saturn {
 		if( m_OpenLoadedAssetDebug )   DrawLoadedAssetsDebug();
 		if( m_OpenEditorSettings )     DrawEditorSettings();
 		if( m_ShowVFSDebug )           DrawVFSDebug();
+		if( m_OpenAboutWindow )        DrawAboutWindow();
 		if( m_ShowMessageBox )         ShowMessageBox();
 
 		AssetViewer::Draw();
@@ -1276,6 +1277,7 @@ namespace Saturn {
 		if( ImGui::BeginMenu( "Saturn" ) )
 		{
 			if( ImGui::MenuItem( "Attributions" ) ) m_OpenAttributions ^= 1;
+			if( ImGui::MenuItem( "About" ) )        m_OpenAboutWindow ^= 1;
 
 			ImGui::EndMenu();
 		}
@@ -1439,6 +1441,23 @@ namespace Saturn {
 			if( ImGui::MenuItem( "Virtual Filesystem Debug", "" ) )   m_ShowVFSDebug           ^= 1;
 
 			ImGui::EndMenu();
+		}
+	}
+
+	void EditorLayer::DrawAboutWindow()
+	{
+		if( ImGui::Begin( "About", &m_OpenAboutWindow ) )
+		{
+			std::string buildInfo = std::format( "Saturn Engine x64 {0} ({1} build)", Application::GetCurrentPlatformName(), Application::GetCurrentConfigName() );
+			ImGui::Text( buildInfo.c_str() );
+
+			std::string editorLayerTime = std::format( "Built on: {0} {1} (EditorLayer.cpp)", __DATE__, __TIME__ );
+			ImGui::Text( editorLayerTime.c_str() );
+
+			std::string versionText = std::format( "Saturn Engine Version: {0}", SAT_CURRENT_VERSION_STRING );
+			ImGui::Text( versionText.c_str() );
+
+			ImGui::End();
 		}
 	}
 

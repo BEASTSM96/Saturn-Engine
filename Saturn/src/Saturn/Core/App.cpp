@@ -290,7 +290,20 @@ namespace Saturn {
 		return OpenFolderInternal();
 	}
 
-	constexpr const char* Application::GetConfigName()
+	const char* Application::GetCurrentPlatformName()
+	{
+#if defined(SAT_WINDOWS) || _WIN32 || _WIN64
+		return "Windows";
+#elif defined(SAT_LINUX) || __linux__
+		return "Linux";
+#elif defined(SAT_MAC) || __APPLE__
+		return "Mac";
+#else
+		return "Unknown";
+#endif
+	}
+
+	const char* Application::GetCurrentConfigName()
 	{
 #if defined(SAT_DEBUG)
 		return "Debug";
