@@ -79,8 +79,8 @@
 
 #include <Saturn/Audio/SoundGroup.h>
 
-#include <Ruby/RubyWindow.h>
-#include <Ruby/RubyAuxiliary.h>
+#include <Saturn/Core/Ruby/RubyWindow.h>
+#include <Saturn/Core/Ruby/RubyAuxiliary.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -745,7 +745,7 @@ namespace Saturn {
 			{
 				for( int i = 0; i < RubyKey::EnumSize; i++ )
 				{
-					const auto& result = Ruby_KeyToString( (RubyKey) i );
+					const auto& result = RubyKeyToString( (RubyKey) i );
 
 					// This is here because of how we do our loop, some keys will be empty because the values to do not match up.
 					if( result.empty() )

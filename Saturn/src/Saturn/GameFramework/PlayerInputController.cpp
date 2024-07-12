@@ -34,7 +34,7 @@
 #include "Saturn/Project/Project.h"
 
 #include "Saturn/Core/App.h"
-#include <Ruby/RubyWindow.h>
+#include "Saturn/Core/Ruby/RubyWindow.h"
 
 namespace Saturn {
 

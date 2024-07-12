@@ -30,7 +30,7 @@
 
 #include "Saturn/Core/Base.h"
 
-#include <Ruby/RubyEventType.h>
+#include "Saturn/Core/Ruby/RubyEventType.h"
 
 #include <glm/glm.hpp>
 

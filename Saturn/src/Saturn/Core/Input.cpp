@@ -31,7 +31,7 @@
 
 #include "App.h"
 
-#include <Ruby/RubyWindow.h>
+#include "Saturn/Core/Ruby/RubyWindow.h"
 
 namespace Saturn {
 

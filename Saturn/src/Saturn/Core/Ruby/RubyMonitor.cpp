@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2023 BEAST                                                           		*
+* Copyright (c) 2020 - 2024 BEAST                                                           *
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -26,25 +26,71 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "sppch.h"
+#include "RubyMonitor.h"
 
-#include "RubyCore.h"
+#if defined(_WIN32)
+#include <windows.h>
+#endif
 
-#include <string>
-#include <vector>
+namespace Saturn {
 
-struct RubyMonitor
-{
-	bool Primary = false;
-	std::wstring Name;
+	static std::vector<RubyMonitor> s_RubyMonitors;
 
-	int BBP = 0;
-	int DPI = 0;
+#if defined(_WIN32)
+	BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMonitor, LPARAM DWData )
+	{
+		MONITORINFOEX MonitorInfo{};
+		MonitorInfo.cbSize = sizeof( MONITORINFOEX );
 
-	RubyIVec2 WorkSize;
-	RubyIVec2 MonitorSize;
-	RubyIVec2 MonitorPosition;
-};
+		if( GetMonitorInfo( Monitor, &MonitorInfo ) )
+		{
+			RubyMonitor monitor;
+			monitor.Primary = MonitorInfo.dwFlags & MONITORINFOF_PRIMARY;
+			monitor.Name = MonitorInfo.szDevice;
 
-extern std::vector<RubyMonitor> RubyGetAllMonitors();
-extern RubyMonitor& RubyGetPrimaryMonitor();
+			DEVMODE DevMode{};
+			DevMode.dmSize = sizeof( DevMode );
+
+			::EnumDisplaySettings( MonitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &DevMode );
+			monitor.MonitorPosition = { DevMode.dmPosition.x, DevMode.dmPosition.y };
+
+			monitor.MonitorSize.x = MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
+			monitor.MonitorSize.y = MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;
+
+			monitor.WorkSize.x = MonitorInfo.rcWork.right - MonitorInfo.rcWork.left;
+			monitor.WorkSize.y = MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top;
+
+			s_RubyMonitors.push_back( monitor );
+		}
+
+		return TRUE;
+	}
+#endif
+
+	std::vector<RubyMonitor> RubyGetAllMonitors()
+	{
+		int Monitors = GetSystemMetrics( SM_CMONITORS );
+
+		if( s_RubyMonitors.size() != Monitors )
+		{
+			s_RubyMonitors.clear();
+
+#if defined(_WIN32)
+			::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, 0 );
+#endif
+		}
+
+		return s_RubyMonitors;
+	}
+
+	RubyMonitor& RubyGetPrimaryMonitor()
+	{
+		if( !s_RubyMonitors.size() )
+			RubyGetAllMonitors();
+
+		auto It = std::find_if( s_RubyMonitors.begin(), s_RubyMonitors.end(), []( auto& rMonitor ) { return rMonitor.Primary; } );
+
+		return *( It );
+	}
+}

@@ -33,7 +33,7 @@ IncludeDir["SharedStorage"] = "SharedStorage/src"
 IncludeDir["zlib"] = "Saturn/vendor/zlib"
 
 group "Dependencies"
-	include "Saturn/vendor/Ruby"
+--	include "Saturn/vendor/Ruby"
 	include "Saturn/vendor/imgui"
 	include "Saturn/vendor/SPIRV-Cross"
 	include "Saturn/vendor/yaml-cpp"
@@ -79,7 +79,7 @@ project "Saturn"
 		"GLM_ENABLE_EXPERIMENTAL",
 		"SATURN_SS_IMPORT",
 		"TRACY_ENABLE",
-		"RBY_INCLUDE_VULKAN"
+		"SAT_RBY_INCLUDE_VULKAN"
 	}
 
 	includedirs
@@ -88,7 +88,7 @@ project "Saturn"
 		"%{prj.name}/vendor/stb/",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/vendor/vulkan/include",
-		"%{IncludeDir.Ruby}",
+--		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -114,7 +114,7 @@ project "Saturn"
 
 	links 
 	{
-		"Ruby",
+--		"Ruby",
 		"ImGui",
 		"SPIRV-Cross",
 		"yaml-cpp",
@@ -272,7 +272,7 @@ project "Saturn-Editor"
 		"Saturn/vendor/spdlog/include",
 		"Saturn/src",
 		"Saturn/vendor",
-		"%{IncludeDir.Ruby}",
+--		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -418,7 +418,7 @@ project "ProjectBrowser"
 		"Saturn/vendor/spdlog/include",
 		"Saturn/src",
 		"Saturn/vendor",
-		"%{IncludeDir.Ruby}",
+--		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -574,7 +574,7 @@ project "SharedStorage"
 	{
 		"%{prj.name}/src",
 		"Saturn/src",
-		"%{IncludeDir.Ruby}"
+--		"%{IncludeDir.Ruby}"
 	}
 	
 	filter "system:windows"

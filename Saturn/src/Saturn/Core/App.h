@@ -44,8 +44,6 @@
 #include <thread>
 #include <mutex>
 
-class RubyWindow;
-
 namespace Saturn {
 
 	// ApplicationFlags must are set when the application is being created and must not change throughout its lifetime.
@@ -75,6 +73,7 @@ namespace Saturn {
 	class SceneRenderer;
 	class VulkanContext;
 	class Log;
+	class RubyWindow;
 
 	class Application : public RubyEventTarget
 	{

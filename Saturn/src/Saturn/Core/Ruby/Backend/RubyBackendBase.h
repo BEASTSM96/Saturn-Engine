@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2023 BEAST                                                           		*
+* Copyright (c) 2020 - 2024 BEAST                                                           *
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -28,83 +28,79 @@
 
 #pragma once
 
-#include "RubyCore.h"
+#include "Saturn/Core/Ruby/RubyCore.h"
+
+#include <string>
 #include <stdint.h>
 
-enum class RubyEventType
-{
-	Resize,
-	Close,
-	MouseMoved,
-	MousePressed,
-	MouseReleased,
-	MouseEnterWindow,
-	MouseLeaveWindow,
-	MouseScroll,
-	KeyReleased,
-	KeyPressed,
-	InputCharacter,
-	WindowMaximized,
-	WindowMinimized,
-	WindowRestored,
-	WindowMoved,
-	WindowFocus,
-	DisplayChanged
-};
+#if defined( SAT_RBY_INCLUDE_VULKAN )
+#include <vulkan.h>
+#endif
 
-using KeyCode = int;
+namespace Saturn {
 
-enum RubyKey
-{
-	UnknownKey,
+	struct RubyWindowSpecification;
+	class RubyWindow;
 
-	// Alphabetic keys
-	A = 0x41, B = 0x42, C = 0x43, D = 0x44, E = 0x45, F = 0x46, G = 0x47, H = 0x48,
-	I = 0x49, J = 0x4A, K = 0x4B, L = 0x4C, M = 0x4D, N = 0x4E, O = 0x4F, P = 0x50,
-	Q = 0x51, R = 0x52, S = 0x53, T = 0x54, U = 0x55, V = 0x56, W = 0x57, X = 0x58,
-	Y = 0x59, Z = 0x5A,
+	class RubyBackendBase
+	{
+	public:
+		RubyBackendBase() {}
+		virtual ~RubyBackendBase() = default;
 
-	// Numeric keys
-	Num0 = 0x30, Num1 = 0x31, Num2 = 0x32, Num3 = 0x33, Num4 = 0x34, Num5 = 0x35,
-	Num6 = 0x36, Num7 = 0x37, Num8 = 0x38, Num9 = 0x39,
+	public:
+		virtual void Create() = 0;
+		virtual void DestroyWindow() = 0;
 
-	// Special keys
-	Space = 0x20, Enter = 0x0D, Tab = 0x09,
-	Esc = 0x1B, Backspace = 0x08, CapsLock = 0x14, Shift = 0x10, Ctrl = 0x11, Alt = 0x12,
-	OSKey = 0x5B,
-	Insert = 0x2D, Delete = 0x2E, Home = 0x24, End = 0x23, PageUp = 0x21, PageDown = 0x22,
+		virtual void CloseWindow() = 0;
+		virtual void PresentWindow( RubyWindowShowCmd Command = RubyWindowShowCmd::Default ) = 0;
 
-	Numpad0 = 0x60, Numpad1 = 0x61, Numpad2 = 0x62, Numpad3 = 0x63,
-	Numpad4 = 0x64, Numpad5 = 0x65, Numpad6 = 0x66, Numpad7 = 0x67,
-	Numpad8 = 0x68, Numpad9 = 0x69,
-	NumpadAdd = 0x6B, NumpadSubtract = 0x6D, NumpadMultiply = 0x6A,
-	NumpadDivide = 0x6F, NumpadEnter = 0x0D,
+		virtual void ResizeWindow( uint32_t Width, uint32_t Height ) = 0;
+		virtual void SetTitle( std::string_view Title ) = 0;
 
-	// Arrow keys
-	LeftArrow = 0x25,
-	UpArrow = 0x26,
-	RightArrow = 0x27,
-	DownArrow = 0x28,
+		virtual void Maximize() = 0;
+		virtual void Minimize() = 0;
+		virtual void Restore() = 0;
 
-	// Function keys
-	F1 = 0x70, F2 = 0x71, F3 = 0x72, F4 = 0x73, F5 = 0x74, F6 = 0x75, F7 = 0x76, F8 = 0x77,
-	F9 = 0x78, F10 = 0x79, F11 = 0x7A, F12 = 0x7B,
+		virtual void MoveWindow( int x, int y ) = 0;
 
-	// Modifier keys
-	RightCtrl = 0xA3,
-	RightShift = 0xA1,
-	RightAlt = 0xA5,
+		virtual void SetMousePos( double x, double y ) = 0;
+		virtual void GetMousePos( double* x, double* y ) = 0;
 
-	EnumSize
-};
+		virtual void SetClipboardText( const std::string& rTextData ) = 0;
+		virtual void SetClipboardText( const std::wstring& rTextData ) = 0;
 
-enum class RubyMouseButton : uint32_t
-{
-	Unknown = 6,
+		virtual const char* GetClipboardText() = 0;
+		virtual const wchar_t* GetClipboardTextW() = 0;
 
-	Left = 0,
-	Right = 1,
-	Middle = 2,
-	Extra1 = 3,
-	Extra2 = 4
-};
+		virtual WindowType_t GetNativeHandle() = 0;
+
+		virtual VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) = 0;
+
+		virtual bool Minimized() = 0;
+		virtual bool Maximized() = 0;
+		virtual bool Focused() = 0;
+
+		virtual void SetMouseCursor( RubyCursorType Cursor ) = 0;
+		virtual void SetMouseCursorMode( RubyCursorMode mode ) = 0;
+		virtual void Focus() = 0;
+
+		virtual RubyIVec2 GetWindowPos() = 0;
+		virtual bool MouseInRect() = 0;
+
+		virtual void FlashAttention() = 0;
+
+	public:
+		virtual void PollEvents() = 0;
+		virtual bool PendingClose() = 0;
+
+	protected:
+		bool m_ShouldClose = false;
+		bool m_BlockMouseCursor = false;
+
+		RubyWindowSpecification m_WindowSpecification{};
+		RubyWindow* m_pWindow = nullptr;
+	private:
+		friend class RubyWindow;
+	};
+}

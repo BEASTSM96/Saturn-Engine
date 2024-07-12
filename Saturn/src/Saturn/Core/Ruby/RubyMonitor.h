@@ -4,7 +4,7 @@
 *                                                                                           *
 * MIT License                                                                               *
 *                                                                                           *
-* Copyright (c) 2023 BEAST                                                           		*
+* Copyright (c) 2020 - 2024 BEAST                                                           *
 *                                                                                           *
 * Permission is hereby granted, free of charge, to any person obtaining a copy              *
 * of this software and associated documentation files (the "Software"), to deal             *
@@ -31,75 +31,24 @@
 #include "RubyCore.h"
 
 #include <string>
-#include <stdint.h>
+#include <vector>
 
-#if defined( RBY_INCLUDE_VULKAN )
-#include <vulkan.h>
-#endif
+namespace Saturn {
 
-struct RubyWindowSpecification;
-class RubyWindow;
+	struct RubyMonitor
+	{
+		bool Primary = false;
+		std::wstring Name;
 
-class RBY_API RubyBackendBase
-{
-public:
-	RubyBackendBase() {}
-	virtual ~RubyBackendBase() = default;
+		int BBP = 0;
+		int DPI = 0;
 
-public:
-	virtual void Create() = 0;
-	virtual void DestroyWindow() = 0;
+		RubyIVec2 WorkSize;
+		RubyIVec2 MonitorSize;
+		RubyIVec2 MonitorPosition;
+	};
 
-	virtual void CloseWindow() = 0;
-	virtual void PresentWindow( RubyWindowShowCmd Command = RubyWindowShowCmd::Default ) = 0;
+	extern std::vector<RubyMonitor> RubyGetAllMonitors();
+	extern RubyMonitor& RubyGetPrimaryMonitor();	
 
-	virtual void ResizeWindow( uint32_t Width, uint32_t Height ) = 0;
-	virtual void SetTitle( std::string_view Title ) = 0;
-	virtual void CreateGraphics( RubyGraphicsAPI api ) = 0;
-	virtual void IssueSwapBuffers() = 0;
-
-	virtual void Maximize() = 0;
-	virtual void Minimize() = 0;
-	virtual void Restore() = 0;
-
-	virtual void MoveWindow( int x, int y ) = 0;
-
-	virtual void SetMousePos( double x, double y ) = 0;
-	virtual void GetMousePos( double* x, double* y ) = 0;
-
-	virtual void SetClipboardText( const std::string& rTextData ) = 0;
-	virtual void SetClipboardText( const std::wstring& rTextData ) = 0;
-	
-	virtual const char* GetClipboardText() = 0;
-	virtual const wchar_t* GetClipboardTextW() = 0;
-
-	virtual WindowType_t GetNativeHandle() = 0;
-
-	virtual VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) = 0;
-
-	virtual bool Minimized() = 0;
-	virtual bool Maximized() = 0;
-	virtual bool Focused() = 0;
-
-	virtual void SetMouseCursor( RubyCursorType Cursor ) = 0;
-	virtual void SetMouseCursorMode( RubyCursorMode mode ) = 0;
-	virtual void Focus() = 0;
-
-	virtual RubyIVec2 GetWindowPos() = 0;
-	virtual bool MouseInRect() = 0;
-
-	virtual void FlashAttention() = 0;
-
-public:
-	virtual void PollEvents() = 0;
-	virtual bool PendingClose() = 0;
-
-protected:
-	bool m_ShouldClose = false;
-	bool m_BlockMouseCursor = false;
-
-	RubyWindowSpecification m_WindowSpecification{};
-	RubyWindow* m_pWindow = nullptr;
-private:
-	friend class RubyWindow;
-};
+}

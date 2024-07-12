@@ -43,7 +43,7 @@
 
 #include "Saturn/Core/OptickProfiler.h"
 
-#include <Ruby/RubyWindow.h>
+#include <Saturn/Core/Ruby/RubyWindow.h>
 
 #include <glm/gtx/matrix_decompose.hpp>
 #include <backends/imgui_impl_vulkan.h>

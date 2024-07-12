@@ -26,67 +26,43 @@
 *********************************************************************************************
 */
 
-#include "RubyMonitor.h"
+#pragma once
+
+#include "RubyCore.h"
+
+#include <chrono>
 
 #if defined(_WIN32)
-#include <windows.h>
+#include <Windows.h>
 #endif
 
-static std::vector<RubyMonitor> s_RubyMonitors;
+namespace Saturn {
 
-#if defined(_WIN32)
-BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMonitor, LPARAM DWData ) 
-{
-	MONITORINFOEX MonitorInfo{};
-	MonitorInfo.cbSize = sizeof( MONITORINFOEX );
-
-	if( GetMonitorInfo( Monitor, &MonitorInfo ) )
+	class RubyPerfTimer
 	{
-		RubyMonitor monitor;
-		monitor.Primary = MonitorInfo.dwFlags & MONITORINFOF_PRIMARY;
-		monitor.Name = MonitorInfo.szDevice;
-
-		DEVMODE DevMode{};
-		DevMode.dmSize = sizeof( DevMode );
-
-		::EnumDisplaySettings( MonitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &DevMode );
-		monitor.MonitorPosition = { DevMode.dmPosition.x, DevMode.dmPosition.y };
-		
-		monitor.MonitorSize.x = MonitorInfo.rcMonitor.right - MonitorInfo.rcMonitor.left;
-		monitor.MonitorSize.y = MonitorInfo.rcMonitor.bottom - MonitorInfo.rcMonitor.top;
-
-		monitor.WorkSize.x = MonitorInfo.rcWork.right - MonitorInfo.rcWork.left;
-		monitor.WorkSize.y = MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top;
-
-		s_RubyMonitors.push_back( monitor );
-	}
-
-	return TRUE;
-}
+	public:
+		RubyPerfTimer()
+		{
+#if defined( _WIN32 )
+			QueryPerformanceFrequency( ( LARGE_INTEGER* ) &m_Frequency );
+			QueryPerformanceCounter( ( LARGE_INTEGER* ) &m_InitTime );
 #endif
+		}
 
-std::vector<RubyMonitor> RubyGetAllMonitors()
-{
-	int Monitors = GetSystemMetrics( SM_CMONITORS );
-
-	if( s_RubyMonitors.size() != Monitors )
-	{
-		s_RubyMonitors.clear();
-
+		double GetTicks()
+		{
 #if defined(_WIN32)
-		::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, 0 );
+			uint64_t ticks;
+			QueryPerformanceCounter( ( LARGE_INTEGER* ) &ticks );
+			return ( double ) ( ticks - m_InitTime ) / m_Frequency;
 #endif
-	}
+		}
 
-	return s_RubyMonitors;
-}
+	private:
+#if defined(_WIN32)
+		uint64_t m_Frequency = 0;
+		uint64_t m_InitTime = 0;
+#endif
+	};
 
-RubyMonitor& RubyGetPrimaryMonitor()
-{
-	if( !s_RubyMonitors.size() )
-		RubyGetAllMonitors();
-
-	auto It = std::find_if( s_RubyMonitors.begin(), s_RubyMonitors.end(), []( auto& rMonitor ) { return rMonitor.Primary; } );
-
-	return *( It );
 }

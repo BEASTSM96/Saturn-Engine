@@ -52,7 +52,7 @@
 
 #include "Saturn/Core/ErrorDialog.h"
 
-#include <Ruby/RubyWindow.h>
+#include "Saturn/Core/Ruby/RubyWindow.h"
 
 namespace Saturn {
 

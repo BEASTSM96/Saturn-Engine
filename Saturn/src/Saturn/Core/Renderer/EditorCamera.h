@@ -30,7 +30,7 @@
 
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/Core/Input.h"
-#include "Ruby/RubyEvent.h"
+#include "Saturn/Core/Ruby/RubyEvent.h"
 #include "Camera.h"
 
 namespace Saturn {

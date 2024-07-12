@@ -28,37 +28,95 @@
 
 #pragma once
 
-#include "Saturn/Core/Ref.h"
-#include "Saturn/Core/Ruby/RubyEventType.h"
+#include "RubyBackendBase.h"
 
-#include "ActionBinding.h"
-
-#include <functional>
-#include <unordered_map>
-#include <unordered_set>
+#include <Windows.h>
 
 namespace Saturn {
 
-	class PlayerInputController : public RefTarget
+	class RubyWindowsBackend : public RubyBackendBase
 	{
 	public:
-		using ActionFunction = std::function<void()>;
+		RubyWindowsBackend( const RubyWindowSpecification& rSpec, RubyWindow* pWindow );
+		~RubyWindowsBackend();
+
+		RubyWindow* GetParent() { return m_pWindow; }
+
+		void Maximize() override;
+		void Minimize() override;
+		void Restore() override;
+
+		bool Minimized() override;
+		bool Maximized() override;
+		bool Focused() override;
+
+		WindowType_t GetNativeHandle() override;
+
 	public:
-		PlayerInputController();
-		~PlayerInputController();
+		void Create() override;
+		void DestroyWindow() override;
 
-		void BindAction( const std::string& rBindingName, const ActionFunction& rFunction );
-		void RemoveAction( const std::string& rBindingName );
+		void CloseWindow() override;
+		void PresentWindow( RubyWindowShowCmd Command = RubyWindowShowCmd::Default ) override;
 
-	protected:
-		void Update();
+		void ResizeWindow( uint32_t Width, uint32_t Height ) override;
+		void MoveWindow( int x, int y ) override;
+
+		void SetTitle( std::string_view Title ) override;
+
+		void SetMousePos( double x, double y ) override;
+		void GetMousePos( double* x, double* y ) override;
+
+		VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) override;
+
+		void SetMouseCursor( RubyCursorType Cursor ) override;
+		void SetMouseCursorMode( RubyCursorMode mode ) override;
+
+		void SetClipboardText( const std::string& rTextData ) override;
+		void SetClipboardText( const std::wstring& rTextData ) override;
+
+		const char* GetClipboardText() override;
+		const wchar_t* GetClipboardTextW() override;
+
+		void PollEvents() override;
+		bool PendingClose() override;
+
+		void Focus() override;
+		RubyIVec2 GetWindowPos() override;
+
+		bool MouseInRect() override;
+
+		void FlashAttention() override;
+
+	public:
+		void BlockMouseCursor() { m_BlockMouseCursor = true; }
+		void UnblockMouseCursor() { m_BlockMouseCursor = false; }
+
+	public:
+		void ConfigureClipRect();
+		void RecenterMousePos();
+		void UpdateCursorIcon();
+		void SetResizeCursor( RubyCursorType Type );
+		void ResetResizeCursor();
 
 	private:
-		std::unordered_map<std::string, ActionBinding> m_ActionMap;
-		std::unordered_set<RubyKey> m_Keys;
-		RubyMouseButton m_MouseButton = RubyMouseButton::Unknown;
+		DWORD ChooseStyle();
+		LPTSTR ChooseCursor( RubyCursorType Cursor );
+
+		void DisableCursor();
+		void FindMouseRestorePoint();
 
 	private:
-		friend class Character;
+		HWND m_Handle = nullptr;
+
+		HDC m_DrawContent = nullptr;
+		HGLRC m_OpenGLRenderContext = nullptr;
+
+		// For disabled mouse mode.
+		RubyIVec2 m_MouseRestorePoint{};
+
+		// The current cursor image.
+		// For example: Arrow, Hand or IBeam.
+		HCURSOR m_CurrentMouseCursorIcon = nullptr;
 	};
 }

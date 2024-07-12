@@ -29,7 +29,7 @@
 #pragma once
 
 #include "Saturn/Asset/Asset.h"
-#include "Ruby/RubyEvent.h"
+#include "Saturn/Core/Ruby/RubyEvent.h"
 
 #include <unordered_map>
 
