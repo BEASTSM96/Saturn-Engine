@@ -38,7 +38,6 @@ namespace SaturnBuildTool
             Includes.Add( Path.Combine(SaturnVendorDir, "spdlog\\include") );
             Includes.Add( Path.Combine(SaturnVendorDir, "vulkan\\include") );
             Includes.Add( Path.Combine(SaturnVendorDir, "glm") );
-            Includes.Add( Path.Combine(SaturnVendorDir, "ruby\\src") );
             Includes.Add( Path.Combine(SaturnVendorDir, "imgui") );
             Includes.Add( Path.Combine(SaturnVendorDir, "entt\\include") );
             Includes.Add( Path.Combine(SaturnVendorDir, "assimp\\include") );
@@ -102,7 +101,6 @@ namespace SaturnBuildTool
             }
 
             // Vendor
-            Links.Add("Ruby.lib");
             Links.Add("ImGui.lib");
             Links.Add("shaderc.lib");
             Links.Add("SPIRV-Cross.lib");

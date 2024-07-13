@@ -343,7 +343,7 @@ namespace Saturn {
 
 		if( m_OpenAttributions )       DrawAttributions();
 		if( m_ShowImGuiDemoWindow )    ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
-		if( m_ShowUserSettings )       DrawUserSettingsWindow();
+		if( m_ShowUserSettings )       DrawProjectSettingsWindow();
 		if( m_OpenAssetRegistryDebug ) DrawAssetRegistryDebug();
 		if( m_OpenLoadedAssetDebug )   DrawLoadedAssetsDebug();
 		if( m_OpenEditorSettings )     DrawEditorSettings();
@@ -528,16 +528,23 @@ namespace Saturn {
 			} break;
 
 			case RubyKey::Q:
-				m_GizmoOperation = -1;
+				if( m_AllowCameraEvents )
+					m_GizmoOperation = -1;
 				break;
+	
 			case RubyKey::W:
-				m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+				if( m_AllowCameraEvents )
+					m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
 				break;
+			
 			case RubyKey::E:
-				m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
+				if( m_AllowCameraEvents )
+					m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
 				break;
+			
 			case RubyKey::R:
-				m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
+				if( m_AllowCameraEvents )
+					m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
 				break;
 		}
 
@@ -611,7 +618,7 @@ namespace Saturn {
 	static bool s_OpenAssetFinderPopup = false;
 	static AssetID s_AssetFinderID = 0;
 
-	void EditorLayer::DrawUserSettingsWindow()
+	void EditorLayer::DrawProjectSettingsWindow()
 	{
 		static bool ShouldSaveProject = false;
 
@@ -639,49 +646,10 @@ namespace Saturn {
 		startupScene == 0 ? ImGui::Text( "None" ) : ImGui::Text( asset->Name.c_str() );
 		ImGui::SameLine();
 		
-		if( ImGui::Button( "...##scene" ) )
+		if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), { 24.0f, 24.0f } ) )
 			s_OpenAssetFinderPopup = true;
 
-		ImGui::SetNextWindowSize( { 250.0f, 0.0f } );
-		if( ImGui::BeginPopup( "AssetFinderPopup", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
-		{
-			bool PopupModified = false;
-
-			if( ImGui::BeginListBox( "##ASSETLIST", ImVec2( -FLT_MIN, 0.0f ) ) )
-			{
-				for( const auto& [assetID, rAsset] : AssetManager::Get().GetAssetRegistry()->GetAssetMap() )
-				{
-					bool Selected = ( s_AssetFinderID == assetID );
-
-					if( rAsset->GetAssetType() == AssetType::Scene || rAsset->GetAssetType() == AssetType::Unknown )
-					{
-						if( ImGui::Selectable( rAsset->GetName().c_str() ) )
-						{
-							ActiveProject->GetConfig().StartupSceneID = rAsset->ID;
-							
-							s_AssetFinderID = assetID;
-
-							PopupModified = true;
-						}
-					}
-
-					if( Selected )
-						ImGui::SetItemDefaultFocus();
-				}
-
-				ImGui::EndListBox();
-			}
-
-			if( PopupModified )
-			{
-				s_OpenAssetFinderPopup = false;
-				ShouldSaveProject = true;
-
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndPopup();
-		}
+		Auxiliary::DrawAssetFinder( AssetType::Scene, &s_OpenAssetFinderPopup, ActiveProject->GetConfig().StartupSceneID );
 
 		auto boldFont = rIO.Fonts->Fonts[ 1 ];
 		ImGui::PushFont( boldFont );
@@ -1493,7 +1461,8 @@ namespace Saturn {
 				std::filesystem::path p = path;
 				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
 
-				OpenFile( asset->ID );
+				if( asset )
+					OpenFile( asset->ID );
 			}
 
 			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB" ) )

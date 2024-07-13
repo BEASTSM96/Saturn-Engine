@@ -9,7 +9,6 @@ namespace SaturnBuildTool
 {
     enum VendorProject 
     {
-        RUBY,
         PHYSX,
         YAML_CPP,
         IMGUI,
@@ -55,17 +54,6 @@ namespace SaturnBuildTool
 
             switch ( project ) 
             {
-                case VendorProject.RUBY:
-                    {
-                        binPath = Path.Combine(binPath, "Ruby\\bin\\" );
-
-                        binPath = GetRootBinPath(binPath, target);
-
-                        binPath = Path.Combine(binPath, "Ruby");
-
-                    } break;
-
-
                 case VendorProject.PHYSX:
                     {
                         binPath = Path.Combine(binPath, "phsyx\\bin\\");

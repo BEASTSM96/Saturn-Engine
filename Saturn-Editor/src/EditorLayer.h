@@ -69,7 +69,7 @@ namespace Saturn {
 		bool OnKeyPressed( RubyKeyEvent& rEvent );
 
 		// UI Functions.
-		void DrawUserSettingsWindow();
+		void DrawProjectSettingsWindow();
 		bool m_ShowUserSettings = false;
 
 		void HotReloadGame();

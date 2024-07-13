@@ -579,7 +579,7 @@ namespace Saturn {
 		// Without TagComponent, IdComponent, RelationshipComponent
 		using DesiredComponents = ComponentGroup<TransformComponent, PrefabComponent,
 			StaticMeshComponent,
-			LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
+			DirectionalLightComponent, SkylightComponent, PointLightComponent,
 			CameraComponent,
 			BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
 			ScriptComponent,

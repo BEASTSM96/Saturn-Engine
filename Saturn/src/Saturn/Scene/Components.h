@@ -123,11 +123,7 @@ namespace Saturn {
 
 		TagComponent() = default;
 		TagComponent( const TagComponent& ) = default;
-		TagComponent( const std::string& tag )
-			: Tag( tag )
-
-		{
-		}
+		TagComponent( const std::string& tag ) : Tag( tag ) {}
 	};
 
 	struct IdComponent
@@ -136,15 +132,12 @@ namespace Saturn {
 
 		IdComponent() = default;
 		IdComponent( const IdComponent& ) = default;
-		IdComponent( const UUID& uuid )
-			: ID( uuid )
-		{
-		}
+		IdComponent( const UUID& uuid ) : ID( uuid ) {}
 	};
 
 	struct StaticMeshComponent
 	{
-		UUID AssetID;
+		UUID AssetID = 0;
 
 		// TODO: Change to Asset ID
 		Ref<Saturn::StaticMesh> Mesh;
@@ -154,24 +147,9 @@ namespace Saturn {
 		StaticMeshComponent() = default;
 		StaticMeshComponent( const StaticMeshComponent& other ) = default;
 		StaticMeshComponent( Ref<Saturn::StaticMesh>& rMesh )
-			: Mesh( rMesh )
-		{
-		}
+			: Mesh( rMesh ) {}
 
 		operator Ref<Saturn::StaticMesh>() { return Mesh; }
-	};
-
-	struct LightComponent
-	{
-		float Intensity = 5.0f;
-		glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
-
-		// TODO: Light Types?
-
-		LightComponent() = default;
-		LightComponent( const LightComponent& other ) = default;
-
-		operator glm::vec4 ( ) { return std::move( glm::vec4( Color.x, Color.z, Color.y, 1.0f ) ); }
 	};
 
 	struct DirectionalLightComponent
@@ -348,7 +326,7 @@ namespace Saturn {
 
 	using AllComponents = ComponentGroup<TransformComponent, TagComponent, IdComponent, RelationshipComponent, PrefabComponent,
 		StaticMeshComponent, 
-		LightComponent, DirectionalLightComponent, SkylightComponent, PointLightComponent,
+		DirectionalLightComponent, SkylightComponent, PointLightComponent,
 		CameraComponent,
 		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
 		ScriptComponent, 
