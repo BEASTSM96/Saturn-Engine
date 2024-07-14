@@ -32,6 +32,7 @@
 #include <Saturn/ImGui/Panel/Panel.h>
 #include <Saturn/ImGui/Panel/PanelManager.h>
 #include <Saturn/ImGui/TitleBar.h>
+#include <Saturn/Core/Ruby/RubyWindow.h>
 
 #include <Saturn/Core/StringAuxiliary.h>
 #include <Saturn/Core/EnvironmentVariables.h>
@@ -40,8 +41,6 @@
 #include <Saturn/Serialisation/EngineSettingsSerialiser.h>
 
 #include <glm/gtc/type_ptr.hpp>
-
-#include <Ruby/RubyWindow.h>
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h> 

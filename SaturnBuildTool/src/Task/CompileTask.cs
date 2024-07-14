@@ -65,12 +65,6 @@ namespace SaturnBuildTool
             Args.Add(" /errorreport:prompt");
             Args.Add(" /verbosity:quiet");
 
-            // Debugging.
-            if( TargetToBuild.CurrentConfig < ConfigKind.Dist )
-            {
-                Args.Add(" /ZI");
-            }
-
             // Compile for C++
             Args.Add(" /std:c++latest /D _HAS_EXCEPTIONS=0");
 
@@ -80,16 +74,33 @@ namespace SaturnBuildTool
             // Eliminate Duplicate Strings
             Args.Add(" /GF");
 
-            if (TargetToBuild.CurrentConfig != ConfigKind.Dist )
+            switch( TargetToBuild.CurrentConfig ) 
             {
-                Args.Add(" /MTd");
-                Args.Add(" /Od" );
-                Args.Add(" /FS" );
-            }
-            else 
-            {
-                Args.Add(" /MT" );
-                Args.Add( "/Ox" );
+                case ConfigKind.Debug:
+                case ConfigKind.Release:
+                    {
+                        if(TargetToBuild.CurrentConfig == ConfigKind.Debug)
+                        {
+                            Args.Add(" /D \"SAT_DEBUG\"");
+                            Args.Add(" /MTd");
+                        }
+                        else 
+                        {
+                            Args.Add(" /D \"SAT_RELEASE\"");
+                            Args.Add(" /MT");
+                        }
+
+                        Args.Add(" /ZI");
+                        Args.Add(" /Od");
+                        Args.Add(" /FS");
+                    } break;
+
+                case ConfigKind.Dist:
+                    {
+                        Args.Add(" /D \"SAT_DIST\"");
+                        Args.Add(" /MT");
+                        Args.Add(" /Ox");
+                    } break;
             }
 
             // Out
@@ -131,7 +142,6 @@ namespace SaturnBuildTool
             clProcess.EnableRaisingEvents = true;
 
             // Enable this for Debugging
-            /*
             Console.WriteLine( "Command Line: {0}", processStart.Arguments );
             
             clProcess.EnableRaisingEvents = true;
@@ -150,18 +160,17 @@ namespace SaturnBuildTool
                     Console.WriteLine(e.Data);
                 }
             });
-            */
 
             clProcess.Start();
             
             // Debugging
-            //clProcess.BeginErrorReadLine();
+            clProcess.BeginErrorReadLine();
             //clProcess.BeginOutputReadLine();
 
             clProcess.WaitForExit();
 
             // Write error output (disable this when using synchronous output)
-            Console.WriteLine(clProcess.StandardOutput.ReadToEnd().Trim());
+            //Console.WriteLine(clProcess.StandardOutput.ReadToEnd().Trim());
 
             return clProcess.ExitCode;
         }

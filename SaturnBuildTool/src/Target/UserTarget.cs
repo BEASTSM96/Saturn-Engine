@@ -49,6 +49,11 @@ namespace SaturnBuildTool
             Links.Add("oleaut32.lib");
             Links.Add("delayimp.lib");
             Links.Add("gdi32.lib");
+
+            PreprocessorDefines.Add("UNICODE");
+            PreprocessorDefines.Add("_UNICODE");
+            PreprocessorDefines.Add("_CRT_SECURE_NO_WARNINGS");
+            PreprocessorDefines.Add("SAT_PLATFORM_WINDOWS"); 
         }
 
         public List<string> GetIntermediateFiles() 
