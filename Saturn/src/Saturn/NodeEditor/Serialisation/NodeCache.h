@@ -38,7 +38,7 @@ namespace Saturn {
 	public:
 		static inline NodeCacheSettings& Get() { return *SingletonStorage::GetOrCreateSingleton<NodeCacheSettings>(); }
 	public:
-		[[nodiscard]] bool WriteEditorSettings( Ref<NodeEditorBase> rNodeEditor );
+		bool WriteEditorSettings( Ref<NodeEditorBase> rNodeEditor );
 		void ReadEditorSettings( Ref<NodeEditorBase> rNodeEditor );
 
 	private:

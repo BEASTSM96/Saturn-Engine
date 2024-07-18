@@ -10,8 +10,8 @@
 #ifndef GLSLstd450_H
 #define GLSLstd450_H
 
-static const int GLSLstd450Version = 100;
-static const int GLSLstd450Revision = 3;
+static constexpr int GLSLstd450Version = 100;
+static constexpr int GLSLstd450Revision = 3;
 
 enum GLSLstd450 {
     GLSLstd450Bad = 0,              // Don't use

@@ -66,7 +66,8 @@ namespace Saturn {
 	{
 		ImGui::PushID( (int)m_MaterialAsset->ID );
 
-		ImGui::Begin( "Physics Material", &m_Open );
+		std::string windowName = std::format( "{0}##PhysicsMaterial", m_MaterialAsset->Name );
+		ImGui::Begin( windowName.c_str(), &m_Open );
 
 		ImGui::BeginHorizontal( "##material_settings" );
 

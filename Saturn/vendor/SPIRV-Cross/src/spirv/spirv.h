@@ -56,11 +56,11 @@ typedef unsigned int SpvId;
 #define SPV_VERSION 0x10600
 #define SPV_REVISION 1
 
-static const unsigned int SpvMagicNumber = 0x07230203;
-static const unsigned int SpvVersion = 0x00010600;
-static const unsigned int SpvRevision = 1;
-static const unsigned int SpvOpCodeMask = 0xffff;
-static const unsigned int SpvWordCountShift = 16;
+static constexpr unsigned int SpvMagicNumber = 0x07230203;
+static constexpr unsigned int SpvVersion = 0x00010600;
+static constexpr unsigned int SpvRevision = 1;
+static constexpr unsigned int SpvOpCodeMask = 0xffff;
+static constexpr unsigned int SpvWordCountShift = 16;
 
 typedef enum SpvSourceLanguage_ {
     SpvSourceLanguageUnknown = 0,
