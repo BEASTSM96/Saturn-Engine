@@ -98,15 +98,13 @@ namespace Saturn {
 		s_RecentProjectThread = std::thread( []() 
 		{
 			SetThreadDescription( GetCurrentThread(), L"RecentProjectThread" );
+			auto& userSettings = EngineSettings::Get();
 
-			do
+			while( !s_ShouldThreadTerminate )
 			{
-				auto& userSettings = EngineSettings::Get();
-
 				for( auto& path : userSettings.RecentProjects )
 				{
 					// Check if the path exists in out recent projects list.
-
 					bool exists = false;
 
 					for( auto& recentProject : s_RecentProjects )
@@ -124,7 +122,9 @@ namespace Saturn {
 							s_RecentProjects.push_back( path );
 					}
 				}
-			} while( !s_ShouldThreadTerminate );
+
+				std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
+			}
 		} );
 
 		m_TitleBar = new TitleBar();
