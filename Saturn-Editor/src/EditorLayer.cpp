@@ -783,6 +783,7 @@ namespace Saturn {
 #if !defined(SAT_DIST)
 		ImGui::PushFont( boldFont );
 		ImGui::Text( "Project Debug information" );
+		ImGui::Separator();
 		ImGui::PopFont();
 
 		ImGui::BeginVertical( "##PRJDBGV" );

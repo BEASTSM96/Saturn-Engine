@@ -1936,12 +1936,7 @@ namespace Saturn {
 
 	void SceneRenderer::SetDynamicSky( float Turbidity, float Azimuth, float Inclination )
 	{
-		float turbidity = Turbidity;
-		float azimuth = Azimuth;
-		float inclination = Inclination;
-
-		// I wanted this to be a RenderThread::Get().Queue, however for some reason it crashes.
-		AddScheduledFunction([&, turbidity, azimuth, inclination]()
+		AddScheduledFunction([&, turbidity = Turbidity, azimuth = Azimuth, inclination = Inclination]()
 			{
 				m_RendererData.SceneEnvironment->Turbidity = turbidity;
 				m_RendererData.SceneEnvironment->Azimuth = azimuth;

@@ -131,7 +131,6 @@ namespace std {
 namespace Saturn {
 
 	class DescriptorSet;
-	class MaterialInstance;
 
 	class StaticMesh : public Asset
 	{
