@@ -32,7 +32,7 @@
 
 namespace Saturn {
 
-	// "UUID" (universally unique identifier) or GUID is (usually) a 128-bit integer.
+	// UUID (universally unique identifier)
 	class UUID
 	{
 	public:

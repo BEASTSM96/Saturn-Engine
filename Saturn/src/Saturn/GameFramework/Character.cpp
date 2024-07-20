@@ -32,6 +32,8 @@
 #include "Saturn/Physics/PhysicsRigidBody.h"
 #include "Core/ClassMetadataHandler.h"
 
+#include "Saturn/Audio/AudioSystem.h"
+
 namespace Saturn {
 
 	Character::Character()
@@ -134,6 +136,14 @@ namespace Saturn {
 			normalMove.y = -2.0f;
 
 			m_RigidBody->ApplyForce( normalMove, ForceMode::Force );
+		}
+
+		if( HasComponent<AudioListenerComponent>() )
+		{
+			if( auto& alc = GetComponent<AudioListenerComponent>(); alc.Primary )
+			{
+				AudioSystem::Get().SetPrimaryListenerDirection( forward );
+			}
 		}
 	}
 

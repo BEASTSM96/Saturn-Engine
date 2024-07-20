@@ -96,6 +96,7 @@ namespace Saturn {
 		void Resume();
 
 		void SetPrimaryListenerPos( const glm::vec3& rPos );
+		void SetPrimaryListenerDirection( const glm::vec3& rDir );
 
 		void StopPreviewSounds( UUID Identifier );
 		void StopAndResetSound( UUID UniquePlayerID );

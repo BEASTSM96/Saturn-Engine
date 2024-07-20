@@ -417,6 +417,11 @@ namespace Saturn {
 		ma_engine_listener_set_position( &m_Engine, 0, rPos.x, rPos.y, rPos.z );
 	}
 
+	void AudioSystem::SetPrimaryListenerDirection( const glm::vec3& rDir )
+	{
+		ma_engine_listener_set_direction( &m_Engine, 0, rDir.x, rDir.y, rDir.z );
+	}
+
 	void AudioSystem::StopPreviewSounds( UUID Identifier )
 	{
 #if defined( SAT_DEBUG ) || defined( SAT_RELEASE )

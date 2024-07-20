@@ -53,6 +53,7 @@ namespace Saturn {
 	void ComputePipeline::Bind()
 	{
 		m_CommandBuffer = VulkanContext::Get().CreateComputeCommandBuffer();
+		m_UseGraphicsQueue = false;
 
 		vkCmdBindPipeline( m_CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_Pipeline );
 	}

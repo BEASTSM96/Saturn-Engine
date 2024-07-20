@@ -265,7 +265,6 @@ namespace Saturn {
 		// Audio Billboards
 		{
 			auto players = m_Registry.group<AudioPlayerComponent>( entt::get<TransformComponent> );
-
 			if( players.size() )
 			{
 				Ref<Texture2D> audio = EditorIcons::GetIcon( "Billboard_Audio" );
@@ -300,19 +299,25 @@ namespace Saturn {
 					auto [transformComponent, comp] = listeners.get<TransformComponent, AudioListenerComponent>( e );
 
 					auto height = transformComponent.Scale.y;
-					auto pos = glm::vec3( transformComponent.Position.x, height + 5, transformComponent.Position.z );
+					auto pos = glm::vec3( transformComponent.Position.x, height + 5.0f, transformComponent.Position.z );
 
 					Renderer2D::Get().SubmitBillboardTextured(
 						pos,
 						glm::vec4( 1.0f ),
 						listenTexture, glm::vec2( 1.0f ) );
+
+					// Use billboard pos as starting pos
+					auto start = pos;
+					auto end = start + glm::normalize( comp.Direction ) * 2.0f;
+
+					Renderer2D::Get().SubmitLine( start, end, glm::vec4( 1.0f ) );
 				}
 			}
 		}
 
 		// Physics Colliders (selected meshes only)
 		{
-			for ( auto& rSelectedEntity : m_SelectedEntities )
+			for( auto& rSelectedEntity : m_SelectedEntities )
 			{
 				if( rSelectedEntity->HasComponent<RigidbodyComponent>() && rSelectedEntity->HasComponent<StaticMeshComponent>() )
 				{
