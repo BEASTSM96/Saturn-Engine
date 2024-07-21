@@ -109,25 +109,40 @@ namespace SaturnBuildTool.Cache
             fs.Close();
         }
 
-        public static FileCache Load() 
+        public static FileCache Load()
         {
             string FileCachePath = ProjectInfo.Instance.FileCacheLocation;
 
             FileCache fc = new FileCache(FileCachePath);
             fc.Filepath = FileCachePath;
 
+            FileStream fs;
             if (!File.Exists(FileCachePath))
-                File.Create( FileCachePath );
+            {
+                fs = File.Create(FileCachePath);
+            }
+            else
+            {
+                try
+                {
+                    fs = new FileStream(FileCachePath, FileMode.Open);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error when trying open filecache: {0}", e.Message);
+                    //fs.Close();
 
-            FileStream fs = null;
-            try
+                    return fc;
+                }
+            }
+
+            if( fs.Length == 0 ) 
             {
-                fs = new FileStream(FileCachePath, FileMode.Open);
-            } 
-            catch (Exception e) 
-            {
-                Console.WriteLine( "Error when trying open filecache: {0}", e.Message );
-                return null;
+                fs.Close();
+
+                Console.WriteLine( "Filecache is empty, creating new cache..." );
+
+                return fc;
             }
 
             byte[] headerBytes = new byte[3];
@@ -140,7 +155,7 @@ namespace SaturnBuildTool.Cache
                 Console.WriteLine("File cache file has an invalid header.");
                 fs.Close();
 
-                return null;
+                return fc;
             }
 
             long remainingBytes = fs.Length - headerBytes.Length;
@@ -171,7 +186,7 @@ namespace SaturnBuildTool.Cache
                 }
                 else
                 {
-                    Console.WriteLine("Invalid date format.");
+                    Console.WriteLine("Invalid date format. Skipping file.");
                 }
             }
 
