@@ -4,11 +4,8 @@
 workspace "__PROJECT_NAME__"
 	architecture "x64"
 	startproject "__PROJECT_NAME__"
-	warnings "Off"
 
 	configurations { "Debug", "Release", "Dist" }
-
-	flags { "MultiProcessorCompile" }
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 

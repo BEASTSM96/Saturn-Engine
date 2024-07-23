@@ -65,10 +65,12 @@ namespace Saturn {
 			{
 				auto result = m_Library.GetSymbol( rName.c_str() );
 				
+				SAT_CORE_ASSERT( result, "Could not find function in module!" );
+
 				if( result ) 
 				{
 					m_CreateFuntions[ rName ] = (Ty)result;
-					
+
 					return (Ty)result;
 				}
 				else
