@@ -83,6 +83,8 @@ namespace Saturn {
 		void DrawVFSDebug();
 		void DrawTitlebarOptions();
 		void DrawAboutWindow();
+		void DrawSceneRendererWindow();
+		void DrawRendererWindow();
 
 		// Viewport
 		void DrawViewport();
@@ -131,6 +133,8 @@ namespace Saturn {
 		bool m_OpenAttributions = false;
 		bool m_JobModalOpen = false;
 		bool m_OpenAboutWindow = false;
+		bool m_ShowRendererWindow = true;
+		bool m_ShowSceneRendererWindow = true;
 
 		bool m_RequestRuntime = false;
 

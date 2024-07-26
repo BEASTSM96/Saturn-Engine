@@ -134,6 +134,9 @@ namespace Saturn {
 		m_GameModule = new GameModule();
 
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
+
+		std::string title = std::format( "{0} - Saturn", Project::GetActiveConfig().Name );
+		Application::Get().GetWindow()->ChangeTitle( title );
 	}
 
 	void EditorLayer::OnAttach()
@@ -294,78 +297,19 @@ namespace Saturn {
 		m_TitleBar->Draw();
 		m_PanelManager->DrawAllPanels();
 		
-		ImGui::Begin( "Scene Renderer" );
-
-		Application::Get().PrimarySceneRenderer().ImGuiRender();
-
-		if( Auxiliary::TreeNode( "Shaders", false ) ) 
-		{
-			ImGui::BeginVertical( "shadersV" );
-
-			for( auto& [name, shader] : ShaderLibrary::Get().GetShaders() )
-			{
-				ImGui::Columns( 2 );
-				ImGui::SetColumnWidth( 0, 125.0f );
-				ImGui::PushMultiItemsWidths( 2, ImGui::CalcItemWidth() );
-
-				ImGui::BeginHorizontal( name.c_str() );
-
-				ImGui::Text( name.c_str() );
-
-				ImGui::PopItemWidth();
-
-				ImGui::NextColumn();
-
-				if( ImGui::Button( "Recompile" ) )
-				{
-					if( !shader->TryRecompile() ) 
-					{
-						Application::Get().GetWindow()->FlashAttention();
-					
-						m_MessageBoxText = std::format( "Shader '{0}' failed to recompile. Defaulting back to last successful build.", shader->GetName() );
-						m_ShowMessageBox = true;
-					}
-				}
-
-				ImGui::PopItemWidth();
-
-				ImGui::Columns( 1 );
-
-				ImGui::EndHorizontal();
-			}
-
-			ImGui::EndVertical();
-
-			Auxiliary::EndTreeNode();
-		}
-
-		ImGui::End();
-
-		if( m_OpenAttributions )       DrawAttributions();
-		if( m_ShowImGuiDemoWindow )    ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
-		if( m_ShowUserSettings )       DrawProjectSettingsWindow();
-		if( m_OpenAssetRegistryDebug ) DrawAssetRegistryDebug();
-		if( m_OpenLoadedAssetDebug )   DrawLoadedAssetsDebug();
-		if( m_OpenEditorSettings )     DrawEditorSettings();
-		if( m_ShowVFSDebug )           DrawVFSDebug();
-		if( m_OpenAboutWindow )        DrawAboutWindow();
-		if( m_ShowMessageBox )         ShowMessageBox();
+		if( m_OpenAttributions )        DrawAttributions();
+		if( m_ShowImGuiDemoWindow )     ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
+		if( m_ShowUserSettings )        DrawProjectSettingsWindow();
+		if( m_OpenAssetRegistryDebug )  DrawAssetRegistryDebug();
+		if( m_OpenLoadedAssetDebug )    DrawLoadedAssetsDebug();
+		if( m_OpenEditorSettings )      DrawEditorSettings();
+		if( m_ShowVFSDebug )            DrawVFSDebug();
+		if( m_OpenAboutWindow )         DrawAboutWindow();
+		if( m_ShowMessageBox )          ShowMessageBox();
+		if( m_ShowSceneRendererWindow ) DrawSceneRendererWindow();
+		if( m_ShowRendererWindow )		DrawRendererWindow();
 
 		AssetViewer::Draw();
-
-		ImGui::Begin( "Renderer" );
-
-		ImGui::Text( "Frame Time: %.2f ms", Application::Get().Time().Milliseconds() );
-
-		for( const auto& devices : VulkanContext::Get().GetPhysicalDeviceProperties() )
-		{
-			ImGui::Text( "Device Name: %s", devices.DeviceProps.deviceName );
-			ImGui::Text( "API Version: %i", devices.DeviceProps.apiVersion );
-			ImGui::Text( "Vendor ID: %i", devices.DeviceProps.vendorID );
-			ImGui::Text( "Vulkan Version: 1.2.128" );
-		}
-		
-		ImGui::End();
 
 		if( m_JobModalOpen )
 		{
@@ -1247,6 +1191,11 @@ namespace Saturn {
 		{
 			if( ImGui::MenuItem( "Attributions" ) ) m_OpenAttributions ^= 1;
 			if( ImGui::MenuItem( "About" ) )        m_OpenAboutWindow ^= 1;
+			
+			ImGui::SeparatorText( "Windows" );
+
+			ImGui::Checkbox( "Scene Renderer", &m_ShowSceneRendererWindow );
+			ImGui::Checkbox( "Renderer (Vulkan Info)", &m_ShowRendererWindow );
 
 			ImGui::EndMenu();
 		}
@@ -1428,6 +1377,75 @@ namespace Saturn {
 
 			ImGui::End();
 		}
+	}
+
+	void EditorLayer::DrawSceneRendererWindow()
+	{
+		if( ImGui::Begin( "Scene Renderer", &m_ShowSceneRendererWindow ) )
+		{
+			Application::Get().PrimarySceneRenderer().ImGuiRender();
+
+			if( Auxiliary::TreeNode( "Shaders", false ) )
+			{
+				ImGui::BeginVertical( "shadersV" );
+
+				for( auto& [name, shader] : ShaderLibrary::Get().GetShaders() )
+				{
+					ImGui::Columns( 2 );
+					ImGui::SetColumnWidth( 0, 125.0f );
+					ImGui::PushMultiItemsWidths( 2, ImGui::CalcItemWidth() );
+
+					ImGui::BeginHorizontal( name.c_str() );
+
+					ImGui::Text( name.c_str() );
+
+					ImGui::PopItemWidth();
+
+					ImGui::NextColumn();
+
+					if( ImGui::Button( "Recompile" ) )
+					{
+						if( !shader->TryRecompile() )
+						{
+							Application::Get().GetWindow()->FlashAttention();
+
+							m_MessageBoxText = std::format( "Shader '{0}' failed to recompile. Defaulting back to last successful build.", shader->GetName() );
+							m_ShowMessageBox = true;
+						}
+					}
+
+					ImGui::PopItemWidth();
+
+					ImGui::Columns( 1 );
+
+					ImGui::EndHorizontal();
+				}
+
+				ImGui::EndVertical();
+
+				Auxiliary::EndTreeNode();
+			}
+		}
+
+		ImGui::End();
+	}
+
+	void EditorLayer::DrawRendererWindow()
+	{
+		if( ImGui::Begin( "Renderer", &m_ShowRendererWindow ) )
+		{
+			ImGui::Text( "Frame Time: %.2f ms", Application::Get().Time().Milliseconds() );
+
+			for( const auto& devices : VulkanContext::Get().GetPhysicalDeviceProperties() )
+			{
+				ImGui::Text( "Device Name: %s", devices.DeviceProps.deviceName );
+				ImGui::Text( "API Version: %i", devices.DeviceProps.apiVersion );
+				ImGui::Text( "Vendor ID: %i", devices.DeviceProps.vendorID );
+				ImGui::Text( "Vulkan Version: 1.2.128" );
+			}
+		}
+
+		ImGui::End();
 	}
 
 	void EditorLayer::DrawViewport()
