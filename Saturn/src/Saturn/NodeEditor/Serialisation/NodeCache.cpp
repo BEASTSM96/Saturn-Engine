@@ -281,7 +281,7 @@ namespace Saturn {
 			std::string decodedAssetBundleVer;
 			SAT_DECODE_VER_STRING( header.Version, decodedAssetBundleVer );
 
-			SAT_CORE_ERROR( "Node Editor Cache version mismatch! This should not happen. Cache file version is: {0} while current engine version is: {1}.", decodedAssetBundleVer, SAT_CURRENT_VERSION_STRING );
+			SAT_CORE_WARN( "Node Editor Cache version mismatch! This should not happen. Cache file version is: {0} while current engine version is: {1}.", decodedAssetBundleVer, SAT_CURRENT_VERSION_STRING );
 			SAT_CORE_WARN( "The engine will continue to load however this may result in the cache file not loading!" );
 		}
 
