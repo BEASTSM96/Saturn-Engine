@@ -165,7 +165,7 @@ namespace SaturnBuildTool
             
             // Debugging
             clProcess.BeginErrorReadLine();
-            //clProcess.BeginOutputReadLine();
+            clProcess.BeginOutputReadLine();
 
             clProcess.WaitForExit();
 
