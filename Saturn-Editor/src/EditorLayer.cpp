@@ -305,7 +305,7 @@ namespace Saturn {
 		if( m_OpenEditorSettings )      DrawEditorSettings();
 		if( m_ShowVFSDebug )            DrawVFSDebug();
 		if( m_OpenAboutWindow )         DrawAboutWindow();
-		if( m_ShowMessageBox )          ShowMessageBox();
+		if( m_MessageBoxes.size() )     HandleMessageBoxes();
 		if( m_ShowSceneRendererWindow ) DrawSceneRendererWindow();
 		if( m_ShowRendererWindow )		DrawRendererWindow();
 
@@ -1244,22 +1244,32 @@ namespace Saturn {
 						Project::GetActiveProject()->PrepForDist();
 						
 						m_BlockingOperation->SetStatus( "Building Shader bundle..." );
-						BuildShaderBundle();
-
-						if( m_ShowMessageBox )
+						if( !BuildShaderBundle() )
 							return;
 
 						if( auto result = AssetBundle::BundleAssets( m_BlockingOperation ); result != AssetBundleResult::Success )
 						{
 							Application::Get().GetWindow()->FlashAttention();
 
-							m_MessageBoxText = std::format( "Asset bundle failed to build error was: {0}", ( int ) result );
-							m_ShowMessageBox = true;
+							MessageBoxInfo msgBox
+							{
+								.Title = "Error",
+								.Text = std::format( "Asset bundle failed to build error was: {0}", ( int ) result ),
+								.Buttons = MessageBoxButtons_Ok
+							};
+
+							PushMessageBox( msgBox );
 						}
 						else
 						{
-							m_MessageBoxText = "Asset Bundle successfully built. You may now compile the game in the \"Dist\" configuration.\nYou can do this in your IDE. Or go to Project->Distribute project in the title bar.";
-							m_ShowMessageBox = true;
+							MessageBoxInfo msgBox
+							{
+								.Title = "Asset bundle successfully built",
+								.Text = "Asset Bundle successfully built. You may now compile the game in the \"Dist\" configuration.\nYou can do this in your IDE. Or go to Project->Distribute project in the title bar.",
+								.Buttons = MessageBoxButtons_Ok
+							};
+
+							PushMessageBox( msgBox );
 						}
 					} );
 			}
@@ -1409,8 +1419,8 @@ namespace Saturn {
 						{
 							Application::Get().GetWindow()->FlashAttention();
 
-							m_MessageBoxText = std::format( "Shader '{0}' failed to recompile. Defaulting back to last successful build.", shader->GetName() );
-							m_ShowMessageBox = true;
+							MessageBoxInfo msgBox = { .Title = "Error", .Text = std::format( "Shader '{0}' failed to recompile. Defaulting back to last successful build.", shader->GetName() ) };
+							PushMessageBox( msgBox );
 						}
 					}
 
@@ -1717,33 +1727,56 @@ namespace Saturn {
 		Application::Get().Close();
 	}
 
-	void EditorLayer::ShowMessageBox()
+	void EditorLayer::DrawMessageBox( const MessageBoxInfo& rInfo )
 	{
 		ImGui::SetNextWindowPos( ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2( 0.5f, 0.5f ) );
-		if( ImGui::BeginPopupModal( "Error##MsgBox", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
+		if( ImGui::BeginPopupModal( rInfo.Title.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
 		{
 			ImGui::BeginHorizontal( "##MsgBoxH" );
 
 			Auxiliary::Image( m_ExclamationTexture, ImVec2( 72, 72 ) );
 
-			ImGui::Text( m_MessageBoxText.c_str() );
+			ImGui::Text( rInfo.Text.c_str() );
 
 			ImGui::EndHorizontal();
 
 			ImGui::BeginHorizontal( "##MsgBoxOpts" );
 
-			if( ImGui::Button( "OK" ) ) 
+			if( ( rInfo.Buttons & ( uint32_t )MessageBoxButtons_Ok ) != 0 )
 			{
-				ImGui::CloseCurrentPopup();
-				m_ShowMessageBox = false;
-			} 
+				if( ImGui::Button( "OK" ) )
+				{
+					ImGui::CloseCurrentPopup();
+					PopMessageBox();
+				}
+			}
+
+			if( ( rInfo.Buttons & ( uint32_t ) MessageBoxButtons_Cancel ) != 0 )
+			{
+				if( ImGui::Button( "Cancel" ) )
+				{
+					ImGui::CloseCurrentPopup();
+					PopMessageBox();
+				}
+			}
+			
+			if( ( rInfo.Buttons & ( uint32_t ) MessageBoxButtons_Exit ) != 0 )
+			{
+				if( ImGui::Button( "Exit" ) )
+				{
+					ImGui::CloseCurrentPopup();
+					PopMessageBox();
+				}
+			}
+
+			// TODO: Handle retries.
 			
 			ImGui::EndHorizontal();
 
 			ImGui::EndPopup();
 		}
 
-		ImGui::OpenPopup( "Error##MsgBox" );
+		ImGui::OpenPopup( rInfo.Title.c_str() );
 	}
 
 	void EditorLayer::CheckMissingEnv()
@@ -1785,22 +1818,52 @@ namespace Saturn {
 		}
 	}
 
-	void EditorLayer::BuildShaderBundle()
+	bool EditorLayer::BuildShaderBundle()
 	{
 		// Make sure we include the Texture Pass shader.
 		// Texture Pass shader is only ever loaded in Dist and we are not on Dist at this point.
 		Ref<Shader> TexturePass = ShaderLibrary::Get().FindOrLoad( "TexturePass", "content/shaders/TexturePass.glsl" );
 
-		if( auto shaderRes = ShaderBundle::BundleShaders(); shaderRes != ShaderBundleResult::Success )
+		auto shaderRes = ShaderBundle::BundleShaders();
+		bool built = shaderRes == ShaderBundleResult::Success;
+
+		if( !built )
 		{
-			m_MessageBoxText = std::format( "Shader bundle failed to build error was: {0}", ( int ) shaderRes );
-			m_ShowMessageBox = true;
+			MessageBoxInfo msgBox
+			{ 
+				.Title = "Error", 
+				.Text = std::format( "Shader bundle failed to build error was: {0}", ( int ) shaderRes ), 
+				.Buttons = MessageBoxButtons_Ok 
+			};
+			
+			PushMessageBox( msgBox );
 		}
 
 		Application::Get().GetWindow()->FlashAttention();
 
 		ShaderLibrary::Get().Remove( TexturePass );
 		TexturePass = nullptr;
+	
+		return built;
+	}
+
+	void EditorLayer::PushMessageBox( MessageBoxInfo& rInfo )
+	{
+		if( !rInfo.Title.contains( "##MsgBox" ) )
+			rInfo.Title = std::format( "{0}##MsgBox", rInfo.Title );
+
+		m_MessageBoxes.push( rInfo );
+	}
+
+	void EditorLayer::PopMessageBox()
+	{
+		m_MessageBoxes.pop();
+	}
+
+	void EditorLayer::HandleMessageBoxes()
+	{
+		auto& rMessageBox = m_MessageBoxes.front();
+		DrawMessageBox( rMessageBox );
 	}
 
 }

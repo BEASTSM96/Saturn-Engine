@@ -36,11 +36,10 @@
 
 #include <Saturn/ImGui/JobProgress.h>
 
-#include <thread>
+#include <queue>
 
 namespace Saturn {
 	
-	class Toolbar;
 	class TitleBar;
 	class GameModule;
 
@@ -94,9 +93,30 @@ namespace Saturn {
 		// Close editor and open the project browser.
 		void CloseEditorAndOpenPB();
 
-		void ShowMessageBox();
 		void CheckMissingEnv();
-		void BuildShaderBundle();
+		bool BuildShaderBundle();
+
+		enum MessageBoxButtons_
+		{
+			MessageBoxButtons_Ok = BIT( 0 ),
+			MessageBoxButtons_Cancel = BIT( 1 ),
+			MessageBoxButtons_Retry = BIT( 2 ),
+			MessageBoxButtons_Exit = BIT( 3 )
+		};
+
+		struct MessageBoxInfo
+		{
+			std::string Title = "Error";
+			std::string Text;
+
+			// enum MessageBoxButtons_
+			uint32_t Buttons = MessageBoxButtons_Ok;
+		};
+
+		void PushMessageBox( MessageBoxInfo& rInfo );
+		void PopMessageBox();
+		void HandleMessageBoxes();
+		void DrawMessageBox( const MessageBoxInfo& rInfo );
 
 	private:
 		TitleBar* m_TitleBar = nullptr;
@@ -146,9 +166,7 @@ namespace Saturn {
 		float m_OperationPercent = 0.0f;
 		bool m_ShowOperation = false;
 
-		std::string m_MessageBoxText = "";
-		std::string m_MessageBoxTitle = "Error";
-		bool m_ShowMessageBox = false;
+		std::queue<MessageBoxInfo> m_MessageBoxes;
 
 		Ref< Scene > m_EditorScene = nullptr;
 		Ref< Scene > m_RuntimeScene = nullptr;
