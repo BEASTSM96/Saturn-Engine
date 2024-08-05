@@ -27,23 +27,23 @@
 */
 
 #include "sppch.h"
-#include "RubyMonitor.h"
+#include "RubyLibrary.h"
 
 #if defined(_WIN32)
-#include <windows.h>
+#include <Windows.h>
 #endif
 
 namespace Saturn {
 
-	static std::vector<RubyMonitor> s_RubyMonitors;
-
 #if defined(_WIN32)
 	BOOL CALLBACK MonitorEnumProc( HMONITOR Monitor, HDC HDCMonitor, LPRECT LPRCMonitor, LPARAM DWData )
 	{
+		RubyLibrary* pThis = ( RubyLibrary* ) DWData;
+
 		MONITORINFOEX MonitorInfo{};
 		MonitorInfo.cbSize = sizeof( MONITORINFOEX );
 
-		if( GetMonitorInfo( Monitor, &MonitorInfo ) )
+		if( ::GetMonitorInfo( Monitor, &MonitorInfo ) )
 		{
 			RubyMonitor monitor;
 			monitor.Primary = MonitorInfo.dwFlags & MONITORINFOF_PRIMARY;
@@ -61,36 +61,53 @@ namespace Saturn {
 			monitor.WorkSize.x = MonitorInfo.rcWork.right - MonitorInfo.rcWork.left;
 			monitor.WorkSize.y = MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top;
 
-			s_RubyMonitors.push_back( monitor );
+			pThis->AddMoninter( monitor );
 		}
 
 		return TRUE;
 	}
 #endif
 
-	std::vector<RubyMonitor> RubyGetAllMonitors()
+	//////////////////////////////////////////////////////////////////////////
+
+	RubyLibrary::RubyLibrary()
+	{
+		GetAllMonitors();
+	}
+
+	void RubyLibrary::AddMoninter( const RubyMonitor& rMoniter )
+	{
+		m_Moniters.push_back( rMoniter );
+	}
+
+	std::vector<RubyMonitor> RubyLibrary::GetAllMonitors()
 	{
 		int Monitors = GetSystemMetrics( SM_CMONITORS );
 
-		if( s_RubyMonitors.size() != Monitors )
+		if( m_Moniters.size() != Monitors )
 		{
-			s_RubyMonitors.clear();
+				m_Moniters.clear();
 
 #if defined(_WIN32)
-			::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, 0 );
+			LPARAM userData = (LPARAM)this;
+			::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, userData );
 #endif
 		}
 
-		return s_RubyMonitors;
+		return m_Moniters;
 	}
 
-	RubyMonitor& RubyGetPrimaryMonitor()
+	RubyMonitor& RubyLibrary::GetPrimaryMonitor()
 	{
-		if( !s_RubyMonitors.size() )
-			RubyGetAllMonitors();
+		if( !m_Moniters.size() )
+			GetAllMonitors();
 
-		auto It = std::find_if( s_RubyMonitors.begin(), s_RubyMonitors.end(), []( auto& rMonitor ) { return rMonitor.Primary; } );
+		auto Itr = std::find_if( m_Moniters.begin(), m_Moniters.end(),
+			[]( auto& rMonitor ) 
+			{ 
+				return rMonitor.Primary; 
+			} );
 
-		return *( It );
+		return *( Itr );
 	}
 }

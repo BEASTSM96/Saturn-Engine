@@ -28,23 +28,26 @@
 
 #pragma once
 
-#include "RubyCore.h"
+#include "RubyMonitor.h"
 
-#include <string>
-#include <vector>
+#include "SingletonStorage.h"
 
 namespace Saturn {
 
-	struct RubyMonitor
+	class RubyLibrary final
 	{
-		bool Primary = false;
-		std::wstring Name;
+	public:
+		static inline RubyLibrary& Get() { return *SingletonStorage::GetOrCreateSingleton<RubyLibrary>(); };
+	public:
+		RubyLibrary();
+		~RubyLibrary() = default;
 
-		int BBP = 0;
-		int DPI = 0;
+		std::vector<RubyMonitor> GetAllMonitors();
+		RubyMonitor& GetPrimaryMonitor();
 
-		RubyIVec2 WorkSize;
-		RubyIVec2 MonitorSize;
-		RubyIVec2 MonitorPosition;
+		void AddMoninter( const RubyMonitor& rMoniter );
+
+	private:
+		std::vector<RubyMonitor> m_Moniters;
 	};
 }

@@ -31,6 +31,7 @@
 
 #include "Ruby/RubyWindow.h"
 #include "Ruby/RubyMonitor.h"
+#include "Ruby/RubyLibrary.h"
 
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/Renderer2D.h"
@@ -64,7 +65,7 @@ namespace Saturn {
 	{
 		SingletonStorage::AddSingleton( this );
 
-		const RubyMonitor& rPrimaryMonitor = RubyGetPrimaryMonitor();
+		const RubyMonitor& rPrimaryMonitor = RubyLibrary::Get().GetPrimaryMonitor();
 		uint32_t width = 0, height = 0;
 
 		width = 3 * rPrimaryMonitor.MonitorSize.x / 4;
