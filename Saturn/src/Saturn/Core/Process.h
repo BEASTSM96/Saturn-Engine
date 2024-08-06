@@ -30,32 +30,52 @@
 
 #include "Ref.h"
 
-#if defined( _WIN32 )
+#if defined( SAT_PLATFORM_WINDOWS )
 #include <Windows.h>
-using ProcessHandle = HANDLE;
 #endif
 
 namespace Saturn {
 
+#if defined( SAT_PLATFORM_WINDOWS )
+	using ProcessHandle = HANDLE;
+	using HandleType = HANDLE;
+#else
+	using ProcessHandle = void*;
+	using HandleType = void*;
+#endif
+
+	enum class ProcessCreateFlags
+	{
+		Normal,
+		RedirectedStreams
+	};
+
 	class Process : public RefTarget
 	{
 	public:
-		Process( const std::wstring& rCommandLine, const std::wstring& rWorkingDir = L"" );
+		Process( const std::wstring& rCommandLine, const std::wstring& rWorkingDir = L"", ProcessCreateFlags flags = ProcessCreateFlags::Normal );
 		~Process();
 
 		void WaitForExit();
 		[[nodiscard]] int ResultOfProcess();
+		[[nodiscard]] std::wstring GetCurrentOutput( bool closeHandle = false );
 
 	private:
 		void Create( const std::wstring& rWorkingDir );
 		void Terminate();
+		void CreateNormal( const std::wstring& rWorkingDir );
+		void CreateRedirectedStream( const std::wstring& rWorkingDir );
 
 	private:
-		ProcessHandle m_Handle;
+		ProcessHandle m_Handle = nullptr;
+		ProcessCreateFlags m_Flags = ProcessCreateFlags::Normal;
 
 		std::wstring m_CommandLine;
 
 		int m_ExitCode = 1;
+	
+		ProcessHandle m_ReadHandle = nullptr;
+		ProcessHandle m_WriteHandle = nullptr;
 	};
 
 }

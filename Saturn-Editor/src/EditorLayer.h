@@ -123,7 +123,7 @@ namespace Saturn {
 		void DrawMessageBox( const MessageBoxInfo& rInfo );
 
 	private:
-		TitleBar* m_TitleBar = nullptr;
+		Ref< TitleBar > m_TitleBar = nullptr;
 		
 		Ref< Texture2D > m_CheckerboardTexture = nullptr;
 		Ref< Texture2D > m_StartRuntimeTexture = nullptr;

@@ -31,8 +31,8 @@
 
 namespace Saturn {
 
-	Process::Process( const std::wstring& rCommandLine, const std::wstring& rWorkingDir )
-		: m_CommandLine( rCommandLine )
+	Process::Process( const std::wstring& rCommandLine, const std::wstring& rWorkingDir /*= L""*/, ProcessCreateFlags flags /*= ProcessCreateFlags::Normal */ )
+		: m_CommandLine( rCommandLine ), m_Flags( flags )
 	{
 		Create( rWorkingDir );
 	}
@@ -44,7 +44,23 @@ namespace Saturn {
 
 	void Process::Create( const std::wstring& rWorkingDir )
 	{
-#if defined( _WIN32 )
+#if defined( SAT_PLATFORM_WINDOWS )
+		switch( m_Flags )
+		{
+			case ProcessCreateFlags::Normal:
+				CreateNormal( rWorkingDir );
+				break;
+
+			case ProcessCreateFlags::RedirectedStreams:
+				CreateRedirectedStream( rWorkingDir );
+				break;
+		}
+#endif
+	}
+
+	void Process::CreateNormal( const std::wstring& rWorkingDir )
+	{
+#if defined( SAT_PLATFORM_WINDOWS )
 		STARTUPINFOW StartupInfo = {};
 		StartupInfo.cb = sizeof( StartupInfo );
 		StartupInfo.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
@@ -60,11 +76,39 @@ namespace Saturn {
 #endif
 	}
 
+	void Process::CreateRedirectedStream( const std::wstring& rWorkingDir )
+	{
+#if defined( SAT_PLATFORM_WINDOWS )
+		SECURITY_ATTRIBUTES securityAttributes{ .nLength = sizeof( SECURITY_ATTRIBUTES ), .lpSecurityDescriptor = nullptr, .bInheritHandle = TRUE };
+
+		if( CreatePipe( &m_ReadHandle, &m_WriteHandle, &securityAttributes, 0 ) ) 
+		{
+			STARTUPINFOW StartupInfo = {};
+			StartupInfo.cb = sizeof( StartupInfo );
+			StartupInfo.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
+			StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+			StartupInfo.hStdError = m_WriteHandle;
+			StartupInfo.hStdOutput = m_WriteHandle;
+
+			PROCESS_INFORMATION ProcessInfo;
+			bool result = CreateProcessW(
+				nullptr, m_CommandLine.data(), nullptr, nullptr, TRUE, 0, nullptr,
+				rWorkingDir.empty() ? nullptr : rWorkingDir.data(), &StartupInfo, &ProcessInfo );
+
+			CloseHandle( ProcessInfo.hThread );
+			m_Handle = ProcessInfo.hProcess;
+		}
+#endif
+	}
+
 	void Process::Terminate()
 	{
-#if defined( _WIN32 )
+#if defined( SAT_PLATFORM_WINDOWS )
 		if( m_Handle ) 
 		{
+			if( m_ReadHandle )
+				CloseHandle( m_ReadHandle );
+
 			TerminateProcess( m_Handle, 0 );
 
 			m_Handle = nullptr;
@@ -74,7 +118,7 @@ namespace Saturn {
 
 	void Process::WaitForExit()
 	{
-#if defined( _WIN32 )
+#if defined( SAT_PLATFORM_WINDOWS )
 		bool Result;
 		DWORD ExitCode;
 
@@ -86,7 +130,11 @@ namespace Saturn {
 		// Process exited somehow... cleanup.
 		CloseHandle( m_Handle );
 
+		if( m_ReadHandle )
+			CloseHandle( m_ReadHandle );
+
 		m_Handle = nullptr;
+		m_ReadHandle = nullptr;
 		m_ExitCode = ExitCode;
 #endif
 	}
@@ -96,6 +144,32 @@ namespace Saturn {
 		WaitForExit();
 
 		return m_ExitCode;
+	}
+
+	std::wstring Process::GetCurrentOutput( bool closeHandle )
+	{
+		if( !m_Handle )
+			return std::wstring();
+
+#if defined( SAT_PLATFORM_WINDOWS )
+		std::wstring Out;
+		std::string TemporaryBuffer;
+
+		DWORD availableBytes;
+		if( PeekNamedPipe( m_ReadHandle, nullptr, 0, nullptr, &availableBytes, nullptr ) && availableBytes )
+		{
+			Out.resize( availableBytes );
+			TemporaryBuffer.resize( availableBytes );
+		
+			ReadFile( m_ReadHandle, TemporaryBuffer.data(), availableBytes, nullptr, nullptr );
+			MultiByteToWideChar( CP_ACP, 0, TemporaryBuffer.data(), availableBytes, Out.data(), availableBytes );
+		}
+
+		if( closeHandle )
+			CloseHandle( m_ReadHandle );
+
+		return Out;
+#endif
 	}
 
 }

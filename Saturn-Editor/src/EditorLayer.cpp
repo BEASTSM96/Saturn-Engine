@@ -102,7 +102,7 @@ namespace Saturn {
 		m_PanelManager->AddPanel( Ref<SceneHierarchyPanel>::Create() );
 		m_PanelManager->AddPanel( Ref<ContentBrowserPanel>::Create() );
 
-		m_TitleBar = new TitleBar();
+		m_TitleBar = Ref<TitleBar>::Create();
 
 		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 		hierarchyPanel->SetContext( m_EditorScene );
@@ -190,7 +190,7 @@ namespace Saturn {
 
 	EditorLayer::~EditorLayer()
 	{
-		delete m_TitleBar;
+		m_TitleBar = nullptr;
 		
 		AssetViewer::Terminate();
 
@@ -1314,8 +1314,14 @@ namespace Saturn {
 						{
 							Application::Get().GetWindow()->FlashAttention();
 
-							m_MessageBoxText = std::format( "Asset bundle failed to build error was: {0}", ( int ) result );
-							m_ShowMessageBox = true;
+							MessageBoxInfo msgBox
+							{
+								.Title = "Asset bundle successfully built",
+								.Text = std::format( "Asset bundle failed to build error was: {0}", ( int ) result ),
+								.Buttons = MessageBoxButtons_Ok
+							};
+
+							PushMessageBox( msgBox );
 						}
 					} );
 			}

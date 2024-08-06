@@ -506,9 +506,9 @@ namespace Saturn {
 	bool Project::Rebuild( ConfigKind kind )
 	{
 		std::filesystem::path BuildToolDir = FindBuildTool();
-		std::filesystem::path WorkingDir = BuildToolDir;
-
-		BuildToolDir /= "SaturnBuildTool.exe";
+		
+		// parent_path to remove file name
+		std::filesystem::path WorkingDir = BuildToolDir.parent_path();
 
 		std::string Args = BuildToolDir.string();
 
@@ -537,8 +537,7 @@ namespace Saturn {
 		std::wstring wArgs = Auxiliary::ConvertString( Args );
 
 		// Start the process
-		Process buildTool( wArgs, WorkingDir );
-
+		Process buildTool( wArgs, WorkingDir, ProcessCreateFlags::RedirectedStreams );
 		int exitCode = buildTool.ResultOfProcess();
 
 		return exitCode == 0;

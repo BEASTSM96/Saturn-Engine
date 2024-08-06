@@ -40,7 +40,6 @@ namespace Saturn {
 	{
 	public:
 		static inline EngineSettings& Get() { return *SingletonStorage::GetOrCreateSingleton<EngineSettings>(); }
-
 	public:
 		EngineSettings() = default;
 		~EngineSettings() = default;
@@ -49,12 +48,12 @@ namespace Saturn {
 		// The startup project name i.e. (MyProject)
 		std::string StartupProjectName;
 		
-		// The project root dir i.e. (D:\Projects\MyProject)
+		// The project root dir i.e. (D:\Projects\MyProject) [Serialised]
 		std::filesystem::path StartupProject;
 
 		// The project file dir i.e. (D:\Projects\MyProject\MyProject.sproject)
 		std::filesystem::path FullStartupProjPath;
 
-		std::vector< std::filesystem::path > RecentProjects;
+		std::vector< std::filesystem::path > RecentProjects; // [Serialised]
 	};
 }
