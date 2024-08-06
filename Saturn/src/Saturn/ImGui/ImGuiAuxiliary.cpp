@@ -36,7 +36,7 @@
 
 namespace Saturn::Auxiliary {
 
-	bool DrawVec2Control( const std::string& label, glm::vec2& values, float resetValue /*= 0.0f*/, float columnWidth /*= 100.0f */ )
+	bool DrawVec2Control( const std::string& rLabel, glm::vec2& values, float resetValue /*= 0.0f*/, float columnWidth /*= 100.0f */ )
 	{
 		bool modified = false;
 
@@ -45,11 +45,11 @@ namespace Saturn::Auxiliary {
 		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
-		ImGui::PushID( label.c_str() );
+		ImGui::PushID( rLabel.c_str() );
 
 		ImGui::Columns( 2 );
 		ImGui::SetColumnWidth( 0, columnWidth );
-		ImGui::Text( label.c_str() );
+		ImGui::Text( rLabel.c_str() );
 		ImGui::NextColumn();
 
 		ImGui::PushMultiItemsWidths( 3, ImGui::CalcItemWidth() );
@@ -101,7 +101,7 @@ namespace Saturn::Auxiliary {
 		return modified;
 	}
 
-	bool DrawVec3Control( const std::string& label, glm::vec3& values, float resetValue /*= 0.0f*/, float columnWidth /*= 100.0f */ )
+	bool DrawVec3Control( const std::string& rLabel, glm::vec3& values, float resetValue /*= 0.0f*/, float columnWidth /*= 100.0f */ )
 	{
 		bool modified = false;
 
@@ -110,11 +110,11 @@ namespace Saturn::Auxiliary {
 		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
-		ImGui::PushID( label.c_str() );
+		ImGui::PushID( rLabel.c_str() );
 
 		ImGui::Columns( 2 );
 		ImGui::SetColumnWidth( 0, columnWidth );
-		ImGui::Text( label.c_str() );
+		ImGui::Text( rLabel.c_str() );
 		ImGui::NextColumn();
 
 		ImGui::PushMultiItemsWidths( 3, ImGui::CalcItemWidth() );
@@ -182,13 +182,13 @@ namespace Saturn::Auxiliary {
 		return modified;
 	}
 
-	bool DrawColorVec3Control( const std::string& label, glm::vec3& values, float resetValue /*= 0.0f*/, float columnWidth /*= 100.0f */ )
+	bool DrawColorVec3Control( const std::string& rLabel, glm::vec3& values, float resetValue /*= 0.0f*/, float columnWidth /*= 100.0f */ )
 	{
 		bool modified = false;
 
-		ImGui::PushID( label.c_str() );
+		ImGui::PushID( rLabel.c_str() );
 
-		ImGui::Text( label.c_str() );
+		ImGui::Text( rLabel.c_str() );
 
 		ImGui::SameLine();
 
@@ -199,7 +199,7 @@ namespace Saturn::Auxiliary {
 		return modified;
 	}
 
-	bool DrawFloatControl( const std::string& label, float& values, float min, float max, float columnWidth /*= 125.0f */ )
+	bool DrawFloatControl( const std::string& rLabel, float& values, float min, float max, float columnWidth /*= 125.0f */ )
 	{
 		bool modified = false;
 
@@ -208,11 +208,11 @@ namespace Saturn::Auxiliary {
 		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
-		ImGui::PushID( label.c_str() );
+		ImGui::PushID( rLabel.c_str() );
 		ImGui::Columns( 2 );
 		ImGui::SetColumnWidth( 0, columnWidth );
 
-		ImGui::Text( label.c_str() );
+		ImGui::Text( rLabel.c_str() );
 
 		ImGui::NextColumn();
 
@@ -231,7 +231,7 @@ namespace Saturn::Auxiliary {
 		return modified;
 	}
 
-	bool DrawIntControl( const std::string& label, int& values, float columnWidth /*= 125.0f */ )
+	bool DrawIntControl( const std::string& rLabel, int& values, float columnWidth /*= 125.0f */ )
 	{
 		bool modified = false;
 
@@ -240,12 +240,12 @@ namespace Saturn::Auxiliary {
 		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
-		ImGui::PushID( label.c_str() );
+		ImGui::PushID( rLabel.c_str() );
 
 		ImGui::Columns( 2 );
 		ImGui::SetColumnWidth( 0, columnWidth );
 
-		ImGui::Text( label.c_str() );
+		ImGui::Text( rLabel.c_str() );
 
 		ImGui::NextColumn();
 
@@ -264,7 +264,7 @@ namespace Saturn::Auxiliary {
 		return modified;
 	}
 
-	bool DrawBoolControl( const std::string& label, bool& value, float columnWidth /*= 125.0f */ )
+	bool DrawBoolControl( const std::string& rLabel, bool& value, float columnWidth /*= 125.0f */ )
 	{
 		bool modified = false;
 
@@ -273,12 +273,12 @@ namespace Saturn::Auxiliary {
 		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
-		ImGui::PushID( label.c_str() );
+		ImGui::PushID( rLabel.c_str() );
 
 		ImGui::Columns( 2 );
 		ImGui::SetColumnWidth( 0, columnWidth );
 
-		ImGui::Text( label.c_str() );
+		ImGui::Text( rLabel.c_str() );
 
 		ImGui::NextColumn();
 
@@ -297,16 +297,16 @@ namespace Saturn::Auxiliary {
 		return modified;
 	}
 
-	void DrawDisabledButton( const std::string& label )
+	void DrawDisabledButton( const std::string& rLabel )
 	{
 		ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 		ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-		ImGui::Button( label.c_str() );
+		ImGui::Button( rLabel.c_str() );
 		ImGui::PopStyleVar( 1 );
 		ImGui::PopItemFlag();
 	}
 
-	bool DrawDisabledBoolControl( const std::string& label, bool& value, float columnWidth /*= 125.0f */ )
+	bool DrawDisabledBoolControl( const std::string& rrLabel, bool& value, float columnWidth /*= 125.0f */ )
 	{
 		ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 		ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
@@ -318,12 +318,12 @@ namespace Saturn::Auxiliary {
 		// This is not the bold font this is normal one, I just like it like that.
 		auto boldFont = io.Fonts->Fonts[ 0 ];
 
-		ImGui::PushID( label.c_str() );
+		ImGui::PushID( rrLabel.c_str() );
 
 		ImGui::Columns( 2 );
 		ImGui::SetColumnWidth( 0, columnWidth );
 
-		ImGui::Text( label.c_str() );
+		ImGui::Text( rrLabel.c_str() );
 
 		ImGui::NextColumn();
 
@@ -345,22 +345,22 @@ namespace Saturn::Auxiliary {
 		return modified;
 	}
 
-	bool DrawOverlay( const std::string& label )
+	bool DrawOverlay( const std::string& rLabel )
 	{
-		ImGui::PushID( label.c_str() );
+		ImGui::PushID( rLabel.c_str() );
 
-		bool SkipItem = ImGui::Begin( label.c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus );
+		bool SkipItem = ImGui::Begin( rLabel.c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus );
 		
 		return SkipItem;
 	}
 
-	bool DrawOverlay( const std::string& label, ImVec2 Pos )
+	bool DrawOverlay( const std::string& rLabel, ImVec2 Pos )
 	{
-		ImGui::PushID( label.c_str() );
+		ImGui::PushID( rLabel.c_str() );
 
 		ImGui::SetNextWindowPos( Pos );
 
-		bool SkipItem = ImGui::Begin( label.c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus );
+		bool SkipItem = ImGui::Begin( rLabel.c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus );
 
 		return SkipItem;
 	}
@@ -413,14 +413,14 @@ namespace Saturn::Auxiliary {
 		return ImGui::ImageButton( TextureID, Size, UV0, UV1, FramePadding, BackgroundColor, TintColor );
 	}
 
-	bool TreeNode( const std::string& label, bool open /*= true */ )
+	bool TreeNode( const std::string& rLabel, bool open /*= true */ )
 	{
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
 
 		if( open )
 			flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-		return ImGui::TreeNodeEx( label.c_str(), flags );
+		return ImGui::TreeNodeEx( rLabel.c_str(), flags );
 	}
 
 	void EndTreeNode()
@@ -431,7 +431,7 @@ namespace Saturn::Auxiliary {
 	static inline ImVec2 operator+( const ImVec2& lhs, const ImVec2& rhs ) { return ImVec2( lhs.x + rhs.x, lhs.y + rhs.y ); }
 	static inline ImVec2 operator-( const ImVec2& lhs, const ImVec2& rhs ) { return ImVec2( lhs.x - rhs.x, lhs.y - rhs.y ); }
 
-	bool ButtonRd( const char* label, const ImRect& bb, bool rounded /*= false */ )
+	bool ButtonRd( const char* rLabel, const ImRect& bb, bool rounded /*= false */ )
 	{
 		using namespace ImGui;
 
@@ -443,8 +443,8 @@ namespace Saturn::Auxiliary {
 
 		ImGuiContext& g = *GImGui;
 		const ImGuiStyle& style = g.Style;
-		const ImGuiID id = window->GetID( label );
-		const ImVec2 label_size = CalcTextSize( label, NULL, true );
+		const ImGuiID id = window->GetID( rLabel );
+		const ImVec2 label_size = CalcTextSize( rLabel, NULL, true );
 
 		ImVec2 pos = window->DC.CursorPos;
 		if( ( flags & ImGuiButtonFlags_AlignTextBaseLine ) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset ) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
@@ -478,13 +478,13 @@ namespace Saturn::Auxiliary {
 
 		if( g.LogEnabled )
 			LogSetNextTextDecoration( "[", "]" );
-		RenderTextClipped( bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb );
+		RenderTextClipped( bb.Min + style.FramePadding, bb.Max - style.FramePadding, rLabel, NULL, &label_size, style.ButtonTextAlign, &bb );
 
 		// Automatically close popups
 		//if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
 		//    CloseCurrentPopup();
 
-		IMGUI_TEST_ENGINE_ITEM_INFO( id, label, g.LastItemData.StatusFlags );
+		IMGUI_TEST_ENGINE_ITEM_INFO( id, rLabel, g.LastItemData.StatusFlags );
 		return pressed;
 	}
 
@@ -641,4 +641,19 @@ namespace Saturn::Auxiliary {
 
 		return Modified;
 	}
+
+	bool RightHandCheckbox( const std::string& rLabel, bool* pValue )
+	{
+		std::string id = std::format( "##{0}", rLabel );
+
+		ImGui::BeginHorizontal( id.c_str() );
+
+		ImGui::Text( rLabel.c_str() );
+		bool pressed = ImGui::Checkbox( id.c_str(), pValue );
+
+		ImGui::EndHorizontal();
+
+		return pressed;
+	}
+
 }

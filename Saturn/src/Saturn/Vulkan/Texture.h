@@ -148,7 +148,7 @@ namespace Saturn {
 	public:
 		Texture2D() : Texture() {}
 
-		Texture2D( std::filesystem::path Path, AddressingMode Mode, bool flip = true ) 
+		Texture2D( std::filesystem::path Path, AddressingMode Mode = AddressingMode::Repeat, bool flip = true ) 
 			: Texture( Path, Mode ) { CreateTextureImage( flip ); }
 
 		Texture2D( ImageFormat format, uint32_t width, uint32_t height, const void* pData, bool storage = false );

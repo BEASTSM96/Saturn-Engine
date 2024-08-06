@@ -154,7 +154,7 @@ namespace Saturn {
 		ImGui::PushID( static_cast<int>( m_CustomID == 0 ? m_Context->ID : m_CustomID ) );
 
 		if( !m_IsPrefabScene )
-			ImGui::Begin( m_WindowName.c_str() );
+			ImGui::Begin( m_WindowName.c_str(), &m_Open );
 
 		if( m_Context )
 		{	

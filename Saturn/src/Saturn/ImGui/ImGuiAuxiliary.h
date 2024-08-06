@@ -42,22 +42,22 @@
 
 namespace Saturn::Auxiliary {
 	
-	extern bool DrawVec3Control( const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
-	extern bool DrawVec2Control( const std::string& label, glm::vec2& values, float resetValue = 0.0f, float columnWidth = 100.0f );
+	extern bool DrawVec3Control( const std::string& rLabel, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
+	extern bool DrawVec2Control( const std::string& rLabel, glm::vec2& values, float resetValue = 0.0f, float columnWidth = 100.0f );
 
-	extern bool DrawColorVec3Control( const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
+	extern bool DrawColorVec3Control( const std::string& rLabel, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
 
-	extern bool DrawFloatControl( const std::string& label, float& values, float min = 0.0f, float max = 500.0f, float columnWidth = 125.0f );
+	extern bool DrawFloatControl( const std::string& rLabel, float& values, float min = 0.0f, float max = 500.0f, float columnWidth = 125.0f );
 
-	extern bool DrawIntControl( const std::string& label, int& values, float columnWidth = 125.0f );
+	extern bool DrawIntControl( const std::string& rLabel, int& values, float columnWidth = 125.0f );
 	
-	extern bool DrawBoolControl( const std::string& label, bool& value, float columnWidth = 125.0f );
-	extern bool DrawDisabledBoolControl( const std::string& label, bool& value, float columnWidth = 125.0f );
+	extern bool DrawBoolControl( const std::string& rLabel, bool& value, float columnWidth = 125.0f );
+	extern bool DrawDisabledBoolControl( const std::string& rLabel, bool& value, float columnWidth = 125.0f );
 	
-	extern void DrawDisabledButton( const std::string& label );
+	extern void DrawDisabledButton( const std::string& rLabel );
 
-	extern bool DrawOverlay( const std::string& label, ImVec2 Pos );
-	extern bool DrawOverlay( const std::string& label );
+	extern bool DrawOverlay( const std::string& rLabel, ImVec2 Pos );
+	extern bool DrawOverlay( const std::string& rLabel );
 	extern void EndOverlay();
 
 	extern void Image( Ref< Image2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ), const ImVec4& BorderColor = ImVec4( 0, 0, 0, 0 ) );
@@ -72,10 +72,10 @@ namespace Saturn::Auxiliary {
 	
 	extern bool ImageButton( Ref< Texture2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), int FramePadding = -1, const ImVec4& BackgroundColor = ImVec4( 0, 0, 0, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ) );
 
-	extern bool TreeNode( const std::string& label, bool open = true );
+	extern bool TreeNode( const std::string& rLabel, bool open = true );
 	extern void EndTreeNode();
 
-	extern bool ButtonRd( const char* label, const ImRect& bb, bool rounded = false );
+	extern bool ButtonRd( const char* rLabel, const ImRect& bb, bool rounded = false );
 
 	extern void DrawColoredRect( const ImVec2& size, const ImVec4& color );
 
@@ -85,6 +85,8 @@ namespace Saturn::Auxiliary {
 
 	extern bool DrawAssetFinder( AssetType type, bool* rOpen, AssetID& rOut );
 	extern bool DrawAssetFinder( const std::set<AssetType>& rAllowedTypes, bool* rOpen, AssetID& rOut );
+
+	extern bool RightHandCheckbox( const std::string& rLabel, bool* pValue );
 
 	template<typename Function>
 	inline bool DrawAssetFinder( AssetType allowedTypes, AssetID lastID, bool* rOpen, Function&& rrFunction )
@@ -144,14 +146,14 @@ namespace Saturn::Auxiliary {
 	}
 
 	template<typename Ty, typename Fn>
-	bool DrawAssetDragDropTarget( const char* label, const char* assetName, UUID& returnID, Fn&& function ) 
+	bool DrawAssetDragDropTarget( const char* rLabel, const char* assetName, UUID& returnID, Fn&& function ) 
 	{
 		if( returnID == 0 )
 			return false;
 
 		bool changed = false;
 
-		ImGui::Text( label );
+		ImGui::Text( rLabel );
 
 		std::string ButtonName = "";
 

@@ -56,7 +56,8 @@ namespace Saturn {
 	{
 		for( auto&& [name, panel] : m_Panels )
 		{
-			panel->Draw();
+			if( panel->m_Open )
+				panel->Draw();
 		}
 	}
 

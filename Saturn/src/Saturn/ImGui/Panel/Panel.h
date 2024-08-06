@@ -40,10 +40,15 @@ namespace Saturn {
 		virtual ~Panel() {}
 
 		virtual void Draw() {}
-
 		static const char* GetStaticName() { return "Panel"; }
+
+		inline void OpenWindow() { m_Open = true; }
+		inline void CloseWindow() { m_Open = false; }
+		inline void ShowOrHide() { if( m_Open ) CloseWindow(); else OpenWindow(); }
+
 	protected:
 		std::string m_Name = "";
+		bool m_Open = false;
 
 	private:
 		friend class PanelManager;

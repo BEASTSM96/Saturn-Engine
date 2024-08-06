@@ -506,392 +506,393 @@ namespace Saturn {
 
 	void ContentBrowserPanel::Draw()
 	{
-		ImGui::Begin( "Content Browser" );
-
-		if( m_ChangeDirectory )
+		if( ImGui::Begin( "Content Browser", &m_Open ) ) 
 		{
-			ClearSearchQuery();
-			UpdateFiles( true );
-
-			m_ChangeDirectory = false;
-		}
-
-		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
-
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-		ImGui::BeginChild( "Top Bar", ImVec2( 0, 30 ), false, flags );
-
-		DrawTopBar();
-
-		ImGui::EndChild();
-
-		ImGui::BeginChild( "Folder Tree", ImVec2( 200, 0 ), false );
-
-		if( Auxiliary::TreeNode( Project::GetActiveProject()->GetConfig().Name.c_str() ) )
-		{
-			DrawRootFolder( CBViewMode::Assets );
-			DrawRootFolder( CBViewMode::Scripts );
-
-			Auxiliary::EndTreeNode();
-		}
-
-		ImGui::EndChild();
-
-		ImGui::SameLine();
-
-		ImGui::BeginChild( "Folder Contents", ImVec2( 0, 0 ), false );
-
-		// Search
-		ImGui::BeginHorizontal( "##cbfinder" );
-
-		if( m_TextFilter.DrawWithHint( "##contentfinder", "Search for content", 436.0f ) )
-		{
-			m_Searching = m_TextFilter.IsActive();
-			BuildSearchList();
-		}
-
-		ImGui::EndHorizontal();
-
-		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
-		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
-
-		constexpr float padding = 16.0f;
-		constexpr int thumbnailSizeX = 180;
-		constexpr int thumbnailSizeY = 180;
-		constexpr int cellSize = thumbnailSizeX + static_cast<int>( padding );
-		float panelWidth = ImGui::GetContentRegionAvail().x - 20.0f + ImGui::GetStyle().ScrollbarSize;
-
-		int columnCount = ( int ) ( panelWidth / cellSize );
-		if( columnCount < 1 ) columnCount = 1;
-
-		ImGui::Columns( columnCount, 0, false );
-
-		if( m_Searching )
-		{
-			DrawItems( m_ValidSearchFiles, { thumbnailSizeX, thumbnailSizeY }, padding );
-
-			// No longer searching, means that user has clicked on a file/folder.
-			if( !m_Searching )
+			if( m_ChangeDirectory )
+			{
 				ClearSearchQuery();
-		}
-		else
-		{
-			DrawItems( m_Files, { thumbnailSizeX, thumbnailSizeY }, padding );
-		}
-		
-		if( !m_Searching && m_ValidSearchFiles.size() )
-			m_ValidSearchFiles.clear();
+				UpdateFiles( true );
 
-		// Get the first folder in the current directory.
-		m_FirstFolder = "";
-		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
-		{
-			if( rEntry.is_directory() )
-			{
-				m_FirstFolder = rEntry.path();
-				break;
+				m_ChangeDirectory = false;
 			}
-		}
-		
-		if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
-		{
-			auto& map = m_Searching ? m_ValidSearchFiles : m_Files;
 
-			auto hoveredItems = std::count_if( map.begin(), map.end(), 
-				[]( const auto& rItem ) 
-				{
-					return rItem->IsHovered();
-				} );
+			ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 
-			if( m_SelectedItems.size() && hoveredItems == 0 )
+			ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+			ImGui::BeginChild( "Top Bar", ImVec2( 0, 30 ), false, flags );
+
+			DrawTopBar();
+
+			ImGui::EndChild();
+
+			ImGui::BeginChild( "Folder Tree", ImVec2( 200, 0 ), false );
+
+			if( Auxiliary::TreeNode( Project::GetActiveProject()->GetConfig().Name.c_str() ) )
 			{
-				ClearSelection();
+				DrawRootFolder( CBViewMode::Assets );
+				DrawRootFolder( CBViewMode::Scripts );
+
+				Auxiliary::EndTreeNode();
 			}
-		}
 
-		ImGui::Columns( 1 );
+			ImGui::EndChild();
 
-		ImGui::PopStyleColor( 2 );
+			ImGui::SameLine();
 
-		if( ImGui::BeginPopupContextWindow( "CB_ItemAction", ImGuiPopupFlags_MouseButtonRight ) )
-		{		
-			// Theses actions are only going to be used when one item is selected.
-			if( m_SelectedItems.size() )
+			ImGui::BeginChild( "Folder Contents", ImVec2( 0, 0 ), false );
+
+			// Search
+			ImGui::BeginHorizontal( "##cbfinder" );
+
+			if( m_TextFilter.DrawWithHint( "##contentfinder", "Search for content", 436.0f ) )
 			{
-				// Common Actions
-				if( ImGui::MenuItem( "Rename" ) )
+				m_Searching = m_TextFilter.IsActive();
+				BuildSearchList();
+			}
+
+			ImGui::EndHorizontal();
+
+			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
+			ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0.3f, 0.3f, 0.3f, 0.35f ) );
+
+			constexpr float padding = 16.0f;
+			constexpr int thumbnailSizeX = 180;
+			constexpr int thumbnailSizeY = 180;
+			constexpr int cellSize = thumbnailSizeX + static_cast< int >( padding );
+			float panelWidth = ImGui::GetContentRegionAvail().x - 20.0f + ImGui::GetStyle().ScrollbarSize;
+
+			int columnCount = ( int ) ( panelWidth / cellSize );
+			if( columnCount < 1 ) columnCount = 1;
+
+			ImGui::Columns( columnCount, 0, false );
+
+			if( m_Searching )
+			{
+				DrawItems( m_ValidSearchFiles, { thumbnailSizeX, thumbnailSizeY }, padding );
+
+				// No longer searching, means that user has clicked on a file/folder.
+				if( !m_Searching )
+					ClearSearchQuery();
+			}
+			else
+			{
+				DrawItems( m_Files, { thumbnailSizeX, thumbnailSizeY }, padding );
+			}
+
+			if( !m_Searching && m_ValidSearchFiles.size() )
+				m_ValidSearchFiles.clear();
+
+			// Get the first folder in the current directory.
+			m_FirstFolder = "";
+			for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
+			{
+				if( rEntry.is_directory() )
 				{
-					m_SelectedItems[ 0 ]->Rename();
+					m_FirstFolder = rEntry.path();
+					break;
 				}
+			}
 
-				// Folder Actions
-				if( m_SelectedItems[ 0 ]->IsDirectory() )
-				{
-					if( ImGui::MenuItem( "Show In Explorer" ) )
+			if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() )
+			{
+				auto& map = m_Searching ? m_ValidSearchFiles : m_Files;
+
+				auto hoveredItems = std::count_if( map.begin(), map.end(),
+					[]( const auto& rItem )
 					{
-						// TODO TEMP: Create a process class.
+						return rItem->IsHovered();
+					} );
 
-						std::wstring CommandLine = L"";
-						std::filesystem::path AssetPath = m_SelectedItems[ 0 ]->Path();
-						CommandLine = std::format( L"explorer.exe \"{0}\"", AssetPath.wstring() );
+				if( m_SelectedItems.size() && hoveredItems == 0 )
+				{
+					ClearSelection();
+				}
+			}
 
-						Process explorer( CommandLine );
+			ImGui::Columns( 1 );
 
-						// Wait a bit for the process to start.
-						// Usually the explorer process takes a bit to start for some reason?
-						using namespace std::chrono_literals;
-						std::this_thread::sleep_for( 1.5s );
+			ImGui::PopStyleColor( 2 );
+
+			if( ImGui::BeginPopupContextWindow( "CB_ItemAction", ImGuiPopupFlags_MouseButtonRight ) )
+			{
+				// Theses actions are only going to be used when one item is selected.
+				if( m_SelectedItems.size() )
+				{
+					// Common Actions
+					if( ImGui::MenuItem( "Rename" ) )
+					{
+						m_SelectedItems[ 0 ]->Rename();
 					}
-				}
-				else
-				{
-					if( ImGui::MenuItem( "Delete" ) )
+
+					// Folder Actions
+					if( m_SelectedItems[ 0 ]->IsDirectory() )
 					{
-						for( auto& rItem : m_SelectedItems )
+						if( ImGui::MenuItem( "Show In Explorer" ) )
 						{
-							rItem->Delete();
+							// TODO TEMP: Create a process class.
+
+							std::wstring CommandLine = L"";
+							std::filesystem::path AssetPath = m_SelectedItems[ 0 ]->Path();
+							CommandLine = std::format( L"explorer.exe \"{0}\"", AssetPath.wstring() );
+
+							Process explorer( CommandLine );
+
+							// Wait a bit for the process to start.
+							// Usually the explorer process takes a bit to start for some reason?
+							using namespace std::chrono_literals;
+							std::this_thread::sleep_for( 1.5s );
+						}
+					}
+					else
+					{
+						if( ImGui::MenuItem( "Delete" ) )
+						{
+							for( auto& rItem : m_SelectedItems )
+							{
+								rItem->Delete();
+							}
 						}
 					}
 				}
-			}
-			else
-			{
-				if( m_ViewMode == CBViewMode::Assets )
-				{
-					AssetsPopupContextMenu();
-				}
 				else
 				{
-					ScriptsPopupContextMenu();
-				}
-			}
-
-			ImGui::EndPopup();
-		}
-
-		if( m_ShowMeshImport )
-			ImGui::OpenPopup( "Import Mesh##IMPORT_MESH" );
-
-		if( m_ShowSoundImport )
-			ImGui::OpenPopup( "Import Sound##IMPORT_SOUND" );
-
-		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-		if( Auxiliary::DrawImportSoundPopup( &m_ShowSoundImport, m_CurrentPath ) )
-		{
-			// Popup was modified.
-			// And the popup does not save the asset registry so save it here.
-			AssetRegistrySerialiser ars;
-			ars.Serialise( AssetManager::Get().GetAssetRegistry() );
-
-			UpdateFiles( true );
-		}
-
-		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-		if( Auxiliary::DrawImportMeshPopup( &m_ShowMeshImport, m_CurrentPath ) )
-		{
-			// Popup was modified.
-			// And the popup does not save the asset registry so save it here.
-			AssetRegistrySerialiser ars;
-			ars.Serialise( AssetManager::Get().GetAssetRegistry() );
-
-			UpdateFiles( true );
-		}
-
-		if( s_OpenScriptsPopup )
-			ImGui::OpenPopup( "Create A New Class##Create_Script" );
-
-		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-		if( ImGui::BeginPopupModal( "Create A New Class##Create_Script", &s_OpenScriptsPopup, ImGuiWindowFlags_NoMove ) )
-		{
-			bool PopupModified = false;
-
-			ImGui::BeginVertical( "##inputv" );
-			ImGui::BeginHorizontal( "##inputh" );
-
-			ImGui::Text( "Name:" );
-			char buffer[ 256 ];
-			memset( buffer, 0, 256 );
-			memcpy( buffer, m_NewClassName.data(), m_NewClassName.length() );
-
-			if( ImGui::InputText( "##n", buffer, 256 ) ) 
-			{
-				m_NewClassName = std::string( buffer );
-			}
-			
-			ImGui::EndHorizontal();
-
-			ImGuiIO& rIO = ImGui::GetIO();
-			auto boldFont = rIO.Fonts->Fonts[ 1 ];
-
-			ImGui::PushFont( boldFont );
-			ImGui::Text( "Choose a parent class" );
-			ImGui::PopFont();
-
-			if( ImGui::BeginListBox( "##classes", ImVec2( -FLT_MIN, 0.0f ) ) )
-			{
-				// Root Tree
-				DrawClassHierarchy( "SClass", ClassMetadataHandler::Get().GetSClassMetadata() );
-
-				ImGui::EndListBox();
-			}
-
-			ImGui::EndVertical();
-
-			auto drawDisabledBtn = [&]( const char* n ) -> bool
-			{
-				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-				bool value = ImGui::Button( n );
-				ImGui::PopStyleVar( 1 );
-				ImGui::PopItemFlag();
-
-				return value;
-			};
-
-			bool Pressed = false;
-			if( m_NewClassName.empty() || m_SelectedMetadata.Name.empty() )
-				Pressed = drawDisabledBtn( "Create" );
-			else
-				Pressed = ImGui::Button( "Create" );
-
-			if( Pressed )
-			{
-				if( !Project::GetActiveProject()->HasPremakeFile() )
-				{
-					Project::GetActiveProject()->CreatePremakeFile();
+					if( m_ViewMode == CBViewMode::Assets )
+					{
+						AssetsPopupContextMenu();
+					}
+					else
+					{
+						ScriptsPopupContextMenu();
+					}
 				}
 
-				Project::GetActiveProject()->CreateBuildFile();
+				ImGui::EndPopup();
+			}
 
-				// Update or create the project files.
-				Premake::Launch( Project::GetActiveProject()->GetRootDir().wstring() );
+			if( m_ShowMeshImport )
+				ImGui::OpenPopup( "Import Mesh##IMPORT_MESH" );
 
-				// Next, create the source files.
-				// Right now the only script type we support is an entity type.
-				SourceManager::Get().CreateEntitySourceFiles( m_CurrentPath, m_NewClassName.c_str() );
+			if( m_ShowSoundImport )
+				ImGui::OpenPopup( "Import Sound##IMPORT_SOUND" );
 
+			ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
+			if( Auxiliary::DrawImportSoundPopup( &m_ShowSoundImport, m_CurrentPath ) )
+			{
+				// Popup was modified.
+				// And the popup does not save the asset registry so save it here.
 				AssetRegistrySerialiser ars;
 				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
-
-				PopupModified = true;
 
 				UpdateFiles( true );
 			}
 
-			if( PopupModified )
+			ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
+			if( Auxiliary::DrawImportMeshPopup( &m_ShowMeshImport, m_CurrentPath ) )
 			{
-				s_OpenScriptsPopup = false;
+				// Popup was modified.
+				// And the popup does not save the asset registry so save it here.
+				AssetRegistrySerialiser ars;
+				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 
-				ImGui::CloseCurrentPopup();
+				UpdateFiles( true );
 			}
 
-			ImGui::EndPopup();
-		}
+			if( s_OpenScriptsPopup )
+				ImGui::OpenPopup( "Create A New Class##Create_Script" );
 
-		if( s_OpenClassInstancePopup )
-			ImGui::OpenPopup( "Create A New Class Instance (Prefab)##Create_ClassIns" );
-
-		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-		if( ImGui::BeginPopupModal( "Create A New Class Instance (Prefab)##Create_ClassIns", &s_OpenClassInstancePopup, ImGuiWindowFlags_NoMove ) )
-		{
-			bool PopupModified = false;
-
-			ImGui::BeginHorizontal( "##inputH" );
-
-			ImGui::Text( "Name:" );
-			
-			// I wish that we did not have to do this. But for some reason ImGui does not work well when I use a string.
-			char buffer[ 256 ];
-			memset( buffer, 0, 256 );
-			memcpy( buffer, m_ClassInstanceName.c_str(), m_ClassInstanceName.length() );
-
-			if( ImGui::InputText( "##instanceName", buffer, 256 ) )
+			ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
+			if( ImGui::BeginPopupModal( "Create A New Class##Create_Script", &s_OpenScriptsPopup, ImGuiWindowFlags_NoMove ) )
 			{
-				m_ClassInstanceName = std::string( buffer );
-			}
+				bool PopupModified = false;
 
-			ImGui::EndHorizontal();
+				ImGui::BeginVertical( "##inputv" );
+				ImGui::BeginHorizontal( "##inputh" );
 
-			ImGui::Text( "Choose Parent class" );
+				ImGui::Text( "Name:" );
+				char buffer[ 256 ];
+				memset( buffer, 0, 256 );
+				memcpy( buffer, m_NewClassName.data(), m_NewClassName.length() );
 
-			if( ImGui::BeginListBox( "##CLASSES_INST", ImVec2( -FLT_MIN, 0.0f ) ) ) 
-			{
-				// Root Tree
-				DrawClassHierarchy( "SClass", ClassMetadataHandler::Get().GetSClassMetadata() );
-
-				ImGui::EndListBox();
-			}
-
-			auto drawDisabledBtn = [&]( const char* n ) -> bool
-			{
-				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-				bool value = ImGui::Button( n );
-				ImGui::PopStyleVar( 1 );
-				ImGui::PopItemFlag();
-
-				return value;
-			};
-
-			if( ImGui::Button( "Create" ) )
-			{
-				// First, create the asset.
-				Ref<Asset> prefabAsset = AssetManager::Get().FindAsset( AssetManager::Get().CreateAsset( AssetType::Prefab ) );
-				Ref<Prefab> prefab = prefabAsset.As<Prefab>();
-				prefab = Ref<Prefab>::Create();
-
-				// Setup the asset
-				std::filesystem::path path = m_CurrentPath / m_ClassInstanceName;
-				path.replace_extension( ".prefab" );
-
-				prefab->SetPath( path );
-				prefab->Name = m_ClassInstanceName;
-				prefab->ID = prefabAsset->ID;
-				prefab->Type = prefabAsset->Type;
-				prefab->Flags = prefabAsset->Flags;
-
-				// Create the source entity.
-				Ref<Entity> sourceEntity = nullptr;
-				
-				if( ClassMetadataHandler::Get().IsEngineMetadata( m_SelectedMetadata ) ) 
+				if( ImGui::InputText( "##n", buffer, 256 ) )
 				{
-					// TODO: Create the class somehow?
+					m_NewClassName = std::string( buffer );
 				}
+
+				ImGui::EndHorizontal();
+
+				ImGuiIO& rIO = ImGui::GetIO();
+				auto boldFont = rIO.Fonts->Fonts[ 1 ];
+
+				ImGui::PushFont( boldFont );
+				ImGui::Text( "Choose a parent class" );
+				ImGui::PopFont();
+
+				if( ImGui::BeginListBox( "##classes", ImVec2( -FLT_MIN, 0.0f ) ) )
+				{
+					// Root Tree
+					DrawClassHierarchy( "SClass", ClassMetadataHandler::Get().GetSClassMetadata() );
+
+					ImGui::EndListBox();
+				}
+
+				ImGui::EndVertical();
+
+				auto drawDisabledBtn = [&]( const char* n ) -> bool
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+						bool value = ImGui::Button( n );
+						ImGui::PopStyleVar( 1 );
+						ImGui::PopItemFlag();
+
+						return value;
+					};
+
+				bool Pressed = false;
+				if( m_NewClassName.empty() || m_SelectedMetadata.Name.empty() )
+					Pressed = drawDisabledBtn( "Create" );
 				else
+					Pressed = ImGui::Button( "Create" );
+
+				if( Pressed )
 				{
-					sourceEntity = GameModule::Get().CreateEntity( m_SelectedMetadata.Name );
+					if( !Project::GetActiveProject()->HasPremakeFile() )
+					{
+						Project::GetActiveProject()->CreatePremakeFile();
+					}
+
+					Project::GetActiveProject()->CreateBuildFile();
+
+					// Update or create the project files.
+					Premake::Launch( Project::GetActiveProject()->GetRootDir().wstring() );
+
+					// Next, create the source files.
+					// Right now the only script type we support is an entity type.
+					SourceManager::Get().CreateEntitySourceFiles( m_CurrentPath, m_NewClassName.c_str() );
+
+					AssetRegistrySerialiser ars;
+					ars.Serialise( AssetManager::Get().GetAssetRegistry() );
+
+					PopupModified = true;
+
+					UpdateFiles( true );
 				}
 
-				sourceEntity->AddComponent<ScriptComponent>().ScriptName = m_SelectedMetadata.Name;
+				if( PopupModified )
+				{
+					s_OpenScriptsPopup = false;
 
-				prefab->Create( sourceEntity );
+					ImGui::CloseCurrentPopup();
+				}
 
-				// Delete the temporary source entity from the current scene.
-				GActiveScene->DeleteEntity( sourceEntity );
-
-				// Save the prefab.
-				PrefabSerialiser ps;
-				ps.Serialise( prefab );
-
-				AssetManager::Get().Save();
-
-				PopupModified = true;
+				ImGui::EndPopup();
 			}
 
-			if( PopupModified )
+			if( s_OpenClassInstancePopup )
+				ImGui::OpenPopup( "Create A New Class Instance (Prefab)##Create_ClassIns" );
+
+			ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
+			if( ImGui::BeginPopupModal( "Create A New Class Instance (Prefab)##Create_ClassIns", &s_OpenClassInstancePopup, ImGuiWindowFlags_NoMove ) )
 			{
-				s_OpenClassInstancePopup = false;
-				m_ClassInstanceName = "";
+				bool PopupModified = false;
 
-				ImGui::CloseCurrentPopup();
+				ImGui::BeginHorizontal( "##inputH" );
+
+				ImGui::Text( "Name:" );
+
+				// I wish that we did not have to do this. But for some reason ImGui does not work well when I use a string.
+				char buffer[ 256 ];
+				memset( buffer, 0, 256 );
+				memcpy( buffer, m_ClassInstanceName.c_str(), m_ClassInstanceName.length() );
+
+				if( ImGui::InputText( "##instanceName", buffer, 256 ) )
+				{
+					m_ClassInstanceName = std::string( buffer );
+				}
+
+				ImGui::EndHorizontal();
+
+				ImGui::Text( "Choose Parent class" );
+
+				if( ImGui::BeginListBox( "##CLASSES_INST", ImVec2( -FLT_MIN, 0.0f ) ) )
+				{
+					// Root Tree
+					DrawClassHierarchy( "SClass", ClassMetadataHandler::Get().GetSClassMetadata() );
+
+					ImGui::EndListBox();
+				}
+
+				auto drawDisabledBtn = [&]( const char* n ) -> bool
+					{
+						ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+						ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+						bool value = ImGui::Button( n );
+						ImGui::PopStyleVar( 1 );
+						ImGui::PopItemFlag();
+
+						return value;
+					};
+
+				if( ImGui::Button( "Create" ) )
+				{
+					// First, create the asset.
+					Ref<Asset> prefabAsset = AssetManager::Get().FindAsset( AssetManager::Get().CreateAsset( AssetType::Prefab ) );
+					Ref<Prefab> prefab = prefabAsset.As<Prefab>();
+					prefab = Ref<Prefab>::Create();
+
+					// Setup the asset
+					std::filesystem::path path = m_CurrentPath / m_ClassInstanceName;
+					path.replace_extension( ".prefab" );
+
+					prefab->SetPath( path );
+					prefab->Name = m_ClassInstanceName;
+					prefab->ID = prefabAsset->ID;
+					prefab->Type = prefabAsset->Type;
+					prefab->Flags = prefabAsset->Flags;
+
+					// Create the source entity.
+					Ref<Entity> sourceEntity = nullptr;
+
+					if( ClassMetadataHandler::Get().IsEngineMetadata( m_SelectedMetadata ) )
+					{
+						// TODO: Create the class somehow?
+					}
+					else
+					{
+						sourceEntity = GameModule::Get().CreateEntity( m_SelectedMetadata.Name );
+					}
+
+					sourceEntity->AddComponent<ScriptComponent>().ScriptName = m_SelectedMetadata.Name;
+
+					prefab->Create( sourceEntity );
+
+					// Delete the temporary source entity from the current scene.
+					GActiveScene->DeleteEntity( sourceEntity );
+
+					// Save the prefab.
+					PrefabSerialiser ps;
+					ps.Serialise( prefab );
+
+					AssetManager::Get().Save();
+
+					PopupModified = true;
+				}
+
+				if( PopupModified )
+				{
+					s_OpenClassInstancePopup = false;
+					m_ClassInstanceName = "";
+
+					ImGui::CloseCurrentPopup();
+				}
+
+				ImGui::EndPopup();
 			}
 
-			ImGui::EndPopup();
+			ImGui::EndChild();
+
+			ImGui::PopStyleColor();
 		}
-
-		ImGui::EndChild();
-
-		ImGui::PopStyleColor();
 
 		ImGui::End();
 	}

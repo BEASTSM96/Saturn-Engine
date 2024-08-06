@@ -107,6 +107,7 @@ namespace Saturn {
 		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 		hierarchyPanel->SetContext( m_EditorScene );
 		hierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( SelectionChanged ) );
+		hierarchyPanel->OpenWindow();
 
 		m_EditorCamera.SetActive( true );
 
@@ -115,6 +116,7 @@ namespace Saturn {
 		pPhysicsFoundation->Init();
 
 		Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>();
+		contentBrowserPanel->OpenWindow();
 
 		auto& rUserSettings = EngineSettings::Get();
 
@@ -1194,8 +1196,10 @@ namespace Saturn {
 			
 			ImGui::SeparatorText( "Windows" );
 
-			ImGui::Checkbox( "Scene Renderer", &m_ShowSceneRendererWindow );
-			ImGui::Checkbox( "Renderer (Vulkan Info)", &m_ShowRendererWindow );
+			if( ImGui::MenuItem( "Scene Renderer" ) )         m_ShowSceneRendererWindow ^= 1;
+			if( ImGui::MenuItem( "Renderer (Vulkan Info)" ) ) m_ShowRendererWindow ^= 1;
+			if( ImGui::MenuItem( "Content Browser Panel" ) )  ShowOrHideContentBrowserPanel();
+			if( ImGui::MenuItem( "Scene Hierarchy Panel" ) )  ShowOrHideSceneHierarchyPanel();
 
 			ImGui::EndMenu();
 		}
@@ -1845,6 +1849,18 @@ namespace Saturn {
 		TexturePass = nullptr;
 	
 		return built;
+	}
+
+	void EditorLayer::ShowOrHideContentBrowserPanel()
+	{
+		Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>();
+		contentBrowserPanel->ShowOrHide();
+	}
+
+	void EditorLayer::ShowOrHideSceneHierarchyPanel()
+	{
+		Ref<SceneHierarchyPanel> sceneHierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
+		sceneHierarchyPanel->ShowOrHide();
 	}
 
 	void EditorLayer::PushMessageBox( MessageBoxInfo& rInfo )

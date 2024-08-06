@@ -96,6 +96,10 @@ namespace Saturn {
 		void CheckMissingEnv();
 		bool BuildShaderBundle();
 
+		void ShowOrHideContentBrowserPanel();
+		void ShowOrHideSceneHierarchyPanel();
+
+	private:
 		enum MessageBoxButtons_
 		{
 			MessageBoxButtons_Ok = BIT( 0 ),
