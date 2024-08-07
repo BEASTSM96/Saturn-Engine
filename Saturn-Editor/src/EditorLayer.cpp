@@ -1320,7 +1320,7 @@ namespace Saturn {
 
 							MessageBoxInfo msgBox
 							{
-								.Title = "Asset bundle successfully built",
+								.Title = "Asset bundle failed to build",
 								.Text = std::format( "Asset bundle failed to build error was: {0}", ( int ) result ),
 								.Buttons = MessageBoxButtons_Ok
 							};
@@ -1711,33 +1711,25 @@ namespace Saturn {
 
 	void EditorLayer::CloseEditorAndOpenPB()
 	{
-		SaveProject();
 		SaveFile();
+		SaveProject();
 
-#if defined(SAT_WINDOWS)
-		STARTUPINFOA StartupInfo = {};
-		StartupInfo.cb = sizeof( StartupInfo );
-		
-		PROCESS_INFORMATION ProcessInfo;
+		std::filesystem::path SaturnDir = Auxiliary::GetEnvironmentVariableWs( L"SATURN_DIR" );
+		std::filesystem::path WorkingDir = SaturnDir / "ProjectBrowser";
 
-		if( Auxiliary::HasEnvironmentVariable( "SATURN_DIR" ) )
-		{
-			std::string SaturnDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
-			std::string WorkingDir = SaturnDir + "/ProjectBrowser";
-
+		// TODO: Allow for other platforms
 #if defined( SAT_DEBUG )
-			SaturnDir += "/bin/Debug-windows-x86_64/ProjectBrowser/ProjectBrowser.exe";
+		SaturnDir /= "bin";
+		SaturnDir /= "Debug-windows-x86_64";
+		SaturnDir /= "ProjectBrowser";
+		SaturnDir /= "ProjectBrowser.exe";
 #else
-			SaturnDir += "/bin/Release-windows-x86_64/ProjectBrowser/ProjectBrowser.exe";
+		SaturnDir /= "bin";
+		SaturnDir /= "Release-windows-x86_64";
+		SaturnDir /= "ProjectBrowser";
+		SaturnDir /= "ProjectBrowser.exe";
 #endif
-
-			bool res = CreateProcessA( nullptr, SaturnDir.data(), nullptr, nullptr, FALSE, DETACHED_PROCESS, nullptr, WorkingDir.data(), &StartupInfo, &ProcessInfo );
-
-			CloseHandle( ProcessInfo.hThread );
-			CloseHandle( ProcessInfo.hProcess );
-		}
-#endif
-
+		DeatchedProcess dp( SaturnDir.wstring(), WorkingDir );
 		Application::Get().Close();
 	}
 

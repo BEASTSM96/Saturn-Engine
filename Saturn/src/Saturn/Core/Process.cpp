@@ -172,4 +172,32 @@ namespace Saturn {
 #endif
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// DEATCHED PROCESS
+
+	DeatchedProcess::DeatchedProcess( const std::wstring& rCommandLine, const std::wstring& rWorkingDir /*= L"" */ )
+	{
+		Create( rCommandLine, rWorkingDir );
+	}
+
+	DeatchedProcess::~DeatchedProcess()
+	{
+	}
+
+	void DeatchedProcess::Create( const std::wstring& rCommandLine, const std::wstring& rWorkingDir )
+	{
+#if defined( SAT_PLATFORM_WINDOWS )
+		STARTUPINFOW StartupInfo = {};
+		StartupInfo.cb = sizeof( StartupInfo );
+
+		PROCESS_INFORMATION ProcessInfo;
+		bool result = CreateProcessW(
+			nullptr, (LPWSTR)rCommandLine.data(), nullptr, nullptr, FALSE, DETACHED_PROCESS, nullptr,
+			rWorkingDir.empty() ? nullptr : rWorkingDir.data(), &StartupInfo, &ProcessInfo );
+
+		CloseHandle( ProcessInfo.hThread );
+		CloseHandle( ProcessInfo.hProcess );
+#endif
+	}
+
 }

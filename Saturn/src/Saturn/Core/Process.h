@@ -78,4 +78,13 @@ namespace Saturn {
 		ProcessHandle m_WriteHandle = nullptr;
 	};
 
+	class DeatchedProcess : public RefTarget
+	{
+	public:
+		DeatchedProcess( const std::wstring& rCommandLine, const std::wstring& rWorkingDir = L"" );
+		~DeatchedProcess();
+
+	private:
+		void Create( const std::wstring& rCommandLine, const std::wstring& rWorkingDir );
+	};
 }
