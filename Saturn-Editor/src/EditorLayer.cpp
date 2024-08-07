@@ -320,29 +320,33 @@ namespace Saturn {
 
 		if( ImGui::BeginPopupModal( "Blocking Action", &m_JobModalOpen ) )
 		{
-			ImGui::BeginHorizontal( "##ItemsH" );
-
-			ImSpinner::SpinnerAng( "##OPERATION_SPINNER", 25.0f, 2.0f, ImSpinner::white, ImSpinner::half_white, 8.6F );
-
-			ImGui::Spring();
-
 			if( m_BlockingOperation->GetTitle().empty() )
 				ImGui::Text( "Please wait for the operation to complete..." );
 			else
 				ImGui::Text( m_BlockingOperation->GetTitle().c_str() );
 
-			ImGui::EndHorizontal();
-			
-			if( float percent = m_BlockingOperation->GetProgress(); percent >= 1.0f )
-			{
-				ImGui::ProgressBar( percent / 100 );
-			}
+			ImGui::Separator();
 
 			if( std::string status = m_BlockingOperation->GetStatus(); !status.empty() )
 			{
 				ImGui::Text( status.c_str() );
 			}
 
+			ImGui::Separator();
+
+			ImGui::BeginHorizontal( "##ItemsH" );
+
+			ImSpinner::SpinnerAng( "##OPERATION_SPINNER", 25.0f / 2.0f, 2.0f, ImSpinner::white, ImSpinner::half_white, 8.6F );
+
+			ImGui::Spring();
+
+			if( float percent = m_BlockingOperation->GetProgress(); percent >= 1.0f )
+			{
+				ImGui::ProgressBar( percent / 100 );
+			}
+
+			ImGui::EndHorizontal();
+		
 			if( m_BlockingOperation->Completed() )
 			{
 				m_JobModalOpen = false;
@@ -1744,7 +1748,20 @@ namespace Saturn {
 		{
 			ImGui::BeginHorizontal( "##MsgBoxH" );
 
-			Auxiliary::Image( m_ExclamationTexture, ImVec2( 72, 72 ) );
+			switch( rInfo.Type )
+			{
+				// TODO: Create info texture.
+				case MessageBoxType::Information:
+				case MessageBoxType::Warning:
+				{
+					Auxiliary::Image( m_ExclamationTexture, ImVec2( 72, 72 ) );
+				} break;
+
+				case MessageBoxType::Error:
+				{
+					Auxiliary::Image( EditorIcons::GetIcon( "Error" ), ImVec2( 72, 72 ) );
+				} break;
+			}
 
 			ImGui::Text( rInfo.Text.c_str() );
 

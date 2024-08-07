@@ -108,6 +108,13 @@ namespace Saturn {
 			MessageBoxButtons_Exit = BIT( 3 )
 		};
 
+		enum class MessageBoxType 
+		{
+			Information,
+			Warning,
+			Error
+		};
+
 		struct MessageBoxInfo
 		{
 			std::string Title = "Error";
@@ -115,6 +122,7 @@ namespace Saturn {
 
 			// enum MessageBoxButtons_
 			uint32_t Buttons = MessageBoxButtons_Ok;
+			MessageBoxType Type = MessageBoxType::Error;
 		};
 
 		void PushMessageBox( MessageBoxInfo& rInfo );
