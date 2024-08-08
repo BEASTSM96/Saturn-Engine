@@ -239,9 +239,9 @@ namespace Saturn {
 		SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &Path );
 
 		std::wstring fp = Path;
-		std::replace( fp.begin(), fp.end(), L'\\', L'/' );
-
 		path = fp + L"/Saturn";
+
+		std::replace( fp.begin(), fp.end(), L'\\', L'/' );
 #elif defined(SAT_PLATFORM_LINUX)
 
 #endif
@@ -299,6 +299,19 @@ namespace Saturn {
 		return "Linux";
 #elif defined(SAT_MAC) || __APPLE__
 		return "Mac";
+#else
+		return "Unknown";
+#endif
+	}
+
+	const char* Application::GetCurrentPlatformBinaryName()
+	{
+#if defined(SAT_WINDOWS) || _WIN32 || _WIN64
+		return "windows";
+#elif defined(SAT_LINUX) || __linux__
+		return "linux";
+#elif defined(SAT_MAC) || __APPLE__
+		return "mac";
 #else
 		return "Unknown";
 #endif

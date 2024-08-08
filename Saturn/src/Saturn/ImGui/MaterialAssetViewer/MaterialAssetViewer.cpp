@@ -60,11 +60,15 @@ namespace Saturn {
 
 	MaterialAssetViewer::~MaterialAssetViewer()
 	{
+		if( m_Dirty || m_NodeEditor->IsDirty() )
+		{
+			// Save settings and all nodes.
+			m_NodeEditor->SaveSettings();
+			NodeCacheEditor::WriteNodeEditorCache( m_NodeEditor );
+		}
+
 		m_HostMaterialAsset = nullptr;
 		m_EditingMaterial = nullptr;
-
-		m_NodeEditor->SaveSettings();
-		NodeCacheEditor::WriteNodeEditorCache( m_NodeEditor );
 
 		m_NodeEditor->SetRuntime( nullptr );
 		m_NodeEditor = nullptr;
@@ -159,6 +163,8 @@ namespace Saturn {
 
 		// Read the material data, and create some nodes based of the info.
 		SetupNodesFromMaterial();
+
+		MarkDirty();
 	}
 
 	void MaterialAssetViewer::SetupNodesFromMaterial()

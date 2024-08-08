@@ -50,11 +50,14 @@ namespace Saturn {
 		void AddSoundAsset();
 		void SetupNewNodeEditor();
 		void SetupNodeEditorCallbacks();
+		void ShowDirtyModal();
 
 	private:
 		Ref<Asset> m_Asset = nullptr;
 		Ref<NodeEditor> m_NodeEditor = nullptr;
 		Ref<SoundEditorEvaluator> m_Runtime = nullptr;
+
+		bool m_ShowDirtyModal = false;
 
 		UUID m_OutputNodeID = 0;
 	};

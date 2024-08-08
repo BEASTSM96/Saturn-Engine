@@ -63,9 +63,11 @@ namespace Saturn {
 
 		m_Asset = nullptr;
 
-		m_NodeEditor->SaveSettings();
-
-		NodeCacheEditor::WriteNodeEditorCache( m_NodeEditor, filename );
+		if( m_Dirty || m_NodeEditor->IsDirty() )
+		{
+			m_NodeEditor->SaveSettings();
+			NodeCacheEditor::WriteNodeEditorCache( m_NodeEditor, filename );
+		}
 
 		m_NodeEditor->SetRuntime( nullptr );
 		m_Runtime = nullptr;
@@ -83,10 +85,9 @@ namespace Saturn {
 		}
 		else
 		{
+			AudioSystem::Get().StopPreviewSounds( m_AssetID );
 			m_NodeEditor->Open( false );
 			m_Open = false;
-
-			AudioSystem::Get().StopPreviewSounds( m_AssetID );
 
 			DestroyViewer( m_AssetID );
 		}
@@ -131,6 +132,8 @@ namespace Saturn {
 		Ref<SoundOutputNode> OutputNode = SoundNodeLibrary::SpawnOutputNode( m_NodeEditor );
 
 		m_OutputNodeID = OutputNode->ID;
+
+		MarkDirty();
 	}
 
 	void GraphSoundAssetViewer::SetupNodeEditorCallbacks()
@@ -172,6 +175,34 @@ namespace Saturn {
 					ImGui::EndTooltip();
 				}
 			} );
+	}
+
+	void GraphSoundAssetViewer::ShowDirtyModal()
+	{
+		// Keep the window open until user selects an option.
+		m_NodeEditor->Open( true );
+		m_Open = true;
+
+		if( m_ShowDirtyModal )
+		{
+			ImGui::OpenPopup( "DirtyModal" );
+		}
+
+		if( ImGui::BeginPopupModal( "DirtyModal", &m_ShowDirtyModal ) )
+		{
+			ImGui::Text( "You have unsaved changes to this editor." );
+			ImGui::Text( "Would you like to save before closing?" );
+
+			ImGui::BeginHorizontal( "##DirtyModalOpt" );
+
+			ImGui::Button( "Save" );
+			ImGui::Button( "Close without saving" );
+			ImGui::Button( "Cancel" );
+
+			ImGui::EndHorizontal();
+
+			ImGui::EndPopup();
+		}
 	}
 
 	void GraphSoundAssetViewer::OnUpdate( Timestep ts )

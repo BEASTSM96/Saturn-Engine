@@ -125,6 +125,10 @@ namespace Saturn {
 
 			pThis->m_ActiveNodeEditorState = pData;
 
+			// TODO: Filter reasons
+			// Node editor is always modified when loading.
+			pThis->MarkDirty();
+
 			return true;
 		};
 
@@ -174,6 +178,9 @@ namespace Saturn {
 			pNode->Position = ed::GetNodePosition( nodeId );
 			pNode->Size = ed::GetNodeSize( nodeId );
 
+			// TODO: Filter reasons
+			pThis->MarkDirty();
+
 			return true;
 		};
 
@@ -191,6 +198,8 @@ namespace Saturn {
 
 	void NodeEditor::Reload()
 	{
+		m_Dirty = false;
+
 		ed::SetCurrentEditor( nullptr );
 
 		ed::DestroyEditor( m_Editor );
@@ -233,11 +242,55 @@ namespace Saturn {
 		// Safety
 		ed::SetCurrentEditor( m_Editor );
 
-		if( !m_WindowOpen ) 
+		if( !m_WindowOpen )
 			return;
 
 		// Draw main window
-		ImGui::Begin( m_Name.c_str(), &m_WindowOpen );
+		ImGui::Begin( m_Name.c_str(), &m_WindowOpen, m_Dirty ? ImGuiWindowFlags_UnsavedDocument : 0 );
+
+		if( m_ShowUnsavedChanges )
+			ImGui::OpenPopup( "Unsaved Changes" );
+
+		// Unsaved changes modal
+		// TODO: Center window with our main window
+		if( ImGui::BeginPopupModal( "Unsaved Changes", &m_ShowUnsavedChanges ) )
+		{
+			ImGui::Text( "You have unsaved changes to this editor." );
+			ImGui::Text( "Would you like to save before closing?" );
+
+			ImGui::BeginHorizontal( "##DirtyModalOpt" );
+
+			if( ImGui::Button( "Save" ) )  
+			{
+				SaveSettings();
+				NodeCacheEditor::WriteNodeEditorCache( this );
+
+				m_Dirty = false;
+				m_WindowOpen = false;
+
+				m_ShowUnsavedChanges = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			if( ImGui::Button( "Discard changes" ) ) 
+			{
+				m_Dirty = false;
+				m_WindowOpen = false;
+
+				m_ShowUnsavedChanges = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			if( ImGui::Button( "Cancel" ) ) 
+			{
+				m_ShowUnsavedChanges = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndHorizontal();
+
+			ImGui::EndPopup();
+		}
 
 		if( m_ViewportSize != ImGui::GetContentRegionAvail() )
 			m_ViewportSize = ImGui::GetContentRegionAvail();
@@ -387,6 +440,8 @@ namespace Saturn {
 								UUID end = UUID( EndPinId.Get() );
 
 								m_Links.push_back( Ref<Link>::Create( UUID(), start, end ) );
+
+								MarkDirty();
 							}
 						}
 					}
@@ -427,6 +482,8 @@ namespace Saturn {
 					if( ed::AcceptDeletedItem() )
 					{
 						DeleteLink( linkId.Get() );
+
+						MarkDirty();
 					}
 				}
 
@@ -453,6 +510,8 @@ namespace Saturn {
 
 								rNode = nullptr;
 								m_Nodes.erase( itr );
+
+								MarkDirty();
 							}
 						}
 						else
@@ -520,6 +579,8 @@ namespace Saturn {
 						}
 					}
 				}
+
+				MarkDirty();
 			}
 
 			ImGui::EndPopup();
@@ -535,6 +596,14 @@ namespace Saturn {
 		m_OutputWindow.Draw();
 
 		ImGui::End(); // NODE_EDITOR
+
+		// Window closed but we are dirty, show unsaved changes modal and keep window open
+		if( !m_WindowOpen && m_Dirty )
+		{
+			m_WindowOpen = true;
+		
+			m_ShowUnsavedChanges = true;
+		}
 	}
 
 	void NodeEditor::ThrowError( const std::string & rMessage )

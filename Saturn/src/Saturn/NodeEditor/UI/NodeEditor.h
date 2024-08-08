@@ -75,6 +75,8 @@ namespace Saturn {
 		void Reload();
 
 		void SetWindowName( const std::string& rName ) { m_Name = rName; }
+		void MarkDirty() { m_Dirty = true; }
+		bool IsDirty() { return m_Dirty; }
 
 	private:
 		virtual void SerialiseData( std::ofstream& rStream ) override;
@@ -89,6 +91,7 @@ namespace Saturn {
 
 	private:
 		bool m_CreateNewNode = false;
+		bool m_ShowUnsavedChanges = false;
 
 		Ref<Pin> m_NewLinkPin = nullptr;
 		Ref<Pin> m_NewNodeLinkPin = nullptr;
@@ -104,6 +107,7 @@ namespace Saturn {
 		util::BlueprintNodeBuilder m_Builder;
 
 		NodeEditorOutput m_OutputWindow;
+		bool m_Dirty = false;
 
 	private:
 		friend class NodeEditorCache;

@@ -51,6 +51,9 @@ namespace Saturn {
 
 		bool IsOpen() { return m_Open; }
 
+		void MarkDirty() { m_Dirty = true; }
+		void MarkClean() { m_Dirty = false; }
+
 	public: 
 		// Static API
 
@@ -71,5 +74,6 @@ namespace Saturn {
 		AssetType m_AssetType = AssetType::Unknown;
 		AssetID m_AssetID;
 		bool m_Open = false;
+		bool m_Dirty = false;
 	};
 }
