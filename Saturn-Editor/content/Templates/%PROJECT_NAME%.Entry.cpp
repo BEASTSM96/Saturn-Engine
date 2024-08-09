@@ -63,7 +63,7 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 #endif // _WIN32
 
 // Client default app.
-class __GameApplication : public Saturn::Application
+class __GameApplication final : public Saturn::Application
 {
 public:
 	explicit __GameApplication( const Saturn::ApplicationSpecification& spec )

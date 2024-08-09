@@ -431,6 +431,10 @@ namespace Saturn {
 		out << YAML::Key << "SourcePath" << YAML::Value << std::filesystem::relative( sound->SoundSourcePath, Project::GetActiveProject()->GetRootDir() );
 
 		out << YAML::Key << "ImportPath" << YAML::Value << sound->OriginalImportPath;
+		
+#if !defined(SAT_DIST)
+		out << YAML::Key << "LastWriteTime" << YAML::Value << sound->LastWriteTime;
+#endif
 
 		out << YAML::EndMap;
 
@@ -460,11 +464,16 @@ namespace Saturn {
 		auto filepath = soundData[ "SourcePath" ].as<std::string>();
 		auto importPath = soundData[ "ImportPath" ].as<std::string>();
 
+#if !defined(SAT_DIST)
+		auto lastWriteTime = soundData[ "LastWriteTime" ].as<std::string>();
+#endif
+
 		auto realPath = Project::GetActiveProject()->FilepathAbs( filepath );
 
 		auto soundSpec = Ref<SoundSpecification>::Create();
 		soundSpec->SoundSourcePath = realPath;
 		soundSpec->OriginalImportPath = importPath;
+		soundSpec->LastWriteTime = lastWriteTime;
 
 		// TODO: (Asset) Fix this.
 		struct

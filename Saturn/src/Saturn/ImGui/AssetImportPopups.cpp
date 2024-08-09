@@ -213,8 +213,15 @@ namespace Saturn::Auxiliary {
 				sound->ID = asset->ID;
 				sound->Path = assetPath;
 				sound->Type = AssetType::Sound;
+
 				sound->OriginalImportPath = s_ImportSoundPath;
 				sound->SoundSourcePath = rImportTargetPath / s_ImportSoundPath.filename();
+
+				// Currently the date is YYYY-MM-DD HH-MM-SS however all we want is YYYY-MM-DD
+				std::string fullTime = std::format( "{0}", std::filesystem::last_write_time( s_ImportSoundPath ) );
+				fullTime = fullTime.substr( 0, fullTime.find_first_of( " " ) );
+
+				sound->LastWriteTime = fullTime;
 
 				// Save the asset
 				SoundSpecificationAssetSerialiser s2d;

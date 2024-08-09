@@ -51,6 +51,9 @@ namespace Saturn {
 
 #if defined(SAT_DIST)
 		SoundDecodedInformation DecodedInformation;
+#else
+		// Stored as YYYY-MM-DD
+		std::string LastWriteTime;
 #endif
 	};
 }

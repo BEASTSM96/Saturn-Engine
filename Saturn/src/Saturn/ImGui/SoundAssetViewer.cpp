@@ -109,6 +109,9 @@ namespace Saturn {
 		ImGui::InputText( "##importPath", ( char* ) m_SoundAsset->OriginalImportPath.string().c_str(), 4096, ImGuiInputTextFlags_ReadOnly );
 		ImGui::PopStyleColor();
 
+		ImGui::Spring();
+		ImGui::Text( "%s", m_SoundAsset->LastWriteTime );
+
 		ImGui::EndHorizontal();
 
 		if( m_PreviewSound && m_PreviewSound->IsPlaying() )
