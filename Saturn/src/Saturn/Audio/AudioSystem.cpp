@@ -173,10 +173,13 @@ namespace Saturn {
 			sound->Unload();
 		}
 
-		// Uninit project sound groups
-		for( auto& rGroup : Project::GetActiveProject()->GetSoundGroups() )
+		if( Ref<Project> activeProject = Project::GetActiveProject(); activeProject != nullptr )
 		{
-			rGroup->Destroy();
+			// Uninit project sound groups
+			for( auto& rGroup : activeProject->GetSoundGroups() )
+			{
+				rGroup->Destroy();
+			}
 		}
 
 		// And the master sound group as well

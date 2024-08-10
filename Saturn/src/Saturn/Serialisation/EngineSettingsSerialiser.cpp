@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "EngineSettingsSerialiser.h"
 
+#include "Saturn/Core/App.h"
+
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include <filesystem>
@@ -54,14 +56,6 @@ namespace YAML {
 }
 
 namespace Saturn {
-
-	EngineSettingsSerialiser::EngineSettingsSerialiser()
-	{
-	}
-
-	EngineSettingsSerialiser::~EngineSettingsSerialiser()
-	{
-	}
 
 	void EngineSettingsSerialiser::Serialise()
 	{

@@ -31,14 +31,18 @@
 
 #include <Saturn/ImGui/Panel/Panel.h>
 #include <Saturn/ImGui/Panel/PanelManager.h>
+#include <Saturn/ImGui/ImGuiAuxiliary.h>
 #include <Saturn/ImGui/TitleBar.h>
 #include <Saturn/Core/Ruby/RubyWindow.h>
 
 #include <Saturn/Core/StringAuxiliary.h>
 #include <Saturn/Core/EnvironmentVariables.h>
+#include <Saturn/Core/Process.h>
 
 #include <Saturn/Serialisation/ProjectSerialiser.h>
 #include <Saturn/Serialisation/EngineSettingsSerialiser.h>
+
+#include <Saturn/Core/JobSystem.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -47,19 +51,6 @@
 #include <imgui_internal.h>
 
 namespace Saturn {
-
-	static char* s_SaturnDirBuffer = new char[ 1024 ];
-	static std::string s_SaturnDir = "";
-
-	static char* s_ProjectNameBuffer = new char[ 1024 ];
-	static char* s_ProjectFilePathBuffer = new char[ 1024 ];
-
-	static bool s_ShowNewProjectPopup = false;
-	static bool s_ShouldThreadTerminate = false;
-	
-	static std::thread s_RecentProjectThread;
-	
-	static std::vector< std::filesystem::path > s_RecentProjects;
 
 	static void ReplaceToken( std::string& str, const char* token, const std::string& value )
 	{
@@ -76,50 +67,71 @@ namespace Saturn {
 		m_HasSaturnDir = Auxiliary::HasEnvironmentVariable( "SATURN_DIR" );
 
 		if( m_HasSaturnDir )
-		{
-			s_SaturnDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
-		}
+			m_SaturnDir = Auxiliary::GetEnvironmentVariable( "SATURN_DIR" );
 
-		memset( s_SaturnDirBuffer, 0, 1024 );
+		memset( m_SaturnDirBuffer, 0, 1024 );
+		memset( m_ProjectFilePathBuffer, 0, 1024 );
+		memset( m_ProjectNameBuffer, 0, 1024 );
 
-		memset( s_ProjectFilePathBuffer, 0, 1024 );
-		memset( s_ProjectNameBuffer, 0, 1024 );
-
-		EngineSettingsSerialiser userSettingsSerialiser;
-		userSettingsSerialiser.Deserialise();
-
-		auto& rEngineSettings = EngineSettings::Get();
-		for ( auto&& path : rEngineSettings.RecentProjects )
-		{
-			if( std::filesystem::exists( path ) )
-				s_RecentProjects.push_back( path );
-		}
+		EngineSettingsSerialiser::Deserialise();
 		
-		s_RecentProjectThread = std::thread( []() 
+		Application::Get().GetWindow()->Show();
+
+		m_RecentProjectThread = std::thread( [this]() 
 		{
 			SetThreadDescription( GetCurrentThread(), L"RecentProjectThread" );
 			auto& userSettings = EngineSettings::Get();
 
-			while( !s_ShouldThreadTerminate )
+			bool projectsNeedSorting = false;
+
+			while( !m_ShouldThreadTerminate )
 			{
 				for( auto& path : userSettings.RecentProjects )
 				{
-					// Check if the path exists in out recent projects list.
-					bool exists = false;
-
-					for( auto& recentProject : s_RecentProjects )
-					{
-						if( recentProject == path )
+					auto Itr = std::find_if( m_RecentProjects.begin(), m_RecentProjects.end(), 
+						[path](const auto& rInfo)
 						{
-							exists = true;
-							break;
+							return rInfo.Filepath == path;
+						} );
+
+					if( Itr == m_RecentProjects.end() )
+					{
+						// Deserialise the project.
+						ProjectSerialiser ps;
+						ps.Deserialise( path );
+
+						Ref<Project> project = Project::GetActiveProject();
+						
+						if( project )
+						{
+							ProjectInformation info{};
+							info.Filepath = path;
+							info.Name = project->GetConfig().Name;
+							info.AssetPath = project->GetFullAssetPath();
+							info.LastWriteTime = std::format( "{0}", std::filesystem::last_write_time( path ) );
+							info.LastWriteTime = info.LastWriteTime.substr( 0, info.LastWriteTime.find_first_of( " " ) );
+
+							m_RecentProjects.push_back( info );
+
+							// Reset.
+							Project::SetActiveProject( nullptr );
+						
+							projectsNeedSorting = true;
 						}
 					}
 
-					if( !exists )
+					if( projectsNeedSorting )
 					{
-						if( !path.empty() )
-							s_RecentProjects.push_back( path );
+						std::sort( m_RecentProjects.begin(), m_RecentProjects.end(), 
+							[]( const auto& rA, const auto& rB )
+							{
+								if( rA.LastWriteTime > rB.LastWriteTime )
+									return true;
+								else
+									return false;
+							} );
+
+						projectsNeedSorting = false;
 					}
 				}
 
@@ -127,32 +139,38 @@ namespace Saturn {
 			}
 		} );
 
-		m_TitleBar = new TitleBar();
-
-		Application::Get().GetWindow()->Show();
+		Application::Get().GetWindow()->ChangeTitle( "Saturn Project Browser" );
 	}
 
 	void ProjectBrowserLayer::OnAttach()
 	{	
-		m_TitleBar->AddOnExitFunction( []() 
+		m_TitleBar = new TitleBar();
+		m_TitleBar->AddOnExitFunction( [this]() 
 		{
-			s_ShouldThreadTerminate = true;
+			m_ShouldThreadTerminate = true;
 
 			using namespace std::literals::chrono_literals;
 
 			std::this_thread::sleep_for( 1ms );
 
-			s_RecentProjectThread.join();
-		} );	
+			m_RecentProjectThread.join();
+		} );
+
+		m_NoIconTexture = Ref<Texture2D>::Create( "content/textures/NoIcon.png" );
 	}
 
 	ProjectBrowserLayer::~ProjectBrowserLayer()
 	{
+		m_NoIconTexture = nullptr;
 		delete m_TitleBar;
 	}
 	
 	void ProjectBrowserLayer::OnDetach()
 	{
+		m_ShouldThreadTerminate = true;
+	
+		if( m_RecentProjectThread.joinable() )
+			m_RecentProjectThread.join();
 	}
 
 	void ProjectBrowserLayer::OnUpdate( Timestep time )
@@ -163,7 +181,7 @@ namespace Saturn {
 	void ProjectBrowserLayer::OnImGuiRender()
 	{
 		ImGuiViewport* pViewport = ImGui::GetMainViewport();
-		ImGui::DockSpaceOverViewport( pViewport );
+		ImGuiID dockspaceID = ImGui::DockSpaceOverViewport( pViewport, ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoDockingOverMe | ImGuiDockNodeFlags_NoUndocking );
 
 		// --- Title bar
 		
@@ -176,19 +194,20 @@ namespace Saturn {
 			{
 				ImGui::Text( "No Saturn directory set. Please set the SATURN_DIR environment variable." );
 				
-				ImGui::InputText( "", ( char* )s_SaturnDir.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
+				ImGui::InputText( "", ( char* )m_SaturnDir.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
 				ImGui::SameLine();
 				if( ImGui::Button( "...##dir" ) )
 				{
 					auto res = Application::Get().OpenFolder();
-					s_SaturnDir = res;
+					m_SaturnDir = res;
 				}
 				
-				if( !s_SaturnDir.empty() && std::filesystem::exists( s_SaturnDir ) )
+				if( !m_SaturnDir.empty() && std::filesystem::exists( m_SaturnDir ) )
 				{
 					if( ImGui::Button( "Set" ) )
 					{
-						Auxiliary::SetEnvironmentVariable( "SATURN_DIR", s_SaturnDir.c_str() );
+						Auxiliary::SetEnvironmentVariable( "SATURN_DIR", m_SaturnDir.string() );
+						
 						m_HasSaturnDir = true;
 						ImGui::CloseCurrentPopup();
 					}
@@ -199,112 +218,106 @@ namespace Saturn {
 
 			ImGui::OpenPopup( "Saturn directory not set" );
 		}
+
+		ImGui::Begin( "##project_browser", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar );
+
+		ImGui::SetWindowDock( ImGui::GetCurrentWindow(), dockspaceID, ImGuiCond_FirstUseEver );
+
+		// Recent Projects
+		ImGui::BeginHorizontal( "##recentProjects" );
+
+		for( auto& rProjectInfo : m_RecentProjects )
+		{
+			DrawRecentProject( rProjectInfo );
 		
-		// Begin main project browser.
-		ImGui::SetNextWindowSize( pViewport->WorkSize, ImGuiCond_Always );
-		ImGui::Begin( "##project_browser", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove );
-
-		ImGui::Columns( 2 );
-		ImGui::SetColumnWidth( 0, pViewport->WorkSize.x / 1.5f );
-
-		ImGui::SetWindowSize( { pViewport->WorkSize.x / 1.5f / 2, pViewport->WorkPos.y } );
-
-		// Recent projects.
-		ImGui::BeginChild( "##prj_center_window" );
-		{
-			for ( auto& rPath : s_RecentProjects )
-			{
-				if( ImGui::Selectable( rPath.string().c_str(), false ) )
-				{
-					OpenProject( rPath.string() );
-					
-					s_ShouldThreadTerminate = true;
-					s_RecentProjectThread.join();
-
-					Application::Get().Close();
-				}
-			}
+			ImGui::Spring();
 		}
-		ImGui::EndChild();
 
-		ImGui::NextColumn();
+		ImGui::EndHorizontal();
 
-		ImGui::BeginChild( "##prj_right_window" );
-		{
-			if( ImGui::Button( "Create a project" ) )
-			{
-				s_ShowNewProjectPopup = true;
-			}
-		}
-		ImGui::EndChild();
+		constexpr float bottomBarHeight = 48.0f;
+		ImGui::Dummy( ImVec2( 0.0f, ImGui::GetContentRegionAvail().y - bottomBarHeight ) );
 
-		if( s_ShowNewProjectPopup )
+		ImGui::SetCursorPosY( ImGui::GetWindowHeight() - bottomBarHeight );
+
+		ImGui::Separator();
+
+		ImGui::BeginHorizontal( "##project_browser_bottom" );
+
+		ImGui::Button( "Browse", ImVec2( bottomBarHeight, bottomBarHeight ) );
+		ImGui::Spring();
+
+		if( ImGui::Button( "Create New", ImVec2( bottomBarHeight, bottomBarHeight ) ) ) 
+			m_ShowNewProjectPopup = true;
+
+		ImGui::EndHorizontal();
+
+		if( m_ShowNewProjectPopup )
 		{
 			ImGui::OpenPopup( "New project" );
-			s_ShowNewProjectPopup = false;
+			m_ShowNewProjectPopup = false;
 		}
 
 		auto center = pViewport->GetCenter();
+		ImGui::SetNextWindowPos( center, ImGuiCond_FirstUseEver, ImVec2( 0.5f, 0.5f ) );
 
-		ImGui::SetNextWindowPos( center, ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
-
-		if( ImGui::BeginPopupModal( "New project", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
+		if( ImGui::BeginPopupModal( "New project", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
 		{
-			ImGui::InputTextWithHint( "##project_name", "Project name", s_ProjectNameBuffer, 1024 );
+			ImGui::InputTextWithHint( "##project_name", "Project name", m_ProjectNameBuffer, 1024 );
 
 			ImGui::SameLine();
 			ImGui::Text( ".sproject" );
 
-			ImGui::InputTextWithHint( "##project_loc", "Project location", s_ProjectFilePathBuffer, 1024 );
+			ImGui::InputTextWithHint( "##project_loc", "Project location", m_ProjectFilePathBuffer, 1024 );
 			ImGui::SameLine();
 
 			if( ImGui::SmallButton( "...##location" ) )
 			{
 				auto res = Application::Get().OpenFolder();
-				memcpy( s_ProjectFilePathBuffer, res.data(), res.size() );
+				memcpy( m_ProjectFilePathBuffer, res.data(), res.size() );
 			}
 
 			ImGui::Separator();
 
-			auto drawDisabledBtn = [&]( const char* n ) 
-			{
-				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-				ImGui::Button( n );
-				ImGui::PopStyleVar( 1 );
-				ImGui::PopItemFlag();
-			};
+			auto drawDisabledBtn = [&]( const char* n )
+				{
+					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+					ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+					ImGui::Button( n );
+					ImGui::PopStyleVar( 1 );
+					ImGui::PopItemFlag();
+				};
 
 			auto createButtonFunc = [&]
-			{
-				if( s_ProjectNameBuffer == nullptr && s_ProjectFilePathBuffer == nullptr )
 				{
-					drawDisabledBtn( "Create" );
-				}
-				else if( !std::filesystem::exists( s_ProjectFilePathBuffer ) )
-				{
-					drawDisabledBtn( "Create" );
-				}
-				else 
-				{
-					if( ImGui::Button( "Create" ) ) 
+					if( m_ProjectNameBuffer == nullptr && m_ProjectFilePathBuffer == nullptr )
 					{
-						std::string path = std::string( s_ProjectFilePathBuffer ) + "/" + std::string( s_ProjectNameBuffer );
-						
-						std::filesystem::path p( path );
-
-						CreateProject( path );
-						
-						auto& us = EngineSettings::Get();
-						us.RecentProjects.push_back( p );
-						
-						EngineSettingsSerialiser uss;
-						uss.Serialise();
-
-						ImGui::CloseCurrentPopup();
+						drawDisabledBtn( "Create" );
 					}
-				}
-			};
+					else if( !std::filesystem::exists( m_ProjectFilePathBuffer ) )
+					{
+						drawDisabledBtn( "Create" );
+					}
+					else
+					{
+						if( ImGui::Button( "Create" ) )
+						{
+							std::filesystem::path fullPath = std::string( m_ProjectFilePathBuffer );
+							fullPath /= m_ProjectFilePathBuffer;
+							fullPath.replace_extension( ".sproject" );
+
+							CreateProject( fullPath );
+
+							auto& us = EngineSettings::Get();
+							us.RecentProjects.push_back( fullPath );
+
+							EngineSettingsSerialiser uss;
+							uss.Serialise();
+
+							ImGui::CloseCurrentPopup();
+						}
+					}
+				};
 
 			createButtonFunc();
 
@@ -319,16 +332,91 @@ namespace Saturn {
 		ImGui::End();
 	}
 
-	void ProjectBrowserLayer::CreateProject( const std::string& rPath )
+	void ProjectBrowserLayer::DrawRecentProject( const ProjectInformation& rProject )
 	{
-		std::filesystem::path ProjectPath = rPath;
-		std::filesystem::path ProjectName = rPath + ".sproject";
+		ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+		
+		const std::string name = std::format( "##{0}", rProject.Name );
+
+		const ImVec2 projectNameTextSize = ImGui::CalcTextSize( rProject.Name.c_str() );
+		const ImVec2 lastWriteTextSize = ImGui::CalcTextSize( rProject.LastWriteTime.c_str() );
+
+		const ImVec2 imageSize = ImVec2( 156.0f, 128.0f );
+
+		ImVec2 buttonSize = ImVec2( 156.0f, 156.0f );
+		const float extraSizeNeeded = projectNameTextSize.y + lastWriteTextSize.y;
+		buttonSize.y += extraSizeNeeded;
+
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+		ImGui::InvisibleButton( name.c_str(), buttonSize );
+
+		ImRect buttonBoundingBox( pos, ImVec2( pos.x + buttonSize.x, pos.y + buttonSize.y ) );
+
+		bool hovered = ImGui::IsItemHovered();
+		if( hovered )
+		{
+			pDrawList->AddRect( buttonBoundingBox.Min, buttonBoundingBox.Max, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawFlags_RoundCornersAll );
+		
+			if( ImGui::BeginTooltip() ) 
+			{
+				ImGui::Text( "%s", rProject.Name.c_str() );
+				ImGui::Text( "Project Path: %s", rProject.Filepath.string().c_str() );
+				ImGui::Text( "Asset Path: %s", rProject.AssetPath.string().c_str() );
+				ImGui::Text( "Last Modified: %s", rProject.LastWriteTime.c_str() );
+
+				ImGui::EndTooltip();
+			}
+
+			if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+			{
+				OpenProject( rProject );
+			}
+		}
+
+		// Draw the button background
+		pDrawList->AddRectFilled( buttonBoundingBox.Min, buttonBoundingBox.Max, ImGui::GetColorU32( hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button ), 5.0f, ImDrawFlags_RoundCornersAll );
+
+		ImVec2 imagePos = ImVec2( 
+			buttonBoundingBox.Min.x, 
+			buttonBoundingBox.Min.y );
+
+		pDrawList->AddImage( 
+			m_NoIconTexture->GetDescriptorSet(), 
+			imagePos, 
+			ImVec2( imagePos.x + imageSize.x, imagePos.y + imageSize.y ), { 0, 1 }, { 1,0 } );
+
+		float available_height = buttonSize.y - imageSize.y - ImGui::GetStyle().FramePadding.y * 2;
+		float line_height = available_height / 2;
+
+		ImVec2 projectNameTextPos = ImVec2(
+			buttonBoundingBox.Min.x + ( buttonSize.x - projectNameTextSize.x ) * 0.5f,
+			imagePos.y + imageSize.y + ImGui::GetStyle().FramePadding.y * 0.5f + 4.0f
+		);
+		pDrawList->AddText( projectNameTextPos, ImGui::GetColorU32( ImGuiCol_Text ), rProject.Name.c_str() );
+
+		ImVec2 lastWriteTimeTextPos = ImVec2(
+			buttonBoundingBox.Min.x + ImGui::GetStyle().FramePadding.x + ( buttonSize.x - lastWriteTextSize.x ) * 0.5f,
+			projectNameTextPos.y + line_height
+		);
+		pDrawList->AddText( lastWriteTimeTextPos, ImGui::GetColorU32( ImGuiCol_TextDisabled ), rProject.LastWriteTime.c_str() );
+	}
+
+	void ProjectBrowserLayer::CreateProject( const std::filesystem::path& rPath )
+	{
+		std::filesystem::path ProjectPath = rPath.parent_path();
+		std::string ProjectName = rPath.filename().string();
 
 		if( !std::filesystem::exists( ProjectPath ) )
 			std::filesystem::create_directories( ProjectPath );
 
 		// Copy files.
-		std::filesystem::copy( s_SaturnDir + "/Saturn-Editor/content/Templates/Base", ProjectPath, std::filesystem::copy_options::recursive );
+		std::filesystem::path targetPath = m_SaturnDir;
+		targetPath /= "Saturn-Editor";
+		targetPath /= "content";
+		targetPath /= "Templates";
+		targetPath /= "Base";
+
+		std::filesystem::copy( targetPath, ProjectPath, std::filesystem::copy_options::recursive );
 
 		// New Project ref
 		Ref<Project> newProject = Ref<Project>::Create();
@@ -341,19 +429,16 @@ namespace Saturn {
 			stream.close();
 
 			std::string str = ss.str();
-			ReplaceToken( str, "/REPLACE_WITH_PROJECT_NAME/", s_ProjectNameBuffer );
+			ReplaceToken( str, "/REPLACE_WITH_PROJECT_NAME/", ProjectName );
 
 			std::ofstream out( ProjectPath / "Project.sproject" );
 			out << str;
 			out.close();
 
-			newProject->GetConfig().Name = std::string( s_ProjectNameBuffer );
-
-			std::string name = std::string( s_ProjectNameBuffer ) + ".sproject";
-
+			newProject->GetConfig().Name = ProjectName;
 			newProject->GetConfig().Path = ProjectPath.string();
 
-			std::filesystem::rename( ProjectPath / "Project.sproject", ProjectPath / name );
+			std::filesystem::rename( ProjectPath / "Project.sproject", ProjectPath / ProjectName );
 		}
 
 		std::filesystem::create_directory( ProjectPath / "Assets" );
@@ -373,7 +458,13 @@ namespace Saturn {
 		std::filesystem::create_directories( ProjectPath / "Source" / newProject->GetConfig().Name );
 
 		{
-			std::filesystem::copy( s_SaturnDir + "/Saturn-Editor/content/Templates/%PROJECT_NAME%.Load.cpp", ProjectPath / "Build" );
+			std::filesystem::path targetFilePath = m_SaturnDir;
+			targetFilePath /= "Saturn-Editor";
+			targetFilePath /= "content";
+			targetFilePath /= "Templates";
+			targetFilePath /= "%PROJECT_NAME%.Load.cpp";
+
+			std::filesystem::copy( targetFilePath, ProjectPath / "Build" );
 			
 			std::string filename = "%PROJECT_NAME%.Load.cpp";
 			std::string newName = std::format( "{0}.Load.cpp", newProject->GetConfig().Name );
@@ -392,34 +483,22 @@ namespace Saturn {
 		Project::SetActiveProject( nullptr );
 	}
 
-	void ProjectBrowserLayer::OpenProject( const std::string& rPath )
+	void ProjectBrowserLayer::OpenProject( const ProjectInformation& rProject )
 	{
-		// Create saturn process
-		STARTUPINFOA StartupInfo = {};
-		StartupInfo.cb = sizeof( StartupInfo );
+		std::filesystem::path commandLine = m_SaturnDir;
 
-		PROCESS_INFORMATION ProcessInfo;
-		
-		std::string RootDir = s_SaturnDir;
-
-		std::replace( RootDir.begin(), RootDir.end(), '\\', '/' );
-		std::string WorkingDir = RootDir + "/Saturn-Editor";
-#if defined( _DEBUG )
-		RootDir += "/bin/Debug-windows-x86_64/Saturn-Editor/Saturn-Editor.exe";
+		std::filesystem::path workingDir = commandLine / "Saturn-Editor";
+#if defined( SAT_DEBUG )
+		commandLine += "\\bin\\Debug-windows-x86_64\\Saturn-Editor\\Saturn-Editor.exe";
 #else
-		RootDir += "/bin/Release-windows-x86_64/Saturn-Editor/Saturn-Editor.exe";
+		commandLine += "\\bin\\Release-windows-x86_64\\Saturn-Editor\\Saturn-Editor.exe";
 #endif
-		RootDir += " " + rPath;
-		
-		bool res = CreateProcessA( nullptr, RootDir.data(), nullptr, nullptr, FALSE, DETACHED_PROCESS, nullptr, WorkingDir.data(), &StartupInfo, &ProcessInfo );
-		
-		if( !res )
-		{
-			SAT_CORE_ERROR( "Unable to start saturn process" );
-		}
+		// We want the root path of the project not the entire path leading to the .sproject file
+		commandLine += " " + rProject.Filepath.parent_path().string();
 
-		CloseHandle( ProcessInfo.hThread );
-		CloseHandle( ProcessInfo.hProcess );
+		DeatchedProcess dp( commandLine, workingDir );
+
+		Application::Get().Close();
 	}
 
 	void ProjectBrowserLayer::OnEvent( RubyEvent& rEvent )

@@ -126,6 +126,7 @@ namespace Saturn {
 	public:
 		static const char* GetCurrentPlatformName();
 		static const char* GetCurrentConfigName();
+		static const char* GetCurrentPlatformBinaryName();
 
 	protected:
 

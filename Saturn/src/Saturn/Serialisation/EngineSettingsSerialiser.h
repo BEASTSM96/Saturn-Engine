@@ -28,17 +28,12 @@
 
 #pragma once
 
-#include "Saturn/Core/App.h"
-
 namespace Saturn {
 	
 	class EngineSettingsSerialiser
 	{
 	public:
-		EngineSettingsSerialiser();
-		~EngineSettingsSerialiser();
-
-		void Serialise();
-		void Deserialise();
+		static void Serialise();
+		static void Deserialise();
 	};
 }

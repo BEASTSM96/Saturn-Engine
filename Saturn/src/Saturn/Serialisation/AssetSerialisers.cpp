@@ -464,16 +464,16 @@ namespace Saturn {
 		auto filepath = soundData[ "SourcePath" ].as<std::string>();
 		auto importPath = soundData[ "ImportPath" ].as<std::string>();
 
-#if !defined(SAT_DIST)
-		auto lastWriteTime = soundData[ "LastWriteTime" ].as<std::string>();
-#endif
-
 		auto realPath = Project::GetActiveProject()->FilepathAbs( filepath );
 
 		auto soundSpec = Ref<SoundSpecification>::Create();
 		soundSpec->SoundSourcePath = realPath;
 		soundSpec->OriginalImportPath = importPath;
+
+#if !defined(SAT_DIST)
+		auto lastWriteTime = soundData[ "LastWriteTime" ].as<std::string>();
 		soundSpec->LastWriteTime = lastWriteTime;
+#endif
 
 		// TODO: (Asset) Fix this.
 		struct
