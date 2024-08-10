@@ -47,9 +47,9 @@
 
 #include <Saturn/Core/Ruby/RubyWindow.h>
 
-#include "Saturn/ImGui/EmbededFonts/NotoSansRegular.h"
-#include "Saturn/ImGui/EmbededFonts/NotoSansBold.h"
-#include "Saturn/ImGui/EmbededFonts/NotoSansItalic.h"
+#include "Saturn/ImGui/EmbededFonts/NotoSansRegular.hpp"
+#include "Saturn/ImGui/EmbededFonts/NotoSansBold.hpp"
+#include "Saturn/ImGui/EmbededFonts/NotoSansItalic.hpp"
 
 namespace Saturn {
 	
@@ -96,7 +96,7 @@ namespace Saturn {
 
 		io.ConfigWindowsResizeFromEdges = io.BackendFlags & ImGuiBackendFlags_HasMouseCursors;
 
-		auto* pFont = io.Fonts->AddFontFromMemoryTTF( ( void* ) GNotoSansRegularEmbeded, sizeof( GNotoSansRegularEmbeded ), 18.0f );
+		io.Fonts->AddFontFromMemoryTTF( ( void* ) GNotoSansRegularEmbeded, sizeof( GNotoSansRegularEmbeded ), 18.0f );
 		io.FontDefault = io.Fonts->Fonts.back();
 		
 		io.Fonts->AddFontFromMemoryTTF( ( void* ) GNotoSansBoldEmbeded, sizeof( GNotoSansBoldEmbeded ), 18.0f );

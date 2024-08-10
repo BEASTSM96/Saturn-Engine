@@ -153,11 +153,12 @@ namespace Saturn {
 
 #if defined( SAT_PLATFORM_WINDOWS )
 		std::wstring Out;
-		std::string TemporaryBuffer;
 
 		DWORD availableBytes;
 		if( PeekNamedPipe( m_ReadHandle, nullptr, 0, nullptr, &availableBytes, nullptr ) && availableBytes )
 		{
+			std::string TemporaryBuffer;
+			
 			Out.resize( availableBytes );
 			TemporaryBuffer.resize( availableBytes );
 		
