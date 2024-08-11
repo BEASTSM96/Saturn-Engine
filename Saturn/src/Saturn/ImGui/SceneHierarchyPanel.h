@@ -96,6 +96,9 @@ namespace Saturn {
 		template<typename Ty>
 		void DrawAddComponents( const char* pName, Ref<Entity> entity );
 
+		template<typename T, typename UIFunction>
+		void DrawComponent( const std::string& name, Ref<Entity> entity, UIFunction uiFunction );
+
 	private:
 		UUID m_CustomID = 0;
 		std::string m_WindowName = "Scene Hierarchy";
@@ -111,10 +114,17 @@ namespace Saturn {
 
 		bool m_IsMultiSelecting = false;
 
+		struct CopyComponentData
+		{
+			Buffer Buffer;
+			std::string Name;
+		};
+
+		CopyComponentData m_CopyComponentData;
+
 		Ref<Scene> m_Context;
 		std::vector< Ref<Entity> > m_SelectionContexts;
 		std::pair< Ref<Entity>, Ref<Entity> > m_ShiftStartEnd;
 		std::function<void( Ref<Entity> )> m_SelectionChangedCallback;
 	};
-
 }

@@ -49,52 +49,6 @@
 
 namespace Saturn {
 
-	template<typename T, typename UIFunction>
-	static void DrawComponent( const std::string& name, Ref<Entity> entity, UIFunction uiFunction )
-	{
-		if( entity->HasComponent<T>() )
-		{
-			bool removeComponent = false;
-
-			auto& component = entity->GetComponent<T>();
-
-			bool open = ImGui::TreeNodeEx( ( void* )( ( uint32_t )entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str() );
-
-			ImGui::SameLine();
-			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
-			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
-			if( ImGui::Button( "+" ) )
-			{
-				ImGui::OpenPopup( "ComponentSettings" );
-			}
-
-			ImGui::PopStyleColor();
-			ImGui::PopStyleColor();
-
-			if( ImGui::BeginPopup( "ComponentSettings" ) )
-			{
-				if( ImGui::MenuItem( "Remove component" ) )
-					removeComponent = true;
-
-				ImGui::EndPopup();
-			}
-
-			if( open )
-			{
-				uiFunction( component );
-				ImGui::NextColumn();
-				ImGui::Columns( 1 );
-				ImGui::TreePop();
-			}
-			ImGui::Separator();
-
-			if( removeComponent )
-			{
-				entity->RemoveComponent<T>();
-			}
-		}
-	}
-	
 	SceneHierarchyPanel::SceneHierarchyPanel() : Panel( "Scene Hierarchy Panel" )
 	{
 		m_EditIcon = Ref<Texture2D>::Create( "content/textures/editor/EditIcon.png", AddressingMode::Repeat, false );
@@ -770,4 +724,71 @@ namespace Saturn {
 		} );
 	}
 
+	template<typename T, typename UIFunction>
+	void Saturn::SceneHierarchyPanel::DrawComponent( const std::string& name, Ref<Entity> entity, UIFunction uiFunction )
+	{
+		// TODO: Support multiple selections (for this function)
+		if( entity->HasComponent<T>() )
+		{
+			bool removeComponent = false;
+
+			auto& component = entity->GetComponent<T>();
+
+			bool open = ImGui::TreeNodeEx( ( void* ) ( ( uint32_t ) entity | typeid( T ).hash_code() ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str() );
+
+			ImGui::SameLine();
+			ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
+			if( ImGui::Button( "+" ) )
+			{
+				ImGui::OpenPopup( "ComponentSettings" );
+			}
+
+			ImGui::PopStyleColor( 2 );
+
+			if( ImGui::BeginPopup( "ComponentSettings" ) )
+			{
+				if constexpr( !std::is_same<T, TransformComponent>() )
+				{
+					if( ImGui::MenuItem( "Remove component" ) )
+						removeComponent = true;
+				}
+
+				if( ImGui::MenuItem( "Copy component" ) )
+				{
+					if( m_CopyComponentData.Buffer.Size > 0 )
+						m_CopyComponentData.Buffer.Free();
+
+					m_CopyComponentData.Name = name;
+
+					m_CopyComponentData.Buffer.Allocate( sizeof( T ) );
+					m_CopyComponentData.Buffer.Write( reinterpret_cast< void* >( &component ), sizeof( T ), 0 );
+				}
+
+				if( ImGui::MenuItem( "Paste component" ) )
+				{
+					if( m_CopyComponentData.Buffer.Size > 0 && m_CopyComponentData.Name == name )
+					{
+						component = m_CopyComponentData.Buffer.Read<T>( 0 );
+					}
+				}
+
+				ImGui::EndPopup();
+			}
+
+			if( open )
+			{
+				uiFunction( component );
+				ImGui::NextColumn();
+				ImGui::Columns( 1 );
+				ImGui::TreePop();
+			}
+			ImGui::Separator();
+
+			if( removeComponent )
+			{
+				entity->RemoveComponent<T>();
+			}
+		}
+	}
 }
