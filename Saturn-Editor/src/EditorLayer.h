@@ -78,7 +78,6 @@ namespace Saturn {
 		void DrawEditorSettings();
 		void DrawMaterials();
 		void DrawMaterialHeader( Ref<MaterialAsset>& rMaterial );
-		void DrawAttributions();
 		void DrawVFSDebug();
 		void DrawTitlebarOptions();
 		void DrawAboutWindow();
@@ -162,7 +161,6 @@ namespace Saturn {
 		bool m_HasPremakePath = false;
 		bool m_OpenAssetRegistryDebug = false;
 		bool m_OpenLoadedAssetDebug = false;
-		bool m_OpenAttributions = false;
 		bool m_JobModalOpen = false;
 		bool m_OpenAboutWindow = false;
 		bool m_ShowRendererWindow = true;
@@ -179,6 +177,8 @@ namespace Saturn {
 		bool m_ShowOperation = false;
 
 		std::queue<MessageBoxInfo> m_MessageBoxes;
+
+		Buffer m_CopyComponentBuffer;
 
 		Ref< Scene > m_EditorScene = nullptr;
 		Ref< Scene > m_RuntimeScene = nullptr;

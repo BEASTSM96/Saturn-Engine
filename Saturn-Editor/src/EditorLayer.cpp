@@ -284,7 +284,6 @@ namespace Saturn {
 		// Draw dockspace.
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiViewport* pViewport = ImGui::GetWindowViewport();
-
 		ImGui::DockSpaceOverViewport( pViewport );
 		
 		if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) || ( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) && !m_StartedRightClickInViewport ) )
@@ -299,7 +298,6 @@ namespace Saturn {
 		m_TitleBar->Draw();
 		m_PanelManager->DrawAllPanels();
 		
-		if( m_OpenAttributions )        DrawAttributions();
 		if( m_ShowImGuiDemoWindow )     ImGui::ShowDemoWindow( &m_ShowImGuiDemoWindow );
 		if( m_ShowUserSettings )        DrawProjectSettingsWindow();
 		if( m_OpenAssetRegistryDebug )  DrawAssetRegistryDebug();
@@ -1150,16 +1148,6 @@ namespace Saturn {
 		}
 	}
 
-	void EditorLayer::DrawAttributions()
-	{
-		if( ImGui::Begin( "Attributions", &m_OpenAttributions ) )
-		{
-			ImGui::Text( "All icons in the engine are provided by icons8 via https://icons8.com/\nUsing the Tanah Basah set." );
-
-			ImGui::End();
-		}
-	}
-
 	void EditorLayer::DrawVFSDebug()
 	{
 		VirtualFS& rVirtualFS = VirtualFS::Get();
@@ -1195,7 +1183,6 @@ namespace Saturn {
 
 		if( ImGui::BeginMenu( "Saturn" ) )
 		{
-			if( ImGui::MenuItem( "Attributions" ) ) m_OpenAttributions ^= 1;
 			if( ImGui::MenuItem( "About" ) )        m_OpenAboutWindow ^= 1;
 			
 			ImGui::SeparatorText( "Windows" );
@@ -1248,6 +1235,9 @@ namespace Saturn {
 					{
 						m_JobModalOpen = true;
 						m_BlockingOperation->SetStatus( "Initializing..." );
+
+						SaveFile();
+						SaveProject();
 
 						Project::GetActiveProject()->PrepForDist();
 						
@@ -1390,14 +1380,29 @@ namespace Saturn {
 	{
 		if( ImGui::Begin( "About", &m_OpenAboutWindow ) )
 		{
-			std::string buildInfo = std::format( "Saturn Engine x64 {0} ({1} build)", Application::GetCurrentPlatformName(), Application::GetCurrentConfigName() );
-			ImGui::Text( buildInfo.c_str() );
+			ImGui::Text( "Saturn Engine x64 %s (%s build)", Application::GetCurrentPlatformName(), Application::GetCurrentConfigName() );
 
-			std::string editorLayerTime = std::format( "Built on: {0} {1} (EditorLayer.cpp)", __DATE__, __TIME__ );
-			ImGui::Text( editorLayerTime.c_str() );
+			ImGui::Text( "Built on: %s %s (EditorLayer.cpp)", __DATE__, __TIME__ );
 
-			std::string versionText = std::format( "Saturn Engine Version: {0}", SAT_CURRENT_VERSION_STRING );
-			ImGui::Text( versionText.c_str() );
+			ImGui::Text( "Saturn Engine Version: %s", SAT_CURRENT_VERSION_STRING );
+
+			ImGui::Separator();
+
+			ImGui::Text( "All icons in the engine are provided by icons8 via https://icons8.com/\nUsing the Tanah Basah set." );
+
+			ImGui::Separator();
+
+			if( Auxiliary::TreeNode( "Third Party libraries" ) )
+			{
+				ImGui::Text( "dear imgui: %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM );
+				ImGui::Text( "SPIRV-Cross" );
+				ImGui::Text( "Tracy" );
+				ImGui::Text( "yaml-cpp" );
+				ImGui::Text( "zlib: Version 1.3.1, January 22nd, 2024" );
+				ImGui::Text( "PhysX: Version 4.1.1" );
+
+				Auxiliary::EndTreeNode();
+			}
 
 			ImGui::End();
 		}
@@ -1477,7 +1482,7 @@ namespace Saturn {
 		// Viewport Image & Drag and drop handling
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove;
 
 		ImGui::Begin( "Viewport", 0, flags );
 
