@@ -167,7 +167,7 @@ namespace Saturn {
 
 		Ref<Entity> DuplicateEntity( Ref<Entity> entity, Ref<Entity> parent = nullptr );
 		void DeleteEntity( Ref<Entity> entity );
-
+		
 		void OnUpdate( Timestep ts );
 		void OnUpdatePhysics( Timestep ts );
 
@@ -238,6 +238,7 @@ namespace Saturn {
 
 		void StartAudioPlayers();
 		void StopAudioPlayers();
+		void DestroyAudioPlayers();
 		void UpdateAudioListeners();
 
 		static void   SetActiveScene( Scene* pScene );

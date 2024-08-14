@@ -629,8 +629,7 @@ namespace Saturn {
 		{
 			auto child = FindEntityByID( rChild );
 
-			m_EntityIDMap.erase( child->GetHandle() );
-			m_Registry.destroy( child->GetHandle() );
+			DeleteEntity( child );
 		}
 
 		m_EntityIDMap.erase( entity->GetHandle() );
@@ -755,12 +754,24 @@ namespace Saturn {
 		}
 	}
 
+	void Scene::DestroyAudioPlayers()
+	{
+		auto sndPlayers = GetAllEntitiesWith< AudioPlayerComponent >();
+
+		for( auto& entity : sndPlayers )
+		{
+			auto& rComp = entity->GetComponent<AudioPlayerComponent>();
+
+			AudioSystem::Get().UnloadSound( rComp.UniqueID );
+		}
+	}
+
 	void Scene::OnRuntimeEnd()
 	{
 		if( m_PhysicsScene )
 			delete m_PhysicsScene;
 
-		StopAudioPlayers();
+		DestroyAudioPlayers();
 
 		m_RuntimeRunning = false;
 	}

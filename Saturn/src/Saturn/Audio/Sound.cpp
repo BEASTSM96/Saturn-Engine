@@ -123,6 +123,7 @@ namespace Saturn {
 			ma_audio_buffer_uninit( &m_AudioBuffer );
 #endif
 			m_Loaded = false;
+			m_Playing = false;
 		}
 	}
 

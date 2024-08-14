@@ -466,6 +466,7 @@ namespace Saturn {
 	{
 		auto playerID = sound->m_PlayerID;
 
+		sound->Stop();
 		sound->Unload();
 
 		m_LoadedSounds.erase( playerID );
@@ -478,6 +479,26 @@ namespace Saturn {
 
 		if( Itr != m_AliveSounds.end() )
 			m_AliveSounds.erase( Itr );
+
+		// TODO: Right now MarkForDestroy does not really do anything
+		//		 sound will be destroyed at the end of this scope (ref count should be 1).
+		sound->MarkForDestroy();
+	}
+
+	void AudioSystem::UnloadSound( UUID UniquePlayerID )
+	{
+		const auto Itr = std::find_if( m_LoadedSounds.begin(), m_LoadedSounds.end(),
+			[UniquePlayerID]( const auto& kv )
+			{
+				return kv.first == UniquePlayerID;
+			} );
+
+		if( Itr != m_LoadedSounds.end() )
+		{
+			auto& rSound = ( Itr->second );
+
+			UnloadSound( rSound );
+		}
 	}
 
 	SoundDecodedInformation AudioSystem::DecodeSound( const Ref<SoundSpecification>& rSpec )

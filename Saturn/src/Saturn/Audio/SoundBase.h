@@ -53,6 +53,7 @@ namespace Saturn {
 		ma_sound* GetRawSound() { return m_Sound; }
 		const AssetID GetPlayerID() const { return m_PlayerID; }
 		inline void SetID( UUID id ) { m_PlayerID = id; }
+		inline void MarkForDestroy() { m_MarkedForDestroy = true; }
 
 	protected:
 		ma_sound* m_Sound = nullptr;
@@ -63,6 +64,7 @@ namespace Saturn {
 		bool m_Loaded = false;
 		bool m_Playing = false;
 		bool m_Looping = false;
+		bool m_MarkedForDestroy = false;
 
 	private:
 		friend class AudioSystem;
