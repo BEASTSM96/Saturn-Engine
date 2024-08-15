@@ -47,9 +47,7 @@
 
 #include <Saturn/Core/Ruby/RubyWindow.h>
 
-#include "Saturn/ImGui/EmbededFonts/NotoSansRegular.hpp"
-#include "Saturn/ImGui/EmbededFonts/NotoSansBold.hpp"
-#include "Saturn/ImGui/EmbededFonts/NotoSansItalic.hpp"
+#include "Saturn/ImGui/EmbededFonts/NotoSansAll.hpp"
 
 namespace Saturn {
 	

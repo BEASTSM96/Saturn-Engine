@@ -90,7 +90,7 @@ namespace SaturnBuildTool
             BuildDir = BuildDir.Replace( "/", "\\" );
 
             // Filecache
-            FileCacheLocation = Path.Combine( RootDirectory, "filecache.fc" );
+            FileCacheLocation = Path.Combine( RootDirectory, "Filecache.fc" );
 
             TargetPlatformName = Args[2];
             index = TargetPlatformName.IndexOf("/");

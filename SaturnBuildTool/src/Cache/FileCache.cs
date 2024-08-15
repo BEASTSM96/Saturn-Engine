@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
 namespace SaturnBuildTool.Cache
@@ -51,11 +52,13 @@ namespace SaturnBuildTool.Cache
         {
             return FilesToCache.ContainsKey(Filepath);
         }
+
         public void Clean() 
         {
             FilesToCache.Clear();
             FilesInCache.Clear();
         }
+
         public static void RT_WriteCache( FileCache fileCache ) 
         {
             foreach (KeyValuePair<string, DateTime> kv in fileCache.FilesToCache) 
@@ -67,7 +70,6 @@ namespace SaturnBuildTool.Cache
                 if(time != kv.Value)
                 {
                     // Yes, lets try to add it in the cache
-
                     if(fileCache.FilesInCache.ContainsKey(kv.Key))
                     {
                         fileCache.FilesInCache[kv.Key] = kv.Value;
@@ -84,28 +86,12 @@ namespace SaturnBuildTool.Cache
             // HACK: Clear the file.
             File.WriteAllText(fileCache.Filepath, string.Empty);
 
+            // --- Begin write
             FileStream fs = new FileStream(fileCache.Filepath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            BinaryFormatter bf = new BinaryFormatter();
 
-            StreamWriter sw = new StreamWriter( fs );
-
-            // I'm not sure if we need the new line.
-            byte[] newLine = Encoding.ASCII.GetBytes("\r\n");
-            byte[] fileHeader = Encoding.ASCII.GetBytes(".FC");
-
-            fs.Write(fileHeader, 0, fileHeader.Length);
-            fs.Write(newLine, 0, newLine.Length);
-
-            foreach (KeyValuePair<string, DateTime> kv in fileCache.FilesInCache) 
-            {
-                string format = kv.Key + ":" + kv.Value.ToBinary();
-
-                byte[] bytes = Encoding.ASCII.GetBytes(format);
-
-                fs.Write(bytes, 0, bytes.Length);
-                fs.Write(newLine, 0, newLine.Length);
-            }
-
-            sw.Close();
+            bf.Serialize( fs, fileCache.FilesInCache );
+            
             fs.Close();
         }
 
@@ -130,7 +116,7 @@ namespace SaturnBuildTool.Cache
                 catch (Exception e)
                 {
                     Console.WriteLine("Error when trying open filecache: {0}", e.Message);
-                    //fs.Close();
+                    Console.WriteLine("Filecache is empty, creating new cache...");
 
                     return fc;
                 }
@@ -138,56 +124,24 @@ namespace SaturnBuildTool.Cache
 
             if( fs.Length == 0 ) 
             {
-                fs.Close();
-
                 Console.WriteLine( "Filecache is empty, creating new cache..." );
 
-                return fc;
-            }
-
-            byte[] headerBytes = new byte[3];
-            fs.Read(headerBytes, 0, headerBytes.Length);
-
-            string fileHeader = Encoding.ASCII.GetString(headerBytes);
-
-            if( fileHeader != ".FC" )
-            {
-                Console.WriteLine("File cache file has an invalid header.");
                 fs.Close();
-
                 return fc;
             }
 
-            long remainingBytes = fs.Length - headerBytes.Length;
+            // --- Begin read
 
-            byte[] bytes = new byte[remainingBytes];
+            BinaryFormatter bf = new BinaryFormatter();
 
-            fs.Read(bytes, 0, bytes.Length);
-
-            string data = Encoding.ASCII.GetString( bytes );
-
-            string[] entries = data.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach ( string entry in entries )
+            try 
             {
-                int colonIndex = entry.LastIndexOf(':');
-
-                if (colonIndex == -1) 
-                {
-                    continue;
-                }
-
-                string filePath = entry.Substring(0, colonIndex);
-                string time = entry.Substring(colonIndex + 1);
-
-                if (long.TryParse(time, out long writeTime))
-                {
-                    DateTime dt = DateTime.FromBinary(writeTime);
-                    fc.FilesInCache.Add(filePath, dt);
-                }
-                else
-                {
-                    Console.WriteLine("Invalid date format. Skipping file.");
-                }
+                fc.FilesInCache = (Dictionary<string, DateTime>)bf.Deserialize(fs);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error when trying open filecache: {0}", e.Message);
+                Console.WriteLine("Filecache is empty, creating new cache...");
             }
 
             fs.Close();

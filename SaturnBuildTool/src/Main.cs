@@ -20,8 +20,6 @@ namespace SaturnBuildTool
         // 4: The project location
         static void Main(string[] args)
         {
-          //  Thread.Sleep( 7000 );
-
             if( IsHelpCommand( args ) ) { return; }
 
             if (args.Length <= 4)
@@ -40,7 +38,11 @@ namespace SaturnBuildTool
 
             // Safe to continue
             Application app = new Application(args);
-            app.Run();
+            
+            if(app.Init())
+            {
+                app.Run();
+            }
         }
 
         static bool IsHelpCommand(string[] args) 

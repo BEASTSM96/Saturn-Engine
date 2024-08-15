@@ -21,13 +21,13 @@ namespace SaturnBuildTool
 
     internal class Application
     {
-        private readonly UserTarget TargetToBuild = null;
+        private UserTarget TargetToBuild = null;
 
         public string[] Args;
 
         public Toolchain Toolchain { get; set; }
 
-        private readonly FileCache FileCache = null;
+        private FileCache FileCache = null;
 
         private bool HasCompiledAnyFile = false;
 
@@ -53,38 +53,48 @@ namespace SaturnBuildTool
             //Thread.Sleep(7000);
 
             Args = args;
+        }
+
+        public bool Init() 
+        {
+            Console.WriteLine("==== Saturn Build Tool v0.0.2 (Engine Version: 0.1.3) ====");
 
             // Setup project info from args.
-            ProjectInfo.Instance.Setup( Args );
+            ProjectInfo.Instance.Setup(Args);
 
             TargetToBuild = UserTarget.SetupUserTarget();
 
-            if (TargetToBuild == null) 
+            if (TargetToBuild == null)
             {
-                Console.WriteLine( "Could not find a user target!, looking for {0} Please regenerate it in the engine!", ProjectInfo.Instance.BuildRuleFile );
+                Console.WriteLine("Could not find a user target!, looking for {0} Please regenerate it in the engine!", ProjectInfo.Instance.BuildRuleFile);
+
+                return false;
             }
 
-            switch (ProjectInfo.Instance.TargetPlatformKind) 
+            switch (ProjectInfo.Instance.TargetPlatformKind)
             {
                 case ArchitectureKind.x86:
                 case ArchitectureKind.x64:
                     {
                         Toolchain = new MSVCToolchain(TargetToBuild);
-                    } break;
+                    }
+                    break;
 
                 default:
                     break;
             }
 
             // Set Action
-            if( Args[0] == "/BUILD" )
+            if (Args[0] == "/BUILD")
                 Action = ActionType.Build;
-            else if(Args[0] == "/REBUILD")
+            else if (Args[0] == "/REBUILD")
                 Action = ActionType.Rebuild;
             else
                 Action = ActionType.Clean;
 
             FileCache = FileCache.Load();
+
+            return true;
         }
 
         private void CompileFiles_ForThread(object index) 
@@ -295,9 +305,9 @@ namespace SaturnBuildTool
             {
                 Directory.Delete(TargetToBuild.OutputPath, true);
             }
-            catch (Exception e)
+            catch (IOException e)
             {
-                Console.WriteLine(string.Format("Could not delete dir/file: {0}", e.Message));
+                Console.WriteLine(string.Format("Skipping file dir/file as it could not be deleted", e.Message));
             }
 
             FileCache.Clean();
@@ -322,8 +332,6 @@ namespace SaturnBuildTool
 
         public void Run() 
         {
-            Console.WriteLine("==== Saturn Build Tool v0.0.2 ====");
-
             SearchForFiles();
 
             switch( Action )

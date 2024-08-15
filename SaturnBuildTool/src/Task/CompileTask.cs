@@ -63,7 +63,6 @@ namespace SaturnBuildTool
             Args.Add(" /c");
 
             Args.Add(" /errorreport:prompt");
-            Args.Add(" /verbosity:quiet");
 
             // Compile for C++
             Args.Add(" /std:c++latest /D _HAS_EXCEPTIONS=0");
