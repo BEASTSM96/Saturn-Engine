@@ -51,6 +51,7 @@
 
 #include <Saturn/Vulkan/ShaderBundle.h>
 #include <Saturn/Vulkan/Renderer2D.h>
+#include <Saturn/Vulkan/VulkanImageAux.h>
 
 #include <Saturn/Core/EnvironmentVariables.h>
 
@@ -476,22 +477,22 @@ namespace Saturn {
 			} break;
 
 			case RubyKey::Q:
-				if( m_AllowCameraEvents )
+				if( m_AllowCameraEvents || m_ViewportFocused )
 					m_GizmoOperation = -1;
 				break;
 	
 			case RubyKey::W:
-				if( m_AllowCameraEvents )
+				if( m_AllowCameraEvents || m_ViewportFocused )
 					m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
 				break;
 			
 			case RubyKey::E:
-				if( m_AllowCameraEvents )
+				if( m_AllowCameraEvents || m_ViewportFocused )
 					m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
 				break;
 			
 			case RubyKey::R:
-				if( m_AllowCameraEvents )
+				if( m_AllowCameraEvents || m_ViewportFocused )
 					m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
 				break;
 		}
@@ -521,24 +522,18 @@ namespace Saturn {
 
 					if( hierarchyPanel )
 					{
-						Ref<Entity> selectedEntity = hierarchyPanel->GetSelectionContext();
+						auto& selectedEntities = hierarchyPanel->GetSelectionContexts();
 
-						if( selectedEntity )
+						glm::vec3 Positions = {};
+						for( auto& rEntity : selectedEntities )
 						{
-							// TODO: This should be it's own separate keybind what if we don't want to use the parents position.
-							//       This also does not account if the parent has a parent and so on.
-							if( selectedEntity->HasParent() )
-							{
-								Ref<Entity> parent = GActiveScene->FindEntityByID( selectedEntity->GetParent() );
-								auto transform = GActiveScene->GetWorldSpaceTransform( parent );
-
-								m_EditorCamera.Focus( transform.Position );
-							}
-							else
-							{
-								m_EditorCamera.Focus( selectedEntity->GetComponent<TransformComponent>().Position );
-							}
+							TransformComponent worldSpace = GActiveScene->GetWorldSpaceTransform( rEntity );
+							Positions += worldSpace.Position;
 						}
+
+						Positions /= selectedEntities.size();
+
+						m_EditorCamera.Focus( Positions );
 					}
 				} break;
 
@@ -986,7 +981,7 @@ namespace Saturn {
 
 			// TODO: Come back to this.
 
-			constexpr const char* items[] = { "0x", "1x", "2x", "4x", "8x", "16x", "32x", "64x" };
+			const char* items[] = { "0x", "1x", "2x", "4x", "8x", "16x", "32x", "64x" };
 			static VkSampleCountFlagBits count;
 			if( ImGui::BeginCombo( "##samples", "", ImGuiComboFlags_NoPreview ) )
 			{
