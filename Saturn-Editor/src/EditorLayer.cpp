@@ -239,7 +239,7 @@ namespace Saturn {
 		}
 		else
 		{
-			if( m_RuntimeScene && m_RuntimeScene->m_RuntimeRunning )
+			if( m_RuntimeScene && m_RuntimeScene->RuntimeRunning )
 			{
 				m_RuntimeScene->OnRuntimeEnd();
 				Scene::SetActiveScene( m_EditorScene.Get() );

@@ -171,10 +171,15 @@ namespace Saturn {
 		m_Playing = false;
 	}
 
-	void Sound::Loop()
+	void Sound::Loop( bool loop )
 	{
-		ma_sound_set_looping( m_Sound, true );
-		m_Looping = true;
+		ma_sound_set_looping( m_Sound, loop );
+		m_Looping = loop;
+
+		if( ma_sound_at_end( m_Sound ) && loop )
+		{
+			Play();
+		}
 	}
 
 	bool Sound::IsPlaying() const

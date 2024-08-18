@@ -44,7 +44,7 @@ namespace Saturn {
 
 		virtual void Play( int frameOffset ) = 0;
 		virtual void Stop() = 0;
-		virtual void Loop() = 0;
+		virtual void Loop(bool loop = true) = 0;
 		virtual void Load( uint32_t flags ) = 0;
 		virtual void Reset() = 0;
 		virtual void Unload() = 0;

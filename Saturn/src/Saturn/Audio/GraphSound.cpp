@@ -108,7 +108,7 @@ namespace Saturn {
 		}
 	}
 
-	void GraphSound::Loop()
+	void GraphSound::Loop( bool loop )
 	{
 	}
 

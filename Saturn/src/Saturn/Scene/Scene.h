@@ -213,7 +213,7 @@ namespace Saturn {
 		void CopyScene( Ref<Scene>& NewScene );
 		void Empty();
 
-		bool m_RuntimeRunning = false;
+		bool RuntimeRunning = false;
 
 		void OnRuntimeStart();
 		void OnRuntimeEnd();

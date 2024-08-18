@@ -171,7 +171,7 @@ namespace Saturn {
 		// Step 2: Update all entities.
 
 		// TODO: We might want to change the order of this update cycle.
-		if( m_RuntimeRunning ) 
+		if( RuntimeRunning ) 
 		{
 			// Simulate the physics scene.
 			m_PhysicsScene->Update( ts );
@@ -673,7 +673,7 @@ namespace Saturn {
 		if( m_PhysicsScene )
 			delete m_PhysicsScene;
 
-		m_RuntimeRunning = true;
+		RuntimeRunning = true;
 
 		m_PhysicsScene = new PhysicsScene( this );
 
@@ -773,7 +773,7 @@ namespace Saturn {
 
 		DestroyAudioPlayers();
 
-		m_RuntimeRunning = false;
+		RuntimeRunning = false;
 	}
 
 	Ref<Entity> Scene::CreatePrefab( Ref<Prefab> prefabAsset )

@@ -42,12 +42,44 @@
 
 namespace Saturn::Auxiliary {
 	
+	template<typename Ty>
+	class ScopedStyleVar
+	{
+	public:
+		ScopedStyleVar( ImGuiStyleVar_ styleVar, const Ty& rValue )
+		{
+			static_assert( std::is_same<Ty, float>() || std::is_same<Ty, ImVec2>(), "Ty must be float or ImVec2!" );
+			
+			ImGui::PushStyleVar( styleVar, rValue );
+		}
+
+		~ScopedStyleVar()
+		{
+			ImGui::PopStyleVar();
+		}
+	};
+
+	class ScopedItemFlag
+	{
+	public:
+		ScopedItemFlag( ImGuiItemFlags_ itemFlag, bool value )
+		{
+			ImGui::PushItemFlag( itemFlag, value );
+		}
+
+		~ScopedItemFlag()
+		{
+			ImGui::PopItemFlag();
+		}
+	};
+
 	extern bool DrawVec3Control( const std::string& rLabel, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
 	extern bool DrawVec2Control( const std::string& rLabel, glm::vec2& values, float resetValue = 0.0f, float columnWidth = 100.0f );
 
 	extern bool DrawColorVec3Control( const std::string& rLabel, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f );
 
 	extern bool DrawFloatControl( const std::string& rLabel, float& values, float min = 0.0f, float max = 500.0f, float columnWidth = 125.0f );
+	extern bool DrawDisabledFloatControl( const std::string& rLabel, float& values, float min = 0.0f, float max = 500.0f, float columnWidth = 125.0f );
 
 	extern bool DrawIntControl( const std::string& rLabel, int& values, float columnWidth = 125.0f );
 	

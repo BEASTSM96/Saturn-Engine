@@ -48,7 +48,7 @@ namespace Saturn {
 		virtual void Play( int frameOffset = 0 ) override;
 
 		void Stop() override;
-		void Loop() override;
+		void Loop( bool loop = true ) override;
 		void Load( uint32_t flags ) override;
 		void Reset() override;
 

@@ -108,6 +108,8 @@ namespace Saturn {
 
 		SoundDecodedInformation DecodeSound( const Ref<SoundSpecification>& rSpec );
 
+		Ref<Sound> FindSound( UUID UniquePlayerID );
+
 	private:
 		void Initialise();
 		void PlaySound( Ref<Sound> rSoundAsset );

@@ -35,6 +35,7 @@
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Audio/Sound.h"
 #include "Saturn/Asset/Prefab.h"
+#include "Saturn/Audio/AudioSystem.h"
 #include "ImGuiAuxiliary.h"
 #include "EditorIcons.h"
 
@@ -350,24 +351,28 @@ namespace Saturn {
 			ImGui::PopItemWidth();
 		}
 
-		// New line for id
-
-		// ID
-		const auto& id = entity->GetComponent<IdComponent>().ID;
-		ImGui::TextDisabled( "%llx", id );
-
-		if( entity->HasComponent<ScriptComponent>() ) 
+		// Draw ID and entity class type.
 		{
-			ImGui::SameLine();
-			ImGui::TextDisabled( "Class Instance (C++ Class)" );
-		}
-		else if( entity->HasComponent<PrefabComponent>() ) 
-		{
-			ImGui::SameLine();
-			ImGui::TextDisabled( "Class Instance (Prefab)" );
-		}
+			// ID
+			const auto& id = entity->GetComponent<IdComponent>().ID;
+			ImGui::TextDisabled( "%llu", id );
 
-		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			if( entity->HasComponent<ScriptComponent>() )
+			{
+				ImGui::SameLine();
+				ImGui::TextDisabled( "Class Instance (C++ Class)" );
+			}
+			else if( entity->HasComponent<PrefabComponent>() )
+			{
+				ImGui::SameLine();
+				ImGui::TextDisabled( "Class Instance (Prefab)" );
+			}
+			else 
+			{
+				ImGui::SameLine();
+				ImGui::TextDisabled( "Normal Entity" );
+			}
+		}
 
 		DrawComponent<TransformComponent>( "Transform", entity, [&]( auto& tc )
 		{
@@ -385,7 +390,7 @@ namespace Saturn {
 
 		DrawComponent<StaticMeshComponent>( "Static Mesh", entity, [&]( auto& mc )
 		{
-			static bool s_Open = false;
+			bool open = false;
 			static uint32_t s_CurrentIndex = 0;
 
 			ImGui::Columns( 3 );
@@ -398,7 +403,7 @@ namespace Saturn {
 
 			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24, 24 ) ) )
 			{
-				s_Open = !s_Open;
+				open = !open;
 				m_CurrentFinderType = AssetType::StaticMesh;
 
 				if( mc.Mesh )
@@ -412,7 +417,7 @@ namespace Saturn {
 			else
 				ImGui::InputText( "##meshfilepath", ( char* ) "", 256, ImGuiInputTextFlags_ReadOnly );
 
-			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) )
+			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &open, m_CurrentAssetID ) )
 			{
 				if( m_CurrentFinderType == AssetType::StaticMesh )
 				{
@@ -438,7 +443,7 @@ namespace Saturn {
 						if( ImGui::Button( rAsset->Name.c_str() ) )
 						{
 							m_CurrentFinderType = AssetType::Material;
-							s_Open = !s_Open;
+							open = !open;
 							s_CurrentIndex = i;
 						}
 
@@ -655,12 +660,12 @@ namespace Saturn {
 
 		DrawComponent<BillboardComponent>( "Billboard", entity, [&](auto& bc) 
 		{
-			static bool s_Open = false;
+			bool open = false;
 
 			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24, 24 ) ) )
 			{
 				m_CurrentFinderType = AssetType::Texture;
-				s_Open = true;
+				open = true;
 
 				if( bc.AssetID != 0 )
 					m_CurrentAssetID = bc.AssetID;
@@ -668,7 +673,7 @@ namespace Saturn {
 
 			ImGui::SameLine();
 
-			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &s_Open, m_CurrentAssetID ) ) 
+			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &open, m_CurrentAssetID ) )
 			{
 				bc.AssetID = m_CurrentAssetID;
 			}
@@ -676,12 +681,18 @@ namespace Saturn {
 
 		DrawComponent<AudioPlayerComponent>( "Audio Player", entity, [&]( auto& ap )
 		{
-			static bool s_Open = false;
+			bool open = false;
 
+			if( m_Context->RuntimeRunning ) 
+			{
+				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+			}
+			
 			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24, 24 ) ) )
 			{
 				m_CurrentFinderType = AssetType::Sound;
-				s_Open = true;
+				open = true;
 
 				if( ap.SpecAssetID != 0 )
 					m_CurrentAssetID = ap.SpecAssetID;
@@ -689,21 +700,50 @@ namespace Saturn {
 
 			ImGui::SameLine();
 
-			if( Auxiliary::DrawAssetFinder( { AssetType::GraphSound, AssetType::Sound }, &s_Open, m_CurrentAssetID ) )
+			if( Auxiliary::DrawAssetFinder( { AssetType::GraphSound, AssetType::Sound }, &open, m_CurrentAssetID ) )
 			{
 				ap.SpecAssetID = m_CurrentAssetID;
 			}
+
+			ImGui::PushID( (int)ap.UniqueID );
 
 			if( ap.SpecAssetID != 0 )
 				ImGui::InputText( "##2dplayerid", ( char* ) std::to_string( ap.SpecAssetID ).c_str(), 256, ImGuiInputTextFlags_ReadOnly );
 			else
 				ImGui::InputText( "##2dplayerid", ( char* )"", 256, ImGuiInputTextFlags_ReadOnly );
 
-			if( m_Context->m_RuntimeRunning )
+			ImGui::PopID();
+
+			if( m_Context->RuntimeRunning )
 			{
-				Auxiliary::DrawDisabledBoolControl( "Loop", ap.Loop );
-				Auxiliary::DrawDisabledBoolControl( "Mute", ap.Mute );
-				Auxiliary::DrawDisabledBoolControl( "Spatialization", ap.Spatialization );
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			
+				Ref<Sound> sound = AudioSystem::Get().FindSound( ap.UniqueID );
+				if( sound )
+				{
+					if( Auxiliary::DrawBoolControl( "Loop", ap.Loop ) ) 
+						sound->Loop( ap.Loop );
+
+					Auxiliary::DrawBoolControl( "Mute", ap.Mute );
+					
+					if( Auxiliary::DrawBoolControl( "Spatialization", ap.Spatialization ) )
+						sound->SetSpatialization( ap.Spatialization );
+
+					if( Auxiliary::DrawFloatControl( "Volume Multiplier", ap.VolumeMultiplier ) ) 
+						sound->SetVolumeMultiplier( ap.VolumeMultiplier );
+
+					if( Auxiliary::DrawFloatControl( "Pitch Multiplier", ap.PitchMultiplier ) )
+						sound->SetPitchMultiplier( ap.PitchMultiplier );
+				}
+				else
+				{
+					Auxiliary::DrawDisabledBoolControl( "Loop", ap.Loop );
+					Auxiliary::DrawDisabledBoolControl( "Mute", ap.Mute );
+					Auxiliary::DrawDisabledBoolControl( "Spatialization", ap.Spatialization );
+					Auxiliary::DrawDisabledFloatControl( "Volume Multiplier", ap.VolumeMultiplier );
+					Auxiliary::DrawDisabledFloatControl( "Pitch Multiplier", ap.PitchMultiplier );
+				}
 			}
 			else
 			{

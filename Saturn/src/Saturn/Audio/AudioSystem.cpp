@@ -541,4 +541,28 @@ namespace Saturn {
 		return decodedInformation;
 	}
 
+	Ref<Sound> AudioSystem::FindSound( UUID UniquePlayerID )
+	{
+		const auto Itr = std::find_if( m_AliveSounds.begin(), m_AliveSounds.end(),
+			[UniquePlayerID]( const auto& kv )
+			{
+				return kv.first == UniquePlayerID;
+			} );
+
+		if( Itr != m_AliveSounds.end() ) 
+			return Itr->second;
+
+		// Check if the sound is in the loaded map
+		const auto LoadedItr = std::find_if( m_LoadedSounds.begin(), m_LoadedSounds.end(),
+			[UniquePlayerID]( const auto& kv )
+			{
+				return kv.first == UniquePlayerID;
+			} );
+
+		if( LoadedItr != m_LoadedSounds.end() )
+			return LoadedItr->second;
+
+		return nullptr;
+	}
+
 }
