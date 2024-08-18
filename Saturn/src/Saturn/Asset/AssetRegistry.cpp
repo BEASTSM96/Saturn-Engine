@@ -38,7 +38,6 @@ namespace Saturn {
 	AssetRegistry::AssetRegistry( const AssetRegistry& rOther )
 		: m_Assets( rOther.m_Assets ), 
 		m_LoadedAssets( rOther.m_LoadedAssets ), 
-		m_IsEditorRegistry( rOther.m_IsEditorRegistry ), 
 		m_Path( rOther.m_Path )
 	{
 	}
@@ -58,7 +57,6 @@ namespace Saturn {
 	void AssetRegistry::CopyFrom( const Ref<AssetRegistry>& rOther )
 	{
 		m_Path = rOther->m_Path;
-		m_IsEditorRegistry = rOther->m_IsEditorRegistry;
 	
 		m_Assets.insert( rOther->m_Assets.begin(), rOther->m_Assets.end() );
 		m_LoadedAssets.insert( rOther->m_LoadedAssets.begin(), rOther->m_LoadedAssets.end() );
@@ -71,9 +69,6 @@ namespace Saturn {
 		asset->ID = UUID();
 
 		m_Assets[ asset->GetAssetID() ] = asset;
-
-		if( m_IsEditorRegistry )
-			asset->Flags = ( uint32_t )AssetFlag::Editor;
 
 		return asset->GetAssetID();
 	}
@@ -132,9 +127,6 @@ namespace Saturn {
 
 	void AssetRegistry::RemoveAsset( AssetID id )
 	{
-		if( m_IsEditorRegistry )
-			return;
-
 		if( DoesIDExists( id ) ) 
 		{
 			m_Assets[ id ] = nullptr;
@@ -185,9 +177,5 @@ namespace Saturn {
 
 		m_Assets[ id ] = Ref<Asset>::Create();
 		m_Assets[ id ]->ID = id;
-		m_Assets[ id ]->Flags = (uint32_t) AssetFlag::None;
-		
-		if( m_IsEditorRegistry )
-			m_Assets[ id ]->Flags = ( uint32_t ) AssetFlag::Editor;
 	}
 }

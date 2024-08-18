@@ -848,7 +848,6 @@ namespace Saturn {
 				ImGui::TableSetupColumn( "Asset Name" );
 				ImGui::TableSetupColumn( "ID" );
 				ImGui::TableSetupColumn( "Type" );
-				ImGui::TableSetupColumn( "Is Editor Asset" );
 				ImGui::TableSetupColumn( "Path" );
 
 				ImGui::TableHeadersRow();
@@ -874,12 +873,6 @@ namespace Saturn {
 					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).data(), false );
 
 					ImGui::TableSetColumnIndex( 3 );
-					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-					bool value = asset->IsFlagSet( AssetFlag::Editor );
-					ImGui::Checkbox( "##editor", &value );
-					ImGui::PopItemFlag();
-
-					ImGui::TableSetColumnIndex( 4 );
 					ImGui::Text( asset->Path.string().c_str() );
 				}
 
@@ -906,7 +899,6 @@ namespace Saturn {
 				ImGui::TableSetupColumn( "Asset Name" );
 				ImGui::TableSetupColumn( "ID" );
 				ImGui::TableSetupColumn( "Type" );
-				ImGui::TableSetupColumn( "Is Editor Asset" );
 
 				ImGui::TableHeadersRow();
 
@@ -929,12 +921,6 @@ namespace Saturn {
 
 					ImGui::TableSetColumnIndex( 2 );
 					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).data(), false );
-
-					ImGui::TableSetColumnIndex( 3 );
-					ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-					bool value = asset->IsFlagSet( AssetFlag::Editor );
-					ImGui::Checkbox( "##editor", &value );
-					ImGui::PopItemFlag();
 				}
 
 				ImGui::EndTable();

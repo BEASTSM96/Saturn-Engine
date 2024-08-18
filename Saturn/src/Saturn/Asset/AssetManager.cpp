@@ -45,20 +45,11 @@ namespace Saturn {
 		m_Assets = Ref<AssetRegistry>::Create();
 		m_Assets->m_Path = assetDir;
 
-		// Editor (read only asset registry)
-		auto& contentDir = Application::Get().GetRootContentDir();
-		contentDir /= "AssetRegistry.sreg";
-
-		m_EditorAssets = Ref<AssetRegistry>::Create();
-		m_EditorAssets->m_Path = contentDir;
-		m_EditorAssets->m_IsEditorRegistry = true;
-
 		// In distribution builds asset registry is loaded by the Asset Bundle!
 		// Also, editor assets are not loaded when running dist!
 #if !defined(SAT_DIST)
 		AssetRegistrySerialiser ars;
 		ars.Deserialise( m_Assets );
-		ars.Deserialise( m_EditorAssets );
 #endif
 	}
 
@@ -66,9 +57,6 @@ namespace Saturn {
 	{
 		if( m_Assets )
 			m_Assets = nullptr;
-
-		if( m_EditorAssets )
-			m_EditorAssets = nullptr;
 	}
 
 	Ref<Asset> AssetManager::FindAsset( AssetID id, AssetRegistryType Dst )
@@ -77,9 +65,6 @@ namespace Saturn {
 		{
 			case AssetRegistryType::Game:
 				return m_Assets->FindAsset( id );
-
-			case AssetRegistryType::Editor: 
-				return m_EditorAssets->FindAsset( id );
 		
 			case AssetRegistryType::Unknown:
 			default:
@@ -96,11 +81,6 @@ namespace Saturn {
 
 		result = m_Assets->FindAsset( id );
 
-		if( !result )
-		{
-			result = m_EditorAssets->FindAsset( id );
-		}
-
 		return result;
 	}
 
@@ -112,8 +92,6 @@ namespace Saturn {
 				return m_Assets->FindAsset( rPath );
 
 			case AssetRegistryType::Editor:
-				return m_EditorAssets->FindAsset( rPath );
-
 			case AssetRegistryType::Unknown:
 			default:
 				return nullptr;
@@ -130,8 +108,6 @@ namespace Saturn {
 				return m_Assets->FindAsset( rName, type );
 
 			case AssetRegistryType::Editor:
-				return m_EditorAssets->FindAsset( rName, type );
-
 			case AssetRegistryType::Unknown:
 			default:
 				return nullptr;
@@ -147,12 +123,6 @@ namespace Saturn {
 		if( m_Assets->DoesIDExists( id ) )
 			result = m_Assets->FindAsset( id );
 
-		if( !result )
-		{
-			if( m_EditorAssets->DoesIDExists( id ) )
-				result = m_EditorAssets->FindAsset( id );
-		}
-
 		return result;
 	}
 
@@ -165,8 +135,6 @@ namespace Saturn {
 				return m_Assets->CreateAsset( type );
 
 			case AssetRegistryType::Editor:
-				return m_EditorAssets->CreateAsset( type );
-
 			case AssetRegistryType::Unknown:
 			default:
 				return 0;
@@ -177,24 +145,12 @@ namespace Saturn {
 
 	AssetMap AssetManager::GetCombinedAssetMap()
 	{
-		// TODO: Could use std::merge
-		AssetMap map;
-
-		map.insert( m_Assets->GetAssetMap().begin(), m_Assets->GetAssetMap().end() );
-		map.insert( m_EditorAssets->GetAssetMap().begin(), m_EditorAssets->GetAssetMap().end() );
-
-		return map;
+		return m_Assets->GetAssetMap();
 	}
 
 	AssetMap AssetManager::GetCombinedLoadedAssetMap()
 	{
-		// TODO: Could use std::merge
-		AssetMap map;
-
-		map.insert( m_Assets->GetLoadedAssetsMap().begin(), m_Assets->GetLoadedAssetsMap().end() );
-		map.insert( m_EditorAssets->GetLoadedAssetsMap().begin(), m_EditorAssets->GetLoadedAssetsMap().end() );
-
-		return map;
+		return m_Assets->GetLoadedAssetsMap();
 	}
 
 	bool AssetManager::IsAssetLoaded( AssetID id, AssetRegistryType Dst /*= AssetRegistryType::Game */ )
@@ -205,8 +161,6 @@ namespace Saturn {
 				return m_Assets->IsAssetLoaded( id );
 
 			case AssetRegistryType::Editor:
-				return m_EditorAssets->IsAssetLoaded( id );
-
 			case AssetRegistryType::Unknown:
 			default:
 				return false;
@@ -223,8 +177,6 @@ namespace Saturn {
 				return m_Assets->PathToID( rPath );
 
 			case AssetRegistryType::Editor:
-				return m_EditorAssets->PathToID( rPath );
-
 			case AssetRegistryType::Unknown:
 			default:
 				return 0;
@@ -243,10 +195,6 @@ namespace Saturn {
 			} break;
 
 			case AssetRegistryType::Editor: 
-			{
-				ars.Serialise( m_EditorAssets );
-			} break;
-		
 			case AssetRegistryType::Unknown:
 			default:
 				break;

@@ -86,8 +86,6 @@ namespace Saturn {
 					return GetAssetAs<Ty>( m_Assets, id );
 
 				case AssetRegistryType::Editor:
-					return GetAssetAs<Ty>( m_EditorAssets, id );
-
 				case AssetRegistryType::Unknown:
 				default:
 					return nullptr;
@@ -125,24 +123,20 @@ namespace Saturn {
 				} break;
 
 				case AssetRegistryType::Editor:
-				{
-					m_EditorAssets->TerminateAsset( id );
-				} break;
-
 				case AssetRegistryType::Unknown:
 				default:
 					break;
 			}
 		}
 
+		[[deprecated( "Saturn::AssetManager::GetCombinedLoadedAssetMap is deprecated and will be removed. Consider using \"AssetManager::GetAssetRegistry::GetAssetMap\" instead." )]]
 		AssetMap GetCombinedAssetMap();
+
+		[[deprecated( "Saturn::AssetManager::GetCombinedLoadedAssetMap is deprecated and will be removed. Consider using \"AssetManager::GetAssetRegistry::GetLoadedAssetMap\" instead." )]]
 		AssetMap GetCombinedLoadedAssetMap();
 
 		Ref<AssetRegistry>& GetAssetRegistry() { return m_Assets; }
 		const Ref<AssetRegistry>& GetAssetRegistry() const { return m_Assets; }
-
-		Ref<AssetRegistry>& GetEditorAssetRegistry() { return m_EditorAssets; }
-		const Ref<AssetRegistry>& GetEditorAssetRegistry() const { return m_EditorAssets; }
 
 		bool IsAssetLoaded( AssetID id, AssetRegistryType Dst = AssetRegistryType::Game );
 
@@ -163,10 +157,6 @@ namespace Saturn {
 				} break;
 
 				case Saturn::AssetRegistryType::Editor:
-				{
-					TargetRegistry = m_EditorAssets;
-				} break;
-
 				case Saturn::AssetRegistryType::Unknown:
 				default:
 					return;
@@ -186,8 +176,6 @@ namespace Saturn {
 					return m_Assets->DoesIDExists( id );
 
 				case Saturn::AssetRegistryType::Editor:
-					return m_EditorAssets->DoesIDExists( id );
-
 				case Saturn::AssetRegistryType::Unknown:
 				default:
 					return false;
@@ -203,7 +191,6 @@ namespace Saturn {
 		}
 
 		size_t GetAssetRegistrySize() { return m_Assets->GetSize(); }
-		size_t GetEditorRegistrySize() { return m_EditorAssets->GetSize(); }
 
 	private:
 		template<typename Ty>
@@ -232,7 +219,6 @@ namespace Saturn {
 
 	private:
 		Ref<AssetRegistry> m_Assets = nullptr;
-		Ref<AssetRegistry> m_EditorAssets = nullptr;
 
 		// TODO: Don't hard code this.
 #if defined(SAT_DIST)

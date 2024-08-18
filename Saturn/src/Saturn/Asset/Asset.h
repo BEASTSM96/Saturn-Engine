@@ -62,13 +62,6 @@ namespace Saturn {
 		COUNT,
 	};
 
-	enum class AssetFlag : uint32_t
-	{
-		None = BIT( 0 ),
-		Editor = BIT( 1 ),
-		COUNT
-	};
-
 	inline std::string_view AssetTypeToString( AssetType type )
 	{
 		switch( type )
@@ -225,18 +218,7 @@ namespace Saturn {
 
 		const std::filesystem::path& GetPath() const { return Path; }
 		const std::string& GetName() const { return Name; }
-
-		constexpr bool IsFlagSet( AssetFlag flag ) const { return ( Flags & ( uint32_t ) flag ) != 0; }
-		uint32_t GetFlags() const { return Flags; }
-
-		void SetFlags( AssetFlag flag, bool value ) 
-		{
-			if( value )
-				Flags |= ( uint32_t ) flag;
-			else
-				Flags &= ~( uint32_t ) flag;
-		}
-
+	
 		// TODO: This is bad.
 		//       I want to copy this just so I can get the name without the extension.
 		// Note:
@@ -244,13 +226,7 @@ namespace Saturn {
 		//		If you want to set a relative path just modify the 'Path' variable directly.
 		void SetPath( std::filesystem::path path )
 		{
-			std::filesystem::path base = "";
-			
-			// TODO: [GetRootContentDir] Change GetRootContentDir to return the actual path and not the path with the asset registry.
-			if( IsFlagSet( AssetFlag::Editor ) )
-				base = Application::Get().GetRootContentDir().parent_path().parent_path();
-			else
-				base = Project::GetActiveProject()->GetRootDir();
+			std::filesystem::path base = Project::GetActiveProject()->GetRootDir();
 
 			Path = std::filesystem::relative( path, base );
 

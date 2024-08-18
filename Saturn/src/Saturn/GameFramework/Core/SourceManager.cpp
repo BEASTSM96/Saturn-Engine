@@ -49,8 +49,8 @@ namespace Saturn {
 		auto prjRootDir = Project::GetActiveProject()->GetRootDir();
 
 		// Copy entity code from templates.
-		std::filesystem::copy_file( "content/Templates/entity_code.cpp", rPath / "entity_code.cpp" );
-		std::filesystem::copy_file( "content/Templates/entity_code.h", rPath / "entity_code.h" );
+		std::filesystem::copy_file( "content/Templates/EntityCode.cpp", rPath / "EntityCode.cpp" );
+		std::filesystem::copy_file( "content/Templates/EntityCode.h", rPath / "EntityCode.h" );
 
 		std::filesystem::path src = rPath.string();
 		src.append( pName );
@@ -60,8 +60,8 @@ namespace Saturn {
 		header.append( pName );
 		header.replace_extension( ".h" );
 
-		std::filesystem::rename( rPath / "entity_code.cpp", src );
-		std::filesystem::rename( rPath / "entity_code.h", header );
+		std::filesystem::rename( rPath / "EntityCode.cpp", src );
+		std::filesystem::rename( rPath / "EntityCode.h", header );
 
 		auto id = AssetManager::Get().CreateAsset( AssetType::Script );
 		Ref<Asset> asset = AssetManager::Get().FindAsset( id );

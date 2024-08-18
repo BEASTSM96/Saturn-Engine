@@ -142,8 +142,6 @@ namespace Saturn {
 
 				differingAssetVersions |= true;
 			}
-
-			AssetRegistry->m_IsEditorRegistry ? DeserialisedAsset->Flags = (uint32_t)AssetFlag::Editor : DeserialisedAsset->Flags = ( uint32_t ) AssetFlag::None;
 		}
 
 		if( differingAssetVersions )

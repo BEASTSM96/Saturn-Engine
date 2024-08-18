@@ -120,5 +120,8 @@ namespace Saturn {
 		
 		std::string m_ClassInstanceName;
 		std::string m_NewClassName;
+
+		bool m_OpenScriptsPopup = false;
+		bool m_OpenClassInstancePopup = false;
 	};
 }

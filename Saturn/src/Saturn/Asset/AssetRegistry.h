@@ -88,8 +88,6 @@ namespace Saturn {
 		AssetMap m_Assets;
 		AssetMap m_LoadedAssets;
 
-		bool m_IsEditorRegistry = false;
-
 		std::filesystem::path m_Path;
 
 	private:

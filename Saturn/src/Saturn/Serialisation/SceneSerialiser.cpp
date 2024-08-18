@@ -42,23 +42,6 @@
 
 namespace Saturn {
 
-	static std::filesystem::path GetFilepathAbs( const std::filesystem::path& rPath, bool IsEditorAsset )
-	{
-		if( IsEditorAsset )
-		{
-			std::filesystem::path basePath = Application::Get().GetRootContentDir();
-			basePath = basePath.parent_path();
-			basePath = basePath.parent_path();
-			basePath /= rPath;
-
-			return basePath;
-		}
-		else
-		{
-			return Project::GetActiveProject()->FilepathAbs( rPath );
-		}
-	}
-
 	SceneSerialiser::SceneSerialiser( const Ref< Scene >& rScene )
 		: m_Scene( rScene )
 	{
@@ -72,7 +55,7 @@ namespace Saturn {
 	void SceneSerialiser::Serialise()
 	{
 		auto& basePath = m_Scene->GetPath();
-		auto fullPath = GetFilepathAbs( basePath, m_Scene->IsFlagSet( AssetFlag::Editor ) );
+		auto fullPath = Project::GetActiveProject()->FilepathAbs( basePath );
 
 		YAML::Emitter out;
 		
@@ -104,7 +87,7 @@ namespace Saturn {
 
 	void SceneSerialiser::Deserialise( const std::filesystem::path& rPath )
 	{
-		auto fullPath = GetFilepathAbs( rPath, m_Scene->IsFlagSet( AssetFlag::Editor ) );
+		auto fullPath = Project::GetActiveProject()->FilepathAbs( rPath );
 
 		std::ifstream FileIn( fullPath );
 		std::stringstream ss;

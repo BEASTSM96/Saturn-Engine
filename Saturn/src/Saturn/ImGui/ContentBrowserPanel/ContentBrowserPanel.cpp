@@ -66,9 +66,6 @@ namespace Saturn {
 	
 	static inline ImVec2 operator+( const ImVec2& lhs, const ImVec2& rhs ) { return ImVec2( lhs.x + rhs.x, lhs.y + rhs.y ); }
 
-	static bool s_OpenScriptsPopup = false;
-	static bool s_OpenClassInstancePopup = false;
-	
 	ContentBrowserPanel::ContentBrowserPanel()
 		: ContentBrowserBase()
 	{
@@ -412,9 +409,9 @@ namespace Saturn {
 				FindAndRenameItem( asset->Name );
 			}
 
-			if( ImGui::MenuItem( "New Entity Instance" ) ) 
+			if( ImGui::MenuItem( "New Class Instance" ) ) 
 			{
-				s_OpenClassInstancePopup = true;
+				m_OpenClassInstancePopup = true;
 			}
 
 			ImGui::EndMenu();
@@ -427,7 +424,7 @@ namespace Saturn {
 		{
 			if( ImGui::MenuItem( "Script" ) )
 			{
-				s_OpenScriptsPopup = true;
+				m_OpenScriptsPopup = true;
 			}
 
 			ImGui::EndMenu();
@@ -530,7 +527,7 @@ namespace Saturn {
 			if( Auxiliary::TreeNode( Project::GetActiveProject()->GetConfig().Name.c_str() ) )
 			{
 				DrawRootFolder( CBViewMode::Assets );
-				DrawRootFolder( CBViewMode::Scripts );
+			//	DrawRootFolder( CBViewMode::Scripts );
 
 				Auxiliary::EndTreeNode();
 			}
@@ -697,11 +694,11 @@ namespace Saturn {
 				UpdateFiles( true );
 			}
 
-			if( s_OpenScriptsPopup )
+			if( m_OpenScriptsPopup )
 				ImGui::OpenPopup( "Create A New Class##Create_Script" );
 
 			ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-			if( ImGui::BeginPopupModal( "Create A New Class##Create_Script", &s_OpenScriptsPopup, ImGuiWindowFlags_NoMove ) )
+			if( ImGui::BeginPopupModal( "Create A New Class##Create_Script", &m_OpenScriptsPopup, ImGuiWindowFlags_NoMove ) )
 			{
 				bool PopupModified = false;
 
@@ -780,7 +777,7 @@ namespace Saturn {
 
 				if( PopupModified )
 				{
-					s_OpenScriptsPopup = false;
+					m_OpenScriptsPopup = false;
 
 					ImGui::CloseCurrentPopup();
 				}
@@ -788,11 +785,11 @@ namespace Saturn {
 				ImGui::EndPopup();
 			}
 
-			if( s_OpenClassInstancePopup )
+			if( m_OpenClassInstancePopup )
 				ImGui::OpenPopup( "Create A New Class Instance (Prefab)##Create_ClassIns" );
 
 			ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-			if( ImGui::BeginPopupModal( "Create A New Class Instance (Prefab)##Create_ClassIns", &s_OpenClassInstancePopup, ImGuiWindowFlags_NoMove ) )
+			if( ImGui::BeginPopupModal( "Create A New Class Instance (Prefab)##Create_ClassIns", &m_OpenClassInstancePopup, ImGuiWindowFlags_NoMove ) )
 			{
 				bool PopupModified = false;
 
@@ -880,7 +877,7 @@ namespace Saturn {
 
 				if( PopupModified )
 				{
-					s_OpenClassInstancePopup = false;
+					m_OpenClassInstancePopup = false;
 					m_ClassInstanceName = "";
 
 					ImGui::CloseCurrentPopup();

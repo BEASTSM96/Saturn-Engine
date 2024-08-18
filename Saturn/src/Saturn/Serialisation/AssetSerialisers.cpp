@@ -47,21 +47,9 @@
 
 namespace Saturn {
 
-	static std::filesystem::path GetFilepathAbs( const std::filesystem::path& rPath, bool IsEditorAsset ) 
+	static std::filesystem::path GetFilepathAbs( const std::filesystem::path& rPath, bool IsEditorAsset = false ) 
 	{
-		if( IsEditorAsset )
-		{
-			std::filesystem::path basePath = Application::Get().GetRootContentDir();
-			basePath = basePath.parent_path();
-			basePath = basePath.parent_path();
-			basePath /= rPath;
-
-			return basePath;
-		}
-		else
-		{
-			return Project::GetActiveProject()->FilepathAbs( rPath );
-		}
+		return Project::GetActiveProject()->FilepathAbs( rPath );
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -70,7 +58,7 @@ namespace Saturn {
 	void MaterialAssetSerialiser::Serialise( const Ref<Asset>& rAsset ) const
 	{
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
+		auto fullPath = GetFilepathAbs( basePath );
 
 		//auto materialAsset = AssetManager::Get().GetAssetAs<MaterialAsset>( rAsset->GetAssetID() );
 
@@ -123,7 +111,7 @@ namespace Saturn {
 
 	bool MaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath() );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -238,7 +226,7 @@ namespace Saturn {
 		auto prefabAsset = rAsset.As<Prefab>();
 
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
+		auto fullPath = GetFilepathAbs( basePath );
 
 		YAML::Emitter out;
 
@@ -266,7 +254,7 @@ namespace Saturn {
 	{
 		auto prefabAsset = Ref<Prefab>::Create();
 
-		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath() );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -357,7 +345,7 @@ namespace Saturn {
 		out << YAML::EndMap;
 
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
+		auto fullPath = GetFilepathAbs( basePath );
 
 		std::ofstream fout( fullPath );
 		fout << out.c_str();
@@ -365,7 +353,7 @@ namespace Saturn {
 
 	bool StaticMeshAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath() );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -441,7 +429,7 @@ namespace Saturn {
 		out << YAML::EndMap;
 
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
+		auto fullPath = GetFilepathAbs( basePath );
 
 		std::ofstream fout( fullPath );
 		fout << out.c_str();
@@ -449,7 +437,7 @@ namespace Saturn {
 
 	bool SoundSpecificationAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath() );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
@@ -529,7 +517,7 @@ namespace Saturn {
 		out << YAML::EndMap;
 
 		auto& basePath = rAsset->GetPath();
-		auto fullPath = GetFilepathAbs( basePath, rAsset->IsFlagSet( AssetFlag::Editor ) );
+		auto fullPath = GetFilepathAbs( basePath );
 
 		std::ofstream fout( fullPath );
 		fout << out.c_str();
@@ -537,7 +525,7 @@ namespace Saturn {
 
 	bool PhysicsMaterialAssetSerialiser::TryLoadData( Ref<Asset>& rAsset ) const
 	{
-		auto absolutePath = GetFilepathAbs( rAsset->GetPath(), rAsset->IsFlagSet( AssetFlag::Editor ) );
+		auto absolutePath = GetFilepathAbs( rAsset->GetPath() );
 		std::ifstream FileIn( absolutePath );
 
 		std::stringstream ss;
