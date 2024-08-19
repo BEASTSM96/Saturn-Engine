@@ -27,7 +27,7 @@ namespace SaturnBuildTool
             // Saturn:
             SaturnRootDir = Environment.GetEnvironmentVariable( "SATURN_DIR" );
 
-            SaturnSingletonDir = Path.Combine(SaturnRootDir, "SharedStorage");
+            SaturnSingletonDir = Path.Combine(SaturnRootDir, "Saturn-SharedStorage");
 
             SaturnVendorDir = Path.Combine(SaturnRootDir, "Saturn\\vendor" );
             SaturnSourceDir = Path.Combine(SaturnRootDir, "Saturn\\src" );
@@ -64,29 +64,29 @@ namespace SaturnBuildTool
                 case ConfigKind.Debug: 
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Debug-windows-x86_64\\Saturn" );
-                        ssBinDir = Path.Combine(ssBinDir, "Debug-windows-x86_64\\SharedStorage");
+                        ssBinDir = Path.Combine(ssBinDir, "Debug-windows-x86_64\\Saturn-SharedStorage");
                     } break;
 
                 case ConfigKind.Release:
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Release-windows-x86_64\\Saturn");
-                        ssBinDir = Path.Combine(ssBinDir, "Release-windows-x86_64\\SharedStorage");
+                        ssBinDir = Path.Combine(ssBinDir, "Release-windows-x86_64\\Saturn-SharedStorage");
                     }
                     break;
 
                 case ConfigKind.Dist:
                     {
                         saturnBinDir = Path.Combine(saturnBinDir, "Dist-windows-x86_64\\Saturn");
-                        ssBinDir = Path.Combine(ssBinDir, "Dist-windows-x86_64\\SharedStorage");
+                        ssBinDir = Path.Combine(ssBinDir, "Dist-windows-x86_64\\Saturn-SharedStorage");
                     }
                     break;
             }
 
             string libPath = saturnBinDir;
 
-            // Link to saturn
+            // Core links
             Links.Add("Saturn.lib");
-            Links.Add("SharedStorage.lib");
+            Links.Add("Saturn-SharedStorage.lib");
 
             PreprocessorDefines.Add("SATURN_SS_IMPORT");
 
@@ -100,7 +100,7 @@ namespace SaturnBuildTool
                 LibraryPaths.Add(path);
             }
 
-            // Vendor
+            // Vendor links
             Links.Add("ImGui.lib");
             Links.Add("shaderc.lib");
             Links.Add("SPIRV-Cross.lib");

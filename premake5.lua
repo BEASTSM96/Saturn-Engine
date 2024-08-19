@@ -29,7 +29,7 @@ IncludeDir["Tracy"] = "Saturn/vendor/tracy/src"
 IncludeDir["Filewatch"] = "Saturn/vendor/Filewatch/src"
 IncludeDir["MiniAudio"] = "Saturn/vendor/miniaudio/src"
 IncludeDir["PhysX"] = "Saturn/vendor/physx/include"
-IncludeDir["SharedStorage"] = "SharedStorage/src"
+IncludeDir["SharedStorage"] = "Saturn-SharedStorage/src"
 IncludeDir["zlib"] = "Saturn/vendor/zlib"
 
 group "Dependencies"
@@ -121,7 +121,7 @@ project "Saturn"
 		"Tracy",
 		"zlib",
 
-		"SharedStorage"
+		"Saturn-SharedStorage"
 	}
 
 	filter "files:Saturn/vendor/ImGuizmo/src/ImGuizmo/**.cpp"
@@ -214,7 +214,7 @@ project "Saturn"
 			removefiles { "%{prj.name}/vendor/ImGuizmo/src/**.cpp", "%{prj.name}/vendor/ImGuizmo/src/**.h" }
 
 			defines { "SATURN_SS_STATIC" }
-			links { "SharedStorage" }
+			links { "Saturn-SharedStorage" }
 
 		filter "configurations:Release or configurations:Dist"
 			links 
@@ -318,7 +318,7 @@ project "Saturn-Editor"
 		postbuildcommands 
 		{ 
 			'{COPYFILE} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
-			'{COPYFILE} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../bin/Debug-windows-x86_64/Saturn-SharedStorage/Saturn-SharedStorage.dll" "%{cfg.targetdir}"',
 			'{COPYFILE} "../Saturn/vendor/physx/bin/Debug/PhysXCommon_64.dll" "%{cfg.targetdir}"',
 			'{COPYFILE} "../Saturn/vendor/physx/bin/Debug/PhysXFoundation_64.dll" "%{cfg.targetdir}"',
 			'{COPYFILE} "../Saturn/vendor/physx/bin/Debug/PhysXCooking_64.dll" "%{cfg.targetdir}"',
@@ -332,7 +332,7 @@ project "Saturn-Editor"
 
 		postbuildcommands 
 		{ 
-			'{COPYFILE} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"',
+			'{COPYFILE} "../bin/Release-windows-x86_64/Saturn-SharedStorage/Saturn-SharedStorage.dll" "%{cfg.targetdir}"',
 		}
 
 	filter "configurations:Dist"
@@ -390,8 +390,8 @@ project "Saturn-Editor"
 
 
 group "Tools"
-project "ProjectBrowser"
-	location "ProjectBrowser"
+project "Saturn-ProjectBrowser"
+	location "Saturn-ProjectBrowser"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
@@ -463,7 +463,7 @@ project "ProjectBrowser"
 			{
 				'{COPYFILE} "../Saturn/vendor/assimp/bin/Debug/assimp-vc142-mtd.dll" "%{cfg.targetdir}"',
 				
-				'{COPYFILE} "../bin/Debug-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
+				'{COPYFILE} "../bin/Debug-windows-x86_64/Saturn-SharedStorage/Saturn-SharedStorage.dll" "%{cfg.targetdir}"'
 			}
 
 		filter "configurations:Release"
@@ -473,7 +473,7 @@ project "ProjectBrowser"
 
 			postbuildcommands 
 			{ 
-				'{COPYFILE} "../bin/Release-windows-x86_64/SharedStorage/SharedStorage.dll" "%{cfg.targetdir}"'
+				'{COPYFILE} "../bin/Release-windows-x86_64/Saturn-SharedStorage/Saturn-SharedStorage.dll" "%{cfg.targetdir}"'
 			}
 
 		filter "configurations:Dist"
@@ -553,8 +553,8 @@ project "SaturnBuildTool"
 
 		
 group "Tools"
-project "SharedStorage"
-	location "SharedStorage"
+project "Saturn-SharedStorage"
+	location "Saturn-SharedStorage"
 	kind "SharedLib"
 	language "C++"
 	cppdialect "C++20"
