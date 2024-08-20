@@ -267,6 +267,7 @@ namespace SaturnBuildTool
                 BuildFiles.Remove(EntryFilepath);
             }
         }
+
         private void ActionBuild() 
         {
             Stopwatch time = Stopwatch.StartNew();
@@ -307,7 +308,7 @@ namespace SaturnBuildTool
             }
             catch (IOException e)
             {
-                Console.WriteLine(string.Format("Skipping file dir/file as it could not be deleted", e.Message));
+                Console.WriteLine(string.Format("Skipping file dir/file as it could not be deleted {0}", e.Message));
             }
 
             FileCache.Clean();

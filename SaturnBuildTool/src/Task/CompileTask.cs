@@ -59,7 +59,7 @@ namespace SaturnBuildTool
             // Parse Args
             Args.Add(" /nologo");
 
-            // Compile
+            // Compile (without linking)
             Args.Add(" /c");
 
             Args.Add(" /errorreport:prompt");
@@ -90,6 +90,7 @@ namespace SaturnBuildTool
                         }
 
                         Args.Add(" /ZI");
+                        // No optimzation.
                         Args.Add(" /Od");
                         Args.Add(" /FS");
                     } break;

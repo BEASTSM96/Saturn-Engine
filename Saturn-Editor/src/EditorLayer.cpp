@@ -462,7 +462,7 @@ namespace Saturn {
 			{
 				Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 
-				if( hierarchyPanel )
+				if( hierarchyPanel && !m_RuntimeScene )
 				{
 					// Because of our ref system, the entity will be deleted when we clear the selections.
 					// What we are really doing here is freeing it from the registry.

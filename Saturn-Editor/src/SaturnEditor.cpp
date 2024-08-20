@@ -60,14 +60,6 @@ public:
 
 		settings = Saturn::EngineSettings::Get();
 
-		// Check if the editor asset registry exists.
-		if( !std::filesystem::exists( "content/AssetRegistry.sreg" ) )
-		{
-			// Create file.
-			std::ofstream stream( "content/AssetRegistry.sreg" );
-			stream.close();
-		}
-
 		// Set our root content path.
 		m_RootContentPath = std::filesystem::current_path() / "content";
 	}
