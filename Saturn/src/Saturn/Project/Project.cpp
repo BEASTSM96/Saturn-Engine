@@ -51,7 +51,6 @@ namespace Saturn {
 		{ ".jpg"          },
 		{ ".jpeg"         },
 		{ ".hdr"          },
-		{ ".ico"          },
 		{ ".msnd"         },
 		{ ".gsnd"         },
 		{ ".scene"        },
@@ -145,7 +144,7 @@ namespace Saturn {
 				auto id = AssetManager::Get().CreateAsset( type );
 				asset = AssetManager::Get().FindAsset( id );
 
-				asset->SetPath( rEntry.path() );
+				asset->SetAbsolutePath( rEntry.path() );
 
 				FileChanged = true;
 			}

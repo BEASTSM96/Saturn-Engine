@@ -55,7 +55,7 @@ namespace Saturn {
 	void EditorIcons::AddIcon( const Ref<Texture2D>& rTexture )
 	{
 #if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
-		std::string name = rTexture->GetPath().filename().replace_extension().string();
+		std::string name = rTexture->GetPath().stem().string();
 		s_Textures[ name ] = rTexture;
 #endif
 	}

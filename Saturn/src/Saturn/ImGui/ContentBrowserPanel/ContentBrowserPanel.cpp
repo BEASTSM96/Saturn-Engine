@@ -124,7 +124,7 @@ namespace Saturn {
 
 					// Find and update the asset that is linked to this path.
 					Ref<Asset> target = AssetManager::Get().FindAsset( assetPath );
-					target->SetPath( dstPath );
+					target->SetAbsolutePath( dstPath );
 
 					AssetManager::Get().Save();
 
@@ -227,48 +227,55 @@ namespace Saturn {
 
 	void ContentBrowserPanel::AssetsPopupContextMenu()
 	{
-		if( ImGui::MenuItem( "Starter Assets" ) )
+		if( ImGui::BeginMenu( "Import" ) )
 		{
-			auto ActiveProject = Project::GetActiveProject();
-			auto AssetPath = ActiveProject->GetAssetPath();
-
-			std::filesystem::copy_file( "content/Templates/Meshes/Cube.fbx", AssetPath / "Meshes" / "Cube.fbx" );
-			std::filesystem::copy_file( "content/Templates/Meshes/Plane.fbx", AssetPath / "Meshes" / "Plane.fbx" );
-		}
-
-		if( ImGui::MenuItem( "Import" ) )
-		{
-			auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg *wav *.ogg *.mp3)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg; *.wav; *.ogg; *.mp3\0" );
-
-			std::filesystem::path path = result;
-
-			if( path.extension() == ".png" || path.extension() == ".tga" || path.extension() == ".jpeg" || path.extension() == ".jpg" )
+			if( ImGui::MenuItem( "Starter Assets" ) )
 			{
-				auto id = AssetManager::Get().CreateAsset( AssetType::Texture );
+				auto ActiveProject = Project::GetActiveProject();
+				auto AssetPath = ActiveProject->GetAssetPath();
 
-				auto asset = AssetManager::Get().FindAsset( id );
-
-				std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
-
-				asset->SetPath( m_CurrentPath / path.filename() );
-
-				AssetRegistrySerialiser ars;
-				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
+				std::filesystem::copy_file( "content/Templates/Meshes/Cube.fbx", AssetPath / "Meshes" / "Cube.fbx" );
+				std::filesystem::copy_file( "content/Templates/Meshes/Plane.fbx", AssetPath / "Meshes" / "Plane.fbx" );
 			}
 
-			// Meshes
-			if( path.extension() == ".fbx" || path.extension() == ".gltf" )
+			if( ImGui::MenuItem( "Browse" ) )
 			{
-				m_ShowMeshImport = true;
-				m_ImportMeshPath = path;
+				auto result = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb *.png *.tga *.jpeg *.jpg *wav *.ogg *.mp3)\0*.fbx; *.gltf; *.glb; *.png; *.tga; *.jpeg; *jpg; *.wav; *.ogg; *.mp3\0" );
+
+				std::filesystem::path path = result;
+
+				if( path.extension() == ".png" || path.extension() == ".tga" || path.extension() == ".jpeg" || path.extension() == ".jpg" )
+				{
+					auto id = AssetManager::Get().CreateAsset( AssetType::Texture );
+
+					auto asset = AssetManager::Get().FindAsset( id );
+
+					std::filesystem::copy_file( path, m_CurrentPath / path.filename() );
+
+					asset->SetAbsolutePath( m_CurrentPath / path.filename() );
+
+					AssetRegistrySerialiser ars;
+					ars.Serialise( AssetManager::Get().GetAssetRegistry() );
+				}
+
+				// Meshes
+				if( path.extension() == ".fbx" || path.extension() == ".gltf" )
+				{
+					m_ShowAssetImportPopup = true;
+					m_ImportAssetPath = path;
+					m_AssetImportType = AssetType::StaticMesh;
+				}
+
+				// Audio
+				if( path.extension() == ".wav" || path.extension() == ".mp3" || path.extension() == ".ogg" )
+				{
+					m_ShowAssetImportPopup = true;
+					m_ImportAssetPath = path;
+					m_AssetImportType = AssetType::Sound;
+				}
 			}
 
-			// Audio
-			if( path.extension() == ".wav" || path.extension() == ".mp3" || path.extension() == ".ogg" )
-			{
-				m_ShowSoundImport = true;
-				m_ImportSoundPath = path;
-			}
+			ImGui::EndMenu();
 		}
 
 		if( ImGui::BeginMenu( "Create" ) )
@@ -294,7 +301,7 @@ namespace Saturn {
 					newPath = std::format( "{0}\\{1} ({2}).smaterial", m_CurrentPath.string(), "Untitled Material", count );
 				}
 
-				asset->SetPath( newPath );
+				asset->SetAbsolutePath( newPath );
 				Ref<MaterialAsset> material = asset;
 				material = Ref<MaterialAsset>::Create( nullptr );
 
@@ -345,7 +352,7 @@ namespace Saturn {
 					newPath = std::format( "{0}\\{1} ({2}).sphymaterial", m_CurrentPath.string(), "Untitled Physics Material", count );
 				}
 
-				asset->SetPath( newPath );
+				asset->SetAbsolutePath( newPath );
 
 				auto materialAsset = asset.As<PhysicsMaterialAsset>();
 
@@ -371,7 +378,7 @@ namespace Saturn {
 					newPath = std::format( "{0}\\{1} ({2}).scene", m_CurrentPath.string(), "Empty Scene", count );
 				}
 
-				asset->SetPath( newPath );
+				asset->SetAbsolutePath( newPath );
 
 				Ref<Scene> newScene = Ref<Scene>::Create();
 				Scene* CurrentScene = GActiveScene;
@@ -388,7 +395,7 @@ namespace Saturn {
 				FindAndRenameItem( asset->Path );
 			}
 
-			if( ImGui::MenuItem( "New Sound Editor" ) )
+			if( ImGui::MenuItem( "New Graph Sound" ) )
 			{
 				auto id = AssetManager::Get().CreateAsset( AssetType::GraphSound );
 				auto asset = AssetManager::Get().FindAsset( id );
@@ -398,7 +405,7 @@ namespace Saturn {
 				if( count >= 1 )
 					newPath = std::format( "{0}\\{1} ({2}).gsnd", m_CurrentPath.string(), "New Sound Editor", count );
 
-				asset->SetPath( newPath );
+				asset->SetAbsolutePath( newPath );
 
 				std::ofstream fout( newPath );
 				fout.close();
@@ -666,33 +673,8 @@ namespace Saturn {
 				ImGui::EndPopup();
 			}
 
-			if( m_ShowMeshImport )
-				ImGui::OpenPopup( "Import Mesh##IMPORT_MESH" );
-
-			if( m_ShowSoundImport )
-				ImGui::OpenPopup( "Import Sound##IMPORT_SOUND" );
-
-			ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-			if( Auxiliary::DrawImportSoundPopup( &m_ShowSoundImport, m_CurrentPath ) )
-			{
-				// Popup was modified.
-				// And the popup does not save the asset registry so save it here.
-				AssetRegistrySerialiser ars;
-				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
-
-				UpdateFiles( true );
-			}
-
-			ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-			if( Auxiliary::DrawImportMeshPopup( &m_ShowMeshImport, m_CurrentPath ) )
-			{
-				// Popup was modified.
-				// And the popup does not save the asset registry so save it here.
-				AssetRegistrySerialiser ars;
-				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
-
-				UpdateFiles( true );
-			}
+			DrawImportSoundPopup();
+			DrawImportMeshPopup();
 
 			if( m_OpenScriptsPopup )
 				ImGui::OpenPopup( "Create A New Class##Create_Script" );
@@ -841,7 +823,7 @@ namespace Saturn {
 					std::filesystem::path path = m_CurrentPath / m_ClassInstanceName;
 					path.replace_extension( ".prefab" );
 
-					prefab->SetPath( path );
+					prefab->SetAbsolutePath( path );
 					prefab->Name = m_ClassInstanceName;
 					prefab->ID = prefabAsset->ID;
 					prefab->Type = prefabAsset->Type;
@@ -948,8 +930,8 @@ namespace Saturn {
 			std::filesystem::path path = m_CurrentPath / rData.Name;
 			path.replace_extension( ".prefab" );
 
-			PrefabAsset->SetPath( path );
-			asset->SetPath( path ); // HACK
+			PrefabAsset->SetAbsolutePath( path );
+			asset->SetAbsolutePath( path ); // HACK
 
 			// Serialise
 			PrefabSerialiser ps;
@@ -961,6 +943,250 @@ namespace Saturn {
 			UpdateFiles( true );
 		}
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// POPUPS
+
+	void ContentBrowserPanel::DrawImportSoundPopup() 
+	{
+		if( m_AssetImportType != AssetType::Sound )
+			return;
+
+		if( m_ShowAssetImportPopup )
+			ImGui::OpenPopup( "Import Sound##IMPORT_SOUND" );
+		
+		bool PopupModified = false;
+		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
+		if( ImGui::BeginPopupModal( "Import Sound##IMPORT_SOUND", &m_ShowAssetImportPopup, ImGuiWindowFlags_NoMove ) )
+		{
+			ImGui::BeginVertical( "##inputv" );
+
+			ImGui::Text( "Path:" );
+
+			ImGui::BeginHorizontal( "##inputH" );
+
+			ImGui::InputText( "##path", ( char* ) m_ImportAssetPath.string().c_str(), 1024 );
+
+			if( ImGui::Button( "Browse" ) )
+			{
+				m_ImportAssetPath = Application::Get().OpenFile( "Supported asset types (*.wav *.mp3)\0*.wav; *.mp3\0" );
+			}
+
+			ImGui::EndHorizontal();
+			ImGui::EndVertical();
+
+			ImGui::BeginHorizontal( "##actionsH" );
+
+			if( ImGui::Button( "Create" ) )
+			{
+				auto id = AssetManager::Get().CreateAsset( AssetType::Sound );
+				auto asset = AssetManager::Get().FindAsset( id );
+
+				// Copy the audio source.
+				std::filesystem::copy_file( m_ImportAssetPath, m_CurrentPath / m_ImportAssetPath.filename() );
+
+				auto assetPath = m_CurrentPath / m_ImportAssetPath.filename();
+				assetPath.replace_extension( ".snd" );
+
+				assetPath = std::filesystem::relative( assetPath, Project::GetActiveProject()->GetRootDir() );
+
+				asset->Path = assetPath;
+
+				// Create the asset.
+				auto sound = asset.As<SoundSpecification>();
+				sound = Ref<SoundSpecification>::Create();
+				sound->ID = asset->ID;
+				sound->Path = assetPath;
+				sound->Type = AssetType::Sound;
+
+				sound->OriginalImportPath = m_ImportAssetPath;
+				sound->SoundSourcePath = m_CurrentPath / m_ImportAssetPath.filename();
+
+				// Currently the date is YYYY-MM-DD HH-MM-SS however all we want is YYYY-MM-DD
+				std::string fullTime = std::format( "{0}", std::filesystem::last_write_time( m_ImportAssetPath ) );
+				fullTime = fullTime.substr( 0, fullTime.find_first_of( " " ) );
+
+				sound->LastWriteTime = fullTime;
+
+				// Save the asset
+				SoundSpecificationAssetSerialiser s2d;
+				s2d.Serialise( sound );
+
+				sound->SetAbsolutePath( assetPath );
+
+				PopupModified = true;
+			}
+
+			auto exitPopup = [&]( ) -> void
+			{
+				m_ImportAssetPath = "";
+				m_ShowAssetImportPopup = false;
+				m_AssetImportType = AssetType::Unknown;
+			};
+
+			if( ImGui::Button( "Cancel" ) )
+			{
+				exitPopup();
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndHorizontal();
+
+			if( PopupModified )
+			{
+				exitPopup();
+
+				AssetRegistrySerialiser ars;
+				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
+
+				UpdateFiles( true );
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+
+	void ContentBrowserPanel::DrawImportMeshPopup()
+	{
+		if( m_AssetImportType != AssetType::StaticMesh )
+			return;
+
+		if( m_ShowAssetImportPopup )
+			ImGui::OpenPopup( "Import Mesh##IMPORT_MESH" );
+	
+		bool PopupModified = false;
+		ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
+		if( ImGui::BeginPopupModal( "Import Mesh##IMPORT_MESH", &m_ShowAssetImportPopup, ImGuiWindowFlags_NoMove ) )
+		{
+			static std::filesystem::path s_GLTFBinPath = "";
+			static bool s_UseBinFile = true;
+
+			ImGui::BeginVertical( "##inputv" );
+
+			ImGui::Text( "Path:" );
+
+			ImGui::BeginHorizontal( "##inputH" );
+
+			ImGui::InputText( "##path", ( char* ) m_ImportAssetPath.string().c_str(), 1024 );
+
+			if( ImGui::Button( "Browse" ) )
+			{
+				m_ImportAssetPath = Application::Get().OpenFile( "Supported asset types (*.fbx *.gltf *.glb)\0*.fbx; *.gltf; *.glb\0" );
+			}
+
+			ImGui::EndHorizontal();
+
+			ImGui::EndVertical();
+
+			// If the path a GLTF file then we need to file the bin file.
+			if( m_ImportAssetPath.extension() == ".gltf" || m_ImportAssetPath.extension() == ".glb" )
+			{
+				// We can assume the bin file has the same name as the mesh.
+				if( s_GLTFBinPath == "" )
+				{
+					s_GLTFBinPath = m_ImportAssetPath;
+					s_GLTFBinPath.replace_extension( ".bin" );
+				}
+
+				ImGui::BeginVertical( "##gltfinput" );
+
+				ImGui::Text( "GLTF binary file path:" );
+
+				ImGui::BeginHorizontal( "##gltfinputH" );
+
+				ImGui::InputText( "##binpath", ( char* ) s_GLTFBinPath.string().c_str(), 1024 );
+
+				if( ImGui::Button( "Browse" ) )
+				{
+					s_GLTFBinPath = Application::Get().OpenFile( "Supported asset types (*.glb *.bin)\0*.glb; *.bin\0" );
+				}
+
+				ImGui::EndHorizontal();
+
+				ImGui::Checkbox( "Use Binary File", &s_UseBinFile );
+
+				ImGui::EndVertical();
+			}
+
+			ImGui::BeginHorizontal( "##actionsH" );
+
+			if( ImGui::Button( "Create" ) )
+			{
+				auto id = AssetManager::Get().CreateAsset( AssetType::StaticMesh );
+				auto asset = AssetManager::Get().FindAsset( id );
+
+				// Copy the mesh source.
+				std::filesystem::copy_file( m_ImportAssetPath, m_CurrentPath / m_ImportAssetPath.filename() );
+
+				if( s_UseBinFile )
+					std::filesystem::copy_file( s_GLTFBinPath, m_CurrentPath / s_GLTFBinPath.filename() );
+
+				auto assetPath = m_CurrentPath / m_ImportAssetPath.filename();
+				assetPath.replace_extension( ".stmesh" );
+
+				asset->SetAbsolutePath( assetPath );
+
+				// TODO: This is bad.
+				// Create the mesh so we can copy over the texture (if any).
+				auto mesh = Ref<MeshSource>::Create( m_ImportAssetPath, m_CurrentPath );
+				mesh = nullptr;
+
+				// Create the mesh asset.
+				auto staticMesh = asset.As<StaticMesh>();
+				staticMesh = Ref<StaticMesh>::Create();
+				staticMesh->ID = asset->ID;
+				staticMesh->Path = asset->Path;
+
+				auto& meshPath = assetPath.replace_extension( m_ImportAssetPath.extension() );
+				staticMesh->SetFilepath( meshPath.string() );
+
+				// Save the mesh asset
+				StaticMeshAssetSerialiser sma;
+				sma.Serialise( staticMesh );
+
+				staticMesh->SetAbsolutePath( assetPath );
+
+				PopupModified = true;
+			}
+
+			auto exitPopup = [&]() -> void
+			{
+				m_ImportAssetPath = "";
+				m_ShowAssetImportPopup = false;
+				m_AssetImportType = AssetType::Unknown;
+			};
+
+			if( ImGui::Button( "Cancel" ) )
+			{
+				exitPopup();
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndHorizontal();
+
+			if( PopupModified )
+			{
+				exitPopup();
+
+				AssetRegistrySerialiser ars;
+				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
+
+				UpdateFiles( true );
+
+				s_GLTFBinPath = "";
+				s_UseBinFile = false;
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
 
 	void ContentBrowserPanel::ClearSearchQuery()
 	{

@@ -90,6 +90,8 @@ namespace Saturn {
 		void DrawCreateClass( const std::string& rKeyName, const SClassMetadata& rData );
 
 		void ClearSearchQuery();
+		void DrawImportSoundPopup();
+		void DrawImportMeshPopup();
 
 	private:
 		std::filesystem::path m_ScriptPath;
@@ -111,13 +113,11 @@ namespace Saturn {
 		filewatch::FileWatch<std::string>* m_Watcher = nullptr;
 
 	private:
+		bool m_ShowAssetImportPopup = false;
+		AssetType m_AssetImportType = AssetType::Unknown;
+		std::filesystem::path m_ImportAssetPath;
+		
 		// Popup data
-		bool m_ShowMeshImport = false;
-		bool m_ShowSoundImport = false;
-		
-		std::filesystem::path m_ImportMeshPath;
-		std::filesystem::path m_ImportSoundPath;
-		
 		std::string m_ClassInstanceName;
 		std::string m_NewClassName;
 

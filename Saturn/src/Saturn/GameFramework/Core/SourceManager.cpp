@@ -66,12 +66,12 @@ namespace Saturn {
 		auto id = AssetManager::Get().CreateAsset( AssetType::Script );
 		Ref<Asset> asset = AssetManager::Get().FindAsset( id );
 
-		asset->SetPath( src );
+		asset->SetAbsolutePath( src );
 
 		id = AssetManager::Get().CreateAsset( AssetType::Script );
 		asset = AssetManager::Get().FindAsset( id );
 
-		asset->SetPath( header );
+		asset->SetAbsolutePath( header );
 
 		using namespace std::chrono_literals;
 

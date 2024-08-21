@@ -33,6 +33,6 @@
 namespace Saturn::Auxiliary {
 
 	[[nodiscard]] extern bool DrawImportMeshPopup( bool* pOpen, const std::filesystem::path& rImportTargetPath );
-	[[nodiscard]] extern bool DrawImportSoundPopup( bool* pOpen, const std::filesystem::path& rImportTargetPath );
+	[[nodiscard]] extern bool DrawImportSoundPopup( bool* pOpen, const std::filesystem::path& rImportTargetPath, std::filesystem::path& rDefaultPath );
 
 }

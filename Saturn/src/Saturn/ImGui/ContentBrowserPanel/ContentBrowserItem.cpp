@@ -47,6 +47,7 @@
 #include "ContentBrowserThumbnailGenerator.h"
 
 #include <imgui_internal.h>
+#include <regex>
 
 namespace Saturn {
 
@@ -56,7 +57,7 @@ namespace Saturn {
 		: m_Entry( rEntry )
 	{
 		m_Path = rEntry.path().string();
-		m_Filename = rEntry.path().filename().replace_extension().filename();
+		m_Filename = rEntry.path().stem().string();
 
 		m_IsDirectory = rEntry.is_directory();
 
@@ -131,6 +132,16 @@ namespace Saturn {
 
 					m_OnSelected( this, false );
 				}
+
+				if( ImGui::BeginTooltip() )
+				{
+					ImGui::Text( "Folder" );
+					ImGui::Separator();
+					
+					ImGui::Text( "%s", m_Path.string().c_str() );
+
+					ImGui::EndTooltip();
+				}
 			}
 
 			// Selected but not opened!
@@ -193,6 +204,20 @@ namespace Saturn {
 					Select();
 
 					m_OnSelected( this, false );
+				}
+
+				if( ImGui::BeginTooltip() )
+				{
+					ImGui::Text( "Asset" );
+					ImGui::Separator();
+
+					ImGui::Text( "%s", m_Path.string().c_str() );
+					
+					ImGui::Text( "Asset: %llu", m_Asset->ID );
+					ImGui::Text( "Asset Name: %s", m_Asset->Name.c_str() );
+					ImGui::Text( "Asset Version: %llu", m_Asset->Version );
+
+					ImGui::EndTooltip();
 				}
 			}
 
@@ -387,6 +412,21 @@ namespace Saturn {
 
 	void ContentBrowserItem::OnRenameCommitted( const std::string& rName )
 	{
+		// TODO: Check for invalid characters and follow OS rules
+		// Windows does not allow \ / : ? * <> | "
+		// Linux does not allow /
+		// Windows does not allow files to end in a space or a dot | NF, modifying filename
+		// Windows does not allow files to be called CON, AUX, PRN, NUL, COM1-9, LPT1-9 | NF, modifying filename
+		// Linux does not allow files to be called .., . | NF, modifying filename
+
+		std::regex invalidCharacterRegex( "[\\\\/:?*<>|\\\"]" );
+
+		if( std::regex_search( rName, invalidCharacterRegex ) )
+		{
+			SAT_CORE_INFO( "Invalid chars" );
+			return;
+		}
+
 		m_Filename = rName;
 
 		std::filesystem::path oldPath = m_Path;
@@ -407,7 +447,7 @@ namespace Saturn {
 		if( asset )
 		{
 			asset->Name = rName;
-			asset->SetPath( m_Path );
+			asset->SetAbsolutePath( m_Path );
 
 			AssetManager::Get().Save();
 		}

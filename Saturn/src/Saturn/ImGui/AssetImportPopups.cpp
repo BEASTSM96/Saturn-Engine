@@ -115,7 +115,7 @@ namespace Saturn::Auxiliary {
 				auto assetPath = rImportTargetPath / s_OriginalMeshPath.filename();
 				assetPath.replace_extension( ".stmesh" );
 
-				asset->SetPath( assetPath );
+				asset->SetAbsolutePath( assetPath );
 
 				// TODO: This is bad.
 				// Create the mesh so we can copy over the texture (if any).
@@ -135,7 +135,7 @@ namespace Saturn::Auxiliary {
 				StaticMeshAssetSerialiser sma;
 				sma.Serialise( staticMesh );
 
-				staticMesh->SetPath( assetPath );
+				staticMesh->SetAbsolutePath( assetPath );
 
 				PopupModified = true;
 			}
@@ -167,7 +167,7 @@ namespace Saturn::Auxiliary {
 		return PopupModified;
 	}
 
-	bool DrawImportSoundPopup( bool* pOpen, const std::filesystem::path& rImportTargetPath )
+	bool DrawImportSoundPopup( bool* pOpen, const std::filesystem::path& rImportTargetPath, std::filesystem::path& rDefaultPath )
 	{
 		bool PopupModified = false;
 		static std::filesystem::path s_ImportSoundPath;
@@ -180,11 +180,11 @@ namespace Saturn::Auxiliary {
 
 			ImGui::BeginHorizontal( "##inputH" );
 
-			ImGui::InputText( "##path", ( char* ) s_ImportSoundPath.string().c_str(), 1024 );
+			ImGui::InputText( "##path", ( char* ) rDefaultPath.string().c_str(), 1024 );
 
 			if( ImGui::Button( "Browse" ) )
 			{
-				s_ImportSoundPath = Application::Get().OpenFile( "Supported asset types (*.wav *.mp3)\0*.wav; *.mp3\0" );
+				rDefaultPath = Application::Get().OpenFile( "Supported asset types (*.wav *.mp3)\0*.wav; *.mp3\0" );
 			}
 
 			ImGui::EndHorizontal();
@@ -198,9 +198,9 @@ namespace Saturn::Auxiliary {
 				auto asset = AssetManager::Get().FindAsset( id );
 
 				// Copy the audio source.
-				std::filesystem::copy_file( s_ImportSoundPath, rImportTargetPath / s_ImportSoundPath.filename() );
+				std::filesystem::copy_file( rDefaultPath, rImportTargetPath / rDefaultPath.filename() );
 
-				auto assetPath = rImportTargetPath / s_ImportSoundPath.filename();
+				auto assetPath = rImportTargetPath / rDefaultPath.filename();
 				assetPath.replace_extension( ".snd" );
 
 				assetPath = std::filesystem::relative( assetPath, Project::GetActiveProject()->GetRootDir() );
@@ -214,11 +214,11 @@ namespace Saturn::Auxiliary {
 				sound->Path = assetPath;
 				sound->Type = AssetType::Sound;
 
-				sound->OriginalImportPath = s_ImportSoundPath;
-				sound->SoundSourcePath = rImportTargetPath / s_ImportSoundPath.filename();
+				sound->OriginalImportPath = rDefaultPath;
+				sound->SoundSourcePath = rImportTargetPath / rDefaultPath.filename();
 
 				// Currently the date is YYYY-MM-DD HH-MM-SS however all we want is YYYY-MM-DD
-				std::string fullTime = std::format( "{0}", std::filesystem::last_write_time( s_ImportSoundPath ) );
+				std::string fullTime = std::format( "{0}", std::filesystem::last_write_time( rDefaultPath ) );
 				fullTime = fullTime.substr( 0, fullTime.find_first_of( " " ) );
 
 				sound->LastWriteTime = fullTime;
@@ -227,7 +227,7 @@ namespace Saturn::Auxiliary {
 				SoundSpecificationAssetSerialiser s2d;
 				s2d.Serialise( sound );
 
-				sound->SetPath( assetPath );
+				sound->SetAbsolutePath( assetPath );
 
 				PopupModified = true;
 			}

@@ -219,19 +219,14 @@ namespace Saturn {
 		const std::filesystem::path& GetPath() const { return Path; }
 		const std::string& GetName() const { return Name; }
 	
-		// TODO: This is bad.
-		//       I want to copy this just so I can get the name without the extension.
-		// Note:
-		//      p must be an absolute path.
-		//		If you want to set a relative path just modify the 'Path' variable directly.
-		void SetPath( std::filesystem::path path )
+		// rPath must be an absolute path.
+		// If you want to set a relative path just modify the 'Path' variable directly and update the name accordingly.
+		void SetAbsolutePath( const std::filesystem::path& rPath )
 		{
-			std::filesystem::path base = Project::GetActiveProject()->GetRootDir();
+			std::filesystem::path rootDir = Project::GetActiveProject()->GetRootDir();
 
-			Path = std::filesystem::relative( path, base );
-
-			auto CopyPath = Path;
-			Name = CopyPath.replace_extension().filename().string();
+			Path = std::filesystem::relative( rPath, rootDir );
+			Name = Path.stem().string();
 		}
 
 	public:

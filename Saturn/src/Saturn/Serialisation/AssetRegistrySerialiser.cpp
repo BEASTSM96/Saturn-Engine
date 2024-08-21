@@ -127,7 +127,7 @@ namespace Saturn {
 			Ref<Asset> DeserialisedAsset = AssetRegistry->FindAsset( assetID );
 
 			DeserialisedAsset->Path = path;
-			DeserialisedAsset->Name = path.filename().replace_extension().string();
+			DeserialisedAsset->Name = path.stem().string();
 			DeserialisedAsset->Type = AssetTypeFromString( type );
 			DeserialisedAsset->Version = version;
 

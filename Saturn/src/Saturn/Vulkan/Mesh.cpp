@@ -268,7 +268,7 @@ namespace Saturn {
 			{
 				// Create the new asset
 				asset = AssetManager::Get().FindAsset( AssetManager::Get().CreateAsset( AssetType::Material ) );
-				asset->SetPath( assetPath );
+				asset->SetAbsolutePath( assetPath );
 
 				// Does not exists, mesh source did not copy it?
 				if( !std::filesystem::exists( assetPath ) )
