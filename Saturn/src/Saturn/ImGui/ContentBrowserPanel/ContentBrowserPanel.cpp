@@ -53,7 +53,7 @@
 
 #include "Saturn/Premake/Premake.h"
 
-#include "Saturn/GameFramework/Core/SourceManager.h"
+#include "Saturn/GameFramework/Core/SourceFileTemplateHelper.h"
 #include "Saturn/GameFramework/Core/ClassMetadataHandler.h"
 #include "Saturn/GameFramework/Core/GameModule.h"
 
@@ -745,9 +745,8 @@ namespace Saturn {
 					// Update or create the project files.
 					Premake::Launch( Project::GetActiveProject()->GetRootDir().wstring() );
 
-					// Next, create the source files.
-					// Right now the only script type we support is an entity type.
-					SourceManager::Get().CreateEntitySourceFiles( m_CurrentPath, m_NewClassName.c_str() );
+					// TODO: Get the correct source files.
+					SourceFileTemplateHelper::CreateEntitySourceFiles( m_CurrentPath, m_NewClassName.c_str() );
 
 					AssetRegistrySerialiser ars;
 					ars.Serialise( AssetManager::Get().GetAssetRegistry() );

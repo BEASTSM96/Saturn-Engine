@@ -175,7 +175,7 @@ namespace Saturn {
 
 	void NodeEditorBase::SaveSettings()
 	{
-		NodeCacheSettings::Get().WriteEditorSettings( this );
+		NodeCacheSettings::WriteEditorSettings( this );
 	}
 
 	static void BuildNode( Ref<Node>& rNode )

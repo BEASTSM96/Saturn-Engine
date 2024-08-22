@@ -686,7 +686,7 @@ namespace Saturn {
 	{
 		m_Loading = true;
 
-		NodeCacheSettings::Get().ReadEditorSettings( this );
+		NodeCacheSettings::ReadEditorSettings( this );
 
 		m_Name = RawSerialisation::ReadString( rStream );
 

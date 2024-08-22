@@ -36,7 +36,7 @@
 
 #include "GameScript.h"
 
-#include "SourceManager.h"
+#include "SourceFileTemplateHelper.h"
 #include "ClassMetadataHandler.h"
 
 namespace Saturn {
@@ -88,8 +88,6 @@ namespace Saturn {
 
 		if( initModFn )
 			( initModFn ) ( Project::GetActiveProject().Get() );
-
-		SourceManager::Get();
 #endif
 	}
 

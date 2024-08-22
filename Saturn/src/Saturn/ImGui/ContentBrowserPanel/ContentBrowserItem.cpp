@@ -56,8 +56,8 @@ namespace Saturn {
 	ContentBrowserItem::ContentBrowserItem( const std::filesystem::directory_entry& rEntry )
 		: m_Entry( rEntry )
 	{
-		m_Path = rEntry.path().string();
-		m_Filename = rEntry.path().stem().string();
+		m_Path = rEntry.path();
+		m_Filename = m_Path.stem().string();
 
 		m_IsDirectory = rEntry.is_directory();
 

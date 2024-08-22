@@ -76,7 +76,6 @@ namespace Saturn {
 		bool TryCookConvexMesh( const Ref<StaticMesh>& rMesh );
 
 	private:
-
 		std::vector<SubmeshColliderData> m_SubmeshData;
 
 	private:
