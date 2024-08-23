@@ -130,10 +130,10 @@ namespace Saturn {
 		}
 
 		[[deprecated( "Saturn::AssetManager::GetCombinedAssetMap is deprecated and will be removed. Consider using \"AssetManager::GetAssetRegistry::GetAssetMap\" instead." )]]
-		AssetMap GetCombinedAssetMap();
+		inline AssetMap GetCombinedAssetMap() { return m_Assets->GetAssetMap(); }
 
 		[[deprecated( "Saturn::AssetManager::GetCombinedLoadedAssetMap is deprecated and will be removed. Consider using \"AssetManager::GetAssetRegistry::GetLoadedAssetMap\" instead." )]]
-		AssetMap GetCombinedLoadedAssetMap();
+		inline AssetMap GetCombinedLoadedAssetMap() { return m_Assets->GetLoadedAssetsMap(); }
 
 		Ref<AssetRegistry>& GetAssetRegistry() { return m_Assets; }
 		const Ref<AssetRegistry>& GetAssetRegistry() const { return m_Assets; }

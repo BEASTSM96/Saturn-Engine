@@ -43,12 +43,6 @@
 
 #define SAT_ARRAYSIZE( x ) ( ( int ) ( sizeof( x ) / sizeof( *( x ) ) ) )
 
-// Line Ending for shaders
-
-#define __CR_LF__ "\r\n"
-#define _LF__ "\n"
-#define _CR__ "\r"
-
 #define SAT_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 template<typename Ty>
@@ -67,7 +61,7 @@ consteval auto BIT( Ty x ) { return 1 << x; }
 template<typename Ty>
 consteval auto SAT_MAKE_VERSION( Ty major, Ty minor, Ty patch ) { return ( ( ( ( unsigned int ) ( major ) ) << 22 ) | ( ( ( unsigned int ) ( minor ) ) << 12 ) | ( ( unsigned int ) ( patch ) ) ); }
 
-// Current version is Alpha 0.1.1 (Alpha 1.2)
+// Current version is Alpha 0.1.2 (Alpha 1.2)
 constexpr auto SAT_CURRENT_VERSION = SAT_MAKE_VERSION( 0, 1, 2 );
 constexpr auto SAT_CURRENT_VERSION_STRING = "0.1.2";
 
@@ -105,3 +99,9 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 3;
 #include "Timestep.h"
 #include "Ref.h"
 #include "SingletonStorage.h"
+
+#if defined( SAT_DEBUG ) || defined( SAT_RELEASE )
+#define SAT_SINGLETON_LAZY( x ) static inline x& Get() { return *SingletonStorage::GetOrCreateSingleton<x>(); }
+#else
+#define SAT_SINGLETON_LAZY( x ) static inline x& Get() { static x _; return _; }
+#endif
