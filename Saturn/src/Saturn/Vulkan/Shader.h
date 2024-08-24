@@ -357,7 +357,7 @@ namespace Saturn {
 
 		[[nodiscard]] bool TryRecompile();
 
-		size_t GetShaderHash() const;
+		const UUID GetShaderHash() const;
 
 	private:
 
@@ -398,7 +398,7 @@ namespace Saturn {
 
 		Ref< DescriptorPool > m_SetPool;
 
-		size_t m_ShaderHash = 0;
+		UUID m_ShaderHash;
 
 	private:
 		friend class ShaderBundle;

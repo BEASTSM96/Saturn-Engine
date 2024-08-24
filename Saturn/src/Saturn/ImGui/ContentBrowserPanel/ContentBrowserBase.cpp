@@ -184,7 +184,7 @@ namespace Saturn {
 			if( !rEntry.is_regular_file() )
 				continue;
 
-			std::string filename = rEntry.path().filename().string();
+			std::string filename = rEntry.path().stem().string();
 
 			if( filename.find( rName ) != std::string::npos )
 				count++;

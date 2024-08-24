@@ -243,13 +243,7 @@ namespace Saturn {
 		if( !std::filesystem::exists( m_Filepath ) )
 			return;
 
-		m_Name = m_Filepath.filename().string();
-
-		// Remove the extension from the name
-		m_Name.erase( m_Name.find_last_of( '.' ) );
-
-		// Create Hash from filepath
-		m_ShaderHash = std::hash<std::string>{}( rFilepath.string() );
+		m_Name = m_Filepath.stem().string();
 
 		ReadFile();
 		DetermineShaderTypes();
@@ -1051,7 +1045,7 @@ namespace Saturn {
 		return true;
 	}
 
-	size_t Shader::GetShaderHash() const
+	const UUID Shader::GetShaderHash() const
 	{
 		return m_ShaderHash;
 	}

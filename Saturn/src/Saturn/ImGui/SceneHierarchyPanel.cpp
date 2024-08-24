@@ -45,7 +45,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <imgui.h>
+//#include <imgui.h>
 #include <imgui_internal.h>
 
 namespace Saturn {
@@ -115,6 +115,11 @@ namespace Saturn {
 
 		if( m_Context )
 		{	
+			if( m_EntityTextFilter.DrawWithHint( "##schpanelfinder", "Search...", ImGui::GetContentRegionAvail().x ) )
+				m_Searching = m_EntityTextFilter.IsActive();
+
+			ImGui::Separator();
+
 			DrawEntities();
 
 			if( ImGui::IsMouseDown( 0 ) && ImGui::IsWindowHovered() && !m_IsMultiSelecting )
@@ -244,6 +249,9 @@ namespace Saturn {
 			auto& rTag = entity->GetComponent<TagComponent>().Tag;
 			bool isPrefab = entity->HasComponent<PrefabComponent>() || entity->HasComponent<ScriptComponent>();
 
+			if( m_Searching && !m_EntityTextFilter.PassFilter( rTag.c_str() ) )
+				return;
+
 			ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 			IsEntitySelected( entity ) ? Flags |= ImGuiTreeNodeFlags_Selected : 0;
 
@@ -343,7 +351,7 @@ namespace Saturn {
 			memset( buffer, 0, 256 );
 			memcpy( buffer, tag.c_str(), tag.length() );
 
-			ImGui::PushItemWidth( contentRegionAvailable.x * 0.5f );
+			ImGui::PushItemWidth( contentRegionAvailable.x - ImGui::GetStyle().FramePadding.x );
 			if( ImGui::InputText( "##Tag", buffer, 256 ) )
 			{
 				tag = std::string( buffer );
@@ -360,7 +368,7 @@ namespace Saturn {
 			if( entity->HasComponent<ScriptComponent>() )
 			{
 				ImGui::SameLine();
-				ImGui::TextDisabled( "Class Instance (C++ Class)" );
+				ImGui::TextDisabled( "Class Instance (C++ Class) [%s]", entity->GetComponent<ScriptComponent>().ScriptName.c_str() );
 			}
 			else if( entity->HasComponent<PrefabComponent>() )
 			{
@@ -738,6 +746,9 @@ namespace Saturn {
 				}
 				else
 				{
+					ImGui::Text( "Sound could not be found in active scene. This should not happen and may indicate a bug in the application." );
+					ImGui::Text( "Looking for: %llu (Asset: %llu). Was it marked for destruction?", ap.UniqueID, ap.SpecAssetID );
+
 					Auxiliary::DrawDisabledBoolControl( "Loop", ap.Loop );
 					Auxiliary::DrawDisabledBoolControl( "Mute", ap.Mute );
 					Auxiliary::DrawDisabledBoolControl( "Spatialization", ap.Spatialization );

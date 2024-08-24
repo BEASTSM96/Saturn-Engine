@@ -36,6 +36,8 @@
 #include "Saturn/Vulkan/Texture.h"
 
 #include <functional>
+// TODO: Remove this include (need to find a way to define ImGuiTextFilter without including the imgui header)
+#include <imgui.h>
 
 namespace Saturn {
 
@@ -86,7 +88,6 @@ namespace Saturn {
 		void SetName( const std::string& rName ) { m_WindowName = rName; }
 
 	protected:
-
 		void DrawComponents( Ref<Entity> entity );
 		bool IsEntitySelected( Ref<Entity> entity );
 		void DrawEntityNode( Ref<Entity> entity );
@@ -120,7 +121,9 @@ namespace Saturn {
 			std::string Name;
 		};
 
-		CopyComponentData m_CopyComponentData;
+		CopyComponentData m_CopyComponentData{};
+		ImGuiTextFilter m_EntityTextFilter{};
+		bool m_Searching = false;
 
 		Ref<Scene> m_Context;
 		std::vector< Ref<Entity> > m_SelectionContexts;

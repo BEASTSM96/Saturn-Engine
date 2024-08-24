@@ -528,12 +528,12 @@ namespace Saturn {
 		m_PendingShaderReloads.push_back( rName );
 	}
 
-	void Renderer::AddShaderReference( size_t Hash )
+	void Renderer::AddShaderReference( UUID Hash )
 	{
 		m_ShaderReferences[ Hash ] = { .Hash = Hash };
 	}
 
-	void Renderer::RemoveShaderReference( size_t Hash )
+	void Renderer::RemoveShaderReference( UUID Hash )
 	{
 		m_ShaderReferences.erase( Hash );
 	}
@@ -543,7 +543,7 @@ namespace Saturn {
 		m_ShaderReferences.clear();
 	}
 
-	ShaderReference& Renderer::FindShaderReference( size_t Hash )
+	ShaderReference& Renderer::FindShaderReference( UUID Hash )
 	{
 		return m_ShaderReferences[ Hash ];
 	}
