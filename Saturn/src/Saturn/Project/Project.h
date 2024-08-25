@@ -74,7 +74,7 @@ namespace Saturn {
 		static void SetActiveProject( const Ref<Project>& rProject );
 
 		// Only to be used by the Game.
-		static std::string FindProjectDir( const std::string& rName );
+		static std::filesystem::path FindProjectDir( const std::string& rName );
 
 		void CheckMissingAssetRefs();
 

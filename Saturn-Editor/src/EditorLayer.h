@@ -31,6 +31,8 @@
 #include <Saturn/ImGui/SceneHierarchyPanel.h>
 #include <Saturn/ImGui/ContentBrowserPanel/ContentBrowserPanel.h>
 
+#include <Saturn/Asset/AssetManager.h>
+
 #include <Saturn/Scene/Scene.h>
 #include <Saturn/Core/Layer.h>
 
@@ -86,8 +88,9 @@ namespace Saturn {
 
 		// Viewport
 		void DrawViewport();
-		void Viewport_Gizmo();
+		void Viewport_GizmoControl();
 		void Viewport_RTControls();
+		void Viewport_RTSettings();
 		
 		// Close editor and open the project browser.
 		void CloseEditorAndOpenPB();
@@ -130,6 +133,10 @@ namespace Saturn {
 		void DrawMessageBox( const MessageBoxInfo& rInfo );
 
 	private:
+		GameModule* m_GameModule = nullptr;
+		Ref<AssetManager> m_AssetManager;
+
+	private:
 		Ref< TitleBar > m_TitleBar = nullptr;
 		
 		Ref< Texture2D > m_CheckerboardTexture = nullptr;
@@ -144,8 +151,6 @@ namespace Saturn {
 		Ref< Texture2D > m_ExclamationTexture = nullptr;
 
 		Ref< PanelManager > m_PanelManager = nullptr;
-
-		GameModule* m_GameModule = nullptr;
 
 		// Used to be called BlockingOperation hence the name.
 		Ref<JobProgress> m_BlockingOperation = nullptr;
@@ -180,7 +185,7 @@ namespace Saturn {
 
 		Buffer m_CopyComponentBuffer;
 
-		Ref< Scene > m_EditorScene = nullptr;
-		Ref< Scene > m_RuntimeScene = nullptr;
+		Ref<Scene> m_EditorScene = nullptr;
+		Ref<Scene> m_RuntimeScene = nullptr;
 	};
 }

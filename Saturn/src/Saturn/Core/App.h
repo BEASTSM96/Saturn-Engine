@@ -46,15 +46,13 @@
 
 namespace Saturn {
 
-	// ApplicationFlags must are set when the application is being created and must not change throughout its lifetime.
-	// TODO: It would be nice if we could use constexpr to evaluate this at compile time.
 	enum ApplicationFlags_
 	{
 		ApplicationFlag_UIOnly = BIT( 0 ),
-		ApplicationFlag_CreateSceneRenderer = BIT( 2 ),
-		ApplicationFlag_UseGameThread = BIT( 3 ),
-		ApplicationFlag_Titlebar = BIT( 4 ),
-		ApplicationFlag_UseVFS = BIT( 5 )
+		ApplicationFlag_CreateSceneRenderer = BIT( 1 ),
+		ApplicationFlag_UseGameThread = BIT( 2 ),
+		ApplicationFlag_Titlebar = BIT( 3 ),
+		ApplicationFlag_UseVFS = BIT( 4 )
 	};
 
 	// enum ApplicationFlags_
@@ -68,6 +66,7 @@ namespace Saturn {
 		
 		uint32_t WindowWidth = 0;
 		uint32_t WindowHeight = 0;
+		RubyStyle WindowStyle = RubyStyle::Borderless;
 	};
 
 	class SceneRenderer;
@@ -85,7 +84,8 @@ namespace Saturn {
 
 		void Run();
 		void Close();
-
+	
+	public:
 		bool Running() const { return m_Running; }
 
 		const Timestep& Time() { return m_Timestep; }
@@ -161,7 +161,7 @@ namespace Saturn {
 		// TODO: Change all of these to refs, I really don't like this.
 		VulkanContext* m_VulkanContext = nullptr;
 
-		// Concurrency (threading) stuff
+		// Concurrency (threading)
 		std::thread::id m_MainThreadID;
 		std::condition_variable m_BlockCV;
 		std::mutex m_Mutex;

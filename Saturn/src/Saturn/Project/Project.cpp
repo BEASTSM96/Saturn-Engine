@@ -85,10 +85,10 @@ namespace Saturn {
 		s_ActiveProject = rProject;
 	}
 
-	std::string Project::FindProjectDir( const std::string& rName )
+	std::filesystem::path Project::FindProjectDir( const std::string& rName )
 	{
 		std::string fullName = rName + ".sproject";
-		std::string res = "";
+		std::filesystem::path res;
 
 		for( auto& rEntry : std::filesystem::directory_iterator( std::filesystem::current_path() ) )
 		{
@@ -101,8 +101,7 @@ namespace Saturn {
 			{
 				if( filepath.filename() == fullName ) 
 				{
-					res = filepath.string();
-
+					res = filepath;
 					break;
 				}
 			}

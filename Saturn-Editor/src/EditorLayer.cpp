@@ -95,8 +95,6 @@ namespace Saturn {
 	{
 		Scene::SetActiveScene( m_EditorScene.Get() );
 
-		m_RuntimeScene = nullptr;
-		
 		// Create Panel Manager.
 		m_PanelManager = Ref<PanelManager>::Create();
 		
@@ -128,7 +126,8 @@ namespace Saturn {
 		
 		VirtualFS::Get().MountBase( Project::GetActiveConfig().Name, rUserSettings.StartupProject );
 
-		AssetManager* pAssetManager = new AssetManager();
+		m_AssetManager = Ref<AssetManager>::Create();
+
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
 		// Setup content browser panel at project dir.
@@ -208,6 +207,7 @@ namespace Saturn {
 		}
 
 		m_EditorScene = nullptr;
+		m_AssetManager = nullptr;
 
 		VirtualFS::Get().UnmountBase( Project::GetActiveConfig().Name );
 
@@ -317,7 +317,7 @@ namespace Saturn {
 			ImGui::OpenPopup( "Blocking Action" );
 		}
 
-		if( ImGui::BeginPopupModal( "Blocking Action", &m_JobModalOpen ) )
+		if( ImGui::BeginPopupModal( "Blocking Action", &m_JobModalOpen, ImGuiWindowFlags_NoSavedSettings ) )
 		{
 			if( m_BlockingOperation->GetTitle().empty() )
 				ImGui::Text( "Please wait for the operation to complete..." );
@@ -604,7 +604,7 @@ namespace Saturn {
 
 		ImGui::PopFont();
 
-		constexpr const char* AOTechniques[] = { "SSAO", "HBAO", "None" };
+		const char* AOTechniques[] = { "SSAO", "HBAO", "None" };
 		AOTechnique selectedTech = Application::Get().PrimarySceneRenderer().GetAOTechnique();
 
 		const char* preview = AOTechniques[ ( int ) selectedTech ];
@@ -849,17 +849,14 @@ namespace Saturn {
 				ImGui::TableSetupColumn( "ID" );
 				ImGui::TableSetupColumn( "Type" );
 				ImGui::TableSetupColumn( "Path" );
+				ImGui::TableSetupColumn( "Version" );
 
 				ImGui::TableHeadersRow();
-
-				int TableRow = 0;
 
 				for( auto&& [id, asset] : AssetManager::Get().GetCombinedAssetMap() )
 				{
 					if( !Filter.PassFilter( asset->GetName().c_str() ) )
 						continue;
-
-					TableRow++;
 
 					ImGui::TableNextRow();
 
@@ -867,13 +864,22 @@ namespace Saturn {
 					ImGui::Selectable( asset->GetName().c_str(), false );
 
 					ImGui::TableSetColumnIndex( 1 );
-					ImGui::Selectable( std::to_string( id ).c_str(), false );
+					ImGui::Text( "%llu", id );
 
 					ImGui::TableSetColumnIndex( 2 );
-					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).data(), false );
+					ImGui::Text( AssetTypeToString( asset->GetAssetType() ).data(), false );
 
 					ImGui::TableSetColumnIndex( 3 );
 					ImGui::Text( asset->Path.string().c_str() );
+
+					ImGui::TableSetColumnIndex( 4 );
+					ImGui::Text( "%i", asset->Version );
+
+					if( asset->Version != SAT_CURRENT_VERSION )
+					{
+						ImGui::SameLine();
+						ImGui::Text( "(Version does not match)" );
+					}
 				}
 
 				ImGui::EndTable();
@@ -894,7 +900,7 @@ namespace Saturn {
 			Filter.Draw( "##search" );
 
 			ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
-			if( ImGui::BeginTable( "##FileTable", 4, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y * 0.85f ) ) )
+			if( ImGui::BeginTable( "##FileTable", 3, TableFlags, ImVec2( ImGui::GetWindowSize().x, ImGui::GetWindowSize().y * 0.85f ) ) )
 			{
 				ImGui::TableSetupColumn( "Asset Name" );
 				ImGui::TableSetupColumn( "ID" );
@@ -902,14 +908,10 @@ namespace Saturn {
 
 				ImGui::TableHeadersRow();
 
-				int TableRow = 0;
-
 				for( auto&& [id, asset] : AssetManager::Get().GetCombinedLoadedAssetMap() )
 				{
 					if( !Filter.PassFilter( asset->GetName().c_str() ) )
 						continue;
-
-					TableRow++;
 
 					ImGui::TableNextRow();
 
@@ -917,10 +919,10 @@ namespace Saturn {
 					ImGui::Selectable( asset->GetName().c_str(), false );
 
 					ImGui::TableSetColumnIndex( 1 );
-					ImGui::Selectable( std::to_string( id ).c_str(), false );
+					ImGui::Text( "%llu", id );
 
 					ImGui::TableSetColumnIndex( 2 );
-					ImGui::Selectable( AssetTypeToString( asset->GetAssetType() ).data(), false );
+					ImGui::Text( AssetTypeToString( asset->GetAssetType() ).data(), false );
 				}
 
 				ImGui::EndTable();
@@ -1365,11 +1367,11 @@ namespace Saturn {
 
 			ImGui::Text( "Built on: %s %s (EditorLayer.cpp)", __DATE__, __TIME__ );
 
-			ImGui::Text( "Saturn Engine Version: %s", SAT_CURRENT_VERSION_STRING );
+			ImGui::Text( "Saturn Engine Version: %s (Internal Number: %i)", SAT_CURRENT_VERSION_STRING, SAT_CURRENT_VERSION );
 
 			ImGui::Separator();
 
-			ImGui::Text( "All icons in the engine are provided by icons8 via https://icons8.com/\nUsing the Tanah Basah set." );
+			ImGui::Text( "All icons in the engine are provided by icons8 via https://icons8.com/\nUsing the Tanah Basah set (https://icons8.com/icons/authors/v03BjHji0KTr/tanah-basah)" );
 
 			ImGui::Separator();
 
@@ -1531,10 +1533,13 @@ namespace Saturn {
 		ImGui::PopID();
 
 		// Viewport Gizmo controls
-		Viewport_Gizmo();
+		Viewport_GizmoControl();
 
 		// Viewport Runtime controls
 		Viewport_RTControls();
+
+		// Viewport Runtime settings controls
+		Viewport_RTSettings();
 
 		//// Render the real gizmo
 
@@ -1608,7 +1613,7 @@ namespace Saturn {
 		ImGui::End();
 	}
 
-	void EditorLayer::Viewport_Gizmo()
+	void EditorLayer::Viewport_GizmoControl()
 	{
 		ImVec2 minBound = ImGui::GetWindowPos();
 		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
@@ -1630,7 +1635,7 @@ namespace Saturn {
 
 		ImGui::SetNextWindowPos( ImVec2( minBound.x + 5.0f, minBound.y + 5.0f ) );
 		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
-		ImGui::Begin( "##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking );
+		ImGui::Begin( "##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings );
 
 		ImGui::BeginVertical( "##v_gizmoV", { windowWidth, ImGui::GetContentRegionAvail().y } );
 		ImGui::BeginHorizontal( "##v_gizmoH", { windowWidth, ImGui::GetContentRegionAvail().y } );
@@ -1671,7 +1676,7 @@ namespace Saturn {
 		ImGui::SetNextWindowPos( ImVec2( runtimeCenterX, minBound.y + 5.0f ) );
 		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
 
-		ImGui::Begin( "##viewport_center_rt", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking );
+		ImGui::Begin( "##viewport_center_rt", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings );
 
 		ImGui::BeginVertical( "##centerRTv", { windowWidth, ImGui::GetContentRegionAvail().y } );
 		ImGui::BeginHorizontal( "##centerRTh", { windowWidth, ImGui::GetContentRegionAvail().y } );
@@ -1686,6 +1691,55 @@ namespace Saturn {
 
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar();
+
+		ImGui::Spring();
+		ImGui::EndHorizontal();
+		ImGui::Spring();
+		ImGui::EndVertical();
+
+		ImGui::End();
+	}
+
+	void EditorLayer::Viewport_RTSettings()
+	{
+		ImVec2 minBound = ImGui::GetWindowPos();
+		ImVec2 maxBound = { minBound.x + m_ViewportSize.x, minBound.y + m_ViewportSize.y };
+
+		constexpr float windowHeight = 32.0f;
+		constexpr float icons = 1.0f;
+		constexpr float neededSpace = 48.0f * icons - 10.0f;
+		constexpr float windowWidth = neededSpace - 10.0f;
+
+		float runtimeRightX = minBound.x + m_ViewportSize.x - neededSpace - 2.5f;
+
+		// Runtime Controls
+		ImGui::SetNextWindowPos( ImVec2( runtimeRightX, minBound.y + 5.0f ) );
+		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
+
+		ImGui::Begin( "##viewport_right_rt", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings );
+
+		ImGui::BeginVertical( "##rightRTv", { windowWidth, ImGui::GetContentRegionAvail().y } );
+		ImGui::BeginHorizontal( "##rightRTh", { windowWidth, ImGui::GetContentRegionAvail().y } );
+
+		ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f } );
+		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 5.0f * 2.0f, 0 ) );
+
+		if( Auxiliary::ImageButton( EditorIcons::GetIcon( "NoIcon" ), ImVec2( 24.0f, 24.0f ) ) )
+		{
+			ImGui::OpenPopup( "RuntimeSettings" );
+		}
+
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
+
+		if( ImGui::BeginPopup( "RuntimeSettings" ) )
+		{
+			// TODO:
+			ImGui::Checkbox( "Render Debug Colliders", 0 );
+			ImGui::Checkbox( "Render Debug Billboards", 0 );
+
+			ImGui::EndPopup();
+		}
 
 		ImGui::Spring();
 		ImGui::EndHorizontal();
@@ -1722,7 +1776,7 @@ namespace Saturn {
 	void EditorLayer::DrawMessageBox( const MessageBoxInfo& rInfo )
 	{
 		ImGui::SetNextWindowPos( ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2( 0.5f, 0.5f ) );
-		if( ImGui::BeginPopupModal( rInfo.Title.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
+		if( ImGui::BeginPopupModal( rInfo.Title.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings ) )
 		{
 			ImGui::BeginHorizontal( "##MsgBoxH" );
 
@@ -1788,7 +1842,7 @@ namespace Saturn {
 	{
 		if( !m_HasPremakePath )
 		{
-			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize ) )
+			if( ImGui::BeginPopupModal( "Missing Environment Variable", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings ) )
 			{
 				ImGui::Text( "The environment variable SATURN_PREMAKE_PATH is not set." );
 				ImGui::Text( "This is required in order to build projects." );

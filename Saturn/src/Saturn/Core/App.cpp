@@ -42,8 +42,6 @@
 
 #include "Saturn/Audio/AudioSystem.h"
 
-#include "Saturn/Asset/AssetManager.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -71,9 +69,9 @@ namespace Saturn {
 		width = 3 * rPrimaryMonitor.MonitorSize.x / 4;
 		height = 3 * rPrimaryMonitor.MonitorSize.y / 4;
 
-		RubyStyle WindowStyle = HasFlag( ApplicationFlag_Titlebar ) ? RubyStyle::Default : RubyStyle::Borderless;
+		RubyStyle windowStyle = HasFlag( ApplicationFlag_Titlebar ) ? RubyStyle::Default : spec.WindowStyle;
 
-		RubyWindowSpecification windowSpec { .Name = "Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = WindowStyle, .ShowNow = false };
+		RubyWindowSpecification windowSpec { .Name = "Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = windowStyle, .ShowNow = false };
 		m_Window = new RubyWindow( windowSpec );
 		m_Window->SetEventTarget( this );
 
@@ -185,8 +183,6 @@ namespace Saturn {
 		} );
 
 		AudioSystem::Get().Terminate();
-
-		AssetManager::Get().Terminate();
 		
 		delete m_SceneRenderer;
 		delete m_VulkanContext;

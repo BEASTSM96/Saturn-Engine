@@ -529,20 +529,6 @@ namespace Saturn {
 
 			ImGui::EndHorizontal();
 
-			// If we can't drag we can assume this file belongs to a read only asset registry.
-			// So set the payload to CB_ITEM_COPY_RO and return out.
-			if( !m_CanEverDrag )
-			{
-				auto path = std::filesystem::relative( m_Path, Application::Get().GetRootContentDir().parent_path().parent_path() );
-				const wchar_t* c = path.c_str();
-
-				// Copied from read only asset registry.
-				ImGui::SetDragDropPayload( "CB_ITEM_COPY_RO", c, ( wcslen( c ) + 1 ) * sizeof( wchar_t ), ImGuiCond_Once );
-
-				ImGui::EndDragDropSource();
-				return;
-			}
-
 			auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
 			const wchar_t* c = path.c_str();
 

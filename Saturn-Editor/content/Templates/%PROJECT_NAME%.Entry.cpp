@@ -27,9 +27,12 @@
 */
 
 // Game client main.
-// DO NOT MODIFY
+/* Generated code, DO NOT modify! */
+// This files supports Saturn version 0.1.3 (4096)
 
+#if defined(_WIN32)
 #include <Windows.h>
+#endif
 
 #include <Saturn/Core/App.h>
 #include <Saturn/Core/ErrorDialog.h>
@@ -42,7 +45,7 @@
 #include <Saturn/Serialisation/EngineSettingsSerialiser.h>
 #include <Saturn/Serialisation/ProjectSerialiser.h>
 
-static std::string s_ProjectPath = "";
+static std::filesystem::path s_ProjectPath = "";
 
 // Saturn client main:
 extern int _main( int, char** );
@@ -72,17 +75,10 @@ public:
 		Saturn::EngineSettingsSerialiser uss;
 		uss.Deserialise();
 
-		Saturn::EngineSettings& rSettings = Saturn::EngineSettings::Get();
-		rSettings.StartupProject = s_ProjectPath;
-
-		size_t found = s_ProjectPath.find_last_of( "/\\" );
-		rSettings.StartupProjectName = s_ProjectPath.substr( found + 1 );
-
-		rSettings.FullStartupProjPath = s_ProjectPath;
-
 		m_RootContentPath = std::filesystem::current_path() / "content";
 
 		// Load the project really early on because we still need to load the shader bundle and create the scene renderer.
+		Saturn::EngineSettings& rSettings = Saturn::EngineSettings::Get();
 		Saturn::ProjectSerialiser ps;
 		ps.Deserialise( rSettings.FullStartupProjPath.string() );
 

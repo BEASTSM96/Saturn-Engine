@@ -39,7 +39,7 @@
 
 #include "Saturn/GameFramework/Core/GameModule.h"
 
-class EditorApplication : public Saturn::Application
+class EditorApplication final : public Saturn::Application
 {
 public:
 	explicit EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
@@ -49,18 +49,9 @@ public:
 		Saturn::EngineSettingsSerialiser uss;
 		uss.Deserialise();
 
-		Saturn::EngineSettings& settings = Saturn::EngineSettings::Get();
-
-		settings.StartupProject = m_ProjectPath;
-
-		size_t found = m_ProjectPath.find_last_of( "/\\" );
-		settings.StartupProjectName = m_ProjectPath.substr( found + 1 );
-
-		settings.FullStartupProjPath = m_ProjectPath + "\\" + settings.StartupProjectName + ".sproject";
-
-		settings = Saturn::EngineSettings::Get();
-
 		// Set our root content path.
+		// TODO: Remove this
+		// We can't remove until we no longer need editor assets for Dist.
 		m_RootContentPath = std::filesystem::current_path() / "content";
 	}
 
