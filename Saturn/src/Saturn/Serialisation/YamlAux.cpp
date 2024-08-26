@@ -324,9 +324,12 @@ namespace Saturn {
 
 			auto& spc = entity->GetComponent< AudioPlayerComponent >();
 
-			rEmitter << YAML::Key << "AssetID" << YAML::Value << spc.SpecAssetID;
-			rEmitter << YAML::Key << "Loop"    << YAML::Value << spc.Loop;
-			rEmitter << YAML::Key << "Mute"    << YAML::Value << spc.Mute;
+			rEmitter << YAML::Key << "AssetID"          << YAML::Value << spc.SpecAssetID;
+			rEmitter << YAML::Key << "Loop"             << YAML::Value << spc.Loop;
+			rEmitter << YAML::Key << "Mute"             << YAML::Value << spc.Mute;
+			rEmitter << YAML::Key << "Spatialization"   << YAML::Value << spc.Spatialization;
+			rEmitter << YAML::Key << "VolumeMultiplier" << YAML::Value << spc.VolumeMultiplier;
+			rEmitter << YAML::Key << "PitchMultiplier"  << YAML::Value << spc.PitchMultiplier;
 
 			rEmitter << YAML::EndMap;
 		}
@@ -592,9 +595,12 @@ namespace Saturn {
 			{
 				auto& sp = DeserialisedEntity->AddComponent< AudioPlayerComponent >();
 
-				sp.SpecAssetID = spc[ "AssetID" ].as< uint64_t >( 0 );
-				sp.Loop        = spc[ "Loop" ].as< bool >();
-				sp.Mute        = spc[ "Mute" ].as< bool >();
+				sp.SpecAssetID      = spc[ "AssetID" ].as< uint64_t >( 0 );
+				sp.Loop             = spc[ "Loop" ].as< bool >( false );
+				sp.Mute             = spc[ "Mute" ].as< bool >( false );
+				sp.Spatialization   = spc[ "Spatialization" ].as<bool>( false );
+				sp.VolumeMultiplier = spc[ "VolumeMultiplier" ].as<float>( 1.0f );
+				sp.PitchMultiplier  = spc[ "PitchMultiplier" ].as<float>( 1.0f );
 			}
 
 			auto alc = entity[ "AudioListenerComponent" ];
