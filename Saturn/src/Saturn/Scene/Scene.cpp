@@ -376,10 +376,6 @@ namespace Saturn {
 		auto view = glm::inverse( GetTransformRelativeToParent( cameraEntity ) );
 		SceneCamera& camera = cameraEntity->GetComponent<CameraComponent>().Camera;
 
-		// We currently do not use the 2D renderer in runtime however make sure that we "Prepare" it.
-		// Preparing the Renderer2D will reset the quad index count and the vertex buffer ptr.
-		Renderer2D::Get().Prepare();
-
 		// Lights
 		{
 			m_Lights = Lights();
@@ -443,6 +439,8 @@ namespace Saturn {
 					rSceneRenderer.SubmitStaticMesh( entity, meshComponent.Mesh, targetMaterialRegistry, transform );
 			}
 		}
+
+		Renderer2D::Get().SetCamera( camera.ProjectionMatrix() * view, view );
 
 		camera.SetViewportSize( rSceneRenderer.Width(), rSceneRenderer.Height() );
 		rSceneRenderer.SetCamera( { camera, view } );

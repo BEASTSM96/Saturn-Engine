@@ -254,6 +254,9 @@ namespace Saturn {
 
 		if( m_RuntimeScene ) 
 		{
+			// TEMP:
+			Renderer2D::Get().Prepare();
+
 			m_RuntimeScene->OnUpdate( time );
 			m_RuntimeScene->OnRenderRuntime( time, Application::Get().PrimarySceneRenderer() );
 		}
@@ -669,8 +672,42 @@ namespace Saturn {
 					ImGui::SetNextItemWidth( 130.0f );
 					if( ImGui::Selectable( result.data(), IsSelected ) )
 					{
+						if( rBinding.Type == ActionBindingType::Mouse )
+							rBinding.MouseButton = RubyMouseButton::Unknown;
+
 						rBinding.Key = ( RubyKey ) i;
 						rBinding.Type = ActionBindingType::Key;
+						rBinding.ActionName = result;
+
+						ShouldSaveProject = true;
+					}
+
+					if( IsSelected )
+						ImGui::SetItemDefaultFocus();
+
+					ImGui::PopID();
+				}
+
+				for( int i = 0; i < 5; i++ )
+				{
+					const auto& result = RubyMouseButtonToString( ( RubyMouseButton ) i );
+
+					// This is here because of how we do our loop, some keys will be empty because the values to do not match up.
+					if( result.empty() )
+						continue;
+
+					bool IsSelected = ( rBinding.ActionName == result );
+
+					ImGui::PushID( i );
+
+					ImGui::SetNextItemWidth( 130.0f );
+					if( ImGui::Selectable( result.data(), IsSelected ) )
+					{
+						if( rBinding.Type == ActionBindingType::Key )
+							rBinding.Key = RubyKey::UnknownKey;
+
+						rBinding.MouseButton = ( RubyMouseButton ) i;
+						rBinding.Type = ActionBindingType::Mouse;
 						rBinding.ActionName = result;
 
 						ShouldSaveProject = true;

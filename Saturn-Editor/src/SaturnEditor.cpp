@@ -42,8 +42,8 @@
 class EditorApplication final : public Saturn::Application
 {
 public:
-	explicit EditorApplication( const Saturn::ApplicationSpecification& spec, const std::string& rProjectPath )
-		: Application( spec ), m_ProjectPath( rProjectPath )
+	explicit EditorApplication( const Saturn::ApplicationSpecification& spec )
+		: Application( spec )
 	{
 		// Setup user settings and find the project path.
 		Saturn::EngineSettingsSerialiser uss;
@@ -73,24 +73,12 @@ public:
 
 private:
 	Saturn::EditorLayer* m_EditorLayer = nullptr;
-
-	std::string m_ProjectPath = "";
 };
 
 Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
-{
-	std::string projectPath = "";
-
-	if( argc > 1 )
-		projectPath = argv[1];
-	else
-		projectPath = "D:\\Saturn\\Projects\\barn_blew_up";
-
-	// TODO: Maybe load the most recent project? Or ask the user to select it.
-	SAT_CORE_VERIFY( !projectPath.empty(), "No Project path was provied!" );
-	
+{	
 	ApplicationSpecification spec;
 	spec.Flags = ApplicationFlag_CreateSceneRenderer;
 
-	return new EditorApplication( spec, projectPath );
+	return new EditorApplication( spec );
 }

@@ -80,7 +80,7 @@ namespace Saturn {
 		Ref<Entity>& GetCameraEntity() { return m_CameraEntity; }
 		const Ref<Entity>& GetCameraEntity() const { return m_CameraEntity; }
 
-	private:
+	protected:
 		//////////////////////////////////////////////////////////////////////////
 		// Movement
 		//////////////////////////////////////////////////////////////////////////
@@ -88,6 +88,7 @@ namespace Saturn {
 		glm::vec3 CalculateRight();
 		glm::vec3 CalculateForward();
 
+	private:
 		void HandleMovement() {}
 		void HandleRotation( Timestep ts );
 
