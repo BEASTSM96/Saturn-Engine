@@ -633,18 +633,11 @@ namespace Saturn {
 					{
 						if( ImGui::MenuItem( "Show In Explorer" ) )
 						{
-							// TODO TEMP: Create a process class.
-
 							std::wstring CommandLine = L"";
 							std::filesystem::path AssetPath = m_SelectedItems[ 0 ]->Path();
 							CommandLine = std::format( L"explorer.exe \"{0}\"", AssetPath.wstring() );
 
-							Process explorer( CommandLine );
-
-							// Wait a bit for the process to start.
-							// Usually the explorer process takes a bit to start for some reason?
-							using namespace std::chrono_literals;
-							std::this_thread::sleep_for( 1.5s );
+							DeatchedProcess dp( CommandLine );
 						}
 					}
 					else

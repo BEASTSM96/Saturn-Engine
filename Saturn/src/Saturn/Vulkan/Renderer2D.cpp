@@ -520,7 +520,7 @@ namespace Saturn {
 		m_CameraView = view;
 	}
 
-	void Renderer2D::Prepare() 
+	void Renderer2D::PreRender() 
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 		
@@ -536,9 +536,8 @@ namespace Saturn {
 		m_CommandBuffer = Renderer::Get().ActiveCommandBuffer();
 
 		// First, check if we have a render pass.
-		if( !m_TargetRenderPass || !m_CurrentQuad )
+		if( !m_TargetRenderPass || !m_CurrentQuad || !m_CurrentLine )
 		{
-			FlushDrawList();
 			return;
 		}
 
@@ -554,14 +553,6 @@ namespace Saturn {
 		RenderAll();
 
 		CmdEndDebugLabel( m_CommandBuffer );
-
-		FlushDrawList();
-	}
-
-	void Renderer2D::FlushDrawList()
-	{
-		m_QuadDrawList.clear();
-		m_LineDrawList.clear();
 	}
 
 }

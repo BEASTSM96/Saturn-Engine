@@ -80,7 +80,7 @@ namespace Saturn {
 
 		void SetCamera( const glm::mat4& viewProjection, const glm::mat4& view );
 
-		void Prepare();
+		void PreRender();
 
 		void Init();
 		void Terminate();
@@ -90,8 +90,6 @@ namespace Saturn {
 		void LateInit( Ref<Pass> targetPass = nullptr, Ref<Framebuffer> framebuffer = nullptr);
 		void Recreate();
 		void Reset();
-
-		void FlushDrawList();
 
 		void RenderAll();
 		void RenderAllQuads();
@@ -103,7 +101,6 @@ namespace Saturn {
 
 		//////////////////////////////////////////////////////////////////////////
 		// QUADS
-		std::vector<QuadDrawCommand> m_QuadDrawList;
 		std::vector<glm::vec4> m_QuadVertexPositions;
 		std::vector< Ref<VertexBuffer> > m_QuadVertexBuffers;
 		std::vector< QuadDrawCommand* > m_CurrentQuadBase;
@@ -113,7 +110,6 @@ namespace Saturn {
 
 		//////////////////////////////////////////////////////////////////////////
 		// LINES
-		std::vector<LineDrawCommand> m_LineDrawList;
 		std::vector< Ref<VertexBuffer> > m_LineVertexBuffers;
 		std::vector< LineDrawCommand* > m_CurrentLineBase;
 		

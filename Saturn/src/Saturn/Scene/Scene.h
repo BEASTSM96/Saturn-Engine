@@ -177,7 +177,7 @@ namespace Saturn {
 		{
 			std::vector<Ref<Entity>> result;
 
-			for( auto&& [ id, entity ] : m_EntityIDMap )
+			for( const auto& [ id, entity ] : m_EntityIDMap )
 			{
 				if( entity->HasComponent<T>() )
 					result.push_back( entity );
@@ -316,6 +316,8 @@ namespace Saturn {
 		std::vector< Ref<Entity> > m_SelectedEntities;
 
 		Lights m_Lights;
+
+		Ref<Entity> m_MainCameraEntity;
 
 		std::mutex m_Mutex;
 

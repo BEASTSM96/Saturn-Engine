@@ -377,7 +377,7 @@ namespace Saturn {
 				std::string ScriptName = srcc[ "Name" ].as< std::string >();
 
 				// Ask the game module to create the entity.
-				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, "Barn" );
+				DeserialisedEntity = scene->CreateEntityWithIDScript( entityID, Tag, ScriptName );
 
 				auto& s = DeserialisedEntity->AddComponent< ScriptComponent >();
 

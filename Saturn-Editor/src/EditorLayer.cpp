@@ -235,6 +235,8 @@ namespace Saturn {
 				hierarchyPanel->SetContext( m_RuntimeScene );
 
 				Application::Get().PrimarySceneRenderer().SetCurrentScene( m_RuntimeScene.Get() );
+
+				m_EditorCamera.SetActive( false );
 			}
 		}
 		else
@@ -255,7 +257,7 @@ namespace Saturn {
 		if( m_RuntimeScene ) 
 		{
 			// TEMP:
-			Renderer2D::Get().Prepare();
+			Renderer2D::Get().PreRender();
 
 			m_RuntimeScene->OnUpdate( time );
 			m_RuntimeScene->OnRenderRuntime( time, Application::Get().PrimarySceneRenderer() );

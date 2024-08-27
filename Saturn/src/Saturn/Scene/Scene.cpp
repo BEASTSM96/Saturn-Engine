@@ -192,7 +192,7 @@ namespace Saturn {
 
 		auto rigidBodies = GetAllEntitiesWith<RigidbodyComponent>();
 		
-		float FixedTimestep = 1.0f / 100.0f;
+		constexpr float FixedTimestep = 1.0f / 100.0f;
 		for( auto&& [id, entity] : m_EntityIDMap )
 		{
 			entity->OnPhysicsUpdate( FixedTimestep );
@@ -210,7 +210,7 @@ namespace Saturn {
 		SAT_PF_EVENT();
 
 		Renderer2D::Get().SetCamera( rCamera.ViewProjection(), rCamera.ViewMatrix() );
-		Renderer2D::Get().Prepare();
+		Renderer2D::Get().PreRender();
 
 		// Lights
 		{
@@ -367,14 +367,11 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		// Camera
-		Ref<Entity> cameraEntity = GetMainCameraEntity();
-
-		if( !cameraEntity )
-			return;
-
-		auto view = glm::inverse( GetTransformRelativeToParent( cameraEntity ) );
-		SceneCamera& camera = cameraEntity->GetComponent<CameraComponent>().Camera;
+		// Try find new main camera entity if current saved one is null
+		if( !m_MainCameraEntity )
+		{
+			m_MainCameraEntity = GetMainCameraEntity();
+		}
 
 		// Lights
 		{
@@ -440,9 +437,16 @@ namespace Saturn {
 			}
 		}
 
-		Renderer2D::Get().SetCamera( camera.ProjectionMatrix() * view, view );
+		// Init scene camera projection
+
+		auto& rCameraComponent = m_MainCameraEntity->GetComponent<CameraComponent>();
+		auto view = glm::inverse( GetTransformRelativeToParent( m_MainCameraEntity ) );
+
+		SceneCamera& camera = rCameraComponent.Camera;
 
 		camera.SetViewportSize( rSceneRenderer.Width(), rSceneRenderer.Height() );
+
+		Renderer2D::Get().SetCamera( camera.ProjectionMatrix() * view, view );
 		rSceneRenderer.SetCamera( { camera, view } );
 	}
 
@@ -681,6 +685,11 @@ namespace Saturn {
 		}
 
 		StartAudioPlayers();
+
+		// Init new scene camera
+		m_MainCameraEntity = GetMainCameraEntity();
+		auto& rCameraComponent = m_MainCameraEntity->GetComponent<CameraComponent>();
+		rCameraComponent.Camera.SetFOV( rCameraComponent.Fov );
 	}
 
 	void Scene::UpdateAudioListeners() 
@@ -770,6 +779,8 @@ namespace Saturn {
 			delete m_PhysicsScene;
 
 		DestroyAudioPlayers();
+
+		m_MainCameraEntity = nullptr;
 
 		RuntimeRunning = false;
 	}

@@ -69,7 +69,7 @@ namespace Saturn {
 		}
 
 		template<typename T>
-		[[nodiscard]] bool HasComponent()
+		[[nodiscard]] bool HasComponent() const
 		{
 			return m_Scene->HasComponent<T>( m_EntityHandle );
 		}

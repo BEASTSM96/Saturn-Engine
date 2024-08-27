@@ -45,6 +45,7 @@ namespace Saturn {
 	public:
 		EditorCamera() = default;
 		EditorCamera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane );
+		~EditorCamera() = default;
 
 		void Focus( const glm::vec3& focusPoint );
 		void OnUpdate( Timestep ts );

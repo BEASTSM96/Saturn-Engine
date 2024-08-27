@@ -164,6 +164,7 @@ namespace Saturn {
 	{
 		SceneCamera Camera;
 		bool MainCamera = false;
+		float Fov = 45.0f;
 	};
 
 	// Preetham sky
