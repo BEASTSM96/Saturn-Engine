@@ -44,22 +44,12 @@
 private: \
 	x& operator=(x&&); \
 	x& operator=(const x&); \
-	static Saturn::SClass* _PrvStatic() {} \
 public: \
 	typedef x ThisClass; \
 	typedef BaseClass Super; \
-	inline static Saturn::SClass* StaticClass() \
-	{ \
-		return nullptr; \
-	} \
 
 #define SAT_DECLARE_CLASS_MOVE( x, BaseClass ) \
-private: \
-	static Saturn::SClass* _PrvStatic() {} \
 public: \
 	typedef x ThisClass; \
 	typedef BaseClass Super; \
-	inline static Saturn::SClass* StaticClass() \
-	{ \
-		return nullptr; \
-	} \
+

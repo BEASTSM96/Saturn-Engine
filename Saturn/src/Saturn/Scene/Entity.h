@@ -55,27 +55,26 @@ namespace Saturn {
 		virtual ~Entity();
 
 	public:
-
 		template<typename T, typename... Args>
-		T& AddComponent( Args&&... args )
+		inline T& AddComponent( Args&&... args )
 		{
 			return m_Scene->AddComponent<T>( m_EntityHandle, std::forward<Args>( args )... );
 		}
 
 		template<typename T>
-		[[nodiscard]] T& GetComponent()
+		[[nodiscard]] inline T& GetComponent()
 		{
 			return m_Scene->GetComponent<T>( m_EntityHandle );
 		}
 
 		template<typename T>
-		[[nodiscard]] bool HasComponent() const
+		[[nodiscard]] inline bool HasComponent() const
 		{
 			return m_Scene->HasComponent<T>( m_EntityHandle );
 		}
 
 		template<typename T>
-		void RemoveComponent()
+		inline void RemoveComponent()
 		{
 			m_Scene->RemoveComponent<T>( m_EntityHandle );
 		}
@@ -146,12 +145,10 @@ namespace Saturn {
 		static void Deserialise( Ref<Entity>& rObject, std::istream& rStream );
 
 	protected:
-
 		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
 
 	private:
-
 		friend class Scene;
 		friend class Prefab;
 	};
