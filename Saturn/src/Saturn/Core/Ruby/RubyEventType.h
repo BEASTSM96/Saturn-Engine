@@ -28,9 +28,6 @@
 
 #pragma once
 
-#include "RubyCore.h"
-#include <stdint.h>
-
 namespace Saturn {
 
 	enum class RubyEventType
@@ -100,7 +97,7 @@ namespace Saturn {
 		EnumSize
 	};
 
-	enum class RubyMouseButton : uint32_t
+	enum class RubyMouseButton : unsigned int
 	{
 		Unknown = 6,
 

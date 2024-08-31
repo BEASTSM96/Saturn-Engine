@@ -70,6 +70,7 @@ namespace Saturn {
 
 	enum class RubyCursorType
 	{
+		None,
 		Arrow,
 		Hand,
 		IBeam,

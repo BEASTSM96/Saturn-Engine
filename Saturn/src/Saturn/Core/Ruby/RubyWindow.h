@@ -58,7 +58,7 @@ namespace Saturn {
 		void GetMousePos( double* x, double* y );
 		void SetMouseCursor( RubyCursorType Cursor );
 		void SetMouseCursorMode( RubyCursorMode mode );
-		void ChangeTitle( std::string_view Title );
+		void ChangeTitle( const std::string& rTitle );
 		void SetClipboardText( const std::string& rTextData );
 		void SetClipboardText( const std::wstring& rTextData );
 		void Focus();

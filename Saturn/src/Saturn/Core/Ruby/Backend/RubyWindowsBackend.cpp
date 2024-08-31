@@ -500,10 +500,13 @@ namespace Saturn {
 
 	void RubyWindowsBackend::ResetResizeCursor()
 	{
-		UnblockMouseCursor();
+		if( m_BlockMouseCursor )
+		{
+			UnblockMouseCursor();
 
-		// TODO: What if we did not have the arrow before?
-		SetMouseCursor( RubyCursorType::Arrow );
+			// m_CurrentCursorType is not changed when we are setting the cursor for resizing
+			SetMouseCursor( m_CurrentCursorType );
+		}
 	}
 
 	void RubyWindowsBackend::ConfigureClipRect()
@@ -533,9 +536,9 @@ namespace Saturn {
 		ConfigureClipRect();
 	}
 
-	void RubyWindowsBackend::SetTitle( std::string_view Title )
+	void RubyWindowsBackend::SetTitle( const std::string& rTitle )
 	{
-		::SetWindowTextA( m_Handle, Title.data() );
+		::SetWindowTextA( m_Handle, rTitle.data() );
 	}
 
 	void RubyWindowsBackend::Maximize()
@@ -584,8 +587,10 @@ namespace Saturn {
 
 	void RubyWindowsBackend::SetMouseCursor( RubyCursorType Cursor )
 	{
-		if( m_BlockMouseCursor )
+		if( m_BlockMouseCursor || m_CurrentCursorType == Cursor )
 			return;
+
+		m_CurrentCursorType = Cursor;
 
 		LPTSTR NativeCursorRes = ChooseCursor( Cursor );
 

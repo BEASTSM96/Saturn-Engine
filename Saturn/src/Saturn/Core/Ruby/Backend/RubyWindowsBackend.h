@@ -62,7 +62,7 @@ namespace Saturn {
 		void ResizeWindow( uint32_t Width, uint32_t Height ) override;
 		void MoveWindow( int x, int y ) override;
 
-		void SetTitle( std::string_view Title ) override;
+		void SetTitle( const std::string& rTitle ) override;
 
 		void SetMousePos( double x, double y ) override;
 		void GetMousePos( double* x, double* y ) override;
@@ -118,5 +118,6 @@ namespace Saturn {
 		// The current cursor image.
 		// For example: Arrow, Hand or IBeam.
 		HCURSOR m_CurrentMouseCursorIcon = nullptr;
+		RubyCursorType m_CurrentCursorType = RubyCursorType::None;
 	};
 }

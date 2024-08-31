@@ -222,9 +222,10 @@ namespace Saturn {
 		return m_pDefaultBackend->Maximized();
 	}
 
-	void RubyWindow::ChangeTitle( std::string_view Title )
+	void RubyWindow::ChangeTitle( const std::string& rTitle )
 	{
-		m_pDefaultBackend->SetTitle( Title );
+		m_WindowTitle = rTitle;
+		m_pDefaultBackend->SetTitle( rTitle );
 	}
 
 	void RubyWindow::SetClipboardText( const std::string& rTextData )
