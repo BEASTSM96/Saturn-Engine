@@ -27,9 +27,10 @@
 */
 
 #include "sppch.h"
-#include "EditorCamera.h"
+#include "SceneFlyCamera.h"
 
 #include "Saturn/Core/Input.h"
+#include "Saturn/Core/Ruby/RubyCore.h"
 
 #include <glm/glm.hpp>
 
@@ -37,21 +38,22 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-constexpr auto M_PI = 3.14159f;
+constexpr double M_PI = 3.14159265358979323846;
 
 namespace Saturn {
-	
-	EditorCamera::EditorCamera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane )
+
+	SceneFlyCamera::SceneFlyCamera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane )
 		: Camera( Fov, Width, Height, NearPlane, FarPlane ), m_FocalPoint( 0.0f )
 	{
-		const glm::vec3 position = { -5, 5, 5 };
-		m_Distance = glm::distance( position, m_FocalPoint );
+		constexpr glm::vec3 position{ -5.0f, 5.0f, 5.0f };
+		m_Distance = glm::distance( m_Position, m_FocalPoint );
 
 		m_Yaw = 3.0f * ( float ) M_PI / 4.0f;
-		m_Pitch = M_PI / 4.0f;
+		m_Pitch = ( float ) M_PI / 4.0f;
 
 		m_Position = CalculatePosition();
 		const glm::quat orientation = GetOrientation();
+
 		m_Rotation = glm::eulerAngles( orientation ) * ( 180.0f / ( float ) M_PI );
 		m_ViewMatrix = glm::translate( glm::mat4( 1.0f ), m_Position ) * glm::toMat4( orientation );
 		m_ViewMatrix = glm::inverse( m_ViewMatrix );
@@ -67,21 +69,13 @@ namespace Saturn {
 		Input::Get().SetCursorMode( RubyCursorMode::Normal );
 	}
 
-	void EditorCamera::OnUpdate( const Timestep ts )
+	void SceneFlyCamera::OnUpdate( Timestep ts )
 	{
 		const glm::vec2& mouse{ Input::Get().MouseX(), Input::Get().MouseY() };
 		const glm::vec2 delta = ( mouse - m_InitialMousePosition ) * 0.002f;
 
-		if( !m_IsActive )
+		if( !Input::Get().KeyPressed( RubyKey::Esc ) )
 		{
-			EnableMouse();
-
-			return;
-		}
-
-		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !Input::Get().KeyPressed( RubyKey::Alt ) )
-		{
-			m_CameraMode = CameraMode::FLYCAM;
 			DisableMouse();
 			const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
 
@@ -124,13 +118,10 @@ namespace Saturn {
 		m_Yaw += m_YawDelta;
 		m_Pitch += m_PitchDelta;
 
-		if( m_CameraMode == CameraMode::ARCBALL )
-			m_Position = CalculatePosition();
-
 		UpdateCameraView();
 	}
 
-	float EditorCamera::GetCameraSpeed() const
+	float SceneFlyCamera::GetCameraSpeed() const
 	{
 		float speed = m_NormalSpeed;
 		if( Input::Get().KeyPressed( RubyKey::Ctrl ) )
@@ -141,7 +132,7 @@ namespace Saturn {
 		return glm::clamp( speed, MIN_SPEED, MAX_SPEED );
 	}
 
-	void EditorCamera::UpdateCameraView()
+	void SceneFlyCamera::UpdateCameraView()
 	{
 		const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
 
@@ -161,51 +152,13 @@ namespace Saturn {
 		m_PositionDelta *= 0.8f;
 	}
 
-	void EditorCamera::Focus( const glm::vec3& focusPoint )
+	void SceneFlyCamera::OnEvent( RubyEvent& e )
 	{
-		m_FocalPoint = focusPoint;
-		m_CameraMode = CameraMode::FLYCAM;
-		if( m_Distance > m_MinFocusDistance )
-		{
-			m_Distance -= m_Distance - m_MinFocusDistance;
-			m_Position = m_FocalPoint - GetForwardDirection() * m_Distance;
-		}
-		m_Position = m_FocalPoint - GetForwardDirection() * m_Distance;
-		UpdateCameraView();
+		if( e.Type == RubyEventType::MouseScroll )
+			OnMouseScroll( ( RubyMouseScrollEvent& ) e );
 	}
 
-	std::pair<float, float> EditorCamera::PanSpeed() const
-	{
-		const float x = glm::min( float( m_ViewportWidth ) / 1000.0f, 2.4f ); // max = 2.4f
-		const float xFactor = 0.0366f * ( x * x ) - 0.1778f * x + 0.3021f;
-
-		const float y = glm::min( float( m_ViewportHeight ) / 1000.0f, 2.4f ); // max = 2.4f
-		const float yFactor = 0.0366f * ( y * y ) - 0.1778f * y + 0.3021f;
-
-		return { xFactor, yFactor };
-	}
-
-	float EditorCamera::RotationSpeed() const
-	{
-		return 0.8f;
-	}
-
-	float EditorCamera::ZoomSpeed() const
-	{
-		float distance = m_Distance * 0.2f;
-		distance = glm::max( distance, 0.0f );
-		float speed = distance * distance;
-		speed = glm::min( speed, 50.0f ); // max speed = 50
-		return speed;
-	}
-
-	void EditorCamera::OnEvent( RubyEvent& event )
-	{
-		if( event.Type == RubyEventType::MouseScroll )
-			OnMouseScroll( (RubyMouseScrollEvent&) event );
-	}
-
-	bool EditorCamera::OnMouseScroll( RubyMouseScrollEvent& e )
+	bool SceneFlyCamera::OnMouseScroll( RubyMouseScrollEvent& e )
 	{
 		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
 		{
@@ -221,21 +174,41 @@ namespace Saturn {
 		return true;
 	}
 
-	void EditorCamera::MousePan( const glm::vec2& delta )
+	glm::vec3 SceneFlyCamera::GetUpDirection() const
+	{
+		return glm::rotate( GetOrientation(), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+	}
+
+	glm::vec3 SceneFlyCamera::GetRightDirection() const
+	{
+		return glm::rotate( GetOrientation(), glm::vec3( 1.f, 0.f, 0.f ) );
+	}
+
+	glm::vec3 SceneFlyCamera::GetForwardDirection() const
+	{
+		return glm::rotate( GetOrientation(), glm::vec3( 0.0f, 0.0f, -1.0f ) );
+	}
+
+	glm::quat SceneFlyCamera::GetOrientation() const
+	{
+		return glm::quat( glm::vec3( -m_Pitch - m_PitchDelta, -m_Yaw - m_YawDelta, 0.0f ) );
+	}
+
+	void SceneFlyCamera::MousePan( const glm::vec2& delta )
 	{
 		auto [xSpeed, ySpeed] = PanSpeed();
 		m_FocalPoint -= GetRightDirection() * delta.x * xSpeed * m_Distance;
 		m_FocalPoint += GetUpDirection() * delta.y * ySpeed * m_Distance;
 	}
 
-	void EditorCamera::MouseRotate( const glm::vec2& delta )
+	void SceneFlyCamera::MouseRotate( const glm::vec2& delta )
 	{
 		const float yawSign = GetUpDirection().y < 0.0f ? -1.0f : 1.0f;
 		m_YawDelta += yawSign * delta.x * RotationSpeed();
 		m_PitchDelta += delta.y * RotationSpeed();
 	}
 
-	void EditorCamera::MouseZoom( float delta )
+	void SceneFlyCamera::MouseZoom( float delta )
 	{
 		m_Distance -= delta * ZoomSpeed();
 		const glm::vec3 forwardDir = GetForwardDirection();
@@ -248,30 +221,34 @@ namespace Saturn {
 		m_PositionDelta += delta * ZoomSpeed() * forwardDir;
 	}
 
-	glm::vec3 EditorCamera::GetUpDirection() const
-	{
-		return glm::rotate( GetOrientation(), glm::vec3( 0.0f, 1.0f, 0.0f ) );
-	}
-
-	glm::vec3 EditorCamera::GetRightDirection() const
-	{
-		return glm::rotate( GetOrientation(), glm::vec3( 1.f, 0.f, 0.f ) );
-	}
-
-	glm::vec3 EditorCamera::GetForwardDirection() const
-	{
-		return glm::rotate( GetOrientation(), glm::vec3( 0.0f, 0.0f, -1.0f ) );
-	}
-
-	glm::vec3 EditorCamera::CalculatePosition() const
+	glm::vec3 SceneFlyCamera::CalculatePosition() const
 	{
 		return m_FocalPoint - GetForwardDirection() * m_Distance + m_PositionDelta;
 	}
 
-	glm::quat EditorCamera::GetOrientation() const
+	std::pair<float, float> SceneFlyCamera::PanSpeed() const
 	{
-		return glm::quat( glm::vec3( -m_Pitch - m_PitchDelta, -m_Yaw - m_YawDelta, 0.0f ) );
+		const float x = glm::min( float( m_ViewportWidth ) / 1000.0f, 2.4f ); // max = 2.4f
+		const float xFactor = 0.0366f * ( x * x ) - 0.1778f * x + 0.3021f;
+
+		const float y = glm::min( float( m_ViewportHeight ) / 1000.0f, 2.4f ); // max = 2.4f
+		const float yFactor = 0.0366f * ( y * y ) - 0.1778f * y + 0.3021f;
+
+		return { xFactor, yFactor };
 	}
 
+	float SceneFlyCamera::RotationSpeed() const
+	{
+		return 0.8f;
+	}
+
+	float SceneFlyCamera::ZoomSpeed() const
+	{
+		float distance = m_Distance * 0.2f;
+		distance = glm::max( distance, 0.0f );
+		float speed = distance * distance;
+		speed = glm::min( speed, 50.0f ); // max speed = 50
+		return speed;
+	}
 
 }

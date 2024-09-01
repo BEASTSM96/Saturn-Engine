@@ -51,4 +51,11 @@ namespace Saturn {
 	protected:
 		glm::mat4 m_Projection = glm::mat4( 1.0f );
 	};
+
+	// The current camera's information to be sent to a renderer (SceneRenderer/Renderer2D)
+	struct RendererCamera
+	{
+		Camera Camera;
+		glm::mat4 ViewMatrix{};
+	};
 }

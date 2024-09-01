@@ -29,59 +29,37 @@
 #pragma once
 
 #include "Saturn/Core/Timestep.h"
-#include "Saturn/Core/Input.h"
 #include "Saturn/Core/Ruby/RubyEvent.h"
 #include "Camera.h"
 
 namespace Saturn {
 
-	enum class CameraMode
-	{
-		NONE, FLYCAM, ARCBALL
-	};
-
-	class EditorCamera : public Camera
+	class SceneFlyCamera : public Camera
 	{
 	public:
-		EditorCamera() = default;
-		EditorCamera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane );
-		~EditorCamera() = default;
+		SceneFlyCamera() = default;
+		SceneFlyCamera( const float Fov, const float Width, const float Height, const float NearPlane, const float FarPlane );
+		~SceneFlyCamera() = default;
 
-		void Focus( const glm::vec3& focusPoint );
 		void OnUpdate( Timestep ts );
-		void OnEvent( RubyEvent& event );
-
-		bool IsActive() const { return m_IsActive; }
-		void SetActive( bool active ) { m_IsActive = active; }
-
-		CameraMode GetCurrentMode() const { return m_CameraMode; }
-
-		inline float GetDistance() const { return m_Distance; }
-		inline void SetDistance( float distance ) { m_Distance = distance; }
-
-		const glm::vec3& GetFocalPoint() const { return m_FocalPoint; }
-
+		void OnEvent( RubyEvent& e );
 		inline void SetViewportSize( uint32_t width, uint32_t height ) { m_ViewportWidth = width; m_ViewportHeight = height; }
 
 		const glm::mat4& ViewMatrix() const { return m_ViewMatrix; }
 		glm::mat4 ViewProjection() const { return m_Projection * m_ViewMatrix; }
+		const glm::vec3& GetPosition() const { return m_Position; }
 
 		glm::vec3 GetUpDirection() const;
 		glm::vec3 GetRightDirection() const;
 		glm::vec3 GetForwardDirection() const;
-
-		const glm::vec3& GetPosition() const { return m_Position; }
-
 		glm::quat GetOrientation() const;
-
 		float GetPitch() const { return m_Pitch; }
 		float GetYaw() const { return m_Yaw; }
 		float GetCameraSpeed() const;
+
 	private:
 		void UpdateCameraView();
-
 		bool OnMouseScroll( RubyMouseScrollEvent& e );
-
 		void MousePan( const glm::vec2& delta );
 		void MouseRotate( const glm::vec2& delta );
 		void MouseZoom( float delta );
@@ -91,12 +69,10 @@ namespace Saturn {
 		std::pair<float, float> PanSpeed() const;
 		float RotationSpeed() const;
 		float ZoomSpeed() const;
+
 	private:
 		glm::mat4 m_ViewMatrix;
 		glm::vec3 m_Position, m_Rotation, m_FocalPoint;
-
-		bool m_IsActive = false;
-		bool m_Panning, m_Rotating;
 		glm::vec2 m_InitialMousePosition{};
 		glm::vec3 m_InitialFocalPoint, m_InitialRotation;
 
@@ -108,16 +84,7 @@ namespace Saturn {
 		glm::vec3 m_PositionDelta{};
 		glm::vec3 m_RightDirection{};
 
-		CameraMode m_CameraMode{ CameraMode::ARCBALL };
-
-		float m_MinFocusDistance{ 100.0f };
-
 		uint32_t m_ViewportWidth{ 1280 }, m_ViewportHeight{ 720 };
-
 		constexpr static float MIN_SPEED{ 0.0005f }, MAX_SPEED{ 2.0f };
-
-	private:
-		friend class EditorLayer;
-
 	};
 }

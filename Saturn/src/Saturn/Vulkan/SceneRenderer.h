@@ -94,12 +94,6 @@ namespace Saturn {
 		None
 	};
 
-	struct RendererCamera
-	{
-		Camera Camera;
-		glm::mat4 ViewMatrix{};
-	};
-
 	struct StaticMeshKey
 	{
 		AssetID MeshID;
