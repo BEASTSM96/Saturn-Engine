@@ -739,10 +739,10 @@ namespace Saturn {
 					if( Auxiliary::DrawBoolControl( "Spatialization", ap.Spatialization ) )
 						sound->SetSpatialization( ap.Spatialization );
 
-					if( Auxiliary::DrawFloatControl( "Volume Multiplier", ap.VolumeMultiplier ) ) 
+					if( Auxiliary::DrawFloatControl( "Volume Multiplier", ap.VolumeMultiplier, 0.0f, 100.0f ) )
 						sound->SetVolumeMultiplier( ap.VolumeMultiplier );
 
-					if( Auxiliary::DrawFloatControl( "Pitch Multiplier", ap.PitchMultiplier ) )
+					if( Auxiliary::DrawFloatControl( "Pitch Multiplier", ap.PitchMultiplier, 0.0f, 100.0f ) )
 						sound->SetPitchMultiplier( ap.PitchMultiplier );
 				}
 				else
@@ -763,8 +763,8 @@ namespace Saturn {
 				Auxiliary::DrawBoolControl( "Mute", ap.Mute );
 				Auxiliary::DrawBoolControl( "Spatialization", ap.Spatialization );
 
-				Auxiliary::DrawFloatControl( "Volume Multiplier", ap.VolumeMultiplier );
-				Auxiliary::DrawFloatControl( "Pitch Multiplier", ap.PitchMultiplier );
+				Auxiliary::DrawFloatControl( "Volume Multiplier", ap.VolumeMultiplier, 0.0f, 100.0f );
+				Auxiliary::DrawFloatControl( "Pitch Multiplier", ap.PitchMultiplier, 0.0f, 100.0f );
 			}
 		} );
 

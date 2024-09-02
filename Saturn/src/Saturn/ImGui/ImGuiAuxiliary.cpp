@@ -219,7 +219,8 @@ namespace Saturn::Auxiliary {
 		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
 		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 } );
 
-		modified |= ImGui::DragFloat( "##floatx", &values, 0.1f, max, min, "%.2f" );
+		modified |= ImGui::DragFloat( "##floatx", &values, 0.1f, max, min, "%.2f", ImGuiSliderFlags_AlwaysClamp );
+		values = glm::clamp( values, min, max );
 
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar();
@@ -254,7 +255,7 @@ namespace Saturn::Auxiliary {
 		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
 		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 } );
 
-		modified |= ImGui::DragFloat( "##floatx", &values, 0.1f, max, min, "%.2f" );
+		modified |= ImGui::DragFloat( "##floatx", &values, 0.1f, max, min, "%.2f", ImGuiSliderFlags_AlwaysClamp );
 
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar();
@@ -269,7 +270,7 @@ namespace Saturn::Auxiliary {
 		return modified;
 	}
 
-	bool DrawIntControl( const std::string& rLabel, int& values, float columnWidth /*= 125.0f */ )
+	bool DrawIntControl( const std::string& rLabel, int& values, int min, int max, float columnWidth /*= 125.0f */ )
 	{
 		bool modified = false;
 
@@ -290,7 +291,8 @@ namespace Saturn::Auxiliary {
 		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
 		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 } );
 
-		modified |= ImGui::DragInt( "##intx", &values, 0.0f, 5000, 0, "%.2f" );
+		modified |= ImGui::DragInt( "##intx", &values, 0.0f, 5000, 0, "%.2f", ImGuiSliderFlags_AlwaysClamp );
+		values = glm::clamp( values, min, max );
 
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar();
