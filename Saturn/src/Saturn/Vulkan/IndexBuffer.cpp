@@ -47,7 +47,7 @@ namespace Saturn {
 
 	IndexBuffer::~IndexBuffer()
 	{
-		Terminate();
+		Destroy();
 	}
 
 	void IndexBuffer::Bind( VkCommandBuffer CommandBuffer )
@@ -109,7 +109,7 @@ namespace Saturn {
 		pAllocator->DestroyBuffer( StagingBuffer );
 	}
 
-	void IndexBuffer::Terminate()
+	void IndexBuffer::Destroy()
 	{
 		if( m_Buffer != nullptr )
 			VulkanContext::Get().GetVulkanAllocator()->DestroyBuffer( m_Buffer );

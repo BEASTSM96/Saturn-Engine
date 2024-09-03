@@ -34,8 +34,6 @@
 
 #include "VulkanAllocator.h"
 
-#include "Saturn/Serialisation/RawSerialisation.h"
-
 #include <vulkan.h>
 #include <string>
 #include <vector>
@@ -57,25 +55,6 @@ namespace Saturn {
 		glm::vec3 Tangent;
 		glm::vec3 Binormal;
 		glm::vec2 Texcoord;
-
-	public:
-		static void Serialise( const StaticVertex& rObject, std::ofstream& rStream )
-		{
-			RawSerialisation::WriteVec3( rObject.Position, rStream );
-			RawSerialisation::WriteVec3( rObject.Normal, rStream );
-			RawSerialisation::WriteVec3( rObject.Tangent, rStream );
-			RawSerialisation::WriteVec3( rObject.Binormal, rStream );
-			RawSerialisation::WriteVec2( rObject.Texcoord, rStream );
-		}
-
-		static void Deserialise( StaticVertex& rObject, std::ifstream& rStream )
-		{
-			RawSerialisation::ReadVec3( rObject.Position, rStream );
-			RawSerialisation::ReadVec3( rObject.Normal, rStream );
-			RawSerialisation::ReadVec3( rObject.Tangent, rStream );
-			RawSerialisation::ReadVec3( rObject.Binormal, rStream );
-			RawSerialisation::ReadVec2( rObject.Texcoord, rStream );
-		}
 	};
 	
 	struct VertexBufferElement
@@ -185,14 +164,12 @@ namespace Saturn {
 	{
 	public:
 		VertexBuffer() : m_pData( nullptr ) { }
-
 		VertexBuffer( void* pData, VkDeviceSize Size, VkBufferUsageFlags Usage = 0 );
 		VertexBuffer( VkDeviceSize Size, VkBufferUsageFlags Usage = 0 );
-		
 		VertexBuffer( const VertexBuffer& ) = delete;
-
 		~VertexBuffer();
-		void Terminate();
+
+		void Destroy();
 	
 		void Bind( VkCommandBuffer CommandBuffer );
 		void Bind( VkCommandBuffer CommandBuffer, uint32_t binding, VkDeviceSize* Offsets );

@@ -62,7 +62,7 @@ namespace Saturn {
 
 	VertexBuffer::~VertexBuffer()
 	{
-		Terminate();
+		Destroy();
 	}
 
 	void VertexBuffer::BindAndDraw( VkCommandBuffer CommandBuffer )
@@ -149,7 +149,7 @@ namespace Saturn {
 		pAllocator->DestroyBuffer( StagingBuffer );
 	}
 
-	void VertexBuffer::Terminate()
+	void VertexBuffer::Destroy()
 	{
 		if ( m_Buffer != nullptr )
 			VulkanContext::Get().GetVulkanAllocator()->DestroyBuffer( m_Buffer );

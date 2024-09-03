@@ -76,29 +76,26 @@ namespace Saturn {
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 
-		// ImGui Theme
+		ImGuiIO& rIO = ImGui::GetIO();
 
-		ImGuiIO& io = ImGui::GetIO(); ( void ) io;
-
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		rIO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		rIO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		rIO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-		ImGuiStyle& style = ImGui::GetStyle();
-		if( io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
+		ImGuiStyle& rStyle = ImGui::GetStyle();
 		{
-			style.WindowRounding = 0.0f;
-			style.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
+			rStyle.WindowRounding = 0.0f;
+			rStyle.Colors[ ImGuiCol_WindowBg ].w = 1.0f;
 		}
 
-		io.ConfigWindowsResizeFromEdges = io.BackendFlags & ImGuiBackendFlags_HasMouseCursors;
+		rIO.ConfigWindowsResizeFromEdges = rIO.BackendFlags & ImGuiBackendFlags_HasMouseCursors;
 
-		io.Fonts->AddFontFromMemoryTTF( ( void* ) GNotoSansRegularEmbeded, sizeof( GNotoSansRegularEmbeded ), 18.0f );
-		io.FontDefault = io.Fonts->Fonts.back();
+		rIO.Fonts->AddFontFromMemoryTTF( ( void* ) GNotoSansRegularEmbeded, sizeof( GNotoSansRegularEmbeded ), 18.0f );
+		rIO.FontDefault = rIO.Fonts->Fonts.back();
 		
-		io.Fonts->AddFontFromMemoryTTF( ( void* ) GNotoSansBoldEmbeded, sizeof( GNotoSansBoldEmbeded ), 18.0f );
-		io.Fonts->AddFontFromMemoryTTF( ( void* ) GNotoSansItalicEmbeded, sizeof( GNotoSansItalicEmbeded ), 18.0f );
+		rIO.Fonts->AddFontFromMemoryTTF( ( void* ) GNotoSansBoldEmbeded, sizeof( GNotoSansBoldEmbeded ), 18.0f );
+		rIO.Fonts->AddFontFromMemoryTTF( ( void* ) GNotoSansItalicEmbeded, sizeof( GNotoSansItalicEmbeded ), 18.0f );
 
 		Styles::Dark();
 
@@ -212,12 +209,8 @@ namespace Saturn {
 
 		ImGui_ImplVulkan_RenderDrawData( ImGui::GetDrawData(), CommandBuffer );
 
-		ImGuiIO& rIO = ImGui::GetIO();
-		if( rIO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
-		{
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-		}
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
 
 		vkCmdEndRenderPass( CommandBuffer );
 		CmdEndDebugLabel( CommandBuffer );

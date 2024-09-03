@@ -50,7 +50,7 @@ namespace Saturn {
 
 		bool IsRenderThread();
 
-		void Enable( bool enable ) { m_Enabled = enable; }
+		void EnableIf( bool enable ) { m_Enabled = enable; }
 
 	public:
 		virtual void Start() override;

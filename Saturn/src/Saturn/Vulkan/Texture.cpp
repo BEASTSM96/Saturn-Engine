@@ -476,12 +476,6 @@ namespace Saturn {
 			m_HDR = false;
 		}
 
-		if( !std::filesystem::exists( m_Path ) )
-		{
-			SAT_CORE_ERROR( "Failed to load texture image: {0}", m_Path.string() );
-			return;
-		}
-
 		m_pData = pTextureData;
 
 		m_Width = Width;

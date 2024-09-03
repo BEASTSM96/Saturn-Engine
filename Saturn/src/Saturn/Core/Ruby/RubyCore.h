@@ -28,10 +28,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <string>
 
-#define SAT_RBY_BIT( x ) ( 1 << x )
 #define SAT_RBY_DISABLE_COPY( x ) x(const x&) = delete
 
 #if defined( SAT_RBY_DLL )
@@ -64,8 +62,8 @@ namespace Saturn {
 
 	enum class RubyStyle
 	{
-		Default = SAT_RBY_BIT( 0 ),
-		Borderless = SAT_RBY_BIT( 1 ),
+		Default,
+		Borderless,
 	};
 
 	enum class RubyCursorType
@@ -85,7 +83,9 @@ namespace Saturn {
 	enum class RubyCursorMode
 	{
 		Normal,
+		// Mouse is hidden but still uses real OS mouse positions
 		Hidden,
+		// Mouse is hidden however mouse is clipped in Window bounds and Ruby provides virtual mouse positions.
 		Locked
 	};
 

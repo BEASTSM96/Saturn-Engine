@@ -28,8 +28,7 @@
 
 #pragma once
 
-#include "Saturn/Core/Base.h"
-
+#include "Saturn/Core/Ruby/RubyCore.h"
 #include "Saturn/Core/Ruby/RubyEventType.h"
 
 #include <glm/glm.hpp>
@@ -42,7 +41,7 @@ namespace Saturn {
 		static inline Input& Get() { return *SingletonStorage::GetOrCreateSingleton<Input>(); }
 	public:
 		Input();
-		~Input() { }
+		~Input() = default;
 
 		bool KeyPressed( RubyKey key );
 		bool MouseButtonPressed( RubyMouseButton button );
@@ -55,10 +54,14 @@ namespace Saturn {
 		void SetCursorMode( RubyCursorMode mode, bool bypassGuard = false );
 		RubyCursorMode GetCursorMode();
 
+#if !defined(SAT_DIST)
 		void SetCanSetCursorMode( bool val ) { m_CanSetCursorMode = val; }
 		bool CanSetCursorMode() const { return m_CanSetCursorMode; }
+#endif
 
 	private:
+#if !defined(SAT_DIST)
 		bool m_CanSetCursorMode = false;
+#endif
 	};
 }

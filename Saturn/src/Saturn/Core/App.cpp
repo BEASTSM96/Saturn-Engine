@@ -63,6 +63,7 @@ namespace Saturn {
 	{
 		SingletonStorage::AddSingleton( this );
 
+		// Setup default width and height
 		const RubyMonitor& rPrimaryMonitor = RubyLibrary::Get().GetPrimaryMonitor();
 		uint32_t width = 0, height = 0;
 
@@ -83,11 +84,10 @@ namespace Saturn {
 		// If we are in Dist we don't want to create the Scene Renderer now because it does not know where the shaders are. 
 		// So we want to first the shader bundle however that requires the project to be loaded.
 #if !defined( SAT_DIST )
-		SceneRendererFlags flags = SceneRendererFlag_MasterInstance | SceneRendererFlag_RenderGrid;
-
+		constexpr SceneRendererFlags flags = SceneRendererFlag_MasterInstance | SceneRendererFlag_RenderGrid;
 		m_SceneRenderer = new SceneRenderer( flags );
 #endif
-
+		// Now, resize to specification width and height
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
 			m_Window->Resize( m_Specification.WindowWidth, m_Specification.WindowHeight );
 
@@ -96,7 +96,7 @@ namespace Saturn {
 
 		// Lazy load.
 		AudioSystem::Get();
-		RenderThread::Get().Enable( HasFlag( ApplicationFlag_UseGameThread ) );
+		RenderThread::Get().EnableIf( HasFlag( ApplicationFlag_UseGameThread ) );
 		RenderThread::Get().Start();
 
 		// ImGui is only used if we have the editor, and ImGui should not be used when building the game.
@@ -124,8 +124,8 @@ namespace Saturn {
 		{
 			m_Window->PollEvents();
 
-			for( auto&& fn : m_MainThreadQueue )
-				fn();
+			for( auto&& rrFn : m_MainThreadQueue )
+				rrFn();
 
 			m_MainThreadQueue.clear();
 
@@ -168,9 +168,9 @@ namespace Saturn {
 
 		VulkanContext::Get().SubmitTerminateResource( [&]() 
 		{
-			for ( auto& layer : m_Layers )
+			for ( auto& rLayer : m_Layers )
 			{
-				delete layer;
+				delete rLayer;
 			}
 
 #if !defined( SAT_DIST )
@@ -205,17 +205,17 @@ namespace Saturn {
 #endif
 
 		// Update on the main thread.
-		for( auto& layer : m_Layers )
+		for( auto& rLayer : m_Layers )
 		{
-			layer->OnUpdate( m_Timestep );
+			rLayer->OnUpdate( m_Timestep );
 		}
 
 #if !defined(SAT_DIST)
 		RenderThread::Get().Queue( [=]
 			{
-				for( auto& layer : m_Layers )
+				for( auto& rLayer : m_Layers )
 				{
-					layer->OnImGuiRender();
+					rLayer->OnImGuiRender();
 				}
 			} );
 

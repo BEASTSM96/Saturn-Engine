@@ -249,7 +249,7 @@ namespace Saturn {
 
 			if( MaterialName.empty() ) 
 			{
-				MaterialName = "Unnamed Material" + std::to_string( rand() );
+				MaterialName = std::format( "{0} Unnamed Material {1}", Name, m );
 			}
 
 			Ref<Texture2D> PinkTexture = Renderer::Get().GetPinkTexture();

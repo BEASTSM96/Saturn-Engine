@@ -31,7 +31,6 @@
 #include "RubyCore.h"
 
 #include <string>
-#include <vector>
 
 namespace Saturn {
 
