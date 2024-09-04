@@ -44,13 +44,144 @@ namespace Saturn {
 		{
 			m_RefCount--;
 		}
-		
+
+		void AddWeakRef() const
+		{
+			m_WeakRefCount++;
+		}
+
+		void RemoveWeakRef() const
+		{
+			m_WeakRefCount--;
+		}
+
 		uint32_t GetRefCount() const { return m_RefCount; }
+		uint32_t GetWeakRefCount() const { return m_WeakRefCount; }
 
 	private:
 		mutable int m_RefCount = 0;
+		mutable int m_WeakRefCount = 0;
 	};
 	
+	template<typename T>
+	class Ref;
+
+	template<typename T>
+	class WeakRef final
+	{
+		static_assert( std::is_base_of<RefTarget, T>::value, "T must be a child of RefTarget class!" );
+	public:
+		WeakRef() : m_Pointer( nullptr ) {}
+		WeakRef( std::nullptr_t ) : m_Pointer( nullptr ) {}
+
+		// Construct from strong ref
+		WeakRef( const Ref<T>& rStrongRef ) 
+			: m_Pointer( rStrongRef.m_Pointer )
+		{
+			AddWeakRef();
+		}
+
+		WeakRef( const WeakRef<T>& rRef )
+			: m_Pointer( rRef.m_Pointer )
+		{
+			AddWeakRef();
+		}
+
+		WeakRef( const WeakRef<T>&& rrOther )
+			: m_Pointer( rrOther.m_Pointer )
+		{
+			rrOther.m_Pointer = nullptr;
+		}
+
+		~WeakRef()
+		{
+			RemoveWeakRef();
+
+			m_Pointer = nullptr;
+		}
+
+	public:
+		WeakRef& operator=( std::nullptr_t )
+		{
+			RemoveWeakRef();
+
+			m_Pointer = nullptr;
+			
+			return *this;
+		}
+
+		WeakRef& operator=( const Ref<T>& rStrongRef )
+		{
+			m_Pointer = rStrongRef.m_Pointer;
+		
+			AddWeakRef();
+
+			return *this;
+		}
+
+		WeakRef& operator=( const WeakRef<T>& rOther )
+		{
+			if( *this == rOther )
+				return;
+
+			RemoveWeakRef();
+			m_Pointer = rOther.m_Pointer;
+			AddWeakRef();
+
+			return *this;
+		}
+
+		WeakRef& operator=( const WeakRef<T>&& rrOther )
+		{
+			if( *this == rrOther )
+				return;
+
+			RemoveWeakRef();
+			m_Pointer = rrOther.m_Pointer;
+			rrOther.m_Pointer = nullptr;
+
+			return *this;
+		}
+
+		bool operator ==( const Ref<T>& rOther ) const { return m_Pointer == rOther.m_Pointer; }
+		bool operator !=( const Ref<T>& rOther ) const { return m_Pointer != rOther.m_Pointer; }
+
+	public:
+		Ref<T> Access() const 
+		{
+			if( !Expired() )
+			{
+				return Ref<T>( m_Pointer );
+			}
+
+			return nullptr;
+		}
+
+		bool Expired() const { return m_Pointer == nullptr || m_Pointer->GetRefCount() == 0; }
+
+	private:
+		void AddWeakRef() const 
+		{
+			if( m_Pointer )
+				m_Pointer->AddWeakRef();
+		}
+
+		void RemoveWeakRef() const 
+		{
+			if( m_Pointer )
+			{
+				m_Pointer->RemoveWeakRef();
+			}
+		}
+
+	private:
+		mutable T* m_Pointer;
+
+	private:
+		friend class Ref<T>;
+		friend class WeakRef;
+	};
+
 	template<typename T>
 	class Ref final
 	{
@@ -219,6 +350,7 @@ namespace Saturn {
 	private:
 		// Fix cannot access private member declared in class
 		friend class Ref;
+		friend class WeakRef<T>;
 	};
 
 }
