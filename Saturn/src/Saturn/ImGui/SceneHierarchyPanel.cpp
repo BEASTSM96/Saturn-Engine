@@ -478,7 +478,7 @@ namespace Saturn {
 
 		DrawComponent<CameraComponent>( "Camera", entity, [&]( auto& cc )
 		{
-			ImGui::Checkbox( "Main Camera", &cc.MainCamera );
+			Auxiliary::DrawBoolControl( "Main Camera", cc.MainCamera );
 			Auxiliary::DrawFloatControl( "Field of View", cc.Fov, 10.0f, 100.0f );
 		} );
 

@@ -385,32 +385,6 @@ namespace Saturn::Auxiliary {
 		return modified;
 	}
 
-	bool DrawOverlay( const std::string& rLabel )
-	{
-		ImGui::PushID( rLabel.c_str() );
-
-		bool SkipItem = ImGui::Begin( rLabel.c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus );
-		
-		return SkipItem;
-	}
-
-	bool DrawOverlay( const std::string& rLabel, ImVec2 Pos )
-	{
-		ImGui::PushID( rLabel.c_str() );
-
-		ImGui::SetNextWindowPos( Pos );
-
-		bool SkipItem = ImGui::Begin( rLabel.c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus );
-
-		return SkipItem;
-	}
-
-	void EndOverlay()
-	{
-		ImGui::End();
-		ImGui::PopID();
-	}
-
 	void Image( Ref<Image2D> Image, const ImVec2& Size, const ImVec2& UV0, const ImVec2& UV1, const ImVec4& TintColor, const ImVec4& BorderColor )
 	{
 		void* TextureID = ImGui_ImplVulkan_AddTexture( Image->GetSampler(), Image->GetImageView(), Image->GetDescriptorInfo().imageLayout );
@@ -680,19 +654,5 @@ namespace Saturn::Auxiliary {
 		}
 
 		return Modified;
-	}
-
-	bool RightHandCheckbox( const std::string& rLabel, bool* pValue )
-	{
-		std::string id = std::format( "##{0}", rLabel );
-
-		ImGui::BeginHorizontal( id.c_str() );
-
-		ImGui::Text( rLabel.c_str() );
-		bool pressed = ImGui::Checkbox( id.c_str(), pValue );
-
-		ImGui::EndHorizontal();
-
-		return pressed;
 	}
 }

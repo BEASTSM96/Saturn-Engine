@@ -88,10 +88,6 @@ namespace Saturn::Auxiliary {
 	
 	extern void DrawDisabledButton( const std::string& rLabel );
 
-	extern bool DrawOverlay( const std::string& rLabel, ImVec2 Pos );
-	extern bool DrawOverlay( const std::string& rLabel );
-	extern void EndOverlay();
-
 	extern void Image( Ref< Image2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ), const ImVec4& BorderColor = ImVec4( 0, 0, 0, 0 ) );
 	
 	extern void Image( Ref< Texture2D > Image, const ImVec2& Size, const ImVec2& UV0 = ImVec2( 0, 1 ), const ImVec2& UV1 = ImVec2( 1, 0 ), const ImVec4& TintColor = ImVec4( 1, 1, 1, 1 ), const ImVec4& BorderColor = ImVec4( 0, 0, 0, 0 ) );
@@ -117,8 +113,6 @@ namespace Saturn::Auxiliary {
 
 	extern bool DrawAssetFinder( AssetType type, bool* rOpen, AssetID& rOut );
 	extern bool DrawAssetFinder( const std::set<AssetType>& rAllowedTypes, bool* rOpen, AssetID& rOut );
-
-	extern bool RightHandCheckbox( const std::string& rLabel, bool* pValue );
 
 	template<typename Function>
 	inline bool DrawAssetFinder( AssetType allowedTypes, AssetID lastID, bool* rOpen, Function&& rrFunction )
